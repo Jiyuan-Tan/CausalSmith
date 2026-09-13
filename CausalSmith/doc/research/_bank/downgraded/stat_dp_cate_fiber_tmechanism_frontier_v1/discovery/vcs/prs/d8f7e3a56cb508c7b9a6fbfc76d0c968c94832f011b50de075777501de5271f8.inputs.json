@@ -1,0 +1,96 @@
+{
+  "units": [
+    {
+      "unit": "directive",
+      "targets": [],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [],
+        "resolved_oeqs": [],
+        "added_lemmas": [],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [
+          {
+            "id": "def:occupancy-pair-score",
+            "proposed": "Set \\(U_i=2A_i-1\\), \\(V_i=\\operatorname{clip}(2Y_i-1,-1,1)\\), where \\(\\operatorname{clip}(t,-1,1)=\\max\\{-1,\\min\\{t,1\\}\\}\\), and \\(Z_{ir}=(U_iV_r+V_iU_r)/2\\). For each public core \\(C_j\\), let \\(B_j=0\\) when \\(N_j<2\\), and otherwise let \\(B_j=\\{N_j(N_j-1)\\}^{-1}\\sum_{i\\ne r:X_i,X_r\\in C_j}Z_{ir}\\). Define \\(S_{\\mathrm{pair}}=\\sum_{j=1}^kB_j\\).",
+            "reason": "For every allowed record, \\(Y_i\\in[-1,1]\\) implies \\(V_i\\in[-1,1]\\), and hence \\(Z_{ir}\\in[-1,1]\\) and \\(B_j\\in[-1,1]\\). On the binary signed family, \\(Y_i\\in\\{0,1\\}\\), so clipping is inactive and every previously derived signed-family moment is unchanged. For a deletion from a cell of occupancy \\(m\\ge3\\), separating retained and incident ordered pairs bounds the change by \\(2/m+2/m=4/m\\le4/3\\); the boundary \\(m=2\\) change is at most one. Insertion is the reverse. Moving a record between distinct cells therefore changes the sum by at most \\(8/3\\), while replacement within one fixed cell changes it by at most two, so the all-dataset replacement sensitivity is at most \\(8/3\\).",
+            "direction": "correct"
+          },
+          {
+            "id": "def:private-pair-test",
+            "proposed": "Compute \\(S_{\\mathrm{pair}}(D_n)\\), draw \\(W\\sim\\operatorname{Laplace}(8/(3\\epsilon))\\), return \\(\\phi_{\\mathrm{pair}}=\\operatorname{sign}\\{S_{\\mathrm{pair}}(D_n)+W\\}\\) with an independent fair tie-break at zero, and set \\(\\widehat\\theta_{\\mathrm{pair}}=-\\phi_{\\mathrm{pair}}ab/(1/4-a^2)\\).",
+            "reason": "The corrected replacement sensitivity is \\(8/3\\), so the Laplace mechanism requires scale \\(8/(3\\epsilon)\\). At the signed-family signal threshold \\(2abM\\), its one-sided tail is \\(\\frac12\\exp\\{-3\\epsilon abM/4\\}\\), preserving the log-free exponent order \\(\\epsilon kp_2ab\\).",
+            "direction": "correct"
+          },
+          {
+            "id": "def:full-fiber-handle",
+            "proposed": "The symbol \\(H_{\\mathrm{pair\\mbox{-}lift}}\\) labels the unresolved sufficient-certificate program that would, for each finite minimax threshold problem between \\(\\mathcal F_-(u,\\delta)\\) and \\(\\mathcal F_+(u,\\delta)\\), retain a sample-level least-favorable mixture, extract and localize a first nonzero second-order Hoeffding projection into public microcells, normalize occupied cells by realized ordered-pair counts as in \\(S_{\\mathrm{pair}}\\), stabilize the residual higher-order term, and produce target-indexed scores to be assessed by \\(\\mathfrak W_r\\). This definition names the desired certificate only; it does not assert that the program succeeds for the full Hölder fibers or independently of a nuisance sieve.",
+            "reason": "The prior wording began with an imperative to apply the handle and could be read as an available reduction. The corrected construction records that the weighted-shell output is merely a sufficient certificate and that constructing it uniformly over the full class remains the open problem.",
+            "direction": "correct"
+          }
+        ],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "symbol-replace",
+            "name": "V_mark",
+            "proposed": {
+              "name": "V_mark",
+              "type": "\\([-1,1]\\)",
+              "def": "\\(V=\\operatorname{clip}(2Y-1,-1,1)\\), with \\(\\operatorname{clip}(t,-1,1)=\\max\\{-1,\\min\\{t,1\\}\\}\\). On the binary-outcome signed family, \\(V=2Y-1\\in\\{-1,1\\}\\).",
+              "role": "bounded transformed outcome mark",
+              "refs": [
+                "Y"
+              ]
+            },
+            "reason": "The old sign-valued type was false on the ambient outcome space \\(Y\\in[-1,1]\\). Clipping restores the declared range while agreeing exactly with the binary signed-family mark.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-replace",
+            "name": "W_noise",
+            "proposed": {
+              "name": "W_noise",
+              "type": "\\(\\mathbb R\\)",
+              "def": "\\(W\\sim\\operatorname{Laplace}(8/(3\\epsilon))\\), independently of the data.",
+              "role": "privacy noise",
+              "refs": [
+                "epsilon"
+              ]
+            },
+            "reason": "A real query of replacement sensitivity \\(8/3\\) requires Laplace scale \\(8/(3\\epsilon)\\) for pure \\(\\epsilon\\)-differential privacy.",
+            "direction": "correct"
+          },
+          {
+            "kind": "estimand-functional-replace",
+            "id": "metadata:estimand-functional",
+            "proposed": "\\(\\widehat\\theta_{\\mathrm{pair}}=-\\frac{ab}{1/4-a^2}\\operatorname{sign}\\!\\left\\{\\sum_{j=1}^kB_j+\\operatorname{Laplace}(8/(3\\epsilon))\\right\\}\\)",
+            "reason": "The displayed estimator must use the corrected Laplace scale corresponding to the sharpened \\(8/3\\) replacement-sensitivity certificate.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [],
+        "prose_updates": {
+          "tldr": "Unknown propensity can make separated pointwise CATE fibers have identical one-record nuisance mixtures while leaving an exact two-record signal. On a smooth signed binary family inside the unchanged exact-uniform Hölder class, clipping the transformed outcome is inactive and therefore preserves every signed-family moment, while making the pair score valid on all bounded-outcome datasets. The occupancy-normalized sum has per-cell deletion or insertion change at most \\(4/3\\), replacement sensitivity at most \\(8/3\\), and supports a finite pure-private test with \\(\\operatorname{Laplace}(8/(3\\epsilon))\\) noise and error \\(C\\exp(-ckp_2a^2b^2)+C\\exp(-c\\epsilon kp_2ab)\\), without a nuisance-cardinality logarithm. This upper/test guarantee is specific to the signed family. Its obstruction and any converse obtained from the embedded subclass transfer to anchor classes containing that subclass, but the full-class upper frontier remains open; the weighted shell functional is only a sufficient certificate for that lift.",
+          "project_justification": {
+            "gap": "Simple private tests use additive one-record likelihood increments, while generic private selection and T-mechanisms control finite covers through cardinality terms. The coupled CATE fibers here have intersecting one-record convex hulls, and published results do not supply a nuisance-independent second-order score certificate for arbitrary least-favorable priors over the full Hölder fibers.",
+            "niche": "On the explicit signed family, a higher-order private test uses a signal common to every nuisance profile only when two observations occupy the same public localization cell. Realized occupancy normalization, together with a clipped bounded-outcome mark, yields all-dataset replacement sensitivity at most \\(8/3\\) and preserves the \\(n^2\\epsilon\\) pair-information balance. This construction is not asserted for general full-class fibers.",
+            "fill": "The project constructs and audits a pair test on a legal smooth signed two-fiber family, proves an explicit pure-private test and risk bound for that family, gives an exact finite two-record diagnostic experiment, and states—without resolving—the full-class lift through one precisely defined weighted shell functional."
+          },
+          "sampling_model": {
+            "design": "Known exact-uniform random design \\(X\\sim\\operatorname{Unif}([0,1]^d)\\).",
+            "units": "The records \\(O_1,\\ldots,O_n\\) are independent under each component law; each diagnostic sample mixture retains one shared nuisance-sign vector across all records.",
+            "treatment": "Binary observational treatment with unknown Hölder propensity \\(\\pi\\).",
+            "overlap": "Uniform positivity \\(e_0\\le\\pi\\le1-e_0\\).",
+            "nuisance_estimation": "No nuisance estimator is supplied. On arbitrary bounded-outcome datasets the score uses \\(V=\\operatorname{clip}(2Y-1,-1,1)\\); on the binary signed family this equals \\(2Y-1\\), so the exact core-cell second moment is unchanged. The test averages out the signed nuisance through that family-specific second moment and normalizes each occupied cell by its realized ordered-pair count."
+          },
+          "related_work": "Kennedy, Balakrishnan, Robins, and Wasserman (2024), Theorems 1--2 and Section 5, define the nonprivate Hölder pointwise-CATE benchmark and localized higher-order geometry; those results inform the smooth family but are not private upper comparators. Canonne et al. (2019), Section 3, construct optimal private simple tests from clamped one-record likelihood ratios; the one-record convex-hull obstruction here explains why that additive representation cannot distinguish the displayed composite fibers. Acharya, Sun, and Zhang (2021) provide central-private mixture converses through Hamming transport; converse consequences from the present embedded subclass transfer to any anchor class containing it, but this does not transfer the signed-family upper test. Asi et al. (2024), Section 4.1, Theorem 13, Lemma 15, and Proposition 16, control a pure-private T-mechanism over finite total-variation covers with \\(\\log|\\mathcal P_\\eta|\\); the present common-orientation pair test avoids catalogue selection only on its explicit signed family and is not a generic strengthening. Bun et al. (2021), Theorem 1.1 and Corollary 1.2, give pure-private hypothesis and cover selection with \\(\\log m\\) and \\(\\log|\\mathcal C_\\alpha|\\) costs. Chaudhuri et al. (2024) stabilize private U-statistics with local Hájek projections, whereas the exact core normalization and shared causal second moment used here are family-specific. Niu et al. (2022) give private CATE meta-learners without a pure-private pointwise Hölder frontier. Schröder, Melnychuk, and Feuerriegel (2025), Theorems 1 and 3, study observational Neyman-orthogonal finite and functional CATE releases under approximate \\((\\epsilon,\\delta)\\)-privacy rather than the pure-private composite-fiber problem considered here.",
+          "interpretation": "The pair statistic establishes a genuine higher-order escape from the one-record mixture collision on one legal signed subclass. Clipping is a data-domain repair, not a restriction of the model: it leaves binary-family moments unchanged and makes every pair kernel lie in \\([-1,1]\\). The \\(8/3\\) global sensitivity comes from at most \\(4/3\\) change in each of two distinct cells; a within-cell replacement changes the block by at most two. These facts certify the displayed signed-family mechanism. They do not construct stable composite scores for arbitrary least-favorable priors, so \\(\\mathfrak W_r\\) should be read as a sufficient, computable criterion whose full-class realization is the open problem.",
+          "technical_internal_limitation": "The early-kill experiment used \\(d=1\\), \\(\\alpha=\\beta=1/8\\), \\(\\gamma=1\\), \\(n=2\\), \\(a=b=2/25\\), and \\(\\epsilon=1\\). For \\(k=1,\\ldots,8\\), finite nonprivate and private programs were evaluated on all \\((4k)^2\\) ordered datasets with every one-record replacement edge imposed; the exact symmetry formula was also checked through \\(k=12\\). These computations are diagnostics, not a proof that randomized response is optimal over all private mechanisms. The formal finite proposition establishes its stated Bayes risk and exact privacy loss only for the specified mechanism. The signed-family asymptotic test additionally requires sparse occupancy \\(n\\delta^{d/q}\\le c\\). At \\(\\delta=r_F\\), compatibility requires \\(\\epsilon\\ge c n^{-1+q/d+q/\\gamma}\\); at \\(\\delta=r_{\\mathrm{pair}}\\), asymptotic feasibility requires \\(d\\ge2q+qd/\\gamma\\). Dense occupancy is the next unresolved elbow. None of these checks proves the full-class lifting certificate or removes the arbitrary-prior higher-order remainder.",
+          "honest_scope": "The formal contribution is the exact-uniform smooth signed two-fiber family, its one-record convex-hull obstruction, the sparse-occupancy pure-private pair test with clipped marks and \\(8/3\\) replacement sensitivity, and a specified finite diagnostic experiment. The private upper and risk bounds are strictly signed-family-specific. Only obstruction or converse implications from this embedded subclass transfer upward to an anchor class that contains it. The pair-radius calculation requires \\(q<\\gamma\\) and \\(n\\delta^{d/q}\\le c\\); at \\(r_F\\) this entails \\(\\epsilon\\ge c n^{-1+q/d+q/\\gamma}\\), while compatibility at \\(r_{\\mathrm{pair}}\\) requires \\(d\\ge2q+qd/\\gamma\\). Dense occupancy is a separate elbow. The work does not establish the full-class private minimax frontier: the handle \\(H_{\\mathrm{pair\\mbox{-}lift}}\\) merely names a sufficient weighted-shell certificate, and constructing that certificate uniformly over arbitrary least-favorable priors remains open.",
+          "statement_notes": []
+        }
+      }
+    }
+  ]
+}

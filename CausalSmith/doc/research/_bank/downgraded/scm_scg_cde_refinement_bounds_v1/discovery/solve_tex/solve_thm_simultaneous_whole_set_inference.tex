@@ -1,0 +1,86 @@
+%%% FIELD proof-simultaneous-whole-set-inference
+Let \(K=2^N\) be the number of multinomial cells.  Fix a cell \(w\in\{0,1\}^{\mathcal W_H}\), and for sample \(i\) let \(R_i\) be the indicator that the observed window equals \(w\).  By \(\text{ass:iid-window-sampling}\), the variables \(R_1,\ldots,R_n\) are independent Bernoulli variables with \(\mathbb E_p R_i=p(w)\), and
+\[
+\widehat p(w)-p(w)=\frac1n\sum_{i=1}^n\bigl(R_i-p(w)\bigr).
+\]
+Set
+\[
+g(t)=\log\mathbb E_p\exp\{t(R_i-p(w))\}.
+\]
+We have \(g(0)=g'(0)=0\).  Under exponential tilting by \(t\), a Bernoulli variable remains Bernoulli, with some success probability \(r_t\in[0,1]\); hence
+\[
+g''(t)=r_t(1-r_t)\le\frac14.
+\]
+Taylor's formula with integral remainder therefore gives, for every real \(t\),
+\[
+g(t)=\int_0^t(t-s)g''(s)\,ds\le\frac{t^2}{8},
+\]
+where for \(t<0\) the same inequality follows by applying the displayed calculation to \(-t\) and \(-R_i\).  For \(t>0\), Markov's inequality and independence now imply
+\[
+\begin{aligned}
+\Pr_p\{\widehat p(w)-p(w)\ge\varepsilon\}
+&=\Pr_p\!\left\{\exp\!\left(t\sum_{i=1}^n(R_i-p(w))\right)
+       \ge e^{tn\varepsilon}\right\}\\
+&\le e^{-tn\varepsilon}\prod_{i=1}^n
+       \mathbb E_p e^{t(R_i-p(w))}\\
+&\le\exp\{-tn\varepsilon+nt^2/8\}.
+\end{aligned}
+\]
+Choosing \(t=4\varepsilon\) gives the upper-tail bound \(e^{-2n\varepsilon^2}\).  Applying the same argument to \(-R_i\) gives the lower-tail bound, and consequently
+\[
+\Pr_p\{|\widehat p(w)-p(w)|>\varepsilon\}
+\le 2e^{-2n\varepsilon^2}.
+\tag{1}
+\]
+
+Suppose first that the dyadic set in the definition of \(\varepsilon_{n,\alpha}\) is nonempty.  By a union bound over the \(K=2^N\) cells and by (1),
+\[
+\begin{aligned}
+\Pr_p\{p\notin\mathcal C_{n,\alpha}(\widehat p)\}
+&\le\sum_{w\in\{0,1\}^{\mathcal W_H}}
+  \Pr_p\{|\widehat p(w)-p(w)|>\varepsilon_{n,\alpha}\}\\
+&\le 2^{N+1}e^{-2n\varepsilon_{n,\alpha}^2}\\
+&\le\alpha.
+\end{aligned}
+\tag{2}
+\]
+If that dyadic set is empty, then \(\varepsilon_{n,\alpha}=1\).  Because both \(p(w)\) and \(\widehat p(w)\) lie in \([0,1]\), their absolute difference is at most one for every \(w\), so \(p\in\mathcal C_{n,\alpha}(\widehat p)\) surely.  Thus (2) holds in both cases.  Its right-hand side is independent of \(p\), and therefore
+\[
+\inf_p\Pr_p\{p\in\mathcal C_{n,\alpha}(\widehat p)\}\ge 1-\alpha.
+\tag{3}
+\]
+
+Let \(\mathcal E=\{p\in\mathcal C_{n,\alpha}(\widehat p)\}\).  On \(\mathcal E\), fix \(j\in\mathcal J\) and \((G,\mathcal M)\in\mathfrak F(\mathcal S,L,H,p)\).  In the set \(Q_j^\alpha\) from \(\text{def:confidence-endpoints}\), choose \(p'=p\) and this same pair \((G,\mathcal M)\).  This is feasible by the definition of \(\mathcal E\), and hence
+\[
+q_j(\mathcal M)\in Q_j^\alpha\subseteq
+[\min Q_j^\alpha,\max Q_j^\alpha]=I_j^\alpha.
+\tag{4}
+\]
+In particular, the presence of this model makes \(Q_j^\alpha\) nonempty, so the nonempty branch of the interval definition is the applicable one.  Taking (4) over all \((G,\mathcal M)\in\mathfrak F(\mathcal S,L,H,p)\) proves containment of the entire population envelope for query \(j\).  Since neither \(\mathcal E\) nor (3) depends on \(j\), the containment holds simultaneously for every \(j\in\mathcal J\), without a further union bound.
+
+Now fix distinct \(j,k\in\mathcal J\).  Use \(p'=p\) and the same SCM \(\mathcal M\) for both coordinates in \(\text{def:contrast-confidence-interval}\).  Then
+\[
+q_j(\mathcal M)-q_k(\mathcal M)
+\in Q_{jk}^{\Delta,\alpha}
+\subseteq
+[\min Q_{jk}^{\Delta,\alpha},\max Q_{jk}^{\Delta,\alpha}]
+=I_{jk}^{\Delta,\alpha}.
+\tag{5}
+\]
+Taking (5) over the full same-SCM identified set and over all distinct pairs proves the asserted simultaneous contrast containment on \(\mathcal E\).
+
+It remains to justify the extrema and the zero-cell claim.  The empirical vector \(\widehat p\) has rational coordinates and \(\varepsilon_{n,\alpha}\) is rational.  Hence \(\mathcal C_{n,\alpha}(\widehat p)\) is the intersection of the probability simplex with finitely many rational closed half-spaces, and is compact even if \(\widehat p(w)=0\) for some cells.  Apply \(\text{lem:finite-factor-support-reduction}\) once to the full finite set \(\mathcal J\).  For each refinement \(G\) and raw branch \(r\), the portion of the confidence fiber represented on that branch is exactly
+\[
+\mathcal F_{G,r}
+=\left\{\lambda\in\prod_a\Delta(\mathcal K_{G,r,a}):
+-\varepsilon_{n,\alpha}
+\le P_G(\lambda)(w)-\widehat p(w)
+\le\varepsilon_{n,\alpha}
+\text{ for every }w\right\}.
+\tag{6}
+\]
+Every set in (6) is closed in a finite product of compact simplices and therefore compact.  The objectives \(q_j\) and \(q_j-q_k\) are multi-affine, hence continuous, on each branch.  The terminating finite refinement and raw-branch enumeration supplied by \(\text{thm:exact-algebraic-certification}\), together with both directions of \(\text{lem:finite-factor-support-reduction}\), shows that the confidence-fiber attainable sets are exactly finite unions of the corresponding continuous images of the sets (6).  They are therefore compact; when nonempty, their minima and maxima in the two interval definitions are attained.
+
+Moreover, after splitting each two-sided inequality in (6), every branch is a compact rational polynomial program.  The branchwise real-algebraic elimination procedure used in \(\text{thm:exact-algebraic-certification}\) therefore decides emptiness and computes its exact attained extrema.  No step divides by \(\widehat p(w)\), so the same exact optimization applies when empirical cells vanish.
+
+Finally, suppose zero is compatible with a covered observed law and a same-SCM contrast.  By definition, there then exist \(p'\in\mathcal C_{n,\alpha}(\widehat p)\) and \((G,\mathcal M)\in\mathfrak F(\mathcal S,L,H,p')\) such that \(q_j(\mathcal M)-q_k(\mathcal M)=0\).  Thus \(0\in Q_{jk}^{\Delta,\alpha}\), and (5) gives \(0\in I_{jk}^{\Delta,\alpha}\); the prescribed rule declares a tie and cannot assert a strict ordering.  The converse is not required: the interval hull may contain zero while a disconnected attainable set does not, so the rule may be conservative but remains valid.

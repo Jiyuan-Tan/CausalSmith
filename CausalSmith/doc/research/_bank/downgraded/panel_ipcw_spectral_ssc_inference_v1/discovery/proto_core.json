@@ -1,0 +1,2160 @@
+{
+  "qid": "panel_ipcw_spectral_ssc_inference",
+  "specialization": "v1",
+  "cluster": "panel",
+  "symbols": [
+    {
+      "name": "K",
+      "type": "within-cell sample size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The common number of independent individuals in each panel cell and the sole asymptotic index.",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "N_0",
+      "type": "donor count",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The fixed number of untreated donor units.",
+      "role": "panel dimension"
+    },
+    {
+      "name": "T_0",
+      "type": "pre-period grid size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The fixed number of pre-period survival coordinates.",
+      "role": "panel dimension"
+    },
+    {
+      "name": "J",
+      "type": "post-period grid size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The fixed number of post-period survival coordinates.",
+      "role": "target dimension"
+    },
+    {
+      "name": "r",
+      "type": "working rank",
+      "space": "\\(\\{1,\\ldots,\\min(N_0,T_0)\\}\\)",
+      "def": "The fixed rank retained by spectral survival control.",
+      "role": "spectral dimension",
+      "refs": [
+        "N_0",
+        "T_0"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "cross-fitting fold count",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "A fixed number of approximately equal cross-fitting folds.",
+      "role": "estimation constant"
+    },
+    {
+      "name": "\\mathcal C",
+      "type": "panel-cell index set",
+      "space": "finite sets",
+      "def": "The fixed set containing the target-pre cell, \\(N_0\\) donor-pre cells, \\(N_0\\) donor-post cells, and the target factual-post cell.",
+      "role": "sampling index",
+      "refs": [
+        "N_0"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "cell index",
+      "space": "\\(\\mathcal C\\)",
+      "def": "A generic panel cell.",
+      "role": "index",
+      "refs": [
+        "\\mathcal C"
+      ]
+    },
+    {
+      "name": "d_c",
+      "type": "cell grid size",
+      "space": "\\(\\{T_0,J\\}\\)",
+      "def": "The number of survival coordinates in cell \\(c\\), equal to \\(T_0\\) in a pre cell and \\(J\\) in a post cell.",
+      "role": "coordinate count",
+      "refs": [
+        "c",
+        "T_0",
+        "J"
+      ]
+    },
+    {
+      "name": "\\ell",
+      "type": "grid-coordinate index",
+      "space": "\\(\\{1,\\ldots,d_c\\}\\)",
+      "def": "A generic coordinate in the grid for cell \\(c\\).",
+      "role": "index",
+      "refs": [
+        "d_c",
+        "c"
+      ]
+    },
+    {
+      "name": "t_{c\\ell}",
+      "type": "evaluation time",
+      "space": "nonnegative real numbers on the fixed cell horizon",
+      "def": "The fixed evaluation time for coordinate \\(\\ell\\) in cell \\(c\\).",
+      "role": "grid point",
+      "refs": [
+        "c",
+        "\\ell"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "post-grid coordinate index",
+      "space": "\\(\\{1,\\ldots,J\\}\\)",
+      "def": "A generic coordinate on the fixed post-treatment grid.",
+      "role": "index",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "i",
+      "type": "individual index",
+      "space": "\\(\\{1,\\ldots,K\\}\\)",
+      "def": "The individual index within each cell.",
+      "role": "sampling index",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "f",
+      "type": "fold index",
+      "space": "\\(\\{1,\\ldots,L\\}\\)",
+      "def": "The cross-fitting fold index.",
+      "role": "index",
+      "refs": [
+        "L"
+      ]
+    },
+    {
+      "name": "\\mathcal V_{cf}",
+      "type": "validation-index set",
+      "space": "subsets of \\(\\{1,\\ldots,K\\}\\)",
+      "def": "The validation indices in fold \\(f\\) of cell \\(c\\).",
+      "role": "cross-fitting split",
+      "refs": [
+        "c",
+        "f",
+        "K"
+      ]
+    },
+    {
+      "name": "X_{ci}",
+      "type": "baseline covariate",
+      "space": "a cell-specific measurable covariate space",
+      "def": "The observed baseline covariate for individual \\(i\\) in cell \\(c\\).",
+      "role": "censoring adjustment",
+      "refs": [
+        "c",
+        "i"
+      ]
+    },
+    {
+      "name": "T_{ci}",
+      "type": "event time",
+      "space": "\\([0,\\infty]\\)",
+      "def": "The event time for individual \\(i\\) in cell \\(c\\).",
+      "role": "latent outcome",
+      "refs": [
+        "c",
+        "i"
+      ]
+    },
+    {
+      "name": "C_{ci}",
+      "type": "right-censoring time",
+      "space": "\\([0,\\infty]\\)",
+      "def": "The censoring time for individual \\(i\\) in cell \\(c\\).",
+      "role": "coarsening variable",
+      "refs": [
+        "c",
+        "i"
+      ]
+    },
+    {
+      "name": "U_{ci}",
+      "type": "observed follow-up time",
+      "space": "\\([0,\\infty]\\)",
+      "def": "\\(U_{ci}=\\min(T_{ci},C_{ci})\\).",
+      "role": "observed outcome",
+      "refs": [
+        "T_{ci}",
+        "C_{ci}"
+      ]
+    },
+    {
+      "name": "\\Delta_{ci}",
+      "type": "event indicator",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "\\(\\Delta_{ci}=\\mathbf 1\\{T_{ci}\\le C_{ci}\\}\\), so an event is recorded before censoring when times tie.",
+      "role": "tie convention",
+      "refs": [
+        "T_{ci}",
+        "C_{ci}"
+      ]
+    },
+    {
+      "name": "O_{ci}",
+      "type": "observed data unit",
+      "space": "the product of the cell covariate space, \\([0,\\infty]\\), and \\(\\{0,1\\}\\)",
+      "def": "\\(O_{ci}=(X_{ci},U_{ci},\\Delta_{ci})\\).",
+      "role": "sample",
+      "refs": [
+        "X_{ci}",
+        "U_{ci}",
+        "\\Delta_{ci}"
+      ]
+    },
+    {
+      "name": "P_c",
+      "type": "cell law",
+      "space": "probability laws on the ideal and observed cell data",
+      "def": "The law in cell \\(c\\).",
+      "role": "data-generating law",
+      "refs": [
+        "c"
+      ]
+    },
+    {
+      "name": "Q_c",
+      "type": "conditional event-survival function",
+      "space": "right-continuous survival functions",
+      "sig": "\\(Q_c(t\\mid x)=P_c(T_{ci}>t\\mid X_{ci}=x)\\)",
+      "def": "The conditional survival function of the event time in cell \\(c\\).",
+      "role": "event nuisance",
+      "refs": [
+        "P_c",
+        "T_{ci}",
+        "X_{ci}"
+      ]
+    },
+    {
+      "name": "G_c",
+      "type": "conditional censor-survival function",
+      "space": "left-continuous survival functions",
+      "sig": "\\(G_c(t\\mid x)=P_c(C_{ci}\\ge t\\mid X_{ci}=x)\\)",
+      "def": "The left-continuous conditional censoring survival function in cell \\(c\\).",
+      "role": "censor nuisance",
+      "refs": [
+        "P_c",
+        "C_{ci}",
+        "X_{ci}"
+      ]
+    },
+    {
+      "name": "\\Lambda_c",
+      "type": "conditional event cumulative hazard",
+      "space": "finite cadlag cumulative-hazard measures on the fixed cell horizon",
+      "def": "The product-integral cumulative hazard corresponding to \\(Q_c\\).",
+      "role": "event nuisance",
+      "refs": [
+        "Q_c"
+      ]
+    },
+    {
+      "name": "S_c",
+      "type": "marginal cell survival function",
+      "space": "right-continuous survival functions",
+      "sig": "\\(S_c(t)=E_{P_c}[Q_c(t\\mid X_{ci})]\\)",
+      "def": "The covariate-standardized event survival function in cell \\(c\\).",
+      "role": "cell estimand",
+      "refs": [
+        "P_c",
+        "Q_c",
+        "X_{ci}"
+      ]
+    },
+    {
+      "name": "s_c",
+      "type": "cell survival vector",
+      "space": "\\([0,1]^{d_c}\\)",
+      "def": "\\(s_c=(S_c(t_{c1}),\\ldots,S_c(t_{cd_c}))^\\top\\).",
+      "role": "cell estimand vector",
+      "refs": [
+        "S_c",
+        "t_{c\\ell}",
+        "d_c"
+      ]
+    },
+    {
+      "name": "a_K",
+      "type": "event-nuisance rate",
+      "space": "\\([0,\\infty)\\)",
+      "def": "A deterministic rate bounding the foldwise \\(L_2(P_c)\\) error of the survival-ratio functional \\(Q_c(t\\mid X)/Q_c(u\\mid X)\\) on the fixed grids.",
+      "role": "nuisance rate",
+      "refs": [
+        "K",
+        "P_c",
+        "Q_c"
+      ]
+    },
+    {
+      "name": "b_K",
+      "type": "censor-nuisance rate",
+      "space": "\\([0,\\infty)\\)",
+      "def": "A deterministic rate bounding the foldwise \\(L_2(P_c)\\) supremum error of \\(1/G_c\\) on the fixed horizon.",
+      "role": "nuisance rate",
+      "refs": [
+        "K",
+        "P_c",
+        "G_c"
+      ]
+    },
+    {
+      "name": "g",
+      "type": "censoring-positivity constant",
+      "space": "\\((0,1]\\)",
+      "def": "A common lower bound for conditional censor survival on every required horizon.",
+      "role": "support constant"
+    },
+    {
+      "name": "\\nu",
+      "type": "moment slack",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The exponent beyond two in the common influence-function moment bound.",
+      "role": "moment constant"
+    },
+    {
+      "name": "\\kappa",
+      "type": "singular-gap constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A lower bound on the smallest nonzero singular value of the donor-pre matrix.",
+      "role": "spectral regularity"
+    },
+    {
+      "name": "v",
+      "type": "variance constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A lower bound on the smallest eigenvalue of the joint transported covariance.",
+      "role": "inference regularity"
+    },
+    {
+      "name": "q",
+      "type": "grid-integration weights",
+      "space": "\\((0,\\infty)^J\\)",
+      "def": "A fixed nonzero vector of prespecified grid-RMST quadrature weights.",
+      "role": "RMST functional",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "\\alpha",
+      "type": "error probability",
+      "space": "\\((0,1)\\)",
+      "def": "The nominal familywise error probability.",
+      "role": "confidence level"
+    },
+    {
+      "name": "y",
+      "type": "target-pre survival row",
+      "space": "\\([0,1]^{1\\times T_0}\\)",
+      "def": "The target unit's untreated pre-period cell-survival coordinates.",
+      "role": "spectral input",
+      "refs": [
+        "T_0",
+        "s_c"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "donor-pre survival matrix",
+      "space": "\\([0,1]^{N_0\\times T_0}\\)",
+      "def": "The matrix whose rows are the untreated donor pre-period cell-survival vectors.",
+      "role": "spectral input",
+      "refs": [
+        "N_0",
+        "T_0",
+        "s_c"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "donor-post survival matrix",
+      "space": "\\([0,1]^{N_0\\times J}\\)",
+      "def": "The matrix whose rows are the untreated donor post-period cell-survival vectors.",
+      "role": "spectral input",
+      "refs": [
+        "N_0",
+        "J",
+        "s_c"
+      ]
+    },
+    {
+      "name": "s_1",
+      "type": "target factual-post survival row",
+      "space": "\\([0,1]^{1\\times J}\\)",
+      "def": "The factual treated post-period survival coordinates for the target unit.",
+      "role": "effect input",
+      "refs": [
+        "J",
+        "s_c"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "rank-\\(r\\) Moore--Penrose inverse",
+      "space": "\\(\\mathbb R^{T_0\\times N_0}\\)",
+      "def": "\\(P=M_r^+\\), the Moore--Penrose inverse of the rank-\\(r\\) truncation of \\(M\\).",
+      "role": "spectral operator",
+      "refs": [
+        "M",
+        "r",
+        "T_0",
+        "N_0"
+      ]
+    },
+    {
+      "name": "\\mathcal F",
+      "type": "spectral transport map",
+      "space": "maps from a target row, donor-pre matrix, and donor-post matrix to \\(\\mathbb R^{1\\times J}\\)",
+      "def": "\\(\\mathcal F(y,M,B)=yM_r^+B\\).",
+      "role": "smooth target map",
+      "refs": [
+        "y",
+        "M",
+        "B",
+        "r",
+        "J"
+      ]
+    },
+    {
+      "name": "\\mathcal L_M",
+      "type": "pseudoinverse differential",
+      "space": "linear maps from \\(\\mathbb R^{N_0\\times T_0}\\) to \\(\\mathbb R^{T_0\\times N_0}\\)",
+      "def": "\\(\\mathcal L_M(H)=-PHP+PP^\\top H^\\top(I-MP)+(I-PM)H^\\top P^\\top P\\).",
+      "role": "spectral derivative",
+      "refs": [
+        "M",
+        "P",
+        "N_0",
+        "T_0"
+      ]
+    },
+    {
+      "name": "\\theta",
+      "type": "untreated counterfactual survival row",
+      "space": "\\([0,1]^{1\\times J}\\)",
+      "def": "\\(\\theta=yPB\\).",
+      "role": "primary causal estimand",
+      "refs": [
+        "y",
+        "P",
+        "B",
+        "J"
+      ]
+    },
+    {
+      "name": "\\eta",
+      "type": "joint curve parameter",
+      "space": "\\(\\mathbb R^{2J}\\)",
+      "def": "\\(\\eta=(\\theta^\\top,s_1^\\top)^\\top\\).",
+      "role": "joint inference target",
+      "refs": [
+        "\\theta",
+        "s_1",
+        "J"
+      ]
+    },
+    {
+      "name": "\\tau_R",
+      "type": "grid-RMST treatment effect",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\tau_R=q^\\top(s_1-\\theta)\\).",
+      "role": "scalar causal estimand",
+      "refs": [
+        "q",
+        "s_1",
+        "\\theta"
+      ]
+    },
+    {
+      "name": "\\widehat Q_{c,-f}",
+      "type": "cross-fitted event-survival learner",
+      "space": "estimated conditional survival functions",
+      "def": "A learner of \\(Q_c\\) trained outside validation fold \\(\\mathcal V_{cf}\\), selected from the estimability condition.",
+      "role": "estimation input",
+      "refs": [
+        "Q_c",
+        "c",
+        "f",
+        "\\mathcal V_{cf}"
+      ]
+    },
+    {
+      "name": "\\widehat G_{c,-f}",
+      "type": "cross-fitted censor-survival learner",
+      "space": "estimated left-continuous conditional survival functions",
+      "def": "A learner of \\(G_c\\) trained outside validation fold \\(\\mathcal V_{cf}\\), selected from the estimability condition.",
+      "role": "estimation input",
+      "refs": [
+        "G_c",
+        "c",
+        "f",
+        "\\mathcal V_{cf}"
+      ]
+    },
+    {
+      "name": "\\widehat\\Lambda_{c,-f}",
+      "type": "cross-fitted cumulative-hazard learner",
+      "space": "estimated cumulative-hazard measures",
+      "def": "The product-integral cumulative hazard corresponding to \\(\\widehat Q_{c,-f}\\).",
+      "role": "estimation input",
+      "refs": [
+        "\\widehat Q_{c,-f}"
+      ]
+    },
+    {
+      "name": "\\psi_{c\\ell}",
+      "type": "uncentered augmented-IPCW score",
+      "space": "measurable real functions of one observed cell unit",
+      "def": "The Westling-type survival score at \\(t_{c\\ell}\\) with no treatment-propensity factor.",
+      "role": "orthogonal score",
+      "refs": [
+        "c",
+        "\\ell",
+        "t_{c\\ell}",
+        "Q_c",
+        "G_c",
+        "\\Lambda_c",
+        "O_{ci}"
+      ]
+    },
+    {
+      "name": "\\phi_c",
+      "type": "centered cell influence vector",
+      "space": "\\(L_2^0(P_c)^{d_c}\\)",
+      "def": "\\(\\phi_c(O_{ci})=(\\psi_{c1}(O_{ci})-S_c(t_{c1}),\\ldots,\\psi_{cd_c}(O_{ci})-S_c(t_{cd_c}))^\\top\\).",
+      "role": "cell influence function",
+      "refs": [
+        "P_c",
+        "d_c",
+        "\\psi_{c\\ell}",
+        "O_{ci}",
+        "S_c",
+        "t_{c\\ell}"
+      ]
+    },
+    {
+      "name": "\\widehat s_c",
+      "type": "cross-fitted augmented-IPCW cell vector",
+      "space": "\\(\\mathbb R^{d_c}\\)",
+      "def": "The validation-sample average of the scores using \\(\\widehat Q_{c,-f}\\), \\(\\widehat G_{c,-f}\\), and \\(\\widehat\\Lambda_{c,-f}\\).",
+      "role": "cell estimator",
+      "refs": [
+        "d_c",
+        "\\widehat Q_{c,-f}",
+        "\\widehat G_{c,-f}",
+        "\\widehat\\Lambda_{c,-f}"
+      ]
+    },
+    {
+      "name": "\\widehat y",
+      "type": "estimated target-pre row",
+      "space": "\\(\\mathbb R^{1\\times T_0}\\)",
+      "def": "The target-pre block extracted from the stacked \\(\\widehat s_c\\).",
+      "role": "estimated spectral input",
+      "refs": [
+        "T_0",
+        "\\widehat s_c"
+      ]
+    },
+    {
+      "name": "\\widehat M",
+      "type": "estimated donor-pre matrix",
+      "space": "\\(\\mathbb R^{N_0\\times T_0}\\)",
+      "def": "The donor-pre block extracted from the stacked \\(\\widehat s_c\\).",
+      "role": "estimated spectral input",
+      "refs": [
+        "N_0",
+        "T_0",
+        "\\widehat s_c"
+      ]
+    },
+    {
+      "name": "\\widehat B",
+      "type": "estimated donor-post matrix",
+      "space": "\\(\\mathbb R^{N_0\\times J}\\)",
+      "def": "The donor-post block extracted from the stacked \\(\\widehat s_c\\).",
+      "role": "estimated spectral input",
+      "refs": [
+        "N_0",
+        "J",
+        "\\widehat s_c"
+      ]
+    },
+    {
+      "name": "\\widehat s_1",
+      "type": "estimated factual-post row",
+      "space": "\\(\\mathbb R^{1\\times J}\\)",
+      "def": "The target factual-post block extracted from the stacked \\(\\widehat s_c\\).",
+      "role": "estimated effect input",
+      "refs": [
+        "J",
+        "\\widehat s_c"
+      ]
+    },
+    {
+      "name": "\\widehat\\theta",
+      "type": "spectral SSC estimator",
+      "space": "\\(\\mathbb R^{1\\times J}\\)",
+      "def": "\\(\\widehat\\theta=\\widehat y(\\widehat M)_r^+\\widehat B\\).",
+      "role": "primary estimator",
+      "refs": [
+        "\\widehat y",
+        "\\widehat M",
+        "r",
+        "\\widehat B",
+        "J"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau_R",
+      "type": "grid-RMST effect estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\widehat\\tau_R=q^\\top(\\widehat s_1-\\widehat\\theta)\\).",
+      "role": "scalar estimator",
+      "refs": [
+        "q",
+        "\\widehat s_1",
+        "\\widehat\\theta"
+      ]
+    },
+    {
+      "name": "\\Phi_i",
+      "type": "stacked cell influence vector",
+      "space": "a fixed-dimensional Euclidean product space",
+      "def": "The stack of \\(\\phi_c(O_{ci})\\) over \\(c\\in\\mathcal C\\).",
+      "role": "joint first-stage influence",
+      "refs": [
+        "\\phi_c",
+        "O_{ci}",
+        "\\mathcal C"
+      ]
+    },
+    {
+      "name": "\\Phi_{y,i}",
+      "type": "target-pre influence row",
+      "space": "\\(\\mathbb R^{1\\times T_0}\\)",
+      "def": "The target-pre block of \\(\\Phi_i\\).",
+      "role": "spectral input influence",
+      "refs": [
+        "\\Phi_i",
+        "T_0"
+      ]
+    },
+    {
+      "name": "\\Phi_{M,i}",
+      "type": "donor-pre influence matrix",
+      "space": "\\(\\mathbb R^{N_0\\times T_0}\\)",
+      "def": "The donor-pre block of \\(\\Phi_i\\).",
+      "role": "spectral input influence",
+      "refs": [
+        "\\Phi_i",
+        "N_0",
+        "T_0"
+      ]
+    },
+    {
+      "name": "\\Phi_{B,i}",
+      "type": "donor-post influence matrix",
+      "space": "\\(\\mathbb R^{N_0\\times J}\\)",
+      "def": "The donor-post block of \\(\\Phi_i\\).",
+      "role": "spectral input influence",
+      "refs": [
+        "\\Phi_i",
+        "N_0",
+        "J"
+      ]
+    },
+    {
+      "name": "\\Phi_{1,i}",
+      "type": "factual-post influence row",
+      "space": "\\(\\mathbb R^{1\\times J}\\)",
+      "def": "The target factual-post block of \\(\\Phi_i\\).",
+      "role": "effect influence",
+      "refs": [
+        "\\Phi_i",
+        "J"
+      ]
+    },
+    {
+      "name": "\\Phi_{\\theta,i}",
+      "type": "transported counterfactual influence row",
+      "space": "\\(\\mathbb R^{1\\times J}\\)",
+      "def": "\\(\\Phi_{\\theta,i}=\\Phi_{y,i}PB+y\\mathcal L_M(\\Phi_{M,i})B+yP\\Phi_{B,i}\\).",
+      "role": "counterfactual influence",
+      "refs": [
+        "\\Phi_{y,i}",
+        "\\Phi_{M,i}",
+        "\\Phi_{B,i}",
+        "P",
+        "B",
+        "y",
+        "\\mathcal L_M",
+        "J"
+      ]
+    },
+    {
+      "name": "\\Phi_{\\eta,i}",
+      "type": "joint transported influence vector",
+      "space": "\\(\\mathbb R^{2J}\\)",
+      "def": "\\(\\Phi_{\\eta,i}=(\\Phi_{\\theta,i}^\\top,\\Phi_{1,i}^\\top)^\\top\\).",
+      "role": "joint influence",
+      "refs": [
+        "\\Phi_{\\theta,i}",
+        "\\Phi_i",
+        "J"
+      ]
+    },
+    {
+      "name": "\\Phi_{\\tau,i}",
+      "type": "grid-RMST influence value",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\Phi_{\\tau,i}=q^\\top(\\Phi_{1,i}-\\Phi_{\\theta,i})\\).",
+      "role": "scalar influence",
+      "refs": [
+        "q",
+        "\\Phi_{1,i}",
+        "\\Phi_{\\theta,i}"
+      ]
+    },
+    {
+      "name": "\\Omega_\\eta",
+      "type": "joint asymptotic covariance",
+      "space": "positive semidefinite \\(2J\\times2J\\) matrices",
+      "def": "\\(\\Omega_\\eta=E[\\Phi_{\\eta,i}\\Phi_{\\eta,i}^\\top]\\).",
+      "role": "limit covariance",
+      "refs": [
+        "\\Phi_{\\eta,i}",
+        "J"
+      ]
+    },
+    {
+      "name": "\\widehat\\Phi_{\\theta,i}",
+      "type": "estimated counterfactual influence row",
+      "space": "\\(\\mathbb R^{1\\times J}\\)",
+      "def": "The plug-in version of \\(\\Phi_{\\theta,i}\\) using fold-specific nuisances and estimated spectral blocks.",
+      "role": "band input",
+      "refs": [
+        "\\Phi_{\\theta,i}",
+        "J"
+      ]
+    },
+    {
+      "name": "\\widehat\\Phi_{1,i}",
+      "type": "estimated factual-post influence row",
+      "space": "\\(\\mathbb R^{1\\times J}\\)",
+      "def": "The plug-in version of \\(\\Phi_{1,i}\\).",
+      "role": "RMST input",
+      "refs": [
+        "\\Phi_{1,i}",
+        "J"
+      ]
+    },
+    {
+      "name": "\\widehat\\Phi_{\\eta,i}",
+      "type": "estimated joint influence vector",
+      "space": "\\(\\mathbb R^{2J}\\)",
+      "def": "\\(\\widehat\\Phi_{\\eta,i}=(\\widehat\\Phi_{\\theta,i}^{\\top},\\widehat\\Phi_{1,i}^{\\top})^{\\top}\\).",
+      "role": "variance input",
+      "refs": [
+        "\\widehat\\Phi_{\\theta,i}",
+        "\\widehat\\Phi_{1,i}",
+        "J"
+      ]
+    },
+    {
+      "name": "\\widehat\\Omega_\\eta",
+      "type": "estimated joint covariance",
+      "space": "positive semidefinite \\(2J\\times2J\\) matrices",
+      "def": "\\(\\widehat\\Omega_\\eta=K^{-1}\\sum_{i=1}^K\\widehat\\Phi_{\\eta,i}\\widehat\\Phi_{\\eta,i}^\\top\\).",
+      "role": "covariance estimator",
+      "refs": [
+        "K",
+        "\\widehat\\Phi_{\\eta,i}",
+        "J"
+      ]
+    },
+    {
+      "name": "\\widehat\\sigma_j",
+      "type": "estimated counterfactual standard deviation",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The square root of the \\(j\\)-th counterfactual diagonal entry of \\(\\widehat\\Omega_\\eta\\).",
+      "role": "studentization",
+      "refs": [
+        "j",
+        "\\widehat\\Omega_\\eta"
+      ]
+    },
+    {
+      "name": "\\widehat V_R",
+      "type": "estimated grid-RMST asymptotic variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(\\widehat V_R=K^{-1}\\sum_{i=1}^K\\{q^\\top(\\widehat\\Phi_{1,i}-\\widehat\\Phi_{\\theta,i})\\}^2\\).",
+      "role": "studentization",
+      "refs": [
+        "K",
+        "i",
+        "q",
+        "\\widehat\\Phi_{1,i}",
+        "\\widehat\\Phi_{\\theta,i}"
+      ]
+    },
+    {
+      "name": "\\xi_i",
+      "type": "Gaussian multiplier",
+      "space": "\\(\\mathcal N(0,1)\\)",
+      "def": "Independent standard-normal multipliers conditionally independent of the sample.",
+      "role": "band calibration",
+      "refs": [
+        "i"
+      ]
+    },
+    {
+      "name": "c_{1-\\alpha}^\\star",
+      "type": "conditional multiplier critical value",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The conditional \\((1-\\alpha)\\)-quantile of the maximum studentized counterfactual-coordinate multiplier statistic.",
+      "role": "band critical value",
+      "refs": [
+        "\\alpha",
+        "\\xi_i",
+        "\\widehat\\Phi_{\\theta,i}",
+        "\\widehat\\sigma_j",
+        "K",
+        "J"
+      ]
+    },
+    {
+      "name": "\\widetilde S_c",
+      "type": "marginal Kaplan--Meier probability limit",
+      "space": "right-continuous survival functions",
+      "def": "The product integral formed from the marginal observed event subdistribution and risk probability in cell \\(c\\), without conditioning on \\(X_{ci}\\).",
+      "role": "naive pseudo-target",
+      "refs": [
+        "c",
+        "X_{ci}",
+        "P_c"
+      ]
+    },
+    {
+      "name": "\\widetilde y",
+      "type": "naive target-pre row",
+      "space": "\\(\\mathbb R^{1\\times T_0}\\)",
+      "def": "The target-pre row obtained by replacing every \\(S_c\\) with \\(\\widetilde S_c\\).",
+      "role": "naive spectral input",
+      "refs": [
+        "T_0",
+        "S_c",
+        "\\widetilde S_c"
+      ]
+    },
+    {
+      "name": "\\widetilde M",
+      "type": "naive donor-pre matrix",
+      "space": "\\(\\mathbb R^{N_0\\times T_0}\\)",
+      "def": "The donor-pre matrix obtained by replacing every \\(S_c\\) with \\(\\widetilde S_c\\).",
+      "role": "naive spectral input",
+      "refs": [
+        "N_0",
+        "T_0",
+        "S_c",
+        "\\widetilde S_c"
+      ]
+    },
+    {
+      "name": "\\widetilde B",
+      "type": "naive donor-post matrix",
+      "space": "\\(\\mathbb R^{N_0\\times J}\\)",
+      "def": "The donor-post matrix obtained by replacing every \\(S_c\\) with \\(\\widetilde S_c\\).",
+      "role": "naive spectral input",
+      "refs": [
+        "N_0",
+        "J",
+        "S_c",
+        "\\widetilde S_c"
+      ]
+    },
+    {
+      "name": "\\beta_{\\mathrm{KM}}",
+      "type": "naive counterfactual bias row",
+      "space": "\\(\\mathbb R^{1\\times J}\\)",
+      "def": "\\(\\beta_{\\mathrm{KM}}=\\widetilde y(\\widetilde M)_r^+\\widetilde B-yM_r^+B\\).",
+      "role": "naive probability-limit discrepancy",
+      "refs": [
+        "\\widetilde y",
+        "\\widetilde M",
+        "r",
+        "\\widetilde B",
+        "y",
+        "M",
+        "B",
+        "J"
+      ]
+    },
+    {
+      "name": "P^\\star",
+      "type": "rational informative-censoring law",
+      "space": "a product of six discrete cell laws",
+      "def": "The fully specified two-time, six-cell rational witness used to certify nonzero \\(\\beta_{\\mathrm{KM}}\\).",
+      "role": "witness",
+      "refs": [
+        "P_c",
+        "\\beta_{\\mathrm{KM}}",
+        "\\mathcal C",
+        "s_1"
+      ]
+    },
+    {
+      "name": "M_K",
+      "type": "triangular donor-pre matrix",
+      "space": "\\(\\mathbb R^{N_0\\times T_0}\\)",
+      "def": "A donor-pre matrix sequence whose rank boundary may approach the sampling-noise scale.",
+      "role": "weak-gap input",
+      "refs": [
+        "K",
+        "N_0",
+        "T_0"
+      ]
+    },
+    {
+      "name": "\\Delta_K",
+      "type": "local singular gap",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(\\Delta_K=\\sigma_r(M_K)-\\sigma_{r+1}(M_K)\\) for a triangular donor-pre sequence.",
+      "role": "open regime parameter",
+      "refs": [
+        "K",
+        "r",
+        "M_K"
+      ]
+    },
+    {
+      "name": "\\widehat r",
+      "type": "data-selected working rank",
+      "space": "\\(\\{1,\\ldots,\\min(N_0,T_0)\\}\\)",
+      "def": "The number of singular values of \\(\\widehat M\\) exceeding an observable noise threshold calibrated from the orthogonal cell-score experiment.",
+      "role": "open rank-selection object",
+      "refs": [
+        "N_0",
+        "T_0",
+        "\\widehat M",
+        "\\phi_c"
+      ]
+    },
+    {
+      "name": "\\mathcal H_{\\mathrm{gap}}",
+      "type": "weak-gap analysis handle",
+      "space": "local-experiment and regularization arguments",
+      "def": "A handle that follows a rank-\\(r\\) path whose smallest nonzero singular value collides with zero while larger singular values remain separated, calibrates singular-value thresholding from the orthogonal cell-score experiment, compares the selected-rank plug-in with Tikhonov stabilization targeted at the unregularized transported curve, and uses two contiguous paths through the colliding singular direction for impossibility.",
+      "role": "open-question handle",
+      "refs": [
+        "\\phi_c",
+        "\\Delta_K",
+        "M_K",
+        "\\widehat r",
+        "r"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:fixed-panel",
+      "kind": "panel asymptotics",
+      "condition": "The integers \\(N_0,T_0,J,r,L\\) do not depend on \\(K\\).",
+      "free_symbols": [
+        "N_0",
+        "T_0",
+        "J",
+        "r",
+        "L",
+        "K"
+      ],
+      "constants": [
+        "N_0",
+        "T_0",
+        "J",
+        "r",
+        "L"
+      ],
+      "standard": {
+        "name": "fixed-panel large-within-cell asymptotics",
+        "cite": "HanShah2025SSC"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion",
+        "lem:full-spectral-differential",
+        "thm:joint-spectral-limit",
+        "thm:band-and-rmst"
+      ]
+    },
+    {
+      "id": "ass:cell-iid",
+      "kind": "sampling",
+      "condition": "For every \\(c\\in\\mathcal C\\), \\(O_{c1},\\ldots,O_{cK}\\) has law \\(P_c^{\\otimes K}\\).",
+      "free_symbols": [
+        "c",
+        "\\mathcal C",
+        "O_{ci}",
+        "K",
+        "P_c"
+      ],
+      "standard": {
+        "name": "independent sampling within a survival cell",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion",
+        "thm:joint-spectral-limit",
+        "thm:band-and-rmst"
+      ]
+    },
+    {
+      "id": "ass:cross-cell-independence",
+      "kind": "sampling",
+      "condition": "The sample vectors \\((O_{c1},\\ldots,O_{cK})\\) are independent across \\(c\\in\\mathcal C\\).",
+      "free_symbols": [
+        "O_{ci}",
+        "K",
+        "c",
+        "\\mathcal C"
+      ],
+      "standard": {
+        "name": "independent panel-cell samples",
+        "cite": "HanShah2025SSC"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion",
+        "thm:joint-spectral-limit",
+        "thm:band-and-rmst"
+      ]
+    },
+    {
+      "id": "ass:conditional-censoring",
+      "kind": "causal-structural",
+      "condition": "For every \\(c\\in\\mathcal C\\), \\(T_{ci}\\mathbin{\\perp\\!\\!\\!\\perp}C_{ci}\\mid X_{ci}\\) under \\(P_c\\).",
+      "free_symbols": [
+        "c",
+        "\\mathcal C",
+        "T_{ci}",
+        "C_{ci}",
+        "X_{ci}",
+        "P_c"
+      ],
+      "standard": {
+        "name": "conditional independent right censoring",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion",
+        "thm:joint-spectral-limit",
+        "prop:km-pcr-cancellation"
+      ]
+    },
+    {
+      "id": "ass:censor-positivity",
+      "kind": "support",
+      "condition": "For every \\(c\\in\\mathcal C\\), \\(\\inf_{x}\\inf_{0\\le t\\le\\max_\\ell t_{c\\ell}}G_c(t\\mid x)\\ge g\\).",
+      "free_symbols": [
+        "c",
+        "\\mathcal C",
+        "t_{c\\ell}",
+        "G_c",
+        "g",
+        "\\ell"
+      ],
+      "constants": [
+        "g"
+      ],
+      "standard": {
+        "name": "uniform censoring positivity on the target horizon",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion",
+        "thm:joint-spectral-limit",
+        "prop:km-pcr-cancellation"
+      ]
+    },
+    {
+      "id": "ass:influence-moment",
+      "kind": "regularity",
+      "condition": "The centered true scores satisfy \\(\\sup_{c\\in\\mathcal C}E_{P_c}\\|\\phi_c(O_{ci})\\|_2^{2+\\nu}<\\infty\\).",
+      "free_symbols": [
+        "c",
+        "\\mathcal C",
+        "P_c",
+        "\\phi_c",
+        "O_{ci}",
+        "\\nu"
+      ],
+      "constants": [
+        "\\nu"
+      ],
+      "standard": {
+        "name": "uniform Lyapunov moment condition for a fixed-dimensional triangular array",
+        "cite": "ChernozhukovEtAl2018DML"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion",
+        "thm:joint-spectral-limit",
+        "thm:band-and-rmst"
+      ]
+    },
+    {
+      "id": "ass:event-estimability",
+      "kind": "nuisance estimability",
+      "condition": "For every \\(c\\in\\mathcal C\\), the primitive function \\(Q_c\\) admits foldwise training-sample estimators whose survival-ratio error in the metric of Westling et al., condition (B1c), is \\(O_P(a_K)\\), uniformly over the fixed coordinates.",
+      "free_symbols": [
+        "c",
+        "\\mathcal C",
+        "Q_c",
+        "a_K",
+        "K"
+      ],
+      "standard": {
+        "name": "cross-fitted event-survival ratio consistency",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion"
+      ]
+    },
+    {
+      "id": "ass:censor-estimability",
+      "kind": "nuisance estimability",
+      "condition": "For every \\(c\\in\\mathcal C\\), the primitive function \\(G_c\\) admits foldwise training-sample estimators whose inverse-survival error in the metric of Westling et al., condition (B1b), is \\(O_P(b_K)\\), uniformly over the fixed horizon.",
+      "free_symbols": [
+        "c",
+        "\\mathcal C",
+        "G_c",
+        "b_K",
+        "K"
+      ],
+      "standard": {
+        "name": "cross-fitted inverse-censor-survival consistency",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion"
+      ]
+    },
+    {
+      "id": "ass:event-rate-vanishes",
+      "kind": "nuisance rate",
+      "condition": "The event-nuisance rate satisfies \\(a_K\\to0\\).",
+      "free_symbols": [
+        "a_K",
+        "K"
+      ],
+      "standard": {
+        "name": "cross-fitted event-survival consistency rate",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion"
+      ]
+    },
+    {
+      "id": "ass:censor-rate-vanishes",
+      "kind": "nuisance rate",
+      "condition": "The censor-nuisance rate satisfies \\(b_K\\to0\\).",
+      "free_symbols": [
+        "b_K",
+        "K"
+      ],
+      "standard": {
+        "name": "cross-fitted censor-survival consistency rate",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion"
+      ]
+    },
+    {
+      "id": "ass:nuisance-product-rate",
+      "kind": "nuisance rate",
+      "condition": "The nuisance rates satisfy \\(a_Kb_K=o(K^{-1/2})\\).",
+      "free_symbols": [
+        "a_K",
+        "b_K",
+        "K"
+      ],
+      "standard": {
+        "name": "cross-fitted doubly robust product-rate condition",
+        "cite": "WestlingLuedtkeGilbertCarone2024"
+      },
+      "used_by": [
+        "lem:joint-cell-expansion"
+      ]
+    },
+    {
+      "id": "ass:exact-rank",
+      "kind": "rank",
+      "condition": "The donor-pre matrix satisfies \\(\\operatorname{rank}(M)=r\\).",
+      "free_symbols": [
+        "M",
+        "r"
+      ],
+      "standard": {
+        "name": "exact low-rank donor panel",
+        "cite": "HanShah2025SSC"
+      },
+      "used_by": [
+        "lem:full-spectral-differential",
+        "thm:joint-spectral-limit",
+        "prop:km-pcr-cancellation"
+      ]
+    },
+    {
+      "id": "ass:singular-gap",
+      "kind": "rank",
+      "condition": "The smallest nonzero singular value satisfies \\(\\sigma_r(M)\\ge\\kappa\\).",
+      "free_symbols": [
+        "M",
+        "r",
+        "\\kappa"
+      ],
+      "constants": [
+        "\\kappa"
+      ],
+      "standard": {
+        "name": "fixed singular-value separation",
+        "cite": "HanShah2025SSC"
+      },
+      "used_by": [
+        "lem:full-spectral-differential",
+        "thm:joint-spectral-limit"
+      ]
+    },
+    {
+      "id": "ass:target-pre-span",
+      "kind": "identification",
+      "condition": "The target-pre row satisfies \\(y\\in\\operatorname{row}(M)\\).",
+      "free_symbols": [
+        "y",
+        "M"
+      ],
+      "standard": {
+        "name": "synthetic-control donor-span condition",
+        "cite": "HanShah2025SSC"
+      },
+      "used_by": [
+        "thm:joint-spectral-limit",
+        "prop:km-pcr-cancellation"
+      ]
+    },
+    {
+      "id": "ass:post-transport",
+      "kind": "identification",
+      "condition": "The target unit's untreated post-period survival row equals \\(yM_r^+B\\).",
+      "free_symbols": [
+        "y",
+        "M",
+        "r",
+        "B",
+        "\\theta"
+      ],
+      "standard": {
+        "name": "exact donor-weight transport across periods",
+        "cite": "HanShah2025SSC"
+      },
+      "used_by": [
+        "thm:joint-spectral-limit",
+        "thm:band-and-rmst",
+        "prop:km-pcr-cancellation"
+      ]
+    },
+    {
+      "id": "ass:nondegenerate-covariance",
+      "kind": "regularity",
+      "condition": "The joint covariance satisfies \\(\\lambda_{\\min}(\\Omega_\\eta)\\ge v\\).",
+      "free_symbols": [
+        "\\Omega_\\eta",
+        "v"
+      ],
+      "constants": [
+        "v"
+      ],
+      "standard": {
+        "name": "nondegenerate asymptotic covariance",
+        "cite": "ChernozhukovChetverikovKato2013"
+      },
+      "used_by": [
+        "thm:joint-spectral-limit",
+        "thm:band-and-rmst"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:aipcw-score",
+      "name": "\\psi_{c\\ell}",
+      "construction": "For \\(o=(x,u,\\delta)\\), define \\[\\psi_{c\\ell}(o;Q_c,G_c)=Q_c(t_{c\\ell}\\mid x)\\left[1-\\left\\{\\frac{\\mathbf 1(u\\le t_{c\\ell},\\delta=1)}{Q_c(u\\mid x)G_c(u\\mid x)}-\\int_{(0,t_{c\\ell}\\wedge u]}\\frac{\\Lambda_c(ds\\mid x)}{Q_c(s\\mid x)G_c(s\\mid x)}\\right\\}\\right].\\] Here \\(Q_c\\) is right-continuous, \\(G_c\\) is left-continuous, \\(\\Delta_{ci}=\\mathbf 1\\{T_{ci}\\le C_{ci}\\}\\), and the product-integral convention is \\(0/0=1\\).",
+      "free_symbols": [
+        "\\psi_{c\\ell}",
+        "c",
+        "\\ell",
+        "t_{c\\ell}",
+        "Q_c",
+        "G_c",
+        "\\Lambda_c",
+        "\\Delta_{ci}",
+        "T_{ci}",
+        "C_{ci}"
+      ],
+      "inputs": [
+        "Q_c",
+        "G_c",
+        "\\Lambda_c",
+        "t_{c\\ell}"
+      ]
+    },
+    {
+      "id": "def:cell-estimator",
+      "name": "\\widehat s_c",
+      "construction": "For each coordinate \\(\\ell\\), set \\[\\widehat s_{c\\ell}=K^{-1}\\sum_{f=1}^L\\sum_{i\\in\\mathcal V_{cf}}\\psi_{c\\ell}\\!\\left(O_{ci};\\widehat Q_{c,-f},\\widehat G_{c,-f}\\right),\\qquad \\widehat s_c=(\\widehat s_{c1},\\ldots,\\widehat s_{cd_c})^\\top,\\] with \\(\\widehat\\Lambda_{c,-f}\\) used inside the score as the product-integral hazard corresponding to \\(\\widehat Q_{c,-f}\\).",
+      "free_symbols": [
+        "\\widehat s_c",
+        "c",
+        "\\ell",
+        "K",
+        "f",
+        "L",
+        "i",
+        "\\mathcal V_{cf}",
+        "\\psi_{c\\ell}",
+        "O_{ci}",
+        "\\widehat Q_{c,-f}",
+        "\\widehat G_{c,-f}",
+        "\\widehat\\Lambda_{c,-f}",
+        "d_c"
+      ],
+      "inputs": [
+        "def:aipcw-score",
+        "\\widehat Q_{c,-f}",
+        "\\widehat G_{c,-f}",
+        "\\widehat\\Lambda_{c,-f}"
+      ]
+    },
+    {
+      "id": "def:full-spectral-map",
+      "name": "\\widehat\\theta",
+      "construction": "Extract \\(\\widehat y,\\widehat M,\\widehat B,\\widehat s_1\\) from the stacked \\((\\widehat s_c)_{c\\in\\mathcal C}\\), and set \\[\\widehat\\theta=\\widehat y(\\widehat M)_r^+\\widehat B,\\qquad \\widehat\\tau_R=q^\\top(\\widehat s_1-\\widehat\\theta).\\]",
+      "free_symbols": [
+        "\\widehat\\theta",
+        "\\widehat y",
+        "\\widehat M",
+        "\\widehat B",
+        "\\widehat s_1",
+        "\\widehat s_c",
+        "c",
+        "\\mathcal C",
+        "r",
+        "\\widehat\\tau_R",
+        "q"
+      ],
+      "inputs": [
+        "def:cell-estimator",
+        "r",
+        "q"
+      ]
+    },
+    {
+      "id": "def:full-differential",
+      "name": "\\mathcal L_M",
+      "construction": "For \\(P=M_r^+\\), define \\[\\mathcal L_M(H)=-PHP+PP^\\top H^\\top(I-MP)+(I-PM)H^\\top P^\\top P\\] and \\[D\\mathcal F_{(y,M,B)}[h_y,H,h_B]=h_yPB+y\\mathcal L_M(H)B+yPh_B\\] for \\(\\mathcal F(y,M,B)=yM_r^+B\\).",
+      "free_symbols": [
+        "\\mathcal F",
+        "\\mathcal L_M",
+        "P",
+        "M",
+        "r",
+        "y",
+        "B"
+      ],
+      "inputs": [
+        "M",
+        "r",
+        "y",
+        "B"
+      ]
+    },
+    {
+      "id": "def:transported-influence",
+      "name": "\\Phi_{\\eta,i}",
+      "construction": "Partition \\(\\Phi_i\\) into the target-pre, donor-pre, donor-post, and factual-post blocks and define \\[\\Phi_{\\theta,i}=\\Phi_{y,i}PB+y\\mathcal L_M(\\Phi_{M,i})B+yP\\Phi_{B,i},\\quad \\Phi_{\\eta,i}=(\\Phi_{\\theta,i}^\\top,\\Phi_{1,i}^\\top)^\\top,\\quad \\Phi_{\\tau,i}=q^\\top(\\Phi_{1,i}-\\Phi_{\\theta,i}).\\]",
+      "free_symbols": [
+        "\\Phi_{\\eta,i}",
+        "\\Phi_i",
+        "\\Phi_{y,i}",
+        "\\Phi_{M,i}",
+        "\\Phi_{B,i}",
+        "\\Phi_{1,i}",
+        "\\Phi_{\\theta,i}",
+        "P",
+        "B",
+        "y",
+        "\\mathcal L_M",
+        "q",
+        "\\Phi_{\\tau,i}"
+      ],
+      "inputs": [
+        "\\Phi_i",
+        "def:full-differential",
+        "q"
+      ]
+    },
+    {
+      "id": "def:multiplier-band",
+      "name": "c_{1-\\alpha}^\\star",
+      "construction": "Let \\(\\widehat\\sigma_j^2\\) be the \\(j\\)-th counterfactual diagonal entry of \\(\\widehat\\Omega_\\eta\\). Define \\(c_{1-\\alpha}^\\star\\) as the conditional \\((1-\\alpha)\\)-quantile of \\[\\max_{1\\le j\\le J}\\left|K^{-1/2}\\sum_{i=1}^K\\xi_i\\widehat\\Phi_{\\theta,i,j}/\\widehat\\sigma_j\\right|,\\] and define the band by \\(\\widehat\\theta_j\\pm c_{1-\\alpha}^\\star\\widehat\\sigma_j/\\sqrt K\\).",
+      "free_symbols": [
+        "c_{1-\\alpha}^\\star",
+        "\\alpha",
+        "\\widehat\\Omega_\\eta",
+        "\\widehat\\sigma_j",
+        "j",
+        "J",
+        "K",
+        "i",
+        "\\xi_i",
+        "\\widehat\\Phi_{\\theta,i}",
+        "\\widehat\\theta"
+      ],
+      "inputs": [
+        "\\widehat\\Omega_\\eta",
+        "\\widehat\\Phi_{\\theta,i}",
+        "\\xi_i",
+        "\\alpha"
+      ]
+    },
+    {
+      "id": "def:km-pcr-bias-map",
+      "name": "\\beta_{\\mathrm{KM}}",
+      "construction": "For each cell, define the marginal Kaplan--Meier limit directly by \\[\\widetilde S_c(t)=\\prod_{u\\le t}\\left\\{1-\\frac{P_c(U_{ci}=u,\\Delta_{ci}=1)}{P_c(U_{ci}\\ge u)}\\right\\}\\] in discrete time, with the corresponding product integral in general. Extract \\(\\widetilde y,\\widetilde M,\\widetilde B\\) from these pseudo-limit curves and set \\[\\beta_{\\mathrm{KM}}=\\widetilde y(\\widetilde M)_r^+\\widetilde B-yM_r^+B.\\]",
+      "free_symbols": [
+        "\\beta_{\\mathrm{KM}}",
+        "\\widetilde S_c",
+        "c",
+        "P_c",
+        "U_{ci}",
+        "\\Delta_{ci}",
+        "\\widetilde y",
+        "\\widetilde M",
+        "r",
+        "\\widetilde B",
+        "y",
+        "M",
+        "B"
+      ],
+      "inputs": [
+        "P_c",
+        "y",
+        "M",
+        "B",
+        "r"
+      ]
+    },
+    {
+      "id": "def:rational-witness",
+      "name": "P^\\star",
+      "construction": "Take \\(N_0=T_0=J=r=2\\) and \\[M=\\begin{pmatrix}4/5&3/5\\\\3/5&3/10\\end{pmatrix},\\quad y=(7/10,9/20),\\quad B=\\begin{pmatrix}7/10&2/5\\\\1/2&1/5\\end{pmatrix},\\quad s_1=(7/10,2/5).\\] The six marginal event-survival pairs \\((S_c(t_{c1}),S_c(t_{c2}))\\) are the target-pre pair \\(y\\), the two donor-pre rows of \\(M\\), the two donor-post rows of \\(B\\), and the target factual-post pair \\(s_1\\), respectively. Assign the latent untreated target-post row \\(\\theta=yM^{-1}B=(3/5,3/10)\\). In every cell let \\(X_{ci}\\sim\\operatorname{Bernoulli}(1/2)\\). For its displayed pair \\((a,b)\\), put \\(\\epsilon_x=2x-1\\) and, conditional on \\(X_{ci}=x\\), assign \\[P_c(T_{ci}=t_{c1}\\mid X_{ci}=x)=1-a-\\epsilon_x/20,\\quad P_c(T_{ci}=t_{c2}\\mid X_{ci}=x)=a-b+\\epsilon_x/40,\\quad P_c(T_{ci}=\\infty\\mid X_{ci}=x)=b+\\epsilon_x/40.\\] Set \\((\\gamma_{10},\\gamma_{20})=(4/5,1/2)\\) and \\((\\gamma_{11},\\gamma_{21})=(3/5,2/5)\\), and assign \\[P_c(C_{ci}=t_{c1}\\mid X_{ci}=x)=1-\\gamma_{1x},\\quad P_c(C_{ci}=t_{c2}\\mid X_{ci}=x)=\\gamma_{1x}-\\gamma_{2x},\\quad P_c(C_{ci}=\\infty\\mid X_{ci}=x)=\\gamma_{2x}.\\] Thus \\((P_c(C_{ci}>t_{c1}\\mid X_{ci}=x),P_c(C_{ci}>t_{c2}\\mid X_{ci}=x))=(\\gamma_{1x},\\gamma_{2x})\\). Draw \\(T_{ci}\\) and \\(C_{ci}\\) independently conditional on \\(X_{ci}\\), use \\(\\Delta_{ci}=\\mathbf 1\\{T_{ci}\\le C_{ci}\\}\\), and take \\(P^\\star\\) to be the product of these six cell laws.",
+      "free_symbols": [
+        "P^\\star",
+        "N_0",
+        "T_0",
+        "J",
+        "r",
+        "M",
+        "y",
+        "B",
+        "s_1",
+        "\\theta",
+        "c",
+        "\\mathcal C",
+        "t_{c\\ell}",
+        "S_c",
+        "P_c",
+        "X_{ci}",
+        "T_{ci}",
+        "C_{ci}",
+        "\\Delta_{ci}"
+      ],
+      "inputs": [
+        "N_0",
+        "T_0",
+        "J",
+        "r",
+        "\\mathcal C"
+      ]
+    },
+    {
+      "id": "def:weak-gap-handle",
+      "name": "\\mathcal H_{\\mathrm{gap}}",
+      "construction": "Along sequences for which \\(\\sigma_r(M_K)\\downarrow0\\), \\(\\sigma_{r+1}(M_K)=0\\), and all larger nonzero singular values remain separated, use the local experiment generated by the orthogonal cell influences \\(\\phi_c\\). Calibrate \\(\\widehat r\\) by singular-value thresholding at the observable cell-score noise scale. Compare the selected-rank plug-in with a Tikhonov inverse calibrated at the same scale while retaining \\(y(M_K)_r^+B\\) as the target and covering its regularization bias. For impossibility, compare two contiguous observed-data paths that differ in the colliding singular direction and separate the transported target.",
+      "free_symbols": [
+        "\\mathcal H_{\\mathrm{gap}}",
+        "\\phi_c",
+        "\\Delta_K",
+        "K",
+        "M_K",
+        "\\widehat r",
+        "r",
+        "y",
+        "B"
+      ],
+      "inputs": [
+        "\\phi_c",
+        "\\Delta_K",
+        "M_K",
+        "\\widehat r",
+        "r",
+        "y",
+        "B"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:joint-cell-expansion",
+      "kind": "lemma",
+      "statement": "For every fixed cell and all its fixed coordinates jointly, the estimator in Definition~\\ref{def:cell-estimator} satisfies \\[\\sqrt K(\\widehat s_c-s_c)=K^{-1/2}\\sum_{i=1}^K\\phi_c(O_{ci})+o_P(1).\\] The conditional second-order remainder is \\(O_P(a_Kb_K)+o_P(K^{-1/2})\\), no first-order event- or censor-nuisance term remains, and the foldwise plug-in influence vectors are \\(L_2(P_c)\\)-consistent. Stacking over the finite set \\(\\mathcal C\\) gives the same expansion for \\((\\widehat y,\\widehat M,\\widehat B,\\widehat s_1)\\) with influence \\(\\Phi_i\\).",
+      "free_symbols": [
+        "K",
+        "\\widehat s_c",
+        "s_c",
+        "c",
+        "i",
+        "\\phi_c",
+        "O_{ci}",
+        "a_K",
+        "b_K",
+        "P_c",
+        "\\mathcal C",
+        "\\widehat y",
+        "\\widehat M",
+        "\\widehat B",
+        "\\widehat s_1",
+        "\\Phi_i"
+      ],
+      "depends_on": [
+        "ass:fixed-panel",
+        "ass:cell-iid",
+        "ass:cross-cell-independence",
+        "ass:conditional-censoring",
+        "ass:censor-positivity",
+        "ass:influence-moment",
+        "ass:event-estimability",
+        "ass:censor-estimability",
+        "ass:event-rate-vanishes",
+        "ass:censor-rate-vanishes",
+        "ass:nuisance-product-rate",
+        "def:aipcw-score",
+        "def:cell-estimator"
+      ],
+      "status": "to-prove",
+      "justification": "This is the load-bearing orthogonality result: without it, the spectral delta method would propagate an unknown first-order censoring bias.",
+      "gap": "Westling et al. (2024, Theorem 2 and Lemma 4) prove the single-law expansion; no cited result supplies the fixed-panel joint block expansion and influence estimation required by spectral SSC.",
+      "consumer": "The lemma supplies censoring-robust cell inputs for every country and treatment-line block in Han and Shah's 925-patient TCL panel."
+    },
+    {
+      "id": "lem:full-spectral-differential",
+      "kind": "lemma",
+      "statement": "On a neighborhood in which the rank-\\(r\\) singular subspace is separated, \\(\\mathcal F(y,M,B)=yM_r^+B\\) is Fr\\'echet differentiable and \\[D\\mathcal F_{(y,M,B)}[h_y,H,h_B]=h_yPB+y\\{-PHP+PP^\\top H^\\top(I-MP)+(I-PM)H^\\top P^\\top P\\}B+yPh_B.\\] In particular, the derivative contains perturbations from all three learned blocks and both orthogonal-projector correction terms.",
+      "free_symbols": [
+        "r",
+        "y",
+        "M",
+        "B",
+        "P",
+        "\\mathcal F",
+        "\\mathcal L_M",
+        "N_0",
+        "T_0",
+        "J"
+      ],
+      "depends_on": [
+        "ass:fixed-panel",
+        "ass:exact-rank",
+        "ass:singular-gap",
+        "def:full-differential"
+      ],
+      "status": "to-prove",
+      "justification": "This formula fixes the covariance accounting that is lost when estimated donor weights are treated as fixed.",
+      "gap": "Golub and Pereyra (1973, equation (4.12)) differentiate a constant-rank pseudoinverse; the present lemma specializes the full formula to the three-block SSC functional rather than claiming a new matrix-calculus theorem.",
+      "consumer": "The Jacobian lets an analyst compute how each pre- and post-period cell contributes to uncertainty in every counterfactual survival coordinate."
+    },
+    {
+      "id": "thm:joint-spectral-limit",
+      "kind": "theorem",
+      "statement": "Under exact donor-span identification and the fixed singular gap, \\[\\sqrt K\\begin{pmatrix}\\widehat\\theta-\\theta\\\\ \\widehat s_1-s_1\\end{pmatrix}=K^{-1/2}\\sum_{i=1}^K\\Phi_{\\eta,i}+o_P(1)\\rightsquigarrow\\mathcal N_{2J}(0,\\Omega_\\eta).\\] The influence vectors are those in Definition~\\ref{def:transported-influence}; their plug-in estimates obey \\(K^{-1}\\sum_{i=1}^K\\|\\widehat\\Phi_{\\eta,i}-\\Phi_{\\eta,i}\\|_2^2=o_P(1)\\), and \\(\\widehat\\Omega_\\eta\\to_P\\Omega_\\eta\\). This limit law applies under covariate-dependent censoring satisfying conditional independence and does not replace \\(\\theta\\) by a marginal Kaplan--Meier pseudo-target.",
+      "free_symbols": [
+        "K",
+        "\\widehat\\theta",
+        "\\theta",
+        "\\widehat s_1",
+        "s_1",
+        "i",
+        "\\Phi_{\\eta,i}",
+        "J",
+        "\\Omega_\\eta",
+        "\\widehat\\Phi_{\\eta,i}",
+        "\\widehat\\Omega_\\eta"
+      ],
+      "depends_on": [
+        "ass:fixed-panel",
+        "ass:cell-iid",
+        "ass:cross-cell-independence",
+        "ass:conditional-censoring",
+        "ass:censor-positivity",
+        "ass:influence-moment",
+        "ass:exact-rank",
+        "ass:singular-gap",
+        "ass:target-pre-span",
+        "ass:post-transport",
+        "ass:nondegenerate-covariance",
+        "def:full-spectral-map",
+        "def:transported-influence",
+        "lem:joint-cell-expansion",
+        "lem:full-spectral-differential"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem supplies the first joint root-\\(K\\) law for a censoring-adjusted spectral survival counterfactual and its factual comparator.",
+      "gap": "Han and Shah (2025, Theorem 2) give finite-sample consistency under non-informative censoring, while Westling et al. (2024, Theorem 2) have no data-dependent spectral transport; neither result contains this joint influence vector.",
+      "consumer": "The theorem provides standard errors for the untreated United States curve and its contrast with observed single-agent therapy in the TCL analysis."
+    },
+    {
+      "id": "thm:band-and-rmst",
+      "kind": "theorem",
+      "statement": "The Gaussian-multiplier band in Definition~\\ref{def:multiplier-band} has simultaneous fixed-grid coverage \\[\\Pr\\!\\left\\{\\theta_j\\in\\left[\\widehat\\theta_j\\pm c_{1-\\alpha}^\\star\\widehat\\sigma_j/\\sqrt K\\right]\\ \\text{for every }1\\le j\\le J\\right\\}\\to1-\\alpha.\\] Moreover, with \\(\\widehat V_R=K^{-1}\\sum_{i=1}^K\\{q^\\top(\\widehat\\Phi_{1,i}-\\widehat\\Phi_{\\theta,i})\\}^2\\), \\[\\frac{\\sqrt K(\\widehat\\tau_R-\\tau_R)}{\\sqrt{\\widehat V_R}}\\rightsquigarrow\\mathcal N(0,1),\\] so the usual two-sided studentized interval has asymptotic coverage \\(1-\\alpha\\).",
+      "free_symbols": [
+        "\\theta",
+        "\\widehat\\theta",
+        "c_{1-\\alpha}^\\star",
+        "\\alpha",
+        "K",
+        "j",
+        "J",
+        "q",
+        "i",
+        "\\widehat\\Phi_{1,i}",
+        "\\widehat\\Phi_{\\theta,i}",
+        "\\widehat\\sigma_j",
+        "\\widehat V_R",
+        "\\widehat\\tau_R",
+        "\\tau_R"
+      ],
+      "depends_on": [
+        "ass:fixed-panel",
+        "ass:cell-iid",
+        "ass:cross-cell-independence",
+        "ass:influence-moment",
+        "ass:post-transport",
+        "ass:nondegenerate-covariance",
+        "def:multiplier-band",
+        "thm:joint-spectral-limit"
+      ],
+      "status": "to-prove",
+      "justification": "Joint curve coverage and a scalar grid-RMST interval turn the limit law into clinically interpretable uncertainty statements.",
+      "gap": "Westling et al. (2024, Sections 5.2--5.3) calibrate bands and RMST for directly estimated survival curves; no cited work calibrates the transported spectral counterfactual with estimated donor weights.",
+      "consumer": "TCL investigators can report a familywise-valid untreated survival trajectory and a single treatment-effect interval on the prespecified follow-up grid."
+    },
+    {
+      "id": "prop:km-pcr-cancellation",
+      "kind": "proposition",
+      "statement": "Whenever \\(\\widetilde M\\) has separated rank \\(r\\), unadjusted cellwise Kaplan--Meier followed by rank-\\(r\\) PCR converges to \\(\\widetilde y(\\widetilde M)_r^+\\widetilde B\\). On the finite discrete submodel with fixed supports and positive risk denominators, the map from cell-atom probabilities to \\(\\widetilde y(\\widetilde M)_r^+\\widetilde B-yM_r^+B\\) is continuous wherever the true and naive singular gaps are positive. Consequently, the laws for which the unadjusted probability limit differs from \\(\\theta\\) form a relatively open subset of the conditional-censoring, positivity, exact-rank, exact-transport submodel. For every pair \\((a,b)\\) in the six-cell construction \\(P^\\star\\), the displayed event and censor atom masses are strictly positive. Under the event-wins-ties convention, the two marginal at-risk denominators are \\(P_c(U_{ci}\\ge t_{c1})=1\\) and \\(P_c(U_{ci}\\ge t_{c2})=(140a-1)/200\\ge69/200\\), while \\(G_c\\) is at least \\(2/5\\) on the required horizon. Hence \\(P^\\star\\) belongs to the full six-cell conditional-censoring, positivity, exact-rank, exact-transport submodel. Its marginal Kaplan--Meier limit for a cell with true pair \\((a,b)\\) is \\[\\left(a,\\frac{a(280b-1)}{280a-2}\\right),\\] and therefore \\[\\widetilde y=(7/10,175/388),\\quad \\widetilde M=\\begin{pmatrix}4/5&334/555\\\\3/5&3/10\\end{pmatrix},\\quad \\widetilde B=\\begin{pmatrix}7/10&777/1940\\\\1/2&55/276\\end{pmatrix}.\\] The target factual-post cell has the same displayed marginal pair as the first donor-post cell, so its marginal Kaplan--Meier limit is \\((7/10,777/1940)\\); this sixth curve does not enter the counterfactual PCR map. Since \\(\\det(M)=-3/25\\), \\(yM^{-1}=(1/2,1/2)\\), and \\(\\theta=(3/5,3/10)\\), direct substitution gives \\[\\widetilde y\\widetilde M^{-1}\\widetilde B=\\left(27937/46560,186964603/623252160\\right)=\\left(3/5+1/46560,3/10-2209/124650432\\right),\\] so \\(\\beta_{\\mathrm{KM}}=(1/46560,-2209/124650432)\\ne(0,0)\\).",
+      "free_symbols": [
+        "\\widetilde M",
+        "r",
+        "\\widetilde y",
+        "\\widetilde B",
+        "\\theta",
+        "\\beta_{\\mathrm{KM}}",
+        "P_c",
+        "c",
+        "\\mathcal C",
+        "P^\\star",
+        "M",
+        "y",
+        "B",
+        "J",
+        "s_1",
+        "U_{ci}",
+        "t_{c\\ell}",
+        "G_c"
+      ],
+      "depends_on": [
+        "ass:conditional-censoring",
+        "ass:censor-positivity",
+        "ass:exact-rank",
+        "ass:target-pre-span",
+        "ass:post-transport",
+        "def:km-pcr-bias-map",
+        "def:rational-witness"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition turns cellwise Kaplan--Meier distortion into an exact three-block PCR probability limit and shows that fixed bias persists under local perturbations of an explicit law.",
+      "gap": "Curth et al. (2024) show survival-control distributional bias and Westling et al. (2024) explain Kaplan--Meier inconsistency, but neither derives the three-block PCR probability limit or a relatively open nonzero-bias subclass.",
+      "consumer": "The result tells users of Han and Shah's workflow exactly when covariate-adjusted censoring is indispensable rather than a variance-only refinement."
+    },
+    {
+      "id": "oeq:weak-gap-rank-frontier",
+      "kind": "openendedquestion",
+      "statement": "Using the handle \\(\\mathcal H_{\\mathrm{gap}}\\), characterize the maximal collection of rank-\\(r\\) sequences with \\(\\Delta_K\\downarrow0\\) for which noise-calibrated singular-value thresholding with selected rank \\(\\widehat r\\), or Tikhonov stabilization with explicit bias accounting, yields a fully observable uniformly honest band for the unregularized target \\(y(M_K)_r^+B\\). Establish attainability without fixing a phase exponent in advance, or prove by contiguous two-path alternatives through the colliding singular direction that uniform inference is impossible on the remaining sequences.",
+      "free_symbols": [
+        "\\mathcal H_{\\mathrm{gap}}",
+        "\\Delta_K",
+        "K",
+        "\\widehat r",
+        "r",
+        "y",
+        "M_K",
+        "B"
+      ],
+      "depends_on": [
+        "def:weak-gap-handle",
+        "lem:joint-cell-expansion",
+        "lem:full-spectral-differential",
+        "thm:joint-spectral-limit"
+      ],
+      "status": "to-prove",
+      "justification": "Rank selection and weak factors are unavoidable in practice, and the fixed-gap theorem does not reveal where regular inference actually ends.",
+      "gap": "Fan and Liao (2022, Theorem 2.1 and Theorem 3.2 with Corollary 3.1; arXiv v3, pp. 10--11 and 20--21) recover factor spaces and obtain factor-augmented inference with bounded over-estimated rank as the cross-sectional dimension grows. Choi, Kwon, and Liao (2026) treat high-dimensional linear functionals. Neither result covers a fixed donor panel, an unregularized nonlinear pseudoinverse target, or local singular collision under orthogonal survival-score noise.",
+      "consumer": "A solution would tell TCL analysts whether an elbow- or cross-validation-selected rank supports honest curve inference or requires a weak-identification warning."
+    }
+  ],
+  "sampling_model": {
+    "design": "A fixed set of target-pre, donor-pre, donor-post, and target factual-post cells is observed; treatment histories and grid times are fixed.",
+    "units": "Each cell contains \\(K\\) independent individuals, and cell samples are mutually independent.",
+    "treatment": "The target switches treatment after the pre period, while donor units remain under control; exact donor-span transport identifies the target's untreated post-period survival row.",
+    "overlap": "Conditional censor survival is at least \\(g>0\\) through every required cell horizon.",
+    "nuisance_estimation": "Fixed-fold cross-fitting estimates the conditional event and censor survival functions with rates \\(a_K\\) and \\(b_K\\) satisfying \\(a_Kb_K=o(K^{-1/2})\\)."
+  },
+  "estimand_functional": "\\((\\widehat\\theta,\\widehat\\tau_R)=(\\widehat y(\\widehat M)_r^+\\widehat B,\\ q^\\top\\{\\widehat s_1-\\widehat y(\\widehat M)_r^+\\widehat B\\})\\), with root-\\(K\\) influence \\((\\Phi_{\\theta},\\Phi_\\tau)\\)",
+  "target_estimand": "\\((\\theta,\\tau_R)=(yM_r^+B,\\ q^\\top\\{s_1-yM_r^+B\\})\\)",
+  "bibliography": [
+    {
+      "key": "HanShah2025SSC",
+      "citation": "Han, J. X., and Shah, D. (2025). Synthetic Survival Control: Extending Synthetic Controls for ``When-If'' Decision. arXiv:2511.14133."
+    },
+    {
+      "key": "WestlingLuedtkeGilbertCarone2024",
+      "citation": "Westling, T., Luedtke, A., Gilbert, P. B., and Carone, M. (2024). Inference for treatment-specific survival curves using machine learning. Journal of the American Statistical Association, 119, 1541--1553. arXiv:2106.06602."
+    },
+    {
+      "key": "AgarwalShahShen2025PCR",
+      "citation": "Agarwal, A., Shah, D., and Shen, D. (2025). On model identification and out-of-sample prediction of principal component regression: Applications to synthetic controls. Journal of Machine Learning Research. arXiv:2010.14449."
+    },
+    {
+      "key": "GolubPereyra1973",
+      "citation": "Golub, G. H., and Pereyra, V. (1973). The differentiation of pseudo-inverses and nonlinear least squares problems whose variables separate. SIAM Journal on Numerical Analysis, 10, 413--432. doi:10.1137/0710036."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2013",
+      "citation": "Chernozhukov, V., Chetverikov, D., and Kato, K. (2013). Gaussian approximations and multiplier bootstrap for maxima of sums of high-dimensional random vectors. Annals of Statistics, 41, 2786--2819. arXiv:1212.6906."
+    },
+    {
+      "key": "ChernozhukovEtAl2018DML",
+      "citation": "Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. Econometrics Journal, 21, C1--C68. arXiv:1608.00060."
+    },
+    {
+      "key": "CurthPoonNoriGonzalez2024",
+      "citation": "Curth, A., Poon, H., Nori, A. V., and Gonz\\'alez, J. (2024). Cautionary tales on synthetic controls in survival analyses. Proceedings of the Third Conference on Causal Learning and Reasoning, PMLR 236, 143--159. arXiv:2312.00501."
+    },
+    {
+      "key": "ChoiKwonLiao2026RankRobust",
+      "citation": "Choi, J., Kwon, H., and Liao, Y. (2026). Inference for low-rank models without estimating the rank. Journal of the American Statistical Association. arXiv:2311.16440."
+    },
+    {
+      "key": "FanLiao2022Diversified",
+      "citation": "Fan, J., and Liao, Y. (2022). Learning latent factors from diversified projections and its applications to over-estimated and weak factors. Journal of the American Statistical Association, 117, 909--924. arXiv:1908.01252. doi:10.1080/01621459.2020.1831927."
+    },
+    {
+      "key": "Gunsilius2023DSC",
+      "citation": "Gunsilius, F. F. (2023). Distributional synthetic controls. Econometrica, 91, 1105--1117. arXiv:2001.06118."
+    },
+    {
+      "key": "OkanoKurisu2026FSC",
+      "citation": "Okano, R., and Kurisu, D. (2026). Functional synthetic control methods. arXiv:2601.07539."
+    },
+    {
+      "key": "LokYangSharkeyHughes2018",
+      "citation": "Lok, J. J., Yang, S., Sharkey, B., and Hughes, M. D. (2018). Estimation of the cumulative incidence function under multiple dependent and independent censoring mechanisms. Lifetime Data Analysis, 24, 203--223."
+    },
+    {
+      "key": "ChernozhukovWuthrichZhu2021",
+      "citation": "Chernozhukov, V., Wuthrich, K., and Zhu, Y. (2021). An exact and robust conformal inference method for counterfactual and synthetic controls. Journal of the American Statistical Association, 116, 1849--1864. arXiv:1712.09089."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "HanShah2025SSC",
+      "comparator_claim": "Theorems 1--2 identify the donor-span counterfactual and give finite-sample consistency for Kaplan--Meier spectral SSC under non-informative censoring.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "WestlingLuedtkeGilbertCarone2024",
+      "comparator_claim": "Theorem 2 gives pointwise and uniform asymptotic linearity for one cross-fitted doubly robust treatment-specific survival curve.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AgarwalShahShen2025PCR",
+      "comparator_claim": "Theorem 2 and Corollary 2 give row-space out-of-sample prediction guarantees for minimum-norm principal component regression.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GolubPereyra1973",
+      "comparator_claim": "Equation (4.12) gives the Fr\\'echet derivative of the Moore--Penrose inverse under locally constant rank.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CurthPoonNoriGonzalez2024",
+      "comparator_claim": "Sections 3--4 show interpolation, variance, and survival-curve bias for synthetic survival individuals.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChoiKwonLiao2026RankRobust",
+      "comparator_claim": "Theorem 3.1 gives feasible inference for low-rank linear functionals when the working rank overestimates the true rank.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "FanLiao2022Diversified",
+      "comparator_claim": "Theorem 2.1 recovers the factor space for bounded working rank at least the true rank as the cross-sectional dimension grows, and Theorem 3.2 with Corollary 3.1 gives over-estimated-rank-robust factor-augmented inference.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A fixed survival panel can be made robust to covariate-dependent right censoring by replacing every Kaplan--Meier cell curve with one cross-fitted augmented-IPCW score and transporting the resulting joint influence vector through the complete rank-\\(r\\) pseudoinverse derivative. The resulting estimator has a joint root-\\(K\\) Gaussian law, a feasible simultaneous band for the untreated post-treatment curve, and a studentized grid-RMST effect interval. A complementary probability-limit result derives the unadjusted Kaplan--Meier/PCR pseudo-target and proves fixed nonzero bias on a relatively open subclass containing an explicit rational law.",
+  "project_justification": {
+    "gap": "Synthetic Survival Control identifies a clinically relevant low-rank counterfactual but assumes non-informative censoring and provides no influence-function limit law, while modern orthogonal survival estimators stop before the learned panel map.",
+    "niche": "With fixed panel dimensions and many independent patients per cell, the cellwise survival problem is semiparametric but the final counterfactual is a smooth, multi-block spectral functional whose full derivative and covariance have not been developed.",
+    "fill": "The project fixes the score and tie convention, proves its joint product-rate expansion, derives the complete transported influence vector, validates multiplier and grid-RMST inference, and derives the unadjusted workflow's probability limit with an explicit relatively open nonzero-bias subclass."
+  },
+  "related_work": "Han and Shah (2025) supply the low-rank survival-panel estimand, donor transport, and TCL application, but their Kaplan--Meier theory assumes non-informative censoring and explicitly points to IPCW as future work. Westling, Luedtke, Gilbert, and Carone (2024) supply the score and product-integral remainder argument adapted here at the cell level, but do not estimate a donor map. Agarwal, Shah, and Shen (2025) clarify minimum-norm PCR and row-space transport, without censoring-aware asymptotics. Golub and Pereyra (1973) supply the constant-rank pseudoinverse differential used as a technique ancestor. Curth, Poon, Nori, and Gonz\\'alez (2024) motivate the failure analysis by showing distinct distributional biases in survival synthetic controls, but do not derive the cellwise informative-censoring PCR pseudo-limit or its relatively open nonzero-bias region. Fan and Liao (2022, Theorem 2.1 and Theorem 3.2 with Corollary 3.1; arXiv v3, pp. 10--11 and 20--21) use cross-sectional diversified projections to recover factor spaces and validate factor-augmented inference with weak or over-estimated factors as the cross-sectional dimension grows. Choi, Kwon, and Liao (2026) obtain rank-robust inference for high-dimensional linear functionals. Those high-dimensional factor methods inform the stabilization handle but do not resolve a fixed-panel nonlinear pseudoinverse at a local singular collision.",
+  "technical_internal_limitation": "The positive theorem is deliberately fixed-dimensional. It does not cover a growing post grid, a shrinking singular gap, a selected rank, covariance degeneracy, or a continuous-time RMST. The grid-RMST target is exactly \\(q^\\top(s_1-\\theta)\\); calling it a continuous restricted mean would require an additional observation or interpolation model.",
+  "honest_scope": "The cellwise second-order remainder and plug-in influence consistency are the early kill test. Once that lemma is established, constant-rank differentiation and fixed-dimensional Gaussian calibration are standard but must retain all cell blocks. Under marginal independent censoring with correctly estimated constant nuisances, the augmented-IPCW cell influence reduces to the ordinary Kaplan--Meier influence, providing the required reduction to Han and Shah's regular special case. The weak-gap/rank-selection frontier remains an explicit open-ended question rather than an asserted rate.",
+  "seeds": [
+    "Orthogonal fixed-grid spectral survival-control limit law with simultaneous inference",
+    "Open nonzero-bias subclass for unadjusted Kaplan--Meier principal-component regression",
+    "Shrinking singular-gap and rank-selection phase transition for spectral survival control",
+    "Continuous-time censoring-robust spectral survival-control process",
+    "Semiparametric efficiency bound for a transported survival curve",
+    "Geometry correspondence among linear, Wasserstein, and Hilbert synthetic survival controls",
+    "Competing-risk spectral synthetic control with augmented inverse-censoring weighting",
+    "Permutation inversion for a censored synthetic-survival counterfactual",
+    "Treatment-rule learning from spectral restricted-mean survival effects"
+  ],
+  "seed_details": [
+    {
+      "rank": 1,
+      "seed": "Orthogonal fixed-grid spectral survival-control limit law with simultaneous inference",
+      "anchor": "HanShah2025SSC",
+      "anchor_locator": "arXiv:2511.14133, Introduction, Theorem 1, Theorem 2, Appendix E, and Conclusion.",
+      "opened_anchor_evidence": "Han and Shah identify the untreated post-period survival trajectory by donor-span transport and estimate it by Kaplan--Meier followed by rank-truncated principal-component regression. Their proof first controls cellwise Kaplan--Meier errors, then invokes spectral stability and row-space transport. The conclusion explicitly leaves inverse-probability censoring weighting and covariate incorporation for later work.",
+      "motif": "M5+M11(c)+M1+M7",
+      "target_tier": "field",
+      "changed_proof_step": "Replace the first Kaplan--Meier concentration step by a joint cross-fitted augmented-IPCW expansion, then differentiate all three noisy blocks in \\(yM_r^+B\\), including both projector corrections in the pseudoinverse derivative.",
+      "destination_search": "Searches for synthetic survival control with IPCW, dependent censoring, influence functions, or simultaneous bands returned Han and Shah and generic survival estimators, but no paper composing an orthogonal cell score with the full spectral map.",
+      "adjacent_threads": [
+        "Westling, Luedtke, Gilbert, and Carone (2024), Theorems 1--2 and Lemmas 4--7: the explicit orthogonal survival score, product remainder, and feasible influence process.",
+        "Agarwal, Shah, and Shen (2025), Theorem 2 and Corollary 2: minimum-norm PCR and row-space out-of-sample transport without censoring-aware inference.",
+        "Golub and Pereyra (1973), equation (4.12): the locally constant-rank pseudoinverse differential with both projector corrections.",
+        "Chernozhukov, Chetverikov, and Kato (2013): Gaussian multiplier approximation and anti-concentration for maxima."
+      ],
+      "novelty_check": "The four threads settle the cell score, deterministic row-space transport, matrix differential, and multiplier calibration separately. None contains the joint influence vector for a survival score propagated through all three learned blocks, so no closer paper subsumes the kernel.",
+      "referee_objection": "This is immediate from Westling et al. and an ordinary delta method.",
+      "rebuttal": "Westling et al. treat one survival law; the new influence vector must preserve within-cell covariance and propagate target-pre, donor-pre, and donor-post errors through a rank-truncated pseudoinverse whose two subspace-motion terms are absent from a plug-in weight calculation.",
+      "anti_pattern_check": "The limit law is the kernel, not a generic application claim; the score, tie convention, full differential, covariance estimator, band, and grid-RMST contrast are explicit, while the weak-gap regime remains openly posed.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 5,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 24
+      },
+      "retained": true
+    },
+    {
+      "rank": 3,
+      "seed": "Shrinking singular-gap and rank-selection phase transition for spectral survival control",
+      "anchor": "ChoiKwonLiao2026RankRobust",
+      "anchor_locator": "arXiv:2311.16440, Introduction, diversified-projection construction, Theorem 3.1, bias-correction discussion, and concluding applications.",
+      "opened_anchor_evidence": "Choi, Kwon, and Liao replace consistent rank recovery by diversified projections and explicitly correct the ridge-type bias created by rank overestimation. Their feasible central limit theorem concerns linear functionals of a high-dimensional low-rank matrix, not a fixed-panel nonlinear pseudoinverse functional fed by cross-fitted survival scores.",
+      "motif": "M5+M11(a)+M11(c)",
+      "target_tier": "flagship",
+      "changed_proof_step": "Track the second-order remainder of the composite map \\((y,M,B)\\mapsto yM_r^+B\\) uniformly as the singular gap shrinks, and construct two local survival experiments when the derivative ceases to be regular.",
+      "destination_search": "Searches for weak-gap synthetic survival control, rank-robust pseudoinverse inference, diversified-projection weak-factor inference, and rank-selected censoring-robust panels found high-dimensional factor and linear-functional results but no fixed-panel multi-block survival experiment.",
+      "adjacent_threads": [
+        "Golub and Pereyra (1973), equation (4.12): the regular constant-rank derivative whose norm and remainder must be tracked as the gap closes.",
+        "Westling, Luedtke, Gilbert, and Carone (2024), Theorem 2: the regular orthogonal cell experiment that separates nuisance error from spectral nonregularity.",
+        "Fan and Liao (2022), Theorem 2.1 and Theorem 3.2 with Corollary 3.1: diversified projections recover high-dimensional factor spaces and support factor-augmented inference with bounded over-estimated rank.",
+        "Han and Shah (2025), Theorem 2: the well-conditioned fixed-rank baseline without selected-rank inference."
+      ],
+      "novelty_check": "Fan and Liao use cross-sectional averaging as the large dimension grows, and Choi, Kwon, and Liao study high-dimensional low-rank linear functionals. The proposed local experiment instead keeps the donor panel fixed and follows a nonlinear three-block pseudoinverse target through a singular collision. The boundary remains unoccupied but is too risky to replace the regular theorem, so it is preserved as the first-class open question.",
+      "referee_objection": "Diversified-projection methods already solve inference with weak or over-estimated factors.",
+      "rebuttal": "Fan and Liao average idiosyncratic noise over a growing cross section, and Choi, Kwon, and Liao target high-dimensional linear functionals; neither estimator or proof controls an unregularized fixed-panel pseudoinverse target at a local singular-value collision.",
+      "anti_pattern_check": "The phase boundary is not guessed or assumed; the handle fixes the collision path, noise-threshold rank rule, unregularized target, and Tikhonov comparison while leaving the boundary to a local upper-bound and two-path lower-bound analysis.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 20
+      },
+      "retained": true
+    },
+    {
+      "rank": 2,
+      "seed": "Open nonzero-bias subclass for unadjusted Kaplan--Meier principal-component regression",
+      "anchor": "CurthPoonNoriGonzalez2024",
+      "anchor_locator": "arXiv:2312.00501, Introduction, Sections 3--4 on interpolation and survival-curve bias, equation (8), and Conclusion.",
+      "opened_anchor_evidence": "Curth et al. decompose bias from nonlinear survival models and show that synthetic individuals have distorted distributional spread, but they deliberately set aside the panel-cell Kaplan--Meier probability limit under covariate-dependent censoring. Their conclusion asks for more sophisticated survival-control corrections.",
+      "motif": "M1+M6+M7",
+      "target_tier": "field",
+      "changed_proof_step": "Derive every cell's marginal Kaplan--Meier pseudo-limit under conditional but not marginal independent censoring, substitute the resulting curves into \\(y\\), \\(M\\), and \\(B\\) simultaneously, and prove continuity of the resulting pseudoinverse discrepancy on a positive-gap finite discrete submodel.",
+      "destination_search": "Searches for Kaplan--Meier/PCR probability limits and informative-censoring synthetic controls found separate Kaplan--Meier inconsistency and survival-control bias results, but no three-block pseudo-limit with an explicit relatively open nonzero-bias subclass.",
+      "adjacent_threads": [
+        "Westling, Luedtke, Gilbert, and Carone (2024), Introduction and Theorem 1: the distinction between the marginal Kaplan--Meier pseudo-target and the covariate-standardized survival functional.",
+        "Agarwal, Shah, and Shen (2025), Section 2 and Corollary 2: deterministic minimum-norm PCR transport after taking probability limits.",
+        "Han and Shah (2025), Theorems 1--2: the exact true-curve donor-span relation and the naïve Kaplan--Meier spectral workflow."
+      ],
+      "novelty_check": "The neighboring papers separately establish Kaplan--Meier failure, PCR transport, and survival-control bias. None substitutes cell-specific pseudo-limits into the target-pre, donor-pre, and donor-post blocks simultaneously or proves nonzero bias on a relatively open discrete submodel; the rational witness and continuity region therefore survive the scan.",
+      "referee_objection": "Kaplan--Meier inconsistency under dependent censoring is classical, so the conclusion is automatic.",
+      "rebuttal": "Cellwise inconsistency need not survive the learned three-block transport because blockwise distortions can offset; the exact pseudo-limit and its relatively open nonzero-bias region are the missing claims.",
+      "anti_pattern_check": "The claim is not a definitional consistency equivalence or a single tuned counterexample: the rational law certifies nonemptiness, while continuity yields a relatively open nonzero-bias subclass.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 23
+      },
+      "retained": true
+    },
+    {
+      "rank": 4,
+      "seed": "Continuous-time censoring-robust spectral survival-control process",
+      "anchor": "WestlingLuedtkeGilbertCarone2024",
+      "anchor_locator": "arXiv:2106.06602, Introduction, Theorem 2, Lemmas 4--7, proof of Theorem 2, and Concluding Remarks.",
+      "opened_anchor_evidence": "Westling et al. prove uniform asymptotic linearity in \\(\\ell^\\infty([0,\\tau])\\) by a product-integral expansion, cross-fitting, and monotone-class entropy bounds. Their construction has no learned donor geometry.",
+      "motif": "M5+M11(c)",
+      "target_tier": "field",
+      "changed_proof_step": "Lift the finite-dimensional spectral derivative to a continuous operator on a product of c\\`adl\\`ag-function spaces and verify stochastic equicontinuity after donor transport.",
+      "destination_search": "Functional synthetic controls and uniform doubly robust survival inference exist separately; no censoring-robust spectral composition was located.",
+      "referee_objection": "With fixed pre-period weights, continuous-time post-period transport is only a bounded linear map of Westling et al.'s process.",
+      "rebuttal": "That objection substantially lowers the incremental depth when the pre-fit grid stays fixed, so this seed is dropped in favor of the sharper fixed-grid three-block derivative.",
+      "anti_pattern_check": "Dropped because the strongest defensible version risks becoming a routine functional continuous-mapping corollary.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "retained": false
+    },
+    {
+      "rank": 5,
+      "seed": "Semiparametric efficiency bound for a transported survival curve",
+      "anchor": "WestlingLuedtkeGilbertCarone2024",
+      "anchor_locator": "arXiv:2106.06602, Theorem 1 and its pathwise-differentiability proof, Theorem 2, and Concluding Remarks.",
+      "opened_anchor_evidence": "Westling et al. identify the nonparametric efficient influence function for one marginal survival curve. On a product model of independent panel cells, the chain rule plausibly transports these efficient scores through a smooth fixed-rank map.",
+      "motif": "M11(b)+M5",
+      "target_tier": "subfield",
+      "changed_proof_step": "Form the product tangent space across cells and project the derivative of \\(yM_r^+B\\) onto it.",
+      "destination_search": "No published efficiency calculation for spectral survival control was found, but the product-model answer appears close to a direct chain-rule consequence.",
+      "referee_objection": "The efficiency bound is just the variance of the delta-method transport of already efficient cell scores.",
+      "rebuttal": "The objection holds under independent cells and fixed dimensions, so efficiency is not retained as the headline kernel.",
+      "anti_pattern_check": "Dropped rather than promoting a routine semiparametric chain rule to a principal contribution.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 2,
+        "feasibility": 5,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "retained": false
+    },
+    {
+      "rank": 6,
+      "seed": "Geometry correspondence among linear, Wasserstein, and Hilbert synthetic survival controls",
+      "anchor": "HanShah2025SSC",
+      "anchor_locator": "arXiv:2511.14133, Introduction, factor-model setup, Theorem 1, and Conclusion.",
+      "opened_anchor_evidence": "Han and Shah impose a linear donor-span restriction on survival trajectories. Gunsilius instead identifies quantile barycenters in Wasserstein geometry, while Okano and Kurisu use isometric Hilbert embeddings; none of the opened papers gives correspondence conditions among these restrictions.",
+      "motif": "M6",
+      "target_tier": "flagship",
+      "changed_proof_step": "Characterize when one donor weight vector commutes with the survival-to-quantile transformation and the chosen Hilbert embedding, then construct separation models for necessity.",
+      "destination_search": "Searches for equivalence of survival-function, quantile, and embedded synthetic controls found only the separate geometries.",
+      "referee_objection": "The geometries agree only in degenerate location families, making the theorem a taxonomy rather than an empirical method.",
+      "rebuttal": "A useful diagnostic may exist, but its estimable nondegenerate characterization is not yet supported by the current presolve evidence.",
+      "anti_pattern_check": "Dropped because feasibility and the TCL consumer are weaker than for censoring-robust inference.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 3,
+        "total": 18
+      },
+      "retained": false
+    },
+    {
+      "rank": 7,
+      "seed": "Competing-risk spectral synthetic control with augmented inverse-censoring weighting",
+      "anchor": "HanShah2025SSC",
+      "anchor_locator": "arXiv:2511.14133, Introduction, Theorem 1, Kaplan--Meier construction, and Conclusion.",
+      "opened_anchor_evidence": "Han and Shah target a single event-time survival curve. Their TCL endpoint combines death and treatment failure, while the paper does not separate competing cumulative-incidence functions.",
+      "motif": "M5+M11(c)",
+      "target_tier": "subfield",
+      "changed_proof_step": "Replace the survival score by a cause-specific augmented-IPCW cumulative-incidence score before differentiating the same spectral map.",
+      "destination_search": "Lok et al. provide augmented-IPCW cumulative-incidence estimation, but no spectral panel transport; the transfer nevertheless appears structurally parallel to the selected kernel.",
+      "referee_objection": "Once the survival composition is proved, competing risks require only substituting another orthogonal cell score.",
+      "rebuttal": "The cause-specific score has additional nuisance structure, but the objection makes it a sequel rather than the first proposal.",
+      "anti_pattern_check": "Dropped as a follow-on target rather than padded into the primary theorem package.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "retained": false
+    },
+    {
+      "rank": 8,
+      "seed": "Permutation inversion for a censored synthetic-survival counterfactual",
+      "anchor": "HanShah2025SSC",
+      "anchor_locator": "arXiv:2511.14133, TCL setup, spectral estimator, and Conclusion.",
+      "opened_anchor_evidence": "The anchor's ten countries are not modeled as exchangeable units, and its identification permits treatment assignment to depend arbitrarily on latent unit factors.",
+      "motif": "M17+M5",
+      "target_tier": "subfield",
+      "changed_proof_step": "Find a nontrivial country or time permutation group that preserves both censoring and donor-span laws after nuisance fitting.",
+      "destination_search": "Synthetic-control conformal inference exists, but no valid symmetry survives the anchor's fixed heterogeneous-country design without an additional exchangeability assumption.",
+      "referee_objection": "The required permutation symmetry contradicts the heterogeneous latent-country model.",
+      "rebuttal": "The objection holds under the current setup.",
+      "anti_pattern_check": "Dropped rather than adding an artificial symmetry assumption to force finite-sample coverage.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 1,
+        "consumer_value": 3,
+        "total": 12
+      },
+      "retained": false
+    },
+    {
+      "rank": 9,
+      "seed": "Treatment-rule learning from spectral restricted-mean survival effects",
+      "anchor": "HanShah2025SSC",
+      "anchor_locator": "arXiv:2511.14133, TCL motivation, Theorem 1, empirical section, and Conclusion.",
+      "opened_anchor_evidence": "Han and Shah motivate a when-if decision for one target country but do not specify a policy class, a welfare functional, or repeated decision contexts.",
+      "motif": "M16+M5",
+      "target_tier": "subfield",
+      "changed_proof_step": "Define a policy-indexed transported RMST score and convert uniform score error into welfare regret under a margin condition.",
+      "destination_search": "No direct spectral-survival policy-learning result was found, but the brief supplies only one target decision and therefore no defensible policy class.",
+      "referee_objection": "This invents a different decision problem instead of solving inference for the named counterfactual.",
+      "rebuttal": "The objection holds on the available design.",
+      "anti_pattern_check": "Dropped because a policy target would be author-created and disconnected from the recorded TCL analysis.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 2,
+        "consumer_value": 2,
+        "total": 12
+      },
+      "retained": false
+    }
+  ],
+  "literature_map": "Han and Shah (2025, Theorems 1--2 and Appendix E) identify and estimate a low-rank synthetic survival counterfactual using Kaplan--Meier cell curves under non-informative censoring; their Conclusion names IPCW as future work. Westling, Luedtke, Gilbert, and Carone (2024, Theorems 1--2 and Lemmas 4--7) derive the efficient survival score, its exact product-form remainder, cross-fitted pointwise and uniform asymptotic linearity, bands, and integrated contrasts under conditional censoring. Agarwal, Shah, and Shen (2025, Theorem 2 and Corollary 2) characterize minimum-norm PCR and row-space out-of-sample transport, but not censoring-score limit theory. Golub and Pereyra (1973, equation (4.12)) give the constant-rank Fr\\'echet derivative of the Moore--Penrose inverse, including the two projector corrections. Chernozhukov, Chetverikov, and Kato (2013) provide Gaussian multiplier and anti-concentration tools for maxima. Curth, Poon, Nori, and Gonz\\'alez (2024, Sections 3--4) diagnose survival-control distributional bias but do not derive informative-censoring pseudo-limits inside all PCR blocks. Fan and Liao (2022, Theorem 2.1 and Theorem 3.2 with Corollary 3.1; arXiv:1908.01252v3, pp. 10--11 and 20--21) recover factor spaces and obtain factor-augmented inference with bounded over-estimated rank using diversified projections as the cross-sectional dimension grows. Choi, Kwon, and Liao (2026, Theorem 3.1) obtain rank-robust inference for high-dimensional linear functionals by diversified projections. Neither high-dimensional regime subsumes a fixed-panel nonlinear pseudoinverse functional at a local singular collision. Targeted searches through September 2026 found no closer paper containing the selected cell-score-plus-spectral-map composition.",
+  "novelty_justification": "The exact unoccupied object is the joint influence vector obtained by feeding one fully specified cross-fitted survival score into every target-pre, donor-pre, donor-post, and factual-post cell and applying the full derivative of \\(yM_r^+B\\). Han and Shah do not permit covariate-dependent censoring or give an asymptotic law; Westling et al. have no learned spectral transport; Agarwal, Shah, and Shen have no censoring nuisance or influence-function inference. The accompanying Kaplan--Meier/PCR proposition is not the classical observation that Kaplan--Meier can be inconsistent: it derives the complete three-block pseudo-limit, verifies an explicit rational nonzero point, and proves a relatively open nonzero-bias subclass. Fan and Liao and Choi, Kwon, and Liao are treated as high-dimensional technique ancestors for the open weak-gap question, not as results extended by the fixed-grid theorem.",
+  "message": "Completed and validated the six-cell rational witness, including the target factual-post law, positive risk denominators, and the unchanged exact Kaplan–Meier/PCR bias calculation.",
+  "literature_checklist": [
+    {
+      "author": "Han and Shah",
+      "year": 2025,
+      "venue": "arXiv",
+      "bibkey": "HanShah2025SSC",
+      "one_line": "Theorems 1–2 identify and estimate the low-rank survival counterfactual under non-informative censoring.",
+      "relevant_to": "thm:joint-spectral-limit"
+    },
+    {
+      "author": "Westling, Luedtke, Gilbert, and Carone",
+      "year": 2024,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "WestlingLuedtkeGilbertCarone2024",
+      "one_line": "Theorems 1–2 and Lemma 4 provide the orthogonal survival score, product remainder, cross-fitting, bands, and RMST inference.",
+      "relevant_to": "lem:joint-cell-expansion"
+    },
+    {
+      "author": "Agarwal, Shah, and Shen",
+      "year": 2025,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "AgarwalShahShen2025PCR",
+      "one_line": "Theorem 2 and Corollary 2 establish row-space out-of-sample PCR transport.",
+      "relevant_to": "thm:joint-spectral-limit"
+    },
+    {
+      "author": "Golub and Pereyra",
+      "year": 1973,
+      "venue": "SIAM Journal on Numerical Analysis",
+      "bibkey": "GolubPereyra1973",
+      "one_line": "Equation (4.12) gives the locally constant-rank pseudoinverse derivative with both projector terms.",
+      "relevant_to": "lem:full-spectral-differential"
+    },
+    {
+      "author": "Chernozhukov, Chetverikov, and Kato",
+      "year": 2013,
+      "venue": "Annals of Statistics",
+      "bibkey": "ChernozhukovChetverikovKato2013",
+      "one_line": "Gaussian comparison and multiplier methods calibrate simultaneous maxima.",
+      "relevant_to": "thm:band-and-rmst"
+    },
+    {
+      "author": "Curth, Poon, Nori, and Gonzalez",
+      "year": 2024,
+      "venue": "Conference on Causal Learning and Reasoning",
+      "bibkey": "CurthPoonNoriGonzalez2024",
+      "one_line": "Sections 3–4 diagnose survival-control interpolation and distributional bias without deriving the informative-censoring PCR pseudo-limit.",
+      "relevant_to": "prop:km-pcr-cancellation"
+    },
+    {
+      "author": "Choi, Kwon, and Liao",
+      "year": 2026,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "ChoiKwonLiao2026RankRobust",
+      "one_line": "Theorem 3.1 gives rank-overestimation-robust inference for high-dimensional linear functionals.",
+      "relevant_to": "oeq:weak-gap-rank-frontier"
+    },
+    {
+      "author": "Fan and Liao",
+      "year": 2022,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "FanLiao2022Diversified",
+      "one_line": "Theorem 2.1 and Theorem 3.2 with Corollary 3.1 cover factor-space recovery and factor-augmented inference with bounded over-estimated rank.",
+      "relevant_to": "oeq:weak-gap-rank-frontier"
+    }
+  ]
+}

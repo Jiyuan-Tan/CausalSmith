@@ -1,0 +1,3120 @@
+{
+  "qid": "stat_blind_replicate_adrf_protectedcontrast_frontier",
+  "specialization": "v1",
+  "nodes": [
+    {
+      "id": "S1",
+      "obj_id": "S-1",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A blind-replicate measurement-error potential-outcome world. A unit carries a finite covariate stratum \\(X\\in\\mathcal X\\), a latent continuous dose \\(A\\) supported in the compact interval \\(\\mathcal A=[-B_A,B_A]\\), a potential-outcome schedule \\(Y(\\cdot):\\mathcal A\\to\\mathbb R\\), the realized outcome \\(Y\\), and two latent replicate errors \\(U_1,U_2\\). The dose is never observed: the observed unit is \\(O=(Y,X,S_1,S_2)\\) with \\(S_1=A+U_1\\) and \\(S_2=A+U_2\\). A full-data law \\(P\\) (or a candidate law \\(Q\\), or a sequence member \\(P_{0,n},P_{1,n}\\)) determines the stratum masses \\(p_x=P(X=x)\\), the conditional dose densities \\(f_x\\), the latent outcome regressions \\(m_x(a)=E_P[Y\\mid A=a,X=x]\\), the signed marked densities \\(q_x=m_xf_x\\), the observed-data law \\(P_{\\mathrm{obs}}\\) (the law of \\(O\\) induced by \\(P\\)), and the average dose-response function \\(\\mu(a)=E_P[Y(a)]\\) on the interior target interval \\(I\\subset\\operatorname{int}(\\mathcal A)\\); the candidate-law versions are \\(p_{x,Q},f_{x,Q},q_{x,Q},\\mu_Q\\). The blind-replicate ADRF model class \\(\\mathcal M\\) collects the full-data laws satisfying all thirteen class conditions. The sample of size \\(n\\) consists of independent identically distributed draws \\(O_1,\\ldots,O_n\\sim P_{\\mathrm{obs}}\\). — Encoding: `structure FullUnit (Xs : Type) where Y : ℝ; X : Xs; A : ℝ; U1 : ℝ; U2 : ℝ` with derived `S1 = A + U1`, `S2 = A + U2` and the projection `obs : FullUnit Xs → ObsUnit Xs` (`ObsUnit` = `{Y, X, S1, S2}`); `structure BlindLaw (Xs) where fullMeasure : Measure (FullUnit Xs); p : Xs → ℝ; f : Xs → ℝ → ℝ; m : Xs → ℝ → ℝ; q : Xs → ℝ → ℝ; pot : ℝ → FullUnit Xs → ℝ`, with `obsMeasure P := Measure.map obs P.fullMeasure` realizing \\(P_{\\mathrm{obs}}\\), `errLaw1/errLaw2 := Measure.map (·.U1/·.U2) P.fullMeasure`, and `adrf P a := ∑ x, P.p x * P.q x a / P.f x a` realizing both \\(\\mu\\) and \\(\\mu_Q\\) (one type serves \\(P\\), \\(Q\\), \\(P_{0,n}\\), \\(P_{1,n}\\)). BYPASS-JUSTIFIED vs Causalean `PO/`: `Causalean.PO.POSystem`/`Regime` is a finite-vertex, finite-regime, graph-free PO framework whose module status is skeleton-with-sorries (../doc/API.md §8h lines 1448-1501); our object is a continuous-dose PO PROCESS \\(a\\mapsto Y(a)\\) on a compact interval with additive latent replicate noise and a finite stratum alphabet, i.e. a different abstraction. Precedent for the chosen encoding: `CausalSmith/Stat/STAT_DoseResponseMinimax_Research/Basic.lean:99-134` (`DoseLaw`, `IidSampling`, `Consistency`) — same cluster, same shape. Reused inside: `Causalean.Stat.IIDSample` (the i.i.d. content of `ass:iid`) and `Measure.pi` for \\(P_{\\mathrm{obs}}^{\\otimes n}\\). Search trace: grep `doseResponse|DoseResponse|ADRF|continuousTreatment` over `../Causalean` → 0 files; grep `charFun|characteristic function|deconvolution|Kotlarski|replicate` (-i) over `../doc/API.md` → 0 matches; `lean_local_search IIDSample` → `Causalean.Stat.IIDSample` in `Causalean/Stat/Sample.lean`; result: no blind-replicate / measurement-error dose world exists in Causalean, the i.i.d. primitive does.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Causalean.Stat.Sample",
+          "Mathlib.MeasureTheory.Integral.Bochner.Basic",
+          "Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic",
+          "Mathlib.MeasureTheory.Constructions.Pi",
+          "Mathlib.MeasureTheory.Measure.Lebesgue.Basic"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "obj_id": "S-2",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The regularity-and-channel layer of the same world. The class constants are the smoothness index \\(\\beta>1/2\\), the stratum-mass floor \\(p_{\\min}\\in(0,|\\mathcal X|^{-1})\\), the dose-density floor \\(\\kappa\\in(0,\\inf_{a\\in I}f^{\\circ}(a))\\), the Sobolev radii \\(R_f>\\|f^{\\circ}\\|_{H^{\\beta}}\\) and \\(R_q>\\|f^{\\circ}\\|_{H^{\\beta}}/2\\), the outcome bound \\(B_Y\\ge1\\), and the replicate-error second-moment radius \\(M_e\\); the strict-interior scaffold density is \\(f^{\\circ}(a)=\\exp\\{-1/(B_A^2-a^2)\\}\\mathbf 1\\{|a|<B_A\\}\\big/\\int_{-B_A}^{B_A}\\exp\\{-1/(B_A^2-u^2)\\}\\,du\\). The frequency side carries the error characteristic functions \\(\\varphi_j(t)=E_P[e^{itU_j}]\\), the entire latent transforms \\(\\varphi_{f,x}(z)=\\int_{\\mathcal A}e^{iza}f_x(a)\\,da\\) and \\(\\varphi_{q,x}(z)=\\int_{\\mathcal A}e^{iza}q_x(a)\\,da\\), the moment-derived protected radius \\(\\nu_*=(2\\sqrt{M_e})^{-1}\\) and the protected cube \\(\\mathcal C_*=[-\\nu_*,\\nu_*]^2\\). The two observable channels are the unmarked probability channel \\(F_x(s,t)=E[\\mathbf 1\\{X=x\\}e^{i(sS_1+tS_2)}]\\) and the signed marked channel \\(G_x(s,t)=E[\\mathbf 1\\{X=x\\}Ye^{i(sS_1+tS_2)}]\\), with candidate-law versions \\(F_{x,Q},G_{x,Q}\\) and empirical versions \\(\\widehat F_{x,n},\\widehat G_{x,n},\\widehat p_x\\) formed as sample averages. — Encoding: \\(\\varphi_j\\) is `MeasureTheory.charFun (errLaw j P)` (Mathlib primitive, reused directly). \\(\\varphi_{f,x},\\varphi_{q,x}\\) are the compactly supported transforms `compactTransform h z := ∫ a in doseInterval, Complex.exp (z * a * I) * h a`, defined on ℂ so the entirety claims are statable; `doseInterval B_A := Set.Icc (-B_A) B_A`. The Sobolev ball is the helper predicate `SobolevBall h β R : Prop := ∫ t, (1 + t^2)^β * ‖Real.fourierIntegral h t‖^2 ≤ R^2` (no Sobolev API exists in either library — see trace). Channels are `probChannel P x s t : ℂ` and `markedChannel P x s t : ℂ`, empirical channels `empProbChannel/empMarkedChannel/empMass` over `Fin n → ObsUnit Xs`. BYPASS-JUSTIFIED vs Causalean `Stat/CLT/*` char-fun modules: they carry char-fun CONVERGENCE machinery (Lévy/CLT), not a two-dimensional marked-channel calculus; the one piece that transfers is `Causalean.Mathlib.Probability.norm_charFun_sub_le_L2` (\\(|\\varphi_j(u)-1|\\le|u|\\sqrt{E U_j^2}\\)), reused inside the protected-frequency clause. Search trace: `lean_local_search sobolev` → 0 items (neither Causalean nor Mathlib); `lean_local_search charFun` → `MeasureTheory.charFun` + `charFun_conv`/`charFun_prod` in `Mathlib/MeasureTheory/Measure/CharacteristicFunction/Basic.lean`; `lean_local_search fourierIntegral` → Mathlib `Fourier.fourierIntegral`, `Mathlib/Analysis/Fourier/FourierTransform.lean`; grep `charFun|CharFun` over `../Causalean` → 18 files, all CLT/converging-together; result: Mathlib supplies char-fun + Fourier primitives, no library supplies a Sobolev ball or a marked bivariate channel, so those are defined locally.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic",
+          "Mathlib.Analysis.Fourier.FourierTransform",
+          "Mathlib.Analysis.Fourier.Inversion",
+          "Mathlib.Analysis.Analytic.Basic",
+          "Mathlib.MeasureTheory.Function.L2Space",
+          "Causalean.Mathlib.Probability.ConvergingTogether.CharFunBound"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "obj_id": "S-3",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The simultaneous-inference layer. At miscoverage \\(\\alpha\\in(0,1/4)\\) and testing-affinity slack \\(\\eta\\in(0,1-2\\alpha)\\), the continuous-channel confidence radius is \\(\\epsilon_n=C_{\\alpha}\\sqrt{\\log(en/\\alpha)/n}\\) for a fixed concentration constant \\(C_{\\alpha}\\), the analytic-continuation order is \\(K_n=\\max\\{1,\\lfloor c_K\\log(en)/\\log\\log(e^en)\\rfloor\\}\\) for a fixed tuning constant \\(c_K\\), and the candidate width rate is \\(r_n=K_n^{1/2-\\beta}\\). The continuous integrated paired-channel discrepancy \\(\\mathscr D_n\\) scores a candidate law against the empirical channels over \\(\\mathcal C_*\\), and the exact outer profile is \\(\\Theta_{n,\\alpha}=\\{Q\\in\\mathcal M:\\mathscr D_n(Q)\\le\\epsilon_n^2\\}\\). The profiled band endpoints \\(L_n,U_n:I\\to[-B_Y,B_Y]\\) are the clipped extrema of \\(\\mu_Q\\) over that profile, with maximal width \\(W_n=\\sup_{a\\in I}\\{U_n(a)-L_n(a)\\}\\). A procedure lies in the uniformly honest simultaneous-band class \\(\\mathfrak B_{n,\\alpha}\\) when its endpoints are jointly measurable, ordered, and cover the whole curve \\(\\mu\\) simultaneously on \\(I\\) with probability at least \\(1-\\alpha\\) uniformly over \\(\\mathcal M\\); the minimax expected maximal width is \\(\\mathfrak R_n=\\inf_{(L_n,U_n)\\in\\mathfrak B_{n,\\alpha}}\\sup_{P\\in\\mathcal M}E_{P_{\\mathrm{obs}}^{\\otimes n}}[W_n]\\). Two method handles organize the two halves: \\(\\mathfrak H^{\\mathrm{up}}\\) maps the empirical channels to the exact-profile band, and \\(\\mathfrak H^{\\mathrm{low}}\\) maps a packet order to a fixed-nuisance Bernoulli marked two-point experiment. — Encoding: `HonestBandClass` is a structure over a band-valued statistic `band : (Fin n → ObsUnit Xs) → (ℝ → ℝ) × (ℝ → ℝ)`; \\(W_n\\) and \\(\\mathfrak R_n\\) are helper defs (`bandWidth`, `minimaxWidth`) built with `sSup`/`sInf` over the band class, following the `minimaxRisk` pattern of `CausalSmith/Stat/STAT_DoseResponseMinimax_Research/Basic.lean:354-369`. BYPASS-JUSTIFIED vs `Causalean.Stat.Minimax.HonestConfidenceSet`: that module's honesty apparatus (`restrictedSetVolume`, `coverage_tv_expectedRestrictedVolume_lower`, `classFrontierRisk`) measures the LEBESGUE VOLUME of a confidence SET for a scalar parameter indexed by a real nuisance, whereas our loss is the SUP over \\(I\\) of a pointwise width of a curve band — a different functional, so the class and \\(\\mathfrak R_n\\) are local; its companion `classCoverage_liminf` and the honesty-to-testing reduction shape are the ANALOGOUS pattern F3 should adapt (`Causalean/Stat/Minimax/HonestConfidenceSet.lean:97-170` for the coverage-minus-TV step). Reused directly: `Causalean.Stat.tvDist`, `Causalean.Stat.measureReal_sub_le_tvDist` (the two-point coverage transfer), `Causalean.Stat.chiSqDiv`, `Causalean.Stat.one_add_chiSqDiv_pi_iid_general`, `Causalean.Stat.tvDist_le_half_sqrt_chiSqDiv`. Search trace: grep `confidenceBand|ConfidenceBand|honestBand|Honest` over `../Causalean` → `Stat/Minimax/HonestConfidenceSet.lean`, `Stat/Minimax/MinimaxValue.lean`, `Estimation/CATE/.../DRLearnerHonest.lean`; grep `confidence band|honest|expected width|band` (-i) over `../doc/API.md` → no band section; `lean_local_search tvDist`/`chiSq` → `Causalean/Stat/Minimax/{TotalVariation,ChiSquared}.lean`; `lean_file_outline` on all three; result: the TV/χ² reduction substrate is reusable verbatim, the sup-width honest-band class is not present anywhere and is defined locally.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Causalean.Stat.Minimax.TotalVariation",
+          "Causalean.Stat.Minimax.ChiSquared",
+          "Causalean.Stat.Minimax.HonestConfidenceSet",
+          "Mathlib.Order.ConditionallyCompleteLattice.Basic",
+          "Mathlib.Analysis.SpecialFunctions.Pow.Real"
+        ]
+      }
+    },
+    {
+      "id": "ass:iid",
+      "obj_id": "A-1",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(O_1,\\ldots,O_n\\stackrel{\\mathrm{iid}}{\\sim}P_{\\mathrm{obs}}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.IidSampling",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "5ef692021feedcab49eebbe4af92b0b9915bb62e",
+        "note": "The product-measure equality is exactly i.i.d. sampling from the induced observed law, and IsProbabilityMeasure makes explicit that the paper's P is a probability law."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "i.i.d. superpopulation sampling",
+        "cite": "HuangZhang2023",
+        "citation": "W. Huang and Z. Zhang (2023), Nonparametric estimation of the continuous treatment effect with measurement error, Journal of the Royal Statistical Society: Series B 85, 1196--1216, doi:10.1093/jrsssb/qkad013."
+      }
+    },
+    {
+      "id": "ass:strata-positivity",
+      "obj_id": "A-2",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\min_{x\\in\\mathcal X}p_x\\ge p_{\\min}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.StrataPositivity",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "b9e5cb5c5444ec6a747d20163768d9467d8962e0",
+        "note": "For the finite stratum alphabet, ∀ x, pmin ≤ P.p x is exactly the pointwise form of min_{x∈𝒳} p_x ≥ p_min."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "uniform finite-stratum positivity",
+        "cite": "HuangZhang2023",
+        "citation": "W. Huang and Z. Zhang (2023), Nonparametric estimation of the continuous treatment effect with measurement error, Journal of the Royal Statistical Society: Series B 85, 1196--1216, doi:10.1093/jrsssb/qkad013."
+      }
+    },
+    {
+      "id": "ass:consistency",
+      "obj_id": "A-3",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(P\\{Y=Y(A)\\}=1\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.Consistency",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "3690fd31c46da6dd15fab6a8f9649818daad0e49",
+        "note": "Under the intrinsic probability-law interpretation of P, the almost-everywhere equality Y = Y(A) is equivalent to P{Y=Y(A)}=1."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "consistency",
+        "cite": "HuangZhang2023",
+        "citation": "W. Huang and Z. Zhang (2023), Nonparametric estimation of the continuous treatment effect with measurement error, Journal of the Royal Statistical Society: Series B 85, 1196--1216, doi:10.1093/jrsssb/qkad013."
+      }
+    },
+    {
+      "id": "ass:unconfoundedness",
+      "obj_id": "A-4",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\forall a\\in\\mathcal A,\\ A\\perp Y(a)\\mid X\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.WeakUnconfoundedness",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a80248875e2fd74e84bdf60724a56e3d007ec270",
+        "note": "For each dose, equality of the conditional expectations of every bounded measurable transform given σ(A,X) and σ(X) is equivalent to A ⟂ Y(a) | X; probability and measurability clauses make the paper's law and random variables explicit."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "weak unconfoundedness for continuous treatments",
+        "cite": "HuangZhang2023",
+        "citation": "W. Huang and Z. Zhang (2023), Nonparametric estimation of the continuous treatment effect with measurement error, Journal of the Royal Statistical Society: Series B 85, 1196--1216, doi:10.1093/jrsssb/qkad013."
+      }
+    },
+    {
+      "id": "ass:causal-mean-continuity",
+      "obj_id": "A-5",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(a\\mapsto E_P[Y(a)\\mid X=x]\\in C(I)\\) for every \\(x\\in\\mathcal X\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.CausalMeanContinuity",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "92ad53d83b310f83e4378c7fd96139fa1f15b744",
+        "note": "On the paper's finite-stratum model domain, probability, positive stratum mass, and the mass identity make the restricted-integral ratio exactly E_P[Y(a) | X=x], while measurability and integrability are intrinsic well-definedness conditions, so its ContinuousOn clause is equivalent to membership in C(I)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "continuous conditional dose-response",
+        "cite": "KennedyMaMcHughSmall2017",
+        "citation": "E. H. Kennedy, Z. Ma, M. D. McHugh, and D. S. Small (2017), Non-parametric methods for doubly robust estimation of continuous treatment effects, Journal of the Royal Statistical Society: Series B 79, 1229--1245, doi:10.1111/rssb.12212."
+      }
+    },
+    {
+      "id": "ass:error-latent-independence",
+      "obj_id": "A-6",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\((U_1,U_2)\\perp(A,X,Y(\\cdot),Y)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.ErrorLatentIndependence",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c3128696257b6b80fc6b86588c5ccd1e8fc58af9",
+        "note": "Independence from every finite vector of potential-outcome evaluations, jointly with (A,X,Y), is equivalent to independence from the process σ-field generated by Y(·); the measurability conjunct exposes the random-variable domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "classical repeated-measurement independence",
+        "cite": "CapitaoMiniconiGassiatLehericy2025",
+        "citation": "J. Capitao-Miniconi, E. Gassiat, and L. Lehéricy (2025), Deconvolution of repeated measurements corrupted by unknown noise, Electronic Journal of Statistics 19, 4141--4173, doi:10.1214/25-EJS2415."
+      }
+    },
+    {
+      "id": "ass:error-coordinate-independence",
+      "obj_id": "A-7",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(U_1\\perp U_2\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.ErrorCoordinateIndependence",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c2fa00dbaca198345705b34cfd5237d01cdb23a7",
+        "note": "IndepFun of the two error-coordinate projections is exactly the stated independence U₁ ⊥ U₂."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "independent replicate errors",
+        "cite": "CapitaoMiniconiGassiatLehericy2025",
+        "citation": "J. Capitao-Miniconi, E. Gassiat, and L. Lehéricy (2025), Deconvolution of repeated measurements corrupted by unknown noise, Electronic Journal of Statistics 19, 4141--4173, doi:10.1214/25-EJS2415."
+      }
+    },
+    {
+      "id": "ass:center-second-error",
+      "obj_id": "A-8",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(E_P[U_2]=0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.CenteredSecondError",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6e402c1ab9a21d7aa24e3f80fd12af54bc334977",
+        "note": "The integral equality is E_P[U₂]=0, while Integrable U₂ makes explicit the finiteness and well-definedness presupposed by that expectation."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Kotlarski location normalization",
+        "cite": "KatoSasakiUra2021",
+        "citation": "K. Kato, Y. Sasaki, and T. Ura (2021), Robust inference in deconvolution, Quantitative Economics 12, 109--142, doi:10.3982/QE1643."
+      }
+    },
+    {
+      "id": "ass:error-second-moment",
+      "obj_id": "A-9",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\max_{j\\in\\{1,2\\}}E_P[U_j^2]\\le M_e\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.ErrorSecondMoment",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "9af40990b57bd4d6f4715470c1e36b530a5b374e",
+        "note": "The two integral inequalities are equivalent to max_{j∈{1,2}} E_P[U_j²] ≤ M_e, and the two MemLp clauses make explicit the finite-second-moment regularity presupposed by those expectations."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "uniform replicate-error second-moment bound",
+        "cite": "CapitaoMiniconiGassiatLehericy2025",
+        "citation": "J. Capitao-Miniconi, E. Gassiat, and L. Lehéricy (2025), Deconvolution of repeated measurements corrupted by unknown noise, Electronic Journal of Statistics 19, 4141--4173, doi:10.1214/25-EJS2415."
+      }
+    },
+    {
+      "id": "ass:compact-dose",
+      "obj_id": "A-10",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(P(A\\in\\mathcal A)=1\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.CompactDoseSupport",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "260fdd9a7dd8222c7da33105b777b268aff6336c",
+        "note": "On the stated probability-law domain, almost-sure membership A ∈ doseInterval B_A is equivalent to P(A ∈ 𝒜)=1, with doseInterval B_A = [-B_A,B_A] realizing 𝒜."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "compact latent-signal support",
+        "cite": "CapitaoMiniconiGassiatLehericy2025",
+        "citation": "J. Capitao-Miniconi, E. Gassiat, and L. Lehéricy (2025), Deconvolution of repeated measurements corrupted by unknown noise, Electronic Journal of Statistics 19, 4141--4173, doi:10.1214/25-EJS2415."
+      }
+    },
+    {
+      "id": "ass:bounded-outcome",
+      "obj_id": "A-11",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(P\\{\\sup_{a\\in\\mathcal A}|Y(a)|\\le B_Y\\}=1\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.BoundedPotentialOutcome",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c564b68387b63b03ffcea1ca48fafb1368b7ced5",
+        "note": "After unfolding doseInterval to [-B_A,B_A], the almost-everywhere simultaneous bound over all doses is equivalent to the probability-one supremum event."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "uniformly bounded potential outcomes",
+        "cite": "HuangZhang2023",
+        "citation": "W. Huang and Z. Zhang (2023), Nonparametric estimation of the continuous treatment effect with measurement error, Journal of the Royal Statistical Society: Series B 85, 1196--1216, doi:10.1093/jrsssb/qkad013."
+      }
+    },
+    {
+      "id": "ass:density-sobolev",
+      "obj_id": "A-12",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\sup_{x\\in\\mathcal X}\\|f_x\\|_{H^{\\beta}(\\mathbb R)}\\le R_f\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.DensitySobolevBall",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4c11a2c881753e78bc027c60c3c23ae68a9c8e53",
+        "note": "After unfolding SobolevBall, universal membership over the finite stratum space is equivalent to the uniform H^β-norm bound; the globally positive R_f makes the squared-radius formulation equivalent."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Sobolev density ball",
+        "cite": "CapitaoMiniconiGassiatLehericy2025",
+        "citation": "J. Capitao-Miniconi, E. Gassiat, and L. Lehéricy (2025), Deconvolution of repeated measurements corrupted by unknown noise, Electronic Journal of Statistics 19, 4141--4173, doi:10.1214/25-EJS2415."
+      }
+    },
+    {
+      "id": "ass:marked-sobolev",
+      "obj_id": "A-13",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\sup_{x\\in\\mathcal X}\\|q_x\\|_{H^{\\beta}(\\mathbb R)}\\le R_q\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.MarkedSobolevBall",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "965a4083935458b6603781c925b8967283b134a8",
+        "note": "After unfolding SobolevBall, universal membership over the finite stratum space is equivalent to the uniform H^β-norm bound; the globally positive R_q makes the squared-radius formulation equivalent."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Sobolev regression-numerator ball",
+        "cite": "KatoSasaki2019",
+        "citation": "K. Kato and Y. Sasaki (2019), Uniform confidence bands for nonparametric errors-in-variables regression, Journal of Econometrics 213, 516--555."
+      }
+    },
+    {
+      "id": "ass:dose-overlap",
+      "obj_id": "A-14",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\inf_{x\\in\\mathcal X}\\inf_{a\\in I}f_x(a)\\ge\\kappa\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.DoseOverlap",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4a63046594546b02e882e1d83a3490340ec7441b",
+        "note": "The pointwise lower bound is equivalent to the iterated-infimum bound on the nonempty finite-stratum target domain, while 0 < κ and κ < inf_I f° explicitly realize κ's frozen symbol space (0, inf_I f°)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "continuous-treatment overlap on an interior interval",
+        "cite": "HuangZhang2023",
+        "citation": "W. Huang and Z. Zhang (2023), Nonparametric estimation of the continuous treatment effect with measurement error, Journal of the Royal Statistical Society: Series B 85, 1196--1216, doi:10.1093/jrsssb/qkad013."
+      }
+    },
+    {
+      "id": "def:model-class",
+      "obj_id": "P-1",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal M=\\{P:P\\text{ satisfies every condition indexed by }\\mathrm{by\\_member\\_properties}\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.BlindReplicateModel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cb559a8b72e493406eca05960434cd83d0099646",
+        "note": "The structure is equivalent to membership in the thirteen-condition model class: probability and parameter-domain conjuncts are intrinsic or redundant, while the p, f, m, and q equalities faithfully pin the paper-defined law coordinates."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:observable-channels",
+      "obj_id": "P-2",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(F_x(s,t)=E[\\mathbf 1\\{X=x\\}e^{i(sS_1+tS_2)}]\\) and \\(G_x(s,t)=E[\\mathbf 1\\{X=x\\}Ye^{i(sS_1+tS_2)}]\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.observableChannels",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a61f3a0dceabe2661a6e168e37d8f8253a042a17",
+        "note": "The two complex integrals exactly realize the probability and Y-marked channels after unfolding S₁=A+U₁ and S₂=A+U₂."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:adrf-functional",
+      "obj_id": "P-3",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mu(a)=\\sum_{x\\in\\mathcal X}p_xq_x(a)/f_x(a)\\), \\(a\\in I\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.adrfFunctional",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "d9500e024edc499253165b4e22f88253c97fccae",
+        "note": "On the stated domain a ∈ I, the finite Lean sum ∑ x, P.p x * (P.q x a / P.f x a) is exactly the paper functional ∑_x p_x q_x(a)/f_x(a)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:continuous-protected-profile",
+      "obj_id": "P-4",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For a candidate law \\(Q\\in\\mathcal M\\), let \\(F_{x,Q}\\), \\(G_{x,Q}\\), and \\(p_{x,Q}\\) denote its channels and stratum masses, and set \\(\\mathscr D_n(Q)=\\sum_{x\\in\\mathcal X}\\{\\int_{\\mathcal C_*}(|\\widehat F_{x,n}-F_{x,Q}|^2+B_Y^{-2}|\\widehat G_{x,n}-G_{x,Q}|^2)\\,ds\\,dt+|\\widehat p_x-p_{x,Q}|^2\\}\\) and \\(\\Theta_{n,\\alpha}=\\{Q\\in\\mathcal M:\\mathscr D_n(Q)\\le\\epsilon_n^2\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.exactProfile",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "de2239d9f3e67c3bf7f408522fa776e25e97061c",
+        "note": "After unfolding channelDiscrepancy, protectedCube, confidenceRadius, and the empirical/model channels, exactProfile is exactly the model-restricted squared-discrepancy sublevel set Θ_{n,α}."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:profiled-band",
+      "obj_id": "P-5",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "If \\(\\Theta_{n,\\alpha}\\neq\\varnothing\\), set\n\\[\nL_n(a)=\\max\\left\\{-B_Y,\\inf_{Q\\in\\Theta_{n,\\alpha}}\\mu_Q(a)\\right\\},\n\\qquad\nU_n(a)=\\min\\left\\{B_Y,\\sup_{Q\\in\\Theta_{n,\\alpha}}\\mu_Q(a)\\right\\},\n\\qquad a\\in I.\n\\]\nIf \\(\\Theta_{n,\\alpha}=\\varnothing\\), set \\(L_n(a)=U_n(a)=0\\) for every \\(a\\in I\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.profiledBand",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f55669b65265ffc136524c24c85776e989a4213b",
+        "note": "On I the definition gives the clipped infimum and supremum when Θ is nonempty and zero when empty; the zero extension outside I conservatively represents paper functions whose stated domain is I."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:honest-band-class",
+      "obj_id": "P-6",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathfrak B_{n,\\alpha}=\\{(L_n,U_n):L_n,U_n\\text{ are jointly measurable},\\ L_n\\le U_n,\\ \\inf_{P\\in\\mathcal M}P_{\\mathrm{obs}}^{\\otimes n}(L_n(a)\\le\\mu(a)\\le U_n(a)\\text{ for all }a\\in I)\\ge1-\\alpha\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.HonestBandClass",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "7ea89bd0c33cb2fa4e3c831a1acc56cd3dca96ad",
+        "note": "The fields express joint measurability, pointwise ordering on I, and uniform simultaneous coverage over every model law; the iid field unfolds to the paper sampling law and is redundant with model probability plus reflexive identification of the product law."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:upper-handle",
+      "obj_id": "P-7",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Use the continuous integrated probability and signed marked contrasts on \\(\\mathcal C_*\\), derive their nearly parametric forward radius, pass both compactly supported entire transforms through the quantitative analytic-continuation argument at order \\(K_n\\), recover the protected quotient \\(q_x/f_x\\) on \\(I\\), and take measurable extrema over the exact compact profile \\(\\Theta_{n,\\alpha}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.upperHandle",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "70ac1ce420293e35405895b45d9743521005ccb3",
+        "note": "After unfolding bandLower, bandUpper, exactProfile, channelDiscrepancy, and adrfFunctional, Lean returns the clipped measurable extrema of q_x/f_x over the exact continuous-channel profile; the K_n analytic-continuation language describes the rate argument, not additional extensional output."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:lower-handle",
+      "obj_id": "P-8",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Freeze \\(p_x\\), \\(f_x=f^{\\circ}\\), and two fixed nonidentical asymmetric error densities formed as distinct mixtures of shifted and scaled \\(\\operatorname{sinc}^4\\) densities.  Put a compactly supported weighted Jacobi reproducing-kernel, moment-annihilating packet into a Bernoulli conditional mark, while leaving the latent density and both error laws fixed.  Choose its amplitude to preserve strict \\(H^\\beta\\) slack and the Bernoulli range, use its factorial attenuation in the observed signed marked channel, and finish with the honest-band testing reduction.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.lowerHandle",
+        "file": "Helpers/BernoulliPacket/Construction.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "b6fd67938b8aabb00c7290b194bdceb818120f39",
+        "note": "Accepted after independent source check: frozen equation (57) explicitly defines each nuisance density as a normalized positive mixture of exactly two shifted sinc-fourth kernels and selects two parameter pairs; the Lean predicate existentially encodes that same two-component family without hard-coding the pairs."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:paired-channel-factorization",
+      "obj_id": "L-1",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(P\\in\\mathcal M\\), \\(x\\in\\mathcal X\\), and \\((s,t)\\in\\mathbb R^2\\), \\(F_x(s,t)=p_x\\varphi_{f,x}(s+t)\\varphi_1(s)\\varphi_2(t)\\) and \\(G_x(s,t)=p_x\\varphi_{q,x}(s+t)\\varphi_1(s)\\varphi_2(t)\\); moreover \\(\\inf_{|u|\\le\\nu_*}|\\varphi_j(u)|\\ge1/2\\) for \\(j\\in\\{1,2\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.paired_channel_factorization",
+        "file": "Helpers/ChannelFactorization.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fa5146c8add2e1eeba062bd8c4641d77b1bc197f",
+        "note": "After unfolding the channels, transforms, error marginals, model class, and protected radius, the two factorizations and the pointwise protected-frequency bounds are equivalent to the paper's two identities and infimum bounds."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:adrf-identification",
+      "obj_id": "T-1",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The observed law \\(P_{\\mathrm{obs}}\\) identifies \\(p_x\\), \\(f_x\\), and \\(q_x\\) for every \\(x\\in\\mathcal X\\), and for every \\(a\\in I\\) it identifies the causal curve by \\(\\mu(a)=\\sum_{x\\in\\mathcal X}p_xq_x(a)/f_x(a)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.adrf_identification",
+        "file": "TAdrfIdentification.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "d14cfccf20225cdb025dce17553882dfba72c1ef",
+        "note": "Equal observed measures for two model-class laws imply pointwise equality of p, f, and q and equality of the ADRF functional on I; the final conjunct is exactly the causal formula, and symmetry in P,Q supplies it for Q as well. The duplicated assumptions are model-class fields, while CoreParameterDomains states the paper's global parameter domain."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:continuous-channel-concentration",
+      "obj_id": "T-2",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There is a constant \\(C_{\\alpha}\\) depending only on the fixed class constants such that, uniformly over \\(P\\in\\mathcal M\\), \\(P_{\\mathrm{obs}}^{\\otimes n}(\\mathscr D_n(P)\\le\\epsilon_n^2)\\ge1-\\alpha\\) for all sufficiently large \\(n\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.continuous_channel_concentration",
+        "file": "TChannelConcentration.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c57c71e77d00a05345bd729a12e70203b20c3b54",
+        "note": "After unfolding the named definitions, Lean states one positive Cα and one uniform threshold N before quantifying over P∈𝓜 and n≥N, with exactly the product observed law, discrepancy event 𝒟ₙ(P)≤εₙ², and lower bound 1−α; the separate iid, moment, and outcome premises are redundant consequences of BlindReplicateModel for the displayed product measure."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:honest-upper-band",
+      "obj_id": "T-3",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There exists \\(C<\\infty\\) such that the exact profiled band \\((L_n,U_n)\\) belongs to \\(\\mathfrak B_{n,\\alpha}\\) and satisfies \\(\\sup_{P\\in\\mathcal M}E_{P_{\\mathrm{obs}}^{\\otimes n}}[W_n]\\le C r_n\\) for all sufficiently large \\(n\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.honest_upper_band",
+        "file": "THonestUpperBand.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "04c46b0ce66df7cd4b060063e162039c1d381c19",
+        "note": "After unfolding the referenced definitions, ∃ N, ∀ n ≥ N matches eventuality, the uniform ∀ P ∈ 𝓜 ENNReal lintegral bound is equivalent to the supremum expected-width bound, the same positive Cα fixes the exact profiled band across n, and hIid and hBound are consequences of BlindReplicateModel."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:fixed-nuisance-marked-pair",
+      "obj_id": "T-4",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There exist \\(c>0\\) and \\(P_{0,n},P_{1,n}\\in\\mathcal M\\) with the same \\(p_x\\), the same \\(f_x=f^{\\circ}\\), and the same two fixed nonidentical asymmetric error laws, such that \\(Y\\mid(A=a,X=x)\\) is Bernoulli under both laws, \\(\\|\\mu_{1,n}-\\mu_{0,n}\\|_{L^\\infty(I)}\\ge c r_n\\), and \\(\\|P_{1,n,\\mathrm{obs}}^{\\otimes n}-P_{0,n,\\mathrm{obs}}^{\\otimes n}\\|_{\\mathrm{TV}}\\le\\eta\\) for all sufficiently large \\(n\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.fixed_nuisance_marked_pair",
+        "file": "TFixedNuisanceMarkedPair.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "1f49cc166341025410f46fdb593260f3bf038d34",
+        "note": "The outer witnesses fix c, p, and both nonidentical asymmetric probability error laws uniformly in n, while the eventual pair witnesses lie in the stated model class, share p and f°, have conditionally Bernoulli outcomes, attain the same ADRF sup-separation bound c r_n, and satisfy the product-law total-variation bound."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:minimax-width-frontier",
+      "obj_id": "T-5",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There exist constants \\(0<c<C<\\infty\\) such that \\(c r_n\\le\\mathfrak R_n\\le C r_n\\) for all sufficiently large \\(n\\); equivalently, \\(\\mathfrak R_n\\asymp\\{\\log\\log n/\\log n\\}^{\\beta-1/2}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.minimax_width_frontier",
+        "file": "TMinimaxWidthFrontier.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "88c20638a5e068739f1bde4e986601c118654b22",
+        "note": "Under β > 1/2 and cK > 0, continuationOrder n cK is eventually comparable to log n / log log n, so widthRate n β cK is two-way comparable to (log log n / log n)^(β - 1/2); thus the two simultaneous bound pairs are logically equivalent to the stated frontier and its equivalent asymptotic form."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:error-free-reduction",
+      "obj_id": "T-6",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "On the submodel \\(U_1=U_2=0\\) almost surely, the factorization becomes \\(F_x(s,t)=p_x\\varphi_{f,x}(s+t)\\) and \\(G_x(s,t)=p_x\\varphi_{q,x}(s+t)\\), while the identified ADRF remains \\(\\mu(a)=\\sum_{x\\in\\mathcal X}p_xE_P[Y\\mid A=a,X=x]\\), the standard continuous-treatment g-formula.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.error_free_reduction",
+        "file": "TErrorFreeReduction.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "02ece1313392c6d484413b7c02b6a8f7d5b0ef56",
+        "note": "The zero-error premise yields exactly both stated channel factorizations, and on I the two ADRF equalities plus the conditional-expectation representative equality faithfully unpack μ(a)=Σ_x p_x E[Y|A=a,X=x]; the remaining hypotheses are ambient model/domain conditions or redundant consequences of BlindReplicateModel."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:paired-protected-inverse",
+      "obj_id": "T-7",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There are constants \\(c,C>0\\), depending only on the fixed constants of \\(\\mathcal M\\), such that, for every sufficiently small \\(\\delta>0\\), all \\(P,Q\\in\\mathcal M\\) satisfying\n\\[\n \\sum_{x\\in\\mathcal X}\\left\\{\\int_{\\mathcal C_*}\\left(\n |F_{x,P}-F_{x,Q}|^2+B_Y^{-2}|G_{x,P}-G_{x,Q}|^2\\right)\\,ds\\,dt\n +|p_{x,P}-p_{x,Q}|^2\\right\\}\\le\\delta^2\n\\]\nsatisfy\n\\[\n \\|\\mu_P-\\mu_Q\\|_{L^\\infty(I)}\n \\le C\\left\\{\\frac{\\log\\log(1/\\delta)}{\\log(1/\\delta)}\\right\\}^{\\beta-1/2}.\n\\]\nConversely, for every sufficiently small \\(\\delta\\), there are two members of a submodel with fixed \\(p_x\\), fixed \\(f_x=f^\\circ\\), fixed nonidentical asymmetric error laws, and conditionally Bernoulli outcomes, whose paired-channel discrepancy is at most \\(\\delta^2\\) while their ADRFs are separated by at least\n\\[\n c\\left\\{\\frac{\\log\\log(1/\\delta)}{\\log(1/\\delta)}\\right\\}^{\\beta-1/2}.\n\\]\nThus the exponent \\(\\beta-1/2\\) is unimprovable on that fixed-nuisance marked submodel.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.paired_protected_inverse",
+        "file": "TPairedProtectedInverse.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a94323e044e089987c2439af160354f2753944f0",
+        "note": "After unfolding the model class, discrepancy, ADRF functional, protected cube, inverse modulus, fixed-density/error-law conditions, and conditional-Bernoulli predicate, the Lean statement has the same parameter domain, uniform upper bound, and fixed-nuisance sharp lower construction as the paper statement; duplicated model assumptions are logically redundant."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:continuous-analytic-sobolev-modulus",
+      "obj_id": "L-2",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(\\widehat h(t)=\\int_{\\mathcal A}e^{ita}h(a)\\,da\\).  For every fixed \\(\\rho>0\\) there are constants \\(c,C,C_0>0\\), depending only on \\(B_A,\\beta,\\rho\\), such that every \\(h\\in H^\\beta(\\mathbb R)\\) supported in \\(\\mathcal A\\), with \\(\\|h\\|_{H^\\beta}\\le R\\), \\(\\|h\\|_1\\le M\\), and \\(\\|\\widehat h\\|_{L^2[-\\rho,\\rho]}\\le\\varepsilon\\), satisfies, for every integer \\(k\\ge1\\),\n\\[\n \\|h\\|_\\infty\\le C\\left[Rk^{1/2-\\beta}+k(C_0k)^k\\varepsilon+Mk e^{-ck}\\right].\n\\]\nConsequently, for all sufficiently small \\(\\varepsilon\\),\n\\[\n \\|h\\|_\\infty\\le C(R+M)\\left\\{\\frac{\\log\\log(1/\\varepsilon)}{\\log(1/\\varepsilon)}\\right\\}^{\\beta-1/2}.\n\\]",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.continuous_analytic_sobolev_modulus",
+        "file": "Helpers/AnalyticSobolevModulus/Modulus.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "3d62af20746fc7fd77f916f7f17e7047753d34cf",
+        "note": "After unfolding SobolevBall, compactTransform, doseInterval, and sobolevSupNorm, Lean gives the same supported H^β and L¹/L² hypotheses, uniform-in-k bound, and sufficiently-small-ε consequence; continuity makes the essential and uniform sup norms coincide."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:fixed-kernel-bernoulli-packet",
+      "obj_id": "L-3",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There are fixed, nonidentical, asymmetric error densities \\(g_1,g_2\\), constants \\(c,C,C_0>0\\), and, for every sufficiently large integer \\(k\\), two laws \\(P_{0,k},P_{1,k}\\in\\mathcal M\\) with common stratum masses, common latent density \\(f_x=f^\\circ\\), and common error densities \\(g_1,g_2\\), such that the second error is centered, both error second moments are at most \\(M_e\\), and the outcomes are conditionally Bernoulli.  Moreover,\n\\[\n \\|\\mu_{1,k}-\\mu_{0,k}\\|_{L^\\infty(I)}\\ge ck^{1/2-\\beta}\n\\]\nand\n\\[\n \\chi^2(P_{1,k,\\mathrm{obs}},P_{0,k,\\mathrm{obs}})\n \\le C\\frac{C_0^{4k}}{\\{(2k-4)!\\}^2}.\n\\]\nThe probability channels and the complete unmarked observed laws are identical under the two laws.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.fixed_kernel_bernoulli_packet",
+        "file": "Helpers/BernoulliPacket/Packet.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "5166f4272dbc39625094da41ad51c2e96b6a5dd0",
+        "note": "Lean preserves the fixed-before-k quantifiers, model membership, common masses/density/error laws, Bernoulli condition, uniform separation, chi-square bound, and channel/unmarked-law equalities; absolute continuity and integrability express the finite chi-square domain, while measure-level nonidentity/asymmetry gives the a.e.-invariant meaning of nonidentical asymmetric error densities."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:paired-protected-modulus-characterization",
+      "obj_id": "T-8",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There are constants \\(0<c<C<\\infty\\) such that, for every sufficiently small \\(\\delta>0\\),\n\\[\n\\begin{aligned}\nc\\left\\{\\frac{\\log\\log(1/\\delta)}{\\log(1/\\delta)}\\right\\}^{\\beta-1/2}\n&\\le\n\\sup\\Bigg\\{\\|\\mu_P-\\mu_Q\\|_{L^\\infty(I)}:P,Q\\in\\mathcal M,\\\\\n&\\quad \\sum_{x\\in\\mathcal X}\\left[\\int_{\\mathcal C_*}\n\\left(|F_{x,P}-F_{x,Q}|^2+B_Y^{-2}|G_{x,P}-G_{x,Q}|^2\\right)\\,ds\\,dt\n+|p_{x,P}-p_{x,Q}|^2\\right]\\le\\delta^2\\Bigg\\}\\\\\n&\\le C\\left\\{\\frac{\\log\\log(1/\\delta)}{\\log(1/\\delta)}\\right\\}^{\\beta-1/2}.\n\\end{aligned}\n\\]\nThe lower inequality remains true when the supremum is restricted to pairs with fixed common \\(p_x\\), fixed common \\(f_x=f^\\circ\\), fixed common nonidentical asymmetric error laws, and conditionally Bernoulli outcomes.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.paired_protected_modulus_characterization",
+        "file": "TProtectedModulusCharacterization.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "ef5b48cafbdf0c3605401fca0b145e3255958ecf",
+        "note": "After unfolding the modulus and separation sets, Lean states the same uniform small-δ two-sided supremum bound and the same restricted lower bound with δ-independent common masses, common interior-bump densities, common nonidentical asymmetric error laws, and conditionally Bernoulli outcomes."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:exact-profile-compact-measurability",
+      "obj_id": "L-4",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Endow the image of \\(\\mathcal M\\) under \\(Q\\mapsto((p_{x,Q},f_{x,Q},q_{x,Q})_{x\\in\\mathcal X},\\mathcal L_Q(U_1),\\mathcal L_Q(U_2))\\) with the product of the Euclidean topology for the stratum masses, the uniform topology on \\(\\mathcal A\\) for the density coordinates, and the weak topology for the two error laws.  This reduced-coordinate image is compact.  For every realized sample, \\(Q\\mapsto\\mathscr D_n(Q)\\) and \\((Q,a)\\mapsto\\mu_Q(a)\\) are continuous on that image.  The exact profile \\(\\Theta_{n,\\alpha}\\), interpreted through reduced coordinates, is a measurable compact-valued correspondence, possibly empty, and the functions \\((O_1,\\ldots,O_n,a)\\mapsto\\inf_{Q\\in\\Theta_{n,\\alpha}}\\mu_Q(a)\\) and \\((O_1,\\ldots,O_n,a)\\mapsto\\sup_{Q\\in\\Theta_{n,\\alpha}}\\mu_Q(a)\\), with both set equal to zero when the profile is empty, are jointly measurable on the sample space times \\(I\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.exact_profile_compact_measurability",
+        "file": "Helpers/ProfileCompactness/Measurability.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4217092cf9f9ca97a7705136351710b90af49e4a",
+        "note": "The reduced coordinate type and image realize the stated Euclidean, uniform, and weak product topology; compact fibers plus measurable graph are equivalent here to a measurable compact-valued correspondence, and the zero-on-empty endpoint definitions and joint measurability match the paper."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "oeq:finite-profile-certification",
+      "obj_id": "P-9",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Under exactly the model class \\(\\mathcal M\\), can one construct from the sample and fixed class constants a terminating algorithm that returns a finite, finitely checkable witness cover of the exact profile \\(\\Theta_{n,\\alpha}\\), together with rigorous endpoint enclosures whose deterministic error is \\(o(r_n)\\), without deciding nonemptiness of an abstract infinite-dimensional decoder?  Such an effective certification result is not established here and remains an open computational question; the statistical band and its rate use the exact profile directly.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Stat.BlindReplicateAdrf.finiteProfileCertificationQuestion",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "af3d95d9092d5cffa7f5dade46bf1c5897b1982f",
+        "note": "The non-Prop String preserves the unchanged model, sample-and-constants input, terminating finite witness cover, o(r_n) endpoint certification, decoder-nonemptiness restriction, unresolved status, obstruction, partial result, and exact-profile statistical scope, and it is absent from delivered theorem dependencies."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_bandWidth",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def bandWidth, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "bandWidth",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_BernoulliMarks",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def BernoulliMarks, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "BernoulliMarks",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_BlindLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def BlindLaw, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "BlindLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_compactTransform",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def compactTransform, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "compactTransform",
+        "file": "Helpers/SobolevFourier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_errLaw1",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def errLaw1, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "errLaw1",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_errLaw2",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def errLaw2, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "errLaw2",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_fixedNuisanceSeparationSet",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def fixedNuisanceSeparationSet, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "fixedNuisanceSeparationSet",
+        "file": "TProtectedModulusCharacterization.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_FullUnit",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def FullUnit, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "FullUnit",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_interiorBump",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def interiorBump, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "interiorBump",
+        "file": "Helpers/SobolevFourier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_inverseModulus",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def inverseModulus, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "inverseModulus",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_markedChannel",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def markedChannel, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "markedChannel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_minimaxWidth",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def minimaxWidth, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "minimaxWidth",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_obsMeasure",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def obsMeasure, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "obsMeasure",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ObsUnit",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ObsUnit, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ObsUnit",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_pairedDiscrepancy",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def pairedDiscrepancy, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "pairedDiscrepancy",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_pairedSeparationSet",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def pairedSeparationSet, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "pairedSeparationSet",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SobolevBall",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SobolevBall, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SobolevBall",
+        "file": "Helpers/SobolevFourier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_targetInterval",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def targetInterval, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "targetInterval",
+        "file": "Helpers/SobolevFourier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_widthRate",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def widthRate, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "widthRate",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AsymmetricDensity",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AsymmetricDensity, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AsymmetricDensity",
+        "file": "Helpers/SobolevFourier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AsymmetricMeasure",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AsymmetricMeasure, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AsymmetricMeasure",
+        "file": "Helpers/SobolevFourier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ProbabilityDensity",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ProbabilityDensity, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ProbabilityDensity",
+        "file": "Helpers/SobolevFourier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_probChannel",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def probChannel, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "probChannel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ConditionalBernoulliOnDose",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ConditionalBernoulliOnDose, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ConditionalBernoulliOnDose",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:filler:24:thm:error-free-reduction:3:a14",
+      "kind": "assumption",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "E_P[Y | A, X] = m_X(A) almost surely",
+        "tex_anchor": "core.json thm:error-free-reduction proof_tex, where m_x(a)=E_P[Y\\mid A=a,X=x]",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "17e628990b3a617a40431061542f58fed8fe08d1",
+        "note": "This a.s. conditional-regression identity is a dischargeable conditional-expectation characterization from BlindReplicateModel.m_is_regression and the coordinate measurability/integrability facts, not a modeling primitive or theorem crux."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "assumption": {
+        "tier": 2,
+        "classification": "faithful-refinement"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "proof-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "def:model-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "def:observable-channels",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "ass:error-latent-independence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "ass:error-coordinate-independence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "ass:error-second-moment",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "lem:paired-channel-factorization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "def:adrf-functional",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:strata-positivity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:consistency",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:unconfoundedness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:causal-mean-continuity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:center-second-error",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:compact-dose",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:dose-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "def:continuous-protected-profile",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "ass:iid",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "ass:error-second-moment",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "ass:bounded-outcome",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "def:profiled-band",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "def:honest-band-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "def:continuous-protected-profile",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "prop:continuous-channel-concentration",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "thm:paired-protected-inverse",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "lem:exact-profile-compact-measurability",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "ass:iid",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-upper-band",
+      "to": "ass:bounded-outcome",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "def:model-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "def:lower-handle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "lem:fixed-kernel-bernoulli-packet",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:iid",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:error-latent-independence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:error-coordinate-independence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:error-second-moment",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:compact-dose",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:bounded-outcome",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:density-sobolev",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:marked-sobolev",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:dose-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:minimax-width-frontier",
+      "to": "thm:honest-upper-band",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:minimax-width-frontier",
+      "to": "thm:fixed-nuisance-marked-pair",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:minimax-width-frontier",
+      "to": "def:honest-band-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:error-free-reduction",
+      "to": "lem:paired-channel-factorization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:error-free-reduction",
+      "to": "thm:adrf-identification",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:error-free-reduction",
+      "to": "ass:consistency",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:error-free-reduction",
+      "to": "ass:unconfoundedness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:error-free-reduction",
+      "to": "ass:causal-mean-continuity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "def:upper-handle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "def:lower-handle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "lem:paired-channel-factorization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "thm:adrf-identification",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "lem:continuous-analytic-sobolev-modulus",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "lem:fixed-kernel-bernoulli-packet",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:strata-positivity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:center-second-error",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:error-second-moment",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:compact-dose",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:bounded-outcome",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:density-sobolev",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:marked-sobolev",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:dose-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "def:model-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:paired-protected-modulus-characterization",
+      "to": "thm:paired-protected-inverse",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "def:model-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "def:continuous-protected-profile",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "def:adrf-functional",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "lem:paired-channel-factorization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:strata-positivity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:consistency",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:unconfoundedness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:causal-mean-continuity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:error-latent-independence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:error-coordinate-independence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:center-second-error",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:error-second-moment",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:compact-dose",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:bounded-outcome",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:density-sobolev",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:marked-sobolev",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "ass:dose-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:finite-profile-certification",
+      "to": "def:model-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:finite-profile-certification",
+      "to": "def:continuous-protected-profile",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:finite-profile-certification",
+      "to": "lem:exact-profile-compact-measurability",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:adrf-identification",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:adrf-identification",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:adrf-identification",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:continuous-channel-concentration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:continuous-channel-concentration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:continuous-channel-concentration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:honest-upper-band",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:honest-upper-band",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:honest-upper-band",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:fixed-nuisance-marked-pair",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:fixed-nuisance-marked-pair",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:fixed-nuisance-marked-pair",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:minimax-width-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:minimax-width-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:minimax-width-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:error-free-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:error-free-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:error-free-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:paired-protected-inverse",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:paired-protected-inverse",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:paired-protected-inverse",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:paired-protected-modulus-characterization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:paired-protected-modulus-characterization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:paired-protected-modulus-characterization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:error-free-reduction",
+      "to": "ass:filler:24:thm:error-free-reduction:3:a14",
+      "source": "declared"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:iid",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:iid",
+      "to": "aux_ObsUnit",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:strata-positivity",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:consistency",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:unconfoundedness",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:causal-mean-continuity",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:error-latent-independence",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:error-coordinate-independence",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:center-second-error",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:error-second-moment",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:compact-dose",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:bounded-outcome",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:density-sobolev",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:marked-sobolev",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:dose-overlap",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:strata-positivity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:consistency",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:unconfoundedness",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:causal-mean-continuity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:error-latent-independence",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:error-coordinate-independence",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:center-second-error",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:error-second-moment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:compact-dose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:bounded-outcome",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:density-sobolev",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:marked-sobolev",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "ass:dose-overlap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:model-class",
+      "to": "aux_FullUnit",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:observable-channels",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:adrf-functional",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:continuous-protected-profile",
+      "to": "aux_ObsUnit",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:continuous-protected-profile",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-band-class",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-band-class",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-band-class",
+      "to": "ass:iid",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-band-class",
+      "to": "aux_obsMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-band-class",
+      "to": "aux_ObsUnit",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-band-class",
+      "to": "aux_targetInterval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-band-class",
+      "to": "def:adrf-functional",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:continuous-analytic-sobolev-modulus",
+      "to": "aux_SobolevBall",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:continuous-analytic-sobolev-modulus",
+      "to": "aux_compactTransform",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_ProbabilityDensity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_AsymmetricDensity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_AsymmetricMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_interiorBump",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_errLaw1",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_errLaw2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "ass:center-second-error",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "ass:error-second-moment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_ConditionalBernoulliOnDose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "def:adrf-functional",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_targetInterval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_obsMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-kernel-bernoulli-packet",
+      "to": "aux_probChannel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "aux_probChannel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "aux_compactTransform",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "aux_errLaw1",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "aux_errLaw2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:paired-channel-factorization",
+      "to": "aux_markedChannel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "aux_ObsUnit",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "aux_targetInterval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "aux_errLaw1",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "aux_errLaw2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:exact-profile-compact-measurability",
+      "to": "def:adrf-functional",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:strata-positivity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:consistency",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:unconfoundedness",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:causal-mean-continuity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:center-second-error",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:compact-dose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "ass:dose-overlap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "aux_obsMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "aux_targetInterval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:adrf-identification",
+      "to": "def:adrf-functional",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "ass:iid",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "aux_obsMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "ass:error-second-moment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:continuous-channel-concentration",
+      "to": "ass:bounded-outcome",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "ass:consistency",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "ass:unconfoundedness",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "ass:causal-mean-continuity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "aux_FullUnit",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "aux_probChannel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "aux_compactTransform",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "aux_markedChannel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "aux_targetInterval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:error-free-reduction",
+      "to": "def:adrf-functional",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_AsymmetricMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "ass:iid",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_obsMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_interiorBump",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_errLaw1",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_errLaw2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_ConditionalBernoulliOnDose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_widthRate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "def:adrf-functional",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:fixed-nuisance-marked-pair",
+      "to": "aux_targetInterval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "ass:iid",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "aux_obsMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "ass:bounded-outcome",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "def:honest-band-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "def:upper-handle",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "aux_bandWidth",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-upper-band",
+      "to": "aux_widthRate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:minimax-width-frontier",
+      "to": "aux_widthRate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:minimax-width-frontier",
+      "to": "aux_minimaxWidth",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_AsymmetricMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_BlindLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "def:model-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:strata-positivity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:center-second-error",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:error-second-moment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:compact-dose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:bounded-outcome",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:density-sobolev",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:marked-sobolev",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "ass:dose-overlap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_pairedDiscrepancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "def:adrf-functional",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_targetInterval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_inverseModulus",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_interiorBump",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_errLaw1",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_errLaw2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-inverse",
+      "to": "aux_ConditionalBernoulliOnDose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-modulus-characterization",
+      "to": "aux_AsymmetricMeasure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-modulus-characterization",
+      "to": "aux_inverseModulus",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-modulus-characterization",
+      "to": "aux_fixedNuisanceSeparationSet",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:paired-protected-modulus-characterization",
+      "to": "aux_pairedSeparationSet",
+      "source": "extracted"
+    }
+  ],
+  "symbolReview": {
+    "sym:\\(\\alpha\\)": {
+      "verdict": "matched",
+      "hash": "16140b034118a187c8dcfa0d5faf63f9a79c4390"
+    },
+    "sym:\\(\\eta\\)": {
+      "verdict": "matched",
+      "hash": "48c82a4f924de1f17a5640d309bef546304da179"
+    },
+    "sym:\\(p_{\\min}\\)": {
+      "verdict": "matched",
+      "hash": "91cca008ee7e0bab698acd8af2cc76a9b03ae1d6"
+    },
+    "sym:\\(\\beta\\)": {
+      "verdict": "matched",
+      "hash": "74152f24de61604f11f8ad4727ae43e2c2cde25f"
+    },
+    "sym:\\(\\kappa\\)": {
+      "verdict": "matched",
+      "hash": "7b59b3ce1da9d32171b68faf3505abf91ec1ff2c"
+    },
+    "sym:\\(B_Y\\)": {
+      "verdict": "matched",
+      "hash": "6632cfcb90647718f95af88b81200b2bde6a9044"
+    }
+  }
+}

@@ -1,0 +1,1832 @@
+{
+  "qid": "exp_psrr_entrance_diffusion_ate",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "sampleSize",
+      "type": "even positive integer tending to infinity",
+      "space": "\\(n\\in 2\\mathbb N\\)",
+      "role": "triangular-array index"
+    },
+    {
+      "name": "tailIndex",
+      "type": "deterministic even positive integer",
+      "space": "\\(N_0\\in 2\\mathbb N\\)",
+      "role": "first retained row with regular score normalization and a nonempty acceptable allocation set"
+    },
+    {
+      "name": "covariateDim",
+      "type": "fixed positive integer",
+      "space": "\\(k\\in\\mathbb N\\)",
+      "role": "covariate dimension"
+    },
+    {
+      "name": "units",
+      "type": "finite index set",
+      "def": "\\(\\mathcal I_n=\\{1,\\ldots,n\\}\\)",
+      "role": "experimental units",
+      "refs": [
+        "sampleSize"
+      ]
+    },
+    {
+      "name": "covariates",
+      "type": "deterministic triangular array",
+      "space": "\\(x_{ni}\\in\\mathbb R^k\\)",
+      "role": "centered pretreatment covariates",
+      "refs": [
+        "sampleSize",
+        "covariateDim",
+        "units"
+      ]
+    },
+    {
+      "name": "outcome0",
+      "type": "deterministic triangular array",
+      "space": "\\(Y_{ni}(0)\\in\\mathbb R\\)",
+      "role": "control potential outcomes",
+      "refs": [
+        "sampleSize",
+        "units"
+      ]
+    },
+    {
+      "name": "outcome1",
+      "type": "deterministic triangular array",
+      "space": "\\(Y_{ni}(1)\\in\\mathbb R\\)",
+      "role": "treatment potential outcomes",
+      "refs": [
+        "sampleSize",
+        "units"
+      ]
+    },
+    {
+      "name": "populationArray",
+      "type": "finite-population triangular array",
+      "role": "member of the design-based model class",
+      "refs": [
+        "sampleSize",
+        "covariateDim",
+        "units",
+        "covariates",
+        "outcome0",
+        "outcome1"
+      ]
+    },
+    {
+      "name": "modelClass",
+      "type": "class of finite-population triangular arrays",
+      "space": "\\(\\mathcal M_{\\mathrm{PSRR}}\\)",
+      "role": "bounded regularity class for original equal-allocation PSRR",
+      "refs": [
+        "populationArray"
+      ]
+    },
+    {
+      "name": "threshold",
+      "type": "fixed positive scalar",
+      "space": "\\(a\\in(0,\\infty)\\)",
+      "role": "Mahalanobis first-entry threshold"
+    },
+    {
+      "name": "tuning",
+      "type": "fixed finite scalar",
+      "space": "\\(\\gamma\\in[0,\\infty)\\)",
+      "role": "Metropolis tuning parameter"
+    },
+    {
+      "name": "level",
+      "type": "fixed scalar",
+      "space": "\\(\\alpha\\in(0,1)\\)",
+      "role": "miscoverage level"
+    },
+    {
+      "name": "arrayBound",
+      "type": "fixed finite positive scalar",
+      "space": "\\(K_0\\in(0,\\infty)\\)",
+      "role": "uniform bound on covariates and potential outcomes"
+    },
+    {
+      "name": "eigenBound",
+      "type": "fixed positive scalar",
+      "space": "\\(c_x\\in(0,\\infty)\\)",
+      "role": "lower eigenvalue bound"
+    },
+    {
+      "name": "residualBound",
+      "type": "fixed positive scalar",
+      "space": "\\(c_s\\in(0,\\infty)\\)",
+      "role": "lower residual-variance bound"
+    },
+    {
+      "name": "covarianceOperator",
+      "type": "finite-population bilinear map",
+      "sig": "\\(S_{AB,n}=(n-1)^{-1}\\sum_{i=1}^n(A_{ni}-\\bar A_n)(B_{ni}-\\bar B_n)^{\\mathsf T}\\)",
+      "role": "common covariance notation",
+      "refs": [
+        "sampleSize",
+        "units"
+      ]
+    },
+    {
+      "name": "covariateCovariance",
+      "type": "symmetric matrix",
+      "space": "\\(S_{xx,n}\\in\\mathbb R^{k\\times k}\\)",
+      "role": "finite-population covariate covariance",
+      "refs": [
+        "covariateDim",
+        "covariates",
+        "covarianceOperator"
+      ]
+    },
+    {
+      "name": "balancedSpace",
+      "type": "finite allocation space",
+      "space": "\\(\\mathcal A_n\\subset\\{0,1\\}^n\\)",
+      "role": "equal-allocation assignments",
+      "refs": [
+        "sampleSize"
+      ]
+    },
+    {
+      "name": "initialAllocation",
+      "type": "random balanced allocation",
+      "space": "\\(W_{n,0}\\in\\mathcal A_n\\) for even \\(n\\ge N_0\\)",
+      "role": "uniform initial state",
+      "refs": [
+        "balancedSpace",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "mahalanobisScore",
+      "type": "nonnegative allocation functional",
+      "sig": "\\(M_n:\\mathcal A_n\\to[0,\\infty)\\) for even \\(n\\ge N_0\\)",
+      "role": "balance criterion",
+      "refs": [
+        "balancedSpace",
+        "covariates",
+        "covariateCovariance",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "acceptableSet",
+      "type": "nonempty finite set of balanced allocations on the retained tail",
+      "space": "\\(\\mathcal A_n(a)=\\{w\\in\\mathcal A_n:M_n(w)\\le a\\}\\neq\\varnothing\\) for even \\(n\\ge N_0\\)",
+      "role": "first-entry target set",
+      "refs": [
+        "balancedSpace",
+        "mahalanobisScore",
+        "threshold",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "initialAcceptanceProbability",
+      "type": "positive deterministic scalar sequence on the retained tail",
+      "space": "\\(p_n=\\Pr\\{M_n(W_{n,0})\\le a\\}\\in(0,1]\\) for even \\(n\\ge N_0\\)",
+      "role": "uniform-allocation probability of the acceptable set",
+      "refs": [
+        "initialAllocation",
+        "mahalanobisScore",
+        "threshold",
+        "acceptableSet",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "allocationChain",
+      "type": "discrete-time allocation process",
+      "space": "\\((W_{n,m})_{m\\ge0}\\in\\mathcal A_n^{\\mathbb N_0}\\) for even \\(n\\ge N_0\\)",
+      "role": "original proposal-clock PSRR chain",
+      "refs": [
+        "initialAllocation",
+        "mahalanobisScore",
+        "threshold",
+        "tuning",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "allocationFiltration",
+      "type": "filtration",
+      "def": "\\(\\mathcal F_{n,m}=\\sigma(W_{n,0},\\text{ proposals and acceptances through }m)\\) for even \\(n\\ge N_0\\)",
+      "role": "actual chain filtration",
+      "refs": [
+        "allocationChain",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "stopTime",
+      "type": "stopping time",
+      "space": "\\(T_n\\in\\mathbb N_0\\) for even \\(n\\ge N_0\\)",
+      "role": "number of treated--control proposals through first entry",
+      "refs": [
+        "allocationChain",
+        "mahalanobisScore",
+        "threshold",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "stoppedAllocation",
+      "type": "random balanced allocation",
+      "def": "\\(W_{n,\\mathrm{stop}}=W_{n,T_n}\\) for even \\(n\\ge N_0\\)",
+      "role": "original PSRR output",
+      "refs": [
+        "allocationChain",
+        "stopTime",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "ate",
+      "type": "finite-population causal contrast",
+      "space": "\\(\\tau_n\\in\\mathbb R\\)",
+      "role": "average treatment effect",
+      "refs": [
+        "sampleSize",
+        "outcome0",
+        "outcome1"
+      ]
+    },
+    {
+      "name": "differenceInMeans",
+      "type": "design-based estimator",
+      "space": "\\(\\widehat\\tau_n\\in\\mathbb R\\) for even \\(n\\ge N_0\\)",
+      "role": "terminal difference in observed arm means",
+      "refs": [
+        "stoppedAllocation",
+        "outcome0",
+        "outcome1",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "outcomeSum",
+      "type": "deterministic scalar array",
+      "space": "\\(h_{ni}\\in\\mathbb R\\)",
+      "def": "\\(h_{ni}=Y_{ni}(1)+Y_{ni}(0)\\)",
+      "role": "sum of potential outcomes",
+      "refs": [
+        "outcome0",
+        "outcome1"
+      ]
+    },
+    {
+      "name": "rawResidualVariance",
+      "type": "deterministic nonnegative scalar sequence",
+      "space": "\\(v_n\\in[0,\\infty)\\)",
+      "def": "\\(v_n=S_{hh,n}-S_{hx,n}S_{xx,n}^{+}S_{xh,n}\\), where \\(S_{xx,n}^{+}\\) is the Moore--Penrose inverse",
+      "role": "every-row outcome-sum projection-residual variance used to locate the regular tail",
+      "refs": [
+        "outcomeSum",
+        "covariateCovariance",
+        "covarianceOperator"
+      ]
+    },
+    {
+      "name": "whitenedCovariate",
+      "type": "deterministic vector array",
+      "space": "\\(d_{ni}\\in\\mathbb R^k\\) for even \\(n\\ge N_0\\)",
+      "role": "whitened covariate score",
+      "refs": [
+        "covariates",
+        "covariateCovariance",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "projectionLoading",
+      "type": "deterministic vector sequence",
+      "space": "\\(b_n\\in\\mathbb R^k\\) for even \\(n\\ge N_0\\)",
+      "role": "covariate loading of the outcome-sum projection",
+      "refs": [
+        "outcomeSum",
+        "whitenedCovariate",
+        "covarianceOperator",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "residualScale",
+      "type": "positive deterministic scalar sequence on the retained tail",
+      "space": "\\(s_n\\in(0,\\infty)\\) for even \\(n\\ge N_0\\)",
+      "role": "outcome-sum projection-residual standard deviation",
+      "refs": [
+        "outcomeSum",
+        "projectionLoading",
+        "covarianceOperator",
+        "tailIndex",
+        "rawResidualVariance"
+      ]
+    },
+    {
+      "name": "standardizedResidual",
+      "type": "deterministic scalar array",
+      "space": "\\(r_{ni}\\in\\mathbb R\\) for even \\(n\\ge N_0\\)",
+      "role": "standardized outcome-sum projection residual",
+      "refs": [
+        "outcomeSum",
+        "whitenedCovariate",
+        "projectionLoading",
+        "residualScale",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "unitScore",
+      "type": "deterministic vector array",
+      "space": "\\(q_{ni}\\in\\mathbb R^{k+1}\\) for even \\(n\\ge N_0\\)",
+      "role": "concatenated whitened covariate and standardized residual",
+      "refs": [
+        "covariateDim",
+        "whitenedCovariate",
+        "standardizedResidual",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "jointScore",
+      "type": "allocation functional",
+      "space": "\\(Z_n(W)\\in\\mathbb R^{k+1}\\) for \\(W\\in\\mathcal A_n\\) and even \\(n\\ge N_0\\)",
+      "role": "joint covariate--residual score",
+      "refs": [
+        "balancedSpace",
+        "unitScore",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "covariateScore",
+      "type": "allocation functional",
+      "space": "\\(D_n(W)\\in\\mathbb R^k\\) for \\(W\\in\\mathcal A_n\\) and even \\(n\\ge N_0\\)",
+      "role": "covariate coordinates of the joint score",
+      "refs": [
+        "jointScore",
+        "covariateDim",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "residualScore",
+      "type": "allocation functional",
+      "space": "\\(E_n(W)\\in\\mathbb R\\) for \\(W\\in\\mathcal A_n\\) and even \\(n\\ge N_0\\)",
+      "role": "residual coordinate of the joint score",
+      "refs": [
+        "jointScore",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "scoreIncrement",
+      "type": "adapted random vector",
+      "space": "\\(\\Delta Z_{n,m}=Z_n(W_{n,m+1})-Z_n(W_{n,m})\\in\\mathbb R^{k+1}\\) for even \\(n\\ge N_0\\) and \\(0\\le m<T_n\\)",
+      "role": "one-proposal accepted score increment before first entry, including a zero increment after rejection",
+      "refs": [
+        "sampleSize",
+        "covariateDim",
+        "jointScore",
+        "allocationChain",
+        "tailIndex",
+        "stopTime"
+      ]
+    },
+    {
+      "name": "absorbedPath",
+      "type": "càdlàg stochastic process",
+      "space": "\\(\\bar Z_n\\in D([0,\\infty),\\mathbb R^{k+1})\\) for even \\(n\\ge N_0\\)",
+      "role": "proposal-time score path absorbed at first entry",
+      "refs": [
+        "jointScore",
+        "allocationChain",
+        "stopTime",
+        "sampleSize",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "limitLoading",
+      "type": "deterministic vector",
+      "space": "\\(b\\in\\mathbb R^k\\)",
+      "def": "\\(b=\\lim_{n\\to\\infty,\\ n\\in2\\mathbb N,\\ n\\ge N_0}b_n\\)",
+      "role": "limit of the projection loading",
+      "refs": [
+        "sampleSize",
+        "projectionLoading",
+        "covariateDim",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "limitResidualScale",
+      "type": "positive scalar",
+      "space": "\\(s\\in(0,\\infty)\\)",
+      "def": "\\(s=\\lim_{n\\to\\infty,\\ n\\in2\\mathbb N,\\ n\\ge N_0}s_n\\)",
+      "role": "limit of the residual scale",
+      "refs": [
+        "sampleSize",
+        "residualScale",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "gaussianVector",
+      "type": "random vector",
+      "space": "\\(G\\sim\\mathcal N_k(0,I_k)\\)",
+      "role": "Gaussian covariate initialization",
+      "refs": [
+        "covariateDim"
+      ]
+    },
+    {
+      "name": "gaussianResidual",
+      "type": "random scalar",
+      "space": "\\(\\varepsilon\\sim\\mathcal N(0,1)\\)",
+      "role": "Gaussian residual reference"
+    },
+    {
+      "name": "covariateBrownian",
+      "type": "standard Brownian motion",
+      "space": "\\(B\\in C([0,\\infty),\\mathbb R^k)\\)",
+      "role": "covariate diffusion noise",
+      "refs": [
+        "covariateDim"
+      ]
+    },
+    {
+      "name": "residualBrownian",
+      "type": "standard Brownian motion",
+      "space": "\\(B'\\in C([0,\\infty),\\mathbb R)\\)",
+      "role": "residual diffusion noise"
+    },
+    {
+      "name": "limitCovariateProcess",
+      "type": "continuous diffusion",
+      "space": "\\(D\\in C([0,\\infty),\\mathbb R^k)\\)",
+      "role": "exterior balance diffusion",
+      "refs": [
+        "threshold",
+        "tuning",
+        "gaussianVector",
+        "covariateBrownian"
+      ]
+    },
+    {
+      "name": "limitResidualProcess",
+      "type": "stationary Ornstein--Uhlenbeck process",
+      "space": "\\(E\\in C([0,\\infty),\\mathbb R)\\)",
+      "role": "outcome-residual diffusion",
+      "refs": [
+        "gaussianResidual",
+        "residualBrownian"
+      ]
+    },
+    {
+      "name": "limitHit",
+      "type": "first-hitting time",
+      "space": "\\(H\\in[0,\\infty)\\)",
+      "role": "limiting proposal-time first entry",
+      "refs": [
+        "limitCovariateProcess",
+        "threshold"
+      ]
+    },
+    {
+      "name": "clippedGaussian",
+      "type": "random vector",
+      "space": "\\(C_{k,a}\\in\\mathbb R^k\\)",
+      "role": "radially clipped Gaussian entrance variable",
+      "refs": [
+        "gaussianVector",
+        "threshold",
+        "covariateDim"
+      ]
+    },
+    {
+      "name": "armSlope",
+      "type": "deterministic vector sequence",
+      "space": "\\(\\beta_{z,n}\\in\\mathbb R^k\\) for \\(z\\in\\{0,1\\}\\) and even \\(n\\ge N_0\\)",
+      "role": "finite-population armwise projection coefficients",
+      "refs": [
+        "covariateCovariance",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "covarianceOperator",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "armResidual",
+      "type": "deterministic scalar arrays",
+      "space": "\\(e_{z,ni}\\in\\mathbb R\\) for \\(z\\in\\{0,1\\}\\) and even \\(n\\ge N_0\\)",
+      "role": "armwise finite-population projection residuals",
+      "refs": [
+        "armSlope",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "envelopeVariance",
+      "type": "nonnegative deterministic scalar sequence",
+      "space": "\\(u_n\\in[0,\\infty)\\) for even \\(n\\ge N_0\\)",
+      "role": "observable-limit upper envelope for residual variance",
+      "refs": [
+        "armResidual",
+        "covarianceOperator",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "estimatedLoading",
+      "type": "observed-data random vector",
+      "space": "\\(\\widehat b_n\\in\\mathbb R^k\\) for even \\(n\\ge N_0\\)",
+      "role": "stopped-design estimator of the outcome loading",
+      "refs": [
+        "stoppedAllocation",
+        "covariates",
+        "covariateCovariance",
+        "outcome0",
+        "outcome1",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "estimatedEnvelope",
+      "type": "observed-data nonnegative random scalar",
+      "space": "\\(\\widehat u_n\\in[0,\\infty)\\) for even \\(n\\ge N_0\\)",
+      "role": "armwise OLS residual envelope",
+      "refs": [
+        "stoppedAllocation",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "quantileMap",
+      "type": "deterministic scalar functional",
+      "sig": "\\(q_{\\alpha}:[0,\\infty)^2\\to[0,\\infty)\\)",
+      "role": "absolute clipped-Gaussian convolution quantile",
+      "refs": [
+        "level",
+        "gaussianResidual",
+        "clippedGaussian"
+      ]
+    },
+    {
+      "name": "envelopeCritical",
+      "type": "deterministic scalar functional",
+      "sig": "\\(q_{*,\\alpha}:[0,\\infty)^2\\to[0,\\infty)\\)",
+      "role": "worst-compatible-residual critical value",
+      "refs": [
+        "quantileMap"
+      ]
+    },
+    {
+      "name": "confidenceInterval",
+      "type": "random closed interval",
+      "space": "\\(I_n\\subset\\mathbb R\\) for even \\(n\\ge N_0\\)",
+      "role": "heterogeneous-effect ATE interval",
+      "refs": [
+        "differenceInMeans",
+        "estimatedLoading",
+        "estimatedEnvelope",
+        "envelopeCritical",
+        "sampleSize",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "linEstimator",
+      "type": "design-based regression-adjusted estimator",
+      "space": "\\(\\widehat\\tau_{\\mathrm{Lin},n}\\in\\mathbb R\\) for even \\(n\\ge N_0\\)",
+      "role": "fully interacted OLS ATE estimator",
+      "refs": [
+        "differenceInMeans",
+        "stoppedAllocation",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "tailIndex"
+      ]
+    },
+    {
+      "name": "truncatedGaussian",
+      "type": "random vector",
+      "space": "\\(L_{k,a}\\overset{d}=G\\mid\\{\\|G\\|^2\\le a\\}\\)",
+      "role": "classical uniform-rerandomization comparator",
+      "refs": [
+        "gaussianVector",
+        "threshold",
+        "covariateDim"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:centered-covariates",
+      "kind": "finite-population centering",
+      "condition": "For every even \\(n\\), \\(n^{-1}\\sum_{i=1}^n x_{ni}=0\\).",
+      "free_symbols": [
+        "sampleSize",
+        "covariates"
+      ],
+      "standard": {
+        "name": "Centered design covariates",
+        "cite": "LiDingRubin2018ReM"
+      },
+      "used_by": [
+        "def:mahalanobis-score",
+        "def:score-system"
+      ]
+    },
+    {
+      "id": "ass:fixed-potential-outcomes",
+      "kind": "design-based potential-outcome condition",
+      "condition": "The arrays \\(\\{Y_{ni}(0),Y_{ni}(1):i\\in\\mathcal I_n\\}\\) are fixed under assignment, with one version of each treatment and no interference.",
+      "free_symbols": [
+        "units",
+        "outcome0",
+        "outcome1"
+      ],
+      "standard": {
+        "name": "Finite-population SUTVA",
+        "cite": "ZhuLiu2023PSRR"
+      },
+      "used_by": [
+        "def:ate-estimator",
+        "thm:ate-limit",
+        "thm:variance-envelope-coverage"
+      ]
+    },
+    {
+      "id": "ass:uniform-boundedness",
+      "kind": "maximal-term regularity",
+      "condition": "There is a constant \\(K_0<\\infty\\), independent of \\(n\\), such that \\(\\max_{i\\in\\mathcal I_n}\\{\\|x_{ni}\\|+|Y_{ni}(0)|+|Y_{ni}(1)|\\}\\le K_0\\).",
+      "free_symbols": [
+        "sampleSize",
+        "units",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "arrayBound"
+      ],
+      "constants": [
+        "\\(K_0\\)"
+      ],
+      "standard": {
+        "name": "Bounded finite-population maximal-term condition",
+        "cite": "LiDing2017FPCLT"
+      },
+      "used_by": [
+        "lem:initial-score-clt",
+        "oeq:pathwise-characteristics",
+        "lem:stopped-moment-consistency"
+      ]
+    },
+    {
+      "id": "ass:second-moment-limit",
+      "kind": "triangular-array moment convergence",
+      "condition": "The finite-population covariance matrix of \\(\\bigl(x_{ni}^{\\mathsf T},Y_{ni}(0),Y_{ni}(1)\\bigr)^{\\mathsf T}\\) converges entrywise to a finite matrix.",
+      "free_symbols": [
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "covarianceOperator"
+      ],
+      "standard": {
+        "name": "Finite-population second-moment convergence",
+        "cite": "LiDing2017FPCLT"
+      },
+      "used_by": [
+        "lem:initial-score-clt",
+        "thm:ate-limit",
+        "lem:stopped-moment-consistency"
+      ]
+    },
+    {
+      "id": "ass:covariate-nondegeneracy",
+      "kind": "strict eigenvalue condition",
+      "condition": "There is a constant \\(c_x>0\\) such that \\(\\liminf_{n\\to\\infty}\\lambda_{\\min}(S_{xx,n})\\ge c_x\\).",
+      "free_symbols": [
+        "sampleSize",
+        "covariateCovariance",
+        "eigenBound"
+      ],
+      "constants": [
+        "\\(c_x\\)"
+      ],
+      "standard": {
+        "name": "Uniform positive definiteness of the covariate covariance",
+        "cite": "LiDingRubin2018ReM"
+      },
+      "used_by": [
+        "def:regular-tail",
+        "def:score-system",
+        "lem:stopped-moment-consistency"
+      ]
+    },
+    {
+      "id": "ass:residual-nondegeneracy",
+      "kind": "strict variance condition",
+      "condition": "The every-row outcome-sum projection-residual variance satisfies \\(\\liminf_{n\\to\\infty}v_n\\ge c_s\\).",
+      "free_symbols": [
+        "sampleSize",
+        "rawResidualVariance",
+        "residualBound"
+      ],
+      "constants": [
+        "\\(c_s\\)"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This is the explicitly scoped design-relevance condition that keeps the stationary outcome-residual coordinate nondegenerate and makes its standardization meaningful. It is satisfied by bounded triangular arrays whose outcome-sum component retains variation orthogonal to the fixed-dimensional covariate span; degenerate residual sequences are outside this paper's declared scope and are not covered by the Li--Ding regression-adjustment citation."
+      },
+      "used_by": [
+        "def:regular-tail",
+        "lem:initial-score-clt",
+        "thm:ate-limit",
+        "thm:variance-envelope-coverage"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:psrr-class",
+      "name": "Bounded equal-allocation PSRR array class",
+      "construction": "\\(\\mathcal M_{\\mathrm{PSRR}}=\\{(n,k,(x_{ni},Y_{ni}(0),Y_{ni}(1))_{i=1}^n)_{n\\in2\\mathbb N}:\\text{ ass:centered-covariates, ass:fixed-potential-outcomes, ass:uniform-boundedness, ass:second-moment-limit, ass:covariate-nondegeneracy, and ass:residual-nondegeneracy hold}\\}\\).",
+      "free_symbols": [
+        "sampleSize",
+        "covariateDim",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "populationArray",
+        "modelClass"
+      ],
+      "by_member_properties": [
+        "ass:centered-covariates",
+        "ass:fixed-potential-outcomes",
+        "ass:uniform-boundedness",
+        "ass:second-moment-limit",
+        "ass:covariate-nondegeneracy",
+        "ass:residual-nondegeneracy"
+      ]
+    },
+    {
+      "id": "def:regular-tail",
+      "name": "Deterministic regular tail",
+      "construction": "\\(N_0=\\min\\{N\\in2\\mathbb N:\\text{ for every }n\\in2\\mathbb N\\text{ with }n\\ge N,\\ \\lambda_{\\min}(S_{xx,n})\\ge c_x/2,\\ v_n\\ge c_s/2,\\text{ and }\\#\\{w\\in\\mathcal A_n:\\|n^{-1/2}\\sum_{i=1}^n(2w_i-1)S_{xx,n}^{-1/2}x_{ni}\\|^2\\le a\\}\\ge1\\}\\). Every inverse, whitened score, standardized score, algorithm, and asymptotic claim is indexed only by even \\(n\\ge N_0\\); the finitely many rows \\(n<N_0\\) are discarded and have no asymptotic role.",
+      "free_symbols": [
+        "tailIndex",
+        "sampleSize",
+        "balancedSpace",
+        "covariates",
+        "covariateCovariance",
+        "rawResidualVariance",
+        "eigenBound",
+        "residualBound",
+        "threshold"
+      ],
+      "inputs": [
+        "ass:covariate-nondegeneracy",
+        "ass:residual-nondegeneracy",
+        "ass:uniform-boundedness",
+        "ass:second-moment-limit"
+      ]
+    },
+    {
+      "id": "def:balanced-space",
+      "name": "Equal-allocation assignment space",
+      "construction": "\\(\\mathcal A_n=\\{w\\in\\{0,1\\}^n:\\sum_{i=1}^n w_i=n/2\\}\\).",
+      "free_symbols": [
+        "sampleSize",
+        "balancedSpace"
+      ]
+    },
+    {
+      "id": "def:mahalanobis-score",
+      "name": "Mahalanobis imbalance",
+      "construction": "For even \\(n\\ge N_0\\), \\(M_n(w)=\\|D_n(w)\\|^2\\), where \\(D_n(w)=n^{-1/2}\\sum_{i=1}^n(2w_i-1)S_{xx,n}^{-1/2}x_{ni}\\).",
+      "free_symbols": [
+        "tailIndex",
+        "sampleSize",
+        "balancedSpace",
+        "covariates",
+        "covariateCovariance",
+        "mahalanobisScore",
+        "covariateScore"
+      ],
+      "inputs": [
+        "\\(w\\in\\mathcal A_n\\)"
+      ]
+    },
+    {
+      "id": "def:acceptable-set",
+      "name": "Acceptable allocation set and initialization probability",
+      "construction": "For even \\(n\\ge N_0\\), \\(\\mathcal A_n(a)=\\{w\\in\\mathcal A_n:M_n(w)\\le a\\}\\) and \\(p_n=\\#\\mathcal A_n(a)/\\#\\mathcal A_n=\\Pr\\{M_n(W_{n,0})\\le a\\}\\).",
+      "free_symbols": [
+        "tailIndex",
+        "balancedSpace",
+        "acceptableSet",
+        "initialAcceptanceProbability",
+        "mahalanobisScore",
+        "initialAllocation",
+        "threshold"
+      ]
+    },
+    {
+      "id": "def:original-psrr",
+      "name": "Original first-entry PSRR",
+      "construction": "For each even \\(n\\ge N_0\\), for which \\(\\mathcal A_n(a)\\neq\\varnothing\\), draw \\(W_{n,0}\\) uniformly from \\(\\mathcal A_n\\). While \\(M_n(W_{n,m})>a\\), draw one treated index and one control index uniformly, propose their transposition \\(W^*\\), accept it with probability \\(\\min\\{1,(M_n(W_{n,m})/M_n(W^*))^{\\gamma}\\}\\) with every improving move and every move to \\(M_n(W^*)=0\\) accepted, count every proposal including rejections, and stop at \\(T_n=\\inf\\{m\\ge0:M_n(W_{n,m})\\le a\\}\\). The chain is evaluated only through this first entry.",
+      "free_symbols": [
+        "tailIndex",
+        "balancedSpace",
+        "acceptableSet",
+        "initialAllocation",
+        "mahalanobisScore",
+        "allocationChain",
+        "stopTime",
+        "threshold",
+        "tuning",
+        "stoppedAllocation"
+      ],
+      "inputs": [
+        "covariates",
+        "threshold",
+        "tuning"
+      ]
+    },
+    {
+      "id": "def:ate-estimator",
+      "name": "Finite-population ATE and terminal difference in means",
+      "construction": "For even \\(n\\ge N_0\\), \\(\\tau_n=n^{-1}\\sum_{i=1}^n\\{Y_{ni}(1)-Y_{ni}(0)\\}\\) and \\(\\widehat\\tau_n=2n^{-1}\\sum_{i=1}^n\\{W_{n,\\mathrm{stop},i}Y_{ni}(1)-(1-W_{n,\\mathrm{stop},i})Y_{ni}(0)\\}\\).",
+      "free_symbols": [
+        "tailIndex",
+        "sampleSize",
+        "outcome0",
+        "outcome1",
+        "stoppedAllocation",
+        "ate",
+        "differenceInMeans"
+      ]
+    },
+    {
+      "id": "def:score-system",
+      "name": "Whitened joint covariate--residual score",
+      "construction": "For even \\(n\\ge N_0\\), let \\(d_{ni}=S_{xx,n}^{-1/2}x_{ni}\\), \\(b_n=S_{dh,n}=S_{xx,n}^{-1/2}S_{xh,n}\\), \\(s_n=\\sqrt{v_n}\\), \\(r_{ni}=\\{h_{ni}-\\bar h_n-b_n^{\\mathsf T}d_{ni}\\}/s_n\\), and \\(q_{ni}=(d_{ni}^{\\mathsf T},r_{ni})^{\\mathsf T}\\). Define \\(Z_n(w)=n^{-1/2}\\sum_{i=1}^n(2w_i-1)q_{ni}=(D_n(w)^{\\mathsf T},E_n(w))^{\\mathsf T}\\).",
+      "free_symbols": [
+        "tailIndex",
+        "sampleSize",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "covarianceOperator",
+        "covariateCovariance",
+        "outcomeSum",
+        "whitenedCovariate",
+        "projectionLoading",
+        "residualScale",
+        "standardizedResidual",
+        "unitScore",
+        "jointScore",
+        "covariateScore",
+        "residualScore",
+        "balancedSpace",
+        "rawResidualVariance"
+      ]
+    },
+    {
+      "id": "def:absorbed-path",
+      "name": "Proposal-time absorbed score path",
+      "construction": "For even \\(n\\ge N_0\\), \\(\\bar Z_n(t)=Z_n(W_{n,\\min\\{\\lfloor nt\\rfloor,T_n\\}})\\) for \\(t\\ge0\\).",
+      "free_symbols": [
+        "tailIndex",
+        "absorbedPath",
+        "jointScore",
+        "allocationChain",
+        "stopTime",
+        "sampleSize"
+      ]
+    },
+    {
+      "id": "def:characteristic-handle",
+      "name": "Actual-filtration characteristic handle",
+      "construction": "Couple the all-pairs extension of original PSRR by common transpositions to a stationary uniform-allocation shadow; before first entry, use exact centering of the antisymmetric Metropolis-kink score against the deterministic population empirical measure to control drift and cross-characteristics uniformly along localized proposal-time paths. Analyze the single terminal crossing directly from its exact transposition increment and the vanishing jump size, without invoking the singular drift expansion at or after \\(T_n\\).",
+      "free_symbols": [
+        "allocationChain",
+        "allocationFiltration",
+        "jointScore",
+        "scoreIncrement",
+        "stopTime",
+        "threshold",
+        "tuning"
+      ],
+      "inputs": [
+        "def:original-psrr",
+        "def:score-system"
+      ]
+    },
+    {
+      "id": "def:limit-system",
+      "name": "Candidate stopped diffusion system",
+      "construction": "Before \\(H=\\inf\\{t\\ge0:\\|D_t\\|^2\\le a\\}\\), \\(dD_t=(-4D_t-8\\gamma D_t/\\|D_t\\|^2)dt+\\sqrt8\\,dB_t\\) and \\(dE_t=-4E_tdt+\\sqrt8\\,dB'_t\\), with \\(D_0=G\\), \\(E_0=\\varepsilon\\), and \\(G,\\varepsilon,B,B'\\) mutually independent; absorb both coordinates at \\(H\\).",
+      "free_symbols": [
+        "limitCovariateProcess",
+        "limitResidualProcess",
+        "limitHit",
+        "threshold",
+        "tuning",
+        "gaussianVector",
+        "gaussianResidual",
+        "covariateBrownian",
+        "residualBrownian"
+      ]
+    },
+    {
+      "id": "def:clipped-gaussian",
+      "name": "Radially clipped Gaussian",
+      "construction": "\\(C_{k,a}=G\\min\\{1,\\sqrt a/\\|G\\|\\}\\), with the multiplier defined as \\(1\\) at \\(G=0\\).",
+      "free_symbols": [
+        "clippedGaussian",
+        "gaussianVector",
+        "threshold",
+        "covariateDim"
+      ]
+    },
+    {
+      "id": "def:variance-envelope",
+      "name": "Residual variance envelope",
+      "construction": "For even \\(n\\ge N_0\\) and \\(z\\in\\{0,1\\}\\), let \\(\\beta_{z,n}=S_{xx,n}^{-1}S_{x,Y(z),n}\\) and \\(e_{z,ni}=Y_{ni}(z)-\\bar Y_n(z)-\\beta_{z,n}^{\\mathsf T}x_{ni}\\). Set \\(u_n=2S_{e_1e_1,n}+2S_{e_0e_0,n}\\), so algebraically \\(u_n-s_n^2=S_{e_1-e_0,e_1-e_0,n}\\ge0\\).",
+      "free_symbols": [
+        "tailIndex",
+        "armSlope",
+        "armResidual",
+        "envelopeVariance",
+        "covariateCovariance",
+        "covariates",
+        "outcome0",
+        "outcome1",
+        "covarianceOperator",
+        "residualScale"
+      ]
+    },
+    {
+      "id": "def:observable-envelope-inputs",
+      "name": "Stopped-design estimators of envelope inputs",
+      "construction": "For even \\(n\\ge N_0\\), within each observed arm compute the centered outcome--covariate covariance \\(\\widehat c_{z,n}\\) and the intercept-including OLS residual mean square \\(\\widehat S_{e_z,n}^2\\), using the Moore--Penrose fit on singular samples. Set \\(\\widehat b_n=S_{xx,n}^{-1/2}(\\widehat c_{1,n}+\\widehat c_{0,n})\\) and \\(\\widehat u_n=2\\widehat S_{e_1,n}^2+2\\widehat S_{e_0,n}^2\\).",
+      "free_symbols": [
+        "tailIndex",
+        "stoppedAllocation",
+        "covariates",
+        "covariateCovariance",
+        "outcome0",
+        "outcome1",
+        "estimatedLoading",
+        "estimatedEnvelope"
+      ]
+    },
+    {
+      "id": "def:critical-value",
+      "name": "Computable variance-envelope critical value",
+      "construction": "For \\(v,B_0\\ge0\\), define \\(q_{\\alpha}(v,B_0)=\\inf\\{t\\ge0:\\Pr(|\\sqrt v\\,\\varepsilon+B_0(C_{k,a})_1|\\le t)\\ge1-\\alpha\\}\\) and \\(q_{*,\\alpha}(u,B_0)=\\max_{0\\le v\\le u}q_{\\alpha}(v,B_0)\\). Compute it by Gaussian--spherical integration, scalar quantile search, and compact one-dimensional maximization.",
+      "free_symbols": [
+        "quantileMap",
+        "envelopeCritical",
+        "level",
+        "gaussianResidual",
+        "clippedGaussian"
+      ]
+    },
+    {
+      "id": "def:ate-interval",
+      "name": "Variance-envelope ATE interval",
+      "construction": "For even \\(n\\ge N_0\\), \\(I_n=[\\widehat\\tau_n-q_{*,\\alpha}(\\widehat u_n,\\|\\widehat b_n\\|)/\\sqrt n,\\ \\widehat\\tau_n+q_{*,\\alpha}(\\widehat u_n,\\|\\widehat b_n\\|)/\\sqrt n]\\).",
+      "free_symbols": [
+        "tailIndex",
+        "confidenceInterval",
+        "differenceInMeans",
+        "envelopeCritical",
+        "estimatedEnvelope",
+        "estimatedLoading",
+        "sampleSize"
+      ]
+    },
+    {
+      "id": "def:lin-estimator",
+      "name": "Fully interacted terminal estimator",
+      "construction": "For even \\(n\\ge N_0\\), \\(\\widehat\\tau_{\\mathrm{Lin},n}\\) is the coefficient on treatment in the OLS regression of the observed outcome on an intercept, treatment, centered covariates, and all treatment--covariate interactions under \\(W_{n,\\mathrm{stop}}\\).",
+      "free_symbols": [
+        "tailIndex",
+        "linEstimator",
+        "stoppedAllocation",
+        "covariates",
+        "outcome0",
+        "outcome1"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:regular-tail-wellposedness",
+      "kind": "lemma",
+      "statement": "The index \\(N_0\\) in def:regular-tail is finite. More precisely, on the eventual positive-definite covariance tail, the finite-population Gaussian initialization gives \\(D_n(W_{n,0})\\Rightarrow G\\) and hence \\(p_n=\\Pr\\{M_n(W_{n,0})\\le a\\}\\to\\Pr(\\|G\\|^2\\le a)>0\\). Therefore \\(\\mathcal A_n(a)\\neq\\varnothing\\), \\(S_{xx,n}\\) is positive definite, and \\(s_n=\\sqrt{v_n}>0\\) for every even \\(n\\ge N_0\\). Because the balanced pair-swap graph is finite and connected and every required transition has positive probability for finite \\(\\gamma\\), \\(T_n<\\infty\\) almost surely on this retained tail; the discarded rows \\(n<N_0\\) have no asymptotic role.",
+      "free_symbols": [
+        "tailIndex",
+        "sampleSize",
+        "covariateScore",
+        "initialAllocation",
+        "gaussianVector",
+        "initialAcceptanceProbability",
+        "mahalanobisScore",
+        "threshold",
+        "acceptableSet",
+        "covariateCovariance",
+        "residualScale",
+        "rawResidualVariance",
+        "allocationChain",
+        "tuning",
+        "stopTime"
+      ],
+      "depends_on": [
+        "ass:uniform-boundedness",
+        "ass:second-moment-limit",
+        "ass:covariate-nondegeneracy",
+        "ass:residual-nondegeneracy",
+        "def:balanced-space",
+        "def:mahalanobis-score",
+        "def:acceptable-set",
+        "def:regular-tail",
+        "def:original-psrr"
+      ],
+      "status": "to-prove",
+      "justification": "This derives, rather than assumes, that every retained experiment has a reachable first-entry target and valid score normalization.",
+      "gap": "Finite-population central limit theory supplies Gaussian initialization, but original PSRR asymptotics require the additional deterministic-tail consequence that the fixed-radius acceptable set is eventually nonempty.",
+      "consumer": "The lemma makes the stopping time, pre-entry characteristics, terminal allocation, and all subsequent causal limits well posed on one deterministic asymptotic tail."
+    },
+    {
+      "id": "lem:initial-score-clt",
+      "kind": "lemma",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), uniform equal allocation gives \\(Z_n(W_{n,0})\\Rightarrow\\mathcal N_{k+1}(0,I_{k+1})\\), and the score construction satisfies \\(\\sqrt n(\\widehat\\tau_n-\\tau_n)=b_n^{\\mathsf T}D_n(W_{n,\\mathrm{stop}})+s_nE_n(W_{n,\\mathrm{stop}})\\) exactly.",
+      "free_symbols": [
+        "tailIndex",
+        "jointScore",
+        "initialAllocation",
+        "covariateDim",
+        "sampleSize",
+        "differenceInMeans",
+        "ate",
+        "projectionLoading",
+        "covariateScore",
+        "stoppedAllocation",
+        "residualScale",
+        "residualScore"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "ass:centered-covariates",
+        "ass:uniform-boundedness",
+        "ass:second-moment-limit",
+        "ass:covariate-nondegeneracy",
+        "ass:residual-nondegeneracy",
+        "def:original-psrr",
+        "def:ate-estimator",
+        "def:score-system",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "This identifies the complete-randomization initialization and the exact causal decomposition that the stopped process must transport.",
+      "gap": "Li and Ding give the finite-population vector CLT at a fixed complete-randomization draw, not along the Zhu--Liu first-entry path.",
+      "consumer": "The joint normalization supplies the initial law for the stopped martingale problem and the ATE scaling used by every later interval result."
+    },
+    {
+      "id": "oeq:pathwise-characteristics",
+      "kind": "openendedquestion",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), does the actual-filtration characteristic handle establish, for every fixed \\(L,R<\\infty\\), uniformly over integers \\(0\\le m<\\min\\{\\lfloor nL\\rfloor,T_n\\}\\) with \\(\\|Z_n(W_{n,m})\\|\\le R\\), that \\(n\\,\\mathbb E(\\Delta Z_{n,m}\\mid\\mathcal F_{n,m})+4Z_n(W_{n,m})+8\\gamma(D_n(W_{n,m})^{\\mathsf T},0)^{\\mathsf T}/\\|D_n(W_{n,m})\\|^2\\to0\\) in probability, \\(n\\,\\mathbb E(\\Delta Z_{n,m}\\Delta Z_{n,m}^{\\mathsf T}\\mid\\mathcal F_{n,m})\\to8I_{k+1}\\) in probability, and the conditional jump Lindeberg remainder tends to zero, without empirical-law convergence, projected Markovianity, stabilization, or outcome-residual independence; and can the terminal crossing be transferred separately from its exact transposition increment and vanishing jump size, without using \\(D/\\|D\\|^2\\) at or after \\(T_n\\)?",
+      "free_symbols": [
+        "tailIndex",
+        "sampleSize",
+        "allocationChain",
+        "allocationFiltration",
+        "stopTime",
+        "jointScore",
+        "scoreIncrement",
+        "covariateScore",
+        "covariateDim",
+        "tuning"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "ass:uniform-boundedness",
+        "ass:second-moment-limit",
+        "ass:covariate-nondegeneracy",
+        "def:original-psrr",
+        "def:score-system",
+        "def:characteristic-handle",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "This is the first nonroutine proof boundary: the projected scores are generally non-Markov and the Metropolis kink can create an order-one residual drift at arbitrary balanced states.",
+      "gap": "Roberts, Gelman, and Gilks control Metropolis characteristics for high-dimensional product targets; no located theorem provides these actual-path finite-population exchange bounds for original PSRR.",
+      "consumer": "An affirmative answer supplies pre-entry predictable characteristics and a separate terminal-crossing argument for compact containment, martingale-problem identification, and continuous first-hit transfer."
+    },
+    {
+      "id": "thm:joint-stopped-functional-limit",
+      "kind": "theorem",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), jointly in \\(D([0,\\infty),\\mathbb R^{k+1})\\times[0,\\infty)\\), \\(\\bigl(\\bar Z_n,T_n/n\\bigr)\\Rightarrow\\bigl((D_{t\\wedge H}^{\\mathsf T},E_{t\\wedge H})^{\\mathsf T},H\\bigr)\\), where the limit is the unique weak solution in def:limit-system and \\(H<\\infty\\) almost surely.",
+      "free_symbols": [
+        "tailIndex",
+        "absorbedPath",
+        "stopTime",
+        "sampleSize",
+        "covariateDim",
+        "limitCovariateProcess",
+        "limitResidualProcess",
+        "limitHit"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "lem:initial-score-clt",
+        "oeq:pathwise-characteristics",
+        "def:absorbed-path",
+        "def:limit-system",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem converts the original allocation algorithm into a joint proposal-time process law without assuming that its low-dimensional projection is Markov.",
+      "gap": "Zhu and Liu explicitly leave asymptotic distributions of common PSRR statistics open, and Lu, Zhang, and Zhu study a stationary chain with a correction rather than this first-entry process.",
+      "consumer": "Users of the original equal-allocation PSRR implementation obtain its first-order search-time distribution and a valid stopping transfer for downstream statistics."
+    },
+    {
+      "id": "thm:radial-entrance-law",
+      "kind": "theorem",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), for every fixed finite \\(\\gamma\\ge0\\), \\(\\bigl(D_n(W_{n,\\mathrm{stop}}),E_n(W_{n,\\mathrm{stop}})\\bigr)\\Rightarrow(C_{k,a},\\varepsilon)\\), where \\(C_{k,a}\\) and \\(\\varepsilon\\) are independent. Hence \\(\\|C_{k,a}\\|^2=\\min\\{\\chi_k^2,a\\}\\), with boundary mass \\(1-\\Pr(\\chi_k^2\\le a)\\); consequently, for finite \\(a\\), this law is not the classical uniform-rerandomization law \\(L_{k,a}\\), which gives the boundary sphere probability zero. The law of \\(H\\) may depend on \\(\\gamma\\), but the displayed terminal law does not.",
+      "free_symbols": [
+        "tailIndex",
+        "covariateScore",
+        "residualScore",
+        "stoppedAllocation",
+        "tuning",
+        "clippedGaussian",
+        "gaussianResidual",
+        "covariateDim",
+        "threshold",
+        "limitHit",
+        "truncatedGaussian"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "thm:joint-stopped-functional-limit",
+        "def:clipped-gaussian",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "The radial boundary component and pathwise residual independence are the design-specific features hidden by stationary or conditional approximations.",
+      "gap": "Classical Mahalanobis rerandomization yields a Gaussian conditioned inside the ball; no located result derives the radial first-entry clipping law for original PSRR.",
+      "consumer": "The explicit endpoint law permits direct power, variance, and critical-value calculations for a design that currently has only Fisher sharp-null inference."
+    },
+    {
+      "id": "prop:not-uniform-rerandomization",
+      "kind": "proposition",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), the terminal covariate limit satisfies the following distinction. For every finite \\(a>0\\), the terminal covariate limit \\(C_{k,a}\\) is not equal in distribution to the classical uniform-rerandomization limit \\(L_{k,a}\\): the former assigns mass \\(1-\\Pr(\\chi_k^2\\le a)\\) to the sphere \\(\\{d:\\|d\\|^2=a\\}\\), whereas the latter assigns that sphere probability zero.",
+      "free_symbols": [
+        "tailIndex",
+        "threshold",
+        "clippedGaussian",
+        "covariateDim",
+        "truncatedGaussian"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "thm:radial-entrance-law",
+        "def:clipped-gaussian",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "A boundary-atom certificate prevents the original first-entry output from being silently replaced by a uniform acceptable-set draw.",
+      "gap": "Li, Ding, and Rubin characterize uniform Mahalanobis rerandomization, while Lu, Zhang, and Zhu restore that uniform law only after changing the algorithm.",
+      "consumer": "Analysts can diagnose exactly why truncated-Gaussian reference intervals are not calibrated for uncorrected first-entry PSRR."
+    },
+    {
+      "id": "thm:ate-limit",
+      "kind": "theorem",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), if \\(b_n\\to b\\) and \\(s_n\\to s\\), then \\(\\sqrt n(\\widehat\\tau_n-\\tau_n)\\Rightarrow b^{\\mathsf T}C_{k,a}+s\\varepsilon\\), with \\(C_{k,a}\\perp\\varepsilon\\).",
+      "free_symbols": [
+        "tailIndex",
+        "projectionLoading",
+        "limitLoading",
+        "residualScale",
+        "limitResidualScale",
+        "sampleSize",
+        "differenceInMeans",
+        "ate",
+        "clippedGaussian",
+        "gaussianResidual"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "lem:initial-score-clt",
+        "thm:radial-entrance-law",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "This is the requested common-statistic limit for the finite-population ATE under the actual terminal assignment.",
+      "gap": "Zhu and Liu prove unbiasedness and a variance-reduction lower bound but explicitly leave this asymptotic distribution to future work.",
+      "consumer": "The theorem turns the original PSRR design into an asymptotically analyzable ATE procedure under heterogeneous effects."
+    },
+    {
+      "id": "lem:stopped-moment-consistency",
+      "kind": "lemma",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), every treated- and control-arm empirical mean entering def:observable-envelope-inputs differs from its finite-population counterpart by \\(o_{\\Pr}(1)\\) at \\(T_n\\). Consequently, \\(\\widehat b_n-b_n\\to_{\\Pr}0\\) and \\(\\widehat u_n-u_n\\to_{\\Pr}0\\).",
+      "free_symbols": [
+        "tailIndex",
+        "stoppedAllocation",
+        "stopTime",
+        "estimatedLoading",
+        "projectionLoading",
+        "estimatedEnvelope",
+        "envelopeVariance",
+        "covariates",
+        "outcome0",
+        "outcome1"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "ass:uniform-boundedness",
+        "ass:covariate-nondegeneracy",
+        "thm:joint-stopped-functional-limit",
+        "def:variance-envelope",
+        "def:observable-envelope-inputs",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "Adaptive first entry selects the terminal arms through the whole covariate path, so fixed-draw laws of large numbers cannot simply be conditioned on acceptance.",
+      "gap": "Li and Ding establish armwise regression quantities under uniform rerandomization; the stopped nonuniform PSRR design has no published uniform path law.",
+      "consumer": "The result makes all projection and variance inputs in the proposed interval computable from the realized experiment."
+    },
+    {
+      "id": "thm:variance-envelope-coverage",
+      "kind": "theorem",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), the maximum in \\(q_{*,\\alpha}(u,B_0)\\) exists, its defining integral is computable, and the interval \\(I_n\\) obeys the sequencewise design-based guarantee \\(\\liminf_{n\\to\\infty}\\Pr(\\tau_n\\in I_n)\\ge1-\\alpha\\) for every sequence in \\(\\mathcal M_{\\mathrm{PSRR}}\\).",
+      "free_symbols": [
+        "tailIndex",
+        "envelopeCritical",
+        "confidenceInterval",
+        "ate",
+        "sampleSize",
+        "level",
+        "modelClass"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "ass:fixed-potential-outcomes",
+        "ass:residual-nondegeneracy",
+        "thm:ate-limit",
+        "lem:stopped-moment-consistency",
+        "def:variance-envelope",
+        "def:critical-value",
+        "def:ate-interval",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "Heterogeneous effects leave the cross-potential-outcome residual covariance unidentified, and the envelope converts that obstacle into an observable conservative reference law.",
+      "gap": "Fiksel's covariate-adjusted interval is a Fisher-exact randomization-test inversion under an observed-data sufficient condition, while Li and Ding's conservative law and Cohen and Fogarty's Gaussian push-forward concern uniform constrained designs; none supplies the clipped first-entry PSRR weak-null envelope.",
+      "consumer": "Investigators using the original PSRR workflow obtain a single-run, observed-moment ATE confidence interval under heterogeneous effects without Fisher sharp-null inversion or regenerating assignments over hypothesized effects."
+    },
+    {
+      "id": "prop:fully-interacted-corollary",
+      "kind": "proposition",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), the fully interacted estimator satisfies \\(\\sqrt n(\\widehat\\tau_{\\mathrm{Lin},n}-\\tau_n)\\Rightarrow\\mathcal N(0,s^2)\\). Its residual-Neyman variance based on \\(\\widehat u_n\\) yields an asymptotically conservative Wald interval; coverage is asymptotically exact when \\(u_n-s_n^2\\to0\\).",
+      "free_symbols": [
+        "tailIndex",
+        "sampleSize",
+        "linEstimator",
+        "ate",
+        "limitResidualScale",
+        "estimatedEnvelope",
+        "envelopeVariance",
+        "residualScale"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "thm:radial-entrance-law",
+        "lem:stopped-moment-consistency",
+        "def:lin-estimator",
+        "def:variance-envelope",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "Full interactions remove the clipped covariate component only after terminal slope consistency and limiting residual independence have been established under the stopped design.",
+      "gap": "Lin proves this Gaussian adjustment under complete randomization, and Li--Ding and Zhao--Ding prove related cancellation under uniform constrained designs, not path-selected PSRR.",
+      "consumer": "Applied analysts can use standard fully interacted software and robust residual variance after an original PSRR allocation."
+    },
+    {
+      "id": "prop:orthogonal-outcome-reduction",
+      "kind": "proposition",
+      "statement": "Along the retained even tail \\(n\\ge N_0\\), if \\(b=0\\), then \\(\\sqrt n(\\widehat\\tau_n-\\tau_n)\\Rightarrow\\mathcal N(0,s^2)\\); for every \\(u\\ge0\\), \\(q_{*,\\alpha}(u,0)=\\sqrt u\\inf\\{t\\ge0:\\Pr(|\\varepsilon|\\le t)\\ge1-\\alpha\\}\\), so the envelope interval reduces to the standard conservative Neyman Gaussian form.",
+      "free_symbols": [
+        "tailIndex",
+        "limitLoading",
+        "sampleSize",
+        "differenceInMeans",
+        "ate",
+        "limitResidualScale",
+        "envelopeCritical",
+        "envelopeVariance",
+        "level",
+        "gaussianResidual"
+      ],
+      "depends_on": [
+        "def:regular-tail",
+        "thm:ate-limit",
+        "thm:variance-envelope-coverage",
+        "lem:regular-tail-wellposedness"
+      ],
+      "status": "to-prove",
+      "justification": "This sanity reduction verifies that the new design-specific law disappears when outcomes have no linear covariate loading.",
+      "gap": "The reduction is known under complete and uniform rerandomization, but it must be recovered from the stopped PSRR law rather than assumed.",
+      "consumer": "The result provides a diagnostic special case and connects the proposed critical value to familiar design-based Wald inference."
+    }
+  ],
+  "sampling_model": {
+    "design": "Original Zhu--Liu equal-allocation PSRR: uniform balanced initialization, treated--control pair proposals, Metropolis acceptance \\(\\min\\{1,(M/M^*)^{\\gamma}\\}\\), and immediate first entry into \\(M\\le a\\).",
+    "units": "A deterministic bounded finite-population triangular array with fixed \\(k\\); potential outcomes and covariates are fixed, assignment is the only randomness, and the deterministic retained tail \\(n\\ge N_0\\) has positive-definite covariate covariance, positive residual scale, and a nonempty fixed-threshold acceptable allocation set. The finitely many rows below \\(N_0\\) are discarded.",
+    "treatment": "Exactly \\(n/2\\) units receive treatment and \\(n/2\\) receive control; there is no interference and one version of each treatment.",
+    "overlap": "Equal allocation gives design probabilities \\(1/2\\) by label-complement symmetry; no superpopulation propensity is used.",
+    "nuisance_estimation": "Terminal treated- and control-arm OLS projection moments estimate \\(b_n\\) and the conservative residual envelope \\(u_n\\)."
+  },
+  "estimand_functional": "Along even \\(n\\ge N_0\\), \\(\\sqrt n(\\widehat\\tau_n-\\tau_n)\\Rightarrow b^{\\mathsf T}C_{k,a}+s\\varepsilon\\), with \\(\\widehat\\tau_n\\) the terminal observed-arm difference in means",
+  "target_estimand": "For even \\(n\\ge N_0\\), \\(\\tau_n=n^{-1}\\sum_{i=1}^n\\{Y_{ni}(1)-Y_{ni}(0)\\}\\)",
+  "bibliography": [
+    {
+      "key": "ZhuLiu2023PSRR",
+      "citation": "Zhu, Ke, and Hanzhong Liu. 2023. Pair-switching rerandomization. Biometrics 79(3): 2127--2142. doi:10.1111/biom.13712; arXiv:2103.13051."
+    },
+    {
+      "key": "LuZhangZhu2026FastRerandomization",
+      "citation": "Lu, Jiuyao, Tianruo Zhang, and Ke Zhu. 2026. Fast Rerandomization for Balancing Covariates in Randomized Experiments: A Metropolis--Hastings Framework. arXiv:2602.07613, version dated August 24, 2026."
+    },
+    {
+      "key": "LiDingRubin2018ReM",
+      "citation": "Li, Xinran, Peng Ding, and Donald B. Rubin. 2018. Asymptotic theory of rerandomization in treatment--control experiments. Proceedings of the National Academy of Sciences 115(37): 9157--9162. doi:10.1073/pnas.1808191115."
+    },
+    {
+      "key": "LiDing2017FPCLT",
+      "citation": "Li, Xinran, and Peng Ding. 2017. General forms of finite population central limit theorems with applications to causal inference. Journal of the American Statistical Association 112(520): 1759--1769. doi:10.1080/01621459.2017.1295865."
+    },
+    {
+      "key": "LiDing2020ReMRegression",
+      "citation": "Li, Xinran, and Peng Ding. 2020. Rerandomization and regression adjustment. Journal of the Royal Statistical Society, Series B 82(1): 241--268. doi:10.1111/rssb.12353; arXiv:1906.11291."
+    },
+    {
+      "key": "Lin2013Agnostic",
+      "citation": "Lin, Winston. 2013. Agnostic notes on regression adjustments to experimental data: Reexamining Freedman's critique. Annals of Applied Statistics 7(1): 295--318. doi:10.1214/12-AOAS583."
+    },
+    {
+      "key": "ZhaoDing2024NoStar",
+      "citation": "Zhao, Anqi, and Peng Ding. 2024. No star is good news: A unified look at rerandomization based on p-values from covariate balance tests. Journal of Econometrics 241(1): 105724. doi:10.1016/j.jeconom.2024.105724; arXiv:2112.10545."
+    },
+    {
+      "key": "CohenFogarty2022GaussianPrepivoting",
+      "citation": "Cohen, Peter L., and Colin B. Fogarty. 2022. Gaussian prepivoting for finite population causal inference. Journal of the Royal Statistical Society, Series B 84(2): 295--320. doi:10.1111/rssb.12439; arXiv:2002.06654."
+    },
+    {
+      "key": "RobertsGelmanGilks1997RWM",
+      "citation": "Roberts, Gareth O., Andrew Gelman, and Walter R. Gilks. 1997. Weak convergence and optimal scaling of random walk Metropolis algorithms. Annals of Applied Probability 7(1): 110--120. doi:10.1214/aoap/1034625254."
+    },
+    {
+      "key": "MorganRubin2012ReM",
+      "citation": "Morgan, Kari Lock, and Donald B. Rubin. 2012. Rerandomization to improve covariate balance in experiments. Annals of Statistics 40(2): 1263--1282. doi:10.1214/12-AOS1008."
+    },
+    {
+      "key": "Fiksel2024ExactRBCI",
+      "citation": "Fiksel, Jacob. 2024. On exact randomization-based covariate-adjusted confidence intervals. Biometrics 80(2): ujae051. doi:10.1093/biomtc/ujae051."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ZhuLiu2023PSRR",
+      "comparator_claim": "The authors state that it is challenging to derive the asymptotic distribution of commonly used test statistics and leave it to future work.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiDingRubin2018ReM",
+      "comparator_claim": "The estimator has a linear combination of a Gaussian random variable and truncated Gaussian random variables as its asymptotic distribution.",
+      "matched_by": "Theorem 2",
+      "match_kind": "non_representability"
+    },
+    {
+      "comparator_bibkey": "LuZhangZhu2026FastRerandomization",
+      "comparator_claim": "The stationary mass is proportional to a negative power of Mahalanobis imbalance, and a later accept--reject correction restores uniformity.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiDing2020ReMRegression",
+      "comparator_claim": "Under uniform Mahalanobis rerandomization, an estimated Gaussian-plus-truncated-Gaussian law gives conservative intervals under heterogeneous effects.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhaoDing2024NoStar",
+      "comparator_claim": "The fully interacted estimator is asymptotically most efficient and permits inference identical to complete randomization under the studied p-value designs.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CohenFogarty2022GaussianPrepivoting",
+      "comparator_claim": "A sample-based Gaussian push-forward yields asymptotically conservative weak-null inference for a broad class of rerandomized designs.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "RobertsGelmanGilks1997RWM",
+      "comparator_claim": "A speeded component of random-walk Metropolis converges weakly to the appropriate Langevin diffusion.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiDing2017FPCLT",
+      "comparator_claim": "Finite-population random-partition statistics satisfy vector central limit theorems under covariance and maximal-term regularity.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Lin2013Agnostic",
+      "comparator_claim": "The fully interacted OLS estimator is asymptotically normal and its Huber--White variance is conservative under complete randomization.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Fiksel2024ExactRBCI",
+      "comparator_claim": "A closed-form covariate-adjusted confidence interval is obtained by inverting Fisher randomization tests, with an observed-data sufficient condition for correct randomization-based coverage.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "On the deterministic tail where covariance whitening and residual standardization are valid, finite-population Gaussian initialization also implies that the fixed positive-radius acceptable set is nonempty, so original pair-switching rerandomization and its first-entry time are well defined; the finitely many exceptional rows are discarded. The kernel derives the joint allocation-score diffusion strictly before entry, treats the terminal crossing separately, identifies the terminal covariate score as a radially clipped Gaussian independent of a stationary Gaussian outcome residual, separates tuning-dependent search time from tuning-invariant first-order terminal behavior, and turns the resulting non-Gaussian ATE law into a computable variance-envelope interval under heterogeneous finite-population effects.",
+  "project_justification": {
+    "gap": "Zhu and Liu's Algorithm 1 proves equal-allocation unbiasedness and Fisher validity but explicitly leaves common-statistic asymptotics open. Fiksel gives a Fisher-exact covariate-adjusted randomization-inversion interval, while uniform-rerandomization theory conditions a Gaussian inside the balance region and the 2026 follow-up changes the design by running toward stationarity and applying a correction; none gives sequencewise weak-null inference from one original-PSRR first-entry run.",
+    "niche": "The unoccupied object is the proposal-time first-entry law of the original nonuniform PSRR allocation, including its joint outcome-residual path and observable weak-null uncertainty under heterogeneous effects.",
+    "fill": "The paper derives eventual nonemptiness of the acceptable set from Gaussian initialization, establishes pre-entry actual-filtration predictable characteristics with a separate terminal-crossing transfer, obtains a stopped diffusion and radial entrance law, proves stopped-arm moment consistency, constructs a worst-compatible-residual critical value, and gives a fully interacted Gaussian corollary without Markovian projected scores or outcome-residual independence."
+  },
+  "related_work": "Zhu and Liu define the exact immediate-stop PSRR algorithm and, in their Discussion, leave asymptotic distributions of common statistics open; the process and ATE theorems target that named gap. Lu, Zhang, and Zhu derive a negative-power stationary law and restore uniformity through an additional correction, which informs the transition algebra but is not the first-entry design studied here. Li, Ding, and Rubin derive the Gaussian-plus-truncated-Gaussian law for uniform Mahalanobis rerandomization; the boundary-atom proposition certifies that the original PSRR limit is a different object. Roberts, Gelman, and Gilks supply the martingale-problem diffusion template, while Li and Ding supply finite-population Gaussian initialization and moment-consistency ingredients. Li and Ding's regression-adjustment theory, Lin's fully interacted linearization, Zhao and Ding's cancellation under p-value rerandomization, and Cohen and Fogarty's Gaussian push-forward inform the analysis layer but do not supply stopped-path validity. Fiksel derives Fisher-exact covariate-adjusted confidence intervals by randomization-test inversion under an observed-data validity condition; that sharp-null inversion is distinct from the sequencewise asymptotically conservative heterogeneous-effect variance-envelope interval based on a single original-PSRR first-entry run.",
+  "technical_internal_limitation": "A six-row bounded array has zero covariate--residual covariance and zero projected scores at a balanced state but a nonzero antisymmetric Metropolis-kink average. Thus a generator bound uniform over all balanced states is false. The central characteristic claim is localized along the actual uniformly initialized path and only at proposal indices \\(m<T_n\\), where \\(M_n(W_{n,m})>a>0\\); the terminal crossing is a separate exact-increment argument, and no expression containing \\(D/\\|D\\|^2\\) is used at or after absorption. The early kill test is the case \\(a=1\\) at \\(\\gamma=1\\) and \\(\\gamma=10\\): an order-one residual term, or the need for empirical-distribution convergence or extra initialization, forces a pivot. Existing exact absorption and bounded-cube calculations are diagnostics, not proofs.",
+  "honest_scope": "The pre-entry joint actual-filtration characteristic lemma and its separate terminal-crossing, martingale-problem, random-clock, compact-containment, and first-hit assembly are open. The deterministic index \\(N_0\\) is derived from the existing positive liminf eigenvalue and residual-variance conditions together with finite-population Gaussian initialization: because \\(\\Pr(\\|G\\|^2\\le a)>0\\), the acceptable allocation set is nonempty for all sufficiently large even \\(n\\). Every inverse, whitened score, standardized score, stopping time, and asymptotic claim is defined only for even \\(n\\ge N_0\\), and the finitely many exceptional rows \\(n<N_0\\) are discarded with no asymptotic role. Predictable-characteristic expansions hold only for \\(m<T_n\\); the terminal crossing is handled separately, with no singular radial drift evaluated at or after absorption. The positive residual lower bound is a custom design-relevance condition for a nondegenerate stationary outcome-residual coordinate and meaningful standardization; residual-degenerate sequences are outside the declared scope. The proposal claims only fixed \\(k\\), fixed \\(a>0\\), fixed finite \\(\\gamma\\), equal arms, bounded leverage, and sequencewise asymptotic coverage. It excludes shrinking thresholds, growing dimension, divergent tuning, unequal arms, sequential enrollment, stationary or rejection-corrected variants, convergence of expected runtime, uniform approximation rates, and finite-sample exactness. Fixed tuning changes the drift and proposal-time hitting distribution; only the terminal first-order law is invariant.",
+  "seeds": [
+    "Joint actual-filtration first-entry diffusion and radial entrance law",
+    "Computable heterogeneous-effect variance envelope for original PSRR",
+    "Stopped-design full-interaction cancellation under path-selected allocation"
+  ],
+  "seed_details": [
+    {
+      "rank": 1,
+      "seed": "Joint actual-filtration first-entry diffusion and radial entrance law",
+      "anchor": "ZhuLiu2023PSRR, Algorithm 1, Theorem 2, and Discussion Section 7",
+      "motif": "M12",
+      "anti_pattern_check": "M12 is substantive here because the fixed assignment design and its primitive exchange dynamics generate the limit law; asymptotic normality is not assumed.",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace Zhu--Liu's label-complement unbiasedness argument by localized predictable-characteristic control for the full allocation filtration before first entry.",
+      "search_result": "Focused searches for original PSRR with diffusion, stopped-process, entrance-law, and asymptotic-distribution terms found the 2026 stationary/corrected paper but no same-chain theorem.",
+      "red_team": "Immediate from Roberts--Gelman--Gilks because PSRR is a Metropolis chain.",
+      "rebuttal": "Their product-target coordinate is Markovian in a stationary high-dimensional regime; the PSRR projections are generally non-Markov, finite-population, and stopped at a regular boundary, and the six-row witness invalidates statewise projected-generator closure.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "status": "selected"
+    },
+    {
+      "rank": 2,
+      "seed": "Computable heterogeneous-effect variance envelope for original PSRR",
+      "anchor": "ZhuLiu2023PSRR, Discussion Section 7; LiDingRubin2018ReM, main asymptotic law; CohenFogarty2022GaussianPrepivoting, Theorem 1",
+      "motif": "M12",
+      "anti_pattern_check": "The seed is not a bare inference modifier: its named object is the clipped-convolution quantile envelope attached to a derived design-based limit.",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace the truncated-Gaussian conditioning map by the radial first-entry push-forward, then optimize its absolute quantile over the unidentified residual covariance interval.",
+      "search_result": "Uniform ReM and prepivoting cover weak-null inference under constrained designs, but no located paper carries a clipped boundary component through an observed-arm covariance envelope.",
+      "red_team": "Immediate from Li--Ding regression adjustment because Neyman's residual variance is conservative.",
+      "rebuttal": "The residual variance bound is algebraic, but its critical value is not monotone in the compatible variance when \\(k=1\\); the non-Gaussian clipped convolution requires a new compact optimization and stopped-moment proof.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "status": "selected"
+    },
+    {
+      "rank": 3,
+      "seed": "Stopped-design full-interaction cancellation under path-selected allocation",
+      "anchor": "LiDing2020ReMRegression, Theorems 1 and 6; ZhaoDing2024NoStar, Theorem 2; ZhuLiu2023PSRR, Section 7",
+      "motif": "M12",
+      "anti_pattern_check": "The design-based cancellation claim is retained only with the stopped slope-consistency and joint-process steps that distinguish it from a routine Lin corollary.",
+      "target_tier": "field",
+      "first_changed_proof_step": "Prove armwise slope consistency uniformly along the PSRR search path before applying Lin's treatment-specific linearization.",
+      "search_result": "Complete-randomization, uniform Mahalanobis, and p-value-region cancellation theorems were located, but none treats a nonuniform first-entry chain.",
+      "red_team": "Immediate from Lin because full interactions algebraically remove covariate imbalance.",
+      "rebuttal": "The algebra leaves estimated arm slopes evaluated under a path-selected assignment; their consistency and independence from the stopped residual score do not follow from complete randomization.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "status": "selected-as-corollary"
+    },
+    {
+      "rank": 4,
+      "seed": "Finite-tuning endpoint invariance with a tuning-dependent proposal clock",
+      "anchor": "ZhuLiu2023PSRR, Algorithm 1 and tuning simulations; LuZhangZhu2026FastRerandomization, Theorem 3.1",
+      "motif": "none",
+      "anti_pattern_check": "M2 would require a derived estimator-equivalence frontier; this seed instead distinguishes a tuning-dependent hitting law from a tuning-invariant endpoint without claiming a false deterministic time change.",
+      "target_tier": "field",
+      "first_changed_proof_step": "Expand the original acceptance kink before stationarity and isolate the radial drift from the all-pairs to opposite-pair proposal-clock conversion.",
+      "search_result": "The stationary law retains temperature, but no source located separates first-entry terminal invariance from the original proposal-time hitting law.",
+      "red_team": "Immediate deterministic time rescaling of a common diffusion.",
+      "rebuttal": "Finite \\(\\gamma\\) changes the radial drift and therefore not merely a deterministic clock; rotational first-entry geometry, rather than a common time change, delivers endpoint invariance.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 3
+      },
+      "status": "merged-into-rank-1"
+    },
+    {
+      "rank": 5,
+      "seed": "Trajectory-uniform stopped-arm law of large numbers",
+      "anchor": "ZhuLiu2023PSRR, Algorithm 1; LiDing2020ReMRegression, Section 5",
+      "motif": "M12",
+      "anti_pattern_check": "This is a supporting fixed-design path theorem rather than a standalone claim of a familiar finite-population law of large numbers.",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Replace conditioning on a uniform acceptable allocation by common-transposition coupling to an exactly stationary uniform shadow over \\(O(n)\\) proposals.",
+      "search_result": "Adjacent finite-population LLNs apply at fixed random partitions; no original-PSRR stopping-time analogue was located.",
+      "red_team": "A bounded stopped assignment automatically inherits the complete-randomization LLN.",
+      "rebuttal": "Stopping depends on the entire covariate path, so fixed-time exchangeability is insufficient; uniform horizon control is the missing theorem.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "status": "merged-as-lemma"
+    },
+    {
+      "rank": 6,
+      "seed": "Boundary-atom non-representability and efficiency gap versus uniform rerandomization",
+      "anchor": "LiDingRubin2018ReM, Theorem 1; ZhuLiu2023PSRR, Discussion Section 7",
+      "motif": "M1",
+      "anti_pattern_check": "A boundary-atom characterization without the process theorem would be too small; it is retained only as a named diagnostic of the actual design law.",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Replace Gaussian conditioning by the continuous first-hit map and compare radial measures through their boundary mass and coordinate variance.",
+      "search_result": "The classical truncated law and the later corrected uniform law are occupied; the explicit clipped-versus-truncated certificate is not.",
+      "red_team": "A boundary atom is a one-line observation once the endpoint law is known.",
+      "rebuttal": "The objection holds for a standalone paper; the seed survives only as a diagnostic proposition attached to the process theorem.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 2,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "status": "merged-as-proposition"
+    },
+    {
+      "rank": 7,
+      "seed": "Weak-null Gaussian prepivoting specialized to original PSRR",
+      "anchor": "CohenFogarty2022GaussianPrepivoting, Theorem 1; ZhuLiu2023PSRR, Section 7",
+      "motif": "M17",
+      "anti_pattern_check": "The symmetry-inversion label is appropriate, but the candidate is dropped because the first-entry limit would make most of the extension routine.",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace the Gaussian balance-region push-forward in the prepivot with the first-entry stopped diffusion and prove sharp-null reference convergence under repeated PSRR simulation.",
+      "search_result": "The general prepivoting theorem includes rerandomized regions, but its conditions have not been verified for the path-selected terminal law.",
+      "red_team": "Immediate application of Cohen--Fogarty once a limit law is available.",
+      "rebuttal": "The objection is substantially correct after the process theorem; this is a valuable extension but not the first-version kernel.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 2,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "status": "dropped-routine-after-kernel"
+    },
+    {
+      "rank": 8,
+      "seed": "Expected search-time convergence and computable runtime law",
+      "anchor": "ZhuLiu2023PSRR, Algorithm 1 and simulation runtime evidence",
+      "motif": "none",
+      "anti_pattern_check": "M12 is not used because the focal object is expected computational cost rather than a causal-effect limit law and coverage theorem.",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Strengthen distributional first-hit convergence to uniform integrability using a finite-chain Lyapunov bound matched to the radial diffusion Poisson equation.",
+      "search_result": "No expected-runtime theorem for original PSRR was located; the presolve integral solves the candidate Poisson equation but optional-stopping and finite-chain tail control remain unchecked.",
+      "red_team": "Immediate from weak convergence of \\(T_n/n\\).",
+      "rebuttal": "Weak convergence alone does not imply convergence of means; however, the necessary uniform-integrability theorem is too ancillary and risky for the launch kernel.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "status": "dropped-from-scope"
+    },
+    {
+      "rank": 9,
+      "seed": "Optimal finite Metropolis tuning for expected first-entry cost",
+      "anchor": "ZhuLiu2023PSRR, tuning parameter study; RobertsGelmanGilks1997RWM, Corollary 1.2",
+      "motif": "M13",
+      "anti_pattern_check": "The design decision would be the tuning value and the missing deliverable is an optimality certificate, so this is M13 rather than a default fixed-design CLT.",
+      "target_tier": "field",
+      "first_changed_proof_step": "Derive and optimize the radial hitting-time functional over \\(\\gamma\\), rather than maximizing a stationary diffusion speed measure.",
+      "search_result": "Metropolis optimal-scaling theory optimizes stationary diffusion speed, while no first-entry PSRR tuning certificate was located.",
+      "red_team": "The best choice is trivially \\(\\gamma=\\infty\\) because all uphill proposals waste time.",
+      "rebuttal": "Large tuning can create finite-state traps and lies outside the fixed-finite diffusion regime; a certified optimum would require new nonasymptotic reachability control, so the seed is not feasible in this version.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 1,
+        "consumer_value": 4
+      },
+      "status": "dropped-feasibility"
+    }
+  ],
+  "literature_map": [
+    {
+      "thread": "Original first-entry PSRR",
+      "source": "ZhuLiu2023PSRR",
+      "opened_locations": "Introduction; Algorithm 1; Theorem 2; Discussion Section 7; proof appendix",
+      "settled": "The procedure, equal-arm unbiasedness, a variance-reduction lower bound, and Fisher randomization validity are established.",
+      "exact_gap": "The paper states that terminal assignments are nonuniform and leaves asymptotic distributions of common statistics to future work."
+    },
+    {
+      "thread": "Stationary and corrected pair switching",
+      "source": "LuZhangZhu2026FastRerandomization",
+      "opened_locations": "Introduction; Sections 3.1--3.3; Theorem 3.1; proof appendix; concluding related-work discussion",
+      "settled": "A different chain is run toward a negative-power stationary law and then corrected to uniform acceptable-set sampling.",
+      "exact_gap": "Its stationary and correction arguments do not characterize the original immediate first acceptable allocation."
+    },
+    {
+      "thread": "Metropolis diffusion method",
+      "source": "RobertsGelmanGilks1997RWM",
+      "opened_locations": "Introduction; Theorem 1.1; Corollary 1.2; generator proof; discussion",
+      "settled": "Scaled coordinates of product-target random-walk Metropolis converge to a Langevin diffusion with an acceptance-driven speed measure.",
+      "exact_gap": "Finite-population pair exchanges, actual-filtration non-Markov projections, and first-entry stopping are absent."
+    },
+    {
+      "thread": "Finite-population Gaussian initialization",
+      "source": "LiDing2017FPCLT",
+      "opened_locations": "Introduction; Theorems 2, 4, and 5; maximal-term conditions; proof reduction to rank-statistic CLTs",
+      "settled": "Vector random-partition statistics have Gaussian limits under finite-population maximal-term and covariance convergence conditions.",
+      "exact_gap": "The theorem supplies the initial draw, not a path-space law through adaptive first entry."
+    },
+    {
+      "thread": "Uniform Mahalanobis rerandomization",
+      "source": "LiDingRubin2018ReM",
+      "opened_locations": "Introduction; main asymptotic distribution theorem; projection decomposition; conclusion",
+      "settled": "Uniform acceptable-set assignment gives a Gaussian plus truncated-Gaussian ATE limit and large-sample intervals.",
+      "exact_gap": "Original PSRR is nonuniform and has a boundary entrance component rather than conditional Gaussian truncation."
+    },
+    {
+      "thread": "Regression adjustment under rerandomization",
+      "source": "LiDing2020ReMRegression",
+      "opened_locations": "Introduction; Theorems 1, 4, and 6; Section 5; concluding recommendations",
+      "settled": "Uniform ReM admits projection-based limits and conservative estimated distributions, and full interaction is recommended with robust variance.",
+      "exact_gap": "Observed-arm moment consistency and residual cancellation at the stopping time of a path-selected design are not covered."
+    },
+    {
+      "thread": "Fully interacted analysis",
+      "source": "Lin2013Agnostic and ZhaoDing2024NoStar",
+      "opened_locations": "Lin introduction, main asymptotic theorem, and conclusion; Zhao--Ding Introduction, Proposition 2, Theorem 2, and discussion",
+      "settled": "Full interactions are design-based and asymptotically efficient under complete randomization and the studied p-value balance regions.",
+      "exact_gap": "Neither theorem controls estimated slopes under an original PSRR first-entry path."
+    },
+    {
+      "thread": "Weak-null conservative transformation",
+      "source": "CohenFogarty2022GaussianPrepivoting",
+      "opened_locations": "Introduction; Algorithm 1; Theorem 1 and Corollary 1; Section 9.2 summary",
+      "settled": "A conservative Gaussian covariance push-forward can yield sharp-null exactness and weak-null asymptotic validity for broad rerandomized designs.",
+      "exact_gap": "The required first-entry PSRR limit and its non-Gaussian radial clipping map are not supplied."
+    },
+    {
+      "thread": "Exact covariate-adjusted randomization inversion",
+      "source": "Fiksel2024ExactRBCI",
+      "opened_locations": "Abstract; Introduction; Section 3; Theorem 1 discussion",
+      "settled": "A closed-form covariate-adjusted interval is obtained from Fisher randomization-test inversion, with an observed-data sufficient validity condition.",
+      "exact_gap": "This sharp-null inversion does not derive the original-PSRR first-entry weak limit or a sequencewise asymptotically conservative heterogeneous-effect variance-envelope interval from one realized run."
+    }
+  ],
+  "novelty_justification": "The two closest design sources separate cleanly by stochastic object. Zhu and Liu analyze exactly the original immediate-stop algorithm but stop at unbiasedness, a variance bound, and sharp-null randomization inference, explicitly leaving asymptotic distributions open. Lu, Zhang, and Zhu obtain tractability by running a chain toward stationarity and adding a correction that returns the uniform law. The kernel does neither: it follows the original uniformly initialized chain only to its first entrance, proves its generally non-Markov projected-score limit strictly before entry, handles the terminal crossing separately, and derives a radial boundary atom. Li--Ding--Rubin and Li--Ding are non-subsuming analysis comparators because their truncated-Gaussian and conservative-regression results require uniform constrained assignment. Fiksel's exact covariate-adjusted interval inverts Fisher randomization tests and is not a theorem-level target: the proposed interval instead gives sequencewise asymptotically conservative heterogeneous-effect coverage from one first-entry PSRR run. Focused destination searches found no paper combining original PSRR, stopped diffusion, radial entrance, and heterogeneous-effect variance-envelope inference.",
+  "_pre_d0_cursor": {
+    "cursor_version": 1,
+    "topic": "For original equal-allocation pair-switching rerandomization on bounded finite-population triangular arrays, with fixed covariate dimension, fixed positive Mahalanobis threshold, finite Metropolis tuning, and nondegenerate outcome residual variance, derive the joint allocation-chain functional limit and its first-entry stopping law without assuming Markovian projected scores, stabilization, or outcome-residual independence. Prove that terminal standardized covariate imbalance is a radially clipped Gaussian, independent of a stationary Gaussian outcome-residual component, and that fixed tuning affects the proposal-time search clock but not the first-order terminal law. Establish stopped-design consistency of observed-arm projection moments and construct a computable variance-envelope critical value yielding sequencewise asymptotically conservative finite-population ATE intervals under heterogeneous effects; also derive the fully interacted adjusted corollary. Do not replace the original first-entry algorithm by its stationary or rejection-corrected variants, and do not claim shrinking thresholds, growing dimension, unequal arms, or finite-sample exactness. PRESOLVE EVIDENCE REQUIRING VERIFICATION: An all-pairs coupling keeps the search path o_p(1) in arm empirical averages from a stationary uniform shadow over n-scaled horizons, and an exact antisymmetric-score identity cancels the Metropolis acceptance kink without assuming an empirical-law limit; exact absorption and cube-generator checks support the predicted drift, diffusion, radial entrance, and the necessity of variance-envelope critical values. UNRESOLVED BOTTLENECK: Prove trajectory-uniform predictable-characteristic bounds and assemble joint functional convergence, opposite-pair proposal-clock conversion, compact containment, martingale-problem uniqueness, and continuous first-hit transfer for the generally non-Markov projected scores. EARLY KILL TEST: Prove the localized actual-filtration characteristic lemma at a=1 for gamma=1 and 10 while stress-testing the six-row zero-correlation witness; pivot if an order-one residual term survives or any extra empirical-distribution or initialization assumption is needed. STRONGEST-FORM DRAFT (unverified, gaps listed inside): <repo-root>/internal/presolve_drafts/exp_psrr_entrance_diffusion_ate.md.",
+    "novelty_target": "field",
+    "qid": "exp_psrr_entrance_diffusion_ate",
+    "specialization": "v1",
+    "angle": 0,
+    "version": 4,
+    "mode": "revise"
+  },
+  "message": "Retagged residual nondegeneracy as a custom design-relevance condition, clarified that degenerate residual sequences are outside scope, preserved all mathematical claims and prior repairs, and validated the full JSON core.",
+  "literature_checklist": [
+    {
+      "author": "Ke Zhu and Hanzhong Liu",
+      "year": 2023,
+      "venue": "Biometrics",
+      "bibkey": "ZhuLiu2023PSRR",
+      "one_line": "Algorithm 1 defines immediate first entry, and Section 7 leaves common-statistic asymptotics open.",
+      "relevant_to": "thm:joint-stopped-functional-limit"
+    },
+    {
+      "author": "Jiuyao Lu, Tianruo Zhang, and Ke Zhu",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "LuZhangZhu2026FastRerandomization",
+      "one_line": "Theorem 3.1 concerns a stationary negative-power law followed by a uniformizing correction.",
+      "relevant_to": "prop:not-uniform-rerandomization"
+    },
+    {
+      "author": "Gareth O. Roberts, Andrew Gelman, and Walter R. Gilks",
+      "year": 1997,
+      "venue": "Annals of Applied Probability",
+      "bibkey": "RobertsGelmanGilks1997RWM",
+      "one_line": "Theorem 1.1 is the martingale-problem diffusion template adapted to the PSRR allocation filtration.",
+      "relevant_to": "oeq:pathwise-characteristics"
+    },
+    {
+      "author": "Xinran Li and Peng Ding",
+      "year": 2017,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "LiDing2017FPCLT",
+      "one_line": "Vector finite-population CLTs provide Gaussian initialization and imply eventual acceptable-set nonemptiness at a fixed positive threshold.",
+      "relevant_to": "lem:regular-tail-wellposedness"
+    },
+    {
+      "author": "Xinran Li, Peng Ding, and Donald B. Rubin",
+      "year": 2018,
+      "venue": "Proceedings of the National Academy of Sciences",
+      "bibkey": "LiDingRubin2018ReM",
+      "one_line": "Uniform Mahalanobis rerandomization yields a truncated-Gaussian component rather than a first-entry boundary component.",
+      "relevant_to": "thm:radial-entrance-law"
+    },
+    {
+      "author": "Xinran Li and Peng Ding",
+      "year": 2020,
+      "venue": "Journal of the Royal Statistical Society, Series B",
+      "bibkey": "LiDing2020ReMRegression",
+      "one_line": "Theorems 1 and 6 supply the projection and conservative-inference architecture for uniform rerandomization, but not the custom positive residual lower bound.",
+      "relevant_to": "thm:variance-envelope-coverage"
+    },
+    {
+      "author": "Peter L. Cohen and Colin B. Fogarty",
+      "year": 2022,
+      "venue": "Journal of the Royal Statistical Society, Series B",
+      "bibkey": "CohenFogarty2022GaussianPrepivoting",
+      "one_line": "Theorem 1 motivates pushing an estimable conservative covariance through a design-specific reference map.",
+      "relevant_to": "thm:variance-envelope-coverage"
+    },
+    {
+      "author": "Winston Lin",
+      "year": 2013,
+      "venue": "Annals of Applied Statistics",
+      "bibkey": "Lin2013Agnostic",
+      "one_line": "Treatment-specific OLS linearization and robust variance are adapted after proving stopped-arm consistency.",
+      "relevant_to": "prop:fully-interacted-corollary"
+    },
+    {
+      "author": "Anqi Zhao and Peng Ding",
+      "year": 2024,
+      "venue": "Journal of Econometrics",
+      "bibkey": "ZhaoDing2024NoStar",
+      "one_line": "Theorem 2 gives full-interaction invariance for p-value rerandomization regions, not first-entry PSRR.",
+      "relevant_to": "prop:fully-interacted-corollary"
+    },
+    {
+      "author": "Jacob Fiksel",
+      "year": 2024,
+      "venue": "Biometrics",
+      "bibkey": "Fiksel2024ExactRBCI",
+      "one_line": "The paper gives a closed-form covariate-adjusted interval by Fisher randomization-test inversion, distinct from sequencewise heterogeneous-effect variance-envelope inference after one original-PSRR first entry.",
+      "relevant_to": "thm:variance-envelope-coverage"
+    }
+  ]
+}

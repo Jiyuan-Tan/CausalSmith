@@ -1,0 +1,276 @@
+{
+  "units": [
+    {
+      "unit": "thm:feedback-core-exact-risk",
+      "targets": [
+        "lem:greedy-domination-certificate",
+        "prop:core-inclusion-exclusion",
+        "thm:vertex-cover-core-oracle",
+        "prop:replicated-star-support",
+        "thm:identical-star-moment-recurrence",
+        "prop:linear-risk",
+        "prop:tagged-risk-reconstruction",
+        "oeq:heterogeneous-moment-closure",
+        "thm:feedback-core-exact-risk",
+        "thm:rational-epsilon-minimax",
+        "prop:forest-and-empty-reduction"
+      ],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:greedy-domination-certificate",
+            "proof_tex": "Because every priority variable has a density on \\((0,1)\\), ties have \\(P_\\ell\\)-probability zero; the claim is therefore about a strict order.  Suppose first that the scan in \\(\\texttt{def:wri-law}\\) returns \\(S\\).  Two adjacent vertices cannot both be in \\(S\\): of the two, the later one encounters the earlier selected neighbor and is rejected.  Thus \\(S\\) is independent.  If \\(v\\notin S\\), then at the instant when \\(v\\) is scanned it is rejected, so there is a neighbor \\(u\\in S\\) already scanned.  This \\(u\\) precedes \\(v\\).\n\nConversely, suppose that \\(S\\) is independent and every \\(v\\notin S\\) has a neighbor in \\(S\\) preceding it.  If the greedy output differed from \\(S\\), let \\(w\\) be the first vertex in the order at which membership differs.  If \\(w\\in S\\), then every earlier selected vertex agrees with \\(S\\); independence of \\(S\\) implies that none is adjacent to \\(w\\), so the scan selects \\(w\\), a contradiction.  If \\(w\\notin S\\), choose an earlier neighbor \\(u\\in S\\).  By minimality of \\(w\\), the scan has selected \\(u\\), so it rejects \\(w\\), again a contradiction.  Hence the scan output is exactly \\(S\\)."
+          },
+          {
+            "id": "prop:core-inclusion-exclusion",
+            "proof_tex": "Fix a rule \\(\\ell\\), a tag \\(A\\), and a realization \\(x\\in(0,1)^{\\mathcal K}\\) outside the null set of ties.  Let \\(\\mathcal U=S_\\ell\\cap\\mathcal K\\).  By \\(\\texttt{lem:greedy-domination-certificate}\\), \\(\\mathcal U\\) is independent, and the tag requires \\(A\\cap\\mathcal K\\subseteq\\mathcal U\\).  Conversely, fix any such \\(\\mathcal U\\) and temporarily impose all greedy-certificate conditions except domination of vertices in \\(\\mathcal K\\setminus\\mathcal U\\).\n\nFor \\(f\\in\\mathcal K\\setminus\\mathcal U\\), let \\(E_f\\) be the event that \\(f\\) has no selected neighbor of priority greater than \\(x_f\\).  The missing core conditions are exactly \\(\\bigcap_f E_f^{\\mathsf c}\\).  Finite inclusion--exclusion gives\n\\[\n \\mathbf 1\\!\\left\\{\\bigcap_{f\\in\\mathcal K\\setminus\\mathcal U}E_f^{\\mathsf c}\\right\\}\n =\\sum_{\\mathcal B\\subseteq\\mathcal K\\setminus\\mathcal U}(-1)^{|\\mathcal B|}\n   \\mathbf 1\\!\\left\\{\\bigcap_{f\\in\\mathcal B}E_f\\right\\}.\n\\]\nOn \\(\\bigcap_{f\\in\\mathcal B}E_f\\), a selected core neighbor \\(u\\in\\mathcal U\\cap N_{C_G}(f)\\) must satisfy \\(x_u<x_f\\); these inequalities are precisely \\(\\chi_{\\mathcal U,\\mathcal B}(x)=1\\).  A selected forest vertex \\(v\\) adjacent to a member of \\(\\mathcal B\\) must similarly have priority\n\\[\n y<\\min\\bigl(\\{x_f:f\\in\\mathcal B\\cap N_{C_G}(v)\\}\\cup\\{1\\}\\bigr)=r_v(x).\n\\]\nIndependence from the selected core requires \\(N_{C_G}(v)\\cap\\mathcal U=\\varnothing\\) whenever \\(v\\) is selected.  An unselected forest vertex lacks a higher-priority selected core neighbor exactly when\n\\[\n y\\ge \\max\\bigl(\\{x_u:u\\in\\mathcal U\\cap N_{C_G}(v)\\}\\cup\\{0\\}\\bigr)=p_v(x).\n\\]\n\nIt remains to verify the three forest messages.  This is by induction from the leaves toward the root in each component, which is legitimate by \\(\\texttt{ass:feedback-forest}\\).  Conditional on the priority \\(y\\) of \\(v\\), different child subtrees contain disjoint independent priority variables.  If \\(v\\) is selected, a child \\(w\\) must either already be certified, contributing \\(J_w=\\int_0^1B_w(t,z)\\,dt\\), or require its selected parent and have \\(t<y\\), contributing \\(\\int_0^yC_w(t,z)\\,dt\\).  Multiplying these alternatives, the density \\(f_v(y)\\), the count marker \\(z\\), the independence indicator, and the cutoff indicator gives exactly \\(A_v\\).\n\nIf \\(v\\) is unselected and itself receives no certificate, then every child must either already be certified or be selected below \\(v\\); the child contribution is\n\\[\n E_w(y)=J_w+\\int_0^yA_w(t,z)\\,dt.\n\\]\nThe absence of a selected core certificate is \\(y\\ge p_v(x)\\), so the product is exactly \\(C_v\\).  If \\(v\\) is unselected but valid without its parent, no child may be in its parent-needing state.  All such child configurations have total weight \\(\\prod_wD_w\\), where \\(D_w=\\int_0^1(A_w+B_w)\\), and subtracting the disjoint uncertified case \\(C_v\\) gives \\(B_v\\).  These cases are exhaustive and disjoint.  Setting \\(B_v=C_v=0\\) at a tagged forest vertex forces that vertex to be selected, as required by \\(A\\subseteq S_\\ell\\).\n\nAt a component root the parent-needing state is invalid, hence integration of \\(A_{v_T}+B_{v_T}\\) gives \\(P_{T;\\mathcal U,\\mathcal B,A}\\).  Conditional on \\(x\\), distinct forest components factor.  Multiplication by \\(z^{|\\mathcal U|}\\), by the independent core density \\(\\prod_{f\\in\\mathcal K}h_{\\ell f}x_f^{h_{\\ell f}-1}\\), summation over \\(\\mathcal U,\\mathcal B\\), and integration over \\((0,1)^{\\mathcal K}\\) therefore gives exactly \\(F_{\\ell,A}(z)\\).  This is the formula defining \\(\\mathcal R_{\\ell,A}(z)\\), so \\(F_{\\ell,A}=\\mathcal R_{\\ell,A}\\).  Each core vertex is either in \\(\\mathcal U\\), in \\(\\mathcal B\\), or in neither; consequently there are at most \\(3^k\\) pairs before chamber decomposition.  Boundaries have probability zero because all priority laws are continuous."
+          },
+          {
+            "id": "thm:vertex-cover-core-oracle",
+            "proof_tex": "Assume that \\(\\mathcal K\\) is a vertex cover, so \\(V\\setminus\\mathcal K\\) is edgeless.  If \\(k=0\\), the whole graph is edgeless, every vertex is selected, and each admissible tagged polynomial is \\(z^n\\); hence suppose \\(k\\ge1\\).  Fix an independent \\(\\mathcal U\\subseteq\\mathcal K\\).  Conditional on \\(S_\\ell\\cap\\mathcal K=\\mathcal U\\), independence forces every vertex of \\((V\\setminus\\mathcal K)\\cap N_{C_G}(\\mathcal U)\\) to be unselected.  Every vertex in\n\\[\n T_{\\mathcal U}:=(V\\setminus\\mathcal K)\\setminus N_{C_G}(\\mathcal U)\n\\]\nmust be selected: it has no selected core neighbor and, since the complement of the cover is edgeless, could otherwise have no selected neighbor at all, contrary to \\(\\texttt{lem:greedy-domination-certificate}\\).  Hence the only possible output for this core choice is \\(S_{\\mathcal U}=\\mathcal U\\cup T_{\\mathcal U}\\), and the contribution is zero unless \\(A\\subseteq S_{\\mathcal U}\\).\n\nApply \\(\\texttt{prop:core-inclusion-exclusion}\\).  For a fixed \\(\\mathcal B\\subseteq\\mathcal K\\setminus\\mathcal U\\), an unselected exterior vertex \\(v\\) contributes\n\\[\n \\int_0^{p_v(x)}h_{\\ell v}y^{h_{\\ell v}-1}\\,dy\n =p_v(x)^{h_{\\ell v}},\n\\]\nand a selected exterior vertex contributes\n\\[\n \\int_0^{r_v(x)}h_{\\ell v}y^{h_{\\ell v}-1}\\,dy\n =r_v(x)^{h_{\\ell v}}.\n\\]\nFix an ascending chamber \\(0<x_{\\sigma(1)}<\\cdots<x_{\\sigma(k)}<1\\).  On this chamber, each nontrivial maximum \\(p_v\\) and minimum \\(r_v\\) is one named coordinate, while \\(\\chi_{\\mathcal U,\\mathcal B}\\) is constant.  Thus the full integrand is either zero or \\(\\bigl(\\prod_{f\\in\\mathcal K}h_{\\ell f}\\bigr)\\prod_{j=1}^kx_{\\sigma(j)}^{\\alpha_j}\\) for explicitly accumulated nonnegative integers \\(\\alpha_j\\le nb\\).  Repeated integration from the smallest coordinate upward gives\n\\[\n \\int_{0<x_{\\sigma(1)}<\\cdots<x_{\\sigma(k)}<1}\n   \\prod_{j=1}^kx_{\\sigma(j)}^{\\alpha_j}\\,dx\n =\\prod_{r=1}^k\\frac{1}{r+\\sum_{j=1}^r\\alpha_j}.\n\\]\nThis is a direct rational evaluation, not an integration gate.  Add it with sign \\((-1)^{|\\mathcal B|}\\) to the coefficient of \\(z^{|S_{\\mathcal U}|}\\).\n\nThere are at most \\(k!3^k\\) triples consisting of a chamber and a pair \\((\\mathcal U,\\mathcal B)\\).  Adjacency tests, exponent accumulation, and tag tests are polynomial in \\(n\\) and \\(\\lambda\\), and there are \\(1+n+\\binom n2=O(n^2)\\) tags and \\(L\\) rules.  Put \\(D'=k(nb+1)\\).  Every chamber-integral denominator is a product of \\(k\\) integers at most \\(D'\\), and hence divides\n\\[\n \\Delta=\\operatorname{lcm}(1,\\ldots,D')^k.\n\\]\nUsing this common denominator, the accumulated numerator has bit length at most \\(\\log\\Delta+O(k\\log(k+1)+n\\log b)\\), which is polynomial in \\(n,b,\\lambda\\).  Thus every rational operation has polynomial bit cost.  Multiplication by the number of chambers, pairs, tags, and rules gives \\(Lk!3^k\\operatorname{poly}(n,b,\\lambda)\\) bit operations, while the stronger polynomial height bound implies the stated \\(2^{O(k\\log(k+1))}\\operatorname{poly}(n,b,\\lambda)\\) height bound.  This computes every tagged polynomial exactly."
+          },
+          {
+            "id": "prop:replicated-star-support",
+            "proof_tex": "Condition on selection of every \\(f_i\\) and on \\(0<x_1<\\cdots<x_k<1\\).  In component \\(j\\), independence forces every \\(a_{ji}\\) and \\(b_{ji}\\) to be unselected.  The center \\(c_j\\) must then be selected, because its only conflict neighbors are the vertices \\(b_{ji}\\), none of which is selected.  By \\(\\texttt{lem:greedy-domination-certificate}\\), \\(a_{ji}\\) is certified precisely when its uniform priority is below \\(x_i\\), contributing \\(x_i\\).  Given center priority \\(y\\), vertex \\(b_{ji}\\) is certified precisely when its priority is below at least one of the selected neighbors \\(f_i,c_j\\), contributing \\(\\max(x_i,y)\\).  Therefore one component contributes\n\\[\n z\\left(\\prod_{i=1}^kx_i\\right)T_k(x),\\qquad\n T_k(x)=\\int_0^1\\prod_{i=1}^k\\max(x_i,y)\\,dy.\n\\]\nSplitting the last integral at \\(x_1,\\ldots,x_k\\) yields\n\\[\n T_k(x)=x_1\\prod_{i=1}^kx_i+\n \\sum_{r=1}^{k-1}\\frac{x_{r+1}^{r+1}-x_r^{r+1}}{r+1}\n       \\prod_{i>r}x_i+\\frac{1-x_k^{k+1}}{k+1}.\n\\]\nCollecting the coefficient of each boundary monomial telescopes to\n\\[\n T_k(x)=\\frac1{k+1}+\\sum_{r=1}^k\n \\frac{x_r^{r+1}\\prod_{i>r}x_i}{r(r+1)}.\n\\]\n\nFor the \\(m\\) independent components the conditional message is\n\\[\n z^m\\left(\\prod_{i=1}^kx_i^m\\right)T_k(x)^m;\n\\]\nthe proposition's phrase ``one component'' accounts for the displayed single factor \\(z(\\prod_i x_i)T_k\\).  Let \\(v_r\\in\\mathbb N_0^k\\) be the exponent vector of \\(x_r^{r+1}\\prod_{i>r}x_i\\).  The matrix with columns \\(v_1,ldots,v_k\\) is triangular with diagonal \\(2,3,\\ldots,k+1\\), hence the \\(v_r\\) are linearly independent.  Thus two choices of multiplicities \\((q_0,q_1,\\ldots,q_k)\\), with \\(\\sum q_r=m\\), give the same exponent in \\(T_k^m\\) only if \\(q_1,\\ldots,q_k\\), and then \\(q_0\\), agree.  All coefficients are positive, so none cancels.  Stars and bars gives exactly \\(\\binom{m+k}{k}\\) nonzero monomials; multiplication by \\(\\prod_i x_i^m\\) only translates their exponent vectors."
+          },
+          {
+            "id": "thm:identical-star-moment-recurrence",
+            "proof_tex": "If \\(k=0\\), the event that every core vertex is selected is vacuous and has probability one, which is returned in constant time.  Hence assume \\(k\\ge1\\).  Fix an ascending core chamber and relabel its order as \\(1,\\ldots,k\\).  By \\(\\texttt{prop:replicated-star-support}\\), conditional on selection of every core vertex, the \\(m\\) components contribute \\((\\prod_i x_i^m)T_k(x)^m\\).  Each of the \\(M\\) private leaves at \\(f_i\\) must have priority below \\(x_i\\), contributing \\(x_i^M\\); the core density contributes \\(\\prod_i h_{\\ell i}x_i^{h_{\\ell i}-1}\\).  Hence, apart from \\(\\prod_i h_{\\ell i}\\), the chamber integrand is\n\\[\n \\prod_{i=1}^kx_i^{h_{\\ell i}-1+M+m}\n \\left(c_0+\\sum_{r=1}^kc_r x_r^{r+1}\\prod_{i>r}x_i\\right)^m,\n \\qquad c_0=\\frac1{k+1},\\quad c_r=\\frac1{r(r+1)}.\n\\]\nSet \\(t_r=x_r/x_{r+1}\\) for \\(r<k\\) and \\(t_k=x_k\\).  Then \\(x_i=\\prod_{s=i}^kt_s\\), the chamber becomes \\((0,1)^k\\), and the Jacobian is \\(\\prod_{r=1}^kt_r^{r-1}\\).  If \\(H_r=\\sum_{i=1}^rh_{\\ell i}\\), the exponent of \\(t_r\\) outside the last power is\n\\[\n \\sum_{i=1}^r(h_{\\ell i}-1+M+m)+(r-1)=H_r+r(M+m)-1=\\beta_r.\n\\]\nMoreover\n\\[\n x_r^{r+1}\\prod_{i>r}x_i=\\prod_{s=r}^kt_s^{s+1}.\n\\]\nDefine \\(R_1=c_1\\) and \\(R_j=c_j+t_{j-1}^jR_{j-1}\\).  The bracket is \\(c_0+t_k^{k+1}R_k\\).  For \\(0\\le q\\le m\\), let\n\\[\n V_j(q)=\\int_{(0,1)^{j-1}}R_j^q\\prod_{s<j}t_s^{\\beta_s}\\,dt_1\\cdots dt_{j-1}.\n\\]\nThe binomial theorem followed by \\(\\int_0^1t^a\\,dt=(a+1)^{-1}\\), valid because every \\(\\beta_s\\ge0\\), gives\n\\[\n V_1(q)=c_1^q,qquad\n V_j(r)=\\sum_{q=0}^r\\binom rq c_j^{r-q}\n       \\frac{V_{j-1}(q)}{\\beta_{j-1}+jq+1}.\n\\]\nOne final binomial expansion and integration in \\(t_k\\) gives\n\\[\n I_\\sigma=\\sum_{q=0}^m\\binom mq c_0^{m-q}\n       \\frac{V_k(q)}{\\beta_k+(k+1)q+1}.\n\\]\nMultiplication by \\(\\prod_i h_{\\ell i}\\) and summation over the \\(k!\\) chambers gives \\(P_\\ell(\\mathcal K\\subseteq S_\\ell)\\).  The arrays have \\(m+1\\) entries; evaluating each displayed convolution directly costs \\(O(m^2)\\) rational operations at each of \\(k\\) stages, hence \\(O(k!km^2)\\) overall.\n\nAll denominator arguments are positive integers bounded by \\(W_0:=\\sum_i h_{\\ell i}+k(M+m)+km+k+1\\), while every denominator \\(r(r+1)\\) is at most \\(W_0^2\\).  Along any expanded term there are at most \\(O(k+m)\\) such factors.  A common multiple formed from \\(\\operatorname{lcm}(1,\\ldots,W_0^2)^{O(k+m)}\\) has polynomial bit length in \\(n,b,\\lambda\\); binomial coefficients are integers, and summing \\(k!\\) chambers adds \\(O(k\\log(k+1))\\) bits.  The bit height and bit-operation cost are therefore bounded by \\(2^{O(k\\log(k+1))}\\operatorname{poly}(n,b,\\lambda)\\), as claimed.  Every integral has been replaced by a displayed rational recurrence."
+          },
+          {
+            "id": "prop:linear-risk",
+            "proof_tex": "By \\(\\texttt{ass:nondegenerate-isolation}\\), \\(K_\\ell\\ge2\\) for every assignment in the support.  Hence \\(t(K_\\ell)\\ge1\\) and \\(c(K_\\ell)\\ge1\\), so every division in \\(e_\\ell\\) is defined.  Isolation in \\(C_G\\), \\(\\texttt{def:conflict-graph}\\), and the assignment in \\(\\texttt{def:rdim-construction}\\) make the realized exposure on \\(D_i\\) equal to \\(\\mathbf 1_{D_i}\\) for \\(i\\in T_\\ell\\) and to \\(\\mathbf 0_{D_i}\\) for \\(i\\in U_\\ell\\).  By \\(\\texttt{ass:full-neighborhood-interference}\\), the corresponding observed outcomes are therefore the fixed endpoints \\(Y_i(\\mathbf 1)\\) and \\(Y_i(\\mathbf 0)\\).  Consequently the RDIM estimator is the stated linear form \\(\\widehat\\tau_\\ell=e_\\ell^{\\mathsf T}\\theta\\).  Since \\(\\tau=d^{\\mathsf T}\\theta\\),\n\\[\n \\widehat\\tau_\\ell-\\tau=(e_\\ell-d)^{\\mathsf T}\\theta=a_\\ell^{\\mathsf T}\\theta.\n\\]\nThe endpoint vector is fixed under the design by \\(\\texttt{ass:design-based-randomness}\\).  Taking the square and then design expectation yields\n\\[\n \\mathbb E_\\ell[(\\widehat\\tau_\\ell-\\tau)^2]\n =\\theta^{\\mathsf T}\\mathbb E_\\ell[a_\\ell a_\\ell^{\\mathsf T}]\\theta\n =\\theta^{\\mathsf T}Q_\\ell\\theta,\n\\]\nusing the definition of \\(Q_\\ell\\)."
+          },
+          {
+            "id": "prop:tagged-risk-reconstruction",
+            "proof_tex": "Write \\(r=|S_\\ell|\\), \\(t=t(r)\\), and \\(c=c(r)\\), and denote the treated and control blocks of \\(e_\\ell\\) by \\(e_\\ell^1\\) and \\(e_\\ell^0\\), respectively.  The positivity of \\(t,c\\) follows from \\(\\texttt{ass:nondegenerate-isolation}\\).  Conditional on a fixed \\(S_\\ell\\) of size \\(r\\), uniform choice of a \\(t\\)-subset gives, for \\(i\\ne j\\),\n\\[\n \\begin{aligned}\n P(i\\in T_\\ell\\mid S_\\ell)&=\\frac tr,&\n P(i,j\\in T_\\ell\\mid S_\\ell)&=\\frac{t(t-1)}{r(r-1)},\\\\\n P(i\\in U_\\ell\\mid S_\\ell)&=\\frac cr,&\n P(i,j\\in U_\\ell\\mid S_\\ell)&=\\frac{c(c-1)}{r(r-1)},\\\\\n P(i\\in T_\\ell,j\\in U_\\ell\\mid S_\\ell)&=\\frac{tc}{r(r-1)}.\n \\end{aligned}\n\\]\nEvery probability is understood as zero unless the displayed vertices belong to \\(S_\\ell\\).  Therefore\n\\[\n \\mathbb E_\\ell[e_{\\ell,i}^{1}]=\\sum_{r=2}^n\\frac{p_{\\ell i}(r)}r=\\rho_{\\ell i},\n \\qquad\n \\mathbb E_\\ell[e_{\\ell,i}^{0}]=-\\rho_{\\ell i},\n\\]\nso \\(\\mathbb E_\\ell[e_\\ell]=m_\\ell\\).  Dividing the five conditional probabilities by the corresponding coefficient denominators \\(t^2,c^2,tc\\) gives\n\\[\n \\begin{aligned}\n \\mathbb E[(e_{\\ell,i}^{1})^2]&=\\sum_r\\frac{p_{\\ell i}(r)}{rt(r)},&\n \\mathbb E[(e_{\\ell,i}^{0})^2]&=\\sum_r\\frac{p_{\\ell i}(r)}{rc(r)},\\\\\n \\mathbb E[e_{\\ell,i}^{1}e_{\\ell,j}^{1}]&=\\sum_rp_{\\ell ij}(r)\\frac{t(r)-1}{t(r)r(r-1)},&\n \\mathbb E[e_{\\ell,i}^{0}e_{\\ell,j}^{0}]&=\\sum_rp_{\\ell ij}(r)\\frac{c(r)-1}{c(r)r(r-1)},\\\\\n \\mathbb E[e_{\\ell,i}^{1}e_{\\ell,j}^{0}]&=-\\sum_r\\frac{p_{\\ell ij}(r)}{r(r-1)}.\n \\end{aligned}\n\\]\nFor \\(i=j\\), the cross-arm product is zero.  These are exactly the blocks of \\(M_\\ell\\) in \\(\\texttt{def:tagged-risk-functional}\\).  Expanding the centered outer product now gives\n\\[\n \\mathbb E[(e_\\ell-d)(e_\\ell-d)^{\\mathsf T}]\n =M_\\ell-m_\\ell d^{\\mathsf T}-d m_\\ell^{\\mathsf T}+dd^{\\mathsf T},\n\\]\nwhich is the constructed matrix \\(Q_\\ell\\).  The fixed-potential-outcome assumptions used to interpret this as causal MSE are supplied by \\(\\texttt{prop:linear-risk}\\); the reconstruction itself is design algebra.\n\nThere are \\(O(n^2)\\) entries, and each is a sum over at most \\(n-1\\) values of \\(r\\), so direct reconstruction uses \\(O(n^3)\\) rational operations.  The factors introduced here have denominators at most \\(n^3\\).  Each tagged coefficient is a probability and hence lies in \\([0,1]\\); termwise integration of the integer-density polynomials supplies a common denominator dividing a polynomial power of \\(\\operatorname{lcm}(1,\\ldots,nb+n)\\).  This common denominator has polynomial bit length, and the numerator is no larger than it.  The additional sums and products above therefore preserve polynomial output bit length."
+          },
+          {
+            "id": "thm:feedback-core-exact-risk",
+            "proof_tex": "Fix \\(\\ell,A,\\mathcal U,\\mathcal B\\) in the exact expansion of \\(\\texttt{prop:core-inclusion-exclusion}\\), and split \\((0,1)^{\\mathcal K}\\) into its at most \\(k!\\) strict chambers.  On one chamber write the ordered core coordinates as\n\\[\n 0=x_{\\sigma(0)}<x_{\\sigma(1)}<\\cdots<x_{\\sigma(k)}<x_{\\sigma(k+1)}=1.\n\\]\nFor every forest vertex, each cutoff \\(p_v(x)\\) or \\(r_v(x)\\) is one of these coordinates (or \\(0,1\\)).  Split its priority variable \\(y\\) into the \\(k+1\\) open slabs between consecutive coordinates.  On each slab every cutoff indicator in \\(\\texttt{def:cutoff-forest-messages}\\) is constant.\n\nWe now give the dense evaluated representation.  At each vertex and slab store every coefficient in \\(z\\) of \\(A_v,B_v,C_v\\) as a dense rational polynomial in \\(y,x_{\\sigma(1)},\\ldots,x_{\\sigma(k)}\\).  For a child polynomial, compute \\(J_w,D_w\\), and the restriction of \\(E_w(y)\\) to a slab by termwise antiderivatives: the integral from \\(0\\) to \\(y\\) is the sum of evaluations over completed earlier slabs and the antiderivative over the current slab.  Thus every moving endpoint is explicitly substituted by either \\(y\\) or a named core coordinate.  Multiply child factors densely, multiply by \\(h_{\\ell v}y^{h_{\\ell v}-1}\\), and apply the displayed additions and subtraction defining the three messages.  At a root, integrate \\(A+B\\) slab by slab in the same manner.  Multiply the resulting component polynomials densely.  Finally multiply by the core density and integrate every monomial over the chamber using\n\\[\n \\int_{0<x_{\\sigma(1)}<\\cdots<x_{\\sigma(k)}<1}\n    \\prod_{j=1}^kx_{\\sigma(j)}^{\\alpha_j}\\,dx\n =\\prod_{r=1}^k\\frac{1}{r+\\sum_{j=1}^r\\alpha_j}.\n\\]\nAll operations are rational additions, multiplications, divisions by positive integers, and endpoint substitutions.  Hence no integral remains unevaluated.\n\nTo bound the tables, put \\(D=nb+n+1\\).  An induction over the rooted forest shows that every term in a subtree message contains the density of each subtree vertex at most once and one antiderivative for each eliminated forest priority.  Consequently its degree in \\((y,x_{\\sigma(1)},\\ldots,x_{\\sigma(k)})\\) is at most \\(D\\), and its degree in \\(z\\) is at most the subtree size.  The same bounds survive component products and multiplication by the core densities because the participating vertex sets are disjoint.  A dense total-degree table in \\(k+1\\) numerical variables has at most\n\\[\n \\binom{D+k+1}{k+1}=D^{O(k)}\n\\]\nentries, while storing all \\(z\\)-coefficients and all slabs costs only an additional \\(\\operatorname{poly}(n,k)\\) factor.  Naive dense convolution, performed at each of \\(O(n)\\) vertices and components, is therefore \\(D^{O(k)}\\operatorname{poly}(\\lambda)\\) per fixed chamber and pair \\((\\mathcal U,\\mathcal B)\\).  There are at most \\(3^k\\) such pairs, \\(k!\\) chambers, \\(O(n^2)\\) tags, and \\(L\\) rules.  This proves the arithmetic-operation envelope in the proposed statement.\n\nFor the Turing bound, every antiderivative divides by an integer between \\(1\\) and \\(D\\).  Along a term at most \\(n+k\\) priority variables are integrated.  Taking \\(\\operatorname{lcm}(1,\\ldots,D)^{n+k}\\) as a common denominator, and noting that products of input density coefficients have bit length \\(O(n\\log b)\\), bounds the bit length before summation by \\(\\operatorname{poly}(n,b,\\lambda)\\).  Dense convolutions and the signed sum over at most \\(k!3^kD^{O(k)}\\operatorname{poly}(\\lambda)\\) stored terms increase height by at most the logarithm of the number of elementary summands under common-denominator arithmetic; the cruder bound by the full operation count is already the claimed XP envelope.  Standard integer addition, multiplication, gcd reduction, and exact division consequently convert the arithmetic count to\n\\[\n Ln^2k!3^kD^{O(k)}\\operatorname{poly}(\\lambda)\n\\]\nbit operations after enlarging the absolute constants in \\(O(k)\\) and the polynomial.\n\nBy \\(\\texttt{prop:core-inclusion-exclusion}\\), the resulting coefficients are exactly those of every \\(F_{\\ell,A}\\).  Under nondegenerate isolation, \\(\\texttt{prop:tagged-risk-reconstruction}\\) then obtains all entries of \\(Q_\\ell\\) in an additional \\(O(n^3)\\) rational operations, absorbed by the displayed envelope.  This proves the corrected XP theorem without using \\(\\mathfrak H_{\\mathrm{mom}}\\) or the unresolved heterogeneous closure."
+          },
+          {
+            "id": "thm:rational-epsilon-minimax",
+            "proof_tex": "Put \\(A=H^{-1}=\\operatorname{diag}(I_n+\\gamma L_C,I_n+\\gamma L_C)\\).  Since \\(L_C\\succeq0\\) and \\(\\gamma>0\\), \\(A\\succeq I_{2n}\\).  Each \\(Q_\\ell=\\mathbb E_\\ell[a_\\ell a_\\ell^{\\mathsf T}]\\) is rational and positive semidefinite by \\(\\texttt{prop:tagged-risk-reconstruction}\\).  The design-based identity in \\(\\texttt{prop:linear-risk}\\) keeps the causal target \\(\\tau\\) distinct from the following worst-case risk calculation.\n\nFor fixed \\(q\\), substitute \\(\\vartheta=BH^{1/2}u\\) in the ellipsoid constraint.  Then\n\\[\n \\sup_{\\vartheta^{\\mathsf T}H^{-1}\\vartheta\\le B^2}\n \\vartheta^{\\mathsf T}Q(q)\\vartheta\n =B^2\\lambda_{\\max}\\!\\left(H^{1/2}Q(q)H^{1/2}\\right).\n\\]\nMoreover, \\(Q(q)\\preceq tH^{-1}\\) is equivalent, by congruence with \\(H^{1/2}\\), to \\(H^{1/2}Q(q)H^{1/2}\\preceq tI\\).  Thus the primal in \\(\\texttt{def:minimax-sdp}\\) has value exactly \\(V^\\star\\), rather than defining the causal risk by fiat.\n\nFor completeness, dual equality can be seen directly.  Let\n\\[\n \\mathcal D=\\{X\\succeq0:\\operatorname{tr}(AX)=1\\}.\n\\]\nBecause \\(A\\succeq I\\), this is compact.  The spectral variational identity, obtained by diagonalizing \\(A^{-1/2}Q(q)A^{-1/2}\\), gives\n\\[\n \\lambda_{\\max}(A^{-1/2}Q(q)A^{-1/2})\n =\\max_{X\\in\\mathcal D}\\operatorname{tr}(Q(q)X).\n\\]\nApply \\(\\texttt{lem:finite-dimensional-separation}\\) to the compact convex set\n\\[\n \\{(\\operatorname{tr}(Q_1X),\\ldots,\\operatorname{tr}(Q_LX)):X\\in\\mathcal D\\}.\n\\]\nSeparating it from the open upper orthant above the largest attainable coordinatewise minimum gives\n\\[\n \\min_{q\\in\\Delta_L}\\max_{X\\in\\mathcal D}\\sum_{\\ell=1}^Lq_\\ell\\operatorname{tr}(Q_\\ell X)\n =\\max_{X\\in\\mathcal D}\\min_{1\\le\\ell\\le L}\\operatorname{tr}(Q_\\ell X).\n\\]\nThe right side is precisely the dual with \\(s=\\min_\\ell\\operatorname{tr}(Q_\\ell X)\\).  Hence the primal and dual optimal values coincide.\n\nWe next verify the effective hypotheses of \\(\\texttt{lem:weak-rational-convex-optimization}\\).  Let\n\\[\n R=1+\\max_{1\\le\\ell\\le L}\\|Q_\\ell\\|_\\infty,\n \\qquad q^0=L^{-1}\\mathbf 1_L,qquad t^0=R.\n\\]\nSince \\(\\lambda_{\\max}(Q_\\ell)\\le\\|Q_\\ell\\|_\\infty\\),\n\\[\n t^0A-Q(q^0)\\succeq I_{2n}.\n\\]\nThus the primal has a rational relative-interior seed.  For the dual take\n\\[\n X^0=I_{2n}/\\operatorname{tr}(A),\\qquad s^0=-1.\n\\]\nThen \\(X^0\\succ0\\), \\(\\operatorname{tr}(AX^0)=1\\), and \\(\\operatorname{tr}(Q_\\ell X^0)-s^0\\ge1\\) for every \\(\\ell\\).  These seeds and their margins have encoding length polynomial in \\(\\Lambda\\).  At an optimum one may restrict \\(0\\le t\\le R\\).  On \\(\\mathcal D\\), \\(\\operatorname{tr}(X)\\le1\\), hence \\(|X_{ij}|\\le1\\), and one may restrict \\(-1\\le s\\le R\\).  Both feasible regions are therefore rationally well bounded in their affine hulls.\n\nAll linear constraints have exact rational separation.  A rational symmetric matrix can be tested for positive semidefiniteness by fraction-free symmetric elimination: a positive diagonal pivot is removed by a rational Schur complement; a zero diagonal in a positive semidefinite matrix forces its row to be zero; a negative pivot or a nonzero row at a zero diagonal yields a rational vector of negative quadratic form.  This gives a polynomial-time rational separating hyperplane whenever the matrix is not positive semidefinite.  The cited weak-optimization theorem therefore returns rational weak primal and dual solutions with accuracy \\(\\delta\\) in time polynomial in \\(L,n,\\Lambda,\\log(1/\\delta)\\).\n\nWeak feasibility is converted to exact feasibility as follows.  First enforce the rational affine equalities \\(\\mathbf 1^{\\mathsf T}q=1\\) and \\(\\operatorname{tr}(AX)=1\\) by rational elimination.  Mix the resulting approximants with \\((q^0,t^0)\\) and \\((X^0,s^0)\\) with rational weight \\(\\eta>0\\).  The primal matrix slack is then at least \\(\\eta I\\), the dual matrix slack is at least \\(\\eta\\lambda_{\\min}(X^0)I\\), every simplex coordinate has margin \\(\\eta/L\\), and every dual rule inequality has margin at least \\(\\eta\\), before approximation error.  Choose \\(\\delta\\) smaller than one half of each of these margins divided by the rational operator norms of the constraint maps.  Rational outward adjustments of \\(t\\) and downward adjustments of \\(s\\), each of size at most the remaining error bound, then give exact rational feasibility.  Because \\(\\lambda_{\\min}(X^0)=1/\\operatorname{tr}(A)\\) and every displayed norm and margin has polynomial encoding length, one can choose \\(\\eta\\) and \\(\\delta\\) with\n\\[\n \\log(1/\\eta)+\\log(1/\\delta)\n =\\operatorname{poly}(\\Lambda)+O(\\log(1/\\varepsilon))\n\\]\nso that the total objective loss is at most \\(\\varepsilon/B^2\\).  This yields a rational tuple \\((\\widehat q,\\widehat t,\\widehat X,\\widehat s)\\) satisfying every condition in \\(\\texttt{def:rational-gap-certificate}\\) and \\(B^2(\\widehat t-\\widehat s)\\le\\varepsilon\\).\n\nFinally, for any feasible primal and dual tuples,\n\\[\n \\widehat t\n =\\operatorname{tr}(\\widehat tA\\widehat X)\n \\ge\\operatorname{tr}(Q(\\widehat q)\\widehat X)\n =\\sum_\\ell\\widehat q_\\ell\\operatorname{tr}(Q_\\ell\\widehat X)\n \\ge\\widehat s.\n\\]\nTogether with equality of optimal values, this is weak duality and proves\n\\[\n B^2\\widehat s\\le V^\\star\\le B^2\\widehat t,\n \\qquad B^2(\\widehat t-\\widehat s)\\le\\varepsilon.\n\\]\nThe same fraction-free elimination verifies every positive-semidefinite constraint exactly; all remaining checks are rational linear arithmetic.  The running time has the asserted polynomial dependence after setting the requested weak-optimization accuracy as above."
+          },
+          {
+            "id": "prop:forest-and-empty-reduction",
+            "proof_tex": "If \\(k=0\\), then \\(\\mathcal K=\\varnothing\\), so the only pair in core inclusion--exclusion is \\((\\mathcal U,\\mathcal B)=(\\varnothing,\\varnothing)\\).  The definitions give \\(p_v=0\\), \\(r_v=1\\), and \\(\\chi=1\\).  Substitution into \\(\\texttt{def:cutoff-forest-messages}\\) removes every cutoff and yields exactly the selected, certified-unselected, and parent-needing three-state recurrence on each rooted forest.  The component product in \\(\\texttt{prop:core-inclusion-exclusion}\\) is therefore the ordinary forest recurrence extensionally.\n\nIf \\(C_G\\) has no edges, the scan in \\(\\texttt{def:wri-law}\\) never encounters a previously selected neighbor, so \\(S_\\ell=V\\) and \\(K_\\ell=n\\) for every rule and priority order.  Moreover, because \\(i\\in D_i\\), any directed arc \\((j,i)\\) would put \\(j\\) in both \\(D_j\\) and \\(D_i\\), creating the conflict edge \\(\\{i,j\\}\\); hence an empty conflict graph implies \\(D_i=\\{i\\}\\) for all \\(i\\).  The construction then chooses \\(T_\\ell\\) uniformly among all \\(t(n)\\)-subsets of \\(V\\), puts the remaining \\(c(n)\\) units in control, and forms their difference in means.  This is balanced complete randomization on all \\(n\\) units."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:finite-dimensional-separation",
+            "kind": "lemma",
+            "statement": "Two disjoint nonempty convex subsets of a finite-dimensional real vector space, one compact and the other open, admit a separating nonzero affine functional; when the open set has the positive-orthant recession cone, the functional's linear coefficients may be taken nonnegative.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "GrotschelLovaszSchrijver1988",
+              "locator": "Section 2.2, separation theorems",
+              "carrier": "logical-claim",
+              "url": "https://doi.org/10.1007/978-3-642-78240-4",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "The immutable core supplied the book citation; the stable DOI is given because no lawful verbatim transcription was supplied."
+              }
+            }
+          },
+          {
+            "id": "lem:weak-rational-convex-optimization",
+            "kind": "lemma",
+            "statement": "For a rationally well-bounded convex body in a rational affine subspace, weak optimization reduces in oracle-polynomial time to rational weak separation, with running time polynomial in the rational encoding and bounding data and logarithmic in the reciprocal requested accuracy.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "GrotschelLovaszSchrijver1988",
+              "locator": "Theorem 4.3.13",
+              "carrier": "logical-claim",
+              "url": "https://doi.org/10.1007/978-3-642-78240-4",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "The immutable core identifies this theorem as the weak rational convex-optimization result; the stable DOI is supplied in place of an unavailable verbatim transcription."
+              }
+            }
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "thm:feedback-core-exact-risk",
+            "proposed": "There is a deterministic Turing-model algorithm that, for every input in \\(\\mathfrak C_k\\), outputs every coefficient of every \\(F_{\\ell,A}(z)\\), \\(|A|\\le2\\), and, under nondegenerate isolation, every entry of every \\(Q_\\ell\\), in \\(Ln^2k!3^k(nb+n+1)^{O(k)}\\operatorname{poly}(\\lambda)\\) bit operations, with no unevaluated integral and with intermediate rational bit height bounded by the same XP envelope.",
+            "reason": "The arbitrary-feedback-set fixed-parameter claim requires the unresolved heterogeneous future-exponent closure. Dense chamber-polynomial evaluation is provably closed and evaluated, but its table has degree-dependent XP size. The proposed claim is the strongest general theorem proved from the frozen primitives; the vertex-cover and identical-profile FPT subclasses remain unchanged.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:feedback-core-exact-risk",
+            "proposed": {
+              "id": "thm:feedback-core-exact-risk",
+              "kind": "theorem",
+              "statement": "There is a deterministic Turing-model algorithm that, for every input in \\(\\mathfrak C_k\\), outputs every coefficient of every \\(F_{\\ell,A}(z)\\), \\(|A|\\le2\\), and, under nondegenerate isolation, every entry of every \\(Q_\\ell\\), in \\(Ln^2k!3^k(nb+n+1)^{O(k)}\\operatorname{poly}(\\lambda)\\) bit operations, with no unevaluated integral and with intermediate rational bit height bounded by the same XP envelope.",
+              "free_symbols": [
+                "n",
+                "librarySize",
+                "feedbackSize",
+                "weightBound",
+                "encodingLength",
+                "feedbackCoreClass",
+                "taggedPolynomial",
+                "tagSet",
+                "ruleIndex",
+                "indeterminate",
+                "riskMatrix"
+              ],
+              "depends_on": [
+                "ass:nondegenerate-isolation",
+                "def:feedback-core-input-class",
+                "prop:core-inclusion-exclusion",
+                "prop:tagged-risk-reconstruction"
+              ],
+              "status": "to-prove",
+              "justification": "The theorem supplies a completely evaluated exact-risk algorithm on arbitrary supplied feedback forests, with an honest XP dependence on the feedback size.",
+              "gap": "Prior WRI analysis simulates a surrogate, while tree and static-set recurrences do not evaluate heterogeneous tagged greedy-order probabilities; the general fixed-parameter compression remains open.",
+              "consumer": "Investigators can exactly compare a finite AWRI rule library when the measured graph and numerical parameters make the displayed XP computation feasible; the vertex-cover and identical-profile subclasses retain fixed-parameter guarantees."
+            },
+            "reason": "Apply the directed XP claim repair and remove the open heterogeneous moment handle and its OEQ from the theorem's dependencies.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:rational-epsilon-minimax",
+            "proposed": {
+              "id": "thm:rational-epsilon-minimax",
+              "kind": "theorem",
+              "statement": "Given the exact rational matrices \\(Q_1,\\ldots,Q_L\\) and rational \\(\\varepsilon>0\\), a Turing-model algorithm computes a rational certificate \\((\\widehat q,\\widehat t,\\widehat X,\\widehat s)\\) satisfying \\(\\texttt{def:rational-gap-certificate}\\) in time polynomial in \\(L\\), \\(n\\), \\(\\Lambda\\), and \\(\\log(1/\\varepsilon)\\). Exact rational arithmetic verifies the simplex, trace, rule inequalities, and positive-semidefinite constraints, and weak duality certifies \\(B^2\\widehat s\\le V^\\star\\le B^2\\widehat t\\) with gap at most \\(\\varepsilon\\).",
+              "free_symbols": [
+                "riskMatrix",
+                "librarySize",
+                "epsilon",
+                "certificate",
+                "n",
+                "certificateEncodingLength",
+                "radius",
+                "minimaxValue"
+              ],
+              "depends_on": [
+                "ass:design-based-randomness",
+                "ass:endpoint-ellipsoid",
+                "def:endpoint-class",
+                "def:minimax-sdp",
+                "def:rational-gap-certificate",
+                "prop:linear-risk",
+                "prop:tagged-risk-reconstruction",
+                "thm:feedback-core-exact-risk",
+                "lem:finite-dimensional-separation",
+                "lem:weak-rational-convex-optimization"
+              ],
+              "status": "to-prove",
+              "justification": "The certificate makes near-optimal rule mixing archivable and exactly checkable without claiming an exact real-algebraic optimizer.",
+              "gap": "Existing minimax-design and semidefinite methods do not combine exact WRI/RDIM risk construction with this explicit rational primal-dual audit trail.",
+              "consumer": "After exact risk matrices have been computed by the general XP oracle or either FPT subclass, a trial team can select or mix prespecified AWRI rules and audit the worst-case ellipsoidal risk gap before assignment."
+            },
+            "reason": "Declare the two classical convex-analytic leaves used by the proof; the mathematical claim is unchanged.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [
+          {
+            "node_id": "oeq:heterogeneous-moment-closure",
+            "what_is_open": "Whether an evaluated representation with state count and bit complexity \\(2^{O(k\\log(k+1))}\\operatorname{poly}(n,b,\\lambda)\\) is closed under arbitrary heterogeneous cutoff-forest branching, component multiplication, moving ordered-core endpoints, and all zero-, one-, and two-tag coefficient extractions remains open.",
+            "obstruction": "On an ordered chamber, a heterogeneous component with branch exponents \\(a_{ji}\\) and center weight \\(c_j\\) has nonconstant cutoff terms carrying the future profile \\((c_j+A_{jr},\\ldots,c_j+A_{jk})\\), where \\(A_{jr}=\\sum_{i\\le r}a_{ji}\\).  For \\(k=2\\), profiles \\((1,1)\\) and \\((1,2)\\) produce \\(T_{11}=1/3+(t_1^2/2+1/6)t_2^3\\) and \\(T_{12}=1/4+(t_1^2/2+1/4)t_2^4\\).  Activating the \\(t_1\\)-dependent term in either factor leaves the same current exponent but different future exponents.  Thus relative core order, a scalar activation count, and a current-degree total are not closed states; retaining all \\(k\\) degree totals gives the forbidden \\((nb)^{\\Theta(k)}\\) behavior.",
+            "attempted": "The three-state recursion and \\(3^k\\) inclusion--exclusion were reduced to chamber polynomials; the vertex-cover case was evaluated monomial by monomial; and identical replicated-star attachments were compressed by the one-index nested-moment recurrence.  The same recurrence was expanded for the two heterogeneous profiles above, where it fails because the future exponents differ.  Dense chamber-polynomial evaluation does close all operations but has \\((nb+n+1)^{O(k)}\\) rather than fixed-parameter dependence.",
+            "partial_result": "The proved partial result is a complete evaluated XP algorithm for arbitrary feedback forests with cost \\(Ln^2k!3^k(nb+n+1)^{O(k)}\\operatorname{poly}(\\lambda)\\), together with a \\(2^{O(k\\log(k+1))}\\operatorname{poly}(n,b,\\lambda)\\) vertex-cover oracle and an \\(O(k!km^2)\\)-operation recurrence for identical replicated-star attachments.  These results contain no unevaluated integration gate, but they do not provide the requested general heterogeneous FPT closure."
+          }
+        ],
+        "prose_updates": {
+          "tldr": "Weighted random isolation creates exposure-compatible focal units under network interference, but published AWRI rule selection relies on simulation.  Conditioning on a supplied size-\\(k\\) feedback vertex set and applying a three-state forest recursion with \\(3^k\\) core inclusion--exclusion yields an exact, fully evaluated dense algorithm for every zero-, one-, and two-tagged isolated-count law in \\(Ln^2k!3^k(nb+n+1)^{O(k)}\\operatorname{poly}(\\lambda)\\) bit operations.  The tagged laws reconstruct every dense RDIM risk matrix, and rational weak semidefinite optimization returns an independently checkable \\(\\varepsilon\\)-minimax certificate.  A \\(2^{O(k\\log(k+1))}\\operatorname{poly}(n,b,\\lambda)\\) oracle is proved only when the supplied core is a vertex cover, with a further evaluated recurrence for identical replicated-star attachments; fixed-parameter closure for arbitrary heterogeneous forest attachments remains open.",
+          "project_justification": {
+            "gap": "AWRI fixes the weighted greedy design and RDIM estimator but simulates a surrogate.  Random sequential adsorption treats scalar occupation, while structural graph programs count static sets.  None of these results gives the evaluated heterogeneous tagged integration used here; the remaining fixed-parameter compression problem is explicitly separated from the proved dense XP oracle.",
+            "niche": "A supplied feedback set exposes a forest decomposition on which exact heterogeneous priority integration is possible.  The proved general guarantee is XP in the feedback size, while vertex-cover cores and identical attachment profiles show two nontrivial fixed-parameter regimes.",
+            "fill": "The paper proves core inclusion--exclusion, a fully evaluated dense chamber-polynomial algorithm with controlled rational bit height, exact tagged RDIM risk reconstruction, and a rational near-minimax certificate.  It records arbitrary-forest fixed-parameter moment closure as an open problem rather than assuming it."
+          },
+          "related_work": "Shi, Yang, Qin, and Li define WRI and RDIM, derive a balance and inverse-size MSE surrogate, and use simulation for candidate-weight selection; their causal-design objects are inputs here.  Pippenger's random-sequential-adsorption recursions, Gamarnik and Goldberg's rooted-tree bonus recursions, and the local-limit equations of Krivelevich, Meszaros, Michaeli, and Shikhelman do not compute exact finite heterogeneous tagged moments.  Wan, Tu, Zhang, and Li count static independent sets on bounded-treewidth graphs, and Borie, Parker, and Tovey give finite-state decomposition methods, but neither weights maximal independent sets by heterogeneous priority orders.  Cygan, Pilipczuk, Pilipczuk, and Wojtaszczyk establish a \\(2^{O(k\\log k)}\\) scale for a different feedback-set problem, not an oracle for the present integration.  Kandiros, Harshaw, and Savje study an unrestricted network-experiment minimax functional; no equality with that functional is claimed.  Kallus motivates mixed minimax design, Duarte, Sagnol, and Wong develop semidefinite minimax-design methods, and Groetschel, Lovasz, and Schrijver provide the rational weak-optimization substrate used for the downstream certificate.  Aronow and Samii provide the design-based interference framework.  Cai, de Janvry, and Sadoulet motivate the rural-China insurance application but provide no evidence that its measured conflict graph has small feedback number.",
+          "interpretation": "The exact algorithm removes Monte Carlo error from comparison of prespecified WRI rules, but its worst-case general cost is XP rather than fixed-parameter in the feedback number.  Small vertex-cover cores or identical repeated attachments permit the sharper fixed-parameter computations.  The final semidefinite certificate concerns worst-case squared error of the fixed RDIM rule library over the stated endpoint ellipsoid; it is not a claim of optimality among all network designs or estimators.",
+          "technical_internal_limitation": "The dense chamber-polynomial representation closes arbitrary heterogeneous branching, component products, moving endpoints, and tags, but uses \\((nb+n+1)^{O(k)}\\) states.  It therefore proves an evaluated XP theorem, not the originally proposed fixed-parameter theorem.  The obstruction is that two heterogeneous branches can have the same present activation count and exponent while leaving different exponents on future ordered-ratio variables.  The unresolved question is whether a shared operator representation can preserve those profiles in \\(2^{O(k\\log(k+1))}\\operatorname{poly}(n,b,\\lambda)\\) time.  A table indexed by \\(k\\) degree totals, a profile-count vector with an \\(n\\)-dependent exponent, or a circuit retaining an integration gate does not solve that question.",
+          "honest_scope": "The general proved result assumes a supplied feedback set, positive integer priority weights, and permits XP dependence \\((nb+n+1)^{O(k)}\\); it neither finds a minimum feedback set nor proves arbitrary-feedback-set fixed-parameter tractability.  Fixed-parameter guarantees are confined to the vertex-cover core and the stated identical replicated-star coefficient.  Nondegenerate isolation is required only for RDIM denominators and risk reconstruction.  The minimax result chooses within a prespecified WRI/RDIM library over a graph-Sobolev endpoint ellipsoid and does not equal the unrestricted design-and-estimator minimax functional.  The rural-China follow-up is a prospective consumer, not evidence for a small empirical feedback number, a calibrated ellipsoid, or improved field performance.",
+          "statement_notes": [
+            {
+              "id": "lem:greedy-domination-certificate",
+              "justification": "The certificate replaces the history-dependent scan by independence and earlier-neighbor domination constraints.",
+              "gap": "Random sequential adsorption uses the same greedy mechanism but does not formulate the certificate for heterogeneous tagged exact integration.",
+              "consumer": "The core inclusion--exclusion proof uses the certificate to separate forest components after conditioning on core priorities."
+            },
+            {
+              "id": "prop:core-inclusion-exclusion",
+              "justification": "The identity removes the need to carry already-satisfied core blockers through every forest message.",
+              "gap": "Scalar occupation recursions do not include core domination inclusion--exclusion or zero-, one-, and two-vertex tags.",
+              "consumer": "The proved dense XP oracle and both fixed-parameter subclasses start from this exact reduction."
+            },
+            {
+              "id": "thm:vertex-cover-core-oracle",
+              "justification": "This complete special case evaluates each chamber monomial directly and establishes a genuine fixed-parameter guarantee.",
+              "gap": "Static vertex-cover programs do not assign heterogeneous greedy-order probability.",
+              "consumer": "Experiments whose measured conflict cycles are concentrated on a small vertex-cover hub set obtain an exact fixed-parameter AWRI rule comparison."
+            },
+            {
+              "id": "prop:replicated-star-support",
+              "justification": "The family proves that relative core order and dense monomial expansion are insufficient descriptions of numerical cutoff dependence.",
+              "gap": "Static set counting and scalar adsorption recurrences do not expose this future-exponent obstruction.",
+              "consumer": "The obstruction delineates the still-open fixed-parameter representation problem and prevents an invalid scalar-state proof."
+            },
+            {
+              "id": "thm:identical-star-moment-recurrence",
+              "justification": "The recurrence evaluates exponentially dense identical-component powers using only a one-dimensional moment index.",
+              "gap": "Existing weighted-greedy limit recursions do not give this exact finite core-conditioned rational coefficient.",
+              "consumer": "It is a proved fixed-parameter subclass and a positive control for any future heterogeneous representation."
+            },
+            {
+              "id": "prop:linear-risk",
+              "justification": "The quadratic retains selection bias, random denominators, and assignment variance in one exact design-computable object.",
+              "gap": "Published WRI analysis bounds RDIM MSE by a surrogate rather than states this endpoint quadratic.",
+              "consumer": "Exact rule comparison requires a loss matrix valid for heterogeneous fixed potential outcomes."
+            },
+            {
+              "id": "prop:tagged-risk-reconstruction",
+              "justification": "The proposition identifies exactly which one- and two-vertex marked moments determine all bias and covariance entries.",
+              "gap": "An unmarked isolated-set size law cannot recover pair-specific RDIM risk.",
+              "consumer": "The reconstructed rational matrices feed the finite-library minimax certificate."
+            },
+            {
+              "id": "oeq:heterogeneous-moment-closure",
+              "justification": "This is the isolated open question separating the proved dense XP algorithm from arbitrary-feedback-set fixed-parameter tractability.",
+              "gap": "Heterogeneous branches preserve distinct future ordered-ratio exponent profiles, and no state algebra of fixed-parameter size is proved to close them.",
+              "consumer": "A future solution would sharpen the general XP bound; no current design recommendation relies on that sharpening."
+            },
+            {
+              "id": "thm:feedback-core-exact-risk",
+              "justification": "The corrected theorem gives a fully evaluated exact-risk algorithm for arbitrary supplied feedback forests with explicit XP complexity and bit height.",
+              "gap": "Prior work does not evaluate all heterogeneous tagged greedy-order probabilities, while the stronger general fixed-parameter bound remains open.",
+              "consumer": "Investigators can exactly compare prespecified AWRI rules when the displayed XP cost is feasible, with sharper guarantees in the two proved subclasses."
+            },
+            {
+              "id": "thm:rational-epsilon-minimax",
+              "justification": "The rational primal-dual tuple makes near-optimal mixing independently checkable without asserting an exact algebraic optimizer.",
+              "gap": "General semidefinite design methods do not include the exact WRI/RDIM risk construction and its audit trail.",
+              "consumer": "A trial team can mix the exactly evaluated rule library and verify the ellipsoidal worst-case risk gap before assignment."
+            },
+            {
+              "id": "prop:forest-and-empty-reduction",
+              "justification": "The reduction checks both the cutoff recursion's \\(k=0\\) boundary and the classical no-interference design boundary.",
+              "gap": "The dense feedback-core algorithm must recover the ordinary forest recurrence and cannot alter RDIM on an empty conflict graph.",
+              "consumer": "Implementers obtain exact boundary regression tests for the proved XP oracle."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

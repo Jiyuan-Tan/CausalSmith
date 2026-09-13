@@ -1,0 +1,56 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "thm:exact-milp",
+    "kind": "theorem",
+    "statement": "For every finite connected \\(G\\), integer \\(2\\le K\\le R\\), symmetric rational matrix \\(\\Sigma\\), and positive integer \\(N_{\\exp}\\), projecting any feasible point of \\(\\mathrm{MILP}(G,K,\\Sigma,N_{\\exp})\\) to its \\(x\\)-label assignment yields a labeled partition \\(\\mathcal C=(C_1,\\ldots,C_K)\\in\\mathfrak C_K(G)\\). Every labeled \\(\\mathcal C\\in\\mathfrak C_K(G)\\) has at least one feasible extension to the auxiliary variables, and every such extension has objective exactly \\(V(\\mathcal C;\\Sigma)\\). Auxiliary root and flow variables may admit multiple feasible extensions of the same labeled partition; this multiplicity is harmless, and cluster labels are not quotiented by permutations. Consequently the MILP optimum equals \\(\\min_{\\mathcal C\\in\\mathfrak C_K(G)}V(\\mathcal C;\\Sigma)\\), and projecting any MILP optimizer reconstructs an optimal labeled partition \\(\\mathcal C^\\star\\).",
+    "free_symbols": [
+      "MILP",
+      "G",
+      "K",
+      "R",
+      "Sigma",
+      "Nexp",
+      "CK",
+      "C",
+      "V",
+      "Cstar"
+    ],
+    "depends_on": [
+      "def:connected-partitions",
+      "def:exact-risk",
+      "def:exact-milp",
+      "lem:feasible-nonempty"
+    ],
+    "justification": "Projection and feasible auxiliary extension establish a solver-ready exact formulation for arbitrary finite instances without requiring auxiliary-variable uniqueness, and provide a benchmark for the parameterized algorithm.",
+    "gap": "Section 3.2 of Zhu et al. explains and justifies omitting its second-order residual-covariance term from graph-cut optimization; no published formulation located globally optimizes the resulting exact rational scope objective over connected nonempty clusters.",
+    "consumer": "Experimenters with moderate graphs can obtain an auditable exact spatial cluster design rather than a heuristic candidate.",
+    "proof_tex": "Write \\(C_k=\\{v:x_{vk}=1\\}\\) for the projection of a feasible mixed-integer point.  The equations \\(\\sum_{k=1}^Kx_{vk}=1\\), with binary \\(x_{vk}\\), make the sets \\(C_k\\) pairwise disjoint with union \\(U\\).  Also \\(s_k=\\sum_vx_{vk}\\ge1\\), so every \\(C_k\\) is nonempty.\n\nFix \\(k\\).  The binary variables \\(r_{vk}\\) select exactly one vertex \\(r_k\\), and \\(r_{vk}\\le x_{vk}\\) implies \\(r_k\\in C_k\\).  The constraints on \\(h_{vk}\\) imply\n\\[\n h_{r_k k}=s_k,\\qquad h_{vk}=0\\quad(v\\ne r_k).\n\\]\nIndeed, at the selected root the lower bound is \\(s_k\\) and the upper bound \\(h_{vk}\\le s_k\\) is binding, while at every nonroot \\(h_{vk}\\le Rr_{vk}=0\\).  The flow balance is consequently\n\\[\n \\operatorname{out}_k(v)-\\operatorname{in}_k(v)\n =\\begin{cases}\n s_k-1,&v=r_k,\\\\\n -1,&v\\in C_k\\setminus\\{r_k\\},\\\\\n 0,&v\\notin C_k.\n \\end{cases}\n\\]\nBoth endpoint-capacity inequalities force \\(f^k_{uv}=0\\) unless \\(u,v\\in C_k\\).  If a connected component \\(A\\) of \\(G[C_k]\\) did not contain \\(r_k\\), summing the displayed balance over \\(A\\) would give zero on the left, because internal flows cancel and no positive flow crosses the boundary of \\(A\\), but would give \\(-|A|<0\\) on the right.  This contradiction proves that every vertex of \\(C_k\\) lies in the root component.  Hence \\(G[C_k]\\) is connected, and the projection lies in \\(\\mathfrak C_K(G)\\) by \\(\\mathrm{def:connected-partitions}\\).\n\nConversely, fix \\(\\mathcal C\\in\\mathfrak C_K(G)\\).  Set \\(x_{vk}=\\mathbf 1\\{v\\in C_k\\}\\), set \\(s_k=|C_k|\\), choose any root \\(r_k\\in C_k\\), and set \\(r_{r_k k}=1\\), all other \\(r_{vk}=0\\), \\(h_{r_k k}=s_k\\), and all other \\(h_{vk}=0\\).  Because \\(G[C_k]\\) is finite and connected, choose a spanning tree of it and orient that tree away from \\(r_k\\).  On an oriented tree arc from a parent to a child, put\n\\[\n f^k_{uv}=\\bigl|\\text{the descendant subtree rooted at }v\\bigr|,\n\\]\nand put zero on every other oriented edge.  Every such flow is between \\(1\\) and \\(s_k\\le R\\), so the endpoint capacities hold.  At the root, the outgoing descendant-subtree sizes sum to \\(s_k-1\\).  At a nonroot vertex, the incoming flow equals the size of its subtree and the outgoing flows sum to that size minus one.  Thus all balance equations and all root constraints hold.\n\nIt remains to verify the logical auxiliaries and the objective.  For each \\(i,k\\), set\n\\[\n u_{ik}=\\mathbf 1\\{C_k\\cap N_G[i]\\ne\\varnothing\\}.\n\\]\nThe lower inequalities and the upper inequality in \\(\\mathrm{def:exact-milp}\\) are then satisfied.  They also show that this is the only possible binary value of \\(u_{ik}\\) in any extension of the same \\(x\\): a neighborhood occurrence forces \\(u_{ik}=1\\), and its absence forces \\(u_{ik}=0\\).  The three overlap inequalities similarly force\n\\[\n b_{ii'k}=u_{ik}u_{i'k}\n =\\mathbf 1\\{k\\in L_i(\\mathcal C)\\cap L_{i'}(\\mathcal C)\\}.\n\\]\nTherefore\n\\[\n \\sum_{k=1}^K b_{ii'k}=|L_i(\\mathcal C)\\cap L_{i'}(\\mathcal C)|\n =m_{ii'}(\\mathcal C).\n\\]\nSet \\(z_{ii'q}=\\mathbf 1\\{q=m_{ii'}(\\mathcal C)\\}\\).  This is feasible.  Conversely, binary one-hot \\(z\\) together with \\(\\sum_qqz_{ii'q}=\\sum_kb_{ii'k}\\) forces exactly this choice.  Hence every auxiliary extension of \\(\\mathcal C\\) has objective\n\\[\n \\frac1{N_{\\exp}}\\sum_{i,i'\\in U}\\sum_{q=1}^K\n 2^{q+1}\\Sigma_{ii'}z_{ii'q}\n =\\frac1{N_{\\exp}}\\sum_{i,i'\\in U}\n 2^{m_{ii'}(\\mathcal C)+1}\\Sigma_{ii'}\n \\mathbf 1\\{m_{ii'}(\\mathcal C)>0\\}\n =V(\\mathcal C;\\Sigma),\n\\]\nwhere the last equality is \\(\\mathrm{def:exact-risk}\\).  The choice of a root and of a feasible flow need not be unique, but neither appears in this equality.\n\nBy \\(\\mathrm{lem:feasible-nonempty}\\), the finite set \\(\\mathfrak C_K(G)\\) is nonempty.  Projection maps every feasible mixed-integer point into this set, and the extension construction maps every member of this set to at least one feasible point with the same criterion value.  Thus the two sets of attainable objective values coincide.  Their minima coincide, and the projection of any mixed-integer optimizer is an element of \\(\\arg\\min_{\\mathcal C\\in\\mathfrak C_K(G)}V(\\mathcal C;\\Sigma)\\), as claimed.",
+    "proof_basis": {
+      "ass:block-connected": "91780b5667fe029e5d665748baac0a481434b53e5cb2df3a8b120f2a9ff20d16",
+      "ass:partition-nonempty": "25959a663cac8daa5c831f790473fa8d89013c0c9158fcc0d80fad5b49db0ae0",
+      "def:connected-partitions": "c8284a598cc22551c9671777e06da2a19b201da80c6539c0479e0113084f8c02",
+      "def:exact-milp": "fbbf2925e7a6fc72a19ab3eb6ab56a5b13c36df9ec5755cb0d70abf934f41e66",
+      "def:exact-risk": "f7be4debcf5b5c19a46fa431059d161a85b92f8f83306c320554f476acaf4b85",
+      "lem:feasible-nonempty": "6e51a8595a25836bb7d5053d644428240f0654b3b39fac5fb0062a32cf15f004",
+      "sym:C": "8824c540e2a433683407a6074f2e2715f66fdb2f31d87f928e626d64f9a993c2",
+      "sym:CK": "8a3bf054caad1ae60aea48e3b96365cc778a839e2ddaebf33899b3844e2f64fb",
+      "sym:Cstar": "fd4b12dc248e50897297247283132e6ea05b0d953173209ca5e5785417e27263",
+      "sym:E": "7cc89dd08a4ea1f7546764de2c2a65755a1f7e835b31884ff45e37fb355161ea",
+      "sym:G": "513666f8550563ab82962b56e39282ff49ea933e424999217a6f652146ceee3f",
+      "sym:K": "553eb4ed455f8e8c6e9053f8047c2955db31cf687c1397841a4de0d1e69102c8",
+      "sym:LC": "9745efd7a75258c9eca8eb5202f69f748c64f6641aafce52aa3bcc7de334a0fc",
+      "sym:MILP": "96794fdc22807509a0f4fef7b9488825682c6fb8e8219c519d40ba2c6435f4ca",
+      "sym:Nexp": "458bac5ae1df4b2f8fe28266db8cc411535fa3d30b4f106618318592809d6eb6",
+      "sym:Ng": "c4800b9f5233ccfa370f39246ea60134acc5f6a9e41d2f1d298ad2ba4d6aa8d4",
+      "sym:R": "a52e1b01b52d8cf563fa17e289c2503496eae2b54298dba343864921e3ae796f",
+      "sym:Sigma": "957e8a4d55f15a387f56241271f52f90ccfba645f299a3badd256122170cc5d8",
+      "sym:U": "5c8289205c985d9a69f8e8bcfaa732b717b2cf8699c23a842bf7a17929376f59",
+      "sym:V": "9656b79a840559fa63d1a7d9f0ff2e44dcdcf3c70b46fcc1874bf6b332c83325",
+      "sym:acoef": "f9d434ea30bafe926a4a88ecbbeba76e6ab326c5137c9a7fd5b0249587ff2a4c",
+      "sym:ellC": "13ab86935a4cfbc209e7a0b0eb450ff4999a08448ddd8ebab58e5bfe150bebe5",
+      "sym:m": "3ccde2a2da062dfe63a7f5feb90e4b958cfb04aadef76e72ce78252927d4be3f",
+      "thm:exact-milp": "8289d02871c66beb0441c185dfa40a75a1b39676f2aa14c53e6ced4580b71782"
+    }
+  }
+}

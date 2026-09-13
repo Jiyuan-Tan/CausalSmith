@@ -1,0 +1,273 @@
+%%% FIELD construction-def-promised-enumerator
+Given a supplied total order \(\triangleleft_V\) on \(V\), test every \(R\subseteq V^{-}\) with \(|R|\leq3\) by bidirected connectivity and directed reachability in \(G[R\cup\{s\}]\), retain it exactly when it is a hedge residual and no proper subset is one, and order outputs lexicographically using \(\triangleleft_V\).
+%%% FIELD construction-def-promised-enumerator-replacement
+Given a supplied total order \(\triangleleft_V\) on \(V\), test every \(R\subseteq V^{-}\) with \(|R|\leq3\) by bidirected connectivity and directed reachability in \(G[R\cup\{s\}]\), retain it exactly when it is a hedge residual and no proper subset is one, and order outputs lexicographically using \(\triangleleft_V\).
+%%% FIELD statement-prop-promised-enumeration
+Given a supplied total order on \(V\) and a fixed promised rank bound \(r_0\), all inclusion-minimal residual hedges can be output exactly once, in the lexicographic order induced by the supplied order, in time \(|V|^{r_0+O(1)}\) and polynomial space. At \(r_0=3\) in the present bow-free singleton model, the runtime is \(O(|V|^3\operatorname{poly}(|V|))\). Given \(k\), branching on an uncovered residual returns the least-cost feasible intervention among sets of cardinality at most \(k\), or certifies that none exists, in \(O(3^k\operatorname{poly}(|V|,L))\), where \(L\) is the cost-encoding length.
+%%% FIELD statement-thm-rank-three-rounding
+Given a supplied total order on \(V\), under \(r(G,s)\leq3\), every nonempty \(R\in\mathcal C(G,s)\) has size three and meets both \(P_s\) and \(T_s\). For an optimal \(y\) of the natural covering relaxation, every \(A_t\) is feasible for \(0<t<1/2\), and some breakpoint choice satisfies \(\sum_{v\in A_t}c(v)\leq2\operatorname{LP}(G,s,c)\leq2\operatorname{OPT}(G,s,c)\). Such a choice is found in polynomial time by the promised-rank enumerator using the supplied order.
+%%% FIELD statement-prop-optimizer-or-violation
+Given a supplied total order on \(V\), enumerate all minimal residual hedges of size at most three in the induced lexicographic order, optimize or two-approximate that relaxation, and verify the returned \(A\) by alternating restriction of \(G[V\setminus A]\) to directed ancestors of \(s\) and the bidirected component of \(s\). If verification succeeds, an exact relaxation optimum is globally exact and the rounded answer costs at most \(2\operatorname{OPT}(G,s,c)\). If verification fails, deletion-based minimization returns a verifiable \(R\in\mathcal C(G,s)\) with \(|R|>3\).
+%%% FIELD proof-prop-promised-enumeration
+Fix a nonnegative integer \(r_0\), fix the supplied total order \(\triangleleft_V\) on \(V\), and take as the promised input condition
+\[
+ r(G,s)\leq r_0.
+\]
+For every \(R\subseteq V^{-}\) with \(|R|\leq r_0\), generated once in the lexicographic order induced by \(\triangleleft_V\), put \(F_R=R\cup\{s\}\).  If \(R=\varnothing\), then \(F_R=\{s\}\), which fails the strict-containment clause of Definition \(\mathrm{def{:}singleton\mbox{-}hedges}\).  If \(R\neq\varnothing\), a graph search decides whether \(B[F_R]\) is connected, and a reverse directed search from \(s\) decides whether every vertex of \(F_R\) reaches \(s\) in \(D[F_R]\).  Thus Definition \(\mathrm{def{:}singleton\mbox{-}hedges}\) gives
+\[
+ F_R\in\mathsf{Hdg}(G,s)
+ \quad\Longleftrightarrow\quad
+ B[F_R]\text{ is connected and }
+ \bigl(\forall v\in F_R,\ v\leadsto s\text{ in }D[F_R]\bigr).
+\]
+Both searches take polynomial time in \(|V|\).
+
+For every candidate passing this hedge test, apply the same test to each \(R'\subsetneq R\).  Every proper subset of \(F_R\) that contains \(s\) has the unique form \(R'\cup\{s\}\) for some \(R'\subsetneq R\).  Definition \(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\) therefore yields the equivalence
+\[
+ R\in\mathcal C(G,s)
+ \quad\Longleftrightarrow\quad
+ F_R\in\mathsf{Hdg}(G,s)
+ \text{ and }
+ F_{R'}\notin\mathsf{Hdg}(G,s)
+ \text{ for every }R'\subsetneq R.
+\]
+Consequently every retained candidate is a clutter member.  Conversely, the promised input inequality implies \(|R|\leq r_0\) for every \(R\in\mathcal C(G,s)\), so every clutter member is tested and retained.  Candidate generation without repetition proves exact-once output, while generation according to \(\triangleleft_V\) proves the stated lexicographic order.  The order \(\triangleleft_V\) changes only output order; it does not enter either graph test.
+
+Writing \(n=|V|\), the number of candidates is
+\[
+ \sum_{j=0}^{r_0}\binom{n-1}{j}=O(n^{r_0})
+\]
+for fixed \(r_0\).  There are at most \(2^{r_0}\) proper subsets of each candidate, so the total running time is \(|V|^{r_0+O(1)}\).  Candidates and outputs can be streamed, and at any moment the procedure stores only a candidate, one proper subset, and polynomial-size graph-search workspaces.  This proves the polynomial-space assertion.
+
+At \(r_0=3\), Assumption \(\mathrm{ass{:}rank\mbox{-}three\mbox{-}promise}\) supplies the promised inequality and hence the upper bound of three on every minimal residual.  Theorem \(\mathrm{thm{:}first\mbox{-}rank\mbox{-}boundary}\) says that every hedge has at least four vertices; hence every residual in \(\mathcal C(G,s)\) has size at least three.  Thus every clutter member has size exactly three.  In this case Definition \(\mathrm{def{:}promised\mbox{-}enumerator}\), now driven by \(\triangleleft_V\), tests precisely the needed triples.  There are \(O(n^3)\) of them, proving the displayed rank-three runtime.
+
+For the scoped exact search, use the enumerated rank-three clutter.  At a recursive state \((A_0,j)\), where \(A_0\subseteq V^{-}\) is the set already chosen and \(j\) is the remaining cardinality budget, return \(A_0\) if it meets every enumerated residual.  If an uncovered residual exists and \(j=0\), declare the branch infeasible.  Otherwise choose an uncovered \(R\in\mathcal C(G,s)\).  The preceding paragraph gives \(|R|=3\), and uncoveredness gives \(A_0\cap R=\varnothing\).  Recurse on
+\[
+ (A_0\cup\{v\},j-1),\qquad v\in R,
+\]
+and retain a least-cost successful return.
+
+Induction on \(j\) proves that this recursion returns a least-cost feasible extension of \(A_0\) using at most \(j\) new vertices, or correctly reports that none exists.  When \(j=0\), this is immediate from the feasibility test.  Suppose \(j>0\).  If \(A_0\) is feasible, the declared codomain \(c:V^{-}\to\mathbb Q_{>0}\) implies that every strict extension has strictly larger cost, so returning \(A_0\) is optimal.  If \(A_0\) is infeasible, every feasible extension must hit the selected uncovered set \(R\), hence contains at least one \(v\in R\) and appears in the corresponding branch.  The induction hypothesis optimizes each branch; comparison of the three branch values therefore optimizes their union.  Starting from \((\varnothing,k)\) proves the claimed least-cost guarantee among feasible interventions of cardinality at most \(k\).
+
+The recursion tree has at most
+\[
+ 1+3+\cdots+3^k=O(3^k)
+\]
+nodes.  Each node does polynomial work on a polynomial-size rank-three clutter.  Sums and comparisons of positive rational costs have bit complexity polynomial in \(|V|\) and their encoding length \(L\).  Hence the runtime is \(O(3^k\operatorname{poly}(|V|,L))\).  This argument uses the supplied bound \(k\) and makes no unconstrained weighted \(3^k\) claim.
+%%% FIELD proof-thm-rank-three-rounding
+Fix the supplied total order \(\triangleleft_V\) on \(V\).  Assumption \(\mathrm{ass{:}rank\mbox{-}three\mbox{-}promise}\) and Definition \(\mathrm{def{:}residual\mbox{-}rank}\) imply \(|R|\leq3\) for every \(R\in\mathcal C(G,s)\).  Definition \(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\) writes \(R=F\setminus\{s\}\) for an inclusion-minimal hedge \(F\).  Theorem \(\mathrm{thm{:}first\mbox{-}rank\mbox{-}boundary}\) gives \(|F|\geq4\), and therefore \(|R|\geq3\).  Thus every clutter member has size exactly three.  The last clause of the same theorem also gives
+\[
+ R\subseteq P_s\cup T_s,
+ \qquad R\cap P_s\neq\varnothing,
+ \qquad R\cap T_s\neq\varnothing,
+ \qquad P_s\cap T_s=\varnothing.
+\]
+
+The feasible region in Definition \(\mathrm{def{:}covering\mbox{-}lp}\) is nonempty because the vector \(y_v=1\) for every \(v\in V^{-}\) satisfies every covering constraint.  It is closed inside the compact cube \([0,1]^{V^{-}}\), so the linear objective attains its minimum.  Proposition \(\mathrm{prop{:}promised\mbox{-}enumeration}\), instantiated with \(\triangleleft_V\), lists all constraints in polynomial time, and Lemma \(\mathrm{lem{:}rational\mbox{-}lp\mbox{-}polynomial\mbox{-}time}\) returns an optimal rational solution.  Fix one such solution \(y\).
+
+For \(0<t<1/2\), let \(A_t\) be the threshold set of Definition \(\mathrm{def{:}parent\mbox{-}spouse\mbox{-}rounding}\).  Suppose that \(A_t\cap R=\varnothing\) for some \(R\in\mathcal C(G,s)\), and set \(a=|R\cap P_s|\).  The displayed partition and \(|R|=3\) imply \(a\in\{1,2\}\).  Since \(R\) is missed, the two threshold rules imply
+\[
+ y_p<t\quad(p\in R\cap P_s),
+ \qquad
+ y_b<\frac12-t\quad(b\in R\cap T_s).
+\]
+If \(a=1\), then
+\[
+ \sum_{v\in R}y_v
+ <t+2\left(\frac12-t\right)
+ =1-t<1.
+\]
+If \(a=2\), then
+\[
+ \sum_{v\in R}y_v
+ <2t+\left(\frac12-t\right)
+ =\frac12+t<1.
+\]
+Each alternative contradicts the LP constraint \(\sum_{v\in R}y_v\geq1\).  Hence every \(A_t\), for \(0<t<1/2\), hits every residual and is feasible for Definition \(\mathrm{def{:}mcid\mbox{-}objective}\).
+
+Let \(T\) be uniform on \((0,1/2)\).  For \(p\in P_s\), the event \(p\in A_T\) is \(T\leq y_p\); for \(b\in T_s\), the event \(b\in A_T\) is \(T\geq1/2-y_b\).  Since \(0\leq y_v\leq1\), the relevant interval lengths give
+\[
+ \Pr(p\in A_T)=\min\{1,2y_p\},
+ \qquad
+ \Pr(b\in A_T)=\min\{1,2y_b\}.
+\]
+No vertex outside \(P_s\cup T_s\) is selected.  Using \(P_s\cap T_s=\varnothing\), linearity of expectation, and Assumption \(\mathrm{ass{:}positive\mbox{-}rational\mbox{-}cost}\),
+\[
+ \begin{aligned}
+ \mathbb E\!\left[\sum_{v\in A_T}c(v)\right]
+ &=\sum_{v\in P_s\cup T_s}c(v)\min\{1,2y_v\}\\
+ &\leq2\sum_{v\in V^{-}}c(v)y_v
+ =2\operatorname{LP}(G,s,c).
+ \end{aligned}
+\]
+For every intervention feasible in Definition \(\mathrm{def{:}mcid\mbox{-}objective}\), its incidence vector is LP-feasible with the same objective.  Therefore
+\[
+ \operatorname{LP}(G,s,c)\leq\operatorname{OPT}(G,s,c).
+\]
+
+Membership in \(A_t\) can change only at a value in
+\[
+ \{y_p:p\in P_s\}\cup
+ \left\{\frac12-y_b:b\in T_s\right\}.
+\]
+The values lying in \((0,1/2)\) divide that interval into finitely many open cells, and \(A_t\) is constant on each cell.  Critical values themselves have Lebesgue measure zero.  If every open cell had cost strictly greater than \(2\operatorname{LP}(G,s,c)\), then, because there are finitely many positive-length cells, their weighted average would also be strictly greater than \(2\operatorname{LP}(G,s,c)\), contradicting the preceding expectation bound.  Hence some cell has cost at most \(2\operatorname{LP}(G,s,c)\).  The rationality of the optimal basic solution makes every critical value rational, so a rational representative of each nonempty cell can be computed.  Definition \(\mathrm{def{:}parent\mbox{-}spouse\mbox{-}rounding}\) evaluates all these representatives, as well as the critical values, and its cheapest evaluated set consequently satisfies
+\[
+ \sum_{v\in A_t}c(v)
+ \leq2\operatorname{LP}(G,s,c)
+ \leq2\operatorname{OPT}(G,s,c).
+\]
+
+Finally, the corrected Definition \(\mathrm{def{:}promised\mbox{-}enumerator}\) and Proposition \(\mathrm{prop{:}promised\mbox{-}enumeration}\) use the already supplied causal-vertex order \(\triangleleft_V\) to list each LP constraint exactly once; no order on a source graph is invoked.  The rational LP is solved in polynomial time by Lemma \(\mathrm{lem{:}rational\mbox{-}lp\mbox{-}polynomial\mbox{-}time}\).  There are at most \(2|V|\) critical values, so sorting them and evaluating the critical values and one rational representative per cell is polynomial.  This proves the algorithmic and cost claims.
+%%% FIELD proof-prop-optimizer-or-violation
+Fix the supplied total order \(\triangleleft_V\) on \(V\), and define the proof-local family
+\[
+ \mathcal C_{\leq3}=\{R\in\mathcal C(G,s):|R|\leq3\}.
+\]
+Apply Definition \(\mathrm{def{:}promised\mbox{-}enumerator}\), with input \(\triangleleft_V\), to every \(R\subseteq V^{-}\) of size at most three.  The connectivity and reachability tests are exactly the hedge conditions in Definition \(\mathrm{def{:}singleton\mbox{-}hedges}\), and testing every proper subset is exactly the minimality condition in Definition \(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\).  Thus the output is precisely \(\mathcal C_{\leq3}\), once per member and in the lexicographic order induced by \(\triangleleft_V\).  This bounded enumeration does not use a rank promise.
+
+Theorem \(\mathrm{thm{:}first\mbox{-}rank\mbox{-}boundary}\) implies that every member of \(\mathcal C_{\leq3}\) has size exactly three, lies in the disjoint union \(P_s\mathbin{\dot\cup}T_s\), and meets both parts.  Define the restricted fractional and integral values
+\[
+ \operatorname{LP}_{\leq3}
+ =\min\left\{\sum_{v\in V^{-}}c(v)y_v:
+ y\in[0,1]^{V^{-}},\ 
+ \sum_{v\in R}y_v\geq1\ \forall R\in\mathcal C_{\leq3}\right\}
+\]
+and
+\[
+ \operatorname{OPT}_{\leq3}
+ =\min\left\{\sum_{v\in A}c(v):
+ A\subseteq V^{-},\ A\cap R\neq\varnothing\ \forall R\in\mathcal C_{\leq3}\right\}.
+\]
+These are proof-local names for the bounded-obstruction relaxation; they do not alter Definitions \(\mathrm{def{:}covering\mbox{-}lp}\) and \(\mathrm{def{:}mcid\mbox{-}objective}\).
+
+The restricted LP has rational coefficients and a nonempty compact feasible region.  Lemma \(\mathrm{lem{:}rational\mbox{-}lp\mbox{-}polynomial\mbox{-}time}\) therefore returns an optimal rational solution \(y^{(3)}\) in polynomial time after the bounded family has been enumerated.  For \(0<t<1/2\), construct \(A_t\) from \(y^{(3)}\) by Definition \(\mathrm{def{:}parent\mbox{-}spouse\mbox{-}rounding}\).  If \(A_t\) missed a member \(R\in\mathcal C_{\leq3}\) with one parent, then
+\[
+ \sum_{v\in R}y^{(3)}_v
+ <t+2\left(\frac12-t\right)=1-t<1;
+\]
+if it missed one with two parents, then
+\[
+ \sum_{v\in R}y^{(3)}_v
+ <2t+\left(\frac12-t\right)=\frac12+t<1.
+\]
+Both cases contradict the corresponding restricted LP constraint, so every threshold set hits \(\mathcal C_{\leq3}\).  With \(T\) uniform on \((0,1/2)\), the same direct interval calculation gives
+\[
+ \Pr(p\in A_T)=\min\{1,2y^{(3)}_p\},
+ \qquad
+ \Pr(b\in A_T)=\min\{1,2y^{(3)}_b\}.
+\]
+Assumption \(\mathrm{ass{:}positive\mbox{-}rational\mbox{-}cost}\), disjointness of \(P_s\) and \(T_s\), and linearity of expectation therefore give
+\[
+ \mathbb E[c(A_T)]
+ \leq2\sum_{v\in V^{-}}c(v)y^{(3)}_v
+ =2\operatorname{LP}_{\leq3}.
+\]
+The finite breakpoint argument from Definition \(\mathrm{def{:}parent\mbox{-}spouse\mbox{-}rounding}\) consequently returns an evaluated threshold set \(A^{\mathrm{rnd}}\) satisfying
+\[
+ c(A^{\mathrm{rnd}})\leq2\operatorname{LP}_{\leq3}.
+\]
+Every globally feasible intervention hits \(\mathcal C_{\leq3}\), so its incidence vector is feasible for the restricted LP.  Definition \(\mathrm{def{:}mcid\mbox{-}objective}\) thus implies
+\[
+ \operatorname{LP}_{\leq3}\leq\operatorname{OPT}(G,s,c),
+ \qquad
+ c(A^{\mathrm{rnd}})\leq2\operatorname{OPT}(G,s,c).
+\]
+Alternatively, an exact optimization backend may return an integral minimizer \(A^{(3)}\) of the restricted family, with \(c(A^{(3)})=\operatorname{OPT}_{\leq3}\).  No polynomial-time claim is made for that exact integral optimization.
+
+For either returned set \(A\), apply Lemma \(\mathrm{lem{:}fixed\mbox{-}point\mbox{-}hedge\mbox{-}oracle}\) to \(F_0=V\setminus A\).  Since \(A\subseteq V^{-}\), one has \(s\in F_0\).  The lemma says that alternating restriction to directed ancestors of \(s\) and the bidirected component of \(s\) terminates in polynomial time at \(\{s\}\) exactly when \(F_0\) contains no hedge.  Because the graph is finite, every hedge contains an inclusion-minimal hedge.  Hence this successful termination is equivalent to \(A\) hitting every member of \(\mathcal C(G,s)\), and so it certifies global feasibility.
+
+If \(A=A^{(3)}\) and verification succeeds, restriction of the constraint family gives \(\operatorname{OPT}_{\leq3}\leq\operatorname{OPT}(G,s,c)\), while global feasibility of \(A^{(3)}\) gives the reverse inequality.  Therefore
+\[
+ \operatorname{OPT}_{\leq3}
+ \leq\operatorname{OPT}(G,s,c)
+ \leq c(A^{(3)})
+ =\operatorname{OPT}_{\leq3},
+\]
+so the exact restricted optimum is globally exact.  If \(A=A^{\mathrm{rnd}}\) and verification succeeds, the preceding display certifies the global factor-two guarantee.
+
+Suppose instead that verification fails.  Lemma \(\mathrm{lem{:}fixed\mbox{-}point\mbox{-}hedge\mbox{-}oracle}\) returns a hedge \(F\subseteq V\setminus A\).  For each \(v\in F\setminus\{s\}\), apply the same oracle to \(F\setminus\{v\}\).  Whenever a hedge survives, replace \(F\) by the fixed-point hedge returned by the oracle and restart the scan.  Each replacement strictly reduces \(|F|\); hence there are at most \(|V|-1\) replacements and at most \(|V|-1\) oracle calls between replacements.  The deletion procedure is polynomial.
+
+At termination, no \(F\setminus\{v\}\), for \(v\in F\setminus\{s\}\), contains a hedge.  If a proper hedge \(J\subsetneq F\) existed, then \(s\in J\) by Definition \(\mathrm{def{:}singleton\mbox{-}hedges}\), so one could choose \(v\in F\setminus J\) with \(v\neq s\); then \(J\subseteq F\setminus\{v\}\), a contradiction.  Thus \(F\) is inclusion-minimal, and Definition \(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\) gives
+\[
+ R:=F\setminus\{s\}\in\mathcal C(G,s).
+\]
+Moreover, \(F\subseteq V\setminus A\) implies \(A\cap R=\varnothing\).  Both \(A^{(3)}\) and \(A^{\mathrm{rnd}}\) hit every member of \(\mathcal C_{\leq3}\); therefore this missed residual is not in \(\mathcal C_{\leq3}\), and \(|R|>3\).  The returned induced subgraph verifies the hedge conditions directly, and the unsuccessful deletion tests verify minimality.  This is the claimed optimizer-or-rank-violation certificate.
+%%% FIELD proof-thm-tight-frontier
+Let \((G,s,c)\) be an arbitrary finite simple bow-free singleton-target instance in the class stated by the theorem.  Thus \(c(v)\in\mathbb Q_{>0}\) for every \(v\in V^{-}\), \(r(G,s)\leq3\), and \(\mathcal C(G,s)\neq\varnothing\).  Choose \(R_0\in\mathcal C(G,s)\).  Definitions \(\mathrm{def{:}singleton\mbox{-}hedges}\) and \(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\) imply \(R_0\neq\varnothing\).  Finiteness and positivity give
+\[
+ m_0:=\min_{v\in R_0}c(v)>0.
+\]
+For every vector \(y\) feasible in Definition \(\mathrm{def{:}covering\mbox{-}lp}\), nonnegativity of \(y\) and the constraint indexed by \(R_0\) imply
+\[
+ \sum_{v\in V^{-}}c(v)y_v
+ \geq\sum_{v\in R_0}c(v)y_v
+ \geq m_0\sum_{v\in R_0}y_v
+ \geq m_0>0.
+\]
+Hence \(\operatorname{LP}(G,s,c)>0\), so the asserted ratio is well defined.
+
+Enumerate the finite set \(V\); the enumeration induces a total order \(\triangleleft_V\) on \(V\).  Supply this causal-vertex order to Theorem \(\mathrm{thm{:}rank\mbox{-}three\mbox{-}rounding}\).  That theorem returns a globally feasible intervention \(A_t\) with
+\[
+ \sum_{v\in A_t}c(v)\leq2\operatorname{LP}(G,s,c).
+\]
+Definition \(\mathrm{def{:}mcid\mbox{-}objective}\) minimizes over all globally feasible interventions, so
+\[
+ \operatorname{OPT}(G,s,c)
+ \leq\sum_{v\in A_t}c(v)
+ \leq2\operatorname{LP}(G,s,c).
+\]
+Division by the positive LP value proves
+\[
+ \frac{\operatorname{OPT}(G,s,c)}{\operatorname{LP}(G,s,c)}\leq2
+\]
+throughout the full positive-rational-cost class.  This use of \(\triangleleft_V\) is internal to the rounding algorithm.
+
+For the matching lower bound, fix \(n\geq2\), equip the source graph \(K_n\) with any total order \(\prec\) on its vertex set \(U\), and form the private-guard expansion \(G_{K_n}\) using Definition \(\mathrm{def{:}private\mbox{-}guard\mbox{-}expansion}\).  The source order \(\prec\) is independent of the causal-vertex order \(\triangleleft_V\) used above.  Assign unit cost to every vertex in \(V^{-}\).  Theorem \(\mathrm{thm{:}private\mbox{-}guard\mbox{-}realization}\) gives a finite simple bow-free instance whose bidirected subgraph is a tree of radius at most two, with
+\[
+ \mathcal C(G_{K_n},s)
+ =\bigl\{\{x_u,x_v,z_e\}:e=\{u,v\}\in E(K_n)\bigr\},
+ \qquad r(G_{K_n},s)=3.
+\]
+Theorem \(\mathrm{thm{:}objective\mbox{-}preserving\mbox{-}hardness}\) gives
+\[
+ \operatorname{OPT}(G_{K_n},s,c)=\tau(K_n).
+\]
+Any set of at most \(n-2\) source vertices omits two vertices and fails to cover their edge, whereas all but one source vertex cover every edge.  Thus \(\tau(K_n)=n-1\).
+
+Set \(y_{x_u}=1/2\) for every \(u\in U\) and \(y_{z_e}=0\) for every \(e\in E(K_n)\).  Each clutter constraint has left side \(1/2+1/2+0=1\), so this vector is feasible with unit-cost objective \(n/2\).  Conversely, sum
+\[
+ y_{x_u}+y_{x_v}+y_{z_e}\geq1
+\]
+over all \(e=\{u,v\}\in E(K_n)\).  Each \(x_u\) occurs in exactly \(n-1\) constraints, whence
+\[
+ (n-1)\sum_{u\in U}y_{x_u}
+ +\sum_{e\in E(K_n)}y_{z_e}
+ \geq\binom n2.
+\]
+Dividing by \(n-1>0\) gives
+\[
+ \sum_{u\in U}y_{x_u}
+ +\frac1{n-1}\sum_{e\in E(K_n)}y_{z_e}
+ \geq\frac n2.
+\]
+Because \(n\geq2\) and every \(y_{z_e}\geq0\), the unit-cost objective is at least the left side of this last display and hence at least \(n/2\).  Therefore
+\[
+ \operatorname{LP}(G_{K_n},s,c)=\frac n2,
+ \qquad
+ \frac{\operatorname{OPT}(G_{K_n},s,c)}{\operatorname{LP}(G_{K_n},s,c)}
+ =\frac{n-1}{n/2}=2-\frac2n.
+\]
+For the smallest case \(n=2\), the sole constraint gives ratio one, exactly as the formula states.  As \(n\to\infty\), the ratios converge to two.  These unit-cost radius-two-tree instances lie within the full weighted class, so the universal upper bound and this sequence prove that the supremum is exactly two.
+
+Finally assume Assumption \(\mathrm{ass{:}unique\mbox{-}games}\), fix \(\epsilon>0\), and suppose for contradiction that a polynomial-time \((2-\epsilon)\)-approximation exists on the stated narrower subclass of unit-cost, nonempty-clutter, rank-three instances with a radius-two bidirected tree.  Given a finite simple source graph \(H\) with at least one edge, choose any source order \(\prec\), construct \(G_H\), and assign unit costs.  Theorem \(\mathrm{thm{:}private\mbox{-}guard\mbox{-}realization}\) places this instance in the narrower subclass.  If the hypothetical algorithm returns a feasible intervention \(A\), the polynomial-time guard-replacement map from Theorem \(\mathrm{thm{:}objective\mbox{-}preserving\mbox{-}hardness}\) returns a vertex cover \(C_A\) satisfying
+\[
+ |C_A|\leq|A|.
+\]
+The same theorem gives \(\operatorname{OPT}(G_H,s,c)=\tau(H)\), and hence
+\[
+ |C_A|
+ \leq|A|
+ \leq(2-\epsilon)\operatorname{OPT}(G_H,s,c)
+ =(2-\epsilon)\tau(H).
+\]
+For an edgeless \(H\), output the empty vertex cover directly.  The hypothetical causal-design algorithm would therefore induce a polynomial-time \((2-\epsilon)\)-approximation for Minimum Vertex Cover on every finite simple graph, contradicting Lemma \(\mathrm{lem{:}ugc\mbox{-}vertex\mbox{-}cover\mbox{-}hardness}\).  This proves the conditional lower bound on the narrower subclass.

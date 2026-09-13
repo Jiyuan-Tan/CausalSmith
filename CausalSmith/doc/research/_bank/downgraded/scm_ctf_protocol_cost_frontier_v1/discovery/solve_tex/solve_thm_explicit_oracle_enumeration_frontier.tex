@@ -1,0 +1,125 @@
+%%% FIELD proof-explicit-frontier
+Put \(m=|\mathcal A|\), \(L=|\mathrm{LIT}|\), and \(n=|V|\).  We construct a finite candidate universe, prove that it contains exactly the records relevant to operational acceptance, and optimize over that universe.
+
+First enumerate the \(2^m\) protocol masks \(S\) in canonical order.  Membership in \(\Pi\) is decidable from Definition~\(\mathrm{Legal\ protocol\ class}\): the unique-SELECT, mechanism-use, precedence, and conflict conditions are finite checks against the explicit catalogue, the fresh-iid SELECT condition is the source-typing condition imposed on the SELECT action, and physical compatibility is decided by CTF-REALIZE.  By Lemma~\(\mathrm{Published\ CTF\text{-}REALIZE\ runtime}\), the last check takes polynomial time in the encoded graph and protocol.  Query \(\mathcal O_{\mathrm{src}}\) once for each legal mask and cache the immutable answer.  Hence the number of distinct oracle queries is at most
+\[
+  2^m. \tag{1}
+\]
+An answer equal to \(\bot\), or one whose self-delimiting support index fails the format in Definition~\(\mathrm{Certificate\text{-}independent\ physical\ input\ and\ source\ interface}\), yields no candidate source.
+
+For every remaining protocol enumerate the \(2^L\) masks \(\ell\).  Definition~\(\mathrm{Canonical\ literal\ and\ label\ encoding}\) decides by a finite scan whether \(\ell\) is consistent and uses only catalogued values.  The returned exact support table decides whether
+\[
+  P_S\{H_{\mathrm{slice}}(S,\ell)\}>0. \tag{2}
+\]
+By Definition~\(\mathrm{Measured\ source\ slice}\), (2) is precisely the division condition that makes the corresponding symbolic conditional projection defined.  The event-local positive-source-law assumption guarantees (2) for every conditioning event actually used by an accepted certificate; it imposes nothing on an unused zero-probability cell.  Consequently, discarding masks that fail (2) loses no accepted certificate and makes no semantic completeness claim about CTFIDU\({}^{+}\).
+
+For each surviving slice, perform the ancestral-set transformation and bidirected-district decomposition used by the operational complete run.  There are at most \(n\) retained districts and hence at most \(n\) canonical single-district source factors \(T\).  The measured-ancestry assumption and Definition~\(\mathrm{Measured\ source\ slice}\) remove exactly those candidates for which a required transformed ancestor is neither READ nor fixed by a recorded action.  Thus the enumeration is exhaustive over every protocol--slice--source triple that can occur in an accepted certificate.
+
+Fix such a triple \((S,\ell,T)\) and a target factor \(C_j\).  If the free request positions for \(C_j\) have domain sizes \(q_1,\ldots,q_r\), the equality type is induced by the assignment and is not an additional choice.  Since the literal table contains one distinct request literal for each possible value at each free position,
+\[
+  |\Omega_j|=\prod_{h=1}^{r}q_h
+  \leq \prod_{h=1}^{r}2^{q_h}
+  =2^{\sum_{h=1}^{r}q_h}
+  \leq 2^L. \tag{3}
+\]
+Here \(q_h\leq 2^{q_h}\) for every positive integer \(q_h\).  In particular,
+\[
+  |\Omega|=\sum_{j=1}^{k}|\Omega_j|\leq k2^L. \tag{4}
+\]
+
+Enumerate every branch in \(\Omega_j\).  For that concrete branch, form \(D_T\) by Definition~\(\mathrm{Value\text{-}matching\ dependency\ graph}\) and execute the ancestor--district recursion of Lemma~\(\mathrm{Published\ IDENTIFY^{+}\ recursion}\).  Each nonterminal recursive call strictly decreases the current vertex set, so there are at most \(|T|\leq n\) strict restrictions.  On the connected, once-occurring factor inputs in the fixed-factor proposition, Proposition~\(\mathrm{Connected\text{-}ancestor\ obstruction}\) gives the equivalent finite failure test \(\mathfrak O(T,C_j)\neq\varnothing\); when this obstruction is absent, Lemma~\(\mathrm{Fixed\ transcript\ size}\) supplies a successful transcript with at most \(|T|\) strict steps and \(O(|T|^2)\) bits apart from literal identifiers.  Every recorded ancestor set, retained district, and literal equality is checked by graph traversal and value comparison.  Thus success and a canonical transcript are computable in time polynomial in the structural input and the transcript representation for each fixed branch.
+
+Replace each concrete request value in a successful transcript by its canonical request-position identifier and compare the resulting strings over all branches of \(\Omega_j\).  Call \(U(S,\ell,T)\subseteq[k]\) the set of indices \(j\) for which all branches succeed with one such common schema and for which substitution of each enumerated branch back into that schema verifies.  This is an exact test of the uniformity clause in Definition~\(\mathrm{Uniform\ acquisition\ certificate}\): necessity follows because acceptance verifies the same source and schema on every branch, while sufficiency follows because the exhaustive substitution check covers all of \(\Omega_j\).
+
+For a fixed \(S\), form \(\mathcal D(S)\) as follows.  For every surviving \((\ell,T)\), and every subset \(J\subseteq U(S,\ell,T)\), include the canonical record owning \(J\) with the verified schema for each \(j\in J\); also include every syntactically allowed empty-ownership paid-protocol marker.  Every \(C_j\) is nonempty, so its first-coordinate request literals contribute at least one literal not contributed by any other factor.  Hence
+\[
+  k\leq L. \tag{5}
+\]
+There are at most \(n2^L\) nonempty candidate bases, and therefore
+\[
+  |\mathcal D(S)|\leq (1+n2^L)2^k
+  =2^{O(L)}\operatorname{poly}(N_{\mathrm{in}}). \tag{6}
+\]
+The deterministic recursion makes the stored canonical schema unique for a fixed base and owned factor.  By construction, every record that can pass \(\operatorname{Acc}\) belongs to the appropriate \(\mathcal D(S)\), and every member of \(\mathcal D(S)\) passes all record-local syntax, legality, support, source-extraction, measured-ancestry, and uniform-transcript checks.
+
+Define
+\[
+  w(S)=\sum_{a\in S}c(a),
+  \qquad
+  K(S)=\bigcup_{\ell,T}U(S,\ell,T). \tag{7}
+\]
+We claim
+\[
+  \exists E\;\operatorname{Acc}(Q,E;G)=1
+  \quad\Longleftrightarrow\quad
+  \exists\mathcal P\subseteq\Pi\quad
+  \bigcup_{S\in\mathcal P}K(S)=[k]. \tag{8}
+\]
+For the forward implication, let \(E\) be accepted.  Each nonempty record passes every local check in Definition~\(\mathrm{Operational\ acceptance}\); if it uses protocol \(S\) and owns \(j\), the preceding exhaustive test therefore places \(j\) in \(K(S)\).  Since the nonempty ownership masks partition \([k]\), the distinct protocols represented in \(E\) satisfy the right side of (8).
+
+Conversely, suppose \(\mathcal P\) satisfies the right side of (8).  Assign each \(j\) to the first \(S\in\mathcal P\) in canonical order for which \(j\in K(S)\), choose the first enumerated witness \((\ell,T)\) for that membership, merge assignments having the same record base when possible, and sort the resulting records lexicographically.  The ownership masks partition \([k]\).  Every chosen record has already passed the legal-protocol, exact positive-support, source-extraction, measured-ancestry, and all-branch transcript tests.  The complete CTFIDU\({}^{+}\) search over the resulting full decoded source list consequently finds the displayed successful source for every target factor and does not return \(\operatorname{FAIL}\).  Hence every clause of operational acceptance holds, proving the reverse implication.
+
+The action costs are nonnegative binary rationals by the binary-rational-cost assumption.  Since the candidate family is finite, a feasible minimum is attained.  Definition~\(\mathrm{Distinct\text{-}protocol\ cost}\) charges a represented protocol once, regardless of how many of its slices or records are used.  Equation (8) therefore gives the derived identity
+\[
+  \operatorname{Opt}
+  =\min_{\mathcal P\subseteq\Pi:\,\bigcup_{S\in\mathcal P}K(S)=[k]}
+       \sum_{S\in\mathcal P}w(S), \tag{9}
+\]
+with value \(+\infty\) when the feasible family is empty.  This is an identity for the operational certificate optimum, not a definition or evaluation of the causal query \(Q\).
+
+List the enumerated legal protocols as \(S_1,\ldots,S_p\), where \(p\leq2^m\).  For \(U\subseteq[k]\), set \(D_0(\varnothing)=0\), set \(D_0(U)=+\infty\) when \(U\neq\varnothing\), and recursively set
+\[
+  D_i(U)=\min\bigl\{D_{i-1}(U),\,
+  D_{i-1}(U\setminus K(S_i))+w(S_i)\bigr\}. \tag{10}
+\]
+Induction on \(i\) proves that \(D_i(U)\) is the minimum cost of a subset of \(\{S_1,\ldots,S_i\}\) whose \(K\)-sets cover \(U\): an optimum either omits \(S_i\), giving the first term, or contains it, leaving \(U\setminus K(S_i)\) for earlier protocols and giving the second.  Thus \(D_p([k])\) equals (9).  If it is infinite, (8) certifies \(\operatorname{Opt}=+\infty\).
+
+If \(D_p([k])<+\infty\), recover the lexicographically first optimum certificate by self-reduction over the finite sorted universe \(\mathcal D=\bigcup_i\mathcal D(S_i)\).  For completeness, feasibility of an encoding prefix is decided as follows.  The prefix forces or excludes a finite set of records and restricts the possible next record.  Reject intersecting forced nonempty ownership masks or a failed local check.  For each protocol scan its remaining allowed records and maintain the attainable disjoint ownership masks via
+\[
+  A_{r+1}=A_r\cup
+  \{U\cup J:U\in A_r,\ U\cap J=\varnothing\},
+  \qquad A_0=\{\varnothing\}. \tag{11}
+\]
+Simultaneously record whether at least one record of that protocol is selected, because that Boolean is exactly whether \(w(S)\) is charged.  Induction on the scanned records proves that (11) gives exactly the locally attainable ownership masks.  A second dynamic program over protocols combines disjoint local masks and adds \(w(S)\) precisely for represented protocols.  It therefore returns exactly the least cost of an accepted completion of the prefix, including completions containing zero-cost empty-ownership markers.
+
+Starting from the empty prefix, test the next bit values and the self-delimiting end marker in lexicographic order, retaining the first choice whose constrained optimum equals \(D_p([k])\).  The invariant that the retained prefix has an optimum completion holds initially and after every choice.  The universe is finite and records cannot repeat, so the process terminates at an accepted optimum.  Were there a lexicographically earlier optimum, its bit at the first differing position would have passed the corresponding completion test and would have been selected, a contradiction.  The returned certificate is therefore the lexicographically first optimum.
+
+It remains to bound resources.  By (3), candidate generation performs at most
+\[
+  2^m\,2^L\,n\sum_{j=1}^{k}|\Omega_j|
+  \leq 2^m\,2^L\,nk2^L
+  =2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}) \tag{12}
+\]
+branch checks.  The recurrence (10) has at most \(2^m2^k\) updates.  A constrained completion test uses at most \(|\mathcal D|2^k\) local updates and \(2^m3^k\) disjoint-mask transitions; the number of tested prefix positions is polynomial in \(|\mathcal D|\) and in the maximum record length.  Equations (5) and (6) place all of these quantities within
+\[
+  2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O}). \tag{13}
+\]
+Exact addition and comparison of binary-rational costs have polynomial bit complexity.  Every inspected oracle bit is included in \(N_{\mathcal O}\); caching one immutable reply per queried protocol uses \(O(N_{\mathcal O})\) bits.  Candidate masks, transcripts, predecessor pointers, and two dynamic-programming layers use at most the space in (13).  Together, (1) and (12)--(13) prove the asserted query, time, and oracle-answer-space bounds and the output dichotomy.  The construction only optimizes the explicitly restricted uniform operational certificates; it produces neither a scalar identifying functional nor an oracle lower bound.
+
+%%% FIELD proof-frontier-answer
+Apply Theorem~\(\mathrm{Explicit\ oracle\ enumeration\ frontier}\) to the restricted uniform acquisition certificates and the operational predicate named in the present statement.  With \(m=|\mathcal A|\) and \(L=|\mathrm{LIT}|\), that theorem constructs a deterministic algorithm satisfying
+\[
+  q\leq 2^m, \tag{1}
+\]
+\[
+  t\leq 2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O}), \tag{2}
+\]
+and
+\[
+  s\leq 2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O}), \tag{3}
+\]
+where \(q\), \(t\), and \(s\) denote respectively the number of distinct source-oracle queries, the running time, and the oracle-answer space.  The query bound is uniform over the source interface because a protocol is an \(m\)-bit mask, so there are exactly \(2^m\) possible masks, and the algorithm caches the immutable answer to each queried mask.  Oracle replies may be large, but every inspected reply bit is charged to \(N_{\mathcal O}\), as required in (2)--(3).
+
+The same theorem proves the exhaustive output alternatives
+\[
+  \operatorname{Opt}<+\infty
+  \quad\Longrightarrow\quad
+  \text{the algorithm returns the lexicographically first minimum-cost accepted certificate}, \tag{4}
+\]
+and
+\[
+  \operatorname{Opt}=+\infty
+  \quad\Longrightarrow\quad
+  \text{the algorithm certifies that no accepted uniform certificate exists}. \tag{5}
+\]
+These cases are exhaustive because the feasible candidate family is finite, its costs are nonnegative binary rationals, and the convention for an empty feasible family is \(\inf\varnothing=+\infty\).  Equations (1)--(5) are exactly the positive algorithmic alternative asserted here.  Since the invoked result is an upper-bound construction, no subexponential oracle lower bound follows or is claimed.

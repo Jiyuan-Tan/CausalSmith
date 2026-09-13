@@ -1,0 +1,1394 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}feedback\_\allowbreak{}logit\_\allowbreak{}stieltjes\_\allowbreak{}cone}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For a two-period binary logit panel with a predetermined binary covariate and unrestricted heterogeneity on \((0,\infty)\), the independently defined weak and strict joint slope--APE fibers equal finite quartic Stieltjes feasibility sets for every observed probability vector, including zero-cell laws. Eight coupled response-type measures reconstruct one legal history-conditioned sequential model without cross-world independence. The weak certificate has fifty-six variables with eight \(3\times3\) and eight augmented \(4\times4\) PSD blocks; the strict certificate has sixty-four variables and eight additional \(6\times6\) common-range blocks. For \(\theta\ne0\), \(\operatorname{sign}(\Delta)=\operatorname{sign}(\theta)\) and \(|\Delta|\le\tanh(|\theta|/4)\), with equality if and only if \(\mu=\delta_{\exp(-\theta/2)}\); at \(\theta=0\), every \(\mu\) gives equality. The note also gives sharp fixed-slope endpoint programs with separate attainment tests, premise-correct algebraic decisions and projections, exact multinomial whole-set coverage, and pointwise endpoint consistency only at fixed-slope relative-interior attainable laws.
+
+\section{Project justification}
+
+\paragraph{Gap.} Bonhomme, Dano, and Graham (2023), SERIEs 14, pages 315--351, characterize the sharp two-period unrestricted-feedback model conditional on the first-period covariate for a maintained heterogeneity support and reference measure and compute continuous-support cases with density and support-grid methods. That work informs the conditional equations used here but does not supply this note's measure-valued reformulation, finite joint-response Stieltjes cone, strict common-support certificate, or all-laws legal-kernel reconstruction. Dobronyi, Gu, Kim, and Russell provide truncated-Stieltjes tools for a different conditional structure without the separately unknown heterogeneity-dependent feedback kernel reconstructed here.
+
+\paragraph{Niche.} A product coupling of the two feedback-coordinate marginals constructs eight joint response types without imposing cross-world independence. The binary-logit path likelihoods share a positive quartic denominator, so five bounded generalized moments per type suffice; common Hankel range upgrades separate positive-half-line representations to one finite positive-node support with every type weight positive.
+
+\paragraph{Fill.} The note proves exact two-sided maps between independently defined weak and strict legal sequential models, eight response-type measures, and finite Stieltjes lifts on the entire observed-law simplex. With positive margins, conditionalization and Radon--Nikodym mixing identify the weak model with this note's measure-valued conditional reformulation of the Bonhomme--Dano--Graham equations. No equality with their published fixed-reference or Lebesgue-density program is asserted, and the strict fiber is only an additional subclass. The cone yields the sharp universal sign-sensitive slope--APE envelope and supports endpoint, algebraic-decision, exact-coverage, and fixed-slope relative-interior results.
+
+\section{Related work}
+
+Bonhomme, Dano, and Graham (2023), SERIEs 14, pages 315--351, Proposition 1 and Sections 5.1--5.3, give the sharp two-period unrestricted-feedback program conditional on the first-period covariate for a maintained heterogeneity support and reference measure; their continuous-support computations use density representations and support grids. The present comparison is only with this note's measure-valued conditional reformulation of those equations, obtained after adjoining positive initial margins and using conditionalization and reverse Radon--Nikodym mixing. It is not an equality claim about the published fixed-reference or Lebesgue-density program. The strict initial-and-feedback-positive fiber is an additional subclass. Dobronyi, Gu, Kim, and Russell (2026), Theorems 3.1--3.2, provide rational-mixture and truncated-Stieltjes ideas, but their model does not contain the separately unknown unrestricted feedback kernel reconstructed here. Curto and Fialkow (1991) and Bayer and Teichmann (2002) provide classical moment and finite-atomic substrate. Bonhomme, Dano, and Graham (2026) study feedback-robust moment equalities, while Gu, Russell, and Stringham (2026) use finite latent-cell enumeration; neither supplies this continuous-logit legal-kernel equivalence. Arellano and Carrasco (2003) provide the predetermined-children labor-participation design that can consume the exact bounds.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \((\theta,\Delta)=(\log c,\int_{(0,\infty)}[(cu)/(1+cu)-u/(1+u)]d\mu(u))\).
+Primary functional / estimator / diagnostic: \(\Theta_v(P)=\{(\log c,\Delta):\exists(\mu,h,g)\in\mathcal M_v(c),\ P(x,y,z,w)=\int_{(0,\infty)}h_x(u)p_x(y,u)g_{xy}(z,u)p_z(w,u)d\mu(u)\ \forall(x,y,z,w)\in B^4,\ \Delta=\int_{(0,\infty)}\frac{(c-1)u}{(1+u)(1+cu)}d\mu(u)\},\quad v\in\{\mathrm w,+\}\).
+\begin{itemize}
+  \item \texttt{B} --- \texttt{finite set}; \(\{0,1\}\); \texttt{binary state space}
+  \par\smallskip\noindent\emph{Definition.} \(B=\{0,1\}\)
+  \item \texttt{T} --- \texttt{integer}; \(\mathbb N\); \texttt{panel length}
+  \par\smallskip\noindent\emph{Definition.} \(T=2\)
+  \item \texttt{X} --- \texttt{random vector}; \(B^2\); \texttt{predetermined binary covariate path}
+  \par\smallskip\noindent\emph{Definition.} \(X=(X_1,X_2)\)
+  \item \texttt{Y} --- \texttt{random vector}; \(B^2\); \texttt{binary outcome path}
+  \par\smallskip\noindent\emph{Definition.} \(Y=(Y_1,Y_2)\)
+  \item \texttt{c} --- \texttt{scalar}; \(\mathbb R_{++}\); \texttt{slope odds}
+  \par\smallskip\noindent\emph{Definition.} \(c>0\)
+  \item \texttt{theta} --- \texttt{scalar}; \(\mathbb R\); \texttt{structural slope}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=\log c\)
+  \item \texttt{alpha} --- \texttt{scalar}; \(\mathbb R\); \texttt{log-\allowbreak{}scale heterogeneity}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha\) is time-invariant individual heterogeneity
+  \item \texttt{u} --- \texttt{scalar}; \(\mathbb R_{++}\); \texttt{odds-\allowbreak{}scale heterogeneity}
+  \par\smallskip\noindent\emph{Definition.} \(u=\exp(\alpha)\)
+  \item \texttt{p} --- \texttt{function}; \(B\times B\times\mathbb R_{++}\to(0,1)\); \texttt{binary-\allowbreak{}logit response probability}
+  \par\smallskip\noindent\emph{Definition.} \(p_x(y,u)=(c^x u)^y/(1+c^x u)\)
+  \item \texttt{P} --- \texttt{array}; \(\Delta^{15}\); observed sixteen-cell law of \(X_1,Y_1,X_2,Y_2\)
+  \par\smallskip\noindent\emph{Definition.} \(P=(P(x,y,z,w))_{(x,y,z,w)\in B^4}\)
+  \item \texttt{q} --- \texttt{vector}; \(\Delta^1\); \texttt{initial-\allowbreak{}covariate margin}
+  \par\smallskip\noindent\emph{Definition.} \(q_x=\sum_{y,z,w\in B}P(x,y,z,w)\)
+  \item \texttt{mu} --- \texttt{measure}; \(\mathcal P(\mathbb R_{++})\); \texttt{single base heterogeneity law}
+  \par\smallskip\noindent\emph{Definition.} \(\mu\) is the unconditional law of \(u\)
+  \item \texttt{h} --- \texttt{Markov kernel}; \(\mathbb R_{++}\to\Delta^1\); \texttt{heterogeneity-\allowbreak{}dependent initial assignment}
+  \par\smallskip\noindent\emph{Definition.} \(h_x(u)=\Pr(X_1=x\mid u)\)
+  \item \texttt{g} --- \texttt{Markov kernel}; \(B\times B\times\mathbb R_{++}\to\Delta^1\); \texttt{unrestricted feedback kernel}
+  \par\smallskip\noindent\emph{Definition.} \(g_{xy}(z,u)=\Pr(X_2=z\mid X_1=x,Y_1=y,u)\)
+  \item \texttt{r} --- \texttt{response type}; \(B^2\); \texttt{feedback response type}
+  \par\smallskip\noindent\emph{Definition.} \(r=(r_0,r_1)\), where \(r_y\) is the value of \(X_2\) after \(Y_1=y\)
+  \item \texttt{S} --- \texttt{finite set}; \(B^3\); \texttt{eight joint initial-\allowbreak{}assignment and feedback types}
+  \par\smallskip\noindent\emph{Definition.} \(S=\{s=(x,r_0,r_1):x,r_0,r_1\in B\}\)
+  \item \texttt{nu} --- \texttt{measure family}; \(\mathcal M_+(\mathbb R_{++})^8\); \texttt{joint response-\allowbreak{}type measures}
+  \par\smallskip\noindent\emph{Definition.} \(\nu=(\nu_s)_{s\in S}\)
+  \item \texttt{D} --- \texttt{polynomial}; \texttt{common quartic denominator}
+  \par\smallskip\noindent\emph{Definition.} \(D_c(u)=(1+u)^2(1+cu)^2\)
+  \item \texttt{rho} --- \texttt{measure family}; \(\mathcal M_+(\mathbb R_{++})^8\); \texttt{denominator-\allowbreak{}cleared type measures}
+  \par\smallskip\noindent\emph{Definition.} \(d\rho_s(u)=D_c(u)^{-1}d\nu_s(u)\)
+  \item \texttt{m} --- \texttt{array}; \(\mathbb R^{8\times5}\); \texttt{bounded quartic generalized moments}
+  \par\smallskip\noindent\emph{Definition.} \(m_{s,k}=\int_{(0,\infty)}u^k d\rho_s(u)\) for \(s\in S\) and \(k=0,\ldots,4\)
+  \item \texttt{a} --- \texttt{vector}; \(\mathbb R^8\); \texttt{lower Hankel-\allowbreak{}extension variables}
+  \par\smallskip\noindent\emph{Definition.} \(a=(a_s)_{s\in S}\)
+  \item \texttt{b} --- \texttt{vector}; \(\mathbb R^8\); \texttt{upper Hankel-\allowbreak{}extension variables}
+  \par\smallskip\noindent\emph{Definition.} \(b=(b_s)_{s\in S}\)
+  \item \texttt{t} --- \texttt{vector}; \(\mathbb R^8\); \texttt{common-\allowbreak{}range Schur variables}
+  \par\smallskip\noindent\emph{Definition.} \(t=(t_s)_{s\in S}\)
+  \item \texttt{H} --- \texttt{matrix family}; \((\mathbb S^3)^8\); \texttt{quartic moment Hankel matrices}
+  \par\smallskip\noindent\emph{Definition.} \(H_s=(m_{s,i+j})_{i,j=0}^2\)
+  \item \texttt{K} --- \texttt{matrix family}; \((\mathbb S^4)^8\); \texttt{open-\allowbreak{}half-\allowbreak{}line Hankel extensions}
+  \par\smallskip\noindent\emph{Definition.} \(K_s=\begin{bmatrix}a_s&m_{s,0}&m_{s,1}&m_{s,2}\\m_{s,0}&m_{s,1}&m_{s,2}&m_{s,3}\\m_{s,1}&m_{s,2}&m_{s,3}&m_{s,4}\\m_{s,2}&m_{s,3}&m_{s,4}&b_s\end{bmatrix}\)
+  \item \texttt{HSigma} --- \texttt{matrix}; \(\mathbb S^3\); \texttt{aggregate Hankel matrix}
+  \par\smallskip\noindent\emph{Definition.} \(H_{\Sigma}=\sum_{s\in S}H_s\)
+  \item \texttt{R} --- \texttt{matrix family}; \((\mathbb S^6)^8\); \texttt{common-\allowbreak{}Hankel-\allowbreak{}range blocks}
+  \par\smallskip\noindent\emph{Definition.} \(R_s=\begin{bmatrix}H_s&H_{\Sigma}\\H_{\Sigma}&t_s I_3\end{bmatrix}\)
+  \item \texttt{A} --- \texttt{polynomial family}; \texttt{denominator-\allowbreak{}cleared path likelihood}
+  \par\smallskip\noindent\emph{Definition.} \(A_{xz,yw}(u)=c^{xy+zw}u^{y+w}(1+u)^{x+z}(1+cu)^{2-x-z}\)
+  \item \texttt{N} --- \texttt{polynomial}; \texttt{denominator-\allowbreak{}cleared APE numerator}
+  \par\smallskip\noindent\emph{Definition.} \(N_c(u)=(c-1)u(1+u)(1+cu)\)
+  \item \texttt{L} --- \texttt{linear functional family}; \(\mathbb R[u]_{\le4}\to\mathbb R\); \texttt{moment evaluation map}
+  \par\smallskip\noindent\emph{Definition.} \(L_{m_s}(f)=\sum_{k=0}^4 f_km_{s,k}\) for \(f(u)=\sum_{k=0}^4f_ku^k\)
+  \item \texttt{Delta} --- \texttt{scalar}; \([-1,1]\); \texttt{unconditional average partial effect}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta=\int_{(0,\infty)}\frac{(c-1)u}{(1+u)(1+cu)}d\mu(u)\)
+  \item \texttt{Mw} --- \texttt{model class}; \texttt{weak unrestricted-\allowbreak{}feedback legal model class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm w}(c)\) denotes the weak legal class constructed in \(\mathrm{def{:}weak\text{-}legal\text{-}class}\).
+  \item \texttt{Mp} --- \texttt{model class}; \texttt{strict unrestricted-\allowbreak{}feedback legal model class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{+}(c)\) denotes the strict legal class constructed in \(\mathrm{def{:}strict\text{-}legal\text{-}class}\).
+  \item \texttt{ThetaW} --- \texttt{set}; \(\mathbb R^2\); \texttt{model-\allowbreak{}generated weak joint sharp slope-\allowbreak{}-\allowbreak{}APE fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{\mathrm w}(P)=\{(\log c,\Delta):\exists(\mu,h,g)\in\mathcal M_{\mathrm w}(c)\text{ such that }P(x,y,z,w)=\int_{(0,\infty)}h_x(u)p_x(y,u)g_{xy}(z,u)p_z(w,u)d\mu(u)\ \forall(x,y,z,w)\in B^4,\ \Delta=\int_{(0,\infty)}\frac{(c-1)u}{(1+u)(1+cu)}d\mu(u)\}\)
+  \item \texttt{ThetaS} --- \texttt{set}; \(\mathbb R^2\); \texttt{model-\allowbreak{}generated strict joint sharp slope-\allowbreak{}-\allowbreak{}APE fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{+}(P)=\{(\log c,\Delta):\exists(\mu,h,g)\in\mathcal M_{+}(c)\text{ such that }P(x,y,z,w)=\int_{(0,\infty)}h_x(u)p_x(y,u)g_{xy}(z,u)p_z(w,u)d\mu(u)\ \forall(x,y,z,w)\in B^4,\ \Delta=\int_{(0,\infty)}\frac{(c-1)u}{(1+u)(1+cu)}d\mu(u)\}\)
+  \item \texttt{Fw} --- \texttt{set-\allowbreak{}valued map}; \texttt{weak lifted cone fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_c^{\mathrm w}(P,\Delta)\) is the weak finite-lift feasibility set defined in \(\mathrm{def{:}weak\text{-}lift}\)
+  \item \texttt{Fs} --- \texttt{set-\allowbreak{}valued map}; \texttt{strict lifted cone fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_c^{+}(P,\Delta)\) is the strict finite-lift feasibility set defined in \(\mathrm{def{:}strict\text{-}lift}\)
+  \item \texttt{Lc} --- \texttt{extended-\allowbreak{}real functional}; \texttt{fixed-\allowbreak{}slope lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L_c^{v}(P)=\inf\{\Delta:(\log c,\Delta)\in\Theta_v(P)\}\) for \(v\in\{\mathrm w,+\}\)
+  \item \texttt{Uc} --- \texttt{extended-\allowbreak{}real functional}; \texttt{fixed-\allowbreak{}slope upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(U_c^{v}(P)=\sup\{\Delta:(\log c,\Delta)\in\Theta_v(P)\}\) for \(v\in\{\mathrm w,+\}\)
+  \item \texttt{Cc} --- \texttt{convex set}; \(\Delta^{15}\); \texttt{attainable observed-\allowbreak{}law set}
+  \par\smallskip\noindent\emph{Definition.} \(C_c^v=\{P:\exists\Delta,\ (\log c,\Delta)\in\Theta_v(P)\}\) for \(v\in\{\mathrm w,+\}\)
+  \item \texttt{n} --- \texttt{integer}; \(\mathbb N\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \(n\) is the number of sampled units
+  \item \texttt{eta} --- \texttt{scalar}; \((0,1)\); \texttt{confidence error level}
+  \par\smallskip\noindent\emph{Definition.} \(\eta\) is the target error probability
+  \item \texttt{Phat} --- \texttt{random array}; \(\Delta^{15}\); \texttt{cell-\allowbreak{}law estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat P_n\) is the empirical sixteen-cell frequency vector from \(n\) units
+  \item \texttt{Ptilde} --- \texttt{random array}; \(\Delta^{15}\); \texttt{affine-\allowbreak{}hull-\allowbreak{}corrected cell law}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde P_n\) is the Euclidean projection of \(\widehat P_n\) onto the known affine hull of \(C_c^v\)
+  \item \texttt{Gn} --- \texttt{random set}; \(2^{\Delta^{15}}\); \texttt{simultaneous multinomial law region}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_n(1-\eta)\) is the simplex intersection of sixteen two-sided Clopper--Pearson cell intervals, each at error level \(\eta/16\)
+  \item \texttt{PnSeq} --- \texttt{sequence}; \((\Delta^{15})^{\mathbb N}\); \texttt{local law sequence for boundary analysis}
+  \par\smallskip\noindent\emph{Definition.} \((P^{(n)})_{n\ge1}\) is a sequence of attainable positive-cell laws
+  \item \texttt{cnSeq} --- \texttt{sequence}; \(\mathbb R_{++}^{\mathbb N}\); \texttt{local slope sequence for rank-\allowbreak{}change analysis}
+  \par\smallskip\noindent\emph{Definition.} \((c_n)_{n\ge1}\) is a positive slope-odds sequence converging to one
+  \item \texttt{Bhandle} --- \texttt{proof handle}; \texttt{concrete handle for boundary and rank-\allowbreak{}change inference}
+  \par\smallskip\noindent\emph{Definition.} Rank-stratify the incidence set by the ranks of \(H_s\), \(K_s\), and the observed-law coefficient map; compute tangent cones and directional endpoint value maps on every stratum; then match adjacent strata as \(c\to1\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:logit-response]\label{ass:logit-response}
+At \(T=2\), the model's chosen sequential conditional response kernels satisfy
+\[
+ \Pr(Y_1=y\mid X_1=x,u)=p_x(y,u)
+\]
+for every \(x,y\in B\) and \(u>0\), and
+\[
+ \Pr(Y_2=w\mid X_1=x,Y_1=y,X_2=z,u)=p_z(w,u)
+\]
+for every \(x,y,z,w\in B\) and \(u>0\).
+\par\smallskip\noindent\emph{Standard} (History-conditioned sequential binary panel logit response with scalar fixed heterogeneity, \cite{bonhommeDanoGraham2023}).
+\end{assumption}
+
+\begin{assumption}[ass:base-law]\label{ass:base-law}
+\(\mu\) is a probability measure on \(\mathbb R_{++}\).
+\par\smallskip\noindent\emph{Standard} (Unrestricted scalar heterogeneity distribution, \cite{bonhommeDanoGraham2023}).
+\end{assumption}
+
+\begin{assumption}[ass:initial-kernel]\label{ass:initial-kernel}
+\(h_x(u)\ge0\) and \(\sum_{x\in B}h_x(u)=1\) for \(\mu\)-almost every \(u\).
+\par\smallskip\noindent\emph{Standard} (Unrestricted heterogeneity-dependent initial assignment, \cite{bonhommeDanoGraham2023}).
+\end{assumption}
+
+\begin{assumption}[ass:feedback-kernel]\label{ass:feedback-kernel}
+\(g_{xy}(z,u)\ge0\) and \(\sum_{z\in B}g_{xy}(z,u)=1\) for every \(x,y\in B\) and \(\mu\)-almost every \(u\).
+\par\smallskip\noindent\emph{Standard} (Unrestricted heterogeneous feedback, \cite{bonhommeDanoGraham2023}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-observed-cells]\label{ass:positive-observed-cells}
+\(P(x,y,z,w)>0\) for every \((x,y,z,w)\in B^4\).
+\par\smallskip\noindent\emph{Standard} (Interior observed-cell law, \cite{bonhommeDanoGraham2023}).
+\end{assumption}
+
+\begin{assumption}[ass:strict-initial]\label{ass:strict-initial}
+\(h_x(u)>0\) for every \(x\in B\) and \(\mu\)-almost every \(u\).
+\par\smallskip\noindent\emph{Standard} (Interior initial assignment, \cite{bonhommeDanoGraham2023}).
+\end{assumption}
+
+\begin{assumption}[ass:strict-feedback]\label{ass:strict-feedback}
+\(g_{xy}(z,u)>0\) for every \(x,y,z\in B\) and \(\mu\)-almost every \(u\).
+\par\smallskip\noindent\emph{Standard} (Interior heterogeneous feedback, \cite{bonhommeDanoGraham2023}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-units]\label{ass:iid-units}
+The observed vectors \((X_i,Y_i)\), \(i=1,\ldots,n\), are independent and identically distributed with cell law \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent cross-sectional sampling, \cite{chernozhukovHongTamer2007}).
+\end{assumption}
+
+\begin{assumption}[ass:relative-interior-law]\label{ass:relative-interior-law}
+\(P\in\operatorname{ri}(C_c^v)\) for a fixed \(c>0\) and \(v\in\{\mathrm w,+\}\).
+\par\smallskip\noindent\emph{Standard} (Relative-interior condition for a convex value function, \cite{rockafellar1970}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:weak-legal-class]\label{def:weak-legal-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Weak unrestricted-\allowbreak{}feedback model class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm w}(c)=\{(\mu,h,g):\text{for }T=2,\ \mathrm{ass{:}logit\text{-}response},\ \mathrm{ass{:}base\text{-}law},\ \mathrm{ass{:}initial\text{-}kernel},\ \mathrm{ass{:}feedback\text{-}kernel}\text{ hold}\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}logit-\allowbreak{}response}; \texttt{ass:\allowbreak{}base-\allowbreak{}law}; \texttt{ass:\allowbreak{}initial-\allowbreak{}kernel}; \texttt{ass:\allowbreak{}feedback-\allowbreak{}kernel}.
+\end{definition}
+
+\begin{definition}[def:strict-legal-class]\label{def:strict-legal-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Strict unrestricted-\allowbreak{}feedback model class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{+}(c)=\{(\mu,h,g):\text{for }T=2,\ \mathrm{ass{:}logit\text{-}response},\ \mathrm{ass{:}base\text{-}law},\ \mathrm{ass{:}initial\text{-}kernel},\ \mathrm{ass{:}feedback\text{-}kernel},\ \mathrm{ass{:}strict\text{-}initial},\ \mathrm{ass{:}strict\text{-}feedback}\text{ hold}\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}logit-\allowbreak{}response}; \texttt{ass:\allowbreak{}base-\allowbreak{}law}; \texttt{ass:\allowbreak{}initial-\allowbreak{}kernel}; \texttt{ass:\allowbreak{}feedback-\allowbreak{}kernel}; \texttt{ass:\allowbreak{}strict-\allowbreak{}initial}; \texttt{ass:\allowbreak{}strict-\allowbreak{}feedback}.
+\end{definition}
+
+\begin{definition}[def:joint-response-measures]\label{def:joint-response-measures}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Joint response-\allowbreak{}type measure construction}
+\par\smallskip\noindent\emph{Construction.} For \(s=(x,r_0,r_1)\in S\), set \(d\nu_s(u)=h_x(u)g_{x0}(r_0,u)g_{x1}(r_1,u)d\mu(u)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{mu}; \texttt{h}; \texttt{g}.
+\end{definition}
+
+\begin{definition}[def:denominator-cleared-moments]\label{def:denominator-cleared-moments}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Quartic generalized-\allowbreak{}moment construction}
+\par\smallskip\noindent\emph{Construction.} For every \(s\in S\), set \(d\rho_s=D_c^{-1}d\nu_s\) and \(m_{s,k}=\int u^k d\rho_s\) for \(k=0,\ldots,4\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{nu}; \texttt{D}.
+\end{definition}
+
+\begin{definition}[def:weak-lift]\label{def:weak-lift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Weak finite Stieltjes lift}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal F_c^{\mathrm w}(P,\Delta)=\{(m,a,b)\in\mathbb R^{56}: H_s\succeq0,\ K_s\succeq0\ \forall s\in S;\ P(x,y,z,w)=\sum_{r:r_y=z}L_{m_{(x,r)}}(A_{xz,yw})\ \forall(x,y,z,w)\in B^4;\ \Delta=\sum_{s\in S}L_{m_s}(N_c)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{c}; \texttt{Delta}.
+\end{definition}
+
+\begin{definition}[def:strict-lift]\label{def:strict-lift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Strict finite Stieltjes lift}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal F_c^{+}(P,\Delta)=\{(m,a,b,t)\in\mathbb R^{64}:(m,a,b)\in\mathcal F_c^{\mathrm w}(P,\Delta),\ R_s\succeq0\ \forall s\in S\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{c}; \texttt{Delta}.
+\end{definition}
+
+\begin{definition}[def:endpoint-attainment-test]\label{def:endpoint-attainment-test}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Endpoint inclusion tests}
+\par\smallskip\noindent\emph{Construction.} For \(v\in\{\mathrm w,+\}\), test lower inclusion by \(\mathcal F_c^v(P,L_c^v(P))\neq\varnothing\) and upper inclusion by \(\mathcal F_c^v(P,U_c^v(P))\neq\varnothing\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{c}.
+\end{definition}
+
+\begin{definition}[def:whole-set-inversion]\label{def:whole-set-inversion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact multinomial whole-\allowbreak{}set inversion}
+\par\smallskip\noindent\emph{Construction.} \(\widehat\Theta_v^{1-\eta}=\bigcup_{P'\in\Gamma_n(1-\eta)}\Theta_v(P')\) for \(v\in\{\mathrm w,+\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gn}.
+\end{definition}
+
+\begin{definition}[def:boundary-handle]\label{def:boundary-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rank-\allowbreak{}stratified boundary handle}
+\par\smallskip\noindent\emph{Construction.} Use \(Bhandle\) to derive the tangent feasible correspondence and directional endpoint maps on each Hankel-rank stratum, with explicit matching across the rank-fourteen observable map at \(c=1\) and the rank-sixteen map at \(c\ne1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Bhandle}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:response-measure-equivalence]\label{lem:response-measure-equivalence}
+A law and APE generated by some \((\mu,h,g)\in\mathcal M_{\mathrm w}(c)\) are equivalent to eight nonnegative measures \((\nu_s)_{s\in S}\) with \(\sum_s\nu_s\) a probability measure and \[P(x,y,z,w)=\sum_{r:r_y=z}\int p_x(y,u)p_z(w,u)d\nu_{(x,r)}(u),\qquad \Delta=\sum_{s\in S}\int\frac{(c-1)u}{(1+u)(1+cu)}d\nu_s(u).\] Conversely, every such family reconstructs one legal base law by \(\mu=\sum_s\nu_s\), initial probabilities by Radon--Nikodym derivatives of \(\sum_r\nu_{(x,r)}\) with respect to \(\mu\), and feedback probabilities by the corresponding response-coordinate marginals.
+\end{lemma}
+\begin{proof}
+Put \(\mu_x=\sum_{r\in B^2}\nu_{(x,r)}\).  First suppose that \((\mu,h,g)\in\mathcal M_{\mathrm w}(c)\), and define \(\nu\) by \(\mathrm{def{:}joint\text{-}response\text{-}measures}\).  The product of the two feedback-coordinate marginals is only a coupling used to construct a joint response type; it makes no assertion about stochastic independence of jointly observed counterfactual responses.  By \(\mathrm{ass{:}initial\text{-}kernel}\) and \(\mathrm{ass{:}feedback\text{-}kernel}\), every \(\nu_s\) is nonnegative and
+\[
+ \sum_{x\in B}\sum_{r_0,r_1\in B}d\nu_{(x,r_0,r_1)}
+ =\sum_{x\in B}h_x
+   \left(\sum_{r_0\in B}g_{x0}(r_0,\cdot)\right)
+   \left(\sum_{r_1\in B}g_{x1}(r_1,\cdot)\right)d\mu
+ =d\mu. \tag{1}
+\]
+Thus \(\sum_s\nu_s\) is a probability measure by \(\mathrm{ass{:}base\text{-}law}\).  For fixed \((x,y,z,w)\), summing over the response coordinate not selected by \(y\) gives
+\[
+ \sum_{r:r_y=z}d\nu_{(x,r)}
+ =h_xg_{xy}(z,\cdot)
+   \sum_{r_{1-y}\in B}g_{x,1-y}(r_{1-y},\cdot)d\mu
+ =h_xg_{xy}(z,\cdot)d\mu. \tag{2}
+\]
+By the two history-conditioned response kernels in \(\mathrm{ass{:}logit\text{-}response}\), the sequential path probability conditional on \((X_1,u)=(x,u)\) is \(p_x(y,u)g_{xy}(z,u)p_z(w,u)\).  Multiplying (2) by \(p_x(y,\cdot)p_z(w,\cdot)\) and integrating proves
+\[
+ P(x,y,z,w)=\sum_{r:r_y=z}\int p_x(y,u)p_z(w,u)d\nu_{(x,r)}(u). \tag{3}
+\]
+Likewise, (1) and the definition of \(\Delta\) give
+\[
+ \sum_s\int\frac{(c-1)u}{(1+u)(1+cu)}d\nu_s(u)
+ =\int\frac{(c-1)u}{(1+u)(1+cu)}d\mu(u)=\Delta. \tag{4}
+\]
+
+Conversely, suppose the eight finite nonnegative measures satisfy the displayed equations in the statement and that \(\mu=\sum_s\nu_s\) is a probability measure.  For \(x,y,z\in B\), define
+\[
+ \mu_x=\sum_{r\in B^2}\nu_{(x,r)},
+ \qquad
+ \lambda_{xyz}=\sum_{r:r_y=z}\nu_{(x,r)}.
+\]
+Then
+\[
+ \sum_x\mu_x=\mu,
+ \qquad
+ \lambda_{xy0}+\lambda_{xy1}=\mu_x,
+ \qquad
+ \sum_{x,y,z}\frac12\lambda_{xyz}=\mu. \tag{5}
+\]
+Apply \(\mathrm{lem{:}radon\text{-}nikodym\text{-}finite\text{-}family}\) first to \((\mu_x)_{x\in B}\) and then to \((\lambda_{xyz}/2)_{x,y,z\in B}\).  After multiplying the derivatives in the second application by two, choose simultaneously measurable versions
+\[
+ h_x=\frac{d\mu_x}{d\mu},
+ \qquad
+ k_{xyz}=\frac{d\lambda_{xyz}}{d\mu}.
+\]
+They satisfy \(h_x\ge0\), \(k_{xyz}\ge0\), and \(\sum_xh_x=1\), \(\mu\)-almost everywhere.  The middle identity in (5) and uniqueness of Radon--Nikodym derivatives imply
+\[
+ k_{xy0}+k_{xy1}=h_x
+ \quad\text{for every }x,y\in B,
+ \quad\mu\text{-almost everywhere}. \tag{6}
+\]
+Because the index sets are finite, all versions can be fixed on one common full-\(\mu\)-measure set.  Define
+\[
+ g_{xy}(z,u)=
+ \begin{cases}
+ k_{xyz}(u)/h_x(u),&h_x(u)>0,\\
+ 1/2,&h_x(u)=0.
+ \end{cases} \tag{7}
+\]
+Division in (7) occurs only on \(\{h_x>0\}\).  Measurability follows from that of \(h_x\) and \(k_{xyz}\).  On \(\{h_x>0\}\), (6) gives nonnegativity and \(\sum_zg_{xy}(z,\cdot)=1\).  On \(\{h_x=0\}\), nonnegativity and (6) force \(k_{xyz}=0\), while the fallback in (7) is itself a probability vector.  Consequently
+\[
+ h_xg_{xy}(z,\cdot)d\mu=k_{xyz}d\mu=d\lambda_{xyz}. \tag{8}
+\]
+The reconstructed objects satisfy \(\mathrm{ass{:}base\text{-}law}\), \(\mathrm{ass{:}initial\text{-}kernel}\), and \(\mathrm{ass{:}feedback\text{-}kernel}\); with the sequential response kernels of \(\mathrm{ass{:}logit\text{-}response}\), they belong to \(\mathcal M_{\mathrm w}(c)\).  By (8), their generated cells are
+\[
+ \int h_x(u)p_x(y,u)g_{xy}(z,u)p_z(w,u)d\mu(u)
+ =\int p_x(y,u)p_z(w,u)d\lambda_{xyz}(u)
+ =P(x,y,z,w). \tag{9}
+\]
+Finally, (4) and \(\mu=\sum_s\nu_s\) give the stipulated model APE.  This proves both directions and the legal-kernel reconstruction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The product response-type coupling preserves the observed feedback marginals and one unconditional law; Radon--Nikodym derivatives reconstruct compatible measurable initial and feedback kernels. \textit{Gap.} The construction adds no cross-world independence and therefore needs an explicit marginalization and null-set argument. \textit{Consumer.} It reduces unrestricted feedback to eight univariate measure problems used by the all-laws cone theorem.
+
+\begin{lemma}[lem:open-stieltjes-quartic]\label{lem:open-stieltjes-quartic}
+For any \(m_s=(m_{s,0},\ldots,m_{s,4})\in\mathbb R^5\), there is a finite nonnegative measure \(\rho_s\) on \((0,\infty)\) with these five moments if and only if there exist \(a_s,b_s\in\mathbb R\) such that \(H_s\succeq0\) and \(K_s\succeq0\). This equivalence includes the zero vector and every singular Hankel-rank regime.
+\end{lemma}
+\begin{proof}
+Suppress the type index.  Necessity is first proved without assuming any
+inverse or fifth moment of the given measure.  Apply
+\(\mathrm{lem{:}finite\text{-}atomic\text{-}cubature}\) to the five functions
+\(1,u,\ldots,u^4\).  It gives positive nodes \(q_j\in(0,\infty)\) and positive
+weights \(\lambda_j\) such that
+\(m_k=\sum_j\lambda_jq_j^k\) for \(0\le k\le4\).  Define
+\[
+ a=\sum_j\lambda_jq_j^{-1},\qquad b=\sum_j\lambda_jq_j^5,
+ \qquad d\sigma=\sum_j\lambda_jq_j^{-1}\delta_{q_j}.
+\]
+These numbers are finite because the node set is finite and contained in the
+open half-line.  With \(v_d(q)=(1,q,\ldots,q^d)^{\mathsf T}\), direct
+calculation gives
+\[
+ K=\int v_3(u)v_3(u)^{\mathsf T}d\sigma(u)\succeq0,
+ \qquad
+ H=\int v_2(u)v_2(u)^{\mathsf T}d\rho(u)\succeq0.
+\]
+
+For sufficiency, suppose \(H\succeq0\) and that some \(a,b\) make
+\(K\succeq0\).  Put
+\[
+ B_1=\begin{bmatrix}m_1&m_2\\m_2&m_3\end{bmatrix},\qquad
+ v=\begin{bmatrix}m_0\\m_1\end{bmatrix},\qquad
+ w=\begin{bmatrix}m_3\\m_4\end{bmatrix},\qquad
+ A_1=\begin{bmatrix}m_0&m_1\\m_1&m_2\end{bmatrix}.
+\]
+The matrix \(B_1\) is the principal submatrix of \(K\) on its middle two
+indices.  If \(q\in\ker(B_1)\), positivity of \(K\) applied to a vector
+supported on those two indices and then perturbed in either remaining
+coordinate forces \(q^{\mathsf T}v=q^{\mathsf T}w=0\).  Hence
+\[
+ B_1\succeq0,\qquad v,w\in\operatorname{Range}(B_1). \tag{1}
+\]
+We now exhaust the possible ranks of \(B_1\).
+
+If \(\operatorname{rank}(B_1)=0\), (1) gives
+\(m_0=m_1=m_2=m_3=m_4=0\), represented by the zero measure.  If the rank is
+one and the vector is nonzero, then \(m_1>0\); otherwise (1) again forces the
+zero vector.  With \(\tau=m_2/m_1\), the zero determinant and the two range
+conditions give successively
+\[
+ m_1=\tau m_0,\qquad m_2=\tau m_1,\qquad
+ m_3=\tau m_2,\qquad m_4=\tau m_3.
+\]
+The diagonal condition \(m_0\ge0\) follows from \(H\succeq0\); if \(m_0=0\),
+the zero-diagonal property of a positive-semidefinite matrix would force
+\(m_1=0\).  Hence \(m_0>0\), and the first displayed equality gives
+\(\tau=m_1/m_0>0\).  Thus
+\(m=m_0(1,\tau,\tau^2,\tau^3,\tau^4)\), represented by
+\(m_0\delta_\tau\).
+
+It remains that \(B_1\succ0\).  Since \(H\succeq0\), its rank is two or
+three: a rank-one positive Hankel matrix has geometric columns and would make
+\(m_1m_3-m_2^2=0\), contrary to \(B_1\succ0\).  If
+\(\operatorname{rank}(H)=2\), its leading block \(A_1\) is positive definite.
+Indeed, a vector in \(\ker(A_1)\), padded by a final zero, belongs to
+\(\ker(H)\); the last two coordinates of the resulting equation put the same
+vector in \(\ker(B_1)\), so it must vanish.  There are unique
+\(\gamma_0,\gamma_1\) for which the polynomial
+\(q(u)=u^2-\gamma_1u-\gamma_0\) lies in \(\ker(H)\).  On the two-dimensional
+space with basis \((1,u)\) and Gram matrix \(A_1\), define multiplication by
+\(u\) through
+\[
+ T1=u,\qquad Tu=\gamma_0+\gamma_1u.
+\]
+The three equations \(H(-\gamma_0,-\gamma_1,1)^{\mathsf T}=0\) show that
+\(T\) is self-adjoint and that its powers reproduce the moments through
+degree four.  Moreover,
+\[
+ \langle T(a+bu),a+bu\rangle
+ =\begin{bmatrix}a&b\end{bmatrix}B_1
+   \begin{bmatrix}a\\b\end{bmatrix}>0
+\]
+for every nonzero \((a,b)\), so both eigenvalues of this two-dimensional
+self-adjoint operator are positive.  Explicitly, Gram--Schmidt gives an
+orthonormal basis in which the matrix is
+\(\bigl[\begin{smallmatrix}r&s\\s&t\end{smallmatrix}\bigr]\); its roots are
+\((r+t\pm\sqrt{(r-t)^2+4s^2})/2\), and positivity of the quadratic form makes
+both roots positive.  The two roots are distinct, since equality would make
+the matrix scalar and would contradict the linear independence of \(1\) and
+\(T1=u\).  Let \(E_j\) be the elementary orthogonal projection onto the two
+eigenvectors.  The two spectral weights
+\(\|E_j1\|^2\) are positive: a zero weight would make \(1\), and hence
+\(T1=u\), lie in a single eigenspace, contradicting \(A_1\succ0\).  Therefore
+if \(\tau_j>0\) are the eigenvalues, then for \(0\le k\le4\),
+\[
+ m_k=\langle T^k1,1\rangle
+ =\sum_j\tau_j^k\|E_j1\|^2.
+\]
+Thus \(\sum_j\|E_j1\|^2\delta_{\tau_j}\) represents all five moments on the
+open half-line.
+
+Finally suppose \(H\succ0\).  Since \(B_1\succ0\), continuity of eigenvalues
+allows \(\varepsilon>0\) such that
+\(B_1-\varepsilon A_1\succ0\).  Under the change of coordinate
+\(t=u-\varepsilon\), the ordinary order-two moment matrix is congruent to
+\(H\), and the shifted order-one matrix is congruent to
+\(B_1-\varepsilon A_1\).  The cited closed-half-line theorem therefore
+produces a measure carried by \(t\ge0\).  Translating it back gives a measure
+carried by \(u\ge\varepsilon>0\) and reproducing \(m_0,\ldots,m_4\).  The
+three rank cases include the zero vector and every singular case, completing
+the equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Open-half-line representability rules out spurious mass at zero and escape to infinity without adding tail moments as assumptions. \textit{Gap.} Curto--Fialkow and Dobronyi, Gu, Kim, and Russell supply closed-half-line Hankel-extension tools; the exact degree-four open-half-line augmentation and singular audit are not stated for this feedback lift. \textit{Consumer.} It supplies the finite certificate used in every type block of the exact sharp set.
+
+\begin{lemma}[lem:common-positive-support]\label{lem:common-positive-support}
+Let \(m_s\ne0\) for every \(s\in S\), and suppose each \(m_s\) is representable on \((0,\infty)\). The vectors admit finite representing measures on one common positive-node set with every measure assigning strictly positive weight to every node if and only if \(\operatorname{Range}(H_s)=\operatorname{Range}(H_{\Sigma})\) for every \(s\in S\). Moreover, under \(H_s\succeq0\), these range equalities hold if and only if some \(t_s\) make all \(R_s\succeq0\).
+\end{lemma}
+\begin{proof}
+For a representing measure \(\rho_s\), a coefficient vector
+\(q=(q_0,q_1,q_2)^{\mathsf T}\) satisfies
+\[
+ q^{\mathsf T}H_sq=\int(q_0+q_1u+q_2u^2)^2d\rho_s(u).
+\]
+Consequently \(q\in\ker(H_s)\) exactly when its polynomial vanishes on the
+support of \(\rho_s\).  If all measures have one finite node set and strictly
+positive weight at every node, these kernels, and therefore the ranges of the
+symmetric matrices, are identical.  This proves necessity.
+
+For sufficiency let the common rank be \(r\).  Nonzero representability gives
+\(r\in\{1,2,3\}\).  If \(r=1\), each measure is concentrated at one positive
+node \(q_s\), and
+\(\operatorname{Range}(H_s)=\operatorname{span}(1,q_s,q_s^2)^{\mathsf T}\).
+Equality of these ranges and equality of the first coordinates imply that all
+\(q_s\) coincide.  If \(r=2\), the common kernel is generated by a quadratic.
+It cannot contain a nonzero linear polynomial, which would force rank one.
+Every representing measure is therefore carried by the same two distinct
+positive roots, and rank two forces both weights to be positive.  The desired
+common-node representations follow in these two cases.
+
+Suppose \(r=3\).  Then every \(H_s\) is positive definite.  Its shifted matrix
+\(B_{1s}=(m_{s,i+j+1})_{i,j=0}^1\) is also positive definite: if a nonzero
+linear \(q\) had \(\int u q(u)^2d\rho_s=0\), positivity of \(u\) would force
+the support into its single root and hence \(\operatorname{rank}(H_s)\le1\).
+Choose \(\varepsilon_s>0\) such that
+\(B_{1s}-\varepsilon_sA_{1s}\succ0\).  Positive definiteness is an open
+condition, so every sufficiently small five-coordinate perturbation
+\(m'_s\) satisfies both \(H(m'_s)\succ0\) and
+\(B_1(m'_s)-\varepsilon_sA_1(m'_s)\succ0\).  Translating by
+\(t=u-\varepsilon_s\) and applying
+\(\mathrm{lem{:}closed\text{-}stieltjes\text{-}order\text{-}four}\) gives a
+representing measure with \(u\ge\varepsilon_s\).  Thus every \(m_s\) is an
+interior point of the cone generated by
+\[
+ v_4(q)=(1,q,q^2,q^3,q^4)^{\mathsf T},\qquad q>0. \tag{2}
+\]
+Choose a coordinate cross-polytope centered at each \(m_s\) and contained in
+this cone.  By \(\mathrm{lem{:}finite\text{-}atomic\text{-}cubature}\), every
+vertex has a finite representation using positive nodes.  Let \(Q\) be the
+union of all nodes used for all vertices and all types, and put
+\(W=\sum_{q\in Q}v_4(q)\).  Because \(m_s\) is interior to its own
+cross-polytope, for a sufficiently small \(\epsilon_s>0\),
+\(m_s-\epsilon_sW\) remains in the conic hull of its vertex nodes, hence in
+the conic hull of \(v_4(Q)\).  Adding \(\epsilon_sW\) gives a representation
+of \(m_s\) with weight at least \(\epsilon_s>0\) at every node in the single
+finite set \(Q\).  This proves common-support sufficiency.
+
+It remains to identify the finite range certificate.  Since all \(H_s\) are
+positive semidefinite,
+\[
+ \ker(H_\Sigma)=\bigcap_s\ker(H_s),
+ \qquad \operatorname{Range}(H_s)\subseteq\operatorname{Range}(H_\Sigma).
+\]
+By \(\mathrm{lem{:}generalized\text{-}schur\text{-}range}\), existence of
+\(t_s\) with
+\(R_s=\bigl[\begin{smallmatrix}H_s&H_\Sigma\\H_\Sigma&t_sI_3\end{smallmatrix}\bigr]\succeq0\)
+is equivalent to the reverse inclusion
+\(\operatorname{Range}(H_\Sigma)\subseteq\operatorname{Range}(H_s)\).
+Combining the two inclusions proves both the last equivalence and the lemma.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Mutual absolute continuity of all type measures is exactly what strict initial assignment and strict feedback require. \textit{Gap.} The nearest dynamic-logit Stieltjes result checks separate moment representability and has no simultaneous common-support certificate for reconstructed feedback kernels. \textit{Consumer.} It makes strict almost-everywhere positivity finitely testable without imposing a numerical overlap margin.
+
+\begin{theorem}[thm:exact-feedback-cone]\label{thm:exact-feedback-cone}
+For every fixed \(c>0\), every \(P\in\Delta^{15}\) with \(q_0,q_1>0\), and every real \(\Delta\),
+\[
+ (\log c,\Delta)\in\Theta_{\mathrm w}(P)
+ \Longleftrightarrow\mathcal F_c^{\mathrm w}(P,\Delta)\ne\varnothing,
+ \qquad
+ (\log c,\Delta)\in\Theta_+(P)
+ \Longleftrightarrow\mathcal F_c^+(P,\Delta)\ne\varnothing.
+\]
+These equivalences are the positive-margin corollary of \(\mathrm{thm{:}exact\text{-}feedback\text{-}cone\text{-}all\text{-}laws}\).  The weak fiber corresponds, by the conditionalization and mixing maps in \(\mathrm{lem{:}bdg\text{-}weak\text{-}fiber\text{-}translation}\), exactly to this note's measure-valued conditional reformulation of the Bonhomme--Dano--Graham two-period equations.  This comparison does not assert equality with the published fixed-reference or Lebesgue-density program.  The strict fiber from \(\mathcal M_+(c)\) is an additional subclass of the weak fiber from \(\mathcal M_{\mathrm w}(c)\), not a second comparator match.  The weak certificate has exactly fifty-six scalar lift variables, eight \(3\times3\) PSD blocks, and eight augmented \(4\times4\) PSD blocks; the strict certificate has sixty-four variables and eight additional \(6\times6\) common-Hankel-range blocks.  The forward and reverse legal-kernel maps, including arbitrary atomic, absolutely continuous, or mixed probability laws on \((0,\infty)\), are those proved in the all-laws theorem.
+\end{theorem}
+\begin{proof}
+Fix \(c>0\), \(P\in\Delta^{15}\), \(q_0,q_1>0\), and \(\Delta\in\mathbb R\).  Applying \(\mathrm{thm{:}exact\text{-}feedback\text{-}cone\text{-}all\text{-}laws}\), whose observable-law premise is only \(P\in\Delta^{15}\), gives directly
+\[
+ (\log c,\Delta)\in\Theta_{\mathrm w}(P)
+ \Longleftrightarrow \mathcal F_c^{\mathrm w}(P,\Delta)\ne\varnothing,
+ \qquad
+ (\log c,\Delta)\in\Theta_+(P)
+ \Longleftrightarrow \mathcal F_c^+(P,\Delta)\ne\varnothing. \tag{1}
+\]
+Thus the positive-margin premise is not used to establish either finite-lift equivalence, and (1) is equality with the independently defined legal fibers rather than an outer approximation.
+
+The premise \(q_x>0\) for both \(x\in B\) is used exactly in \(\mathrm{lem{:}bdg\text{-}weak\text{-}fiber\text{-}translation}\).  That lemma normalizes \(h_x\,d\mu\) by \(q_x\) in one direction and, in the other, mixes the two conditional laws with weights \(q_x\) and recovers \(h_x\) by Radon--Nikodym derivatives.  Its equations preserve every path probability and the unconditional APE.  Consequently, the weak model fiber in (1) equals the note's measure-valued conditional reformulation of the Bonhomme--Dano--Graham two-period equations.
+
+The published-program scope recorded by \(\mathrm{lem{:}bdg\text{-}continuous\text{-}feedback\text{-}program}\) does not provide an absolutely continuous representation of every probability measure used here.  In fact, the conditionalization and mixing maps in the translation lemma preserve atoms and singular components.  The proved comparison therefore asserts no equality with a fixed-reference or Lebesgue-density program.
+
+By \(\mathrm{def{:}strict\text{-}legal\text{-}class}\) and \(\mathrm{def{:}weak\text{-}legal\text{-}class}\), every strict model satisfies all weak restrictions plus strict initial-assignment and feedback positivity.  Hence \(\mathcal M_+(c)\subseteq\mathcal M_{\mathrm w}(c)\), so the strict fiber is an additional subclass rather than a second comparator match.
+
+It remains only to verify the advertised finite sizes.  In \(\mathrm{def{:}weak\text{-}lift}\), the five moments for each of eight types contribute forty variables, and \(a\) and \(b\) contribute sixteen, totaling fifty-six; its PSD constraints are the eight \(3\times3\) blocks \(H_s\) and the eight \(4\times4\) blocks \(K_s\).  By \(\mathrm{def{:}strict\text{-}lift}\), the strict certificate adds eight variables \(t_s\) and eight \(6\times6\) blocks \(R_s\), totaling sixty-four variables.  The all-laws theorem supplies the stated forward joint-response construction and reverse legal-kernel reconstruction for arbitrary probability laws on \((0,\infty)\).  This proves every assertion of the corollary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the positive-margin comparator corollary of the all-laws cone theorem. \textit{Gap.} The all-laws construction and zero-cell exactness live in thm:exact-feedback-cone-all-laws; this node compares only with the note's measure-valued conditional reformulation and claims no fixed-reference or density-program equality. \textit{Consumer.} It links the finite weak certificate to the note's conditional reformulation while marking the strict fiber only as an additional subclass.
+
+\begin{theorem}[thm:fixed-slope-endpoints]\label{thm:fixed-slope-endpoints}
+For each fixed \(c>0\) and \(v\in\{\mathrm w,+\}\), the nonempty fiber \(\{\Delta:(\log c,\Delta)\in\Theta_v(P)\}\) is an interval whose infimum and supremum equal the optimal values of the two linear semidefinite programs over \(\mathcal F_c^v(P,\Delta)\). Endpoint inclusion is equivalent to the separate feasibility tests in \(\mathrm{def{:}endpoint\text{-}attainment\text{-}test}\); neither inclusion is inferred from closed PSD constraints alone.
+\end{theorem}
+\begin{proof}
+Fix \(c>0\), \(v\in\{\mathrm w,+\}\), and \(P\in\Delta^{15}\), and suppose that
+\[
+ I_v(P,c)=\{d\in\mathbb R:(\log c,d)\in\Theta_v(P)\} \tag{1}
+\]
+is nonempty.  Put \(z_{\mathrm w}=(m,a,b)\), \(z_+=(m,a,b,t)\), and
+\[
+ \mathcal G_v(P,c)=\{(z_v,d):z_v\in\mathcal F_c^v(P,d)\}. \tag{2}
+\]
+Every equality defining (2) is affine in \((z_v,d)\), by \(\mathrm{def{:}weak\text{-}lift}\) and \(\mathrm{def{:}strict\text{-}lift}\).  If \(M_0,M_1\succeq0\) and \(0\le\lambda\le1\), then for every conformable vector \(q\),
+\[
+ q^{\mathsf T}\{\lambda M_0+(1-\lambda)M_1\}q
+ =\lambda q^{\mathsf T}M_0q+(1-\lambda)q^{\mathsf T}M_1q\ge0. \tag{3}
+\]
+Thus all the affine PSD constraints are convex, and \(\mathcal G_v(P,c)\) is convex.  Its linear projection onto the \(d\)-coordinate is therefore an interval.  By \(\mathrm{thm{:}exact\text{-}feedback\text{-}cone\text{-}all\text{-}laws}\), that projection is exactly \(I_v(P,c)\), including when \(P\) has zero cells.
+
+For clarity about the strict case, if \(d\in I_+(P,c)\), a member of \(\mathcal M_+(c)\) generates \(P\).  For each path \((x,y,z,w)\in B^4\), \(\mathrm{ass{:}strict\text{-}initial}\), \(\mathrm{ass{:}strict\text{-}feedback}\), and the codomain \((0,1)\) of the declared logit kernel imply
+\[
+ h_x(u)p_x(y,u)g_{xy}(z,u)p_z(w,u)>0
+ \quad\text{for }\mu\text{-almost every }u. \tag{4}
+\]
+The base-law condition makes \(\mu\) a probability measure, so integration of (4) yields \(P(x,y,z,w)>0\).  Hence a nonempty strict fiber forces all observed cells to be positive.  At a zero-cell law the all-laws strict equivalence is still exact, but both sides are empty; that boundary extension is vacuous.
+
+By \(\mathrm{thm{:}sharp\text{-}slope\text{-}ape\text{-}envelope}\),
+\[
+ I_v(P,c)\subseteq
+ \begin{cases}
+ (0,(\sqrt c-1)/(\sqrt c+1)],&c>1,\\
+ [-(1-\sqrt c)/(1+\sqrt c),0),&0<c<1,\\
+ \{0\},&c=1.
+ \end{cases} \tag{5}
+\]
+This is an outer containment for the present fixed \(P\); the cited theorem's sharpness is universal across varying admissible laws and does not imply fixed-\(P\) endpoint attainment.  In particular, the nonempty interval (1) is bounded and has finite infimum and supremum.
+
+Expose the two optimization problems as
+\[
+ \underline V_v(P,c)=\inf_{d,z_v}\{d:z_v\in\mathcal F_c^v(P,d)\},
+ \qquad
+ \overline V_v(P,c)=\sup_{d,z_v}\{d:z_v\in\mathcal F_c^v(P,d)\}. \tag{6}
+\]
+Their objectives are linear, their equalities are affine, and their inequalities are affine positive-semidefinite constraints, so (6) are linear semidefinite programs.  Exactness of the all-laws cone theorem gives
+\[
+ \underline V_v(P,c)=\inf I_v(P,c)=L_c^v(P),
+ \qquad
+ \overline V_v(P,c)=\sup I_v(P,c)=U_c^v(P). \tag{7}
+\]
+Thus these values are sharp for the independently model-defined fiber even if no optimizer exists.
+
+Applying the same exact equivalence at each candidate endpoint gives separately
+\[
+ L_c^v(P)\in I_v(P,c)
+ \Longleftrightarrow
+ \mathcal F_c^v(P,L_c^v(P))\ne\varnothing, \tag{8}
+\]
+and
+\[
+ U_c^v(P)\in I_v(P,c)
+ \Longleftrightarrow
+ \mathcal F_c^v(P,U_c^v(P))\ne\varnothing. \tag{9}
+\]
+These are exactly the two tests in \(\mathrm{def{:}endpoint\text{-}attainment\text{-}test}\).
+
+Closedness of the PSD cones does not make (8)--(9) automatic, because a linear projection of a closed spectrahedron need not be closed.  Indeed,
+\[
+ \mathcal C=\left\{(x,y)\in\mathbb R^2:
+ \begin{bmatrix}x&1\\1&y\end{bmatrix}\succeq0\right\}
+\]
+is closed, while the principal-minor conditions \(x\ge0\), \(y\ge0\), and \(xy\ge1\) show that its projection onto the \(x\)-axis is \((0,\infty)\).  Therefore endpoint membership must be decided by the separate feasibility tests, as asserted.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Direct all-laws exactness makes both SDP values sharp for every nonempty fixed-slope fiber. \textit{Gap.} Endpoint inclusion requires separate feasibility tests. Strict-class nonemptiness forces positive observed cells, so the strict zero-cell case is vacuous. \textit{Consumer.} Applied reports can distinguish sharp endpoint values, endpoint membership, and the universal outer envelope.
+
+\begin{proposition}[prop:algebraic-decision]\label{prop:algebraic-decision}
+Let \(v\in\{\mathrm w,+\}\).  If the entries of \(P\) are real algebraic, then a terminating real-closed-field quantifier-elimination procedure applied to the principal-minor form of the finite lift returns exact semialgebraic descriptions of both coordinate projections of
+\[
+ \{(c,\Delta):c>0,\ (\log c,\Delta)\in\Theta_v(P)\}
+\]
+onto the positive slope-odds coordinate \(c\) and the APE coordinate \(\Delta\).  If, in addition, queried values \(c>0\) and \(\Delta\) are real algebraic, the same procedure decides whether \((\log c,\Delta)\in\Theta_v(P)\).  If \(P\) and \(c>0\) are real algebraic and the fixed-\(c\) fiber is nonempty, then its finite endpoints \(L_c^v(P)\) and \(U_c^v(P)\) are real algebraic, are computed by terminating elimination, and their two separate endpoint-inclusion flags are decidable.  No cellwise-positivity premise is required.
+\end{proposition}
+\begin{proof}
+Fix \(v\in\{\mathrm w,+\}\), write \(z_{\mathrm w}=(m,a,b)\) and \(z_+=(m,a,b,t)\), and let
+\[
+ \Phi_v(P,c,d,z_v) \tag{1}
+\]
+denote the conjunction of \(c>0\), the sixteen observed-cell equalities, the APE equality with value \(d\), and all matrix inequalities in \(\mathcal F_c^v(P,d)\).  By \(\mathrm{lem{:}principal\text{-}minor\text{-}psd}\), every fixed-size matrix inequality in (1) is equivalent to finitely many polynomial weak inequalities.  The coefficients of \(A_{xz,yw}\) and \(N_c\) are integer polynomials in \(c\), while every entry of \(H_s\), \(K_s\), and \(R_s\) is affine in the lift variables.  Consequently, (1) is a first-order ordered-field formula whose only fixed parameters are the entries of \(P\).  No logarithm occurs: elimination uses the positive odds coordinate \(c\), after which the structural slope is \(\log c\).
+
+For every probability vector \(P\), including a boundary law, \(\mathrm{thm{:}exact\text{-}feedback\text{-}cone\text{-}all\text{-}laws}\) gives
+\[
+ (\log c,d)\in\Theta_v(P)
+ \Longleftrightarrow
+ \exists z_v\,\Phi_v(P,c,d,z_v). \tag{2}
+\]
+If \(P,c,d\) are real algebraic, the right-hand side is a sentence with real algebraic coefficients.  The terminating procedure in \(\mathrm{lem{:}real\text{-}closed\text{-}field\text{-}elimination}\) returns an equivalent quantifier-free Boolean combination of polynomial sign conditions.  Exact signs of algebraic numbers decide that combination, hence decide membership.  Because principal-minor inequalities are weak, singular PSD faces are included.
+
+Now suppose only that the entries of \(P\) are real algebraic.  The two requested coordinate projections are
+\[
+ \mathcal C_v(P)=\{c:\exists d,z_v\,\Phi_v(P,c,d,z_v)\},
+ \qquad
+ \mathcal D_v(P)=\{d:\exists c,z_v\,\Phi_v(P,c,d,z_v)\}. \tag{3}
+\]
+The condition \(c>0\) is already part of \(\Phi_v\).  Eliminating the quantified variables in (3) terminates by the real-closed-field lemma and produces exact semialgebraic descriptions of both projections.  The first description is for \(c\), not for the generally nonalgebraic coordinate \(\theta=\log c\).
+
+Finally, fix algebraic \(P\) and algebraic \(c>0\), and assume the fixed-\(c\) fiber is nonempty.  By \(\mathrm{thm{:}fixed\text{-}slope\text{-}endpoints}\), both endpoints are finite.  A real number \(\ell\) is the lower endpoint exactly when
+\[
+\begin{aligned}
+ \operatorname{Inf}_v(\ell)\;\Longleftrightarrow{}&
+ \bigl[\exists d,z_v\,\Phi_v(P,c,d,z_v)\bigr]\\
+ &{}\wedge\bigl[\forall d,z_v\,
+   \{\Phi_v(P,c,d,z_v)\Rightarrow \ell\le d\}\bigr]\\
+ &{}\wedge\bigl[\forall\varepsilon\,
+   \{\varepsilon>0\Rightarrow
+   \exists d,z_v\,[\Phi_v(P,c,d,z_v)\wedge d<\ell+\varepsilon]\}\bigr].
+\end{aligned} \tag{4}
+\]
+Similarly, \(r\) is the upper endpoint exactly when
+\[
+\begin{aligned}
+ \operatorname{Sup}_v(r)\;\Longleftrightarrow{}&
+ \bigl[\exists d,z_v\,\Phi_v(P,c,d,z_v)\bigr]\\
+ &{}\wedge\bigl[\forall d,z_v\,
+   \{\Phi_v(P,c,d,z_v)\Rightarrow d\le r\}\bigr]\\
+ &{}\wedge\bigl[\forall\varepsilon\,
+   \{\varepsilon>0\Rightarrow
+   \exists d,z_v\,[\Phi_v(P,c,d,z_v)\wedge r-\varepsilon<d]\}\bigr].
+\end{aligned} \tag{5}
+\]
+Quantifier elimination applied to (4)--(5) gives quantifier-free semialgebraic descriptions, over the real algebraic coefficient field generated by \(P\) and \(c\), of the singleton sets \(\{L_c^v(P)\}\) and \(\{U_c^v(P)\}\).  To see that either singleton point is algebraic, discard identically zero polynomials from its description.  If no remaining polynomial vanished at the point, every polynomial sign in the finite description would be constant on some open interval around it.  The Boolean combination would then hold throughout that interval, contradicting singletonness.  Hence a nonzero polynomial with real algebraic coefficients vanishes at each endpoint.  The quantifier-free singleton description is also an exact terminating representation of that algebraic number, proving the asserted computation claim.
+
+The two endpoint-inclusion flags are the separate sentences
+\[
+ \exists z_v\,\Phi_v(P,c,L_c^v(P),z_v),
+ \qquad
+ \exists z_v\,\Phi_v(P,c,U_c^v(P),z_v). \tag{6}
+\]
+Their equivalence to model-side inclusion follows from (2), and they coincide with \(\mathrm{def{:}endpoint\text{-}attainment\text{-}test}\).  All coefficients in (6) are algebraic by the preceding argument, so elimination and exact sign evaluation decide both flags.  The projection, membership, and endpoint conclusions have thus been proved under their respective premises, with no cellwise-positivity assumption.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Principal minors and real-closed-field elimination give projection descriptions, membership decisions, and endpoint decisions under their separate algebraic-input premises. \textit{Gap.} Endpoint algebraicity additionally requires algebraic fixed \(c\) and a nonempty fixed-slope fiber; no positive-cell premise is needed. \textit{Consumer.} It supplies exact symbolic benchmarks without support or slope grids.
+
+\begin{proposition}[prop:whole-set-coverage]\label{prop:whole-set-coverage}
+Corollary (whole-set inversion). Under independent sampling, the inversion \(\widehat\Theta_v^{1-\eta}=\bigcup_{P'\in\Gamma_n(1-\eta)}\Theta_v(P')\) satisfies \(\Pr_P\{\Theta_v(P)\subseteq\widehat\Theta_v^{1-\eta}\}\ge1-\eta\) for \(v\in\{\mathrm w,+\}\). The probability statement covers the entire joint sharp slope--APE set simultaneously.
+\end{proposition}
+\begin{proof}
+Put \(\mathcal J=B^4\), so \(|\mathcal J|=16\), and, for \(j=(x,y,z,w)\in\mathcal J\), write \(P_j=P(x,y,z,w)\).  For sampled unit \(i\), define the cell indicator
+\[
+ I_{ij}=\mathbf 1\{(X_{i1},Y_{i1},X_{i2},Y_{i2})=j\}
+\quad\text{and}\quad
+ N_j=\sum_{i=1}^n I_{ij}=n\widehat P_{n,j}.
+\]
+By \(\mathrm{ass{:}iid\text{-}units}\), for each fixed \(j\) the variables \(I_{1j},\ldots,I_{nj}\) are independent Bernoulli variables with success probability \(P_j\).  Hence
+\[
+ N_j\sim\operatorname{Bin}(n,P_j).
+\]
+The components \((N_j)_{j\in\mathcal J}\) need not be mutually independent, and no such independence is used below.
+
+Let \(C_j\) denote the two-sided Clopper--Pearson interval for cell \(j\) appearing in \(\Gamma_n(1-\eta)\).  Its total error level is \(\eta/16\).  Since \(\eta\in(0,1)\), this is a valid error level.  Applying \(\mathrm{lem{:}clopper\text{-}pearson\text{-}marginal\text{-}coverage}\) with \(\pi=P_j\) gives
+\[
+ \Pr_P\{P_j\notin C_j\}\leq \frac{\eta}{16}
+ \qquad(j\in\mathcal J).
+\]
+For completeness, the boundary cases follow directly from the interval construction.  If \(P_j=0\), then \(N_j=0\) almost surely and the closed Clopper--Pearson interval has lower endpoint zero, so \(P_j\in C_j\) almost surely.  If \(P_j=1\), then \(N_j=n\) almost surely and the interval has upper endpoint one, so again \(P_j\in C_j\) almost surely.  Thus the displayed error bound holds for every \(P_j\in[0,1]\).
+
+Define \(E_j=\{P_j\notin C_j\}\).  The pointwise indicator inequality
+\[
+ \mathbf 1_{\cup_{j\in\mathcal J}E_j}
+ \leq
+ \sum_{j\in\mathcal J}\mathbf 1_{E_j}
+\]
+and linearity of expectation yield the finite union bound
+\[
+ \Pr_P\!\left(\bigcup_{j\in\mathcal J}E_j\right)
+ \leq
+ \sum_{j\in\mathcal J}\Pr_P(E_j)
+ \leq
+ 16\frac{\eta}{16}=\eta.
+\]
+Because \(P\in\Delta^{15}\) by definition and \(\Gamma_n(1-\eta)\) is the intersection of the simplex with the sixteen intervals \((C_j)_{j\in\mathcal J}\), the complementary event is exactly
+\[
+ E:=\{P\in\Gamma_n(1-\eta)\}.
+\]
+Consequently \(\Pr_P(E)\geq1-\eta\).
+
+Fix \(v\in\{\mathrm w,+\}\).  On \(E\), the index \(P'=P\) is among the laws over which the union in \(\mathrm{def{:}whole\text{-}set\text{-}inversion}\) is taken.  Thus, for every \(\tau\in\Theta_v(P)\),
+\[
+ \tau\in\Theta_v(P)
+ \subseteq
+ \bigcup_{P'\in\Gamma_n(1-\eta)}\Theta_v(P')
+ =\widehat\Theta_v^{1-\eta}.
+\]
+Therefore
+\[
+ E\subseteq
+ \{\Theta_v(P)\subseteq\widehat\Theta_v^{1-\eta}\},
+\]
+so monotonicity of probability gives
+\[
+ \Pr_P\{\Theta_v(P)\subseteq\widehat\Theta_v^{1-\eta}\}
+ \geq \Pr_P(E)\geq1-\eta.
+\]
+The same event \(E\) works for both values of \(v\); hence it simultaneously covers every pair in each entire joint sharp slope--APE set, rather than merely covering a selected endpoint or a single parameter value.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This corollary records the direct Bonferroni consequence of simultaneous multinomial cell-law coverage and definitional set inversion. \textit{Gap.} Relative to Chernozhukov, Hong, and Tamer and the constrained inversion in Dobronyi, Gu, Kim, and Russell, this is only a model-specific exact finite-sample inversion corollary, not an independent inference theorem. \textit{Consumer.} The PSID robustness analysis can attach conservative simultaneous coverage to every slope and APE compatible with the population law.
+
+\begin{theorem}[thm:relative-interior-consistency]\label{thm:relative-interior-consistency}
+Fix \(c>0\) and \(v\in\{\mathrm w,+\}\). Under \(P\in\operatorname{ri}(C_c^v)\), the projected empirical law \(\widetilde P_n\) is eventually attainable almost surely and \(L_c^v(\widetilde P_n)\to L_c^v(P)\) and \(U_c^v(\widetilde P_n)\to U_c^v(P)\) almost surely.
+\end{theorem}
+\begin{proof}
+Fix \(c>0\) and \(v\in\{\mathrm w,+\}\), and abbreviate
+\[
+ C=C_c^v,
+ \qquad A=\operatorname{aff}(C).
+\]
+The assumption \(P\in\operatorname{ri}(C)\) in \(\mathrm{ass{:}relative\text{-}interior\text{-}law}\) implies in particular that \(C\ne\varnothing\).
+
+First, \(C\) is convex.  Take \(Q_0,Q_1\in C\), choose \(d_j\) in the fiber over \(Q_j\), and use \(\mathrm{thm{:}exact\text{-}feedback\text{-}cone\text{-}all\text{-}laws}\) to choose \(z_j\in\mathcal F_c^v(Q_j,d_j)\).  For \(0\le\lambda\le1\), all lift equalities are affine and, for every PSD block and every vector \(a\),
+\[
+ a^{\mathsf T}\{\lambda M_0+(1-\lambda)M_1\}a
+ =\lambda a^{\mathsf T}M_0a+(1-\lambda)a^{\mathsf T}M_1a\ge0.
+\]
+Therefore
+\[
+ \lambda z_0+(1-\lambda)z_1
+ \in\mathcal F_c^v\bigl(\lambda Q_0+(1-\lambda)Q_1,
+ \lambda d_0+(1-\lambda)d_1\bigr). \tag{1}
+\]
+The reverse implication of the all-laws theorem puts the mixed law in \(C\), proving convexity for both classes.
+
+The lower endpoint is convex on \(C\).  Indeed, for \(\varepsilon>0\), choose feasible \(d_j<L_c^v(Q_j)+\varepsilon\).  Equation (1) implies
+\[
+ L_c^v(\lambda Q_0+(1-\lambda)Q_1)
+ \le\lambda L_c^v(Q_0)+(1-\lambda)L_c^v(Q_1)+\varepsilon,
+\]
+and letting \(\varepsilon\downarrow0\) proves convexity.  Choosing instead \(d_j>U_c^v(Q_j)-\varepsilon\) proves that \(U_c^v\) is concave.  By \(\mathrm{thm{:}fixed\text{-}slope\text{-}endpoints}\), both functions are finite on \(C\).  Extend \(L_c^v\) and \(-U_c^v\) by \(+\infty\) outside \(C\); they are proper convex functions with domain \(C\).  The result \(\mathrm{lem{:}relative\text{-}interior\text{-}convex\text{-}continuity}\), applied at the assumed point \(P\in\operatorname{ri}(C)\), shows that \(L_c^v\) and \(U_c^v\) are continuous at \(P\) relative to \(A\).
+
+The relative-interior premise also implies positive observed cells, although this is derived rather than assumed.  Let \(\mu\) be unit mass at \(u=1\), put \(h_x(1)=1/2\), and put \(g_{xy}(z,1)=1/2\) for all \(x,y,z\in B\).  These kernels satisfy both legal-class definitions, including the strict conditions, and generate
+\[
+ P^\star(x,y,z,w)=\frac14p_x(y,1)p_z(w,1)>0. \tag{2}
+\]
+Thus \(P^\star\in C\).  If some coordinate \(P_j\) were zero, a relative open ball around \(P\) in \(A\) would, for sufficiently small \(\epsilon>0\), contain \(P+\epsilon(P-P^\star)\); its \(j\)-th coordinate would be \(-\epsilon P_j^\star<0\), contradicting \(C\subseteq\Delta^{15}\).  This confirms the positive-cell consequence without replacing the stronger relative-interior premise used for continuity.
+
+It remains to prove convergence of the argument of the endpoint maps.  Under \(\mathrm{ass{:}iid\text{-}units}\), fix one cell, let \(Z_i\) be its indicator, write \(p=\mathbb E Z_i\), and set \(W_i=Z_i-p\).  Independence and centering make every term in the fourth-moment expansion vanish unless every sample index occurs at least twice.  Since \(|W_i|\le1\),
+\[
+ \mathbb E\!\left[\left(\frac1n\sum_{i=1}^nW_i\right)^4\right]
+ =\frac{n\mathbb E[W_1^4]+3n(n-1)\{\mathbb E[W_1^2]\}^2}{n^4}
+ \le\frac3{n^2}. \tag{3}
+\]
+Because \(\epsilon^4\mathbf 1\{|n^{-1}\sum_iW_i|>\epsilon\}\le|n^{-1}\sum_iW_i|^4\), taking expectations in this pointwise inequality and using (3) yields, for every \(\epsilon>0\),
+\[
+ \Pr\!\left(\left|\frac1n\sum_{i=1}^nW_i\right|>\epsilon\right)
+ \le\frac3{\epsilon^4n^2}. \tag{4}
+\]
+The probability of some such deviation after time \(N\) is at most \(3\epsilon^{-4}\sum_{n\ge N}n^{-2}\), which tends to zero.  Intersecting the resulting probability-one events over \(\epsilon=1/k\), \(k\in\mathbb N\), and over the sixteen cells proves
+\[
+ \widehat P_n\longrightarrow P\qquad\text{almost surely}. \tag{5}
+\]
+
+The affine space \(A\) is closed in the finite-dimensional cell space and contains \(P\).  Since \(\widetilde P_n\) is the Euclidean projection of \(\widehat P_n\) onto \(A\), its minimizing property gives
+\[
+ \|\widetilde P_n-P\|_2\le\|\widehat P_n-P\|_2. \tag{6}
+\]
+Thus \(\widetilde P_n\to P\) almost surely.  By \(P\in\operatorname{ri}(C)\), some relative open ball in \(A\) around \(P\) is contained in \(C\); hence \(\widetilde P_n\in C\) eventually almost surely.  Relative continuity at \(P\) now gives
+\[
+ L_c^v(\widetilde P_n)\longrightarrow L_c^v(P),
+ \qquad
+ U_c^v(\widetilde P_n)\longrightarrow U_c^v(P)
+ \quad\text{almost surely}. \tag{7}
+\]
+The argument fixes \(c\) and uses the relative-interior ball essentially; it establishes neither continuity at attainable boundary points nor joint consistency as \(c\) varies through one.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Convex endpoint values are relatively continuous at fixed-slope relative-interior attainable laws, and affine-hull projection preserves empirical convergence. \textit{Gap.} The proof gives no attainable-boundary continuity and no joint consistency as \(c\) varies through one. \textit{Consumer.} It justifies only pointwise fixed-slope plug-in endpoint estimation in the stated regime.
+
+\begin{proposition}[prop:c-one-sanity]\label{prop:c-one-sanity}
+At \(c=1\), every legal model has \(\Delta=0\), so each nonempty fixed-slope APE fiber reduces to \(\{0\}\). The observed-law coefficient map has rank fourteen at \(c=1\) and rank sixteen for \(c\ne1\); thus the affine-hull correction used by \(\widetilde P_n\) must change at the zero-slope special case.
+\end{proposition}
+\begin{proof}
+At \(c=1\), \(\mathrm{thm{:}sharp\text{-}slope\text{-}ape\text{-}envelope}\) gives \(\Delta=0\) for every probability law \(\mu\).  Hence every nonempty fixed-slope APE fiber is the singleton \(\{0\}\).  We prove the rank claim directly.
+
+Expand the declared likelihood polynomial as
+\[
+ A_{xz,yw}(u)=\sum_{k=0}^4\gamma_{xz,yw,k}(c)u^k.
+\]
+The observed-law equations in \(\mathrm{def{:}weak\text{-}lift}\) have the form \(P=C(c)m\), where the \(16\times40\) coefficient matrix is
+\[
+ C(c)_{(x,y,z,w),(x',r_0,r_1,k)}
+ =\mathbf 1\{x=x'\}\mathbf 1\{r_y=z\}\gamma_{xz,yw,k}(c). \tag{1}
+\]
+Order rows lexicographically by \((x,y,z,w)\), types by \((x,r_0,r_1)\), and degrees increasingly within each type.  The first indicator in (1) makes \(C(c)\) block diagonal in \(x\).  Numbering columns in each twenty-column block from zero, select columns \((0,1,2,6,7,8,10,11)\) in the \(x=0\) block and the same columns in the \(x=1\) block.  Expansion of the definition of \(A_{xz,yw}\) gives
+\[
+M_0=\begin{bmatrix}
+1&2c&c^2&2c&c^2&0&0&0\\
+0&1&2c&1&2c&c^2&0&0\\
+0&0&0&0&0&0&1&c+1\\
+0&0&0&0&0&0&0&c\\
+0&1&2c&0&0&0&0&1\\
+0&0&1&0&0&0&0&0\\
+0&0&0&1&c+1&c&0&0\\
+0&0&0&0&c&c^2+c&0&0
+\end{bmatrix},
+\quad
+M_1=\begin{bmatrix}
+1&c+1&c&c+1&c&0&0&0\\
+0&1&c+1&1&c+1&c&0&0\\
+0&0&0&0&0&0&1&2\\
+0&0&0&0&0&0&0&c\\
+0&c&c^2+c&0&0&0&0&c\\
+0&0&c&0&0&0&0&0\\
+0&0&0&c&2c&c&0&0\\
+0&0&0&0&c^2&2c^2&0&0
+\end{bmatrix}. \tag{2}
+\]
+Successive Laplace expansion along rows with a single nonzero entry gives
+\[
+ \det M_0=-c^2(c-1),
+ \qquad
+ \det M_1=-c^6(c-1). \tag{3}
+\]
+The selected \(16\times16\) block-diagonal minor consequently has determinant \(c^8(c-1)^2\).  Since \(C(c)\) has sixteen rows,
+\[
+ \operatorname{rank}C(c)=16
+ \qquad(c>0,\ c\ne1). \tag{4}
+\]
+
+At \(c=1\), the history-conditioned restriction \(\mathrm{ass{:}logit\text{-}response}\) gives \(p_0(y,u)=p_1(y,u)=:p(y,u)\) at every realized history.  The sequential factorization and \(\mathrm{ass{:}feedback\text{-}kernel}\) imply, for each \(x\in B\),
+\[
+\begin{aligned}
+ \sum_{z\in B}P(x,1,z,0)
+ &=\int h_x(u)p(1,u)
+      \sum_{z\in B}g_{x1}(z,u)p(0,u)\,d\mu(u)\\
+ &=\int h_x(u)p(1,u)p(0,u)\,d\mu(u)\\
+ &=\int h_x(u)p(0,u)
+      \sum_{z\in B}g_{x0}(z,u)p(1,u)\,d\mu(u)\\
+ &=\sum_{z\in B}P(x,0,z,1).
+\end{aligned} \tag{5}
+\]
+This uses feedback normalization separately at the two realized histories and no cross-world independence.  Summing the corresponding rows of (1) gives the same identity coefficientwise: after setting \(c=1\), both denominator-cleared sides are the same polynomial representing \(p(1,u)p(0,u)\).  The resulting two left-null vectors, one for each \(x\), have disjoint row supports and hence are independent.  Therefore \(\operatorname{rank}C(1)\le14\).
+
+For the reverse inequality, delete in each \(x\)-block the row \((x,1,1,0)\) and select within-block columns \((0,1,2,6,7,10,11)\).  Each resulting block is
+\[
+ Q=\begin{bmatrix}
+1&2&1&2&1&0&0\\
+0&1&2&1&2&0&0\\
+0&0&0&0&0&1&2\\
+0&0&0&0&0&0&1\\
+0&1&2&0&0&0&1\\
+0&0&1&0&0&0&0\\
+0&0&0&0&1&0&0
+\end{bmatrix}. \tag{6}
+\]
+Laplace expansion gives \(\det Q=1\).  Thus the corresponding \(14\times14\) minor \(\operatorname{diag}(Q,Q)\) is nonsingular, and
+\[
+ \operatorname{rank}C(1)=14. \tag{7}
+\]
+
+We finally identify the resulting affine-hull change.  Put
+\[
+ V_c=\operatorname{Range}C(c),
+ \qquad
+ \ell(p)=\sum_{(x,y,z,w)\in B^4}p(x,y,z,w),
+\]
+and
+\[
+ d_x(p)=\sum_{z\in B}p(x,1,z,0)-\sum_{z\in B}p(x,0,z,1). \tag{8}
+\]
+Every attainable law lies in \(V_c\cap\{\ell=1\}\), and (5) imposes \(d_0=d_1=0\) at \(c=1\).
+
+To prove that these are all affine restrictions, choose four distinct positive nodes, give each of the eight measures \(\rho_s\) strictly positive weight at every node, and multiply all weights by a common positive constant so that
+\[
+ \sum_{s\in S}\int D_c(u)\,d\rho_s(u)=1. \tag{9}
+\]
+Set \(a_s=\int u^{-1}\,d\rho_s(u)\) and \(b_s=\int u^5\,d\rho_s(u)\).  Then \(H_s\) is the Gram matrix of \((1,u,u^2)\), and \(K_s\) is the Gram matrix of \((u^{-1/2},u^{1/2},u^{3/2},u^{5/2})\).  The corresponding evaluation matrices have ranks three and four on four distinct positive nodes, so \(H_s\succ0\), \(K_s\succ0\), and \(H_\Sigma\succ0\).  Choosing
+\[
+ t_s>\lambda_{\max}(H_\Sigma H_s^{-1}H_\Sigma)
+\]
+makes \(R_s\succ0\) by direct completion of the square, equivalently by its Schur complement.  This is a strictly feasible lifted point, and its induced law \(\bar P=C(c)\bar m\) has every cell positive by (2) and positivity of every type weight.
+
+Positive definiteness of all blocks and positivity of all cells persist under sufficiently small perturbations.  Choose a linear right inverse \(J:V_c\to\mathbb R^{40}\) of \(C(c)\).  For all sufficiently small \(v\in V_c\cap\ker\ell\), set \(m(v)=\bar m+Jv\), keeping \((a,b,t)\) fixed.  Then
+\[
+ C(c)m(v)=\bar P+v,
+ \qquad \ell(\bar P+v)=1,
+\]
+and every weak and strict matrix block remains positive definite.  The APE coordinate is assigned its defining linear value \(\sum_sL_{m_s(v)}(N_c)\).  Hence \(\mathrm{thm{:}exact\text{-}feedback\text{-}cone\text{-}all\text{-}laws}\) makes all such \(\bar P+v\) attainable in both classes.  It follows that
+\[
+ \operatorname{aff}C_c^{v_0}=\bar P+(V_c\cap\ker\ell)
+ \qquad(v_0\in\{\mathrm w,+\}). \tag{10}
+\]
+For \(c\ne1\), (4) gives \(V_c=\mathbb R^{16}\).  For \(c=1\), the two independent identities (5), the inclusion \(V_1\subseteq\ker d_0\cap\ker d_1\), and (7) imply \(V_1=\ker d_0\cap\ker d_1\).  Therefore
+\[
+ \operatorname{aff}C_c^{v_0}=
+ \begin{cases}
+ \{p:\ell(p)=1\},&c\ne1,\\
+ \{p:\ell(p)=1,\ d_0(p)=d_1(p)=0\},&c=1.
+ \end{cases} \tag{11}
+\]
+Thus the observable coefficient rank falls from sixteen to fourteen at \(c=1\), and the affine hull used to define \(\widetilde P_n\) gains exactly two independent restrictions there.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At \(c=1\) every heterogeneity law gives zero APE, while explicit minors show the observable coefficient rank falls from sixteen to fourteen. \textit{Gap.} The affine hull gains two restrictions at \(c=1\), so fixed-slope relative-interior continuity yields no uniform inference through zero slope. \textit{Consumer.} It supplies the base rank stratum for the remaining boundary-inference question.
+
+\begin{openendedquestion}[oeq:rank-stratified-boundary-inference]\label{oeq:rank-stratified-boundary-inference}
+Using the rank-stratified handle in \(\mathrm{def{:}boundary\text{-}handle}\), can one construct a joint-set estimator and confidence procedure that is Hausdorff consistent and uniformly covers \(\Theta_v(P^{(n)})\) along all positive-cell attainable sequences \((P^{(n)},c_n)\to(P,1)\), including relative-boundary limits at which Hankel ranks or endpoint attainment change? If full uniformity is impossible, characterize the maximal collection of adjacent rank strata on which it holds and exhibit a least-favorable sequence outside that collection.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The unresolved content is the behavior of exact sharp endpoints when both the observable map and moment faces change rank. \textit{Gap.} Generic set inference, the model-specific regular SDP procedure, and tractable outer bounds do not settle uniform exact-set inference through this rank change. \textit{Consumer.} A confidence region for a slope near zero or a positive but boundary-attainable PSID law requires precisely this result.
+
+\begin{lemma}[lem:finite-atomic-cubature]\label{lem:finite-atomic-cubature}
+Let \(A\subset\mathbb R\) be measurable and let \(\lambda\) be a finite
+nonnegative measure concentrated on \(A\) for which the moments through degree
+\(d\) are finite.  There exist at most \(d+1\) points \(q_j\in A\) and
+positive weights \(w_j\) such that
+\(\int x^k d\lambda(x)=\sum_jw_jq_j^k\) for every \(0\le k\le d\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This supplies finite positive nodes while preserving the prescribed open-half-line concentration set. \textit{Gap.} This is classical cubature substrate, not a contribution of the note. \textit{Consumer.} It permits finite inverse and fifth moments in the necessity proof and finite node unions in the common-support construction.
+
+\begin{lemma}[lem:closed-stieltjes-order-four]\label{lem:closed-stieltjes-order-four}
+Let \(y=(y_0,\ldots,y_4)\in\mathbb R^5\), and define
+\[
+ M_2(y)=(y_{i+j})_{i,j=0}^2,
+ \qquad M_1(xy)=(y_{i+j+1})_{i,j=0}^1.
+\]
+If \(M_2(y)\succ0\) and \(M_1(xy)\succ0\), then \(y\) has a finite
+nonnegative representing measure on \([0,\infty)\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the closed-half-line existence theorem used after the proof establishes the required strict shifted positivity. \textit{Gap.} The open-half-line augmentation remains proved in this note rather than attributed to the source. \textit{Consumer.} It closes the full-rank existence case of the quartic moment argument.
+
+\begin{lemma}[lem:radon-nikodym-finite-family]\label{lem:radon-nikodym-finite-family}
+Let \(\lambda_1,\ldots,\lambda_J\) be finite nonnegative measures and let
+\(\lambda=\sum_{j=1}^J\lambda_j\).  There are measurable functions
+\(f_j\ge0\) such that \(d\lambda_j=f_jd\lambda\) and
+\(\sum_{j=1}^Jf_j=1\), \(\lambda\)-almost everywhere.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} The reverse construction needs simultaneous measurable densities with respect to one dominating probability measure. \textit{Gap.} This is standard measure-theoretic substrate. \textit{Consumer.} It makes the initial and feedback kernels measurable and normalized.
+
+\begin{lemma}[lem:generalized-schur-range]\label{lem:generalized-schur-range}
+For real symmetric positive-semidefinite \(d\times d\) matrices \(A\) and
+\(B\), there exists a real scalar \(t\) such that
+\[
+ \begin{bmatrix}A&B\\B&tI_d\end{bmatrix}\succeq0
+\]
+if and only if \(\operatorname{Range}(B)\subseteq\operatorname{Range}(A)\).
+\end{lemma}
+\begin{proof}
+Suppose the block matrix is positive semidefinite.  If \(q\in\ker(A)\), then
+its quadratic form at \((q,\lambda y)\) is
+\(2\lambda q^{\mathsf T}By+\lambda^2t\|y\|^2\).  Nonnegativity for both signs
+of arbitrarily small \(\lambda\) forces \(q^{\mathsf T}B=0\).  Hence
+\(\ker(A)\subseteq\ker(B)\), which, by symmetry, is equivalent to
+\(\operatorname{Range}(B)\subseteq\operatorname{Range}(A)\).
+
+Conversely assume this range inclusion and let \(A^\dagger\) be the
+Moore--Penrose inverse, defined by inverting the positive eigenvalues of
+\(A\).  Then \(AA^\dagger B=B\).  Completing the square gives, for all
+\(x,y\in\mathbb R^d\),
+\[
+ x^{\mathsf T}Ax+2x^{\mathsf T}By+t\|y\|^2
+ =(x+A^\dagger By)^{\mathsf T}A(x+A^\dagger By)
+   +y^{\mathsf T}(tI_d-BA^\dagger B)y.
+\]
+Choose \(t\ge\lambda_{\max}(BA^\dagger B)\).  Both terms are then
+nonnegative, proving the reverse implication.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This converts equality of Hankel ranges into the advertised scalar semidefinite lift. \textit{Gap.} The block equivalence must include singular matrices and cannot use an ordinary inverse. \textit{Consumer.} It proves that the eight common-range blocks are necessary and sufficient.
+
+\begin{lemma}[lem:relative-interior-convex-continuity]\label{lem:relative-interior-convex-continuity}
+\texttt{A proper convex function that is finite on a convex set is continuous,\allowbreak{}
+relative to the affine hull of its domain,\allowbreak{} at every point in the relative
+interior of that domain.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} Finite convex and concave endpoint maps are continuous on the relative interior of their common domain. \textit{Gap.} This theorem deliberately gives no relative-boundary continuity. \textit{Consumer.} It is the continuity step in fixed-slope endpoint consistency.
+
+\begin{lemma}[lem:real-closed-field-elimination]\label{lem:real-closed-field-elimination}
+\texttt{There is a terminating quantifier-\allowbreak{}elimination procedure for first-\allowbreak{}order
+formulas over real closed fields;\allowbreak{} in particular,\allowbreak{} a formula with real algebraic
+coefficients can be converted effectively to an equivalent quantifier-\allowbreak{}free
+Boolean combination of polynomial sign conditions.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} Termination of the exact algebraic procedure is a classical real-algebraic result. \textit{Gap.} No computational-complexity guarantee is imported. \textit{Consumer.} It decides finite-lift membership, projections, endpoint characterizations, and endpoint inclusion.
+
+\begin{lemma}[lem:principal-minor-psd]\label{lem:principal-minor-psd}
+\texttt{A real symmetric matrix is positive semidefinite if and only if all of its
+principal minors are nonnegative.  Consequently,\allowbreak{} a fixed-\allowbreak{}size affine matrix
+inequality is expressible by finitely many polynomial weak inequalities.}
+\end{lemma}
+\begin{proof}
+If \(Q\succeq0\), every principal submatrix is positive semidefinite and its
+determinant, the product of its nonnegative eigenvalues, is nonnegative.
+Conversely suppose every principal minor of \(Q\) is nonnegative.  For
+\(\epsilon>0\) and every nonempty index set \(I\), multilinearity of the
+determinant gives
+\[
+ \det(Q_I+\epsilon I)=
+ \sum_{J\subseteq I}\epsilon^{|I|-|J|}\det(Q_J)>0,
+\]
+where \(\det(Q_\varnothing)=1\).  In particular all leading principal minors
+of \(Q+\epsilon I\) are positive.  Symmetric Gaussian elimination, inducting
+on dimension and using each positive leading pivot, writes
+\(Q+\epsilon I=LDL^{\mathsf T}\) with every diagonal entry of \(D\) positive;
+hence \(Q+\epsilon I\succ0\).  Letting \(\epsilon\downarrow0\) in
+\(x^{\mathsf T}(Q+\epsilon I)x\ge0\) gives \(x^{\mathsf T}Qx\ge0\) for every
+\(x\), so \(Q\succeq0\).  Each principal determinant is polynomial in the
+matrix entries, proving the last assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The algebraic decision argument requires a finite polynomial encoding of every positive-semidefinite constraint. \textit{Gap.} Singular blocks require all principal minors, not only strict leading-minor tests. \textit{Consumer.} It converts the weak and strict lifts into first-order ordered-field formulas.
+
+\begin{lemma}[lem:bdg-continuous-feedback-program]\label{lem:bdg-continuous-feedback-program}
+\texttt{Proposition 1 and Sections 5.1-\allowbreak{}-\allowbreak{}5.3 of Bonhomme,\allowbreak{} Dano,\allowbreak{} and Graham characterize
+the sharp two-\allowbreak{}period predetermined-\allowbreak{}covariate binary-\allowbreak{}panel model by a
+continuous-\allowbreak{}heterogeneity nonnegative-\allowbreak{}function program and evaluate the
+unrestricted-\allowbreak{}support version by support grids;\allowbreak{} they do not supply the finite
+joint-\allowbreak{}response Stieltjes lift stated here.}
+\end{lemma}
+The two claims about the published program and its computations are exactly the source-scoped content of \(\mathrm{lem{:}bdg\text{-}proposition\text{-}one\text{-}conditional\text{-}program}\).  It remains to prove the translation and the two scope qualifications.
+
+Let \((\mu,h,g)\in\mathcal M_{\mathrm w}(c)\) generate \(P\), and suppose \(q_x>0\) for both \(x\in B\).  Summing the sequential path probabilities over \((y,z,w)\) and using the three kernel normalizations gives
+\[
+ q_x=\int h_x(u)d\mu(u). \tag{1}
+\]
+Define a probability measure conditional on \(X_1=x\) by
+\[
+ \pi_x(E)=q_x^{-1}\int_Eh_x(u)d\mu(u),
+ \qquad E\subset(0,\infty)\text{ measurable}. \tag{2}
+\]
+The division is legal by \(q_x>0\), and (1) proves normalization.  The history-conditioned factorization in \(\mathrm{ass{:}logit\text{-}response}\) then yields
+\[
+ \frac{P(x,y,z,w)}{q_x}
+ =\int p_x(y,u)g_{xy}(z,u)p_z(w,u)d\pi_x(u), \tag{3}
+\]
+which is the conditional unrestricted-feedback law.
+
+Conversely, take positive margins \((q_x)_{x\in B}\) summing to one, conditional probability laws \((\pi_x)_{x\in B}\) on \((0,\infty)\), and legal feedback kernels \(g\) in that conditional formulation.  Set
+\[
+ \mu=\sum_{x\in B}q_x\pi_x. \tag{4}
+\]
+This is a probability measure.  Applying \(\mathrm{lem{:}radon\text{-}nikodym\text{-}finite\text{-}family}\) to the two finite measures \((q_x\pi_x)_{x\in B}\) gives measurable functions
+\[
+ h_x=\frac{d(q_x\pi_x)}{d\mu},
+ \qquad h_x\ge0,
+ \qquad \sum_{x\in B}h_x=1
+ \quad\mu\text{-almost everywhere}. \tag{5}
+\]
+Thus \((\mu,h,g)\) satisfies the base-law, initial-kernel, feedback-kernel, and sequential-response conditions defining \(\mathcal M_{\mathrm w}(c)\).  Since
+\[
+ h_xd\mu=q_xd\pi_x, \tag{6}
+\]
+substitution in the unconditional path formula recovers exactly \(P\).  If \(f_c(u)=(c-1)u/\{(1+u)(1+cu)\}\), then the unconditional APE also agrees because
+\[
+ \int f_c(u)d\mu(u)
+ =\sum_{x\in B}q_x\int f_c(u)d\pi_x(u). \tag{7}
+\]
+Equations (2)--(7) prove the exact unrestricted-measure translation after the positive margins are adjoined.
+
+By \(\mathrm{def{:}strict\text{-}legal\text{-}class}\), every member of \(\mathcal M_+(c)\) satisfies every condition in \(\mathrm{def{:}weak\text{-}legal\text{-}class}\) and additionally has strictly positive initial and feedback kernels.  Hence the strict fiber is a subclass of the present weak fiber, not another attribution to the published conditional program.  Finally, the finite moment converse used by the present cone may return atomic measures; neither (2) nor (4)--(6) changes an atomic or singular component into a Lebesgue-absolutely-continuous one.  No absolutely-continuous replacement result is among the declared premises.  The proved correspondence is therefore with unrestricted probability measures on \((0,\infty)\), and it does not establish equality with a separately imposed Lebesgue-density subclass.
+\par\smallskip\noindent \textit{Justification.} This cited leaf carries only the published conditional-program and computation facts. \textit{Gap.} It does not carry the note's measure-valued translation, strict subclass, or finite-lift equivalence. \textit{Consumer.} It provides source scope for the positive-margin comparator corollary.
+
+\begin{lemma}[lem:clopper-pearson-marginal-coverage]\label{lem:clopper-pearson-marginal-coverage}
+Let \(N\sim\operatorname{Bin}(n,\pi)\), where \(n\geq 1\), \(\pi\in(0,1)\), and let \(I_{\gamma}(N)\) be the two-sided equal-tailed Clopper--Pearson interval with total error level \(\gamma\in(0,1)\). Then
+\[
+ \Pr_{\pi}\{\pi\in I_{\gamma}(N)\}\geq 1-\gamma.
+\]
+\end{lemma}
+
+\begin{theorem}[thm:sharp-slope-ape-envelope]\label{thm:sharp-slope-ape-envelope}
+Let \(c>0\), let \(\theta=\log c\), let \(\mu\) be any probability measure on \((0,\infty)\), and set
+\[
+ \Delta=\int_{(0,\infty)}\frac{(c-1)u}{(1+u)(1+cu)}\,d\mu(u).
+\]
+Then
+\[
+ \begin{array}{ll}
+ c>1:&0<\Delta\le \dfrac{\sqrt c-1}{\sqrt c+1},\\[6pt]
+ 0<c<1:&-\dfrac{1-\sqrt c}{1+\sqrt c}\le\Delta<0,\\[6pt]
+ c=1:&\Delta=0.
+ \end{array}
+\]
+Equivalently, if \(\theta\ne0\), then
+\[
+ \operatorname{sign}(\Delta)=\operatorname{sign}(\theta),
+ \qquad
+ |\Delta|\le\tanh\!\left(\frac{|\theta|}{4}\right),
+\]
+and equality in the absolute-value inequality holds if and only if
+\(\mu(\{c^{-1/2}\})=1\).  Consequently, for each \(v\in\{\mathrm w,+\}\), every nonempty fixed-\(c\) fiber of \(\Theta_v(P)\) is contained in the corresponding displayed interval.  This is a sharp universal envelope over both \(\mathcal M_{\mathrm w}(c)\) and \(\mathcal M_+(c)\): every point of \((0,(\sqrt c-1)/(\sqrt c+1)]\) when \(c>1\), every point of \([-(1-\sqrt c)/(1+\sqrt c),0)\) when \(0<c<1\), and the value zero when \(c=1\), is generated by a legal model in each class.  At \(c=1\), equality at zero holds for every \(\mu\), so the concentration characterization is asserted only when \(\theta\ne0\).
+\end{theorem}
+\begin{proof}
+Define
+\[
+ \psi_c(u)=\frac{u}{(1+u)(1+cu)},
+ \qquad
+ \phi_c(u)=(c-1)\psi_c(u),
+ \qquad u>0.
+\]
+The denominators are strictly positive because \(c>0\) and \(u>0\).  Direct differentiation, using the quotient rule, gives
+\[
+ \psi_c'(u)
+ =\frac{(1+u)(1+cu)-u\{(1+cu)+c(1+u)\}}
+        {(1+u)^2(1+cu)^2}
+ =\frac{1-cu^2}{(1+u)^2(1+cu)^2}. \tag{1}
+\]
+Thus \(\psi_c\) is strictly increasing on \((0,c^{-1/2})\), strictly decreasing on \((c^{-1/2},\infty)\), and has its unique maximum at \(u_c=c^{-1/2}\).  Also \(\psi_c(u)\to0\) as \(u\downarrow0\) and as \(u\to\infty\).  Writing \(r=\sqrt c>0\), evaluation at the unique maximizer yields
+\[
+ \psi_c(u_c)
+ =\frac{1/r}{(1+1/r)(1+r)}
+ =\frac{1}{(1+r)^2}. \tag{2}
+\]
+If \(c>1\), equations (1)--(2) imply
+\[
+ 0<\phi_c(u)\le(c-1)\psi_c(u_c)
+ =\frac{r^2-1}{(1+r)^2}
+ =\frac{r-1}{r+1}=:M_c, \tag{3}
+\]
+with equality only at \(u=u_c\).  Since \(\mu\) is a probability measure, integration of (3) gives \(\Delta\le M_c\).  The integral is strictly positive: the measurable sets
+\(E_j=\{u:\phi_c(u)\ge1/j\}\) satisfy \(\bigcup_{j\ge1}E_j=(0,\infty)\), so some \(E_j\) has positive \(\mu\)-mass and then \(\Delta\ge\mu(E_j)/j>0\).
+
+If \(0<c<1\), then \(\phi_c(u)<0\) everywhere.  Applying (2) to \(|\phi_c|=(1-c)\psi_c\) gives
+\[
+ 0<|\phi_c(u)|\le\frac{1-r}{1+r}=:M_c, \tag{4}
+\]
+again with equality only at \(u_c\).  The same countable-union argument applied to \(|\phi_c|\) proves \(\Delta<0\), while integration of (4) proves \(-M_c\le\Delta\).  If \(c=1\), the numerator of \(\phi_c\) is zero and hence \(\Delta=0\).
+
+For \(c\ne1\), put \(G_c(u)=M_c-|\phi_c(u)|\).  Equations (1)--(4) show that \(G_c\ge0\) and that its zero set is exactly \(\{u_c\}\).  Equality \(|\Delta|=M_c\) is equivalent, because \(\phi_c\) has constant sign, to \(\int G_c\,d\mu=0\).  For a nonnegative measurable function, a zero integral implies that the function is zero almost everywhere: indeed, each set \(\{G_c\ge1/j\}\) must have zero mass, and their union is \(\{G_c>0\}\).  Therefore equality holds if and only if \(\mu(\{u_c\})=1\).  The converse follows by direct substitution.
+
+Since \(c=e^\theta\), \(\operatorname{sign}(c-1)=\operatorname{sign}(\theta)\).  Moreover, when \(\theta\ne0\),
+\[
+ M_c
+ =\frac{|e^{\theta/2}-1|}{e^{\theta/2}+1}
+ =\tanh\!\left(\frac{|\theta|}{4}\right). \tag{5}
+\]
+Every element of either model-defined fiber uses a probability law \(\mu\) by \(\mathrm{ass{:}base\text{-}law}\), so the displayed fiber inclusions follow without any restriction on \(P\).
+
+It remains to establish universal sharpness rather than merely an outer envelope.  Put \(t=ru\).  A direct division by \(M_c\) gives, for \(c\ne1\),
+\[
+ \frac{|\phi_c(u)|}{M_c}
+ =\frac{(r+1)^2t}{(r+t)(1+rt)}
+ =\frac{(r+1)^2}{r(t+t^{-1})+1+r^2}. \tag{6}
+\]
+For any \(y\in(0,1]\), define
+\[
+ s_y=\frac{(r+1)^2/y-(1+r^2)}{r}.
+\]
+Since \(y\le1\), one has \(s_y\ge2\).  The positive number
+\[
+ t_y=\frac{s_y+\sqrt{s_y^2-4}}{2}
+\]
+satisfies \(t_y+t_y^{-1}=s_y\).  Equation (6), with \(u_y=t_y/r>0\), therefore gives \(|\phi_c(u_y)|=yM_c\).  As \(\phi_c\) has the sign of \(c-1\), this proves that its range is \((0,M_c]\) when \(c>1\) and \([-M_c,0)\) when \(0<c<1\).
+
+Given any value in the appropriate range, choose the corresponding positive finite node \(u_y\), take \(\mu=\delta_{u_y}\), and define \(h_x(u)=1/2\) and \(g_{xy}(z,u)=1/2\) for every \(u>0\) and all binary indices.  These measurable kernels satisfy both normalization and strict positivity, and the sequential logit response kernels generate a legal law.  Thus the chosen value is attained in both \(\mathcal M_{\mathrm w}(c)\) and \(\mathcal M_+(c)\).  For \(c=1\), the same construction gives zero.  This proves the sharp universal envelope and its equality characterization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The scalar logit effect has a unique extremum at \(u=c^{-1/2}\), producing an exact universal constraint on every joint fiber and an attainable equality case. \textit{Gap.} The finite cone alone obscures this closed-form global geometry across slopes. \textit{Consumer.} The envelope supplies a solver check and a model-wide benchmark for every fixed-slope endpoint calculation.
+
+\begin{theorem}[thm:exact-feedback-cone-all-laws]\label{thm:exact-feedback-cone-all-laws}
+For every fixed \(c>0\), every probability vector \(P\in\Delta^{15}\), and every real \(\Delta\), including laws with zero cells, one has
+\[
+ (\log c,\Delta)\in\Theta_{\mathrm w}(P)
+ \Longleftrightarrow
+ \mathcal F_c^{\mathrm w}(P,\Delta)\ne\varnothing,
+ \qquad
+ (\log c,\Delta)\in\Theta_+(P)
+ \Longleftrightarrow
+ \mathcal F_c^+(P,\Delta)\ne\varnothing. \tag{1}
+\]
+The forward map forms the eight joint response-type measures
+\(d\nu_{(x,r_0,r_1)}=h_xg_{x0}(r_0,\cdot)g_{x1}(r_1,\cdot)d\mu\), then sets \(d\rho_s=D_c^{-1}d\nu_s\) and records the five moments through degree four.  The reverse map takes positive-half-line representing measures, sets \(d\nu_s=D_c\,d\rho_s\), and reconstructs one probability law and legal sequential initial and feedback kernels by Radon--Nikodym derivatives.  For the strict class, the \(6\times6\) blocks give a common positive-node representation with every type weight positive, which makes every reconstructed initial and feedback probability strictly positive almost everywhere.  The weak lift uses exactly fifty-six scalar variables, eight \(3\times3\) PSD blocks, and eight \(4\times4\) PSD blocks; the strict lift uses sixty-four variables and eight additional \(6\times6\) PSD blocks.  Thus (1) is equality with the independently model-defined fibers, not an outer bound, and no cellwise-positivity condition on \(P\) is required.
+\end{theorem}
+\begin{proof}
+Fix \(c>0\), \(P\in\Delta^{15}\), and \(\Delta\in\mathbb R\).  The declared common denominator satisfies
+\[
+ D_c(u)=(1+u)^2(1+cu)^2>0\qquad(u>0). \tag{1}
+\]
+By the chain rule, the definition of the feedback kernel, and \(\mathrm{ass{:}logit\text{-}response}\), the history-conditioned sequential law factors as
+\[
+ \Pr(Y_1=y,X_2=z,Y_2=w\mid X_1=x,u)
+ =p_x(y,u)g_{xy}(z,u)p_z(w,u). \tag{2}
+\]
+Thus (2) uses only the two declared response kernels at their realized histories; it introduces no cross-history or cross-world independence.
+
+Suppose first that \((\log c,\Delta)\in\Theta_{\mathrm w}(P)\).  By the definition of \(\Theta_{\mathrm w}\), some \((\mu,h,g)\in\mathcal M_{\mathrm w}(c)\) generates \(P\) and \(\Delta\).  Applying \(\mathrm{lem{:}response\text{-}measure\text{-}equivalence}\) and \(\mathrm{def{:}joint\text{-}response\text{-}measures}\) gives eight finite nonnegative measures \((\nu_s)_{s\in S}\), with \(\sum_s\nu_s=\mu\), such that
+\[
+ P(x,y,z,w)=\sum_{r:r_y=z}\int p_x(y,u)p_z(w,u)\,d\nu_{(x,r)}(u),
+ \qquad
+ \Delta=\sum_{s\in S}\int
+ \frac{(c-1)u}{(1+u)(1+cu)}\,d\nu_s(u). \tag{3}
+\]
+Define \(d\rho_s=D_c^{-1}d\nu_s\), as in \(\mathrm{def{:}denominator\text{-}cleared\text{-}moments}\).  For \(0\le k\le4\), the function \(u^k/D_c(u)\) is bounded on \((0,\infty)\): it has a finite limit at zero, is continuous on compact positive intervals, and is \(O(u^{k-4})\) at infinity.  Hence all five moments \(m_{s,k}=\int u^k\,d\rho_s\) are finite.  Direct algebra from the definition of \(p\) gives
+\[
+ D_c(u)p_x(y,u)p_z(w,u)
+ =c^{xy+zw}u^{y+w}(1+u)^{x+z}(1+cu)^{2-x-z}
+ =A_{xz,yw}(u), \tag{4}
+\]
+and
+\[
+ D_c(u)\frac{(c-1)u}{(1+u)(1+cu)}
+ =(c-1)u(1+u)(1+cu)=N_c(u). \tag{5}
+\]
+Both polynomials have degree at most four.  Substitution of (4)--(5) into (3), followed by the definition of \(L_{m_s}\), yields
+\[
+ P(x,y,z,w)=\sum_{r:r_y=z}L_{m_{(x,r)}}(A_{xz,yw}),
+ \qquad
+ \Delta=\sum_{s\in S}L_{m_s}(N_c). \tag{6}
+\]
+For every \(s\), the representing measure \(\rho_s\) and \(\mathrm{lem{:}open\text{-}stieltjes\text{-}quartic}\) supply \(a_s,b_s\in\mathbb R\) with \(H_s\succeq0\) and \(K_s\succeq0\).  Equations (6) and \(\mathrm{def{:}weak\text{-}lift}\) therefore give \(\mathcal F_c^{\mathrm w}(P,\Delta)\ne\varnothing\).
+
+If the generating model is in \(\mathcal M_+(c)\), then \(\mathrm{ass{:}strict\text{-}initial}\) and \(\mathrm{ass{:}strict\text{-}feedback}\), as incorporated in \(\mathrm{def{:}strict\text{-}legal\text{-}class}\), imply for every \(s=(x,r_0,r_1)\) that
+\[
+ h_x(u)g_{x0}(r_0,u)g_{x1}(r_1,u)>0
+ \quad\text{for }\mu\text{-almost every }u. \tag{7}
+\]
+By (1), each \(\rho_s\) is then mutually absolutely continuous with \(\mu\).  For \(v=(v_0,v_1,v_2)^{\mathsf T}\), let \(q_v(u)=v_0+v_1u+v_2u^2\).  The moment definition gives
+\[
+ v^{\mathsf T}H_sv=\int q_v(u)^2\,d\rho_s(u). \tag{8}
+\]
+Mutual absolute continuity makes the null space in (8) the same for all \(s\), so all \(H_s\) have the same range.  Since the null space of a sum of positive-semidefinite matrices is the intersection of their null spaces, \(H_\Sigma\) has that same range.  The equivalence in \(\mathrm{lem{:}generalized\text{-}schur\text{-}range}\) consequently supplies \(t_s\in\mathbb R\) such that \(R_s\succeq0\) for every \(s\).  By \(\mathrm{def{:}strict\text{-}lift}\), \(\mathcal F_c^+(P,\Delta)\ne\varnothing\).
+
+Conversely, suppose \((m,a,b)\in\mathcal F_c^{\mathrm w}(P,\Delta)\).  By \(\mathrm{lem{:}open\text{-}stieltjes\text{-}quartic}\), for every \(s\) there is a finite nonnegative measure \(\rho_s\) on \((0,\infty)\) representing \(m_{s,0},\ldots,m_{s,4}\).  Set
+\[
+ d\nu_s(u)=D_c(u)\,d\rho_s(u). \tag{9}
+\]
+These measures are finite because \(D_c\) has degree four and the moments through degree four are finite.  Sum the sixteen observed-cell equalities in \(\mathrm{def{:}weak\text{-}lift}\).  For a fixed \(s=(x,r)\), the restriction \(r_y=z\) chooses exactly one \(z\) for each \(y\), and the declared logit probabilities satisfy \(\sum_y p_x(y,u)=\sum_w p_{r_y}(w,u)=1\).  Hence (4) implies that the polynomial contributed by this type after summing all paths is \(D_c\).  Since \(P\in\Delta^{15}\),
+\[
+ 1=\sum_{x,y,z,w\in B}P(x,y,z,w)
+ =\sum_{s\in S}L_{m_s}(D_c)
+ =\sum_{s\in S}\nu_s((0,\infty)). \tag{10}
+\]
+Thus \(\sum_s\nu_s\) is a probability measure.  Equations (4)--(6) and (9) show that the path and APE integrals of this family are exactly \(P\) and \(\Delta\).  The reverse implication of \(\mathrm{lem{:}response\text{-}measure\text{-}equivalence}\) now sets \(\mu=\sum_s\nu_s\) and constructs normalized measurable kernels \(h\) and \(g\) by Radon--Nikodym derivatives.  Together with (2), this gives a member of \(\mathcal M_{\mathrm w}(c)\) generating exactly \(P\) and \(\Delta\).  Notice that (10) used only total mass one; a zero observed cell or a zero weak type measure creates no division, and probability-vector versions of the kernels may be chosen arbitrarily on the corresponding null sets.
+
+For the strict converse, suppose \((m,a,b,t)\in\mathcal F_c^+(P,\Delta)\).  From \(R_s\succeq0\) and \(\mathrm{lem{:}generalized\text{-}schur\text{-}range}\),
+\[
+ \operatorname{Range}(H_\Sigma)\subseteq\operatorname{Range}(H_s)
+ \qquad(s\in S). \tag{11}
+\]
+On the other hand, \(H_\Sigma-H_s=\sum_{j\ne s}H_j\succeq0\).  Therefore \(\ker H_\Sigma\subseteq\ker H_s\), and symmetry gives \(\operatorname{Range}(H_s)\subseteq\operatorname{Range}(H_\Sigma)\).  Hence all the ranges in (11) are equal.  If some \(H_s=0\), (11) forces \(H_\Sigma=0\); positivity of every summand then forces every \(H_j=0\), so all five moments of every type are zero.  This contradicts (10).  Thus \(m_s\ne0\) for every \(s\).
+
+The hypotheses of \(\mathrm{lem{:}common\text{-}positive\text{-}support}\) are now met.  Choose representing measures \(\rho_s\) on one finite set \(Q\subset(0,\infty)\), every one of which gives strictly positive mass to every node of \(Q\), and define \(\nu_s\) by (9).  Positivity in (1) preserves all those strictly positive weights.  The Radon--Nikodym reconstruction at every \(q\in Q\) is explicitly
+\[
+ h_x(q)=
+ \frac{\sum_{r\in B^2}\nu_{(x,r)}(\{q\})}
+      {\sum_{j\in S}\nu_j(\{q\})}>0, \tag{12}
+\]
+and, for every \(x,y,z\in B\),
+\[
+ g_{xy}(z,q)=
+ \frac{\sum_{r:r_y=z}\nu_{(x,r)}(\{q\})}
+      {\sum_{r\in B^2}\nu_{(x,r)}(\{q\})}>0. \tag{13}
+\]
+Every denominator is positive because every type has positive weight at every common node.  Since \(\mu=\sum_s\nu_s\) is concentrated on \(Q\), (12)--(13) establish the two strict-positivity assumptions \(\mu\)-almost everywhere.  The reconstructed model therefore lies in \(\mathcal M_+(c)\) and generates exactly \(P\) and \(\Delta\).
+
+Finally, \(m\) has \(8\cdot5=40\) coordinates and \((a,b)\) has sixteen, for fifty-six weak variables.  The weak constraints contain eight blocks \(H_s\in\mathbb S^3\) and eight blocks \(K_s\in\mathbb S^4\).  The strict lift adds eight coordinates \(t_s\) and eight blocks \(R_s\in\mathbb S^6\), for sixty-four variables.  Both implications have been proved for every probability vector \(P\), including all singular and zero-type weak regimes.  The two finite lifts therefore equal the independently model-defined fibers and are sharp, rather than outer, representations.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Normalization of the lifted response measures uses only \(P\in\Delta^{15}\), so the legal-kernel reconstruction remains exact with zero observed cells and zero weak type measures. \textit{Gap.} Positive observed cells were previously carried as an unnecessary premise of the cone equivalence rather than isolated to the positive-margin comparator translation. \textit{Consumer.} The all-laws theorem makes the finite certificate usable on boundary observed laws without pretending that endpoint continuity or uniform boundary inference follows.
+
+\begin{lemma}[lem:bdg-weak-fiber-translation]\label{lem:bdg-weak-fiber-translation}
+Suppose \(q_x>0\) for both \(x\in B\).  At the level of the joint law \(P\) and unconditional APE \(\Delta\), the weak legal parameterization by one unconditional probability law \(\mu\), initial kernel \(h\), and unrestricted feedback kernel \(g\) is exactly equivalent to this note's measure-valued conditional reformulation of the Bonhomme--Dano--Graham two-period equations.  The forward map normalizes the finite measure \(h_xd\mu\) by \(q_x\); the reverse map takes the \(q_x\)-weighted mixture of the two conditional probability laws and recovers \(h_x\) by a Radon--Nikodym derivative.  The reformulation permits arbitrary probability measures on \((0,\infty)\), including atomic, absolutely continuous, and mixed laws.  The strict class \(\mathcal M_+(c)\) is an additional subclass of \(\mathcal M_{\mathrm w}(c)\).  Neither direction establishes equality with the published fixed-reference or Lebesgue-density program.
+\end{lemma}
+\begin{proof}
+Let \((\mu,h,g)\in\mathcal M_{\mathrm w}(c)\) generate \(P\).  By the sequential factorization supplied by \(\mathrm{ass{:}logit\text{-}response}\), the definitions of \(h\) and \(g\), and the normalization conditions in \(\mathrm{ass{:}initial\text{-}kernel}\) and \(\mathrm{ass{:}feedback\text{-}kernel}\), summing over \((y,z,w)\) gives
+\[
+ q_x=\sum_{y,z,w\in B}P(x,y,z,w)=\int h_x(u)\,d\mu(u). \tag{1}
+\]
+The premise \(q_x>0\) therefore permits the definition, for each Borel set \(E\subset(0,\infty)\),
+\[
+ \pi_x(E)=q_x^{-1}\int_E h_x(u)\,d\mu(u). \tag{2}
+\]
+Equation (1) makes \(\pi_x\) a probability measure.  Substitution of \(h_x\,d\mu=q_x\,d\pi_x\) in the path law yields
+\[
+ P(x,y,z,w)
+ =q_x\int p_x(y,u)g_{xy}(z,u)p_z(w,u)\,d\pi_x(u). \tag{3}
+\]
+If \(f_c(u)=(c-1)u/\{(1+u)(1+cu)\}\), then \(\sum_xh_x=1\), from \(\mathrm{ass{:}initial\text{-}kernel}\), also gives
+\[
+ \Delta=\int f_c(u)\,d\mu(u)
+ =\sum_{x\in B}q_x\int f_c(u)\,d\pi_x(u). \tag{4}
+\]
+Equations (3)--(4) are precisely the note's measure-valued conditional reformulation of the two-period path and unconditional-APE equations.
+
+Conversely, let \(q_0,q_1>0\) sum to one, let \(\pi_0,\pi_1\) be probability measures on \((0,\infty)\), and let \(g\) be a measurable nonnegative feedback kernel satisfying \(\sum_{z\in B}g_{xy}(z,u)=1\) for every \(x,y\in B\), almost everywhere under each \(\pi_x\).  Suppose (3)--(4) hold and set
+\[
+ \mu=\sum_{x\in B}q_x\pi_x. \tag{5}
+\]
+This is a probability measure, and \(q_x\pi_x\ll\mu\).  By \(\mathrm{lem{:}radon\text{-}nikodym\text{-}finite\text{-}family}\), measurable versions exist with
+\[
+ h_x=\frac{d(q_x\pi_x)}{d\mu},
+ \qquad h_x\ge0,
+ \qquad \sum_{x\in B}h_x=1
+ \quad\mu\text{-almost everywhere}. \tag{6}
+\]
+A property holding \(\pi_x\)-almost everywhere holds \(\mu\)-almost everywhere on \(\{h_x>0\}\), because \(q_x\,d\pi_x=h_x\,d\mu\).  On \(\{h_x=0\}\), redefine \(g_{xy}(\cdot,u)\), if needed, to any probability vector on \(B\).  This makes the feedback normalization valid \(\mu\)-almost everywhere for every history without altering any path integral.  Equations (5)--(6), the stipulated response kernels in \(\mathrm{ass{:}logit\text{-}response}\), and the two kernel normalizations therefore define a member of \(\mathcal M_{\mathrm w}(c)\).  Since
+\[
+ h_x\,d\mu=q_x\,d\pi_x, \tag{7}
+\]
+substitution into its sequential path formula recovers (3), hence all sixteen cells, and summing (7) over \(x\) recovers (4), hence the unconditional APE.  The two constructions are inverse at the level of \((P,\Delta)\).
+
+The transformations (2) and (5)--(7) preserve atomic, singular, and absolutely continuous components.  Accordingly, they prove equivalence only with the note's unrestricted-measure conditional reformulation.  The source-scoped description in \(\mathrm{lem{:}bdg\text{-}continuous\text{-}feedback\text{-}program}\) supplies no theorem converting arbitrary measures to a fixed-reference or Lebesgue-density representation, so no such stronger equality follows.  Finally, \(\mathrm{def{:}strict\text{-}legal\text{-}class}\) adds strict initial and feedback positivity to all conditions of \(\mathrm{def{:}weak\text{-}legal\text{-}class}\).  Hence \(\mathcal M_+(c)\subseteq\mathcal M_{\mathrm w}(c)\), and the strict fiber is an additional subclass, not a second comparator equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Conditionalization and Radon--Nikodym mixing prove equivalence with the note's measure-valued conditional reformulation. \textit{Gap.} The maps preserve atoms and singular components and prove no equality with a fixed-reference or Lebesgue-density program. \textit{Consumer.} It is the legal-kernel translation used by thm:exact-feedback-cone.
+
+\begin{lemma}[lem:bdg-proposition-one-conditional-program]\label{lem:bdg-proposition-one-conditional-program}
+Bonhomme--Dano--Graham Proposition 1 gives the sharp unrestricted-feedback program for the \(T=2\) predetermined-covariate binary-panel model conditional on \(X_1\), for a maintained heterogeneity support and reference measure.  Their continuous-support computations in Sections 5.1--5.3 use density representations and support grids.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This leaf carries only the published conditional-program and computation facts used in the repaired comparison lemma. \textit{Gap.} It deliberately does not attribute the present unconditional-law translation, strict subclass, or finite Stieltjes lift to the source. \textit{Consumer.} lem:bdg-continuous-feedback-program
+
+\section{Interpretation}
+
+The finite cone is an identifying map for the independently defined causal slope--APE fiber, not a regression estimand or a discretized outer approximation. For a fixed observed law, the sign-sensitive universal inequality is an outer envelope, while its sharpness is across varying admissible laws. For \(\theta\ne0\), envelope equality holds if and only if \(\mu=\delta_{\exp(-\theta/2)}\); at \(\theta=0\), every \(\mu\) gives equality. Weak cone feasibility permits type measures with different supports. Strict feasibility is stronger: common-range blocks certify one positive-node support with every response type receiving positive weight, which makes every reconstructed initial and feedback probability positive almost everywhere and consequently forces positive observed cells.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The strict common-support proof is existential and does not provide an efficient atom-extraction algorithm. Real quantifier elimination terminates for algebraic inputs but carries no polynomial complexity or numerical-stability guarantee. A closed lifted PSD set can have a nonclosed linear image, so fixed-slope infima and suprema need separate endpoint-attainment tests. Relative-interior convex continuity does not extend automatically to attainable boundary laws, changes of Hankel rank, or the observable-map rank loss at \(c=1\).
+
+\section{Honest scope}
+
+The proved contribution is the exact finite-certificate equivalence for the independently defined two-period binary weak and strict fibers on the entire observed-law simplex. Its proved ingredients are the forward joint-response construction, reverse legal-kernel reconstruction under the history-conditioned sequential logit restriction, and the common-support certificate required for strict positivity. The heterogeneity law may be atomic, absolutely continuous, or mixed. With positive initial margins, the weak model is equivalent to this note's measure-valued conditional reformulation of the Bonhomme--Dano--Graham program; no equality with the published fixed-reference or Lebesgue-density program is proved, and the strict fiber is an additional subclass. The note also proves the sharp universal slope--APE envelope, fixed-slope infimum and supremum programs with separate inclusion tests, premise-correct algebraic membership and projection, conservative exact multinomial whole-set inversion, and pointwise endpoint consistency for fixed \(c\) at relative-interior attainable laws. Uniform inference on rank-changing faces, continuity outside \(\operatorname{ri}(C_c^v)\), and joint consistency as \(c\) approaches one remain open, as do certified atom extraction, arbitrary panel length, restricted feedback dynamics, and multinomial outcomes.
+
+\begin{thebibliography}{99}
+
+  \bibitem{bonhommeDanoGraham2023} Stéphane Bonhomme, Kevin Dano, and Bryan S. Graham (2023), Identification in a Binary Choice Panel Data Model with a Predetermined Covariate, SERIEs 14, 315--351. Proposition 1 and Sections 5.1--5.3. DOI: 10.1007/s13209-023-00290-2.
+
+  \bibitem{dobronyiGuKimRussell2026} Christopher Dobronyi, Jiaying Gu, Kyoo il Kim, and Thomas M. Russell (2026), Identification of Dynamic Panel Logit Models with Fixed Effects, Review of Economic Studies, forthcoming. Theorems 3.1--3.2 and 4.1--4.2. arXiv:2104.04590v4.
+
+  \bibitem{curtoFialkow1991} Raúl E. Curto and Lawrence A. Fialkow (1991), Recursiveness, Positivity, and Truncated Moment Problems, Houston Journal of Mathematics 17, 603--635. Theorem 5.1 and Lemma 2.3.
+
+  \bibitem{bayerTeichmann2002} Christian Bayer and Josef Teichmann (2002), The Proof of Tchakaloff's Theorem, Proceedings of the American Mathematical Society 134, 3035--3040.
+
+  \bibitem{bonhommeDanoGraham2026moments} Stéphane Bonhomme, Kevin Dano, and Bryan S. Graham (2026), Moment Restrictions for Nonlinear Panel Data Models with Feedback, revise and resubmit at Econometrica. Theorem 1 and Supplemental Appendix E. arXiv:2506.12569v3.
+
+  \bibitem{guRussellStringham2026} Jiaying Gu, Thomas M. Russell, and Thomas Stringham (2026), Counterfactual Identification and Latent Space Enumeration in Discrete Outcome Models, Review of Economic Studies 93, 1847--1888. DOI: 10.1093/restud/rdaf058.
+
+  \bibitem{dano2025transitions} Kevin Dano (2025), Transition Probabilities and Moment Restrictions in Dynamic Fixed Effects Logit Models, working paper. Section 5 and the partial-fraction appendix. arXiv:2303.00083.
+
+  \bibitem{shin2025} Sukgyu Shin (2025), Sufficient Statistics for Markovian Feedback Processes and Unobserved Heterogeneity in Dynamic Panel Logit Models, working paper. Propositions 1--2. arXiv:2511.02816.
+
+  \bibitem{chernozhukovHongTamer2007} Victor Chernozhukov, Han Hong, and Elie Tamer (2007), Estimation and Confidence Regions for Parameter Sets in Econometric Models, Econometrica 75, 1243--1284.
+
+  \bibitem{pakelWeidner2026} Cavit Pakel and Martin Weidner (2026), Bounds on Average Effects in Discrete Choice Panel Data Models, Review of Economics and Statistics, conditionally accepted. arXiv:2309.09299.
+
+  \bibitem{arellanoCarrasco2003} Manuel Arellano and Raquel Carrasco (2003), Binary Choice Panel Data Models with Predetermined Variables, Journal of Econometrics 115, 125--157. Section 4.
+
+  \bibitem{rockafellar1970} R. Tyrrell Rockafellar (1970), Convex Analysis, Princeton University Press. Relative-interior continuity of finite convex functions.
+
+  \bibitem{https://doi.org/10.1007/978-1-4612-6387-2} Paul R. Halmos (1950), Measure Theory, Springer. Radon--Nikodym theorem; DOI: 10.1007/978-1-4612-6387-2.
+
+  \bibitem{https://doi.org/10.1515/9781400873173} R. Tyrrell Rockafellar (1970), Convex Analysis, Princeton University Press, Theorem 10.1; DOI: 10.1515/9781400873173. Alias of rockafellar1970.
+
+  \bibitem{https://www.rand.org/pubs/reports/R109.html} Alfred Tarski (1951), A Decision Method for Elementary Algebra and Geometry, RAND Report R-109.
+
+  \bibitem{doi:10.1214/14-EJS909} Måns Thulin (2014), The cost of using exact confidence intervals for a binomial proportion, Electronic Journal of Statistics 8, 817--840. DOI: 10.1214/14-EJS909.
+
+\end{thebibliography}
+
+\end{document}

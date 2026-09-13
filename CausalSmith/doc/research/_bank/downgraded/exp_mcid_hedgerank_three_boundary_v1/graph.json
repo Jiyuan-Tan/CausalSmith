@@ -1,0 +1,4420 @@
+{
+  "qid": "exp_mcid_hedgerank_three_boundary",
+  "specialization": "v1",
+  "nodes": [
+    {
+      "id": "S1",
+      "obj_id": "S-1",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A finite simple bow-free acyclic directed mixed graph \\(G=(V,D,B)\\) on a finite vertex set \\(V\\) with a distinguished target vertex \\(s\\in V\\) and permitted intervention set \\(V^{-}=V\\setminus\\{s\\}\\): the directed relation \\(D\\subseteq V\\times V\\) is acyclic, the bidirected relation \\(B\\subseteq\\binom V2\\) is symmetric and loopless, neither relation has loops or repeated edges, and no pair carries both a directed and a bidirected edge. The interventional query is the singleton target \\(Q_s=P(s\\mid\\operatorname{do}(V\\setminus\\{s\\}))\\), represented by its target set \\(\\{s\\}\\). Over this graph one forms the singleton-target hedge family \\(\\mathsf{Hdg}(G,s)\\), the inclusion-minimal residual clutter \\(\\mathcal C(G,s)\\subseteq2^{V^{-}}\\), the minimal residual-hedge rank \\(r(G,s)\\), and the target's parent set \\(P_s\\) and bidirected-neighbour set \\(T_s\\). No sampling randomness enters the world: proxy-interventional laws indexed by a chosen \\(A\\subseteq V^{-}\\) are acquired deterministically, the positivity required by the imported generalized-identification semantics is held fixed, and no finite-sample estimation is modelled. — Carrier: `structure McidInstance (V) [Fintype V] [DecidableEq V]` with fields `dir : V -> V -> Prop`, `decDir`, `bi : SimpleGraph V`, `decBi`, `s : V`, `target : Finset V`, plus the four standing graphical atoms as fields typed by the assumption defs `DirectedAcyclic`, `SimpleMixedGraph`, `BowFree`, `SingletonTarget` (D-C). Directed part = bare relation so acyclicity stays a real atom and is PROVABLE for the gadget (D-A); bidirected part = Mathlib `SimpleGraph` for the tree/radius/connectivity/decidability API (D-B). `Qtarget` binds to the `target` field only; the interventional law and the hedge-versus-identifiability equivalence are imported, not formalized (D-I). ROUND-5 ADDITION: the supplied causal-vertex order `vertexOrder` (the core's `triangleleft_V` on `V`) is bound here, as a `(ord : LinearOrder V)` argument PASSED EXPLICITLY to the enumerator and to every statement that mentions it (D-M) rather than as an ambient instance on the world -- it carries no graphical content and must stay distinct from the source order `prec` of S3 (D-L). Hedge membership uses restricted directed reachability `Relation.ReflTransGen (fun a b => dir a b and a in F and b in F)` and induced bidirected connectivity `(bi.induce (F : Set V)).Connected`. bypass-justified for Causalean's SWIGGraph/CComponents/Induce world: SWIGNode-specialized latent-DAG abstraction tied to SCM kernels, wrong abstraction for a bare mixed graph over a generic finite vertex type. Search trace: `grep '^## ' ../doc/API.md` then read sections 1/3/4; `grep -ri 'hedge|ADMG|bidirected|MixedGraph' ../Causalean` -> the only `hedge` matches are hypothesis names (`intro hedge` for `h : edge`) in Graph/SWIG.lean; `grep -i 'hedge' AutoID/**/*.lean` -> same; NO hedge, ADMG or mixed-graph carrier anywhere. Mathlib side: `Glob Mathlib/Combinatorics/SimpleGraph/*.lean` -> VertexCover/Acyclic/Diam/Metric found and reused, no mixed-graph or hedge file. NOTE: `lean_local_search` returned [] for every probe INCLUDING known decls (`htMean`, `FiniteDesign`), i.e. the index is empty in this environment; absence is therefore asserted only from grep/Glob over `../Causalean`, `../doc/API.md`, `CausalSmith/` and the Mathlib checkout, plus loogle/leansearch. The Causalean `npm run search` CLI needs Bash, unavailable at this stage.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Basic",
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Helpers.Reachability",
+          "Causalean.Graph.DAG",
+          "Mathlib.Combinatorics.SimpleGraph.Basic",
+          "Mathlib.Combinatorics.SimpleGraph.Acyclic",
+          "Mathlib.Combinatorics.SimpleGraph.Connectivity.Finite",
+          "Mathlib.Combinatorics.SimpleGraph.Diam",
+          "Mathlib.Data.Finset.Powerset",
+          "Mathlib.Logic.Relation"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "obj_id": "S-2",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A weighted covering-optimization layer over the graph world: positive rational intervention costs \\(c:V^{-}\\to\\mathbb Q_{>0}\\); integral interventions \\(A\\subseteq V^{-}\\), feasible exactly when \\(A\\cap R\\neq\\varnothing\\) for every \\(R\\in\\mathcal C(G,s)\\), with minimum cost \\(\\operatorname{OPT}(G,s,c)=\\min\\{\\sum_{v\\in A}c(v)\\}\\); the natural residual-hedge covering relaxation with fractional vector \\(y\\in[0,1]^{V^{-}}\\), constraints \\(\\sum_{v\\in R}y_v\\geq1\\) for every \\(R\\in\\mathcal C(G,s)\\), and value \\(\\operatorname{LP}(G,s,c)\\); a rounding threshold \\(t\\in(0,1/2)\\) with the parent–spouse threshold set \\(A_t=\\{p\\in P_s:y_p\\geq t\\}\\cup\\{b\\in T_s:y_b\\geq1/2-t\\}\\); and a supplied cardinality bound \\(k\\) for scoped exact search. — Parameter layer, not a structure: `(c : V -> Rat)` with positivity threaded as `ass:positive-rational-cost`. OPT is rational via `Finset.inf'` over the nonempty finset of feasible interventions (`V^-` is feasible since every clutter member is a nonempty subset of `V^-`); LP is real via `sInf` of the cast objective over the feasible box, so `OPT/LP` and its supremum are reals (D-H). bypass-justified for Causalean's design-based optimization/minimax substrate (`DesignBased/Optimality`, `Optimality/Minimax`): those minimize a design's sampling variance/risk over randomized designs, whereas this is a deterministic weighted covering optimum over a set clutter. Search trace: `grep -r 'hittingSet|HittingSet|setCover|SetCover|clutter|Clutter|transversal' AutoID/**/*.lean` -> 3 unrelated files (a failed run's `TRankSetCoverageBernoulli`, SardTranslation, FiniteplateBernstein), no covering/hitting substrate; Mathlib `Glob Mathlib/Combinatorics/SetFamily/*.lean` -> no hitting-set/set-cover/blocker file; `grep -r 'LinearProgram' Mathlib` -> none. Build-inline.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Basic",
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Helpers.CoveringLp",
+          "Mathlib.Data.Rat.Defs",
+          "Mathlib.Data.Finset.Card",
+          "Mathlib.Data.Real.Archimedean",
+          "Mathlib.Order.Bounds.Basic",
+          "Mathlib.Topology.Order.Compact"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "obj_id": "S-3",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "An ordered finite simple source graph \\(H=(U,E)\\): a finite vertex set \\(U\\) with a total order \\(\\prec\\), an edge set \\(E\\subseteq\\binom U2\\), and positive rational vertex weights \\(w:U\\to\\mathbb Q_{>0}\\), together with its ordered private-guard causal realization \\(G_H\\). The realization adds an injective source copy \\(x:U\\to V^{-}\\) with \\(s\\leftrightarrow x_u\\) for every \\(u\\in U\\), and for each edge \\(e=\\{u,v\\}\\) with \\(u\\prec v\\) a private guard \\(z_e\\in V^{-}\\) together with exactly the edges \\(x_u\\to x_v\\), \\(x_v\\to z_e\\), \\(z_e\\to s\\), and \\(z_e\\leftrightarrow x_u\\). — Source graph = Mathlib `H : SimpleGraph U` with `[Fintype U] [DecidableEq U] [LinearOrder U] [DecidableRel H.Adj]` (so `order` binds to the `LinearOrder U` instance, and `E`/`Hsource` to `H` and its `edgeFinset`). Edge index type `EdgeIdx H := {p : U x U // p.1 < p.2 and H.Adj p.1 p.2}`; gadget vertex type `GuardV H := Option (U + EdgeIdx H)` with `s := none`, `x u := some (.inl u)`, `z e := some (.inr e)` (both injective by construction, so the injectivity of the symbols `x` and `z` is definitional). `w` binds to a `U -> Rat` weight map; the delivered hardness statements use its unit specialization (`w = 1`), so `w` is bound but the theorems instantiate it. Acyclicity of the gadget is proved by `Causalean.DAG.acyclic_of_topoOrder` with tau(x_u) = order-rank of u, tau(z_e) = |U|, tau(s) = |U|+1 -- exactly the block ordering in the paper's proof. Search trace: `grep -ri 'private.guard|guard vertex' ../Causalean CausalSmith` -> nothing; `Glob Mathlib/Combinatorics/SimpleGraph/*.lean` -> VertexCover.lean FOUND (`IsVertexCover`, `vertexCoverNum`, `vertexCoverNum_top`) and reused; no gadget/reduction substrate exists in either package, so the expansion is build-inline.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Helpers.GuardExpansion",
+          "Mathlib.Combinatorics.SimpleGraph.Basic",
+          "Mathlib.Combinatorics.SimpleGraph.VertexCover",
+          "Mathlib.Order.Defs.LinearOrder",
+          "Causalean.Graph.DAG"
+        ]
+      }
+    },
+    {
+      "id": "S4",
+      "obj_id": "S-4",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A computational world with two resource layers, two opaque complexity hypotheses, and an explicitly assumed uniform two-carrier polynomial-time convention. Algorithms quantified over in the imported hardness statements are functions on finitely encoded instances that are computable by a two-stack machine within a fixed polynomial time bound on the encoding length; for a real \\(\\rho\\), such a function \\(\\rho\\)-approximates a minimization problem when its output is always feasible with objective at most \\(\\rho\\) times the optimum. The algorithms constructed here are instead explicit terminating procedures that report the number of elementary steps they perform -- graph searches, enumerated candidates, and recursion nodes -- so their resource claims are statements about the procedure's own output. The two opaque hypotheses are the Unique Games Conjecture \\(\\mathsf{UGC}\\) and the separation \\(\\mathsf P\\neq\\mathsf{NP}\\), and the approximation slack \\(\\epsilon>0\\) is a positive real. The convention linking the two layers is assumed, not derived, and is named wherever it is used: a causal instance \\(G=(V,D,B)\\) with its supplied order \\(\\triangleleft_V\\) and a source graph \\(H=(U,E)\\) with its supplied order \\(\\prec\\) are separately relabeled by the order isomorphisms \\(V\\simeq\\mathrm{Fin}\\,|V|\\) and \\(U\\simeq\\mathrm{Fin}\\,|U|\\) and encoded in binary of total length \\(L\\); a polynomial-time claim means polynomial time in the relevant carrier size and \\(L\\) on that canonical encoding; the clutter \\(\\mathcal C(G,s)\\), the rank \\(r(G,s)\\), intervention feasibility, \\(\\operatorname{LP}(G,s,c)\\), \\(\\operatorname{OPT}(G,s,c)\\) and their ratios are invariant under causal relabeling while vertex-cover feasibility, optimum and ratio are invariant under source relabeling, so each supplied order transports algorithms and certificates between a generic finite carrier and its own canonical carrier with polynomial overhead; the elementary graph, finite-set, comparison and rational-arithmetic operations used here have polynomially bounded intermediate encodings and polynomial bit complexity; and polynomial-time maps on these encodings are closed under composition, in particular under the composition of the private-guard expansion, the parent-spouse rounding, verification, and the reverse guard-replacement map. — ROUND-5 CORRECTION -- the world MOVED (this is the S-block half of the D-E fix). DELETED from the previous S4: the `CoverAlgorithm` / `McidAlgorithm` interfaces with their `steps : Nat -> Nat` FIELD, the `EffCover` / `EffMcid` efficiency predicates, and `structure CostModel`. Those made `polynomial time` a number the algorithm reports about itself, so a noncomputable exact-choice function with `steps = 0` satisfied every efficiency predicate and falsified all three cited gates and every nonexistence conjunct. The world now has TWO layers. LAYER 1 (REUSED from Mathlib, for the imported hardness statements only): `Turing.TM2ComputableInPolyTime (ea) (eb) f` (Mathlib/Computability/TuringMachine/Computable.lean:179) over `Computability.FinEncoding` encodings of the finite instance and solution types (locally supplied: `coverInstanceEncoding`, `mcidInstanceEncoding`, `finsetSolutionEncoding`, each built by `Computability.finEncodingList` / `finEncodingPair` over `finEncodingNatBool` from the adjacency and cost data, Encoding.lean:236/:253/:258). This is SOUND: the `time : Polynomial Nat` witness is discharged by `TM2OutputsInTime` against real `FinTM2.step` execution, so it cannot be fabricated and no noncomputable choice function inhabits it. It appears ONLY under a negation inside the three cited gates, so no machine has to be constructed to STATE them. LAYER 2 (DECLARED LOCALLY in Helpers/PolynomialCost.lean, for the paper's OWN algorithms): the fully DEFINED, cost-free approximation predicates `ApproxFactorCover f (rho : Real)` (`forall H, IsVertexCover H (f H) and ((f H).card : Real) <= rho * (vertexCoverNum H : Real)`), `ApproxFactorCoverMaxDegreeThree f (rho : Real)`, `ApproxFactorMcid f (rho : Real)`, `IsExactCoverMap f`, `IsOptimalBasicSolution L y` -- these mention no cost at all -- together with the EXECUTION-DERIVED count discipline: each paper procedure is a computable program returning a `(result, count)` pair in the fuel/accumulator style of `Causalean.SWIGGraph.bidirectedBFS` (Causalean/Graph/CComponents.lean:100), and its resource claim is a theorem about the returned `count`. ROUND-7 TYPE-FIT CORRECTION (D-R): the three approximation predicates and every slack are REAL-valued, not rational -- the core binds `epsilon` as a positive REAL and `thm:tight-frontier` states the lower bound for every such epsilon, so a rational-only gate would not cover the consumer's domain and no rational-density bridge is (or needs to be) built; the `ENat`-valued `vertexCoverNum` is cast to `Real` through the same finite `Set.encard`/`ENat.card` bridge already planned for `thm:objective-preserving-hardness`. Costs stay rational. Two opaque ambient COMPLEXITY-CONJECTURE Props remain, `UniqueGamesConjectureHolds : Sort 0` (bound to the core symbol UGC) and `PvsNpSeparation : Sort 0`, each an explicit binder occurring only as an antecedent in a cited gate (D-F). ROUND-8 CORRECTION (D-S; supersedes the round-7 arrangement described next). The core now carries the USER-APPROVED atom `ass:uniform-poly-time-model`, whose six clauses are exactly the computational convention this world needs, so the two facts that round 7 had to expose as core-node-less external hypotheses now have a core node id and are threaded as an ordinary named assumption. Helpers/PolynomialCost.lean therefore declares the SIX clause Props of that atom -- `PolyTimeCausalEncoding` (i), `PolyTimeSourceEncoding` (ii), `PolyTimeClaimInterpretation` (iii, the former X-1 elementary-count-to-machine-time reading), `RelabelingInvarianceTransfer` (iv), `ElementaryOperationBitCost` (v), `PolyTimeClosedUnderComposition` (vi, the former X-5, kept in the `Nonempty (TM2ComputableInPolyTime ..)` shape of Mathlib's own `proof_wanted TM2ComputableInPolyTime.comp`, Computable.lean:284) -- and the single tagged atom `UniformPolyTimeModel : Sort 0` as their conjunction. The `SUBSTRATE_DEBT` declarations `ElementaryStepToMachineTime` and `PolyTimeClosedUnderGuardComposition` are DELETED, together with every node's `external_hyps` key; F2 threads `(hPT : UniformPolyTimeModel)` as an explicit binder on exactly the consumers whose `hyps` list the atom, projecting the clause each sentence needs. ROUND-7 record, retained for provenance: the previous S4 carried `PolyTimeClosedUnderGuardComposition` as an AMBIENT WORLD FIELD that F2 was forbidden to restate, and the elementary-step/machine-time translation as a world CONVENTION; both were content-bearing facts with no core node, so ambient status made every consumer claim more than the development proves, and round 7 exposed them as named threaded hypotheses sized `large` in `external_substrate_assumptions` (now marked superseded there). RECORDED INTERNAL REUSE (see file_plan._reuse_record): `CausalSmith.Substrate.WeakRationalConvexOptimization.IsPolynomialBound` (Basic.lean:82) as the bound predicate applied to an execution-derived count, and `naturalBitLength` (:45) / `integerBitLength` (:51) / `rationalBitLength` (:55) for instance sizes and the cost-encoding length L; its add/mul/comp/const/id closure lemmas (lines 219-278) are `private` upstream so F2 restates them locally (promotion candidate, non-blocking). STILL ABSENT, hence narrative and never a formal predicate (D-P): the complexity CLASSES `NP` / `APX` / `coNP` and the AP- and L-reduction calculus. UNPROVED UPSTREAM rather than absent (round-7 correction of the previous `no composition lemma` claim): closure of `TM2ComputableInPolyTime` under composition exists as `proof_wanted TM2ComputableInPolyTime.comp` (Computable.lean:284), a private `ProofWanted` placeholder with no proof term and no cross-module visibility, so it is Mathlib's own recorded debt and is unusable here -- hence clause (vi) of `ass:uniform-poly-time-model` assumes it (round 8; it was the threaded X-5 in round 7) rather than reusing it; the `FinEncoding` library for graphs/`Finset`s is genuinely absent, and the module builds only `idComputableInPolyTime` (:221). Search trace (re-run for round 7): `lean_leansearch 'polynomial time computable function complexity class P'` -> `Turing.TM2ComputableInPolyTime`, `TM2ComputableInTime`, `TM2OutputsInTime` (module `Mathlib.Computability.TMComputable`, real file `Mathlib/Computability/TuringMachine/Computable.lean`); `Glob Mathlib/Computability/Encoding.lean` -> present (`Computability.FinEncoding`); `Grep 'proof_wanted|TM2ComputableInPolyTime' Computable.lean` -> :166/:179/:191/:196/:222/:232/:284, i.e. the `comp` statement IS there as a `proof_wanted`, still no `NP`, no `APX`, no graph encoding; `grep 'fuel|CostM|StateM Nat|stepCount|runSteps|Complexity|PolyTime' ../Causalean` -> the fuel-BFS trio (CComponents/BayesBall/DiscreteID.Checker) and `Complexity` only in the Rademacher sense; `grep -rn 'IsPolynomialBound|naturalBitLength|rationalBitLength' CausalSmith/Substrate/WeakRationalConvexOptimization/Basic.lean` -> :82, :45, :55 confirmed public.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Helpers.PolynomialCost",
+          "CausalSmith.Substrate.WeakRationalConvexOptimization.Basic",
+          "Mathlib.Computability.TuringMachine.Computable",
+          "Mathlib.Computability.Encoding",
+          "Mathlib.Combinatorics.SimpleGraph.VertexCover"
+        ]
+      }
+    },
+    {
+      "id": "S5",
+      "obj_id": "S-5",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The imported identification semantics for the graph world. The finite graph \\(G\\) is the observed acyclic directed mixed graph induced by a recursive semi-Markovian structural causal model on the observed vertices \\(V\\); for every selected \\(A\\subseteq V^{-}\\) the acquisition supplies the proxy interventional law \\(Q[V\\setminus A]=P(V\\setminus A\\mid\\operatorname{do}(A))\\), where \\(Q[W]=P(W\\mid\\operatorname{do}(V\\setminus W))\\); and every identifiability claim is read uniformly over the positive recursive semi-Markovian models compatible with \\(G\\). Within this semantics one writes \\(\\operatorname{Identifies}(G,s,A)\\) for the assertion that the acquired law \\(Q[V\\setminus A]\\) identifies the target \\(Q_s\\). No distribution is constructed and no finite-sample quantity appears: the semantics enters only through the imported equivalence between identifiability and hitting every minimal residual hedge. — ROUND-5 ADDITION -- required because the core carries the identification bridge and its three scope atoms as nodes, and the previous plan bound neither them nor the symbol `Qproxy` (a one-to-one violation, now repaired). Carrier: an ABSTRACT identification interface `Identifies (I : McidInstance V) (A : Finset V) : Sort 0`, declared once in Helpers/Identification.lean as an opaque predicate on the graph instance and the acquired-intervention set, together with the three scope Props (`RecursiveSemiMarkovianScope`, `ProxyInterventionAvailability`, `PositiveCompatibleIdentification`) that restrict its reading. `Qproxy` binds to the interface's index -- the family \\(Q[W]\\) enters ONLY as the `A`-indexed argument of `Identifies`, so no measure, kernel or density is introduced. DELIBERATELY ABSTRACT rather than measure-theoretic (D-I): the paper IMPORTS the identification equivalence under the positive-compatible convention and its `honest_scope` claims no distributional or weaker-positivity extension, so constructing a semi-Markovian SCM semantics here would formalize a layer the paper does not own and would make the cited bridge a proof obligation it never claims to discharge. bypass-justified for Causalean's measure-theoretic identification stack (`Causalean/SCM/ID/`, `Causalean/SCM/Do/`, `SWIGGraph`/`fixSet`): those are specialized to latent-variable DAGs over `SWIGNode N` with SCM-kernel invariants and would require an un-built bridge from a bare bow-free mixed graph on a generic finite vertex type to a `SWIGNode` SCM before a single statement could be typed -- a partial fit, not a discharge, exactly the situation the reuse rules say NOT to launder. Search trace: `grep -ri 'hedge|ADMG|bidirected|MixedGraph' ../Causalean` -> only hypothesis-name matches in Graph/SWIG.lean, no hedge or mixed-graph identification result; `../doc/API.md` sections 7a2/9 -> `SWIGGraph`, `fixSet`, `inducedDag`, `cComponentOf`, all `SWIGNode`-specialized; `grep -r 'Identifiable|identifiab' ../Causalean/SCM` -> the discrete-ID checker and do-calculus layer, both over `SWIGNode` SCMs, wrong abstraction here; Mathlib side: no causal-identification substrate at all (`lean_leansearch 'identifiability of interventional distribution from observational law'` -> nothing usable).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Helpers.Identification",
+          "CausalSmith.Experimentation.EXP_McidHedgerankThreeBoundary_Research.Basic"
+        ]
+      }
+    },
+    {
+      "id": "ass:directed-acyclicity",
+      "obj_id": "A-1",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The directed relation \\(D\\) is acyclic.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.DirectedAcyclic",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "8c20e4cc022ec0dde7f521c2f0dc58c8b89528e4",
+        "note": "Irreflexivity of Relation.TransGen dir is exactly the absence of directed cycles, including self-loops."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "ADMG directed acyclicity",
+        "cite": "ShpitserPearl2006",
+        "citation": "Ilya Shpitser and Judea Pearl (2006), ``Identification of Joint Interventional Distributions in Recursive Semi-Markovian Causal Models,'' \\emph{Proceedings of AAAI}, 1219--1226. See Theorem 6, Corollaries 2--3, and the conclusion."
+      }
+    },
+    {
+      "id": "ass:simple-mixed-graph",
+      "obj_id": "A-2",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The mixed graph \\(G\\) has no loops or repeated edges of either type.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.SimpleMixedGraph",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "24888f8705fcb73a9c03dfd89c4de0d08a866baf",
+        "note": "The two conjuncts exclude directed and bidirected loops; relation-valued dir and SimpleGraph-valued bi cannot carry repeated edges."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Finite simple ADMG convention",
+        "cite": "RichardsonSpirtes2002",
+        "citation": "Thomas Richardson and Peter Spirtes (2002), ``Ancestral Graph Markov Models,'' \\emph{Annals of Statistics} 30(4):962--1030."
+      }
+    },
+    {
+      "id": "ass:bow-free",
+      "obj_id": "A-3",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every distinct \\(u,v\\in V\\), \\((u,v)\\in D\\) or \\((v,u)\\in D\\) implies \\(\\{u,v\\}\\notin B\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.BowFree",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e1c5e4fad470ce003ee34d623c8912d3d216cfe4",
+        "note": "For every distinct pair, either orientation of a directed edge implies absence of the corresponding symmetric bidirected adjacency, exactly as stated."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Bow-free mixed graph condition",
+        "cite": "RichardsonSpirtes2002",
+        "citation": "Thomas Richardson and Peter Spirtes (2002), ``Ancestral Graph Markov Models,'' \\emph{Annals of Statistics} 30(4):962--1030."
+      }
+    },
+    {
+      "id": "ass:singleton-target",
+      "obj_id": "A-4",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The target set is exactly \\(\\{s\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.SingletonTarget",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "0d6cc12d9e993a425170285312f8260bbfe1655e",
+        "note": "Finset equality target = {s} is exactly the assertion that the target set is the singleton containing s."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Singleton \\(Q[S]\\) specialization",
+        "cite": "AkbariEtesamiKiyavash2025",
+        "citation": "Sina Akbari, Jalal Etesami, and Negar Kiyavash (2025), ``Optimal Experiment Design for Causal Effect Identification,'' \\emph{Journal of Machine Learning Research} 26:1--56. See Theorem 2, Section 3.3, and Appendix D.2."
+      }
+    },
+    {
+      "id": "ass:positive-rational-cost",
+      "obj_id": "A-5",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(v\\in V^{-}\\), \\(c(v)\\in\\mathbb Q_{>0}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.PositiveRationalCost",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c2c759175258892773aa638f7aaa07441c03aed6",
+        "note": "Because c has rational codomain, the quantified strict-positivity condition on exactly I.Vminus is equivalent to c(v) belonging to the positive rationals for every v in Vminus."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Additive positive intervention costs",
+        "cite": "AkbariEtesamiKiyavash2025",
+        "citation": "Sina Akbari, Jalal Etesami, and Negar Kiyavash (2025), ``Optimal Experiment Design for Causal Effect Identification,'' \\emph{Journal of Machine Learning Research} 26:1--56. See Theorem 2, Section 3.3, and Appendix D.2."
+      }
+    },
+    {
+      "id": "ass:rank-three-promise",
+      "obj_id": "A-6",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The supplied instance satisfies \\(r(G,s)\\leq3\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.RankThreePromise",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "34983789b120e34119d0f320285df9f15430e545",
+        "note": "After unfolding residualRank, the proposition is exactly r(G,s) ≤ 3."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:unique-games",
+      "obj_id": "A-7",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathsf{UGC}\\) holds.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.UniqueGamesConjectureHolds",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cb6da1684be86d4fff18f824b3d9edd699063c8b",
+        "note": "The note states only the named atomic assumption UGC, and the closed opaque proposition uniqueGamesConjectureCarrier represents exactly that nominal assumption without weakening it."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Unique Games Conjecture",
+        "cite": "KhotRegev2008",
+        "citation": "Subhash Khot and Oded Regev (2008), ``Vertex Cover Might be Hard to Approximate to within \\(2-\\epsilon\\),'' \\emph{Journal of Computer and System Sciences} 74(3):335--349."
+      }
+    },
+    {
+      "id": "ass:recursive-semimarkovian-scope",
+      "obj_id": "A-8",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The finite graph \\(G\\) is the observed acyclic directed mixed graph induced by a recursive semi-Markovian structural causal model on observed vertex set \\(V\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.RecursiveSemiMarkovianScope",
+        "file": "Helpers/Identification.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:proxy-intervention-availability",
+      "obj_id": "A-9",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every selected \\(A\\subseteq V^{-}\\), acquisition supplies the proxy interventional law \\(Q[V\\setminus A]=P(V\\setminus A\\mid\\operatorname{do}(A))\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.ProxyInterventionAvailability",
+        "file": "Helpers/Identification.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:positive-compatible-identification",
+      "obj_id": "A-10",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Every identifiability claim is interpreted uniformly over positive recursive semi-Markovian models compatible with \\(G\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.PositiveCompatibleIdentification",
+        "file": "Helpers/Identification.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:uniform-poly-time-model",
+      "obj_id": "A-11",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix the following uniform two-carrier computational convention: (i) a\ncausal instance \\(G=(V,D,B)\\), together with its supplied causal-vertex\norder \\(\\triangleleft_V\\), is relabeled by the order isomorphism\n\\(V\\simeq\\mathrm{Fin}\\,|V|\\) and encoded by its directed and bidirected\nadjacency bit-matrices, the index of \\(s\\), and the binary numerators and\ndenominators of the positive rational costs, with \\(L\\) the total binary\nencoding length; (ii) independently, a source graph \\(H=(U,E)\\), together\nwith its supplied source order \\(\\prec\\), is relabeled by the order\nisomorphism \\(U\\simeq\\mathrm{Fin}\\,|U|\\) and encoded by its adjacency\nbit-matrix and any accompanying rational data in binary, again with \\(L\\)\ndenoting the applicable total input length; (iii) a polynomial-time claim\nmeans polynomial time in the relevant carrier size and \\(L\\) on the\nappropriate canonical encoding; (iv) the family \\(\\mathcal C(G,s)\\), the\nrank \\(r(G,s)\\), intervention feasibility, \\(\\operatorname{LP}(G,s,c)\\),\n\\(\\operatorname{OPT}(G,s,c)\\), and their approximation ratios are invariant\nunder causal-vertex relabeling, while vertex-cover feasibility, optimum, and\napproximation ratio are invariant under source-vertex relabeling, and the\ncorresponding supplied order transports algorithms and certificates between\na generic finite carrier and its own canonical carrier with polynomial\noverhead; (v) elementary finite-graph, finite-set, comparison, and rational\narithmetic operations used in this paper have polynomially bounded\nintermediate binary encodings and polynomial bit complexity; and (vi)\npolynomial-time maps on these encodings are closed under composition,\nincluding the composition of private-guard expansion, parent-spouse rounding,\nverification, and reverse guard replacement.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.UniformPolyTimeModel",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "8aa6930f5964597ef6ba6aaf21c86c3588cd88df",
+        "note": "Neither implication is established: the Lean conjunction omits canonical relabeling/order transport and matrix/index/list-shape and approximation-ratio clauses, encodes rational bit lengths rather than binary numerators and denominators, while PolyTimeClaimInterpretation additionally postulates computability for arbitrary encoded functions from a returned-count bound."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:singleton-hedges",
+      "obj_id": "P-1",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathsf{Hdg}(G,s)=\\{F\\subseteq V:\\{s\\}\\subsetneq F,\\ B[F]\\text{ is connected, and every }v\\in F\\text{ has a directed path to }s\\text{ in }D[F]\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.singletonHedges",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fc41930c0ba13c6b18418e7b30637a3ecee21884",
+        "note": "The filtered finite subsets are exactly the strict supersets of {s} whose induced bidirected graph is connected and whose vertices reach s through directed paths contained in the subset."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:minimal-residual-clutter",
+      "obj_id": "P-2",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal C(G,s)=\\{F\\setminus\\{s\\}:F\\in\\mathsf{Hdg}(G,s),\\ \\nexists F'\\in\\mathsf{Hdg}(G,s)\\text{ with }F'\\subsetneq F\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.minimalResidualClutter",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6e0e57f71a85ec54b24d9d9cb2c4ba23da1e175e",
+        "note": "The definition selects exactly inclusion-minimal singleton hedges and maps each selected hedge F to F \\ {s}."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:residual-rank",
+      "obj_id": "P-3",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(r(G,s)=\\max(\\{|R|:R\\in\\mathcal C(G,s)\\}\\cup\\{0\\})\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.residualRank",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f9572cbbb2fb84e3df000454749792c7e467a731",
+        "note": "Taking the maximum of residual cardinalities with getD 0 is equivalent to adjoining 0 before taking the maximum, including when the clutter is empty."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:mcid-objective",
+      "obj_id": "P-4",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Under the recursive semi-Markovian, proxy-intervention, and positive-compatible semantic scope, an intervention set \\(A\\subseteq V^{-}\\) is feasible exactly when \\(Q_s=Q[\\{s\\}]\\) is identifiable from the acquired law \\(Q[V\\setminus A]=P(V\\setminus A\\mid\\operatorname{do}(A))\\). By the hedge-hitting identification lemma, this feasible class is exactly \\(\\{A\\subseteq V^{-}:A\\cap R\\neq\\varnothing\\text{ for every }R\\in\\mathcal C(G,s)\\}\\). Choose \\(A^\\star\\in\\arg\\min_{A\\subseteq V^{-}}\\sum_{v\\in A}c(v)\\) over this common feasible class; its value is \\(\\operatorname{OPT}(G,s,c)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.mcidObjective",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "800bcd8922b842391774ff2353a2fe9c87809ad4",
+        "note": "Paper ⇒ Lean for the combinatorial minimizer, but Lean ⇒ paper fails: the definition accepts arbitrary costs and graph instances and records only hedge-hitting feasibility, omitting the stated positive semantic scope and the equivalence with identification from the acquired proxy law."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:covering-lp",
+      "obj_id": "P-5",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\operatorname{LP}(G,s,c)=\\min_{y\\in[0,1]^{V^{-}}}\\sum_{v\\in V^{-}}c(v)y_v\\) subject to \\(\\sum_{v\\in R}y_v\\geq1\\) for all \\(R\\in\\mathcal C(G,s)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.coveringLpValue",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "ac24cde77e0f305ee1fcc0d9903c077a8515afc3",
+        "note": "The Lean sInf equals the paper minimum because the finite-dimensional feasible box is nonempty and compact and the linear objective is continuous; coordinates outside Vminus are observationally irrelevant."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:private-guard-expansion",
+      "obj_id": "P-6",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For each \\(u\\in U\\), create \\(x_u\\) and add \\(s\\leftrightarrow x_u\\). For each \\(e=\\{u,v\\}\\in E\\) with \\(u\\prec v\\), create a private \\(z_e\\) and add exactly \\(x_u\\to x_v\\), \\(x_v\\to z_e\\), \\(z_e\\to s\\), and \\(z_e\\leftrightarrow x_u\\). The resulting graph is \\(G_H\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.privateGuardExpansion",
+        "file": "Helpers/GuardExpansion.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "b3869cfbbfd088af644afbe91c39e4883e04f3b4",
+        "note": "GuardV contains exactly the target, source copies, and one EdgeIdx guard per ordered source edge; guardDir gives exactly the three stated arcs and guardBi gives exactly the symmetric target-copy and private guard-copy edges."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:parent-spouse-rounding",
+      "obj_id": "P-7",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Given an optimal fractional solution \\(y\\), form the critical values\n\\(\\{y_p:p\\in P_s\\}\\cup\\{1/2-y_b:b\\in T_s\\}\\) that lie in \\((0,1/2)\\).\nThese values partition \\((0,1/2)\\) into finitely many open cells.  Evaluate\n\\(A_t=\\{p\\in P_s:y_p\\geq t\\}\\cup\\{b\\in T_s:y_b\\geq1/2-t\\}\\) at every\ncritical value and at one rational representative of every nonempty open\ncell, and return a cheapest evaluated set.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.parentSpouseRounding",
+        "file": "Helpers/Rounding.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "f777a7cb59ff47087f052564e5d2dbd5a304c320",
+        "note": "Paper ⇒ Lean on optimal fractional solutions, but Lean ⇒ paper fails because parentSpouseRounding is defined for every vector y without requiring or carrying the stated optimal-fractional-solution domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:promised-enumerator",
+      "obj_id": "P-8",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Given a supplied total order \\(\\triangleleft_V\\) on \\(V\\), test every \\(R\\subseteq V^{-}\\) with \\(|R|\\leq3\\) by bidirected connectivity and directed reachability in \\(G[R\\cup\\{s\\}]\\), retain it exactly when it is a hedge residual and no proper subset is one, and order outputs lexicographically using \\(\\triangleleft_V\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.promisedEnumerator",
+        "file": "Helpers/Enumerator.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cc0dacfc2908be4c3549b5d0e396b8065a1ad8f4",
+        "note": "Unfolding promisedEnumeratorAtWithCount, residualCandidates, IsMinimalHedgeResidual, and singletonHedges gives exactly all residuals R ⊆ Vminus of size at most three that are inclusion-minimal singleton-hedge residuals, sorted by the supplied lexicographic order."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:rank-recognition-handle",
+      "obj_id": "P-9",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Analyze the decision problem \\(r(G,s)\\leq3\\) by combining alternating restriction to directed ancestors of \\(s\\) and the bidirected component of \\(s\\) with deletion-based extraction of an inclusion-minimal hedge certificate.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.rankRecognitionHandle",
+        "file": "Helpers/FixedPointOracle.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "26c68dd76e22854b249d3587af65c0bb6cbd884d",
+        "note": "The handle starts from the full vertex set, applies the alternating ancestor/district fixed point and deletion minimization, erases s, and returns the result exactly when it is an inclusion-minimal residual of cardinality greater than three; it does not assert a complete rank-three decider."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:first-rank-boundary",
+      "obj_id": "T-1",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Every \\(F\\in\\mathsf{Hdg}(G,s)\\) has \\(|F|\\geq4\\). A four-vertex \\(F\\) is a hedge if and only if the unordered pairs of \\(D[F]\\) form a spanning path oriented toward \\(s\\) and \\(B[F]\\) is the complementary spanning path. Consequently, \\(r(G,s)\\leq2\\) implies \\(\\mathcal C(G,s)=\\varnothing\\). If \\(R\\in\\mathcal C(G,s)\\) and \\(|R|=3\\), then \\(R\\subseteq P_s\\cup T_s\\), \\(R\\cap P_s\\neq\\varnothing\\), \\(R\\cap T_s\\neq\\varnothing\\), and \\(P_s\\cap T_s=\\varnothing\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.first_rank_boundary",
+        "file": "TFirstRankBoundary.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "44b8da71686bdd6fe1bfc8d858e583350e6adf99",
+        "note": "After unfolding the referenced definitions, all four conjuncts match the paper: hedge cardinality, the four-vertex complementary-path characterization (with rootward orientation equivalently encoded by within-F reachability under acyclicity), rank-at-most-two emptiness, and the size-three parent–spouse partition properties."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:private-guard-realization",
+      "obj_id": "T-2",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every ordered finite simple graph \\(H=(U,E)\\), the graph \\(G_H\\) is bow-free and acyclic, its bidirected subgraph is a tree of radius at most two centered at \\(s\\), and \\(\\mathcal C(G_H,s)=\\{\\{x_u,x_v,z_e\\}:e=\\{u,v\\}\\in E\\}\\). Hence \\(r(G_H,s)=3\\) when \\(E\\neq\\varnothing\\), and \\(r(G_H,s)=0\\) otherwise.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.private_guard_realization",
+        "file": "TPrivateGuardRealization.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e2e5c97e9d17b84009bfa66d2b384c7ef1b71f28",
+        "note": "After unfolding the construction and residual definitions, EdgeIdx bijects with E, GuardResidual is exactly {x_u,x_v,z_e}, eccent s ≤ 2 expresses the stated radius about s, and the exhaustive nonempty/empty rank implications are equivalent to the paper's two cases; the additional simplicity and singleton-target conjuncts are intrinsic fields of G_H."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:objective-preserving-hardness",
+      "obj_id": "T-3",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Assign unit cost to every vertex of \\(G_H\\). Every vertex cover \\(C\\subseteq U\\) maps to the intervention \\(\\{x_u:u\\in C\\}\\) with the same cost, and every feasible intervention maps in polynomial time, by replacing each selected \\(z_e\\) with an endpoint of \\(e\\), to a vertex cover of no larger cost. Therefore \\(\\operatorname{OPT}(G_H,s,c)=\\tau(H)\\). The reduction is an \\(L\\)-reduction with constants one, so rank-three MCID is \\(\\mathsf{NP}\\)-hard and \\(\\mathsf{APX}\\)-hard even with unit costs and a radius-two bidirected tree; the \\(\\mathsf{APX}\\)-hardness remains for source graphs of maximum degree three.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.objective_preserving_hardness",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "ffef563f82d935bc6800247418042cdc01db15a0",
+        "note": "Lean ⇒ paper fails: `UnitRankThreeRadiusTwoTreeEncoded` omits unit costs and well-formedness and admits a rank-zero radius-two record with `feasible := fun _ => False`, making both algorithm-transfer implications vacuous; moreover no polynomial-time condition connects either transfer map to the encodings, so the Lean statement does not certify the claimed NP/APX-hardness or polynomial-time guard replacement."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:rank-three-rounding",
+      "obj_id": "T-4",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Given a supplied total order on \\(V\\), under \\(r(G,s)\\leq3\\), every nonempty \\(R\\in\\mathcal C(G,s)\\) has size three and meets both \\(P_s\\) and \\(T_s\\). For an optimal \\(y\\) of the natural covering relaxation, every \\(A_t\\) is feasible for \\(0<t<1/2\\), and some breakpoint choice satisfies \\(\\sum_{v\\in A_t}c(v)\\leq2\\operatorname{LP}(G,s,c)\\leq2\\operatorname{OPT}(G,s,c)\\). Such a choice is found in polynomial time by the promised-rank enumerator using the supplied order.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.rank_three_rounding",
+        "file": "TRankThreeRounding.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "5a927fd971968406cbe24322091ce672f9784cb7",
+        "note": "Lean ⇒ paper fails for the algorithmic conclusion: it gives only a pointwise operation-count bound for a noncomputable procedure supplied with an already-optimal real y, plus an unlinked rational-LP solver, rather than a uniform encoded polynomial-time composite algorithm that computes y and returns the breakpoint choice using the ordered promised-rank enumeration."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:tight-frontier",
+      "obj_id": "T-5",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The supremum of \\(\\operatorname{OPT}(G,s,c)/\\operatorname{LP}(G,s,c)\\) over all positive-rational-cost finite simple bow-free singleton-target instances with \\(r(G,s)\\leq3\\) and \\(\\mathcal C(G,s)\\neq\\varnothing\\) equals two. For every \\(n\\geq2\\), the unit-cost private-guard expansion \\(G_{K_n}\\), formed using any total order, has a radius-two bidirected tree and ratio \\(2-2/n\\). Under \\(\\mathsf{UGC}\\), for every fixed \\(\\epsilon>0\\), no polynomial-time \\((2-\\epsilon)\\)-approximation exists even on the narrower subclass of unit-cost instances with \\(r(G,s)\\leq3\\), nonempty residual clutter, and a radius-two bidirected tree.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.tight_frontier",
+        "file": "TTightFrontier.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "de843e942f5e1de434641f6be2f7701c5b7734fc",
+        "note": "Paper ⇒ Lean, but Lean ⇒ paper fails: NarrowRadiusTwoApprox quantifies over records constrained only by rank ≤ 3 and radiusTwoTree, omitting unit-cost and nonempty-residual-clutter validity and allowing arbitrary feasible/optimum fields, so its no-algorithm claim is a vacuous weaker consequence rather than hardness on the stated valid subclass."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:promised-enumeration",
+      "obj_id": "T-6",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Given a supplied total order on \\(V\\) and a fixed promised rank bound \\(r_0\\), all inclusion-minimal residual hedges can be output exactly once, in the lexicographic order induced by the supplied order, in time \\(|V|^{r_0+O(1)}\\) and polynomial space. At \\(r_0=3\\) in the present bow-free singleton model, the runtime is \\(O(|V|^3\\operatorname{poly}(|V|))\\). Given \\(k\\), branching on an uncovered residual returns the least-cost feasible intervention among sets of cardinality at most \\(k\\), or certifies that none exists, in \\(O(3^k\\operatorname{poly}(|V|,L))\\), where \\(L\\) is the cost-encoding length.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.promised_enumeration",
+        "file": "TPromisedEnumeration.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "db8868a4d687a99e23886901a772293af266058a",
+        "note": "The statements are incomparable: Lean globally requires residualRank I ≤ 3, so it omits the paper's general fixed-r₀ guarantee for instances with rank > 3; it omits the core's positive-cost condition needed for least-cost early termination; and its promised polynomial-space clause unfolds to the tautology (n+r₀+1)^2 ≤ (n+r₀+1)^2 without relating storage to the enumerator."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:optimizer-or-violation",
+      "obj_id": "T-7",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Given a supplied total order on \\(V\\), enumerate all minimal residual hedges of size at most three in the induced lexicographic order, optimize or two-approximate that relaxation, and verify the returned \\(A\\) by alternating restriction of \\(G[V\\setminus A]\\) to directed ancestors of \\(s\\) and the bidirected component of \\(s\\). If verification succeeds, an exact relaxation optimum is globally exact and the rounded answer costs at most \\(2\\operatorname{OPT}(G,s,c)\\). If verification fails, deletion-based minimization returns a verifiable \\(R\\in\\mathcal C(G,s)\\) with \\(|R|>3\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.optimizer_or_violation",
+        "file": "TOptimizerOrViolation.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "9d3a771ea33e94fbeeecd69985599e353947d4bf",
+        "note": "Paper ⇒ Lean, but Lean ⇏ paper: it bounds rounding only by 2·mcidOpt rather than certifying the advertised two-approximation of the restricted relaxation, and on verification failure it asserts merely ∃ R with the certificate properties without relating R to the output of extractMinimalHedge/deletionMinimizeAux; add the restricted-relaxation bound and an explicit deletion-minimization output equation."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "oeq:rank-three-recognition",
+      "obj_id": "P-10",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Determine whether deciding \\(r(G,s)\\leq3\\) for finite simple bow-free ADMGs with singleton target \\(s\\) has a polynomial-time algorithm, or whether it is \\(\\mathsf{coNP}\\)-complete, using the fixed-point hedge oracle to certify \\(r(G,s)>3\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.rankThreeRecognitionQuestion",
+        "file": "OpenQuestions.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f19eb5b34ef2f37b604c3c981bb347692e11c4ab",
+        "note": "The non-Prop string preserves the finite simple bow-free singleton-ADMG regime, both unresolved complexity alternatives, the fixed-point certificate route, the known coNP-membership partial result, and the disclaimer that neither an algorithm nor hardness result is asserted; it has no theorem consumer."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:fixed-point-hedge-oracle",
+      "obj_id": "L-1",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(F\\subseteq V\\) with \\(s\\in F\\), alternating restriction to the\nvertices that reach \\(s\\) in \\(D\\) and to the bidirected component of \\(s\\)\nterminates in polynomial time at a fixed set \\(F^{\\star}\\).  The induced\ngraph on \\(F\\) contains a member of \\(\\mathsf{Hdg}(G,s)\\) if and only if\n\\(F^{\\star}\\neq\\{s\\}\\); in that case \\(F^{\\star}\\in\\mathsf{Hdg}(G,s)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.fixed_point_hedge_oracle",
+        "file": "Helpers/FixedPointOracle.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "b1cdc56d638e879676af9c426af831e25fb6fd70",
+        "note": "Lean does not imply the paper claim because its polynomial-time conclusion is conditional on `UniformPolyTimeModel`, whose unfolded `PolyTimeCausalEncoding` bounds arbitrarily long unconstrained `dirBits`/`biBits` by a polynomial omitting their lengths and whose `PolyTimeClaimInterpretation` quantifies over arbitrary encodings and functions; constrain canonical instances to actual n-by-n encodings and tie the oracle counter to the canonical machine-time claim."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:cubic-vertex-cover-apx-complete",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Minimum Vertex Cover on graphs of maximum degree at most three is \\(\\mathsf{APX}\\)-complete.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.CubicVertexCoverApxComplete",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "69a5841898ed46f4ff3ace3a10e7c6cf228a57a7",
+        "note": "Lean ⇒ paper fails: existence of one constant-factor algorithm plus conditional exclusion of sufficiently good approximations does not encode APX-hardness or APX-completeness, and PvsNpSeparation is only an opaque uninterpreted Prop."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:alimonti-kann-2000-thm-3-1"
+      }
+    },
+    {
+      "id": "lem:ugc-vertex-cover-hardness",
+      "obj_id": "L-2",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Under the canonical source-carrier and polynomial-time interpretation of the uniform two-carrier computational-model assumption, if \\(\\mathsf{UGC}\\) holds, then for every fixed \\(\\epsilon\\in\\mathbb R_{>0}\\), Minimum Vertex Cover on canonically \\(\\mathrm{Fin}\\,|U|\\)-encoded finite simple source graphs has no polynomial-time \\((2-\\epsilon)\\)-approximation.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.ugc_vertex_cover_hardness",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "1794170d102268152cc9fd677c1c5ec20c32bfb1",
+        "note": "Lean does not imply the paper claim because the antecedent `UniformPolyTimeModel` is strictly stronger than the stated well-formed two-carrier convention and is unsatisfiable on its unconstrained canonical causal carrier; repair that predicate to quantify only over valid canonical encodings and restrict its machine-time bridge accordingly."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:rational-lp-polynomial-time",
+      "obj_id": "L-3",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Under the canonical-input and polynomial-time interpretation of the uniform two-carrier computational-model assumption, a rational linear program whose variables and constraints are canonically indexed and whose total binary encoding has length \\(L\\) can be solved in time polynomial in its dimensions and \\(L\\), returning an optimal basic solution whenever an optimum exists.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.rational_lp_polynomial_time",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "4e62c08673f7e6212cd8cf488804ebbe6aefee19",
+        "note": "Neither direction holds: `CanonicalRationalLp.program.binaryEncoding` is arbitrary and need not encode the coefficients or dimensions, row/objective arities are unpinned, and `rationalPointEncoding` records only rational bit lengths, so paper-valid encodings need not satisfy Lean's collision-prone requirement while Lean machine computability need not compute the actual rational solution; use validated dimension-indexed LP data with faithful binary input and output encodings."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:hedge-hitting-identification",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Under the stated recursive semi-Markovian, proxy-intervention, and positive-compatible semantic scope, for every \\(A\\subseteq V^{-}\\), the causal target \\(Q_s=Q[\\{s\\}]=P(s\\mid\\operatorname{do}(V\\setminus\\{s\\}))\\) is identifiable from \\(Q[V\\setminus A]=P(V\\setminus A\\mid\\operatorname{do}(A))\\) if and only if the induced graph \\(G[V\\setminus A]\\) contains no member of \\(\\mathsf{Hdg}(G,s)\\). Equivalently, \\(A\\cap(F\\setminus\\{s\\})\\neq\\varnothing\\) for every \\(F\\in\\mathsf{Hdg}(G,s)\\); because \\(V\\) is finite, this is further equivalent to \\(A\\cap R\\neq\\varnothing\\) for every \\(R\\in\\mathcal C(G,s)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.HedgeHittingIdentification",
+        "file": "Helpers/Identification.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "8d03dada7a92711211c71d7b0e9c80bc739b8698",
+        "note": "The causal equivalence is not self-contained in either direction because Identifies and the recursive-semi-Markovian, proxy-intervention, and positive-compatible scope predicates are opaque uninterpreted Props whose truth can vary independently of the cited causal semantics."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:akbari-etesami-kiyavash-2025-hedge-hitting"
+      }
+    },
+    {
+      "id": "lem:rational-lp-polynomial-time-source",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There exists a polynomial-time algorithm for linear programming with rational input, and it returns an optimal basic solution whenever an optimum exists.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.RationalLpPolynomialTimeSource",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "be96754b65f4e54fbf0ab60005f7b9135906ac23",
+        "note": "Lean is not equivalent to the frozen claim: it requires output only when an optimal basic solution already exists rather than whenever an optimum exists, and RationalLp permits incoherent coefficient dimensions and an arbitrary binaryEncoding, so the cited theorem on rational LP inputs does not imply this carrier."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:korte-vygen-2012-thm-4-18"
+      }
+    },
+    {
+      "id": "lem:ugc-vertex-cover-hardness-source",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "If \\(\\mathsf{UGC}\\) holds, then for every fixed \\(\\epsilon\\in\\mathbb R_{>0}\\), Minimum Vertex Cover has no polynomial-time \\((2-\\epsilon)\\)-approximation.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.McidHedgerankThreeBoundary.UgcVertexCoverHardnessSource",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "eac1309f6e906e1c8de88d25deaff81623fda790",
+        "note": "The UGC premise is only an opaque proposition with no encoded Unique Games content, so the Lean implication can be vacuous independently of whether the named conjecture holds and neither direction to the frozen UGC-conditional claim is established."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:khot-regev-2008-vertex-cover"
+      }
+    },
+    {
+      "id": "aux_ApproxFactor",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ApproxFactor, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ApproxFactor",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ApproxFactorOnMaxDegreeThree",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ApproxFactorOnMaxDegreeThree, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ApproxFactorOnMaxDegreeThree",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_completeGuard",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def completeGuard, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "completeGuard",
+        "file": "TTightFrontier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_completeGuardRatio",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def completeGuardRatio, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "completeGuardRatio",
+        "file": "TTightFrontier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CostModel",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CostModel, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CostModel",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CoverAlgorithm",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CoverAlgorithm, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CoverAlgorithm",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_coverIntervention",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def coverIntervention, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "coverIntervention",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_DegreeThreeGuardTransfer",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def DegreeThreeGuardTransfer, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "DegreeThreeGuardTransfer",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_dirReachesWithin",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def dirReachesWithin, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "dirReachesWithin",
+        "file": "Helpers/Reachability.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_EdgeIdx",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def EdgeIdx, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "EdgeIdx",
+        "file": "Helpers/GuardExpansion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_finiteVertexCoverOpt",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def finiteVertexCoverOpt, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "finiteVertexCoverOpt",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_FourVertexPathComplement",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def FourVertexPathComplement, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "FourVertexPathComplement",
+        "file": "Helpers/HedgeStructure.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardBiBase",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardBiBase, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardBiBase",
+        "file": "Helpers/GuardExpansion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardDir",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardDir, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardDir",
+        "file": "Helpers/GuardExpansion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardReplacement",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardReplacement, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardReplacement",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardReplacementSteps",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardReplacementSteps, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardReplacementSteps",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuardResidual",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuardResidual, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuardResidual",
+        "file": "TPrivateGuardRealization.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuardTransfer",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuardTransfer, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuardTransfer",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuardV",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuardV, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuardV",
+        "file": "Helpers/GuardExpansion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_interventionCost",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def interventionCost, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "interventionCost",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsBasicLpSolution",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsBasicLpSolution, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsBasicLpSolution",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsFeasibleIntervention",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsFeasibleIntervention, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsFeasibleIntervention",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsFinsetVertexCover",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsFinsetVertexCover, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsFinsetVertexCover",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsLpFeasible",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsLpFeasible, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsLpFeasible",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_lpObjective",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def lpObjective, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "lpObjective",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_MaxDegreeThree",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def MaxDegreeThree, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "MaxDegreeThree",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_McidAlgorithm",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def McidAlgorithm, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "McidAlgorithm",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_McidApproxFactor",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def McidApproxFactor, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "McidApproxFactor",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_McidInstance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def McidInstance, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "McidInstance",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_mcidOpt",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def mcidOpt, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "mcidOpt",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_NarrowRadiusTwoApprox",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def NarrowRadiusTwoApprox, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "NarrowRadiusTwoApprox",
+        "file": "TTightFrontier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PathIndexAdjacent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PathIndexAdjacent, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PathIndexAdjacent",
+        "file": "Helpers/HedgeStructure.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_rankThreeRatioSet",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def rankThreeRatioSet, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "rankThreeRatioSet",
+        "file": "TTightFrontier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RationalLpSolver",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RationalLpSolver, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RationalLpSolver",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_thresholdSet",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def thresholdSet, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "thresholdSet",
+        "file": "Helpers/Rounding.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_coverInterventionRun",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def coverInterventionRun, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "coverInterventionRun",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_coverInterventionSteps",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def coverInterventionSteps, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "coverInterventionSteps",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CubicVertexCoverApxReductionHard",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CubicVertexCoverApxReductionHard, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CubicVertexCoverApxReductionHard",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CubicVertexCoverInApx",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CubicVertexCoverInApx, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CubicVertexCoverInApx",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardReplacementRun",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardReplacementRun, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardReplacementRun",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_instanceSize",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def instanceSize, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "instanceSize",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsApxMinimizationProblem",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsApxMinimizationProblem, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsApxMinimizationProblem",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_McidApproxFactorOnUnitRankThreeRadiusTwoTree",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def McidApproxFactorOnUnitRankThreeRadiusTwoTree, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "McidApproxFactorOnUnitRankThreeRadiusTwoTree",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_promisedRankThreeRoundingRun",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def promisedRankThreeRoundingRun, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "promisedRankThreeRoundingRun",
+        "file": "TRankThreeRounding.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_promisedRankThreeRoundingSteps",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def promisedRankThreeRoundingSteps, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "promisedRankThreeRoundingSteps",
+        "file": "TRankThreeRounding.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RationalLinearProgram",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RationalLinearProgram, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RationalLinearProgram",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RationalLpAlgorithm",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RationalLpAlgorithm, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RationalLpAlgorithm",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RoundingThreshold",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RoundingThreshold, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RoundingThreshold",
+        "file": "Helpers/Rounding.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UnitGuardLReductionOne",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UnitGuardLReductionOne, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UnitGuardLReductionOne",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UnitRankThreeRadiusTwoTree",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UnitRankThreeRadiusTwoTree, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UnitRankThreeRadiusTwoTree",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UnitRankThreeRadiusTwoTreeMcidApxHard",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UnitRankThreeRadiusTwoTreeMcidApxHard, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UnitRankThreeRadiusTwoTreeMcidApxHard",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UnitRankThreeRadiusTwoTreeMcidNpHard",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UnitRankThreeRadiusTwoTreeMcidNpHard, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UnitRankThreeRadiusTwoTreeMcidNpHard",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ApproxFactorCover",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ApproxFactorCover, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ApproxFactorCover",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ApproxFactorMcidOnUnitRankThreeRadiusTwoTree",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ApproxFactorMcidOnUnitRankThreeRadiusTwoTree, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ApproxFactorMcidOnUnitRankThreeRadiusTwoTree",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CanonicalCoverInstance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CanonicalCoverInstance, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CanonicalCoverInstance",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CanonicalMcidInstance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CanonicalMcidInstance, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CanonicalMcidInstance",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_canonicalMcidInstanceEncoding",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def canonicalMcidInstanceEncoding, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "canonicalMcidInstanceEncoding",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CanonicalRationalLp",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CanonicalRationalLp, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CanonicalRationalLp",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_canonicalRationalLpEncoding",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def canonicalRationalLpEncoding, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "canonicalRationalLpEncoding",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CanonicalRationalPoint",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CanonicalRationalPoint, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CanonicalRationalPoint",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CausalRelabeling",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CausalRelabeling, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalRelabeling",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_finsetLexLT",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def finsetLexLT, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "finsetLexLT",
+        "file": "Helpers/Enumerator.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_finsetSolutionEncoding",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def finsetSolutionEncoding, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "finsetSolutionEncoding",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GenericApproxFactorCover",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GenericApproxFactorCover, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GenericApproxFactorCover",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GenericApproxFactorCoverMaxDegreeThree",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GenericApproxFactorCoverMaxDegreeThree, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GenericApproxFactorCoverMaxDegreeThree",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GenericCoverMap",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GenericCoverMap, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GenericCoverMap",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GenericCoverPolynomialTime",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GenericCoverPolynomialTime, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GenericCoverPolynomialTime",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardExpansionRun",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardExpansionRun, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardExpansionRun",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardExpansionSteps",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardExpansionSteps, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardExpansionSteps",
+        "file": "TObjectivePreservingHardness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsCanonicalVertexCover",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsCanonicalVertexCover, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsCanonicalVertexCover",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsExactCoverMap",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsExactCoverMap, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsExactCoverMap",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsMinimalHedgeResidual",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsMinimalHedgeResidual, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsMinimalHedgeResidual",
+        "file": "Helpers/Enumerator.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsOptimalBasicSolution",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsOptimalBasicSolution, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsOptimalBasicSolution",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_MachinePolynomialTime",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def MachinePolynomialTime, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "MachinePolynomialTime",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PolyTimeClaimInterpretation",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PolyTimeClaimInterpretation, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PolyTimeClaimInterpretation",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PolyTimeClosedUnderComposition",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PolyTimeClosedUnderComposition, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PolyTimeClosedUnderComposition",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_rankThreeRoundingProcedure",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def rankThreeRoundingProcedure, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "rankThreeRoundingProcedure",
+        "file": "Helpers/Rounding.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RationalLp",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RationalLp, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RationalLp",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_rationalPointEncoding",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def rationalPointEncoding, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "rationalPointEncoding",
+        "file": "Helpers/CitedGates.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ReturnedCountPolynomial",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ReturnedCountPolynomial, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ReturnedCountPolynomial",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SourceRelabeling",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SourceRelabeling, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SourceRelabeling",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UnitRankThreeRadiusTwoTreeEncoded",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UnitRankThreeRadiusTwoTreeEncoded, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UnitRankThreeRadiusTwoTreeEncoded",
+        "file": "Helpers/PolynomialCost.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "proof-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "ass:directed-acyclicity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "ass:simple-mixed-graph",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "ass:bow-free",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "ass:singleton-target",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "def:minimal-residual-clutter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "def:residual-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:directed-acyclicity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:simple-mixed-graph",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:bow-free",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:singleton-target",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "def:minimal-residual-clutter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "def:residual-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "def:private-guard-expansion",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:private-guard-realization",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "ass:positive-rational-cost",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "def:mcid-objective",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "def:private-guard-expansion",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "thm:private-guard-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "lem:cubic-vertex-cover-apx-complete",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "ass:bow-free",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "ass:positive-rational-cost",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "ass:rank-three-promise",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:minimal-residual-clutter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:residual-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:mcid-objective",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:covering-lp",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:parent-spouse-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "prop:promised-enumeration",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "lem:rational-lp-polynomial-time",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "ass:rank-three-promise",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "ass:unique-games",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "def:minimal-residual-clutter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "def:mcid-objective",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "def:covering-lp",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "def:private-guard-expansion",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "thm:private-guard-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "thm:objective-preserving-hardness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "thm:rank-three-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:tight-frontier",
+      "to": "lem:ugc-vertex-cover-hardness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:promised-enumeration",
+      "to": "ass:rank-three-promise",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:promised-enumeration",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:promised-enumeration",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:promised-enumeration",
+      "to": "def:minimal-residual-clutter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:promised-enumeration",
+      "to": "def:promised-enumerator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:promised-enumeration",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "ass:bow-free",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "ass:positive-rational-cost",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:minimal-residual-clutter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:mcid-objective",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:covering-lp",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:parent-spouse-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:promised-enumerator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "thm:rank-three-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "lem:fixed-point-hedge-oracle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "lem:rational-lp-polynomial-time",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:rank-three-recognition",
+      "to": "ass:directed-acyclicity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:rank-three-recognition",
+      "to": "ass:simple-mixed-graph",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:rank-three-recognition",
+      "to": "ass:bow-free",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:rank-three-recognition",
+      "to": "ass:singleton-target",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:rank-three-recognition",
+      "to": "def:residual-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:rank-three-recognition",
+      "to": "def:rank-recognition-handle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:rank-three-recognition",
+      "to": "prop:optimizer-or-violation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:fixed-point-hedge-oracle",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:fixed-point-hedge-oracle",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "ass:unique-games",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "lem:ugc-vertex-cover-hardness-source",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "ass:uniform-poly-time-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "lem:rational-lp-polynomial-time-source",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:hedge-hitting-identification",
+      "to": "ass:recursive-semimarkovian-scope",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:hedge-hitting-identification",
+      "to": "ass:proxy-intervention-availability",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:hedge-hitting-identification",
+      "to": "ass:positive-compatible-identification",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:hedge-hitting-identification",
+      "to": "ass:singleton-target",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:hedge-hitting-identification",
+      "to": "def:singleton-hedges",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:hedge-hitting-identification",
+      "to": "def:minimal-residual-clutter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:ugc-vertex-cover-hardness-source",
+      "to": "ass:unique-games",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S5",
+      "to": "thm:first-rank-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:private-guard-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:private-guard-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:private-guard-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:private-guard-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S5",
+      "to": "thm:private-guard-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:objective-preserving-hardness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:objective-preserving-hardness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:objective-preserving-hardness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:objective-preserving-hardness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S5",
+      "to": "thm:objective-preserving-hardness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:rank-three-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:rank-three-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:rank-three-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:rank-three-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S5",
+      "to": "thm:rank-three-rounding",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:tight-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:tight-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:tight-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:tight-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S5",
+      "to": "thm:tight-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:promised-enumeration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:promised-enumeration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:promised-enumeration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:promised-enumeration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S5",
+      "to": "prop:promised-enumeration",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:optimizer-or-violation",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:optimizer-or-violation",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:optimizer-or-violation",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:optimizer-or-violation",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S5",
+      "to": "prop:optimizer-or-violation",
+      "source": "declared"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:singleton-hedges",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:minimal-residual-clutter",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:residual-rank",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:rank-three-promise",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:positive-rational-cost",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:mcid-objective",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:mcid-objective",
+      "to": "aux_IsFeasibleIntervention",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:mcid-objective",
+      "to": "aux_interventionCost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:mcid-objective",
+      "to": "aux_mcidOpt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:covering-lp",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "ass:unique-games",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "lem:ugc-vertex-cover-hardness-source",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "aux_CanonicalCoverInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "aux_finsetSolutionEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:ugc-vertex-cover-hardness",
+      "to": "aux_ApproxFactorCover",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "lem:rational-lp-polynomial-time-source",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "aux_CanonicalRationalLp",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "aux_CanonicalRationalPoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "aux_canonicalRationalLpEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "aux_rationalPointEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:rational-lp-polynomial-time",
+      "to": "aux_IsOptimalBasicSolution",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:promised-enumerator",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-point-hedge-oracle",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-point-hedge-oracle",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-point-hedge-oracle",
+      "to": "def:singleton-hedges",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:fixed-point-hedge-oracle",
+      "to": "aux_PolyTimeClaimInterpretation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:rank-recognition-handle",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:private-guard-expansion",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:private-guard-expansion",
+      "to": "aux_GuardV",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:recursive-semimarkovian-scope",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:proxy-intervention-availability",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:positive-compatible-identification",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:hedge-hitting-identification",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:parent-spouse-rounding",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "def:singleton-hedges",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "aux_FourVertexPathComplement",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "def:residual-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:first-rank-boundary",
+      "to": "def:minimal-residual-clutter",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "lem:cubic-vertex-cover-apx-complete",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "ass:positive-rational-cost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "def:private-guard-expansion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_IsFinsetVertexCover",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_IsFeasibleIntervention",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_coverIntervention",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_interventionCost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_GuardV",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_guardReplacement",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_mcidOpt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_finiteVertexCoverOpt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_UnitGuardLReductionOne",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_guardExpansionSteps",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_guardReplacementSteps",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_guardExpansionRun",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_EdgeIdx",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_PolyTimeClaimInterpretation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_PolyTimeClosedUnderComposition",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_CanonicalMcidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_ApproxFactorMcidOnUnitRankThreeRadiusTwoTree",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_CanonicalCoverInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_ApproxFactorCover",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:objective-preserving-hardness",
+      "to": "aux_IsExactCoverMap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "ass:positive-rational-cost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "lem:rational-lp-polynomial-time-source",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_lpObjective",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:parent-spouse-rounding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_interventionCost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_mcidOpt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_IsFeasibleIntervention",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:minimal-residual-clutter",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "def:promised-enumerator",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_PolyTimeClaimInterpretation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_CanonicalRationalLp",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_CanonicalRationalPoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_canonicalRationalLpEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_rationalPointEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimizer-or-violation",
+      "to": "aux_IsOptimalBasicSolution",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "def:private-guard-expansion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:directed-acyclicity",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:simple-mixed-graph",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:bow-free",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "ass:singleton-target",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "def:minimal-residual-clutter",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "aux_GuardResidual",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "aux_EdgeIdx",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:private-guard-realization",
+      "to": "def:residual-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "ass:rank-three-promise",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "def:residual-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "def:minimal-residual-clutter",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "aux_finsetLexLT",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "def:promised-enumerator",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "aux_IsFeasibleIntervention",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "aux_interventionCost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:promised-enumeration",
+      "to": "aux_PolyTimeClaimInterpretation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_McidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "ass:positive-rational-cost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "ass:rank-three-promise",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "lem:rational-lp-polynomial-time-source",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_IsLpFeasible",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_lpObjective",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:covering-lp",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:minimal-residual-clutter",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_RoundingThreshold",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_IsFeasibleIntervention",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_thresholdSet",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "def:parent-spouse-rounding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_interventionCost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_mcidOpt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_promisedRankThreeRoundingSteps",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_rankThreeRoundingProcedure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_PolyTimeClaimInterpretation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_CanonicalRationalLp",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_CanonicalRationalPoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_canonicalRationalLpEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_rationalPointEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:rank-three-rounding",
+      "to": "aux_IsOptimalBasicSolution",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "ass:unique-games",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "ass:uniform-poly-time-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "lem:ugc-vertex-cover-hardness-source",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "aux_rankThreeRatioSet",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "aux_completeGuard",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "aux_completeGuardRatio",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "aux_CanonicalMcidInstance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "aux_canonicalMcidInstanceEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "aux_finsetSolutionEncoding",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:tight-frontier",
+      "to": "aux_NarrowRadiusTwoApprox",
+      "source": "extracted"
+    }
+  ],
+  "symbolReview": {
+    "sym:B": {
+      "verdict": "matched",
+      "hash": "4857f0932395a0196e21a7a4bd3acb04a7277a2c"
+    },
+    "sym:F": {
+      "verdict": "matched",
+      "hash": "79e9f7c3e48258b03f59d05454f168ec1009da18"
+    },
+    "sym:HedgeFamily": {
+      "verdict": "matched",
+      "hash": "2bc152d4c5c8de07b3bd931ea846487dbf602013"
+    },
+    "sym:Clutter": {
+      "verdict": "matched",
+      "hash": "e216ecefaf5143dc6f5842805d754511db1b6b1e"
+    },
+    "sym:A": {
+      "verdict": "matched",
+      "hash": "d8e06d600d13be89f1f0fabb292997d03195b6e0"
+    },
+    "sym:y": {
+      "verdict": "matched",
+      "hash": "b2e43b1708d2eed5d95de2475af9628b4c8ab971"
+    },
+    "sym:t": {
+      "verdict": "matched",
+      "hash": "d21f9b87dcf95940aca659df2b36bc8d2bab19f8"
+    }
+  }
+}

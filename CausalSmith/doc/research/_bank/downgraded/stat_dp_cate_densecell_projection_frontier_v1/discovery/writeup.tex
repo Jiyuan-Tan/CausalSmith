@@ -1,0 +1,1042 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}dp\_\allowbreak{}cate\_\allowbreak{}densecell\_\allowbreak{}projection\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The occupancy-weighted score has an unconditional exact expectation and constant replacement sensitivity, while the exact-uniform Hölder class has unconditional \(\rho_G\) and \(\rho_F\) pure-private lower-bound terms in addition to its nonprivate minimax floor.  Inclusion in the common-support and common-constant slice of Kennedy et al.'s Theorem~1 lower-bound class transfers all of these converse terms upward.  The full-fiber occupancy lift remains the unresolved upper-construction crux on the exact-uniform class, so a matching upper frontier is only conditional; adaptation is downstream and wholly open, with no adaptive rate or logarithmic penalty claimed.
+
+\section{Project justification}
+
+\paragraph{Gap.} No located result gives a pure-central-DP minimax frontier for pointwise CATE with unknown smooth propensity and outcome regression. The closest banked construction uses only exactly-two-record cells and therefore loses all signal when cell occupancy diverges.
+
+\paragraph{Niche.} Realized cell occupancy can amplify a degenerate nuisance-product signal while preserving constant record influence, potentially joining the sparse \(n^2\epsilon\) branch to the dense \(n\epsilon\) branch with no third radius.
+
+\paragraph{Fill.} The project proves exact expectation and constant-sensitivity identities for the weighted pair score and the \(\rho_F\) and \(\rho_G\) pure-private lower-bound terms unconditionally on the exact-uniform class, then transfers that converse upward to the common-support and common-constant slice of Kennedy et al.'s Theorem~1 bounded-above-density lower-bound class.  The exact-uniform matching upper bound is only a conditional reduction from the unresolved full-fiber weighted-shell certificate, and the downstream adaptation problem remains wholly open with no claimed rate or logarithmic penalty.
+
+\section{Related work}
+
+Kennedy, Balakrishnan, Robins, and Wasserman's Theorem~1 gives the nonprivate pointwise Hölder-CATE lower bound on a class requiring the covariate density only to be bounded above.  Their Theorem~2 addresses attainability under separate estimator and design conditions, including additional local-support requirements; the two theorems are not treated here as defining one class.  The present exact-uniform class is a subclass of the common-support and common-constant Theorem~1 slice: the causal constructions prove the \(\rho_G\) and \(\rho_F\) privacy lower-bound terms on that subclass, and minimax monotonicity transfers every lower-bound term upward.  No upper bound is transferred.  The closest prior result for the scalar dense exponent is Cai, Chakraborty, and Vuursteen \cite{CaiChakrabortyVuursteen2026Regression}.  In their one-dimensional uniform-design Gaussian nonparametric regression model over Besov balls, Theorem~2.1 summarizes the pointwise-MSE frontier, and Corollary~2 gives its homogeneous-server specialization.  Theorem~4.4 gives the pointwise-MSE lower bound \(D^{-2\nu}\wedge1\); its equation~(22) defines \(D\) by \(D^{2\nu+2}=\sum_{j=1}^m(n_j^2\epsilon_j^2)\wedge(n_jD)\), with \(\nu=\alpha-1/p\), and Section~4.2 proves the bound by a localized one-bump coupling and Le Cam's method.  In the one-server pure-central specialization \(m=1\) and \(\delta=0\), the equation is \(D^{2\nu+2}=n^2\epsilon^2\wedge nD\); its privacy-dominated solution gives root-MSE scale \((n\epsilon)^{-\nu/(\nu+1)}\).  When \(p=\infty\), \(d=1\), and their smoothness \(\nu=\alpha\) is identified algebraically with the present effect smoothness \(\gamma\), this is exactly \(\rho_G=(n\epsilon)^{-\gamma/(\gamma+1)}\).  Thus neither that scalar dense exponent nor the one-bump Le Cam step is claimed as novel here.  Their Gaussian regression experiment and this bounded-potential-outcome observational CATE experiment are not nested, and their result is one-dimensional and uses pointwise squared loss rather than the present \(d\)-dimensional absolute loss, so it does not imply the present \(\rho_G\) CATE theorem.  It also has no treatment mechanism, propensity--outcome interaction \(q=\alpha+\beta\), shared-sign two-fiber mixture, collision occupancy, or \((n^2\epsilon)^{-1/(1+d/\gamma+d/q)}\) branch, and therefore cannot imply the \(\rho_F\) lower bound.  The retained contribution is the joint pure-central pointwise-CATE converse, especially the sparse \(\rho_F\) branch and its transfer to the Kennedy-Theorem-1 class.  Niu, Nori, Quistorff, Caruana, Ngwe, and Kannan analyze sample-split differentially private CATE meta-learners and their privacy--utility guarantees, but do not give a pure-central-DP pointwise Hölder minimax converse or an occupancy frontier.  Zeng, Balakrishnan, Han, and Kennedy motivate conditioning on realized occupancy; Chaudhuri, Loh, Pandey, and Sarkar motivate stable local projections; and Acharya, Sun, and Zhang supply the private Hamming-coupling inequality used in the converse.  Birgé and Asi, Duchi, Haque, Li, and Ruan provide test-selection templates for the unresolved exact-uniform full-fiber construction.  Schröder, Melnychuk, and Feuerriegel study approximate-private CATE releases rather than this pure-private minimax problem.  Balcer and Vadhan illustrate occupancy-dependent privacy transitions.  Cai, Chakraborty, and Vuursteen's separate adaptation work provides templates only for the downstream open adaptation question: this note claims neither an adaptive rate nor a logarithmic adaptation penalty.  Gao and Han analyze distinct nonprivate random-design geometry.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta(P)=\tau_P(x_0)=\mathbb E_P[Y_1-Y_0\mid X=x_0]\).
+Primary functional / estimator / diagnostic: Unconditionally on the exact-uniform class,
+\[
+R_{n,\epsilon}^{\mathrm{DP}}
+\gtrsim R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F.
+\]
+For the common-support and common-constant slice of Kennedy et al.'s Theorem~1 lower-bound class,
+\[
+R_{n,\epsilon}^{\mathrm{DP},K}
+\gtrsim
+\left\{n^{-1/(2+d/\gamma)}\vee
+n^{-2/(2+d/\gamma+d/q)}\right\}
+\vee\rho_G\vee\rho_F.
+\]
+Only conditional on an affirmative resolution of the full-fiber occupancy lift does the exact-uniform relation strengthen to
+\[
+R_{n,\epsilon}^{\mathrm{DP}}
+\asymp R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F.
+\]
+No adaptive risk relation or logarithmic adaptation penalty is asserted..
+\begin{itemize}
+  \item \texttt{d} --- \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed covariate dimension.}
+  \item \texttt{alpha} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Hölder smoothness of the propensity score.}
+  \item \texttt{beta} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Hölder smoothness of the control regression.}
+  \item \texttt{gamma} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Hölder smoothness of the conditional treatment effect.}
+  \item \texttt{q} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(q=\alpha+\beta\).
+  \item \texttt{L} --- \([2,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common Hölder radius.}
+  \item \texttt{e0} --- \((0,1/4]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform overlap constant.}
+  \item \texttt{x0} --- \([1/4,3/4]^d\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Interior point at which the conditional effect is evaluated.}
+  \item \texttt{n} --- \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Sample size.}
+  \item \texttt{epsilon} --- \((0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Pure central privacy budget.}
+  \item \texttt{Bshell} --- \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic finite upper bound for the weighted-\allowbreak{}shell functional.}
+  \item \texttt{cLower} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The model-\allowbreak{}class constant derived by \textbackslash{}\allowbreak{}texttt\{thm:\allowbreak{}full-\allowbreak{}class-\allowbreak{}lower-\allowbreak{}frontier\}\allowbreak{}.}
+  \item \texttt{Cscale} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A sufficiently large public grid-\allowbreak{}calibration constant.}
+  \item \texttt{Cshell} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The nuisance-\allowbreak{}independent shell constant sought by \textbackslash{}\allowbreak{}texttt\{oeq:\allowbreak{}full-\allowbreak{}fiber-\allowbreak{}occupancy-\allowbreak{}lift\}\allowbreak{}.}
+  \item \texttt{Cupper} --- \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The model-\allowbreak{}class upper-\allowbreak{}bound constant derived by \textbackslash{}\allowbreak{}texttt\{thm:\allowbreak{}combined-\allowbreak{}private-\allowbreak{}frontier\}\allowbreak{}.}
+  \item \texttt{X} --- \([0,1]^d\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed covariate.}
+  \item \texttt{A} --- \(\{0,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed treatment.}
+  \item \texttt{Y0} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential outcome under control.}
+  \item \texttt{Y1} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential outcome under treatment.}
+  \item \texttt{Y} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed outcome.}
+  \item \texttt{O} --- \(\mathcal O=[0,1]^d\times\{0,1\}\times[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} One observed record \(O=(X,A,Y)\).
+  \item \texttt{P} --- Probability law on \((X,A,Y_0,Y_1,Y)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A full-\allowbreak{}data causal law.}
+  \item \texttt{PX} --- Probability law on \([0,1]^d\)
+  \par\smallskip\noindent\emph{Definition.} The covariate marginal of \(P\).
+  \item \texttt{pi} --- \([0,1]^d\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} The continuous version of \(P(A=1\mid X=x)\).
+  \item \texttt{mu0} --- \([0,1]^d\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} The continuous version of \(\mathbb E_P[Y\mid A=0,X=x]\).
+  \item \texttt{mu1} --- \([0,1]^d\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} A measurable version of \(\mathbb E_P[Y\mid A=1,X=x]\).
+  \item \texttt{tau} --- \([0,1]^d\to[-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} The unique continuous Hölder representative of \(\mu_1-\mu_0\).
+  \item \texttt{theta} --- Functional from causal laws to \([-2,2]\); \texttt{pointwise conditional average treatment effect}
+  \par\smallskip\noindent\emph{Definition.} \(\theta(P)=\tau_P(x_0)\).
+  \item \texttt{Dn} --- \(\mathcal O^n\)
+  \par\smallskip\noindent\emph{Definition.} The ordered observed dataset \(D_n=(O_1,\ldots,O_n)\).
+  \item \texttt{sim1} --- Binary relation on \(\mathcal O^n\)
+  \par\smallskip\noindent\emph{Definition.} \(D_n\sim_1D_n'\) when the datasets differ by replacement of at most one record.
+  \item \texttt{MH} --- \texttt{Class of causal laws}; Laws on \((X,A,Y_0,Y_1,Y)\); \texttt{exact-\allowbreak{}uniform full unknown-\allowbreak{}propensity Hölder class}
+  \item \texttt{TNP} --- Measurable map \(\mathcal O^n\to[-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic nonprivate estimator.}
+  \item \texttt{RNP} --- \([0,2]\)
+  \par\smallskip\noindent\emph{Definition.} The nonprivate minimax absolute risk for \(\theta\) over \(\mathcal M_H\).
+  \item \texttt{TDP} --- Markov kernel from \(\mathcal O^n\) to \([-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} A generic pure \(\epsilon\)-differentially private estimator under \(\sim_1\).
+  \item \texttt{RDP} --- \([0,2]\)
+  \par\smallskip\noindent\emph{Definition.} The pure-private minimax absolute risk for \(\theta\) over \(\mathcal M_H\).
+  \item \texttt{rhoG} --- \((0,1]\); \texttt{dense-\allowbreak{}cell privacy radius}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_G=1\wedge(n\epsilon)^{-1/(1+d/\gamma)}\).
+  \item \texttt{DF} --- \((1,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(D_F=1+d/\gamma+d/q\).
+  \item \texttt{rhoF} --- \((0,1]\); \texttt{sparse-\allowbreak{}collision privacy radius}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_F=1\wedge(n^2\epsilon)^{-1/D_F}\).
+  \item \texttt{rhoStar} --- \((0,2]\); \texttt{candidate full private frontier}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_\star=R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F\).
+  \item \texttt{h} --- \((0,1/4]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Public macro-\allowbreak{}localization width.}
+  \item \texttt{ell} --- \((0,h]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Public microcell side length.}
+  \item \texttt{k} --- \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} Number of disjoint public microcells, with \(k\asymp h^d/\ell^d\).
+  \item \texttt{v} --- \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} Common public microcell probability, with \(v\asymp\ell^d\).
+  \item \texttt{Cj} --- Cube in \([0,1]^d\)
+  \par\smallskip\noindent\emph{Definition.} The \(j\)-th public microcell, \(j\in\{1,\ldots,k\}\), with \(P_X(C_j)=v\).
+  \item \texttt{Nj} --- \(\{0,\ldots,n\}\)
+  \par\smallskip\noindent\emph{Definition.} \(N_j=\sum_{i=1}^n\mathbf 1\{X_i\in C_j\}\).
+  \item \texttt{Zpair} --- Measurable symmetric map \(\mathcal O^2\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A bounded localized second-\allowbreak{}order projection kernel.}
+  \item \texttt{DeltaPair} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} A common within-cell conditional mean of \(Z_{\mathrm{pair}}\) in the occupancy diagnostic.
+  \item \texttt{Bj} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(B_j=0\) for \(N_j<2\), and \(B_j=\{N_j(N_j-1)\}^{-1}\sum_{i\ne r:X_i,X_r\in C_j}Z_{\mathrm{pair}}(O_i,O_r)\) otherwise.
+  \item \texttt{Socc} --- \([-n,n]\); \texttt{occupancy-\allowbreak{}weighted pair score}
+  \par\smallskip\noindent\emph{Definition.} \(S_{\mathrm{occ}}(D_n)=\sum_{j=1}^kN_jB_j\).
+  \item \texttt{pocc} --- \([0,1]\); \texttt{probability that a record has a cell mate}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\mathrm{occ}}=1-(1-v)^{n-1}\).
+  \item \texttt{r} --- \((0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Public target-\allowbreak{}grid resolution.}
+  \item \texttt{Gr} --- Finite subset of \([-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_r=\{-2+jr:j=0,\ldots,\lfloor4/r\rfloor\}\cup\{2\}\).
+  \item \texttt{tP} --- Map from \(\mathcal M_H\) to \(\mathcal G_r\)
+  \par\smallskip\noindent\emph{Definition.} \(t_P\) is the smallest grid point minimizing \(|t-\theta(P)|\).
+  \item \texttt{Shellm} --- Subset of \(\mathcal G_r\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S_m(P;r)=\{t\in\mathcal G_r:mr\le|t-t_P|<(m+1)r\}\).
+  \item \texttt{Qscore} --- Family of measurable maps \(Q_t:\mathcal O^n\to\mathbb R\), indexed by \(t\in\mathcal G_r\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Target-\allowbreak{}indexed scores sought by the occupancy-\allowbreak{}projection construction.}
+  \item \texttt{Wshell} --- \([0,\infty]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak W_r(Q)=\sup_{P\in\mathcal M_H}\sum_{m\ge1}(m+1)\sum_{t\in\mathcal S_m(P;r)}\mathbb E_{P^{\otimes n}}[1\wedge\exp\{-\epsilon(Q_t(D_n)-Q_{t_P}(D_n))/2\}]\).
+  \item \texttt{Tshell} --- Markov kernel from \(\mathcal O^n\) to \(\mathcal G_r\)
+  \par\smallskip\noindent\emph{Definition.} \(\Pr\{T_{\mathrm{shell}}=t\mid D_n\}=\exp\{-\epsilon Q_t(D_n)/2\}/\sum_{w\in\mathcal G_r}\exp\{-\epsilon Q_w(D_n)/2\}\).
+  \item \texttt{Hocc} --- \texttt{Methodological handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The occupancy-\allowbreak{}weighted full-\allowbreak{}fiber projection handle:\allowbreak{} localize least-\allowbreak{}favorable two-\allowbreak{}fiber tests,\allowbreak{} retain their first nonzero Hoeffding projection,\allowbreak{} multiply each cell average by its realized occupancy,\allowbreak{} clip record projections,\allowbreak{} and aggregate only along ordered scalar target shells.}
+  \item \texttt{ThetaSmooth} --- Compact subset of \((0,\infty)^3\)
+  \par\smallskip\noindent\emph{Definition.} A public range of admissible triples \((\alpha,\beta,\gamma)\) satisfying \(\alpha+\beta<\gamma\).
+  \item \texttt{Hadapt} --- \texttt{Methodological handle}
+  \par\smallskip\noindent\emph{Definition.} A one-shot correlated multiscale release of occupancy-weighted projection scores followed by private Lepski comparison over \(\Theta_{\mathrm{sm}}\).
+  \item \texttt{PK} --- \texttt{Class of causal laws}; Laws on \(X,A,Y_0,Y_1,Y\); \texttt{Kennedy-\allowbreak{}Theorem-\allowbreak{}1 superclass for lower-\allowbreak{}bound transfer}
+  \par\smallskip\noindent\emph{Definition.} The \(q=\alpha+\beta<\gamma\) common-support and common-constant causal slice of the lower-bound class in Kennedy et al. (2024), Theorem~1, with covariate density bounded above but not required to be bounded below.
+  \item \texttt{RDPK} --- \([0,2]\)
+  \par\smallskip\noindent\emph{Definition.} The pure-private minimax absolute risk for \(\theta\) over \(\mathcal P_K\), using the same observed-data domain, replacement adjacency, privacy budget, and output range as \(R_{n,\epsilon}^{\mathrm{DP}}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid]\label{ass:iid}
+\(O_1,\ldots,O_n\) are independent draws from the observed-data margin induced by \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent observed-record sampling, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=AY_1+(1-A)Y_0\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Consistency, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:exchangeability]\label{ass:exchangeability}
+\(Y_a\perp A\mid X\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Conditional exchangeability, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-design]\label{ass:uniform-design}
+\(P_X=\operatorname{Unif}([0,1]^d)\) is known.
+\par\smallskip\noindent\emph{Standard} (Known uniform-design specialization of the pointwise Hölder model, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:overlap]\label{ass:overlap}
+\(e_0\le\pi(x)\le1-e_0\) for every \(x\in[0,1]^d\).
+\par\smallskip\noindent\emph{Standard} (Uniform positivity, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:propensity-holder]\label{ass:propensity-holder}
+\(\pi\in\mathcal H^\alpha(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder propensity smoothness, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:control-holder]\label{ass:control-holder}
+\(\mu_0\in\mathcal H^\beta(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder control-regression smoothness, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:effect-holder]\label{ass:effect-holder}
+\(\tau\in\mathcal H^\gamma(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder conditional-effect smoothness, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:two-scale-regime]\label{ass:two-scale-regime}
+\(q<\gamma\).
+\par\smallskip\noindent\emph{Novel.} The condition describes observational problems in which treatment selection and baseline prognosis vary more sharply than the treatment effect, including smooth effect-modification models with rough clinical assignment and risk surfaces. It ensures that a macro effect neighborhood contains asymptotically many nuisance microcells.
+\end{assumption}
+
+\begin{assumption}[ass:privacy-regime]\label{ass:privacy-regime}
+\(n\epsilon\ge1\).
+\par\smallskip\noindent\emph{Novel.} This is the nondegenerate central-privacy range in which a bounded scalar release can carry information; it includes every fixed privacy budget and privacy budgets shrinking no faster than the reciprocal sample size.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:holder-class]\label{def:holder-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}uniform full unknown-\allowbreak{}propensity Hölder class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_H=\{P:P\text{ is a law on }(X,A,Y_0,Y_1,Y)\text{ inducing }O\in\mathcal O\text{ and satisfying }\text{ass:consistency},\text{ass:exchangeability},\text{ass:uniform-design},\text{ass:overlap},\text{ass:propensity-holder},\text{ass:control-holder},\text{ass:effect-holder},\text{ass:two-scale-regime}\}\), indexed by \(d,\alpha,\beta,\gamma,q,L,e_0,x_0\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}design}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}propensity-\allowbreak{}holder}; \texttt{ass:\allowbreak{}control-\allowbreak{}holder}; \texttt{ass:\allowbreak{}effect-\allowbreak{}holder}; \texttt{ass:\allowbreak{}two-\allowbreak{}scale-\allowbreak{}regime}.
+\end{definition}
+
+\begin{definition}[def:nonprivate-risk]\label{def:nonprivate-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nonprivate minimax absolute risk}
+\par\smallskip\noindent\emph{Construction.} \(R_n^{\mathrm{NP}}=\inf_{T_{\mathrm{NP}}}\sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n}}|T_{\mathrm{NP}}(D_n)-\theta(P)|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}holder-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:private-risk]\label{def:private-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pure-\allowbreak{}private minimax absolute risk}
+\par\smallskip\noindent\emph{Construction.} \(R_{n,\epsilon}^{\mathrm{DP}}=\inf_{T_{\mathrm{DP}}:\,\epsilon\text{-DP}}\sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n},T_{\mathrm{DP}}}|T_{\mathrm{DP}}(D_n)-\theta(P)|\), where privacy holds on every pair \(D_n\sim_1D_n'\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}holder-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:frontier-radii]\label{def:frontier-radii}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sparse-\allowbreak{}to-\allowbreak{}dense privacy radii}
+\par\smallskip\noindent\emph{Construction.} \(D_F=1+d/\gamma+d/q\), \(\rho_G=1\wedge(n\epsilon)^{-1/(1+d/\gamma)}\), \(\rho_F=1\wedge(n^2\epsilon)^{-1/D_F}\), and \(\rho_\star=R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}nonprivate-\allowbreak{}risk}.
+\end{definition}
+
+\begin{definition}[def:occupancy-score]\label{def:occupancy-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Occupancy-\allowbreak{}weighted second-\allowbreak{}order score}
+\par\smallskip\noindent\emph{Construction.} Partition the side-\(h\) cube around \(x_0\) into \(k\asymp h^d/\ell^d\) public cells \(C_j\) of mass \(v\asymp\ell^d\). For a bounded symmetric kernel \(Z_{\mathrm{pair}}\), form the within-cell ordered-pair average \(B_j\) and set \(S_{\mathrm{occ}}=\sum_{j=1}^kN_jB_j\), with \(B_j=0\) if \(N_j<2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}holder-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:shell-selector]\label{def:shell-selector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Ordered target-\allowbreak{}shell selector}
+\par\smallskip\noindent\emph{Construction.} At resolution \(r\), use \(t_P\) and \(\mathcal S_m(P;r)\) on \(\mathcal G_r\), define \(\mathfrak W_r(Q)\) as displayed in the symbol table, and release \(T_{\mathrm{shell}}\) with conditional probabilities proportional to \(\exp\{-\epsilon Q_t(D_n)/2\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}private-\allowbreak{}risk}.
+\end{definition}
+
+\begin{definition}[def:full-fiber-handle]\label{def:full-fiber-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Occupancy-\allowbreak{}weighted full-\allowbreak{}fiber projection handle}
+\par\smallskip\noindent\emph{Construction.} Apply \(H_{\mathrm{occ}}\) at \(r=\rho_\star\): solve finite two-fiber minimax tests on nested Hölder sieves; extract each test's first nonzero localized Hoeffding projection; replace an unnormalized all-pairs sum by \(S_{\mathrm{occ}}\); clip record projections at their public concentration envelope; rescale each target score to replacement sensitivity one; and pass the resulting \(Q_t\) to the ordered target-shell selector.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}frontier-\allowbreak{}radii}; \texttt{def:\allowbreak{}occupancy-\allowbreak{}score}; \texttt{def:\allowbreak{}shell-\allowbreak{}selector}.
+\end{definition}
+
+\begin{definition}[def:adaptive-handle]\label{def:adaptive-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{One-\allowbreak{}shot adaptive occupancy handle}
+\par\smallskip\noindent\emph{Construction.} Apply \(H_{\mathrm{adapt}}\): release one correlated multiscale array of occupancy-weighted projection scores and use only post-processing to perform Lepski comparisons over \(\Theta_{\mathrm{sm}}\), while retaining the ordered target-shell aggregation of \(H_{\mathrm{occ}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}full-\allowbreak{}fiber-\allowbreak{}handle}.
+\end{definition}
+
+\begin{definition}[def:kennedy-lower-class]\label{def:kennedy-lower-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Kennedy-\allowbreak{}Theorem-\allowbreak{}1 lower-\allowbreak{}bound slice}
+\par\smallskip\noindent\emph{Construction.} The class \(\mathcal P_K\) is the \(q=\alpha+\beta<\gamma\) common-support and common-constant causal slice of the lower-bound model in Kennedy, Balakrishnan, Robins, and Wasserman (2024), Theorem~1:
+\[
+\begin{split}
+\mathcal P_K=\bigl\{P:\;&P\text{ is a law on }(X,A,Y_0,Y_1,Y)\text{ with }X\in[0,1]^d,
+\ A\in\{0,1\},\ Y_0,Y_1,Y\in[-1,1],\\
+&Y=AY_1+(1-A)Y_0\text{ almost surely},\qquad
+Y_a\perp A\mid X\text{ for }a\in\{0,1\},\\
+&P_X\ll\lambda_d,\quad
+0\le \frac{dP_X}{d\lambda_d}(x)\le L
+\text{ for }\lambda_d\text{-almost every }x\in[0,1]^d,\\
+&e_0\le\pi(x)\le1-e_0\text{ for every }x\in[0,1]^d,\quad
+\pi\in\mathcal H^\alpha(L),\quad
+\mu_0\in\mathcal H^\beta(L),\quad
+\tau\in\mathcal H^\gamma(L)\bigr\},
+\end{split}
+\]
+where \(\lambda_d\) denotes Lebesgue measure on \([0,1]^d\), \(x_0\in[1/4,3/4]^d\), and the parameters obey \(q=\alpha+\beta<\gamma\).  No positive lower bound on \(dP_X/d\lambda_d\) is imposed.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}propensity-\allowbreak{}holder}; \texttt{ass:\allowbreak{}control-\allowbreak{}holder}; \texttt{ass:\allowbreak{}effect-\allowbreak{}holder}; \texttt{ass:\allowbreak{}two-\allowbreak{}scale-\allowbreak{}regime}.
+\end{definition}
+
+\begin{definition}[def:kennedy-private-risk]\label{def:kennedy-private-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pure-\allowbreak{}private minimax risk over the Kennedy-\allowbreak{}Theorem-\allowbreak{}1 slice}
+\par\smallskip\noindent\emph{Construction.} The pure-private minimax absolute risk over \(\mathcal P_K\) is
+\[
+R_{n,\epsilon}^{\mathrm{DP},K}
+=\inf_{T_{\mathrm{DP}}:\,\epsilon\text{-DP under }\sim_1}
+\sup_{P\in\mathcal P_K}
+\mathbb E_{P^{\otimes n},T_{\mathrm{DP}}}
+\left|T_{\mathrm{DP}}(D_n)-\theta(P)\right|,
+\]
+where every kernel has domain \(\mathcal O^n\), output space \([-2,2]\), and replacement adjacency \(\sim_1\).  Thus \(R_{n,\epsilon}^{\mathrm{DP},K}\in[0,2]\); the upper endpoint follows from the admissible constant-zero kernel and \(\theta(P)\in[-2,2]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}kennedy-\allowbreak{}lower-\allowbreak{}class}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:occupancy-amplification]\label{lem:occupancy-amplification}
+Suppose \(n\ge 2\), \(Z_{\mathrm{pair}}\in[-1,1]\) is symmetric, and
+\(\mathbb E_P[Z_{\mathrm{pair}}(O_1,O_2)\mid X_1,X_2\in C_j]=\Delta_{\mathrm{pair}}\)
+for every \(j\). Then
+\[
+ \mathbb E_{P^{\otimes n}}S_{\mathrm{occ}}
+ =\Delta_{\mathrm{pair}}knv\{1-(1-v)^{n-1}\}.
+\]
+Moreover,
+\(\sup_{D_n\sim_1D_n'}|S_{\mathrm{occ}}(D_n)-S_{\mathrm{occ}}(D_n')|\le 12\).
+Under the public partition comparabilities \(kv\asymp h^d\) and
+\(v\asymp\ell^d\), the magnitude of the sensitivity-normalized private
+signal is therefore
+\[
+ \frac{\epsilon}{12}\left|\mathbb E_{P^{\otimes n}}S_{\mathrm{occ}}\right|
+ \asymp \epsilon|\Delta_{\mathrm{pair}}|nh^d\min\{1,n\ell^d\},
+\]
+with constants independent of whether \(n\ell^d\) is smaller or larger than one.
+\end{lemma}
+\begin{proof}
+Put \(F_j=N_jB_j\).  Conditional on \(N_j=m\ge2\), the \(m\) records in
+\(C_j\) are exchangeable draws from the law conditional on \(X\in C_j\), by
+\(\mathrm{ass:iid}\).  The assumed conditional mean of every ordered pair is
+\(\Delta_{\mathrm{pair}}\), and hence
+\[
+ \mathbb E_P(B_j\mid N_j=m)=\Delta_{\mathrm{pair}},\qquad
+ \mathbb E_PF_j=\Delta_{\mathrm{pair}}\mathbb E_P[N_j\mathbf 1\{N_j\ge2\}].
+\]
+By \(\mathrm{ass:uniform-design}\) and the definition of \(C_j\),
+\(N_j\sim\operatorname{Bin}(n,v)\).  Therefore
+\[
+ \mathbb E[N_j\mathbf 1\{N_j\ge2\}]
+ =\mathbb EN_j-\Pr(N_j=1)
+ =nv-nv(1-v)^{n-1}.
+\]
+Summing this identity over the \(k\) cells proves the displayed expectation.
+
+It remains to check replacement sensitivity.  For a cell containing \(m\)
+records, write
+\[
+ F_m=\frac{1}{m-1}\sum_{i\ne r}Z_{\mathrm{pair}}(O_i,O_r),\qquad m\ge2,
+\]
+and set \(F_0=F_1=0\).  Remove one record.  If \(m=2\), then
+\(|F_2-F_1|\le2\).  If \(m\ge3\), decompose the ordered-pair sum as
+\(U'+V\), where \(U'\) contains pairs of surviving records and \(V\)
+contains the pairs involving the removed record.  Symmetry and
+\(|Z_{\mathrm{pair}}|\le1\) give
+\(|U'|\le(m-1)(m-2)\) and \(|V|\le2(m-1)\).  Consequently
+\[
+ \left|\frac{U'+V}{m-1}-\frac{U'}{m-2}\right|
+ \le \frac{|V|}{m-1}+\frac{|U'|}{(m-1)(m-2)}\le3.
+\]
+Addition has the same bound by reversal.  Replacing a record is a removal
+followed by an addition, possibly in a different cell, so
+\[
+ |S_{\mathrm{occ}}(D_n)-S_{\mathrm{occ}}(D_n')|\le6\le12.
+\]
+Finally, for \(x=(n-1)v\), Bernoulli's inequality and
+\((1-v)^{n-1}\le e^{-x}\) imply
+\[
+ (1-e^{-1})\min\{1,x\}
+ \le1-(1-v)^{n-1}\le\min\{1,x\}.
+\]
+Because \(n\ge2\), \(x\) and \(nv\) differ by at most a factor two.
+Substitution into the exact expectation, followed by \(kv\asymp h^d\) and
+\(v\asymp\ell^d\), proves the last assertion.  Division by twelve is valid
+because the preceding deterministic sensitivity bound is finite and positive.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Multiplying a cell average by its realized occupancy converts pair collisions into linear dense-cell information without increasing global sensitivity with occupancy. \textit{Gap.} The banked sparse score weights each usable cell equally, while Zeng et al. condition on all realized cell counts and Chaudhuri et al. control local projections; the displayed identity is the missing causal sparse-to-dense interpolation. \textit{Consumer.} It supplies the sensitivity and signal calculation needed for full-class target-fiber tests at every cell occupancy.
+
+\begin{proposition}[prop:shell-risk]\label{prop:shell-risk}
+If every \(Q_t\) has replacement sensitivity at most one and \(\mathfrak W_r(Q)\le B_{\mathrm{shell}}\), then \(T_{\mathrm{shell}}\) is pure \(\epsilon\)-differentially private and \[\sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n}}|T_{\mathrm{shell}}-\theta(P)|\le(B_{\mathrm{shell}}+3)r.\] The constant does not depend on \(|\mathcal G_r|\) or on a nuisance-sieve cardinality.
+\end{proposition}
+\begin{proof}
+For a fixed dataset write
+\(w_t(D_n)=\exp\{-\epsilon Q_t(D_n)/2\}\) and
+\(Z(D_n)=\sum_{u\in\mathcal G_r}w_u(D_n)\).  If \(D_n\sim_1D_n'\), the
+sensitivity hypothesis gives
+\[
+ e^{-\epsilon/2}w_t(D_n')\le w_t(D_n)\le e^{\epsilon/2}w_t(D_n'),
+ \qquad
+ e^{-\epsilon/2}Z(D_n')\le Z(D_n)\le e^{\epsilon/2}Z(D_n').
+\]
+Thus, for every \(t\),
+\[
+ \frac{\Pr(T_{\mathrm{shell}}=t\mid D_n)}
+ {\Pr(T_{\mathrm{shell}}=t\mid D_n')}
+ =\frac{w_t(D_n)}{w_t(D_n')}\frac{Z(D_n')}{Z(D_n)}\le e^\epsilon.
+\]
+Summation over an arbitrary subset of \(\mathcal G_r\) proves pure
+\(\epsilon\)-differential privacy under \(\sim_1\).
+
+Fix \(P\in\mathcal M_H\).  The denominator of the selector contains the
+term indexed by \(t_P\), so pointwise in \(D_n\),
+\[
+ \Pr(T_{\mathrm{shell}}=t\mid D_n)
+ \le 1\wedge\exp\{-\epsilon(Q_t(D_n)-Q_{t_P}(D_n))/2\}.
+\]
+The grid definition gives \(|t_P-\theta(P)|\le r\).  The grid points with
+\(|t-t_P|<r\) contribute less than \(r\) to the conditional expectation of
+\(|T_{\mathrm{shell}}-t_P|\).  Every remaining point lies in exactly one
+\(\mathcal S_m(P;r)\), \(m\ge1\), and then
+\(|t-t_P|<(m+1)r\).  Taking expectation under \(P^{\otimes n}\) and using
+the preceding pointwise probability bound yields
+\[
+ \mathbb E_{P^{\otimes n}}|T_{\mathrm{shell}}-t_P|
+ \le r+r\sum_{m\ge1}(m+1)\sum_{t\in\mathcal S_m(P;r)}
+ \mathbb E_{P^{\otimes n}}\!\left[1\wedge
+ e^{-\epsilon(Q_t-Q_{t_P})/2}\right]
+ \le (B_{\mathrm{shell}}+1)r.
+\]
+The triangle inequality and \(|t_P-\theta(P)|\le r\) now give the sharper
+bound \((B_{\mathrm{shell}}+2)r\), and hence the asserted
+\((B_{\mathrm{shell}}+3)r\).  No step sums an unweighted unit bound over
+\(\mathcal G_r\), which proves the stated absence of a grid-cardinality or
+nuisance-sieve factor.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The weighted-shell functional turns scalar ordering into a log-free risk certificate for the exponential selector. \textit{Gap.} Asi et al.'s general T-mechanism controls a finite cover through global counting; this proposition isolates a stronger ordered-fiber certificate without asserting that arbitrary models satisfy it. \textit{Consumer.} Any successful construction of the full-fiber scores immediately yields a finite pure-private pointwise-CATE estimator.
+
+\begin{theorem}[thm:full-class-lower-frontier]\label{thm:full-class-lower-frontier}
+There is a constant \(c_{\mathrm{lower}}>0\), depending only on
+\(d,\alpha,\beta,\gamma,L,e_0\), such that throughout \(n\epsilon\ge1\),
+\[
+ R_{n,\epsilon}^{\mathrm{DP}}
+ \ge c_{\mathrm{lower}}\{R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F\}.
+\]
+The \(\rho_G\) term is witnessed by a localized one-record subexperiment.
+For the \(\rho_F\) term, whenever \(\rho_F\ge\rho_G\), there are smooth
+shared-sign two-fiber mixtures in \(\mathcal M_H\), separated by
+\(\delta\asymp\rho_F\), whose prior-predictive samples admit a coupling with
+expected Hamming distance at most
+\(C\delta n^2h^d\ell^d\), where
+\(h\asymp\delta^{1/\gamma}\),
+\(\ell\asymp\delta^{1/q}\), and \(n\ell^d\le C\).  If
+\(\rho_F<\rho_G\), the \(\rho_F\) lower bound is already implied by the
+\(\rho_G\) branch.
+\end{theorem}
+\begin{proof}
+Write \(m_G=1+d/\gamma\) and \(D_F=1+d/\gamma+d/q\).  All constants below are positive, depend only on \(d,\alpha,\beta,\gamma,L,e_0\), and may change from line to line.
+
+First, privacy cannot reduce the nonprivate minimax risk.  For any pure \(\epsilon\)-differentially private Markov kernel \(T\) from \(\mathcal O^n\) to \([-2,2]\), define its conditional barycenter
+\[
+ \overline T(D_n)=\int_{[-2,2]}t\,T(dt\mid D_n).
+\]
+The bounded output support makes \(\overline T\) a nonprivate estimator taking values in \([-2,2]\).  Conditional Jensen's inequality gives, for every \(P\in\mathcal M_H\),
+\[
+ |\overline T(D_n)-\theta(P)|
+ \le\int_{[-2,2]}|t-\theta(P)|\,T(dt\mid D_n).
+\]
+After expectation and supremization over \(P\), the definition of \(R_n^{\mathrm{NP}}\) implies that the risk of \(T\) is at least \(R_n^{\mathrm{NP}}\).  Infimizing over the private kernels in the definition of \(R_{n,\epsilon}^{\mathrm{DP}}\) gives
+\[
+ R_{n,\epsilon}^{\mathrm{DP}}\ge R_n^{\mathrm{NP}}.
+ \tag{28}
+\]
+
+For the dense branch, fix a nonnegative smooth bump \(g\), supported on \([-1,1]^d\), with \(g(0)=1\).  For \(0<\Delta\le\Delta_0\), let
+\[
+ h=c_h\Delta^{1/\gamma},\qquad
+ g_h(x)=g\!\left(\frac{x-x_0}{h}\right).
+\]
+Choose \(c_h\) so that \(\|\Delta g_h\|_{\mathcal H^\gamma}\le L\), and choose \(\Delta_0\) so that \(h\le1/4\) and \(0\le\Delta g_h\le1\).  Since \(x_0\) is interior, the bump is supported in \([0,1]^d\).  Let \(P_0,P_1\) have uniform \(X\), constant propensity \(1/2\), control regression zero, and effects
+\[
+ \tau_0=0,\qquad \tau_1=\Delta g_h.
+\]
+Given \(X\), draw binary potential outcomes in \(\{-1,1\}\), independently of \(A\), with the required conditional means, and impose consistency.  Constant propensity, zero control regression, the H\"older scaling, uniform design, and \(e_0\le1/4\) verify every defining property of \(\mathcal M_H\).  Moreover,
+\[
+ \theta(P_0)=0,\qquad \theta(P_1)=\Delta.
+ \tag{29}
+\]
+Couple one record by using the same \(X,A\) and the monotone coupling of the two binary outcomes.  A mismatch is possible only for \(A=1\), and its conditional probability is \(\Delta g_h(X)/2\).  Therefore
+\[
+ \Pr(O_0\ne O_1)
+ =\frac{\Delta}{4}\int g_h(x)\,dx
+ \le C\Delta h^d.
+\]
+The coordinatewise product coupling has expected Hamming distance
+\[
+ D\le Cn\Delta h^d\le Cn\Delta^{m_G}.
+ \tag{30}
+\]
+Under \(n\epsilon\ge1\), \(\rho_G=(n\epsilon)^{-1/m_G}\).  Set \(\Delta=c_G\rho_G\), with \(c_G\) small enough that \(\Delta\le\Delta_0\) and \(10\epsilon D\le1\).  Thresholding any private estimator at \(\Delta/2\) is post-processing and gives a pure \(\epsilon\)-private test.  The private Le Cam coupling lemma, with privacy slack zero, gives testing error at least \(0.45e^{-1}\).  By (29), every testing error entails absolute estimation loss at least \(\Delta/2\).  Hence
+\[
+ R_{n,\epsilon}^{\mathrm{DP}}\ge c\rho_G.
+ \tag{31}
+\]
+
+For the sparse branch, first suppose \(\rho_F\ge\rho_G\).  Since \(n\epsilon\ge1\), \(n\ge1\), and \(\epsilon\le1\), both caps in the radius definitions are inactive, and
+\[
+ \rho_F^{D_F}=(n^2\epsilon)^{-1},
+ \qquad \rho_G^{m_G}=(n\epsilon)^{-1}.
+ \tag{32}
+\]
+We claim that \(n\rho_F^{d/q}\le1\).  Otherwise, (32) would imply
+\[
+ \rho_F^{m_G}
+ =\frac{\rho_F^{D_F}}{\rho_F^{d/q}}
+ <\frac1{n\epsilon}
+ =\rho_G^{m_G},
+\]
+contradicting \(\rho_F\ge\rho_G\), since \(m_G>0\).  This proves the claim.
+
+Set \(\Delta=c_F\rho_F\), with \(c_F>0\) sufficiently small.  The two-fiber distance certificate gives two priors on laws in \(\mathcal M_H\), supported respectively on \(\theta(P)=\Delta\) and \(\theta(P)=0\), at scales
+\[
+ h\asymp\Delta^{1/\gamma},\qquad
+ \ell\asymp\Delta^{1/q}.
+\]
+The proved inequality \(n\rho_F^{d/q}\le1\) and a sufficiently small \(c_F\) ensure \(n\ell^d\le c_0\), so the certificate supplies a coupling of the prior-predictive samples with
+\[
+ D\le C\Delta n^2h^d\ell^d
+ \le Cn^2\Delta^{D_F}.
+ \tag{33}
+\]
+By (32), \(\epsilon D\le Cc_F^{D_F}\).  Choose \(c_F\) so that \(10\epsilon D\le1\).  Applying the private Le Cam coupling lemma to the two prior predictives and thresholding at \(\Delta/2\) then gives
+\[
+ R_{n,\epsilon}^{\mathrm{DP}}\ge c\Delta\ge c\rho_F.
+ \tag{34}
+\]
+The construction in the certificate is precisely the asserted smooth shared-sign two-fiber witness and proves the stated Hamming, scale, and occupancy properties.  If \(\rho_F<\rho_G\), (31) already implies a constant multiple of \(\rho_F\).
+
+Taking the smallest of the constants in (28), (31), and (34) proves
+\[
+ R_{n,\epsilon}^{\mathrm{DP}}
+ \ge c_{\mathrm{lower}}\left(R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F\right).
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The unconditional exact-uniform converse establishes both privacy radii on the same causal class and supplies the lower-bound input for upward superclass transfer. \textit{Gap.} Kennedy et al. give the nonprivate CATE term, and Acharya et al. give a generic private coupling inequality.  Cai, Chakraborty, and Vuursteen's Theorem~2.1 and Corollary~2 give a one-dimensional uniform-design Gaussian Besov pointwise-MSE frontier; Theorem~4.4, equation~(22), and Section~4.2 give the lower bound and its one-bump Le Cam argument.  Their \(m=1\), \(\delta=0\) specialization has privacy root-MSE scale \((n\epsilon)^{-\nu/(\nu+1)}\), which equals \(\rho_G\) for \(d=1\), \(p=\infty\), and \(\nu=\gamma\).  Accordingly, neither the scalar dense exponent nor the one-bump Le Cam step is novel.  That Gaussian regression experiment is not nested with bounded potential-outcome CATE laws, and its dimension and loss differ, so it does not imply this \(\rho_G\) CATE lower bound.  It has no treatment/propensity--outcome interaction \(q=\alpha+\beta\), shared-sign two-fiber mixture, collision occupancy, or \(\rho_F=(n^2\epsilon)^{-1/(1+d/\gamma+d/q)}\) branch.  Niu et al. analyze sample-split private CATE meta-learners but likewise do not supply this pure-central pointwise Hölder CATE converse.  The new content is the joint causal converse, especially \(\rho_F\), together with the Kennedy-class transfer. \textit{Consumer.} The result lower-bounds any prospective exact-uniform upper mechanism and, through explicit class inclusion, every private estimator over the Kennedy-Theorem-1 slice.
+
+\begin{openendedquestion}[oeq:full-fiber-occupancy-lift]\label{oeq:full-fiber-occupancy-lift}
+For \(r=C_{\mathrm{scale}}\rho_\star\), can \(H_{\mathrm{occ}}\) construct one finite family \(\{Q_t:t\in\mathcal G_r\}\) on the full class \(\mathcal M_H\) such that \(\sup_{D_n\sim_1D_n'}|Q_t(D_n)-Q_t(D_n')|\le1\) for every \(t\), \(\mathfrak W_r(Q)\le C_{\mathrm{shell}}\), and \(C_{\mathrm{shell}}\) is independent of the Hölder-sieve dimension, uniformly over all values of \(n\ell^d\)?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the genuine construction problem: the occupancy identity must survive profiling over every unknown propensity and outcome-regression nuisance without an entropy payment. \textit{Gap.} The downgraded parent reaches only a sparse shared-sign family, while Asi et al. and Chaudhuri et al. do not provide nuisance-independent composite CATE fiber scores. \textit{Consumer.} An affirmative answer combines with the shell proposition and the same-class lower bound to settle the pure-private pointwise-CATE frontier.
+
+\begin{theorem}[thm:combined-private-frontier]\label{thm:combined-private-frontier}
+Conditional on an affirmative resolution of Open-ended Question~1, the resulting finite selector satisfies
+\[
+ \sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n}}
+ |T_{\mathrm{shell}}-\theta(P)|
+ \le C_{\mathrm{upper}}\rho_\star,
+ \qquad
+ R_{n,\epsilon}^{\mathrm{DP}}
+ \asymp R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F.
+\]
+This theorem is only a conditional reduction from the score-family and weighted-shell conclusions in Open-ended Question~1 to risk attainment.  It asserts neither that such a score family exists nor any adaptive guarantee.  If the assumed weighted-shell bound is independent of the nuisance-sieve dimension, this reduction introduces no nuisance-sieve logarithm.
+\end{theorem}
+\begin{proof}
+Assume the affirmative premise in the proposed statement.  At \(r=C_{\mathrm{scale}}\rho_\star\), that premise supplies a finite score family whose members have replacement sensitivity at most one and whose weighted-shell functional satisfies \(\mathfrak W_r(Q)\le C_{\mathrm{shell}}\).  The shell-risk proposition therefore gives an explicitly data-dependent pure \(\epsilon\)-differentially private selector satisfying
+\[
+ \sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n}}
+ |T_{\mathrm{shell}}-\theta(P)|
+ \le(C_{\mathrm{shell}}+3)C_{\mathrm{scale}}\rho_\star.
+ \tag{35}
+\]
+Thus one may take \(C_{\mathrm{upper}}=(C_{\mathrm{shell}}+3)C_{\mathrm{scale}}\).  Since this selector is one admissible kernel in the definition of private minimax risk, (35) gives
+\[
+ R_{n,\epsilon}^{\mathrm{DP}}\le C_{\mathrm{upper}}\rho_\star.
+ \tag{36}
+\]
+The full-class lower-frontier theorem gives the reverse inequality
+\[
+ R_{n,\epsilon}^{\mathrm{DP}}\ge c_{\mathrm{lower}}\rho_\star.
+ \tag{37}
+\]
+Substituting \(\rho_\star=R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F\) into (36)--(37) proves the claimed conditional equivalence.  The only upper-bound input is the affirmative premise.  Because the shell-risk proposition depends on the target-shell sum rather than the grid or sieve cardinality, an assumed nuisance-sieve-independent value of \(C_{\mathrm{shell}}\) creates no nuisance-sieve logarithm.  Nothing in this reduction constructs the required scores or addresses adaptation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is a conditional reduction: if the unresolved full-fiber lift produces the required sensitivity-one scores and dimension-free shell bound, the proved shell-risk map and converse yield the matching exact-uniform frontier. \textit{Gap.} The missing step is the construction of one full-class score family whose weighted-shell bound is uniform in occupancy and nuisance-sieve dimension.  The theorem itself does not close that step and makes no adaptive claim. \textit{Consumer.} A future proof of the full-fiber lift can be inserted directly into this reduction to obtain the calibrated exact-uniform private risk guarantee.
+
+\begin{openendedquestion}[oeq:adaptive-frontier]\label{oeq:adaptive-frontier}
+Can \(H_{\mathrm{adapt}}\) produce one pure \(\epsilon\)-differentially private estimator, without knowing \((\alpha,\beta,\gamma)\in\Theta_{\mathrm{sm}}\), whose risk is within the smallest possible logarithmic factor of \(R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F\) simultaneously across sparse and dense occupancy, and can a matching adaptive lower bound determine that factor?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Unknown smoothness is the first deployment-level uncertainty after the fixed-class frontier is settled, and privacy may make its penalty regime dependent. \textit{Gap.} Cai et al. characterize adaptation for federated density estimation, while Kennedy et al. leave nonprivate CATE adaptation open; no result combines nuisance elbows, occupancy, and pure central privacy. \textit{Consumer.} The answer determines whether one private release can be tuned for individualized-effect analysis without disclosing or prespecifying smoothness.
+
+\begin{lemma}[lem:private-le-cam-coupling]\label{lem:private-le-cam-coupling}
+Let \(p_1\in\operatorname{co}(\mathcal P_1)\) and
+\(p_2\in\operatorname{co}(\mathcal P_2)\), and suppose a coupling
+\((U,V)\) of \(p_1,p_2\) satisfies
+\(D=\mathbb E[d_{\mathrm{Ham}}(U,V)]\).  Every
+\((\varepsilon,\delta)\)-differentially private test has error
+\[
+ P_e\ge\frac12\max\{1-d_{\mathrm{TV}}(p_1,p_2),
+ 0.9e^{-10\varepsilon D}-10D\delta\}.
+\]
+\end{lemma}
+
+\begin{lemma}[lem:two-fiber-distance-certificate]\label{lem:two-fiber-distance-certificate}
+For every sufficiently small \(\delta>0\), let
+\(h\asymp\delta^{1/\gamma}\) and
+\(\ell\asymp\delta^{1/q}\).  There is a sufficiently small constant
+\(c_0>0\), depending only on \(d\), such that, if \(n\ell^d\le c_0\),
+there are two priors on
+laws in \(\mathcal M_H\), one supported on \(\theta(P)=\delta\) and the
+other on \(\theta(P)=0\), such that their one-record prior predictives are
+identical, their \(n\)-record prior predictives admit a coupling with
+\[
+ \mathbb E d_{\mathrm{Ham}}(D_n,D_n')
+ \le C\delta n^2h^d\ell^d,
+\]
+and their squared Hellinger distance is at most
+\(C n^2\delta^2h^d\ell^d\).  The constants depend only on
+\(d,\alpha,\beta,\gamma,L,e_0\).
+\end{lemma}
+\begin{proof}
+Fix a sufficiently small \(\delta>0\).  All constants below depend only on \(d,\alpha,\beta,\gamma,L,e_0\).  Choose
+\[
+ h=c_h\delta^{1/\gamma},\qquad \ell=c_\ell\delta^{1/q}.
+\]
+Because \(q<\gamma\), after decreasing \(\delta\) we have \(0<\ell\le h\le1/4\).  Let \(g\) be a nonnegative smooth bump supported on \([-1,1]^d\), with \(g(0)=1\), and define
+\[
+ g_h(x)=g\!\left(\frac{x-x_0}{h}\right),\qquad G_h(x)=g_h(x)^2.
+\]
+The support of \(G_h\) lies in \([0,1]^d\), because \(x_0\in[1/4,3/4]^d\) and \(h\le1/4\).  Choose a smooth \(\eta\) that is strictly positive on \([-1/2,1/2]^d\) and vanishes outside \([-1,1]^d\), and translate it on the lattice \(\ell\mathbb Z^d\).  These translates cover \(\mathbb R^d\), at most \(3^d\) are nonzero at any point, and their squared sum is bounded below by a positive constant.  For the lattice points \(z_j\), put
+\[
+ w_j(x)=\frac{\eta((x-z_j)/\ell)}{\left\{\sum_s\eta((x-z_s)/\ell)^2\right\}^{1/2}},
+ \qquad \phi_j(x)=g_h(x)w_j(x).
+\]
+Only finitely many \(\phi_j\)'s meet the support of \(g_h\).  The denominator is bounded away from zero, the overlap multiplicity is bounded by a constant \(M=M(d)\), and direct differentiation gives, for every fixed \(s>0\),
+\[
+ \sum_j\phi_j(x)^2=G_h(x),\qquad
+ \sup_j\|\phi_j\|_{\mathcal H^s}\le C_s\ell^{-s}.
+ \tag{1}
+\]
+For independent Rademacher variables \(\lambda_j\), define
+\[
+ f_\lambda(x)=\sum_j\lambda_j\phi_j(x).
+\]
+Bounded overlap and (1) imply
+\[
+ |f_\lambda(x)|\le C,\qquad
+ \|f_\lambda\|_{\mathcal H^s}\le C_s\ell^{-s},\qquad
+ \mathbb E_\lambda f_\lambda(x)=0,\qquad
+ \mathbb E_\lambda f_\lambda(x)^2=G_h(x).
+ \tag{2}
+\]
+
+Choose positive constants \(c_a,c_b,c_\ell\) so that
+\[
+ a=c_a\ell^\alpha,\qquad b=c_b\ell^\beta,\qquad 4ab=\delta.
+ \tag{3}
+\]
+This is possible because \(q=\alpha+\beta\): first take \(c_\ell\) sufficiently large, and then take \(c_a,c_b\) sufficiently small with \(4c_ac_bc_\ell^q=1\).  If \(\alpha\ge\beta\), define two laws, indexed by \(\lambda\), through
+\[
+\begin{array}{c|ccc}
+ &\pi&\mu_0&\tau\\ \hline
+ P_\lambda&1/2&1/2+b f_\lambda-\delta G_h/2&\delta G_h\\
+ Q_\lambda&1/2+a f_\lambda&1/2+b f_\lambda&0.
+\end{array}
+\tag{4}
+\]
+If \(\beta>\alpha\), use instead
+\[
+\begin{array}{c|ccc}
+ &\pi&\mu_0&\tau\\ \hline
+ P_\lambda&1/2+a f_\lambda&1/2-\delta G_h/2&\delta G_h\\
+ Q_\lambda&1/2+a f_\lambda&1/2+b f_\lambda&0.
+\end{array}
+\tag{5}
+\]
+In every law, let \(X\) be uniform on \([0,1]^d\).  Conditional on \(X=x\), draw \(A\) with the displayed propensity; draw \(Y_0,Y_1\in\{0,1\}\), conditionally independently of \(A\), with respective means \(\mu_0(x)\) and \(\mu_0(x)+\tau(x)\); and set \(Y=AY_1+(1-A)Y_0\).  Thus consistency and conditional exchangeability hold.  Equations (1)--(3) give
+\[
+ \|a f_\lambda\|_{\mathcal H^\alpha}\le Cc_a,\qquad
+ \|b f_\lambda\|_{\mathcal H^\beta}\le Cc_b,\qquad
+ \|\delta G_h\|_{\mathcal H^\gamma}\le C\delta h^{-\gamma}=Cc_h^{-\gamma},
+ \qquad
+ \|\delta G_h\|_{\mathcal H^\beta}\le C\delta h^{-\beta}
+ =C\delta^{1-\beta/\gamma}.
+ \tag{6}
+\]
+Here \(\beta<\gamma\) follows from \(\beta<q<\gamma\), so the final exponent is positive.  The fixed constants and then the upper threshold for \(\delta\) can be chosen so that the displayed bounds, including the fixed constant parts of the Hölder norms, are at most \(L\).  The same choices keep every displayed propensity and regression in \([1/4,3/4]\), hence give the required overlap and bounded outcomes.  Therefore every law in (4) and (5) belongs to \(\mathcal M_H\).  Since \(G_h(x_0)=1\),
+\[
+ \theta(P_\lambda)=\delta,\qquad \theta(Q_\lambda)=0.
+ \tag{7}
+\]
+
+We next prove the two predictive-distance assertions.  Write \(s=2A-1\) and \(z=2Y-1\).  Conditional on \(X=x\), let \(F^P_\lambda(s,z\mid x)\) and \(F^Q_\lambda(s,z\mid x)\) denote four times the corresponding conditional atom masses.  From (4), when \(\alpha\ge\beta\), direct multiplication gives
+\[
+ F^P_\lambda=1+2zb f_\lambda+sz\delta G_h,
+ \qquad
+ F^Q_\lambda=1+2sa f_\lambda+2zb f_\lambda+4szab f_\lambda^2.
+ \tag{8}
+\]
+From (5), when \(\beta>\alpha\), it gives
+\[
+ F^P_\lambda=1+2sa f_\lambda+sz\delta G_h+2za\delta f_\lambda G_h,
+ \qquad
+ F^Q_\lambda=1+2sa f_\lambda+2zb f_\lambda+4szab f_\lambda^2.
+ \tag{9}
+\]
+By (2) and \(4ab=\delta\), both cases satisfy the exact identity
+\[
+ \mathbb E_\lambda F^P_\lambda(s,z\mid x)
+ =\mathbb E_\lambda F^Q_\lambda(s,z\mid x)
+ =1+sz\delta G_h(x).
+ \tag{10}
+\]
+Since the covariate law is also common, (10) proves equality of the one-record prior predictives.
+
+Condition now on \(x_1,\ldots,x_n\).  Define the active-sign set
+\[
+ J_i=\{j:\phi_j(x_i)\ne0\},
+\]
+and join \(i\) and \(r\) when \(J_i\cap J_r\ne\varnothing\).  If \(C\) and \(C'\) are distinct connected components, then \(\bigcup_{i\in C}J_i\) and \(\bigcup_{r\in C'}J_r\) are disjoint.  Independence of the Rademacher signs therefore yields the conditional factorization
+\[
+ \mathbb E_\lambda\prod_{i=1}^nF^P_\lambda(s_i,z_i\mid x_i)
+ =\prod_C\mathbb E_\lambda\prod_{i\in C}F^P_\lambda(s_i,z_i\mid x_i),
+ \tag{11}
+\]
+and the identical formula for \(Q\).
+
+We give the component calculation explicitly.  For a record \(i\), let
+\[
+ \overline F_i=1+s_i z_i\delta G_h(x_i),\qquad
+ V_i^P=F_i^P-\overline F_i,\qquad V_i^Q=F_i^Q-\overline F_i.
+\]
+Then \(\mathbb E_\lambda V_i^P=\mathbb E_\lambda V_i^Q=0\) by (10).  Put
+\[
+ u=a\vee b,\qquad w=a\wedge b.
+\]
+If \(\alpha\ge\beta\), then \(u=b,w=a\); if \(\beta>\alpha\), then \(u=a,w=b\).  Equations (2), (8), and (9), together with \(\delta=4uw\) and the smallness of \(u\), imply in both cases
+\[
+ |V_i^P|\vee|V_i^Q|\le C u,\qquad
+ |V_i^P-V_i^Q|\le Cw,\qquad
+ |\overline F_i|\le1+\delta.
+ \tag{12}
+\]
+Indeed, in (8) the difference is \(-2s_i a f_i-s_i z_i\delta(f_i^2-G_i)\), which is \(O(a)\), while in (9) it is \(2z_i a\delta f_iG_i-2z_i b f_i-s_i z_i\delta(f_i^2-G_i)\), which is \(O(b)\).
+
+Let \(C\) have size \(m\), and fix its \(4^m\) possible vectors \(\omega_C=((s_i,z_i):i\in C)\).  Expanding the product around its common one-record mean gives
+\[
+ 4^m\overline p_C(\omega_C\mid x_C)
+ =\prod_{i\in C}\overline F_i+
+ \sum_{\substack{I\subseteq C\\ |I|\ge2}}
+ \left(\prod_{i\in C\setminus I}\overline F_i\right)
+ \mathbb E_\lambda\prod_{i\in I}V_i^P,
+ \tag{13}
+\]
+and the same expansion with \(P\) replaced by \(Q\).  There are no terms with \(|I|=1\) because each centered factor has mean zero.  For \(|I|=r\ge2\), telescoping the two products and applying (12) yields
+\[
+ \left|\mathbb E_\lambda\prod_{i\in I}V_i^P-
+ \mathbb E_\lambda\prod_{i\in I}V_i^Q\right|
+ \le r C^r w u^{r-1}
+ =\frac{\delta}{4}r C^r u^{r-2}.
+ \tag{14}
+\]
+Thus every surviving difference is charged to at least two distinct records and contains the factor \(uw=\delta/4\).  Summing (14) in (13) gives, for a fixed constant \(K_1\),
+\[
+ 4^m|\overline p_C(\omega_C\mid x_C)-\overline q_C(\omega_C\mid x_C)|
+ \le C\delta(m)_2K_1^m.
+ \tag{15}
+\]
+Summation over the \(4^m\) atoms therefore proves
+\[
+ \|\overline p_C-\overline q_C\|_1
+ \le C\delta(m)_2K_1^m,\qquad
+ d_{\mathrm{TV}}(\overline p_C,\overline q_C)
+ \le C\delta(m)_2K_1^m.
+ \tag{16}
+\]
+
+The fixed constants in (3) may also be chosen so that every factor in (8) and (9) is at least \(1/2\).  Consequently every conditional \(Q\)-mixture atom obeys
+\[
+ \overline q_C(\omega_C\mid x_C)\ge 8^{-m}.
+ \tag{17}
+\]
+Combining the atomwise bound (15) with (17), and summing over \(4^m\) atoms, gives a fixed \(K_2\) such that
+\[
+ \chi^2(\overline p_C,\overline q_C)
+ =\sum_{\omega_C}\frac{(\overline p_C-\overline q_C)^2}{\overline q_C}
+ \le C\delta^2m^4K_2^m.
+ \tag{18}
+\]
+The elementary inequality \((\sqrt{x}-\sqrt{y})^2\le(x-y)^2/y\) also gives \(H^2(\overline p_C,\overline q_C)\le\chi^2(\overline p_C,\overline q_C)\).  This is the required componentwise quadratic, rather than linear, bound.
+
+It remains to average the component sizes.  A nonempty \(J_i\) requires \(x_i\) to lie in a set of volume at most \(Ch^d\).  Moreover, bounded support of \(\eta\) implies that, for any fixed \(x_i\), the set of \(x_r\) for which \(J_i\cap J_r\ne\varnothing\) has volume at most \(C\ell^d\).  Put \(p_\ell=C\ell^d\).  Conditional on \(X_i=x_i\), the number \(Z_i\) of other records in this overlap neighborhood is stochastically bounded by \(\operatorname{Bin}(n-1,p_\ell)\).  Consequently, for every fixed \(b>1\),
+\[
+ \mathbb E[b^{Z_i}\mid X_i=x_i]
+ \le(1-p_\ell+p_\ell b)^{n-1}
+ \le\exp\{(b-1)(n-1)p_\ell\}.
+ \tag{19}
+\]
+Thus the required direct-neighborhood exponential moments are uniform when \(n\ell^d\) is sufficiently small.
+
+We also control transitive overlap rather than replacing it by direct overlap.  Let \(M_i\) be the size of the connected component containing record \(i\).  On the event \(J_i\ne\varnothing\) and \(M_i\ge m\), there are \(m-1\) other record indices and a rooted spanning tree on these \(m\) indices all of whose edges are overlap edges.  There are at most \(m^{m-2}\) labeled trees: repeatedly delete the smallest labeled leaf and record its neighbor; the resulting word of length \(m-2\) on an \(m\)-letter alphabet reconstructs the tree, so the encoding is injective.  Orienting a fixed tree away from its root and integrating successively over its leaves shows
+\[
+ \Pr\!\left(J_i\ne\varnothing,\ \text{all edges of the fixed tree occur}\right)
+ \le Ch^d p_\ell^{m-1}.
+ \tag{20}
+\]
+Indeed, the root must be in the macro support, of mass at most \(Ch^d\), and each child must lie in its parent's overlap neighborhood, of conditional mass at most \(p_\ell\).  A union bound over the index sets and trees therefore gives
+\[
+\begin{split}
+ \Pr(J_i\ne\varnothing,M_i\ge m)
+ &\le Ch^d\binom{n-1}{m-1}m^{m-2}p_\ell^{m-1}\\
+ &\le Ch^d(C_0n\ell^d)^{m-1},\qquad m\ge2,
+\end{split}
+ \tag{21}
+\]
+where the second line uses \(\binom{n-1}{m-1}\le n^{m-1}/(m-1)!\) and \(m^{m-2}/(m-1)!\le C_0^{m-1}\).  Equation (21) is the iterated counterpart of the binomial exponential-moment bound (19).
+
+Fix \(K\in\{K_1,K_2\}\) and a nonnegative integer \(a\).  Since \(\Pr(M_i=m,J_i\ne\varnothing)\le\Pr(M_i\ge m,J_i\ne\varnothing)\), (21) yields
+\[
+\begin{split}
+ &\mathbb E\!\left[
+ \mathbf 1\{J_i\ne\varnothing,M_i\ge2\}M_i^aK^{M_i}
+ \right]\\
+ &\qquad\le Ch^d\sum_{m\ge2}m^aK^m(C_0n\ell^d)^{m-1}
+ \le Ch^d n\ell^d,
+\end{split}
+ \tag{22}
+\]
+provided \(n\ell^d\le c_0\), where \(c_0\) is chosen so that \(C_0Kc_0<1/2\).  This choice depends only on the fixed model constants and proves the needed occupancy-weighted exponential-moment estimate.
+
+Given the covariates, couple the two mixture laws separately on each component by placing the pointwise minimum of their atom masses on the diagonal and coupling the two residual measures arbitrarily.  The residual mass is exactly the component total variation.  On the diagonal all records agree; off the diagonal, at most all \(m\) component records change.  By (16),
+\[
+ \mathbb E[d_{\mathrm{Ham}}(D_n,D_n')\mid X_1,\ldots,X_n]
+ \le C\delta\sum_C\mathbf 1\{|C|\ge2\}|C|^3K_1^{|C|}.
+ \tag{24}
+\]
+The sum on the right of (24) equals
+\(\sum_i\mathbf 1\{J_i\ne\varnothing,M_i\ge2\}M_i^2K_1^{M_i}\).  Applying (22) to each record therefore gives
+\[
+ \mathbb E d_{\mathrm{Ham}}(D_n,D_n')
+ \le C\delta\,n h^d\,(n\ell^d)
+ =C\delta n^2h^d\ell^d.
+ \tag{25}
+\]
+
+Finally, (11) makes the conditional laws products over components.  If \(A_C\) is the Hellinger affinity on component \(C\), then
+\(1-\prod_CA_C\le\sum_C(1-A_C)\); hence squared Hellinger distance tensorizes subadditively.  Using (18), then writing the component sum as a sum over its records as above, yields
+\[
+ H^2(\overline P_n(\cdot\mid X),\overline Q_n(\cdot\mid X))
+ \le C\delta^2\sum_C\mathbf 1\{|C|\ge2\}|C|^4K_2^{|C|}.
+ \tag{26}
+\]
+The covariate distribution is the same under the two mixtures, so unconditional squared Hellinger distance is the expectation of the conditional squared Hellinger distance.  Applying (22) with the corresponding third power of \(M_i\) gives
+\[
+ H^2(\overline P_n,\overline Q_n)
+ \le C\delta^2 n h^d(n\ell^d)
+ =C n^2\delta^2h^d\ell^d.
+ \tag{27}
+\]
+Equations (7), (10), (25), and (27), together with the verified class membership, prove all assertions of the lemma.
+\end{proof}
+
+\begin{lemma}[lem:nonprivate-cate-rate-floor]\label{lem:nonprivate-cate-rate-floor}
+There is a constant \(c>0\), depending only on
+\(d,\alpha,\beta,\gamma,L,e_0\), such that
+\[
+ R_n^{\mathrm{NP}}\ge c\left\{
+ n^{-1/(2+d/\gamma)}\vee
+ n^{-2/(2+d/\gamma+d/q)}\right\}.
+\]
+\end{lemma}
+\begin{proof}
+For the first term, take uniform \(X\), independent
+\(A\sim\operatorname{Bernoulli}(1/2)\), \(\mu_0=0\), and compare
+\(\tau=0\) with \(\tau=\delta g((\cdot-x_0)/h)\), where
+\(h\asymp\delta^{1/\gamma}\) and the smooth bump is supported inside the
+cube.  Conditional binary outcomes and conditionally independent potential
+outcomes put both laws in \(\mathcal M_H\).  Their squared Hellinger distance
+for one observation is at most \(C\delta^2h^d\).  Tensorization gives
+\[
+ H^2(P_0^{\otimes n},P_1^{\otimes n})\le Cn\delta^{2+d/\gamma}.
+\]
+Taking \(\delta=c n^{-1/(2+d/\gamma)}\), with \(c\) small, makes total
+variation bounded away from one because
+\(d_{\mathrm{TV}}\le H\).  The latter inequality follows directly from
+Cauchy--Schwarz:
+\[
+ \frac12\int|p-q|
+ =\frac12\int|\sqrt p-\sqrt q|(\sqrt p+\sqrt q)
+ \le H(P,Q),
+\]
+under the convention \(H^2=\int(\sqrt p-\sqrt q)^2\).  For every test
+\(\varphi\), directly from the
+definition of total variation,
+\[
+ P_0(\varphi=1)+P_1(\varphi=0)
+ =1-\{P_1(\varphi=1)-P_0(\varphi=1)\}
+ \ge1-d_{\mathrm{TV}}(P_0^{\otimes n},P_1^{\otimes n}).
+\]
+Thresholding an estimator at the midpoint incurs loss at least
+\(\delta/2\) on a testing error.  Averaging the two risks therefore gives
+the first lower bound.
+
+For the second, apply \(\mathrm{lem:two-fiber-distance-certificate}\).  Its
+exact equality of one-record prior predictives and its Hellinger conclusion
+give
+\[
+ H^2\!\left(\int P_\lambda^{\otimes n}d\varpi(\lambda),
+              \int Q_\lambda^{\otimes n}d\varpi(\lambda)\right)
+ \le Cn^2\delta^2h^d\ell^d
+ =Cn^2\delta^{,2+d/\gamma+d/q}, \tag{3}
+\]
+whenever \(n\ell^d\le C\).
+
+Set \(\delta=c n^{-2/(2+d/\gamma+d/q)}\).  If
+\(d/q>2+d/\gamma\), then \(n\ell^d\le C\), and (3), followed by the same
+displayed total-variation testing identity, proves the second lower bound.  If
+\(d/q\le2+d/\gamma\), then
+\[
+ \frac{2}{2+d/\gamma+d/q}\ge\frac{1}{2+d/\gamma},
+\]
+so the second displayed rate is no larger than the first and is already
+covered by the deterministic bump lower bound.  This proves the maximum in
+all regimes.  Fixed-separation bumps allow the constant to be reduced so the
+claim also covers bounded \(n\).
+\end{proof}
+
+\begin{lemma}[lem:exact-uniform-subclass]\label{lem:exact-uniform-subclass}
+Every law in the exact-uniform class belongs to the Kennedy-Theorem-1 slice:
+\[
+\mathcal M_H\subseteq\mathcal P_K.
+\]
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M_H\).  By \(\mathrm{def:holder-class}\), the law has the support declared in the definition of \(\mathcal P_K\), satisfies consistency and conditional exchangeability, obeys the overlap bound with constant \(e_0\), and has
+\[
+\pi\in\mathcal H^\alpha(L),\qquad
+\mu_0\in\mathcal H^\beta(L),\qquad
+\tau\in\mathcal H^\gamma(L),
+\qquad q=\alpha+\beta<\gamma.
+\]
+The only remaining membership condition is the design-density condition.  By \(\mathrm{ass:uniform-design}\), \(P_X\) has Lebesgue density one on \([0,1]^d\).  Since \(L\ge2\), this density satisfies
+\[
+0\le \frac{dP_X}{d\lambda_d}(x)=1\le L
+\]
+for \(\lambda_d\)-almost every \(x\).  This verifies the bounded-above condition in \(\mathrm{def:kennedy-lower-class}\).  Notice that the argument neither invokes nor proves a global density lower bound for a generic member of \(\mathcal P_K\).  Hence \(P\in\mathcal P_K\), and arbitrariness of \(P\) proves the inclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This inclusion is the complete order-theoretic bridge needed to transfer every exact-uniform minimax lower branch to the Kennedy-Theorem-1 slice. \textit{Gap.} The transfer is invalid unless the two model classes are explicitly defined and their inclusion is checked without importing a density lower bound. \textit{Consumer.} The superclass lower-frontier theorem uses this lemma before taking the infimum over the common private-estimator set.
+
+\begin{theorem}[thm:kennedy-class-lower-transfer]\label{thm:kennedy-class-lower-transfer}
+There is a constant \(c_K>0\), depending only on \(d,\alpha,\beta,\gamma,L,e_0\), such that throughout \(n\epsilon\ge1\),
+\[
+R_{n,\epsilon}^{\mathrm{DP},K}
+\ge c_K\left[
+\left\{n^{-1/(2+d/\gamma)}\vee
+n^{-2/(2+d/\gamma+d/q)}\right\}
+\vee\rho_G\vee\rho_F
+\right].
+\]
+This is an upward transfer of lower bounds from \(\mathcal M_H\) to the Kennedy-Theorem-1 slice \(\mathcal P_K\); it makes no upper-bound assertion over \(\mathcal P_K\).
+\end{theorem}
+\begin{proof}
+Let \(\mathfrak T_\epsilon\) be the set of Markov kernels from \(\mathcal O^n\) to \([-2,2]\) that are pure \(\epsilon\)-differentially private under replacement adjacency.  This is the estimator set in both private-risk definitions.  The exact-uniform subclass lemma gives \(\mathcal M_H\subseteq\mathcal P_K\).  Therefore, for every \(T\in\mathfrak T_\epsilon\),
+\[
+ \sup_{P\in\mathcal P_K}\mathbb E_{P^{\otimes n},T}|T(D_n)-\theta(P)|
+ \ge
+ \sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n},T}|T(D_n)-\theta(P)|.
+\]
+Taking the infimum over the same set \(\mathfrak T_\epsilon\) preserves the inequality, so
+\[
+ R_{n,\epsilon}^{\mathrm{DP},K}\ge R_{n,\epsilon}^{\mathrm{DP}}.
+ \tag{41}
+\]
+Define
+\[
+ r_{\mathrm{NP}}=n^{-1/(2+d/\gamma)}\vee n^{-2/(2+d/\gamma+d/q)}.
+\]
+The nonprivate CATE rate floor gives \(R_n^{\mathrm{NP}}\ge c_{\mathrm{NP}}r_{\mathrm{NP}}\).  Throughout \(n\epsilon\ge1\), the full-class lower-frontier theorem and (41) consequently give
+\[
+\begin{split}
+ R_{n,\epsilon}^{\mathrm{DP},K}
+ &\ge c_{\mathrm{lower}}
+ \left(R_n^{\mathrm{NP}}\vee\rho_G\vee\rho_F\right)\\
+ &\ge c_{\mathrm{lower}}\min\{c_{\mathrm{NP}},1\}
+ \left(r_{\mathrm{NP}}\vee\rho_G\vee\rho_F\right).
+\end{split}
+\]
+Taking \(c_K=c_{\mathrm{lower}}\min\{c_{\mathrm{NP}},1\}>0\) proves the theorem.  The argument uses only class inclusion and a common estimator set, so it transfers no upper bound and invokes no attainability condition from Kennedy et al.'s Theorem~2.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem turns the exact-uniform converse into an explicit pure-private lower frontier on the larger Kennedy-Theorem-1 density class. \textit{Gap.} Kennedy et al. establish a nonprivate lower bound, while the two privacy branches require the exact-uniform causal constructions and an explicit superclass monotonicity argument. \textit{Consumer.} It supports comparator positioning on Kennedy et al.'s lower-bound class without transferring the still-conditional exact-uniform upper bound.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The identity in Lemma 2 does not itself solve the full-fiber problem. For arbitrary least-favorable priors, the second-order kernel orientation can depend on a growing nuisance profile, and clipping local projections can reintroduce a sieve-size factor. The proposed early kill test is the finite \(d=1\), \(\alpha=\beta=1/8\), \(\gamma=1\) two-resolution program from the parent archive: impose every replacement-neighbor constraint, increase both occupancy and nuisance-sign dimension, and reject the route if the optimized weighted-shell functional grows with the nuisance dimension after occupancy weighting.
+
+\section{Honest scope}
+
+The unconditional results are the occupancy identity, the nonprivate floor, and the \(\rho_G\) and \(\rho_F\) pure-private lower-bound terms on the fixed-smoothness exact-uniform class, together with their upward lower-bound transfer to the common-support and common-constant slice of Kennedy et al.'s Theorem~1 class, whose design density is bounded above but need not be bounded below.  No superclass upper bound is asserted.  On the exact-uniform class, the full-fiber occupancy lift is the unresolved upper-construction crux, and the matching frontier theorem is only a conditional reduction from that premise.  Smoothness adaptation is downstream and wholly open; no adaptive rate or logarithmic penalty is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KennedyBalakrishnanRobinsWasserman2024} Kennedy, E. H., Balakrishnan, S., Robins, J. M., and Wasserman, L. (2024). Minimax rates for heterogeneous causal effect estimation. \emph{Annals of Statistics} 52(2), 793--816. Theorems 1--2, Section 5, and Discussion. doi:10.1214/24-AOS2369.
+
+  \bibitem{ZengBalakrishnanHanKennedy2024} Zeng, Z., Balakrishnan, S., Han, Y., and Kennedy, E. H. (2024). Causal inference with high-dimensional discrete covariates. \emph{Proceedings of the International Conference on Machine Learning}. Section 4, the occupancy lemma, and the effect-homogeneity upper and lower bounds. arXiv:2405.00118.
+
+  \bibitem{ChaudhuriLohPandeySarkar2024} Chaudhuri, K., Loh, P.-L., Pandey, S., and Sarkar, P. (2024). On differentially private U statistics. \emph{Advances in Neural Information Processing Systems} 37, 23078--23122. Main private estimator, local Hájek-projection construction, and privacy proof. arXiv:2407.04945.
+
+  \bibitem{AsiDuchiHaqueLiRuan2024} Asi, H., Duchi, J. C., Haque, S., Li, Z., and Ruan, F. (2024). Universally instance-optimal mechanisms for private statistical estimation. \emph{Proceedings of the Conference on Learning Theory} 247, 221--259. Section 4.1, Theorem 13, Lemma 15, and Proposition 16.
+
+  \bibitem{AcharyaSunZhang2021} Acharya, J., Sun, Z., and Zhang, H. (2021). Differentially private Assouad, Fano, and Le Cam. \emph{Proceedings of Algorithmic Learning Theory} 132, 48--78. Sections 2--3 and the coupling proofs. arXiv:2004.06830.
+
+  \bibitem{SchroederMelnychukFeuerriegel2025} Schröder, M., Melnychuk, V., and Feuerriegel, S. (2025). Differentially private learners for heterogeneous treatment effects. \emph{International Conference on Learning Representations}. Theorems 1 and 3 and Discussion. arXiv:2503.03486.
+
+  \bibitem{BalcerVadhan2018} Balcer, V., and Vadhan, S. (2018). Differential privacy on finite computers. \emph{Innovations in Theoretical Computer Science}. Introduction, sparse-histogram lower bound, and compact dense-histogram theorem. arXiv:1709.05396.
+
+  \bibitem{CaiChakrabortyVuursteen2025Adaptation} Cai, T. T., Chakraborty, A., and Vuursteen, L. (2025). The cost of adaptation under differential privacy: optimal adaptive federated density estimation. arXiv:2512.14337. Theorems 1--2, one-shot multiscale construction, adaptive lower bound, and Discussion.
+
+  \bibitem{GaoHan2020} Gao, Z., and Han, Y. (2020). Minimax optimal nonparametric estimation of heterogeneous treatment effects. \emph{Advances in Neural Information Processing Systems} 33. Theorems 1--2 and random-design construction. arXiv:2002.06471.
+
+  \bibitem{Birge2006} Birgé, L. (2006). Model selection via testing: an alternative to penalized maximum likelihood estimators. \emph{Annales de l'Institut Henri Poincaré, Probabilités et Statistiques} 42(3), 273--325. Definition 2 and Section 4. doi:10.1016/j.anihpb.2005.04.004.
+
+  \bibitem{NiuNoriQuistorffCaruanaNgweKannan2022} Niu, F., Nori, H., Quistorff, B., Caruana, R., Ngwe, D., and Kannan, A. (2022). Differentially private estimation of heterogeneous causal effects. \emph{Proceedings of the Conference on Causal Learning and Reasoning}, 618--633. arXiv:2202.11043.
+
+  \bibitem{CaiChakrabortyVuursteen2026Regression} Cai, T. T., Chakraborty, A., and Vuursteen, L. (2026). Optimal Federated Learning for Nonparametric Regression with Heterogeneous Distributed Differential Privacy Constraints. Journal of the American Statistical Association, published online September 8, 2026. doi:10.1080/01621459.2026.2731119; arXiv:2406.06755. Theorem~2.1, Corollary~2, Theorem~4.4, equation~(22), and Section~4.2.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,1029 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}observedcsi\_\allowbreak{}hedge\_\allowbreak{}complete}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Fixed treatment and outcome assignments activate observed CSI information that variable-level identification can discard, but a local forest alone need not survive shared rows across contexts. In the settled fixed-nuisance binary-sink base case, the proved forest-to-kernel lift yields the verifier's canonical forest-supported rational null vector, and a positive baseline plus an explicit radius yields two global quotient-shared models with the same observed law and different queries. A new root-control bridge compiles maximal-regular observed-root labels into identical context graphs and row quotients and reproduces every successful published formula on the published class intersected with this note's fixed finite, strictly primitive-positive CPT class. The multi-block global dichotomy remains open and must be settled before any complete procedure is claimed.
+
+\section{Project justification}
+
+\paragraph{Gap.} Tikka et al. give sound CSI calculus and show that separate context graphs are incomplete. Mokhtarian et al. prove an if-and-only-if theorem for maximal-regular observed-root controls, but after intersection with this note's fixed-cardinality strictly primitive-positive CPT class only their successful identification formula transfers automatically. Chen and Darwiche give sound state-specific procedures without a complete obstruction theorem, and a local forest can be neutralized by cross-context row sharing.
+
+\paragraph{Niche.} Observed endogenous activation permits finite truth-table refinement while retaining shared CPT rows, reference-context recovery, cancellation, and information loss under active pruning.
+
+\paragraph{Fill.} The project certifies the exact binary-sink lift through a forest-restricted row-space alternative and baseline perturbation, proves an exact syntactic and successful-formula bridge for maximal-regular observed-root inputs, and leaves the provenance-carrying multi-block context-factor dichotomy visibly open.
+
+\section{Related work}
+
+Boutilier et al. define local CSI through equality of conditional behavior, and Pensar et al. encode such equalities by labels; these works inform the canonical quotient. Shpitser and Pearl establish ordinary formula-or-hedge completeness, recovered when the CSI list is empty. Tikka et al., Theorems 5--6, prove sound CSI search and show that separate context-graph identification is insufficient; the open global dichotomy would add necessity. Mokhtarian et al., Theorem 1, prove an if-and-only-if criterion for their labeled-DAG class under its maximal-regularity hypotheses, with control variables restricted to observed roots and treatment and outcome outside the controls. The root-control bridge proves identical compiled context graphs and row quotient and agreement of successful returned formulas. Because this note additionally fixes finite cardinalities and requires strictly positive primitive CPTs, the compiled class is the published class intersected with that stricter CPT class; only the published identification implication transfers automatically, not its nonidentification converse. Chen and Darwiche supply sound state-specific procedures and an active-pruning warning but no general completeness theorem. Their circuit work and Duarte et al.'s sharp polynomial programs inform finite algebraic contraction but do not provide a forest-derived shared-row kernel. Kivva et al. supply a positivity-aware generalized-identification comparator. Duarte and Solus characterize fully observed context-specific representations rather than latent query fibers. Bhattacharya et al. provide downstream estimation after a functional is returned, and the \(Y_0\) paper supplies the direct software consumer.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(q=P_{\mathbf x}(\mathbf y)\).
+Primary functional / estimator / diagnostic: \(E(P_{\mathrm{obs}})=P_{\mathbf x}(\mathbf y)\) or, in the certified binary-sink slice, \(\mathsf{Verify}_{\mathrm{sink}}(\Gamma_{\mathrm{sink}})=1\).
+\begin{itemize}
+  \item \texttt{V} --- \texttt{A finite set of observed vertices}; \texttt{Observed variables.}
+  \item \texttt{U} --- \texttt{A finite set of latent vertices}; \texttt{Exogenous roots.}
+  \item \texttt{State} --- A family \(\{\mathcal X_i:i\in V\cup U\}\) of fixed finite state spaces; \texttt{State spaces for all vertices.}
+  \item \texttt{G} --- A finite directed acyclic graph on \(V\cup U\); \texttt{The causal graph before latent projection.}
+  \item \texttt{X} --- A subset \(X\subseteq V\); \texttt{Treatment vertices.}
+  \item \texttt{Y} --- A subset \(Y\subseteq V\setminus X\); \texttt{Outcome vertices.}
+  \item \texttt{Ystar} --- A distinguished vertex \(Y_{\star}\in Y\); \texttt{The terminal outcome in the binary-\allowbreak{}sink slice.}
+  \item \texttt{x} --- An assignment \(\mathbf x\in\prod_{i\in X}\mathcal X_i\); \texttt{Fixed treatment state.}
+  \item \texttt{y} --- An assignment \(\mathbf y\in\prod_{i\in Y}\mathcal X_i\); \texttt{Fixed outcome state.}
+  \item \texttt{W} --- The set \(W=V\setminus(X\cup Y)\); \texttt{Observed vertices remaining after treatment and outcome substitution.}
+  \item \texttt{CSI} --- A finite list \(\mathcal C\) of local whole-row context-specific independence constraints on \(G\); \texttt{Input row equalities with observed activation predicates.}
+  \item \texttt{RowQ} --- A family \(\mathcal R=\{\mathcal R_i:i\in V\}\) of equivalence classes of complete parent assignments; The connected row-equality quotient generated by \(\mathcal C\).
+  \item \texttt{Theta} --- The product \(\Theta(G)\) of normalized finite conditional probability tables; \texttt{The unconstrained parameter space.}
+  \item \texttt{theta} --- A parameter table \(\theta\in\Theta(G)\); \texttt{A structural-\allowbreak{}model parameter.}
+  \item \texttt{ModelClass} --- A class \(\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\subseteq\Theta(G)\); \texttt{Strictly positive semi-\allowbreak{}Markovian models satisfying the observed-\allowbreak{}context row equalities.}
+  \item \texttt{Pobs} --- The observed probability vector \(F(\theta)=(P_{\theta}(V=\mathbf v):\mathbf v\in\prod_{i\in V}\mathcal X_i)\); \texttt{All observed cells in lexicographic order.}
+  \item \texttt{q} --- The scalar \(q(\theta)=P_{\theta,\mathbf x}(\mathbf y)\); \texttt{The fixed state-\allowbreak{}specific causal query.}
+  \item \texttt{Expr} --- The class \(\mathscr E(P_{\mathrm{obs}})\) of total arithmetic observed-cell expressions; \texttt{Permitted positive-\allowbreak{}denominator identifying formulas.}
+  \item \texttt{Partition} --- A finite partition \(\mathcal K\) of \(\prod_{i\in W}\mathcal X_i\); \texttt{The partition refining all substituted activation regions.}
+  \item \texttt{Trace} --- A finite sequence \(t\) of CSI-authorized edge deletions; \texttt{A partial,\allowbreak{} possibly empty,\allowbreak{} deletion history.}
+  \item \texttt{H} --- The context graph \(H_{k,t}\) obtained from \(G\) on cell \(k\in\mathcal K\) along trace \(t\); \texttt{A graph on which context-\allowbreak{}compatible recovery is attempted.}
+  \item \texttt{District} --- A maximal bidirected-connected component \(D\) of \(\operatorname{An}_{H_{k,t}\setminus X}(Y)\); \texttt{A relevant confounded component.}
+  \item \texttt{Qfac} --- The context-compatible factor \(Q[D]_{k,t}\); \texttt{A district factor to be recovered or obstructed.}
+  \item \texttt{Success} --- A finite \(\mathrm{ID\text{-}Qfunc}\) derivation \(\delta_{k,t,D}\); A derivation of \(Q[D]_{k,t}\) from observed cells.
+  \item \texttt{Forest} --- A nested pair \((F_{k,t,D},F'_{k,t,D})\) of rooted C-forests; \texttt{A partial-\allowbreak{}trace graphical obstruction candidate.}
+  \item \texttt{eta} --- A strictly positive rational assignment \(\eta\) to every primitive coordinate outside the rows of \(Y_{\star}\); \texttt{The fixed nuisance table in the binary-\allowbreak{}sink slice.}
+  \item \texttt{pvec} --- A vector \(p\in(0,1)^r\) with \(r=|\mathcal R_{Y_{\star}}|\); The shared-row probabilities \(P(Y_{\star}=1\mid\text{row class }j)\).
+  \item \texttt{Feta} --- A map \(F_{\eta}:(0,1)^r\to\mathbb R^o\); \texttt{The full observed-\allowbreak{}cell vector in the fixed-\allowbreak{}nuisance slice.}
+  \item \texttt{heta} --- A map \(h_{\eta}:(0,1)^r\to\mathbb R\); \texttt{The fixed interventional cell in the same slice.}
+  \item \texttt{ceta} --- A rational vector \(c_{\eta}\in\mathbb Q^o\); \texttt{The intercept of the observed-\allowbreak{}cell affine map.}
+  \item \texttt{Aeta} --- A rational matrix \(A_{\eta,t,F}\in\mathbb Q^{o\times r}\); \texttt{The trace-\allowbreak{} and forest-\allowbreak{}restricted coefficient matrix recomputed from structural syntax.}
+  \item \texttt{deta} --- A rational scalar \(d_{\eta}\in\mathbb Q\); \texttt{The intercept of the query affine map.}
+  \item \texttt{betaeta} --- A rational vector \(b_{\eta,t,F}\in\mathbb Q^r\); \texttt{The trace-\allowbreak{} and forest-\allowbreak{}restricted coefficient vector of the query map.}
+  \item \texttt{hker} --- A rational vector \(h_{t,F}\in\mathbb Q^r\); \texttt{The canonical reduced-\allowbreak{}row-\allowbreak{}echelon kernel direction supported on the sink-\allowbreak{}row classes exposed by the forest.}
+  \item \texttt{pzero} --- A rational baseline \(p_0\in(0,1)^r\); \texttt{A single positive shared-\allowbreak{}row baseline,\allowbreak{} not a countermodel pair.}
+  \item \texttt{eps} --- A positive rational number \(\varepsilon\); \texttt{A perturbation radius bounded by coordinatewise positivity slack.}
+  \item \texttt{SliceCertificate} --- A finite binary-sink local-context certificate \(\Gamma_{\mathrm{sink}}\); \texttt{Independently checkable obstruction syntax containing no pair of models and no observed-\allowbreak{}law or unequal-\allowbreak{}query comparison.}
+  \item \texttt{SliceVerifier} --- A deterministic exact checker \(\mathsf{Verify}_{\mathrm{sink}}\); \texttt{The rational checker that recomputes the affine maps and the forest-\allowbreak{}supported kernel direction.}
+  \item \texttt{Handle} --- A context-factor saturation handle \(\mathsf H_{\mathrm{sat}}\); \texttt{The starting technique for the unresolved global dichotomy.}
+  \item \texttt{Algorithm} --- A finite search procedure \(\mathsf{OCSI\text{-}ID}\); \texttt{The candidate success-\allowbreak{}or-\allowbreak{}structural-\allowbreak{}certificate procedure.}
+  \item \texttt{Size} --- The encoding vector \(s=(n,m,c,K,R,o,\ell,J)\in\mathbb N^8\). Here \(n=|V|+|U|\), \(m=|E(G)|\), \(c=|\mathcal C|\), \(K=\prod_{i\in W}|\mathcal X_i|\), \(R=\sum_{i\in V}|\mathcal R_i|\), \(o=\prod_{i\in V}|\mathcal X_i|\), and \(\ell\) is the largest input rational bit length. The integer \(J\geq1\) is one plus the total number of state labels, primitive conditional-table coordinates, complete parent-assignment records, latent joint assignments, and row-equality incidences produced by expanding the finite state spaces and \(\mathcal C\).; \texttt{The encoding vector,\allowbreak{} including the explicit expansion load needed to compile the quotient and finite contractions.}
+  \item \texttt{Bound} --- The integer \(B(s)\) defined in \(\texttt{def:complexity-bound}\); \texttt{A closed bound on structural branch syntax,\allowbreak{} expression size,\allowbreak{} and rational arithmetic.}
+  \item \texttt{ExampleFive} --- A pair \(\mathsf E_5=(\rho^+_5,\rho^-_5)\) of binary rational models; \texttt{The five-\allowbreak{}node active-\allowbreak{}deletion boundary instance.}
+  \item \texttt{ExampleBow} --- A binary rational model \(\mathsf E_{\mathrm{bow}}\); \texttt{The observed-\allowbreak{}reference-\allowbreak{}context bow boundary instance.}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:latent-roots]\label{ass:latent-roots}
+Every \(u\in U\) has no parent in \(G\).
+\par\smallskip\noindent\emph{Standard} (Latent-root restriction for semi-Markovian models, \cite{ShpitserPearl2006JointInterventional}).
+\end{assumption}
+
+\begin{assumption}[ass:two-child-latents]\label{ass:two-child-latents}
+Every \(u\in U\) has exactly two children, both in \(V\).
+\par\smallskip\noindent\emph{Standard} (Two-child latent restriction for semi-Markovian models, \cite{ShpitserPearl2006JointInterventional}).
+\end{assumption}
+
+\begin{assumption}[ass:independent-latents]\label{ass:independent-latents}
+The variables indexed by \(U\) are mutually independent under \(\theta\).
+\par\smallskip\noindent\emph{Standard} (Independent exogenous roots in a semi-Markovian model, \cite{ShpitserPearl2006JointInterventional}).
+\end{assumption}
+
+\begin{assumption}[ass:strict-cpt-positivity]\label{ass:strict-cpt-positivity}
+Every entry of every primitive conditional table in \(\theta\) is strictly positive.
+\par\smallskip\noindent\emph{Novel.} This transparent scope condition describes finite stochastic mechanisms with full-support response noise, including randomized policy, diagnostic, and behavioral systems in which no recorded parent configuration makes a state impossible. It supplies a common open parameter domain for all conditional denominators and for two-sided perturbations around a positive baseline.
+\end{assumption}
+
+\begin{assumption}[ass:observed-activation]\label{ass:observed-activation}
+Every variable assigned by an activation predicate in \(\mathcal C\) belongs to \(V\), whether or not it is a root in \(G\).
+\par\smallskip\noindent\emph{Novel.} The regime covers measured states that switch mechanisms after observed history, such as adherence after prior symptoms, a triage decision after recorded covariates, or a device mode selected from measured telemetry. These endogenous but observed switches fall outside control-variable results that require each switch to be a root.
+\end{assumption}
+
+\begin{assumption}[ass:whole-row-csi]\label{ass:whole-row-csi}
+Each relation in \(\mathcal C\) equates the complete conditional probability vectors of one child across the parent assignments declared irrelevant in its activation context.
+\par\smallskip\noindent\emph{Standard} (Local whole-row context-specific independence, \cite{BoutilierFriedmanGoldszmidtKoller1996CSI}).
+\end{assumption}
+
+\begin{assumption}[ass:singleton-slice-outcome]\label{ass:singleton-slice-outcome}
+The outcome set satisfies \(Y=\{Y_{\star}\}\).
+\par\smallskip\noindent\emph{Novel.} The fixed-nuisance diagnostic slice isolates one recorded endpoint, as in a single failure or response outcome, without imposing singleton outcomes on the general completeness question.
+\end{assumption}
+
+\begin{assumption}[ass:binary-slice-variables]\label{ass:binary-slice-variables}
+Every state space indexed by \(V\cup U\) equals \(\{0,1\}\).
+\par\smallskip\noindent\emph{Novel.} The slice covers binary treatments, endpoints, measured switches, and latent response types, and makes the initial shared-row lifting problem an exact rational linear problem.
+\end{assumption}
+
+\begin{assumption}[ass:slice-outcome-sink]\label{ass:slice-outcome-sink}
+The vertex \(Y_{\star}\) has no child in \(G\).
+\par\smallskip\noindent\emph{Novel.} A terminal measured endpoint is natural in longitudinal causal graphs and makes each observed and interventional cell affine in its shared outcome-row probabilities.
+\end{assumption}
+
+\begin{assumption}[ass:rational-fixed-nuisance]\label{ass:rational-fixed-nuisance}
+Every coordinate of \(\eta\) is rational, normalized, strictly positive, and constant on the quotient classes prescribed by \(\mathcal R\).
+\par\smallskip\noindent\emph{Novel.} Finite rational nuisance mechanisms include dense approximations to positive finite-state mechanisms and permit an independently reproducible exact base-case certificate.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:observed-csi-model-class]\label{def:observed-csi-model-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\)
+\par\smallskip\noindent\emph{Construction.} \(\{\vartheta\in\Theta(G):\vartheta\text{ obeys }\texttt{ass:latent-roots},\ \texttt{ass:two-child-latents},\ \texttt{ass:independent-latents},\ \texttt{ass:strict-cpt-positivity},\ \texttt{ass:observed-activation},\text{ and }\texttt{ass:whole-row-csi}\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}latent-\allowbreak{}roots}; \texttt{ass:\allowbreak{}two-\allowbreak{}child-\allowbreak{}latents}; \texttt{ass:\allowbreak{}independent-\allowbreak{}latents}; \texttt{ass:\allowbreak{}strict-\allowbreak{}cpt-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}observed-\allowbreak{}activation}; \texttt{ass:\allowbreak{}whole-\allowbreak{}row-\allowbreak{}csi}.
+\end{definition}
+
+\begin{definition}[def:row-quotient]\label{def:row-quotient}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal R\)
+\par\smallskip\noindent\emph{Construction.} For each \(i\in V\), form the finite graph whose vertices are complete assignments to \(\operatorname{pa}_G(i)\) and whose edges are exactly the whole-row equalities asserted by \(\mathcal C\); \(\mathcal R_i\) is the set of connected components of this graph.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{CSI}; \texttt{State}.
+\end{definition}
+
+\begin{definition}[def:arithmetic-expression]\label{def:arithmetic-expression}
+\par\smallskip\noindent\emph{Defined object.} \(\mathscr E(P_{\mathrm{obs}})\)
+\par\smallskip\noindent\emph{Construction.} The smallest class containing rational constants and coordinates of \(P_{\mathrm{obs}}\), closed under finite sums, differences, products, and division by an expression whose strict positivity on \(\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\) is recorded in the derivation syntax.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pobs}; \texttt{ModelClass}.
+\end{definition}
+
+\begin{definition}[def:activation-partition]\label{def:activation-partition}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal K\)
+\par\smallskip\noindent\emph{Construction.} Substitute \(\mathbf x\) and \(\mathbf y\) into every activation predicate in \(\mathcal C\), encode each remaining predicate by its truth table on \(\prod_{i\in W}\mathcal X_i\), and take the nonempty fibers of the joint truth-table map.
+\par\smallskip\noindent\emph{Inputs.} \texttt{x}; \texttt{y}; \texttt{CSI}; \texttt{W}; \texttt{State}.
+\end{definition}
+
+\begin{definition}[def:authorized-trace]\label{def:authorized-trace}
+\par\smallskip\noindent\emph{Defined object.} \(t\)
+\par\smallskip\noindent\emph{Construction.} A finite, possibly empty, sequence of distinct edge identifiers; each entry records a relation in \(\mathcal C\), a cell \(k\in\mathcal K\) on which its substituted activation table is constantly true, the authorized edge, and the observed-cell indices retained for recovery.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Partition}; \texttt{CSI}; \texttt{G}; \texttt{Pobs}.
+\end{definition}
+
+\begin{definition}[def:context-graph]\label{def:context-graph}
+\par\smallskip\noindent\emph{Defined object.} \(H_{k,t}\)
+\par\smallskip\noindent\emph{Construction.} Start from \(G\) and delete in order exactly the edges named by trace \(t\) whose recorded authorization is valid on cell \(k\in\mathcal K\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Partition}; \texttt{Trace}.
+\end{definition}
+
+\begin{definition}[def:context-q-factor]\label{def:context-q-factor}
+\par\smallskip\noindent\emph{Defined object.} \(Q[D]_{k,t}\)
+\par\smallskip\noindent\emph{Construction.} For a relevant district \(D\) of \(H_{k,t}\), sum the product of primitive conditional rows indexed by \(D\) over all latent roots entering \(D\), after restricting row arguments to assignments compatible with \(k\) and \(t\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{District}; \texttt{H}; \texttt{theta}; \texttt{Partition}; \texttt{Trace}.
+\end{definition}
+
+\begin{definition}[def:success-derivation]\label{def:success-derivation}
+\par\smallskip\noindent\emph{Defined object.} \(\delta_{k,t,D}\)
+\par\smallskip\noindent\emph{Construction.} A finite syntax tree beginning with indexed coordinates of \(P_{\mathrm{obs}}\), applying only marginalization, conditioning with a recorded positive-denominator judgment, district restriction, leaf removal, and substitutions whose CSI identifiers occur in \(t\), and ending with every coordinate of \(Q[D]_{k,t}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pobs}; \texttt{Trace}; \texttt{District}.
+\end{definition}
+
+\begin{definition}[def:rooted-forest-obstruction]\label{def:rooted-forest-obstruction}
+\par\smallskip\noindent\emph{Defined object.} \((F_{k,t,D},F'_{k,t,D})\)
+\par\smallskip\noindent\emph{Construction.} Choose encoded vertex and edge subsets \(F_{k,t,D}\subseteq F'_{k,t,D}\subseteq H_{k,t}\) that each have one bidirected district, give every observed vertex at most one directed child, and have the same childless set \(R_0\), with \(F_{k,t,D}\cap X=\varnothing\), \(F'_{k,t,D}\cap X\ne\varnothing\), and \(R_0\subseteq\operatorname{An}_{H_{k,t}\setminus X}(Y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{District}; \texttt{H}; \texttt{X}; \texttt{Y}.
+\end{definition}
+
+\begin{definition}[def:fixed-sink-linearization]\label{def:fixed-sink-linearization}
+\par\smallskip\noindent\emph{Defined object.} \((c_{\eta},A_{\eta,t,F},d_{\eta},b_{\eta,t,F})\)
+\par\smallskip\noindent\emph{Construction.} Order the \(o\) observed cells and the \(r=|\mathcal R_{Y_{\star}}|\) outcome-row classes. Expand the finite latent sums using \(G\), the quotient \(\mathcal R\), the retained trace \(t\), its displayed forest \(F\), and the fixed nuisance table \(\eta\). Let \(J_{t,F}\) be the outcome-row classes reached by a root-to-‑\(Y_{\star}\) path inside the displayed forest and set all columns outside \(J_{t,F}\) to zero. Define \(c_{\eta}=F_{\eta}(0)\), \((A_{\eta,t,F})_{vj}=\mathbf 1\{j\in J_{t,F}\}\{F_{\eta}(e_j)_v-F_{\eta}(0)_v\}\), \(d_{\eta}=h_{\eta}(0)\), and \((b_{\eta,t,F})_j=\mathbf 1\{j\in J_{t,F}\}\{h_{\eta}(e_j)-h_{\eta}(0)\}\). Hence the restricted perturbation \(u\) has observed increment \(A_{\eta,t,F}u\) and query increment \(b_{\eta,t,F}^{\mathsf T}u\). These coefficients are recomputed from the graph, quotient, retained forest trace, and fixed slice nuisance; neither observed-cell values nor countermodels are inputs.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{RowQ}; \texttt{Trace}; \texttt{Forest}; \texttt{eta}.
+\end{definition}
+
+\begin{definition}[def:canonical-forest-kernel]\label{def:canonical-forest-kernel}
+\par\smallskip\noindent\emph{Defined object.} \(h_{t,F}\)
+\par\smallskip\noindent\emph{Construction.} Run rational reduced-row-echelon elimination on \(A_{\eta,t,F}^{\mathsf T}\lambda=b_{\eta,t,F}\). If the system is consistent, return \(\mathsf{REJECT}\). If it is inconsistent, compute the fundamental rational null vectors of \(A_{\eta,t,F}u=0\), in increasing order of their free-column indices, and select the first vector \(z\) for which \(b_{\eta,t,F}^{\mathsf T}z\ne0\). Multiply \(z\) by the least positive integer that clears all its denominators, and change its sign when necessary so that its inner product with \(b_{\eta,t,F}\) is positive. The resulting integer, hence rational, vector is \(h_{t,F}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Aeta}; \texttt{betaeta}.
+\end{definition}
+
+\begin{definition}[def:binary-sink-certificate]\label{def:binary-sink-certificate}
+\par\smallskip\noindent\emph{Defined object.} \(\Gamma_{\mathrm{sink}}\)
+\par\smallskip\noindent\emph{Construction.} A finite string containing the activation-fiber truth table, one authorized retained trace, one rooted C-forest bitmask, the rational fixed nuisance table \(\eta\), one rational baseline \(p_0\in(0,1)^r\), and one rational \(\varepsilon>0\). It contains no second parameter table, no list of observed-cell equalities, and no comparison of two query values.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Partition}; \texttt{Trace}; \texttt{Forest}; \texttt{eta}; \texttt{pzero}; \texttt{eps}.
+\end{definition}
+
+\begin{definition}[def:binary-sink-verifier]\label{def:binary-sink-verifier}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf{Verify}_{\mathrm{sink}}\)
+\par\smallskip\noindent\emph{Construction.} Parse \(\Gamma_{\mathrm{sink}}\); recompute the activation fibers, trace membership, quotient classes, and rooted C-forest predicate; check normalization, positivity, rationality, and quotient sharing of \(\eta\) and \(p_0\); recompute \(A_{\eta,t,F}\) and \(b_{\eta,t,F}\) by finite structural contraction; reject if \(b_{\eta,t,F}^{\mathsf T}\in\operatorname{row}(A_{\eta,t,F})\); otherwise recompute \(h_{t,F}\), check its forest support, and check \(0<\varepsilon<\min_{j:h_{t,F,j}\ne0}\min\{p_{0j},1-p_{0j}\}/|h_{t,F,j}|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{SliceCertificate}; \texttt{G}; \texttt{CSI}; \texttt{RowQ}; \texttt{x}; \texttt{y}.
+\end{definition}
+
+\begin{definition}[def:global-dichotomy-handle]\label{def:global-dichotomy-handle}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf H_{\mathrm{sat}}\)
+\par\smallskip\noindent\emph{Construction.} Saturate context-compatible \(Q\)-factor recovery while carrying original observed-cell provenance and quotient row labels; retain every nonrepeating partial deletion trace; for each residual district extract rooted C-forest candidates and test whether their quotient-supported perturbation spaces survive all observed contractions before attempting multi-block gluing.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{CSI}; \texttt{x}; \texttt{y}; \texttt{Pobs}.
+\end{definition}
+
+\begin{definition}[def:procedure]\label{def:procedure}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf{OCSI\text{-}ID}\)
+\par\smallskip\noindent\emph{Construction.} Compile \(\mathcal R\), construct the activation partition after substituting \(\mathbf x,\mathbf y\), enumerate the finite branch encodings prescribed by \(\mathsf H_{\mathrm{sat}}\), and return a verifier-accepted total expression when recovery closes; in the fixed-nuisance binary-sink slice it may instead return a verifier-accepted \(\Gamma_{\mathrm{sink}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{CSI}; \texttt{x}; \texttt{y}; \texttt{Pobs}.
+\end{definition}
+
+\begin{definition}[def:complexity-bound]\label{def:complexity-bound}
+\par\smallskip\noindent\emph{Defined object.} \(B(s)\)
+\par\smallskip\noindent\emph{Construction.} For \(s=(n,m,c,K,R,o,\ell,J)\), set
+\[
+ T=\sum_{j=0}^{m}\frac{m!}{(m-j)!},\qquad
+ D=2^n3^m,\qquad
+ F_0=3^{2n}4^{2m},
+\]
+\[
+ N=J\,2^{cK+R}TDF_0,\qquad L=o(N+1),
+\]
+\[
+ E=\bigl(o+8(L+1)^2\bigr)^{L+1},\qquad
+ M=2^{L+1}\bigl(\ell+\lceil\log_2(L+2)\rceil\bigr),
+\]
+and
+\[
+ B(s)=(N+1)(E+1)(o+R+1)^3(M+1).
+\]
+The factors encode, respectively, the explicitly expanded input records, activation truth tables and quotient-class masks, nonrepeating trace states, factor states, nested forest bitmasks, expression directed acyclic graphs of at most \(L\) nodes, exact row-space computation, and numerator and denominator bit growth.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Size}.
+\end{definition}
+
+\begin{definition}[def:five-node-rational-instance]\label{def:five-node-rational-instance}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf E_5\)
+\par\smallskip\noindent\emph{Construction.} The observed variables \(X,Z,Y\) and latent roots \(U,T\) are binary. The roots are independent with \(P(U=0)=P(T=0)=1/2\). The arrows are \(U\to X,U\to Y,T\to Z,T\to Y,X\to Z,Z\to Y\), and the CSI is \(Z\mathbin{\perp\!\!\!\perp}T\mid X=0\). In both models, \(P(X=0\mid U=0)=3/4\), \(P(X=0\mid U=1)=1/4\), \(P(Z=0\mid X=0,T)=1/2\), \(P(Z=0\mid X=1,T=0)=3/4\), and \(P(Z=0\mid X=1,T=1)=1/4\). In \(\rho^+_5\), every \(P(Y=1\mid U,T,Z)\) equals \(1/2\). In \(\rho^-_5\), every row with \(Z=1\) equals \(1/2\), while the \(Z=0\) rows ordered by \((U,T)=(0,0),(0,1),(1,0),(1,1)\) equal \(53/100,53/100,57/100,1/4\). Complements give all unlisted binary probabilities. In both models, the observed table ordered by any \((x,z,y)\in\{0,1\}^3\) is \(P(X=x,Z=z,Y=y)=1/8\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{CSI}.
+\end{definition}
+
+\begin{definition}[def:reference-context-bow-instance]\label{def:reference-context-bow-instance}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf E_{\mathrm{bow}}\)
+\par\smallskip\noindent\emph{Construction.} The observed variables \(A,X,Y\) and latent root \(U\) are binary. The roots \(A,U\) are independent and fair; the arrows are \(A\to X,U\to X,U\to Y,X\to Y\); and the CSI is \(X\mathbin{\perp\!\!\!\perp}U\mid A=0\). Set \(P(X=1\mid A=0,U)=1/2\), \(P(X=1\mid A=1,U=0)=1/4\), and \(P(X=1\mid A=1,U=1)=3/4\). The outcome rows \(P(Y=1\mid X,U)\) are \(1/5,3/5\) for \(X=0\) and \(2/5,4/5\) for \(X=1\), with each pair ordered by \(U=0,1\). Complements give all unlisted probabilities. The observed cells \((P(A=a,X=x,Y=0),P(A=a,X=x,Y=1))\) are \((3/20,1/10)\), \((1/10,3/20)\), \((7/40,3/40)\), and \((3/40,7/40)\) for \((a,x)=(0,0),(0,1),(1,0),(1,1)\), respectively.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{CSI}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:canonical-row-quotient]\label{thm:canonical-row-quotient}
+For every \(\theta\in\Theta(G)\), the table \(\theta\) satisfies all equalities in \(\mathcal C\) if and only if each child row is constant on every class of \(\mathcal R_i\). Replacing \(\mathcal C\) by \(\mathcal R\) preserves \(\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\), the map \(\theta\mapsto P_{\theta}(V)\), and \(q(\theta)\).
+\end{theorem}
+\begin{proof}
+Fix \(i\in V\), and let \(\mathcal P_i=\prod_{j\in\operatorname{pa}_G(i)}\mathcal X_j\) be the finite set of complete parent assignments of \(i\). By \(\texttt{def:row-quotient}\), two elements of \(\mathcal P_i\) are adjacent precisely when one of the whole-row constraints in \(\mathcal C\) requires their conditional probability vectors to be equal, and \(\mathcal R_i\) is the set of connected components of this undirected equality graph.
+
+Suppose first that \(\theta\in\Theta(G)\) satisfies every constraint in \(\mathcal C\). If \(a,a'\in\mathcal P_i\) lie in one class of \(\mathcal R_i\), there is a finite path \(a=a_0,a_1,\ldots,a_m=a'\) in the equality graph. Assumption \(\texttt{ass:whole-row-csi}\) gives
+\[
+ \theta_i(\,cdot\mid a_{\ell-1})=\theta_i(\,\cdot\mid a_\ell),
+ \qquad \ell=1,\ldots,m.
+\]
+Transitivity of equality therefore yields \(\theta_i(\,\cdot\mid a)=\theta_i(\,\cdot\mid a')\). Thus the row vector is constant on each quotient class.
+
+Conversely, suppose every child table is constant on every class of \(\mathcal R_i\). The endpoints of each generating equality from \(\mathcal C\) are adjacent in the equality graph and hence belong to the same class. Their complete conditional vectors are equal, so that generating CSI equality holds. This argument applies to every generator and every child; hence all of \(\mathcal C\) holds.
+
+The two descriptions consequently select exactly the same subset of \(\Theta(G)\). In particular, imposing the generators or instead indexing a single normalized row vector by each class of \(\mathcal R_i\) gives the same class \(\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\) from \(\texttt{def:observed-csi-model-class}\). For a fixed table in this common set, neither replacement changes any primitive conditional probability. The finite latent-sum formula defining every coordinate of \(P_\theta(V)\), and the truncated finite latent-sum formula defining \(q(\theta)=P_{\theta,\mathbf x}(\mathbf y)\), are therefore termwise unchanged. This proves preservation of the model class, the observed-law map, and the causal query.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The quotient removes syntactic overlap while preserving the exact observational fiber and causal target. \textit{Gap.} Pensar et al. and Duarte and Solus study context-specific representations rather than preservation of latent causal-query fibers and obstruction syntax. \textit{Consumer.} The quotient gives \(Y_0\) one canonical parameter index for exact deduplication and checking.
+
+\begin{theorem}[thm:success-soundness]\label{thm:success-soundness}
+If recorded SUCCESS derivations cover every relevant district and their context contractions assemble \(E\in\mathscr E(P_{\mathrm{obs}})\), then \(E(P_{\theta}(V))=q(\theta)\) for every \(\theta\in\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\); every recorded divisor is strictly positive on this class.
+\end{theorem}
+\begin{proof}
+Fix \(\theta\in\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\). For a complete observed assignment \(v\), semi-Markovian factorization and the mutually independent latent roots give
+\[
+ P_\theta(V=v)
+ =\sum_{u\in\prod_{a\in U}\mathcal X_a}
+   \left\{\prod_{a\in U}\theta_a(u_a)\right\}
+   \left\{\prod_{i\in V}\theta_i(v_i\mid v_{\operatorname{pa}_G(i)\cap V},u_{\operatorname{pa}_G(i)\cap U})\right\}.
+\]
+Under the intervention \(\operatorname{do}(X=\mathbf x)\), the truncated factorization consequently gives
+\[
+ q(\theta)
+ =\sum_{w\in\prod_{i\in W}\mathcal X_i}
+   \sum_{u\in\prod_{a\in U}\mathcal X_a}
+   \left\{\prod_{a\in U}\theta_a(u_a)\right\}
+   \left\{\prod_{i\in V\setminus X}
+     \theta_i(v_i\mid v_{\operatorname{pa}_G(i)\cap V},u_{\operatorname{pa}_G(i)\cap U})\right\},
+\]
+where \(v_X=\mathbf x\), \(v_Y=\mathbf y\), and \(v_W=w\). This equation distinguishes the causal target from every expression subsequently computed from the observed law.
+
+By \(\texttt{def:activation-partition}\), the nonempty cells \(k\in\mathcal K\) partition the displayed finite set of assignments \(w\). Hence the outer sum is the disjoint sum of its restrictions to those cells. Consider one such restriction and an authorized trace \(t\). Every deletion in \(t\) is backed, by \(\texttt{def:authorized-trace}\), by a whole-row equality whose substituted activation predicate is constantly true on \(k\). Assumption \(\texttt{ass:observed-activation}\) ensures that the truth of this predicate is determined by the fixed observed assignment \((\mathbf x,\mathbf y,w)\) and cannot vary with the latent summation variable \(u\). The row equality characterized by \(\texttt{thm:canonical-row-quotient}\) therefore makes the affected conditional vector identical before and after the authorized deletion, pointwise in every summand. Induction over the finite entries of \(t\) proves that the original cell contraction equals its contraction in \(H_{k,t}\).
+
+We next verify the SUCCESS syntax semantically. At a leaf of the syntax tree, an indexed observed cell has the value given by the first display. Marginalization is equality after interchanging finite sums. Conditioning divides a joint contraction by its marginal normalizer. District restriction is obtained by expanding the latent sums in \(\texttt{def:context-q-factor}\): mutual independence of the latent roots permits products of root masses, the two-child restriction assigns every root shared by retained observed vertices to their unique bidirected component, and finite distributivity regroups the same monomials into the district factors. Leaf removal sums a childless variable's normalized conditional row,
+\[
+ sum_{a\in\mathcal X_i}\theta_i(a\mid\operatorname{pa}_G(i))=1,
+\]
+and therefore leaves the contraction unchanged. Finally, a trace substitution is valid by the pointwise row-equality argument in the preceding paragraph. Structural induction on the finite tree in \(\texttt{def:success-derivation}\) now shows that its terminal array equals every coordinate of the claimed \(Q[D]_{k,t}\), rather than merely defining an observed-law regression object.
+
+The premise of the theorem says that these recovered factors cover every relevant district and that their finite products and context sums assemble \(E\). Expanding that assembly, applying finite distributivity, and reversing the district regrouping gives exactly the truncated-factorization sum for \(q(\theta)\) above. Thus
+\[
+ E(P_\theta(V))=q(\theta).
+\]
+
+It remains to justify every division. By \(\texttt{ass:strict-cpt-positivity}\), each monomial in the first display is strictly positive, and every latent state space and every conditioning event retained by the syntax is nonempty. Thus every observed cell and every nonempty marginal used as a conditioning normalizer is a finite sum of strictly positive terms and is strictly positive. The same argument applies to a context \(Q\)-factor: it is a nonempty finite sum of products of positive primitive coordinates. Leaf removal and CSI substitution preserve these values. Consequently every denominator judgment recorded by a SUCCESS derivation is true on the entire model class. Since \(\theta\) was arbitrary, the equality and all positivity assertions hold for every \(\theta\in\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\), and the assembled expression belongs to \(\mathscr E(P_{\mathrm{obs}})\) by \(\texttt{def:arithmetic-expression}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The positive branch must return a total observed-cell formula with checked denominators. \textit{Gap.} Tikka et al. and Chen and Darwiche prove sound search rules but not sound assembly for this provenance-carrying exhaustive normal form. \textit{Consumer.} The result lets \(Y_0\) emit an auditable symbolic estimand rather than a bare verdict.
+
+\begin{theorem}[thm:fixed-sink-affine-map]\label{thm:fixed-sink-affine-map}
+Under the fixed-nuisance binary-sink restrictions, the structural contractions in \(\texttt{def:fixed-sink-linearization}\) are rational and satisfy \(F_{\eta}(p+u)-F_{\eta}(p)=A_{\eta,t,F}u\) and \(h_{\eta}(p+u)-h_{\eta}(p)=b_{\eta,t,F}^{\mathsf T}u\) for every perturbation \(u\) supported on \(J_{t,F}\) with \(p,p+u\in(0,1)^r\). The intercepts are \(c_{\eta}=F_{\eta}(0)\) and \(d_{\eta}=h_{\eta}(0)\).
+\end{theorem}
+\begin{proof}
+Write \(a\in\{0,1\}\) for the value of \(Y_\star\) in an observed cell \(v\). Once the other primitive tables have been fixed at \(\eta\), the finite factorization of that cell can be written
+\[
+ F_{\eta}(p)_v
+ =\sum_{u} w_v(u;\eta)
+ \left[a\,p_{j(v,u)}+(1-a)\{1-p_{j(v,u)}\}\right].
+\]
+Here \(j(v,u)\in\{1,\ldots,r\}\) is the class in \(\mathcal R_{Y_\star}\) of the complete parent assignment of \(Y_\star\), and \(w_v(u;\eta)\) is the product of all root masses and all observed conditional factors other than the factor for \(Y_\star\). This factor does not contain \(p\): assumption \(\texttt{ass:slice-outcome-sink}\) ensures that the row of \(Y_\star\) cannot occur as an argument of a descendant's conditional factor. Assumptions \(\texttt{ass:binary-slice-variables}\) and \(\texttt{ass:singleton-slice-outcome}\) ensure that the bracket is respectively \(p_j\) or \(1-p_j\), and that no second outcome factor can introduce a product of two coordinates of \(p\).
+
+Therefore there are coefficients \(\bar A_{vj}\) such that
+\[
+ F_\eta(p)_v=F_\eta(0)_v+\sum_{j=1}^r\bar A_{vj}p_j.
+\]
+All weights \(w_v(u;\eta)\) are finite products of rational coordinates of \(\eta\), by \(\texttt{ass:rational-fixed-nuisance}\); hence every \(\bar A_{vj}\) and every intercept is rational. Although \(0\) and \(e_j\) lie on the boundary of the positive cube, the preceding display is a polynomial identity and gives an unambiguous algebraic extension there. It follows that
+\[
+ F_\eta(e_j)_v-F_\eta(0)_v=\bar A_{vj}.
+\]
+The definition of \(A_{\eta,t,F}\) retains this coefficient for \(j\in J_{t,F}\) and sets it to zero otherwise. Hence, for every \(u\) supported on \(J_{t,F}\),
+\[
+ F_\eta(p+u)-F_\eta(p)=\bar A u=A_{\eta,t,F}u,
+\]
+provided \(p,p+u\in(0,1)^r\).
+
+The same argument applied to the truncated factorization of the interventional event gives rational coefficients \(\bar b_j\) with
+\[
+ h_\eta(p)=h_\eta(0)+\sum_{j=1}^r\bar b_jp_j.
+\]
+Indeed, intervention deletes the factors for \(X\) but neither duplicates the sink factor nor changes its affine dependence on its one selected quotient row. The finite-difference definition gives \((b_{\eta,t,F})_j=\bar b_j\) on \(J_{t,F}\) and zero off that set. Consequently
+\[
+ h_\eta(p+u)-h_\eta(p)=b_{\eta,t,F}^{\mathsf T}u
+\]
+for the same supported perturbations. The two displayed affine expansions also give \(c_\eta=F_\eta(0)\) and \(d_\eta=h_\eta(0)\), completing all asserted rationality, support, boundary, and increment claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The graph, quotient, and retained forest trace determine the exact observed and interventional linear maps, including their intercepts. \textit{Gap.} Generic polynomial encodings do not isolate this quotient-shared terminal-row affine slice with a trace-supported column set. \textit{Consumer.} The map is the exact rational base case for \(Y_0\)'s negative-certificate checker.
+
+\begin{lemma}[lem:forest-to-kernel-lift]\label{lem:forest-to-kernel-lift}
+For every retained rooted C-forest \(F\) in the fixed-nuisance binary-sink slice, exactly one rational row-space alternative holds. If \(b_{\eta,t,F}^{\mathsf T}\in\operatorname{row}(A_{\eta,t,F})\), rational elimination returns \(\lambda\) with \(b_{\eta,t,F}^{\mathsf T}=\lambda^{\mathsf T}A_{\eta,t,F}\), and the forest is structurally rejected. Otherwise \(\texttt{def:canonical-forest-kernel}\) returns a nonzero \(h_{t,F}\) supported on \(J_{t,F}\) such that \(A_{\eta,t,F}h_{t,F}=0\) and \(b_{\eta,t,F}^{\mathsf T}h_{t,F}>0\).
+\end{lemma}
+\begin{proof}
+Abbreviate \(A=A_{\eta,t,F}\), \(b=b_{\eta,t,F}\), and \(J=J_{t,F}\). Both \(A\) and \(b\) are rational by \(\texttt{thm:fixed-sink-affine-map}\). The statement \(b^{\mathsf T}\in\operatorname{row}(A)\) is equivalent, by the definition of row space, to existence of \(\lambda\) satisfying
+\[
+ A^{\mathsf T}\lambda=b.
+\]
+Rational reduced-row-echelon elimination terminates because the matrix is finite, and all of its operations preserve rationality.
+
+If the system is consistent, back substitution returns a rational \(\lambda\), so \(b^{\mathsf T}=\lambda^{\mathsf T}A\). In particular, every \(u\in\ker(A)\) obeys \(b^{\mathsf T}u=\lambda^{\mathsf T}Au=0\). Thus no perturbation supported by the displayed forest can preserve the observed contraction while changing the query contraction, which is exactly the stated structural rejection.
+
+Suppose instead that the system is inconsistent. Row reduction of \(Au=0\) produces a rational fundamental nullspace basis \(z_1,\ldots,z_s\), one vector for each free column. At least one basis vector satisfies \(b^{\mathsf T}z_\ell\ne0\). To prove this assertion without importing an additional theorem, assume the contrary. Then \(b\) annihilates every fundamental vector and hence every \(u\in\ker(A)\). In reduced-row-echelon coordinates, the equations \(b^{\mathsf T}z_\ell=0\) say exactly that each free coordinate of \(b\) is the linear combination of its pivot coordinates prescribed by the corresponding pivot row. Thus \(b^{\mathsf T}\) is a linear combination of the nonzero rows of the reduced matrix. Elementary row operations preserve row space, so \(b^{\mathsf T}\in\operatorname{row}(A)\), contradicting inconsistency of \(A^{\mathsf T}\lambda=b\).
+
+Under the corrected construction in \(\texttt{def:canonical-forest-kernel}\), let \(z_\ell\) be the first fundamental vector with nonzero contrast. Multiplying by the least common positive denominator gives a nonzero integer vector \(z\) with \(Az=0\) and \(b^{\mathsf T}z\ne0\); changing its sign when needed gives \(b^{\mathsf T}z>0\). Columns outside \(J\) are zero in both \(A\) and \(b\), by \(\texttt{def:fixed-sink-linearization}\). Such a column is free, but its fundamental vector has zero contrast and is skipped. Every pivot column and the selected contrast-bearing free column lie in \(J\), so the selected vector is supported on \(J\). The corrected constructor therefore returns \(h_{t,F}=z\) with
+\[
+ A_{\eta,t,F}h_{t,F}=0,
+ \qquad
+ b_{\eta,t,F}^{\mathsf T}h_{t,F}>0.
+\]
+Consistency and inconsistency are mutually exclusive and exhaustive, proving the exact alternative.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma makes the forest load-bearing by restricting the tested columns, while row-space membership rejects forests neutralized by shared reference contexts. \textit{Gap.} Classical hedge constructions do not impose CSI quotient sharing, and generic null-space tests do not tie the perturbation support to a retained forest trace. \textit{Consumer.} The result gives \(Y_0\) a deterministic forest-to-perturbation compiler or a structural rejection record.
+
+\begin{theorem}[thm:binary-sink-certificate-soundness]\label{thm:binary-sink-certificate-soundness}
+If \(\mathsf{Verify}_{\mathrm{sink}}(\Gamma_{\mathrm{sink}})=1\), let \(p^{+}=p_0+\varepsilon h_{t,F}\) and \(p^{-}=p_0-\varepsilon h_{t,F}\). The verified positivity bound gives \(p^{+},p^{-}\in(0,1)^r\). Combining either vector with the single fixed nuisance table \(\eta\) decodes two globally normalized, strictly positive, quotient-shared models in \(\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\). The identity \(A_{\eta,t,F}h_{t,F}=0\) implies \(P_{p^{+},\eta}(V)=P_{p^{-},\eta}(V)\), while \(h_{\eta}(p^{+})-h_{\eta}(p^{-})=2\varepsilon b_{\eta,t,F}^{\mathsf T}h_{t,F}>0\). Consequently the fixed query is not identified in this slice.
+\end{theorem}
+\begin{proof}
+Assume \(\mathsf{Verify}_{\mathrm{sink}}(\Gamma_{\mathrm{sink}})=1\), and abbreviate the recomputed vector \(h_{t,F}\) by \(h\). Acceptance of the rational row-space check, together with \(\texttt{lem:forest-to-kernel-lift}\), gives
+\[
+ A_{\eta,t,F}h=0,
+ \qquad
+ b_{\eta,t,F}^{\mathsf T}h>0,
+ \qquad
+ \operatorname{supp}(h)\subseteq J_{t,F}.
+\]
+The verifier also checks \(p_0\in(0,1)^r\), \(\varepsilon>0\), and, for every \(j\) with \(h_j\ne0\),
+\[
+ \varepsilon |h_j|<\min\{p_{0j},1-p_{0j}\}.
+\]
+It follows coordinatewise that \(0<p_{0j}\pm\varepsilon h_j<1\); when \(h_j=0\), this is the already checked inequality \(0<p_{0j}<1\). Hence
+\[
+ p^+=p_0+\varepsilon h\in(0,1)^r,
+ \qquad
+ p^-=p_0-\varepsilon h\in(0,1)^r.
+\]
+
+For either sign, assign \(P(Y_\star=1\mid\text{row class }j)=p_j^\pm\) and its binary complement \(1-p_j^\pm\), and retain the single nuisance table \(\eta\) for every other primitive coordinate. Each row is normalized and strictly positive. The verifier has checked normalization, positivity, and quotient sharing of \(\eta\); indexing \(p^\pm\) by \(\mathcal R_{Y_\star}\) supplies quotient sharing for the remaining rows. The graph and latent-root factorization are unchanged, so the exogenous distribution remains the product of its normalized root marginals. By \(\texttt{thm:canonical-row-quotient}\), both decoded tables satisfy every whole-row equality in \(\mathcal C\). They are therefore two globally defined elements \(\theta^+,\theta^-\in\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\), not separately fitted context models.
+
+The affine increment formula from the fixed-sink contraction, applied at \(p_0\) to the supported increments \(\pm\varepsilon h\), yields
+\[
+ F_\eta(p^+)-F_\eta(p^-)
+ =2\varepsilon A_{\eta,t,F}h=0.
+\]
+Thus all observed cells agree: \(P_{\theta^+}(V)=P_{\theta^-}(V)\). For the causal target, the corresponding calculation gives
+\[
+ q(\theta^+)-q(\theta^-)
+ =h_\eta(p^+)-h_\eta(p^-)
+ =2\varepsilon b_{\eta,t,F}^{\mathsf T}h>0.
+\]
+The strict inequality uses both \(\varepsilon>0\) and the sign normalization of the canonical kernel. We have therefore constructed two members of the declared model class with the same observed law and different values of the fixed interventional query. By the definition of point identification, \(q\) is not identified in this slice.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Soundness constructs the global pair from one baseline and a forest-derived kernel vector rather than storing semantic countermodels or their conclusions in the certificate. \textit{Gap.} Classical hedge completeness constructs unconstrained pairs, while generic algebraic verifiers can check supplied pairs without deriving them from a CSI-compatible forest. \textit{Consumer.} The theorem gives \(Y_0\) a compact, portable negative certificate for the first exact shared-row slice.
+
+\begin{openendedquestion}[oeq:global-context-factor-dichotomy]\label{oeq:global-context-factor-dichotomy}
+Can \(\mathsf H_{\mathrm{sat}}\) be completed for every finite \((G,\mathcal C,\mathbf x,\mathbf y)\) so that exhaustive sound context-factor recovery either assembles a total \(E\in\mathscr E(P_{\mathrm{obs}})\), or produces retained partial-trace rooted C-forests whose jointly quotient-supported multi-block contraction has a kernel direction with zero full observed increment and nonzero query increment, with the binary-sink construction as its exact one-block base case? The resulting procedure must be sound and complete. On maximal-regular observed-root inputs, the required comparison is the compilation proved in \(\texttt{thm:root-control-class-bridge}\): identical connected row quotients and context graphs, together with agreement with the Mokhtarian--Jamshidi--Etesami--Kiyavash returned formula whenever their per-context identification criterion succeeds. A semantic nonidentification converse on this note's narrower fixed-cardinality, strictly primitive-positive class is required only if supported by a separate countermodel construction in that class. The permitted input syntax must still strictly include observed endogenous activations, as witnessed by \(\mathsf E_5\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This remains the unresolved completeness kernel: multi-district local failures must glue through shared rows into a genuine global query-changing direction or force total arithmetic recovery. The observed-root comparison is now settled at the exact compilation and successful-formula level. \textit{Gap.} Tikka et al. leave general CSI completeness unresolved; Mokhtarian et al. cover maximal-regular observed-root controls, with only their success implication automatically inherited by this note's narrower positive fixed-cardinality class; Chen and Darwiche provide no complete state-specific obstruction theorem. \textit{Consumer.} A positive answer is still required for a total explanatory CSI-identification backend in \(Y_0\), while the root-control bridge already supplies exact successful-formula regression behavior.
+
+\begin{proposition}[prop:adversarial-trace-boundaries]\label{prop:adversarial-trace-boundaries}
+For \(\mathsf E_5\), both displayed models have \(P(X=x,Z=z,Y=y)=1/8\) for all \(x,z,y\in\{0,1\}\), while \(P_{X=0}^{\rho^+_5}(Y=1)=1/2\) and \(P_{X=0}^{\rho^-_5}(Y=1)=97/200\), giving the exact gap \(3/200\). Deleting the active edge \(T\to Z\) leaves the front-door graph \(X\to Z\to Y\) with \(X\leftrightarrow Y\), which has no hedge, whereas the empty trace retains \(F=\{Y\}\subset F'=\{X,Z,Y\}\) and the displayed difference of outcome rows lies in the corresponding observed kernel. For \(\mathsf E_{\mathrm{bow}}\), the reference context gives \(P_{X=0}(Y=1)=4P(A=0,X=0,Y=1)=2/5\) and \(P_{X=1}(Y=1)=4P(A=0,X=1,Y=1)=3/5\). Thus the two query coefficient vectors lie in the row space of the full observed-cell matrix, so \(\mathsf{Verify}_{\mathrm{sink}}\) structurally rejects the local \(A=1\) bow forest before any countermodel is formed.
+\end{proposition}
+\begin{proof}
+We first verify the five-node pair directly from \(\texttt{def:five-node-rational-instance}\).  Write
+\[
+ a_u=P(X=0\mid U=u),\qquad (a_0,a_1)=\left(\frac34,\frac14\right).
+\]
+The latent roots \(U\) and \(T\) are independent and fair.  The equality
+\[
+ P(Z=0\mid X=0,T=0)=P(Z=0\mid X=0,T=1)=\frac12
+\]
+is exactly the asserted whole-row CSI; complementation gives the same equality for \(Z=1\).  Its activation variable \(X\) is observed, but the arrow \(U\to X\) makes \(X\) a nonroot.  Thus this input explicitly witnesses the permitted endogenous observed-activation syntax and is not an input whose activation variable is required to be an observed root.
+
+For either \(z\in\{0,1\}\), finite marginalization and the preceding CSI give
+\[
+ \begin{aligned}
+ P(X=0,Z=z)
+ &=\sum_{u,t}P(U=u)P(T=t)P(X=0\mid U=u)P(Z=z\mid X=0,T=t)\\
+ &=\sum_{u,t}\frac14 a_u\frac12
+ =\frac14.
+ \end{aligned}
+\]
+Put \(s_t=P(Z=0\mid X=1,T=t)\), so \((s_0,s_1)=(3/4,1/4)\).  Independence of \(U\) and \(T\) yields
+\[
+ \begin{aligned}
+ P(X=1,Z=0)
+ &=\frac14\sum_{u,t}(1-a_u)s_t
+ =\frac14\left(\sum_u(1-a_u)\right)\left(\sum_t s_t\right)
+ =\frac14,\\
+ P(X=1,Z=1)
+ &=\frac14\left(\sum_u(1-a_u)\right)\left(\sum_t(1-s_t)\right)
+ =\frac14.
+ \end{aligned}
+\]
+Hence \((X,Z)\) is uniform under both displayed models.  Every outcome row of \(\rho^+_5\) is \(1/2\), so
+\[
+ P_{\rho^+_5}(X=x,Z=z,Y=y)=\frac14\frac12=\frac18
+ \quad\text{for all }x,z,y\in\{0,1\}.
+\]
+
+Only the four \(Z=0\) probabilities of \(Y=1\) change in \(\rho^-_5\).  In the order \((U,T)=(0,0),(0,1),(1,0),(1,1)\), let
+\[
+ \Delta=\left(\frac3{100},\frac3{100},\frac7{100},-\frac{25}{100}\right)
+\]
+be the vector \(P_{\rho^-_5}(Y=1\mid U,T,Z=0)-P_{\rho^+_5}(Y=1\mid U,T,Z=0)\).  For \((X,Z)=(0,0)\), the four unnormalized latent weights are
+\[
+ \left(P(U=u,T=t,X=0,Z=0)\right)_{u,t}
+ =\frac1{32}(3,3,1,1).
+\]
+Therefore the increment of the corresponding observed \(Y=1\) cell is
+\[
+ \frac1{32}(3,3,1,1)\Delta^{\mathsf T}
+ =\frac{9+9+7-25}{3200}=0.
+\]
+For \((X,Z)=(1,0)\), the four weights are
+\[
+ \left(P(U=u,T=t,X=1,Z=0)\right)_{u,t}
+ =\frac1{64}(3,1,9,3),
+\]
+and the observed-cell increment is
+\[
+ \frac1{64}(3,1,9,3)\Delta^{\mathsf T}
+ =\frac{9+3+63-75}{6400}=0.
+\]
+The outcome rows at \(Z=1\) are unchanged.  Thus every observed \(Y=1\) cell agrees.  Since the \((X,Z)\)-marginals also agree and each binary outcome row is normalized, every observed \(Y=0\) cell agrees as well.  Consequently all eight cells under \(\rho^-_5\) also equal \(1/8\).
+
+Under \(\operatorname{do}(X=0)\), intervention replaces only the mechanism for \(X\); the two latent roots remain independent and fair, and the CSI row gives \(P(Z=0\mid X=0,T=t)=1/2\).  The change in the interventional cell is therefore
+\[
+ \begin{aligned}
+ P_{X=0}^{\rho^-_5}(Y=1)-P_{X=0}^{\rho^+_5}(Y=1)
+ &=\sum_{u,t}P(U=u)P(T=t)P(Z=0\mid X=0,T=t)\Delta_{ut}\\
+ &=\frac18\left(\frac{3+3+7-25}{100}\right)
+ =-\frac3{200}.
+ \end{aligned}
+\]
+The first query equals \(1/2\), because all of its outcome rows equal \(1/2\).  Hence
+\[
+ P_{X=0}^{\rho^+_5}(Y=1)=\frac12,
+ \qquad
+ P_{X=0}^{\rho^-_5}(Y=1)=\frac12-\frac3{200}=\frac{97}{200}.
+\]
+Every displayed primitive probability and every binary complement lies strictly between zero and one; all tables are normalized, the roots are independent, and each latent root has exactly the two children displayed in the definition.  Thus the calculation uses two positive semi-Markovian models satisfying the input CSI, and their query gap is exactly \(3/200\).
+
+We next verify the trace assertions.  In the treatment state \(X=0\), the CSI authorizes deletion of \(T\to Z\).  After this deletion, latent projection has directed edges \(X\to Z\to Y\) and the single bidirected edge \(X\leftrightarrow Y\): the edge \(Z\leftrightarrow Y\) induced by the common latent parent \(T\) disappears when \(T\to Z\) is deleted.  Consider any pair satisfying \(\texttt{def:rooted-forest-obstruction}\) in this pruned graph.  Its larger forest must meet the treatment set.  If its vertex set is \(\{X\}\), its childless set contains \(X\), which is not a vertex of \(\operatorname{An}_{H\setminus X}(Y)\).  If it also contains \(Y\), bidirected connectedness forces its bidirected component to be contained in \(\{X,Y\}\); it cannot contain \(Z\), because \(Z\) is incident to no bidirected edge.  But the induced subgraph on \(\{X,Y\}\) has no directed edge, so its childless set is \(\{X,Y\}\), again not contained in \(\operatorname{An}_{H\setminus X}(Y)\).  These exhaust the bidirected-connected possibilities meeting \(X\).  Hence the pruned graph has no rooted C-forest pair of the required kind.
+
+For the empty trace in the original latent projection, use the activation-refining cell \(Z=0\) and take
+\[
+ F=\{Y\},\qquad F'=\{X,Z,Y\}.
+\]
+The bidirected edges \(X\leftrightarrow Y\) and \(Z\leftrightarrow Y\) make \(F'\) one district.  The directed forest edges \(X\to Z\to Y\) give each vertex at most one directed child, and both \(F\) and \(F'\) have the common childless set \(R_0=\{Y\}\).  Moreover,
+\[
+ F\cap X=\varnothing,
+ \qquad
+ F'\cap X\ne\varnothing,
+ \qquad
+ R_0\subseteq\operatorname{An}_{G\setminus X}(Y).
+\]
+Thus this is a rooted C-forest pair under \(\texttt{def:rooted-forest-obstruction}\).
+
+Regard \(\Delta\) as a perturbation of the four outcome-row classes with \(Z=0\), and extend it by zero on every outcome-row class with \(Z=1\).  It is then supported on the row classes exposed by the displayed \(Z=0\) forest.  The two observed \(Y=1\) increments computed above are the only potentially nonzero observed increments.  They vanish; the \(Z=1\) increments vanish by the zero extension, and the corresponding \(Y=0\) increments are their negatives by normalization.  By the contraction identity in \(\texttt{thm:fixed-sink-affine-map}\), equivalently by the defining contraction in \(\texttt{def:fixed-sink-linearization}\), this proves
+\[
+ A_{\eta,t,F}\Delta=0.
+\]
+The intervention calculation gives
+\[
+ b_{\eta,t,F}^{\mathsf T}\Delta=-\frac3{200}\ne0.
+\]
+Thus the displayed outcome-row difference lies in the relevant observed kernel while changing the query, as claimed.
+
+Finally consider \(\mathsf E_{\mathrm{bow}}\).  By \(\texttt{def:reference-context-bow-instance}\), \(A\) and \(U\) are independent and fair, and the \(A=0\) CSI gives
+\[
+ P(X=x\mid A=0,U=0)=P(X=x\mid A=0,U=1)=\frac12
+ \quad (x\in\{0,1\}).
+\]
+The conditioning event has probability
+\[
+ P(A=0,X=x)=\sum_u\frac12\frac12\frac12=\frac14>0.
+\]
+Bayes' rule therefore gives \(P(U=u\mid A=0,X=x)=1/2\).  Intervention on \(X\) leaves the fair latent root \(U\) unchanged, and \(Y\) has no parent \(A\).  Using the four outcome rows from the definition,
+\[
+ \begin{aligned}
+ P_{X=0}(Y=1)&=\frac12\left(\frac15+\frac35\right)=\frac25,\\
+ P_{X=1}(Y=1)&=\frac12\left(\frac25+\frac45\right)=\frac35.
+ \end{aligned}
+\]
+On the other hand, for either \(x\),
+\[
+ \begin{aligned}
+ P(A=0,X=x,Y=1)
+ &=\sum_u P(A=0)P(U=u)P(X=x\mid A=0,U=u)P(Y=1\mid X=x,U=u)\\
+ &=\frac18\sum_u P(Y=1\mid X=x,U=u)
+ =\frac14 P_{X=x}(Y=1).
+ \end{aligned}
+\]
+Consequently
+\[
+ P_{X=0}(Y=1)=4P(A=0,X=0,Y=1)=\frac25,
+ \qquad
+ P_{X=1}(Y=1)=4P(A=0,X=1,Y=1)=\frac35,
+\]
+in agreement with the displayed observed cells \(1/10\) and \(3/20\).
+
+For the structural rejection, order the outcome-row coordinates as
+\[
+ (p_{00},p_{01},p_{10},p_{11})
+ =\bigl(P(Y=1\mid X=x,U=u): (x,u)=(0,0),(0,1),(1,0),(1,1)\bigr).
+\]
+The two intervention coefficient vectors are
+\[
+ b_0^{\mathsf T}=\left(\frac12,\frac12,0,0\right),
+ \qquad
+ b_1^{\mathsf T}=\left(0,0,\frac12,\frac12\right).
+\]
+The rows of the full observed-cell coefficient matrix belonging to \((A,X,Y)=(0,0,1)\) and \((0,1,1)\) are, respectively,
+\[
+ \left(\frac18,\frac18,0,0\right)=\frac14 b_0^{\mathsf T},
+ \qquad
+ \left(0,0,\frac18,\frac18\right)=\frac14 b_1^{\mathsf T}.
+\]
+Thus both query vectors belong to the row space of the full observed-cell matrix.  The same equality remains true after applying the common forest-support column restriction prescribed by \(\texttt{def:fixed-sink-linearization}\).  Therefore the applicable vector \(b_{\eta,t,F}^{\mathsf T}\) lies in \(\operatorname{row}(A_{\eta,t,F})\).  The row-space alternative of \(\texttt{lem:forest-to-kernel-lift}\), together with the rejection rule in \(\texttt{def:binary-sink-verifier}\), makes \(\mathsf{Verify}_{\mathrm{sink}}\) reject the local \(A=1\) bow forest before a kernel direction or a countermodel pair is formed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact pair tests both required boundaries: active pruning can erase the obstruction, while a reference context can annihilate a local forest through row-space gluing. \textit{Gap.} Chen and Darwiche give a qualitative pruning warning; these rational fixtures impose two-child latents, positivity, an exact \(3/200\) gap, and structural reference-context rejection. \textit{Consumer.} The tables are deterministic fixtures for \(Y_0\)'s trace retention, rational contraction, and row-space rejection logic.
+
+\begin{theorem}[thm:no-csi-reduction]\label{thm:no-csi-reduction}
+When \(\mathcal C=\varnothing\), put \(k_0=\prod_{i\in W}\mathcal X_i\). Then \(\mathcal K=\{k_0\}\), the empty sequence \(()\) is the only authorized trace, \(H_{k_0,()}=G\), and \(Q[D]_{k_0,()}\) is the ordinary district \(Q\)-factor computed in \(G\) for every relevant district \(D\). For every ordinary Shpitser--Pearl \(\mathrm{ID}\) run that succeeds, decorating each of its district-level \(Q\)-factor derivations by \((k_0,())\) gives SUCCESS derivations whose unchanged arithmetic assembly is the same observed-cell formula; erasure of these decorations recovers the original derivations. Moreover, the map \((F,F')\mapsto(F',F)\) is a bijection from the rooted C-forest obstruction predicate to the ordinary hedge predicate. Consequently every ordinary \(\mathrm{ID}\) success formula and every ordinary \(\mathrm{ID}\) failure hedge has, respectively, a SUCCESS encoding and an obstruction encoding. This is a syntactic conservativity statement; it does not assert that graphical \(\mathrm{ID}\) is semantically complete for every fixed-cardinality positive submodel.
+\end{theorem}
+\begin{proof}
+Let
+\[
+  \Omega_W:=\prod_{i\in W}\mathcal X_i .
+\]
+Each state space is nonempty, as required for a normalized probability table; hence \(\Omega_W\neq\varnothing\), including the case \(W=\varnothing\), when \(\Omega_W=\{()\}\).  By \(\texttt{def:activation-partition}\), the joint activation map for an empty CSI list is
+\[
+  T_{\varnothing}:\Omega_W\longrightarrow \{0,1\}^{\varnothing}=\{()\},
+  \qquad T_{\varnothing}(w)=().
+\]
+Its sole nonempty fiber is
+\[
+  T_{\varnothing}^{-1}(())=\Omega_W.
+\]
+Thus, with \(k_0:=\Omega_W\),
+\[
+  \mathcal K=\{k_0\}.
+\]
+
+Now let \(t=(e_1,\ldots,e_\ell)\) be an authorized trace on \(k_0\).  By \(\texttt{def:authorized-trace}\), every \(e_j\) records an authorizing relation belonging to \(\mathcal C\).  Since \(\mathcal C=\varnothing\), no such \(e_j\) exists, so \(\ell=0\) and \(t=()\).  Conversely, the definition explicitly permits the empty sequence.  Therefore
+\[
+  \{t:t\text{ is authorized on }k_0\}=\{()\}.
+\]
+By \(\texttt{def:context-graph}\), starting from \(G\) and performing the empty list of deletions gives
+\[
+  H_{k_0,()}=G\setminus\varnothing=G.
+\]
+The cell \(k_0=\Omega_W\) imposes no restriction on a row argument, and the empty trace imposes no deletion or substitution.  Hence \(\texttt{def:context-q-factor}\) gives, coordinatewise,
+\[
+  Q[D]_{k_0,()}
+  =
+  \sum_{u_D}
+  \prod_{a\in D\cup U_D}
+  \theta_a\!\left(a_a\mid a_{\operatorname{pa}_G(a)}\right)
+  =:Q_G[D],
+\]
+where \(U_D\) is the finite set of latent roots entering \(D\), and the sum ranges over their finite state spaces.  This is exactly the ordinary district \(Q\)-factor.
+
+We next compare derivation syntax.  By \(\texttt{def:success-derivation}\), a CSI substitution node is legal only when its CSI identifier occurs in \(t\).  Since \(t=()\), no CSI substitution node is legal.  The remaining constructors are observed-cell leaves, finite marginalization, conditioning with a positive-denominator judgment, district restriction, and leaf removal.  These are precisely the constructors used by the district-level \(Q\)-factor recursion in \(\texttt{lem:shpitser-pearl-id-output}\).  Define a decoration map \(\mathsf d\) recursively: attach \((k_0,())\) to every node of an ordinary district-level derivation and leave its arithmetic operation and observed-cell index unchanged.  Define \(\mathsf e\) by erasing those two labels.  Structural induction on a derivation tree gives
+\[
+  \mathsf e(\mathsf d(\delta))=\delta
+\]
+at a leaf, and the same equality after each of marginalization, conditioning, district restriction, and leaf removal because \(\mathsf d\) changes none of their arguments.  Thus it holds for every ordinary district-level derivation.  Conversely, induction on the decorated image gives
+\[
+  \mathsf d(\mathsf e(\widetilde\delta))=\widetilde\delta.
+\]
+Therefore decoration is a bijection between ordinary district-level derivations and its decorated SUCCESS image, and arithmetic assembly across districts is unchanged.
+
+The denominator judgments required by the SUCCESS grammar are available on the positive model class.  Indeed, by \(\texttt{ass:strict-cpt-positivity}\), for every complete observed assignment \(v\),
+\[
+  P_\theta(V=v)
+  =\sum_{u\in\prod_{j\in U}\mathcal X_j}
+    \prod_{a\in V\cup U}
+      \theta_a\!\left(a_a\mid a_{\operatorname{pa}_G(a)}\right)>0.
+\]
+The index set is finite and nonempty, and every summand is a product of strictly positive coordinates.  Every marginal used as a conditioning denominator is a nonempty finite sum of such cells and is therefore strictly positive.  Hence every decorated successful formula is total in \(\mathscr E(P_{\mathrm{obs}})\); no boundary extension or limiting argument is used.
+
+Finally consider \(\texttt{def:rooted-forest-obstruction}\).  Because \(H_{k_0,()}=G\), an obstruction pair satisfies
+\[
+  F\subseteq F'\subseteq G,
+  \qquad F\cap X=\varnothing,
+  \qquad F'\cap X\neq\varnothing,
+\]
+and both members are one-district C-forests with the same childless root set \(R_0\), where
+\[
+  R_0\subseteq\operatorname{An}_{G\setminus X}(Y).
+\]
+Set \(F_{\mathrm{large}}:=F'\) and \(F_{\mathrm{small}}:=F\).  Then
+\[
+  F_{\mathrm{small}}\subseteq F_{\mathrm{large}},
+  \qquad
+  F_{\mathrm{large}}\cap X\neq\varnothing,
+  \qquad
+  F_{\mathrm{small}}\cap X=\varnothing,
+\]
+with the same C-forest and root conditions.  These are the ordinary hedge conditions recorded in \(\texttt{lem:shpitser-pearl-id-output}\).  Swapping the two members again recovers \((F,F')\), so the map is a bijection.  The cited result says that an ordinary successful \(\mathrm{ID}\) run returns its observed-law formula and an ordinary failed run returns such a hedge.  Applying the decoration map in the first case and the forest-pair swap in the second proves the two claimed encodings.  The causal target remains the independently defined quantity \(q(\theta)=P_{\theta,\mathbf x}(\mathbf y)\); on a successful ordinary run, equality of the returned observed-law expression with this target follows from the cited soundness theorem and is not imposed by definition.  No rank, asymptotic, or limit condition is involved.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The no-CSI case anchors every new syntactic object to the classical complete theory. \textit{Gap.} Shpitser and Pearl settle ordinary identification; the reduction ensures that observed-context syntax is conservative rather than an analogue on a new class. \textit{Consumer.} Existing \(Y_0\) ordinary-identification tests become exact regression tests for the new backend.
+
+\begin{theorem}[thm:finite-structural-search-bound]\label{thm:finite-structural-search-bound}
+For every finite encoded input of size \(s\), construction of the activation truth table, quotient, all nonrepeating trace states, factor states, nested forest candidates, SUCCESS expression directed acyclic graphs of size at most \(L=o(N+1)\), and every rational binary-sink row-space certificate requires at most \(B(s)\) branches, symbols, and rational arithmetic operations; every such returned expression or slice certificate has encoding length at most \(B(s)\). This bounds the finite search space but does not assert that the unresolved global dichotomy selects a complete output on general multi-block inputs.
+\end{theorem}
+\begin{proof}
+Write \(d=o+R+1\), and use the corrected encoding-load component \(J\) and the quantities in \(\texttt{def:complexity-bound}\).  All state spaces are finite and nonempty, so \(K\geq 1\) and \(o\geq 1\).  Moreover, the presence of the distinguished outcome implies \(n\geq 1\).  In particular,
+\[
+ N\geq J,
+ \qquad
+ L=o(N+1)\geq N+1,
+ \qquad
+ R\leq 2^R\leq N.
+\]
+Consequently
+\[
+ d=o+R+1\leq o+N+1\leq o(N+1)+1=L+1. \tag{1}
+\]
+We shall repeatedly use the elementary inequalities \(2^a\geq a+1\) for \(a\in\mathbb N\) and \(2^{b+1}\geq b+1\) for \(b\in\mathbb N\); both follow by induction.  The definitions of \(E\) and \(M\), together with (1), give
+\[
+ E\geq 8(L+1)^2\geq 8d^2,
+ \qquad
+ E\geq 2^{L+1}\geq N^2,
+ \qquad
+ M+1\geq L+1. \tag{2}
+\]
+For the middle inequality, \(2^{L+1}\geq 2^{N+2}\geq N^2\), where the last inequality is again an induction.
+
+We first count structural codes.  After substituting \(\mathbf x\) and \(\mathbf y\), the activation table has exactly \(cK\) Boolean entries.  A branch-local quotient support decoration has one Boolean entry for each of the \(R\) canonical quotient classes.  Thus these two fields admit at most \(2^{cK+R}\) codes.  A trace of length \(j\) contains \(j\) distinct edges in order, hence has
+\[
+ m(m-1)\cdots(m-j+1)=\frac{m!}{(m-j)!}
+\]
+codes.  Summing over \(0\leq j\leq m\) gives exactly \(T\); the term \(j=0\) is the empty trace, so no exceptional decoration is needed for it.
+
+A factor state is overencoded by a Boolean mark on each of the \(n\) vertices and one of three marks on each of the \(m\) edges, giving at most \(D=2^n3^m\) codes.  A nested forest pair is, in particular, a pair of vertex subsets and a pair of edge subsets.  It therefore has at most
+\[
+ 2^{2n}2^{2m}\leq 3^{2n}4^{2m}=F_0
+\]
+bitmask codes.  Conditions such as nesting, one-district connectivity, roots, and childlessness only discard codes.  Multiplication of these independent overcounts shows that the number of structural branch codes is at most
+\[
+ 2^{cK+R}TDF_0\leq N. \tag{3}
+\]
+The initial activation partition is constructed by grouping the \(K\) columns having equal \(c\)-bit activation signatures.  The quotient is constructed by scanning the expanded parent-assignment and row-equality incidence records counted by \(J\).  Pairwise grouping and connected-component labeling use at most a quadratic number of comparisons in these records.  Since \(N\geq J\) and \(N\geq 2^{cK+R}\geq cK+R+1\), their symbols and operations are at most \((N+1)^2\).  Each code in (3) has at most \(N+1\) fields, because \(N\) dominates \(J,n,m,cK\), and \(R\).  Hence all structural codes together use at most \(N(N+1)\) symbols.  By (2), each of these quantities is at most \((N+1)(E+1)d^3(M+1)=B(s)\).
+
+We next count the capped SUCCESS expressions specified by \(\texttt{def:procedure}\).  Put every directed acyclic graph with at most \(L\) nodes into \(L+1\) slots by appending a dummy terminal slot.  At a slot there are \(o\) observed-cell leaf labels.  Every nonleaf SUCCESS operation, including its positivity or provenance tag, is represented by one of eight fixed tags and two predecessor indices in \(\{0,\ldots,L\}\); unary operations repeat an index, and finite sums are binarized.  Thus the number of slot labels is at most
+\[
+ o+8(L+1)^2,
+\]
+and, on dropping the acyclicity and well-typedness restrictions, the number of words is at most \(E\).  Invalid words are rejected and cannot increase the count.  Over all structural branches there are therefore at most \(NE\) candidate expression graphs and at most \(NE(L+1)\) expression symbols or arithmetic nodes.  From (2),
+\[
+ NE(L+1)
+ \leq (N+1)(E+1)d^3(M+1)
+ =B(s). \tag{4}
+\]
+Notice that this counts only the deliberately capped SUCCESS syntax.  It neither asserts that every identified query has such a syntax nor invokes the unresolved global dichotomy.
+
+It remains to bound an exact binary-sink row-space check.  If \(r=|\mathcal R_{Y_{\star}}|\), then \(r\leq R\), so the matrix \(A_{\eta,t,F}\), the vector \(b_{\eta,t,F}\), and their augmented systems have dimensions bounded by \(d\).  A structural contraction at one evaluation point traverses no more than the \(J\) explicitly expanded latent configurations and primitive table records, and each monomial contains at most \(n\leq N\) factors.  There are at most \((o+1)(r+1)\leq d^2\) observed-or-query values at the required baseline and coordinate evaluations.  Thus recomputation uses at most \(d^2J(n+1)\leq d^2N(N+1)\) rational operations.  Exact elimination uses at most \(d\) pivot stages, each updating at most \(d^2\) entries with at most four rational operations, and hence at most \(4d^3\) further operations.  Across at most \(N\) structural branches, the total is bounded by
+\[
+ N\{d^2N(N+1)+4d^3\}\leq B(s), \tag{5}
+\]
+where (2) supplies \(E+1\geq N^2\) and \(M+1\geq 4\).
+
+For completeness, we verify that exact arithmetic does not invalidate the serialization bound.  Give a reduced rational the maximum of the binary lengths of its numerator and positive denominator.  Every primitive input rational has length at most \(\ell\).  A contraction is a sum of at most \(J\) monomials, each involving at most \(n\) primitive rationals.  Taking the product of all primitive denominators as a common denominator and then adding the scaled numerators shows directly that every entry of \(A_{\eta,t,F}\) and \(b_{\eta,t,F}\) has length at most
+\[
+ 4J(n+1)\bigl(\ell+\lceil\log_2(J+2)\rceil\bigr). \tag{6}
+\]
+This uses only the rules that a product adds binary lengths and a sum of \(a\) integers adds at most \(\lceil\log_2 a\rceil\) bits beyond the largest summand.  Since \(n\geq1\), the factors \(D\) and \(F_0\) give \(N\geq18J\).  Hence the right side of (6) is at most \(M\); indeed \(L\geq N+1\), and \(2^{N+2}\) dominates \(4J(n+1)\), while the logarithmic factor in \(M\) dominates the logarithmic factor in (6).
+
+The row-space test can be carried out fraction-free.  Clear the denominators in its at most \(d^2\) rational entries.  If their lengths are bounded by \(M\), each resulting integer entry has length at most \((d^2+1)M\).  At a pivot, update an entry by
+\[
+ a^{(k+1)}_{ij}
+ =\frac{a^{(k)}_{kk}a^{(k)}_{ij}-a^{(k)}_{ik}a^{(k)}_{kj}}
+ {a^{(k-1)}_{k-1,k-1}}.
+\]
+Expanding the two bordered determinants along their last row verifies inductively that the division is exact and that every retained entry is a minor of the cleared matrix.  A \(k\)-minor is a sum of \(k!\) products of \(k\) entries.  Its binary length is therefore at most
+\[
+ k(d^2+1)M+\lceil\log_2(k!)\rceil+1
+ \leq 4d^3(M+1). \tag{7}
+\]
+Thus reduced-row-echelon coordinates, obtained as ratios of such minors, satisfy the same bound up to one extra factor of \(d\) when their denominators are cleared to form the canonical integer kernel direction.  Choose the canonical baseline \(p_{0j}=1/2\) and, if \(H=\max_j|h_{t,F,j}|\), choose
+\[
+ \varepsilon=\frac{1}{4(1+H)}.
+\]
+Then \(\varepsilon>0\), and for every nonzero coordinate,
+\[
+ \varepsilon<\frac{1}{2|h_{t,F,j}|}
+ =\frac{\min\{p_{0j},1-p_{0j}\}}{|h_{t,F,j}|},
+\]
+so the verifier's positivity division is valid.  Equations (6)--(7), the at most \(J\) nuisance records, and the structural prefix show that the entire rational certificate has at most \(8(N+1)d^4(M+1)\) bits and symbols.  By (2), \(E+1\geq8d^2\), so this quantity is at most \(B(s)\).  The expression serialization bound follows already from (4).
+
+Combining (3)--(7) proves separately that the branch count, the symbol count, the number of rational arithmetic operations, and the encoding length of every returned capped expression or binary-sink certificate are each at most \(B(s)\).  The argument is purely a finite normal-form count and therefore establishes exactly the final caveat in the statement: it supplies no completeness conclusion for the unresolved general multi-block dichotomy.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A closed normal-form bound separates finite structural enumeration from the open global gluing theorem. \textit{Gap.} Tikka et al. prove hardness and terminating sound search, while Mokhtarian et al. cover fixed root controls; neither gives this explicit endogenous-activation structural encoding bound. \textit{Consumer.} The bound gives \(Y_0\) a serialization ceiling and a deterministic budget for the verified binary-sink module.
+
+\begin{lemma}[lem:shpitser-pearl-id-output]\label{lem:shpitser-pearl-id-output}
+For a recursive semi-Markovian causal graph \(G\), the Shpitser--Pearl \(\mathrm{ID}\) recursion uses ordinary probability marginalization and C-component \(Q\)-factor recursion. A successful run returns a correct observed-law expression for \(P_{\mathbf x}(\mathbf y)\), while a failed run returns a graph pair containing rooted C-forests that form a hedge witnessing nonidentifiability.
+\end{lemma}
+
+\begin{lemma}[lem:mokhtarian-root-control-criterion]\label{lem:mokhtarian-root-control-criterion}
+Let \(C_0\) be a set of observed root vertices of a finite labeled DAG \(G\), let \(X\) and \(Y\) be disjoint vertex sets outside \(C_0\), and let \(L_{C_0}\) be maximal-regular with respect to \(G\) in the sense of Mokhtarian--Jamshidi--Etesami--Kiyavash. In their positive-observed-law structural-equation-model class, \(P_{\mathbf x}(\mathbf y)\) is identifiable from \((G,L_{C_0})\) if and only if it is identifiable from every context DAG
+\[
+G_c=\bigl((V\setminus C_0)\cup U,\, (E(G)\cap(((V\setminus C_0)\cup U)\times((V\setminus C_0)\cup U)))\setminus L_{C_0}(c)\bigr),
+\qquad c\in\mathcal X_{C_0}.
+\]
+When every context query is identified by an observed-law formula \(F_c\), their Algorithm 1 returns
+\[
+\sum_{c\in\mathcal X_{C_0}}P(C_0=c)F_c\!\left(P(V\setminus C_0\mid C_0=c)\right).
+\]
+\end{lemma}
+
+\begin{theorem}[thm:root-control-class-bridge]\label{thm:root-control-class-bridge}
+Let \((G,L_{C_0},X,Y,\mathbf x,\mathbf y)\) be a maximal-regular observed-root input of Mokhtarian--Jamshidi--Etesami--Kiyavash, with the used hypotheses written explicitly as follows: \(C_0\subseteq V\) consists of observed roots; \(X,Y\subseteq V\setminus C_0\) are disjoint; \(L_{C_0}(c)\) is the label set at \(c\in\mathcal X_{C_0}\); and, for every labeled edge \(a\to i\), the set \(C_i=\operatorname{pa}_G(i)\cap C_0\) is nonempty and
+\[
+c|_{C_i}=c'|_{C_i}
+\quad\Longrightarrow\quad
+\bigl(a\to i\in L_{C_0}(c)\Longleftrightarrow a\to i\in L_{C_0}(c')\bigr).
+\]
+Compile a label \(a\to i\in L_{C_0}(c)\) into the whole-row CSI equating the complete conditional vectors of child \(i\) across values of parent \(a\), activated at \(C_i=c_i\), where \(c_i=c|_{C_i}\). Denote the compiled list by \(\mathcal C(L_{C_0})\). Put \(\mathbf d=(|\mathcal X_j|:j\in V\cup U)\). Let \(\Theta^{\mathrm{sm},+}_{\mathbf d}(G)\) be this note's fixed-finite-state, latent-root, two-child-latent, independent-latent, strictly primitive-positive CPT class before imposing CSI, and let \(\mathfrak M_{\mathrm{MJEK}}(G,L_{C_0})\) denote the published compatible labeled-DAG class in the same stochastic-CPT representation. Then
+\[
+\mathfrak M_{\mathrm{ocsi}}\!\left(G,\mathcal C(L_{C_0})\right)
+=
+\mathfrak M_{\mathrm{MJEK}}(G,L_{C_0})
+\cap \Theta^{\mathrm{sm},+}_{\mathbf d}(G).
+\]
+For every \(c\), the complete active compiled trace \(t_c\) has
+\[
+H_{k(c),t_c}[(V\setminus C_0)\cup U]=G_c,
+\]
+where \(k(c)\) is the activation-partition cell containing context \(c\); and the compiled quotient \(\mathcal R_i\) is exactly the connected row-equality quotient generated by the labels of child \(i\). If every \(G_c\) identifies the context query with formula \(F_c\), the compiled SUCCESS derivations assemble the same formula as the published algorithm,
+\[
+E(P_{\mathrm{obs}})
+=\sum_{c\in\mathcal X_{C_0}}P(C_0=c)
+F_c\!\left(P(V\setminus C_0\mid C_0=c)\right)
+=P_{\mathbf x}(\mathbf y),
+\]
+and every displayed conditioning divisor is positive. This transfers the published identification implication to the intersection above. It does not assert that failure in one \(G_c\) implies nonidentification on the narrower fixed-cardinality positive class. Finally, \(\mathsf E_5\) is admitted by this note's input syntax but not by the observed-root-control syntax: its activation variable \(X\) is observed and satisfies \(U\to X\), so the activation \(X=0\) is endogenous.
+\end{theorem}
+\begin{proof}
+Write \(E(G)\) for the edge set of \(G\), and, for a set of vertices \(A\), write
+\[
+\mathcal X_A:=\prod_{j\in A}\mathcal X_j.
+\]
+All products and sums below are finite because the state spaces and the graph are finite.
+
+First we verify the compilation.  Fix a labeled edge \(a\to i\) and put
+\[
+C_i:=\operatorname{pa}_G(i)\cap C_0.
+\]
+By regularity, \(C_i\ne\varnothing\).  By the label syntax of a maximal-regular observed-root input, the endpoints of a labeled edge are outside the control set, so in particular \(a\notin C_i\).  The displayed maximality condition in the theorem gives, for \(c,c'\in\mathcal X_{C_0}\),
+\[
+c|_{C_i}=c'|_{C_i}
+\quad\Longrightarrow\quad
+\bigl(a\to i\in L_{C_0}(c)Longleftrightarrow
+      a\to i\in L_{C_0}(c')\bigr).
+\tag{1}
+\]
+Consequently, whether \(a\to i\) is active is a function of \(c_i:=c|_{C_i}\) alone, and the compiled list may contain one relation for each distinct active pair \((a\to i,c_i)\).
+
+For such a pair, let \(s_{-a}\) be an assignment to \(\operatorname{pa}_G(i)\setminus\{a\}\) satisfying \(s_{-a}|_{C_i}=c_i\).  The compiled whole-row relation is
+\[
+\vartheta_i(\,\cdot\mid s_{-a},a=\alpha)
+=
+\vartheta_i(\,\cdot\mid s_{-a},a=\alpha')
+\qquad
+\text{for every }\alpha,\alpha'\in\mathcal X_a.
+\tag{2}
+\]
+The equality is between the complete vectors indexed by \(\mathcal X_i\), so (2) is a whole-row CSI of the form required by \(\texttt{ass:whole-row-csi}\).  Compatibility with the published label says exactly that, after \(C_i=c_i\) is fixed, the mechanism of \(i\) is not a function of the parent \(a\).  Such mechanism invariance implies (2).  Conversely, fix an ordering of \(\mathcal X_i\) and let \(E_i\) be an auxiliary independent \(\operatorname{Unif}(0,1)\) randomizer.  Any finite CPT can be represented by
+\[
+f_i(s,e):=min\left\{z\in\mathcal X_i:
+  \sum_{z'\le z}\vartheta_i(z'\mid s)\ge e\right\}.
+\tag{3}
+\]
+If (2) holds, all cumulative sums in (3) agree as \(\alpha\) varies; hence \(f_i(s_{-a},\alpha,e)\) is independent of \(\alpha\) for every \(e\in(0,1)\) in the active context.  Applying (3) simultaneously to the finitely many children, with independent auxiliary randomizers, changes neither the CPT nor any observational or interventional law.  Thus, for every \(\vartheta\in\Theta^{\mathrm{sm},+}_{\mathbf d}(G)\), the stochastic-CPT representation specified in the theorem gives
+\[
+\vartheta\text{ obeys all relations in }\mathcal C(L_{C_0})
+\quad\Longleftrightarrow\quad
+\vartheta\in\mathfrak M_{\mathrm{MJEK}}(G,L_{C_0}).
+\tag{4}
+\]
+On the left side of (4), membership in \(\mathfrak M_{\mathrm{ocsi}}\) additionally imposes exactly the fixed finite state spaces, the latent-root and two-child-latent restrictions, independence of the latent roots, and strict primitive positivity, by \(\texttt{def:observed-csi-model-class}\) and its six listed assumptions.  These restrictions are precisely those collected in \(\Theta^{\mathrm{sm},+}_{\mathbf d}(G)\).  Therefore
+\[
+\vartheta\in
+\mathfrak M_{\mathrm{ocsi}}\!\left(G,\mathcal C(L_{C_0})\right)
+\quad\Longleftrightarrow\quad
+\vartheta\in\mathfrak M_{\mathrm{MJEK}}(G,L_{C_0})
+\   ext{and}\ 
+\vartheta\in\Theta^{\mathrm{sm},+}_{\mathbf d}(G),
+\tag{5}
+\]
+which is the asserted class equality.
+
+We next compare the graphical syntax.  Because the query treatment and outcome sets are disjoint from \(C_0\), one has \(C_0\subseteq W\).  For \(c\in\mathcal X_{C_0}\), every assignment \(w\in\mathcal X_W\) satisfying \(w|_{C_0}=c\) gives the same truth value to every compiled activation predicate: a predicate for child \(i\) depends only on \(w|_{C_i}=c|_{C_i}\).  Thus all such \(w\) lie in one fiber of the joint truth-table map in \(\texttt{def:activation-partition}\); denote that cell by \(k(c)\).  If two control assignments determine the same fiber, (1) shows that they activate the same labels, so this notation is unambiguous for the purpose of edge deletion.
+
+Let \(t_c\) list once each compiled edge relation active on \(k(c)\).  Each entry is authorized on the whole cell by construction, and hence \(t_c\) is a trace under \(\texttt{def:authorized-trace}\).  Equation (1) and the compilation imply
+\[
+\{e:e\text{ is deleted by }t_c\}=L_{C_0}(c).
+\tag{6}
+\]
+The definition of the context graph and (6) now give
+\[
+H_{k(c),t_c}=G\setminus L_{C_0}(c).
+\tag{7}
+\]
+Put \(S:=(V\setminus C_0)\cup U\).  Taking the induced graph on \(S\), and using elementary set algebra, yields
+\[
+\begin{aligned}
+H_{k(c),t_c}[S]
+&=\left(S,\bigl(E(G)\setminus L_{C_0}(c)\bigr)\cap(S\times S)\right)\\
+&=\left(S,\bigl(E(G)\cap(S\times S)\bigr)\setminus L_{C_0}(c)\right)\\
+&=G_c.
+\end{aligned}
+\tag{8}
+\]
+The second equality also follows directly from the published label syntax, under which labeled-edge endpoints are outside \(C_0\).  Hence the compiled and published context graphs are identical, not merely Markov equivalent.
+
+For the quotient claim, define an undirected finite graph \(B_i^L\) whose vertices are the complete assignments in \(\mathcal X_{\operatorname{pa}_G(i)}\), joining two assignments exactly when their CPT rows are equated by one instance of (2).  The primitive row-equality graph produced by \(\mathcal C(L_{C_0})\) is literally \(B_i^L\).  Therefore \(\texttt{def:row-quotient}\) gives
+\[
+\mathcal R_i=\pi_0(B_i^L),
+\tag{9}
+\]
+where \(\pi_0\) denotes connected components.  This is exactly the connected row-equality quotient generated by the labels.  By \(\texttt{thm:canonical-row-quotient}\), replacing the primitive equalities by (9) preserves the compatible class, the observed-law map, and the query.
+
+It remains to prove equality of the successful formulas and all required positivity judgments.  Fix
+\[
+\vartheta\in
+\mathfrak M_{\mathrm{ocsi}}\!\left(G,\mathcal C(L_{C_0})\right).
+\]
+For every complete observed assignment \(v\), the DAG factorization is
+\[
+P_\vartheta(V=v)
+=\sum_{u\in\mathcal X_U}
+  \prod_{j\in V\cup U}
+  \vartheta_j\!\left((v,u)_j\mid
+  (v,u)_{\operatorname{pa}_G(j)}\right).
+\tag{10}
+\]
+The sum has finitely many terms and at least one term.  Every factor in every term is strictly positive by \(\texttt{ass:strict-cpt-positivity}\), so
+\[
+P_\vartheta(V=v)>0.
+\tag{11}
+\]
+Summing (11) over observed assignments extending \(C_0=c\) gives
+\[
+P_\vartheta(C_0=c)>0
+\qquad(c\in\mathcal X_{C_0}).
+\tag{12}
+\]
+Thus every conditional law \(P_\vartheta(V\setminus C_0\mid C_0=c)\) used below is defined by an observed-cell denominator that is certified positive.
+
+No vertex of \(C_0\) is treated, and every vertex of \(C_0\) is a root.  Truncated factorization therefore leaves its marginal unchanged:
+\[
+P_{\vartheta,\mathbf x}(C_0=c)=P_\vartheta(C_0=c).
+\tag{13}
+\]
+Fixing \(C_0=c\) in the structural equations removes the control vertices.  Compatibility with the active labels makes every edge in \(L_{C_0}(c)\) functionally irrelevant in that fixed context.  By (8), the resulting conditional structural model has graph \(G_c\), observed law \(P_\vartheta(V\setminus C_0\mid C_0=c)\), and
+\[
+P^{(c)}_{\vartheta,\mathbf x}(\mathbf y)
+=P_{\vartheta,\mathbf x}(\mathbf y\mid C_0=c).
+\tag{14}
+\]
+
+Suppose every \(G_c\) identifies the context query.  If the ordinary \(\mathrm{ID}\) recursion failed in some \(G_c\), \(\texttt{lem:shpitser-pearl-id-output}\) would return a rooted-C-forest hedge witnessing nonidentifiability there, contrary to the supposition.  Hence the recursion succeeds in every context; denote its returned observed-law expression by \(F_c\).  Soundness of that same cited result and (14) give
+\[
+F_c\!\left(P_\vartheta(V\setminus C_0\mid C_0=c)\right)
+=P^{(c)}_{\vartheta,\mathbf x}(\mathbf y)
+=P_{\vartheta,\mathbf x}(\mathbf y\mid C_0=c).
+\tag{15}
+\]
+The ordinary recursion uses only marginalization, conditioning, district restriction, and leaf removal.  These are constructors of \(\texttt{def:success-derivation}\); its interpretation in the original graph records \(t_c\) for precisely the CSI-authorized deletions in (6).  The initial conditioning uses (12), and every later conditioning denominator is a marginal or conditional sum of the strictly positive cells in (11), hence is positive.  Thus the context derivations are valid compiled SUCCESS derivations.
+
+Using total probability, (13), and (15), we obtain the equation-by-equation identification
+\[
+\begin{aligned}
+P_{\vartheta,\mathbf x}(\mathbf y)
+&=\sum_{c\in\mathcal X_{C_0}}
+  P_{\vartheta,\mathbf x}(\mathbf y\mid C_0=c)
+  P_{\vartheta,\mathbf x}(C_0=c)\\
+&=\sum_{c\in\mathcal X_{C_0}}
+  P_\vartheta(C_0=c)
+  F_c\!\left(P_\vartheta(V\setminus C_0\mid C_0=c)\right)\\
+&=:E(P_\vartheta(V)).
+\end{aligned}
+\tag{16}
+\]
+The displayed sum is finite, begins with observed-cell coordinates, and uses only the arithmetic operations allowed by \(\texttt{def:arithmetic-expression}\), with all divisions justified by the preceding positivity argument.  Hence \(E\in\mathscr E(P_{\mathrm{obs}})\).  The formula in (16) is exactly the formula returned by the algorithm in \(\texttt{lem:mokhtarian-root-control-criterion}\); its validity on the present class is also the conclusion of \(\texttt{thm:success-soundness}\).
+
+The transferred logical direction is only the identification implication.  From (5),
+\[
+\mathfrak M_{\mathrm{ocsi}}\!\left(G,\mathcal C(L_{C_0})\right)
+\subseteq\mathfrak M_{\mathrm{MJEK}}(G,L_{C_0}).
+\tag{17}
+\]
+A functional valid on the class on the right of (17) remains valid on the subclass on the left.  Conversely, a nonidentifying pair in the published class need not satisfy the fixed latent cardinalities or strict primitive-CPT positivity defining the subclass.  Restricting a model class can destroy a counterexample pair, so neither (17) nor the published necessity argument alone proves nonidentifiability on the intersection.  No such converse has been used in deriving (16).
+
+Finally, we verify strict enlargement of the permitted input syntax using \(\mathsf E_5\).  Its latent vertices \(U,T\) are parentless, mutually independent, and each has exactly two observed children.  Every displayed primitive probability and every binary complement lies strictly between zero and one.  Its sole CSI satisfies, for both \(z\in\{0,1\}\),
+\[
+P(Z=z\mid X=0,T=0)=\frac12
+=P(Z=z\mid X=0,T=1),
+\tag{18}
+\]
+so it is a complete-row equality across the parent \(T\), activated by the observed variable \(X\).  Thus the instance obeys the input conditions of this note.  However, the edge \(U\to X\) makes \(X\) endogenous and therefore not an observed root.  Indeed none of the observed vertices is a root: \(X\) has parent \(U\), \(Z\) has parents \(T,X\), and \(Y\) has parents \(U,T,Z\).  The observed-root control set is consequently empty, whereas the nonconstant activation in (18) requires the assignment \(X=0\).  Hence no observed-root-control input can encode this activation, while the present observed-activation syntax can.  This proves the final assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This bridge fixes the comparator scope: published observed-root labels compile exactly into the note's whole-row syntax, but only the published success implication transfers automatically to the stricter fixed-cardinality positive class. \textit{Gap.} The published converse is proved on its own labeled-DAG SEM class and does not itself furnish positive countermodels with this note's fixed latent cardinalities. \textit{Consumer.} The bridge supplies exact regression fixtures for the observed-root branch of \(Y_0\) while keeping the endogenous-activation completeness problem separate.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+A rooted C-forest is not by itself a nonidentification certificate under shared CSI rows. In the reference-context bow, the \(A=0\) cells place the query coefficient in the observed row space and force structural rejection. Maximal active deletion also fails: in the five-node rational pair, the pruned graph has no hedge although the empty trace carries a kernel direction with query gap \(3/200\). The global theorem must therefore retain partial traces and prove a forest-supported kernel statement after all cross-context contractions; generic real-algebraic fiber testing does not supply this linkage or total arithmetic descent.
+
+\section{Honest scope}
+
+The canonical quotient, SUCCESS soundness, fixed-nuisance binary-sink affine map, forest-to-kernel row-space alternative, baseline perturbation soundness theorem, finite structural bound, two rational boundary fixtures, and root-control class bridge are supporting results. The bridge gives identical syntax and successful-formula agreement on maximal-regular observed-root inputs; it does not transfer the published nonidentification converse to this note's narrower fixed-cardinality positive intersection. The global context-factor dichotomy is visibly open and remains the completeness kernel. No general certificate-soundness or complete procedure is claimed before multi-block forest lifting is established. Strict primitive-CPT positivity and observed endogenous activation are transparent scope conditions. Estimation is downstream.
+
+\begin{thebibliography}{99}
+
+  \bibitem{BoutilierFriedmanGoldszmidtKoller1996CSI} Craig Boutilier, Nir Friedman, Moises Goldszmidt, and Daphne Koller. Context-Specific Independence in Bayesian Networks. Proceedings of UAI, 1996.
+
+  \bibitem{PensarNymanKoskiCorander2015LDAG} Johan Pensar, Henrik Nyman, Timo Koski, and Jukka Corander. Labeled Directed Acyclic Graphs: A Generalization of Context-Specific Independence in Directed Graphical Models. Data Mining and Knowledge Discovery, 29:503--533, 2015.
+
+  \bibitem{ShpitserPearl2006JointInterventional} Ilya Shpitser and Judea Pearl. Identification of Joint Interventional Distributions in Recursive Semi-Markovian Causal Models. Proceedings of AAAI, pages 1219--1226, 2006.
+
+  \bibitem{TikkaHyttinenKarvanen2019CSI} Santtu Tikka, Antti Hyttinen, and Juha Karvanen. Identifying Causal Effects via Context-Specific Independence Relations. Advances in Neural Information Processing Systems 32, 2019.
+
+  \bibitem{MokhtarianJamshidiEtesamiKiyavash2022CSI} Ehsan Mokhtarian, Fateme Jamshidi, Jalal Etesami, and Negar Kiyavash. Causal Effect Identification with Context-Specific Independence Relations of Control Variables. Proceedings of AISTATS, PMLR 151:11237--11246, 2022.
+
+  \bibitem{KivvaEtesamiKiyavash2023ConditionalID} Yaroslav Kivva, Jalal Etesami, and Negar Kiyavash. On Identifiability of Conditional Causal Effects. Proceedings of UAI, PMLR 216:1078--1086, 2023.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024Automated} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association, 119(547):1778--1793, 2024.
+
+  \bibitem{ChenDarwiche2025ConstrainedID} Yizuo Chen and Adnan Darwiche. Constrained Identifiability of Causal Effects. AAAI Workshop on AI with Causal Techniques, 2025.
+
+  \bibitem{ChenDarwiche2026Granularity} Yizuo Chen and Adnan Darwiche. On the Granularity of Causal Effect Identifiability. Proceedings of UAI, PMLR 337, 2026.
+
+  \bibitem{DuarteSolus2026CStree} Eliana Duarte and Liam Solus. Representation of Context-Specific Causal Models with Observational and Interventional Data. Journal of the Royal Statistical Society Series B, 88(2):567--610, 2026.
+
+  \bibitem{BhattacharyaNabiShpitser2022Semiparametric} Rohit Bhattacharya, Razieh Nabi, and Ilya Shpitser. Semiparametric Inference for Causal Effects in Graphical Models with Hidden Variables. Journal of Machine Learning Research, 23(295):1--76, 2022.
+
+  \bibitem{HoytEtAl2025Y0} Charles Tapley Hoyt and coauthors. Causal Identification with \(Y_0\). arXiv:2508.03167, 2025.
+
+\end{thebibliography}
+
+\end{document}

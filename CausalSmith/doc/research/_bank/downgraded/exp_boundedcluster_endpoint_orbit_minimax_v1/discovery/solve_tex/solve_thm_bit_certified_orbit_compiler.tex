@@ -1,0 +1,431 @@
+%%% FIELD compiler-proof
+Write
+\[
+ J=|\mathcal N|,
+ \qquad A=|\mathcal K|,
+ \qquad
+ M=\#\{(n,\omega):\omega\text{ is compatible with }n\}.
+\tag{1}
+\]
+These integers are bounded by the displayed orbit-program size.  Since \(m\ge1\) and \(K\ge2\), assigning every cluster either of two distinct labels gives two assignment orbits, so \(J\ge2\).  The all-zero and all-one schedules give distinct response orbits, so \(A\ge2\).  All reduced spaces below therefore have positive dimension.
+
+\emph{Step 1: exact orbit compilation and bit growth.}
+For a size-\(q\) cluster there are \(2^{2K}\) complete binary unit-response words and
+\[
+ B_q=\binom{q+2^{2K}-1}{q}
+\tag{2}
+\]
+unordered cluster response types.  The number of local observation categories is
+\[
+ O_q=\sum_{a\in\mathcal A}(r_{q,a}+1)(q-r_{q,a}+1).
+\tag{3}
+\]
+Generate both finite alphabets in lexicographic order.  For a cluster type \(t\), label \(a\), and category \((u,v)\), the numerator of \(P_{t,a}(u,v)\) in \(\texttt{def:local-kernel}\) is obtained by testing the at most \(2^b\) subsets of \(\{1,\ldots,q\}\).  Its denominator is the positive integer \(\binom q{r_{q,a}}\), equal to one when \(r_{q,a}=0\) or \(q\).  Thus boundary counts cause no division by zero.  Since the subsets are partitioned by their pair \((u,v)\),
+\[
+ P_{t,a}(u,v)\ge0,
+ \qquad
+ \sum_{u=0}^{r_{q,a}}\sum_{v=0}^{q-r_{q,a}}P_{t,a}(u,v)=1.
+\tag{4}
+\]
+
+For each response histogram \(\kappa\), compute the coefficients of \(F_{\kappa,q}\) from \(\texttt{def:orbit-kernel}\) by inserting one cluster factor at a time.  After \(j\) insertions, a dynamic-programming state is an \(O_q\)-vector of nonnegative counts with total degree \(j\).  Hence there are at most
+\[
+ \binom{j+O_q-1}{O_q-1}\le (m_q+1)^{O_q}
+\tag{5}
+\]
+states and at most \(O_q\) transitions from each state.  The label margins of a terminal state determine \(n\).  The coefficient is the sum of the products of the local subset probabilities over all allocations producing \(\omega_q\).  Dividing it by the positive multinomial \(\binom{m_q}{(n_{q,a})_{a\in\mathcal A}}\), and multiplying over \(q\), is therefore exactly the stabilizer-weighted probability \(H_{\kappa n\omega}\).  Incompatible integer margins are detected and assigned zero.  Summing the coefficient table and using (4) gives
+\[
+ H_{\kappa n\omega}\ge0,
+ \qquad
+ \sum_{\omega}H_{\kappa n\omega}=1
+ \quad\text{for every }(\kappa,n).
+\tag{6}
+\]
+This construction retains the entire exact-count observation histogram, rather than replacing it by a pairwise conflict graph.
+
+For fixed \(K\) and \(b\), the alphabets in (2)--(3) are fixed.  A product of at most \(m\) local denominators has \(O(m)\) bits, while a multinomial has \(O(m\log(m+1))\) bits.  A coefficient numerator is bounded by a common denominator times the number of dynamic-programming paths, whose logarithm is \(O(m)\).  Integer addition, multiplication, greatest-common-divisor reduction, and exact division therefore leave every intermediate rational with bit length polynomial in the input length and \(m\).  Equations (2), (3), and (5) show that enumeration of all orbit indices and all entries of \(H\) uses a number of bit operations polynomial in the displayed kernel size and the input bit length.  The target \(\theta_\kappa\) is an integer histogram sum multiplied by the rational entries of \(c\) and divided by the positive integer \(N\), so it is also computed exactly with polynomial bit length.  Since the entries of \(c\) sum to zero, their positive sum and the absolute value of their negative sum both equal \(L\).  Thus every binary schedule satisfies
+\[
+ |\theta_\kappa|\le L.
+\tag{7}
+\]
+The stipulated nonzero contrast gives \(L>0\).
+
+\emph{Step 2: the exact global primal oracle.}
+For every rational ambient query \((d,t)\in\mathbb R^2\) and every \(\theta\in[-L,L]\), define
+\[
+ \Phi_\theta(d,t)
+ =\max_{u\in[-L,L]}
+ \bigl\{(2u-2\theta)t+(\theta^2-u^2)d\bigr\}.
+\tag{8}
+\]
+It is a finite-valued pointwise maximum of affine functions of \((d,t)\), and hence is globally convex.  If \(d>0\), the displayed quadratic is concave in \(u\), and a maximizer is the rational clipped stationary point
+\[
+ u^\star=\max\{-L,\min\{L,t/d\}\}.
+\tag{9}
+\]
+If \(d\le0\), the quadratic is convex or affine, so its maximum is obtained by evaluating its two rational endpoints.  Consequently (8) is exactly rationally evaluable at every rational ambient query in polynomial bit time.  An active affine function supplies an exact rational subgradient.  On the feasible region \(d>0\) and \(|t|\le Ld\), (9) gives \(u^\star=t/d\), and substitution yields
+\[
+ \Phi_\theta(d,t)=\frac{(t-d\theta)^2}{d}.
+\tag{10}
+\]
+On the feasible zero face, \(d=0\) forces \(t=0\), and (8) gives \(\Phi_\theta(0,0)=0\) without division.  Thus (8) agrees everywhere on the feasible set with the closed perspective in \(\texttt{def:primal-game}\).
+
+Define on the whole ambient space
+\[
+ F(d,t)=\max_{\kappa\in\mathcal K}
+ \sum_{n,\omega}H_{\kappa n\omega}
+       \Phi_{\theta_\kappa}(d_n,t_{n\omega}).
+\tag{11}
+\]
+Evaluating (8), summing, and choosing a maximizing \(\kappa\) gives an exact rational value and subgradient for \(F\).  By (10), minimizing \(F\) on the primal feasibility polytope is the same as minimizing \(\overline R\) in \(\mathsf P\).
+
+We record precisely the external weak-optimization conclusion used below.  For a closed convex body \(C\subset\mathbb R^p\) and \(\alpha>0\), set
+\[
+ S(C,\alpha)=\{x:\operatorname{dist}_2(x,C)\le\alpha\},
+ \qquad
+ S(C,-\alpha)=\{x:B_2(x,\alpha)\subseteq C\}.
+\tag{12}
+\]
+The cited leaf \(\texttt{lem:weak-rational-convex-optimization}\), namely Gr\"otschel--Lov\'asz--Schrijver, Theorem~(4.3.13), has the following erosion-based conclusion in this notation.  Given rational \(\alpha>0\), rational well-bounding data
+\[
+ B_2(x_0,r_0)\subseteq C\subseteq B_2(0,R_0),
+ \qquad 0<r_0\le R_0,
+\tag{13}
+\]
+a weak-membership oracle for \(C\), and an oracle returning, for rational \(x\) and \(\delta>0\), a rational value within \(\delta\) of a globally defined convex function \(f(x)\), the algorithm returns a rational \(y\in S(C,\alpha)\) satisfying
+\[
+ f(y)\le f(x)+\alpha
+ \quad\text{for every }x\in S(C,-\alpha).
+\tag{14}
+\]
+The running time and output length are oracle-polynomial in the dimension, the encodings of (13), and the logarithms of the reciprocal oracle tolerances.  Notice that (14) compares with the erosion, not with all of \(C\).  Our exact rational value oracles satisfy the approximate-value specification for every requested \(\delta\).
+
+Put
+\[
+ e=\min\{\varepsilon,1\},
+ \qquad C_0=1+4L^2,
+ \qquad a_0=\frac{e}{4096C_0},
+ \qquad \eta=\frac{a_0}{J},
+ \qquad \gamma=\frac{a_0}{A}.
+\tag{15}
+\]
+Thus \(0<a_0\le1/4096\), \(J\eta=A\gamma=a_0\), and all quantities are rational.
+
+Eliminate \(d_J\) by \(d_J=1-\sum_{j<J}d_j\), put \(p_{\mathrm P}=J-1+M\), and use the rational full-dimensional polytope
+\[
+ C_{\mathrm P}=\left\{(d_1,\ldots,d_{J-1},t):
+ d_n\ge\eta\ (1\le n\le J),\quad
+ |t_{n\omega}|\le Ld_n\right\}\subset\mathbb R^{p_{\mathrm P}}.
+\tag{16}
+\]
+Its rational center \(x_{\mathrm P}\) has \(d_n=1/J\) and every \(t_{n\omega}=0\).  Set
+\[
+ \Delta_{\mathrm P}=\frac1J-\eta,
+ \qquad
+ \rho_{\mathrm P}=\min\left\{\frac{\Delta_{\mathrm P}}J,
+                 \frac{L}{J(1+LJ)}\right\},
+ \qquad R_{\mathrm P}^{\infty}=\max\{1,L\}.
+\tag{17}
+\]
+The lower-mass faces have slack \(\Delta_{\mathrm P}\) at the center and Euclidean normal norm at most \(J\), including the eliminated face.  The decision faces have slack \(L/J\) and normal norm at most \(1+LJ\), including those involving \(d_J\).  Hence \(B_2(x_{\mathrm P},\rho_{\mathrm P})\subseteq C_{\mathrm P}\).  The following explicitly encoded polytopes are nested:
+\[
+ \begin{split}
+ I_{\mathrm P}
+   &=\{x:\|x-x_{\mathrm P}\|_\infty\le\rho_{\mathrm P}/p_{\mathrm P}\}
+     \subseteq C_{\mathrm P},\\
+ C_{\mathrm P}&\subseteq
+ O_{\mathrm P}=\{x:\|x\|_\infty\le R_{\mathrm P}^{\infty}\},\\
+ B_2(x_{\mathrm P},\rho_{\mathrm P}/p_{\mathrm P})
+   &\subseteq I_{\mathrm P},
+ \qquad
+ O_{\mathrm P}\subseteq B_2(0,p_{\mathrm P}R_{\mathrm P}^{\infty}).
+ \end{split}
+\tag{18}
+\]
+Indeed, an \(\ell_\infty\)-displacement of at most \(\rho_{\mathrm P}/p_{\mathrm P}\) has Euclidean norm at most \(\rho_{\mathrm P}\), while every feasible \(d_n\) lies in \([0,1]\) and every feasible \(t_{n\omega}\) lies in \([-L,L]\).  All centers, half-widths, inner radii, and outer radii in (17)--(18) are rational and have polynomial bit length.  Exact testing of the displayed rational linear inequalities is a strong membership and separation oracle and, in particular, a valid weak-membership oracle.
+
+\emph{Step 3: the exact global dual oracle and its containing bodies.}
+Represent an ambient query by \((\pi_1,\ldots,\pi_{A-1})\in\mathbb R^{A-1}\), with \(\pi_A=1-\sum_{k<A}\pi_k\); no sign restriction is imposed on an oracle query.  Define the affine rational functions
+\[
+ \begin{split}
+ a_{n\omega}(\pi)&=\sum_\kappa\pi_\kappa H_{\kappa n\omega},\\
+ h_{n\omega}(\pi)&=\sum_\kappa\pi_\kappa H_{\kappa n\omega}\theta_\kappa,\\
+ q_{n\omega}(\pi)&=\sum_\kappa\pi_\kappa H_{\kappa n\omega}\theta_\kappa^2.
+ \end{split}
+\tag{19}
+\]
+On this entire affine space put
+\[
+ \begin{split}
+ B_n(\pi)&=\sum_\omega\min_{u\in[-L,L]}
+ \{a_{n\omega}(\pi)u^2-2h_{n\omega}(\pi)u+q_{n\omega}(\pi)\},\\
+ G(\pi)&=\min_{n\in\mathcal N}B_n(\pi).
+ \end{split}
+\tag{20}
+\]
+For fixed \(n\) and all the decisions \(u\), the expression is affine in \(\pi\).  Thus \(G\) is an infimum of affine functions and is globally concave.
+
+At a rational ambient query, if \(a>0\), the one-dimensional quadratic in (20) is minimized at the rational clipped stationary point
+\[
+ u^\star=\max\{-L,\min\{L,h/a\}\}.
+\tag{21}
+\]
+If \(a\le0\), the quadratic is concave or affine, so its minimum is the lesser of its two rational endpoint values.  After selecting a minimizing \(n\), the rational vector
+\[
+ g_\kappa=\sum_\omega H_{\kappa n\omega}
+                 (u^\star_{n\omega}-\theta_\kappa)^2
+\tag{22}
+\]
+defines an affine function of \(\pi\) which equals \(G\) at the query and dominates \(G\) everywhere.  After eliminating \(\pi_A\), it is an exact rational supergradient.  Hence \(-G\) has a globally defined exact rational value-and-subgradient oracle satisfying (14).
+
+On the simplex, \(a_{n\omega}\ge0\).  If it is positive, \(h_{n\omega}/a_{n\omega}\) is a convex combination of target values in \([-L,L]\), so clipping in (21) is inactive and completing the square gives \(q_{n\omega}-h_{n\omega}^2/a_{n\omega}\).  If \(a_{n\omega}=0\), nonnegativity of every \(\pi_\kappa H_{\kappa n\omega}\) forces both \(h_{n\omega}=0\) and \(q_{n\omega}=0\); (20) then gives zero without division.  Summing \(q_{n\omega}\) over \(\omega\) and using (6) proves
+\[
+ G(\pi)=\min_n b_n(\pi)
+ \quad\text{for every }\pi\in\Delta(\mathcal K),
+\tag{23}
+\]
+including every zero-prior-likelihood face.  Thus maximizing \(G\) is the same as \(\mathsf Q\) in \(\texttt{def:dual-game}\).
+
+In reduced coordinates use
+\[
+ C_{\mathrm D}=\{(\pi_1,\ldots,\pi_{A-1}):
+                 \pi_\kappa\ge\gamma\ (1\le\kappa\le A)\}
+       \subset\mathbb R^{p_{\mathrm D}},
+ \qquad p_{\mathrm D}=A-1.
+\tag{24}
+\]
+Let \(x_{\mathrm D}\) have every probability equal to \(1/A\), and set
+\[
+ \Delta_{\mathrm D}=\frac1A-\gamma,
+ \qquad \rho_{\mathrm D}=\frac{\Delta_{\mathrm D}}A.
+\tag{25}
+\]
+The first \(A-1\) lower faces have normal norm one, the eliminated last face has normal norm at most \(A\), and every face has center slack \(\Delta_{\mathrm D}\).  Therefore the explicit nested polytopes and ball data are
+\[
+ \begin{split}
+ I_{\mathrm D}&=\{x:\|x-x_{\mathrm D}\|_\infty
+                         \le\rho_{\mathrm D}/p_{\mathrm D}\}
+       \subseteq C_{\mathrm D}
+       \subseteq O_{\mathrm D}=\{x:\|x\|_\infty\le1\},\\
+ B_2(x_{\mathrm D},\rho_{\mathrm D}/p_{\mathrm D})
+       &\subseteq I_{\mathrm D},
+ \qquad O_{\mathrm D}\subseteq B_2(0,p_{\mathrm D}).
+ \end{split}
+\tag{26}
+\]
+Their rational encodings again have polynomial bit length, and exact rational inequalities supply membership and separation.
+
+\emph{Step 4: strict erosion comparators, feasibility repair, and the tolerance ledger.}
+Let \((d^\star,t^\star)\) attain the unrestricted primal value and let \(\pi^\star\) attain the dual value.  Their existence and the identities
+\[
+ \min F=R^\star=\max G
+\tag{27}
+\]
+follow from \(\texttt{thm:endpoint-orbit-equivalence}\), \(\texttt{def:primal-game}\), and \(\texttt{def:dual-game}\).  Let \(u_{\mathrm P}\) be the uniform design \(d_n=1/J\) with decision coordinate zero, and let \(u_{\mathrm D}\) be the uniform prior.
+
+First mix the primal optimizer with \(u_{\mathrm P}\) with weight \(a_0\).  The result has \(d_n\ge\eta\), and (6)--(7) give \(F(u_{\mathrm P})\le L^2\).  Convexity of \(F\) therefore shows that restricting to (16) costs at most
+\[
+ a_0L^2\le e/4096.
+\tag{28}
+\]
+Now mix the original optimizer with \(u_{\mathrm P}\) with total weight \(4a_0\), and call the result \((d',t')\).  Equivalently, after the first mix, mix once more with weight \(3a_0/(1-a_0)<4a_0\).  This second, erosion-producing mix costs at most \(4a_0L^2\le e/1024\).  Moreover,
+\[
+ d'_n\ge4\eta,
+ \qquad
+ Ld'_n-|t'_{n\omega}|\ge \frac{4La_0}{J}=4L\eta.
+\tag{29}
+\]
+Relative to \(C_{\mathrm P}\), every mass-face slack is at least \(3\eta\) and every decision-face slack is at least \(4L\eta\).  Every reduced-coordinate face normal has norm at most
+\[
+ Q_{\mathrm P}=J(1+L).
+\tag{30}
+\]
+Choose
+\[
+ \alpha_{\mathrm P}=\min\left\{
+   \frac e{1024},
+   \frac{\eta\min\{1,L\}}{8J(1+L)},
+   \frac e{512LJ(1+LJ)}
+ \right\}.
+\tag{31}
+\]
+All terms are positive rational numbers.  By (29)--(31), moving a Euclidean distance at most \(\alpha_{\mathrm P}\) changes the left side of every defining affine inequality by strictly less than its slack.  Hence
+\[
+ (d',t')\in S(C_{\mathrm P},-\alpha_{\mathrm P}).
+\tag{32}
+\]
+This verifies the actual comparator premise in (14), face by face, including the eliminated mass face and every decision face.
+
+Apply (14) to \(F\) on \(C_{\mathrm P}\) with tolerance \(\alpha_{\mathrm P}\).  It returns rational \((\widehat d,\widehat t)\in S(C_{\mathrm P},\alpha_{\mathrm P})\) and, by (28)--(32),
+\[
+ F(\widehat d,\widehat t)
+ \le F(d',t')+\alpha_{\mathrm P}
+ \le R^\star+\frac e{4096}+\frac e{1024}+\frac e{1024}.
+\tag{33}
+\]
+Affine elimination makes \(\sum_n\widehat d_n=1\) exact.  Take a point of \(C_{\mathrm P}\) within distance \(\alpha_{\mathrm P}\).  For \(n<J\), its corresponding mass changes by at most \(\alpha_{\mathrm P}\); the reconstructed mass \(d_J\) changes by at most \(J\alpha_{\mathrm P}\).  Since (31) implies \(\alpha_{\mathrm P}\le\eta/(8J)\), every \(\widehat d_n\ge7\eta/8>0\).  Repair only the decision coordinates by the exact rational clipping
+\[
+ d_n^{\mathrm r}=\widehat d_n,
+ \qquad
+ t_{n\omega}^{\mathrm r}
+ =\max\{-L\widehat d_n,
+          \min\{L\widehat d_n,\widehat t_{n\omega}\}\}.
+\tag{34}
+\]
+This point is exactly feasible for the original primal polytope.  Proximity to \(C_{\mathrm P}\) implies
+\[
+ |t_{n\omega}^{\mathrm r}-\widehat t_{n\omega}|
+ \le(1+LJ)\alpha_{\mathrm P}.
+\tag{35}
+\]
+Indeed, a nearby feasible \(t\)-coordinate differs by at most \(\alpha_{\mathrm P}\), and its associated mass differs by at most \(J\alpha_{\mathrm P}\).  Every affine slope in (8) with respect to \(t\) has magnitude at most \(4L\).  Using (6), then summing over \(n\), gives
+\[
+ F(d^{\mathrm r},t^{\mathrm r})-F(\widehat d,\widehat t)
+ \le4LJ(1+LJ)\alpha_{\mathrm P}
+ \le e/128.
+\tag{36}
+\]
+
+For the dual, first mix \(\pi^\star\) with \(u_{\mathrm D}\) with weight \(a_0\).  For every fixed assignment orbit and clipped endpoint decision, the loss as a function of \(\kappa\) belongs to \([0,4L^2]\).  Therefore mixing any prior with weight \(q\) can lower its Bayes risk by at most \(4L^2q\); taking an infimum over decisions preserves this inequality.  The first restriction to \(\pi_\kappa\ge\gamma\) thus costs at most
+\[
+ 4L^2a_0\le e/4096.
+\tag{37}
+\]
+Mix once more so that the total uniform weight is \(4a_0\), and call the result \(\pi'\).  The second mixing weight is \(3a_0/(1-a_0)<4a_0\), so its additional loss is at most
+\[
+ 4L^2(4a_0)\le e/1024.
+\tag{38}
+\]
+Every coordinate of \(\pi'\) is at least \(4\gamma\), giving slack at least \(3\gamma\) in (24).  Since all reduced simplex-face normals have norm at most \(A\), the rational tolerance
+\[
+ \alpha_{\mathrm D}=\min\left\{\frac e{1024},\frac{\gamma}{8A}\right\}
+\tag{39}
+\]
+satisfies
+\[
+ \pi'\in S(C_{\mathrm D},-\alpha_{\mathrm D}).
+\tag{40}
+\]
+Apply (14) to the globally convex function \(-G\).  The rational output \(\widehat\pi\in S(C_{\mathrm D},\alpha_{\mathrm D})\) satisfies
+\[
+ G(\widehat\pi)
+ \ge G(\pi')-\alpha_{\mathrm D}
+ \ge R^\star-\frac e{4096}-\frac e{1024}-\frac e{1024}.
+\tag{41}
+\]
+Its first \(A-1\) reconstructed coordinates are at least \(\gamma-\alpha_{\mathrm D}>0\), and its last coordinate is at least \(\gamma-A\alpha_{\mathrm D}\ge7\gamma/8>0\).  The coordinates sum to one exactly, so \(\widehat\pi\) is already an exactly feasible rational prior; no projection or division is needed.
+
+Let \(\beta=e/128\), evaluate
+\[
+ U_0=F(d^{\mathrm r},t^{\mathrm r}),
+ \qquad V_0=G(\widehat\pi)
+\tag{42}
+\]
+by exact rational arithmetic, and outward-round only at the final step:
+\[
+ \overline R=\beta\left\lceil U_0/\beta\right\rceil,
+ \qquad
+ \underline R=\beta\left\lfloor V_0/\beta\right\rfloor.
+\tag{43}
+\]
+The exact evaluation itself has zero error and each rounding loses less than \(e/128\).  The full ledger, in units of \(e/4096\), is
+\[
+\begin{array}{c|c|c}
+\text{operation}&\text{primal upper side}&\text{dual lower side}\\ \hline
+\text{restriction to masses at least }\eta\text{ or }\gamma&1&1\\
+\text{additional mixing for an erosion comparator}&4&4\\
+\text{erosion-based weak optimization}&4&4\\
+\text{near-feasibility repair and clipping}&32&0\\
+\text{exact direct objective evaluation}&0&0\\
+\text{outward rational rounding}&32&32
+\end{array}
+\tag{44}
+\]
+The first row is bounded by (28) and (37), the second by the sequential mixing calculations preceding (29) and by (38), the third by (31), (33), (39), and (41), the fourth by (36), the fifth is exact by (42), and the last is bounded by (43).  It follows that
+\[
+ R^\star\le\overline R<R^\star+\frac{73e}{4096},
+ \qquad
+ R^\star-\frac{41e}{4096}<\underline R\le R^\star,
+\tag{45}
+\]
+and hence
+\[
+ 0\le\overline R-\underline R
+ <\frac{114e}{4096}=\frac{57e}{2048}<e\le\varepsilon.
+\tag{46}
+\]
+
+The two inequalities in (45) are independently checkable.  For the upper one, verify for every \(\kappa\) the rational inequality
+\[
+ \sum_{n,\omega}H_{\kappa n\omega}
+ \frac{(t^{\mathrm r}_{n\omega}-d_n^{\mathrm r}\theta_\kappa)^2}
+      {d_n^{\mathrm r}}
+ \le\overline R;
+\tag{47}
+\]
+all denominators are positive by (34).  Since the point is primal feasible, (27) gives \(R^\star\le\overline R\).  For the lower one, compute (19) exactly and set
+\[
+ \rho_{n\omega}=\begin{cases}
+ h_{n\omega}^2/a_{n\omega},&a_{n\omega}>0,\\
+ 0,&a_{n\omega}=0.
+ \end{cases}
+\tag{48}
+\]
+Exact comparison detects the case.  The implication \(a=0\Rightarrow h=0\), proved before (23), verifies the rotated-cone constraint on every zero face.  Then verify the finite list
+\[
+ \underline R\le
+ \sum_\kappa\widehat\pi_\kappa\theta_\kappa^2
+ -\sum_\omega\rho_{n\omega}
+ \quad(n\in\mathcal N).
+\tag{49}
+\]
+This is a rational feasible certificate for \(\mathsf Q\), so \(\underline R\le R^\star\).
+
+It remains to check the promised Turing bound for the two oracle calls.  Equations (17)--(18) and (25)--(26) give, without implicit balls, rational centers, inner radii, outer radii, and nested full-dimensional polytopes.  Equations (15), (31), and (39) show that their encoding lengths and the logarithms of the reciprocal tolerances are polynomial in the rational input bit length, the logarithm of the displayed dimensions, and \(\log\max\{2,1/\varepsilon\}\).  The global oracles (8) and (20) use only a polynomial number of operations on polynomial-bit rationals at each query.  Exact summation in (47) and (49) increases bit length by at most the sum of the polynomial bit lengths of the displayed number of summands.  The cited erosion-based theorem therefore gives the asserted polynomial running time and rational output length.  Only weakly optimal rational points were constructed; nothing implies that an exact optimizer is rational.
+
+\emph{Step 5: exact randomization and the total division-free decoder.}
+The rational masses \(d_n^{\mathrm r}\) define an implementable correlated design.  Clear their denominators, sample an integer cumulative weight exactly, assign the labels of the selected histogram uniformly to equal-size labeled clusters, and sample each treated subset independently and uniformly conditional on its label.  Uniform integers are obtained by rejection from a power-of-two interval; its acceptance probability exceeds one half.  Denominator clearing has polynomial bit length, so this exact sampler has expected polynomial bit complexity.  This is precisely the implementation supplied by \(\texttt{thm:endpoint-orbit-equivalence}\).
+
+For every compatible endpoint cell precompute the rational constant
+\[
+ \delta_{n\omega}=t^{\mathrm r}_{n\omega}/d_n^{\mathrm r};
+\tag{50}
+\]
+it is defined because \(d_n^{\mathrm r}>0\), and (34) gives \(|\delta_{n\omega}|\le L\).  Put zero on incompatible cells.  More generally, on any feasible zero-design-mass face set \(\delta_{n\omega}=0\) when \(d_n=0\); primal feasibility forces \(t_{n\omega}=0\).  For the dual posterior table use \(h/a\) only after exact rational comparison establishes \(a>0\), and use zero when \(a=0\).  Thus neither discrete table contains an undefined ratio.
+
+Fix a realized labeled assignment \(x\), order the units of cluster \(g\), put \(z_{gi}=\mathbf 1\{i\in S_g\}\), and let \(v_{gi}\) be the revealed coordinate.  Initialize \(Q_{g,0}(0,0)=1\) and all other states at zero.  For \(1\le j\le s_g\), define
+\[
+ Q_{g,j}(u,w)
+ =(1-v_{gj})Q_{g,j-1}(u,w)
+ +v_{gj}Q_{g,j-1}(u-z_{gj},w-(1-z_{gj})),
+\tag{51}
+\]
+where every negative-index state is zero.  On \([0,1]^N\), this is exactly the Bernoulli-rounding probability of the local triple \((A_g,u,w)\).
+
+Next order the clusters.  Let \(e_{j,u,w}\) add one count to the histogram coordinate indexed by \((s_j,A_j,u,w)\), initialize \(T_0(0)=1\), and put
+\[
+ T_j(h)=
+ \sum_{u=0}^{r_{s_j,A_j}}
+ \sum_{w=0}^{s_j-r_{s_j,A_j}}
+ T_{j-1}(h-e_{j,u,w})Q_{j,s_j}(u,w),
+ \qquad 1\le j\le m,
+\tag{52}
+\]
+with absent states equal to zero.  Then \(T_m(\omega)\) is the probability of endpoint observation histogram \(\omega\), and the continuous decoder is
+\[
+ \overline\delta(x,v)=
+ \sum_\omega T_m(\omega)\delta_{n(x),\omega}.
+\tag{53}
+\]
+For \(v\in[0,1]^N\), the recursion produces nonnegative weights summing to one, so (53) is a convex combination of the clipped constants (50) and belongs to \([-L,L]\).  Once the rational constants (50) have been installed, (51)--(53) use addition, subtraction, and multiplication only.  They are therefore a division-free rational arithmetic circuit.  A cluster has only a bounded number of local states because \(s_g\le b\), and (52) retains no more than the displayed number of observation-histogram states.  The circuit size is polynomial in the displayed orbit size and the labeled input length.  At a rational input \(v\), exact rational evaluation has polynomial bit complexity and detects every zero likelihood by testing the reduced numerator.  An arbitrary real number is not claimed to be a finite Turing input.  Separately, the same finite polynomial circuit defines a total mathematical function for every \(v\in\mathbb R^N\); its Bernoulli and estimator interpretation is used only on \([0,1]^N\).
+
+Expanding the two recursions gives
+\[
+ \overline\delta(x,v)=
+ \sum_{e'\in\{0,1\}^{\mathcal O(x)}}
+ \delta_{[x,e']}
+ \prod_{j:e'_j=1}v_j
+ \prod_{j:e'_j=0}(1-v_j),
+\tag{54}
+\]
+which is exactly \(\texttt{def:endpoint-extension}\).  Therefore \(\texttt{thm:endpoint-orbit-equivalence}\) promotes the binary upper certificate (47) to every bounded real schedule, while the rational binary prior in (49) remains a lower certificate for the larger schedule class.  This proves the compiler guarantee for every feasible treated-count table, including boundary counts and label-constant menus, with every zero-probability face treated explicitly.

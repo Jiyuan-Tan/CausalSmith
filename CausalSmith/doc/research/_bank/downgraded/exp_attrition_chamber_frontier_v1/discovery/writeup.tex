@@ -1,0 +1,915 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}attrition\_\allowbreak{}chamber\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Attrition makes both a rank statistic and its randomization reference tail depend on missing sharp-null outcomes. For an explicitly listed rationally weighted fixed-count design, the exact worst-case Wilcoxon-midrank p-value is the maximum over a finite complex of complete weak orders, including equality faces. The envelope is finite-sample valid under arbitrary fixed treatment-indexed observation, computable in \(O((2n+1)^k n|\Omega|\operatorname{poly}(\ell))\) time with a linear one-missing sweep, invertible over additive effects by a finite breakpoint scan, and NP-complete to maximize when \(k\) varies. For a succinct completely randomized design, the same ordinary-midrank maximum is computable in \(\left[\prod_{j=0}^{k-1}\{2(g+j)+1\}\right]\operatorname{poly}(n,\ell_{\mathrm{CRE}})\) bit operations without listing \(\binom{n}{m}\) assignments, and is therefore polynomial for every fixed \(k\). A saved constrained cluster-randomization support is a concrete conditional-design consumer, provided the endpoint is prespecified and the support is not altered after attrition.
+
+\section{Project justification}
+
+\paragraph{Gap.} Li, Sheng, and Yu obtain a tractable extreme-completion formula under exchangeability and an altered deterministic unit-index tie-breaking convention, while general Fisher theory assumes that the statistic is evaluable. Neither line characterizes the completion optimizer for an arbitrary explicitly weighted support with ordinary midranks and active equality faces.
+
+\paragraph{Niche.} Complete weak orders are the smallest finite object that simultaneously retains assignment-specific rank sums, active equality faces, and rational certificates.
+
+\paragraph{Fill.} The project proves the chamber representation and finite-sample validity, fills the completely randomized-design/ordinary-midrank fixed-\(k\) elbow with a succinct coefficient algorithm, identifies the fixed-\(k\) and variable-\(k\) computational boundary for arbitrary explicitly listed rational weights, performs exact additive-effect inversion, and gives a support-preserving constrained-cluster corollary.
+
+\section{Related work}
+
+Li, Sheng, and Yu study the same nuisance-supremum move under complete randomization with fixed potential outcomes and general treatment-indexed missingness; exchangeability together with their deterministic unit-index tie-breaking convention yields an extreme-completion closed form. Their tie convention does not settle the ordinary-midrank problem addressed here. The crossed regime distinction is: complete randomization plus index-resolved ties gives the Li--Sheng--Yu closed form; complete randomization plus ordinary midranks gives equality-inclusive chamber enumeration with polynomial coefficient evaluation at each leaf; arbitrary explicit rational weights plus ordinary midranks gives the present \(\mathrm{XP}\)/NP-complete frontier; and uniform generated restricted supports remain open. Heng, Zhang, and Feng develop imputation-assisted randomization tests that impute once and re-impute under each reassignment, prove finite-population-exact validity under their missingness mechanism, and construct finite-population-valid confidence regions. Their re-imputation law does not evaluate the supplied-design Wilcoxon-midrank completion envelope over \(\mathcal C_\delta(a)\). Zeng, Adams, and Bodenham establish arbitrary-missing Wilcoxon bounds and identify tie-induced failures of statistic-only p-value reasoning under the ordinary two-sample law. Luo, Dasgupta, Xie, and Liu establish finite Fisher validity and inversion for fully specified assignment mechanisms with complete evaluability. Sills provides exact tied-rank computation for a fixed completed sample, while Mehta, Patel, and Wei show that restricted randomization can support specialized exact recursions. Karp supplies the polynomial-reduction framework and \(\textsc{Clique}\) source problem used for the explicit-support lower bound. Hennessy et al. justify ex ante conditional randomization partitions, and Yu et al. document the saved constrained space and the distinct residual-contrast \(\texttt{cptest}\) workflow.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\delta\text{ such that }Y_i(1)-Y_i(0)=\delta\text{ for every }i\in I\).
+Primary functional / estimator / diagnostic: \(P_\delta(a)=\max_{\preceq\in\mathfrak W_\delta(a)}\sum_{z\in\Omega}w_z\mathbf 1\{T(z,\preceq)\ge T(a,\preceq)\}\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N_{+}\); \texttt{number of randomized units}
+  \item \texttt{I} --- \texttt{finite index set}; \texttt{unit labels}
+  \par\smallskip\noindent\emph{Definition.} \(I=\{1,\ldots,n\}\)
+  \item \texttt{m} --- \texttt{integer}; \(\{1,\ldots,n-1\}\); \texttt{fixed treated count}
+  \item \texttt{Zm} --- \texttt{finite assignment set}; \texttt{all fixed-\allowbreak{}count assignments}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Z_m=\{z\in\{0,1\}^{I}:\sum_{i\in I}z_i=m\}\)
+  \item \texttt{Omega} --- \texttt{nonempty finite set}; \(2^{\mathcal Z_m}\setminus\{\varnothing\}\); \texttt{explicitly listed assignment support}
+  \item \texttt{L} --- \texttt{positive integer}; \texttt{support size}
+  \par\smallskip\noindent\emph{Definition.} \(L=|\Omega|\)
+  \item \texttt{w} --- \texttt{rational probability mass function}; \(w:\Omega\to\mathbb Q_{>0}\); \texttt{known design weights}
+  \item \texttt{A} --- \texttt{random vector}; \(\Omega\); \texttt{sole source of randomness}
+  \par\smallskip\noindent\emph{Definition.} \(\Pr(A=z)=w_z\)
+  \item \texttt{a} --- \texttt{assignment vector}; \(\Omega\); \texttt{observed assignment}
+  \par\smallskip\noindent\emph{Definition.} \(a\) is the realized value of \(A\)
+  \item \texttt{Y} --- \texttt{fixed potential-\allowbreak{}outcome schedule}; \(Y:I\times\{0,1\}\to\mathbb R\); \texttt{finite-\allowbreak{}population outcomes}
+  \item \texttt{O} --- \texttt{fixed potential-\allowbreak{}observation schedule}; \(O:I\times\{0,1\}\to\{0,1\}\); \texttt{arbitrary treatment-\allowbreak{}indexed observation indicators}
+  \item \texttt{delta} --- \texttt{real scalar}; \(\mathbb R\); \texttt{hypothesized common additive effect}
+  \item \texttt{Hdelta} --- \texttt{sharp null hypothesis}; \texttt{testable causal hypothesis}
+  \par\smallskip\noindent\emph{Definition.} \(H_\delta:\ Y_i(1)=Y_i(0)+\delta\) for every \(i\in I\)
+  \item \texttt{M} --- \texttt{subset of units}; \texttt{units missing under the realized assignment}
+  \par\smallskip\noindent\emph{Definition.} \(M(a)=\{i\in I:O_i(a_i)=0\}\)
+  \item \texttt{k} --- \texttt{nonnegative integer}; \texttt{missing-\allowbreak{}outcome parameter}
+  \par\smallskip\noindent\emph{Definition.} \(k=|M(a)|\)
+  \item \texttt{yobs} --- \texttt{partial real vector}; \texttt{observed sharp-\allowbreak{}null baseline coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(y_i^{\mathrm{obs},\delta}=Y_i(a_i)-\delta a_i\) for \(i\notin M(a)\)
+  \item \texttt{g} --- \texttt{nonnegative integer}; \texttt{number of observed tie blocks}
+  \par\smallskip\noindent\emph{Definition.} \(g\) is the number of distinct coordinates in \(y^{\mathrm{obs},\delta}\)
+  \item \texttt{Cdelta} --- \texttt{affine completion set}; \texttt{legal sharp-\allowbreak{}null completions}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_\delta(a)=\{b\in\mathbb R^I:b_i=y_i^{\mathrm{obs},\delta}\text{ for every }i\notin M(a)\}\)
+  \item \texttt{r} --- \texttt{midrank map}; \(r_i:\mathbb R^I\to\tfrac12\mathbb Z\); \texttt{ordinary average rank}
+  \par\smallskip\noindent\emph{Definition.} \(r_i(b)=1+\#\{j:b_j<b_i\}+\{\#\{j:b_j=b_i\}-1\}/2\)
+  \item \texttt{T} --- \texttt{rank-\allowbreak{}sum statistic}; \(T:\Omega\times\mathbb R^I\to\tfrac12\mathbb Z\); \texttt{treated Wilcoxon rank sum}
+  \par\smallskip\noindent\emph{Definition.} \(T(z,b)=\sum_{i\in I}z_i r_i(b)\)
+  \item \texttt{poracle} --- \texttt{probability-\allowbreak{}valued functional}; \texttt{oracle upper-\allowbreak{}tail Fisher p-\allowbreak{}value}
+  \par\smallskip\noindent\emph{Definition.} \(p(a,b)=\sum_{z\in\Omega}w_z\mathbf 1\{T(z,b)\ge T(a,b)\}\)
+  \item \texttt{Pdelta} --- \texttt{probability-\allowbreak{}valued functional}; \texttt{attrition-\allowbreak{}robust p-\allowbreak{}value}
+  \par\smallskip\noindent\emph{Definition.} \(P_\delta(a)=\sup_{b\in\mathcal C_\delta(a)}p(a,b)\)
+  \item \texttt{alpha} --- \texttt{real scalar}; \([0,1]\); \texttt{test level}
+  \item \texttt{Calpha} --- \texttt{subset of the real line}; \texttt{inverted confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_\alpha(a)=\{\delta\in\mathbb R:P_\delta(a)>\alpha\}\)
+  \item \texttt{Wdelta} --- \texttt{finite chamber complex}; \texttt{equality-\allowbreak{}inclusive completion stratification}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak W_\delta(a)\) is the set of complete weak orders of the labels in \(I\) compatible with \(\mathcal C_\delta(a)\)
+  \item \texttt{Bdelta} --- \texttt{finite subset of the real line}; \texttt{additive-\allowbreak{}effect breakpoints}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B(a)=\{Y_i(a_i)-Y_j(a_j):O_i(a_i)=O_j(a_j)=1,\ a_i=1,\ a_j=0\}\)
+  \item \texttt{Alg} --- \texttt{exact finite algorithm}; \texttt{exact optimizer}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{ChamberMax}\) enumerates compatible weak orders by reversible block insertion and evaluates \(p(a,b)\) once per leaf
+  \item \texttt{Inv} --- \texttt{exact finite algorithm}; \texttt{effect-\allowbreak{}inversion algorithm}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Invert}\) evaluates \(\mathsf{ChamberMax}\) on every open component and singleton of \(\mathbb R\setminus\mathcal B(a)\)
+  \item \texttt{q} --- \texttt{rational scalar}; \(\mathbb Q\cap[0,1]\); \texttt{decision threshold}
+  \item \texttt{bits} --- \texttt{nonnegative integer}; \texttt{bit-\allowbreak{}complexity parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\ell\) is the total binary encoding length of \(a\), the rational value \(\delta\), all labeled rational observed coordinates in \(y^{\mathrm{obs},\delta}\), the explicitly listed support \(\Omega\), all rational weights \(w_z\), and the rational threshold \(q\)
+  \item \texttt{EMT} --- \texttt{decision problem}; \texttt{complexity target}
+  \par\smallskip\noindent\emph{Definition.} \(\textsc{Explicit-Max-Tail}\) takes the binary encoding of \(a\), a rational \(\delta\), every labeled rational observed coordinate in \(y^{\mathrm{obs},\delta}\), the explicitly listed \(\Omega\), every rational weight \(w_z\), and rational \(q\), and asks whether some \(b\in\mathcal C_\delta(a)\) satisfies \(p(a,b)\ge q\)
+  \item \texttt{G} --- \texttt{finite simple graph}; \texttt{source instance for the hardness reduction}
+  \item \texttt{V} --- \texttt{finite vertex set}; \texttt{graph vertices}
+  \par\smallskip\noindent\emph{Definition.} \(V\) is the vertex set of \(G\)
+  \item \texttt{E} --- \texttt{edge set}; \(\binom{V}{2}\); \texttt{graph edges}
+  \item \texttt{vN} --- \texttt{positive integer}; \texttt{graph order}
+  \par\smallskip\noindent\emph{Definition.} \(v=|V|\)
+  \item \texttt{s} --- \texttt{integer}; \(\{2,\ldots,v\}\); \texttt{requested clique size}
+  \item \texttt{e} --- \texttt{nonnegative integer}; \texttt{edge count}
+  \par\smallskip\noindent\emph{Definition.} \(e=|E|\)
+  \item \texttt{h} --- \texttt{positive integer}; \texttt{number of high anchor units in the reduction}
+  \par\smallskip\noindent\emph{Definition.} \(h=2v-s\)
+  \item \texttt{B} --- \texttt{positive integer}; \texttt{vertex-\allowbreak{}row weight in the reduction}
+  \par\smallskip\noindent\emph{Definition.} \(B=e+1\)
+  \item \texttt{Astar} --- \texttt{positive integer}; \texttt{guard-\allowbreak{}row weight in the reduction}
+  \par\smallskip\noindent\emph{Definition.} \(A_\star=vB+e+1\)
+  \item \texttt{Wstar} --- \texttt{positive integer}; \texttt{normalizing reduction weight}
+  \par\smallskip\noindent\emph{Definition.} \(W_\star=1+vA_\star+vB+e\)
+  \item \texttt{qstar} --- \texttt{rational scalar}; \texttt{reduction threshold}
+  \par\smallskip\noindent\emph{Definition.} \(q_\star=\{1+vA_\star+sB+\binom{s}{2}\}/W_\star\)
+  \item \texttt{Red} --- \texttt{polynomial mapping}; \texttt{many-\allowbreak{}one reduction}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf R(G,s)\) is the explicit weighted-support instance constructed from guard, vertex, and edge rows
+  \item \texttt{Gpre} --- \texttt{prespecified design information}; \texttt{conditioning object for constrained randomization}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr G\) contains the saved unmarked support and baseline design information before the final assignment draw
+  \item \texttt{Kfront} --- \texttt{research handle}; \texttt{two-\allowbreak{}sided handle for the unresolved parameterized frontier}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{ParamFrontier}\) combines dynamic programming over support-column types with parameter-preserving uniformization gadgets for the lowest-tied-block reduction
+  \item \texttt{bitsCRE} --- \texttt{nonnegative integer}; \texttt{succinct completely randomized-\allowbreak{}design bit-\allowbreak{}complexity parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{\mathrm{CRE}}\) is the total binary encoding length of \(n\), \(m\), \(a\), the rational value \(\delta\), and the labeled rational partial vector \(y^{\mathrm{obs},\delta}\), when \(\Omega=\mathcal Z_m\) and \(w_z=\binom{n}{m}^{-1}\) are supplied as a succinct completely randomized-design promise rather than as an explicit row list.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-potential-outcomes]\label{ass:fixed-potential-outcomes}
+The potential-outcome schedule \(Y\) is fixed under the assignment draw.
+\par\smallskip\noindent\emph{Standard} (Neyman--Fisher fixed potential outcomes, \cite{Fisher1935}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-observation-schedule]\label{ass:fixed-observation-schedule}
+The treatment-indexed potential-observation schedule \(O\) is fixed under the assignment draw.
+\par\smallskip\noindent\emph{Standard} (fixed potential missingness indicators in design-based inference, \cite{LiShengYu2025}).
+\end{assumption}
+
+\begin{assumption}[ass:known-fixed-count-design]\label{ass:known-fixed-count-design}
+The support \(\Omega\) is a nonempty explicitly listed subset of \(\mathcal Z_m\).
+\par\smallskip\noindent\emph{Standard} (fully specified fixed-count assignment mechanism, \cite{LuoDasguptaXieLiu2021}).
+\end{assumption}
+
+\begin{assumption}[ass:rational-positive-weights]\label{ass:rational-positive-weights}
+For every \(z\in\Omega\), \(w_z\in\mathbb Q_{>0}\), and \(\sum_{z\in\Omega}w_z=1\).
+\par\smallskip\noindent\emph{Standard} (known assignment probabilities on a finite support, \cite{LuoDasguptaXieLiu2021}).
+\end{assumption}
+
+\begin{assumption}[ass:sharp-additive-null]\label{ass:sharp-additive-null}
+For every \(i\in I\), \(Y_i(1)=Y_i(0)+\delta\).
+\par\smallskip\noindent\emph{Standard} (Fisher sharp constant-effect null, \cite{Fisher1935}).
+\end{assumption}
+
+\begin{assumption}[ass:prespecified-saved-support]\label{ass:prespecified-saved-support}
+Conditional on \(\mathscr G\), the final assignment obeys the recorded mass function \(w\) on the recorded support \(\Omega\).
+\par\smallskip\noindent\emph{Standard} (ex ante conditional randomization partition, \cite{HennessyEtAl2016}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:completion-set]\label{def:completion-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Legal sharp-\allowbreak{}null completion set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_\delta(a)=\{b\in\mathbb R^I:b_i=Y_i(a_i)-\delta a_i\text{ for every }i\text{ with }O_i(a_i)=1\}\).
+\end{definition}
+
+\begin{definition}[def:midrank-tail]\label{def:midrank-tail}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Midrank oracle tail}
+\par\smallskip\noindent\emph{Construction.} For \(b\in\mathcal C_\delta(a)\), set \(r_i(b)=1+\#\{j:b_j<b_i\}+\{\#\{j:b_j=b_i\}-1\}/2\), \(T(z,b)=\sum_i z_i r_i(b)\), and \(p(a,b)=\sum_{z\in\Omega}w_z\mathbf 1\{T(z,b)\ge T(a,b)\}\).
+\end{definition}
+
+\begin{definition}[def:robust-pvalue]\label{def:robust-pvalue}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Worst-\allowbreak{}case completion p-\allowbreak{}value}
+\par\smallskip\noindent\emph{Construction.} \(P_\delta(a)=\sup_{b\in\mathcal C_\delta(a)}p(a,b)\).
+\end{definition}
+
+\begin{definition}[def:weak-order-complex]\label{def:weak-order-complex}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complete weak-\allowbreak{}order chamber complex}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak W_\delta(a)=\{\preceq:\preceq\text{ is a total preorder on }I\text{ and some }b\in\mathcal C_\delta(a)\text{ satisfies }i\preceq j\Longleftrightarrow b_i\le b_j\}\); its cells retain both strict gaps and equality blocks.
+\end{definition}
+
+\begin{definition}[def:block-insertion-algorithm]\label{def:block-insertion-algorithm}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Reversible weak-\allowbreak{}order insertion}
+\par\smallskip\noindent\emph{Construction.} Sort the distinct observed values into \(g\) ordered blocks; for each missing label, branch by inserting it into any of the current gaps or attaching it to any current block; at each final ordered partition evaluate all \(L\) weighted tail inequalities and retain a maximizer.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Cdelta}; \texttt{Omega}; \texttt{w}; \texttt{a}.
+\end{definition}
+
+\begin{definition}[def:effect-breakpoint-inversion]\label{def:effect-breakpoint-inversion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Equality-\allowbreak{}aware effect inversion}
+\par\smallskip\noindent\emph{Construction.} Compute \(\mathcal B(a)\), evaluate \(\mathsf{ChamberMax}\) once on every open component of \(\mathbb R\setminus\mathcal B(a)\) and once at every point of \(\mathcal B(a)\), and return exactly those cells on which \(P_\delta(a)>\alpha\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y}; \texttt{O}; \texttt{a}; \texttt{Omega}; \texttt{w}.
+\end{definition}
+
+\begin{definition}[def:clique-reduction]\label{def:clique-reduction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Guard-\allowbreak{}-\allowbreak{}vertex-\allowbreak{}-\allowbreak{}edge weighted-\allowbreak{}support reduction}
+\par\smallskip\noindent\emph{Construction.} For a nontrivial \(\textsc{Clique}\) instance \((G,s)\), use \(v\) missing vertex units, \(h=2v-s\) observed outcome-one anchors, and four observed outcome-zero controls. The realized row treats all vertex and anchor units and has unnormalized weight \(1\). For each vertex \(i\), a guard row exchanges vertex \(i\) for one control and has weight \(A_\star\); a vertex row exchanges vertex \(i\) and one anchor for two controls and has weight \(B\); for each edge \(ij\in E\), an edge row exchanges vertices \(i,j\) and two anchors for four controls and has weight \(1\). Normalize by \(W_\star\) and use threshold \(q_\star\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{s}.
+\end{definition}
+
+\begin{definition}[def:six-unit-witness]\label{def:six-unit-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Constrained six-\allowbreak{}unit non-\allowbreak{}extreme witness}
+\par\smallskip\noindent\emph{Construction.} Let \(n=6\), \(m=3\), baseline balance scores be \((-6,-1,2,2,-8,7)\), and retain assignments whose absolute treated-minus-control score is at most \(4\). Then \(\Omega=\{\{1,2,6\},\{1,3,4\},\{2,5,6\},\{3,4,5\}\}\) with weights \(1/4\); take \(a=\{1,2,6\}\), unit \(1\) missing, and observed baseline outcomes on units \(2,\ldots,6\) equal to \((1,2,3,4,5)\).
+\end{definition}
+
+\begin{definition}[def:equality-face-witness]\label{def:equality-face-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}vertex equality-\allowbreak{}face witness}
+\par\smallskip\noindent\emph{Construction.} Apply \(\mathsf R(G,s)\) to the graph consisting of one edge with \(v=s=2\); then \(B=2\), \(A_\star=6\), and \(W_\star=18\).
+\end{definition}
+
+\begin{definition}[def:explicit-max-tail-language]\label{def:explicit-max-tail-language}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Encoded explicit-\allowbreak{}support decision language}
+\par\smallskip\noindent\emph{Construction.} An input is \(\langle a,\delta,\{(i,y_i^{\mathrm{obs},\delta}):i\notin M(a)\},\Omega,\{w_z:z\in\Omega\},q\rangle\), where \(\delta\), the observed coordinates, the weights, and \(q\) are rational, \(\Omega\) is listed row by row, and the total binary length is \(\ell\). The input is accepted exactly when some \(b\in\mathcal C_\delta(a)\) has \(p(a,b)\ge q\).
+\end{definition}
+
+\begin{definition}[def:parameterized-frontier-handle]\label{def:parameterized-frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Parameterized-\allowbreak{}complexity handle}
+\par\smallskip\noindent\emph{Construction.} Use \(\mathsf{ParamFrontier}\) to seek either a dynamic program whose state consists of support-column types and current tie-block sufficient statistics, or a parameter-preserving replacement of rational weights by explicit support gadgets that retains the lowest-tied-block converse.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:weak-order-attainment]\label{thm:weak-order-attainment}
+Every cell of \(\mathfrak W_\delta(a)\) fixes the full midrank vector, every value \(T(z,b)\), and every indicator in \(p(a,b)\). Hence \(P_\delta(a)\) is a maximum over the finite complete weak-order complex, equality faces included, and is attained. If the observed outcomes are rational, every nonempty cell has a rational representative of polynomial encoding length.
+\end{theorem}
+\begin{proof}
+Fix \(a\), \(\delta\), and a completion \(b\in\mathcal C_\delta(a)\).  The relation
+\[
+i\preceq_b j\quad\Longleftrightarrow\quad b_i\le b_j
+\]
+is a total preorder on the finite set \(I\).  Its equivalence classes are the equality blocks of \(b\), ordered by their common values.  Conversely, the definition of \(\mathfrak W_\delta(a)\) retains exactly those ordered partitions that extend the fixed ordered partition of the observed coordinates.
+
+Consider a block \(D\) of cardinality \(d\) having exactly \(c\) labels in earlier blocks.  By the definition of the midrank, every \(i\in D\) has
+\[
+r_i(b)=1+c+\frac{d-1}{2}=c+\frac{d+1}{2}.
+\]
+Thus a cell of \(\mathfrak W_\delta(a)\) fixes every coordinate of \(r(b)\).  It consequently fixes \(T(z,b)=\sum_i z_i r_i(b)\) for each \(z\in\Omega\), fixes each comparison \(T(z,b)\ge T(a,b)\), and, by the midrank-tail definition, fixes \(p(a,b)\).
+
+There are only finitely many total preorders on the finite set \(I\).  By the definition of \(\mathfrak W_\delta(a)\), each of its cells is nonempty.  Therefore the finite set of values of \(p(a,b)\) over these cells has a largest element.  Every completion induces one of the cells, while each cell has a realizing completion, so the robust-p-value definition gives
+\[
+P_\delta(a)
+=\max_{\preceq\in\mathfrak W_\delta(a)}
+  \sum_{z\in\Omega}w_z
+  \mathbf 1\{T(z,\preceq)\ge T(a,\preceq)\}.
+\]
+In particular, the supremum is attained.  This argument includes equality blocks; no continuity or compactness assertion is being used.
+
+It remains to establish the encoding claim.  Suppose the distinct observed coordinates are rational numbers \(c_1<\cdots<c_g\).  For a compatible cell, attach every missing label that shares an observed block to its prescribed \(c_j\).  If a gap \((c_j,c_{j+1})\) contains \(q\) missing-only blocks, assign them, in order, the values
+\[
+c_j+\frac{u}{q+1}(c_{j+1}-c_j),\qquad u=1,\ldots,q.
+\]
+Assign consecutive integer translates below \(c_1\) and above \(c_g\) to exterior missing-only blocks.  If \(g=0\), assign consecutive integers to all blocks.  These choices realize precisely the prescribed strict and equality relations.  Each new denominator has binary length bounded by the total input length plus \(O(\log(k+1))\), and the same is true after the indicated rational additions and multiplications.  Hence the whole representative has polynomial encoding length.  This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem converts an unbounded missing-outcome optimization into a finite exact object without discarding ties. \textit{Gap.} Li, Sheng, and Yu obtain an extreme-completion closed form from an exchangeable assignment law together with an altered deterministic unit-index tie-breaking convention. Ordinary midranks under arbitrary explicitly listed rational assignment weights instead require the equality-inclusive chamber maximum. \textit{Consumer.} It supplies a checkable finite certificate for exact attrition-robust testing under rerandomization and other restricted designs.
+
+\begin{theorem}[thm:finite-sample-validity]\label{thm:finite-sample-validity}
+Under \(H_\delta\), for every fixed potential-outcome schedule, every fixed treatment-indexed observation schedule, and every \(\alpha\in[0,1]\), \(\Pr_w\{P_\delta(A)\le\alpha\}\le\alpha\). Consequently \(\Pr_w\{\delta\in\mathcal I_\alpha(A)\}\ge1-\alpha\).
+\end{theorem}
+\begin{proof}
+Under the sharp additive null, define the fixed complete baseline vector
+\[
+b_i^\star=Y_i(0),\qquad i\in I.
+\]
+The fixed-potential-outcomes and fixed-observation-schedule assumptions make \(b^\star\) nonrandom under the sole assignment draw.  For every possible realization \(a\in\Omega\) and every observed label \(i\) under that realization, the sharp-null assumption gives
+\[
+Y_i(a_i)-\delta a_i=Y_i(0)=b_i^\star.
+\]
+Therefore \(b^\star\in\mathcal C_\delta(a)\) for every \(a\in\Omega\), even though \(M(a)\) may vary with \(a\).  Weak-order attainment and the definition of the robust p-value consequently imply the pointwise domination
+\[
+P_\delta(a)\ge p(a,b^\star),\qquad a\in\Omega.
+\]
+
+We next prove, rather than assume, super-uniformity of the oracle tail.  Let the distinct values of \(T(z,b^\star)\), in decreasing order, be \(t_1>\cdots>t_J\), and put
+\[
+\mu_j=\sum_{z\in\Omega}w_z\mathbf 1\{T(z,b^\star)=t_j\},
+\qquad
+c_j=\sum_{\ell=1}^j\mu_\ell.
+\]
+Positivity and normalization of the design weights give \(\mu_j>0\), \(c_j\) increasing, and \(c_J=1\).  If \(T(a,b^\star)=t_j\), the oracle-tail definition gives \(p(a,b^\star)=c_j\).  Hence, if \(j_\alpha=\max\{j:c_j\le\alpha\}\) exists,
+\[
+\Pr_w\{p(A,b^\star)\le\alpha\}
+=\sum_{j=1}^{j_\alpha}\mu_j
+=c_{j_\alpha}\le\alpha;
+\]
+if that set is empty, the probability is zero.  This calculation is valid for arbitrary positive weights and retains all statistic ties.
+
+Pointwise domination yields the event inclusion
+\[
+\{P_\delta(A)\le\alpha\}
+\subseteq
+\{p(A,b^\star)\le\alpha\},
+\]
+so \(\Pr_w\{P_\delta(A)\le\alpha\}\le\alpha\).  Finally, by the definition \(\mathcal I_\alpha(A)=\{d:P_d(A)>\alpha\}\), at the true common effect \(\delta\),
+\[
+\{\delta\notin\mathcal I_\alpha(A)\}
+=\{P_\delta(A)\le\alpha\}.
+\]
+Taking complements proves \(\Pr_w\{\delta\in\mathcal I_\alpha(A)\}\ge1-\alpha\).  No conditioning on the realized observation set has entered the argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Pointwise domination of the infeasible oracle tail yields unconditional finite-sample size control despite treatment-dependent observation. \textit{Gap.} General Fisher validity is known from Luo et al.; Li, Sheng, and Yu study worst-case completion under exchangeability and altered index tie-breaking; and Heng, Zhang, and Feng establish imputation-assisted randomization validity through re-imputation. None evaluates the equality-complete supplied-support Wilcoxon-midrank envelope stated here. \textit{Consumer.} An analyst can report a finite-population exact confidence set without conditioning on the realized survivor set.
+
+\begin{theorem}[thm:fixed-k-algorithm]\label{thm:fixed-k-algorithm}
+The algorithm \(\mathsf{ChamberMax}\) computes \(P_\delta(a)\) and an optimizing weak-order certificate using at most \(\prod_{j=0}^{k-1}\{2(g+j)+1\}\le(2n+1)^k\) leaves and \(O((2n+1)^k nL\,\operatorname{poly}(\ell))\) bit operations. For \(k=1\), an equality-inclusive sweep through the \(2g+1\) positions runs in \(O(nL\,\operatorname{poly}(\ell))\) after sorting. This is an \(\mathrm{XP}\), not an \(\mathrm{FPT}\), guarantee.
+\end{theorem}
+\begin{proof}
+Let the observed coordinates induce the ordered nonempty equality blocks
+\(B_1\prec\cdots\prec B_g\).  Process the \(k\) missing labels in a fixed
+label order, as prescribed by \(\mathsf{ChamberMax}\) in
+Definition \(\text{def:block-insertion-algorithm}\).  If the current ordered
+partition has \(h\) blocks, the next missing label either forms a singleton
+in one of the \(h+1\) gaps or joins one of the \(h\) existing blocks.  Thus
+there are exactly \(2h+1\) branches at that node.
+
+These branches enumerate the compatible weak orders without omission or
+duplication.  Indeed, start with any compatible final weak order and delete
+the processed missing labels in reverse order.  At a deletion step, if the
+label shares its block with a label that has not yet been deleted, then its
+unique predecessor is obtained by deleting it from that block and the forward
+operation was attachment.  Otherwise it is a singleton, its unique predecessor
+is obtained by deleting that singleton block, and the forward operation was
+insertion into the resulting unique gap.  Reversing all deletions yields the
+observed ordered blocks.  This gives a two-sided inverse to the insertion path.
+After \(j\) labels have been inserted there are at most \(g+j\) blocks, so the
+number \(C(g,k)\) of leaves satisfies
+\[
+ C(g,k)\le \prod_{j=0}^{k-1}\{2(g+j)+1\}
+ \le (2n+1)^k.
+\]
+Here the empty product is one when \(k=0\), and the last inequality uses
+\(g+j\le n\).
+
+Fix a leaf and scan its ordered blocks.  By the midrank formula in
+Definition \(\text{def:midrank-tail}\), if a block has size \(d\) and exactly
+\(c\) labels precede it, every member of that block has midrank
+\[
+ r=c+\frac{d+1}{2},
+ \qquad q:=2r=2c+d+1\in\{2,\ldots,2n\}.
+\]
+Consequently, after one \(O(n)\) scan has assigned every doubled rank
+\(q_i=2r_i\), each explicitly listed row \(z\in\Omega\) is evaluated by the
+integer sum
+\[
+ 2T(z,b)=\sum_{i\in I}z_iq_i.
+\]
+Comparing this sum with \(2T(a,b)\) and accumulating the corresponding
+\(w_z\) costs \(O(nL)\) arithmetic operations at the leaf.  By
+Theorem \(\text{thm:weak-order-attainment}\), the tail is constant on each
+enumerated cell and its maximum over these leaves is exactly
+\(P_\delta(a)\).  Retaining a maximizing ordered partition therefore supplies
+the asserted optimizing weak-order certificate.
+
+It remains to account for exact bit complexity.  By
+Assumption \(\text{ass:known-fixed-count-design}\), the \(L\) rows are finite
+and explicitly available.  Sorting the rational observed coordinates and all
+subsequent comparisons have cost polynomial in \(\ell\).  By
+Assumption \(\text{ass:rational-positive-weights}\), all tail masses are exact
+rational sums.  Placing their denominators over their product gives a common
+denominator whose binary length is at most the sum of the input denominator
+lengths, hence \(O(\ell)\); the accumulated numerator also has polynomial
+binary length.  The doubled rank sums have \(O(\log n)\) bits.  Thus the total
+number of bit operations, including sorting, is
+\[
+ O\!\left((2n+1)^k nL\,\operatorname{poly}(\ell)\right).
+\]
+For fixed \(k\) this bound is polynomial in the explicit input size.  Because
+the exponent of \(n\) in the displayed guarantee depends on \(k\), it is an
+\(\mathrm{XP}\) guarantee and does not itself give an \(\mathrm{FPT}\)
+guarantee.
+
+For the sharper \(k=1\) bound, write \(u\) for the missing label and traverse
+the \(2g+1\) positions consisting of the bottom gap and, for each observed
+block from bottom to top, its equality face followed by the gap above it.  For
+each \(z\in\Omega\), define
+\[
+ d_i(z)=z_i-a_i,
+ \qquad D_z= T(z,b)-T(a,b)=\sum_{i\in I}d_i(z)r_i(b).
+\]
+Consider an observed block \(B\) of size \(t\).  On moving \(u\) from the gap
+immediately below \(B\) to the equality face of \(B\), the rank of \(u\)
+increases by \(t/2\), while the rank of every member of \(B\) decreases by
+\(1/2\).  Therefore
+\[
+ D_z(\text{face})-D_z(\text{lower gap})
+ =\frac{t\,d_u(z)-\sum_{i\in B}d_i(z)}{2}.
+\]
+The same rank changes, and hence the same increment, occur from that equality
+face to the gap immediately above \(B\).  For every row \(z\), all block sums
+\(\sum_{i\in B_j}d_i(z)\), together with the value of \(D_z\) at the bottom
+gap, are computed in \(O(n)\) operations.  Across all rows this initialization
+costs \(O(nL)\).  Each of the \(2g\) half-steps updates all \(D_z\) and sums
+the weights with \(D_z\ge0\) in \(O(L\operatorname{poly}(\ell))\) bit
+operations.  Since \(g\le n\), the complete equality-inclusive sweep costs
+\(O(nL\operatorname{poly}(\ell))\) after sorting and examines every one of the
+\(2g+1\) compatible positions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit-support bound locates the small-attrition tractable regime by evaluating every supplied weighted row, while the companion completely randomized-design theorem removes exponential row expansion through coefficient evaluation at each chamber leaf. \textit{Gap.} Sills computes a fixed tied-rank distribution, and Mehta, Patel, and Wei exploit special design recursions; neither combines completion weak-order enumeration with both an arbitrary supplied-weight row evaluator and a succinct completely randomized-design coefficient evaluator under ordinary midranks. \textit{Consumer.} Small-attrition trials can compute the exact robust p-value rather than search over completions by Monte Carlo: listed restricted designs use row scans, while complete randomization uses the succinct subset-sum coefficient table.
+
+\begin{theorem}[thm:additive-effect-inversion]\label{thm:additive-effect-inversion}
+The function \(\delta\mapsto P_\delta(a)\) is constant on every open component of \(\mathbb R\setminus\mathcal B(a)\), while a singleton breakpoint may have a distinct equality-face value. Since \(|\mathcal B(a)|\le n^2\), \(\mathsf{Invert}\) returns the complete, possibly disconnected confidence set \(\mathcal I_\alpha(a)\), including exact endpoint status, with \(O(n^2)\) calls to \(\mathsf{ChamberMax}\).
+\end{theorem}
+\begin{proof}
+Fix the realized assignment and observation indicators.  For an observed treated unit \(i\), its sharp-null baseline coordinate as a function of the hypothesized effect is
+\[
+x_i(\delta)=Y_i(1)-\delta,
+\]
+whereas for an observed control \(j\), it is \(x_j(\delta)=Y_j(0)\).  Two observed coordinates in the same treatment arm have a difference independent of \(\delta\).  An observed treated coordinate and an observed control coordinate are equal exactly when
+\[
+\delta=Y_i(a_i)-Y_j(a_j).
+\]
+Thus all possible changes in the ordered equality-block partition of the observed labels occur in \(\mathcal B(a)\), by its definition.
+
+Let \(J\) be an open component of \(\mathbb R\setminus\mathcal B(a)\).  Every pairwise sign \(\operatorname{sgn}\{x_i(\delta)-x_j(\delta)\}\) is constant for \(\delta\in J\): this is immediate for same-arm pairs, and for a cross-arm pair its sole zero, if any, is a breakpoint not in \(J\).  Hence the observed ordered partition is constant throughout \(J\).  The compatible complete weak orders are exactly the total preorders extending that observed partition, so the set \(\mathfrak W_\delta(a)\), viewed as a set of ordered label partitions, is also constant on \(J\).  For any one such partition, its midrank vector and all design-row tail indicators depend only on block membership and block order, not on the numerical values representing the blocks.  The weak-order maximum formula therefore proves that \(P_\delta(a)\) is constant on \(J\).
+
+At a breakpoint, one or more treated and control observed blocks can merge.  The compatible weak-order complex at that singleton can consequently differ from both adjacent complexes, so its value must be evaluated separately; no equality of the singleton value with an adjacent value is asserted.
+
+There are at most as many breakpoints as ordered observed treated-control pairs, and hence
+\[
+|\mathcal B(a)|\le n^2.
+\]
+If \(b=|\mathcal B(a)|\), the line is partitioned into \(b+1\) open components and \(b\) singleton breakpoints.  The definition of \(\mathsf{Invert}\), together with the exactness of \(\mathsf{ChamberMax}\), therefore reconstructs
+\[
+\mathcal I_\alpha(a)=\{\delta:P_\delta(a)>\alpha\}
+\]
+as the union of precisely the accepted open components and accepted singleton breakpoints, using \(2b+1=O(n^2)\) calls.  This gives exact endpoint inclusion even when the set is disconnected.  Finally, if the schedule has a true common additive effect \(\delta\), finite-sample validity gives
+\(\Pr_w\{\delta\in\mathcal I_\alpha(A)\}\ge1-\alpha\); the inversion calculation itself makes no monotonicity or connectedness assumption.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Finite equality-aware inversion replaces a grid and does not assume a monotone or connected p-value curve. \textit{Gap.} Luo et al. give careful Fisher inversion and Caughey et al. use effect-increasing ranks, but neither handles optimizer changes caused by an attrition envelope on a weighted support. \textit{Consumer.} Applied researchers obtain every accepted additive effect and its correct open or closed boundary.
+
+\begin{proposition}[prop:six-unit-nonextreme]\label{prop:six-unit-nonextreme}
+In the six-unit construction, any completion with the missing outcome below \(1\) gives supported rank sums \((9,8,13,12)\) and upper tail \(3/4\), whereas any completion strictly between \(1\) and \(2\) gives \((9,9,12,12)\) and upper tail \(1\). Thus an interior completion strictly dominates the lower extreme even though both completions have no outcome ties.
+\end{proposition}
+\begin{proof}
+Let \(x=b_1\) denote the completed baseline outcome of the missing unit.  By the definition of \(\mathcal C_\delta(a)\) and the construction in \(\mathrm{def:six\mbox{-}unit\mbox{-}witness}\), every \(x\in\mathbb R\) is legal and the other coordinates are fixed as
+\[
+(b_2,b_3,b_4,b_5,b_6)=(1,2,3,4,5).
+\]
+List the four supported treated sets in the order
+\[
+z^{(1)}=a=\{1,2,6\},\qquad z^{(2)}=\{1,3,4\},\qquad z^{(3)}=\{2,5,6\},\qquad z^{(4)}=\{3,4,5\}.
+\]
+Each has weight \(1/4\) by \(\mathrm{def:six\mbox{-}unit\mbox{-}witness}\).
+
+First suppose \(x<1\).  Then
+\[
+b_1<b_2<b_3<b_4<b_5<b_6.
+\]
+There are no ties, so the midrank formula in \(\mathrm{def:midrank\mbox{-}tail}\) gives
+\[
+(r_1(b),r_2(b),r_3(b),r_4(b),r_5(b),r_6(b))=(1,2,3,4,5,6).
+\]
+Summing the ranks over each treated set, again by \(\mathrm{def:midrank\mbox{-}tail}\), yields
+\[
+\begin{aligned}
+T(z^{(1)},b)&=1+2+6=9, &
+T(z^{(2)},b)&=1+3+4=8,\\
+T(z^{(3)},b)&=2+5+6=13, &
+T(z^{(4)},b)&=3+4+5=12.
+\end{aligned}
+\]
+Because the realized assignment is \(a=z^{(1)}\), its statistic is \(T(a,b)=9\).  Therefore the oracle upper-tail definition gives
+\[
+p(a,b)=\frac14\sum_{j=1}^4\mathbf 1\!\left\{T(z^{(j)},b)\ge 9\right\}
+=\frac14(1+0+1+1)=\frac34.
+\]
+
+Now suppose \(1<x<2\).  The strict order is
+\[
+b_2<b_1<b_3<b_4<b_5<b_6,
+\]
+so there are again no ties and the same midrank definition gives
+\[
+(r_1(b),r_2(b),r_3(b),r_4(b),r_5(b),r_6(b))=(2,1,3,4,5,6).
+\]
+Consequently,
+\[
+\begin{aligned}
+T(z^{(1)},b)&=2+1+6=9, &
+T(z^{(2)},b)&=2+3+4=9,\\
+T(z^{(3)},b)&=1+5+6=12, &
+T(z^{(4)},b)&=3+4+5=12.
+\end{aligned}
+\]
+Here too \(T(a,b)=9\), but now every supported statistic is at least \(9\).  Hence
+\[
+p(a,b)=\frac14(1+1+1+1)=1.
+\]
+Thus every completion in the open interval \((1,2)\) has oracle tail \(1\), strictly exceeding the value \(3/4\) attained by every completion below \(1\).  Both regimes are tie-free because all displayed inequalities are strict, which proves the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The witness isolates why exchangeable extreme-imputation logic fails under a covariate-constrained support. \textit{Gap.} The extreme-completion simplification of Li, Sheng, and Yu uses an exchangeable assignment law and an altered deterministic unit-index tie-breaking convention. This support is uniform and complement-symmetric but balance-restricted, and ordinary midranks make an interior completion optimal. \textit{Consumer.} It gives a regression test for any implementation and prevents an invalid endpoint-only optimizer.
+
+\begin{lemma}[lem:midrank-bottom-block]\label{lem:midrank-bottom-block}
+For any nonempty subset \(S\subseteq I\) of cardinality \(t\) and any completed midrank vector, \(\sum_{i\in S}r_i(b)\ge t(t+1)/2\). Equality holds if and only if every label in \(S\) is strictly below every label outside \(S\). In particular, if the \(t\) labels in \(S\) all have rank at most \((t+1)/2\), they form the unique lowest tied block and each has rank \((t+1)/2\).
+\end{lemma}
+\begin{proof}
+Fix a completion \(b\) and, for distinct labels \(i,j\in I\), define
+\[
+ \phi_{ij}(b)
+ =\mathbf 1\{b_j<b_i\}+\frac12\mathbf 1\{b_j=b_i\}.
+\]
+By the midrank definition in \(\texttt{def:midrank-tail}\),
+\[
+ r_i(b)=1+\sum_{j\ne i}\phi_{ij}(b).
+\]
+For every unordered pair \(\{i,j\}\), trichotomy of the real numbers gives
+\[
+ \phi_{ij}(b)+\phi_{ji}(b)=1;
+\]
+this also holds when \(b_i=b_j\), because then both summands are \(1/2\).
+
+Let \(\varnothing\ne S\subseteq I\) and write \(|S|=t\).  Separating pairs internal to \(S\) from pairs crossing from \(S\) to its complement yields
+\[
+\begin{aligned}
+ \sum_{i\in S}r_i(b)
+ &=t+
+   \sum_{\{i,j\}\subseteq S}\bigl\{\phi_{ij}(b)+\phi_{ji}(b)\bigr\}
+   +\sum_{\substack{i\in S\\j\notin S}}\phi_{ij}(b)\\
+ &=t+\binom{t}{2}
+   +\sum_{\substack{i\in S\\j\notin S}}\phi_{ij}(b)\\
+ &\ge \frac{t(t+1)}2.
+\end{aligned}
+\]
+Every term in the last sum is nonnegative.  Equality therefore holds if and only if
+\(\phi_{ij}(b)=0\) for every \(i\in S\) and \(j\notin S\).  From the displayed definition of \(\phi_{ij}\), this is equivalent to \(b_i<b_j\) for every such ordered pair.  This proves both the lower bound and its equality characterization.
+
+Now suppose that \(r_i(b)\le (t+1)/2\) for all \(i\in S\).  Combining the proved lower bound with these coordinatewise upper bounds gives
+\[
+ \frac{t(t+1)}2
+ \le \sum_{i\in S}r_i(b)
+ \le t\frac{t+1}{2}.
+\]
+Both inequalities are equalities.  Consequently every coordinatewise upper bound is tight,
+\[
+ r_i(b)=\frac{t+1}{2}\qquad(i\in S),
+\]
+and the equality characterization gives \(b_i<b_j\) whenever \(i\in S\) and \(j\notin S\).
+To identify the tie structure, partition the labels into outcome-tie blocks \(D_1,\ldots,D_J\), ordered by their common outcome values, and put \(d_j=|D_j|\).  Directly from the midrank definition, every label in \(D_j\) has rank
+\[
+ 1+\sum_{\ell<j}d_\ell+\frac{d_j-1}{2}.
+\]
+The rank difference between consecutive blocks \(D_j,D_{j+1}\) is \((d_j+d_{j+1})/2>0\).  Thus equal midranks occur exactly within a single tie block.  All labels in \(S\) are therefore tied, and their strict separation below every label outside \(S\) makes \(S\) the unique lowest tied block.  Its common rank is \((t+1)/2\), as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The equality characterization is the load-bearing converse that prevents tie faces from creating false graph certificates. \textit{Gap.} Classical midrank identities give the total rank sum, but the subset equality condition is the exact combinatorial lemma required by this reduction. \textit{Consumer.} A machine-checked version closes the remaining proof bottleneck in the NP-hardness argument.
+
+\begin{theorem}[thm:explicit-max-tail-np-complete]\label{thm:explicit-max-tail-np-complete}
+\(\textsc{Explicit-Max-Tail}\), whose encoded instance consists of \(a\), a rational \(\delta\), every labeled rational coordinate \(y_i^{\mathrm{obs},\delta}\) with \(i\notin M(a)\), the support \(\Omega\) listed row by row, every rational weight \(w_z\), and a rational threshold \(q\), is NP-complete. Membership in NP is certified by a complete weak order together with a rational representative \(b\in\mathcal C_\delta(a)\) of polynomial encoding length; a polynomial-time verifier checks the observed-coordinate equalities, the represented weak order and midranks, and the exact rational weighted tail inequality \(p(a,b)\ge q\). NP-hardness holds for instances \(\mathsf R(G,s)\) with \(v\) missing realized-treated outcomes, four realized controls, two distinct observed outcome values, \(n=3v-s+4\) units, and \(1+2v+|E|\) explicitly listed rows with polynomial-bit rational weights. For every reduced instance with \(|E|\ge\binom{s}{2}\), the graph \(G\) has an \(s\)-clique if and only if some completion reaches \(q_\star\); moreover, every completion reaching \(q_\star\) has exactly \(s\) passing vertex rows whose labels form the unique lowest tied block and induce an \(s\)-clique in \(G\).
+\end{theorem}
+\begin{proof}
+We prove membership and hardness separately.
+
+For membership in \(\mathrm{NP}\), take a certificate consisting of an ordered partition of \(I\), representing a complete weak order, together with a rational vector \(b\) representing that order.  The verifier first checks the fixed-coordinate equalities defining \(\mathcal C_\delta(a)\) in \(\texttt{def:completion-set}\), and then checks all comparisons and equalities specified by the ordered partition.  If a block has \(c\) labels strictly below it and has size \(d\), the midrank formula in \(\texttt{def:midrank-tail}\) gives the doubled rank
+\[
+ 2r_i(b)=2c+d+1
+\]
+for each label in that block.  The verifier consequently computes \(2T(z,b)\) for every explicitly listed row \(z\in\Omega\), compares it with \(2T(a,b)\), and sums exactly the rational weights of the passing rows.  There are only \(|\Omega|\) rows, and products of input denominators have total bit length at most the sum of their input bit lengths, so these comparisons and the exact rational sum take time polynomial in the encoded input length \(\ell\).  The verifier accepts precisely when \(p(a,b)\ge q\).
+
+If a real completion makes the instance positive, \(\texttt{thm:weak-order-attainment}\), using the rationality of the observed coordinates, supplies a rational representative of the same weak-order cell with polynomial encoding length.  The oracle tail is constant on that cell, so this representative is an accepting certificate.  Conversely, an accepting certificate is itself a legal real completion and hence witnesses a positive instance.  Therefore \(\textsc{Explicit-Max-Tail}\in\mathrm{NP}\).
+
+For hardness, reduce from \(\textsc{Clique}\), whose NP-completeness is stated in \(\texttt{lem:clique-np-complete}\).  Let \((G,s)\) be a nontrivial instance with \(V=\{1,\ldots,v\}\), \(2\le s\le v\), and \(e=|E|\).  If \(e<\binom{s}{2}\), then \(G\) cannot contain an \(s\)-clique.  In this case map to the following fixed negative instance: two fully observed units have values \(1\) and \(0\), the two one-treated assignments have weight \(1/2\), the realized assignment treats the value-one unit, and \(q=1\).  The unique completion has realized treated-rank sum \(2\), while the other row has treated-rank sum \(1\), so its oracle tail is \(1/2<q\).
+
+It remains to consider \(e\ge\binom{s}{2}\).  Apply the construction \(\mathsf R(G,s)\) in \(\texttt{def:clique-reduction}\), taking \(\delta=0\), and set
+\[
+ h=2v-s,\qquad B=e+1,\qquad
+ A_\star=vB+e+1.
+\]
+The units are \(v\) vertex units whose outcomes are missing under the realized treatment, \(h\) observed anchors of value \(1\), and four observed controls of value \(0\).  The realized row \(a\) treats every vertex and anchor, so its treated count is
+\[
+ m=v+h.
+\]
+A guard row replaces one treated vertex by one control; a vertex row replaces one treated vertex and one anchor by two controls; and an edge row replaces its two endpoint vertices and two anchors by all four controls.  Each is therefore in \(\mathcal Z_m\), as required by \(\texttt{ass:known-fixed-count-design}\).  Because \(h=2v-s\ge v\ge2\), all required anchor exchanges exist.  Rows in different categories treat different numbers of controls, and rows in the same category remove different labeled vertices or vertex pairs, so the rows are distinct.  Thus
+\[
+ |Omega|=1+2v+e,
+ \qquad
+ n=v+h+4=3v-s+4.
+\]
+Assign unnormalized weights \(1,A_\star,B,1\) to the realized, guard, vertex, and edge rows, respectively.  Their sum and the unnormalized threshold are
+\[
+ W_\star=1+vA_\star+vB+e,
+ \qquad
+ Q_\star:=W_\star q_\star
+ =1+vA_\star+sB+\binom{s}{2}.
+\]
+The normalized weights are strictly positive rationals and sum to one, as required by \(\texttt{ass:rational-positive-weights}\).  Moreover,
+\[
+ sB+\binom{s}{2}\le vB+e,
+\]
+so \(q_\star\in[0,1]\).  Since \(e\le\binom v2\), the integers above, their rational normalizations, and all \(1+2v+e\) rows have encoding length polynomial in the size of \((G,s)\).
+
+Fix an arbitrary legal completion \(b\), and write
+\[
+ F(b):=W_\star p(a,b)
+\]
+for its unnormalized upper-tail mass.  All four controls have a common rank, denoted \(r_C\).  A guard row for vertex \(i\) is in the upper tail exactly when replacing \(i\) by a control does not lower the treated-rank sum, namely exactly when
+\[
+ r_i(b)\le r_C(b).
+\]
+The ordered-tie-block formula for ordinary midranks shows that ranks preserve and strictly separate outcome blocks.  Because the controls have outcome zero, the guard condition is therefore equivalent to \(b_i\le0\).  If at least one guard fails, then even if every other row passes,
+\[
+\begin{aligned}
+ F(b)
+ &\le 1+(v-1)A_\star+vB+e\\
+ &=vA_\star
+ <Q_\star,
+\end{aligned}
+\]
+where the equality uses \(A_\star=vB+e+1\).  Hence every completion reaching \(q_\star\) passes all guards, so every vertex outcome is at most zero.
+
+Assume henceforth that all guards pass, and let \(t\) be the number of vertex outcomes equal to zero.  The remaining \(v-t\) vertex outcomes lie below zero.  Hence the tied controls have rank
+\[
+ c:=r_C
+ =1+(v-t)+\frac{4+t-1}{2}
+ =v+\frac52-\frac t2.
+\]
+Every vertex and control lies below every anchor, so the common anchor rank is
+\[
+ r_H
+ =1+(v+4)+\frac{h-1}{2}
+ =v+4+\frac{h+1}{2}.
+\]
+A vertex row for \(i\) passes precisely when its two added control ranks are at least the removed vertex and anchor ranks.  Using \(h=2v-s\), this is
+\[
+\begin{aligned}
+ r_i+r_H\le2c
+ &\Longleftrightarrow
+ r_i\le 2c-r_H\\
+ &\Longleftrightarrow
+ r_i\le\frac{s+1}{2}-t.
+\end{aligned}
+\]
+Similarly, an edge row for \(ij\in E\) passes precisely when
+\[
+\begin{aligned}
+ r_i+r_j+2r_H\le4c
+ &\Longleftrightarrow
+ r_i+r_j\le4c-2r_H\\
+ &\Longleftrightarrow
+ r_i+r_j\le s+1-2t.
+\end{aligned}
+\]
+
+Let \(U\subseteq V\) be the set of passing vertex rows and put \(u=|U|\).  If \(u>0\), the subset-rank inequality in \(\texttt{lem:midrank-bottom-block}\) and the vertex-row bound give
+\[
+ \frac{u(u+1)}2
+ \le\sum_{i\in U}r_i
+ \le u\left(\frac{s+1}{2}-t\right),
+\]
+whence \(u\le s-2t\le s\).  The conclusion \(u\le s\) is immediate also when \(u=0\).  If \(u\le s-1\), then even granting every edge row,
+\[
+ F(b)\le1+vA_\star+(s-1)B+e<Q_\star,
+\]
+because
+\[
+ Q_\star-\{1+vA_\star+(s-1)B+e\}
+ =B+\binom{s}{2}-e
+ =1+\binom{s}{2}>0.
+\]
+Thus any completion reaching \(q_\star\) must have \(u=s\).  The inequality \(u\le s-2t\) then forces \(t=0\).
+
+For every \(i\in U\), the passing condition now reads \(r_i\le(s+1)/2\).  The equality clause of \(\texttt{lem:midrank-bottom-block}\) implies that the \(s\) labels in \(U\) form the unique lowest tied block and each has rank \((s+1)/2\).  Every label outside \(U\), and hence every vertex outside \(U\), is in a strictly higher outcome block and has rank at least \(s+1\).  With \(t=0\), an edge row passes exactly when \(r_i+r_j\le s+1\).  This holds with equality when both endpoints lie in \(U\), and it fails when either endpoint lies outside \(U\), because then one rank is at least \(s+1\) and the other is at least \(1\).  Consequently
+\[
+ F(b)=1+vA_\star+sB+|E(U)|.
+\]
+The inequality \(F(b)\ge Q_\star\) is therefore equivalent to
+\[
+ |E(U)|\ge\binom{s}{2}.
+\]
+Since \(G\) is simple and \(|U|=s\), the reverse inequality always holds, and equality occurs exactly when \(U\) induces an \(s\)-clique.  This also proves the asserted converse characterization of every successful completion.
+
+Conversely, suppose \(S\subseteq V\) is an \(s\)-clique.  Complete the vertex outcomes by setting
+\[
+ b_i=-2\quad(i\in S),
+ \qquad
+ b_i=-1\quad(i\in V\setminus S).
+\]
+All guards pass and \(t=0\).  The set \(S\) is the lowest tied block, so its labels have rank \((s+1)/2\); every other vertex has a strictly larger rank.  The displayed vertex- and edge-row conditions show that exactly the \(s\) vertex rows indexed by \(S\) and exactly the \(\binom{s}{2}\) edge rows internal to \(S\) pass.  Hence
+\[
+ F(b)=1+vA_\star+sB+\binom{s}{2}=Q_\star,
+\]
+so \(p(a,b)=q_\star\).
+
+The mapping is polynomial and preserves yes and no instances.  It proves NP-hardness for the stated family with \(v\) missing realized-treated outcomes, four realized controls, two distinct observed outcome values, \(n=3v-s+4\), and \(1+2v+|E|\) explicitly listed support rows.  Together with membership in \(\mathrm{NP}\), this proves NP-completeness.  The construction uses the unequal rational weights above; no conclusion about uniform or balance-generated supports is used or implied.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result shows that the chamber explosion reflects intrinsic completion difficulty rather than a naive implementation. \textit{Gap.} The exact-test literature reports combinatorial cost but supplies no decision-complexity classification for a rationally weighted explicit support with missing midranks. \textit{Consumer.} Software can justify exact fixed-\(k\) computation and principled approximation when attrition is large.
+
+\begin{proposition}[prop:equality-face-witness]\label{prop:equality-face-witness}
+For the two-vertex equality-face construction, tying both missing outcomes strictly below the controls yields \(P_\delta(a)=1\), while maximizing over strict weak-order chambers only yields \(8/9\).
+\end{proposition}
+\begin{proof}
+In the instance specified by \(\texttt{def:equality-face-witness}\),
+\[
+ v=s=2,\qquad e=1,\qquad h=2,
+ \qquad B=2,
+ \qquad A_\star=6,
+\]
+and therefore
+\[
+ W_\star=1+2\cdot6+2\cdot2+1=18.
+\]
+Give the two missing vertex labels a common value strictly below zero.  They are the lowest tie block and each has midrank \(3/2\).  The four controls then have common rank \(9/2\), and the two anchors have common rank \(15/2\).  Thus each guard inequality is
+\[
+ \frac32\le\frac92,
+\]
+each vertex-row inequality is
+\[
+ \frac32+\frac{15}{2}\le2\frac92,
+\]
+and the unique edge-row inequality is
+\[
+ 2\frac32+2\frac{15}{2}\le4\frac92;
+\]
+all hold, with the latter two at equality.  Including the realized row, the unnormalized upper-tail mass is
+\[
+ 1+2\cdot6+2\cdot2+1=18.
+\]
+The resulting oracle tail is one.  Since no probability can exceed one, the definition in \(\texttt{def:robust-pvalue}\) gives \(P_\delta(a)=1\) for this reduced instance.
+
+It remains to maximize after deleting equality faces.  Here a strict chamber means a full-dimensional cell relative to the two missing coordinates: the two missing values are distinct from one another and from the fixed observed values zero and one; the forced ties among the four controls and among the two anchors remain.  If a guard fails, then at most one guard can contribute, and even if the realized row, both vertex rows, and the edge row all pass, the unnormalized mass is at most
+\[
+ 1+6+2\cdot2+1=12.
+\]
+If both guards pass, both missing values must be strictly below zero.  Since they are distinct, their ranks are \(1\) and \(2\).  The controls and anchors still have ranks \(9/2\) and \(15/2\).  A vertex row passes exactly when
+\[
+ r_i+\frac{15}{2}\le 9,
+ \qquad\text{equivalently}\qquad
+ r_i\le\frac32,
+\]
+so exactly the rank-one vertex row passes.  The edge row passes because
+\[
+ 1+2+2\frac{15}{2}=18=4\frac92.
+\]
+Consequently every all-guard strict chamber has unnormalized upper-tail mass
+\[
+ 1+2\cdot6+2+1=16,
+\]
+or tail \(16/18=8/9\).  This exceeds the upper bound \(12/18\) when a guard fails and is attained by either strict ordering of the two missing values below zero.  Hence the strict-chamber maximum is \(8/9\), whereas retaining the equality face raises the completion maximum to \(1\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This smallest reduction instance proves that equality faces are inferentially active. \textit{Gap.} Tie-aware fixed-data tests retain average ranks, but no prior supplied-design completion result proves a strict loss from deleting equality strata. \textit{Consumer.} It is a mandatory unit test for chamber enumeration and for the reduction converse.
+
+\begin{proposition}[prop:saved-support-corollary]\label{prop:saved-support-corollary}
+Suppose randomized clusters are the units in \(I\), each has a prespecified finite scalar endpoint \(Y_i(d)\), and \(\mathscr G\) is fixed before the final assignment draw. Under the recorded conditional law, \(\Pr\{P_\delta(A)\le\alpha\mid\mathscr G\}\le\alpha\), and therefore \(\Pr\{P_\delta(A)\le\alpha\}\le\alpha\). The support and its probabilities remain unchanged across completions; no conditioning on survivors or on the selected row is permitted.
+\end{proposition}
+\begin{proof}
+Fix a value of the prespecified information \(\mathscr G\).  By the saved-support assumption, conditional on this value the sole final-stage randomness is the assignment \(A\), with exactly the recorded mass function \(w\) on the recorded fixed-count support \(\Omega\).  The cluster endpoint schedule and treatment-indexed observation schedule are fixed at this stage by the fixed-potential-outcomes and fixed-observation-schedule assumptions.  Under the sharp additive null, all hypotheses of the finite-sample-validity theorem therefore hold conditionally on \(\mathscr G\).  Applying that theorem to this conditional finite design gives
+\[
+\Pr\{P_\delta(A)\le\alpha\mid\mathscr G\}\le\alpha
+\]
+for every supported value of \(\mathscr G\).
+
+Taking expectations and using the defining identity for conditional probability yields
+\[
+\Pr\{P_\delta(A)\le\alpha\}
+=\mathbb E\!\left[
+  \Pr\{P_\delta(A)\le\alpha\mid\mathscr G\}
+ \right]
+\le\alpha.
+\]
+The completion optimization changes only the missing coordinates of the completed sharp-null baseline vector.  Neither \(\Omega\) nor \(w\) is among its optimization variables.  Thus the argument keeps the saved support and probabilities fixed across completions and does not condition on the realized survivor set or on the selected assignment row.  This establishes the stated conditional and unconditional conclusions for the prespecified finite scalar cluster endpoints.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corollary turns a saved constrained allocation space into a valid prospective attrition-robust rank analysis. \textit{Gap.} Yu et al.'s \(\texttt{cptest}\) uses residualized cluster-mean contrasts, and Hennessy et al. do not address missing-completion midranks. \textit{Consumer.} A new \(\texttt{cvcrand}\) rank option can analyze a prespecified cluster endpoint while preserving the design actually used.
+
+\begin{openendedquestion}[oeq:parameterized-complexity-frontier]\label{oeq:parameterized-complexity-frontier}
+Determine whether \(\textsc{Explicit-Max-Tail}\), parameterized by \(k\), admits an \(f(k)\operatorname{poly}(n,L,\ell)\) exact algorithm or is \(\mathrm{W}[1]\)-hard. Separately determine whether either conclusion survives when the input support is uniform and generated by a fixed-dimensional balance rule; no such hardness is asserted here.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The theorem-level XP and NP-completeness results leave the genuine parameterized boundary unresolved. \textit{Gap.} Neither exact rank computation nor missing-data testing currently classifies this parameter, and the weighted reduction does not answer the uniform balance-generated case. \textit{Consumer.} The answer determines whether large trials with a modest number of missing endpoints need approximation or can have fixed-parameter exact inference.
+
+\begin{lemma}[lem:clique-np-complete]\label{lem:clique-np-complete}
+The decision problem \(\textsc{Clique}\), which asks whether a finite simple graph \(G=(V,E)\) contains a set of \(s\) pairwise adjacent vertices, is NP-complete under polynomial-time many-one reductions.
+\end{lemma}
+
+\begin{theorem}[thm:cre-midrank-fixed-k]\label{thm:cre-midrank-fixed-k}
+Suppose \(\Omega=\mathcal Z_m\) and
+\(w_z=\binom{n}{m}^{-1}\) for every \(z\in\mathcal Z_m\), with the completely
+randomized design supplied by the succinct encoding of length
+\(\ell_{\mathrm{CRE}}\).  Then the ordinary-midrank completion maximum
+\(P_\delta(a)\) is computable in
+\[
+ \left[\prod_{j=0}^{k-1}\{2(g+j)+1\}\right]
+ \operatorname{poly}(n,\ell_{\mathrm{CRE}})
+\]
+bit operations without listing the \(\binom{n}{m}\) assignments.  Hence exact
+maximization is polynomial for every fixed \(k\), including \(k=1\), over
+completely randomized designs with an arbitrary fixed treatment-indexed
+observation schedule \(O\), while retaining ordinary midranks and equality
+faces.
+\end{theorem}
+\begin{proof}
+Begin with the \(g\) observed equality blocks and insert the \(k\) missing
+labels in a fixed order according to
+Definition \(\text{def:block-insertion-algorithm}\).  With \(h\) current
+blocks, the next label has \(h+1\) singleton-gap choices and \(h\) attachment
+choices.  Reverse deletion of the last inserted label is unique: delete it
+from a shared block if another undeleted label remains there, and otherwise
+delete its singleton block.  Thus the leaves are in bijection with all
+compatible complete weak orders.  After \(j\) insertions there are at most
+\(g+j\) blocks, so their number is at most
+\[
+ C(g,k):=\prod_{j=0}^{k-1}\{2(g+j)+1\}.
+\]
+Attachment branches are precisely the equality faces, so none are discarded.
+
+Fix one leaf.  A block of size \(d\) preceded by \(c\) labels gives each of its
+members the ordinary doubled midrank
+\[
+ q_i:=2r_i=2c+d+1,
+ \qquad 2\le q_i\le2n.
+\]
+Form the bivariate integer polynomial
+\[
+ F(u,x)=\prod_{i=1}^n(1+u x^{q_i})
+       =\sum_{t=0}^n\sum_s C_{t,s}u^t x^s.
+\]
+Expanding the product proves, term by term, that
+\[
+ C_{t,s}
+ =\#\left\{J\subseteq I:|J|=t,
+                    \ \sum_{i\in J}q_i=s\right\}.
+\]
+Under the completely randomized design, assignment rows are in bijection with
+the \(m\)-subsets \(J=\{i:z_i=1\}\), each with probability
+\(\binom{n}{m}^{-1}\).  Writing \(Q_a=2T(a,b)=\sum_i a_iq_i\), Definition
+\(\text{def:midrank-tail}\) therefore gives the exact leaf tail
+\[
+ p(a,b)=\binom{n}{m}^{-1}\sum_{s\ge Q_a}C_{m,s}.
+\]
+The declared range \(1\le m\le n-1\) implies \(\binom{n}{m}>0\), so this
+division is well defined.
+This identity is valid with ties because the \(q_i\) are the doubled ordinary
+midranks of the equality blocks at the current leaf.
+
+The coefficients need not be obtained by symbolic multiplication.  Let
+\(C^{(i)}_{t,s}\) be the coefficient after the first \(i\) factors.  Initialize
+\(C^{(0)}_{0,0}=1\), set all other initial and out-of-range entries to zero,
+and use the recurrence
+\[
+ C^{(i)}_{t,s}
+ =C^{(i-1)}_{t,s}+C^{(i-1)}_{t-1,s-q_i}.
+\]
+Because \(0\le t\le m\), \(2\le q_i\le2n\), and an \(m\)-subset has sum at
+most \(2mn\le2n^2\), this table has polynomially many entries and is filled
+with polynomially many integer additions.  Each coefficient is at most
+\(2^n\), so it has at most \(n+1\) bits; \(\binom{n}{m}\), the threshold
+\(Q_a\), and the numerator tail sum likewise have polynomial bit length.
+Hence one leaf tail is evaluated in
+\(\operatorname{poly}(n,\ell_{\mathrm{CRE}})\) bit operations, without
+constructing any assignment row.
+
+The midrank vector and all tail indicators depend only on the leaf's weak
+order by Definitions \(\text{def:midrank-tail}\) and
+\(\text{def:weak-order-complex}\).  Every legal completion induces one of the
+enumerated leaves, and every enumerated leaf is realizable: assign an attached
+missing label in an observed block that block's fixed value; for each finite
+run of missing-only blocks between two observed blocks choose distinct real
+values strictly between the two fixed values; and choose distinct values below
+or above the observed range for the two possible extreme runs.  Assign every
+label in a missing-only equality block its block's chosen value.  Therefore the
+supremum in
+Definition \(\text{def:robust-pvalue}\) is the maximum of the computed leaf
+tails.  Multiplying the per-leaf cost by \(C(g,k)\) gives
+\[
+ \left[\prod_{j=0}^{k-1}\{2(g+j)+1\}\right]
+ \operatorname{poly}(n,\ell_{\mathrm{CRE}}).
+\]
+For each fixed \(k\), the product is bounded by \((2n+1)^k\), so this is
+polynomial in the succinct completely randomized-design input.  The argument
+uses only that the treatment-indexed schedule \(O\) is fixed, as stated in
+Assumption \(\text{ass:fixed-observation-schedule}\); it imposes no further
+restriction on which outcomes are missing.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This removes exponential support expansion for completely randomized designs while preserving ordinary midranks and equality faces. \textit{Gap.} Li--Sheng--Yu obtain a closed form under index-resolved tie-breaking, whereas the explicit-row leaf evaluator would enumerate all completely randomized assignments; the coefficient dynamic program evaluates each ordinary-midrank leaf from a succinct design. \textit{Consumer.} Analysts facing arbitrary fixed treatment-indexed attrition under complete randomization can compute the exact robust tail in polynomial time for every fixed number of missing outcomes.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The midrank subset-sum equality characterization and its lowest-tied-block consequence are the load-bearing converse in the \(\textsc{Clique}\) reduction and remain the priority for machine checking. Exact finite enumeration has reproduced the equality-face value \(1\) versus strict-order value \(8/9\), all 210 graph and target instances through four vertices, 1,536 weighted observation schedules, 120 one-missing sweeps, and 145 inversion intervals; these checks are evidence, not proofs.
+
+\section{Honest scope}
+
+The completely randomized-design result is an algorithmic transfer only: it gives succinct fixed-\(k\) evaluation with ordinary midranks and equality faces. No hardness conclusion for complete randomization, uniform supports, uniform balance-generated restricted supports, or fixed-dimensional balance rules follows from the rationally weighted explicit-support reduction, whose unequal weights are load-bearing. The explicit-support fixed-\(k\) bound is \(\mathrm{XP}\), and whether an \(\mathrm{FPT}\) algorithm exists remains open. Li--Sheng--Yu's complete-randomization closed form uses index-resolved tie-breaking and is not substituted for the ordinary-midrank chamber problem. The constrained-cluster result describes a new prespecified-endpoint rank option; it does not validate unchanged \(\texttt{cptest}\), survivor conditioning, respondent-only endpoints, or conditioning on the selected assignment row. As a direct implementation sanity check, \(k=0\) reduces to the ordinary weighted Fisher test; at a singleton support or when the realized-row mass exceeds \(\alpha\), power can be vacuous.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Fisher1935} Fisher, R. A. (1935). The Design of Experiments. Oliver and Boyd.
+
+  \bibitem{Wilcoxon1945} Wilcoxon, F. (1945). Individual Comparisons by Ranking Methods. Biometrics Bulletin 1(6), 80--83.
+
+  \bibitem{LiShengYu2025} Li, X., Sheng, P., and Yu, Z. (2025). Randomization Inference for Randomized Experiments with Sample Attrition. arXiv:2507.00795, version 2.
+
+  \bibitem{ZengAdamsBodenham2024} Zeng, Y., Adams, N., and Bodenham, D. (2024). Wilcoxon--Mann--Whitney Testing with Incomplete Data. arXiv:2403.15327.
+
+  \bibitem{LuoDasguptaXieLiu2021} Luo, X., Dasgupta, T., Xie, M., and Liu, R. Y. (2021). Leveraging the Fisher Randomization Test Using Confidence Distributions: Inference, Combination and Fusion Learning. Journal of the Royal Statistical Society Series B 83(4), 777--797.
+
+  \bibitem{NeuhauserRuxton2024} Neuhäuser, M. and Ruxton, G. D. (2024). A Note on the Wilcoxon--Mann--Whitney Test and Tied Observations. PLOS ONE 19, e0309074.
+
+  \bibitem{Sills2024} Sills, A. V. (2024). On Integer Partitions and the Wilcoxon Rank-Sum Statistic. Communications in Statistics: Theory and Methods 53(24), 8954--8963.
+
+  \bibitem{MehtaPatelWei1988} Mehta, C. R., Patel, N. R., and Wei, L. J. (1988). Computing Exact Significance Tests with Restricted Randomization Rules. Biometrika 75(2), 295--302.
+
+  \bibitem{Karp1972} Karp, R. M. (1972). Reducibility Among Combinatorial Problems. In Complexity of Computer Computations, 85--103. Plenum Press.
+
+  \bibitem{CaugheyDafoeLiMiratrix2023} Caughey, D., Dafoe, A., Li, X., and Miratrix, L. (2023). Randomization Inference beyond the Sharp Null: Bounded Null Hypotheses and Quantiles of Individual Treatment Effects. Journal of the Royal Statistical Society Series B 85(5), 1471--1491.
+
+  \bibitem{HengZhangFeng2026} Heng, S., Zhang, J., and Feng, Y. (2026). Design-Based Causal Inference with Missing Outcomes: Missingness Mechanisms, Imputation-Assisted Randomization Tests, and Covariate Adjustment. Journal of the American Statistical Association 121(553), 312--325. DOI: 10.1080/01621459.2025.2516204.
+
+  \bibitem{HennessyEtAl2016} Hennessy, J., Dasgupta, T., Miratrix, L., Pattanayak, C., and Sarkar, P. (2016). A Conditional Randomization Test to Account for Covariate Imbalance in Randomized Experiments. Journal of Causal Inference 4(1).
+
+  \bibitem{YuLiGallisTurner2019} Yu, H., Li, F., Gallis, J. A., and Turner, E. L. (2019). \(\texttt{cvcrand}\): A Package for Covariate-Constrained Randomization and the Clustered Permutation Test for Cluster Randomized Trials. The R Journal 11(2), 191--204.
+
+  \bibitem{LohHudgensClemensAliEmch2020} Loh, W. W., Hudgens, M. G., Clemens, J. D., Ali, M., and Emch, M. E. (2020). Randomization Inference with General Interference and Censoring. Biometrics 76(1), 235--245.
+
+\end{thebibliography}
+
+\end{document}

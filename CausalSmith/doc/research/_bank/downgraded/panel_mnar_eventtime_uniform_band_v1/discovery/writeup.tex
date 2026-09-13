@@ -1,0 +1,1741 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}mnar\_\allowbreak{}eventtime\_\allowbreak{}uniform\_\allowbreak{}band}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The note's exact-rank, row-heteroskedastic model is now explicitly an event-transfer class, not the published Choi--Yuan class.  The eligible blocks aggregate exactly into one event-by-cell score, and a generic remainder event \(\mathcal R_n(u)\) yields a finite whole-curve error contribution \(P_n\{\mathcal R_n(u)^c\}+Cu\sqrt{\log(2p)}\).  Chernozhukov--Chetverikov--Kato--Koike's 2022 singular-covariance-safe theorem sharpens the Gaussian component to log power five and gives the balanced-loading elbow \(\log(Km)=o(m^{1/5})\).  Feasible growing-curve coverage remains conditional on the displayed remainder-event and score-stability probabilities.  The published approximate-rank, i.i.d. homoskedastic selected-functional class and the event-transfer class are incomparable; their explicit balanced rank-one common subclass is nonempty, but the attained nonlinear-remainder frontier remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Published low-rank MNAR inference treats one block, entry, or selected scalar functional.  Choi--Yuan's staggered Theorem 3.2 attaches six conditions to one chosen group, time, and subgroup partition; it does not provide a growing event-path remainder probability or the rowwise feasible-score rate needed here.  Generic high-dimensional approximation does not supply those panel-specific controls.
+
+\paragraph{Niche.} The useful bridge is a primitive-cell event score with exact staircase covariance and a generic finite-error transfer that exposes the nonlinear remainder event and score discrepancy.  Class comparison must be made after pairing the published law array with its one selected functional.
+
+\paragraph{Fill.} The note fixes eligible-unit weights, proves exact block aggregation and shared-cell covariance, concentrates oracle unit variances, and bounds covariance, scale, and correlation errors deterministically by the feasible-score discrepancy.  The 2022 CCKK theorem gives Gaussian error \(C\{L_n(K)^2\log^5((p\vee3)m)\}^{1/4}\); anti-concentration adds \(Cu\sqrt{\log(2p)}\) on \(\mathcal R_n(u)\).  The Choi--Yuan bound enters only through \(\mathcal A_n(C)\subseteq\mathcal R_n(C\Delta_{\mathrm{CY},n}(K))\) and its unsimplified source-submodel union bound.  An explicit proposition proves class incomparability and nonemptiness of a balanced rank-one common subclass.
+
+\section{Related work}
+
+Choi and Yuan, \cite{ChoiYuan2024MNAR}, allow \(M^{\mathrm{pub}}=M^\star+M^R\) with a globally incoherent low-rank signal and i.i.d. homoskedastic sub-Gaussian noise.  Their published staggered Theorem 3.2 has six hypotheses for one selected \(\mathcal G,t_0,\{\mathcal G_\ell\}\), while Proposition A.4 supplies the one-block expansion used here.  Aggregation over growing eligible blocks yields only the displayed finite union bound.  Chernozhukov, Chetverikov, Kato, and Koike (2022), Theorem 2.1, doi:10.1214/22-AOS2193, supplies the singular-covariance-safe fourth-root approximation with log power five.  The separate 2023 nearly-optimal theorem is not used because its covariance nondegeneracy condition is unavailable for staircase scores.  Chernozhukov, Chetverikov, and Kato, \cite{ChernozhukovChetverikovKato2013Maxima}, Lemma 3.1, supplies singular-safe Gaussian covariance comparison, and \cite{ChernozhukovChetverikovKato2014Bands} supplies anti-concentration.  Choi, Kwon, and Liao, \cite{ChoiKwonLiao2024Completion}, cover fixed scalar functionals under additional conditions, not the frozen growing rowwise score discrepancy.  Ben-Michael and Feller, \cite{BenMichaelFeller2026Discussion}, motivate the right-to-carry event curve; Callaway and Sant'Anna, \cite{CallawaySantAnna2021DID}, obtain simultaneous staggered paths under parallel trends rather than low-rank MNAR completion.  Yan and Wainwright, \cite{YanWainwright2024Entrywise}, and Xia, Yan, and Wainwright, \cite{XiaYanWainwright2024ACA}, provide entrywise or scalar inference rather than this conditional growing-path transfer.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_k^{\mathrm{event}}=N_k^{-1}\sum_{g\in E_k}\sum_{i\in I_g}\tau_{i,g+k},\quad k\in\mathcal K_n\).
+Primary functional / estimator / diagnostic: \(\widehat\tau_k=\sum_{g\in E_k}N_k^{-1}\sum_{i\in I_g}(Y_{i,g+k}-\widehat m^0_{i,g+k}),\quad \mathcal C_{n,k}=[\widehat\tau_k\pm c_{1-\alpha,n}\widehat s_k]\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{triangular-\allowbreak{}array index}; \(n\in\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Asymptotic index along which the panel dimensions and the number of reported event horizons may grow.}
+  \item \texttt{alpha} --- \texttt{coverage-\allowbreak{}error level}; \(\alpha\in(0,1)\); \texttt{coverage level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed nominal error probability for the simultaneous confidence band.}
+  \item \texttt{eta} --- \texttt{vanishing remainder-\allowbreak{}tail sequence}; \(\eta=(\eta_n)_{n\ge1},\ 0<\eta_n<1/2,\ \eta_n\to0\); \texttt{coverage-\allowbreak{}relevant modulus level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A deterministic sequence of tail probabilities used to turn the nonlinear remainder into a coverage-\allowbreak{}relevant high-\allowbreak{}probability modulus.}
+  \item \texttt{N} --- \texttt{positive-\allowbreak{}integer sequence}; \(N=N_n\in\mathbb N\); \texttt{cross-\allowbreak{}sectional dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of panel units.}
+  \item \texttt{T} --- \texttt{positive-\allowbreak{}integer sequence}; \(T=T_n\in\mathbb N\); \texttt{time dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of calendar periods.}
+  \item \texttt{i} --- \texttt{unit index}; \(i\in[N]\); \texttt{unit index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index for a panel unit.}
+  \item \texttt{t} --- \texttt{calendar-\allowbreak{}time index}; \(t\in[T]\); \texttt{time index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index for a calendar period.}
+  \item \texttt{G} --- \texttt{deterministic adoption-\allowbreak{}time vector}; \(G=(G_i)_{i\le N}\in(\{2,\ldots,T\}\cup\{\infty\})^N\); \texttt{staggered-\allowbreak{}adoption design}
+  \par\smallskip\noindent\emph{Definition.} Unit \(i\) first receives the absorbing treatment in period \(G_i\); \(G_i=\infty\) denotes nonadoption within the panel.
+  \item \texttt{g} --- \texttt{finite adoption-\allowbreak{}cohort index}; \(g\in\{G_i:G_i<\infty\}\); \texttt{cohort index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A realized finite adoption date.}
+  \item \texttt{I} --- \texttt{adoption-\allowbreak{}cohort sets}; \(I_g=\{i:G_i=g\}\); \texttt{treated cohorts}
+  \par\smallskip\noindent\emph{Definition.} Set of units adopting in cohort \(g\).
+  \item \texttt{ng} --- \texttt{cohort-\allowbreak{}size sequence}; \(n_g=|I_g|\); \texttt{cohort size}
+  \par\smallskip\noindent\emph{Definition.} Number of units in cohort \(g\).
+  \item \texttt{K} --- \texttt{positive-\allowbreak{}integer sequence}; \(K=K_n\le T\); \texttt{growing dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of post-\allowbreak{}adoption event horizons reported jointly.}
+  \item \texttt{Kn} --- \texttt{event-\allowbreak{}horizon index set}; \(\mathcal K_n=\{0,\ldots,K-1\}\); \texttt{band index set}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Set of post-\allowbreak{}adoption horizons covered simultaneously.}
+  \item \texttt{k} --- \texttt{event-\allowbreak{}time index}; \(k\in\mathcal K_n\); \texttt{event horizon}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of periods elapsed since adoption.}
+  \item \texttt{E} --- \texttt{eligible-\allowbreak{}cohort sets}; \(E_k=\{g:g+k\le T\}\); \texttt{event-\allowbreak{}time eligibility}
+  \par\smallskip\noindent\emph{Definition.} Cohorts observed at event horizon \(k\).
+  \item \texttt{Nk} --- \texttt{eligible-\allowbreak{}unit counts}; \(N_k=\sum_{g\in E_k}n_g\); \texttt{estimand denominator}
+  \par\smallskip\noindent\emph{Definition.} Number of treated units eligible at event horizon \(k\).
+  \item \texttt{J} --- \texttt{donor sets}; \(J_{gk}=\{j:G_j>g+k\}\); \texttt{not-\allowbreak{}yet-\allowbreak{}treated donors}
+  \par\smallskip\noindent\emph{Definition.} Units untreated at the calendar date corresponding to cohort \(g\) and event horizon \(k\).
+  \item \texttt{S} --- \texttt{pre-\allowbreak{}adoption period sets}; \(S_g=\{s:s<g\}\); \texttt{pre-\allowbreak{}treatment support}
+  \par\smallskip\noindent\emph{Definition.} Periods preceding adoption for cohort \(g\).
+  \item \texttt{r} --- \texttt{positive-\allowbreak{}integer sequence}; \(r=r_n<\min\{N,T\}\); \texttt{latent dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Rank of the untreated conditional-\allowbreak{}mean matrix.}
+  \item \texttt{X} --- \texttt{deterministic loading matrix}; \(X=(x_i^\top)_{i\le N}\in\mathbb R^{N\times r}\); \texttt{left factors}
+  \par\smallskip\noindent\emph{Definition.} Matrix of unit loadings with row \(x_i^\top\).
+  \item \texttt{Z} --- \texttt{deterministic factor matrix}; \(Z=(z_t^\top)_{t\le T}\in\mathbb R^{T\times r}\); \texttt{right factors}
+  \par\smallskip\noindent\emph{Definition.} Matrix of calendar-time factors with row \(z_t^\top\).
+  \item \texttt{M0} --- \texttt{deterministic untreated conditional-\allowbreak{}mean matrix}; \(M^0=XZ^\top\in\mathbb R^{N\times T}\); \texttt{low-\allowbreak{}rank counterfactual mean}
+  \par\smallskip\noindent\emph{Definition.} Untreated potential-outcome conditional means, with \(m^0_{it}=x_i^\top z_t\).
+  \item \texttt{Ypot} --- \texttt{potential-\allowbreak{}outcome array}; \(Y_{it}(h),\ h\in\{2,\ldots,T\}\cup\{\infty\}\); \texttt{causal potential outcome}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome of unit \(i\) in period \(t\) when its absorbing treatment begins at date \(h\), with \(h=\infty\) denoting no treatment in the panel.
+  \item \texttt{tau} --- \texttt{deterministic causal-\allowbreak{}effect array}; \((\tau_{it})_{i\le N,t\le T}\in\mathbb R^{N\times T}\); \texttt{primitive causal effect}
+  \par\smallskip\noindent\emph{Definition.} Mean causal contrast \(\tau_{it}=E[Y_{it}(G_i)-Y_{it}(\infty)]\) for a treated unit-period pair.
+  \item \texttt{e} --- \texttt{mean-\allowbreak{}zero random error array}; \(e=(e_{it})_{i\le N,t\le T}\in\mathbb R^{N\times T}\); \texttt{sampling noise}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Idiosyncratic error around the relevant potential-\allowbreak{}outcome conditional mean.}
+  \item \texttt{sigma} --- \texttt{deterministic variance array}; \(\sigma_{it}^2=E[e_{it}^2]\); \texttt{heteroskedastic scale}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Cell-\allowbreak{}specific heteroskedastic error variance.}
+  \item \texttt{sigmarow} --- \texttt{unit-\allowbreak{}specific variance vector}; \(\sigma^{\mathrm{row}}=(\sigma_i^{2})_{i\le N}\in(0,\infty)^N\); \texttt{estimable heteroskedastic nuisance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Unit-\allowbreak{}level variance values used by the row-\allowbreak{}heteroskedastic specialization.}
+  \item \texttt{H} --- \texttt{untreated variance-\allowbreak{}training sets}; \(H_i=\{t\in[T]:t<G_i\}\); \texttt{variance replication support}
+  \par\smallskip\noindent\emph{Definition.} Observed untreated periods used to estimate unit \(i\)'s noise variance.
+  \item \texttt{h} --- \texttt{variance-\allowbreak{}training counts}; \(h_i=|H_i|\); \texttt{variance sample size}
+  \par\smallskip\noindent\emph{Definition.} Number of untreated residual replicates available for unit \(i\).
+  \item \texttt{Y} --- \texttt{observed outcome matrix}; \(Y=(Y_{it})_{i\le N,t\le T}\); \texttt{observed panel}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{it}=m^0_{it}+\mathbf 1\{t\ge G_i\}\tau_{it}+e_{it}\).
+  \item \texttt{Pseq} --- \texttt{triangular-\allowbreak{}array law}; \texttt{sampling law}
+  \par\smallskip\noindent\emph{Definition.} \((P_n)_{n\ge1}\) is the complete sequence of laws of \(Y\), each conditional on the deterministic arrays \(G,X,Z,\tau\) at index \(n\).
+  \item \texttt{epsVrep} --- \texttt{fixed vanishing finite-\allowbreak{}slice envelope}; \(\varepsilon_n^{\mathrm{vrep}}>0,\quad \varepsilon_n^{\mathrm{vrep}}\to0\); \texttt{shared rate envelope}
+  \par\smallskip\noindent\emph{Definition.} Deterministic envelope, fixed before the model class is formed, for the finite-\(n\) variance-replication ratio.
+  \item \texttt{epsSig} --- \texttt{fixed vanishing finite-\allowbreak{}slice envelope}; \(\varepsilon_n^{\mathrm{sig}}>0,\quad \varepsilon_n^{\mathrm{sig}}\to0\); \texttt{shared rate envelope}
+  \par\smallskip\noindent\emph{Definition.} Deterministic envelope, fixed before the model class is formed, for the finite-\(n\) Choi--Yuan signal ratio.
+  \item \texttt{epsSpec} --- \texttt{fixed vanishing finite-\allowbreak{}slice envelope}; \(\varepsilon_n^{\mathrm{spec}}>0,\quad \varepsilon_n^{\mathrm{spec}}\to0\); \texttt{shared rate envelope}
+  \par\smallskip\noindent\emph{Definition.} Deterministic envelope, fixed before the model class is formed, for the finite-\(n\) spectral-size ratio.
+  \item \texttt{epsBlock} --- \texttt{fixed vanishing finite-\allowbreak{}slice envelope}; \(\varepsilon_n^{\mathrm{block}}>0,\quad \varepsilon_n^{\mathrm{block}}\to0\); \texttt{shared rate envelope}
+  \par\smallskip\noindent\emph{Definition.} Deterministic envelope, fixed before the model class is formed, for the finite-\(n\) missing-block ratio.
+  \item \texttt{epsLev} --- \texttt{fixed vanishing finite-\allowbreak{}slice envelope}; \(\varepsilon_n^{\mathrm{lev}}>0,\quad \varepsilon_n^{\mathrm{lev}}\to0\); \texttt{shared rate envelope}
+  \par\smallskip\noindent\emph{Definition.} Deterministic envelope, fixed before the model class is formed, for the finite-\(n\) high-dimensional leverage ratio.
+  \item \texttt{epsRem} --- \texttt{fixed vanishing finite-\allowbreak{}slice envelope}; \(\varepsilon_n^{\mathrm{rem}}>0,\quad \varepsilon_n^{\mathrm{rem}}\to0\); \texttt{shared rate envelope}
+  \par\smallskip\noindent\emph{Definition.} Deterministic envelope, fixed before the event-band model class is formed, for the finite-\(n\) anti-concentration-scaled Choi--Yuan remainder bound.
+  \item \texttt{MCYbase} --- \texttt{baseline event-\allowbreak{}transfer complete-\allowbreak{}triangular-\allowbreak{}array class}; \(\mathfrak M^{\mathrm{CY},0}\); \texttt{legal complete-\allowbreak{}array event-\allowbreak{}transfer class}
+  \par\smallskip\noindent\emph{Definition.} The note's baseline event-transfer class of complete arrays constructed in \(\texttt{def:cy-base-class}\).  The superscript records Choi--Yuan coefficient provenance and does not identify this class with their published approximate-rank model.
+  \item \texttt{MCYbaseSlice} --- \texttt{baseline event-\allowbreak{}transfer finite-\allowbreak{}slice law class}; \(\mathcal M_n^{\mathrm{CY},0}\); \texttt{finite-\allowbreak{}slice event-\allowbreak{}transfer optimization domain}
+  \par\smallskip\noindent\emph{Definition.} The set of \(n\)-th coordinates of complete arrays in the baseline event-transfer class \(\mathfrak M^{\mathrm{CY},0}\), constructed in \(\texttt{def:cy-base-slice}\).
+  \item \texttt{MCY} --- \texttt{band event-\allowbreak{}transfer complete-\allowbreak{}triangular-\allowbreak{}array class}; \(\mathfrak M^{\mathrm{CY}}\); \texttt{complete-\allowbreak{}array band-\allowbreak{}transfer class}
+  \par\smallskip\noindent\emph{Definition.} Subclass of the baseline event-transfer class whose primitive Choi--Yuan remainder expression obeys the fixed anti-concentration-scaled envelope, constructed in \(\texttt{def:cy-event-class}\).
+  \item \texttt{MCYSlice} --- \texttt{band event-\allowbreak{}transfer finite-\allowbreak{}slice law class}; \(\mathcal M_n^{\mathrm{CY}}\); \texttt{finite-\allowbreak{}slice conditional band-\allowbreak{}transfer domain}
+  \par\smallskip\noindent\emph{Definition.} The set of \(n\)-th coordinates of complete arrays in the band event-transfer class \(\mathfrak M^{\mathrm{CY}}\), constructed in \(\texttt{def:cy-event-slice}\).
+  \item \texttt{Q} --- \texttt{influence-\allowbreak{}cell index set}; \(\mathcal Q_n^{\mathrm{IF}}\subseteq[N]\times[T]\); \texttt{independent summand index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Union of all observed treated,\allowbreak{} donor,\allowbreak{} and pre-\allowbreak{}treatment cells used by the eligible Choi-\allowbreak{}-\allowbreak{}Yuan blocks.}
+  \item \texttt{V} --- \texttt{variance-\allowbreak{}training cell set}; \(\mathcal V_n=\{(i,t):i\in[N],\ t\in H_i\}\subseteq[N]\times[T]\); \texttt{variance-\allowbreak{}training domain}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed untreated cells whose leave-\allowbreak{}one-\allowbreak{}cell-\allowbreak{}out residual squares estimate the unit-\allowbreak{}specific variances.}
+  \item \texttt{Qplus} --- \texttt{joint analysis cell set}; \(\mathcal Q_n^+=\mathcal Q_n^{\mathrm{IF}}\cup\mathcal V_n\); \texttt{domain of joint noise conditions}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Union of every primitive influence cell and every cell used to train the variance estimator.}
+  \item \texttt{q} --- \texttt{primitive-\allowbreak{}cell index}; \(q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}\); \texttt{summand index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{One unit-\allowbreak{}period cell used by at least one event-\allowbreak{}horizon expansion.}
+  \item \texttt{xbar} --- \texttt{cohort-\allowbreak{}average loading}; \(\bar x_g=n_g^{-1}\sum_{i\in I_g}x_i\in\mathbb R^r\); \texttt{cohort loading}
+  \par\smallskip\noindent\emph{Definition.} Mean unit loading in cohort \(g\).
+  \item \texttt{A} --- \texttt{donor Gram matrices}; \(A_{gk}=\sum_{j\in J_{gk}}x_jx_j^\top\in\mathbb R^{r\times r}\); \texttt{row-\allowbreak{}space transport}
+  \par\smallskip\noindent\emph{Definition.} Left-factor Gram matrix for the donor rows in block \((g,k)\).
+  \item \texttt{B} --- \texttt{pre-\allowbreak{}period Gram matrices}; \(B_g=\sum_{s\in S_g}z_sz_s^\top\in\mathbb R^{r\times r}\); \texttt{column-\allowbreak{}space transport}
+  \par\smallskip\noindent\emph{Definition.} Right-factor Gram matrix over the pre-adoption periods for cohort \(g\).
+  \item \texttt{Nb} --- \texttt{eligible block row count}; \(N_{gk}=|I_g\cup J_{gk}|\); \texttt{block dimension}
+  \par\smallskip\noindent\emph{Definition.} Number of rows in the Choi--Yuan block for cohort \(g\) and horizon \(k\).
+  \item \texttt{Tb} --- \texttt{eligible block column count}; \(T_g=|S_g|+1\); \texttt{block dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of columns in the Choi-\allowbreak{}-\allowbreak{}Yuan block containing the pre-\allowbreak{}adoption periods and target calendar period.}
+  \item \texttt{Ublock} --- \texttt{block left singular-\allowbreak{}vector matrices}; \(U_{gk}\in\mathbb R^{N_{gk}\times r}\); \texttt{block singular geometry}
+  \par\smallskip\noindent\emph{Definition.} Left singular-vector matrix in a compact singular-value decomposition of the restriction of \(M^0\) to rows \(I_g\cup J_{gk}\) and columns \(S_g\cup\{g+k\}\).
+  \item \texttt{Vblock} --- \texttt{block right singular-\allowbreak{}vector matrices}; \(V_{gk}\in\mathbb R^{T_g\times r}\); \texttt{block singular geometry}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Right singular-\allowbreak{}vector matrix in the same compact block singular-\allowbreak{}value decomposition.}
+  \item \texttt{psi} --- \texttt{block signal sequence}; \(\psi_{gk}=\sigma_r(M^0_{I_g\cup J_{gk},\,S_g\cup\{g+k\}})\); \texttt{block signal strength}
+  \par\smallskip\noindent\emph{Definition.} Smallest nonzero singular value of the untreated mean in block \(g,k\).
+  \item \texttt{kappa} --- \texttt{block condition-\allowbreak{}number sequence}; \(\kappa_{gk}=\sigma_1(M^0_{I_g\cup J_{gk},\,S_g\cup\{g+k\}})/\psi_{gk}\); \texttt{block conditioning}
+  \par\smallskip\noindent\emph{Definition.} Spectral condition number of the untreated mean in block \(g,k\).
+  \item \texttt{mu} --- \texttt{block incoherence sequence}; \(\mu_{gk}=\max\{(N_{gk}/r)\|U_{gk}\|_{2,\infty}^2,(T_g/r)\|V_{gk}\|_{2,\infty}^2\}\); \texttt{block leverage}
+  \par\smallskip\noindent\emph{Definition.} Choi--Yuan incoherence index for block \(g,k\).
+  \item \texttt{Ce} --- \texttt{positive fixed constant}; \(C_e\in(0,\infty)\); \texttt{tail constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform sub-\allowbreak{}Gaussian norm multiplier.}
+  \item \texttt{sigmalo} --- \texttt{positive fixed constant}; \(\underline\sigma\in(0,\infty)\); \texttt{variance lower bound}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform lower bound for cell standard deviations.}
+  \item \texttt{sigmahi} --- \texttt{positive fixed constant}; \(\bar\sigma\in(0,\infty)\); \texttt{variance upper bound}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform upper bound for cell standard deviations.}
+  \item \texttt{mubar} --- \texttt{positive fixed constant}; \(\bar\mu\in(0,\infty)\); \texttt{incoherence bound}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform upper bound for block incoherence.}
+  \item \texttt{cA} --- \texttt{positive fixed constant}; \(c_A\in(0,\infty)\); \texttt{Gram lower bound}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Lower donor-\allowbreak{}Gram eigenvalue constant.}
+  \item \texttt{CA} --- \texttt{positive fixed constant}; \(C_A\in[c_A,\infty)\); \texttt{Gram upper bound}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper donor-\allowbreak{}Gram eigenvalue constant.}
+  \item \texttt{cB} --- \texttt{positive fixed constant}; \(c_B\in(0,\infty)\); \texttt{Gram lower bound}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Lower pre-\allowbreak{}period-\allowbreak{}Gram eigenvalue constant.}
+  \item \texttt{CB} --- \texttt{positive fixed constant}; \(C_B\in[c_B,\infty)\); \texttt{Gram upper bound}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper pre-\allowbreak{}period-\allowbreak{}Gram eigenvalue constant.}
+  \item \texttt{c} --- \texttt{event-\allowbreak{}by-\allowbreak{}cell coefficient array}; \(c=(c_{kq})_{k\in\mathcal K_n,q\in\mathcal Q_n^{\mathrm{IF}}}\); \texttt{exact aggregated block influence coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(c_{k,(u,v)}=\sum_{g\in E_k}\frac{n_g}{N_k}\left[\frac{\mathbf 1\{u\in I_g,\,v=g+k\}}{n_g}-\mathbf 1\{u\in J_{gk},\,v=g+k\}\bar x_g^\top A_{gk}^{-1}x_u-\frac{\mathbf 1\{u\in I_g,\,v\in S_g\}}{n_g}z_{g+k}^\top B_g^{-1}z_v\right]\).
+  \item \texttt{Qshared} --- \texttt{shared-\allowbreak{}cell index sets}; \(\mathcal Q_{n,kk'}^{\mathrm{sh}}=\{q\in\mathcal Q_n^{\mathrm{IF}}:c_{kq}c_{k'q}\ne0\}\); \texttt{staircase covariance support}
+  \par\smallskip\noindent\emph{Definition.} Primitive cells whose exact aggregated influence coefficients are nonzero at both horizons \(k\) and \(k'\).
+  \item \texttt{Omega} --- \texttt{event-\allowbreak{}curve covariance matrix}; \(\Omega_n=(\Omega_{kk'})_{k,k'\in\mathcal K_n}\in\mathbb R^{K\times K}\); \texttt{full staircase-\allowbreak{}overlap covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_{kk'}=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}c_{kq}c_{k'q}\sigma_{uv}^2\).
+  \item \texttt{s} --- \texttt{event-\allowbreak{}horizon standard deviations}; \(s_k=\sqrt{\Omega_{kk}}\); \texttt{studentization scale}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Marginal standard deviation of the linear event-\allowbreak{}horizon influence sum.}
+  \item \texttt{D} --- \texttt{diagonal scaling matrix}; \(D_n=\operatorname{diag}(s_k:k\in\mathcal K_n)\); \texttt{joint studentization}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Diagonal matrix of event-\allowbreak{}horizon standard deviations.}
+  \item \texttt{a} --- \texttt{standardized influence coefficient array}; \(a_{k,(u,v)}=c_{k,(u,v)}\sigma_{uv}/s_k\); \texttt{high-\allowbreak{}dimensional summand loading}
+  \par\smallskip\noindent\emph{Definition.} Coefficient of the standardized primitive error \(e_{uv}/\sigma_{uv}\) in horizon \(k\).
+  \item \texttt{L} --- \texttt{coefficient-\allowbreak{}leverage sequence}; \(L_n(K)=\max_{k\in\mathcal K_n,q\in\mathcal Q_n^{\mathrm{IF}}}|a_{kq}|\); \texttt{Gaussian-\allowbreak{}approximation regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Largest standardized contribution of one primitive panel cell to the event curve.}
+  \item \texttt{Sigma} --- \texttt{event-\allowbreak{}curve correlation matrix}; \(\Sigma_n=D_n^{-1}\Omega_nD_n^{-1}\); \texttt{Gaussian limit covariance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Correlation matrix of the standardized event-\allowbreak{}curve influence sum.}
+  \item \texttt{Zgauss} --- \texttt{centered Gaussian comparison vector}; \(Z_n=(Z_{n,k})_{k\in\mathcal K_n}\sim N(0,\Sigma_n)\); \texttt{high-\allowbreak{}dimensional comparison law}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Gaussian vector with the full staircase correlation matrix.}
+  \item \texttt{hatM} --- \texttt{blockwise debiased matrix-\allowbreak{}completion estimator}; \(\widehat M^0\in\mathbb R^{N\times T}\); \texttt{counterfactual estimator}
+  \par\smallskip\noindent\emph{Definition.} The Choi--Yuan nuclear-norm block estimator with their debiasing map, applied separately to every eligible block \((g,k)\).
+  \item \texttt{hattau} --- \texttt{event-\allowbreak{}curve estimator}; \(\widehat\tau=(\widehat\tau_k)_{k\in\mathcal K_n}\in\mathbb R^K\); \texttt{eligible-\allowbreak{}cohort unit-\allowbreak{}share estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau_k=\sum_{g\in E_k}\frac{n_g}{N_k}\frac{1}{n_g}\sum_{i\in I_g}(Y_{i,g+k}-\widehat m^0_{i,g+k})\).
+  \item \texttt{thet} --- \texttt{eligible-\allowbreak{}cohort unit-\allowbreak{}share event estimand}; \(\tau^{\mathrm{event}}=(\tau_k^{\mathrm{event}})_{k\in\mathcal K_n}\in\mathbb R^K\); \texttt{causal target}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_k^{\mathrm{event}}=N_k^{-1}\sum_{g\in E_k}\sum_{i\in I_g}\tau_{i,g+k}\).
+  \item \texttt{rho} --- \texttt{standardized nonlinear remainder vector}; \(\rho_n=(\rho_{n,k})_{k\in\mathcal K_n}\in\mathbb R^K\); \texttt{exact post-\allowbreak{}linearization remainder}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{n,k}=s_k^{-1}(\widehat\tau_k-\tau_k^{\mathrm{event}})-\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}a_{kq}e_q/\sigma_q\).
+  \item \texttt{hatc} --- \texttt{estimated event-\allowbreak{}by-\allowbreak{}cell coefficient array}; \(\widehat c=(\widehat c_{kq})\); \texttt{feasible influence loading}
+  \par\smallskip\noindent\emph{Definition.} Plug-in version of \(c\) formed from the Choi--Yuan debiased block loading and factor estimates and the observed cohort sizes.
+  \item \texttt{hate} --- \texttt{cross-\allowbreak{}fitted residual array}; \(\widehat e=(\widehat e_{it})_{(i,t)\in\mathcal V_n}\); \texttt{heteroskedastic score residual}
+  \par\smallskip\noindent\emph{Definition.} For each \(q=(i,t)\in\mathcal V_n\), refit the Choi--Yuan rank-\(r\) completion and debiasing map on the observed untreated staircase with cell \(q\) deleted, and set \(\widehat e_{it}=Y_{it}-\widehat m_{it}^{0,(-q)}\).
+  \item \texttt{hatsigmarow} --- \texttt{cross-\allowbreak{}fitted unit-\allowbreak{}variance estimator}; \(\widehat\sigma_i^2=h_i^{-1}\sum_{t\in H_i}\widehat e_{it}^2,\quad \widehat\sigma_i=(\widehat\sigma_i^2)^{1/2}\); \texttt{feasible heteroskedastic nuisance}
+  \par\smallskip\noindent\emph{Definition.} Residual-square estimator of unit \(i\)'s time-invariant noise variance.
+  \item \texttt{hatOmega} --- \texttt{heteroskedastic plug-\allowbreak{}in covariance matrix}; \(\widehat\Omega_n=(\widehat\Omega_{kk'})\); \texttt{feasible full covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Omega_{kk'}=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}\widehat c_{kq}\widehat c_{k'q}\widehat\sigma_u^2\).
+  \item \texttt{hats} --- \texttt{estimated event-\allowbreak{}horizon standard deviations}; \(\widehat s_k=\sqrt{\widehat\Omega_{kk}}\); \texttt{feasible standard error}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Diagonal studentization extracted from the heteroskedastic plug-\allowbreak{}in covariance.}
+  \item \texttt{hatSigma} --- \texttt{estimated event-\allowbreak{}curve correlation matrix}; \(\widehat\Sigma_{kk'}=\widehat\Omega_{kk'}/(\widehat s_k\widehat s_{k'})\); \texttt{feasible multiplier covariance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Studentized plug-\allowbreak{}in correlation matrix retaining all shared-\allowbreak{}cell products.}
+  \item \texttt{xi} --- \texttt{independent Gaussian multiplier array}; \((\xi_q)_{q\in\mathcal Q_n^{\mathrm{IF}}}\stackrel{\mathrm{iid}}{\sim}N(0,1)\); \texttt{bootstrap randomness}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Multipliers independent of the observed panel.}
+  \item \texttt{W} --- \texttt{studentized Gaussian-\allowbreak{}multiplier maximum}; \(W_n^\xi=\max_{k\in\mathcal K_n}|\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}\widehat c_{kq}\widehat\sigma_u\xi_q/\widehat s_k|\); \texttt{bootstrap statistic}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Conditional multiplier analogue of the supremum of the studentized event-\allowbreak{}curve error.}
+  \item \texttt{calpha} --- \texttt{conditional critical value}; \(c_{1-\alpha,n}=\inf\{z:P(W_n^\xi\le z\mid Y)\ge1-\alpha\}\); \texttt{common sup-\allowbreak{}t critical value}
+  \par\smallskip\noindent\emph{Definition.} Conditional \(1-\alpha\) quantile of the Gaussian-multiplier maximum.
+  \item \texttt{Band} --- \texttt{simultaneous confidence band}; \(\mathcal C_{n,k}=[\widehat\tau_k\pm c_{1-\alpha,n}\widehat s_k]\); \texttt{inferential output}
+  \par\smallskip\noindent\emph{Definition.} \texttt{One studentized multiplier band indexed by all eligible event horizons.}
+  \item \texttt{Gamma} --- \texttt{coverage-\allowbreak{}shortfall functional}; \(\Gamma_n(P_n)=\bigl[(1-\alpha)-P_n\{\tau_k^{\mathrm{event}}\in\mathcal C_{n,k}\text{ for every }k\in\mathcal K_n\}\bigr]_+\); \texttt{necessity experiment}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Positive part of the simultaneous undercoverage of the uninflated studentized multiplier band under one legal triangular-\allowbreak{}array law.}
+  \item \texttt{RCY} --- \texttt{published block-\allowbreak{}remainder envelope}; \(R_{gk}^{\mathrm{CY}}\in[0,\infty)\); \texttt{primitive perturbation bound}
+  \par\smallskip\noindent\emph{Definition.} Set \(R_{gk}^{\mathrm{CY}}=\frac{\bar\sigma^2\kappa_{gk}^5\mu_{gk}r}{\psi_{gk}}\frac{\max\{N_{gk}\log N_{gk},T_g\log T_g\}}{\min\{N_{gk},T_g\}}+\bar\sigma\kappa_{gk}^4\mu_{gk}^2r^2\frac{\max\{\sqrt{N_{gk}\log N_{gk}},\sqrt{T_g\log T_g}\}}{\min\{N_{gk}^{3/2},T_g^{3/2}\}}+\bar\sigma n_g\mu_{gk}^2r^2\kappa_{gk}^3\frac{\max\{\sqrt{N_{gk}\log N_{gk}},\sqrt{T_g\log T_g}\}}{N_{gk}\min\{N_{gk},T_g\}}\).
+  \item \texttt{DeltaCY} --- \texttt{uniform standardized Choi-\allowbreak{}-\allowbreak{}Yuan remainder envelope}; \(\Delta_{\mathrm{CY},n}(K)=\max_{k\in\mathcal K_n}s_k^{-1}\sum_{g\in E_k}(n_g/N_k)R_{gk}^{\mathrm{CY}}\); \texttt{sufficient band remainder scale}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Cohort-\allowbreak{}share aggregation of the exact published block remainder bounds on the studentized event scale.}
+  \item \texttt{deltaP} --- \texttt{per-\allowbreak{}law nonlinear-\allowbreak{}remainder modulus}; \(\delta_n(P_n;\eta_n)=\inf\{d\ge0:P_n(\|\rho_n\|_\infty>d)\le\eta_n\}\); \texttt{law-\allowbreak{}specific attained remainder scale}
+  \par\smallskip\noindent\emph{Definition.} Upper \(1-\eta_n\) quantile of the exact standardized nonlinear remainder under one law.
+  \item \texttt{DeltaStar} --- \texttt{attainable uniform remainder modulus}; \(\Delta_n^*(K;\eta_n)=\sup_{P_n\in\mathcal M_n^{\mathrm{CY},0}}\delta_n(P_n;\eta_n)\); \texttt{open sharpness frontier}
+  \par\smallskip\noindent\emph{Definition.} Worst-law upper \(1-\eta_n\) quantile of the exact standardized nonlinear remainder over the explicitly defined \(n\)-th slice of the baseline complete-array class.
+  \item \texttt{beta} --- \texttt{candidate primitive remainder envelope}; \(\beta=(\beta_n(K))_{n\ge1}\in(0,\infty)^{\mathbb N}\); \texttt{competitor envelope}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A deterministic positive sequence formed only from the published Choi-\allowbreak{}-\allowbreak{}Yuan block ratios,\allowbreak{} cohort shares,\allowbreak{} and marginal studentization scales.}
+  \item \texttt{DeltaSharp} --- \texttt{primitive attainable-\allowbreak{}frontier envelope}; \(\Delta_n^{\dagger}(K;\eta_n)>0\); \texttt{open frontier output}
+  \par\smallskip\noindent\emph{Definition.} Primitive block-ratio expression to be derived by \(\mathrm{oeq:attainable\mbox{-}remainder\mbox{-}frontier}\) and shown uniformly equivalent to \(\Delta_n^*(K;\eta_n)\).
+  \item \texttt{underorder} --- \texttt{strict under-\allowbreak{}envelope relation}; \(\beta\triangleleft\Delta^{\dagger}\iff\beta_n(K)/\Delta_n^{\dagger}(K;\eta_n)\to0\); \texttt{frontier ordering}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Strict asymptotic order used to quantify a proposed primitive envelope that understates the attainable uniform remainder scale.}
+  \item \texttt{Mpub} --- \texttt{published-\allowbreak{}comparator untreated mean matrix}; \(M^{\mathrm{pub}}\in\mathbb R^{N\times T}\); \texttt{published approximate-\allowbreak{}rank mean}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Untreated mean in the published Choi-\allowbreak{}-\allowbreak{}Yuan comparator model.}
+  \item \texttt{Mstar} --- \texttt{published-\allowbreak{}comparator low-\allowbreak{}rank signal matrix}; \(M^\star\in\mathbb R^{N\times T}\); \texttt{published low-\allowbreak{}rank signal}
+  \par\smallskip\noindent\emph{Definition.} Rank-\(r\) component of \(M^{\mathrm{pub}}\) in the published Choi--Yuan model.
+  \item \texttt{MR} --- \texttt{published-\allowbreak{}comparator approximation matrix}; \(M^R\in\mathbb R^{N\times T}\); \texttt{published approximation bias}
+  \par\smallskip\noindent\emph{Definition.} Approximation component in \(M^{\mathrm{pub}}=M^\star+M^R\).
+  \item \texttt{uPub} --- \texttt{published-\allowbreak{}comparator global left singular vectors}; \(u_i^{\mathrm{pub}}\in\mathbb R^r\); \texttt{published global row geometry}
+  \par\smallskip\noindent\emph{Definition.} Row \(i\) of the global left singular-vector matrix of \(M^\star\).
+  \item \texttt{vPub} --- \texttt{published-\allowbreak{}comparator global right singular vectors}; \(v_t^{\mathrm{pub}}\in\mathbb R^r\); \texttt{published global column geometry}
+  \par\smallskip\noindent\emph{Definition.} Row \(t\) of the global right singular-vector matrix of \(M^\star\).
+  \item \texttt{kappaPub} --- \texttt{published-\allowbreak{}comparator global condition-\allowbreak{}number sequence}; \(\kappa^{\mathrm{pub}}>0\); \texttt{published global conditioning}
+  \par\smallskip\noindent\emph{Definition.} Global condition number of \(M^\star\) in the published comparator; no fixed uniform bound is imposed by the full published model.
+  \item \texttt{muPub} --- \texttt{published-\allowbreak{}comparator global incoherence sequence}; \(\mu^{\mathrm{pub}}\ge1\); \texttt{published global incoherence}
+  \par\smallskip\noindent\emph{Definition.} Global incoherence index of \(M^\star\) in the published comparator; no fixed uniform bound is imposed by the full published model.
+  \item \texttt{psiPub} --- \texttt{published selected-\allowbreak{}core signal sequence}; \(\psi^{\mathrm{pub}}_{\min,O_d}>0\); \texttt{published selected-\allowbreak{}functional signal}
+  \par\smallskip\noindent\emph{Definition.} Smallest nonzero singular value of the published observed core associated with adoption date \(d\) for the selected functional.
+  \item \texttt{sigmaPub} --- \texttt{published-\allowbreak{}comparator homoskedastic scale}; \(\sigma^{\mathrm{pub}}>0\); \texttt{published noise scale}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common standard deviation of the i.i.d. errors in the published comparator;\allowbreak{} the full published model does not impose the note's fixed variance bounds.}
+  \item \texttt{phiCY} --- \texttt{published selected-\allowbreak{}functional descriptor}; \(\phi_n=(\mathcal G_n,t_{0n},\{\mathcal G_{\ell n}\}_{\ell=0}^{L_n})\); \texttt{published scalar-\allowbreak{}functional selector}
+  \par\smallskip\noindent\emph{Definition.} \texttt{One chosen group average,\allowbreak{} calendar time,\allowbreak{} and adoption-\allowbreak{}compatible subgroup partition to which published Choi-\allowbreak{}-\allowbreak{}Yuan Theorem 3.2 is applied.}
+  \item \texttt{Ppub} --- \texttt{published-\allowbreak{}comparator triangular-\allowbreak{}array law}; \((P_n^{\mathrm{pub}})_{n\ge1}\); \texttt{published law component}
+  \par\smallskip\noindent\emph{Definition.} Complete sequence of laws of the published comparator panel with untreated mean \(M^{\mathrm{pub}}\) and the deterministic staggered adoption design.
+  \item \texttt{MCYPub} --- \texttt{published array-\allowbreak{}plus-\allowbreak{}selected-\allowbreak{}functional class}; \(\mathfrak M^{\mathrm{CY,pub}}_{\mathrm{sel}}\); \texttt{published comparator class}
+  \par\smallskip\noindent\emph{Definition.} Class of complete published law arrays paired with one selected scalar-functional descriptor, constructed in \(\texttt{def:choi-yuan-published-selected-class}\).
+  \item \texttt{piPub} --- \texttt{published-\allowbreak{}class law projection}; \(\pi_{\mathrm{law}}((P_n^{\mathrm{pub}},\phi_n)_{n\ge1})=(P_n^{\mathrm{pub}})_{n\ge1}\); \texttt{typed class-\allowbreak{}comparison map}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Projection that forgets the selected functional and retains the complete panel-\allowbreak{}law array.}
+  \item \texttt{MCYCommon} --- \texttt{common selected complete-\allowbreak{}array subclass}; \(\mathfrak M^\cap\); \texttt{converse-\allowbreak{}transfer subclass}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Explicit balanced rank-\allowbreak{}one,\allowbreak{} exact-\allowbreak{}rank,\allowbreak{} i.i.d. homoskedastic subclass satisfying both the event-\allowbreak{}transfer block conditions and the published selected-\allowbreak{}functional conditions.}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:independent-cells]\label{ass:independent-cells}
+For every \(n\), \(\{e_{it}:(i,t)\in\mathcal Q_n^+\}\) are mutually independent under \(P_n\).
+\par\smallskip\noindent\emph{Standard} (Independent cell noise in structured matrix completion, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:centered-errors]\label{ass:centered-errors}
+For every \(n\), \(E_{P_n}[e_{it}]=0\) for every \((i,t)\in\mathcal Q_n^+\).
+\par\smallskip\noindent\emph{Standard} (Centered idiosyncratic errors, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:heteroskedastic-subgaussian]\label{ass:heteroskedastic-subgaussian}
+For every \(n\), \(\|e_{it}\|_{\psi_2}\le C_e\sigma_{it}\) for every \((i,t)\in\mathcal Q_n^+\), with the same \(C_e\).
+\par\smallskip\noindent\emph{Standard} (Uniformly sub-Gaussian heteroskedastic noise, \cite{ChoiKwonLiao2024Completion}).
+\end{assumption}
+
+\begin{assumption}[ass:variance-bounds]\label{ass:variance-bounds}
+For every \(n\), \(0<\underline\sigma\le\min_{(i,t)\in\mathcal Q_n^+}\sigma_{it}\le\max_{(i,t)\in\mathcal Q_n^+}\sigma_{it}\le\bar\sigma<\infty\), with the same \(\underline\sigma\) and \(\bar\sigma\).
+\par\smallskip\noindent\emph{Standard} (Nondegenerate bounded heteroskedastic variances, \cite{ChoiKwonLiao2024Completion}).
+\end{assumption}
+
+\begin{assumption}[ass:row-heteroskedasticity]\label{ass:row-heteroskedasticity}
+For every \(n\), \(\sigma_{it}^2=\sigma_i^2\) for every \(i\le N\) and \(t\le T\).
+\par\smallskip\noindent\emph{Standard} (Unit-specific heteroskedasticity for a feasible low-rank group-average CLT, \cite{ChoiKwonLiao2024Completion}).
+\end{assumption}
+
+\begin{assumption}[ass:variance-replication]\label{ass:variance-replication}
+For every \(n\), \(\sqrt{\log(2N)/\min_{i\le N}|\{t:(i,t)\in\mathcal V_n\}|}\,\log^2(2K)\le\varepsilon_n^{\mathrm{vrep}}\).
+\par\smallskip\noindent\emph{Novel.} The envelope is satisfied when every unit retains an untreated history that grows faster than \(\log(2N)\log^4(2K)\). Long administrative and policy panels with adoption bounded away from the first sample periods provide this replication while allowing the reported horizon set to grow.
+\end{assumption}
+
+\begin{assumption}[ass:exact-low-rank]\label{ass:exact-low-rank}
+For every \(n\), \(\operatorname{rank}(M^0)=r\).
+\par\smallskip\noindent\emph{Standard} (Exact low-rank untreated mean model, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:block-incoherence]\label{ass:block-incoherence}
+For every \(n\), \(\max_{g\in E_k,k\in\mathcal K_n}\mu_{gk}\le\bar\mu\), with the same \(\bar\mu\).
+\par\smallskip\noindent\emph{Standard} (Uniform Choi--Yuan block incoherence, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:signal-ratio]\label{ass:signal-ratio}
+For every \(n\), \(\max_{g\in E_k,k\in\mathcal K_n}\frac{\bar\sigma\kappa_{gk}^2\mu_{gk}^{1/2}r^{1/2}\max\{N_{gk}\sqrt{\log N_{gk}},T_g\sqrt{\log T_g}\}}{\psi_{gk}\min\{\sqrt{N_{gk}},\sqrt{T_g}\}}\le\varepsilon_n^{\mathrm{sig}}\).
+\par\smallskip\noindent\emph{Standard} (Uniform version of the Choi--Yuan signal-to-noise ratio, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:spectral-size-ratio]\label{ass:spectral-size-ratio}
+For every \(n\), \(\max_{g\in E_k,k\in\mathcal K_n}\frac{\kappa_{gk}^4\mu_{gk}^2r^2\max\{N_{gk}\log^3N_{gk},T_g\log^3T_g\}}{\min\{N_{gk}^2,T_g^2\}}\le\varepsilon_n^{\mathrm{spec}}\).
+\par\smallskip\noindent\emph{Standard} (Uniform version of the Choi--Yuan spectral dimension ratio, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:missing-block-ratio]\label{ass:missing-block-ratio}
+For every \(n\), \(\max_{g\in E_k,k\in\mathcal K_n}\frac{n_g\kappa_{gk}^2\mu_{gk}r}{\min\{N_{gk},T_g\}}\le\varepsilon_n^{\mathrm{block}}\).
+\par\smallskip\noindent\emph{Standard} (Uniform version of the Choi--Yuan missing-block ratio, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:donor-gram-balance]\label{ass:donor-gram-balance}
+For every \(n\), \(c_A|J_{gk}|I_r\preceq A_{gk}\preceq C_A|J_{gk}|I_r\) for all \(g\in E_k\) and \(k\in\mathcal K_n\), with the same \(c_A,C_A\).
+\par\smallskip\noindent\emph{Standard} (Choi--Yuan donor-submatrix Gram balance, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:preperiod-gram-balance]\label{ass:preperiod-gram-balance}
+For every \(n\), \(c_B|S_g|I_r\preceq B_g\preceq C_B|S_g|I_r\) for all \(g\in E_k\) and \(k\in\mathcal K_n\), with the same \(c_B,C_B\).
+\par\smallskip\noindent\emph{Standard} (Choi--Yuan pre-period Gram balance, \cite{ChoiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:horizon-variance-nondegeneracy]\label{ass:horizon-variance-nondegeneracy}
+For every \(n\), \(\min_{k\in\mathcal K_n}s_k>0\).
+\par\smallskip\noindent\emph{Standard} (Coordinatewise nondegeneracy for Gaussian maxima, \cite{ChernozhukovChetverikovKato2013Maxima}).
+\end{assumption}
+
+\begin{assumption}[ass:cell-leverage]\label{ass:cell-leverage}
+For every \(n\), \(L_n(K)^2\log^5(((2K)\vee3)|\mathcal Q_n^{\mathrm{IF}}|)\le\varepsilon_n^{\mathrm{lev}}\).
+\par\smallskip\noindent\emph{Standard} (Sub-exponential high-dimensional maximum leverage condition, \cite{ChernozhukovChetverikovKoike2023NearlyOptimal}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-remainder-envelope]\label{ass:uniform-remainder-envelope}
+For every \(n\), \(\Delta_{\mathrm{CY},n}(K)\sqrt{\log(2K)}\le\varepsilon_n^{\mathrm{rem}}\).
+\par\smallskip\noindent\emph{Novel.} This is a primitive uniformization of the published block ratios rather than a condition on an estimated remainder. It is satisfied by balanced strong-factor panels with fixed rank, bounded condition numbers, cohort blocks of vanishing panel share, and polynomially growing horizon sets, a configuration approximated by long staggered state-policy panels after restricting to eligible cohorts.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:cy-base-class]\label{def:cy-base-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^{\mathrm{CY},0}\) (baseline event-transfer class)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M^{\mathrm{CY},0}=\{(P_n)_{n\ge1}:\mathsf A_{\mathrm{ind}}((P_n))\wedge\mathsf A_{\mathrm{ctr}}((P_n))\wedge\mathsf A_{\mathrm{subG}}((P_n))\wedge\mathsf A_{\mathrm{var}}((P_n))\wedge\mathsf A_{\mathrm{rowvar}}((P_n))\wedge\mathsf A_{\mathrm{vrep}}((P_n);\varepsilon^{\mathrm{vrep}})\wedge\mathsf A_{\mathrm{rank}}((P_n))\wedge\mathsf A_{\mathrm{inc}}((P_n))\wedge\mathsf A_{\mathrm{sig}}((P_n);\varepsilon^{\mathrm{sig}})\wedge\mathsf A_{\mathrm{spec}}((P_n);\varepsilon^{\mathrm{spec}})\wedge\mathsf A_{\mathrm{block}}((P_n);\varepsilon^{\mathrm{block}})\wedge\mathsf A_A((P_n))\wedge\mathsf A_B((P_n))\wedge\mathsf A_{\mathrm{nd}}((P_n))\wedge\mathsf A_{\mathrm{lev}}((P_n);\varepsilon^{\mathrm{lev}})\}\). Every member property holds at each finite \(n\) with the common event-transfer constants and fixed envelopes in the symbol table.  This exact-rank, blockwise-uniform, row-heteroskedastic class is not the published Choi--Yuan approximate-rank class; the superscript records the provenance of the block coefficients.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}independent-\allowbreak{}cells}; \texttt{ass:\allowbreak{}centered-\allowbreak{}errors}; \texttt{ass:\allowbreak{}heteroskedastic-\allowbreak{}subgaussian}; \texttt{ass:\allowbreak{}variance-\allowbreak{}bounds}; \texttt{ass:\allowbreak{}row-\allowbreak{}heteroskedasticity}; \texttt{ass:\allowbreak{}variance-\allowbreak{}replication}; \texttt{ass:\allowbreak{}exact-\allowbreak{}low-\allowbreak{}rank}; \texttt{ass:\allowbreak{}block-\allowbreak{}incoherence}; \texttt{ass:\allowbreak{}signal-\allowbreak{}ratio}; \texttt{ass:\allowbreak{}spectral-\allowbreak{}size-\allowbreak{}ratio}; \texttt{ass:\allowbreak{}missing-\allowbreak{}block-\allowbreak{}ratio}; \texttt{ass:\allowbreak{}donor-\allowbreak{}gram-\allowbreak{}balance}; \texttt{ass:\allowbreak{}preperiod-\allowbreak{}gram-\allowbreak{}balance}; \texttt{ass:\allowbreak{}horizon-\allowbreak{}variance-\allowbreak{}nondegeneracy}; \texttt{ass:\allowbreak{}cell-\allowbreak{}leverage}.
+\end{definition}
+
+\begin{definition}[def:cy-base-slice]\label{def:cy-base-slice}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal M_n^{\mathrm{CY},0}\)
+\par\smallskip\noindent\emph{Construction.} For each finite \(n\), define \(\mathcal M_n^{\mathrm{CY},0}=\{P_n: \exists (P_j)_{j\ge1}\in\mathfrak M^{\mathrm{CY},0}\text{ whose }n\text{-th coordinate is }P_n\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cy-\allowbreak{}base-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:cy-event-class]\label{def:cy-event-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^{\mathrm{CY}}\) (band event-transfer class)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M^{\mathrm{CY}}=\{(P_n)_{n\ge1}\in\mathfrak M^{\mathrm{CY},0}:\mathsf A_{\mathrm{rem}}((P_n);\varepsilon^{\mathrm{rem}})\}\). Equivalently, each finite slice obeys \(\Delta_{\mathrm{CY},n}(K)\sqrt{\log(2K)}\le\varepsilon_n^{\mathrm{rem}}\) for the fixed vanishing envelope.  This condition controls only the deterministic primitive expression; asymptotic band validity still requires the separately displayed remainder-event and feasible-score failure probabilities to vanish.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}independent-\allowbreak{}cells}; \texttt{ass:\allowbreak{}centered-\allowbreak{}errors}; \texttt{ass:\allowbreak{}heteroskedastic-\allowbreak{}subgaussian}; \texttt{ass:\allowbreak{}variance-\allowbreak{}bounds}; \texttt{ass:\allowbreak{}row-\allowbreak{}heteroskedasticity}; \texttt{ass:\allowbreak{}variance-\allowbreak{}replication}; \texttt{ass:\allowbreak{}exact-\allowbreak{}low-\allowbreak{}rank}; \texttt{ass:\allowbreak{}block-\allowbreak{}incoherence}; \texttt{ass:\allowbreak{}signal-\allowbreak{}ratio}; \texttt{ass:\allowbreak{}spectral-\allowbreak{}size-\allowbreak{}ratio}; \texttt{ass:\allowbreak{}missing-\allowbreak{}block-\allowbreak{}ratio}; \texttt{ass:\allowbreak{}donor-\allowbreak{}gram-\allowbreak{}balance}; \texttt{ass:\allowbreak{}preperiod-\allowbreak{}gram-\allowbreak{}balance}; \texttt{ass:\allowbreak{}horizon-\allowbreak{}variance-\allowbreak{}nondegeneracy}; \texttt{ass:\allowbreak{}cell-\allowbreak{}leverage}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}remainder-\allowbreak{}envelope}.
+\end{definition}
+
+\begin{definition}[def:cy-event-slice]\label{def:cy-event-slice}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal M_n^{\mathrm{CY}}\)
+\par\smallskip\noindent\emph{Construction.} For each finite \(n\), define \(\mathcal M_n^{\mathrm{CY}}=\{P_n: \exists (P_j)_{j\ge1}\in\mathfrak M^{\mathrm{CY}}\text{ whose }n\text{-th coordinate is }P_n\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cy-\allowbreak{}event-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:eligible-event-estimator]\label{def:eligible-event-estimator}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat\tau^{\mathrm{event}}\)
+\par\smallskip\noindent\emph{Construction.} For every \(k\in\mathcal K_n\), apply the exact Choi--Yuan debiasing map to each eligible block \((g,k)\), then compute \(\widehat\tau_k=\sum_{g\in E_k}N_k^{-1}\sum_{i\in I_g}(Y_{i,g+k}-\widehat m^0_{i,g+k})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cy-\allowbreak{}base-\allowbreak{}slice}.
+\end{definition}
+
+\begin{definition}[def:staircase-influence-map]\label{def:staircase-influence-map}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak C_n\)
+\par\smallskip\noindent\emph{Construction.} Map every eligible block to its exact Proposition A.4 donor-row and treated-preperiod coefficients, add the observed treated-cell coefficient, aggregate by \(n_g/N_k\), and return the array \(c=(c_{kq})\) defined in the symbol table.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}eligible-\allowbreak{}event-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:heteroskedastic-plugin]\label{def:heteroskedastic-plugin}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat\Omega_n\)
+\par\smallskip\noindent\emph{Construction.} On the variance-training set \(\mathcal V_n\), compute each untreated residual \(\widehat e_{it}\) from the rank-\(r\) Choi--Yuan completion and debiasing fit with cell \((i,t)\) deleted, and set \(\widehat\sigma_i^2=h_i^{-1}\sum_{t\in H_i}\widehat e_{it}^2\). Estimate the exact influence coefficients \(\widehat c_{kq}\), and set \(\widehat\Omega_{kk'}=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}\widehat c_{kq}\widehat c_{k'q}\widehat\sigma_u^2\) for all \(k,k'\in\mathcal K_n\); no variance-training cell outside \(\mathcal Q_n^{\mathrm{IF}}\) enters this influence sum.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}eligible-\allowbreak{}event-\allowbreak{}estimator}; \texttt{def:\allowbreak{}staircase-\allowbreak{}influence-\allowbreak{}map}.
+\end{definition}
+
+\begin{definition}[def:multiplier-band]\label{def:multiplier-band}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal C_n\)
+\par\smallskip\noindent\emph{Construction.} For \(q\in\mathcal Q_n^{\mathrm{IF}}\), draw \(\xi_q\stackrel{\mathrm{iid}}{\sim}N(0,1)\), compute \(W_n^\xi=\max_{k\in\mathcal K_n}|\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}\widehat c_{kq}\widehat\sigma_u\xi_q/\widehat s_k|\), take its conditional \(1-\alpha\) quantile \(c_{1-\alpha,n}\), and report \(\mathcal C_{n,k}=[\widehat\tau_k\pm c_{1-\alpha,n}\widehat s_k]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}eligible-\allowbreak{}event-\allowbreak{}estimator}; \texttt{def:\allowbreak{}heteroskedastic-\allowbreak{}plugin}.
+\end{definition}
+
+\begin{definition}[def:per-law-remainder-modulus]\label{def:per-law-remainder-modulus}
+\par\smallskip\noindent\emph{Defined object.} \(\delta_n(P_n;\eta_n)\)
+\par\smallskip\noindent\emph{Construction.} After forming the finite slice \(\mathcal M_n^{\mathrm{CY},0}\), for \(P_n\in\mathcal M_n^{\mathrm{CY},0}\) and \(0<\eta_n<1/2\), set \(\delta_n(P_n;\eta_n)=\inf\{d\ge0:P_n(\|\rho_n\|_\infty>d)\le\eta_n\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cy-\allowbreak{}base-\allowbreak{}slice}; \texttt{def:\allowbreak{}eligible-\allowbreak{}event-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:uniform-attainable-modulus]\label{def:uniform-attainable-modulus}
+\par\smallskip\noindent\emph{Defined object.} \(\Delta_n^*(K;\eta_n)\)
+\par\smallskip\noindent\emph{Construction.} For every vanishing sequence \(\eta=(\eta_n)\) and each finite \(n\), set \(\Delta_n^*(K;\eta_n)=\sup_{P_n\in\mathcal M_n^{\mathrm{CY},0}}\delta_n(P_n;\eta_n)\), where \(\mathcal M_n^{\mathrm{CY},0}\) is the previously defined \(n\)-th slice of \(\mathfrak M^{\mathrm{CY},0}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cy-\allowbreak{}base-\allowbreak{}slice}; \texttt{def:\allowbreak{}per-\allowbreak{}law-\allowbreak{}remainder-\allowbreak{}modulus}.
+\end{definition}
+
+\begin{definition}[def:strict-underenvelope-order]\label{def:strict-underenvelope-order}
+\par\smallskip\noindent\emph{Defined object.} \(\triangleleft\)
+\par\smallskip\noindent\emph{Construction.} For a candidate primitive envelope \(\beta_n(K)\) and the frontier output \(\Delta_n^{\dagger}(K;\eta_n)\), define \(\beta\triangleleft\Delta^{\dagger}\) if and only if \(\beta_n(K)/\Delta_n^{\dagger}(K;\eta_n)\to0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}uniform-\allowbreak{}attainable-\allowbreak{}modulus}.
+\end{definition}
+
+\begin{definition}[def:coverage-shortfall]\label{def:coverage-shortfall}
+\par\smallskip\noindent\emph{Defined object.} \(\Gamma_n(P_n)\)
+\par\smallskip\noindent\emph{Construction.} Set \(\Gamma_n(P_n)=\bigl[(1-\alpha)-P_n\{\tau_k^{\mathrm{event}}\in\mathcal C_{n,k}\text{ for every }k\in\mathcal K_n\}\bigr]_+\), using the uninflated conditional multiplier critical value.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}multiplier-\allowbreak{}band}.
+\end{definition}
+
+\begin{definition}[def:two-horizon-witness]\label{def:two-horizon-witness}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal W^{(2)}\)
+\par\smallskip\noindent\emph{Construction.} Set \(N=8\), \(T=3\), \(r=1\), \(K=2\), \(G_i=2\) for \(i=1,\ldots,4\), and \(G_i=\infty\) for \(i=5,\ldots,8\). Set \(x_i=1\), \(z_t=1\), and \(\sigma_{it}^2=1\) for every cell. Thus \(I_2=\{1,2,3,4\}\), \(J_{2,0}=J_{2,1}=\{5,6,7,8\}\), \(S_2=\{1\}\), and \(N_0=N_1=4\). Apply the displayed coefficient formula for \(c_{kq}\) at \(k=0,1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}staircase-\allowbreak{}influence-\allowbreak{}map}.
+\end{definition}
+
+\begin{definition}[def:sharpness-handle]\label{def:sharpness-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{second-\allowbreak{}order staircase alignment handle}
+\par\smallskip\noindent\emph{Construction.} Expand the Choi--Yuan block KKT equations and debiasing map exactly to second order on balanced rank-one complete triangular arrays in \(\mathfrak M^{\mathrm{CY},0}\), retain signed singular-space perturbations before applying norm inequalities, align their signs across nested adoption blocks, and optimize the resulting per-law quantiles over the explicitly defined finite slices to derive a primitive expression \(\Delta_n^{\dagger}(K;\eta_n)\) equivalent to \(\Delta_n^*(K;\eta_n)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}eligible-\allowbreak{}event-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:rtc-band-protocol]\label{def:rtc-band-protocol}
+\par\smallskip\noindent\emph{Defined object.} \texttt{RTC-\allowbreak{}law event-\allowbreak{}curve protocol}
+\par\smallskip\noindent\emph{Construction.} On the 1977--2014 right-to-carry panel, retain the 44 states with at least eight pre-adoption observations, define \(G_i\) by the law's first effective year, apply \(\mathcal C_n\) to the eligible post-adoption subcurve \(k=0,\ldots,10\), retain \(k=-20,\ldots,-1\) as an observed pre-fit diagnostic outside the band theorem, and residualize the optional unit and calendar effects before block completion.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}multiplier-\allowbreak{}band}.
+\end{definition}
+
+\begin{definition}[def:choi-yuan-published-selected-class]\label{def:choi-yuan-published-selected-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^{\mathrm{CY,pub}}_{\mathrm{sel}}\)
+\par\smallskip\noindent\emph{Construction.} Let \(\phi_n=(\mathcal G_n,t_{0n},
+\{\mathcal G_{\ell n}\}_{\ell=0}^{L_n})\) select one group-average
+functional and a partition whose nonzero subgroups each share an adoption
+date \(d_\ell\).  Define \(\mathfrak M^{\mathrm{CY,pub}}_{\mathrm{sel}}\)
+to be the class of complete pairs \(((P_n^{\mathrm{pub}},\phi_n))_{n\ge1}\)
+with the following properties.  The untreated mean obeys
+\(M^{\mathrm{pub}}=M^\star+M^R\),
+\(\operatorname{rank}(M^\star)=r<\min\{N,T\}\), the global singular
+vectors \(u_i^{\mathrm{pub}},v_t^{\mathrm{pub}}\) of \(M^\star\) are
+\(\mu^{\mathrm{pub}}\)-incoherent, its global condition number is
+\(\kappa^{\mathrm{pub}}\), and
+\(\max_{i,t}|m^R_{it}|\to0\).  The errors are i.i.d., centered,
+homoskedastic sub-Gaussian with variance \((\sigma^{\mathrm{pub}})^2\).  Writing \(N_0\)
+for the number of units untreated through \(t_0\), \(T_d\) for the
+pre-adoption length at date \(d\), \(\psi^{\mathrm{pub}}_{\min,O_d}\) for the least
+nonzero singular value of the corresponding observed core, and
+\(\mathcal U_\ell,\mathcal T_\ell\) for the row and column sets of the
+selected subgroup block, the following six conditions hold for the one
+selected \(\phi_n\), for every \(d\in D_{\mathcal G}\cup\{0\}\) and
+\(\ell=1,\ldots,L\):
+\[
+ \frac{\sigma^{\mathrm{pub}}(\kappa^{\mathrm{pub}})^{23/4}(\mu^{\mathrm{pub}})^{3/2}r^{3/2}\sqrt{N_0}
+ \max\{N_0\sqrt{\log N_0},T_d\sqrt{\log T_d}\}}
+ {\psi^{\mathrm{pub}}_{\min,O_d}\min\{N_0,T_d\}}\to0,
+\]
+\[
+ \frac{(\kappa^{\mathrm{pub}})^{11/2}(\mu^{\mathrm{pub}})^3r^3\sqrt{N_0}
+ \max\{\sqrt{N_0\log^3N_0},\sqrt{T_d\log^3T_d}\}}
+ {\min\{N_0^{3/2},T_d^{3/2}\}}\to0,
+\]
+\[
+ \frac{|\mathcal G_\ell|(\kappa^{\mathrm{pub}})^{17/4}(\mu^{\mathrm{pub}})^{5/2}r^{5/2}
+ \max\{\sqrt{N_0\log N_0},\sqrt{T_{d_\ell}\log T_{d_\ell}}\}}
+ {\sqrt{N_0}\min\{N_0,T_{d_\ell}\}}\to0,
+\]
+\[
+ \max_{i\in\mathcal U_\ell,t\in\mathcal T_\ell}|m^R_{it}|
+ =o\!\left(\frac{\sigma^{\mathrm{pub}}}
+ {(\kappa^{\mathrm{pub}})^{5/2}\mu^{\mathrm{pub}}r\max\{\sqrt{N_0},\sqrt{T_{d_\ell}}\}}\right),
+\]
+\[
+ c_1I_r\preceq\frac N{N_0}\sum_{i\le N_0}u_i^{\mathrm{pub}}(u_i^{\mathrm{pub}})^\top\preceq c_2I_r,
+ \qquad
+ c_1I_r\preceq\frac T{T_d}\sum_{t\le T_d}v_t^{\mathrm{pub}}(v_t^{\mathrm{pub}})^\top\preceq c_2I_r,
+\]
+and
+\[
+ \sqrt N\|\bar u^{\mathrm{pub}}_{\mathcal G}\|\ge c,
+ \qquad \sqrt T\|v^{\mathrm{pub}}_{t_0}\|\ge c,
+\]
+for constants \(c,c_1,c_2>0\) belonging to the selected complete pair.
+No uniform quantification over unselected scalar functionals is included.
+\end{definition}
+
+\begin{definition}[def:choi-yuan-common-subclass]\label{def:choi-yuan-common-subclass}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^\cap\)
+\par\smallskip\noindent\emph{Construction.} Define \(\mathfrak M^\cap\) as the class of complete selected pairs
+\(((P_n,\phi_n))_{n\ge1}\) such that the law projection
+\((P_n)_{n\ge1}\) belongs to the baseline event-transfer class
+\(\mathfrak M^{\mathrm{CY},0}\), the pair belongs to
+\(\mathfrak M^{\mathrm{CY,pub}}_{\mathrm{sel}}\), and
+\(M^{\mathrm{pub}}=M^0=M^\star\), \(M^R=0\), \(r=1\), the global
+rank-one loadings and factors are
+balanced, and the errors are i.i.d. homoskedastic.  The selected
+descriptor must be induced by an event block: for some selected
+\((g,k)\), take \(\mathcal G=I_g\), \(t_0=g+k\), and partition
+\(I_g\) into published subgroups.  Under this correspondence the
+published donor core has \(N_0=|J_{gk}|\) and pre-adoption length
+\(T_d=|S_g|\), whereas the event-transfer block has
+\(N_{gk}=|I_g\cup J_{gk}|\) and \(T_g=|S_g|+1\).  Membership requires
+both distinct families of inequalities: every uniform blockwise
+condition in \(\texttt{def:cy-base-class}\) and all six selected-functional
+conditions in \(\texttt{def:choi-yuan-published-selected-class}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cy-\allowbreak{}base-\allowbreak{}class}; \texttt{def:\allowbreak{}choi-\allowbreak{}yuan-\allowbreak{}published-\allowbreak{}selected-\allowbreak{}class}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:uniform-influence]\label{thm:uniform-influence}
+Fix \(n\).  For \(g\in E_k\), let \(b_{gk,q}\) denote the expression inside square brackets in the definition of \(c_{kq}\), let
+\[
+ \widehat\tau_{gk}=n_g^{-1}\sum_{i\in I_g}(Y_{i,g+k}-\widehat m^0_{i,g+k}),
+ \qquad
+ \tau_{gk}=n_g^{-1}\sum_{i\in I_g}\tau_{i,g+k},
+\]
+and define the exact block remainder \(r_{gk}\) by
+\[
+ \widehat\tau_{gk}-\tau_{gk}
+ =\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}b_{gk,q}e_q+r_{gk}.
+\]
+Then the eligible-unit aggregation obeys the exact eventwise identity
+\[
+ D_n^{-1}(\widehat\tau-\tau^{\mathrm{event}})
+ =\left(\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}a_{kq}e_q/\sigma_q\right)_{k\in\mathcal K_n}+\rho_n,
+ \qquad
+ \rho_{n,k}=s_k^{-1}\sum_{g\in E_k}\frac{n_g}{N_k}r_{gk}.
+\]
+For \(C>0\), define
+\[
+ \mathcal A_n(C)=\bigcap_{k\in\mathcal K_n}\bigcap_{g\in E_k}
+ \{|r_{gk}|\le C R_{gk}^{\mathrm{CY}}\}.
+\]
+On \(\mathcal A_n(C)\), the deterministic implication
+\[
+ \|\rho_n\|_\infty\le C\Delta_{\mathrm{CY},n}(K)
+\]
+holds.  In the i.i.d. homoskedastic source submodel in which every eligible block satisfies the hypotheses of Choi--Yuan Proposition A.4, there are constants \(C,C_0<\infty\), common to the eligible blocks for all sufficiently large \(n\), such that
+\[
+ P_n\{\mathcal A_n(C)^c\}
+ \le C_0\sum_{k\in\mathcal K_n}\sum_{g\in E_k}
+ \min\{N_{gk}^{-9},T_g^{-9}\}.
+\]
+No assertion that the last sum vanishes, and no uniform \(O_{P_n}(\Delta_{\mathrm{CY},n}(K))\) assertion over \(\mathfrak M^{\mathrm{CY}}\), is made.
+\end{theorem}
+\begin{proof}
+For each eligible pair \((g,k)\), the definition of \(r_{gk}\) is an
+exact equality.  The estimator and the causal target obey
+\[
+ \widehat\tau_k=\sum_{g\in E_k}\frac{n_g}{N_k}\widehat\tau_{gk},
+ \qquad
+ \tau_k^{\mathrm{event}}
+ =\sum_{g\in E_k}\frac{n_g}{N_k}\tau_{gk}.
+\]
+The second equality follows from \(N_k=\sum_{g\in E_k}n_g\) and the
+definition of \(\tau_k^{\mathrm{event}}\).  Subtraction and substitution
+of the block decompositions therefore give
+\[
+ \widehat\tau_k-\tau_k^{\mathrm{event}}
+ =\sum_{g\in E_k}\frac{n_g}{N_k}
+   \sum_{q\in\mathcal Q_n^{\mathrm{IF}}}b_{gk,q}e_q
+  +\sum_{g\in E_k}\frac{n_g}{N_k}r_{gk}.
+\]
+All sums are finite, so they may be interchanged.  By
+\(\texttt{def:staircase-influence-map}\),
+\[
+ \sum_{g\in E_k}\frac{n_g}{N_k}b_{gk,q}=c_{kq}.
+\]
+Consequently,
+\[
+ \widehat\tau_k-\tau_k^{\mathrm{event}}
+ =\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}c_{kq}e_q
+  +\sum_{g\in E_k}\frac{n_g}{N_k}r_{gk}.
+\]
+Assumption \(\texttt{ass:horizon-variance-nondegeneracy}\) gives
+\(s_k>0\).  Since \(a_{kq}=c_{kq}\sigma_q/s_k\), division by \(s_k\)
+yields
+\[
+ s_k^{-1}(\widehat\tau_k-\tau_k^{\mathrm{event}})
+ =\sum_q a_{kq}\frac{e_q}{\sigma_q}
+  +s_k^{-1}\sum_{g\in E_k}\frac{n_g}{N_k}r_{gk}.
+\]
+Comparison with the definition of \(\rho_{n,k}\) proves the coordinate
+identity and the formula for \(\rho_{n,k}\); stacking over
+\(k\in\mathcal K_n\) proves the vector identity.
+
+On \(\mathcal A_n(C)\), positivity of the cohort shares, the triangle
+inequality, and the definition of \(\Delta_{\mathrm{CY},n}(K)\) give
+\[
+ \begin{aligned}
+ \|\rho_n\|_\infty
+ &\le \max_{k\in\mathcal K_n}s_k^{-1}
+       \sum_{g\in E_k}\frac{n_g}{N_k}|r_{gk}|\\
+ &\le C\max_{k\in\mathcal K_n}s_k^{-1}
+       \sum_{g\in E_k}\frac{n_g}{N_k}R_{gk}^{\mathrm{CY}}\\
+ &=C\Delta_{\mathrm{CY},n}(K).
+ \end{aligned}
+\]
+Thus, for the generic event
+\(\mathcal R_n(u)=\{\|\rho_n\|_\infty\le u\}\),
+\[
+ \mathcal A_n(C)\subseteq
+ \mathcal R_n\!\left(C\Delta_{\mathrm{CY},n}(K)\right),
+ \qquad
+ P_n\!\left\{\mathcal R_n\!\left(C\Delta_{\mathrm{CY},n}(K)\right)^c\right\}
+ \le P_n\{\mathcal A_n(C)^c\}.
+\]
+This is precisely the Choi--Yuan specialization needed by the generic
+remainder-event transfer in \(\texttt{thm:uniform-multiplier-band}\).
+
+It remains to prove the finite source-submodel probability statement.
+Apply \(\texttt{lem:choi-yuan-one-block-remainder}\) separately to each
+eligible block.  Its notation maps as
+\((N_o,T_o,\vartheta_o)=(N_{gk},T_g,n_g)\).  For \(i\in I_g\), the cited
+proposition decomposes the imputation error into the donor-column term,
+the treated-row pre-period term, and an entry remainder
+\(\mathcal R^M_{gk,i}\).  Since
+\[
+ Y_{i,g+k}-m^0_{i,g+k}-\tau_{i,g+k}=e_{i,g+k},
+\]
+subtracting that expansion and averaging over \(I_g\) gives the stated
+block expansion with
+\[
+ r_{gk}=-\frac1{n_g}\sum_{i\in I_g}\mathcal R^M_{gk,i}.
+\]
+Hence
+\(\max_{i\in I_g}|\mathcal R^M_{gk,i}|\le
+C R_{gk}^{\mathrm{CY}}\) implies
+\(|r_{gk}|\le C R_{gk}^{\mathrm{CY}}\).  In the stated i.i.d.
+homoskedastic source submodel, the uniform block ratios and common
+constants make \(C\) and \(C_0\) common to all eligible blocks for all
+sufficiently large \(n\).  Therefore
+\[
+ P_n\{|r_{gk}|>C R_{gk}^{\mathrm{CY}}\}
+ \le C_0\min\{N_{gk}^{-9},T_g^{-9}\}.
+\]
+Boole's inequality over the finite collection of eligible pairs gives
+\[
+ \begin{aligned}
+ P_n\{\mathcal A_n(C)^c\}
+ &\le\sum_{k\in\mathcal K_n}\sum_{g\in E_k}
+ P_n\{|r_{gk}|>C R_{gk}^{\mathrm{CY}}\}\\
+ &\le C_0\sum_{k\in\mathcal K_n}\sum_{g\in E_k}
+ \min\{N_{gk}^{-9},T_g^{-9}\}.
+ \end{aligned}
+\]
+This is an unsimplified finite union bound.  Neither the source result nor
+the event-transfer class makes its right-hand side converge to zero.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the exact Choi--Yuan specialization of the generic remainder-event transfer: algebra gives the event score and \(\mathcal A_n(C)\subseteq\mathcal R_n(C\Delta_{\mathrm{CY},n}(K))\). \textit{Gap.} Proposition A.4 is one-block and i.i.d. homoskedastic; its honest growing-block consequence is the unsimplified finite union bound, not a class-uniform stochastic order. \textit{Consumer.} The generic headline substitutes the block event only when an analyst can make its displayed failure probability small.
+
+\begin{lemma}[lem:staircase-covariance]\label{lem:staircase-covariance}
+For all \(k,k'\in\mathcal K_n\), mutual independence and centeredness on \(\mathcal Q_n^+\) give the algebraic identity \[\operatorname{Cov}_{P_n}\!\left(\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}c_{kq}e_q,\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}c_{k'q}e_q\right)=\Omega_{kk'}=\sum_{q\in\mathcal Q_{n,kk'}^{\mathrm{sh}}}c_{kq}c_{k'q}\sigma_q^2.\] Terms outside \(\mathcal Q_{n,kk'}^{\mathrm{sh}}\) vanish by definition, and \(\Omega_{kk'}\ne0\) if and only if the displayed signed shared-cell sum is nonzero; individual products may cancel. Studentization is the identity \(\Sigma_n=D_n^{-1}\Omega_nD_n^{-1}\).
+\end{lemma}
+\begin{proof}
+Put
+\[
+ U_k=\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}c_{kq}e_q,
+ \qquad k\in\mathcal K_n.
+\]
+All sums are finite.  Assumption \(\texttt{ass:centered-errors}\) gives
+\(E_{P_n}[U_k]=0\).  Thus, for \(k,k'\in\mathcal K_n\), bilinearity of
+covariance gives
+\[
+ \operatorname{Cov}_{P_n}(U_k,U_{k'})
+ =\sum_{q,q'\in\mathcal Q_n^{\mathrm{IF}}}
+ c_{kq}c_{k'q'}E_{P_n}[e_qe_{q'}].
+\]
+If \(q\ne q'\), assumption \(\texttt{ass:independent-cells}\) and
+assumption \(\texttt{ass:centered-errors}\) imply
+\[
+ E_{P_n}[e_qe_{q'}]
+ =E_{P_n}[e_q]E_{P_n}[e_{q'}]=0.
+\]
+For \(q=q'=(u,v)\), the definition of \(\sigma_{uv}^2\) gives
+\(E_{P_n}[e_q^2]=\sigma_{uv}^2=\sigma_q^2\).  Consequently,
+\[
+ \operatorname{Cov}_{P_n}(U_k,U_{k'})
+ =\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}c_{kq}c_{k'q}\sigma_q^2
+ =\Omega_{kk'},
+\]
+where the second equality is the definition of \(\Omega_n\).  By the
+definition of \(\mathcal Q_{n,kk'}^{\mathrm{sh}}\), every term indexed by
+\(q\notin\mathcal Q_{n,kk'}^{\mathrm{sh}}\) has
+\(c_{kq}c_{k'q}=0\).  Hence
+\[
+ \Omega_{kk'}
+ =\sum_{q\in\mathcal Q_{n,kk'}^{\mathrm{sh}}}
+ c_{kq}c_{k'q}\sigma_q^2.
+\]
+This equality proves the asserted characterization: \(\Omega_{kk'}\ne0\)
+if and only if the displayed signed sum is nonzero.  In particular, the
+existence of shared cells alone is insufficient because products with
+different signs may cancel.  Finally,
+\(\texttt{ass:horizon-variance-nondegeneracy}\) gives \(s_k>0\) for every
+\(k\in\mathcal K_n\), so \(D_n\) is invertible.  The definition of
+\(\Sigma_n\) then yields
+\[
+ \Sigma_n=D_n^{-1}\Omega_nD_n^{-1}.
+\]
+\end{proof}
+
+\begin{proposition}[prop:two-horizon-shared-cell-witness]\label{prop:two-horizon-shared-cell-witness}
+For \(\mathcal W^{(2)}\), the untreated mean has rank one, \(\mu_{2,0}=\mu_{2,1}=1\), \(A_{2,0}=A_{2,1}=4\), and \(B_2=1\). At each horizon, the four treated target cells have coefficient \(1/4\), the four donor target cells have coefficient \(-1/4\), and the four treated pre-period cells shared by both horizons have coefficient \(-1/4\). Therefore each marginal variance is \(12(1/4)^2=3/4\), each shared-cell covariance product is \((-1/4)(-1/4)=1/16\), the off-diagonal covariance is \(4/16=1/4\), and the correlation is \((1/4)/(3/4)=1/3\). This explicitly satisfies the noncancellation condition in \(\mathrm{lem:staircase\mbox{-}covariance}\).
+\end{proposition}
+\begin{proof}
+In \(\mathcal W^{(2)}\), the definition of the witness gives
+\[
+ M^0=\mathbf 1_8\mathbf 1_3^{\top}.
+\]
+Both vectors are nonzero, so \(\operatorname{rank}(M^0)=1\).  For either
+\(k\in\{0,1\}\), the eligible block has rows
+\(I_2\cup J_{2,k}=\{1,\ldots,8\}\), columns
+\(S_2\cup\{2+k\}=\{1,2+k\}\), and every entry equal to one.  A compact
+singular value decomposition is therefore
+\[
+ U_{2,k}=\frac{\mathbf 1_8}{\sqrt 8},
+ \qquad
+ V_{2,k}=\frac{\mathbf 1_2}{\sqrt 2},
+ \qquad
+ \psi_{2,k}=\sqrt{8\cdot2}=4.
+\]
+Because \(r=1\), the definition of block incoherence gives
+\[
+ \mu_{2,k}
+ =\max\!\left\{
+ 8\left\|U_{2,k}\right\|_{2,\infty}^2,
+ 2\left\|V_{2,k}\right\|_{2,\infty}^2
+ \right\}
+ =\max\{8(1/8),2(1/2)\}=1.
+\]
+Every loading and factor equals one.  Since \(|J_{2,k}|=4\) and
+\(S_2=\{1\}\), the definitions of the Gram matrices yield, identifying
+one-by-one matrices with their scalar entries,
+\[
+ A_{2,k}=\sum_{j=5}^{8}x_j^2=4,
+ \qquad
+ B_2=\sum_{s\in S_2}z_s^2=z_1^2=1.
+\]
+
+For both horizons, \(E_k=\{2\}\) and \(N_k=n_2=4\); hence the outer
+cohort weight \(n_2/N_k\) in the definition of \(c_{kq}\) equals one.
+Moreover, \(\bar x_2=1\).  Substituting
+\(A_{2,k}^{-1}=1/4\), \(B_2^{-1}=1\), \(z_{2+k}=1\), and \(z_1=1\)
+into the displayed coefficient formula gives, with \(t_k=2+k\),
+\[
+ c_{k,(u,v)}=
+ \begin{cases}
+  1/4,&u\in I_2,\ v=t_k,\\
+ -1/4,&u\in J_{2,k},\ v=t_k,\\
+ -1/4,&u\in I_2,\ v=1,\\
+ 0,&\text{otherwise}.
+ \end{cases}
+\]
+The three nonzero cases are disjoint, and each contains four cells.  Since
+the witness sets every cell variance equal to one, the definition of
+\(\Omega_n\) gives
+\[
+ \Omega_{kk}
+ =4(1/4)^2+4(-1/4)^2+4(-1/4)^2
+ =\frac34.
+\]
+The treated and donor target cells occur at calendar date \(2+k\), so they
+are distinct between horizons zero and one.  The only cells having nonzero
+coefficients at both horizons are the four pre-treatment cells \((u,1)\)
+with \(u\in I_2\).  Each such cell contributes
+\[
+ c_{0,(u,1)}c_{1,(u,1)}=(-1/4)(-1/4)=\frac1{16}.
+\]
+Applying \(\texttt{lem:staircase-covariance}\), whose independence and
+centering hypotheses hold for the witness noise, yields
+\[
+ \Omega_{01}=4\left(\frac1{16}\right)=\frac14.
+\]
+Finally, the definitions of \(s_k\), \(D_n\), and \(\Sigma_n\) give
+\[
+ \Sigma_{01}
+ =\frac{\Omega_{01}}{\sqrt{\Omega_{00}\Omega_{11}}}
+ =\frac{1/4}{3/4}=\frac13.
+\]
+Thus the shared-cell signed sum does not cancel.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fully enumerated finite panel verifies the coefficient normalization and exhibits a nonzero signed shared-cell sum without appealing to an unnamed procedure. \textit{Gap.} No located low-rank staggered-adoption inference result displays this exact two-horizon coefficient calculation; the proposition is an algebraic witness, not a claim that a published method imposes block independence. \textit{Consumer.} The twelve-cell calculation is a deterministic unit test for implementations of the full RTC-law event covariance.
+
+\begin{theorem}[thm:heteroskedastic-covariance]\label{thm:heteroskedastic-covariance}
+Let \(h_{\min}=\min_{i\le N}h_i\), which is positive under \(\texttt{ass:variance-replication}\), and define the oracle residual variance
+\[
+ \widetilde\sigma_i^2=h_i^{-1}\sum_{t\in H_i}e_{it}^2.
+\]
+There is a constant \(C_1<\infty\), depending only on \(C_e\) and \(\bar\sigma\), such that, for every \(x\ge0\),
+\[
+ \sup_{P_n\in\mathcal M_n^{\mathrm{CY}}}P_n\!\left\{
+ \max_{i\le N}|\widetilde\sigma_i^2-\sigma_i^2|>
+ C_1\left[\sqrt{\frac{\log(2N)+x}{h_{\min}}}
+ +\frac{\log(2N)+x}{h_{\min}}\right]\right\}\le2e^{-x}.
+\]
+Consequently,
+\[
+ \max_{i\le N}|\widetilde\sigma_i^2-\sigma_i^2|
+ =O_{P_n}\!\left(\sqrt{\frac{\log(2N)}{h_{\min}}}
+ +\frac{\log(2N)}{h_{\min}}\right)
+ =o_{P_n}((\log(2K))^{-2})
+\]
+uniformly over the finite slices.  For
+\[
+ d_{it}=\widehat m_{it}^{0,(-it)}-m^0_{it},
+ \qquad
+ d_i^2=h_i^{-1}\sum_{t\in H_i}d_{it}^2,
+\]
+the feasible residual variance has the exact contamination bound
+\[
+ |\widehat\sigma_i^2-\widetilde\sigma_i^2|
+ \le2\left(h_i^{-1}\sum_{t\in H_i}e_{it}^2\right)^{1/2}d_i+d_i^2.
+\]
+Finally, set
+\[
+ \widehat b_{kq}=\widehat c_{kq}\widehat\sigma_u/s_k,
+ \qquad
+ r_n^{\mathrm{score}}=\max_{k\in\mathcal K_n}
+ \left\{\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}
+ (\widehat b_{kq}-a_{kq})^2\right\}^{1/2},
+\]
+and \(\mathcal B_n(h)=\{r_n^{\mathrm{score}}\le h\}\).  On \(\mathcal B_n(h)\), with \(\delta_h=2h+h^2<1\),
+\[
+ \max_{k,k'\in\mathcal K_n}
+ \frac{|\widehat\Omega_{kk'}-\Omega_{kk'}|}{s_ks_{k'}}\le\delta_h,
+ \qquad
+ \max_k\left|\frac{\widehat s_k}{s_k}-1\right|
+ \le\frac{\delta_h}{1+\sqrt{1-\delta_h}},
+\]
+and
+\[
+ \|\widehat\Sigma_n-\Sigma_n\|_{\max}
+ \le\frac{2\delta_h}{1-\delta_h}.
+\]
+These are deterministic consequences of the displayed score discrepancy.  No stochastic rate for \(r_n^{\mathrm{score}}\) is asserted.
+\end{theorem}
+\begin{proof}
+Write \(h_{\min}=\min_{i\le N}h_i\).  By the definitions of
+\(\mathcal V_n\) and \(h_i\),
+\[
+ \min_{i\le N}|\{t:(i,t)\in\mathcal V_n\}|=h_{\min}.
+\]
+The real-valued inequality in \(\texttt{ass:variance-replication}\) has
+this quantity in its denominator; hence that assumption entails
+\(h_{\min}>0\).  Thus every oracle average in the statement is well
+defined.
+
+Fix \(P_n\in\mathcal M_n^{\mathrm{CY}}\).  By
+\(\texttt{ass:row-heteroskedasticity}\), for every \(t\in H_i\),
+\[
+ E_{P_n}[e_{it}^2]=\sigma_{it}^2=\sigma_i^2.
+\]
+We first establish the claimed concentration uniformly over the finite
+slices.  The definition of the sub-Gaussian norm and
+\(\texttt{ass:heteroskedastic-subgaussian}\) imply that there is a
+constant \(C_2<\infty\), depending only on \(C_e\), such that
+\[
+ E_{P_n}\exp\!\left\{\frac{e_{it}^2}{C_2\sigma_i^2}\right\}\le2.
+\]
+For every integer \(m\ge1\), the elementary inequality
+\(y^m\le m!e^y\), applied with
+\(y=e_{it}^2/(C_2\sigma_i^2)\), gives
+\[
+ E_{P_n}|e_{it}|^{2m}
+ \le 2m!(C_2\sigma_i^2)^m.
+\]
+Set \(U_{it}=e_{it}^2-\sigma_i^2\).  Then
+\(E_{P_n}[U_{it}]=0\).  The preceding moment inequality,
+\((x+y)^m\le2^{m-1}(x^m+y^m)\) for \(x,y\ge0\), and
+\(\sigma_i\le\bar\sigma\) from \(\texttt{ass:variance-bounds}\) imply
+that a constant \(C_3<\infty\), depending only on \(C_e\), satisfies
+\[
+ E_{P_n}|U_{it}|^m\le m!(C_3\bar\sigma^2)^m,
+ \qquad m\ge2.
+\]
+Let \(B=C_3\bar\sigma^2\).  Expanding the exponential, using
+\(E_{P_n}[U_{it}]=0\), and bounding every remaining signed moment by its
+absolute moment shows that, whenever \(|\lambda|B\le1/2\),
+\[
+ \begin{aligned}
+ E_{P_n}e^{\lambda U_{it}}
+ &\le 1+\sum_{m=2}^{\infty}(|\lambda|B)^m\\
+ &\le 1+2\lambda^2B^2
+ \le \exp(2\lambda^2B^2).
+ \end{aligned}
+\]
+
+For a fixed unit \(i\), assumption \(\texttt{ass:independent-cells}\)
+makes \(\{U_{it}:t\in H_i\}\) mutually independent.  Multiplication of
+the preceding moment-generating-function bounds therefore gives
+\[
+ E_{P_n}\exp\!\left\{\lambda\sum_{t\in H_i}U_{it}\right\}
+ \le \exp(2h_i\lambda^2B^2),
+ \qquad |\lambda|B\le1/2.
+\]
+Exponential Markov inequality, first with positive \(\lambda\) and then
+with negative \(\lambda\), and the choice of \(|\lambda|\) proportional
+to
+\[
+ \min\!\left\{\frac{\sqrt y}{B\sqrt{h_i}},\frac1B\right\}
+\]
+show that there is a constant \(C_4<\infty\), depending only on
+\(C_e\) and \(\bar\sigma\), for which, for every \(y\ge0\),
+\[
+ P_n\!\left\{
+ \left|h_i^{-1}\sum_{t\in H_i}U_{it}\right|
+ >C_4\left(\sqrt{\frac y{h_i}}+\frac y{h_i}\right)
+ \right\}\le2e^{-y}.
+\]
+Because
+\(h_i^{-1}\sum_{t\in H_i}U_{it}=\widetilde\sigma_i^2-\sigma_i^2\),
+we may take \(y=\log(2N)+x\), use \(h_i\ge h_{\min}\), and apply the
+union bound over \(i\le N\).  This yields
+\[
+ P_n\!\left\{
+ \max_{i\le N}|\widetilde\sigma_i^2-\sigma_i^2|
+ >C_4\left[
+ \sqrt{\frac{\log(2N)+x}{h_{\min}}}
+ +\frac{\log(2N)+x}{h_{\min}}
+ \right]\right\}
+ \le 2N e^{-\log(2N)-x}=e^{-x}\le2e^{-x}.
+\]
+The constants used above do not depend on \(P_n\), \(i\), or \(n\).
+Taking the supremum over \(P_n\in\mathcal M_n^{\mathrm{CY}}\) proves the
+first assertion with \(C_1=C_4\).
+
+For completeness, taking \(x=\log(2/\delta)\) in the preceding display,
+for arbitrary fixed \(\delta\in(0,1)\), proves uniformly over the finite
+slices that
+\[
+ \max_{i\le N}|\widetilde\sigma_i^2-\sigma_i^2|
+ =O_{P_n}\!\left(
+ \sqrt{\frac{\log(2N)}{h_{\min}}}
+ +\frac{\log(2N)}{h_{\min}}
+ \right).
+\]
+Indeed, \(\log(2N)\ge\log2\), so the fixed additive term
+\(\log(2/\delta)\) can be absorbed into a \(\delta\)-dependent
+multiplicative constant.  Put
+\[
+ v_n=\sqrt{\frac{\log(2N)}{h_{\min}}}.
+\]
+Assumption \(\texttt{ass:variance-replication}\) states
+\[
+ v_n\log^2(2K)\le\varepsilon_n^{\mathrm{vrep}}\longrightarrow0.
+\]
+It also implies \(v_n\to0\), since \(\log(2K)\ge\log2\).  Therefore
+\[
+ (v_n+v_n^2)\log^2(2K)
+ \le \varepsilon_n^{\mathrm{vrep}}(1+v_n)longrightarrow0.
+\]
+Combining this deterministic relation with the uniform stochastic order
+proves
+\[
+ \max_{i\le N}|\widetilde\sigma_i^2-\sigma_i^2|
+ =o_{P_n}((\log(2K))^{-2})
+\]
+uniformly over the finite slices.
+
+We next isolate imputation contamination.  For \(t\in H_i\), the cell is
+untreated by definition of \(H_i\).  The observation equation consequently
+reduces to \(Y_{it}=m^0_{it}+e_{it}\).  With
+\(d_{it}=\widehat m_{it}^{0,(-it)}-m^0_{it}\), the definition of the
+leave-one-cell-out residual gives
+\[
+ \widehat e_{it}=Y_{it}-\widehat m_{it}^{0,(-it)}=e_{it}-d_{it}.
+\]
+Expanding the square exactly yields
+\[
+ \widehat\sigma_i^2-\widetilde\sigma_i^2
+ =-\frac2{h_i}\sum_{t\in H_i}e_{it}d_{it}
+ +\frac1{h_i}\sum_{t\in H_i}d_{it}^2.
+\]
+By Cauchy--Schwarz and the definition of \(d_i\),
+\[
+ \left|\frac1{h_i}\sum_{t\in H_i}e_{it}d_{it}\right|
+ \le
+ \left(\frac1{h_i}\sum_{t\in H_i}e_{it}^2\right)^{1/2}
+ \left(\frac1{h_i}\sum_{t\in H_i}d_{it}^2\right)^{1/2}
+ =\left(\frac1{h_i}\sum_{t\in H_i}e_{it}^2\right)^{1/2}d_i.
+\]
+The triangle inequality proves
+\[
+ |\widehat\sigma_i^2-\widetilde\sigma_i^2|
+ \le2\left(\frac1{h_i}\sum_{t\in H_i}e_{it}^2\right)^{1/2}d_i+d_i^2.
+\]
+No frozen assumption supplies a stochastic bound for \(d_i\), so the
+argument makes no stronger feasible-variance assertion.
+
+It remains to prove the deterministic score-stability conclusions.  By
+\(\texttt{ass:row-heteroskedasticity}\), if \(q=(u,v)\), then
+\(\sigma_{uv}=\sigma_u\).  The definitions of \(a_{kq}\), \(s_k\), and
+\(\Omega_{kk}\), together with \(s_k>0\) from
+\(\texttt{ass:horizon-variance-nondegeneracy}\), imply
+\[
+ \|a_k\|_2^2
+ =\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}a_{kq}^2
+ =s_k^{-2}\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}c_{kq}^2\sigma_u^2
+ =s_k^{-2}\Omega_{kk}=1.
+\]
+By the definitions of \(\widehat b_{kq}\), \(\widehat\Omega_n\), and
+\(\Omega_n\),
+\[
+ \frac{\widehat\Omega_{kk'}}{s_ks_{k'}}
+ =\sum_q\widehat b_{kq}\widehat b_{k'q},
+ \qquad
+ \frac{\Omega_{kk'}}{s_ks_{k'}}
+ =\sum_qa_{kq}a_{k'q}.
+\]
+Set \(u_k=\widehat b_k-a_k\).  Subtracting the two inner products gives
+\[
+ \frac{\widehat\Omega_{kk'}-\Omega_{kk'}}{s_ks_{k'}}
+ =\langle u_k,a_{k'}\rangle
+ +\langle a_k,u_{k'}\rangle
+ +\langle u_k,u_{k'}\rangle.
+\]
+On \(\mathcal B_n(h)\), one has \(\|u_j\|_2\le h\) for every
+\(j\in\mathcal K_n\).  Cauchy--Schwarz and \(\|a_j\|_2=1\) therefore
+give
+\[
+ \max_{k,k'\in\mathcal K_n}
+ \frac{|\widehat\Omega_{kk'}-\Omega_{kk'}|}{s_ks_{k'}}
+ \le h+h+h^2=\delta_h.
+\]
+
+Set \(t_k=\widehat s_k/s_k\).  The diagonal case of the last bound gives
+\[
+ |t_k^2-1|
+ =\left|\frac{\widehat\Omega_{kk}-\Omega_{kk}}{s_k^2}\right|
+ \le\delta_h.
+\]
+If \(\delta_h<1\), then
+\(t_k\ge\sqrt{1-\delta_h}>0\), so every feasible standard error is
+positive and \(\widehat\Sigma_n\) is well defined.  Moreover,
+\[
+ |t_k-1|
+ =\frac{|t_k^2-1|}{t_k+1}
+ \le\frac{\delta_h}{1+\sqrt{1-\delta_h}}.
+\]
+For any \(k,k'\), the bounds on \(t_k^2\) and \(t_{k'}^2\) imply
+\[
+ 1-\delta_h\le t_kt_{k'}\le1+\delta_h.
+\]
+Also \(|\Sigma_{kk'}|\le1\) by Cauchy--Schwarz because \(\Sigma_n\) is
+the Gram matrix of the unit vectors \(a_k\).  If
+\[
+ E_{kk'}=
+ \frac{\widehat\Omega_{kk'}-\Omega_{kk'}}{s_ks_{k'}},
+\]
+then \(|E_{kk'}|\le\delta_h\) and
+\[
+ \widehat\Sigma_{kk'}
+ =\frac{\Sigma_{kk'}+E_{kk'}}{t_kt_{k'}}.
+\]
+It follows that
+\[
+ \begin{aligned}
+ |\widehat\Sigma_{kk'}-\Sigma_{kk'}|
+ &\le \frac{|E_{kk'}|}{t_kt_{k'}}
+ +|\Sigma_{kk'}|\frac{|1-t_kt_{k'}|}{t_kt_{k'}}\\
+ &\le\frac{\delta_h}{1-\delta_h}
+ +\frac{\delta_h}{1-\delta_h}
+ =\frac{2\delta_h}{1-\delta_h}.
+ \end{aligned}
+\]
+Taking the maximum over \(k,k'\in\mathcal K_n\) proves the final claim.
+Every assertion after the definition of \(\mathcal B_n(h)\) is therefore
+a deterministic implication of the score discrepancy, as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem separates the variance component that replication identifies from the imputation and loading components that the frozen assumptions do not control. \textit{Gap.} Available feasible low-rank central limit theorems concern fixed functionals and do not establish the growing normalized rowwise \(\ell_2\) score rate required by this plug-in covariance. \textit{Consumer.} The deterministic map \(r_n^{\mathrm{score}}\mapsto(\widehat\Omega,\widehat s,\widehat\Sigma)\) is the feasible covariance input to the conditional multiplier comparison.
+
+\begin{theorem}[thm:uniform-multiplier-band]\label{thm:uniform-multiplier-band}
+Let \(m=|\mathcal Q_n^{\mathrm{IF}}|\ge3\), \(p=2K\ge2\),
+\(\epsilon_q=e_q/\sigma_q\), and
+\[
+ S_{n,k}=\sum_{q\in\mathcal Q_n^{\mathrm{IF}}}a_{kq}\epsilon_q.
+\]
+After arbitrarily ordering the cells, define the sign-expanded vectors
+\[
+ X_q=\sqrt m\,(a_{0q}\epsilon_q,\ldots,
+ a_{K-1,q}\epsilon_q,-a_{0q}\epsilon_q,\ldots,
+ -a_{K-1,q}\epsilon_q)\in\mathbb R^p.
+\]
+Then \(m^{-1/2}\sum_qX_q\) has maximum
+\(\max_k|S_{n,k}|\).  For every coordinate \(j\le p\),
+\[
+ \frac1m\sum_qE_{P_n}X_{qj}^2=1,
+ \qquad
+ \frac1m\sum_qE_{P_n}X_{qj}^4
+ \le C mL_n(K)^2,
+ \qquad
+ \|X_{qj}\|_{\psi_1}\le C\sqrt mL_n(K).
+\]
+There is a constant \(C_1<\infty\), depending only on \(C_e\), such
+that, with
+\[
+ \mathfrak g_n=C_1\{L_n(K)^2\log^5((p\vee3)m)\}^{1/4},
+ \qquad M_n^Z=\max_{k\in\mathcal K_n}|Z_{n,k}|,
+\]
+one has
+\[
+ \sup_{z\in\mathbb R}
+ \left|P_n\{\max_k|S_{n,k}|\le z\}-P\{M_n^Z\le z\}\right|
+ \le\mathfrak g_n.
+\]
+The \(p\)-dimensional Gaussian covariance in this comparison is the
+sign expansion induced by \(\Sigma_n\), and may be singular.
+
+For \(u\ge0\), define the exact remainder event
+\[
+ \mathcal R_n(u)=\{\|\rho_n\|_\infty\le u\}.
+\]
+For \(h\ge0\), let \(\mathcal B_n(h)\) and
+\(\delta_h=2h+h^2\) be as in
+\(\texttt{thm:heteroskedastic-covariance}\), set
+\(\mathfrak c_n(0)=0\), and, when \(h>0\), set
+\[
+ \mathfrak c_n(h)=C_3\delta_h^{1/3}
+ \{1\vee\log(p/\delta_h)\}^{2/3}.
+\]
+There are constants \(C_2,C_3<\infty\), depending only on \(C_e\),
+such that whenever \(0\le\delta_h\le1/2\),
+\[
+ \begin{aligned}
+ &\sup_{z\in\mathbb R}\left|P_n\!\left\{
+ \max_k\frac{|\widehat\tau_k-\tau_k^{\mathrm{event}}|}{\widehat s_k}
+ \le z\right\}-P\{M_n^Z\le z\}\right|\\
+ &\quad\le \mathfrak g_n+P_n\{\mathcal R_n(u)^c\}
+ +P_n\{\mathcal B_n(h)^c\}
+ +C_2\{u\sqrt{\log(2p)}+\delta_h\log(2p)\}
+ +\mathfrak c_n(h).
+ \end{aligned}
+\]
+On \(\mathcal B_n(h)\), conditionally on \(Y\), \(W_n^\xi\) is
+exactly the maximum absolute coordinate of
+\(N(0,\widehat\Sigma_n)\), and
+\[
+ \sup_z|P(W_n^\xi\le z\mid Y)-P(M_n^Z\le z)|
+ \le\mathfrak c_n(h).
+\]
+If \(\mathfrak c_n(h)<\min\{\alpha,1-\alpha\}\), then
+\[
+ \begin{aligned}
+ &\left|P_n\{\tau_k^{\mathrm{event}}\in\mathcal C_{n,k}
+ \text{ for every }k\in\mathcal K_n\}-(1-\alpha)\right|\\
+ &\quad\le1\wedge\Big[\mathfrak g_n
+ +P_n\{\mathcal R_n(u)^c\}+2P_n\{\mathcal B_n(h)^c\}\\
+ &\hspace{35mm}+C_2\{u\sqrt{\log(2p)}+\delta_h\log(2p)\}
+ +2\mathfrak c_n(h)\Big].
+ \end{aligned}
+\]
+Consequently, along any complete array in the baseline event-transfer
+class, asymptotic coverage follows if deterministic \(u_n,h_n\downarrow0\)
+satisfy
+\[
+ P_n\{\mathcal R_n(u_n)^c\}\to0,
+ \quad P_n\{\mathcal B_n(h_n)^c\}\to0,
+ \quad u_n\sqrt{\log(2p)}\to0,
+ \quad h_n\log^2(2p)\to0.
+\]
+For the Choi--Yuan specialization,
+\(\texttt{thm:uniform-influence}\) permits
+\(u_n=C\Delta_{\mathrm{CY},n}(K)\) and replaces
+\(P_n\{\mathcal R_n(u_n)^c\}\) by the larger displayed probability
+\(P_n\{\mathcal A_n(C)^c\}\).  Thus, along an array in the band
+event-transfer class, coverage tends to \(1-\alpha\) only if this block
+failure probability and the score failure probability also vanish at the
+displayed rates.  Finally, under balanced loadings
+\(L_n(K)\asymp m^{-1/2}\), the Gaussian-approximation term vanishes under
+the elbow condition
+\[
+ \log(Km)=o(m^{1/5}).
+\]
+\end{theorem}
+\begin{proof}
+Assumption \(\texttt{ass:horizon-variance-nondegeneracy}\) permits
+division by every \(s_k\).  By the definitions of \(s_k\) and \(a_{kq}\),
+\[
+ \sum_q a_{kq}^2
+ =s_k^{-2}\sum_qc_{kq}^2\sigma_q^2=1.
+\]
+Assumptions \(\texttt{ass:centered-errors}\) and
+\(\texttt{ass:independent-cells}\) make the vectors \(X_q\) independent
+and centered.  Since \(E_{P_n}\epsilon_q^2=1\), every sign-expanded
+coordinate \(j\) associated with a horizon \(k\) satisfies
+\[
+ \frac1m\sum_qE_{P_n}X_{qj}^2
+ =\sum_q a_{kq}^2=1.
+\]
+Uniform sub-Gaussianity gives
+\(E_{P_n}\epsilon_q^4\le C\) and
+\(\|\epsilon_q\|_{\psi_1}\le\|\epsilon_q\|_{\psi_2}\le C_e\).
+Using \(|a_{kq}|\le L_n(K)\) and \(\sum_qa_{kq}^2=1\),
+\[
+ \begin{aligned}
+ \frac1m\sum_qE_{P_n}X_{qj}^4
+ &=m\sum_qa_{kq}^4E_{P_n}\epsilon_q^4\\
+ &\le CmL_n(K)^2\sum_qa_{kq}^2
+ =CmL_n(K)^2,
+ \end{aligned}
+\]
+and
+\[
+ \|X_{qj}\|_{\psi_1}
+ \le C\sqrt m\,|a_{kq}|
+ \le C\sqrt mL_n(K).
+\]
+Because \(1=\sum_qa_{kq}^2\le mL_n(K)^2\), the envelope
+\(B_m=C\sqrt mL_n(K)\) can be chosen at least one.  Thus the variance,
+fourth-moment, and sub-exponential hypotheses of
+\(\texttt{lem:cckk2022-gaussian-approximation}\) hold with constants
+depending only on \(C_e\).  That cited theorem applies because
+\(m\ge3\) and \(p\ge2\), and yields
+\[
+ C\left\{\frac{B_m^2\log^5(pm)}m\right\}^{1/4}
+ \le C_1\{L_n(K)^2\log^5((p\vee3)m)\}^{1/4}
+ =\mathfrak g_n.
+\]
+The normalized sum has coordinate list
+\((S_{n,0},\ldots,S_{n,K-1},-S_{n,0},\ldots,-S_{n,K-1})\), so its
+maximum is \(\max_k|S_{n,k}|\).  Its first \(K\) coordinates have
+covariance
+\[
+ \sum_q a_{kq}a_{k'q}=\Sigma_{n,kk'}
+\]
+by \(\texttt{lem:staircase-covariance}\); hence its full Gaussian
+covariance is the sign expansion induced by \(\Sigma_n\), not the
+\(K\)-by-\(K\) matrix itself.  The cited result requires only the unit
+coordinate variances established above and therefore permits singular
+covariance.
+
+We transfer this comparison to the feasible statistic.  Write
+\(t_k=\widehat s_k/s_k\).  On \(\mathcal B_n(h)\),
+\(\texttt{thm:heteroskedastic-covariance}\) gives
+\(|t_k^2-1|\le\delta_h\).  If \(\delta_h\le1/2\), then
+\(t_k\ge\sqrt{1-\delta_h}\), \(t_k^{-1}\le\sqrt2\), and
+\[
+ |t_k^{-1}-1|
+ =\frac{|t_k-1|}{t_k}
+ \le\frac{\delta_h}
+ {(1+\sqrt{1-\delta_h})\sqrt{1-\delta_h}}
+ \le\delta_h.
+\]
+By \(\texttt{thm:uniform-influence}\), on \(\mathcal R_n(u)\),
+\[
+ \max_k\left|t_k^{-1}(S_{n,k}+\rho_{n,k})-S_{n,k}\right|
+ \le\delta_h\max_k|S_{n,k}|+\sqrt2u.
+\]
+Independence, the sub-Gaussian moment-generating-function bound, and
+\(\sum_qa_{kq}^2=1\) imply
+\[
+ P_n\{\max_k|S_{n,k}|>C_4\sqrt{\log(2p/\delta_h)}\}
+ \le\delta_h
+\]
+for \(0<\delta_h\le1/2\).  On the complementary event the last
+perturbation is at most
+\[
+ v_n=C_5\{\delta_h\sqrt{\log(2p/\delta_h)}+u\}.
+\]
+The Gaussian vector has unit marginal variances.  Hence
+\(\texttt{lem:cck-gaussian-anti-concentration}\) gives
+\[
+ \sup_zP\{|M_n^Z-z|\le v_n\}
+ \le Cv_n\sqrt{\log(2p)}.
+\]
+Sandwich the feasible event between linear events at thresholds
+\(z-v_n\) and \(z+v_n\), then use the Gaussian approximation.  Adding
+the two failure probabilities and the tail probability \(\delta_h\)
+gives the asserted distribution bound after using, for
+\(0<\delta_h\le1/2\),
+\[
+ \delta_h+
+ \delta_h\sqrt{\log(2p/\delta_h)\log(2p)}
+ \le C\left[\delta_h\log(2p)+
+ \delta_h^{1/3}\{1\vee\log(p/\delta_h)\}^{2/3}\right].
+\]
+This elementary inequality follows by splitting
+\(\log(2p/\delta_h)=\log(2p)+\log(1/\delta_h)\), applying
+\(2\sqrt{ab}\le a+b\), and using
+\(x\log(1/x)=O(x^{1/3})\) on \((0,1/2]\).  When \(h=0\), scale error
+is zero and the same bound follows directly with
+\(\mathfrak c_n(0)=0\).
+
+For the multiplier comparison, conditional on \(Y\), independence and
+Gaussianity of \(\xi_q\) give
+\[
+ \operatorname{Cov}\!\left(
+ \sum_q\frac{\widehat c_{kq}\widehat\sigma_u}{\widehat s_k}\xi_q,
+ \sum_q\frac{\widehat c_{k'q}\widehat\sigma_u}{\widehat s_{k'}}\xi_q
+ \mathrel{\Big|}Y\right)=\widehat\Sigma_{kk'}.
+\]
+Thus \(W_n^\xi\) is conditionally the maximum absolute coordinate of
+\(N(0,\widehat\Sigma_n)\).  On \(\mathcal B_n(h)\),
+\[
+ \|\widehat\Sigma_n-\Sigma_n\|_{\max}
+ \le\frac{2\delta_h}{1-\delta_h}\le4\delta_h.
+\]
+Apply \(\texttt{lem:cck-gaussian-comparison-maxima}\) to the two
+sign-expanded Gaussian vectors.  Its coordinate variances are bounded
+and it permits singular covariance, so
+\[
+ \sup_z|P(W_n^\xi\le z\mid Y)-P(M_n^Z\le z)|
+ \le\mathfrak c_n(h).
+\]
+
+The maximum of finitely many absolute Gaussian coordinates with positive
+marginal variances has no atoms: for every \(z\), its atom is bounded by
+the sum of the zero point-masses of the individual absolute Gaussian
+coordinates.  Its distribution function is therefore continuous.  On
+\(\mathcal B_n(h)\), Gaussian comparison brackets the conditional
+\((1-\alpha)\)-quantile of \(W_n^\xi\) between the
+\((1-\alpha-\mathfrak c_n(h))\)- and
+\((1-\alpha+\mathfrak c_n(h))\)-quantiles of \(M_n^Z\).  Evaluating the
+feasible distribution bound at those two deterministic quantiles and
+paying \(P_n\{\mathcal B_n(h)^c\}\) once more proves the finite coverage
+inequality.
+
+Assumption \(\texttt{ass:cell-leverage}\) makes \(\mathfrak g_n\to0\).
+If \(h_n\log^2(2p)\to0\), then
+\(\delta_{h_n}\log(2p)\to0\) and
+\(\delta_{h_n}\log^2(p/\delta_{h_n})\to0\), so
+\(\mathfrak c_n(h_n)\to0\).  The generic asymptotic statement follows
+by inserting the four displayed remainder and score conditions into the
+finite bound.  For the Choi--Yuan specialization,
+\(\mathcal A_n(C)\subseteq
+\mathcal R_n(C\Delta_{\mathrm{CY},n}(K))\) was proved in
+\(\texttt{thm:uniform-influence}\), and
+\(\texttt{ass:uniform-remainder-envelope}\) makes its deterministic
+anti-concentration term vanish.  The two failure probabilities remain
+additional premises.  Finally, if \(L_n(K)\asymp m^{-1/2}\), then
+\(\mathfrak g_n\to0\) whenever
+\(m^{-1}\log^5((p\vee3)m)\to0\), equivalently
+\(\log(Km)=o(m^{1/5})\), proving the elbow statement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The retained headline gives a generic finite-error transfer and uses the 2022 CCKK theorem to reduce the leverage logarithm from power seven to power five without a covariance eigenvalue assumption. \textit{Gap.} A growing-path theorem still needs high-probability control of the exact nonlinear remainder event and feasible score discrepancy; neither follows from the class label. \textit{Consumer.} Researchers obtain an explicit diagnostic coverage bound and the balanced-loading elbow \(\log(Km)=o(m^{1/5})\).
+
+\begin{proposition}[prop:fixed-horizon-reduction]\label{prop:fixed-horizon-reduction}
+When \(K=1\), \(\mathcal K_n=\{0\}\), the eligible set contains one target block \(E_0=\{g_0\}\), and \(\widehat\Omega_{00}>0\), \(c_{0q}\) and \(\Omega_{00}\) reduce to the Choi--Yuan Proposition A.4 influence coefficients and their heteroskedastic scalar influence variance, while \(\widehat\Omega_{00}\) and \(\mathcal C_{n,0}\) reduce to the Choi--Kwon--Liao-style unit-residual plug-in variance and the ordinary studentized scalar interval.
+\end{proposition}
+\begin{proof}
+Assume the hypotheses in the proposition.  Because \(g_0\) is a realized
+finite adoption cohort, \(I_{g_0}\neq\varnothing\), and hence
+\(n_{g_0}=|I_{g_0}|\geq 1\).  Thus all cohort averages below are defined.
+Since \(E_0=\{g_0\}\), the definition of \(N_k\) gives
+\[
+N_0=\sum_{g\in E_0}n_g=n_{g_0},
+\qquad
+\frac{n_{g_0}}{N_0}=1.
+\]
+Substituting \(k=0\), \(E_0=\{g_0\}\), and this last equality into the
+coefficient array defined by \(\texttt{def:staircase-influence-map}\) yields,
+for every \(q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}\),
+\[
+\begin{aligned}
+c_{0,(u,v)}
+={}&\frac{\mathbf 1\{u\in I_{g_0},\ v=g_0\}}{n_{g_0}}
+-\mathbf 1\{u\in J_{g_0,0},\ v=g_0\}
+  \bar x_{g_0}^{\top}A_{g_0,0}^{-1}x_u \\
+&-\frac{\mathbf 1\{u\in I_{g_0},\ v\in S_{g_0}\}}{n_{g_0}}
+  z_{g_0}^{\top}B_{g_0}^{-1}z_v .
+\end{aligned}
+\]
+The three terms are respectively the observed treated-cell, target-column
+donor-row, and treated-row preperiod coefficients of the single eligible
+Choi--Yuan block.  The construction in
+\(\texttt{def:staircase-influence-map}\) specifies these as the exact
+Proposition A.4 coefficients.  There is no cohort aggregation left, so
+\(c_{0q}\) is precisely that single-block coefficient.
+
+Because \(\mathcal K_n=\{0\}\), the definition of \(\Omega_n\) has only one
+entry and gives
+\[
+\Omega_{00}
+=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}
+  c_{0q}c_{0q}\sigma_{uv}^{2}
+=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}
+  c_{0q}^{2}\sigma_{uv}^{2}.
+\]
+By \(\texttt{ass:row-heteroskedasticity}\),
+\(\sigma_{uv}^{2}=\sigma_u^{2}\).  Consequently
+\[
+\Omega_{00}
+=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}c_{0q}^{2}\sigma_u^{2},
+\]
+which is the heteroskedastic scalar influence variance of the one block.
+Likewise, direct specialization of
+\(\texttt{def:heteroskedastic-plugin}\) gives
+\[
+\widehat\Omega_{00}
+=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}
+  \widehat c_{0q}^{\,2}\widehat\sigma_u^{2}.
+\]
+This is the corresponding unit-residual plug-in scalar variance: the unit
+variance \(\widehat\sigma_u^2\) is the leave-one-cell-out residual-square
+average specified in that definition.
+
+It remains to identify the critical value.  The assumed positivity
+\(\widehat\Omega_{00}>0\) implies
+\[
+\widehat s_0=\sqrt{\widehat\Omega_{00}}>0,
+\]
+so studentization is well defined.  Conditional on \(Y\), the quantities
+\(\widehat c_{0q}\), \(\widehat\sigma_u\), and \(\widehat s_0\) are fixed,
+whereas the multipliers are independent \(N(0,1)\) variables and are
+independent of \(Y\) by \(\texttt{def:multiplier-band}\).  Hence
+\[
+Z_0^\xi
+:=\sum_{q=(u,v)\in\mathcal Q_n^{\mathrm{IF}}}
+  \frac{\widehat c_{0q}\widehat\sigma_u}{\widehat s_0}\xi_q
+\ \bigg|\ Y
+\sim N\!\left(
+0,
+\frac{\sum_q\widehat c_{0q}^{\,2}\widehat\sigma_u^2}
+     {\widehat s_0^2}
+\right)
+=N(0,1),
+\]
+where the penultimate variance equals one because the numerator is
+\(\widehat\Omega_{00}\) and
+\(\widehat s_0^2=\widehat\Omega_{00}\).  Therefore
+\[
+W_n^\xi=|Z_0^\xi|,
+\qquad
+c_{1-\alpha,n}=\Phi^{-1}(1-\alpha/2),
+\]
+with \(\Phi\) the standard-normal distribution function; the quantile is
+finite and unique because \(\alpha\in(0,1)\).  Finally,
+\(\texttt{def:multiplier-band}\) reduces to
+\[
+\mathcal C_{n,0}
+=\left[
+\widehat\tau_0
+\pm \Phi^{-1}(1-\alpha/2)\widehat s_0
+\right],
+\]
+the ordinary two-sided studentized scalar interval.  Every equality above is
+a finite-sample specialization of the declared definitions; no
+growing-dimensional approximation or limit argument is used.
+\end{proof}
+
+\begin{openendedquestion}[oeq:attainable-remainder-frontier]\label{oeq:attainable-remainder-frontier}
+Working over the baseline event-transfer slices
+\(\mathcal M_n^{\mathrm{CY},0}\), use the second-order staircase alignment
+handle to derive a primitive block-ratio expression
+\(\Delta_n^{\dagger}(K;\eta_n)\) and constants
+\(0<c<C<\infty\), common across \(n\), such that
+\[
+ c\Delta_n^{\dagger}(K;\eta_n)
+ \le\Delta_n^*(K;\eta_n)
+ \le C\Delta_n^{\dagger}(K;\eta_n)
+\]
+for every vanishing \(\eta_n\).  The upper-band implication is expressly
+conditional on the unresolved feasible-score premise: there must exist
+\(h_n\downarrow0\) such that
+\[
+ \sup_{P_n\in\mathcal M_n^{\mathrm{CY},0}}
+ P_n\{\mathcal B_n(h_n)^c\}\to0,
+ \qquad h_n\log^2(4K)\to0.
+\]
+Under that premise, prove that
+\(\Delta_n^{\dagger}(K;\eta_n)\sqrt{\log(2K)}\to0\) implies
+\(\sup_{P_n\in\mathcal M_n^{\mathrm{CY},0}}\Gamma_n(P_n)\to0\).
+
+Conversely, for every primitive candidate \(\beta\) with
+\(\beta\triangleleft\Delta^\dagger\) and
+\(\beta_n(K)\sqrt{\log(2K)}\to0\) along a subsequence on which
+\(\Delta_n^\dagger(K;\eta_n)\sqrt{\log(2K)}\) is bounded away from zero,
+construct one complete selected pair in the common subclass
+\(\mathfrak M^\cap\).  Its law coordinates must satisfy
+\[
+ \delta_n(P_n;\eta_n)\ge c\Delta_n^\dagger(K;\eta_n),
+ \qquad \liminf_n\Gamma_n(P_n)>0,
+\]
+and the witness itself must establish feasible-score stability for some
+\(h_n\downarrow0\):
+\[
+ P_n\{\mathcal B_n(h_n)^c\}\to0,
+ \qquad h_n\log^2(4K)\to0.
+\]
+The derivation must first compute whether the balanced strong-factor
+rank-one second-order remainder is
+\(o(\Delta_{\mathrm{CY},n}(K))\); if so,
+\(\Delta^\dagger\) must use the smaller attained scale.  Because the
+published class permits \(M^R\ne0\), no upper-band conclusion is requested
+for its full projection without an additional approximation-bias remainder.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The remaining mathematical question is panel-specific attainability of the signed second-order remainder, not generic Gaussian approximation. \textit{Gap.} No source or frozen construction gives the exact KKT remainder, an aligned lower bound, or feasible-score stability for the same counterarray. \textit{Consumer.} Resolution would determine whether the primitive Choi--Yuan envelope is sharp or can be replaced by a smaller attained scale without overstating feasible coverage.
+
+\begin{lemma}[lem:choi-yuan-one-block-remainder]\label{lem:choi-yuan-one-block-remainder}
+For one Choi--Yuan missing block with dimensions \(N_o\) and \(T_o\), missing-group size \(\vartheta_o\), i.i.d. centered homoskedastic sub-Gaussian noise, incoherence, signal, spectral-size, and missing-block conditions as stated in their Appendix A, Proposition A.4 gives, with probability at least \(1-O(\min\{N_o^{-9},T_o^{-9}\})\), a simultaneous entrywise linear expansion of every target imputation error into its donor-column and observed-row terms, with the maximum entry remainder bounded by a common constant times the three-term expression used here as \(R_{gk}^{\mathrm{CY}}\) after setting \((N_o,T_o,\vartheta_o)=(N_{gk},T_g,n_g)\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the published one-block remainder premise used only for the source-submodel finite union bound. \textit{Gap.} The cited proposition is not a growing-block or heterogeneous-noise result. \textit{Consumer.} It supplies the blockwise failure probability in thm:uniform-influence.
+
+\begin{lemma}[lem:cck-gaussian-comparison-maxima]\label{lem:cck-gaussian-comparison-maxima}
+Let \(V\) and \(Y\) be centered Gaussian vectors in \(\mathbb R^p\), assume the coordinate variances of \(Y\) are bounded above and away from zero, and put \(\Delta_0=\max_{j,\ell}|\operatorname{Cov}(V_j,V_\ell)-\operatorname{Cov}(Y_j,Y_\ell)|\).  Lemma 3.1 gives
+\[
+ \sup_z\left|P\{\max_jV_j\le z\}-P\{\max_jY_j\le z\}\right|
+ \le C\Delta_0^{1/3}\{1\vee\log(p/\Delta_0)\}^{2/3},
+\]
+without a positive-minimum-eigenvalue requirement.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This converts the deterministic maximum covariance error into a conditional Gaussian distribution error. \textit{Gap.} The application must still prove the covariance discrepancy for the frozen score construction. \textit{Consumer.} It supplies the covariance-comparison term in thm:uniform-multiplier-band.
+
+\begin{lemma}[lem:cck-gaussian-anti-concentration]\label{lem:cck-gaussian-anti-concentration}
+For a separable centered Gaussian process with unit pointwise variances and almost surely finite supremum, Theorem 2.1 bounds the Levy concentration function of the supremum at radius \(\varepsilon\) by \(4\varepsilon\) times one plus its expected supremum.  Corollary 2.1 gives the same bound for the supremum of the absolute value.  For a finite \(p\)-coordinate Gaussian vector this implies
+\[
+ \sup_zP\left\{\left|\max_{j\le p}|Z_j|-z\right|\le\varepsilon\right\}
+ \le C\varepsilon\sqrt{\log(2p)}.
+\]
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This turns the event-score and studentization perturbations into Kolmogorov and coverage errors. \textit{Gap.} The event-specific perturbation radius is derived in this note. \textit{Consumer.} It supplies the anti-concentration terms in thm:uniform-multiplier-band.
+
+\begin{lemma}[lem:cckk2022-gaussian-approximation]\label{lem:cckk2022-gaussian-approximation}
+Let \(x_1,\ldots,x_m\) be independent centered random vectors in
+\(\mathbb R^p\), where \(m\ge3\) and \(p\ge2\), and let
+\(G\) be centered Gaussian with covariance
+\(m^{-1}\sum_{q=1}^mE[x_qx_q^\top]\).  Suppose that \(B_m\ge1\),
+\(E\exp(|x_{qj}|/B_m)\le2\) for all \(q,j\), and constants
+\(0<b_1\le b_2<\infty\) satisfy
+\[
+ b_1^2\le \frac1m\sum_qE[x_{qj}^2],
+ \qquad
+ \frac1m\sum_qE[x_{qj}^4]\le B_m^2b_2^2
+ \quad(j\le p).
+\]
+Then Chernozhukov--Chetverikov--Kato--Koike (2022), Theorem 2.1, gives
+\[
+ \sup_{A\in\mathcal A^{\mathrm{re}}}
+ \left|P\!\left\{m^{-1/2}\sum_qx_q\in A\right\}-P\{G\in A\}\right|
+ \le C\left\{\frac{B_m^2\log^5(pm)}m\right\}^{1/4},
+\]
+where \(\mathcal A^{\mathrm{re}}\) is the class of axis-aligned
+hyperrectangles and \(C\) depends only on \(b_1,b_2\).  The theorem
+places no positive-minimum-eigenvalue condition on the covariance matrix.
+\end{lemma}
+
+\begin{lemma}[lem:choi-yuan-published-selected-scope]\label{lem:choi-yuan-published-selected-scope}
+In Choi--Yuan's published model the panel mean is
+\(M^{\mathrm{pub}}=M^\star+M^R\), where \(M^\star\) has rank \(r\), global
+incoherence and condition-number indices are attached to \(M^\star\),
+and \(\max_{i,t}|m^R_{it}|\to0\); the errors are i.i.d., centered,
+homoskedastic, and sub-Gaussian.  Their staggered-adoption Theorem 3.2
+fixes one scalar group average, indexed by one chosen
+\((\mathcal G,t_0,\{\mathcal G_\ell\}_{\ell=0}^L)\), and imposes its six
+conditions only for the adoption dates and blocks used by that chosen
+functional.  Those conditions are three signal, spectral-size, and
+group-size ratios, a local rate for \(M^R\), two normalized Gram bounds,
+and two nonvanishing loading conditions.  The theorem does not impose
+these six conditions simultaneously for every possible scalar functional
+or every event horizon.
+\end{lemma}
+
+\begin{proposition}[prop:published-class-comparison]\label{prop:published-class-comparison}
+After projecting the published array-plus-selected-functional objects to
+their law arrays on the common staggered-panel sample space, neither the
+baseline event-transfer class \(\mathfrak M^{\mathrm{CY},0}\) nor its band
+subclass \(\mathfrak M^{\mathrm{CY}}\) contains the published Choi--Yuan
+class \(\mathfrak M^{\mathrm{CY,pub}}_{\mathrm{sel}}\), and the published
+class contains neither event-transfer class.  The common subclass
+\(\mathfrak M^\cap\) is nonempty.  Its event-block/published-block
+correspondence is
+\(N_0=|J_{gk}|\), \(T_d=|S_g|\),
+\(N_{gk}=|I_g\cup J_{gk}|\), and \(T_g=|S_g|+1\); membership requires
+both, not an identification of, the two families of rate inequalities.
+A converse proved on \(\mathfrak M^\cap\) transfers upward to the
+published approximate-rank class.  In contrast, the event-transfer
+upper-band theorem does not transfer to the full published class without
+adding the approximation bias generated by \(M^R\) to the remainder
+event.
+\end{proposition}
+\begin{proof}
+The comparison is well typed after applying the law projection in
+\(\texttt{def:choi-yuan-published-selected-class}\): both sides are then
+sets of complete laws on the same \(N\)-by-\(T\) staggered-panel sample
+space.  The source scope encoded by
+\(\texttt{lem:choi-yuan-published-selected-scope}\) verifies that the
+published object carries only one selected scalar functional and permits
+\(M^R\ne0\), while the definitions of the two event-transfer classes
+require exact low rank, blockwise uniform geometry, rowwise variance
+structure, variance replication, and a maximum-cell leverage envelope.
+
+For the first strict noncontainment, start from a balanced rank-one
+published signal \(M^\star=\mathbf1_d\mathbf1_d^\top\) with i.i.d.
+\(N(0,1)\) errors and the selected functional used below.  Let
+\(M^R=q_dI_d\), where \(q_d>0\) decreases sufficiently fast to satisfy
+both the global approximation requirement and the selected local
+condition (iv).  All six conditions concerning \(M^\star\) are unchanged,
+but \(M^{\mathrm{pub}}=M^\star+q_dI_d\) has rank \(d\).  Since the
+event-transfer classes require rank \(r<\min\{N,T\}=d\), this published
+law is in neither event-transfer class.  This witness uses no fixed bound
+on the published \(\kappa\), \(\mu\), or noise variance.
+
+For the reverse strict noncontainment, use the exact balanced rank-one
+array below but replace the i.i.d. errors by independent Gaussian errors
+whose unit variances alternate between \(1\) and \(2\) and are constant
+over time.  The fixed variance bounds, row heteroskedasticity, replication,
+and all event-transfer rate conditions continue to hold.  No selected
+functional can turn unequal Gaussian variances into i.i.d. homoskedastic
+noise.  Hence this array belongs to the band event-transfer class, and
+therefore also to its baseline class, but its law is outside the published
+projection.  The two noncontainments prove incomparability.
+
+It remains to prove that \(\mathfrak M^\cap\ne\varnothing\).  Let
+\(d=d_n\to\infty\) be even, put \(N=T=d\),
+\(b=\lfloor d^{1/3}\rfloor\), \(g=\lfloor d/2\rfloor\), and
+\(K=\lfloor d^{1/10}\rfloor\).  Let one cohort of size \(b\) adopt at
+\(g\), let the other \(d-b\) units never adopt, set \(x_i=z_t=1\),
+\(M^R=0\), and take i.i.d. \(N(0,1)\) errors.  Select
+\(\phi_n=(I_g,g,\{I_g\})\).  Every event block has
+\[
+ N_{gk}=d,\qquad T_g=g,\qquad
+ \psi_{gk}=\sqrt{dg},\qquad \kappa_{gk}=\mu_{gk}=r=1,
+ \qquad A_{gk}=d-b,\quad B_g=g-1.
+\]
+Thus both Gram bounds hold with constants bounded away from zero and
+infinity.  Direct substitution gives the event-transfer ratios
+\[
+ O\!\left(\sqrt{\frac{\log d}{d}}\right),\qquad
+ O\!\left(\frac{\log^3d}{d}\right),\qquad
+ O(d^{-2/3})
+\]
+for the signal, spectral-size, and missing-block conditions, respectively,
+and the variance-replication ratio is
+\(O(d^{-1/2}\log^{5/2}d)\).
+
+For every horizon, the \(b\) treated target coefficients are \(1/b\),
+the \(d-b\) donor target coefficients are \(-1/(d-b)\), and the
+\(b(g-1)\) treated pre-period coefficients are
+\(-1/[b(g-1)]\).  Therefore
+\[
+ s_k^2=\frac1b+\frac1{d-b}+\frac1{b(g-1)}\asymp b^{-1},
+ \qquad L_n(K)\asymp b^{-1/2}=d^{-1/6}.
+\]
+Moreover \(m=|\mathcal Q_n^{\mathrm{IF}}|\le Kd+b(g-1)\le Cd^{4/3}\),
+so
+\[
+ L_n(K)^2\log^5((2K\vee3)m)=O(d^{-1/3}\log^5d)\to0.
+\]
+The three terms in \(R_{gk}^{\mathrm{CY}}\) have orders
+\[
+ O\!\left(\frac{\log d}{d}\right),\qquad
+ O\!\left(\frac{\sqrt{\log d}}d\right),\qquad
+ O\!\left(\frac{b\sqrt{\log d}}{d^{3/2}}\right).
+\]
+Since \(s_k^{-1}\asymp\sqrt b\), it follows that
+\[
+ \Delta_{\mathrm{CY},n}(K)\sqrt{\log(2K)}
+ =O(d^{-5/6}\log^{3/2}d)\to0.
+\]
+Because every fixed envelope in the class is positive, \(d_n\) can be
+chosen recursively large enough that all five baseline ratios, and even
+the band remainder ratio, are below their prescribed envelopes at index
+\(n\).
+
+For the selected published functional, \(N_0=d-b\asymp d\),
+\(T_d=g-1\asymp d\), and
+\(\psi^{\mathrm{pub}}_{\min,O_d}=\sqrt{N_0T_d}\asymp d\).  Substitution into its first
+three conditions gives, respectively,
+\[
+ O\!\left(\sqrt{\frac{\log d}{d}}\right),\qquad
+ O\!\left(\frac{\log^{3/2}d}{\sqrt d}\right),\qquad
+ O\!\left(d^{-2/3}\sqrt{\log d}\right),
+\]
+which vanish.  Condition (iv) is zero.  The normalized row and column
+Gram matrices in condition (v) equal \(1\), because the global singular
+vectors have entries \(d^{-1/2}\), and condition (vi) also equals one:
+\(\sqrt d\,|\bar u^{\mathrm{pub}}_{I_g}|=\sqrt d\,|v_g^{\mathrm{pub}}|=1\).  Thus the array satisfies
+all six selected-functional conditions and every uniform event-block
+condition.  It belongs to \(\mathfrak M^\cap\), proving nonemptiness and
+the stated actual block correspondence.
+
+Finally, set inclusion gives the transfer direction.  Any lower-bound or
+counterexample law in \(\mathfrak M^\cap\) is also a law admitted by the
+published class.  An upper theorem on the exact-rank event-transfer class
+does not cover a nonzero \(M^R\); its deterministic bias appears in the
+target-centered statistic and must be included in \(\rho_n\) or in a
+separate approximation-bias event.  No such term is present in the frozen
+band, so upper validity cannot be transferred to the full published class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition prevents the event-transfer assumptions from being misattributed to Choi--Yuan and supplies a legal common subclass for any eventual converse. \textit{Gap.} The published model and the event-transfer model differ in rank approximation, noise structure, geometry, functional quantification, and growing-path envelopes. \textit{Consumer.} A counterarray in the common subclass transfers upward to the published model, while upper validity requires a separate approximation-bias argument.
+
+\section{Interpretation}
+
+For a right-to-carry event curve, the common critical value is justified only after the analyst controls the exact nonlinear remainder event and the realized score discrepancy.  Shared donor and pre-treatment cells remain in the full covariance.  Under balanced loadings, the Gaussian part allows \(\log(Km)=o(m^{1/5})\), but this does not certify either missing panel-specific probability.  A converse on the explicit common subclass would apply to the published model, whereas the event-transfer upper theorem does not cover published approximation bias from \(M^R\).
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The primitive Choi--Yuan expression controls a one-block upper perturbation bound, not an attained nonlinear remainder and not a simultaneous heterogeneous-block event.  Its direct union bound may fail to vanish.  Variance replication controls the oracle residual squares but not the leave-one-cell-out imputation errors or the normalized rowwise loading discrepancy.  Therefore neither \(\|\rho_n\|_\infty=O_{P_n}(\Delta_{\mathrm{CY},n}(K))\) nor \(r_n^{\mathrm{score}}=o_{P_n}(\log^{-2}(2K))\) is asserted over the event-transfer class.  The common rank-one array verifies both class condition families, but the estimator's exact signed second-order KKT expansion is absent from the frozen primitives; the early-kill comparison and attainable frontier remain open.  Approximate-rank upper validity would additionally need an explicit \(M^R\) bias remainder.
+
+\section{Honest scope}
+
+The causal target is the eligible-cohort unit-share event curve under deterministic staggered adoption.  Settled results are the exact eventwise influence identity, full staircase covariance, oracle variance concentration, deterministic feasible-score stability, and a generic finite-error Gaussian-multiplier transfer with the 2022 log-power-five approximation.  The Choi--Yuan specialization supplies only the deterministic inclusion \(\mathcal A_n(C)\subseteq\mathcal R_n(C\Delta_{\mathrm{CY},n}(K))\) and an unsimplified i.i.d. homoskedastic source union bound.  Coverage tending to \(1-\alpha\) is conditional on explicit remainder and score probability limits.  The inferential event-transfer class is incomparable with the published approximate-rank selected-functional class.  Serial dependence, tuning selection, uniform feasible-score stability, simultaneous block probability, approximation-bias transfer, and the attainable nonlinear-remainder frontier remain open.
+
+\begin{thebibliography}{99}
+
+  \bibitem{ChoiYuan2024MNAR} Choi, Jungjun, and Ming Yuan (2024). Matrix Completion When Missing Is Not at Random and Its Applications in Causal Panel Data Models. Journal of the American Statistical Association. Main-text Noise Assumption, Proposition A.4, staggered-adoption theorem, variance-estimation corollary, and Supplement G.2 on heteroskedasticity.
+
+  \bibitem{BenMichaelFeller2026Discussion} Ben-Michael, Eli, and Avi Feller (2026). Discussion of Matrix Completion When Missing Is Not at Random and Its Applications in Causal Panel Data Models. Journal of the American Statistical Association discussion, arXiv:2602.21314. Sections on event time, heteroskedastic inference, and the right-to-carry application.
+
+  \bibitem{CallawaySantAnna2021DID} Callaway, Brantly, and Pedro H. C. Sant'Anna (2021). Difference-in-Differences with Multiple Time Periods. Journal of Econometrics 225: 200--230. Theorem 3, Corollary 3, and Algorithm 1.
+
+  \bibitem{ChernozhukovChetverikovKato2013Maxima} Chernozhukov, Victor, Denis Chetverikov, and Kengo Kato (2013). Gaussian Approximations and Multiplier Bootstrap for Maxima of Sums of High-Dimensional Random Vectors. Annals of Statistics 41: 2786--2819. Main Results 1--2.
+
+  \bibitem{ChernozhukovChetverikovKato2014Bands} Chernozhukov, Victor, Denis Chetverikov, and Kengo Kato (2014). Anti-Concentration and Honest, Adaptive Confidence Bands. Annals of Statistics 42: 1787--1818. Theorem 2.1 and Theorem 3.1.
+
+  \bibitem{ChernozhukovChetverikovKoike2023NearlyOptimal} Chernozhukov, Victor, Denis Chetverikov, Kengo Kato, and Yuta Koike (2022). Improved Central Limit Theorem and Bootstrap Approximations in High Dimensions. Annals of Statistics 50. Theorem 2.1. doi:10.1214/22-AOS2193; arXiv:1912.10529v2.
+
+  \bibitem{YanWainwright2024Entrywise} Yan, Yuling, and Martin J. Wainwright (2024). Entrywise Inference for Missing Panel Data: A Simple and Instance-Optimal Approach. arXiv:2401.13665. Theorems 1--2 and Discussion.
+
+  \bibitem{XiaYanWainwright2024ACA} Xia, Dong, Yuling Yan, and Martin J. Wainwright (2024). Inference under Staggered Adoption: Case Study of the Affordable Care Act. arXiv:2412.09482v2, 13 August 2025. Abstract and Introduction on heteroskedastic confidence intervals; pages 5--6, equations (2)--(4) and Sections 3.1--3.3 on individual and general scalar weighted bilinear treatment-effect functionals; page 20 on scope.
+
+  \bibitem{XiaYuan2021LinearForms} Xia, Dong, and Ming Yuan (2021). Statistical Inferences of Linear Forms for Noisy Matrix Completion. Journal of the Royal Statistical Society, Series B 83: 58--77.
+
+  \bibitem{ChoiKwonLiao2024Completion} Choi, Jungjun, Hyukjun Kwon, and Yuan Liao (2024). Inference for Low-Rank Completion without Sample Splitting with Application to Treatment Effect Estimation. Journal of Econometrics 240: 105682. Feasible CLT and its displayed unit-specific residual-variance estimator.
+
+  \bibitem{ChoiKwonLiao2026Rank} Choi, Jungjun, Hyukjun Kwon, and Yuan Liao (2026). Inference for High-Dimensional Low-Rank Models. Journal of the American Statistical Association. arXiv:2311.16440. Introduction and feasible block-average and heterogeneous-treatment-effect central limit theorems.
+
+  \bibitem{AtheyEtAl2021MatrixCompletion} Athey, Susan, Mohsen Bayati, Nikolay Doudchenko, Guido Imbens, and Khashayar Khosravi (2021). Matrix Completion Methods for Causal Panel Data Models. Journal of the American Statistical Association 116: 1716--1730.
+
+  \bibitem{BenMichaelFellerRothstein2022StaggeredSC} Ben-Michael, Eli, Avi Feller, and Jesse Rothstein (2022). Synthetic Controls with Staggered Adoption. Journal of the Royal Statistical Society, Series B 84: 351--381.
+
+  \bibitem{ChernozhukovWuthrichZhu2021Conformal} Chernozhukov, Victor, Kaspar Wuthrich, and Yinchu Zhu (2021). An Exact and Robust Conformal Inference Method for Counterfactual and Synthetic Controls. Journal of the American Statistical Association 116: 1849--1864.
+
+\end{thebibliography}
+
+\end{document}

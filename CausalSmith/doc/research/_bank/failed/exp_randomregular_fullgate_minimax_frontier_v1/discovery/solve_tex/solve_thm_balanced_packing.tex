@@ -1,0 +1,371 @@
+%%% FIELD proof-bayes-converse
+Fix a revealed graph \(G\), a graph-measurable design \(\mathcal D_G\), and a measurable estimator.  We construct a prior supported on \(\mathcal M_n(G)\).  Independently for \(e\in\{0,1\}\), draw \(p_e\sim\operatorname{Unif}[0,1]\), and, conditional on \(p_e\), draw \(X_{ie}\sim\operatorname{Bernoulli}(p_e)\), independently over \(i\).  Define \(a_i=X_{i1}\), \(b_i=X_{i0}\), and define the local response table by
+\[
+y_i(z)=
+\begin{cases}
+a_i,&z_j=1\text{ for all }j\in N_G[i],\\
+b_i,&z_j=0\text{ for all }j\in N_G[i],\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+This definition obeys the ANI condition in Definition~\(\mathrm{def{:}outcome\mbox{-}class}\), because its value is a function only of \(z\) restricted to \(N_G[i]\).  Moreover, \(0\le a_i,b_i\le1\), so \(n^{-1}\sum_i a_i^2\le1\) and \(n^{-1}\sum_i b_i^2\le1\).  Thus every schedule in the support of the prior belongs to \(\mathcal M_n(G)\).
+
+Consider one arm and condition on a realized assignment that exposes exactly \(k\) endpoint values in that arm.  Let \(X\) be their sum and put \(N=n-k\).  Bayes' formula gives the posterior density
+\[
+f(p\mid X)=\frac{p^X(1-p)^{k-X}}{\int_0^1t^X(1-t)^{k-X}\,dt},
+\]
+namely the \(\operatorname{Beta}(X+1,k-X+1)\) density.  Given \(p\) and the exposed values, the \(N\) unexposed endpoint values remain independent \(\operatorname{Bernoulli}(p)\).  Hence the conditional-variance identity gives
+\[
+\operatorname{Var}\!\left(\frac1n\sum_{i=1}^nX_{ie}\,\middle|\,\text{exposed values}\right)
+=\frac{N}{n^2}\,\mathbb E[p(1-p)\mid X]
++\frac{N^2}{n^2}\operatorname{Var}(p\mid X).
+\]
+Under the uniform prior, \(\mathbb E[p(1-p)]=\int_0^1p(1-p)\,dp=1/6\).  Also the beta-binomial predictive law is uniform on \(\{0,\ldots,k\}\), since
+\[
+\Pr(X=x)=\binom{k}{x}\int_0^1p^x(1-p)^{k-x}\,dp=\frac1{k+1}.
+\]
+The posterior variance is
+\[
+\operatorname{Var}(p\mid X=x)
+=\frac{(x+1)(k-x+1)}{(k+2)^2(k+3)}.
+\]
+Using
+\[
+\frac1{k+1}\sum_{x=0}^k(x+1)(k-x+1)=\frac{(k+2)(k+3)}6,
+\]
+and averaging the preceding conditional-variance display over the exposed values therefore yields
+\[
+v_n(k):=\mathbb E\!\left[\operatorname{Var}\!\left(\frac1n\sum_iX_{ie}\,\middle|\,\text{exposed values}\right)\right]
+=\frac{N}{6n^2}+\frac{N^2}{6n^2(k+2)}
+=\frac{(n-k)(n+2)}{6n^2(k+2)}.
+\]
+
+Conditional on \(Z\) and the observed data, the two arm posteriors remain independent: the two priors are independent, the assignment law does not depend on the potential outcomes, and every nonendpoint observation in this submodel is the deterministic value zero.  Consequently the posterior variance of \(\tau_n\) is
+\[
+v_n\bigl(|T_G(Z)|\bigr)+v_n\bigl(|C_G(Z)|\bigr).
+\]
+By Definition~\(\mathrm{def{:}balanced\mbox{-}exposure}\), at least one of these two counts is no larger than \(\beta(G)\).  The sets \(T_G(Z)\) and \(C_G(Z)\) are disjoint, so \(\beta(G)\le n/2\).  Since \((n-k)/(k+2)\) decreases in \(k\), the contribution of the less observed arm is at least
+\[
+v_n(\beta(G))
+=\frac{(n-\beta(G))(n+2)}{6n^2\{\beta(G)+2\}}
+\ge\frac1{12\{\beta(G)+2\}}.
+\]
+For any estimator \(\delta\), conditional expansion around the posterior mean gives
+\[
+\mathbb E[(\delta-\tau_n)^2\mid Z,Y^{\mathrm{obs}},G]
+=\operatorname{Var}(\tau_n\mid Z,Y^{\mathrm{obs}},G)
++\{\delta-\mathbb E(\tau_n\mid Z,Y^{\mathrm{obs}},G)\}^2.
+\]
+Thus every estimator has Bayes risk at least the displayed posterior-variance lower bound.  The supremum risk is at least its average under any prior supported on \(\mathcal M_n(G)\); taking the infimum over \(\mathcal D_G\) and \(\widehat\tau\) in Definition~\(\mathrm{def{:}minimax\mbox{-}risk}\) proves
+\[
+R(G)\ge\frac1{12\{\beta(G)+2\}}.
+\]
+
+%%% FIELD statement-kim-vu-sandwich
+For each \(\varepsilon>0\) there is a constant \(C>0\) such that, whenever \(d_n\ge C\log n\), there are graphs \(G_*\) and \(G^*\) coupled with \(G_n\) such that \(G_*\sim G(n,(1-\varepsilon)d_n/n)\), \(G^*\sim G(n,(1+\varepsilon)d_n/n)\), and
+\[
+\Pr\{G_*\subseteq G\subseteq G^*\}=1-o(1).
+\]
+
+%%% FIELD balanced-statement-replacement
+There is a universal constant \(C_\beta<\infty\) such that every admissible sequence satisfies
+\[
+\Pr\!\left\{\beta(G_n)\le C_\beta\frac{n\log(d_n+1)}{d_n^2}\right\}\longrightarrow1.
+\]
+The proof must be uniform over sequences that cross the sparse and coupling regimes.  Below a sufficiently large universal multiple of \(\log n\), a degree-preserving switching enumeration directly under the uniform simple regular law must give the required \(o(1)\) failure probability, without conditioning a configuration model on simplicity.  At and above that threshold, a contained binomial graph from the Kim--Vu sandwich transfers the decreasing balanced-hole event.
+
+%%% FIELD proof-balanced-packing
+We first justify the geometric form of Definition~\(\mathrm{def{:}balanced\mbox{-}exposure}\).  If \(t\in T_G(z)\), \(c\in C_G(z)\), and \(\operatorname{dist}_G(t,c)\le2\), then \(N_G[t]\cap N_G[c]\ne\varnothing\); a vertex in this intersection would have to receive both assignments one and zero, a contradiction.  Conversely, if \(T,C\subseteq V_n\) have \(|T|=|C|=s\) and every \(T\)-to-\(C\) distance exceeds two, then \(\bigcup_{t\in T}N_G[t]\) and \(\bigcup_{c\in C}N_G[c]\) are disjoint.  Treating the first union and controlling every other vertex fully exposes all vertices in \(T\) and \(C\).  Therefore
+\[
+\{\beta(G)\ge s\}
+=\{\exists\,T,C\subseteq V_n:\ |T|=|C|=s,\ \operatorname{dist}_G(T,C)>2\}.
+\tag{1}
+\]
+
+Choose a universal \(K_0>192\), later enlarged if necessary, and set
+\[
+s=\left\lceil K_0\frac{n\log d_n}{d_n^2}\right\rceil.
+\tag{2}
+\]
+Because \(d_n^2/n\to0\), the unrounded quantity in (2) tends to infinity.  Choose a universal \(d_0\) so large that \(K_0\log d/d^2\le1/8\), \(16K_0\log d/d\le d^{-1/2}\), and \(\log d\ge16\log2\) for every \(d\ge d_0\).  For \(3\le d_n<d_0\), the deterministic inequality \(\beta(G_n)\le n/2\) proves the theorem after enlarging \(C_\beta\).  Hence assume \(d_n\ge d_0\).  For all sufficiently large \(n\), (2) then gives \(s\le n/4\), \(ds/n\le2K_0\log d/d\), and \(s\ge32\), where this proof temporarily writes \(d=d_n\).
+
+We shall use the following switching estimate, proved here.  Let \(H\) be a revealed simple partial graph, let \(F\) be uniform over the edge-disjoint simple completions for which \(H\cup F\) is \(d\)-regular, put \(r_v=d-\deg_H(v)\), and put \(R=\sum_vr_v\).  For \(r_u>0\), mark uniformly one of the \(r_u\) residual edges at \(u\).  If \(R\ge8d^2\), then for \(S\subseteq V_n\setminus\{u\}\),
+\[
+\Pr\{\text{marked endpoint lies in }S\mid H\}\le\frac{2\sum_{v\in S}r_v}{R}\le\frac{2d|S|}{R}.
+\tag{S1}
+\]
+Indeed, for a fixed \(v\), from a marked completion containing marked edge \(uv\), choose an oriented residual edge \(xy\), replace \(uv,xy\) by \(ux,vy\), and mark \(ux\).  Collisions exclude at most \(4d\) choices; the conditions that \(ux\) and \(vy\) be new exclude at most \(d^2\) choices each because \(H\cup F\) is \(d\)-regular.  Thus at least \(R/2\) switchings leave the marked-\(v\) class.  A reverse switching is specified by one of at most \(r_v\) residual neighbors of \(v\).  Double counting gives probability at most \(2r_v/R\), and summing over \(v\in S\) gives (S1).
+
+There is also the complementary lower estimate: if \(R_S=\sum_{v\in S}r_v\ge8d^2\), then
+\[
+\Pr\{\text{marked endpoint lies in }S\mid H\}\ge\frac{R_S}{3R}.
+\tag{S2}
+\]
+To prove it, start from a marked residual edge \(ux\) with \(x\notin S\), choose an oriented residual edge \(wy\) with \(w\in S\), replace \(ux,wy\) by \(uw,xy\), and mark \(uw\).  Of the \(R_S\) choices, at most \(2d^2+4d\le R_S/2\) are invalid by the same collision and pre-existing-edge count.  Every resulting marked-in-\(S\) state has at most \(R\) reverse switchings.  If \(A\) and \(B\) are respectively the numbers of marked-outside and marked-inside states, then \(AR_S/2\le BR\), whence \(B/(A+B)\ge R_S/(2R+R_S)\ge R_S/(3R)\).  This proves (S2) entirely in the simple-graph completion space.
+
+We next give the promised direct simple-regular estimate.  Fix disjoint \(T,C\) of size \(s\), draw \(G_n\) uniformly from the simple \(d\)-regular graphs, and expose every edge incident to \(T\).  To formalize the exposure, independently order the as-yet-unexposed incident edges at the current vertex and reveal the next edge.  Conditional on the revealed partial graph \(H\), every compatible residual simple completion is uniform: each compatible graph has the same original probability, and the probability of each revealed ordering step is \(1/r_u\), a number determined by \(H\).  Thus (S1)--(S2) apply at each step.
+
+Call a revealed edge bad when its other endpoint lies in \(T\) or is an outside vertex already discovered from \(T\).  At any time at most \(ds\) edges have been exposed, so the residual oriented-edge count obeys
+\[
+R\ge nd-2ds\ge nd/2\ge8d^2,
+\]
+where the last inequality follows eventually from \(d=o(\sqrt n)\).  The bad endpoint set has size at most \((d+1)s\le2ds\).  The switching lemma therefore bounds every conditional bad probability by
+\[
+q:=\frac{2d(2ds)}{nd/2}=\frac{8ds}{n}\le\frac12.
+\tag{3}
+\]
+Let \(I\) be the number of exposed edges internal to \(T\), let \(O\) be the number leaving \(T\), and let \(L\) be the number of distinct outside neighbors discovered.  Then
+\[
+2I+O=ds,
+\qquad
+\#\{\text{bad reveals}\}=I+O-L.
+\]
+If \(L<ds/2\) and \(O\le ds/2\), then \(I=(ds-O)/2\ge ds/4\).  If \(O>ds/2\), then \(I+O-L=ds/2+O/2-L>O/2>ds/4\).  An adaptive union bound over at most \(ds\) reveals, using (3) at every conditional step, now yields
+\[
+\Pr\{L<ds/2\}
+\le 2^{ds}q^{ds/4}.
+\tag{4}
+\]
+
+On \(L\ge ds/2\), put \(W=N_G(T)\setminus T\), so \(|W|=L\).  If \(C\cap W\ne\varnothing\), the desired distance-two hole already fails.  Otherwise the exposure of \(T\) has exposed no edge incident to \(C\), and the residual degree mass in \(W\) is at least
+\[
+R_W\ge d|W|-ds\ge\frac{d^2s}{2}-ds\ge\frac{d^2s}{4}\ge8d^2.
+\tag{5}
+\]
+Expose the edges incident to \(C\).  Conditional on having avoided \(W\) so far, the quantity \(R_W\) in (5) is unchanged, while the total residual mass is at most \(nd\).  The lower half of the switching lemma therefore gives, at every reveal,
+\[
+\Pr\{\text{next endpoint is in }W\mid\text{past avoidance}\}
+\ge\frac{R_W}{3nd}\ge\frac{ds}{12n}.
+\]
+At least \(ds/2\) reveals are required to exhaust the \(ds\) degrees at \(C\), because one internal \(C\)-edge consumes at most two of them.  Consequently
+\[
+\Pr\{\operatorname{dist}_{G_n}(T,C)>2,\ L\ge ds/2\}
+\le\left(1-\frac{ds}{12n}\right)^{ds/2}
+\le\exp\!\left(-\frac{d^2s^2}{24n}\right).
+\tag{6}
+\]
+Equations (4)--(6) are obtained under the uniform simple regular law itself; no conditioning on a configuration model occurs.
+
+There are at most \(\binom ns\binom{n-s}s\le(en/s)^{2s}\) ordered disjoint pairs.  Put \(L_d=\log d\).  From (2),
+\[
+\log(en/s)\le1+2L_d\le3L_d,
+\qquad
+q\le16K_0L_d/d\le d^{-1/2}.
+\]
+Thus the logarithm of the union-bound contribution from (4) is at most
+\[
+6sL_d+ds\log2-\frac{dsL_d}{8}
+\le-\frac{dsL_d}{32},
+\tag{7}
+\]
+after increasing \(d_0\).  Similarly the logarithm of the contribution from (6) is at most
+\[
+6sL_d-\frac{d^2s^2}{24n}
+\le-\left(\frac{K_0}{24}-6\right)sL_d.
+\tag{8}
+\]
+The right sides of (7) and (8) tend to \(-\infty\).  This proves the required \(o(1)\) failure probability directly whenever \(d<C_*\log n\), where \(C_*\) is the universal constant supplied below.
+
+For \(d\ge C_*\log n\), apply Lemma~\(\mathrm{lem{:}kim\mbox{-}vu\mbox{-}lower\mbox{-}sandwich}\) with \(\varepsilon=1/2\).  On its coupling event, a graph \(G_*\sim G(n,p)\), \(p=d/(2n)\), is contained in \(G_n\).  The existence of the pair in (1) is decreasing under edge addition, so its probability for \(G_n\) is at most the corresponding probability for \(G_*\), plus \(o(1)\).  For fixed disjoint \(T,C\), every vertex outside \(T\cup C\) is adjacent to at least one vertex of each set with probability
+\[
+\rho=\{1-(1-p)^s\}^2,
+\]
+and these events are independent over the \(n-2s\) outside vertices.  Since \(ps\le1\), \(1-(1-p)^s\ge ps/2\), and \(n-2s\ge n/2\),
+\[
+\Pr_{G(n,p)}\{\operatorname{dist}(T,C)>2\}
+\le(1-\rho)^{n-2s}
+\le\exp\!\left(-\frac{d^2s^2}{32n}\right).
+\tag{9}
+\]
+Direct \(T\)-to-\(C\) edges can only decrease this probability.  Combining (9) with the same pair count gives a logarithm at most \((6-K_0/32)sL_d\), which tends to \(-\infty\) after enlarging \(K_0\).
+
+The direct and coupled ranges cover every admissible sequence, including a sequence that crosses the threshold infinitely often.  We have proved \(\beta(G_n)<s\) with probability tending to one.  Finally, \(s\le (K_0+1)n\log(d_n+1)/d_n^2\) eventually, because \(n\log d_n/d_n^2\to\infty\); absorbing the bounded-degree cases into a universal constant proves the claim.
+
+%%% FIELD proof-schur-certificate
+Fix \(G\) with \(M_n<n\), and abbreviate \(B=B_2(G)\), \(P=P_n\), \(m_i=m_i(G)\), \(q_i=q_i(G)\), \(\pi_i=\pi_i(G)\), and \(k=k_n\).  The radius-two row support of \(B\) is \(S_i=\{v:\operatorname{dist}_G(i,v)\le2\}\), with \(|S_i|=m_i\).  Since a \(d_n\)-regular graph has at most \(1+d_n+d_n(d_n-1)=d_n^2+1=M_n\) vertices within distance two of a vertex,
+\[
+q_i=1-m_i/n\ge1-M_n/n>0,
+\qquad
+\pi_i=q_i^k>0.
+\tag{10}
+\]
+
+Introduce the augmented estimators
+\[
+U_1=\frac1k\sum_{\ell=1}^ka_{J_\ell},
+\qquad
+U_0=\frac1n\sum_{i\in V_n}\frac{\mathbf 1\{i\in C_G(Z^{\mathrm{seed}})\}b_i}{\pi_i}.
+\]
+Every seed \(J_\ell\) is fully treated because \(N_G[J_\ell]\) is included in the treated union.  A unit \(i\) is fully control-exposed exactly when every seed avoids \(S_i\).  Uniform independent seed draws and (10) therefore give
+\[
+\mathbb E(U_1\mid G)=\mu_1,
+\quad
+\operatorname{Var}(U_1\mid G)=\frac1k\operatorname{Var}(a_{J_1}\mid G)
+\le\frac1{kn}\sum_i a_i^2\le\frac1k,
+\tag{11}
+\]
+and \(\mathbb E(U_0\mid G)=\mu_0\).
+
+Put \(h_{ij}=|S_i\cap S_j|=(BB^{\mathsf T})_{ij}\).  Independence of the \(k\) seeds gives
+\[
+\frac{\Pr(i,j\in C_G(Z^{\mathrm{seed}})\mid G)}{\pi_i\pi_j}
+=\left\{\frac{1-(m_i+m_j-h_{ij})/n}{q_iq_j}\right\}^{k}
+=\left\{1+\frac{h_{ij}-m_im_j/n}{nq_iq_j}\right\}^{k}.
+\tag{12}
+\]
+Since \((BPB^{\mathsf T})_{ij}=h_{ij}-m_im_j/n\), the last fraction in (12) is \(K_{G,ij}\).  Entrywise binomial expansion proves the exact identity
+\[
+Q_G=\sum_{r=1}^{k}\binom{k}{r}K_G^{\circ r}.
+\tag{13}
+\]
+The matrix \(K_G\) is positive semidefinite because
+\[
+K_G=\frac1n(D_q^{-1}BP)(D_q^{-1}BP)^{\mathsf T}.
+\]
+To verify positivity after entrywise powers without importing an assumption, observe that if \(H_{ij}=\langle h_i,h_j\rangle\) and \(L_{ij}=\langle \ell_i,\ell_j\rangle\), then
+\[
+(H\circ L)_{ij}=\langle h_i\otimes\ell_i,h_j\otimes\ell_j\rangle,
+\]
+so \(H\circ L\) is positive semidefinite.  Iteration shows \(K_G^{\circ r}\succeq0\), and (13) gives \(Q_G\succeq0\).
+
+We next bound its operator norm.  If \(K\succeq0\), \(a\ge\max_iK_{ii}>0\), and \(X\) is symmetric, then
+\[
+-\|X\|_{\mathrm{op}}I\preceq X\preceq\|X\|_{\mathrm{op}}I.
+\]
+The preceding tensor-Gram calculation shows that entrywise multiplication by \(K\) preserves both inequalities.  Since \(K\circ I=\operatorname{diag}(K_{ii})\preceq aI\),
+\[
+\|K\circ X\|_{\mathrm{op}}\le a\|X\|_{\mathrm{op}}.
+\]
+Taking \(X=K^{\circ(r-1)}\) inductively and using (13) yields
+\[
+\|Q_G\|_{\mathrm{op}}
+\le\|K_G\|_{\mathrm{op}}\frac{(1+a)^k-1}{a}.
+\tag{14}
+\]
+Here
+\[
+K_{G,ii}=\frac{m_i-m_i^2/n}{nq_i^2}=\frac{m_i}{n-m_i}
+\le a_0:=\frac{M_n}{n-M_n},
+\tag{15}
+\]
+and
+\[
+\|K_G\|_{\mathrm{op}}
+\le\frac{\|BP\|_{\mathrm{op}}^2}{n(1-M_n/n)^2},
+\qquad
+\frac{\|K_G\|_{\mathrm{op}}}{a_0}
+\le\frac{\|BP\|_{\mathrm{op}}^2}{M_n(1-M_n/n)}.
+\tag{16}
+\]
+The covariance definition of \(Q_G\) and the control endpoint bound give
+\[
+\operatorname{Var}(U_0\mid G)=\frac1{n^2}b^{\mathsf T}Q_Gb
+\le\frac{\|Q_G\|_{\mathrm{op}}}{n^2}\|b\|_2^2
+\le\frac{\|Q_G\|_{\mathrm{op}}}{n}.
+\tag{17}
+\]
+Since \(U_1-U_0\) is unbiased for \(\tau_n\), (11), (14)--(17), \((1+a_0)^k=(1-M_n/n)^{-k}\), and \((x-y)^2\le2x^2+2y^2\) imply
+\[
+\mathbb E[(U_1-U_0-\tau_n)^2\mid G]
+\le\frac2k+
+\frac{2\|B_2(G)P_n\|_{\mathrm{op}}^2\{(1-M_n/n)^{-k}-1\}}
+{nM_n(1-M_n/n)}
+=U(G,k_n).
+\tag{18}
+\]
+
+It remains to respect the prescribed observed-data sigma-field.  Let \(\mathcal F=\sigma(G,Z^{\mathrm{seed}},Y^{\mathrm{obs}})\).  Potential outcomes are fixed, so conditioning additionally on \(Y^{\mathrm{obs}}\) does not alter the conditional seed law given \(G,Z^{\mathrm{seed}}\).  Whenever \(J_\ell=i\), unit \(i\) is fully treated and \(y_i(Z^{\mathrm{seed}})=a_i\).  The control term is already \(\mathcal F\)-measurable.  Hence Definition~\(\mathrm{def{:}rb\mbox{-}estimator}\) gives exactly
+\[
+\widehat\tau_{\mathrm{seed}}=\mathbb E[U_1-U_0\mid\mathcal F].
+\]
+The tower property proves unbiasedness, and conditional Jensen applied to \(U_1-U_0-\tau_n\) shows that the MSE of \(\widehat\tau_{\mathrm{seed}}\) is no larger than (18).  Finally, \(B,m_i,h_{ij},q_i,\pi_i,K_G,Q_G\) are finite matrix or rational operations on \(G\), and each \(w_i(z;G)\) is obtained by finite summation over the seed tuples that induce \(z\).  This proves every assertion.
+
+%%% FIELD proof-finite-compiler
+The branch test uses only the revealed graph and the deterministic number \(M_n=d_n^2+1\).  If \(M_n\ge n\), Definition~\(\mathrm{def{:}certified\mbox{-}procedure}\) forms no inverse probability.  Its all-treated report is \(\mu_1\), so its error for \(\tau_n=\mu_1-\mu_0\) equals \(\mu_0\).  By Cauchy--Schwarz and the control endpoint restriction,
+\[
+\mu_0^2=\left(\frac1n\sum_i b_i\right)^2\le\frac1n\sum_i b_i^2\le1=\overline U(G).
+\tag{19}
+\]
+This includes the smallest admissible regular instance \((n,d_n)=(4,3)\), so the branch rule never divides by a zero exposure probability there.
+
+Suppose \(M_n<n\).  Then \(m_i(G)\le M_n\) gives \(q_i(G)\ge1-M_n/n>0\), and hence every \(\pi_i(G)=q_i(G)^{k_n}\) is positive.  There are exactly \(n^{k_n}\) ordered seed tuples.  Enumerating them, mapping each to its union assignment, and grouping equal assignments computes the seed-design mass of every supported \(z\) and the finite conditional averages \(w_i(z;G)\).  The same graph computation supplies \(m_i\) and \(h_{ij}\), hence all entries of \(K_G\) and \(Q_G\).  These entries are rational.  The largest eigenvalue of the rational symmetric matrix \(Q_G\), and the operator norm entering \(U(G,k_n)\), admit certified rational enclosures by bisection together with exact positive-semidefiniteness tests for the corresponding shifted rational matrices.  Thus every comparison used by the compiler is a finite graph computation.
+
+If \(U(G,k_n)\le1\), Lemma~\(\mathrm{lem{:}schur\mbox{-}certificate}\) bounds the worst-case MSE of the returned seed estimator by \(U(G,k_n)=\overline U(G)\).  If \(U(G,k_n)>1\), the compiler returns the all-treated estimator, and (19) bounds its MSE by \(1=\overline U(G)\).  Therefore the compiler is branch-safe and always has worst-case MSE at most \(\overline U(G)\).  Finally, on the event specified in Open-ended Question~\(\mathrm{oeq{:}boolean\mbox{-}operator}\), namely \(U(G_n,k_n)\le C_Ur(n,d_n)\),
+\[
+\overline U(G_n)\le\min\{1,U(G_n,k_n)\}\le C_Ur(n,d_n),
+\]
+which proves the last conditional assertion without presuming that the event has high probability.
+
+%%% FIELD statement-finite-confidence
+For every finite revealed graph \(G\), every \(0<\alpha<1\), and every \(y\in\mathcal M_n(G)\), the selected certified procedure satisfies
+\[
+\Pr_{\mathcal D_G}\!\left\{\tau_n\in\mathcal C_\alpha(G,Z,Y^{\mathrm{obs}})\mid G\right\}\ge1-\alpha.
+\]
+
+%%% FIELD proof-finite-confidence
+If the certified procedure selects the seed branch, Lemma~\(\mathrm{lem{:}schur\mbox{-}certificate}\) gives MSE at most \(U(G,k_n)=\overline U(G)\).  On either fallback branch its report is \(\mu_1\), its error is \(\mu_0\), and the control endpoint restriction gives \(\mu_0^2\le n^{-1}\sum_i b_i^2\le1=\overline U(G)\).  Thus, uniformly over \(y\in\mathcal M_n(G)\),
+\[
+\mathbb E_{\mathcal D_G,y}\!\left[(\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G\right]\le\overline U(G).
+\tag{20}
+\]
+Because the squared error is nonnegative, (20) implies directly
+\[
+\Pr_{\mathcal D_G}\!\left\{|\widehat\tau_{\mathrm{cert}}-\tau_n|>\sqrt{\overline U(G)/\alpha}\,\middle|\,G\right\}
+\le\alpha.
+\tag{21}
+\]
+The endpoint second-moment restrictions and Cauchy--Schwarz give \(|\mu_1|\le1\) and \(|\mu_0|\le1\), hence \(\tau_n\in[-2,2]\).  On the complement of the event in (21), \(\tau_n\) belongs both to the untruncated interval centered at \(\widehat\tau_{\mathrm{cert}}\) and to \([-2,2]\); it therefore belongs to their intersection \(\mathcal C_\alpha(G,Z,Y^{\mathrm{obs}})\).  This proves the finite-sample conditional coverage claim.
+
+%%% FIELD honest-statement-replacement
+For every finite \(G\), every \(0<\alpha<1\), and every \(y\in\mathcal M_n(G)\), the selected certified procedure satisfies
+\[
+\Pr_{\mathcal D_G}\!\left\{\tau_n\in\mathcal C_\alpha(G,Z,Y^{\mathrm{obs}})\mid G\right\}\ge1-\alpha.
+\]
+On the high-probability event in Theorem 1, its radius is at most \(C^{1/2}d_n/\sqrt{\alpha n\log(d_n+1)}\), which converges to zero throughout the admissible regime.
+
+%%% FIELD proof-sanity-reductions
+If \(d_n\equiv d\ge3\) is fixed, Definition~\(\mathrm{def{:}frontier\mbox{-}rate}\) gives
+\[
+r(n,d)=\frac{d^2}{\log(d+1)}\,\frac1n=\Theta(n^{-1}),
+\]
+because the prefactor is a fixed positive finite constant.
+
+Now suppose \(G\) is \(d_n\)-regular and has girth at least five.  For \(i\ne j\), a common neighbor of adjacent \(i,j\) would form a triangle, and two distinct common neighbors of nonadjacent \(i,j\) would form a four-cycle.  Therefore an adjacent pair has no common neighbor, a distance-two pair has exactly one common neighbor, and a pair at distance greater than two has none.  Also \((A_G^2)_{ii}=d_n\).  Entry by entry these facts give
+\[
+B_2(G)=A_G^2+A_G-(d_n-1)I_n.
+\tag{22}
+\]
+Regularity gives \(A_G\iota_n=d_n\iota_n\), so \(A_G\) commutes with \(P_n\) and \(A_G^2P_n=(A_GP_n)^2\).  Multiplying (22) by \(P_n\), applying the triangle inequality and submultiplicativity, yields
+\[
+\|B_2(G)P_n\|_{\mathrm{op}}
+\le\|A_GP_n\|_{\mathrm{op}}^2+\|A_GP_n\|_{\mathrm{op}}+(d_n-1)\|P_n\|_{\mathrm{op}}.
+\]
+Since \(\|P_n\|_{\mathrm{op}}=1\), the hypothesis \(\|A_GP_n\|_{\mathrm{op}}=O(\sqrt{d_n})\) makes the right side \(O(d_n)\).  This proves both reductions.
+
+%%% FIELD partial-boolean-operator
+The exact deterministic reduction is
+\[
+\sup_{y\in\mathcal M_n(G)}\mathbb E[(\widehat\tau_{\mathrm{seed}}-\tau_n)^2\mid G]
+\le U(G,k_n).
+\]
+Moreover, if \(\|B_2(G_n)P_n\|_{\mathrm{op}}=O_{\Pr}(d_n^{7/4})\), then the definition of \(k_n\), \(-\log(1-x)\asymp x\) for \(x=d_n^2/n=o(1)\), and the displayed formula for \(U\) give \(U(G_n,k_n)=O_{\Pr}\{d_n^2/[n\log(d_n+1)]\}\).  On girth-at-least-five graphs the identity \(B_2=A_G^2+A_G-(d_n-1)I_n\) reduces the norm to \(O(d_n)\) whenever \(\|A_GP_n\|_{\mathrm{op}}=O(\sqrt{d_n})\).  Exact finite enumeration validates the covariance identity.  A separate numerical falsification grid with \(2000\le n\le12000\), \(3\le d\le70\), including \(d^2/n\) up to \(0.408\), found \(\|B_2P_n\|_{\mathrm{op}}/d\) between \(2.19\) and \(3.21\) and \(U/r\) between \(8.71\) and \(12.62\); this does not prove the asymptotic assertion.
+
+%%% FIELD partial-matched-frontier
+Proposition~\(\mathrm{prop{:}balanced\mbox{-}bayes\mbox{-}converse}\) and Theorem~\(\mathrm{thm{:}balanced\mbox{-}packing}\) already give a universal \(c>0\) such that
+\[
+\Pr\!\left\{R(G_n)\ge c\frac{d_n^2}{n\log(d_n+1)}\right\}\longrightarrow1.
+\]
+For the upper side, Proposition~\(\mathrm{prop{:}finite\mbox{-}compiler}\) proves the deterministic implication
+\[
+U(G_n,k_n)\le C_Ur(n,d_n)
+\quad\Longrightarrow\quad
+R(G_n)\le\overline U(G_n)\le C_Ur(n,d_n).
+\]
+Thus the all-procedure lower frontier and the complete conditional upper glue are proved; only the probability-one-minus-\(o(1)\) certificate premise remains open.
+
+%%% FIELD partial-honest-confidence
+Lemma~\(\mathrm{lem{:}finite\mbox{-}honest\mbox{-}confidence}\) proves the advertised \(1-\alpha\) conditional coverage for every finite \(G\).  Whenever \(\overline U(G_n)\le C_Ud_n^2/[n\log(d_n+1)]\), its radius is at most
+\[
+\sqrt{C_U}\,\frac{d_n}{\sqrt{\alpha n\log(d_n+1)}},
+\]
+which tends to zero because \(d_n^2/n\to0\).  What is not yet proved is that this certificate event has probability tending to one.

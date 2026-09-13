@@ -1,0 +1,1671 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}circle\_\allowbreak{}morse\_\allowbreak{}hmod\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Complete paired interventions yield a synthetic product law and ratio residuals. For the full bounded finite-type class, the proved inverse-modulus result is the bracket \(c\varepsilon^{(k+1)/(k+m+1)}\leq\Omega_{k,m}(\varepsilon)\leq C\varepsilon^{k/((k+n/2)(m+1))}\); the matching full-class upper exponent remains open in \(\mathrm{oeq:full\text{-}incompressible\text{-}rigidity}\). The radial subclass is sharp at \(\varepsilon^{(k+1)/(k+m+1)}\). In the primary two-node \(C^2\) Morse case, this means a full-class \(3/4\) lower exponent versus a \(1/3\) upper exponent, with a sharp radial exponent \(3/4\). Zero-law componentwise circular recovery follows from the direct torus identification argument, not from a converse characterization of \(d_{\mathrm{rep}}\). The certified Fourier estimator and representing-model diameter of the quotient-valued confidence set inherit the conservative exponent, giving the primary rate \(N^{-1/12}\).
+
+\section{Project justification}
+
+\paragraph{Gap.} CauCA and score-based causal representation learning establish componentwise exact identification under almost-everywhere intervention discrepancy, but they do not metrize approximate recovery symmetrically or quantify isolated critical zeros. Quantitative Morse perturbation results requiring higher smoothness do not justify the primary \(C^2\) case, and near-isometry robustness controls a different primitive defect.
+
+\paragraph{Niche.} Circular latent coordinates permit a directly stated \(C^2\) Morse class and a separate finite-type hierarchy with exact uniform margins and attained worst order. Complete intervention laws add a determinant channel, while the symmetric two-law aligned discrepancy removes dependence on which competing model is declared the reference.
+
+\paragraph{Fill.} The project proves the synthetic product reduction, a direct zero-law torus identification result, the localized full-class lower obstruction, the conservative scalar-rigidity upper bound, the exact radial frontier, and the environment-by-environment two-node Morse audit. It also gives certified Fourier recovery and a quotient-valued confidence set with controlled representing-model diameter at the conservative rate, while isolating full-class incompressible rigidity as the sole step needed to close the exponent gap.
+
+\section{Related work}
+
+Liang et al. establish exact CauCA recovery under almost-everywhere intervention discrepancy and exhibit determinant-one rotations on common plateaus. Varıcı et al. derive componentwise and graph recovery from exact sparse score changes under paired node interventions. Proposition \(\mathrm{prop:identification\text{-}hypothesis\text{-}comparison}\) proves the present zero-law torus conclusion directly and uses those papers only to compare assumptions and conclusion types. Neither comparator supplies a nonzero-error modulus. Buchholz and Schölkopf quantify near-isometric representation learning through a different primitive defect. Khesin et al. motivate the volume-preserving kernel, while Dacorogna--Moser and Teixeira provide prescribed-Jacobian and localized volume-correction context. Milnor supports the directly stated \(C^2\) Morse condition. Compact-manifold density-band results and Bull--Nickl's adaptive \(L^2\)-set theory support the sampling rung, but the propagation exponent here comes from the proved scalar finite-type rigidity lemma.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \([h_\theta]_{\mathfrak S_n\ltimes\mathrm{Diff}(\mathbb T)^n}\).
+Primary functional / estimator / diagnostic: \(\Omega_{k,m}(\varepsilon)=\sup_{D_H(\theta,\widetilde\theta)\leq\varepsilon}d_{\mathrm{rep}}(\theta,\widetilde\theta)\), with the proved full-class bracket \(c\varepsilon^{(k+1)/(k+m+1)}\leq\Omega_{k,m}(\varepsilon)\leq C\varepsilon^{k/((k+n/2)(m+1))}\) on each fixed bounded class containing the lower family, and the proved identity \(\Omega_{k,m}^{\mathrm{rad}}(\varepsilon)\asymp\varepsilon^{(k+1)/(k+m+1)}\). In the primary \((n,k,m)=(2,2,1)\) case, the full bracket has lower exponent \(3/4\) and upper exponent \(1/3\), while the radial exponent is sharply \(3/4\). The matching sharp full-class upper bound remains the open question \(\mathrm{oeq:full\text{-}incompressible\text{-}rigidity}\)..
+\begin{itemize}
+  \item \texttt{n} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{latent dimension}
+  \item \texttt{k} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{smoothness order}
+  \item \texttt{m} --- \texttt{integer}; \(\{1,\ldots,k-1\}\); \texttt{critical order}
+  \item \texttt{s\_\allowbreak{}obs} --- \texttt{integer}; \texttt{observed-\allowbreak{}density smoothness used in the statistical rung}
+  \par\smallskip\noindent\emph{Definition.} \(s_{\mathrm{obs}}=k-1\)
+  \item \texttt{c0} --- \texttt{positive real}; \texttt{uniform lower density bound}
+  \item \texttt{C0} --- \texttt{positive real}; \texttt{uniform upper density bound}
+  \item \texttt{K} --- \texttt{positive real}; \texttt{uniform smoothness and decoder bound}
+  \item \texttt{a0} --- \texttt{positive real}; \texttt{finite-\allowbreak{}type profile margin}
+  \item \texttt{J} --- \texttt{positive integer}; \texttt{maximum number of marked critical points per coordinate}
+  \item \texttt{Delta0} --- \texttt{positive real}; \texttt{uniform separation of distinct critical points}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_0>0\)
+  \item \texttt{epsilon} --- \texttt{nonnegative real}; \texttt{complete-\allowbreak{}family Hellinger radius}
+  \item \texttt{N} --- \texttt{positive integer}; \texttt{sample size per environment}
+  \item \texttt{alpha} --- \texttt{real}; \((0,1)\); \texttt{miscoverage probability}
+  \item \texttt{torus} --- \texttt{compact manifold}; \(\mathbb T=\mathbb R/(2\pi\mathbb Z)\); \texttt{one-\allowbreak{}coordinate latent space}
+  \item \texttt{lambda} --- \texttt{probability measure}; \(\mathcal P(\mathbb T)\); \texttt{uniform circular law}
+  \par\smallskip\noindent\emph{Definition.} \(d\lambda(t)=(2\pi)^{-1}dt\)
+  \item \texttt{nodes} --- \texttt{finite set}
+  \par\smallskip\noindent\emph{Definition.} \([n]=\{1,\ldots,n\}\)
+  \item \texttt{environment\_\allowbreak{}labels} --- \texttt{finite set}; \texttt{complete grouped intervention family}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{\mathrm{obs}\}\cup\{(i,e):i\in[n],\ e\in\{0,1\}\}\)
+  \item \texttt{permutation\_\allowbreak{}group} --- \texttt{finite group}; \(\mathfrak S_n\)
+  \item \texttt{circle\_\allowbreak{}diffeomorphisms} --- \texttt{group}; \(\mathrm{Diff}(\mathbb T)^n\)
+  \item \texttt{G} --- \texttt{directed acyclic graph}; DAGs on \([n]\)
+  \item \texttt{p} --- \texttt{family of normalized conditional densities with respect to normalized Haar measure}; \(p_i:\mathbb T\times\mathbb T^{|\operatorname{pa}_G(i)|}\to(0,\infty)\); \texttt{observational causal mechanisms}
+  \par\smallskip\noindent\emph{Definition.} For every parent value, \(\int_{\mathbb T}p_i(t\mid x_{\operatorname{pa}_G(i)})d\lambda(t)=1\), where \(d\lambda(t)=dt/(2\pi)\).
+  \item \texttt{q} --- \texttt{family of normalized densities with respect to normalized Haar measure}; \(q_i^e:\mathbb T\to(0,\infty)\), \(i\in[n]\), \(e\in\{0,1\}\); \texttt{positive perfect-\allowbreak{}intervention mechanisms}
+  \par\smallskip\noindent\emph{Definition.} \(\int_{\mathbb T}q_i^e(t)d\lambda(t)=1\), with \(d\lambda(t)=dt/(2\pi)\).
+  \item \texttt{f} --- \texttt{diffeomorphism}; \(f:\mathbb T^n\to\mathbb T^n\); \texttt{decoder}
+  \item \texttt{theta} --- \texttt{causal representation model}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=(G,p,q,f)\)
+  \item \texttt{latent\_\allowbreak{}density} --- family of normalized densities with respect to \(\lambda^n\); \(p_\theta^a:\mathbb T^n\to(0,\infty)\), \(a\in\mathcal A\); \texttt{latent observational and interventional laws}
+  \item \texttt{observed\_\allowbreak{}law} --- \texttt{family of probability laws}; \texttt{observed complete environment family}
+  \par\smallskip\noindent\emph{Definition.} \(P_\theta^a=f_*p_\theta^a\)
+  \item \texttt{encoder} --- \texttt{diffeomorphism}; \texttt{latent encoder}
+  \par\smallskip\noindent\emph{Definition.} \(h_\theta=f^{-1}\)
+  \item \texttt{mixture\_\allowbreak{}law} --- \texttt{probability law}; \texttt{reference law for representation loss}
+  \par\smallskip\noindent\emph{Definition.} \(\bar P_\theta=|\mathcal A|^{-1}\sum_{a\in\mathcal A}P_\theta^a\)
+  \item \texttt{theta\_\allowbreak{}tilde} --- \texttt{causal representation model}; \texttt{competing model}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde\theta=(\widetilde G,\widetilde p,\widetilde q,\widetilde f)\)
+  \item \texttt{Hellinger} --- \texttt{distance}; \(H:\mathcal P(\mathbb T^n)^2\to\mathbb R_+\)
+  \par\smallskip\noindent\emph{Definition.} \(H^2(P,Q)=\frac12\int(\sqrt{dP/d\lambda^n}-\sqrt{dQ/d\lambda^n})^2d\lambda^n\)
+  \item \texttt{full\_\allowbreak{}law\_\allowbreak{}distance} --- \texttt{pseudometric}; \(D_H(\theta,\widetilde\theta)\in\mathbb R_+\); \texttt{complete-\allowbreak{}family Hellinger discrepancy after group alignment}
+  \item \texttt{equivalence\_\allowbreak{}group} --- \texttt{group action}; \texttt{permutation and coordinatewise circular reparameterization ambiguity}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak S_n\ltimes\mathrm{Diff}(\mathbb T)^n\)
+  \item \texttt{representation\_\allowbreak{}distance} --- \texttt{symmetric discrepancy}; \(d_{\mathrm{rep}}(\theta,\widetilde\theta)\in\mathbb R_+\); \texttt{symmetric aligned encoder discrepancy that vanishes on permutation and coordinatewise-\allowbreak{}diffeomorphism equivalence classes}
+  \item \texttt{model\_\allowbreak{}class} --- \texttt{class of causal representation models}; \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\)
+  \item \texttt{inverse\_\allowbreak{}modulus} --- \texttt{function}; \(\Omega_{k,m}:\mathbb R_+\to\mathbb R_+\); \texttt{worst-\allowbreak{}case law-\allowbreak{}to-\allowbreak{}encoder modulus}
+  \item \texttt{log\_\allowbreak{}ratio} --- \texttt{family of functions}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\theta i}=\log(q_i^1/q_i^0):\mathbb T\to\mathbb R\)
+  \item \texttt{critical\_\allowbreak{}set} --- \texttt{family of finite subsets}; \(Z_{\theta i}\subset\mathbb T\); \texttt{critical locations of the intervention contrast}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{\theta i}=\{t\in\mathbb T:r_{\theta i}'(t)=0\}\)
+  \item \texttt{synthetic\_\allowbreak{}density} --- \texttt{density}; \(B_\theta:\mathbb T^n\to(0,\infty)\); \texttt{observable synthetic baseline-\allowbreak{}product law}
+  \item \texttt{baseline\_\allowbreak{}gauge} --- \texttt{family of circle diffeomorphisms}
+  \par\smallskip\noindent\emph{Definition.} The lift \(\overline\beta_{\theta i}(t)=\int_0^tq_i^0(s)ds\) obeys \(\overline\beta_{\theta i}(t+2\pi)=\overline\beta_{\theta i}(t)+2\pi\) and \(\overline\beta_{\theta i}'=q_i^0>0\); hence \(\beta_{\theta i}=\overline\beta_{\theta i}\pmod{2\pi}\) is an orientation-preserving degree-one circle diffeomorphism carrying \(q_i^0d\lambda\) to \(d\lambda\).
+  \item \texttt{gauged\_\allowbreak{}decoder} --- \texttt{diffeomorphism}
+  \par\smallskip\noindent\emph{Definition.} \(F_\theta=f\circ\beta_\theta^{-1}:\mathbb T^n\to\mathbb T^n\)
+  \item \texttt{transition\_\allowbreak{}map} --- \texttt{diffeomorphism}
+  \par\smallskip\noindent\emph{Definition.} \(T_{\theta,\widetilde\theta}=F_\theta^{-1}\circ F_{\widetilde\theta}\)
+  \item \texttt{residual} --- \texttt{nonnegative functional}; \(\mathcal E(\theta,\widetilde\theta)\in\mathbb R_+\); \texttt{determinant plus factorization residual}
+  \item \texttt{packet\_\allowbreak{}scale} --- \texttt{positive real}; \((0,1)\); \texttt{scale of a localized lower-\allowbreak{}bound perturbation}
+  \item \texttt{chart\_\allowbreak{}radius} --- \texttt{positive real}; \((0,\pi/4)\); \texttt{radius of the fixed injective torus chart}
+  \par\smallskip\noindent\emph{Definition.} \(R_0\in(0,\pi/4)\)
+  \item \texttt{twist\_\allowbreak{}plane} --- \texttt{oriented coordinate plane}; \texttt{named two-\allowbreak{}coordinate plane supporting the lower twist}
+  \par\smallskip\noindent\emph{Definition.} \(E_{12}=\operatorname{span}(e_1,e_2)\subset\mathbb R^n\)
+  \item \texttt{quarter\_\allowbreak{}turn} --- \texttt{linear map}; \texttt{oriented quarter-\allowbreak{}turn on the active plane}
+  \par\smallskip\noindent\emph{Definition.} \(J_2(x_1,x_2)=(-x_2,x_1)\)
+  \item \texttt{twist\_\allowbreak{}amplitude} --- \texttt{positive real}; \((0,1)\); \texttt{fixed amplitude of the localized Hamiltonian twist}
+  \par\smallskip\noindent\emph{Definition.} \(\tau\in(0,1)\)
+  \item \texttt{twist\_\allowbreak{}cutoff} --- \texttt{smooth function}; \(\eta:[0,\infty)\to[0,1]\); \texttt{fixed radial cutoff}
+  \par\smallskip\noindent\emph{Definition.} \(\eta\in C_c^\infty([0,1))\), \(\eta=1\) on \([0,1/4]\), and \(\eta=0\) on \([1,\infty)\)
+  \item \texttt{radial\_\allowbreak{}angle\_\allowbreak{}bound} --- \texttt{positive real}; \((0,\pi/4)\); \texttt{uniform small-\allowbreak{}angle bound for the restricted radial class}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_0\in(0,\pi/4)\)
+  \item \texttt{lower\_\allowbreak{}profile\_\allowbreak{}amplitudes} --- \texttt{vector of distinct positive reals}; \((0,1)^n\); \texttt{fixed amplitudes distinguishing the intervention groups}
+  \par\smallskip\noindent\emph{Definition.} \(b_*=(b_1,\ldots,b_n)\) with \(0<b_1<\cdots<b_n<1\)
+  \item \texttt{critical\_\allowbreak{}profile\_\allowbreak{}template} --- \texttt{smooth periodic function}; \texttt{explicit finite-\allowbreak{}order intervention profile for the general lower family}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_1(t)=1-\cos t\) and \(\gamma_m(t)=\sin(t)^{m+1}/(m+1)\) for \(m\ge2\); in either case \(\gamma_m'\) has a zero of exact order \(m\) at \(t=0\)
+  \item \texttt{hamiltonian\_\allowbreak{}twist} --- \texttt{diffeomorphism family}; \(\Psi_h:\mathbb T^n\to\mathbb T^n\); \texttt{localized radial volume-\allowbreak{}preserving lower construction}
+  \item \texttt{lower\_\allowbreak{}reference\_\allowbreak{}model} --- \texttt{causal representation model}; \texttt{reference model specified by the localized lower-\allowbreak{}family construction}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_0=(G_0,p_0,q_0,f_0)\)
+  \item \texttt{lower\_\allowbreak{}perturbed\_\allowbreak{}model} --- \texttt{causal representation model family}; \texttt{localized decoder alternative with the same latent mechanisms}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_h=(G_0,p_0,q_0,f_0\circ\Psi_h^{-1})\)
+  \item \texttt{radial\_\allowbreak{}modulus} --- \texttt{function}; \(\Omega_{k,m}^{\mathrm{rad}}:\mathbb R_+\to\mathbb R_+\); \texttt{inverse modulus restricted to localized radial volume-\allowbreak{}preserving twists}
+  \item \texttt{rigidity\_\allowbreak{}handle} --- \texttt{proof handle}; \texttt{Dacorogna-\allowbreak{}-\allowbreak{}Moser volume correction followed by weighted divergence-\allowbreak{}free coercivity and nonlinear absorption}
+  \item \texttt{spectral\_\allowbreak{}cutoff} --- \texttt{positive integer}; \texttt{periodic Fourier cutoff}
+  \par\smallskip\noindent\emph{Definition.} \(L_N\asymp N^{1/(2s_{\mathrm{obs}}+n)}\)
+  \item \texttt{theta\_\allowbreak{}hat} --- \texttt{estimator}; \(\widehat\theta_N\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\); \texttt{certified minimum-\allowbreak{}distance sieve fit}
+  \item \texttt{law\_\allowbreak{}radius} --- \texttt{positive sequence}; \texttt{simultaneous environment-\allowbreak{}law radius}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_N=N^{-s_{\mathrm{obs}}/(2s_{\mathrm{obs}}+n)}\)
+  \item \texttt{spectral\_\allowbreak{}quantile} --- \texttt{positive real}; \texttt{confidence-\allowbreak{}ball calibration}
+  \par\smallskip\noindent\emph{Definition.} \(c_\alpha\) calibrates the simultaneous complete-family event \(D_H(\mathbb P_\theta,\widehat{\mathbb P}_L)\le c_\alpha\rho_N\) at probability at least \(1-\alpha-o(1)\), including the deterministic Fourier bias.
+  \item \texttt{sieve\_\allowbreak{}tolerance} --- \texttt{positive sequence}; \texttt{certified sieve and optimization tolerance}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_N=o(\rho_N)\)
+  \item \texttt{confidence\_\allowbreak{}set} --- \texttt{random subset of the quotient model}; \(\mathcal C_N(\alpha)\subset\mathcal M_{n,k,m}/(\mathfrak S_n\ltimes\mathrm{Diff}(\mathbb T)^n)\); \texttt{encoder-\allowbreak{}equivalence confidence set}
+  \item \texttt{adaptation\_\allowbreak{}handle} --- \texttt{construction handle}; \texttt{multiresolution tests of the critical order followed by separated-\allowbreak{}model confidence inversion}
+  \item \texttt{primary\_\allowbreak{}morse\_\allowbreak{}class} --- \texttt{class of causal representation models}; \(\mathcal M^{\mathrm{Morse}}_{2,2,1}(c_0,C_0,K,a_0,J,\Delta_0)\); primary two-node \(C^2\) nondegenerate Morse rate class
+  \item \texttt{shear\_\allowbreak{}amplitude} --- \texttt{real}; \((-1/2,1/2)\); \texttt{amplitude of the explicit nonlinear torus shear}
+  \par\smallskip\noindent\emph{Definition.} \(\delta\in(-1/2,1/2)\)
+  \item \texttt{rate\_\allowbreak{}class\_\allowbreak{}example} --- \texttt{causal representation model family}; \texttt{explicit nonempty bounded mechanism and decoder family}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_\delta=(G_\varnothing,p_\delta,q_\delta,f_\delta)\), where \(f_\delta(x)=(x_1+\delta\sin x_2,x_2,\ldots,x_n)\pmod{2\pi}\) and \(|\delta|<1/2\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:dimension]\label{ass:dimension}
+The latent dimension satisfies \(n\ge 2\).
+\par\smallskip\noindent\emph{Standard} (Nontrivial multivariate latent representation, \cite{LiangEtAl2023CauCA}).
+\end{assumption}
+
+\begin{assumption}[ass:smoothness-order]\label{ass:smoothness-order}
+The index satisfies \(k\ge2\).
+\par\smallskip\noindent\emph{Standard} (\(C^2\) differentiability sufficient to state one-dimensional Morse nondegeneracy, \cite{Milnor1963MorseTheory}).
+\end{assumption}
+
+\begin{assumption}[ass:critical-order]\label{ass:critical-order}
+The critical order satisfies \(1\le m\le k-1\).
+\par\smallskip\noindent\emph{Novel.} The index records the largest permitted vanishing order of the intervention-contrast derivative. Finite Fourier and periodic spline contrasts with controlled multiplicities furnish every value \(1\le m\le k-1\); the index is imposed for quantitative recovery and is not inferred from a Morse perturbation theorem.
+\end{assumption}
+
+\begin{assumption}[ass:causal-factorization]\label{ass:causal-factorization}
+Relative to \(\lambda^n\), the observational latent density factorizes as \(p_\theta^{\mathrm{obs}}(x)=\prod_{i\in[n]}p_i(x_i\mid x_{\operatorname{pa}_G(i)})\) for a DAG \(G\).
+\par\smallskip\noindent\emph{Standard} (DAG Markov factorization, \cite{LiangEtAl2023CauCA}).
+\end{assumption}
+
+\begin{assumption}[ass:perfect-intervention-family]\label{ass:perfect-intervention-family}
+For every \(i\in[n]\) and \(e\in\{0,1\}\), the density relative to \(\lambda^n\) is \(p_\theta^{i,e}(x)=q_i^e(x_i)\prod_{j\ne i}p_j(x_j\mid x_{\operatorname{pa}_G(j)})\), where \(q_i^e\) is normalized relative to \(d\lambda(t)=dt/(2\pi)\).
+\par\smallskip\noindent\emph{Standard} (Positive stochastic single-node perfect intervention, \cite{LiangEtAl2023CauCA}).
+\end{assumption}
+
+\begin{assumption}[ass:complete-grouping]\label{ass:complete-grouping}
+The learner observes the observational environment and both environments \((i,0),(i,1)\) in every target group, while the node names are known only up to one common permutation in \(\mathfrak S_n\).
+\par\smallskip\noindent\emph{Standard} (Coupled hard-intervention groups with unknown node permutation, \cite{VariciEtAl2025ScoreCRL}).
+\end{assumption}
+
+\begin{assumption}[ass:density-bounds]\label{ass:density-bounds}
+Every complete latent density satisfies \(c_0\le p_\theta^a(x)\le C_0\) for all \(a\in\mathcal A\) and \(x\in\mathbb T^n\).
+\par\smallskip\noindent\emph{Standard} (Two-sided bounded-density overlap on compact support, \cite{BuchholzScholkopf2025Robustness}).
+\end{assumption}
+
+\begin{assumption}[ass:density-smoothness]\label{ass:density-smoothness}
+Every complete latent density satisfies \(\lVert p_\theta^a\rVert_{C^k(\mathbb T^n)}\le K\).
+\par\smallskip\noindent\emph{Novel.} A common \(C^k\) envelope rules out increasingly oscillatory complete laws that keep Hellinger error small while moving the inverse map at finer scales. Bounded trigonometric causal mechanisms on the compact torus satisfy the envelope for a fixed \(K\).
+\end{assumption}
+
+\begin{assumption}[ass:decoder-smoothness]\label{ass:decoder-smoothness}
+The decoder and encoder satisfy \(\lVert f\rVert_{C^k}+\lVert f^{-1}\rVert_{C^k}\le K\).
+\par\smallskip\noindent\emph{Novel.} A uniform \(C^k\) envelope prevents decoder perturbations from concentrating below the scale resolved by the law discrepancy. Periodic shears \(f_\delta(x)=(x_1+\delta\sin x_2,x_2,\ldots,x_n)\) with \(|\delta|<1/2\) form a nontrivial bounded family.
+\end{assumption}
+
+\begin{assumption}[ass:decoder-conditioning]\label{ass:decoder-conditioning}
+Every singular value of \(Df(x)\) lies in \([K^{-1},K]\) for every \(x\in\mathbb T^n\).
+\par\smallskip\noindent\emph{Novel.} Uniform singular-value bounds keep observed-law and latent-law norms mutually comparable and exclude Jacobian collapse as an alternative source of instability. The periodic shear family has determinant one and uniformly bounded map and inverse derivatives.
+\end{assumption}
+
+\begin{assumption}[ass:critical-cardinality]\label{ass:critical-cardinality}
+Each marked set satisfies \(|Z_{\theta i}|\le J\).
+\par\smallskip\noindent\emph{Novel.} Periodic intervention profiles used for circular controls have finitely many turning points; a fixed trigonometric degree or spline knot budget gives a uniform value of \(J\).
+\end{assumption}
+
+\begin{assumption}[ass:critical-separation]\label{ass:critical-separation}
+For every \(i\in[n]\), distinct points \(z,z'\in Z_{\theta i}\) satisfy \(\operatorname{dist}_{\mathbb T}(z,z')\ge\Delta_0\).
+\par\smallskip\noindent\emph{Novel.} A fixed separation prevents critical neighborhoods from coalescing as the law varies, which would create an additional unresolved scale in a uniform modulus. Fixed-degree Fourier contrasts and periodic splines with separated knots satisfy the condition.
+\end{assumption}
+
+\begin{assumption}[ass:finite-type-profile]\label{ass:finite-type-profile}
+For every \(i\in[n]\) and \(t\in\mathbb T\), \(|r_{\theta i}'(t)|\ge a_0\operatorname{dist}_{\mathbb T}(t,Z_{\theta i})^m\), with the same constant \(a_0\) for every node and model.
+\par\smallskip\noindent\emph{Novel.} This is a uniform finite-type rate condition, not a consequence of quantitative Morse theory. The periodic family \(r_i(t)=b_i\gamma_m(t)-\log Z_i\), with \(\gamma_1(t)=1-\cos t\) and \(\gamma_m(t)=\sin(t)^{m+1}/(m+1)\) for \(m\ge2\), has separated zeros of order at most \(m\), including zeros of exact order \(m\), and satisfies the displayed margin for constants fixed by \(b_i\).
+\end{assumption}
+
+\begin{assumption}[ass:iid-environment-sampling]\label{ass:iid-environment-sampling}
+For every \(a\in\mathcal A\), the data contain \(N\) independent draws from \(P_\theta^a\), and samples are independent across environments.
+\par\smallskip\noindent\emph{Standard} (Independent multi-environment sampling, \cite{AcarturkEtAl2024SampleComplexity}).
+\end{assumption}
+
+\begin{assumption}[ass:finite-type-attainment]\label{ass:finite-type-attainment}
+For every \(i\in[n]\), there is \(z_i\in Z_{\theta i}\) such that, for every lift increment \(|u|\le\min\{\Delta_0/4,1\}\), \(a_0|u|^m\le |r_{\theta i}'(z_i+u)|\le K|u|^m\).
+\par\smallskip\noindent\emph{Novel.} The condition makes the class index \(m\) an attained worst critical order rather than a loose upper label. The displayed trigonometric family attains order \(m\) at \(0\) and \(\pi\), while its remaining critical points have no larger order.
+\end{assumption}
+
+\begin{assumption}[ass:primary-morse-hessian]\label{ass:primary-morse-hessian}
+For every \(i\in\{1,2\}\) and \(z\in Z_{\theta i}\), the one-dimensional Hessian satisfies \(|r_{\theta i}''(z)|\ge a_0\).
+\par\smallskip\noindent\emph{Standard} (Nondegenerate critical point for a \(C^2\) function, \cite{Milnor1963MorseTheory}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Bounded finite-\allowbreak{}type circular causal class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)=\{\theta=(G,p,q,f):\theta\text{ satisfies Assumptions }\mathrm{ass:dimension},\mathrm{ass:smoothness\text{-}order},\mathrm{ass:critical\text{-}order},\mathrm{ass:causal\text{-}factorization},\mathrm{ass:perfect\text{-}intervention\text{-}family},\mathrm{ass:complete\text{-}grouping},\mathrm{ass:density\text{-}bounds},\mathrm{ass:density\text{-}smoothness},\mathrm{ass:decoder\text{-}smoothness},\mathrm{ass:decoder\text{-}conditioning},\mathrm{ass:critical\text{-}cardinality},\mathrm{ass:critical\text{-}separation},\mathrm{ass:finite\text{-}type\text{-}profile},\mathrm{ass:finite\text{-}type\text{-}attainment}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}dimension}; \texttt{ass:\allowbreak{}smoothness-\allowbreak{}order}; \texttt{ass:\allowbreak{}critical-\allowbreak{}order}; \texttt{ass:\allowbreak{}causal-\allowbreak{}factorization}; \texttt{ass:\allowbreak{}perfect-\allowbreak{}intervention-\allowbreak{}family}; \texttt{ass:\allowbreak{}complete-\allowbreak{}grouping}; \texttt{ass:\allowbreak{}density-\allowbreak{}bounds}; \texttt{ass:\allowbreak{}density-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}decoder-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}decoder-\allowbreak{}conditioning}; \texttt{ass:\allowbreak{}critical-\allowbreak{}cardinality}; \texttt{ass:\allowbreak{}critical-\allowbreak{}separation}; \texttt{ass:\allowbreak{}finite-\allowbreak{}type-\allowbreak{}profile}; \texttt{ass:\allowbreak{}finite-\allowbreak{}type-\allowbreak{}attainment}.
+\end{definition}
+
+\begin{definition}[def:complete-law-family]\label{def:complete-law-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complete observed law family}
+\par\smallskip\noindent\emph{Construction.} \(\mathbb P_\theta=(P_\theta^a:a\in\mathcal A)\), where \(P_\theta^a=f_*p_\theta^a\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}.
+\end{definition}
+
+\begin{definition}[def:full-law-distance]\label{def:full-law-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complete-\allowbreak{}family Hellinger distance}
+\par\smallskip\noindent\emph{Construction.} \(D_H(\theta,\widetilde\theta)=\min_{\pi\in\mathfrak S_n}\bigl[H^2(P_\theta^{\mathrm{obs}},P_{\widetilde\theta}^{\mathrm{obs}})+\sum_{i\in[n]}\sum_{e=0}^1H^2(P_\theta^{i,e},P_{\widetilde\theta}^{\pi(i),e})\bigr]^{1/2}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{theta\_\allowbreak{}tilde}.
+\end{definition}
+
+\begin{definition}[def:representation-distance]\label{def:representation-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Symmetric aligned encoder discrepancy}
+\par\smallskip\noindent\emph{Construction.} For one alignment \((\pi,\phi)\in\mathfrak S_n\ltimes\mathrm{Diff}(\mathbb T)^n\), set \(L_{\theta\leftarrow\widetilde\theta}(\pi,\phi)^2=\int\sum_{i\in[n]}\operatorname{dist}_{\mathbb T}\{h_{\theta i}(y),\phi_i(h_{\widetilde\theta,\pi(i)}(y))\}^2d\bar P_\theta(y)\) and \(L_{\widetilde\theta\leftarrow\theta}(\pi,\phi)^2=\int\sum_{j\in[n]}\operatorname{dist}_{\mathbb T}\{h_{\widetilde\theta j}(y),\phi_{\pi^{-1}(j)}^{-1}(h_{\theta,\pi^{-1}(j)}(y))\}^2d\bar P_{\widetilde\theta}(y)\). Define \(d_{\mathrm{rep}}(\theta,\widetilde\theta)=\inf_{\pi,\phi}\max\{L_{\theta\leftarrow\widetilde\theta}(\pi,\phi),L_{\widetilde\theta\leftarrow\theta}(\pi,\phi)\}\). The same alignment and its algebraic inverse are used in the two directions.
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{theta\_\allowbreak{}tilde}.
+\end{definition}
+
+\begin{definition}[def:inverse-modulus]\label{def:inverse-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full-\allowbreak{}law inverse modulus}
+\par\smallskip\noindent\emph{Construction.} \(\Omega_{k,m}(\varepsilon)=\sup\{d_{\mathrm{rep}}(\theta,\widetilde\theta):\theta,\widetilde\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0),\ D_H(\theta,\widetilde\theta)\le\varepsilon\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{epsilon}; \texttt{model\_\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:synthetic-product-law]\label{def:synthetic-product-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Synthetic baseline-\allowbreak{}product density}
+\par\smallskip\noindent\emph{Construction.} \(B_\theta(y)=\bigl\{\prod_{i\in[n]}dP_\theta^{i,0}/d\lambda^n(y)\bigr\}\big/\bigl\{dP_\theta^{\mathrm{obs}}/d\lambda^n(y)\bigr\}^{n-1}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{observed\_\allowbreak{}law}.
+\end{definition}
+
+\begin{definition}[def:probability-integral-gauge]\label{def:probability-integral-gauge}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Coordinate baseline gauge}
+\par\smallskip\noindent\emph{Construction.} Because \(q_i^0\) is a density with respect to \(d\lambda(s)=ds/(2\pi)\), define the lift \(\overline\beta_{\theta i}(t)=\int_0^tq_i^0(s)ds\). Then \(\overline\beta_{\theta i}(t+2\pi)=\overline\beta_{\theta i}(t)+2\pi\) and \(\overline\beta_{\theta i}'=q_i^0>0\), so \(\beta_{\theta i}=\overline\beta_{\theta i}\pmod{2\pi}\) is an orientation-preserving degree-one circle diffeomorphism and \((\beta_{\theta i})_*(q_i^0d\lambda)=d\lambda\). Set \(\beta_\theta=(\beta_{\theta1},\ldots,\beta_{\theta n})\) and \(F_\theta=f\circ\beta_\theta^{-1}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{f}.
+\end{definition}
+
+\begin{definition}[def:analytic-residual]\label{def:analytic-residual}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Determinant-\allowbreak{}-\allowbreak{}factorization residual}
+\par\smallskip\noindent\emph{Construction.} For the group permutation minimizing \(D_H\), let \(T=T_{\theta,\widetilde\theta}\), \(R_i=r_{\theta i}\circ\beta_{\theta i}^{-1}\), and \(S_i=r_{\widetilde\theta,\pi(i)}\circ\beta_{\widetilde\theta,\pi(i)}^{-1}\). Then \(\mathcal E(\theta,\widetilde\theta)=\lVert|\det DT|-1\rVert_{L^2(\lambda^n)}+\{\sum_{i\in[n]}\lVert R_i\circ T_i-S_i\rVert_{L^2(\lambda^n)}^2\}^{1/2}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{theta\_\allowbreak{}tilde}.
+\end{definition}
+
+\begin{definition}[def:hamiltonian-lower-family]\label{def:hamiltonian-lower-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}plane cylindrical Hamiltonian lower family}
+\par\smallskip\noindent\emph{Construction.} Fix the empty graph \(G_0\), the identity decoder \(f_0\), uniform observational and baseline densities \(p_0^{\mathrm{obs}}=q_i^0=1\) with respect to \(\lambda^n\) and \(\lambda\), and \(q_i^1(t)=Z_i^{-1}\exp\{b_i\gamma_m(t)\}\), where \(Z_i=\int_{\mathbb T}\exp\{b_i\gamma_m(t)\}d\lambda(t)\) and \(0<b_1<\cdots<b_n<1\). Then the log-ratio derivatives have exact order \(m\) at zero. In the injective chart \((-R_0,R_0)^2\times\mathbb T^{n-2}\), write \(x_{12}=(x_1,x_2)\), \(r=|x_{12}|\), and \(\alpha_h(r)=\tau h^{k-1}\eta(r^2/h^2)\) for \(0<h<R_0/2\). Define \(\Psi_h(x)=(\operatorname{Rot}(\alpha_h(r))x_{12},x_3,\ldots,x_n)\) on the cylinder \(\{r<h\}\times\mathbb T^{n-2}\) and \(\Psi_h(x)=x\) outside it. The cutoff makes the chart extension smooth, \(\Psi_h^{-1}\) is obtained by replacing \(\alpha_h\) by \(-\alpha_h\), and \(\det D\Psi_h=1+(\nabla\alpha_h)^\top J_2x_{12}=1\). For \(0\le j\le k\), \(\lVert D^j(\Psi_h-\mathrm{id})\rVert_\infty+\lVert D^j(\Psi_h^{-1}-\mathrm{id})\rVert_\infty\le C\tau h^{k-j}\). Let \(\theta_0=(G_0,p_0,q_0,f_0)\) and \(\theta_h=(G_0,p_0,q_0,f_0\circ\Psi_h^{-1})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{packet\_\allowbreak{}scale}; \texttt{chart\_\allowbreak{}radius}; \texttt{twist\_\allowbreak{}plane}; \texttt{quarter\_\allowbreak{}turn}; \texttt{twist\_\allowbreak{}amplitude}; \texttt{twist\_\allowbreak{}cutoff}; \texttt{lower\_\allowbreak{}profile\_\allowbreak{}amplitudes}; \texttt{critical\_\allowbreak{}profile\_\allowbreak{}template}; \texttt{m}; \texttt{k}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:radial-modulus]\label{def:radial-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Restricted two-\allowbreak{}plane radial inverse modulus}
+\par\smallskip\noindent\emph{Construction.} Fix \(n\), the empty graph, the same positive product mechanisms used in Definition \(\mathrm{def:hamiltonian\text{-}lower\text{-}family}\), and fixed constants \((c_0,C_0,K,a_0,J,\Delta_0)\) containing that family. For \(a\in C_c^\infty([0,R_0^2))\), write \(x_{12}=(x_1,x_2)\), \(r=|x_{12}|\), let \(\Psi_a(x)=(\operatorname{Rot}(a(r^2))x_{12},x_3,\ldots,x_n)\) in the \(E_{12}\) chart cylinder, and extend it by the identity outside \(\{r<R_0\}\times\mathbb T^{n-2}\); this map satisfies \(\det D\Psi_a=1\). Let \(\theta_a=(G_0,p_0,q_0,\Psi_a^{-1})\). Then \(\Omega_{k,m}^{\mathrm{rad}}(\varepsilon)=\sup\{d_{\mathrm{rep}}(\theta_a,\theta_{\widetilde a}):\ \theta_a,\theta_{\widetilde a}\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0),\ \lVert a\rVert_\infty\vee\lVert\widetilde a\rVert_\infty\le\alpha_0,\ \lVert\Psi_a\rVert_{C^k}+\lVert\Psi_a^{-1}\rVert_{C^k}\le K,\ \lVert\Psi_{\widetilde a}\rVert_{C^k}+\lVert\Psi_{\widetilde a}^{-1}\rVert_{C^k}\le K,\ D_H(\theta_a,\theta_{\widetilde a})\le\varepsilon\}\). Thus the plane, cylindrical support, fixed mechanisms, model bounds, volume preservation, map and inverse bounds, complete-family law metric, and full permutation--coordinate quotient loss are all part of the restricted supremum.
+\par\smallskip\noindent\emph{Inputs.} \texttt{epsilon}; \texttt{chart\_\allowbreak{}radius}; \texttt{radial\_\allowbreak{}angle\_\allowbreak{}bound}; \texttt{c0}; \texttt{C0}; \texttt{K}; \texttt{a0}; \texttt{J}; \texttt{Delta0}.
+\end{definition}
+
+\begin{definition}[def:primary-morse-instance]\label{def:primary-morse-instance}
+\par\smallskip\noindent\emph{Defined object.} Auditable two-node \(C^2\) Morse instance
+\par\smallskip\noindent\emph{Construction.} Set \(n=2\), \(k=2\), \(m=1\), \(G_0\) empty, \(f_0=\mathrm{id}\), \(p_0^{\mathrm{obs}}=q_1^0=q_2^0=1\), and \(q_i^1(t)=Z_i^{-1}\exp\{b_i(1-\cos t)\}\), where \(0<b_1<b_2<1\) and \(Z_i=\int_{\mathbb T}\exp\{b_i(1-\cos t)\}d\lambda(t)\). Thus \(r_i'(t)=b_i\sin t\), \(Z_i=\{0,\pi\}\), and \(|r_i''(z)|=b_i\) at both critical points. Let \(\theta_0=(G_0,p_0,q_0,\mathrm{id})\). For \(0<h<R_0/2\), set \(\alpha_h(r)=\tau h\eta(r^2/h^2)\), \(\Psi_h(x)=\operatorname{Rot}(\alpha_h(|x|))x\) on \(|x|<h\), and the identity outside the chart; define \(\theta_h=(G_0,p_0,q_0,\Psi_h^{-1})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{lower\_\allowbreak{}profile\_\allowbreak{}amplitudes}; \texttt{chart\_\allowbreak{}radius}; \texttt{packet\_\allowbreak{}scale}; \texttt{twist\_\allowbreak{}amplitude}; \texttt{twist\_\allowbreak{}cutoff}.
+\end{definition}
+
+\begin{definition}[def:rigidity-handle]\label{def:rigidity-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Morse incompressible-\allowbreak{}rigidity handle}
+\par\smallskip\noindent\emph{Construction.} First use the synthetic product law and a Dacorogna--Moser correction to separate determinant distortion from a normalized volume-preserving map; then apply a Hodge decomposition, prove weighted \(C^k\) interpolation for its zero-fiber-mean divergence-free component, and absorb the determinant and ratio nonlinear remainders without losing the top derivative.
+\par\smallskip\noindent\emph{Inputs.} \texttt{residual}; \texttt{transition\_\allowbreak{}map}.
+\end{definition}
+
+\begin{definition}[def:certified-spectral-estimator]\label{def:certified-spectral-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Positive Fourier minimum-\allowbreak{}distance estimator}
+\par\smallskip\noindent\emph{Construction.} For every \(a\in\mathcal A\), put \(\eta_N=N^{-1}\), \(s_L^a(y)=\operatorname{Re}\sum_{\|\ell\|_\infty\le L_N}\widehat c_{a\ell}e^{\mathrm i\ell^\top y}\), \(g_L^a(y)=\max\{\eta_N,s_L^a(y)\}\), and
+\[
+\widehat p_L^a(y)=\eta_N+(1-\eta_N)\frac{g_L^a(y)}{\int g_L^a d\lambda^n}.
+\]
+This density integrates to one and is everywhere at least \(\eta_N\); unlike mixing with a fixed positive constant, the added uniform mass vanishes. Put \(\widehat{\mathbb P}_L=(\widehat p_L^a d\lambda^n:a\in\mathcal A)\). Let \(\mathfrak M_N\) be a finite subset of \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\), supplied together with certificates of membership, whose induced complete observed-law families form a \(\delta_N\)-net in complete-family Hellinger distance. Close \(\mathfrak M_N\) under the finite set of common node relabelings. Such finite nets exist because the induced observed densities have a common \(C^{s_{\mathrm{obs}}}\) bound and hence their finite-family image is totally bounded in \(L^2\) and Hellinger distance. Define \(\widehat\theta_N\in\mathfrak M_N\) to satisfy
+\[
+\left\{\sum_{a\in\mathcal A}H^2(P_{\widehat\theta_N}^a,\widehat p_L^a d\lambda^n)\right\}^{1/2}
+\le
+\min_{\vartheta\in\mathfrak M_N}
+\left\{\sum_{a\in\mathcal A}H^2(P_\vartheta^a,\widehat p_L^a d\lambda^n)\right\}^{1/2}+\delta_N.
+\]
+The optimization variables are the finitely many certified models \(\vartheta\in\mathfrak M_N\), and the displayed finite-family Hellinger criterion is the objective.
+\par\smallskip\noindent\emph{Inputs.} \texttt{N}; \texttt{observed\_\allowbreak{}law}; \texttt{model\_\allowbreak{}class}; \texttt{sieve\_\allowbreak{}tolerance}.
+\end{definition}
+
+\begin{definition}[def:quotient-confidence-set]\label{def:quotient-confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Inverted complete-\allowbreak{}law confidence set}
+\par\smallskip\noindent\emph{Construction.} Let \(c_\alpha\) calibrate the simultaneous complete-family spectral event
+\[
+\inf_{\theta\in\mathcal M_{n,k,m}}
+\Pr_\theta\{D_H(\mathbb P_\theta,\widehat{\mathbb P}_L)\le c_\alpha\rho_N\}
+\ge1-\alpha-o(1),
+\]
+including the deterministic Fourier bias. Define
+\[
+\mathcal C_N(\alpha)=\left\{[h_\vartheta]:
+\vartheta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0),\ 
+D_H(\vartheta,\widehat\theta_N)\le2c_\alpha\rho_N+2\delta_N\right\}.
+\]
+The factor two is the triangle-inequality cost of comparing the true model and the minimum-distance fit through the estimated environment-law family.
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta\_\allowbreak{}hat}; \texttt{law\_\allowbreak{}radius}; \texttt{spectral\_\allowbreak{}quantile}; \texttt{sieve\_\allowbreak{}tolerance}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:adaptation-handle]\label{def:adaptation-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Critical-\allowbreak{}order adaptation handle}
+\par\smallskip\noindent\emph{Construction.} Use dyadic spectral estimates of each \(r_{\theta i}'\) to test nested finite-type orders, exclude profiles within the minimax testing radius of a lower-order class, select the smallest accepted order, and invert the corresponding complete-law ball using the order-specific modulus.
+\par\smallskip\noindent\emph{Inputs.} \texttt{observed\_\allowbreak{}law}; \texttt{confidence\_\allowbreak{}set}.
+\end{definition}
+
+\begin{definition}[def:primary-morse-class]\label{def:primary-morse-class}
+\par\smallskip\noindent\emph{Defined object.} Primary two-node \(C^2\) Morse class
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M^{\mathrm{Morse}}_{2,2,1}(c_0,C_0,K,a_0,J,\Delta_0)=\{\theta\in\mathcal M_{2,2,1}(c_0,C_0,K,a_0,J,\Delta_0):\theta\text{ satisfies Assumption }\mathrm{ass:primary\text{-}morse\text{-}hessian}\}\). The indices are fixed at \(n=2\), \(k=2\), and \(m=1\); membership is justified by the displayed \(C^2\) derivative and Hessian conditions and not by a quantitative-Morse perturbation theorem.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}dimension}; \texttt{ass:\allowbreak{}smoothness-\allowbreak{}order}; \texttt{ass:\allowbreak{}critical-\allowbreak{}order}; \texttt{ass:\allowbreak{}causal-\allowbreak{}factorization}; \texttt{ass:\allowbreak{}perfect-\allowbreak{}intervention-\allowbreak{}family}; \texttt{ass:\allowbreak{}complete-\allowbreak{}grouping}; \texttt{ass:\allowbreak{}density-\allowbreak{}bounds}; \texttt{ass:\allowbreak{}density-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}decoder-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}decoder-\allowbreak{}conditioning}; \texttt{ass:\allowbreak{}critical-\allowbreak{}cardinality}; \texttt{ass:\allowbreak{}critical-\allowbreak{}separation}; \texttt{ass:\allowbreak{}finite-\allowbreak{}type-\allowbreak{}profile}; \texttt{ass:\allowbreak{}finite-\allowbreak{}type-\allowbreak{}attainment}; \texttt{ass:\allowbreak{}primary-\allowbreak{}morse-\allowbreak{}hessian}.
+\end{definition}
+
+\begin{definition}[def:bounded-rate-class-example]\label{def:bounded-rate-class-example}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Bounded torus mechanism and decoder example}
+\par\smallskip\noindent\emph{Construction.} Fix an empty DAG, product observational density one, \(q_i^0=1\), and \(q_i^1(t)=Z_i^{-1}\exp\{b_i\gamma_m(t)\}\) with distinct \(0<b_i<1\). For \(|\delta|<1/2\), let \(f_\delta(x)=(x_1+\delta\sin x_2,x_2,\ldots,x_n)\pmod{2\pi}\), whose inverse is \(f_\delta^{-1}(y)=(y_1-\delta\sin y_2,y_2,\ldots,y_n)\) and whose Jacobian determinant is one. Set \(\theta_\delta=(G_\varnothing,p_\delta,q_\delta,f_\delta)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{m}; \texttt{lower\_\allowbreak{}profile\_\allowbreak{}amplitudes}; \texttt{critical\_\allowbreak{}profile\_\allowbreak{}template}; \texttt{shear\_\allowbreak{}amplitude}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:symmetric-quotient-pseudometric]\label{prop:symmetric-quotient-pseudometric}
+The functional \(d_{\mathrm{rep}}\) is nonnegative, symmetric, bounded above by \(\pi\sqrt n\), and vanishes whenever the two encoders differ by one node permutation and coordinatewise circle diffeomorphisms. It is therefore a bounded symmetric aligned discrepancy suitable for pairwise modulus and set-diameter calculations. No triangle inequality or invariance under changing a single non-isometric representative is asserted.
+\end{proposition}
+\begin{proof}
+For an alignment \(a=(\pi,\phi)\), abbreviate the two displayed directed losses in Definition \(\mathrm{def:representation\text{-}distance}\) by \(L_{\theta\leftarrow\widetilde\theta}(a)\) and \(L_{\widetilde\theta\leftarrow\theta}(a^{-1})\), where
+\[
+ a^{-1}=\bigl(\pi^{-1},(\phi_{\pi^{-1}(j)}^{-1})_{j\in[n]}\bigr).
+\]
+Interchanging \(\theta\) and \(\widetilde\theta\) sends \(a\) bijectively to \(a^{-1}\) and interchanges the two entries of the maximum. Taking the infimum over all alignments therefore gives
+\[
+d_{\mathrm{rep}}(\theta,\widetilde\theta)
+=d_{\mathrm{rep}}(\widetilde\theta,\theta)\ge0.
+\]
+Every circular geodesic distance is at most \(\pi\), and every mixture law has mass one. Hence each directed squared loss is at most \(n\pi^2\), proving \(d_{\mathrm{rep}}\le\pi\sqrt n\). If, for some alignment, \(h_{\theta i}=\phi_i\circ h_{\widetilde\theta,\pi(i)}\) for every \(i\), then the first integrand is zero pointwise; applying the inverse identities makes the second integrand zero pointwise. Thus the infimum is zero on every stated equivalence class.
+
+The representative-invariance claim is false even in a smooth two-dimensional submodel. Take uniform environment laws and encoders
+\[
+h^0(x,y)=(x,y),\qquad h^\varepsilon(x,y)=(x+\varepsilon\sin y,y).
+\]
+All maps are volume-preserving diffeomorphisms for small \(\varepsilon\). Direct conditional least squares, or the conditional-variance argument used below, gives
+\[
+d_{\mathrm{rep}}(h^0,h^\varepsilon)
+=\varepsilon\|\sin y\|_{L^2(\lambda^2)}+o(\varepsilon).
+\]
+Let \(\psi\) be a fixed orientation-preserving circle diffeomorphism with nonconstant derivative and replace the first latent coordinate of the first model by \(\psi\), transforming its latent densities contravariantly so that every observed law remains uniform. This is a change within the same componentwise quotient class. Expanding an arbitrary optimizing coordinate map about \(\psi\) and projecting onto functions of \(x\) gives
+\[
+d_{\mathrm{rep}}(\psi\circ h^0,h^\varepsilon)
+=\varepsilon\max\{1,\|\psi'\|_{L^2(\lambda)}\}
+  \|\sin y\|_{L^2(\lambda^2)}+o(\varepsilon).
+\]
+The transverse term has conditional mean zero, so no one-dimensional perturbation of the alignment removes it. Since \(\int\psi' d\lambda=1\) and \(\psi'\) is nonconstant, strict Cauchy--Schwarz gives \(\|\psi'\|_2>1\). Thus changing a single quotient representative changes a positive distance. The action of \(\mathrm{Diff}(\mathbb T)^n\) is therefore non-isometric for angular \(L^2\) geometry, and the usual quotient-triangle proof is unavailable. This is why the proved statement calls the displayed functional a symmetric aligned discrepancy rather than a pseudometric.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A law-to-representation modulus and a confidence-set diameter require an order-free quotient geometry rather than a loss directed from one selected model. \textit{Gap.} The exact-identification papers specify an equivalence class but do not metrize approximate encoder recovery under two competing observed laws. \textit{Consumer.} Every lower bound, upper modulus, estimator guarantee, and confidence-set diameter uses the same symmetric quotient object.
+
+\begin{proposition}[prop:rate-class-nonempty]\label{prop:rate-class-nonempty}
+For every fixed \(n\ge2\), \(k\ge2\), and \(1\le m\le k-1\), there are constants \((c_0,C_0,K,a_0,J,\Delta_0)\) and a nonzero interval of \(\delta\) for which every model \(\theta_\delta\) in Definition \(\mathrm{def:bounded\text{-}rate\text{-}class\text{-}example}\) belongs to \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\). The decoder is nonlinear, degree one, volume preserving, uniformly bi-Lipschitz, and bounded with its inverse in \(C^k\); the mechanisms are positive bounded periodic densities and attain critical order \(m\).
+\end{proposition}
+\begin{proof}
+Fix \(n\geq 2\), \(k\geq 2\), and \(1\leq m\leq k-1\), as required by Assumptions \(\mathrm{ass:dimension}\), \(\mathrm{ass:smoothness\text{-}order}\), and \(\mathrm{ass:critical\text{-}order}\).  Use the fixed amplitudes \(0<b_1<\cdots<b_n<1\) from Definition \(\mathrm{def:bounded\text{-}rate\text{-}class\text{-}example}\), and put
+\[
+ I=(1/4,1/3),\qquad B_m=\lVert\gamma_m\rVert_\infty,
+ \qquad Z_i=\int_{\mathbb T}\exp\{b_i\gamma_m(t)\}\,d\lambda(t).
+\]
+Thus \(I\) is a nonempty interval containing no zero.  Since \(|b_i\gamma_m|\leq B_m\) and \(\lambda(\mathbb T)=1\),
+\[
+ e^{-B_m}\leq Z_i\leq e^{B_m},
+ \qquad e^{-2B_m}\leq q_i^1(t)=Z_i^{-1}e^{b_i\gamma_m(t)}\leq e^{2B_m}.
+\]
+Moreover, \(q_i^1\) is positive, \(2\pi\)-periodic, and normalized relative to \(\lambda\); the same assertions hold for \(q_i^0=1\).  With the empty DAG and \(p_i=1\), Assumptions \(\mathrm{ass:causal\text{-}factorization}\) and \(\mathrm{ass:perfect\text{-}intervention\text{-}family}\) give, respectively,
+\[
+ p_{\theta_\delta}^{\mathrm{obs}}(x)=1,
+ \qquad
+ p_{\theta_\delta}^{i,0}(x)=1,
+ \qquad
+ p_{\theta_\delta}^{i,1}(x)=q_i^1(x_i).
+\]
+Consequently all complete densities are normalized and, on taking
+\[
+ c_0=e^{-2B_m},\qquad C_0=e^{2B_m},
+\]
+they obey Assumption \(\mathrm{ass:density\text{-}bounds}\), uniformly in \(i\) and \(\delta\).  The environment family contains the observational law and the two labelled interventions for every node, so it also satisfies Assumption \(\mathrm{ass:complete\text{-}grouping}\).
+
+We next verify the critical geometry.  Since \(q_i^0=1\),
+\[
+ r_{\theta_\delta i}(t)=b_i\gamma_m(t)-\log Z_i,
+ \qquad
+ r_{\theta_\delta i}'(t)=
+ \begin{cases}
+ b_i\sin t,&m=1,\\
+ b_i\sin^m t\cos t,&m\geq2.
+ \end{cases}
+\]
+It follows that
+\[
+ Z_{\theta_\delta i}=
+ \begin{cases}
+ \{0,\pi\}\pmod {2\pi},&m=1,\\
+ \{0,\pi/2,\pi,3\pi/2\}\pmod {2\pi},&m\geq2.
+ \end{cases}
+\]
+Hence the choice \(J=4\) proves Assumption \(\mathrm{ass:critical\text{-}cardinality}\), and the choice \(\Delta_0=\pi/2\) proves Assumption \(\mathrm{ass:critical\text{-}separation}\).
+
+For the finite-type bound, let \(d=\operatorname{dist}_{\mathbb T}(t,Z_{\theta_\delta i})\).  If \(m=1\), then \(0\leq d\leq\pi/2\) and the elementary chord bound \(\sin d\geq 2d/\pi\) yields
+\[
+ |r_{\theta_\delta i}'(t)|=b_i\sin d\geq b_1(2/\pi)d.
+\]
+Suppose \(m\geq2\).  Then \(0\leq d\leq\pi/4\).  If a nearest critical point is a zero of \(\sin t\), then
+\[
+ |\sin t|=\sin d\geq 2d/\pi,
+ \qquad |\cos t|=\cos d\geq 2^{-1/2},
+\]
+and therefore
+\[
+ |\sin^m t\cos t|\geq (2/\pi)^m2^{-1/2}d^m.
+\]
+If a nearest critical point is a zero of \(\cos t\), then
+\[
+ |\cos t|=\sin d\geq 2d/\pi,
+ \qquad |\sin t|=\cos d\geq2^{-1/2}.
+\]
+Because \(d\leq\pi/4<1\), one has \(d\geq d^m\), and hence
+\[
+ |\sin^m t\cos t|\geq 2^{-m/2}(2/\pi)d^m.
+\]
+Define
+\[
+ a_{\mathrm{prof}}=
+ \begin{cases}
+ b_1(2/\pi),&m=1,\\
+ b_1\min\{(2/\pi)^m2^{-1/2},\,2^{-m/2}(2/\pi)\},&m\geq2.
+ \end{cases}
+\]
+The preceding cases prove
+\[
+ |r_{\theta_\delta i}'(t)|\geq a_{\mathrm{prof}}
+ \operatorname{dist}_{\mathbb T}(t,Z_{\theta_\delta i})^m
+\]
+for every node, point, and \(\delta\in I\).
+
+The order \(m\) is attained at \(z_i=0\).  Indeed, with
+\(\rho=\min\{\Delta_0/4,1\}=\pi/8\), the inequalities
+\(|\sin u|\geq(2/\pi)|u|\), \(|\sin u|\leq |u|\), and
+\(\cos u\geq\cos(\pi/8)>0\), valid for \(|u|\leq\rho\), give
+\[
+ a_{\mathrm{att}}|u|^m
+ \leq |r_{\theta_\delta i}'(u)|
+ \leq |u|^m,
+\]
+where
+\[
+ a_{\mathrm{att}}=
+ \begin{cases}
+ b_1(2/\pi),&m=1,\\
+ b_1(2/\pi)^m\cos(\pi/8),&m\geq2.
+ \end{cases}
+\]
+Thus, after setting \(a_0=\min\{a_{\mathrm{prof}},a_{\mathrm{att}}\}>0\), Assumptions \(\mathrm{ass:finite\text{-}type\text{-}profile}\) and \(\mathrm{ass:finite\text{-}type\text{-}attainment}\) both hold with the same margin.
+
+It remains to choose the common regularity constant.  Every \(q_i^1\) is \(C^\infty\), and there are finitely many nodes, so
+\[
+ M_p=\max_{a\in\mathcal A}\lVert p_{\theta_\delta}^a\rVert_{C^k(\mathbb T^n)}<\infty;
+\]
+this quantity does not depend on \(\delta\).  For \(\delta\in I\), the displayed inverse in Definition \(\mathrm{def:bounded\text{-}rate\text{-}class\text{-}example}\) verifies directly that \(f_\delta\) is a diffeomorphism, and
+\[
+ Df_\delta(x)=I_n+\delta\cos x_2\,e_1e_2^{\mathsf T},
+ \qquad
+ Df_\delta^{-1}(y)=I_n-\delta\cos y_2\,e_1e_2^{\mathsf T}.
+\]
+Since \(e_1e_2^{\mathsf T}\) is nilpotent and has operator norm one,
+\[
+ \det Df_\delta=1,
+ \qquad
+ \lVert Df_\delta\rVert_{\mathrm{op}}\leq4/3,
+ \qquad
+ \lVert Df_\delta^{-1}\rVert_{\mathrm{op}}\leq4/3.
+\]
+The last two inequalities imply that every singular value of \(Df_\delta\) lies in \([3/4,4/3]\).  Also, compactness of \([1/4,1/3]\) and the explicit smooth formulas imply
+\[
+ M_f=\sup_{\delta\in[1/4,1/3]}
+ \bigl(\lVert f_\delta\rVert_{C^k}+\lVert f_\delta^{-1}\rVert_{C^k}\bigr)<\infty.
+\]
+Choose any
+\[
+ K\geq\max\{1,M_p,M_f,4/3\}.
+\]
+This proves Assumptions \(\mathrm{ass:density\text{-}smoothness}\), \(\mathrm{ass:decoder\text{-}smoothness}\), and \(\mathrm{ass:decoder\text{-}conditioning}\); it also supplies the upper constant in Assumption \(\mathrm{ass:finite\text{-}type\text{-}attainment}\).
+
+Finally, \(\det Df_\delta=1\) proves volume preservation.  Each point has exactly one preimage under the displayed inverse and the Jacobian determinant is positive, so the mapping degree is one.  Since \(\delta\neq0\) on \(I\) and \(\partial_{x_2}^2(f_\delta)_1=-\delta\sin x_2\) is not identically zero, every such decoder is nonlinear.  The derivative bounds for \(f_\delta\) and its inverse prove uniform bi-Lipschitzness, while the definition of \(M_f\) proves the asserted uniform \(C^k\) bounds.  We have verified every member condition in Definition \(\mathrm{def:model\text{-}class}\), so every \(\theta_\delta\), \(\delta\in I\), belongs to \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The strengthened uniform rate envelopes define a concrete nonempty causal class rather than an oracle regularity shell. \textit{Gap.} Exact-identification results allow broader qualitative classes, while a uniform inverse modulus needs explicit control of oscillation and Jacobian conditioning. \textit{Consumer.} The example calibrates admissible constants for simulations and supplies a baseline family for sharpness constructions.
+
+\begin{proposition}[prop:identification-hypothesis-comparison]\label{prop:identification-hypothesis-comparison}
+Assumptions \(\mathrm{ass:perfect\text{-}intervention\text{-}family}\) and \(\mathrm{ass:complete\text{-}grouping}\) retain the paired node-target intervention structure used in exact nonlinear causal-representation results. Assumptions \(\mathrm{ass:density\text{-}smoothness}\), \(\mathrm{ass:decoder\text{-}smoothness}\), and \(\mathrm{ass:decoder\text{-}conditioning}\) add uniform quantitative envelopes. Assumptions \(\mathrm{ass:critical\text{-}cardinality}\), \(\mathrm{ass:critical\text{-}separation}\), \(\mathrm{ass:finite\text{-}type\text{-}profile}\), and \(\mathrm{ass:finite\text{-}type\text{-}attainment}\) strengthen an almost-everywhere paired discrepancy to a quantitative isolated-zero condition. At \(D_H=0\), the present torus model is directly identified up to one node permutation and coordinatewise circle diffeomorphisms; this is the circular analogue, rather than a claimed literal specialization, of the componentwise exact-identification conclusions of Liang et al. and Varıcı et al. The additional claim sought here concerns only a uniform nonzero-error rate.
+\end{proposition}
+\begin{proof}
+Assumptions \(\mathrm{ass:perfect\text{-}intervention\text{-}family}\) and \(\mathrm{ass:complete\text{-}grouping}\) give, for every node, two positive perfect-intervention laws and one common matching of intervention groups. These are precisely the intervention-design objects appearing in the two cited exact-identification results \(\mathrm{lem:cauca\text{-}exact\text{-}componentwise\text{-}recovery}\) and \(\mathrm{lem:varici\text{-}exact\text{-}componentwise\text{-}recovery}\).
+
+The rate-class restrictions are genuinely additional. For example, the degree-one shear
+\[
+f_L(x_1,x_2,\ldots,x_n)
+=\bigl(x_1+L^{-1/2}\sin(Lx_2),x_2,\ldots,x_n\bigr)
+\]
+is a smooth torus diffeomorphism with determinant one for every integer \(L\), but its \(C^2\) norm and its largest singular value are unbounded as \(L\to\infty\). Likewise, positive normalized contrasts proportional to \(\exp\{b\sin(Lt)\}\) have almost-everywhere nonzero derivative for each \(L\), while their derivative norms and numbers of critical points are unbounded. Smooth periodic contrasts can also have an isolated flat zero, so almost-everywhere nonvanishing alone supplies neither the finite-type lower margin nor attained order. Thus the smoothness, conditioning, cardinality, separation, finite-type, and attainment hypotheses impose quantitative restrictions not contained in the qualitative almost-everywhere premise.
+
+Finally, Assumptions \(\mathrm{ass:critical\text{-}cardinality}\) and \(\mathrm{ass:finite\text{-}type\text{-}profile}\) imply
+\[
+t\notin Z_{\theta i}
+\quad\Longrightarrow\quad
+|r_{\theta i}'(t)|\ge a_0\operatorname{dist}_{\mathbb T}(t,Z_{\theta i})^m>0.
+\]
+Because \(Z_{\theta i}\) is finite, it has \(\lambda\)-measure zero; hence \(r_{\theta i}'\ne0\) almost everywhere. If \(D_H(\theta,\widetilde\theta)=0\), every aligned Hellinger summand in Definition \(\mathrm{def:full\text{-}law\text{-}distance}\) is zero, so all aligned observed laws agree. Lemma \(\mathrm{lem:full\text{-}law\text{-}residual\text{-}reduction}\) then gives
+\[
+|\det DT|=1,\qquad R_i(T_i(z))=S_i(z_i)\quad\text{for almost every }z.
+\]
+Both sides are continuous, so the identities hold everywhere. For \(j\ne i\), differentiation gives
+\[
+R_i'(T_i(z))\,\partial_jT_i(z)=0.
+\]
+The critical set of \(R_i\) is finite. Since \(T\) is a diffeomorphism, \(T_i\) is a submersion, and the inverse image of each critical value is a smooth hypersurface and has \(\lambda^n\)-measure zero. Thus \(R_i'(T_i)\ne0\) almost everywhere, so \(\partial_jT_i=0\) almost everywhere. Continuity makes \(\partial_jT_i=0\) everywhere. Hence \(T_i(z)=\phi_i(z_i)\), and invertibility of \(T\) makes every \(\phi_i\) a circle diffeomorphism. Restoring the aligned node labels gives one common permutation. The present discrepancy is therefore zero by Proposition \(\mathrm{prop:symmetric\text{-}quotient\text{-}pseudometric}\).
+
+This direct torus argument has the same componentwise-identification form as the cited Euclidean conclusions, but it does not claim that either cited theorem was stated on the torus. The cited results are used only to compare hypotheses and conclusion types; no published theorem is invoked for the nonzero-error rate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A theorem-level hypothesis map distinguishes inherited exact identification from the strengthened assumptions that buy a uniform modulus. \textit{Gap.} The comparator papers establish exact recovery but do not separate which of their assumptions control identification and which additional envelopes would control a law-based rate. \textit{Consumer.} Referees and users can identify precisely when the modulus specializes to the published exact results and what extra regularity is paid for quantitative stability.
+
+\begin{lemma}[lem:synthetic-product-law]\label{lem:synthetic-product-law}
+For every \(\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\), \(B_\theta\) is a density with respect to \(\lambda^n\), \(\int B_\theta d\lambda^n=1\), and \(B_\theta d\lambda^n=f_*[\{\prod_{i\in[n]}q_i^0\}d\lambda^n]\). The identity holds for every DAG \(G\).
+\end{lemma}
+\begin{proof}
+Fix \(\theta\) and write \(x=f^{-1}(y)\), \(J_f(x)=|\det Df(x)|\). Assumptions \(\mathrm{ass:causal\text{-}factorization}\) and \(\mathrm{ass:perfect\text{-}intervention\text{-}family}\) give
+\[
+p_\theta^{\mathrm{obs}}(x)=\prod_{j=1}^n p_j(x_j\mid x_{\operatorname{pa}_G(j)}),
+\qquad
+p_\theta^{i,0}(x)=q_i^0(x_i)\prod_{j\ne i}p_j(x_j\mid x_{\operatorname{pa}_G(j)}).
+\]
+Every conditional factor \(p_j\) occurs in exactly \(n-1\) of the \(n\) intervention products. Therefore
+\[
+\prod_{i=1}^n p_\theta^{i,0}(x)
+=\left\{\prod_{i=1}^nq_i^0(x_i)\right\}
+ \left\{p_\theta^{\mathrm{obs}}(x)\right\}^{n-1}.
+\]
+The density-transformation formula yields
+\[
+\frac{dP_\theta^a}{d\lambda^n}(y)
+=\frac{p_\theta^a(x)}{J_f(x)}.
+\]
+Substitution into Definition \(\mathrm{def:synthetic\text{-}product\text{-}law}\) cancels the observational factors and leaves one Jacobian factor:
+\[
+B_\theta(y)
+=\frac{\prod_iq_i^0(x_i)}{J_f(x)}.
+\]
+This is exactly the density of
+\(f_*[(\prod_iq_i^0)d\lambda^n]\) relative to \(\lambda^n\). Since each \(q_i^0\) is normalized, Tonelli's theorem gives
+\[
+\int_{\mathbb T^n}\prod_iq_i^0(x_i)d\lambda^n(x)
+=\prod_i\int_{\mathbb T}q_i^0(t)d\lambda(t)=1.
+\]
+Thus \(B_\theta\) is positive and normalized. The cancellation counted only occurrences of conditional factors and therefore is independent of the edge set of \(G\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This observable invariant removes both models' DAG and mechanism nuisance before any rigidity argument. \textit{Gap.} Dacorogna--Moser characterize the Jacobian channel and Liang et al. use individual likelihood ratios; neither inspected source states this complete causal product cancellation. \textit{Consumer.} The invariant supplies determinant control needed to reject ratio-only strip alternatives in every complete-family fit.
+
+\begin{lemma}[lem:full-law-residual-reduction]\label{lem:full-law-residual-reduction}
+There is a class-uniform constant \(C\) such that, after an optimizing group permutation and the coordinate baseline gauges, \(\mathcal E(\theta,\widetilde\theta)\le C D_H(\theta,\widetilde\theta)\) for all \(\theta,\widetilde\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\).
+\end{lemma}
+\begin{proof}
+Choose a permutation attaining the finite minimum in \(D_H\), and relabel the competing groups by it. Put \(u_a=dP_\theta^a/d\lambda^n\) and \(\widetilde u_a=dP_{\widetilde\theta}^a/d\lambda^n\). The latent density bounds and the singular-value bounds give, uniformly in \(a\),
+\[
+\underline c:=c_0K^{-n}\le u_a,\widetilde u_a\le C_0K^n=:\overline C.
+\]
+Indeed \(u_a(y)=p_\theta^a(f^{-1}y)/|\det Df(f^{-1}y)|\), and the determinant lies in \([K^{-n},K^n]\). Hence
+\[
+\|u_a-\widetilde u_a\|_2^2
+\le 4\overline C\int(\sqrt{u_a}-\sqrt{\widetilde u_a})^2d\lambda^n
+=8\overline C H^2(P_\theta^a,P_{\widetilde\theta}^a).
+\]
+Summing over the finite environment family shows that the Euclidean sum of these \(L^2\) differences is at most \(C D_H(\theta,\widetilde\theta)\).
+
+On the compact box \([\underline c,\overline C]^{n+1}\), the map
+\[
+(z_0,z_1,\ldots,z_n)\longmapsto
+\frac{\prod_{i=1}^nz_i}{z_0^{n-1}}
+\]
+has a class-uniform Lipschitz constant. The preceding bound and \(\mathrm{lem:synthetic\text{-}product\text{-}law}\) therefore imply
+\[
+\|B_\theta-B_{\widetilde\theta}\|_2\le C D_H(\theta,\widetilde\theta),
+\qquad
+H(B_\theta d\lambda^n,B_{\widetilde\theta}d\lambda^n)
+\le C D_H(\theta,\widetilde\theta),
+\]
+where the second inequality uses the uniform positive lower bound for the two synthetic densities. Similarly, \((z_1,z_0)\mapsto\log(z_1/z_0)\) is uniformly Lipschitz on the positive box, so, for
+\(\ell_i=\log(u_{i,1}/u_{i,0})\) and \(\widetilde\ell_i=\log(\widetilde u_{i,1}/\widetilde u_{i,0})\),
+\[
+\left\{\sum_i\|\ell_i-\widetilde\ell_i\|_2^2\right\}^{1/2}
+\le C D_H(\theta,\widetilde\theta).
+\]
+
+For later gauge bounds, integrate \(p_\theta^{i,0}\) over \(x_{-i}\). Eliminating nonintervened nodes in reverse topological order repeatedly uses
+\(\int p_j(x_j\mid x_{\operatorname{pa}_G(j)})d\lambda(x_j)=1\), and leaves the marginal density \(q_i^0(x_i)\). Integrating the pointwise complete-density bounds therefore gives
+\[
+c_0\le q_i^0(t)\le C_0.
+\]
+Thus \(\beta_{\theta i}'=q_i^0\) and its inverse derivative are uniformly bounded. The same argument applies to the competing model.
+
+By the probability-integral gauges and the synthetic-product identity,
+\[
+B_\theta d\lambda^n=(F_\theta)_*\lambda^n,
+\qquad
+B_{\widetilde\theta}d\lambda^n=(F_{\widetilde\theta})_*\lambda^n.
+\]
+Let \(T=F_\theta^{-1}\circ F_{\widetilde\theta}\) and \(J_T=|\det DT|\). Hellinger invariance under the common bijection \(F_\theta^{-1}\), followed by the change of variables \(x=Tz\), gives the exact identity
+\[
+H^2((F_\theta)_*\lambda^n,(F_{\widetilde\theta})_*\lambda^n)
+=\frac12\int_{\mathbb T^n}(\sqrt{J_T(z)}-1)^2d\lambda^n(z).
+\]
+The conditioning assumptions for the two decoders, together with the baseline marginal bounds inherited from the complete intervention densities, bound \(J_T\) above and away from zero. Consequently
+\[
+\|J_T-1\|_2
+\le \|\sqrt{J_T}+1\|_\infty\|\sqrt{J_T}-1\|_2
+\le C D_H(\theta,\widetilde\theta).
+\]
+Finally, the observed log ratios satisfy
+\[
+\ell_i(y)=R_i((F_\theta^{-1}y)_i),
+\qquad
+\widetilde\ell_i(y)=S_i((F_{\widetilde\theta}^{-1}y)_i).
+\]
+Putting \(y=F_{\widetilde\theta}(z)\) therefore turns their difference into
+\(R_i(T_i(z))-S_i(z_i)\). The Jacobian of \(F_{\widetilde\theta}\) is uniformly bounded above and below, so the last displayed \(L^2\) bound is preserved up to a class constant. Adding the determinant and factorization terms is precisely \(\mathcal E(\theta,\widetilde\theta)\), proving the claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It converts the statistical law metric into the exact analytic defects that can control the density quotient and its incompressible kernel. \textit{Gap.} Khesin et al. identify Hellinger geometry only on the density quotient; the intervention-ratio terms needed to control the quotient fiber are absent there. \textit{Consumer.} Every population and finite-sample recovery statement can work with observable Hellinger error rather than unobservable score identities.
+
+\begin{proposition}[prop:lower-family-membership]\label{prop:lower-family-membership}
+For every fixed \(n\ge2\), \(k\ge2\), and \(1\le m\le k-1\), there exist fixed constants \((c_0,C_0,K,a_0,J,\Delta_0)\) and distinct smooth positive mechanisms such that the empty-DAG models \(\theta_0,\theta_h\) from Definition \(\mathrm{def:hamiltonian\text{-}lower\text{-}family}\) belong to \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\) for every sufficiently small \(h\). The trigonometric contrasts obey the common finite-type margin, have uniformly separated critical points, and attain order \(m\). The perturbation is supported on \(\{|x_{12}|<h\}\times\mathbb T^{n-2}\), preserves \(\lambda^n\) exactly, and satisfies the displayed uniform \(C^k\) envelope for both \(\Psi_h\) and \(\Psi_h^{-1}\). In the case \((n,k,m)=(2,2,1)\), both models also belong to \(\mathcal M^{\mathrm{Morse}}_{2,2,1}\).
+\end{proposition}
+\begin{proof}
+For the empty graph, the observational and baseline latent densities in Definition \(\mathrm{def:hamiltonian\text{-}lower\text{-}family}\) equal one. The remaining complete density in environment \((i,1)\) is \(q_i^1(x_i)\). Because \(b_i\in(0,1)\) and \(\gamma_m\) is a fixed smooth periodic function, compactness gives constants \(0<c<C<\infty\) and \(K_q<\infty\), independent of \(h\), such that
+\[
+c\le q_i^1\le C,
+\qquad
+\|q_i^1\|_{C^k(\mathbb T)}\le K_q
+\quad(i\in[n]).
+\]
+The constants are normalized densities by the definition of \(Z_i\).
+
+For \(m=1\), \(\gamma_1'(t)=\sin t\), with critical set \(\{0,\pi\}\). For \(m\ge2\),
+\[
+\gamma_m'(t)=\sin(t)^m\cos t,
+\]
+whose zeros lie in \(\{0,\pi/2,\pi,3\pi/2\}\); the zeros at zero and \(\pi\) have exact order \(m\), and the other two have order one. On a sufficiently small fixed neighborhood of each zero, Taylor's theorem gives
+\[
+c_m\operatorname{dist}_{\mathbb T}(t,Z_i)^m
+\le |\gamma_m'(t)|
+\le C_m\operatorname{dist}_{\mathbb T}(t,Z_i)^m
+\]
+at an order-\(m\) zero, while an order-one zero obeys the required lower bound because \(|u|\ge c|u|^m\) for bounded \(|u|\) and \(m\ge1\). On the complement of these neighborhoods, compactness supplies a positive minimum. Multiplication by the fixed positive \(b_i\)'s yields common constants \(a_0>0\), \(J\le4\), and \(\Delta_0>0\). At \(z_i=0\), the same Taylor estimates give the two-sided attained-order inequality in Assumption \(\mathrm{ass:finite\text{-}type\text{-}attainment}\).
+
+It remains to verify the decoder restrictions. Inside the chart, put \(x=x_{12}\), \(r=|x|\), and \(\alpha=\tau h^{k-1}\eta(r^2/h^2)\). Direct differentiation gives
+\[
+D\Psi_h=\operatorname{Rot}(\alpha)
+\bigl[I+(J_2x)(\nabla\alpha)^{\mathsf T}\bigr].
+\]
+Since \(\alpha\) is radial, \((\nabla\alpha)^{\mathsf T}J_2x=0\), and the rank-one determinant identity yields
+\[
+\det D\Psi_h=1+(\nabla\alpha)^{\mathsf T}J_2x=1.
+\]
+Radius is preserved, so replacing \(\alpha\) by \(-\alpha\) gives the inverse. Smooth compact support of \(\eta\) makes both formulas join the identity smoothly at \(r=h\). Rescaling \(x=h\xi\) and differentiating the explicit formula shows, for \(0\le j\le k\),
+\[
+\|D^j(\Psi_h-\mathrm{id})\|_\infty
++\|D^j(\Psi_h^{-1}-\mathrm{id})\|_\infty
+\le C\tau h^{k-j}.
+\]
+In particular the \(C^k\) norms are uniformly bounded. For sufficiently small fixed \(\tau\), and then all sufficiently small \(h\), \(D\Psi_h\) and its inverse have singular values in one fixed interval \([K^{-1},K]\). Enlarging \(K\) and choosing \(c_0,C_0\) from the density bounds proves membership in one fixed model class.
+
+When \((n,k,m)=(2,2,1)\), \(r_i''(0)=b_i\) and \(r_i''(\pi)=-b_i\). Choosing \(a_0\le b_1\) proves Assumption \(\mathrm{ass:primary\text{-}morse\text{-}hessian}\), and hence membership in the primary Morse class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Membership must be proved, rather than assumed, so the converse lives in one fixed nondegenerate class. \textit{Gap.} CauCA's plateau rotation does not belong to the finite-type class and does not supply a small nonzero law discrepancy. \textit{Consumer.} This proposition makes the lower modulus applicable to the same bounded class used by the upper theorem.
+
+\begin{theorem}[thm:localized-lower-bound]\label{thm:localized-lower-bound}
+For each fixed \(n\ge2\), the cylindrical two-plane models in Proposition \(\mathrm{prop:lower\text{-}family\text{-}membership}\) satisfy \(D_H(\theta_0,\theta_h)\asymp_n h^{k+m+1}\) and \(d_{\mathrm{rep}}(\theta_0,\theta_h)\asymp_n h^{k+1}\). Only environments targeting coordinates one and two change; integration over the inactive \(\mathbb T^{n-2}\) factor equals one under \(\lambda^{n-2}\), so the active support has two-dimensional volume of order \(h^2\) and the powers do not contain \(n\). Constants may depend on the fixed dimension through the family size and mixture normalization. Hence every fixed class containing this family satisfies \(\Omega_{k,m}(\varepsilon)\ge c_n\varepsilon^{(k+1)/(k+m+1)}\) for all sufficiently small \(\varepsilon\). The two directed aligned losses have the same leading order, so the conclusion holds for the symmetric aligned discrepancy.
+\end{theorem}
+\begin{proof}
+Write \(y_{12}=h\xi\). Uniformly for \(|\xi|<1\), the small-angle expansion of the explicit rotation gives
+\[
+\Psi_h(h\xi)-h\xi
+=h^kV(\xi)+o(h^k),
+\qquad
+V(\xi)=\tau\eta(|\xi|^2)J_2\xi,
+\]
+and the remainder is uniform. The map is the identity off the active cylinder and has determinant one by Proposition \(\mathrm{prop:lower\text{-}family\text{-}membership}\). Hence the observational law and every baseline law agree exactly. The nonbaseline density targeting \(i\) changes from \(q_i^1(y_i)\) to \(q_i^1(\Psi_{h,i}(y))\), which is unchanged for \(i>2\).
+
+At the critical point zero,
+\[
+r_i'(h\xi_i)=b_i h^m\xi_i^m+o(h^m),
+\qquad
+(q_i^1)'(h\xi_i)=q_i^1(0)b_i h^m\xi_i^m+o(h^m).
+\]
+Taylor's theorem and the preceding displacement expansion therefore give
+\[
+h^{-(k+m)}\{q_i^1(\Psi_{h,i}(h\xi))-q_i^1(h\xi_i)\}
+\longrightarrow q_i^1(0)b_i\xi_i^mV_i(\xi)
+\]
+uniformly on the unit disk. The limit is nonzero in \(L^2\) for each \(i=1,2\). Since all densities are uniformly positive, Taylor expansion of the square root, dominated by the uniform derivative bounds, yields
+\[
+h^{-2(k+m+1)}H^2(P_{\theta_0}^{i,1},P_{\theta_h}^{i,1})
+\longrightarrow
+\frac{q_i^1(0)b_i^2}{8(2\pi)^2}
+\int_{|\xi|<1}\xi_i^{2m}V_i(\xi)^2d\xi>0.
+\]
+The inactive coordinates integrate to one. Since the \(b_i\)'s are distinct, every nonidentity group permutation compares at least two distinct fixed densities at \(h=0\) and has a fixed positive cost. Thus the identity permutation minimizes for small \(h\), and
+\[
+D_H(\theta_0,\theta_h)\asymp_n h^{k+m+1}.
+\]
+
+For the representation upper bound, use the identity permutation and identity coordinate gauges. Both mixture densities are uniformly bounded above, and the encoder displacement is supported on the active cylinder. Consequently
+\[
+d_{\mathrm{rep}}(\theta_0,\theta_h)
+\le C\|\Psi_h-\mathrm{id}\|_{L^2(\lambda^n)}
+\le C h^k\lambda^2\{|y_{12}|<h\}^{1/2}
+\le C h^{k+1}.
+\]
+For the lower bound, a wrong coordinate permutation has a positive limiting loss because independent uniform coordinates cannot be measurable functions of one another. It therefore suffices to consider the identity permutation. In the first directed loss change variables \(z=\Psi_h(y)\). For every measurable coordinate function \(\phi_i\), angular distance dominates chord distance, so
+\[
+\int\operatorname{dist}_{\mathbb T}(\Psi_h^{-1}(z)_i,\phi_i(z_i))^2d\lambda^n(z)
+\ge
+\mathbb E\operatorname{Var}\!\left(e^{\mathrm i\Psi_h^{-1}(Z)_i}\mid Z_i\right),
+\]
+where \(Z\sim\lambda^n\); the conditional expectation is the best unrestricted complex-valued predictor and therefore also bounds predictors of the form \(e^{\mathrm i\phi_i(Z_i)}\). On the packet,
+\[
+e^{\mathrm i\Psi_h^{-1}(z)_i}
+=e^{\mathrm iz_i}\{1-\mathrm i h^kV_i(z/h)\}+R_{h,i}(z),
+\qquad
+\|R_{h,i}\|_2=o(h^{k+1}).
+\]
+For \(i=1\), \(V_1\) is odd in the second active coordinate; for \(i=2\), \(V_2\) is odd in the first. Thus the transverse conditional mean of the leading term is zero. Conditional projection is an \(L^2\) contraction, and rescaling gives
+\[
+\left\{\sum_{i=1}^2
+\mathbb E\operatorname{Var}(e^{\mathrm i\Psi_h^{-1}(Z)_i}\mid Z_i)\right\}^{1/2}
+\ge c h^{k+1}.
+\]
+Uniform lower bounds on the actual mixture densities transfer this estimate to the directed loss. The other directed loss follows by the same calculation with \(\Psi_h\) and \(\Psi_h^{-1}\) interchanged. Hence \(d_{\mathrm{rep}}\asymp_n h^{k+1}\).
+
+Put \(\varepsilon_h=D_H(\theta_0,\theta_h)\). The two asymptotics imply \(h\asymp\varepsilon_h^{1/(k+m+1)}\), and Definition \(\mathrm{def:inverse\text{-}modulus}\) gives
+\[
+\Omega_{k,m}(\varepsilon_h)
+\ge c\varepsilon_h^{(k+1)/(k+m+1)}.
+\]
+Monotonicity of the supremum in \(\varepsilon\), with a fixed rescaling of \(h\), extends the bound to every sufficiently small \(\varepsilon\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lower family certifies the exponent and proves that coordinatewise reparameterizations cannot absorb the leading mixed motion. \textit{Gap.} Liang et al. construct exact plateau rotations; this theorem instead gives a finite-criticality local alternative with explicit nonzero Hellinger and quotient orders. \textit{Consumer.} The result supplies the sharpness benchmark for any recovery algorithm or confidence radius on circular latent variables.
+
+\begin{proposition}[prop:primary-morse-audit]\label{prop:primary-morse-audit}
+In Definition \(\mathrm{def:primary\text{-}morse\text{-}instance}\), \(\theta_0,\theta_h\in\mathcal M^{\mathrm{Morse}}_{2,2,1}\), \(\beta_1=\beta_2=\mathrm{id}\), \(\det D\Psi_h=1\), and \(\lVert\Psi_h-\mathrm{id}\rVert_\infty=O(h^2)\), \(\lVert D(\Psi_h-\mathrm{id})\rVert_\infty=O(h)\), and \(\lVert D^2(\Psi_h-\mathrm{id})\rVert_\infty=O(1)\), with the same bounds for the inverse. The observational and two baseline contributions are exactly zero: \(H^2(P_{\theta_0}^{\mathrm{obs}},P_{\theta_h}^{\mathrm{obs}})=H^2(P_{\theta_0}^{1,0},P_{\theta_h}^{1,0})=H^2(P_{\theta_0}^{2,0},P_{\theta_h}^{2,0})=0\). For \(i=1,2\),
+\[
+h^{-8}H^2(P_{\theta_0}^{i,1},P_{\theta_h}^{i,1})\longrightarrow c_i:=\frac{b_i^2q_i^1(0)\tau^2}{8(2\pi)^2}\int_{|\xi|<1}\xi_i^2\eta(|\xi|^2)^2(J_2\xi)_i^2d\xi>0.
+\]
+Since \(b_1\ne b_2\), a wrong group permutation has a fixed positive limiting cost, and therefore \(D_H(\theta_0,\theta_h)=C_Hh^4\{1+o(1)\}\), where \(C_H^2=c_1+c_2\). The synthetic products satisfy \(B_{\theta_0}=B_{\theta_h}=1\), so the synthetic-law Hellinger residual and \(\lVert|\det D\Psi_h|-1\rVert_{L^2(\lambda^2)}\) are zero. Writing \(\overline p_0(0)=\{3+q_1^1(0)+q_2^1(0)\}/5\), parity gives zero transverse conditional mean for \(\eta(|\xi|^2)J_2\xi\). Conditional variance, even after enlarging the quotient to all measurable coordinate functions, gives the same positive leading coefficient for both directed losses because \(d\bar P_{\theta_h}/d\bar P_{\theta_0}=1+O(h^2)\) on the packet:
+\[
+\liminf_{h\downarrow0}h^{-6}d_{\mathrm{rep}}(\theta_0,\theta_h)^2\ge\frac{\overline p_0(0)\tau^2}{(2\pi)^2}\sum_{i=1}^2\int_{|\xi|<1}\eta(|\xi|^2)^2(J_2\xi)_i^2d\xi>0.
+\]
+Every wrong coordinate permutation has fixed positive loss at \(h=0\), and the identity coordinate gauge gives the matching upper order. Hence the symmetric aligned discrepancy satisfies \(d_{\mathrm{rep}}(\theta_0,\theta_h)\asymp h^3\), while the complete-law distance is of order \(h^4\), yielding the audited power \(3/4\).
+\end{proposition}
+\begin{proof}
+The membership, gauge, determinant, and derivative claims are the specialization \((n,k,m)=(2,2,1)\) of Proposition \(\mathrm{prop:lower\text{-}family\text{-}membership}\). In particular \(q_i^0=1\), so the probability-integral gauges are the identity. Volume preservation and uniform baselines make the observational and baseline observed densities identically one under both models, proving the three exact zero statements and \(B_{\theta_0}=B_{\theta_h}=1\).
+
+For \(y=h\xi\), the rotation expansion is
+\[
+\Psi_h(h\xi)-h\xi
+=\tau h^2\eta(|\xi|^2)J_2\xi+O(h^3),
+\]
+uniformly on the unit disk. Since \((q_i^1)'(t)=b_i\sin(t)q_i^1(t)\),
+\[
+q_i^1(\Psi_{h,i}(h\xi))-q_i^1(h\xi_i)
+=b_iq_i^1(0)\tau h^3\xi_i\eta(|\xi|^2)(J_2\xi)_i+o(h^3).
+\]
+Uniform positivity permits the expansion
+\[
+(\sqrt{u+\delta}-\sqrt u)^2=\frac{\delta^2}{4u}+o(\delta^2)
+\]
+uniformly here. Multiplying by the factor \(1/2\) in the definition of squared Hellinger distance and using \(d\lambda^2(h\xi)=h^2(2\pi)^{-2}d\xi\) gives exactly the displayed constant \(c_i\). It is positive because the polynomial factor is nonzero on an open subset of the packet. Distinct \(b_i\)'s give distinct normalized densities, so a swapped group has a fixed positive Hellinger cost at \(h=0\). The identity matching has cost tending to zero and is therefore selected for small \(h\); summing the two changing environments proves the formula for \(D_H\).
+
+For the representation calculation, the mixture density of \(\theta_0\) at the origin is
+\[
+\overline p_0(0)=\frac{1+1+1+q_1^1(0)+q_2^1(0)}5.
+\]
+After the change of variables used in Theorem \(\mathrm{thm:localized\text{-}lower\text{-}bound}\), the leading inverse displacement is
+\(-\tau h^2\eta(|\xi|^2)J_2\xi\). For each fixed \(\xi_i\), its \(i\)-th component is odd in the other coordinate on the symmetric disk section, so its conditional mean is zero. The complex conditional-variance projection therefore retains its entire leading squared \(L^2\) norm. The mixture density equals \(\overline p_0(0)+O(h^2)\) on the packet because every \((q_i^1)'(0)=0\), and the second model's mixture differs only by the same order. Rescaling consequently yields the displayed liminf for each directed loss and hence for their maximum and infimum. A swapped coordinate has positive conditional variance already at \(h=0\). The identity gauge and the upper derivative estimate give \(d_{\mathrm{rep}}=O(h^3)\), completing the two-sided order and the exponent calculation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The complete \(n=2\), \(C^2\), Morse calculation makes the \(3/4\) lower order auditable environment by environment and through the nonlinear quotient. \textit{Gap.} CauCA's determinant-one plateau rotation has zero law error; this instance computes the nonzero Hellinger coefficient at isolated Morse points and the surviving quotient coefficient. \textit{Consumer.} The calculation is the unit test for any proof, implementation, or claimed improvement of the primary recovery exponent.
+
+\begin{theorem}[thm:radial-subclass-frontier]\label{thm:radial-subclass-frontier}
+For each fixed \(n\ge2\), the actual restricted supremum in Definition \(\mathrm{def:radial\text{-}modulus}\) satisfies \(\Omega_{k,m}^{\mathrm{rad}}(\varepsilon)\asymp_n\varepsilon^{(k+1)/(k+m+1)}\). The active map is a bounded \(C^k\) radial rotation in the named plane \(E_{12}\), supported on a fixed chart cylinder and equal to the identity on coordinates three through \(n\); therefore the interpolation and Hellinger integrals are two-dimensional, while constants may depend on the fixed \(n\). In particular, the audited \(n=2\), \(k=2\), \(m=1\) restriction has exponent \(3/4\).
+\end{theorem}
+\begin{proof}
+Take two admissible angles \(a,\widetilde a\) and put \(\delta=\widetilde a-a\). Radial rotations commute and preserve radius, so after a common change of observation coordinates their transition is the radial rotation
+\[
+T(x)=\operatorname{Rot}(\delta(|x|^2))x.
+\]
+The angle bound gives \(|\delta|\le2\alpha_0<\pi/2\), and the class bounds give a uniform \(C^k\) bound for \(v=T-\mathrm{id}\).
+
+For \(0<r\le R_0\), let \(Q_r(t)\) be the two-vector whose entries are the square roots of the two nonbaseline intervention densities evaluated at \((r\cos t,r\sin t)\). Taylor expansion of the fixed profiles at the joint critical point gives, uniformly in \(t\),
+\[
+Q_r(t)=Q_0+r^{m+1}W_m(t)+O(r^{m+2}),
+\]
+where \(W_m\) is a nonconstant smooth angular vector. Its rotation orbit has no stabilizer in \((-\pi/2,\pi/2)\) except zero, and \(\|W_m'\|_{L^2}>0\). The mean-value theorem near zero and compactness away from zero therefore give constants \(0<c<C<\infty\) such that
+\[
+c r^{m+1}|u|
+\le \|Q_r(\cdot+u)-Q_r\|_{L^2(dt)}
+\le C r^{m+1}|u|
+\quad(0<r\le R_0,\ |u|\le2\alpha_0).
+\]
+At \(r=0\) this follows from the displayed expansion; on every compact subinterval bounded away from zero it follows from continuity and the absence of a nonzero stabilizer. Positivity converts the same comparison between densities and square-root densities. Polar integration, with the inactive coordinates integrating to one, now yields
+\[
+D_H(\theta_a,\theta_{\widetilde a})^2
+\asymp \int_0^{R_0}r^{2m+3}\delta(r^2)^2dr.
+\]
+Small-angle comparison also gives
+\[
+\|v\|_2^2\asymp\int_0^{R_0}r^3\delta(r^2)^2dr.
+\]
+For sufficiently small law discrepancy, the distinct fixed intervention groups force the identity group matching; every wrong permutation has a fixed positive limiting cost.
+
+Set \(E=\||x|^mv\|_{L^2}\). The preceding display gives \(E\le C D_H\). Let \(B=\|D^kv\|_\infty\), which is uniformly bounded. Taylor's theorem at the origin writes \(v=P_{k-1}+R_k\), with \(|R_k(x)|\le CB|x|^k\). Norm equivalence on the finite-dimensional space of vector polynomials of degree at most \(k-1\), after scaling the unit disk and its annulus, implies
+\[
+\|P_{k-1}\|_{L^2(|x|<h)}
+\le C_k\|P_{k-1}\|_{L^2(h<|x|<2h)}.
+\]
+The remainder has \(L^2\) norm at most \(CBh^{k+1}\) on \(|x|<2h\). Since \(|x|^m\ge h^m\) outside the inner disk, these facts give
+\[
+\|v\|_2\le Ch^{-m}E+CBh^{k+1}.
+\]
+If \(E=0\), continuity gives \(v=0\). Otherwise, for small enough \(E\), choose
+\(h=(E/B)^{1/(k+m+1)}<R_0/2\). Then
+\[
+\|v\|_2
+\le C B^{m/(k+m+1)}E^{(k+1)/(k+m+1)}
+\le C D_H(\theta_a,\theta_{\widetilde a})^{(k+1)/(k+m+1)}.
+\]
+Using the identity coordinate gauges in both directed losses and the uniform mixture-density bounds proves the same upper bound for \(d_{\mathrm{rep}}\). Taking the restricted supremum gives the upper bound for \(\Omega_{k,m}^{\mathrm{rad}}\). The family in Definition \(\mathrm{def:hamiltonian\text{-}lower\text{-}family}\) belongs to this radial class and Theorem \(\mathrm{thm:localized\text{-}lower\text{-}bound}\) gives the reverse inequality. Substitution of \((k,m)=(2,1)\) gives exponent \(3/4\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This nontrivial infinite-dimensional sector verifies the proposed exponent before the arbitrary-map rigidity step. \textit{Gap.} No inspected causal representation result computes a sharp modulus even on radial nonlinear torus decoders. \textit{Consumer.} The radial theorem supplies a controlled benchmark and a falsifiable testbed for proofs and numerical recovery procedures.
+
+\begin{openendedquestion}[oeq:full-incompressible-rigidity]\label{oeq:full-incompressible-rigidity}
+Determine whether a class-uniform constant \(C\) exists such that every aligned pair \(\theta,\widetilde\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\) obeys \(d_{\mathrm{rep}}(\theta,\widetilde\theta)\le C\mathcal E(\theta,\widetilde\theta)^{(k+1)/(k+m+1)}\). The primary kill test is \(n=2\), \(k=2\), \(m=1\): prove the normalized weighted inequality for arbitrary bounded divergence-free periodic \(C^2\) fields, or construct a legal joint-critical or oscillatory sequence with an unbounded normalized ratio and then test whether it integrates to a full-law counterexample.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the genuinely open analytic content separating a publishable full-class frontier from a radial analogue. \textit{Gap.} Friesecke--James--Müller control a matrix-well defect and Dacorogna--Moser control a prescribed determinant; neither controls a divergence-free map from Morse-degenerate scalar transport equations. \textit{Consumer.} An affirmative answer closes the full nuisance-uniform modulus; a negative answer identifies the minimal spacing, profile, or decoder restriction required for valid causal recovery.
+
+\begin{theorem}[thm:matching-full-modulus]\label{thm:matching-full-modulus}
+For every fixed nondegenerate bounded class \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\) containing the lower family, there exist constants \(0<c\leq C<\infty\) and \(\varepsilon_0>0\) such that
+\[
+c\varepsilon^{(k+1)/(k+m+1)}
+\leq \Omega_{k,m}(\varepsilon)
+\leq C\varepsilon^{k/((k+n/2)(m+1))}
+\qquad (0<\varepsilon\leq\varepsilon_0).
+\]
+Here \(d_{\mathrm{rep}}\) is the symmetric aligned discrepancy. For \((n,k,m)=(2,2,1)\), the full-class bracket has lower exponent \(3/4\) and upper exponent \(1/3\); the same bracket holds when the supremum is restricted to \(\mathcal M^{\mathrm{Morse}}_{2,2,1}(c_0,C_0,K,a_0,J,\Delta_0)\). Whenever \(\theta,\widetilde\theta\) in the class satisfy \(D_H(\theta,\widetilde\theta)=0\), their torus encoders are directly identified up to one common node permutation and coordinatewise circle diffeomorphisms. This exact conclusion follows from Proposition \(\mathrm{prop:identification\text{-}hypothesis\text{-}comparison}\), while the strengthened smoothness, conditioning, separation, and attained-order hypotheses are used for the uniform nonzero-error bracket.
+\end{theorem}
+\begin{proof}
+Put
+\[
+p=\frac{k+1}{k+m+1},
+\qquad
+q=\frac{k}{(k+n/2)(m+1)}.
+\]
+By Proposition \(\mathrm{prop:lower\text{-}family\text{-}membership}\), the models used in Theorem \(\mathrm{thm:localized\text{-}lower\text{-}bound}\) belong to the fixed class. That theorem therefore supplies constants \(c>0\) and \(\varepsilon_{\mathrm{low}}>0\), depending only on the fixed class constants and on the fixed dimension, such that
+\[
+\Omega_{k,m}(\varepsilon)
+\geq c\varepsilon^p,
+\qquad
+0<\varepsilon\leq\varepsilon_{\mathrm{low}}.
+\tag{1}
+\]
+
+For the upper bound, fix arbitrary \(\theta,\widetilde\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\) satisfying
+\[
+D_H(\theta,\widetilde\theta)\leq\varepsilon.
+\tag{2}
+\]
+Lemma \(\mathrm{lem:full\text{-}law\text{-}residual\text{-}reduction}\), whose density-overlap and decoder-conditioning hypotheses are included in Definition \(\mathrm{def:model\text{-}class}\), gives a class-uniform constant \(C_{\mathrm{red}}<\infty\) such that
+\[
+\mathcal E(\theta,\widetilde\theta)
+\leq C_{\mathrm{red}}D_H(\theta,\widetilde\theta)
+\leq C_{\mathrm{red}}\varepsilon.
+\tag{3}
+\]
+Choose
+\[
+\varepsilon_0
+\leq
+\min\{\varepsilon_{\mathrm{low}},C_{\mathrm{red}}^{-1}\}.
+\tag{4}
+\]
+Then \(0<\varepsilon\leq\varepsilon_0\) implies \(\mathcal E(\theta,\widetilde\theta)\leq1\), which is the small-residual premise of Lemma \(\mathrm{lem:scalar\text{-}finite\text{-}type\text{-}weak\text{-}rigidity}\). Applying that lemma to (3) yields
+\[
+d_{\mathrm{rep}}(\theta,\widetilde\theta)
+\leq C_{\mathrm{rig}}\mathcal E(\theta,\widetilde\theta)^q
+\leq C_{\mathrm{rig}}C_{\mathrm{red}}^q\varepsilon^q.
+\tag{5}
+\]
+The pair in (2) was arbitrary. Taking the supremum in Definition \(\mathrm{def:inverse\text{-}modulus}\) and enlarging the upper constant if necessary gives
+\[
+\Omega_{k,m}(\varepsilon)
+\leq C\varepsilon^q,
+\qquad
+0<\varepsilon\leq\varepsilon_0.
+\tag{6}
+\]
+Combining (1) and (6) proves the full-class bracket.
+
+For \((n,k,m)=(2,2,1)\), direct substitution gives
+\[
+p=\frac{2+1}{2+1+1}=\frac34,
+\qquad
+q=\frac{2}{(2+2/2)(1+1)}=\frac13.
+\tag{7}
+\]
+Every pair in the primary Morse class is also a pair in \(\mathcal M_{2,2,1}\), so (6) supplies its restricted upper bound. Proposition \(\mathrm{prop:primary\text{-}morse\text{-}audit}\) places the localized lower family in \(\mathcal M^{\mathrm{Morse}}_{2,2,1}\), so (1) supplies the restricted lower bound. This proves the asserted primary bracket.
+
+Finally, suppose \(D_H(\theta,\widetilde\theta)=0\). Proposition \(\mathrm{prop:identification\text{-}hypothesis\text{-}comparison}\) proves directly, from equality of the aligned complete laws and the finite-type isolated-zero conditions, that the transition map has coordinate form after one common node permutation, with every coordinate map a circle diffeomorphism. Hence the two encoders are identified up to the declared action \(\mathfrak S_n\ltimes\mathrm{Diff}(\mathbb T)^n\). This implication is obtained from the direct torus identification proposition; it does not use the invalid converse inference from \(d_{\mathrm{rep}}=0\) to quotient equivalence. The same proposition separates the paired intervention conditions used for zero-law identification from the additional quantitative envelopes used in (3)--(6).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem delivers the proved full-class inverse-modulus bracket and distinguishes its sharp lower obstruction from its conservative upper guarantee. \textit{Gap.} No cited exact-identification or Morse theorem proves the arbitrary-map incompressible inequality needed to replace the upper exponent \(k/((k+n/2)(m+1))\) by \((k+1)/(k+m+1)\). \textit{Consumer.} Learners obtain a valid uniform law-to-encoder guarantee now, while the remaining exponent gap is stated as a precise analytic target.
+
+\begin{proposition}[prop:primary-morse-reduction]\label{prop:primary-morse-reduction}
+When \((n,k,m)=(2,2,1)\), Theorem \(\mathrm{thm:matching\text{-}full\text{-}modulus}\) gives
+\[
+c\varepsilon^{3/4}
+\leq\Omega_{2,1}(\varepsilon)
+\leq C\varepsilon^{1/3}
+\]
+for all sufficiently small positive \(\varepsilon\), whereas Theorem \(\mathrm{thm:radial\text{-}subclass\text{-}frontier}\) gives the sharp restricted identity \(\Omega_{2,1}^{\mathrm{rad}}(\varepsilon)\asymp\varepsilon^{3/4}\). Whenever \(\theta,\widetilde\theta\) in the primary Morse class satisfy \(D_H(\theta,\widetilde\theta)=0\), Proposition \(\mathrm{prop:identification\text{-}hypothesis\text{-}comparison}\) directly identifies their circular coordinates up to one common node permutation and coordinatewise circle diffeomorphisms, with \(d_{\mathrm{rep}}\) as the symmetric aligned loss. Any contrast that is constant on a nonempty open arc is excluded from this finite-critical-set class.
+\end{proposition}
+\begin{proof}
+Substitute \(n=2\), \(k=2\), and \(m=1\) into Theorem \(\mathrm{thm:matching\text{-}full\text{-}modulus}\). Its two exponents become
+\[
+\frac{k+1}{k+m+1}=\frac34,
+\qquad
+\frac{k}{(k+n/2)(m+1)}=\frac13,
+\]
+and therefore, for sufficiently small positive \(\varepsilon\),
+\[
+c\varepsilon^{3/4}
+\leq\Omega_{2,1}(\varepsilon)
+\leq C\varepsilon^{1/3}.
+\tag{1}
+\]
+This is a bracket, not a claim that the full modulus has been shown to be of exact order \(\varepsilon^{3/4}\). Independently, Theorem \(\mathrm{thm:radial\text{-}subclass\text{-}frontier}\) gives
+\[
+\Omega_{2,1}^{\mathrm{rad}}(\varepsilon)
+\asymp
+\varepsilon^{(2+1)/(2+1+1)}
+=\varepsilon^{3/4},
+\tag{2}
+\]
+which is the two-sided sharp statement on the radial subclass.
+
+If \(D_H(\theta,\widetilde\theta)=0\), Proposition \(\mathrm{prop:identification\text{-}hypothesis\text{-}comparison}\) applies directly and shows that the coordinates differ by one common node permutation and coordinatewise circle diffeomorphisms. Proposition \(\mathrm{prop:symmetric\text{-}quotient\text{-}pseudometric}\) then gives vanishing \(d_{\mathrm{rep}}\) for such equivalent encoders. The logical direction used here is quotient equivalence implying zero discrepancy; no converse property of \(d_{\mathrm{rep}}\) is invoked.
+
+It remains to verify the plateau boundary. Suppose that a contrast \(r_{\theta i}\) is constant on a nonempty open arc \(I\subset\mathbb T\). Differentiability gives
+\[
+r_{\theta i}'(t)=0
+\qquad (t\in I).
+\]
+By Definition of the critical set, \(I\subseteq Z_{\theta i}\). A nonempty open arc contains infinitely many points, whereas Assumption \(\mathrm{ass:critical\text{-}cardinality}\) requires \(|Z_{\theta i}|\leq J<\infty\). This contradiction proves that plateaus are outside the class covered by (1) and (2).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction records the primary full bracket, the sharp radial \(3/4\) result, direct zero-law identification, and the plateau exclusion without conflating them. \textit{Gap.} Radial sharpness does not establish a sharp full-class rate for arbitrary bounded \(C^2\) torus diffeomorphisms. \textit{Consumer.} Two-angle applications can distinguish the certified \(1/3\) full-class upper exponent from the sharp \(3/4\) radial exponent and lower obstruction.
+
+\begin{theorem}[thm:certified-spectral-recovery]\label{thm:certified-spectral-recovery}
+Under independent sampling and for certified tolerance \(\delta_N=o(\rho_N)\), the positive Fourier minimum-distance estimator satisfies
+\[
+D_H(\theta,\widehat\theta_N)=O_{\mathbb P}(\rho_N)
+\quad\text{and}\quad
+d_{\mathrm{rep}}(\theta,\widehat\theta_N)
+=O_{\mathbb P}\!\left\{\rho_N^{k/((k+n/2)(m+1))}\right\},
+\]
+uniformly over \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\). In the primary case \(n=2\), \(k=2\), and \(m=1\), the representation rate is \(N^{-1/12}\).
+\end{theorem}
+\begin{proof}
+Put
+\[
+q=\frac{k}{(k+n/2)(m+1)}.
+\tag{1}
+\]
+By Assumptions \(\mathrm{ass:dimension}\), \(\mathrm{ass:smoothness\text{-}order}\), and \(\mathrm{ass:critical\text{-}order}\), the restrictions built into \(\mathrm{def:model\text{-}class}\) give \(n\geq2\), \(k\geq2\), and \(m\geq1\). Hence \(q>0\). They also give \(s_{\mathrm{obs}}=k-1>0\).
+
+First note explicitly why the corrected spectral scale has no logarithmic loss. The definitions
+\[
+L_N\asymp N^{1/(2s_{\mathrm{obs}}+n)}
+\qquad\text{and}\qquad
+\rho_N=N^{-s_{\mathrm{obs}}/(2s_{\mathrm{obs}}+n)}
+\tag{2}
+\]
+imply
+\[
+L_N^{-s_{\mathrm{obs}}}
+=O\!\left(N^{-s_{\mathrm{obs}}/(2s_{\mathrm{obs}}+n)}\right)
+=O(\rho_N)
+\tag{3}
+\]
+and
+\[
+\begin{aligned}
+\sqrt{L_N^n/N}
+&=O\!\left(
+N^{\frac{n}{2(2s_{\mathrm{obs}}+n)}-\frac12}
+\right)\\
+&=O\!\left(N^{-s_{\mathrm{obs}}/(2s_{\mathrm{obs}}+n)}\right)
+=O(\rho_N).
+\end{aligned}
+\tag{4}
+\]
+Lemma \(\mathrm{lem:certified\text{-}spectral\text{-}law\text{-}recovery}\) applies under Assumptions \(\mathrm{ass:density\text{-}smoothness}\), \(\mathrm{ass:decoder\text{-}smoothness}\), and \(\mathrm{ass:iid\text{-}environment\text{-}sampling}\), the certified construction \(\mathrm{def:certified\text{-}spectral\text{-}estimator}\), and \(\delta_N=o(\rho_N)\). Its uniform Fourier expectation and second-moment bound, followed by Markov's inequality over the fixed finite environment family, uses exactly the bias--fluctuation balance (3)--(4). Therefore
+\[
+\lim_{M\to\infty}\limsup_{N\to\infty}
+\sup_{\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)}
+\Pr_\theta\!\left\{D_H(\theta,\widehat\theta_N)>M\rho_N\right\}=0.
+\tag{5}
+\]
+This is the first asserted uniform stochastic order.
+
+By \(\mathrm{def:certified\text{-}spectral\text{-}estimator}\), both \(\theta\) and \(\widehat\theta_N\) belong to the same bounded model class. Lemma \(\mathrm{lem:full\text{-}law\text{-}residual\text{-}reduction}\), with the common group permutation that optimizes the complete-family discrepancy and with the gauges in \(\mathrm{def:analytic\text{-}residual}\), supplies a class-uniform constant \(C_R<\infty\) such that
+\[
+\mathcal E(\theta,\widehat\theta_N)
+\leq C_R D_H(\theta,\widehat\theta_N).
+\tag{6}
+\]
+On the event \(D_H(\theta,\widehat\theta_N)\leq C_R^{-1}\), equation (6) gives \(\mathcal E(\theta,\widehat\theta_N)\leq1\). Lemma \(\mathrm{lem:scalar\text{-}finite\text{-}type\text{-}weak\text{-}rigidity}\), applied to this same aligned pair, then gives a class-uniform constant \(C_W<\infty\) for which
+\[
+\begin{aligned}
+d_{\mathrm{rep}}(\theta,\widehat\theta_N)
+&\leq C_W\mathcal E(\theta,\widehat\theta_N)^q\\
+&\leq C_W C_R^qD_H(\theta,\widehat\theta_N)^q.
+\end{aligned}
+\tag{7}
+\]
+This step uses only the one-way bound asserted by the weak-rigidity lemma; no converse characterization of the zero set of \(d_{\mathrm{rep}}\) is used.
+
+Let \(C_*=C_WC_R^q\). Since \(s_{\mathrm{obs}}>0\), equation (2) gives \(\rho_N\to0\). Fix \(M>0\). For every sufficiently large \(N\), \(M\rho_N\leq C_R^{-1}\), and (7) yields the event inclusion
+\[
+\left\{d_{\mathrm{rep}}(\theta,\widehat\theta_N)>C_*M^q\rho_N^q\right\}
+\subseteq
+\left\{D_H(\theta,\widehat\theta_N)>M\rho_N\right\}.
+\tag{8}
+\]
+Taking the supremum over the model class, then \(\limsup_{N\to\infty}\), and finally \(M\to\infty\), equations (5) and (8) imply
+\[
+\lim_{B\to\infty}\limsup_{N\to\infty}
+\sup_{\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)}
+\Pr_\theta\!\left\{
+d_{\mathrm{rep}}(\theta,\widehat\theta_N)>B\rho_N^q
+\right\}=0,
+\tag{9}
+\]
+because \(B=C_*M^q\to\infty\) as \(M\to\infty\). This is precisely
+\[
+d_{\mathrm{rep}}(\theta,\widehat\theta_N)
+=O_{\mathbb P}\!\left\{\rho_N^{k/((k+n/2)(m+1))}\right\}
+\]
+uniformly over the class.
+
+Finally, in the primary case \((n,k,m)=(2,2,1)\), one has \(s_{\mathrm{obs}}=1\), and hence
+\[
+\rho_N=N^{-1/(2+2)}=N^{-1/4},
+\qquad
+q=\frac{2}{(2+2/2)(1+1)}=\frac13.
+\tag{10}
+\]
+Therefore
+\[
+\rho_N^q=N^{-1/12},
+\]
+which proves the stated primary-case representation rate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A computable estimator turns the population frontier into a usable finite-sample guarantee for the same symmetric two-law aligned discrepancy, without numerical differentiation at critical points. \textit{Gap.} Acartürk et al. give finite-sample recovery for linear mixers, and Lyu--Fu control a derivative diagnostic for nonlinear ICA; neither handles bounded nonlinear causal decoders or the symmetric aligned representation discrepancy. \textit{Consumer.} Implementations on periodic latent coordinates obtain a certified stopping rule and representation error radius from environment samples.
+
+\begin{theorem}[thm:quotient-confidence-set]\label{thm:quotient-confidence-set}
+For every fixed known \( (k,m) \) and \( \alpha\in(0,1) \), the corrected inverted set is uniformly honest,
+\[
+\inf_{\theta\in\mathcal M_{n,k,m}}
+\Pr_\theta\{[h_\theta]\in\mathcal C_N(\alpha)\}
+\ge 1-\alpha-o(1).
+\]
+Define its representing-model diameter by
+\[
+\sup\left\{d_{\mathrm{rep}}(\vartheta,\vartheta'):
+\vartheta,\vartheta'\in\mathcal M_{n,k,m},\
+D_H(\vartheta,\widehat\theta_N)\vee
+D_H(\vartheta',\widehat\theta_N)
+\le 2c_\alpha\rho_N+2\delta_N\right\}.
+\]
+This diameter is
+\[
+O_{\mathbb P}\!\left\{\rho_N^{k/((k+n/2)(m+1))}\right\}.
+\]
+In the primary case \( (n,k,m)=(2,2,1) \), this is
+\(O_{\mathbb P}\{N^{-1/12}\}\).
+\end{theorem}
+\begin{proof}
+The coverage assertion is exactly Lemma \(\mathrm{lem:corrected\text{-}confidence\text{-}coverage}\), whose sampling premise is Assumption \(\mathrm{ass:iid\text{-}environment\text{-}sampling}\).  It remains to bound the displayed representing-model diameter.  Put
+\[
+ r_N=2c_\alpha\rho_N+2\delta_N,
+ \qquad
+ q=\frac{k}{(k+n/2)(m+1)}.
+\tag{1}
+\]
+
+We first derive the required triangle inequality directly from Definition \(\mathrm{def:full\text{-}law\text{-}distance}\).  For three models \(\vartheta_1,\vartheta_2,\vartheta_3\), let \(\pi\) and \(\sigma\) minimize the finite permutation criteria for the first--second and second--third pairs.  Hellinger distance obeys the triangle inequality because it is \(2^{-1/2}\) times the \(L^2(\lambda^n)\) distance between square-root densities.  Hence
+\[
+ H(P_{\vartheta_1}^{\mathrm{obs}},P_{\vartheta_3}^{\mathrm{obs}})
+ \leq H(P_{\vartheta_1}^{\mathrm{obs}},P_{\vartheta_2}^{\mathrm{obs}})
+     +H(P_{\vartheta_2}^{\mathrm{obs}},P_{\vartheta_3}^{\mathrm{obs}})
+\tag{2}
+\]
+and, for every \(i\in[n]\) and \(e\in\{0,1\}\),
+\[
+ H(P_{\vartheta_1}^{i,e},P_{\vartheta_3}^{\sigma(\pi(i)),e})
+ \leq H(P_{\vartheta_1}^{i,e},P_{\vartheta_2}^{\pi(i),e})
+     +H(P_{\vartheta_2}^{\pi(i),e},P_{\vartheta_3}^{\sigma(\pi(i)),e}).
+\tag{3}
+\]
+Apply the Euclidean Minkowski inequality to the observational coordinate and the \(2n\) intervention coordinates in (2)--(3), and reindex the second intervention sum by \(j=\pi(i)\).  Since \(\sigma\circ\pi\in\mathfrak S_n\) is admissible for the first--third criterion,
+\[
+ D_H(\vartheta_1,\vartheta_3)
+ \leq D_H(\vartheta_1,\vartheta_2)+D_H(\vartheta_2,\vartheta_3).
+\tag{4}
+\]
+Replacing a permutation by its inverse and reindexing the same finite sum also gives
+\[
+ D_H(\vartheta_1,\vartheta_2)=D_H(\vartheta_2,\vartheta_1).
+\tag{5}
+\]
+
+Fix any two representing models \(\vartheta,\vartheta'\) occurring in the diameter in the theorem statement.  Their defining constraints and (4)--(5) imply
+\[
+\begin{aligned}
+ D_H(\vartheta,\vartheta')
+ &\leq D_H(\vartheta,\widehat\theta_N)
+       +D_H(\widehat\theta_N,\vartheta')\\
+ &=D_H(\vartheta,\widehat\theta_N)
+       +D_H(\vartheta',\widehat\theta_N)\\
+ &\leq2r_N=4c_\alpha\rho_N+4\delta_N.
+\end{aligned}
+\tag{6}
+\]
+Because \(s_{\mathrm{obs}}=k-1\geq1\), the definition
+\(
+ \rho_N=N^{-s_{\mathrm{obs}}/(2s_{\mathrm{obs}}+n)}
+\)
+implies \(\rho_N\to0\).  The condition \(\delta_N=o(\rho_N)\) therefore makes the last line of (6) uniformly \(O(\rho_N)\).
+
+Lemma \(\mathrm{lem:full\text{-}law\text{-}residual\text{-}reduction}\), applied using the optimizing common group permutation, supplies a class-uniform \(C_{\mathrm{red}}<\infty\) such that
+\[
+ \mathcal E(\vartheta,\vartheta')
+ \leq C_{\mathrm{red}}D_H(\vartheta,\vartheta')
+ \leq2C_{\mathrm{red}}r_N.
+\tag{7}
+\]
+The right side tends to zero, so it is at most one for every sufficiently large \(N\), uniformly over all representing pairs.  Lemma \(\mathrm{lem:scalar\text{-}finite\text{-}type\text{-}weak\text{-}rigidity}\) is then applicable to the same aligned pair and gives, with a class-uniform \(C_{\mathrm{rig}}<\infty\),
+\[
+\begin{aligned}
+ d_{\mathrm{rep}}(\vartheta,\vartheta')
+ &\leq C_{\mathrm{rig}}\mathcal E(\vartheta,\vartheta')^q\\
+ &\leq C_{\mathrm{rig}}(2C_{\mathrm{red}}r_N)^q
+ =O\!\left(\rho_N^{k/((k+n/2)(m+1))}\right).
+\end{aligned}
+\tag{8}
+\]
+Every constant in (8) is independent of the chosen pair and of the realized center \(\widehat\theta_N\).  Taking the supremum over all representing pairs therefore preserves (8).  The resulting bound is deterministic for all sufficiently large \(N\), and in particular is
+\[
+ O_{\mathbb P}\!\left\{\rho_N^{k/((k+n/2)(m+1))}\right\}.
+\]
+
+Finally, if \((n,k,m)=(2,2,1)\), then
+\[
+ q=\frac{2}{(2+2/2)(1+1)}=\frac13,
+ \qquad
+ s_{\mathrm{obs}}=1,
+ \qquad
+ \rho_N=N^{-1/(2+2)}=N^{-1/4}.
+\]
+Thus \(\rho_N^q=N^{-1/12}\), which proves the stated primary specialization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The confidence set expresses uncertainty in the identifiable quotient rather than in an arbitrary latent gauge. \textit{Gap.} Manifold density bands cover the environment laws, while Bull--Nickl cover ordinary \(L^2\) function classes; neither propagates coverage through a critical nonlinear causal quotient. \textit{Consumer.} Users can report uncertainty for recovered circular factors and compare representations without fixing an unidentifiable coordinate gauge.
+
+\begin{openendedquestion}[oeq:adaptive-critical-order]\label{oeq:adaptive-critical-order}
+Characterize the smallest separation from lower-order or plateau profiles under which one procedure is honest over \(m\in\{1,\ldots,k-1\}\) and attains the corresponding fixed-order representing-model diameter. Under the currently proved full-class modulus this diameter is \(\rho_N^{k/((k+n/2)(m+1))}\); the sharper diameter \(\rho_N^{(k+1)/(k+m+1)}\) additionally requires an affirmative resolution of \(\mathrm{oeq:full\text{-}incompressible\text{-}rigidity}\). Prove a matching impossibility result below the separation boundary.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Unknown critical order is empirically unavoidable, but honest adaptation across nonregular inverse exponents may require an explicit testing margin. \textit{Gap.} Bull and Nickl characterize smoothness adaptation for ordinary \(L^2\) density sets, not adaptation across causal inverse orders or proximity to a nonidentified plateau. \textit{Consumer.} The result would tell practitioners when the critical exponent can be learned from data and when a conservative worst-order confidence radius is unavoidable.
+
+\begin{lemma}[lem:cauca-exact-componentwise-recovery]\label{lem:cauca-exact-componentwise-recovery}
+\texttt{For CauCA with known DAG,\allowbreak{} if every node has one perfect stochastic intervention satisfying the almost-\allowbreak{}everywhere interventional-\allowbreak{}discrepancy condition of Assumption 4.1,\allowbreak{} equality of the observational and interventional laws identifies the latent coordinates up to componentwise invertible transformations.}
+\end{lemma}
+
+\begin{lemma}[lem:varici-exact-componentwise-recovery]\label{lem:varici-exact-componentwise-recovery}
+\texttt{With observational data and two coupled hard-\allowbreak{}intervention environments per node whose paired mechanisms satisfy the almost-\allowbreak{}everywhere interventional-\allowbreak{}discrepancy condition,\allowbreak{} the population model identifies the latent variables up to componentwise diffeomorphisms and identifies the latent DAG.}
+\end{lemma}
+
+\begin{lemma}[lem:certified-spectral-law-recovery]\label{lem:certified-spectral-law-recovery}
+For the corrected positive Fourier minimum-distance construction, under independent environment sampling and \(\delta_N=o(\rho_N)\),
+\[
+\lim_{M\to\infty}\limsup_{N\to\infty}
+\sup_{\theta\in\mathcal M_{n,k,m}}
+\Pr_\theta\{D_H(\theta,\widehat\theta_N)>M\rho_N\}=0.
+\]
+In particular \(D_H(\theta,\widehat\theta_N)=O_{\mathbb P}(\rho_N)\) uniformly over the model class.
+\end{lemma}
+\begin{proof}
+Put \(s=s_{\mathrm{obs}}=k-1\).  Assumption \(\mathrm{ass:smoothness\text{-}order}\) gives \(s\geq 1\).  All densities below are with respect to normalized Haar measure \(\lambda^n\) on the compact support \(\mathbb T^n\).  For \(a\in\mathcal A\), write
+\[
+ u_a(y)=\frac{dP_\theta^a}{d\lambda^n}(y).
+\]
+By the pushforward definition of \(P_\theta^a\), the change-of-variables identity is
+\[
+ u_a(y)=p_\theta^a\!\left(f^{-1}(y)\right)
+          \left|\det Df^{-1}(y)\right|.
+\tag{1}
+\]
+Assumption \(\mathrm{ass:density\text{-}bounds}\) bounds the first factor in (1) between \(c_0\) and \(C_0\).  Assumption \(\mathrm{ass:decoder\text{-}conditioning}\) puts every singular value of \(Df\) in \([K^{-1},K]\), so every singular value of \(Df^{-1}\) is in the same interval and
+\[
+ b:=c_0K^{-n}\leq u_a(y)\leq C_0K^n=:B.
+\tag{2}
+\]
+The product and chain rules applied to (1), using Assumptions \(\mathrm{ass:density\text{-}smoothness}\) and \(\mathrm{ass:decoder\text{-}smoothness}\), give a class-uniform constant \(C_1<\infty\) such that
+\[
+ \max_{a\in\mathcal A}\lVert u_a\rVert_{C^s(\mathbb T^n)}\leq C_1.
+\tag{3}
+\]
+Only \(s=k-1\) derivatives are used: the determinant in (1) contains first derivatives of \(f^{-1}\), and its derivatives through order \(k-1\) use derivatives of \(f^{-1}\) through order \(k\).
+
+For each environment \(a\), let \(Y_{a1},\ldots,Y_{aN}\) denote the independent observations supplied by Assumption \(\mathrm{ass:iid\text{-}environment\text{-}sampling}\).  For \(\ell\in\mathbb Z^n\), define
+\[
+ c_{a\ell}=\int_{\mathbb T^n}u_a(y)e^{-\mathrm i\ell^\top y}\,d\lambda^n(y),
+ \qquad
+ \widehat c_{a\ell}=\frac1N\sum_{r=1}^N e^{-\mathrm i\ell^\top Y_{ar}},
+\]
+and let \(u_{a,L}\) be the Fourier projection onto \(\{\ell:\lVert\ell\rVert_\infty\leq L\}\).  Repeated integration by parts on the torus gives
+\[
+ (\mathrm i\ell_j)^s c_{a\ell}
+ =\int_{\mathbb T^n}\partial_j^s u_a(y)e^{-\mathrm i\ell^\top y}\,d\lambda^n(y).
+\]
+Orthogonality of the characters, followed by the Hilbert-space projection inequality, therefore yields
+\[
+\begin{aligned}
+ \lVert u_a-u_{a,L}\rVert_2^2
+ &=\sum_{\lVert\ell\rVert_\infty>L}|c_{a\ell}|^2\\
+ &\leq L^{-2s}\sum_{j=1}^n
+       \sum_{\ell\in\mathbb Z^n}|\ell_j|^{2s}|c_{a\ell}|^2\\
+ &\leq L^{-2s}\sum_{j=1}^n\lVert\partial_j^s u_a\rVert_2^2
+ \leq C_2L^{-2s},
+\end{aligned}
+\tag{4}
+\]
+where (3) justifies the final bound and the boundary terms vanish by periodicity.
+
+Under Assumption \(\mathrm{ass:iid\text{-}environment\text{-}sampling}\), for every \(a,\ell\),
+\[
+ \mathbb E_\theta\widehat c_{a\ell}=c_{a\ell},
+ \qquad
+ \mathbb E_\theta|\widehat c_{a\ell}-c_{a\ell}|^2
+ =\frac1N\operatorname{Var}_\theta(e^{-\mathrm i\ell^\top Y_{a1}})
+ \leq\frac1N.
+\tag{5}
+\]
+Expanding the finite trigonometric sum and using character orthogonality shows that the real part in Definition \(\mathrm{def:certified\text{-}spectral\text{-}estimator}\) cannot increase its \(L^2\) error relative to the real density.  Consequently,
+\[
+ \mathbb E_\theta\lVert s_L^a-u_{a,L}\rVert_2^2
+ \leq\sum_{\lVert\ell\rVert_\infty\leq L}
+       \mathbb E_\theta|\widehat c_{a\ell}-c_{a\ell}|^2
+ \leq\frac{(2L+1)^n}{N}.
+\tag{6}
+\]
+Because \(|\mathcal A|=1+2n\) is fixed, (4), (6), Markov's inequality, and a union bound imply, uniformly in \(\theta\),
+\[
+ \max_{a\in\mathcal A}\lVert s_L^a-u_a\rVert_2
+ =O_{\mathbb P}\!\left(L^{-s}+\sqrt{L^n/N}\right).
+\tag{7}
+\]
+More explicitly, after division by the quantity in parentheses, the supremum over \(\theta\) of the probability of exceeding \(M\) is bounded by \(C_3/M^2\).  With the cutoff in Definition \(\mathrm{def:certified\text{-}spectral\text{-}estimator}\),
+\[
+ L_N\asymp N^{1/(2s+n)},
+ \qquad
+ L_N^{-s}\asymp\sqrt{L_N^n/N}
+ \asymp N^{-s/(2s+n)}=\rho_N.
+\tag{8}
+\]
+Thus (7) is a uniform \(O_{\mathbb P}(\rho_N)\) assertion without a logarithmic loss.
+
+We next check that positivity correction and normalization preserve this rate.  Let \(\eta_N=N^{-1}\), \(g_L^a=\max\{\eta_N,s_L^a\}\), and \(I_a=\int g_L^a,d\lambda^n\).  Since \(s\geq1\) and \(n\geq2\), one has \(s/(2s+n)<1\), whence
+\[
+ \eta_N=o(\rho_N).
+\tag{9}
+\]
+For all sufficiently large \(N\), (2) gives \(u_a\geq b>\eta_N\).  Pointwise projection onto \([\eta_N,\infty)\) then gives
+\[
+ |g_L^a-u_a|\leq|s_L^a-u_a|,
+ \qquad
+ |I_a-1|\leq\lVert g_L^a-u_a\rVert_1
+ \leq\lVert g_L^a-u_a\rVert_2.
+\tag{10}
+\]
+On the event that the last norm is at most \(1/2\), \(I_a\geq1/2\).  From the exact definition
+\(
+ \widehat p_L^a=\eta_N+(1-\eta_N)g_L^a/I_a
+\)
+and (2), (9), and (10),
+\[
+\begin{aligned}
+ \lVert\widehat p_L^a-u_a\rVert_2
+ &\leq \eta_N\lVert1-u_a\rVert_2
+ +(1-\eta_N)\left\lVert\frac{g_L^a}{I_a}-u_a\right\rVert_2\\
+ &\leq C_4\{\eta_N+\lVert g_L^a-u_a\rVert_2\}.
+\end{aligned}
+\tag{11}
+\]
+The complement of this event has uniformly vanishing probability by (7)--(8).  Hence (11) and the explicit \(C_3/M^2\) tail following (7) prove
+\[
+ \max_{a\in\mathcal A}\lVert\widehat p_L^a-u_a\rVert_2
+ =O_{\mathbb P}(\rho_N)
+\quad\text{uniformly in }\theta.
+\tag{12}
+\]
+The lower overlap bound (2) permits division in the Hellinger identity:
+\[
+\begin{aligned}
+ H^2(P_\theta^a,\widehat p_L^a d\lambda^n)
+ &=\frac12\int
+ \frac{(u_a-\widehat p_L^a)^2}
+ {(\sqrt{u_a}+\sqrt{\widehat p_L^a})^2}\,d\lambda^n\\
+ &\leq\frac1{2b}\lVert u_a-\widehat p_L^a\rVert_2^2.
+\end{aligned}
+\tag{13}
+\]
+Writing \(\mathbb P_\theta=(P_\theta^a:a\in\mathcal A)\) and
+\[
+ \Delta(\mathbb P_\theta,\widehat{\mathbb P}_L)
+ =\left\{\sum_{a\in\mathcal A}
+ H^2(P_\theta^a,\widehat p_L^a d\lambda^n)\right\}^{1/2},
+\]
+equations (12)--(13) give
+\[
+ \Delta(\mathbb P_\theta,\widehat{\mathbb P}_L)
+ =O_{\mathbb P}(\rho_N)
+\quad\text{uniformly in }\theta.
+\tag{14}
+\]
+
+For completeness, the certified nets required by Definition \(\mathrm{def:certified\text{-}spectral\text{-}estimator}\) exist under the displayed assumptions.  Indeed, (3)--(4) show that, for any \(\delta>0\), one common finite Fourier cutoff makes every tail at most \(\delta\).  At that cutoff the coefficient vectors occupy a bounded subset of a finite-dimensional Euclidean space, which has a finite grid.  Choosing one model from each occupied grid cell gives a finite \(L^2\)-net with centers in the model class.  Applying this simultaneously to the finite family \(\mathcal A\), and using (2) and the analogue of (13) for two class densities, gives a finite complete-family Hellinger net.  Closing it under the finite group \(\mathfrak S_n\) preserves finiteness and permits any optimizing common node permutation to be absorbed into the chosen representative.
+
+Choose accordingly \(\vartheta_N\in\mathfrak M_N\) whose labels have been relabeled so that
+\[
+ \left\{\sum_{a\in\mathcal A}H^2(P_\theta^a,P_{\vartheta_N}^a)\right\}^{1/2}
+ \leq\delta_N.
+\tag{15}
+\]
+The Hellinger distance is the \(L^2\) distance of square-root densities multiplied by \(2^{-1/2}\); the ordinary \(L^2\) triangle inequality followed by the Euclidean triangle inequality over \(a\in\mathcal A\) therefore gives a triangle inequality for \(\Delta\).  The minimum-distance inequality in Definition \(\mathrm{def:certified\text{-}spectral\text{-}estimator}\), (15), and admissibility of the identity permutation in Definition \(\mathrm{def:full\text{-}law\text{-}distance}\) now give the deterministic oracle inequality
+\[
+\begin{aligned}
+ D_H(\theta,\widehat\theta_N)
+ &\leq\Delta(\mathbb P_\theta,\widehat{\mathbb P}_L)
+      +\Delta(\widehat{\mathbb P}_L,\mathbb P_{\widehat\theta_N})\\
+ &\leq\Delta(\mathbb P_\theta,\widehat{\mathbb P}_L)
+      +\Delta(\widehat{\mathbb P}_L,\mathbb P_{\vartheta_N})+\delta_N\\
+ &\leq2\Delta(\mathbb P_\theta,\widehat{\mathbb P}_L)+2\delta_N.
+\end{aligned}
+\tag{16}
+\]
+Since \(\delta_N=o(\rho_N)\), (14) and (16) yield a constant \(C_5\), independent of \(\theta,N,M\), such that
+\[
+ \limsup_{N\to\infty}\sup_{\theta\in\mathcal M_{n,k,m}}
+ \Pr_\theta\{D_H(\theta,\widehat\theta_N)>M\rho_N\}
+ \leq \frac{C_5}{M^2}
+\]
+after an immaterial fixed rescaling of \(M\).  Letting \(M\to\infty\) proves the asserted uniform limit and hence the stated uniform \(O_{\mathbb P}(\rho_N)\) law-recovery rate.
+\end{proof}
+
+\begin{lemma}[lem:corrected-confidence-coverage]\label{lem:corrected-confidence-coverage}
+For every fixed known \((k,m)\) and \(\alpha\in(0,1)\), the corrected inverted set obeys
+\[
+\inf_{\theta\in\mathcal M_{n,k,m}}
+\Pr_\theta\{[h_\theta]\in\mathcal C_N(\alpha)\}
+\ge1-\alpha-o(1).
+\]
+\end{lemma}
+\begin{proof}
+Let
+\[
+ \mathcal S_N(\theta)=
+ \left\{\Delta(\mathbb P_\theta,\widehat{\mathbb P}_L)
+ \leq c_\alpha\rho_N\right\},
+\]
+where \(\Delta\) is the fixed-label Euclidean sum of the Hellinger distances over the finite environment set \(\mathcal A\).  The calibration in Definition \(\mathrm{def:quotient\text{-}confidence\text{-}set}\), under Assumption \(\mathrm{ass:iid\text{-}environment\text{-}sampling}\), states
+\[
+ \inf_{\theta\in\mathcal M_{n,k,m}}
+ \Pr_\theta\{\mathcal S_N(\theta)\}
+ \geq1-\alpha-o(1).
+\tag{1}
+\]
+The deterministic minimum-distance comparison proved in Lemma \(\mathrm{lem:certified\text{-}spectral\text{-}law\text{-}recovery}\) is
+\[
+ D_H(\theta,\widehat\theta_N)
+ \leq2\Delta(\mathbb P_\theta,\widehat{\mathbb P}_L)+2\delta_N.
+\tag{2}
+\]
+Indeed, (2) uses a \(\delta_N\)-net representative, the defining \(\delta_N\)-approximate minimum-distance inequality, and two applications of the finite-family Hellinger triangle inequality; closure of the net under common node permutations converts the net approximation to the fixed labeling used by the objective.
+
+On \(\mathcal S_N(\theta)\), equations (1)--(2) imply
+\[
+ D_H(\theta,\widehat\theta_N)
+ \leq2c_\alpha\rho_N+2\delta_N.
+\tag{3}
+\]
+The true model \(\theta\) is a member of \(\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\).  Therefore (3) makes \(\theta\) an admissible representing model in Definition \(\mathrm{def:quotient\text{-}confidence\text{-}set}\), and that definition places its encoder class \([h_\theta]\) in \(\mathcal C_N(\alpha)\).  Thus
+\[
+ \Pr_\theta\{[h_\theta]\in\mathcal C_N(\alpha)\}
+ \geq\Pr_\theta\{\mathcal S_N(\theta)\}.
+\]
+Taking the infimum over \(\theta\) and applying (1) proves the claimed uniform coverage.  This argument uses the quotient only to report the set element; it does not infer quotient equivalence from the vanishing of \(d_{\mathrm{rep}}\).
+\end{proof}
+
+\begin{lemma}[lem:scalar-finite-type-weak-rigidity]\label{lem:scalar-finite-type-weak-rigidity}
+There is a class-uniform constant \(C<\infty\) such that every aligned pair \(\theta,\widetilde\theta\in\mathcal M_{n,k,m}(c_0,C_0,K,a_0,J,\Delta_0)\) with \(\mathcal E(\theta,\widetilde\theta)\leq1\) satisfies
+\[
+d_{\mathrm{rep}}(\theta,\widetilde\theta)
+\leq C\,\mathcal E(\theta,\widetilde\theta)^q,
+\qquad
+q=\frac{k}{(k+n/2)(m+1)}.
+\]
+This estimate uses only the scalar ratio residuals; it does not assert the sharper incompressible exponent \((k+1)/(k+m+1)\).
+\end{lemma}
+\begin{proof}
+Relabel the coordinates of \(\widetilde\theta\) by the group permutation fixed in Definition \(\mathrm{def:analytic\text{-}residual}\).  This is allowed by Assumption \(\mathrm{ass:complete\text{-}grouping}\), and after this relabeling the optimizing permutation is the identity.
+
+We first record uniform consequences of membership in Definition \(\mathrm{def:model\text{-}class}\).  By Assumptions \(\mathrm{ass:causal\text{-}factorization}\) and \(\mathrm{ass:perfect\text{-}intervention\text{-}family}\), reverse integration in a topological ordering of the intervened DAG gives
+\[
+q_i^e(t)=\int_{\mathbb T^{n-1}}p_\theta^{i,e}(t,x_{-i})\,d\lambda^{n-1}(x_{-i}).
+\]
+Indeed, each nonintervened conditional density integrates to one when a terminal nonintervened vertex is removed, and iteration leaves only \(q_i^e(t)\).  Assumptions \(\mathrm{ass:density\text{-}bounds}\) and \(\mathrm{ass:density\text{-}smoothness}\) therefore imply, by differentiation under this finite compact integral,
+\[
+c_0\leq q_i^e(t)\leq C_0,
+\qquad
+\lVert q_i^e\rVert_{C^k(\mathbb T)}\leq K.
+\tag{1}
+\]
+The same bounds hold for the corresponding mechanisms of \(\widetilde\theta\).  It follows from (1), the chain rule, and Assumptions \(\mathrm{ass:decoder\text{-}smoothness}\) and \(\mathrm{ass:decoder\text{-}conditioning}\) that the baseline gauges and their inverses, the maps \(F_\theta,F_{\widetilde\theta}\), and the transition map
+\[
+T=F_\theta^{-1}\circ F_{\widetilde\theta}
+\]
+have class-uniform \(C^k\) bounds.  Moreover, there are class-uniform constants \(0<b\leq B<\infty\) such that
+\[
+b\leq \sigma_{\min}\{DT(z)\}
+\leq \sigma_{\max}\{DT(z)\}\leq B
+\qquad(z\in\mathbb T^n).
+\tag{2}
+\]
+The gauged profiles \(R_i=r_{\theta i}\circ\beta_{\theta i}^{-1}\) and \(S_i=r_{\widetilde\theta i}\circ\beta_{\widetilde\theta i}^{-1}\) also have class-uniform \(C^k\) norms.  Because (1) makes every \(\beta_{\theta i}\) uniformly bi-Lipschitz, Assumption \(\mathrm{ass:finite\text{-}type\text{-}profile}\) becomes
+\[
+|R_i'(u)|\geq a\,\operatorname{dist}_{\mathbb T}(u,\mathcal Z_i)^m,
+\qquad
+\mathcal Z_i=\beta_{\theta i}(Z_{\theta i}),
+\qquad
+|\mathcal Z_i|\leq J,
+\tag{3}
+\]
+for a class-uniform \(a>0\), where the cardinality bound is Assumption \(\mathrm{ass:critical\text{-}cardinality}\).
+
+Put
+\[
+E=\mathcal E(\theta,\widetilde\theta),
+\qquad
+e_i(z)=R_i\{T_i(z)\}-S_i(z_i).
+\]
+Definition \(\mathrm{def:analytic\text{-}residual}\) and the preceding uniform bounds give
+\[
+\lVert e_i\rVert_{L^2(\lambda^n)}\leq E,
+\qquad
+\lVert e_i\rVert_{C^k(\mathbb T^n)}\leq B_1
+\tag{4}
+\]
+with a class-uniform \(B_1\).
+
+We next derive the interpolation estimate needed below.  Choose a compactly supported smooth signed approximation kernel \(A\) of integral one whose moments of orders one through \(k-1\) vanish, and periodize its rescaling \(A_h(x)=h^{-n}A(x/h)\) for \(0<h<h_0\).  Such a kernel is obtained from a finite linear combination of distinct rescalings of one smooth bump by solving the finite Vandermonde system for the required moments.  Cauchy--Schwarz and Taylor's formula with integral remainder give, for every periodic \(C^k\) function \(g\),
+\[
+\lVert A_h*g\rVert_\infty
+\leq \lVert A_h\rVert_2\lVert g\rVert_2
+\leq C h^{-n/2}\lVert g\rVert_2,
+\]
+and
+\[
+\lVert g-A_h*g\rVert_\infty
+\leq C h^k\lVert g\rVert_{C^k}.
+\]
+Applying these inequalities to (4), and taking \(h=E^{1/(k+n/2)}\) when \(E\) is sufficiently small, yields
+\[
+\lVert e_i\rVert_\infty
+\leq C\{E h^{-n/2}+h^k\}
+\leq C E^a,
+\qquad
+a=\frac{k}{k+n/2}.
+\tag{5}
+\]
+For the remaining bounded range of \(E\leq1\), increasing \(C\) makes (5) valid as well.  Write \(\eta=CE^a\).
+
+We now turn (3) into a scalar oscillation bound.  Let \(I\subset\mathbb T\) be an arc of length \(\ell\leq\pi\).  Removing at most \(J\) points of \(\mathcal Z_i\) leaves a component of length at least \(\ell/(J+1)\).  On the middle half of that component, the distance from \(\mathcal Z_i\) is at least \(\ell/\{4(J+1)\}\).  The derivative \(R_i'\) has a constant sign on the component, since its zero set is \(\mathcal Z_i\).  Integration of (3) on the middle half therefore gives
+\[
+\operatorname{osc}_{I}R_i
+\geq c\ell^{m+1}.
+\tag{6}
+\]
+The same argument on any fixed arc of length \(\pi\) also gives a fixed positive oscillation.
+
+For fixed \(z_i\), the image
+\[
+I_{i,z_i}=\{T_i(z_i,z_{-i}):z_{-i}\in\mathbb T^{n-1}\}
+\]
+is connected because \(n\geq2\) and \(\mathbb T^{n-1}\) is connected.  Equation (5), with \(S_i(z_i)\) fixed on this fiber, gives
+\[
+\operatorname{osc}_{I_{i,z_i}}R_i\leq2\eta.
+\tag{7}
+\]
+For sufficiently small \(E\), the fixed-arc consequence of (6) excludes the possibility that \(I_{i,z_i}\) is the whole circle or contains an arc of length \(\pi\).  Thus it is contained in an arc of length at most \(\pi\), and (6)--(7) imply the uniform transverse-fiber bound
+\[
+\operatorname{diam}_{\mathbb T} I_{i,z_i}
+\leq C\eta^{1/(m+1)}=:\delta.
+\tag{8}
+\]
+
+We construct an admissible coordinate gauge from (8).  Let \(A_T\in\mathrm{GL}(n,\mathbb Z)\) be the homology matrix of the torus diffeomorphism \(T\).  If \(j\ne i\) and \((A_T)_{ij}\ne0\), the restriction of \(T_i\) to a transverse \(z_j\)-circle has nonzero degree and is therefore onto \(\mathbb T\), contradicting (8) for \(\delta<\pi\).  Hence \(A_T\) is diagonal.  Since it is an invertible integer matrix, every diagonal entry \(d_i=(A_T)_{ii}\) belongs to \(\{-1,1\}\).  Choose a lift
+\[
+\overline T_i(z)=d_i z_i+u_i(z),
+\]
+where \(u_i\) is \(2\pi\)-periodic in every variable, and define
+\[
+\overline\phi_i(t)=d_i t+int_{\mathbb T^{n-1}}u_i(t,z_{-i})\,d\lambda^{n-1}(z_{-i}).
+\tag{9}
+\]
+The short-arc lift furnished by (8) shows directly from (9) that
+\[
+\sup_z|\overline T_i(z)-\overline\phi_i(z_i)|\leq C\delta.
+\tag{10}
+\]
+
+It remains to check that \(\phi_i=\overline\phi_i\pmod{2\pi}\) is a circle diffeomorphism.  If a one-variable \(C^2\) function \(g\) has oscillation at most \(\delta\) and \(\lVert g''\rVert_\infty\leq B\), Taylor's formula gives, for \(0<s<1\),
+\[
+|g'(t)|\leq \frac{2\delta}{s}+\frac{B s}{2}.
+\]
+Taking \(s\) proportional to \(\delta^{1/2}\) proves \(\lVert g'\rVert_\infty\leq C\delta^{1/2}\).  Apply this to every transverse restriction in (8).  Then
+\[
+\max_{j\ne i}\lVert\partial_jT_i\rVert_\infty\leq C\delta^{1/2}.
+\tag{11}
+\]
+By (2), the Euclidean norm of row \(i\) of \(DT\) is at least \(b\).  Equations (2) and (11) consequently imply, once \(E\) is sufficiently small,
+\[
+|\partial_iT_i(z)|\geq b/2.
+\tag{12}
+\]
+The continuous function \(\partial_iT_i\) has one sign on the connected torus.  Differentiating (9), averaging (12), and using (2) show that \(\phi_i\) has degree \(d_i\) and
+\[
+b/2\leq|\phi_i'(t)|\leq B.
+\tag{13}
+\]
+Thus \(\phi_i\in\mathrm{Diff}(\mathbb T)\), and both \(\phi_i\) and \(\phi_i^{-1}\) are uniformly Lipschitz.  Equations (10) and (13) also imply
+\[
+\sup_x\operatorname{dist}_{\mathbb T}
+\{(T^{-1})_i(x),\phi_i^{-1}(x_i)\}
+\leq C\delta.
+\tag{14}
+\]
+Indeed, for \(x=T(z)\), the left side is at most the inverse Lipschitz constant in (13) times \(\operatorname{dist}_{\mathbb T}\{T_i(z),\phi_i(z_i)\}\).
+
+Finally define the coordinate reparameterization between the original latent gauges by
+\[
+\varphi_i=\beta_{\theta i}^{-1}\circ\phi_i\circ\beta_{\widetilde\theta i}.
+\tag{15}
+\]
+All complete latent densities, all decoder Jacobians, and all baseline-gauge derivatives are bounded above and below by the class constants.  Hence changes of variables through \(F_\theta\) or \(F_{\widetilde\theta}\) compare either mixture measure in Definition \(\mathrm{def:representation\text{-}distance}\) with \(\lambda^n\) by fixed factors.  Equations (10), (14), and (15) therefore give, for the same alignment and its algebraic inverse,
+\[
+L_{\theta\leftarrow\widetilde\theta}(\mathrm{id},\varphi)
++L_{\widetilde\theta\leftarrow\theta}(\mathrm{id},\varphi)
+\leq C\delta
+\leq C E^{a/(m+1)}.
+\]
+Taking the infimum in Definition \(\mathrm{def:representation\text{-}distance}\) and using \(a/(m+1)=k/\{(k+n/2)(m+1)\}\) proves the claim.  Enlarging \(C\) handles the bounded range of \(E\) not covered by the smallness choices, because Proposition \(\mathrm{prop:symmetric\text{-}quotient\text{-}pseudometric}\) gives \(d_{\mathrm{rep}}\leq\pi\sqrt n\).
+\end{proof}
+
+\section{Interpretation}
+
+The two exponents answer different certified questions. The localized Hamiltonian family proves that no uniform full-class inverse modulus can improve on the lower obstruction \(\varepsilon^{(k+1)/(k+m+1)}\). Scalar finite-type rigidity guarantees recovery for every admissible decoder at the more conservative order \(\varepsilon^{k/((k+n/2)(m+1))}\). Radial incompressibility closes this gap, but no corresponding arbitrary-map coercivity theorem has yet been proved. Thus \(3/4\) is sharp for the primary radial model and a lower obstruction for the primary full class, whereas \(1/3\) is the current full-class upper exponent.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The full-class upper exponent is presently \(k/((k+n/2)(m+1))\), obtained from scalar ratio residuals after the complete-law reduction. The desired exponent \((k+1)/(k+m+1)\) is proved only for the radial volume-preserving subclass. Symmetrizing the aligned loss does not supply the missing weighted incompressible coercivity, and \(d_{\mathrm{rep}}=0\) is not used as a converse test for quotient equivalence. Any counterexample to the sharper upper bound must still arise from legal complete causal law families and respect density, smoothness, conditioning, critical-separation, and attained-order bounds.
+
+\section{Honest scope}
+
+The general contribution is a full-class bracket: lower exponent \((k+1)/(k+m+1)\) and upper exponent \(k/((k+n/2)(m+1))\). The radial restricted supremum has the sharp exponent \((k+1)/(k+m+1)\). For \((n,k,m)=(2,2,1)\), the full bracket is \(c\varepsilon^{3/4}\leq\Omega_{2,1}(\varepsilon)\leq C\varepsilon^{1/3}\), the radial rate is exactly of order \(\varepsilon^{3/4}\), and the certified estimator and representing-model confidence diameter have rate \(N^{-1/12}\). The primary class uses separated critical points and the direct Hessian bound \(|r_i''(z)|\geq a_0\), without invoking a higher-smoothness quantitative-Morse theorem. Plateaus, coalescing critical points, critical submanifolds, vector-valued contrast curves, unknown-order adaptation, and the matching full-class upper bound remain outside the proved claim.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LiangEtAl2023CauCA} W. Liang, A. Kekić, J. von Kügelgen, S. Buchholz, M. Besserve, L. Gresele, and B. Schölkopf (2023), Causal Component Analysis, Advances in Neural Information Processing Systems 36, arXiv:2305.17225.
+
+  \bibitem{VariciEtAl2025ScoreCRL} B. Varıcı, E. Acartürk, K. Shanmugam, A. Kumar, and A. Tajer (2025), Score-based Causal Representation Learning: Linear and General Transformations, Journal of Machine Learning Research 26(112), 1--90, arXiv:2402.00849.
+
+  \bibitem{BuchholzScholkopf2025Robustness} S. Buchholz and B. Schölkopf (2024), Robustness of Nonlinear Representation Learning, Proceedings of the 41st International Conference on Machine Learning, PMLR 235, arXiv:2503.15355.
+
+  \bibitem{KhesinEtAl2013DiffeomorphismGeometry} B. Khesin, J. Lenells, G. Misiołek, and S. C. Preston (2013), Geometry of Diffeomorphism Groups, Complete Integrability and Optimal Transport, Geometric and Functional Analysis 23, 334--366, arXiv:1105.0643.
+
+  \bibitem{DacorognaMoser1990Jacobian} B. Dacorogna and J. Moser (1990), On a Partial Differential Equation Involving the Jacobian Determinant, Annales de l'Institut Henri Poincaré C, Analyse non linéaire 7(1), 1--26, doi:10.1016/S0294-1449(16)30307-9.
+
+  \bibitem{FrieseckeJamesMuller2002Rigidity} G. Friesecke, R. D. James, and S. Müller (2002), A Theorem on Geometric Rigidity and the Derivation of Nonlinear Plate Theory from Three-Dimensional Elasticity, Communications on Pure and Applied Mathematics 55(11), 1461--1506, doi:10.1002/cpa.10048.
+
+  \bibitem{LeLoiPhien2012QuantitativeMorse} Tạ Lê Lợi and P. Phiến (2012), The Quantitative Morse Theorem, International Journal of Mathematical Analysis 6(10), 481--491, arXiv:1305.3352.
+
+  \bibitem{Teixeira2017DacorognaMoserSupport} P. Teixeira (2017), Dacorogna--Moser Theorem on the Jacobian Determinant Equation with Control of Support, Discrete and Continuous Dynamical Systems 37(7), 4071--4089, arXiv:1608.06213.
+
+  \bibitem{AcarturkEtAl2024SampleComplexity} E. Acartürk, B. Varıcı, K. Shanmugam, and A. Tajer (2024), Sample Complexity of Interventional Causal Representation Learning, Advances in Neural Information Processing Systems 37, doi:10.52202/079017-1243.
+
+  \bibitem{LyuFu2022FiniteSampleNICA} Q. Lyu and X. Fu (2022), On Finite-Sample Identifiability of Contrastive Learning-Based Nonlinear Independent Component Analysis, Proceedings of the 39th International Conference on Machine Learning, PMLR 162, 14582--14600, arXiv:2206.06593.
+
+  \bibitem{KerkyacharianNicklPicard2012NeedletBands} G. Kerkyacharian, R. Nickl, and D. Picard (2012), Concentration Inequalities and Confidence Bands for Needlet Density Estimators on Compact Homogeneous Manifolds, Probability Theory and Related Fields 153, 363--404, arXiv:1102.2450.
+
+  \bibitem{BullNickl2013AdaptiveL2ConfidenceSets} A. D. Bull and R. Nickl (2013), Adaptive Confidence Sets in \(L^2\), Probability Theory and Related Fields 156, 889--919, arXiv:1111.5568.
+
+  \bibitem{VariciSquiresRavikumar2026Survey} B. Varıcı, C. Squires, and P. Ravikumar (2026), Causal Representation Learning, in Neurosymbolic AI: Foundations and Applications, Chapter 10, doi:10.1002/9781394302406.ch10.
+
+  \bibitem{Milnor1963MorseTheory} J. Milnor (1963), Morse Theory, Annals of Mathematics Studies 51, Princeton University Press.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,1396 @@
+{
+  "qid": "exp_randomregular_fullgate_minimax_frontier",
+  "specialization": "matched_frontier_retry",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "population size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The triangular-array index and number of experimental units.",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "d_n",
+      "type": "regular degree",
+      "space": "\\(\\{d\\in\\mathbb N:1\\le d<n,\\ nd\\in2\\mathbb N\\}\\)",
+      "def": "The degree of the stage-\\(n\\) interference graph.",
+      "role": "structural regime parameter",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "V_n",
+      "type": "finite population",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "def": "The labeled unit set.",
+      "role": "population",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "i",
+      "type": "unit index",
+      "space": "\\(V_n\\)",
+      "def": "A generic experimental unit.",
+      "role": "index",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "unit index",
+      "space": "\\(V_n\\)",
+      "def": "A second generic experimental unit.",
+      "role": "index",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "\\ell",
+      "type": "seed index",
+      "space": "\\(\\mathbb N\\)",
+      "def": "A generic index for a seed draw.",
+      "role": "index"
+    },
+    {
+      "name": "G_n",
+      "type": "random interference graph",
+      "space": "simple graphs on \\(V_n\\)",
+      "def": "A graph drawn uniformly from the simple labeled \\(d_n\\)-regular graphs on \\(V_n\\).",
+      "role": "random environment",
+      "refs": [
+        "V_n",
+        "d_n"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "revealed interference graph",
+      "space": "simple \\(d_n\\)-regular graphs on \\(V_n\\)",
+      "def": "A realization of \\(G_n\\), revealed before randomization.",
+      "role": "design input",
+      "refs": [
+        "G_n",
+        "V_n",
+        "d_n"
+      ]
+    },
+    {
+      "name": "\\operatorname{dist}_G(i,j)",
+      "type": "graph distance",
+      "space": "\\(\\mathbb N\\cup\\{\\infty\\}\\)",
+      "def": "The shortest-path distance between \\(i\\) and \\(j\\) in \\(G\\).",
+      "role": "graph geometry",
+      "refs": [
+        "G",
+        "i",
+        "j"
+      ]
+    },
+    {
+      "name": "N_G[i]",
+      "type": "closed neighborhood",
+      "space": "\\(2^{V_n}\\)",
+      "def": "The set \\(N_G[i]=\\{j\\in V_n:\\operatorname{dist}_G(i,j)\\le1\\}\\).",
+      "role": "interference support",
+      "refs": [
+        "G",
+        "V_n",
+        "i",
+        "j",
+        "\\operatorname{dist}_G(i,j)"
+      ]
+    },
+    {
+      "name": "I_n",
+      "type": "identity matrix",
+      "space": "\\(\\mathbb R^{n\\times n}\\)",
+      "def": "The \\(n\\)-dimensional identity matrix.",
+      "role": "matrix constant",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "\\iota_n",
+      "type": "all-ones vector",
+      "space": "\\(\\mathbb R^n\\)",
+      "def": "The \\(n\\)-dimensional all-ones vector.",
+      "role": "matrix constant",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "P_n",
+      "type": "centering projection",
+      "space": "\\(\\mathbb R^{n\\times n}\\)",
+      "def": "The projection \\(P_n=I_n-n^{-1}\\iota_n\\iota_n^{\\mathsf T}\\).",
+      "role": "centered geometry",
+      "refs": [
+        "n",
+        "I_n",
+        "\\iota_n"
+      ]
+    },
+    {
+      "name": "B_G",
+      "type": "Boolean radius-two matrix",
+      "space": "\\(\\{0,1\\}^{n\\times n}\\)",
+      "def": "The matrix with entries \\((B_G)_{ij}=\\mathbf 1\\{\\operatorname{dist}_G(i,j)\\le2\\}\\), including \\((B_G)_{ii}=1\\).",
+      "role": "conflict geometry",
+      "refs": [
+        "n",
+        "G",
+        "i",
+        "j",
+        "\\operatorname{dist}_G(i,j)"
+      ]
+    },
+    {
+      "name": "p_{n,d_n}",
+      "type": "two-root reachability probability",
+      "space": "\\([0,1]\\)",
+      "def": "The probability \\(p_{n,d_n}=\\Pr_{G_n}\\{(B_{G_n})_{12}=1\\}\\).",
+      "role": "centering constant",
+      "refs": [
+        "n",
+        "d_n",
+        "G_n",
+        "B_G"
+      ]
+    },
+    {
+      "name": "X_{G_n}",
+      "type": "centered Boolean reachability matrix",
+      "space": "\\(\\mathbb R^{n\\times n}\\)",
+      "def": "The matrix \\(X_{G_n}=B_{G_n}-I_n-p_{n,d_n}(\\iota_n\\iota_n^{\\mathsf T}-I_n)\\).",
+      "role": "fourth-moment object",
+      "refs": [
+        "n",
+        "G_n",
+        "B_G",
+        "I_n",
+        "p_{n,d_n}",
+        "\\iota_n"
+      ]
+    },
+    {
+      "name": "\\mu_{\\mathrm{cyc}}(n,d_n)",
+      "type": "signed four-root moment",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The moment \\(\\mu_{\\mathrm{cyc}}(n,d_n)=\\mathbb E_{G_n}[(X_{G_n})_{12}(X_{G_n})_{23}(X_{G_n})_{34}(X_{G_n})_{41}]\\).",
+      "role": "open cancellation object",
+      "refs": [
+        "n",
+        "d_n",
+        "G_n",
+        "X_{G_n}"
+      ]
+    },
+    {
+      "name": "z",
+      "type": "assignment argument",
+      "space": "\\(\\{0,1\\}^{V_n}\\)",
+      "def": "A generic binary treatment assignment.",
+      "role": "potential-outcome argument",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "z'",
+      "type": "assignment argument",
+      "space": "\\(\\{0,1\\}^{V_n}\\)",
+      "def": "A second binary treatment assignment.",
+      "role": "potential-outcome argument",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "\\boldsymbol{1}_n",
+      "type": "all-treated assignment",
+      "space": "\\(\\{0,1\\}^{V_n}\\)",
+      "def": "The assignment treating every unit.",
+      "role": "endpoint assignment",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "\\boldsymbol{0}_n",
+      "type": "all-control assignment",
+      "space": "\\(\\{0,1\\}^{V_n}\\)",
+      "def": "The assignment treating no unit.",
+      "role": "endpoint assignment",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "y",
+      "type": "potential-outcome schedule",
+      "space": "\\((\\mathbb R^{V_n})^{\\{0,1\\}^{V_n}}\\)",
+      "def": "A fixed finite-population schedule \\(y=(y_i)_{i\\in V_n}\\).",
+      "role": "adversarial schedule",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "y_i(z)",
+      "type": "potential outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The outcome of unit \\(i\\) under assignment \\(z\\).",
+      "role": "causal primitive",
+      "refs": [
+        "y",
+        "i",
+        "z"
+      ]
+    },
+    {
+      "name": "y_{i1}",
+      "type": "treated-endpoint outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The endpoint value \\(y_{i1}=y_i(\\boldsymbol{1}_n)\\).",
+      "role": "estimand component",
+      "refs": [
+        "i",
+        "y_i(z)",
+        "\\boldsymbol{1}_n"
+      ]
+    },
+    {
+      "name": "y_{i0}",
+      "type": "control-endpoint outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The endpoint value \\(y_{i0}=y_i(\\boldsymbol{0}_n)\\).",
+      "role": "estimand component",
+      "refs": [
+        "i",
+        "y_i(z)",
+        "\\boldsymbol{0}_n"
+      ]
+    },
+    {
+      "name": "\\tau_{\\mathrm{GATE}}(y)",
+      "type": "global average treatment effect",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The contrast \\(\\tau_{\\mathrm{GATE}}(y)=n^{-1}\\sum_{i\\in V_n}(y_{i1}-y_{i0})\\).",
+      "role": "target estimand",
+      "refs": [
+        "n",
+        "V_n",
+        "i",
+        "y",
+        "y_{i1}",
+        "y_{i0}"
+      ]
+    },
+    {
+      "name": "\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)",
+      "type": "endpoint empirical-second-moment ANI class",
+      "space": "sets of fixed potential-outcome schedules",
+      "def": "Exactly the \\(q=2\\) GATE class of Kandiros--Harshaw--S\\'{a}vje, as constructed in Definition 1.",
+      "role": "adversarial class",
+      "ref": "def:outcome-class",
+      "refs": [
+        "G",
+        "\\tau_{\\mathrm{GATE}}(y)",
+        "y"
+      ]
+    },
+    {
+      "name": "\\mathcal D_G",
+      "type": "assignment law",
+      "space": "\\(\\Delta(\\{0,1\\}^{V_n})\\)",
+      "def": "A graph-measurable distribution on binary assignments.",
+      "role": "design decision",
+      "refs": [
+        "G",
+        "V_n"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "realized assignment",
+      "space": "\\(\\{0,1\\}^{V_n}\\)",
+      "def": "The single draw \\(Z\\sim\\mathcal D_G\\).",
+      "role": "design randomness",
+      "refs": [
+        "V_n",
+        "\\mathcal D_G"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "observed outcome vector",
+      "space": "\\(\\mathbb R^{V_n}\\)",
+      "def": "The vector with coordinates \\(Y_i=y_i(Z)\\).",
+      "role": "observed data",
+      "refs": [
+        "V_n",
+        "i",
+        "y_i(z)",
+        "Z"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "estimator randomization",
+      "space": "\\([0,1]\\)",
+      "def": "An independent uniform random variable available to the estimator.",
+      "role": "allowed auxiliary randomness"
+    },
+    {
+      "name": "T",
+      "type": "measurable estimator",
+      "sig": "\\(T=T(G,Z,Y,U)\\)",
+      "def": "An arbitrary measurable function of the revealed graph, assignment, observed outcomes, and allowed auxiliary randomization.",
+      "role": "estimator decision",
+      "refs": [
+        "G",
+        "Z",
+        "Y",
+        "U"
+      ]
+    },
+    {
+      "name": "R_2(G)",
+      "type": "design-based minimax MSE",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The unrestricted risk constructed in Definition 2.",
+      "role": "optimality criterion",
+      "ref": "def:minimax-risk",
+      "refs": [
+        "G"
+      ]
+    },
+    {
+      "name": "r_{\\log}(n,d_n)",
+      "type": "deterministic frontier scale",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The explicit scale \\(r_{\\log}(n,d_n)=d_n^2/[n\\log(d_n+1)]\\).",
+      "role": "proposed minimax rate",
+      "refs": [
+        "n",
+        "d_n"
+      ]
+    },
+    {
+      "name": "M_{n,d_n}",
+      "type": "radius-two walk budget",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The number \\(M_{n,d_n}=d_n^2+1\\).",
+      "role": "tuning primitive",
+      "refs": [
+        "n",
+        "d_n"
+      ]
+    },
+    {
+      "name": "k_{n,d_n}",
+      "type": "seed count",
+      "space": "\\(\\mathbb N\\)",
+      "def": "When \\(M_{n,d_n}<n\\), the integer \\(k_{n,d_n}=\\max\\{1,\\lfloor\\log(d_n+1)/[4\\{-\\log(1-M_{n,d_n}/n)\\}]\\rfloor\\}\\).",
+      "role": "log-tuned design parameter",
+      "refs": [
+        "n",
+        "d_n",
+        "M_{n,d_n}"
+      ]
+    },
+    {
+      "name": "J_\\ell",
+      "type": "uniform seed",
+      "space": "\\(V_n\\)",
+      "def": "For \\(1\\le\\ell\\le k_{n,d_n}\\), an independent uniform vertex of \\(V_n\\).",
+      "role": "assignment randomization",
+      "refs": [
+        "\\ell",
+        "k_{n,d_n}",
+        "V_n"
+      ]
+    },
+    {
+      "name": "Z^{\\mathrm{seed}}",
+      "type": "seed-generated assignment",
+      "space": "\\(\\{0,1\\}^{V_n}\\)",
+      "def": "The assignment \\(Z^{\\mathrm{seed}}_v=\\mathbf 1\\{v\\in\\bigcup_{\\ell=1}^{k_{n,d_n}}N_G[J_\\ell]\\}\\).",
+      "role": "candidate design",
+      "refs": [
+        "V_n",
+        "G",
+        "N_G[i]",
+        "J_\\ell",
+        "k_{n,d_n}"
+      ]
+    },
+    {
+      "name": "S_i(G)",
+      "type": "closed radius-two ball",
+      "space": "\\(2^{V_n}\\)",
+      "def": "The set \\(S_i(G)=\\{j\\in V_n:\\operatorname{dist}_G(i,j)\\le2\\}\\).",
+      "role": "control-exposure exclusion set",
+      "refs": [
+        "G",
+        "V_n",
+        "i",
+        "j",
+        "\\operatorname{dist}_G(i,j)"
+      ]
+    },
+    {
+      "name": "m_i(G)",
+      "type": "radius-two ball size",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "def": "The cardinality \\(m_i(G)=|S_i(G)|\\).",
+      "role": "exposure-probability primitive",
+      "refs": [
+        "n",
+        "i",
+        "S_i(G)"
+      ]
+    },
+    {
+      "name": "\\pi_i^{(0)}(G)",
+      "type": "full-control exposure probability",
+      "space": "\\((0,1]\\)",
+      "def": "On \\(M_{n,d_n}<n\\), the probability \\(\\pi_i^{(0)}(G)=(1-m_i(G)/n)^{k_{n,d_n}}\\).",
+      "role": "inverse-probability weight",
+      "refs": [
+        "n",
+        "i",
+        "G",
+        "M_{n,d_n}",
+        "m_i(G)",
+        "k_{n,d_n}"
+      ]
+    },
+    {
+      "name": "w_i(z;G)",
+      "type": "Rao--Blackwell seed weight",
+      "space": "\\([0,1]\\)",
+      "def": "For assignments \\(z\\) in the support of \\(Z^{\\mathrm{seed}}\\), the conditional weight \\(w_i(z;G)=\\mathbb E[k_{n,d_n}^{-1}\\sum_{\\ell=1}^{k_{n,d_n}}\\mathbf 1\\{J_\\ell=i\\}\\mid G,Z^{\\mathrm{seed}}=z]\\).",
+      "role": "observed-assignment weight",
+      "refs": [
+        "i",
+        "z",
+        "G",
+        "k_{n,d_n}",
+        "\\ell",
+        "J_\\ell",
+        "Z^{\\mathrm{seed}}"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau_{\\mathrm{seed}}",
+      "type": "Rao--Blackwell seed estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The observed-data estimator constructed in Definition 6.",
+      "role": "candidate estimator",
+      "ref": "def:seed-estimator",
+      "refs": [
+        "G",
+        "Z",
+        "Y"
+      ]
+    },
+    {
+      "name": "\\beta_{\\mathrm{bal}}(G)",
+      "type": "balanced endpoint-exposure number",
+      "space": "\\(\\{0,\\ldots,\\lfloor n/2\\rfloor\\}\\)",
+      "def": "The maximum over assignments \\(z\\) of the smaller of the number of fully treated and fully controlled closed neighborhoods.",
+      "role": "all-procedure information obstruction",
+      "refs": [
+        "n",
+        "G",
+        "z",
+        "N_G[i]"
+      ]
+    },
+    {
+      "name": "\\mathsf{Compile}(G)",
+      "type": "total design-estimator compiler",
+      "space": "finite randomized algorithms",
+      "def": "The exact branch-guarded finite compiler constructed in Definition 7.",
+      "role": "inherited implementable attaining procedure",
+      "ref": "def:finite-compiler",
+      "refs": [
+        "G"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:degree-divergence",
+      "kind": "random-graph asymptotic regime",
+      "condition": "The degree sequence satisfies \\(d_n\\to\\infty\\).",
+      "free_symbols": [
+        "d_n"
+      ],
+      "standard": {
+        "name": "Diverging-degree random-regular triangular array",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "thm:sparse-boolean-operator",
+        "oeq:dense-four-root-switching",
+        "thm:uniform-boolean-operator",
+        "thm:balanced-all-procedure-converse",
+        "thm:matched-frontier"
+      ]
+    },
+    {
+      "id": "ass:degree-sparsity",
+      "kind": "random-graph asymptotic regime",
+      "condition": "The degree sequence satisfies \\(d_n/\\sqrt n\\to0\\).",
+      "free_symbols": [
+        "n",
+        "d_n"
+      ],
+      "standard": {
+        "name": "Sub-square-root degree regime of Corollary 5.4",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "oeq:dense-four-root-switching",
+        "thm:uniform-boolean-operator",
+        "thm:balanced-all-procedure-converse",
+        "thm:seed-upper",
+        "thm:matched-frontier"
+      ]
+    },
+    {
+      "id": "ass:fixed-schedule",
+      "kind": "design-based finite population",
+      "condition": "Conditional on \\(G\\), the schedule \\(y\\) is fixed before \\(Z\\) and \\(U\\) are drawn.",
+      "free_symbols": [
+        "G",
+        "y",
+        "Z",
+        "U"
+      ],
+      "standard": {
+        "name": "Fixed finite-population potential outcomes",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "def:outcome-class",
+        "def:minimax-risk",
+        "thm:balanced-all-procedure-converse",
+        "thm:seed-upper",
+        "thm:matched-frontier"
+      ]
+    },
+    {
+      "id": "ass:ani",
+      "kind": "causal-structural",
+      "condition": "For every \\(i\\in V_n\\), if \\(z|_{N_G[i]}=z'|_{N_G[i]}\\), then \\(y_i(z)=y_i(z')\\).",
+      "free_symbols": [
+        "i",
+        "V_n",
+        "z",
+        "z'",
+        "G",
+        "N_G[i]",
+        "y_i(z)"
+      ],
+      "standard": {
+        "name": "Arbitrary neighborhood interference",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "def:outcome-class",
+        "thm:balanced-all-procedure-converse",
+        "thm:seed-upper",
+        "thm:matched-frontier"
+      ]
+    },
+    {
+      "id": "ass:treated-endpoint-second-moment",
+      "kind": "support",
+      "condition": "The treated-endpoint schedule satisfies \\(n^{-1}\\sum_{i\\in V_n}y_{i1}^2\\le1\\).",
+      "free_symbols": [
+        "n",
+        "V_n",
+        "i",
+        "y_{i1}"
+      ],
+      "standard": {
+        "name": "Empirical treated-endpoint \\(L^2\\) bound",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "def:outcome-class",
+        "def:minimax-risk",
+        "thm:balanced-all-procedure-converse",
+        "thm:seed-upper",
+        "thm:matched-frontier"
+      ]
+    },
+    {
+      "id": "ass:control-endpoint-second-moment",
+      "kind": "support",
+      "condition": "The control-endpoint schedule satisfies \\(n^{-1}\\sum_{i\\in V_n}y_{i0}^2\\le1\\).",
+      "free_symbols": [
+        "n",
+        "V_n",
+        "i",
+        "y_{i0}"
+      ],
+      "standard": {
+        "name": "Empirical control-endpoint \\(L^2\\) bound",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "def:outcome-class",
+        "def:minimax-risk",
+        "thm:balanced-all-procedure-converse",
+        "thm:seed-upper",
+        "thm:matched-frontier"
+      ]
+    },
+    {
+      "id": "ass:outcome-blind-design",
+      "kind": "experimental design",
+      "condition": "The assignment law \\(\\mathcal D_G\\) is measurable with respect to the revealed graph \\(G\\).",
+      "free_symbols": [
+        "\\mathcal D_G",
+        "G"
+      ],
+      "standard": {
+        "name": "Outcome-independent graph-adaptive design",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "def:minimax-risk",
+        "thm:balanced-all-procedure-converse",
+        "thm:matched-frontier"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:outcome-class",
+      "name": "Exact \\(q=2\\) GATE outcome class",
+      "construction": "\\[\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)=\\left\\{y=(y_i)_{i\\in V_n}: y\\text{ satisfies }\\texttt{ass:fixed-schedule},\\ \\texttt{ass:ani},\\ \\texttt{ass:treated-endpoint-second-moment},\\ \\text{and }\\texttt{ass:control-endpoint-second-moment}\\text{ at index }n\\right\\}.\\]",
+      "free_symbols": [
+        "n",
+        "V_n",
+        "i",
+        "G",
+        "y",
+        "\\tau_{\\mathrm{GATE}}(y)"
+      ],
+      "by_member_properties": [
+        "ass:fixed-schedule",
+        "ass:ani",
+        "ass:treated-endpoint-second-moment",
+        "ass:control-endpoint-second-moment"
+      ]
+    },
+    {
+      "id": "def:minimax-risk",
+      "name": "Unrestricted revealed-graph minimax risk",
+      "construction": "\\[R_2(G)=\\inf_{\\mathcal D_G,T}\\sup_{y\\in\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)}\\mathbb E_{Z\\sim\\mathcal D_G,U}\\!\\left[\\{T(G,Z,Y,U)-\\tau_{\\mathrm{GATE}}(y)\\}^2\\mid G\\right].\\]",
+      "free_symbols": [
+        "G",
+        "\\mathcal D_G",
+        "T",
+        "y",
+        "\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)",
+        "Z",
+        "U",
+        "Y",
+        "\\tau_{\\mathrm{GATE}}(y)",
+        "R_2(G)"
+      ],
+      "inputs": [
+        "G",
+        "\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)"
+      ]
+    },
+    {
+      "id": "def:log-frontier-scale",
+      "name": "Logarithmic candidate frontier",
+      "construction": "\\[r_{\\log}(n,d_n)=\\frac{d_n^2}{n\\log(d_n+1)}.\\]",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "r_{\\log}(n,d_n)"
+      ],
+      "inputs": [
+        "n",
+        "d_n"
+      ]
+    },
+    {
+      "id": "def:four-root-handle",
+      "name": "Four-root completion-switching handle",
+      "construction": "Reveal the four rooted closed neighborhoods jointly under the uniform simple regular law, enumerate direct root edges and shared length-two witnesses, and compare residual simple completions by degree-preserving switchings before bounding the signed five-probability combination defining \\(\\mu_{\\mathrm{cyc}}(n,d_n)\\).",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G_n",
+        "B_G",
+        "p_{n,d_n}",
+        "\\mu_{\\mathrm{cyc}}(n,d_n)"
+      ],
+      "inputs": [
+        "G_n",
+        "B_G",
+        "p_{n,d_n}"
+      ]
+    },
+    {
+      "id": "def:seed-design",
+      "name": "Inherited log-tuned neighborhood-seed design",
+      "construction": "When \\(M_{n,d_n}<n\\), draw \\(J_1,\\ldots,J_{k_{n,d_n}}\\) independently and uniformly from \\(V_n\\), then set \\(Z=Z^{\\mathrm{seed}}\\) with \\(Z^{\\mathrm{seed}}_v=\\mathbf 1\\{v\\in\\bigcup_{\\ell=1}^{k_{n,d_n}}N_G[J_\\ell]\\}\\).",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "M_{n,d_n}",
+        "J_\\ell",
+        "k_{n,d_n}",
+        "V_n",
+        "G",
+        "N_G[i]",
+        "Z",
+        "Z^{\\mathrm{seed}}",
+        "\\ell"
+      ],
+      "inputs": [
+        "G",
+        "n",
+        "d_n"
+      ]
+    },
+    {
+      "id": "def:seed-estimator",
+      "name": "Inherited observed-data Rao--Blackwell seed estimator",
+      "construction": "On the seed branch, set \\[\\widehat\\tau_{\\mathrm{seed}}=\\sum_{i\\in V_n}w_i(Z;G)Y_i-\\frac1n\\sum_{i\\in V_n}\\frac{\\mathbf 1\\{Z|_{N_G[i]}=0\\}}{\\pi_i^{(0)}(G)}Y_i.\\] The conditional multiplicity weights \\(w_i(Z;G)\\) integrate out the unobserved seed tuple.",
+      "free_symbols": [
+        "\\widehat\\tau_{\\mathrm{seed}}",
+        "n",
+        "V_n",
+        "i",
+        "w_i(z;G)",
+        "Z",
+        "G",
+        "Y",
+        "N_G[i]",
+        "\\pi_i^{(0)}(G)"
+      ],
+      "inputs": [
+        "G",
+        "Z",
+        "Y"
+      ]
+    },
+    {
+      "id": "def:finite-compiler",
+      "name": "Inherited total exhaustive procedure compiler",
+      "construction": "Given \\(G\\), first test whether \\(d_n^2+1<n\\). If this test fails, immediately return the degenerate assignment law concentrated on \\(\\boldsymbol{1}_n\\) and the estimator \\(T(G,Z,Y,U)=n^{-1}\\sum_{i\\in V_n}Y_i\\). No seed-side quantity is evaluated on this branch. Only if \\(d_n^2+1<n\\), compute \\(B_G\\), all \\(m_i(G)\\), and \\(k_{n,d_n}\\); enumerate all \\(n^{k_{n,d_n}}\\) ordered seed tuples; group them by the induced assignment; and compute every \\(w_i(z;G)\\) and the exact worst-case quadratic risk certificate of \\(\\widehat\\tau_{\\mathrm{seed}}\\). On this branch, return the seed law and estimator when that certificate is at most one, and otherwise return the same all-treated law and estimator.",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G",
+        "\\boldsymbol{1}_n",
+        "T",
+        "Z",
+        "U",
+        "B_G",
+        "m_i(G)",
+        "k_{n,d_n}",
+        "w_i(z;G)",
+        "\\widehat\\tau_{\\mathrm{seed}}",
+        "V_n",
+        "i",
+        "Y",
+        "\\mathsf{Compile}(G)"
+      ],
+      "inputs": [
+        "G"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:fourth-trace-identity",
+      "kind": "lemma",
+      "statement": "Let \\(\\mu_4=\\mathbb E[(X_{G_n})_{12}^4]\\) and \\(\\mu_{22}=\\mathbb E[(X_{G_n})_{12}^2(X_{G_n})_{13}^2]\\). Then \\[\\mathbb E\\operatorname{tr}(X_{G_n}^4)=n(n-1)\\mu_4+2n(n-1)(n-2)\\mu_{22}+n(n-1)(n-2)(n-3)\\mu_{\\mathrm{cyc}}(n,d_n),\\] with \\(\\mu_4\\le2d_n^2/(n-1)\\) and \\(\\mu_{22}\\le C d_n^4/n^2\\) for a universal \\(C\\) throughout \\(d_n=o(\\sqrt n)\\).",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G_n",
+        "X_{G_n}",
+        "\\mu_{\\mathrm{cyc}}(n,d_n)"
+      ],
+      "depends_on": [],
+      "status": "to-prove",
+      "justification": "This bookkeeping identity compresses the dense-range Boolean collision patterns into the single signed four-root quantity; it is a reduction supporting the new obligation, not a standalone novelty claim.",
+      "gap": "Xu2025SwitchingGraphMatrices controls fixed polynomial shapes, while this supporting identity isolates the nonpolynomial Boolean residue without claiming a second theorem-level comparison.",
+      "consumer": "Open-ended Question 1 and Theorem 2 use it to turn a four-root probability estimate into the required operator event."
+    },
+    {
+      "id": "thm:sparse-boolean-operator",
+      "kind": "theorem",
+      "statement": "There is a universal \\(L<\\infty\\) such that, uniformly over every admissible sequence satisfying \\(d_n\\le n^{2/5}\\), \\[\\Pr_{G_n}\\!\\left\\{\\|B_{G_n}P_n\\|_{\\mathrm{op}}\\le Ld_n^{7/4}\\right\\}\\longrightarrow1.\\]",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G_n",
+        "B_G",
+        "P_n"
+      ],
+      "depends_on": [
+        "ass:degree-divergence"
+      ],
+      "status": "to-prove",
+      "justification": "This separately audited supporting estimate handles slow degree divergence and removes the sparse half of the inherited operator bottleneck; it is not the paper's root-level novelty claim.",
+      "gap": "CookGoldsteinJohnson2018 controls \\(A_GP_n\\), not the Boolean collision correction in \\(B_GP_n\\); the supporting exploration tail supplies only the sparse-range input needed for the Kandiros--Harshaw--S\\'{a}vje frontier closure.",
+      "consumer": "Theorem 3 obtains the matched risk upper edge for all sequences that remain below the split."
+    },
+    {
+      "id": "oeq:dense-four-root-switching",
+      "kind": "openendedquestion",
+      "statement": "Using the four-root completion-switching handle, establish whether a universal \\(C_4<\\infty\\) satisfies \\[\\mu_{\\mathrm{cyc}}(n,d_n)\\le C_4\\frac{d_n^4}{n^3}\\] for all sufficiently large \\(n\\), uniformly over every admissible sequence with \\(n^{2/5}\\le d_n=o(\\sqrt n)\\).",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G_n",
+        "\\mu_{\\mathrm{cyc}}(n,d_n)"
+      ],
+      "depends_on": [
+        "ass:degree-divergence",
+        "ass:degree-sparsity",
+        "def:four-root-handle",
+        "lem:fourth-trace-identity"
+      ],
+      "status": "to-prove",
+      "justification": "This is the sole genuinely new root-level mathematical obligation: termwise absolute estimates fail, so the regular-law dependence must retain cancellation in the signed four-root moment.",
+      "gap": "The Kandiros--Harshaw--S\\'{a}vje rate bracket remains open because neither its argument nor the fixed-shape and sparse-powering methods that inform this handle control thresholded four-root reachability with shared witnesses, direct root edges, and residual-degree dependence in the dense growing-degree range.",
+      "consumer": "A positive resolution closes the dense half of Theorem 2; a counterexample decisively kills this attaining route before another design is attempted."
+    },
+    {
+      "id": "thm:uniform-boolean-operator",
+      "kind": "theorem",
+      "statement": "There is a universal \\(L<\\infty\\) such that for every admissible sequence, \\[\\Pr_{G_n}\\!\\left\\{\\|B_{G_n}P_n\\|_{\\mathrm{op}}\\le Ld_n^{7/4}\\right\\}\\longrightarrow1.\\]",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G_n",
+        "B_G",
+        "P_n"
+      ],
+      "depends_on": [
+        "ass:degree-divergence",
+        "ass:degree-sparsity",
+        "lem:fourth-trace-identity",
+        "thm:sparse-boolean-operator",
+        "oeq:dense-four-root-switching"
+      ],
+      "status": "to-prove",
+      "justification": "This is the graph-certificate synthesis needed by the inherited log-tuned two-arm design; its genuinely new input is exactly Open-ended Question 1 in the dense range.",
+      "gap": "The Kandiros--Harshaw--S\\'{a}vje bracket does not provide this Boolean operator event, and the archived version-one run leaves its dense signed four-root input unresolved.",
+      "consumer": "Theorem 3 converts this event into the \\(r_{\\log}(n,d_n)\\) worst-case MSE upper bound."
+    },
+    {
+      "id": "thm:balanced-all-procedure-converse",
+      "kind": "theorem",
+      "statement": "There is a universal \\(c>0\\) such that for every admissible sequence, \\[\\Pr_{G_n}\\!\\left\\{R_2(G_n)\\ge c\\,r_{\\log}(n,d_n)\\right\\}\\longrightarrow1.\\] The infimum remains over every outcome-independent assignment law and every measurable, possibly randomized estimator on \\(\\mathcal M(G_n,\\tau_{\\mathrm{GATE}},2)\\).",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G_n",
+        "R_2(G)",
+        "r_{\\log}(n,d_n)",
+        "\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)",
+        "\\tau_{\\mathrm{GATE}}(y)",
+        "\\mathcal D_G",
+        "T",
+        "\\beta_{\\mathrm{bal}}(G)"
+      ],
+      "depends_on": [
+        "ass:degree-divergence",
+        "ass:degree-sparsity",
+        "ass:fixed-schedule",
+        "ass:ani",
+        "ass:treated-endpoint-second-moment",
+        "ass:control-endpoint-second-moment",
+        "ass:outcome-blind-design",
+        "def:outcome-class",
+        "def:minimax-risk",
+        "def:log-frontier-scale"
+      ],
+      "status": "to-prove",
+      "justification": "This balanced simultaneous-exposure converse is inherited infrastructure from \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1}; it is retained for independent audit and for the final unrestricted optimality certificate, not claimed as a new contribution.",
+      "gap": "The inherited converse sharpens the published Kandiros--Harshaw--S\\'{a}vje lower edge on the same game, but the paper's new work is not that sharpening: it is the upper-edge closure through the signed four-root estimate.",
+      "consumer": "Theorem 4 uses this converse as the optimality certificate for the compiled experimental design."
+    },
+    {
+      "id": "thm:seed-upper",
+      "kind": "theorem",
+      "statement": "On every sufficiently large revealed graph satisfying \\(\\|B_GP_n\\|_{\\mathrm{op}}\\le Ld_n^{7/4}\\), the log-tuned seed law and \\(\\widehat\\tau_{\\mathrm{seed}}\\) are observed-data measurable, unbiased for \\(\\tau_{\\mathrm{GATE}}(y)\\), and obey \\[\\sup_{y\\in\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)}\\mathbb E\\!\\left[\\{\\widehat\\tau_{\\mathrm{seed}}-\\tau_{\\mathrm{GATE}}(y)\\}^2\\mid G\\right]\\le C\\,r_{\\log}(n,d_n)\\] for a universal \\(C<\\infty\\).",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G",
+        "B_G",
+        "P_n",
+        "\\widehat\\tau_{\\mathrm{seed}}",
+        "y",
+        "\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)",
+        "\\tau_{\\mathrm{GATE}}(y)",
+        "r_{\\log}(n,d_n)"
+      ],
+      "depends_on": [
+        "ass:degree-sparsity",
+        "ass:fixed-schedule",
+        "ass:ani",
+        "ass:treated-endpoint-second-moment",
+        "ass:control-endpoint-second-moment",
+        "def:outcome-class",
+        "def:log-frontier-scale",
+        "def:seed-design",
+        "def:seed-estimator"
+      ],
+      "status": "to-prove",
+      "justification": "This synthesis certifies that the inherited observed-data seed construction attains the lower-bound scale once the new dense four-root estimate and the separate sparse certificate are available.",
+      "gap": "The published Kandiros--Harshaw--S\\'{a}vje upper edge is of order \\(d_n^2/n\\), and the archived seed analysis reaches no smaller order without the missing Boolean covariance certificate; the strict advance is the matched upper edge on that same game.",
+      "consumer": "Theorem 4 supplies KarrerEtAl2021Scale with a degree-sensitive precision benchmark and a concrete alternative to fixed clustering."
+    },
+    {
+      "id": "prop:finite-compiler",
+      "kind": "proposition",
+      "statement": "The map \\(\\mathsf{Compile}(G)\\) terminates for every admissible finite \\(n,d_n,G\\), samples its returned assignment law exactly, and evaluates its estimator from \\(G,Z,Y\\) alone. It first tests \\(d_n^2+1<n\\). If the test fails, it returns the all-treated law and the estimator \\(n^{-1}\\sum_{i\\in V_n}Y_i\\) in \\(O(n)\\) time and \\(O(n)\\) output memory, without evaluating any seed-side quantity. Conditional on \\(d_n^2+1<n\\), computing \\(B_G\\) costs \\(O(nd_n^2+n^2)\\) elementary operations; full seed-tuple grouping costs \\(O(n^{k_{n,d_n}}[n+k_{n,d_n}(d_n+1)])\\) time and \\(O(n\\min\\{2^n,n^{k_{n,d_n}}\\})\\) memory; and sampling the selected seed assignment costs \\(O(k_{n,d_n}(d_n+1)+n)\\) time.",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G",
+        "\\mathsf{Compile}(G)",
+        "\\boldsymbol{1}_n",
+        "B_G",
+        "k_{n,d_n}",
+        "V_n",
+        "i",
+        "Z",
+        "Y"
+      ],
+      "depends_on": [
+        "def:seed-design",
+        "def:seed-estimator",
+        "def:finite-compiler"
+      ],
+      "status": "to-prove",
+      "justification": "The exhaustive finite compiler is inherited infrastructure from \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1}; it is included to keep the attaining experiment total and auditable, not as a new algorithmic contribution.",
+      "gap": "This inherited compiler supplies operational closure for the exact observed-data procedure, while the paper's literature-facing advance over Kandiros--Harshaw--S\\'{a}vje is the risk-rate match generated by the signed four-root estimate.",
+      "consumer": "Small random-regular instances can be audited exactly, and large instances can sample the assignment even when exact conditional-weight preprocessing is super-polynomial."
+    },
+    {
+      "id": "thm:matched-frontier",
+      "kind": "theorem",
+      "statement": "There exist universal constants \\(0<c<C<\\infty\\) such that for every sequence with \\(d_n\\to\\infty\\), \\(d_n=o(\\sqrt n)\\), and \\(nd_n\\) even, \\[\\Pr_{G_n}\\!\\left\\{c\\,r_{\\log}(n,d_n)\\le R_2(G_n)\\le C\\,r_{\\log}(n,d_n)\\right\\}\\longrightarrow1.\\] On the same graph event, the design-estimator returned by \\(\\mathsf{Compile}(G_n)\\) has worst-case design MSE at most \\(C\\,r_{\\log}(n,d_n)\\) over exactly \\(\\mathcal M(G_n,\\tau_{\\mathrm{GATE}},2)\\).",
+      "free_symbols": [
+        "n",
+        "d_n",
+        "G_n",
+        "R_2(G)",
+        "r_{\\log}(n,d_n)",
+        "\\mathsf{Compile}(G)",
+        "\\mathcal M(G,\\tau_{\\mathrm{GATE}},2)",
+        "\\tau_{\\mathrm{GATE}}(y)"
+      ],
+      "depends_on": [
+        "ass:degree-divergence",
+        "ass:degree-sparsity",
+        "ass:fixed-schedule",
+        "ass:ani",
+        "ass:treated-endpoint-second-moment",
+        "ass:control-endpoint-second-moment",
+        "ass:outcome-blind-design",
+        "def:outcome-class",
+        "def:minimax-risk",
+        "def:log-frontier-scale",
+        "thm:uniform-boolean-operator",
+        "thm:balanced-all-procedure-converse",
+        "thm:seed-upper",
+        "prop:finite-compiler"
+      ],
+      "status": "to-prove",
+      "justification": "This field-tier closure identifies the universal risk scale and certifies an attaining one-shot procedure against the unrestricted Kandiros--Harshaw--S\\'{a}vje benchmark.",
+      "gap": "KandirosHarshawSavje2026Minimax Corollary 5.4 leaves a factor \\(d_n\\) on the identical game; the inherited version-one infrastructure narrows this to a logarithmic gap, and the sole new root-level four-root estimate closes that remaining gap.",
+      "consumer": "KarrerEtAl2021Scale can use the theorem to determine whether the deployed cluster-randomized \\(d_n^2/n\\) benchmark is rate-optimal in the diffuse regular-network regime and how required population size grows with degree."
+    }
+  ],
+  "sampling_model": {
+    "design": "The simple labeled \\(d_n\\)-regular graph \\(G_n\\) is drawn uniformly and fully revealed before the experimenter chooses one graph-measurable assignment law. The total compiler first tests \\(d_n^2+1<n\\): failure returns the all-treated law immediately, while success permits it to evaluate the candidate law that draws \\(k_{n,d_n}\\) uniform seeds with replacement and treats the union of their closed neighborhoods.",
+    "units": "Conditional on the revealed graph, the population \\(V_n\\) and the complete potential-outcome schedule \\(y\\) are fixed. The schedule may depend on \\(G_n\\).",
+    "treatment": "One binary assignment \\(Z\\) is drawn. The observed data are exactly \\(G_n,Z,Y\\), where \\(Y_i=y_i(Z)\\); estimator randomization \\(U\\) is independent and included in risk.",
+    "overlap": "No Bernoulli overlap condition is imposed. On the seed branch, the inverse probability \\(\\pi_i^{(0)}\\) is formed only when \\(d_n^2+1<n\\), which makes it positive; every other finite case uses the all-treated fallback.",
+    "nuisance_estimation": "There are no nuisance regressions or prior outcomes. Intermediate-exposure outcomes are unrestricted and ignored."
+  },
+  "estimand_functional": "\\[R_2(G_n)\\asymp r_{\\log}(n,d_n),\\qquad r_{\\log}(n,d)=\\frac{d^2}{n\\log(d+1)},\\] with the upper edge attained by the total graph-dependent procedure \\(\\mathsf{Compile}(G_n)\\) and the lower edge taken over every outcome-independent assignment law and every measurable, possibly randomized estimator.",
+  "target_estimand": "\\(\\tau_{\\mathrm{GATE}}(y)=n^{-1}\\sum_{i\\in V_n}\\{y_i(\\boldsymbol{1}_n)-y_i(\\boldsymbol{0}_n)\\}\\)",
+  "bibliography": [
+    {
+      "key": "KandirosHarshawSavje2026Minimax",
+      "citation": "Vardis Kandiros, Christopher Harshaw, and Fredrik S\\'{a}vje. A Design-Based Minimax Theory for Network Experiments. arXiv:2608.04909, 2026."
+    },
+    {
+      "key": "KandirosEtAl2024ConflictGraph",
+      "citation": "Vardis Kandiros, Charilaos Pipis, Constantinos Daskalakis, and Christopher Harshaw. The Conflict Graph Design: Estimating Causal Effects under Arbitrary Neighborhood Interference. arXiv:2411.10908, 2024."
+    },
+    {
+      "key": "UganderYin2023RGCR",
+      "citation": "Johan Ugander and Hao Yin. Randomized Graph Cluster Randomization. Journal of Causal Inference, 11(1), 2023. doi:10.1515/jci-2022-0014."
+    },
+    {
+      "key": "CookGoldsteinJohnson2018",
+      "citation": "Nicholas A. Cook, Larry Goldstein, and Tobias Johnson. Size Biased Couplings and the Spectral Gap for Random Regular Graphs. Annals of Probability, 46(1):72--125, 2018. doi:10.1214/17-AOP1180."
+    },
+    {
+      "key": "Xu2025SwitchingGraphMatrices",
+      "citation": "Jeff Xu. Switching Graph Matrix Norm Bounds: From i.i.d. to Random Regular Graphs. 40th Computational Complexity Conference, LIPIcs 334:11, 2025. doi:10.4230/LIPIcs.CCC.2025.11."
+    },
+    {
+      "key": "AbbeBoixRalliSandon2020",
+      "citation": "Emmanuel Abbe, Enric Boix-Adser\\`{a}, Peter Ralli, and Colin Sandon. Graph Powering and Spectral Robustness. SIAM Mathematics of Data Science, 2(1):132--157, 2020. doi:10.1137/19M1257135."
+    },
+    {
+      "key": "CooperEtAl2002RandomRegular",
+      "citation": "Colin Cooper, Alan Frieze, Bruce Reed, and Oliver Riordan. Random Regular Graphs of Non-Constant Degree: Independence and Chromatic Number. Combinatorics, Probability and Computing, 11(4):323--341, 2002. doi:10.1017/S0963548302005254."
+    },
+    {
+      "key": "HarshawSavjeWang2022Riesz",
+      "citation": "Christopher Harshaw, Fredrik S\\'{a}vje, and Yitan Wang. A Design-Based Riesz Representation Framework for Randomized Experiments. arXiv:2210.08698, 2022."
+    },
+    {
+      "key": "KarrerEtAl2021Scale",
+      "citation": "Brian Karrer, Liang Shi, Monica Bhole, Matt Goldman, Tyrone Palmer, Charlie Gelman, Mikael Konutgan, and Feng Sun. Network Experimentation at Scale. Proceedings of the 27th ACM SIGKDD Conference on Knowledge Discovery and Data Mining, pages 3106--3116, 2021. doi:10.1145/3447548.3467091."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "KandirosHarshawSavje2026Minimax",
+      "comparator_claim": "Corollary 5.4 gives \\(d/n\\lesssim R_2(G)\\lesssim d^2/n\\) with high probability for uniform random \\(d\\)-regular graphs when \\(d=o(\\sqrt n)\\).",
+      "matched_by": "thm:matched-frontier",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "KandirosEtAl2024ConflictGraph",
+      "comparator_claim": "Theorem 4.1 bounds the modified Horvitz--Thompson variance by a universal constant times \\(\\lambda(\\mathcal H)/n\\) times the endpoint empirical second moments.",
+      "matched_by": "thm:seed-upper",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "UganderYin2023RGCR",
+      "comparator_claim": "Theorem 4.8 gives a polynomial exposure-variance guarantee for randomized one-hop-max clustering under restricted growth and bounded outcomes.",
+      "matched_by": "thm:seed-upper",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CookGoldsteinJohnson2018",
+      "comparator_claim": "Theorem 1.1 gives \\(O(\\sqrt d)\\) control of the nontrivial adjacency spectrum for uniform simple regular graphs through \\(d=O(n^{2/3})\\).",
+      "matched_by": "thm:sparse-boolean-operator",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Xu2025SwitchingGraphMatrices",
+      "comparator_claim": "The main graph-matrix theorems bound norms of fixed polynomial shapes under the uniform random-regular law by switching trace moments.",
+      "matched_by": "oeq:dense-four-root-switching",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AbbeBoixRalliSandon2020",
+      "comparator_claim": "Corollary 1 proves a spectral-gap result for Boolean graph powering in a sparse Erd\\H{o}s--R\\'{e}nyi regime under a small-radius condition.",
+      "matched_by": "oeq:dense-four-root-switching",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CooperEtAl2002RandomRegular",
+      "comparator_claim": "The paper proves that the independence number is asymptotic to \\(2n\\log d/d\\) for its growing-degree uniform random-regular regime.",
+      "matched_by": "thm:balanced-all-procedure-converse",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HarshawSavjeWang2022Riesz",
+      "comparator_claim": "The paper gives necessary and sufficient conditions for unbiasedness and consistency of its design-based Riesz estimator class.",
+      "matched_by": "thm:matched-frontier",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "This field-tier paper closes the exact all-procedure minimax-rate question of Kandiros--Harshaw--S\\'{a}vje for the full global treatment effect on a revealed uniform simple random regular network under their endpoint empirical second-moment class. The proposed answer is \\(d_n^2/[n\\log(d_n+1)]\\). The balanced all-procedure converse, the neighborhood-seed and Rao--Blackwell construction, and the exhaustive finite compiler are inherited infrastructure from \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1}, not new contributions. A supporting sparse-range Boolean estimate and an exact fourth-trace decomposition isolate the sole genuinely new root-level mathematical obligation: a cancellation-sensitive signed four-root switching estimate for \\(n^{2/5}\\le d_n=o(\\sqrt n)\\). Establishing that estimate yields the missing upper edge and converts the inherited logarithmic bracket into a matched frontier on the unchanged published class and unrestricted procedure space.",
+  "project_justification": {
+    "gap": "Kandiros--Harshaw--S\\'{a}vje, Corollary 5.4, studies the identical \\(q=2\\) GATE minimax game and leaves \\(d_n/n\\lesssim R_2(G_n)\\lesssim d_n^2/n\\). The archived \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1} derivation supplies, as inherited infrastructure, the sharper all-procedure lower edge \\(d_n^2/[n\\log(d_n+1)]\\), the seed-design upper certificate of order \\(d_n^2/n\\), and a total exhaustive compiler, but it leaves a logarithmic gap.",
+    "niche": "A field-tier closure is available if typical random-regular radius-two geometry supports the inherited two-arm seed procedure at the lower-bound scale while retaining Boolean collision cancellations before operator bounds are taken.",
+    "fill": "The paper audits and reuses the inherited balanced converse, seed construction, and finite compiler; proves the separate sparse-range supporting estimate; and concentrates its sole new root-level obligation in a signed four-root completion-switching bound. That bound, the bookkeeping trace identity, and the inherited ingredients yield the matching upper and lower edges uniformly over every admissible degree sequence."
+  },
+  "related_work": "KandirosHarshawSavje2026Minimax, Introduction, Proposition 2.2, Corollary 5.4, Appendix E.4, and the Conclusion, is the sole theorem-level comparator: it supplies the exact decision-theoretic framing and the published \\(d_n/n\\)-to-\\(d_n^2/n\\) bracket, and the matched-frontier theorem strictly tightens that corollary on the same class. The balanced all-procedure converse, seed and Rao--Blackwell spine, exhaustive finite compiler, and finite enumeration checks from \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1} are inherited internal infrastructure rather than contributions of this paper. KandirosEtAl2024ConflictGraph, Algorithm 1 and Theorem 4.1, informs the exposure-weight and covariance-operator architecture but is not a claimed tightening target. UganderYin2023RGCR, Section 3 and Theorem 4.8, informs randomized graph decompositions and integrated exposure probabilities under a different outcome class and fixed-estimator guarantee. CookGoldsteinJohnson2018, Theorem 1.1, supplies published adjacency spectral control on the uniform simple regular law; it does not control Boolean radius-two collisions. Xu2025SwitchingGraphMatrices, Theorems 2.10--2.11 and the trace-moment construction, informs the switching handle for fixed polynomial graph matrices. AbbeBoixRalliSandon2020, Corollary 1 and Section 2.2, informs the distinction between Boolean graph powering and walk counts under sparse small-radius conditions. CooperEtAl2002RandomRegular informs ordinary independence-number switching estimates rather than the inherited balanced two-arm converse. HarshawSavjeWang2022Riesz informs the design-based estimator language without supplying a complete class for this unrestricted game. Public January 2026 Li--Li slides are non-archival and disclose only a one-arm upper construction under stronger outcome bounds, so they are context rather than a theorem-level comparator. KarrerEtAl2021Scale is the concrete consumer: its deployed cluster-randomized GATE framework receives a random-regular precision benchmark, not a claim that its platform graph is random regular.",
+  "technical_internal_limitation": "The load-bearing dense statement is the signed inequality \\(\\mathbb E[(B_{12}-p_{n,d})(B_{23}-p_{n,d})(B_{34}-p_{n,d})(B_{41}-p_{n,d})]\\le C d^4/n^3\\). It is the sole genuinely new root-level obligation. Bounding its five uncentered joint probabilities separately loses the independent-witness and shared-witness cancellations. The exhaustive finite enumeration checks and compiler machinery are inherited from \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1}; their \\(n=8,d=3\\) verification has no asymptotic force and is not a new contribution. A failure of this sufficient fourth-moment route would not refute the minimax target; the direct Schur-covariance certificate or a different attaining design would remain logically available.",
+  "honest_scope": "Every numbered result is to be proved or independently audited. The signed dense four-root estimate is the sole genuinely new root-level mathematical obligation and is not a maintained assumption. The sparse Boolean estimate is a separate supporting input. The balanced all-procedure converse, neighborhood-seed and Rao--Blackwell spine, exhaustive finite compiler, and finite enumeration checks are inherited infrastructure from \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1}, not claimed contributions. The field-tier result closes the Kandiros--Harshaw--S\\'{a}vje rate bracket on one assignment, fixed finite-population potential outcomes, arbitrary neighborhood interference, endpoint empirical second moments, and the unrestricted outcome-blind procedure space. It makes no computational-efficiency claim beyond the inherited finite exact algorithm. As a sanity reduction outside the diverging-degree theorem, at \\(d=0\\) the same decision problem is the classical no-interference ATE problem and has minimax MSE of order \\(n^{-1}\\).",
+  "seeds": [
+    "Four-root cancellation and the matched GATE frontier",
+    "Ellipsoidal conflict-game saddle and typical evaluation",
+    "Observable codegree phase-adaptive two-arm design",
+    "Balanced signed-packing all-procedure converse",
+    "Direct Schur-covariance certificate without a global operator bound",
+    "Booleanization of switching graph matrices",
+    "Randomized-clustering and seed-design hybrid",
+    "Powered-graph spectral transfer to the regular dense range"
+  ],
+  "seed_details": [
+    {
+      "rank": 1,
+      "seed": "Four-root cancellation and the matched GATE frontier",
+      "anchor": "KandirosHarshawSavje2026Minimax, Introduction, Proposition 2.2, Corollary 5.4, Appendix E.4, and Conclusion; failed parent proposal, logarithmic-gap review finding",
+      "motif": "M13+M7",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace the archived unbounded Boolean inclusion--exclusion expansion by the exact fourth-trace partition and bound the combined four-root reachability cumulant by switchings before taking absolute values.",
+      "target_method_search": "Exact searches for random-regular GATE minimax risk, Boolean radius-two spectra, and signed four-root reachability found the anchor bracket, polynomial graph-matrix results, and an ongoing restricted talk, but no same-class matched theorem.",
+      "red_team": "Immediate from KandirosHarshawSavje2026Minimax because its conflict graph for GATE is the two-hop graph and random regular graphs have controlled adjacency spectrum.",
+      "rebuttal": "The anchor itself obtains only \\(d_n/n\\) versus \\(d_n^2/n\\); adjacency spectral control does not control the thresholded radius-two covariance, and the signed four-root remainder is absent from its proof.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "kept": true
+    },
+    {
+      "rank": 2,
+      "seed": "Ellipsoidal conflict-game saddle and typical evaluation",
+      "anchor": "KandirosHarshawSavje2026Minimax, Proposition 2.2 and Conclusion; HarshawSavjeWang2022Riesz, estimator construction and necessity results",
+      "motif": "M13+M6",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace the sign-schedule extreme-point reduction available for bounded outcomes by an ellipsoidal complete-class or least-favourable-prior reduction for the two empirical \\(L^2\\) endpoint balls.",
+      "target_method_search": "Searches for an exact finite saddle for network-experiment \\(L^2\\) minimax risk found conflict-graph invariance and linear Riesz estimators, but no proof that linear or unbiased rules are minimax-complete.",
+      "red_team": "Finite minimax duality makes the exact risk an immediate convex program.",
+      "rebuttal": "The adversary has unbounded irrelevant exposures, the endpoint set is ellipsoidal, and estimators may be biased and nonlinear; a finite lossless reduction is precisely the missing theorem, not a routine invocation of duality.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "kept": true
+    },
+    {
+      "rank": 3,
+      "seed": "Observable codegree phase-adaptive two-arm design",
+      "anchor": "KandirosHarshawSavje2026Minimax, Corollary 5.4; KandirosEtAl2024ConflictGraph, Algorithm 1 and Theorem 4.1",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Use graph-computable codegree and radius-two collision summaries to select between a low-codegree seed law and conflict resolution, then certify the selected two-arm covariance rather than analyzing one fixed design.",
+      "target_method_search": "The Li--Li public slides analyze a related low-codegree one-arm Horvitz--Thompson construction but list the full two-arm estimator as ongoing; no archival all-procedure theorem occupies the exact target.",
+      "red_team": "The January 2026 Li--Li talk already proves the pseudo-random graph frontier.",
+      "rebuttal": "Its displayed upper theorem is for one endpoint, its model bounds the full outcome vector under every assignment, and its lower comparison is restricted to Horvitz--Thompson variance rather than the present all-estimator risk.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "kept": true
+    },
+    {
+      "rank": 4,
+      "seed": "Balanced signed-packing all-procedure converse",
+      "anchor": "KandirosHarshawSavje2026Minimax, design-adaptive Le Cam construction; CooperEtAl2002RandomRegular, independence-number switching and enumeration",
+      "motif": "M13+M7",
+      "target_tier": "field",
+      "first_changed_proof_step": "Couple the two endpoint priors assignment by assignment and count balanced opposite-colour radius-two holes rather than one-colour independent sets.",
+      "target_method_search": "Searches for balanced treated-control closed-neighborhood packing on random regular graphs found ordinary independence asymptotics but no two-arm information theorem.",
+      "red_team": "CooperEtAl2002RandomRegular gives the needed packing size after squaring the degree.",
+      "rebuttal": "Ordinary independence forbids all close pairs, whereas balanced exposure forbids only opposite-arm pairs and must be linked to Bayes risk for arbitrary biased estimators.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 4
+      },
+      "kept": false,
+      "dropped_reason": "The failed parent already derived this lower edge; without a matching upper construction it reproduces the rejected logarithmic bracket."
+    },
+    {
+      "rank": 5,
+      "seed": "Direct Schur-covariance certificate without a global operator bound",
+      "anchor": "KandirosEtAl2024ConflictGraph, covariance-operator proof; failed parent proposal, exact Schur-power seed identity",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Isolate the diagonal and first Schur power in the seed covariance and control only the graph-computable off-diagonal squared-row statistic.",
+      "target_method_search": "Searches for Schur-power covariance bounds for full-neighborhood exposure found fixed-design variance analyses but no random-regular certificate at the logarithmic scale.",
+      "red_team": "The Schur product theorem and a Taylor expansion immediately give the required covariance norm.",
+      "rebuttal": "They reduce the target to bounds on the maximum entry and squared-row mass, but those quantities still require uniform random-regular collision control near \\(d_n=o(\\sqrt n)\\).",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "kept": false,
+      "dropped_reason": "It remains the fallback route inside the selected seed rather than a distinct theorem-level kernel."
+    },
+    {
+      "rank": 6,
+      "seed": "Booleanization of switching graph matrices",
+      "anchor": "Xu2025SwitchingGraphMatrices, Theorems 2.10--2.11 and trace-moment construction",
+      "motif": "M7",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Combine reachability diagrams into centered Boolean cumulants before applying block-value switchings, rather than treating each fixed polynomial shape separately.",
+      "target_method_search": "Searches for thresholded graph-matrix norms on growing-degree uniform regular graphs found polynomial-shape theorems but no Boolean radius-two extension.",
+      "red_team": "Approximate the indicator by a polynomial and invoke Xu2025SwitchingGraphMatrices term by term.",
+      "rebuttal": "The codegree is not uniformly bounded and the required polynomial degree grows, so termwise bounds reintroduce the archived unbounded-shape summation and lose cancellation.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "kept": false,
+      "dropped_reason": "As a standalone graph theorem it lacks the all-procedure causal lower bound and attaining experimental design required by the topic."
+    },
+    {
+      "rank": 7,
+      "seed": "Randomized-clustering and seed-design hybrid",
+      "anchor": "UganderYin2023RGCR, Section 3, Theorem 4.8, and Conclusion; KandirosHarshawSavje2026Minimax, Corollary 5.4",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Randomize the decomposition and seed count jointly so that both endpoint exposure probabilities are integrated over the clustering law before the minimax covariance bound.",
+      "target_method_search": "Searches found randomized graph clustering and exact exposure integration, but no two-arm random-regular minimax guarantee under endpoint-only \\(L^2\\) control.",
+      "red_team": "UganderYin2023RGCR already integrates over random clusterings and yields the desired GATE variance improvement.",
+      "rebuttal": "Its theorem assumes bounded outcomes and restricted metric growth and remains an Horvitz--Thompson analysis; no matching converse over all designs and estimators is supplied.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "kept": false,
+      "dropped_reason": "No evidence yet shows that randomized clustering removes the simultaneous two-arm exposure obstruction rather than changing constants."
+    },
+    {
+      "rank": 8,
+      "seed": "Powered-graph spectral transfer to the regular dense range",
+      "anchor": "AbbeBoixRalliSandon2020, Corollary 1, Section 2.2, and conclusion; CookGoldsteinJohnson2018, Theorem 1.1",
+      "motif": "M7",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Replace sparse independent-edge tangle bounds by direct uniform-simple residual-degree switchings for Boolean radius two.",
+      "target_method_search": "The destination search found Boolean graph powering for sparse Erd\\H{o}s--R\\'{e}nyi graphs and adjacency spectra for regular graphs, but no theorem combining both in the required dense range.",
+      "red_team": "Set the powering radius to two in AbbeBoixRalliSandon2020 and import CookGoldsteinJohnson2018 for the base spectrum.",
+      "rebuttal": "The powering theorem's displayed small-radius condition fails once \\(d_n\\ge n^{2/5}\\), and an adjacency bound does not transfer through entrywise thresholding.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "kept": false,
+      "dropped_reason": "The available theorems miss exactly the degree range carrying the selected seed's open content."
+    }
+  ],
+  "literature_map": "The field-tier positioning has one theorem-level comparator: KandirosHarshawSavje2026Minimax. Its Introduction defines minimax optimality over all graph-adaptive designs and estimators, Proposition 2.2 makes risk a conflict-graph functional, Corollary 5.4 leaves the exact random-regular GATE interval \\(d_n/n\\) to \\(d_n^2/n\\), Appendix E.4 uses short-cycle counts, and the Conclusion asks for exact characterization and improved designs. The archived \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1} run supplies the balanced lower edge, seed and Rao--Blackwell spine, exhaustive finite compiler, and enumeration checks as inherited infrastructure; none is presented as a new contribution. KandirosEtAl2024ConflictGraph and UganderYin2023RGCR inform exposure weighting and randomized graph design. CookGoldsteinJohnson2018 supplies the adjacency spectral input. Xu2025SwitchingGraphMatrices and AbbeBoixRalliSandon2020 inform, respectively, fixed-shape switching traces and the Boolean-powering distinction. CooperEtAl2002RandomRegular and HarshawSavjeWang2022Riesz provide background on ordinary independence and linear design-based representation. These sources are contextual and are not additional tightening targets. The sole new root-level mathematical obligation is the signed four-root completion-switching estimate in the dense range; the sparse Boolean estimate is separate supporting work. The KarrerEtAl2021Scale deployment paper supplies the downstream precision-benchmark consumer.",
+  "novelty_justification": "This is a field-tier closure of KandirosHarshawSavje2026Minimax Corollary 5.4, the sole theorem-level comparator, on exactly the same graph draw, estimand, endpoint \\(L^2\\) class, and unrestricted procedure space. The strict delta is a constant-factor characterization \\(R_2(G_n)\\asymp d_n^2/[n\\log(d_n+1)]\\) with an attaining total one-shot procedure. The balanced all-procedure converse, seed and Rao--Blackwell construction, exhaustive finite compiler, and enumeration checks are inherited from \\texttt{exp\\_randomregular\\_fullgate\\_minimax\\_frontier\\_v1} and are not new contributions. The sparse Boolean estimate is a separately audited supporting lemma. The sole genuinely new root-level mathematical obligation is the dense signed four-root switching estimate that closes the inherited logarithmic gap. KandirosEtAl2024ConflictGraph, UganderYin2023RGCR, CookGoldsteinJohnson2018, Xu2025SwitchingGraphMatrices, AbbeBoixRalliSandon2020, CooperEtAl2002RandomRegular, and HarshawSavjeWang2022Riesz inform components of the argument but are not claimed to be sharpened, beaten, or extended.",
+  "_pre_d0_cursor": {
+    "cursor_version": 1,
+    "topic": "The sharp global-treatment-effect frontier on random regular networks. For each integer n and d with nd even and 1<=d<n, G is drawn uniformly from the simple labeled d-regular graphs on [n], independently before the experiment and fully revealed. The asymptotic claim covers every admissible sequence d=d_n with d_n tending to infinity and d_n/sqrt(n) tending to zero. Constants in the risk equivalence are universal across such sequences. Probability of the asserted graph event tends to one along every such sequence. Exactly M(G,tau_GATE,2) in Kandiros-Harshaw-Savje (2026): fixed real potential-outcome schedules y_i(z) depend arbitrarily on z restricted to the closed neighborhood of i. Write y_i1=y_i(1^n) and y_i0=y_i(0^n). Require n^-1 sum_i y_ia^2<=1 for each a=0,1. No restrictions on irrelevant exposures, no bounded-degree interference order or additive response restriction. The schedule is fixed before treatment randomization; it may depend on the revealed graph. The experimenter selects any distribution D on {0,1}^n using G but no potential outcomes, then observes (Z,y(Z)). Estimators are all measurable functions of (G,Z,y(Z)); independent randomization is allowed. The minimax benchmark ranges over all such designs and estimators. tau_GATE(y)=n^-1 sum_i [y_i(1^n)-y_i(0^n)]. Risk R_2(G)=inf_(D,T) sup_(y in M(G,tau_GATE,2)) E_D[(T(G,Z,y(Z))-tau_GATE(y))^2], with any estimator randomization included. Determine an explicit evaluable deterministic scale r(n,d)>0, including every logarithmic factor, and prove universal 0<c<C<infinity such that P_G(c r(n,d)<=R_2(G)<=C r(n,d)) tends to one along every admissible d_n tending to infinity with d_n=o(sqrt(n)). The scale may not be defined as R_2 or as the original uncomputed minimax game. Whether it equals d/n, d^2/n, or an intermediate scale is answer-open. Give a total, implementable graph-dependent randomized design and estimator whose worst-case design MSE is at most C r(n,d) on the same high-probability graph event. Specify a finite sampling/evaluation algorithm and its time and memory cost; polynomial efficiency is desirable but not assumed as a second conjecture. If the computation is super-polynomial, supply an evaluable small-instance implementation and say so. Prove the lower bound against all outcome-independent assignment laws and all measurable estimators on the exact same published outcome class and revealed-graph experiment. A lower bound for CGD, cluster designs, linear estimators, or an assumed graph invariant does not suffice. A narrower hand-picked graph family, a risk bracket with a polynomial/log gap, an oracle estimator, or a positive result resting on an assumed lower certificate does not satisfy this kernel. Constants, designs, priors, truncation and proof mechanics are delegated. No requirement that one particular conjectured rate survive. This is an explicit same-framing retry of CausalSmith/doc/research/_bank/failed/exp_randomregular_fullgate_minimax_frontier_v1 (reraise_status: retry), not a new internal problem. The archived derivation proves a d^2/[n log(d+1)] all-procedure lower edge and d^2/n seed-design upper certificate. It does not solve the matched frontier. Three solve rounds stopped at a uniform Boolean radius-two operator/covariance bound. The new work must solve that bottleneck or derive a genuinely different attaining design or stronger all-procedure converse; reproducing the bracket is failure. External focused searches found no closure; active restricted-design topics are distinct. Consumer: Karrer et al., Network experimentation at scale (2020/2021), https://arxiv.org/abs/2012.08591, describes the deployed Facebook cluster-randomized framework for global treatment effects and two case studies. The theorem would give its global-rollout design question a sharp precision benchmark in the diffuse regular-network regime: how sample requirements grow with degree and whether an alternative design can improve over the current CGD d^2/n benchmark. Random regular graphs are a declared benchmark, not an assumption asserted about Facebook data. Eckles-Karrer-Ugander (JCI 2017), https://doi.org/10.1515/jci-2015-0021, studies the same global treatment contrast and design bias-variance tradeoff.\nPRESOLVE EVIDENCE REQUIRING VERIFICATION: The archived attempt established only a logarithmic risk bracket. This presolve derives a new sparse-range radius-two collision tail on the uniform simple regular law and combines it with a published adjacency spectral bound. For the remaining denser range, an exact fourth-trace decomposition reduces the sufficient operator estimate to one signed four-distinct-vertex reachability moment, rather than an unbounded Boolean matrix expansion. Exhaustive enumeration of the 70 labeled cubic graphs on six vertices and 19,355 on eight vertices checks the rational probability identities and covariance algebra; these finite checks do not prove asymptotics. A separate deterministic covariance calculation supplies a weaker alternative certificate and identifies a necessary operator scale for this seed-estimator spine only.\nUNRESOLVED BOTTLENECK: Prove the uniform signed four-vertex moment bound in the original dense subrange, retaining cancellations, shared witnesses and residual-degree dependence; independently audit the displayed sparse switching proof and inherited lower and seed arguments.\nEARLY KILL TEST: Reproduce the exact eight-vertex moment identity, then bound its signed five-probability combination by a four-root switching calculation. A failed sufficient moment route must be distinguished from failure of the full answer-open minimax problem; check the weaker covariance certificate before abandoning the design.\nSTRONGEST-FORM DRAFT (unverified, gaps listed inside): <repo-root>/internal/presolve_drafts/exp_randomregular_fullgate_minimax_frontier_matched_retry.md.",
+    "novelty_target": "field",
+    "qid": "exp_randomregular_fullgate_minimax_frontier",
+    "specialization": "matched_frontier_retry",
+    "angle": 0,
+    "version": 3,
+    "mode": "revise"
+  },
+  "message": "Recovered an interrupted authored core by its exact artifact cursor",
+  "literature_checklist": [
+    {
+      "author": "Kandiros, Harshaw, and Sávje",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "KandirosHarshawSavje2026Minimax",
+      "one_line": "Proposition 2.2 and Corollary 5.4 define the exact all-procedure game and leave random-regular GATE risk between d/n and d²/n.",
+      "relevant_to": "thm:matched-frontier"
+    },
+    {
+      "author": "Kandiros, Pipis, Daskalakis, and Harshaw",
+      "year": 2024,
+      "venue": "arXiv",
+      "bibkey": "KandirosEtAl2024ConflictGraph",
+      "one_line": "Algorithm 1 and Theorem 4.1 provide contextual exposure-weight and covariance-operator machinery.",
+      "relevant_to": "thm:seed-upper"
+    },
+    {
+      "author": "Cook, Goldstein, and Johnson",
+      "year": 2018,
+      "venue": "Annals of Probability",
+      "bibkey": "CookGoldsteinJohnson2018",
+      "one_line": "Theorem 1.1 controls the nontrivial adjacency spectrum on the uniform simple regular law through d=O(n^(2/3)).",
+      "relevant_to": "thm:sparse-boolean-operator"
+    },
+    {
+      "author": "Xu",
+      "year": 2025,
+      "venue": "Computational Complexity Conference",
+      "bibkey": "Xu2025SwitchingGraphMatrices",
+      "one_line": "The switching trace method controls fixed polynomial graph-matrix shapes under random-regular dependence.",
+      "relevant_to": "oeq:dense-four-root-switching"
+    },
+    {
+      "author": "Abbe, Boix-Adserà, Ralli, and Sandon",
+      "year": 2020,
+      "venue": "SIAM Mathematics of Data Science",
+      "bibkey": "AbbeBoixRalliSandon2020",
+      "one_line": "Corollary 1 and Section 2.2 distinguish Boolean graph powering from walk-count polynomials under sparse small-radius conditions.",
+      "relevant_to": "oeq:dense-four-root-switching"
+    },
+    {
+      "author": "Ugander and Yin",
+      "year": 2023,
+      "venue": "Journal of Causal Inference",
+      "bibkey": "UganderYin2023RGCR",
+      "one_line": "Section 3 and Theorem 4.8 provide contextual randomized graph decompositions and integrated exposure probabilities.",
+      "relevant_to": "thm:seed-upper"
+    },
+    {
+      "author": "Cooper, Frieze, Reed, and Riordan",
+      "year": 2002,
+      "venue": "Combinatorics, Probability and Computing",
+      "bibkey": "CooperEtAl2002RandomRegular",
+      "one_line": "The paper derives the growing-degree independence-number scale for uniform random regular graphs.",
+      "relevant_to": "thm:balanced-all-procedure-converse"
+    },
+    {
+      "author": "Harshaw, Sávje, and Wang",
+      "year": 2022,
+      "venue": "arXiv",
+      "bibkey": "HarshawSavjeWang2022Riesz",
+      "one_line": "The Riesz framework characterizes unbiasedness and consistency for linear design-based estimators.",
+      "relevant_to": "thm:matched-frontier"
+    },
+    {
+      "author": "Karrer, Shi, Bhole, Goldman, Palmer, Gelman, Konutgan, and Sun",
+      "year": 2021,
+      "venue": "ACM SIGKDD",
+      "bibkey": "KarrerEtAl2021Scale",
+      "one_line": "The paper documents Facebook's deployed cluster-randomized framework for global treatment effects and two network-effect case studies.",
+      "relevant_to": "thm:matched-frontier"
+    }
+  ]
+}

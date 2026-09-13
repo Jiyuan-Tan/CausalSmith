@@ -1,0 +1,137 @@
+%%% FIELD proof-projected-coverage
+Fix \(n\geq 1\), \(\alpha\in(0,1)\), a design \(B\), and a law \(P\in\mathcal P_{T,S,B,e}\).  Enumerate the \(m\) structural cells of \(\mathcal O\) by \(r=1,\ldots,m\), and write
+\[
+Y_{i,r}=\mathbf 1\{O_i=r\},\qquad
+o_r=\Pr_P(O_i=r),\qquad
+\widehat o_{n,r}=\frac1n\sum_{i=1}^nY_{i,r}.
+\]
+By \(\text{ass:iid-sampling}\), for each fixed \(r\), the variables \(Y_{1,r},\ldots,Y_{n,r}\) are independent Bernoulli variables with common mean \(o_r\).
+
+We first derive the concentration inequality needed below.  If \(Y\) is Bernoulli with mean \(\mu\), put
+\[
+h(\lambda)=\log\mathbb E\!\left[\exp\{\lambda(Y-\mu)\}\right].
+\]
+Exponential tilting preserves the two-point support \(\{0,1\}\).  Hence, if \(\nu_\lambda\) is the tilted mean, direct differentiation gives
+\[
+h(0)=h'(0)=0,
+\qquad
+h''(\lambda)=\nu_\lambda(1-\nu_\lambda)\leq\frac14.
+\]
+Taylor's theorem therefore yields \(h(\lambda)\leq\lambda^2/8\) for every real \(\lambda\).  Independence then gives, for \(t>0\) and \(\lambda>0\),
+\[
+\begin{aligned}
+\Pr_P\!\left\{\widehat o_{n,r}-o_r\geq t\right\}
+&=\Pr_P\!\left\{e^{\lambda\sum_{i=1}^n(Y_{i,r}-o_r)}\geq e^{\lambda nt}\right\}\\
+&\leq e^{-\lambda nt}\prod_{i=1}^n
+  \mathbb E_P e^{\lambda(Y_{i,r}-o_r)}\\
+&\leq \exp\!\left(-\lambda nt+\frac{n\lambda^2}{8}\right).
+\end{aligned}
+\]
+The first inequality follows directly from
+\(\mathbb E[V]\geq c\Pr(V\geq c)\) for a nonnegative random variable \(V\).  Taking \(\lambda=4t\) gives the upper-tail bound \(e^{-2nt^2}\).  Applying the same calculation to \(-(Y_{i,r}-o_r)\) gives
+\[
+\Pr_P\!\left\{|\widehat o_{n,r}-o_r|>t\right\}
+\leq 2e^{-2nt^2}.
+\]
+Finiteness of \(\mathcal O\), supplied by \(\text{ass:finite-alphabets}\), permits a union bound over its \(m\) cells.  With \(\varepsilon_n=\sqrt{\log(2m/\alpha)/(2n)}\), the event
+\[
+E_P=\left\{\|\widehat o_n-o\|_\infty\leq\varepsilon_n\right\}
+\]
+satisfies
+\[
+\Pr_P(E_P^c)
+\leq\sum_{r=1}^m2e^{-2n\varepsilon_n^2}
+=2m\exp\{-\log(2m/\alpha)\}
+=\alpha.
+\]
+By the definition of \(o\), \(o=\Phi_{T,S,B,e}(P)\).  On \(E_P\), the law \(P\) itself therefore satisfies both constraints in the braces defining \(\mathcal C_n\): it belongs to \(\mathcal P_{T,S,B,e}\) by hypothesis, and
+\[
+\|\Phi_{T,S,B,e}(P)-\widehat o_n\|_\infty\leq\varepsilon_n.
+\]
+Consequently \(Q(P)\) belongs to the set inside the closure in \(\text{def:projected-confidence-set}\), and hence belongs to \(\mathcal C_n\).  Thus
+\[
+\Pr_P\{Q(P)\in\mathcal C_n\}
+\geq\Pr_P(E_P)
+\geq1-\alpha.
+\]
+This argument uses neither identification nor differentiability and therefore also covers singular and nonidentified strata.
+
+It remains to verify the claimed finite polynomial-optimization representation.  Let \(\theta\) collect the finitely many entries of \(p_W\), \(p_A\), \((K_t)_{t=1}^T\), and \((q_t)_{t=1}^T\).  By \(\text{def:scm-class}\), its parameter set \(\Theta^\circ\) is specified by finitely many stochastic-table normalization equalities together with the strict polynomial inequalities
+\[
+p_W(w)>0,\quad p_A(a\mid w)>0,\quad K_t(x_t\mid w,a,x_{t-1})>0,
+\quad q_t(w,a,x_{S_t})>0,
+\quad 1-q_t(w,a,x_{S_t})>0,
+\]
+where the irrelevant \(x_0\) argument is omitted at \(t=1\).  All index sets are finite by \(\text{ass:finite-alphabets}\).
+
+For a complete trajectory define
+\[
+f_\theta(w,a,x_{1:T})
+=p_W(w)p_A(a\mid w)K_1(x_1\mid w,a)
+ \prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1})
+\]
+and, with an empty product equal to one,
+\[
+\rho_{d,\theta}(w,a,x_{1:T})=
+\begin{cases}
+\displaystyle
+\left\{\prod_{t=1}^{d}q_t(w,a,x_{S_t})\right\}
+\{1-q_{d+1}(w,a,x_{S_{d+1}})\},&0\leq d<T,\\[6pt]
+\displaystyle\prod_{t=1}^{T}q_t(w,a,x_{S_t}),&d=T.
+\end{cases}
+\]
+The substantive factorization in \(\text{ass:substantive-markov}\), the local-hazard formula in \(\text{ass:local-hazards}\), conditional independence in \(\text{ass:response-noise-independence}\), and the recursion \(R_t=R_{t-1}C_t\) imply
+\[
+\Pr_\theta(W=w,A=a,X=x_{1:T},D=d)
+=f_\theta(w,a,x_{1:T})\rho_{d,\theta}(w,a,x_{1:T}).
+\]
+For \(d<T\), set \(I_{d,0}=\{1,\ldots,d\}\) and \(I_{d,1}=\{1,\ldots,d\}\cup B_d\), and set
+\[
+c_{d,1}(h_d)=e_d(h_d),
+\qquad c_{d,0}(h_d)=1-e_d(h_d).
+\]
+For an observed cell with \(D=d<T\), audit value \(Z=z\), and displayed substantive values \(v\), \(\text{ass:audit-randomization}\) gives the exact coordinate formula
+\[
+[\Phi_{T,S,B,e}(\theta)]_{d,z,v}
+=c_{d,z}(h_d)
+\sum_{x_{1:T}:\,x_{I_{d,z}}=v}
+f_\theta(w,a,x_{1:T})\rho_{d,\theta}(w,a,x_{1:T}).
+\]
+For \(d=T\), the analogous formula has \(z=0\), coefficient one, and no unobserved substantive coordinate.  The audit probabilities are known constants at the displayed histories.  Each coordinate of \(\Phi_{T,S,B,e}(\theta)\) is therefore a finite sum of finite products of entries of \(\theta\), and hence is a polynomial.  Similarly, the causal target supplied by intervention on \(A\) is
+\[
+Q_{a,x}(\theta)=
+\sum_{w,x_1,\ldots,x_{T-1}}
+p_W(w)K_1(x_1\mid w,a)
+\prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1}),
+\qquad x_T=x,
+\]
+which is also a polynomial in \(\theta\).  Notice that this formula is the causal intervention functional, not a definition in terms of the observed law; its equality to \(P(X_T=x\mid\operatorname{do}(A=a))\) follows from the Markovian substantive SCM and the intervention replacing the structural equation for \(A\).
+
+Define the finite-dimensional feasible set of primitive tables
+\[
+\mathcal F_n^\circ=
+\left\{\theta\in\Theta^\circ:
+-\varepsilon_n\leq
+[\Phi_{T,S,B,e}(\theta)]_r-\widehat o_{n,r}
+\leq\varepsilon_n\ \text{for every }r=1,\ldots,m
+\right\}.
+\]
+Thus, for every coordinate \((a,x)\), the two programs
+\[
+L_{a,x}=\inf_{\theta\in\mathcal F_n^\circ}Q_{a,x}(\theta),
+\qquad
+U_{a,x}=\sup_{\theta\in\mathcal F_n^\circ}Q_{a,x}(\theta)
+\]
+have finitely many variables and finitely many polynomial equality and inequality constraints, and polynomial objectives.  They are therefore finite constrained polynomial optimization problems.
+If a formulation using only weak polynomial inequalities is desired, each strict constraint \(g(\theta)>0\) can be represented exactly by adjoining a variable \(s_g\) and imposing \(g(\theta)\geq0\), \(s_g\geq0\), and \(g(\theta)s_g-1=0\).  Thus strict positivity introduces no non-polynomial constraint.
+By \(\text{def:projected-confidence-set}\),
+\[
+\mathcal C_n=\operatorname{cl}\{Q(\theta):\theta\in\mathcal F_n^\circ\}.
+\]
+The ambient finite product \(\prod_{a\in\mathcal A}\Delta(\mathcal X_T)\) is compact.  Hence, whenever \(\mathcal F_n^\circ\) is nonempty, \(\mathcal C_n\) is nonempty and compact, its \((a,x)\)-coordinate extrema are attained, and continuity of coordinate projection gives
+\[
+\min_{q\in\mathcal C_n}q_{a,x}=L_{a,x},
+\qquad
+\max_{q\in\mathcal C_n}q_{a,x}=U_{a,x}.
+\]
+If \(\mathcal F_n^\circ\) is empty, the same finite programs simply report infeasibility.  On the coverage event \(E_P\), it is nonempty because it contains the true primitive table \(\theta(P)\).  This proves both assertions.

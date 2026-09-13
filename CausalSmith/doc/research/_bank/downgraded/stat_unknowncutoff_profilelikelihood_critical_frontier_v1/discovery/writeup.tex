@@ -1,0 +1,1496 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}unknowncutoff\_\allowbreak{}profilelikelihood\_\allowbreak{}critical\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For fuzzy regression discontinuity with a weak compliance jump and unknown cutoff, cutoff recovery and causal-effect informativeness are distinct. Integrating the moving-cutoff continuum gives the explicit lower value \(G_\alpha(\tau_n)\), while integrating the causal-valid fixed-cutoff bump continuum gives the new exact envelope \(F_{\alpha,s,M}(T_n)\). Thus \(L_n^\star(\kappa_n)\ge F_{\alpha,s,M}(T_n)\) at every declared strength, \(L_n^\star(\kappa_n)\ge\max\{G_\alpha(\tau_n),F_{\alpha,s,M}(T_n)\}\) when \(\kappa_n\le1/16\), and \(L_n^\star(\kappa_n)\gtrsim r_n\) globally under the unchanged binary H{\"o}lder-margin class. Finite-grid four-cell calibration remains valid for every compatible treatment--outcome association, including singular cells. The support-wide profile upper bound, attainment, the \(s=1\) finite-positive critical decision value, and full-model least favorability remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Known-cutoff weak-fuzzy inference, sharp-RD unknown-cutoff rates, generic weak-identification decision theory, and Bayesian propagation of cutoff uncertainty have been developed separately. None supplies the two integrated label-wise lower envelopes, an all-strength minimax converse, and an attaining honest connected interval when the cutoff and fuzzy denominator weaken jointly; the lower side is proved here, whereas attainment remains open.
+
+\paragraph{Niche.} The preserved binary uniform-design class makes two complementary causal lifts explicit while leaving the observable treatment--outcome association unrestricted. The moving-cutoff continuum measures slope-location ambiguity through \(G_\alpha(\tau_n)\), and the fixed-cutoff compact-bump continuum measures ordinary nonparametric jump difficulty through \(F_{\alpha,s,M}(T_n)\).
+
+\paragraph{Fill.} The project integrates both legal continua to prove \(L_n^\star(\kappa_n)\ge F_{\alpha,s,M}(T_n)\) throughout the strength shell, the maximum of \(F_{\alpha,s,M}\) and \(G_\alpha\) on the moving-family range, and the coarse all-strength converse \(L_n^\star(\kappa_n)\gtrsim r_n\). It also defines a support-wide four-cell profile and proves exact finite-grid calibration while leaving association free. The matching upper frontier, complete critical experiment, exact finite-positive decision values, and a total attaining interval remain unresolved.
+
+\section{Related work}
+
+Hahn, Todd, and van der Klaauw (2001) supply the local Wald identification argument. Feir, Lemieux, and Marmer (2016) and Noack and Rothe (2024, Theorem 1) give weak-identification-robust inference at a fixed known cutoff; they inform the exact singleton-cutoff finite-grid calibration and reduction proved here, but no first-order residual-jump equivalence is claimed. The integrated fixed-cutoff bump continuum sharpens the lower analysis to the explicit value function \(F_{\alpha,s,M}(T_n)\), while the moving-cutoff continuum supplies the distinct \(1/(n\kappa_n^3)\) difficulty and explicit value \(G_\alpha(\tau_n)\). Porter and Yu (2015, Sections 3--5) and Tuvaandorj (2020, Sections 3--4) study unknown-location behavior predominantly in sharp designs, without this weak causal ratio or connected honest-length criterion. Elliott and M{\"u}ller (2014, Sections 2.1--2.3) motivate process experiments for moderate unknown breaks, but do not solve the present H{\"o}lder-margin decision problem. Andrews and Mikusheva (2016, Theorem 1) and Andrews and Mikusheva (2022, Theorem 1 and Section 4) inform nuisance calibration and weak-decision analysis; Armstrong and Koles{\'a}r (2018, Theorem 3.1 and Appendix A.4) connect testing power to expected length over convex fixed-index classes. None proves the still-open support-wide profile upper bound over the translated nonconvex union. Arai, Hsu, Kitagawa, Mourifi{\'e}, and Wan (2022, Section 2) motivate retaining the full joint outcome--treatment law. Kowalska, van de Wiel, and van der Pas (2025 version, Sections 3 and 6) propagate unknown-cutoff uncertainty in a Bayesian model without uniform frequentist honesty or minimax length.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_P=E_P[Y(1)-Y(0)\mid R=C,X=c_P]=y_P/d_P\).
+Primary functional / estimator / diagnostic: \(I_n^{\mathrm{prof}}=\operatorname{hull}\{\vartheta\in\Theta:\inf_{c\in\mathcal G_c}\Delta_n(c,\vartheta)\le\Gamma_n(\delta_n)\}\). The proved minimax converse satisfies \(L_n^\star(\kappa_n)\ge F_{\alpha,s,M}(T_n)\) throughout \(0<\kappa_n\le1/8\), and \(L_n^\star(\kappa_n)\ge\max\{G_\alpha(\tau_n),F_{\alpha,s,M}(T_n)\}\) when \(\kappa_n\le1/16\); in particular, \(L_n^\star(\kappa_n)\gtrsim r_n\) over the full declared strength shell. The matching profile upper comparison \(L_n^\star(\kappa_n)\asymp r_n\) remains proposed only on \(\mathfrak R_{\mathrm{cert}}\)..
+\begin{itemize}
+  \item \texttt{n} --- \texttt{sample-\allowbreak{}size index}; \(\mathbb N\); \texttt{indexes the triangular statistical experiment}
+  \item \texttt{s} --- \texttt{smoothness exponent}; \([1,2]\); \texttt{indexes the one-\allowbreak{}sided H\textbackslash{}\allowbreak{}"older class}
+  \item \texttt{M} --- \texttt{smoothness radius}; \([2,\infty)\); \texttt{bounds the one-\allowbreak{}sided observable regression extensions}
+  \item \texttt{v} --- \texttt{null-\allowbreak{}residual nondegeneracy constant}; \((0,1/64)\); \texttt{indexes only the regular known-\allowbreak{}cutoff comparison subclass}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{miscoverage level}; \((0,1/4)\); \texttt{fixes the honesty requirement}
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}n} --- \texttt{compliance-\allowbreak{}strength sequence}; \((0,1/8]\); \texttt{allows the first-\allowbreak{}stage discontinuity to vanish}
+  \item \texttt{X} --- \texttt{running variable}; \([0,1]\); \texttt{indexes threshold assignment}
+  \item \texttt{R} --- \texttt{monotone response type}; \(\{N,C,A\}\); \texttt{records never-\allowbreak{}taker,\allowbreak{} complier,\allowbreak{} and always-\allowbreak{}taker status}
+  \item \texttt{D(z)} --- \texttt{binary potential treatment receipt}; \(\{0,1\}\); \texttt{encodes monotone compliance}
+  \par\smallskip\noindent\emph{Definition.} \(D(z)=0\) for \(R=N\), \(D(z)=z\) for \(R=C\), and \(D(z)=1\) for \(R=A\).
+  \item \texttt{Y(d)} --- \texttt{binary potential outcome}; \(\{0,1\}\); \texttt{defines the local complier causal contrast}
+  \item \texttt{c\_\allowbreak{}P} --- \texttt{law-\allowbreak{}specific unknown assignment cutoff}; \([1/4,3/4]\); \texttt{is the discontinuity location}
+  \item \texttt{c} --- \texttt{candidate cutoff}; \([1/4,3/4]\); \texttt{indexes the support-\allowbreak{}wide profile}
+  \item \texttt{P} --- \texttt{full-\allowbreak{}data triangular-\allowbreak{}array law}; \texttt{indexes causal data-\allowbreak{}generating processes}
+  \par\smallskip\noindent\emph{Definition.} A law of \(X\), \(R\), \(D(z)\), and \(Y(d)\) under threshold assignment at \(c_P\), monotone compliance, consistency, and exclusion.
+  \item \texttt{Z} --- \texttt{threshold assignment}; \(\{0,1\}\); \texttt{is the discontinuous instrument}
+  \par\smallskip\noindent\emph{Definition.} \(Z=\mathbf 1\{X\ge c_P\}\).
+  \item \texttt{D} --- \texttt{observed treatment receipt}; \(\{0,1\}\); \texttt{is the endogenous treatment}
+  \par\smallskip\noindent\emph{Definition.} \(D=D(Z)\).
+  \item \texttt{Y} --- \texttt{observed outcome}; \(\{0,1\}\); \texttt{is the observed response}
+  \par\smallskip\noindent\emph{Definition.} \(Y=Y(D)\).
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{observed unit}; \([0,1]\times\{0,1\}^2\); \texttt{is the sampling unit}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(X_i,D_i,Y_i)\), for \(i=1,\ldots,n\).
+  \item \texttt{p\_\allowbreak{}\{d,\allowbreak{}y,\allowbreak{}P\}\allowbreak{}} --- \texttt{observable joint-\allowbreak{}cell regression}; \([0,1]\to[0,1]\); \texttt{retains unrestricted admissible treatment-\allowbreak{}-\allowbreak{}outcome association}
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{V,\allowbreak{}P\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{one-\allowbreak{}sided observable marginal regression}; \([0,1]\to[0,1]\); \texttt{is the smooth observable primitive}
+  \item \texttt{d\_\allowbreak{}P} --- \texttt{compliance discontinuity}; \((0,1]\); \texttt{is the local first-\allowbreak{}stage denominator}
+  \par\smallskip\noindent\emph{Definition.} \(d_P=\mu_{D,P}^{+}(c_P)-\mu_{D,P}^{-}(c_P)\).
+  \item \texttt{y\_\allowbreak{}P} --- \texttt{reduced-\allowbreak{}form outcome discontinuity}; \([-1,1]\); \texttt{is the local intent-\allowbreak{}to-\allowbreak{}treat numerator}
+  \par\smallskip\noindent\emph{Definition.} \(y_P=\mu_{Y,P}^{+}(c_P)-\mu_{Y,P}^{-}(c_P)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Theta} --- \texttt{effect-\allowbreak{}label space}; \([-1,1]\); \texttt{is the parameter space for local complier effects}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta=[-1,1]\).
+  \item \texttt{\textbackslash{}\allowbreak{}vartheta} --- \texttt{candidate effect label}; \(\Theta\); \texttt{indexes null-\allowbreak{}restricted profile tests}
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}P} --- \texttt{fuzzy-\allowbreak{}RD local average treatment effect}; \(\Theta\); \texttt{is the causal estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_P=y_P/d_P\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n} --- \texttt{known-\allowbreak{}cutoff nonparametric scale}; \((0,1]\); \texttt{normalizes weak-\allowbreak{}denominator uncertainty}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n=n^{-s/(2s+1)}\).
+  \item \texttt{T\_\allowbreak{}n} --- \texttt{cutoff-\allowbreak{}recovery information index}; \((0,\infty)\); \texttt{compares jump information with location multiplicity}
+  \par\smallskip\noindent\emph{Definition.} \(T_n=n\kappa_n^{2+1/s}\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}n} --- \texttt{moving-\allowbreak{}cutoff slope information index}; \((0,\infty)\); \texttt{indexes the finite-\allowbreak{}positive cutoff/\allowbreak{}effect face}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_n=n\kappa_n^3\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n} --- \texttt{global cutoff-\allowbreak{}recovery index}; \((0,\infty)\); \texttt{measures support-\allowbreak{}wide cutoff information relative to location multiplicity}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_n=T_n/\log(e/\kappa_n)=\tau_n\kappa_n^{1/s-1}/\log(e/\kappa_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf\{CR\}\allowbreak{}(s,\allowbreak{}\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\textbackslash{}\allowbreak{}bullet)} --- \texttt{cutoff-\allowbreak{}recovery predicate}; \(\{\mathrm{false},\mathrm{true}\}\); \texttt{formally records information-\allowbreak{}theoretic cutoff recovery for a fixed smoothness exponent}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{CR}(s,\kappa_\bullet)\) holds if and only if \(\lambda_n\to\infty\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak R} --- \texttt{all-\allowbreak{}strength regime partition}; \texttt{partitions subsequential limits by slope and location information}
+  \item \texttt{r\_\allowbreak{}n} --- \texttt{detectable-\allowbreak{}region candidate length scale}; \((0,1]\); \texttt{is the candidate expected-\allowbreak{}length rate only in the recovered regime}
+  \par\smallskip\noindent\emph{Definition.} \(r_n=\min\{1,\rho_n/\kappa_n+1/(n\kappa_n^3)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}n} --- \texttt{triangular class of binary fuzzy-\allowbreak{}RD laws}; \texttt{is the minimax parameter space}
+  \item \texttt{I\_\allowbreak{}n} --- \texttt{measurable connected confidence-\allowbreak{}interval rule}; \(([0,1]\times\{0,1\}^2)^n\to\{\text{connected subsets of }\Theta\}\); \texttt{is the decision rule over which minimax length is optimized}
+  \item \texttt{L\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{minimax honest expected connected-\allowbreak{}interval length}; \([0,2]\); \texttt{is the headline statistical frontier}
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{sep\}\allowbreak{}\}\allowbreak{}} --- \texttt{profile-\allowbreak{}separation constant}; \((0,\infty)\); is existentially quantified in the population-separation theorem and depends only on \(s\) and \(M\)
+  \item \texttt{q} --- \texttt{slope-\allowbreak{}family normalization}; \((0,1)\); \texttt{fixes the legal moving-\allowbreak{}cutoff continuum}
+  \par\smallskip\noindent\emph{Definition.} \(q=1/4\).
+  \item \texttt{c\_\allowbreak{}0} --- \texttt{reference cutoff}; \((1/4,3/4)\); \texttt{centers the moving-\allowbreak{}cutoff continuum}
+  \par\smallskip\noindent\emph{Definition.} \(c_0=1/2\).
+  \item \texttt{t} --- \texttt{effect label}; \([-1,1]\); \texttt{indexes the moving-\allowbreak{}cutoff alternatives}
+  \item \texttt{c\_\allowbreak{}t} --- \texttt{moving cutoff}; \([1/4,3/4]\); \texttt{couples cutoff displacement to effect label}
+  \par\smallskip\noindent\emph{Definition.} \(c_t=c_0+t\kappa_n/q\).
+  \item \texttt{P\_\allowbreak{}t} --- \texttt{causal-\allowbreak{}valid moving-\allowbreak{}cutoff law}; \texttt{is the explicit slope-\allowbreak{}family lower-\allowbreak{}bound witness}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal W\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{loc\}\allowbreak{}\}\allowbreak{}} --- \texttt{moving-\allowbreak{}cutoff continuum}; \texttt{generates a continuum of nearly indistinguishable effect labels}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal W_n^{\mathrm{loc}}=\{P_t:t\in[-1,1]\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{crit\}\allowbreak{}\}\allowbreak{}} --- \texttt{critical-\allowbreak{}experiment derivation handle}; \texttt{specifies the starting move for the unresolved critical decision problem}
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{slope-\allowbreak{}face limit coordinate}; \([0,\infty]\); records a subsequential limit of \(\tau_n\)
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{location-\allowbreak{}entropy limit coordinate}; \([0,\infty]\); records a subsequential limit of \(\lambda_n\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal V\_\allowbreak{}\textbackslash{}\allowbreak{}alpha} --- \texttt{critical connected-\allowbreak{}length decision-\allowbreak{}value map}; \texttt{is the named value of the limiting cutoff/\allowbreak{}effect-\allowbreak{}label game}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal V_\alpha(\tau,\lambda;s)\) is the fixed-level minimax connected-interval value map derived by \(\text{oeq:s1-critical-frontier}\) on the applicable critical faces.
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{prof\}\allowbreak{}\}\allowbreak{}} --- \texttt{support-\allowbreak{}wide profile construction handle}; \texttt{specifies the starting move for a total honest interval}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G\_\allowbreak{}c} --- \texttt{finite cutoff grid}; \(2^{[1/4,3/4]}\); \texttt{indexes certified cutoff profiling}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G\_\allowbreak{}\textbackslash{}\allowbreak{}vartheta} --- \texttt{finite effect-\allowbreak{}label grid}; \(2^{\Theta}\); \texttt{indexes finite test inversion}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Q(c,\allowbreak{}\textbackslash{}\allowbreak{}vartheta)} --- \texttt{population joint-\allowbreak{}cell profile class}; contains candidate four-cell conditional laws with H\"older margins, a split at \(c\), and effect label \(\vartheta\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal L\_\allowbreak{}P(c,\allowbreak{}\textbackslash{}\allowbreak{}vartheta)} --- \texttt{population four-\allowbreak{}cell profile loss}; \([0,\infty]\); \texttt{measures Kullback-\allowbreak{}-\allowbreak{}Leibler loss relative to the observed joint law}
+  \item \texttt{h\_\allowbreak{}n} --- \texttt{jump-\allowbreak{}resolution width}; \((0,1]\); \texttt{is the deterministic width on which a false split must smooth the treatment jump}
+  \par\smallskip\noindent\emph{Definition.} \(h_n=(\kappa_n/M)^{1/s}\).
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}n} --- \texttt{resolution slack sequence}; \([1,\infty)\); \texttt{makes deterministic approximation errors negligible on recovered sequences}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_n=1+\min\{n^{1/8},\lambda_n^{1/8},r_n^{-1/8}\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}n} --- \texttt{vanishing calibration allocation}; \((0,\alpha]\); \texttt{bounds the expected-\allowbreak{}length contribution of calibration failure}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_n=\min\{\alpha/4,r_n^2\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}\{c,\allowbreak{}n\}\allowbreak{}} --- \texttt{cutoff-\allowbreak{}grid mesh}; \((0,1]\); \texttt{controls cutoff rounding and the probability mass of a moved discontinuity strip}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_{c,n}=\kappa_n r_n/(n\ell_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta,\allowbreak{}n\}\allowbreak{}} --- \texttt{effect-\allowbreak{}grid mesh}; \((0,1]\); \texttt{controls connected-\allowbreak{}hull enlargement after test inversion}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_{\vartheta,n}=r_n/\ell_n\).
+  \item \texttt{b\_\allowbreak{}n} --- \texttt{H\textbackslash{}\allowbreak{}"older-\allowbreak{}sieve knot mesh}; \((0,1]\); \texttt{sets the certified inner-\allowbreak{}-\allowbreak{}outer margin approximation scale}
+  \par\smallskip\noindent\emph{Definition.} \(b_n=\{\kappa_n r_n/(M\ell_n)\}^{1/s}\).
+  \item \texttt{K\_\allowbreak{}n} --- \texttt{number of support bins}; \(\mathbb N\); \texttt{indexes a candidate-\allowbreak{}specific coarsened joint likelihood}
+  \par\smallskip\noindent\emph{Definition.} \(K_n\) is the number of intervals generated after adding \(c\) to the uniform knots \(j/\lceil1/b_n\rceil\); hence \(K_n\in\{\lceil1/b_n\rceil,\lceil1/b_n\rceil+1\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B\_\allowbreak{}n(c)} --- \texttt{candidate-\allowbreak{}specific finite support partition}; \texttt{defines coarsened four-\allowbreak{}cell observations without forcing one global bin for every cutoff-\allowbreak{}grid point}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_n(c)=\{B_{1,n}(c),\ldots,B_{K_n,n}(c)\}\) is a deterministic interval partition of \([0,1]\) having \(c\) as an endpoint and maximum bin diameter at most \(b_n\).
+  \item \texttt{N\_\allowbreak{}\{k,\allowbreak{}d,\allowbreak{}y\}\allowbreak{}} --- \texttt{bin-\allowbreak{}by-\allowbreak{}cell count}; \(\{0,\ldots,n\}\); \texttt{retains the complete observed four-\allowbreak{}cell law in each bin}
+  \par\smallskip\noindent\emph{Definition.} \(N_{k,d,y}(c)=\sum_{i=1}^n\mathbf 1\{X_i\in B_{k,n}(c),D_i=d,Y_i=y\}\).
+  \item \texttt{N\_\allowbreak{}k} --- \texttt{bin count}; \(\{0,\ldots,n\}\); \texttt{normalizes empirical four-\allowbreak{}cell frequencies}
+  \par\smallskip\noindent\emph{Definition.} \(N_k(c)=\sum_{d,y\in\{0,1\}}N_{k,d,y}(c)\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline p\_\allowbreak{}\{k,\allowbreak{}d,\allowbreak{}y,\allowbreak{}P\}\allowbreak{}} --- \texttt{bin-\allowbreak{}averaged joint-\allowbreak{}cell probability}; \([0,1]\); \texttt{is the unrestricted association nuisance used by exact calibration}
+  \par\smallskip\noindent\emph{Definition.} \(\overline p_{k,d,y,P}(c)=P(D=d,Y=y\mid X\in B_{k,n}(c))\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}n(c,\allowbreak{}\textbackslash{}\allowbreak{}vartheta)} --- \texttt{profiled four-\allowbreak{}cell deviance}; \([0,\infty]\); \texttt{tests a cutoff and effect-\allowbreak{}label pair without fixing association}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}n(\textbackslash{}\allowbreak{}delta\_\allowbreak{}n)} --- \texttt{four-\allowbreak{}cell method-\allowbreak{}of-\allowbreak{}types threshold}; \([0,\infty)\); \texttt{calibrates the binned multinomial deviance without covariance inversion or cell positivity}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_n(\delta_n)=3\sum_{k=1}^{K_n}\log(N_k(c)+1)+\log(|\mathcal G_c||\mathcal G_\vartheta|/\delta_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}zeta\_\allowbreak{}n} --- \texttt{global certificate remainder}; \([0,\infty)\); \texttt{records the method-\allowbreak{}of-\allowbreak{}types and sieve dimension cost relative to the population separation scale}
+  \par\smallskip\noindent\emph{Definition.} \(\zeta_n=\{K_n\log(n|\mathcal G_c||\mathcal G_\vartheta|/\delta_n)\}/(n\kappa_n^2h_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{cont\}\allowbreak{},\allowbreak{}n\}\allowbreak{}} --- \texttt{continuum-\allowbreak{}transfer error}; \([0,\infty)\); \texttt{adds effect rounding,\allowbreak{} cutoff-\allowbreak{}label transfer,\allowbreak{} H\textbackslash{}\allowbreak{}"older approximation,\allowbreak{} and moved-\allowbreak{}strip probability}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_{\mathrm{cont},n}=\eta_{\vartheta,n}+\eta_{c,n}/\kappa_n+M b_n^s/\kappa_n+n\eta_{c,n}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{cert\}\allowbreak{}\}\allowbreak{}} --- \texttt{certifiably recovered regime}; \texttt{is the subset of recovered sequences on which the conservative finite-\allowbreak{}grid certificate has negligible comparison errors}
+  \item \texttt{I\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{prof\}\allowbreak{}\}\allowbreak{}} --- \texttt{support-\allowbreak{}wide profiled connected interval}; \texttt{is the proposed attaining procedure}
+  \par\smallskip\noindent\emph{Definition.} The total connected interval rule derived by \(\text{oeq:all-strength-profile}\) from \(\mathsf H_{\mathrm{prof}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{kc\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}delta\_\allowbreak{}n)} --- \texttt{known-\allowbreak{}cutoff four-\allowbreak{}cell method-\allowbreak{}of-\allowbreak{}types threshold}; \([0,\infty)\); \texttt{calibrates the singleton-\allowbreak{}cutoff finite-\allowbreak{}grid inversion}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{kc\}\allowbreak{}\}\allowbreak{}} --- \texttt{known-\allowbreak{}cutoff accepted effect-\allowbreak{}label set}; \(2^{\mathcal G_\vartheta}\); \texttt{collects effect-\allowbreak{}grid labels whose fixed-\allowbreak{}cutoff four-\allowbreak{}cell deviance is below threshold}
+  \item \texttt{I\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{kc\}\allowbreak{}\}\allowbreak{}} --- \texttt{known-\allowbreak{}cutoff finite-\allowbreak{}grid connected confidence-\allowbreak{}interval rule}; \(([0,1]\times\{0,1\}^2)^n\to\{\text{connected subsets of }\Theta\}\); \texttt{is the connected hull of accepted fixed-\allowbreak{}cutoff labels with full-\allowbreak{}space certified fallback}
+  \item \texttt{u} --- \texttt{fixed-\allowbreak{}cutoff effect label}; \([-1,1]\); \texttt{indexes the fixed-\allowbreak{}cutoff bump continuum}
+  \item \texttt{\textbackslash{}\allowbreak{}psi} --- compactly supported \(C^{1,1}\) bump; \(C^{1,1}(\mathbb R)\); \texttt{generates opposite outcome-\allowbreak{}side perturbations at the fixed cutoff}
+  \item \texttt{H\_\allowbreak{}s} --- \texttt{bump H\{\textbackslash{}\allowbreak{}"o\}\allowbreak{}lder norm}; \((0,\infty)\); normalizes the bump width so the outcome extensions remain in the radius-\(M\) class
+  \item \texttt{h\_\allowbreak{}u} --- \texttt{fixed-\allowbreak{}cutoff bump width}; \([0,\infty)\); \texttt{balances bump amplitude and H\{\textbackslash{}\allowbreak{}"o\}\allowbreak{}lder radius}
+  \item \texttt{Q\_\allowbreak{}u} --- \texttt{causal-\allowbreak{}valid fixed-\allowbreak{}cutoff bump law}; \texttt{is the lower-\allowbreak{}bound witness for known-\allowbreak{}location nonparametric difficulty}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal W\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{fix\}\allowbreak{}\}\allowbreak{}} --- \texttt{fixed-\allowbreak{}cutoff bump continuum}; \texttt{generates effect separation at the known-\allowbreak{}cutoff nonparametric scale}
+  \item \texttt{G\_\allowbreak{}\textbackslash{}\allowbreak{}alpha} --- \texttt{integrated moving-\allowbreak{}cutoff lower-\allowbreak{}value function}; \([0,\infty)\to[0,2]\); \texttt{retains the effect-\allowbreak{}label-\allowbreak{}dependent total-\allowbreak{}variation bound in the continuum coverage integral}
+  \item \texttt{F\_\allowbreak{}\{\textbackslash{}\allowbreak{}alpha,\allowbreak{}s,\allowbreak{}M\}\allowbreak{}} --- \texttt{integrated fixed-\allowbreak{}cutoff lower-\allowbreak{}value function}; \([0,\infty)\to[0,2]\); \texttt{retains the effect-\allowbreak{}label-\allowbreak{}dependent total-\allowbreak{}variation bound from the fixed-\allowbreak{}cutoff bump continuum}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The observations \(O_1,\ldots,O_n\) are independent and identically distributed under \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent random-design sampling, \cite{NoackRothe2024}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-running-variable]\label{ass:uniform-running-variable}
+The marginal law of \(X\) under \(P\) is uniform on \([0,1]\).
+\par\smallskip\noindent\emph{Standard} (Uniform random-design specialization, \cite{PorterYu2015}).
+\end{assumption}
+
+\begin{assumption}[ass:interior-cutoff]\label{ass:interior-cutoff}
+The cutoff satisfies \(c_P\in[1/4,3/4]\).
+\par\smallskip\noindent\emph{Standard} (Interior cutoff trimming, \cite{PorterYu2015}).
+\end{assumption}
+
+\begin{assumption}[ass:potential-treatment-continuity]\label{ass:potential-treatment-continuity}
+For every \(z\in\{0,1\}\), the map \(x\mapsto E_P[D(z)\mid X=x]\) is continuous at \(c_P\).
+\par\smallskip\noindent\emph{Standard} (Fuzzy-RD continuity of potential treatment reduced forms, \cite{HahnToddVanDerKlaauw2001}).
+\end{assumption}
+
+\begin{assumption}[ass:potential-outcome-continuity]\label{ass:potential-outcome-continuity}
+For every \(z\in\{0,1\}\), the map \(x\mapsto E_P[Y(D(z))\mid X=x]\) is continuous at \(c_P\).
+\par\smallskip\noindent\emph{Standard} (Fuzzy-RD continuity of potential outcome reduced forms, \cite{HahnToddVanDerKlaauw2001}).
+\end{assumption}
+
+\begin{assumption}[ass:observable-holder-extensions]\label{ass:observable-holder-extensions}
+For every \(V\in\{D,Y\}\) and \(\ell\in\{-,+\}\), the one-sided regression \(\mu_{V,P}^{\ell}\) admits an extension to \([0,1]\) in the radius-\(M\) H\"older ball of order \(s\), with the derivative interpreted in the standard way when \(s>1\).
+\par\smallskip\noindent\emph{Standard} (Separate one-sided observable H{\"o}lder smoothness, \cite{NoackRothe2024}).
+\end{assumption}
+
+\begin{assumption}[ass:local-compliance-strength]\label{ass:local-compliance-strength}
+The compliance discontinuity satisfies \(\kappa_n\le d_P\le2\kappa_n\).
+\par\smallskip\noindent\emph{Novel.} The factor-two shell defines a strength-indexed minimax slice rather than an identifying restriction. It represents sequences of study populations whose take-up contrasts share the same empirical order, including administrative rules that become less binding in increasingly local populations.
+\end{assumption}
+
+\begin{assumption}[ass:null-residual-nondegeneracy]\label{ass:null-residual-nondegeneracy}
+For every \(\vartheta\in\Theta\), \(\operatorname{Var}_P(Y-\vartheta D\mid X=x)\ge v\) for Lebesgue-almost every \(x\in[c_P-1/8,c_P+1/8]\).
+\par\smallskip\noindent\emph{Standard} (Null-residual variance nondegeneracy on a bounded inversion set, a direct specialization of the condition used to studentize \(Y-cD\), \cite{NoackRothe2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal P_n(s,M,\kappa_n)=\{P:\text{ at index }n\text{, the properties in ass:iid-sampling, ass:uniform-running-variable, ass:interior-cutoff, ass:potential-treatment-continuity, ass:potential-outcome-continuity, ass:observable-holder-extensions, and ass:local-compliance-strength hold}\}.\] No conditional-variance, joint-cell positivity, or treatment--outcome association restriction is imposed beyond compatibility with a binary joint law and the maintained causal model.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}running-\allowbreak{}variable}; \texttt{ass:\allowbreak{}interior-\allowbreak{}cutoff}; \texttt{ass:\allowbreak{}potential-\allowbreak{}treatment-\allowbreak{}continuity}; \texttt{ass:\allowbreak{}potential-\allowbreak{}outcome-\allowbreak{}continuity}; \texttt{ass:\allowbreak{}observable-\allowbreak{}holder-\allowbreak{}extensions}; \texttt{ass:\allowbreak{}local-\allowbreak{}compliance-\allowbreak{}strength}.
+\end{definition}
+
+\begin{definition}[def:minimax-length]\label{def:minimax-length}
+\par\smallskip\noindent\emph{Defined object.} \texttt{L\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}star}
+\par\smallskip\noindent\emph{Construction.} \[L_n^\star(\kappa_n)=\inf_{I_n}\sup_{P\in\mathcal P_n}E_P[|I_n(O_1,\ldots,O_n)|],\qquad \inf_{P\in\mathcal P_n}P\{\theta_P\in I_n(O_1,\ldots,O_n)\}\ge1-\alpha,\] where the infimum ranges over measurable rules whose values are connected subsets of \(\Theta\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:recovery-regimes]\label{def:recovery-regimes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak R}
+\par\smallskip\noindent\emph{Construction.} For fixed \(s\in[1,2]\), partition every compliance-strength sequence after passage to a subsequence as follows: \(\mathfrak R_{\mathrm{flat}}=\{\tau_n\to0\}\); \(\mathfrak R_{\mathrm{slope}}=\{\tau_n\to\tau\in(0,\infty)\}\); \(\mathfrak R_{\mathrm{entropy},0}=\{\tau_n\to\infty,\lambda_n\to0\}\); \(\mathfrak R_{\mathrm{entropy},\lambda}=\{\tau_n\to\infty,\lambda_n\to\lambda\in(0,\infty)\}\); and \(\mathfrak R_{\mathrm{recovered}}=\{\tau_n\to\infty,\lambda_n\to\infty\}\). The cutoff-recovery predicate \(\mathsf{CR}(s,\kappa_\bullet)\) holds exactly when \(\lambda_n\to\infty\). The finite-grid upper-rate subregime is defined separately by \(\text{def:profile-resolution-schedule}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{T\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:moving-cutoff-continuum]\label{def:moving-cutoff-continuum}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal W\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{loc\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Put \(q=1/4\), \(c_0=1/2\), and \(c_t=c_0+t\kappa_n/q\). Under \(P_t\), conditionally on \(X=x\), let \(D\) and \(Y\) be independent Bernoulli variables. Let the mean of \(D\) be \((1-\kappa_n)/2\) for \(x<c_t\) and \((1+\kappa_n)/2\) for \(x\ge c_t\); let the mean of \(Y\) be \(1/2-q(x-c_0)/2\) for \(x<c_t\) and \(1/2+q(x-c_0)/2\) for \(x\ge c_t\). At \(c_t\), assign response-type masses \(P_t(R=A)=P_t(R=N)=(1-\kappa_n)/2\) and \(P_t(R=C)=\kappa_n\); give always-takers and never-takers common binary potential outcomes with respective means \((1-t\kappa_n)/2\) and \((1+t\kappa_n)/2\), and give compliers potential-outcome means \((1-t)/2\) and \((1+t)/2\). Extend away from \(c_t\) by the same type-independent binary Markov kernel on each observed side that maps the cutoff outcome mean to the declared mean of \(Y\). The resulting continuum is \(\mathcal W_n^{\mathrm{loc}}=\{P_t:t\in[-1,1]\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{c\_\allowbreak{}0}; \texttt{t}; \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:critical-handle]\label{def:critical-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{crit\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Adapt unknown-boundary experiment comparison to the joint four-cell binary law, obtain the optimized local recovery profiles for cutoff displacement and signed effect label, truncate and renormalize translated-cutoff mixtures at the support boundary, retain every first- and second-order likelihood coordinate that survives on the \(s=1\) faces indexed by \(T_n\) and \(\tau_n\), and solve the resulting fixed-\(\alpha\) connected-interval decision problem by test inversion.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}minimax-\allowbreak{}length}.
+\end{definition}
+
+\begin{definition}[def:population-profile-domain]\label{def:population-profile-domain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal Q(c,\allowbreak{}\textbackslash{}\allowbreak{}vartheta)}
+\par\smallskip\noindent\emph{Construction.} For \(c\in[1/4,3/4]\) and \(\vartheta\in\Theta\), \(\mathcal Q(c,\vartheta)=\{q=(q_{d,y})_{d,y\in\{0,1\}}:\ q_{d,y}:[0,1]\to[0,1]\text{ is measurable},\ \sum_{d,y}q_{d,y}(x)=1\text{ for Lebesgue-almost every }x,\text{ the two margins are restrictions of separate one-sided radius-}M\text{, order-}s\text{ H\"older extensions split at }c,\ \Delta q_D(c)\in[\kappa_n,2\kappa_n],\ \Delta q_Y(c)=\vartheta\Delta q_D(c)\}\). The coordinate \(q_{1,1}(x)\) is otherwise free over its binary Fr\'echet interval, so zero and singular cells belong to the domain.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:population-profile-loss]\label{def:population-profile-loss}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal L\_\allowbreak{}P(c,\allowbreak{}\textbackslash{}\allowbreak{}vartheta)}
+\par\smallskip\noindent\emph{Construction.} For \(c\in[1/4,3/4]\) and \(\vartheta\in\Theta\), define the four-cell Bernoulli-pair profile loss by \[\mathcal L_P(c,\vartheta)=\inf_{q\in\mathcal Q(c,\vartheta)}\int_0^1\sum_{d,y\in\{0,1\}}p_{d,y,P}(x)\log\frac{p_{d,y,P}(x)}{q_{d,y}(x)}\,dx.\] Use \(0\log(0/q)=0\), and set a summand to \(+\infty\) when \(p_{d,y,P}(x)>0=q_{d,y}(x)\). The optimization domain in \(\text{def:population-profile-domain}\) includes singular boundary cells. The reference split is the feasible pair \((c_P,\theta_P)\), for which \(\mathcal L_P(c_P,\theta_P)=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}population-\allowbreak{}profile-\allowbreak{}domain}.
+\end{definition}
+
+\begin{definition}[def:profile-resolution-schedule]\label{def:profile-resolution-schedule}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Certified grid,\allowbreak{} sieve,\allowbreak{} and transfer schedule}
+\par\smallskip\noindent\emph{Construction.} Use \(\mathcal G_c=\{1/4+j/[2\lceil(2\eta_{c,n})^{-1}\rceil]:j=0,\ldots,\lceil(2\eta_{c,n})^{-1}\rceil\}\) and \(\mathcal G_\vartheta=\{-1+2j/\lceil2/\eta_{\vartheta,n}\rceil:j=0,\ldots,\lceil2/\eta_{\vartheta,n}\rceil\}\). For each candidate \(c\), form \(\mathcal B_n(c)\) by adding \(c\) to the uniform knots \(j/\lceil1/b_n\rceil\). At \(s=1\), use continuous piecewise-linear inner and outer sieves; at \(1<s\le2\), use continuously differentiable piecewise-quadratic sieves with all pairwise \((s-1)\)-H\"older derivative constraints. In both cases use outer slack \(M b_n^s=\kappa_n r_n/\ell_n\). Allocate \(\delta_n=\min\{\alpha/4,r_n^2\}\) to calibration. Record separately the normalized type-and-sieve complexity \(\zeta_n=K_n\log(n|\mathcal G_c||\mathcal G_\vartheta|/\delta_n)/(n\kappa_n^2h_n)\), cutoff-label rounding \(\eta_{c,n}/\kappa_n\), effect rounding \(\eta_{\vartheta,n}\), H\"older approximation \(M b_n^s/\kappa_n\), moved-strip probability \(n\eta_{c,n}\), global false-split probability bound \(|\mathcal G_c|\exp[-C_{\mathrm{sep}}n\kappa_n^2h_n/4]\), calibration contribution \(2\delta_n\), and fallback contribution \(2\sup_{P\in\mathcal P_n}P\{\text{a listed fallback occurs}\}\). The first four continuum terms sum to \(\varepsilon_{\mathrm{cont},n}\). Define \(\mathfrak R_{\mathrm{cert}}=\{\kappa_\bullet\in\mathfrak R_{\mathrm{recovered}}:\zeta_n\to0,\ |\mathcal G_c|\exp[-C_{\mathrm{sep}}n\kappa_n^2h_n/4]=o(r_n),\ \varepsilon_{\mathrm{cont},n}=o(r_n)\}\). These terms are not absorbed into a generic remainder.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}minimax-\allowbreak{}length}; \texttt{def:\allowbreak{}recovery-\allowbreak{}regimes}; \texttt{def:\allowbreak{}population-\allowbreak{}profile-\allowbreak{}loss}.
+\end{definition}
+
+\begin{definition}[def:four-cell-calibration]\label{def:four-cell-calibration}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}n(\textbackslash{}\allowbreak{}delta\_\allowbreak{}n)}
+\par\smallskip\noindent\emph{Construction.} For each \((c,\vartheta)\in\mathcal G_c\times\mathcal G_\vartheta\), use \(\mathcal B_n(c)\) and let \(\Pi_n(c,\vartheta)\) contain arrays \(\pi=(\pi_{k,d,y})\) of four nonnegative cells summing to one in every bin. Their two margins must equal bin averages of the certified outer H\"older sieves split at \(c\), satisfy the treatment-jump shell, and satisfy the null jump restriction for \(\vartheta\); the remaining association coordinate in every bin is free over its Fr\'echet interval. Put \(\widehat p_{k,d,y}(c)=N_{k,d,y}(c)/N_k(c)\) when \(N_k(c)>0\), and define \(\Delta_n(c,\vartheta)=\inf_{\pi\in\Pi_n(c,\vartheta)}\sum_{k:N_k(c)>0}N_k(c)\operatorname{KL}(\widehat p_k(c),\pi_k)\). Accept the grid pair when \(\Delta_n(c,\vartheta)\le\Gamma_n(\delta_n)\), where \(\Gamma_n(\delta_n)=3\sum_{k=1}^{K_n}\log(N_k(c)+1)+\log(|\mathcal G_c||\mathcal G_\vartheta|/\delta_n)\). Use the conventions \(0\log(0/q)=0\) and \(p\log(p/0)=+\infty\) for \(p>0\). Thus the joint four-cell deviance never divides by a covariance and remains defined on every singular association face.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}profile-\allowbreak{}resolution-\allowbreak{}schedule}.
+\end{definition}
+
+\begin{definition}[def:worked-four-cell-grid]\label{def:worked-four-cell-grid}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}grid population profile}
+\par\smallskip\noindent\emph{Construction.} Specialize the moving-cutoff family to \(\kappa_n=1/32\) and \(t=0\). Take \(\mathcal G_c=\{3/8,1/2,5/8\}\), \(\mathcal G_\vartheta=\{-1,0,1\}\), and the four-bin partition \([0,3/8),[3/8,1/2),[1/2,5/8),[5/8,1]\). In the cell order \((0,0),(0,1),(1,0),(1,1)\), the bin-average joint-cell vectors, each divided by \(8192\), are \[(1947,2277,1829,2139),\quad(2079,2145,1953,2015),\quad(1953,2015,2079,2145),\quad(1829,2139,1947,2277).\] Every vector is nonnegative and sums to one. Their treatment margins are \(31/64\) in the first two bins and \(33/64\) in the last two; their outcome margins equal \(69/128,65/128,65/128,69/128\). The unrestricted association coordinate is the displayed fourth cell in each bin. The true pair \((c,\vartheta)=(1/2,0)\) belongs to the profile domain and has population deviance zero. For this four-bin, three-by-three grid, the finite-sample threshold is \(3\sum_{k=1}^4\log(N_k(1/2)+1)+\log(9/\delta_n)\). A certified infeasible null is rejected. The rule returns \(\Theta\) under each and only each of the following fallback branches: a bin required by the certificate is empty; cutoff-grid enlargement is uncertified; effect-grid enlargement is uncertified; the inner--outer H\"older gap exceeds \(M b_n^s\); the solver fails; the reported optimum lacks a certificate; the projected treatment-jump confidence set meets \([0,\kappa_n/2]\); the universal threshold cannot be computed; or the requested \(n\), grid, or sieve is outside the deterministic schedule. Ties are resolved lexicographically.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}moving-\allowbreak{}cutoff-\allowbreak{}continuum}; \texttt{def:\allowbreak{}four-\allowbreak{}cell-\allowbreak{}calibration}; \texttt{def:\allowbreak{}profile-\allowbreak{}resolution-\allowbreak{}schedule}.
+\end{definition}
+
+\begin{definition}[def:profile-handle]\label{def:profile-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{prof\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} At every \(c\in\mathcal G_c\) and \(\vartheta\in\mathcal G_\vartheta\), profile certified support-wide one-sided H\"older margins subject to \(\mu_{Y,P}^{+}(c)-\mu_{Y,P}^{-}(c)=\vartheta\{\mu_{D,P}^{+}(c)-\mu_{D,P}^{-}(c)\}\), while leaving each bin's association coordinate free over its binary Fr\'echet interval. Calibrate the complete four-cell count vector with \(\Delta_n(c,\vartheta)\) and \(\Gamma_n(\delta_n)\); use the grid and sieve schedule in \(\text{def:profile-resolution-schedule}\); invert the tests; enlarge by \(\eta_{\vartheta,n}\); and take the connected hull. Track \(\zeta_n\), \(\varepsilon_{\mathrm{cont},n}\), the displayed global false-split bound, \(2\delta_n\), and the probability of every fallback separately. Use the exhaustive fallback list in \(\text{def:worked-four-cell-grid}\), returning \(\Theta\) on every listed branch. Finite-grid validity is uniform over all compatible binary treatment--outcome associations because calibration uses multinomial type probabilities rather than an invertible joint-score covariance.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}minimax-\allowbreak{}length}; \texttt{def:\allowbreak{}population-\allowbreak{}profile-\allowbreak{}loss}; \texttt{def:\allowbreak{}profile-\allowbreak{}resolution-\allowbreak{}schedule}; \texttt{def:\allowbreak{}four-\allowbreak{}cell-\allowbreak{}calibration}; \texttt{def:\allowbreak{}worked-\allowbreak{}four-\allowbreak{}cell-\allowbreak{}grid}.
+\end{definition}
+
+\begin{definition}[def:known-cutoff-threshold]\label{def:known-cutoff-threshold}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{kc\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}delta\_\allowbreak{}n)}
+\par\smallskip\noindent\emph{Construction.} When \(c_P\) is supplied, set \(\mathcal G_c=\{c_P\}\) and define \[\Gamma_n^{\mathrm{kc}}(\delta_n)=3\sum_{k=1}^{K_n}\log\{N_k(c_P)+1\}+\log\frac{|\mathcal G_\vartheta|}{\delta_n}.\] This is \(\Gamma_n(\delta_n)\) from \(\text{def:four-cell-calibration}\) after substituting \(|\mathcal G_c|=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}four-\allowbreak{}cell-\allowbreak{}calibration}.
+\end{definition}
+
+\begin{definition}[def:known-cutoff-grid-rule]\label{def:known-cutoff-grid-rule}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Known-\allowbreak{}cutoff inverted grid set and interval}
+\par\smallskip\noindent\emph{Construction.} For a finite nonempty effect grid \(\mathcal G_\vartheta\subseteq\Theta\), define \[\mathcal A_n^{\mathrm{kc}}=\{\vartheta\in\mathcal G_\vartheta:\Delta_n(c_P,\vartheta)\le\Gamma_n^{\mathrm{kc}}(\delta_n)\}.\] Let \(F_n^{\mathrm{kc}}\) be the union of the certified fallback branches listed in \(\text{def:worked-four-cell-grid}\), with cutoff profiling suppressed. Define the connected rule \[I_n^{\mathrm{kc}}=\begin{cases}\Theta,&F_n^{\mathrm{kc}}\text{ occurs},\\ \operatorname{hull}(\mathcal A_n^{\mathrm{kc}}),&(F_n^{\mathrm{kc}})^c\text{ occurs},\end{cases}\] with \(\operatorname{hull}(\varnothing)=\varnothing\). Thus only \(\Delta_n(c_P,\vartheta)\) is inverted, and every listed certified fallback returns \(\Theta\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}known-\allowbreak{}cutoff-\allowbreak{}threshold}; \texttt{def:\allowbreak{}four-\allowbreak{}cell-\allowbreak{}calibration}; \texttt{def:\allowbreak{}worked-\allowbreak{}four-\allowbreak{}cell-\allowbreak{}grid}.
+\end{definition}
+
+\begin{definition}[def:fixed-cutoff-bump-continuum]\label{def:fixed-cutoff-bump-continuum}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal W\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{fix\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Let
+\[
+ \psi(z)=(1-z^2)^2\mathbf 1\{|z|\le1\},
+ \qquad H_s=\|\psi\|_{\mathcal H^s(\mathbb R)},
+\]
+where the norm is the same standard H\"older norm used for the
+radius-\(M\) balls in \(\text{ass:observable-holder-extensions}\).
+The function \(\psi\) is compactly supported and belongs to
+\(C^{1,1}(\mathbb R)\): both \(\psi\) and \(\psi'\) vanish at the
+support boundary, whereas \(\psi''\) may jump there.  Put \(h_0=0\);
+for \(u\ne0\), put
+\[
+ h_u=\left(\frac{4H_s\kappa_n|u|}{M}\right)^{1/s}.
+\]
+Under \(Q_u\), the observations are independent and identically
+distributed, \(X\) is uniform on \([0,1]\), and the cutoff is
+\(c_0=1/2\).  Conditional on \(X=x\), the observed variables \(D\) and
+\(Y\) are independent Bernoulli variables.  The treatment mean is
+\((1-\kappa_n)/2\) for \(x<c_0\) and \((1+\kappa_n)/2\) for
+\(x\ge c_0\).  For \(u\ne0\), the outcome mean is
+\[
+ \frac12-\frac{\kappa_nu}{2}
+ \psi\!\left(\frac{x-c_0}{h_u}\right)\quad(x<c_0),
+ \qquad
+ \frac12+\frac{\kappa_nu}{2}
+ \psi\!\left(\frac{x-c_0}{h_u}\right)\quad(x\ge c_0).
+\]
+For \(u=0\), the outcome mean is \(1/2\) on both sides.
+
+The full-data lift is defined as follows.  At the cutoff, assign type
+masses \((1-\kappa_n)/2\), \(\kappa_n\), and
+\((1-\kappa_n)/2\) to \(A\), \(C\), and \(N\), respectively.
+Always-takers have a common binary potential outcome of mean
+\((1-\kappa_nu)/2\), never-takers have a common binary potential outcome
+of mean \((1+\kappa_nu)/2\), and complier potential outcomes have means
+\((1-u)/2\) and \((1+u)/2\) under treatment zero and one, respectively.
+Take the two complier potential outcomes conditionally independent, and
+keep these response-type masses fixed for every \(x\).  Away from the
+cutoff, start from this common cutoff law.  On the observed
+side \(z\), apply to both binary potential outcomes the same
+type-independent binary Markov kernel that maps the relevant cutoff-side
+outcome mean \(b\) to the displayed target mean \(g\): when \(g\ge b\),
+retain every one and change a zero to one with probability
+\((g-b)/(1-b)\); when \(g<b\), retain every zero and retain a one with
+probability \(g/b\).  Use conditionally independent auxiliary coins.
+Let
+\[
+ \mathcal W_n^{\mathrm{fix}}=\{Q_u:u\in[-1,1]\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{c\_\allowbreak{}0}; \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}n}; \texttt{s}; \texttt{M}; \texttt{u}; \texttt{ass:\allowbreak{}observable-\allowbreak{}holder-\allowbreak{}extensions}.
+\end{definition}
+
+\begin{definition}[def:integrated-slope-lower-function]\label{def:integrated-slope-lower-function}
+\par\smallskip\noindent\emph{Defined object.} \texttt{G\_\allowbreak{}\textbackslash{}\allowbreak{}alpha}
+\par\smallskip\noindent\emph{Construction.} For \(\tau\ge0\), define
+\[
+ G_\alpha(\tau)
+ =2\int_0^1[1-\alpha-4\sqrt{\tau t}]_+\,dt
+ =\begin{cases}
+ 2(1-\alpha)-\dfrac{16}{3}\sqrt\tau,
+   &0\le\tau\le(1-\alpha)^2/16,\\[6pt]
+ \dfrac{(1-\alpha)^3}{24\tau},
+   &\tau>(1-\alpha)^2/16.
+ \end{cases}
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}alpha}.
+\end{definition}
+
+\begin{definition}[def:integrated-fixed-cutoff-lower-function]\label{def:integrated-fixed-cutoff-lower-function}
+\par\smallskip\noindent\emph{Defined object.} \texttt{F\_\allowbreak{}\{\textbackslash{}\allowbreak{}alpha,\allowbreak{}s,\allowbreak{}M\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Put \(p_s=2+1/s\) and
+\[
+ C_b=2\left(\frac{4H_s}{M}\right)^{1/s}.
+\]
+For \(T\ge0\), put \(B(T)=\sqrt{C_bT}\) and define
+\[
+ F_{\alpha,s,M}(T)
+ =2\int_0^1\left[1-\alpha-B(T)u^{p_s/2}\right]_+\,du.
+\]
+Writing \(a=1-\alpha\), the same function has the explicit representation
+\[
+ F_{\alpha,s,M}(T)
+ =\begin{cases}
+ 2a-\dfrac{4s}{4s+1}B(T),& B(T)\le a,\\[6pt]
+ \dfrac{2a(2s+1)}{4s+1}
+ \left\{\dfrac{a}{B(T)}\right\}^{2s/(2s+1)},&B(T)>a.
+ \end{cases}
+\]
+At \(T=0\), the first branch applies and gives \(F_{\alpha,s,M}(0)=2(1-\alpha)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}alpha}; \texttt{s}; \texttt{M}; \texttt{H\_\allowbreak{}s}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:wald-late-identification]\label{prop:wald-late-identification}
+For every \(P\in\mathcal P_n\), \[d_P=P(R=C\mid X=c_P),\qquad y_P=E_P[(Y(1)-Y(0))\mathbf 1\{R=C\}\mid X=c_P],\] and therefore \(\theta_P=E_P[Y(1)-Y(0)\mid R=C,X=c_P]\).
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal P_n\), and interpret conditioning at \(X=c_P\) through the continuous versions supplied by ass:potential-treatment-continuity and ass:potential-outcome-continuity.  By threshold assignment, consistency, and those two continuity assumptions,
+\[
+ \mu_{D,P}^{+}(c_P)=E_P[D(1)\mid X=c_P],\qquad
+ \mu_{D,P}^{-}(c_P)=E_P[D(0)\mid X=c_P].
+\]
+The response-type definition gives, pointwise,
+\[
+ D(1)-D(0)=\mathbf 1\{R=C\}.
+\]
+Consequently, using the definition of \(d_P\),
+\[
+ d_P=E_P[D(1)-D(0)\mid X=c_P]
+     =P(R=C\mid X=c_P).
+\]
+Likewise, exclusion and consistency imply
+\[
+ \mu_{Y,P}^{+}(c_P)=E_P[Y(D(1))\mid X=c_P],\qquad
+ \mu_{Y,P}^{-}(c_P)=E_P[Y(D(0))\mid X=c_P].
+\]
+For a never-taker or an always-taker, \(D(1)=D(0)\), whereas for a complier \((D(0),D(1))=(0,1)\).  Hence the following identity holds for every response type and every pair of binary potential outcomes:
+\[
+ Y(D(1))-Y(D(0))
+   =(Y(1)-Y(0))\mathbf 1\{R=C\}.
+\]
+It follows from the definition of \(y_P\) that
+\[
+ y_P=E_P[(Y(1)-Y(0))\mathbf 1\{R=C\}\mid X=c_P].
+\]
+Finally, ass:local-compliance-strength gives \(d_P\ge\kappa_n>0\), so division is legitimate.  Conditional expectation on the event \(R=C\) therefore yields
+\[
+ \theta_P=\frac{y_P}{d_P}
+ =E_P[Y(1)-Y(0)\mid R=C,X=c_P],
+\]
+as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This fixes the causal interpretation before the statistical nonregularity is analyzed. \textit{Gap.} Hahn, Todd, and van der Klaauw (2001) give the known-cutoff Wald identification argument; the proposition records the same argument on the preserved unknown-cutoff triangular class. \textit{Consumer.} Every later confidence interval can be interpreted as an interval for the local complier causal effect rather than only for an observable jump ratio.
+
+\begin{proposition}[prop:moving-cutoff-membership-kl]\label{prop:moving-cutoff-membership-kl}
+If \(\kappa_n\le1/16\), then \(\mathcal W_n^{\mathrm{loc}}\subset\mathcal P_n\), \(d_{P_t}=\kappa_n\), and \(\theta_{P_t}=t\) for every \(t\in[-1,1]\). Moreover, \[\operatorname{KL}(P_t^{\otimes n},P_0^{\otimes n})\le32n\kappa_n^3|t|=32\tau_n|t|,\qquad \operatorname{TV}(P_t^{\otimes n},P_0^{\otimes n})\le4\sqrt{\tau_n|t|}.\]
+\end{proposition}
+\begin{proof}
+Write \(\kappa=\kappa_n\).  First consider the causal lift at \(c_t\).  Its response-type probabilities are
+\[
+ a=P_t(R=A)=\frac{1-\kappa}{2},\qquad
+ n_0=P_t(R=N)=\frac{1-\kappa}{2},\qquad
+ P_t(R=C)=\kappa.
+\]
+The declared type-specific outcome means give
+\[
+\begin{aligned}
+ E_t[Y(D(0))\mid X=c_t]
+ &=a\frac{1-t\kappa}{2}+n_0\frac{1+t\kappa}{2}
+   +\kappa\frac{1-t}{2}
+ =\frac{1-t\kappa}{2},\\
+ E_t[Y(D(1))\mid X=c_t]
+ &=a\frac{1-t\kappa}{2}+n_0\frac{1+t\kappa}{2}
+   +\kappa\frac{1+t}{2}
+ =\frac{1+t\kappa}{2}.
+\end{aligned}
+\]
+Moreover,
+\[
+ P_t(D(0)=1,Y(D(0))=1\mid X=c_t)
+ =\frac{(1-\kappa)(1-t\kappa)}{4}
+ =P_t(D(0)=1\mid X=c_t)E_t[Y(D(0))\mid X=c_t],
+\]
+and
+\[
+ P_t(D(1)=0,Y(D(1))=1\mid X=c_t)
+ =\frac{(1-\kappa)(1+t\kappa)}{4}
+ =P_t(D(1)=0\mid X=c_t)E_t[Y(D(1))\mid X=c_t].
+\]
+Because both variables are binary, these equalities prove conditional independence of observed \(D\) and \(Y\) on the two assignment sides at the cutoff.  A binary pair of complier potential outcomes with the displayed marginal means exists, for example by taking the two coordinates conditionally independent; for always-takers and never-takers take the common potential outcome specified in def:moving-cutoff-continuum.  Thus the lift is well defined, binary, monotone, consistent, and satisfies exclusion.
+
+For completeness, the type-independent Markov extension in def:moving-cutoff-continuum can be realized explicitly.  If a cutoff-side binary variable has mean \(m_0\) and the required mean at \(x\) is \(m(x)\), use an auxiliary uniform variable independent of the response type and, when \(m(x)\ge m_0\), change a zero to one with probability \((m(x)-m_0)/(1-m_0)\); when \(m(x)<m_0\), change a one to zero with probability \((m_0-m(x))/m_0\).  All denominators are positive because the displayed cutoff outcome means lie in \([15/32,17/32]\).  The channel is the identity as \(x\to c_t\), preserves conditional independence from \(D\), and has the declared affine output mean.  Applying the corresponding side channel to the binary potential-outcome vector supplies continuous versions of both \(E_t[Y(D(z))\mid X=x]\) at \(c_t\).  Keeping the type law fixed supplies continuity of \(E_t[D(z)\mid X=x]\).  Hence ass:potential-treatment-continuity and ass:potential-outcome-continuity hold.
+
+If \(\kappa\le1/16\), then
+\[
+ |c_t-c_0|=\frac{|t|\kappa}{q}=4|t|\kappa\le\frac14,
+\]
+so \(c_t\in[1/4,3/4]\), as required by ass:interior-cutoff.  The treatment branches are constant and the outcome branches are affine with slope of absolute value \(q/2=1/8\).  Their separate one-sided extensions therefore lie in the radius-\(M\), order-\(s\) H\"older ball for every \(s\in[1,2]\) and \(M\ge2\).  The uniform law of \(X\) and iid product sampling are imposed by the construction and ass:iid-sampling.  Finally,
+\[
+ d_{P_t}=\frac{1+\kappa}{2}-\frac{1-\kappa}{2}=\kappa,
+ \qquad
+ y_{P_t}=\frac{1+t\kappa}{2}-\frac{1-t\kappa}{2}=t\kappa.
+\]
+Thus ass:local-compliance-strength holds, \(P_t\in\mathcal P_n\), and, since \(\kappa>0\), \(\theta_{P_t}=y_{P_t}/d_{P_t}=t\).
+
+It remains to bound the information distance.  Under both \(P_t\) and \(P_0\), \(X\) is uniform and \((D,Y)\) is conditionally a product of two Bernoulli laws.  The conditional laws coincide off the interval between \(c_0\) and \(c_t\).  Put
+\[
+ A_t=[\min(c_0,c_t),\max(c_0,c_t)),\qquad
+ a_t=|A_t|=\frac{|t|\kappa}{q}=4|t|\kappa.
+\]
+On \(A_t\), the two treatment means differ in absolute value by \(\kappa\), while the two outcome means differ in absolute value by \(q|x-c_0|\).  For Bernoulli parameters \(u,w\in(0,1)\), the inequality \(\log z\le z-1\) gives
+\[
+ \operatorname{kl}(u,w)
+ \le \frac{(u-w)^2}{w(1-w)}.
+\]
+Every reference treatment mean has \(w(1-w)\ge3/16\); every reference outcome mean lies in \([7/16,9/16]\), and hence also has \(w(1-w)\ge3/16\).  Additivity of relative entropy for product Bernoulli coordinates and integration over the uniform design now give
+\[
+\begin{aligned}
+ \operatorname{KL}(P_t,P_0)
+ &\le \frac{16}{3}\left\{\kappa^2 a_t
+      +q^2\int_0^{a_t}u^2\,du\right\}\\
+ &=\frac{64}{3}\kappa^3|t|+\frac{64}{9}\kappa^3|t|^3
+ \le \frac{256}{9}\kappa^3|t|
+ <32\kappa^3|t|.
+\end{aligned}
+\]
+The iid likelihood ratio is a product, so direct expectation of its logarithm yields
+\[
+ \operatorname{KL}(P_t^{\otimes n},P_0^{\otimes n})
+ =n\operatorname{KL}(P_t,P_0)
+ \le32n\kappa^3|t|=32\tau_n|t|.
+\]
+Finally, let \(A\) be a measurable set attaining total variation, up to an arbitrarily small error, and put \(p=P_t^{\otimes n}(A)\), \(w=P_0^{\otimes n}(A)\).  The log-sum inequality, which follows from Jensen's inequality applied separately on \(A\) and \(A^c\), gives \(\operatorname{KL}(P_t^{\otimes n},P_0^{\otimes n})\ge\operatorname{kl}(p,w)\).  Since the second derivative of \(u\mapsto\operatorname{kl}(u,w)\) is \(1/[u(1-u)]\ge4\), Taylor's theorem at \(u=w\) gives \(\operatorname{kl}(p,w)\ge2(p-w)^2\).  Letting the approximation error vanish proves
+\[
+ \operatorname{TV}(P_t^{\otimes n},P_0^{\otimes n})
+ \le\sqrt{\frac12\operatorname{KL}(P_t^{\otimes n},P_0^{\otimes n})}
+ \le4\sqrt{\tau_n|t|}.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The continuum supplies a same-class obstruction indexed by the entire effect-label space rather than by one hand-tuned pair. \textit{Gap.} Tuvaandorj (2020) transfers sharp-RD cutoff-location rates through a Gaussian convolution experiment but does not construct a binary monotone-compliance lift whose causal label moves with the cutoff. \textit{Consumer.} The continuum determines when unknown cutoff uncertainty alone forces nearly uninformative honest LATE intervals.
+
+\begin{proposition}[prop:regime-exhaustion]\label{prop:regime-exhaustion}
+For fixed \(s\in[1,2]\), \(\tau_n=T_n\kappa_n^{1-1/s}\), and every admissible strength sequence has a subsequence in exactly one component of \(\mathfrak R\). If \(s=1\), then \(T_n=\tau_n\), so the finite-positive slope face and the divergent location-entropy faces remain distinct according to \(\lambda_n=\tau_n/\log(e/\kappa_n)\). If fixed \(s>1\) and \(\lambda_n\) remains bounded, then \(\tau_n\to0\); if fixed \(s>1\) and \(\tau_n\to\infty\), then \(\lambda_n\to\infty\). Moreover, there exists \(C>0\), depending only on \(s\), \(M\), and \(\alpha\), such that \[L_n^\star(\kappa_n)\ge C r_n\] for every \(n\ge1\) and every \(0<\kappa_n\le1/8\); hence this lower comparison holds on every component of \(\mathfrak R\). Cutoff recovery \(\mathsf{CR}(s,\kappa_\bullet)\) does not by itself imply shrinking effect intervals: for every fixed \(s\in(1,2]\), there is an admissible strength sequence with \(\lambda_n\to\infty\), \(\tau_n\to0\), \(r_n=1\) eventually, and \(\liminf_{n\to\infty}L_n^\star(\kappa_n)\ge C>0\). Finally, \(\mathfrak R_{\mathrm{cert}}\subseteq\mathfrak R_{\mathrm{recovered}}\); this restriction applies only to the still-unproved conservative finite-grid attainment direction and not to the global lower bound.
+\end{proposition}
+\begin{proof}
+Fix \(s\in[1,2]\), and take all limits as \(n\to\infty\).  The definitions of \(T_n\) and \(\tau_n\), together with \(\kappa_n>0\), give the exact identity
+\[
+ T_n\kappa_n^{1-1/s}
+ =n\kappa_n^{2+1/s}\kappa_n^{1-1/s}
+ =n\kappa_n^3
+ =\tau_n.
+ \tag{1}
+\]
+
+We first establish the subsequential exhaustion in \(\text{def:recovery-regimes}\).  For any positive sequence \((a_n)\), put \(a_\star=\liminf_n a_n\in[0,\infty]\).  If \(a_\star<\infty\), then, for every integer \(j\ge1\), the definition of the limit inferior permits an index \(n_j>n_{j-1}\) such that
+\[
+ a_\star-j^{-1}\le a_{n_j}\le a_\star+j^{-1}.
+\]
+Indeed, the lower inequality holds eventually, and the upper inequality holds at arbitrarily large indices.  Hence \(a_{n_j}\to a_\star\).  If \(a_\star=\infty\), the definition of the limit inferior gives \(a_n\to\infty\).  Applying this elementary argument to \(a_n=\tau_n\) produces a subsequence on which \(\tau_n\to0\), \(\tau_n\to\tau\in(0,\infty)\), or \(\tau_n\to\infty\).  In the last case, applying the same argument to \(\lambda_n\) along that subsequence and, if necessary, passing to a further subsequence gives \(\lambda_n\to0\), \(\lambda_n\to\lambda\in(0,\infty)\), or \(\lambda_n\to\infty\).  These are precisely the five components in \(\text{def:recovery-regimes}\).  Their defining extended-limit conditions are pairwise incompatible, so the selected subsequence belongs to exactly one component.  The conclusion is subsequential: different subsequences of an oscillating strength sequence may belong to different components.
+
+Suppose that \(s=1\).  The definitions immediately give
+\[
+ T_n=n\kappa_n^3=\tau_n,
+ \qquad
+ \lambda_n=\frac{T_n}{\log(e/\kappa_n)}
+ =\frac{\tau_n}{\log(e/\kappa_n)}.
+ \tag{2}
+\]
+Thus a finite positive limit of \(\tau_n\) defines the slope face, while, conditional on \(\tau_n\to\infty\), the three possible extended limits of the ratio in (2) distinguish the location-entropy faces.  These alternatives are genuinely distinct.  To see this, let \(u_n>0\) satisfy \(u_n=o(n)\), and, for all sufficiently large \(n\), set \(\kappa_n=(u_n/n)^{1/3}\), assigning arbitrary admissible values in \((0,1/8]\) at the finitely many earlier indices.  Then
+\[
+ \tau_n=u_n,
+ \qquad
+ \lambda_n
+ =\frac{u_n}{1+\{\log n-\log u_n\}/3}.
+ \tag{3}
+\]
+The choices \(u_n=(\log n)^{1/2}\), \(u_n=(\lambda/3)\log n\) for fixed \(\lambda\in(0,\infty)\), and \(u_n=(\log n)^2\) make \(\tau_n\to\infty\) while \(\lambda_n\) tends respectively to \(0\), \(\lambda\), and \(\infty\).  A fixed positive choice of \(u_n\) produces the finite-positive slope face.
+
+Now suppose that \(s>1\), and put \(a=1-1/s>0\).  Combining (1) with \(\lambda_n=T_n/\log(e/\kappa_n)\) yields
+\[
+ \tau_n
+ =\lambda_n\kappa_n^a\log(e/\kappa_n).
+ \tag{4}
+\]
+If \(\lambda_n\) is eventually bounded, then \(\kappa_n\to0\).  Otherwise there would be an \(\varepsilon>0\) and a subsequence with \(\kappa_n\ge\varepsilon\); since \(\kappa_n\le1/8\), along that subsequence
+\[
+ \lambda_n
+ =\frac{n\kappa_n^{2+1/s}}{\log(e/\kappa_n)}
+ \ge
+ \frac{n\varepsilon^{2+1/s}}{\log(e/\varepsilon)}
+ \longrightarrow\infty,
+\]
+contradicting boundedness.  Also, \(x^a\log(e/x)\to0\) as \(x\downarrow0\).  For a direct verification, set \(v=x^{-1}\).  For \(v\ge1\),
+\[
+ \log v=\int_1^v z^{-1}\,dz
+ \le\int_1^v z^{a/2-1}\,dz
+ \le\frac{2}{a}v^{a/2},
+\]
+and consequently
+\[
+ x^a\log(e/x)
+ =v^{-a}(1+\log v)
+ \le v^{-a}+\frac{2}{a}v^{-a/2}\longrightarrow0.
+ \tag{5}
+\]
+Equation (4), the boundedness of \(\lambda_n\), and (5) therefore imply \(\tau_n\to0\).
+
+Conversely, define \(g_s(x)=x^a\log(e/x)\) for \(x\in(0,1/8]\) and \(g_s(0)=0\).  Equation (5) proves continuity at zero, and ordinary continuity holds on \((0,1/8]\).  Compactness therefore gives
+\[
+ B_s:=\sup_{0\le x\le1/8}g_s(x)<\infty.
+\]
+Because \(g_s(\kappa_n)>0\), equation (4) implies
+\[
+ \lambda_n=\frac{\tau_n}{g_s(\kappa_n)}
+ \ge\frac{\tau_n}{B_s}.
+\]
+It follows that \(\tau_n\to\infty\) implies \(\lambda_n\to\infty\).
+
+We next show concretely why cutoff recovery does not imply shrinking honest effect intervals.  Fix any \(s\in(1,2]\).  Since \(s/(2s+1)>1/3\), choose
+\[
+ \frac13<b<\frac{s}{2s+1},
+ \qquad
+ \kappa_n=\frac18 n^{-b}.
+ \tag{6}
+\]
+This sequence is admissible, and
+\[
+ \tau_n=8^{-3}n^{1-3b}\longrightarrow0,
+\]
+whereas
+\[
+ \lambda_n
+ =\frac{8^{-(2+1/s)}n^{1-b(2+1/s)}}{\log(8e)+b\log n}
+ \longrightarrow\infty
+\]
+because \(b<s/(2s+1)=1/(2+1/s)\).  Thus \(\mathsf{CR}(s,\kappa_\bullet)\) holds by \(\text{def:recovery-regimes}\).  On the other hand, \(\tau_n\to0\) and the definition
+\[
+ r_n=\min\left\{1,\frac{\rho_n}{\kappa_n}+\frac{1}{\tau_n}\right\}
+\]
+imply that \(r_n=1\) eventually.
+
+By \(\text{thm:integrated-and-bump-lower-frontier}\), there exists a constant \(C>0\), depending only on \(s\), \(M\), and \(\alpha\), such that
+\[
+ L_n^\star(\kappa_n)\ge C r_n
+ \tag{7}
+\]
+for every \(n\ge1\) and every \(0<\kappa_n\le1/8\).  No limiting condition on \(\tau_n\) or \(\lambda_n\) occurs in the quantifiers of that theorem.  Hence (7) holds on every component of \(\mathfrak R\), including the flat and finite-positive slope faces.  For the cutoff-recovered sequence (6), \(r_n=1\) eventually, and therefore
+\[
+ \liminf_{n\to\infty}L_n^\star(\kappa_n)\ge C>0.
+\]
+This is the claimed minimax nonshrinkage certificate.
+
+Finally, \(\text{def:profile-resolution-schedule}\) defines \(\mathfrak R_{\mathrm{cert}}\) by first requiring membership in \(\mathfrak R_{\mathrm{recovered}}\) and then imposing three additional vanishing certificate conditions.  Therefore
+\[
+ \mathfrak R_{\mathrm{cert}}\subseteq\mathfrak R_{\mathrm{recovered}}.
+\]
+That restriction concerns only the still-unproved conservative finite-grid attainment direction.  It does not restrict the global lower bound (7), and no upper-rate or attainment conclusion has been used in this proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact scale identities separate global cutoff localization from slope-induced indistinguishability, while the established all-strength converse turns that separation into a regime-uniform minimax expected-length lower bound. \textit{Gap.} Unknown-break results classify location recovery, but they do not supply the weak fuzzy-RD identity linking \(T_n\) and \(\tau_n\), the recovered-but-flat nonshrinkage witness, or the resulting global honest-length converse. \textit{Consumer.} An applied user may invoke the lower bound on every strength regime, while treating \(\mathfrak R_{\mathrm{cert}}\) only as the proposed domain for the still-unproved finite-grid attainment direction.
+
+\begin{theorem}[thm:flat-face-exact-value]\label{thm:flat-face-exact-value}
+For \(\kappa_n\le1/16\), \[2[1-\alpha-4\sqrt{\tau_n}]_+\le L_n^\star(\kappa_n)\le2(1-\alpha).\] Hence \(\tau_n\to0\) implies \(L_n^\star(\kappa_n)\to2(1-\alpha)\). If \(s>1\) is fixed and \(\lambda_n\) remains in a compact subset of \((0,\infty)\), then the same limit holds.
+\end{theorem}
+\begin{proof}
+Put \(a=1-\alpha\).  Since \(\alpha\in(0,1/4)\), we have
+\(a\in(3/4,1)\).  Fix an index \(n\) such that
+\(\kappa_n\le 1/16\).  By
+\(\text{thm:integrated-and-bump-lower-frontier}\),
+\[
+ L_n^\star(\kappa_n)\ge G_\alpha(\tau_n).
+\]
+By \(\text{def:integrated-slope-lower-function}\),
+\[
+ G_\alpha(\tau_n)
+ =2\int_0^1 [a-4\sqrt{\tau_n t}]_+\,dt.
+\]
+For every \(t\in[0,1]\), one has
+\(\sqrt{\tau_n t}\le \sqrt{\tau_n}\).  Because the map
+\(x\mapsto[x]_+\) is nondecreasing,
+\[
+ [a-4\sqrt{\tau_n t}]_+
+ \ge [a-4\sqrt{\tau_n}]_+.
+\]
+Integrating this pointwise inequality over \([0,1]\) gives
+\[
+ L_n^\star(\kappa_n)
+ \ge G_\alpha(\tau_n)
+ \ge 2[a-4\sqrt{\tau_n}]_+
+ =2[1-\alpha-4\sqrt{\tau_n}]_+.
+\]
+
+For the upper bound, define the measurable sample rule
+\[
+ I_n^0(O_1,\ldots,O_n)
+ =
+ \begin{cases}
+   \Theta,& X_1\le 1-\alpha,\\
+   \{0\},& X_1>1-\alpha.
+ \end{cases}
+\]
+Its two possible values are connected subsets of
+\(\Theta=[-1,1]\), with lengths \(2\) and \(0\), respectively.
+For every \(P\in\mathcal P_n\), the parameter-space restriction gives
+\(\theta_P\in\Theta\).  Therefore
+\[
+ \{X_1\le1-\alpha\}
+ \subseteq
+ \{\theta_P\in I_n^0(O_1,\ldots,O_n)\}.
+\]
+By \(\text{ass:uniform-running-variable}\),
+\[
+ P\{\theta_P\in I_n^0(O_1,\ldots,O_n)\}
+ \ge P\{X_1\le1-\alpha\}
+ =1-\alpha.
+\]
+Thus \(I_n^0\) obeys the uniform honesty constraint in
+\(\text{def:minimax-length}\).  The same uniform-design assumption
+also yields, for every \(P\in\mathcal P_n\),
+\[
+ E_P\bigl[|I_n^0(O_1,\ldots,O_n)|\bigr]
+ =2P\{X_1\le1-\alpha\}
+ =2(1-\alpha).
+\]
+Using this single data-driven rule as a competitor in the infimum in
+\(\text{def:minimax-length}\) proves
+\[
+ L_n^\star(\kappa_n)\le2(1-\alpha).
+\]
+This establishes both finite-sample inequalities.
+
+Now suppose \(\tau_n\to0\).  Since \(n\ge1\) and
+\(\tau_n=n\kappa_n^3\),
+\[
+ 0<\kappa_n^3\le\tau_n,
+\]
+so \(\kappa_n\to0\).  Consequently \(\kappa_n\le1/16\)
+eventually, and the preceding bounds apply for all sufficiently large
+\(n\).  Their lower endpoint converges to \(2(1-\alpha)\), while their
+upper endpoint equals \(2(1-\alpha)\).  The squeeze theorem therefore
+gives
+\[
+ L_n^\star(\kappa_n)\longrightarrow2(1-\alpha).
+\]
+
+Finally, fix \(s>1\) and suppose that \(\lambda_n\) remains in a
+compact subset of \((0,\infty)\).  In particular, \(\lambda_n\) is
+bounded above.  We first show that \(\kappa_n\to0\).  Otherwise there
+would be \(\epsilon>0\) and a subsequence, indexed again by \(n\), on
+which \(\kappa_n\ge\epsilon\).  The declared strength range
+\(\kappa_n\le1/8\) then permits \(0<\epsilon\le1/8\).  Since
+\(x\mapsto\log(e/x)\) is decreasing, the definition of \(\lambda_n\)
+implies along that subsequence
+\[
+ \lambda_n
+ =\frac{n\kappa_n^{2+1/s}}{\log(e/\kappa_n)}
+ \ge
+ \frac{n\epsilon^{2+1/s}}{\log(e/\epsilon)}
+ \longrightarrow\infty,
+\]
+contradicting boundedness.  Hence \(\kappa_n\to0\), and in particular
+\(\kappa_n\le1/16\) eventually.  From the defining identity
+\[
+ \lambda_n
+ =\frac{\tau_n\kappa_n^{1/s-1}}{\log(e/\kappa_n)}
+\]
+we obtain
+\[
+ \tau_n
+ =\lambda_n\kappa_n^{1-1/s}\log(e/\kappa_n).
+\]
+Because \(s>1\), the exponent \(1-1/s\) is positive.  The elementary
+limit
+\[
+ x^{1-1/s}\log(e/x)\longrightarrow0
+ \qquad\text{as }x\downarrow0
+\]
+and the upper boundedness of \(\lambda_n\) therefore imply
+\(\tau_n\to0\).  Applying the preceding squeeze on the eventual range
+\(\kappa_n\le1/16\) proves
+\[
+ L_n^\star(\kappa_n)\longrightarrow2(1-\alpha),
+\]
+as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identifies an exact nonshrinking phase and removes a spurious higher-smoothness transition based only on location entropy. \textit{Gap.} Mikusheva (2010) links weak-instrument test power to confidence-set length, while the banked parent obtained only a two-label location mixture; neither yields the full-label coefficient \(2(1-\alpha)\) in this unknown-cutoff class. \textit{Consumer.} An analyst can recognize regimes in which any apparently narrow interval must owe its informativeness to restrictions stronger than the maintained H\"older class.
+
+\begin{theorem}[thm:global-profile-separation]\label{thm:global-profile-separation}
+For every \(s\in[1,2]\) and \(M\ge2\), there exists \(C_{\mathrm{sep}}=C_{\mathrm{sep}}(s,M)>0\), independent of \(n\), \(P\), \(c\), \(\vartheta\), and every conditional treatment--outcome association, such that for every \(P\in\mathcal P_n\) and \(c\in[1/4,3/4]\), \[\inf_{\vartheta\in\Theta}\left\{\mathcal L_P(c,\vartheta)-\mathcal L_P(c_P,\theta_P)\right\}\ge C_{\mathrm{sep}}\kappa_n^2\min\{|c-c_P|,h_n\}.\] Here \(\mathcal L_P\) is the four-cell Bernoulli-pair loss in \(\text{def:population-profile-loss}\), its optimization runs over all \(q\in\mathcal Q(c,\vartheta)\), the reference split is \((c_P,\theta_P)\), and its extended-real convention covers zero and singular cells.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal P_n\), put \(a=c_P\), \(b=c\), \(\delta=|b-a|\), and write
+\[
+ m(x)=P(D=1\mid X=x),\qquad
+ g(x)=\sum_{y\in\{0,1\}}q_{1,y}(x)
+\]
+for an arbitrary \(\vartheta\in\Theta\) and \(q\in\mathcal Q(c,\vartheta)\).  If \(\delta=0\), the claimed lower bound is zero and is immediate, so assume \(\delta>0\).
+
+We use the following elementary boundary-reconstruction inequality.  Let \(K(u)=4-6u\) on \([0,1]\).  Then
+\[
+ \int_0^1K(u)\,du=1,
+ \qquad
+ \int_0^1uK(u)\,du=0,
+ \qquad
+ \|K\|_2<\infty.
+\]
+If \(f\) belongs to a radius-\(R\), order-\(s\) H\"older ball on a one-sided interval of width \(r\), Taylor's formula when \(s>1\), and the H\"older increment inequality when \(s=1\), imply
+\[
+ \left|f(a)-\int_0^1K(u)f(a\mathbin{\pm}ru)\,du\right|
+ \le A_s Rr^s,                                                    \tag{1}
+\]
+where \(A_s<\infty\) depends only on \(s\).  Indeed, for \(s>1\), the zero first moment cancels the linear Taylor term and the remainder is bounded by \(R(ru)^s\); for \(s=1\), one directly bounds \(|f(a\mathbin{\pm}ru)-f(a)|\) by \(Rru\).  Thus (1) is proved from the stated H\"older condition.
+
+Suppose first that \(b>a\).  For every \(r<\delta\), the candidate treatment margin uses one and the same left-side H\"older extension on \([a-r,a+r]\); call it \(g^-\).  Define
+\[
+ e_-(x)=\mu_{D,P}^-(x)-g^-(x),\quad x\le a,
+ \qquad
+ e_+(x)=\mu_{D,P}^+(x)-g^-(x),\quad x\ge a.
+\]
+Both functions have H\"older radius at most \(2M\), and
+\[
+ e_+(a)-e_-(a)=\mu_{D,P}^+(a)-\mu_{D,P}^-(a)=d_P\ge\kappa_n.       \tag{2}
+\]
+The case \(b<a\) is identical after using the candidate's right-side extension.
+
+Choose
+\[
+ \gamma_s=\min\left\{\frac12,(8A_s)^{-1/s}\right\},
+ \qquad
+ r=\min\left\{\frac{\delta}{2},\gamma_sh_n\right\}.
+\]
+Because \(M\ge2\), \(\kappa_n\le1/8\), and (a\in[1/4,3/4]), we have \(h_n=(\kappa_n/M)^{1/s}\le1/4\), so both one-sided intervals used below lie in \([0,1]\).  Applying (1) to \(e_+\) and \(e_-\), using (2), and using \(4A_sMr^s\le\kappa_n/2\le d_P/2\), gives
+\[
+ \frac{d_P}{2}
+ \le \left|\int_0^1K(u)e_+(a+ru)\,du\right|
+    +\left|\int_0^1K(u)e_-(a-ru)\,du\right|.
+\]
+By Cauchy--Schwarz,
+\[
+ \frac{d_P}{2}
+ \le \frac{\sqrt2\|K\|_2}{\sqrt r}
+ \left\{\int_{a-r}^{a+r}(m(x)-g(x))^2\,dx\right\}^{1/2}.
+\]
+Therefore
+\[
+ \int_0^1(m-g)^2\,dx
+ \ge \frac{d_P^2r}{8\|K\|_2^2}
+ \ge c_s\kappa_n^2\min\{\delta,h_n\},                           \tag{3}
+\]
+where \(c_s>0\) depends only on \(s\); the last inequality uses
+\(r\ge\min\{1/2,\gamma_s\}\min\{\delta,h_n\}\).
+
+It remains to pass from the treatment margin to the four-cell likelihood.  Pointwise, the log-sum inequality applied to the two outcome cells within each treatment cell gives, with the extended-real conventions of def:population-profile-loss,
+\[
+ \sum_{d,y}p_{d,y,P}(x)\log\frac{p_{d,y,P}(x)}{q_{d,y}(x)}
+ \ge \operatorname{kl}(m(x),g(x)).
+\]
+For fixed \(w\in(0,1)\), the second derivative of \(u\mapsto\operatorname{kl}(u,w)\) equals \(1/[u(1-u)]\ge4\); continuity at the boundary therefore gives
+\[
+ \operatorname{kl}(u,w)\ge2(u-w)^2,
+\]
+and the same inequality is immediate when the divergence is infinite.  Integration and (3) show that every feasible \(q\) satisfies
+\[
+ \int_0^1\sum_{d,y}p_{d,y,P}(x)
+       \log\frac{p_{d,y,P}(x)}{q_{d,y}(x)}\,dx
+ \ge2c_s\kappa_n^2\min\{|c-c_P|,h_n\}.
+\]
+This bound is independent of \(\vartheta\), of the unrestricted association coordinate, and of \(q\).  Taking first the infimum over \(q\in\mathcal Q(c,\vartheta)\) and then the infimum over \(\vartheta\in\Theta\), and using \(\mathcal L_P(c_P,\theta_P)=0\), proves the result with \(C_{\mathrm{sep}}=2c_s>0\).  Its construction involves only \(s\) (and the declared normalization of the radius \(M\)), so it is independent of \(n,P,c,\vartheta\), and the conditional treatment--outcome association.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The deterministic profile gap is the first proof step that the refuted moving-window localizer lacked. \textit{Gap.} Porter and Yu (2015) and Tuvaandorj (2020) analyze unknown sharp-RD locations, but do not establish this support-wide false-split gap for a vanishing binary first stage under separate one-sided H\"older constraints. \textit{Consumer.} The bound converts global cutoff profiling from a heuristic into a certifiable localization device before stochastic calibration is attempted.
+
+\begin{proposition}[prop:association-unrestricted-calibration]\label{prop:association-unrestricted-calibration}
+Suppose \((c_P,\theta_P)\in\mathcal G_c\times\mathcal G_\vartheta\) and the certified outer margin program contains the true bin averages. Conditional on \(N_1(c_P),\ldots,N_{K_n}(c_P)\), \[P\!\left\{\Delta_n(c_P,\theta_P)>\Gamma_n(\delta_n)\mid N_1(c_P),\ldots,N_{K_n}(c_P)\right\}\le\frac{\delta_n}{|\mathcal G_c||\mathcal G_\vartheta|}\le\delta_n.\] The inequality holds uniformly over every binary conditional treatment--outcome association allowed by \(\mathcal P_n\), including zero joint cells, perfect conditional association, and null-restricted residual variance equal to zero. In the worked grid of \(\text{def:worked-four-cell-grid}\), the displayed vectors equal the bin-averaged law of \(P_0\), their margins have the stated jumps, the population deviance at \((1/2,0)\) is zero, and each fallback branch returns \(\Theta\).
+\end{proposition}
+\begin{proof}
+Condition on the bin counts \(N_1(c_P),\ldots,N_{K_n}(c_P)\).  By iid sampling, the four cell counts within bin \(k\) have the multinomial law with size \(N_k(c_P)\) and cell vector
+\[
+ \overline p_k=(\overline p_{k,d,y,P}(c_P))_{d,y\in\{0,1\}},
+\]
+and the conditional multinomial vectors are independent across bins.  By hypothesis, the array \((\overline p_k)_{k=1}^{K_n}\) is feasible for the certified outer program at \((c_P,\theta_P)\).  Hence, writing
+\[
+ S_n=\sum_{k:N_k(c_P)>0}N_k(c_P)
+       \operatorname{KL}(\widehat p_k(c_P),\overline p_k),
+\]
+the definition of the profiled deviance gives
+\[
+ \Delta_n(c_P,\theta_P)\le S_n.                                  \tag{1}
+\]
+
+For a fixed empirical four-cell type \(u_k\) with denominator \(N_k\), the multinomial theorem and \(m!/(m_1!\cdots m_4!)\prod_j u_{k,j}^{m_j}\le1\) imply
+\[
+ P\{\widehat p_k=u_k\mid N_k\}
+ \le\exp\{-N_k\operatorname{KL}(u_k,\overline p_k)\}.            \tag{2}
+\]
+If a type assigns positive mass to a cell in which \(\overline p_k\) is zero, its probability is zero and (2) remains valid under the extended-real convention.  There are at most \((N_k+1)^3\) four-cell types because the fourth count is determined by the first three.  Therefore, by (1), (2), and a union bound over the product of binwise types,
+\[
+\begin{aligned}
+ &P\!\left\{\Delta_n(c_P,\theta_P)>\Gamma_n(\delta_n)
+       \mid N_1(c_P),\ldots,N_{K_n}(c_P)\right\}\\
+ &\quad\le
+ \prod_{k=1}^{K_n}(N_k(c_P)+1)^3
+       \exp\{-\Gamma_n(\delta_n)\}\\
+ &\quad=\frac{\delta_n}{|\mathcal G_c||\mathcal G_\vartheta|}
+ \le\delta_n.
+\end{aligned}
+\]
+No lower bound on any cell probability or covariance eigenvalue entered this argument, so the inequality is uniform over all allowed association coordinates, including zero cells, perfect association, and singular null residuals.
+
+It remains to verify the numerical worked example.  At \(\kappa_n=1/32\) and \(t=0\), the treatment means are \(31/64\) to the left of \(1/2\) and \(33/64\) to the right.  The bin-average outcome means are \(69/128,65/128,65/128,69/128\).  Conditional independence in def:moving-cutoff-continuum therefore gives, in the stated cell order,
+\[
+\begin{aligned}
+ &(33\cdot59,33\cdot69,31\cdot59,31\cdot69)/8192
+   =(1947,2277,1829,2139)/8192,\\
+ &(33\cdot63,33\cdot65,31\cdot63,31\cdot65)/8192
+   =(2079,2145,1953,2015)/8192,\\
+ &(31\cdot63,31\cdot65,33\cdot63,33\cdot65)/8192
+   =(1953,2015,2079,2145)/8192,\\
+ &(31\cdot59,31\cdot69,33\cdot59,33\cdot69)/8192
+   =(1829,2139,1947,2277)/8192.
+\end{aligned}
+\]
+Each vector is nonnegative and sums to one, and its margins are exactly the margins just displayed.  Thus the true array is feasible at \((1/2,0)\), and choosing it in the population profile gives deviance zero.  Substitution of four bins and nine grid pairs in def:four-cell-calibration gives
+\[
+ 3\sum_{k=1}^4\log(N_k(1/2)+1)+\log(9/\delta_n).
+\]
+Finally, def:worked-four-cell-grid explicitly defines the rule to return \(\Theta\) on every listed fallback branch, which proves the last assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A method-of-types bound calibrates the observed four-cell vector without a covariance eigenvalue condition. \textit{Gap.} Arai, Hsu, Kitagawa, Mourifi{\'e}, and Wan (2022) show why the joint law matters for fuzzy-RD validity, but do not give an unknown-cutoff profile certificate with arbitrary association nuisance. \textit{Consumer.} This certificate supplies the honest calibration layer used by every nonfallback branch of the total interval.
+
+\begin{openendedquestion}[oeq:s1-critical-frontier]\label{oeq:s1-critical-frontier}
+Using \(\mathsf H_{\mathrm{crit}}\), derive the complete \(s=1\) cutoff/effect-label limit experiments separately on \(\mathfrak R_{\mathrm{slope}}\), where \(\tau_n\to\tau\in(0,\infty)\), and on \(\mathfrak R_{\mathrm{entropy},0}\cup\mathfrak R_{\mathrm{entropy},\lambda}\), where \(\tau_n\to\infty\) and \(\lambda_n\to\lambda\in[0,\infty)\). Include boundary-truncated mixtures and every surviving second-order coordinate. Evaluate the fixed-\(\alpha\) minimax expected connected-interval length as \(\mathcal V_\alpha(\tau,\lambda;1)\), and determine whether causal-valid location mixtures together with same-class slope-kink alternatives are least favorable in the full model. Require only the certified reduction \(\mathcal V_\alpha(0,0;1)=2(1-\alpha)\) at the flat boundary; no exact value is asserted on a finite-positive face before the decision problem is solved.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The non-Gaussian decision value, rather than cutoff consistency alone, is the unresolved critical object governing honest interval length. \textit{Gap.} Elliott and M\"uller (2014) solve a parametric moderate-break process problem and Andrews and Mikusheva (2022) give an abstract weak-GMM decision theory; Feir, Lemieux, and Marmer (2016) keep the fuzzy-RD cutoff fixed. None derives this binary H\"older moving-cutoff experiment, its signed causal label, or its connected-length value. \textit{Consumer.} The value map tells fuzzy-RD users how much interval informativeness remains at each empirically relevant combination of weak compliance and cutoff uncertainty.
+
+\begin{openendedquestion}[oeq:all-strength-profile]\label{oeq:all-strength-profile}
+Using \(\mathsf H_{\mathrm{prof}}\), construct \(I_n^{\mathrm{prof}}\)
+and prove
+\[
+ \liminf_{n\to\infty}\inf_{P\in\mathcal P_n}
+ P\{\theta_P\in I_n^{\mathrm{prof}}\}\ge1-\alpha
+\]
+for every strength sequence.  On each critical component of
+\(\mathfrak R\) whose value is evaluated by \(\mathcal V_\alpha\), prove
+\[
+ \sup_{P\in\mathcal P_n}E_P|I_n^{\mathrm{prof}}|
+ -L_n^\star(\kappa_n)\longrightarrow0.
+\]
+Only on \(\mathfrak R_{\mathrm{cert}}\), prove
+\[
+ \sup_{P\in\mathcal P_n}E_P|I_n^{\mathrm{prof}}|
+ \asymp L_n^\star(\kappa_n)\asymp r_n.
+\]
+The upper comparison must keep the local stochastic contribution
+\(\rho_n/\kappa_n+1/(n\kappa_n^3)\) separate from the remainders
+\(\zeta_n\), \(\varepsilon_{\mathrm{cont},n}\),
+\(|\mathcal G_c|\exp[-C_{\mathrm{sep}}n\kappa_n^2h_n/4]\),
+\(2\delta_n\), and twice the maximal probability of each fallback branch
+in \(\text{def:worked-four-cell-grid}\); the last four expected-length
+remainders must be \(o(r_n)\), and \(\zeta_n=o(1)\).  No upper rate or
+critical constant is claimed from \(\mathsf{CR}(s,\kappa_\bullet)\), from
+population separation, or from marginal profiling alone.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} With the minimax lower frontier settled separately, the remaining task is a single total interval that converts finite-grid calibration into continuum-uniform honesty and a matching upper expected-length guarantee. \textit{Gap.} Andrews and Mikusheva (2016) condition out a functional nuisance in Gaussian-process moment models, while Feir, Lemieux, and Marmer (2016) and Noack and Rothe (2024) invert weak-identification-robust tests at a known cutoff. None supplies the required certified four-cell continuum transfer, fallback control, or critical-face attainment under an unknown cutoff. \textit{Consumer.} The interval would give a frequentist benchmark for unknown or administratively uncertain eligibility thresholds, including the binary HIV-retention application studied by Kowalska, van de Wiel, and van der Pas.
+
+\begin{theorem}[thm:known-cutoff-reduction]\label{thm:known-cutoff-reduction}
+If \(c_P\) is supplied to the rule, use \(\mathcal G_c=\{c_P\}\), the fixed-cutoff threshold and interval in \(\text{def:known-cutoff-threshold}\) and \(\text{def:known-cutoff-grid-rule}\), suppress cutoff profiling, and invert only \(\Delta_n(c_P,\vartheta)\). For every \(P\in\mathcal P_n\) such that \(\theta_P\in\mathcal G_\vartheta\) and the certified outer margin program contains the true bin averages, \[P\!\left\{\Delta_n(c_P,\theta_P)>\Gamma_n^{\mathrm{kc}}(\delta_n)\mid N_1(c_P),\ldots,N_{K_n}(c_P)\right\}\le\frac{\delta_n}{|\mathcal G_\vartheta|}\le\delta_n.\] The inverted grid set \(\mathcal A_n^{\mathrm{kc}}\), its connected hull, and the fallback-safe rule \(I_n^{\mathrm{kc}}\) each cover \(\theta_P\), conditionally and unconditionally, with probability at least \(1-\delta_n\); in particular, \[P\{\theta_P\in I_n^{\mathrm{kc}}\}\ge1-\delta_n.\] These conclusions hold uniformly over every binary treatment--outcome association permitted by \(\mathcal P_n\), including zero joint cells and singular null residuals. By \(\text{prop:wald-late-identification}\), the covered parameter is \(\theta_P=E_P[Y(1)-Y(0)\mid R=C,X=c_P]\). No condition on the cutoff-recovery index \(\lambda_n\) is used. No full-continuum honesty, expected-length order, or first-order equivalence to residual-jump inversion is asserted.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal P_n\) satisfying the two hypotheses in the statement, and let
+\[
+\mathscr N_P=\sigma\{N_1(c_P),\ldots,N_{K_n}(c_P)\}.
+\]
+By \(\text{def:known-cutoff-threshold}\), \(\mathcal G_c=\{c_P\}\), so \(|\mathcal G_c|=1\).  Substitution into the threshold in \(\text{def:four-cell-calibration}\) gives, equation by equation,
+\[
+\begin{aligned}
+\Gamma_n(\delta_n)
+&=3\sum_{k=1}^{K_n}\log\{N_k(c_P)+1\}
+  +\log\frac{|\mathcal G_c||\mathcal G_\vartheta|}{\delta_n}\\
+&=3\sum_{k=1}^{K_n}\log\{N_k(c_P)+1\}
+  +\log\frac{|\mathcal G_\vartheta|}{\delta_n}\\
+&=\Gamma_n^{\mathrm{kc}}(\delta_n).
+\end{aligned}
+\]
+The hypotheses \(\theta_P\in\mathcal G_\vartheta\) and that the certified outer program contains the true bin averages imply
+\((c_P,\theta_P)\in\mathcal G_c\times\mathcal G_\vartheta\) and verify precisely the two premises of \(\text{prop:association-unrestricted-calibration}\).  That proposition and the displayed threshold identity therefore yield
+\[
+P\!\left\{\Delta_n(c_P,\theta_P)>\Gamma_n^{\mathrm{kc}}(\delta_n)\mid\mathscr N_P\right\}
+\le \frac{\delta_n}{|\mathcal G_\vartheta|}
+\le\delta_n,
+\]
+where the last inequality follows from the nonemptiness of the finite grid \(\mathcal G_\vartheta\).
+
+By the definition of \(\mathcal A_n^{\mathrm{kc}}\) in \(\text{def:known-cutoff-grid-rule}\), on the complementary event
+\[
+\Delta_n(c_P,\theta_P)\le\Gamma_n^{\mathrm{kc}}(\delta_n)
+\]
+one has
+\[
+\theta_P\in\mathcal A_n^{\mathrm{kc}}
+\subseteq\operatorname{hull}(\mathcal A_n^{\mathrm{kc}}).
+\]
+Consequently the conditional coverage probabilities of both the inverted grid set and its connected hull are at least \(1-\delta_n/|\mathcal G_\vartheta|\), hence at least \(1-\delta_n\).
+
+Let \(F_n^{\mathrm{kc}}\) be the union of the certified fallback branches listed in \(\text{def:worked-four-cell-grid}\).  Proposition \(\text{prop:wald-late-identification}\) gives
+\[
+\theta_P=E_P\!\left[Y(1)-Y(0)\mid R=C,X=c_P\right]\in\Theta;
+\]
+and the conditional causal contrast is well defined by the positivity premise already discharged in that proposition.  Hence \(\theta_P\in I_n^{\mathrm{kc}}=\Theta\) on \(F_n^{\mathrm{kc}}\).  On \((F_n^{\mathrm{kc}})^c\), \(\text{def:known-cutoff-grid-rule}\) and the preceding acceptance implication show that the same conclusion holds whenever the true-label deviance does not exceed its threshold.  Pointwise,
+\[
+\{\theta_P\notin I_n^{\mathrm{kc}}\}
+\subseteq
+\{\Delta_n(c_P,\theta_P)>\Gamma_n^{\mathrm{kc}}(\delta_n)\}.
+\]
+Conditioning on \(\mathscr N_P\) and using the calibrated bound gives
+\[
+P\{\theta_P\in I_n^{\mathrm{kc}}\mid\mathscr N_P\}
+\ge1-\frac{\delta_n}{|\mathcal G_\vartheta|}
+\ge1-\delta_n.
+\]
+Taking expectations with respect to \(\mathscr N_P\) proves the corresponding unconditional bound for \(\mathcal A_n^{\mathrm{kc}}\), its hull, and \(I_n^{\mathrm{kc}}\); in particular,
+\[
+P\{\theta_P\in I_n^{\mathrm{kc}}\}\ge1-\delta_n.
+\]
+For completeness, each count vector has finite support, and \(\Delta_n(c_P,\vartheta)\), the certified fallback indicators, and the lexicographic tie rule in \(\text{def:worked-four-cell-grid}\) are deterministic extended-real functions of that vector.  Therefore \(\mathcal A_n^{\mathrm{kc}}\) and \(I_n^{\mathrm{kc}}\) are measurable; the latter is connected because it is either \(\Theta\) or a connected hull.
+
+The uniformity assertion is inherited from \(\text{prop:association-unrestricted-calibration}\): its multinomial type bound permits zero joint cells and every binary association, and no residual-variance lower bound was invoked anywhere above.  Finally, the cutoff is supplied and \(\mathcal G_c\) is a singleton throughout, so neither the construction nor its guarantee uses a cutoff-recovery condition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the fixed-cutoff calibration sanity check: a singleton cutoff grid removes location search while preserving finite-grid four-cell validity on singular association faces. It is not an expected-length or first-order-efficiency claim. \textit{Gap.} Feir, Lemieux, and Marmer (2016) develop weak-identification-robust fuzzy-RD inference at a fixed cutoff, and Noack and Rothe (2024) establish known-cutoff bias-aware honesty. The present theorem proves only the exact finite-grid specialization of the association-robust four-cell calibration; continuum honesty, a length rate, and first-order equivalence are outside its proved scope. \textit{Consumer.} Researchers with a reliably documented threshold obtain a certified finite-grid inversion with conditional and unconditional coverage under arbitrary admissible binary treatment--outcome association, subject to grid inclusion and outer-program containment; no precision guarantee is claimed.
+
+\begin{proposition}[prop:fixed-cutoff-bump-membership-kl]\label{prop:fixed-cutoff-bump-membership-kl}
+For every \(s\in[1,2]\), \(M\ge2\), \(0<\kappa_n\le1/8\), and
+\(u\in[-1,1]\), the construction satisfies
+\[
+ \mathcal W_n^{\mathrm{fix}}\subset\mathcal P_n,
+ \qquad c_{Q_u}=c_0,
+ \qquad d_{Q_u}=\kappa_n,
+ \qquad \theta_{Q_u}=u.
+\]
+Writing all divergences for the observed \(O_i\)-law, it also satisfies
+\[
+ \operatorname{KL}(Q_u^{\otimes n},Q_0^{\otimes n})
+ \le
+ 2\left(\frac{4H_s}{M}\right)^{1/s}
+ n(\kappa_n|u|)^{2+1/s}
+\]
+and
+\[
+ \operatorname{TV}(Q_u^{\otimes n},Q_0^{\otimes n})
+ \le
+ \left\{2\left(\frac{4H_s}{M}\right)^{1/s}
+ n(\kappa_n|u|)^{2+1/s}\right\}^{1/2}.
+\]
+\end{proposition}
+\begin{proof}
+Write \(a=(1-\kappa_n)/2\),
+\(l=(1-\kappa_nu)/2\), and \(r=(1+\kappa_nu)/2\).
+The type masses in \(\text{def:fixed-cutoff-bump-continuum}\) sum to one
+and are nonnegative because \(0<\kappa_n\le1/8\).  Monotonicity follows
+from \(D(0)=\mathbf 1\{R=A\}\) and
+\(D(1)=\mathbf 1\{R\in\{A,C\}\}\).  Under assignment zero,
+\[
+ a r+\kappa_n\frac{1-u}{2}
+ =\frac{1+\kappa_n}{2}l,
+\]
+whereas under assignment one,
+\[
+ a l+\kappa_n\frac{1+u}{2}
+ =\frac{1+\kappa_n}{2}r.
+\]
+For assignment zero, the always-taker cell has outcome mean \(l\); the
+first identity says that the combined never-taker--complier cell has the
+same mean.  Thus \((D(0),Y(D(0)))\) has independent Bernoulli margins
+\(((1-\kappa_n)/2,l)\).  The second identity gives independent margins
+\(((1+\kappa_n)/2,r)\) for \((D(1),Y(D(1)))\).  Applying a common
+type-independent binary kernel to the potential outcomes preserves this
+independence for the actually assigned treatment.  Its denominators are
+positive because every cutoff and target outcome mean is in
+\([7/16,9/16]\).  This proves that the observable law is exactly the one
+specified in the definition, without restricting the model class's
+otherwise unrestricted treatment--outcome association.
+
+The type masses do not depend on \(x\), so both potential-treatment
+reduced forms are continuous at \(c_0\).  On either side, the Markov
+kernel tends to the identity as \(x\to c_0\), since \(\psi(0)=1\).
+Consequently, for each \(z\in\{0,1\}\), the reduced form
+\(x\mapsto E_{Q_u}[Y(D(z))\mid X=x]\) tends from both sides to its value
+under the common cutoff latent law.  This verifies the two causal
+continuity assumptions.  The cutoff is interior, and the design is
+uniform by construction.
+
+It remains to check observable smoothness.  On \((-1,1)\),
+\[
+ \psi'(z)=-4z(1-z^2),
+ \qquad
+ \psi''(z)=-4+12z^2.
+\]
+Both \(\psi\) and \(\psi'\) vanish at \(z=\pm1\).  Pasting the
+polynomial to zero therefore makes \(\psi\) globally continuously
+differentiable.  Since \(|\psi''(z)|\le8\) away from the two support
+boundaries, the continuous function \(\psi'\) is globally
+\(8\)-Lipschitz.  Thus \(\psi\) is compactly supported and belongs to
+\(C^{1,1}(\mathbb R)\), although \(\psi''\) may jump at the support
+boundary.  Directly,
+\(\|\psi\|_\infty\le1\), \(\|\psi'\|_\infty\le2\), and
+\(\operatorname{Lip}(\psi')\le8\).  For every
+\(\beta\in(0,1]\), the bounds
+\[
+ |\psi'(x)-\psi'(y)|
+ \le 8|x-y|\quad\text{if }|x-y|\le1,
+ \qquad
+ |\psi'(x)-\psi'(y)|\le4\quad\text{if }|x-y|>1
+\]
+give \([\psi']_\beta\le8\).  Under the standard H\"older norms used in
+\(\text{ass:observable-holder-extensions}\), these inequalities imply
+\(H_s\le12\) for every \(s\in[1,2]\).
+
+Let \(A=\kappa_n|u|/2\).  For \(u\ne0\), direct rescaling gives
+\[
+ \left\|A\psi\!\left(\frac{\cdot-c_0}{h_u}\right)
+ \right\|_{\mathcal H^s}
+ \le A H_s\max\{1,h_u^{-s}\}
+ \le A H_s(1+h_u^{-s})
+ \le \frac34+\frac{M}{8}.
+\]
+Indeed, for \(s=1\) the Lipschitz seminorm is multiplied by
+\(Ah_u^{-1}\); for \(s=1+\beta\), \(0<\beta\le1\), the derivative
+supremum is multiplied by \(Ah_u^{-1}\) and its \(\beta\)-H\"older
+seminorm by \(Ah_u^{-1-\beta}=Ah_u^{-s}\).  If \(h_u\le1\), all
+scaling factors are bounded by \(h_u^{-s}\), and if \(h_u>1\), they are
+bounded by one.  Finally,
+\(AH_sh_u^{-s}=M/8\) by the definition of \(h_u\), while
+\(AH_s\le12/16=3/4\).  Adding the constant \(1/2\) gives a norm at most
+\(5/4+M/8\le M\), using \(M\ge2\).  When \(u=0\), the outcome
+extensions are constant and satisfy the same bound.  The treatment-side
+extensions are constant and bounded by \(9/16\).  Thus all four
+one-sided extensions belong to the declared radius-\(M\), order-\(s\)
+balls.  Their jumps at \(c_0\) are \(\kappa_n\) and \(\kappa_nu\),
+respectively.  Therefore the strength shell holds, and
+\[
+ d_{Q_u}=\kappa_n,
+ \qquad y_{Q_u}=\kappa_nu,
+ \qquad \theta_{Q_u}=y_{Q_u}/d_{Q_u}=u.
+\]
+The same value is obtained causally because the complier
+potential-outcome means differ by \(u\).  This establishes membership in
+\(\mathcal P_n\) and the asserted labels.
+
+For the divergence calculation, \(Q_u\) and \(Q_0\) have the same
+uniform \(X\)-law and the same conditional treatment law.  Conditional
+independence in this witness therefore reduces their conditional joint
+divergence to the outcome Bernoulli divergence.  If \(p=1/2+v\), then
+\[
+ \operatorname{kl}(p,1/2)
+ \le \chi^2(\operatorname{Ber}(p),\operatorname{Ber}(1/2))
+ =4v^2.
+\]
+The inequality follows from \(\log z\le z-1\), applied to the two
+likelihood-ratio values and averaged under \(\operatorname{Ber}(p)\).
+The absolute outcome-mean displacement is
+\(A\psi((x-c_0)/h_u)\).  Since \(0\le\psi\le1\) and
+\(\int_{\mathbb R}\psi(z)^2\,dz\le2\), uniform design yields, for
+\(u\ne0\),
+\[
+ \begin{aligned}
+ \operatorname{KL}(Q_u,Q_0)
+ &\le4A^2h_u\int_{\mathbb R}\psi(z)^2\,dz\\
+ &\le2\kappa_n^2u^2h_u\\
+ &=2\left(\frac{4H_s}{M}\right)^{1/s}
+   (\kappa_n|u|)^{2+1/s}.
+ \end{aligned}
+\]
+For \(u=0\), both sides are zero.  Assumption
+\(\text{ass:iid-sampling}\) makes the log likelihood ratio a sum of
+\(n\) one-observation log likelihood ratios; taking expectation gives
+exact Kullback--Leibler tensorization and proves the displayed
+\(n\)-sample bound.
+
+Finally, let \(p\) and \(q\) be any two densities and put
+\(H^2(p,q)=\int(\sqrt p-\sqrt q)^2\).  Cauchy--Schwarz gives
+\(\operatorname{TV}(p,q)\le H(p,q)\).  The pointwise inequality
+\(-\log x\ge2(1-\sqrt x)\), integrated under \(p\) with \(x=q/p\),
+gives \(H^2(p,q)\le\operatorname{KL}(p,q)\), with the extended-real
+convention when absolute continuity fails.  Hence
+\(\operatorname{TV}(p,q)\le\sqrt{\operatorname{KL}(p,q)}\).  Applying
+this derived inequality to the product-law Kullback--Leibler bound proves
+the asserted total-variation inequality.
+\end{proof}
+
+\begin{theorem}[thm:integrated-and-bump-lower-frontier]\label{thm:integrated-and-bump-lower-frontier}
+Put \(a=1-\alpha\), \(p_s=2+1/s\),
+\[
+ C_b=2\left(\frac{4H_s}{M}\right)^{1/s},
+ \qquad T_n=n\kappa_n^{p_s},
+ \qquad B_n=\sqrt{C_bT_n}.
+\]
+For every \(n\ge1\) and \(0<\kappa_n\le1/8\),
+\[
+ L_n^\star(\kappa_n)\ge F_{\alpha,s,M}(T_n)
+ =\begin{cases}
+ 2a-\dfrac{4s}{4s+1}B_n,&B_n\le a,\\[6pt]
+ \dfrac{2a(2s+1)}{4s+1}
+ \left(\dfrac{a}{B_n}\right)^{2s/(2s+1)},&B_n>a.
+ \end{cases}
+\]
+If additionally \(\kappa_n\le1/16\), then
+\[
+ L_n^\star(\kappa_n)
+ \ge\max\left\{G_\alpha(\tau_n),F_{\alpha,s,M}(T_n)\right\},
+\]
+where
+\[
+ G_\alpha(\tau_n)
+ =\begin{cases}
+ 2a-\dfrac{16}{3}\sqrt{\tau_n},
+   &0\le\tau_n\le a^2/16,\\[6pt]
+ \dfrac{a^3}{24\tau_n},&\tau_n>a^2/16.
+ \end{cases}
+\]
+Moreover, there are constants \(c_{\mathrm{fix}}>0\) and
+\(C_{\mathrm{low}}>0\), depending only on \(s\), \(M\), and
+\(\alpha\), such that for every \(n\ge1\) and
+\(0<\kappa_n\le1/8\),
+\[
+ L_n^\star(\kappa_n)
+ \ge c_{\mathrm{fix}}\min\left\{1,\frac{\rho_n}{\kappa_n}\right\},
+ \qquad
+ L_n^\star(\kappa_n)\ge C_{\mathrm{low}}r_n.
+\]
+\end{theorem}
+\begin{proof}
+Fix \(n\ge1\), \(s\in[1,2]\), \(M\ge2\),
+\(0<\kappa_n\le1/8\), and any measurable connected interval rule
+\(I_n\) satisfying the honesty constraint in \(\text{def:minimax-length}\).
+Write
+\[
+ a=1-\alpha,
+ \qquad p_s=2+\frac1s=\frac{2s+1}{s},
+ \qquad C_b=2\left(\frac{4H_s}{M}\right)^{1/s},
+\]
+and put \(T_n=n\kappa_n^{p_s}\),
+\(B_n=\sqrt{C_bT_n}\), and \(\beta=p_s/2=(2s+1)/(2s)\).
+The constant \(C_b\) is finite and strictly positive because the fixed,
+nonzero bump \(\psi\) has \(0<H_s<\infty\), while \(M\ge2\).
+
+We first integrate the fixed-cutoff continuum.  By
+\(\text{prop:fixed-cutoff-bump-membership-kl}\), for every
+\(u\in[-1,1]\), both \(Q_u\) and \(Q_0\) belong to \(\mathcal P_n\),
+their effect labels are \(u\) and \(0\), respectively, and
+\[
+ \begin{aligned}
+ \operatorname{TV}(Q_u^{\otimes n},Q_0^{\otimes n})
+ &\le\left\{C_b n(\kappa_n|u|)^{p_s}\right\}^{1/2}\\
+ &=\sqrt{C_bn\kappa_n^{p_s}}\,|u|^{p_s/2}\\
+ &=B_n|u|^\beta.
+ \end{aligned}
+\]
+The middle equality uses \(\kappa_n>0\), and the last equality uses the
+definitions of \(T_n\), \(B_n\), and \(\beta\).  Honesty at \(Q_u\)
+and the defining variational inequality for total variation give
+\[
+ \begin{aligned}
+ Q_0^{\otimes n}\{u\in I_n\}
+ &\ge Q_u^{\otimes n}\{u\in I_n\}
+      -\operatorname{TV}(Q_u^{\otimes n},Q_0^{\otimes n})\\
+ &\ge a-B_n|u|^\beta.
+ \end{aligned}
+\]
+Since a probability is nonnegative,
+\[
+ Q_0^{\otimes n}\{u\in I_n\}
+ \ge[a-B_n|u|^\beta]_+.
+ \tag{1}
+\]
+
+For completeness, the integration in \((1)\) can be justified without
+assuming any unmentioned set-valued Fubini theorem.  For \(m\ge1\), let
+\(u_j=-1+2j/m\), \(j=0,\ldots,m\).  Every connected subset
+\(J\subseteq[-1,1]\) satisfies
+\[
+ \sum_{j=0}^m\mathbf 1\{u_j\in J\}\le1+\frac m2|J|,
+\]
+because grid points in a nonempty interval from its first to its last
+occupy consecutive positions separated by \(2/m\); the inequality is
+also immediate when \(J\) is empty.  Thus, pointwise,
+\[
+ |I_n|\ge\frac2m\sum_{j=0}^m\mathbf 1\{u_j\in I_n\}-\frac2m.
+\]
+Taking \(Q_0\)-expectations, applying \((1)\), and letting
+\(m\to\infty\) yield
+\[
+ \begin{aligned}
+ E_{Q_0}|I_n|
+ &\ge\int_{-1}^1[a-B_n|u|^\beta]_+\,du\\
+ &=2\int_0^1[a-B_nu^\beta]_+\,du\\
+ &=F_{\alpha,s,M}(T_n).
+ \tag{2}
+ \end{aligned}
+\]
+The limit is a Riemann-sum limit because
+\(u\mapsto[a-B_n|u|^\beta]_+\) is continuous on \([-1,1]\).
+Since \(Q_0\in\mathcal P_n\), \((2)\) implies
+\[
+ \sup_{P\in\mathcal P_n}E_P|I_n|\ge F_{\alpha,s,M}(T_n).
+\]
+Taking the infimum over all honest connected interval rules in
+\(\text{def:minimax-length}\) proves
+\[
+ L_n^\star(\kappa_n)\ge F_{\alpha,s,M}(T_n)
+\]
+for every \(0<\kappa_n\le1/8\).
+
+We next evaluate the integral.  If \(B_n\le a\), the positive part is
+inactive on \([0,1]\), so
+\[
+ \begin{aligned}
+ F_{\alpha,s,M}(T_n)
+ &=2\int_0^1(a-B_nu^\beta)\,du\\
+ &=2a-\frac{2B_n}{\beta+1}\\
+ &=2a-\frac{4s}{4s+1}B_n,
+ \end{aligned}
+\]
+where \(\beta+1=(4s+1)/(2s)\).  If \(B_n>a\), the integrand is
+positive exactly for \(0\le u<u_0\), where
+\[
+ u_0=\left(\frac a{B_n}\right)^{1/\beta}
+ =\left(\frac a{B_n}\right)^{2s/(2s+1)}.
+\]
+Since \(B_nu_0^\beta=a\),
+\[
+ \begin{aligned}
+ F_{\alpha,s,M}(T_n)
+ &=2\left(au_0-\frac{B_nu_0^{\beta+1}}{\beta+1}\right)\\
+ &=2au_0\left(1-\frac1{\beta+1}\right)\\
+ &=\frac{2a(2s+1)}{4s+1}
+   \left(\frac a{B_n}\right)^{2s/(2s+1)}.
+ \end{aligned}
+\]
+This proves the two-piece formula asserted in
+\(\text{def:integrated-fixed-cutoff-lower-function}\).
+
+Suppose now that \(\kappa_n\le1/16\).  By
+\(\text{prop:moving-cutoff-membership-kl}\), every \(P_t\) belongs to
+\(\mathcal P_n\), has effect label \(t\), and obeys
+\[
+ \operatorname{TV}(P_t^{\otimes n},P_0^{\otimes n})
+ \le4\sqrt{\tau_n|t|}.
+\]
+Repeating the honesty transfer and the connected-grid integration used
+above, now with \(t\) in place of \(u\), gives
+\[
+ \begin{aligned}
+ E_{P_0}|I_n|
+ &\ge\int_{-1}^1[a-4\sqrt{\tau_n|t|}]_+\,dt\\
+ &=2\int_0^1[a-4\sqrt{\tau_nt}]_+\,dt\\
+ &=G_\alpha(\tau_n).
+ \tag{3}
+ \end{aligned}
+\]
+Because \(P_0\in\mathcal P_n\), taking the infimum as before proves
+\(L_n^\star(\kappa_n)\ge G_\alpha(\tau_n)\).  Combining this with
+\((2)\) proves
+\[
+ L_n^\star(\kappa_n)
+ \ge\max\{G_\alpha(\tau_n),F_{\alpha,s,M}(T_n)\}.
+\]
+To evaluate \((3)\), if \(\tau_n\le a^2/16\), the integrand is
+nonnegative throughout \([0,1]\), and
+\[
+ 2\int_0^1(a-4\sqrt{\tau_nt})\,dt
+ =2a-\frac{16}{3}\sqrt{\tau_n}.
+\]
+If \(\tau_n>a^2/16\), its positive region ends at
+\(t_0=a^2/(16\tau_n)\), and therefore
+\[
+ \begin{aligned}
+ 2\int_0^{t_0}(a-4\sqrt{\tau_nt})\,dt
+ &=2\left(at_0-\frac83\sqrt{\tau_n}t_0^{3/2}\right)\\
+ &=\frac{a^3}{24\tau_n}.
+ \end{aligned}
+\]
+This is the asserted formula for \(G_\alpha\).
+
+We retain the coarse fixed-cutoff comparison as an immediate consequence
+of the sharper function \(F_{\alpha,s,M}\).  Define
+\[
+ D_{s,M,\alpha}
+ =\frac{2a(2s+1)}{4s+1}
+   a^{2s/(2s+1)}C_b^{-s/(2s+1)}>0,
+ \qquad
+ c_{\mathrm{fix}}=\min\{a,D_{s,M,\alpha}\}>0.
+\]
+If \(B_n\le a\), then \(4s/(4s+1)<1\), whence
+\[
+ F_{\alpha,s,M}(T_n)
+ =2a-\frac{4s}{4s+1}B_n\ge a.
+\]
+If \(B_n>a\), the second branch and
+\(1/p_s=s/(2s+1)\) give
+\[
+ F_{\alpha,s,M}(T_n)
+ =D_{s,M,\alpha}T_n^{-1/p_s}.
+\]
+Consequently, in both cases,
+\[
+ F_{\alpha,s,M}(T_n)
+ \ge c_{\mathrm{fix}}\min\{1,T_n^{-1/p_s}\}.
+ \tag{4}
+\]
+The definitions of \(T_n\), \(p_s\), and \(\rho_n\) imply
+\[
+ T_n^{-1/p_s}
+ =(n\kappa_n^{p_s})^{-1/p_s}
+ =\frac{n^{-s/(2s+1)}}{\kappa_n}
+ =\frac{\rho_n}{\kappa_n}.
+\]
+Combining this identity, \((2)\), and \((4)\) proves the claimed
+fixed-cutoff inequality.
+
+It remains to combine the two sources of difficulty.  For every
+\(\tau>0\), the explicit formula for \(G_\alpha\) implies
+\[
+ G_\alpha(\tau)\ge c_{\mathrm{loc}}\min\{1,\tau^{-1}\},
+ \qquad c_{\mathrm{loc}}=\frac{a^3}{24}>0.
+ \tag{5}
+\]
+Indeed, on \(0<\tau\le a^2/16\), the first branch is at least
+\(2a/3\ge a^3/24\).  On \(a^2/16<\tau\le1\), the second branch is at
+least \(a^3/24\); and on \(\tau>1\), it equals
+\(a^3/(24\tau)\).  Here \(0<a<1\), by \(0<\alpha<1/4\).
+
+Put
+\[
+ A_n=\frac{\rho_n}{\kappa_n},
+ \qquad R_n=\frac1{n\kappa_n^3}=\tau_n^{-1}.
+\]
+When \(\kappa_n\le1/16\), inequalities \((4)\) and \((5)\) give
+\[
+ \begin{aligned}
+ L_n^\star(\kappa_n)
+ &\ge\max\{c_{\mathrm{fix}}\min(1,A_n),
+              c_{\mathrm{loc}}\min(1,R_n)\}\\
+ &\ge\frac12\min\{c_{\mathrm{fix}},c_{\mathrm{loc}}\}
+       \{\min(1,A_n)+\min(1,R_n)\}\\
+ &\ge\frac12\min\{c_{\mathrm{fix}},c_{\mathrm{loc}}\}
+       \min(1,A_n+R_n)\\
+ &=\frac12\min\{c_{\mathrm{fix}},c_{\mathrm{loc}}\}r_n.
+ \tag{6}
+ \end{aligned}
+\]
+The penultimate inequality follows by considering whether
+\(A_n+R_n\le1\): in that case both individual truncations are inactive,
+whereas otherwise their sum is at least one.
+
+Finally, suppose \(1/16<\kappa_n\le1/8\).  Since
+\(n\rho_n=n^{(s+1)/(2s+1)}\ge1\),
+\[
+ \frac{R_n}{A_n}
+ =\frac1{n\kappa_n^2\rho_n}
+ <\frac{256}{n\rho_n}
+ \le256.
+\]
+Thus \(R_n\le256A_n\), and
+\[
+ r_n=\min(1,A_n+R_n)\le257\min(1,A_n).
+ \tag{7}
+\]
+For \(A_n<1\), this follows from
+\(A_n+R_n\le257A_n\); for \(A_n\ge1\), it follows from
+\(r_n\le1\le257\min(1,A_n)\).  The fixed-cutoff bound and \((7)\)
+therefore imply
+\[
+ L_n^\star(\kappa_n)\ge\frac{c_{\mathrm{fix}}}{257}r_n.
+\]
+Taking
+\[
+ C_{\mathrm{low}}
+ =\min\left\{
+ \frac12\min(c_{\mathrm{fix}},c_{\mathrm{loc}}),
+ \frac{c_{\mathrm{fix}}}{257}
+ \right\}>0
+\]
+proves the all-strength lower comparison.  Every constant depends only
+on \(s\), \(M\), and \(\alpha\), as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The two legal causal continua are integrated label by label, yielding explicit lower-value functions for the location-slope and fixed-cutoff nonparametric difficulties and their global coarse consequence. \textit{Gap.} Known-cutoff weak-fuzzy procedures do not supply the moving-location term, while sharp unknown-cutoff rates do not supply the weak causal-ratio term; this theorem derives both lower envelopes within one unchanged full model, without asserting upper-rate attainment. \textit{Consumer.} An analyst obtains the computable lower benchmark \(F_{\alpha,s,M}(T_n)\) at every strength, the stronger maximum with \(G_\alpha(\tau_n)\) where available, and the guarantee that no honest connected interval can beat the scale \(r_n\).
+
+\section*{Technical internal limitation (diagnostic only)}
+
+A product of the two marginal Bernoulli likelihoods is not the likelihood of the observed pair when association is unrestricted. The finite-grid calibration therefore uses the complete binned four-cell vector and a method-of-types threshold that remains valid on singular cell faces. Its dimension cost \(\zeta_n\) need not be negligible on every sequence satisfying cutoff recovery; \(\mathfrak R_{\mathrm{cert}}\) is only the proposed domain for a conservative finite-grid upper-rate comparison, and no profile upper rate has yet been proved there. Separately, an untruncated second moment of a translated-cutoff mixture does not determine a critical constant; boundary truncation, mixture renormalization, the signed effect label, and second-order centering must remain in the experiment.
+
+\section{Honest scope}
+
+The model has no outcome-variance, null-residual-variance, covariance-eigenvalue, or joint-cell positivity floor, and the strengthened lower bound adds none. The proved lower results include the moving-cutoff causal lift and its Kullback--Leibler bound, the explicit integrated value \(G_\alpha(\tau_n)\), the fixed-cutoff compact-bump causal lift and its \(n(\kappa_n|u|)^{2+1/s}\) divergence bound, the exact integrated fixed-cutoff envelope \(F_{\alpha,s,M}(T_n)\), and the all-strength converse \(L_n^\star(\kappa_n)\gtrsim r_n\). Exact singleton-cutoff finite-grid four-cell calibration and population false-split separation are also proved uniformly over permitted binary treatment--outcome associations. These facts do not establish continuum honesty, an upper expected-length rate, or attainment by \(I_n^{\mathrm{prof}}\). The finite-positive decision values, full-model least favorability, continuum discretization, localized stochastic profile bound, and negligible fallback risk remain open. A matching upper comparison is only a proposed goal on \(\mathfrak R_{\mathrm{cert}}\). No smoothness of joint cells, conditional independence for the full class, association separation, cross-side derivative matching, oracle cutoff, or known association nuisance is imposed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{HahnToddVanDerKlaauw2001} Hahn, Jinyong, Petra Todd, and Wilbert van der Klaauw (2001), ``Identification and Estimation of Treatment Effects with a Regression-Discontinuity Design,'' Econometrica 69(1), 201--209.
+
+  \bibitem{FeirLemieuxMarmer2016} Feir, Donna, Thomas Lemieux, and Vadim Marmer (2016), ``Weak Identification in Fuzzy Regression Discontinuity Designs,'' Journal of Business \& Economic Statistics 34(2), 185--196.
+
+  \bibitem{PorterYu2015} Porter, Jack, and Ping Yu (2015), ``Regression Discontinuity Designs with Unknown Discontinuity Points: Testing and Estimation,'' Journal of Econometrics 189(1), 132--147, doi:10.1016/j.jeconom.2015.06.002.
+
+  \bibitem{Tuvaandorj2020} Tuvaandorj, Purevdorj (2020), ``Regression Discontinuity Designs, White Noise Models, and Minimax,'' Journal of Econometrics 218(2), 587--608, doi:10.1016/j.jeconom.2020.04.030.
+
+  \bibitem{ElliottMuller2014} Elliott, Graham, and Ulrich K. M\"uller (2014), ``Pre and Post Break Parameter Inference,'' Journal of Econometrics 180(2), 141--157, doi:10.1016/j.jeconom.2014.03.007.
+
+  \bibitem{AndrewsMikusheva2016} Andrews, Isaiah, and Anna Mikusheva (2016), ``Conditional Inference with a Functional Nuisance Parameter,'' Econometrica 84(4), 1571--1612, arXiv:1409.6337.
+
+  \bibitem{AndrewsMikusheva2022} Andrews, Isaiah, and Anna Mikusheva (2022), ``Optimal Decision Rules for Weak GMM,'' Econometrica 90(2), 715--748, arXiv:2007.04050.
+
+  \bibitem{NoackRothe2024} Noack, Claudia, and Christoph Rothe (2024), ``Bias-Aware Inference in Fuzzy Regression Discontinuity Designs,'' Econometrica 92(3), 687--711, arXiv:1906.04631.
+
+  \bibitem{ArmstrongKolesar2018} Armstrong, Timothy B., and Michal Koles{\'a}r (2018), ``Optimal Inference in a Class of Regression Models,'' Econometrica 86(2), 655--683, arXiv:1511.06028.
+
+  \bibitem{ArmstrongKolesar2020} Armstrong, Timothy B., and Michal Koles{\'a}r (2020), ``Simple and Honest Confidence Intervals in Nonparametric Regression,'' Quantitative Economics 11(1), 1--39, arXiv:1606.01200.
+
+  \bibitem{AraiHsuKitagawaMourifieWan2022} Arai, Yoichi, Yu-Chin Hsu, Toru Kitagawa, Ismael Mourifi{\'e}, and Yuanyuan Wan (2022), ``Testing Identifying Assumptions in Fuzzy Regression Discontinuity Designs,'' Quantitative Economics 13(1), 1--28, doi:10.3982/QE1367.
+
+  \bibitem{Mikusheva2010} Mikusheva, Anna (2010), ``Robust Confidence Sets in the Presence of Weak Instruments,'' Journal of Econometrics 157(2), 236--247, doi:10.1016/j.jeconom.2009.12.003.
+
+  \bibitem{KowalskaVanDeWielVanDerPas2025} Kowalska, Julia M., Mark A. van de Wiel, and St{\'e}phanie van der Pas (2025 version), ``Bayesian Regression Discontinuity Design with Unknown Cutoff,'' arXiv:2406.11585.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,876 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}menu\_\allowbreak{}turnover\_\allowbreak{}iid\_\allowbreak{}upperfrontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Plan persistence confounds switching costs with stable consumer-by-plan tastes, and existing nonparametric health-choice bounds discard year pairs with plan entry or exit. The project represents each turnover cell by strict utility-comparison graphs and a conditional-iid quadratic probability body, proves that this body becomes constant beyond finitely many price breakpoints, and characterizes a finite switching-cost ceiling by positive observable distance from the terminal body. The non-generic kernel is a complete latent-free inequality description with constructive attainability for every three-plan pure-entry and pure-exit class. Certified finite-menu approximation and simultaneous multinomial inversion extend the result beyond three plans and preserve the possibility of an infinite ceiling.
+
+\section{Project justification}
+
+\paragraph{Gap.} Pakes et al. Condition 2.2 and Theorem 2.3(a), PDF p. 20 of the canonical revised-July-2025 manuscript, require the two comparator subsets to coincide in a common choice universe and deliver the resulting joint probability inequality. Entry or exit changes the feasible winner--loser comparisons and prevents that common-universe samplewise containment from covering the full observed menus. Mbakop's conditional-iid geometry shows that adding more linear inequalities cannot generally recover sharpness. No inspected paper gives an exact upper-tail saturation theorem, an observable finite-ceiling criterion, or a complete analytic three-plan turnover body.
+
+\paragraph{Niche.} Two observed post-initial choices are short enough that conditional iid becomes a quadratic mixture-of-products restriction, yet menu turnover makes this curved geometry economically consequential rather than a generic computation exercise.
+
+\paragraph{Fill.} The project derives the finite terminal graph, exact compatible bodies, the iff finite-ceiling frontier, displayed three-plan Boolean formulas with attaining mixtures, and a certified approximation-and-inference layer for arbitrary finite menus.
+
+\section{Related work}
+
+Pakes, Porter, Shepard, and Calder-Wang motivate the fixed-effect and state-dependence problem. In the canonical revised-July-2025 NBER manuscript, Condition 2.2 and Theorem 2.3(a) on PDF p. 20 take two subsets of one common choice universe and, for adjacent periods, require those subsets to coincide. Condition 2.2 requires for every lagged choice in that common subset that the minimum structural-utility change among choices inside it dominate the maximum change among choices outside it. Theorem 2.3(a) then yields the primary joint inequality \(\Pr(Y_1\in A,Y_2\in A\mid Y_0=h_0)\ge\Pr(Y_1\in A\mid Y_0=h_0)^2\); its conditional-probability ratio form requires a positive denominator. With entry or exit, the common choice universe, available winner--loser comparisons, and complement differ across dates, so the samplewise containment preceding Jensen's inequality cannot directly cover the full changing menus; the application on PDF pp. 21--22 removes comparisons with different plan offerings and cannot use year pairs crossing 2011. Mbakop's Proposition 2.14, Theorem 3.6, Remark 3.9, and appendix construction are the closest identification method: response patches and mixture geometry are adapted, but the target here is a turnover-specific terminal frontier and explicit nonlinear projection. The maintained full-vector conditional Lebesgue absolute continuity condition is stronger than Mbakop's conditional continuity requirement and is used only to place smooth densities in strict open response patches for exact attainability. Duarte et al. Theorem 1 on p. 7 proves sharpness of Algorithm 2's polynomial program, while Section 5 on pp. 8--10 and Algorithm 3 supply interruptible, progressively refined valid bounds and \(\varepsilon\)-sharpness; those results motivate the general finite-menu fallback, not the three-plan analytic answer. Kitamura and Stoye provide the nearest frequentist probability-body testing precedent, although their random-utility cone is polyhedral and cross-sectional. Khan, Ponomareva, and Tamer characterize sharp dynamic binary sets under conditional stationarity, and Pakes and Porter establish sharp static multinomial fixed-effect inequalities; neither paper combines multinomial state dependence, changing menus, and conditional iid. Tamer and Walker occupy the generic Bayesian PMF-to-set inference rung, so inference here is deliberately limited to finite-sample frequentist coverage of the model-specific frontier. Polyakova supplies the downstream Medicare Part D use: switching-cost magnitudes enter risk-sorting and regulation counterfactuals, for which a nonparametric ceiling is a robustness restriction rather than a welfare-identification result.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(U(P)=\sup\{\kappa\ge0:P\in\mathcal C_\kappa\}\).
+Primary functional / estimator / diagnostic: \(U(P)<+\infty\iff D_\infty(P)=\operatorname{dist}_\infty(P,\mathcal C_\infty)>0\), with the exact finite value obtained by breakpoint-wise finite semialgebraic feasibility relative to an exact-real oracle; rational root-isolation and sign-decomposition certificates implement the search when \(P\) is rational or represented real algebraic..
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N_{+}\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of independent consumers observed in one design cell.}
+  \item \texttt{J} --- \texttt{positive integer}; \(\{2,3,\ldots\}\); \texttt{design dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The finite number of plans in the universe.}
+  \item \texttt{D} --- \texttt{finite set}; \(2^{\{1,\ldots,J\}}\); \texttt{plan universe}
+  \par\smallskip\noindent\emph{Definition.} \(D=\{1,\ldots,J\}\).
+  \item \texttt{M1} --- \texttt{nonempty finite set}; \(2^D\setminus\{\varnothing\}\); \texttt{design}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The known menu in period one.}
+  \item \texttt{M2} --- \texttt{nonempty finite set}; \(2^D\setminus\{\varnothing\}\); \texttt{design}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The known menu in period two.}
+  \item \texttt{A} --- \texttt{nonempty proper choice subset}; \(2^{M_1}\setminus\{\varnothing,M_1\}\); \texttt{common-\allowbreak{}menu diagnostic subset}
+  \par\smallskip\noindent\emph{Definition.} When \(M_1=M_2\), \(A\) denotes the common value of the two nonempty proper comparator subsets in Pakes et al. Condition 2.2 and Theorem 2.3(a), PDF p. 20; the common choice universe is the menu \(M_1=M_2\), and the full-menu case is the tautology \(1\ge1\).
+  \item \texttt{h0} --- \texttt{plan label}; \(D\); \texttt{initial state}
+  \par\smallskip\noindent\emph{Definition.} The common observed initial choice, which need not belong to \(M_1\).
+  \item \texttt{p} --- \texttt{finite rational array}; \(\mathbb Q^{M_1}\times\mathbb Q^{M_2}\); \texttt{design}
+  \par\smallskip\noindent\emph{Definition.} \(p=(p_{td}:t\in\{1,2\},d\in M_t)\) is the known price array.
+  \item \texttt{kappa} --- \texttt{scalar}; \([0,+\infty)\); \texttt{structural parameter}
+  \par\smallskip\noindent\emph{Definition.} The common switching-cost parameter \(\kappa\).
+  \item \texttt{lambda} --- \texttt{random vector}; \(\mathbb R^J\); \texttt{latent heterogeneity}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda=(\lambda_d:d\in D)\) is the unrestricted consumer-by-plan fixed-effect vector.
+  \item \texttt{epsilon} --- \texttt{pair of random vectors}; \((\mathbb R^J)^2\); \texttt{latent shocks}
+  \par\smallskip\noindent\emph{Definition.} \(\epsilon=(\epsilon_1,\epsilon_2)\), where \(\epsilon_t=(\epsilon_{td}:d\in D)\), is the pair of utility-shock vectors.
+  \item \texttt{z} --- \texttt{random vector}; \(\mathbb R^J\); \texttt{response-\allowbreak{}patch coordinate}
+  \par\smallskip\noindent\emph{Definition.} For one period draw, \(z=\lambda+\epsilon_t\) denotes total nonprice utility.
+  \item \texttt{Y0} --- \texttt{random variable}; \(D\); \texttt{state}
+  \par\smallskip\noindent\emph{Definition.} The initial choice, fixed at \(Y_0=h_0\) in the design cell.
+  \item \texttt{Y1} --- \texttt{random variable}; \(M_1\); \texttt{outcome}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed period-\allowbreak{}one plan choice.}
+  \item \texttt{Y2} --- \texttt{random variable}; \(M_2\); \texttt{outcome}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed period-\allowbreak{}two plan choice.}
+  \item \texttt{V} --- \texttt{utility array}; \(\mathbb R^{M_1}\times\mathbb R^{M_2}\); \texttt{structural utility}
+  \par\smallskip\noindent\emph{Definition.} \(V_{td}=-p_{td}+\kappa\mathbf 1\{d=Y_{t-1}\}+\lambda_d+\epsilon_{td}\).
+  \item \texttt{P} --- \texttt{probability table}; \(\Delta_{|M_1||M_2|-1}\); \texttt{observed law}
+  \par\smallskip\noindent\emph{Definition.} \(P=(P_{ab}:a\in M_1,b\in M_2)\), where \(P_{ab}=\Pr(Y_1=a,Y_2=b)\).
+  \item \texttt{m} --- \texttt{positive integer}; \(\mathbb N_+\); \texttt{observed-\allowbreak{}law dimension}
+  \par\smallskip\noindent\emph{Definition.} \(m=|M_1||M_2|\) is the number of path cells.
+  \item \texttt{f} --- \texttt{deterministic response table}; \(M_1\times M_2^{M_1}\); \texttt{finite response type}
+  \par\smallskip\noindent\emph{Definition.} \(f=(f_1,(f_2(a):a\in M_1))\) records one period-one choice and one period-two choice for every possible period-one history.
+  \item \texttt{Gkappaf} --- \texttt{finite directed weighted multigraph}; graphs on vertex set \(D\); \texttt{feasibility graph}
+  \par\smallskip\noindent\emph{Definition.} \(G_{\kappa,f}\) has one edge encoding each strict utility comparison required for response table \(f\); its edge weights are affine functions of \(\kappa\).
+  \item \texttt{If} --- \texttt{subset}; \(2^{[0,+\infty)}\); \texttt{response-\allowbreak{}table feasibility region}
+  \par\smallskip\noindent\emph{Definition.} \(I_f=\{\kappa\ge0:\text{every directed simple cycle in }G_{\kappa,f}\text{ has strictly positive total weight}\}\).
+  \item \texttt{Fkappa} --- \texttt{finite set}; \(2^{M_1\times M_2^{M_1}}\); \texttt{feasible response types}
+  \par\smallskip\noindent\emph{Definition.} \(F_\kappa\) is the set of response tables whose strict comparison system has a solution \(z\in\mathbb R^J\).
+  \item \texttt{Nkappa} --- \texttt{positive integer}; \(\mathbb N_+\); \texttt{response-\allowbreak{}table count}
+  \par\smallskip\noindent\emph{Definition.} \(N_\kappa=|F_\kappa|\) is the number of feasible response tables at \(\kappa\).
+  \item \texttt{q} --- \texttt{probability vector}; \(\Delta(F_\kappa)\); \texttt{conditional patch probabilities}
+  \par\smallskip\noindent\emph{Definition.} \(q=(q_f:f\in F_\kappa)\) is a probability law on feasible response tables.
+  \item \texttt{r} --- \texttt{probability vector}; \([0,1]^{M_1}\); \texttt{first-\allowbreak{}period marginal map}
+  \par\smallskip\noindent\emph{Definition.} \(r_a(q)=\sum_{f\in F_\kappa}q_f\mathbf 1\{f_1=a\}\).
+  \item \texttt{s} --- \texttt{probability array}; \([0,1]^{M_1\times M_2}\); \texttt{history-\allowbreak{}specific second-\allowbreak{}period marginal map}
+  \par\smallskip\noindent\emph{Definition.} \(s_{ab}(q)=\sum_{f\in F_\kappa}q_f\mathbf 1\{f_2(a)=b\}\).
+  \item \texttt{v} --- \texttt{quadratic map}; \(v:\Delta(F_\kappa)\to\Delta_{m-1}\); \texttt{conditional-\allowbreak{}iid path map}
+  \par\smallskip\noindent\emph{Definition.} \(v_{ab}(q)=r_a(q)s_{ab}(q)\).
+  \item \texttt{Ckappa} --- \texttt{compact subset}; \(\Delta_{m-1}\); \texttt{sharp compatible probability body}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_\kappa=\operatorname{conv}\{v(q):q\in\Delta(F_\kappa)\}\).
+  \item \texttt{Bdesign} --- \texttt{finite subset}; \([0,+\infty)\cap\mathbb Q\); \texttt{price-\allowbreak{}breakpoint set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_{\mathrm{des}}\) contains zero and every nonnegative root \(-A_C/B_C\) of a simple-cycle weight \(A_C+B_C\kappa\) appearing in some graph \(G_{\kappa,f}\) with \(B_C\ne0\).
+  \item \texttt{K} --- \texttt{nonnegative rational scalar}; \([0,+\infty)\cap\mathbb Q\); \texttt{terminal threshold}
+  \par\smallskip\noindent\emph{Definition.} \(K=\max\mathcal B_{\mathrm{des}}\).
+  \item \texttt{Finfty} --- \texttt{finite set}; \(2^{M_1\times M_2^{M_1}}\); \texttt{terminal response types}
+  \par\smallskip\noindent\emph{Definition.} \(F_\infty\) contains exactly those \(f\) for which every simple-cycle weight \(A_C+B_C\kappa\) has \(B_C>0\), or has \(B_C=0\) and \(A_C>0\), with no cycle having \(B_C<0\).
+  \item \texttt{Cinfty} --- \texttt{compact subset}; \(\Delta_{m-1}\); \texttt{terminal compatible body}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_\infty=\operatorname{conv}\{v(q):q\in\Delta(F_\infty)\}\), where the maps \(r\), \(s\), and \(v\) are evaluated with \(F_\infty\) in place of \(F_\kappa\).
+  \item \texttt{Theta} --- \texttt{subset}; \(2^{[0,+\infty)}\); \texttt{sharp identified set}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta(P)=\{\kappa\ge0:P\in\mathcal C_\kappa\}\).
+  \item \texttt{Uupper} --- \texttt{extended-\allowbreak{}real scalar}; \([0,+\infty]\); \texttt{switching-\allowbreak{}cost upper frontier}
+  \par\smallskip\noindent\emph{Definition.} \(U(P)=\sup\Theta(P)\), with value \(+\infty\) when \(\Theta(P)\) is unbounded.
+  \item \texttt{Dinfty} --- \texttt{nonnegative scalar}; \([0,+\infty)\); \texttt{observable terminal separation}
+  \par\smallskip\noindent\emph{Definition.} \(D_\infty(P)=\inf_{Q\in\mathcal C_\infty}\|P-Q\|_\infty\).
+  \item \texttt{tau} --- \texttt{rational scalar}; \(\mathbb Q\); \texttt{three-\allowbreak{}plan price-\allowbreak{}sign index}
+  \par\smallskip\noindent\emph{Definition.} For continuing plans \(a,b\), \(\tau=(p_{1a}-p_{1b})-(p_{2a}-p_{2b})\).
+  \item \texttt{Sigma3} --- \texttt{finite index set}; \texttt{three-\allowbreak{}plan terminal classes}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma_3\) indexes pure entry and pure exit designs \(\{a,b\}\leftrightarrow\{a,b,c\}\), the sign of \(\tau\), and whether the initial plan remains available.
+  \item \texttt{Phi3} --- \texttt{family of Boolean formulas}; \(\Phi_3=(\Phi_\sigma:\sigma\in\Sigma_3)\); \texttt{analytic terminal-\allowbreak{}body output}
+  \par\smallskip\noindent\emph{Definition.} The latent-free family \(\Phi_3\) is derived by \(\texttt{oeq:three-plan-analytic-body}\); each \(\Phi_\sigma\) is a finite Boolean combination of polynomial inequalities in the six observed path probabilities.
+  \item \texttt{R} --- \texttt{probability table}; \(\Delta_{m-1}\); \texttt{distance argument}
+  \par\smallskip\noindent\emph{Definition.} \(R\) denotes an arbitrary path-probability table used in deterministic distance statements.
+  \item \texttt{H} --- \texttt{finite response set}; \(\{F_\kappa,F_\infty\}\); \texttt{approximation-\allowbreak{}case index}
+  \par\smallskip\noindent\emph{Definition.} \(H\) denotes either a finite-price response set \(F_\kappa\) with compatible body \(\mathcal C_\kappa\), or the terminal response set \(F_\infty\) with compatible body \(\mathcal C_\infty\); \(\mathcal C_H\) denotes the corresponding body.
+  \item \texttt{L} --- \texttt{positive integer}; \(\mathbb N_+\); \texttt{approximation resolution}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The rational-\allowbreak{}simplex grid denominator.}
+  \item \texttt{Ln} --- \texttt{positive integer}; \(\mathbb N_+\); \texttt{inference grid resolution}
+  \par\smallskip\noindent\emph{Definition.} \(L_n=n\) is the sample-indexed rational-simplex grid denominator used for inference.
+  \item \texttt{etan} --- \texttt{positive rational scalar}; \(\mathbb Q_{+}\); \texttt{optimization tolerance}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_n=1/n\) is the required primal--dual optimization tolerance.
+  \item \texttt{GL} --- \texttt{indexed family of finite sets}; \(2^{\Delta(F_\kappa)}\times2^{\Delta(F_\infty)}\); \texttt{finite-\allowbreak{}stratum and terminal simplex grids}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_{\kappa,L}=\{q\in\Delta(F_\kappa):Lq_f\in\mathbb Z\text{ for every }f\in F_\kappa\}\) and \(\mathcal G_{\infty,L}=\{q\in\Delta(F_\infty):Lq_f\in\mathbb Z\text{ for every }f\in F_\infty\}\).
+  \item \texttt{CkappaL} --- \texttt{indexed family of polytopes}; \((2^{\Delta_{m-1}})^2\); \texttt{finite-\allowbreak{}stratum and terminal certified inner approximations}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{\kappa,L}=\operatorname{conv}\{v(q):q\in\mathcal G_{\kappa,L}\}\) and \(\mathcal C_{\infty,L}=\operatorname{conv}\{v(q):q\in\mathcal G_{\infty,L}\}\), with \(v\) evaluated on the corresponding response set; \(\mathcal C_{H,L}\) denotes the member corresponding to \(H\).
+  \item \texttt{eL} --- \texttt{indexed nonnegative scalar family}; \([0,1]\); \texttt{observable-\allowbreak{}moment-\allowbreak{}compressed deterministic approximation errors}
+  \par\smallskip\noindent\emph{Definition.} For \(H\in\{F_\kappa,F_\infty\}\), \(e_{H,L}=0\) if \(|H|=1\), and \(e_{H,L}=\min\{1,2(\min\{|H|,m\}-1)/L\}\) otherwise.
+  \item \texttt{dkappaL} --- \texttt{indexed nonnegative distance family}; \([0,+\infty)\); \texttt{finite-\allowbreak{}stratum and terminal grid-\allowbreak{}body distances}
+  \par\smallskip\noindent\emph{Definition.} For any probability table \(R\), \(d_{\kappa,L}(R)=\operatorname{dist}_\infty(R,\mathcal C_{\kappa,L})\) and \(d_{\infty,L}(R)=\operatorname{dist}_\infty(R,\mathcal C_{\infty,L})\); \(d_{H,L}(R)\) denotes the corresponding member.
+  \item \texttt{alpha} --- \texttt{scalar}; \((0,1)\); \texttt{confidence level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The desired familywise error probability.}
+  \item \texttt{Phat} --- \texttt{random probability table}; \(\Delta_{m-1}\); \texttt{multinomial frequency estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat P_{ab}=n^{-1}\sum_{i=1}^n\mathbf 1\{Y_{i1}=a,Y_{i2}=b\}\).
+  \item \texttt{dpm} --- \texttt{rational certificate pairs}; \(\mathbb Q_{\ge0}^2\); \texttt{certified distance optimization bounds}
+  \par\smallskip\noindent\emph{Definition.} For \(H\in\{F_\kappa,F_\infty\}\), rational primal--dual computation returns \(d^-_{H,n}\le d_{H,L_n}(\widehat P)\le d^+_{H,n}\) with \(d^+_{H,n}-d^-_{H,n}\le\eta_n\).
+  \item \texttt{Dlower} --- \texttt{nonnegative scalar family}; \([0,+\infty)\); \texttt{certified lower distance to the exact compatible body}
+  \par\smallskip\noindent\emph{Definition.} For \(H\in\{F_\kappa,F_\infty\}\), \(\underline D_{H,n}=\max\{0,d^-_{H,n}-e_{H,L_n}\}\), where \(e_{H,L_n}\) is the observable-moment-compressed deterministic grid error.
+  \item \texttt{rho} --- \texttt{positive scalar}; \((0,+\infty)\); \texttt{simultaneous multinomial radius}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{n,\alpha}=\sqrt{\log(2m/\alpha)/(2n)}\).
+  \item \texttt{ThetaHat} --- \texttt{random subset}; \(2^{[0,+\infty)}\); \texttt{whole-\allowbreak{}set confidence region}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Theta_{n,\alpha}\) is the union of each finite open price stratum and each breakpoint value retained by its own \(F_\kappa\)-based test \(\underline D_{F_\kappa,n}\le\rho_{n,\alpha}\), together with the separate terminal stratum \((K,+\infty)\) exactly when the \(F_\infty\)-based test \(\underline D_{F_\infty,n}\le\rho_{n,\alpha}\) holds.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:utility-index]\label{ass:utility-index}
+For \(t\in\{1,2\}\) and \(d\in M_t\), utility obeys \(V_{td}=-p_{td}+\kappa\mathbf 1\{d=Y_{t-1}\}+\lambda_d+\epsilon_{td}\).
+\par\smallskip\noindent\emph{Standard} (Additive fixed-effect dynamic random utility with a common switching cost, \cite{PakesPorterShepardCalderWang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:choice-maximization]\label{ass:choice-maximization}
+For each \(t\in\{1,2\}\), \(Y_t\in\arg\max_{d\in M_t}V_{td}\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Random-utility maximization, \cite{KitamuraStoye2018}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-independence]\label{ass:conditional-independence}
+\(\epsilon_1\perp\epsilon_2\mid\lambda\).
+\par\smallskip\noindent\emph{Standard} (Conditional serial independence, \cite{PakesPorterShepardCalderWang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-homogeneity]\label{ass:conditional-homogeneity}
+\(\epsilon_1\mid\lambda\overset{d}=\epsilon_2\mid\lambda\).
+\par\smallskip\noindent\emph{Standard} (Conditional time homogeneity, \cite{PakesPorterShepardCalderWang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:absolute-continuity]\label{ass:absolute-continuity}
+For almost every \(\lambda\), the conditional law of \(\epsilon_t\mid\lambda\) is absolutely continuous with respect to Lebesgue measure on \(\mathbb R^J\).
+\par\smallskip\noindent\emph{Novel.} This full-vector Lebesgue absolute continuity condition is stronger than Mbakop's conditional continuity requirement and is maintained only for constructive attainability. It is satisfied by nonsingular conditional Gaussian laws and by smooth compactly supported densities placed inside the open cubes furnished by strict response-patch feasibility; no empirical regularity claim is attached to the strengthening.
+\end{assumption}
+
+\begin{assumption}[ass:iid-consumers]\label{ass:iid-consumers}
+\((Y_{i0},Y_{i1},Y_{i2}):i=1,\ldots,n)\) are independent and identically distributed within the known design cell.
+\par\smallskip\noindent\emph{Standard} (Independent common-distribution sampling within a design cell, \cite{PakesPorterShepardCalderWang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:correct-specification]\label{ass:correct-specification}
+\(\Theta(P)\ne\varnothing\).
+\par\smallskip\noindent\emph{Standard} (Correct specification of the maintained random-utility model, \cite{Mbakop2023}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:comparison-graph]\label{def:comparison-graph}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Strict utility-\allowbreak{}comparison graph}
+\par\smallskip\noindent\emph{Construction.} For each context \((t,h)\), designated winner \(d\), and loser \(c\in M_t\setminus\{d\}\), place in \(G_{\kappa,f}\) the difference constraint \(z_c-z_d<p_{tc}-p_{td}+\kappa(\mathbf 1\{d=h\}-\mathbf 1\{c=h\})\); use \(h=h_0,d=f_1\) at \(t=1\), and \(h=a,d=f_2(a)\) for every \(a\in M_1\) at \(t=2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{M1}; \texttt{M2}; \texttt{h0}; \texttt{kappa}; \texttt{f}.
+\end{definition}
+
+\begin{definition}[def:response-feasibility-region]\label{def:response-feasibility-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cycle-\allowbreak{}defined response-\allowbreak{}table feasibility region}
+\par\smallskip\noindent\emph{Construction.} \(I_f=\{\kappa\in[0,+\infty):\text{every directed simple cycle in }G_{\kappa,f}\text{ has strictly positive total weight}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gkappaf}; \texttt{f}.
+\end{definition}
+
+\begin{definition}[def:feasible-response-set]\label{def:feasible-response-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Feasible response-\allowbreak{}table set}
+\par\smallskip\noindent\emph{Construction.} \(F_\kappa=\{f\in M_1\times M_2^{M_1}:\exists z\in\mathbb R^J\text{ satisfying every strict constraint in }G_{\kappa,f}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gkappaf}.
+\end{definition}
+
+\begin{definition}[def:iid-quadratic-map]\label{def:iid-quadratic-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional-\allowbreak{}iid quadratic path map}
+\par\smallskip\noindent\emph{Construction.} For \(q\in\Delta(F_\kappa)\), set \(r_a(q)=\sum_fq_f\mathbf 1\{f_1=a\}\), \(s_{ab}(q)=\sum_fq_f\mathbf 1\{f_2(a)=b\}\), and \(v_{ab}(q)=r_a(q)s_{ab}(q)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Fkappa}.
+\end{definition}
+
+\begin{definition}[def:compatible-body]\label{def:compatible-body}
+\par\smallskip\noindent\emph{Defined object.} Sharp compatible body at \(\kappa\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_\kappa=\operatorname{conv}\{v(q):q\in\Delta(F_\kappa)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{v}; \texttt{Fkappa}.
+\end{definition}
+
+\begin{definition}[def:price-breakpoints]\label{def:price-breakpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Price-\allowbreak{}breakpoint set and terminal threshold}
+\par\smallskip\noindent\emph{Construction.} Enumerate every deterministic response table and every simple cycle in its comparison graph. If the cycle weight is \(A_C+B_C\kappa\), collect every nonnegative root \(-A_C/B_C\) with \(B_C\ne0\), adjoin zero, and set \(K=\max\mathcal B_{\mathrm{des}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gkappaf}.
+\end{definition}
+
+\begin{definition}[def:terminal-body]\label{def:terminal-body}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Terminal response set and probability body}
+\par\smallskip\noindent\emph{Construction.} Retain \(f\) in \(F_\infty\) exactly when all simple-cycle weights are eventually strictly positive, and set \(\mathcal C_\infty=\operatorname{conv}\{v(q):q\in\Delta(F_\infty)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gkappaf}; \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:identified-frontier]\label{def:identified-frontier}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Switching-\allowbreak{}cost identified set and upper frontier}
+\par\smallskip\noindent\emph{Construction.} \(\Theta(P)=\{\kappa\ge0:P\in\mathcal C_\kappa\}\), \(U(P)=\sup\Theta(P)\), and \(D_\infty(P)=\inf_{Q\in\mathcal C_\infty}\|P-Q\|_\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{Ckappa}; \texttt{Cinfty}.
+\end{definition}
+
+\begin{definition}[def:three-plan-elimination-handle]\label{def:three-plan-elimination-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}plan active-\allowbreak{}allocation elimination handle}
+\par\smallskip\noindent\emph{Construction.} For each \(\sigma\in\Sigma_3\), enumerate the terminal response tables by strict-cycle tests; reduce every quadratic image to mixtures containing at most one response table from each first-choice class; group the resulting rank-one curves by shared square budgets; solve every nonnegative active-allocation regime jointly; and translate the resulting support conditions and equality cases into a finite Boolean formula together with explicit rank-one decompositions.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Sigma3}; \texttt{Finfty}; \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:grid-sandwich]\label{def:grid-sandwich}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable-\allowbreak{}moment-\allowbreak{}compressed rational-\allowbreak{}grid inner body and outer inflation}
+\par\smallskip\noindent\emph{Construction.} For each finite-stratum response set \(F_\kappa\), form \(\mathcal G_{\kappa,L}\), set \(\mathcal C_{\kappa,L}=\operatorname{conv}v(\mathcal G_{\kappa,L})\), and inflate it by the observable-moment-compressed cube \([-e_{F_\kappa,L},e_{F_\kappa,L}]^m\).  Separately, form \(\mathcal G_{\infty,L}\) from \(F_\infty\), set \(\mathcal C_{\infty,L}=\operatorname{conv}v(\mathcal G_{\infty,L})\), and inflate it by \([-e_{F_\infty,L},e_{F_\infty,L}]^m\), where \(e_{H,L}=0\) for \(|H|=1\) and otherwise \(e_{H,L}=\min\{1,2(\min\{|H|,m\}-1)/L\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Fkappa}; \texttt{Finfty}; \texttt{v}; \texttt{L}; \texttt{m}.
+\end{definition}
+
+\begin{definition}[def:confidence-set]\label{def:confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Certified whole-\allowbreak{}identified-\allowbreak{}set confidence region with observable-\allowbreak{}moment compression}
+\par\smallskip\noindent\emph{Construction.} Set \(L_n=n\) and \(\eta_n=1/n\).  Compute the simultaneous box \(\|\widehat P-P\|_\infty\le\rho_{n,\alpha}\).  For every finite open price stratum and every breakpoint value, use its own \(F_\kappa\) to compute rational primal and dual bounds \(d^-_{F_\kappa,n}\le d_{\kappa,L_n}(\widehat P)\le d^+_{F_\kappa,n}\) with gap at most \(\eta_n\), set \(\underline D_{F_\kappa,n}=\max\{0,d^-_{F_\kappa,n}-e_{F_\kappa,L_n}\}\) using the observable-moment-compressed grid error, and retain that parameter piece if and only if \(\underline D_{F_\kappa,n}\le\rho_{n,\alpha}\).  Separately use \(F_\infty\) to compute \(d^-_{F_\infty,n}\), set \(\underline D_{F_\infty,n}=\max\{0,d^-_{F_\infty,n}-e_{F_\infty,L_n}\}\), and retain the terminal stratum \((K,+\infty)\) if and only if \(\underline D_{F_\infty,n}\le\rho_{n,\alpha}\).  The union is \(\widehat\Theta_{n,\alpha}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Phat}; \texttt{rho}; \texttt{Bdesign}; \texttt{Fkappa}; \texttt{Finfty}; \texttt{CkappaL}; \texttt{eL}; \texttt{Ln}; \texttt{etan}; \texttt{dpm}; \texttt{Dlower}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:strict-cycle-feasibility]\label{lem:strict-cycle-feasibility}
+A response table \(f\) belongs to \(F_\kappa\) if and only if every directed simple cycle in \(G_{\kappa,f}\) has strictly positive total weight. Whenever this condition holds, the associated response patch contains an open axis-aligned cube in \(\mathbb R^J\).
+\end{lemma}
+\begin{proof}
+Write each comparison in the form
+\[
+ z_c-z_d<w_e(\kappa),
+\]
+where the corresponding directed edge is \(e=(d,c)\) and \(w_e(\kappa)\) is its weight in \(G_{\kappa,f}\).  If these inequalities have a solution, summing them around any directed cycle \(C\) gives
+\[
+ 0=\sum_{e=(d,c)\in C}(z_c-z_d)<\sum_{e\in C}w_e(\kappa),
+\]
+so every directed simple cycle has strictly positive weight.
+
+Conversely, suppose every directed simple cycle has positive weight.  The graph is finite because \(D\), \(M_1\), and \(M_2\) are finite.  If it has a directed cycle, choose
+\[
+ 0<\delta<\min_C\frac{\sum_{e\in C}w_e(\kappa)}{|C|},
+\]
+where the minimum ranges over its finitely many directed simple cycles.  If it has no directed cycle, choose any \(\delta>0\).  Give edge \(e\) the modified weight \(\widetilde w_e=w_e(\kappa)-\delta\).  Every closed directed walk decomposes into directed simple cycles, and hence has nonnegative modified weight; in the acyclic case there is no closed directed walk.  Adjoin a source with a zero-weight edge to every vertex and let \(z_d\) be the minimum modified weight of a directed source-to-\(d\) path.  A minimum exists because deleting a nonnegative closed subwalk never increases path weight.  For every edge \((d,c)\),
+\[
+ z_c\le z_d+\widetilde w_{(d,c)}=z_d+w_{(d,c)}(\kappa)-\delta<z_d+w_{(d,c)}(\kappa).
+\]
+Thus \(z\) satisfies every strict comparison in the definition of \(F_\kappa\).  This proves \(f\in F_\kappa\) if and only if all simple-cycle weights are positive.
+
+Finally, at a feasible \(z\) let
+\[
+ \gamma=\min_{e=(d,c)}\{w_e(\kappa)-(z_c-z_d)\}>0
+\]
+when there are edges.  Every \(z'\) with \(\|z'-z\|_\infty<\gamma/4\) changes any difference \(z_c-z_d\) by less than \(\gamma/2\), so it satisfies all comparisons strictly.  Hence an open axis-aligned cube lies in the patch.  If there are no edges, every \(z\in\mathbb R^J\) is feasible and the conclusion is immediate.  This also covers singleton menus.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The cycle criterion makes every response type and every price breakpoint finite and auditable while preserving strict utility margins. \textit{Gap.} Duarte et al. compile finite response functions into polynomial programs, but do not exploit affine price-cycle geometry to classify dynamic menu-turnover patches. \textit{Consumer.} The criterion supplies the exact response-table enumerator used by every identification, approximation, and confidence-set result in this project.
+
+\begin{theorem}[thm:sharp-iid-body]\label{thm:sharp-iid-body}
+For every finite design and every \(\kappa\ge0\), the set of path tables generated by the maintained model equals \(\mathcal C_\kappa=\operatorname{conv}\{v(q):q\in\Delta(F_\kappa)\}\). The body is compact, and every \(P\in\mathcal C_\kappa\) has an exact rationalization with at most \(m\) fixed-effect mixing types and conditionally iid absolutely continuous shocks supported inside strict response patches.
+\end{theorem}
+\begin{proof}
+Fix \(\kappa\ge0\).  For a one-period total nonprice utility vector \(z\), the utility index and choice-maximization assumptions determine the first-period winner and, for each possible lag \(a\in M_1\), the second-period winner.  Outside the finite union of pairwise utility-tie hyperplanes this produces a unique response table \(f(z)\).  Conditional on \(\lambda\), the vector \(z=\lambda+\epsilon_t\) is Lebesgue absolutely continuous, so every such hyperplane has probability zero.  Moreover, the realized \(z\) satisfies all strict comparisons defining \(f(z)\), and therefore \(f(z)\in F_\kappa\) by \(\texttt{lem:strict-cycle-feasibility}\).
+
+For almost every \(\lambda\), define
+\[
+ q_f(\lambda)
+ =\Pr\{f(\lambda+\epsilon_t)=f\mid\lambda\},
+ \qquad f\in F_\kappa.
+\]
+The conditional-homogeneity assumption makes this definition independent of \(t\), and the no-tie conclusion gives \(q(\lambda)\in\Delta(F_\kappa)\).  Conditional independence, together with the fact that the second-period response after the realized first choice \(a\) is \(f_2(a)\), gives for every \(a\in M_1\) and \(b\in M_2\)
+\[
+ \begin{aligned}
+ \Pr(Y_1=a,Y_2=b\mid\lambda)
+ &=\Pr\{f_1(\lambda+\epsilon_1)=a\mid\lambda\}
+   \Pr\{f_2(a;\lambda+\epsilon_2)=b\mid\lambda\}\\
+ &=r_a(q(\lambda))s_{ab}(q(\lambda))
+ =v_{ab}(q(\lambda)).
+ \end{aligned}
+\]
+Thus
+\[
+ P=\int v(q(\lambda))\,dF_\lambda(\lambda).
+\]
+The set \(\Delta(F_\kappa)\) is compact and \(v\) is continuous, so its image is compact.  Every point of that image belongs to the affine hyperplane \(\{x\in\mathbb R^m:\sum_jx_j=1\}\), of dimension \(m-1\).  If a convex combination uses more than \(m\) image points, affine dependence permits the same weight-elimination argument used in \(\texttt{lem:observable-moment-compression}\), repeated until at most \(m\) points remain.  Hence its convex hull is the continuous image of the compact set of at most \(m\) image points and mixing weights, and is therefore compact.  Finite simple-function approximations to the displayed integral lie in this convex hull and converge to \(P\); closedness therefore yields
+\[
+ P\in\operatorname{conv}\{v(q):q\in\Delta(F_\kappa)\}=\mathcal C_\kappa.
+\]
+This proves necessity.  Its load-bearing probabilistic premise is precisely the fixed-cell conditional factorization supplied by conditional independence and conditional homogeneity; absolute continuity is used here to remove ties.
+
+Conversely, take \(P\in\mathcal C_\kappa\).  The same affine-dependence elimination gives
+\[
+ P=\sum_{\ell=1}^{L_0}\omega_\ell v(q^\ell),
+ \qquad
+ 1\le L_0\le m,
+ \qquad
+ \omega_\ell\ge0,
+ \qquad
+ \sum_{\ell=1}^{L_0}\omega_\ell=1.
+\]
+For every \(\ell\) and every \(f\) with \(q_f^\ell>0\), \(\texttt{lem:strict-cycle-feasibility}\) supplies an open axis-aligned cube \(B_{\ell f}\) contained in the strict response patch of \(f\).  Let \(G_\ell\) assign mass \(q_f^\ell\) uniformly on \(B_{\ell f}\).  This is an absolutely continuous probability law and its response-table probabilities are exactly \(q^\ell\).  Choose distinct real constants \(c_\ell\), set
+\[
+ \lambda^\ell=(c_\ell,\ldots,c_\ell)\in\mathbb R^J,
+\]
+and assign mass \(\omega_\ell\) to \(\lambda=\lambda^\ell\).  Given \(\lambda^\ell\), draw \(Z_1,Z_2\) independently with common law \(G_\ell\), and put \(\epsilon_t=Z_t-\lambda^\ell\).  Then \(\epsilon_1\) and \(\epsilon_2\) are conditionally iid and absolutely continuous, while \(\lambda^\ell+\epsilon_t=Z_t\).  The conditional path law is therefore \(v(q^\ell)\), and mixing over \(\ell\) produces exactly \(P\).  All supported draws lie in strict patches, so maximizers are unique.  Zero path probabilities and boundary points require no limiting argument.  This establishes exact sufficiency using at most \(m\) fixed-effect types.
+
+The two directions delimit the class claim.  The necessity argument uses the stated fixed-cell sequential-exogeneity and stationarity factorization plus no ties, whereas the reverse direction constructs conditionally iid, absolutely continuous shocks.  Thus the equality is established for the maintained fixed-cell class with the explicit no-tie and absolute-continuity regularity, not for an unspecified larger published class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem converts an unrestricted latent distribution into an exact finite-dimensional curved probability body and proves constructive sharpness rather than only necessity. \textit{Gap.} Mbakop establishes mixture-of-products geometry and nonpolyhedrality for conditional iid choice bodies, but does not derive the changing-menu switching-cost body or its upper-tail frontier. \textit{Consumer.} Applied researchers can test exact compatibility of a turnover cell without specifying a parametric shock law or a distribution for plan fixed effects.
+
+\begin{theorem}[thm:terminal-frontier]\label{thm:terminal-frontier}
+The constructed set \(\mathcal B_{\mathrm{des}}\) is finite, \(\mathcal C_\kappa=\mathcal C_\infty\) for every \(\kappa>K\), and, whenever \(\Theta(P)\ne\varnothing\), \(U(P)<+\infty\) if and only if \(P\notin\mathcal C_\infty\), equivalently if and only if \(D_\infty(P)>0\).  Moreover, \(\Theta(P)\) is relatively open in \([0,+\infty)\), is a finite union of intervals, and every finite upper endpoint lies in \(\mathcal B_{\mathrm{des}}\) and is not attained.  For arbitrary real \(P\), enumeration of the price strata gives a finite semialgebraic characterization of \(\Theta(P)\), and exact recovery of its upper endpoint is valid relative to an exact-real oracle that decides the displayed finite feasibility systems.  When the entries of \(P\) are rational or are supplied as represented real-algebraic numbers, rational root isolation and exact sign decomposition provide a certified implementation of those decisions.  No monotonicity of \(\kappa\mapsto\mathcal C_\kappa\) is presumed, and no unconditional finite algorithm is asserted for unrepresented arbitrary real inputs.
+\end{theorem}
+\begin{proof}
+There are finitely many response tables, and each finite comparison multigraph has finitely many directed simple cycles.  From \(\texttt{def:comparison-graph}\), every cycle weight has the form
+\[
+ W_C(\kappa)=A_C+B_C\kappa,
+\]
+where rational prices imply \(A_C\in\mathbb Q\), and the switching indicators imply \(B_C\in\mathbb Z\).  Each nonconstant weight has at most one root.  Thus adjoining zero to all nonnegative roots produces a finite set \(\mathcal B_{\mathrm{des}}\), and its maximum \(K\) is finite and rational.
+
+Fix \(\kappa>K\).  If \(B_C>0\), then \(W_C(\kappa)>0\): this holds to the right of its nonnegative root, while a negative root implies \(A_C>0\) and positivity on the entire nonnegative half-line.  If \(B_C<0\), the analogous sign analysis gives \(W_C(\kappa)<0\).  If \(B_C=0\), strict positivity is equivalent to \(A_C>0\).  Therefore, by \(\texttt{lem:strict-cycle-feasibility}\) and \(\texttt{def:terminal-body}\),
+\[
+ F_\kappa=F_\infty\qquad(\kappa>K),
+\]
+and the definitions of the two compatible bodies give
+\[
+ \mathcal C_\kappa=\mathcal C_\infty\qquad(\kappa>K).
+\]
+
+Assume \(\Theta(P)\ne\varnothing\).  If \(P\in\mathcal C_\infty\), terminal equality implies \((K,+\infty)\subseteq\Theta(P)\), so \(U(P)=+\infty\).  If \(P\notin\mathcal C_\infty\), no \(\kappa>K\) is compatible; the nonempty set \(\Theta(P)\) is then bounded above, and \(U(P)<+\infty\).  Compactness of \(\mathcal C_\infty\), supplied by \(\texttt{thm:sharp-iid-body}\) and terminal equality, implies that the continuous function \(Q\mapsto\|P-Q\|_\infty\) attains its minimum.  Hence
+\[
+ P\notin\mathcal C_\infty
+ \quad\Longleftrightarrow\quad
+ \inf_{Q\in\mathcal C_\infty}\|P-Q\|_\infty>0
+ \quad\Longleftrightarrow\quad
+ D_\infty(P)>0.
+\]
+
+Suppose \(P\in\mathcal C_{\kappa_0}\).  Choose a finite convex representation of \(P\) and collect the finitely many response tables having positive mass in it.  Every simple-cycle weight for each collected table is strictly positive at \(\kappa_0\).  Continuity of these finitely many affine weights gives a relative neighborhood \(N\) of \(\kappa_0\) in \([0,+\infty)\) on which all remain positive.  The same probability vectors and outer mixing weights then witness \(P\in\mathcal C_\kappa\) for every \(\kappa\in N\).  Thus \(\Theta(P)\) is relatively open.
+
+Removing the finite set \(\mathcal B_{\mathrm{des}}\) partitions \([0,+\infty)\) into finitely many open price strata.  On each stratum every affine cycle weight has constant sign, so \(F_\kappa\) and \(\mathcal C_\kappa\) are constant.  Testing the finitely many strata and breakpoint values therefore represents \(\Theta(P)\) as a finite union of relatively open intervals.  Any finite upper endpoint must be a stratum boundary, hence belongs to \(\mathcal B_{\mathrm{des}}\), and relative openness implies that the endpoint is not attained.
+
+For a fixed response set \(F\), membership has the explicit finite existential form
+\[
+ \begin{gathered}
+ w_\ell\ge0,\qquad \sum_{\ell=1}^{m}w_\ell=1,
+ \qquad
+ q_{\ell f}\ge0,\qquad \sum_{f\in F}q_{\ell f}=1,\\
+ P_{ab}=\sum_{\ell=1}^{m}w_\ell
+ \left(\sum_{f\in F}q_{\ell f}\mathbf 1\{f_1=a\}\right)
+ \left(\sum_{f\in F}q_{\ell f}\mathbf 1\{f_2(a)=b\}\right)
+ \quad(a\in M_1,b\in M_2).
+ \end{gathered}
+\]
+The \(m\)-component bound follows from \(\texttt{thm:sharp-iid-body}\).  For arbitrary real coordinates of \(P\), this display is a finite semialgebraic characterization with \(P\) as a real parameter; its coefficients are not claimed to be rational.  An exact-real oracle that decides each displayed existential formula, applied to one representative of every open stratum and separately to every breakpoint response set, recovers \(\Theta(P)\) and its exact upper endpoint.  If \(P\) is rational, all coefficients are rational.  If each coordinate of \(P\) is instead a represented real-algebraic number, adjoining its integer defining polynomial and rational isolating interval reduces exact signs to the certified real-algebraic procedure in \(\texttt{lem:represented-algebraic-semialgebraic-decision}\).  Thus rational root isolation and sign decomposition give an unconditional implementation only for these represented inputs.  An arbitrary unrepresented real table receives the oracle-relative characterization, not a false rational-coefficient algorithmic guarantee.  No step uses monotonicity in \(\kappa\).
+
+Finally, the class implication is asymmetric.  If \(P\in\mathcal C_\infty\), the constructive sufficiency part of \(\texttt{thm:sharp-iid-body}\) rationalizes \(P\) at every \(\kappa>K\) within the maintained absolutely continuous conditional-iid subclass.  Nonidentification therefore transfers to every larger class containing that subclass.  In contrast, \(P\notin\mathcal C_\infty\) excludes only laws for which the theorem's necessity factorization applies; subclass exclusion alone cannot exclude a rationalization available in a larger class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the observable necessary-and-sufficient condition for a finite switching-cost ceiling and reduces exact endpoint recovery to finitely many price regimes. \textit{Gap.} Pakes et al. obtain common-menu moment-inequality bounds and state that their nonparametric changing-menu inequalities do not deliver an upper bound; neither they nor Mbakop characterize upper-tail saturation under turnover. \textit{Consumer.} The health-choice application can retain year pairs crossing plan entry or exit precisely when the observed path table is separated from the terminal body.
+
+\begin{openendedquestion}[oeq:three-plan-analytic-body]\label{oeq:three-plan-analytic-body}
+For every \(\sigma\in\Sigma_3\), execute the active-allocation handle to derive and display \(\Phi_\sigma\) such that \(P\in\mathcal C_\infty\) if and only if \(\Phi_\sigma(P)\) holds. Each formula must be a finite Boolean combination of inequalities in the six entries of \(P\), contain no latent variable, optimization problem, or unevaluated quantifier elimination, cover every zero-probability and equality boundary, and be paired with an explicit attaining mixture of terminal response-patch laws. The first kill test is the negative-entry class with both off-diagonal probabilities positive: its formula must reproduce exact quadratic support values for all twenty two-patch curves before the exit classes are attempted.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The latent-free three-plan formula is the non-generic analytic kernel; it converts a curved iid body into a referee-checkable frontier with constructive boundary attainability. \textit{Gap.} Mbakop warns that iid bodies need not be polyhedral and provides support-function representations, while Pakes et al. use a Jensen outer inequality; neither source eliminates the three-plan turnover body, and separate face inequalities need not be jointly complete. \textit{Consumer.} A three-plan health exchange cell can be screened by displayed inequalities alone, including boundary tables, and every accepted table comes with a structural iid rationalization.
+
+\begin{theorem}[thm:certified-finite-menu-approximation]\label{thm:certified-finite-menu-approximation}
+For every finite \(J\), every \(L\ge1\), and each \(H\in\{F_\kappa,F_\infty\}\), \(\mathcal C_{H,L}\subseteq\mathcal C_H\subseteq\mathcal C_{H,L}+[-e_{H,L},e_{H,L}]^m\). Consequently, for every probability table \(R\), \(\max\{0,d_{H,L}(R)-e_{H,L}\}\le\operatorname{dist}_\infty(R,\mathcal C_H)\le d_{H,L}(R)\). For rational \(R\), the finite convex-hull program admits rational primal and dual certificates \(d^-\le d_{H,L}(R)\le d^+\) with any prescribed positive rational gap; in particular, \(L_n=n\) and \(\eta_n=1/n\) yield \(d^+-d^-\le\eta_n\) and \(\underline D_{H,n}=\max\{0,d^-_{H,n}-e_{H,L_n}\}\le\operatorname{dist}_\infty(\widehat P,\mathcal C_H)\). Refinement reaches any requested strictly positive distance precision.
+\end{theorem}
+\begin{proof}
+Fix \(H\in\{F_\kappa,F_\infty\}\) and write \(N=|H|\).  The set \(F_\kappa\) is nonempty because a \(z\) outside the finite union of tie hyperplanes induces a strict response table.  The terminal equality in \(\texttt{thm:terminal-frontier}\), evaluated at any \(\kappa>K\), then shows that \(F_\infty\) is nonempty.  If \(N=1\), its simplex and every rational grid contain the same single point, so \(\mathcal C_{H,L}=\mathcal C_H\) and \(e_{H,L}=0\).
+
+Suppose \(N\ge2\) and take \(q\in\Delta(H)\).  By \(\texttt{lem:observable-moment-compression}\), there is \(\bar q\in\Delta(H)\) with
+\[
+ v(\bar q)=v(q),
+ \qquad
+ k:=|\operatorname{supp}(\bar q)|
+ \le\min\{N,m\}.
+\]
+Order its supported tables as \(f_1,\ldots,f_k\).  For \(j<k\), put
+\[
+ q'_{f_j}=\frac{\lfloor L\bar q_{f_j}\rfloor}{L},
+ \qquad
+ q'_{f_k}=1-\sum_{j<k}q'_{f_j},
+\]
+and set all remaining coordinates to zero.  Then \(q'\in\mathcal G_{H,L}\), and
+\[
+ \|\bar q-q'\|_1
+ =2\sum_{j<k}\left(\bar q_{f_j}-q'_{f_j}\right)
+ \le\frac{2(k-1)}{L}
+ \le\frac{2(\min\{N,m\}-1)}{L}.
+\]
+For any subset \(E\subseteq H\),
+\[
+ |\bar q(E)-q'(E)|
+ \le\frac12\|\bar q-q'\|_1.
+\]
+Every \(r_a\) and \(s_{ab}\) is the probability of such a subset.  With \(\Delta_q=\|\bar q-q'\|_1\) and using that all factors lie in \([0,1]\),
+\[
+ \begin{aligned}
+ |v_{ab}(q)-v_{ab}(q')|
+ &=|r_a(\bar q)s_{ab}(\bar q)-r_a(q')s_{ab}(q')|\\
+ &\le |r_a(\bar q)-r_a(q')|s_{ab}(\bar q)
+      +r_a(q')|s_{ab}(\bar q)-s_{ab}(q')|\\
+ &\le\Delta_q.
+ \end{aligned}
+\]
+The left side is also at most one.  Therefore
+\[
+ \|v(q)-v(q')\|_\infty
+ \le e_{H,L}
+ =\min\left\{1,\frac{2(\min\{N,m\}-1)}{L}\right\}.
+\]
+
+The grid image is contained in the full image, so \(\mathcal C_{H,L}\subseteq\mathcal C_H\).  Conversely, write any \(Q\in\mathcal C_H\) as
+\[
+ Q=\sum_{j=1}^{s}\theta_jv(q^j),
+ \qquad \theta_j\ge0,
+ \qquad \sum_j\theta_j=1.
+\]
+Applying the preceding compression and rounding separately to every \(q^j\) gives \(q^{j\prime}\in\mathcal G_{H,L}\).  Thus
+\[
+ Q_L=\sum_{j=1}^{s}\theta_jv(q^{j\prime})\in\mathcal C_{H,L},
+ \qquad
+ \|Q-Q_L\|_\infty
+ \le\sum_j\theta_j\|v(q^j)-v(q^{j\prime})\|_\infty
+ \le e_{H,L}.
+\]
+This proves
+\[
+ \mathcal C_{H,L}\subseteq\mathcal C_H
+ \subseteq\mathcal C_{H,L}+[-e_{H,L},e_{H,L}]^m.
+\]
+
+Both sets are compact.  The first inclusion gives
+\[
+ \operatorname{dist}_\infty(R,\mathcal C_H)\le d_{H,L}(R).
+\]
+For a nearest \(Q\in\mathcal C_H\), choose \(Q_L\) as above.  The triangle inequality yields
+\[
+ d_{H,L}(R)
+ \le\|R-Q_L\|_\infty
+ \le\operatorname{dist}_\infty(R,\mathcal C_H)+e_{H,L}.
+\]
+Rearranging and using nonnegativity proves the two distance bounds.
+
+Enumerate the finite grid image as \(x^1,\ldots,x^G\).  Its coordinates are rational because grid weights are rational and all response indicators are zero or one.  For rational \(R\), \(d_{H,L}(R)\) is the value of the rational linear program
+\[
+ \begin{array}{ll}
+ \text{minimize}&\delta\\
+ \text{over}&\delta\ge0,\ \omega_g\ge0\\
+ \text{subject to}&\displaystyle\sum_{g=1}^G\omega_g=1,\\
+ &\displaystyle-\delta\le R_j-\sum_{g=1}^G\omega_gx^g_j\le\delta,
+ \quad j=1,\ldots,m.
+ \end{array}
+\]
+Its dual is
+\[
+ \begin{array}{ll}
+ \text{maximize}&u^\top R-t\\
+ \text{over}&u=u^+-u^-,\quad u^+,u^-\ge0,\quad t\in\mathbb R\\
+ \text{subject to}&\displaystyle\sum_{j=1}^m(u_j^++u_j^-)\le1,\\
+ &t\ge u^\top x^g,\quad g=1,\ldots,G.
+ \end{array}
+\]
+Indeed, every dual feasible point and every \(x=\sum_g\omega_gx^g\) satisfy
+\[
+ u^\top R-t\le u^\top(R-x)
+ \le\|u\|_1\|R-x\|_\infty
+ \le\|R-x\|_\infty,
+\]
+which is weak duality, while \(\texttt{lem:rational-linear-program-certificates}\) supplies equality of the finite optimal values and rational optimal basic solutions.  Exact substitution checks primal and dual feasibility.  Thus feasible rational certificates with objective gap at most any prescribed positive rational number give \(d^-\le d_{H,L}(R)\le d^+\).
+
+Taking \(L_n=n\), \(\eta_n=1/n\), and \(R=\widehat P\), whose entries are integer multiples of \(1/n\), gives
+\[
+ d^-_{H,n}\le d_{H,L_n}(\widehat P),
+ \qquad
+ d^+_{H,n}-d^-_{H,n}\le\eta_n.
+\]
+The deterministic distance inequality then implies
+\[
+ \underline D_{H,n}
+ =\max\{0,d^-_{H,n}-e_{H,L_n}\}
+ \le\operatorname{dist}_\infty(\widehat P,\mathcal C_H).
+\]
+Finally,
+\[
+ e_{H,L}\le\frac{2(\min\{|H|,m\}-1)}{L}\longrightarrow0
+\]
+for fixed finite \(H\), and the primal--dual gap can be made arbitrarily small.  Choosing both errors below allocated portions of any requested positive tolerance yields a certified distance bracket of that precision.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The deterministic sandwich extends the exact small-design theory to any finite menu without presenting black-box optimization as analytic identification. \textit{Gap.} Duarte et al. Theorem 1 on p. 7 proves sharpness of Algorithm 2's polynomial program, while Section 5 on pp. 8--10 and Algorithm 3 provide interruptible, progressively refined valid bounds and \(\varepsilon\)-sharpness. That general program does not give this conditional-iid quadratic-body grid sandwich, its closed deterministic error, or separate finite-stratum and terminal certificates; Kitamura--Stoye test a polyhedral random-utility cone. \textit{Consumer.} Cells with more than three plans receive auditable included-point certificates, excluded-point separators, and a stopping rule at any positive tolerance.
+
+\begin{theorem}[thm:uniform-whole-set-coverage]\label{thm:uniform-whole-set-coverage}
+Set \(L_n=n\) and \(\eta_n=1/n\), and construct \(\widehat\Theta_{n,\alpha}\) using the rule \(\underline D_{H,n}\le\rho_{n,\alpha}\) separately for every finite-stratum response set \(H=F_\kappa\), every breakpoint response set, and the terminal response set \(H=F_\infty\). Uniformly over all data-generating laws satisfying the maintained model, \(\Pr\{\Theta(P)\subseteq\widehat\Theta_{n,\alpha}\}\ge1-\alpha\). The reported upper endpoint is \(+\infty\) whenever the separately tested terminal stratum \((K,+\infty)\) is retained. If \(D_\infty(P)>0\), the probability of rejecting the terminal stratum and declaring a finite upper endpoint converges to one.
+\end{theorem}
+\begin{proof}
+For a path cell \(j=(a,b)\), let \(X_{ij}=\mathbf 1\{Y_{i1}=a,Y_{i2}=b\}\).  Under \(\texttt{ass:iid-consumers}\), these variables are iid Bernoulli with mean \(P_j\).  For a Bernoulli variable \(X\) with mean \(p\), direct differentiation of
+\[
+ \log\mathbb E\exp\{s(X-p)\}=-sp+\log(1-p+pe^s)
+\]
+shows that its second derivative is at most \(1/4\); the value and first derivative at zero vanish.  Two integrations therefore give
+\[
+ \log\mathbb E e^{s(X-p)}\le\frac{s^2}{8}.
+\]
+Markov's inequality applied to the product moment-generating function and minimization at \(s=4x\) yield
+\[
+ \Pr\{\widehat P_j-P_j\ge x\}\le e^{-2nx^2}.
+\]
+Applying the same calculation to \(-X\) gives the lower tail.  The union bound over the \(m\) cells and the definition
+\[
+ \rho_{n,\alpha}=\sqrt{\frac{\log(2m/\alpha)}{2n}}
+\]
+give
+\[
+ \Pr(E_n)\ge1-\alpha,
+ \qquad
+ E_n:=\{\|\widehat P-P\|_\infty\le\rho_{n,\alpha}\}.
+\]
+The bound contains no unknown distributional quantity, so it is uniform over the maintained model.
+
+Let \(\kappa\in\Theta(P)\), and let \(H\) be the response set attached by \(\texttt{def:confidence-set}\) to its open price stratum or its breakpoint.  Then \(P\in\mathcal C_H\).  On \(E_n\),
+\[
+ \operatorname{dist}_\infty(\widehat P,\mathcal C_H)
+ \le\|\widehat P-P\|_\infty
+ \le\rho_{n,\alpha}.
+\]
+By \(\texttt{thm:certified-finite-menu-approximation}\), with the observable-moment-compressed \(e_{H,L_n}\),
+\[
+ \underline D_{H,n}
+ \le\operatorname{dist}_\infty(\widehat P,\mathcal C_H)
+ \le\rho_{n,\alpha}.
+\]
+Thus the construction retains the piece containing \(\kappa\).  If \(\kappa>K\), terminal equality gives \(H=F_\infty\), and the same argument applies to the separately tested terminal stratum.  Hence
+\[
+ E_n\subseteq\{\Theta(P)\subseteq\widehat\Theta_{n,\alpha}\},
+\]
+which proves the asserted uniform whole-set coverage.  There is no multiplicity penalty over \(\kappa\): every conclusion holds on the same event \(E_n\).  By construction, retention of \((K,+\infty)\) makes the reported upper endpoint \(+\infty\).
+
+For consistency of a finite declaration, set \(\delta=D_\infty(P)>0\).  The certificate gap gives
+\[
+ d^-_{F_\infty,n}
+ \ge d_{\infty,L_n}(\widehat P)-\eta_n.
+\]
+Since \(\mathcal C_{\infty,L_n}\subseteq\mathcal C_\infty\), and since distance to a fixed closed set is one-Lipschitz,
+\[
+ \begin{aligned}
+ \underline D_{F_\infty,n}
+ &\ge d_{\infty,L_n}(\widehat P)-\eta_n-e_{F_\infty,L_n}\\
+ &\ge\operatorname{dist}_\infty(\widehat P,\mathcal C_\infty)
+       -\eta_n-e_{F_\infty,L_n}\\
+ &\ge\delta-\|\widehat P-P\|_\infty
+       -\eta_n-e_{F_\infty,L_n}.
+ \end{aligned}
+\]
+The first inequality remains true when its right side is negative because \(\underline D_{F_\infty,n}\ge0\).  With \(L_n=n\),
+\[
+ e_{F_\infty,L_n}
+ \le\frac{2(\min\{|F_\infty|,m\}-1)}{n}\longrightarrow0,
+ \qquad
+ \eta_n=\frac1n\longrightarrow0,
+ \qquad
+ \rho_{n,\alpha}\longrightarrow0.
+\]
+The preceding exponential bound also implies \(\|\widehat P-P\|_\infty\to0\) in probability.  Therefore
+\[
+ \Pr\{\underline D_{F_\infty,n}>\rho_{n,\alpha}\}\longrightarrow1.
+\]
+With probability tending to one the terminal stratum is rejected; all remaining price pieces lie in \([0,K]\), so the reported upper endpoint is finite.  No uniform consistency statement is made at the boundary \(D_\infty(P)=0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} One simultaneous multinomial event covers the entire identified set and propagates numerical error without a multiplicity penalty over switching-cost values. \textit{Gap.} Tamer--Walker develop generic Bayesian inference for PMF-indexed identified sets, while this theorem is a finite-sample frequentist inversion specialized to the finite-versus-infinite terminal frontier. \textit{Consumer.} Empirical users obtain a uniformly valid confidence set that does not spuriously replace an observationally admissible infinite ceiling by a finite number.
+
+\begin{proposition}[prop:known-reductions]\label{prop:known-reductions}
+When \(M_1=M_2\), let \(A\) be a nonempty proper subset of this common choice universe. The adjacent-period specialization of Pakes et al. Condition 2.2 sets both source comparator subsets equal to \(A\) and requires, for every \(d'\in A\), \[\min_{d\in A}\bigl[-p_{2d}-\mathbf 1\{d'\ne d\}\kappa-(-p_{1d}-\mathbf 1\{h_0\ne d\}\kappa)\bigr]\ge\max_{c\in M_1\setminus A}\bigl[-p_{2c}-\mathbf 1\{d'\ne c\}\kappa-(-p_{1c}-\mathbf 1\{h_0\ne c\}\kappa)\bigr].\] Under this premise, Pakes et al. Theorem 2.3(a), PDF p. 20, gives the primary joint restriction \(\Pr(Y_1\in A,Y_2\in A\mid Y_0=h_0)\ge\Pr(Y_1\in A\mid Y_0=h_0)^2\). Only when \(\Pr(Y_1\in A\mid Y_0=h_0)>0\) is this equivalent to the ratio form \(\Pr(Y_2\in A\mid Y_1\in A,Y_0=h_0)\ge\Pr(Y_1\in A\mid Y_0=h_0)\); the full-menu case is \(1\ge1\). If \(M_1\ne M_2\), entry or exit destroys the single common choice universe required by Condition 2.2: the same inside and outside alternatives must be available in both periods for the samplewise event containment used before Jensen's inequality, whereas entrants or exits create winner--loser comparisons absent at one date. Condition 2.2 and Theorem 2.3(a) therefore cannot be applied directly to the full changing menus. For an arbitrary finite design and response table \(f\), \(f\in F_\kappa\) if and only if \(\kappa\in I_f\), while \(f\in F_\infty\) if and only if \(I_f\) contains \((k_f,+\infty)\) for some finite \(k_f\). Hence every response table feasible at some finite \(\kappa\) is terminal-feasible if and only if, for every \(f\), \(I_f\) is empty or unbounded above; under this response-type condition every rationalizable \(P\) has \(U(P)=+\infty\). In the pure-entry diagnostic \(h_0=a\), \(M_1=\{a,b\}\), \(M_2=\{a,b,c\}\), and \(f_1=b,f_2(a)=a,f_2(b)=b\), period-one choice of \(b\) and period-two choice of \(a\) after \(a\) impose \(p_{2a}-p_{2b}-\kappa<z_a-z_b<p_{1a}-p_{1b}-\kappa\), while period-two persistence in \(b\) imposes \(z_a-z_b<p_{2a}-p_{2b}+\kappa\). Comparisons against the never-chosen entrant \(c\) can be met by taking \(z_c\) sufficiently small. Thus the two opposing directed-cycle conditions are \(\tau>0\) and \(2\kappa>0\), so \(f\in F_\kappa\) if and only if \(\tau>0\) and \(\kappa>0\). The zero-sign case is infeasible, and the positive-sign threshold is zero but is not attained. Singleton menus and empty comparison graphs reduce to their degenerate probability simplices.
+\end{proposition}
+\begin{proof}
+First suppose that \(M_1=M_2=:M\), and fix a value \(\kappa\in\Theta(P)\) for which the displayed common-menu premise holds.  For \(d,d'\in M\), define
+\[
+ g_{1d}:=-p_{1d}-\mathbf 1\{h_0\ne d\}\kappa,
+ \qquad
+ g_{2d}(d'):=-p_{2d}-\mathbf 1\{d'\ne d\}\kappa,
+ \qquad
+ \Delta_d(d'):=g_{2d}(d')-g_{1d}.
+\]
+These indices are obtained from the utility index by subtracting the common constant \(\kappa\) at each date.  The premise is precisely
+\[
+ \min_{d\in A}\Delta_d(d')\ge
+ \max_{c\in M\setminus A}\Delta_c(d')
+ \quad\text{for every }d'\in A.
+\]
+Because \(A\) and \(M\setminus A\) are nonempty, this is equivalent to
+\[
+ \Delta_d(d')\ge \Delta_c(d')
+ \quad
+ \text{for every }d,d'\in A\text{ and }c\in M\setminus A.
+\tag{1}
+\]
+
+Let \(f\in F_\kappa\), and choose a point \(z\) in its strict response patch, whose existence follows from the definition of \(F_\kappa\).  Suppose that \(f_1=d\in A\).  The strict first-period winner inequalities in the comparison graph give, for every \(c\in M\setminus A\),
+\[
+ g_{1d}+z_d-(g_{1c}+z_c)>0.
+\tag{2}
+\]
+For any counterfactual lag \(d'\in A\), equations (1) and (2) imply
+\[
+ \begin{aligned}
+ g_{2d}(d')+z_d-[g_{2c}(d')+z_c]
+ &=g_{1d}+z_d-(g_{1c}+z_c)
+   +\Delta_d(d')-\Delta_c(d')\\
+ &>0
+ \end{aligned}
+\tag{3}
+\]
+for every \(c\notin A\).  Hence no alternative outside \(A\) can be the period-two winner under lag \(d'\), and therefore
+\[
+ \mathbf 1\{f_1\in A\}\le \mathbf 1\{f_2(d')\in A\}
+ \quad\text{for every }d'\in A.
+\tag{4}
+\]
+This is the samplewise containment furnished by the displayed dominance condition.
+
+For \(q\in\Delta(F_\kappa)\), put
+\[
+ x(q):=\sum_{a\in A}r_a(q),
+ \qquad
+ u_a(q):=\sum_{b\in A}s_{ab}(q).
+\]
+Averaging (4) with respect to \(q\) yields \(u_a(q)\ge x(q)\) for every \(a\in A\).  Since every response table selects exactly one second-period alternative after each history,
+\(\sum_{b\in M}s_{ab}(q)=1\).  The definition of the quadratic map consequently gives
+\[
+ \sum_{a\in A}\sum_{b\in A}v_{ab}(q)
+ =\sum_{a\in A}r_a(q)u_a(q)
+ \ge x(q)^2,
+ \qquad
+ \sum_{a\in A}\sum_{b\in M}v_{ab}(q)=x(q).
+\tag{5}
+\]
+
+By the definition of \(\Theta(P)\), \(P\in\mathcal C_\kappa\); the sharp conditional-iid body theorem establishes that this membership is exactly the maintained-model restriction.  By the definition of the convex hull there are \(q^1,\ldots,q^L\in\Delta(F_\kappa)\) and weights \(\omega_\ell\ge0\), \(\sum_{\ell=1}^L\omega_\ell=1\), such that
+\(P=\sum_{\ell=1}^L\omega_\ell v(q^\ell)\).  Write \(x_\ell=x(q^\ell)\).  Applying (5) componentwise and using the elementary identity
+\[
+ \sum_{\ell=1}^L\omega_\ell x_\ell^2-
+ \left(\sum_{\ell=1}^L\omega_\ell x_\ell\right)^2
+ =\frac12\sum_{\ell,j=1}^L
+   \omega_\ell\omega_j(x_\ell-x_j)^2\ge0
+\]
+proves
+\[
+ \Pr(Y_1\in A,Y_2\in A\mid Y_0=h_0)
+ \ge
+ \Pr(Y_1\in A\mid Y_0=h_0)^2.
+\tag{6}
+\]
+Thus (6) derives, within the present sharp-body representation, the restriction attributed in the statement to Pakes et al.  If
+\(x:=\Pr(Y_1\in A\mid Y_0=h_0)>0\), division of (6) by \(x\) is valid and gives the displayed conditional-probability ratio; multiplication by \(x\) proves the converse equivalence.  If \(x=0\), that ratio is not determined by the observed law, so division is invalid.  If one formally takes \(A=M\), both probabilities in (6) equal one and the inequality is the tautology \(1\ge1\).
+
+The same argument cannot be applied directly to a changing full menu.  Indeed, its algebra requires both \(g_{1d}\) and \(g_{2d}(d')\), and hence both period-specific prices, for every inside alternative \(d\) and every outside alternative \(c\) in one common partition.  When \(M_1\ne M_2\), an entrant has no first-period comparison and an exiting plan has no second-period comparison.  Thus the common-menu difference \(\Delta_d(d')\) and the equality in (3) are not simultaneously defined over the full changing choice universe.  This proves only the claimed inapplicability of that common-menu condition, not the failure of every possible inequality under menu turnover.
+
+We next establish the response-type reduction.  For a fixed response table \(f\), write the finitely many simple-cycle weights as
+\[
+ L_C(\kappa)=A_C+B_C\kappa.
+\]
+The strict-cycle feasibility lemma and the definition of \(I_f\) give
+\[
+ f\in F_\kappa
+ \quad\Longleftrightarrow\quad
+ L_C(\kappa)>0\text{ for every simple cycle }C
+ \quad\Longleftrightarrow\quad
+ \kappa\in I_f.
+\tag{7}
+\]
+By the definition of \(F_\infty\), \(f\in F_\infty\) exactly when every cycle has either \(B_C>0\), or \(B_C=0\) and \(A_C>0\), and no cycle has \(B_C<0\).  In that event, finiteness of the cycle list permits choosing
+\[
+ k_f>\max\left(\{0\}\cup
+ \{-A_C/B_C:B_C>0\}\right),
+\]
+with the maximum over an empty second set understood as zero.  Then \((k_f,+\infty)\subseteq I_f\).  Conversely, if such a terminal interval is contained in \(I_f\), a coefficient \(B_C<0\) would make \(L_C(\kappa)<0\) for all sufficiently large \(\kappa\), and a coefficient \(B_C=0\) would require \(A_C>0\).  Hence
+\[
+ f\in F_\infty
+ \quad\Longleftrightarrow\quad
+ (k_f,+\infty)\subseteq I_f\text{ for some finite }k_f.
+\tag{8}
+\]
+
+Moreover, if \(I_f\ne\varnothing\) is unbounded above, no inequality defining it can have \(B_C<0\), and every inequality with \(B_C=0\) must have \(A_C>0\).  All remaining inequalities have positive slope and hence hold on a common terminal interval.  Thus, for nonempty \(I_f\), unboundedness is equivalent to the terminal-interval property in (8).  Combining this observation with (7)--(8),
+\[
+ \bigl[(\exists\kappa\ge0:f\in F_\kappa)\Longrightarrow f\in F_\infty\bigr]
+ \quad\Longleftrightarrow\quad
+ [I_f=\varnothing\text{ or }I_f\text{ is unbounded above}].
+\tag{9}
+\]
+Taking (9) over all response tables proves the asserted design-by-design criterion.
+
+Under that criterion, \(F_\kappa\subseteq F_\infty\) for every finite \(\kappa\).  A probability vector on \(F_\kappa\) extends to one on \(F_\infty\) by assigning zero mass to the additional tables, without changing \(r\), \(s\), or \(v\).  The compatible-body definitions therefore imply
+\[
+ \mathcal C_\kappa\subseteq\mathcal C_\infty
+ \quad\text{for every }\kappa\ge0.
+\tag{10}
+\]
+Correct specification supplies \(\kappa_0\in\Theta(P)\), so \(P\in\mathcal C_{\kappa_0}\subseteq\mathcal C_\infty\).  The terminal-frontier theorem gives \(\mathcal C_\kappa=\mathcal C_\infty\) for all \(\kappa>K\).  Hence every \(\kappa>K\) belongs to \(\Theta(P)\), and the definition of the upper frontier yields \(U(P)=+\infty\).  Notice that this argument uses terminal equality and does not assume monotonicity of \(\mathcal C_\kappa\).
+
+Finally consider the stated pure-entry design.  Let
+\[
+ x:=z_a-z_b,
+ \qquad
+ \delta_1:=p_{1a}-p_{1b},
+ \qquad
+ \delta_2:=p_{2a}-p_{2b}.
+\]
+For the response table with \(f_1=b\), \(f_2(a)=a\), and \(f_2(b)=b\), the comparison-graph definition gives, respectively,
+\[
+ x<\delta_1-\kappa,
+ \qquad
+ \delta_2-\kappa<x,
+ \qquad
+ x<\delta_2+\kappa.
+\tag{11}
+\]
+The open interval in (11) is nonempty exactly when
+\[
+ \delta_2-\kappa<\delta_1-\kappa
+ \quad\text{and}\quad
+ \delta_2-\kappa<\delta_2+\kappa,
+\]
+which are, respectively, \(\tau=\delta_1-\delta_2>0\) and \(2\kappa>0\).  Since the maintained parameter space has \(\kappa\ge0\), the latter condition is equivalent to \(\kappa>0\).  These are the two opposing-cycle conditions identified by the strict-cycle lemma.
+
+They are also sufficient for the full three-plan system.  Choose any \(x\) in the interval (11), set \(z_b=0\) and \(z_a=x\), and then choose \(z_c\) so small that
+\[
+ z_c-z_a<p_{2c}-p_{2a}+\kappa,
+ \qquad
+ z_c-z_b<p_{2c}-p_{2b}+\kappa.
+\tag{12}
+\]
+There is no first-period comparison involving \(c\), because \(c\notin M_1\), and (12) satisfies both comparisons against the never-chosen entrant.  Hence all strict graph constraints hold.  We have proved
+\[
+ f\in F_\kappa
+ \quad\Longleftrightarrow\quad
+ \tau>0\text{ and }\kappa>0.
+\]
+In particular, \(\tau=0\) is infeasible, while for \(\tau>0\) the threshold zero is approached but not attained.
+
+For completeness, the singleton boundaries follow directly from the same definitions.  If \(M_1=\{a\}\), period one is forced, each possible period-two winner can be made strict by raising its \(z\)-coordinate, and the quadratic map is \(v_{ab}(q)=q_b\); hence the compatible body is the simplex on \(M_2\).  If \(M_2=\{b\}\), period two is forced, each possible period-one winner can similarly be made strict, and \(v_{ab}(q)=q_a\); hence the body is the simplex on \(M_1\).  If both menus are singletons, the comparison graph is empty and these simplices reduce to the unique point mass.  This includes all stated degenerate boundary cases.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The cycle-feasibility regions give an exact design-by-design classification, and the displayed entry table fixes both the strict price sign and the unattained zero threshold that a blanket sign rule misses. \textit{Gap.} Pakes et al. Theorem 2.3(a), PDF p. 20, derives its adjacent-period inequality under Condition 2.2 with both comparator subsets equal in a common choice universe; it does not classify response-table feasibility intervals or terminal inclusion when entry or exit changes the comparison graph. \textit{Consumer.} Designers can screen upper-tail-uninformative cells by finite cycle tests and validate implementations against the explicit entry, common-menu, and degenerate boundary cases.
+
+\begin{lemma}[lem:observable-moment-compression]\label{lem:observable-moment-compression}
+Fix a nonempty finite response set \(H\in\{F_\kappa,F_\infty\}\).  Define
+\[
+ T_H(q)=\bigl((r_a(q))_{a\in M_1},(s_{ab}(q))_{a\in M_1,b\in M_2}\bigr)
+\]
+and let \(d_H\) be the affine dimension of \(\operatorname{conv}T_H(\Delta(H))\).  Then \(d_H\le m-1\).  For every \(q\in\Delta(H)\), there is \(\bar q\in\Delta(H)\) supported on at most
+\[
+ \min\{|H|,d_H+1\}\le\min\{|H|,m\}
+\]
+response tables such that \(T_H(\bar q)=T_H(q)\).  In particular, \(v(\bar q)=v(q)\).
+\end{lemma}
+\begin{proof}
+Write \(I=|M_1|\) and \(B=|M_2|\), so \(m=IB\).  The map \(T_H\) is affine because every coordinate \(r_a\) and \(s_{ab}\) is linear in \(q\).  Consequently,
+\[
+ T_H(\Delta(H))
+ =\operatorname{conv}\{T_H(e_f):f\in H\},
+\]
+where \(e_f\) is the unit mass on response table \(f\).  Every point in this convex hull satisfies
+\[
+ \sum_{a\in M_1}r_a=1,
+ \qquad
+ \sum_{b\in M_2}s_{ab}=1\quad(a\in M_1).
+\]
+These are \(I+1\) independent affine equalities in the ambient space \(\mathbb R^{I+IB}\): the first involves only the \(r\)-coordinates, and each of the other \(I\) equalities involves a distinct block of \(s\)-coordinates.  Hence
+\[
+ d_H\le I+IB-(I+1)=IB-1=m-1.
+\]
+
+It remains to prove the support assertion without importing an additional theorem.  Express \(T_H(q)\) as a convex combination of the vertices \(T_H(e_f)\) carrying positive \(q_f\).  If more than \(d_H+1\) such vertices occur, their augmented vectors \((1,T_H(e_f))\) are linearly dependent in the \((d_H+1)\)-dimensional linear space generated by the affine hull.  Thus there are coefficients \(c_f\), not all zero, such that
+\[
+ \sum_f c_f=0,
+ \qquad
+ \sum_f c_fT_H(e_f)=0.
+\]
+After replacing \(c\) by \(-c\) if necessary, at least one \(c_f>0\).  Put
+\[
+ t=\min_{f:c_f>0}\frac{q_f}{c_f}>0,
+ \qquad
+ q_f^{\mathrm{new}}=q_f-tc_f.
+\]
+Then \(q^{\mathrm{new}}\ge0\), its coordinates sum to one, at least one formerly positive coordinate becomes zero, and
+\[
+ T_H(q^{\mathrm{new}})=T_H(q)-t\sum_fc_fT_H(e_f)=T_H(q).
+\]
+Repeating this finite elimination leaves at most \(d_H+1\) positive coordinates and never introduces support outside the original support, proving the bound by \(\min\{|H|,d_H+1\}\).  Finally, the definition \(v_{ab}=r_as_{ab}\) shows coordinate by coordinate that equality of \(T_H\) implies \(v(\bar q)=v(q)\).
+\end{proof}
+
+\begin{lemma}[lem:rational-linear-program-certificates]\label{lem:rational-linear-program-certificates}
+\texttt{For a finite-\allowbreak{}dimensional linear program in standard form with rational constraint matrix,\allowbreak{} rational right-\allowbreak{}hand side,\allowbreak{} and rational objective,\allowbreak{} if the primal is feasible and has a finite optimum then the primal and dual optimal values coincide and rational optimal basic feasible solutions exist.  Feasible rational primal and dual points whose objective values differ by at most a prescribed positive rational tolerance therefore certify lower and upper bounds with that gap.}
+\end{lemma}
+
+\begin{lemma}[lem:represented-algebraic-semialgebraic-decision]\label{lem:represented-algebraic-semialgebraic-decision}
+\texttt{A finite existential formula consisting of polynomial equalities and weak or strict polynomial inequalities with rational or represented real-\allowbreak{}algebraic coefficients is decidable by exact real-\allowbreak{}algebraic sign decomposition.  Real-\allowbreak{}algebraic inputs can be represented by defining integer polynomials and rational isolating intervals,\allowbreak{} and the output is certified by exact sign evaluations on the resulting cells.}
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The presolve reduces negative three-plan entry exactly to four pure rays and eight rank-one quadratic curves. Its dual support reduction couples the two off-diagonal path probabilities through a minimum multiplied by a positive-part expression. This coupling shows why separately optimizing corrected Jensen or boundary-face inequalities is not complete. The full active-allocation elimination for this joint regime, the zero-sign entry class, and all six exit classes is intentionally retained as \(\texttt{oeq:three-plan-analytic-body}\).
+
+\section{Honest scope}
+
+The proposal treats one known two-choice design cell with stable plan quality, a common \(\kappa\), unrestricted fixed-effect mixing, and conditionally iid shocks whose conditional full-vector laws are Lebesgue absolutely continuous. This continuity condition is stronger than Mbakop's and supports exact open-patch attainability without an empirical regularity claim. The proposal does not identify welfare, validate cells whose plan quality changes, impose monotonicity of \(\Theta(P)\), promise practical polynomial-time computation, or claim uniform consistency when \(D_\infty(P)=0\). Common-menu, cycle-based response-type, explicit pure-entry boundary, and degenerate reductions are required checks. An SSRN record reports an April 2026 revision of Pakes et al., but its manuscript was inaccessible during the bounded search; comparison against that text remains a presolve condition if it becomes available.
+
+\begin{thebibliography}{99}
+
+  \bibitem{PakesPorterShepardCalderWang2025} Ariel Pakes, Jack R. Porter, Mark Shepard, and Sophie Calder-Wang (2025), ``Unobserved Heterogeneity, State Dependence, and Health Plan Choices,'' NBER Working Paper 29025, revised July 2025, canonical manuscript at \url{https://www.nber.org/system/files/working\_papers/w29025/w29025.pdf}.
+
+  \bibitem{Mbakop2023} Eric Mbakop (2023), ``Identification in Some Discrete Choice Models: A Computational Approach,'' arXiv:2305.15691.
+
+  \bibitem{DuarteEtAl2024Autobounds} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser (2024), ``An Automated Approach to Causal Inference in Discrete Settings,'' Journal of the American Statistical Association, 119(547), 1778--1793.
+
+  \bibitem{KitamuraStoye2018} Yuichi Kitamura and Jorg Stoye (2018), ``Nonparametric Analysis of Random Utility Models,'' Econometrica, 86(6), 1883--1909.
+
+  \bibitem{KhanPonomarevaTamer2023} Shakeeb Khan, Maria Ponomareva, and Elie Tamer (2023), ``Identification of Dynamic Binary Response Models,'' Journal of Econometrics, 237, 105515.
+
+  \bibitem{PakesPorter2024} Ariel Pakes and Jack Porter (2024), ``Moment Inequalities for Multinomial Choice with Fixed Effects,'' Quantitative Economics, 15(1), 1--25.
+
+  \bibitem{MastenPoirier2020} Matthew A. Masten and Alexandre Poirier (2020), ``Inference on Breakdown Frontiers,'' Quantitative Economics, 11(1), 41--111.
+
+  \bibitem{TamerWalker2026} Elie Tamer and Christopher D. Walker (2026), ``Nonparametric Bayesian Inference for Partially Identified Discrete Response Models,'' arXiv:2608.25814.
+
+  \bibitem{Polyakova2016} Maria Polyakova (2016), ``Regulation of Insurance with Adverse Selection and Switching Costs: Evidence from Medicare Part D,'' American Economic Journal: Applied Economics, 8(3), 165--195.
+
+  \bibitem{Torgovitsky2019} Alexander Torgovitsky (2019), ``Nonparametric Inference on State Dependence in Unemployment,'' Econometrica, 87(5), 1475--1505.
+
+  \bibitem{doi:10.1002/9780470316467} Alexander Schrijver (1986), ``Theory of Linear and Integer Programming,'' Wiley, DOI 10.1002/9780470316467.
+
+  \bibitem{doi:10.1007/3-540-33099-2} Saugata Basu, Richard Pollack, and Marie-Francoise Roy (2006), ``Algorithms in Real Algebraic Geometry,'' second edition, Springer, DOI 10.1007/3-540-33099-2.
+
+\end{thebibliography}
+
+\end{document}

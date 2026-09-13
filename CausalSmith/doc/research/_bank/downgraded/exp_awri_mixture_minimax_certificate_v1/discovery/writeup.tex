@@ -1,0 +1,731 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}awri\_\allowbreak{}mixture\_\allowbreak{}minimax\_\allowbreak{}certificate}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Weighted random isolation makes full-neighborhood treatment and control observable on a random independent set, but its restricted difference in means has random denominators and can be biased for the finite-population total effect. The core reduction writes this error as a \(2n\)-coordinate linear form and shows that every exact risk entry is determined by one- and two-marked isolated-count polynomials. The tier-bearing question is whether those polynomials admit an output-sensitive fixed-parameter algorithm in conflict-graph treewidth, yielding an explicit-runtime certified minimax mixture, or whether a required marked coefficient is parameterized-hard. A complete exact forest oracle supplies the positive base case. Exact rational matrices feed a standard finite-library ellipsoidal SDP consequence, while independent offline simulations give an operator-norm certificate on arbitrary graphs.
+
+\section{Project justification}
+
+\paragraph{Gap.} AWRI selects priority weights using an MSE surrogate, randomized graph clustering resorts to exposure-probability resampling on unrestricted graphs, and order-counting theory warns that bounded treewidth does not automatically make priority integration fixed-parameter tractable. The closest unrestricted design-and-estimator minimax analysis leaves its maximal-independent-set functional implicit and does not compute the prespecified WRI/RDIM marked reciprocal-count risk.
+
+\paragraph{Niche.} The missing object is an exact, output-sensitive oracle for the marked isolated-count moments that determine dense RDIM risk, together with a positive-versus-hard separator frontier and an explicit certified-mixture guarantee on the positive branch.
+
+\paragraph{Fill.} The project derives the exact marked-moment reduction, establishes rational output and a complete forest base case, and asks for either fixed-parameter separator compression or parameter-preserving hardness. On the positive branch, standard semidefinite optimization converts the exact oracle into an exactly certified WRI mixture with a stated runtime; arbitrary graphs retain a simulation fallback.
+
+\section{Related work}
+
+Shi, Yang, Qin, and Li supply the WRI/RDIM setup, directed full-neighborhood motivation, and surrogate-based weight-selection arc that informs the present setup. Ugander and Yin show how offline random graph-design draws can estimate otherwise intractable probabilities and establish a neighboring general-graph hardness boundary. Eiben, Ganian, Kangas, and Ordyniak show that the relevant order-counting intuition is representation-sensitive: cover-graph treewidth does not yield FPT linear-extension counting, whereas incomparability-treewidth does. Kangas, Koivisto, and Salonen handle cover-treewidth joins by multivariate polynomial multiplication with an exponent depending on width, the closest algorithmic analogue to the direct WRI messages. Pippenger and Krivelevich, Mészáros, Michaeli, and Shikhelman analyze random greedy occupancy and asymptotic size, but not exact weighted marked count distributions. Duarte, Sagnol, and Wong provide the standard minimax semidefinite-design machinery used only after causal risk matrices are available. Viviano et al. optimize cluster partitions under worst-case network MSE, while Kandiros, Pipis, Daskalakis, and Harshaw study a different conflict-graph estimator. Kandiros, Harshaw, and Sävje are the closest unrestricted design-and-estimator minimax and maximal-independent-set comparator: version 1, Section 6 and Appendix A, especially Lemma A.10, develops an implicit unrestricted functional, whereas the present theorem-level question concerns exact computation of a prespecified WRI/RDIM marked reciprocal-count functional and a certified restricted-library mixture. The unrestricted comparator informs scope; it is not claimed to be tightened or reproduced.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau=n^{-1}\sum_{i=1}^{n}\{Y_i(\mathbf 1)-Y_i(\mathbf 0)\}\).
+Primary functional / estimator / diagnostic: \(q^{\star}\in\arg\min_{q\in\Delta_L}\lambda_{\max}\!\left(H^{1/2}\left\{\sum_{\ell=1}^{L}q_{\ell}Q_{\ell}\right\}H^{1/2}\right)\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\{2,3,\ldots\}\); \texttt{number of experimental units}
+  \item \texttt{V} --- \texttt{finite vertex set}; \texttt{experimental units}
+  \par\smallskip\noindent\emph{Definition.} \(V=\{1,\ldots,n\}\)
+  \item \texttt{G} --- \texttt{fixed directed graph}; \(V\times V\); \texttt{interference graph}
+  \item \texttt{D} --- \texttt{family of closed in-\allowbreak{}neighborhoods}; \(D_i=\{i\}\cup\{j:(j,i)\in E(G)\}\); \texttt{full-\allowbreak{}neighborhood exposure domains}
+  \item \texttt{Y} --- \texttt{fixed finite-\allowbreak{}population potential-\allowbreak{}outcome schedule}; \(Y_i:\{0,1\}^{n}\to\mathbb R\); \texttt{primitive outcomes}
+  \item \texttt{theta} --- \texttt{endpoint vector}; \(\mathbb R^{2n}\); \texttt{fixed potential-\allowbreak{}outcome endpoints}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=(Y_1(\mathbf 1),\ldots,Y_n(\mathbf 1),Y_1(\mathbf 0),\ldots,Y_n(\mathbf 0))^{\mathsf T}\)
+  \item \texttt{d} --- \texttt{contrast vector}; \(\mathbb R^{2n}\); \texttt{population total-\allowbreak{}effect contrast}
+  \par\smallskip\noindent\emph{Definition.} \(d=n^{-1}(\mathbf 1_n^{\mathsf T},-\mathbf 1_n^{\mathsf T})^{\mathsf T}\)
+  \item \texttt{tau} --- \texttt{finite-\allowbreak{}population causal estimand}; \(\mathbb R\); \texttt{universal-\allowbreak{}treatment versus universal-\allowbreak{}control effect}
+  \par\smallskip\noindent\emph{Definition.} \(\tau=d^{\mathsf T}\theta\)
+  \item \texttt{conflictGraph} --- \texttt{fixed undirected graph}; \(C_G=(V,E_C)\); \texttt{WRI unit-\allowbreak{}isolation conflict graph}
+  \item \texttt{librarySize} --- \texttt{positive integer}; \(\mathbb N\); \texttt{number of prespecified WRI rules}
+  \item \texttt{weightBound} --- \texttt{positive integer}; \(\mathbb N\); \texttt{priority-\allowbreak{}weight bound}
+  \item \texttt{weights} --- \texttt{positive integer array}; \(\{1,\ldots,b\}^{L\times n}\); \texttt{prespecified rule library}
+  \item \texttt{permutations} --- \texttt{finite set}; \texttt{priority orders}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega=\operatorname{Sym}(V)\)
+  \item \texttt{ruleIndex} --- \texttt{index}; \(\{1,\ldots,L\}\); \texttt{library-\allowbreak{}rule index}
+  \item \texttt{priorityOrder} --- \texttt{permutation}; \(\Omega\); \texttt{decreasing-\allowbreak{}priority order}
+  \item \texttt{ruleLaw} --- \texttt{joint randomization law}; \(P_{\ell}\); \texttt{weighted exponential-\allowbreak{}race order law followed by uniform balanced focal allocation}
+  \item \texttt{isolatedSet} --- \texttt{random subset of vertices}; \(S_{\ell}(\pi)\subseteq V\); \texttt{sequential greedy maximal independent set}
+  \item \texttt{isolatedCount} --- \texttt{integer-\allowbreak{}valued random variable}; \texttt{isolated-\allowbreak{}set size}
+  \par\smallskip\noindent\emph{Definition.} \(K_{\ell}(\pi)=|S_{\ell}(\pi)|\)
+  \item \texttt{treatCount} --- \texttt{integer-\allowbreak{}valued function}; \texttt{number of treated focal units}
+  \par\smallskip\noindent\emph{Definition.} \(t(k)=\lfloor k/2\rfloor\)
+  \item \texttt{controlCount} --- \texttt{integer-\allowbreak{}valued function}; \texttt{number of control focal units}
+  \par\smallskip\noindent\emph{Definition.} \(c(k)=k-t(k)\)
+  \item \texttt{treatedFocals} --- \texttt{conditionally uniform random subset}; \(T_{\ell}\subseteq S_{\ell}\); \texttt{treated isolated units}
+  \item \texttt{controlFocals} --- \texttt{random subset}; \texttt{control isolated units}
+  \par\smallskip\noindent\emph{Definition.} \(U_{\ell}=S_{\ell}\setminus T_{\ell}\)
+  \item \texttt{e} --- \texttt{random coefficient vector}; \(\mathbb R^{2n}\); \texttt{RDIM linear coefficients}
+  \par\smallskip\noindent\emph{Definition.} \(e_{\ell}=(\mathbf 1_{T_{\ell}}/t(K_{\ell}),-\mathbf 1_{U_{\ell}}/c(K_{\ell}))^{\mathsf T}\)
+  \item \texttt{a} --- \texttt{random error coefficient vector}; \(\mathbb R^{2n}\); \texttt{RDIM error loading}
+  \par\smallskip\noindent\emph{Definition.} \(a_{\ell}=e_{\ell}-d\)
+  \item \texttt{estimator} --- \texttt{design-\allowbreak{}based estimator}; \(\mathbb R\); \texttt{restricted difference in means}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau_{\ell}=e_{\ell}^{\mathsf T}\theta\)
+  \item \texttt{Q} --- \texttt{rational positive semidefinite matrix family}; \(\mathbb S_{+}^{2n}\); \texttt{exact binary-\allowbreak{}encoded rule-\allowbreak{}specific RDIM risk matrices}
+  \par\smallskip\noindent\emph{Definition.} \(Q_{\ell}=\mathbb E_{\ell}[a_{\ell}a_{\ell}^{\mathsf T}]\)
+  \item \texttt{tagSet} --- \texttt{marked vertex set}; \(\{A\subseteq V:|A|\le 2\}\); \texttt{one-\allowbreak{} or two-\allowbreak{}vertex tag}
+  \item \texttt{F} --- \texttt{univariate probability generating polynomial}; \(F_{\ell,A}(z)\); \texttt{tagged isolated-\allowbreak{}count law}
+  \item \texttt{gamma} --- \texttt{positive rational scalar}; \(\mathbb Q_{>0}\); \texttt{graph-\allowbreak{}smoothness tuning constant}
+  \item \texttt{laplacian} --- \texttt{rational positive semidefinite matrix}; \(\mathbb S_{+}^{n}\); \texttt{combinatorial Laplacian of the conflict graph}
+  \item \texttt{Hgraph} --- \texttt{rational positive definite matrix}; \(\mathbb S_{++}^{n}\); \texttt{graph ellipsoid shape}
+  \par\smallskip\noindent\emph{Definition.} \(H_G=(I_n+\gamma L_C)^{-1}\)
+  \item \texttt{H} --- \texttt{rational positive definite matrix}; \(\mathbb S_{++}^{2n}\); \texttt{endpoint ellipsoid shape}
+  \par\smallskip\noindent\emph{Definition.} \(H=\operatorname{diag}(H_G,H_G)\)
+  \item \texttt{radius} --- \texttt{positive rational scalar}; \(\mathbb Q_{>0}\); \texttt{binary-\allowbreak{}encoded endpoint-\allowbreak{}class radius}
+  \item \texttt{encodingLength} --- \texttt{positive integer}; \(\mathbb N\); \texttt{exact-\allowbreak{}input encoding length}
+  \par\smallskip\noindent\emph{Definition.} \(\Lambda\) is the total binary length of the rational entries of \(B\), \(H\), and \(Q_1,\ldots,Q_L\), together with \(n\) and \(L\).
+  \item \texttt{endpointClass} --- \texttt{class of endpoint schedules}; \(\Theta_G(B)\); \texttt{graph-\allowbreak{}smooth minimax outcome class}
+  \item \texttt{simplex} --- \texttt{probability simplex}; \texttt{feasible WRI-\allowbreak{}rule mixtures}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_L=\{q\in\mathbb R_{+}^{L}:\mathbf 1_L^{\mathsf T}q=1\}\)
+  \item \texttt{mixture} --- \texttt{mixture vector}; \(\Delta_L\); \texttt{randomization over library rules}
+  \item \texttt{Qmix} --- \texttt{positive semidefinite matrix}; \texttt{mixture risk matrix}
+  \par\smallskip\noindent\emph{Definition.} \(Q(q)=\sum_{\ell=1}^{L}q_{\ell}Q_{\ell}\)
+  \item \texttt{value} --- \texttt{nonnegative scalar}; \texttt{finite-\allowbreak{}library minimax risk}
+  \par\smallskip\noindent\emph{Definition.} \(V^{\star}=\min_{q\in\Delta_L}\sup_{\vartheta\in\Theta_G(B)}\vartheta^{\mathsf T}Q(q)\vartheta\)
+  \item \texttt{treeDecomposition} --- \texttt{nice tree decomposition}; \(\mathcal T\); \texttt{given decomposition of the conflict graph}
+  \item \texttt{treewidth} --- \texttt{nonnegative integer}; \(\mathbb N_0\); \texttt{width of the given tree decomposition}
+  \item \texttt{separatorHandle} --- \texttt{algorithmic proof handle}; \(\mathfrak H_{\mathrm{sep}}\); \texttt{factorized separator priority/\allowbreak{}count message search}
+  \item \texttt{simulationSize} --- \texttt{positive integer}; \(\mathbb N\); \texttt{offline WRI draws per rule}
+  \item \texttt{confidence} --- \texttt{confidence error probability}; \((0,1)\); \texttt{simultaneous failure probability}
+  \item \texttt{epsilon} --- \texttt{positive tolerance}; \(\mathbb R_{>0}\); \texttt{operator-\allowbreak{}norm risk tolerance}
+  \item \texttt{riskDraws} --- \texttt{independent random vector array}; \(a_{\ell s}\), \(1\le s\le N\); \texttt{offline copies of the RDIM error loading}
+  \item \texttt{Qhat} --- \texttt{self-\allowbreak{}adjoint matrix family}; \(\mathbb S^{2n}\); \texttt{Monte Carlo exact-\allowbreak{}risk estimates}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat Q_{\ell}=N^{-1}\sum_{s=1}^{N}a_{\ell s}a_{\ell s}^{\mathsf T}\)
+  \item \texttt{Vlower} --- \texttt{real scalar}; \(V_{-}\); \texttt{certified lower minimax value}
+  \item \texttt{Vupper} --- \texttt{real scalar}; \(V_{+}\); \texttt{certified upper minimax value}
+  \item \texttt{qUpper} --- \texttt{mixture vector}; \(\Delta_L\); \texttt{mixture returned by the upper robust program}
+  \item \texttt{qStar} --- \texttt{mixture vector}; \(\Delta_L\); \texttt{minimax-\allowbreak{}optimal mixture derived by the finite SDP proposition}
+  \item \texttt{tStar} --- \texttt{real scalar}; \(t^{\star}\); \texttt{optimal primal epigraph value}
+  \item \texttt{XStar} --- \texttt{positive semidefinite matrix}; \(\mathbb S_{+}^{2n}\); \texttt{optimal dual spectral certificate}
+  \item \texttt{sStar} --- \texttt{real scalar}; \(s^{\star}\); \texttt{optimal dual value}
+  \item \texttt{nuStar} --- \texttt{finite probability distribution}; \(\mathcal P(\partial\Theta_G(B))\); \texttt{least-\allowbreak{}favourable endpoint distribution derived by the finite SDP proposition}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:full-neighborhood-interference]\label{ass:full-neighborhood-interference}
+For every \(i\in V\) and assignments \(z,z'\in\{0,1\}^{n}\), \(z_{D_i}=z'_{D_i}\) implies \(Y_i(z)=Y_i(z')\).
+\par\smallskip\noindent\emph{Standard} (Full-neighborhood interference, \cite{ShiYangQinLi2024}).
+\end{assumption}
+
+\begin{assumption}[ass:design-based-randomness]\label{ass:design-based-randomness}
+The potential-outcome schedule \(Y\) is fixed before the random priority order and focal treatment allocation are drawn.
+\par\smallskip\noindent\emph{Standard} (Finite-population design-based randomness, \cite{AronowSamii2017}).
+\end{assumption}
+
+\begin{assumption}[ass:nondegenerate-isolation]\label{ass:nondegenerate-isolation}
+For every \(\ell\in\{1,\ldots,L\}\) and \(\pi\in\Omega\), \(K_{\ell}(\pi)\ge 2\).
+\par\smallskip\noindent\emph{Novel.} This checkable support condition is satisfied whenever the conflict graph has at least two nonempty connected components, as in multi-village or multi-community experiments, because sequential greedy isolation selects at least one vertex per component.
+\end{assumption}
+
+\begin{assumption}[ass:endpoint-regularity]\label{ass:endpoint-regularity}
+An endpoint vector \(\vartheta\in\mathbb R^{2n}\) is admissible when \(\vartheta^{\mathsf T}H^{-1}\vartheta\le B^{2}\).
+\par\smallskip\noindent\emph{Novel.} The graph-Sobolev ellipsoid permits arbitrary level shifts along connected components while penalizing endpoint variation across conflict edges; it is a transparent sensitivity class for village-network outcomes, and binary or otherwise bounded endpoints fit after choosing a conservative radius.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:conflict-graph]\label{def:conflict-graph}
+\par\smallskip\noindent\emph{Defined object.} \texttt{WRI unit-\allowbreak{}isolation conflict graph}
+\par\smallskip\noindent\emph{Construction.} \(C_G=(V,E_C)\), where \(\{i,j\}\in E_C\) if and only if \(i\ne j\) and \(D_i\cap D_j\ne\varnothing\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:wri-law]\label{def:wri-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sequential weighted random isolation law}
+\par\smallskip\noindent\emph{Construction.} For \(\pi\in\Omega\), \(P_{\ell}(\pi)=\prod_{r=1}^{n}h_{\ell,\pi_r}/\bigl(\sum_{s=r}^{n}h_{\ell,\pi_s}\bigr)\); scan \(\pi_1,\ldots,\pi_n\) and put a vertex in \(S_{\ell}(\pi)\) exactly when it has no previously selected neighbor in \(C_G\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{conflictGraph}; \texttt{weights}.
+\end{definition}
+
+\begin{definition}[def:rdim-construction]\label{def:rdim-construction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Balanced restricted difference in means}
+\par\smallskip\noindent\emph{Construction.} Given \(S_{\ell}\) of size \(K_{\ell}\), draw \(T_{\ell}\) uniformly among its \(t(K_{\ell})\)-subsets, set \(U_{\ell}=S_{\ell}\setminus T_{\ell}\), expose every \(i\in T_{\ell}\) to \(\mathbf 1_{D_i}\) and every \(i\in U_{\ell}\) to \(\mathbf 0_{D_i}\), and compute \(\widehat\tau_{\ell}=e_{\ell}^{\mathsf T}\theta\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{isolatedSet}; \texttt{Y}.
+\end{definition}
+
+\begin{definition}[def:tagged-count-polynomial]\label{def:tagged-count-polynomial}
+\par\smallskip\noindent\emph{Defined object.} \texttt{One-\allowbreak{} and two-\allowbreak{}marked isolated-\allowbreak{}count polynomial}
+\par\smallskip\noindent\emph{Construction.} \(F_{\ell,A}(z)=\mathbb E_{\ell}[z^{K_{\ell}}\mathbf 1\{A\subseteq S_{\ell}\}]\) for every \(A\subseteq V\) with \(|A|\le 2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ruleLaw}; \texttt{isolatedSet}; \texttt{tagSet}.
+\end{definition}
+
+\begin{definition}[def:endpoint-class]\label{def:endpoint-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph-\allowbreak{}Sobolev endpoint class}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_G(B)=\{\vartheta\in\mathbb R^{2n}:\vartheta^{\mathsf T}H^{-1}\vartheta\le B^{2}\}\), for every integer \(n\ge2\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}endpoint-\allowbreak{}regularity}.
+\end{definition}
+
+\begin{definition}[def:forest-messages]\label{def:forest-messages}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}state forest integration messages}
+\par\smallskip\noindent\emph{Construction.} Root each tree and put \(f_v(x)=h_{\ell v}x^{h_{\ell v}-1}\). For each child \(u\) define \(J_u(z)=\int_0^1B_u(y,z)\,dy\), \(D_u(z)=\int_0^1(A_u(y,z)+B_u(y,z))\,dy\), and \(E_u(x,z)=J_u(z)+\int_0^xA_u(y,z)\,dy\). Then \(A_v(x,z)=zf_v(x)\prod_u(J_u(z)+\int_0^xC_u(y,z)\,dy)\), \(C_v(x,z)=f_v(x)\prod_uE_u(x,z)\), and \(B_v(x,z)=f_v(x)(\prod_uD_u(z)-\prod_uE_u(x,z))\), with unselected states suppressed at tagged vertices and root output \(\int_0^1(A_v+B_v)\,dx\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{conflictGraph}; \texttt{weights}; \texttt{tagSet}.
+\end{definition}
+
+\begin{definition}[def:separator-compression-handle]\label{def:separator-compression-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Factorized separator priority/\allowbreak{}count handle}
+\par\smallskip\noindent\emph{Construction.} Starting from a nice decomposition \(\mathcal T\), index each bag message by the relative order of active priorities, selected or unselected labels, higher-priority domination bits, the tag pattern, and a truncated \(z\)-count polynomial. Represent each order-chamber conditional density by an exact factorized arithmetic circuit over rational coefficients and bag-priority variables; seek an equivalence relation or circuit-normalization rule under which introduce, edge, forget-integration, join, and coefficient-extraction operations remain executable in size \(2^{O(w\log(w+1))}\operatorname{poly}(n,b)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{treeDecomposition}; \texttt{weights}; \texttt{tagSet}.
+\end{definition}
+
+\begin{definition}[def:minimax-sdp]\label{def:minimax-sdp}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}library ellipsoidal risk game}
+\par\smallskip\noindent\emph{Construction.} Primal: \(\min_{q\in\Delta_L,t\in\mathbb R}B^{2}t\) subject to \(Q(q)\preceq tH^{-1}\). Dual: \(\max_{X\succeq0,s\in\mathbb R}B^{2}s\) subject to \(\operatorname{tr}(H^{-1}X)=1\) and \(\operatorname{tr}(Q_{\ell}X)\ge s\) for every \(\ell\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q}; \texttt{H}; \texttt{radius}.
+\end{definition}
+
+\begin{definition}[def:algebraic-certificate-encoding]\label{def:algebraic-certificate-encoding}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact rational-\allowbreak{}input and real-\allowbreak{}algebraic-\allowbreak{}output encoding}
+\par\smallskip\noindent\emph{Construction.} Encode every rational entry of \(B\), \(H\), and \(Q_1,\ldots,Q_L\) by a signed binary numerator and positive binary denominator. Encode each real-algebraic output coordinate by a square-free integer polynomial and a rational isolating interval; \(\Lambda\) denotes the total rational-input bit length.
+\par\smallskip\noindent\emph{Inputs.} \texttt{radius}; \texttt{H}; \texttt{Q}.
+\end{definition}
+
+\begin{definition}[def:simulation-risk-programs]\label{def:simulation-risk-programs}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Simultaneous Monte Carlo risk programs}
+\par\smallskip\noindent\emph{Construction.} Draw \(a_{\ell1},\ldots,a_{\ell N}\) independently from rule \(\ell\), form \(\widehat Q_{\ell}=N^{-1}\sum_sa_{\ell s}a_{\ell s}^{\mathsf T}\), and define \(V_{-}\) and \(V_{+}\) by the minimax SDP with \(Q_{\ell}\) replaced by \(\widehat Q_{\ell}-\varepsilon I_{2n}\) and \(\widehat Q_{\ell}+\varepsilon I_{2n}\), respectively; let \(q_{+}\) minimize the upper program.
+\par\smallskip\noindent\emph{Inputs.} \texttt{ruleLaw}; \texttt{simulationSize}; \texttt{epsilon}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:linear-risk]\label{prop:linear-risk}
+For every rule \(\ell\), the RDIM error is the \(2n\)-dimensional random linear form \(\widehat\tau_{\ell}-\tau=a_{\ell}^{\mathsf T}\theta\), and its exact design-based mean squared error is \(\mathbb E_{\ell}[(\widehat\tau_{\ell}-\tau)^2]=\theta^{\mathsf T}Q_{\ell}\theta\).
+\end{proposition}
+\begin{proof}
+Fix a rule \(\ell\).  Because \(S_{\ell}\) is independent in \(C_G\), Definition \(\mathrm{def:conflict\mbox{-}graph}\) implies
+\[
+ i,j\in S_{\ell},\quad i\ne j
+ \quad\Longrightarrow\quad
+ D_i\cap D_j=\varnothing.
+\]
+Thus the treatment and control exposures required by Definition \(\mathrm{def:rdim\mbox{-}construction}\) are mutually compatible.  Assumption \(\mathrm{ass:full\mbox{-}neighborhood\mbox{-}interference}\) then implies that a treated focal \(i\) contributes the fixed endpoint \(Y_i(\mathbf 1)\), while a control focal \(i\) contributes \(Y_i(\mathbf 0)\).  Assumption \(\mathrm{ass:nondegenerate\mbox{-}isolation}\) gives \(K_{\ell}\ge2\), hence \(t(K_{\ell})\ge1\) and \(c(K_{\ell})\ge1\); every division in \(e_{\ell}\) is therefore legitimate.  Consequently Definition \(\mathrm{def:rdim\mbox{-}construction}\) gives
+\[
+ \widehat\tau_{\ell}=e_{\ell}^{\mathsf T}\theta.
+\]
+The causal estimand is not defined by this estimator: by the definitions of \(d\), \(\theta\), and \(\tau\), it is the fixed finite-population contrast
+\[
+ \tau=d^{\mathsf T}\theta
+ =\frac1n\sum_{i=1}^n\{Y_i(\mathbf 1)-Y_i(\mathbf 0)\}.
+\]
+Since \(a_{\ell}=e_{\ell}-d\), subtraction yields the pointwise identity, for every realized assignment,
+\[
+ \widehat\tau_{\ell}-\tau
+ =(e_{\ell}-d)^{\mathsf T}\theta
+ =a_{\ell}^{\mathsf T}\theta.
+\]
+Assumption \(\mathrm{ass:design\mbox{-}based\mbox{-}randomness}\) makes \(\theta\) fixed under \(P_{\ell}\).  Therefore bilinearity and the definition of \(Q_{\ell}\) give
+\[
+ \mathbb E_{\ell}\!\left[(\widehat\tau_{\ell}-\tau)^2\right]
+ =\mathbb E_{\ell}\!\left[\theta^{\mathsf T}a_{\ell}a_{\ell}^{\mathsf T}\theta\right]
+ =\theta^{\mathsf T}\mathbb E_{\ell}[a_{\ell}a_{\ell}^{\mathsf T}]\theta
+ =\theta^{\mathsf T}Q_{\ell}\theta.
+\]
+This equality includes squared design bias as well as design variance; no unbiasedness assertion has been used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This exact quadratic object retains selection bias, random denominators, and randomization variance in one design-computable matrix. \textit{Gap.} Shi et al. bound RDIM MSE by a surrogate; they do not state the exact endpoint quadratic risk. \textit{Consumer.} The matrix is the loss input required to choose a prespecified WRI rule for a rural-China insurance-information follow-up.
+
+\begin{lemma}[lem:greedy-certificate]\label{lem:greedy-certificate}
+For a strict priority order \(\pi\), a set \(S\subseteq V\) equals the sequential greedy output on \(C_G\) if and only if \(S\) is independent in \(C_G\) and every \(v\in V\setminus S\) has a neighbor \(u\in S\) that precedes \(v\) in \(\pi\).
+\end{lemma}
+\begin{proof}
+Let the vertices be scanned from first to last in the strict order \(\pi\).  If \(S\) is the sequential greedy output, no selected vertex had a previously selected neighbor.  Hence no two vertices of \(S\) are adjacent, so \(S\) is independent.  If \(v\notin S\), the greedy rule rejected \(v\) precisely because, at the instant \(v\) was scanned, some already selected neighbor \(u\in S\) existed.  Such \(u\) precedes \(v\) in \(\pi\).  This proves necessity.
+
+Conversely, suppose that \(S\) is independent and that every \(v\in V\setminus S\) has a neighbor in \(S\) preceding it.  Induct on the scan position.  Assume that among all earlier vertices the greedy algorithm has selected exactly the earlier members of \(S\).  If the current vertex \(v\) belongs to \(S\), independence says that it has no earlier neighbor in \(S\), hence no earlier selected neighbor, so the algorithm selects it.  If \(v\notin S\), the stated domination condition supplies an earlier neighbor \(u\in S\); by the induction hypothesis \(u\) has been selected, so the algorithm rejects \(v\).  The induction starts before the first vertex, where the assertion is vacuous, and ends with the greedy output equal to \(S\).  This proves sufficiency and the equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The certificate converts a history-dependent greedy process into separator-local independence and domination constraints. \textit{Gap.} Random sequential adsorption studies the same process probabilistically, but the separator-local certificate is not developed there for marked exact integration. \textit{Consumer.} It is the logical invariant needed by both a tree-decomposition algorithm and a parameterized-hardness reduction.
+
+\begin{proposition}[prop:tagged-risk-matrix]\label{prop:tagged-risk-matrix}
+Let \(p_{\ell i}(k)=[z^k]F_{\ell,\{i\}}(z)\) and \(p_{\ell ij}(k)=[z^k]F_{\ell,\{i,j\}}(z)\). Put \(m_{\ell}=(r_{\ell}^{\mathsf T},-r_{\ell}^{\mathsf T})^{\mathsf T}\), where \(r_{\ell i}=\sum_{k=2}^{n}p_{\ell i}(k)/k\), and \(M_{\ell}=\mathbb E_{\ell}[e_{\ell}e_{\ell}^{\mathsf T}]\). Then \(Q_{\ell}=M_{\ell}-m_{\ell}d^{\mathsf T}-dm_{\ell}^{\mathsf T}+dd^{\mathsf T}\). Its treated and control diagonal entries are \(\sum_kp_{\ell i}(k)/(kt(k))\) and \(\sum_kp_{\ell i}(k)/(kc(k))\); for \(i\ne j\), its corresponding blocks before centering are \(\sum_kp_{\ell ij}(k)(t(k)-1)/(t(k)k(k-1))\), \(\sum_kp_{\ell ij}(k)(c(k)-1)/(c(k)k(k-1))\), and \(-\sum_kp_{\ell ij}(k)/(k(k-1))\). Thus all entries of every \(Q_{\ell}\) are determined by tags of size at most two.
+\end{proposition}
+\begin{proof}
+Fix \(\ell\) and condition first on an isolated set \(S_{\ell}=S\) of size \(k\ge2\).  Write \(t=t(k)\) and \(c=c(k)=k-t\).  The conditional uniformity in Definition \(\mathrm{def:rdim\mbox{-}construction}\) gives, for \(i,j\in S\) with \(i\ne j\),
+\[
+ \Pr(i\in T_{\ell}\mid S)=\frac tk,
+ \qquad
+ \Pr(i\in U_{\ell}\mid S)=\frac ck,
+\]
+and
+\[
+ \Pr(i,j\in T_{\ell}\mid S)=\frac{t(t-1)}{k(k-1)},
+ \quad
+ \Pr(i,j\in U_{\ell}\mid S)=\frac{c(c-1)}{k(k-1)},
+ \quad
+ \Pr(i\in T_{\ell},j\in U_{\ell}\mid S)=\frac{tc}{k(k-1)}.
+\]
+Because \(e_{\ell}\) has treated coefficient \(1/t\) and control coefficient \(-1/c\), its conditional mean at coordinate \(i\) is
+\[
+ \mathbb E[e_{\ell,i}^{(1)}\mid S]
+ =\mathbf 1\{i\in S\}\frac tk\frac1t
+ =\frac{\mathbf 1\{i\in S\}}k,
+ \qquad
+ \mathbb E[e_{\ell,i}^{(0)}\mid S]
+ =-\frac{\mathbf 1\{i\in S\}}k.
+\]
+Taking expectations over \(S\) and grouping by \(K_{\ell}=k\) yields
+\[
+ \mathbb E[e_{\ell}]
+ =(r_{\ell}^{\mathsf T},-r_{\ell}^{\mathsf T})^{\mathsf T}
+ =m_{\ell},
+ \qquad
+ r_{\ell i}=\sum_{k=2}^n\frac{p_{\ell i}(k)}k.
+\]
+
+For diagonal second moments, the same calculation gives
+\[
+ \mathbb E[(e_{ell,i}^{(1)})^2]
+ =\sum_{k=2}^n p_{ell i}(k)\frac tk\frac1{t^2}
+ =\sum_{k=2}^n\frac{p_{ell i}(k)}{k t(k)},
+\]
+and
+\[
+ \mathbb E[(e_{ell,i}^{(0)})^2]
+ =\sum_{k=2}^n\frac{p_{ell i}(k)}{k c(k)}.
+\]
+For \(i\ne j\), division of the three joint-selection probabilities by their corresponding RDIM denominators gives
+\[
+ \mathbb E[e_{ell,i}^{(1)}e_{ell,j}^{(1)}]
+ =\sum_{k=2}^n p_{ell ij}(k)
+   \frac{t(k)-1}{t(k)k(k-1)},
+\]
+\[
+ \mathbb E[e_{ell,i}^{(0)}e_{ell,j}^{(0)}]
+ =\sum_{k=2}^n p_{ell ij}(k)
+   \frac{c(k)-1}{c(k)k(k-1)},
+\]
+and
+\[
+ \mathbb E[e_{ell,i}^{(1)}e_{ell,j}^{(0)}]
+ =-\sum_{k=2}^n\frac{p_{ell ij}(k)}{k(k-1)}.
+\]
+The same-unit cross-arm entry is zero because \(T_{ell}\cap U_{ell}=\varnothing\), and the other cross block is the transpose.  These are exactly the asserted entries of \(M_{ell}=\mathbb E_{ell}[e_{ell}e_{ell}^{\mathsf T}]\).
+
+By Definition \(\mathrm{def:tagged\mbox{-}count\mbox{-}polynomial}\), coefficient extraction gives
+\[
+ [z^k]F_{ell,\{i\}}(z)
+ =\Pr_{ell}\{i\in S_{ell},K_{ell}=k\}=p_{ell i}(k)
+\]
+and, for \(i\ne j\),
+\[
+ [z^k]F_{ell,\{i,j\}}(z)
+ =\Pr_{ell}\{i,j\in S_{ell},K_{ell}=k\}=p_{ell ij}(k).
+\]
+Finally, expanding \(a_{ell}=e_{ell}-d\) and using that \(d\) is fixed gives
+\[
+ Q_{ell}
+ =\mathbb E[(e_{ell}-d)(e_{ell}-d)^{\mathsf T}]
+ =M_{ell}-m_{ell}d^{\mathsf T}-dm_{ell}^{\mathsf T}+dd^{\mathsf T}.
+\]
+Thus tags of size at most two determine every entry, including all odd-count and bias terms.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the sufficient-statistic reduction that makes exact dense risk a finite family of marked counting queries. \textit{Gap.} Neither AWRI nor randomized graph clustering retains the joint count law required by RDIM's reciprocal denominators and bias. \textit{Consumer.} An exact marked-moment oracle immediately produces every risk matrix used by the certified rule-mixture design.
+
+\begin{proposition}[prop:rational-output]\label{prop:rational-output}
+For positive integer weights, every coefficient of \(F_{\ell,A}\) is rational with denominator dividing \((\sum_i h_{\ell i})!\), and every entry of \(Q_{\ell}\) has a common denominator dividing \((\sum_i h_{\ell i})!(n!)^3\). Numerators and denominators therefore have \(O(nb\log(nb+1)+n\log(n+1))\) bits.
+\end{proposition}
+\begin{proof}
+Fix \(\ell\) and put \(W_{ell}=\sum_{i=1}^n h_{ell i}\).  By Definition \(\mathrm{def:wri\mbox{-}law}\), for every order \(\pi\),
+\[
+ P_{ell}(\pi)
+ =\prod_{r=1}^n
+ \frac{h_{ell,\pi_r}}{H_r},
+ \qquad
+ H_r=\sum_{s=r}^n h_{ell,\pi_s}.
+\]
+Positivity and integrality of the weights imply
+\[
+ W_{ell}=H_1>H_2>\cdots>H_n\ge1.
+\]
+Thus \(H_1,\ldots,H_n\) are distinct members of \(\{1,\ldots,W_{ell}\}\), so \(\prod_rH_r\) divides \(W_{ell}!\).  It follows that every order probability has denominator dividing \(W_{ell}!\).  For fixed \(A\) and \(k\), the coefficient \([z^k]F_{ell,A}\) is the sum of precisely those order probabilities for which \(A\subseteq S_{ell}(\pi)\) and \(|S_{ell}(\pi)|=k\).  A sum of rationals whose denominators divide \(W_{ell}!\) again has denominator dividing \(W_{ell}!\).  This proves the first assertion.
+
+In the formulas of Proposition \(\mathrm{prop:tagged\mbox{-}risk\mbox{-}matrix}\), every additional denominator is a product of at most three integers in \(\{1,\ldots,n\}\): these are \(k\), \(k-1\), \(t(k)\), \(c(k)\), and the factors \(n\) appearing in \(d\).  Each such integer divides \(n!\).  Consequently
+\[
+ D_{ell}=W_{ell}!(n!)^3
+\]
+is a common denominator of all entries of \(M_{ell}\), \(m_{ell}d^{\mathsf T}\), \(dm_{ell}^{\mathsf T}\), and \(dd^{\mathsf T}\), and hence of \(Q_{ell}\).
+
+It remains to bound numerators.  On every design realization, \(|T_{ell}|=t(K_{ell})\), \(|U_{ell}|=c(K_{ell})\), and the two blocks of \(e_{ell}\) have disjoint support.  Hence
+\[
+ \|e_{ell}\|_2^2=\frac1{t(K_{ell})}+\frac1{c(K_{ell})},
+ \qquad
+ e_{ell}^{\mathsf T}d=\frac2n,
+ \qquad
+ \|d\|_2^2=\frac2n.
+\]
+Assumption \(\mathrm{ass:nondegenerate\mbox{-}isolation}\) gives \(t(K_{ell}),c(K_{ell})\ge1\), and therefore
+\[
+ \|a_{ell}\|_2^2
+ =\|e_{ell}-d\|_2^2
+ =\frac1{t(K_{ell})}+\frac1{c(K_{ell})}-\frac2n
+ \le 2-\frac2n<2.
+\]
+It follows that \(\|Q_{ell}\|_{\mathrm{op}}\le\mathbb E\|a_{ell}\|_2^2<2\), and hence every entry of \(Q_{ell}\) has absolute value below \(2\).  When written over \(D_{ell}\), its numerator therefore has absolute value below \(2D_{ell}\).  Since \(W_{ell}\le nb\),
+\[
+ \log_2 D_{ell}
+ \le \log_2(W_{ell}!)+3\log_2(n!)
+ =O\!\left(nb\log(nb+1)+n\log(n+1)\right).
+\]
+The same bound holds for numerator and reduced-denominator lengths, proving the stated output-size result.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The output-size bound separates a genuine running-time obstruction from exponential-length rational output. \textit{Gap.} Existing WRI work permits real weights and does not establish exact rational output or bit complexity. \textit{Consumer.} It permits auditable exact risk certificates for bounded-integer priority rules.
+
+\begin{theorem}[thm:forest-oracle]\label{thm:forest-oracle}
+If \(C_G\) is a forest, the three-state forest-message construction computes every \(F_{\ell,A}\) exactly and hence every \(Q_{\ell}\) in \(L\operatorname{poly}(n,b)\) bit operations, uniformly over all \(|A|\le2\).
+\end{theorem}
+\begin{proof}
+Fix a rule \(\ell\) and abbreviate \(h_v=h_{ell v}\).  Introduce independent priorities \(X_v\) with density
+\[
+ f_v(x)=h_vx^{h_v-1},\qquad 0<x<1.
+\]
+If \(E_v=-\log X_v\), then \(\Pr(E_v>t)=e^{-h_vt}\).  Direct integration gives \(\Pr(E_v=\min_{j\in R}E_j)=h_v/\sum_{j\in R}h_j\); conditioning on the minimum and using
+\[
+ \Pr(E_j-t>s\mid E_j>t)=e^{-h_js}
+\]
+iterates this calculation.  Therefore the decreasing order of the \(X_v\)'s has probability
+\[
+ \prod_{r=1}^n\frac{h_{pi_r}}{\sum_{s=r}^nh_{pi_s}},
+\]
+which is exactly \(P_{ell}\) in Definition \(\mathrm{def:wri\mbox{-}law}\).  The priorities are distinct with probability one because they have densities.  We may therefore compute \(F_{ell,A}\) by integration over these independent priorities.
+
+Root every component of the forest.  For a vertex \(v\), let \(T_v\) be its rooted subtree.  Conditional on \(X_v=x\), assign the following precise meanings to the messages in Definition \(\mathrm{def:forest\mbox{-}messages}\): \(A_v(x,z)\) is the joint density-generating polynomial for certificate configurations on \(T_v\) in which \(v\) is selected and every vertex of \(T_v\) is certified; \(B_v(x,z)\) is the corresponding polynomial in which \(v\) is unselected and is certified by a selected child of priority greater than \(x\); and \(C_v(x,z)\) is the polynomial in which \(v\) is unselected, is not certified inside \(T_v\), and must be certified by a selected parent of priority greater than \(x\).  Every selected vertex contributes one factor \(z\).  At a tagged vertex, only the \(A\)-state is allowed.
+
+We prove the recurrence by induction from leaves toward the root.  Suppose first that \(v\) is selected.  Independence in Lemma \(\mathrm{lem:greedy\mbox{-}certificate}\) forces each child \(u\) to be unselected.  Such a child is either internally certified, contributing \(\int_0^1B_u(y,z)\,dy=J_u(z)\), or requires its selected parent \(v\); in the latter case the parent's priority must be larger, so \(y<x\), and the contribution is \(\int_0^xC_u(y,z)\,dy\).  Conditional independence of child-subtree priorities therefore gives
+\[
+ A_v(x,z)=zf_v(x)\prod_u\left(J_u(z)+\int_0^xC_u(y,z)\,dy\right).
+\]
+
+Suppose next that \(v\) is unselected.  No child may be in state \(C_u\), because that state requires \(v\) to be selected.  Without imposing how \(v\) is certified, each child can consequently be selected or internally certified, giving
+\[
+ f_v(x)\prod_uD_u(z),
+ \qquad
+ D_u(z)=\int_0^1(A_u(y,z)+B_u(y,z))\,dy.
+\]
+The configurations in which no selected child has priority greater than \(x\) allow a child either to be internally certified at any priority or to be selected only below \(x\).  Their contribution is
+\[
+ f_v(x)\prod_uE_u(x,z),
+ \qquad
+ E_u(x,z)=J_u(z)+\int_0^xA_u(y,z)\,dy.
+\]
+These are exactly the configurations in which \(v\) still needs a higher-priority selected parent, so
+\[
+ C_v(x,z)=f_v(x)\prod_uE_u(x,z).
+\]
+Subtracting them from all admissible unselected configurations leaves exactly those with at least one higher-priority selected child, whence
+\[
+ B_v(x,z)=f_v(x)\left(\prod_uD_u(z)-\prod_uE_u(x,z)\right).
+\]
+This proves all three recurrences.  The empty-product convention gives the leaf values \(A_v=zf_v\), \(B_v=0\), and \(C_v=f_v\).  Setting \(B_v=C_v=0\) at \(v\in A\) imposes \(A\subseteq S_{ell}\) and changes no other case.
+
+At a root, state \(C\) is impossible because there is no parent; hence integrating \(A_r+B_r\) over its priority sums the densities of exactly the certificate configurations in Lemma \(\mathrm{lem:greedy\mbox{-}certificate}\).  That lemma identifies each such configuration with the unique greedy output.  Priority families belonging to different forest components are independent, and the greedy output in one component is unaffected by interleavings with another component.  Multiplication of the component polynomials therefore gives
+\[
+ \prod_{r\text{ root}}\int_0^1(A_r(x,z)+B_r(x,z))\,dx
+ =\mathbb E_{ell}[z^{K_{ell}}\mathbf 1\{A\subseteq S_{ell}\}]
+ =F_{ell,A}(z).
+\]
+This establishes exact correctness.
+
+For complexity, let \(N_v=|T_v|\) and \(W_v=\sum_{u\in T_v}h_u\), and let \(W=\sum_{u\in V}h_u\le nb\).  Induction on the displayed recurrence shows that every message has \(z\)-degree at most \(N_v\) and \(x\)-degree at most \(W_v-1\): multiplication by \(f_v\) adds \(h_v-1\), while each child antiderivative has \(x\)-degree at most \(W_u\), and subtree weight sums add.  Thus dense bivariate storage uses \(O(n(W+1))\) coefficients per message.  A naive multiplication of two such arrays uses \(O(n^2(W+1)^2)\) rational operations.  Accumulating all child products over all vertices uses \(O(n^3(W+1)^2)\) rational operations for one tag, and there are
+\[
+ 1+n+\binom n2=O(n^2)
+\]
+tags.  Root products, integrations, coefficient extraction, and the \(O(n^3)\) reconstruction in Proposition \(\mathrm{prop:tagged\mbox{-}risk\mbox{-}matrix}\) fit within the coarse bound \(O(n^5(W+1)^2)\) rational operations per rule.
+
+The arithmetic is exact and has polynomial height.  To see this without assuming the desired conclusion, fully expand any intermediate coefficient according to the three-state semantics above.  Each signed term contains at most one density factor per subtree vertex, hence an integer numerator factor at most \(b^n\), and at most one integration per vertex, each dividing by a positive integer no larger than \(W\).  A common denominator for all such terms is therefore \((W!)^n\).  Even the coarser expansion by all vertex states and priority orders has at most \(3^n n!=2^{O(n\log(n+1))}\) signed terms, so after collection the numerator has
+\[
+ O\!\left(n\log(b+1)+nW\log(W+1)+n\log(n+1)\right)
+\]
+bits; the denominator has the same polynomial order.  This bound applies to every intermediate message as well as to its output.  Standard integer addition and multiplication therefore turn the rational-operation bound into \(\operatorname{poly}(n,b)\) bit operations.  Repeating for \(L\) rules proves the asserted \(L\operatorname{poly}(n,b)\) bound, uniformly over all tags of size at most two, and Proposition \(\mathrm{prop:tagged\mbox{-}risk\mbox{-}matrix}\) then returns every \(Q_{ell}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The forest theorem is a nontrivial solved rung and a falsifiable base case for any separator invariant. \textit{Gap.} Pippenger and Krivelevich et al. study occupancy or expected size on trees, not the complete weighted marked count law needed for exact causal risk. \textit{Consumer.} Village conflict forests receive an exact design selector even if the general fixed-parameter question is negative.
+
+\begin{proposition}[prop:minimax-certificate]\label{prop:minimax-certificate}
+For binary-encoded rational inputs \(B>0\), \(H\succ0\), and \(Q_1,\ldots,Q_L\succeq0\), finite-dimensional semidefinite duality gives optimizers attaining \(V^{\star}=B^2t^{\star}=B^2s^{\star}\) at \((q^{\star},t^{\star})\) and \((X^{\star},s^{\star})\), including zero coordinates of \(q^{\star}\) and repeated leading generalized eigenspaces. If \(H^{-1/2}X^{\star}H^{-1/2}=\sum_{j=1}^{r}\lambda_j u_ju_j^{\mathsf T}\), then \(\nu^{\star}=\sum_{j=1}^{r}\lambda_j\delta_{BH^{1/2}u_j}\), with \(r\le2n\), is least favourable, and \(\operatorname{tr}(Q_{\ell}X^{\star})=s^{\star}\) whenever \(q_{\ell}^{\star}>0\). In the exact Turing model of the algebraic-certificate encoding, generic real quantifier elimination returns such real-algebraic optimizers in at most \((\Lambda Ln)^{2^{O(L+n^2)}}\) bit operations. Any rational feasible primal--dual pair certifies gap \(B^2(t-s)\).
+\end{proposition}
+\begin{proof}
+For \(q\in\Delta_L\), put \(R(q)=H^{1/2}Q(q)H^{1/2}\).  Positive definiteness of \(H\) and the cited real spectral theorem give its symmetric positive square root.  The substitution \(\vartheta=BH^{1/2}u\) maps \(\|u\|_2\le1\) onto \(\Theta_G(B)\).  Since \(Q(q)\succeq0\), also \(R(q)\succeq0\), and the cited spectral theorem yields
+\[
+ \sup_{\vartheta\in\Theta_G(B)}\vartheta^{\mathsf T}Q(q)\vartheta
+ =B^2\max_{\|u\|_2\le1}u^{\mathsf T}R(q)u
+ =B^2\lambda_{\max}(R(q)).
+\]
+Moreover,
+\[
+ \lambda_{\max}(R(q))\le t
+ \quad\Longleftrightarrow\quad
+ R(q)\preceq tI_{2n}
+ \quad\Longleftrightarrow\quad
+ Q(q)\preceq tH^{-1}.
+\]
+This proves that the primal program in Definition \(\mathrm{def:minimax\mbox{-}sdp}\) has value \(V^{\star}\).
+
+We next derive, rather than assume, its dual.  If \((q,t)\) is primal feasible and \((X,s)\) satisfies the displayed dual constraints, then
+\[
+ t
+ =t\operatorname{tr}(H^{-1}X)
+ \ge\operatorname{tr}(Q(q)X)
+ =\sum_{ell=1}^Lq_{ell}\operatorname{tr}(Q_{ell}X)
+ \ge s.
+\]
+This is weak duality.  Conversely, using a multiplier \(X\succeq0\) for \(Q(q)\preceq tH^{-1}\), minimization of the Lagrangian over free \(t\) is finite exactly when \(\operatorname{tr}(H^{-1}X)=1\), while minimization over \(q\in\Delta_L\) gives
+\[
+ \min_{q\in\Delta_L}\sum_{ell=1}^Lq_{ell}\operatorname{tr}(Q_{ell}X)
+ =\min_{1\le\ell\le L}\operatorname{tr}(Q_{ell}X).
+\]
+Introducing \(s\) below each trace gives exactly the stated dual.
+
+The primal satisfies the hypotheses of the cited Slater theorem.  Indeed, choose \(q_{ell}=1/L>0\) and then choose
+\[
+ t>\lambda_{\max}\!\left(H^{1/2}Q(q)H^{1/2}\right);
+\]
+the matrix slack is positive definite.  The optimal value is finite and nonnegative because \(Q(q)\succeq0\).  Hence strong duality holds and a dual optimizer exists.  A primal optimizer exists because \(q\mapsto\lambda_{\max}(R(q))\) is continuous on the compact simplex.  We have therefore obtained optimizers with
+\[
+ V^{\star}=B^2t^{\star}=B^2s^{\star}.
+\]
+No step requires \(q^{\star}\) to be interior.  Equality in the weak-duality chain gives
+\[
+ s^{\star}
+ =\sum_{ell=1}^Lq_{ell}^{\star}\operatorname{tr}(Q_{ell}X^{\star}),
+ \qquad
+ \operatorname{tr}(Q_{ell}X^{\star})\ge s^{\star}.
+\]
+Thus every summand with \(q_{ell}^{\star}>0\) must equal \(s^{\star}\), proving the asserted complementary-slackness certificate.
+
+Let
+\[
+ H^{-1/2}X^{\star}H^{-1/2}
+ =\sum_{j=1}^{r}\lambda_ju_ju_j^{\mathsf T}
+\]
+be its positive-eigenvalue spectral decomposition.  The cited spectral theorem and \(X^{\star}\succeq0\) give \(\lambda_j>0\), orthonormal \(u_j\), and \(r\le2n\).  Dual normalization gives
+\[
+ \sum_{j=1}^r\lambda_j
+ =\operatorname{tr}(H^{-1/2}X^{\star}H^{-1/2})
+ =\operatorname{tr}(H^{-1}X^{\star})=1.
+\]
+Each \(\vartheta_j=BH^{1/2}u_j\) lies on the boundary because
+\[
+ \vartheta_j^{\mathsf T}H^{-1}\vartheta_j=B^2\|u_j\|_2^2=B^2.
+\]
+For every library rule,
+\[
+ \mathbb E_{\nu^{\star}}[\vartheta^{\mathsf T}Q_{ell}\vartheta]
+ =B^2\sum_{j=1}^r\lambda_ju_j^{\mathsf T}H^{1/2}Q_{ell}H^{1/2}u_j
+ =B^2\operatorname{tr}(Q_{ell}X^{\star})
+ \ge B^2s^{\star}=V^{\star}.
+\]
+On the other hand, the primal certificate makes the loss of \(q^{\star}\) at every \(\vartheta\in\Theta_G(B)\) at most \(B^2t^{\star}=V^{\star}\).  Hence \((q^{\star},\nu^{\star})\) is a saddle pair and \(\nu^{\star}\) is least favourable.  A repeated eigenspace merely permits a different orthonormal basis within that space and does not change any displayed equality.
+
+For the exact complexity statement, first compute the rational matrix \(H^{-1}\) by exact elimination; its encoding length is polynomial in \(\Lambda\) and \(n\).  Clear all rational denominators.  Primal feasibility, dual feasibility, and equality \(t=s\) can be written as a nonempty semialgebraic system using factor variables
+\[
+ tH^{-1}-Q(q)=RR^{\mathsf T},
+ \qquad
+ X=ZZ^{\mathsf T},
+\]
+together with the simplex, trace, and rule inequalities.  It has \(O(L+n^2)\) real variables after all matrix entries and factor entries are counted, polynomially many quadratic equations and inequalities, and coefficient length polynomial in \(\Lambda,L,n\).  Strong duality proves that this system is nonempty.  To encode \(\nu^{\star}\), adjoin variables for the positive square root of \(H\), its inverse, an orthogonal eigenbasis, and the nonnegative eigenvalues; these add only \(O(n^2)\) variables and polynomially many bounded-degree equations.  The cited real-algebraic sample-point theorem therefore returns all coordinates in the encoding of Definition \(\mathrm{def:algebraic\mbox{-}certificate\mbox{-}encoding}\) within
+\[
+ (\Lambda Ln)^{2^{O(L+n^2)}}
+\]
+bit operations.  Zero mixture coordinates and repeated eigenspaces are semialgebraic boundary cases and are not excluded by this construction.
+
+Finally, the weak-duality calculation applies to every feasible pair, rational or not.  For a rational feasible pair it is exactly checkable and gives
+\[
+ 0\le V^{\star}-B^2s\le B^2(t-s),
+ \qquad
+ 0\le B^2t-V^{\star}\le B^2(t-s).
+\]
+Thus \(B^2(t-s)\) is the asserted certified primal--dual gap.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is a standard finite-SDP consequence of having exact rational risk matrices; it supplies the decision certificate but is not an independent novelty claim. \textit{Gap.} Duarte, Sagnol, and Wong provide the generic minimax semidefinite-design machinery; the proposition records its exact encoding and endpoint interpretation for the WRI library without claiming a new duality theorem. \textit{Consumer.} It converts any exact marked-moment oracle into a verifiable rule mixture before the rural-China insurance-information follow-up.
+
+\begin{openendedquestion}[oeq:fpt-or-hardness]\label{oeq:fpt-or-hardness}
+Establish one of two separator-boundary results. On the positive branch, using the factorized handle \(\mathfrak H_{\mathrm{sep}}\), output every \(F_{\ell,A}\) and every dense \(Q_{\ell}\) exactly from a width-\(w\) decomposition in \(Ln^2 2^{O(w\log(w+1))}\operatorname{poly}(n,b)\) bit operations. Combined with the standard finite-SDP proposition, this branch returns \(q^{\star}\), \(\nu^{\star}\), and a primal--dual zero-gap certificate in total time \(Ln^2 2^{O(w\log(w+1))}\operatorname{poly}(n,b)+(\Lambda Ln)^{2^{O(L+n^2)}}\). On the negative branch, establish \(\#\mathrm{W[1]}\)-hardness or \(\mathrm{W[1]}\)-hardness parameterized by \(w\) for one required one- or two-marked coefficient under positive weights bounded by \(\operatorname{poly}(n)\). Either branch settles the separator boundary for the prespecified WRI/RDIM marked reciprocal-count oracle. The positive-branch certificate concerns this restricted oracle and is neither an algorithm for nor a consequence of the unrestricted design-and-estimator maximal-independent-set functional.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This positive-versus-hard theorem-level target is the tier-bearing contribution: it resolves whether separator joins admit exact fixed-parameter integration and converts the positive resolution into an auditable minimax WRI design. \textit{Gap.} Kangas, Koivisto, and Salonen provide only an XP order-counting analogue. Kandiros, Harshaw, and Sävje study an implicit unrestricted design-and-estimator minimax functional in Section 6 and Appendix A, especially Lemma A.10, but do not compute the prespecified WRI/RDIM marked reciprocal-count oracle or provide its fixed-parameter risk certificate. \textit{Consumer.} A positive branch supplies an explicit low-treewidth runtime and certified mixture for the rural-China insurance-information follow-up; a negative branch gives a parameterized reason to use the arbitrary-graph Monte Carlo certificate.
+
+\begin{theorem}[thm:simulation-certificate]\label{thm:simulation-certificate}
+Let \(A_n^2=2-2/n\). If \(0<\varepsilon\le A_n^2\) and \(N\ge(8/3)A_n^4\varepsilon^{-2}\log(4nL/\delta)\), then \(\Pr\{\max_{1\le\ell\le L}\|\widehat Q_{\ell}-Q_{\ell}\|_{\mathrm{op}}\le\varepsilon\}\ge1-\delta\). On this event, \(V_{-}\le V^{\star}\le V_{+}\), the returned mixture satisfies \(\sup_{\vartheta\in\Theta_G(B)}\vartheta^{\mathsf T}Q(q_{+})\vartheta\le V_{+}\), and \(V_{+}-V_{-}\le2B^2\varepsilon\|H\|_{\mathrm{op}}=2B^2\varepsilon\).
+\end{theorem}
+\begin{proof}
+Put \(A_n^2=2-2/n\).  The calculation in Proposition \(\mathrm{prop:rational\mbox{-}output}\), using \(K_{ell}\ge2\), gives the pointwise bound
+\[
+ \|a_{ell s}\|_2^2\le A_n^2.
+\]
+For a fixed rule \(\ell\), define
+\[
+ Y_s=a_{ell s}a_{ell s}^{\mathsf T},
+ \qquad M=\mathbb E_{ell}Y_s=Q_{ell},
+ \qquad Z_s=Y_s-M.
+\]
+The fixed-outcome design assumption and the independent offline draws give independent, centered, self-adjoint \(Z_s\).  Since \(0\preceq Y_s\preceq A_n^2I_{2n}\) and \(0\preceq M\preceq A_n^2I_{2n}\),
+\[
+ \|Z_s\|_{\mathrm{op}}\le A_n^2.
+\]
+Also \(Y_s^2=\|a_{ell s}\|_2^2Y_s\preceq A_n^4I_{2n}\), and direct expansion gives
+\[
+ \mathbb E[Z_s^2]=\mathbb E[Y_s^2]-M^2\preceq\mathbb E[Y_s^2]\preceq A_n^4I_{2n}.
+\]
+Apply the cited matrix Bernstein inequality to \(Z_s\) and to \(-Z_s\), with dimension \(2n\), bound \(R=A_n^2\), variance proxy \(NA_n^4\), and threshold \(N\varepsilon\).  A union bound over the two signs gives
+\[
+ \Pr\{\|\widehat Q_{ell}-Q_{ell}\|_{\mathrm{op}}>\varepsilon\}
+ \le4n\exp\!\left\{-\frac{N\varepsilon^2}{2A_n^4+(2/3)A_n^2\varepsilon}\right\}.
+\]
+When \(0<\varepsilon\le A_n^2\), the denominator is at most \((8/3)A_n^4\).  Under the displayed lower bound on \(N\), the last probability is at most \(\delta/L\).  A union bound over \(\ell=1,ldots,L\) proves
+\[
+ \Pr\!\left\{\max_{1\le\ell\le L}\|\widehat Q_{ell}-Q_{ell}\|_{\mathrm{op}}\le\varepsilon\right\}\ge1-\delta.
+\]
+
+Work on this simultaneous event and write
+\[
+ Q_{ell}^{-}=\widehat Q_{ell}-\varepsilon I_{2n},
+ \qquad
+ Q_{ell}^{+}=\widehat Q_{ell}+\varepsilon I_{2n}.
+\]
+Then \(Q_{ell}^{-}\preceq Q_{ell}\preceq Q_{ell}^{+}\) for every \(\ell\), and convex combination preserves these inequalities.  For any symmetric matrix family \(A_{ell}\), define
+\[
+ \phi_A(q)=B^2\lambda_{\max}\!\left(H^{1/2}\sum_{ell=1}^Lq_{ell}A_{ell}H^{1/2}\right).
+\]
+The epigraph SDP computes \(\min_q\phi_A(q)\) even when some \(A_{ell}\) are indefinite.  In particular the lower program is a valid numerical lower program, although \(Q_{ell}^{-}\) need not itself be a risk matrix.  Monotonicity of the maximum Rayleigh quotient gives
+\[
+ V_- =\min_q\phi_{Q^-}(q)
+ \le\min_q\phi_Q(q)=V^{\star}
+ \le\min_q\phi_{Q^+}(q)=V_+.
+\]
+For the upper-program minimizer \(q_+\), Proposition \(\mathrm{prop:minimax\mbox{-}certificate}\) and \(Q(q_+)\preceq Q^+(q_+)\) give
+\[
+ \sup_{\vartheta\in\Theta_G(B)}
+ \vartheta^{\mathsf T}Q(q_+)\vartheta
+ =\phi_Q(q_+)
+ \le\phi_{Q^+}(q_+)=V_+.
+\]
+
+For every \(q\), the two robust transformed matrices differ by \(2\varepsilon H\).  The Rayleigh quotient directly implies
+\[
+ \lambda_{\max}(R+2\varepsilon H)
+ \le\lambda_{\max}(R)+2\varepsilon\|H\|_{\mathrm{op}},
+\]
+so minimization over \(q\) yields
+\[
+ V_+-V_-
+ \le2B^2\varepsilon\|H\|_{\mathrm{op}}.
+\]
+Finally, the combinatorial Laplacian obeys
+\[
+ x^{\mathsf T}L_Cx=\sum_{\{i,j\}\in E_C}(x_i-x_j)^2\ge0,
+ \qquad L_C\mathbf 1_n=0.
+\]
+Because \(\gamma>0\), every eigenvalue of \((I_n+\gamma L_C)^{-1}\) is at most one, and the constant vector supplies eigenvalue one.  Thus \(\|H_G\|_{\mathrm{op}}=1\), and block diagonality gives \(\|H\|_{\mathrm{op}}=1\).  Substitution proves the final bound \(V_+-V_-\le2B^2\varepsilon\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supplies a finite-sample fallback for arbitrary graphs while preserving the spectral loss relevant to the selected mixture. \textit{Gap.} Ugander and Yin resample exposure probabilities, and Tropp controls matrix sums; no located result gives a simultaneous exact-RDIM rule-matrix region with a downstream minimax-risk gap. \textit{Consumer.} The experimenter receives a risk certificate even when the observed village conflict graph has large treewidth.
+
+\begin{proposition}[prop:empty-graph-reduction]\label{prop:empty-graph-reduction}
+If \(C_G\) has no edges, then \(S_{\ell}=V\) for every \(\ell\) and every priority order, all \(Q_{\ell}\) coincide, every mixture has the same risk, and \(\widehat\tau_{\ell}\) is the usual balanced complete-randomization difference in means for the finite-population total effect.
+\end{proposition}
+\begin{proof}
+If \(C_G\) has no edges, every scanned vertex has no previously selected neighbor.  Definition \(\mathrm{def:wri\mbox{-}law}\) therefore gives \(S_{ell}=V\) for every order and rule, so \(K_{ell}=n\).  Moreover, Definition \(\mathrm{def:conflict\mbox{-}graph}\) implies that the sets \(D_i\) are pairwise disjoint.  Since \(i\in D_i\) for all \(i\) and there are \(n\) such nonempty subsets of the \(n\)-element set \(V\), necessarily \(D_i=\{i\}\) for every \(i\).  Thus the construction chooses \(T_{ell}\) uniformly among all \(t(n)\)-subsets of \(V\), assigns precisely those units to treatment and the remaining \(c(n)\) units to control, and computes
+\[
+ \widehat\tau_{ell}
+ =\frac1{t(n)}\sum_{i\in T_{ell}}Y_i(\mathbf 1)
+  -\frac1{c(n)}\sum_{i\notin T_{ell}}Y_i(\mathbf 0).
+\]
+By full-neighborhood interference this is the ordinary balanced complete-randomization difference in means for the fixed finite-population total-effect endpoints.  Its distribution no longer depends on the priority order or on \(h_{ell i}\).  Hence the distribution of \(a_{ell}\), and therefore \(Q_{ell}=\mathbb E[a_{ell}a_{ell}^{\mathsf T}]\), is identical for all \(\ell\).  Consequently \(Q(q)=Q_1\) for every \(q\in\Delta_L\), so every mixture has the same risk.
+
+For the smallest admissible check, take \(n=2\).  The two treatment allocations have
+\[
+ a_1=\tfrac12(1,-1,1,-1)^{\mathsf T},
+ \qquad a_2=-a_1,
+\]
+each with probability \(1/2\), and hence
+\[
+ Q_{ell}=\tfrac14(1,-1,1,-1)^{\mathsf T}(1,-1,1,-1)
+\]
+for every rule.  Direct enumeration therefore agrees simultaneously with the linear-risk identity, the tagged-count formulas \(F_{ell,\{i\}}(z)=F_{ell,\{1,2\}}(z)=z^2\), the rule-invariance conclusion, and the bound \(\|a_{ell}\|_2^2=2-2/n=1\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction verifies that the proposed objects collapse to the classical no-interference design. \textit{Gap.} This is a required sanity reduction rather than an independent novelty claim. \textit{Consumer.} It lets practitioners interpret the method as a network-aware extension of standard complete randomization.
+
+\begin{lemma}[lem:real-spectral-theorem]\label{lem:real-spectral-theorem}
+\texttt{Every self-\allowbreak{}adjoint linear operator on a finite-\allowbreak{}dimensional real inner-\allowbreak{}product space has an orthonormal basis consisting of eigenvectors.}
+\end{lemma}
+
+\begin{lemma}[lem:sdp-slater-duality]\label{lem:sdp-slater-duality}
+\texttt{For a finite-\allowbreak{}dimensional convex optimization problem with affine equality constraints and an affine conic inequality in a closed convex cone,\allowbreak{} if the primal optimal value is finite and there is a feasible point whose conic slack lies in the relative interior of the cone and whose ordinary inequality coordinates are strict,\allowbreak{} then the Lagrange dual has the same optimal value and a dual optimizer is attained.}
+\end{lemma}
+
+\begin{lemma}[lem:real-algebraic-sampling]\label{lem:real-algebraic-sampling}
+Let a nonempty semialgebraic set in \(\mathbb R^k\) be specified by a first-order formula whose integer input polynomials have total encoding length \(\Lambda_0\), number at most \(s\), and degree at most \(D\).  Real quantifier elimination and sample-point construction return a point whose coordinates are real algebraic numbers, each represented by a square-free integer polynomial and a rational isolating interval, within \((\Lambda_0sD)^{2^{O(k)}}\) bit operations.
+\end{lemma}
+
+\begin{lemma}[lem:self-adjoint-matrix-bernstein]\label{lem:self-adjoint-matrix-bernstein}
+Let \(X_1,\ldots,X_N\) be independent random self-adjoint \(d\)-dimensional matrices with \(\mathbb E X_s=0\) and \(\lambda_{\max}(X_s)\le R\) almost surely.  If \(\sigma^2=\left\|\sum_{s=1}^N\mathbb E(X_s^2)\right\|_{\mathrm{op}}\), then for every \(u\ge0\),
+\[
+ \Pr\!\left\{\lambda_{\max}\!\left(\sum_{s=1}^NX_s\right)\ge u\right\}
+ \le d\exp\!\left\{-\frac{u^2}{2\sigma^2+2Ru/3}\right\}.
+\]
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The direct nice-tree-decomposition construction stores piecewise multivariate priority polynomials with \(\binom{nb+w}{w}\) coefficients and therefore proves only XP complexity. Finite checks on widths two and three can falsify a proposed invariant but cannot establish FPT. The field-level contribution requires either a representation closed under exact joins and forget integrations with exponent independent of \(w\), followed by the stated certified-mixture runtime, or a parameter-preserving hardness reduction for a required marked coefficient. The standard finite-SDP consequence, the exact forest oracle, and matrix concentration do not by themselves settle this separator boundary.
+
+\section{Honest scope}
+
+The exact linear-risk reduction, rational-output bound, forest recurrence, standard finite-SDP consequence, and matrix-concentration fallback are all posed for proof, not treated as established by the presolve draft. The separator-compression versus parameterized-hardness dichotomy remains the genuine open content, and neither branch is asserted as proved. The finite-library minimax result concerns a prespecified WRI/RDIM oracle and does not claim equality with the unrestricted joint design-and-estimator minimax functional of Kandiros, Harshaw, and Sävje. Under an empty conflict graph the construction reduces to balanced complete randomization, providing the required classical sanity check.
+
+\begin{thebibliography}{99}
+
+  \bibitem{ShiYangQinLi2024} Changhao Shi, Haoyu Yang, Yichen Qin, and Yang Li. Adaptive Weighted Random Isolation: a simple design to estimate causal effects under network interference. arXiv:2408.15670, 2024; manuscript version displayed August 2026.
+
+  \bibitem{UganderYin2023} Johan Ugander and Hao Yin. Randomized Graph Cluster Randomization. Journal of Causal Inference, 11, 20220014, 2023. DOI: 10.1515/jci-2022-0014.
+
+  \bibitem{EibenGanianKangasOrdyniak2019} Eduard Eiben, Robert Ganian, Kustaa Kangas, and Sebastian Ordyniak. Counting Linear Extensions: Parameterizations by Treewidth. Algorithmica, 81:1657--1683, 2019. DOI: 10.1007/s00453-018-0496-4.
+
+  \bibitem{KangasKoivistoSalonen2020} Kustaa Kangas, Mikko Koivisto, and Sami Salonen. A Faster Tree-Decomposition Based Algorithm for Counting Linear Extensions. Algorithmica, 82:2156--2173, 2020. DOI: 10.1007/s00453-019-00633-1.
+
+  \bibitem{Pippenger2005} Nicholas Pippenger. Random Sequential Adsorption on Graphs. SIAM Journal on Discrete Mathematics, 19:724--739, 2005. DOI: 10.1137/0402034.
+
+  \bibitem{KrivelevichMeszarosMichaeliShikhelman2024} Michael Krivelevich, Tamás Mészáros, Peleg Michaeli, and Clara Shikhelman. Greedy Maximal Independent Sets via Local Limits. Random Structures and Algorithms, 64:986--1015, 2024. DOI: 10.1002/rsa.21200.
+
+  \bibitem{DuarteSagnolWong2018} Belmiro P. M. Duarte, Guillaume Sagnol, and Weng Kee Wong. An algorithm based on semidefinite programming for finding minimax optimal designs. Computational Statistics and Data Analysis, 119:99--117, 2018. DOI: 10.1016/j.csda.2017.09.008.
+
+  \bibitem{Tropp2012} Joel A. Tropp. User-Friendly Tail Bounds for Sums of Random Matrices. Foundations of Computational Mathematics, 12:389--434, 2012. DOI: 10.1007/s10208-011-9099-z.
+
+  \bibitem{VivianoLeiImbensEtAl2026} Davide Viviano, Lihua Lei, Guido Imbens, Brian Karrer, Okke Schrijvers, and Liang Shi. Causal clustering: design of cluster experiments under network interference. ICLR, 2026; arXiv:2310.14983.
+
+  \bibitem{KandirosPipisDaskalakisHarshaw2024} Vardis Kandiros, Charilaos Pipis, Constantinos Daskalakis, and Christopher Harshaw. The Conflict Graph Design: Estimating Causal Effects under Arbitrary Neighborhood Interference. arXiv:2411.10908, 2024.
+
+  \bibitem{KandirosHarshawSavje2026} Vardis Kandiros, Christopher Harshaw, and Fredrik Sävje. A Design-Based Minimax Theory for Network Experiments. arXiv:2608.04909, version 1, 2026. The relevant unrestricted minimax and maximal-independent-set discussion is in Section 6 and Appendix A, especially Lemma A.10.
+
+  \bibitem{CaiDeJanvrySadoulet2015} Jing Cai, Alain de Janvry, and Elisabeth Sadoulet. Social Networks and the Decision to Insure. American Economic Journal: Applied Economics, 7:81--108, 2015. DOI: 10.1257/app.20130442.
+
+  \bibitem{AronowSamii2017} Peter M. Aronow and Cyrus Samii. Estimating Average Causal Effects Under General Interference, with Application to a Social Network Experiment. Annals of Applied Statistics, 11:1912--1947, 2017.
+
+  \bibitem{https://linear.axler.net/LADR4e.pdf} Sheldon Axler. Linear Algebra Done Right, fourth edition. Springer, 2024. Official author-hosted PDF: https://linear.axler.net/LADR4e.pdf.
+
+  \bibitem{doi:10.1017/CBO9780511804441} Stephen Boyd and Lieven Vandenberghe. Convex Optimization. Cambridge University Press, 2004. DOI: 10.1017/CBO9780511804441.
+
+  \bibitem{doi:10.1016/S0747-7171(10)80005-7} James Renegar. On the Computational Complexity and Geometry of the First-Order Theory of the Reals, Part III: Quantifier Elimination. Journal of Symbolic Computation, 13:329--352, 1992. DOI: 10.1016/S0747-7171(10)80005-7.
+
+\end{thebibliography}
+
+\end{document}

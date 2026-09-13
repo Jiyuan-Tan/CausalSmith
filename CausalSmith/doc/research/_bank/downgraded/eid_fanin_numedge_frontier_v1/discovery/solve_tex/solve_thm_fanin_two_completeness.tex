@@ -1,0 +1,157 @@
+%%% FIELD proof-fanin-two-completeness
+The structural target is the coefficient \(\lambda_e\), whereas \(\mathcal A_e(G,\Sigma)\) is a functional of the supplied graph and covariance.  By the fiber-reduction lemma, for an acyclic graph and positive-definite \(\Sigma\), the supported SEM parameterizations inducing \(\Sigma\) are in bijection with \(\mathcal F_G(\Sigma)\).  Consequently the structural coefficient is pointwise identified exactly when all elements of the observable fiber have the same queried coordinate, equivalently when \(\lvert\mathcal A_e(G,\Sigma)\rvert=1\).  We now establish the claimed hard family and then membership.
+
+Fix \(Q\in\mathcal P_{\mathrm{sel}}\).  In the compiler construction, let \(u\) denote a coefficient-holding sink and let \(P_u\) be its set of private root parents, where \(\lvert P_u\rvert\leq 2\).  Write \(\ell_{a u}=L_{a u}\) for \(a\in P_u\).  If \(u\neq v\) are endpoints of a programmed missing bidirected edge, direct expansion of the induced disturbance covariance gives
+\[
+\begin{aligned}
+\Omega(L)_{uv}
+&=e_u^{\mathsf T}(I-L)^{\mathsf T}\Sigma_Q(I-L)e_v\\
+&=\left(e_u-\sum_{a\in P_u}\ell_{a u}e_a\right)^{\mathsf T}
+  \Sigma_Q
+  \left(e_v-\sum_{b\in P_v}\ell_{b v}e_b\right)\\
+&=(\Sigma_Q)_{uv}
+-\sum_{a\in P_u}(\Sigma_Q)_{av}\ell_{a u}
+-\sum_{b\in P_v}(\Sigma_Q)_{ub}\ell_{b v}
++\sum_{a\in P_u}\sum_{b\in P_v}(\Sigma_Q)_{ab}\ell_{a u}\ell_{b v}.
+\end{aligned}
+\]
+Thus, for coefficient vectors \(x=(\ell_{a u})_{a\in P_u}\) and \(y=(\ell_{b v})_{b\in P_v}\), the arbitrary bi-affine residual
+\[
+c+\alpha^{\mathsf T}x+\beta^{\mathsf T}y+x^{\mathsf T}Wy
+\]
+is realized exactly by the rational assignments
+\[
+(\Sigma_Q)_{uv}=c,\qquad
+(\Sigma_Q)_{av}=-\alpha_a,\qquad
+(\Sigma_Q)_{ub}=-\beta_b,\qquad
+(\Sigma_Q)_{ab}=W_{ab}.
+\]
+This is an equality, so it involves neither division nor a genericity condition.
+
+These assignments are mutually compatible.  Indeed, put \(H_u=\{u\}\cup P_u\).  Private-parent freshness makes the sets \(H_u\) pairwise disjoint.  Every covariance slot used to program the missing sink pair \(\{u,v\}\) has one endpoint in \(H_u\) and the other in \(H_v\).  The unordered pair of owner blocks therefore recovers \(\{u,v\}\) uniquely.  Hence distinct programmed missing pairs use disjoint off-diagonal covariance slots.  This also covers a zero-parent auxiliary endpoint by taking its owner block to be its singleton vertex.
+
+We spell out all source primitives.  Give each source coordinate \(x_i\) a singleton master coefficient \(M_i\).  Each occurrence in a source constraint receives a fresh coefficient \(q_i\).  The source constraints from the finite encoding are represented by the following residuals:
+\[
+\begin{array}{c|c|c}
+\text{source constraint}&\text{programmed residual}&\text{placement}\\ \hline
+x_i=c&q_i-c&(q_i)\text{ against a fresh zero-parent endpoint},\\
+x_i=x_j&q_i-q_j&(q_i)\text{ against }(q_j),\\
+x_i=x_j+x_k&q_j+q_k-q_i&(q_j,q_k)\text{ against }(q_i),\\
+x_i=x_jx_k&q_jq_k-q_i&(q_j,q_i)\text{ against }(q_k).
+\end{array}
+\]
+The constraints \(x_i=0\) and \(x_i=1\) are the first row with \(c=0\) and \(c=1\).  Every row is bi-affine across the displayed two endpoints, and no endpoint has more than two private parents.  The occurrences are distinct even when \(j=k\), or when an output coordinate is also an input coordinate.
+
+For every occurrence \(q_i\), the compiler introduces a fresh singleton hub coefficient \(h_{q_i}\) and programs, on two distinct missing sink pairs,
+\[
+q_i-h_{q_i}=0,
+\qquad
+h_{q_i}-M_i=0.
+\]
+The first equality forces \(q_i=h_{q_i}\), and the second forces \(h_{q_i}=M_i\); hence \(q_i=h_{q_i}=M_i\) uniquely.  Fresh hubs ensure that these unordered endpoint pairs are distinct for every occurrence, including repeated inputs.  Gate pairs contain only occurrence endpoints, first-copy pairs contain an occurrence and its hub, and second-copy pairs contain a hub and a master, so no gate pair is accidentally reused as a copy pair.  By the compiler definition, every other unordered vertex pair is bidirected.  Therefore the missing-edge system consists exactly of the gate, constant, and copy residuals above, with neither an omitted constraint nor an additional free copy coefficient.
+
+Let \(S\) be the symmetric matrix of all programmed off-diagonal entries, with every unused off-diagonal entry set to zero, and define
+\[
+r_i=\sum_{j\ne i}\lvert S_{ij}\rvert,
+\qquad
+H=1+\max_i r_i,
+\qquad
+(\Sigma_Q)_{ii}=H.
+\]
+All programmed entries are rational.  For every nonzero real vector \(w\), the elementary inequality \(2\lvert w_iw_j\rvert\leq w_i^2+w_j^2\) yields
+\[
+\begin{aligned}
+w^{\mathsf T}\Sigma_Qw
+&=H\sum_i w_i^2+2\sum_{i<j}S_{ij}w_iw_j\\
+&\geq H\sum_iw_i^2-
+  \sum_{i<j}\lvert S_{ij}\rvert(w_i^2+w_j^2)\\
+&=\sum_i(H-r_i)w_i^2\\
+&\geq\sum_iw_i^2>0.
+\end{aligned}
+\]
+Thus \(\Sigma_Q\succ0\), and \(H>r_i\) for every row proves strict diagonal dominance.  No diagonal slot occurs in a programmed residual: its two owner blocks are distinct and private roots are distinct from all coefficient sinks.  A sum of polynomially many input rationals has polynomial bit length, so \(H\), and hence every entry of \(\Sigma_Q\), has polynomial bit length.
+
+Define the replication map \(R_Q:\operatorname{Sol}(Q)\to\mathbb R^{\lvert V(G_Q)\rvert\times\lvert V(G_Q)\rvert}\) as follows.  For \(x\in\operatorname{Sol}(Q)\), set each master \(M_i\) to \(x_i\), set each occurrence and its hub to the corresponding \(x_i\), and set every unsupported entry to zero.  Every copy residual vanishes by construction, and every gate residual is the corresponding equality defining \(\operatorname{Sol}(Q)\).  Since there are no other missing pairs, the coefficient-fiber definition gives
+\[
+R_Q(x)\in\mathcal F_{G_Q}(\Sigma_Q).
+\]
+Conversely, if \(L\in\mathcal F_{G_Q}(\Sigma_Q)\), its two copy residuals give \(q_i=h_{q_i}=M_i\) for every occurrence.  Substitution into each gate residual then shows that \(\pi_Q(L)\in\operatorname{Sol}(Q)\).  Every supported coefficient is a master, occurrence, or hub, so these equalities also give
+\[
+R_Q(\pi_Q(L))=L.
+\]
+The definition of \(\pi_Q\) gives \(\pi_Q(R_Q(x))=x\).  Hence
+\[
+\pi_Q\circ R_Q=\operatorname{id}_{\operatorname{Sol}(Q)},
+\qquad
+R_Q\circ\pi_Q=\operatorname{id}_{\mathcal F_{G_Q}(\Sigma_Q)},
+\]
+which proves the asserted fiber bijection, including every copy coefficient.  Applying \(R_Q\) to the planted rational vector gives
+\[
+\rho_Q=R_Q(z_Q)\in\mathcal F_{G_Q}(\Sigma_Q),
+\]
+so the output is feasible and the witness is rational.  The fiber-reduction lemma additionally proves that every one of these coefficient matrices corresponds to a unique supported SEM disturbance covariance, which is positive definite by congruence because \(\Sigma_Q\succ0\) and the compiled directed graph is acyclic.
+
+The directed restrictions now follow directly from the construction.  Every directed edge has a private root as its tail and a coefficient sink as its head; a root has exactly one child, a coefficient sink has no child and at most two parents, and a zero-parent auxiliary vertex is directed-isolated.  Thus there is no directed path of length two, the maximum directed outdegree is one, and every weak component of the directed subgraph is exactly an isolated vertex, a single directed edge, or a two-parent in-star.  In particular, every such component has at most three vertices, the directed depth is one, the graph is acyclic, and the maximum directed indegree is at most two.
+
+The encoding uses one master per source coordinate, finitely many fresh occurrences per listed constraint, one hub per occurrence, and one fresh zero-parent endpoint only when a unary residual needs it.  These counts are linear in the decoded constraint list.  Each programmed covariance slot is written once, and the full adjacency and covariance arrays have polynomial size.  Together with the preceding rational bit bound, this proves that \(\mathsf C\) runs in polynomial time and has polynomial output length.
+
+The queried edge \(e_Q\) is the selector master, so the definition of \(\pi_Q\) gives, for every fiber point,
+\[
+L_{e_Q}=(\pi_Q(L))_{s_Q}.
+\]
+The source promise supplies \((z_Q)_{s_Q}=0\) and asserts that every source solution has selector coordinate in \(\{0,1\}\).  By the source-language completeness lemma and the fiber bijection,
+\[
+\mathcal A_{e_Q}(G_Q,\Sigma_Q)
+=\begin{cases}
+\{0\},&Q\in\mathsf{coSEL\mbox{-}PNQF},\\
+\{0,1\},&Q\in\mathsf{SEL\mbox{-}PNQF}.
+\end{cases}
+\]
+It follows that
+\[
+Q\in\mathsf{coSEL\mbox{-}PNQF}
+\quad\Longleftrightarrow\quad
+\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0\}
+\quad\Longleftrightarrow\quad
+\mathsf C(Q)\in\mathsf{NUMEDGE}_2.
+\]
+The constructed triple satisfies positive definiteness, feasibility, and the fan-in-two bound, so this is a promise-preserving reduction.  Since \(\mathsf{coSEL\mbox{-}PNQF}\) is promise \(\forall\mathbb R\)-complete by the source-language lemma, the displayed reduction proves promise \(\forall\mathbb R\)-hardness on the stated depth-one, bounded-component subclass.
+
+For membership, let \(e=(p,q)\) and abbreviate the support and missing-edge predicates by
+\[
+\mathsf S_D(L)=\bigwedge_{(i,j)\notin D}L_{ij}=0,
+\qquad
+\mathsf E_{G,\Sigma}(L)=
+\bigwedge_{\substack{i\ne j\\\{i,j\}\notin B}}
+\left[(I_n-L)^{\mathsf T}\Sigma(I_n-L)\right]_{ij}=0.
+\]
+On the promise domain, the attainable set is a singleton exactly when the following universal real sentence is true:
+\[
+\forall L,L'\in\mathbb R^{n\times n}\;\Bigl(
+\mathsf S_D(L)\wedge\mathsf E_{G,\Sigma}(L)
+\wedge\mathsf S_D(L')\wedge\mathsf E_{G,\Sigma}(L')
+\;\Longrightarrow\;L_{pq}=L'_{pq}
+\Bigr).
+\]
+Each support condition is linear, and expansion of each missing-edge condition has degree at most two with rational coefficients.  There are polynomially many variables and conjuncts, so the sentence has polynomial encoding length.  Feasibility, which is part of the promise-problem definition, excludes the empty-fiber case in which the universal implication would be vacuous.  Hence \(\mathsf{NUMEDGE}_2\) belongs to promise \(\forall\mathbb R\), completing the proof of completeness.
+
+Finally, the published numerical-edge bounds and the cited published fiber-isomorphism lemma show that Dörfler et al. already obtain an exact isomorphism from their source solution set to a rational feasible acyclic SEM fiber.  Their source coordinates enter one shared storage sink, whose fan-in grows with the source dimension.  The strict comparison proved here is therefore the replacement of that storage star by private-parent components of size at most three while retaining exact fiber bijectivity; fiber bijectivity by itself is not the new feature.
+
+%%% FIELD proof-sharp-frontier
+By the established fan-in-one algorithm theorem, every promised instance of \(\mathsf{NUMEDGE}_1\) is processed in deterministic polynomial bit complexity.  Its case \(\mathrm{(i)}\) returns a singleton attainable set and is therefore a YES instance by the promise-problem definition.  In case \(\mathrm{(ii)}\), the two feasible matrices have unequal queried coordinates, and in case \(\mathrm{(iii)}\), the feasible curve has a nonconstant queried coordinate; either case exhibits two elements of \(\mathcal A_e(G,\Sigma)\) and is therefore a NO instance.  The same theorem supplies the unique rational value or the promised componentwise-quadratic witness or curve certificate, so this is a constructive decision procedure, not merely a membership bound.
+
+The fan-in-two completeness theorem proves that \(\mathsf{NUMEDGE}_2\) is promise \(\forall\mathbb R\)-complete under the same rational positive-definite feasibility promise.  Its hardness family is more restricted than the fan-in-two class: the directed subgraph has depth one and each of its weak components is an isolated vertex, a single directed edge, or a two-parent in-star.  Equivalently for that family, roots are private, the maximum directed outdegree is one, and every directed component has at most three vertices.  Thus the hard side is already present immediately at the next possible positive fan-in.
+
+If the maximum directed indegree is zero, then \(D=\varnothing\): any edge \((u,v)\in D\) would give \(v\) directed indegree at least one.  Since a numerical edge query requires \(e\in D\), no such query exists at fan-in zero.  The tractable result at one, the restricted hardness result at two, and this zero-fan-in observation prove the stated sharp worst-case frontier while preserving all constructive certificate claims on the tractable side.
+
+%%% FIELD statement-published-fiber-isomorphism
+Dörfler et al.'s numerical edge-identifiability reduction constructs a rational positive-definite feasible covariance \(\Sigma\) for an acyclic mixed graph \(G\) such that the coefficient fiber \(\mathcal F_G(\Sigma)\) is isomorphic to the source real solution set and the distinguished edge equals the distinguished source coordinate.  Their construction stores all source coordinates as incoming coefficients of one shared sink, so that sink's directed fan-in grows with the source dimension.
+
+%%% FIELD proposed-statement-fanin-two
+The promise problem \(\mathsf{NUMEDGE}_2\) is \(\forall\mathbb R\)-complete, and hardness already holds when the directed subgraph has depth one and every directed weak component is an isolated vertex, a single directed edge, or a two-parent in-star; equivalently, the compiled family uses private roots, has maximum directed outdegree one, and has directed component size at most three.  For every \(Q\in\mathcal P_{\mathrm{sel}}\), \(\mathsf C\) outputs in polynomial time such an acyclic mixed graph \(G_Q\) of maximum directed indegree at most two, a rational strictly diagonally dominant positive-definite matrix \(\Sigma_Q\), the selector-master edge \(e_Q\), and the rational feasible matrix \(\rho_Q\).  The master projection \(\pi_Q\) is a bijection \(\mathcal F_{G_Q}(\Sigma_Q)\to\operatorname{Sol}(Q)\), with occurrence replication as its inverse, and \(L_{e_Q}=(\pi_Q(L))_{s_Q}\) for every \(L\in\mathcal F_{G_Q}(\Sigma_Q)\).  Consequently, \(Q\in\mathsf{coSEL\mbox{-}PNQF}\Longleftrightarrow\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0\}\Longleftrightarrow\mathsf C(Q)\in\mathsf{NUMEDGE}_2\), whereas \(Q\in\mathsf{SEL\mbox{-}PNQF}\Longleftrightarrow\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0,1\}\).  Thus \(\mathsf C\) is a promise-preserving many-one reduction from the complemented language, not from the uncomplemented language.  Relative to Dörfler et al., the strict tightening is replacing their unbounded-fan-in storage star by bounded-size private-parent in-stars while retaining exact fiber bijectivity; fiber bijectivity itself is not new.
+
+%%% FIELD proposed-statement-sharp-frontier
+Maximum directed indegree one versus two is a sharp worst-case computational frontier for pointwise numerical edge identification with feasible rational positive-definite covariance: \(\mathsf{NUMEDGE}_1\) has deterministic polynomial bit complexity with constructive certificates, whereas \(\mathsf{NUMEDGE}_2\) is promise \(\forall\mathbb R\)-complete even on depth-one directed graphs whose directed weak components are isolated vertices, single directed edges, or two-parent in-stars.  Equivalently, the hard family uses private roots, has maximum directed outdegree one, and has directed component size at most three.  At directed indegree zero there is no directed-edge query.
+
+%%% FIELD coreedit-statement-fanin-two
+The promise problem \(\mathsf{NUMEDGE}_2\) is \(\forall\mathbb R\)-complete, and hardness already holds when the directed subgraph has depth one and every directed weak component is an isolated vertex, a single directed edge, or a two-parent in-star; equivalently, the compiled family uses private roots, has maximum directed outdegree one, and has directed component size at most three.  For every \(Q\in\mathcal P_{\mathrm{sel}}\), \(\mathsf C\) outputs in polynomial time such an acyclic mixed graph \(G_Q\) of maximum directed indegree at most two, a rational strictly diagonally dominant positive-definite matrix \(\Sigma_Q\), the selector-master edge \(e_Q\), and the rational feasible matrix \(\rho_Q\).  The master projection \(\pi_Q\) is a bijection \(\mathcal F_{G_Q}(\Sigma_Q)\to\operatorname{Sol}(Q)\), with occurrence replication as its inverse, and \(L_{e_Q}=(\pi_Q(L))_{s_Q}\) for every \(L\in\mathcal F_{G_Q}(\Sigma_Q)\).  Consequently, \(Q\in\mathsf{coSEL\mbox{-}PNQF}\Longleftrightarrow\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0\}\Longleftrightarrow\mathsf C(Q)\in\mathsf{NUMEDGE}_2\), whereas \(Q\in\mathsf{SEL\mbox{-}PNQF}\Longleftrightarrow\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0,1\}\).  Thus \(\mathsf C\) is a promise-preserving many-one reduction from the complemented language, not from the uncomplemented language.  Relative to Dörfler et al., the strict tightening is replacing their unbounded-fan-in storage star by bounded-size private-parent in-stars while retaining exact fiber bijectivity; fiber bijectivity itself is not new.

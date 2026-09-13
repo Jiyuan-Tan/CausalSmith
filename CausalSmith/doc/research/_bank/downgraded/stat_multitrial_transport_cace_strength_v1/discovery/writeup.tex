@@ -1,0 +1,1266 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}multitrial\_\allowbreak{}transport\_\allowbreak{}cace\_\allowbreak{}strength}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Separate transport of the cellwise outcome and receipt contrasts yields a computable two-coordinate program \(V_{\mathrm{vec}}\), and \(V_{\mathrm{vec}}\le V_{\mathrm{coll}}\) with strict inequality possible when several trials cover a cell. The fully empirical scalar-profiled Anderson--Rubin inversion remains uniformly honest under the original boundary-safe class. An all-procedure least-favorable family has \(V_{\mathrm{vec}}=V_{\mathrm{coll}}\) and gives the rate \(\min\{1,T_{\mathrm{coll}}^{-1/2}\}\) whenever the bounded-outcome variance constant is interior. The unconditional lower constant is multiplied by \(\beta_0=\sqrt{1-4e_0(1-e_0)v_0}\); at \(\beta_0=0\), every identified outcome ITT is zero and the minimax length is exactly zero. The lower witness can retain collection-only split support, and \(K=1\) recovers the scalar single-source result.
+
+\section{Project justification}
+
+\paragraph{Gap.} Dahabreh et al. establish collection and union-support identification, while weak-IV work supplies robust inversion principles. Neither literature gives all-procedure confidence-length theory for a transported noncompliance ratio, derives the vector information program created by separately transporting outcome and receipt contrasts, or characterizes the bounded-outcome boundary where the causal target collapses.
+
+\paragraph{Niche.} The missing object is a same-class weak-ratio inference bracket that distinguishes unrestricted componentwise-transport information from a boundary-safe scalar-score procedure and remains honest under collection-only support.
+
+\paragraph{Fill.} The note derives the vector quadratic program and its exact relation to the scalar residual program, proves why ordinary empirical vector inverses are not uniformly data-total on the original class, establishes the scalar-profile upper bound, and constructs an all-procedure continuum on which the two programs coincide. The result is rate-sharp in the interior and has an explicit vanishing boundary factor with an exact zero-length edge case.
+
+\section{Related work}
+
+Dahabreh et al. (2023), especially Section 3.4.2 and Theorem 3, provide the collection-specific covering-set and union-support workflow used here, but do not study a noncompliance ratio or weak-identification length. Rudolph and van der Laan (2017), equation (4) and Result 3, identify and efficiently estimate a single-source transported CACE in the five-site Moving to Opportunity analysis; their target-site receipt data differ from the collection-wide receipt-contrast transport restriction used here. Su et al. (2024), Lemma 2, optimize source weights for a regular nonratio target and motivates retaining the full outcome-receipt covariance. Ma (2026), Algorithm 2.1 and Theorem 3.2, supplies an orthogonal Anderson--Rubin principle for LATE, while Mikusheva (2010) gives weak-IV robust-inversion precedent and Cai and Low (2004) give general expected-length modulus tools. None of these sources proves the present all-procedure collection-only continuum, the vector-versus-scalar comparison, or the maximal-variance boundary collapse.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_T=E_{P_T}[Y_T(1,D_T(1))-Y_T(0,D_T(0))\mid D_T(1)>D_T(0)]\).
+Primary functional / estimator / diagnostic: \(\theta_T=\{\sum_{x\in\mathcal X}p_T(x)\delta_Y(x)\}/\{\sum_{x\in\mathcal X}p_T(x)\delta_D(x)\}\).
+\begin{itemize}
+  \item \texttt{alpha} --- \texttt{real}; \((0,1/2)\); \texttt{miscoverage level}
+  \item \texttt{K} --- \texttt{positive integer}; \(\{1,2,\ldots\}\); \texttt{number of source trials}
+  \item \texttt{S} --- \texttt{trial label}; \(\{1,\ldots,K\}\); \texttt{source index}
+  \item \texttt{Xcal} --- \texttt{finite set}; \(\mathcal X\); \texttt{baseline cells}
+  \item \texttt{x1} --- \texttt{cell label}; \(\mathcal X\); \texttt{first witness cell}
+  \item \texttt{x2} --- \texttt{cell label}; \(\mathcal X\setminus\{x_1\}\); \texttt{second witness cell}
+  \item \texttt{X} --- \texttt{random variable}; \(\mathcal X\); \texttt{baseline cell}
+  \item \texttt{Z} --- \texttt{random variable}; \(\{0,1\}\); \texttt{randomized encouragement}
+  \item \texttt{D} --- \texttt{random variable}; \(\{0,1\}\); \texttt{treatment receipt}
+  \item \texttt{Y} --- \texttt{random variable}; \([0,1]\); \texttt{bounded outcome}
+  \item \texttt{Ds} --- \texttt{source potential-\allowbreak{}receipt family}; \((D_s(z))_{s,z}\); \texttt{source receipt potentials}
+  \item \texttt{Ys} --- \texttt{source potential-\allowbreak{}outcome family}; \((Y_s(z,d))_{s,z,d}\); \texttt{source outcome potentials}
+  \item \texttt{DT} --- \texttt{target potential-\allowbreak{}receipt map}; \(D_T:\{0,1\}\to\{0,1\}\); \texttt{target receipt potentials}
+  \item \texttt{YT} --- \texttt{target potential-\allowbreak{}outcome map}; \(Y_T:\{0,1\}^2\to[0,1]\); \texttt{target outcome potentials}
+  \item \texttt{Ps} --- \texttt{probability-\allowbreak{}law family}; \((P_s)_{s=1}^K\); \texttt{source laws}
+  \item \texttt{PT} --- \texttt{probability law}; \texttt{target law with fixed covariate composition}
+  \item \texttt{P} --- \texttt{triangular-\allowbreak{}array law}; \(P=(P_1,\ldots,P_K,P_T)\); \texttt{source and target law}
+  \item \texttt{ns} --- \texttt{positive-\allowbreak{}integer family}; \((n_s)_{s=1}^K\); \texttt{source sample sizes}
+  \item \texttt{N} --- \texttt{positive integer}; \texttt{total source sample size}
+  \par\smallskip\noindent\emph{Definition.} \(N=\sum_{s=1}^K n_s\)
+  \item \texttt{n} --- \texttt{positive integer}; \texttt{common sample size in explicit families}
+  \item \texttt{mun} --- \texttt{positive-\allowbreak{}real sequence}; \((\mu_n)_{n\ge1}\); \texttt{compliance probability in explicit families}
+  \item \texttt{Osi} --- \texttt{random-\allowbreak{}vector array}; \(O_{si}=(X_{si},Z_{si},D_{si},Y_{si})\); \texttt{observed source data}
+  \item \texttt{ps} --- \texttt{mass-\allowbreak{}function family}; \(p_s:\mathcal X\to[0,1]\); \texttt{source cell masses}
+  \item \texttt{pT} --- \texttt{mass function}; \(p_T:\mathcal X\to[0,1]\); \texttt{known target composition}
+  \item \texttt{Hs} --- \texttt{set family}; \((\mathcal H_s)_{s=1}^K\); \texttt{source support hyperedges}
+  \item \texttt{es} --- \texttt{function family}; \(e_s:\mathcal X\to(0,1)\); \texttt{known randomization propensities}
+  \item \texttt{e0} --- \texttt{real}; \((0,1/2)\); \texttt{propensity-\allowbreak{}overlap constant}
+  \item \texttt{p0} --- \texttt{real}; \((0,1]\); \texttt{supported-\allowbreak{}cell mass constant}
+  \item \texttt{rho0} --- \texttt{real}; \((0,1/K)\); \texttt{source-\allowbreak{}share constant}
+  \item \texttt{v0} --- \texttt{real}; \((0,\infty)\); \texttt{residual-\allowbreak{}price lower constant}
+  \item \texttt{qL} --- \texttt{real}; \((0,1)\); \texttt{low residual price in separation designs}
+  \item \texttt{qH} --- \texttt{real}; \((q_L,1]\); \texttt{high residual price in separation designs}
+  \item \texttt{deltaY} --- \texttt{function}; \(\delta_Y:\mathcal X\to[-1,1]\); \texttt{transportable cell outcome ITT}
+  \item \texttt{deltaD} --- \texttt{function}; \(\delta_D:\mathcal X\to[0,1]\); \texttt{transportable cell receipt ITT}
+  \item \texttt{muY} --- \texttt{real}; \texttt{target outcome ITT}
+  \item \texttt{muD} --- \texttt{nonnegative real}; \texttt{target compliance contrast}
+  \item \texttt{thetaT} --- \texttt{real}; \([-1,1]\); \texttt{target CACE}
+  \item \texttt{theta} --- \texttt{real}; \([-1,1]\); \texttt{candidate null}
+  \item \texttt{h} --- \texttt{real}; \texttt{local CACE displacement}
+  \item \texttt{rtheta} --- \texttt{random variable}; \texttt{null residual}
+  \item \texttt{qsx} --- \texttt{nonnegative-\allowbreak{}function family}; \(q_{sx}:[-1,1]\to\mathbb R_+\); \texttt{cell residual price}
+  \item \texttt{a} --- \texttt{nonnegative real array}; \(a=(a_{sx})_{s,x}\); \texttt{target-\allowbreak{}mass allocation}
+  \item \texttt{Acoll} --- \texttt{polytope-\allowbreak{}valued map}; \(\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)\); \texttt{feasible collection allocations}
+  \item \texttt{Wcoll} --- \texttt{nonnegative functional}; \(W_{\mathrm{coll}}(P,\theta,a)\); \texttt{allocated score variance}
+  \item \texttt{Vcoll} --- \texttt{nonnegative functional}; \(V_{\mathrm{coll}}(P,\theta)\); \texttt{optimized collection variance}
+  \item \texttt{Tcoll} --- \texttt{nonnegative functional}; \(T_{\mathrm{coll}}(P)\); \texttt{collection strength}
+  \item \texttt{u} --- \texttt{positive real}; \texttt{strength-\allowbreak{}class index}
+  \item \texttt{Mbase} --- \texttt{class of triangular-\allowbreak{}array laws}; \(\mathcal M_N\); \texttt{base model}
+  \item \texttt{MNu} --- \texttt{class of triangular-\allowbreak{}array laws}; \(\mathcal M_N(u)\); \texttt{strength class}
+  \item \texttt{Cn} --- \texttt{random closed interval}; \(C_N\subseteq[-1,1]\); \texttt{generic confidence interval}
+  \item \texttt{ell} --- \texttt{set functional}; \(\ell(C)\); \texttt{interval length}
+  \item \texttt{Honest} --- \texttt{procedure class}; \(\mathfrak C_{N,\alpha}\); \texttt{uniformly honest intervals}
+  \item \texttt{Ralpha} --- \texttt{nonnegative functional}; \(R_{N,\alpha}(u)\); \texttt{minimax worst expected length}
+  \item \texttt{phat} --- \texttt{empirical mass-\allowbreak{}function family}; \((\widehat p_s)_{s=1}^K\); \texttt{cell-\allowbreak{}frequency estimators}
+  \item \texttt{qhat} --- \texttt{estimated price family}; \(\widehat q_{sx}(\theta)\); \texttt{boundary-\allowbreak{}safe residual prices}
+  \item \texttt{ahat} --- \texttt{estimated allocation}; \(\widehat a(\theta)\); \texttt{profiled cell weights}
+  \item \texttt{mhat} --- \texttt{real process}; \(\widehat m_N(\theta)\); \texttt{profiled null score}
+  \item \texttt{Vhat} --- \texttt{nonnegative process}; \(\widehat V_N(\theta)\); \texttt{estimated profiled variance}
+  \item \texttt{ARn} --- \texttt{nonnegative process}; \(\mathrm{AR}_N(\theta)\); \texttt{profiled Anderson-\allowbreak{}-\allowbreak{}Rubin statistic}
+  \item \texttt{CAR} --- \texttt{random closed interval}; \(C_N^{\mathrm{AR}}\subseteq[-1,1]\); \texttt{inverted profiled confidence interval}
+  \item \texttt{Psplit} --- \texttt{law sequence}; \((P_n^{\mathrm{split}})_{n\ge1}\); \texttt{two-\allowbreak{}cell split-\allowbreak{}support family}
+  \item \texttt{PsepA} --- \texttt{law sequence}; \((P_n^A)_{n\ge1}\); \texttt{like-\allowbreak{}with-\allowbreak{}like precision collection}
+  \item \texttt{PsepB} --- \texttt{law sequence}; \((P_n^B)_{n\ge1}\); \texttt{mixed-\allowbreak{}precision collection}
+  \item \texttt{phiEff} --- \texttt{mean-\allowbreak{}zero random variable}; \(\phi_{\mathrm{eff}}(O)\); \texttt{regular efficient influence function}
+  \item \texttt{Ecoll} --- \texttt{statistical experiment}; \(\mathcal E_{\mathrm{coll}}(P)\); \texttt{exact pooled observed-\allowbreak{}data experiment}
+  \item \texttt{Gcoll} --- \texttt{Gaussian shift experiment}; \(\mathcal G_{\mathrm{coll}}(P)\); \texttt{local collection experiment}
+  \item \texttt{Hsharp} --- \texttt{method handle}; \(\mathfrak H_{\mathrm{sharp}}\); \texttt{route to the exact length constant}
+  \item \texttt{Omega} --- \texttt{positive-\allowbreak{}semidefinite matrix family}; \((\Omega_{sx})_{s,x}\); \texttt{propensity-\allowbreak{}scaled covariance of source outcome and receipt arm contrasts}
+  \item \texttt{ctheta} --- \texttt{two-\allowbreak{}vector}; \(c_\theta=(1,-\theta)^{\mathsf T}\); \texttt{null residual contrast direction}
+  \item \texttt{b} --- \texttt{two-\allowbreak{}vector coefficient array}; \(b=(b_{sx})_{s,x}\); \texttt{unrestricted componentwise source-\allowbreak{}cell allocation}
+  \item \texttt{Vvec} --- \texttt{nonnegative extended functional}; \(V_{\mathrm{vec}}(P,\theta)\); \texttt{unrestricted componentwise-\allowbreak{}transport vector-\allowbreak{}GMM variance}
+  \item \texttt{Tvec} --- \texttt{nonnegative extended functional}; \(T_{\mathrm{vec}}(P)\); \texttt{pointwise vector-\allowbreak{}GMM ratio information index}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:source-sampling]\label{ass:source-sampling}
+\((O_{si})_{i=1}^{n_s}\stackrel{\mathrm{iid}}{\sim}P_s\) for every \(s\), with \(\{(O_{si})_{i=1}^{n_s}:s=1,\ldots,K\}\) mutually independent.
+\par\smallskip\noindent\emph{Standard} (Independent stratified superpopulation sampling, \cite{DahabrehRobertsonPetitoHernanSteingrimsson2023}).
+\end{assumption}
+
+\begin{assumption}[ass:known-randomization]\label{ass:known-randomization}
+\(Z\perp\!\!\perp(D_s(0),D_s(1),(Y_s(z,d))_{z,d\in\{0,1\}})\mid X=x\) and \(P_s(Z=1\mid X=x)=e_s(x)\) for every \(s\) and \(x\in\mathcal H_s\).
+\par\smallskip\noindent\emph{Standard} (Known randomized encouragement, \cite{ImbensAngrist1994}).
+\end{assumption}
+
+\begin{assumption}[ass:propensity-overlap]\label{ass:propensity-overlap}
+\(e_0\le e_s(x)\le1-e_0\) for every \(s\) and \(x\in\mathcal H_s\).
+\par\smallskip\noindent\emph{Standard} (Randomization overlap, \cite{Ma2026}).
+\end{assumption}
+
+\begin{assumption}[ass:receipt-consistency]\label{ass:receipt-consistency}
+\(D=D_s(Z)\) almost surely under \(P_s\) for every \(s\).
+\par\smallskip\noindent\emph{Standard} (Receipt consistency, \cite{ImbensAngrist1994}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-consistency]\label{ass:outcome-consistency}
+\(Y=Y_s(Z,D)\) almost surely under \(P_s\) for every \(s\).
+\par\smallskip\noindent\emph{Standard} (Outcome consistency, \cite{RudolphVanderLaan2017}).
+\end{assumption}
+
+\begin{assumption}[ass:exclusion]\label{ass:exclusion}
+\(Y_s(z,d)=Y_s(z',d)\) and \(Y_T(z,d)=Y_T(z',d)\) almost surely for all \(d,z,z'\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Instrument exclusion, \cite{RudolphVanderLaan2017}).
+\end{assumption}
+
+\begin{assumption}[ass:monotonicity]\label{ass:monotonicity}
+\(D_s(1)\ge D_s(0)\) and \(D_T(1)\ge D_T(0)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (No-defiers monotonicity, \cite{ImbensAngrist1994}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-contrast-transport]\label{ass:outcome-contrast-transport}
+\(E_{P_s}[Y\mid X=x,Z=1]-E_{P_s}[Y\mid X=x,Z=0]=\delta_Y(x)\) whenever \(p_T(x)>0\) and \(x\in\mathcal H_s\).
+\par\smallskip\noindent\emph{Standard} (Conditional ITT-effect transportability across a collection, \cite{DahabrehRobertsonPetitoHernanSteingrimsson2023}).
+\end{assumption}
+
+\begin{assumption}[ass:receipt-contrast-transport]\label{ass:receipt-contrast-transport}
+\(E_{P_s}[D\mid X=x,Z=1]-E_{P_s}[D\mid X=x,Z=0]=\delta_D(x)\) whenever \(p_T(x)>0\) and \(x\in\mathcal H_s\).
+\par\smallskip\noindent\emph{Novel.} This cross-source compliance-ITT transport condition is scientifically plausible when the encouragement, access channel, eligibility rule, and treatment definition are protocol-invariant across sites after conditioning on the finite baseline cells. It lets different trials supply the target first stage on the cells they cover. Rudolph and van der Laan instead observe receipt in the target site and identify their CACE denominator from the target-site instrument-to-receipt regression; the present condition replaces that target-site first-stage data with a collection-wide transport restriction.
+\end{assumption}
+
+\begin{assumption}[ass:collection-support]\label{ass:collection-support}
+\(\{x:p_T(x)>0\}\subseteq\bigcup_{s=1}^K\mathcal H_s\).
+\par\smallskip\noindent\emph{Standard} (Section 3.4.2 collection-to-target overlap condition \(A5^{\dagger}\), \cite{DahabrehRobertsonPetitoHernanSteingrimsson2023}).
+\end{assumption}
+
+\begin{assumption}[ass:supported-cell-mass]\label{ass:supported-cell-mass}
+\(0<p_0\le1\) and \(p_s(x)\ge p_0\) for every \(s\) and \(x\in\mathcal H_s\).
+\par\smallskip\noindent\emph{Standard} (Finite-stratum mass condition, \cite{DahabrehRobertsonPetitoHernanSteingrimsson2023}).
+\end{assumption}
+
+\begin{assumption}[ass:sample-balance]\label{ass:sample-balance}
+\(n_s/N\ge\rho_0\) for every \(s\), where \(N=\sum_{s=1}^K n_s\).
+\par\smallskip\noindent\emph{Standard} (Nonvanishing stratum sampling fractions, \cite{DahabrehRobertsonPetitoHernanSteingrimsson2023}).
+\end{assumption}
+
+\begin{assumption}[ass:residual-variance-regularity]\label{ass:residual-variance-regularity}
+\(\inf_{\theta\in[-1,1]}q_{sx}(\theta)\ge v_0\) for every \(s\) and \(x\in\mathcal H_s\).
+\par\smallskip\noindent\emph{Novel.} This is the weakest score-level lower-variance form used by the uniform inversion: it requires only the sum of the two propensity-scaled arm variances to stay nondegenerate, not a positive lower bound in each arm. It is satisfied when every supported cell has outcome measurement or biological noise in at least one randomized arm uniformly over the bounded null index. Bounded outcomes, binary receipt, and propensity overlap provide the upper variance bound, so no substantive causal restriction is added beyond preventing degenerate studentization.
+\end{assumption}
+
+\begin{assumption}[ass:strength-floor]\label{ass:strength-floor}
+\(T_{\mathrm{coll}}(P)\ge u\).
+\par\smallskip\noindent\emph{Novel.} This paper-specific collection-strength class groups laws by target compliance relative to the exact support-constrained observed-data variance. It is an interpretable design index: two trial portfolios with the same compliance can lie in different classes because precision is attached to different target cells. The class includes weak, intermediate, and strong compliance sequences by varying \(u\); it does not impose a stronger causal model.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:source-support]\label{def:source-support}
+\par\smallskip\noindent\emph{Defined object.} \texttt{source support hyperedges}
+\par\smallskip\noindent\emph{Construction.} \(p_s(x)=P_s(X=x)\) and \(\mathcal H_s=\{x\in\mathcal X:p_s(x)>0\}\) for \(s=1,\ldots,K\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ps}.
+\end{definition}
+
+\begin{definition}[def:target-cell-contrasts]\label{def:target-cell-contrasts}
+\par\smallskip\noindent\emph{Defined object.} \texttt{target-\allowbreak{}cell ITT contrasts}
+\par\smallskip\noindent\emph{Construction.} \(\delta_D(x)=E_{P_T}[D_T(1)-D_T(0)\mid X=x]\) and \(\delta_Y(x)=E_{P_T}[Y_T(1,D_T(1))-Y_T(0,D_T(0))\mid X=x]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{PT}.
+\end{definition}
+
+\begin{definition}[def:target-itt]\label{def:target-itt}
+\par\smallskip\noindent\emph{Defined object.} \texttt{target ITT numerator and denominator}
+\par\smallskip\noindent\emph{Construction.} \(\mu_Y=\sum_{x\in\mathcal X}p_T(x)\delta_Y(x)\) and \(\mu_D=\sum_{x\in\mathcal X}p_T(x)\delta_D(x)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pT}; \texttt{deltaY}; \texttt{deltaD}.
+\end{definition}
+
+\begin{definition}[def:target-cace]\label{def:target-cace}
+\par\smallskip\noindent\emph{Defined object.} \texttt{transported complier effect}
+\par\smallskip\noindent\emph{Construction.} \(\theta_T=\mu_Y/\mu_D\) on \(\{P:\mu_D>0\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{muY}; \texttt{muD}.
+\end{definition}
+
+\begin{definition}[def:null-residual-price]\label{def:null-residual-price}
+\par\smallskip\noindent\emph{Defined object.} \texttt{null residual and cell price}
+\par\smallskip\noindent\emph{Construction.} \(r_\theta=Y-\theta D\) and \(q_{sx}(\theta)=\operatorname{Var}_{P_s}(r_\theta\mid X=x,Z=1)/e_s(x)+\operatorname{Var}_{P_s}(r_\theta\mid X=x,Z=0)/\{1-e_s(x)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{Ps}; \texttt{es}.
+\end{definition}
+
+\begin{definition}[def:allocation-polytope]\label{def:allocation-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{collection allocation polytope}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)=\{a\in\mathbb R_+^{K\times|\mathcal X|}:a_{sx}=0\text{ if }x\notin\mathcal H_s,\ \sum_{s=1}^K a_{sx}=p_T(x)\text{ for every }x\in\mathcal X\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pT}; \texttt{Hs}.
+\end{definition}
+
+\begin{definition}[def:collection-variance]\label{def:collection-variance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{allocated and optimized collection variance}
+\par\smallskip\noindent\emph{Construction.} \(W_{\mathrm{coll}}(P,\theta,a)=\sum_{s=1}^K\sum_{x\in\mathcal H_s}a_{sx}^2q_{sx}(\theta)/\{n_sp_s(x)\}\) and \(V_{\mathrm{coll}}(P,\theta)=\min_{a\in\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)}W_{\mathrm{coll}}(P,\theta,a)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{theta}; \texttt{Acoll}.
+\end{definition}
+
+\begin{definition}[def:collection-strength]\label{def:collection-strength}
+\par\smallskip\noindent\emph{Defined object.} \texttt{collection concentration index}
+\par\smallskip\noindent\emph{Construction.} \(T_{\mathrm{coll}}(P)=\mu_D^2/V_{\mathrm{coll}}(P,\theta_T)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{muD}; \texttt{Vcoll}; \texttt{thetaT}.
+\end{definition}
+
+\begin{definition}[def:pooled-observed-experiment]\label{def:pooled-observed-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact pooled observed-\allowbreak{}data experiment}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal E_{\mathrm{coll}}(P)=\bigotimes_{s=1}^K P_s^{\otimes n_s}\) on the labeled blocks \(O_{si}=(X_{si},Z_{si},D_{si},Y_{si})\), retaining each known source propensity \(e_s(x)\), each support \(\mathcal H_s\), and the fixed target composition \(p_T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{Ps}; \texttt{ns}; \texttt{Osi}; \texttt{es}; \texttt{Hs}; \texttt{pT}.
+\end{definition}
+
+\begin{definition}[def:base-law-class]\label{def:base-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{base transported encouragement class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_N=\{P=(P_1,\ldots,P_K,P_T):P\text{ satisfies the listed member properties for the triangular array indexed by }N\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}source-\allowbreak{}sampling}; \texttt{ass:\allowbreak{}known-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}propensity-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}receipt-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}exclusion}; \texttt{ass:\allowbreak{}monotonicity}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}contrast-\allowbreak{}transport}; \texttt{ass:\allowbreak{}receipt-\allowbreak{}contrast-\allowbreak{}transport}; \texttt{ass:\allowbreak{}collection-\allowbreak{}support}; \texttt{ass:\allowbreak{}supported-\allowbreak{}cell-\allowbreak{}mass}; \texttt{ass:\allowbreak{}sample-\allowbreak{}balance}; \texttt{ass:\allowbreak{}residual-\allowbreak{}variance-\allowbreak{}regularity}.
+\end{definition}
+
+\begin{definition}[def:strength-law-class]\label{def:strength-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{collection-\allowbreak{}strength class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_N(u)=\{P\in\mathcal M_N:T_{\mathrm{coll}}(P)\ge u\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}strength-\allowbreak{}floor}.
+\end{definition}
+
+\begin{definition}[def:honest-procedure-class]\label{def:honest-procedure-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{uniformly honest interval class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak C_{N,\alpha}=\{C_N:\inf_{P\in\mathcal M_N:\mu_D(P)>0}P\{\theta_T(P)\in C_N\}\ge1-\alpha-N^{-1/8},\ C_N\text{ is a data-measurable closed interval in }[-1,1]\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Mbase}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:minimax-length]\label{def:minimax-length}
+\par\smallskip\noindent\emph{Defined object.} \texttt{all-\allowbreak{}procedure minimax expected length}
+\par\smallskip\noindent\emph{Construction.} \(R_{N,\alpha}(u)=\inf_{C_N\in\mathfrak C_{N,\alpha}}\sup_{P\in\mathcal M_N(u)}E_P[\ell(C_N)]\), where \(\ell(C)=\sup C-\inf C\) for nonempty \(C\) and \(\ell(\varnothing)=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{MNu}; \texttt{Honest}.
+\end{definition}
+
+\begin{definition}[def:empirical-profiler]\label{def:empirical-profiler}
+\par\smallskip\noindent\emph{Defined object.} \texttt{fully empirical collection profiler}
+\par\smallskip\noindent\emph{Construction.} For each \(\theta\in[-1,1]\), compute \(\widehat p_s(x)\), randomized-arm means of \(Y-\theta D\), and arm empirical variances. An arm mean with zero observations is defined to be zero; an empirical arm variance is computed with the arm-count divisor when the count is at least two. Let \(\widehat q_{sx}(\theta)\) be the corresponding plug-in cell price, replace it by \(8/e_0\) when either arm count is below two, and floor every other computed value at \(N^{-1/2}\). Define \(\widehat a(\theta)\) as the unique minimizer of \(\sum_{s,x}a_{sx}^2\widehat q_{sx}(\theta)/\{n_s\max(\widehat p_s(x),N^{-1})\}\) over \(\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Osi}; \texttt{es}; \texttt{pT}; \texttt{Hs}.
+\end{definition}
+
+\begin{definition}[def:profiled-score]\label{def:profiled-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{profiled null score and variance}
+\par\smallskip\noindent\emph{Construction.} \(\widehat m_N(\theta)=\sum_{x\in\mathcal X}\sum_{s=1}^K\widehat a_{sx}(\theta)\{\overline r_{sx1}(\theta)-\overline r_{sx0}(\theta)\}\) and \(\widehat V_N(\theta)=\sum_{x\in\mathcal X}\sum_{s=1}^K\widehat a_{sx}(\theta)^2\widehat q_{sx}(\theta)/\{n_s\max(\widehat p_s(x),N^{-1})\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ahat}; \texttt{qhat}; \texttt{Osi}.
+\end{definition}
+
+\begin{definition}[def:profiled-ar-set]\label{def:profiled-ar-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{profiled Anderson-\allowbreak{}-\allowbreak{}Rubin inversion}
+\par\smallskip\noindent\emph{Construction.} \(\mathrm{AR}_N(\theta)=\widehat m_N(\theta)^2/\widehat V_N(\theta)\) and \(C_N^{\mathrm{AR}}=\operatorname{hull}\{\theta\in[-1,1]:\mathrm{AR}_N(\theta)\le\chi^2_{1,1-\alpha}\}\), with \(\operatorname{hull}(\varnothing)=\varnothing\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{mhat}; \texttt{Vhat}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:split-support-witness]\label{def:split-support-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{two-\allowbreak{}cell split-\allowbreak{}support Rademacher family}
+\par\smallskip\noindent\emph{Construction.} For each \(n\), set \(K=2\), \(\mathcal X=\{x_1,x_2\}\), \(n_1=n_2=n\), \(p_T(x_1)=p_T(x_2)=1/2\), \(\mathcal H_1=\{x_1\}\), \(\mathcal H_2=\{x_2\}\), \(p_j(x_j)=1\), and \(e_j(x_j)=1/2\). In source \(j\), draw independent \(C\sim\operatorname{Bernoulli}(\mu_n)\) and Rademacher \(\varepsilon\); set \(D_j(0)=0\), \(D_j(1)=C\), and \(Y_j(z,d)=1/2+\varepsilon/(2\sqrt2)\) for all \(z,d\). Give the target the equally weighted mixture of the cell laws and denote the law by \(P_n^{\mathrm{split}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{mun}; \texttt{x1}; \texttt{x2}.
+\end{definition}
+
+\begin{definition}[def:separation-designs]\label{def:separation-designs}
+\par\smallskip\noindent\emph{Defined object.} \texttt{paired-\allowbreak{}versus-\allowbreak{}mixed precision collections}
+\par\smallskip\noindent\emph{Construction.} For each \(n\), set \(K=4\), \(n_s=n\), \(\mathcal X=\{x_1,x_2\}\), \(p_T(x_1)=p_T(x_2)=1/2\), \(p_s(x)=1\) on the unique supported cell, and \(e_s(x)=1/2\). In every source draw \(C_s\sim\operatorname{Bernoulli}(\mu_n)\) and an independent Rademacher \(\varepsilon_s\); set \(D_s(0)=0\), \(D_s(1)=C_s\), and \(Y_s(z,d)=1/2+\varepsilon_s\sqrt{q_s}/2\). Set \(D_T(0)=0\), draw \(D_T(1)\sim\operatorname{Bernoulli}(\mu_n)\) independently within each target cell, and set \(Y_T(z,d)=1/2\). In \(P_n^A\), sources \(1,2\) cover \(x_1\) with \(q_s=q_L\), while sources \(3,4\) cover \(x_2\) with \(q_s=q_H\). In \(P_n^B\), sources \(1,3\) cover \(x_1\) and sources \(2,4\) cover \(x_2\), with \(q_1=q_2=q_L\) and \(q_3=q_4=q_H\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{mun}; \texttt{qL}; \texttt{qH}; \texttt{x1}; \texttt{x2}.
+\end{definition}
+
+\begin{definition}[def:local-collection-experiment]\label{def:local-collection-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{least-\allowbreak{}favorable collection experiment handle}
+\par\smallskip\noindent\emph{Construction.} Begin at \(P_n^{\mathrm{split}}\). For a local displacement \(h\), tilt the Rademacher probability of the complier receipt-zero outcome by an amount proportional to \(h\), and counter-tilt the never-taker receipt-zero probability by \(\mu_nh/(1-\mu_n)\), preserving the control-arm mixture. For a general support face, apply these compensated tilts cellwise with signed amplitudes selected from the dual of \(\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)\); this is the route to the quadratic observed-law experiment \(\mathcal G_{\mathrm{coll}}(P)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Psplit}; \texttt{mun}; \texttt{Acoll}; \texttt{Vcoll}.
+\end{definition}
+
+\begin{definition}[def:sharp-constant-handle]\label{def:sharp-constant-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact-\allowbreak{}constant method handle}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak H_{\mathrm{sharp}}\) denotes the route that proves Le Cam convergence of the support-preserving continuum to \(\mathcal G_{\mathrm{coll}}(P)\) and then applies ordered-modulus acceptance-region optimization on \([-1,1]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gcoll}.
+\end{definition}
+
+\begin{definition}[def:unrestricted-vector-information]\label{def:unrestricted-vector-information}
+\par\smallskip\noindent\emph{Defined object.} \texttt{componentwise-\allowbreak{}transport vector information program}
+\par\smallskip\noindent\emph{Construction.} For \(x\in\mathcal H_s\), let
+\[
+\Omega_{sx}=
+\frac{\operatorname{Cov}_{P_s}((Y,D)^{\mathsf T}\mid X=x,Z=1)}{e_s(x)}
++\frac{\operatorname{Cov}_{P_s}((Y,D)^{\mathsf T}\mid X=x,Z=0)}{1-e_s(x)},
+\qquad c_\theta=(1,-\theta)^{\mathsf T}.
+\]
+Define the componentwise-transport vector program
+\[
+V_{\mathrm{vec}}(P,\theta)=
+\min_b\sum_{s=1}^K\sum_{x\in\mathcal H_s}
+\frac{b_{sx}^{\mathsf T}\Omega_{sx}b_{sx}}{n_sp_s(x)},
+\]
+where \(b_{sx}\in\mathbb R^2\), \(b_{sx}=0\) for \(x\notin\mathcal H_s\), and
+\(\sum_{s=1}^K b_{sx}=p_T(x)c_\theta\) for every \(x\in\mathcal X\). Set
+\(T_{\mathrm{vec}}(P)=\mu_D^2/V_{\mathrm{vec}}(P,\theta_T)\), with value \(+\infty\) when the numerator is positive and the denominator is zero.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{theta}; \texttt{pT}; \texttt{Hs}; \texttt{muD}; \texttt{Vvec}; \texttt{thetaT}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:target-ratio-identification]\label{thm:target-ratio-identification}
+For every \(P\in\mathcal M_N\) with \(\mu_D>0\),
+\[
+E_{P_T}\!\left[Y_T(1,D_T(1))-Y_T(0,D_T(0))\mid D_T(1)>D_T(0)\right]
+=\theta_T
+=\frac{\sum_{x\in\mathcal X}p_T(x)\delta_Y(x)}
+{\sum_{x\in\mathcal X}p_T(x)\delta_D(x)}.
+\]
+Moreover, every target-supported cell contrast is identified from each source covering that cell.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal M_N\) with \(\mu_D>0\).  Define
+\[
+A=D_T(1)-D_T(0),\qquad
+C=\{D_T(1)>D_T(0)\},
+\qquad
+R=Y_T(1,D_T(1))-Y_T(0,D_T(0)).
+\]
+The target part of the no-defiers monotonicity assumption and the binary range of \(D_T\) imply
+\[
+A\in\{0,1\},\qquad A=\mathbf 1_C.
+\]
+By the target-cell contrast and target-ITT definitions and the law of total expectation on the finite set \(\mathcal X\),
+\[
+\mu_D
+=\sum_{x\in\mathcal X}p_T(x)E_{P_T}[A\mid X=x]
+=E_{P_T}[A]
+=P_T(C).
+\]
+Here and below, versions of conditional expectations on cells with \(p_T(x)=0\) are immaterial because their coefficients in the sums are zero.  In particular, \(\mu_D>0\) implies \(P_T(C)>0\), so conditioning on \(C\) and division by \(\mu_D\) are valid.
+
+We next show that the numerator vanishes off the complier event.  On \(C^c\), monotonicity gives \(D_T(1)=D_T(0)=d\) for some \(d\in\{0,1\}\).  The target part of the exclusion assumption then gives
+\[
+R=Y_T(1,d)-Y_T(0,d)=0\qquad\text{on }C^c.
+\]
+Consequently \(R=R\mathbf 1_C\).  Applying again the target-cell contrast and target-ITT definitions and the law of total expectation yields
+\[
+\mu_Y
+=\sum_{x\in\mathcal X}p_T(x)E_{P_T}[R\mid X=x]
+=E_{P_T}[R]
+=E_{P_T}[R\mathbf 1_C]
+=P_T(C)E_{P_T}[R\mid C].
+\]
+Combining the last two displays and using the target-CACE definition proves
+\[
+E_{P_T}[R\mid C]
+=\frac{\mu_Y}{\mu_D}
+=\theta_T
+=\frac{\sum_{x\in\mathcal X}p_T(x)\delta_Y(x)}
+{\sum_{x\in\mathcal X}p_T(x)\delta_D(x)}.
+\]
+
+It remains to prove observed-law identification of each relevant cell contrast.  Fix \(x\in\mathcal X\) with \(p_T(x)>0\), and fix any \(s\) such that \(x\in\mathcal H_s\).  The supported-cell mass and propensity-overlap assumptions give, for \(z\in\{0,1\}\),
+\[
+P_s(X=x,Z=z)
+=p_s(x)e_s(x)^z\{1-e_s(x)\}^{1-z}
+\ge p_0e_0>0.
+\]
+Thus all of the following arm means are functionals of the observed law \(P_s\).  Receipt consistency and known randomization imply
+\[
+E_{P_s}[D\mid X=x,Z=z]
+=E_{P_s}[D_s(z)\mid X=x,Z=z]
+=E_{P_s}[D_s(z)\mid X=x].
+\]
+Likewise, receipt consistency, outcome consistency, and known randomization imply
+\[
+E_{P_s}[Y\mid X=x,Z=z]
+=E_{P_s}[Y_s(z,D_s(z))\mid X=x,Z=z]
+=E_{P_s}[Y_s(z,D_s(z))\mid X=x].
+\]
+The receipt-contrast and outcome-contrast transport assumptions now give the explicit observed-law maps
+\[
+\delta_D(x)
+=E_{P_s}[D\mid X=x,Z=1]-E_{P_s}[D\mid X=x,Z=0],
+\]
+and
+\[
+\delta_Y(x)
+=E_{P_s}[Y\mid X=x,Z=1]-E_{P_s}[Y\mid X=x,Z=0].
+\]
+These equalities hold for every source covering \(x\).  Finally, the collection-support assumption guarantees that at least one such source exists for every \(x\) with \(p_T(x)>0\).  Since \(p_T\) is known, substituting these identified cell contrasts into the displayed finite sums identifies \(\mu_Y\), \(\mu_D\), and hence \(\theta_T\) whenever \(\mu_D>0\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This links the statistical ratio to the target causal effect among compliers. \textit{Gap.} Dahabreh et al., Theorem 1, identify target potential-outcome means under their baseline conditions; Theorems 2 and 3 give weaker collection-positivity routes, with Theorem 3 using the cell-specific trial subsets of Section 3.4.2. They do not identify or analyze a weakly identified noncompliance ratio. Rudolph and van der Laan use receipt observed in the target site for their CACE first stage, whereas the novel compliance-ITT transport condition here assembles that first stage from covering source trials. \textit{Consumer.} The five-site Moving to Opportunity analysis can use different trials to supply different target cells.
+
+\begin{theorem}[thm:pooled-information-equivalence]\label{thm:pooled-information-equivalence}
+For every \(P\in\mathcal M_N\) and \(\theta\in[-1,1]\), \(V_{\mathrm{coll}}(P,\theta)\) is exactly the minimum variance among regular support-preserving influence representations in which, within each source--cell block, a single scalar coefficient multiplies the randomized-arm influence score for \(Y-\theta D\). Equivalently, it is the semiparametric variance bound in the enlarged observed-law model whose only cross-source mean restriction relevant to \(\theta\) is equality of the cellwise residual contrasts. At \(\theta=\theta_T\), the corresponding restricted local ratio information is \(T_{\mathrm{coll}}(P)\). If no source covers the target support and the common residual contrast in each missing cell admits a nonzero regular path, no influence representation measurable with respect to one source block represents the derivative. In the actual base model, which separately equates the outcome and receipt contrasts across sources, the unrestricted variance bound is no larger than \(V_{\mathrm{coll}}\), and for allowed class constants it can be strictly smaller when \(K\ge2\); when \(K=1\), the restricted and unrestricted nonparametric observed-law bounds coincide.
+\end{theorem}
+\begin{proof}
+Put
+\[
+ g_{sxz}(\theta)=E_{P_s}[Y-\theta D\mid X=x,Z=z]
+\]
+and, for \(x\in\mathcal H_s\), define
+\[
+ \psi_{sx,\theta}(O_s)
+ =\frac{\mathbf 1\{X=x\}}{p_s(x)}
+ \left[
+ \frac{Z}{e_s(x)}\{r_\theta-g_{sx1}(\theta)\}
+ -\frac{1-Z}{1-e_s(x)}\{r_\theta-g_{sx0}(\theta)\}
+ \right].
+\]
+The denominators are positive by the source-support definition, supported-cell mass, and propensity overlap. Conditional centering and known randomization give
+\[
+ E_{P_s}[\psi_{sx,\theta}]=0,
+ \qquad
+ E_{P_s}[\psi_{sx,\theta}^{\,2}]
+ =\frac{q_{sx}(\theta)}{p_s(x)}.
+\]
+Scores for different cells are orthogonal because their cell indicators have disjoint support. The two transport assumptions imply, whenever \(p_T(x)>0\) and \(x\in\mathcal H_s\),
+\[
+ g_{sx1}(\theta)-g_{sx0}(\theta)
+ =\delta_Y(x)-\theta\delta_D(x).
+\]
+Using the target-ITT definition therefore yields the identified residual functional
+\[
+ m_P(\theta):=\mu_Y-\theta\mu_D
+ =\sum_{x\in\mathcal X}p_T(x)
+   \{\delta_Y(x)-\theta\delta_D(x)\}.
+\]
+This equality follows from identification and transport; it does not define the causal estimand.
+
+Consider a regular support-preserving path in the enlarged residual-contrast model, and write \(\dot\gamma_x\) for the common derivative of the residual contrast in cell \(x\). In source block \(s\), \(\psi_{sx,\theta}\) represents \(\dot\gamma_x\). Consequently every representer constrained to use one scalar residual score per source--cell block has, after deleting components orthogonal to all such scores, the form
+\[
+ \Phi_a
+ =\sum_{s=1}^K\frac1{n_s}\sum_{i=1}^{n_s}
+   \sum_{x\in\mathcal H_s}a_{sx}\psi_{sx,\theta}(O_{si}),
+ \qquad
+ \sum_{s=1}^K a_{sx}=p_T(x),
+\]
+with \(a_{sx}=0\) off \(\mathcal H_s\). Necessity of the displayed equality follows by varying \(\dot\gamma_x\) separately; sufficiency follows by taking covariance with the product-path score. Independence of source blocks and the variance calculation above give
+\[
+ \operatorname{Var}_P(\Phi_a)
+ =\sum_{s=1}^K\sum_{x\in\mathcal H_s}
+ \frac{a_{sx}^2q_{sx}(\theta)}{n_sp_s(x)}
+ =W_{\mathrm{coll}}(P,\theta,a).
+\]
+Collection support makes the allocation polytope nonempty. Residual-variance regularity makes the objective strictly convex on every effective coordinate, and continuity on the compact polytope gives a unique minimizer. Hence
+\[
+ \min_{a\in\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)}
+ \operatorname{Var}_P(\Phi_a)
+ =V_{\mathrm{coll}}(P,\theta).
+\]
+The same covariance calculation proves that this is the canonical-gradient variance in the enlarged model in which only the residual contrasts are equated. At \(\theta_T\), target-ratio identification gives \(m_P(\theta_T)=0\), while
+\[
+ m_P(\theta_T+h)=-\mu_Dh.
+\]
+Thus the restricted local information for \(h\) is
+\[
+ \frac{\mu_D^2}{V_{\mathrm{coll}}(P,\theta_T)}
+ =T_{\mathrm{coll}}(P).
+\]
+
+For the single-block obstruction, fix a source \(s_0\) and a target cell \(x\notin\mathcal H_{s_0}\). Along any regular path that changes the common residual contrast in that cell by \(\dot\gamma_x\ne0\) while leaving block \(s_0\) fixed, the derivative of \(m_P(\theta)\) is \(p_T(x)\dot\gamma_x\ne0\). Every statistic measurable only in block \(s_0\) has zero covariance with that path score, so it cannot be a representer. This proves the stated non-subsumption conclusion under the explicitly stated path condition.
+
+It remains to show why the restriction to scalar residual scores matters. Take one cell, two equally sized sources, propensity one half, independent \(B,E\sim\operatorname{Bernoulli}(1/2)\), and no first stage, so \(D_s(0)=D_s(1)=B\). Let
+\[
+ Y_1(z,d)=\frac{d+E}{2},
+ \qquad
+ Y_2(z,d)=\frac{1-d+E}{2}.
+\]
+All variables are bounded, exclusion and monotonicity hold, and both transported outcome and receipt contrasts are zero. For the vector of arm contrasts of \((Y,D)\), the two propensity-scaled covariance matrices are
+\[
+ \Omega_1=
+ \begin{pmatrix}1/2&1/2\\[2pt]1/2&1\end{pmatrix},
+ \qquad
+ \Omega_2=
+ \begin{pmatrix}1/2&-1/2\\[2pt]-1/2&1\end{pmatrix}.
+\]
+For \(c_\theta=(1,-\theta)^\top\),
+\[
+ c_\theta^\top\Omega_1c_\theta
+ =\theta^2-\theta+\frac12\ge\frac14,
+ \qquad
+ c_\theta^\top\Omega_2c_\theta
+ =\theta^2+\theta+\frac12\ge\frac14,
+\]
+so this example obeys residual-variance regularity whenever \(v_0\le1/4\). At \(\theta=0\), the scalar program has value \(1/(4n)\), because both residual prices are \(1/2\). Separate transport of the two coordinates permits vector coefficients, whose covariance bound is
+\[
+ \frac1n\left(\Omega_1^{-1}+\Omega_2^{-1}\right)^{-1}
+ =\frac1n
+ \begin{pmatrix}1/8&0\\[2pt]0&1/4\end{pmatrix}.
+\]
+The unrestricted bound for the outcome contrast is therefore \(1/(8n)<1/(4n)\). This explicit member of the base model proves that separate outcome and receipt transport can strictly improve on the scalar residual program when \(K\ge2\). If \(K=1\), the two componentwise unbiasedness constraints force the sole coefficient vector to be \(p_T(x)(1,-\theta)^\top\) in each cell, so no such cross-source reallocation is possible and the two observed-law bounds coincide.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identifies the collection program with the exact pooled observed-data information and gives a formal non-subsumption criterion for collection-only support. \textit{Gap.} Dahabreh et al. identify transported means under union support, and Su et al. optimize regular multi-source weights, but neither derives the source-specific-propensity information bound for a null residual or proves failure of every support-retaining single-source representation. \textit{Consumer.} A trial repository can decide whether its evidence geometry is genuinely collection-only before applying a single-source weak-IV analysis.
+
+\begin{theorem}[thm:profiled-ar-honesty]\label{thm:profiled-ar-honesty}
+The empirical profiled inversion satisfies \[\liminf_{N\to\infty}\inf_{P\in\mathcal M_N:\mu_D(P)>0}P\{\theta_T(P)\in C_N^{\mathrm{AR}}\}\ge1-\alpha.\] This holds uniformly across changes and ties in the minimizing allocation without consistent estimation of a selected oracle optimizer.
+\end{theorem}
+\begin{proof}
+Fix a supported source--cell pair and let \(a^{\star}(\theta)\) be the population minimizer of the scalar collection program. Since \(Y\in[0,1]\), \(D\in\{0,1\}\), and \(\theta\in[-1,1]\), the range of \(r_\theta=Y-\theta D\) has length at most two. Hence propensity overlap and residual-variance regularity give constants \(0<v_0\le\bar q<\infty\) such that
+\[
+ v_0\le q_{sx}(\theta)\le\bar q
+\]
+uniformly in all supported \((s,x)\), all \(\theta\), and all laws in the model. For every feasible allocation, Cauchy--Schwarz gives
+\[
+ 1=\left(\sum_{s,x}a_{sx}\right)^2
+ \le
+ \left(\sum_{s,x}\frac{a_{sx}^2}{n_sp_s(x)}\right)
+ \left(\sum_{s,x}n_sp_s(x)\right).
+\]
+The last sum is \(N\). Assigning each target cell to one covering source and using sample balance and supported-cell mass for the reverse bound therefore yields
+\[
+ \frac{v_0}{N}\le V_{\mathrm{coll}}(P,\theta)
+ \le\frac{\bar q}{\rho_0p_0N}.
+\]
+
+There are only finitely many source--cell--arm strata. Each supported arm has probability at least \(p_0e_0\), and each source size is at least \(\rho_0N\). Applying the exponential Markov inequality to the bounded Bernoulli indicators and taking a finite union shows that the event \(\mathcal B_N\), on which every supported arm count is between fixed positive multiples of \(N\), satisfies
+\[
+ \sup_{P\in\mathcal M_N}P(\mathcal B_N^c)\le c_1e^{-c_2N}.
+\]
+On \(\mathcal B_N\), the cell means are affine and the cell variances are quadratic in \(\theta\). Expanding their empirical ratios about their positive population denominators, and applying the same bounded exponential-moment calculation to their finitely many empirical moments, gives
+\[
+ \max_{s,x}|\widehat p_s(x)-p_s(x)|=O_P(N^{-1/2}),
+ \qquad
+ \max_{s,x}\sup_{\theta\in[-1,1]}
+ |\widehat q_{sx}(\theta)-q_{sx}(\theta)|=O_P(N^{-1/2})
+\]
+uniformly over the model. The fallback and floor are inactive on \(\mathcal B_N\) with probability tending to one uniformly, because \(q_{sx}(\theta)\ge v_0\).
+
+After multiplication by \(N\), the empirical and population quadratic objectives have eigenvalues bounded above and away from zero on their effective coordinates. Subtracting their variational inequalities and using the preceding coefficient bound gives
+\[
+ \sup_{\theta\in[-1,1]}
+ \|\widehat a(\theta)-a^{\star}(\theta)\|=O_P(N^{-1/2}),
+ \qquad
+ \sup_{\theta\in[-1,1]}
+ \left|\frac{\widehat V_N(\theta)}
+ {V_{\mathrm{coll}}(P,\theta)}-1\right|=O_P(N^{-1/2}).
+\]
+This argument uses the unique value of a strongly convex program and not a derivative of the optimizer, so equal objective coefficients and changes of the minimizing weights cause no discontinuity.
+
+Let \(\xi_{sx}(\theta)\) be the centered empirical randomized-arm contrast in cell \((s,x)\). The allocation equalities and separate transport restrictions imply the exact cancellation
+\[
+ \sum_s\{\widehat a_{sx}(\theta)-a_{sx}^{\star}(\theta)\}
+ \{g_{sx1}(\theta)-g_{sx0}(\theta)\}=0.
+\]
+The preceding bounds and a first-order expansion of each conditional empirical mean hence give
+\[
+ \widehat m_N(\theta)
+ =m_P(\theta)+
+ \sum_{s,x}a_{sx}^{\star}(\theta)\xi_{sx}(\theta)+R_N(\theta),
+ \qquad
+ \sup_\theta|R_N(\theta)|=O_P(N^{-1}),
+\]
+uniformly. Target-ratio identification gives
+\[
+ m_P(\theta)=\mu_D(\theta_T-\theta),
+\]
+so \(m_P(\theta_T)=0\), regardless of the magnitude of the positive first stage.
+
+At \(\theta_T\), expand the oracle contrast into independent, centered observation-level summands. Each summand is bounded by \(C/N\), its total variance is \(V_{\mathrm{coll}}(P,\theta_T)+O(N^{-2})\), and the variance bounds above imply that its standardized maximum is at most \(CN^{-1/2}\). To make the normal approximation explicit, if \(U_N\) denotes the standardized sum, expansion of every characteristic function through its quadratic term gives
+\[
+ \log E[e^{itU_N}]=-\frac{t^2}{2}+O(|t|^3N^{-1/2})
+ \qquad (|t|\le cN^{1/4}).
+\]
+Convolving an interval indicator with the triangular density of bandwidth \(N^{-1/4}\), applying Fourier inversion on \(|t|\le cN^{1/4}\), and bounding the two smoothing strips by the normal density bound gives
+\[
+ \sup_z\left|P(U_N\le z)-\Phi(z)\right|\le CN^{-1/4}.
+\]
+This derivation is uniform because all constants used above depend only on the fixed finite-cell class constants.
+
+The empirical-moment concentration bounds further imply
+\[
+ P\left(\frac{|R_N(\theta_T)|}{\sqrt{V_{\mathrm{coll}}}}>N^{-1/6}\right)
+ +P\left(\left|\frac{\widehat V_N(\theta_T)}
+ {V_{\mathrm{coll}}}-1\right|>N^{-1/6}\right)
+ \le Ce^{-cN^{1/3}}.
+\]
+The standard normal density is bounded, so changing the standardized statistic and its scale by at most \(N^{-1/6}\) changes the acceptance probability by at most \(CN^{-1/6}\). Combining this observation with the preceding displays yields
+\[
+ \sup_{P\in\mathcal M_N:\mu_D(P)>0}
+ \left|P\{\mathrm{AR}_N(\theta_T)\le\chi^2_{1,1-\alpha}\}
+ -(1-\alpha)\right|
+ \le CN^{-1/4}+CN^{-1/6}+Ce^{-cN^{1/3}}
+ =o(N^{-1/8}).
+\]
+In particular, for all sufficiently large \(N\), the right side is no larger than \(N^{-1/8}\). Acceptance of \(\theta_T\) implies that the hull contains \(\theta_T\). Therefore \(C_N^{\mathrm{AR}}\) belongs to the finite-sample near-honest class for all sufficiently large \(N\), and
+\[
+ \liminf_{N\to\infty}\inf_{P\in\mathcal M_N:\mu_D(P)>0}
+ P\{\theta_T(P)\in C_N^{\mathrm{AR}}\}\ge1-\alpha.
+\]
+No consistent choice of a particular oracle optimizer was used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result supplies implementable coverage through weak compliance and collection-only overlap. \textit{Gap.} Ma's Theorem 3.2 controls one orthogonal LATE score, not a null-indexed estimated collection value and its allocation-face transitions. \textit{Consumer.} Multi-site analysts can avoid compliance pretests and oracle source weights.
+
+\begin{theorem}[thm:profiled-ar-length]\label{thm:profiled-ar-length}
+For a finite \(C_\alpha>0\) depending only on \(\alpha\) and the fixed class constants, \[\limsup_{N\to\infty}\sup_{P\in\mathcal M_N(u)}\frac{E_P[\ell(C_N^{\mathrm{AR}})]}{\min\{1,u^{-1/2}\}}\le C_\alpha\] uniformly over admissible \(u=u_N>0\) with nonempty \(\mathcal M_N(u)\).
+\end{theorem}
+\begin{proof}
+Target-ratio identification and the two transport restrictions give
+\[
+ m_P(\theta)=\mu_D(\theta_T-\theta).
+\]
+Integrating the bounded exponential-moment estimates in the honesty proof gives a random variable \(\Delta_N\) for which
+\[
+ \sup_{\theta\in[-1,1]}|\widehat m_N(\theta)-m_P(\theta)|
+ \le\Delta_N,
+ \qquad
+ \sup_{P\in\mathcal M_N}E_P\Delta_N\le CN^{-1/2},
+\]
+and
+\[
+ \sup_{P\in\mathcal M_N}
+ E_P\sup_{\theta\in[-1,1]}\sqrt{\widehat V_N(\theta)}
+ \le CN^{-1/2}.
+\]
+Indeed, these inequalities hold on the event of regular cell counts by the finite-dimensional moment expansions already proved. On its complement, the score, the fallback prices, and the truncated denominators are bounded, while that event has probability at most \(Ce^{-cN}\).
+
+Let \(z_\alpha=\sqrt{\chi^2_{1,1-\alpha}}\). If \(\theta\) is accepted, then
+\[
+ \mu_D|\theta-\theta_T|
+ =|m_P(\theta)|
+ \le\Delta_N+z_\alpha\sqrt{\widehat V_N(\theta)}.
+\]
+The empirical prices are continuous in \(\theta\), the quadratic program has a unique minimizer, and its variational inequality makes that minimizer continuous. Thus the acceptance set is compact. If it is nonempty, its two extrema are accepted points and are the endpoints of its hull. Since the hull is contained in \([-1,1]\), the preceding display yields
+\[
+ E_P\ell(C_N^{\mathrm{AR}})
+ \le C_\alpha\min\left\{1,\frac1{\mu_D\sqrt N}\right\}.
+\]
+The deterministic variance lower bound proved in the honesty argument implies
+\[
+ \frac1{\mu_D\sqrt N}
+ \le\frac1{\sqrt{v_0}}
+ \frac{\sqrt{V_{\mathrm{coll}}(P,\theta_T)}}{\mu_D}
+ =\frac1{\sqrt{v_0T_{\mathrm{coll}}(P)}}.
+\]
+For \(P\in\mathcal M_N(u)\), this is at most \(v_0^{-1/2}u^{-1/2}\). Taking the supremum over the strength class and then the upper limit proves
+\[
+ \limsup_{N\to\infty}\sup_{P\in\mathcal M_N(u)}
+ \frac{E_P[\ell(C_N^{\mathrm{AR}})]}{\min\{1,u^{-1/2}\}}
+ \le C_\alpha.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The confidence interval automatically shortens at the collection-information rate. \textit{Gap.} Weak-IV inversion results do not establish bounded-ratio expected-length rates under a trial-support hypergraph. \textit{Consumer.} Evidence-synthesis teams can value a trial that covers only selected target cells.
+
+\begin{proposition}[prop:split-support-computation]\label{prop:split-support-computation}
+If \(0<p_0\le1\), \(0<\mu_n\le1\), \(e_0\le1/2\), \(\rho_0\le1/2\), and \(v_0\le1/2\), then \(P_n^{\mathrm{split}}\in\mathcal M_{2n}\), \(\theta_T=0\), and \(\mu_D=\mu_n\). The allocation is \(a_{1x_1}=a_{2x_2}=1/2\), with all other coordinates zero. Since \(\operatorname{Var}(Y\mid X=x_j,Z=z)=1/8\), \(q_{jx_j}(0)=1/2\), and \[V_{\mathrm{coll}}(P_n^{\mathrm{split}},0)=2\frac{(1/2)^2(1/2)}{n}=\frac1{4n},\qquad T_{\mathrm{coll}}(P_n^{\mathrm{split}})=4n\mu_n^2.\] A CACE displacement \(h\) along the compensated Rademacher route has bounded pairwise observed-law divergence whenever \(n\mu_n^2h^2\) is bounded.
+\end{proposition}
+\begin{proof}
+Within each source block the observations are iid, and the two blocks are independent by construction. The randomized encouragement is independent of \((C,\varepsilon)\). Receipt and outcome consistency hold by the displayed potential-variable construction, exclusion holds because \(Y_j(z,d)\) does not depend on \(z\), and monotonicity holds because
+\[
+ D_j(1)-D_j(0)=C\ge0.
+\]
+Both source and target outcome ITT contrasts are zero, while every receipt ITT contrast is \(\mu_n\). The target-cell and target-ITT definitions therefore give
+\[
+ \mu_Y=0,\qquad \mu_D=\mu_n,\qquad \theta_T=0.
+\]
+Each supported source mass is one, each propensity is one half, and both source shares are one half. Thus the restrictions on \(p_0,e_0,\rho_0\) verify the corresponding member conditions. Collection support holds although neither source covers both target cells.
+
+At \(\theta=0\),
+\[
+ Y=\frac12+\frac{\varepsilon}{2\sqrt2},
+ \qquad
+ \operatorname{Var}(Y\mid X=x_j,Z=z)=\frac18,
+\]
+and hence
+\[
+ q_{jx_j}(0)=\frac{1/8}{1/2}+\frac{1/8}{1/2}=\frac12.
+\]
+More generally, independence of \(C\) and \(\varepsilon\) gives
+\[
+ q_{jx_j}(\theta)=\frac12+2\theta^2\mu_n(1-\mu_n)\ge\frac12.
+\]
+Thus \(v_0\le1/2\) verifies residual-variance regularity, and every member property of \(\mathcal M_{2n}\) has been checked.
+
+Each target cell has exactly one covering source, so feasibility forces
+\[
+ a_{1x_1}=a_{2x_2}=\frac12
+\]
+and all other coordinates to be zero. Direct substitution gives
+\[
+ V_{\mathrm{coll}}(P_n^{\mathrm{split}},0)
+ =2\frac{(1/2)^2(1/2)}n=\frac1{4n},
+ \qquad
+ T_{\mathrm{coll}}(P_n^{\mathrm{split}})=4n\mu_n^2.
+\]
+
+For the divergence claim, write the two outcome support points as \(y_-<y_+\), with \(y_+-y_-=1/\sqrt2\). When \(\mu_n\le1/2\), change the upper-point probability for the complier's \(Y(0)\) by \(-t\), and change the corresponding never-taker probability by \(\mu_nt/(1-\mu_n)\). The control-arm mixture is unchanged exactly. In the treated arm only the never-taker component changes, and the induced CACE displacement has magnitude \(|h|=|t|/\sqrt2\). For \(|t|\le1/4\), direct expansion gives
+\[
+ \operatorname{kl}(1/2+t,1/2)\le8t^2.
+\]
+Consequently the product divergence is at most \(Cn\mu_n^2h^2\). When \(\mu_n>1/2\), change instead the complier's \(Y(1)\) probability by \(t\); its divergence is at most \(Cn\mu_nh^2\le2Cn\mu_n^2h^2\). Thus pairwise observed-law divergence is bounded whenever \(n\mu_n^2h^2\) is bounded.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact membership audit and arithmetic calibrate the smallest collection-only least-favorable family. \textit{Gap.} This is a calibration lemma, not a root novelty claim; it verifies the weak-compliance scale under genuinely legal class constants, including \(0<p_0\le1\). \textit{Consumer.} A two-site planner obtains an explicit benchmark when each site covers only one target cell.
+
+\begin{proposition}[prop:collection-strict-separation]\label{prop:collection-strict-separation}
+Let \(0<p_0\le1\), \(0<v_0\le q_L<q_H\le1\), \(e_0\le1/2\), \(\rho_0\le1/4\), and \(0<\mu_n\le1\). Then \(P_n^A,P_n^B\in\mathcal M_{4n}\), \(\theta_T=0\), and both have \(\mu_D=\mu_n\). They have the same \(N=4n\), \(K=4\), target composition, source sample sizes, source cell masses, propensities, and labeled multiset of per-source prices \(\{q_L,q_L,q_H,q_H\}\), and neither collection contains a source covering both target cells. Nevertheless,
+\[
+V_{\mathrm{coll}}(P_n^A,0)=\frac{q_L+q_H}{8n}>
+\frac{q_Lq_H}{2n(q_L+q_H)}=V_{\mathrm{coll}}(P_n^B,0),
+\]
+with difference \((q_H-q_L)^2/\{8n(q_L+q_H)\}\). At \(\theta_T=0\), these values are also the unrestricted pooled observed-data variance bounds for the transported outcome ITT in the two displayed designs. Their collection strengths are therefore distinct, and, whenever both strengths exceed one, their strong-branch benchmarks \(T_{\mathrm{coll}}^{-1/2}\) are distinct. No reduction based only on pooled size, aggregate compliance, target composition, and the marginal labeled multiset of source prices represents both designs; the incidence of precision with cell support is necessary.
+\end{proposition}
+\begin{proof}
+The iid sampling, randomization, consistency, exclusion, monotonicity, transport, support, mass, and balance conditions follow directly from the construction. In every source the receipt contrast is \(\mu_n\) and the outcome contrast is zero. Hence the target-ITT and ratio-identification results give
+\[
+ \mu_D=\mu_n,\qquad \mu_Y=0,\qquad \theta_T=0.
+\]
+For a source with label \(q_s\),
+\[
+ \operatorname{Var}(Y\mid Z=z)=\frac{q_s}{4},
+ \qquad
+ q_{sx}(0)=q_s,
+\]
+and independence of the Rademacher noise and compliance type gives
+\[
+ q_{sx}(\theta)=q_s+2\theta^2\mu_n(1-\mu_n)\ge q_s.
+\]
+Thus \(v_0\le q_L\) verifies residual regularity and both laws lie in \(\mathcal M_{4n}\).
+
+For one cell covered by sources with prices \(q,q'\), minimize
+\[
+ \frac{qa^2}{n}+\frac{q'(1/2-a)^2}{n}.
+\]
+The derivative vanishes at \(a=q'/\{2(q+q')\}\), and strict convexity makes this the unique minimum, of value
+\[
+ \frac1{4n}\frac{qq'}{q+q'}.
+\]
+In design \(A\), both sources on the first cell have price \(q_L\), and both on the second have price \(q_H\). Therefore
+\[
+ V_{\mathrm{coll}}(P_n^A,0)=\frac{q_L+q_H}{8n}.
+\]
+In design \(B\), each cell has one low-price and one high-price source, so
+\[
+ V_{\mathrm{coll}}(P_n^B,0)
+ =2\left\{\frac1{4n}\frac{q_Lq_H}{q_L+q_H}\right\}
+ =\frac{q_Lq_H}{2n(q_L+q_H)}.
+\]
+Subtracting yields
+\[
+ V_{\mathrm{coll}}(P_n^A,0)-V_{\mathrm{coll}}(P_n^B,0)
+ =\frac{(q_H-q_L)^2}{8n(q_L+q_H)}>0.
+\]
+
+At \(\theta_T=0\), the target residual functional is the transported outcome ITT alone. In these constructions the outcome noise is independent of receipt and compliance type. Thus the outcome arm-contrast scores are orthogonal to every receipt score, so the separate receipt-transport restriction cannot reduce their variance. Repeating the cellwise Riesz calculation for \(Y\) alone shows that the unrestricted pooled bound is exactly the scalar program just computed. Since \(\mu_D\) agrees across the two laws, their strengths are inversely ordered with these variances. On the branch \(T_{\mathrm{coll}}>1\), the map \(T\mapsto T^{-1/2}\) is strictly decreasing, so their rate benchmarks are distinct. Every scalar summary listed in the statement agrees by construction; only the source-price--cell-support incidence differs. A reduction using only those common summaries must take the same value on both laws and hence cannot equal both distinct bounds.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This strict-separation corollary of the pooled-information equivalence is non-definitional: the source-by-cell precision incidence, rather than a pooled effective sample size, controls inference. \textit{Gap.} Published multi-source efficiency formulas do not exhibit two collection-only encouragement designs matched on scalar summaries but separated by the support-constrained residual program. \textit{Consumer.} Trial portfolio design must match precise sources to target cells rather than report only total enrollment or a Kish effective size.
+
+\begin{theorem}[thm:continuum-lower-bound]\label{thm:continuum-lower-bound}
+Let
+\[
+\bar v=\{4e_0(1-e_0)\}^{-1},
+\qquad
+\beta_0=\sqrt{1-v_0/\bar v}.
+\]
+Nonemptiness of the base class implies \(0<v_0\le\bar v\), so \(\beta_0\in[0,1)\). There is a constant \(c_\alpha>0\), depending only on \(\alpha\) and the fixed class constants, such that every admissible sequence \(u=u_N>0\) with nonempty \(\mathcal M_N(u)\) satisfies
+\[
+\liminf_{N\to\infty}
+\inf_{C_N\in\mathfrak C_{N,\alpha}}
+\sup_{P\in\mathcal M_N(u)}
+\frac{E_P[\ell(C_N)]}{\min\{1,u^{-1/2}\}}
+\ge c_\alpha\beta_0.
+\]
+For \(\beta_0>0\), the lower family can be chosen with some \(q_N\in[v_0,(v_0+\bar v)/2]\) so that
+\[
+V_{\mathrm{vec}}(P_0,0)=V_{\mathrm{coll}}(P_0,0)=q_N/N,
+\qquad T_{\mathrm{coll}}(P_0)=u,
+\]
+and its product-law Kullback--Leibler divergence at CACE displacement \(h\asymp\beta_0\min\{1,u^{-1/2}\}\) is bounded. If \(K\ge2\) and \(|\mathcal X|\ge2\), this family can have collection-only split support. At the boundary \(\beta_0=0\), every identified target in the base class equals zero and \(R_{N,\alpha}(u)=0\). Thus the scalar collection program is necessary for the worst-case rate through a subfamily on which it equals the vector program; it is not asserted to be the unrestricted pointwise information bound at every law or on every allocation face.
+\end{theorem}
+\begin{proof}
+Write \(\bar v=\{4e_0(1-e_0)\}^{-1}\). Boundedness \(0\le Y\le1\) gives \(\operatorname{Var}(Y\mid X=x,Z=z)\le1/4\), and propensity overlap gives \(e_s(x)\{1-e_s(x)\}\ge e_0(1-e_0)\). At \(\theta=0\), residual regularity therefore implies
+\[
+v_0\le q_{sx}(0)
+\le\frac1{4e_s(x)}+\frac1{4\{1-e_s(x)\}}
+=\frac1{4e_s(x)\{1-e_s(x)\}}
+\le\bar v.
+\]
+Thus nonemptiness implies \(v_0\le\bar v\).
+
+For every feasible allocation, residual regularity and Cauchy--Schwarz give
+\[
+\begin{aligned}
+W_{\mathrm{coll}}(P,\theta_T,a)
+&\ge v_0\sum_{s,x}\frac{a_{sx}^2}{n_sp_s(x)}\\
+&\ge\frac{v_0(\sum_{s,x}a_{sx})^2}{\sum_{s,x}n_sp_s(x)}
+=\frac{v_0}{N}.
+\end{aligned}
+\]
+Feasibility gives \(\sum_{s,x}a_{sx}=\sum_xp_T(x)=1\), while the source mass functions give \(\sum_{s,x}n_sp_s(x)=N\). Monotonicity and binary receipt imply \(0\le\mu_D\le1\). Hence
+\[
+T_{\mathrm{coll}}(P)\le N/v_0,
+\]
+so nonemptiness of \(\mathcal M_N(u)\) implies \(u\le N/v_0\).
+
+Suppose \(v_0<\bar v\), and define
+\[
+q_\circ=\frac{v_0+\bar v}{2},\qquad
+q_N=\begin{cases}
+q_\circ,&u\le N/q_\circ,\\[2pt]
+N/u,&u>N/q_\circ,
+\end{cases}
+\qquad
+\mu_N=\sqrt{\frac{uq_N}{N}}.
+\]
+Then
+\[
+v_0\le q_N\le q_\circ<\bar v,\qquad
+0<\mu_N\le1,\qquad
+\frac{N\mu_N^2}{q_N}=u.
+\]
+Let \(r_N\in(0,1/2)\) be the smaller solution of
+\[
+r_N(1-r_N)=e_0(1-e_0)q_N,
+\]
+and let \(d_N=1-2r_N\). Since \(q_N\le q_\circ\),
+\[
+d_N=\sqrt{1-4e_0(1-e_0)q_N}\ge\frac{\beta_0}{\sqrt2},
+\qquad
+\beta_0=\sqrt{1-4e_0(1-e_0)v_0}.
+\]
+The inequality \(q_N\ge v_0>0\) also bounds \(r_N\) away from zero by a fixed constant.
+
+If \(K=1\), use one target cell with source and target masses one. If \(K\ge2\) and \(|\mathcal X|\ge2\), partition the sources into nonempty \(I_1,I_2\), give sources in \(I_j\) singleton support \(\{x_j\}\), and set
+\[
+p_T(x_j)=N_j/N,\qquad N_j=\sum_{s\in I_j}n_s.
+\]
+If only one cell is available, use it in every source. In every supported cell set \(p_s(x)=1\) and \(e_s(x)=e_0\). These choices verify collection support, supported-cell mass, propensity overlap, and sample balance; with two cells no source covers the target support.
+
+In each block draw \(C\sim\operatorname{Bernoulli}(\mu_N)\), independently of \(Z\sim\operatorname{Bernoulli}(e_0)\), and set
+\[
+D(0)=0,\qquad D(1)=C.
+\]
+At \(P_0\), draw \(B_0,B_1\sim\operatorname{Bernoulli}(r_N)\) independently of \(C\), set \(Y(z,d)=B_d\), and use the same conditional potential law in the target. Sampling, randomization, consistency, exclusion, monotonicity, and both transport restrictions hold by construction. The target ITTs are
+\[
+\mu_Y(P_0)=0,\qquad \mu_D(P_0)=\mu_N,\qquad\theta_T(P_0)=0.
+\]
+Direct calculation gives, for every \(\theta\in[-1,1]\),
+\[
+q_{sx}(\theta)=q_N+\frac{\theta^2\mu_N(1-\mu_N)}{e_0}\ge q_N\ge v_0.
+\]
+Thus \(P_0\in\mathcal M_N\).
+
+At \(\theta=0\), every source price is \(q_N\). In the two-cell construction the scalar allocation \(a_{sx}=n_s/N\) has the required cell sums and is optimal by Cauchy--Schwarz. Therefore
+\[
+V_{\mathrm{coll}}(P_0,0)
+=\sum_j\frac{q_Np_T(x_j)^2}{N_j}
+=\frac{q_N}{N}.
+\]
+The one-cell calculation is identical. The vector covariance matrices are diagonal and source-compatible, while \(c_0=(1,0)^{\mathsf T}\); the vector program is minimized by zero receipt coefficients and the same outcome weights. Hence
+\[
+V_{\mathrm{vec}}(P_0,0)=V_{\mathrm{coll}}(P_0,0)=q_N/N,
+\qquad
+T_{\mathrm{coll}}(P_0)=N\mu_N^2/q_N=u.
+\]
+Thus \(P_0\in\mathcal M_N(u)\).
+
+Construct \(P_h\) as follows. If \(\mu_N\le1/2\), keep the complier treatment-one outcome Bernoulli with parameter \(r_N\), change the complier treatment-zero parameter to \(r_N-h\), and change the never-taker treatment-zero parameter to
+\[
+r_N+\frac{\mu_Nh}{1-\mu_N}.
+\]
+The control-arm mixture remains Bernoulli with parameter \(r_N\). If \(\mu_N>1/2\), keep every treatment-zero outcome Bernoulli with parameter \(r_N\) and change only the complier treatment-one parameter to \(r_N+h\). Use the same alternative in all source and target cells. In both cases the receipt contrast remains \(\mu_N\), the outcome ITT is \(\mu_Nh\), and ratio identification gives
+\[
+\theta_T(P_h)=h.
+\]
+
+Choose \(h\le d_N\) and, in the first case, \(h\le r_N/2\). The Bernoulli probabilities are then legal. Put \(\sigma_N^2=r_N(1-r_N)\). If \(\mu_N\le1/2\), completing the square gives
+\[
+\operatorname{Var}(Y-\theta D\mid Z=1)
+=\sigma_N^2+\mu_Nhd_N-\frac{\mu_N^2h^2}{1-\mu_N}
++\mu_N(1-\mu_N)
+\left(\theta+\frac{\mu_Nh}{1-\mu_N}\right)^2
+\ge\sigma_N^2.
+\]
+The inequality uses \(h\le d_N\) and \(\mu_N/(1-\mu_N)\le1\). If \(\mu_N>1/2\), then
+\[
+\operatorname{Var}(Y-\theta D\mid Z=1)
+=\sigma_N^2+\mu_Nh(d_N-h)
++\mu_N(1-\mu_N)(\theta-h)^2
+\ge\sigma_N^2.
+\]
+In both cases the control residual variance is \(\sigma_N^2\). Consequently
+\[
+q_{sx}(\theta)\ge
+\frac{\sigma_N^2}{e_0}+\frac{\sigma_N^2}{1-e_0}
+=q_N\ge v_0
+\]
+uniformly over \(\theta\in[-1,1]\), so \(P_h\in\mathcal M_N\).
+
+Because \(r_N\) is uniformly separated from zero and the perturbations stay inside a fixed interior interval, Taylor's theorem for Bernoulli relative entropy gives \(L<\infty\) such that
+\[
+\operatorname{kl}(r_N+t,r_N)\le Lt^2
+\]
+for every perturbation used. If \(\mu_N\le1/2\), only the encouraged never-taker outcome law changes, and
+\[
+\operatorname{KL}(P_h,P_0)
+=Ne_0(1-\mu_N)
+\operatorname{kl}\left(r_N+\frac{\mu_Nh}{1-\mu_N},r_N\right)
+\le2Le_0N\mu_N^2h^2.
+\]
+If \(\mu_N>1/2\), only the encouraged complier outcome law changes, and
+\[
+\operatorname{KL}(P_h,P_0)
+=Ne_0\mu_N\operatorname{kl}(r_N+h,r_N)
+\le2Le_0N\mu_N^2h^2.
+\]
+Thus
+\[
+\operatorname{KL}(P_h,P_0)\le L_0N\mu_N^2h^2=L_0uq_Nh^2.
+\]
+
+Choose \(c_*>0\), depending only on \(\alpha\) and the fixed class constants, so that all preceding probability restrictions hold for
+\[
+h=c_*\beta_0\min\{1,u^{-1/2}\},
+\]
+and so that \(L_0\bar vc_*^2\le\eta_\alpha^2\) for some \(0<\eta_\alpha<1-2\alpha\). This is possible because \(d_N\ge\beta_0/\sqrt2\), \(r_N\) has a fixed positive lower bound, and \(uh^2\le c_*^2\beta_0^2\). The elementary inequality
+\[
+t\log t-t+1\ge\frac{(t-1)^2}{2(t+1)},\qquad t>0,
+\]
+applied to the likelihood ratio and followed by Cauchy--Schwarz gives
+\[
+\lVert P_h-P_0\rVert_{\mathrm{TV}}
+\le\sqrt{\operatorname{KL}(P_h,P_0)}\le\eta_\alpha.
+\]
+
+For \(C_N\in\mathfrak C_{N,\alpha}\), honesty applies to both laws because both first stages are positive. Change of measure and the union bound yield
+\[
+\begin{aligned}
+P_0\{0\in C_N,\ h\in C_N\}
+&\ge P_0\{0\in C_N\}+P_0\{h\in C_N\}-1\\
+&\ge1-2\alpha-2N^{-1/8}-\lVert P_h-P_0\rVert_{\mathrm{TV}}.
+\end{aligned}
+\]
+On this event the interval length is at least \(h\). For all large \(N\), the last probability is bounded below by a positive constant. Since \(P_0\in\mathcal M_N(u)\), taking expectation, the supremum, the infimum, and the lower limit proves
+\[
+\liminf_{N\to\infty}
+\inf_{C_N\in\mathfrak C_{N,\alpha}}
+\sup_{P\in\mathcal M_N(u)}
+\frac{E_P\ell(C_N)}{\min\{1,u^{-1/2}\}}
+\ge c_\alpha\beta_0.
+\]
+
+Finally suppose \(v_0=\bar v\). Every inequality in the initial variance display is then equality on each supported cell. Hence both conditional arm variances of \(Y\) equal \(1/4\). For \(Y\in[0,1]\), equality in
+\(\operatorname{Var}(Y)\le E(Y)\{1-E(Y)\}\le1/4\) forces \(E(Y)=1/2\). Every supported source cell therefore has outcome ITT zero. Outcome transport and collection support give \(\delta_Y(x)=0\) on target support, so \(\mu_Y=0\). Whenever \(\mu_D>0\), ratio identification gives \(\theta_T=0\). The deterministic interval \(\{0\}\) is uniformly honest and has zero length, proving \(R_{N,\alpha}(u)=0\) for every nonempty boundary strength class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The all-procedure lower bound is supplied by a legal subfamily on which the unrestricted vector and scalar programs coincide, and it exposes the exact bounded-outcome boundary factor. \textit{Gap.} The prior every-allocation-face scalar information claim was too strong because separate transport permits vector coefficients; the corrected theorem proves only the worst-case necessity actually needed for minimax inference. \textit{Consumer.} A collection-only trial portfolio obtains a valid worst-case benchmark without mistaking the scalar profile for the pointwise unrestricted efficiency bound.
+
+\begin{theorem}[thm:minimax-frontier]\label{thm:minimax-frontier}
+Let
+\[
+\beta_0=\sqrt{1-4e_0(1-e_0)v_0}.
+\]
+For fixed \(0<\alpha<1/2\), there are finite constants \(0<c_\alpha\le C_\alpha<\infty\), depending only on \(\alpha\) and the fixed class constants, such that every admissible sequence \(u=u_N>0\) with nonempty \(\mathcal M_N(u)\) obeys
+\[
+c_\alpha\beta_0
+\le\liminf_{N\to\infty}
+\frac{R_{N,\alpha}(u)}{\min\{1,u^{-1/2}\}}
+\le\limsup_{N\to\infty}
+\frac{R_{N,\alpha}(u)}{\min\{1,u^{-1/2}\}}
+\le C_\alpha.
+\]
+Thus, whenever \(\beta_0>0\), \(R_{N,\alpha}(u)\asymp\min\{1,u^{-1/2}\}\) uniformly over the same original strength class. When \(\beta_0=0\), \(R_{N,\alpha}(u)=0\). The upper bound is attained by the fully empirical scalar profiled Anderson--Rubin inversion. The lower bound is all-procedure and uses laws for which \(V_{\mathrm{vec}}=V_{\mathrm{coll}}\); it does not identify \(V_{\mathrm{coll}}\) with unrestricted pointwise information. For \(K=1\), the vector and scalar programs coincide and the result reduces to the single-source frontier. For \(K\ge2\), the base class permits \(V_{\mathrm{vec}}<V_{\mathrm{coll}}\), while its covariance boundary prevents the ordinary empirical vector inverse from furnishing a uniform vector-GMM Anderson--Rubin theorem without additional regularization analysis.
+\end{theorem}
+\begin{proof}
+Put \(r_N(u)=\min\{1,u^{-1/2}\}\). The quantitative uniform-coverage conclusion underlying the established profiled-honesty theorem, together with the \(N^{-1/8}\) slack in the honest-procedure definition, gives
+\[
+C_N^{\mathrm{AR}}\in\mathfrak C_{N,\alpha}
+\]
+for all sufficiently large \(N\). It is therefore an admissible competitor in the minimax definition. The established profiled-length theorem yields
+\[
+\limsup_{N\to\infty}\frac{R_{N,\alpha}(u)}{r_N(u)}
+\le
+\limsup_{N\to\infty}\sup_{P\in\mathcal M_N(u)}
+\frac{E_P\ell(C_N^{\mathrm{AR}})}{r_N(u)}
+\le C_\alpha.
+\]
+The continuum theorem gives
+\[
+\liminf_{N\to\infty}\frac{R_{N,\alpha}(u)}{r_N(u)}
+\ge c_\alpha\beta_0.
+\]
+Combining the displays proves the unconditional bracket. If \(\beta_0>0\), it is a fixed positive class constant, so the exponents match without changing the base class. If \(\beta_0=0\), the continuum theorem gives the stronger exact statement \(R_{N,\alpha}(u)=0\).
+
+The unrestricted-vector lemma explains the interpretation. Separate transport permits vector coefficients and gives \(V_{\mathrm{vec}}\le V_{\mathrm{coll}}\), with strict inequality possible for \(K\ge2\). The least-favorable family above has diagonal source-compatible covariance and equality of the programs, so its change-of-measure bound is valid against every confidence procedure and suffices for the minimax supremum. The vector plug-in boundary proposition shows that the original conditions do not uniformly control empirical covariance inverses; no vector-profiled chi-square attainment claim follows. The certified upper procedure remains the data-total scalar-profiled inversion.
+
+When \(K=1\), the vector constraint forces the sole coefficient to be \(p_T(x)c_\theta\). The unrestricted-vector lemma and the established single-source sanity check give
+\[
+V_{\mathrm{vec}}(P,\theta)=V_{\mathrm{coll}}(P,\theta)
+=\sum_{x:p_T(x)>0}
+\frac{p_T(x)^2q_{1x}(\theta)}{n_1p_1(x)}.
+\]
+Substitution into the same upper and lower arguments recovers the single-source frontier, including the exact zero-length result at the maximal-variance boundary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result is a matched interior rate under the original class, an unconditional boundary-factor bracket, and an exact zero-length characterization at the degenerate edge. \textit{Gap.} Published weak-IV and transport results do not combine all-procedure length, union support, vector-versus-scalar information, and boundary degeneration. \textit{Consumer.} Designers can report \(T_{\mathrm{coll}}\) as a conservative robust-inference index and \(V_{\mathrm{vec}}\) separately as a favorable-law regular-information diagnostic.
+
+\begin{proposition}[prop:single-source-sanity-check]\label{prop:single-source-sanity-check}
+If \(K=1\) and \(p_T(x)>0\Rightarrow p_1(x)>0\), then the unique feasible allocation is \(a_{1x}=p_T(x)\), and
+\[
+V_{\mathrm{coll}}(P,\theta)
+=\sum_{\substack{x\in\mathcal X\\ p_T(x)>0}}
+\frac{p_T(x)^2q_{1x}(\theta)}{n_1p_1(x)}.
+\]
+Thus the collection allocation, variance, and, wherever its defining quotient is defined, strength reduce algebraically to their one-source residual-variance forms.
+\end{proposition}
+\begin{proof}
+Assume \(K=1\) and \(p_T(x)>0\Rightarrow p_1(x)>0\) for every \(x\in\mathcal X\).  Put
+\[
+\mathcal I_T=\{x\in\mathcal X:p_T(x)>0\}.
+\]
+By the source-support definition, \(\mathcal H_1=\{x\in\mathcal X:p_1(x)>0\}\); hence the displayed implication gives \(\mathcal I_T\subseteq\mathcal H_1\).
+
+Let \(a\in\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)\).  The equality constraint in the allocation-polytope definition and \(K=1\) give, cell by cell,
+\[
+a_{1x}=\sum_{s=1}^{1}a_{sx}=p_T(x),\qquad x\in\mathcal X.
+\]
+Thus there is at most one feasible allocation.  Conversely, define \(a^*_{1x}=p_T(x)\).  It is nonnegative because \(p_T\) is a mass function.  If \(x\notin\mathcal H_1\), then \(p_1(x)=0\) by the source-support definition.  The contrapositive of the assumed implication yields \(p_T(x)\le 0\); since \(p_T(x)\ge0\), this means \(p_T(x)=0\), and therefore \(a^*_{1x}=0\).  Hence \(a^*\) satisfies both the support and equality constraints in the allocation-polytope definition.  It is feasible and, by the preceding cellwise equality, unique.
+
+Using the corrected collection-variance construction and then the unique allocation,
+\[
+\begin{aligned}
+V_{\mathrm{coll}}(P,\theta)
+&=W_{\mathrm{coll}}(P,\theta,a^*)\\
+&=\sum_{x\in\mathcal H_1}
+  \frac{p_T(x)^2q_{1x}(\theta)}{n_1p_1(x)}.
+\end{aligned}
+\]
+Every denominator in this last sum is strictly positive: \(n_1\) is a positive integer, and \(p_1(x)>0\) for \(x\in\mathcal H_1\) by the source-support definition.  For \(x\in\mathcal H_1\setminus\mathcal I_T\), nonnegativity of the mass function and \(x\notin\mathcal I_T\) imply \(p_T(x)=0\), so the corresponding summand, whose denominator is positive, equals zero.  Since \(\mathcal I_T\subseteq\mathcal H_1\), deleting exactly these zero summands proves
+\[
+V_{\mathrm{coll}}(P,\theta)
+=\sum_{x\in\mathcal I_T}
+  \frac{p_T(x)^2q_{1x}(\theta)}{n_1p_1(x)}.
+\]
+This is the asserted one-source residual-variance formula.  Finally, wherever the quotient defining strength is defined, substituting the same variance formula at \(\theta=\theta_T\) into \(T_{\mathrm{coll}}(P)=\mu_D^2/V_{\mathrm{coll}}(P,\theta_T)\) gives the corresponding one-source strength without any further probabilistic argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the required \(K=1\) sanity check. \textit{Gap.} No novelty or procedural equivalence is claimed for this algebraic corollary. \textit{Consumer.} Single-trial analyses recover the familiar inverse-cell-mass formula.
+
+\begin{theorem}[thm:regular-efficiency]\label{thm:regular-efficiency}
+Along every sequence in \(\mathcal M_N\) with \(\inf_N\mu_D>0\), the profiled Anderson--Rubin interval is first-order equivalent to the Wald interval based on the minimum-variance scalar residual-score influence representation, whose variance is \(V_{\mathrm{coll}}(P,\theta_T)/\mu_D^2\). When \(K=1\), this influence function is the canonical gradient \(\phi_{\mathrm{eff}}\) in the nonparametric observed-law model, so the profiled interval is semiparametrically efficient and recovers the single-source result. For \(K\ge2\), the equivalence is only to the scalar residual-score Wald interval; for allowed class constants, separate outcome and receipt transport can make the unrestricted efficiency bound strictly smaller.
+\end{theorem}
+\begin{proof}
+Let \(a^{\star}(\theta_T)\) be the unique minimizer of the scalar allocation program and let \(\Phi_{a^{\star}}\) be the product-experiment residual influence score constructed in the pooled-information proof. Along a regular path with derivatives \((\dot\mu_Y,\dot\mu_D)\), quotient algebra is justified by \(\inf_N\mu_D>0\) and gives
+\[
+ \dot\theta_T
+ =\frac{\dot\mu_Y-\theta_T\dot\mu_D}{\mu_D}.
+\]
+Consequently
+\[
+ \phi_{\mathrm{sc}}=\frac{\Phi_{a^{\star}}}{\mu_D}
+\]
+is a valid regular influence function and
+\[
+ \operatorname{Var}_P(\phi_{\mathrm{sc}})
+ =\frac{V_{\mathrm{coll}}(P,\theta_T)}{\mu_D^2}.
+\]
+The pooled-information theorem proves minimality within the scalar residual-score class. When \(K=1\), its final argument shows that componentwise transport forces the same sole coefficient vector, so \(\phi_{\mathrm{sc}}=\phi_{\mathrm{eff}}\) and the displayed variance is the nonparametric observed-law efficiency bound.
+
+Uniform consistency of the profiler and the score expansion in the honesty proof imply, on every sequence with compliance bounded away from zero,
+\[
+ \widehat m_N(\theta)
+ =\widehat m_N(\theta_T)-\mu_D(\theta-\theta_T)+o_P(N^{-1/2})
+\]
+uniformly for \(|\theta-\theta_T|=O(N^{-1/2})\), and
+\[
+ \widehat V_N(\theta)
+ =V_{\mathrm{coll}}(P,\theta_T)+o_P(N^{-1}).
+\]
+Writing \(z_{1-\alpha/2}=\sqrt{\chi^2_{1,1-\alpha}}\), the two local roots of the Anderson--Rubin acceptance inequality are therefore
+\[
+ \theta_T+\frac{\widehat m_N(\theta_T)}{\mu_D}
+ \mathbin{\pm}
+ z_{1-\alpha/2}
+ \frac{\sqrt{V_{\mathrm{coll}}(P,\theta_T)}}{\mu_D}
+ +o_P(N^{-1/2}).
+\]
+These are precisely the Wald endpoints based on \(\phi_{\mathrm{sc}}\), to first order. If the fixed boundary of \([-1,1]\) is active, both intervals undergo the same first-order truncation; taking the hull does not change the local endpoint expansion. This proves scalar-Wald equivalence for every \(K\) and semiparametric efficiency for \(K=1\). The explicit two-source counterexample in the pooled-information proof shows why no unrestricted multi-source efficiency conclusion follows without an additional covariance compatibility condition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The identification-robust procedure remains efficient under strong compliance. \textit{Gap.} Rudolph and van der Laan derive a single-source ratio gradient, while Su et al. derive multi-source weights for a nonratio effect; neither gives the joint residual allocation. \textit{Consumer.} Regular multi-site analyses sacrifice no first-order precision by using robust inversion.
+
+\begin{openendedquestion}[oeq:sharp-confidence-constant]\label{oeq:sharp-confidence-constant}
+Does \(\mathcal G_{\mathrm{coll}}(P)\) determine \(\kappa_\alpha\) such that \(R_{N,\alpha}(u)/\min\{1,u^{-1/2}\}\to\kappa_\alpha\) uniformly on compact nondegenerate faces of \(\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)\), and can an inversion derived through \(\mathfrak H_{\mathrm{sharp}}\) attain it while retaining honesty at face transitions?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The rate theorem does not determine the exact confidence-length constant or optimal test shape. \textit{Gap.} Mikusheva studies invariant weak-IV geometry and Cai and Low sharp Gaussian moduli, but neither covers causal allocation-face transitions. \textit{Consumer.} An exact constant would compare collections with similar rate indices but different finite-strength geometry.
+
+\begin{lemma}[lem:unrestricted-vector-allocation]\label{lem:unrestricted-vector-allocation}
+For every \(P\in\mathcal M_N\) and \(\theta\in[-1,1]\), \(V_{\mathrm{vec}}(P,\theta)\) is the minimum variance among regular arm-contrast influence representations that use the separate cross-source equalities of the outcome and receipt contrasts. It obeys
+\[
+0\le V_{\mathrm{vec}}(P,\theta)\le V_{\mathrm{coll}}(P,\theta).
+\]
+If every \(\Omega_{sx}\) on a target-supported cell is positive definite, then
+\[
+V_{\mathrm{vec}}(P,\theta)
+=\sum_{x:p_T(x)>0}p_T(x)^2c_\theta^{\mathsf T}
+\left\{\sum_{s:x\in\mathcal H_s}n_sp_s(x)\Omega_{sx}^{-1}\right\}^{-1}
+c_\theta.
+\]
+For \(K=1\), \(V_{\mathrm{vec}}(P,\theta)=V_{\mathrm{coll}}(P,\theta)\). For \(K\ge2\), strict inequality is possible under the original base class. Hence \(V_{\mathrm{coll}}\) is the exact scalar-residual-score benchmark, whereas \(V_{\mathrm{vec}}\) is the unrestricted componentwise-transport vector-GMM benchmark.
+\end{lemma}
+\begin{proof}
+Fix \(s\) and \(x\in\mathcal H_s\), and put
+\[
+g_{sxz}=E_{P_s}[(Y,D)^{\mathsf T}\mid X=x,Z=z].
+\]
+The source-support definition gives \(p_s(x)>0\), and propensity overlap gives \(e_s(x)>0\) and \(1-e_s(x)>0\). Thus
+\[
+\psi_{sx}(O_s)=\frac{\mathbf 1\{X=x\}}{p_s(x)}
+\left[
+\frac{Z}{e_s(x)}\{(Y,D)^{\mathsf T}-g_{sx1}\}
+-\frac{1-Z}{1-e_s(x)}\{(Y,D)^{\mathsf T}-g_{sx0}\}
+\right]
+\]
+is well defined. Conditional centering, known randomization, and disjoint cell indicators give
+\[
+E_{P_s}\psi_{sx}=0,\qquad
+E_{P_s}(\psi_{sx}\psi_{sx}^{\mathsf T})=\frac{\Omega_{sx}}{p_s(x)},\qquad
+E_{P_s}(\psi_{sx}\psi_{sx'}^{\mathsf T})=0\quad(x\ne x').
+\]
+The two transport assumptions separately equate the coordinates of \(g_{sx1}-g_{sx0}\) across covering sources. The target-ITT definition therefore gives the identified null functional
+\[
+m_P(\theta)=\mu_Y-\theta\mu_D
+=\sum_{x\in\mathcal X}p_T(x)c_\theta^{\mathsf T}
+\begin{pmatrix}\delta_Y(x)\\ \delta_D(x)\end{pmatrix}.
+\]
+This equality follows from identification and transport; it does not define the causal effect.
+
+For coefficient vectors \(b_{sx}\), consider
+\[
+\Phi_b=\sum_{s=1}^K\frac1{n_s}\sum_{i=1}^{n_s}
+\sum_{x\in\mathcal H_s}b_{sx}^{\mathsf T}\psi_{sx}(O_{si}).
+\]
+Varying the common two-coordinate contrast in one cell at a time shows that \(\Phi_b\) represents the derivative of \(m_P(\theta)\) if and only if
+\[
+\sum_{s=1}^K b_{sx}=p_T(x)c_\theta
+\]
+for every \(x\), with coefficients off source support equal to zero. Independence of source blocks and the covariance identities yield
+\[
+\operatorname{Var}_P(\Phi_b)
+=\sum_{s=1}^K\sum_{x\in\mathcal H_s}
+\frac{b_{sx}^{\mathsf T}\Omega_{sx}b_{sx}}{n_sp_s(x)}.
+\]
+Minimizing over exactly these unbiasedness constraints proves the variance characterization.
+
+For any \(a\in\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)\), set \(b_{sx}=a_{sx}c_\theta\). Then \(b\) is vector-feasible, and the residual-price definition gives
+\[
+c_\theta^{\mathsf T}\Omega_{sx}c_\theta=q_{sx}(\theta).
+\]
+The vector objective at \(b\) is therefore \(W_{\mathrm{coll}}(P,\theta,a)\). Taking both minima proves
+\[
+V_{\mathrm{vec}}(P,\theta)\le V_{\mathrm{coll}}(P,\theta).
+\]
+
+If the covariance matrices are positive definite, the problem separates over cells. Lagrange differentiation on one cell gives
+\[
+b_s=n_sp_s\Omega_s^{-1}
+\left(\sum_t n_tp_t\Omega_t^{-1}\right)^{-1}p_Tc_\theta.
+\]
+Strict convexity gives uniqueness; substitution and summation over cells give the asserted closed form.
+
+If \(K=1\), feasibility forces \(b_{1x}=p_T(x)c_\theta\), and hence
+\[
+V_{\mathrm{vec}}(P,\theta)
+=\sum_{x:p_T(x)>0}\frac{p_T(x)^2c_\theta^{\mathsf T}\Omega_{1x}c_\theta}{n_1p_1(x)}
+=\sum_{x:p_T(x)>0}\frac{p_T(x)^2q_{1x}(\theta)}{n_1p_1(x)}
+=V_{\mathrm{coll}}(P,\theta).
+\]
+Finally, the strict two-source covariance witness in the established pooled-information theorem has scalar value \(1/(4n)\) and vector value \(1/(8n)\) at \(\theta=0\), while remaining in the original base class for the constants stated there. This proves that strict inequality is possible without strengthening the model.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma supplies the componentwise-transport program required to audit the scalar-score restriction. \textit{Gap.} The previous scalar formulation omitted legal cross-source reallocations between outcome and receipt coordinates. \textit{Consumer.} It determines when scalar profiling is pointwise efficient and when it is deliberately conservative.
+
+\begin{proposition}[prop:vector-plug-in-boundary-obstruction]\label{prop:vector-plug-in-boundary-obstruction}
+The original base class does not impose a uniform lower eigenvalue bound on \(\Omega_{sx}\). More precisely, whenever \(\mathcal M_N\) is nonempty, there is a sequence \(P_N\in\mathcal M_N\) with \(\mu_D(P_N)>0\), \(\inf_{\theta\in[-1,1]}q_{sx}(\theta)\ge v_0\), and \(\lambda_{\min}(\Omega_{sx})\to0\), for which the usual empirical covariance inverse in an unregularized vector-GMM profile is undefined with probability bounded away from zero. Thus such an unregularized profiled vector Anderson--Rubin statistic is not a data-total uniformly studentized procedure on \(\mathcal M_N\); a ridge, generalized-inverse rule, and an additional error term would be needed, and the frozen scalar-profiled inversion is the uniform procedure certified under the stated class.
+\end{proposition}
+\begin{proof}
+Nonemptiness and residual-variance regularity imply
+\[
+v_0\le \bar v:=\{4e_0(1-e_0)\}^{-1};
+\]
+this inequality is also derived in the continuum proof below. Use one supported cell in every source, set every propensity to \(e_0\), let \(C\sim\operatorname{Bernoulli}(\varepsilon_N)\) with \(\varepsilon_N=N^{-1}\), and set \(D(0)=0\), \(D(1)=C\). Let both treatment potential outcomes be independent \(\operatorname{Bernoulli}(1/2)\) variables, independent of \(C\), and use the same law in the target. All base member properties follow directly. Moreover,
+\[
+\Omega_{sx}=
+\begin{pmatrix}
+\bar v&0\\[2pt]
+0&\varepsilon_N(1-\varepsilon_N)/e_0
+\end{pmatrix},
+\qquad
+q_{sx}(\theta)=\bar v+\frac{\theta^2\varepsilon_N(1-\varepsilon_N)}{e_0}\ge v_0.
+\]
+Thus \(P_N\in\mathcal M_N\), \(\mu_D(P_N)=\varepsilon_N>0\), and the smallest eigenvalue tends to zero.
+
+Receipt equals one exactly when \(Z=1\) and \(C=1\). Across all \(N\) independent observations, the probability of seeing no receipt-one observation is
+\[
+(1-e_0\varepsilon_N)^N\longrightarrow e^{-e_0}>0.
+\]
+On that event the empirical receipt coordinate is identically zero, so every empirical two-coordinate covariance matrix has a zero receipt row and column and is singular. Hence a profile requiring an ordinary inverse is undefined on an event whose probability does not vanish. A boundary rule can totalize the computation, but its regularization error is not represented by \(V_{\mathrm{vec}}\) under the present assumptions; no claim is made against a separately analyzed regularized procedure.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition tests vector profiling on the unchanged base class and gives an explicit nonvanishing-probability singularity witness. \textit{Gap.} No eigenvalue condition follows from residual-direction variance regularity. \textit{Consumer.} It prevents ordinary inverse-based vector profiling from being presented as uniformly valid without a new regularization theorem.
+
+\section{Interpretation}
+
+The scalar strength index is a conservative uniform-inference design index, not a pointwise unrestricted efficiency bound. Separate outcome and receipt transport can make the vector program smaller at a favorable law, but the minimax supremum contains source-compatible laws on which vector and scalar programs agree. Hence no procedure can uniformly improve the scalar-profile rate over the declared strength class. The factor \(\beta_0\) records literal room to perturb a bounded outcome distribution: it is positive in every interior class and vanishes exactly when the outcome arm variances are forced to their maximum and all transported outcome ITTs equal zero.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The target composition \(p_T\) is externally fixed, and the finite-cell analysis excludes high-dimensional nuisance learning. The vector program is a population regular-information benchmark; attaining it uniformly would require a boundary-safe generalized-inverse or ridge analysis with an error term not controlled by the present residual-direction variance condition. The current theorem therefore certifies the scalar-profile upper bound and an all-procedure worst-case lower bound, not pointwise vector efficiency for \(K\ge2\).
+
+\section{Honest scope}
+
+Identification and the scalar-profiled coverage and length results are retained. The scalar collection program is exact only within scalar residual-score representations; the separately transported outcome and receipt contrasts generate the unrestricted vector program \(V_{\mathrm{vec}}\le V_{\mathrm{coll}}\). The minimax lower bound is all-procedure because its explicit continuum lies in the original base class and satisfies equality of these programs; it does not extend a scalar least-favorable geometry to every allocation face. For \(0<v_0<\{4e_0(1-e_0)\}^{-1}\), the upper and lower exponents match uniformly through weak compliance and collection-only overlap. At equality, boundedness forces the causal target to zero and the minimax length is zero. The exact confidence-length constant and a uniformly regularized vector-profile frontier remain outside the proved scope.
+
+\begin{thebibliography}{99}
+
+  \bibitem{ImbensAngrist1994} Guido W. Imbens and Joshua D. Angrist (1994), Identification and Estimation of Local Average Treatment Effects, Econometrica 62(2), 467--475.
+
+  \bibitem{AndersonRubin1949} Theodore W. Anderson and Herman Rubin (1949), Estimation of the Parameters of a Single Equation in a Complete System of Stochastic Equations, Annals of Mathematical Statistics 20(1), 46--63.
+
+  \bibitem{RudolphVanderLaan2017} Kara E. Rudolph and Mark J. van der Laan (2017), Robust Estimation of Encouragement Design Intervention Effects Transported Across Sites, Journal of the Royal Statistical Society, Series B 79(5), 1509--1525.
+
+  \bibitem{DahabrehRobertsonPetitoHernanSteingrimsson2023} Issa J. Dahabreh, Sarah E. Robertson, Lucia C. Petito, Miguel A. Hernán, and Jon A. Steingrimsson (2023), Efficient and Robust Methods for Causally Interpretable Meta-analysis: Transporting Inferences from Multiple Randomized Trials to a Target Population, Biometrics 79(2), 1057--1072.
+
+  \bibitem{Mikusheva2010} Anna Mikusheva (2010), Robust Confidence Sets in the Presence of Weak Instruments, Journal of Econometrics 157(2), 236--247.
+
+  \bibitem{CaiLow2004} T. Tony Cai and Mark G. Low (2004), An Adaptation Theory for Nonparametric Confidence Intervals, Annals of Statistics 32(5), 1805--1840.
+
+  \bibitem{AndrewsMikusheva2016} Isaiah Andrews and Anna Mikusheva (2016), Conditional Inference with a Functional Nuisance Parameter, Econometrica 84(4), 1571--1612.
+
+  \bibitem{Ma2026} Yukun Ma (2026), Identification-Robust Inference for the LATE with High-Dimensional Covariates, Journal of Econometrics, forthcoming; arXiv:2302.09756, version 5.
+
+  \bibitem{SuRytgaardRavnEriksson2024} Zehao Su, Helene C. W. Rytgaard, Henrik Ravn, and Frank Eriksson (2024), Efficient Estimation of the Target Population Average Treatment Effect from Multi-source Data, arXiv:2405.10769, version 2.
+
+  \bibitem{ChenHuang2025} Zhongren Chen and Melody Huang (2025), Generalizing Causal Effects with Noncompliance: Application to Deep Canvassing Experiments, arXiv:2506.00149.
+
+\end{thebibliography}
+
+\end{document}

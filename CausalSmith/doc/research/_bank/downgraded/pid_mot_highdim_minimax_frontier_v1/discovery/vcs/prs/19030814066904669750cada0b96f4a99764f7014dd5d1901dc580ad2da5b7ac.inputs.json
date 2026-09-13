@@ -1,0 +1,521 @@
+{
+  "units": [
+    {
+      "unit": "thm:certified-computation",
+      "targets": [
+        "oeq:joint-dual-complexity",
+        "oeq:exact-all-k-frontier",
+        "thm:large-k-frontier",
+        "thm:large-k-honest-length",
+        "thm:certified-computation"
+      ],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:certified-computation",
+            "proof_tex": "Assume the rational empirical input and rational \\(0<\\epsilon<1\\) required by the statement. Set\n\\[\nM=\\left\\lceil\\frac{32d}{\\epsilon}\\right\\rceil,\n\\qquad h=M^{-1},\n\\qquad \\eta=3dh.\n\\tag{13}\n\\]\nThen \\(M\\) is a positive integer, \\(h\\) and \\(\\eta\\) are rational,\n\\[\n0<h\\le\\frac{\\epsilon}{32d},\n\\qquad\nM\\le\\frac{32d}{\\epsilon}+1,\n\\tag{14}\n\\]\nand all of these quantities have encoding length polynomial in the encoding length of \\(\\epsilon\\) and \\(d\\).\n\nRound each coordinate of an empirical atom \\(x\\) to a multiple of \\(h\\), with a deterministic tie rule, and denote the result by \\(q(x)\\). Coordinatewise rounding gives \\(|q_j(x)-x_j|\\le h\\) for \\(j=1,\\ldots,d\\). Since \\(d\\ge1\\),\n\\[\n\\|q(x)-x\\|_2\n\\le\\sum_{j=1}^d|q_j(x)-x_j|\n\\le dh.\n\\tag{15}\n\\]\nThis deliberately rational bound avoids introducing \\(\\sqrt d\\) into the certificate. For a tuple \\(x=(x_1,\\ldots,x_K)\\), define\n\\[\na=K^{-1}\\sum_{k=1}^Kx_k,\n\\qquad\na_q=K^{-1}\\sum_{k=1}^Kq(x_k).\n\\]\nUnit-ball support gives \\(\\|a\\|_2\\le1\\); (15) gives \\(\\|a-a_q\\|_2\\le dh\\), and hence \\(\\|a_q\\|_2\\le1+dh\\). By (14), \\(dh\\le\\epsilon/32<1/32\\). Therefore\n\\[\n\\begin{aligned}\n|c_K(x)-c_K(q(x))|\n&=|\\|a\\|_2^2-\\|a_q\\|_2^2|\\\\\n&\\le\\|a-a_q\\|_2(\\|a\\|_2+\\|a_q\\|_2)\\\\\n&\\le dh(2+dh)\\\\\n&\\le3dh=\\eta.\n\\end{aligned}\n\\tag{16}\n\\]\nEvery quantity on the final line is rational.\n\nMerge atoms in each arm that have the same quantized image. Write the distinct images as \\(q_{kj}\\) and their rational empirical masses as \\(\\widehat p_{kj}\\). The gridded dual linear program is\n\\[\n\\begin{aligned}\n\\text{maximize}\\quad&\\sum_{k,j}\\widehat p_{kj}u_{kj},\\\\\n\\text{subject to}\\quad&\\sum_{k=1}^Ku_{k j_k}\n\\le K^{-2}\\left\\|\\sum_{k=1}^Kq_{k j_k}\\right\\|_2^2\n\\quad\\text{for every }(j_1,\\ldots,j_K).\n\\end{aligned}\n\\tag{17}\n\\]\nIts coefficients are rational. To separate a proposed rational vector \\(u\\), define \\(D_0(0)=0\\), set all other nonexistent states to \\(+\\infty\\), and recursively compute\n\\[\nD_k(s)=\\min_{j_1,\\ldots,j_k:\\,\\sum_{\\ell=1}^kq_{\\ell j_\\ell}=s}\n\\left(-\\sum_{\\ell=1}^ku_{\\ell j_\\ell}\\right).\n\\tag{18}\n\\]\nEquivalently, each transition updates\n\\[\nD_k(s+q_{kj})\n=\\min\\{D_k(s+q_{kj}),D_{k-1}(s)-u_{kj}\\}.\n\\]\nAt the final layer,\n\\[\n\\min_s\\left\\{D_K(s)+K^{-2}\\|s\\|_2^2\\right\\}\n=\\min_{j_1,\\ldots,j_K}\n\\left\\{K^{-2}\\left\\|\\sum_kq_{k j_k}\\right\\|_2^2-\\sum_ku_{k j_k}\\right\\}.\n\\tag{19}\n\\]\nA negative minimizer supplies a violated constraint of (17), while a nonnegative minimum certifies every constraint. Thus (18)--(19) are an exact strong separation oracle, not a relaxation.\n\nEvery coordinate of \\(q_{kj}\\) is a multiple of \\(h\\) and has absolute value at most \\(1+h\\). A partial sum therefore has each coordinate in an interval of length at most \\(2K(1+h)\\). From (14), the number of partial-sum states at a layer is at most\n\\[\nO_d((K/h)^d)=O_d((K/\\epsilon)^d).\n\\tag{20}\n\\]\nThere are at most \\(m\\) transitions out of a state at each of the \\(K\\) layers. The balanced identity \\(N=Km\\) therefore bounds the total number of dynamic-programming transitions by \\(O_d(N(K/\\epsilon)^d)\\). Exact additions and comparisons involve rational numbers of polynomial encoding length.\n\nWe next verify the boundedness premise needed for oracle-polynomial optimization. The quantized points satisfy \\(\\|q_{kj}\\|_2\\le1+dh<2\\), so every cost in (17) lies in \\([0,4]\\). The product of the gridded marginals is a feasible primal coupling, and its bounded cost gives a finite primal optimum. Lemma~\\texttt{lem:finite-lp-optimization} therefore supplies finite primal and dual optimizers with equal values. Starting from an optimal dual, replace one potential at a time by its finite \\(c_K\\)-transform\n\\[\nu_k(q_{kj})\n=\\min_{(j_\\ell)_{\\ell\\ne k}}\n\\left\\{c_K(q_{1j_1},\\ldots,q_{Kj_K})-\n\\sum_{\\ell\\ne k}u_\\ell(q_{\\ell j_\\ell})\\right\\}.\n\\tag{21}\n\\]\nFeasibility of the old tuple implies that (21) can only increase \\(u_k\\); the new tuple is feasible by its definition. Since the old tuple is optimal and all marginal masses are nonnegative and sum to one, the objective cannot increase strictly. Thus sequential application of (21) preserves optimality. For any two support points \\(q,q'\\) in margin \\(k\\), the elementary inequality \\(|\\inf A-\\inf B|\\le\\sup|A-B|\\) and the cost range give\n\\[\n|u_k(q)-u_k(q')|\n\\le\\sup_{q_{-k}}|c_K(q,q_{-k})-c_K(q',q_{-k})|\n\\le4.\n\\tag{22}\n\\]\n\nChoose one reference point in every nonempty marginal support. Gauge shifts \\(u_k\\mapsto u_k+b_k\\) with \\(\\sum_kb_k=0\\) preserve both feasibility and objective. Use them to make the first \\(K-1\\) reference values zero. Equation (22) then bounds all values in those margins by \\(4\\) in absolute value. The constraint at the all-reference tuple bounds the last reference value above by \\(4\\). Conversely, the zero dual is feasible, so the optimal value is nonnegative. The first \\(K-1\\) marginal integrals are at most \\(4(K-1)\\), and the last marginal integral is at most its reference value plus \\(4\\). Hence optimality implies\n\\[\n0\\le\\sum_{k,j}\\widehat p_{kj}u_{kj}\n\\le4(K-1)+u_K(q_{K0})+4,\n\\]\nso \\(u_K(q_{K0})\\ge-4K\\). Together with (22), this places an optimal dual in a rational box of radius \\(4K+4\\), whose encoding length is polynomial.\n\nLemma~\\texttt{lem:finite-lp-optimization}, applied to (17), this rational box, and the oracle (18)--(19), now computes an optimal gridded dual value \\(L_g\\) and recovers a primal optimizer with the same value and finite rational witnesses. Its running time is polynomial in the input bit length, \\(N\\), and the state bound (20).\n\nPush any coupling of the original empirical laws forward coordinatewise through \\(q\\). This gives a feasible gridded coupling, and (16) changes its objective by at most \\(\\eta\\). Conversely, lift the gridded primal optimizer by drawing, conditional on each quantized tuple, each original coordinate from the corresponding empirical quantization fiber with its empirical conditional probabilities. This preserves every original empirical marginal, and (16) again changes the objective by at most \\(\\eta\\). Taking the respective infima gives\n\\[\nL_g-\\eta\\le L(\\widehat{\\mathbf P})\\le L_g+\\eta.\n\\tag{23}\n\\]\nThe lifted primal is an explicit certificate for the upper inequality. If \\(u\\) is the gridded dual witness, compose every potential with \\(q\\) on the original atoms and subtract \\(\\eta\\) from the first potential. By (16) and (17), for every original tuple \\(x\\),\n\\[\n\\sum_{k=1}^Ku_k(q(x_k))-\\eta\n\\le c_K(q(x))-\\eta\n\\le c_K(x).\n\\]\nThus these shifted potentials are dual feasible for the original empirical problem and have objective \\(L_g-\\eta\\), certifying the lower inequality in (23).\n\nReturn\n\\[\n\\underline L_\\epsilon=L_g-\\eta,\n\\qquad\n\\overline L_\\epsilon=L_g+\\eta.\n\\]\nEquations (13)--(14) give the rational width bound\n\\[\n\\overline L_\\epsilon-\\underline L_\\epsilon\n=2\\eta=6dh\\le\\frac{3}{16}\\epsilon<\\epsilon.\n\\]\nThis proves the stated bracket, witnesses, rational auditability, and complexity bound."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "thm:dimension-dependent-root-n-frontier",
+            "kind": "theorem",
+            "statement": "Let\n\\[\nq_d=\\min\\left\\{\\frac14,\\frac{d-4}{2(d-2)}\\right\\}.\n\\]\nFor fixed \\(d>4\\), there are constants \\(0<c_d\\le C_d<\\infty\\) and \\(c_0>0\\) such that, whenever \\(N=Km\\), \\(K\\ge3\\), and \\(m\\ge2\\),\n\\[\nc_dN^{-1/2}\\le R_d(N,K)\n\\le C_d\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right].\n\\]\nConsequently, uniformly along every legal triangular array satisfying \\(K\\ge c_0N^{q_d}\\), one has \\(R_d(N,K)\\asymp N^{-1/2}\\). In particular, \\(q_5=1/6\\), whereas \\(q_d=1/4\\) for every \\(d\\ge6\\).",
+            "free_symbols": [
+              "qd",
+              "d",
+              "cd",
+              "Cd",
+              "c0",
+              "N",
+              "K",
+              "m",
+              "Rdk",
+              "r"
+            ],
+            "depends_on": [
+              "ass:balanced-array",
+              "ass:product-experiment",
+              "ass:unit-ball-support",
+              "ass:legal-triangular-array",
+              "def:empirical-endpoint",
+              "def:minimax-risk",
+              "thm:improved-plugin-upper",
+              "lem:bernoulli-two-point"
+            ],
+            "proof_tex": "Choose the data-driven estimator \\(T=\\widehat L\\). By Theorem~\\texttt{thm:improved-plugin-upper}, under balanced armwise product sampling and unit-ball support there is a finite constant \\(C_d\\), depending only on the fixed dimension, such that\n\\[\n\\sup_{\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K}\n\\mathbb E_{\\mathbf P}|\\widehat L-L(\\mathbf P)|\n\\le C_d\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right].\n\\tag{1}\n\\]\nThe infimum over all measurable estimators in Definition~\\texttt{def:minimax-risk} is no larger than the risk of this one estimator, so (1) proves the asserted upper bound.\n\nFor the converse, invoke Lemma~\\texttt{lem:bernoulli-two-point}. It supplies two laws \\(\\mathbf P^{(0)}\\) and \\(\\mathbf P^{(1)}\\) in the maintained arbitrary-margin class such that, writing \\(L_j=L(\\mathbf P^{(j)})\\) and \\(\\Delta=L_1-L_0\\),\n\\[\n\\Delta\\ge aN^{-1/2},\n\\qquad\n\\operatorname{TV}(\\mathbb P_0,\\mathbb P_1)\\le\\frac14,\n\\tag{2}\n\\]\nwhere \\(\\mathbb P_j=\\bigotimes_{k=1}^K(P_k^{(j)})^{\\otimes m}\\) is the observable product law. Fix any measurable estimator \\(T\\), and define the test\n\\[\n\\phi=\\mathbf 1\\left\\{T>\\frac{L_0+L_1}{2}\\right\\}.\n\\]\nOn \\(\\{\\phi=1\\}\\), \\(|T-L_0|\\ge\\Delta/2\\), while on \\(\\{\\phi=0\\}\\), \\(|T-L_1|\\ge\\Delta/2\\). Hence\n\\[\n\\begin{aligned}\n\\max_{j\\in\\{0,1\\}}\\mathbb E_j|T-L_j|\n&\\ge \\frac12\\left(\\mathbb E_0|T-L_0|+\\mathbb E_1|T-L_1|\\right)\\\\\n&\\ge \\frac{\\Delta}{4}\\{\\mathbb P_0(\\phi=1)+\\mathbb P_1(\\phi=0)\\}\\\\\n&\\ge \\frac{\\Delta}{4}\\{1-\\operatorname{TV}(\\mathbb P_0,\\mathbb P_1)\\}\\\\\n&\\ge \\frac{3a}{16}N^{-1/2}.\n\\end{aligned}\n\\tag{3}\n\\]\nThe third line follows directly from \\(\\mathbb P_1(\\phi=1)-\\mathbb P_0(\\phi=1)\\le\\operatorname{TV}(\\mathbb P_0,\\mathbb P_1)\\). Taking first the supremum over \\(\\mathbf P\\) and then the infimum over \\(T\\) proves the lower bound with \\(c_d=3a/16\\); the constant is universal and therefore may be indexed by \\(d\\).\n\nIt remains to locate the elbow. The second term in the minimum in (1) can be rewritten, using the positive identity \\(m=N/K\\), as\n\\[\n\\frac1K m^{-2/d}=N^{-2/d}K^{-(d-2)/d}.\n\\tag{4}\n\\]\nIf \\(d=5\\), then \\(q_d=(d-4)/\\{2(d-2)\\}=1/6\\). Thus \\(K\\ge c_0N^{q_d}\\) and (4) give\n\\[\nN^{-2/d}K^{-(d-2)/d}\n\\le c_0^{-(d-2)/d}\nN^{-2/d-q_d(d-2)/d}\n=c_0^{-(d-2)/d}N^{-1/2}.\n\\tag{5}\n\\]\nIf \\(d\\ge6\\), then \\((d-4)/\\{2(d-2)\\}\\ge1/4\\), so \\(q_d=1/4\\). Since \\(r=\\min\\{K,d\\}\\le d\\), the other member of the minimum satisfies\n\\[\n\\frac r{K^2}\\le \\frac d{c_0^2}N^{-1/2}.\n\\tag{6}\n\\]\nEquations (5) and (6), each used only in its indicated dimension regime, show that the minimum in (1) is bounded by a dimension-dependent multiple of \\(N^{-1/2}\\). Combining this fact with (3) proves \\(R_d(N,K)\\asymp N^{-1/2}\\). The condition \\(m_N=N/K_N\\to\\infty\\) only identifies the legal limiting arrays; all inequalities above are finite-sample and uniform, so no interchange of limits is used.",
+            "status": "proved",
+            "justification": "The improved empirical term yields a dimension-dependent root-\\(N\\) elbow, while the Bernoulli experiment retains the all-estimator converse.",
+            "gap": "On the common fixed-\\(d>4\\), \\(K\\ge3\\), balanced class, Gao--Ge--Qian do not establish this growing-arm root-\\(N\\) region; their published model is broader in \\(d\\) and permits \\(K=2\\).",
+            "consumer": "It removes every array with \\(K\\gtrsim N^{q_d}\\) from the unresolved minimax frontier."
+          },
+          {
+            "id": "thm:plugin-honest-length",
+            "kind": "theorem",
+            "statement": "Let \\(q_d=\\min\\{1/4,(d-4)/[2(d-2)]\\}\\), and let \\(U_{N,K}\\) and \\(B_N^{\\mathrm{plug}}\\) be defined in Definition~\\texttt{def:plugin-lower-bound}. For fixed \\(d>4\\) and \\(\\alpha\\in(0,1/4)\\),\n\\[\nB_N^{\\mathrm{plug}}\\in\\mathcal H_\\alpha\n\\]\nand there are constants \\(0<c_{d,\\alpha}\\le C_{d,\\alpha}<\\infty\\) such that\n\\[\nc_{d,\\alpha}N^{-1/2}\n\\le E_{d,\\alpha}(N,K)\n\\le C_{d,\\alpha}\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right].\n\\]\nConsequently \\(E_{d,\\alpha}(N,K)\\asymp N^{-1/2}\\) uniformly along every legal array satisfying \\(K\\ge c_0N^{q_d}\\); here \\(q_5=1/6\\) and \\(q_d=1/4\\) for \\(d\\ge6\\). No matching nonparametric expected-length converse is asserted for smaller \\(K\\).",
+            "free_symbols": [
+              "qd",
+              "d",
+              "alpha",
+              "UNK",
+              "Bplug",
+              "Halpha",
+              "cdalpha",
+              "Cdalpha",
+              "Edak",
+              "N",
+              "K",
+              "m",
+              "r",
+              "c0"
+            ],
+            "depends_on": [
+              "ass:balanced-array",
+              "ass:product-experiment",
+              "ass:unit-ball-support",
+              "ass:legal-triangular-array",
+              "def:honest-bounds",
+              "def:minimax-excess-length",
+              "def:plugin-lower-bound",
+              "thm:improved-plugin-upper",
+              "lem:bernoulli-two-point"
+            ],
+            "proof_tex": "Let\n\\[\nU_{N,K}=C_d\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right],\n\\qquad u_{N,K}=\\frac{U_{N,K}}{\\alpha},\n\\]\nwhere \\(C_d\\) is chosen so that Theorem~\\texttt{thm:improved-plugin-upper} yields\n\\[\n\\sup_{\\mathbf P}\\mathbb E_{\\mathbf P}|\\widehat L-L(\\mathbf P)|\\le U_{N,K}.\n\\tag{7}\n\\]\nThe quantity \\(U_{N,K}\\) is strictly positive because \\(C_d>0\\) and \\(N^{-1/2}>0\\). For every nonnegative \\(Y\\) and positive \\(u\\), the pointwise inequality \\(\\mathbf 1\\{Y>u\\}\\le Y/u\\) gives \\(\\Pr(Y>u)\\le\\mathbb EY/u\\) after integration. Applying this derived inequality with \\(Y=|\\widehat L-L(\\mathbf P)|\\) and then using (7) gives, for every \\(\\mathbf P\\),\n\\[\n\\Pr_{\\mathbf P}\\left\\{|\\widehat L-L(\\mathbf P)|>u_{N,K}\\right\\}\n\\le \\frac{\\mathbb E_{\\mathbf P}|\\widehat L-L(\\mathbf P)|}{u_{N,K}}\n\\le\\alpha.\n\\tag{8}\n\\]\nOn the complementary event, \\(\\widehat L-u_{N,K}\\le L(\\mathbf P)\\). The squared-sum cost is nonnegative, so its infimum satisfies \\(L(\\mathbf P)\\ge0\\). Consequently\n\\[\nB_N^{\\mathrm{plug}}\n=\\max\\{0,\\widehat L-u_{N,K}\\}\n\\le L(\\mathbf P)\n\\tag{9}\n\\]\non that event. Equations (8)--(9) imply\n\\[\n\\inf_{\\mathbf P}\\Pr_{\\mathbf P}\\{B_N^{\\mathrm{plug}}\\le L(\\mathbf P)\\}\\ge1-\\alpha,\n\\]\nwhich is exactly \\(B_N^{\\mathrm{plug}}\\in\\mathcal H_\\alpha\\) by Definition~\\texttt{def:honest-bounds}.\n\nFor length, the definition of the maximum gives \\(B_N^{\\mathrm{plug}}\\ge\\widehat L-u_{N,K}\\). Hence, pointwise,\n\\[\n\\begin{aligned}\n[L(\\mathbf P)-B_N^{\\mathrm{plug}}]_+\n&\\le[L(\\mathbf P)-\\widehat L+u_{N,K}]_+\\\\\n&\\le|L(\\mathbf P)-\\widehat L|+u_{N,K}.\n\\end{aligned}\n\\]\nTaking expectations and using (7) yields\n\\[\n\\sup_{\\mathbf P}\\mathbb E_{\\mathbf P}[(L(\\mathbf P)-B_N^{\\mathrm{plug}})_+]\n\\le(1+\\alpha^{-1})U_{N,K}.\n\\tag{10}\n\\]\nSince Definition~\\texttt{def:minimax-excess-length} takes the infimum over all honest lower bounds and (9) proves that this particular bound is honest, (10) proves the asserted upper bound after absorbing \\(1+\\alpha^{-1}\\) into \\(C_{d,\\alpha}\\).\n\nFor the converse, take the ordered pair in Lemma~\\texttt{lem:bernoulli-two-point}. With the notation of (2), \\(L_1-L_0=\\Delta\\ge aN^{-1/2}\\) and \\(\\operatorname{TV}(\\mathbb P_0,\\mathbb P_1)\\le1/4\\). Let \\(B_N\\in\\mathcal H_\\alpha\\) be arbitrary. Honesty at the low-endpoint law and the defining total-variation inequality imply\n\\[\n\\begin{aligned}\n\\mathbb P_1(B_N\\le L_0)\n&\\ge \\mathbb P_0(B_N\\le L_0)-\\operatorname{TV}(\\mathbb P_0,\\mathbb P_1)\\\\\n&\\ge1-\\alpha-\\frac14>\\frac12,\n\\end{aligned}\n\\tag{11}\n\\]\nwhere the strict final inequality uses the declared condition \\(\\alpha<1/4\\). On \\(\\{B_N\\le L_0\\}\\),\n\\[\n[L_1-B_N]_+\\ge L_1-L_0=\\Delta.\n\\]\nThus (11) gives\n\\[\n\\sup_{\\mathbf P}\\mathbb E_{\\mathbf P}[(L(\\mathbf P)-B_N)_+]\n\\ge\\mathbb E_1[(L_1-B_N)_+]\n\\ge\\frac{a}{2}N^{-1/2}.\n\\tag{12}\n\\]\nTaking the infimum over \\(B_N\\in\\mathcal H_\\alpha\\) proves the lower bound.\n\nFinally, use \\(m=N/K\\). If \\(d=5\\), then \\(q_d=1/6\\), and \\(K\\ge c_0N^{q_d}\\) gives\n\\[\nK^{-1}m^{-2/d}=N^{-2/d}K^{-(d-2)/d}\n\\le c_0^{-(d-2)/d}N^{-1/2}.\n\\]\nIf \\(d\\ge6\\), then \\(q_d=1/4\\), and \\(r\\le d\\) gives\n\\[\nr/K^2\\le dc_0^{-2}N^{-1/2}.\n\\]\nThus in either dimension regime the minimum in \\(U_{N,K}\\) is \\(O_d(N^{-1/2})\\) whenever \\(K\\ge c_0N^{q_d}\\). Combining this calculation with (10) and (12) proves the root-\\(N\\) conclusion. Because (12) uses only the Bernoulli pair, it proves no smaller-arm nonparametric converse, as the statement explicitly records.",
+            "status": "proved",
+            "justification": "Markov calibration converts the uniform mean plug-in risk into an explicit uniformly honest lower endpoint and an expected-length upper bound of the same order.",
+            "gap": "The ordered Bernoulli pair proves the root-\\(N\\) converse, but no smaller-arm nonparametric expected-length converse is claimed.",
+            "consumer": "A computed empirical endpoint can be reported with separate sampling and numerical error allowances."
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "oeq:joint-dual-complexity",
+            "proposed": "Along legal arrays with \\(K=o(N^{q_d})\\), determine whether the jointly normalized class \\(\\mathcal F_{K,d}^{\\mathrm{joint}}\\) admits an aggregate localized empirical-process bound, uniform over \\(\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K\\), whose explicit \\(K\\)- and logarithmic order is strictly smaller than the present \\(K^{-1}m^{-2/d}\\) contribution to the endpoint risk. A positive answer must give a computable two-sided localization bound for the sum of all \\(K\\) marginal dual fluctuations. A negative answer must instead instantiate the rational family \\(\\{\\mathbf P_\\theta:\\theta\\in\\Theta_0\\cup\\Theta_1\\}\\) with an endpoint separation of the corresponding order, \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\), and \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\) against every rematching column, with strict slack off the declared contact columns. The currently defined search template is not asserted to establish either answer.",
+            "reason": "The original dichotomy ranged over already settled large-arm arrays and could be read as suggesting that the uninstantiated finite search template supports one of its two outcomes. The proposed question is restricted to the unresolved \\(K=o(N^{q_d})\\) regime and asks exactly whether aggregate jointly conjugate localization can improve the current \\(K^{-1}m^{-2/d}\\) term, with an explicit lower certificate required for a negative answer.",
+            "direction": "narrow"
+          },
+          {
+            "id": "oeq:exact-all-k-frontier",
+            "proposed": "Along legal triangular arrays satisfying \\(K=o(N^{q_d})\\), use \\(\\mathfrak H_{\\mathrm{frontier}}\\) to determine explicit rate functions \\(\\rho_{\\mathrm{est}}(N,K)\\) and \\(\\rho_{\\mathrm{len}}(N,K)\\) such that \\(R_d(N,K)\\asymp\\rho_{\\mathrm{est}}(N,K)\\) and \\(E_{d,\\alpha}(N,K)\\asymp\\rho_{\\mathrm{len}}(N,K)\\), including the exact fixed-\\(K\\) logarithms and every transition inside this remaining regime. The estimation converse must instantiate a simultaneous finite-support family whose endpoint separation matches \\(\\rho_{\\mathrm{est}}\\), whose hypothesis mixtures satisfy \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\), and whose reduced costs satisfy \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\) for every alternative rematching. The expected-length converse must additionally order its low- and high-endpoint mixtures so that the same indistinguishability argument is one-sided. The upper branch must give a computable estimator and uniformly honest lower bound at the claimed rates, or replace the present \\(K^{-1}m^{-2/d}\\) term by a proved sharper aggregate jointly conjugate complexity bound.",
+            "reason": "The original all-\\(K\\) question includes the now-settled root-\\(N\\) region. The proposed claim removes that solved region and retains only the genuine \\(K=o(N^{q_d})\\) estimation and ordered one-sided gaps, including fixed-\\(K\\) logarithms and all-rematching certification.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [
+          {
+            "id": "def:certified-mot",
+            "proposed": "Let \\(M=\\lceil32d/\\epsilon\\rceil\\), let \\(h=M^{-1}\\), and round every coordinate of every empirical atom to a multiple of the rational mesh \\(h\\), using a fixed tie rule. Thus the quantization map \\(q\\) is rational and satisfies \\(|q_j(x)-x_j|\\le h\\) in every coordinate and \\(\\|q(x)-x\\|_2\\le dh\\). Put the rational allowance \\(\\eta=3dh\\). The procedure \\(\\mathsf{CertMOT}_\\epsilon\\) merges coincident quantized atoms, solves the resulting rational dual linear program by the ellipsoid method using exact dynamic-programming separation indexed by partial grid sums, recovers an optimal rational primal witness, lifts that witness through the quantization fibers, and returns the lifted-primal upper certificate and the shifted-dual lower certificate with allowance \\(\\eta\\).",
+            "reason": "The prior construction used \\(\\sqrt d\\,h\\) and a generally irrational cost allowance. The corrected construction uses the rational Euclidean-error upper bound \\(dh\\), the rational mesh \\(h=1/\\lceil32d/\\epsilon\\rceil\\), and the rational allowance \\(3dh\\) while preserving \\(O_d((K/\\epsilon)^d)\\) states.",
+            "direction": "correct"
+          }
+        ],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "symbol-add",
+            "name": "qd",
+            "proposed": {
+              "name": "qd",
+              "type": "dimension-dependent exponent",
+              "space": "\\((0,1/4]\\)",
+              "def": "\\(q_d=\\min\\{1/4,(d-4)/[2(d-2)]\\}\\).",
+              "refs": [
+                "d"
+              ]
+            },
+            "reason": "The strengthened root-\\(N\\) region requires a named dimension-dependent elbow exponent.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "UNK",
+            "proposed": {
+              "name": "UNK",
+              "type": "positive deterministic error allowance",
+              "def": "\\(U_{N,K}=C_d[N^{-1/2}+\\min\\{r/K^2,K^{-1}m^{-2/d}\\}]\\), with \\(C_d\\) chosen from Theorem~\\texttt{thm:improved-plugin-upper}.",
+              "refs": [
+                "N",
+                "K",
+                "Cd",
+                "r",
+                "m",
+                "d"
+              ]
+            },
+            "reason": "The honest plug-in construction needs the deterministic uniform mean absolute-error allowance as a named object.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "Bplug",
+            "proposed": {
+              "name": "Bplug",
+              "type": "measurable lower confidence bound",
+              "def": "\\(B_N^{\\mathrm{plug}}=\\max\\{0,\\widehat L-U_{N,K}/\\alpha\\}\\).",
+              "refs": [
+                "N",
+                "Lhat",
+                "UNK",
+                "alpha"
+              ]
+            },
+            "reason": "The strengthened honest-length result uses an empirical-MOT plug-in lower confidence bound rather than the obsolete mean-floor bound.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-delete",
+            "name": "Bmean",
+            "reason": "After replacement of the confidence-bound definition and theorem, the mean-floor statistic has no live formal consumer and would leave stale advertised notation.",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "definition-add",
+            "id": "def:plugin-lower-bound",
+            "proposed": {
+              "id": "def:plugin-lower-bound",
+              "name": "Uniformly calibrated plug-in lower confidence bound",
+              "construction": "Fix a constant \\(C_d<\\infty\\) for which Theorem~\\texttt{thm:improved-plugin-upper} gives its uniform mean absolute-error bound, and set\n\\[\nU_{N,K}=C_d\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right],\n\\qquad\nB_N^{\\mathrm{plug}}=\\max\\left\\{0,\\widehat L-\\frac{U_{N,K}}{\\alpha}\\right\\}.\n\\]",
+              "free_symbols": [
+                "Bplug",
+                "UNK",
+                "Cd",
+                "d",
+                "N",
+                "K",
+                "r",
+                "m",
+                "Lhat",
+                "alpha"
+              ],
+              "inputs": [
+                "Lhat",
+                "alpha",
+                "N",
+                "K",
+                "d"
+              ]
+            },
+            "reason": "The sharper honest construction is a genuinely new empirical-MOT plug-in rule, not a correction of the valid but weaker mean-floor rule.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-delete",
+            "id": "def:mean-lower-bound",
+            "reason": "After deletion of the weaker mean-floor length theorem, the old construction is obsolete and has no remaining live formal reference; the new plug-in definition is the load-bearing honest procedure.",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "statement-delete",
+            "id": "thm:large-k-frontier",
+            "replacement_id": "thm:dimension-dependent-root-n-frontier",
+            "reason": "The \\(N^{1/4}\\) theorem is obsolete because the already-proved \\(K^{-1}m^{-2/d}\\) term yields the sharper exponent \\(q_d\\), including \\(q_5=1/6\\).",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "statement-delete",
+            "id": "thm:large-k-honest-length",
+            "replacement_id": "thm:plugin-honest-length",
+            "reason": "The mean-floor theorem is obsolete after the plug-in construction attains the full improved upper rate and the sharper dimension-dependent elbow.",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "oeq:joint-dual-complexity",
+            "proposed": {
+              "id": "oeq:joint-dual-complexity",
+              "kind": "openendedquestion",
+              "statement": "Along legal arrays with \\(K=o(N^{q_d})\\), determine whether the jointly normalized class \\(\\mathcal F_{K,d}^{\\mathrm{joint}}\\) admits an aggregate localized empirical-process bound, uniform over \\(\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K\\), whose explicit \\(K\\)- and logarithmic order is strictly smaller than the present \\(K^{-1}m^{-2/d}\\) contribution to the endpoint risk. A positive answer must give a computable two-sided localization bound for the sum of all \\(K\\) marginal dual fluctuations. A negative answer must instead instantiate the rational family \\(\\{\\mathbf P_\\theta:\\theta\\in\\Theta_0\\cup\\Theta_1\\}\\) with an endpoint separation of the corresponding order, \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\), and \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\) against every rematching column, with strict slack off the declared contact columns. The currently defined search template is not asserted to establish either answer.",
+              "free_symbols": [
+                "qd",
+                "N",
+                "K",
+                "m",
+                "d",
+                "Fdual",
+                "Pvec",
+                "Bd",
+                "Ptheta",
+                "ThetaHyp",
+                "TVmix",
+                "RemGap",
+                "V",
+                "r",
+                "Cd"
+              ],
+              "depends_on": [
+                "ass:balanced-array",
+                "ass:legal-triangular-array",
+                "def:joint-dual-class",
+                "def:simultaneous-perturbation-family",
+                "def:frontier-handle",
+                "thm:optimal-sum-diameter",
+                "thm:improved-plugin-upper"
+              ],
+              "status": "to-prove",
+              "justification": "The aggregate jointly conjugate fluctuation is the precise upper-side alternative to a simultaneous all-rematching lower construction in the unresolved small-arm region.",
+              "gap": "No supplied theorem controls the sum of all \\(K\\) localized potentials, and the finite-support family has not been instantiated with simultaneous separation, mixture indistinguishability, and rematching resistance.",
+              "consumer": "Its resolution decides whether the current \\(K^{-1}m^{-2/d}\\) contribution can be reduced or must appear in a matching lower frontier.",
+              "obligation": {
+                "what_is_open": "For \\(K=o(N^{q_d})\\), either prove a computable aggregate localized complexity bound strictly sharper than \\(K^{-1}m^{-2/d}\\), with explicit logarithms, or construct the matching simultaneous finite-support family with \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\) and \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\) for every rematching column.",
+                "obstruction": "The optimal-sum diameter controls support geometry but not the sum of \\(K\\) marginal dual sensitivities. Fixed-dimensional orthogonal tensoring saturates after at most \\(d\\) directions, and no declared family has an all-column reduced-cost certificate.",
+                "attempted": "Subset exchanges and common-support interpolation prove the present upper bound. Hypercube parity, orthogonal, Bernoulli-knot, and two-margin constructions certify boundary cases but do not accumulate the required growing-\\(K\\) separation.",
+                "partial_result": "The established common-support interpolation inequality is\n\\[\n\\left|\\frac{V(\\mathbf Q)-V(\\mathbf P)}{K^2}\\right|\n\\le \\frac1{K^2}\\left|\\sum_k\\int\\|x\\|_2^2\\,d(Q_k-P_k)\\right|\n+\\sum_k\\sup_{g\\in\\mathcal C_{2(2\\sqrt d+1)/K^2}}\n\\left|\\int g\\,d(Q_k-P_k)\\right|.\n\\]\nTogether with the optimal-sum diameter \\(2\\sqrt r\\), it gives the computable uniform upper contribution \\(C_d\\{N^{-1/2}+\\min(r/K^2,K^{-1}m^{-2/d})\\}\\). It does not prove that the aggregate dual fluctuation is smaller than \\(K^{-1}m^{-2/d}\\), and it supplies no simultaneous indistinguishable family."
+              }
+            },
+            "reason": "The narrowed question introduces \\(q_d\\), \\(N\\), and \\(m\\), removes unsupported suggestion language, and requires matching dependency metadata.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "oeq:exact-all-k-frontier",
+            "proposed": {
+              "id": "oeq:exact-all-k-frontier",
+              "kind": "openendedquestion",
+              "statement": "Along legal triangular arrays satisfying \\(K=o(N^{q_d})\\), use \\(\\mathfrak H_{\\mathrm{frontier}}\\) to determine explicit rate functions \\(\\rho_{\\mathrm{est}}(N,K)\\) and \\(\\rho_{\\mathrm{len}}(N,K)\\) such that \\(R_d(N,K)\\asymp\\rho_{\\mathrm{est}}(N,K)\\) and \\(E_{d,\\alpha}(N,K)\\asymp\\rho_{\\mathrm{len}}(N,K)\\), including the exact fixed-\\(K\\) logarithms and every transition inside this remaining regime. The estimation converse must instantiate a simultaneous finite-support family whose endpoint separation matches \\(\\rho_{\\mathrm{est}}\\), whose hypothesis mixtures satisfy \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\), and whose reduced costs satisfy \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\) for every alternative rematching. The expected-length converse must additionally order its low- and high-endpoint mixtures so that the same indistinguishability argument is one-sided. The upper branch must give a computable estimator and uniformly honest lower bound at the claimed rates, or replace the present \\(K^{-1}m^{-2/d}\\) term by a proved sharper aggregate jointly conjugate complexity bound.",
+              "free_symbols": [
+                "qd",
+                "Hfrontier",
+                "rhoest",
+                "rholen",
+                "N",
+                "K",
+                "Rdk",
+                "Edak",
+                "d",
+                "alpha",
+                "Ptheta",
+                "TVmix",
+                "RemGap",
+                "cd",
+                "Cd",
+                "r",
+                "m",
+                "cdalpha",
+                "Cdalpha",
+                "Bplug",
+                "CertMOT",
+                "epsilon"
+              ],
+              "depends_on": [
+                "ass:balanced-array",
+                "ass:product-experiment",
+                "ass:unit-ball-support",
+                "ass:legal-triangular-array",
+                "def:minimax-risk",
+                "def:minimax-excess-length",
+                "def:simultaneous-perturbation-family",
+                "def:frontier-handle",
+                "thm:known-risk-sandwich",
+                "thm:dimension-dependent-root-n-frontier",
+                "thm:plugin-honest-length",
+                "thm:certified-computation",
+                "oeq:joint-dual-complexity"
+              ],
+              "status": "to-prove",
+              "justification": "The theorem-level kernel is now exactly the unresolved small-arm estimation and honest one-sided expected-length frontier.",
+              "gap": "The two-margin subclass converse is smaller than the current plug-in term by an arm factor and retains a logarithmic gap, while no ordered simultaneous family survives every rematching column.",
+              "consumer": "A resolution would complete uncertainty quantification for the uncentered multiworld second-moment endpoint below the dimension-dependent root-\\(N\\) elbow.",
+              "obligation": {
+                "what_is_open": "Determine matching all-estimator and ordered one-sided lower bounds along \\(K=o(N^{q_d})\\), including the exact fixed-\\(K\\) logarithm and every transition inside that region.",
+                "obstruction": "The available nonparametric converse is the embedded two-margin order \\(K^{-2}(m\\log m)^{-2/d}\\), whereas the plug-in upper contribution is \\(K^{-1}m^{-2/d}\\). Neither an all-rematching simultaneous family nor a sharper aggregate upper theorem is available.",
+                "attempted": "The exact residual cap, optimal-support diameter, empirical interpolation, two-margin reduction, Bernoulli ordered pair, dimension-dependent root-\\(N\\) theorems, and rational certified algorithm are complete. Sparse-arm, parity, and fixed-dimensional orthogonal constructions do not close the remaining gap.",
+                "partial_result": "The proved region and the remaining region are now separated explicitly. For every balanced array,\n\\[\nc_d\\max\\left\\{N^{-1/2},K^{-2}(m\\log m)^{-2/d}\\right\\}\n\\le R_d(N,K)\n\\le C_d\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right].\n\\]\nMoreover,\n\\[\nc_{d,\\alpha}N^{-1/2}\n\\le E_{d,\\alpha}(N,K)\n\\le C_{d,\\alpha}\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right],\n\\]\nand the upper length bound is attained by the uniformly honest \\(B_N^{\\mathrm{plug}}\\). Both decision risks are exactly of order \\(N^{-1/2}\\) whenever \\(K\\ge c_0N^{q_d}\\), where \\(q_5=1/6\\) and \\(q_d=1/4\\) for \\(d\\ge6\\). The rational-grid empirical MOT algorithm returns primal and dual certificates with any rational requested width \\(\\epsilon\\) in time polynomial in \\(N\\) and \\((K/\\epsilon)^d\\). What remains is the matching estimation and ordered one-sided converse, including fixed-\\(K\\) logarithms, along \\(K=o(N^{q_d})\\)."
+              }
+            },
+            "reason": "The narrowed question removes the solved \\(K\\gtrsim N^{q_d}\\) region, introduces the new elbow symbol, and rewires its consumers to the strengthened estimation and length theorems.",
+            "direction": "correct"
+          },
+          {
+            "kind": "estimand-functional-replace",
+            "id": "metadata:estimand-functional",
+            "proposed": "\\(\\widehat L=L(\\widehat{\\mathbf P}),\\quad U_{N,K}=C_d[N^{-1/2}+\\min\\{r/K^2,K^{-1}m^{-2/d}\\}],\\quad B_N^{\\mathrm{plug}}=\\max\\{0,\\widehat L-U_{N,K}/\\alpha\\},\\quad R_d(N,K)\\asymp E_{d,\\alpha}(N,K)\\asymp N^{-1/2}\\text{ when }K\\ge c_0N^{q_d}\\).",
+            "reason": "The previous metadata advertised exact all-\\(K\\) rate functions even though the small-arm frontier remains open. The replacement states only the proved plug-in allowance, honest construction, and dimension-dependent root-\\(N\\) region.",
+            "direction": "correct"
+          },
+          {
+            "kind": "comparator-promise-table-replace",
+            "id": "metadata:comparator-promise-table",
+            "proposed": [
+              {
+                "comparator_bibkey": "gao_ge_qian_2025",
+                "comparator_claim": "On the common fixed-\\(d>4\\), \\(K\\ge3\\), \\(N=Km\\) overlap, Theorem 1 gives \\(N^{-1/2}+\\min\\{K^{-1},K^{-1/2}m^{-2/d}\\}\\). Their published setup also covers all dimensions and \\(K\\ge2\\); on the overlap its arbitrary \\(\\mathcal P(\\mathbb B_d)^K\\) marginals and balanced i.i.d. units induce the same armwise product experiment.",
+                "matched_by": "Improved plug-in upper theorem",
+                "match_kind": "strict_tightening"
+              },
+              {
+                "comparator_bibkey": "lin_gao_blanchet_glynn_2025",
+                "comparator_claim": "Proposition 3.6 places a binary covariate-aware mirror-transport lower bound between unconditional and conditional transport, while Theorem 4.3 gives its quadratic-cost plug-in rate under smooth strongly convex Brenier potentials.",
+                "matched_by": "Small-arm frontier question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "lin_gao_blanchet_glynn_2026",
+                "comparator_claim": "The paper proves continuity of binary conditional transport under adapted Wasserstein distance and derives a direct nonparametric estimator with a convergence rate.",
+                "matched_by": "Small-arm frontier question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "lin_gao_blanchet_glynn_inference_2026",
+                "comparator_claim": "The paper gives a smooth-density wavelet estimator and asymptotic normality for binary conditional transport with quadratic cost.",
+                "matched_by": "Small-arm frontier question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "manole_nilesweed_2024",
+                "comparator_claim": "Theorem 22 gives the two-margin all-estimator lower order \\((m\\log m)^{-2/d}\\) for quadratic cost; the note's two-margin embedding transfers this subclass lower bound upward to the arbitrary-margin class with the explicit \\(K^{-2}\\) normalization.",
+                "matched_by": "Known risk sandwich and small-arm frontier question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "hundrieser_staudt_munk_2024",
+                "comparator_claim": "Theorem 2.2 converts binary \\(c\\)-transform entropy into two-margin empirical transport rates.",
+                "matched_by": "Aggregate joint-dual complexity question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "ji_lei_spector_2026",
+                "comparator_claim": "Theorem 3.1 gives uniformly valid one-sided inference from any dual-feasible estimated pair in randomized experiments.",
+                "matched_by": "Plug-in honest-length theorem",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "manole_balakrishnan_wasserman_2022",
+                "comparator_claim": "The paper constructs finite-sample intervals for sliced Wasserstein distance and bounds their length near the minimax rate.",
+                "matched_by": "Plug-in honest-length theorem",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "wang_wang_2016",
+                "comparator_claim": "The paper gives necessary and sufficient joint-mixability conditions for selected classes of univariate distributions.",
+                "matched_by": "Sharp residual-envelope theorem",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "hundrieser_klatt_staudt_munk_2024",
+                "comparator_claim": "Donsker dual classes yield two-margin empirical optimal-transport limits given by suprema of Gaussian processes.",
+                "matched_by": "Aggregate joint-dual complexity question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "weed_bach_2019",
+                "comparator_claim": "Upper and lower Wasserstein dimensions determine multiscale empirical-measure approximation rates.",
+                "matched_by": "Small-arm frontier question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "koike_lin_wang_2024",
+                "comparator_claim": "Quadratic negative-dependence objectives are optimized for selected identical scalar margins admitting a joint mix.",
+                "matched_by": "Sharp residual-envelope theorem",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "armstrong_kolesar_2018",
+                "comparator_claim": "The ordered modulus gives one-sided minimax expected-length optimality for linear Gaussian regression functionals.",
+                "matched_by": "Small-arm frontier question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "cheryala_alaya_bouzebda_2026",
+                "comparator_claim": "Optimal multi-margin dual potentials may be chosen as a simultaneously conjugate family.",
+                "matched_by": "Aggregate joint-dual complexity question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "han_zhu_2026",
+                "comparator_claim": "Two-mode stability controls regular Monge maps for barycentric and uniformly concave sum costs.",
+                "matched_by": "Aggregate joint-dual complexity question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "kravtsova_2025",
+                "comparator_claim": "Fixed-finite-support multi-sample optimal-transport values admit weak limits and bootstrap tests.",
+                "matched_by": "Small-arm frontier question",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "aronow_green_lee_2014",
+                "comparator_claim": "Sharp two-arm randomization-variance bounds yield asymptotically conservative narrow Wald intervals under unequal allocation.",
+                "matched_by": "STAR balanced-subsample audit",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "lin_ho_cuturi_jordan_2022",
+                "comparator_claim": "Generic discrete multimarginal transport approximation has exponential tensor dependence in the number of margins.",
+                "matched_by": "Certified computation theorem",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "altschuler_boixadsera_2022",
+                "comparator_claim": "Generic pairwise-interaction multimarginal transport is computationally hard.",
+                "matched_by": "Certified computation theorem",
+                "match_kind": "downgraded_to_informed_by"
+              }
+            ],
+            "reason": "The Gao--Ge--Qian comparison must be restricted to the common fixed-\\(d>4\\), \\(K\\ge3\\), balanced overlap, the two-margin lower result must be described as a subclass transfer, and consumer labels must follow the strengthened theorems and narrowed questions.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [
+          {
+            "node_id": "oeq:joint-dual-complexity",
+            "what_is_open": "For \\(K=o(N^{q_d})\\), either prove a computable aggregate localized complexity bound strictly sharper than \\(K^{-1}m^{-2/d}\\), with explicit logarithms, or construct the matching simultaneous finite-support family with \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\) and \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\) for every rematching column.",
+            "obstruction": "The optimal-sum diameter controls support geometry but not the sum of \\(K\\) marginal dual sensitivities. Fixed-dimensional orthogonal tensoring saturates after at most \\(d\\) directions, and no declared family has an all-column reduced-cost certificate.",
+            "attempted": "Subset exchanges and common-support interpolation prove the present upper bound. Hypercube parity, orthogonal, Bernoulli-knot, and two-margin constructions certify boundary cases but do not accumulate the required growing-\\(K\\) separation.",
+            "partial_result": "The established common-support interpolation inequality is\n\\[\n\\left|\\frac{V(\\mathbf Q)-V(\\mathbf P)}{K^2}\\right|\n\\le \\frac1{K^2}\\left|\\sum_k\\int\\|x\\|_2^2\\,d(Q_k-P_k)\\right|\n+\\sum_k\\sup_{g\\in\\mathcal C_{2(2\\sqrt d+1)/K^2}}\n\\left|\\int g\\,d(Q_k-P_k)\\right|.\n\\]\nTogether with the optimal-sum diameter \\(2\\sqrt r\\), it gives the computable uniform upper contribution \\(C_d\\{N^{-1/2}+\\min(r/K^2,K^{-1}m^{-2/d})\\}\\). It does not prove that the aggregate dual fluctuation is smaller than \\(K^{-1}m^{-2/d}\\), and it supplies no simultaneous indistinguishable family."
+          },
+          {
+            "node_id": "oeq:exact-all-k-frontier",
+            "what_is_open": "Determine matching all-estimator and ordered one-sided lower bounds along \\(K=o(N^{q_d})\\), including the exact fixed-\\(K\\) logarithm and every transition inside that region.",
+            "obstruction": "The available nonparametric converse is the embedded two-margin order \\(K^{-2}(m\\log m)^{-2/d}\\), whereas the plug-in upper contribution is \\(K^{-1}m^{-2/d}\\). Neither an all-rematching simultaneous family nor a sharper aggregate upper theorem is available.",
+            "attempted": "The exact residual cap, optimal-support diameter, empirical interpolation, two-margin reduction, Bernoulli ordered pair, dimension-dependent root-\\(N\\) theorems, and rational certified algorithm are complete. Sparse-arm, parity, and fixed-dimensional orthogonal constructions do not close the remaining gap.",
+            "partial_result": "The proved region and the remaining region are now separated explicitly. For every balanced array,\n\\[\nc_d\\max\\left\\{N^{-1/2},K^{-2}(m\\log m)^{-2/d}\\right\\}\n\\le R_d(N,K)\n\\le C_d\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right].\n\\]\nMoreover,\n\\[\nc_{d,\\alpha}N^{-1/2}\n\\le E_{d,\\alpha}(N,K)\n\\le C_{d,\\alpha}\\left[N^{-1/2}+\\min\\left\\{\\frac r{K^2},\\frac1K m^{-2/d}\\right\\}\\right],\n\\]\nand the upper length bound is attained by the uniformly honest \\(B_N^{\\mathrm{plug}}\\). Both decision risks are exactly of order \\(N^{-1/2}\\) whenever \\(K\\ge c_0N^{q_d}\\), where \\(q_5=1/6\\) and \\(q_d=1/4\\) for \\(d\\ge6\\). The rational-grid empirical MOT algorithm returns primal and dual certificates with any rational requested width \\(\\epsilon\\) in time polynomial in \\(N\\) and \\((K/\\epsilon)^d\\). What remains is the matching estimation and ordered one-sided converse, including fixed-\\(K\\) logarithms, along \\(K=o(N^{q_d})\\)."
+          }
+        ],
+        "prose_updates": {
+          "tldr": "The endpoint \\(L(\\mathbf P)\\) is the sharp uncentered causal second moment compatible with \\(K\\) observed potential-outcome marginals, not a centered variance residual. On the common fixed-\\(d>4\\), \\(K\\ge3\\), balanced overlap with Gao--Ge--Qian, the core proves a sharper empirical-MOT upper bound, the residual envelope \\(r/K^2\\), and optimal-sum diameter \\(2\\sqrt r\\). Combining the improved term \\(K^{-1}m^{-2/d}\\) with an all-estimator Bernoulli converse gives matching root-\\(N\\) estimation bounds whenever \\(K\\gtrsim N^{q_d}\\), where \\(q_5=1/6\\) and \\(q_d=1/4\\) for \\(d\\ge6\\). The calibrated rule \\(B_N^{\\mathrm{plug}}=\\max\\{0,\\widehat L-U_{N,K}/\\alpha\\}\\) is uniformly honest by Markov's inequality and has matching root-\\(N\\) minimax expected excess length in the same region. The exact estimation and one-sided length frontiers for \\(K=o(N^{q_d})\\), including fixed-\\(K\\) logarithms, remain open. The finite-support simultaneous-marginal template is defined but not instantiated: endpoint separation, mixture indistinguishability, and reduced-cost resistance to every rematching column remain explicit targets. A rational-grid primal--dual procedure separates numerical error from sampling error. The STAR audit remains conditional on known bounded scaling, an i.i.d. superpopulation, complete randomization, and randomized balanced subsampling, and does not validate the native \\(161/37/36\\) plug-in calculation.",
+          "project_justification": {
+            "gap": "On the common fixed-\\(d>4\\), \\(K\\ge3\\), \\(N=Km\\) overlap, Gao--Ge--Qian Theorem 1 gives the empirical term \\(K^{-1/2}m^{-2/d}\\), while their Proposition 2 prints a two-margin lower term involving \\((m\\log m)^{-2/d}\\); their published class also covers all dimensions and \\(K\\ge2\\). On the overlap, both analyses allow the same arbitrary \\(\\mathcal P(\\mathbb B_d)^K\\) marginals, and their balanced i.i.d.-unit sampling induces this note's armwise product law. Manole--Niles-Weed leave logarithmic slack already at two margins, and no located result supplies an ordered multi-margin expected-length converse or aggregate growing-tuple dual complexity.",
+            "fill": "The project proves the sharp residual and support-diameter geometry, the improved empirical upper rate, and matching root-\\(N\\) estimation and uniformly honest one-sided expected excess length for \\(K\\gtrsim N^{q_d}\\), with \\(q_5=1/6\\) and \\(q_d=1/4\\) for \\(d\\ge6\\). The honest construction is the explicit Markov-calibrated empirical-MOT plug-in lower bound. The remaining small-arm question asks whether aggregate jointly conjugate complexity improves \\(K^{-1}m^{-2/d}\\) or whether a matching simultaneous lower family exists. The finite-support template is defined but not instantiated: its endpoint separation, mixture indistinguishability, and resistance to every rematching column remain proof targets. Rational mesh, cost allowance, primal lifting, and dual shifting produce an auditable numerical bracket."
+          },
+          "related_work": "Gao, Ge, and Qian define the same uncentered endpoint \\(L(\\mathbf P)\\) and prove their displayed balanced-sample plug-in rate. Comparisons here are restricted to the common fixed-\\(d>4\\), \\(K\\ge3\\), balanced class. Their published class additionally covers all dimensions and \\(K\\ge2\\); on the overlap the distributional class is the same arbitrary \\(\\mathcal P(\\mathbb B_d)^K\\), and their balanced i.i.d.-unit design induces the armwise product law used here. The improved theorem sharpens both the residual cap and active high-dimensional term on that overlap. Manole and Niles-Weed's two-margin theorem gives the closest all-estimator nonparametric lower architecture. The two-margin reduction embeds that published subclass inside the arbitrary-margin class, so its \\(K^{-2}(m\\log m)^{-2/d}\\) lower bound transfers upward, but it does not close the logarithmic or arm-count gap. Hundrieser, Staudt, and Munk transfer entropy between two \\(c\\)-conjugate potentials; no cited theorem controls the aggregate of a growing jointly conjugate \\(K\\)-tuple. Ji, Lei, and Spector establish broad validity from dual feasibility, while Manole, Balakrishnan, and Wasserman study interval length for sliced Wasserstein distance; neither provides this arbitrary-margin one-sided expected-length converse. Generic discrete MOT complexity and hardness results do not preclude the fixed-dimensional squared-sum dynamic program proved here. The binary covariate-aware causal-transport papers remain informed-by comparators rather than extension targets. Mixability results for selected scalar or identical-margin classes do not settle arbitrary heterogeneous vector marginals. The STAR application comparison is conditional on the declared known-bound affine scale, i.i.d. superpopulation, complete randomization, and randomized balanced subsampling; the native unequal counts require a separate theorem.",
+          "technical_internal_limitation": "The exact small-arm frontier \\(K=o(N^{q_d})\\) remains open. The current estimation sandwich has nonparametric lower term \\(K^{-2}(m\\log m)^{-2/d}\\) and upper term \\(K^{-1}m^{-2/d}\\); the corresponding nonparametric ordered one-sided expected-length converse is not proved. The finite-support perturbation template has not been instantiated with endpoint separation, product-mixture total variation at most \\(1/4\\), and nonnegative reduced cost for every rematching column. Optimal-sum diameter does not by itself bound the aggregate sensitivity of all dual potentials, while fixed-dimensional orthogonal tensoring saturates. The certified algorithm is polynomial in \\(N\\) and \\((K/\\epsilon)^d\\) only for fixed \\(d\\), and is not a generic polynomial-time exact MOT claim. Its corrected certificate uses only rational quantities \\(h=1/\\lceil32d/\\epsilon\\rceil\\) and \\(3dh\\). The STAR audit discards observations, requires a known outcome bound and superpopulation model, and does not reproduce the native unequal-count tightening.",
+          "honest_scope": "The proved contribution preserves \\(L(\\mathbf P)=K^{-2}\\inf_\\gamma\\mathbb E_\\gamma\\|\\sum_kZ_k\\|_2^2\\) as an uncentered second-moment endpoint. It assumes fixed \\(d>4\\), \\(K\\ge3\\), balanced armwise product sampling, unit-ball support, and legal arrays with \\(m=N/K\\to\\infty\\), but no density or smoothness. Matching root-\\(N\\) bounds for estimation and uniformly honest one-sided expected excess length are claimed only when \\(K\\ge c_0N^{q_d}\\), with \\(q_5=1/6\\) and \\(q_d=1/4\\) for \\(d\\ge6\\). The explicit lower bound is the empirical-MOT plug-in rule calibrated by a uniform mean absolute-error allowance; no small-arm nonparametric length converse is claimed. For \\(K=o(N^{q_d})\\), exact rates, fixed-\\(K\\) logarithms, and the ordered lower family remain open. The finite-support construction is a search handle, not evidence that either a matching lower family or a sharper aggregate dual bound exists. The hypercube parity proposition remains a legal exact \\(K=3,d=5\\) benchmark with endpoint \\(1/9\\). Gao--Ge--Qian comparisons apply only on the common fixed-\\(d>4\\), \\(K\\ge3\\), balanced overlap; their published class is broader in \\(d\\) and includes \\(K=2\\). The STAR audit applies only to its declared balanced randomized subsample and not the native \\(161/37/36\\) calculation.",
+          "statement_notes": [
+            {
+              "id": "thm:dimension-dependent-root-n-frontier",
+              "justification": "The active empirical term and the residual cap yield the exact proved elbow exponent \\(q_d\\), while the Bernoulli pair supplies the all-estimator root-\\(N\\) converse.",
+              "gap": "This closes only \\(K\\gtrsim N^{q_d}\\); it makes no exact-rate claim along \\(K=o(N^{q_d})\\).",
+              "consumer": "It removes the large-arm region from the frontier question and supplies the elbow calculation reused by honest length."
+            },
+            {
+              "id": "thm:plugin-honest-length",
+              "justification": "Markov calibration of the uniform mean plug-in error proves coverage, and the same allowance bounds expected excess length.",
+              "gap": "The ordered Bernoulli pair proves only the root-\\(N\\) converse; a smaller-arm nonparametric one-sided converse remains open.",
+              "consumer": "It gives a reportable honest endpoint with sampling conservatism matched in the root-\\(N\\) region."
+            },
+            {
+              "id": "thm:certified-computation",
+              "justification": "A rational mesh and rational cost allowance separate numerical error from sampling error through explicit primal and dual witnesses.",
+              "gap": "The complexity is polynomial in \\((K/\\epsilon)^d\\) for fixed \\(d\\), not polynomial in a varying dimension and not a generic exact-MOT guarantee.",
+              "consumer": "The empirical endpoint and plug-in confidence correction can carry an auditable numerical error budget."
+            },
+            {
+              "id": "oeq:joint-dual-complexity",
+              "justification": "The remaining upper-side issue is precisely whether aggregate localization across all jointly conjugate potentials improves \\(K^{-1}m^{-2/d}\\).",
+              "gap": "Neither a sharper aggregate theorem nor a simultaneous all-rematching lower certificate is currently established.",
+              "consumer": "Its answer determines which side of the small-arm risk sandwich must move."
+            },
+            {
+              "id": "oeq:exact-all-k-frontier",
+              "justification": "After removing the solved root-\\(N\\) region, the kernel is the exact estimation and ordered one-sided frontier along \\(K=o(N^{q_d})\\).",
+              "gap": "Exact fixed-\\(K\\) logarithms, the missing arm factor, and every-rematching ordered separation remain unresolved.",
+              "consumer": "A solution would complete the decision-theoretic account for every legal small-arm array."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

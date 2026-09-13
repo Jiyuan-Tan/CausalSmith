@@ -28,7 +28,7 @@ token_usage:
   total_tokens_consumed: null
 banked_on: "2026-09-06"
 paper_score: 6.2
-paper_score_rationale: "The paper establishes a potentially valuable and formally verified minimax frontier, but substantial revisions are needed to clarify the theorem scope, identify the implemented tuning choices, document reproducibility, streamline the presentation, and establish novelty against the closest literature."
+paper_score_rationale: "The paper delivers a potentially important and rigorously verified minimax frontier, but a contradictory sharp-modulus program, stale verification metadata, understated model scope, and absent finite-sample evidence prevent publication in its current form."
 ---
 
 # stat_lmtp_threshold_atom_frontier / v1 — Accepted

@@ -1,0 +1,1761 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}ppml\_\allowbreak{}ptt\_\allowbreak{}cycle\_\allowbreak{}efficiency\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} At fixed \(T\), with a never-treated cohort, positive multiplicative untreated means, mutually independent cohort samples, arbitrary within-unit dependence, and finite fourth moments, one weighted tangent restriction arises from each untreated graph cycle. Bounded score truncation followed by an exact mean adjustment proves tangent completeness in the explicitly mean-differentiable experiment. The canonical gradient removes the covariance projection of the cohort-mean PPML influence onto the \(q\) cycle directions; a feasible cycle-projection estimator attains the bound and supports pointwise Wald inference. The cohort-mean PPML estimator is efficient for every bounded legal covariance law exactly when \(q=0\); for \(q>0\), exactly \(q\) primitive balances characterize its exceptional efficient laws, and a bounded strictly positive fixed-support family has exact loss \(\Gamma>0\). On the balanced equal-weight, no-covariate, no-offset intersection with Moreau--Kastler, the individual and cohort-mean point estimators coincide, so the same family and the regular cycle-projection competitor prove that the published individual estimator is not universally efficient when \(q>0\). This transfer is one-way: it gives neither the richer individual-level efficiency bound nor a \(q=0\) efficiency conclusion there. The regularized frontier for growing \(T\) and \(q\) remains open at \(\mathrm{oeq{:}growing\text{-}cycle\text{-}frontier}\).
+
+\section{Project justification}
+
+\paragraph{Gap.} Moreau--Kastler (2025, printed pp. 15 and 20--23, equations (3.1), (3.2), (3.13), (3.14), and (3.19)) gives an individual fixed-effects PPML specification, imputation ratio, and inference procedure; it does not characterize universal semiparametric efficiency by untreated-cycle topology. Wooldridge (2023) studies a richer individual-level nonlinear imputation framework, while existing efficient staggered-DiD results are additive and rank-one completion results do not classify covariance-sensitive efficiency for proportional treatment on the treated.
+
+\paragraph{Niche.} In the fixed-\(T\) cohort-mean experiment, positive rank-one means make graph cycles both the complete tangent restrictions and the available covariance-sensitive precision directions. The exact aggregation boundary then embeds a balanced equal-weight, no-covariate, no-offset subclass of the published Moreau--Kastler specification, allowing a strict \(q>0\) nonuniversality conclusion without claiming that the cohort-mean bound governs the unrestricted individual-level experiment.
+
+\paragraph{Fill.} The project proves weighted-cycle tangent completeness using bounded score truncation plus exact mean adjustment, derives the canonical gradient and the cohort-mean PPML influence, constructs an attaining covariance-weighted cycle-projection estimator, characterizes the efficient covariance laws by \(q\) independent primitive balances, and certifies exact positive quadratic loss on an open realizable bounded-law family. The aggregation bridge and positive-cycle corollary show that the published individual estimator inherits strict inefficiency on their precise intersection. The growing-\(T\), growing-\(q\) regularized frontier remains open at \(\mathrm{oeq{:}growing\text{-}cycle\text{-}frontier}\).
+
+\section{Related work}
+
+Moreau--Kastler (2025, printed pp. 15 and 20--23, equations (3.1), (3.2), (3.13), (3.14), and (3.19); \url{https://taxobservatory.world/www-site/uploads/2025/05/WP31\_-Proportional-Treatment-Effects-in-Staggered-Settings.pdf}) specifies individual fixed effects and time effects, imputes individual untreated counterfactuals, aggregates a treated observed-to-predicted ratio, and develops inference. The aggregation proposition proves point-estimator coincidence with the cohort-mean rank-one PPML procedure only for balanced panels with equal observation weights, no covariates or offsets, and exact equality between target and sample cohort shares. Point-estimator coincidence alone does not transfer efficiency bounds. The positive-cycle corollary instead uses the regular fixed-\(T\) cohort-mean cycle-projection estimator as a strictly better competitor on that intersection, which is sufficient to refute universal efficiency for \(q>0\), but it does not assert that \(V^{\star}\) is the unrestricted individual-level bound or that \(q=0\) yields individual-level efficiency. Wooldridge (2023, Sections 2--3) studies fully interacted individual-level nonlinear imputation and does not supply the cohort-mean cycle frontier. Ciani and Fisher (2019, printed page 7, Section 3.1 and Appendix B) note and simulate possible PPML inefficiency; the present fixed-horizon result supplies necessity, sufficiency, exact codimension, and a realizable strict-loss neighborhood. Kir\'aly, Theran, and Tomioka (2015, Theorem 34 and Remark 35) identify even cycles as rank-one matrix circuits. Chamberlain (1987) and Newey (1990) provide general efficiency and score tools, while the support-preserving bounded-score truncation and exact mean adjustment are proved here for this nonnegative panel. Roth and Sant'Anna (2023), Borusyak, Jaravel, and Spiess (2024), and Chen, Sant'Anna, and Xie (2025) concern covariance-aware additive staggered designs rather than this proportional ratio. Nagengast--Yotov and Menkhoff--Miethe are motivating applications; their richer dependence and fixed effects remain outside the benchmark. No theorem here resolves the growing-\(T\), growing-\(q\) regularized problem posed at \(\mathrm{oeq{:}growing\text{-}cycle\text{-}frontier}\).
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_{\mathrm{PTT}}=A/B-1\).
+Primary functional / estimator / diagnostic: \(\widehat\theta_{\mathrm{eff}}=\widehat\theta_{\mathrm{CM}}-\widehat b_{\mathrm{cyc}}^{\prime}\widehat K^{-1}\widehat\kappa\), \(\widehat V=\widehat h^{\star\prime}\widehat\Omega\widehat h^{\star}\), \(\phi^{\star}=h^{\star\prime}Z\), and \(\Gamma=b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}\), with the cycle correction empty when \(q=0\).
+\begin{itemize}
+  \item \texttt{T} --- \texttt{fixed panel horizon}; \(\mathbb N\)
+  \item \texttt{C} --- \texttt{adoption-\allowbreak{}cohort support}; \(2^{\{2,\ldots,T,\infty\}}\)
+  \item \texttt{N} --- \texttt{total sample size}; \(\mathbb N\)
+  \item \texttt{alphaCI} --- \texttt{Wald noncoverage level}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\alpha\in(0,1)\) is fixed
+  \item \texttt{ng} --- \texttt{cohort sample-\allowbreak{}size map}; \(C\to\mathbb N\)
+  \item \texttt{p} --- \texttt{fixed cohort-\allowbreak{}share map}; \(C\to(0,1)\)
+  \item \texttt{G} --- \texttt{mixture-\allowbreak{}representation cohort label}; \(C\)
+  \par\smallskip\noindent\emph{Definition.} \(\Pr(G=g)=p_g\)
+  \item \texttt{U} --- \texttt{untreated cohort-\allowbreak{}-\allowbreak{}time cell set}; \(C\times\{1,\ldots,T\}\)
+  \par\smallskip\noindent\emph{Definition.} \(U=\{(g,t):g\in C,\ t<g\}\), with \(t<\infty\)
+  \item \texttt{D} --- \texttt{treated cohort-\allowbreak{}-\allowbreak{}time cell set}; \(C\times\{1,\ldots,T\}\)
+  \par\smallskip\noindent\emph{Definition.} \(D=\{(g,t):g\in C,\ g<\infty,\ t\ge g\}\)
+  \item \texttt{HU} --- \texttt{untreated bipartite graph}
+  \par\smallskip\noindent\emph{Definition.} \(H_U=(C\sqcup\{1,\ldots,T\},U)\)
+  \item \texttt{q} --- \texttt{cycle rank}; \(\mathbb N_0\)
+  \par\smallskip\noindent\emph{Definition.} \(q=|U|-|C|-T+1\)
+  \item \texttt{tree0} --- canonical spanning tree of \(H_U\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T_0=\{(g,1):g\in C\}\cup\{(\infty,t):2\le t\le T\}\)
+  \item \texttt{P} --- \texttt{cohort-\allowbreak{}law collection}; \(\prod_{g\in C}\mathcal P([0,\infty)^T)\)
+  \item \texttt{Y0} --- \texttt{untreated potential-\allowbreak{}outcome array}; \([0,\infty)^{C\times T}\)
+  \item \texttt{Y1} --- \texttt{treated potential-\allowbreak{}outcome array}; \([0,\infty)^{C\times T}\)
+  \item \texttt{Y} --- \texttt{observed cohort outcome vector}; \([0,\infty)^T\)
+  \item \texttt{a} --- \texttt{cohort-\allowbreak{}factor vector}; \(\mathbb R^{|C|}\)
+  \item \texttt{b} --- \texttt{time-\allowbreak{}factor vector}; \(\mathbb R^T\)
+  \item \texttt{mu} --- \texttt{untreated mean array}; \(C\times\{1,\ldots,T\}\to(0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{gt}=\mathbb E_P[Y_{gt}(0)]=a_gb_t\)
+  \item \texttt{nu} --- \texttt{observed treated-\allowbreak{}cell mean vector}; \((0,\infty)^{|D|}\)
+  \par\smallskip\noindent\emph{Definition.} \(\nu_{gt}=\mathbb E_P[Y_{gt}(1)]\) for \((g,t)\in D\)
+  \item \texttt{m} --- \texttt{stacked observed mean vector}; \((0,\infty)^{|U|+|D|}\)
+  \par\smallskip\noindent\emph{Definition.} \(m=(\mu_U^{\prime},\nu_D^{\prime})^{\prime}\)
+  \item \texttt{Sigma} --- \texttt{within-\allowbreak{}cohort covariance collection}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma_g=\operatorname{Var}_P(Y_g)\)
+  \item \texttt{Pi} --- \texttt{cohort-\allowbreak{}major to untreated-\allowbreak{}-\allowbreak{}treated stacking permutation}; \(\mathbb R^{(|U|+|D|)\times |C|T}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Pi\) maps the cohort-major vector \(((v_{g1},\ldots,v_{gT})^{\prime})_{g\in C}\) to \((v_U^{\prime},v_D^{\prime})^{\prime}\)
+  \item \texttt{Omega} --- \texttt{asymptotic covariance of stacked stratified cell means}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega=\Pi\operatorname{blockdiag}_{g\in C}(\Sigma_g/p_g)\Pi^{\prime}\)
+  \item \texttt{A} --- \texttt{treated observed-\allowbreak{}mean total}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(A=\sum_{(g,t)\in D}p_g\nu_{gt}\)
+  \item \texttt{B} --- \texttt{treated counterfactual-\allowbreak{}mean total}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(B=\sum_{(g,t)\in D}p_g\mu_{gt}\)
+  \item \texttt{theta} --- \texttt{proportional treatment on the treated}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{\mathrm{PTT}}=A/B-1\)
+  \item \texttt{beta} --- \texttt{normalized log-\allowbreak{}factor parameter}; \(\mathbb R^{|C|+T-1}\)
+  \par\smallskip\noindent\emph{Definition.} \(\beta=((\log a_g)_{g\in C},(\log b_t)_{t=2}^T)\) with \(b_1=1\)
+  \item \texttt{X} --- \texttt{untreated log-\allowbreak{}mean design matrix}; \(\mathbb R^{|U|\times(|C|+T-1)}\)
+  \par\smallskip\noindent\emph{Definition.} row \(x_{gt}^{\prime}\) satisfies \(\mu_{gt}=\exp(x_{gt}^{\prime}\beta)\)
+  \item \texttt{meta} --- \texttt{smooth observed-\allowbreak{}mean chart}; \(\mathbb R^{|C|+T-1+|D|}\to(0,\infty)^{|U|+|D|}\)
+  \par\smallskip\noindent\emph{Definition.} For \(\eta=(\beta^{\prime},\nu_D^{\prime})^{\prime}\), \(m_{\eta}(\eta)=((\exp(x_{gt}^{\prime}\beta))_{(g,t)\in U}^{\prime},\nu_D^{\prime})^{\prime}\)
+  \item \texttt{M} --- \texttt{untreated mean diagonal matrix}
+  \par\smallskip\noindent\emph{Definition.} \(M=\operatorname{diag}(\mu_U)\)
+  \item \texttt{PU} --- \texttt{untreated cohort-\allowbreak{}share diagonal matrix}
+  \par\smallskip\noindent\emph{Definition.} \(P_U=\operatorname{diag}(p_g:(g,t)\in U)\)
+  \item \texttt{J} --- \texttt{Jacobian of the observed mean manifold}
+  \par\smallskip\noindent\emph{Definition.} \(J=\operatorname{blockdiag}(MX,I_D)\)
+  \item \texttt{R} --- \texttt{weighted fundamental-\allowbreak{}cycle matrix}; \(\mathbb R^{(|U|+|D|)\times q}\)
+  \item \texttt{c} --- gradient of \(\theta_{\mathrm{PTT}}\) with respect to \((\beta,\nu_D)\)
+  \par\smallskip\noindent\emph{Definition.} \(c=(c_{\beta}^{\prime},(p_g/B)_{(g,t)\in D}^{\prime})^{\prime}\), where \(c_{\beta}=-(A/B^2)\,\partial B/\partial\beta\)
+  \item \texttt{S} --- \texttt{cohort-\allowbreak{}mean PPML untreated information matrix}
+  \par\smallskip\noindent\emph{Definition.} \(S=X^{\prime}P_UMX\)
+  \item \texttt{hCM} --- \texttt{mean-\allowbreak{}influence coefficient of the cohort-\allowbreak{}mean PPML-\allowbreak{}imputation estimator}; \(\mathbb R^{|U|+|D|}\)
+  \par\smallskip\noindent\emph{Definition.} \(h_{\mathrm{CM},U}=P_UXS^{-1}c_{\beta}\) and \(h_{\mathrm{CM},gt}=p_g/B\) on \(D\)
+  \item \texttt{hstar} --- \texttt{efficient mean-\allowbreak{}influence coefficient}; \(\mathbb R^{|U|+|D|}\)
+  \par\smallskip\noindent\emph{Definition.} \(h^{\star}=\Omega^{-1}J(J^{\prime}\Omega^{-1}J)^{-1}c\)
+  \item \texttt{Vstar} --- \texttt{semiparametric efficiency bound}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(V^{\star}=c^{\prime}(J^{\prime}\Omega^{-1}J)^{-1}c\)
+  \item \texttt{bcyc} --- \texttt{cycle-\allowbreak{}imbalance vector}; \(\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} \(b_{\mathrm{cyc}}=R^{\prime}\Omega h_{\mathrm{CM}}\)
+  \item \texttt{K} --- \texttt{cycle Gram matrix}; \(\mathbb S_{++}^q\)
+  \par\smallskip\noindent\emph{Definition.} \(K=R^{\prime}\Omega R\)
+  \item \texttt{Gamma} --- \texttt{cohort-\allowbreak{}mean PPML efficiency loss}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma=b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}\)
+  \item \texttt{alphaCM} --- \texttt{cohort-\allowbreak{}normalized cohort-\allowbreak{}mean PPML coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha^{\mathrm{CM}}_{gs}=h_{\mathrm{CM},gs}/p_g\)
+  \item \texttt{F} --- \texttt{primitive covariance-\allowbreak{}loading array on untreated cells}
+  \par\smallskip\noindent\emph{Definition.} \(F_{gt}=\mu_{gt}^{-1}\sum_{s=1}^T\operatorname{Cov}_P(Y_{gt},Y_{gs})\alpha^{\mathrm{CM}}_{gs}\)
+  \item \texttt{Z} --- \texttt{stacked stratified sample-\allowbreak{}mean influence vector}
+  \par\smallskip\noindent\emph{Definition.} \(Z=\Pi\operatorname{col}_{g\in C}\{\mathbf 1\{G=g\}(Y_g-m_g)/p_g\}\), ordered with all cells in \(U\) followed by all cells in \(D\)
+  \item \texttt{phistar} --- \texttt{canonical gradient}; \(L_2^0(P)\)
+  \par\smallskip\noindent\emph{Definition.} \(\phi^{\star}=h^{\star\prime}Z\)
+  \item \texttt{s} --- \texttt{centered square-\allowbreak{}integrable cohort score}; \(L_2^0(P)\)
+  \item \texttt{z} --- \texttt{mean-\allowbreak{}derivative map}
+  \par\smallskip\noindent\emph{Definition.} \(z(s)=\mathbb E_P[(Y-m)s]\)
+  \item \texttt{TP} --- \texttt{closed score tangent space}; \(L_2^0(P)\)
+  \item \texttt{Ybar} --- \texttt{cohort sample-\allowbreak{}mean collection}
+  \par\smallskip\noindent\emph{Definition.} \(\overline Y_g=n_g^{-1}\sum_{i=1}^{n_g}Y_{gi}\in\mathbb R^T\)
+  \item \texttt{pHat} --- \texttt{sample cohort-\allowbreak{}share map}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat p_g=n_g/N\)
+  \item \texttt{SigmaHat} --- \texttt{within-\allowbreak{}cohort empirical covariance collection}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Sigma_g=n_g^{-1}\sum_{i=1}^{n_g}(Y_{gi}-\overline Y_g)(Y_{gi}-\overline Y_g)^{\prime}\in\mathbb S_+^T\)
+  \item \texttt{PUHat} --- \texttt{sample untreated cohort-\allowbreak{}share diagonal matrix}; \(\mathbb R^{|U|\times|U|}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat P_U=\operatorname{diag}(\widehat p_g:(g,t)\in U)\)
+  \item \texttt{betaHat} --- \texttt{normalized untreated cohort-\allowbreak{}mean PPML coefficient}; \(\mathbb R^{|C|+T-1}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\beta\) is the normalized solution of \(X^{\prime}\widehat P_U[\overline Y_U-\exp(X\widehat\beta)]=0\), with normalization \(\widehat b_1=1\)
+  \item \texttt{muHat} --- \texttt{fitted rank-\allowbreak{}one counterfactual mean array}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\mu_{gt}=\exp(x_{gt}^{\prime}\widehat\beta)\) for every \(g\in C\) and \(1\le t\le T\)
+  \item \texttt{MHat} --- \texttt{fitted untreated mean diagonal matrix}; \(\mathbb R^{|U|\times|U|}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat M=\operatorname{diag}(\widehat\mu_U)\)
+  \item \texttt{SHat} --- \texttt{sample cohort-\allowbreak{}mean PPML untreated information matrix}; \(\mathbb R^{(|C|+T-1)\times(|C|+T-1)}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat S=X^{\prime}\widehat P_U\widehat M X\)
+  \item \texttt{AHat} --- \texttt{fixed-\allowbreak{}target-\allowbreak{}weight treated sample total}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat A=\sum_{(g,t)\in D}p_g\overline Y_{gt}\)
+  \item \texttt{BHat} --- \texttt{fixed-\allowbreak{}target-\allowbreak{}weight fitted counterfactual total}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat B=\sum_{(g,t)\in D}p_g\widehat\mu_{gt}\)
+  \item \texttt{cHat} --- \texttt{plug-\allowbreak{}in target-\allowbreak{}gradient vector}; \(\mathbb R^{|C|+T-1+|D|}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat c=(\widehat c_{\beta}^{\prime},(p_g/\widehat B)_{(g,t)\in D}^{\prime})^{\prime}\), where \(\widehat c_{\beta}=-(\widehat A/\widehat B^2)\sum_{(g,t)\in D}p_g\widehat\mu_{gt}x_{gt}\)
+  \item \texttt{thetaHatCM} --- \texttt{cohort-\allowbreak{}mean PPML-\allowbreak{}imputation estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{CM}}=\widehat A/\widehat B-1\) when \(\widehat B>0\), and \(0\) otherwise
+  \item \texttt{xiHatMK} --- \texttt{Moreau-\allowbreak{}-\allowbreak{}Kastler untreated individual fixed-\allowbreak{}effects PPML fit}; \(\mathbb R^{\sum_{g\in C}n_g+T-1}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\xi_{\mathrm{MK}}=((\widehat\alpha^{\mathrm{MK}}_{gi})_{g\in C,1\le i\le n_g},(\widehat\lambda^{\mathrm{MK}}_t)_{t=2}^T)\) maximizes \(\sum_{g\in C}\sum_{i=1}^{n_g}\sum_{t<g}[Y_{git}(\alpha_{gi}+\lambda_t)-\exp(\alpha_{gi}+\lambda_t)]\) with \(\lambda_1=0\)
+  \item \texttt{muHatMKInd} --- \texttt{Moreau-\allowbreak{}-\allowbreak{}Kastler individual untreated counterfactual prediction}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\mu^{\mathrm{MK}}_{git}=\exp(\widehat\alpha^{\mathrm{MK}}_{gi}+\widehat\lambda^{\mathrm{MK}}_t)\) for every treated cell \((g,t)\in D\)
+  \item \texttt{thetaHatMKInd} --- \texttt{Moreau-\allowbreak{}-\allowbreak{}Kastler individual-\allowbreak{}imputation PTT estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}=\frac{\sum_{(g,t)\in D}\sum_{i=1}^{n_g}Y_{git}}{\sum_{(g,t)\in D}\sum_{i=1}^{n_g}\widehat\mu^{\mathrm{MK}}_{git}}-1\) when the denominator is positive
+  \item \texttt{RHat} --- \texttt{sample weighted fundamental-\allowbreak{}cycle matrix}; \(\mathbb R^{(|U|+|D|)\times q}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat R\) replaces each \(\mu_{gt}\) in the four signed entries of \(R\) by \(\widehat\mu_{gt}\)
+  \item \texttt{kappaHat} --- \texttt{sample fundamental-\allowbreak{}cycle log residual vector}; \(\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\kappa_{gt}=\log\overline Y_{g1}-\log\overline Y_{gt}-\log\overline Y_{\infty 1}+\log\overline Y_{\infty t}\) for finite \(g\) and \(2\le t<g\), ordered as the columns of \(\widehat R\)
+  \item \texttt{OmegaHat} --- \texttt{plug-\allowbreak{}in stratified covariance estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Omega=\Pi\operatorname{blockdiag}_{g\in C}(\widehat\Sigma_g/\widehat p_g)\Pi^{\prime}\in\mathbb S_+^{|U|+|D|}\)
+  \item \texttt{hCMHat} --- \texttt{plug-\allowbreak{}in cohort-\allowbreak{}mean PPML mean-\allowbreak{}influence coefficient}; \(\mathbb R^{|U|+|D|}\)
+  \par\smallskip\noindent\emph{Definition.} Set \(\widehat h_{\mathrm{CM},U}=\widehat P_UX\widehat S^{-1}\widehat c_{\beta}\) and \(\widehat h_{\mathrm{CM},gt}=p_g/\widehat B\) on \(D\)
+  \item \texttt{bcycHat} --- \texttt{sample cycle-\allowbreak{}imbalance vector}; \(\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat b_{\mathrm{cyc}}=\widehat R^{\prime}\widehat\Omega\widehat h_{\mathrm{CM}}\)
+  \item \texttt{KHat} --- \texttt{sample cycle Gram matrix}; \(\mathbb S_+^q\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat K=\widehat R^{\prime}\widehat\Omega\widehat R\in\mathbb R^{q\times q}\)
+  \item \texttt{hstarHat} --- \texttt{feasible efficient mean-\allowbreak{}influence coefficient}; \(\mathbb R^{|U|+|D|}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat h^{\star}=\widehat h_{\mathrm{CM}}-\widehat R\widehat K^{-1}\widehat b_{\mathrm{cyc}}\) for \(q>0\), and \(\widehat h^{\star}=\widehat h_{\mathrm{CM}}\) for \(q=0\)
+  \item \texttt{feasHat} --- \texttt{sample feasibility event}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_N=\{\min_{(g,t)\in U}\overline Y_{gt}>0,\ \widehat\beta\text{ exists uniquely under }\widehat b_1=1,\ \widehat B>0,\ \widehat\Sigma_g\succ0\ \forall g,\ \widehat K\succ0\text{ if }q>0\}\)
+  \item \texttt{thetaHatEff} --- \texttt{feasible covariance-\allowbreak{}weighted cycle-\allowbreak{}corrected estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{eff}}=\widehat\theta_{\mathrm{CM}}-\widehat b_{\mathrm{cyc}}^{\prime}\widehat K^{-1}\widehat\kappa\) on \(\mathcal E_N\) for \(q>0\), \(\widehat\theta_{\mathrm{eff}}=\widehat\theta_{\mathrm{CM}}\) on \(\mathcal E_N\) for \(q=0\), and \(0\) on \(\mathcal E_N^c\)
+  \item \texttt{VHat} --- \texttt{plug-\allowbreak{}in efficient variance estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat V=\widehat h^{\star\prime}\widehat\Omega\widehat h^{\star}\) on \(\mathcal E_N\) and \(1\) on \(\mathcal E_N^c\)
+  \item \texttt{M4} --- \texttt{finite-\allowbreak{}fourth-\allowbreak{}moment proportional staggered-\allowbreak{}panel law class}
+  \item \texttt{Mbd} --- \texttt{bounded-\allowbreak{}outcome sub-\allowbreak{}class}
+  \item \texttt{rho} --- \texttt{fixed-\allowbreak{}support covariance-\allowbreak{}perturbation coordinate}; \(\mathbb R^q\)
+  \item \texttt{x} --- \texttt{realized untreated-\allowbreak{}-\allowbreak{}treated covariance perturbation vector}; \(\mathbb R^q\)
+  \item \texttt{Prho} --- \texttt{bounded fixed-\allowbreak{}support law family}
+  \item \texttt{Dmu} --- \texttt{non-\allowbreak{}tree untreated-\allowbreak{}mean diagonal matrix}
+  \par\smallskip\noindent\emph{Definition.} \(D_{\mu}=\operatorname{diag}(\mu_{gt}:g<\infty,\ 2\le t<g)\)
+  \item \texttt{K0} --- cycle Gram matrix at \(\rho=0\)
+  \par\smallskip\noindent\emph{Definition.} \(K_0=R^{\prime}\Omega(0)R\)
+  \item \texttt{Acov} --- \texttt{ambient block-\allowbreak{}covariance space}; \(\mathcal A_{\Sigma}=\prod_{g\in C}\mathbb S^T\)
+  \par\smallskip\noindent\emph{Definition.} \(\|\Sigma-\widetilde\Sigma\|_{\mathcal A}=\max_{g\in C}\|\Sigma_g-\widetilde\Sigma_g\|_{\mathrm{op}}\)
+  \item \texttt{tau0} --- \texttt{base-\allowbreak{}law variance scale}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} Choose \(0<\tau_0<\min_{g\in C,1\le t\le T}m_{gt}\)
+  \item \texttt{s0} --- \texttt{positive base-\allowbreak{}law scale array}
+  \par\smallskip\noindent\emph{Definition.} \(s^0_{gt}=\sqrt{\tau_0m_{gt}}\)
+  \item \texttt{Sigma0} --- \texttt{diagonal efficient base covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma_{g0}=\operatorname{diag}((s^0_{g1})^2,\ldots,(s^0_{gT})^2)\)
+  \item \texttt{lambda0} --- \texttt{smallest base covariance eigenvalue}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_0=\min_{g\in C}\lambda_{\min}(\Sigma_{g0})\)
+  \item \texttt{d0} --- \texttt{base support positivity margin}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(d_0=\min_{g\in C,1\le t\le T}(m_{gt}-s^0_{gt})\)
+  \item \texttt{delta0} --- \texttt{explicit ambient realizability radius}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} Fix \(0<\delta_0<\min\{\lambda_0/2,d_0\sqrt{\lambda_0}/(2\sqrt T)\}\)
+  \item \texttt{Lreal} --- \texttt{mean-\allowbreak{}specific realizable covariance set}; \(2^{\mathcal A_{\Sigma}}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal L(m)=\{\Sigma\in\mathcal A_{\Sigma}:\exists P\in\mathcal M_{\mathrm{bd}},\ \mathbb E_PY=m,\ \operatorname{Var}_P(Y_g)=\Sigma_g\succ0\text{ for every }g\in C\}\)
+  \item \texttt{Lmap} --- \texttt{fixed-\allowbreak{}mean covariance-\allowbreak{}to-\allowbreak{}cycle linear map}; \(\mathcal A_{\Sigma}\to\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal L_m(\Sigma)=R^{\prime}\Omega(\Sigma)h_{\mathrm{CM}}=b_{\mathrm{cyc}}(\Sigma)\)
+  \item \texttt{x0} --- \texttt{nonzero admissible fixed-\allowbreak{}support perturbation}; \(\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} Choose \(x_0\ne0\) induced by an admissible \(\rho\) and small enough that \(\|\operatorname{Var}_{P_{\rho}}(Y)-\Sigma_0\|_{\mathcal A}<\delta_0\)
+  \item \texttt{Sigmax} --- \texttt{fixed-\allowbreak{}support covariance path}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma(x)=\operatorname{Var}_{P_{\rho(x)}}(Y)\) with \(\rho(x)_{gt}=x_{gt}/(s^0_{gt}s^0_{gg})\)
+  \item \texttt{eta0} --- \texttt{strict-\allowbreak{}loss ambient radius}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} Choose \(0<\eta_0<\min\{\delta_0-\|\Sigma(x_0)-\Sigma_0\|_{\mathcal A},\|\mathcal L_m(\Sigma(x_0))\|_2/(2\|\mathcal L_m\|_{\mathrm{op}})\}\)
+  \item \texttt{Htan} --- \texttt{bounded truncation-\allowbreak{}and-\allowbreak{}exact-\allowbreak{}mean-\allowbreak{}correction construction}
+  \item \texttt{Hgrow} --- \texttt{growing-\allowbreak{}cycle spectral-\allowbreak{}regularization handle}
+  \item \texttt{Ex3} --- \texttt{worked three-\allowbreak{}period covariance witness}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-horizon]\label{ass:fixed-horizon}
+\(T\in\mathbb N\) and \(T\ge3\)
+\par\smallskip\noindent\emph{Standard} (fixed-horizon short-panel asymptotics, \cite{BorusyakJaravelSpiess2024}).
+\end{assumption}
+
+\begin{assumption}[ass:treated-support]\label{ass:treated-support}
+\(D\ne\varnothing\)
+\par\smallskip\noindent\emph{Standard} (nonempty treated support, \cite{MoreauKastler2025}).
+\end{assumption}
+
+\begin{assumption}[ass:never-treated-cohort]\label{ass:never-treated-cohort}
+\(\infty\in C\)
+\par\smallskip\noindent\emph{Standard} (never-treated comparison cohort, \cite{MoreauKastler2025}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-shares]\label{ass:positive-shares}
+\(p_g>0\) for every \(g\in C\)
+\par\smallskip\noindent\emph{Standard} (positive limiting stratum shares, \cite{RothSantAnna2023}).
+\end{assumption}
+
+\begin{assumption}[ass:share-normalization]\label{ass:share-normalization}
+\(\sum_{g\in C}p_g=1\)
+\par\smallskip\noindent\emph{Standard} (stratum-share normalization, \cite{RothSantAnna2023}).
+\end{assumption}
+
+\begin{assumption}[ass:share-convergence]\label{ass:share-convergence}
+\(n_g/N\to p_g\) for every \(g\in C\)
+\par\smallskip\noindent\emph{Standard} (fixed-strata share convergence, \cite{RothSantAnna2023}).
+\end{assumption}
+
+\begin{assumption}[ass:within-cohort-iid]\label{ass:within-cohort-iid}
+\(Y_{g1},\ldots,Y_{g n_g}\overset{\mathrm{iid}}{\sim}P_g\) for every \(g\in C\)
+\par\smallskip\noindent\emph{Standard} (stratified independent sampling, \cite{Newey1990}).
+\end{assumption}
+
+\begin{assumption}[ass:cross-cohort-independence]\label{ass:cross-cohort-independence}
+\(\bigl\{\sigma(Y_{gi}:1\le i\le n_g):g\in C\bigr\}\) are mutually independent.
+\par\smallskip\noindent\emph{Standard} (independent strata, \cite{Newey1990}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y_{gt}=\mathbf 1\{(g,t)\in U\}Y_{gt}(0)+\mathbf 1\{(g,t)\in D\}Y_{gt}(1)\)
+\par\smallskip\noindent\emph{Standard} (potential-outcome consistency, \cite{MoreauKastler2025}).
+\end{assumption}
+
+\begin{assumption}[ass:no-anticipation]\label{ass:no-anticipation}
+\(Y_{gt}(1)=Y_{gt}(0)\) for every \((g,t)\in U\)
+\par\smallskip\noindent\emph{Standard} (no anticipation, \cite{BorusyakJaravelSpiess2024}).
+\end{assumption}
+
+\begin{assumption}[ass:rank-one-untreated-mean]\label{ass:rank-one-untreated-mean}
+\(\mathbb E_P[Y_{gt}(0)]=a_gb_t\) for every \(g\in C\) and \(1\le t\le T\)
+\par\smallskip\noindent\emph{Standard} (multiplicative parallel trends, \cite{CianiFisher2019}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-factors]\label{ass:positive-factors}
+\(a_g>0\) for every \(g\in C\) and \(b_t>0\) for every \(1\le t\le T\)
+\par\smallskip\noindent\emph{Standard} (positive multiplicative mean factors, \cite{MoreauKastler2025}).
+\end{assumption}
+
+\begin{assumption}[ass:factor-normalization]\label{ass:factor-normalization}
+\(b_1=1\)
+\par\smallskip\noindent\emph{Standard} (multiplicative factor normalization, \cite{KiralyTheranTomioka2015}).
+\end{assumption}
+
+\begin{assumption}[ass:finite-fourth-moments]\label{ass:finite-fourth-moments}
+\(\mathbb E_P[\|Y_g\|_2^4]<\infty\) for every \(g\in C\)
+\par\smallskip\noindent\emph{Standard} (finite fourth moments, \cite{Newey1990}).
+\end{assumption}
+
+\begin{assumption}[ass:covariance-interior]\label{ass:covariance-interior}
+\(\Sigma_g\in\mathbb S_{++}^T\) for every \(g\in C\)
+\par\smallskip\noindent\emph{Standard} (nonsingular covariance interior, \cite{Chamberlain1987}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-support]\label{ass:bounded-support}
+\(\max_{g\in C,1\le t\le T}Y_{gt}\le M_0<\infty\) almost surely
+\par\smallskip\noindent\emph{Standard} (common bounded support, \cite{Newey1990}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:law-class-fourth]\label{def:law-class-fourth}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal M_4\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_4=\{(P_g)_{g\in C}:T\in\mathbb N,\ T\ge3,\ D\ne\varnothing,\ \infty\in C,\ p_g>0,\ \sum_gp_g=1,\ n_g/N\to p_g,\ Y_{gi}\overset{\mathrm{iid}}{\sim}P_g,\ \{\sigma(Y_{gi}:1\le i\le n_g):g\in C\}\text{ are mutually independent},\ Y=Y(0)\mathbf 1_U+Y(1)\mathbf 1_D,\ Y(1)=Y(0)\text{ on }U,\ \mathbb E_PY_{gt}(0)=a_gb_t,\ a_g>0,\ b_t>0,\ b_1=1,\ \mathbb E_P\|Y_g\|_2^4<\infty,\ \Sigma_g\succ0\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}fixed-\allowbreak{}horizon}; \texttt{ass:\allowbreak{}treated-\allowbreak{}support}; \texttt{ass:\allowbreak{}never-\allowbreak{}treated-\allowbreak{}cohort}; \texttt{ass:\allowbreak{}positive-\allowbreak{}shares}; \texttt{ass:\allowbreak{}share-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}share-\allowbreak{}convergence}; \texttt{ass:\allowbreak{}within-\allowbreak{}cohort-\allowbreak{}iid}; \texttt{ass:\allowbreak{}cross-\allowbreak{}cohort-\allowbreak{}independence}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}no-\allowbreak{}anticipation}; \texttt{ass:\allowbreak{}rank-\allowbreak{}one-\allowbreak{}untreated-\allowbreak{}mean}; \texttt{ass:\allowbreak{}positive-\allowbreak{}factors}; \texttt{ass:\allowbreak{}factor-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}finite-\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}covariance-\allowbreak{}interior}.
+\end{definition}
+
+\begin{definition}[def:law-class-bounded]\label{def:law-class-bounded}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal M_{\mathrm{bd}}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{bd}}=\{P\in\mathcal M_4:\{\sigma(Y_{gi}:1\le i\le n_g):g\in C\}\text{ are mutually independent},\ \max_{g\in C,1\le t\le T}Y_{gt}\le M_0<\infty\ \text{almost surely}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}fixed-\allowbreak{}horizon}; \texttt{ass:\allowbreak{}treated-\allowbreak{}support}; \texttt{ass:\allowbreak{}never-\allowbreak{}treated-\allowbreak{}cohort}; \texttt{ass:\allowbreak{}positive-\allowbreak{}shares}; \texttt{ass:\allowbreak{}share-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}share-\allowbreak{}convergence}; \texttt{ass:\allowbreak{}within-\allowbreak{}cohort-\allowbreak{}iid}; \texttt{ass:\allowbreak{}cross-\allowbreak{}cohort-\allowbreak{}independence}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}no-\allowbreak{}anticipation}; \texttt{ass:\allowbreak{}rank-\allowbreak{}one-\allowbreak{}untreated-\allowbreak{}mean}; \texttt{ass:\allowbreak{}positive-\allowbreak{}factors}; \texttt{ass:\allowbreak{}factor-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}finite-\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}covariance-\allowbreak{}interior}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}support}.
+\end{definition}
+
+\begin{definition}[def:cycle-basis]\label{def:cycle-basis}
+\par\smallskip\noindent\emph{Defined object.} \(R\)
+\par\smallskip\noindent\emph{Construction.} For each non-tree edge \(e=(g,t)\), \(g<\infty\), \(2\le t<g\), let \(r_e\) have entries \(+1/\mu_{g1},-1/\mu_{gt},-1/\mu_{\infty1},+1/\mu_{\infty t}\) on \((g,1),(g,t),(\infty,1),(\infty,t)\), respectively, and zero elsewhere; \(R=(r_e:e\in U\setminus\mathcal T_0)\)
+\par\smallskip\noindent\emph{Inputs.} \(H_U\); \(\mu_U\); \(\mathcal T_0\).
+\end{definition}
+
+\begin{definition}[def:tangent-space]\label{def:tangent-space}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal T_P\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal T_P=\overline{\{s:P_{\varepsilon}\subset\mathcal M_4\text{ is differentiable in quadratic mean at }P\text{ with score }s,\ \mathbb E_{P_{\varepsilon}}Y=m+\varepsilon z(s)+o(\varepsilon),\ \mathbb E_{P_{\varepsilon}}Y=m_{\eta}(\eta_{\varepsilon})\}}^{L_2(P)}\)\), where \(\eta_{\varepsilon}\) is differentiable at zero
+\par\smallskip\noindent\emph{Inputs.} \(P\in\mathcal M_4\).
+\end{definition}
+
+\begin{definition}[def:cohort-mean-ppml-influence]\label{def:cohort-mean-ppml-influence}
+\par\smallskip\noindent\emph{Defined object.} \(h_{\mathrm{CM}}\)
+\par\smallskip\noindent\emph{Construction.} \(h_{\mathrm{CM},U}=P_UXS^{-1}c_{\beta}\) and \(h_{\mathrm{CM},gt}=p_g/B\) for \((g,t)\in D\)
+\par\smallskip\noindent\emph{Inputs.} \(P_U\); \(X\); \(S\); \(c\).
+\end{definition}
+
+\begin{definition}[def:mk-individual-imputation]\label{def:mk-individual-imputation}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}\)
+\par\smallskip\noindent\emph{Construction.} Fit untreated individual-observation fixed-effects PPML by maximizing \(\sum_{g\in C}\sum_{i=1}^{n_g}\sum_{t<g}[Y_{git}(\alpha_{gi}+\lambda_t)-\exp(\alpha_{gi}+\lambda_t)]\) under \(\lambda_1=0\); predict \(\widehat\mu^{\mathrm{MK}}_{git}=\exp(\widehat\alpha^{\mathrm{MK}}_{gi}+\widehat\lambda^{\mathrm{MK}}_t)\) for treated observations and form \(\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}=\frac{\sum_{(g,t)\in D}\sum_iY_{git}}{\sum_{(g,t)\in D}\sum_i\widehat\mu^{\mathrm{MK}}_{git}}-1\)
+\par\smallskip\noindent\emph{Inputs.} the untreated individual observations \(Y_{git}\); the adoption cohorts \(g\in C\); \texttt{equal observation weights and no covariates or offsets}.
+\end{definition}
+
+\begin{definition}[def:canonical-gradient]\label{def:canonical-gradient}
+\par\smallskip\noindent\emph{Defined object.} \((h^{\star},\phi^{\star},V^{\star})\)
+\par\smallskip\noindent\emph{Construction.} \(h^{\star}=\Omega^{-1}J(J^{\prime}\Omega^{-1}J)^{-1}c\), \(\phi^{\star}=h^{\star\prime}Z\), and \(V^{\star}=c^{\prime}(J^{\prime}\Omega^{-1}J)^{-1}c\)
+\par\smallskip\noindent\emph{Inputs.} \(J\); \(c\); \(\Omega\).
+\end{definition}
+
+\begin{definition}[def:cycle-loss]\label{def:cycle-loss}
+\par\smallskip\noindent\emph{Defined object.} \((b_{\mathrm{cyc}},K,\Gamma)\)
+\par\smallskip\noindent\emph{Construction.} \(b_{\mathrm{cyc}}=R^{\prime}\Omega h_{\mathrm{CM}}\), \(K=R^{\prime}\Omega R\), and \(\Gamma=b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}\)
+\par\smallskip\noindent\emph{Inputs.} \(R\); \(\Omega\); \(h_{\mathrm{CM}}\).
+\end{definition}
+
+\begin{definition}[def:primitive-balances]\label{def:primitive-balances}
+\par\smallskip\noindent\emph{Defined object.} \(\Delta F\)
+\par\smallskip\noindent\emph{Construction.} \(F_{gt}=\mu_{gt}^{-1}\sum_{s=1}^T\operatorname{Cov}_P(Y_{gt},Y_{gs})\alpha^{\mathrm{CM}}_{gs}\) and \((\Delta F)_{gt}=F_{g1}-F_{gt}-F_{\infty1}+F_{\infty t}\) for \(g<\infty\), \(2\le t<g\)
+\par\smallskip\noindent\emph{Inputs.} \(\Sigma\); \(h_{\mathrm{CM}}\); \(\mu_U\).
+\end{definition}
+
+\begin{definition}[def:efficient-estimator]\label{def:efficient-estimator}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat\theta_{\mathrm{eff}}\), based on cohort-mean PPML imputation
+\par\smallskip\noindent\emph{Construction.} From \(\overline Y_g=n_g^{-1}\sum_iY_{gi}\), \(\widehat p_g=n_g/N\), and \(\widehat\Sigma_g=n_g^{-1}\sum_i(Y_{gi}-\overline Y_g)(Y_{gi}-\overline Y_g)^{\prime}\), compute \(\widehat\beta,\widehat\mu,\widehat A,\widehat B,\widehat\theta_{\mathrm{CM}},\widehat R,\widehat\kappa,\widehat\Omega,\widehat h_{\mathrm{CM}}\) as defined above; then set \(\widehat b_{\mathrm{cyc}}=\widehat R^{\prime}\widehat\Omega\widehat h_{\mathrm{CM}}\in\mathbb R^q\), \(\widehat K=\widehat R^{\prime}\widehat\Omega\widehat R\in\mathbb R^{q\times q}\), \(\widehat h^{\star}=\widehat h_{\mathrm{CM}}-\widehat R\widehat K^{-1}\widehat b_{\mathrm{cyc}}\), \(\widehat\theta_{\mathrm{eff}}=\widehat\theta_{\mathrm{CM}}-\widehat b_{\mathrm{cyc}}^{\prime}\widehat K^{-1}\widehat\kappa\), and \(\widehat V=\widehat h^{\star\prime}\widehat\Omega\widehat h^{\star}\) on \(\mathcal E_N\). For \(q=0\), all cycle objects are empty, \(\widehat h^{\star}=\widehat h_{\mathrm{CM}}\), and no correction is made; on \(\mathcal E_N^c\), use the declared total fallback \((\widehat\theta_{\mathrm{eff}},\widehat V)=(0,1)\)
+\par\smallskip\noindent\emph{Inputs.} \((\overline Y_g,\widehat\Sigma_g,n_g)_{g\in C}\); fixed target weights \(p\); the canonical tree \(\mathcal T_0\).
+\end{definition}
+
+\begin{definition}[def:bounded-covariance-family]\label{def:bounded-covariance-family}
+\par\smallskip\noindent\emph{Defined object.} \(P_{\rho}\)
+\par\smallskip\noindent\emph{Construction.} Using \(s^0_{gt}=\sqrt{\tau_0m_{gt}}\), put \(Y_g=m_g+s_g^0\odot\varepsilon_g\); for finite \(g\), assign \(\Pr_{\rho}(\varepsilon_g=e)=2^{-T}[1+\sum_{t=2}^{g-1}\rho_{gt}e_te_g]\) under \(\sum_{t=2}^{g-1}|\rho_{gt}|<1\), retain independent Rademacher coordinates for \(g=\infty\), and set \(x_{gt}=s^0_{gt}s^0_{gg}\rho_{gt}\). Complete the potential outcomes by \(Y_{gt}(0)=Y_{gt}(1)=Y_{gt}\) on \(U\), \(Y_{gt}(1)=Y_{gt}\) on \(D\), and \(Y_{gt}(0)=\mu_{gt}\) on \(D\)
+\par\smallskip\noindent\emph{Inputs.} \(m\); \(q\); \(\rho\).
+\end{definition}
+
+\begin{definition}[def:tangent-score-realization]\label{def:tangent-score-realization}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf H_{\mathrm{tan}}\)
+\par\smallskip\noindent\emph{Construction.} For each cohort set \(w_g^{(L)}=(Y_g-m_g)\mathbf 1\{\|Y_g-m_g\|_2\le L\}\) and \(u_g^{(L)}=w_g^{(L)}-\mathbb E_Pw_g^{(L)}\); choose finite \(L_g\) for which \(C_g=\mathbb E_P[(Y_g-m_g)u_g^{(L_g)\prime}]\) is invertible, which exists because \(C_g\to\Sigma_g\succ0\). For \(s\in L_2^0(P)\) with \(z(s)=Jv\), truncate and center to \(s_g^{[\ell]}\), and set \(\widetilde s_g^{[\ell]}=s_g^{[\ell]}+u_g^{(L_g)\prime}C_g^{-1}[z_g(s)-z_g(s^{[\ell]})]\). With the smooth mean chart \(m_{\eta}\), define \(dP_{g,\varepsilon}^{[\ell]}/dP_g=1+\varepsilon\widetilde s_g^{[\ell]}+u_g^{(L_g)\prime}\lambda_g^{[\ell]}(\varepsilon)\), where \(\lambda_g^{[\ell]}(\varepsilon)=C_g^{-1}[m_{\eta,g}(\eta+\varepsilon v)-m_g-\varepsilon z_g(s)]\). For sufficiently small positive and negative \(\varepsilon\), this is a positive support-preserving density, has mean \(m_{\eta,g}(\eta+\varepsilon v)\), and score \(\widetilde s_g^{[\ell]}\)
+\par\smallskip\noindent\emph{Inputs.} \(P\in\mathcal M_4\); \(s\in L_2^0(P)\) with \(z(s)=Jv\); a score-truncation level \(\ell\).
+\end{definition}
+
+\begin{definition}[def:ambient-covariance-neighborhood]\label{def:ambient-covariance-neighborhood}
+\par\smallskip\noindent\emph{Defined object.} \(\mathbb B_{\mathcal A}(\Sigma_0,\delta_0)\)
+\par\smallskip\noindent\emph{Construction.} For each \(\Sigma\) with \(\|\Sigma-\Sigma_0\|_{\mathcal A}<\delta_0\), let \(Y_g=m_g+\Sigma_g^{1/2}\varepsilon_g\), where \(\varepsilon_g\) has independent Rademacher coordinates. Weyl's inequality gives \(\lambda_{\min}(\Sigma_g)>\lambda_0/2\), while \(\|\Sigma_g^{1/2}-\Sigma_{g0}^{1/2}\|_{\mathrm{op}}<\delta_0/\sqrt{\lambda_0}\); hence every coordinate of \(Y_g\) is at least \(d_0-\sqrt T\delta_0/\sqrt{\lambda_0}>d_0/2\), so \(\mathbb B_{\mathcal A}(\Sigma_0,\delta_0)\subset\mathcal L(m)\)
+\par\smallskip\noindent\emph{Inputs.} \(m\); \(\Sigma_0\); \(\delta_0\).
+\end{definition}
+
+\begin{definition}[def:growing-cycle-handle]\label{def:growing-cycle-handle}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf H_{\mathrm{grow}}\)
+\par\smallskip\noindent\emph{Construction.} Analyze a spectrally regularized projection of the empirical cycle score \(\widehat\kappa\) using the eigenspaces of \(\widehat K\), with bias controlled by the discarded cycle loading \(\widehat b_{\mathrm{cyc}}\) and stochastic error controlled by a self-normalized graph-cycle central limit argument
+\par\smallskip\noindent\emph{Inputs.} the empirical cycle triple \((\widehat K,\widehat b_{\mathrm{cyc}},\widehat\kappa)\); \texttt{a sequence of growing untreated graphs}.
+\end{definition}
+
+\begin{definition}[def:worked-three-period-witness]\label{def:worked-three-period-witness}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf E_3\)
+\par\smallskip\noindent\emph{Construction.} Take \(T=3\), \(C=\{2,3,\infty\}\), \(p_g=1/3\), \(a_g=1\), \(b=(1,2,3)\), and treated multiplier \(3/2\), so the observed mean rows are \((1,3,9/2),(1,2,9/2),(1,2,3)\). Cohorts \(2\) and \(\infty\) have independent coordinate noise \(\pm1/10\). Cohort \(3\) has noise \(((U_0/10+e_1/20),(-U_0/10+e_2/20),(U_0/10+e_3/20))\), where \(U_0,e_1,e_2,e_3\) are independent Rademacher variables
+\par\smallskip\noindent\emph{Inputs.} four independent Rademacher signs in cohort \(3\); independent coordinate signs in cohorts \(2\) and \(\infty\).
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:weighted-cycle-space]\label{thm:weighted-cycle-space}
+Under the positive connected rank-one untreated-mean model, the weighted fundamental cycles are complete: \(\ker(J^{\prime})=\operatorname{col}(R)\) and \(\operatorname{rank}(R)=q=|U|-|C|-T+1\).
+\end{theorem}
+\begin{proof}
+Order the coordinates as \((U,D)\). By definition,
+\[
+J=\operatorname{blockdiag}(MX,I_D),
+\qquad
+J^{\prime}v=0
+\Longleftrightarrow
+v_D=0\ \text{and}\ X^{\prime}Mv_U=0.                  \tag{1}
+\]
+All diagonal entries of \(M\) are positive by the positive-factor assumption, so \(M\) is invertible.
+
+Multiplying the normalized time columns of \(X\) by \(-1\) turns \(X\) into the oriented incidence matrix of \(H_U\) with the time-\(1\) vertex column deleted. This invertible column operation does not change rank. The graph is connected: every \(g\in C\) is joined to time \(1\), and \(\infty\in C\) is joined to every time \(t\). Equivalently, if \(Xv=0\), the rows \((g,1)\) force every cohort coordinate of \(v\) to be zero, and the rows \((\infty,t)\), \(2\le t\le T\), then force every normalized time coordinate to be zero. Hence
+\[
+\operatorname{rank}(X)=|C|+T-1.                       \tag{2}
+\]
+
+The edge set
+\[
+\mathcal T_0=\{(g,1):g\in C\}\cup
+\{(\infty,t):2\le t\le T\}
+\]
+has \(|C|+T-1\) edges, is connected, and has no cycle, so it is a spanning tree. Its non-tree edges are exactly \((g,t)\) with finite \(g\) and \(2\le t<g\). Their number is therefore
+\[
+|U|-(|C|+T-1)=|U|-|C|-T+1=q.                           \tag{3}
+\]
+
+For such an edge \(e=(g,t)\), put \(w_e=Mr_{e,U}\). Its four nonzero entries are \(+1,-1,-1,+1\) on \((g,1),(g,t),(\infty,1),(\infty,t)\). In \(X^{\prime}w_e\), the two contributions at each cohort vertex cancel and the two contributions at time \(t\) cancel. Thus \(X^{\prime}Mr_{e,U}=0\), and (1) gives \(r_e\in\ker(J^{\prime})\).
+
+The coordinate of \(r_e\) at its own non-tree edge is \(-1/\mu_{gt}\ne0\), whereas every other fundamental-cycle column is zero there. Hence the \(q\) columns of \(R\) are linearly independent. Finally, (1)--(2) give
+\[
+\dim\ker(J^{\prime})
+=(|U|+|D|)-\{(|C|+T-1)+|D|\}=q.                        \tag{4}
+\]
+The \(q\) independent columns of \(R\) lie in this \(q\)-dimensional kernel, proving
+\[
+\ker(J^{\prime})=\operatorname{col}(R),
+\qquad
+\operatorname{rank}(R)=q.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identifies every locally informative mean restriction and makes the graph cycle rank the exact dimension of overidentification. \textit{Gap.} Király, Theran, and Tomioka (2015, Theorem 34 and Remark 35) identify rank-one circuit polynomials; they do not derive the weighted tangent restriction space for proportional staggered DiD. \textit{Consumer.} The result gives proportional-DiD analysts a graph-only count of all covariance-sensitive precision directions before estimation.
+
+\begin{lemma}[lem:tangent-score-density]\label{lem:tangent-score-density}
+For every \(P\in\mathcal M_4\), every \(s\in L_2^0(P)\) satisfying \(R^{\prime}z(s)=0\) is the \(L_2(P)\) limit of bounded scores of two-sided support-preserving differentiable-in-quadratic-mean submodels in \(\mathcal M_4\) whose mean paths lie exactly in the smooth chart \(m_{\eta}\); hence \(\mathcal T_P=\{s\in L_2^0(P):R^{\prime}z(s)=0\}\).
+\end{lemma}
+\begin{proof}
+Interpret the fixed-strata score space in \(\mathcal T_P\) as the Hilbert direct sum
+\[
+\mathcal H_P=\bigoplus_{g\in C}L_2^0(P_g),
+\qquad
+\langle s_1,s_2\rangle_P
+=\sum_{g\in C}p_g\mathbb E_g[s_{1g}s_{2g}],
+\]
+so each component satisfies \(\mathbb E_gs_g=0\).  This is precisely the score space for the mutually independent fixed-strata experiment with the shares held fixed.  In this notation the blocks of the continuous mean-derivative map are
+\[
+z_g(s)=\mathbb E_g[(Y_g-m_g)s_g].                                      \tag{1}
+\]
+Indeed, by Cauchy--Schwarz,
+\[
+\|z_g(s)\|_2
+\le \{\mathbb E_g\|Y_g-m_g\|_2^2\}^{1/2}
+     \{\mathbb E_gs_g^2\}^{1/2},                                      \tag{2}
+\]
+and the first factor is finite under \(\mathbb E_g\|Y_g\|_2^4<\infty\).  Since \(C\) is finite and every \(p_g>0\), (2) proves continuity of \(s\mapsto z(s)\).
+
+First take the score of a submodel admitted by the definition of \(\mathcal T_P\).  That definition expressly requires a differentiable mean path satisfying
+\[
+\mathbb E_{P_\varepsilon}Y
+=m+\varepsilon z(s)+o(\varepsilon)
+=m_\eta(\eta_\varepsilon),
+\qquad
+\eta_\varepsilon=\eta+\varepsilon v+o(\varepsilon).                   \tag{3}
+\]
+The displayed chart has derivative \(J\), so differentiating (3) gives
+\[
+z(s)=Jv.                                                               \tag{4}
+\]
+The weighted-cycle theorem gives \(R^{\prime}J=0\); hence every actual score satisfies \(R^{\prime}z(s)=0\).  Notice that the moment differentiation used here is the explicit convention in (3), rather than an inference about an unbounded moment from differentiability in quadratic mean alone.  Continuity from (2) then gives
+\[
+\mathcal T_P\subseteq\{s\in\mathcal H_P:R^{\prime}z(s)=0\}.           \tag{5}
+\]
+
+For the reverse inclusion, fix \(s\in\mathcal H_P\) with \(R^{\prime}z(s)=0\).  By the weighted-cycle theorem,
+\(\operatorname{col}(R)=\ker(J^{\prime})\).  Taking Euclidean orthogonal complements in the finite-dimensional mean space yields
+\[
+\ker(R^{\prime})=\operatorname{col}(J).                                \tag{6}
+\]
+Moreover, the theorem and \(q=|U|-|C|-T+1\) imply
+\(\operatorname{rank}(J)=|C|+T-1+|D|\), so \(J\) has full column rank.  Equations (6) and \(R^{\prime}z(s)=0\) therefore give a unique \(v\) such that
+\[
+z(s)=Jv.                                                               \tag{7}
+\]
+
+For each cohort define
+\[
+w_g^{(L)}=(Y_g-m_g)\mathbf 1\{\|Y_g-m_g\|_2\le L\},
+\qquad
+u_g^{(L)}=w_g^{(L)}-\mathbb E_gw_g^{(L)},
+\]
+and
+\[
+C_g^{(L)}=\mathbb E_g[(Y_g-m_g)u_g^{(L)\prime}].                        \tag{8}
+\]
+Because \(\mathbb E_g(Y_g-m_g)=0\), dominated convergence and the finite second moment give
+\[
+C_g^{(L)}\longrightarrow
+\mathbb E_g[(Y_g-m_g)(Y_g-m_g)^{\prime}]=\Sigma_g.                     \tag{9}
+\]
+The covariance-interior assumption says \(\Sigma_g\succ0\).  Thus, for each of the finitely many cohorts, one can choose a finite \(L_g\) for which
+\(C_g:=C_g^{(L_g)}\) is invertible.  Put \(u_g=u_g^{(L_g)}\); this vector is bounded and centered.
+
+Truncate and center the original score by
+\[
+s_g^{[\ell]}
+=s_g\mathbf 1\{|s_g|\le\ell\}
+-\mathbb E_g[s_g\mathbf 1\{|s_g|\le\ell\}],
+\]
+and make the exact mean-derivative correction
+\[
+\widetilde s_g^{[\ell]}
+=s_g^{[\ell]}
++u_g^{\prime}C_g^{-1}\{z_g(s)-z_g(s^{[\ell]})\}.                       \tag{10}
+\]
+Truncation gives \(s^{[\ell]}\to s\) in \(\mathcal H_P\), and (2) then gives
+\(z(s^{[\ell]})\to z(s)\).  By (8) and centering of \(u_g\),
+\[
+\mathbb E_g\widetilde s_g^{[\ell]}=0,
+\qquad
+\mathbb E_g[(Y_g-m_g)\widetilde s_g^{[\ell]}]=z_g(s).                 \tag{11}
+\]
+The correction in (10) tends to zero in \(L_2(P_g)\).  Hence
+\[
+\widetilde s^{[\ell]}\longrightarrow s
+\quad\text{in }\mathcal H_P,                                          \tag{12}
+\]
+and every \(\widetilde s^{[\ell]}\) is bounded.
+
+It remains to show that each corrected score is an actual two-sided score, with the stipulated mean differentiation.  The chart \(m_\eta\) is smooth, and (7) gives
+\[
+r_g(\varepsilon)
+:=m_{\eta,g}(\eta+\varepsilon v)-m_g-\varepsilon z_g(s)
+=O(\varepsilon^2).                                                       \tag{13}
+\]
+Set \(\lambda_g(\varepsilon)=C_g^{-1}r_g(\varepsilon)\) and define
+\[
+\frac{dP_{g,\varepsilon}^{[\ell]}}{dP_g}
+=1+\varepsilon\widetilde s_g^{[\ell]}
++u_g^{\prime}\lambda_g(\varepsilon).                                  \tag{14}
+\]
+Both added terms integrate to zero.  Since \(\widetilde s_g^{[\ell]}\) and \(u_g\) are bounded while \(\lambda_g(\varepsilon)=O(\varepsilon^2)\), the density in (14) is strictly positive for all sufficiently small positive and negative \(\varepsilon\).  It therefore integrates to one and preserves the support of \(P_g\).  From (8), (11), and (13), its mean is exactly
+\[
+\begin{aligned}
+\mathbb E_{P_{g,\varepsilon}^{[\ell]}}Y_g
+&=m_g+\varepsilon z_g(s)+C_g\lambda_g(\varepsilon)\\
+&=m_{\eta,g}(\eta+\varepsilon v).                                    \tag{15}
+\end{aligned}
+\]
+
+Writing the density in (14) as \(1+\varepsilon\widetilde s_g^{[\ell]}+O(\varepsilon^2)\) in \(L_\infty(P_g)\), Taylor's formula for the square root, uniformly on a fixed neighborhood of one, gives
+\[
+\left\|
+\sqrt{\frac{dP_{g,\varepsilon}^{[\ell]}}{dP_g}}
+-1-\frac{\varepsilon}{2}\widetilde s_g^{[\ell]}
+\right\|_{L_2(P_g)}=o(|\varepsilon|).                                  \tag{16}
+\]
+Thus (14) is differentiable in quadratic mean with score \(\widetilde s_g^{[\ell]}\).  The density is locally bounded above, so the fourth moment remains finite.  Its covariance converges to \(\Sigma_g\) as \(\varepsilon\to0\), and hence remains positive definite for small \(|\varepsilon|\).  Forming the product of the cohort laws preserves mutual independence.  Equation (15) stays in the positive rank-one mean chart for small \(|\varepsilon|\); using the same observed-law potential-outcome completion retains consistency and no anticipation.  All remaining fixed shares, supports, and sampling conditions in \(\mathcal M_4\) are unchanged.  Consequently (14) is a two-sided, support-preserving submodel in \(\mathcal M_4\).
+
+Equations (12)--(16) show that every element of the right side of (5) is an \(L_2(P)\) limit of bounded actual scores.  The right side is closed by continuity in (2).  Combining this fact with (5) proves
+\[
+\mathcal T_P=\{s\in L_2^0(P):R^{\prime}z(s)=0\},
+\]
+where \(L_2^0(P)\) is the fixed-strata direct-sum score space specified above.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The bounded truncation and exact mean correction establish the reverse tangent inclusion that a derivative convention alone cannot supply. \textit{Gap.} Newey (1990, Sections 2--3) gives general score calculus but not this support-preserving density construction for a nonnegative rank-one cohort panel. \textit{Consumer.} The lemma licenses the sharp finite-fourth-moment lower bound used by every efficiency comparison in the proposal.
+
+\begin{theorem}[thm:canonical-gradient]\label{thm:canonical-gradient}
+For every \(P\in\mathcal M_4\), relative to the explicitly mean-differentiable differentiable-in-quadratic-mean experiment \(\mathcal T_P\), the canonical gradient is \(\phi^{\star}=h^{\star\prime}Z\), and every regular estimator of \(\theta_{\mathrm{PTT}}\) has asymptotic variance at least \(V^{\star}\).
+\end{theorem}
+\begin{proof}
+We first connect the causal target to the observed-law mean chart.  For \((g,t)\in U\), consistency and no anticipation imply
+\[
+\mathbb E_PY_{gt}=\mathbb E_PY_{gt}(0)=\mu_{gt}.                        \tag{1}
+\]
+For \((g,t)\in D\), consistency gives
+\(\mathbb E_PY_{gt}=\mathbb E_PY_{gt}(1)=\nu_{gt}\), whereas multiplicative parallel trends gives
+\(\mathbb E_PY_{gt}(0)=a_gb_t=\mu_{gt}\).  It follows that
+\[
+A=\sum_{(g,t)\in D}p_g\mathbb E_PY_{gt}(1),
+\qquad
+B=\sum_{(g,t)\in D}p_g\mathbb E_PY_{gt}(0)>0.                           \tag{2}
+\]
+Thus the observed mean chart identifies, rather than defines, the causal contrast
+\(\theta_{\mathrm{PTT}}=A/B-1\).  Positivity in (2) uses nonempty treated support, positive shares, and positive factors.
+
+The weighted-cycle theorem and the dimension identity for \(q\) imply that \(J\) has full column rank.  Positive cohort shares and \(\Sigma_g\succ0\) imply
+\(\Omega\succ0\).  Hence
+\[
+Q:=J^{\prime}\Omega^{-1}J\succ0.                                      \tag{3}
+\]
+For an admitted score \(s\in\mathcal T_P\), the tangent-score-density lemma gives
+\(z(s)=Jv\), where \(v=\dot\eta_0\).  Differentiating the ratio in (2), with \(B>0\), gives
+\[
+\dot\theta_P(s)=c^{\prime}v.                                          \tag{4}
+\]
+
+In the fixed-share mixture representation, conditional on \(G=g\), the nonzero cohort block of \(Z\) is \((Y_g-m_g)/p_g\).  Mutual independence is the sampling convention, while the following one-observation identities use only this conditional representation:
+\[
+\mathbb E_P[Zs]=z(s),
+\qquad
+\mathbb E_P[ZZ^{\prime}]=\Omega.                                      \tag{5}
+\]
+For
+\[
+h^{\star}=\Omega^{-1}JQ^{-1}c,
+\qquad
+\phi^{\star}=h^{\star\prime}Z,
+\]
+direct multiplication gives
+\[
+J^{\prime}h^{\star}=c,
+\qquad
+\Omega h^{\star}=JQ^{-1}c.                                            \tag{6}
+\]
+Combining (4)--(6), for every \(s\in\mathcal T_P\),
+\[
+\mathbb E_P[\phi^{\star}s]
+=h^{\star\prime}z(s)
+=h^{\star\prime}Jv
+=c^{\prime}v
+=\dot\theta_P(s).                                                       \tag{7}
+\]
+The vector \(Z\) is centered and square-integrable by the finite second moments and positive shares, so \(\phi^{\star}\in L_2^0(P)\).  In addition, (5)--(6) yield
+\[
+z(\phi^{\star})=\Omega h^{\star}=JQ^{-1}c,
+\qquad
+R^{\prime}z(\phi^{\star})=0.                                         \tag{8}
+\]
+The tangent-space equality proved in the tangent-score-density lemma therefore places \(\phi^{\star}\) itself in \(\mathcal T_P\).  Thus (7) is the Riesz representation of the pathwise derivative in the closed tangent space.  Finally,
+\[
+\begin{aligned}
+\mathbb E_P[(\phi^{\star})^2]
+&=h^{\star\prime}\Omega h^{\star}\\
+&=c^{\prime}Q^{-1}J^{\prime}\Omega^{-1}JQ^{-1}c\\
+&=c^{\prime}Q^{-1}c
+=V^{\star}.                                                            \tag{9}
+\end{aligned}
+\]
+The regular-estimator information-bound lemma applies to this explicitly mean-differentiable, differentiable-in-quadratic-mean experiment.  Equations (7)--(9) prove that \(\phi^{\star}\) is the canonical gradient and that every regular estimator whose asymptotic variance exists has variance at least \(V^{\star}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The tangent equality converts the rank-one mean manifold into a sharp semiparametric lower bound rather than a formal generalized-method-of-moments projection. \textit{Gap.} Chamberlain (1987) and Newey (1990) provide projection machinery, while Moreau--Kastler (2025, Section 3.2.2) provides no tangent experiment or efficiency bound for the proportional ratio. \textit{Consumer.} The bound is the precision benchmark needed to assess PPML inference in the regional-trade-agreement and treaty applications.
+
+\begin{lemma}[lem:cohort-mean-ppml-linearization]\label{lem:cohort-mean-ppml-linearization}
+For every fixed \(P\in\mathcal M_4\), on \(\mathcal E_N\) the fixed-target-weight cohort-mean PPML-imputation estimator obeys \(\sqrt N(\widehat\theta_{\mathrm{CM}}-\theta_{\mathrm{PTT}})=h_{\mathrm{CM}}^{\prime}\sqrt N(\overline Y-m)+o_P(1)\), with asymptotic variance \(h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}\).
+\end{lemma}
+\begin{proof}
+The weighted-cycle theorem and the dimension formula for \(q\) imply
+\(\operatorname{rank}(X)=|C|+T-1\).  Every diagonal entry of \(P_UM\) is \(p_g\mu_{gt}>0\), so
+\[
+S=X^{\prime}P_UMX\succ0.                                                \tag{1}
+\]
+The fixed-strata central limit theorem gives
+\[
+\overline Y-m=O_P(N^{-1/2}),
+\qquad
+\sqrt N(\overline Y-m)\Rightarrow\mathcal N(0,\Omega),                 \tag{2}
+\]
+and share convergence gives \(\widehat p_g\to p_g>0\).  The fourth-moment assumption makes every product \(Y_{gt}Y_{gs}\) integrable with finite variance.  Applying Chebyshev's inequality entrywise, and using that \(C\) and \(T\) are fixed, gives
+\[
+\widehat\Sigma_g\to_P\Sigma_g\quad(g\in C).                          \tag{3}
+\]
+
+Because the finitely many untreated means are positive, the weak law and a union bound give
+\[
+\Pr\left\{\min_{(g,t)\in U}\overline Y_{gt}>0\right\}\longrightarrow1. \tag{4}
+\]
+On this event the normalized PPML criterion has Hessian
+\[
+-X^{\prime}\widehat P_U
+ \operatorname{diag}\{\exp(X\beta)\}X\prec0,                          \tag{5}
+\]
+by full column rank of \(X\).  It is coercive.  To see this, take any unbounded parameter sequence and a subsequence whose normalized direction converges to a unit vector \(d\).  Full column rank gives \(Xd\ne0\).  If one corresponding fitted index tends to \(+\infty\), its negative exponential term sends the criterion to \(-\infty\); otherwise a fitted index tends to \(-\infty\), and its strictly positive response makes the linear term tend to \(-\infty\).  Hence the criterion has a unique finite maximizer.
+
+The population score vanishes uniquely at \(\beta\), and its negative derivative there is the nonsingular matrix \(S\) in (1).  Uniform continuity on a fixed neighborhood, the score convergence from (2), and strict concavity therefore give
+\[
+\widehat\beta\to_P\beta.                                              \tag{6}
+\]
+Together, (3), (6), and continuity imply
+\(\widehat B\to_PB>0\) and, when \(q>0\),
+\(\widehat K\to_PK\succ0\).  Positive definiteness in (3) also implies
+\(\Pr(\widehat\Sigma_g\succ0\text{ for every }g)\to1\).  Thus
+\[
+\Pr(\mathcal E_N)\longrightarrow1.                                    \tag{7}
+\]
+
+Let \(\delta_N=\widehat\beta-\beta\).  Integrating the derivative of the score along the line segment between \(\beta\) and \(\widehat\beta\) gives the exact equation
+\[
+0=X^{\prime}\widehat P_U(\overline Y_U-\mu_U)-\widehat S_N\delta_N,    \tag{8}
+\]
+where
+\[
+\widehat S_N
+=\int_0^1X^{\prime}\widehat P_U
+ \operatorname{diag}\{\exp(X(\beta+u\delta_N))\}X\,du
+\to_PS.                                                                \tag{9}
+\]
+Moreover, by (2) and share convergence,
+\[
+X^{\prime}(\widehat P_U-P_U)(\overline Y_U-\mu_U)
+=o_P(N^{-1/2}).                                                         \tag{10}
+\]
+Solving (8) with (9)--(10) yields
+\[
+\widehat\beta-\beta
+=S^{-1}X^{\prime}P_U(\overline Y_U-\mu_U)+o_P(N^{-1/2}).                \tag{11}
+\]
+
+Because the target weights \(p_g\) are fixed,
+\[
+\widehat A-A
+=\sum_{(g,t)\in D}p_g(\overline Y_{gt}-\nu_{gt}).                      \tag{12}
+\]
+Writing
+\[
+d:=\frac{\partial B}{\partial\beta}
+=\sum_{(g,t)\in D}p_g\mu_{gt}x_{gt},
+\]
+the smooth exponential map and (11) give
+\[
+\widehat B-B=d^{\prime}(\widehat\beta-\beta)+o_P(N^{-1/2}).            \tag{13}
+\]
+Since \(B>0\), Taylor expansion of \(A/B-1\), followed by (11)--(13), gives
+\[
+\begin{aligned}
+\widehat\theta_{\mathrm{CM}}-\theta_{\mathrm{PTT}}
+&=c_\beta^{\prime}(\widehat\beta-\beta)
+ +\sum_{(g,t)\in D}\frac{p_g}{B}(\overline Y_{gt}-\nu_{gt})
+ +o_P(N^{-1/2})\\
+&=h_{\mathrm{CM}}^{\prime}(\overline Y-m)+o_P(N^{-1/2}),               \tag{14}
+\end{aligned}
+\]
+because \(c_\beta=-(A/B^2)d\) and
+\(h_{\mathrm{CM},U}=P_UXS^{-1}c_\beta\).  Multiplying (14) by \(\sqrt N\) proves the asserted linearization.  Applying (2) to its linear term gives asymptotic variance
+\(h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}\).  Equation (7) makes the estimator's declared fallback irrelevant for this pointwise limit.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This differentiates the cohort-mean comparator defined in the core and identifies the exact coefficient whose cycle projection governs its efficiency loss. \textit{Gap.} Moreau--Kastler (2025, Section 3.2.2, equations 3.13--3.14) instead fits untreated individual-observation fixed effects and aggregates individual counterfactual predictions; neither that paper nor Wooldridge (2023, Sections 2--3) provides this cohort-mean influence expansion under arbitrary within-unit covariance. \textit{Consumer.} The expansion lets analysts compute the cohort-mean estimator's variance and its distance from the canonical bound without conflating it with an individual fixed-effects procedure.
+
+\begin{proposition}[prop:individual-aggregation-bridge]\label{prop:individual-aggregation-bridge}
+Suppose both normalized PPML fits exist uniquely, the panel contains one observation per unit and period, the Moreau--Kastler fit uses equal observation weights with no covariates or offsets, and \(n_g/N=p_g\) for every \(g\in C\). Profiling its individual fixed effects gives the cohort-mean PPML time-score equations and \(\sum_{i=1}^{n_g}\widehat\mu^{\mathrm{MK}}_{git}=n_g\widehat\mu_{gt}\); consequently \(\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}=\widehat\theta_{\mathrm{CM}}\).
+\end{proposition}
+\begin{proof}
+Write the normalized time effects as \(\lambda _1=0\) and \(\lambda_t\in\mathbb R\) for \(2\le t\le T\).  For every \(g\in C\) and \(1\le i\le n_g\), define
+\[
+Q_{gi}:=\sum_{s<g}Y_{gis},
+\qquad
+L_g(\lambda):=\sum_{s<g}\exp(\lambda_s).
+\tag{1}
+\]
+Every cohort in \(C\subseteq\{2,\ldots,T,\infty\}\) is untreated in period \(1\), so \(L_g(\lambda)>0\).  Conditional on \(\lambda\), the terms of the individual PPML criterion that depend on \(\alpha_{gi}\) are
+\[
+\ell_{gi}(\alpha_{gi};\lambda)
+=Q_{gi}\alpha_{gi}
++\sum_{s<g}Y_{gis}\lambda_s
+-\exp(\alpha_{gi})L_g(\lambda).
+\tag{2}
+\]
+If \(Q_{gi}=0\), nonnegativity of the outcomes gives
+\(\partial\ell_{gi}/\partial\alpha_{gi}=-\exp(\alpha_{gi})L_g(\lambda)<0\), so the supremum is approached only as \(\alpha_{gi}\to-\infty\).  The assumed finite existence of the individual fit therefore implies \(Q_{gi}>0\).  Moreover,
+\[
+\frac{\partial\ell_{gi}}{\partial\alpha_{gi}}
+=Q_{gi}-\exp(\alpha_{gi})L_g(\lambda),
+\qquad
+\frac{\partial^2\ell_{gi}}{\partial\alpha_{gi}^2}
+=-\exp(\alpha_{gi})L_g(\lambda)<0.
+\tag{3}
+\]
+Thus the unique profiled intercept and the resulting fitted value are
+\[
+\widehat\alpha_{gi}(\lambda)
+=\log Q_{gi}-\log L_g(\lambda),
+\qquad
+\exp\{\widehat\alpha_{gi}(\lambda)+\lambda_t\}
+=\frac{Q_{gi}\exp(\lambda_t)}{L_g(\lambda)}.
+\tag{4}
+\]
+
+Set \(\overline Q_g:=\sum_{s<g}\overline Y_{gs}\).  By the definition of the cohort mean,
+\[
+\sum_{i=1}^{n_g}Q_{gi}=n_g\overline Q_g.
+\tag{5}
+\]
+Summing (4) over the individuals in cohort \(g\), for every \(1\le t\le T\), including treated periods, gives
+\[
+\sum_{i=1}^{n_g}
+\exp\{\widehat\alpha_{gi}(\lambda)+\lambda_t\}
+=n_g\frac{\overline Q_g\exp(\lambda_t)}{L_g(\lambda)}.
+\tag{6}
+\]
+
+We next identify the common time effects.  In the cohort-mean parameterization write \(x_{gt}^{\prime}\beta=\gamma_g+\lambda_t\), with \(\lambda_1=0\).  The cohort-intercept coordinate of
+\(X^{\prime}\widehat P_U[\overline Y_U-\exp(X\beta)]=0\) is
+\[
+0=\widehat p_g\sum_{s<g}
+\{\overline Y_{gs}-\exp(\gamma_g+\lambda_s)\}.
+\tag{7}
+\]
+The sample-share condition and the positive-share assumption give
+\(\widehat p_g=n_g/N=p_g>0\).  Hence the unique finite profiled cohort intercept satisfies
+\[
+\exp\{\widehat\gamma_g(\lambda)\}
+=\frac{\overline Q_g}{L_g(\lambda)},
+\qquad
+\widetilde\mu_{gt}(\lambda)
+:=\exp\{\widehat\gamma_g(\lambda)+\lambda_t\}
+=\frac{\overline Q_g\exp(\lambda_t)}{L_g(\lambda)}.
+\tag{8}
+\]
+
+At the assumed finite individual maximizer, each unrestricted time-effect score vanishes.  For \(2\le t\le T\), substituting (6) and using \(n_g/N=p_g\) yields
+\[
+\begin{aligned}
+0
+&=\frac1N\sum_{g:\,t<g}\sum_{i=1}^{n_g}
+\left[Y_{git}-
+\exp\{\widehat\alpha_{gi}(\lambda)+\lambda_t\}\right]\\
+&=\sum_{g:\,t<g}p_g
+\left[\overline Y_{gt}-
+\frac{\overline Q_g\exp(\lambda_t)}{L_g(\lambda)}\right]\\
+&=\sum_{g:\,t<g}p_g
+\{\overline Y_{gt}-\widetilde\mu_{gt}(\lambda)\}.
+\end{aligned}
+\tag{9}
+\]
+Equation (9) is exactly the time coordinate of the cohort-mean PPML score after its cohort intercepts have been profiled by (8).  Conversely, (8) and (9) give all coordinates of that score.  Therefore the normalized time component of the individual fit is a normalized solution of the cohort-mean score equations.  Uniqueness of both normalized fits makes their time components equal.  Combining (6) and (8) at this common solution proves
+\[
+\sum_{i=1}^{n_g}\widehat\mu^{\mathrm{MK}}_{git}
+=n_g\widehat\mu_{gt}
+\qquad(g\in C,\ 1\le t\le T).
+\tag{10}
+\]
+
+It remains to compare the reported ratios.  The treated-support assumption gives \(D\ne\varnothing\).  Since \(n_g\ge1\) and every fitted exponential is strictly positive, both treated imputation denominators are strictly positive.  Thus the positive-denominator branches of both definitions apply.  The definitions of \(\widehat A\) and \(\widehat B\), the equality \(n_g=Np_g\), and (10) give
+\[
+\sum_{(g,t)\in D}\sum_{i=1}^{n_g}Y_{git}
+=\sum_{(g,t)\in D}n_g\overline Y_{gt}
+=N\sum_{(g,t)\in D}p_g\overline Y_{gt}
+=N\widehat A,
+\tag{11}
+\]
+and
+\[
+\sum_{(g,t)\in D}\sum_{i=1}^{n_g}
+\widehat\mu^{\mathrm{MK}}_{git}
+=\sum_{(g,t)\in D}n_g\widehat\mu_{gt}
+=N\sum_{(g,t)\in D}p_g\widehat\mu_{gt}
+=N\widehat B.
+\tag{12}
+\]
+Cancelling the common positive factor \(N\) in (11)--(12) proves
+\[
+\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}
+=\frac{N\widehat A}{N\widehat B}-1
+=\widehat\theta_{\mathrm{CM}}.
+\tag{13}
+\]
+This is a deterministic sample identity.  The within-cohort sampling assumption is part of the stated statistical setting but is not needed for (1)--(13).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition proves a deterministic point-estimator identity under exact aggregation conditions; that identity is needed for the positive-cycle counterexample but, by itself, transfers no semiparametric efficiency bound. \textit{Gap.} Moreau--Kastler (2025, printed pp. 15 and 20--23, equations (3.1), (3.2), (3.13), (3.14), and (3.19)) presents the individual specification and imputation estimator but not the profiling identity with the cohort-mean rank-one score or any cross-experiment efficiency transfer. \textit{Consumer.} Applied users can test whether their implementation lies on the exact aggregation boundary and can avoid treating point-estimator coincidence as evidence that two statistical experiments share an efficiency bound.
+
+\begin{theorem}[thm:efficient-attainment]\label{thm:efficient-attainment}
+The covariance-weighted cycle estimator satisfies \(\sqrt N(\widehat\theta_{\mathrm{eff}}-\theta_{\mathrm{PTT}})=N^{-1/2}\sum_{i=1}^N\phi_i^{\star}+o_P(1)\) and attains \(V^{\star}\) pointwise over \(\mathcal M_4\).
+\end{theorem}
+\begin{proof}
+The cohort-mean PPML coefficient is feasible for the target derivative.  Indeed, the definitions of \(J\), \(h_{\mathrm{CM}}\), and \(S\), together with commutativity of the diagonal matrices \(M\) and \(P_U\), give
+\[
+J^{\prime}h_{\mathrm{CM}}
+=\begin{pmatrix}
+X^{\prime}MP_UXS^{-1}c_\beta\\
+(p_g/B)_{(g,t)\in D}
+\end{pmatrix}
+=\begin{pmatrix}c_\beta\\c_D\end{pmatrix}
+=c.                                                                      \tag{1}
+\]
+Every other solution of \(J^{\prime}h=c\) differs from \(h_{\mathrm{CM}}\) by an element of \(\ker(J^{\prime})=\operatorname{col}(R)\), by the weighted-cycle theorem.  Since \(\Omega\succ0\), full column rank of \(R\) implies
+\[
+K=R^{\prime}\Omega R\succ0.                                            \tag{2}
+\]
+For any \(\gamma\in\mathbb R^q\), completing the square gives
+\[
+\begin{aligned}
+(h_{\mathrm{CM}}+R\gamma)^{\prime}\Omega(h_{\mathrm{CM}}+R\gamma)
+&=h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}
+ -b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}\\
+&\quad+(\gamma+K^{-1}b_{\mathrm{cyc}})^{\prime}
+ K(\gamma+K^{-1}b_{\mathrm{cyc}}).                                    \tag{3}
+\end{aligned}
+\]
+Thus the unique minimum over feasible coefficients is attained at
+\[
+h_{\mathrm{CM}}-RK^{-1}b_{\mathrm{cyc}}.                               \tag{4}
+\]
+Independently, the first-order condition for minimizing \(h^{\prime}\Omega h\) subject to \(J^{\prime}h=c\) gives
+\[
+h=\Omega^{-1}J(J^{\prime}\Omega^{-1}J)^{-1}c=h^{\star}.                \tag{5}
+\]
+Strict convexity makes this minimizer unique, so (4) equals \(h^{\star}\).  If \(q=0\), the same statement holds with the cycle matrices empty.
+
+The consistency and covariance calculations in the cohort-mean PPML linearization, together with continuity of inversion at positive-definite matrices, yield on events whose probabilities tend to one
+\[
+\widehat R\to_PR,
+\quad \widehat\Omega\to_P\Omega,
+\quad \widehat h_{\mathrm{CM}}\to_Ph_{\mathrm{CM}},
+\quad \widehat b_{\mathrm{cyc}}\to_Pb_{\mathrm{cyc}},
+\quad \widehat K\to_PK.                                                 \tag{6}
+\]
+For a fundamental cycle indexed by \(e=(g,t)\), multiplicative parallel trends gives
+\[
+\log\mu_{g1}-\log\mu_{gt}-\log\mu_{\infty1}+\log\mu_{\infty t}=0.  \tag{7}
+\]
+All four means in (7) are positive.  Applying the ordinary Taylor expansion of the logarithm to each sample mean, and stacking cycles, gives
+\[
+\sqrt N\widehat\kappa
+=R^{\prime}\sqrt N(\overline Y-m)+o_P(1).                              \tag{8}
+\]
+In particular, \(\widehat\kappa=O_P(N^{-1/2})\).  Combining the cohort-mean expansion with (6)--(8), and using the estimator definition, gives
+\[
+\begin{aligned}
+\sqrt N(\widehat\theta_{\mathrm{eff}}-\theta_{\mathrm{PTT}})
+&=\{h_{\mathrm{CM}}-RK^{-1}b_{\mathrm{cyc}}\}^{\prime}
+  \sqrt N(\overline Y-m)+o_P(1)\\
+&=h^{\star\prime}\sqrt N(\overline Y-m)+o_P(1).                       \tag{9}
+\end{aligned}
+\]
+The feasibility event has probability tending to one, so the total fallback on its complement does not change (9).
+
+To match (9) to the declared canonical-gradient representation, let \(h_g^{\star}\) denote the entries belonging to cohort \(g\).  The exact stratified identity is
+\[
+h^{\star\prime}\sqrt N(\overline Y-m)
+=N^{-1/2}\sum_{g\in C}\sum_{i=1}^{n_g}
+ \widehat p_g^{-1}h_g^{\star\prime}(Y_{gi}-m_g).                       \tag{10}
+\]
+For each fixed cohort,
+\(N^{-1/2}\sum_{i=1}^{n_g}h_g^{\star\prime}(Y_{gi}-m_g)=O_P(1)\) by finite second moments.  Since \(C\) is finite and
+\(\widehat p_g^{-1}-p_g^{-1}=o(1)\), replacing \(\widehat p_g^{-1}\) by \(p_g^{-1}\) in (10) costs \(o_P(1)\).  The resulting summands are exactly the fixed-strata observations of \(\phi^{\star}=h^{\star\prime}Z\).  Therefore
+\[
+\sqrt N(\widehat\theta_{\mathrm{eff}}-\theta_{\mathrm{PTT}})
+=N^{-1/2}\sum_{g\in C}\sum_{i=1}^{n_g}
+ \frac{h_g^{\star\prime}(Y_{gi}-m_g)}{p_g}+o_P(1).                    \tag{11}
+\]
+The fixed-strata central limit theorem gives the limit variance
+\[
+h^{\star\prime}\Omega h^{\star}
+=c^{\prime}(J^{\prime}\Omega^{-1}J)^{-1}c
+=V^{\star}.                                                            \tag{12}
+\]
+By the canonical-gradient theorem, (12) is the information bound.  Hence the feasible estimator attains \(V^{\star}\) pointwise throughout \(\mathcal M_4\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Attainment turns the information bound into an implementable precision correction based only on cohort means and within-cohort covariances. \textit{Gap.} Roth and Sant'Anna (2023, Proposition 2.1) optimize design-based additive estimators within a class; this result attains the superpopulation semiparametric bound for a nonlinear proportional target. \textit{Consumer.} Applied users obtain an analytic alternative to unit-bootstrap inference for the cohort-mean PPML benchmark in fixed-horizon panels.
+
+\begin{theorem}[thm:primitive-balance-characterization]\label{thm:primitive-balance-characterization}
+At every interior \(P\in\mathcal M_4\), \(h_{\mathrm{CM}}=h^{\star}\) if and only if \(b_{\mathrm{cyc}}=0\), equivalently \(F_{g1}-F_{gt}-F_{\infty1}+F_{\infty t}=0\) for all finite \(g\) and \(2\le t<g\); these \(q\) covariance equations are linearly independent.
+\end{theorem}
+\begin{proof}
+The canonical-gradient definition gives
+\[
+J^{\prime}h^{\star}=c,
+\qquad
+\Omega h^{\star}\in\operatorname{col}(J).                             \tag{1}
+\]
+The calculation in (1) of the efficient-attainment proof gives
+\(J^{\prime}h_{\mathrm{CM}}=c\).  Thus
+\(h_{\mathrm{CM}}-h^{\star}\in\ker(J^{\prime})=\operatorname{col}(R)\), while (1) and \(R^{\prime}J=0\) imply
+\(R^{\prime}\Omega h^{\star}=0\).  Write
+\(h_{\mathrm{CM}}-h^{\star}=R\gamma\).  Multiplication by \(R^{\prime}\Omega\) yields
+\[
+b_{\mathrm{cyc}}=K\gamma.                                              \tag{2}
+\]
+Because \(\Omega\succ0\) and \(R\) has rank \(q\), \(K\succ0\).  Solving (2) proves the projection identity
+\[
+h^{\star}=h_{\mathrm{CM}}-RK^{-1}b_{\mathrm{cyc}},                     \tag{3}
+\]
+and full column rank of \(R\) gives
+\[
+h_{\mathrm{CM}}=h^{\star}
+\quad\Longleftrightarrow\quad
+b_{\mathrm{cyc}}=0.                                                     \tag{4}
+\]
+
+For every untreated cell \((g,t)\), the block-diagonal definition of \(\Omega\), the definition
+\(\alpha^{\mathrm{CM}}_{gs}=h_{\mathrm{CM},gs}/p_g\), and the definition of \(F\) give
+\[
+\begin{aligned}
+(\Omega h_{\mathrm{CM}})_{gt}
+&=\frac1{p_g}\sum_{s=1}^T
+ \operatorname{Cov}_P(Y_{gt},Y_{gs})h_{\mathrm{CM},gs}\\
+&=\sum_{s=1}^T
+ \operatorname{Cov}_P(Y_{gt},Y_{gs})\alpha^{\mathrm{CM}}_{gs}\\
+&=\mu_{gt}F_{gt}.                                                       \tag{5}
+\end{aligned}
+\]
+The column of \(R\) indexed by the non-tree edge \((g,t)\), with finite \(g\) and \(2\le t<g\), has four signed entries.  Consequently (5) gives
+\[
+(b_{\mathrm{cyc}})_{gt}
+=F_{g1}-F_{gt}-F_{\infty1}+F_{\infty t}.                               \tag{6}
+\]
+Equations (4)--(6) establish both stated equivalences.
+
+It remains to verify that the \(q\) displayed covariance equations are independent rather than merely a list of equivalent equalities.  Fix \(m\) and \(p\).  For one non-tree edge \(e=(g,t)\), perturb the symmetric ambient-covariance entries
+\(\operatorname{Cov}(Y_{gt},Y_{gg})\) and
+\(\operatorname{Cov}(Y_{gg},Y_{gt})\) by a scalar \(x_e\), leaving all other entries fixed.  Since \((g,g)\in D\),
+\[
+h_{\mathrm{CM},gg}=\frac{p_g}{B}.                                      \tag{7}
+\]
+The perturbation therefore changes the untreated coordinate \((g,t)\) of \(\Omega h_{\mathrm{CM}}\) by
+\[
+\frac{x_e}{p_g}h_{\mathrm{CM},gg}=\frac{x_e}{B}.                       \tag{8}
+\]
+The associated change in the treated coordinate is annihilated by \(R^{\prime}\), because every column of \(R\) vanishes on \(D\).  Furthermore, the non-tree coordinate \((g,t)\) occurs only in its own fundamental-cycle column, with coefficient \(-1/\mu_{gt}\).  Thus the response of the entire balance vector is
+\[
+\Delta(b_{\mathrm{cyc}})_{hs}
+=-\mathbf 1\{(h,s)=(g,t)\}\frac{x_{gt}}{B\mu_{gt}}.                  \tag{9}
+\]
+The \(q\)-by-\(q\) response matrix in (9) is diagonal with nonzero diagonal because \(B>0\) and every \(\mu_{gt}>0\).  Hence the \(q\) primitive alternating balances are linearly independent.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem translates efficiency of the cohort-mean PPML score into exactly \(q\) observable, primitive alternating covariance balances. \textit{Gap.} Ciani and Fisher (2019, printed page 7, Section 3.1) state that PPML may fail to be the most efficient estimator, and their Appendix B simulations show the efficiency loss; no prior result gives an exact covariance-law characterization indexed by untreated cycles. \textit{Consumer.} Researchers can diagnose whether cohort-mean PPML already exhausts the precision in their untreated panel.
+
+\begin{theorem}[thm:realizable-quadratic-loss]\label{thm:realizable-quadratic-loss}
+For every fixed interior mean \(m\) with \(q>0\), the family \(P_{\rho}\) has mean \(m\), belongs to \(\mathcal M_{\mathrm{bd}}\), satisfies \(b_{\mathrm{cyc}}(x)=-B^{-1}D_{\mu}^{-1}x\) and \(K(x)=K_0\), and therefore obeys \(\Gamma(x)=B^{-2}x^{\prime}D_{\mu}^{-1}K_0^{-1}D_{\mu}^{-1}x>0\) for every nonzero admissible \(x\). Moreover \(\mathbb B_{\mathcal A}(\Sigma_0,\delta_0)\subset\mathcal L(m)\), and the explicitly chosen \(x_0\) and \(\eta_0\) satisfy \(\mathbb B_{\mathcal A}(\Sigma(x_0),\eta_0)\subset\mathcal L(m)\) with \(\Gamma>0\) throughout that ambient open ball.
+\end{theorem}
+\begin{proof}
+Fix the interior mean \(m\) and suppose \(q>0\).  Let
+\[
+\mathcal E=U\setminus\mathcal T_0
+=\{(g,t):g<\infty,\ 2\le t<g\},
+\]
+which has \(q\) elements by the weighted-cycle theorem.  The definition of \(\tau_0\) implies, for every observed coordinate,
+\[
+0<s^0_{gt}=\sqrt{\tau_0m_{gt}}<m_{gt}.                                  \tag{1}
+\]
+For a finite cohort \(g\), the mass assigned in \(P_\rho\) to a sign vector \(e\in\{-1,1\}^T\) obeys
+\[
+2^{-T}\left(1+\sum_{t=2}^{g-1}\rho_{gt}e_te_g\right)
+\ge 2^{-T}\left(1-\sum_{t=2}^{g-1}|\rho_{gt}|\right)>0.               \tag{2}
+\]
+Its masses sum to one because every nonconstant Rademacher character sums to zero over the hypercube.  Orthogonality of these characters gives
+\[
+\mathbb E_\rho\varepsilon_{gj}=0,
+\quad
+\mathbb E_\rho\varepsilon_{gj}^2=1,
+\quad
+\mathbb E_\rho(\varepsilon_{gt}\varepsilon_{gg})=\rho_{gt}
+\quad(2\le t<g),                                                        \tag{3}
+\]
+and all other distinct-coordinate second moments are zero.  Therefore
+\(Y_g=m_g+s_g^0\odot\varepsilon_g\) has mean \(m_g\), diagonal variances \((s^0_{gj})^2\), and only the off-diagonal covariances
+\[
+\operatorname{Cov}_{P_\rho}(Y_{gt},Y_{gg})
+=s^0_{gt}s^0_{gg}\rho_{gt}=x_{gt},
+\qquad (g,t)\in\mathcal E.                                             \tag{4}
+\]
+Every hypercube vertex has positive mass by (2).  If \(v\ne0\), changing a sign coordinate for which \(v_js^0_{gj}\ne0\) changes the value of
+\(v^{\prime}(s_g^0\odot e)\).  It is therefore not almost surely constant, so
+\(v^{\prime}\Sigma_g(\rho)v>0\).  Hence every covariance block is positive definite.  Equation (1) also gives
+\[
+0<m_{gj}-s^0_{gj}\le Y_{gj}\le m_{gj}+s^0_{gj}<\infty.                 \tag{5}
+\]
+Finiteness of \(C\) and \(T\) makes (5) a common bounded, strictly positive support and implies finite fourth moments.
+
+Take i.i.d. draws within each cohort and mutually independent samples across cohorts, retaining the fixed shares and sample-size sequences.  In the potential-outcome completion from the definition of \(P_\rho\), observed and untreated potential outcomes agree on \(U\), observed and treated potential outcomes agree on \(D\), and the missing untreated outcome on \(D\) equals the constant \(\mu_{gt}\).  Thus consistency and no anticipation hold and
+\(\mathbb E_PY_{gt}(0)=\mu_{gt}=a_gb_t\) everywhere.  Combining these facts with (2)--(5) proves
+\[
+P_\rho\in\mathcal M_{\mathrm{bd}},
+\qquad
+\mathbb E_{P_\rho}Y=m.                                                   \tag{6}
+\]
+
+At \(\rho=0\),
+\[
+\Sigma_{g0}
+=\operatorname{diag}((s^0_{g1})^2,\ldots,(s^0_{gT})^2)
+=\tau_0\operatorname{diag}(m_g).                                       \tag{7}
+\]
+Since \(m_{gt}=\mu_{gt}\) on \(U\), the untreated block satisfies
+\[
+(\Omega(0)h_{\mathrm{CM}})_U
+=\tau_0MP_U^{-1}h_{\mathrm{CM},U}
+=\tau_0MX S^{-1}c_\beta.                                                \tag{8}
+\]
+The weighted-cycle theorem gives \(R^{\prime}J=0\).  Because \(R\) vanishes on \(D\) and \(J_U=MX\), (8) yields
+\[
+b_{\mathrm{cyc}}(0)=R^{\prime}\Omega(0)h_{\mathrm{CM}}=0.             \tag{9}
+\]
+Every covariance perturbation in (4) joins an untreated coordinate to a treated coordinate.  It therefore leaves the untreated--untreated covariance block fixed.  Since \(R_D=0\),
+\[
+K(x)=R^{\prime}\Omega(x)R
+=R^{\prime}\Omega(0)R=K_0.                                             \tag{10}
+\]
+
+For an untreated coordinate, the definitions of \(\Omega\), \(F\), and \(\alpha^{\mathrm{CM}}\) give
+\[
+(\Omega h_{\mathrm{CM}})_{gj}=\mu_{gj}F_{gj}.                          \tag{11}
+\]
+Therefore the cycle indexed by \((g,t)\in\mathcal E\) has response
+\[
+r_{gt}^{\prime}\Omega h_{\mathrm{CM}}
+=F_{g1}-F_{gt}-F_{\infty1}+F_{\infty t}.                               \tag{12}
+\]
+On the treated cell \((g,g)\),
+\[
+\alpha^{\mathrm{CM}}_{gg}
+=h_{\mathrm{CM},gg}/p_g=1/B.                                           \tag{13}
+\]
+Thus (4) changes \(F_{gt}\) by \(x_{gt}/(B\mu_{gt})\), changes none of the other terms in (12), and affects no other fundamental-cycle response.  Combining this fact with (9), in the column ordering of \(R\), proves the exact map
+\[
+b_{\mathrm{cyc}}(x)=-B^{-1}D_\mu^{-1}x.                               \tag{14}
+\]
+Positive shares and the positive diagonal variances make \(\Omega(0)\succ0\); full column rank of \(R\) then gives \(K_0\succ0\).  Substituting (10) and (14) into the loss definition yields
+\[
+\Gamma(x)
+=B^{-2}x^{\prime}D_\mu^{-1}K_0^{-1}D_\mu^{-1}x.                       \tag{15}
+\]
+Because \(B>0\), \(D_\mu\) has positive diagonal, and \(K_0^{-1}\succ0\), (15) is strictly positive for every nonzero admissible \(x\).
+
+We next establish ambient realizability.  Let
+\(\|\Sigma-\Sigma_0\|_{\mathcal A}<\delta_0\).  The Rayleigh quotient and the defining bound \(\delta_0<\lambda_0/2\) imply
+\[
+\lambda_{\min}(\Sigma_g)
+\ge\lambda_{\min}(\Sigma_{g0})
+-\|\Sigma_g-\Sigma_{g0}\|_{\mathrm{op}}
+>\lambda_0/2>0.                                                         \tag{16}
+\]
+Put \(A_g=\Sigma_g^{1/2}\), \(A_{g0}=\Sigma_{g0}^{1/2}=\operatorname{diag}(s_g^0)\), and \(Q_g=A_g-A_{g0}\).  Direct multiplication gives the Sylvester equation
+\[
+A_gQ_g+Q_gA_{g0}=\Sigma_g-\Sigma_{g0}.                                  \tag{17}
+\]
+Its integral solution and the spectral bounds in (16) give
+\[
+\begin{aligned}
+Q_g
+&=\int_0^\infty e^{-uA_g}(\Sigma_g-\Sigma_{g0})e^{-uA_{g0}}\,du,\\
+\|Q_g\|_{\mathrm{op}}
+&\le
+\frac{\|\Sigma_g-\Sigma_{g0}\|_{\mathrm{op}}}
+{\sqrt{\lambda_{\min}(\Sigma_g)}+
+ \sqrt{\lambda_{\min}(\Sigma_{g0})}}
+<\frac{\delta_0}{\sqrt{\lambda_0}}.                                  \tag{18}
+\end{aligned}
+\]
+Let \(\varepsilon_g\) now have independent Rademacher coordinates and set
+\(Y_g=m_g+A_g\varepsilon_g\).  This vector has mean \(m_g\) and covariance \(\Sigma_g\).  Since \(\|\varepsilon_g\|_2=\sqrt T\), (1), (18), and the second defining bound on \(\delta_0\) imply, coordinatewise,
+\[
+\begin{aligned}
+Y_{gt}
+&=m_{gt}+s^0_{gt}\varepsilon_{gt}+(Q_g\varepsilon_g)_t\\
+&\ge m_{gt}-s^0_{gt}-\sqrt T\|Q_g\|_{\mathrm{op}}\\
+&>d_0-\frac{\sqrt T\delta_0}{\sqrt{\lambda_0}}
+>d_0/2>0.                                                               \tag{19}
+\end{aligned}
+\]
+The corresponding upper bound
+\[
+Y_{gt}\le m_{gt}+s^0_{gt}
++\frac{\sqrt T\delta_0}{\sqrt{\lambda_0}}                             \tag{20}
+\]
+is uniform over the covariance ball.  With mutually independent cohort samples and the same causal completion as in (6), equations (16), (19), and (20) prove
+\[
+\mathbb B_{\mathcal A}(\Sigma_0,\delta_0)\subset\mathcal L(m).         \tag{21}
+\]
+
+Equation (14) also proves \(\operatorname{rank}(\mathcal L_m)=q\): a sufficiently small admissible perturbation \(x=ue_e\) maps to
+\(-u(B\mu_e)^{-1}e_e\), and these \(q\) images span \(\mathbb R^q\).  In particular \(\|\mathcal L_m\|_{\mathrm{op}}>0\).  Choose one coordinate and a nonzero \(u\) small enough that its strict probability restriction remains valid and
+\[
+x_0=ue_e\ne0,
+\qquad
+\|\Sigma(x_0)-\Sigma_0\|_{\mathcal A}<\delta_0.                        \tag{22}
+\]
+Then (14) gives \(\mathcal L_m(\Sigma(x_0))\ne0\), so both terms in the minimum defining \(\eta_0\) are positive.  Whenever
+\(\|\Sigma-\Sigma(x_0)\|_{\mathcal A}<\eta_0\), the first radius restriction and (22) imply
+\[
+\|\Sigma-\Sigma_0\|_{\mathcal A}<\delta_0,                            \tag{23}
+\]
+and hence \(\Sigma\in\mathcal L(m)\) by (21).  Linearity and continuity of \(\mathcal L_m\), followed by the second radius restriction, give
+\[
+\begin{aligned}
+\|\mathcal L_m(\Sigma)\|_2
+&\ge \|\mathcal L_m(\Sigma(x_0))\|_2
+-\|\mathcal L_m\|_{\mathrm{op}}
+ \|\Sigma-\Sigma(x_0)\|_{\mathcal A}\\
+&>\tfrac12\|\mathcal L_m(\Sigma(x_0))\|_2>0.                          \tag{24}
+\end{aligned}
+\]
+For every covariance in this ball, \(\Omega\succ0\) and hence
+\(K=R^{\prime}\Omega R\succ0\).  Equations (23)--(24) and the loss definition establish
+\[
+\mathbb B_{\mathcal A}(\Sigma(x_0),\eta_0)\subset\mathcal L(m),
+\qquad
+\Gamma=b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}>0
+\]
+throughout that ambient open ball.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Support-preserving realizability shows that strict inefficiency is robust and not an artifact of perturbing an impossible covariance matrix. \textit{Gap.} The rank-one completion and additive efficient-DiD literatures do not construct a legal nonnegative fixed-support family with an exact positive-definite cohort-mean PPML loss form. \textit{Consumer.} The family supplies calibrated stress tests and interpretable variance-loss directions for cohort-mean proportional PPML applications.
+
+\begin{theorem}[thm:topology-efficiency-frontier]\label{thm:topology-efficiency-frontier}
+Fix \(m\) and \(p\). The cohort-mean PPML-imputation estimator is semiparametrically efficient for \(\theta_{\mathrm{PTT}}\) at every law \(P\in\mathcal M_{\mathrm{bd}}\) satisfying \(\mathbb E_PY=m\) if and only if \(q=0\); when \(q>0\), its efficient covariance laws are exactly \(\mathcal L(m)\cap\ker(\mathcal L_m)\), where \(\mathcal L_m:\mathcal A_{\Sigma}\to\mathbb R^q\) has rank \(q\), and \(\|b_{\mathrm{cyc}}\|_2^2/\lambda_{\max}(K)\le\Gamma\le\|b_{\mathrm{cyc}}\|_2^2/\lambda_{\min}(K)\). This strictly sharpens Ciani and Fisher's printed-page-7, Section 3.1 observation and Appendix B simulation evidence that PPML may fail to be most efficient by giving necessity, sufficiency, and codimension for the stated cohort-mean estimator.
+\end{theorem}
+\begin{proof}
+Fix the interior mean \(m\) and the positive share vector \(p\).  The dimension identity in the weighted-cycle theorem implies that \(J\), and hence its untreated block \(MX\), has full column rank.  Since \(M\) is invertible, \(X\) has full column rank and
+\(S=X^{\prime}P_UMX\succ0\).  The definitions then give
+\[
+J^{\prime}h_{\mathrm{CM}}
+=\begin{pmatrix}
+X^{\prime}MP_UXS^{-1}c_\beta\\c_D
+\end{pmatrix}=c.                                                        \tag{1}
+\]
+The canonical coefficient also satisfies \(J^{\prime}h^{\star}=c\).  By the weighted-cycle theorem, their difference lies in
+\(\ker(J^{\prime})=\operatorname{col}(R)\).  Furthermore,
+\[
+\Omega h^{\star}
+=J(J^{\prime}\Omega^{-1}J)^{-1}c,
+\qquad
+R^{\prime}\Omega h^{\star}=0.                                         \tag{2}
+\]
+For \(q>0\), write \(h^{\star}-h_{\mathrm{CM}}=R\gamma\).  Equations (1)--(2) imply
+\[
+0=R^{\prime}\Omega(h_{\mathrm{CM}}+R\gamma)
+=b_{\mathrm{cyc}}+K\gamma.
+\]
+Because \(K\succ0\),
+\[
+h^{\star}=h_{\mathrm{CM}}-RK^{-1}b_{\mathrm{cyc}}.                     \tag{3}
+\]
+The cross term in the resulting variance decomposition vanishes by (2), so
+\[
+h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}
+-h^{\star\prime}\Omega h^{\star}
+=b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}
+=\Gamma.                                                               \tag{4}
+\]
+If \(q=0\), the same formulas hold with empty cycle matrices: then
+\(\ker(J^{\prime})=\{0\}\), so the two feasible coefficients coincide and \(\Gamma=0\).
+
+The cohort-mean PPML linearization identifies
+\(h_{\mathrm{CM}}^{\prime}Z\) as its influence function and
+\(h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}\) as its asymptotic variance.  Feasibility (1) also gives, for every tangent score with \(z(s)=Jv\),
+\[
+\mathbb E_P[(h_{\mathrm{CM}}^{\prime}Z)s]
+=h_{\mathrm{CM}}^{\prime}Jv=c^{\prime}v=\dot\theta_P(s),               \tag{5}
+\]
+so the smooth finite-dimensional PPML functional is regular in the explicitly mean-differentiable experiment.  The canonical-gradient theorem identifies \(h^{\star\prime}Z\) and
+\(V^{\star}=h^{\star\prime}\Omega h^{\star}\) as the canonical gradient and lower bound.  Consequently (4), equivalently the primitive-balance theorem, yields the pointwise characterization
+\[
+\widehat\theta_{\mathrm{CM}}\text{ is semiparametrically efficient}
+\quad\Longleftrightarrow\quad
+b_{\mathrm{cyc}}=0.                                                     \tag{6}
+\]
+
+When \(q=0\), the right side of (6) is vacuous, so efficiency holds at every bounded law with the fixed \(m\) and \(p\).  Conversely, if \(q>0\), the realizable-quadratic-loss theorem supplies, for the same \(m\), a nonzero admissible \(x\) and a law \(P_\rho\in\mathcal M_{\mathrm{bd}}\) such that
+\[
+\Gamma(x)
+=B^{-2}x^{\prime}D_\mu^{-1}K_0^{-1}D_\mu^{-1}x>0.                    \tag{7}
+\]
+At this law (4) is a strict variance gap from the canonical bound.  Hence the estimator cannot be efficient at every fixed-mean bounded law.  This proves the ``if and only if \(q=0\)'' assertion.
+
+For an arbitrary realizable covariance at the fixed mean, the definition
+\(\mathcal L_m(\Sigma)=b_{\mathrm{cyc}}(\Sigma)\) and (6) give the exact set
+\[
+\{\Sigma\in\mathcal L(m):
+  \widehat\theta_{\mathrm{CM}}\text{ is efficient at }\Sigma\}
+=\mathcal L(m)\cap\ker(\mathcal L_m).                                  \tag{8}
+\]
+For every non-tree edge \(e=(g,t)\), the covariance direction changing only
+\(\operatorname{Cov}(Y_{gt},Y_{gg})\) has, by the exact response derived in the realizable-loss theorem,
+\[
+\mathcal L_m(ue_e)-\mathcal L_m(0)
+=-\frac{u}{B\mu_{gt}}e_e.                                               \tag{9}
+\]
+All multipliers in (9) are nonzero.  The \(q\) images span \(\mathbb R^q\), and therefore
+\[
+\operatorname{rank}(\mathcal L_m)=q.                                   \tag{10}
+\]
+For \(q>0\), its kernel is a proper codimension-\(q\) linear subspace of the ambient block-covariance space.  The ambient realizability ball and the strict-loss ball from the realizable-quadratic-loss theorem show that (8) and its complement concern legal bounded nonnegative-outcome laws, not merely formal covariance matrices.
+
+Finally, since \(K\succ0\), the eigenvalues of \(K^{-1}\) range from
+\(1/\lambda_{\max}(K)\) to \(1/\lambda_{\min}(K)\).  The Rayleigh quotient gives
+\[
+\frac{\|b_{\mathrm{cyc}}\|_2^2}{\lambda_{\max}(K)}
+\le b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}
+\le\frac{\|b_{\mathrm{cyc}}\|_2^2}{\lambda_{\min}(K)}.              \tag{11}
+\]
+The middle expression is \(\Gamma\), and the constants are sharp because equality holds when \(b_{\mathrm{cyc}}\) is an eigenvector for the corresponding extreme eigenvalue.  Equations (6)--(11) supply the claimed necessity, sufficiency, codimension, and spectral loss characterization.  These derived conclusions are what sharpen the cited qualitative observation and simulation evidence of Ciani and Fisher; no assertion from that comparison is used as a mathematical premise.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the topology-level kernel: cycles are necessary and sufficient for covariance laws on which feasible precision improvement exists. \textit{Gap.} Ciani and Fisher (2019, printed page 7, Section 3.1) state that PPML may fail to be the most efficient estimator, with the corresponding efficiency-loss simulations in Appendix B; Moreau--Kastler (2025, equations 3.13--3.14) and Wooldridge (2023, Sections 2--3) study distinct individual-level imputation procedures. None gives an acyclic if-and-only-if frontier or an exact codimension count for the cohort-mean rank-one estimator. \textit{Consumer.} The theorem tells analysts in the Nagengast--Yotov and Menkhoff--Miethe settings exactly when the transparent cohort-mean PPML benchmark is universally precision-optimal before moving to richer individual-level specifications.
+
+\begin{theorem}[thm:pointwise-wald-inference]\label{thm:pointwise-wald-inference}
+For every fixed \(P\in\mathcal M_4\), \(\widehat V\to_PV^{\star}\), \(\sqrt N(\widehat\theta_{\mathrm{eff}}-\theta_{\mathrm{PTT}})/\sqrt{\widehat V}\Rightarrow\mathcal N(0,1)\), and \(\Pr_P\{\theta_{\mathrm{PTT}}\in[\widehat\theta_{\mathrm{eff}}\pm z_{1-\alpha/2}\sqrt{\widehat V/N}]\}\to1-\alpha\).
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal M_4\).  The fourth-moment assumption and entrywise Chebyshev's inequality give
+\(\widehat\Sigma_g\to_P\Sigma_g\) for every cohort, while share convergence gives
+\(\widehat p_g\to p_g>0\).  The cohort-mean PPML proof gives
+\(\widehat\beta\to_P\beta\).  Since \(R\) has full column rank, \(\Omega\succ0\), and \(q\) is fixed, continuous mapping and continuity of matrix inversion give
+\[
+\widehat R\to_PR,
+\quad
+\widehat\Omega\to_P\Omega,
+\quad
+\widehat K\to_PK\succ0,
+\quad
+\widehat h^{\star}\to_Ph^{\star}.                                    \tag{1}
+\]
+For \(q=0\), the empty cycle objects are simply omitted.  The proof of the PPML linearization also gives
+\(\Pr(\mathcal E_N)\to1\), so the fallback values are asymptotically irrelevant.  Applying continuity to (1) yields
+\[
+\widehat V
+=\widehat h^{\star\prime}\widehat\Omega\widehat h^{\star}
+\to_P h^{\star\prime}\Omega h^{\star}=V^{\star}.                     \tag{2}
+\]
+
+The treated support is nonempty and every treated component \(p_g/B\) of \(c\) is positive, so \(c\ne0\).  Since
+\(J^{\prime}\Omega^{-1}J\succ0\),
+\[
+V^{\star}=c^{\prime}(J^{\prime}\Omega^{-1}J)^{-1}c>0.                 \tag{3}
+\]
+Efficient attainment and the fixed-strata central limit theorem give
+\[
+\sqrt N(\widehat\theta_{\mathrm{eff}}-\theta_{\mathrm{PTT}})
+\Rightarrow\mathcal N(0,V^{\star}).                                   \tag{4}
+\]
+By (2)--(3), \(\sqrt{V^{\star}/\widehat V}\to_P1\).  Slutsky's theorem applied to (4) therefore gives
+\[
+\frac{\sqrt N(\widehat\theta_{\mathrm{eff}}-\theta_{\mathrm{PTT}})}
+{\sqrt{\widehat V}}
+\Rightarrow\mathcal N(0,1).                                           \tag{5}
+\]
+For fixed \(\alpha\in(0,1)\), the standard normal distribution is continuous at
+\(\pm z_{1-\alpha/2}\).  Rewriting the event in (5) thus proves
+\[
+\Pr_P\!\left\{
+\theta_{\mathrm{PTT}}\in
+\left[\widehat\theta_{\mathrm{eff}}
+\mathbin{\pm}z_{1-\alpha/2}\sqrt{\widehat V/N}\right]
+\right\}\longrightarrow1-\alpha.
+\]
+Every convergence here is pointwise at the fixed \(P\); no uniform moment or tail conclusion is invoked.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Pointwise studentization completes the estimator contribution without claiming unsupported uniform inference over tail-escaping laws. \textit{Gap.} Moreau--Kastler (2025, printed page 21) recommends a panel bootstrap, while the proposed efficient correction has no published analytic Wald theory. \textit{Consumer.} The result yields directly reportable confidence intervals for proportional treatment effects under arbitrary within-unit dependence.
+
+\begin{proposition}[prop:tree-reduction]\label{prop:tree-reduction}
+If \(q=0\), then \(R\) has no columns, \(h_{\mathrm{CM}}=h^{\star}\), \(\widehat\theta_{\mathrm{eff}}=\widehat\theta_{\mathrm{CM}}\), and \(\Gamma=0\). Within the maintained model, the canonical acyclic support \(C=\{2,\infty\}\) has \(q=0\) for every fixed \(T\ge3\), and on \(\mathcal E_N\), \[\widehat\theta_{\mathrm{eff}}=\widehat\theta_{\mathrm{CM}}=\frac{\sum_{t=2}^T\overline Y_{2t}}{\overline Y_{21}\sum_{t=2}^T(\overline Y_{\infty t}/\overline Y_{\infty1})}-1.\]
+\end{proposition}
+\begin{proof}
+If \(q=0\), the matrix \(R\) has no columns.  The projection identity in the primitive-balance theorem then gives
+\(h_{\mathrm{CM}}=h^{\star}\); the efficient-estimator definition makes no cycle correction; and the empty quadratic form in the loss definition is zero.  Hence
+\[
+h_{\mathrm{CM}}=h^{\star},
+\qquad
+\widehat\theta_{\mathrm{eff}}=\widehat\theta_{\mathrm{CM}},
+\qquad
+\Gamma=0.                                                              \tag{1}
+\]
+
+Now take \(C=\{2,\infty\}\).  Cohort \(2\) contributes the single untreated edge \((2,1)\), and the never-treated cohort contributes \(T\) untreated edges.  Therefore
+\[
+q=(T+1)-2-T+1=0.                                                        \tag{2}
+\]
+The untreated graph is the canonical spanning tree.  On \(\mathcal E_N\), the matrix \(X\) is square and nonsingular and \(\widehat P_U\) is diagonal positive.  The PPML score equation consequently implies
+\[
+\overline Y_U=\exp(X\widehat\beta).                                   \tag{3}
+\]
+Under \(\widehat b_1=1\), its cell equations are
+\[
+\widehat a_2=\overline Y_{21},
+\qquad
+\widehat a_\infty=\overline Y_{\infty1},
+\qquad
+\widehat b_t=\frac{\overline Y_{\infty t}}{\overline Y_{\infty1}}
+\quad(2\le t\le T).                                                     \tag{4}
+\]
+Only cohort \(2\) is treated, in periods \(2,\ldots,T\).  By the definitions of \(\widehat A\) and \(\widehat B\),
+\[
+\widehat A=p_2\sum_{t=2}^T\overline Y_{2t},
+\qquad
+\widehat B=p_2\overline Y_{21}
+\sum_{t=2}^T\frac{\overline Y_{\infty t}}{\overline Y_{\infty1}}.    \tag{5}
+\]
+Every factor in the denominator is positive on \(\mathcal E_N\).  Cancelling \(p_2>0\) in \(\widehat A/\widehat B-1\), and using (1), yields
+\[
+\widehat\theta_{\mathrm{eff}}
+=\widehat\theta_{\mathrm{CM}}
+=\frac{\sum_{t=2}^T\overline Y_{2t}}
+{\overline Y_{21}\sum_{t=2}^T
+ (\overline Y_{\infty t}/\overline Y_{\infty1})}-1,
+\]
+as asserted.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction checks inside the maintained \(T\ge3\) model that the cycle correction vanishes and that cohort-mean PPML becomes an explicit multi-post multiplicative ratio. \textit{Gap.} Ciani and Fisher (2019) establish the canonical two-period multiplicative DiD ratio; this proposition gives the admissible fixed-\(T\), \(T\ge3\), acyclic analogue that pools all post-adoption cells. \textit{Consumer.} Users with one treated cohort and a never-treated cohort can compute the multi-post proportional effect directly and omit covariance-cycle estimation.
+
+\begin{proposition}[prop:worked-three-period-witness]\label{prop:worked-three-period-witness}
+In \(\mathsf E_3\), all realized outcomes are positive, \(q=1\), \(\theta_{\mathrm{PTT}}=1/2\), \(V^{\star}=395643/6246400\), \(\operatorname{Var}(h_{\mathrm{CM}}^{\prime}Z)=6663/102400\), and \(\Gamma=27/15616\); hence the cohort-mean PPML variance exceeds the bound by approximately \(2.73\) percent of \(V^{\star}\).
+\end{proposition}
+\begin{proof}
+Use the untreated--treated stacking
+\[
+U=((2,1),(3,1),(3,2),(\infty,1),(\infty,2),(\infty,3)),
+\qquad
+D=((2,2),(2,3),(3,3)).                                                    \tag{1}
+\]
+The smallest observed mean in \(\mathsf E_3\) is one.  Cohorts \(2\) and \(\infty\) have coordinatewise noise magnitude \(1/10\), while each coordinate of cohort \(3\)'s noise has magnitude at most
+\(1/10+1/20=3/20\).  Hence every realized outcome is at least
+\(1-3/20=17/20>0\).
+
+The treated observed and counterfactual totals are
+\[
+A=\frac13\left(3+\frac92+\frac92\right)=4,
+\qquad
+B=\frac13(2+3+3)=\frac83,
+\qquad
+\theta_{\mathrm{PTT}}=\frac{A}{B}-1=\frac12.                           \tag{2}
+\]
+There are six untreated edges and six vertices in the connected untreated graph, so
+\(q=6-6+1=1\).  The unique fundamental-cycle column obtained from its four signed mean reciprocals is
+\[
+R=
+\begin{pmatrix}
+0&1&-1/2&-1&1/2&0&0&0&0
+\end{pmatrix}^{\prime}.                                                  \tag{3}
+\]
+For auditability, with parameter order
+\((\log a_2,\log a_3,\log a_\infty,\log b_2,\log b_3)\), the treated-counterfactual derivative and target gradient are
+\[
+\frac{\partial B}{\partial\beta}
+=\begin{pmatrix}5/3&1&0&2/3&2\end{pmatrix}^{\prime},
+\qquad
+c_\beta=-\frac9{16}\frac{\partial B}{\partial\beta},
+\qquad
+c_D=\begin{pmatrix}1/8&1/8&1/8\end{pmatrix}^{\prime}.                  \tag{4}
+\]
+Solving \(S w=c_\beta\) and using
+\(h_{\mathrm{CM},U}=P_UXw\) gives
+\[
+h_{\mathrm{CM}}=
+\begin{pmatrix}
+-15/16&3/16&-3/8&3/4&3/16&-3/8&1/8&1/8&1/8
+\end{pmatrix}^{\prime}.                                                  \tag{5}
+\]
+
+The covariance matrices are
+\[
+\Sigma_2=\Sigma_\infty=\frac1{100}I_3,
+\qquad
+\Sigma_3=\frac1{400}I_3+vv^{\prime},
+\qquad
+v=\begin{pmatrix}1/10&-1/10&1/10\end{pmatrix}^{\prime}.                \tag{6}
+\]
+The eigenvalues of \(\Sigma_3\) are
+\(1/400,1/400,13/400\), so covariance interior holds.  With
+\[
+\Omega=\Pi\operatorname{blockdiag}(3\Sigma_2,3\Sigma_3,3\Sigma_\infty)
+\Pi^{\prime},                                                           \tag{7}
+\]
+substitution of (3), (5), and (6) gives exactly
+\[
+b_{\mathrm{cyc}}=R^{\prime}\Omega h_{\mathrm{CM}}=\frac9{640},
+\qquad
+K=R^{\prime}\Omega R=\frac{183}{1600}.                                 \tag{8}
+\]
+Therefore \(b_{\mathrm{cyc}}/K=15/122\), and the projection identity gives
+\[
+h^{\star}=h_{\mathrm{CM}}-R\frac{15}{122}
+=\begin{pmatrix}
+-15/16&63/976&-153/488&213/244&123/976&-3/8&1/8&1/8&1/8
+\end{pmatrix}^{\prime}.                                                  \tag{9}
+\]
+Multiplication using (6)--(9) yields
+\[
+h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}
+=\frac{6663}{102400},
+\qquad
+h^{\star\prime}\Omega h^{\star}
+=\frac{395643}{6246400},                                                 \tag{10}
+\]
+and
+\[
+\Gamma
+=\frac{b_{\mathrm{cyc}}^2}{K}
+=\frac{27}{15616}
+=\frac{6663}{102400}-\frac{395643}{6246400}.                            \tag{11}
+\]
+The covariance identity for \(Z\) identifies the first number in (10) as
+\(\operatorname{Var}(h_{\mathrm{CM}}^{\prime}Z)\), and the canonical-gradient theorem identifies the second as \(V^{\star}\).  Finally,
+\[
+\frac{\Gamma}{V^{\star}}=\frac{3600}{131881}\approx0.0272973,
+\]
+so the cohort-mean PPML variance exceeds the bound by approximately \(2.73\) percent of \(V^{\star}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact rational witness makes the cohort-mean PPML topology loss quantitatively auditable in the smallest cyclic staggered panel. \textit{Gap.} Published multiplicative DiD examples do not report this PTT-specific canonical bound and exact cycle loss for a legal nonnegative covariance law. \textit{Consumer.} The exhibit provides a reproducible calibration for implementations of the cycle correction.
+
+\begin{openendedquestion}[oeq:growing-cycle-frontier]\label{oeq:growing-cycle-frontier}
+For a sequence with \(T\) and cycle rank \(q\) increasing, characterize the weakest graph-spectrum and moment conditions under which a feasible regularized cycle correction is asymptotically linear for \(\theta_{\mathrm{PTT}}\), attains the relevant growing-dimensional efficiency frontier, and supports valid studentization, using \(\mathsf H_{\mathrm{grow}}\) as the construction handle.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The fixed-horizon theorem leaves open how many noisy overidentifying cycle directions can be exploited when adoption calendars lengthen. \textit{Gap.} Borusyak, Jaravel, and Spiess (2024, Theorems 1--2) treat additive efficient imputation at fixed design dimension and do not analyze a growing weighted cycle Gram spectrum for a proportional ratio. \textit{Consumer.} A solution would provide principled regularization and inference for long staggered panels with many pretreatment cycles.
+
+\begin{lemma}[lem:fixed-strata-central-limit]\label{lem:fixed-strata-central-limit}
+Let \(C\) be finite. Under independent sampling across cohorts, i.i.d. sampling within each cohort, \(n_g/N\to p_g>0\), and \(\mathbb E_P\|Y_g\|_2^2<\infty\), the stacked cohort sample means satisfy
+\[
+\sqrt N(\overline Y-m)\Rightarrow\mathcal N(0,\Omega),
+\qquad
+\Omega=\Pi\operatorname{blockdiag}_{g\in C}(\Sigma_g/p_g)\Pi^{\prime}.
+\]
+\end{lemma}
+\begin{proof}
+Write
+\[
+\widetilde{\overline Y}
+=\operatorname{col}_{g\in C}(\overline Y_g),
+\qquad
+\widetilde m=\operatorname{col}_{g\in C}(m_g),
+\]
+in cohort-major order, and define
+\[
+W_{gN}
+=\frac1{\sqrt{n_g}}\sum_{i=1}^{n_g}(Y_{gi}-m_g),
+\qquad
+W_N=\operatorname{col}_{g\in C}(W_{gN}).
+\tag{1}
+\]
+Since \(n_g/N\to p_g>0\), every \(n_g\to\infty\). For an arbitrary
+block vector \(a=\operatorname{col}_{g\in C}(a_g)\), the scalar
+i.i.d. central limit theorem, finite second moments, and mutual
+independence of the cohort samples give
+\[
+\begin{aligned}
+\mathbb E\exp\{it\,a^\prime W_N\}
+&=\prod_{g\in C}
+\mathbb E\exp\{it\,a_g^\prime W_{gN}\}\\
+&\longrightarrow
+\prod_{g\in C}
+\exp\!\left\{-\frac{t^2}{2}a_g^\prime\Sigma_ga_g\right\}\\
+&=\exp\!\left\{-\frac{t^2}{2}
+a^\prime\operatorname{blockdiag}_{g\in C}(\Sigma_g)a\right\}.
+\end{aligned}
+\tag{2}
+\]
+Hence, by the Cram\'er--Wold device,
+\[
+W_N\Rightarrow
+\mathcal N\!\left(
+0,\operatorname{blockdiag}_{g\in C}(\Sigma_g)
+\right).
+\tag{3}
+\]
+This conclusion remains valid when some \(\Sigma_g\) are singular;
+the corresponding Gaussian law is then degenerate.
+
+Let
+\[
+D_N=\operatorname{blockdiag}_{g\in C}
+\left(\sqrt{\frac N{n_g}}\,I_T\right),
+\qquad
+D=\operatorname{blockdiag}_{g\in C}
+\left(p_g^{-1/2}I_T\right).
+\tag{4}
+\]
+Share convergence gives \(D_N\to D\), while
+\[
+\sqrt N(\widetilde{\overline Y}-\widetilde m)=D_NW_N.
+\tag{5}
+\]
+Slutsky's theorem therefore yields
+\[
+\sqrt N(\widetilde{\overline Y}-\widetilde m)
+\Rightarrow
+\mathcal N\!\left(
+0,\operatorname{blockdiag}_{g\in C}(\Sigma_g/p_g)
+\right).
+\tag{6}
+\]
+Finally, the untreated--treated ordering is obtained from the
+cohort-major ordering by the fixed stacking matrix \(\Pi\):
+\[
+\sqrt N(\overline Y-m)
+=\Pi\sqrt N(\widetilde{\overline Y}-\widetilde m).
+\tag{7}
+\]
+Applying the continuous mapping theorem to (6) proves
+\[
+\sqrt N(\overline Y-m)
+\Rightarrow
+\mathcal N(0,\Omega),
+\qquad
+\Omega
+=\Pi\operatorname{blockdiag}_{g\in C}
+(\Sigma_g/p_g)\Pi^\prime.
+\]
+\end{proof}
+
+\begin{lemma}[lem:regular-estimator-information-bound]\label{lem:regular-estimator-information-bound}
+In a differentiable-in-quadratic-mean experiment with closed score tangent space \(\mathcal T_P\), if the pathwise derivative of a scalar parameter \(\theta\) is represented on \(\mathcal T_P\) by \(\phi^{\star}\in\mathcal T_P\), then \(\phi^{\star}\) is the canonical gradient; every regular estimator has an asymptotic convolution distribution and, whenever its asymptotic variance exists, that variance is at least \(\mathbb E_P[(\phi^{\star})^2]=V^{\star}\).
+\end{lemma}
+
+\begin{proposition}[prop:mk-positive-cycle-nonuniversality]\label{prop:mk-positive-cycle-nonuniversality}
+For every fixed adoption calendar \(C\) admitted by \(\mathcal M_{\mathrm{bd}}\) with \(q>0\), there exist strictly positive rational shares \(p_g\) summing to one, deterministic balanced-panel sequences with \(n_g/N=p_g\), and a law \(P\in\mathcal M_{\mathrm{bd}}\) supported on \((0,\infty)^T\) such that
+\[
+\mathbb E_P[Y_{gt}(1)]=\mathbb E_P[Y_{gt}(0)]\quad((g,t)\in U),
+\qquad
+\mathbb E_P[Y_{gt}(0)]=a_gb_t\quad(g\in C,\ 1\le t\le T).
+\]
+On the balanced, equal-observation-weight, no-covariate, no-offset intersection with the Moreau--Kastler individual-imputation specification, both normalized PPML fits exist uniquely, \(\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}=\widehat\theta_{\mathrm{CM}}\) samplewise, and
+\[
+\operatorname{AVar}_P\!\left(\sqrt N\{\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}-\theta_{\mathrm{PTT}}\}\right)-V^{\star}
+=\Gamma>0.
+\]
+The restriction of \(\widehat\theta_{\mathrm{eff}}\), which is regular on the larger cohort-mean experiment, is therefore a strictly lower-variance regular competitor on this intersection.  Consequently the published Moreau--Kastler individual-imputation estimator is not universally semiparametrically efficient when \(q>0\).  This one-way conclusion neither identifies \(V^{\star}\) as the efficiency bound in the unrestricted richer individual-level experiment nor transfers the \(q=0\) cohort-mean efficiency conclusion to that experiment.
+\end{proposition}
+\begin{proof}
+Fix an adoption calendar \(C\) admitted by \(\mathcal M_{\mathrm{bd}}\), and suppose \(q>0\).  Choose the rational shares and balanced sample-size sequence
+\[
+p_g=|C|^{-1}\quad(g\in C),
+\qquad
+n_{g,k}=k,
+\qquad
+N_k=k|C|,
+\quad k\ge1.                                                            \tag{1}
+\]
+They are strictly positive, sum to one, and satisfy
+\(n_{g,k}/N_k=p_g\) exactly.  Choose any positive factors \(a_g,b_t\), normalized by \(b_1=1\), and any positive treated-cell means.  These choices determine a strictly positive observed mean vector \(m\), with
+\(m_{gt}=a_gb_t\) on \(U\).
+
+Because \(q>0\), choose a nonzero, sufficiently small admissible covariance coordinate \(x\) in the fixed-support family.  The realizable-quadratic-loss theorem supplies a corresponding law
+\(P_\rho\in\mathcal M_{\mathrm{bd}}\) with mean \(m\), unchanged cycle Gram matrix \(K_0\succ0\), and
+\[
+\Gamma
+=B^{-2}x^{\prime}D_\mu^{-1}K_0^{-1}D_\mu^{-1}x>0.                    \tag{2}
+\]
+The strict inequality uses \(B>0\), positivity of the diagonal of \(D_\mu\), positive definiteness of \(K_0^{-1}\), and \(x\ne0\).
+
+This law has strictly positive bounded outcomes.  Indeed, the bounded-family construction gives
+\[
+Y_{gt}=m_{gt}+s^0_{gt}\varepsilon_{gt},
+\qquad
+s^0_{gt}=\sqrt{\tau_0m_{gt}},
+\qquad
+0<\tau_0<\min_{g,t}m_{gt}.                                               \tag{3}
+\]
+Thus \(0<s^0_{gt}<m_{gt}\), and every support point satisfies
+\[
+Y_{gt}\ge m_{gt}-s^0_{gt}>0.                                           \tag{4}
+\]
+The support is finite, hence bounded with finite fourth moments.  The causal completion in the same construction sets
+\(Y_{gt}(1)=Y_{gt}(0)=Y_{gt}\) on \(U\), and sets
+\(Y_{gt}(0)=\mu_{gt}=a_gb_t\) on \(D\).  It follows that
+\[
+\mathbb E_{P_\rho}Y_{gt}(1)=\mathbb E_{P_\rho}Y_{gt}(0)
+\quad((g,t)\in U),
+\qquad
+\mathbb E_{P_\rho}Y_{gt}(0)=a_gb_t
+\quad(g\in C,\ 1\le t\le T).                                         \tag{5}
+\]
+Thus the construction satisfies average no anticipation, multiplicative parallel trends, and consistency.
+
+On the stated intersection with the Moreau--Kastler specification, embed these means using cohort-constant individual effects
+\[
+\alpha_{gi}=\log a_g,
+\qquad
+\beta_t^{\mathrm{MK}}=\log b_t,
+\qquad
+\beta_1^{\mathrm{MK}}=0,                                                \tag{6}
+\]
+with equal observation weights and no covariates or offsets.  Both normalized sample PPML fits exist uniquely.  To verify this rather than assume it, note first from (4) that every untreated response is positive.  If a perturbation of the individual-fit coefficients satisfies
+\(\delta\alpha_{gi}+\delta\lambda_t=0\) on every untreated observation, the period-one equations imply
+\(\delta\alpha_{gi}=0\) for all \(g,i\); the never-treated equations then imply
+\(\delta\lambda_t=0\) for every \(t\).  Thus the normalized individual design has full column rank.  The same argument with one intercept per cohort proves full column rank of the cohort-mean design \(X\).
+
+For either full-rank design \(W\), positive weights \(w_j\), and positive responses \(y_j\), the PPML criterion
+\[
+\ell(\xi)=\sum_jw_j\{y_jW_j^{\prime}\xi-\exp(W_j^{\prime}\xi)\}     \tag{7}
+\]
+has Hessian
+\[
+\nabla^2\ell(\xi)
+=-W^{\prime}\operatorname{diag}\{w_j\exp(W_j^{\prime}\xi)\}W\prec0. \tag{8}
+\]
+It is coercive: along an unbounded sequence, take a subsequence with a limiting normalized direction.  Full column rank makes some fitted-index direction nonzero.  A positively diverging fitted index forces its negative exponential term to \(-\infty\); if none diverges positively, a negatively diverging fitted index has a strictly positive response multiplying it and forces the linear term to \(-\infty\).  Hence upper level sets are bounded.  Continuity and (8) give a finite unique normalized maximizer for both fits.
+
+The exact share identity in (1) and all the conditions just verified permit application of the individual-aggregation bridge.  It yields the samplewise identity
+\[
+\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}
+=\widehat\theta_{\mathrm{CM}}.                                         \tag{9}
+\]
+The cohort-mean PPML linearization gives the common estimator's asymptotic variance
+\(h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}\).  The canonical and cycle-projection identities give
+\[
+J^{\prime}h_{\mathrm{CM}}=J^{\prime}h^{\star}=c,
+\qquad
+h_{\mathrm{CM}}-h^{\star}=RK^{-1}b_{\mathrm{cyc}},
+\qquad
+R^{\prime}\Omega h^{\star}=0.                                         \tag{10}
+\]
+Consequently
+\[
+\begin{aligned}
+h_{\mathrm{CM}}^{\prime}\Omega h_{\mathrm{CM}}-V^{\star}
+&=(K^{-1}b_{\mathrm{cyc}})^{\prime}
+ R^{\prime}\Omega R(K^{-1}b_{\mathrm{cyc}})\\
+&=b_{\mathrm{cyc}}^{\prime}K^{-1}b_{\mathrm{cyc}}
+=\Gamma.                                                               \tag{11}
+\end{aligned}
+\]
+Combining (2), (9), and (11) proves
+\[
+\operatorname{AVar}_{P_\rho}\!\left(
+\sqrt{N_k}\{\widehat\theta_{\mathrm{MK}}^{\mathrm{ind}}
+-\theta_{\mathrm{PTT}}\}\right)-V^{\star}
+=\Gamma>0.                                                              \tag{12}
+\]
+
+Finally, efficient attainment proves that
+\(\widehat\theta_{\mathrm{eff}}\) is regular on the larger cohort-mean experiment and has variance \(V^{\star}\).  Restricting this estimator and its admitted local paths to the displayed Moreau--Kastler intersection preserves regularity.  Thus (12) supplies a regular estimator with strictly smaller variance there, which refutes universal semiparametric efficiency of the published individual-imputation estimator whenever \(q>0\).  This is only a one-way comparison: \(V^{\star}\) is used as the variance attained by the restricting competitor and as the bound in the cohort-mean experiment.  Nothing in the argument identifies the bound in the unrestricted richer individual-level experiment or transfers the \(q=0\) cohort-mean efficiency conclusion to that experiment.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This mandated boundary corollary converts the exact aggregation bridge and the realizable positive cycle loss into a counterexample for the published individual-imputation procedure without exporting an efficiency bound across experiments. \textit{Gap.} Moreau--Kastler (2025, printed pp. 15 and 20--23, equations (3.1), (3.2), (3.13), (3.14), and (3.19)) defines the individual fixed-effects specification and imputation ratio but does not give a positive-cycle semiparametric nonuniversality result. \textit{Consumer.} Users of the Nagengast--Yotov regional-trade-agreement and Menkhoff--Miethe treaty and bank-deposit applications obtain a rigorous warning that exact aggregation does not make the published PPML estimator universally efficient.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Because \(\infty\in C\) and the panel is fully observed, \(q=\sum_{g<\infty}(g-2)\); the topology theorem does not claim arbitrary missing-panel graph generality. There is no positive loss bound uniform over all inefficient laws because \(\Gamma(x)\to0\) as \(x\to0\). Singular covariance blocks, zero mean cells, random cohort shares, growing \(T\), unbalanced panels, and dyadic shared-country dependence are outside the formal model. The finite-fourth-moment tangent result is pointwise for the explicitly mean-differentiable differentiable-in-quadratic-mean experiment and uses bounded support-preserving submodels constructed by truncation and exact mean correction; it does not classify tail-escaping paths for which score-moment differentiation fails. The Moreau--Kastler transfer is confined to the balanced equal-weight, no-covariate, no-offset intersection with exact shares: strict \(q>0\) loss transfers because a regular lower-variance competitor restricts to that intersection, but neither the cohort-mean bound nor the \(q=0\) efficiency conclusion transfers to the unrestricted richer individual-level experiment.
+
+\section{Honest scope}
+
+The fixed-horizon contributions are PTT-specific weighted-cycle completeness, constructive tangent equality for the explicitly mean-differentiable finite-fourth-moment experiment, the exact rank-\(q\) primitive covariance map, the acyclic universal-efficiency equivalence for the cohort-mean estimator, and a bounded strictly positive family with exact quadratic loss and an ambient positive-radius strict-loss neighborhood. The feasible covariance-weighted correction attains the cohort-mean bound and supports pointwise inference. Exact equality with Moreau--Kastler's individual estimator is confined to balanced equal-weight panels without covariates or offsets and with target shares equal to sample shares. On that intersection, the \(q>0\) family yields a strictly better regular competitor and therefore refutes universal efficiency of the published individual estimator; no unrestricted individual-level bound and no \(q=0\) individual-level efficiency result is claimed. Canonical projection algebra and routine sandwich consistency are supporting machinery. The growing-horizon, growing-cycle-rank regularized frontier remains open at \(\mathrm{oeq{:}growing\text{-}cycle\text{-}frontier}\).
+
+\begin{thebibliography}{99}
+
+  \bibitem{MoreauKastler2025} Moreau--Kastler, N. (2025). Proportional Treatment Effects in Staggered Settings: An Approach for Poisson Pseudo-Maximum Likelihood. EU Tax Observatory Working Paper 31 and SSRN 5247936.
+
+  \bibitem{KiralyTheranTomioka2015} Király, F. J., Theran, L., and Tomioka, R. (2015). The Algebraic Combinatorial Approach for Low-Rank Matrix Completion. Journal of Machine Learning Research 16, 1391--1436.
+
+  \bibitem{CianiFisher2019} Ciani, E., and Fisher, P. (2019). Dif-in-Dif Estimators of Multiplicative Treatment Effects. Journal of Econometric Methods 8. Printed page 7, Section 3.1 discusses possible PPML inefficiency; Appendix B reports the efficiency simulations; Appendix C is the empirical Educational Maintenance Allowance application.
+
+  \bibitem{Chamberlain1987} Chamberlain, G. (1987). Asymptotic Efficiency in Estimation with Conditional Moment Restrictions. Journal of Econometrics 34, 305--334.
+
+  \bibitem{Newey1990} Newey, W. K. (1990). Semiparametric Efficiency Bounds. Journal of Applied Econometrics 5, 99--135.
+
+  \bibitem{RothSantAnna2023} Roth, J., and Sant'Anna, P. H. C. (2023). Efficient Estimation for Staggered Rollout Designs. Journal of Political Economy Microeconomics 1, 669--709.
+
+  \bibitem{BorusyakJaravelSpiess2024} Borusyak, K., Jaravel, X., and Spiess, J. (2024). Revisiting Event-Study Designs: Robust and Efficient Estimation. Review of Economic Studies 91, 3253--3285.
+
+  \bibitem{ChenSantAnnaXie2025} Chen, X., Sant'Anna, P. H. C., and Xie, H. (2025). Efficient Difference-in-Differences and Event Study Estimators. Cowles Foundation Discussion Paper 2470 and arXiv:2506.17729.
+
+  \bibitem{Wooldridge1999} Wooldridge, J. M. (1999). Distribution-Free Estimation of Some Nonlinear Panel Data Models. Journal of Econometrics 90, 77--97.
+
+  \bibitem{SantAnnaZhao2020} Sant'Anna, P. H. C., and Zhao, J. (2020). Doubly Robust Difference-in-Differences Estimators. Journal of Econometrics 219, 101--122.
+
+  \bibitem{NagengastYotov2025} Nagengast, A. J., and Yotov, Y. V. (2025). Staggered Difference-in-Differences in Gravity Settings: Revisiting the Effects of Trade Agreements. American Economic Journal: Applied Economics 17.
+
+  \bibitem{MenkhoffMiethe2019} Menkhoff, L., and Miethe, J. (2019). Tax Evasion in New Disguise? Examining Tax Havens' International Bank Deposits. Journal of Public Economics 176, 53--78.
+
+  \bibitem{Wooldridge2023} Wooldridge, J. M. (2023). Simple Approaches to Nonlinear Difference-in-Differences with Panel Data. The Econometrics Journal 26, C31--C66.
+
+\end{thebibliography}
+
+\end{document}

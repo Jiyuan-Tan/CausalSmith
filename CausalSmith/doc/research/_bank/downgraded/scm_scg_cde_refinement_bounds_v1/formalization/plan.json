@@ -1,0 +1,1680 @@
+{
+  "qid": "scm_scg_cde_refinement_bounds",
+  "specialization": "v1",
+  "cluster": "scm",
+  "lean_root": "CausalSmith/SCM/SCM_ScgCdeRefinementBounds_Research",
+  "lean_namespace": "CausalSmith.SCM.ScgCdeRefinementBounds",
+  "feasibility": "needs-new-infrastructure",
+  "decisions": [
+    {
+      "id": "F1-D1",
+      "decision": "The bounded-window binary semi-Markovian world is encoded PURELY ALGEBRAICALLY over Mathlib plus `Causalean.Graph.DAG`, not over `Causalean.SCM.Model.SCM` / `SWIGGraph`. Vertices are `Win Vlab H := Vlab x Fin (H+1)` (index `i` denotes time `i - H`); a summary graph is `structure SummaryGraph Vlab where dir : Finset (Vlab x Vlab); bi : Finset (Sym2 Vlab)`; a refinement is `structure Refinement Vlab H where dir : Finset (Win x Win); bi : Finset (Sym2 Win); bi_offDiag`. A model is `structure BinaryModel G` carrying a padded latent-support size, per-factor weight vectors on `Fin C`, deterministic Boolean tables, and the two locality fields (a table at `v` depends only on `G`-parent coordinates and on factors incident to `v`); the latent index type is `inductive FactorIdx | priv (v : Win) | edge (e : Sym2 Win)`.",
+      "why": "The note's content is (i) a FINITE ENUMERATION of refinements as data with a cardinality bound, (ii) MULTI-AFFINITY of `P_G` and `q_G` in independent latent-factor weight vectors, (iii) COMPACTNESS of a finite disjoint union of products of simplices, and (iv) exact rational arithmetic on explicit 16- and 8-dimensional vectors. `Causalean.SCM.Model.SCM` is a kernel-valued, `SWIGGraph`-indexed dependent structure whose graph field carries twelve proof obligations and whose bidirected edges are DERIVED (`SWIGGraph.directlyConfounded` = share an unobserved parent) rather than given as an explicit edge set; ranging a `Finset` over 2^(m_dir + m_bi) such structures, and reading the polynomial degree of a kernel composite, are both out of reach at that abstraction. Surveyed and recorded as bypass-justified in `substrate_survey`. The DIRECTED layer is nevertheless genuinely reused: `Causalean.DAG` is exactly a decidable edge relation on a `Fintype` with cycle-freeness, and `DAG.acyclic_of_topoOrder` (with the time coordinate as the numbering) discharges acyclicity of every positive-lag refinement and of the supergraph `D_{H,L}(S)` in one line, while `DAG.ancestralSet` IS the reflexive directed ancestral closure `An_D(.)`."
+    },
+    {
+      "id": "F1-D2",
+      "decision": "`ass:structural-recursion` is the fixed-point Prop `StructuralRecursion G M ev := forall u v, ev u v = M.table v (ev u) u`, with the SIGNATURE restriction of `f_v` (dependence only on `pa_G(v)` and on factors `a` incident to `v`) carried as two non-member fields `parentLocal` / `incidenceLocal` of the `BinaryModel` carrier. F2 additionally builds `BinaryModel.eval` by recursion on the time coordinate and proves `StructuralRecursion G M M.eval` from positive lags plus `parentLocal`; the interventional recursion is `BinaryModel.interv` (the same recursion with a `Finset Win` of coordinates overridden).",
+      "why": "The frozen condition is an equation, so the assumption atom must be a Prop, and a dependent-subtype table `{0,1}^(pa_G v) -> ... -> Bool` would make the whole compiler dependent on `G` through its parent Finsets and block the `Fintype` instance needed to enumerate the branch catalogue. Keeping the two locality clauses on the carrier follows the same pattern as the accepted `scm_propensity_lv_sharpness_frontier` plan (its F1-D9): the canonical declaration still unfolds to the full frozen construction, and no defining clause is dropped."
+    },
+    {
+      "id": "F1-D3",
+      "decision": "`ass:independent-edge-latents` is the FACTORIZATION Prop `IndependentEdgeLatents M mu := forall u, mu u = prod over a of M.weight a (u a)`, asserted of the joint latent mass `mu : LatentAssign M -> Real` that the compatibility and query definitions integrate against.",
+      "why": "Mutual independence of a finite family of finitely supported variables is exactly factorization of the joint mass into the marginals; on a finite index set this is the statement the proofs actually use (the disjoint-block independence steps of lem:positive-lag-cyclic-cde-adjustment (8), lem:tiv-summary-iv-representation (3), and the parity-tilt determinant (30) are all instances). Using `ProbabilityTheory.iIndepFun` would force a measure-theoretic ambient space that nothing else in the plan needs."
+    },
+    {
+      "id": "F1-D4",
+      "decision": "`def:sharp-envelope`, `def:order-only-envelope`, `def:confidence-endpoints` and `def:contrast-confidence-interval` are thin instantiations of `Causalean.PartialID.IdentifiedInterval obj feasible = Set.range (fun x : {x // feasible x} => obj x)`: `attainableCDESet` is the identified interval of `microCDE` over `summaryFiber`, and each endpoint pair is `sInf` / `sSup` of it. The two confidence nodes take the empty-fiber case literally: `if Q = emptyset then emptyset else Set.Icc (sInf Q) (sSup Q)`.",
+      "why": "`IdentifiedInterval` is the exact right abstraction (the attained value set of an objective over a feasible set) and brings `mem_identifiedInterval` and `identifiedInterval_subset_Icc` for free; those are the two moves that thm:sharp-refinement-envelope (5)-(8), lem:refinement-embeds-complete-order and thm:simultaneous-whole-set-inference make. Verified by reading `Causalean/PO/ID/Partial/Basic.lean:22-116` (namespace `Causalean.PartialID`). `identifiedInterval_eq_Icc` (read at `Basic.lean:78-84`) is DELIBERATELY NOT part of any node's reuse support or proof route: it requires `hconn : (IdentifiedInterval obj feasible).OrdConnected`, and this note's honest scope explicitly disclaims connectedness ('the envelope is the smallest closed interval containing all attainable CDE values; the attainable set itself need not be connected'), so that premise is unavailable and no node may assert that its attained value set equals a `Set.Icc`. Every endpoint claim is therefore stated and proved as a SEPARATELY DEFINED attained infimum/supremum of the value set (`envelopeLower := sInf`, `envelopeUpper := sSup`), discharged from compactness of the feasible set plus `IsLeast.csInf_eq` / `IsGreatest.csSup_eq`. The nodes remain `define-local` because each is a specific instantiation with fixed arguments, not the generic declaration; the generic declaration is recorded in `reuse_support`."
+    },
+    {
+      "id": "F1-D5",
+      "decision": "The two `status: cited` lemmas (`lem:one-block-real-algebraic-elimination`, `lem:multiblock-real-algebraic-qe`) are frozen `carrier: logical-claim` substrate gates: named `Sort 0` propositions, `gate: true`, `gate_class: cited`, `defer_tier: true`, excluded from `theorems`, listed in `infrastructure_needed[]`, and THREADED as explicit hypotheses `(hElim1 : OneBlockRealAlgebraicElimination)` into `thm:exact-algebraic-certification` and `(hQE : MultiBlockRealAlgebraicQE)` into `thm:factorization-safe-quotient-obstruction` — the only two nodes whose `depends_on` names them. `def:exact-certifier` (`certify`) also takes `hElim1` as a Lean argument and extracts its procedure by `Classical.choice`.",
+      "why": "Mathlib has NO semialgebraic sets, NO Tarski-Seidenberg / quantifier elimination, and NO Positivstellensatz: `lean_loogle '\"Semialgebraic\"'` returns nothing and `lean_loogle '\"RealClosed\"'` returns only the `IsRealClosed` field axioms in `Mathlib.FieldTheory.IsRealClosed.Basic` (odd-degree roots, square dichotomy), with `lean_leansearch 'quantifier elimination for real closed fields, Tarski-Seidenberg, semialgebraic sets'` returning nothing on point. Building block-structured real quantifier elimination with Basu-Pollack-Roy arithmetic-operation, degree, and coefficient-height bounds is a major upstream Mathlib contribution and is genuinely infeasible inside this artifact, so both nodes are gates even though the first is the engine of thm:exact-algebraic-certification. Their consumers stay IN SCOPE (`defer_tier: false`) and are proved CONDITIONAL on them."
+    },
+    {
+      "id": "F1-D6",
+      "decision": "The gate `OneBlockRealAlgebraicElimination` carries ONLY what the source states: an elimination procedure deciding feasibility and returning a one-free-variable projection, with an ARITHMETIC-OPERATION count `B^(O(1)) (s_G D_G)^(O(k_G))`, output univariate degree `D_G^(O(k_G))`, output coefficient bit length `B (s_G D_G)^(O(k_G))`, and exact real-algebraic sample points in nonempty sign cells. The BIT-OPERATION bound in `thm:exact-algebraic-certification` is NOT in the gate: it is derived inside that theorem from the arithmetic count together with the coefficient-bit-length control, and the aggregation over the `R_Sigma` branches is likewise theorem content. All `O(.)` constants are encoded as existentially quantified naturals (`exists c, cost <= R_Sigma * B^c * (s_max * D_max)^(c * k_max)`).",
+      "why": "The frozen `attestation` on lem:one-block-real-algebraic-elimination says verbatim: 'The source states arithmetic-operation complexity plus bit-size growth; any claimed bit-operation form is a derived corollary and must be reviewed as such, not attributed verbatim.' Putting the bit-operation bound into the citation would misattribute it; putting the branch aggregation into the citation would launder paper-owned content."
+    },
+    {
+      "id": "F1-D7",
+      "decision": "The first-order-real-formula language needed to state the gates and to define `Cert` is BUILT INLINE in `Helpers/RealAlgebraicLanguage.lean` (`RationalPolyAtom`, `RationalFirstOrderFormula`, `.Holds`, `.QuantifierFree`, `.projection`, `.realSection`, `HasRationalAlgebraicDescription`, `EliminationCorrect`), following the encoding used by `CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research/Helpers/RealAlgebraic.lean:15-111` as a template but NOT importing it.",
+      "why": "That module is the closest analogue in the repository and its shapes are directly adaptable, but `grep 'sorry' CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research` returns 28 occurrences across 19 files (a downgraded, sorry-bearing artifact), and no CausalSmith research module imports another research module (`grep '^import CausalSmith\\.[A-Za-z]+\\.[A-Za-z0-9_]+_Research'` matches only self-imports inside one artifact). Depending on it would import sorries. Its `CylindricalAlgebraicDecompositionQE` is also a DIFFERENT frozen citation (Collins 1975, CAD) from this note's Basu-Pollack-Roy 1996 gates, so it is not a discharge either."
+    },
+    {
+      "id": "F1-D8",
+      "decision": "A statement's `hyps` lists only assumption atoms, class definitions (`by_member_properties`), and cited logical-claim gates. Construction definitions and upstream lemma/theorem dependencies are recorded in a sibling `uses` array. Every `hyps` entry is a member of that node's core `depends_on`, and every assumption in `depends_on` is covered directly or through `def:refinement-class` (bundling ass:positive-bounded-directed-lags, ass:exact-summary-projection) or `def:fixed-refinement-scm-class` (bundling ass:structural-recursion, ass:independent-edge-latents, ass:observed-law-compatibility).",
+      "why": "A construction is a Lean `def`, not a `Prop`, so it cannot be a hypothesis binder, while a cited logical-claim gate IS a `Prop` and hiding it in `uses` would conceal a load-bearing premise (P4)."
+    },
+    {
+      "id": "F1-D9",
+      "decision": "`def:refinement-class` is `structure Refines (S) (H) (L) (G)` with EXACTLY the two member fields `lags : PositiveBoundedDirectedLags L G` and `proj : ExactSummaryProjection S G`. The frozen third clause `E_G^{bi} subset B_H(S)` is NOT a separate field because it is IMPLIED by `proj`: exact projection sends every bidirected edge of `G` to a summary bidirected edge, and `B_H(S)` is by definition every distinct-endpoint window placement over a summary bidirected pair. F2 emits that implication as an untagged companion lemma `Refines.bi_subset_biCandidates`. The `Finset` of refinements used by the outer optimizations is the companion `refinementFinset S H L` (a filter of `dirCandidates.powerset times biCandidates.powerset`), whose defining equivalence with `Refines` is proved in lem:finite-refinements.",
+      "why": "P2 requires `members` to equal `by_member_properties` exactly; dropping an independently-stated clause would be infidelity, so it is discharged as a consequence rather than silently omitted."
+    },
+    {
+      "id": "F1-D10",
+      "decision": "`def:tiv-rational-certificate` is anchored at a single closed `def tivCertificate : TivCertificateData` returning a structure that bundles every displayed rational object verbatim over `Rat`: `pStar`, `gStar`, `lamMinus`, `lamPlus`, `lamCirc : Fin 16 -> Rat`, `mStar : Matrix (Fin 8) (Fin 16) Rat`, `hMinus`, `hPlus : Fin 8 -> Rat`, and `xiMinus`, `xiPlus : Fin 8 -> OrdSignature`, together with the fair-nuisance tensoring recipe. The eight base numerators are `(168, 26, 30, 176, 294, 2, 100, 4) / 800`.",
+      "why": "The certificate is the whole content of thm:robust-order-tightening (four exact primal/dual ledgers plus a rank-seven interior ledger); anchoring the node at a bundle keeps the node-to-declaration map one-to-one while making every displayed number a checkable literal rather than an existential."
+    },
+    {
+      "id": "F1-D11",
+      "decision": "No tautological conjuncts are introduced. In particular the complexity clause of thm:exact-algebraic-certification is stated about a cost functional SUPPLIED BY the gate (so its content is the R_Sigma aggregation and the derivation of `R_Sigma, k_max, s_max, D_max` from `d, H, L, E_S^{dir}, E_S^{bi}` and the branch catalogues), not as a model-independent inequality; and the 'Cert terminates' clause is stated as totality of the Lean function `certify` together with the two-branch output-validity predicate, not as a vacuous claim.",
+      "why": "A model-independent conjunct would propagate into the paper as published nonsense; the honest formal content of a complexity claim conditional on an external elimination bound is the aggregation plus the derived-parameter computation."
+    },
+    {
+      "id": "F1-D12",
+      "decision": "Every statement node mapped to a Lean `theorem` or `lemma` carries a string `local_id` `t1`..`t14`, minted in the core's own statement order (lem:finite-refinements = t1, ..., thm:positive-lag-fa-exact-frontier = t14). The two frozen cited gates carry no `local_id` and stay out of the `theorems` manifest, which is empty.",
+      "why": "This run carries no paper manifest (`state.theorems` is empty), so there are no upstream `theorem_local_id`s to match; minting in core order keeps the map stable for a later paper-scoped re-dispatch, and gates are not proof obligations."
+    }
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A finite nonempty label set \\(\\mathcal V\\) of \\(d=|\\mathcal V|\\) binary component processes is observed on the bounded past window \\(\\mathbb T_H=\\{-H,\\ldots,0\\}\\), giving the \\(N=d(H+1)\\) observed vertices \\(\\mathcal W_H=\\mathcal V\\times\\mathbb T_H\\). Causal knowledge is a lag-abstracted summary causal graph \\(\\mathcal S=(\\mathcal V,E_{\\mathcal S}^{\\to},E_{\\mathcal S}^{\\leftrightarrow})\\) whose directed part may contain cycles. A full-time refinement \\(G=(\\mathcal W_H,E_G^{\\to},E_G^{\\leftrightarrow})\\) is an acyclic directed mixed graph on the window; the projection \\(\\operatorname{proj}_H\\) forgets time indices while retaining edge type, \\(\\mathcal B_H(\\mathcal S)\\) collects every summary-compatible bidirected placement with distinct endpoints inside the window, and \\(\\mathfrak G_{H,L}(\\mathcal S)\\) is the class of refinements whose directed lags all lie in \\(\\{1,\\ldots,L\\}\\) and whose projection is exactly \\(\\mathcal S\\); no \\(L\\)-bound is placed on bidirected time separations. The temporal partial order \\(\\preceq_H\\) compares time coordinates, \\(\\operatorname{Pred}_H(v)\\) is the set of strictly earlier vertices, and \\(G_H^{\\mathrm{ord}}\\) is the single maximal graph carrying every strictly-earlier arrow and every bidirected pair of distinct vertices. The focal query fixes labels \\(X,Y\\), a lag \\(\\gamma\\in\\{1,\\ldots,L\\}\\), the treatment vertex \\(X_{-\\gamma}=(X,-\\gamma)\\), the terminal outcome \\(Y_0=(Y,0)\\), the positive-lag possible-parent set \\(W=\\operatorname{PP}_{\\mathcal S,L}(Y_0)\\), the controlled set \\(Z=W\\setminus\\{X_{-\\gamma}\\}\\) and its assignment \\(z\\). The bounded positive-lag supergraph \\(D_{H,L}(\\mathcal S)\\) carries every summary-compatible positive-lag directed placement, and \\(\\operatorname{An}_D(\\cdot)\\) is its reflexive directed ancestral closure. Distinguished instances are the three-process temporal-instrument summary graph \\(\\mathcal S_{\\mathrm{TIV}}\\) on \\(\\{A,X,Y\\}\\) with its vertex \\(A_{-1}\\), and the six-vertex overlapping-edge-latent kill-test graph \\(G_{\\mathrm{ABC}}\\).",
+      "binds_symbols": [
+        "\\mathcal V",
+        "d",
+        "H",
+        "L",
+        "\\mathbb T_H",
+        "\\mathcal W_H",
+        "N",
+        "\\mathcal S",
+        "E_{\\mathcal S}^{\\to}",
+        "E_{\\mathcal S}^{\\leftrightarrow}",
+        "\\mathcal B_H(\\mathcal S)",
+        "G",
+        "E_G^{\\to}",
+        "E_G^{\\leftrightarrow}",
+        "\\operatorname{proj}_H",
+        "\\mathfrak G_{H,L}(\\mathcal S)",
+        "\\gamma",
+        "X",
+        "Y",
+        "X_{-\\gamma}",
+        "Y_0",
+        "\\operatorname{PP}_{\\mathcal S,L}(Y_0)",
+        "Z",
+        "z",
+        "A",
+        "A_{-1}",
+        "\\preceq_H",
+        "\\operatorname{Pred}_H(v)",
+        "G_H^{\\mathrm{ord}}",
+        "\\mathcal S_{\\mathrm{TIV}}",
+        "D_{H,L}(\\mathcal S)",
+        "W",
+        "\\operatorname{An}_D(A)",
+        "G_{\\mathrm{ABC}}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.AcyclicConstruct",
+        "Mathlib.Data.Sym.Sym2",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Finset.Max"
+      ],
+      "reuse_support": [
+        "Causalean.DAG",
+        "Causalean.DAG.parents",
+        "Causalean.DAG.isAncestor",
+        "Causalean.DAG.ancestralSet",
+        "Causalean.DAG.topoOrder",
+        "Causalean.DAG.topoOrder_lt",
+        "Causalean.DAG.acyclic_of_topoOrder",
+        "Causalean.DAG.ofAcyclic",
+        "Sym2.map",
+        "Finset.powerset",
+        "Finset.card_powerset"
+      ],
+      "notes": "Search trace: `grep '^## ' /soalnas/.../doc/API.md` for the section index, then read sections 1 (Graph/DAG), 3 (Graph/SWIG), 4 (Graph/CComponents); `Glob /soalnas/.../Causalean/Graph/*.lean` and `/soalnas/.../Causalean/SCM/{ID,Do,Model}/**/*.lean`; `grep 'Bidirected|bidirected|ADMG|MixedGraph|SummaryGraph|summaryGraph' Causalean` -> 6 files, all of which realise bidirected structure as `SWIGGraph.directlyConfounded` (shared unobserved DAG parent), never as an explicit edge set; `grep 'lag|window|Window|Lag|timeIndex' CausalSmith/CausalSmith/SCM` -> only the sorry-bearing FiniteplateBernstein artifact; Mathlib side `lean_loogle 'Sym2.map'` -> `Mathlib.Data.Sym.Sym2`, `lean_loogle 'Finset.powerset'` -> `Mathlib.Data.Finset.Powerset`, `lean_loogle 'Finset.exists_min_image'` -> `Mathlib.Data.Finset.Max`. Result: no time-indexed summary-graph / ADMG-refinement world exists; define locally per F1-D1. REUSED INSIDE and load-bearing: `DAG.acyclic_of_topoOrder` with `tau = time coordinate` and `r = (<)` discharges acyclicity of every positive-lag refinement and of `D_{H,L}(S)` (read at `Causalean/Graph/DAG.lean:453-462`); `DAG.ancestralSet S = S union ancestorsSet S` IS the reflexive closure `An_D(.)` verbatim (`Causalean/Graph/DAG.lean:334-339`); `DAG.parents`, `DAG.isAncestor`, `DAG.topoOrder_lt` supply the parent sets and the topological induction of lem:positive-lag-cyclic-cde-adjustment (3)-(6). bypass-justified vs `Causalean.Graph.SWIG` / `CComponents` / `MarkovEquiv` / `DSep`: no d-separation, c-component or Markov-equivalence question arises, and the note's bidirected edges are primitive data whose enumeration is the point of lem:finite-refinements."
+    },
+    {
+      "id": "S2",
+      "world": "On a fixed refinement \\(G\\), a finite binary semi-Markovian structural causal model \\(\\mathcal M\\) has one mutually independent finite exogenous parent \\(U_a\\) with state space \\(\\mathcal U_a\\) for each private index \\(a=\\{v\\}\\) and each bidirected edge \\(a\\in E_G^{\\leftrightarrow}\\), and one deterministic structural function \\(f_v:\\{0,1\\}^{\\operatorname{pa}_G(v)}\\times\\prod_{a\\ni v}\\mathcal U_a\\to\\{0,1\\}\\) producing the binary endogenous coordinate \\(V_v\\) at every observed vertex. The observational input is a law \\(p\\in\\Delta(\\{0,1\\}^{\\mathcal W_H})\\), rational of coefficient height \\(B\\) where exactness is claimed. The causal target is the micro controlled direct effect \\(q(\\mathcal M)\\); \\(\\mathfrak M(G,p)\\) is the class of compatible models on \\(G\\), \\(\\mathfrak F(\\mathcal S,L,H,p)\\) the refinement-union fiber, \\(\\Theta(\\mathcal S,L,H,p)\\) the attainable value set, and \\(\\underline q(p),\\overline q(p)\\) its endpoints; \\(A_{\\mathrm{FA}}(p)\\) is the unadjusted conditional-mean contrast and \\(\\mathcal P^{+}_{\\mathcal S,H,L}\\) the strictly positive graph-compatible laws with relative neighborhoods \\(\\mathcal N_\\delta(p^\\star)\\). The raw canonical compiler enumerates the branch catalogue \\(\\mathcal R_G\\), a branch \\(r\\) with latent state sets \\(\\mathcal K_{G,r,a}\\), the parameter space \\(\\Lambda_G=\\bigsqcup_r\\{r\\}\\times\\prod_a\\Delta(\\mathcal K_{G,r,a})\\) with points \\(\\lambda\\), and the branchwise polynomial map \\(\\Phi_G(\\lambda)=(P_G(\\lambda),q_G(\\lambda))\\), whose size parameters are \\(k_G,s_G,D_G,w_G\\) and their aggregates \\(R_\\Sigma,k_{\\max},s_{\\max},D_{\\max}\\); \\(\\mathsf{Cert}\\) is the exact endpoint certifier. For a finite query index set \\(\\mathcal J\\) with queries \\(q_j(\\mathcal M)\\), the raw global signature domain is \\(\\Omega_{G,\\mathcal J}\\) with points \\(\\omega\\), response columns \\(e_w(\\omega),d_j(\\omega)\\) and evaluation map \\(T_{G,\\mathcal J}\\); \\(\\sim_{G,\\mathcal J}\\) is branchwise response equivalence, \\(\\overline\\Omega_{G,\\mathcal J}\\) its quotient with map \\(\\pi_{G,\\mathcal J}\\) and induced \\(\\overline T_{G,\\mathcal J}\\), \\(\\mu_\\lambda\\) the factorized raw mass, and \\(\\mathcal P_G^{\\mathrm{fac}}\\), \\(\\overline{\\mathcal P}^{\\mathrm{fac}}_{G,\\mathcal J}\\), \\(\\mathcal A^{\\mathrm{raw}}_{G,\\mathcal J}\\), \\(\\mathcal A^{\\mathrm{fac\\text{-}q}}_{G,\\mathcal J}\\), \\(\\mathcal A^{\\mathrm{simp\\text{-}q}}_{G,\\mathcal J}\\) the induced mass and image families, with \\(\\mathcal J_{\\mathrm{ABC}}\\) the singleton kill-test query set and \\(\\mathsf{QCan}\\) the factor-aware quotient decision handle.",
+      "binds_symbols": [
+        "\\mathcal M",
+        "U_a",
+        "\\mathcal U_a",
+        "f_v",
+        "V_v",
+        "p",
+        "B",
+        "q(\\mathcal M)",
+        "\\mathfrak M(G,p)",
+        "\\mathfrak F(\\mathcal S,L,H,p)",
+        "\\Theta(\\mathcal S,L,H,p)",
+        "\\underline q(p)",
+        "\\overline q(p)",
+        "A_{\\mathrm{FA}}(p)",
+        "\\mathcal P_{\\mathcal S,H,L}^{+}",
+        "\\mathcal N_{\\delta}(p^{\\star})",
+        "\\mathcal R_G",
+        "r",
+        "\\mathcal K_{G,r,a}",
+        "\\Lambda_G",
+        "\\lambda",
+        "P_G(\\lambda)",
+        "q_G(\\lambda)",
+        "\\Phi_G",
+        "k_G",
+        "s_G",
+        "D_G",
+        "R_{\\Sigma}",
+        "k_{\\max}",
+        "s_{\\max}",
+        "D_{\\max}",
+        "\\mathsf{Cert}",
+        "\\mathcal J",
+        "q_j(\\mathcal M)",
+        "\\Omega_{G,\\mathcal J}",
+        "\\omega",
+        "e_w(\\omega)",
+        "d_j(\\omega)",
+        "T_{G,\\mathcal J}",
+        "\\sim_{G,\\mathcal J}",
+        "\\overline\\Omega_{G,\\mathcal J}",
+        "\\pi_{G,\\mathcal J}",
+        "\\overline T_{G,\\mathcal J}",
+        "\\mu_{\\lambda}",
+        "\\mathcal P_G^{\\mathrm{fac}}",
+        "\\overline{\\mathcal P}_{G,\\mathcal J}^{\\mathrm{fac}}",
+        "\\mathcal A_{G,\\mathcal J}^{\\mathrm{raw}}",
+        "\\mathcal A_{G,\\mathcal J}^{\\mathrm{fac-q}}",
+        "\\mathcal A_{G,\\mathcal J}^{\\mathrm{simp-q}}",
+        "w_G",
+        "\\mathcal J_{\\mathrm{ABC}}",
+        "\\mathsf{QCan}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Analysis.Convex.Topology",
+        "Mathlib.Data.Finset.Max",
+        "Mathlib.Order.ConditionallyCompletePartialOrder.Basic",
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.mem_identifiedInterval",
+        "Causalean.PartialID.identifiedInterval_subset_Icc",
+        "IsLeast.csInf_eq",
+        "IsGreatest.csSup_eq",
+        "Causalean.DAG.topoOrder_lt",
+        "Causalean.DAG.parents",
+        "isCompact_stdSimplex",
+        "stdSimplex",
+        "Finset.exists_min_image",
+        "Finset.exists_max_image"
+      ],
+      "notes": "Search trace: read `../doc/API.md` sections 6 (SCM/Model/SCM), 6a (Evaluation), 6a'' (EvalLatent), 6b (Kernel), 9 (ID/Identifiable); `Glob Causalean/SCM/PartialID/**` -> `CanonicalModel.lean`, `SharpnessCertificate.lean`, both read via `lean_file_outline` (`CompatibleSCM`, `compatibleInterval`, `IsSharp`, `isSharp_of_attaining`, all over `SWIGGraph N` and `SCM N Omega`); `Glob Causalean/PO/ID/Partial/**` (91 files) and read `Partial/Basic.lean:18-116`; Mathlib side `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex` (`Mathlib.Analysis.Convex.StdSimplex`) and `Set.Finite.isCompact_convexHull` (`Mathlib.Analysis.Convex.Topology`), `lean_loogle 'Finset.exists_min_image'` -> `Mathlib.Data.Finset.Max`. Result: `Causalean.PartialID.IdentifiedInterval` is an exact-abstraction reuse for the attained-value SET DEFINITION (F1-D4) and is used by four definition nodes; `isCompact_stdSimplex` plus `Set.Finite` branch unions give the compactness in thm:sharp-refinement-envelope (6)-(7) with no rebuild, and `IsLeast.csInf_eq` / `IsGreatest.csSup_eq` (`lean_loogle 'IsLeast.csInf_eq'`, `lean_loogle 'IsGreatest.csSup_eq'` -> `Mathlib.Order.ConditionallyCompletePartialOrder.Basic`) turn the attained branch extrema into the `sInf`/`sSup` endpoint equalities. EXCLUDED from this world's reuse support: `Causalean.PartialID.identifiedInterval_eq_Icc` (`Basic.lean:78-84`), because its `hconn : OrdConnected` premise is exactly what the note disclaims -- no node in this plan asserts that an attained value set equals a `Set.Icc`, and every interval claim is endpoint-level only. Same disclaimer, same reason, bypass-justified vs `Causalean.SCM.PartialID.{CompatibleSCM, compatibleInterval, IsSharp, isSharp_of_attaining}` and vs `Causalean.SCM.Model.SCM`: those are `SWIGGraph`/kernel-indexed (F1-D1) and `IsSharp` requires `(compatibleInterval ...).OrdConnected`, so `isSharp_of_attaining` cannot be applied; recorded as the analogous-module reference for the attainment-plus-reconstruction pattern of thm:sharp-refinement-envelope."
+    },
+    {
+      "id": "S3",
+      "world": "The graph-free complete temporal-order comparator on the same window. Under the strict order \\(\\prec_H\\), a complete response signature is a tuple \\(\\xi\\in\\Omega_H^{\\mathrm{ord}}=\\prod_{v\\in\\mathcal W_H}\\{0,1\\}^{\\{0,1\\}^{\\operatorname{Pred}_H(v)}}\\) of deterministic binary tables \\(g_{v,\\xi}:\\{0,1\\}^{\\operatorname{Pred}_H(v)}\\to\\{0,1\\}\\) on every strictly earlier observed vertex. A single unrestricted common latent \\(U^{\\mathrm{ord}}\\) is drawn with arbitrary mass \\(\\rho\\in\\Delta(\\Omega_H^{\\mathrm{ord}})\\), and the recursion \\(V_v=g_{v,\\xi}((V_a)_{a\\in\\operatorname{Pred}_H(v)})\\) in increasing time order produces the observed-cell indicator \\(e_w^{\\mathrm{ord}}(\\xi)\\) and the deterministic micro contrast \\(d^{\\mathrm{ord}}(\\xi)\\in\\{-1,0,1\\}\\). The induced law and query are \\(P_H^{\\mathrm{ord}}(\\rho)\\) and \\(q_H^{\\mathrm{ord}}(\\rho)\\), the compatible fiber is \\(\\mathfrak O_H(p)=\\{\\rho:P_H^{\\mathrm{ord}}(\\rho)=p\\}\\), and its exact extrema form the comparator envelope \\([\\underline q_{\\mathrm{ord}}(p),\\overline q_{\\mathrm{ord}}(p)]\\). The unrestricted mass \\(\\rho\\) belongs only to this complete-latent comparator and is not asserted to respect any missing bidirected edge of a sparse refinement.",
+      "binds_symbols": [
+        "\\Omega_H^{\\mathrm{ord}}",
+        "\\xi",
+        "g_{v,\\xi}",
+        "U^{\\mathrm{ord}}",
+        "\\rho",
+        "e_w^{\\mathrm{ord}}(\\xi)",
+        "d^{\\mathrm{ord}}(\\xi)",
+        "P_H^{\\mathrm{ord}}(\\rho)",
+        "q_H^{\\mathrm{ord}}(\\rho)",
+        "\\mathfrak O_H(p)",
+        "[\\underline q_{\\mathrm{ord}}(p),\\overline q_{\\mathrm{ord}}(p)]"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Data.Finset.Max"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "isCompact_stdSimplex",
+        "Finset.exists_min_image"
+      ],
+      "notes": "Search trace: `grep 'responseFunction|ResponseFunction|canonical|signature' ../doc/API.md` and `Glob Causalean/SCM/PartialID/**`; `grep 'responseType|latentTable|canonical' Causalean/PO/ID/Partial/BalkePearl` -> `canonicalMeasure`, `canonicalPOSystem`, `canonicalBP` (a FOUR-latent-bit binary IV canonical model over `POSystem`, not an all-predecessor complete-table domain); Mathlib side `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex`. Result: no complete-causal-order response-signature comparator exists at any abstraction; define locally as `OrdSignature := (v : Win) -> (Win -> Bool) -> Bool` restricted by a `predLocal` field (a `Fintype` via the subtype), with the envelope an instantiation of `Causalean.PartialID.IdentifiedInterval`. bypass-justified vs the Balke-Pearl canonical module: its latent alphabet is the fixed four-bit IV response type, whereas this comparator's alphabet is the full \\(\\prod_v 2^{2^{|\\operatorname{Pred}_H(v)|}}\\) table product; it is recorded as the analogous module for 'deterministic response tables plus an arbitrary mass reproduce a target law'."
+    },
+    {
+      "id": "S4",
+      "world": "The explicit one-window temporal-instrument separation instance: \\(H=L=\\gamma=1\\) over \\(\\mathcal S_{\\mathrm{TIV}}\\), with the refinement \\(G^{\\star}\\) containing exactly \\(A_{-1}\\leftrightarrow X_{-1}\\to Y_0\\) and \\(X_{-1}\\leftrightarrow Y_0\\) among non-isolated vertices, and the strictly positive rational observed law \\(p^{\\star}\\) whose \\((A_{-1},X_{-1},Y_0)\\) marginal has numerators \\((168,26,30,176;294,2,100,4)/800\\) with every other window coordinate an independent fair bit. Its exact certificate consists of the graph-aware response-type mass vectors \\(\\lambda^{-},\\lambda^{+},\\lambda^{\\circ}\\in\\Delta(\\{0,1\\}^4)\\) on the lexicographic states \\(t=(x_0,x_1,y_0,y_1)\\), the rational observational response matrix \\(M^{\\star}\\in\\mathbb Q^{8\\times16}\\) with \\(M^{\\star}_{(z,x,y),t}=\\tfrac12\\mathbf 1\\{x=x_z,y=y_x\\}\\) and exact row rank seven, the pointwise dual vectors \\(h^{-},h^{+}\\in\\mathbb Q^{8}\\), and the eight complete order-only endpoint signatures \\(\\xi_{zxy}^{-},\\xi_{zxy}^{+}\\) together with their fair-nuisance tensor completions.",
+      "binds_symbols": [
+        "p^{\\star}",
+        "G^{\\star}",
+        "\\lambda^{-}",
+        "\\lambda^{+}",
+        "\\lambda^{\\circ}",
+        "M^{\\star}",
+        "h^{-}",
+        "h^{+}",
+        "\\xi_{zxy}^{-}",
+        "\\xi_{zxy}^{+}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.BalkePearl.LatentTable",
+        "Mathlib.Data.Finset.Max"
+      ],
+      "reuse_support": [
+        "Causalean.PO.POBalkePearlSystem.dArm",
+        "Causalean.PO.POBalkePearlSystem.yArm"
+      ],
+      "notes": "Search trace: `Glob Causalean/PO/ID/Partial/**/*.lean`; `grep '^(noncomputable )?(def|theorem|lemma) ' Causalean/PO/ID/Partial/BalkePearl/LatentTable.lean` -> `dArm`, `yArm`, `latentSet`, `latentProb`, `latentProb_sum_eq_one`, `ATE_eq_sum_latent`, `cellProb_eq_sum_latent`; read `LatentTable.lean:26-85`. Result: `Causalean.PO.POBalkePearlSystem.dArm (z d0 d1) = if z then d1 else d0` and `yArm (d y0 y1) = if d then y1 else y0` are PURE `Bool` selectors taking no system argument, so they are a direct reuse for the certificate's \\(X_{-1}=x_z\\) and \\(Y_0=y_{X_{-1}}\\) conventions and for the sixteen-state enumeration; `cellProb_eq_sum_latent` / `latentProb_sum_eq_one` / `canonicalBP` are the analogous module for lem:tiv-summary-iv-representation and are recorded there, the gap being that they derive the representation from PO base assumptions on a `POSystem` measure space, whereas here it must be derived from positive lags plus exact summary projection inside a finite \\(N\\)-vertex product model. All certificate numerals live in `Rat` so that (16)-(23) are `decide`/`norm_num` arithmetic; the rank-seven ledger is a `Matrix (Fin 8) (Fin 16) Rat` with one explicit \\(7\\times7\\) minor of determinant \\(1/128\\)."
+    },
+    {
+      "id": "S5",
+      "world": "One random sample of \\(n\\) independent bounded-window vectors drawn from the multinomial law \\(p\\) on \\(\\{0,1\\}^{\\mathcal W_H}\\), so that causal randomness and inferential sampling randomness are kept distinct. The observable is the empirical cell-frequency vector \\(\\widehat p\\in\\Delta(\\{0,1\\}^{\\mathcal W_H})\\). At simultaneous error level \\(\\alpha\\in(0,1)\\cap\\mathbb Q\\) the rational radius \\(\\varepsilon_{n,\\alpha}\\) is the least element of \\(\\{j2^{-n}:j=1,\\ldots,2^n\\}\\) with \\(2^{N+1}\\exp(-2n\\varepsilon_{n,\\alpha}^2)\\le\\alpha\\), and \\(1\\) if that set is empty; \\(\\mathcal C_{n,\\alpha}(\\widehat p)\\) is the resulting rational box-simplex confidence polytope. One such event is propagated through every endpoint program, giving the confidence-fiber outer intervals \\(I_j^{\\alpha}\\) for each query and \\(I_{jk}^{\\Delta,\\alpha}\\) for each same-SCM pairwise contrast.",
+      "binds_symbols": [
+        "n",
+        "\\widehat p",
+        "\\alpha",
+        "\\varepsilon_{n,\\alpha}",
+        "\\mathcal C_{n,\\alpha}(\\widehat p)",
+        "I_j^{\\alpha}",
+        "I_{jk}^{\\Delta,\\alpha}"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "reuse",
+      "reuse": "Causalean.Stat.IIDSample",
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Concentration.TailBounds.Hoeffding",
+        "Mathlib.Probability.Moments.SubGaussian",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "Causalean.Stat.IIDSample",
+        "Causalean.Stat.IIDSample.sampleMean",
+        "Causalean.Stat.Concentration.hoeffding_abs_ge",
+        "Causalean.Stat.Concentration.measureReal_abs_dev_le_two_sided",
+        "Causalean.PartialID.IdentifiedInterval"
+      ],
+      "notes": "Search trace: `grep 'hoeffding|Hoeffding|sub_gaussian|Chernoff' Causalean` -> 40 files, of which `Stat/Concentration/TailBounds/Hoeffding.lean` and `TailBounds/BinomialCount.lean` were read via `lean_file_outline`; `grep '^(namespace|end|lemma|theorem) ' Causalean/Stat/Concentration/TailBounds/Hoeffding.lean` fixes the namespaces (`namespace Causalean.Stat` then `namespace Concentration`), so the two-sided bound is `Causalean.Stat.Concentration.hoeffding_abs_ge`; `grep '^(namespace|structure|def|...)' Causalean/Stat/Sample.lean` confirms `Causalean.Stat.IIDSample` and `Causalean.Stat.IIDSample.sampleMean` in module `Causalean.Stat.Sample`. Result: EXACT reuse. `hoeffding_abs_ge S hf (hab : (0:R) < 1) hbound n hn h_eps : mu.real {omega | eps <= |S.sampleMean f n omega - integral f|} <= 2 * exp (-2 * n * eps^2 / (1 - 0)^2)` instantiated at `f = ` the indicator of one window cell gives the per-cell bound (24) verbatim, so the note's hand-rolled Hoeffding derivation is NOT rebuilt; only the \\(2^N\\)-fold union bound and the dyadic-radius selection remain build-inline. The world is this `IIDSample` bundle with the frozen marginal condition of ass:iid-window-sampling."
+    }
+  ],
+  "nodes": {
+    "ass:positive-bounded-directed-lags": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveBoundedDirectedLags",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG"
+      ],
+      "reuse_support": [
+        "Causalean.DAG.acyclic_of_topoOrder"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def PositiveBoundedDirectedLags (L : Nat) (G : Refinement Vlab H) : Prop := forall e in G.dir, 1 <= timeOf e.2 - timeOf e.1 and timeOf e.2 - timeOf e.1 <= (L : Int)` -- every directed edge advances the time coordinate by between one and `L` steps.",
+      "notes": "Search trace: `grep 'lag|Lag|window|Window|timeIndex' CausalSmith/CausalSmith/SCM` -> only the sorry-bearing FiniteplateBernstein artifact; `grep 'Bidirected|ADMG|MixedGraph|SummaryGraph' Causalean` -> 6 files, all SWIG-derived confounding; `../doc/API.md` sections 1, 3, 4, 5 (EdgeType) scanned for a lag/time-stamped edge predicate; Mathlib side not applicable (project-specific structural restriction, not a standard fact). Result: absent, define locally. NOVEL modeling assumption (a restriction on the data-generating architecture: no instantaneous directed effect, no directed lag beyond `L`), so it is threaded and never discharged. It reaches lem:finite-refinements, thm:sharp-refinement-envelope, lem:refinement-embeds-complete-order, lem:tiv-summary-iv-representation, lem:positive-lag-cyclic-cde-adjustment, thm:positive-lag-fa-exact-frontier and thm:positive-lag-fa-extension-collapse through the bundling class def:refinement-class, and DIRECTLY in the hyps of thm:exact-algebraic-certification (which does not list that class in `depends_on`). Immediate consequence used everywhere: with `tau = timeOf` and `r = (<)` on `Int`, `Causalean.DAG.acyclic_of_topoOrder` gives cycle-freeness of the directed part and terminality of `Y_0` in one step."
+    },
+    "ass:exact-summary-projection": {
+      "lean_kind": "assumption",
+      "lean_name": "ExactSummaryProjection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Sym.Sym2"
+      ],
+      "reuse_support": [
+        "Sym2.map"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def ExactSummaryProjection (S : SummaryGraph Vlab) (G : Refinement Vlab H) : Prop := projH G = S`, where `projH G` has `dir := G.dir.image (fun e => (e.1.1, e.2.1))` and `bi := G.bi.image (Sym2.map Prod.fst)`.",
+      "notes": "Search trace: `grep 'proj|projection|SummaryGraph|summary' ../doc/API.md` -> only `SWIGGraph`/`Induce` projections of SWIG node sets, nothing lag-abstracting; `Glob Causalean/Graph/*.lean` (`Induce.lean`, `SWIGSplitMono.lean` read via API.md sections 8g, 3c); `lean_loogle 'Sym2.map'` -> `Mathlib.Data.Sym.Sym2`. Result: absent, define locally. Standard modeling assumption (FerreiraAssaad2026 full-time compatibility), threaded and never discharged. Bundled by def:refinement-class; also listed DIRECTLY in the hyps of thm:robust-order-tightening, which names it in `depends_on` without the class. Companion untagged lemma `Refines.bi_subset_biCandidates` derives the frozen third refinement clause \\(E_G^{bi} \\subseteq \\mathcal B_H(\\mathcal S)\\) from this field (F1-D9)."
+    },
+    "ass:structural-recursion": {
+      "lean_kind": "assumption",
+      "lean_name": "StructuralRecursion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG"
+      ],
+      "reuse_support": [
+        "Causalean.DAG.parents",
+        "Causalean.DAG.topoOrder_lt"
+      ],
+      "target_file": "Helpers/Models.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def StructuralRecursion (G) (M : BinaryModel Vlab H G) (ev : LatentAssign M -> Win Vlab H -> Bool) : Prop := forall u v, ev u v = M.table v (ev u) u` -- the observed coordinate at every window vertex is the value of that vertex's deterministic structural table on its parent coordinates and its incident latent states. The signature restriction of \\(f_v\\) (dependence only on \\(\\operatorname{pa}_G(v)\\) and on factors \\(a\\ni v\\)) is carried by the `parentLocal` and `incidenceLocal` fields of the `BinaryModel` carrier (F1-D2).",
+      "notes": "Search trace: read `../doc/API.md` sections 6 (`SCM/Model/SCM.lean`), 6a (`Evaluation.lean`, `SCM.evalMap`), 6a' (`EvalFactorization`), 6a'' (`EvalLatent`), 7a2 (`fixSet`); `Glob Causalean/SCM/Model/*.lean`. Result: `Causalean.SCM.evalMap` is the analogous declaration but it is a kernel-level evaluator on a `SWIGGraph`-indexed dependent `SCM N Omega` whose latent parents are extra DAG nodes, i.e. a different abstraction (F1-D1); define locally as the Boolean fixed-point Prop. Standard modeling assumption (finite nonparametric structural-equation representation, DuarteEtAl2024), threaded and never discharged. Bundled by def:fixed-refinement-scm-class; also listed DIRECTLY in the hyps of prop:fixed-graph-reduction and lem:finite-factor-support-reduction, whose `depends_on` name the atom without the class. F2 also builds `BinaryModel.eval` by recursion on `timeOf` and proves `StructuralRecursion G M M.eval` using `parentLocal` plus ass:positive-bounded-directed-lags, and `BinaryModel.interv W a` for the truncated interventional recursion; `Causalean.DAG.parents` and `DAG.topoOrder_lt` supply the parent sets and the induction measure."
+    },
+    "ass:focal-positive-lag-parent": {
+      "lean_kind": "assumption",
+      "lean_name": "FocalPositiveLagParent",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def FocalPositiveLagParent (S) (L gamma : Nat) (X Y : Vlab) : Prop := gamma in Finset.Icc 1 L and focalTreat gamma X in possibleParents S L Y` -- the focal treatment vertex \\(X_{-\\gamma}\\) belongs to the positive-lag possible-parent set of \\(Y_0\\); consequently \\(W=\\{X_{-\\gamma}\\}\\ \\dot\\cup\\ Z\\).",
+      "notes": "Search trace: `grep 'possibleParent|controlled direct effect|CDE|directEffect' ../doc/API.md` -> `SCM/ID/Query.lean` (a `Query` record of intervention targets) and `PO/ID/Exact/*` ATE/LATE estimands; read API.md sections 9 and 9d (`SCM/ID/Adjustment.lean`). Result: no possible-parent-set query predicate exists; define locally. Query-specification modeling assumption, threaded and never discharged. It is NOT bundled by any class, so it appears DIRECTLY in the hyps of thm:sharp-refinement-envelope, lem:positive-lag-cyclic-cde-adjustment, thm:positive-lag-fa-exact-frontier and thm:positive-lag-fa-extension-collapse; F2 emits the untagged companion `focal_disjUnion_control` for the \\(W\\) decomposition used at lem:positive-lag-cyclic-cde-adjustment (1) and thm:positive-lag-fa-extension-collapse (C1)."
+    },
+    "ass:independent-edge-latents": {
+      "lean_kind": "assumption",
+      "lean_name": "IndependentEdgeLatents",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "stdSimplex"
+      ],
+      "target_file": "Helpers/Models.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def IndependentEdgeLatents (G) (M : BinaryModel Vlab H G) (mu : LatentAssign M -> Real) : Prop := forall u, mu u = prod over (a : FactorIdx Vlab H) of M.weight a (u a)` -- the finite family of private and pairwise edge exogenous parents is mutually independent, i.e. the joint latent mass factorizes into its per-factor marginals (F1-D3).",
+      "notes": "Search trace: `grep 'iIndepFun|independent|Independence' ../doc/API.md` -> `SCM/Do/{FullCondIndep, SemiGraphoid, LocalMarkov}`, all conditional-independence statements about kernels on a `SWIGGraph`, plus `PO/Assumptions/IndepCF`; Mathlib side `ProbabilityTheory.iIndepFun` (`Mathlib.Probability.Independence.Basic`) is the generic notion but needs a measure-theoretic ambient space that nothing else in this plan uses. Result: define locally as finite-mass factorization, which is literally what every proof step consumes (lem:positive-lag-cyclic-cde-adjustment (8), lem:tiv-summary-iv-representation (3), thm:factorization-safe-quotient-obstruction (30), lem:finite-factor-support-reduction (1)). Standard modeling assumption (Evans2016 semi-Markovian pairwise latent-parent factorization), threaded and never discharged. Bundled by def:fixed-refinement-scm-class and by def:factorized-quotient-images (as a construction input); also listed DIRECTLY in the hyps of prop:fixed-graph-reduction, thm:exact-algebraic-certification, lem:factorized-pushforward-fidelity, thm:factorization-safe-quotient-obstruction and lem:finite-factor-support-reduction. Crucially the Prop is about DISTINCT FACTORS, not disjoint children, so several pairwise parents may overlap at one observed vertex -- the exact point of thm:factorization-safe-quotient-obstruction."
+    },
+    "ass:observed-law-compatibility": {
+      "lean_kind": "assumption",
+      "lean_name": "ObservedLawCompatible",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/Models.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def ObservedLawCompatible (G) (M : BinaryModel Vlab H G) (mu) (p : (Win Vlab H -> Bool) -> Real) : Prop := forall w, (sum over u of (if M.eval u = w then mu u else 0)) = p w` -- the observational distribution the model induces on \\(\\{0,1\\}^{\\mathcal W_H}\\) equals \\(p\\).",
+      "notes": "Search trace: read `../doc/API.md` sections 6b (`SCM/Model/Kernel.lean`, `obsKernel`), 6b0 (`SCM/Factored/*`), 9 (`Identifiable`); `Glob Causalean/SCM/ID/DiscreteID/*.lean` (`Positive.lean`, `Mass.lean`, `Checker.lean`) and `Causalean/SCM/ID/Density/*.lean`. Result: `Causalean.SCM.obsKernel` is the analogous object but is a Markov kernel out of a regime-indexed `SCM N Omega` (F1-D1); define locally as equality of the induced finite mass function with `p`. Standard modeling (compatibility) assumption, threaded and never discharged. Bundled by def:fixed-refinement-scm-class; also listed DIRECTLY in the hyps of thm:exact-algebraic-certification and thm:simultaneous-whole-set-inference, whose `depends_on` name the atom without the class."
+    },
+    "ass:strict-observed-positivity": {
+      "lean_kind": "assumption",
+      "lean_name": "StrictObservedPositivity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/Models.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def StrictObservedPositivity (p : (Win Vlab H -> Bool) -> Real) : Prop := forall w, 0 < p w` -- every observed-window cell has positive mass.",
+      "notes": "Search trace: `grep 'Overlap|positivity|Positive' ../doc/API.md` -> `Causalean.SCM.ID.Overlap` (API.md section 9a: a Rule-2 / backdoor overlap predicate on a conditional propensity function) and `Causalean/SCM/ID/DiscreteID/Positive.lean` plus `Causalean/Graph/FiniteDensity/Positive/*` (positivity of a discrete density relative to a reference measure on a SWIG factorization); Mathlib side no named predicate for pointwise positivity of a finite mass function. Result: PARTIAL fit only (wrong ambient object), so a one-line define-local Prop. Support modeling assumption, threaded and never discharged. Not bundled by any class, so it appears DIRECTLY in the hyps of thm:robust-order-tightening, lem:tiv-summary-iv-representation, lem:positive-lag-cyclic-cde-adjustment, thm:positive-lag-fa-exact-frontier and thm:positive-lag-fa-extension-collapse. In thm:positive-lag-fa-exact-frontier the SAME named Prop is applied to the internally quantified \\(p_{\\mathcal M}\\) inside the universal property (UA) rather than to an outer \\(p\\); F2 must use one declaration in both positions. Its two standing consequences are emitted as untagged companions: positivity of the marginal \\(p(W=w_x)\\) (lem:positive-lag-cyclic-cde-adjustment (2), thm:positive-lag-fa-extension-collapse (C2)) and positivity of \\(\\pi_z\\) (lem:tiv-summary-iv-representation)."
+    },
+    "ass:iid-window-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IidWindowSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.Stat.IIDSample",
+        "Causalean.Stat.IIDSample.sampleMean"
+      ],
+      "target_file": "Helpers/Inference.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def IidWindowSampling (S : Causalean.Stat.IIDSample Omega (Win Vlab H -> Bool) mu P) (p : (Win Vlab H -> Bool) -> Real) : Prop := IsProbabilityMeasure mu and IsProbabilityMeasure P and forall w, P.real {w} = p w` -- the supplied i.i.d. window sample has the multinomial law `p` as its common marginal; the empirical law is `phat n w = S.sampleMean (indicator w) n`.",
+      "notes": "Search trace: `grep 'hoeffding|Hoeffding|sub_gaussian' Causalean` -> 40 files; `lean_file_outline` on `Causalean/Stat/Concentration/TailBounds/Hoeffding.lean` and `TailBounds/BinomialCount.lean`; `grep '^(namespace|structure|def|noncomputable def|end) ' Causalean/Stat/Sample.lean` -> `structure IIDSample (Omega X) [MeasurableSpace Omega] [MeasurableSpace X]` at line 44 and `noncomputable def sampleMean` at line 69, both in `namespace Causalean.Stat`. Result: the sampling bundle is REUSED as data (the assumption takes an `IIDSample` and only pins its marginal), because `Causalean.Stat.Concentration.hoeffding_abs_ge` is stated for exactly this bundle and gives the note's per-cell bound (24) verbatim at `f = ` a cell indicator with `a = 0`, `b = 1`. The atom itself stays a define-local Prop because a structure is not a `Prop`. Sampling modeling assumption, threaded and never discharged; its single consumer is thm:simultaneous-whole-set-inference."
+    },
+    "def:refinement-class": {
+      "lean_kind": "structure",
+      "lean_name": "Refines",
+      "members": [
+        "ass:positive-bounded-directed-lags",
+        "ass:exact-summary-projection"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Sym.Sym2",
+        "Causalean.Graph.DAG"
+      ],
+      "reuse_support": [
+        "Finset.powerset",
+        "Causalean.DAG.acyclic_of_topoOrder"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "statement": "`structure Refines (S : SummaryGraph Vlab) (H L : Nat) (G : Refinement Vlab H) : Prop where lags : PositiveBoundedDirectedLags L G; proj : ExactSummaryProjection S G`. The companion `refinementFinset S H L : Finset (Refinement Vlab H)` filters `(dirCandidates S H L).powerset x (biCandidates S H).powerset` by `Refines`, and the frozen clause \\(E_G^{\\leftrightarrow}\\subseteq\\mathcal B_H(\\mathcal S)\\) is the derived companion `Refines.bi_subset_biCandidates` (F1-D9).",
+      "notes": "Search trace: as for its two member atoms; additionally `Glob Causalean/SCM/PartialID/**` -> `CanonicalModel.lean` whose `CompatibleSCM G As M0 M` is the analogous 'graph-plus-assumptions membership' record, but indexed by a `SWIGGraph N` and an `SCM N Omega` predicate (F1-D1, bypass-justified); `lean_loogle 'Finset.powerset'` -> `Mathlib.Data.Finset.Powerset` with `Finset.card_powerset`. Build-inline. Members are EXACTLY the core `by_member_properties`; every other defining clause is either implied (bidirected containment) or carried by the `Refinement` carrier (`bi_offDiag`, i.e. distinct endpoints)."
+    },
+    "def:fixed-refinement-scm-class": {
+      "lean_kind": "structure",
+      "lean_name": "CompatibleModel",
+      "members": [
+        "ass:structural-recursion",
+        "ass:independent-edge-latents",
+        "ass:observed-law-compatibility"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "stdSimplex",
+        "Causalean.SCM.PartialID.CompatibleSCM"
+      ],
+      "target_file": "Helpers/Models.lean",
+      "defer_tier": false,
+      "gate": false,
+      "statement": "`structure CompatibleModel (G) (p) (M : BinaryModel Vlab H G) (mu : LatentAssign M -> Real) : Prop where rec : StructuralRecursion G M M.eval; indep : IndependentEdgeLatents G M mu; compat : ObservedLawCompatible G M mu p` -- the class \\(\\mathfrak M(G,p)\\) of finite binary models on \\(G\\) reproducing \\(p\\); the companion set form is `compatibleModelSet G p : Set (Sigma (fun M : BinaryModel Vlab H G => LatentAssign M -> Real))`.",
+      "notes": "Search trace: `lean_file_outline Causalean/SCM/PartialID/CanonicalModel.lean` -> `CompatibleSCM (G : SWIGGraph N) (As : SCM N Omega -> Prop) (M0 M : SCM N Omega) : Prop`, `compatibleSCM_self`, `compatibleSCM_mono`, `compatibleInterval`; `lean_file_outline Causalean/SCM/PartialID/SharpnessCertificate.lean` -> `IsSharp`, `isSharp_of_attaining`. Result: exactly the analogous module, at the `SWIGGraph`/`SCM N Omega` abstraction (F1-D1) and with `M0`-relative observational equality rather than equality with a supplied finite mass function; recorded as the reuse pattern (`compatibleSCM_mono` is the shape of the monotonicity step used when the singleton refinement class collapses in prop:fixed-graph-reduction) but not importable at this abstraction. Build-inline; the model carrier is binary and finite so `mu` is a real mass function on a `Fintype`, and the whole class is a `Fintype`-indexed predicate rather than a measure-theoretic one. Members are EXACTLY the core `by_member_properties`."
+    },
+    "def:micro-cde": {
+      "lean_kind": "def",
+      "lean_name": "microCDE",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "reuse_support": [],
+      "target_file": "Helpers/Estimands.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "ass:focal-positive-lag-parent"
+      ],
+      "statement": "`noncomputable def microCDE (S) (L gamma) (X Y : Vlab) (z : Win Vlab H -> Bool) (G) (M : BinaryModel Vlab H G) (mu) : Real := (sum over u of mu u * boolToReal (M.interv (possibleParents S L Y) (assignAt gamma X true z) u (Y, 0))) - (sum over u of mu u * boolToReal (M.interv (possibleParents S L Y) (assignAt gamma X false z) u (Y, 0)))` -- the difference of the two \\(\\operatorname{do}(X_{-\\gamma}=x,Z=z)\\) outcome means, both interventions fixing the whole common possible-parent vector \\(W\\).",
+      "notes": "Search trace: read `../doc/API.md` sections 7a (`fixMono`), 7a2 (`fixSet`, `fixSetProj`, `fixSetZSlice`), 7a3 (`InterventionAncestry`), 8f (`DoCalculus`), 9d (`Adjustment.lean`); `Glob Causalean/SCM/Model/Intervention*.lean`. Result: `Causalean.SCM.fixSet` is the analogous multi-target do-operator and `SCM/ID/Adjustment.lean` the analogous estimand layer, both on the `SWIGGraph`/kernel stack (F1-D1); define locally as the truncated Boolean recursion `BinaryModel.interv`, which is what all four proofs actually manipulate (lem:positive-lag-cyclic-cde-adjustment (11), thm:positive-lag-fa-exact-frontier (F8), lem:tiv-summary-iv-representation). Build-inline and short. The COMMON-INTERVENTION convention (both arms fix all of \\(W\\), not only \\(X_{-\\gamma}\\)) is load-bearing and is why `possibleParents` is an argument; `ass:focal-positive-lag-parent` is the input that makes the assignment well posed."
+    },
+    "def:summary-fiber": {
+      "lean_kind": "def",
+      "lean_name": "summaryFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "reuse_support": [],
+      "target_file": "Helpers/Estimands.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:refinement-class",
+        "def:fixed-refinement-scm-class"
+      ],
+      "statement": "`def summaryFiber (S) (L H) (p) : Set (Sigma (fun G : Refinement Vlab H => Sigma (fun M : BinaryModel Vlab H G => LatentAssign M -> Real))) := {x | Refines S H L x.1 and CompatibleModel x.1 p x.2.1 x.2.2}` -- all pairs of a bounded positive-lag exact-summary refinement and a compatible model reproducing \\(p\\).",
+      "notes": "Search trace: as for def:refinement-class and def:fixed-refinement-scm-class; additionally `grep 'compatibleInterval|IsSharp' Causalean` for a union-over-graphs fiber -> none (`compatibleInterval` fixes ONE `SWIGGraph`). Result: the union over an unknown graph is exactly what no existing declaration provides; define locally as a dependent-sigma set. Build-inline and short."
+    },
+    "def:sharp-envelope": {
+      "lean_kind": "def",
+      "lean_name": "attainableCDESet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.mem_identifiedInterval",
+        "Causalean.PartialID.identifiedInterval_subset_Icc"
+      ],
+      "target_file": "Helpers/Estimands.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:micro-cde",
+        "def:summary-fiber"
+      ],
+      "statement": "`noncomputable def attainableCDESet (S) (L H) (gamma) (X Y) (z) (p) : Set Real := Causalean.PartialID.IdentifiedInterval (fun x => microCDE S L gamma X Y z x.1 x.2.1 x.2.2) (fun x => x in summaryFiber S L H p)`, with the two endpoint companions `envelopeLower := sInf` and `envelopeUpper := sSup` of that set (F1-D4).",
+      "notes": "Search trace: read `Causalean/PO/ID/Partial/Basic.lean:18-116` (namespace `Causalean.PartialID`): `IdentifiedInterval obj feasible = Set.range (fun x : {x // feasible x} => obj x)` plus `mem_identifiedInterval`, `identifiedInterval_subset_Icc`, `identifiedInterval_eq_Icc`, `identifiedInterval_param_Icc`; also `lean_file_outline Causalean/SCM/PartialID/SharpnessCertificate.lean` -> `IsSharp` / `isSharp_of_attaining`, which require `(compatibleInterval ...).OrdConnected`. Result: `IdentifiedInterval` is an exact-abstraction reuse for the attained-value SET and this node is a thin instantiation of it (F1-D4); NEITHER `IsSharp` NOR `identifiedInterval_eq_Icc` is usable, because both require order-connectedness of the attainable set, which the note's honest scope explicitly disclaims -- so this node defines the endpoints as the SEPARATE companions `envelopeLower := sInf (attainableCDESet ...)` and `envelopeUpper := sSup (attainableCDESet ...)`, and never equates the value set with a `Set.Icc`. Recorded on thm:sharp-refinement-envelope as the reason the endpoints are proved as attained extrema of a compact image (`IsLeast`/`IsGreatest` closed by `IsLeast.csInf_eq` / `IsGreatest.csSup_eq`) rather than through `isSharp_of_attaining` or `identifiedInterval_eq_Icc`. Build-inline and short."
+    },
+    "def:temporal-order": {
+      "lean_kind": "def",
+      "lean_name": "temporalOrder",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "reuse_support": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [],
+      "statement": "`def temporalStrictLT (a b : Win Vlab H) : Prop := a.2 < b.2` and `def temporalOrder (a b : Win Vlab H) : Prop := a.2 <= b.2` -- the graph-free temporal partial order on window vertices, with `predSet v : Finset (Win Vlab H) := Finset.univ.filter (fun a => a.2 < v.2)` giving \\(\\operatorname{Pred}_H(v)\\).",
+      "notes": "Search trace: `grep 'topoOrder|causal order|Preorder|partial order' ../doc/API.md` -> `Causalean.DAG.topoOrder` (a DERIVED canonical rank from a DAG, API.md section 1) and `SWIGGraph.swigTopo`; Mathlib `Fin` order instances. Result: the note's order is SUPPLIED (a coordinate comparison), not derived from a graph, so it is a two-line define-local; `Causalean.DAG.topoOrder` is recorded as the analogous derived notion and `DAG.acyclic_of_topoOrder` consumes this order in the other direction. Build-inline and trivial."
+    },
+    "def:order-only-model": {
+      "lean_kind": "def",
+      "lean_name": "orderOnlyFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "stdSimplex",
+        "Causalean.DAG.ofAcyclic",
+        "Causalean.DAG.acyclic_of_topoOrder"
+      ],
+      "target_file": "Helpers/OrderOnly.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:temporal-order",
+        "def:micro-cde"
+      ],
+      "statement": "`OrdSignature := {g : (v : Win Vlab H) -> (Win Vlab H -> Bool) -> Bool // forall v, predLocal v (g v)}` (a `Fintype`), `ordGraph : Causalean.DAG (Win Vlab H)` via `DAG.ofAcyclic` on `temporalStrictLT` (giving \\(G_H^{\\mathrm{ord}}\\), whose bidirected part is every distinct pair), `ordEval : OrdSignature -> Win Vlab H -> Bool` by time recursion, `ordCell (xi) (w) : Real` for \\(e_w^{\\mathrm{ord}}\\), `ordContrast (xi) : Real` for \\(d^{\\mathrm{ord}}\\), `ordObsLaw (rho) (w)` for \\(P_H^{\\mathrm{ord}}(\\rho)\\), `ordCDE (rho)` for \\(q_H^{\\mathrm{ord}}(\\rho)\\), and `noncomputable def orderOnlyFiber (p) : Set (OrdSignature -> Real) := {rho | rho in stdSimplex Real OrdSignature and ordObsLaw rho = p}` for \\(\\mathfrak O_H(p)\\).",
+      "notes": "Search trace: `grep 'responseFunction|signature|canonical' ../doc/API.md`; `grep 'responseType|latentTable|canonical' Causalean/PO/ID/Partial/BalkePearl` -> `canonicalMeasure`, `canonicalPOSystem`, `canonicalBP` (fixed four-bit IV latent alphabet); `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex`. Result: absent at this abstraction (the alphabet here is the full all-predecessor table product), define locally. Build-inline. `DAG.ofAcyclic`/`acyclic_of_topoOrder` materialise \\(G_H^{\\mathrm{ord}}\\)'s directed part with no acyclicity rebuild. The frozen disclaimer that \\(\\rho\\) is unrestricted and is NOT asserted to respect any missing bidirected edge is preserved by construction: the only constraint on `rho` is simplex membership plus `ordObsLaw rho = p`."
+    },
+    "def:order-only-envelope": {
+      "lean_kind": "def",
+      "lean_name": "orderOnlyEnvelope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "isCompact_stdSimplex"
+      ],
+      "target_file": "Helpers/OrderOnly.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:order-only-model"
+      ],
+      "statement": "`noncomputable def orderOnlyEnvelope (p) : Set Real := Causalean.PartialID.IdentifiedInterval ordCDE (fun rho => rho in orderOnlyFiber p)`, with `ordLower := sInf` and `ordUpper := sSup` companions; the extrema exist because `orderOnlyFiber p` is a closed subset of the compact `stdSimplex Real OrdSignature` and `ordCDE` is linear hence continuous (F1-D4).",
+      "notes": "Search trace: as for def:order-only-model and def:sharp-envelope; `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex` (`Mathlib.Analysis.Convex.StdSimplex`). Result: thin instantiation of `Causalean.PartialID.IdentifiedInterval`; build-inline and short. The attainment side condition is exactly the compactness argument reused from thm:sharp-refinement-envelope (6)-(7), closed by `IsLeast.csInf_eq` / `IsGreatest.csSup_eq`. As at def:sharp-envelope, `identifiedInterval_eq_Icc` is NOT used and this envelope is a separately defined `sInf`/`sSup` pair, not a claim that `orderOnlyEnvelope` equals a `Set.Icc`."
+    },
+    "def:graph-compatible-positive-laws": {
+      "lean_kind": "def",
+      "lean_name": "positiveCompatibleLaws",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "reuse_support": [],
+      "target_file": "Helpers/Estimands.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:summary-fiber"
+      ],
+      "statement": "`def positiveCompatibleLaws (S) (H L) : Set ((Win Vlab H -> Bool) -> Real) := {p | (forall w, 0 < p w) and (sum over w of p w) = 1 and (summaryFiber S L H p).Nonempty}` for \\(\\mathcal P^{+}_{\\mathcal S,H,L}\\), and `def lawNbhd (S) (H L) (pStar) (delta : Real) : Set ((Win Vlab H -> Bool) -> Real) := {p in positiveCompatibleLaws S H L | supNorm (p - pStar) < delta}` for \\(\\mathcal N_\\delta(p^\\star)\\).",
+      "notes": "Search trace: `grep 'relint|relative interior|intrinsicInterior' ../doc/API.md` -> nothing; Mathlib side `Mathlib.Analysis.Convex.Intrinsic` (`intrinsicInterior`) exists and was seen as an import of the analogous CausalSmith `RealAlgebraic.lean`, but the note's `relint Delta` is pointwise strict positivity plus normalisation, which is the concrete characterisation the proof of thm:robust-order-tightening actually uses in (23). Result: define locally in the explicit pointwise form; build-inline and short. The neighborhood is RELATIVE to this set by construction, which is exactly the frozen 'relative-open' qualifier."
+    },
+    "def:raw-polynomial-compiler": {
+      "lean_kind": "def",
+      "lean_name": "rawProgram",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Analysis.Convex.Topology",
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous"
+      ],
+      "reuse_support": [
+        "stdSimplex",
+        "isCompact_stdSimplex",
+        "Causalean.DAG.parents"
+      ],
+      "target_file": "Helpers/RawCompiler.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:micro-cde"
+      ],
+      "statement": "With the padded support size `C := 2^N + card J`, the branch catalogue is `BranchCat G := {t : (v : Win Vlab H) -> (Win Vlab H -> Bool) -> (FactorIdx Vlab H -> Fin C) -> Bool // parentLocal and incidenceLocal}` (a `Fintype`, giving \\(\\mathcal R_G\\) and its members \\(r\\), with \\(\\mathcal K_{G,r,a}=\\)`Fin C`), the parameter space is `LambdaSpace G := BranchCat G x (FactorIdx Vlab H -> (Fin C -> Real))` restricted to `stdSimplex Real (Fin C)` in each factor (giving \\(\\Lambda_G\\) and its points \\(\\lambda\\)), and `rawProgram G p` bundles the objective `qOf G lambda` (\\(q_G\\)), the constraint map `lawOf G lambda` (\\(P_G\\)), their pair `phiOf G lambda` (\\(\\Phi_G\\)), the feasible set `feasible G p lambda := lawOf G lambda = p`, and the size parameters `kParam G`, `sParam G`, `dParam G`, `wParam G` together with the aggregates `rSigma S H L`, `kMax S H L`, `sMax S H L`, `dMax S H L`.",
+      "notes": "Search trace: read `../doc/API.md` sections 6b0 (`SCM/Factored/*`, recursive Markov factorization of `jointKernel`), 9 and 9c (GraphicalThms), 10z (reusable minimax/nonparametric reduction substrate); `Glob Causalean/SCM/PartialID/**` and `Causalean/PO/ID/Partial/LP/ConicDuality.lean`; `grep 'MvPolynomial|multilinear|multi-affine|polynomial program' ../doc/API.md` -> nothing causal; Mathlib side `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex` plus `Set.Finite.isCompact_convexHull`. Result: no response-function polynomialisation layer exists in Causalean at any abstraction; define locally. Build-inline; this is the largest single construction in the plan. Two design points that F2 must keep: (i) padding EVERY factor to exactly `Fin C` (licensed by lem:finite-factor-support-reduction) is what makes `BranchCat` a `Fintype` and the branch union a FINITE disjoint union of compacts, per thm:sharp-refinement-envelope (6); (ii) `lawOf` and `qOf` are written as explicit finite sums of products of the independent factor weights, so multi-affinity and continuity are `Finset.sum`/`Finset.prod` facts and no `MvPolynomial` machinery is needed except where the exact-elimination layer must serialise them (`Helpers/RealAlgebraicLanguage.lean`)."
+    },
+    "def:exact-certifier": {
+      "lean_kind": "def",
+      "lean_name": "certify",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous",
+        "Mathlib.FieldTheory.IsRealClosed.Basic"
+      ],
+      "reuse_support": [
+        "Finset.exists_min_image",
+        "Finset.exists_max_image"
+      ],
+      "target_file": "Helpers/ExactCertifier.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:raw-polynomial-compiler",
+        "lem:one-block-real-algebraic-elimination"
+      ],
+      "statement": "`inductive CertOutput | emptyFiber (ledger : Finset (Refinement Vlab H x Sigma BranchCat) ) (traces : ... -> EliminationTrace) | endpoints (lo hi : EndpointCertificate)` with `structure EndpointCertificate where poly : Polynomial Rat; sqfree : Squarefree poly; lo hi : Rat; value : Real; isolates : ...; witness : Sigma (fun M => LatentAssign M -> Real)`; then `noncomputable def certify (hElim1 : OneBlockRealAlgebraicElimination) (S) (H L) (gamma X Y z) (p : (Win Vlab H -> Bool) -> Rat) : CertOutput` enumerates every refinement in `refinementFinset S H L` and every branch in `BranchCat`, applies the procedure extracted from `hElim1` by `Classical.choice` to the simplex constraints together with `lawOf G lambda = p`, and either returns the enumeration ledger with a per-branch replayable elimination trace or isolates each global extreme and decodes an attaining model (F1-D5, F1-D7).",
+      "notes": "Search trace: `lean_loogle '\"Semialgebraic\"'` -> EMPTY; `lean_loogle '\"RealClosed\"'` -> only `IsRealClosed` and its field axioms in `Mathlib.FieldTheory.IsRealClosed.Basic`; `lean_leansearch 'quantifier elimination for real closed fields, Tarski-Seidenberg, semialgebraic sets'` -> nothing on point; `grep 'lag|window|Lag' CausalSmith/CausalSmith/SCM` -> `CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research/Helpers/RealAlgebraic.lean`, read at lines 1-125 (`RationalPolyAtom`, `RationalFirstOrderFormula`, `.Holds`, `.QuantifierFree`, `.projection`, `.realSection`, `HasRationalAlgebraicDescription`, `IsCylindricalFormulaFamily`, `HasIsolatedOneDimensionalBoundary`, `CadAlgorithmCorrect`, `CylindricalAlgebraicDecompositionQE`, `CadEndpointCertificate`, `cadRecoveryProcedure`, `confidenceSetCadProcedure`); `grep 'sorry' CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research` -> 28 occurrences in 19 files. ANALOGOUS MODULE (adapt, do not import) per F1-D7: that file is the encoding template for the whole first-order-formula layer, the endpoint certificate shape, and the two-branch procedure, and the gap to bridge is (a) it is sorry-bearing and cross-research imports are not the convention, (b) its gate is Collins 1975 CAD whereas this note's frozen citations are Basu-Pollack-Roy 1996 with arithmetic-operation and coefficient-height bounds, and (c) its cells are moment/count cells, not refinement-branch latent-weight cells. Build-inline: `Helpers/RealAlgebraicLanguage.lean` re-derives the formula language locally, and `certify` is a TOTAL Lean function (termination is `Finset` recursion, not a claim), with the elimination step supplied by the threaded gate."
+    },
+    "def:multinomial-region": {
+      "lean_kind": "def",
+      "lean_name": "confRegion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Data.Finset.Max"
+      ],
+      "reuse_support": [
+        "stdSimplex",
+        "Finset.min'"
+      ],
+      "target_file": "Helpers/Inference.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [],
+      "statement": "`noncomputable def confRadius (N n : Nat) (alpha : Rat) : Rat` is the least element of `{j * 2^(-n) | j in Finset.Icc 1 (2^n)}` satisfying `2^(N+1) * exp (-2 * n * eps^2) <= alpha` when that filtered `Finset` is nonempty (via `Finset.min'`) and `1` otherwise; `def confRegion (n) (alpha) (phat) : Set ((Win Vlab H -> Bool) -> Real) := {p' | p' in stdSimplex Real (Win Vlab H -> Bool) and forall w, |p' w - phat w| <= confRadius N n alpha}`.",
+      "notes": "Search trace: `grep 'confidence|Confidence|CI' ../doc/API.md` -> `Causalean/Stat/Concentration/UniformDeviation/ConfidenceInterval.lean`, `Causalean/PO/ID/Partial/Inference/{Basic,IntervalCI,ImbensManski}.lean`, `Causalean/PO/ID/Partial/RandomSet/IntervalInference.lean`; `Glob Causalean/PO/ID/Partial/Inference/*.lean`. Result: those are SCALAR-interval coverage constructions for a real parameter, not an \\(\\ell_\\infty\\) box on a multinomial simplex, so a PARTIAL fit only; define locally. Build-inline and short. The dyadic-and-fallback definition is taken verbatim so that the radius is RATIONAL and the region is a rational box-simplex polytope (needed for the exact optimisation clause of thm:simultaneous-whole-set-inference and for compactness at zero empirical cells)."
+    },
+    "def:confidence-endpoints": {
+      "lean_kind": "def",
+      "lean_name": "confInterval",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.mem_identifiedInterval"
+      ],
+      "target_file": "Helpers/Inference.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:multinomial-region",
+        "def:summary-fiber"
+      ],
+      "statement": "For a query family `qs : J -> QuerySpec Vlab H L`, `noncomputable def confQueryValues (S) (H L) (n alpha) (phat) (j : J) : Set Real := Causalean.PartialID.IdentifiedInterval (fun x => queryCDE (qs j) x.2.1 x.2.2.1 x.2.2.2) (fun x => x.1 in confRegion n alpha phat and x.2 in summaryFiber S L H x.1)` and `noncomputable def confInterval ... (j) : Set Real := if confQueryValues ... j = emptyset then emptyset else Set.Icc (sInf (confQueryValues ... j)) (sSup (confQueryValues ... j))` -- the extrema range JOINTLY over the confidence fiber, and the empty-fiber output is explicitly represented (F1-D4).",
+      "notes": "Search trace: as for def:multinomial-region and def:sharp-envelope; `lean_file_outline Causalean/PO/ID/Partial/Inference/IntervalCI.lean` surveyed for a joint-fiber reoptimisation -> only scalar-endpoint plug-in intervals. Result: thin instantiation of `Causalean.PartialID.IdentifiedInterval` over the JOINT \\((p',G,\\mathcal M)\\) fiber; build-inline and short. The joint quantification (rather than a two-step plug-in) is load-bearing: it is what makes `p' = p` a feasible choice on the coverage event in thm:simultaneous-whole-set-inference, and it is why incompatible `p'` contribute no feasible point."
+    },
+    "def:contrast-confidence-interval": {
+      "lean_kind": "def",
+      "lean_name": "contrastConfInterval",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.mem_identifiedInterval"
+      ],
+      "target_file": "Helpers/Inference.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:multinomial-region",
+        "def:summary-fiber"
+      ],
+      "statement": "`noncomputable def contrastValues (S) (H L) (n alpha) (phat) (j k : J) : Set Real := Causalean.PartialID.IdentifiedInterval (fun x => queryCDE (qs j) x.2.1 x.2.2.1 x.2.2.2 - queryCDE (qs k) x.2.1 x.2.2.1 x.2.2.2) (fun x => x.1 in confRegion n alpha phat and x.2 in summaryFiber S L H x.1)` and `contrastConfInterval ... (j k) : Set Real := if contrastValues = emptyset then emptyset else Set.Icc sInf sSup` -- both query coordinates are evaluated in the SAME model.",
+      "notes": "Search trace: as for def:confidence-endpoints; `grep 'contrast|same-SCM|tie' ../doc/API.md` -> `PO/ID/Partial/RandomSet/GridTest.lean` and the EasyRCA-style comparisons are absent from Causalean entirely. Result: thin instantiation of `Causalean.PartialID.IdentifiedInterval`; build-inline and short. The same-model evaluation of both coordinates is the whole point (a difference of two separately optimised intervals would be strictly wider and would break the tie rule), so F2 must keep ONE `x` shared by both `queryCDE` applications."
+    },
+    "def:raw-global-signatures": {
+      "lean_kind": "def",
+      "lean_name": "rawSignatures",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "reuse_support": [],
+      "target_file": "Helpers/Signatures.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:raw-polynomial-compiler"
+      ],
+      "statement": "`def rawSignatures (G) (J) := BranchCat G x (FactorIdx Vlab H -> Fin C)` (giving \\(\\Omega_{G,\\mathcal J}\\) and its points \\(\\omega=(r,\\kappa)\\)), with `sigCell (omega) (w) : Bool` for \\(e_w(\\omega)\\), `sigContrast (qs j) (omega) : Int` in \\(\\{-1,0,1\\}\\) for \\(d_j(\\omega)\\), and `sigEval (omega) : ((Win Vlab H -> Bool) -> Bool) x (J -> Int)` for \\(T_{G,\\mathcal J}\\).",
+      "notes": "Search trace: as for def:raw-polynomial-compiler; additionally `grep 'quotient|Quotient|equivalence class' ../doc/API.md` -> `Graph/MarkovEquiv/*` (equivalence of DAGs, unrelated) and `SCM/Model/EquivKernel.lean` (`HEq` transport across `SCM.Equiv`). Result: absent, define locally. Build-inline and short: it is the same branch-and-latent-state data as `LambdaSpace` with the simplex replaced by a point, so F2 should share the evaluation code with `Helpers/RawCompiler.lean`."
+    },
+    "def:response-signature-quotient": {
+      "lean_kind": "def",
+      "lean_name": "signatureQuotient",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "reuse_support": [],
+      "target_file": "Helpers/Signatures.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:raw-global-signatures"
+      ],
+      "statement": "`def sigSetoid (G) (J) : Setoid (rawSignatures G J)` with `r a b := a.1 = b.1 and sigEval a = sigEval b`; `def signatureQuotient (G) (J) := Quotient (sigSetoid G J)` for \\(\\overline\\Omega_{G,\\mathcal J}\\), `def sigProj := Quotient.mk (sigSetoid G J)` for \\(\\pi_{G,\\mathcal J}\\), and `def sigEvalQuot := Quotient.lift sigEval ...` for the unique \\(\\overline T_{G,\\mathcal J}\\) with \\(\\overline T\\circ\\pi=T\\).",
+      "notes": "Search trace: as for def:raw-global-signatures; Mathlib side `Quotient` / `Quotient.lift` / `Quotient.lift_mk` are the standard tools and `Setoid` on a `Fintype` gives `Fintype (Quotient _)` by `Quotient.fintype` (decidability of the relation is immediate since both components are decidable on a `Fintype`). Result: build-inline and short. The BRANCHWISE clause (`a.1 = b.1`, never mixing canonical branches) is load-bearing and must not be dropped: it is what makes \\(\\mathcal A^{\\mathrm{simp-q}}\\) a union over branches rather than one global simplex."
+    },
+    "def:factorized-quotient-images": {
+      "lean_kind": "def",
+      "lean_name": "attainableImages",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "stdSimplex"
+      ],
+      "target_file": "Helpers/QuotientImages.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:raw-global-signatures",
+        "def:response-signature-quotient",
+        "ass:independent-edge-latents"
+      ],
+      "statement": "`def facMass (G) (lambda) (omega) : Real := (if omega.1 = lambda.1 then 1 else 0) * prod over a of lambda.2 a (omega.2 a)` for \\(\\mu_\\lambda\\); `def facMasses G := Set.range (facMass G)` for \\(\\mathcal P_G^{\\mathrm{fac}}\\); `def pushMasses G J := (fun mu C => sum over omega in C of mu omega) '' facMasses G` for \\(\\overline{\\mathcal P}^{\\mathrm{fac}}_{G,\\mathcal J}\\); and `noncomputable def attainableImages (G) (J) : Set (Image) x Set (Image) x Set (Image)` returning \\((\\mathcal A^{\\mathrm{raw}}_{G,\\mathcal J},\\mathcal A^{\\mathrm{fac\\text{-}q}}_{G,\\mathcal J},\\mathcal A^{\\mathrm{simp\\text{-}q}}_{G,\\mathcal J})\\) with `Image := ((Win Vlab H -> Bool) -> Real) x (J -> Real)`, the third being the union over branches `r` of the expectations of `sigEvalQuot` against arbitrary masses on that branch's quotient cells. Accessors `rawImage`, `facQuotImage`, `simpQuotImage` are companions.",
+      "notes": "Search trace: as for def:raw-global-signatures and def:response-signature-quotient; `grep 'pushforward|push-forward|Measure.map' ../doc/API.md` -> the kernel/measure `Measure.map` layer (API.md sections 6b, 10a), which is the wrong ambient object for a finite mass on a `Fintype` quotient. Result: define locally with plain `Finset.sum` push-forward. Build-inline. `ass:independent-edge-latents` is a construction INPUT here (it is what `facMass` encodes), so it is recorded in `uses`, not as a hypothesis of a definition."
+    },
+    "def:abc-kill-test-instance": {
+      "lean_kind": "def",
+      "lean_name": "abcKillTest",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Sym.Sym2"
+      ],
+      "reuse_support": [
+        "Sym2.map"
+      ],
+      "target_file": "Helpers/QuotientImages.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "ass:positive-bounded-directed-lags",
+        "def:raw-global-signatures",
+        "def:response-signature-quotient"
+      ],
+      "statement": "With `Vlab := Fin 3` (labels \\(A,B,C\\)) and `H = L = 1`, `def abcGraph : Refinement (Fin 3) 1` has `dir := {(A_{-1}, C_0)}` and `bi := {s(A_0, B_0), s(B_0, C_0)}`; `def abcQueries : Fin 1 -> QuerySpec (Fin 3) 1 1` is the singleton controlled direct effect of \\(A_{-1}\\) on \\(C_0\\) under the common positive-lag possible-parent convention; `def abcKillTest` bundles the pair.",
+      "notes": "Search trace: `grep 'Examples' ../doc/API.md` -> sections 10 (`SCM/Examples/IV.lean`), 10b (`BackDoor.lean`), 10c (`ContinuousBackdoor.lean`), all concrete SWIG examples at the wrong abstraction (F1-D1). Result: define locally as explicit `Finset` literals. Build-inline and short; `decide`/`native_decide` closes the membership facts. The graph is chosen so that \\(A_0\\) and \\(C_0\\) have DISJOINT incident latent collections (the proof of thm:factorization-safe-quotient-obstruction (30)), which is what forces the vanishing determinant on the raw image."
+    },
+    "def:quotient-handle": {
+      "lean_kind": "def",
+      "lean_name": "qcan",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous"
+      ],
+      "reuse_support": [],
+      "target_file": "Helpers/QuotientImages.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:factorized-quotient-images",
+        "def:abc-kill-test-instance"
+      ],
+      "statement": "`inductive QCanOutput (G) (J) | lift (sel : (r : BranchCat G) -> (nu : ...) -> LambdaPoint G) (h : forall r nu, image agreement) | separation (x : Image) (hSimp : x in simpQuotImage G J) (hRaw : x notin rawImage G J) (cert : RationalFirstOrderFormula)`; `noncomputable def qcan (hQE : MultiBlockRealAlgebraicQE) (G) (J) : QCanOutput G J` first decides the factor-incidence sentence by the threaded elimination gate, returning a factorization-preserving lift when the images agree and an algebraic point of the set difference with an exact first-order nonmembership certificate when they differ, and for general \\(G,\\mathcal J\\) starts from the latent-incidence data and refines \\(\\sim_{G,\\mathcal J}\\) by coordinate-context congruences before repeating the test.",
+      "notes": "Search trace: as for def:exact-certifier (the same `lean_loogle '\"Semialgebraic\"'` / `'\"RealClosed\"'` and `lean_leansearch` quantifier-elimination checks, both negative) plus the `RealAlgebraic.lean` analogue at lines 87-111 (`CadAlgorithmCorrect`, `CylindricalAlgebraicDecompositionQE`) recorded under F1-D7. Result: build-inline over the locally re-derived formula language, with the decision step supplied by the threaded gate `MultiBlockRealAlgebraicQE`. NOTE for F2: this is a definition node, so the gate enters as an ordinary Lean argument; the gate is threaded as a HYPOTHESIS only in thm:factorization-safe-quotient-obstruction, which is the statement node whose `depends_on` names it."
+    },
+    "def:tiv-rational-certificate": {
+      "lean_kind": "def",
+      "lean_name": "tivCertificate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.BalkePearl.LatentTable",
+        "Mathlib.Data.Sym.Sym2"
+      ],
+      "reuse_support": [
+        "Causalean.PO.POBalkePearlSystem.dArm",
+        "Causalean.PO.POBalkePearlSystem.yArm"
+      ],
+      "target_file": "Helpers/TIVInstance.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [
+        "def:refinement-class",
+        "def:order-only-model",
+        "def:order-only-envelope",
+        "def:graph-compatible-positive-laws"
+      ],
+      "statement": "`structure TivCertificateData where pStar : (Win (Fin 3) 1 -> Bool) -> Rat; gStar : Refinement (Fin 3) 1; lamMinus lamPlus lamCirc : Fin 16 -> Rat; mStar : Matrix (Fin 8) (Fin 16) Rat; hMinus hPlus : Fin 8 -> Rat; xiMinus xiPlus : Fin 8 -> OrdSignature` and `def tivCertificate : TivCertificateData` filling every field with the frozen literals: base numerators `(168, 26, 30, 176, 294, 2, 100, 4) / 800` with all other window coordinates independent fair bits, `gStar` containing exactly `s(A_{-1}, X_{-1})`, `(X_{-1}, Y_0)` and `s(X_{-1}, Y_0)`, the three sixteen-entry mass vectors over `/400`, `/400`, `/1600`, `mStar (z,x,y) t = (1/2) * indicator (x = dArm z t.x0 t.x1 and y = yArm x t.y0 t.y1)`, `hMinus = (-1,-2,-2,0,1,0,1,0)`, `hPlus = (1,0,1,1,0,0,-1,0)`, and the eight endpoint order-only signature rows with their fair-nuisance tensor completions (F1-D10).",
+      "notes": "Search trace: `Glob Causalean/PO/ID/Partial/**/*.lean` (91 files); `grep '^(noncomputable )?(def|theorem|lemma) ' Causalean/PO/ID/Partial/BalkePearl/LatentTable.lean` and read lines 26-85; `grep 'responseType|latentTable|canonical' Causalean/PO/ID/Partial/BalkePearl` -> `canonicalMeasure`, `canonicalPOSystem`, `canonicalBP`, `cellProb_eq_sum_latent`, `latentProb_sum_eq_one`, `ATE_eq_sum_latent`. Result: `Causalean.PO.POBalkePearlSystem.dArm` and `.yArm` are pure `Bool` selectors taking no system argument (`dArm z d0 d1 = if z then d1 else d0`, `yArm d y0 y1 = if d then y1 else y0`), so they are a DIRECT reuse fixing the sixteen-state convention and the `mStar` entries; the surrounding `canonicalBP` / `cellProb_eq_sum_latent` layer is an analogous module at the `POSystem` measure abstraction and is recorded on lem:tiv-summary-iv-representation. Build-inline. Every numeral is a `Rat` literal so that the four ledgers (16)-(23) are `norm_num` / `decide` arithmetic and the \\(7\\times7\\) minor of determinant \\(1/128\\) is a closed computation."
+    },
+    "def:bounded-window-micro-ancestry": {
+      "lean_kind": "def",
+      "lean_name": "boundedWindowSupergraph",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.AcyclicConstruct"
+      ],
+      "reuse_support": [
+        "Causalean.DAG.ofAcyclic",
+        "Causalean.DAG.acyclic_of_topoOrder",
+        "Causalean.DAG.ancestralSet",
+        "Causalean.DAG.isAncestor",
+        "Causalean.DAG.mem_ancestors"
+      ],
+      "target_file": "Helpers/MicroAncestry.lean",
+      "defer_tier": false,
+      "gate": false,
+      "uses": [],
+      "statement": "`noncomputable def boundedWindowSupergraph (S) (H L) : Causalean.DAG (Win Vlab H) := Causalean.DAG.ofAcyclic (fun a b => (a.1, b.1) in S.dir and 1 <= timeOf b - timeOf a and timeOf b - timeOf a <= L) (Causalean.DAG.acyclic_of_topoOrder (tau := timeOf) ...)` for \\(D_{H,L}(\\mathcal S)\\); \\(W\\) is `possibleParents S L Y`; and \\(\\operatorname{An}_D(A)\\) is LITERALLY `Causalean.DAG.ancestralSet (boundedWindowSupergraph S H L) A`, i.e. `A union ancestorsSet A`, so the reflexive length-zero path is included by construction.",
+      "notes": "Search trace: `grep 'ancestor|ancestral|An_|ancestralSet' ../doc/API.md` -> API.md section 1 lists `DAG.parents`, `DAG.isAncestor`, `DAG.ancClosure`, `DAG.ancestors`, `DAG.ancestorsSet`, `DAG.ancestralSet`, `DAG.nonDescendants`; read `Causalean/Graph/DAG.lean:329-347` (`ancestralSet S = S union ancestorsSet S`, with the docstring 'that set together with every vertex from which a directed path reaches one of its members') and `:453-462` (`acyclic_of_topoOrder`), plus `Causalean/Graph/AcyclicConstruct.lean:14-48` (`ofAcyclic`, `ofAcyclic_edge`). Result: the ANCESTRY operator is an exact-abstraction REUSE -- `Causalean.DAG.ancestralSet` is the frozen reflexive closure verbatim, and `mem_ancestors` / `isAncestor_trans` / `isAncestor_iff_transGen` supply the path algebra of lem:positive-lag-cyclic-cde-adjustment (3) and thm:positive-lag-fa-extension-collapse (C9). Only the SUPERGRAPH itself is new (a summary-graph-and-lag-indexed edge relation), so this node is define-local with the ancestry and acyclicity layers reused rather than rebuilt. Build-inline and short."
+    },
+    "lem:finite-refinements": {
+      "lean_kind": "lemma",
+      "lean_name": "card_refinementFinset_le",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Sym.Sym2",
+        "Causalean.Graph.DAG"
+      ],
+      "reuse_support": [
+        "Finset.powerset",
+        "Finset.card_powerset",
+        "Finset.card_le_card",
+        "Causalean.DAG.acyclic_of_topoOrder"
+      ],
+      "target_file": "Helpers/RefinementEnumeration.lean",
+      "hyps": [
+        "def:refinement-class"
+      ],
+      "uses": [],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t1",
+      "statement": "With `mDir S H L := S.dir.card * (sum over l in Finset.Icc 1 L of (H + 1 - l))` and `mBi S H := (biCandidates S H).card`: `card_dirCandidates : (dirCandidates S H L).card = mDir S H L`, `card_refinementFinset_le : (refinementFinset S H L).card <= 2^(mDir S H L + mBi S H)`, `mem_refinementFinset_iff : G in refinementFinset S H L <-> Refines S H L G` (each exact-summary refinement is listed exactly once by the lexicographic edge-subset enumeration), and `refinement_dir_acyclic : forall G, Refines S H L G -> forall v, not (Relation.TransGen (dirRel G) v v)`.",
+      "notes": "Search trace: `grep 'lag|window|Lag|timeIndex' CausalSmith/CausalSmith/SCM` -> only the sorry-bearing FiniteplateBernstein artifact; `grep 'Bidirected|ADMG|MixedGraph|SummaryGraph' Causalean` -> 6 SWIG-derived files; `../doc/API.md` sections 1, 3, 3c, 4 read for a graph-enumeration lemma -> none; Mathlib side `lean_loogle 'Finset.powerset'` -> `Finset.powerset`, `Finset.card_powerset` (`Mathlib.Data.Finset.Powerset`). Result: absent, build-inline; SMALL and routine. The whole proof is `Finset.card_le_card` along the injection `G -> (G.dir, G.bi)` into `dirCandidates.powerset x biCandidates.powerset` plus `Finset.card_powerset`, with the lag count `H + 1 - l` a `Finset.Icc` sum; acyclicity is one application of `Causalean.DAG.acyclic_of_topoOrder` at `tau = timeOf` (read at `Causalean/Graph/DAG.lean:453-462`), so nothing about cycles is rebuilt. hyps cover ass:positive-bounded-directed-lags and ass:exact-summary-projection through the bundling class def:refinement-class."
+    },
+    "lem:finite-factor-support-reduction": {
+      "lean_kind": "lemma",
+      "lean_name": "finite_factor_support_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Analysis.Convex.Topology"
+      ],
+      "reuse_support": [
+        "stdSimplex",
+        "Finset.exists_min_image",
+        "Set.Finite.isCompact_convexHull"
+      ],
+      "target_file": "Helpers/FiniteSupportReduction.lean",
+      "hyps": [
+        "ass:structural-recursion",
+        "ass:independent-edge-latents"
+      ],
+      "uses": [
+        "def:raw-polynomial-compiler",
+        "def:raw-global-signatures"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t10",
+      "statement": "With `C := 2^N + card J`: every finite binary semi-Markovian model on `G` admits another model with the SAME vector \\((P,(q_j)_{j\\in\\mathcal J})\\), the same deterministic recursion, mutually independent private and pairwise exogenous parents, and every factor support of size at most `C`; after zero-padding to `Fin C` the systems range over the finite catalogue `BranchCat G`, on each branch the map from the independent factor weights to \\((P,(q_j)_j)\\) is multi-affine; and conversely every point of every product-of-simplices branch reconstructs a finite semi-Markovian model on `G` with the same image.",
+      "notes": "Search trace: `lean_leansearch 'reduce the support of a finite mixture preserving finitely many moments Caratheodory'` and `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex`, `Set.Finite.isCompact_convexHull` (`Mathlib.Analysis.Convex.Topology`), `Convex.exists_...` family, but no ready-made 'support reduction preserving a finite linear functional vector' lemma in either library; `grep 'Caratheodory|caratheodory|support reduction' ../doc/API.md` -> nothing; `Glob Causalean/PO/ID/Partial/BalkePearl/*.lean` -> `LatentTable.lean` reduces to a FIXED four-bit alphabet by construction rather than by an elimination argument, so a partial fit only. Result: build-inline. The argument is the note's own: the conditional response vectors \\(b_a(u)\\) lie in an affine subspace of dimension at most \\(C-1\\), so more than `C` positive weights give a linear dependence with zero sum, and moving to a boundary of the feasible interval kills one weight while preserving the whole image (1)-(2); this is a `Finset`-cardinality induction and is MEDIUM, not large. Its two consumers thm:sharp-refinement-envelope and thm:factorization-safe-quotient-obstruction rely on the resulting `Fintype` branch catalogue (F1-D1 (i)) and on the exact bound `C`, so F2 must keep `C` symbolic. hyps: ass:structural-recursion and ass:independent-edge-latents are named DIRECTLY because this node's `depends_on` does not list def:fixed-refinement-scm-class."
+    },
+    "lem:one-block-real-algebraic-elimination": {
+      "lean_kind": "assumption",
+      "lean_name": "OneBlockRealAlgebraicElimination",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous",
+        "Mathlib.FieldTheory.IsRealClosed.Basic"
+      ],
+      "reuse_support": [],
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "uses": [
+        "def:raw-polynomial-compiler"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:basu-pollack-roy-1996-one-block",
+      "source_cite": "BasuPollackRoy1996",
+      "source_locator": "Theorems 1.3.1 and 1.3.3, pp. 1003--1005, together with the well-behaved-algorithm and sample-point bounds in Sections 1.2 and 3",
+      "carrier": "logical-claim",
+      "consumers": [
+        "thm:exact-algebraic-certification"
+      ],
+      "statement": "`def OneBlockRealAlgebraicElimination : Sort 0 := exists (elim : ...) (cost : ...), forall (s d k B : Nat) (phi : RationalFirstOrderFormula) (hs hd hk hB : size bounds), (elim decides feasibility of the one-block existential sentence) and (elim returns a one-free-variable projection description) and (exists c : Nat, cost s d k B <= B^c * (s * d)^(c * k)) ARITHMETIC operations and (output univariate degrees <= d^(c * k)) and (output coefficient bit lengths <= B * (s * d)^(c * k)) and (every nonempty sign cell has an exact real-algebraic sample point with the same asymptotic bounds)` -- a named `Sort 0` proposition with no proof, threaded as `(hElim1 : OneBlockRealAlgebraicElimination)` into thm:exact-algebraic-certification and taken as an argument by `certify` (F1-D5, F1-D6).",
+      "notes": "FROZEN cited substrate gate (`status: cited`, `source.carrier: logical-claim`), so it is a named `Sort 0` Prop, `gate: true`, `gate_class: cited`, excluded from `theorems`, listed in `infrastructure_needed[]`, and threaded into its single logical consumer. Search trace (defer justification): `lean_loogle '\"Semialgebraic\"'` -> EMPTY; `lean_loogle '\"RealClosed\"'` -> only `IsRealClosed` and its four field axioms (odd-degree root, odd power, square dichotomy, `toIsSemireal`) in `Mathlib.FieldTheory.IsRealClosed.Basic`; `lean_leansearch 'quantifier elimination for real closed fields, Tarski-Seidenberg, semialgebraic sets'` -> nothing on point (only `RCLike` / `IsSemireal` noise); `grep 'sorry' CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research` -> 28 occurrences in 19 files, so the closest in-repo analogue (`Helpers/RealAlgebraic.lean`, whose `CylindricalAlgebraicDecompositionQE` is a DIFFERENT frozen citation, Collins 1975) is sorry-bearing and not importable. Result: block-structured real quantifier elimination with arithmetic-operation, degree and coefficient-height bounds is a major upstream Mathlib contribution and is genuinely infeasible inside this artifact -- a gate even though it is the engine of thm:exact-algebraic-certification. Per the frozen attestation, the gate carries ONLY the arithmetic-operation count plus the bit-size control; the BIT-OPERATION bound of thm:exact-algebraic-certification is derived there and is NOT attributed to the source (F1-D6). Not reconstructed as sub-lemmas."
+    },
+    "lem:multiblock-real-algebraic-qe": {
+      "lean_kind": "assumption",
+      "lean_name": "MultiBlockRealAlgebraicQE",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous",
+        "Mathlib.FieldTheory.IsRealClosed.Basic"
+      ],
+      "reuse_support": [],
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "uses": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:basu-pollack-roy-1996-multiblock",
+      "source_cite": "BasuPollackRoy1996",
+      "source_locator": "Introduction §1.1 and Theorem 1.3.1, pp. 1003--1005",
+      "carrier": "logical-claim",
+      "consumers": [
+        "thm:factorization-safe-quotient-obstruction"
+      ],
+      "statement": "`def MultiBlockRealAlgebraicQE : Sort 0 := exists qe : RationalFirstOrderFormula -> RationalFirstOrderFormula, forall phi, (qe phi).QuantifierFree and (forall x, (qe phi).Holds x <-> phi.Holds x)` -- effective quantifier elimination for every finite first-order formula over a real closed field with rational polynomial atoms, including arbitrary finite Boolean combinations and alternating universal and existential variable blocks; hence decidability for sentences and an effectively computable quantifier-free semialgebraic description of the solution set when free variables remain. A named `Sort 0` proposition with no proof, threaded as `(hQE : MultiBlockRealAlgebraicQE)` into thm:factorization-safe-quotient-obstruction and taken as an argument by `qcan` (F1-D5).",
+      "notes": "FROZEN cited substrate gate (`status: cited`, `source.carrier: logical-claim`), encoded as a named `Sort 0` Prop and threaded into its single logical consumer. Search trace (defer justification): identical to lem:one-block-real-algebraic-elimination -- `lean_loogle '\"Semialgebraic\"'` EMPTY, `lean_loogle '\"RealClosed\"'` only the `IsRealClosed` axioms, `lean_leansearch 'quantifier elimination for real closed fields, Tarski-Seidenberg, semialgebraic sets'` nothing on point; in-repo analogue `CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research/Helpers/RealAlgebraic.lean:87-111` (`CadAlgorithmCorrect`, `CylindricalAlgebraicDecompositionQE`) is sorry-bearing (28 sorries in that artifact) and cites Collins 1975 rather than this note's frozen Basu-Pollack-Roy locator, so it is neither importable nor a discharge (F1-D7). Result: general alternating-block real QE is outside Mathlib's reach here. IMPORTANT fidelity note for F2 and F3: the SEMIALGEBRAIC-SELECTOR consequence used by thm:factorization-safe-quotient-obstruction is DERIVED by applying `qe` to the first-order graph formula of the unique lexicographic minimiser -- the compactness of the fibers is supplied by the calling proof, not by this citation, exactly as the frozen attestation states. Not reconstructed as sub-lemmas."
+    },
+    "lem:factorized-pushforward-fidelity": {
+      "lean_kind": "lemma",
+      "lean_name": "factorized_pushforward_fidelity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "reuse_support": [
+        "Finset.sum_biUnion",
+        "Quotient.lift_mk"
+      ],
+      "target_file": "Helpers/QuotientImages.lean",
+      "hyps": [
+        "ass:independent-edge-latents"
+      ],
+      "uses": [
+        "def:raw-global-signatures",
+        "def:response-signature-quotient",
+        "def:factorized-quotient-images"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t8",
+      "statement": "`rawImage G J = facQuotImage G J` and `rawImage G J subset simpQuotImage G J`; more precisely for every `lambda in LambdaSpace G` the push-forward identity `expectation (facMass G lambda) sigEval = expectation (pushforward (facMass G lambda)) sigEvalQuot` holds coordinatewise, and every member of `pushMasses G J` arises this way. Hence only replacement of the induced factorized quotient family by the unrestricted branchwise quotient simplex can enlarge the projected image.",
+      "notes": "Search trace: `grep 'pushforward|push-forward|Measure.map|Quotient' ../doc/API.md` -> the kernel `Measure.map` layer (sections 6b, 10a) and `Graph/MarkovEquiv/*` (unrelated DAG equivalence); Mathlib side the needed facts are `Quotient.lift_mk`, `Finset.sum_biUnion` over the quotient-cell partition, and `Finset.sum_comm`, all standard. Result: build-inline; SMALL. The whole proof is the note's (26): the cells partition the finite raw domain, so the two finite sums are a rearrangement, and the inclusion holds because `facMass` is supported on one branch. hyps: ass:independent-edge-latents is named directly (this node's `depends_on` does not list def:fixed-refinement-scm-class). Deliberately NO reverse inclusion -- that is the content of thm:factorization-safe-quotient-obstruction."
+    },
+    "lem:refinement-embeds-complete-order": {
+      "lean_kind": "lemma",
+      "lean_name": "refinement_embeds_complete_order",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "Causalean.DAG.parents",
+        "Causalean.DAG.topoOrder_lt",
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.identifiedInterval_subset_Icc",
+        "isCompact_stdSimplex"
+      ],
+      "target_file": "Helpers/OrderOnly.lean",
+      "hyps": [
+        "def:refinement-class",
+        "def:fixed-refinement-scm-class"
+      ],
+      "uses": [
+        "def:micro-cde",
+        "def:summary-fiber",
+        "def:sharp-envelope",
+        "def:temporal-order",
+        "def:order-only-model",
+        "def:order-only-envelope"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t4",
+      "statement": "For every `G` with `Refines S H L G` and every compatible `(M, mu)`, there is `rho in orderOnlyFiber p` with `ordCDE rho = microCDE ... G M mu`: pad every `M.table v` to the complete argument list `predSet v` by fixing its latent inputs at the realized `u` and ignoring every observed non-parent coordinate, giving `padSignature u : OrdSignature`, and let `rho` be the push-forward of `padSignature` under the latent mass. The construction preserves the observational recursion and both interventional recursions. Consequently, whenever `(summaryFiber S L H p).Nonempty`, `attainableCDESet ... p subset Set.Icc (ordLower p) (ordUpper p)`.",
+      "notes": "Search trace: `grep 'responseFunction|signature|canonical|order' ../doc/API.md`; `grep 'responseType|latentTable|canonical' Causalean/PO/ID/Partial/BalkePearl` -> `canonicalBP` / `canonicalMeasure` (fixed four-bit IV alphabet, `POSystem`-valued); `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex`. Result: no refinement-to-complete-order embedding exists; build-inline. MEDIUM: the content is the two time-ordered inductions of (8)-(9), for which `Causalean.DAG.parents` plus positive lags give `pa_G(v) subset predSet v` immediately and `DAG.topoOrder_lt` supplies the induction measure; the interval inclusion is `Causalean.PartialID.identifiedInterval_subset_Icc`. hyps cover all four assumption dependencies through the two bundling classes. F2 must keep the frozen disclaimer visible: the constructed `rho` is a law on COMPLETE signatures and no claim is made that an arbitrary comparator `rho` respects a missing bidirected edge."
+    },
+    "lem:tiv-summary-iv-representation": {
+      "lean_kind": "lemma",
+      "lean_name": "tiv_summary_iv_representation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.BalkePearl.LatentTable",
+        "Causalean.Graph.DAG",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "Causalean.PO.POBalkePearlSystem.dArm",
+        "Causalean.PO.POBalkePearlSystem.yArm",
+        "Causalean.DAG.parents",
+        "stdSimplex"
+      ],
+      "target_file": "Helpers/TIVInstance.lean",
+      "hyps": [
+        "def:refinement-class",
+        "def:fixed-refinement-scm-class",
+        "ass:strict-observed-positivity"
+      ],
+      "uses": [
+        "def:summary-fiber",
+        "def:micro-cde"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t11",
+      "statement": "Assume `H = L = gamma = 1`, `S = tivSummary` and strict observed positivity. For every `(G, M, mu) in summaryFiber tivSummary 1 1 p`, writing `pCell z x y` for the \\((A_{-1},X_{-1},Y_0)\\) marginal and `piZ z` for the \\(A_{-1}\\) marginal: `0 < piZ 0`, `0 < piZ 1`, and there is `eta in stdSimplex Real (Fin 2 x Fin 2 x Fin 2 x Fin 2)` (states `t = (x0, x1, y0, y1)`) with `pCell z x y = piZ z * (sum over t of eta t * indicator (x = dArm z t.x0 t.x1 and y = yArm x t.y0 t.y1))` and `microCDE ... G M mu = sum over t of eta t * (boolToReal t.y1 - boolToReal t.y0)`. The representation holds for EVERY admissible refinement, including refinements carrying extra summary-compatible bidirected edges.",
+      "notes": "Search trace: `Glob Causalean/PO/ID/Partial/**/*.lean`; `grep '^(noncomputable )?(def|theorem|lemma) ' Causalean/PO/ID/Partial/BalkePearl/LatentTable.lean` -> `dArm` (42), `yArm` (47), `latentSet` (55), `latentProb` (63), `latentProb_sum_eq_one` (107), `ATE_eq_sum_latent` (159), `cellProb_eq_sum_latent (hA : S.BaseAssumptions) (y d z)` (286); read lines 26-85. ANALOGOUS MODULE (adapt, do not import): `cellProb_eq_sum_latent` is EXACTLY this representation formula and `ATE_eq_sum_latent` its query column, but they derive it from `POBalkePearlSystem.BaseAssumptions` (IV independence and exclusion) on a `POSystem` measure space, whereas here the IV structure must first be DERIVED from positive lags plus exact projection to `S_TIV` (only `X_{-1} -> Y_0` is placeable, and the absence of an `A <-> Y` summary edge forbids a shared pairwise parent), and the ambient object is a finite \\(N\\)-vertex product model with \\(2^{N-3}\\) nuisance coordinates. Gap to bridge: the disjoint-block factorization `A_{-1} = a(R)`, `X_{-1} = x(R,T)`, `Y_0 = y(X_{-1},T)` of (3) and the auxiliary conditional-law coupling `R_0, R_1`. DIRECT reuse: `dArm` and `yArm` are pure `Bool` selectors with no system argument and fix the sixteen-state convention shared with def:tiv-rational-certificate. Build-inline, MEDIUM. hyps cover all five assumption dependencies (pbdl and esp via def:refinement-class, sr and iel via def:fixed-refinement-scm-class, sop directly)."
+    },
+    "lem:positive-lag-cyclic-cde-adjustment": {
+      "lean_kind": "lemma",
+      "lean_name": "positive_lag_cyclic_cde_adjustment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.AcyclicConstruct"
+      ],
+      "reuse_support": [
+        "Causalean.DAG.parents",
+        "Causalean.DAG.isAncestor",
+        "Causalean.DAG.isAncestor_trans",
+        "Causalean.DAG.ancestralSet",
+        "Causalean.DAG.mem_ancestors",
+        "Causalean.DAG.topoOrder_lt"
+      ],
+      "target_file": "Helpers/MicroAncestry.lean",
+      "hyps": [
+        "def:refinement-class",
+        "def:fixed-refinement-scm-class",
+        "ass:focal-positive-lag-parent",
+        "ass:strict-observed-positivity"
+      ],
+      "uses": [
+        "def:micro-cde",
+        "def:summary-fiber",
+        "def:bounded-window-micro-ancestry"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t12",
+      "statement": "Define `MicroCondition S H L gamma X Y : Prop := Disjoint (biPartners S H Y) (Causalean.DAG.ancestralSet (boundedWindowSupergraph S H L) (possibleParents S L Y))` where `biPartners S H Y := {b | s(Y_0, b) in biCandidates S H}`. For every `(G, M, mu) in summaryFiber S L H p` satisfying `MicroCondition`, WITHOUT requiring the strongly connected component of `Y` in `S` to be a singleton: `forall x : Bool, interventionalMean ... x = conditionalMean p x` and hence `microCDE ... G M mu = faContrast p ...`. F2 also emits the untagged companion `micro_condition_load_bearing`: the explicit two-node counterexample (12)-(13) with `X_{-1} -> Y_0`, `X_{-1} <-> Y_0`, `X = U xor E_X`, `Y = (X or U) xor E_Y` and a strictly positive induced law on which the two quantities differ.",
+      "notes": "Search trace: read `../doc/API.md` sections 8f (`SCM/Do/DoCalculus.lean`, Rules 1-3), 9e (`BackdoorCriterion.lean`), 9e' (`Backdoor.lean`), 9d (`Adjustment.lean`), 6a'' (`EvalLatent.lean`), 6a'''' (`CutsetLatent.lean`), 8d (Global Markov split); `Glob Causalean/SCM/ID/*.lean` and `Causalean/SCM/Do/*.lean`; `grep 'ancestor|ancestral' ../doc/API.md` -> the `Causalean.DAG` ancestry family; read `Causalean/Graph/DAG.lean:329-347` and `:99-145`. Result: `Causalean.SCM.ID.backdoor` / `do_rule2` are the analogous identification results but they are kernel-level, require d-separation in a `SWIGGraph`, and give a BACKDOOR-ADJUSTED formula, whereas this lemma is an UNADJUSTED contrast justified by a latent-block disjointness argument in a finite product model; recorded as the analogous module (technique: separate the latent factors reaching the outcome from those reaching the controlled set, then truncate the recursion). Build-inline, MEDIUM-LARGE and the deepest ungated proof in the plan; NOT deferred (paper-owned). REUSED and load-bearing: `DAG.ancestralSet` IS the frozen \\(\\operatorname{An}_D(\\cdot)\\), `DAG.isAncestor_trans` / `mem_ancestors` give the edge-subset ancestry monotonicity (3), and `DAG.topoOrder_lt` the topological induction defining \\(\\mathcal E_G(A)\\) (6). hyps cover all seven assumption dependencies (pbdl, esp via def:refinement-class; sr, iel, olc via def:fixed-refinement-scm-class; fplp and sop directly)."
+    },
+    "thm:sharp-refinement-envelope": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_refinement_envelope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Analysis.Convex.Topology",
+        "Mathlib.Topology.Order.Compact",
+        "Mathlib.Data.Finset.Max",
+        "Mathlib.Order.ConditionallyCompletePartialOrder.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.mem_identifiedInterval",
+        "IsLeast.csInf_eq",
+        "IsGreatest.csSup_eq",
+        "isCompact_stdSimplex",
+        "IsCompact.exists_isMinOn",
+        "IsCompact.exists_isMaxOn",
+        "Finset.exists_min_image",
+        "Finset.exists_max_image"
+      ],
+      "target_file": "TSharpRefinementEnvelope.lean",
+      "hyps": [
+        "def:refinement-class",
+        "def:fixed-refinement-scm-class",
+        "ass:focal-positive-lag-parent"
+      ],
+      "uses": [
+        "def:micro-cde",
+        "def:summary-fiber",
+        "def:sharp-envelope",
+        "def:raw-polynomial-compiler",
+        "lem:finite-refinements",
+        "lem:finite-factor-support-reduction"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t2",
+      "statement": "If `(summaryFiber S L H p).Nonempty` then `envelopeLower p = min over G in feasibleRefinements S H L p of (min over lambda in feasibleParams G p of qOf G lambda)` and dually for `envelopeUpper p`, where `envelopeLower`/`envelopeUpper` are the separately defined `sInf`/`sSup` of `attainableCDESet` (def:sharp-envelope) and `feasibleRefinements` keeps exactly the refinements with a nonempty canonical fiber; BOTH extrema are ATTAINED, i.e. F2 delivers `IsLeast (attainableCDESet ... p) (envelopeLower p)` and `IsGreatest (attainableCDESet ... p) (envelopeUpper p)` alongside the two nested-extrema equalities. Moreover `attainableCDESet ... p = {qOf G lambda | G in feasibleRefinements, lambda in feasibleParams G p}` (the image-equality (4)-(5)): every feasible response-weight point reconstructs a compatible semi-Markovian model with the displayed independent overlapping pairwise latent parents, and every compatible model has a raw canonical representative with the same \\((p,q)\\) image. NO set-level `Set.Icc` claim is made: the theorem asserts nothing about `attainableCDESet` being an interval or being order-connected, only the two endpoint equalities, their attainment, and the image equality.",
+      "notes": "Paper-owned headline; build-inline. Search trace: `lean_file_outline Causalean/SCM/PartialID/{CanonicalModel,SharpnessCertificate}.lean` -> `CompatibleSCM`, `compatibleInterval`, `IsSharp`, `isSharp_of_attaining (hsub) (hconn : (compatibleInterval ...).OrdConnected) (hL) (hU)`; read `Causalean/PO/ID/Partial/Basic.lean:18-116`; `lean_leansearch 'the standard simplex is compact'` -> `isCompact_stdSimplex`, `Set.Finite.isCompact_convexHull`. Result: `Causalean.SCM.PartialID.isSharp_of_attaining` is the closest analogue and is NOT applicable: it demands `OrdConnected` of the value set, which this note's honest scope explicitly disclaims ('the attainable set itself need not be connected'), and it is indexed by one `SWIGGraph`. So sharpness is proved directly as attained extrema of a compact image: per branch `feasibleParams` is a closed subset of the compact product of `stdSimplex Real (Fin C)` (`isCompact_stdSimplex`) with `lawOf` continuous, `BranchCat` is finite so `feasibleParams G p` is a finite union of compacts, `IsCompact.exists_isMinOn`/`exists_isMaxOn` give (7), and `Finset.exists_min_image`/`exists_max_image` over the finite `refinementFinset` (lem:finite-refinements) give (8). The image equality (4) is lem:finite-factor-support-reduction in both directions. ENDPOINT BOOKKEEPING (revised round 3): `Causalean.PartialID.identifiedInterval_eq_Icc` is DROPPED from the reuse support and from the proof route -- it requires `hconn : (IdentifiedInterval obj feasible).OrdConnected` (verified by reading `Causalean/PO/ID/Partial/Basic.lean:78-84`, whose only supplier is `identifiedInterval_param_Icc`, a connected-path parameterization), and this plan explicitly disclaims connectedness of the attainable set, so the premise is unavailable and the theorem must NOT assert `attainableCDESet = Set.Icc _ _`. `IdentifiedInterval` is retained ONLY as the attained-value-set definition (def:sharp-envelope) and `mem_identifiedInterval` only to place each attained value in it; the endpoint claims are the separately defined `sInf`/`sSup` of that set, obtained by assembling the attained branch extrema into `IsLeast`/`IsGreatest` (membership from `mem_identifiedInterval`, the bound from the finite min/max over `refinementFinset`) and closing with `IsLeast.csInf_eq` / `IsGreatest.csSup_eq` (`Mathlib.Order.ConditionallyCompletePartialOrder.Basic`, signatures confirmed by `lean_loogle 'IsLeast.csInf_eq'` and `lean_loogle 'IsGreatest.csSup_eq'`). hyps cover all five assumption dependencies (pbdl, esp via def:refinement-class; sr, iel, olc via def:fixed-refinement-scm-class; fplp directly). F2 fidelity requirement: deliver BOTH the nested-extrema equality AND the attainment/reconstruction clause, keep the restriction of the outer extrema to refinements with a NONEMPTY fiber (so no extremum is taken over an empty set), and do NOT add any `Set.Icc`-equality or `OrdConnected` conjunct to the statement."
+    },
+    "prop:fixed-graph-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "fixed_graph_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.SCM.PartialID.compatibleSCM_mono",
+        "stdSimplex"
+      ],
+      "target_file": "TFixedGraphReduction.lean",
+      "hyps": [
+        "def:refinement-class",
+        "ass:structural-recursion",
+        "ass:independent-edge-latents"
+      ],
+      "uses": [
+        "def:summary-fiber",
+        "def:raw-polynomial-compiler",
+        "thm:sharp-refinement-envelope"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t3",
+      "statement": "If `refinementFinset S H L = {G0}` and `(summaryFiber S L H p).Nonempty` then `envelopeLower p = min over lambda in feasibleParams G0 p of qOf G0 lambda` and `envelopeUpper p = max ...`, i.e. the refinement envelope equals the extrema of the SINGLE raw canonical polynomial program for `G0`, with both attained. If in addition `G0.bi = emptyset` then `G0` is a DAG, `FactorIdx` reduces to the private indices, and `lawOf G0 lambda w = sum over kappa of indicator (wOf r kappa = w) * prod over v of lambda v (kappa v)` with `qOf G0 lambda = sum over kappa of dOf r kappa * prod over v of lambda v (kappa v)` -- the independent node-response-factor program for the known DAG, using neither strict positivity nor division.",
+      "notes": "Paper-owned fidelity reduction to DuarteEtAl2024; build-inline and SHORT. Search trace: `lean_file_outline Causalean/SCM/PartialID/CanonicalModel.lean` -> `compatibleSCM_mono (h : forall M, As' M -> As M) : forall M, CompatibleSCM G As' M0 M -> CompatibleSCM G As M0 M`, recorded as the analogous shape for the class-collapse step but at the `SWIGGraph`/`SCM N Omega` abstraction (F1-D1). Result: the whole content is substitution of the singleton into thm:sharp-refinement-envelope plus unfolding `FactorIdx` when `G0.bi = emptyset`. hyps: def:refinement-class is the class in `depends_on`, and ass:structural-recursion / ass:independent-edge-latents are named DIRECTLY because def:fixed-refinement-scm-class is not in this node's `depends_on`. Core kind `proposition`; mapped to a Lean `theorem` because it is a delivered result, not a shared helper."
+    },
+    "thm:exact-algebraic-certification": {
+      "lean_kind": "theorem",
+      "lean_name": "exact_algebraic_certification",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous",
+        "Mathlib.FieldTheory.IsRealClosed.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Data.Finset.Max"
+      ],
+      "reuse_support": [
+        "isCompact_stdSimplex",
+        "Finset.exists_min_image",
+        "Finset.exists_max_image",
+        "Squarefree"
+      ],
+      "target_file": "TExactAlgebraicCertification.lean",
+      "hyps": [
+        "ass:positive-bounded-directed-lags",
+        "ass:independent-edge-latents",
+        "ass:observed-law-compatibility",
+        "lem:one-block-real-algebraic-elimination"
+      ],
+      "uses": [
+        "def:summary-fiber",
+        "def:raw-polynomial-compiler",
+        "def:exact-certifier",
+        "lem:finite-refinements",
+        "thm:sharp-refinement-envelope"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t5",
+      "statement": "For every rational `p` of coefficient height `B`, `certify hElim1 S H L gamma X Y z p` is a total function and its output is VALID: if `summaryFiber S L H (ratCast p) = emptyset` it returns the refinement-enumeration ledger together with, for every `G in refinementFinset S H L` and every `r in BranchCat G`, a replayable sign-invariant elimination trace or a rational Positivstellensatz identity proving `{lambda in branchParams G r | lawOf G (r, lambda) = p} = emptyset`, and those branch certificates jointly certify the empty fiber; if the fiber is nonempty it returns for each endpoint a square-free integer isolating polynomial, a rational isolating interval, and an algebraic-weight endpoint-attaining model. In either branch `exists c : Nat, certifyCost ... <= rSigma S H L * B^c * (sMax S H L * dMax S H L)^(c * kMax S H L)` BIT operations; in the nonempty branch the endpoint algebraic degree is `<= dMax^(c * kMax)` and every output coefficient has bit length `<= B * (sMax * dMax)^(c * kMax)`. Finally `rSigma`, `kMax`, `sMax`, `dMax` are computed from `d, H, L, S.dir, S.bi` and the branch catalogues (derived inputs, not oracle quantities).",
+      "notes": "Paper-owned and IN SCOPE conditional on the frozen gate; `defer_tier: false` because the only infeasible ingredient is the external elimination bound, which is threaded (F1-D5 gate-consumer rule). Search trace: `lean_loogle '\"Semialgebraic\"'` EMPTY; `lean_loogle '\"RealClosed\"'` only the `IsRealClosed` axioms; `lean_leansearch 'quantifier elimination for real closed fields, Tarski-Seidenberg, semialgebraic sets'` nothing on point; in-repo analogue `CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research/{Helpers/RealAlgebraic.lean, T_ExactCadRecovery.lean, T_FiniteComplexityInference.lean}` read and rejected as a dependency (28 sorries in that artifact; different frozen citation) but recorded as the ANALOGOUS MODULE for the two-branch certificate output, the endpoint-certificate record, and the cost aggregation (F1-D7); the gap to bridge is the causal encoding of the branch parameters and the decode-to-model step, which comes from thm:sharp-refinement-envelope. Build-inline given the gate. TWO fidelity requirements F2 must respect (F1-D6, F1-D11): (i) the BIT-OPERATION bound is derived HERE from the gate's ARITHMETIC-operation count plus its coefficient-bit-length control -- it is not in the gate and is not attributed to the source; (ii) 'Cert terminates' is totality of the Lean `Finset`-recursive function plus output validity, never a vacuous conjunct. hyps: all three assumption dependencies are named DIRECTLY because neither bundling class appears in this node's `depends_on`, and the cited logical gate is threaded."
+    },
+    "thm:robust-order-tightening": {
+      "lean_kind": "theorem",
+      "lean_name": "robust_order_tightening",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.BalkePearl.LatentTable",
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Topology.Order.IntermediateValue",
+        "Mathlib.Order.ConditionallyCompletePartialOrder.Basic",
+        "Mathlib.LinearAlgebra.Matrix.Determinant.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PO.POBalkePearlSystem.dArm",
+        "Causalean.PO.POBalkePearlSystem.yArm",
+        "Causalean.PartialID.identifiedInterval_subset_Icc",
+        "Causalean.PartialID.mem_identifiedInterval",
+        "IsLeast.csInf_eq",
+        "IsGreatest.csSup_eq",
+        "Matrix.det_succ_row_zero",
+        "isCompact_stdSimplex"
+      ],
+      "target_file": "TRobustOrderTightening.lean",
+      "hyps": [
+        "ass:exact-summary-projection",
+        "ass:strict-observed-positivity"
+      ],
+      "uses": [
+        "def:sharp-envelope",
+        "def:temporal-order",
+        "def:order-only-model",
+        "def:order-only-envelope",
+        "def:graph-compatible-positive-laws",
+        "def:tiv-rational-certificate",
+        "thm:sharp-refinement-envelope",
+        "lem:refinement-embeds-complete-order",
+        "thm:exact-algebraic-certification",
+        "lem:tiv-summary-iv-representation"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t6",
+      "statement": "For `H = L = gamma = 1` and `S = tivSummary`, the certificate of def:tiv-rational-certificate satisfies `tivCertificate.pStar in positiveCompatibleLaws tivSummary 1 1`, the four ENDPOINT equalities `envelopeLower pStar = 57/200`, `envelopeUpper pStar = 137/200`, `ordLower pStar = -79/400`, `ordUpper pStar = 321/400`, and hence the strict inclusion of the two reported closed envelopes `Set.Icc (envelopeLower pStar) (envelopeUpper pStar) subset-strict Set.Icc (ordLower pStar) (ordUpper pStar)`. That display is about the two ENDPOINT-INDEXED closed intervals only; it is NOT a claim that `attainableCDESet` or `orderOnlyEnvelope` equals its `Set.Icc` (both value sets may be disconnected, per the note's honest scope). The graph-aware masses `lamMinus`, `lamPlus` reproduce `pStar` and attain the first two extrema, and the sixteen pointwise inequalities induced by `hMinus`, `hPlus` certify their optimality OVER THE WHOLE REFINEMENT UNION via lem:tiv-summary-iv-representation. The eight complete common-latent rows `xiMinus`, `xiPlus` with their fair-nuisance completions reproduce `pStar` and attain the order-only extrema, with the two pointwise complete-signature inequalities (20) certifying optimality. `mStar` has exact row rank seven, `mStar.mulVec lamCirc = pStar` cellwise, every coordinate of `lamCirc` is at least `1/800`, and the fair-nuisance table has full support. Finally there is a rational `delta > 0` such that `forall p in lawNbhd tivSummary 1 1 pStar delta, ordLower p < envelopeLower p and envelopeLower p <= envelopeUpper p and envelopeUpper p < ordUpper p`.",
+      "notes": "Paper-owned; build-inline, LARGE but entirely finite/rational. Search trace: `Glob Causalean/PO/ID/Partial/**`; `grep '^(noncomputable )?(def|theorem|lemma) ' Causalean/PO/ID/Partial/BalkePearl/LatentTable.lean` -> `dArm`, `yArm`, `cellProb_eq_sum_latent`, `ATE_eq_sum_latent`, `latentProb_sum_eq_one`; `Glob Causalean/PO/ID/Partial/BalkePearl/{Attainment,ClosedFormAttainment,IntervalForm,Sharp}.lean` (the closest ANALOGOUS MODULE: an explicit dual-certificate attainment argument for a binary IV response table, at the `POSystem` abstraction); `grep 'relative-open|strict tightening|relint' ../doc/API.md` -> nothing; in-repo `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/{T4_DualFaceStrictRefinement,T5_RelativeOpenStrictRefinement}.lean` is the analogous relative-open strictness argument but is sorry-bearing (19 sorries in that artifact) and not importable. Result: build-inline. Proof shape: (16)-(17) and (22) are `norm_num` on `Rat` literals; (18)-(19) is a sixteen-case `decide` over `t` plus expectation under the representation of lem:tiv-summary-iv-representation; (20)-(21) is a binary case split giving the closed forms `ordLower p = -Pr(X != Y)`, `ordUpper p = Pr(X = Y)`; the rank ledger is one explicit `7 x 7` minor of determinant `1/128`; (23) is continuity of two explicit ratios on the strictly positive law space plus a smaller positive rational `delta`. IMPORTANT: `thm:exact-algebraic-certification` is listed in the core `depends_on` but the frozen proof never invokes it (all four ledgers are explicit rational certificates), so NO gate is threaded here and this node needs no elimination hypothesis; recorded so F2 does not add one. Endpoint route (revised round 3): the four endpoint values come from thm:sharp-refinement-envelope's attained-`sInf`/`sSup` clause and from the closed forms (21), i.e. via `IsLeast.csInf_eq` / `IsGreatest.csSup_eq` on the attained certificate values -- `Causalean.PartialID.identifiedInterval_eq_Icc` is NOT used here either, and `identifiedInterval_subset_Icc` is retained only for the two-sided dual bounds (19). hyps: both assumption dependencies named directly (no bundling class in `depends_on`)."
+    },
+    "thm:simultaneous-whole-set-inference": {
+      "lean_kind": "theorem",
+      "lean_name": "simultaneous_whole_set_inference",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Concentration.TailBounds.Hoeffding",
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Probability.Moments.SubGaussian",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "reuse_support": [
+        "Causalean.Stat.IIDSample",
+        "Causalean.Stat.IIDSample.sampleMean",
+        "Causalean.Stat.Concentration.hoeffding_abs_ge",
+        "Causalean.Stat.Concentration.measureReal_abs_dev_le_two_sided",
+        "Causalean.PartialID.mem_identifiedInterval",
+        "isCompact_stdSimplex"
+      ],
+      "target_file": "TSimultaneousWholeSetInference.lean",
+      "hyps": [
+        "ass:iid-window-sampling",
+        "ass:observed-law-compatibility"
+      ],
+      "uses": [
+        "def:multinomial-region",
+        "def:confidence-endpoints",
+        "def:contrast-confidence-interval",
+        "thm:sharp-refinement-envelope",
+        "thm:exact-algebraic-certification",
+        "lem:finite-factor-support-reduction"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t7",
+      "statement": "Under `IidWindowSampling S p`: `1 - alpha <= mu.real {omega | p in confRegion n alpha (phat omega)}`, uniformly in `p`. On that SINGLE event, for every `j : J` the population envelope of `q_j` is contained in `confInterval ... j`, and for every distinct `j k : J` the full same-model identified set of `q_j - q_k` is contained in `contrastConfInterval ... j k`, SIMULTANEOUSLY (no union bound over `J`). Exact optimization over the closed confidence fiber remains valid at zero empirical cells (the region is a compact rational box-simplex polytope and no empirical cell is divided by). Declaring `j` and `k` tied exactly when `0 in contrastConfInterval ... j k` never asserts a strict ordering when zero is compatible with the covered observed law; the rule is valid and possibly conservative, since the outer interval may bridge disconnected attainable components.",
+      "notes": "Paper-owned; build-inline, MEDIUM. Search trace: `grep 'hoeffding|Hoeffding|sub_gaussian|Chernoff' Causalean` -> 40 files; `lean_file_outline Causalean/Stat/Concentration/TailBounds/Hoeffding.lean` -> `hoeffding_abs_ge (S : IIDSample Omega X mu P) (hf : Measurable f) (hab : a < b) (hbound : forall_ae x, f x in Set.Icc a b) (n) (hn : 0 < n) (h_eps : 0 <= eps) : mu.real {omega | eps <= |S.sampleMean f n omega - integral f P|} <= 2 * exp (-2 * n * eps^2 / (b - a)^2)` plus `measureReal_abs_dev_le_two_sided`; `grep '^(namespace|end|lemma|theorem) ' Hoeffding.lean` fixes the name as `Causalean.Stat.Concentration.hoeffding_abs_ge`; `lean_file_outline TailBounds/BinomialCount.lean` (Bernoulli-count tilting, a weaker fit); `Glob Causalean/PO/ID/Partial/Inference/*.lean` (scalar-interval CIs only). Result: EXACT reuse of `hoeffding_abs_ge` at `f = ` the indicator of one window cell, `a = 0`, `b = 1`, which gives the note's per-cell bound (24) verbatim -- the hand-rolled exponential-tilting derivation is NOT rebuilt (this is precisely the 'small routine tail bound the library already has' case). Remaining build-inline work: the \\(2^N\\)-cell union bound (a `Finset` induction over `MeasureTheory.measure_union_le`), the dyadic-radius selection and its empty-set fallback (where `eps = 1` makes coverage sure because any two probability coordinates differ by at most one), the `p' = p` feasibility step for both containments on the one event, and the compactness/no-division clause. The exactness clause reuses the SAME compactness argument as thm:sharp-refinement-envelope (`isCompact_stdSimplex` plus a closed rational box), so `thm:exact-algebraic-certification` is invoked only for its attainment/emptiness conclusion and NO elimination gate is threaded here. hyps: both assumption dependencies named directly."
+    },
+    "thm:factorization-safe-quotient-obstruction": {
+      "lean_kind": "theorem",
+      "lean_name": "factorization_safe_quotient_obstruction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.MvPolynomial.Homogeneous",
+        "Mathlib.FieldTheory.IsRealClosed.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Fintype.BigOperators"
+      ],
+      "reuse_support": [
+        "stdSimplex",
+        "Fintype.card_fun",
+        "Quotient.lift_mk"
+      ],
+      "target_file": "TFactorizationSafeQuotientObstruction.lean",
+      "hyps": [
+        "ass:independent-edge-latents",
+        "lem:multiblock-real-algebraic-qe"
+      ],
+      "uses": [
+        "def:raw-polynomial-compiler",
+        "def:raw-global-signatures",
+        "def:response-signature-quotient",
+        "def:factorized-quotient-images",
+        "def:abc-kill-test-instance",
+        "def:quotient-handle",
+        "lem:factorized-pushforward-fidelity",
+        "lem:finite-factor-support-reduction"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t9",
+      "statement": "(a) For `abcKillTest` and every rational `0 < theta < 1`, `qcan hQE abcGraph abcQueries` returns the `separation` branch: there is a rational branchwise quotient mass `nuTheta` whose image `xTheta` lies in `simpQuotImage` but not in `rawImage`, whose query coordinate is zero, and whose observed coordinate is the FULL-SUPPORT law `pTheta w = 2^(-N) * (1 + theta * (-1)^(w A_0 xor w C_0))`; with `bigP i j := sum over w with w A_0 = i, w C_0 = j of P w`, the observational polynomial `detPoly P := bigP 0 0 * bigP 1 1 - bigP 0 1 * bigP 1 0` vanishes throughout `rawImage` but `detPoly pTheta = theta / 4`. Hence the unrestricted quotient simplex is not factorization-safe even in the INTERIOR of the observed probability simplex. (b) For general `G` and finite `J`, `rawImage G J = simpQuotImage G J` iff the finite first-order factor-incidence sentence (34) holds, and the sentence is decided exactly by `hQE`; when it holds, lexicographic minimization in its compact fibers yields a semialgebraic single-valued selector. (c) With `C = 2^N + card J`, a catalogue may be chosen so that `Fintype.card (signatureQuotient G J) <= 2^(N * 2^(N-1) * C^(wParam G)) * min (C^(N * (wParam G + 1) / 2)) (2^N * 3^(card J))`.",
+      "notes": "Paper-owned and IN SCOPE conditional on the frozen gate (`defer_tier: false`); the elimination gate is threaded per F1-D5. Search trace: `grep 'quotient|Quotient|equivalence class|response signature' ../doc/API.md` -> `Graph/MarkovEquiv/*` (DAG equivalence, unrelated) and `SCM/Model/EquivKernel.lean` (`HEq` transport); `lean_loogle '\"Semialgebraic\"'` EMPTY and `lean_loogle '\"RealClosed\"'` only the `IsRealClosed` axioms, confirming the decision layer must be gated; `grep 'sorry' CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research` -> 28, so its formula language is a template only (F1-D7). Result: build-inline, LARGE. Part (a) is fully explicit and needs NO gate: the `separation` witness is the constant-table branch (27)-(29) with `nuTheta` a rational mass, and nonmembership is the disjoint-latent-block factorization (30) giving `detPoly = 0` on the raw image versus `theta/4` at `pTheta` -- an exact rational polynomial certificate; `decide` closes the `abcGraph` incidence facts. Parts (b) and (c) use the gate for the alternating-block decision and the selector graph, with COMPACTNESS of the fibers supplied here (a closed preimage of a point under a polynomial map intersected with a product of simplices), exactly as the frozen attestation on lem:multiblock-real-algebraic-qe requires. Part (c) is a `Fintype.card` computation on function types plus the incidence inequality `N + 2 * card G.bi <= N * wParam G`. hyps: ass:independent-edge-latents named directly, plus the threaded cited gate."
+    },
+    "thm:positive-lag-fa-exact-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "positive_lag_fa_exact_frontier",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.AcyclicConstruct"
+      ],
+      "reuse_support": [
+        "Causalean.DAG.ancestralSet",
+        "Causalean.DAG.isAncestor",
+        "Causalean.DAG.isAncestor_iff_transGen",
+        "Causalean.DAG.parents",
+        "Causalean.DAG.acyclic_of_topoOrder"
+      ],
+      "target_file": "TPositiveLagFAExactFrontier.lean",
+      "hyps": [
+        "def:refinement-class",
+        "def:fixed-refinement-scm-class",
+        "ass:focal-positive-lag-parent",
+        "ass:strict-observed-positivity"
+      ],
+      "uses": [
+        "def:micro-cde",
+        "def:summary-fiber",
+        "def:bounded-window-micro-ancestry",
+        "lem:positive-lag-cyclic-cde-adjustment"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t14",
+      "statement": "With `MicroCondition` as in lem:positive-lag-cyclic-cde-adjustment and `UniversalUnadjusted S H L gamma X Y z : Prop := forall G, Refines S H L G -> forall (M : BinaryModel Vlab H G) (mu), StructuralRecursion G M M.eval -> IndependentEdgeLatents G M mu -> StrictObservedPositivity (inducedLaw G M mu) -> microCDE ... G M mu = faContrast (inducedLaw G M mu) ...`, the equivalence `MicroCondition S H L gamma X Y <-> UniversalUnadjusted S H L gamma X Y z` holds. F2 also delivers the frozen DELIMITATION in the same file: for `H = 2`, `L = gamma = 1`, summary edges `B -> X -> Y` and `B <-> Y`, the refinement `gAlt` with `B_{-2} -> X_{-1} -> Y_0` and `s(B_{-2}, Y_0)` violates `MicroCondition`, yet every strictly positive model on `gAlt` satisfies the displayed `B_{-2}`-adjusted formula `microCDE = sum over b of (condMean 1 b - condMean 0 b) * marginal b`.",
+      "notes": "Paper-owned headline exactness result; build-inline, LARGE, NOT deferred. Search trace: read `../doc/API.md` sections 8f (do-calculus Rules 1-3), 9c (`SCM/ID/GraphicalThms/*`: `id_sound`, `idAlgorithm`, `c_component_factorization`), 9e/9e' (backdoor criterion), 9d (adjustment functionals), 8d (Global Markov); `Glob Causalean/SCM/ID/GraphicalThms/*.lean`. Result: `Causalean.SCM.ID.id_sound` / `idAlgorithm` / `backdoor` are the analogous identification layer, but they are SUFFICIENT graphical criteria over kernels on a `SWIGGraph`, whereas this theorem is a NECESSARY-AND-SUFFICIENT frontier for one specific unadjusted contrast in a finite independent-edge-latent class -- no existing declaration has that shape; recorded as the analogous module for the sufficiency direction's structure. Build-inline. Sufficiency (F1)-(F2) is one application of lem:positive-lag-cyclic-cde-adjustment. Necessity (F3)-(F16) is the paper's own construction: a minimal-length ancestry path, a padded admissible refinement `gDagger` (whose acyclicity is `Causalean.DAG.acyclic_of_topoOrder` at `tau = timeOf`), a fair shared edge latent with `Bernoulli(1/4)` private noises along the path, an OR/AND terminal table split on whether the ancestry target is the treatment or a controlled coordinate, full observed support by solving for the private noises, and the exact contrast computation `kappa = 2^(-(m+1))`, giving a gap of `kappa/4 > 0`. `DAG.isAncestor_iff_transGen` and `DAG.ancestralSet` supply the path extraction. The DELIMITATION clause is a separate short conditional-independence computation (F18)-(F20) and MUST be delivered: it is what keeps the frozen honest-scope claim ('an exact frontier for that contrast, not a necessary-and-sufficient identification criterion from the full observed law') formally visible. F1-D11: `StrictObservedPositivity` appears INSIDE the universally quantified property, applied to the internally generated `inducedLaw`, and is listed in `hyps` because it is a genuine load-bearing premise of the same named Prop; F2 must use one declaration in both positions. hyps cover all seven assumption dependencies."
+    },
+    "thm:positive-lag-fa-extension-collapse": {
+      "lean_kind": "theorem",
+      "lean_name": "positive_lag_fa_extension_collapse",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.DAG.ancestralSet",
+        "Causalean.DAG.isAncestor",
+        "Causalean.DAG.isAncestor_trans",
+        "Causalean.PartialID.mem_identifiedInterval"
+      ],
+      "target_file": "TPositiveLagFAExtensionCollapse.lean",
+      "hyps": [
+        "def:refinement-class",
+        "def:fixed-refinement-scm-class",
+        "ass:focal-positive-lag-parent",
+        "ass:strict-observed-positivity"
+      ],
+      "uses": [
+        "def:micro-cde",
+        "def:summary-fiber",
+        "def:sharp-envelope",
+        "def:bounded-window-micro-ancestry",
+        "thm:positive-lag-fa-exact-frontier"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t13",
+      "statement": "If `(summaryFiber S L H p).Nonempty` and `MicroCondition S H L gamma X Y`, then every `(G, M, mu) in summaryFiber S L H p` satisfies `microCDE ... G M mu = faContrast p ...`, and `attainableCDESet ... p = {faContrast p ...}` with `envelopeLower p = envelopeUpper p = faContrast p ...`. Moreover `MicroCondition` is STRICTLY WEAKER than excluding every summary bidirected edge between `Y` and a directed summary ancestor of `Y`: the label-level exclusion implies it, and for `H = L = gamma = 1` with distinct labels `B, X, Y`, summary directed edges `B -> X`, `X -> Y` and summary bidirected edge `s(Y, B)`, `MicroCondition` holds with a nonempty strictly positive fiber although `B` is a directed summary ancestor of `Y`. Directed summary cycles through `Y` also remain permitted, witnessed by the two-label `X -> Y`, `Y -> X` summary with the acyclic full-time refinement `X_{-1} -> Y_0`, `Y_{-1} -> X_0` and a strictly positive law.",
+      "notes": "Paper-owned; build-inline, MEDIUM. Search trace: as for thm:positive-lag-fa-exact-frontier and lem:positive-lag-cyclic-cde-adjustment (`../doc/API.md` sections 8f, 9c, 9d, 9e, 9e'; `Glob Causalean/SCM/ID/**`); no collapse-of-a-partial-identification-set-to-a-point declaration exists in Causalean (`lean_file_outline Causalean/SCM/PartialID/SharpnessCertificate.lean` gives only `IsSharp`/`isSharp_of_attaining`, whose `OrdConnected` premise is disclaimed by this note). Result: build-inline. Content: (C1)-(C6) is the forward direction of thm:positive-lag-fa-exact-frontier plus a singleton inf/sup; the strictness comparison contraposes ancestry through `DAG.isAncestor_trans` and the projection of a supergraph path to a summary walk; the two witnesses (C7)-(C12) are explicit XOR models whose strict positivity follows by solving for the private noises at a fixed zero edge-latent configuration. hyps cover all seven assumption dependencies (pbdl, esp via def:refinement-class; sr, iel, olc via def:fixed-refinement-scm-class; fplp and sop directly)."
+    }
+  },
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": "Window and time helpers (`Win Vlab H := Vlab x Fin (H+1)`, `timeOf`, `cardWindow` for N), `SummaryGraph`, `Refinement` (with `bi_offDiag`), `projH`, `dirCandidates`, `biCandidates` (B_H(S)), `possibleParents` (PP) and `controlSet` (Z), `focalTreat`, the three graph-side assumption Props (PositiveBoundedDirectedLags, ExactSummaryProjection, FocalPositiveLagParent), def:refinement-class (`Refines`) with `refinementFinset` and `Refines.bi_subset_biCandidates`, def:temporal-order (`temporalStrictLT`, `temporalOrder`, `predSet`), and `Refinement.toDAG` via `Causalean.DAG.acyclic_of_topoOrder`.",
+      "projected_lines": 470
+    },
+    {
+      "file": "Helpers.lean",
+      "contents": "Thin barrel importing every shared helper subsystem.",
+      "projected_lines": 25
+    },
+    {
+      "file": "Helpers/Models.lean",
+      "contents": "`FactorIdx`, the `BinaryModel` carrier (padded support size, per-factor weight vectors on `Fin C`, deterministic tables, and the `parentLocal` / `incidenceLocal` fields carrying the signature restriction of f_v per F1-D2), `LatentAssign`, `latentLaw`, `BinaryModel.eval` by time recursion, `BinaryModel.interv`, the four model-side assumption Props (StructuralRecursion, IndependentEdgeLatents, ObservedLawCompatible, StrictObservedPositivity), def:fixed-refinement-scm-class (`CompatibleModel` + `compatibleModelSet`), and the untagged companions `eval_structuralRecursion`, `marginal_pos_of_strictPositivity`.",
+      "projected_lines": 540
+    },
+    {
+      "file": "Helpers/Estimands.lean",
+      "contents": "def:micro-cde (`microCDE`), `QuerySpec` and `queryCDE` (q_j), def:summary-fiber, def:sharp-envelope (`attainableCDESet` + `envelopeLower` / `envelopeUpper` over `Causalean.PartialID.IdentifiedInterval`), `faContrast` (A_FA), def:graph-compatible-positive-laws (`positiveCompatibleLaws`, `lawNbhd`), and the untagged companion `focal_disjUnion_control`.",
+      "projected_lines": 360
+    },
+    {
+      "file": "Helpers/RawCompiler.lean",
+      "contents": "def:raw-polynomial-compiler: the padded support size `C`, `BranchCat` with its `Fintype` instance, `LambdaSpace` / `branchParams` over `stdSimplex`, `lawOf` (P_G), `qOf` (q_G), `phiOf` (Phi_G), `feasibleParams`, `feasibleRefinements`, the size parameters `kParam`, `sParam`, `dParam`, `wParam` and the aggregates `rSigma`, `kMax`, `sMax`, `dMax`, plus the multi-affinity and continuity companions and the branchwise compactness lemma built from `isCompact_stdSimplex`.",
+      "projected_lines": 500
+    },
+    {
+      "file": "Helpers/RefinementEnumeration.lean",
+      "contents": "lem:finite-refinements (`card_dirCandidates`, `card_refinementFinset_le`, `mem_refinementFinset_iff`, `refinement_dir_acyclic`).",
+      "projected_lines": 330
+    },
+    {
+      "file": "Helpers/FiniteSupportReduction.lean",
+      "contents": "lem:finite-factor-support-reduction: the per-factor linear-dependence elimination down to support size `C`, the zero-padding into `BranchCat`, branchwise multi-affinity, and the converse reconstruction of a finite semi-Markovian model from a product-of-simplices point.",
+      "projected_lines": 620
+    },
+    {
+      "file": "Helpers/Signatures.lean",
+      "contents": "def:raw-global-signatures (`rawSignatures`, `sigCell`, `sigContrast`, `sigEval`) and def:response-signature-quotient (`sigSetoid`, `signatureQuotient`, `sigProj`, `sigEvalQuot` with its `Quotient.lift` uniqueness).",
+      "projected_lines": 300
+    },
+    {
+      "file": "Helpers/QuotientImages.lean",
+      "contents": "def:factorized-quotient-images (`facMass`, `facMasses`, `pushMasses`, `attainableImages` with the `rawImage` / `facQuotImage` / `simpQuotImage` accessors), lem:factorized-pushforward-fidelity, def:abc-kill-test-instance (`abcGraph`, `abcQueries`, `abcKillTest`), and def:quotient-handle (`QCanOutput`, `qcan`).",
+      "projected_lines": 460
+    },
+    {
+      "file": "Helpers/OrderOnly.lean",
+      "contents": "def:order-only-model (`OrdSignature`, `ordGraph`, `ordEval`, `ordCell`, `ordContrast`, `ordObsLaw`, `ordCDE`, `orderOnlyFiber`), def:order-only-envelope (`orderOnlyEnvelope`, `ordLower`, `ordUpper`), and lem:refinement-embeds-complete-order (`padSignature` plus the two time-ordered inductions).",
+      "projected_lines": 540
+    },
+    {
+      "file": "Helpers/RealAlgebraicLanguage.lean",
+      "contents": "The locally re-derived first-order-real-formula language needed to state the two cited gates and to define `Cert` (F1-D7): `RationalPolyAtom`, `RationalFirstOrderFormula`, `.Holds`, `.QuantifierFree`, `.projection`, `.realSection`, `HasRationalAlgebraicDescription`, `EliminationTrace`, `EliminationCorrect`, and the serialisation of one compiled branch into a rational polynomial system. Adapted from `CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research/Helpers/RealAlgebraic.lean:15-111`, which is NOT imported because that artifact carries 28 sorries.",
+      "projected_lines": 280
+    },
+    {
+      "file": "Helpers/CitedGates.lean",
+      "contents": "The two frozen cited-gate propositions `OneBlockRealAlgebraicElimination` and `MultiBlockRealAlgebraicQE`, each a named `Sort 0` declaration with no proof, threaded as explicit hypotheses into TExactAlgebraicCertification.lean and TFactorizationSafeQuotientObstruction.lean respectively (F1-D5). The first carries only the arithmetic-operation, degree, coefficient-height and sample-point bounds actually stated by the source (F1-D6).",
+      "projected_lines": 150
+    },
+    {
+      "file": "Helpers/ExactCertifier.lean",
+      "contents": "def:exact-certifier: `CertOutput`, `EndpointCertificate`, `certifyCost`, and the total function `certify` taking the threaded one-block elimination gate as an argument and extracting its procedure by `Classical.choice`.",
+      "projected_lines": 380
+    },
+    {
+      "file": "Helpers/MicroAncestry.lean",
+      "contents": "def:bounded-window-micro-ancestry (`boundedWindowSupergraph`, `biPartners`, with An_D taken literally as `Causalean.DAG.ancestralSet`), `MicroCondition`, and lem:positive-lag-cyclic-cde-adjustment together with the untagged companion `micro_condition_load_bearing` (the two-node XOR counterexample).",
+      "projected_lines": 560
+    },
+    {
+      "file": "Helpers/TIVInstance.lean",
+      "contents": "`tivSummary` (S_TIV), def:tiv-rational-certificate (`TivCertificateData`, `tivCertificate` with every rational literal), and lem:tiv-summary-iv-representation (the disjoint-block factorization and the auxiliary conditional-law coupling), reusing `Causalean.PO.POBalkePearlSystem.dArm` / `.yArm` for the sixteen-state convention.",
+      "projected_lines": 640
+    },
+    {
+      "file": "Helpers/Inference.lean",
+      "contents": "`confRadius` (eps_{n,alpha}), ass:iid-window-sampling (`IidWindowSampling` over `Causalean.Stat.IIDSample`), the empirical law `phat` via `IIDSample.sampleMean`, def:multinomial-region (`confRegion`), def:confidence-endpoints (`confQueryValues`, `confInterval`), def:contrast-confidence-interval (`contrastValues`, `contrastConfInterval`), and the compactness companion for the rational box-simplex polytope.",
+      "projected_lines": 380
+    },
+    {
+      "file": "TSharpRefinementEnvelope.lean",
+      "contents": "thm:sharp-refinement-envelope",
+      "projected_lines": 420
+    },
+    {
+      "file": "TFixedGraphReduction.lean",
+      "contents": "prop:fixed-graph-reduction",
+      "projected_lines": 240
+    },
+    {
+      "file": "TExactAlgebraicCertification.lean",
+      "contents": "thm:exact-algebraic-certification (conditional on the threaded one-block elimination gate)",
+      "projected_lines": 520
+    },
+    {
+      "file": "TRobustOrderTightening.lean",
+      "contents": "thm:robust-order-tightening (four exact rational ledgers plus the relative-open strictness radius)",
+      "projected_lines": 700
+    },
+    {
+      "file": "TSimultaneousWholeSetInference.lean",
+      "contents": "thm:simultaneous-whole-set-inference",
+      "projected_lines": 420
+    },
+    {
+      "file": "TFactorizationSafeQuotientObstruction.lean",
+      "contents": "thm:factorization-safe-quotient-obstruction (conditional on the threaded multi-block QE gate for parts (b)-(c); part (a) is unconditional)",
+      "projected_lines": 700
+    },
+    {
+      "file": "TPositiveLagFAExactFrontier.lean",
+      "contents": "thm:positive-lag-fa-exact-frontier, including the frozen full-law delimitation instance",
+      "projected_lines": 720
+    },
+    {
+      "file": "TPositiveLagFAExtensionCollapse.lean",
+      "contents": "thm:positive-lag-fa-extension-collapse, including the strict-gain and cyclic-summary witnesses",
+      "projected_lines": 460
+    }
+  ],
+  "substrate_survey": [
+    {
+      "module": "Causalean/Graph/DAG.lean, Causalean/Graph/AcyclicConstruct.lean",
+      "verdict": "reused",
+      "reason": "Exact-abstraction reuse and the single largest reuse in the plan. `Causalean.DAG` is a decidable edge relation on a `Fintype` with cycle-freeness, which is precisely the directed layer of every refinement and of the bounded-window supergraph. `DAG.acyclic_of_topoOrder` (read at DAG.lean:453-462) discharges acyclicity in one line at `tau = timeOf`, `r = (<)`; `DAG.ancestralSet S = S union ancestorsSet S` (DAG.lean:334-339) IS the frozen reflexive ancestral closure An_D(.) verbatim; `DAG.parents`, `DAG.isAncestor`, `DAG.isAncestor_trans`, `DAG.isAncestor_iff_transGen`, `DAG.mem_ancestors`, `DAG.topoOrder`, `DAG.topoOrder_lt` supply the parent sets, path algebra and topological induction used by lem:positive-lag-cyclic-cde-adjustment, thm:positive-lag-fa-exact-frontier and thm:positive-lag-fa-extension-collapse; `DAG.ofAcyclic` materialises D_{H,L}(S) and G_H^ord."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/Basic.lean",
+      "verdict": "reused",
+      "reason": "`Causalean.PartialID.IdentifiedInterval obj feasible = Set.range (fun x : {x // feasible x} => obj x)` is the exact abstraction for every attained-value set in the note, so four definition nodes (def:sharp-envelope, def:order-only-envelope, def:confidence-endpoints, def:contrast-confidence-interval) are thin instantiations of it (F1-D4), and `mem_identifiedInterval` plus `identifiedInterval_subset_Icc` are the two interval moves thm:sharp-refinement-envelope, lem:refinement-embeds-complete-order and thm:simultaneous-whole-set-inference make. NOT reused: `identifiedInterval_eq_Icc` (`Basic.lean:78-84`) requires `hconn : OrdConnected` of the attainable set, which this note's honest scope disclaims, so no node asserts a `Set.Icc` equality for its value set; endpoint claims go through the separately defined `sInf`/`sSup` with `IsLeast.csInf_eq` / `IsGreatest.csSup_eq` (`Mathlib.Order.ConditionallyCompletePartialOrder.Basic`) instead."
+    },
+    {
+      "module": "Causalean/Stat/Sample.lean, Causalean/Stat/Concentration/TailBounds/Hoeffding.lean",
+      "verdict": "reused",
+      "reason": "`Causalean.Stat.IIDSample` is the sampling world of ass:iid-window-sampling and `IIDSample.sampleMean` the empirical cell frequency; `Causalean.Stat.Concentration.hoeffding_abs_ge` at `f = ` a window-cell indicator, `a = 0`, `b = 1` gives the per-cell bound (24) of thm:simultaneous-whole-set-inference VERBATIM, so the note's hand-rolled exponential-tilting derivation is not rebuilt. Namespaces confirmed by `grep '^(namespace|end|lemma|theorem) '` on both files."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/BalkePearl/ (LatentTable, Sharp, Attainment, ClosedFormAttainment, IntervalForm)",
+      "verdict": "reused (partially) + analogous-module reference recorded",
+      "reason": "DIRECT reuse: `Causalean.PO.POBalkePearlSystem.dArm z d0 d1 = if z then d1 else d0` and `.yArm d y0 y1 = if d then y1 else y0` are pure `Bool` selectors taking no system argument (LatentTable.lean:42,47) and fix the sixteen-state response-type convention shared by def:tiv-rational-certificate and lem:tiv-summary-iv-representation. ANALOGOUS MODULE for the rest: `cellProb_eq_sum_latent` (LatentTable.lean:286) IS the representation formula and `ATE_eq_sum_latent` (:159) its query column, and `canonicalMeasure` / `canonicalPOSystem` / `canonicalBP` (Sharp.lean:174-304) reconstruct an attaining model from a latent table; the gap is that all of these derive from `POBalkePearlSystem.BaseAssumptions` on a `POSystem` measure space, whereas here the IV structure must first be derived from positive lags plus exact projection to S_TIV inside a finite N-vertex product model with 2^(N-3) nuisance coordinates."
+    },
+    {
+      "module": "Causalean/SCM/PartialID/ (CanonicalModel.lean, SharpnessCertificate.lean)",
+      "verdict": "bypass-justified (analogous-module reference recorded)",
+      "reason": "Surveyed by `lean_file_outline`. `CompatibleSCM (G : SWIGGraph N) (As : SCM N Omega -> Prop) (M0 M : SCM N Omega)`, `compatibleInterval`, `IsSharp` and `isSharp_of_attaining` are the closest analogues of def:fixed-refinement-scm-class and thm:sharp-refinement-envelope, but (i) they are indexed by ONE `SWIGGraph` whereas the note's whole point is a union over an unknown refinement, (ii) `SWIGGraph` carries twelve proof fields, making a `Finset` of 2^(m_dir+m_bi) such structures impractical, and (iii) `isSharp_of_attaining` requires `(compatibleInterval ...).OrdConnected`, which this note's honest scope explicitly disclaims ('the attainable set itself need not be connected'), so it cannot be applied at all. Recorded on def:fixed-refinement-scm-class, thm:sharp-refinement-envelope and prop:fixed-graph-reduction as the reuse pattern for compatibility-class monotonicity and attainment-plus-reconstruction."
+    },
+    {
+      "module": "Causalean/SCM/Model/, Causalean/SCM/Do/, Causalean/SCM/ID/",
+      "verdict": "bypass-justified",
+      "reason": "The SCM/do-calculus/identification stack (`SCM N Omega`, `evalMap`, `jointKernel`, `obsKernel`, `fixSet`, `do_rule1/2/3`, `id_sound`, `idAlgorithm`, `backdoor`, `frontdoor`, `c_component_factorization`) is a kernel-valued, `SWIGGraph`-indexed dependent layer for graphical identification. The note is purely algebraic over generic finite types: it needs finite enumeration of graphs as data, multi-affinity of the observed-law map in independent latent-factor weights, compactness of products of simplices, and exact rational arithmetic. Recorded per F1-D1; the analogous declarations are noted on the individual nodes (`fixSet` on def:micro-cde, `evalMap` on ass:structural-recursion, `obsKernel` on ass:observed-law-compatibility, `backdoor`/`id_sound` on lem:positive-lag-cyclic-cde-adjustment and thm:positive-lag-fa-exact-frontier)."
+    },
+    {
+      "module": "Causalean/Graph/ (SWIG, SWIGSplitMono, CComponents, MarkovEquiv, DSep, Induce, FiniteDensity)",
+      "verdict": "bypass-justified",
+      "reason": "No d-separation, c-component, Markov-equivalence or SWIG-split question arises anywhere in the note. Critically, `SWIGGraph.directlyConfounded` / `bidirectedNeighbors` / `cComponentSet` DERIVE bidirected structure from shared unobserved DAG parents, whereas the note's bidirected edge set is PRIMITIVE data whose enumeration is the content of lem:finite-refinements and whose overlapping incidence is the content of thm:factorization-safe-quotient-obstruction. `grep 'Bidirected|bidirected|ADMG|MixedGraph|SummaryGraph' Causalean` returns only these six SWIG-derived files."
+    },
+    {
+      "module": "Causalean/SCM/ID/Overlap.lean, Causalean/SCM/ID/DiscreteID/Positive.lean, Causalean/Graph/FiniteDensity/Positive/",
+      "verdict": "bypass-justified",
+      "reason": "Surveyed for ass:strict-observed-positivity. `SCM.ID.Overlap` is a Rule-2 / backdoor overlap predicate on a conditional propensity function and the FiniteDensity positivity family is positivity of a discrete density relative to a reference measure on a SWIG factorization; the note's condition is pointwise positivity of a finite mass function on `(Win -> Bool)`. PARTIAL fit only, and a partial fit is not a discharge."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/Inference/ (Basic, IntervalCI, ImbensManski), Causalean/PO/ID/Partial/RandomSet/IntervalInference.lean, Causalean/Stat/Concentration/UniformDeviation/ConfidenceInterval.lean",
+      "verdict": "bypass-justified",
+      "reason": "Surveyed for def:multinomial-region and def:confidence-endpoints. All are scalar-interval coverage constructions for a real parameter (plug-in endpoints, Imbens-Manski calibration, uniform-deviation bands); the note needs an l-infinity box on a multinomial simplex whose SINGLE event is reoptimized jointly through every endpoint and same-model contrast program. PARTIAL fit only; the joint reoptimization is what makes `p' = p` feasible on the coverage event."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/LP/ConicDuality.lean, Causalean/PO/ID/Partial/SupportFunction/",
+      "verdict": "bypass-justified (analogous-module reference recorded)",
+      "reason": "Surveyed for the dual-certificate half of thm:robust-order-tightening. These are conic/support-function duality results over Hilbert-space ambiguity sets; the note's optimality certificates are SIXTEEN POINTWISE rational inequalities over an explicit response-type enumeration, which `decide` plus expectation closes directly with no duality theorem. Recorded as the technique reference for 'a pointwise dual inequality attained by an explicit primal witness'."
+    },
+    {
+      "module": "Causalean/SCM/ID/Assumptions/Monotonicity.lean, Causalean/Graph/MarkovEquiv/",
+      "verdict": "bypass-justified",
+      "reason": "Both appear on the cluster reuse list and were surveyed. The note assumes no monotonicity anywhere and never asks whether two graphs are Markov equivalent (its equivalence relation is on RESPONSE SIGNATURES within one branch, def:response-signature-quotient). `SelectionDiagram.*` from the reuse list does not exist in the tree (`Glob Causalean/SCM/{ID,Do,Model}/**/*.lean` shows no such file); no transport question arises."
+    },
+    {
+      "module": "CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research/ (Helpers/RealAlgebraic.lean, T_ExactCadRecovery.lean, T_FiniteComplexityInference.lean)",
+      "verdict": "bypass-justified (analogous-module reference recorded)",
+      "reason": "The closest analogue anywhere in the repository for def:exact-certifier, thm:exact-algebraic-certification and the two cited gates: `RationalPolyAtom`, `RationalFirstOrderFormula`, `.Holds`, `.QuantifierFree`, `.projection`, `.realSection`, `HasRationalAlgebraicDescription`, `IsCylindricalFormulaFamily`, `HasIsolatedOneDimensionalBoundary`, `CadAlgorithmCorrect`, `CylindricalAlgebraicDecompositionQE`, `CadEndpointCertificate`, `cadRecoveryProcedure`, `confidenceSetCadProcedure` (read at RealAlgebraic.lean:1-125). NOT importable: `grep 'sorry'` on that directory returns 28 occurrences across 19 files, cross-research imports are not the convention (`grep '^import CausalSmith\\.[A-Za-z]+\\.[A-Za-z0-9_]+_Research'` matches only self-imports), and its gate cites Collins 1975 CAD rather than this note's frozen Basu-Pollack-Roy 1996 locators. Adapted, not imported, in Helpers/RealAlgebraicLanguage.lean (F1-D7)."
+    },
+    {
+      "module": "CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/ (T3_Complete32Certificate, T4_DualFaceStrictRefinement, T5_RelativeOpenStrictRefinement, T6_WholeSetConfidence, Helpers/Inference.lean)",
+      "verdict": "bypass-justified (analogous-module reference recorded)",
+      "reason": "The closest analogue for thm:robust-order-tightening (an explicit finite response-type certificate plus a relative-open strictness region) and for thm:simultaneous-whole-set-inference (one multinomial event propagated to a whole set of queries). NOT importable: `grep 'sorry'` returns 19 occurrences across 15 files. Recorded as the technique reference on both nodes."
+    },
+    {
+      "module": "Mathlib.Analysis.Convex.StdSimplex, Mathlib.Analysis.Convex.Topology",
+      "verdict": "reused",
+      "reason": "`isCompact_stdSimplex (ι) [Fintype ι] : IsCompact (stdSimplex R ι)` (confirmed by `lean_leansearch 'the standard simplex is compact'`) is the compactness that thm:sharp-refinement-envelope (6)-(7), def:order-only-envelope, lem:finite-factor-support-reduction and thm:simultaneous-whole-set-inference all need; `Set.Finite.isCompact_convexHull` is the companion for finite branch unions. Nothing here is rebuilt."
+    },
+    {
+      "module": "Mathlib.Data.Sym.Sym2, Mathlib.Data.Finset.Powerset, Mathlib.Data.Finset.Max",
+      "verdict": "reused",
+      "reason": "`Sym2` and `Sym2.map` (confirmed by `lean_loogle 'Sym2.map'`) carry the unordered bidirected edges and the projection `projH`; `Finset.powerset` / `Finset.card_powerset` (confirmed by `lean_loogle 'Finset.powerset'`) give the whole 2^(m_dir+m_bi) bound of lem:finite-refinements; `Finset.exists_min_image` / `exists_max_image` (confirmed by `lean_loogle 'Finset.exists_min_image'` -> Mathlib.Data.Finset.Max) give the outer extrema over the finite refinement class."
+    },
+    {
+      "module": "Mathlib real-closed-field / semialgebraic layer",
+      "verdict": "absent (drives the two cited gates)",
+      "reason": "`lean_loogle '\"Semialgebraic\"'` returns EMPTY. `lean_loogle '\"RealClosed\"'` returns only `IsRealClosed` and its field axioms (`exists_isRoot_of_odd_natDegree`, `exists_eq_pow_of_odd`, `isSquare_neg_of_not_isSquare`, `toIsSemireal`) in `Mathlib.FieldTheory.IsRealClosed.Basic`. `lean_leansearch 'quantifier elimination for real closed fields, Tarski-Seidenberg, semialgebraic sets'` returns nothing on point. There is no quantifier elimination, no cylindrical algebraic decomposition, no Positivstellensatz and no semialgebraic-set API, so the two frozen Basu-Pollack-Roy citations are genuine, infeasible-here substrate gates and the plan's feasibility is `needs-new-infrastructure`."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:basu-pollack-roy-1996-one-block",
+      "bibkey": "BasuPollackRoy1996",
+      "title": "On the Combinatorial and Algebraic Complexity of Quantifier Elimination",
+      "authors": "Saugata Basu, Richard Pollack and Marie-Francoise Roy",
+      "year": 1996,
+      "venue": "Journal of the ACM 43(6):1002--1045",
+      "doi": "10.1145/235809.235813",
+      "citation": "Basu, S., R. Pollack, and M.-F. Roy (1996). On the Combinatorial and Algebraic Complexity of Quantifier Elimination. Journal of the ACM 43(6):1002--1045.",
+      "locator": "Theorems 1.3.1 and 1.3.3, pp. 1003--1005, together with the well-behaved-algorithm and sample-point bounds in Sections 1.2 and 3",
+      "carrier": "logical-claim",
+      "gates": [
+        "lem:one-block-real-algebraic-elimination"
+      ],
+      "verbatim_statement": "there exists an equivalent quantifier-free formula ... and the degrees of the polynomials P_ij(y) are bounded by d^{Π_i O(k_i)}",
+      "attestation": {
+        "by": "main",
+        "note": "Verified 2026-09-09 against the JACM article PDF uploaded by coauthor Richard Pollack at ResearchGate and mirrored by CiteSeerX (DOI 10.1145/235809.235813): Theorem 1.3.1 on pp.1004-1005 gives quantifier-free output, output-degree and arithmetic-operation bounds; the well-behaved definition on p.1004 gives integer intermediate/output bit-size control; Theorem 1.3.3 on p.1005 gives existential decision arithmetic complexity; Section 3.1.3 on pp.1028-1029 constructs univariate-representation points meeting every sign cell with degree/arithmetic and integer coefficient-size bounds. The source states arithmetic-operation complexity plus bit-size growth; any claimed bit-operation form is a derived corollary and must be reviewed as such, not attributed verbatim.",
+        "at": "2026-09-09T09:26:48.474Z"
+      }
+    },
+    {
+      "id": "cite:basu-pollack-roy-1996-multiblock",
+      "bibkey": "BasuPollackRoy1996",
+      "title": "On the Combinatorial and Algebraic Complexity of Quantifier Elimination",
+      "authors": "Saugata Basu, Richard Pollack and Marie-Francoise Roy",
+      "year": 1996,
+      "venue": "Journal of the ACM 43(6):1002--1045",
+      "doi": "10.1145/235809.235813",
+      "citation": "Basu, S., R. Pollack, and M.-F. Roy (1996). On the Combinatorial and Algebraic Complexity of Quantifier Elimination. Journal of the ACM 43(6):1002--1045.",
+      "locator": "Introduction §1.1 and Theorem 1.3.1, pp. 1003--1005",
+      "carrier": "logical-claim",
+      "gates": [
+        "lem:multiblock-real-algebraic-qe"
+      ],
+      "verbatim_statement": "If, instead of having a single block of variables quantified by the same quantifier the given sentence has several blocks of variables with alternating quantifiers, the problem is called the general decision problem for the first order theory of the reals.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified 2026-09-09 against the Basu--Pollack--Roy JACM article PDF: §1.1 explicitly defines the general decision problem with several alternating quantifier blocks, and Theorem 1.3.1 gives an algorithm that transforms first-order formulas over real closed fields into equivalent quantifier-free formulas. The semialgebraic-selector consequence used here is derived by applying that output to the first-order graph formula for the unique lexicographic minimizer; compactness is supplied by the calling proof, not by the citation.",
+        "at": "2026-09-09T00:00:00.000Z"
+      }
+    }
+  ],
+  "infrastructure_needed": [
+    {
+      "id": "lem:one-block-real-algebraic-elimination",
+      "kind": "mathlib-lemma",
+      "description": "One-block real quantifier elimination over the rationals with Basu-Pollack-Roy bounds: feasibility decision plus a one-free-variable projection in B^{O(1)}(s D)^{O(k)} arithmetic operations, output univariate degree D^{O(k)}, output coefficient bit length B(s D)^{O(k)}, and exact real-algebraic sample points in every nonempty sign cell.",
+      "effort": "large"
+    },
+    {
+      "id": "lem:multiblock-real-algebraic-qe",
+      "kind": "mathlib-lemma",
+      "description": "Effective quantifier elimination for arbitrary finite first-order formulas over a real closed field with rational polynomial atoms, including alternating universal and existential variable blocks: decidability for sentences and a computable quantifier-free semialgebraic description of the solution set with free variables.",
+      "effort": "large"
+    }
+  ],
+  "theorems": []
+}

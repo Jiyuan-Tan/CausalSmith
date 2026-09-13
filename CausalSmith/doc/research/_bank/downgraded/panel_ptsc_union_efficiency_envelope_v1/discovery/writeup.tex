@@ -1,0 +1,1087 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}ptsc\_\allowbreak{}union\_\allowbreak{}efficiency\_\allowbreak{}envelope}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Short-panel ATT identification is valid on the union of conditional parallel trends and a full-rank group-level synthetic-control mean restriction. At strict-interior, locally constant-rank intersection points, the corrected derivative separates the common treated-composition gradient \(\chi_0\) from conditionally centered stratum gradients. Their affine-class intersection and union convolution lower bound are computed by finite covariance-weighted programs, with \(E[\chi_0^2]\) added to the envelope and both oracle variances; observable Gram discrepancies characterize simultaneous and one-sided adaptation. The exact strict three-group witness and the single-donor and saturated-donor endpoints remain valid on this repaired scope. Sun, Xie, and Zhang analyze one integrated ATT estimator and one multiplier-bootstrap construction under alternative PT and SC hypotheses, with branch-specific influence functions and variances. This paper adds a sharp local lower-bound benchmark, not implemented inference; finite-coordinate splicing makes the requested uniform attainment theorem false over the frozen sequence class.
+
+\section{Project justification}
+
+\paragraph{Gap.} SunXieZhang2025 identifies the ATT under alternative PT and SC hypotheses and analyzes one integrated estimator and one multiplier-bootstrap construction: Theorems 2 and 3 give branch-specific influence functions and asymptotic variances that may differ, and Theorem 4 proves bootstrap consistency under either theorem's assumptions. ChenSantAnnaXie2025 derives PT efficiency alone. Neither source determines the common regular influence class or union convolution bound at strict-interior constant-rank PT--SC intersection points.
+
+\paragraph{Niche.} Finite covariate support turns each branch into finitely many conditional-mean restrictions. At strict-interior constant-rank theorem points, separating \(\chi_b\) from \(g^{\circ}_{b,x}\) restores the product rule; the common \(\chi_0\) is orthogonal to the centered restriction geometry, so the local efficiency loss and adaptation frontier are computable from observed conditional covariance Grams.
+
+\paragraph{Fill.} The project derives corrected PT and SC affine influence classes at strict-interior locally constant-rank intersection points, solves their centered intersection by stratum covariance-weighted quadratic programs, and adds \(E[\chi_0^2]\) to the union and oracle variances. It proves simultaneous and one-sided oracle criteria, the strict three-group region, and both endpoint reductions. The lower-bound and impossibility conclusions apply to estimators regular on the broader published union by restriction to this subclass, while sharpness is local to the repaired subclass. No implemented standard error or uniform multiplier theorem is delivered.
+
+\section{Related work}
+
+SunXieZhang2025 is the identification anchor and analyzes one integrated ATT estimator and one multiplier-bootstrap construction under alternative assumptions. Its PT condition is the donor-by-donor conditional final-change equality. Its SC hypothesis uses covariate-indexed weights common across periods, summing to one with negative weights allowed and \(T\ge J\); the intercept row of \(B\) encodes the sum constraint. Its identification theorem need not identify weights uniquely, while its SC estimation theorem assumes a uniformly nonsingular reference-donor difference system equivalent, after reparameterization, to full column rank of augmented \(B\). Theorems 2 and 3 give the PT and SC asymptotic laws for the integrated estimator, with influence functions and variances that may differ, and Theorem 4 gives multiplier-bootstrap consistency under either theorem's assumptions. The present model is a finite-support, uniform-margin, full-rank subclass, and the new sharpness claim is local to strict-interior constant-rank points in that subclass. ChenSantAnnaXie2025 supplies covariance-optimal PT weighting but not the nonnested union geometry. TchetgenTchetgenRobinsRotnitzky2010 studies a different union model. SantAnnaZhao2020, Proposition 1(a), equation (2.11), supplies the panel-DiD influence function, and equation (2.12) supplies its efficiency bound; equation (2.13) is for repeated cross-sections. Newey1990, Sections 2--3, supports the generic regular-estimator efficiency lower bound, while Newey1994 is retained only for its separately verified constant-rank role. NeweyRobins2018, ChernozhukovChetverikovKato2016, and DukesVansteelandtWhitney2024 are guidance for a possible repaired uniform theorem. Lower-bound and impossibility conclusions transfer by restriction to estimators regular over the broader published union; RummoEtAl2026 and the Alaska analysis in SunXieZhang2025 receive a benchmark, not a new standard-error procedure.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=E_F[Y_T(1)-Y_T(0)\mid G=1]\).
+Primary functional / estimator / diagnostic: \(\theta(P)=\theta_b(P_O)\text{ for }P\in\mathcal M_b,\ b\in\{\mathrm{PT},\mathrm{SC}\}\). At a strict-interior constant-rank \(P_0\in\mathcal M_I\) satisfying \(p_X(x)>\kappa_0\), \(p_g(x)\in(\epsilon_0,1-\epsilon_0)\), strict fourth-moment and SC-spectrum margins, nonzero \(\Omega_x\)-eigenvalues greater than \(\kappa_0\), and locally constant \(\operatorname{rank}(\Omega_x)\), \(\phi_U(P_0)=\chi_0+\sum_x\{g^{\circ}_{\mathrm{PT},x}+R_{\mathrm{PT},x}^{\prime}a_x^U\}=\chi_0+\sum_x\{g^{\circ}_{\mathrm{SC},x}+R_{\mathrm{SC},x}^{\prime}d_x^U\}\), where the centered coefficients solve \(\mathrm{QP}_x\)..
+\begin{itemize}
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independent panel units.}
+  \item \texttt{i} --- \texttt{unit index}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index of an observed panel unit.}
+  \item \texttt{T} --- \texttt{fixed panel length}; \(\{2,3,\ldots\}\); \texttt{panel dimension}
+  \par\smallskip\noindent\emph{Definition.} Number of periods; only group one is treated, and only in period \(T\).
+  \item \texttt{J} --- \texttt{fixed donor count}; \(\{1,\ldots,T\}\); \texttt{group dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of untreated donor groups.}
+  \item \texttt{K} --- \texttt{fixed covariate-\allowbreak{}support size}; \(\mathbb N\); \texttt{stratum dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of covariate strata.}
+  \item \texttt{t} --- \texttt{period index}; \(\{1,\ldots,T\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic period index.}
+  \item \texttt{g} --- \texttt{group index}; \(\{1,\ldots,J+1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Generic group index; group one is treated and groups two through \(J+1\) are donors.
+  \item \texttt{x} --- \texttt{stratum index}; \(\{x_1,\ldots,x_K\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic covariate stratum.}
+  \item \texttt{b} --- \texttt{identification-\allowbreak{}branch index}; \(\{\mathrm{PT},\mathrm{SC}\}\); \texttt{branch index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index for the parallel-\allowbreak{}trends and synthetic-\allowbreak{}control branches.}
+  \item \texttt{eps0} --- \texttt{overlap margin}; \((0,1/(J+1))\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed lower bound on every conditional group probability.}
+  \item \texttt{kappa0} --- \texttt{spectral and mass margin}; \((0,1)\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed lower bound used for occupied-\allowbreak{}stratum masses and nonzero singular values.}
+  \item \texttt{M4} --- \texttt{fourth-\allowbreak{}moment envelope}; \((0,\infty)\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed uniform upper bound for fourth moments.}
+  \item \texttt{alpha} --- \texttt{test size}; \((0,1)\); \texttt{inference level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nominal noncoverage probability.}
+  \item \texttt{Xspace} --- \texttt{finite covariate support}; \(\mathcal X=\{x_1,\ldots,x_K\}\); \texttt{sample space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known finite support of the time-\allowbreak{}invariant covariate.}
+  \item \texttt{Gspace} --- \texttt{finite group support}; \(\mathcal G=\{1,\ldots,J+1\}\); \texttt{sample space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known support of the group indicator.}
+  \item \texttt{X} --- \texttt{baseline covariate}; \(X\in\mathcal X\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed time-\allowbreak{}invariant covariate.}
+  \item \texttt{G} --- \texttt{group indicator}; \(G\in\mathcal G\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed group membership.}
+  \item \texttt{Ypot} --- \texttt{potential-\allowbreak{}outcome panel}; \((Y_t(0),Y_t(1))_{t=1}^{T}\in\mathbb R^{2T}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential outcomes under no final-\allowbreak{}period treatment and under treatment in the final period.}
+  \item \texttt{Y} --- \texttt{observed outcome panel}; \(Y=(Y_1,\ldots,Y_T)\in\mathbb R^T\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} Observed outcomes, with \(Y_t=Y_t(0)\) for \(t<T\) and \(Y_T=\mathbf 1\{G=1\}Y_T(1)+\mathbf 1\{G\ne1\}Y_T(0)\).
+  \item \texttt{O} --- \texttt{observed panel record}; \(\mathbb R^T\times\mathcal G\times\mathcal X\); \texttt{sampling unit}
+  \par\smallskip\noindent\emph{Definition.} \(O=(Y,G,X)\).
+  \item \texttt{P} --- \texttt{compatible full-\allowbreak{}data law}; probability laws for \((Y_t(0),Y_t(1))_{t=1}^{T},G,X\); \texttt{data-\allowbreak{}generating law}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Law governing the potential outcomes,\allowbreak{} group,\allowbreak{} and covariate.}
+  \item \texttt{EF} --- \texttt{full-\allowbreak{}data expectation operator}; \(E_F[f]=\int f\,dP\); \texttt{causal expectation operator}
+  \par\smallskip\noindent\emph{Definition.} Expectation under the compatible full-data law \(P\), including expectations of potential outcomes; conditioning is indicated after a vertical bar.
+  \item \texttt{PO} --- \texttt{observed-\allowbreak{}data law}; \(\mathsf{Prob}(\mathbb R^T\times\mathcal G\times\mathcal X)\); \texttt{statistical experiment}
+  \par\smallskip\noindent\emph{Definition.} \(P_O\) is the law of \(O\) induced by \(P\).
+  \item \texttt{EO} --- \texttt{expectation operator}; \(E_O[f]=\int f\,dP_O\); \texttt{operator}
+  \par\smallskip\noindent\emph{Definition.} Expectation under the observed-data law \(P_O\), with conditioning indicated after a vertical bar.
+  \item \texttt{pX} --- \texttt{stratum mass}; \((0,1]\); \texttt{primitive nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(p_X(x)=P_O(X=x)\).
+  \item \texttt{pg} --- \texttt{conditional group probability}; \(p_g:\mathcal X\to(0,1)\); \texttt{primitive nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(p_g(x)=P_O(G=g\mid X=x)\).
+  \item \texttt{pi1} --- \texttt{treated-\allowbreak{}group share}; \((0,1)\); \texttt{normalization}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_1=P_O(G=1)=\sum_{x\in\mathcal X}p_X(x)p_1(x)\).
+  \item \texttt{mu} --- \texttt{conditional observed mean}; \(\mu_{g,t}:\mathcal X\to\mathbb R\); \texttt{primitive nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{g,t}(x)=E_O[Y_t\mid G=g,X=x]\).
+  \item \texttt{deltamu} --- \texttt{final change mean}; \(\Delta\mu_g:\mathcal X\to\mathbb R\); \texttt{derived nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta\mu_g(x)=\mu_{g,T}(x)-\mu_{g,T-1}(x)\).
+  \item \texttt{delta0} --- \texttt{treated-\allowbreak{}group untreated final-\allowbreak{}change mean}; \(\delta_1^0:\mathcal X\to\mathbb R\); \texttt{full-\allowbreak{}data counterfactual nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_1^0(x)=E_F[Y_T(0)-Y_{T-1}(0)\mid G=1,X=x]\).
+  \item \texttt{Dvec} --- \texttt{donor final-\allowbreak{}change vector}; \(\mathbb R^J\); \texttt{observable PT nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(D(x)=(\Delta\mu_2(x),\ldots,\Delta\mu_{J+1}(x))^{\prime}\).
+  \item \texttt{oneJ} --- \texttt{donor all-\allowbreak{}ones vector}; \(\mathbb R^J\); \texttt{PT profiling direction}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf 1_J=(1,\ldots,1)^{\prime}\).
+  \item \texttt{APT} --- \texttt{PT counterfactual-\allowbreak{}profiling matrix}; \(\mathbb R^{J\times J}\); \texttt{profile operator}
+  \par\smallskip\noindent\emph{Definition.} \(A_{\mathrm{PT}}=I_J-J^{-1}\mathbf 1_J\mathbf 1_J^{\prime}\), the orthogonal projector that removes the unrestricted treated counterfactual change.
+  \item \texttt{avec} --- \texttt{treated preperiod mean vector}; \(\mathbb R^T\); \texttt{synthetic-\allowbreak{}control target vector}
+  \par\smallskip\noindent\emph{Definition.} \(a(x)=(1,\mu_{1,1}(x),\ldots,\mu_{1,T-1}(x))^{\prime}\).
+  \item \texttt{Bmat} --- \texttt{augmented donor preperiod matrix}; \(\mathbb R^{T\times J}\); \texttt{synthetic-\allowbreak{}control design matrix}
+  \par\smallskip\noindent\emph{Definition.} The column for donor \(g\in\{2,\ldots,J+1\}\) is \((1,\mu_{g,1}(x),\ldots,\mu_{g,T-1}(x))^{\prime}\).
+  \item \texttt{w} --- \texttt{group-\allowbreak{}level synthetic-\allowbreak{}control weight vector}; \(\mathbb R^J\); \texttt{identified nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(w(x)=\{B(x)^{\prime}B(x)\}^{-1}B(x)^{\prime}a(x)\) whenever \(B(x)\) has full column rank.
+  \item \texttt{db} --- \texttt{raw branch-\allowbreak{}restriction dimension}; \(d_{\mathrm{PT}}=J\) and \(d_{\mathrm{SC}}=T\); \texttt{dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Dimension of the displayed restriction vector before removal of linearly dependent rows.}
+  \item \texttt{qbx} --- \texttt{branch restriction map}; \(q_{b,x}(P)\in\mathbb R^{d_b}\); \texttt{model restriction}
+  \par\smallskip\noindent\emph{Definition.} Finite-dimensional branch restriction vector on the compatible full-data law, constructed in \(\mathrm{def{:}restriction\text{-}maps}\).
+  \item \texttt{rbx} --- \texttt{profiled observable branch restriction map}; \(r_{b,x}(P_O)\in\mathbb R^{d_b}\); \texttt{observed-\allowbreak{}data moment restriction}
+  \par\smallskip\noindent\emph{Definition.} Observable restriction map obtained from \(q_{b,x}\) after profiling full-data counterfactual coordinates, as constructed in \(\mathrm{def{:}restriction\text{-}maps}\).
+  \item \texttt{theta} --- \texttt{average treatment effect on the treated}; \(\mathbb R\); \texttt{causal estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\theta(P)=E_F[Y_T(1)-Y_T(0)\mid G=1]\).
+  \item \texttt{thetaPT} --- \texttt{parallel-\allowbreak{}trends identifying functional}; \(\mathbb R\); \texttt{branch functional}
+  \par\smallskip\noindent\emph{Definition.} Observed-law functional constructed in \(\mathrm{def{:}branch\text{-}functionals}\).
+  \item \texttt{thetaSC} --- \texttt{synthetic-\allowbreak{}control identifying functional}; \(\mathbb R\); \texttt{branch functional}
+  \par\smallskip\noindent\emph{Definition.} Observed-law functional constructed in \(\mathrm{def{:}branch\text{-}functionals}\).
+  \item \texttt{MPT} --- \texttt{parallel-\allowbreak{}trends model}; \texttt{classes of compatible laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}pt\text{-}model}\).
+  \item \texttt{MSC} --- \texttt{synthetic-\allowbreak{}control model}; \texttt{classes of compatible laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}sc\text{-}model}\).
+  \item \texttt{MU} --- \texttt{PT-\allowbreak{}or-\allowbreak{}SC union model}; \texttt{classes of compatible laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}union\text{-}model}\).
+  \item \texttt{MI} --- \texttt{PT-\allowbreak{}and-\allowbreak{}SC intersection model}; \texttt{classes of compatible laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}intersection\text{-}model}\).
+  \item \texttt{HP} --- \texttt{observed-\allowbreak{}data Hilbert space}; \(\mathcal H_P=L_0^2(P_O)\); \texttt{tangent geometry}
+  \par\smallskip\noindent\emph{Definition.} Mean-zero square-integrable observed-data functions with inner product \(\langle f,h\rangle_P=E_O[fh]\).
+  \item \texttt{s} --- \texttt{regular-\allowbreak{}submodel score}; \(\mathcal H_P\); \texttt{local direction}
+  \par\smallskip\noindent\emph{Definition.} Score of an observed-data quadratic-mean differentiable submodel through \(P_O\).
+  \item \texttt{Tb} --- \texttt{branch tangent space}; closed linear subspaces of \(\mathcal H_P\); \texttt{tangent geometry}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T_b(P)\) is constructed in \(\mathrm{def{:}branch\text{-}tangents}\).
+  \item \texttt{Rbx} --- \texttt{profiled restriction-\allowbreak{}gradient vector}; \(\mathcal H_P^{d_b}\); \texttt{profiled observed-\allowbreak{}data restriction normal}
+  \par\smallskip\noindent\emph{Definition.} \(R_{b,x}\) is the mean-zero, \(X=x\)-supported conditional-residual Riesz vector for the derivative of \(r_{b,x}(P_O)\), normalized by \(E_O[R_{b,x}\mid G,X]=0\).
+  \item \texttt{Rb} --- \texttt{stacked branch restriction-\allowbreak{}gradient vector}; a finite Cartesian power of \(\mathcal H_P\); \texttt{stacked restriction normal}
+  \par\smallskip\noindent\emph{Definition.} \(R_b=(R_{b,x}^{\prime}:x\in\mathcal X)^{\prime}\), after retaining any maximal linearly independent coordinate system.
+  \item \texttt{Ib} --- \texttt{branch regular influence-\allowbreak{}function class}; affine subsets of \(\mathcal H_P\); \texttt{regularity class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_b(P)\) is constructed in \(\mathrm{def{:}influence\text{-}classes}\).
+  \item \texttt{phib} --- \texttt{branch canonical gradient}; \(\mathcal H_P\); \texttt{oracle influence function}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_b=\arg\min_{\phi\in\mathcal I_b(P)}E_O[\phi^2]\).
+  \item \texttt{Vb} --- \texttt{branch oracle efficiency bound}; \([0,\infty)\); \texttt{oracle variance bound}
+  \par\smallskip\noindent\emph{Definition.} \(V_b(P)=E_O[\phi_b^2]\).
+  \item \texttt{aOrx} --- \texttt{PT oracle normal coefficient}; \(\mathbb R^{d_{\mathrm{PT}}}\); \texttt{oracle projection coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(a_x^{\mathrm{or}}\) is constructed in \(\mathrm{def{:}oracle\text{-}gram\text{-}tests}\).
+  \item \texttt{dOrx} --- \texttt{SC oracle normal coefficient}; \(\mathbb R^{d_{\mathrm{SC}}}\); \texttt{oracle projection coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(d_x^{\mathrm{or}}\) is constructed in \(\mathrm{def{:}oracle\text{-}gram\text{-}tests}\).
+  \item \texttt{phiU} --- \texttt{union canonical gradient}; \(\mathcal H_P\); \texttt{union-\allowbreak{}efficient influence function}
+  \par\smallskip\noindent\emph{Definition.} For \(P\in\mathcal M_I\), \(\phi_U(P)=\arg\min_{\phi\in\mathcal I_{\mathrm{PT}}(P)\cap\mathcal I_{\mathrm{SC}}(P)}E_O[\phi^2]\).
+  \item \texttt{VU} --- \texttt{union convolution bound}; \([0,\infty]\); \texttt{efficiency envelope}
+  \par\smallskip\noindent\emph{Definition.} For \(P\in\mathcal M_I\), \(V_U(P)=E_O[\phi_U(P)^2]\).
+  \item \texttt{muC} --- \texttt{donor conditional-\allowbreak{}mean vector}; \(\mathbb R^J\); \texttt{observable donor nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{C,t}(x)=(\mu_{2,t}(x),\ldots,\mu_{J+1,t}(x))^{\prime}\).
+  \item \texttt{Cb} --- \texttt{branch conditional contrast}; \(\mathbb R\); \texttt{conditional identifying contrast}
+  \par\smallskip\noindent\emph{Definition.} \(C_{\mathrm{PT}}(x)\) and \(C_{\mathrm{SC}}(x)\) are constructed in \(\mathrm{def{:}branch\text{-}conditional\text{-}contrasts}\).
+  \item \texttt{nu} --- \texttt{treated-\allowbreak{}stratum probability}; \([0,1]\); \texttt{composition weight}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_x=P_O(X=x\mid G=1)=p_X(x)p_1(x)/\pi_1\).
+  \item \texttt{thetab} --- \texttt{branch observed-\allowbreak{}law ATT functional}; \(\mathbb R\); \texttt{indexed branch functional}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_b=\theta_{\mathrm{PT}}\) for \(b=\mathrm{PT}\) and \(\theta_b=\theta_{\mathrm{SC}}\) for \(b=\mathrm{SC}\).
+  \item \texttt{chib} --- \texttt{treated-\allowbreak{}composition gradient}; \(\mathcal H_P\); \texttt{composition influence component}
+  \par\smallskip\noindent\emph{Definition.} \(\chi_b(O)=\mathbf 1\{G=1\}\{C_b(X)-\theta_b\}/\pi_1\).
+  \item \texttt{eta} --- \texttt{Gaussian multiplier sequence}; \((\eta_i)_{i=1}^{n}\stackrel{\mathrm{iid}}{\sim}N(0,1)\); \texttt{bootstrap randomness}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Multipliers independent of the observed sample.}
+  \item \texttt{Pstar} --- \texttt{equal-\allowbreak{}share three-\allowbreak{}group witness law}; \texttt{compatible full-\allowbreak{}data laws}; \texttt{strict-\allowbreak{}separation witness}
+  \par\smallskip\noindent\emph{Definition.} Law constructed in \(\mathrm{def{:}three\text{-}group\text{-}witness}\).
+  \item \texttt{gcirc} --- \texttt{centered stratum conditional-\allowbreak{}contrast gradient}; \(\mathcal H_P\); \texttt{centered unrestricted gradient}
+  \par\smallskip\noindent\emph{Definition.} \(g^{\circ}_{b,x}\) is the \(X=x\)-supported conditional-residual Riesz representer of \(\nu_x\dot C_b(x)\), normalized by \(E_O[g^{\circ}_{b,x}\mid G,X]=0\).
+  \item \texttt{hx} --- \texttt{stacked centered stratum gradient vector}; \(\mathcal H_P^{2+d_{\mathrm{PT}}+d_{\mathrm{SC}}}\); \texttt{finite centered projection basis}
+  \par\smallskip\noindent\emph{Definition.} \(h_x=(g^{\circ}_{\mathrm{PT},x},g^{\circ}_{\mathrm{SC},x},R_{\mathrm{PT},x}^{\prime},R_{\mathrm{SC},x}^{\prime})^{\prime}\).
+  \item \texttt{Omegax} --- \texttt{conditional centered Gram matrix}; \texttt{positive semidefinite matrices}; \texttt{covariance geometry}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_x=E_O[h_xh_x^{\prime}\mid X=x]\), with \(h_x\) built from the centered conditional-contrast gradients and normalized restriction normals.
+  \item \texttt{P0} --- \texttt{fixed strict-\allowbreak{}interior intersection law}; \(P_0\in\mathcal M_{\mathrm{PT}}\cap\mathcal M_{\mathrm{SC}}\); \texttt{local-\allowbreak{}asymptotic center}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Reference law satisfying both branches and,\allowbreak{} whenever used as a theorem point,\allowbreak{} strict slack in the displayed cell-\allowbreak{}mass,\allowbreak{} two-\allowbreak{}sided group-\allowbreak{}overlap,\allowbreak{} fourth-\allowbreak{}moment,\allowbreak{} SC-\allowbreak{}spectrum,\allowbreak{} nonzero-\allowbreak{}normal-\allowbreak{}spectrum,\allowbreak{} and positive local-\allowbreak{}score-\allowbreak{}variance margins,\allowbreak{} together with the displayed locally constant-\allowbreak{}rank condition.}
+  \item \texttt{Pnseq} --- \texttt{branch-\allowbreak{}switching triangular sequence}; \((P_n)_{n\ge1}\); \texttt{local experiment}
+  \par\smallskip\noindent\emph{Definition.} Sequence of laws in the PT-or-SC union approaching \(P_0\) at the root-\(n\) scale.
+  \item \texttt{bnseq} --- \texttt{active local-\allowbreak{}chart sequence}; \((b_n)_{n\ge1}\subset\{\mathrm{PT},\mathrm{SC}\}\); \texttt{local branch chart}
+  \par\smallskip\noindent\emph{Definition.} A chart label satisfying \(P_n\in\mathcal M_{b_n}\); either label is admissible when \(P_n\in\mathcal M_I\).
+  \item \texttt{hnseq} --- \texttt{local score sequence}; \((h_n)_{n\ge1}\subset\mathcal H_{P_0}\); \texttt{local direction}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Scores indexing quadratic-\allowbreak{}mean local alternatives.}
+  \item \texttt{LU} --- root-\(n\) PT-or-SC local-sequence class; \texttt{classes of triangular arrays}; \texttt{uniformity class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}local\text{-}union\text{-}sequences}\).
+  \item \texttt{phiLoc} --- \texttt{branch-\allowbreak{}chart extension of the common influence function}; \(\mathcal H_P\); \texttt{off-\allowbreak{}intersection influence object}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_U^{\mathrm{loc}}(P;b,P_0)\) is constructed in \(\mathrm{def{:}local\text{-}score\text{-}extension}\).
+  \item \texttt{VLoc} --- \texttt{variance of the branch-\allowbreak{}chart score extension}; \([0,\infty)\); \texttt{local-\allowbreak{}sequence variance}
+  \par\smallskip\noindent\emph{Definition.} \(V_U^{\mathrm{loc}}(P;b,P_0)=E_O[\{\phi_U^{\mathrm{loc}}(P;b,P_0)\}^2]\).
+  \item \texttt{chi0} --- \texttt{common intersection composition gradient}; \(\mathcal H_{P_0}\); \texttt{common influence component}
+  \par\smallskip\noindent\emph{Definition.} At the fixed reference law, \(\chi_0=\chi_{\mathrm{PT}}(P_0)\).
+  \item \texttt{QPx} --- \texttt{stratum union-\allowbreak{}projection program}; \texttt{finite covariance-\allowbreak{}weighted quadratic programs}; \texttt{computational envelope}
+  \par\smallskip\noindent\emph{Definition.} Program constructed in \(\mathrm{def{:}union\text{-}qp}\).
+  \item \texttt{aUx} --- \texttt{union PT-\allowbreak{}normal coefficient}; \(\mathbb R^{d_{\mathrm{PT}}}\); \texttt{union projection coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(a_x^U\) is the PT-normal component of the Euclidean minimum-norm solution of \(\mathrm{QP}_x\).
+  \item \texttt{dUx} --- \texttt{union SC-\allowbreak{}normal coefficient}; \(\mathbb R^{d_{\mathrm{SC}}}\); \texttt{union projection coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(d_x^U\) is the SC-normal component of the Euclidean minimum-norm solution of \(\mathrm{QP}_x\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent draws from \(P_O\).
+\par\smallskip\noindent\emph{Standard} (Independent panel sampling, \cite{SunXieZhang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:no-anticipation]\label{ass:no-anticipation}
+\(Y_t(1)=Y_t(0)\) almost surely for every \(t<T\).
+\par\smallskip\noindent\emph{Standard} (No anticipation, \cite{SunXieZhang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:cell-mass]\label{ass:cell-mass}
+\(\min_{x\in\mathcal X}p_X(x)\ge\kappa_0\).
+\par\smallskip\noindent\emph{Standard} (Finite-cell probability margin, \cite{TchetgenTchetgenRobinsRotnitzky2010}).
+\end{assumption}
+
+\begin{assumption}[ass:group-overlap]\label{ass:group-overlap}
+\(\min_{x\in\mathcal X}\min_{1\le g\le J+1}p_g(x)\ge\epsilon_0\).
+\par\smallskip\noindent\emph{Standard} (Uniform conditional group overlap, \cite{SunXieZhang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:fourth-moments]\label{ass:fourth-moments}
+\(\max_{1\le g\le J+1}\max_{1\le t\le T}E_O[|Y_t|^4\mid G=g]\le M_4\).
+\par\smallskip\noindent\emph{Standard} (Uniform bounded fourth moments, \cite{SunXieZhang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:parallel-trends]\label{ass:parallel-trends}
+\(E_F[Y_T(0)-Y_{T-1}(0)\mid G=1,X=x]=E_F[Y_T(0)-Y_{T-1}(0)\mid G=g,X=x]\) for every \(x\in\mathcal X\) and \(g=2,\ldots,J+1\).
+\par\smallskip\noindent\emph{Standard} (Conditional parallel trends, \cite{SunXieZhang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:synthetic-mean]\label{ass:synthetic-mean}
+\(E_F[Y_t(0)\mid G=1,X=x]=\sum_{g=2}^{J+1}w_g(x)E_F[Y_t(0)\mid G=g,X=x]\) for every \(x\in\mathcal X\) and \(t=1,\ldots,T\).
+\par\smallskip\noindent\emph{Standard} (Time-invariant covariate-indexed group-level synthetic-control mean representation, \cite{SunXieZhang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:sc-rank]\label{ass:sc-rank}
+\(\inf_{x\in\mathcal X}\lambda_{\min}\{B(x)^{\prime}B(x)\}\ge\kappa_0\).
+\par\smallskip\noindent\emph{Standard} (Uniform full-column-rank group-level preperiod mean system, \cite{SunXieZhang2025}).
+\end{assumption}
+
+\begin{assumption}[ass:normal-rank]\label{ass:normal-rank}
+\(\operatorname{rank}(\Omega_x)\) is locally constant at \(P_0\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Constant-rank smooth moment manifold, \cite{Newey1994}).
+\end{assumption}
+
+\begin{assumption}[ass:normal-gap]\label{ass:normal-gap}
+\(\inf_{x\in\mathcal X}\lambda_{\min}^{+}(\Omega_x)\ge\kappa_0\), where \(\lambda_{\min}^{+}\) denotes the smallest nonzero eigenvalue.
+\par\smallskip\noindent\emph{Standard} (Separated nonzero Gram spectrum, \cite{AndrewsCheng2012}).
+\end{assumption}
+
+\begin{assumption}[ass:local-qmd]\label{ass:local-qmd}
+For the observed laws induced by \(P_n\) and \(P_0\), \(dP_{n,O}^{1/2}/dP_{0,O}^{1/2}=1+(2\sqrt n)^{-1}h_n+o_{L^2(P_{0,O})}(n^{-1/2})\) with \(\sup_nE_{P_{0,O}}[h_n^2]<\infty\).
+\par\smallskip\noindent\emph{Standard} (Quadratic-mean differentiable local alternatives, \cite{VanDerVaart1998}).
+\end{assumption}
+
+\begin{assumption}[ass:union-variance-floor]\label{ass:union-variance-floor}
+\(V_U^{\mathrm{loc}}(P_n;b_n,P_0)\ge\kappa_0\) for every \(n\).
+\par\smallskip\noindent\emph{Standard} (Nondegenerate asymptotic variance, \cite{ChernozhukovChetverikovKato2016}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:restriction-maps]\label{def:restriction-maps}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full-\allowbreak{}data restrictions and profiled observable restrictions}
+\par\smallskip\noindent\emph{Construction.} For each \(x\in\mathcal X\), set \(q_{\mathrm{PT},x}(P)=\delta_1^0(x)\mathbf 1_J-D(x)\in\mathbb R^J\), whose \(j\)-th coordinate is the treated-versus-donor \(j+1\) untreated final-change equality, and set \(q_{\mathrm{SC},x}(P)=\{I_T-B(x)[B(x)^{\prime}B(x)]^{-1}B(x)^{\prime}\}a(x)\in\mathbb R^T\). Profiling the unrestricted counterfactual scalar \(\delta_1^0(x)\) gives \(r_{\mathrm{PT},x}(P_O)=A_{\mathrm{PT}}q_{\mathrm{PT},x}(P)=-A_{\mathrm{PT}}D(x)\), while \(r_{\mathrm{SC},x}(P_O)=q_{\mathrm{SC},x}(P)\). Thus the raw PT map has \(J\) treated-versus-donor coordinates and its observed-data derivative has rank \(J-1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{PO}; \texttt{mu}; \texttt{delta0}.
+\end{definition}
+
+\begin{definition}[def:branch-functionals]\label{def:branch-functionals}
+\par\smallskip\noindent\emph{Defined object.} \texttt{PT and SC observed-\allowbreak{}data ATT functionals}
+\par\smallskip\noindent\emph{Construction.} With \(C_b\) from \(\mathrm{def{:}branch\text{-}conditional\text{-}contrasts}\), define
+\[
+ \nu_x=P_O(X=x\mid G=1)=\frac{p_X(x)p_1(x)}{\pi_1},
+ \qquad
+ \theta_b(P_O)=\sum_{x\in\mathcal X}\nu_x C_b(x),
+ \qquad b\in\{\mathrm{PT},\mathrm{SC}\}.
+\]
+Thus \(\theta_{\mathrm{PT}}\) and \(\theta_{\mathrm{SC}}\) are the two indexed cases. These are observed-law functionals. Their equality to the causal ATT is a conclusion under the corresponding branch restriction, not part of this definition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{PO}; \texttt{pX}; \texttt{pg}; \texttt{pi1}; \texttt{Cb}.
+\end{definition}
+
+\begin{definition}[def:pt-model]\label{def:pt-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional parallel-\allowbreak{}trends model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{PT}}=\{P: \mathrm{ass{:}no\text{-}anticipation},\mathrm{ass{:}cell\text{-}mass},\mathrm{ass{:}group\text{-}overlap},\mathrm{ass{:}fourth\text{-}moments},\mathrm{ass{:}parallel\text{-}trends}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}no-\allowbreak{}anticipation}; \texttt{ass:\allowbreak{}cell-\allowbreak{}mass}; \texttt{ass:\allowbreak{}group-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}parallel-\allowbreak{}trends}.
+\end{definition}
+
+\begin{definition}[def:sc-model]\label{def:sc-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}support uniform-\allowbreak{}margin full-\allowbreak{}rank group-\allowbreak{}level synthetic-\allowbreak{}control model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{SC}}=\{P: \mathrm{ass{:}no\text{-}anticipation},\mathrm{ass{:}cell\text{-}mass},\mathrm{ass{:}group\text{-}overlap},\mathrm{ass{:}fourth\text{-}moments},\mathrm{ass{:}synthetic\text{-}mean},\mathrm{ass{:}sc\text{-}rank}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}no-\allowbreak{}anticipation}; \texttt{ass:\allowbreak{}cell-\allowbreak{}mass}; \texttt{ass:\allowbreak{}group-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}synthetic-\allowbreak{}mean}; \texttt{ass:\allowbreak{}sc-\allowbreak{}rank}.
+\end{definition}
+
+\begin{definition}[def:union-model]\label{def:union-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Identification-\allowbreak{}robust union model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_U=\{P:P\in\mathcal M_{\mathrm{PT}}\text{ or }P\in\mathcal M_{\mathrm{SC}}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}no-\allowbreak{}anticipation}; \texttt{ass:\allowbreak{}cell-\allowbreak{}mass}; \texttt{ass:\allowbreak{}group-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}parallel-\allowbreak{}trends}; \texttt{ass:\allowbreak{}synthetic-\allowbreak{}mean}; \texttt{ass:\allowbreak{}sc-\allowbreak{}rank}.
+\end{definition}
+
+\begin{definition}[def:intersection-model]\label{def:intersection-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{PT-\allowbreak{}and-\allowbreak{}SC intersection model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_I=\{P:P\in\mathcal M_{\mathrm{PT}}\text{ and }P\in\mathcal M_{\mathrm{SC}}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}no-\allowbreak{}anticipation}; \texttt{ass:\allowbreak{}cell-\allowbreak{}mass}; \texttt{ass:\allowbreak{}group-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}parallel-\allowbreak{}trends}; \texttt{ass:\allowbreak{}synthetic-\allowbreak{}mean}; \texttt{ass:\allowbreak{}sc-\allowbreak{}rank}.
+\end{definition}
+
+\begin{definition}[def:branch-tangents]\label{def:branch-tangents}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Branch tangent spaces}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal T_b(P)\) is the \(L^2(P_O)\)-closure of scores \(s\) of regular quadratic-mean differentiable observed-data submodels \((P_{O,\varepsilon})\) through \(P_O\) that are induced by full-data submodels in branch \(b\). For PT, the latent path \(\delta_{1,\varepsilon}^0(x)\) is profiled freely; for SC, the full-rank weight path is profiled through \(B(P_{O,\varepsilon})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:normal-gradients]\label{def:normal-gradients}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditionally centered restriction-\allowbreak{}normal and contrast-\allowbreak{}gradient representers}
+\par\smallskip\noindent\emph{Construction.} For every regular observed-data score \(s\), let \(R_{b,x}\) be the mean-zero, \(X=x\)-supported conditional-residual Riesz vector satisfying
+\[
+ E_O[R_{b,x}s]
+ =\left.\partial_{\varepsilon}r_{b,x}(P_{O,\varepsilon})\right|_{\varepsilon=0},
+ \qquad E_O[R_{b,x}\mid G,X]=0,
+\]
+componentwise. Let \(g^{\circ}_{b,x}\) be the mean-zero, \(X=x\)-supported conditional-residual representer satisfying
+\[
+ E_O[g^{\circ}_{b,x}s]=\nu_x\dot C_b(x;s),
+ \qquad E_O[g^{\circ}_{b,x}\mid G,X]=0,
+\]
+where \(\dot C_b(x;s)\) is the pathwise derivative of \(C_b(x)\). In particular, both conditional-residual normalizations imply conditional centering given \(X\). The PT vector represents the derivative of \(-A_{\mathrm{PT}}D(x)\), has \(J\) displayed coordinates, and contains no derivative of \(\delta_1^0(x)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rbx}; \texttt{Cb}; \texttt{nu}; \texttt{PO}.
+\end{definition}
+
+\begin{definition}[def:influence-classes]\label{def:influence-classes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Regular branch influence-\allowbreak{}function classes}
+\par\smallskip\noindent\emph{Construction.} Define
+\[
+ \mathcal I_b(P)=\{\phi\in\mathcal H_P:E_O[\phi s]=\dot\theta_b(s)
+ \text{ for every }s\in\mathcal T_b(P)\}.
+\]
+Here \(\dot\theta_b\) is the derivative of the observed-law functional in \(\mathrm{def{:}branch\text{-}functionals}\); the affine normal form is a conclusion of \(\mathrm{lem{:}tangent\text{-}normal\text{-}form}\), not part of this definition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Tb}; \texttt{thetab}.
+\end{definition}
+
+\begin{definition}[def:union-qp]\label{def:union-qp}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite centered stratum union-\allowbreak{}envelope program}
+\par\smallskip\noindent\emph{Construction.} For each \(x\), let \(\ell_{\mathrm{PT}}(a)=(1,0,a^{\prime},0)^{\prime}\), \(\ell_{\mathrm{SC}}(d)=(0,1,0,d^{\prime})^{\prime}\), and \(c(a,d)=\ell_{\mathrm{PT}}(a)-\ell_{\mathrm{SC}}(d)\), where these vectors multiply the centered basis \(h_x=(g^{\circ}_{\mathrm{PT},x},g^{\circ}_{\mathrm{SC},x},R_{\mathrm{PT},x}^{\prime},R_{\mathrm{SC},x}^{\prime})^{\prime}\). Define \(\psi^{\circ}_{\mathrm{PT},x}(a)=g^{\circ}_{\mathrm{PT},x}+R_{\mathrm{PT},x}^{\prime}a\) and \(\psi^{\circ}_{\mathrm{SC},x}(d)=g^{\circ}_{\mathrm{SC},x}+R_{\mathrm{SC},x}^{\prime}d\). The program \(\mathrm{QP}_x\) minimizes
+\[
+ \ell_{\mathrm{PT}}(a)^{\prime}\Omega_x\ell_{\mathrm{PT}}(a)
+ =E_O[\{\psi^{\circ}_{\mathrm{PT},x}(a)\}^2\mid X=x]
+\]
+over \(a\in\mathbb R^J\) and \(d\in\mathbb R^T\), subject to \(\Omega_x^{1/2}c(a,d)=0\); among tied pairs it selects the Euclidean minimum-norm pair \((a_x^U,d_x^U)\). The program is defined only on the centered basis and contains no treated-composition coordinate. The \(J\)-coordinate PT block has the known null direction \(\mathbf 1_J\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Omegax}; \texttt{db}.
+\end{definition}
+
+\begin{definition}[def:oracle-gram-tests]\label{def:oracle-gram-tests}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable centered oracle-\allowbreak{}adaptation Gram tests}
+\par\smallskip\noindent\emph{Construction.} For each \(x\), let \(a_x^{\mathrm{or}}\) minimize \(\ell_{\mathrm{PT}}(a)^{\prime}\Omega_x\ell_{\mathrm{PT}}(a)\) and let \(d_x^{\mathrm{or}}\) minimize \(\ell_{\mathrm{SC}}(d)^{\prime}\Omega_x\ell_{\mathrm{SC}}(d)\), using the Euclidean minimum-norm minimizer. Here \(\Omega_x\) is the Gram matrix of the centered basis in \(\mathrm{def{:}union\text{-}qp}\). Define the simultaneous discrepancy as
+\[
+ \sum_xp_X(x)c(a_x^{\mathrm{or}},d_x^{\mathrm{or}})^{\prime}\Omega_xc(a_x^{\mathrm{or}},d_x^{\mathrm{or}}),
+\]
+the PT-oracle discrepancy as
+\[
+ \min_{(d_x)}\sum_xp_X(x)c(a_x^{\mathrm{or}},d_x)^{\prime}\Omega_xc(a_x^{\mathrm{or}},d_x),
+\]
+and the SC-oracle discrepancy as
+\[
+ \min_{(a_x)}\sum_xp_X(x)c(a_x,d_x^{\mathrm{or}})^{\prime}\Omega_xc(a_x,d_x^{\mathrm{or}}).
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{Omegax}; \texttt{pX}.
+\end{definition}
+
+\begin{definition}[def:local-score-extension]\label{def:local-score-extension}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Active-\allowbreak{}chart extension of the corrected common score}
+\par\smallskip\noindent\emph{Construction.} Fix the minimum-norm union coefficients \((a_x^U(P_0),d_x^U(P_0))\) from \(\mathrm{QP}_x\) at \(P_0\), retaining the same independent normal coordinates throughout its constant-rank neighborhood. For a nearby \(P\in\mathcal M_b\), define the branch-specific extensions
+\[
+ \phi_U^{\mathrm{loc}}(P;\mathrm{PT},P_0)
+ =\chi_{\mathrm{PT}}(P)+\sum_x\{g^{\circ}_{\mathrm{PT},x}(P)+R_{\mathrm{PT},x}(P)^{\prime}a_x^U(P_0)\},
+\]
+and
+\[
+ \phi_U^{\mathrm{loc}}(P;\mathrm{SC},P_0)
+ =\chi_{\mathrm{SC}}(P)+\sum_x\{g^{\circ}_{\mathrm{SC},x}(P)+R_{\mathrm{SC},x}(P)^{\prime}d_x^U(P_0)\}.
+\]
+Off the intersection the first term is deliberately branch specific; no equality of the two extensions is asserted.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P0}; \texttt{P}; \texttt{b}; \texttt{QPx}; \texttt{chib}.
+\end{definition}
+
+\begin{definition}[def:local-union-sequences]\label{def:local-union-sequences}
+\par\smallskip\noindent\emph{Defined object.} Branch-switching root-\(n\) local alternatives
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak L_U(P_0)=\{((P_n,b_n))_{n\ge1}:P_n\in\mathcal M_{b_n},\ b_n\in\{\mathrm{PT},\mathrm{SC}\},\ P_n\text{ satisfies }\mathrm{ass{:}local\text{-}qmd}\text{ at }P_0,\text{ and all support, moment, rank, spectral-gap, and local-score variance margins hold with the displayed constants for every }n\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}local-\allowbreak{}qmd}; \texttt{ass:\allowbreak{}cell-\allowbreak{}mass}; \texttt{ass:\allowbreak{}group-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}sc-\allowbreak{}rank}; \texttt{ass:\allowbreak{}normal-\allowbreak{}rank}; \texttt{ass:\allowbreak{}normal-\allowbreak{}gap}; \texttt{ass:\allowbreak{}union-\allowbreak{}variance-\allowbreak{}floor}.
+\end{definition}
+
+\begin{definition}[def:three-group-witness]\label{def:three-group-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Equal-\allowbreak{}share three-\allowbreak{}group,\allowbreak{} three-\allowbreak{}period law}
+\par\smallskip\noindent\emph{Construction.} Set \(K=1\), \(T=3\), \(J=2\), and \(P(G=g)=1/3\). Conditional untreated mean paths for groups one, two, and three are \((0,0,0)\), \((-1,-2,-2)\), and \((1,2,2)\). Let \(Y_t(0)=\mu_{G,t}+\varepsilon_{G,t}\), with \(\varepsilon_{g,t}=\sigma_{g,t}U_{g,t}\), where the \(U_{g,t}\) are independent Rademacher variables and \((\sigma_{1,1}^2,\sigma_{1,2}^2,\sigma_{1,3}^2)=(1,1,1)\), \((\sigma_{2,1}^2,\sigma_{2,2}^2,\sigma_{2,3}^2)=(1,1/2,1/2)\), and \((\sigma_{3,1}^2,\sigma_{3,2}^2,\sigma_{3,3}^2)=(2,2,2)\). Thus the two control-change variances are one and four. Set \(Y_3(1)=Y_3(0)+\tau^{\star}\) in group one and impose no anticipation.
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{T}; \texttt{J}.
+\end{definition}
+
+\begin{definition}[def:branch-conditional-contrasts]\label{def:branch-conditional-contrasts}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Branch conditional ATT contrasts}
+\par\smallskip\noindent\emph{Construction.} Let \(\mu_{C,t}(x)=(\mu_{2,t}(x),\ldots,\mu_{J+1,t}(x))^{\prime}\). Define
+\[
+ C_{\mathrm{PT}}(x)=\mu_{1,T}(x)-\mu_{1,T-1}(x)-J^{-1}\mathbf 1_J^{\prime}D(x),
+ \qquad
+ C_{\mathrm{SC}}(x)=\mu_{1,T}(x)-w(x)^{\prime}\mu_{C,T}(x).
+\]
+For \(b\in\{\mathrm{PT},\mathrm{SC}\}\), write \(C_b(x)\) for the corresponding conditional contrast.
+\par\smallskip\noindent\emph{Inputs.} \texttt{mu}; \texttt{Dvec}; \texttt{w}.
+\end{definition}
+
+\begin{definition}[def:treated-composition-gradient]\label{def:treated-composition-gradient}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Treated-\allowbreak{}composition gradient}
+\par\smallskip\noindent\emph{Construction.} Define the treated-composition gradient
+\[
+ \chi_b(O)=\frac{\mathbf 1\{G=1\}}{\pi_1}
+ \{C_b(X)-\theta_b(P_O)\}.
+\]
+At the fixed reference law, define \(\chi_0=\chi_{\mathrm{PT}}(P_0)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{PO}; \texttt{pi1}; \texttt{Cb}; \texttt{thetab}; \texttt{P0}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:tangent-normal-form]\label{lem:tangent-normal-form}
+At every \(P_0\in\mathcal M_I\) such that, for every \(x\in\mathcal X\) and \(1\le g\le J+1\), \(p_X(x)>\kappa_0\), \(p_g(x)\in(\epsilon_0,1-\epsilon_0)\), \(\max_{g,t}E_{P_{0,O}}[|Y_t|^4\mid G=g]<M_4\), \(\lambda_{\min}\{B(x)^{\prime}B(x)\}>\kappa_0\), every nonzero eigenvalue of \(\Omega_x\) is greater than \(\kappa_0\), and \(\operatorname{rank}(\Omega_x)\) is locally constant, profiling \(q_{\mathrm{PT},x}=\delta_1^0(x)\mathbf 1_J-D(x)\) over the unrestricted path of \(\delta_1^0(x)\) yields the observed normal \(R_{\mathrm{PT},x}\) for \(-A_{\mathrm{PT}}D(x)\). Its Gram rank is at most \(J-1\), with equality under positive definiteness on the donor-contrast range. The SC normal Gram rank is at most \(T-J\), with equality under positive definiteness on the residualized complement of \(\operatorname{col}B(x)\). For either branch, \[\mathcal T_b(P_0)=\{s\in\mathcal H_{P_0}:E_{P_{0,O}}[R_{b,x}s]=0\text{ for every }x\in\mathcal X\},\] and \[\dot\theta_b(s)=E_{P_{0,O}}\!\left[\left\{\chi_b+\sum_xg^{\circ}_{b,x}\right\}s\right],\qquad \mathcal I_b(P_0)=\chi_b+\sum_xg^{\circ}_{b,x}+\operatorname{span}\{R_{b,x}:x\in\mathcal X\}.\] Consequently, \[\phi_b=\chi_b+\sum_xg^{\circ}_{b,x}-R_b^{\prime}\{E_{P_{0,O}}[R_bR_b^{\prime}]\}^{\dagger}E_{P_{0,O}}\!\left[R_b\sum_xg^{\circ}_{b,x}\right],\] and \(V_b=E_{P_{0,O}}[\chi_b^2]\) plus the minimum variance of the centered branch face. Redundant displayed rows are handled by the Moore--Penrose inverse.
+\end{lemma}
+\begin{proof}
+Write \(E_0=E_{P_{0,O}}\).  All paths below are constructed at the strict-interior, locally constant-rank point specified in the statement.  We first profile the PT restriction.  By \(\mathrm{def{:}restriction\text{-}maps}\),
+\[
+ q_{\mathrm{PT},x}=\delta_1^0(x)\mathbf 1_J-D(x),
+ \qquad
+ A_{\mathrm{PT}}=I_J-J^{-1}\mathbf 1_J\mathbf 1_J^{\prime}.
+ \tag{1}
+\]
+Since \(\mathbf 1_J^{\prime}\mathbf 1_J=J\),
+\[
+ A_{\mathrm{PT}}\mathbf 1_J=0,
+ \qquad
+ A_{\mathrm{PT}}\dot q_{\mathrm{PT},x}=-A_{\mathrm{PT}}\dot D(x).
+ \tag{2}
+\]
+Thus profiling the unrestricted scalar path \(\dot\delta_1^0(x)\) leaves exactly the observed derivative of \(-A_{\mathrm{PT}}D(x)\).  The matrix \(A_{\mathrm{PT}}\) is the orthogonal projector onto \(\{v:\mathbf 1_J^{\prime}v=0\}\), so it has rank \(J-1\).  If \(\widetilde R_{D,x}\) represents \(\dot D(x)\), then \(R_{\mathrm{PT},x}=-A_{\mathrm{PT}}\widetilde R_{D,x}\), whence
+\[
+ \operatorname{rank}E_0[R_{\mathrm{PT},x}R_{\mathrm{PT},x}^{\prime}]
+ \le J-1.
+ \tag{3}
+\]
+The rank is \(J-1\) when the indicated covariance form is positive definite on \(\operatorname{range}(A_{\mathrm{PT}})\).
+
+For SC put \(\Pi_x=B(x)\{B(x)^{\prime}B(x)\}^{-1}B(x)^{\prime}\).  The strict SC spectral margin makes this the orthogonal projector onto the \(J\)-dimensional column space of \(B(x)\).  At an SC law, \(a(x)=B(x)w(x)\).  Differentiating \(\Pi_xB(x)=B(x)\) and then \(r_{\mathrm{SC},x}=(I_T-\Pi_x)a(x)\) gives
+\[
+ \dot r_{\mathrm{SC},x}
+ =(I_T-\Pi_x)\{\dot a(x)-\dot B(x)w(x)\}.
+ \tag{4}
+\]
+Therefore the covariance range of \(R_{\mathrm{SC},x}\) lies in \(\operatorname{range}(I_T-\Pi_x)\), which has dimension \(T-J\).  This proves the SC rank ceiling, and positive definiteness of the residualized covariance form on that range gives equality.
+
+For every occupied cell, quotient differentiation gives
+\[
+ \dot\mu_{g,t}(x;s)
+ =E_0\!\left[
+ \frac{\mathbf 1\{G=g,X=x\}}{p_X(x)p_g(x)}
+ \{Y_t-\mu_{g,t}(x)\}s\right].
+ \tag{5}
+\]
+The denominator is positive by the strict cell and group margins.  The bracketed residual has conditional mean zero given \((G,X)\).  Both \(r_{b,x}\) and \(C_b(x)\) are differentiable finite-dimensional functions of these cell means under the strict SC rank margin.  The ordinary chain rule applied to (5) therefore supplies versions of \(R_{b,x}\) and \(g^{\circ}_{b,x}\) satisfying the covariance identities in \(\mathrm{def{:}normal\text{-}gradients}\) and the required conditional-residual normalization.
+
+We next characterize the tangent spaces.  The PT observed projection is locally the zero set of \(r_{\mathrm{PT},x}=-A_{\mathrm{PT}}D(x)\): the equality \(A_{\mathrm{PT}}D(x)=0\) is equivalent to \(D(x)=c(x)\mathbf 1_J\), and the missing treated untreated final mean may be set to \(\mu_{1,T-1}(x)+c(x)\).  The SC observed projection is locally the zero set of \(r_{\mathrm{SC},x}=(I_T-\Pi_x)a(x)\), because full column rank gives
+\[
+ r_{\mathrm{SC},x}=0
+ \quad\Longleftrightarrow\quad
+ a(x)=B(x)w(x).
+ \tag{6}
+\]
+The missing treated untreated final mean may then be set to \(w(x)^{\prime}\mu_{C,T}(x)\).  No anticipation justifies the use of observed preperiod and donor means in these lifts.  Differentiating either branch equation along a branch-preserving path gives
+\[
+ E_0[R_{b,x}s]=0
+ \quad\text{for every }x.
+ \tag{7}
+\]
+
+For the converse, retain a maximal linearly independent coordinate vector \(R_b^*\).  Local constancy of rank permits the same coordinates in a neighborhood of \(P_0\), and its Gram matrix is positive definite.  Truncating and recentering its coordinates produces a bounded vector \(v\) for which \(M=E_0[R_b^*v^{\prime}]\) is nonsingular.  For a bounded mean-zero score \(s\) satisfying (7), consider the two-sided exponential tilt
+\[
+ \frac{dP_{O,\varepsilon,c}}{dP_{0,O}}
+ =\frac{\exp\{\varepsilon s+c^{\prime}v\}}
+ {E_0[\exp\{\varepsilon s+c^{\prime}v\}]},
+ \qquad
+ F(\varepsilon,c)=r_b^*(P_{O,\varepsilon,c}).
+ \tag{8}
+\]
+The tilt is defined for both signs of sufficiently small \(\varepsilon\).  Bounded tilting directions and the strict inequalities for cell mass, group overlap, fourth moments, the SC Gram spectrum, and the nonzero normal spectrum ensure, by continuity of the finitely many probabilities, moments, matrices, and eigenvalues, that both sides of the path remain within the displayed weak model margins.  At the origin,
+\[
+ F(0,0)=0,
+ \qquad
+ \partial_cF(0,0)=M,
+ \qquad
+ \partial_{\varepsilon}F(0,0)=E_0[R_b^*s]=0.
+ \tag{9}
+\]
+Differentiability gives
+\[
+ F(\varepsilon,c)=F(\varepsilon,0)+Mc+\zeta(\varepsilon,c),
+ \qquad
+ F(\varepsilon,0)=o(\varepsilon).
+\]
+On a sufficiently small ball, the Lipschitz constant of \(c\mapsto M^{-1}\zeta(\varepsilon,c)\) is at most \(1/2\).  Hence
+\[
+ \mathcal K_{\varepsilon}(c)
+ =-M^{-1}\{F(\varepsilon,0)+\zeta(\varepsilon,c)\}
+\]
+maps a ball of radius \(C|\varepsilon|\) into itself for a fixed sufficiently large \(C\) and is a contraction.  Iteration from zero is Cauchy, and its limit \(c(\varepsilon)\) satisfies \(F(\varepsilon,c(\varepsilon))=0\) and \(c(\varepsilon)=o(\varepsilon)\).  Thus the corrected path has score \(s\).  The full-data lifts described above place it in branch \(b\).  For a general square-integrable \(s\), truncate and recenter to \(\widetilde s_k\), and put
+\[
+ s_k=\widetilde s_k-v^{\prime}M^{-1}E_0[R_b^*\widetilde s_k].
+ \tag{10}
+\]
+Then \(E_0[R_b^*s_k]=0\) and \(s_k\to s\) in \(L^2(P_{0,O})\).  Taking the closure in \(\mathrm{def{:}branch\text{-}tangents}\) proves
+\[
+ \mathcal T_b(P_0)
+ =\{s\in\mathcal H_{P_0}:E_0[R_{b,x}s]=0\text{ for every }x\}.
+ \tag{11}
+\]
+
+It remains to calculate the full derivative.  Put \(q_x=P_O(G=1,X=x)\).  The strict overlap conditions give \(\pi_1=\sum_xq_x>0\).  Quotient differentiation of \(\nu_x=q_x/\pi_1\) yields
+\[
+ \dot\nu_x(s)
+ =E_0\!\left[\frac{\mathbf 1\{G=1\}}{\pi_1}
+ \{\mathbf 1\{X=x\}-\nu_x\}s\right].
+ \tag{12}
+\]
+Since \(\theta_b=\sum_x\nu_xC_b(x)\), (12) and \(\mathrm{def{:}normal\text{-}gradients}\) give
+\[
+ \begin{aligned}
+ \dot\theta_b(s)
+ &=\sum_xC_b(x)\dot\nu_x(s)+\sum_x\nu_x\dot C_b(x;s)\\
+ &=E_0[\chi_bs]+\sum_xE_0[g^{\circ}_{b,x}s]
+ =E_0\!\left[\left\{\chi_b+\sum_xg^{\circ}_{b,x}\right\}s\right].
+ \end{aligned}
+ \tag{13}
+\]
+
+There are finitely many retained normals, so (11) implies \(\mathcal T_b(P_0)^{\perp}=\operatorname{span}\{R_{b,x}:x\in\mathcal X\}\).  Combining this identity with (13) and \(\mathrm{def{:}influence\text{-}classes}\) gives
+\[
+ \mathcal I_b(P_0)=\chi_b+\sum_xg^{\circ}_{b,x}
+ +\operatorname{span}\{R_{b,x}:x\in\mathcal X\}.
+ \tag{14}
+\]
+Conditional-residual normalization makes \(R_{b,x}\) and \(g^{\circ}_{b,x}\) orthogonal to the \((G,X)\)-measurable variable \(\chi_b\).  Let \(G_b^{\circ}=\sum_xg^{\circ}_{b,x}\), \(\Gamma_b=E_0[R_bR_b^{\prime}]\), and \(u_b=E_0[R_bG_b^{\circ}]\).  If \(c\in\ker\Gamma_b\), then \(c^{\prime}R_b=0\) almost surely, so \(c^{\prime}u_b=0\); hence \(u_b\in\operatorname{range}(\Gamma_b)\).  Completing the square gives
+\[
+ \begin{aligned}
+ \|\chi_b+G_b^{\circ}+R_b^{\prime}a\|_2^2
+ &=\|\chi_b+G_b^{\circ}-R_b^{\prime}\Gamma_b^{\dagger}u_b\|_2^2\\
+ &\quad +(a+\Gamma_b^{\dagger}u_b)^{\prime}
+ \Gamma_b(a+\Gamma_b^{\dagger}u_b).
+ \end{aligned}
+ \tag{15}
+\]
+Minimizing (15) proves the displayed canonical-gradient formula, including the Moore--Penrose treatment of redundant rows.  Orthogonality to \(\chi_b\) also proves that \(V_b\) is \(E_0[\chi_b^2]\) plus the minimized centered-face variance.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At strict-interior constant-rank intersection points, this places both corrected branch faces in one observed-data Hilbert space and records both profiled-normal rank ceilings. \textit{Gap.} Existing branchwise results do not jointly characterize the two affine classes with the composition product-rule term at theorem points supporting two-sided paths. \textit{Consumer.} For the Alaska design, this supplies geometry for a theoretical strict-interior lower-bound benchmark, not a standard error.
+
+\begin{theorem}[thm:union-envelope]\label{thm:union-envelope}
+At every \(P_0\in\mathcal M_I\) such that, for every \(x\in\mathcal X\) and \(1\le g\le J+1\), \(p_X(x)>\kappa_0\), \(p_g(x)\in(\epsilon_0,1-\epsilon_0)\), \(\max_{g,t}E_{P_{0,O}}[|Y_t|^4\mid G=g]<M_4\), \(\lambda_{\min}\{B(x)^{\prime}B(x)\}>\kappa_0\), every nonzero eigenvalue of \(\Omega_x\) is greater than \(\kappa_0\), and \(\operatorname{rank}(\Omega_x)\) is locally constant, the common class \(\mathcal I_{\mathrm{PT}}(P_0)\cap\mathcal I_{\mathrm{SC}}(P_0)\) is nonempty, and every estimator regular on \(\mathcal M_U\) has asymptotic variance at least \(V_U(P_0)=E_{P_{0,O}}[\phi_U^2]\). At the intersection, \(C_{\mathrm{PT}}(x)=C_{\mathrm{SC}}(x)\) and hence \(\chi_{\mathrm{PT}}=\chi_{\mathrm{SC}}=\chi_0\). If \((a_x^U,d_x^U)\) solves \(\mathrm{QP}_x\), then \[\phi_U=\chi_0+\sum_{x\in\mathcal X}\{g^{\circ}_{\mathrm{PT},x}+R_{\mathrm{PT},x}^{\prime}a_x^U\}=\chi_0+\sum_{x\in\mathcal X}\{g^{\circ}_{\mathrm{SC},x}+R_{\mathrm{SC},x}^{\prime}d_x^U\},\] and \[V_U(P_0)=E_{P_{0,O}}[\chi_0^2]+\sum_{x\in\mathcal X}p_X(x)\min\mathrm{QP}_x.\] Relative to the alternative-hypothesis laws for the one integrated estimator in SunXieZhang2025, this is a sharp local lower-bound benchmark at the stated strict-interior constant-rank intersection law for procedures regular under PT-or-SC uncertainty. It neither replaces the branch-specific asymptotic variances, furnishes an implemented standard error, nor proves attainment or multiplier validity.
+\end{theorem}
+\begin{proof}
+Write \(E_0=E_{P_{0,O}}\), \(u=J^{-1}\mathbf 1_J\), and \(\mu_{C,t}(x)=(\mu_{2,t}(x),\ldots,\mu_{J+1,t}(x))^{\prime}\).  The strict-interior hypotheses ensure all conditioning probabilities and inverses used below are well defined, and they are precisely the hypotheses under which \(\mathrm{lem{:}tangent\text{-}normal\text{-}form}\) applies.
+
+We first identify the causal target.  Under conditional parallel trends and no anticipation,
+\[
+ \delta_1^0(x)=\Delta\mu_g(x),
+ \qquad g=2,\ldots,J+1,
+ \tag{1}
+\]
+and therefore
+\[
+ E_F[Y_T(1)-Y_T(0)\mid G=1,X=x]
+ =\mu_{1,T}(x)-\mu_{1,T-1}(x)-u^{\prime}D(x)
+ =C_{\mathrm{PT}}(x).
+ \tag{2}
+\]
+Because \(\pi_1=\sum_xp_X(x)p_1(x)>0\), averaging (2) over \(X\mid G=1\) proves \(\theta(P)=\theta_{\mathrm{PT}}(P_O)\) on the PT branch.
+
+Under the synthetic-mean restriction, the intercept and preperiod equations give \(a(x)=B(x)w(x)\).  The strict SC Gram margin makes \(B(x)^{\prime}B(x)\) invertible, so the displayed formula uniquely identifies \(w(x)\).  The final-period equation gives
+\[
+ E_F[Y_T(0)\mid G=1,X=x]=w(x)^{\prime}\mu_{C,T}(x),
+ \tag{3}
+\]
+so the conditional causal effect is \(C_{\mathrm{SC}}(x)\).  Averaging proves \(\theta(P)=\theta_{\mathrm{SC}}(P_O)\) on the SC branch.  At \(P_0\in\mathcal M_I\), both expressions equal the same conditional causal effect in every occupied stratum, whence
+\[
+ C_{\mathrm{PT}}(x)=C_{\mathrm{SC}}(x),
+ \qquad
+ \chi_{\mathrm{PT}}=\chi_{\mathrm{SC}}=\chi_0.
+ \tag{4}
+\]
+
+Define the centered stratum faces
+\[
+ \psi^{\circ}_{\mathrm{PT},x}(a)=g^{\circ}_{\mathrm{PT},x}+R_{\mathrm{PT},x}^{\prime}a,
+ \qquad
+ \psi^{\circ}_{\mathrm{SC},x}(d)=g^{\circ}_{\mathrm{SC},x}+R_{\mathrm{SC},x}^{\prime}d.
+ \tag{5}
+\]
+By \(\mathrm{lem{:}tangent\text{-}normal\text{-}form}\), adding \(\chi_0\) to sums of these faces exhausts the two influence classes.  We prove that they meet.  Suppress \(x\) and the positive stratum factor.  Adding a PT normal permits every donor weight \(v\) satisfying \(\mathbf 1_J^{\prime}v=1\), and the corresponding conditional-mean differential is
+\[
+ L_{\mathrm{PT}}(v)=\dot\mu_{1,T}-\dot\mu_{1,T-1}
+ -v^{\prime}(\dot\mu_{C,T}-\dot\mu_{C,T-1}).
+ \tag{6}
+\]
+For SC, differentiation of \(a=Bw\) gives
+\[
+ \dot w=(B^{\prime}B)^{-1}B^{\prime}(\dot a-\dot B\,w).
+ \tag{7}
+\]
+Consequently its affine face consists of differentials
+\[
+ L_{\mathrm{SC}}(q)=\dot\mu_{1,T}-w^{\prime}\dot\mu_{C,T}
+ +q^{\prime}(\dot a-\dot B\,w),
+ \qquad B^{\prime}q=-\mu_{C,T}.
+ \tag{8}
+\]
+At the intersection, (1) gives \(\mu_{C,T}=\mu_{C,T-1}+\delta_x\mathbf 1_J\).  If \(e_0\) selects the intercept row and \(e_-\) the period-\(T-1\) row, then
+\[
+ q_*=-e_- -\delta_xe_0,
+ \qquad B^{\prime}q_*=-\mu_{C,T}.
+ \tag{9}
+\]
+The intercept rows are fixed, so \(e_0^{\prime}(\dot a-\dot B\,w)=0\).  Substitution into (8) yields
+\[
+ L_{\mathrm{SC}}(q_*)
+ =\dot\mu_{1,T}-\dot\mu_{1,T-1}
+ -w^{\prime}(\dot\mu_{C,T}-\dot\mu_{C,T-1})
+ =L_{\mathrm{PT}}(w).
+ \tag{10}
+\]
+Restoring the stratum factor, equality of these continuous linear functionals for all scores implies equality of their Riesz representatives in \(L^2(P_{0,O})\).  The product-rule contribution is the common term \(\chi_0\) in (4), so the full influence classes have a nonempty intersection.
+
+By the definitions of \(h_x\), \(\Omega_x\), and \(c(a,d)\),
+\[
+ \psi^{\circ}_{\mathrm{PT},x}(a)-\psi^{\circ}_{\mathrm{SC},x}(d)
+ =c(a,d)^{\prime}h_x,
+ \tag{11}
+\]
+and positive semidefiniteness gives
+\[
+ \Omega_x^{1/2}c(a,d)=0
+ \quad\Longleftrightarrow\quad
+ E_0[\{\psi^{\circ}_{\mathrm{PT},x}(a)-\psi^{\circ}_{\mathrm{SC},x}(d)\}^2\mid X=x]=0.
+ \tag{12}
+\]
+Thus \(\mathrm{QP}_x\) minimizes exactly the conditional squared norm of a common centered representative.  Feasibility follows from (10).  Orthogonal projection onto the finite-dimensional closed affine feasible image gives a unique minimum represented function; the Euclidean minimum-norm convention selects coefficients when displayed rows are redundant.  The locally constant rank and strict nonzero-eigenvalue margin keep this coordinate representation stable at the theorem point.
+
+Different strata have disjoint support.  Conditional-residual normalization also gives
+\[
+ E_0[\chi_0\psi^{\circ}_{b,x}(a)]
+ =E_0\!\left[\chi_0E_0\{\psi^{\circ}_{b,x}(a)\mid G,X\}\right]=0.
+ \tag{13}
+\]
+The global projection therefore separates into the common composition component and the stratum programs:
+\[
+ \phi_U=\chi_0+\sum_x\psi^{\circ}_{\mathrm{PT},x}(a_x^U)
+ =\chi_0+\sum_x\psi^{\circ}_{\mathrm{SC},x}(d_x^U),
+ \tag{14}
+\]
+and
+\[
+ V_U(P_0)=E_0[\chi_0^2]+\sum_xp_X(x)\min\mathrm{QP}_x.
+ \tag{15}
+\]
+
+Finally, an estimator regular on \(\mathcal M_U\) is regular along every quadratic-mean differentiable submodel in either branch, so its influence component belongs to both derivative classes.  Applying \(\mathrm{lem{:}semiparametric\text{-}convolution\text{-}bound}\) to finite collections of such paths and then taking their closed span gives
+\[
+ \operatorname{Var}_{P_0}(\text{regular limit})
+ \ge \inf_{\phi\in\mathcal I_{\mathrm{PT}}(P_0)\cap\mathcal I_{\mathrm{SC}}(P_0)}E_0[\phi^2]
+ =E_0[\phi_U^2].
+ \tag{16}
+\]
+This proves the sharp lower bound in the stated strict-interior local tangent experiment.  The cited Sun--Xie--Zhang result concerns one integrated ATT estimator and one multiplier construction analyzed under alternative PT and SC hypotheses, with potentially different branch influence functions and variances.  The present projection supplies neither an implemented standard error nor an attainment or multiplier-validity theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the local price of PT-or-SC regularity at strict-interior constant-rank intersections: common composition variance plus finite centered projection values. \textit{Gap.} The integrated-estimator laws in SunXieZhang2025 do not supply this sharp union-regular lower bound. \textit{Consumer.} RummoEtAl2026 can benchmark a candidate union-regular procedure on the repaired subclass; the result does not replace the branch-specific variances of the integrated Sun--Xie--Zhang estimator or deliver inference.
+
+\begin{theorem}[thm:oracle-adaptation-frontier]\label{thm:oracle-adaptation-frontier}
+At every \(P_0\in\mathcal M_I\) such that, for every \(x\in\mathcal X\) and \(1\le g\le J+1\), \(p_X(x)>\kappa_0\), \(p_g(x)\in(\epsilon_0,1-\epsilon_0)\), \(\max_{g,t}E_{P_{0,O}}[|Y_t|^4\mid G=g]<M_4\), \(\lambda_{\min}\{B(x)^{\prime}B(x)\}>\kappa_0\), every nonzero eigenvalue of \(\Omega_x\) is greater than \(\kappa_0\), and \(\operatorname{rank}(\Omega_x)\) is locally constant, simultaneous oracle adaptation holds if and only if the observable simultaneous Gram discrepancy in \(\mathrm{def{:}oracle\text{-}gram\text{-}tests}\) is zero; equivalently, \(V_U=V_{\mathrm{PT}}=V_{\mathrm{SC}}\) if and only if \(\phi_{\mathrm{PT}}=\phi_{\mathrm{SC}}\) in \(L^2(P_{0,O})\). One-sided PT adaptation \(V_U=V_{\mathrm{PT}}\) holds if and only if the PT-oracle Gram discrepancy is zero, and one-sided SC adaptation \(V_U=V_{\mathrm{SC}}\) holds if and only if the SC-oracle Gram discrepancy is zero. These are finite covariance-matrix tests in \(\Omega_x\), \(a_x^{\mathrm{or}}\), and \(d_x^{\mathrm{or}}\), all identified from the observed law.
+\end{theorem}
+\begin{proof}
+Write \(E_0=E_{P_{0,O}}\) and \(\|f\|_0^2=E_0[f^2]\).  The strict-interior and locally constant-rank hypotheses place this proof in the same local tangent experiment as \(\mathrm{thm{:}union\text{-}envelope}\).  At the intersection, \(\chi_{\mathrm{PT}}=\chi_{\mathrm{SC}}=\chi_0\).  Define
+\[
+ \psi^{\circ}_{\mathrm{PT},x}(a)=g^{\circ}_{\mathrm{PT},x}+R_{\mathrm{PT},x}^{\prime}a,
+ \qquad
+ \psi^{\circ}_{\mathrm{SC},x}(d)=g^{\circ}_{\mathrm{SC},x}+R_{\mathrm{SC},x}^{\prime}d.
+ \tag{1}
+\]
+The tangent normal form, disjoint stratum support, and orthogonality of \(\chi_0\) to every conditional-residual piece imply
+\[
+ \phi_{\mathrm{PT}}=\chi_0+\sum_x\psi^{\circ}_{\mathrm{PT},x}(a_x^{\mathrm{or}}),
+ \qquad
+ \phi_{\mathrm{SC}}=\chi_0+\sum_x\psi^{\circ}_{\mathrm{SC},x}(d_x^{\mathrm{or}}).
+ \tag{2}
+\]
+Each oracle variance is therefore \(E_0[\chi_0^2]\) plus its minimized centered-face variance.  The common term cancels in the branch difference.  By \(\mathrm{def{:}union\text{-}qp}\),
+\[
+ E_0[\{\psi^{\circ}_{\mathrm{PT},x}(a)-\psi^{\circ}_{\mathrm{SC},x}(d)\}^2\mid X=x]
+ =c(a,d)^{\prime}\Omega_xc(a,d).
+ \tag{3}
+\]
+Because every \(p_X(x)>0\), (2)--(3) imply
+\[
+ \|\phi_{\mathrm{PT}}-\phi_{\mathrm{SC}}\|_0^2
+ =\sum_xp_X(x)c(a_x^{\mathrm{or}},d_x^{\mathrm{or}})^{\prime}
+ \Omega_xc(a_x^{\mathrm{or}},d_x^{\mathrm{or}}).
+ \tag{4}
+\]
+Every summand is nonnegative, so the simultaneous Gram discrepancy vanishes exactly when the canonical gradients coincide in \(L^2(P_{0,O})\).
+
+Let \(A=\mathcal I_{\mathrm{PT}}(P_0)\), \(B=\mathcal I_{\mathrm{SC}}(P_0)\), and \(C=A\cap B\).  These are closed affine sets because their direction spaces are finite normal spans, and \(C\ne\varnothing\) by \(\mathrm{thm{:}union\text{-}envelope}\).  If \(L_A\) is the direction space of \(A\), minimality of \(\phi_{\mathrm{PT}}\) implies \(\phi_{\mathrm{PT}}\perp L_A\).  Hence, for every \(c\in C\subseteq A\),
+\[
+ \|c\|_0^2=\|\phi_{\mathrm{PT}}\|_0^2+\|c-\phi_{\mathrm{PT}}\|_0^2.
+ \tag{5}
+\]
+Taking the minimum over \(C\) gives
+\[
+ V_U=V_{\mathrm{PT}}
+ \quad\Longleftrightarrow\quad
+ \phi_{\mathrm{PT}}\in C
+ \quad\Longleftrightarrow\quad
+ \phi_{\mathrm{PT}}\in B.
+ \tag{6}
+\]
+Using (1)--(3), the squared distance from \(\phi_{\mathrm{PT}}\) to \(B\) is
+\[
+ \min_{(d_x)}\sum_xp_X(x)c(a_x^{\mathrm{or}},d_x)^{\prime}
+ \Omega_xc(a_x^{\mathrm{or}},d_x).
+ \tag{7}
+\]
+The finite-dimensional least-squares minimum is attained; redundant coordinates are handled by the Moore--Penrose inverse.  Equations (6)--(7) prove the PT one-sided criterion.  Interchanging the branches gives
+\[
+ V_U=V_{\mathrm{SC}}
+ \quad\Longleftrightarrow\quad
+ \min_{(a_x)}\sum_xp_X(x)c(a_x,d_x^{\mathrm{or}})^{\prime}
+ \Omega_xc(a_x,d_x^{\mathrm{or}})=0.
+ \tag{8}
+\]
+
+If all three bounds coincide, (5) and its SC analogue force \(\phi_U=\phi_{\mathrm{PT}}=\phi_{\mathrm{SC}}\).  Conversely, if the branch gradients coincide, their common value belongs to \(C\) and has the minimum norm in each branch class; since \(C\) is contained in both classes, it also has the minimum norm in \(C\).  Thus \(V_U=V_{\mathrm{PT}}=V_{\mathrm{SC}}\).  Together with (4), this proves the simultaneous criterion.  Every discrepancy uses only \(p_X(x)\), \(\Omega_x\), and solutions of the displayed finite covariance-weighted quadratic programs, so it is identified from \(P_{0,O}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At the repaired theorem points, the common orthogonal composition term makes the finite Gram discrepancies necessary and sufficient. \textit{Gap.} No cited result gives simultaneous and one-sided iff adaptation criteria for these nonnested ATT branches under the repaired scope. \textit{Consumer.} The observed-law diagnostic is theoretical; estimation error and a usable diagnostic standard error are not analyzed.
+
+\begin{proposition}[prop:strict-three-group-witness]\label{prop:strict-three-group-witness}
+Suppose the constructed law \(P^{\star}\) has strict fourth-moment slack, \[\max_{1\le g\le3}\max_{1\le t\le3}E_{P_O^{\star}}[|Y_t|^4\mid G=g]<M_4,\] and choose the fixed margins so that \(1>\kappa_0\), \(1/3\in(\epsilon_0,1-\epsilon_0)\), every nonzero eigenvalue of the displayed \(\Omega\) is greater than \(\kappa_0\), and its rank is locally constant. Then the corrected PT vector is \(q_{\mathrm{PT}}(P^{\star})=(0,0)^{\prime}\), its profiled normal has rank one, and \(P^{\star}\in\mathcal M_I\); moreover \(\lambda_{\min}(B^{\prime}B)=2>\kappa_0\). The uniquely identified SC weights are \((1/2,1/2)\), while minimizing the PT Gram criterion over donor weights summing to one gives \((4/5,1/5)\). The exact efficiency bounds are \[V_{\mathrm{PT}}(P^{\star})=\frac{42}{5},\qquad V_{\mathrm{SC}}(P^{\star})=\frac{1625}{184},\qquad V_U(P^{\star})=\frac{39}{4},\] with gaps \[V_U(P^{\star})-V_{\mathrm{PT}}(P^{\star})=\frac{27}{20},\qquad V_U(P^{\star})-V_{\mathrm{SC}}(P^{\star})=\frac{169}{184}.\] The union QP fixes the final donor coefficients at \((1/2,1/2)\); its required SC preperiod-normal coefficient differs from the SC oracle coefficient, so both one-sided Gram discrepancies are strictly positive. The same strict inequalities hold on a relatively open region preserving strict fourth-moment slack, full rank, the stated nonzero-spectrum and locally constant-rank margins, unequal positive donor-change variances, and unequal SC and PT-oracle weights.
+\end{proposition}
+\begin{proof}
+There is one stratum and every group has probability \(1/3\).  Under the fixed-margin hypotheses in the statement, \(p_X=1>\kappa_0\) and \(p_g=1/3\in(\epsilon_0,1-\epsilon_0)\).  No anticipation holds by construction.  Every untreated final mean change is zero, so conditional parallel trends holds and
+\[
+ D=(0,0)^{\prime},
+ \qquad
+ \delta_1^0=0,
+ \qquad
+ q_{\mathrm{PT}}(P^{\star})=(0,0)^{\prime}.
+ \tag{1}
+\]
+The augmented donor matrix and target vector are
+\[
+ B=\begin{pmatrix}1&1\\-1&1\\-2&2\end{pmatrix},
+ \qquad
+ a=\begin{pmatrix}1\\0\\0\end{pmatrix},
+ \qquad
+ B^{\prime}B=\begin{pmatrix}6&-4\\-4&6\end{pmatrix}.
+ \tag{2}
+\]
+The eigenvalues are \(2\) and \(10\), so the strict SC rank margin holds because \(\kappa_0<1\).  Solving \(Bw=a\) gives the unique weights \(w=(1/2,1/2)^{\prime}\), which also reproduce the period-three untreated mean.  The assumed strict fourth-moment inequality supplies strict moment slack, and the remaining normal-spectrum and constant-rank requirements are imposed in the statement.  Hence \(P^{\star}\in\mathcal M_I\) and is a theorem point for the preceding envelope and adaptation results.  Since \(K=1\), each branch contrast equals its treated average, so
+\[
+ \chi_{\mathrm{PT}}=\chi_{\mathrm{SC}}=\chi_0=0.
+ \tag{3}
+\]
+
+Define \(z_{g,t}=3\mathbf 1\{G=g\}\varepsilon_{g,t}\).  Quotient differentiation of a conditional cell mean shows that \(z_{g,t}\) is its mean-zero influence variable.  Independence makes these variables pairwise orthogonal, and their variances by time within group are
+\[
+ (3,3,3),
+ \qquad
+ (3,3/2,3/2),
+ \qquad
+ (6,6,6).
+ \tag{4}
+\]
+The PT face, parameterized by the donor-two weight \(v\), is
+\[
+ \psi_{\mathrm{PT}}(v)=(z_{1,3}-z_{1,2})
+ -v(z_{2,3}-z_{2,2})-(1-v)(z_{3,3}-z_{3,2}).
+ \tag{5}
+\]
+Consequently
+\[
+ \|\psi_{\mathrm{PT}}(v)\|_0^2=6+3v^2+12(1-v)^2.
+ \tag{6}
+\]
+Its derivative is \(30v-24\), so the unique minimizer is \(v=4/5\), and
+\[
+ V_{\mathrm{PT}}(P^{\star})
+ =6+3(4/5)^2+12(1/5)^2=\frac{42}{5}.
+ \tag{7}
+\]
+For \(J=2\), the donor-change contrast has variance \(15>0\), so the PT normal Gram has rank one.
+
+For SC, \(u=(0,-2,1)^{\prime}\) spans \(\ker(B^{\prime})\).  Differentiating the full-rank normal equations yields
+\[
+ \dot w=(B^{\prime}B)^{-1}B^{\prime}(\dot a-\dot B\,w).
+ \tag{8}
+\]
+The unrestricted SC cell-mean coefficients, ordered by time within groups one, two, and three, are
+\[
+ (-2/5,-4/5,1),
+ \qquad
+ (1/5,2/5,-1/2),
+ \qquad
+ (1/5,2/5,-1/2).
+ \tag{9}
+\]
+Adding \(\beta u^{\prime}(\dot a-\dot B\,w)\) changes only preperiod coefficients.  Using (4), their variance contribution is
+\[
+ Q(\beta)=\frac{207}{8}\beta^2+\frac35\beta+\frac{99}{25}.
+ \tag{10}
+\]
+It is uniquely minimized at \(\beta^{\mathrm{or}}=-4/345\), with minimum \(91/23\).  The final-period contribution is \(39/8\), and therefore
+\[
+ V_{\mathrm{SC}}(P^{\star})=\frac{39}{8}+\frac{91}{23}=\frac{1625}{184}.
+ \tag{11}
+\]
+
+SC normals have only preperiod coordinates, so equality with the PT face forces \(v=1/2\) from the final donor coefficients.  Equality of the preperiod coefficients then forces \(\beta=-1/5\), giving the unique common representative with coefficients
+\[
+ (0,-1,1),
+ \qquad
+ (0,1/2,-1/2),
+ \qquad
+ (0,1/2,-1/2).
+ \tag{12}
+\]
+Its variance is
+\[
+ V_U(P^{\star})=6+3(1/2)^2+12(1/2)^2=\frac{39}{4}.
+ \tag{13}
+\]
+The PT oracle has \(v=4/5\ne1/2\), and the SC oracle has \(\beta=-4/345\ne-1/5\).  The one-sided criteria in \(\mathrm{thm{:}oracle\text{-}adaptation\text{-}frontier}\) therefore make both discrepancies strictly positive.  Subtraction gives
+\[
+ V_U-V_{\mathrm{PT}}=\frac{27}{20},
+ \qquad
+ V_U-V_{\mathrm{SC}}=\frac{169}{184}.
+ \tag{14}
+\]
+All finite-support Gram entries, unique quadratic minimizers, and minimized values vary continuously with cell probabilities, means, and second moments while the stipulated nonzero spectral margins and locally constant ranks persist.  At \(P^{\star}\), full rank, strictly slack fourth moments, positive unequal donor-change variances, unequal oracle weights, and both strict gaps hold.  They therefore persist on a relatively open intersection region satisfying the same strict theorem-point margins.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Strict fourth-moment and spectral slack place the exact one-stratum variance gaps inside the repaired theorem scope. \textit{Gap.} The branchwise literature does not exhibit this legal strict-interior region with distinct canonical gradients. \textit{Consumer.} The witness calibrates the lower-bound QP but supplies no standard-error software.
+
+\begin{proposition}[prop:single-donor-reduction]\label{prop:single-donor-reduction}
+When \(J=1\), at every \(P_0\in\mathcal M_I\) such that, for every \(x\in\mathcal X\) and \(g\in\{1,2\}\), \(p_X(x)>\kappa_0\), \(p_g(x)\in(\epsilon_0,1-\epsilon_0)\), \(\max_{g,t}E_{P_{0,O}}[|Y_t|^4\mid G=g]<M_4\), \(\lambda_{\min}\{B(x)^{\prime}B(x)\}>\kappa_0\), every nonzero eigenvalue of \(\Omega_x\) is greater than \(\kappa_0\), and \(\operatorname{rank}(\Omega_x)\) is locally constant, \(A_{\mathrm{PT}}=0\), so profiling the sole treated-versus-donor equality leaves no PT observed-data normal and the PT observed-law tangent space is unrestricted. The full-rank SC observed model is therefore locally nested in the PT observed model, \(\mathcal I_{\mathrm{PT}}(P_0)\subseteq\mathcal I_{\mathrm{SC}}(P_0)\), \(\phi_U=\phi_{\mathrm{PT}}\), and \(V_U=V_{\mathrm{PT}}\). With \(T=2\), this PT gradient equals the panel-DiD ATT efficient influence function in SantAnnaZhao2020, Proposition 1(a), equation (2.11), whose efficiency bound is equation (2.12).
+\end{proposition}
+\begin{proof}
+Assume the strict-interior, locally constant-rank hypotheses in the statement.  If \(J=1\), then \(\mathbf 1_J\mathbf 1_J^{\prime}=1\), and \(\mathrm{def{:}restriction\text{-}maps}\) gives
+\[
+ A_{\mathrm{PT}}=I_1-1=0,
+ \qquad
+ r_{\mathrm{PT},x}=0.
+ \tag{1}
+\]
+The tangent normal form therefore gives
+\[
+ \mathcal T_{\mathrm{PT}}(P_0)=\mathcal H_{P_0},
+ \qquad
+ \mathcal I_{\mathrm{PT}}(P_0)=\{\phi_{\mathrm{PT}}\},
+ \tag{2}
+\]
+where \(\phi_{\mathrm{PT}}=\chi_{\mathrm{PT}}+\sum_xg^{\circ}_{\mathrm{PT},x}\).
+
+With one donor, the intercept restriction forces \(w_2(x)=1\), while the SC restriction gives \(\mu_{1,t}(x)=\mu_{2,t}(x)\) for \(t<T\).  Hence throughout the SC branch,
+\[
+ \begin{aligned}
+ \theta_{\mathrm{PT}}(P_O)
+ &=\sum_x\nu_x\{\mu_{1,T}-\mu_{1,T-1}-\mu_{2,T}+\mu_{2,T-1}\}\\
+ &=\sum_x\nu_x\{\mu_{1,T}-\mu_{2,T}\}
+ =\theta_{\mathrm{SC}}(P_O).
+ \end{aligned}
+ \tag{3}
+\]
+Thus their derivatives agree on every SC tangent.  Since the singleton PT influence function represents the PT derivative on all of \(\mathcal H_{P_0}\), it belongs to \(\mathcal I_{\mathrm{SC}}(P_0)\).  Therefore
+\[
+ \mathcal I_{\mathrm{PT}}(P_0)\subseteq\mathcal I_{\mathrm{SC}}(P_0),
+ \qquad
+ \phi_U=\phi_{\mathrm{PT}},
+ \qquad
+ V_U=V_{\mathrm{PT}}.
+ \tag{4}
+\]
+
+For \(T=2\), put \(\Delta Y=Y_2-Y_1\) and \(m_g(x)=E_O[\Delta Y\mid G=g,X=x]\).  The strict overlap conditions make every denominator below positive.  Direct quotient and conditional-mean differentiation gives
+\[
+ \begin{aligned}
+ \phi_{\mathrm{PT}}(O)
+ &=\frac{\mathbf 1\{G=1\}}{\pi_1}\{\Delta Y-m_1(X)\}
+ -\frac{\mathbf 1\{G=2\}}{\pi_1}\frac{p_1(X)}{p_2(X)}\{\Delta Y-m_2(X)\}\\
+ &\quad+\frac{\mathbf 1\{G=1\}}{\pi_1}\{m_1(X)-m_2(X)-\theta\}.
+ \end{aligned}
+ \tag{5}
+\]
+The first two terms are conditional-residual pieces and the last is the treated-composition gradient.  Equation (5) is mean zero and its covariance with every score equals the derivative of the panel ATT functional.  Under the group relabeling, this is the panel efficient influence function recorded in \(\mathrm{lem{:}santanna\text{-}zhao\text{-}panel\text{-}did\text{-}gradient}\), whose source locator is Sant'Anna and Zhao's Proposition 1(a), equation (2.11), with the efficiency bound in equation (2.12).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The strict-interior endpoint recovers the panel-DiD influence function in SantAnnaZhao2020, Proposition 1(a), equation (2.11), and its equation (2.12) bound. \textit{Gap.} The cited panel result is not itself a PT-or-SC union endpoint. \textit{Consumer.} This is a theoretical two-period benchmark, not a new procedure.
+
+\begin{theorem}[thm:uniform-attainment-obstruction]\label{thm:uniform-attainment-obstruction}
+Under the frozen definition of \(\mathfrak L_U(P_0)\), the requested uniform asymptotic-linear conclusion, and hence the requested four-part affirmative attainment result, is false in general. In particular, take \(P_0=P^{\star}\) and fixed margins for which the witness has strict slack in cell mass, two-sided group overlap, fourth moments, the SC spectrum, every nonzero normal eigenvalue, and the positive local-score variance bound, with locally constant displayed ranks. For every sufficiently small nonzero \(\delta\), let \(Q_\delta\) retain the donor means and innovation laws of \(P^{\star}\) but replace the treated untreated mean path by \((-2\delta,-4\delta,-4\delta)\), and define \[\Delta_\delta=\phi_U^{\mathrm{loc}}(Q_\delta;\mathrm{PT},P^{\star})-\phi_U^{\mathrm{loc}}(Q_\delta;\mathrm{SC},P^{\star}).\] Then \(Q_\delta\in\mathcal M_I\) and \[E_{Q_\delta}[\Delta_\delta^2]\ge\frac{15}{2}\delta^2>0.\] For every sample size, finite-coordinate splicing produces two elements of \(\mathfrak L_U(P^{\star})\) having the same observed law at that coordinate but different admissible chart labels. No single estimator can have both chart expansions uniformly. This obstruction proves no affirmative sequencewise continuation theorem; it merely does not rule out such a theorem after imposing a common local neighborhood, common bounds on the QMD scores and remainders, and exclusion of arbitrary finite-coordinate replacements.
+\end{theorem}
+\begin{proof}
+Choose the fixed margins so that \(P^{\star}\) satisfies with strict slack the cell-mass, two-sided group-overlap, fourth-moment, SC-spectrum, nonzero-normal-spectrum, and positive local-score-variance inequalities, and so that the displayed ranks are locally constant.  For sufficiently small fixed \(\delta\ne0\), retain both donor mean paths and all innovation laws but replace the treated untreated mean path by
+\[
+ (1/2+\delta)(-1,-2,-2)+(1/2-\delta)(1,2,2)
+ =(-2\delta,-4\delta,-4\delta).
+ \tag{1}
+\]
+Give the treated group the same additive final treatment effect and call the law \(Q_\delta\).  Every untreated final mean change remains zero, so PT holds.  The donor matrix is unchanged, and the treated path is reproduced by the unique weights
+\[
+ w_\delta=(1/2+\delta,1/2-\delta)^{\prime},
+ \tag{2}
+\]
+so SC also holds.  The finitely many probabilities, fourth moments, Gram matrices, positive eigenvalues, and local-score variances vary continuously in \(\delta\).  The strict slack at \(P^{\star}\) therefore ensures that every displayed margin remains valid for all sufficiently small \(|\delta|\).  Thus \(Q_\delta\in\mathcal M_I\).
+
+There is one covariate stratum.  On either branch \(C_b(X)=\theta_b\) is constant, so
+\[
+ \chi_{\mathrm{PT}}(Q_\delta)=\chi_{\mathrm{SC}}(Q_\delta)=0.
+ \tag{3}
+\]
+The branch-specific composition terms in \(\mathrm{def{:}local\text{-}score\text{-}extension}\) therefore do not affect the witness calculation.
+
+Fix an integer \(m\).  Construct two triangular sequences that equal \(Q_\delta\) at coordinate \(m\) and \(P^{\star}\) at every other coordinate, labeling coordinate \(m\) by PT in the first and by SC in the second.  Each sequence belongs to \(\mathfrak L_U(P^{\star})\): after its single exceptional coordinate it is identically \(P^{\star}\), so the QMD score and remainder are eventually zero, and every coordinate obeys the fixed margins.  Thus, at every sample size, the frozen sequence class contains two admissibly labeled copies of the same observed law.
+
+Let \(z_{g,t}=3\mathbf 1\{G=g\}\{Y_t-\mu_{g,t}\}\).  At \(Q_\delta\),
+\[
+ \operatorname{Var}(z_{2,3})=\frac32,
+ \qquad
+ \operatorname{Var}(z_{3,3})=6.
+ \tag{4}
+\]
+At \(P^{\star}\), the common score has final donor coefficients \((-1/2,-1/2)\).  The PT extension freezes its center normal coefficient, and the donor laws are unchanged, so those coefficients remain \((-1/2,-1/2)\) at \(Q_\delta\).  The SC normal uses only preperiod coordinates, whereas (2) makes the SC final donor coefficients \((-1/2-\delta,-1/2+\delta)\).  Hence, for
+\[
+ \Delta_\delta
+ =\phi_U^{\mathrm{loc}}(Q_\delta;\mathrm{PT},P^{\star})
+ -\phi_U^{\mathrm{loc}}(Q_\delta;\mathrm{SC},P^{\star}),
+ \tag{5}
+\]
+the final-innovation component is \(\delta(z_{2,3}-z_{3,3})\).  Every remaining component uses other group-period innovations and is orthogonal to it.  Therefore
+\[
+ E_{Q_\delta}[\Delta_\delta^2]
+ \ge\delta^2\left(\frac32+6\right)
+ =\frac{15}{2}\delta^2>0.
+ \tag{6}
+\]
+Both chart scores are mean zero, so \(E_{Q_\delta}[\Delta_\delta]=0\).
+
+If a single estimator had both chart expansions uniformly over the frozen class, couple the two sequences at sample size \(m\) through the same independent sample from \(Q_\delta\) and subtract their expansions.  Since both branches identify the same ATT at \(Q_\delta\), the estimator and target terms cancel, leaving
+\[
+ S_m=m^{-1/2}\sum_{i=1}^m\Delta_\delta(O_i)=o_{Q_\delta}(1).
+ \tag{7}
+\]
+Independent sampling and (6) imply \(E[S_m^2]=E[\Delta_\delta^2]\ge15\delta^2/2\).  Because \(\Delta_\delta\) is a bounded linear combination of finitely many Rademacher innovations,
+\[
+ E[S_m^4]
+ =m^{-1}E[\Delta_\delta^4]
+ +3(1-m^{-1})E[\Delta_\delta^2]^2
+ \tag{8}
+\]
+is uniformly bounded.  Thus \((S_m^2)\) is uniformly integrable.  Convergence in probability in (7) would imply \(E[S_m^2]\to0\), contradicting (6).
+
+No estimator can therefore possess both chart expansions uniformly over \(\mathfrak L_U(P^{\star})\).  Because asymptotic linearity is a necessary conjunct of the requested one-step, variance-consistency, multiplier-consistency, and coverage result, the full affirmative theorem is false.  The argument does not rule out a different theorem on a redesigned common neighborhood with common QMD-score and remainder bounds and without arbitrary finite-coordinate splicing.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Strict slack keeps both the witness and its perturbations inside the frozen class, while the one-stratum composition terms vanish and leave the quantitative chart separation unchanged. \textit{Gap.} The integrated alternative-hypothesis laws in SunXieZhang2025 do not validate uniformity over finite-coordinate-spliced sequences. \textit{Consumer.} A branch-robust confidence interval requires a redesigned uniformity class and a new positive theorem.
+
+\begin{lemma}[lem:semiparametric-convolution-bound]\label{lem:semiparametric-convolution-bound}
+\texttt{In a quadratic-\allowbreak{}mean differentiable semiparametric model,\allowbreak{} at any fixed law where a scalar parameter is pathwise differentiable,\allowbreak{} the asymptotic variance of every regular estimator of that parameter is no smaller than the squared Hilbert-\allowbreak{}space norm of its canonical gradient.}
+\end{lemma}
+
+\begin{lemma}[lem:sun-xie-zhang-branchwise-laws]\label{lem:sun-xie-zhang-branchwise-laws}
+\texttt{Sun,\allowbreak{} Xie,\allowbreak{} and Zhang analyze one integrated ATT estimator and one multiplier-\allowbreak{}bootstrap construction under alternative conditional-\allowbreak{}parallel-\allowbreak{}trends and group-\allowbreak{}level synthetic-\allowbreak{}control hypotheses. Theorem 2 gives the PT asymptotic law,\allowbreak{} Theorem 3 gives the SC asymptotic law,\allowbreak{} the corresponding influence functions and asymptotic variances may differ,\allowbreak{} and Theorem 4 establishes multiplier-\allowbreak{}bootstrap consistency under either theorem's assumptions.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This source node records exactly that one integrated estimator and one multiplier construction are analyzed under alternative PT and SC hypotheses. \textit{Gap.} The source supplies branch-specific laws, not the strict-interior union tangent intersection or its convolution lower bound. \textit{Consumer.} The Alaska application motivates the benchmark; this paper adds no implemented standard-error procedure.
+
+\begin{lemma}[lem:santanna-zhao-panel-did-gradient]\label{lem:santanna-zhao-panel-did-gradient}
+\texttt{For the two-\allowbreak{}period panel difference-\allowbreak{}in-\allowbreak{}differences model under conditional parallel trends and overlap,\allowbreak{} Sant'Anna and Zhao's Proposition 1(a),\allowbreak{} equations (2.11)-\allowbreak{}-\allowbreak{}(2.12),\allowbreak{} give the semiparametric efficiency bound and the efficient influence function for the average treatment effect on the treated.}
+\end{lemma}
+
+\begin{lemma}[lem:sc-profiled-normal-rank]\label{lem:sc-profiled-normal-rank}
+At every \(P_0\in\mathcal M_I\) such that, for every \(x\in\mathcal X\) and \(1\le g\le J+1\), \(p_X(x)>\kappa_0\), \(p_g(x)\in(\epsilon_0,1-\epsilon_0)\), \(\max_{g,t}E_{P_{0,O}}[|Y_t|^4\mid G=g]<M_4\), \(\lambda_{\min}\{B(x)^{\prime}B(x)\}>\kappa_0\), every nonzero eigenvalue of \(\Omega_x\) is greater than \(\kappa_0\), and \(\operatorname{rank}(\Omega_x)\) is locally constant, the derivative of the profiled SC restriction in stratum \(x\) is \[\dot r_{\mathrm{SC},x}=\{I_T-B(x)[B(x)^{\prime}B(x)]^{-1}B(x)^{\prime}\}\{\dot a(x)-\dot B(x)w(x)\}.\] Consequently, \[\operatorname{rank}E_{P_{0,O}}[R_{\mathrm{SC},x}R_{\mathrm{SC},x}^{\prime}]\le T-J.\] Equality holds when the covariance form of the residualized coordinates is positive definite on the \((T-J)\)-dimensional orthogonal complement of \(\operatorname{col}B(x)\).
+\end{lemma}
+\begin{proof}
+Fix a stratum \(x\) at the strict-interior, locally constant-rank point in the statement and put \(\Pi_x=B(x)\{B(x)^{\prime}B(x)\}^{-1}B(x)^{\prime}\).  The strict SC Gram margin makes \(\Pi_x\) the orthogonal projector onto the \(J\)-dimensional column space of \(B(x)\), so \(I_T-\Pi_x\) has rank \(T-J\).  At an SC law, \(a(x)=B(x)w(x)\).  Differentiating \(\Pi_xB(x)=B(x)\) yields
+\[
+ \dot\Pi_xB(x)w(x)=(I_T-\Pi_x)\dot B(x)w(x).
+ \tag{1}
+\]
+Since \(r_{\mathrm{SC},x}=(I_T-\Pi_x)a(x)\),
+\[
+ \dot r_{\mathrm{SC},x}
+ =(I_T-\Pi_x)\{\dot a(x)-\dot B(x)w(x)\}.
+ \tag{2}
+\]
+The definition of \(R_{\mathrm{SC},x}\) uses the conditional-residual Riesz representative of exactly this derivative.  Conditional centering does not change the deterministic range in (2).  Thus the covariance range of \(R_{\mathrm{SC},x}\) is contained in \(\operatorname{range}(I_T-\Pi_x)\), proving the rank bound \(T-J\).  If the residualized covariance form is positive definite on that range, its covariance rank equals the range dimension, proving equality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma certifies the finite SC normal dimension at the same strict-interior constant-rank points as the envelope. \textit{Gap.} The profiled derivative and its exact residual-space rank are needed for the QP geometry. \textit{Consumer.} This is a rank calculation, not an inference guarantee.
+
+\begin{proposition}[prop:saturated-donor-reduction]\label{prop:saturated-donor-reduction}
+When \(J=T\), at every \(P_0\in\mathcal M_I\) such that, for every \(x\in\mathcal X\) and \(1\le g\le J+1\), \(p_X(x)>\kappa_0\), \(p_g(x)\in(\epsilon_0,1-\epsilon_0)\), \(\max_{g,t}E_{P_{0,O}}[|Y_t|^4\mid G=g]<M_4\), \(\lambda_{\min}\{B(x)^{\prime}B(x)\}>\kappa_0\), every nonzero eigenvalue of \(\Omega_x\) is greater than \(\kappa_0\), and \(\operatorname{rank}(\Omega_x)\) is locally constant, each \(B(x)\) is square and invertible, the profiled SC restriction is identically zero, and \(R_{\mathrm{SC},x}\) has rank zero. Therefore \[\mathcal T_{\mathrm{SC}}(P_0)=\mathcal H_{P_0},\qquad \mathcal I_{\mathrm{SC}}(P_0)=\{\phi_{\mathrm{SC}}\},\] and \[\mathcal I_{\mathrm{PT}}(P_0)\cap\mathcal I_{\mathrm{SC}}(P_0)=\{\phi_{\mathrm{SC}}\},\qquad \phi_U=\phi_{\mathrm{SC}},\qquad V_U=V_{\mathrm{SC}}.\]
+\end{proposition}
+\begin{proof}
+Fix \(x\) at the strict-interior, locally constant-rank point in the statement.  When \(J=T\), \(B(x)\) is square.  The strict SC spectral margin gives \(\lambda_{\min}\{B(x)^{\prime}B(x)\}>\kappa_0>0\), so \(B(x)\) is invertible and
+\[
+ B(x)\{B(x)^{\prime}B(x)\}^{-1}B(x)^{\prime}=I_T.
+ \tag{1}
+\]
+Therefore \(r_{\mathrm{SC},x}=0\) throughout the full-rank neighborhood, and both its derivative and its normalized Riesz vector vanish.  Equivalently, \(\mathrm{lem{:}sc\text{-}profiled\text{-}normal\text{-}rank}\) gives rank at most \(T-J=0\).
+
+The tangent normal form now gives
+\[
+ \mathcal T_{\mathrm{SC}}(P_0)=\mathcal H_{P_0},
+ \qquad
+ \mathcal I_{\mathrm{SC}}(P_0)
+ =\left\{\chi_{\mathrm{SC}}+\sum_xg^{\circ}_{\mathrm{SC},x}\right\}
+ =\{\phi_{\mathrm{SC}}\}.
+ \tag{2}
+\]
+The common composition term is explicitly part of this singleton.  The union-envelope theorem proves that \(\mathcal I_{\mathrm{PT}}(P_0)\cap\mathcal I_{\mathrm{SC}}(P_0)\) is nonempty at the same strict-interior point.  Hence
+\[
+ \mathcal I_{\mathrm{PT}}(P_0)\cap\mathcal I_{\mathrm{SC}}(P_0)
+ =\{\phi_{\mathrm{SC}}\}.
+ \tag{3}
+\]
+The definitions of the union gradient and variances then imply \(\phi_U=\phi_{\mathrm{SC}}\) and \(V_U=V_{\mathrm{SC}}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At strict-interior constant-rank points with \(J=T\), the SC affine class is a singleton containing the composition gradient. \textit{Gap.} Existing branchwise results do not state this corrected union endpoint. \textit{Consumer.} This checks the QP boundary and supplies no estimator.
+
+\section{Interpretation}
+
+At a strict-interior constant-rank intersection law, the cost of requiring regularity under either identifying restriction is the squared-distance cost of forcing the PT and SC affine influence faces to agree. The common treated-composition term does not affect that distance but does contribute \(E[\chi_0^2]\) to every variance. A zero Gram discrepancy means local robustness is free in the specified direction; a positive discrepancy is a local efficiency cost, not an estimated diagnostic with its own sampling theory.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The corrected union envelope is a local regularity lower bound only at strict-interior intersection laws with locally constant rank and strict support, moment, SC-spectrum, and nonzero-normal-spectrum slack. Its common treated-composition component is identified analytically, but no attaining estimator, usable standard error, or multiplier-confidence procedure is established. The negative theorem uses a witness with strict slack, including in the local-score variance margin, and depends on the frozen sequence class's closure under arbitrary finite-coordinate replacements. It does not settle a redesigned common neighborhood with common QMD-score and remainder bounds. Boundary overlap, saturated moment inequalities, rank changes, covariance degeneracy, and weight restrictions require different local experiments.
+
+\section{Honest scope}
+
+The proved deliverables are strict-interior, locally constant-rank versions of the corrected tangent-normal characterization \(\mathcal I_b=\chi_b+\sum_xg^{\circ}_{b,x}+\operatorname{span}R_b\), the finite centered union convolution lower bound with \(E[\chi_0^2]\), observable oracle-adaptation tests, the exact strict three-group witness, and the single-donor and saturated-donor reductions. Sun, Xie, and Zhang supply one integrated estimator and one multiplier construction analyzed under alternative PT and SC hypotheses; this paper preserves that integrated-construction description and provides no new implemented inference. Lower-bound and impossibility conclusions transfer to estimators regular on the broader published union by restriction to the repaired subclass, while sharpness remains local to that subclass. The frozen sequence class makes a uniformly chartwise expansion false by finite-coordinate splicing, and no positive sequencewise continuation theorem is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{SunXieZhang2025} Yixiao Sun, Haitian Xie, and Yuhang Zhang (2025), ``Difference-in-Differences Meets Synthetic Control: Doubly Robust Identification and Estimation,'' arXiv:2503.11375v2. See Theorem 1, Theorems 2--4, equations (2), (6), and (12), Appendix equations (A.5) and (A.13), and Section 8.
+
+  \bibitem{ChenSantAnnaXie2025} Xiaohong Chen, Pedro H. C. Sant'Anna, and Haitian Xie (2025), ``Efficient Difference-in-Differences and Event Study Estimators,'' Cowles Foundation Discussion Paper 2470, arXiv:2506.17729. See Lemma 3.1, Theorems 3.1--3.2, and Section 7.
+
+  \bibitem{TchetgenTchetgenRobinsRotnitzky2010} Eric J. Tchetgen Tchetgen, James M. Robins, and Andrea Rotnitzky (2010), ``On Doubly Robust Estimation in a Semiparametric Odds Ratio Model,'' Biometrika 97(1), 171--180. See Section 3 and the finite-support intersection-efficiency result.
+
+  \bibitem{SantAnnaZhao2020} Pedro H. C. Sant'Anna and Jun B. Zhao (2020), ``Doubly Robust Difference-in-Differences Estimators,'' Journal of Econometrics 219(1), 101--122. See Proposition 1(a), equations (2.11)--(2.12), for the panel-data efficiency bound and efficient influence function.
+
+  \bibitem{Newey1994} Whitney K. Newey (1994), ``The Asymptotic Variance of Semiparametric Estimators,'' Econometrica 62(6), 1349--1382.
+
+  \bibitem{NeweyRobins2018} Whitney K. Newey and James M. Robins (2018), ``Cross-Fitting and Fast Remainder Rates for Semiparametric Estimation,'' arXiv:1801.09138. See Sections 1--3 and the foldwise remainder decomposition.
+
+  \bibitem{DukesVansteelandtWhitney2024} Oliver Dukes, Stijn Vansteelandt, and David Whitney (2024), ``On Doubly Robust Inference for Double Machine Learning in Semiparametric Regression,'' Journal of Machine Learning Research 25, 1--46, arXiv:2107.06124v3. See Sections 3--4 and Section 6.
+
+  \bibitem{ChernozhukovChetverikovKato2016} Victor Chernozhukov, Denis Chetverikov, and Kengo Kato (2016), ``Empirical and Multiplier Bootstraps for Suprema of Empirical Processes of Increasing Complexity, and Related Gaussian Couplings,'' Stochastic Processes and their Applications 126(12), 3632--3651, arXiv:1502.00352.
+
+  \bibitem{AndrewsCheng2012} Donald W. K. Andrews and Xu Cheng (2012), ``Estimation and Inference with Weak, Semi-Strong, and Strong Identification,'' Econometrica 80(5), 2153--2211.
+
+  \bibitem{VanDerVaart1998} Aad W. van der Vaart (1998), Asymptotic Statistics, Cambridge University Press, Chapters 7 and 25.
+
+  \bibitem{BakerEtAl2026} Andrew Baker, Brantly Callaway, Scott Cunningham, Andrew Goodman-Bacon, and Pedro H. C. Sant'Anna (2026), ``Difference-in-Differences Designs: A Practitioner's Guide,'' arXiv:2503.13323, revised March 2026. See Sections 4--5.
+
+  \bibitem{RummoEtAl2026} Pasquale E. Rummo, Juan A. Echenique, Erilia Wu, Tod Mijanovich, Sunita M. Desai, Marie A. Bragg, Beth C. Weitzman, and Brian Elbel (2026), ``Impact of Sugary Drink Taxes on Beverage Calories Purchased in a National Fast Food Restaurant Chain: A Quasi-Experimental Study,'' PLOS Medicine 23(4), e1004642.
+
+  \bibitem{Newey1990} Whitney K. Newey (1990), ``Semiparametric Efficiency Bounds,'' Journal of Applied Econometrics 5(2), 99--135. Sections 2--3. DOI: 10.1002/jae.3950050202.
+
+\end{thebibliography}
+
+\end{document}

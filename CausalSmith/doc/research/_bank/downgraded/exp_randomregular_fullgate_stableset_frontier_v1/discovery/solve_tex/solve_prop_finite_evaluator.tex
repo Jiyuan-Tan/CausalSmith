@@ -1,0 +1,56 @@
+%%% FIELD proof-prop-finite-evaluator
+Fix a finite revealed simple \(d\)-regular graph \(G\). A single proposal draws a uniform \(k\)-subset \(A\), computes \(F_G(A)\) by exploring graph distance at most two from each vertex of \(A\), and tests whether \(\lvert F_G(A)\rvert\ge k\). Each depth-two exploration examines at most
+\[
+1+d+d(d-1)
+\]
+vertex incidences. Since \(k\le n\), one proposal uses a number of elementary operations polynomial in \(n\) and \(d\). There are at most \(n^3\) proposals. If one is accepted, drawing a uniform \(k\)-subset \(C\subseteq F_G(A)\), drawing \(\omega\), forming the two forced unions of closed neighborhoods, and drawing at most \(n\) remaining fair assignment coins are all finite operations taking time polynomial in \(n\) and \(d\). If no proposal is accepted, only the fair global coin is drawn. Thus the construction in \(\text{def:reservoir-capsule}\) gives an exact draw from \(\mathsf D_G^{\mathrm{cap}}\) in randomized time polynomial in \(n\) and \(d\).
+
+For the exact finite audit, let \(\Omega_G\) be the latent sample space whose atoms record the ordered reservoir proposals up to the first acceptance or the cap of \(n^3\), the subsequent \(C\) when acceptance occurs, \(\omega\), and all assignment coins used by the construction. Every recorded choice ranges over a finite set, so \(\Omega_G\) is finite. For each \(\eta\in\Omega_G\), the construction specifies an explicit rational probability mass \(p_G(\eta)\), and the maps
+\[
+\eta\longmapsto Z^{\mathrm{cap}}(\eta)
+\qquad\text{and}\qquad
+\eta\longmapsto X_u(\eta)
+\]
+are deterministic. Hence, for every \(u\in\mathcal U\), finite summation gives
+\[
+\pi_u
+=\mathbb E_{\mathsf D_G^{\mathrm{cap}}}[X_u\mid G]
+=\sum_{\eta\in\Omega_G}p_G(\eta)X_u(\eta).
+\tag{1}
+\]
+Every summand in (1) is a nonnegative rational number. Exact rational arithmetic therefore computes \(\pi_u\) and decides whether \(\pi_u=0\). Repeating (1) for the \(2n\) vertices \(u\in\mathcal U\) detects whether any focal inclusion probability vanishes.
+
+Assume for the remainder of the evaluation argument that \(\pi_u>0\) for every \(u\in\mathcal U\). For \(u,v\in\mathcal U\), the same enumeration computes
+\[
+q_{uv}
+:=\Pr(X_u=X_v=1\mid G)
+=\sum_{\eta\in\Omega_G}p_G(\eta)X_u(\eta)X_v(\eta).
+\tag{2}
+\]
+The denominators \(\pi_u\pi_v\) are nonzero by the displayed positivity condition. Substitution of (1) and (2) into \(\text{def:normalized-kernel}\) therefore computes every entry of \(\Gamma_G\) exactly.
+
+On every accepted atom, \(\text{prop:capsule-realization}\) states that each endpoint outcome multiplied by a nonzero focal indicator in \(\widetilde\tau_G\) is revealed by \((Z^{\mathrm{cap}},y(Z^{\mathrm{cap}}))\). On a fallback atom, \(X_u=0\) for every \(u\) by the definition of the focal indicators. Consequently \(\text{def:raw-estimator}\), together with the positive probabilities computed in (1), evaluates \(\widetilde\tau_G(\eta)\) exactly on every latent atom: an accepted atom uses only its focal metadata and endpoint outcomes revealed under its assignment, and a fallback atom has value zero.
+
+Fix an assignment \(z\in\{0,1\}^V\) having positive probability, and define its finite latent fiber by
+\[
+\Omega_G(z)
+:=\bigl\{\eta\in\Omega_G:Z^{\mathrm{cap}}(\eta)=z\bigr\}.
+\]
+Because the potential-outcome schedule is fixed, \(y(Z^{\mathrm{cap}})\) is a deterministic function of \(Z^{\mathrm{cap}}\). Conditioning on
+\[
+(G,Z^{\mathrm{cap}},y(Z^{\mathrm{cap}}))=(G,z,y(z))
+\]
+therefore selects the same latent fiber as conditioning on \((G,Z^{\mathrm{cap}})=(G,z)\). Its probability
+\[
+P_G(z):=\sum_{\eta\in\Omega_G(z)}p_G(\eta)
+\]
+is strictly positive by the choice of \(z\). The conditional expectation in \(\text{def:observed-estimator}\) is thus the explicit finite ratio
+\[
+\widehat\tau_G(G,z,y(z))
+=\frac{\displaystyle\sum_{\eta\in\Omega_G(z)}p_G(\eta)\widetilde\tau_G(\eta)}
+{\displaystyle P_G(z)}.
+\tag{3}
+\]
+Equation (3) computes both the conditional weights \(p_G(\eta)/P_G(z)\) and the value of \(\widehat\tau_G\). By \(\text{prop:capsule-realization}\), every outcome required by every summand in the numerator is a coordinate of the observed vector \(y(z)\); the internal focal metadata are summed out over the fiber. The positive-probability observed-data support is finite, so the function specified by (3) is measurable. This proves the claimed exact auditability from observed data without observing the internal focal metadata. Nothing in this finite-sum argument bounds \(\lvert\Omega_G\rvert\) by a polynomial, so it makes no polynomial-time claim for exact enumeration.
+
+Finally, positivity is not automatic, even at the smallest admissible population size. Let \(n=4\), \(d=3\), and \(G=K_4\). Then \(k=1\), while every vertex is within graph distance two of every singleton \(A\), so \(F_G(A)=\varnothing\). All \(n^3\) proposals fail, the fallback is used, and \(X_u=0\) for every \(u\in\mathcal U\). Equation (1) then gives \(\pi_u=0\) for every \(u\), which the enumeration detects. The divisions in the positive-inclusion formulas for \(\Gamma_G\) and the focal Horvitz--Thompson expression are consequently unavailable on this example. This verifies that the positivity qualification used above is substantive and completes the proof.

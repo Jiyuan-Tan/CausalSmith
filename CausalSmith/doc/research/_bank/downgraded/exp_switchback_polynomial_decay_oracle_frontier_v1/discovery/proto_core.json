@@ -1,0 +1,1537 @@
+{
+  "qid": "exp_switchback_polynomial_decay_oracle_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "T",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The experiment horizon.",
+      "role": "Finite-population index."
+    },
+    {
+      "name": "B",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The uniform outcome bound.",
+      "role": "Model radius."
+    },
+    {
+      "name": "C",
+      "type": "scalar",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The polynomial historical-envelope radius.",
+      "role": "Memory radius."
+    },
+    {
+      "name": "\\beta",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The known polynomial memory-decay index.",
+      "role": "Oracle smoothness index."
+    },
+    {
+      "name": "\\mathcal A",
+      "type": "set",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The binary treatment alphabet.",
+      "role": "Assignment support."
+    },
+    {
+      "name": "\\mathcal H_t",
+      "type": "set",
+      "space": "\\(\\mathcal A^t\\)",
+      "def": "The set of binary treatment histories through period \\(t\\).",
+      "role": "Potential-outcome domain.",
+      "refs": [
+        "\\mathcal A",
+        "T"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "fixed array",
+      "sig": "\\(Y_t:\\mathcal H_t\\to[-B,B]\\) for \\(t=1,\\ldots,T\\)",
+      "def": "The non-anticipating finite-population potential-outcome array.",
+      "role": "Adversarial object.",
+      "refs": [
+        "T",
+        "B",
+        "\\mathcal H_t"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "random vector",
+      "space": "\\(\\mathcal A^T\\)",
+      "def": "The realized assignment path.",
+      "role": "Only source of randomness.",
+      "refs": [
+        "T",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "Y^{\\mathrm{obs}}",
+      "type": "random vector",
+      "space": "\\([-B,B]^T\\)",
+      "def": "The observed outcomes satisfying \\(Y_t^{\\mathrm{obs}}=Y_t(W_{1:t})\\).",
+      "role": "Observed data.",
+      "refs": [
+        "Y",
+        "W",
+        "T",
+        "B"
+      ]
+    },
+    {
+      "name": "\\mathcal F_t",
+      "type": "sigma-field",
+      "def": "\\(\\mathcal F_t=\\sigma(W_{1:t},Y_{1:t}^{\\mathrm{obs}})\\), with \\(\\mathcal F_0\\) trivial.",
+      "role": "Adaptive-design filtration.",
+      "refs": [
+        "W",
+        "Y^{\\mathrm{obs}}",
+        "T"
+      ]
+    },
+    {
+      "name": "\\pi",
+      "type": "probability kernel",
+      "sig": "\\(\\pi_t(\\cdot\\mid\\mathcal F_{t-1})\\in\\mathcal P(\\mathcal A)\\)",
+      "def": "A known, possibly deterministic and outcome-adaptive, sequential assignment rule.",
+      "role": "Design decision.",
+      "refs": [
+        "\\mathcal F_t",
+        "\\mathcal A",
+        "T"
+      ]
+    },
+    {
+      "name": "\\mathcal D_T",
+      "type": "set",
+      "def": "The class of all sequential assignment kernels \\(\\pi\\) through horizon \\(T\\).",
+      "role": "Design comparison class.",
+      "refs": [
+        "\\pi",
+        "T"
+      ]
+    },
+    {
+      "name": "\\widehat\\theta",
+      "type": "estimator",
+      "sig": "\\(\\widehat\\theta=\\widehat\\theta(W,Y^{\\mathrm{obs}})\\in\\mathbb R\\)",
+      "def": "An arbitrary observed-data-measurable estimator.",
+      "role": "Analysis decision.",
+      "refs": [
+        "W",
+        "Y^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "name": "\\theta_T",
+      "type": "functional",
+      "sig": "\\(Y\\mapsto T^{-1}\\sum_{t=1}^T\\{Y_t(\\mathbf 1_{1:t})-Y_t(\\mathbf 0_{1:t})\\}\\)",
+      "def": "The all-treated-versus-all-control finite-population GATE.",
+      "role": "Causal estimand.",
+      "refs": [
+        "Y",
+        "T"
+      ]
+    },
+    {
+      "name": "\\mathcal P_{T,\\beta}(B,C)",
+      "type": "set",
+      "def": "The bounded pointwise polynomial historical-envelope class.",
+      "role": "Adversarial model class.",
+      "refs": [
+        "Y",
+        "T",
+        "B",
+        "C",
+        "\\beta"
+      ]
+    },
+    {
+      "name": "R_T^{(2)}(\\beta;B,C)",
+      "type": "scalar functional",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The minimax design-based mean squared error for \\(\\theta_T\\).",
+      "role": "Oracle frontier.",
+      "refs": [
+        "T",
+        "\\beta",
+        "B",
+        "C",
+        "\\theta_T",
+        "\\mathcal D_T",
+        "\\mathcal P_{T,\\beta}(B,C)",
+        "\\widehat\\theta"
+      ]
+    },
+    {
+      "name": "b",
+      "type": "integer",
+      "space": "\\(\\{1,\\ldots,T\\}\\)",
+      "def": "A homogeneous-history exposure length.",
+      "role": "Design scale.",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "integer",
+      "space": "\\(\\{1,\\ldots,T\\}\\)",
+      "def": "A block length used in the lower-bound experiment.",
+      "role": "Lower-bound scale.",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "\\pi^{(b)}",
+      "type": "probability kernel",
+      "def": "The stationary symmetric Markov switchback that changes arm with probability \\(1/(b+1)\\).",
+      "role": "Rate-attaining design.",
+      "refs": [
+        "b",
+        "\\pi",
+        "W"
+      ]
+    },
+    {
+      "name": "k_t",
+      "type": "integer",
+      "def": "\\(k_t=\\min\\{b,t-1\\}\\).",
+      "role": "Available exposure length.",
+      "refs": [
+        "b",
+        "T"
+      ]
+    },
+    {
+      "name": "H_{t,b,a}",
+      "type": "indicator",
+      "def": "\\(H_{t,b,a}=\\mathbf 1\\{W_{t-k_t:t}=\\mathbf a_{k_t+1}\\}\\) for \\(a\\in\\mathcal A\\).",
+      "role": "Homogeneous-history exposure.",
+      "refs": [
+        "W",
+        "k_t",
+        "b",
+        "\\mathcal A",
+        "T"
+      ]
+    },
+    {
+      "name": "\\nu_{t,b,a}",
+      "type": "scalar",
+      "space": "\\((0,1]\\)",
+      "def": "\\(\\nu_{t,b,a}=\\Pr_{\\pi^{(b)}}(H_{t,b,a}=1)=2^{-1}\\{b/(b+1)\\}^{k_t}\\).",
+      "role": "Known exposure probability.",
+      "refs": [
+        "\\pi^{(b)}",
+        "H_{t,b,a}",
+        "b",
+        "k_t",
+        "\\mathcal A",
+        "T"
+      ]
+    },
+    {
+      "name": "\\widehat\\theta_b",
+      "type": "estimator",
+      "def": "The truncated homogeneous-history Horvitz--Thompson estimator at scale \\(b\\).",
+      "role": "Rate-attaining estimator.",
+      "refs": [
+        "b",
+        "H_{t,b,a}",
+        "Y^{\\mathrm{obs}}",
+        "\\nu_{t,b,a}",
+        "T"
+      ]
+    },
+    {
+      "name": "\\widetilde\\theta_b",
+      "type": "random variable",
+      "def": "The auxiliary estimator obtained from \\(\\widehat\\theta_b\\) by replacing each exposed observed outcome with the corresponding sustained-arm endpoint.",
+      "role": "Upper-bound comparison process.",
+      "refs": [
+        "\\widehat\\theta_b",
+        "Y",
+        "T",
+        "b"
+      ]
+    },
+    {
+      "name": "L_T",
+      "type": "integer",
+      "def": "\\(L_T=\\max\\{1,\\lfloor T^{1/(2\\beta+1)}\\rfloor\\}\\).",
+      "role": "Oracle block scale.",
+      "refs": [
+        "T",
+        "\\beta"
+      ]
+    },
+    {
+      "name": "b_T",
+      "type": "integer",
+      "def": "\\(b_T=\\lceil T^{1/(2\\beta+1)}\\rceil\\).",
+      "role": "Constructive oracle window.",
+      "refs": [
+        "T",
+        "\\beta"
+      ]
+    },
+    {
+      "name": "\\mathcal B_T",
+      "type": "set",
+      "def": "\\(\\mathcal B_T=\\{2^j:j\\in\\mathbb Z_{\\ge0},\\ 2^j\\le L_T\\}\\cup\\{L_T\\}\\).",
+      "role": "Dyadic lower-bound scales.",
+      "refs": [
+        "L_T"
+      ]
+    },
+    {
+      "name": "\\mathfrak Q_{T,L}",
+      "type": "finite family of priors",
+      "def": "A common-null family of fixed-before-assignment block and band-perturbation priors at scales not exceeding \\(L\\).",
+      "role": "Lower-bound handle.",
+      "refs": [
+        "T",
+        "L",
+        "B",
+        "C",
+        "\\beta",
+        "\\mathcal B_T",
+        "Y"
+      ]
+    },
+    {
+      "name": "Q_{\\pi,L}",
+      "type": "prior",
+      "def": "A member of \\(\\mathfrak Q_{T,L}\\) selected as a function of the known policy \\(\\pi\\) before assignment.",
+      "role": "Policy-specific least-favorable prior.",
+      "refs": [
+        "\\mathfrak Q_{T,L}",
+        "\\pi",
+        "L"
+      ]
+    },
+    {
+      "name": "c_1",
+      "type": "scalar",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(c_1=C2^{-(1+\\beta)}\\), the lag-one envelope coefficient.",
+      "role": "Worked-example band height.",
+      "refs": [
+        "C",
+        "\\beta"
+      ]
+    },
+    {
+      "name": "\\delta_8",
+      "type": "scalar",
+      "space": "\\((0,B/4]\\)",
+      "def": "\\(\\delta_8=B/8\\).",
+      "role": "Worked-example block amplitude.",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "\\eta_8",
+      "type": "scalar",
+      "space": "\\((0,1/2]\\)",
+      "def": "\\(\\eta_8=\\min\\{1/2,B/[4(c_1+B)]\\}\\).",
+      "role": "Worked-example band multiplier.",
+      "refs": [
+        "B",
+        "c_1"
+      ]
+    },
+    {
+      "name": "U^{(8)}",
+      "type": "random array",
+      "sig": "\\(U^{(8)}=(U_{t,a})_{1\\le t\\le8,\\ a\\in\\mathcal A}\\)",
+      "def": "Independent coordinates with distribution \\(\\operatorname{Unif}[-B/2,B/2]\\), drawn before assignment.",
+      "role": "Common-null latent array.",
+      "refs": [
+        "B",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\psi_q",
+      "type": "map",
+      "sig": "\\(\\psi_q:[-B/2,B/2]\\to[-B,B]\\)",
+      "def": "\\(\\psi_q(u)=u+q(1-4u^2/B^2)\\) for \\(\\lvert q\\rvert\\le B/4\\).",
+      "role": "Endpoint-preserving transport.",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "\\mathcal I_{8,0}",
+      "type": "partition",
+      "def": "\\(\\mathcal I_{8,0}=\\{\\{1,2\\},\\{3,4\\},\\{5,6\\},\\{7,8\\}\\}\\).",
+      "role": "Aligned length-two blocks."
+    },
+    {
+      "name": "\\mathcal I_{8,1}",
+      "type": "partition",
+      "def": "\\(\\mathcal I_{8,1}=\\{\\{1\\},\\{2,3\\},\\{4,5\\},\\{6,7\\},\\{8\\}\\}\\).",
+      "role": "One-period-shifted length-two blocks."
+    },
+    {
+      "name": "Q_0^{(8)}",
+      "type": "prior",
+      "def": "The law under which the fixed array satisfies \\(Y_t(z_{1:t})=U_{t,z_t}\\) for \\(1\\le t\\le8\\).",
+      "role": "Worked-example common null.",
+      "refs": [
+        "Y",
+        "U^{(8)}"
+      ]
+    },
+    {
+      "name": "\\xi_{I,a}^{(r)}",
+      "type": "random sign array",
+      "space": "\\(\\{-1,1\\}\\)",
+      "def": "Independent Rademacher signs indexed by \\(r\\in\\{0,1\\}\\), \\(I\\in\\mathcal I_{8,r}\\), and \\(a\\in\\mathcal A\\), drawn before assignment.",
+      "role": "Worked-example block perturbations.",
+      "refs": [
+        "\\mathcal I_{8,0}",
+        "\\mathcal I_{8,1}",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "Q_{8,r}^{\\mathrm{blk}}",
+      "type": "prior",
+      "def": "For \\(r\\in\\{0,1\\}\\), the law under which \\(Y_t(z_{1:t})=\\psi_{\\delta_8\\xi_{I,z_t}^{(r)}}(U_{t,z_t})\\) for the unique \\(I\\in\\mathcal I_{8,r}\\) containing \\(t\\).",
+      "role": "Worked-example shifted block prior.",
+      "refs": [
+        "Q_0^{(8)}",
+        "\\psi_q",
+        "\\delta_8",
+        "\\xi_{I,a}^{(r)}",
+        "\\mathcal I_{8,0}",
+        "\\mathcal I_{8,1}",
+        "Y"
+      ]
+    },
+    {
+      "name": "h_{t,a}^{(8)}",
+      "type": "functional",
+      "def": "\\(h_{1,a}^{(8)}(z)=0\\) and \\(h_{t,a}^{(8)}(z)=\\mathbf 1\\{z_t=a\\}[c_1-2c_1\\mathbf 1\\{z_{t-1}\\ne a\\}]_+\\) for \\(2\\le t\\le8\\).",
+      "role": "Worked-example lag-one positive-part band score.",
+      "refs": [
+        "c_1",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "s_a",
+      "type": "scalar",
+      "space": "\\(\\{-1,1\\}\\)",
+      "def": "\\(s_1=1\\) and \\(s_0=-1\\).",
+      "role": "Arm sign for a common positive GATE displacement.",
+      "refs": [
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "Q_{8,a}^{\\mathrm{band}}",
+      "type": "prior",
+      "def": "For \\(a\\in\\mathcal A\\), the law under which \\(Y_t(z_{1:t})=\\psi_{s_a\\eta_8h_{t,a}^{(8)}(z)}(U_{t,z_t})\\).",
+      "role": "Worked-example arm-specific band prior.",
+      "refs": [
+        "Q_0^{(8)}",
+        "\\mathcal A",
+        "\\psi_q",
+        "\\eta_8",
+        "h_{t,a}^{(8)}",
+        "s_a",
+        "Y"
+      ]
+    },
+    {
+      "name": "\\mathcal Q_8",
+      "type": "finite family of priors",
+      "def": "\\(\\mathcal Q_8=\\{Q_0^{(8)},Q_{8,0}^{\\mathrm{blk}},Q_{8,1}^{\\mathrm{blk}},Q_{8,0}^{\\mathrm{band}},Q_{8,1}^{\\mathrm{band}}\\}\\).",
+      "role": "Worked-example common-null family.",
+      "refs": [
+        "Q_0^{(8)}",
+        "Q_{8,r}^{\\mathrm{blk}}",
+        "Q_{8,a}^{\\mathrm{band}}"
+      ]
+    },
+    {
+      "name": "\\mathsf Q",
+      "type": "prior",
+      "space": "\\(\\mathcal Q_8\\)",
+      "def": "A generic member of the worked finite family.",
+      "role": "Likelihood-factorization index.",
+      "refs": [
+        "\\mathcal Q_8"
+      ]
+    },
+    {
+      "name": "\\pi^\\dagger",
+      "type": "probability kernel",
+      "def": "The horizon-eight adaptive policy with \\(W_1\\sim\\operatorname{Bernoulli}(1/2)\\) and \\(\\Pr(W_t=1\\mid\\mathcal F_{t-1})=3/4\\) if \\(Y_{t-1}^{\\mathrm{obs}}\\ge0\\), and \\(1/4\\) otherwise.",
+      "role": "Worked-example adaptive assignment.",
+      "refs": [
+        "W",
+        "\\mathcal F_t",
+        "Y^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "name": "p_t^\\dagger",
+      "type": "random scalar",
+      "space": "\\(\\{1/4,3/4\\}\\)",
+      "def": "\\(p_t^\\dagger=3/4\\) if \\(Y_{t-1}^{\\mathrm{obs}}\\ge0\\), and \\(p_t^\\dagger=1/4\\) otherwise, for \\(2\\le t\\le8\\).",
+      "role": "Worked-example adaptive treatment probability.",
+      "refs": [
+        "Y^{\\mathrm{obs}}",
+        "\\pi^\\dagger"
+      ]
+    },
+    {
+      "name": "g_{\\pi^\\dagger}",
+      "type": "mass function",
+      "def": "\\(g_{\\pi^\\dagger}(w,y)=2^{-1}\\prod_{t=2}^8p_t^\\dagger(y)^{w_t}\\{1-p_t^\\dagger(y)\\}^{1-w_t}\\).",
+      "role": "Adaptive assignment likelihood factor.",
+      "refs": [
+        "\\pi^\\dagger",
+        "p_t^\\dagger"
+      ]
+    },
+    {
+      "name": "q_{\\mathsf Q}",
+      "type": "conditional density",
+      "def": "\\(q_{\\mathsf Q}(y\\mid w)\\) is the observed-outcome density induced by prior \\(\\mathsf Q\\) conditional on the assignment path \\(w\\), after its latent variables are integrated out.",
+      "role": "Outcome likelihood factor.",
+      "refs": [
+        "\\mathsf Q",
+        "W",
+        "Y^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "name": "P_{\\mathsf Q,\\pi^\\dagger}",
+      "type": "probability law",
+      "def": "The observed-data law generated by prior \\(\\mathsf Q\\) and adaptive policy \\(\\pi^\\dagger\\).",
+      "role": "Worked-example trajectory law.",
+      "refs": [
+        "\\mathsf Q",
+        "\\pi^\\dagger",
+        "W",
+        "Y^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "name": "\\kappa_\\beta",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Derived by \\(\\mathrm{oeq{:}sequential\\mbox{-}multiscale\\mbox{-}certificate}\\): an explicit policy-uniform Bayes-risk constant.",
+      "role": "Lower-bound certificate.",
+      "refs": [
+        "\\beta",
+        "\\mathfrak Q_{T,L}"
+      ]
+    },
+    {
+      "name": "T_\\beta",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Derived by \\(\\mathrm{oeq{:}sequential\\mbox{-}multiscale\\mbox{-}certificate}\\): an explicit finite-horizon threshold.",
+      "role": "Lower-bound threshold.",
+      "refs": [
+        "\\beta",
+        "\\mathfrak Q_{T,L}"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The clock-time duration represented by one experimental period.",
+      "role": "Operational unit conversion."
+    },
+    {
+      "name": "K_+(B,C,\\beta)",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(K_+(B,C,\\beta)=\\{B\\sqrt{(8\\mathrm e-4)(1+2^{-1/(2\\beta+1)})}+2\\mathrm e C/\\beta\\}^2\\).",
+      "role": "Explicit upper constant.",
+      "refs": [
+        "B",
+        "C",
+        "\\beta"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:bounded-potential-outcomes",
+      "kind": "support",
+      "condition": "\\(\\lvert Y_t(z_{1:t})\\rvert\\le B\\) for every \\(t\\in\\{1,\\ldots,T\\}\\) and every \\(z_{1:t}\\in\\mathcal H_t\\).",
+      "free_symbols": [
+        "Y",
+        "B",
+        "T",
+        "\\mathcal H_t"
+      ],
+      "standard": {
+        "name": "Bounded finite-population potential outcomes",
+        "cite": "bojinov2023design"
+      },
+      "used_by": [
+        "def:polynomial-envelope-class",
+        "lem:markov-upper-audit",
+        "lem:worked-common-null-cancellation",
+        "oeq:sequential-multiscale-certificate",
+        "thm:no-carryover-boundary"
+      ]
+    },
+    {
+      "id": "ass:polynomial-historical-envelope",
+      "kind": "historical bounded differences",
+      "condition": "For every \\(t\\in\\{1,\\ldots,T\\}\\) and every \\(z_{1:t},z'_{1:t}\\in\\mathcal H_t\\) with \\(z_t=z'_t\\), \\[\\lvert Y_t(z_{1:t})-Y_t(z'_{1:t})\\rvert\\le\\sum_{\\ell=1}^{t-1}C(1+\\ell)^{-(1+\\beta)}\\mathbf 1\\{z_{t-\\ell}\\ne z'_{t-\\ell}\\}.\\]",
+      "free_symbols": [
+        "Y",
+        "T",
+        "\\mathcal H_t",
+        "C",
+        "\\beta"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The condition represents persistent but decaying queue, inventory, congestion, and marketplace-state effects without requiring a stochastic state equation. Additive distributed-lag systems with coefficients bounded by \\(C(1+\\ell)^{-(1+\\beta)}\\), and nonlinear Lipschitz recursions with the same coordinate sensitivities, satisfy it."
+      },
+      "used_by": [
+        "def:polynomial-envelope-class",
+        "lem:markov-upper-audit",
+        "lem:worked-common-null-cancellation",
+        "oeq:sequential-multiscale-certificate",
+        "thm:polynomial-oracle-frontier"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:polynomial-envelope-class",
+      "name": "\\(\\mathcal P_{T,\\beta}(B,C)\\)",
+      "construction": "\\(\\mathcal P_{T,\\beta}(B,C)=\\{Y: \\lvert Y_t(z_{1:t})\\rvert\\le B\\text{ for every }1\\le t\\le T\\text{ and }z_{1:t}\\in\\mathcal H_t,\\text{ and the condition in }\\mathrm{ass{:}polynomial\\mbox{-}historical\\mbox{-}envelope}\\text{ holds for every }1\\le t\\le T\\}\\).",
+      "free_symbols": [
+        "\\mathcal P_{T,\\beta}(B,C)",
+        "Y",
+        "B",
+        "T",
+        "\\mathcal H_t",
+        "C",
+        "\\beta"
+      ],
+      "by_member_properties": [
+        "ass:bounded-potential-outcomes",
+        "ass:polynomial-historical-envelope"
+      ]
+    },
+    {
+      "id": "def:sequential-policy-class",
+      "name": "\\(\\mathcal D_T\\)",
+      "construction": "\\(\\mathcal D_T=\\{\\pi=(\\pi_t)_{t=1}^T:\\pi_t(\\cdot\\mid\\mathcal F_{t-1})\\text{ is a known probability kernel on }\\mathcal A\\}\\)\\), including deterministic kernels and kernels depending on past observed outcomes.",
+      "free_symbols": [
+        "\\mathcal D_T",
+        "\\pi",
+        "T",
+        "\\mathcal F_t",
+        "\\mathcal A"
+      ],
+      "inputs": [
+        "T",
+        "\\mathcal F_t",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "id": "def:gate",
+      "name": "\\(\\theta_T\\)",
+      "construction": "\\(\\theta_T(Y)=T^{-1}\\sum_{t=1}^T\\{Y_t(\\mathbf 1_{1:t})-Y_t(\\mathbf 0_{1:t})\\}\\).",
+      "free_symbols": [
+        "\\theta_T",
+        "Y",
+        "T"
+      ],
+      "inputs": [
+        "Y",
+        "T"
+      ]
+    },
+    {
+      "id": "def:minimax-mse",
+      "name": "\\(R_T^{(2)}(\\beta;B,C)\\)",
+      "construction": "\\(R_T^{(2)}(\\beta;B,C)=\\inf_{\\pi\\in\\mathcal D_T}\\inf_{\\widehat\\theta}\\sup_{Y\\in\\mathcal P_{T,\\beta}(B,C)}\\mathbb E_{\\pi,Y}[(\\widehat\\theta-\\theta_T(Y))^2]\\).",
+      "free_symbols": [
+        "R_T^{(2)}(\\beta;B,C)",
+        "T",
+        "\\beta",
+        "B",
+        "C",
+        "\\pi",
+        "\\mathcal D_T",
+        "\\widehat\\theta",
+        "Y",
+        "\\mathcal P_{T,\\beta}(B,C)",
+        "\\theta_T"
+      ],
+      "inputs": [
+        "\\mathcal D_T",
+        "\\mathcal P_{T,\\beta}(B,C)",
+        "\\widehat\\theta",
+        "\\theta_T"
+      ]
+    },
+    {
+      "id": "def:markov-switchback",
+      "name": "\\(\\pi^{(b)}\\)",
+      "construction": "Draw \\(W_1\\sim\\operatorname{Bernoulli}(1/2)\\); for \\(t\\ge2\\), set \\(W_t=1-W_{t-1}\\) with probability \\(1/(b+1)\\) and \\(W_t=W_{t-1}\\) otherwise, independently of outcomes conditional on \\(W_{t-1}\\).",
+      "free_symbols": [
+        "\\pi^{(b)}",
+        "W",
+        "T",
+        "b"
+      ],
+      "inputs": [
+        "T",
+        "b"
+      ]
+    },
+    {
+      "id": "def:truncated-ht",
+      "name": "\\(\\widehat\\theta_b\\)",
+      "construction": "\\(\\widehat\\theta_b=T^{-1}\\sum_{t=1}^T\\{H_{t,b,1}Y_t^{\\mathrm{obs}}/\\nu_{t,b,1}-H_{t,b,0}Y_t^{\\mathrm{obs}}/\\nu_{t,b,0}\\}\\), where \\(k_t=\\min\\{b,t-1\\}\\), \\(H_{t,b,a}=\\mathbf 1\\{W_{t-k_t:t}=\\mathbf a_{k_t+1}\\}\\), and \\(\\nu_{t,b,a}=2^{-1}\\{b/(b+1)\\}^{k_t}\\).",
+      "free_symbols": [
+        "\\widehat\\theta_b",
+        "T",
+        "H_{t,b,a}",
+        "Y^{\\mathrm{obs}}",
+        "\\nu_{t,b,a}",
+        "k_t",
+        "b",
+        "W",
+        "\\mathcal A"
+      ],
+      "inputs": [
+        "W",
+        "Y^{\\mathrm{obs}}",
+        "T",
+        "b"
+      ]
+    },
+    {
+      "id": "def:homogeneous-auxiliary",
+      "name": "\\(\\widetilde\\theta_b\\)",
+      "construction": "\\(\\widetilde\\theta_b=T^{-1}\\sum_{t=1}^T\\{H_{t,b,1}Y_t(\\mathbf 1_{1:t})/\\nu_{t,b,1}-H_{t,b,0}Y_t(\\mathbf 0_{1:t})/\\nu_{t,b,0}\\}\\).",
+      "free_symbols": [
+        "\\widetilde\\theta_b",
+        "T",
+        "H_{t,b,a}",
+        "Y",
+        "\\nu_{t,b,a}",
+        "b"
+      ],
+      "inputs": [
+        "Y",
+        "W",
+        "T",
+        "b"
+      ]
+    },
+    {
+      "id": "def:oracle-scale",
+      "name": "\\(L_T\\)",
+      "construction": "\\(L_T=\\max\\{1,\\lfloor T^{1/(2\\beta+1)}\\rfloor\\}\\), with dyadic scale set \\(\\mathcal B_T=\\{2^j:j\\in\\mathbb Z_{\\ge0},\\ 2^j\\le L_T\\}\\cup\\{L_T\\}\\).",
+      "free_symbols": [
+        "L_T",
+        "T",
+        "\\beta",
+        "\\mathcal B_T"
+      ],
+      "inputs": [
+        "T",
+        "\\beta"
+      ]
+    },
+    {
+      "id": "def:worked-common-null-family",
+      "name": "\\(\\mathcal Q_8\\)",
+      "construction": "At horizon \\(8\\), draw \\(U_{t,a}\\stackrel{\\mathrm{iid}}{\\sim}\\operatorname{Unif}[-B/2,B/2]\\) before assignment. The null \\(Q_0^{(8)}\\) sets \\(Y_t(z_{1:t})=U_{t,z_t}\\). For each offset \\(r\\in\\{0,1\\}\\), draw independent \\(\\xi_{I,a}^{(r)}\\in\\{-1,1\\}\\); the prior \\(Q_{8,r}^{\\mathrm{blk}}\\) sets \\(Y_t(z_{1:t})=\\psi_{\\delta_8\\xi_{I,z_t}^{(r)}}(U_{t,z_t})\\) on the unique block \\(I\\in\\mathcal I_{8,r}\\) containing \\(t\\). For each arm \\(a\\in\\mathcal A\\), set \\(h_{1,a}^{(8)}=0\\) and \\(h_{t,a}^{(8)}(z)=\\mathbf 1\\{z_t=a\\}[c_1-2c_1\\mathbf 1\\{z_{t-1}\\ne a\\}]_+\\); the prior \\(Q_{8,a}^{\\mathrm{band}}\\) sets \\(Y_t(z_{1:t})=\\psi_{s_a\\eta_8h_{t,a}^{(8)}(z)}(U_{t,z_t})\\). The worked family is \\(\\mathcal Q_8=\\{Q_0^{(8)},Q_{8,0}^{\\mathrm{blk}},Q_{8,1}^{\\mathrm{blk}},Q_{8,0}^{\\mathrm{band}},Q_{8,1}^{\\mathrm{band}}\\}\\).",
+      "free_symbols": [
+        "\\mathcal Q_8",
+        "U^{(8)}",
+        "B",
+        "Y",
+        "Q_0^{(8)}",
+        "\\psi_q",
+        "\\delta_8",
+        "\\xi_{I,a}^{(r)}",
+        "\\mathcal I_{8,0}",
+        "\\mathcal I_{8,1}",
+        "Q_{8,r}^{\\mathrm{blk}}",
+        "\\mathcal A",
+        "h_{t,a}^{(8)}",
+        "c_1",
+        "s_a",
+        "\\eta_8",
+        "Q_{8,a}^{\\mathrm{band}}",
+        "C",
+        "\\beta"
+      ],
+      "inputs": [
+        "B",
+        "C",
+        "\\beta"
+      ]
+    },
+    {
+      "id": "def:worked-adaptive-policy",
+      "name": "\\(\\pi^\\dagger\\)",
+      "construction": "Set \\(W_1\\sim\\operatorname{Bernoulli}(1/2)\\). For \\(2\\le t\\le8\\), assign treatment with probability \\(p_t^\\dagger=3/4\\) when \\(Y_{t-1}^{\\mathrm{obs}}\\ge0\\) and \\(p_t^\\dagger=1/4\\) otherwise. Its pathwise assignment factor is \\(g_{\\pi^\\dagger}(w,y)=2^{-1}\\prod_{t=2}^8p_t^\\dagger(y)^{w_t}\\{1-p_t^\\dagger(y)\\}^{1-w_t}\\).",
+      "free_symbols": [
+        "\\pi^\\dagger",
+        "W",
+        "Y^{\\mathrm{obs}}",
+        "p_t^\\dagger",
+        "g_{\\pi^\\dagger}"
+      ],
+      "inputs": [
+        "Y^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "id": "def:worked-trajectory-laws",
+      "name": "\\(P_{\\mathsf Q,\\pi^\\dagger}\\)",
+      "construction": "For each \\(\\mathsf Q\\in\\mathcal Q_8\\), integrate the fixed-before-assignment latent variables in \\(\\mathsf Q\\) to obtain the conditional observed-outcome density \\(q_{\\mathsf Q}(y\\mid w)\\), and define \\(P_{\\mathsf Q,\\pi^\\dagger}(w,y)=g_{\\pi^\\dagger}(w,y)q_{\\mathsf Q}(y\\mid w)\\).",
+      "free_symbols": [
+        "P_{\\mathsf Q,\\pi^\\dagger}",
+        "\\mathsf Q",
+        "\\mathcal Q_8",
+        "q_{\\mathsf Q}",
+        "g_{\\pi^\\dagger}",
+        "\\pi^\\dagger",
+        "W",
+        "Y^{\\mathrm{obs}}"
+      ],
+      "inputs": [
+        "\\mathcal Q_8",
+        "\\pi^\\dagger"
+      ]
+    },
+    {
+      "id": "def:multiscale-prior-handle",
+      "name": "\\(\\mathfrak Q_{T,L}\\)",
+      "construction": "Handle: generalize the explicit common-null architecture in \\(\\mathcal Q_8\\) by randomizing block offsets at length \\(L\\) and adding arm-specific positive-part band transports at every \\(b\\in\\mathcal B_T\\) with \\(b\\le L\\); then derive a single occupancy--information inequality under the common-null path law. Every prior is fixed before assignment, and no member is selected from the realized path.",
+      "free_symbols": [
+        "\\mathfrak Q_{T,L}",
+        "T",
+        "L",
+        "B",
+        "C",
+        "\\beta",
+        "Y",
+        "b",
+        "\\mathcal B_T",
+        "\\mathcal Q_8"
+      ],
+      "inputs": [
+        "T",
+        "B",
+        "C",
+        "\\beta",
+        "\\mathcal B_T"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:markov-upper-audit",
+      "kind": "lemma",
+      "statement": "For every \\(b\\in\\{1,\\ldots,T\\}\\), the Markov design satisfies \\(\\nu_{t,b,a}>1/(2\\mathrm e)\\). The auxiliary statistic is unbiased, \\(\\mathbb E_{\\pi^{(b)}}[\\widetilde\\theta_b]=\\theta_T(Y)\\), and obeys \\(\\operatorname{Var}_{\\pi^{(b)}}(\\widetilde\\theta_b)\\le(8\\mathrm e-4)B^2b/T\\). Uniformly over \\(Y\\in\\mathcal P_{T,\\beta}(B,C)\\), the pathwise replacement error satisfies \\[\\lvert\\widehat\\theta_b-\\widetilde\\theta_b\\rvert\\le(2\\mathrm e C/\\beta)(b+1)^{-\\beta}.\\] Consequently, \\[\\sup_{Y\\in\\mathcal P_{T,\\beta}(B,C)}\\mathbb E_{\\pi^{(b)},Y}[(\\widehat\\theta_b-\\theta_T(Y))^2]\\le\\left\\{B\\sqrt{(8\\mathrm e-4)b/T}+\\frac{2\\mathrm e C}{\\beta}(b+1)^{-\\beta}\\right\\}^2.\\]",
+      "free_symbols": [
+        "b",
+        "T",
+        "\\nu_{t,b,a}",
+        "\\pi^{(b)}",
+        "\\widetilde\\theta_b",
+        "\\theta_T",
+        "Y",
+        "B",
+        "\\widehat\\theta_b",
+        "C",
+        "\\beta",
+        "\\mathcal P_{T,\\beta}(B,C)"
+      ],
+      "depends_on": [
+        "ass:bounded-potential-outcomes",
+        "ass:polynomial-historical-envelope",
+        "def:polynomial-envelope-class",
+        "def:gate",
+        "def:markov-switchback",
+        "def:truncated-ht",
+        "def:homogeneous-auxiliary"
+      ],
+      "status": "to-prove",
+      "justification": "This audit turns the parent's auxiliary variance calculation and the deterministic replacement inequality into a correct observed-estimator MSE bound.",
+      "gap": "Bojinov, Simchi-Levi, and Zhao analyze exact finite carryover; Jia, Kallus, and Yu use rapid mixing. Neither displays this deterministic polynomial-tail replacement bound for the sustained-policy GATE.",
+      "consumer": "An experimenter with known \\(\\beta\\) obtains a fully specified assignment rule and estimator with an explicit finite-horizon certificate."
+    },
+    {
+      "id": "thm:oracle-upper",
+      "kind": "theorem",
+      "statement": "For every \\(T\\ge2\\), \\(C>0\\), and known \\(\\beta>0\\), choose \\(b_T=\\lceil T^{1/(2\\beta+1)}\\rceil\\). Then \\[R_T^{(2)}(\\beta;B,C)\\le K_+(B,C,\\beta)T^{-2\\beta/(2\\beta+1)}.\\] The same conclusion holds with the smallest certified integer \\(b\\) substituted for \\(b_T\\).",
+      "free_symbols": [
+        "T",
+        "C",
+        "\\beta",
+        "b",
+        "b_T",
+        "R_T^{(2)}(\\beta;B,C)",
+        "B",
+        "K_+(B,C,\\beta)"
+      ],
+      "depends_on": [
+        "def:minimax-mse",
+        "lem:markov-upper-audit"
+      ],
+      "status": "to-prove",
+      "justification": "This audited supporting theorem records the constructive half of the oracle frontier in squared loss with an explicit constant.",
+      "gap": "The rate-attaining Markov construction is inherited from the banked predecessor; the contribution here is only the corrected MSE accounting and finite-horizon audit, not a separate novelty claim.",
+      "consumer": "Statsig-style and marketplace experiment owners can translate a known decay index into an assignment-window length before launch."
+    },
+    {
+      "id": "lem:worked-common-null-cancellation",
+      "kind": "lemma",
+      "statement": "At \\(T=8\\), every prior \\(\\mathsf Q\\in\\mathcal Q_8\\) is fixed before assignment and satisfies \\(\\mathsf Q(\\mathcal P_{8,\\beta}(B,C))=1\\). Under the outcome-adaptive policy \\(\\pi^\\dagger\\), \\[P_{\\mathsf Q,\\pi^\\dagger}(w,y)=\\left[\\frac12\\prod_{t=2}^8p_t^\\dagger(y)^{w_t}\\{1-p_t^\\dagger(y)\\}^{1-w_t}\\right]q_{\\mathsf Q}(y\\mid w),\\] and hence, \\(P_{Q_0^{(8)},\\pi^\\dagger}\\)-almost surely, \\[\\frac{dP_{\\mathsf Q,\\pi^\\dagger}}{dP_{Q_0^{(8)},\\pi^\\dagger}}(w,y)=\\frac{q_{\\mathsf Q}(y\\mid w)}{q_{Q_0^{(8)}}(y\\mid w)}.\\] Thus the adaptive assignment factor cancels exactly. Along either alternating path, \\(h_{t,a}^{(8)}(w)=0\\) for every realized arm and \\(t\\ge2\\), whereas each arm-specific band prior moves the prior mean of \\(\\theta_8\\) above the null mean by exactly \\(7\\eta_8c_1/12\\). Along either constant path, the four opposite-arm signs under \\(Q_{8,0}^{\\mathrm{blk}}\\) never enter the likelihood, and their contribution alone gives posterior Bayes variance at least \\(\\delta_8^2/9\\).",
+      "free_symbols": [
+        "T",
+        "\\mathsf Q",
+        "\\mathcal Q_8",
+        "\\mathcal P_{T,\\beta}(B,C)",
+        "B",
+        "C",
+        "\\beta",
+        "\\pi^\\dagger",
+        "P_{\\mathsf Q,\\pi^\\dagger}",
+        "p_t^\\dagger",
+        "q_{\\mathsf Q}",
+        "Q_0^{(8)}",
+        "h_{t,a}^{(8)}",
+        "\\mathcal A",
+        "Q_{8,a}^{\\mathrm{band}}",
+        "\\theta_T",
+        "\\eta_8",
+        "c_1",
+        "Q_{8,r}^{\\mathrm{blk}}",
+        "\\delta_8"
+      ],
+      "depends_on": [
+        "ass:bounded-potential-outcomes",
+        "ass:polynomial-historical-envelope",
+        "def:polynomial-envelope-class",
+        "def:gate",
+        "def:worked-common-null-family",
+        "def:worked-adaptive-policy",
+        "def:worked-trajectory-laws"
+      ],
+      "status": "to-prove",
+      "justification": "This finite-horizon diagnostic makes support, separation, posterior uncertainty, and adaptive likelihood cancellation independently checkable before the general multiscale argument is attempted.",
+      "gap": "This is a falsifiable worked instance of the lower-bound handle, not a novelty claim and not the policy-uniform occupancy certificate.",
+      "consumer": "The Stage 0 proof can test every algebraic component of the common-null construction at \\(T=8\\) before confronting the all-horizon multiscale inequality."
+    },
+    {
+      "id": "oeq:sequential-multiscale-certificate",
+      "kind": "openendedquestion",
+      "statement": "Determine whether there are explicit constants \\(\\kappa_\\beta>0\\) and \\(T_\\beta<\\infty\\) such that, for every \\(T\\ge T_\\beta\\), every \\(1\\le L\\le T/4\\), and every \\(\\pi\\in\\mathcal D_T\\), one can select before assignment a prior \\(Q_{\\pi,L}\\in\\mathfrak Q_{T,L}\\) satisfying \\(Q_{\\pi,L}(\\mathcal P_{T,\\beta}(B,C))=1\\) and \\[\\inf_{\\widehat\\theta}\\mathbb E_{Q_{\\pi,L},\\pi}[(\\widehat\\theta-\\theta_T(Y))^2]\\ge\\kappa_\\beta\\min\\left\\{\\frac{B^2L}{T},\\ (B\\wedge C)^2L^{-2\\beta}\\right\\}.\\] The certificate must be obtained on a common null so that the sequential assignment-kernel factors cancel under outcome adaptation. If a dyadic factor is unavoidable, determine its sharp order and replace the displayed bound honestly.",
+      "free_symbols": [
+        "\\kappa_\\beta",
+        "T_\\beta",
+        "\\beta",
+        "T",
+        "L",
+        "B",
+        "C",
+        "\\pi",
+        "\\mathcal D_T",
+        "\\mathfrak Q_{T,L}",
+        "Q_{\\pi,L}",
+        "\\mathcal P_{T,\\beta}(B,C)",
+        "\\widehat\\theta",
+        "Y",
+        "\\theta_T"
+      ],
+      "depends_on": [
+        "ass:bounded-potential-outcomes",
+        "ass:polynomial-historical-envelope",
+        "def:polynomial-envelope-class",
+        "def:sequential-policy-class",
+        "def:gate",
+        "lem:worked-common-null-cancellation",
+        "def:multiscale-prior-handle"
+      ],
+      "status": "to-prove",
+      "justification": "This is the sole novel root contribution: the necessity certificate that prevents every adaptive cadence from routing around both hidden counterfactual blocks and low-information arm-specific tail bumps.",
+      "gap": "The banked proof's rough-energy and monochromatic-block conditions are not complementary. Duchi and Ruan's AISTATS constrained-risk inequality supplies the final decision-theoretic step but not the policy-uniform switchback experiment needed to invoke it.",
+      "consumer": "A positive answer yields the all-policy minimax converse; a logarithmic obstruction gives the correct revised frontier instead of a false exact rate."
+    },
+    {
+      "id": "thm:polynomial-oracle-frontier",
+      "kind": "theorem",
+      "statement": "Suppose \\(C>0\\) and the sequential multiscale certificate holds without a dyadic loss, with \\(T_\\beta\\) large enough that \\(L_T\\le T/4\\). Then, for every \\(T\\ge T_\\beta\\), \\[\\frac{\\kappa_\\beta}{2}\\min\\{B^2,(B\\wedge C)^2\\}T^{-2\\beta/(2\\beta+1)}\\le R_T^{(2)}(\\beta;B,C)\\le K_+(B,C,\\beta)T^{-2\\beta/(2\\beta+1)}.\\] Thus \\(R_T^{(2)}(\\beta;B,C)=\\Theta_{B,C,\\beta}(T^{-2\\beta/(2\\beta+1)})\\) over all sequential policies and all estimators.",
+      "free_symbols": [
+        "C",
+        "T",
+        "L_T",
+        "T_\\beta",
+        "\\kappa_\\beta",
+        "\\beta",
+        "B",
+        "R_T^{(2)}(\\beta;B,C)",
+        "K_+(B,C,\\beta)"
+      ],
+      "depends_on": [
+        "def:minimax-mse",
+        "def:oracle-scale",
+        "thm:oracle-upper",
+        "oeq:sequential-multiscale-certificate"
+      ],
+      "status": "to-prove",
+      "justification": "This downstream theorem assembles the inherited upper audit and the novel certificate into the exact price of polynomial memory over the strongest sequential design comparison class.",
+      "gap": "The matched frontier is the direct payoff from the certificate rather than a second root contribution. Bojinov, Simchi-Levi, and Zhao treat finite-order regular designs, while Hu and Wager and Jia, Kallus, and Yu impose geometric stochastic mixing.",
+      "consumer": "The result certifies that the power-law operational window is information-theoretically necessary, rather than an artifact of one estimator."
+    },
+    {
+      "id": "thm:no-carryover-boundary",
+      "kind": "theorem",
+      "statement": "At \\(C=0\\), for every \\(T\\ge1\\), \\[\\frac{B^2}{T}\\le R_T^{(2)}(\\beta;B,0)\\le\\frac{4B^2}{T}.\\] The upper bound is attained by independent fair assignments and the periodwise Horvitz--Thompson estimator. The lower bound follows from a prior of independent arm-specific Rademacher endpoints fixed before assignment and is valid for every outcome-adaptive policy. Hence \\(R_T^{(2)}(\\beta;B,0)=\\Theta_B(T^{-1})\\).",
+      "free_symbols": [
+        "C",
+        "T",
+        "B",
+        "R_T^{(2)}(\\beta;B,C)",
+        "\\beta",
+        "\\pi",
+        "\\widehat\\theta"
+      ],
+      "depends_on": [
+        "ass:bounded-potential-outcomes",
+        "def:polynomial-envelope-class",
+        "def:sequential-policy-class",
+        "def:gate",
+        "def:minimax-mse"
+      ],
+      "status": "to-prove",
+      "justification": "This inherited supporting boundary is the required standard-case reduction and prevents the positive-tail rate from being extrapolated to a degenerate class.",
+      "gap": "The no-memory reduction is already represented in the banked predecessor and finite-order switchback theory; it is retained solely as an audited boundary check.",
+      "consumer": "Practitioners receive a clear diagnostic boundary: if historical sensitivity is absent, ordinary periodwise randomization recovers the parametric MSE rate."
+    },
+    {
+      "id": "prop:operational-window",
+      "kind": "proposition",
+      "statement": "Under the Markov switchback, the certified integer window \\(b_T=\\lceil T^{1/(2\\beta+1)}\\rceil\\) balances exposure variance of order \\(b_T/T\\) with squared replacement error of order \\(b_T^{-2\\beta}\\). If one experimental period represents \\(d\\) units of clock time, the corresponding operational assignment window is \\(d b_T\\), while the retained homogeneous-history exposure length is \\(b_T+1\\) periods.",
+      "free_symbols": [
+        "b",
+        "b_T",
+        "T",
+        "\\beta",
+        "d"
+      ],
+      "depends_on": [
+        "def:markov-switchback",
+        "def:oracle-scale",
+        "lem:markov-upper-audit",
+        "thm:oracle-upper"
+      ],
+      "status": "to-prove",
+      "justification": "This inherited supporting proposition expresses the audited design scale in the window language used by deployed switchback systems.",
+      "gap": "The power-law window is an operational restatement of the banked oracle scale, informed by Xiong, Chin, and Taylor's modeled cadence components; it is not a separate novelty claim.",
+      "consumer": "Marketplace teams can map an elicited decay index and experiment horizon to a pre-registered switchback window without claiming unknown-index adaptation."
+    }
+  ],
+  "sampling_model": {
+    "design": "One aggregate unit is assigned by a known sequential kernel \\(\\pi_t(\\cdot\\mid\\mathcal F_{t-1})\\); the comparison class includes deterministic, history-dependent, and outcome-adaptive rules.",
+    "units": "A single fixed finite-population trajectory of length \\(T\\); no unit, outcome, or state is sampled from a superpopulation.",
+    "treatment": "Binary treatment \\(W_t\\in\\mathcal A=\\{0,1\\}\\) is randomized over time, and assignment is the only randomness.",
+    "overlap": "No positivity condition is imposed on the minimax policy class. The constructive Markov design has homogeneous-history exposure probability exceeding \\(1/(2\\mathrm e)\\).",
+    "nuisance_estimation": "There are no stochastic outcome nuisances. The known quantities are \\(T\\), \\(B\\), \\(C\\), and \\(\\beta\\); unknown-index adaptation is outside scope."
+  },
+  "estimand_functional": "\\(R_T^{(2)}(\\beta;B,C)=\\inf_{\\pi\\in\\mathcal D_T}\\inf_{\\widehat\\theta}\\sup_{Y\\in\\mathcal P_{T,\\beta}(B,C)}\\mathbb E_{\\pi,Y}[(\\widehat\\theta-\\theta_T(Y))^2]\\)",
+  "target_estimand": "\\(\\theta_T(Y)=T^{-1}\\sum_{t=1}^T\\{Y_t(\\mathbf 1_{1:t})-Y_t(\\mathbf 0_{1:t})\\}\\)",
+  "bibliography": [
+    {
+      "key": "bojinov2023design",
+      "citation": "Bojinov, I., Simchi-Levi, D., and Zhao, J. (2023). Design and analysis of switchback experiments. \\emph{Management Science}, 69(7), 3759--3777."
+    },
+    {
+      "key": "bassedingtoulis2023habituation",
+      "citation": "Basse, G., Ding, Y., and Toulis, P. (2023). Minimax designs for causal effects in temporal experiments with treatment habituation. \\emph{Biometrika}, 110(1), 155--168."
+    },
+    {
+      "key": "huwager2022geometric",
+      "citation": "Hu, Y., and Wager, S. (2022, revised 2026). Switchback experiments under geometric mixing. arXiv:2209.00197."
+    },
+    {
+      "key": "jia2023clustered",
+      "citation": "Jia, S., Kallus, N., and Yu, C. L. (2023). Clustered switchback experiments: near-optimal rates under spatiotemporal interference. arXiv:2312.15574."
+    },
+    {
+      "key": "duchiruan2021constrained",
+      "citation": "Duchi, J. C., and Ruan, F. (2021). A constrained risk inequality for general losses. \\emph{Proceedings of the 24th International Conference on Artificial Intelligence and Statistics}, PMLR 130:802--810."
+    },
+    {
+      "key": "xiongchin2024datadriven",
+      "citation": "Xiong, R., Chin, A., and Taylor, S. J. (2024). Data-driven switchback experiments: theoretical tradeoffs and empirical Bayes designs. arXiv:2406.06768."
+    },
+    {
+      "key": "glynn2020adaptive",
+      "citation": "Glynn, P. W., Johari, R., and Rasouli, M. (2020). Adaptive experimental design with temporal interference: a maximum likelihood approach. \\emph{Advances in Neural Information Processing Systems}, 33."
+    },
+    {
+      "key": "zeng2026sequential",
+      "citation": "Zeng, Z., Adjaho, C., Bucarey, A., Qin, C., Zhang, R., Hoban, P., Johari, R., and Wager, S. (2026). Sequential rerandomization for switchback experiments. arXiv:2604.02489."
+    },
+    {
+      "key": "linding2025unifying",
+      "citation": "Lin, Z., and Ding, P. (2025). Unifying regression-based and design-based causal inference in time-series experiments. arXiv:2510.22864."
+    },
+    {
+      "key": "liuzhong2026randomization",
+      "citation": "Liu, J., and Zhong, L. (2026). Randomization tests in switchback experiments. arXiv:2602.23257."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "bojinov2023design",
+      "comparator_claim": "\"derive the optimal design of switchback experiments under a range of different assumptions on the order of the carryover effect\"",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "huwager2022geometric",
+      "comparator_claim": "\"burn-in periods can considerably improve the situation\" under geometric mixing",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "jia2023clustered",
+      "comparator_claim": "\"a truncated Horvitz--Thompson estimator achieves a \\(\\widetilde O(1/(NT))\\) mean squared error\"",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "duchiruan2021constrained",
+      "comparator_claim": "\"a general constrained risk inequality that applies to arbitrary non-decreasing losses\"",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "xiongchin2024datadriven",
+      "comparator_claim": "\"the estimation error depends on four factors\"",
+      "matched_by": "Proposition 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "zeng2026sequential",
+      "comparator_claim": "\"adaptively balances observed outcomes and covariates at each period\"",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "linding2025unifying",
+      "comparator_claim": "\"allows for estimating a diverging number of treatment effects simultaneously\"",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "liuzhong2026randomization",
+      "comparator_claim": "\"finite-sample valid, distribution-free \\(p\\)-values\" under a finite carryover horizon",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "The sole novel root contribution is a policy-uniform common-null multiscale occupancy--information certificate for one-unit switchbacks with fixed bounded potential outcomes, known polynomial memory index, and arbitrary outcome-adaptive assignment. A horizon-eight block-and-arm-specific-band family makes the required support, separation, posterior uncertainty, and adaptive likelihood cancellation directly falsifiable. Audited supporting results inherited or sharpened from the banked predecessor provide the Markov truncated-Horvitz--Thompson upper rate \\(T^{-2\\beta/(2\\beta+1)}\\), the \\(C=0\\) parametric boundary, and the operational oracle window. Closing the certificate without a dyadic loss yields the matched all-policy MSE frontier.",
+  "project_justification": {
+    "gap": "Finite-order minimax switchback theory, geometric-mixing analyses, and recent sequential rerandomization do not supply a policy-uniform common-null information certificate for fixed-array polynomial memory. The banked predecessor already supplies the oracle upper architecture but leaves its lower bound at the no-carryover rate because its two cadence certificates are not complementary.",
+    "niche": "Known \\(\\beta\\) isolates the oracle design problem from adaptation and turns cadence into a clean nonparametric information tradeoff: exposure variance grows with the homogeneous-history window, while deterministic carryover bias decays polynomially.",
+    "fill": "The project makes the common-null sequential multiscale certificate the single new solve target, anchored by an explicit horizon-eight block-and-band likelihood calculation. The inherited Markov upper bound, no-memory boundary, and operational window are audited supporting results; they become a matched frontier only through the new certificate."
+  },
+  "related_work": "Bojinov, Simchi-Levi, and Zhao provide the fixed-population minimax architecture and finite-order regular-switchback benchmark; this project inherits that upper-bound architecture and does not claim it as new. Hu and Wager study geometrically mixing Markov dynamics, whose stochastic contraction does not imply a fixed-array polynomial-memory converse. Jia, Kallus, and Yu supply a truncated-exposure estimation template under rapid mixing and graph clustering, informing the supporting bias--variance audit but not the new all-policy certificate. Duchi and Ruan's AISTATS 2021 constrained-risk inequality is a decision-theoretic tool applied only after close adaptive trajectory laws have been built; it contains no switchback occupancy result. Zeng and coauthors study sequential rerandomization under no or first-order carryover, which motivates the full feedback-policy quantifier but does not deliver a worst-case polynomial-memory lower bound. Xiong, Chin, and Taylor inform the operational interpretation of windows and phases. Lin and Ding and Liu and Zhong delineate separate inference questions. The only claimed new root is the common-null multiscale occupancy--information certificate; the frontier is its downstream consequence, and no cited comparator is claimed to be tightened.",
+  "technical_internal_limitation": "The horizon-eight family verifies a local algebraic fact only: under the displayed adaptive policy, the assignment likelihood cancels exactly; alternating paths hide the lag-one arm-specific bands, while constant paths retain opposite-arm block uncertainty. It does not establish that one member has the required risk for every adaptive path law or that dyadic aggregation is lossless. The exhaustive diagnostic through \\(T\\le16\\) found no constant-order violation of the tested random-offset block-versus-arm-specific-band proxy on sparse-switch, strict-alternation, unequal-periodic, one-switch, and concatenated-cadence paths, but the exact divergence constants and averaging step remain unproved. The model is the pointwise bounded-difference envelope; replacing it by a weighted total-variation budget would strengthen the class restriction and change the oracle power. A necessary logarithmic factor must be reflected in the frontier.",
+  "honest_scope": "The policy-uniform common-null multiscale certificate, its explicit lower constant, and the resulting matched frontier are open; the no-log target is not assumed. The Markov upper construction, the \\(C=0\\) boundary, and the operational window are inherited or sharpened supporting results recorded for audit and downstream use, not independent novelty claims. The horizon-eight construction is a falsifiable diagnostic lemma rather than the general certificate. No unknown-\\(\\beta\\) adaptation, confidence interval, phase-selection theorem, or leading-constant claim is included.",
+  "seeds": [
+    "seed:sequential-multiscale-certificate",
+    "seed:matched-polynomial-oracle-frontier",
+    "seed:adaptive-minimax-constant",
+    "seed:oracle-scale-honest-intervals",
+    "seed:phase-aware-operational-oracle",
+    "seed:geometric-polynomial-memory-frontier",
+    "seed:finite-window-misspecification-radius",
+    "seed:spatiotemporal-polynomial-frontier",
+    "seed:habituation-pulse-polynomial-design",
+    "seed:polynomial-tail-randomization-test"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:matched-polynomial-oracle-frontier",
+      "rank": 2,
+      "anchor": "bojinov2023design",
+      "anchor_location": "Introduction, Theorems on fair-coin optimality and subset selection, their proofs, and the concluding limitation excluding adaptive coin probabilities.",
+      "opened_material": "The source of Bojinov, Simchi-Levi, and Zhao was read at the Introduction, the minimax formulation, the adversarial-array lemma, the two optimal-design theorems, their proof architecture, and the conclusion.",
+      "question": "Is the minimax squared risk for the sustained-policy GATE over the fixed-array polynomial historical-envelope class of exact order \\(T^{-2\\beta/(2\\beta+1)}\\) even when the design is any outcome-adaptive sequential kernel?",
+      "changed_proof_step": "Replace the finite-order exposure-count reduction by a policy-uniform multiscale occupancy and information certificate on adaptive trajectory laws.",
+      "destination_search": "Searches pairing polynomial carryover with minimax switchback risk, adaptive switchback lower bounds, and polynomial-memory GATE found no theorem occupying this target--method pair.",
+      "motif": "M13+M11+M7",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "red_team": "Immediate from Bojinov, Simchi-Levi, and Zhao because their minimax design already optimizes switchback cadence under carryover.",
+      "rebuttal": "Their carryover order is finite, their optimization is over regular ex ante schedules and a prescribed Horvitz--Thompson estimator, and their conclusion explicitly excludes adaptive probabilities; none of their cadence certificates yields a polynomial-tail all-policy converse.",
+      "anti_pattern_check": "The kernel is a matched all-policy minimax theorem with a named multiscale certificate and an explicit design, rather than an asserted candidate cadence.",
+      "decision": "retained-as-downstream-consequence"
+    },
+    {
+      "id": "seed:sequential-multiscale-certificate",
+      "rank": 1,
+      "anchor": "exp_switchback_carryover_adaptation/unknown_decay_adaptation_index",
+      "anchor_location": "Banked review directive and open obligation documenting that rough energy and monochromatic blocks are not complementary.",
+      "opened_material": "The banked core, proof attempt, open obligations, and general review were read together with Duchi and Ruan's main constrained-risk theorem and its Cauchy--Schwarz proof.",
+      "question": "Can random-offset block priors and arm-specific positive-part band perturbations be combined into one finite-horizon certificate whose assignment-kernel factors cancel under every adaptive policy?",
+      "changed_proof_step": "The first step is a new deterministic dyadic occupancy inequality; the invalid rough-energy versus monochromatic-block cadence split is discarded.",
+      "destination_search": "Searches for sequential dyadic occupancy inequalities, adaptive-design Assouad reductions, and counterfactual run certificates found technique ingredients but no policy-uniform lemma of this form.",
+      "motif": "M7+M13",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "red_team": "This is merely a technical lemma with no econometric object.",
+      "rebuttal": "The lemma characterizes the information obstruction created jointly by cadence and adaptive observation, and it is exactly the missing necessity certificate for the all-policy minimax design problem.",
+      "anti_pattern_check": "The statement is uniform over the complete sequential-policy class and names a finite prior family; it is not a single hand-tuned witness.",
+      "decision": "selected"
+    },
+    {
+      "id": "seed:adaptive-minimax-constant",
+      "rank": 3,
+      "anchor": "zeng2026sequential",
+      "anchor_location": "Introduction, the blocked sequential rerandomization construction, the first-order carryover CLT, and the conclusion's infinite-order-carryover extension.",
+      "opened_material": "The source of Zeng and coauthors was read at its motivation, adaptive acceptance rule, carryover estimator, limit theorem, proof decomposition, simulations, and conclusion.",
+      "question": "Does outcome adaptation change the leading finite-horizon minimax constant, rather than only the rate, under polynomial memory?",
+      "changed_proof_step": "Replace prognostic-balance analysis under a fixed array by an occupation-measure saddle comparison between feedback kernels and ex ante block designs.",
+      "destination_search": "Searches combining adaptive switchbacks, worst-case fixed potential outcomes, and leading minimax constants found adaptive precision results only under no or first-order carryover.",
+      "motif": "M13+M14",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "red_team": "Worst-case fixed outcomes trivially erase all value of adaptation.",
+      "rebuttal": "Rate erasure does not imply equality of constants, and recent sequential rerandomization supplies concrete arrays on which feedback alters precision, so a saddle certificate or strict separation remains substantive.",
+      "anti_pattern_check": "The design map and the leading constant are named focal objects, but the seed is not selected because the constant-level saddle is less tractable than the rate frontier.",
+      "decision": "retained"
+    },
+    {
+      "id": "seed:oracle-scale-honest-intervals",
+      "rank": 4,
+      "anchor": "linding2025unifying",
+      "anchor_location": "Introduction, consistency and normality theorems, HAC variance theorem and proof, and the discussion of adaptive designs.",
+      "opened_material": "The source of Lin and Ding was read at its diverging-lag setup, triangular-array normal approximation, conservative HAC theorem, proof inputs, and conclusion.",
+      "question": "Can an observable variance estimator and an explicit polynomial-tail bias allowance give uniform design-based coverage at the MSE-optimal growing window?",
+      "changed_proof_step": "The dependence neighborhood and inverse exposure weights now grow at the oracle power scale, while truncation bias is first order and must enter the interval radius.",
+      "destination_search": "Searches for GATE confidence intervals under infinite polynomial carryover found finite-window randomization tests and diverging-lag regression CLTs, but no interval for the sustained-policy GATE at this oracle scale.",
+      "motif": "M12",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "red_team": "Apply the HAC theorem of Lin and Ding with a growing lag length.",
+      "rebuttal": "Their estimand and regression score differ, their displayed normality conditions do not cover the truncated homogeneous-history exposure weights, and ordinary HAC omits the tail bias that is the same order as the oracle standard error.",
+      "anti_pattern_check": "The seed derives a design-based limit and coverage from primitive growing-dependence conditions; it does not assume a CLT.",
+      "decision": "not-selected"
+    },
+    {
+      "id": "seed:phase-aware-operational-oracle",
+      "rank": 5,
+      "anchor": "xiongchin2024datadriven",
+      "anchor_location": "Introduction, four-component error decomposition, design criteria, theoretical appendix, and conclusion.",
+      "opened_material": "The source of Xiong, Chin, and Taylor was read at its practitioner motivation, bias--variance decomposition, interval-boundary randomization argument, empirical-Bayes design, and concluding implications.",
+      "question": "Can window length and calendar phase attain an oracle inequality when event intensity and concurrent experiments are nonuniform but carryover obeys a polynomial envelope?",
+      "changed_proof_step": "Weight the exposure variance by event intensity and phase before balancing it against a uniform polynomial replacement bound.",
+      "destination_search": "Searches pairing phase-aware switchback design with polynomial-memory worst-case guarantees found data-driven modeled criteria but no finite-population oracle inequality.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "red_team": "This is a direct substitution of a polynomial bias term into Xiong, Chin, and Taylor's criterion.",
+      "rebuttal": "Their criterion is calibrated under modeled components; uniform fixed-array control with integer phase selection and an approximation certificate requires a distinct exposure-weighted design argument.",
+      "anti_pattern_check": "The seed requires an oracle certificate for a chosen design, not a tuning recommendation alone.",
+      "decision": "not-selected"
+    },
+    {
+      "id": "seed:geometric-polynomial-memory-frontier",
+      "rank": 6,
+      "anchor": "huwager2022geometric",
+      "anchor_location": "Introduction, geometric mixing assumption, GATE error decomposition, rate corollaries, bias-corrected estimator, and discussion.",
+      "opened_material": "The source of Hu and Wager was read at its marketplace motivation, mixing condition, burn-in decomposition, GATE rate theorems, bias-corrected construction, and conclusion.",
+      "question": "Can one derive an observable memory-modulus frontier that separates geometric near-parametric performance from polynomial nonparametric performance for the same sustained-policy estimand?",
+      "changed_proof_step": "Replace a known mixing time in the exponential bias bound by a modulus-indexed testing experiment and derive the regime boundary rather than assume it.",
+      "destination_search": "Searches for switchback rate transitions indexed by subgeometric or polynomial mixing found no equivalence-and-divergence frontier in fixed-array design-based risk.",
+      "motif": "M2+M11",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "red_team": "Polynomial decay is simply a slower mixing rate in Hu and Wager.",
+      "rebuttal": "Their stochastic contraction is geometric and controls conditional state laws; the fixed-array bounded-difference modulus has neither a Markov state nor the coupling structure used by their proof.",
+      "anti_pattern_check": "A derived transition object would be required; a qualitative comparison of assumptions would not count.",
+      "decision": "not-selected"
+    },
+    {
+      "id": "seed:finite-window-misspecification-radius",
+      "rank": 7,
+      "anchor": "bojinov2023design",
+      "anchor_location": "Misspecified carryover section, its conditional-unbiasedness proposition, inference corollary, and practical discussion.",
+      "opened_material": "The finite-order estimator and its misspecification analysis were read in the source together with Liu and Zhong's carryover-diagnostic construction.",
+      "question": "What is the critical polynomial-tail radius at which a finite-window switchback conclusion changes sign or its randomization test loses guaranteed size?",
+      "changed_proof_step": "Replace exact equality beyond the working horizon by a deterministic tail modulus and invert the resulting worst-case bias envelope.",
+      "destination_search": "Searches for critical-radius sensitivity analysis of switchback carryover found finite-order misspecification and diagnostics, but no closed-form sign or size breakdown radius.",
+      "motif": "M3",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 4
+      },
+      "red_team": "The critical radius is an immediate algebraic rearrangement of a bias bound.",
+      "rebuttal": "A valid critical radius must use the published estimator's actual exposure weights and randomization law, not a stand-in tail bound, and must be sharp over compatible fixed arrays.",
+      "anti_pattern_check": "The seed demands evaluable endpoints and a named critical radius, not sufficient-only sensitivity.",
+      "decision": "not-selected"
+    },
+    {
+      "id": "seed:spatiotemporal-polynomial-frontier",
+      "rank": 8,
+      "anchor": "jia2023clustered",
+      "anchor_location": "Introduction, truncated exposure-mapping estimator, MSE theorem and proof decomposition, special-clustering corollaries, and stated lower-bound limitation.",
+      "opened_material": "The source of Jia, Kallus, and Yu was read at its spatiotemporal setup, main risk theorem, truncation-bias and exposure-variance arguments, graph corollaries, and future lower-bound question.",
+      "question": "What is the joint minimax rate when graph-cluster exposure and polynomial temporal memory determine two interacting truncation scales?",
+      "changed_proof_step": "Replace rapid Markov mixing by a deterministic polynomial history modulus and prove a joint graph--time lower certificate rather than multiplying separate bounds.",
+      "destination_search": "Searches for clustered switchbacks with polynomial temporal interference found rapid-mixing and finite-carryover results only.",
+      "motif": "M13+M11+M7",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 5
+      },
+      "red_team": "Take the product of Jia, Kallus, and Yu's graph factor and the one-unit polynomial rate.",
+      "rebuttal": "Their proof uses conditional Markov mixing and the joint lower bound is explicitly unresolved; graph exposure and temporal counterfactual occupancy are not separable under clustered assignments.",
+      "anti_pattern_check": "The seed would require a joint lower-bound region rather than a single graph witness, but it is deferred because it compounds two unsolved certificates.",
+      "decision": "not-selected"
+    },
+    {
+      "id": "seed:habituation-pulse-polynomial-design",
+      "rank": 9,
+      "anchor": "bassedingtoulis2023habituation",
+      "anchor_location": "Introduction, minimax pulse-design theorem, symmetrization proof, allocation relaxation, and conclusion.",
+      "opened_material": "The source of Basse, Ding, and Toulis was read at its habituation estimands, minimax pulse allocation, symmetrization argument, relaxation, and concluding limitations.",
+      "question": "Can pulse allocations be minimax-optimal when habituation has an infinite polynomial tail and the target combines instantaneous and long-run effects?",
+      "changed_proof_step": "Replace permutation-invariant finite pulse-arm allocation by a temporal-memory modulus whose worst-case risk couples pulse spacing and exposure duration.",
+      "destination_search": "Searches for polynomial-tail habituation designs found pulse and wedge designs with unrestricted schedules but no decay-indexed allocation frontier.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "red_team": "The existing minimax pulse allocation already permits arbitrary habituation schedules.",
+      "rebuttal": "It optimizes a different multi-unit pulse estimand under permutation invariance; a one-unit sustained-policy tail modulus changes both the information set and cadence geometry.",
+      "anti_pattern_check": "The proposed result would need an optimality certificate, but its estimand is less directly aligned with marketplace switchbacks.",
+      "decision": "not-selected"
+    },
+    {
+      "id": "seed:polynomial-tail-randomization-test",
+      "rank": 10,
+      "anchor": "liuzhong2026randomization",
+      "anchor_location": "Introduction, finite-sample validity theorem, carryover diagnostic, studentized weak-null theorem, proof of imputability, and conclusion.",
+      "opened_material": "The source of Liu and Zhong was read at its conditional randomization space, finite-horizon carryover condition, exact validity proof, weak-null studentization, and conclusion.",
+      "question": "Can finite-window conditional randomization tests be inverted into bias-aware tests with explicit size distortion under a polynomial tail?",
+      "changed_proof_step": "Exact focal-outcome imputability becomes approximate; the proof must bound orbit-wise imputation error uniformly before test inversion.",
+      "destination_search": "Searches for approximate randomization-test validity under infinite-order switchback carryover found no explicit polynomial-tail size bound.",
+      "motif": "M3+M17",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "red_team": "Add the deterministic tail bound to the test statistic and apply a standard robust randomization argument.",
+      "rebuttal": "Conditioning changes the orbit and the set of imputable periods, so a valid distortion bound must be uniform over the conditional assignment law and sharp enough to invert.",
+      "anti_pattern_check": "Coverage would come from permutation inversion with an explicit approximation error, not from a Wald approximation.",
+      "decision": "not-selected"
+    }
+  ],
+  "literature_map": [
+    {
+      "thread": "Finite-population minimax switchback design",
+      "sources": [
+        "bojinov2023design",
+        "bassedingtoulis2023habituation"
+      ],
+      "settled": "Finite-order carryover admits explicit minimax regular-switchback schedules, while temporal habituation admits minimax pulse allocations under permutation-invariant bounded schedules.",
+      "unsettled": "Neither theorem optimizes over all outcome-adaptive one-unit policies under an infinite polynomial historical modulus.",
+      "subsumption_check": "No closer theorem contains the proposed policy class, model class, loss, and sustained-policy GATE simultaneously."
+    },
+    {
+      "thread": "Truncation and mixing",
+      "sources": [
+        "huwager2022geometric",
+        "jia2023clustered"
+      ],
+      "settled": "Geometric Markov contraction supports burn-in or truncated-exposure estimators with nearly parametric MSE up to logarithms, including graph-cluster extensions.",
+      "unsettled": "The deterministic polynomial modulus has no stochastic contraction or reusable state, and its all-policy minimax lower rate is absent.",
+      "subsumption_check": "The first nontransferable proof step is the geometric coupling bound; replacing it by a polynomial tail only supplies the upper bias term, not the lower information certificate."
+    },
+    {
+      "thread": "Outcome-adaptive switchbacks",
+      "sources": [
+        "glynn2020adaptive",
+        "zeng2026sequential"
+      ],
+      "settled": "Adaptive occupation policies can be efficient for stochastic Markov-chain comparison, and sequential rerandomization can improve design-based precision under no or first-order carryover.",
+      "unsettled": "No result gives a worst-case fixed-array minimax converse uniform over feedback kernels with infinite polynomial memory.",
+      "subsumption_check": "Stochastic-state efficiency and prognostic balancing do not imply a lower bound for adversarial potential-outcome maps."
+    },
+    {
+      "thread": "Finite-sample information inequalities",
+      "sources": [
+        "duchiruan2021constrained"
+      ],
+      "settled": "A chi-square constrained-risk inequality converts parameter separation and likelihood affinity into finite-sample risk for arbitrary estimators.",
+      "unsettled": "The missing work is to build separated trajectory laws with bounded affinity uniformly over adaptive assignment kernels.",
+      "subsumption_check": "The inequality is a method exemplar, not a result about switchback occupancy or polynomial carryover."
+    },
+    {
+      "thread": "Operational cadence and inference",
+      "sources": [
+        "xiongchin2024datadriven",
+        "linding2025unifying",
+        "liuzhong2026randomization"
+      ],
+      "settled": "Modeled design criteria incorporate seasonality and simultaneous experiments; design-based regression CLTs allow growing temporal dimension; exact conditional tests cover a known finite carryover horizon.",
+      "unsettled": "None supplies the polynomial-memory all-policy minimax rate or an honest confidence interval at its oracle scale.",
+      "subsumption_check": "These results motivate the consumer and follow-on inference problem but do not subsume the selected kernel."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Iavor Bojinov, David Simchi-Levi, and Jinglong Zhao",
+      "year": 2023,
+      "venue": "Management Science",
+      "bibkey": "bojinov2023design",
+      "one_line": "Finite-order carryover yields minimax regular-switchback designs, a Horvitz--Thompson analysis, exact tests, and a finite-population central limit theorem.",
+      "relevant_to": "thm:polynomial-oracle-frontier"
+    },
+    {
+      "author": "Yuchen Hu and Stefan Wager",
+      "year": 2022,
+      "venue": "arXiv preprint",
+      "bibkey": "huwager2022geometric",
+      "one_line": "Geometric mixing permits burn-in and bias-corrected switchback estimators with nearly parametric error in stable regimes.",
+      "relevant_to": "thm:oracle-upper"
+    },
+    {
+      "author": "Su Jia, Nathan Kallus, and Christina Lee Yu",
+      "year": 2023,
+      "venue": "arXiv preprint",
+      "bibkey": "jia2023clustered",
+      "one_line": "Truncated exposure mapping balances temporal bias and exposure variance under rapidly mixing Markov dynamics and graph interference.",
+      "relevant_to": "thm:oracle-upper"
+    },
+    {
+      "author": "John C. Duchi and Feng Ruan",
+      "year": 2021,
+      "venue": "AISTATS, PMLR 130",
+      "bibkey": "duchiruan2021constrained",
+      "one_line": "A finite-sample constrained-risk inequality converts chi-square affinity and parameter separation into risk for arbitrary estimators.",
+      "relevant_to": "oeq:sequential-multiscale-certificate"
+    },
+    {
+      "author": "Ruoxuan Xiong, Alex Chin, and Sean J. Taylor",
+      "year": 2024,
+      "venue": "arXiv preprint",
+      "bibkey": "xiongchin2024datadriven",
+      "one_line": "A four-component error decomposition links cadence, carryover, periodicity, serial correlation, and simultaneous experiments to operational design.",
+      "relevant_to": "prop:operational-window"
+    },
+    {
+      "author": "Zhenghao Zeng and coauthors",
+      "year": 2026,
+      "venue": "arXiv preprint",
+      "bibkey": "zeng2026sequential",
+      "one_line": "Sequential rerandomization uses observed history to improve precision under no or first-order carryover in multi-unit switchbacks.",
+      "relevant_to": "oeq:sequential-multiscale-certificate"
+    },
+    {
+      "author": "Zhexiao Lin and Peng Ding",
+      "year": 2025,
+      "venue": "arXiv preprint",
+      "bibkey": "linding2025unifying",
+      "one_line": "Design-based regression allows diverging temporal dimension and conservative HAC inference for lag-effect estimands.",
+      "relevant_to": "oeq:sequential-multiscale-certificate"
+    },
+    {
+      "author": "Jizhou Liu and Liang Zhong",
+      "year": 2026,
+      "venue": "arXiv preprint",
+      "bibkey": "liuzhong2026randomization",
+      "one_line": "Conditional randomization tests are finite-sample valid under non-anticipation and a known finite carryover horizon.",
+      "relevant_to": "thm:no-carryover-boundary"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":[\"Bojinov, Simchi-Levi, and Zhao characterize finite-order minimax regular-switchback designs and inference.\",\"Jia, Kallus, and Yu analyze truncated exposure-mapping estimation under rapid Markov mixing and graph clustering.\"],\"focal_object\":\"The sole novel root is the sequential multiscale occupancy--information certificate at \\\\(L_T=\\\\lfloor T^{1/(2\\\\beta+1)}\\\\rfloor\\\\), uniform over every outcome-adaptive policy and constructed through a common-null likelihood comparison.\",\"worked_falsification\":\"At horizon eight, the explicit shifted-block and arm-specific lag-one band priors share one bounded-noise null. Their joint laws display exact cancellation of a nontrivial outcome-adaptive assignment factor, an exact band target displacement on alternating paths, and retained block posterior variance on constant paths. This checks the mechanism but does not assume or prove the multiscale certificate.\",\"model_fidelity\":\"The operative model is the displayed pointwise historical bounded-difference envelope. The shorthand weighted total-variation reading \\\\(\\\\sum_\\\\ell(1+\\\\ell)^{1+\\\\beta}\\\\lvert\\\\Delta_\\\\ell Y_t\\\\rvert\\\\le C\\\\) would be a strictly smaller class with a different truncation exponent and is not substituted.\",\"strict_gap\":\"Published finite-order and geometric-mixing results do not provide a common-null occupancy--information lemma uniform over sequential feedback kernels. The audited Markov upper bound, no-memory boundary, operational window, and matched-frontier corollary are supporting consequences rather than additional novelty claims.\"}"
+}

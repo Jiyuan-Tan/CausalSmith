@@ -1,0 +1,1918 @@
+{
+  "qid": "panel_absorbing_four_slice_att_recovery",
+  "specialization": "v1",
+  "cluster": "panel",
+  "symbols": [
+    {
+      "name": "\\mathcal S",
+      "type": "observed state space",
+      "space": "finite sets",
+      "def": "\\(\\mathcal S=\\{a,b,e\\}\\), where \\(e\\) is the exit state.",
+      "role": "outcome support"
+    },
+    {
+      "name": "\\mathcal A",
+      "type": "active state space",
+      "space": "subsets of \\(\\mathcal S\\)",
+      "def": "\\(\\mathcal A=\\{a,b\\}\\).",
+      "role": "active support",
+      "refs": [
+        "\\mathcal S"
+      ]
+    },
+    {
+      "name": "\\mathcal G",
+      "type": "allowed transition graph",
+      "space": "subsets of \\(\\mathcal S\\times\\mathcal S\\)",
+      "def": "\\(\\mathcal G=\\{(a,a),(a,b),(a,e),(b,a),(b,b),(b,e),(e,e)\\}\\).",
+      "role": "absorbing support graph",
+      "refs": [
+        "\\mathcal S"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "cohort index",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The value \\(d=1\\) denotes adoption at date \\(3\\), and \\(d=0\\) denotes no adoption.",
+      "role": "index"
+    },
+    {
+      "name": "r",
+      "type": "potential treatment path index",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The value \\(r=1\\) denotes adoption at date \\(3\\), and \\(r=0\\) denotes no adoption.",
+      "role": "potential-outcome index"
+    },
+    {
+      "name": "j",
+      "type": "latent-type index",
+      "space": "\\(\\{1,2\\}\\)",
+      "def": "A latent type label, ordered by the recovered cycle-product signature.",
+      "role": "index"
+    },
+    {
+      "name": "t",
+      "type": "date index",
+      "space": "\\(\\{0,1,2,3,4\\}\\)",
+      "def": "A panel date.",
+      "role": "index"
+    },
+    {
+      "name": "D",
+      "type": "treatment-cohort indicator",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The observed cohort indicator.",
+      "role": "treatment"
+    },
+    {
+      "name": "Z",
+      "type": "latent type",
+      "space": "\\(\\{1,2\\}\\)",
+      "def": "The time-invariant latent Markov type.",
+      "role": "latent heterogeneity"
+    },
+    {
+      "name": "X_t(r)",
+      "type": "potential state",
+      "space": "\\(\\mathcal S\\)",
+      "def": "The state at date \\(t\\) under treatment path \\(r\\).",
+      "role": "potential outcome",
+      "refs": [
+        "\\mathcal S",
+        "t",
+        "r"
+      ]
+    },
+    {
+      "name": "X_t",
+      "type": "observed state",
+      "space": "\\(\\mathcal S\\)",
+      "def": "The realized state at date \\(t\\).",
+      "role": "observed outcome",
+      "refs": [
+        "\\mathcal S",
+        "t"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "observed panel",
+      "space": "\\(\\{0,1\\}\\times\\mathcal S^5\\)",
+      "def": "\\(O=(D,X_0,X_1,X_2,X_3,X_4)\\).",
+      "role": "sampling unit",
+      "refs": [
+        "D",
+        "X_t",
+        "\\mathcal S"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "observed and potential-path law",
+      "space": "probability laws on the variables declared above",
+      "def": "A law for one complete panel and its latent potential paths.",
+      "role": "data-generating law",
+      "refs": [
+        "O",
+        "Z",
+        "X_t(r)"
+      ]
+    },
+    {
+      "name": "\\pi_j^d",
+      "type": "cohort-specific type mass",
+      "space": "\\([0,1]\\)",
+      "sig": "\\(\\pi_j^d=P(Z=j\\mid D=d)\\)",
+      "def": "The mass of type \\(j\\) in cohort \\(d\\).",
+      "role": "mixture weight",
+      "refs": [
+        "P",
+        "Z",
+        "D",
+        "j",
+        "d"
+      ]
+    },
+    {
+      "name": "H_j^d",
+      "type": "pre-treatment transition matrix",
+      "space": "row-stochastic \\(3\\times3\\) matrices supported on \\(\\mathcal G\\)",
+      "sig": "\\(H_j^d[x,y]=P(X_1(0)=y\\mid X_0(0)=x,Z=j,D=d)\\)",
+      "def": "The type- and cohort-specific transition from date \\(0\\) to date \\(1\\).",
+      "role": "primitive transition",
+      "refs": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "d",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "Q_j",
+      "type": "common untreated transition matrix",
+      "space": "row-stochastic \\(3\\times3\\) matrices supported on \\(\\mathcal G\\)",
+      "sig": "\\(Q_j[x,y]=P(X_2(0)=y\\mid X_1(0)=x,Z=j,D=d)\\)",
+      "def": "The type-specific untreated transition from date \\(1\\) to date \\(2\\), common across cohorts.",
+      "role": "primitive transition",
+      "refs": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "d",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "U_j",
+      "type": "common untreated first-post transition matrix",
+      "space": "row-stochastic \\(3\\times3\\) matrices supported on \\(\\mathcal G\\)",
+      "sig": "\\(U_j[x,y]=P(X_3(0)=y\\mid X_2(0)=x,Z=j,D=d)\\)",
+      "def": "The type-specific untreated transition from date \\(2\\) to date \\(3\\), common across cohorts.",
+      "role": "counterfactual transition",
+      "refs": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "d",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "L_j",
+      "type": "common untreated date-\\(4\\) transition matrix",
+      "space": "row-stochastic \\(3\\times3\\) matrices supported on \\(\\mathcal G\\)",
+      "sig": "\\(L_j[x,y]=P(X_4(0)=y\\mid X_3(0)=x,Z=j,D=d)\\)",
+      "def": "The type-specific untreated transition from date \\(3\\) to date \\(4\\), common across cohorts.",
+      "role": "overidentifying transition",
+      "refs": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "d",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "V_j",
+      "type": "treated first-post transition matrix",
+      "space": "row-stochastic \\(3\\times3\\) matrices supported on \\(\\mathcal G\\)",
+      "sig": "\\(V_j[x,y]=P(X_3(1)=y\\mid X_2(1)=x,Z=j,D=1)\\)",
+      "def": "The type-specific treated transition from date \\(2\\) to date \\(3\\).",
+      "role": "factual transition",
+      "refs": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "p",
+      "type": "observed cell-probability vector",
+      "space": "the \\(120\\)-cell support-face simplex",
+      "sig": "\\(p_s=P(O=s)\\)",
+      "def": "The joint cell probabilities after deleting paths forbidden by \\(\\mathcal G\\) and by absence of date-‑\\(1\\) absorption.",
+      "role": "observable distribution",
+      "refs": [
+        "P",
+        "O",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "A_{xy}^d",
+      "type": "matched path-slice matrix",
+      "space": "\\(2\\times3\\) real matrices",
+      "sig": "\\(A_{xy}^d[u,v]=P(X_0=u,X_1=x,X_2=y,X_3=v\\mid D=d)\\)",
+      "def": "The observed four-date slice for \\(u,x,y\\in\\mathcal A\\) and \\(v\\in\\mathcal S\\).",
+      "role": "spectral input",
+      "refs": [
+        "P",
+        "X_t",
+        "D",
+        "d",
+        "\\mathcal A",
+        "\\mathcal S"
+      ]
+    },
+    {
+      "name": "\\bar A_{xy}^d",
+      "type": "active matched path-slice matrix",
+      "space": "\\(2\\times2\\) real matrices",
+      "def": "The submatrix of \\(A_{xy}^d\\) retaining terminal columns \\(a,b\\).",
+      "role": "invertible spectral input",
+      "refs": [
+        "A_{xy}^d",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "m_x^d",
+      "type": "active predecessor vector",
+      "space": "\\(\\mathbb R^2\\)",
+      "sig": "\\(m_x^d[u]=P(X_0=u,X_1=x\\mid D=d)\\)",
+      "def": "The observed predecessor mass at active cut state \\(x\\).",
+      "role": "spectral normalization",
+      "refs": [
+        "P",
+        "X_t",
+        "D",
+        "d",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "K^d",
+      "type": "cycle-product operator",
+      "space": "\\(2\\times2\\) real matrices",
+      "def": "\\(K^d=\\bar A_{aa}^d(\\bar A_{ba}^d)^{-1}\\bar A_{bb}^d(\\bar A_{ab}^d)^{-1}\\).",
+      "role": "spectral recovery operator",
+      "refs": [
+        "\\bar A_{xy}^d"
+      ]
+    },
+    {
+      "name": "g^d",
+      "type": "cycle-product eigengap",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(g^d=\\sqrt{\\operatorname{tr}(K^d)^2-4\\det(K^d)}\\).",
+      "role": "identification margin",
+      "refs": [
+        "K^d"
+      ]
+    },
+    {
+      "name": "\\rho_j^d",
+      "type": "ordered cycle-product eigenvalue",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\rho_1^d=\\{\\operatorname{tr}(K^d)+g^d\\}/2\\) and \\(\\rho_2^d=\\{\\operatorname{tr}(K^d)-g^d\\}/2\\).",
+      "role": "label signature",
+      "refs": [
+        "K^d",
+        "g^d",
+        "j",
+        "d"
+      ]
+    },
+    {
+      "name": "P_j^d",
+      "type": "spectral projector",
+      "space": "\\(2\\times2\\) real matrices",
+      "def": "\\(P_1^d=(K^d-\\rho_2^d I_2)/g^d\\) and \\(P_2^d=I_2-P_1^d\\).",
+      "role": "scale-free component recovery",
+      "refs": [
+        "K^d",
+        "\\rho_j^d",
+        "g^d",
+        "j",
+        "d"
+      ]
+    },
+    {
+      "name": "B_a^d",
+      "type": "normalized component predecessor matrix",
+      "space": "\\(2\\times2\\) real matrices",
+      "def": "\\(B_a^d=[P_1^dm_a^d,P_2^dm_a^d]\\).",
+      "role": "component mass recovery",
+      "refs": [
+        "P_j^d",
+        "m_x^d",
+        "d"
+      ]
+    },
+    {
+      "name": "F_y^d",
+      "type": "row-scaled terminal factor",
+      "space": "\\(2\\times3\\) real matrices",
+      "def": "\\(F_y^d=(B_a^d)^{-1}A_{ay}^d\\) for \\(y\\in\\mathcal A\\).",
+      "role": "transition recovery intermediate",
+      "refs": [
+        "B_a^d",
+        "A_{xy}^d",
+        "\\mathcal A",
+        "d"
+      ]
+    },
+    {
+      "name": "q_{ay}^d",
+      "type": "active transition vector",
+      "space": "\\(\\mathbb R^2\\)",
+      "def": "\\(q_{ay}^d=F_y^d\\mathbf 1_3\\).",
+      "role": "stochastic row-sum normalization",
+      "refs": [
+        "F_y^d",
+        "d"
+      ]
+    },
+    {
+      "name": "C_y^d",
+      "type": "normalized terminal transition factor",
+      "space": "\\(2\\times3\\) real matrices",
+      "def": "\\(C_y^d=\\operatorname{diag}(q_{ay}^d)^{-1}F_y^d\\).",
+      "role": "first-post transition recovery",
+      "refs": [
+        "q_{ay}^d",
+        "F_y^d",
+        "d"
+      ]
+    },
+    {
+      "name": "W^d",
+      "type": "second active predecessor intermediate",
+      "space": "\\(2\\times2\\) real matrices",
+      "def": "\\(W^d=A_{ba}^d(C_a^d)^\\top\\{C_a^d(C_a^d)^\\top\\}^{-1}\\).",
+      "role": "pseudoinverse recovery intermediate",
+      "refs": [
+        "A_{xy}^d",
+        "C_y^d",
+        "d"
+      ]
+    },
+    {
+      "name": "c^d",
+      "type": "second-state stochastic normalizer",
+      "space": "\\(\\mathbb R^2\\)",
+      "def": "\\(c^d=(W^d)^{-1}m_b^d\\).",
+      "role": "component scaling",
+      "refs": [
+        "W^d",
+        "m_x^d",
+        "d"
+      ]
+    },
+    {
+      "name": "B_b^d",
+      "type": "second normalized component predecessor matrix",
+      "space": "\\(2\\times2\\) real matrices",
+      "def": "\\(B_b^d=W^d\\operatorname{diag}(c^d)\\).",
+      "role": "component mass recovery",
+      "refs": [
+        "W^d",
+        "c^d",
+        "d"
+      ]
+    },
+    {
+      "name": "\\widehat Q_j^d",
+      "type": "recovered date-‑\\(2\\) transition matrix",
+      "space": "\\(3\\times3\\) real matrices",
+      "def": "The row-stochastic matrix recovered from \\(q_{ay}^d\\), \\(q_{by}^d=(B_b^d)^{-1}A_{by}^d\\mathbf 1_3\\), exit residuals, and the absorbing row.",
+      "role": "recovered component transition",
+      "refs": [
+        "q_{ay}^d",
+        "B_b^d",
+        "A_{xy}^d",
+        "j",
+        "d"
+      ]
+    },
+    {
+      "name": "\\widehat R_j^d",
+      "type": "recovered first-post transition matrix",
+      "space": "\\(3\\times3\\) real matrices",
+      "def": "The matrix whose active row \\(y\\) is row \\(j\\) of \\(C_y^d\\) and whose exit row is \\((0,0,1)\\).",
+      "role": "recovered factual or counterfactual transition",
+      "refs": [
+        "C_y^d",
+        "j",
+        "d"
+      ]
+    },
+    {
+      "name": "\\widehat\\pi_j^d",
+      "type": "recovered type mass",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\widehat\\pi_j^d=\\sum_u\\{B_a^d[u,j]+B_b^d[u,j]\\}\\).",
+      "role": "recovered mixture weight",
+      "refs": [
+        "B_a^d",
+        "B_b^d",
+        "j",
+        "d"
+      ]
+    },
+    {
+      "name": "\\widehat p_{2,j}^d",
+      "type": "recovered date-‑\\(2\\) type-specific state law",
+      "space": "the probability simplex on \\(\\mathcal S\\)",
+      "def": "\\(\\widehat p_{2,j}^d=(\\widehat\\pi_j^d)^{-1}(\\sum_uB_a^d[u,j],\\sum_uB_b^d[u,j],0)\\widehat Q_j^d\\).",
+      "role": "target input",
+      "refs": [
+        "\\mathcal S",
+        "\\widehat\\pi_j^d",
+        "B_a^d",
+        "B_b^d",
+        "\\widehat Q_j^d",
+        "j",
+        "d"
+      ]
+    },
+    {
+      "name": "\\tau_j",
+      "type": "type-specific first-post state ATT vector",
+      "space": "\\(\\mathbb R^3\\)",
+      "sig": "\\(\\tau_j=E[\\operatorname{onehot}(X_3(1))-\\operatorname{onehot}(X_3(0))\\mid D=1,Z=j]\\)",
+      "def": "The treated-cohort state-probability effect for latent type \\(j\\).",
+      "role": "causal estimand",
+      "refs": [
+        "P",
+        "X_t(r)",
+        "D",
+        "Z",
+        "j"
+      ]
+    },
+    {
+      "name": "\\tau",
+      "type": "aggregate first-post state ATT vector",
+      "space": "\\(\\mathbb R^3\\)",
+      "def": "\\(\\tau=\\sum_{j=1}^2\\pi_j^1\\tau_j\\).",
+      "role": "causal estimand",
+      "refs": [
+        "\\pi_j^d",
+        "\\tau_j",
+        "j"
+      ]
+    },
+    {
+      "name": "\\theta",
+      "type": "stacked ATT target",
+      "space": "\\(\\mathbb R^9\\)",
+      "def": "\\(\\theta=(\\tau_1^\\top,\\tau_2^\\top,\\tau^\\top)^\\top\\).",
+      "role": "reported target",
+      "refs": [
+        "\\tau_j",
+        "\\tau"
+      ]
+    },
+    {
+      "name": "\\Phi",
+      "type": "off-model spectral recovery map",
+      "space": "a map from an open subset of the affine cell-probability hyperplane to \\(\\mathbb R^9\\)",
+      "def": "The deterministic recovery algorithm in \\(\\text{def:recovery-map}\\).",
+      "role": "identifying functional",
+      "refs": [
+        "p",
+        "\\theta"
+      ]
+    },
+    {
+      "name": "\\mathcal M_{\\mathrm{face}}",
+      "type": "absorbing two-type Markov model class",
+      "space": "sets of laws \\(P\\)",
+      "def": "The class defined in \\(\\text{def:face-model}\\).",
+      "role": "identification domain",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "\\mathcal F(p)",
+      "type": "compatible full-data fiber",
+      "space": "subsets of \\(\\mathcal M_{\\mathrm{face}}\\)",
+      "def": "The set of laws in the face model inducing observed cell vector \\(p\\).",
+      "role": "identification fiber",
+      "refs": [
+        "\\mathcal M_{\\mathrm{face}}",
+        "p"
+      ]
+    },
+    {
+      "name": "J_{\\Phi}",
+      "type": "Jacobian of the recovery map",
+      "space": "\\(9\\times120\\) real matrices",
+      "def": "\\(J_{\\Phi}(p)=D\\Phi(p)\\) on the analytic recovery domain.",
+      "role": "pathwise derivative",
+      "refs": [
+        "\\Phi",
+        "p"
+      ]
+    },
+    {
+      "name": "G_p",
+      "type": "saturated-model influence function",
+      "space": "maps from observed cells to \\(\\mathbb R^9\\)",
+      "def": "\\(G_p(s)=J_{\\Phi}(p)(e_s-p)\\).",
+      "role": "canonical-gradient candidate",
+      "refs": [
+        "J_{\\Phi}",
+        "p"
+      ]
+    },
+    {
+      "name": "\\Sigma(p)",
+      "type": "ATT covariance matrix",
+      "space": "positive-semidefinite \\(9\\times9\\) real matrices",
+      "def": "\\(\\Sigma(p)=J_{\\Phi}(p)\\{\\operatorname{diag}(p)-pp^\\top\\}J_{\\Phi}(p)^\\top=E_P[G_p(O)G_p(O)^\\top]\\).",
+      "role": "information bound and limit covariance",
+      "refs": [
+        "J_{\\Phi}",
+        "p",
+        "P",
+        "G_p",
+        "O"
+      ]
+    },
+    {
+      "name": "\\mathcal L",
+      "type": "reported-coordinate set",
+      "space": "nonempty subsets of \\(\\{1,\\ldots,9\\}\\)",
+      "def": "The fixed coordinates of \\(\\theta\\) reported jointly.",
+      "role": "band index",
+      "refs": [
+        "\\theta"
+      ]
+    },
+    {
+      "name": "\\kappa",
+      "type": "buffer constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A fixed positive separation between the population class and the empirical guard.",
+      "role": "uniformity margin"
+    },
+    {
+      "name": "\\mathfrak m(p)",
+      "type": "recovery-margin vector",
+      "space": "a finite-dimensional positive orthant",
+      "def": "The observable margin list in \\(\\text{def:margin-vector}\\).",
+      "role": "regularity diagnostic",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "\\mathcal P_{\\kappa}",
+      "type": "compact buffered face class",
+      "space": "subsets of \\(\\mathcal M_{\\mathrm{face}}\\)",
+      "def": "The class defined in \\(\\text{def:buffered-class}\\).",
+      "role": "uniform inference domain",
+      "refs": [
+        "\\mathcal M_{\\mathrm{face}}",
+        "\\kappa"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "sample size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The number of independent panels.",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "\\widehat p",
+      "type": "empirical cell-probability vector",
+      "space": "the \\(120\\)-cell simplex",
+      "def": "\\(\\widehat p=n^{-1}\\sum_{i=1}^n e_{O_i}\\).",
+      "role": "estimator input",
+      "refs": [
+        "n",
+        "O",
+        "p"
+      ]
+    },
+    {
+      "name": "\\mathcal E_{\\kappa}",
+      "type": "empirical guard event",
+      "space": "sample events",
+      "def": "The sequentially evaluated support, inverse, eigengap, normalization, label, and variance guard in \\(\\text{def:guarded-estimator}\\).",
+      "role": "numerical guard",
+      "refs": [
+        "\\widehat p",
+        "\\kappa"
+      ]
+    },
+    {
+      "name": "\\widehat\\theta",
+      "type": "guarded empirical-cell plug-in",
+      "space": "\\(\\mathbb R^9\\)",
+      "def": "\\(\\widehat\\theta=\\Phi(\\widehat p)\\) on \\(\\mathcal E_{\\kappa}\\).",
+      "role": "ATT estimator",
+      "refs": [
+        "\\Phi",
+        "\\widehat p",
+        "\\mathcal E_{\\kappa}"
+      ]
+    },
+    {
+      "name": "\\widehat G_i",
+      "type": "estimated influence vector",
+      "space": "\\(\\mathbb R^9\\)",
+      "def": "\\(\\widehat G_i=J_{\\Phi}(\\widehat p)(e_{O_i}-\\widehat p)\\).",
+      "role": "multiplier input",
+      "refs": [
+        "J_{\\Phi}",
+        "\\widehat p",
+        "O"
+      ]
+    },
+    {
+      "name": "\\widehat\\Sigma",
+      "type": "estimated ATT covariance matrix",
+      "space": "positive-semidefinite \\(9\\times9\\) real matrices",
+      "def": "\\(\\widehat\\Sigma=n^{-1}\\sum_{i=1}^n\\widehat G_i\\widehat G_i^\\top\\).",
+      "role": "studentization",
+      "refs": [
+        "n",
+        "\\widehat G_i"
+      ]
+    },
+    {
+      "name": "\\xi_i",
+      "type": "Gaussian multiplier",
+      "space": "\\(N(0,1)\\)",
+      "def": "Independent standard Gaussian multipliers, conditionally independent of the sample.",
+      "role": "bootstrap randomization",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "T^\\star",
+      "type": "studentized Gaussian-multiplier maximum",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(T^\\star=\\max_{\\ell\\in\\mathcal L}|n^{-1/2}\\sum_{i=1}^n\\xi_i\\widehat G_{i,\\ell}|/\\sqrt{\\widehat\\Sigma_{\\ell\\ell}}\\).",
+      "role": "simultaneous critical statistic",
+      "refs": [
+        "\\mathcal L",
+        "n",
+        "\\xi_i",
+        "\\widehat G_i",
+        "\\widehat\\Sigma"
+      ]
+    },
+    {
+      "name": "\\alpha",
+      "type": "miscoverage level",
+      "space": "\\((0,1)\\)",
+      "def": "A fixed familywise error probability.",
+      "role": "inference constant"
+    },
+    {
+      "name": "\\widehat c_{1-\\alpha}",
+      "type": "conditional multiplier critical value",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The conditional \\(1-\\alpha\\) quantile of \\(T^\\star\\).",
+      "role": "band critical value",
+      "refs": [
+        "\\alpha",
+        "T^\\star"
+      ]
+    },
+    {
+      "name": "I_{\\ell,n}",
+      "type": "simultaneous confidence interval",
+      "space": "closed intervals in \\(\\mathbb R\\)",
+      "def": "\\(I_{\\ell,n}=[\\widehat\\theta_\\ell\\mathbin{-}\\widehat c_{1-\\alpha}\\sqrt{\\widehat\\Sigma_{\\ell\\ell}/n},\\widehat\\theta_\\ell\\mathbin{+}\\widehat c_{1-\\alpha}\\sqrt{\\widehat\\Sigma_{\\ell\\ell}/n}]\\).",
+      "role": "reported band",
+      "refs": [
+        "\\widehat\\theta",
+        "\\widehat c_{1-\\alpha}",
+        "\\widehat\\Sigma",
+        "n",
+        "\\alpha"
+      ]
+    },
+    {
+      "name": "\\omega^\\star",
+      "type": "exact rational witness law",
+      "space": "laws \\(P\\)",
+      "def": "The law constructed from the matrices in \\(\\text{def:exact-witness}\\).",
+      "role": "nonvacuity witness",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "P^{A}",
+      "type": "first outside-face compatible law",
+      "space": "laws \\(P\\)",
+      "def": "The first initial-absorption allocation in \\(\\text{def:outside-face-pair}\\).",
+      "role": "necessity counterexample",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "P^{B}",
+      "type": "second outside-face compatible law",
+      "space": "laws \\(P\\)",
+      "def": "The second initial-absorption allocation in \\(\\text{def:outside-face-pair}\\).",
+      "role": "necessity counterexample",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "\\mathcal T_P",
+      "type": "constrained Markov tangent space",
+      "space": "a closed linear subspace of \\(L_2^0(P)\\)",
+      "def": "The closure of scores obtained by differentiating the absorbing support, common-kernel, latent-mixture, and fifth-date factorization restrictions at \\(P\\).",
+      "role": "efficiency geometry",
+      "refs": [
+        "P",
+        "\\mathcal M_{\\mathrm{face}}"
+      ]
+    },
+    {
+      "name": "\\mathfrak H_{\\mathrm{eff}}",
+      "type": "constrained-efficiency construction handle",
+      "space": "tangent-space projection procedures",
+      "def": "The handle defined in \\(\\text{def:efficiency-handle}\\).",
+      "role": "open-question route",
+      "refs": [
+        "\\mathcal T_P",
+        "G_p"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-panels",
+      "kind": "sampling",
+      "condition": "The observations \\(O_1,\\ldots,O_n\\) are independent and identically distributed with law induced by \\(P\\).",
+      "free_symbols": [
+        "O",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent panel sampling",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:analytic-gradient",
+        "thm:uniform-bands"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal-structural",
+      "condition": "For every \\(t\\), \\(X_t=X_t(D)\\) almost surely.",
+      "free_symbols": [
+        "t",
+        "X_t",
+        "X_t(r)",
+        "D"
+      ],
+      "standard": {
+        "name": "Potential-outcome consistency",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery"
+      ]
+    },
+    {
+      "id": "ass:no-anticipation",
+      "kind": "causal-structural",
+      "condition": "\\(X_t(1)=X_t(0)\\) almost surely for every \\(t\\leq2\\).",
+      "free_symbols": [
+        "X_t(r)",
+        "t"
+      ],
+      "standard": {
+        "name": "No anticipation through the last pre-treatment date",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery"
+      ]
+    },
+    {
+      "id": "ass:two-types",
+      "kind": "latent-structure",
+      "condition": "\\(Z\\) has exactly the two support points \\(1\\) and \\(2\\).",
+      "free_symbols": [
+        "Z"
+      ],
+      "standard": {
+        "name": "Known finite latent-type count",
+        "cite": "HigginsJochmans2023MixturesDDC"
+      },
+      "used_by": [
+        "thm:face-recovery"
+      ]
+    },
+    {
+      "id": "ass:type-overlap",
+      "kind": "support",
+      "condition": "\\(\\min_{d\\in\\{0,1\\},j\\in\\{1,2\\}}\\pi_j^d>0\\).",
+      "free_symbols": [
+        "d",
+        "j",
+        "\\pi_j^d"
+      ],
+      "standard": {
+        "name": "Positive finite-mixture weights",
+        "cite": "HigginsJochmans2023MixturesDDC"
+      },
+      "used_by": [
+        "thm:face-recovery",
+        "thm:analytic-gradient"
+      ]
+    },
+    {
+      "id": "ass:cohort-overlap",
+      "kind": "support",
+      "condition": "\\(P(D=d)>0\\) for each \\(d\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "P",
+        "D",
+        "d"
+      ],
+      "standard": {
+        "name": "Treatment-cohort overlap",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery",
+        "thm:analytic-gradient",
+        "thm:uniform-bands"
+      ]
+    },
+    {
+      "id": "ass:markov-paths",
+      "kind": "dynamic-structure",
+      "condition": "Conditional on \\((D,Z)\\), each marginal potential path \\((X_0(r),\\ldots,X_4(r))\\) is first-order Markov.",
+      "free_symbols": [
+        "D",
+        "Z",
+        "X_t(r)",
+        "r"
+      ],
+      "standard": {
+        "name": "Type-conditional first-order Markov potential paths",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery"
+      ]
+    },
+    {
+      "id": "ass:absorbing-exit",
+      "kind": "support",
+      "condition": "For each potential path, \\(P(X_{t+1}(r)=e\\mid X_t(r)=e,D,Z)=1\\) whenever \\(t<4\\).",
+      "free_symbols": [
+        "P",
+        "X_t(r)",
+        "r",
+        "t",
+        "D",
+        "Z"
+      ],
+      "standard": {
+        "name": "Absorbing outcome state",
+        "cite": "DeanerKu2026DurationDiD"
+      },
+      "used_by": [
+        "thm:face-recovery",
+        "prop:exact-boundary-witness"
+      ]
+    },
+    {
+      "id": "ass:no-date-one-absorption",
+      "kind": "support-face",
+      "condition": "\\(P(X_1=e\\mid D=d)=0\\) for each \\(d\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "P",
+        "X_t",
+        "D",
+        "d"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This observable support-face restriction describes cohorts formed before any recorded exit, as with incumbent firms, enrolled students, or initially unemployed workers whose first analyzed spell begins while active."
+      },
+      "used_by": [
+        "thm:face-recovery",
+        "prop:exact-boundary-witness"
+      ]
+    },
+    {
+      "id": "ass:common-date-two-transition",
+      "kind": "causal-structural",
+      "condition": "For every \\(j,x,y,d\\), \\(P(X_2(0)=y\\mid X_1(0)=x,Z=j,D=d)=Q_j[x,y]\\).",
+      "free_symbols": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "d",
+        "Q_j",
+        "\\mathcal S"
+      ],
+      "standard": {
+        "name": "Type-specific transition independence at date two",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery"
+      ]
+    },
+    {
+      "id": "ass:common-first-post-untreated-transition",
+      "kind": "causal-structural",
+      "condition": "For every \\(j,x,y,d\\), \\(P(X_3(0)=y\\mid X_2(0)=x,Z=j,D=d)=U_j[x,y]\\).",
+      "free_symbols": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "d",
+        "U_j",
+        "\\mathcal S"
+      ],
+      "standard": {
+        "name": "Type-specific transition independence at the first post-treatment date",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery"
+      ]
+    },
+    {
+      "id": "ass:common-date-four-untreated-transition",
+      "kind": "causal-structural",
+      "condition": "For every \\(j,x,y,d\\), \\(P(X_4(0)=y\\mid X_3(0)=x,Z=j,D=d)=L_j[x,y]\\).",
+      "free_symbols": [
+        "P",
+        "X_t(r)",
+        "Z",
+        "D",
+        "j",
+        "d",
+        "L_j",
+        "\\mathcal S"
+      ],
+      "standard": {
+        "name": "Type-specific transition independence at date four",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "oeq:constrained-efficiency"
+      ]
+    },
+    {
+      "id": "ass:four-slice-rank",
+      "kind": "rank",
+      "condition": "For each \\(d\\), \\(\\min_{x,y\\in\\mathcal A}\\sigma_{\\min}(\\bar A_{xy}^d)>0\\).",
+      "free_symbols": [
+        "d",
+        "\\mathcal A",
+        "\\bar A_{xy}^d"
+      ],
+      "standard": {
+        "name": "Matched-slice nonsingularity on an active minor",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery",
+        "thm:analytic-gradient"
+      ]
+    },
+    {
+      "id": "ass:simple-cycle-spectrum",
+      "kind": "rank",
+      "condition": "\\(g^d>0\\) for each \\(d\\).",
+      "free_symbols": [
+        "g^d",
+        "d"
+      ],
+      "standard": {
+        "name": "Simple spectral signature",
+        "cite": "AhnKasahara2026TransitionIndependence"
+      },
+      "used_by": [
+        "thm:face-recovery",
+        "thm:analytic-gradient"
+      ]
+    },
+    {
+      "id": "ass:margin-buffer",
+      "kind": "uniform-regularity",
+      "condition": "\\(\\min_k\\mathfrak m_k(p)\\geq2\\kappa\\).",
+      "free_symbols": [
+        "\\mathfrak m(p)",
+        "p",
+        "\\kappa"
+      ],
+      "standard": {
+        "name": "Compact separation from singular recovery boundaries",
+        "cite": "BonhommeJochmansRobin2017Nonexchangeable"
+      },
+      "used_by": [
+        "thm:uniform-bands"
+      ]
+    },
+    {
+      "id": "ass:variance-buffer",
+      "kind": "uniform-regularity",
+      "condition": "\\(\\min_{\\ell\\in\\mathcal L}\\Sigma_{\\ell\\ell}(p)\\geq2\\kappa\\).",
+      "free_symbols": [
+        "\\mathcal L",
+        "\\Sigma(p)",
+        "p",
+        "\\kappa"
+      ],
+      "standard": {
+        "name": "Positive marginal-variance condition allowing singular correlation",
+        "cite": "ChernozhukovChetverikovKato2015AntiConcentration"
+      },
+      "used_by": [
+        "thm:uniform-bands"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:face-model",
+      "name": "Absorbing support-face model",
+      "construction": "\\(\\mathcal M_{\\mathrm{face}}=\\{P:P\\text{ satisfies }\\text{ass:consistency},\\text{ass:no-anticipation},\\text{ass:two-types},\\text{ass:type-overlap},\\text{ass:cohort-overlap},\\text{ass:markov-paths},\\text{ass:absorbing-exit},\\text{ass:no-date-one-absorption},\\text{ass:common-date-two-transition},\\text{ass:common-first-post-untreated-transition},\\text{ass:common-date-four-untreated-transition},\\text{ass:four-slice-rank},\\text{ and }\\text{ass:simple-cycle-spectrum}\\}\\).",
+      "free_symbols": [
+        "\\mathcal M_{\\mathrm{face}}",
+        "P"
+      ],
+      "by_member_properties": [
+        "ass:consistency",
+        "ass:no-anticipation",
+        "ass:two-types",
+        "ass:type-overlap",
+        "ass:cohort-overlap",
+        "ass:markov-paths",
+        "ass:absorbing-exit",
+        "ass:no-date-one-absorption",
+        "ass:common-date-two-transition",
+        "ass:common-first-post-untreated-transition",
+        "ass:common-date-four-untreated-transition",
+        "ass:four-slice-rank",
+        "ass:simple-cycle-spectrum"
+      ]
+    },
+    {
+      "id": "def:compatible-fiber",
+      "name": "Compatible full-data fiber",
+      "construction": "\\(\\mathcal F(p)=\\{\\widetilde P\\in\\mathcal M_{\\mathrm{face}}:\\widetilde P(O=s)=p_s\\text{ for every observed cell }s\\}\\).",
+      "free_symbols": [
+        "\\mathcal F(p)",
+        "p",
+        "P",
+        "\\mathcal M_{\\mathrm{face}}",
+        "O"
+      ],
+      "inputs": [
+        "p",
+        "\\mathcal M_{\\mathrm{face}}"
+      ]
+    },
+    {
+      "id": "def:observed-slices",
+      "name": "Observed matched slices and cycle product",
+      "construction": "For each \\(d\\) and \\(x,y\\in\\mathcal A\\), tabulate \\(A_{xy}^d[u,v]=P(X_0=u,X_1=x,X_2=y,X_3=v\\mid D=d)\\), retain \\(\\bar A_{xy}^d=A_{xy}^d[:,\\mathcal A]\\), tabulate \\(m_x^d[u]=P(X_0=u,X_1=x\\mid D=d)\\), and set \\(K^d=\\bar A_{aa}^d(\\bar A_{ba}^d)^{-1}\\bar A_{bb}^d(\\bar A_{ab}^d)^{-1}\\).",
+      "free_symbols": [
+        "d",
+        "\\mathcal A",
+        "A_{xy}^d",
+        "P",
+        "X_t",
+        "D",
+        "\\bar A_{xy}^d",
+        "m_x^d",
+        "K^d"
+      ],
+      "inputs": [
+        "p"
+      ]
+    },
+    {
+      "id": "def:recovery-map",
+      "name": "Projector-and-row-sum recovery map",
+      "construction": "For each cohort \\(d\\), calculate \\(g^d\\), \\(\\rho_j^d\\), \\(P_j^d\\), \\(B_a^d=[P_1^dm_a^d,P_2^dm_a^d]\\), \\(F_y^d=(B_a^d)^{-1}A_{ay}^d\\), \\(q_{ay}^d=F_y^d\\mathbf 1_3\\), \\(C_y^d=\\operatorname{diag}(q_{ay}^d)^{-1}F_y^d\\), \\(W^d=A_{ba}^d(C_a^d)^\\top\\{C_a^d(C_a^d)^\\top\\}^{-1}\\), \\(c^d=(W^d)^{-1}m_b^d\\), and \\(B_b^d=W^d\\operatorname{diag}(c^d)\\). Fill \\(\\widehat Q_j^d\\) from \\(q_{ay}^d\\), \\((B_b^d)^{-1}A_{by}^d\\mathbf 1_3\\), stochastic exit residuals, and the absorbing row; fill \\(\\widehat R_j^d\\) from the rows of \\(C_y^d\\) and the absorbing row. Set \\(\\widehat\\pi_j^d=\\sum_u(B_a^d[u,j]+B_b^d[u,j])\\), \\(\\widehat p_{2,j}^d=(\\widehat\\pi_j^d)^{-1}(\\sum_uB_a^d[u,j],\\sum_uB_b^d[u,j],0)\\widehat Q_j^d\\), and order by \\(\\rho_1^d>\\rho_2^d\\). Finally, \\(\\Phi(p)=((\\widehat p_{2,1}^1(\\widehat R_1^1-\\widehat R_1^0))^\\top,(\\widehat p_{2,2}^1(\\widehat R_2^1-\\widehat R_2^0))^\\top,(\\sum_j\\widehat\\pi_j^1\\widehat p_{2,j}^1(\\widehat R_j^1-\\widehat R_j^0))^\\top)^\\top\\).",
+      "free_symbols": [
+        "d",
+        "j",
+        "g^d",
+        "\\rho_j^d",
+        "P_j^d",
+        "B_a^d",
+        "m_x^d",
+        "F_y^d",
+        "A_{xy}^d",
+        "q_{ay}^d",
+        "C_y^d",
+        "W^d",
+        "c^d",
+        "B_b^d",
+        "\\widehat Q_j^d",
+        "\\widehat R_j^d",
+        "\\widehat\\pi_j^d",
+        "\\widehat p_{2,j}^d",
+        "\\Phi",
+        "p"
+      ],
+      "inputs": [
+        "p",
+        "A_{xy}^d",
+        "m_x^d"
+      ]
+    },
+    {
+      "id": "def:margin-vector",
+      "name": "Complete observable recovery-margin vector",
+      "construction": "\\(\\mathfrak m(p)\\) lists both cohort shares, all recovered type shares, \\(g^d\\), the smallest singular values of every \\(\\bar A_{xy}^d\\), \\(B_a^d\\), \\(B_b^d\\), \\(W^d\\), and \\(C_y^d(C_y^d)^\\top\\), the absolute values of every entry of \\(q_{ay}^d\\), \\(q_{by}^d\\), \\(c^d\\), and \\(\\widehat\\pi_j^d\\) used in a division, and the distance between the two common untreated signatures whose first coordinates are \\(\\rho_1^d\\) and \\(\\rho_2^d\\).",
+      "free_symbols": [
+        "\\mathfrak m(p)",
+        "p",
+        "d",
+        "g^d",
+        "\\bar A_{xy}^d",
+        "B_a^d",
+        "B_b^d",
+        "W^d",
+        "C_y^d",
+        "q_{ay}^d",
+        "c^d",
+        "\\widehat\\pi_j^d",
+        "\\rho_j^d"
+      ],
+      "inputs": [
+        "p",
+        "\\Phi"
+      ]
+    },
+    {
+      "id": "def:buffered-class",
+      "name": "Compact buffered recovery class",
+      "construction": "\\(\\mathcal P_{\\kappa}=\\{P\\in\\mathcal M_{\\mathrm{face}}:\\min_k\\mathfrak m_k(p)\\geq2\\kappa\\text{ and }\\min_{\\ell\\in\\mathcal L}\\Sigma_{\\ell\\ell}(p)\\geq2\\kappa\\}\\), with closure taken inside the finite-parameter compatible image.",
+      "free_symbols": [
+        "\\mathcal P_{\\kappa}",
+        "P",
+        "\\mathcal M_{\\mathrm{face}}",
+        "\\mathfrak m(p)",
+        "p",
+        "\\kappa",
+        "\\mathcal L",
+        "\\Sigma(p)"
+      ],
+      "by_member_properties": [
+        "ass:margin-buffer",
+        "ass:variance-buffer"
+      ]
+    },
+    {
+      "id": "def:guarded-estimator",
+      "name": "Guarded empirical-cell plug-in",
+      "construction": "Evaluate the entries of \\(\\mathfrak m(\\widehat p)\\) sequentially, stopping before an inverse or division whose required margin is at most \\(\\kappa\\); also require legal support and \\(\\widehat\\Sigma_{\\ell\\ell}>\\kappa\\) for every \\(\\ell\\in\\mathcal L\\). This event is \\(\\mathcal E_{\\kappa}\\). On \\(\\mathcal E_{\\kappa}\\), set \\(\\widehat\\theta=\\Phi(\\widehat p)\\), \\(\\widehat G_i=J_{\\Phi}(\\widehat p)(e_{O_i}-\\widehat p)\\), and \\(\\widehat\\Sigma=n^{-1}\\sum_i\\widehat G_i\\widehat G_i^\\top\\); otherwise report that the sample is outside the regular recovery domain and return no interval.",
+      "free_symbols": [
+        "\\mathfrak m(p)",
+        "\\widehat p",
+        "\\kappa",
+        "\\widehat\\Sigma",
+        "\\mathcal L",
+        "\\mathcal E_{\\kappa}",
+        "\\widehat\\theta",
+        "\\Phi",
+        "\\widehat G_i",
+        "J_{\\Phi}",
+        "O",
+        "n"
+      ],
+      "inputs": [
+        "O",
+        "n",
+        "\\kappa",
+        "\\mathcal L"
+      ]
+    },
+    {
+      "id": "def:multiplier-band",
+      "name": "Gaussian-multiplier simultaneous band",
+      "construction": "Conditionally on the sample, draw \\(\\xi_i\\stackrel{\\mathrm{iid}}{\\sim}N(0,1)\\), form \\(T^\\star=\\max_{\\ell\\in\\mathcal L}|n^{-1/2}\\sum_i\\xi_i\\widehat G_{i,\\ell}|/\\sqrt{\\widehat\\Sigma_{\\ell\\ell}}\\), take its exact conditional \\(1-\\alpha\\) quantile \\(\\widehat c_{1-\\alpha}\\), and report \\(I_{\\ell,n}=[\\widehat\\theta_\\ell\\mathbin{-}\\widehat c_{1-\\alpha}\\sqrt{\\widehat\\Sigma_{\\ell\\ell}/n},\\widehat\\theta_\\ell\\mathbin{+}\\widehat c_{1-\\alpha}\\sqrt{\\widehat\\Sigma_{\\ell\\ell}/n}]\\).",
+      "free_symbols": [
+        "\\xi_i",
+        "T^\\star",
+        "\\mathcal L",
+        "n",
+        "\\widehat G_i",
+        "\\widehat\\Sigma",
+        "\\alpha",
+        "\\widehat c_{1-\\alpha}",
+        "I_{\\ell,n}",
+        "\\widehat\\theta"
+      ],
+      "inputs": [
+        "\\widehat\\theta",
+        "\\widehat G_i",
+        "\\widehat\\Sigma",
+        "\\alpha",
+        "\\mathcal L"
+      ]
+    },
+    {
+      "id": "def:exact-witness",
+      "name": "Exact rational absorbing-face witness",
+      "construction": "Let \\(P(D=1)=1/2\\), \\(\\pi_1^d=\\pi_2^d=1/2\\), and let \\(X_0\\) be uniform on \\(\\mathcal A\\) conditional on \\((Z,D)\\). With row and column order \\((a,b,e)\\), set \\(H_1=\\begin{psmallmatrix}3/4&1/4&0\\\\1/4&3/4&0\\\\0&0&1\\end{psmallmatrix}\\), \\(H_2=\\begin{psmallmatrix}1/3&2/3&0\\\\2/3&1/3&0\\\\0&0&1\\end{psmallmatrix}\\), \\(Q_1=\\begin{psmallmatrix}3/5&3/10&1/10\\\\1/5&1/2&3/10\\\\0&0&1\\end{psmallmatrix}\\), \\(Q_2=\\begin{psmallmatrix}1/5&2/5&2/5\\\\3/10&3/5&1/10\\\\0&0&1\\end{psmallmatrix}\\), \\(V_1=\\begin{psmallmatrix}7/10&1/5&1/10\\\\1/5&3/5&1/5\\\\0&0&1\\end{psmallmatrix}\\), and \\(V_2=\\begin{psmallmatrix}1/5&1/2&3/10\\\\1/4&1/2&1/4\\\\0&0&1\\end{psmallmatrix}\\). Use \\(H_j\\) from date \\(0\\) to \\(1\\), \\(Q_j\\) for untreated transitions from dates \\(1\\) to \\(2\\) and \\(2\\) to \\(3\\), and \\(V_j\\) for the treated transition from date \\(2\\) to \\(3\\); extend through date \\(4\\) by the same relevant kernel. This law is \\(\\omega^\\star\\).",
+      "free_symbols": [
+        "\\omega^\\star",
+        "P",
+        "D",
+        "\\pi_j^d",
+        "X_t",
+        "\\mathcal A",
+        "Z",
+        "H_j^d",
+        "Q_j",
+        "L_j",
+        "V_j",
+        "j",
+        "d"
+      ],
+      "inputs": [
+        "H_j^d",
+        "Q_j",
+        "L_j",
+        "V_j",
+        "\\pi_j^d"
+      ]
+    },
+    {
+      "id": "def:outside-face-pair",
+      "name": "Initial-absorption observational-equivalence pair",
+      "construction": "Mix \\(4/5\\) of \\(\\omega^\\star\\) with an all-exit path of probability \\(1/5\\) in each cohort. In \\(P^A\\), allocate all added mass to type \\(1\\); in \\(P^B\\), allocate it to type \\(2\\), leaving every type-specific transition kernel fixed.",
+      "free_symbols": [
+        "\\omega^\\star",
+        "P^{A}",
+        "P^{B}",
+        "P",
+        "Z",
+        "j"
+      ],
+      "inputs": [
+        "\\omega^\\star"
+      ]
+    },
+    {
+      "id": "def:efficiency-handle",
+      "name": "Constrained Markov efficiency handle",
+      "construction": "Differentiate the polynomial equalities encoding absorption, the two-type Markov factorization, common untreated kernels, and the fifth-date restrictions to characterize \\(\\mathcal T_P\\); project the saturated gradient \\(G_p\\) onto that score space and use the resulting normal equations as the starting point for constructing a regular estimator of \\(\\theta\\).",
+      "free_symbols": [
+        "\\mathfrak H_{\\mathrm{eff}}",
+        "\\mathcal T_P",
+        "P",
+        "G_p",
+        "\\theta"
+      ],
+      "inputs": [
+        "\\mathcal T_P",
+        "G_p"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:face-recovery",
+      "kind": "theorem",
+      "statement": "For every \\(P\\in\\mathcal M_{\\mathrm{face}}\\), the recovery map is well-defined and \\(\\Phi(p)=\\theta\\). More strongly, for every \\(\\widetilde P\\in\\mathcal F(p)\\), the formulas recover the same \\(\\pi_j^d\\), the same component law of \\((Z,X_0,X_1,X_2,X_3)\\) in each cohort, and the same \\(\\tau_j\\) and \\(\\tau\\), up to the declared descending \\(\\rho_j^d\\) order. The result holds without time homogeneity and on laws with the common absorbing row that violate the all-state terminal-rank and positive-transition conditions used by the adjacent recovery theorems.",
+      "free_symbols": [
+        "P",
+        "\\mathcal M_{\\mathrm{face}}",
+        "\\Phi",
+        "p",
+        "\\theta",
+        "\\mathcal F(p)",
+        "\\pi_j^d",
+        "j",
+        "d",
+        "Z",
+        "X_t",
+        "\\tau_j",
+        "\\tau",
+        "\\rho_j^d"
+      ],
+      "depends_on": [
+        "def:face-model",
+        "def:compatible-fiber",
+        "def:observed-slices",
+        "def:recovery-map",
+        "ass:consistency",
+        "ass:no-anticipation",
+        "ass:two-types",
+        "ass:type-overlap",
+        "ass:cohort-overlap",
+        "ass:markov-paths",
+        "ass:absorbing-exit",
+        "ass:no-date-one-absorption",
+        "ass:common-date-two-transition",
+        "ass:common-first-post-untreated-transition",
+        "ass:four-slice-rank",
+        "ass:simple-cycle-spectrum"
+      ],
+      "status": "to-prove",
+      "justification": "This is the theorem-level kernel: it converts four observable active minors and stochastic normalization into latent path and ATT recovery on a structurally singular support face.",
+      "gap": "Ahn and Kasahara, Proposition 14 and Appendix A.4, and Higgins and Jochmans, Theorem 1, recover latent Markov laws through full-rank spectral factorizations, but their stated conditions do not cover a state that is absorbing for every type; the present claim proves fiberwise recovery on that excluded face.",
+      "consumer": "Rao and Risch's incumbent-firm panel can use low- and high-productivity active states plus exit to distinguish offsetting type-specific exit responses hidden by a nearly flat aggregate exit effect."
+    },
+    {
+      "id": "prop:exact-boundary-witness",
+      "kind": "proposition",
+      "statement": "The exact law \\(\\omega^\\star\\) belongs to \\(\\mathcal M_{\\mathrm{face}}\\), has \\(K^0=K^1=\\begin{psmallmatrix}29/5&-12/5\\\\8/5&1/5\\end{psmallmatrix}\\) with ordered spectrum \\((5,1)\\), and satisfies \\(\\tau_1=(1/25,0,-1/25)\\), \\(\\tau_2=(-1/40,-1/40,1/20)\\), and \\(\\tau=(3/400,-1/80,1/200)\\). By contrast, \\(P^A\\) and \\(P^B\\) induce the same observed five-date law, active slices, and cycle product while their type shares are \\((3/5,2/5)\\) and \\((2/5,3/5)\\), respectively, and their type-specific exit ATT pairs are \\((-2/75,1/20)\\) and \\((-1/25,1/30)\\). Hence deleting \\(\\text{ass:no-date-one-absorption}\\) destroys identification of type masses and conditional type effects, although this pair leaves the aggregate exit ATT equal to \\(1/250\\).",
+      "free_symbols": [
+        "\\omega^\\star",
+        "\\mathcal M_{\\mathrm{face}}",
+        "K^d",
+        "\\tau_j",
+        "\\tau",
+        "P^{A}",
+        "P^{B}"
+      ],
+      "depends_on": [
+        "def:exact-witness",
+        "def:outside-face-pair",
+        "def:face-model",
+        "def:observed-slices",
+        "def:recovery-map",
+        "ass:absorbing-exit",
+        "ass:no-date-one-absorption"
+      ],
+      "status": "to-prove",
+      "justification": "The witness establishes nonvacuity, checks every normalization exactly, and identifies the precise role of the initial support face for the conditional targets.",
+      "gap": "Existing absorbing-outcome DiD results do not provide a two-type multi-state observational-equivalence calculation, and generic mixture results do not isolate the initial-absorber allocation that breaks conditional ATT recovery.",
+      "consumer": "Applied researchers can treat baseline exit as a falsifiable support diagnostic and avoid interpreting conditional latent-type effects when baseline absorbers are present."
+    },
+    {
+      "id": "thm:analytic-gradient",
+      "kind": "theorem",
+      "statement": "The map \\(\\Phi\\) extends real analytically to an open neighborhood of every regular \\(p\\) satisfying the identification assumptions. In the saturated finite-multinomial model on the declared support stratum, \\(G_p(s)=J_{\\Phi}(p)(e_s-p)\\) is the canonical gradient of \\(\\Phi(p)\\), \\(\\Sigma(p)\\) is its information bound, and the empirical-cell plug-in attains this bound at every relative-interior law on that stratum.",
+      "free_symbols": [
+        "\\Phi",
+        "p",
+        "G_p",
+        "J_{\\Phi}",
+        "\\Sigma(p)",
+        "\\widehat p"
+      ],
+      "depends_on": [
+        "def:recovery-map",
+        "def:guarded-estimator",
+        "ass:iid-panels",
+        "ass:type-overlap",
+        "ass:cohort-overlap",
+        "ass:four-slice-rank",
+        "ass:simple-cycle-spectrum"
+      ],
+      "status": "to-prove",
+      "justification": "Analyticity makes the influence function explicit and turns a constructive identification formula into a regular finite-multinomial estimator.",
+      "gap": "Bonhomme, Jochmans, and Robin differentiate simultaneous-diagonalization estimators for nonexchangeable latent models, while Ahn and Kasahara use interior likelihood asymptotics; neither gives the canonical gradient of this row-sum and pseudoinverse map on an absorbing support stratum.",
+      "consumer": "Implementers obtain a closed-form delta-method variance that includes estimated type masses and avoids repeated nonconvex likelihood optimization."
+    },
+    {
+      "id": "thm:uniform-bands",
+      "kind": "theorem",
+      "statement": "Uniformly over \\(P\\in\\mathcal P_{\\kappa}\\), \\(P(\\mathcal E_{\\kappa})\\to1\\), \\(\\sqrt n\\{\\widehat\\theta-\\theta\\}=n^{-1/2}\\sum_{i=1}^nG_p(O_i)+o_P(1)\\), and \\(\\widehat\\Sigma-\\Sigma(p)=o_P(1)\\). Moreover, allowing \\(\\Sigma(p)\\) to be singular while retaining its buffered reported diagonal, \\(\\inf_{P\\in\\mathcal P_{\\kappa}}P(\\theta_\\ell\\in I_{\\ell,n}\\text{ for every }\\ell\\in\\mathcal L)\\to1-\\alpha\\).",
+      "free_symbols": [
+        "P",
+        "\\mathcal P_{\\kappa}",
+        "\\mathcal E_{\\kappa}",
+        "n",
+        "\\widehat\\theta",
+        "\\theta",
+        "G_p",
+        "O",
+        "\\widehat\\Sigma",
+        "\\Sigma(p)",
+        "I_{\\ell,n}",
+        "\\mathcal L",
+        "\\alpha"
+      ],
+      "depends_on": [
+        "def:buffered-class",
+        "def:guarded-estimator",
+        "def:multiplier-band",
+        "thm:analytic-gradient",
+        "ass:iid-panels",
+        "ass:margin-buffer",
+        "ass:variance-buffer"
+      ],
+      "status": "to-prove",
+      "justification": "The coverage theorem integrates data-dependent numerical guards with a singular-correlation Gaussian maximum, the unresolved proof boundary left by pointwise interior theory.",
+      "gap": "Chernozhukov, Chetverikov, and Kato allow arbitrary Gaussian correlation under positive marginal variances, but do not study a guarded rational spectral map; Ahn and Kasahara's weighted-bootstrap intervals do not establish uniform acceptance and coverage on an absorbing face.",
+      "consumer": "Users can report joint bands for all type-specific and aggregate state effects even when adding-up identities make the nine-dimensional covariance singular."
+    },
+    {
+      "id": "oeq:constrained-efficiency",
+      "kind": "openendedquestion",
+      "statement": "Using \\(\\mathfrak H_{\\mathrm{eff}}\\), characterize the efficient influence function and efficiency bound for \\(\\theta\\) in the constrained model \\(\\mathcal M_{\\mathrm{face}}\\) that exploits common untreated kernels, the latent Markov factorization, and date \\(4\\); determine whether a regular estimator attains that bound uniformly on \\(\\mathcal P_{\\kappa}\\), and characterize exactly when its variance is strictly below \\(\\Sigma(p)\\).",
+      "free_symbols": [
+        "\\mathfrak H_{\\mathrm{eff}}",
+        "\\theta",
+        "\\mathcal M_{\\mathrm{face}}",
+        "\\mathcal P_{\\kappa}",
+        "\\Sigma(p)"
+      ],
+      "depends_on": [
+        "def:efficiency-handle",
+        "thm:face-recovery",
+        "thm:analytic-gradient",
+        "ass:common-date-four-untreated-transition"
+      ],
+      "status": "to-prove",
+      "justification": "The saturated gradient deliberately leaves information in the common-kernel restrictions and fifth date unused, so the constrained efficiency problem is genuine rather than a routine restatement.",
+      "gap": "Newey supplies the tangent-space projection principle and Bonhomme, Jochmans, and Robin derive regular spectral-estimator asymptotics, but no adjacent paper characterizes the tangent space or efficient ATT score for this absorbing latent Markov face.",
+      "consumer": "A solution would tell practitioners whether the transparent four-slice estimator pays an avoidable precision cost and would provide the benchmark for efficient likelihood or minimum-distance implementations."
+    }
+  ],
+  "sampling_model": {
+    "design": "Observational two-cohort panel with adoption at date \\(3\\) for \\(D=1\\) and no adoption for \\(D=0\\).",
+    "units": "\\(n\\) independent and identically distributed complete five-date panels \\(O_i\\).",
+    "treatment": "Cohort membership fixes the realized treatment path; no anticipation holds through date \\(2\\).",
+    "overlap": "Both cohorts have positive probability and both latent types have positive mass within each cohort.",
+    "nuisance_estimation": "No nonparametric nuisance is fitted; empirical frequencies on the fixed \\(120\\)-cell support face feed the guarded analytic recovery map."
+  },
+  "estimand_functional": "\\(\\theta=\\Phi(p)=((\\widehat p_{2,1}^1(\\widehat R_1^1-\\widehat R_1^0))^\\top,(\\widehat p_{2,2}^1(\\widehat R_2^1-\\widehat R_2^0))^\\top,(\\sum_{j=1}^2\\widehat\\pi_j^1\\widehat p_{2,j}^1(\\widehat R_j^1-\\widehat R_j^0))^\\top)^\\top\\)",
+  "target_estimand": "\\(\\theta=(\\tau_1^\\top,\\tau_2^\\top,\\tau^\\top)^\\top\\)",
+  "bibliography": [
+    {
+      "key": "AhnKasahara2026TransitionIndependence",
+      "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+    },
+    {
+      "key": "HigginsJochmans2023MixturesDDC",
+      "citation": "Ayden Higgins and Koen Jochmans (2023), ``Identification of Mixtures of Dynamic Discrete Choices,'' Journal of Econometrics 237, 105462, especially Theorem 1 and Sections 2--3."
+    },
+    {
+      "key": "BonhommeJochmansRobin2017Nonexchangeable",
+      "citation": "Stéphane Bonhomme, Koen Jochmans, and Jean-Marc Robin (2017), ``Nonparametric Estimation of Non-exchangeable Latent-Variable Models,'' Journal of Econometrics 201, 237--248."
+    },
+    {
+      "key": "GuptaKumarVassilvitskii2016MarkovMixtures",
+      "citation": "Rishi Gupta, Ravi Kumar, and Sergei Vassilvitskii (2016), ``On Mixtures of Markov Chains,'' Advances in Neural Information Processing Systems 29."
+    },
+    {
+      "key": "DeanerKu2026DurationDiD",
+      "citation": "Ben Deaner and Hyejin Ku (2026), ``Causal Duration Analysis with Diff-in-Diff,'' arXiv:2405.05220, revised May 2026."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2013GaussianBootstrap",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato (2013), ``Gaussian Approximations and Multiplier Bootstrap for Maxima of Sums of High-Dimensional Random Vectors,'' Annals of Statistics 41, 2786--2819."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2015AntiConcentration",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato (2015), ``Comparison and Anti-Concentration Bounds for Maxima of Gaussian Random Vectors,'' Probability Theory and Related Fields 162, 47--70."
+    },
+    {
+      "key": "Newey1990Efficiency",
+      "citation": "Whitney K. Newey (1990), ``Semiparametric Efficiency Bounds,'' Journal of Applied Econometrics 5, 99--135."
+    },
+    {
+      "key": "DuarteEtAl2023AutomatedBounds",
+      "citation": "Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser (2023), ``An Automated Approach to Causal Inference in Discrete Settings,'' Journal of the American Statistical Association."
+    },
+    {
+      "key": "AndrewsCheng2012WeakIdentification",
+      "citation": "Donald W. K. Andrews and Xu Cheng (2012), ``Estimation and Inference with Weak, Semi-Strong, and Strong Identification,'' Econometrica 80, 2153--2211."
+    },
+    {
+      "key": "KasaharaShimotsu2015ComponentTest",
+      "citation": "Hiroyuki Kasahara and Katsumi Shimotsu (2015), ``Testing the Number of Components in Normal Mixture Regression Models,'' Journal of the American Statistical Association 110, 1632--1645."
+    },
+    {
+      "key": "RaoRisch2026MinimumWage",
+      "citation": "Nirupama L. Rao and Max Risch (2026), ``Who's Afraid of the Minimum Wage? Measuring the Impacts on Independent Businesses Using Matched U.S. Tax Returns,'' Quarterly Journal of Economics 141, 373--427."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "AhnKasahara2026TransitionIndependence",
+      "comparator_claim": "Proposition 14 uniquely identifies the finite latent-type Markov parameter under Assumptions RSM, M, and ID from a sufficiently long short panel.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HigginsJochmans2023MixturesDDC",
+      "comparator_claim": "Theorem 1 identifies initial distributions, transition kernels, and type probabilities up to a common permutation from four consecutive observations under Assumptions 1--3.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BonhommeJochmansRobin2017Nonexchangeable",
+      "comparator_claim": "The paper estimates latent conditional moments by simultaneous diagonalization followed by weighted empirical averages and derives regular asymptotics for the estimated weights.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovChetverikovKato2015AntiConcentration",
+      "comparator_claim": "Gaussian comparison and anti-concentration bounds hold for maxima with arbitrary covariance matrices when marginal variances are positive.",
+      "matched_by": "Theorem 4",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Newey1990Efficiency",
+      "comparator_claim": "The efficient influence function is obtained by projecting a pathwise derivative onto the model tangent space.",
+      "matched_by": "Open-ended Question 5",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Four matched active-state slices identify two latent Markov components even when a common absorbing state makes the usual all-state terminal factor singular. Spectral projectors remove eigenvector scaling, full terminal row sums recover exit probabilities, a pseudoinverse transports the second active predecessor factor, and the observable absence of date-‑\\(1\\) exit exhausts each type mass. The resulting analytic cell-probability map identifies type-specific and aggregate first-post state ATTs over the full compatible fiber, yields a saturated finite-multinomial canonical gradient, and supports guarded Gaussian-multiplier bands uniformly over a compact margin class despite singular ATT correlation. An exact rational witness verifies the map, an outside-face pair shows why initial absorbers break conditional type recovery, and constrained-Markov efficiency remains the first-class open question.",
+  "project_justification": {
+    "gap": "Short-panel latent Markov reconstruction uses nonsingular terminal factors and positive transition arrays, while causal transition-independence work inherits those conditions; a common absorbing observed state creates identical terminal rows and structural zeros, and existing pointwise likelihood inference does not cover a data-dependent guarded recovery map on that face.",
+    "niche": "Two active states and one absorbing exit state still leave four invertible active minors whose cycle product carries type signatures, while stochastic row sums and no initial absorption contain normalization information absent from a survival-conditioned reduction.",
+    "fill": "The project supplies an explicit projector, row-sum, and pseudoinverse recovery formula with a full-fiber uniqueness theorem, exact boundary evidence, an analytic saturated-model gradient, and uniform multiplier coverage under observable buffered margins."
+  },
+  "related_work": "Ahn and Kasahara (2026), Proposition 14 and Appendix A.4, provide the closest causal setup and four-slice inverse-cancellation argument, but Assumption ID requires nonsingular terminal factors and strictly positive transitions that exclude a common absorbing row; their writing arc from incoherent categorical trends to transition-based counterfactuals is retained here. Higgins and Jochmans (2023), Theorem 1 and Sections 2--3, establish constructive Markov-mixture recovery and common label alignment; their full-rank factor logic informs the proof, while the present target uses active minors and stochastic row sums on an excluded support face and is not claimed to subsume their theorem. Gupta, Kumar, and Vassilvitskii (2016) reconstruct homogeneous Markov mixtures under a state-count restriction that does not cover two types with only two active states. Bonhomme, Jochmans, and Robin (2017) supply the closest estimator template: differentiate a simultaneous-diagonalization construction and propagate estimated weights into conditional moments. Deaner and Ku (2026) show why absorption calls for transition or hazard restrictions, but address binary aggregate duration effects rather than multi-state latent-type recovery. Chernozhukov, Chetverikov, and Kato (2013, 2015) provide multiplier and anti-concentration tools under arbitrary correlation; the new task is their integration with guard-uniform linearization of the spectral map. Newey (1990) supplies the projection geometry for the open constrained-efficiency question. Rao and Risch (2026) are the interpretation consumer because their linked firm panel separates entry and exit adjustments and could distinguish offsetting exit effects across latent productivity types.",
+  "technical_internal_limitation": "The covariance \\(\\Sigma(p)\\) is the efficiency bound only for the specified off-model continuation \\(\\Phi\\) in the saturated multinomial support-stratum model. It is not asserted to be efficient in the smaller compatible Markov model, which can use common kernels and date \\(4\\). The initial-absorption pair proves failure of type-mass and conditional-type-effect identification, not failure of aggregate ATT identification. The exact multiplier quantile is the mathematical object; a fixed finite number of Monte Carlo draws requires an additional approximation analysis.",
+  "honest_scope": "The proposal proves sufficient recovery on a declared regular absorbing face, not a necessary-and-sufficient identification frontier. In the special case of no exit transitions, all exit ATT coordinates reduce to zero and the active-state formulas collapse to ordinary two-state latent Markov recovery; with one latent type, the projector step disappears and the ATT reduces to the transition-independence plug-in. The unresolved content is constrained-model efficiency, while weak eigengaps, unknown type count, initial-absorption sharp bounds, and approximate common transitions remain separate angles.",
+  "seeds": [
+    "absorbing-face full-fiber recovery",
+    "guarded singular-correlation multiplier bands",
+    "initial-absorption sharp ATT bounds",
+    "joint weak-margin localization frontier",
+    "transition-factorization sensitivity region",
+    "uniform ATT inference across the type-count boundary",
+    "unlabeled ATT law at spectral collision",
+    "constrained Markov efficiency bound",
+    "fifth-date overidentification test"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:face-recovery",
+      "title": "Absorbing-face full-fiber recovery",
+      "anchor": "AhnKasahara2026TransitionIndependence",
+      "anchor_location": "Proposition 14, Assumption ID(a)--(b), and Appendix A.4 equations (33)--(37); Introduction contributions 1--3 and final empirical application section were read.",
+      "opportunity": "Replace the anchor's invertible all-state terminal factors by four active minors, projector normalization, full terminal row sums, and a support-face mass equation.",
+      "first_changed_proof_step": "After the four-slice cancellation, normalize projector columns with \\(m_a\\) and use all three terminal columns before transporting \\(B_b\\) with a full-row-rank pseudoinverse.",
+      "motif": "none",
+      "target_tier": "field",
+      "red_team": "Immediate from Ahn--Kasahara after deleting the absorbing state.",
+      "rebuttal": "Deletion produces substochastic active rows, while conditioning on future survival changes type weights and cohort transitions; the row-sum and no-initial-absorption normalization is a new proof step.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 24
+      },
+      "rank": 1,
+      "decision": "selected",
+      "anti_pattern_check": "The kernel is a computable recovery theorem over the full compatible fiber, not identification by an opaque functional or a single witness."
+    },
+    {
+      "id": "seed:uniform-bands",
+      "title": "Guarded singular-correlation multiplier bands",
+      "anchor": "AhnKasahara2026TransitionIndependence",
+      "anchor_location": "Section 4 equations (20)--(25) and Appendix C weighted bootstrap and uniform confidence intervals; Introduction and final applications were read.",
+      "opportunity": "Prove uniform acceptance, linearization, covariance consistency, and simultaneous coverage for a rational spectral plug-in on a structural-zero face.",
+      "first_changed_proof_step": "Establish a common analytic neighborhood from buffered inverse and normalization margins before applying Gaussian comparison at singular correlation limits.",
+      "motif": "M11(c)",
+      "target_tier": "field",
+      "red_team": "A finite-dimensional delta method plus Chernozhukov--Chetverikov--Kato makes this automatic.",
+      "rebuttal": "The data-dependent guard, uniform Taylor neighborhood, label stability, and positive-diagonal but singular covariance must be integrated; none is delivered by the anchor's pointwise interior MLE argument.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "rank": 2,
+      "decision": "survives and folded into selected package",
+      "anti_pattern_check": "This is an explicit limit-law and coverage result for a named estimator, not a bare inference add-on."
+    },
+    {
+      "id": "seed:constrained-efficiency",
+      "title": "Constrained Markov efficiency bound",
+      "anchor": "AhnKasahara2026TransitionIndependence",
+      "anchor_location": "Section 4 likelihood estimator and Appendix C; the paper's identification proof and motivation were also read.",
+      "opportunity": "Project the saturated recovery gradient onto the tangent space generated by common kernels, latent Markov factorization, and fifth-date restrictions.",
+      "first_changed_proof_step": "Differentiate the polynomial image defining the compatible Markov law and characterize the closure of its score range before projecting \\(G_p\\).",
+      "motif": "M11(b)",
+      "target_tier": "field",
+      "red_team": "Finite-dimensional parametric likelihood efficiency is routine once the model is identified.",
+      "rebuttal": "Structural zeros, latent-label quotienting, and redundant polynomial restrictions make the tangent rank law-dependent; the presolve establishes only saturated-model efficiency.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 20
+      },
+      "rank": 3,
+      "decision": "survives as open-ended question",
+      "anti_pattern_check": "The efficiency bound and attaining estimator are the named focal objects; no oracle nuisance assumption supplies them."
+    },
+    {
+      "id": "seed:initial-absorption-bounds",
+      "title": "Sharp ATT bounds with initial absorbers",
+      "anchor": "DeanerKu2026DurationDiD",
+      "anchor_location": "Introduction discussion of absorbing binary outcomes and Section 2.1 identification under common dynamics and proportional hazards; conclusion and application discussion were read.",
+      "opportunity": "Optimize each ATT coordinate over every stochastic two-type Markov factorization reproducing the five-date law when baseline exit can be allocated across types.",
+      "first_changed_proof_step": "Replace the linear hazard recursion by a polynomial compatible-fiber program and certify endpoint attainment by valid component laws.",
+      "motif": "M10+M8",
+      "target_tier": "flagship",
+      "red_team": "Duarte et al.'s generic polynomial program already gives the bounds.",
+      "rebuttal": "A generic solver gives certified numerical extrema, not the requested analytic endpoints, collapse conditions, or bound-specific inference for this nonlinear Markov fiber.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "rank": 4,
+      "decision": "deferred",
+      "anti_pattern_check": "The intended deliverable is endpoint-attaining sharp bounds and an inference rung, not an unspecified infimum over latent laws."
+    },
+    {
+      "id": "seed:weak-margin-frontier",
+      "title": "Joint weak-margin localization frontier",
+      "anchor": "AndrewsCheng2012WeakIdentification",
+      "anchor_location": "Main theorem program for weak, semi-strong, and strong drifting sequences, stochastic quadratic expansions, and identification-robust confidence sets; Introduction and applications were read.",
+      "opportunity": "Derive rates and limit experiments as the eigengap, slice singular values, and row-sum normalizers shrink jointly.",
+      "first_changed_proof_step": "Expand the nonlinear matched-slice equations under three separate shrinking margins rather than a scalar extremum-identification index.",
+      "motif": "M11(a)+M7",
+      "target_tier": "flagship",
+      "red_team": "Andrews--Cheng already covers any extremum estimator with weak identification.",
+      "rebuttal": "Its generic theory does not supply the local experiment, attainable rate, or distinction between aggregate and labeled type effects for this multi-margin spectral map.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 19
+      },
+      "rank": 5,
+      "decision": "deferred",
+      "anti_pattern_check": "The proposal would need both attainable regimes and localization lower behavior, not merely assume an eigengap sequence."
+    },
+    {
+      "id": "seed:sensitivity-region",
+      "title": "Transition-factorization sensitivity region",
+      "anchor": "AhnKasahara2026TransitionIndependence",
+      "anchor_location": "Introduction and related-literature discussion of anticipation and differential transition dynamics, together with the exact identification equations in Appendix A.4.",
+      "opportunity": "Index observable violations of common transition factorization by a radius and derive sharp ATT regions and the first sign-reversal radius.",
+      "first_changed_proof_step": "Perturb the simultaneous factorization equations and prove global endpoint attainment rather than apply a linear mean-trend bias formula.",
+      "motif": "M3+M10+M8",
+      "target_tier": "flagship",
+      "red_team": "This is Rambachan--Roth with transition probabilities substituted for trends.",
+      "rebuttal": "The latent stochastic factorization is nonlinear and its perturbation can amplify through eigengaps and normalizers, so neither endpoints nor the critical radius follow from linear trend sensitivity.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 19
+      },
+      "rank": 6,
+      "decision": "deferred",
+      "anti_pattern_check": "A credible version must produce explicit endpoints and a named critical radius; qualitative robustness would be rejected."
+    },
+    {
+      "id": "seed:type-count-boundary",
+      "title": "Uniform ATT inference across the type-count boundary",
+      "anchor": "KasaharaShimotsu2015ComponentTest",
+      "anchor_location": "Main modified EM test theorem, reparameterization near homogeneity, and simulated nonstandard null maximum; Introduction and concluding discussion were read.",
+      "opportunity": "Test one versus two absorbing Markov types and invert the test for aggregate ATT confidence sets with oracle width away from the boundary.",
+      "first_changed_proof_step": "Derive the first informative likelihood expansion for multinomial path probabilities under common absorbing zeros.",
+      "motif": "M11(c)",
+      "target_tier": "flagship",
+      "red_team": "Kasahara--Shimotsu's modified EM test transfers directly to multinomial panels.",
+      "rebuttal": "Their normal-mixture score expansion does not transfer across structural-zero constraints or propagate component selection into uniform causal-ATT coverage.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "rank": 7,
+      "decision": "deferred",
+      "anti_pattern_check": "A selection-consistent estimator alone is insufficient; the kernel requires uniform confidence sets and a separation scale."
+    },
+    {
+      "id": "seed:collision-quotient-law",
+      "title": "Unlabeled ATT law at spectral collision",
+      "anchor": "AhnKasahara2026TransitionIndependence",
+      "anchor_location": "Assumption ID(a)(ii) distinct eigenvalues and Appendix A.4 eigenvector recovery; Introduction motivation for latent-type effects and final applications were read.",
+      "opportunity": "Identify or refute identification of the mixing measure \\(\\sum_j\\pi_j^1\\delta_{\\tau_j}\\) at repeated cycle-product eigenvalues.",
+      "first_changed_proof_step": "Construct basis-invariant moments of the ATT measure from matched slices without individual spectral projectors.",
+      "motif": "M6+M11(a)",
+      "target_tier": "field",
+      "red_team": "Discarding labels automatically resolves spectral collision.",
+      "rebuttal": "ATT vectors compose projectors with row sums, pseudoinverses, and cohort-specific transitions, so invariance of the quotient law is not automatic and may fail observationally.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 3,
+        "total": 17
+      },
+      "rank": 8,
+      "decision": "deferred",
+      "anti_pattern_check": "The target is the unlabeled mixing law with an identification or impossibility frontier, not arbitrarily relabeled type coefficients."
+    },
+    {
+      "id": "seed:fifth-date-test",
+      "title": "Fifth-date overidentification test",
+      "anchor": "AhnKasahara2026TransitionIndependence",
+      "anchor_location": "Section 3 latent Markov likelihood, Proposition 14, and the pre-treatment transition-independence diagnostics; Introduction and empirical applications were read.",
+      "opportunity": "Use date \\(4\\), which point recovery does not need, to test the common-kernel and latent Markov restrictions while retaining valid ATT inference after local misspecification.",
+      "first_changed_proof_step": "Project unused fifth-date cell residuals off the derivative span of the four-slice recovery equations and derive their boundary-aware quadratic form.",
+      "motif": "M11(c)",
+      "target_tier": "subfield",
+      "red_team": "This is an ordinary likelihood-ratio specification test in a finite multinomial model.",
+      "rebuttal": "The absorbing face and latent labels produce rank-dependent tangent cones, though the resulting contribution is narrower than the recovery theorem.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 16
+      },
+      "rank": 9,
+      "decision": "deferred",
+      "anti_pattern_check": "The date-‑\\(4\\) residual and its tangent-space projection are named focal objects; a generic goodness-of-fit test would not suffice."
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "seed:face-recovery",
+      "threads": [
+        "Ahn and Kasahara (2026), Proposition 14 and Appendix A.4: four-slice inverse cancellation and eigenvector normalization, with Assumption ID(a)--(b) excluding the common absorbing row.",
+        "Higgins and Jochmans (2023), Theorem 1 and Sections 2--3: full Markov-mixture recovery and common label transport from four observations, but full component ranks fail when one observed state is absorbing for every type.",
+        "Gupta, Kumar, and Vassilvitskii (2016): trail-based spectral reconstruction requires a state-count condition \\(r\\geq2q\\), which fails with two active states and two types.",
+        "Deaner and Ku (2026), Section 2.1: absorbing binary outcomes are handled by aggregate hazard restrictions, not multi-state latent-type reconstruction."
+      ],
+      "occupancy_check": "No opened theorem recovers type masses, component paths, and type-specific causal effects from four active minors on a common absorbing support face. The closest papers supply cancellation and label-alignment ingredients but not the changed normalization proof.",
+      "result": "survives"
+    },
+    {
+      "candidate": "seed:uniform-bands",
+      "threads": [
+        "Ahn and Kasahara (2026), Section 4 and Appendix C: pointwise interior likelihood estimation and weighted-bootstrap simultaneous intervals.",
+        "Bonhomme, Jochmans, and Robin (2017), Appendix asymptotics: derivatives of whitening and joint diagonalization feed regular weighted-moment estimators.",
+        "Chernozhukov, Chetverikov, and Kato (2013): Gaussian and multiplier approximation for maxima of sums.",
+        "Chernozhukov, Chetverikov, and Kato (2015), Theorems 2--3: covariance comparison and anti-concentration permit arbitrary correlation with positive coordinate variances."
+      ],
+      "occupancy_check": "Singular Gaussian correlation is settled as a generic probability ingredient, so it is not claimed as novelty. The unoccupied target is the guard-uniform analytic expansion and its integration with multiplier quantiles for the absorbing-face recovery map.",
+      "result": "survives and joins the selected package"
+    },
+    {
+      "candidate": "seed:constrained-efficiency",
+      "threads": [
+        "Newey (1990), especially the tangent-set projection results: efficient influence functions arise by projecting derivatives onto model score spaces.",
+        "Bonhomme, Jochmans, and Robin (2017): regular asymptotics for diagonalization weights, without an efficiency bound for an absorbing Markov restriction set.",
+        "Ahn and Kasahara (2026), Section 4: full-information likelihood estimation, without a theorem comparing its efficiency to the four-slice plug-in on this face.",
+        "Higgins and Jochmans (2023), Appendix B: constructive recovery motivates estimation but does not calculate causal-functional efficiency."
+      ],
+      "occupancy_check": "The saturated finite-multinomial gradient is routine after analytic recovery, but no closer paper characterizes the law-dependent tangent space created jointly by structural zeros, common kernels, latent Markov factorization, and the unused fifth date.",
+      "result": "survives only as an open-ended question"
+    }
+  ],
+  "novelty_justification": "The theorem-level delta is not spectral cancellation itself. It is recovery on a support face excluded by the closest all-state rank and positivity conditions: active spectral projectors are scaled by predecessor masses, full terminal row sums restore exit probabilities, a full-row-rank pseudoinverse transports the second predecessor factor, and absence of date-1 absorption exhausts each type mass. The inference delta is uniform guard acceptance and multiplier coverage for this analytic map under singular ATT correlation. The exact witness and outside-face observational-equivalence pair certify nonvacuity and the boundary of conditional type-effect recovery.",
+  "message": "Authored and verified the typed proposal core. The structural proposal gate and LaTeX-control checks pass; the exact 120-cell witness reproduces the stated ATTs, all coordinate variances are positive, the covariance has rank five, and multiplier-max quantiles remain stable along ridge sequences approaching the singular covariance.",
+  "literature_checklist": [
+    {
+      "author": "Young Ahn and Hiroyuki Kasahara",
+      "year": 2026,
+      "venue": "arXiv Econometrics",
+      "bibkey": "AhnKasahara2026TransitionIndependence",
+      "one_line": "Proposition 14 and Appendix A.4 identify latent-type Markov laws under terminal-rank, positivity, and distinct-spectrum conditions excluding a common absorbing row.",
+      "relevant_to": "thm:face-recovery"
+    },
+    {
+      "author": "Ayden Higgins and Koen Jochmans",
+      "year": 2023,
+      "venue": "Journal of Econometrics",
+      "bibkey": "HigginsJochmans2023MixturesDDC",
+      "one_line": "Theorem 1 reconstructs finite Markov mixtures from four observations using full-rank component factors and common label transport.",
+      "relevant_to": "thm:face-recovery"
+    },
+    {
+      "author": "Stéphane Bonhomme, Koen Jochmans, and Jean-Marc Robin",
+      "year": 2017,
+      "venue": "Journal of Econometrics",
+      "bibkey": "BonhommeJochmansRobin2017Nonexchangeable",
+      "one_line": "The paper differentiates simultaneous-diagonalization weights and propagates them into regular weighted empirical moments.",
+      "relevant_to": "thm:analytic-gradient"
+    },
+    {
+      "author": "Rishi Gupta, Ravi Kumar, and Sergei Vassilvitskii",
+      "year": 2016,
+      "venue": "NeurIPS",
+      "bibkey": "GuptaKumarVassilvitskii2016MarkovMixtures",
+      "one_line": "Spectral trail reconstruction imposes a state-count restriction failing with two active states and two latent chains.",
+      "relevant_to": "thm:face-recovery"
+    },
+    {
+      "author": "Ben Deaner and Hyejin Ku",
+      "year": 2026,
+      "venue": "arXiv Econometrics",
+      "bibkey": "DeanerKu2026DurationDiD",
+      "one_line": "The paper identifies aggregate effects for binary absorbing outcomes rather than latent multi-state component laws.",
+      "relevant_to": "prop:exact-boundary-witness"
+    },
+    {
+      "author": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato",
+      "year": 2013,
+      "venue": "Annals of Statistics",
+      "bibkey": "ChernozhukovChetverikovKato2013GaussianBootstrap",
+      "one_line": "Gaussian and multiplier approximations control maxima of sums without weak-correlation restrictions.",
+      "relevant_to": "thm:uniform-bands"
+    },
+    {
+      "author": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato",
+      "year": 2015,
+      "venue": "Probability Theory and Related Fields",
+      "bibkey": "ChernozhukovChetverikovKato2015AntiConcentration",
+      "one_line": "Gaussian comparison and anti-concentration allow arbitrary covariance matrices with positive marginal variances.",
+      "relevant_to": "thm:uniform-bands"
+    },
+    {
+      "author": "Whitney K. Newey",
+      "year": 1990,
+      "venue": "Journal of Applied Econometrics",
+      "bibkey": "Newey1990Efficiency",
+      "one_line": "Tangent-space projection characterizes semiparametric efficient influence functions and bounds.",
+      "relevant_to": "oeq:constrained-efficiency"
+    },
+    {
+      "author": "Nirupama L. Rao and Max Risch",
+      "year": 2026,
+      "venue": "Quarterly Journal of Economics",
+      "bibkey": "RaoRisch2026MinimumWage",
+      "one_line": "The linked firm panel separates entry and exit responses and motivates latent productivity-state transition effects.",
+      "relevant_to": "thm:face-recovery"
+    }
+  ],
+  "_pre_d0_cursor": {
+    "cursor_version": 1,
+    "topic": "Four-slice ATT recovery on an absorbing Markov face. Observe iid five-date panels on states {a,b,e}, e absorbing, with treatment adoption at date 3, two known latent types, type-conditional first-order Markov potential paths, no anticipation, cohort/type overlap, and common type-specific untreated transitions. On the declared face with no date-1 absorption, four nonsingular matched active-state slices, simple cycle-product spectrum, nonzero stochastic normalizations, separated common untreated cross-ratios, and buffered variance margins, prove that spectral projectors and row-sum normalization recover type masses, the component path law through date 3, and type-specific plus aggregate first-post state ATTs over the full compatible fiber. Derive guarded empirical-cell plug-in, the saturated finite-multinomial canonical gradient, and uniform Gaussian-multiplier bands. Use the exact H1,H2,Q1,Q2,V1,V2 witness with K=[[29/5,-12/5],[8/5,1/5]], type exit ATTs (-1/25,1/20), aggregate 1/200, and the initial-absorption counterexample. Distinguish Ahn–Kasahara, Markov-mixture reconstruction, Deaner–Ku, and restricted-HMM results; Rao–Risch is the interpretation consumer. PRESOLVE EVIDENCE REQUIRING VERIFICATION: Four matched slices yield K=B_a diag(rho_1,rho_2) B_a^-1; projector normalization B_a=[P_1m_a,P_2m_a], terminal row sums, full-row-rank pseudoinverses, and the no-initial-absorption condition then recover all promised factors. Exact enumeration reproduces state-vector ATTs (1/25,0,-1/25) and (-1/40,-1/40,1/20), aggregate (3/400,-1/80,1/200), while an outside-face construction preserves active slices but changes type effects. Differential recurrences and compact-margin Taylor bounds were derived, with numerical derivatives agreeing to relative error 3.7e-10. Checks covered scaling, equal weights, time variation, pseudoinverses, mass normalization, cohort labels, singular boundaries, support deletion, and neighboring literature; no collision or identification failure survived. UNRESOLVED BOTTLENECK: Verify Gaussian-max quantile continuity uniformly over the compact margin class, including singular correlation limits, and combine it with the buffered empirical guard; standard bounded triangular-array CLT and finite-multinomial information steps remain explicit compressions. EARLY KILL TEST: Run the draft's exact witness verifier, differentiate its recovery map on the 120-cell support face, and test positive coordinate variances plus singular-covariance max-quantile continuity; failure of rational ATT recovery or verbatim coverage by an existing theorem stops the run. STRONGEST-FORM DRAFT (unverified, gaps listed inside): <repo-root>/internal/presolve_drafts/panel_absorbing_four_slice_att_recovery.md.",
+    "novelty_target": "field",
+    "qid": "panel_absorbing_four_slice_att_recovery",
+    "specialization": "v1",
+    "angle": 0,
+    "version": 1,
+    "mode": "cold-start"
+  }
+}

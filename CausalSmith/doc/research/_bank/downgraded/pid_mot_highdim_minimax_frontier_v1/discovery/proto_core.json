@@ -1,0 +1,2091 @@
+{
+  "qid": "pid_mot_highdim_minimax_frontier",
+  "specialization": "v1",
+  "cluster": "partialid",
+  "symbols": [
+    {
+      "name": "d",
+      "type": "fixed integer",
+      "space": "\\(\\{5,6,\\ldots\\}\\)",
+      "def": "Dimension of each vector potential outcome."
+    },
+    {
+      "name": "N",
+      "type": "positive integer",
+      "def": "Total sample size and triangular-array index."
+    },
+    {
+      "name": "K",
+      "type": "integer-valued sequence",
+      "space": "\\(\\{3,\\ldots,N\\}\\)",
+      "def": "\\(K=K_N\\) is the number of treatment arms.",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "integer-valued sequence",
+      "space": "\\(\\{2,\\ldots,N\\}\\)",
+      "def": "\\(m=m_N\\) is the common number of observations per arm.",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "IK",
+      "type": "finite index set",
+      "def": "\\(\\mathcal I_K=\\{1,\\ldots,K\\}\\).",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "Bd",
+      "type": "compact set",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\mathbb B_d=\\{z\\in\\mathbb R^d:\\|z\\|_2\\le 1\\}\\), the Euclidean unit ball.",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "Pk",
+      "type": "indexed Borel probability law",
+      "space": "\\(\\mathcal P(\\mathbb B_d)\\)",
+      "def": "\\(P_k\\) is the marginal law in arm \\(k\\in\\mathcal I_K\\).",
+      "refs": [
+        "IK",
+        "Bd"
+      ]
+    },
+    {
+      "name": "Pvec",
+      "type": "tuple of probability laws",
+      "space": "\\(\\mathcal P(\\mathbb B_d)^K\\)",
+      "def": "\\(\\mathbf P=(P_1,\\ldots,P_K)\\).",
+      "refs": [
+        "Pk",
+        "K",
+        "Bd"
+      ]
+    },
+    {
+      "name": "Xki",
+      "type": "triangular array of random vectors",
+      "space": "\\(\\mathbb B_d\\)",
+      "def": "\\(X_{ki}\\) denotes observation \\(i\\in\\{1,\\ldots,m\\}\\) from arm \\(k\\in\\mathcal I_K\\).",
+      "refs": [
+        "Bd",
+        "m",
+        "IK"
+      ]
+    },
+    {
+      "name": "Gamma",
+      "type": "coupling correspondence",
+      "sig": "\\(\\Gamma:\\mathcal P(\\mathbb B_d)^K\\rightrightarrows\\mathcal P(\\mathbb B_d^K)\\)",
+      "def": "\\(\\Gamma(\\mathbf P)\\) is the set of all \\(K\\)-couplings with marginals \\(P_1,\\ldots,P_K\\).",
+      "refs": [
+        "Pvec",
+        "Bd",
+        "K",
+        "Pk"
+      ]
+    },
+    {
+      "name": "zk",
+      "type": "indexed vector",
+      "space": "\\(\\mathbb B_d\\)",
+      "def": "\\(z_k\\) is coordinate \\(k\\) of a generic tuple \\((z_1,\\ldots,z_K)\\in\\mathbb B_d^K\\).",
+      "refs": [
+        "IK",
+        "Bd",
+        "K"
+      ]
+    },
+    {
+      "name": "cK",
+      "type": "cost function",
+      "sig": "\\(c_K:\\mathbb B_d^K\\to[0,1]\\)",
+      "def": "\\(c_K(z_1,\\ldots,z_K)=K^{-2}\\|\\sum_{k=1}^K z_k\\|_2^2\\).",
+      "refs": [
+        "K",
+        "Bd",
+        "zk"
+      ]
+    },
+    {
+      "name": "fdual",
+      "type": "indexed real-valued function",
+      "sig": "\\(f_k:\\mathbb B_d\\to\\mathbb R\\)",
+      "def": "\\(f_k\\) is coordinate \\(k\\) of a multi-margin Kantorovich dual tuple.",
+      "refs": [
+        "IK",
+        "Bd"
+      ]
+    },
+    {
+      "name": "Fdual",
+      "type": "class of function tuples",
+      "def": "\\(\\mathcal F_{K,d}^{\\mathrm{joint}}\\), the normalized jointly \\(c_K\\)-conjugate class defined by \\(\\mathrm{def:joint-dual-class}\\).",
+      "ref": "def:joint-dual-class",
+      "refs": [
+        "K",
+        "d",
+        "cK",
+        "fdual"
+      ]
+    },
+    {
+      "name": "muk",
+      "type": "indexed vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\mu_k=\\int z\\,dP_k(z)\\).",
+      "refs": [
+        "d",
+        "Pk"
+      ]
+    },
+    {
+      "name": "mubar",
+      "type": "vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\bar\\mu=K^{-1}\\sum_{k=1}^K\\mu_k\\).",
+      "refs": [
+        "d",
+        "K",
+        "muk"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "partial-identification endpoint",
+      "space": "\\([0,1]\\)",
+      "def": "\\(L(\\mathbf P)=\\inf_{\\gamma\\in\\Gamma(\\mathbf P)}\\int c_K(z_1,\\ldots,z_K)\\,d\\gamma\\).",
+      "refs": [
+        "Pvec",
+        "Gamma",
+        "cK",
+        "zk"
+      ]
+    },
+    {
+      "name": "V",
+      "type": "nonnegative scalar functional",
+      "def": "\\(V(\\mathbf P)=K^2\\{L(\\mathbf P)-\\|\\bar\\mu\\|_2^2\\}\\).",
+      "refs": [
+        "Pvec",
+        "K",
+        "L",
+        "mubar"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "positive integer",
+      "def": "\\(r=\\min\\{K,d\\}\\).",
+      "refs": [
+        "K",
+        "d"
+      ]
+    },
+    {
+      "name": "gammastar",
+      "type": "optimal coupling",
+      "space": "\\(\\Gamma(\\mathbf P)\\)",
+      "def": "\\(\\gamma^{\\star}\\in\\arg\\min_{\\gamma\\in\\Gamma(\\mathbf P)}\\int c_K\\,d\\gamma\\).",
+      "refs": [
+        "Gamma",
+        "Pvec",
+        "cK"
+      ]
+    },
+    {
+      "name": "Phatk",
+      "type": "indexed empirical probability law",
+      "def": "\\(\\widehat P_k=m^{-1}\\sum_{i=1}^m\\delta_{X_{ki}}\\).",
+      "refs": [
+        "m",
+        "Xki",
+        "Pk"
+      ]
+    },
+    {
+      "name": "Phat",
+      "type": "tuple of empirical probability laws",
+      "def": "\\(\\widehat{\\mathbf P}=(\\widehat P_1,\\ldots,\\widehat P_K)\\).",
+      "refs": [
+        "Phatk",
+        "K"
+      ]
+    },
+    {
+      "name": "Lhat",
+      "type": "empirical multi-marginal transport statistic",
+      "def": "\\(\\widehat L=L(\\widehat{\\mathbf P})\\).",
+      "refs": [
+        "L",
+        "Phat"
+      ]
+    },
+    {
+      "name": "Xbar",
+      "type": "sample-average vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\bar X=N^{-1}\\sum_{k=1}^K\\sum_{i=1}^mX_{ki}\\).",
+      "refs": [
+        "d",
+        "N",
+        "K",
+        "m",
+        "Xki"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "fixed scalar",
+      "space": "\\((0,1/4)\\)",
+      "def": "One-sided noncoverage level."
+    },
+    {
+      "name": "T",
+      "type": "measurable estimator",
+      "def": "\\(T=T((X_{ki})_{k,i})\\) is any real-valued statistic.",
+      "refs": [
+        "Xki"
+      ]
+    },
+    {
+      "name": "BN",
+      "type": "measurable lower confidence bound",
+      "def": "\\(B_N=B_N((X_{ki})_{k,i})\\) is any real-valued statistic intended to lie below \\(L(\\mathbf P)\\).",
+      "refs": [
+        "N",
+        "Xki",
+        "L",
+        "Pvec"
+      ]
+    },
+    {
+      "name": "Rdk",
+      "type": "minimax absolute-error risk",
+      "def": "\\(R_d(N,K)=\\inf_T\\sup_{\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K}\\mathbb E_{\\mathbf P}|T-L(\\mathbf P)|\\).",
+      "refs": [
+        "d",
+        "N",
+        "K",
+        "T",
+        "Pvec",
+        "Bd",
+        "L"
+      ]
+    },
+    {
+      "name": "Halpha",
+      "type": "class of honest lower confidence bounds",
+      "def": "\\(\\mathcal H_\\alpha=\\{B_N:\\inf_{\\mathbf P}\\Pr_{\\mathbf P}(B_N\\le L(\\mathbf P))\\ge1-\\alpha\\}\\).",
+      "refs": [
+        "alpha",
+        "BN",
+        "Pvec",
+        "L"
+      ]
+    },
+    {
+      "name": "Edak",
+      "type": "minimax expected excess length",
+      "def": "\\(E_{d,\\alpha}(N,K)=\\inf_{B_N\\in\\mathcal H_\\alpha}\\sup_{\\mathbf P}\\mathbb E_{\\mathbf P}[(L(\\mathbf P)-B_N)_+]\\).",
+      "refs": [
+        "d",
+        "alpha",
+        "N",
+        "K",
+        "BN",
+        "Halpha",
+        "Pvec",
+        "L"
+      ]
+    },
+    {
+      "name": "Bmean",
+      "type": "explicit lower confidence bound",
+      "def": "\\(B_N^{\\mathrm{mean}}=(\\max\\{0,\\|\\bar X\\|_2-(\\alpha N)^{-1/2}\\})^2\\).",
+      "refs": [
+        "BN",
+        "Xbar",
+        "alpha",
+        "N"
+      ]
+    },
+    {
+      "name": "Hd",
+      "type": "hypercube probability law",
+      "space": "\\(\\mathcal P(\\mathbb B_d)\\)",
+      "def": "\\(H_d\\) is uniform on \\(\\{(-1)^{b_1},\\ldots,(-1)^{b_d}:b_j\\in\\{0,1\\}\\}/\\sqrt d\\).",
+      "refs": [
+        "d",
+        "Bd"
+      ]
+    },
+    {
+      "name": "Phyp",
+      "type": "tuple of probability laws",
+      "def": "\\(\\mathbf P^{\\mathrm{hyp}}=(H_d,\\ldots,H_d)\\) with \\(K\\) margins.",
+      "refs": [
+        "Hd",
+        "K"
+      ]
+    },
+    {
+      "name": "atuple",
+      "type": "tuple of vectors",
+      "space": "\\((2\\mathbb B_d)^K\\)",
+      "def": "\\(a=(a_1,\\ldots,a_K)\\) with \\(\\|a_k\\|_2\\le2\\).",
+      "refs": [
+        "Bd",
+        "K"
+      ]
+    },
+    {
+      "name": "Asum",
+      "type": "vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(A=\\sum_{k=1}^K a_k\\).",
+      "refs": [
+        "d",
+        "K",
+        "atuple"
+      ]
+    },
+    {
+      "name": "Isub",
+      "type": "index subset",
+      "space": "\\(2^{\\mathcal I_K}\\)",
+      "def": "\\(I\\subseteq\\mathcal I_K\\).",
+      "refs": [
+        "IK"
+      ]
+    },
+    {
+      "name": "Md",
+      "type": "class of triangular-array experiments",
+      "def": "\\(\\mathcal M_d\\), the model defined by \\(\\mathrm{def:model-class}\\).",
+      "ref": "def:model-class",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "mu",
+      "type": "Borel probability law",
+      "space": "\\(\\mathcal P(\\mathbb B_d)\\)",
+      "def": "First law in the two-margin reduction.",
+      "refs": [
+        "Bd",
+        "d"
+      ]
+    },
+    {
+      "name": "nu",
+      "type": "Borel probability law",
+      "space": "\\(\\mathcal P(\\mathbb B_d)\\)",
+      "def": "Second law in the two-margin reduction.",
+      "refs": [
+        "Bd",
+        "d"
+      ]
+    },
+    {
+      "name": "Id",
+      "type": "identity map",
+      "sig": "\\(\\operatorname{Id}:\\mathbb B_d\\to\\mathbb B_d\\)",
+      "def": "\\(\\operatorname{Id}(z)=z\\).",
+      "refs": [
+        "Bd"
+      ]
+    },
+    {
+      "name": "delta0",
+      "type": "Borel probability law",
+      "space": "\\(\\mathcal P(\\mathbb B_d)\\)",
+      "def": "\\(\\delta_0\\) is the point mass at the origin.",
+      "refs": [
+        "Bd"
+      ]
+    },
+    {
+      "name": "pi2",
+      "type": "two-margin coupling",
+      "space": "\\(\\Gamma(\\mu,\\nu)\\)",
+      "def": "\\(\\pi\\) is a generic coupling of \\(\\mu\\) and \\(\\nu\\).",
+      "refs": [
+        "Gamma",
+        "mu",
+        "nu"
+      ]
+    },
+    {
+      "name": "W2",
+      "type": "quadratic Wasserstein distance",
+      "def": "\\(W_2^2(\\mu,\\nu)=\\inf_{\\pi\\in\\Gamma(\\mu,\\nu)}\\int\\|x-y\\|_2^2\\,d\\pi(x,y)\\).",
+      "refs": [
+        "mu",
+        "nu",
+        "Gamma",
+        "pi2"
+      ]
+    },
+    {
+      "name": "Cd",
+      "type": "positive finite constant",
+      "def": "\\(C_d\\) depends only on the fixed dimension \\(d\\).",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "cd",
+      "type": "positive constant",
+      "def": "\\(c_d\\) depends only on the fixed dimension \\(d\\).",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "cdalpha",
+      "type": "positive constant",
+      "def": "\\(c_{d,\\alpha}\\) depends only on \\(d\\) and \\(\\alpha\\).",
+      "refs": [
+        "d",
+        "alpha"
+      ]
+    },
+    {
+      "name": "Cdalpha",
+      "type": "positive finite constant",
+      "def": "\\(C_{d,\\alpha}\\) depends only on \\(d\\) and \\(\\alpha\\).",
+      "refs": [
+        "d",
+        "alpha"
+      ]
+    },
+    {
+      "name": "c0",
+      "type": "positive constant",
+      "def": "\\(c_0\\) is a fixed arm-growth threshold constant that may depend on \\(d\\).",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "epsilon",
+      "type": "accuracy parameter",
+      "space": "\\((0,1)\\)",
+      "def": "Requested deterministic optimization accuracy."
+    },
+    {
+      "name": "CertMOT",
+      "type": "certified algorithm",
+      "def": "\\(\\mathsf{CertMOT}_\\epsilon\\) returns a primal value, a dual value, and a certified bracket for \\(L(\\widehat{\\mathbf P})\\).",
+      "refs": [
+        "epsilon",
+        "L",
+        "Phat"
+      ]
+    },
+    {
+      "name": "Llower",
+      "type": "certified scalar output",
+      "def": "\\(\\underline L_\\epsilon\\) is the lower endpoint returned by \\(\\mathsf{CertMOT}_\\epsilon\\).",
+      "refs": [
+        "epsilon",
+        "CertMOT"
+      ]
+    },
+    {
+      "name": "Lupper",
+      "type": "certified scalar output",
+      "def": "\\(\\overline L_\\epsilon\\) is the upper endpoint returned by \\(\\mathsf{CertMOT}_\\epsilon\\).",
+      "refs": [
+        "epsilon",
+        "CertMOT"
+      ]
+    },
+    {
+      "name": "rhoest",
+      "type": "positive rate function",
+      "sig": "\\(\\rho_{\\mathrm{est}}:\\mathbb N^2\\to(0,1]\\)",
+      "def": "The exact estimation-rate function DERIVED by \\(\\mathrm{oeq:exact-all-k-frontier}\\).",
+      "refs": [
+        "N",
+        "K"
+      ]
+    },
+    {
+      "name": "rholen",
+      "type": "positive rate function",
+      "sig": "\\(\\rho_{\\mathrm{len}}:\\mathbb N^2\\to(0,1]\\)",
+      "def": "The exact honest-length-rate function DERIVED by \\(\\mathrm{oeq:exact-all-k-frontier}\\).",
+      "refs": [
+        "N",
+        "K"
+      ]
+    },
+    {
+      "name": "qfrontier",
+      "type": "positive integer",
+      "def": "\\(q_{\\mathrm{fr}}\\) is the cardinality of the finite rational support used by the simultaneous-marginal perturbation handle."
+    },
+    {
+      "name": "Gfrontier",
+      "type": "finite rational support",
+      "space": "\\(2^{\\mathbb B_d}\\)",
+      "def": "\\(\\mathcal G_{q,d}=\\{g_1,\\ldots,g_{q_{\\mathrm{fr}}}\\}\\subset\\mathbb B_d\\) is the common support of every perturbed marginal.",
+      "refs": [
+        "qfrontier",
+        "Bd",
+        "d"
+      ]
+    },
+    {
+      "name": "ThetaHyp",
+      "type": "ordered pair of finite hypothesis index sets",
+      "def": "\\(\\boldsymbol\\Theta=(\\Theta_0,\\Theta_1)\\) consists of disjoint finite low-endpoint and high-endpoint index sets."
+    },
+    {
+      "name": "Ptheta",
+      "type": "indexed tuple of finite-support marginal laws",
+      "space": "\\(\\mathcal P(\\mathbb B_d)^K\\)",
+      "def": "\\(\\mathbf P_\\theta=(P_{1,\\theta},\\ldots,P_{K,\\theta})\\) is the simultaneous-marginal perturbation family constructed in Definition \\(\\mathrm{def:simultaneous-perturbation-family}\\).",
+      "refs": [
+        "Bd",
+        "K",
+        "ThetaHyp"
+      ]
+    },
+    {
+      "name": "DeltaNK",
+      "type": "nonnegative endpoint-separation target",
+      "def": "\\(\\Delta_{N,K}=\\inf_{\\theta\\in\\Theta_1}L(\\mathbf P_\\theta)-\\sup_{\\theta\\in\\Theta_0}L(\\mathbf P_\\theta)\\).",
+      "refs": [
+        "N",
+        "K",
+        "ThetaHyp",
+        "L",
+        "Ptheta"
+      ]
+    },
+    {
+      "name": "TVmix",
+      "type": "nonnegative observational indistinguishability diagnostic",
+      "def": "\\(\\operatorname{TV}_{\\mathrm{mix}}=\\operatorname{TV}(|\\Theta_0|^{-1}\\sum_{\\theta\\in\\Theta_0}\\bigotimes_{k=1}^K P_{k,\\theta}^{\\otimes m},|\\Theta_1|^{-1}\\sum_{\\theta\\in\\Theta_1}\\bigotimes_{k=1}^K P_{k,\\theta}^{\\otimes m})\\).",
+      "refs": [
+        "ThetaHyp",
+        "Ptheta",
+        "K",
+        "m"
+      ]
+    },
+    {
+      "name": "RemGap",
+      "type": "finite-LP rematching-resistance diagnostic",
+      "def": "\\(\\mathfrak g_{\\mathrm{rem}}\\) is the minimum reduced-cost slack over every rematching column outside the declared contact columns, as constructed in Definition \\(\\mathrm{def:simultaneous-perturbation-family}\\).",
+      "refs": [
+        "Gfrontier",
+        "cK",
+        "Fdual",
+        "Ptheta"
+      ]
+    },
+    {
+      "name": "Hfrontier",
+      "type": "research handle",
+      "def": "\\(\\mathfrak H_{\\mathrm{frontier}}\\) denotes the finite-support family \\(\\mathbf P_\\theta\\), its observable diagnostics \\(\\Delta_{N,K}\\), \\(\\operatorname{TV}_{\\mathrm{mix}}\\), and \\(\\mathfrak g_{\\mathrm{rem}}\\), and the alternative jointly normalized \\(c_K\\)-transform localization.",
+      "refs": [
+        "cK",
+        "d",
+        "Fdual",
+        "Ptheta",
+        "DeltaNK",
+        "TVmix",
+        "RemGap"
+      ]
+    },
+    {
+      "name": "nSTAR",
+      "type": "cell-count vector",
+      "def": "\\(n^{\\mathrm{STAR}}=(161,37,36)\\) for control, the Student Support Program, and the Student Fellowship Program."
+    },
+    {
+      "name": "mSTAR",
+      "type": "positive integer",
+      "def": "\\(m^{\\mathrm{STAR}}=36=\\min_k n_k^{\\mathrm{STAR}}\\).",
+      "refs": [
+        "nSTAR"
+      ]
+    },
+    {
+      "name": "betaSTAR",
+      "type": "contrast vector",
+      "space": "\\(\\mathbb R^3\\)",
+      "def": "\\(\\beta^{\\mathrm{STAR}}=(-1,1/2,1/2)\\), ordered as control, the Student Support Program, and the Student Fellowship Program."
+    },
+    {
+      "name": "BSTAR",
+      "type": "known positive finite constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(B^{\\mathrm{STAR}}<\\infty\\) is a prespecified bound for the absolute STAR potential outcomes."
+    },
+    {
+      "name": "YSTAR",
+      "type": "indexed scalar potential outcome",
+      "space": "\\([-B^{\\mathrm{STAR}},B^{\\mathrm{STAR}}]\\)",
+      "def": "\\(Y(k)\\) is the STAR outcome under cell \\(k\\in\\{1,2,3\\}\\), with the known bound \\(|Y(k)|\\le B^{\\mathrm{STAR}}\\).",
+      "refs": [
+        "BSTAR"
+      ]
+    },
+    {
+      "name": "bY",
+      "type": "positive scaling constant",
+      "def": "\\(b_Y=B^{\\mathrm{STAR}}\\max_{1\\le k\\le3}|\\beta_k^{\\mathrm{STAR}}|\\) is the known contrast scale.",
+      "refs": [
+        "betaSTAR",
+        "BSTAR"
+      ]
+    },
+    {
+      "name": "sSTAR",
+      "type": "known affine scaling map",
+      "sig": "\\(s_{B^{\\mathrm{STAR}}}:[-B^{\\mathrm{STAR}},B^{\\mathrm{STAR}}]\\to[-1,1]\\)",
+      "def": "\\(s_{B^{\\mathrm{STAR}}}(y)=y/B^{\\mathrm{STAR}}\\).",
+      "refs": [
+        "BSTAR"
+      ]
+    },
+    {
+      "name": "ZSTAR",
+      "type": "transformed vector potential outcome",
+      "space": "\\(\\mathbb B_5\\)",
+      "def": "\\(Z_k^{\\mathrm{STAR}}=(\\beta_k^{\\mathrm{STAR}}s_{B^{\\mathrm{STAR}}}(Y(k))/\\max_{1\\le\\ell\\le3}|\\beta_\\ell^{\\mathrm{STAR}}|,0,0,0,0)=(\\beta_k^{\\mathrm{STAR}}Y(k)/b_Y,0,0,0,0)\\).",
+      "refs": [
+        "betaSTAR",
+        "bY",
+        "YSTAR",
+        "sSTAR"
+      ]
+    },
+    {
+      "name": "JSTAR",
+      "type": "finite unit index set",
+      "def": "\\(\\mathcal J^{\\mathrm{STAR}}=\\{1,\\ldots,234\\}\\), where \\(234=161+37+36\\).",
+      "refs": [
+        "nSTAR"
+      ]
+    },
+    {
+      "name": "QSTAR",
+      "type": "superpopulation potential-outcome law",
+      "space": "\\(\\mathcal P([-B^{\\mathrm{STAR}},B^{\\mathrm{STAR}}]^3)\\)",
+      "def": "\\(Q^{\\mathrm{STAR}}\\) is the law of \\((Y(1),Y(2),Y(3))\\).",
+      "refs": [
+        "YSTAR",
+        "BSTAR"
+      ]
+    },
+    {
+      "name": "USTARj",
+      "type": "indexed potential-outcome vector",
+      "space": "\\([-B^{\\mathrm{STAR}},B^{\\mathrm{STAR}}]^3\\)",
+      "def": "\\(U_j^{\\mathrm{STAR}}=(Y_j(1),Y_j(2),Y_j(3))\\) for \\(j\\in\\mathcal J^{\\mathrm{STAR}}\\).",
+      "refs": [
+        "YSTAR",
+        "BSTAR",
+        "JSTAR"
+      ]
+    },
+    {
+      "name": "WSTARj",
+      "type": "indexed randomized assignment",
+      "space": "\\(\\{1,2,3\\}\\)",
+      "def": "\\(W_j^{\\mathrm{STAR}}\\) is the assigned STAR cell for unit \\(j\\in\\mathcal J^{\\mathrm{STAR}}\\).",
+      "refs": [
+        "JSTAR"
+      ]
+    },
+    {
+      "name": "SSTARk",
+      "type": "indexed ordered subsample of unit indices",
+      "def": "\\(S_k^{\\mathrm{STAR}}=(J_{k1},\\ldots,J_{k,m^{\\mathrm{STAR}}})\\) is sampled uniformly without replacement from \\(\\{j:W_j^{\\mathrm{STAR}}=k\\}\\) by auxiliary randomization independent of all outcomes.",
+      "refs": [
+        "mSTAR",
+        "WSTARj",
+        "JSTAR"
+      ]
+    },
+    {
+      "name": "PSTARk",
+      "type": "indexed transformed marginal law",
+      "space": "\\(\\mathcal P(\\mathbb B_5)\\)",
+      "def": "\\(P_k^{\\mathrm{STAR}}=\\mathcal L(Z_k^{\\mathrm{STAR}})\\) for \\(k\\in\\{1,2,3\\}\\).",
+      "refs": [
+        "ZSTAR",
+        "Bd"
+      ]
+    },
+    {
+      "name": "PSTARvec",
+      "type": "three-tuple of transformed marginal laws",
+      "space": "\\(\\mathcal P(\\mathbb B_5)^3\\)",
+      "def": "\\(\\mathbf P^{\\mathrm{STAR}}=(P_1^{\\mathrm{STAR}},P_2^{\\mathrm{STAR}},P_3^{\\mathrm{STAR}})\\).",
+      "refs": [
+        "PSTARk",
+        "Bd"
+      ]
+    },
+    {
+      "name": "XSTARki",
+      "type": "balanced selected transformed observations",
+      "space": "\\(\\mathbb B_5\\)",
+      "def": "\\(X_{ki}^{\\mathrm{STAR}}=(\\beta_k^{\\mathrm{STAR}}Y_{J_{ki}}(k)/b_Y,0,0,0,0)\\) for \\(1\\le i\\le m^{\\mathrm{STAR}}\\).",
+      "refs": [
+        "betaSTAR",
+        "YSTAR",
+        "SSTARk",
+        "bY",
+        "mSTAR",
+        "Bd"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:balanced-array",
+      "kind": "sampling-design",
+      "condition": "\\(N=Km\\).",
+      "free_symbols": [
+        "N",
+        "K",
+        "m"
+      ],
+      "standard": {
+        "name": "Balanced multi-arm sampling",
+        "cite": "gao_ge_qian_2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:improved-plugin-upper",
+        "thm:known-risk-sandwich",
+        "thm:large-k-frontier",
+        "oeq:exact-all-k-frontier"
+      ]
+    },
+    {
+      "id": "ass:product-experiment",
+      "kind": "sampling",
+      "condition": "\\(\\mathcal L((X_{ki})_{k,i})=\\bigotimes_{k=1}^K P_k^{\\otimes m}\\).",
+      "free_symbols": [
+        "Xki",
+        "K",
+        "Pk",
+        "m"
+      ],
+      "standard": {
+        "name": "Independent armwise product sampling",
+        "cite": "gao_ge_qian_2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:improved-plugin-upper",
+        "thm:known-risk-sandwich",
+        "thm:large-k-frontier",
+        "thm:large-k-honest-length",
+        "oeq:exact-all-k-frontier"
+      ]
+    },
+    {
+      "id": "ass:unit-ball-support",
+      "kind": "support",
+      "condition": "\\(P_k(\\mathbb B_d)=1\\) for every \\(k\\in\\mathcal I_K\\).",
+      "free_symbols": [
+        "Pk",
+        "Bd",
+        "IK"
+      ],
+      "standard": {
+        "name": "Compact unit-ball support normalization",
+        "cite": "gao_ge_qian_2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:sharp-residual-envelope",
+        "thm:optimal-sum-diameter",
+        "prop:hypercube-parity",
+        "lem:two-margin-sanity-reduction",
+        "thm:improved-plugin-upper",
+        "thm:certified-computation",
+        "oeq:exact-all-k-frontier"
+      ]
+    },
+    {
+      "id": "ass:legal-triangular-array",
+      "kind": "asymptotic-indexing",
+      "condition": "\\(m_N=N/K_N\\to\\infty\\).",
+      "free_symbols": [
+        "m",
+        "N",
+        "K"
+      ],
+      "standard": {
+        "name": "Growing balanced-cell asymptotics",
+        "cite": "gao_ge_qian_2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:large-k-frontier",
+        "thm:large-k-honest-length",
+        "oeq:exact-all-k-frontier"
+      ]
+    },
+    {
+      "id": "ass:star-iid-superpopulation",
+      "kind": "sampling",
+      "condition": "\\(\\mathcal L((U_j^{\\mathrm{STAR}})_{j\\in\\mathcal J^{\\mathrm{STAR}}})=(Q^{\\mathrm{STAR}})^{\\otimes234}\\).",
+      "free_symbols": [
+        "USTARj",
+        "JSTAR",
+        "QSTAR"
+      ],
+      "standard": {
+        "name": "Three-arm extension of i.i.d. superpopulation potential-outcome sampling",
+        "cite": "lin_gao_blanchet_glynn_2025"
+      },
+      "used_by": [
+        "def:star-transformation",
+        "prop:star-balanced-audit"
+      ]
+    },
+    {
+      "id": "ass:star-complete-randomization",
+      "kind": "assignment",
+      "condition": "\\(\\mathcal L((W_j^{\\mathrm{STAR}})_{j\\in\\mathcal J^{\\mathrm{STAR}}}\\mid(U_j^{\\mathrm{STAR}})_{j\\in\\mathcal J^{\\mathrm{STAR}}})=\\operatorname{Unif}\\{w\\in\\{1,2,3\\}^{234}:\\sum_{j=1}^{234}\\mathbf 1\\{w_j=k\\}=n_k^{\\mathrm{STAR}}\\text{ for }k=1,2,3\\}\\).",
+      "free_symbols": [
+        "WSTARj",
+        "JSTAR",
+        "USTARj",
+        "nSTAR"
+      ],
+      "standard": {
+        "name": "Complete randomized assignment with fixed treatment-cell counts",
+        "cite": "angrist_lang_oreopoulos_2009"
+      },
+      "used_by": [
+        "def:star-transformation",
+        "prop:star-balanced-audit"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "MOT triangular-array model",
+      "construction": "\\(\\mathcal M_d=\\{(N,K,m,\\mathbf P,(X_{ki})_{k\\in\\mathcal I_K,1\\le i\\le m}):N=Km,\\ \\mathbf P\\in\\mathcal P(\\mathbb B_d)^K,\\ \\mathcal L((X_{ki})_{k,i})=\\bigotimes_{k=1}^KP_k^{\\otimes m},\\ m_N=N/K_N\\to\\infty\\}\\).",
+      "free_symbols": [
+        "Md",
+        "d",
+        "N",
+        "K",
+        "m",
+        "Pvec",
+        "Xki",
+        "IK",
+        "Bd",
+        "Pk"
+      ],
+      "by_member_properties": [
+        "ass:balanced-array",
+        "ass:product-experiment",
+        "ass:unit-ball-support",
+        "ass:legal-triangular-array"
+      ]
+    },
+    {
+      "id": "def:joint-dual-class",
+      "name": "Normalized jointly conjugate dual class",
+      "construction": "\\(\\mathcal F_{K,d}^{\\mathrm{joint}}=\\{(f_1,\\ldots,f_K):f_k:\\mathbb B_d\\to\\mathbb R,\\ f_k(x)=\\inf_{(z_\\ell)_{\\ell\\ne k}\\in\\mathbb B_d^{K-1}}[c_K(z_1,\\ldots,z_{k-1},x,z_{k+1},\\ldots,z_K)-\\sum_{\\ell\\ne k}f_\\ell(z_\\ell)]\\text{ for every }k,\\ f_k(0)=0\\text{ for }k<K\\}\\).",
+      "free_symbols": [
+        "Fdual",
+        "K",
+        "d",
+        "fdual",
+        "Bd",
+        "cK",
+        "zk"
+      ],
+      "by_member_properties": []
+    },
+    {
+      "id": "def:empirical-endpoint",
+      "name": "Empirical MOT endpoint",
+      "construction": "\\(\\widehat L=K^{-2}\\inf_{\\gamma\\in\\Gamma(\\widehat{\\mathbf P})}\\int\\|\\sum_{k=1}^Kz_k\\|_2^2\\,d\\gamma\\).",
+      "free_symbols": [
+        "Lhat",
+        "K",
+        "Gamma",
+        "Phat",
+        "zk"
+      ],
+      "inputs": [
+        "Phat"
+      ]
+    },
+    {
+      "id": "def:minimax-risk",
+      "name": "Minimax endpoint risk",
+      "construction": "\\(R_d(N,K)=\\inf_T\\sup_{\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K}\\mathbb E_{\\mathbf P}|T-L(\\mathbf P)|\\).",
+      "free_symbols": [
+        "Rdk",
+        "d",
+        "N",
+        "K",
+        "T",
+        "Pvec",
+        "Bd",
+        "L"
+      ],
+      "inputs": [
+        "N",
+        "K",
+        "d"
+      ]
+    },
+    {
+      "id": "def:honest-bounds",
+      "name": "Uniformly honest lower bounds",
+      "construction": "\\(\\mathcal H_\\alpha=\\{B_N:\\inf_{\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K}\\Pr_{\\mathbf P}(B_N\\le L(\\mathbf P))\\ge1-\\alpha\\}\\).",
+      "free_symbols": [
+        "Halpha",
+        "alpha",
+        "BN",
+        "Pvec",
+        "Bd",
+        "K",
+        "L"
+      ],
+      "inputs": [
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:minimax-excess-length",
+      "name": "Minimax expected excess length",
+      "construction": "\\(E_{d,\\alpha}(N,K)=\\inf_{B_N\\in\\mathcal H_\\alpha}\\sup_{\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K}\\mathbb E_{\\mathbf P}[(L(\\mathbf P)-B_N)_+]\\).",
+      "free_symbols": [
+        "Edak",
+        "d",
+        "alpha",
+        "N",
+        "K",
+        "BN",
+        "Halpha",
+        "Pvec",
+        "Bd",
+        "L"
+      ],
+      "inputs": [
+        "N",
+        "K",
+        "d",
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:mean-lower-bound",
+      "name": "Mean-floor lower confidence bound",
+      "construction": "\\(B_N^{\\mathrm{mean}}=(\\max\\{0,\\|\\bar X\\|_2-(\\alpha N)^{-1/2}\\})^2\\).",
+      "free_symbols": [
+        "Bmean",
+        "Xbar",
+        "alpha",
+        "N"
+      ],
+      "inputs": [
+        "Xbar",
+        "alpha",
+        "N"
+      ]
+    },
+    {
+      "id": "def:hypercube-witness",
+      "name": "Hypercube parity witness",
+      "construction": "\\(\\mathbf P^{\\mathrm{hyp}}=(H_d,\\ldots,H_d)\\), where \\(H_d=\\operatorname{Unif}(\\{-1,1\\}^d/\\sqrt d)\\).",
+      "free_symbols": [
+        "Phyp",
+        "Hd",
+        "d",
+        "K"
+      ],
+      "inputs": [
+        "d",
+        "K"
+      ]
+    },
+    {
+      "id": "def:certified-mot",
+      "name": "Fixed-dimensional certified empirical MOT procedure",
+      "construction": "\\(\\mathsf{CertMOT}_\\epsilon\\) quantizes each empirical atom to a rational grid of mesh at most \\(\\epsilon/(8\\sqrt d)\\), solves the gridded dual by the ellipsoid method with a dynamic-programming separation oracle indexed by partial sums, lifts a primal coupling through quantization fibers, and returns the primal--dual bracket enlarged by the deterministic quantization error.",
+      "free_symbols": [
+        "CertMOT",
+        "epsilon",
+        "d",
+        "Phat",
+        "L"
+      ],
+      "inputs": [
+        "Phat",
+        "epsilon"
+      ]
+    },
+    {
+      "id": "def:simultaneous-perturbation-family",
+      "name": "Finite-support simultaneous-marginal perturbation handle",
+      "construction": "Fix \\(\\mathcal G_{q,d}=\\{g_1,\\ldots,g_{q_{\\mathrm{fr}}}\\}\\subset\\mathbb B_d\\). Choose an integer \\(s\\), positive rational baseline masses \\(p_{kj}\\), a rational amplitude \\(\\delta>0\\), and signed directions \\(h_{k\\ell j}\\) satisfying \\(\\sum_jh_{k\\ell j}=0\\) and \\(p_{kj}+\\delta\\sum_{\\ell=1}^s\\theta_\\ell h_{k\\ell j}\\ge0\\). For each \\(\\theta\\in\\Theta_0\\cup\\Theta_1\\), set \\(P_{k,\\theta}=\\sum_{j=1}^{q_{\\mathrm{fr}}}[p_{kj}+\\delta\\sum_{\\ell=1}^s\\theta_\\ell h_{k\\ell j}]\\delta_{g_j}\\) and \\(\\mathbf P_\\theta=(P_{1,\\theta},\\ldots,P_{K,\\theta})\\). Solve each finite primal--dual MOT pair; for its declared contact-column set \\(\\mathcal C_\\theta\\) and dual tuple \\(f^\\theta\\), record \\(\\mathfrak g_{\\mathrm{rem}}=\\min_{\\theta}\\min_{(j_1,\\ldots,j_K)\\notin\\mathcal C_\\theta}[c_K(g_{j_1},\\ldots,g_{j_K})-\\sum_{k=1}^Kf_k^\\theta(g_{j_k})]\\), together with \\(\\Delta_{N,K}\\) and \\(\\operatorname{TV}_{\\mathrm{mix}}\\).",
+      "free_symbols": [
+        "Gfrontier",
+        "qfrontier",
+        "Bd",
+        "d",
+        "K",
+        "ThetaHyp",
+        "Ptheta",
+        "cK",
+        "Fdual",
+        "RemGap",
+        "DeltaNK",
+        "TVmix"
+      ],
+      "inputs": [
+        "Gfrontier",
+        "ThetaHyp"
+      ]
+    },
+    {
+      "id": "def:frontier-handle",
+      "name": "All-arm frontier handle",
+      "construction": "\\(\\mathfrak H_{\\mathrm{frontier}}\\) applies the finite family in Definition \\(\\mathrm{def:simultaneous-perturbation-family}\\) to seek \\(\\Delta_{N,K}\\) with \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\) and nonnegative reduced-cost slack for every rematching column; its alternative branch derives a shared bound for the jointly \\(c_K\\)-conjugate tuple by common-support interpolation. Either branch is paired with \\(\\mathsf{CertMOT}_\\epsilon\\).",
+      "free_symbols": [
+        "Hfrontier",
+        "cK",
+        "Fdual",
+        "CertMOT",
+        "epsilon",
+        "Pvec",
+        "Phat",
+        "Ptheta",
+        "DeltaNK",
+        "TVmix",
+        "RemGap"
+      ],
+      "inputs": [
+        "Ptheta",
+        "Phat",
+        "Gfrontier",
+        "ThetaHyp"
+      ]
+    },
+    {
+      "id": "def:star-transformation",
+      "name": "Known-bound STAR scaling and randomized balanced subsample",
+      "construction": "Draw \\(U_j^{\\mathrm{STAR}}=(Y_j(1),Y_j(2),Y_j(3))\\) independently from \\(Q^{\\mathrm{STAR}}\\) for \\(j\\in\\mathcal J^{\\mathrm{STAR}}\\). Independently assign the units by complete randomization with cell counts \\(n^{\\mathrm{STAR}}=(161,37,36)\\). Conditional on the assignment, draw each ordered \\(S_k^{\\mathrm{STAR}}\\) uniformly without replacement with size \\(m^{\\mathrm{STAR}}=36\\), using auxiliary randomness independent of all potential outcomes. Apply the known affine map \\(s_{B^{\\mathrm{STAR}}}(y)=y/B^{\\mathrm{STAR}}\\) and set \\(X_{ki}^{\\mathrm{STAR}}=(\\beta_k^{\\mathrm{STAR}}Y_{J_{ki}}(k)/b_Y,0,0,0,0)\\in\\mathbb B_5\\), where \\(b_Y=B^{\\mathrm{STAR}}\\max_{1\\le\\ell\\le3}|\\beta_\\ell^{\\mathrm{STAR}}|\\).",
+      "free_symbols": [
+        "mSTAR",
+        "nSTAR",
+        "ZSTAR",
+        "betaSTAR",
+        "YSTAR",
+        "BSTAR",
+        "bY",
+        "sSTAR",
+        "JSTAR",
+        "QSTAR",
+        "USTARj",
+        "WSTARj",
+        "SSTARk",
+        "PSTARk",
+        "XSTARki",
+        "Bd",
+        "d"
+      ],
+      "inputs": [
+        "nSTAR",
+        "betaSTAR",
+        "BSTAR",
+        "QSTAR"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:subset-rounding",
+      "kind": "lemma",
+      "statement": "For every \\(a=(a_1,\\ldots,a_K)\\in(2\\mathbb B_d)^K\\), there exists \\(I\\subseteq\\mathcal I_K\\) such that \\(\\|\\sum_{k\\in I}a_k-A/2\\|_2^2\\le r\\), where \\(A=\\sum_{k=1}^Ka_k\\) and \\(r=\\min\\{K,d\\}\\).",
+      "free_symbols": [
+        "atuple",
+        "K",
+        "Bd",
+        "d",
+        "Isub",
+        "IK",
+        "Asum",
+        "r"
+      ],
+      "depends_on": [],
+      "status": "to-prove",
+      "justification": "This is the dimension-sensitive replacement for summing \\(K\\) one-coordinate exchange inequalities.",
+      "gap": "Classical vector balancing supplies extreme-point rounding, but its insertion into the repulsive quadratic MOT support argument is not in Gao--Ge--Qian.",
+      "consumer": "The arbitrary-subset support exchange in Theorem 3 uses this bound to replace \\(\\sqrt K\\) geometry by \\(\\sqrt{\\min\\{K,d\\}}\\)."
+    },
+    {
+      "id": "thm:sharp-residual-envelope",
+      "kind": "theorem",
+      "statement": "For every \\(\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K\\), \\(0\\le V(\\mathbf P)\\le r\\), and \\(\\sup_{\\mathbf P\\in\\mathcal P(\\mathbb B_d)^K}V(\\mathbf P)=r\\). Equivalently, \\(\\sup_{\\mathbf P}K^2\\{L(\\mathbf P)-\\|\\bar\\mu\\|_2^2\\}=\\min\\{K,d\\}\\).",
+      "free_symbols": [
+        "Pvec",
+        "Bd",
+        "d",
+        "K",
+        "V",
+        "r",
+        "L",
+        "mubar"
+      ],
+      "depends_on": [
+        "ass:unit-ball-support"
+      ],
+      "status": "to-prove",
+      "justification": "The exact deterministic distance from the mean floor governs the large-arm transition before any empirical-process analysis begins.",
+      "gap": "Gao--Ge--Qian's Lemma D.2 yields a dimension-blind order bound on optimal sums; Wang--Wang characterize joint mixability only for selected univariate families.",
+      "consumer": "A causal analyst can certify when the unidentified second-moment improvement over the mean floor is uniformly too small to justify solving MOT."
+    },
+    {
+      "id": "thm:optimal-sum-diameter",
+      "kind": "theorem",
+      "statement": "For every optimizer \\(\\gamma^{\\star}\\in\\Gamma(\\mathbf P)\\), \\(\\operatorname{diam}\\{\\sum_{k=1}^Kz_k:(z_1,\\ldots,z_K)\\in\\operatorname{supp}(\\gamma^{\\star})\\}\\le2\\sqrt r\\); the constant is attained when \\(K\\ge d\\) by orthogonal symmetric two-point margins.",
+      "free_symbols": [
+        "gammastar",
+        "Gamma",
+        "Pvec",
+        "K",
+        "zk",
+        "r",
+        "d"
+      ],
+      "depends_on": [
+        "ass:unit-ball-support",
+        "lem:subset-rounding"
+      ],
+      "status": "to-prove",
+      "justification": "This support theorem is the shared geometry needed to localize all dual potentials at once.",
+      "gap": "Gao--Ge--Qian exchange one coordinate and obtain a \\(\\sqrt K\\)-scale control; no located source gives the sharp fixed-dimensional diameter for this repulsive sum cost.",
+      "consumer": "The empirical-process upper bound uses the diameter to normalize dual slopes by \\(K^{-2}\\sqrt r\\)."
+    },
+    {
+      "id": "prop:hypercube-parity",
+      "kind": "proposition",
+      "statement": "For \\(\\mathbf P^{\\mathrm{hyp}}=(H_d,\\ldots,H_d)\\), \\(L(\\mathbf P^{\\mathrm{hyp}})=0\\) when \\(K\\) is even and \\(L(\\mathbf P^{\\mathrm{hyp}})=K^{-2}\\) when \\(K\\) is odd. In particular, the legal \\(K=3,d=5\\) witness satisfies \\(L(\\mathbf P^{\\mathrm{hyp}})=1/9\\).",
+      "free_symbols": [
+        "Phyp",
+        "Hd",
+        "d",
+        "L",
+        "K"
+      ],
+      "depends_on": [
+        "ass:unit-ball-support",
+        "def:hypercube-witness"
+      ],
+      "status": "to-prove",
+      "justification": "Parity is a complete all-rematching certificate and a destructive check against treating vector joint mixability as automatic.",
+      "gap": "The mixability literature studies selected scalar classes; the explicit vector hypercube law and its original second-moment endpoint are not supplied by those results.",
+      "consumer": "The \\(K=3,d=5\\) instance provides an exact finite benchmark for every empirical MOT and dual-certificate implementation."
+    },
+    {
+      "id": "lem:two-margin-sanity-reduction",
+      "kind": "lemma",
+      "statement": "After substituting \\(P_1=\\mu\\), \\(P_2=(-\\operatorname{Id})_{\\#}\\nu\\), and \\(P_3=\\cdots=P_K=\\delta_0\\) into the definition of \\(L\\), one has definitionally \\(K^2L(\\mathbf P)=\\inf_{\\pi\\in\\Gamma(\\mu,\\nu)}\\int\\|x-y\\|_2^2\\,d\\pi(x,y)=W_2^2(\\mu,\\nu)\\).",
+      "free_symbols": [
+        "Pk",
+        "Pvec",
+        "K",
+        "L",
+        "mu",
+        "nu",
+        "W2",
+        "Gamma",
+        "pi2",
+        "Id",
+        "delta0"
+      ],
+      "depends_on": [],
+      "status": "to-prove",
+      "justification": "This sanity-reduction helper checks normalization and transfers the published two-margin obstruction; it is not counted as a research contribution.",
+      "gap": "The identity is a direct definitional specialization, so no novelty is claimed for it; the unresolved work is the genuinely all-arm rematching obstruction.",
+      "consumer": "The exact-frontier question must dominate the scaled two-margin modulus and preserve its fixed-\\(K\\) logarithmic issue."
+    },
+    {
+      "id": "thm:improved-plugin-upper",
+      "kind": "theorem",
+      "statement": "There is \\(C_d<\\infty\\) such that \\(\\sup_{\\mathbf P}\\mathbb E_{\\mathbf P}|\\widehat L-L(\\mathbf P)|\\le C_d[N^{-1/2}+\\min\\{r/K^2,\\ K^{-1}m^{-2/d}\\}]\\). Relative to Gao--Ge--Qian Theorem 1, the cap improves from \\(K^{-1}\\) to \\(rK^{-2}\\), strictly when \\(K>d\\), and the active high-dimensional term improves from \\(K^{-1/2}m^{-2/d}\\) to \\(K^{-1}m^{-2/d}\\).",
+      "free_symbols": [
+        "d",
+        "Pvec",
+        "Lhat",
+        "L",
+        "N",
+        "K",
+        "m",
+        "r",
+        "Cd"
+      ],
+      "depends_on": [
+        "ass:balanced-array",
+        "ass:product-experiment",
+        "ass:unit-ball-support",
+        "def:empirical-endpoint",
+        "thm:sharp-residual-envelope",
+        "thm:optimal-sum-diameter"
+      ],
+      "status": "to-prove",
+      "justification": "The first theorem-level advance sharpens the published plug-in guarantee using shared squared-sum geometry rather than separate arm envelopes.",
+      "gap": "Gao--Ge--Qian Theorem 1 gives \\(N^{-1/2}+\\min\\{K^{-1},K^{-1/2}m^{-2/d}\\}\\) when \\(d>4\\); no located closer paper proves the displayed \\(r\\)-controlled bound for arbitrary marginals.",
+      "consumer": "The rate determines how much sampling uncertainty must be deducted from an empirical causal lower endpoint."
+    },
+    {
+      "id": "thm:known-risk-sandwich",
+      "kind": "theorem",
+      "statement": "For constants \\(0<c_d\\le C_d<\\infty\\), \\(c_d\\max\\{N^{-1/2},K^{-2}(m\\log m)^{-2/d}\\}\\le R_d(N,K)\\le C_d[N^{-1/2}+\\min\\{r/K^2,K^{-1}m^{-2/d}\\}]\\). The lower maximum is obtained from two distinct submodels and is not attributed to the printed minimum in Gao--Ge--Qian Proposition 2.",
+      "free_symbols": [
+        "d",
+        "N",
+        "K",
+        "m",
+        "Rdk",
+        "r",
+        "cd",
+        "Cd"
+      ],
+      "depends_on": [
+        "ass:balanced-array",
+        "ass:product-experiment",
+        "def:minimax-risk",
+        "lem:two-margin-sanity-reduction",
+        "thm:improved-plugin-upper"
+      ],
+      "status": "to-prove",
+      "justification": "The honest sandwich exposes every currently verified polynomial and logarithmic gap instead of promoting the plug-in upper bound to a minimax answer.",
+      "gap": "Manole--Niles-Weed leave logarithmic slack even for the two-margin all-estimator lower bound, while Gao--Ge--Qian do not close the \\(d>4\\) all-\\(K\\) frontier.",
+      "consumer": "A solver can see exactly which arm-count and logarithmic factors need a new construction rather than re-proving settled root-\\(N\\) behavior."
+    },
+    {
+      "id": "thm:large-k-frontier",
+      "kind": "theorem",
+      "statement": "There are constants \\(c_d,C_d,c_0>0\\) such that \\(c_dN^{-1/2}\\le R_d(N,K)\\le C_d(N^{-1/2}+r/K^2)\\); hence \\(R_d(N,K)\\asymp N^{-1/2}\\) uniformly along every legal array satisfying \\(K\\ge c_0N^{1/4}\\).",
+      "free_symbols": [
+        "d",
+        "N",
+        "K",
+        "Rdk",
+        "r",
+        "cd",
+        "Cd",
+        "c0"
+      ],
+      "depends_on": [
+        "ass:balanced-array",
+        "ass:product-experiment",
+        "ass:legal-triangular-array",
+        "def:minimax-risk",
+        "thm:sharp-residual-envelope"
+      ],
+      "status": "to-prove",
+      "justification": "The exact root-\\(N\\) region is already obtainable from deterministic geometry and a mean-driven Le Cam experiment.",
+      "gap": "Gao--Ge--Qian establish minimax optimality only for \\(d\\le4\\); the theorem supplies an unrestricted \\(d>4\\) growing-arm region without density assumptions.",
+      "consumer": "Studies with many outcome regimes can bypass a prohibitively large MOT problem and estimate the endpoint at the parametric rate."
+    },
+    {
+      "id": "thm:large-k-honest-length",
+      "kind": "theorem",
+      "statement": "For constants \\(0<c_{d,\\alpha}\\le C_{d,\\alpha}<\\infty\\), \\(c_{d,\\alpha}N^{-1/2}\\le E_{d,\\alpha}(N,K)\\le C_{d,\\alpha}(N^{-1/2}+r/K^2)\\), and \\(B_N^{\\mathrm{mean}}\\in\\mathcal H_\\alpha\\). Consequently \\(E_{d,\\alpha}(N,K)\\asymp N^{-1/2}\\) when \\(K\\ge c_0N^{1/4}\\).",
+      "free_symbols": [
+        "d",
+        "alpha",
+        "N",
+        "K",
+        "Edak",
+        "r",
+        "Bmean",
+        "Halpha",
+        "cdalpha",
+        "Cdalpha",
+        "c0"
+      ],
+      "depends_on": [
+        "ass:balanced-array",
+        "ass:product-experiment",
+        "ass:legal-triangular-array",
+        "def:honest-bounds",
+        "def:minimax-excess-length",
+        "def:mean-lower-bound",
+        "thm:sharp-residual-envelope"
+      ],
+      "status": "to-prove",
+      "justification": "Uniform coverage and expected shortfall are treated as a decision problem distinct from point estimation.",
+      "gap": "Ji--Lei--Spector prove broad dual-feasible uniform validity, and Manole--Balakrishnan--Wasserman prove near-minimax intervals for sliced Wasserstein distance; neither gives this all-arm one-sided endpoint-length converse.",
+      "consumer": "A reported MOT tightening can be accompanied by a lower confidence endpoint whose worst-case conservatism is quantitatively controlled."
+    },
+    {
+      "id": "thm:certified-computation",
+      "kind": "theorem",
+      "statement": "For fixed \\(d\\), rational empirical input, and \\(0<\\epsilon<1\\), \\(\\mathsf{CertMOT}_\\epsilon\\) returns \\(\\underline L_\\epsilon\\le L(\\widehat{\\mathbf P})\\le\\overline L_\\epsilon\\) with \\(\\overline L_\\epsilon-\\underline L_\\epsilon\\le\\epsilon\\), together with primal and dual witnesses, in time polynomial in the input bit length, \\(N\\), and \\((K/\\epsilon)^d\\).",
+      "free_symbols": [
+        "d",
+        "epsilon",
+        "CertMOT",
+        "L",
+        "Phat",
+        "N",
+        "K",
+        "Llower",
+        "Lupper"
+      ],
+      "depends_on": [
+        "ass:unit-ball-support",
+        "def:certified-mot"
+      ],
+      "status": "to-prove",
+      "justification": "A statistical rate is operational only if numerical error is separated from sampling error by an auditable certificate.",
+      "gap": "Generic discrete MOT has \\(m^K\\) columns and generic pairwise MOT is hard; existing entropic solvers certify regularized or approximate objectives without this fixed-\\(d\\) squared-sum bracket.",
+      "consumer": "The empirical lower endpoint and its confidence correction can report a numerical error budget rather than silently absorbing Sinkhorn bias."
+    },
+    {
+      "id": "prop:star-balanced-audit",
+      "kind": "proposition",
+      "statement": "Under Assumptions \\(\\mathrm{ass:star-iid-superpopulation}\\) and \\(\\mathrm{ass:star-complete-randomization}\\), the randomized balanced subsample in Definition \\(\\mathrm{def:star-transformation}\\) satisfies \\(\\mathcal L((X_{ki}^{\\mathrm{STAR}})_{1\\le k\\le3,1\\le i\\le36})=\\bigotimes_{k=1}^3(P_k^{\\mathrm{STAR}})^{\\otimes36}\\). It therefore has \\(N=108\\), \\(K=3\\), \\(m=36\\), and \\(d=5\\), and \\(\\inf_{\\gamma\\in\\Gamma(\\mathbf P^{\\mathrm{STAR}})}\\mathbb E_\\gamma\\|\\sum_{k=1}^3Z_k^{\\mathrm{STAR}}\\|_2^2=9L(\\mathbf P^{\\mathrm{STAR}})\\). Consequently, \\(9b_Y^2L(\\mathbf P^{\\mathrm{STAR}})\\) is the sharp lower endpoint for \\(\\mathbb E[(\\sum_{k=1}^3\\beta_k^{\\mathrm{STAR}}Y(k))^2]\\). This empirical audit is conditional on the declared i.i.d. superpopulation law, the known bound \\(B^{\\mathrm{STAR}}\\), the affine scaling, complete randomization, and randomized balanced subsampling; it does not validate the native-count \\((161,37,36)\\) plug-in calculation.",
+      "free_symbols": [
+        "nSTAR",
+        "mSTAR",
+        "N",
+        "K",
+        "m",
+        "d",
+        "betaSTAR",
+        "YSTAR",
+        "ZSTAR",
+        "BSTAR",
+        "bY",
+        "L",
+        "Gamma",
+        "PSTARk",
+        "PSTARvec",
+        "XSTARki",
+        "USTARj",
+        "WSTARj",
+        "SSTARk"
+      ],
+      "depends_on": [
+        "def:star-transformation",
+        "ass:star-iid-superpopulation",
+        "ass:star-complete-randomization"
+      ],
+      "status": "to-prove",
+      "justification": "The audit separates the estimand-preserving scale transformation from the sampling contract actually required by the theory.",
+      "gap": "Gao--Ge--Qian's theoretical display is balanced, while its public STAR computation uses native unequal cell sizes and does not supply this known-bound scaling plus superpopulation-to-product-law reduction.",
+      "consumer": "A reanalysis of the scholarship-incentive contrast can state exactly which observations, scale, and endpoint its guarantee covers."
+    },
+    {
+      "id": "oeq:joint-dual-complexity",
+      "kind": "openendedquestion",
+      "statement": "Can the rational finite-support family \\(\\{\\mathbf P_\\theta:\\theta\\in\\Theta_0\\cup\\Theta_1\\}\\) in Definition \\(\\mathrm{def:simultaneous-perturbation-family}\\) be chosen so that \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\), \\(\\Delta_{N,K}>0\\) has explicit \\(K\\), \\(d\\), and logarithmic order, and every alternative rematching column has certified nonnegative reduced cost \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\), with strict slack away from the declared contact columns? If no such additive-complexity family exists, does \\(\\mathcal F_{K,d}^{\\mathrm{joint}}\\) instead admit a two-sided localized covering or Rademacher bound controlled by \\(r=\\min\\{K,d\\}\\)?",
+      "free_symbols": [
+        "Fdual",
+        "K",
+        "d",
+        "r",
+        "Hfrontier",
+        "Ptheta",
+        "ThetaHyp",
+        "TVmix",
+        "DeltaNK",
+        "RemGap"
+      ],
+      "depends_on": [
+        "def:joint-dual-class",
+        "def:simultaneous-perturbation-family",
+        "def:frontier-handle",
+        "thm:optimal-sum-diameter",
+        "thm:improved-plugin-upper"
+      ],
+      "status": "to-prove",
+      "justification": "This dichotomy is the genuine proof boundary behind the remaining small-\\(K\\) minimax gap.",
+      "gap": "Hundrieser--Staudt--Munk transfer entropy between two \\(c\\)-conjugate potentials, while no located result controls a simultaneous \\(K\\)-tuple for the repulsive squared-sum cost.",
+      "consumer": "Resolving the aggregate dual complexity determines whether the empirical MOT estimator is rate-optimal or must be replaced."
+    },
+    {
+      "id": "oeq:exact-all-k-frontier",
+      "kind": "openendedquestion",
+      "statement": "Using \\(\\mathfrak H_{\\mathrm{frontier}}\\), determine explicit rate functions \\(\\rho_{\\mathrm{est}}(N,K)\\) and \\(\\rho_{\\mathrm{len}}(N,K)\\) such that \\(R_d(N,K)\\asymp\\rho_{\\mathrm{est}}(N,K)\\) and \\(E_{d,\\alpha}(N,K)\\asymp\\rho_{\\mathrm{len}}(N,K)\\) uniformly over every legal \\(K=K_N\\), including exact fixed-\\(K\\) logarithms and every transition. The lower-bound branch must choose the finite-support simultaneous family so that \\(\\Delta_{N,K}\\) matches the claimed rate, \\(\\operatorname{TV}_{\\mathrm{mix}}\\le1/4\\), and \\(\\mathfrak g_{\\mathrm{rem}}\\ge0\\) certifies the endpoint separation against every rematching column; its ordered low-versus-high version must also support the one-sided length converse. The upper-bound branch must construct a computable estimator and uniformly honest lower bound attaining the respective rates, or prove a sharper shared-geometric dual bound if the simultaneous family cannot achieve the required separation.",
+      "free_symbols": [
+        "Hfrontier",
+        "rhoest",
+        "rholen",
+        "N",
+        "K",
+        "Rdk",
+        "Edak",
+        "d",
+        "alpha",
+        "CertMOT",
+        "Ptheta",
+        "DeltaNK",
+        "TVmix",
+        "RemGap"
+      ],
+      "depends_on": [
+        "ass:balanced-array",
+        "ass:product-experiment",
+        "ass:unit-ball-support",
+        "ass:legal-triangular-array",
+        "def:minimax-risk",
+        "def:minimax-excess-length",
+        "def:simultaneous-perturbation-family",
+        "def:frontier-handle",
+        "thm:known-risk-sandwich",
+        "thm:large-k-frontier",
+        "thm:large-k-honest-length",
+        "thm:certified-computation",
+        "oeq:joint-dual-complexity"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem-level kernel is the exact all-arm estimation and honest-length frontier, not merely another plug-in bound.",
+      "gap": "Gao--Ge--Qian stop at minimax optimality for \\(d\\le4\\); Manole--Niles-Weed leave logarithmic slack for two margins; no closer source found in the 2026 search subsumes the arbitrary-margin endpoint problem.",
+      "consumer": "The frontier gives a principled uncertainty deduction for every empirical multiworld second-moment lower endpoint, including the scholarship-incentive audit."
+    }
+  ],
+  "sampling_model": {
+    "design": "Balanced \\(K=K_N\\)-arm product experiment with \\(N=Km\\) and fixed \\(d>4\\).",
+    "units": "For arm \\(k\\), \\(X_{k1},\\ldots,X_{km}\\) are identically distributed from the arbitrary marginal \\(P_k\\) on \\(\\mathbb B_d\\); all arm samples are independent.",
+    "treatment": "The observed experiment supplies one independent sample from each potential-outcome marginal and leaves the within-unit \\(K\\)-world coupling unidentified.",
+    "overlap": "Balanced allocation is known, \\(K\\ge3\\), and \\(m=N/K\\to\\infty\\).",
+    "nuisance_estimation": "Each marginal is estimated empirically. No density, smoothness, joint-mixability, known nuisance, or centered-variance substitution is imposed."
+  },
+  "estimand_functional": "\\(\\widehat L=L(\\widehat{\\mathbf P}),\\quad R_d(N,K)\\asymp\\rho_{\\mathrm{est}}(N,K),\\quad E_{d,\\alpha}(N,K)\\asymp\\rho_{\\mathrm{len}}(N,K)\\)",
+  "target_estimand": "\\(L(\\mathbf P)=K^{-2}\\inf_{\\gamma\\in\\Gamma(\\mathbf P)}\\mathbb E_\\gamma\\|\\sum_{k=1}^Kz_k\\|_2^2\\)",
+  "bibliography": [
+    {
+      "key": "gao_ge_qian_2025",
+      "citation": "Zijun Gao, Shu Ge, and Jian Qian. Bridging Multiple Worlds: Multi-marginal Optimal Transport for Causal Partial-identification Problem. Proceedings of the Twenty-Eighth International Conference on Artificial Intelligence and Statistics, PMLR 258, pages 721--729, 2025. arXiv:2406.07868."
+    },
+    {
+      "key": "manole_nilesweed_2024",
+      "citation": "Tudor Manole and Jonathan Niles-Weed. Sharp Convergence Rates for Empirical Optimal Transport with Smooth Costs. Annals of Applied Probability 34(1B):1108--1135, 2024. doi:10.1214/23-AAP1986."
+    },
+    {
+      "key": "hundrieser_staudt_munk_2024",
+      "citation": "Shayan Hundrieser, Thomas Staudt, and Axel Munk. Empirical Optimal Transport between Different Measures Adapts to Lower Complexity. Annales de l'Institut Henri Poincare, Probabilites et Statistiques 60(2):824--846, 2024. doi:10.1214/23-AIHP1369."
+    },
+    {
+      "key": "hundrieser_klatt_staudt_munk_2024",
+      "citation": "Shayan Hundrieser, Marcel Klatt, Thomas Staudt, and Axel Munk. A Unifying Approach to Distributional Limits for Empirical Optimal Transport. Bernoulli 30(4):2846--2877, 2024. doi:10.3150/23-BEJ1697."
+    },
+    {
+      "key": "weed_bach_2019",
+      "citation": "Jonathan Weed and Francis Bach. Sharp Asymptotic and Finite-Sample Rates of Convergence of Empirical Measures in Wasserstein Distance. Bernoulli 25(4A):2620--2648, 2019. doi:10.3150/18-BEJ1065."
+    },
+    {
+      "key": "wang_wang_2016",
+      "citation": "Bin Wang and Ruodu Wang. Joint Mixability. Mathematics of Operations Research 41(3):808--826, 2016. doi:10.1287/moor.2015.0755."
+    },
+    {
+      "key": "wang_2015_mixability_questions",
+      "citation": "Ruodu Wang. Current Open Questions in Complete Mixability. Probability Surveys 12:80--134, 2015. doi:10.1214/14-PS250."
+    },
+    {
+      "key": "koike_lin_wang_2024",
+      "citation": "Takaaki Koike, Liyuan Lin, and Ruodu Wang. Joint Mixability and Notions of Negative Dependence. Mathematics of Operations Research 49(4):2786--2802, 2024. doi:10.1287/moor.2022.0121."
+    },
+    {
+      "key": "manole_balakrishnan_wasserman_2022",
+      "citation": "Tudor Manole, Sivaraman Balakrishnan, and Larry Wasserman. Minimax Confidence Intervals for the Sliced Wasserstein Distance. Electronic Journal of Statistics 16:2252--2345, 2022. doi:10.1214/22-EJS2001."
+    },
+    {
+      "key": "ji_lei_spector_2026",
+      "citation": "Wenlong Ji, Lihua Lei, and Asher Spector. Model-Agnostic Covariate-Assisted Inference on Partially Identified Causal Effects. Public preprint, arXiv:2310.08115, version dated August 2026."
+    },
+    {
+      "key": "armstrong_kolesar_2018",
+      "citation": "Timothy B. Armstrong and Michal Kolesar. Optimal Inference in a Class of Regression Models. Econometrica 86(2):655--683, 2018. doi:10.3982/ECTA14434."
+    },
+    {
+      "key": "aronow_green_lee_2014",
+      "citation": "Peter M. Aronow, Donald P. Green, and Donald K. K. Lee. Sharp Bounds on the Variance in Randomized Experiments. Annals of Statistics 42(3):850--871, 2014. doi:10.1214/13-AOS1200."
+    },
+    {
+      "key": "angrist_lang_oreopoulos_2009",
+      "citation": "Joshua Angrist, Daniel Lang, and Philip Oreopoulos. Incentives and Services for College Achievement: Evidence from a Randomized Trial. American Economic Journal: Applied Economics 1(1):136--163, 2009. doi:10.1257/app.1.1.136."
+    },
+    {
+      "key": "lin_ho_cuturi_jordan_2022",
+      "citation": "Tianyi Lin, Nhat Ho, Marco Cuturi, and Michael I. Jordan. On the Complexity of Approximating Multimarginal Optimal Transport. Journal of Machine Learning Research 23:1--43, 2022."
+    },
+    {
+      "key": "altschuler_boixadsera_2022",
+      "citation": "Jason Altschuler and Enric Boix-Adsera. Hardness Results for Multimarginal Optimal Transport Problems. Discrete Optimization 44:100669, 2022. doi:10.1016/j.disopt.2021.100669."
+    },
+    {
+      "key": "cheryala_alaya_bouzebda_2026",
+      "citation": "Yehya Cheryala, Mokhtar Z. Alaya, and Salim Bouzebda. A Unified Kantorovich Duality for Multimarginal Optimal Transport. Public preprint, arXiv:2601.17171, 2026."
+    },
+    {
+      "key": "han_zhu_2026",
+      "citation": "Bang-Xian Han and Zhuo-Nan Zhu. Two-Mode Stability for Multi-Marginal Optimal Transport Maps. Public preprint, arXiv:2606.23037, 2026."
+    },
+    {
+      "key": "kravtsova_2025",
+      "citation": "Natalia Kravtsova. \\(k\\)-Sample Inference via Multimarginal Optimal Transport. Public preprint accepted by the Electronic Journal of Statistics, arXiv:2501.05645, 2025."
+    },
+    {
+      "key": "ambrus_bozzai_2024",
+      "citation": "Gergely Ambrus and Peter Bozzai. Euclidean Vector Balancing. Mathematika 70, 2024. arXiv:2302.10865."
+    },
+    {
+      "key": "lin_gao_blanchet_glynn_2025",
+      "citation": "Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn. Tightening Causal Bounds via Covariate-Aware Optimal Transport. Proceedings of the 42nd International Conference on Machine Learning, PMLR 267, pages 37815--37845, 2025. arXiv:2502.01164."
+    },
+    {
+      "key": "lin_gao_blanchet_glynn_2026",
+      "citation": "Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn. Causal Partial Identification via Conditional Optimal Transport. Proceedings of the 29th International Conference on Artificial Intelligence and Statistics, PMLR 300, pages 1189--1197, 2026. arXiv:2506.00257."
+    },
+    {
+      "key": "lin_gao_blanchet_glynn_inference_2026",
+      "citation": "Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn. Statistical Inference in Causal Partial Identification with Smooth Densities. Public preprint, arXiv:2602.20681, 2026."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "gao_ge_qian_2025",
+      "comparator_claim": "Theorem 1 gives \\(N^{-1/2}+\\min\\{K^{-1},K^{-1/2}m^{-2/d}\\}\\) for \\(d>4\\).",
+      "matched_by": "Theorem 6",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "lin_gao_blanchet_glynn_2025",
+      "comparator_claim": "Proposition 3.6 places a binary covariate-aware mirror-transport lower bound between unconditional and conditional transport, while Theorem 4.3 gives its quadratic-cost plug-in rate under smooth strongly convex Brenier potentials.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "lin_gao_blanchet_glynn_2026",
+      "comparator_claim": "The paper proves continuity of binary conditional transport under adapted Wasserstein distance and derives a direct nonparametric estimator with a convergence rate.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "lin_gao_blanchet_glynn_inference_2026",
+      "comparator_claim": "The paper gives a smooth-density wavelet estimator and asymptotic normality for binary conditional transport with quadratic cost.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "manole_nilesweed_2024",
+      "comparator_claim": "Theorem 22 gives the two-margin all-estimator lower bound \\((m\\log m)^{-2/d}\\) for quadratic cost.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "hundrieser_staudt_munk_2024",
+      "comparator_claim": "Theorem 2.2 converts binary \\(c\\)-transform entropy into two-margin empirical transport rates.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ji_lei_spector_2026",
+      "comparator_claim": "Theorem 3.1 gives uniformly valid one-sided inference from any dual-feasible estimated pair in randomized experiments.",
+      "matched_by": "Theorem 9",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "manole_balakrishnan_wasserman_2022",
+      "comparator_claim": "The paper constructs finite-sample intervals for sliced Wasserstein distance and bounds their length near the minimax rate.",
+      "matched_by": "Theorem 9",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "wang_wang_2016",
+      "comparator_claim": "The paper gives necessary and sufficient joint-mixability conditions for selected classes of univariate distributions.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "hundrieser_klatt_staudt_munk_2024",
+      "comparator_claim": "Donsker dual classes yield two-margin empirical optimal-transport limits given by suprema of Gaussian processes.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "weed_bach_2019",
+      "comparator_claim": "Upper and lower Wasserstein dimensions determine multiscale empirical-measure approximation rates.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "koike_lin_wang_2024",
+      "comparator_claim": "Quadratic negative-dependence objectives are optimized for selected identical scalar margins admitting a joint mix.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "armstrong_kolesar_2018",
+      "comparator_claim": "The ordered modulus gives one-sided minimax expected-length optimality for linear Gaussian regression functionals.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "cheryala_alaya_bouzebda_2026",
+      "comparator_claim": "Optimal multi-margin dual potentials may be chosen as a simultaneously conjugate family.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "han_zhu_2026",
+      "comparator_claim": "Two-mode stability controls regular Monge maps for barycentric and uniformly concave sum costs.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "kravtsova_2025",
+      "comparator_claim": "Fixed-finite-support multi-sample optimal-transport values admit weak limits and bootstrap tests.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "aronow_green_lee_2014",
+      "comparator_claim": "Sharp two-arm randomization-variance bounds yield asymptotically conservative narrow Wald intervals under unequal allocation.",
+      "matched_by": "Proposition 11",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "lin_ho_cuturi_jordan_2022",
+      "comparator_claim": "Generic discrete multimarginal transport approximation has exponential tensor dependence in the number of margins.",
+      "matched_by": "Theorem 10",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "altschuler_boixadsera_2022",
+      "comparator_claim": "Generic pairwise-interaction multimarginal transport is computationally hard.",
+      "matched_by": "Theorem 10",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "The lower endpoint \\(L(\\mathbf P)\\) is the sharp causal second moment compatible with \\(K\\) observed potential-outcome marginals, not the centered variance residual. Gao--Ge--Qian identify this endpoint and bound its empirical plug-in risk, but their \\(d>4\\) theorem leaves both the arm-count frontier and the all-estimator logarithmic gap open, and their support-geometry proof does not exploit fixed dimension. The core derives the exact residual envelope \\(\\min\\{K,d\\}/K^2\\), a sharp \\(2\\sqrt{\\min\\{K,d\\}}\\) diameter for optimal sums, and a strictly tighter plug-in upper bound, settling root-\\(N\\) minimax estimation and honest one-sided excess length for \\(K\\gtrsim N^{1/4}\\). The answer-open kernel operationalizes the remaining frontier with a named rational finite-support simultaneous-marginal family whose product-law indistinguishability, endpoint separation, and reduced-cost slack against every rematching column are finite computations; failure of that lower route points to a shared-complexity theorem for jointly conjugate potentials. A fixed-dimensional primal--dual certificate makes the statistical claim computable. The STAR audit is conditional on a known finite outcome bound, an explicit affine scale, an i.i.d. superpopulation law, complete randomization, and randomized balanced subsampling, and it does not validate the native \\(161/37/36\\) calculation.",
+  "project_justification": {
+    "gap": "Gao--Ge--Qian Theorem 1 gives a high-dimensional empirical bound with term \\(K^{-1/2}m^{-2/d}\\), while Proposition 2 prints a two-margin lower term with \\((m\\log m)^{-2/d}\\) and does not establish uniform one-sided coverage or optimal expected excess length. Manole--Niles-Weed leave the same logarithmic all-estimator gap already at two margins. Two-margin entropy transfer and limit theory do not control a growing tuple of jointly conjugate potentials.",
+    "niche": "The squared-sum cost has shared fixed-dimensional geometry that is absent from generic transport bounds: all potentials obey one constraint, and optimal coupling atoms can be exchanged in arbitrary coordinate subsets. At the same time, a lower construction must survive every alternative multi-arm rematching, so neither a union bound nor a two-margin embedding can decide the rate.",
+    "fill": "The project proves the sharp deterministic residual and support-diameter theorems, uses common-support interpolation to tighten the plug-in rate, settles the large-arm root-\\(N\\) estimation and one-sided length regimes, and poses the precise coupled-complexity dichotomy whose resolution yields the exact all-\\(K\\) frontier. Its finite-support handle makes indistinguishability, endpoint separation, and resistance to every rematching column explicit certification targets. The procedure returns a primal--dual numerical bracket, and the STAR audit declares the known bound, affine scaling, superpopulation law, randomization, and balanced subsampling."
+  },
+  "related_work": "Gao, Ge, and Qian define exactly \\(L(\\mathbf P)\\) in their equation (4), prove the balanced-sample upper rate in Theorem 1, and claim minimax optimality only for \\(d\\le4\\); their Discussion leaves \\(d>4\\) open. Their supplement localizes each dual potential separately after one-coordinate support exchanges. The upper theorem changes both steps: arbitrary-subset exchanges produce dimension-saturated optimal-sum geometry, and common-support interpolation yields jointly normalized concave potentials. The two-margin identity in Lemma 5 is only a definitional sanity reduction and is not counted toward novelty. Manole and Niles-Weed's Theorem 22 supplies the closest all-estimator lower architecture, but its fuzzy-hypothesis argument gives \\((m\\log m)^{-2/d}\\) for the two-margin quadratic cost. Lin, Gao, Blanchet, and Glynn's ICML 2025 Proposition 3.6 and Theorem 4.3 study binary covariate-aware causal transport: a mirror-covariate relaxation interpolates between unconditional and conditional bounds and has a plug-in rate under regular Brenier potentials. Their AISTATS 2026 follow-up proves continuity of binary conditional transport under adapted Wasserstein distance and analyzes a direct nonparametric estimator. Their 2026 smooth-density preprint gives a wavelet estimator and asymptotic normality for quadratic binary conditional transport. These covariate-assisted results inform the causal-transport framing but neither tighten nor represent the unconditional arbitrary-margin endpoint with growing \\(K\\), so the comparator table records them as informed-by rather than extension targets. Hundrieser, Staudt, and Munk show that a binary \\(c\\)-transform transfers entropy between two potentials; the multi-margin transform depends on all other potentials and has no corresponding tuple contraction. Hundrieser, Klatt, Staudt, and Munk characterize two-margin empirical-cost limits under Donsker dual classes, not the growing-arm high-dimensional transition. Han and Zhu's 2026 two-mode stability theorem assumes regular Monge structure and treats barycentric or uniformly concave sum costs, not the arbitrary-margin repulsive endpoint or its statistical risk. Weed and Bach supply the multiscale quantization background but estimate an empirical measure in Wasserstein distance rather than a smooth MOT value. Wang and Wang characterize zero residual for selected scalar families, while Wang's survey identifies vector mixability and attainable sum laws as open. Koike, Lin, and Wang analyze identical scalar margins and do not cover arbitrary heterogeneous vector laws. Manole, Balakrishnan, and Wasserman derive near-minimax interval lengths for sliced Wasserstein distance through one-dimensional quantiles. Ji, Lei, and Spector derive model-agnostic validity from dual feasibility but no all-arm minimax expected-length converse. Armstrong and Kolesar's ordered modulus motivates the one-sided decision criterion in a linear Gaussian model. Cheryala, Alaya, and Bouzebda establish multi-margin dual attainment and conjugacy without statistical capacity bounds, and Kravtsova treats fixed finite supports rather than arbitrary unit-ball marginals or growing \\(K\\). Aronow, Green, and Lee prove sharp unequal-allocation variance inference for two arms; their multiple-treatment remark does not supply the unequal three-margin result. Angrist, Lang, and Oreopoulos provide the randomized STAR experiment. Gao--Ge--Qian's application uses native cell sizes \\(161,37,36\\); the balanced theorem applies to the audit only under the declared i.i.d. superpopulation law, known bound, affine scale, complete randomization, and randomized balanced subsampling.",
+  "technical_internal_limitation": "The exact small-arm rate remains answer-open. The finite-support perturbation template is operational, but no choice of its support, signed directions, amplitudes, and hypothesis priors is asserted to attain the missing rate: endpoint separation, product-law indistinguishability, and reduced-cost resistance to every rematching column must be established together. The only settled lower helper is the definitional two-margin specialization scaled by \\(K^{-2}\\), whereas the improved upper theorem can retain a \\(K^{-1}m^{-2/d}\\) term; tensoring two-margin gadgets in fixed dimension does not bridge that factor because alternative arms can rematch. The official Gao--Ge--Qian supplement also asserts \\(\\sum_k\\|y_1(k)-y_2(k)\\|_2^2\\le2K\\) from unit-ball support, although the displayed support condition alone yields \\(4K\\); this core therefore re-proves the needed support theorem and does not borrow that step. The certified computation theorem is fixed-dimensional and polynomial in \\((K/\\epsilon)^d\\), not a claim of generic polynomial-time exact MOT. The STAR audit discards observations, depends on a known outcome bound and a superpopulation model, and does not reproduce the published numerical tightening.",
+  "honest_scope": "Every numbered statement is to be proved. The exact residual envelope, optimal-sum diameter, improved empirical upper bound, large-arm minimax claims, computation certificate, and STAR audit are presolve-supported but not treated as established. The exact all-\\(K\\) rate and the honest one-sided converse are the principal open content; the named simultaneous-marginal family is a construction handle whose required endpoint separation and rematching resistance are not assumed. The proposal makes no density or smoothness assumption, fixes \\(d>4\\), requires \\(m=N/K\\to\\infty\\), and preserves the uncentered second-moment endpoint \\(L\\). When only two margins are nondegenerate, Lemma 5 is definitionally the ordinary quadratic two-margin transport cost and serves only as a sanity reduction; when \\(K\\) is fixed, the known sandwich retains the Manole--Niles-Weed logarithmic gap; when \\(K\\gtrsim N^{1/4}\\), Theorems 8 and 9 reduce both decision risks to the familiar root-\\(N\\) mean problem. For the hypercube special case, Proposition 4 gives zero for even \\(K\\) and \\(K^{-2}\\) for odd \\(K\\), including \\(1/9\\) at \\(K=3,d=5\\). The empirical STAR audit is conditional on its declared known-bound scaling and i.i.d. randomized-subsampling model and makes no claim for the native unequal-count computation.",
+  "seeds": [
+    "S1: exact all-arm estimation and honest one-sided length frontier",
+    "S2: sharp dimension-saturated residual and optimal-sum support geometry",
+    "S3: jointly conjugate dual-potential complexity dichotomy",
+    "S4: exact one-sided expected-length modulus through mixability boundaries",
+    "S5: fixed-arm logarithmic minimax closure",
+    "S6: unequal-cell STAR target and sampling audit",
+    "S7: instance-adaptive empirical support certificate",
+    "S8: multiscale intrinsic-dimension frontier for the MOT endpoint",
+    "S9: uncentered-versus-centered decomposition"
+  ],
+  "seed_details": [
+    {
+      "seed": "S1",
+      "rank": 1,
+      "anchor": "gao_ge_qian_2025",
+      "anchor_location": "The Introduction, equation (4), Theorem 1, Proposition 2, the supplement's dual-potential proof, and the Discussion were read from arXiv:2406.07868 and the official PMLR version.",
+      "question": "What are the exact minimax absolute-error and uniformly honest one-sided excess-length rates for \\(L(\\mathbf P)\\) for every legal \\(K=K_N\\), including every logarithmic and arm-count transition?",
+      "first_changed_proof_step": "Replace the sum of \\(K\\) separate dual empirical-process suprema by a jointly normalized tuple analysis, and replace the two-margin lower embedding by simultaneous marginal perturbations certified against every rematching column.",
+      "destination_search": "Exact-title, target-formula, citation, and 2025--2026 MOT statistics checks found no arbitrary-unit-ball growing-arm result beyond the anchor. The verified ICML 2025 and AISTATS 2026 Lin--Gao--Blanchet--Glynn papers treat covariate-aware binary conditional transport; other close new work proves dual conjugacy or fixed-support weak limits.",
+      "adjacent_threads": [
+        "manole_nilesweed_2024: smooth-cost empirical upper bounds and fuzzy-hypothesis all-estimator lower bounds",
+        "lin_gao_blanchet_glynn_2025: binary covariate-aware conditional-transport relaxation and plug-in rate",
+        "lin_gao_blanchet_glynn_2026: binary adapted-Wasserstein conditional-transport estimation",
+        "hundrieser_staudt_munk_2024: binary transform entropy transfer",
+        "ji_lei_spector_2026: dual-feasible one-sided validity",
+        "armstrong_kolesar_2018: ordered-modulus expected-length converse"
+      ],
+      "motif": "M10+M11(a)+M7",
+      "target_tier": "flagship",
+      "red_team": "Immediate from Gao--Ge--Qian plus Manole--Niles-Weed because the former supplies the upper bound and the latter supplies a minimax converse.",
+      "rebuttal": "The upper and lower terms differ by a factor in \\(K\\) and by logarithms; the two-margin family can be neutralized by the remaining margins, and neither paper proves the ordered one-sided length converse.",
+      "anti_pattern_check": "The core does not assert the published plug-in rate is minimax, and its open node names a simultaneous-marginal or coupled-dual handle rather than a guessed rate.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "decision": "selected"
+    },
+    {
+      "seed": "S2",
+      "rank": 2,
+      "anchor": "gao_ge_qian_2025",
+      "anchor_location": "The supplement's Lemma 7 and proof on official pages 20--21 were read together with equation (5) and the approximate-joint-mixability Discussion.",
+      "question": "Is the exact worst-case residual above the mean floor \\(\\min\\{K,d\\}/K^2\\), and does every optimal coupling have sum-support diameter at most \\(2\\sqrt{\\min\\{K,d\\}}\\)?",
+      "first_changed_proof_step": "Exchange arbitrary coordinate subsets between two optimal-support atoms and use marginal-preserving extreme-point rounding, rather than summing one-coordinate inequalities.",
+      "destination_search": "Searches for vector joint mixability, squared-sum MOT support diameter, and marginal-preserving vector balancing found scalar mixability classes and classical balancing, but no stated universal vector endpoint formula.",
+      "adjacent_threads": [
+        "wang_wang_2016: scalar special-class joint mixability",
+        "wang_2015_mixability_questions: vector mixability and attainable-sum open problems",
+        "koike_lin_wang_2024: identical scalar negative dependence",
+        "ambrus_bozzai_2024: Euclidean vertex rounding"
+      ],
+      "motif": "M10+M7",
+      "target_tier": "field",
+      "red_team": "Known vector balancing plus the independent coupling makes the result immediate.",
+      "rebuttal": "Independence gives only the \\(K\\) bound, while deterministic balancing does not preserve all marginal laws; the randomized block-polytope decomposition and arbitrary-subset optimality are the new coupling steps.",
+      "anti_pattern_check": "The claim is uniform over all unit-ball laws and supplies exact extremizers; it is not a hand-tuned witness or a renamed centered-variance statement.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4,
+        "total": 22
+      },
+      "decision": "integrated into S1"
+    },
+    {
+      "seed": "S3",
+      "rank": 3,
+      "anchor": "hundrieser_staudt_munk_2024",
+      "anchor_location": "The Introduction, Theorem 2.2, its binary \\(c\\)-transform entropy proof, the semiconcave example, and the final open-problem discussion were read from arXiv:2202.10434.",
+      "question": "Does simultaneous \\(c_K\\)-conjugacy contract the product-metric complexity of all \\(K\\) potentials to a dimension-controlled budget, or is additive arm complexity unavoidable?",
+      "first_changed_proof_step": "Replace the binary isometry between a potential and its \\(c\\)-transform by cyclic gauge-normalized conjugation of the full tuple and exploit the sharp optimal-sum diameter.",
+      "destination_search": "The 2026 unified MOT duality preprint proves existence of conjugate tuples but explicitly does not derive their statistical capacity; no tuple entropy theorem was located.",
+      "adjacent_threads": [
+        "hundrieser_klatt_staudt_munk_2024: Donsker dual classes and two-margin limits",
+        "manole_nilesweed_2024: localized semiconcave entropy",
+        "cheryala_alaya_bouzebda_2026: simultaneous conjugate dual attainment"
+      ],
+      "motif": "M11+M7",
+      "target_tier": "field",
+      "red_team": "Apply the two-margin entropy-transfer theorem \\(K\\) times.",
+      "rebuttal": "That reproduces the additive union bound; a coordinate transform depends jointly on the other \\(K-1\\) potentials and yields neither a tuple contraction nor a matching lower bound.",
+      "anti_pattern_check": "The seed states a two-sided complexity dichotomy with explicit regime parameters rather than an unquantified empirical-process improvement.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "decision": "integrated as the open bottleneck of S1"
+    },
+    {
+      "seed": "S4",
+      "rank": 4,
+      "anchor": "ji_lei_spector_2026",
+      "anchor_location": "The Introduction, Theorem 3.1 on uniform validity, Theorem 3.2 on dual approximation error, and the boundary nonregularity discussion were read from public version 3 of arXiv:2310.08115.",
+      "question": "Can one characterize the exact ordered testing modulus and minimax positive-part expected shortfall of honest lower bounds for \\(L\\) through mean-floor and jointly mixable laws?",
+      "first_changed_proof_step": "Replace generic weak-duality validity by an ordered low-law versus high-law product-experiment modulus whose endpoint separation survives all multi-arm rematchings.",
+      "destination_search": "The search found exact ordered moduli only for linear Gaussian regression and near-minimax transport intervals only for sliced Wasserstein distance.",
+      "motif": "M10+M11(a)",
+      "target_tier": "field",
+      "red_team": "Subtracting a known uniform point-risk bound and applying Markov's inequality already solves inference.",
+      "rebuttal": "That produces only a conservative upper construction; it does not prove minimax expected length, sharp constants, or an ordered converse at nonregular laws.",
+      "anti_pattern_check": "The seed treats coverage and length as a separate decision problem and uses positive-part shortfall, so noncoverage events cannot create artificial negative length.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 21
+      },
+      "decision": "not separately advanced; retained as a required inference component of S1"
+    },
+    {
+      "seed": "S5",
+      "rank": 5,
+      "anchor": "manole_nilesweed_2024",
+      "anchor_location": "The Introduction, compact-support empirical-process upper argument, Proposition 21, Theorem 22, and the terminal fuzzy-hypothesis proof were read from arXiv:2106.13181v3.",
+      "question": "For each fixed \\(K\\), is the exact high-dimensional functional-estimation rate \\(m^{-2/d}\\), \\((m\\log m)^{-2/d}\\), or a different multiscale rate?",
+      "first_changed_proof_step": "Replace the random-label uniformity test at packing size \\(m\\log m\\) by a multiscale or moment-matched experiment, or prove that the logarithm is intrinsic.",
+      "destination_search": "The current paper, later thesis treatment, and 2025--2026 searches continue to state the all-estimator result only up to polylogarithmic factors.",
+      "motif": "M11(a)",
+      "target_tier": "field",
+      "red_team": "Manole--Niles-Weed already call their rate minimax optimal.",
+      "rebuttal": "Their all-estimator theorem is \\((m\\log m)^{-2/d}\\), while the empirical upper rate is \\(m^{-2/d}\\); the paper explicitly retains polylogarithmic slack.",
+      "anti_pattern_check": "This is a genuine rate frontier, but it is nested into S1 because a fixed-arm theorem alone would not answer the requested growing-arm problem.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 20
+      },
+      "decision": "not separately advanced"
+    },
+    {
+      "seed": "S6",
+      "rank": 6,
+      "anchor": "gao_ge_qian_2025",
+      "anchor_location": "The balanced theoretical display, STAR application, public code, and the original Angrist--Lang--Oreopoulos design were checked; the analyzed margins have sizes \\(161,37,36\\) and are used without balancing.",
+      "question": "Which exact target and sampling guarantee survives native unequal allocation, and what information loss is incurred by a declared balanced subsample?",
+      "first_changed_proof_step": "Declare a known finite outcome bound and its affine scale, impose an i.i.d. three-potential-outcome superpopulation law with complete randomization, and draw an outcome-independent common-size subsample before invoking the balanced product experiment.",
+      "destination_search": "Aronow--Green--Lee prove the unequal two-arm sharp-variance result but no unequal three-margin MOT rate or expected-length theorem was found.",
+      "motif": "M1+M8",
+      "target_tier": "subfield",
+      "red_team": "MOT identification ignores sample sizes, so the unequal cells are irrelevant.",
+      "rebuttal": "Population identification ignores cell sizes, but sampling risk, confidence calibration, and the finite-population variance coefficients do not.",
+      "anti_pattern_check": "The seed uses a known-bound affine map and a declared superpopulation randomization contract; it is retained as a conditional audit rather than misrepresented as the main frontier.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 21
+      },
+      "decision": "not separately advanced; retained as the mandatory consumer audit"
+    },
+    {
+      "seed": "S7",
+      "rank": 7,
+      "anchor": "gao_ge_qian_2025",
+      "anchor_location": "The implementation section and dual lower-bound discussion were read together with the distinction between a discrete empirical certificate and a population confidence bound.",
+      "question": "Can a computable local support or dual-geometry radius deliver a population-honest lower endpoint that adapts to approximate joint mixability?",
+      "first_changed_proof_step": "Convert a discrete primal--dual gap into a population error envelope by combining quantization error with a coupled marginal empirical-process certificate.",
+      "destination_search": "Available dual-feasibility methods guarantee one-sided validity but do not give this fixed-dimensional instance-adaptive width or a matching all-arm converse.",
+      "motif": "M10+M8",
+      "target_tier": "field",
+      "red_team": "The existing solver already emits a dual lower bound.",
+      "rebuttal": "That quantity lower-bounds the empirical discrete optimum, not the population endpoint; calibration and expected-width optimality remain absent.",
+      "anti_pattern_check": "The computable object is explicit and paired with inference, but the rate-optimal version is subsumed by S1.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "decision": "not separately advanced"
+    },
+    {
+      "seed": "S8",
+      "rank": 8,
+      "anchor": "weed_bach_2019",
+      "anchor_location": "The Introduction, dyadic partition upper construction, Wasserstein-dimension lower argument, effective finite-sample dimension, and conclusion were read from arXiv:1707.00087.",
+      "question": "Can ambient \\(d\\) in the all-arm endpoint frontier be replaced by a joint multiscale effective dimension of the observed marginal supports?",
+      "first_changed_proof_step": "Insert marginal-specific dyadic covering profiles into the semiconcave dual entropy integral while preserving the tuple feasibility constraint and construct matching rematching-resistant multiscale alternatives.",
+      "destination_search": "Lower-complexity adaptation is established for empirical Wasserstein approximation and two-margin cost estimation, but no multi-margin smooth-value analogue was found.",
+      "motif": "M11+M7",
+      "target_tier": "field",
+      "red_team": "Plug the Weed--Bach empirical Wasserstein rate into Lipschitz stability.",
+      "rebuttal": "That produces the slower first-order approximation rate and cannot certify the quadratic smooth-cost gain or an all-estimator lower bound.",
+      "anti_pattern_check": "The proposed effective dimension would be a named observable regime parameter, but this seed is less direct than the ambient-dimension frontier.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "decision": "not advanced beyond Step 0"
+    },
+    {
+      "seed": "S9",
+      "rank": 9,
+      "anchor": "gao_ge_qian_2025",
+      "anchor_location": "Equation (5) was read and already gives the exact mean-square plus centered-residual decomposition.",
+      "question": "Can \\(L\\) be decomposed into the mean floor and a centered variance endpoint?",
+      "first_changed_proof_step": "No changed step exists because the anchor already performs the translation decomposition.",
+      "destination_search": "The exact formula is occupied in the anchor.",
+      "motif": "M1",
+      "target_tier": "subfield",
+      "red_team": "Immediate from Gao--Ge--Qian equation (5).",
+      "rebuttal": "The objection holds; the decomposition is retained only as bookkeeping and is not a contribution.",
+      "anti_pattern_check": "This seed is rejected as already published.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 1,
+        "novelty": 0,
+        "feasibility": 5,
+        "consumer_value": 2,
+        "total": 13
+      },
+      "decision": "dropped"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "S1",
+      "thread": "Exact high-dimensional MOT endpoint risk",
+      "sources": [
+        "gao_ge_qian_2025",
+        "manole_nilesweed_2024",
+        "kravtsova_2025"
+      ],
+      "settled": "The anchor identifies \\(L\\), proves its empirical upper rate, and closes minimax risk for \\(d\\le4\\); two-margin smooth cost has an \\(m^{-2/d}\\) empirical upper rate and an all-estimator lower rate up to a logarithm.",
+      "unsettled": "No source closes the fixed-arm logarithm, the growing-arm \\(K\\) factor, or the all-estimator frontier for arbitrary unit-ball margins."
+    },
+    {
+      "candidate": "S1",
+      "thread": "Honest one-sided endpoint length",
+      "sources": [
+        "ji_lei_spector_2026",
+        "manole_balakrishnan_wasserman_2022",
+        "armstrong_kolesar_2018"
+      ],
+      "settled": "Dual feasibility yields model-agnostic validity, sliced Wasserstein admits finite-sample near-minimax intervals, and ordered Gaussian moduli characterize one-sided expected length for linear functionals.",
+      "unsettled": "The nonlinear \\(K\\)-margin product-experiment modulus, its rematching-resistant least-favorable family, and exact positive-part expected length remain open."
+    },
+    {
+      "candidate": "S2",
+      "thread": "Vector mixability and sum geometry",
+      "sources": [
+        "wang_wang_2016",
+        "wang_2015_mixability_questions",
+        "koike_lin_wang_2024",
+        "ambrus_bozzai_2024"
+      ],
+      "settled": "Special scalar families have joint-mixability criteria, and Euclidean vector balancing controls rounded sums.",
+      "unsettled": "No cited theorem gives the universal arbitrary-vector residual \\(\\min\\{K,d\\}\\), preserves all marginal laws through rounding, or bounds every optimal sum-support diameter sharply."
+    },
+    {
+      "candidate": "S3",
+      "thread": "Dual entropy and limit theory",
+      "sources": [
+        "hundrieser_staudt_munk_2024",
+        "hundrieser_klatt_staudt_munk_2024",
+        "cheryala_alaya_bouzebda_2026",
+        "han_zhu_2026"
+      ],
+      "settled": "Binary \\(c\\)-transforms transfer entropy, Donsker two-margin classes yield Gaussian-process supremum limits, and general MOT admits conjugate dual maximizers.",
+      "unsettled": "No result controls the product-seminorm capacity of a jointly conjugate growing tuple or determines whether shared squared-sum geometry removes additive arm complexity."
+    },
+    {
+      "candidate": "S6",
+      "thread": "STAR and unequal allocation",
+      "sources": [
+        "gao_ge_qian_2025",
+        "angrist_lang_oreopoulos_2009",
+        "aronow_green_lee_2014"
+      ],
+      "settled": "The STAR study defines the randomized cells, the anchor computes a native unequal-size empirical MOT endpoint, the declared known-bound affine map preserves the contrast endpoint up to scale, and sharp unequal-allocation variance inference is known for two arms.",
+      "unsettled": "The anchor's balanced rate does not cover its \\(161/37/36\\) computation; the audit instead conditions on an i.i.d. superpopulation model and randomized balancing, while native unequal three-margin inference and the information cost of balancing are not established."
+    },
+    {
+      "candidate": "S1",
+      "thread": "Covariate-assisted binary causal transport",
+      "sources": [
+        "lin_gao_blanchet_glynn_2025",
+        "lin_gao_blanchet_glynn_2026",
+        "lin_gao_blanchet_glynn_inference_2026"
+      ],
+      "settled": "Mirror-covariate relaxation interpolates between unconditional and conditional binary bounds, adapted Wasserstein continuity supports a direct binary conditional-transport estimator, and smooth-density wavelets yield quadratic conditional-transport inference.",
+      "unsettled": "These covariate-aware binary results do not determine the minimax frontier for the unconditional second-moment endpoint over arbitrary \\(K\\) marginals as \\(K\\) grows."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Zijun Gao, Shu Ge, and Jian Qian",
+      "year": 2025,
+      "venue": "AISTATS, PMLR 258",
+      "bibkey": "gao_ge_qian_2025",
+      "one_line": "Theorem 1 gives the balanced empirical endpoint upper rate and Proposition 2 gives the printed lower expression, with minimax optimality asserted only for \\(d\\le4\\).",
+      "relevant_to": "thm:improved-plugin-upper"
+    },
+    {
+      "author": "Tudor Manole and Jonathan Niles-Weed",
+      "year": 2024,
+      "venue": "Annals of Applied Probability",
+      "bibkey": "manole_nilesweed_2024",
+      "one_line": "Theorem 22 gives a two-margin all-estimator lower bound of order \\((m\\log m)^{-2/d}\\) for quadratic cost against an \\(m^{-2/d}\\) empirical upper rate.",
+      "relevant_to": "oeq:exact-all-k-frontier"
+    },
+    {
+      "author": "Shayan Hundrieser, Thomas Staudt, and Axel Munk",
+      "year": 2024,
+      "venue": "Annales de l'Institut Henri Poincare, Probabilites et Statistiques",
+      "bibkey": "hundrieser_staudt_munk_2024",
+      "one_line": "A binary \\(c\\)-transform preserves uniform entropy and gives the semiconcave two-margin empirical-cost rate, without a \\(K\\)-tuple capacity result.",
+      "relevant_to": "oeq:joint-dual-complexity"
+    },
+    {
+      "author": "Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn",
+      "year": 2025,
+      "venue": "ICML, PMLR 267",
+      "bibkey": "lin_gao_blanchet_glynn_2025",
+      "one_line": "Proposition 3.6 and Theorem 4.3 treat a covariate-aware binary transport relaxation and its regular-potential plug-in rate, not unconditional arbitrary-margin growth.",
+      "relevant_to": "oeq:exact-all-k-frontier"
+    },
+    {
+      "author": "Bin Wang and Ruodu Wang",
+      "year": 2016,
+      "venue": "Mathematics of Operations Research",
+      "bibkey": "wang_wang_2016",
+      "one_line": "The paper characterizes joint mixability for selected scalar distribution classes rather than a universal quantitative residual for heterogeneous vector margins.",
+      "relevant_to": "thm:sharp-residual-envelope"
+    },
+    {
+      "author": "Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn",
+      "year": 2026,
+      "venue": "AISTATS, PMLR 300",
+      "bibkey": "lin_gao_blanchet_glynn_2026",
+      "one_line": "Adapted Wasserstein continuity yields a direct consistent nonparametric estimator for binary conditional transport with a convergence-rate analysis.",
+      "relevant_to": "oeq:exact-all-k-frontier"
+    },
+    {
+      "author": "Wenlong Ji, Lihua Lei, and Asher Spector",
+      "year": 2026,
+      "venue": "Public preprint",
+      "bibkey": "ji_lei_spector_2026",
+      "one_line": "Theorem 3.1 provides model-agnostic one-sided validity from dual feasibility, while no minimax expected-length or growing-margin theorem is given.",
+      "relevant_to": "oeq:exact-all-k-frontier"
+    },
+    {
+      "author": "Peter M. Aronow, Donald P. Green, and Donald K. K. Lee",
+      "year": 2014,
+      "venue": "Annals of Statistics",
+      "bibkey": "aronow_green_lee_2014",
+      "one_line": "Sharp unequal-allocation variance bounds and narrow conservative Wald intervals are proved for two-arm randomized experiments.",
+      "relevant_to": "prop:star-balanced-audit"
+    },
+    {
+      "author": "Tianyi Lin, Nhat Ho, Marco Cuturi, and Michael I. Jordan",
+      "year": 2022,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "lin_ho_cuturi_jordan_2022",
+      "one_line": "Generic discrete multimarginal transport has exponential tensor size, motivating cost-specific separation rather than a generic exact solver claim.",
+      "relevant_to": "thm:certified-computation"
+    },
+    {
+      "author": "Joshua Angrist, Daniel Lang, and Philip Oreopoulos",
+      "year": 2009,
+      "venue": "American Economic Journal: Applied Economics",
+      "bibkey": "angrist_lang_oreopoulos_2009",
+      "one_line": "The randomized STAR experiment supplies control, academic-services, merit-scholarship, and combined-treatment cells underlying the three-margin audit.",
+      "relevant_to": "prop:star-balanced-audit"
+    }
+  ],
+  "novelty_justification": "The closest theorem-level comparator is Gao--Ge--Qian Theorem 1, which studies the same uncentered endpoint but has the \\(d>4\\) upper term \\(K^{-1/2}m^{-2/d}\\) and cap \\(K^{-1}\\). Theorem 6 promises a strict deterministic and stochastic tightening to \\(K^{-1}m^{-2/d}\\) and \\(\\min\\{K,d\\}/K^2\\), based on two new cost-specific steps: marginal-preserving extreme-point rounding and arbitrary-subset optimal-support exchanges. Lemma 5 is only the definitional substitution \\(K^2L=W_2^2\\) and contributes no novelty. Manole--Niles-Weed Theorem 22 is the closest all-estimator lower result, but it is two-marginal, retains \\(\\log m\\), and after embedding is scaled by \\(K^{-2}\\); the exact all-arm rate is therefore not claimed as an already known formula. The key open question names a rational finite-support family and requires simultaneous verification of mixture indistinguishability, endpoint separation, and reduced-cost slack against every rematching column, or a sharper aggregate dual bound. Lin--Gao--Blanchet--Glynn's ICML 2025 and AISTATS 2026 results, together with their smooth-density inference follow-up, concern covariate-aware binary conditional transport and are recorded only as informed-by comparators to the unconditional arbitrary-margin growing-\\(K\\) frontier. Ji--Lei--Spector establish validity but not minimax expected excess length; the ordered converse remains an independent contribution. Searches through September 2026 found general MOT conjugacy and fixed-support limit papers, but no closer result subsuming the arbitrary-margin growing-arm frontier."
+}

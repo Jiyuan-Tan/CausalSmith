@@ -29,6 +29,8 @@ token_usage:
   pipeline_tokens_consumed: 378225702
   total_tokens_consumed: null
 banked_on: "2026-09-09"
+paper_score: 6.8
+paper_score_rationale: "The paper delivers a potentially important and formally verified variance characterization, phase frontier, software identity, and impossibility result, but central notation and theorem presentation require substantial repair before the contribution is journal-ready."
 ---
 
 # exp_dense_group_partition_projection_phase / v1 — Accepted

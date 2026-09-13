@@ -1,0 +1,1074 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}multilayer\_\allowbreak{}stayer\_\allowbreak{}harm}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Conditional random assignment identifies the arm-specific layer--outcome margins but not the joint response type, same-positive-layer stayer mass, or harm among those stayers. For any finite set of KMV linear response-type restrictions \(\mathcal R_T\), an expanded-state flow polytope gives sharp conditional harm-fraction endpoints as two explicit Charnes--Cooper linear programs, with an exact decoder and a finite-strata aggregate obtained by weighting numerator and denominator by \(P(X=x)\). KMV Remark 2(i) already includes \(D_1\ge D_0\) as Strong Monotonicity; the genuine closed-form contribution is the binary-harm collapse in that submodel: the stayer diagonal is a Cartesian box, the joint stayer--harm region is an exact prism, and its ratio contracts to sharp \(O(L)\) endpoints with an observable iff certificate for unavoidable harm. A protocol-controlled retain-or-upgrade tier design is one credibility example, not the source or claimed novelty of Strong Monotonicity.
+
+\section{Project justification}
+
+\paragraph{Gap.} Kroft--Mourifi\'e--Vayalinkal provide the governing multilayer response-type framework, explicitly list Strong Monotonicity among the admissible researcher-chosen restrictions, and derive sharp mean-effect bounds under general linear response-type restrictions. Existing probability-of-causation and harm results do not characterize binary harm within latent same-positive-layer stayers when both the harm numerator and stayer denominator depend on an unidentified multilayer response table. Nor do they give the all-layer Cartesian diagonal projection and closed-form ratio contraction under Strong Monotonicity.
+
+\paragraph{Niche.} The lead result extends the KMV response-type program from conditional means to the binary fraction harmed among same-layer stayers: at fixed \(X=x\), two explicit finite linear programs give the exact sharp interval for any finite linear \(\mathcal R_T\), including Lee monotonicity with movements in both directions among positive layers. The finite-strata target aggregates the flow numerator and denominator with observable weights \(P(X=x)\).
+
+\paragraph{Fill.} An exact expanded-state decoder proves sharpness for the general response-type programs. Under KMV Strong Monotonicity, strict-triangular residual transport yields the Cartesian diagonal box, simultaneous binary-outcome completion yields the joint hinge prism, and a coordinatewise fractional contraction yields the displayed \(O(L)\) endpoints and the unavoidable-harm iff certificate.
+
+\section{Related work}
+
+Kroft, Mourifi\'e, and Vayalinkal supply the anchor response-type framework. Their June 3, 2026 version treats restrictions on response-type probabilities as researcher-chosen linear constraints \(\mathcal R_T\); Remark 2(i) explicitly includes \(D_1\ge D_0\) as Strong Monotonicity, and Theorem 1 applies within that framework. Accordingly, this paper does not claim to introduce or supply the first support for ordered-layer monotonicity. Its broader result is a binary-harm extension: for any finite linear \(\mathcal R_T\), including Lee monotonicity alone with both directions among positive layers, the harmed-stayer fraction has sharp endpoints given by two explicit linear programs. Its distinctive closed-form result is the collapse under KMV Strong Monotonicity to an all-layer Cartesian diagonal box, an exact joint hinge prism, and an \(O(L)\) ratio formula. The protocol-controlled retain-or-upgrade design remains only a credibility example. Possebom and Riva give sharp one-always-observed-stratum probability-of-causation bounds; Kallus gives sharp harm bounds from observed arm outcome marginals; and de Aguas, Krumscheid, Pensar, and Biele give sharp benefit and harm bounds across ordered outcome categories. Those results inform binary outcome coupling but do not identify the multilayer same-stayer response table or its unidentified-denominator ratio. The expanded-state transport and Charnes--Cooper steps are standard finite-dimensional optimization machinery and carry no novelty claim. Fang--Santos and Hong--Li provide the directional and numerical delta framework, while Kaido--Molinari--Stoye provide projection-inference precedent; the remaining pointwise numerical-delta verification at simultaneous ties and structural zeros is separate from the identification theorems proved here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(H_x=P^{\dagger}(Y_{0,D_0}=1,Y_{1,D_0}=0\mid D_0=D_1>0,X=x)\); for finite \(\mathcal X\), \(H_{\mathcal X}=\{\sum_x\omega_xP^{\dagger}(D_0=D_1>0,Y_{0,D_0}=1,Y_{1,D_0}=0\mid X=x)\}/\{\sum_x\omega_xP^{\dagger}(D_0=D_1>0\mid X=x)\}\)..
+Primary functional / estimator / diagnostic: \(\mathcal I_{\mathcal R_T,x}(\mu_x)=[\min_{\gamma\in\Gamma_{\mathcal R_T}(\mu_x)}\mathsf N(\gamma)/\mathsf S(\gamma),\ \max_{\gamma\in\Gamma_{\mathcal R_T}(\mu_x)}\mathsf N(\gamma)/\mathsf S(\gamma)]\), with the finite-strata analogue obtained by replacing numerator and denominator by \(\sum_x\omega_x\mathsf N(\gamma_x)\) and \(\sum_x\omega_x\mathsf S(\gamma_x)\). Under \(\mathcal R_T^{\uparrow}\), this equals \([H_-(\mu),H_+(\mu)]=[\frac{\sum_d(\ell_d-a_d)_+}{\sum_d\min\{u_d,\max\{\ell_d,a_d\}\}},\frac{\sum_db_d}{\sum_d\max\{\ell_d,b_d\}}]\)..
+\begin{itemize}
+  \item \texttt{L} --- \texttt{fixed integer}; \(\{2,3,\ldots\}\); \texttt{number of positive observation layers}
+  \item \texttt{kappa} --- \texttt{fixed scalar}; \((0,1]\); \texttt{observable lower separation for total positive-\allowbreak{}layer stayer mass}
+  \item \texttt{Z} --- \texttt{random variable}; \(\{0,1\}\); \texttt{randomized assignment}
+  \item \texttt{Dpot} --- \texttt{potential-\allowbreak{}layer vector}; \(\{0,\ldots,L\}^{2}\); \texttt{potential selection layers under both assignments;\allowbreak{} researcher-\allowbreak{}chosen response-\allowbreak{}type restrictions may constrain their joint law,\allowbreak{} with protocol-\allowbreak{}controlled retain-\allowbreak{}or-\allowbreak{}upgrade assignment as one design supporting Strong Monotonicity}
+  \item \texttt{Ypot} --- \texttt{potential-\allowbreak{}outcome array}; \(\{0,1\}^{2L}\); \texttt{binary outcomes at positive layers}
+  \item \texttt{Pstar} --- \texttt{probability law}; laws of \((Z,D^{\mathrm{pot}},Y^{\mathrm{pot}})\); \texttt{full-\allowbreak{}data law}
+  \item \texttt{Mclass} --- \texttt{class of probability laws}; \(\mathcal M_L\); \texttt{full-\allowbreak{}data KMV response-\allowbreak{}type submodel under Strong Monotonicity of selection layers}
+  \item \texttt{e} --- \texttt{scalar}; \((0,1)\); \texttt{known or design-\allowbreak{}identified assignment probability}
+  \par\smallskip\noindent\emph{Definition.} \(e=\Pr(Z=1)\)
+  \item \texttt{W} --- \texttt{observed random vector}; \(\{0,1\}\times\{0,\ldots,L\}\times(\{0,1\}\cup\{\star\})\)
+  \par\smallskip\noindent\emph{Definition.} \(W=(Z,D,Y^{\mathrm{obs}})\) is defined by the observation/coarsening map: \(D=D_Z\), \(Y^{\mathrm{obs}}=Y_{Z,D_Z}\) if \(D_Z>0\), and \(Y^{\mathrm{obs}}=\star\) if \(D_Z=0\). These equalities are conventions of the map, not restrictions defining \(\mathcal M_L\).
+  \item \texttt{P} --- \texttt{probability law}; laws of \(W\); \texttt{observable law}
+  \par\smallskip\noindent\emph{Definition.} \(P=\mathcal L(W)\)
+  \item \texttt{r} --- \texttt{probability vector}; \(\Delta^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(r_d=P(D=d\mid Z=0)\), \(d=0,\ldots,L\)
+  \item \texttt{c} --- \texttt{probability vector}; \(\Delta^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(c_d=P(D=d\mid Z=1)\), \(d=0,\ldots,L\)
+  \item \texttt{Theta} --- \texttt{set-\allowbreak{}valued map}; \(P\mapsto\Theta(P)\); \texttt{upper-\allowbreak{}triangular response-\allowbreak{}type transport polytope induced by strong tier monotonicity}
+  \item \texttt{q0} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(q_{0d}=P(D=d,Y^{\mathrm{obs}}=1\mid Z=0)\), \(d=1,\ldots,L\)
+  \item \texttt{q1} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(q_{1d}=P(D=d,Y^{\mathrm{obs}}=1\mid Z=1)\), \(d=1,\ldots,L\)
+  \item \texttt{R} --- \texttt{cumulative probability vector}; \([0,1]^{L+1}\)
+  \par\smallskip\noindent\emph{Definition.} \(R_d=\sum_{j=0}^{d}r_j\) and \(R_{-1}=0\)
+  \item \texttt{C} --- \texttt{cumulative probability vector}; \([0,1]^{L+1}\)
+  \par\smallskip\noindent\emph{Definition.} \(C_d=\sum_{j=0}^{d}c_j\)
+  \item \texttt{ell} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(\ell_d=\max\{0,C_d-R_{d-1}\}\), \(d=1,\ldots,L\)
+  \item \texttt{Dclass} --- \texttt{class of observable laws}; \(\mathcal D_{L,\kappa}\); \texttt{compatible observable laws with separated stayer denominator}
+  \item \texttt{u} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(u_d=\min\{r_d,c_d\}\), \(d=1,\ldots,L\)
+  \item \texttt{a} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(a_d=r_d-q_{0d}+q_{1d}\), \(d=1,\ldots,L\)
+  \item \texttt{b} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\)
+  \par\smallskip\noindent\emph{Definition.} \(b_d=\min\{q_{0d},c_d-q_{1d}\}\), \(d=1,\ldots,L\)
+  \item \texttt{s} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\); \texttt{positive-\allowbreak{}layer stayer masses}
+  \par\smallskip\noindent\emph{Definition.} \(s_d=P^{\star}(D_0=D_1=d)\)
+  \item \texttt{h} --- \texttt{nonnegative vector}; \(\mathbb R_+^{L}\); \texttt{layer-\allowbreak{}specific harm masses}
+  \par\smallskip\noindent\emph{Definition.} \(h_d=P^{\star}(D_0=D_1=d,Y_{0,d}=1,Y_{1,d}=0)\)
+  \item \texttt{K} --- \texttt{set-\allowbreak{}valued map}; \(P\mapsto\mathcal K(P)\); \texttt{joint stayer-\allowbreak{}-\allowbreak{}harm prism}
+  \item \texttt{S} --- \texttt{scalar}; \([0,1]\); \texttt{total positive-\allowbreak{}layer stayer mass}
+  \par\smallskip\noindent\emph{Definition.} \(S=\sum_{d=1}^{L}s_d\)
+  \item \texttt{N} --- \texttt{scalar}; \([0,1]\); \texttt{total positive-\allowbreak{}layer harmed-\allowbreak{}stayer mass}
+  \par\smallskip\noindent\emph{Definition.} \(N=\sum_{d=1}^{L}h_d\)
+  \item \texttt{H} --- \texttt{scalar causal estimand}; \([0,1]\); \texttt{fraction harmed among positive-\allowbreak{}layer stayers}
+  \par\smallskip\noindent\emph{Definition.} \(H=N/S\)
+  \item \texttt{mu} --- \texttt{observable arm-\allowbreak{}cell vector}; \(\Delta^{2L}\times\Delta^{2L}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu=(\mu_0,\mu_1)\), where \(\mu_z(0^{\star})=P(D=0\mid Z=z)\) and \(\mu_z(d,y)=P(D=d,Y^{\mathrm{obs}}=y\mid Z=z)\) for \(z\in\{0,1\}\), \(d=1,\ldots,L\), and \(y\in\{0,1\}\)
+  \item \texttt{v} --- \texttt{generic observable arm-\allowbreak{}cell vector}; \(\Delta^{2L}\times\Delta^{2L}\); \texttt{argument of the observable compatibility and endpoint maps}
+  \item \texttt{Vclass} --- \texttt{observable compatibility set}; \(\mathcal V_{L,\kappa}\subseteq\Delta^{2L}\times\Delta^{2L}\); \texttt{common observable arm-\allowbreak{}cell domain for endpoint evaluation and confidence projection}
+  \item \texttt{phi} --- \texttt{endpoint map}; \(\phi:\mathbb R^{4L+2}\to\mathbb R^2\); \texttt{ambient extension of the two closed-\allowbreak{}form endpoint functionals}
+  \item \texttt{Hlo} --- \texttt{scalar functional}; maps from \(\mathcal V_{L,\kappa}\) to \([0,1]\); \texttt{sharp lower endpoint on the observable arm-\allowbreak{}cell domain}
+  \item \texttt{Hup} --- \texttt{scalar functional}; maps from \(\mathcal V_{L,\kappa}\) to \([0,1]\); \texttt{sharp upper endpoint on the observable arm-\allowbreak{}cell domain}
+  \item \texttt{vex} --- \texttt{observable arm-\allowbreak{}cell vector}; \(\Delta^4\times\Delta^4\); \texttt{nondegenerate two-\allowbreak{}layer numerical witness}
+  \item \texttt{Gammaex} --- \texttt{pair of expanded-\allowbreak{}state response couplings}; \(\Gamma^{\mathrm{ex}}=(\Gamma^-,\Gamma^+)\); \texttt{lower-\allowbreak{} and upper-\allowbreak{}endpoint attainment construction for the two-\allowbreak{}layer witness}
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N\)
+  \item \texttt{muhat} --- \texttt{estimator}; \(\Delta^{2L}\times\Delta^{2L}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\mu_n\) is the pair of empirical arm-cell frequencies
+  \item \texttt{G} --- \texttt{Gaussian random vector}; tangent space of \(\Delta^{2L}\times\Delta^{2L}\)
+  \par\smallskip\noindent\emph{Definition.} \(G\) has independent arm blocks with covariance \(\{\operatorname{diag}(\mu_z)-\mu_z\mu_z^{\top}\}/e\) for \(z=1\) and denominator \(1-e\) for \(z=0\)
+  \item \texttt{Gstar} --- \texttt{bootstrap random vector}; \(\mathbb R^{4L+2}\)
+  \par\smallskip\noindent\emph{Definition.} \(G_n^{\star}\) is a conditionally consistent multinomial bootstrap approximation to \(G\)
+  \item \texttt{eps} --- \texttt{positive sequence}; \(\mathbb R_+^{\mathbb N}\)
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_n\downarrow0\) and \(\sqrt n\,\varepsilon_n\to\infty\)
+  \item \texttt{Tstar} --- \texttt{bootstrap statistic}; \(\mathbb R^2\); \texttt{joint numerical directional-\allowbreak{}delta statistic}
+  \item \texttt{alpha} --- \texttt{confidence error probability}; \((0,1)\)
+  \item \texttt{Calpha} --- \texttt{random set}; subsets of \(\Delta^{2L}\times\Delta^{2L}\); simultaneous confidence region for \(\mu\)
+  \item \texttt{J} --- \texttt{random interval}; closed subintervals of \([0,1]\); \texttt{projected confidence interval for the identified set}
+  \item \texttt{Xspace} --- \texttt{fixed finite nonempty set}; \(\mathcal X\); \texttt{support of observed covariate strata}
+  \item \texttt{X} --- \texttt{observed random variable}; \(\mathcal X\); \texttt{finite observed covariate stratum}
+  \item \texttt{Pdagger} --- \texttt{probability law}; laws of \(X,Z,D^{\mathrm{pot}},Y^{\mathrm{pot}}\); \texttt{covariate-\allowbreak{}augmented full-\allowbreak{}data law for the broader response-\allowbreak{}type model}
+  \item \texttt{omega} --- \texttt{probability vector}; \(\Delta^{|\mathcal X|-1}\); \texttt{finite-\allowbreak{}stratum aggregation weights}
+  \par\smallskip\noindent\emph{Definition.} \(\omega_x=P^{\dagger}(X=x)\)
+  \item \texttt{mux} --- \texttt{conditional observable arm-\allowbreak{}cell array}; \((\Delta^{2L}\times\Delta^{2L})^{|\mathcal X|}\); \texttt{fixed-\allowbreak{}stratum observable margins for the response-\allowbreak{}type flow programs}
+  \item \texttt{RT} --- \texttt{family of nonempty polytopes}; \(\mathcal R_T=(\mathcal R_{T,x})_{x\in\mathcal X}\); \texttt{finite linear restrictions on conditional response-\allowbreak{}type mass vectors}
+  \item \texttt{gamma} --- \texttt{nonnegative expanded-\allowbreak{}state flow}; \(\gamma=(\gamma(e_0,e_1))_{e_0,e_1\in\mathcal E}\); \texttt{conditional joint law of the two realized arm states}
+  \item \texttt{MRTclass} --- \texttt{class of probability laws}; \(\mathfrak M_{L,\mathcal R_T}\); \texttt{covariate-\allowbreak{}augmented full-\allowbreak{}data model under conditional assignment and the chosen linear response-\allowbreak{}type restrictions}
+  \item \texttt{GammaRT} --- \texttt{set-\allowbreak{}valued map}; \(\Gamma_{\mathcal R_T}:\mu_x\mapsto\Gamma_{\mathcal R_T}(\mu_x)\); \texttt{conditional expanded-\allowbreak{}state flow polytope satisfying observed margins and response-\allowbreak{}type restrictions}
+  \item \texttt{sigflow} --- \texttt{binary arc-\allowbreak{}cost vector}; \(\sigma(e_0,e_1)\); \texttt{indicator that both realized states occupy the same positive layer}
+  \item \texttt{etaflow} --- \texttt{binary arc-\allowbreak{}cost vector}; \(\eta(e_0,e_1)\); \texttt{indicator of a same-\allowbreak{}positive-\allowbreak{}layer realized-\allowbreak{}state transition from outcome one to outcome zero}
+  \item \texttt{Sflow} --- \texttt{linear flow functional}; \(\mathsf S(\gamma)\); \texttt{positive-\allowbreak{}layer stayer mass represented by an expanded flow}
+  \item \texttt{Nflow} --- \texttt{linear flow functional}; \(\mathsf N(\gamma)\); \texttt{harmed positive-\allowbreak{}layer stayer mass represented by an expanded flow}
+  \item \texttt{HRTx} --- \texttt{conditional scalar causal estimand}; \([0,1]\); fraction harmed among positive-layer stayers conditional on \(X=x\)
+  \item \texttt{HRTagg} --- \texttt{aggregate scalar causal estimand}; \([0,1]\); \texttt{finite-\allowbreak{}strata fraction harmed among positive-\allowbreak{}layer stayers}
+  \item \texttt{IHRT} --- \texttt{set-\allowbreak{}valued causal identified map}; \(\mathcal I_{\mathcal R_T,x},\mathcal I_{\mathcal R_T,\mathcal X}\); \texttt{fixed-\allowbreak{}stratum and finite-\allowbreak{}strata identified sets under linear response-\allowbreak{}type restrictions}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:random-assignment]\label{ass:random-assignment}
+\(Z\perp(D^{\mathrm{pot}},Y^{\mathrm{pot}})\)
+\par\smallskip\noindent\emph{Standard} (Random assignment, \cite{PossebomRiva2025}).
+\end{assumption}
+
+\begin{assumption}[ass:assignment-overlap]\label{ass:assignment-overlap}
+\(0<e<1\)
+\par\smallskip\noindent\emph{Standard} (Treatment overlap, \cite{PossebomRiva2025}).
+\end{assumption}
+
+\begin{assumption}[ass:strong-tier-monotonicity]\label{ass:strong-tier-monotonicity}
+\(P^{\star}(D_1\ge D_0)=1\).
+\par\smallskip\noindent\emph{Standard} (KMV Strong Monotonicity, \cite{KroftMourifieVayalinkal2024}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-stayer-floor]\label{ass:positive-stayer-floor}
+\(\sum_{d=1}^{L}\ell_d\ge\kappa\)
+\par\smallskip\noindent\emph{Novel.} This is a maintained observable positive-denominator and inference-stability restriction, not a consequence attributed to a published one-stratum condition. It is directly checkable from the two arm tier margins and is satisfied whenever margins compatible with strong tier monotonicity force at least \(\kappa\) mass to remain in positive tiers, as in the explicit two-layer witness.
+\end{assumption}
+
+\begin{assumption}[ass:conditional-random-assignment]\label{ass:conditional-random-assignment}
+\(Z\perp_{P^{\dagger}}(D^{\mathrm{pot}},Y^{\mathrm{pot}})\mid X\).
+\par\smallskip\noindent\emph{Standard} (Conditional random assignment, KroftMourifieVayalinkal2024, \cite{KroftMourifieVayalinkal2024}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-assignment-overlap]\label{ass:conditional-assignment-overlap}
+\(0<P^{\dagger}(Z=1\mid X=x)<1\) for every \(x\in\mathcal X\) with \(P^{\dagger}(X=x)>0\).
+\par\smallskip\noindent\emph{Standard} (Conditional assignment overlap, KroftMourifieVayalinkal2024, \cite{KroftMourifieVayalinkal2024}).
+\end{assumption}
+
+\begin{assumption}[ass:linear-response-type-restriction]\label{ass:linear-response-type-restriction}
+For every \(x\in\mathcal X\) with \(P^{\dagger}(X=x)>0\), the response-mass vector \(\bigl(P^{\dagger}(D_0=i,D_1=j\mid X=x)\bigr)_{0\le i,j\le L}\) belongs to the researcher-chosen nonempty polytope \(\mathcal R_{T,x}\).
+\par\smallskip\noindent\emph{Standard} (Linear response-type restriction framework, KroftMourifieVayalinkal2024, \cite{KroftMourifieVayalinkal2024}).
+\end{assumption}
+
+\begin{assumption}[ass:response-type-stayer-floor]\label{ass:response-type-stayer-floor}
+\[\inf_{\gamma\in\Gamma_{\mathcal R_T}(\mu_x)}\mathsf S(\gamma)\ge\kappa\qquad\text{for every }x\in\mathcal X.\]
+\par\smallskip\noindent\emph{Novel.} novel: Observable positive lower bound on every reported stratum's feasible same-positive-layer stayer mass.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} KMV Strong Monotonicity full-data submodel \(\mathcal M_L\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_L=\{P^{\star}: P^{\star}\text{ satisfies }\mathrm{ass{:}random\mbox{-}assignment}\text{ and }\mathrm{ass{:}strong\mbox{-}tier\mbox{-}monotonicity}\text{ for the fixed }L\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}random-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}strong-\allowbreak{}tier-\allowbreak{}monotonicity}.
+\end{definition}
+
+\begin{definition}[def:observable-primitives]\label{def:observable-primitives}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable margin map}
+\par\smallskip\noindent\emph{Construction.} \(P\mapsto(r,c,q_0,q_1,R,C,\ell,u,a,b)\) by \(r_d=P(D=d\mid Z=0)\), \(c_d=P(D=d\mid Z=1)\), \(q_{zd}=P(D=d,Y^{\mathrm{obs}}=1\mid Z=z)\), \(R_d=\sum_{j=0}^{d}r_j\), \(C_d=\sum_{j=0}^{d}c_j\), \(\ell_d=\max\{0,C_d-R_{d-1}\}\), \(u_d=\min\{r_d,c_d\}\), \(a_d=r_d-q_{0d}+q_{1d}\), and \(b_d=\min\{q_{0d},c_d-q_{1d}\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}.
+\end{definition}
+
+\begin{definition}[def:observable-domain]\label{def:observable-domain}
+\par\smallskip\noindent\emph{Defined object.} Separated compatible observable class \(\mathcal D_{L,\kappa}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal D_{L,\kappa}=\{P:\exists P^{\star}\in\mathcal M_L\text{ inducing }P\text{ and }\mu(P)\in\mathcal V_{L,\kappa}\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}random-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}strong-\allowbreak{}tier-\allowbreak{}monotonicity}; \texttt{ass:\allowbreak{}positive-\allowbreak{}stayer-\allowbreak{}floor}.
+\end{definition}
+
+\begin{definition}[def:observable-mu-domain]\label{def:observable-mu-domain}
+\par\smallskip\noindent\emph{Defined object.} Observable arm-cell compatibility set \(\mathcal V_{L,\kappa}\)
+\par\smallskip\noindent\emph{Construction.} For \(v=(v_0,v_1)\in\Delta^{2L}\times\Delta^{2L}\), set \(r_0(v)=v_{0,0^{\star}}\), \(r_d(v)=v_{0,(d,0)}+v_{0,(d,1)}\), \(c_0(v)=v_{1,0^{\star}}\), \(c_d(v)=v_{1,(d,0)}+v_{1,(d,1)}\), \(q_{0d}(v)=v_{0,(d,1)}\), \(q_{1d}(v)=v_{1,(d,1)}\), \(R_d(v)=\sum_{j=0}^{d}r_j(v)\), \(C_d(v)=\sum_{j=0}^{d}c_j(v)\), and \(\ell_d(v)=\max\{0,C_d(v)-R_{d-1}(v)\}\). Then \(\mathcal V_{L,\kappa}=\{v\in\Delta^{2L}\times\Delta^{2L}:C_d(v)\le R_d(v)\text{ for }d=0,\ldots,L-1,\ \sum_{d=1}^{L}\ell_d(v)\ge\kappa\}\). The cumulative inequalities are the observable necessary-and-sufficient compatibility conditions for an upper-triangular layer coupling; the simplex coordinates already impose \(0\le q_{0d}(v)\le r_d(v)\) and \(0\le q_{1d}(v)\le c_d(v)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{L}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:ordered-transport]\label{def:ordered-transport}
+\par\smallskip\noindent\emph{Defined object.} Upper-triangular protocol-tier response polytope \(\Theta(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\Theta(P)=\{(p_{ij})_{0\le i\le j\le L}:p_{ij}\ge0,\ \sum_{j=i}^{L}p_{ij}=r_i,\ \sum_{i=0}^{j}p_{ij}=c_j\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{r}; \texttt{c}.
+\end{definition}
+
+\begin{definition}[def:stayer-harm-prism]\label{def:stayer-harm-prism}
+\par\smallskip\noindent\emph{Defined object.} Stayer--harm prism \(\mathcal K(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal K(P)=\prod_{d=1}^{L}\{(s_d,h_d):\ell_d\le s_d\le u_d,\ (s_d-a_d)_+\le h_d\le\min\{s_d,b_d\}\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{ell}; \texttt{u}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:endpoint-construction]\label{def:endpoint-construction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Closed-\allowbreak{}form endpoint construction}
+\par\smallskip\noindent\emph{Construction.} \(s_d^-=\min\{u_d,\max\{\ell_d,a_d\}\}\), \(s_d^+=\max\{\ell_d,b_d\}\), \(A_-=\sum_{d=1}^{L}(\ell_d-a_d)_+\), \(B_-=\sum_{d=1}^{L}s_d^-\), \(A_+=\sum_{d=1}^{L}b_d\), and \(B_+=\sum_{d=1}^{L}s_d^+\). The closed-form endpoint pair associated with these primitives is \((A_-/B_-,A_+/B_+)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ell}; \texttt{u}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:expanded-state-network]\label{def:expanded-state-network}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Expanded-\allowbreak{}state transport network}
+\par\smallskip\noindent\emph{Construction.} Use arm states \(\mathcal E=\{0^{\star}\}\cup\{(d,y):d=1,\ldots,L,\ y\in\{0,1\}\}\), connect a left state at layer \(i\) to a right state at layer \(j\) exactly when \(i\le j\), assign the observed arm-cell probabilities as margins, and label a diagonal arc by stayer cost \(\sigma=1\) and by harm cost \(\eta=1\) exactly for \((d,1)\to(d,0)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{mu}.
+\end{definition}
+
+\begin{definition}[def:l2-observable-witness]\label{def:l2-observable-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nondegenerate two-\allowbreak{}layer observable and response-\allowbreak{}law witness}
+\par\smallskip\noindent\emph{Construction.} Set \(L=2\), \(\kappa=49/100\), and define the observable arm-cell table \[v^{\mathrm{ex}}=\begin{array}{c|ccccc}&0^{\star}&(1,0)&(1,1)&(2,0)&(2,1)\\\hline z=0&2/5&1/20&3/10&1/20&1/5\\z=1&1/5&7/20&1/10&21/100&7/50\end{array}.\] Thus \(r=(2/5,7/20,1/4)\), \(c=(1/5,9/20,7/20)\), \(q_0=(3/10,1/5)\), and \(q_1=(1/10,7/50)\). Construct \(\Gamma^-\) and \(\Gamma^+\) on the admissible expanded-state arcs by \[\begin{array}{c|cc}\text{arc}&\Gamma^-&\Gamma^+\\\hline 0^{\star}\to0^{\star}&1/5&1/5\\0^{\star}\to(1,0)&1/5&1/20\\0^{\star}\to(1,1)&0&1/10\\0^{\star}\to(2,1)&0&1/20\\(1,0)\to(1,0)&1/20&0\\(1,0)\to(2,1)&0&1/20\\(1,1)\to(1,0)&1/10&3/10\\(1,1)\to(1,1)&1/10&0\\(1,1)\to(2,0)&1/10&0\\(2,0)\to(2,0)&1/20&1/100\\(2,0)\to(2,1)&0&1/25\\(2,1)\to(2,0)&3/50&1/5\\(2,1)\to(2,1)&7/50&0\end{array}.\] Every omitted arc has zero mass; the decoder in \(\mathrm{lem{:}expanded\mbox{-}network\mbox{-}decoder}\) completes unused potential outcomes by zero.
+\par\smallskip\noindent\emph{Inputs.} \texttt{L}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:ambient-endpoint-map]\label{def:ambient-endpoint-map}
+\par\smallskip\noindent\emph{Defined object.} Ambient endpoint extension \(\phi\)
+\par\smallskip\noindent\emph{Construction.} For a generic arm-cell vector \(v\), decode \(r(v),c(v),q_0(v),q_1(v)\) as in \(\mathrm{def{:}observable\mbox{-}mu\mbox{-}domain}\), form \(R(v),C(v),\ell(v),u(v),a(v),b(v)\), and evaluate \(B_-(v)=\sum_{d=1}^{L}\min\{u_d(v),\max\{\ell_d(v),a_d(v)\}\}\) and \(B_+(v)=\sum_{d=1}^{L}\max\{\ell_d(v),b_d(v)\}\). On \(\mathcal U=\{v:B_-(v)>\kappa/2,\ B_+(v)>\kappa/2\}\), define \[\phi(v)=\left(\frac{\sum_{d=1}^{L}(\ell_d(v)-a_d(v))_+}{B_-(v)},\frac{\sum_{d=1}^{L}b_d(v)}{B_+(v)}\right).\] Set \(\phi(v)=(0,1)\) outside \(\mathcal U\). For every \(v\in\mathcal V_{L,\kappa}\), define the common-domain endpoint functionals by \(H_-(v)=\pi_1\phi(v)\) and \(H_+(v)=\pi_2\phi(v)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:numerical-delta-handle]\label{def:numerical-delta-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Hong-\allowbreak{}-\allowbreak{}Li numerical-\allowbreak{}delta implementation}
+\par\smallskip\noindent\emph{Construction.} For fixed \(L\), after verifying Hadamard directional differentiability of the ambient map \(\phi\) at the observable law and conditional consistency of the multinomial bootstrap direction, compute \(T_n^{\star}=\{\phi(\widehat\mu_n+\varepsilon_nG_n^{\star})-\phi(\widehat\mu_n)\}/\varepsilon_n\), where \(\varepsilon_n\downarrow0\) and \(\sqrt n\,\varepsilon_n\to\infty\), and apply the pointwise numerical-delta theorem of Hong--Li. This is a direct implementation of their theorem, including at hinge ties and structural-zero cells once its tangent-space and bootstrap premises are checked, and is not a novel inferential claim.
+\par\smallskip\noindent\emph{Inputs.} \texttt{muhat}; \texttt{Gstar}; \texttt{eps}.
+\end{definition}
+
+\begin{definition}[def:confidence-projection]\label{def:confidence-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Confidence-\allowbreak{}set image construction}
+\par\smallskip\noindent\emph{Construction.} Given a simultaneous \((1-\alpha)\)-confidence region \(\mathcal C_{n,\alpha}\) for \(\mu\), set \(J_{n,\alpha}=[\inf_{v\in\mathcal C_{n,\alpha}\cap\mathcal V_{L,\kappa}}\pi_1\phi(v),\ \sup_{v\in\mathcal C_{n,\alpha}\cap\mathcal V_{L,\kappa}}\pi_2\phi(v)]\) when the intersection is nonempty and set \(J_{n,\alpha}=[0,1]\) otherwise. Equivalently, the extrema are over \(H_-(v)=\pi_1\phi(v)\) and \(H_+(v)=\pi_2\phi(v)\), both defined on \(\mathcal V_{L,\kappa}\). The known implementation-level containment \(v\in\mathcal C_{n,\alpha}\Rightarrow[H_-(v),H_+(v)]\subseteq J_{n,\alpha}\) is merely the image-of-a-covered-set observation and carries no separate proof obligation or novelty claim.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Calpha}; \texttt{Vclass}; \texttt{phi}.
+\end{definition}
+
+\begin{definition}[def:conditional-response-type-model]\label{def:conditional-response-type-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional KMV linear response-\allowbreak{}type full-\allowbreak{}data class}
+\par\smallskip\noindent\emph{Construction.} \[\mathfrak M_{L,\mathcal R_T}=\left\{P^{\dagger}:P^{\dagger}\text{ is a law of }(X,Z,D^{\mathrm{pot}},Y^{\mathrm{pot}})\text{ satisfying }\mathrm{ass{:}conditional\mbox{-}random\mbox{-}assignment},\ \mathrm{ass{:}conditional\mbox{-}assignment\mbox{-}overlap},\text{ and }\mathrm{ass{:}linear\mbox{-}response\mbox{-}type\mbox{-}restriction}\right\}.\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}conditional-\allowbreak{}random-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}assignment-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}linear-\allowbreak{}response-\allowbreak{}type-\allowbreak{}restriction}.
+\end{definition}
+
+\begin{definition}[def:conditional-harm-targets]\label{def:conditional-harm-targets}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional and finite-\allowbreak{}strata harmed-\allowbreak{}stayer targets}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal X\) be a finite nonempty support and let \(\omega_x=P^{\dagger}(X=x)>0\), with \(\sum_{x\in\mathcal X}\omega_x=1\).  For \(z\in\{0,1\}\), define the conditional arm-state probabilities
+\[\mu_{zx}(0^{\star})=P^{\dagger}(D=0\mid Z=z,X=x),\qquad
+  \mu_{zx}(d,y)=P^{\dagger}(D=d,Y^{\mathrm{obs}}=y\mid Z=z,X=x)\]
+for \(d=1,\ldots,L\) and \(y\in\{0,1\}\), and put \(\mu_x=(\mu_{0x},\mu_{1x})\).  Whenever the conditioning event in the denominator has positive probability, define
+\[H_x^{\mathcal R}=P^{\dagger}(Y_{0,D_0}=1,Y_{1,D_0}=0\mid D_0=D_1>0,X=x).\]
+For a compatible conditional arm-cell array \(\mu=(\mu_x)_{x\in\mathcal X}\), let \(\mathfrak P_{\mathcal R_T}(\mu,\omega)\) be the fiber of laws \(Q\in\mathfrak M_{L,\mathcal R_T}\) that have \(Q(X=x)=\omega_x\) and induce \(\mu\) under the observation map.  The fixed-stratum identified set is
+\[\mathcal I_{\mathcal R_T,x}(\mu_x)=\{H_x^{\mathcal R}(Q):Q\in\mathfrak P_{\mathcal R_T}(\mu,\omega)\}.\]
+Writing \(S_x(Q)=Q(D_0=D_1>0\mid X=x)\) and \(N_x(Q)=Q(D_0=D_1>0,Y_{0,D_0}=1,Y_{1,D_0}=0\mid X=x)\), define the finite-strata target and its identified set by
+\[H_{\mathcal X}^{\mathcal R}(Q)=\frac{\sum_{x\in\mathcal X}\omega_xN_x(Q)}{\sum_{x\in\mathcal X}\omega_xS_x(Q)},\qquad
+  \mathcal I_{\mathcal R_T,\mathcal X}(\mu,\omega)=\{H_{\mathcal X}^{\mathcal R}(Q):Q\in\mathfrak P_{\mathcal R_T}(\mu,\omega)\},\]
+whenever the displayed denominator is positive.
+\par\smallskip\noindent\emph{Inputs.} \texttt{mux}; \texttt{omega}; \texttt{RT}; \texttt{MRTclass}.
+\end{definition}
+
+\begin{definition}[def:linear-response-type-flow]\label{def:linear-response-type-flow}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional expanded-\allowbreak{}state response-\allowbreak{}type flow polytope}
+\par\smallskip\noindent\emph{Construction.} Let
+\[\mathcal E=\{0^{\star}\}\cup\{(d,y):d=1,\ldots,L,\ y\in\{0,1\}\},\qquad
+  \lambda(0^{\star})=0,\quad \lambda(d,y)=d.\]
+Let \(m_T=(L+1)^2\).  For each \(x\in\mathcal X\), fix finite row counts \(k_x^=,k_x^{\le}\), matrices \(A_x\in\mathbb R^{k_x^=\times m_T}\) and \(B_x\in\mathbb R^{k_x^{\le}\times m_T}\), and vectors \(a_x\in\mathbb R^{k_x^=}\) and \(b_x\in\mathbb R^{k_x^{\le}}\).  A linear response-type restriction is a nonempty polytope
+\[\mathcal R_{T,x}=\{p\in\mathbb R_+^{(L+1)^2}:\mathbf 1^{\mathsf T}p=1,\ A_xp=a_x,\ B_xp\le b_x\}.\]
+Support restrictions are included by rows such as \(p_{ij}=0\).  An expanded-state arc \((e_0,e_1)\) is allowed when the layer pair \((\lambda(e_0),\lambda(e_1))\) is not forced to have zero response mass by \(\mathcal R_{T,x}\).  For a nonnegative array \(\gamma=(\gamma(e_0,e_1))\) on the allowed arcs, set
+\[p_{ij}(\gamma)=\sum_{e_0:\lambda(e_0)=i}\sum_{e_1:\lambda(e_1)=j}\gamma(e_0,e_1).\]
+The conditional expanded-flow polytope is
+\[\Gamma_{\mathcal R_T}(\mu_x)=\left\{\gamma\ge0:
+\sum_{e_1}\gamma(e_0,e_1)=\mu_{0x}(e_0),\ 
+\sum_{e_0}\gamma(e_0,e_1)=\mu_{1x}(e_1),\ 
+p(\gamma)\in\mathcal R_{T,x}\right\}.\]
+Define the stayer and harm arc costs
+\[\sigma(e_0,e_1)=\mathbf 1\{\lambda(e_0)=\lambda(e_1)>0\},\qquad
+  \eta(e_0,e_1)=\sum_{d=1}^{L}\mathbf 1\{e_0=(d,1),\ e_1=(d,0)\},\]
+and the linear functionals
+\[\mathsf S(\gamma)=\sum_{e_0,e_1}\sigma(e_0,e_1)\gamma(e_0,e_1),\qquad
+  \mathsf N(\gamma)=\sum_{e_0,e_1}\eta(e_0,e_1)\gamma(e_0,e_1).\]
+Let \(J_x\) be the number of allowed arcs.  After flattening those arcs and collecting the finitely many equality and inequality constraints, there are finite row counts \(k_x^G,k_x^F\), matrices \(G_x\in\mathbb R^{k_x^G\times J_x}\) and \(F_x\in\mathbb R^{k_x^F\times J_x}\), and vectors \(g_x(\mu_x)\in\mathbb R^{k_x^G}\) and \(f_x\in\mathbb R^{k_x^F}\) such that
+\[\Gamma_{\mathcal R_T}(\mu_x)=\{\gamma\ge0:G_x\gamma=g_x(\mu_x),\ F_x\gamma\le f_x\}.\]
+The margin equations in \(G_x\gamma=g_x(\mu_x)\) include \(\mathbf 1^{\mathsf T}\gamma=1\).  Under Lee's binary positive-selection monotonicity alone, \(p_{i0}=0\) for \(i>0\), while both directions \((i,j)\) and \((j,i)\) remain allowed for distinct positive \(i,j\).  Under KMV Strong Monotonicity,
+\[\mathcal R_T^{\uparrow}=\{p:p_{ij}=0\text{ whenever }j<i\},\]
+so the allowed layer arcs are exactly upper triangular.
+\par\smallskip\noindent\emph{Inputs.} \texttt{mux}; \texttt{RT}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:diagonal-box]\label{thm:diagonal-box}
+For every \(P\in\mathcal D_{L,\kappa}\), the projection of \(\Theta(P)\) onto \((p_{11},\ldots,p_{LL})\) is exactly \(\prod_{d=1}^{L}[\ell_d,u_d]\). Every vector in this box admits an upper-triangular nonnegative completion with row margins \(r\) and column margins \(c\), including when observable cells are zero.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal D_{L,\kappa}\).  The observable-domain and observable-arm-cell-domain definitions imply
+\[
+ C_d\le R_d\quad(d=0,\ldots,L-1),
+ \qquad C_L=R_L=1.
+\]
+We use a prefix-capacity transport argument and prove both inclusions of the claimed projection.
+
+First let \(p\in\Theta(P)\).  Nonnegativity and the row and column equations give
+\[
+ p_{dd}\le r_d,
+ \qquad
+ p_{dd}\le c_d.
+\]
+Because upper triangularity permits mass in columns \(0,\ldots,d\), other than \(p_{dd}\), to originate only in rows \(0,\ldots,d-1\),
+\[
+ C_d
+ =\sum_{j=0}^{d}\sum_{i=0}^{j}p_{ij}
+ \le \sum_{i=0}^{d-1}r_i+p_{dd}
+ =R_{d-1}+p_{dd}.
+\]
+Together with \(p_{dd}\ge0\), this yields
+\[
+ \ell_d=\max\{0,C_d-R_{d-1}\}
+ \le p_{dd}
+ \le \min\{r_d,c_d\}=u_d.
+\]
+Thus the diagonal projection is contained in the displayed box.
+
+For the reverse inclusion, fix arbitrary \(x_d\in[\ell_d,u_d]\), \(d=1,\ldots,L\).  These intervals are nonempty.  Indeed,
+\[
+ C_d-R_{d-1}\le r_d
+\]
+follows from \(C_d\le R_d=R_{d-1}+r_d\), where for \(d=L\) equality \(C_L=R_L\) is used, while
+\[
+ C_d-R_{d-1}
+ =c_d+C_{d-1}-R_{d-1}
+ \le c_d
+\]
+uses \(C_{d-1}\le R_{d-1}\).  Define the fixed diagonal and residual margins by
+\[
+ p_{00}=c_0,qquad p_{dd}=x_d\ (d\ge1),
+\]
+\[
+ \alpha_0=r_0-c_0,qquad
+ \alpha_i=r_i-x_i\ (i=1,\ldots,L),
+ \qquad
+ \beta_j=c_j-x_j\ (j=1,\ldots,L).
+\]
+Every residual is nonnegative: \(c_0\le r_0\) is the compatibility inequality at \(d=0\), and \(x_d\le u_d\le r_d,c_d\).  Moreover,
+\[
+ \ell_L=C_L-R_{L-1}=r_L,
+ \qquad
+ c_L=1-C_{L-1}\ge1-R_{L-1}=r_L,
+\]
+so \(u_L=r_L\), \(x_L=r_L\), and \(\alpha_L=0\).  The residual totals agree:
+\[
+ \sum_{i=0}^{L-1}\alpha_i
+ =1-c_0-\sum_{d=1}^{L}x_d
+ =\sum_{j=1}^{L}\beta_j.
+\]
+For every \(d=1,\ldots,L\), the lower bound on \(x_d\) gives the prefix-capacity inequality
+\[
+ \begin{aligned}
+ \sum_{j=1}^{d}\beta_j
+ &=C_d-c_0-\sum_{j=1}^{d}x_j\\
+ &\le R_{d-1}-c_0-\sum_{i=1}^{d-1}x_i
+ =\sum_{i=0}^{d-1}\alpha_i.
+ \end{aligned}
+\]
+
+These inequalities give a constructive strict-upper-triangular completion.  Process columns \(j=1,\ldots,L\) in increasing order.  Before column \(j\) is filled, columns \(1,\ldots,j-1\) have consumed exactly \(\sum_{k=1}^{j-1}\beta_k\), all from rows \(0,\ldots,j-2\).  Hence the unused mass in the eligible rows \(0,\ldots,j-1\) is
+\[
+ \sum_{i=0}^{j-1}\alpha_i-
+ \sum_{k=1}^{j-1}\beta_k
+ \ge \beta_j.
+\]
+Allocate \(\beta_j\) successively from these eligible residual rows and call the allocations \(p_{ij}\), \(i<j\).  This never makes a residual negative.  After column \(L\), equality of the total residual masses implies that every residual row mass has been used.  Together with the fixed diagonal, the resulting array is nonnegative, upper triangular, has row margins \(r\), column margins \(c\), and satisfies \(p_{dd}=x_d\).  The construction uses only weak inequalities and therefore also covers structural zero cells.  Since \(x\) was arbitrary, the diagonal projection is exactly \(\prod_{d=1}^{L}[\ell_d,u_d]\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The box projection is the structural cancellation that removes the high-dimensional response-type optimizer. \textit{Gap.} Kroft--Mourifi\'e--Vayalinkal Theorem 1(iii) already gives sharp closed-form weighted aggregate LCDE bounds, but it does not state the simultaneous Cartesian projection of all positive-layer diagonal response-type masses. \textit{Consumer.} Software for protocol-controlled tier-upgrade experiments can replace response-table enumeration by \(2L\) observable diagonal endpoints.
+
+\begin{lemma}[lem:expanded-network-decoder]\label{lem:expanded-network-decoder}
+The expanded-state transport network has \(2L^2+4L+1\) admissible arcs, and its feasible couplings are in bijection with realized-arm joint distributions induced by laws in \(\mathcal M_L\). The decoder preserves \((s,h)\); unused potential outcomes may be completed arbitrarily.
+\end{lemma}
+\begin{proof}
+Define the potential realized arm states
+\[
+ E_z=
+ \begin{cases}
+ 0^{\star},&D_z=0,\\
+ (D_z,Y_{z,D_z}),&D_z>0,
+ \end{cases}
+ \qquad z\in\{0,1\},
+\]
+and let \(\lambda(0^{\star})=0\) and \(\lambda(d,y)=d\).  The proof is a direct finite-state encoding and decoding argument.  Strong tier monotonicity implies
+\[
+ \lambda(E_0)=D_0\le D_1=\lambda(E_1)
+ \quad\text{almost surely}.
+\]
+There is one admissible arc \(0^{\star}\to0^{\star}\), there are \(2L\) arcs from \(0^{\star}\) to positive-layer right states, and for every \(1\le i\le j\le L\) there are four arcs corresponding to the two binary labels at each endpoint.  Thus the number of admissible arcs is
+\[
+ 1+2L+4\sum_{i=1}^{L}(L-i+1)
+ =1+2L+2L(L+1)
+ =2L^2+4L+1.
+\]
+
+Under assignment overlap, both conditional arm laws are defined.  Given \(P^{\star}\in\mathcal M_L\), set
+\[
+ \gamma(e_0,e_1)=P^{\star}(E_0=e_0,E_1=e_1).
+\]
+The preceding support restriction puts \(\gamma\) on admissible arcs.  Random assignment and the observation map give, for every arm state \(e_z\),
+\[
+ \sum_{e_{1-z}}\gamma(e_0,e_1)
+ =P^{\star}(E_z=e_z)
+ =P^{\star}(E_z=e_z\mid Z=z)
+ =\mu_z(e_z).
+\]
+Thus the two margins are the observed arm-cell vectors.  Reading diagonal arcs gives
+\[
+ s_d=\sum_{x,y\in\{0,1\}}
+ \gamma((d,x),(d,y)),
+ \qquad
+ h_d=\gamma((d,1),(d,0)).
+\]
+
+Conversely, let \(\gamma\) be any nonnegative coupling on the admissible arcs with the prescribed arm-cell margins.  Draw \((E_0,E_1)\) according to \(\gamma\), set \(D_z=\lambda(E_z)\), and, if \(E_z=(d,y)\), set \(Y_{z,d}=y\).  Assign every potential-outcome coordinate not fixed in this way the value zero; any other binary completion gives the same realized-state law.  Admissible-arc support implies \(D_1\ge D_0\) almost surely.  Draw \(Z\) independently of the constructed potential variables with the required probability \(e\in(0,1)\).  The observation map then has margins \(\mu_0,\mu_1\), and the preceding diagonal formulas recover the original \((s,h)\).  Therefore feasible couplings are in bijection with induced joint distributions of \((E_0,E_1)\).  Full-data completions differ only through unused potential outcomes, which are irrelevant to this bijection and to \((s,h)\).  No division or strict cell positivity was used, so the result includes zero observed cells.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The decoder supplies an independent finite-dimensional sharpness certificate and a destructive check on missing-outcome handling. \textit{Gap.} Generic transportation representations do not identify which network coordinates equal same-layer harm under multilayer missingness. \textit{Consumer.} Auditors of bounds software for protocol-controlled tier assignments obtain a latent-cell program against which the closed form can be tested.
+
+\begin{theorem}[thm:joint-stayer-harm-region]\label{thm:joint-stayer-harm-region}
+For every \(P\in\mathcal D_{L,\kappa}\), the set of all \((s,h)\) induced by full-data laws \(P^{\star}\in\mathcal M_L\) that agree with \(P\) is exactly \(\mathcal K(P)\). In particular, all layerwise stayer and harm coordinates satisfying the displayed hinge inequalities are jointly attainable by one normalized full-data law.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal D_{L,\kappa}\).  We use projection, binary-margin inequalities, and an explicit simultaneous completion.
+
+For necessity, take any agreeing \(P^{\star}\in\mathcal M_L\) and define
+\[
+ p_{ij}=P^{\star}(D_0=i,D_1=j).
+\]
+Random assignment and assignment overlap identify the row and column margins of \(p\) with \(r\) and \(c\), while strong tier monotonicity makes \(p\) upper triangular.  Since \(s_d=p_{dd}\), the diagonal-box theorem yields
+\[
+ \ell_d\le s_d\le u_d.
+\]
+The harmed-stayer event at layer \(d\) is contained in the stayer event, the control-arm success cell, and the treatment-arm failure cell.  Hence
+\[
+ h_d\le \min\{s_d,q_{0d},c_d-q_{1d}\}
+ =\min\{s_d,b_d\}.
+\]
+Among the \(q_{0d}\) mass with \(D_0=d\) and \(Y_{0,d}=1\), at most \(r_d-s_d\) are nonstayers.  Of the remaining successful-control stayers, exactly \(h_d\) are harmed and all others contribute to the treatment success cell at layer \(d\), whose total mass is \(q_{1d}\).  Therefore
+\[
+ q_{0d}\le(r_d-s_d)+h_d+q_{1d},
+\]
+and consequently
+\[
+ h_d\ge s_d-r_d+q_{0d}-q_{1d}=s_d-a_d.
+\]
+Together with \(h_d\ge0\), these are exactly the inequalities defining \(\mathcal K(P)\).
+
+For sufficiency, take an arbitrary \((s,h)\in\mathcal K(P)\).  The diagonal-box theorem supplies a nonnegative upper-triangular layer coupling \(p\in\Theta(P)\) satisfying \(p_{dd}=s_d\) simultaneously for all \(d\).  At each positive layer define
+\[
+ x_d=\max\{h_d,q_{0d}-(r_d-s_d)\},
+\]
+\[
+ y_d=\max\{x_d-h_d,q_{1d}-(c_d-s_d)\}.
+\]
+Here \(x_d\) and \(y_d\) will be the control- and treatment-success masses placed on the diagonal.  The prism inequalities imply
+\[
+ h_d\le x_d\le\min\{q_{0d},s_d\},
+ \qquad
+ x_d-h_d\le q_{1d}.
+\]
+Indeed, \(h_d\le q_{0d}\) and \(h_d\le s_d\), while
+\[
+ q_{0d}-(r_d-s_d)\le q_{0d},s_d
+\]
+uses \(s_d\le r_d\) and \(q_{0d}\le r_d\); moreover
+\[
+ q_{0d}-r_d+s_d-h_d\le q_{1d}
+\]
+is equivalent to the maintained lower hinge \(h_d\ge s_d-a_d\).  Likewise,
+\[
+ x_d-h_d\le y_d\le\min\{q_{1d},s_d-h_d\}.
+\]
+For the upper bounds, the first candidate in the maximum is at most both terms by the preceding display and \(x_d\le s_d\), whereas the second satisfies
+\[
+ q_{1d}-(c_d-s_d)\le q_{1d}
+\]
+because \(s_d\le c_d\), and
+\[
+ q_{1d}-(c_d-s_d)\le s_d-h_d
+\]
+because \(h_d\le c_d-q_{1d}\).
+
+Split the diagonal mass \(p_{dd}=s_d\) into the binary table
+\[
+\begin{array}{c|cc}
+ &Y_{1,d}=0&Y_{1,d}=1\\ \hline
+Y_{0,d}=0&s_d-y_d-h_d&y_d-x_d+h_d\\
+Y_{0,d}=1&h_d&x_d-h_d
+\end{array}.
+\]
+The established bounds make all four entries nonnegative.  They sum to \(s_d\), have control-success margin \(x_d\), treatment-success margin \(y_d\), and harm entry \(h_d\).
+
+It remains to label off-diagonal layer mass.  In each positive left row \(i\), the residual control-success requirement obeys
+\[
+ 0\le q_{0i}-x_i\le r_i-s_i=\sum_{j>i}p_{ij}.
+\]
+Distribute it among the capacities \((p_{ij}:j>i)\), producing numbers \(A_{ij}\in[0,p_{ij}]\).  Independently, in each positive right column \(j\),
+\[
+ 0\le q_{1j}-y_j\le c_j-s_j=\sum_{i<j}p_{ij},
+\]
+so distribute this requirement among its incoming capacities, producing \(B_{ij}\in[0,p_{ij}]\).  For every positive-to-positive off-diagonal arc, choose
+\[
+ t_{ij}^{11}\in
+ \left[
+ \max\{0,A_{ij}+B_{ij}-p_{ij}\},
+ \min\{A_{ij},B_{ij}\}
+ \right].
+\]
+This interval is nonempty: if \(A_{ij}+B_{ij}\le p_{ij}\), its lower endpoint is zero, and otherwise
+\(A_{ij}+B_{ij}-p_{ij}\le A_{ij},B_{ij}\) follows from \(A_{ij},B_{ij}\le p_{ij}\).  Set
+\[
+ t_{ij}^{10}=A_{ij}-t_{ij}^{11},\qquad
+ t_{ij}^{01}=B_{ij}-t_{ij}^{11},\qquad
+ t_{ij}^{00}=p_{ij}-A_{ij}-B_{ij}+t_{ij}^{11}.
+\]
+These four nonnegative masses sum to \(p_{ij}\) and have the required left and right binary-success margins.  On an arc from \(0^{\star}\), only the right outcome is defined, so split that arc directly according to its allocated right-success mass; the arc \(0^{\star}\to0^{\star}\) needs no outcome label.
+
+The resulting single expanded-state coupling has margins \(\mu_0,\mu_1\), admissible support, and the prescribed values of every coordinate of \((s,h)\).  The expanded-network decoder lifts it to one normalized law in \(\mathcal M_L\) agreeing with \(P\).  Thus all coordinates are jointly attainable, including on faces induced by zero cells.  Combining necessity and sufficiency proves that the exact joint identified region is \(\mathcal K(P)\), not merely an outer bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Coordinatewise bounds are insufficient for an aggregate ratio unless a single law attains every chosen coordinate simultaneously. \textit{Gap.} Kroft--Mourifi\'e--Vayalinkal Theorem 1(iii) already gives sharp closed-form weighted aggregate LCDE bounds. De Aguas, Krumscheid, Pensar, and Biele give sharp multi-tier benefit and harm bounds when the tiers are categories of the outcome itself. Possebom--Riva and Kallus characterize binary harm couplings. None of these results allocates selectively observed units across latent same-layer stayers or gives the exact cross-world stayer--harm prism for protocol-assigned selection tiers. \textit{Consumer.} A protocol-controlled tier-upgrade experiment can report harm among participants whose assigned tier would be unchanged under either assignment.
+
+\begin{theorem}[thm:closed-form-harm-interval]\label{thm:closed-form-harm-interval}
+For every \(P\in\mathcal D_{L,\kappa}\) with arm-cell vector \(\mu\), the sharp identified set for \(H\) is \([H_-(\mu),H_+(\mu)]\), where \(H_-(\mu)=\{\sum_{d=1}^{L}(\ell_d-a_d)_+\}/\{\sum_{d=1}^{L}\min(u_d,\max(\ell_d,a_d))\}\) and \(H_+(\mu)=\{\sum_{d=1}^{L}b_d\}/\{\sum_{d=1}^{L}\max(\ell_d,b_d)\}\). Both endpoints and every interior value are attainable, and the endpoints require \(O(L)\) arithmetic operations.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal D_{L,\kappa}\), and let
+\[\Theta_I^H(P)=\left\{H(P^{\star}):P^{\star}\in\mathcal M_L\text{ induces the observable law }P\right\}\]
+be the causal identified set.  This definition keeps the causal functional \(H(P^{\star})\) distinct from the observable endpoint maps to be derived.  Put
+\[g_d(t)=(t-a_d)_+,qquad m_d(t)=\min\{t,b_d\}.\]
+By \(\mathrm{thm{:}joint\mbox{-}stayer\mbox{-}harm\mbox{-}region}\), the exact image of all agreeing full-data laws under \(P^{\star}\mapsto(s,h)\) is
+\[\mathcal K(P)=\left\{(s,h):\ell_d\le s_d\le u_d,\quad
+g_d(s_d)\le h_d\le m_d(s_d),\quad d=1,\ldots,L\right\}.\]
+This equality supplies both necessity and simultaneous attainability; it is stronger than coordinatewise outer bounds.  Moreover, for every \((s,h)\in\mathcal K(P)\),
+\[S=\sum_{d=1}^{L}s_d\ge\sum_{d=1}^{L}\ell_d\ge\kappa>0\]
+by \(\mathrm{ass{:}positive\mbox{-}stayer\mbox{-}floor}\).  Hence all ratios below are well defined, and
+\[\Theta_I^H(P)=\left\{\frac{\sum_{d=1}^{L}h_d}{\sum_{d=1}^{L}s_d}:(s,h)\in\mathcal K(P)\right\}.\]
+
+For a fixed \(s\), the denominator is positive and independent of \(h\), so the smallest ratio takes \(h_d=g_d(s_d)\) in every layer.  Define the feasible coordinate
+\[s_d^- =\min\{u_d,\max\{\ell_d,a_d\}\}.\]
+Starting from any \(s\in\prod_d[\ell_d,u_d]\), replace its coordinates one at a time by \(s_d^-\).  If \(s_d<s_d^-\), feasibility of \(s_d\) rules out \(s_d^-=\ell_d>s_d\), and the definition of the clipping point gives \(s_d\le s_d^-\le a_d\).  Thus the numerator contribution remains zero while the denominator weakly increases, so the ratio cannot increase.  If \(s_d>s_d^-\), the only possible clipping regimes give \(s_d\ge s_d^-\ge a_d\).  With \(\delta=s_d-s_d^-\), numerator and denominator both decrease by \(\delta\).  Writing their values before replacement as \(N\) and \(S\), the prism inequalities give \(0\le N\le S\), and
+\[\frac{N-\delta}{S-\delta}\le\frac NS
+\quad\Longleftrightarrow\quad
+\delta(S-N)\ge0.\]
+The new denominator remains at least \(\kappa\).  Therefore no coordinate replacement increases the ratio, and \(s^-\) is a global minimizer.  Directly from the three clipping regimes,
+\[g_d(s_d^-)=(\ell_d-a_d)_+,\]
+so
+\[\inf\Theta_I^H(P)=
+\frac{\sum_{d=1}^{L}(\ell_d-a_d)_+}
+{\sum_{d=1}^{L}\min\{u_d,\max\{\ell_d,a_d\}\}}=H_-(\mu).\]
+
+For the upper endpoint, the observable simplex restrictions in \(\mathrm{def{:}observable\mbox{-}mu\mbox{-}domain}\) imply
+\[b_d\le q_{0d}\le r_d,qquad b_d\le c_d-q_{1d}\le c_d,\]
+and hence \(0\le b_d\le u_d\).  For fixed \(s\), the largest ratio takes \(h_d=m_d(s_d)\).  Set
+\[s_d^+=\max\{\ell_d,b_d\}\in[\ell_d,u_d].\]
+If \(s_d<s_d^+\), feasibility rules out \(s_d^+=\ell_d>s_d\), so \(s_d^+=b_d\); increasing to \(b_d\) adds the same \(\delta\ge0\) to numerator and denominator.  Since \(N\le S\),
+\[\frac{N+\delta}{S+\delta}\ge\frac NS
+\quad\Longleftrightarrow\quad
+\delta(S-N)\ge0.\]
+If \(s_d>s_d^+\), both old and new coordinates are at least \(b_d\), so lowering to \(s_d^+\) leaves the numerator contribution equal to \(b_d\) and weakly decreases the positive denominator.  Thus \(s^+\) is a global maximizer.  Since \(m_d(s_d^+)=b_d\),
+\[\sup\Theta_I^H(P)=
+\frac{\sum_{d=1}^{L}b_d}
+{\sum_{d=1}^{L}\max\{\ell_d,b_d\}}=H_+(\mu).\]
+
+It remains to show that the identified set has no gaps.  The hinge description is equivalently the finite system of linear inequalities
+\[\ell_d\le s_d\le u_d,qquad h_d\ge0,qquad h_d\ge s_d-a_d,qquad
+h_d\le s_d,qquad h_d\le b_d,\]
+so \(\mathcal K(P)\) is convex.  Let \((s^-,h^-)\) and \((s^+,h^+)\) be the two optimizing points above, and put \(S_-=\sum_ds_d^-\) and \(S_+=\sum_ds_d^+\), both at least \(\kappa\).  For any \(\lambda\in[0,1]\), define
+\[t=\frac{\lambda S_-}{(1-\lambda)S_++\lambda S_-},\qquad
+(s^{\lambda},h^{\lambda})=(1-t)(s^-,h^-)+t(s^+,h^+).\]
+Convexity gives \((s^{\lambda},h^{\lambda})\in\mathcal K(P)\), and substitution yields
+\[\frac{\sum_dh_d^{\lambda}}{\sum_ds_d^{\lambda}}
+=(1-\lambda)H_-(\mu)+\lambda H_+(\mu).\]
+The exact joint-region theorem lifts each such point, including both endpoints, to one normalized agreeing full-data law.  Consequently
+\[\Theta_I^H(P)=[H_-(\mu),H_+(\mu)],\]
+which proves sharpness.  Finally, each endpoint uses a constant number of additions, comparisons, and one final division per layer plus two sums.  Its arithmetic cost is therefore \(O(L)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the directly evaluable Strong Monotonicity collapse of the broader response-type flow interval. \textit{Gap.} KMV provide Strong Monotonicity and sharp mean bounds, but not the binary harmed-stayer ratio with unidentified numerator and denominator or its all-layer closed-form contraction. \textit{Consumer.} KMV-style Job Corps and WorkAdvance analyses, and Lee-bounds software, can compute the ordered-submodel endpoints in time linear in the number of layers.
+
+\begin{proposition}[prop:unavoidable-harm-iff]\label{prop:unavoidable-harm-iff}
+For every \(P\in\mathcal D_{L,\kappa}\) with arm-cell vector \(\mu\), \(H_-(\mu)>0\) if and only if there exists \(d\in\{1,\ldots,L\}\) such that \(q_{0d}-q_{1d}>R_d-C_d\).
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal D_{L,\kappa}\).  We use algebraic reduction of the already-established sharp lower endpoint.  Compatibility and the diagonal-box theorem give \(\ell_d\le u_d\), so
+\[
+ \min\{u_d,\max\{\ell_d,a_d\}\}\ge\ell_d.
+\]
+The positive-stayer-floor condition therefore implies
+\[
+ \sum_{d=1}^{L}\min\{u_d,\max\{\ell_d,a_d\}\}
+ \ge\sum_{d=1}^{L}\ell_d
+ \ge\kappa>0.
+\]
+Division in the closed-form lower endpoint is consequently valid.  The closed-form harm-interval theorem gives
+\[
+ \begin{aligned}
+ H_-(\mu)>0
+ &\Longleftrightarrow
+ \sum_{d=1}^{L}(\ell_d-a_d)_+>0\\
+ &\Longleftrightarrow
+ \ell_d>a_d\quad\text{for at least one }d.
+ \end{aligned}
+\]
+Since \(0\le q_{0d}\le r_d\) and \(q_{1d}\ge0\),
+\[
+ a_d=r_d-q_{0d}+q_{1d}\ge0.
+\]
+Thus \(\ell_d>a_d\) forces, and is forced by, the positive branch of \(\ell_d\) exceeding \(a_d\):
+\[
+ \begin{aligned}
+ \ell_d>a_d
+ &\Longleftrightarrow C_d-R_{d-1}>r_d-q_{0d}+q_{1d}\\
+ &\Longleftrightarrow q_{0d}-q_{1d}>R_{d-1}+r_d-C_d\\
+ &\Longleftrightarrow q_{0d}-q_{1d}>R_d-C_d.
+ \end{aligned}
+\]
+Taking the existential quantifier over \(d=1,\ldots,L\) proves both directions of the certificate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The iff inequality turns a latent cross-world conclusion into an observable sorting-capacity certificate. \textit{Gap.} Published probability-of-causation bounds and harm bounds across observed outcome categories, including de Aguas--Krumscheid--Pensar--Biele, do not provide a necessary-and-sufficient sorting-capacity condition for harm within latent stayers at protocol-assigned selection tiers. \textit{Consumer.} An applied researcher can diagnose unavoidable harm layer by layer without solving a latent allocation problem.
+
+\begin{proposition}[prop:l2-witness-calculation]\label{prop:l2-witness-calculation}
+The table \(v^{\mathrm{ex}}\) has strictly positive observed success and failure cells at both positive layers and belongs to \(\mathcal V_{2,49/100}\). Its observable quantities are \(\ell=(1/4,1/4)\), \(u=(7/20,1/4)\), \(a=(3/20,19/100)\), and \(b=(3/10,1/5)\), so its joint prism is \[\{(s_1,h_1):1/4\le s_1\le7/20,\ (s_1-3/20)_+\le h_1\le\min\{s_1,3/10\}\}\times\{(s_2,h_2):s_2=1/4,\ 3/50\le h_2\le1/5\}.\] The endpoint composition gives \(\phi(v^{\mathrm{ex}})=(8/25,10/11)\). Moreover, \(q_{01}-q_{11}=1/5>1/10=R_1-C_1\) and \(q_{02}-q_{12}=3/50>0=R_2-C_2\), so the unavoidable-harm certificate holds. The couplings \(\Gamma^-\) and \(\Gamma^+\) have the displayed observable margins and respectively yield \((s,h)=((1/4,1/4),(1/10,3/50))\) and \((s,h)=((3/10,1/4),(3/10,1/5))\); decoding them produces full-data response laws attaining the lower and upper endpoints.
+\end{proposition}
+\begin{proof}
+We verify the witness by exact rational arithmetic and then audit both attaining expanded-state couplings.  All eight displayed positive-layer arm cells are strictly positive.  Summing failure and success cells within each layer gives
+\[
+ r=(2/5,7/20,1/4),
+ \qquad
+ c=(1/5,9/20,7/20),
+\]
+and the displayed success cells give
+\[
+ q_0=(3/10,1/5),
+ \qquad
+ q_1=(1/10,7/50).
+\]
+The nontrivial cumulative compatibility inequalities are
+\[
+ C_0=1/5\le2/5=R_0,
+ \qquad
+ C_1=13/20\le3/4=R_1.
+\]
+Moreover,
+\[
+ \ell_1=C_1-R_0=1/4,
+ \qquad
+ \ell_2=C_2-R_1=1/4,
+ \qquad
+ \ell_1+\ell_2=1/2\ge49/100.
+\]
+Thus \(v^{\mathrm{ex}}\in\mathcal V_{2,49/100}\).  Direct substitution gives
+\[
+ u=(7/20,1/4),
+\]
+\[
+ a=\left(7/20-3/10+1/10,\ 1/4-1/5+7/50\right)
+ =(3/20,19/100),
+\]
+and
+\[
+ b=\left(\min\{3/10,9/20-1/10\},
+ \min\{1/5,7/20-7/50\}\right)
+ =(3/10,1/5).
+\]
+The definition of the joint prism therefore yields exactly
+\[
+ \{(s_1,h_1):1/4\le s_1\le7/20,\ (s_1-3/20)_+\le h_1\le\min\{s_1,3/10\}\}
+\]
+times
+\[
+ \{(s_2,h_2):s_2=1/4,\ 3/50\le h_2\le1/5\}.
+\]
+
+For the lower endpoint construction,
+\[
+ s^-=(1/4,1/4),
+ \qquad
+ A_-=1/10+3/50=4/25,
+ \qquad
+ B_-=1/2,
+\]
+so \(A_-/B_-=8/25\).  For the upper endpoint construction,
+\[
+ s^+=(3/10,1/4),
+ \qquad
+ A_+=3/10+1/5=1/2,
+ \qquad
+ B_+=3/10+1/4=11/20,
+\]
+so \(A_+/B_+=10/11\).  Since \(B_-,B_+\ge1/2>49/200\), the ambient definition uses its ratio branch, and hence
+\[
+ \phi(v^{\mathrm{ex}})=(8/25,10/11).
+\]
+The two observable layer certificates are
+\[
+ q_{01}-q_{11}=1/5>1/10=R_1-C_1,
+ \qquad
+ q_{02}-q_{12}=3/50>0=R_2-C_2.
+\]
+
+Every displayed arc of \(\Gamma^-\) and \(\Gamma^+\) is upper triangular in its layer labels, and every mass is nonnegative.  Summing \(\Gamma^-\) by left state, in the order \(0^{\star},(1,0),(1,1),(2,0),(2,1)\), gives
+\[
+ (2/5,1/20,3/10,1/20,1/5),
+\]
+and summing it by right state gives
+\[
+ (1/5,7/20,1/10,21/100,7/50).
+\]
+The same calculations for \(\Gamma^+\) give respectively
+\[
+ (2/5,1/20,3/10,1/20,1/5)
+ \quad\text{and}\quad
+ (1/5,7/20,1/10,21/100,7/50).
+\]
+Thus both arrays are normalized feasible expanded-state couplings with observable vector \(v^{\mathrm{ex}}\).  Summing their same-layer arcs and reading their harm arcs gives
+\[
+ (s,h)_{\Gamma^-}=((1/4,1/4),(1/10,3/50)),
+\]
+\[
+ (s,h)_{\Gamma^+}=((3/10,1/4),(3/10,1/5)).
+\]
+Their harm-to-stayer ratios are \(8/25\) and \(10/11\).  The expanded-network decoder therefore supplies full-data response laws attaining both endpoints, which completes the advertised constructive audit.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact rational witness checks the prism, the interior-hinge upper optimizer, the observable certificate, and both response-law attainments in one nondegenerate design. \textit{Gap.} The closest papers do not provide an all-layer response-law table that attains both endpoints of a ratio with an unidentified same-layer denominator. \textit{Consumer.} The table is a regression fixture for bounds software restricted to protocol-controlled tier assignments and a reproducible audit target for the constructive proof.
+
+\begin{lemma}[lem:kmv-response-type-framework]\label{lem:kmv-response-type-framework}
+Kroft, Mourifi\'e, and Vayalinkal formulate researcher-chosen linear response-type restrictions \(\mathcal R_T\), explicitly include \(D_1\ge D_0\) as their Strong Monotonicity restriction, and state their main sharp-bounds theorem for the response-type framework with the chosen \(\mathcal R_T\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This source node corrects the paper's positioning of ordered-layer monotonicity inside the KMV response-type framework. \textit{Gap.} The citation supplies precedent for the restriction, not the binary-harm flow theorem or the ordered closed-form contraction. \textit{Consumer.} The comparison fixes the relationship between the present results and KMV's multilayer Lee analysis.
+
+\begin{lemma}[lem:linear-response-type-expanded-decoder]\label{lem:linear-response-type-expanded-decoder}
+Fix \(x\in\mathcal X\).  Under conditional random assignment, conditional assignment overlap, and the linear response-type restriction \(\mathcal R_{T,x}\), mapping a full-data law to the conditional joint law \(\gamma\) of its two realized arm states maps exactly onto \(\Gamma_{\mathcal R_T}(\mu_x)\).  Conversely, every \(\gamma\in\Gamma_{\mathcal R_T}(\mu_x)\) has a full-data completion that induces \(\mu_x\), satisfies the response-type restriction, and obeys \(\mathsf S(\gamma)=P^{\dagger}(D_0=D_1>0\mid X=x)\) and \(\mathsf N(\gamma)=P^{\dagger}(D_0=D_1>0,Y_{0,D_0}=1,Y_{1,D_0}=0\mid X=x)\).  Thus the correspondence is a bijection after full-data laws are quotiented by their joint realized-arm-state distribution, including when some observable cells are zero.
+\end{lemma}
+\begin{proof}
+Fix \(x\in\mathcal X\) with positive stratum probability and define
+\[
+ E_z=
+ \begin{cases}
+ 0^{\star},&D_z=0,\\
+ (D_z,Y_{z,D_z}),&D_z>0,
+ \end{cases}
+ \qquad z\in\{0,1\}.
+\]
+The proof is a direct pushforward and right-inverse construction.
+
+Given a full-data law in \(\mathfrak M_{L,\mathcal R_T}\), set
+\[
+ \gamma(e_0,e_1)
+ =P^{\dagger}(E_0=e_0,E_1=e_1\mid X=x).
+\]
+Conditional overlap makes the arm-specific conditional observable laws well defined.  Conditional random assignment and the observation map imply, for \(z\in\{0,1\}\),
+\[
+ P^{\dagger}(E_z=e\mid X=x)
+ =P^{\dagger}(E_z=e\mid Z=z,X=x)
+ =\mu_{zx}(e).
+\]
+Hence the row and column margins of \(\gamma\) are \(\mu_{0x}\) and \(\mu_{1x}\).  Summing by layer gives
+\[
+ p_{ij}(\gamma)
+ =P^{\dagger}(D_0=i,D_1=j\mid X=x),
+\]
+so the maintained response-type restriction implies \(p(\gamma)\in\mathcal R_{T,x}\).  Any layer pair forced to have zero mass by \(\mathcal R_{T,x}\) consequently has zero \(\gamma\)-mass.  Thus \(\gamma\in\Gamma_{\mathcal R_T}(\mu_x)\).
+
+Conversely, fix \(\gamma\in\Gamma_{\mathcal R_T}(\mu_x)\).  Conditional on \(X=x\), draw \((E_0,E_1)\) with mass function \(\gamma\), put \(D_z=\lambda(E_z)\), and, whenever \(E_z=(d,y)\), set \(Y_{z,d}=y\).  Set each unused coordinate of \(Y^{\mathrm{pot}}\) equal to zero.  This defines an element of \(\{0,1\}^{2L}\) even when either realized state is \(0^{\star}\).  Its response-mass vector is exactly \(p(\gamma)\in\mathcal R_{T,x}\), and its two potential realized-state margins are the prescribed arm margins.  Draw \(Z\), conditional on \(X=x\), independently of the potential variables using the observed propensity, which lies strictly between zero and one.  This gives conditional random assignment and reproduces \(\mu_x\).  Across a finite collection of compatible strata, perform this construction independently within each stratum and combine the conditional laws using their stratum probabilities.  If only the fixed-stratum completion is required, arbitrary members of the nonempty response polytopes may be used outside \(x\).
+
+Finally, the cost definitions give
+\[
+ \begin{aligned}
+ \mathsf S(\gamma)
+ &=\sum_{d=1}^{L}\sum_{y_0,y_1\in\{0,1\}}
+ \gamma((d,y_0),(d,y_1))\\
+ &=P^{\dagger}(D_0=D_1>0\mid X=x),
+ \end{aligned}
+\]
+and
+\[
+ \begin{aligned}
+ \mathsf N(\gamma)
+ &=\sum_{d=1}^{L}\gamma((d,1),(d,0))\\
+ &=P^{\dagger}(D_0=D_1>0,
+ Y_{0,D_0}=1,Y_{1,D_0}=0\mid X=x).
+ \end{aligned}
+\]
+The construction is a right inverse for the joint realized-state distribution.  Hence the correspondence becomes a bijection after full-data laws are quotiented by that distribution.  No division was used, and a zero arm cell merely forces its incident marginal flow to vanish, so structural zeros create no exception.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The decoder is the sharpness bridge from response-type flow programs to full-data causal laws under arbitrary finite linear response restrictions. \textit{Gap.} The ordered decoder does not cover Lee monotonicity with reciprocal movements among positive layers or other KMV linear response restrictions. \textit{Consumer.} Implementations can decode any optimizer into an attaining realized-state law, including at structural zero cells.
+
+\begin{theorem}[thm:linear-response-type-harm-program]\label{thm:linear-response-type-harm-program}
+Let \(\mathcal X\) be finite and let \(\mu=(\mu_x)_{x\in\mathcal X}\) be compatible in the sense that \(\Gamma_{\mathcal R_T}(\mu_x)\ne\varnothing\) for every \(x\).  Under the conditional random-assignment, conditional-overlap, linear-response-type, and positive-stayer-floor conditions, the sharp fixed-stratum identified set is
+\[\mathcal I_{\mathcal R_T,x}(\mu_x)=\left[
+\min_{\gamma\in\Gamma_{\mathcal R_T}(\mu_x)}\frac{\mathsf N(\gamma)}{\mathsf S(\gamma)},
+\max_{\gamma\in\Gamma_{\mathcal R_T}(\mu_x)}\frac{\mathsf N(\gamma)}{\mathsf S(\gamma)}
+\right].\]
+Write a flattened version of the flow polytope as \(\{\gamma\ge0:G_x\gamma=g_x,\ F_x\gamma\le f_x\}\), and write \(\sigma_x\) and \(\eta_x\) for its stayer and harm cost vectors.  The two endpoints are equivalently the minimum and maximum of \(\eta_x^{\mathsf T}\xi\), respectively, over the same explicit Charnes--Cooper feasible set
+\[G_x\xi=tg_x,\qquad F_x\xi\le tf_x,\qquad \sigma_x^{\mathsf T}\xi=1,\qquad \xi\ge0,\quad 0\le t\le\kappa^{-1}.\]
+Both extrema and every value between them are attained by full-data laws.
+
+For the finite-strata target, set \(\boldsymbol\Gamma=\prod_{x\in\mathcal X}\Gamma_{\mathcal R_T}(\mu_x)\).  Its sharp identified set is
+\[\mathcal I_{\mathcal R_T,\mathcal X}(\mu,\omega)=\left[
+\min_{(\gamma_x)\in\boldsymbol\Gamma}\frac{\sum_x\omega_x\mathsf N(\gamma_x)}{\sum_x\omega_x\mathsf S(\gamma_x)},
+\max_{(\gamma_x)\in\boldsymbol\Gamma}\frac{\sum_x\omega_x\mathsf N(\gamma_x)}{\sum_x\omega_x\mathsf S(\gamma_x)}
+\right].\]
+These endpoints are the minimum and maximum of \(\sum_x\omega_x\eta_x^{\mathsf T}\xi_x\) over variables \(0\le t\le\kappa^{-1}\) and \(\xi_x\ge0\) satisfying
+\[G_x\xi_x=tg_x,\qquad F_x\xi_x\le tf_x\quad(x\in\mathcal X),\qquad
+  \sum_{x\in\mathcal X}\omega_x\sigma_x^{\mathsf T}\xi_x=1.\]
+Thus the broader response-type characterization is computable by two finite linear programs; no ordered-support or closed-form claim is made for a general \(\mathcal R_T\).
+\end{theorem}
+\begin{proof}
+We first separate the causal identified set from the observable optimization functional.  Fix \(x\in\mathcal X\).  The expanded-decoder lemma proves both inclusions in
+\[
+ \{(S_x(Q),N_x(Q)):Q\in\mathfrak P_{\mathcal R_T}(\mu,\omega)\}
+ =\{(\mathsf S(\gamma),\mathsf N(\gamma)):
+ \gamma\in\Gamma_{\mathcal R_T}(\mu_x)\}.
+\]
+The forward inclusion is the pushforward of a full-data law; the reverse inclusion is its explicit full-data completion.  The positive-stayer-floor condition gives
+\[
+ \mathsf S(\gamma)\ge\kappa>0
+ \qquad
+ \text{for every }\gamma\in\Gamma_{\mathcal R_T}(\mu_x).
+\]
+Therefore division is valid, and the causal target definition yields the equality
+\[
+ \mathcal I_{\mathcal R_T,x}(\mu_x)
+ =\left\{
+ \frac{\mathsf N(\gamma)}{\mathsf S(\gamma)}:
+ \gamma\in\Gamma_{\mathcal R_T}(\mu_x)
+ \right\}.
+\]
+This equality is derived from the decoder; it is not a definition of the causal target.
+
+Compatibility makes the flow polytope nonempty.  It is closed and is contained in the nonnegative unit-mass simplex because its margin equations imply \(\mathbf 1^{\mathsf T}\gamma=1\); hence it is compact.  It is convex because all its constraints are linear.  The ratio is continuous on it because its denominator is at least \(\kappa\), so it attains a minimum and a maximum.  To verify interval filling constructively, let \(\gamma^-\) and \(\gamma^+\) attain endpoint ratios \(r^-\le r^+\), with denominators \(S^-,S^+>0\).  For \(\tau\in[0,1]\), set
+\[
+ \lambda(\tau)=
+ \frac{\tau S^-}{(1-\tau)S^++\tau S^-},
+ \qquad
+ \gamma^{\tau}=(1-\lambda(\tau))\gamma^-+
+ \lambda(\tau)\gamma^+.
+\]
+Convexity makes \(\gamma^{\tau}\) feasible, and direct substitution gives
+\[
+ \frac{\mathsf N(\gamma^{\tau})}{\mathsf S(\gamma^{\tau})}
+ =(1-\tau)r^-+\tau r^+.
+\]
+The decoder turns each such flow into an agreeing full-data law.  This proves sharpness, attainment, and all intermediate values.
+
+We next verify the linearization directly.  This is the Charnes--Cooper linear-fractional transformation \cite{CharnesCooper1962}; no external equivalence is assumed.  For feasible \(\gamma\), define
+\[
+ t=\frac{1}{\sigma_x^{\mathsf T}\gamma},
+ \qquad
+ \xi=t\gamma.
+\]
+The stayer floor gives \(0<t\le\kappa^{-1}\).  Multiplying each original constraint by \(t>0\) gives
+\[
+ G_x\xi=tg_x,qquad
+ F_x\xi\le tf_x,qquad
+ \sigma_x^{\mathsf T}\xi=1,qquad
+ \xi\ge0,
+\]
+and the objective becomes
+\[
+ \eta_x^{\mathsf T}\xi
+ =\frac{\eta_x^{\mathsf T}\gamma}
+ {\sigma_x^{\mathsf T}\gamma}
+ =\frac{\mathsf N(\gamma)}{\mathsf S(\gamma)}.
+\]
+Conversely, suppose \((\xi,t)\) satisfies the displayed linear constraints.  Because the equality system contains the unit-mass equation, it also gives
+\[
+ \mathbf 1^{\mathsf T}\xi=t.
+\]
+Since \(0\le\sigma_x\le\mathbf 1\) coordinatewise and \(\sigma_x^{\mathsf T}\xi=1\),
+\[
+ t=\mathbf 1^{\mathsf T}\xi
+ \ge\sigma_x^{\mathsf T}\xi=1.
+\]
+Thus \(t>0\), and \(\gamma=\xi/t\) satisfies every original equality, inequality, and nonnegativity constraint.  It has \(\sigma_x^{\mathsf T}\gamma=1/t\), and the same objective identity holds in reverse.  This bijective rescaling proves that the two endpoint problems are exactly the stated finite linear programs.
+
+For finitely many strata, the conditional decoder yields both inclusions in
+\[
+ \mathcal I_{\mathcal R_T,\mathcal X}(\mu,\omega)
+ =\left\{
+ \frac{\sum_x\omega_x\mathsf N(\gamma_x)}
+ {\sum_x\omega_x\mathsf S(\gamma_x)}:
+ (\gamma_x)_{x\in\mathcal X}\in
+ \prod_{x\in\mathcal X}\Gamma_{\mathcal R_T}(\mu_x)
+ \right\}.
+\]
+The denominator is at least \(\sum_x\omega_x\kappa=\kappa>0\).  The finite product is nonempty, compact, and convex.  The same optimizing-pair and denominator-adjusted-mixture calculation just given proves attainment and interval filling for the aggregate ratio.
+
+For its linearization, put
+\[
+ t=\left(\sum_x\omega_x\sigma_x^{\mathsf T}\gamma_x\right)^{-1},
+ \qquad
+ \xi_x=t\gamma_x.
+\]
+Then \(0<t\le\kappa^{-1}\), the stratum constraints become
+\[
+ G_x\xi_x=tg_x,qquad
+ F_x\xi_x\le tf_x,qquad
+ \xi_x\ge0,
+\]
+and the common normalization and objective are
+\[
+ \sum_x\omega_x\sigma_x^{\mathsf T}\xi_x=1,
+ \qquad
+ \sum_x\omega_x\eta_x^{\mathsf T}\xi_x
+ =\frac{\sum_x\omega_x\mathsf N(\gamma_x)}
+ {\sum_x\omega_x\mathsf S(\gamma_x)}.
+\]
+Conversely, each scaled unit-mass equation gives \(\mathbf 1^{\mathsf T}\xi_x=t\).  Since \(\sum_x\omega_x=1\),
+\[
+ t=\sum_x\omega_x\mathbf 1^{\mathsf T}\xi_x
+ \ge\sum_x\omega_x\sigma_x^{\mathsf T}\xi_x=1.
+\]
+Division by \(t>0\) therefore recovers one feasible \(\gamma_x\) in every stratum and reverses the objective identity.  This proves the exact aggregate programs.  The decoder then supplies attaining covariate-augmented full-data laws, so these optimization intervals are sharp causal identified sets rather than outer bounds.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lead theorem supplies the missing sharp binary-harm fraction for arbitrary finite KMV linear response-type restrictions. \textit{Gap.} The response-type framework and mean bounds are KMV's; the new object is a ratio of harmed same-layer stayer mass to unidentified same-layer stayer mass. \textit{Consumer.} Conditional KMV analyses can solve two linear programs at each stratum or two stacked programs for a finite-strata aggregate.
+
+\begin{proposition}[prop:strong-monotonicity-program-collapse]\label{prop:strong-monotonicity-program-collapse}
+Suppose \(\mathcal R_{T,x}=\mathcal R_T^{\uparrow}\) for every \(x\in\mathcal X\).  Decode from \(\mu_x\) the conditional primitives \(\ell_{xd},u_{xd},a_{xd},b_{xd}\) by applying \(\mathrm{def{:}observable\mbox{-}primitives}\) within stratum \(x\), and suppose every conditional observable law belongs to \(\mathcal D_{L,\kappa}\).  Then the broader fixed-stratum flow endpoints equal
+\[H_{-,x}=\frac{\sum_{d=1}^{L}(\ell_{xd}-a_{xd})_+}{\sum_{d=1}^{L}\min\{u_{xd},\max\{\ell_{xd},a_{xd}\}\}},\qquad
+H_{+,x}=\frac{\sum_{d=1}^{L}b_{xd}}{\sum_{d=1}^{L}\max\{\ell_{xd},b_{xd}\}}.\]
+For the finite-strata target, the broader stacked-program endpoints collapse to
+\[H_{-,\mathcal X}=\frac{\sum_{x\in\mathcal X}\omega_x\sum_{d=1}^{L}(\ell_{xd}-a_{xd})_+}{\sum_{x\in\mathcal X}\omega_x\sum_{d=1}^{L}\min\{u_{xd},\max\{\ell_{xd},a_{xd}\}\}},\qquad
+H_{+,\mathcal X}=\frac{\sum_{x\in\mathcal X}\omega_x\sum_{d=1}^{L}b_{xd}}{\sum_{x\in\mathcal X}\omega_x\sum_{d=1}^{L}\max\{\ell_{xd},b_{xd}\}}.\]
+Both aggregate endpoints and every value between them are attainable by one covariate-augmented full-data law, and they require \(O(|\mathcal X|L)\) arithmetic operations.  The singleton-stratum case is \(\mathrm{thm{:}closed\mbox{-}form\mbox{-}harm\mbox{-}interval}\).  Thus the Cartesian prism and its ratio contraction are the closed-form collapse of the general KMV response-type program under KMV Strong Monotonicity.
+\end{proposition}
+\begin{proof}
+Fix \(x\in\mathcal X\).  Under \(\mathcal R_{T,x}=\mathcal R_T^{\uparrow}\), the response restrictions impose \(p_{ij}=0\) whenever \(j<i\).  Because every expanded-flow coordinate is nonnegative, all downward-layer arcs then have zero mass, while every upper-triangular layer pair is permitted.  Thus \(\Gamma_{\mathcal R_T^{\uparrow}}(\mu_x)\) is exactly the ordered expanded-state flow set for the conditional observable law.  The decoder identifies
+\[
+ \mathsf S(\gamma_x)=\sum_{d=1}^{L}s_{xd},
+ \qquad
+ \mathsf N(\gamma_x)=\sum_{d=1}^{L}h_{xd}.
+\]
+The exact joint-region theorem, applied conditionally within stratum \(x\), gives the Cartesian prism
+\[
+ \mathcal K_x=
+ \prod_{d=1}^{L}
+ \left\{(s_{xd},h_{xd}):
+ \ell_{xd}\le s_{xd}\le u_{xd},\ 
+ (s_{xd}-a_{xd})_+\le h_{xd}
+ \le\min\{s_{xd},b_{xd}\}\right\}.
+\]
+Because the conditional observable law belongs to \(\mathcal D_{L,\kappa}\), every feasible point obeys
+\[
+ \mathsf S(\gamma_x)=\sum_ds_{xd}
+ \ge\sum_d\ell_{xd}\ge\kappa.
+\]
+Thus the stayer-floor premise of the general response-type program follows here from the ordered prism.  The closed-form harm-interval theorem minimizes and maximizes the same ratio over \(\mathcal K_x\), yielding
+\[
+ H_{-,x}=
+ \frac{\sum_d(\ell_{xd}-a_{xd})_+}
+ {\sum_d\min\{u_{xd},\max\{\ell_{xd},a_{xd}\}\}},
+ \qquad
+ H_{+,x}=
+ \frac{\sum_db_{xd}}
+ {\sum_d\max\{\ell_{xd},b_{xd}\}}.
+\]
+The general flow theorem identifies these same extrema with its fixed-stratum programs, proving the claimed collapse, including at zero cells.
+
+For the finite-strata claim, conditional decoding is independent across strata, so the exact feasible set is \(\prod_x\mathcal K_x\).  We derive the aggregate contraction explicitly by coordinate replacement.  Write
+\[
+ F(s)=\sum_x\omega_x\sum_d(s_{xd}-a_{xd})_+,
+ \qquad
+ B(s)=\sum_x\omega_x\sum_ds_{xd}.
+\]
+Then \(0\le F(s)\le B(s)\) and \(B(s)\ge\kappa\).  If a coordinate lies below \(a_{xd}\), increasing it without crossing \(a_{xd}\) leaves \(F\) fixed and increases \(B\), so \(F/B\) weakly decreases.  If a coordinate lies above \(a_{xd}\), decreasing it by \(\delta>0\) without crossing \(a_{xd}\) decreases both \(F\) and \(B\) by \(\omega_x\delta\); because \(F\le B\),
+\[
+ \frac{F-\omega_x\delta}{B-\omega_x\delta}
+ \le\frac FB.
+\]
+Thus the minimizing coordinate is the projection of \(a_{xd}\) onto \([\ell_{xd},u_{xd}]\):
+\[
+ s_{xd}^-=min\{u_{xd},\max\{\ell_{xd},a_{xd}\}\}.
+\]
+At this point its numerator contribution is \((\ell_{xd}-a_{xd})_+\).  Hence the aggregate lower endpoint is
+\[
+ H_{-,\mathcal X}=
+ \frac{\sum_x\omega_x\sum_d(\ell_{xd}-a_{xd})_+}
+ {\sum_x\omega_x\sum_d
+ \min\{u_{xd},\max\{\ell_{xd},a_{xd}\}\}}.
+\]
+
+For the upper endpoint write
+\[
+ M(s)=\sum_x\omega_x\sum_d\min\{s_{xd},b_{xd}\}.
+\]
+Again \(0\le M(s)\le B(s)\).  When a coordinate is below \(b_{xd}\), increasing it by \(\delta\) increases both \(M\) and \(B\) by \(\omega_x\delta\), and
+\[
+ \frac{M+\omega_x\delta}{B+\omega_x\delta}
+ \ge\frac MB
+\]
+because \(M\le B\).  When a coordinate is above \(b_{xd}\), decreasing it without crossing \(b_{xd}\) leaves \(M\) fixed and decreases \(B\), so the ratio weakly increases.  Observable cell inequalities imply
+\[
+ b_{xd}\le q_{0,xd}\le r_{xd},
+ \qquad
+ b_{xd}\le c_{xd}-q_{1,xd}\le c_{xd},
+\]
+and hence \(b_{xd}\le u_{xd}\).  The maximizing coordinate is therefore
+\[
+ s_{xd}^+=\max\{\ell_{xd},b_{xd}\},
+\]
+whose numerator contribution is \(b_{xd}\).  This gives
+\[
+ H_{+,\mathcal X}=
+ \frac{\sum_x\omega_x\sum_db_{xd}}
+ {\sum_x\omega_x\sum_d\max\{\ell_{xd},b_{xd}\}}.
+\]
+
+Both optimizer vectors belong to the product prism and hence are jointly attainable.  To attain any number between their ratios, mix the two product-flow points with the denominator-adjusted coefficient used in the general program proof; convexity preserves every conditional margin and response restriction.  The conditional decoder combines the resulting stratum flows into one normalized covariate-augmented full-data law.  Finally, each of the \(|\mathcal X|L\) coordinates requires only a constant number of additions and comparisons, so both aggregate endpoints require \(O(|\mathcal X|L)\) arithmetic operations.  With a singleton stratum, the formulas reduce exactly to the closed-form harm-interval theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition explicitly connects the general KMV-class flow characterization to the paper's closed-form ordered formulas. \textit{Gap.} It prevents the specialized prism and broader linear programs from being presented as unrelated results. \textit{Consumer.} Software can dispatch to the \(O(L)\) formulas for upper-triangular support and to the general programs otherwise.
+
+\section{Interpretation}
+
+At a fixed \(X=x\), the target is the probability of a binary loss under treatment among units whose positive selection layer would be identical under both assignments. It is not the total fraction harmed in the population, a mean treatment effect, or harm among everyone selected in both arms. The finite-strata target first sums the harmed-stayer and stayer masses using \(P(X=x)\) and then takes their ratio; it is not an unweighted average of stratum-specific ratios.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+For a general linear response-type restriction \(\mathcal R_T\), the exact result is a pair of finite linear programs after Charnes--Cooper scaling; no general closed form is claimed. The \(O(L)\) formulas, Cartesian diagonal box, and layerwise prism rely on KMV Strong Monotonicity \(D_1\ge D_0\). That restriction is researcher chosen and is neither validated nor point-identified by arm margins, although KMV provide its formal precedent and a protocol-controlled retain-or-upgrade design can make it credible. The positive-stayer floor is maintained because otherwise the conditional ratio can be undefined. Fixed-\(L\), finite-strata identification includes zero observable cells, but this solve does not establish uniform numerical-delta validity across local sequences crossing ties; exact confidence-set image projection remains the robust fallback.
+
+\section{Honest scope}
+
+The paper's broad deliverable is a sharp binary harmed-stayer characterization for any finite KMV linear response-type restriction, conditional at fixed \(X=x\), with a finite-strata aggregate and two explicit linear programs. The generic decoder and fractional linearization are tools, not novelty claims. The specialized contribution under KMV Strong Monotonicity is the exact Cartesian diagonal box, simultaneous stayer--harm prism, linear-time closed-form ratio contraction, and observable iff certificate for unavoidable harm, all valid at structural zero cells. KMV already provide the Strong Monotonicity restriction and general response-type framework; protocol-controlled tier assignment is only one substantive rationale for selecting that submodel. No closed form is asserted for Lee monotonicity alone or arbitrary reciprocal positive-layer movement. No claim is made about total welfare, empirical rejection of zero harm, growing \(L\), continuous covariates, semiparametric efficiency, or uniform numerical-delta inference near changing active sets.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KroftMourifieVayalinkal2024} Kroft, K., I. Mourifi\'e, and A. Vayalinkal (2024), ``Horowitz--Manski--Lee Bounds with Multilayered Sample Selection,'' NBER Working Paper 32952, June 3, 2026 version, especially Remark 2(i), Theorem 1, and Appendix A.5; arXiv:2409.04589.
+
+  \bibitem{PossebomRiva2025} Possebom, V. and F. Riva (2025), ``Probability of Causation with Sample Selection: A Reanalysis of the Impacts of J\'ovenes en Acci\'on on Formality,'' Journal of Business \& Economic Statistics, DOI: 10.1080/07350015.2024.2388639; accessible arXiv:2210.01938v6, July 3, 2024. The arXiv v6 text is used for Proposition 2 and Appendix A.2 because the journal article text was inaccessible during verification.
+
+  \bibitem{Kallus2022Harm} Kallus, N. (2022), ``What's the Harm? Sharp Bounds on the Fraction Negatively Affected by Treatment,'' Advances in Neural Information Processing Systems 35, arXiv:2205.10327.
+
+  \bibitem{DeAguasKrumscheidPensarBiele2025} de Aguas, J., S. Krumscheid, J. Pensar, and G. Biele (2025), ``The Probability of Tiered Benefit: Partial Identification with Robust and Stable Inference,'' Proceedings of Machine Learning Research 275, 1--24, 4th Conference on Causal Learning and Reasoning, arXiv:2502.10049. Proposition 5 and equations (7)--(8) give sharp bounds without outcome monotonicity for tiered benefit; the paper defines tiered harm by reversing improvement across ordered outcome categories and reports the corresponding bounds.
+
+  \bibitem{FangSantos2019} Fang, Z. and A. Santos (2019), ``Inference on Directionally Differentiable Functions,'' Review of Economic Studies 86, 377--412.
+
+  \bibitem{HongLi2018} Hong, H. and J. Li (2018), ``The Numerical Delta Method,'' Journal of Econometrics 206, 379--394.
+
+  \bibitem{KaidoMolinariStoye2019} Kaido, H., F. Molinari, and J. Stoye (2019), ``Confidence Intervals for Projections of Partially Identified Parameters,'' Econometrica 87, 1397--1432.
+
+  \bibitem{Semenova2025} Semenova, V. (2025), ``Generalized Lee Bounds,'' Journal of Econometrics, article 106055, arXiv:2008.12720.
+
+  \bibitem{KhandamiryanSemenova2026} Khandamiryan, G. and V. Semenova (2026), ``Adaptive Estimation of Aggregated Values of Conditional Linear Programs,'' arXiv:2606.08359.
+
+  \bibitem{LuDingDasgupta2018} Lu, J., P. Ding, and T. Dasgupta (2018), ``Treatment Effects on Ordinal Outcomes: Causal Estimands and Sharp Bounds,'' Journal of Educational and Behavioral Statistics 43, 540--567.
+
+  \bibitem{LaffersNedela2017} Laff\`ers, L. and R. Nedela (2017), ``Sensitivity of the Bounds on the ATE in the Presence of Sample Selection,'' Economics Letters 158, 84--87.
+
+  \bibitem{SommerfeldMunk2018} Sommerfeld, M. and A. Munk (2018), ``Inference for Empirical Wasserstein Distances on Finite Spaces,'' Journal of the Royal Statistical Society, Series B 80, 219--238.
+
+  \bibitem{JiLeiSpector2023} Ji, W., L. Lei, and A. Spector (2023), ``Model-Agnostic Covariate-Assisted Inference on Partially Identified Causal Effects,'' arXiv:2310.08115.
+
+\end{thebibliography}
+
+\end{document}

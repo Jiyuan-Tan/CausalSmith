@@ -1,0 +1,796 @@
+{
+  "qid": "exp_adaptive_qte_anytime_regret_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "monitoring time"
+    },
+    {
+      "name": "t",
+      "type": "unit index",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "role": "sequential arrival index",
+      "refs": ["n"]
+    },
+    {
+      "name": "Aset",
+      "type": "treatment set",
+      "def": "\\(\\mathcal A=\\{0,1\\}\\)",
+      "role": "two experimental arms"
+    },
+    {
+      "name": "uL",
+      "type": "quantile-index endpoint",
+      "space": "\\((0,1/2)\\)",
+      "role": "lower endpoint"
+    },
+    {
+      "name": "uU",
+      "type": "quantile-index endpoint",
+      "space": "\\((1/2,1)\\)",
+      "role": "upper endpoint"
+    },
+    {
+      "name": "I",
+      "type": "compact quantile interval",
+      "def": "\\(I=[u_L,u_U]\\)",
+      "role": "whole-curve index set",
+      "refs": ["uL", "uU"]
+    },
+    {
+      "name": "mu",
+      "type": "finite positive measure",
+      "space": "probability measures on \\(I\\) with full support",
+      "role": "policy weight over quantiles",
+      "refs": ["I"]
+    },
+    {
+      "name": "M",
+      "type": "positive constant",
+      "space": "\\((0,\\infty)\\)",
+      "role": "outcome bound"
+    },
+    {
+      "name": "eps",
+      "type": "positive constant",
+      "space": "\\((0,1/2)\\)",
+      "role": "allocation floor"
+    },
+    {
+      "name": "alpha",
+      "type": "error probability",
+      "space": "\\((0,1)\\)",
+      "role": "simultaneous coverage level"
+    },
+    {
+      "name": "lambda",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "role": "frontier scalarization weight"
+    },
+    {
+      "name": "Y",
+      "type": "triangular array of fixed potential outcomes",
+      "space": "\\(\\{Y_{n,t}(a):a\\in\\mathcal A,1\\le t\\le n,n\\ge1\\}\\subset[-M,M]\\)",
+      "role": "finite populations held fixed under randomization",
+      "refs": ["n", "t", "Aset", "M"]
+    },
+    {
+      "name": "Filtration",
+      "type": "filtration",
+      "def": "\\(\\mathcal F_{n,t}=\\sigma\\{A_{n,s},O_{n,s}:s\\le t\\}\\)",
+      "role": "accrued experimental history",
+      "refs": ["n", "t"]
+    },
+    {
+      "name": "p",
+      "type": "predictable allocation sequence",
+      "space": "\\(p_{n,t}\\in[\\varepsilon,1-\\varepsilon]\\)",
+      "sig": "\\(p_{n,t}=\\Pr(A_{n,t}=1\\mid\\mathcal F_{n,t-1})\\)",
+      "role": "experimental design decision",
+      "refs": ["n", "t", "eps", "Filtration"]
+    },
+    {
+      "name": "A",
+      "type": "treatment assignment array",
+      "space": "\\(A_{n,t}\\in\\mathcal A\\)",
+      "def": "\\(A_{n,t}\\mid\\mathcal F_{n,t-1}\\sim\\operatorname{Bernoulli}(p_{n,t})\\)",
+      "role": "only source of randomness",
+      "refs": ["n", "t", "Aset", "p", "Filtration"]
+    },
+    {
+      "name": "O",
+      "type": "observed outcome array",
+      "def": "\\(O_{n,t}=A_{n,t}Y_{n,t}(1)+(1-A_{n,t})Y_{n,t}(0)\\)",
+      "role": "revealed response",
+      "refs": ["n", "t", "A", "Y"]
+    },
+    {
+      "name": "Ffinite",
+      "type": "finite-population distribution function",
+      "sig": "\\(F_{a,n}(y)=n^{-1}\\sum_{t=1}^n\\mathbf 1\\{Y_{n,t}(a)\\le y\\}\\)",
+      "role": "armwise design-based distribution target",
+      "refs": ["Aset", "n", "t", "Y"]
+    },
+    {
+      "name": "Qfinite",
+      "type": "finite-population quantile function",
+      "sig": "\\(Q_{a,n}(u)=\\inf\\{y:F_{a,n}(y)\\ge u\\}\\)",
+      "role": "armwise causal quantile",
+      "refs": ["Aset", "n", "I", "Ffinite"]
+    },
+    {
+      "name": "tau",
+      "type": "finite-population QTE curve",
+      "sig": "\\(\\tau_n(u)=Q_{1,n}(u)-Q_{0,n}(u)\\)",
+      "role": "causal estimand",
+      "refs": ["n", "I", "Qfinite"]
+    },
+    {
+      "name": "Flimit",
+      "type": "pair of limiting distribution functions",
+      "sig": "\\(F_a=\\lim_{n\\to\\infty}F_{a,n}\\)",
+      "role": "deterministic finite-population limit",
+      "refs": ["Aset", "n", "Ffinite"]
+    },
+    {
+      "name": "Qlimit",
+      "type": "pair of limiting quantile functions",
+      "sig": "\\(Q_a(u)=\\inf\\{y:F_a(y)\\ge u\\}\\)",
+      "role": "local expansion point",
+      "refs": ["Aset", "I", "Flimit"]
+    },
+    {
+      "name": "f",
+      "type": "pair of density functions",
+      "sig": "\\(f_a(y)=F_a'(y)\\)",
+      "role": "quantile spacing",
+      "refs": ["Aset", "Flimit"]
+    },
+    {
+      "name": "psi",
+      "type": "fixed quantile-score array",
+      "sig": "\\(\\psi_{a,n,t}(u)=\\{\\mathbf 1(Y_{n,t}(a)\\le Q_a(u))-u\\}/f_a(Q_a(u))\\)",
+      "role": "linearized armwise quantile score",
+      "refs": ["Aset", "n", "t", "I", "Y", "Qlimit", "f"]
+    },
+    {
+      "name": "d",
+      "type": "armwise score-energy curves",
+      "sig": "\\(d_a(u)=\\lim_{n\\to\\infty}n^{-1}\\sum_{t=1}^n\\psi_{a,n,t}(u)^2\\)",
+      "role": "allocation-relevant information primitive",
+      "refs": ["Aset", "n", "t", "I", "psi"]
+    },
+    {
+      "name": "ell",
+      "type": "per-unit curve-wise Neyman loss",
+      "sig": "\\(\\ell_{n,t}(r)=\\int_I[(1-r)r^{-1}\\psi_{1,n,t}(u)^2+r(1-r)^{-1}\\psi_{0,n,t}(u)^2]\\,d\\mu(u)\\)",
+      "role": "hindsight loss for allocation \\(r\\)",
+      "refs": ["n", "t", "I", "psi", "mu"]
+    },
+    {
+      "name": "Jn",
+      "type": "hindsight average loss",
+      "sig": "\\(J_n(r)=n^{-1}\\sum_{t=1}^n\\ell_{n,t}(r)\\)",
+      "role": "finite-population allocation criterion",
+      "refs": ["n", "t", "ell"]
+    },
+    {
+      "name": "pNn",
+      "type": "hindsight oracle allocation",
+      "sig": "\\(p_{N,n}\\in\\arg\\min_{r\\in[\\varepsilon,1-\\varepsilon]}J_n(r)\\)",
+      "role": "curve-wise Neyman benchmark",
+      "refs": ["n", "eps", "Jn"]
+    },
+    {
+      "name": "Reg",
+      "type": "cumulative curve-wise Neyman regret",
+      "sig": "\\(\\operatorname{Reg}_n(p)=\\sum_{t=1}^n\\ell_{n,t}(p_{n,t})-nJ_n(p_{N,n})\\)",
+      "role": "allocation objective",
+      "refs": ["n", "t", "p", "ell", "Jn", "pNn"]
+    },
+    {
+      "name": "J",
+      "type": "limiting Neyman loss",
+      "sig": "\\(J(r)=\\int_I[(1-r)r^{-1}d_1(u)+r(1-r)^{-1}d_0(u)]\\,d\\mu(u)\\)",
+      "role": "population-free asymptotic allocation loss",
+      "refs": ["I", "d", "mu"]
+    },
+    {
+      "name": "pN",
+      "type": "limiting Neyman allocation",
+      "sig": "\\(p_N\\in\\arg\\min_{r\\in[\\varepsilon,1-\\varepsilon]}J(r)\\)",
+      "role": "zero-regret endpoint",
+      "refs": ["eps", "J"]
+    },
+    {
+      "name": "Delta",
+      "type": "asymptotic regret density",
+      "sig": "\\(\\Delta(r)=J(r)-J(p_N)\\)",
+      "role": "horizontal frontier coordinate",
+      "refs": ["J", "pN"]
+    },
+    {
+      "name": "b",
+      "type": "maximal LIL half-width constant",
+      "sig": "\\(b(r)=\\sup_{u\\in I}[\\{(1-r)d_1(u)/r\\}^{1/2}+\\{rd_0(u)/(1-r)\\}^{1/2}]\\)",
+      "role": "vertical frontier coordinate for marginal inversion bands",
+      "refs": ["I", "d"]
+    },
+    {
+      "name": "pW",
+      "type": "width-optimal allocation",
+      "sig": "\\(p_W\\in\\arg\\min_{r\\in[\\varepsilon,1-\\varepsilon]}b(r)\\)",
+      "role": "minimum-width endpoint",
+      "refs": ["eps", "b"]
+    },
+    {
+      "name": "pLambda",
+      "type": "scalarized oracle allocation",
+      "sig": "\\(p_\\lambda\\in\\arg\\min_{r\\in[\\varepsilon,1-\\varepsilon]}\\{\\Delta(r)+\\lambda b(r)^2\\}\\)",
+      "role": "index of the Pareto frontier",
+      "refs": ["eps", "Delta", "lambda", "b"]
+    },
+    {
+      "name": "Frontier",
+      "type": "subset of \\(\\mathbb R_+^2\\)",
+      "sig": "\\(\\mathfrak F=\\operatorname{ND}\\{(\\Delta(r),b(r)):r\\in[\\varepsilon,1-\\varepsilon]\\}\\)",
+      "role": "nondominated allocation-regret and width pairs",
+      "refs": ["Delta", "b", "eps"]
+    },
+    {
+      "name": "m",
+      "type": "predictable armwise CDF augmentation",
+      "sig": "\\(m_{a,n,t-1}:\\mathbb R\\to[0,1]\\)",
+      "role": "lagged monotone estimate used in the AIPW threshold score",
+      "refs": ["Aset", "n", "t", "Filtration"]
+    },
+    {
+      "name": "H",
+      "type": "threshold-indexed AIPW score",
+      "sig": "\\(H_{a,n,t}(y)=m_{a,n,t-1}(y)+\\mathbf 1\\{A_{n,t}=a\\}p_{a,n,t}^{-1}[\\mathbf 1\\{O_{n,t}\\le y\\}-m_{a,n,t-1}(y)]\\)",
+      "def": "\\(p_{1,n,t}=p_{n,t}\\) and \\(p_{0,n,t}=1-p_{n,t}\\)",
+      "role": "martingale-unbiased score for \\(F_{a,n}\\)",
+      "refs": ["Aset", "n", "t", "m", "A", "p", "O"]
+    },
+    {
+      "name": "CDFBand",
+      "type": "pair of time-and-value-uniform CDF confidence bands",
+      "sig": "\\([L_{a,n}(y),U_{a,n}(y)]\\)",
+      "role": "stitched self-normalized bands formed from \\(H_{a,n,t}(y)\\)",
+      "refs": ["Aset", "n", "H", "alpha"]
+    },
+    {
+      "name": "QTEBand",
+      "type": "set-valued whole-curve confidence sequence",
+      "sig": "\\(\\mathcal C_n(u)=[U_{1,n}^{-1}(u)-L_{0,n}^{-1}(u),L_{1,n}^{-1}(u)-U_{0,n}^{-1}(u)]\\)",
+      "role": "anytime QTE band",
+      "refs": ["n", "I", "CDFBand"]
+    },
+    {
+      "name": "AdaptiveDesign",
+      "type": "predictable batched allocation rule",
+      "sig": "\\(\\pi^{\\lambda}=\\{p_{n,t}^{\\lambda}\\}\\)",
+      "role": "data-driven frontier-attaining design",
+      "refs": ["lambda", "p", "O", "I", "eps"]
+    },
+    {
+      "name": "LowerBoundHandle",
+      "type": "proof handle",
+      "def": "pair finite populations by quantile-score permutations that preserve both revealed armwise marginals and predictable assignment laws, then apply a sequential Le Cam change of measure at the least-favorable quantile",
+      "role": "starting move for the unrestricted minimax converse",
+      "refs": ["Y", "A", "p", "I", "d"]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:bounded-fixed-outcomes",
+      "kind": "design-based boundedness",
+      "condition": "For every \\(n\\), \\(t\\le n\\), and \\(a\\in\\mathcal A\\), the fixed potential outcome satisfies \\( |Y_{n,t}(a)|\\le M\\).",
+      "free_symbols": ["n", "t", "Aset", "Y", "M"],
+      "constants": {"M": "fixed and finite"},
+      "standard": {"name": "bounded finite-population potential outcomes", "cite": "LiangBojinov2023"},
+      "used_by": ["thm:oracle-frontier", "thm:adaptive-attainment", "thm:anytime-band", "oeq:unrestricted-sharpness"]
+    },
+    {
+      "id": "ass:predictable-clipping",
+      "kind": "known randomization",
+      "condition": "For every \\(n\\) and \\(t\\le n\\), \\(p_{n,t}\\) is \\(\\mathcal F_{n,t-1}\\)-measurable and lies in \\([\\varepsilon,1-\\varepsilon]\\).",
+      "free_symbols": ["n", "t", "p", "Filtration", "eps"],
+      "constants": {"eps": "fixed in \\((0,1/2)\\)"},
+      "standard": {"name": "predictable overlap for adaptive experiments", "cite": "CookMishlerRamdas2024"},
+      "used_by": ["thm:oracle-frontier", "thm:adaptive-attainment", "thm:anytime-band", "oeq:unrestricted-sharpness"]
+    },
+    {
+      "id": "ass:uniform-finite-population-limit",
+      "kind": "finite-population regularity",
+      "condition": "For each \\(a\\in\\mathcal A\\), \\(\\sup_y|F_{a,n}(y)-F_a(y)|\\to0\\).",
+      "free_symbols": ["Aset", "n", "Ffinite", "Flimit"],
+      "standard": {"name": "uniform finite-population distribution convergence", "cite": "ZhangZheng2020"},
+      "used_by": ["thm:oracle-frontier", "thm:adaptive-attainment", "thm:anytime-band", "prop:published-endpoints"]
+    },
+    {
+      "id": "ass:regular-quantile-spacing",
+      "kind": "quantile regularity",
+      "condition": "For each \\(a\\in\\mathcal A\\), \\(F_a\\) is continuously differentiable on a neighborhood of \\(Q_a(I)\\) and \\(0<c_f\\le f_a(Q_a(u))\\le C_f<\\infty\\) uniformly over \\(u\\in I\\).",
+      "free_symbols": ["Aset", "Flimit", "Qlimit", "I", "f"],
+      "constants": {"c_f": "positive", "C_f": "finite"},
+      "standard": {"name": "uniform positive-density quantile regularity", "cite": "LiLuoWangFeng2025"},
+      "used_by": ["thm:oracle-frontier", "thm:adaptive-attainment", "thm:anytime-band", "prop:strict-conflict", "prop:published-endpoints"]
+    },
+    {
+      "id": "ass:block-score-stability",
+      "kind": "deterministic enrollment regularity",
+      "condition": "For every fixed \\(c>1\\), \\(\\max_{a\\in\\mathcal A}\\sup_{u\\in I}\\sup_{k:\\,c^k\\le n}|B_{n,k}|^{-1}|\\sum_{t\\in B_{n,k}}\\psi_{a,n,t}(u)^2-d_a(u)|\\to0\\), where \\(B_{n,k}=\\{t:c^k<t\\le\\min(c^{k+1},n)\\}\\).",
+      "free_symbols": ["n", "t", "Aset", "I", "psi", "d"],
+      "constants": {"c": "any fixed number greater than one"},
+      "novel": {"flag": true, "justification": "The condition is satisfied by deterministic rotating-enrollment schedules whose covariate strata are balanced within geometrically growing blocks, including periodic registry intake and stratified platform traffic. It allows outcomes to be heterogeneous across units while excluding a single late block with a wholly different quantile composition."},
+      "used_by": ["thm:oracle-frontier", "thm:adaptive-attainment", "thm:anytime-band", "prop:strict-conflict", "prop:published-endpoints"]
+    },
+    {
+      "id": "ass:score-energy-continuity",
+      "kind": "functional regularity",
+      "condition": "The functions \\(d_0\\) and \\(d_1\\) are continuous on \\(I\\).",
+      "free_symbols": ["d", "I"],
+      "standard": {"name": "continuous quantile-process variance kernel", "cite": "ZhangZheng2020"},
+      "used_by": ["thm:oracle-frontier", "thm:adaptive-attainment", "thm:anytime-band", "prop:strict-conflict", "prop:published-endpoints"]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:design-class",
+      "name": "Regular design-based QTE arrays",
+      "construction": "\\(\\mathcal M=\\{(\\{Y_{n,t}(a):a\\in\\mathcal A,1\\le t\\le n\\}_{n\\ge1},\\{p_{n,t}:1\\le t\\le n\\}_{n\\ge1}):\\text{ass:bounded-fixed-outcomes, ass:predictable-clipping, ass:uniform-finite-population-limit, ass:regular-quantile-spacing, ass:block-score-stability, and ass:score-energy-continuity hold}\\}\\).",
+      "free_symbols": ["Y", "n", "t", "Aset", "p"],
+      "by_member_properties": ["ass:bounded-fixed-outcomes", "ass:predictable-clipping", "ass:uniform-finite-population-limit", "ass:regular-quantile-spacing", "ass:block-score-stability", "ass:score-energy-continuity"]
+    },
+    {
+      "id": "def:pareto-frontier",
+      "name": "Allocation-regret and LIL-width frontier",
+      "construction": "Compute \\(J\\), \\(p_N\\), \\(\\Delta\\), and \\(b\\) from the score-energy curves, form \\(\\{(\\Delta(r),b(r)):r\\in[\\varepsilon,1-\\varepsilon]\\}\\), and retain its coordinatewise nondominated points to obtain \\(\\mathfrak F\\).",
+      "free_symbols": ["J", "pN", "Delta", "b", "eps", "Frontier"],
+      "inputs": ["d", "mu", "eps"]
+    },
+    {
+      "id": "def:frontier-adaptive-design",
+      "name": "Doubling-batch frontier design",
+      "construction": "At epochs \\(m_k=2^k\\), form armwise inverse-probability AIPW empirical distribution functions from \\(\\{A_{n,t},O_{n,t},p_{n,t}:t\\le m_k\\}\\), monotonize them, and let \\(\\widehat Q_{a,k}\\) be their generalized inverses. With \\(h_k=m_k^{-1/5}\\), set \\(\\widehat d_{a,k}(u)=u(1-u)\\{[\\widehat Q_{a,k}(u+h_k)-\\widehat Q_{a,k}(u-h_k)]/(2h_k)\\}^2\\), using endpoint truncation inside \\(I\\). Replace \\(d\\) by \\(\\widehat d_k\\) in \\(\\Delta(r)+\\lambda b(r)^2\\), choose its smallest minimizer over \\([\\varepsilon,1-\\varepsilon]\\), and use that probability throughout \\(m_k<t\\le m_{k+1}\\); initialize at \\(1/2\\).",
+      "free_symbols": ["AdaptiveDesign", "A", "O", "p", "t", "I", "eps", "d", "Delta", "lambda", "b"],
+      "inputs": ["lambda", "I", "eps", "A", "O", "p"]
+    },
+    {
+      "id": "def:anytime-qte-band",
+      "name": "AIPW inversion QTE confidence sequence",
+      "construction": "Set \\(m_{a,n,0}(y)=1/2\\) and thereafter use the lagged monotonized AIPW distribution estimate. For each arm, apply a self-normalized empirical-Bernstein mixture to \\(\\sum_{t\\le n}\\{H_{a,n,t}(y)-\\mathbf 1(Y_{n,t}(a)\\le y)\\}\\), stitch intrinsic-time epochs, and use the threshold-ordering argument to obtain \\([L_{a,n},U_{a,n}]\\) simultaneously in \\(n\\) and \\(y\\). Return \\(\\mathcal C_n(u)=[U_{1,n}^{-1}(u)-L_{0,n}^{-1}(u),L_{1,n}^{-1}(u)-U_{0,n}^{-1}(u)]\\).",
+      "free_symbols": ["m", "Aset", "n", "t", "H", "Y", "CDFBand", "QTEBand", "I", "alpha"],
+      "inputs": ["A", "O", "p", "alpha"]
+    },
+    {
+      "id": "def:unrestricted-lower-bound-handle",
+      "name": "Permutation-coupling lower-bound handle",
+      "construction": "Use the quantile-score permutation and sequential change-of-measure strategy named by \\(\\text{LowerBoundHandle}\\) to compare any predictable allocation and anytime band with finite populations having identical revealed armwise marginals but least-favorable cross-arm pairing near one quantile in \\(I\\).",
+      "free_symbols": ["LowerBoundHandle", "p", "QTEBand", "Y", "I", "d"],
+      "inputs": ["LowerBoundHandle", "d", "I"]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:oracle-frontier",
+      "kind": "theorem",
+      "statement": "On \\(\\mathcal M\\), consider any predictable design for which the Cesaro limits of \\(n^{-1}\\sum_{t\\le n}(1-p_{n,t})/p_{n,t}\\) and \\(n^{-1}\\sum_{t\\le n}p_{n,t}/(1-p_{n,t})\\) exist, and let \\(\\bar p=\\lim_n n^{-1}\\sum_{t\\le n}p_{n,t}\\). Its limiting regret density and marginal-inversion LIL-width constant are coordinatewise no smaller than \\(\\Delta(\\bar p)\\) and \\(b(\\bar p)\\). Every pair \\( (\\Delta(r),b(r))\\) is attained by the constant Bernoulli design \\(p_{n,t}=r\\). Hence the sharp nondominated set is exactly \\(\\mathfrak F\\), and every exposed point is indexed by a minimizer \\(p_\\lambda\\) of \\(\\Delta(r)+\\lambda b(r)^2\\).",
+      "free_symbols": ["p", "n", "t", "Delta", "b", "Frontier", "pLambda", "lambda"],
+      "depends_on": ["def:design-class", "def:pareto-frontier"],
+      "status": "to-prove",
+      "justification": "This turns an infinite-dimensional adaptive-design comparison into an explicit one-dimensional frontier with a convexity certificate.",
+      "gap": "Li, Luo, Wang, and Feng optimize one quantile at a fixed horizon, while Noarov, Fogliato, Bertran, and Roth optimize a scalar mean loss; neither characterizes the continuum-QTE regret-width set.",
+      "consumer": "Trial designers can select a treatment fraction from an auditable tolerance on average QTE precision and read off the smallest achievable maximal sequential-band width."
+    },
+    {
+      "id": "thm:adaptive-attainment",
+      "kind": "theorem",
+      "statement": "For each \\(\\lambda\\ge0\\), the doubling-batch design \\(\\pi^\\lambda\\) is predictable, satisfies \\(p_{n,t}^\\lambda\\in[\\varepsilon,1-\\varepsilon]\\), and obeys \\(p_{n,t}^\\lambda\\to p_\\lambda\\) in randomization probability uniformly away from batch boundaries. Moreover, \\(n^{-1}\\operatorname{Reg}_n(\\pi^\\lambda)\\to\\Delta(p_\\lambda)\\), and its scalarized excess relative to \\(p_\\lambda\\) is \\(o_{\\Pr}(1)\\).",
+      "free_symbols": ["lambda", "AdaptiveDesign", "p", "n", "t", "eps", "pLambda", "Reg", "Delta"],
+      "depends_on": ["def:design-class", "def:frontier-adaptive-design", "thm:oracle-frontier"],
+      "status": "to-prove",
+      "justification": "The oracle curve depends on two unknown quantile-spacing functions, so attainment requires learning the design target on the same adaptive path.",
+      "gap": "Noarov, Fogliato, Bertran, and Roth use unbiased scalar loss gradients, and Li, Luo, Wang, and Feng learn a pointwise QTE allocation; the proposed rule learns a nonsmooth supremum functional over a continuum.",
+      "consumer": "A platform can preselect \\(\\lambda\\) and run one response-adaptive experiment whose long-run operating point is certified on the frontier."
+    },
+    {
+      "id": "thm:anytime-band",
+      "kind": "theorem",
+      "statement": "Under \\(\\pi^\\lambda\\), the band \\(\\mathcal C_n\\) satisfies \\(\\Pr_A\\{\\tau_n(u)\\in\\mathcal C_n(u)\\text{ for every }n\\ge1\\text{ and }u\\in I\\}\\ge1-\\alpha\\). Its maximal half-width has the design-based LIL expansion \\(\\limsup_{n\\to\\infty}\\sqrt{n/(2\\log\\log n)}\\sup_{u\\in I}\\operatorname{rad}\\{\\mathcal C_n(u)\\}\\le b(p_\\lambda)\\) in randomization probability, with equality for a least-favorable cross-arm ordering in the marginal-inversion band class.",
+      "free_symbols": ["AdaptiveDesign", "lambda", "QTEBand", "n", "tau", "I", "alpha", "b", "pLambda"],
+      "depends_on": ["def:design-class", "def:frontier-adaptive-design", "def:anytime-qte-band", "thm:adaptive-attainment"],
+      "status": "to-prove",
+      "justification": "Frontier optimality has operational meaning only if a band is valid after arbitrary monitoring and realizes the width coordinate.",
+      "gap": "Howard and Ramdas obtain the sharp time-and-quantile LIL rate for i.i.d. samples, and Mineiro and Howard cover adaptive counterfactual distributions without the local augmented QTE constant; neither couples width to a learned allocation.",
+      "consumer": "Online experiments at streaming platforms can stop on any whole-distribution treatment-effect feature while retaining a design-specific precision certificate."
+    },
+    {
+      "id": "prop:strict-conflict",
+      "kind": "proposition",
+      "statement": "If \\(p_N\\ne p_W\\), then no predictable design in \\(\\mathcal M\\) simultaneously has zero limiting regret density and LIL-width constant \\(b(p_W)\\). More precisely, compactness and strict convexity yield a positive separation \\(\\inf_{r:\\,b(r)\\le b(p_W)+\\eta}\\Delta(r)>0\\) for every sufficiently small \\(\\eta>0\\).",
+      "free_symbols": ["pN", "pW", "p", "b", "Delta"],
+      "depends_on": ["def:design-class", "def:pareto-frontier", "thm:oracle-frontier"],
+      "status": "to-prove",
+      "justification": "A strict separation identifies when serving the average curve and protecting its worst quantile are genuinely incompatible rather than cosmetically different objectives.",
+      "gap": "The multiple-estimand design criterion of Zhang and van der Laan documents efficiency trade-offs but does not give a whole-quantile strict-separation certificate tied to anytime width.",
+      "consumer": "Regulators can detect when a single default allocation cannot meet both a prespecified average-precision target and a worst-quantile monitoring target."
+    },
+    {
+      "id": "prop:published-endpoints",
+      "kind": "proposition",
+      "statement": "When \\(I=\\{u_0\\}\\), minimizing \\(J\\) gives the same clipped pointwise allocation obtained from the allocation-dependent QTE influence-score variance in Li, Luo, Wang, and Feng. When \\(d_0(u)=d_1(u)\\) for every \\(u\\in I\\), both \\(p_N\\) and \\(p_W\\) equal \\(1/2\\), and each armwise component of \\(\\mathcal C_n\\) reduces to the stitched quantile-sequence inversion of Howard and Ramdas after replacing calendar time by armwise intrinsic time.",
+      "free_symbols": ["I", "J", "d", "pN", "pW", "QTEBand", "n"],
+      "depends_on": ["def:pareto-frontier", "def:anytime-qte-band", "thm:oracle-frontier", "thm:anytime-band"],
+      "status": "to-prove",
+      "justification": "The reductions anchor both endpoints to established pointwise allocation and sequential quantile theory.",
+      "gap": "The two reductions are separately known, but their coexistence inside one continuum-design frontier is not.",
+      "consumer": "Applied researchers can validate software against balanced A/B tests and a prespecified single quantile before using the full frontier."
+    },
+    {
+      "id": "oeq:unrestricted-sharpness",
+      "kind": "openendedquestion",
+      "statement": "Using the permutation-coupling lower-bound handle, characterize the minimax allocation-regret and maximal LIL-width frontier over all predictable two-arm rules and all anytime-valid whole-QTE bands, without restricting the band to separate armwise CDF inversion. Is \\(\\mathfrak F\\) still the sharp frontier under only revealed marginal potential-outcome information, or can a joint threshold martingale uniformly improve its width coordinate?",
+      "free_symbols": ["LowerBoundHandle", "p", "QTEBand", "Frontier"],
+      "depends_on": ["def:design-class", "def:unrestricted-lower-bound-handle", "thm:oracle-frontier", "thm:anytime-band"],
+      "status": "to-prove",
+      "justification": "Cross-arm potential-outcome dependence is unobserved, so an unrestricted converse is the real boundary between a sharp design theorem and a sharp theorem for one band architecture.",
+      "gap": "No located paper supplies a sequential lower bound that couples continuum QTE allocation with unidentifiable cross-arm score dependence.",
+      "consumer": "A resolution determines whether practitioners should invest in joint studentization or whether marginal CDF inversion is already minimax under design-based information."
+    }
+  ],
+  "target_estimand": "\\(\\tau_n(u)=Q_{1,n}(u)-Q_{0,n}(u),\\ u\\in I\\)",
+  "estimand_functional": "\\(\\mathcal C_n(u)=[U_{1,n}^{-1}(u)-L_{0,n}^{-1}(u),L_{1,n}^{-1}(u)-U_{0,n}^{-1}(u)],\\quad (n^{-1}\\operatorname{Reg}_n,\\sqrt{n/(2\\log\\log n)}\\sup_{u\\in I}\\operatorname{rad}\\mathcal C_n(u))\\to(\\Delta(p_\\lambda),b(p_\\lambda))\\)",
+  "sampling_model": {
+    "design": "Known predictable Bernoulli randomization with \\(p_{n,t}\\in[\\varepsilon,1-\\varepsilon]\\); the proposed design updates only at doubling epochs.",
+    "units": "The triangular array \\(\\{Y_{n,t}(0),Y_{n,t}(1)\\}\\) is fixed; no superpopulation sampling is invoked.",
+    "treatment": "Conditionally on \\(\\mathcal F_{n,t-1}\\), \\(A_{n,t}\\sim\\operatorname{Bernoulli}(p_{n,t})\\), and only \\(O_{n,t}=Y_{n,t}(A_{n,t})\\) is observed.",
+    "overlap": "A fixed design floor \\(\\varepsilon\\) applies to both arms.",
+    "nuisance_estimation": "Lagged monotone AIPW distribution estimates and symmetric quantile spacings are recomputed at doubling epochs, so every update used for assignment is predictable."
+  },
+  "bibliography": [
+    {
+      "key": "LiLuoWangFeng2025",
+      "citation": "Zhonghua Li, Lan Luo, Jingshen Wang, and Long Feng (2025), ``Efficient quantile covariate adjusted response adaptive experiments,'' Journal of Econometrics 249, 105857. DOI: \\(10.1016/j.jeconom.2024.105857\\)."
+    },
+    {
+      "key": "NoarovFogliatoBertranRoth2025",
+      "citation": "Georgy Noarov, Riccardo Fogliato, Martin Andres Bertran, and Aaron Roth (2025), ``Stronger Neyman Regret Guarantees for Adaptive Experimental Design,'' ICML. arXiv:2502.17427."
+    },
+    {
+      "key": "HowardRamdas2022",
+      "citation": "Steven R. Howard and Aaditya Ramdas (2022), ``Sequential estimation of quantiles with applications to A/B testing and best-arm identification,'' Bernoulli 28, 1704--1728. DOI: \\(10.3150/21\\text{-}BEJ1388\\)."
+    },
+    {
+      "key": "MineiroHoward2023",
+      "citation": "Paul Mineiro and Steven R. Howard (2023), ``Time-uniform confidence bands for the CDF under nonstationarity,'' NeurIPS. arXiv:2302.14248."
+    },
+    {
+      "key": "CookMishlerRamdas2024",
+      "citation": "Thomas Cook, Alan Mishler, and Aaditya Ramdas (2024), ``Semiparametric Efficient Inference in Adaptive Experiments,'' AISTATS, PMLR 238. arXiv:2311.18274."
+    },
+    {
+      "key": "ZhangZheng2020",
+      "citation": "Yichong Zhang and Xin Zheng (2020), ``Quantile treatment effects and bootstrap inference under covariate-adaptive randomization,'' Quantitative Economics 11, 957--982. DOI: \\(10.3982/QE1323\\)."
+    },
+    {
+      "key": "LiangBojinov2023",
+      "citation": "Biyonka Liang and Iavor Bojinov (2023), ``An Experimental Design for Anytime-Valid Causal Inference on Multi-Armed Bandits,'' arXiv:2311.05794."
+    },
+    {
+      "key": "SimchiLeviWang2023",
+      "citation": "David Simchi-Levi and Chonghuan Wang (2023), ``Multi-armed Bandit Experimental Design: Online Decision-making and Adaptive Inference,'' AISTATS, PMLR 206, 3086--3097."
+    },
+    {
+      "key": "DaiGraduHarshaw2023",
+      "citation": "Jessica Dai, Paula Gradu, and Christopher Harshaw (2023), ``Clip-OGD: An Experimental Design for Adaptive Neyman Allocation in Sequential Experiments,'' NeurIPS. arXiv:2305.17187."
+    },
+    {
+      "key": "ChernozhukovFernandezValMellyWuthrich2020",
+      "citation": "Victor Chernozhukov, Iván Fernández-Val, Blaise Melly, and Kaspar Wüthrich (2020), ``Generic inference on quantile and quantile effect functions for discrete outcomes,'' Journal of the American Statistical Association 115, 123--137."
+    },
+    {
+      "key": "ZhangVanDerLaan2026",
+      "citation": "Wenxin Zhang and Mark van der Laan (2026), ``Longitudinal Adaptive Experimental Design for Learning Multiple Target Estimands with Semiparametric Efficient Inference,'' arXiv:2607.29421."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "LiLuoWangFeng2025",
+      "comparator_claim": "The QTE estimator obtained from our designs attains the optimal variance lower bound from a semiparametric theory perspective.",
+      "matched_by": "Theorem 5",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "HowardRamdas2022",
+      "comparator_claim": "We give methods both for tracking a fixed quantile and for tracking all quantiles simultaneously.",
+      "matched_by": "Theorem 5",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "NoarovFogliatoBertranRoth2025",
+      "comparator_claim": "We modify ClipOGD to obtain anytime logarithmic Neyman regret under natural boundedness assumptions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "MineiroHoward2023",
+      "comparator_claim": "We present time-uniform and value-uniform bounds on the CDF of the running averaged conditional distribution.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CookMishlerRamdas2024",
+      "comparator_claim": "We provide anytime-valid inference tools for the ATE in adaptive experiments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SimchiLeviWang2023",
+      "comparator_claim": "We derive a useful sufficient and necessary condition for the Pareto optimal solutions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhangVanDerLaan2026",
+      "comparator_claim": "An efficiency-oriented design criterion is proposed to accommodate both single-estimand targets and joint optimization across multiple estimands.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhangZheng2020",
+      "comparator_claim": "For the two estimators, we derive their asymptotic distributions uniformly over a compact set of quantile indexes.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "One response-adaptive experiment must serve a continuum of quantiles whose precision-optimal allocations disagree. The core defines curve-wise Neyman regret from finite-population quantile scores and a maximal LIL-normalized width for an anytime QTE band, characterizes their exact nondominated frontier within marginal CDF inversion, and gives a predictable doubling-batch design and AIPW inversion band that attain every exposed point. The unrestricted minimax sharpness question remains explicit because cross-arm score dependence is not observed under two-arm randomization.",
+  "project_justification": {
+    "gap": "Published adaptive QTE designs optimize a prespecified quantile at a fixed horizon, while published anytime quantile bands do not choose response-adaptive allocations and published Neyman-regret results concern scalar means.",
+    "niche": "A continuum target creates a design conflict that is absent for one quantile: the allocation minimizing average influence-score variance need not minimize the worst sequential-band width.",
+    "fill": "The project identifies the two score-energy functionals governing that conflict, derives a one-dimensional Pareto representation, and couples it to a predictable learning rule and a time-and-quantile-uniform design-based band."
+  },
+  "related_work": "Li, Luo, Wang, and Feng provide the writing and design exemplar: their pointwise QTE influence-score variance supplies the armwise loss, but their Theorems 1--3 and discussion are fixed-horizon and quantile-specific. Noarov, Fogliato, Bertran, and Roth provide the online-optimization exemplar: their strong-convexity proof telescopes clipped unbiased-gradient losses to obtain near-logarithmic scalar ATE Neyman regret. Howard and Ramdas provide the temporal-width exemplar: their empirical-process finite-LIL theorem and quantile inversion are simultaneous in time and quantile under i.i.d. sampling. Mineiro and Howard show how stitched threshold supermartingales remain time-and-value uniform for importance-weighted nonstationary counterfactual CDFs, although their width is not the locally augmented QTE constant. Cook, Mishler, and Ramdas supply predictable AIPW augmentation and adaptive-experiment confidence-sequence machinery for a scalar ATE. Zhang and Zheng establish fixed-horizon uniform QTE-process inference under covariate-adaptive randomization. Simchi-Levi and Wang formulate a mean-welfare and power Pareto problem, whereas the present coordinates are design-based curve-wise Neyman loss and maximal LIL width. Zhang and van der Laan optimize multiple longitudinal estimands at a fixed analysis horizon; their finite-dimensional semiparametric criterion does not subsume a continuum QTE confidence sequence or its LIL frontier.",
+  "technical_internal_limitation": "The band uses separate armwise CDF confidence sequences and Minkowski differencing. Its constant \\(b(r)\\) is therefore sharp for the marginal-inversion architecture, not asserted to be sharp among all joint QTE bands. The missing within-unit cross-arm quantile-score covariance is not identified by the randomization distribution; the open-ended question asks whether least-favorable pairing makes this conservatism minimax unavoidable.",
+  "honest_scope": "The convex frontier representation and its endpoint reductions are the settled mathematical targets. Learning the continuum loss and proving the threshold-indexed LIL expansion on the same adaptive path are substantive theorems to establish. Sharpness beyond marginal inversion is deliberately left open and is not assumed by the frontier definition.",
+  "seeds": [
+    "S1-curve-neyman-lil-frontier",
+    "S2-efficient-aipw-qte-confidence-sequence",
+    "S3-welfare-regret-exploration-threshold",
+    "S4-realized-kernel-studentization",
+    "S5-mixed-regular-atomic-inversion",
+    "S6-branch-mass-iff-studentization",
+    "S7-finite-grid-to-continuum-design",
+    "S8-group-by-quantile-multigroup-regret",
+    "S9-functional-bandit-qte-welfare-frontier"
+  ],
+  "seed_details": [
+    {
+      "seed": "S1-curve-neyman-lil-frontier",
+      "anchor": ["LiLuoWangFeng2025", "NoarovFogliatoBertranRoth2025", "HowardRamdas2022"],
+      "anchor_read": "Li et al., Introduction, design-based lower-bound section, Theorems 1--3, and Discussion; Noarov et al., Introduction, Theorem 1, Appendix proof by strong convexity and telescoping, and Conclusion; Howard and Ramdas, Introduction, Theorem 2, quantile inversion proof, lower-bound discussion, and concluding discussion.",
+      "motif": "M13+M14",
+      "target_tier": "flagship",
+      "kernel": "Characterize and attain the Pareto frontier between continuum Neyman loss and maximal anytime QTE LIL width.",
+      "first_changed_proof_step": "Replace Noarov et al.'s scalar strongly convex loss by a quantile-indexed score-energy functional and its nonsmooth supremum-width scalarization.",
+      "destination_search": "Searches for the exact pairs ``Neyman regret quantile treatment effect whole curve'' and ``adaptive experiment whole quantile curve anytime confidence band'' found fixed-horizon QTE design and nonadaptive sequential QTE bands, but no joint frontier theorem.",
+      "red_team": "Immediate from pointwise QTE Neyman allocation by integrating over quantiles.",
+      "rebuttal": "Integration gives only the average-loss endpoint; the maximal LIL width is a different nonlinear functional, and proving dominance of constant allocations plus adaptive same-path attainment is not pointwise integration.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 5, "novelty": 5, "feasibility": 4, "consumer_value": 5, "total": 24},
+      "disposition": "selected"
+    },
+    {
+      "seed": "S2-efficient-aipw-qte-confidence-sequence",
+      "anchor": ["CookMishlerRamdas2024", "MineiroHoward2023"],
+      "anchor_read": "Cook et al., Introduction, adaptive AIPW CLT, three confidence-sequence theorems, proof roadmap, and Conclusion; Mineiro and Howard, Introduction, importance-weighted CDF theorem and proof construction, related work, and Discussion.",
+      "motif": "M14",
+      "target_tier": "field",
+      "kernel": "Construct a predictable threshold-indexed AIPW martingale whose inverted QTE band is uniform in time and quantile and has the local efficient LIL constant.",
+      "first_changed_proof_step": "Replace Cook et al.'s scalar ATE score by a VC-indexed threshold-score martingale before mixture construction.",
+      "destination_search": "The exact target search found fixed-horizon QTE process inference, adaptive ATE confidence sequences, and importance-weighted counterfactual CDF bands, but no locally efficient adaptive whole-QTE sequence.",
+      "red_team": "Immediate by applying an ATE confidence sequence at every threshold and union bounding.",
+      "rebuttal": "A threshold union bound loses the whole-curve LIL constant, while quantile inversion requires uniform linearization of a same-path augmented martingale.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 4, "novelty": 4, "feasibility": 4, "consumer_value": 5, "total": 22},
+      "disposition": "survived-not-selected"
+    },
+    {
+      "seed": "S3-welfare-regret-exploration-threshold",
+      "anchor": ["LiangBojinov2023", "SimchiLeviWang2023", "MineiroHoward2023"],
+      "anchor_read": "Liang and Bojinov, Introduction, MAD construction, Theorems 1--3 with the \\(t^{-1/4}\\) mixing boundary, proof section, and Conclusion; Simchi-Levi and Wang, Introduction, Pareto condition, design construction, and Conclusion; Mineiro and Howard, importance-weighted width theorem and failure discussion.",
+      "motif": "M14+M11",
+      "target_tier": "flagship",
+      "kernel": "Derive the necessary-and-sufficient exploration exponent for simultaneous consistency of a QTE interval and match the welfare-regret versus width exponent frontier.",
+      "first_changed_proof_step": "Replace the mean-score effective sample calculation by the least favorable quantile-specific inverse-propensity variation divided by local quantile spacing.",
+      "destination_search": "Searches located mean-effect regret-power frontiers and functional bandit regret for choosing a best quantile, but not confidence-band width for a causal QTE curve.",
+      "red_team": "The exponent follows mechanically by substituting effective arm sample size into the i.i.d. quantile rate.",
+      "rebuttal": "That substitution does not establish anytime uniformity, necessity under adaptive stopping, or the least favorable quantile when both arm density and exploration decay vary.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 5, "novelty": 4, "feasibility": 3, "consumer_value": 5, "total": 21},
+      "disposition": "survived-not-selected"
+    },
+    {
+      "seed": "S4-realized-kernel-studentization",
+      "anchor": ["prior:exp-bandit-random-qv-studentization-frontier", "HowardRamdas2022"],
+      "anchor_read": "The prior review's findings on observable nondegeneracy and self-normalized positioning were read in full; Howard and Ramdas's finite-LIL theorem, maximal-inequality proof, two-sample inversion, and discussion were read.",
+      "motif": "M14",
+      "target_tier": "field",
+      "kernel": "Build an observable covariance-kernel self-normalizer for an adaptive finite-population QTE process and derive uniform time-and-quantile coverage.",
+      "first_changed_proof_step": "Replace the scalar realized quadratic variation by an ordered threshold covariance kernel before applying intrinsic-time stitching.",
+      "destination_search": "Searches for function-indexed realized quadratic variation in adaptive QTE inference found scalar martingale pivots and i.i.d. empirical-process LIL results only.",
+      "red_team": "A standard Banach-space martingale inequality supplies the result directly.",
+      "rebuttal": "The random kernel is learned on the assignment path and must survive nonsmooth quantile inversion; existing scalar self-normalization does not supply the observable uniform pivot.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 5, "novelty": 4, "feasibility": 2, "consumer_value": 4, "total": 19},
+      "disposition": "dropped-after-deepening"
+    },
+    {
+      "seed": "S5-mixed-regular-atomic-inversion",
+      "anchor": ["ChernozhukovFernandezValMellyWuthrich2020", "MineiroHoward2023"],
+      "anchor_read": "Chernozhukov et al., Introduction, generic CDF-band transformation theorems, proofs by left and right inversion, and concluding remarks; Mineiro and Howard, Introduction, threshold-band construction, importance-weighted theorem, and Discussion.",
+      "motif": "M11+M7",
+      "target_tier": "field",
+      "kernel": "Give one observable anytime QTE set whose width adapts to positive densities, cusps, and atoms through a two-sided inverse modulus.",
+      "first_changed_proof_step": "Replace fixed-time CDF bands in the discrete-outcome inversion theorem by predictable self-normalized bands and analyze the random inverse modulus.",
+      "destination_search": "The target-method search found static discrete-QTE inversion and adaptive CDF bands separately, but no regime-sharp sequential outcome-scale width theorem.",
+      "red_team": "Validity is immediate from generic CDF inversion.",
+      "rebuttal": "Validity is; the proposed contribution is the observable regime-specific LIL width and matching lower bound through density degeneracy.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 4, "novelty": 4, "feasibility": 3, "consumer_value": 4, "total": 20},
+      "disposition": "survived-not-selected"
+    },
+    {
+      "seed": "S6-branch-mass-iff-studentization",
+      "anchor": ["prior:exp-bandit-random-qv-studentization-frontier"],
+      "anchor_read": "The cited review rubric was opened and read in full, including the finding that raw conditional outcome variance does not certify failure-relevant observable nondegeneracy.",
+      "motif": "M6+M7",
+      "target_tier": "field",
+      "kernel": "Characterize observable branch-mass conditions that are necessary and sufficient for uniform quantile-score quadratic variation, with a robust counterexample region under positive raw variance.",
+      "first_changed_proof_step": "Decompose realized variation threshold by threshold before invoking any martingale self-normalization theorem.",
+      "destination_search": "Searches found scalar effective-sample conditions and sequential quantile counts, but no QTE-curve iff condition based on armwise mass near every inversion threshold.",
+      "red_team": "Positive density and overlap already imply the desired nondegeneracy.",
+      "rebuttal": "They do only after linking revealed armwise threshold residuals to realized quadratic variation; raw outcome variance can remain positive while one informative branch has zero mass.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 4, "novelty": 4, "feasibility": 4, "consumer_value": 3, "total": 19},
+      "disposition": "dropped-after-ranking"
+    },
+    {
+      "seed": "S7-finite-grid-to-continuum-design",
+      "anchor": ["prior:exp-rollout-common-uniform-covariance-design", "LiLuoWangFeng2025"],
+      "anchor_read": "The cited small-budget minimax-rate proof was opened and read, including its uniform spacing argument; Li et al.'s introduction, pointwise optimal variance construction, main theorems, and discussion were read.",
+      "motif": "M13",
+      "target_tier": "field",
+      "kernel": "Quantify the mesh size at which a finite set of quantile-specific oracle designs approximates the continuum minimax-width design, with a certified discretization gap.",
+      "first_changed_proof_step": "Replace the finite covariance-matrix eigenvalue objective by an equicontinuous quantile-score kernel before discretizing its supremum.",
+      "destination_search": "No located design paper provides an observable approximation-ratio certificate for gridding a continuum of QTE influence scores.",
+      "red_team": "Uniform continuity makes grid approximation routine.",
+      "rebuttal": "The nontrivial content is a data-observable gap certificate coupled to adaptive estimation of the score kernel, not existence of a fine deterministic grid.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 3, "novelty": 3, "feasibility": 5, "consumer_value": 4, "total": 19},
+      "disposition": "dropped-after-ranking"
+    },
+    {
+      "seed": "S8-group-by-quantile-multigroup-regret",
+      "anchor": ["NoarovFogliatoBertranRoth2025", "LiLuoWangFeng2025"],
+      "anchor_read": "Noarov et al.'s Introduction, multigroup definition and theorem, sleeping-experts construction, appendix guarantee, and Conclusion; Li et al.'s Introduction, covariate-specific allocation calculation, main theorems, and Discussion.",
+      "motif": "M13+M14",
+      "target_tier": "field",
+      "kernel": "Obtain simultaneous Neyman regret across overlapping covariate groups and a continuum of QTE indices with one contextual allocation.",
+      "first_changed_proof_step": "Replace each sleeping expert's scalar group loss by a group-by-quantile dual measure with partial feedback.",
+      "destination_search": "The exact group-by-quantile regret search found multigroup ATE guarantees and covariate-adjusted pointwise QTE allocation, but no joint result.",
+      "red_team": "Treat each quantile grid point as another group and invoke multigroup regret.",
+      "rebuttal": "A finite grid does not control density-scaled continuum width without entropy and spacing analysis, and the feedback loss is not the published bounded scalar group loss.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 4, "novelty": 4, "feasibility": 2, "consumer_value": 4, "total": 18},
+      "disposition": "dropped-after-deepening"
+    },
+    {
+      "seed": "S9-functional-bandit-qte-welfare-frontier",
+      "anchor": ["LiangBojinov2023", "SimchiLeviWang2023"],
+      "anchor_read": "Liang and Bojinov's Introduction, mixture design, inference and regret theorems, proofs, and Conclusion; Simchi-Levi and Wang's Introduction, necessary-and-sufficient Pareto condition, attaining bandit design, and Conclusion.",
+      "motif": "M14+M16",
+      "target_tier": "flagship",
+      "kernel": "Characterize welfare regret against the best arm jointly with an anytime band for the entire causal QTE curve when exploration vanishes.",
+      "first_changed_proof_step": "Replace mean-gap testing power by a continuum inverse-modulus loss indexed by causal quantiles in the Pareto lower bound.",
+      "destination_search": "Functional sequential treatment allocation covers regret for choosing arms by distributional functionals, but it does not provide design-based anytime QTE bands or their joint frontier with welfare.",
+      "red_team": "This is Simchi-Levi and Wang with quantile loss substituted for mean power.",
+      "rebuttal": "Whole-QTE inference depends on local density and simultaneous threshold information, producing a non-scalar exploration bottleneck and a different necessary frontier condition.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 5, "novelty": 4, "feasibility": 2, "consumer_value": 5, "total": 20},
+      "disposition": "survived-not-selected"
+    }
+  ],
+  "literature_map": {
+    "S1-curve-neyman-lil-frontier": [
+      "LiLuoWangFeng2025 fixes the pointwise QTE efficient-design endpoint but not a continuum or anytime criterion.",
+      "NoarovFogliatoBertranRoth2025 supplies the clipped online-loss decomposition for finite-population scalar Neyman regret.",
+      "HowardRamdas2022 supplies the sharp i.i.d. time-and-quantile LIL benchmark and inversion step.",
+      "ZhangVanDerLaan2026 treats joint efficiency for multiple longitudinal estimands, but not a continuum QTE sequence or design-based LIL frontier."
+    ],
+    "S2-efficient-aipw-qte-confidence-sequence": [
+      "CookMishlerRamdas2024 establishes adaptive AIPW efficiency and confidence sequences for a scalar ATE and explicitly leaves other estimands open.",
+      "MineiroHoward2023 supplies time-and-value-uniform counterfactual CDF bands under nonstationarity, with instance-dependent rather than local efficient width.",
+      "ZhangZheng2020 supplies fixed-horizon uniform QTE-process linearization under covariate-adaptive randomization.",
+      "HowardRamdas2022 supplies quantile inversion with the optimal i.i.d. LIL order."
+    ],
+    "S3-welfare-regret-exploration-threshold": [
+      "LiangBojinov2023 proves an anytime ATE sequence for a vanishing-exploration mixture and gives the \\(t^{-1/4}\\) sufficient boundary.",
+      "SimchiLeviWang2023 gives a necessary-and-sufficient mean welfare-power Pareto condition.",
+      "MineiroHoward2023 shows adaptive counterfactual CDF validity may coexist with trivial width.",
+      "HowardRamdas2022 identifies the nonadaptive quantile LIL endpoint."
+    ]
+  },
+  "novelty_justification": "The closest published QTE design result, Li, Luo, Wang, and Feng, chooses an allocation for one quantile and proves fixed-horizon semiparametric efficiency. The closest finite-population regret result, Noarov, Fogliato, Bertran, and Roth, controls a scalar ATE variance loss. The closest sequential quantile result, Howard and Ramdas, assumes i.i.d. arm streams and does not choose assignments. Even the July 2026 multiple-estimand adaptive-design preprint of Zhang and van der Laan uses a fixed-horizon, finite-dimensional efficiency criterion. The proposed kernel is therefore not a restatement: it names two distinct continuum functionals, proves that their attainable design-based pairs collapse to a one-dimensional Pareto curve, and requires one predictable design and one whole-curve confidence sequence to attain each exposed point on the same path.",
+  "literature_checklist": [
+    {
+      "author": "Li, Luo, Wang, and Feng",
+      "year": 2025,
+      "venue": "Journal of Econometrics",
+      "bibkey": "LiLuoWangFeng2025",
+      "one_line": "Pointwise QTE-efficient response-adaptive allocation at a fixed horizon.",
+      "relevant_to": "thm:oracle-frontier"
+    },
+    {
+      "author": "Noarov, Fogliato, Bertran, and Roth",
+      "year": 2025,
+      "venue": "ICML",
+      "bibkey": "NoarovFogliatoBertranRoth2025",
+      "one_line": "Anytime near-logarithmic finite-population Neyman regret for scalar ATE loss.",
+      "relevant_to": "thm:adaptive-attainment"
+    },
+    {
+      "author": "Howard and Ramdas",
+      "year": 2022,
+      "venue": "Bernoulli",
+      "bibkey": "HowardRamdas2022",
+      "one_line": "Time-and-quantile-uniform i.i.d. confidence sequences with optimal LIL order.",
+      "relevant_to": "thm:anytime-band"
+    },
+    {
+      "author": "Mineiro and Howard",
+      "year": 2023,
+      "venue": "NeurIPS",
+      "bibkey": "MineiroHoward2023",
+      "one_line": "Time-and-value-uniform nonstationary CDF bands with importance weighting.",
+      "relevant_to": "thm:anytime-band"
+    },
+    {
+      "author": "Cook, Mishler, and Ramdas",
+      "year": 2024,
+      "venue": "AISTATS",
+      "bibkey": "CookMishlerRamdas2024",
+      "one_line": "Predictable AIPW efficiency and anytime inference for adaptive-experiment ATEs.",
+      "relevant_to": "thm:anytime-band"
+    },
+    {
+      "author": "Zhang and Zheng",
+      "year": 2020,
+      "venue": "Quantitative Economics",
+      "bibkey": "ZhangZheng2020",
+      "one_line": "Fixed-horizon uniform QTE-process limits under covariate-adaptive randomization.",
+      "relevant_to": "thm:adaptive-attainment"
+    },
+    {
+      "author": "Simchi-Levi and Wang",
+      "year": 2023,
+      "venue": "AISTATS",
+      "bibkey": "SimchiLeviWang2023",
+      "one_line": "Necessary-and-sufficient Pareto condition for mean welfare regret and power.",
+      "relevant_to": "prop:strict-conflict"
+    },
+    {
+      "author": "Zhang and van der Laan",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "ZhangVanDerLaan2026",
+      "one_line": "Adaptive semiparametric design for multiple longitudinal estimands at a fixed analysis horizon.",
+      "relevant_to": "prop:strict-conflict"
+    },
+    {
+      "author": "Liang and Bojinov",
+      "year": 2023,
+      "venue": "arXiv / Harvard Business School Working Paper",
+      "bibkey": "LiangBojinov2023",
+      "one_line": "Vanishing-exploration mixture for anytime design-based ATE inference and welfare protection.",
+      "relevant_to": "oeq:unrestricted-sharpness"
+    }
+  ]
+}

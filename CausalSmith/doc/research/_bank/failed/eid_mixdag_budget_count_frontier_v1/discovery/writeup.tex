@@ -1,0 +1,604 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}mixdag\_\allowbreak{}budget\_\allowbreak{}count\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The paper characterizes the experiment-count cost of recovering the oriented union of a latent mixture of DAGs when each intervention can target at most \(s\) variables. The formal kernel is an explicit universal-factor frontier for \(N^{\star}(n,K,d,\tau,s)\), paired with the exact finite-versus-infinite size threshold, legal full-oracle transcript adversaries, and exact count formulas for directed-tree mixtures and cycle-free mixture ancestry. The upper construction batches emergent-path parent blockers; the lower construction packs alternatives that coexist on one I-mixture-faithful baseline transcript.
+
+\section{Project justification}
+
+\paragraph{Gap.} Varıcı et al. identify worst-case local intervention sizes and give a quadratic-count algorithm, but explicitly leave bounded-size intervention-count lower bounds open. Single-DAG count arguments condition on a known skeleton or essential graph and therefore do not control emergent nonedges or selector-induced ancestor cycles.
+
+\paragraph{Niche.} The missing object is a five-parameter minimax resource law for complete I-mixture conditional-independence oracles, including a legal notion of which blocker requirements can coexist against adaptation.
+
+\paragraph{Fill.} The project derives a descendant-signature representation of the hard oracle subclass, proves the exact feasibility boundary, builds an explicit parent-blocking cover, and resolves the remaining gap through a legal blocker-packing benchmark that yields matching universal-factor bounds and exact structured-class formulas.
+
+\section{Related work}
+
+Varıcı et al. (2024) supply the component factorization, shared stochastic hard interventions, I-mixture faithfulness, local \(\Delta\)-through-path blocker tests, and CADIM; their Conclusion names constrained-size count lower bounds as open. Shanmugam et al. (2015) show that adaptive discovery on a complete single-DAG skeleton can be forced to realize a separating system, but their total-order transcript does not establish a legal mixture lower pair. Choo, Shiragur, and Bhattacharyya (2022) characterize single-DAG verification by covered-edge separation and compare adaptive search to that benchmark; the present work is informed by their charging idea but replaces covered reversals by true-edge-versus-emergent alternatives. Choo and Shiragur (2023) study round-limited adaptivity for one DAG, not heterogeneous mixture-union identification. Greenewald et al. (2019) motivate a centroid potential for one known causal tree, whereas the tree-mixture result must track \(K\) componentwise paths and a non-tree union. Saeed, Panigrahi, and Uhler (2020) establish observational mixture-DAG Markov semantics under a more restrictive recovery regime. Hauser and Bühlmann (2012) provide the single-DAG equivalence archetype but are not a claimed target of the count theorem. Mazaheri et al. (2026) observe aggregated moment matrices and use their ranks to recover graphical properties of one shared underlying DAG across latent populations. Their observational moment-rank information and shared-graph target are non-nested with the present adaptive interventional-CI oracle and heterogeneous oriented-union target, so their theorem is not a comparator count bound.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mathsf T(\mathbf G)=(V,\bigcup_{\ell\in[K]}E(\mathcal G_\ell))\), identified exactly as an oriented union.
+Primary functional / estimator / diagnostic: \(\bigl(\mathcal O_{\mathbf G}(\varnothing),\mathcal O_{\mathbf G}(I_1),\ldots,\mathcal O_{\mathbf G}(I_N)\bigr)\mapsto\mathsf T(\mathbf G),\quad N=N^{\star}(n,K,d,\tau,s)\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{number of observed variables}
+  \item \texttt{V} --- \texttt{finite vertex set}; \texttt{common observed vertex set}
+  \par\smallskip\noindent\emph{Definition.} \(V=[n]\)
+  \item \texttt{i} --- \texttt{vertex}; \(V\)
+  \item \texttt{a} --- \texttt{vertex}; \(V\)
+  \item \texttt{b} --- \texttt{vertex}; \(V\)
+  \item \texttt{t} --- \texttt{vertex}; \(V\)
+  \item \texttt{X-\allowbreak{}space-\allowbreak{}i} --- \texttt{standard Borel measurable space}
+  \par\smallskip\noindent\emph{Definition.} \((\mathcal X_i,\mathscr X_i)\) for each \(i\in V\)
+  \item \texttt{X-\allowbreak{}space} --- \texttt{product measurable space}
+  \par\smallskip\noindent\emph{Definition.} \((\mathcal X_V,\mathscr X_V)=\bigotimes_{i\in V}(\mathcal X_i,\mathscr X_i)\)
+  \item \texttt{X} --- \texttt{observed random vector}; \(\mathcal X_V\)
+  \par\smallskip\noindent\emph{Definition.} \(X=(X_i)_{i\in V}\)
+  \item \texttt{K} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{number of mixture components}
+  \item \texttt{L} --- \texttt{finite index set}; \texttt{component labels}
+  \par\smallskip\noindent\emph{Definition.} \(L=[K]\)
+  \item \texttt{d} --- \texttt{integer}; \(\{0,\ldots,n-1\}\); \texttt{union-\allowbreak{}indegree cap}
+  \item \texttt{tau} --- \texttt{integer}; \(\{0,\ldots,n-2\}\); \texttt{mixture-\allowbreak{}ancestor cyclic-\allowbreak{}complexity cap}
+  \item \texttt{s} --- \texttt{integer}; \(\{0,\ldots,n-1\}\); \texttt{maximum paid intervention size}
+  \item \texttt{ell} --- \texttt{component index}; \(L\)
+  \item \texttt{G-\allowbreak{}ell} --- \texttt{directed graph}; graphs on \(V\); \texttt{component graph}
+  \item \texttt{G-\allowbreak{}family} --- \texttt{ordered graph family}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf G=(\mathcal G_\ell)_{\ell\in L}\)
+  \item \texttt{pa-\allowbreak{}ell} --- \texttt{component-\allowbreak{}parent map}; \((\ell,i)\mapsto\operatorname{pa}_{\ell}(i)\subseteq V\)
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{pa}_{\ell}(i)=\{u\in V:(u,i)\in E(\mathcal G_\ell)\}\)
+  \item \texttt{E-\allowbreak{}union} --- \texttt{directed edge set}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\cup}(\mathbf G)=\bigcup_{\ell\in L}E(\mathcal G_\ell)\)
+  \item \texttt{pa-\allowbreak{}union} --- \texttt{set-\allowbreak{}valued map}; \(V\to 2^V\)
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{pa}_{\cup}(t)=\{a\in V:(a,t)\in E_{\cup}(\mathbf G)\}\)
+  \item \texttt{P-\allowbreak{}certified} --- \texttt{vertex subset}
+  \par\smallskip\noindent\emph{Definition.} \(P_t\subseteq\operatorname{pa}_{\cup}(t)\) is the certified-parent set maintained for head \(t\) by the cycle-free policy
+  \item \texttt{anc-\allowbreak{}relation} --- \texttt{binary relation}
+  \par\smallskip\noindent\emph{Definition.} \(a\,R_{\mathbf G}\,b\) iff \(a\) is an ancestor of \(b\) in at least one \(\mathcal G_\ell\)
+  \item \texttt{ancestor-\allowbreak{}graph} --- \texttt{directed graph}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{\mathbf G}(t)\) is \(R_{\mathbf G}\) restricted to \(\{a\in V:aR_{\mathbf G}t\}\)
+  \item \texttt{tau-\allowbreak{}G} --- \texttt{nonnegative integer}; \texttt{maximum minimum feedback-\allowbreak{}vertex-\allowbreak{}set cardinality}
+  \par\smallskip\noindent\emph{Definition.} \(\tau(\mathbf G)=\max_{t\in V}\operatorname{fvs}(\mathcal C_{\mathbf G}(t))\)
+  \item \texttt{kappa-\allowbreak{}ell-\allowbreak{}i} --- \texttt{component conditional Markov kernel}; \(\kappa_{\ell i}(dx_i\mid x_{\operatorname{pa}_{\ell}(i)})\); observational causal mechanism of vertex \(i\) in component \(\ell\)
+  \item \texttt{kappa-\allowbreak{}lift} --- \texttt{lifted component conditional kernel}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde\kappa_{\ell i}(dx_i\mid x_{\operatorname{pa}_{\cup}(i)})=\kappa_{\ell i}(dx_i\mid x_{\operatorname{pa}_{\ell}(i)})\), with coordinates outside \(\operatorname{pa}_{\ell}(i)\) ignored
+  \item \texttt{kappa-\allowbreak{}family} --- \texttt{family of component conditional kernels}
+  \par\smallskip\noindent\emph{Definition.} \(\boldsymbol\kappa=(\kappa_{\ell i})_{\ell\in L,\,i\in V}\)
+  \item \texttt{P-\allowbreak{}ell} --- \texttt{observational component law}; probability measures on \(\mathcal X_V\); \texttt{component law induced by the observational DAG factorization}
+  \item \texttt{P-\allowbreak{}family} --- \texttt{family of observational component laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf P=(P_\ell)_{\ell\in L}\)
+  \item \texttt{q-\allowbreak{}i} --- \texttt{stochastic hard-\allowbreak{}intervention kernel}; probability measures on \(\mathcal X_i\)
+  \par\smallskip\noindent\emph{Definition.} \(q_i(dx_i)\) is indexed only by \(i\), hence is shared across components and across every target containing \(i\)
+  \item \texttt{q-\allowbreak{}family} --- \texttt{family of shared intervention kernels}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf q=(q_i)_{i\in V}\)
+  \item \texttt{Delta} --- \texttt{vertex subset}; \texttt{exact mechanism-\allowbreak{}variation set after lifting mechanisms to the union-\allowbreak{}parent domain}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta(\mathbf G,\boldsymbol\kappa)=\{i\in V:\exists\ell,\ell'\in L,\ \widetilde\kappa_{\ell i}\not\equiv\widetilde\kappa_{\ell' i}\}\)
+  \item \texttt{w} --- \texttt{weight vector}; \(\{(w_\ell)_{\ell\in L}:w_\ell>0,\ \sum_{\ell\in L}w_\ell=1\}\)
+  \item \texttt{I} --- \texttt{intervention target}; \(2^V\)
+  \item \texttt{G-\allowbreak{}ell-\allowbreak{}I} --- \texttt{intervened component DAG}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_{\ell,I}=(V,\{(u,v)\in E(\mathcal G_\ell):v\notin I\})\)
+  \item \texttt{P-\allowbreak{}ell-\allowbreak{}I} --- \texttt{interventional component law}
+  \par\smallskip\noindent\emph{Definition.} \(P_{\ell,I}(dx_V)=\prod_{i\in I}q_i(dx_i)\prod_{i\in V\setminus I}\kappa_{\ell i}(dx_i\mid x_{\operatorname{pa}_{\ell}(i)})\)
+  \item \texttt{P-\allowbreak{}I} --- \texttt{interventional mixture law}
+  \par\smallskip\noindent\emph{Definition.} \(P_I=\sum_{\ell\in L}w_\ell P_{\ell,I}\)
+  \item \texttt{y} --- \texttt{selector root}; \texttt{single latent root of the I-\allowbreak{}mixture DAG}
+  \item \texttt{G-\allowbreak{}mix-\allowbreak{}I} --- \texttt{augmented DAG}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_{\mathrm m,I}=((V\times L)\cup\{y\},\,\bigcup_{\ell\in L}\{((u,\ell),(v,\ell)):(u,v)\in E(\mathcal G_{\ell,I})\}\cup\{(y,(i,\ell)):i\in\Delta\setminus I,\ \ell\in L\})\)
+  \item \texttt{A-\allowbreak{}set} --- \texttt{vertex subset}; \(2^V\)
+  \item \texttt{B-\allowbreak{}set} --- \texttt{vertex subset}; \(2^V\)
+  \item \texttt{C} --- \texttt{conditioning set}; \(2^V\)
+  \item \texttt{X-\allowbreak{}subvector} --- \texttt{random subvector notation}
+  \par\smallskip\noindent\emph{Definition.} \(X_A=(X_i)_{i\in A}\), with \(X_B\) and \(X_C\) defined analogously
+  \item \texttt{barred-\allowbreak{}set} --- \texttt{copy-\allowbreak{}set map}; \(2^V\to 2^{V\times L}\)
+  \par\smallskip\noindent\emph{Definition.} \(\overline A=\{(a,\ell):a\in A,\ \ell\in L\}\)
+  \item \texttt{O-\allowbreak{}G} --- \texttt{complete oracle map}; \(2^V\to 2^{2^V\times 2^V\times 2^V}\); all conditional-independence answers under \(P_I\), equivalently all barred-copy d-separations by simultaneous I-mixture faithfulness
+  \item \texttt{T-\allowbreak{}G} --- \texttt{oriented graph}; \texttt{recovery target}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf T(\mathbf G)=(V,E_{\cup}(\mathbf G))\)
+  \item \texttt{model-\allowbreak{}class} --- \texttt{class of graphical mixture models}; defined by \(\mathrm{def:model-class}\)
+  \item \texttt{tree-\allowbreak{}class} --- \texttt{subclass of graphical mixture models}; defined by \(\mathrm{def:tree-class}\)
+  \item \texttt{cyclefree-\allowbreak{}class} --- \texttt{subclass of graphical mixture models}; defined by \(\mathrm{def:cyclefree-class}\)
+  \item \texttt{algorithm-\allowbreak{}A} --- \texttt{adaptive decision tree}; \texttt{chooses paid targets from past oracle answers}
+  \item \texttt{N-\allowbreak{}star} --- \texttt{extended nonnegative integer}; \texttt{adaptive minimax paid-\allowbreak{}query count}
+  \par\smallskip\noindent\emph{Definition.} \(N^{\star}(n,K,d,\tau,s)\)
+  \item \texttt{N-\allowbreak{}tree} --- \texttt{extended nonnegative integer}
+  \par\smallskip\noindent\emph{Definition.} \(N^{\star}_{\mathrm{tree}}(n,K,s)\)
+  \item \texttt{N-\allowbreak{}cyclefree} --- \texttt{extended nonnegative integer}
+  \par\smallskip\noindent\emph{Definition.} \(N^{\star}_{\mathrm{cf}}(n,K,d,s)\)
+  \item \texttt{D-\allowbreak{}I-\allowbreak{}a} --- \texttt{vertex subset}
+  \par\smallskip\noindent\emph{Definition.} \(D_I(a)=\bigcup_{\ell\in L}\operatorname{de}_{\mathcal G_{\ell,I}}(a)\)
+  \item \texttt{r} --- \texttt{integer}
+  \par\smallskip\noindent\emph{Definition.} \(r=\min\{d+1,n-1\}\)
+  \item \texttt{k} --- \texttt{integer}; \(\{r,\ldots,s\}\)
+  \item \texttt{p-\allowbreak{}cover} --- \texttt{real number}
+  \par\smallskip\noindent\emph{Definition.} \(p_{n,r,k}=\binom{n-r-1}{k-r}/\binom nk\)
+  \item \texttt{F-\allowbreak{}cover} --- \texttt{positive integer}; \texttt{minimum inclusion-\allowbreak{}-\allowbreak{}exclusion blocker-\allowbreak{}cover size}
+  \par\smallskip\noindent\emph{Definition.} \(F(n,r,s)\)
+  \item \texttt{U-\allowbreak{}PB} --- \texttt{positive integer}; \texttt{explicit parent-\allowbreak{}blocking upper count}
+  \par\smallskip\noindent\emph{Definition.} \(U_{\mathrm{PB}}(n,r,s)\)
+  \item \texttt{Q-\allowbreak{}count} --- \texttt{positive real-\allowbreak{}valued function}; \((n,K,d,\tau,s)\mapsto Q(n,K,d,\tau,s)\); frontier object derived by \(\mathrm{oeq:universal-frontier}\)
+  \item \texttt{Q-\allowbreak{}tree} --- \texttt{nonnegative integer-\allowbreak{}valued function}; \((n,K,s)\mapsto Q_{\mathrm{tree}}(n,K,s)\); exact tree count derived by \(\mathrm{oeq:tree-formula}\)
+  \item \texttt{Q-\allowbreak{}cyclefree} --- \texttt{nonnegative integer-\allowbreak{}valued function}; \((n,K,d,s)\mapsto Q_{\mathrm{cf}}(n,K,d,s)\); exact cycle-free count derived by \(\mathrm{oeq:cyclefree-formula}\)
+  \item \texttt{c-\allowbreak{}lower} --- \texttt{universal positive constant}
+  \par\smallskip\noindent\emph{Definition.} \(c_0>0\)
+  \item \texttt{C-\allowbreak{}upper} --- \texttt{universal positive constant}
+  \par\smallskip\noindent\emph{Definition.} \(C_0<\infty\)
+  \item \texttt{m} --- \texttt{positive integer}; \texttt{number of transcript alternatives}
+  \item \texttt{G-\allowbreak{}zero} --- \texttt{legal baseline model}; \texttt{baseline in a transcript packing}
+  \item \texttt{G-\allowbreak{}alt} --- \texttt{finite family of legal alternative models}
+  \par\smallskip\noindent\emph{Definition.} \((\mathfrak g_j)_{j\in[m]}\)
+  \item \texttt{distinguish-\allowbreak{}family} --- \texttt{family of intervention-\allowbreak{}target sets}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr D_j=\{I:\mathcal O_{\mathfrak g_j}(I)\ne\mathcal O_{\mathfrak g_0}(I)\}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:component-dags]\label{ass:component-dags}
+\(\mathcal G_\ell=(V,E_\ell)\) is a directed acyclic graph for every \(\ell\in L\).
+\par\smallskip\noindent\emph{Standard} (Component-DAG mixture model, \cite{VariciKatzWeiSattigeriTajer2024Interventional}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-mixture-weights]\label{ass:positive-mixture-weights}
+\(\mathbf w\in\{(w_\ell)_{\ell\in L}:w_\ell>0,\ \sum_{\ell\in L}w_\ell=1\}\).
+\par\smallskip\noindent\emph{Standard} (Positive finite-mixture weights, \cite{SaeedPanigrahiUhler2020MixtureDAGs}).
+\end{assumption}
+
+\begin{assumption}[ass:mixture-faithfulness]\label{ass:mixture-faithfulness}
+For every \(I\subseteq V\) and every pairwise disjoint \(A,B,C\subseteq V\), \(X_A\perp_{P_I}X_B\mid X_C\) if and only if \(\overline A\perp_{d,\mathcal G_{\mathrm m,I}}\overline B\mid\overline C\).
+\par\smallskip\noindent\emph{Standard} (I-mixture faithfulness, \cite{VariciKatzWeiSattigeriTajer2024Interventional}).
+\end{assumption}
+
+\begin{assumption}[ass:union-indegree-cap]\label{ass:union-indegree-cap}
+\(\max_{t\in V}|\operatorname{pa}_{\cup}(t)|\le d\).
+\par\smallskip\noindent\emph{Standard} (Bounded union indegree, \cite{VariciKatzWeiSattigeriTajer2024Interventional}).
+\end{assumption}
+
+\begin{assumption}[ass:cyclic-complexity-cap]\label{ass:cyclic-complexity-cap}
+\(\tau(\mathbf G)\le\tau\).
+\par\smallskip\noindent\emph{Standard} (Bounded mixture-ancestor cyclic complexity, \cite{VariciKatzWeiSattigeriTajer2024Interventional}).
+\end{assumption}
+
+\begin{assumption}[ass:intervention-size-cap]\label{ass:intervention-size-cap}
+\(|I|\le s\).
+\par\smallskip\noindent\emph{Standard} (Bounded-size intervention design, \cite{ShanmugamKocaogluDimakisVishwanath2015SmallInterventions}).
+\end{assumption}
+
+\begin{assumption}[ass:directed-tree-components]\label{ass:directed-tree-components}
+\(\operatorname{skel}(\mathcal G_\ell)\) is a tree for every \(\ell\in L\).
+\par\smallskip\noindent\emph{Standard} (Directed-tree component restriction, \cite{VariciKatzWeiSattigeriTajer2024Interventional}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:observational-factorization]\label{def:observational-factorization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{component observational laws}
+\par\smallskip\noindent\emph{Construction.} For every \(\ell\in L\), \(P_\ell(dx_V)=\prod_{i\in V}\kappa_{\ell i}(dx_i\mid x_{\operatorname{pa}_\ell(i)})\), where the product is evaluated in any topological order of \(\mathcal G_\ell\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}component-\allowbreak{}dags}.
+\end{definition}
+
+\begin{definition}[def:mechanism-variation]\label{def:mechanism-variation}
+\par\smallskip\noindent\emph{Defined object.} \(\Delta(\mathbf G,\boldsymbol\kappa)\)
+\par\smallskip\noindent\emph{Construction.} \(\Delta(\mathbf G,\boldsymbol\kappa)=\{i\in V:\exists\ell,\ell'\in L,\ \widetilde\kappa_{\ell i}(\cdot\mid x_{\operatorname{pa}_{\cup}(i)})\not\equiv\widetilde\kappa_{\ell' i}(\cdot\mid x_{\operatorname{pa}_{\cup}(i)})\}\), where every component mechanism is lifted to the common union-parent argument by ignoring coordinates outside its component-parent set.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observational-\allowbreak{}factorization}.
+\end{definition}
+
+\begin{definition}[def:hard-intervention-laws]\label{def:hard-intervention-laws}
+\par\smallskip\noindent\emph{Defined object.} \texttt{shared stochastic hard intervention}
+\par\smallskip\noindent\emph{Construction.} For every \(I\subseteq V\) and \(\ell\in L\), \(\mathcal G_{\ell,I}=(V,\{(u,v)\in E(\mathcal G_\ell):v\notin I\})\) and \(P_{\ell,I}(dx_V)=\prod_{i\in I}q_i(dx_i)\prod_{i\in V\setminus I}\kappa_{\ell i}(dx_i\mid x_{\operatorname{pa}_\ell(i)})\); the same \(q_i\) is used in every component and every intervention containing \(i\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observational-\allowbreak{}factorization}.
+\end{definition}
+
+\begin{definition}[def:mixture-law]\label{def:mixture-law}
+\par\smallskip\noindent\emph{Defined object.} \(P_I\)
+\par\smallskip\noindent\emph{Construction.} \(P_I=\sum_{\ell\in L}w_\ell P_{\ell,I}\) for every \(I\subseteq V\), with \(P_{\varnothing}=\sum_{\ell\in L}w_\ell P_\ell\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observational-\allowbreak{}factorization}; \texttt{def:\allowbreak{}hard-\allowbreak{}intervention-\allowbreak{}laws}; \texttt{ass:\allowbreak{}positive-\allowbreak{}mixture-\allowbreak{}weights}.
+\end{definition}
+
+\begin{definition}[def:i-mixture-dag]\label{def:i-mixture-dag}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal G_{\mathrm m,I}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal G_{\mathrm m,I}=((V\times L)\cup\{y\},\,\bigcup_{\ell\in L}\{((u,\ell),(v,\ell)):(u,v)\in E(\mathcal G_{\ell,I})\}\cup\{(y,(i,\ell)):i\in\Delta(\mathbf G,\boldsymbol\kappa)\setminus I,\ \ell\in L\})\); thus intervention removes both component edges entering \(I\) and selector edges entering barred copies of \(I\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}mechanism-\allowbreak{}variation}; \texttt{def:\allowbreak{}hard-\allowbreak{}intervention-\allowbreak{}laws}.
+\end{definition}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M_{n,K,d,\tau}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_{n,K,d,\tau}=\{\mathfrak m=(\mathbf G,\boldsymbol\kappa,\mathbf q,\mathbf w):\ \mathcal G_\ell\text{ is a DAG for every }\ell\in L,\ \mathbf w\text{ has positive coordinates summing to one},\ (P_\ell,P_{\ell,I},P_I,\Delta,\mathcal G_{\mathrm m,I})\text{ are the induced objects fixed by the preceding constructions},\ P_I\text{ is simultaneously I-mixture faithful for every }I\subseteq V,\ \max_{t\in V}|\operatorname{pa}_{\cup}(t)|\le d,\ \tau(\mathbf G)\le\tau\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}component-\allowbreak{}dags}; \texttt{ass:\allowbreak{}positive-\allowbreak{}mixture-\allowbreak{}weights}; \texttt{ass:\allowbreak{}mixture-\allowbreak{}faithfulness}; \texttt{ass:\allowbreak{}union-\allowbreak{}indegree-\allowbreak{}cap}; \texttt{ass:\allowbreak{}cyclic-\allowbreak{}complexity-\allowbreak{}cap}.
+\end{definition}
+
+\begin{definition}[def:tree-class]\label{def:tree-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^{\mathrm{tree}}_{n,K}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M^{\mathrm{tree}}_{n,K}=\{m\in\mathfrak M_{n,K,n-1,n-2}:\ \operatorname{skel}(\mathcal G_\ell)\text{ is a tree for every }\ell\in[K]\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}component-\allowbreak{}dags}; \texttt{ass:\allowbreak{}positive-\allowbreak{}mixture-\allowbreak{}weights}; \texttt{ass:\allowbreak{}mixture-\allowbreak{}faithfulness}; \texttt{ass:\allowbreak{}union-\allowbreak{}indegree-\allowbreak{}cap}; \texttt{ass:\allowbreak{}cyclic-\allowbreak{}complexity-\allowbreak{}cap}; \texttt{ass:\allowbreak{}directed-\allowbreak{}tree-\allowbreak{}components}.
+\end{definition}
+
+\begin{definition}[def:cyclefree-class]\label{def:cyclefree-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^{\mathrm{cf}}_{n,K,d}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M^{\mathrm{cf}}_{n,K,d}=\{\mathfrak m:\mathfrak m\in\mathfrak M_{n,K,d,0}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}component-\allowbreak{}dags}; \texttt{ass:\allowbreak{}positive-\allowbreak{}mixture-\allowbreak{}weights}; \texttt{ass:\allowbreak{}mixture-\allowbreak{}faithfulness}; \texttt{ass:\allowbreak{}union-\allowbreak{}indegree-\allowbreak{}cap}; \texttt{ass:\allowbreak{}cyclic-\allowbreak{}complexity-\allowbreak{}cap}.
+\end{definition}
+
+\begin{definition}[def:oracle]\label{def:oracle}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal O_{\mathbf G}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal O_{\mathbf G}(I)=\{(A,B,C):A,B,C\subseteq V\text{ are pairwise disjoint and }X_A\perp_{P_I}X_B\mid X_C\}\); by simultaneous I-mixture faithfulness this equals \(\{(A,B,C):\overline A\perp_{d,\mathcal G_{\mathrm m,I}}\overline B\mid\overline C\}\) for every \(I\subseteq V\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}mixture-\allowbreak{}law}; \texttt{def:\allowbreak{}i-\allowbreak{}mixture-\allowbreak{}dag}; \texttt{ass:\allowbreak{}mixture-\allowbreak{}faithfulness}.
+\end{definition}
+
+\begin{definition}[def:decision-tree]\label{def:decision-tree}
+\par\smallskip\noindent\emph{Defined object.} \texttt{adaptive recovery tree}
+\par\smallskip\noindent\emph{Construction.} A deterministic finite decision tree whose root is labelled by the free answer \(\mathcal O_{\mathbf G}(\varnothing)\), whose internal node after transcript \((I_q,\mathcal O_{\mathbf G}(I_q))_{q<j}\) chooses \(I_j\subseteq V\) with \(|I_j|\le s\), and whose leaf outputs \(\mathsf T(\mathbf G)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}intervention-\allowbreak{}size-\allowbreak{}cap}; \texttt{def:\allowbreak{}oracle}.
+\end{definition}
+
+\begin{definition}[def:minimax-count]\label{def:minimax-count}
+\par\smallskip\noindent\emph{Defined object.} \(N^{\star}(n,K,d,\tau,s)\)
+\par\smallskip\noindent\emph{Construction.} \(N^{\star}(n,K,d,\tau,s)=\inf_{\mathcal A}\sup_{\mathfrak m\in\mathfrak M_{n,K,d,\tau}}\operatorname{depth}_{\mathfrak m}(\mathcal A)\), where the infimum ranges over adaptive recovery trees, with value \(\infty\) when no such finite tree recovers \(\mathsf T(\mathbf G)\) for every \(\mathfrak m\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}decision-\allowbreak{}tree}; \texttt{ass:\allowbreak{}intervention-\allowbreak{}size-\allowbreak{}cap}.
+\end{definition}
+
+\begin{definition}[def:structured-counts]\label{def:structured-counts}
+\par\smallskip\noindent\emph{Defined object.} \(N^{\star}_{\mathrm{tree}}\) and \(N^{\star}_{\mathrm{cf}}\)
+\par\smallskip\noindent\emph{Construction.} \(N^{\star}_{\mathrm{tree}}(n,K,s)\) and \(N^{\star}_{\mathrm{cf}}(n,K,d,s)\) are obtained from \(\mathrm{def:minimax-count}\) by replacing \(\mathfrak M_{n,K,d,\tau}\) with \(\mathfrak M^{\mathrm{tree}}_{n,K}\) and \(\mathfrak M^{\mathrm{cf}}_{n,K,d}\), respectively.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}minimax-\allowbreak{}count}; \texttt{def:\allowbreak{}tree-\allowbreak{}class}; \texttt{def:\allowbreak{}cyclefree-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:descendant-signature]\label{def:descendant-signature}
+\par\smallskip\noindent\emph{Defined object.} \(D_I(a)\)
+\par\smallskip\noindent\emph{Construction.} \(D_I(a)=\bigcup_{\ell\in[K]}\operatorname{de}_{\mathcal G_{\ell,I}}(a)\setminus\{a\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}hard-\allowbreak{}intervention-\allowbreak{}laws}.
+\end{definition}
+
+\begin{definition}[def:blocker-cover]\label{def:blocker-cover}
+\par\smallskip\noindent\emph{Defined object.} \(F(n,r,s)\)
+\par\smallskip\noindent\emph{Construction.} \(F(n,r,s)=\min\{|\mathcal F|:\mathcal F\subseteq\{I\subseteq V:|I|\le s\},\ \forall A\subseteq V\ (|A|=r),\ \forall t\in V\setminus A,\ \exists I\in\mathcal F\text{ with }A\subseteq I\text{ and }t\notin I\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}intervention-\allowbreak{}size-\allowbreak{}cap}.
+\end{definition}
+
+\begin{definition}[def:parent-blocking-upper]\label{def:parent-blocking-upper}
+\par\smallskip\noindent\emph{Defined object.} \(U_{\mathrm{PB}}(n,r,s)\)
+\par\smallskip\noindent\emph{Construction.} \(U_{\mathrm{PB}}(n,r,s)=\begin{cases}\min\left\{\binom nr,\ \min_{r\le k\le s}\left\lceil\frac{\log\!\left(n\binom{n-1}{r}\right)+1}{p_{n,r,k}}\right\rceil\right\},&r\le s<n-1,\\ \min\left\{\binom nr,\ n,\ \min_{r\le k\le n-1}\left\lceil\frac{\log\!\left(n\binom{n-1}{r}\right)+1}{p_{n,r,k}}\right\rceil\right\},&s=n-1.\end{cases}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}blocker-\allowbreak{}cover}.
+\end{definition}
+
+\begin{definition}[def:blocker-packing-handle]\label{def:blocker-packing-handle}
+\par\smallskip\noindent\emph{Defined object.} legal blocker-packing handle for \(Q\)
+\par\smallskip\noindent\emph{Construction.} \texttt{Map each transcript-\allowbreak{}compatible true-\allowbreak{}edge-\allowbreak{}versus-\allowbreak{}emergent alternative to its minimal source-\allowbreak{}plus-\allowbreak{}last-\allowbreak{}parent blocker sets;\allowbreak{} pack alternatives whose distinguishing target families coexist on one legal baseline transcript;\allowbreak{} choose each next target by maximizing the packed alternatives eliminated per available target slot.}
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}oracle}; \texttt{def:\allowbreak{}decision-\allowbreak{}tree}.
+\end{definition}
+
+\begin{definition}[def:tree-handle]\label{def:tree-handle}
+\par\smallskip\noindent\emph{Defined object.} unique-path centroid handle for \(Q_{\mathrm{tree}}\)
+\par\smallskip\noindent\emph{Construction.} \texttt{Represent every still-\allowbreak{}legal tree-\allowbreak{}mixture alternative by its at most one directed source-\allowbreak{}to-\allowbreak{}head path per component;\allowbreak{} target a componentwise centroid source together with the first surviving child or last-\allowbreak{}parent blockers and update the potential given by the number of compatible path signatures.}
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}tree-\allowbreak{}class}; \texttt{def:\allowbreak{}oracle}.
+\end{definition}
+
+\begin{definition}[def:cyclefree-handle]\label{def:cyclefree-handle}
+\par\smallskip\noindent\emph{Defined object.} reverse-ancestral packing handle for \(Q_{\mathrm{cf}}\)
+\par\smallskip\noindent\emph{Construction.} Order candidates by the acyclic relation \(R_{\mathbf G}\) with descendants before ancestors, reuse already certified parents as blockers, and batch compatible heads by a packing of their source-plus-certified-parent target sets.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cyclefree-\allowbreak{}class}; \texttt{def:\allowbreak{}oracle}.
+\end{definition}
+
+\begin{definition}[def:distinguishing-families]\label{def:distinguishing-families}
+\par\smallskip\noindent\emph{Defined object.} \(\mathscr D_j\)
+\par\smallskip\noindent\emph{Construction.} \(\mathscr D_j=\{I\subseteq V:|I|\le s,\ \mathcal O_{\mathfrak g_j}(I)\ne\mathcal O_{\mathfrak g_0}(I)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}oracle}; \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:full-oracle-reduction]\label{lem:full-oracle-reduction}
+Fix \(\mathfrak m\in\mathfrak M_{n,K,d,\tau}\) with \(\Delta=V\). For distinct \(a,b\in V\) and \(C\subseteq V\setminus\{a,b\}\), the complete oracle is determined by \(\{D_I(v):v\in I\}\): if \(a,b\notin I\), then \(a\) and \(b\) are d-connected given \(\overline C\); if \(a\in I\) and \(b\notin I\), they are d-connected given \(\overline C\) iff \(D_I(a)\cap(\{b\}\cup C)\ne\varnothing\); and if \(a,b\in I\), they are d-connected given \(\overline C\) iff both \(D_I(a)\cap C\ne\varnothing\) and \(D_I(b)\cap C\ne\varnothing\).
+\end{lemma}
+\begin{proof}
+Fix \(I\subseteq V\), and abbreviate \(D(a)=D_I(a)\). Because \(\Delta=V\), every untargeted copy \((v,\ell)\), \(v\notin I\), is a child of \(y\), whereas every targeted copy is an indegree-zero root.
+
+First let \(a,b\notin I\). For any \(\ell,\ell'\in L\),
+\[
+ (a,\ell)\leftarrow y\to(b,\ell')
+\]
+is active given \(\overline C\), since its only internal vertex \(y\) is a noncollider and \(y\notin\overline C\). Thus the barred endpoint sets are d-connected.
+
+Next suppose \(a\in I\) and \(b\notin I\). If \(b\in D(a)\), choose a directed path from a copy of \(a\) to a copy of \(b\). If this path avoids \(\overline C\), it is active. If it meets \(\overline C\), let \(v\) be its first vertex after the copy of \(a\); then \(v\notin I\), and \(v\) has a descendant in \(\overline C\). Therefore
+\[
+ (a,\ell)\to v\leftarrow y\to(b,\ell')
+\]
+is active: \(v\) is a collider opened by its conditioned descendant. Starting instead from a path from \(a\) to some \(c\in C\), the same collider argument applies unless its first child is \(b\); in that exceptional case the one-edge prefix from \(a\) to the endpoint \(b\) is already active. Thus d-connection also holds whenever \(D(a)\cap C\ne\varnothing\). Hence
+\[
+ D(a)\cap(\{b\}\cup C)\ne\varnothing
+ \quad\Longrightarrow\quad
+ \overline{\{a\}}\not\!\perp_d\overline{\{b\}}\mid\overline C.
+\]
+Conversely, start from a targeted copy of \(a\) and follow any path. Its first edge, if any, points away from that copy. At the first place where the path ceases to follow a directed component path, the two incident arrowheads form a collider. Activity then requires that collider to have a descendant in \(\overline C\). Thus either the path remains directed until it reaches a copy of \(b\), giving \(b\in D(a)\), or a directed initial segment from \(a\) reaches an ancestor of a conditioned copy, giving \(D(a)\cap C\ne\varnothing\). This proves the reverse implication. The case \(a\notin I,b\in I\) is symmetric.
+
+Finally let \(a,b\in I\). Any active path leaving the root copy of \(a\) and eventually entering the root copy of \(b\) must reverse direction at least once. The first reversal is a collider with a descendant in \(\overline C\), so \(D(a)\cap C\ne\varnothing\). Reversing the path and applying the same argument from \(b\) gives \(D(b)\cap C\ne\varnothing\). Conversely, choose component paths from copies of \(a\) and \(b\) to conditioned copies, and let \(v,w\) be their respective first vertices. If \(v\ne w\), then
+\[
+ (a,\ell)\to v\leftarrow y\to w\leftarrow(b,\ell')
+\]
+is active because both colliders have conditioned descendants. If \(v=w\), the path \((a,\ell)\to v\leftarrow(b,\ell)\) is active for the same reason. Hence
+\[
+ \overline{\{a\}}\not\!\perp_d\overline{\{b\}}\mid\overline C
+ \quad\Longleftrightarrow\quad
+ D(a)\cap C\ne\varnothing\ \text{ and }\ D(b)\cap C\ne\varnothing.
+\]
+D-separation of two vertex sets means separation of every pair of their vertices. Applying the three displayed criteria to all endpoint pairs therefore determines every barred-set answer, and hence the complete oracle, from \(\{D_I(v):v\in I\}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This compresses every full conditional-independence answer on the hard subclass to surviving component-descendant sets, making legal transcript lower bounds tractable. \textit{Gap.} VariciKatzWeiSattigeriTajer2024Interventional uses local marginal descendant tests; it does not state the complete conditional-separation oracle equivalence for arbitrary conditioning sets. \textit{Consumer.} The lower-bound solver can certify equality of entire adaptive transcripts by comparing descendant signatures instead of enumerating all barred-copy paths.
+
+\begin{lemma}[lem:cyclefree-d-policy]\label{lem:cyclefree-d-policy}
+For every \(\mathfrak m\in\mathfrak M_{n,K,d,0}\), there is a finite exact recovery policy using only targets of size at most \(d\). If \(d=0\), it outputs the empty oriented union without a paid query. If \(d\ge1\), the \(n\) singleton targets recover \(R_{\mathbf G}\) from \(t\in D_{\{a\}}(a)\). For each head \(t\), process its mixture ancestors with strict descendants before strict ancestors, maintain the already certified set \(P_t\subseteq\operatorname{pa}_{\cup}(t)\), and query \(I=P_t\cup\{a\}\) for the next candidate \(a\); declare \(a\in\operatorname{pa}_{\cup}(t)\) exactly when \(t\in D_I(a)\), and stop when \(|P_t|=d\). The policy outputs \(\mathsf T(\mathbf G)\) and uses at most \(n+n(n-1)\) paid queries.
+\end{lemma}
+\begin{proof}
+If \(d=0\), the union-indegree cap gives \(\operatorname{pa}_{\cup}(t)=\varnothing\) for every \(t\), so the oriented union is empty and no query is needed. Assume henceforth that \(d\ge1\).
+
+For every ordered pair \(a\ne t\), the targeted-root descendant lemma gives
+\[
+ aR_{\mathbf G}t
+ \quad\Longleftrightarrow\quad
+ t\in D_{\{a\}}(a).
+\]
+Thus the \(n\) singleton queries recover \(R_{\mathbf G}\). Fix a head \(t\), and let \(A_t=\{a:aR_{\mathbf G}t\}\). Since \(\tau(\mathbf G)=0\), the directed relation \(R_{\mathbf G}\) restricted to \(A_t\) is acyclic. It therefore has an ordering in which \(u\) precedes \(a\) whenever \(aR_{\mathbf G}u\). Process candidates in this order.
+
+Inductively let \(P_t\) be exactly the union parents of \(t\) among the candidates already processed. Before processing a new candidate \(a\), stop if \(|P_t|=d\); otherwise query
+\[
+ I=P_t\cup\{a\},\qquad |I|=|P_t|+1\le d.
+\]
+If \(a\to t\) is a true edge, it occurs in some component and survives because \(a\in I\) deletes only arrows entering \(a\), while \(t\notin I\). Hence \(t\in D_I(a)\). If \(a\to t\) is not a true edge, every component-directed path from \(a\) to \(t\) has length at least two. Its last edge is \(p\to t\) for some \(p\in\operatorname{pa}_{\cup}(t)\), and the initial part gives \(aR_{\mathbf G}p\). Thus \(p\) precedes \(a\), so the induction hypothesis gives \(p\in P_t\subseteq I\). The intervention deletes the edge entering \(p\) on that path. Every such path is cut, and therefore \(t\notin D_I(a)\). The targeted-root descendant lemma makes the test observable and proves the update invariant.
+
+If the procedure stops at \(|P_t|=d\), the union-indegree cap excludes any further parent; otherwise every candidate is tested. Thus the final \(P_t\) equals \(\operatorname{pa}_{\cup}(t)\) for every \(t\), and the output is \(\mathsf T(\mathbf G)\). There are \(n\) singleton queries and at most \(|A_t|\le n-1\) subsequent queries for each head, hence at most
+\[
+ n+\sum_{t\in V}|A_t|\le n+n(n-1)
+\]
+paid queries.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This verifies that the cycle-free endpoint uses the degree budget itself: certified parents block every indirect surviving path before the next source is tested. \textit{Gap.} VariciKatzWeiSattigeriTajer2024Interventional gives the reverse-ancestor induction but does not formulate the resulting finite minimax recovery policy over the completed shared-kernel model class. \textit{Consumer.} The feasibility theorem uses this policy to certify that panels of size \(d\), rather than \(d+1\), suffice whenever mixture ancestry is cycle free.
+
+\begin{theorem}[thm:feasibility-frontier]\label{thm:feasibility-frontier}
+For \(K\ge2\), \(n\ge2\), and \(1\le d\le n-1\), \(N^{\star}(n,K,d,0,s)<\infty\) iff \(s\ge d\); for \(1\le\tau\le n-2\), \(N^{\star}(n,K,d,\tau,s)<\infty\) iff \(s\ge\min\{d+1,n-1\}\). Also \(N^{\star}(n,K,0,\tau,s)=0\). Each necessity direction is witnessed by two legal models with \(\Delta=V\) whose complete oracles agree for every allowed target, and each sufficiency direction recovers \(\mathsf T(\mathbf G)\).
+\end{theorem}
+\begin{proof}
+The case \(d=0\) is immediate from the union-indegree cap: every union-parent set is empty, so the target is known and \(N^{\star}(n,K,0,\tau,s)=0\).
+
+Assume \(d\ge1\). For sufficiency when \(\tau=0\), the cycle-free policy uses targets of size at most \(d\), so it is legal whenever \(s\ge d\). For arbitrary \(\tau\), put \(r=\min\{d+1,n-1\}\). The parent-blocking proposition gives a finite nonadaptive recovery family whenever \(s\ge r\). These are exact decoders of \(\mathsf T(\mathbf G)\), establishing both sufficiency directions.
+
+For cycle-free necessity, choose distinct vertices \(a,t\) and a set \(B\subseteq V\setminus\{a,t\}\) of size \(d-1\). In one component put the edges
+\[
+ a\to b\to t\qquad(b\in B),
+\]
+and let a second component be empty. Compare this baseline with the alternative that additionally has \(a\to t\) in the first component; repeat the empty component when \(K>2\). Their maximum union indegrees are at most \(d\), and their mixture-ancestor relations are acyclic. Give both graph families the faithful binary realizations from the realization theorem, with \(\Delta=V\). The only descendant signature that can change is that of a targeted \(a\), and
+\[
+ D_I^{\mathrm{base}}(a)\ne D_I^{\mathrm{alt}}(a)
+ \quad\Longleftrightarrow\quad
+ a\in I,\ B\subseteq I,\ t\notin I.
+\]
+Indeed, if some \(b\in B\) is untargeted, the path \(a\to b\to t\) masks the shortcut, while targeting \(t\) deletes the shortcut itself. The full-oracle reduction therefore makes the complete oracles equal for every \(|I|<d\), although the oriented unions differ. No finite adaptive tree using \(s<d\) can distinguish the two models.
+
+For the cyclic necessity suppose first that \(d\le n-2\). Choose distinct \(a,b,t\) and \(C\subseteq V\setminus\{a,b,t\}\) with \(|C|=d-1\), and define
+\[
+ E_1=\{a\to b\}\cup\{a\to c,b\to c,c\to t:c\in C\},
+\]
+\[
+ E_2=\{b\to a\}\cup\{a\to c,b\to c,c\to t:c\in C\}.
+\]
+Let the two components of \(\mathbf G\) be \(E_1\) and \(E_2\cup\{a\to t\}\), and those of \(\mathbf H\) be \(E_1\cup\{b\to t\}\) and \(E_2\); repeat an unchanged component when \(K>2\). Each component is acyclic. The union indegree of \(t\) is \(d\), that of each \(c\) is two when \(C\ne\varnothing\), and all other union indegrees are at most one; hence the cap is respected. The only directed cycle in any mixture-ancestor restriction is generated by \(aR b\) and \(bR a\), so one of \(a,b\) is a feedback vertex and \(\tau(\mathbf G)=\tau(\mathbf H)=1\).
+
+A direct path check gives
+\[
+ \mathcal O_{\mathbf G}(I)\ne\mathcal O_{\mathbf H}(I)
+ \quad\Longleftrightarrow\quad
+ \{a,b\}\cup C\subseteq I,
+ \quad t\notin I.
+\]
+To verify it, targeting only one of \(a,b\) leaves the opposing two-edge route through the other source; targeting both but leaving some \(c\) untargeted leaves both routes through \(c\); and targeting \(t\) deletes both disputed arrows. When all of \(\{a,b\}\cup C\) are targeted and \(t\) is not, the surviving descendant of \(a\) or \(b\) differs. The full-oracle reduction promotes these descendant statements to equality or inequality of the complete oracles. Thus every distinguishing target has size at least \(d+1\). The realization theorem makes both models legal. Hence \(N^{\star}=\infty\) when \(s\le d\) and \(1\le\tau\le n-2\).
+
+If \(d=n-1\), the preceding acyclic pair already requires a target of size \(d=n-1\), so \(s<n-1\) is impossible even in the class with cyclic-complexity cap \(\tau\ge1\). Combining necessity and sufficiency proves the two claimed if-and-only-if statements.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem identifies exactly when bounded interventions contain enough joint blocker capacity for union recovery. \textit{Gap.} VariciKatzWeiSattigeriTajer2024Interventional proves a local size threshold but does not prove a full-oracle finite-versus-infinite minimax frontier or legal transcript indistinguishability. \textit{Consumer.} A perturbation platform can rule out an intervention-size budget before collecting data and can identify the smallest multi-target panel size capable of exact latent-state union recovery.
+
+\begin{proposition}[prop:parent-blocking-upper]\label{prop:parent-blocking-upper}
+Let \(r=\min\{d+1,n-1\}\). If \(s\ge r\), then \(N^{\star}(n,K,d,\tau,s)\le F(n,r,s)\le U_{\mathrm{PB}}(n,r,s)\). The decoder retains \(a\to t\) exactly when every cover row \(I\) with \(a\in I\) and \(t\notin I\) has \(t\in D_I(a)\); for every nonedge \(a\to t\), the cover contains such a row that also targets an \(r\)-set extending \(\{a\}\cup\operatorname{pa}_{\cup}(t)\).
+\end{proposition}
+\begin{proof}
+Put \(r=\min\{d+1,n-1\}\), and let \(\mathcal F\) attain \(F(n,r,s)\). For every ordered pair \(a\ne t\), retain \(a\to t\) exactly when every \(I\in\mathcal F\) satisfying \(a\in I\) and \(t\notin I\) also satisfies \(t\in D_I(a)\); the latter event is read from the oracle by the targeted-root descendant lemma.
+
+If \(a\to t\) is a true edge, its component copy survives every such intervention because hard intervention deletes arrows entering targets and \(t\notin I\). Therefore \(t\in D_I(a)\) in every tested row, so no true edge is discarded. Suppose instead that \(a\to t\) is not a true edge. Then \(a\notin\operatorname{pa}_{\cup}(t)\), and
+\[
+ |\{a\}\cup\operatorname{pa}_{\cup}(t)|\le d+1.
+\]
+If \(d<n-1\), extend this set inside \(V\setminus\{t\}\) to an \(r=d+1\) element set \(A\). If \(d=n-1\), absence of \(a\to t\) gives \(|\operatorname{pa}_{\cup}(t)|\le n-2\), so the same extension exists with \(r=n-1\). By the cover property there is \(I\in\mathcal F\) with \(A\subseteq I\) and \(t\notin I\). Every directed path from \(a\) to \(t\) of length at least two has a last parent \(p\in\operatorname{pa}_{\cup}(t)\subseteq I\); the edge entering \(p\) on the path is deleted. Since the length-one path is absent, \(t\notin D_I(a)\), so the decoder discards the nonedge. This proves exact recovery and
+\[
+ N^{\star}(n,K,d,\tau,s)\le F(n,r,s).
+\]
+
+All \(r\)-subsets form a valid cover, hence \(F(n,r,s)\le\binom nr\). For the probabilistic bound, fix \((A,t)\) with \(|A|=r\) and \(t\notin A\), and draw a uniform \(k\)-subset, where \(r\le k\le s\). Its covering probability is
+\[
+ p_{n,r,k}=\frac{\binom{n-r-1}{k-r}}{\binom nk}.
+\]
+There are \(M=n\binom{n-1}{r}\) requirements. For \(q\) independent rows, the union bound and \(1-x\le e^{-x}\) give
+\[
+ \Pr(\text{some requirement is uncovered})
+ \le M(1-p_{n,r,k})^q
+ \le M e^{-q p_{n,r,k}}<1
+\]
+when \(q=\left\lceil(\log M+1)/p_{n,r,k}\right\rceil\). Hence a deterministic family of at most \(q\) distinct rows exists after duplicate removal. Optimizing over \(k\), and taking the all-\(r\)-subsets construction, yields the first branch of \(U_{\mathrm{PB}}\). If \(s=n-1\), the additional \(n\) rows \(V\setminus\{t\}\), \(t\in V\), cover every requirement and yield the second branch. Therefore \(F(n,r,s)\le U_{\mathrm{PB}}(n,r,s)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is an explicit non-CADIM upper design that exploits last-parent blocking and works without knowing the union skeleton. \textit{Gap.} CADIM scans ancestor layers with at most quadratic count, while single-DAG separating systems separate endpoints and do not enforce simultaneous parent blockers. \textit{Consumer.} The bound supplies a concrete bounded-panel schedule whenever the exact adaptive frontier is computationally unavailable.
+
+\begin{lemma}[lem:transcript-packing]\label{lem:transcript-packing}
+Let \(\mathfrak g_0,\mathfrak g_1,\ldots,\mathfrak g_m\in\mathfrak M_{n,K,d,\tau}\) have distinct oriented unions, and let \(\mathscr D_j=\{I:|I|\le s,\ \mathcal O_{\mathfrak g_j}(I)\ne\mathcal O_{\mathfrak g_0}(I)\}\). Every exact adaptive recovery tree has depth at least the minimum number of allowed targets whose union hits all \(\mathscr D_j\); in particular, pairwise disjoint nonempty \(\mathscr D_j\) imply depth at least \(m\) along the \(\mathfrak g_0\) transcript.
+\end{lemma}
+\begin{proof}
+Fix an exact deterministic recovery tree and follow the transcript generated by \(\mathfrak g_0\). Let \(I_1,\ldots,I_q\) be the targets on that root-to-leaf path. If, for some \(j\), none of these targets belongs to \(\mathscr D_j\), then
+\[
+ \mathcal O_{\mathfrak g_j}(I_h)=\mathcal O_{\mathfrak g_0}(I_h),
+ \qquad h=1,\ldots,q.
+\]
+Induction on \(h\) shows that adaptivity chooses the same next target under \(\mathfrak g_j\) as under \(\mathfrak g_0\), so both models reach the same leaf. That leaf has one output, but \(\mathsf T(\mathfrak g_j)\ne\mathsf T(\mathfrak g_0)\), contradicting exact recovery. Consequently \(\{I_1,\ldots,I_q\}\) intersects every \(\mathscr D_j\), and \(q\) is at least the minimum hitting-set cardinality. If the nonempty families \(\mathscr D_j\) are pairwise disjoint, one target can hit at most one of them, so \(q\ge m\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma isolates the exact legality condition missing from informal transfers of single-DAG separating-system lower bounds. \textit{Gap.} ShanmugamKocaogluDimakisVishwanath2015SmallInterventions constructs an adaptive total-order transcript for a complete single DAG; it does not ensure simultaneous faithful mixture alternatives. \textit{Consumer.} Every lower-bound construction in the frontier can be audited by listing one baseline and its full changed-target families.
+
+\begin{theorem}[thm:faithful-witness-realization]\label{thm:faithful-witness-realization}
+Every finite graph family used for the feasibility, dense-endpoint, directed-tree, and cycle-free transcript lower bounds admits strictly positive binary component kernels \(\boldsymbol\kappa\), positive mixture weights \(\mathbf w\), and strictly positive shared target laws \(\mathbf q\) such that the induced laws \(P_\ell\), \(P_{\ell,I}\), and \(P_I\) satisfy \(\Delta(\mathbf G,\boldsymbol\kappa)=V\), every declared true edge is active in its child kernel, and simultaneous I-mixture faithfulness holds for every \(I\subseteq V\).
+\end{theorem}
+\begin{proof}
+It is enough to prove a stronger assertion: every finite family of component DAGs on \(V\), with \(K\ge2\), has strictly positive binary parameters for which \(\Delta=V\), every component edge is active, and faithfulness holds simultaneously for all \(2^n\) interventions.
+
+Parameterize each binary conditional kernel by its entries in \((0,1)\), each shared intervention law by \(q_i(1)\in(0,1)\), and the weights by the relative interior of the simplex. Call the resulting nonempty open parameter set \(\Theta\). Every joint atom of every \(P_I\) is a polynomial in these coordinates. For fixed disjoint \(A,B,C\), conditional independence \(X_A\perp X_B\mid X_C\) implies, for every \(a\in A\), \(b\in B\), and every binary value \(c\) of \(X_C\), the polynomial equation
+\[
+ p_I(0,0,c)p_I(1,1,c)-p_I(0,1,c)p_I(1,0,c)=0,
+\]
+where the unshown coordinates are marginalized. The cited I-mixture Markov property supplies every independence implied by d-separation. We show that each additional-independence polynomial associated with a d-connected barred pair is nonzero as a polynomial.
+
+Because the desired parameters will have \(\Delta=V\), the complete-oracle reduction applies to the graphical criterion. A nonzero-polynomial witness may lie in the closure of \(\Theta\); nonzero evaluation there is enough to show that the polynomial is not identically zero. Give unused variables deterministic value zero and let targeted roots be independent fair bits.
+
+If \(a,b\notin I\), put boundary weight \(1/2\) on each of two components, set \((a,b)=(0,0)\) in one and \((a,b)=(1,1)\) in the other, and set \(X_C=0\). The displayed determinant is positive. If \(a\in I,b\notin I\), choose a component-directed path from \(a\) to the first vertex \(z\in\{b\}\cup C\) reached along such a path. Its interior avoids \(C\). When \(z=b\), concentrate on that component and copy the fair bit \(a\) along the path, so \(a=b\) given \(X_C=0\). When \(z=c\in C\), use two components: in the path component copy \(a\) to \(c\) and put \(b=0\), while in the other component put \(c=0,b=1\). Given \(X_C=0\), the pairs \((0,0),(0,1),(1,1)\) have positive mass and \((1,0)\) has zero mass, again giving a nonzero determinant.
+
+If \(a,b\in I\), choose component paths from \(a\) and \(b\) to first-hit vertices \(c,e\in C\). If the paths lie in different components, put weight on those two components, copying \(a\) to \(c\) in the first and \(b\) to \(e\) in the second while fixing the other conditioned endpoint at zero. Conditioning on \(X_C=0\) yields positive masses at \((0,1)\) and \((1,0)\) but zero mass at \((1,1)\), so the determinant is nonzero. If the paths lie in the same component and meet, copy the two root bits to their first meeting point, take their exclusive-or there, and copy it to the conditioned endpoints; conditioning on zero then makes \(a=b\). If those paths are disjoint, in that component copy \(a\) to \(c\) and \(b\) to \(e\), and mix with a second component in which \(c=e=0\). Given \(X_C=0\), this is a nontrivial mixture of the atom \((0,0)\) and an independent fair pair, whose determinant is positive. These constructions remain valid when \(c=e\): different components give the preceding two-component witness, while paths in one component meet and use the exclusive-or witness. Thus every graphically d-connected barred pair has at least one conditional-independence minor that is a nonzero polynomial.
+
+There are finitely many choices of \(I,A,B,C\). The zero set of a nonzero real polynomial has empty interior, proved by induction on the number of variables after viewing the polynomial as a univariate polynomial with polynomial coefficients. The condition that a declared edge be inactive is also a proper polynomial equality among conditional-table entries, and the condition that a vertex fail to lie in \(\Delta\) is a proper finite family of equalities between lifted component tables. Hence the union of all extra-independence, inactive-edge, and mechanism-invariance exceptional sets has empty interior in \(\Theta\). Choose a point outside it. At that point all atom probabilities, mixture weights, and shared target probabilities are strictly positive; \(\Delta=V\); all declared edges are active; and, for every \(I\), the Markov implication together with exclusion of every extra-independence minor gives simultaneous I-mixture faithfulness. This proves the claimed realization for every lower-bound graph family.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A graphical lower pair is legally relevant to the population oracle only if compatible faithful mechanisms exist for all queried interventions. \textit{Gap.} The anchor's local necessity examples and the presolve fixtures do not supply an all-parameter simultaneous-faithfulness theorem under padding and topology replication. \textit{Consumer.} The theorem turns every graphical transcript adversary into a valid population-level impossibility result under the stated bridge.
+
+\begin{openendedquestion}[oeq:universal-frontier]\label{oeq:universal-frontier}
+Using the legal blocker-packing handle, derive an explicit evaluable \(Q(n,K,d,\tau,s)\) and universal constants \(0<c_0\le C_0<\infty\) such that \(c_0Q(n,K,d,\tau,s)\le N^{\star}(n,K,d,\tau,s)\le C_0Q(n,K,d,\tau,s)\) for every feasible \(s\), with the lower inequality certified by legal full-oracle baseline alternatives and the upper inequality attained by an adaptive emergent-path parent-blocking policy.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: it replaces a quadratic existence bound by a minimax resource law across every intervention budget. \textit{Gap.} VariciKatzWeiSattigeriTajer2024Interventional explicitly leaves constrained-size count lower bounds open, and the single-DAG count papers rely on a known skeleton or essential graph. \textit{Consumer.} The formula determines the number of bounded multi-gene perturbation panels needed to recover a latent cell-state union network at the population-identification level.
+
+\begin{openendedquestion}[oeq:tree-formula]\label{oeq:tree-formula}
+Using the unique-path centroid handle, determine the exact closed-form function \(Q_{\mathrm{tree}}(n,K,s)\) such that \(N^{\star}_{\mathrm{tree}}(n,K,s)=Q_{\mathrm{tree}}(n,K,s)\) for every feasible \(s\), and exhibit matching legal directed-tree transcript families.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Unique component paths create a structured regime where exact rather than constant-factor counts should be attainable. \textit{Gap.} VariciKatzWeiSattigeriTajer2024Interventional gives only the worst-case size of one local tree test, and GreenewaldKatzShanmugamEtAl2019CausalTrees treats one known tree skeleton. \textit{Consumer.} The formula provides an exact perturbation budget for heterogeneous arborescence models used as sparse regulatory-network approximations.
+
+\begin{openendedquestion}[oeq:cyclefree-formula]\label{oeq:cyclefree-formula}
+Using the reverse-ancestral packing handle, determine the exact closed-form function \(Q_{\mathrm{cf}}(n,K,d,s)\) such that \(N^{\star}_{\mathrm{cf}}(n,K,d,s)=Q_{\mathrm{cf}}(n,K,d,s)\) for every \(s\ge d\), and prove matching full-oracle transcript lower bounds within \(\mathfrak M^{\mathrm{cf}}_{n,K,d}\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Cycle-free mixture ancestry removes the feedback-set penalty while retaining emergent edges, isolating the pure count cost of parent blocking. \textit{Gap.} The anchor proves optimal maximum intervention size and a headwise quadratic-count algorithm, not an exact adaptive count law. \textit{Consumer.} The result gives the smallest experiment count for mixtures whose component ancestries admit a common acyclic processing order.
+
+\begin{theorem}[thm:exact-supported-slices]\label{thm:exact-supported-slices}
+The frontier satisfies the following exact reductions: \(N^{\star}_{\mathrm{cf}}(n,K,1,1)=n\); for two directed trees on three vertices, \(N^{\star}_{\mathrm{tree}}(3,2,1)=\infty\) and \(N^{\star}_{\mathrm{tree}}(3,2,2)=3\); and \(N^{\star}(n,K,n-1,n-2,n-1)=n\).
+\end{theorem}
+\begin{proof}
+We prove the three assertions separately.
+
+For the cycle-free indegree-one class, the \(n\) singleton queries recover \(R_{\mathbf G}\) by the targeted-root descendant lemma. We claim that
+\[
+ a\to t\in E_{\cup}(\mathbf G)
+ \quad\Longleftrightarrow\quad
+ aR_{\mathbf G}t\ \text{ and there is no }k\notin\{a,t\}
+ \text{ with }aR_{\mathbf G}k\text{ and }kR_{\mathbf G}t.
+\]
+If \(aR_{\mathbf G}t\) holds without a direct edge, a component path of length at least two supplies such a \(k\). Conversely, if \(a\to t\) is a union edge, the indegree-one cap makes \(a\) the only possible union parent of \(t\). Any path witnessing \(kR_{\mathbf G}t\) must end with \(a\to t\), and hence gives \(kR_{\mathbf G}a\). Together with \(aR_{\mathbf G}k\), this is a directed two-cycle inside the ancestor graph of \(t\), contradicting \(\tau=0\). Thus the displayed rule is exact and gives the upper bound \(n\).
+
+For the matching lower bound, take an all-empty baseline mixture with \(\Delta=V\). For every \(a\in V\), choose \(t(a)\ne a\) so that the ordered edges \(a\to t(a)\) are distinct, and compare the baseline with a mixture having only that edge in one component. These models have union indegree at most one and cyclic complexity zero, and the realization theorem makes them legal. Under singleton targets, the full-oracle reduction shows that the alternative for \(a\) differs from the baseline exactly at \(I=\{a\}\). The \(n\) distinguishing families are nonempty and pairwise disjoint, so transcript packing gives the lower bound \(n\). Therefore \(N^{\star}_{\mathrm{cf}}(n,K,1,1)=n\).
+
+For two directed trees on \(V=\{a,b,t\}\), use the baseline
+\[
+ \mathfrak g_0=(\{a\to b,a\to t\},\{b\to a,b\to t\})
+\]
+and the three alternatives
+\[
+ \mathfrak g_1=(\{a\to b,a\to t\},\{b\to a,a\to t\}),
+\]
+\[
+ \mathfrak g_2=(\{a\to b,a\to t\},\{a\to b,b\to t\}),
+\qquad
+ \mathfrak g_3=(\{b\to a,a\to t\},\{b\to a,b\to t\}).
+\]
+Every component skeleton is a tree, and the realization theorem supplies legal faithful binary models. Among targets of size at most two, computing the targeted-root descendants and applying the full-oracle reduction gives exactly
+\[
+ \mathscr D_1=\{\{a,b\}\},\qquad
+ \mathscr D_2=\{\{b\},\{b,t\}\},\qquad
+ \mathscr D_3=\{\{a\},\{a,t\}\}.
+\]
+The first alternative is therefore indistinguishable under all singleton interventions, proving \(N^{\star}_{\mathrm{tree}}(3,2,1)=\infty\). When \(s=2\), the three displayed families are pairwise disjoint, so transcript packing gives a lower bound of three. Conversely query the three complements \(V\setminus\{v\}\). In the row excluding \(t\), every other vertex is targeted, so \(t\in D_{V\setminus\{t\}}(a)\) if and only if \(a\to t\) is a true edge. These three rows recover every oriented union, proving \(N^{\star}_{\mathrm{tree}}(3,2,2)=3\).
+
+Finally consider the dense endpoint. The same complement-singleton argument gives
+\[
+ N^{\star}(n,K,n-1,n-2,n-1)\le n.
+\]
+For the reverse inequality, let the baseline have the complete DAG in the order \(1<\cdots<n\) and the complete DAG in the reverse order, repeating the latter if \(K>2\), and take \(\Delta=V\). For each \(i=2,\ldots,n\), delete \(1\to i\) from the forward component. The full-oracle reduction gives the exact distinguishing family
+\[
+ \mathscr D_i=\{I:\{1,\ldots,i-1\}\subseteq I,\ i\notin I\}.
+\]
+These \(n-1\) families are pairwise disjoint: membership in \(\mathscr D_i\) excludes \(i\), whereas membership in \(\mathscr D_j\) for \(j>i\) includes \(i\). Deleting \(n\to1\) from the reverse component gives the additional family \(\{V\setminus\{1\}\}\), disjoint from all the preceding families. All graph families have union indegree at most \(n-1\) and cyclic complexity at most \(n-2\), and the realization theorem makes them legal. Transcript packing therefore gives a lower bound of \(n\). This also covers \(n=2\), for which the ancestor restrictions have cyclic complexity zero. Hence the dense-endpoint count is exactly \(n\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} These exact slices constrain any proposed general formula and expose both adaptive transcript packing and the dense complement-singleton endpoint. \textit{Gap.} None of the cited mixture papers gives an exact total-intervention count even on these full-oracle subclasses. \textit{Consumer.} The slices are regression tests for the general frontier and furnish small exact benchmarks for intervention-policy implementations.
+
+\begin{lemma}[lem:targeted-root-descendant-equivalence]\label{lem:targeted-root-descendant-equivalence}
+For every intervention target \(I\subseteq V\), every \(a\in I\), and every \(t\in V\setminus\{a\}\), the barred copies of \(a\) and \(t\) are marginally d-connected in \(\mathcal G_{\mathrm m,I}\) if and only if \(t\in D_I(a)\). Consequently the complete oracle \(\mathcal O_{\mathbf G}(I)\), under I-mixture faithfulness, determines \(D_I(a)\) for every \(a\in I\).
+\end{lemma}
+\begin{proof}
+Fix \(a\in I\) and a copy \((a,\ell)\). By the hard-intervention construction, every component edge entering \((a,\ell)\) is deleted, and by the I-mixture-DAG construction the selector edge \(y\to(a,\ell)\) is also deleted. Thus \((a,\ell)\) has indegree zero. With the empty conditioning set, a d-connecting path has no collider. A path starting at the root \((a,\ell)\) must therefore continue along arrows directed away from \((a,\ell)\): at the first reversal, the meeting vertex would have two arrowheads and hence would be an unconditioned collider. It also cannot reach \(y\), for entering \(y\) would require traversing some edge \(y\to(v,\ell')\) backwards and would create the same first-reversal collider. Hence a marginally active path from \((a,\ell)\) to a copy of \(t\) exists exactly when \(t\) is a descendant of \(a\) in \(\mathcal G_{\ell,I}\). Taking the union over \(\ell\in L\) gives
+\[
+ \overline{\{a\}}\not\!\perp_{d,\mathcal G_{\mathrm m,I}}\overline{\{t\}}
+ \quad\Longleftrightarrow\quad
+ t\in\bigcup_{\ell\in L}\operatorname{de}_{\mathcal G_{\ell,I}}(a)\setminus\{a\}
+ =D_I(a).
+\]
+The oracle equivalence now follows from I-mixture faithfulness and the definition of \(\mathcal O_{\mathbf G}\).
+\end{proof}
+
+\begin{lemma}[lem:i-mixture-markov-property]\label{lem:i-mixture-markov-property}
+For every \(I\subseteq V\) and every pairwise disjoint \(A,B,C\subseteq V\), if \(\overline A\perp_{d,\mathcal G_{\mathrm m,I}}\overline B\mid\overline C\), then \(X_A\perp_{P_I}X_B\mid X_C\).
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The load-bearing all-parameter step remains coexistence of blocker requirements on one legal baseline transcript. The verified finite evidence is not itself a theorem: exhaustive evaluation covered all \(543\) four-node DAGs paired into \(63{,}432\) union-indegree-at-most-two mixtures and all \(24{,}357{,}888\) barred-copy conditional-separation queries, with no discrepancy from the descendant-signature rule; twelve positive rational fixtures also passed \(6{,}272\) exact probability conditional-independence checks. Uniform faithful realization and the general packing rate remain formal obligations.
+
+\section{Honest scope}
+
+The exact feasibility boundary, the size-\(d\) cycle-free policy, full-oracle reduction, explicit parent-blocking upper design, legal transcript lemma, three exact slices, universal-factor frontier, and two structured exact formulas are all posed as results to prove over the completed shared-kernel model. The proposal does not claim finite-sample conditional-independence recovery from faithfulness alone. The classical boundary \(K=1\) is outside the displayed new parameter class and reduces to single-DAG bounded-intervention design; \(d=0\) reduces to the known empty union, and \(s=n-1\) admits the complement-singleton dense reduction.
+
+\begin{thebibliography}{99}
+
+  \bibitem{VariciKatzWeiSattigeriTajer2024Interventional} B. Varıcı, D. A. Katz, D. Wei, P. Sattigeri, and A. Tajer (2024). Interventional Causal Discovery in a Mixture of DAGs. Advances in Neural Information Processing Systems 37.
+
+  \bibitem{ShanmugamKocaogluDimakisVishwanath2015SmallInterventions} K. Shanmugam, M. Kocaoglu, A. G. Dimakis, and S. Vishwanath (2015). Learning Causal Graphs with Small Interventions. Advances in Neural Information Processing Systems 28.
+
+  \bibitem{ChooShiragurBhattacharyya2022Verification} D. Choo, K. Shiragur, and A. Bhattacharyya (2022). Verification and Search Algorithms for Causal DAGs. Advances in Neural Information Processing Systems 35.
+
+  \bibitem{ChooShiragur2023Adaptivity} D. Choo and K. Shiragur (2023). Adaptivity Complexity for Causal Graph Discovery. Proceedings of the Thirty-Ninth Conference on Uncertainty in Artificial Intelligence, Proceedings of Machine Learning Research 216, 391--402.
+
+  \bibitem{GreenewaldKatzShanmugamEtAl2019CausalTrees} K. Greenewald, D. Katz, K. Shanmugam, S. Magliacane, M. Kocaoglu, E. Boix-Adserà, and G. Bresler (2019). Sample Efficient Active Learning of Causal Trees. Advances in Neural Information Processing Systems 32.
+
+  \bibitem{KocaogluDimakisVishwanath2017CostOptimal} M. Kocaoglu, A. G. Dimakis, and S. Vishwanath (2017). Cost-Optimal Learning of Causal Graphs. Proceedings of the Thirty-Fourth International Conference on Machine Learning.
+
+  \bibitem{SaeedPanigrahiUhler2020MixtureDAGs} B. Saeed, S. Panigrahi, and C. Uhler (2020). Causal Structure Discovery from Distributions Arising from Mixtures of DAGs. Proceedings of the Thirty-Seventh International Conference on Machine Learning.
+
+  \bibitem{HauserBuhlmann2012InterventionalMEC} A. Hauser and P. Bühlmann (2012). Characterization and Greedy Learning of Interventional Markov Equivalence Classes of Directed Acyclic Graphs. Journal of Machine Learning Research 13, 2409--2464.
+
+  \bibitem{YangKatcoffUhler2018GeneralInterventions} K. Yang, A. Katcoff, and C. Uhler (2018). Characterizing and Learning Equivalence Classes of Causal DAGs under Interventions. Proceedings of the Thirty-Fifth International Conference on Machine Learning.
+
+  \bibitem{MazaheriGordonRabaniSchulman2026Mixtures} B. Mazaheri, S. L. Gordon, Y. Rabani, and L. Schulman (2026). Causal Discovery in Mixtures of Populations. Proceedings of the Forty-Second Conference on Uncertainty in Artificial Intelligence, Proceedings of Machine Learning Research 337, 4457--4478. Their observational information consists of ranks of aggregated moment matrices, and their structural object is one shared underlying DAG across latent populations.
+
+  \bibitem{ChevalleyEtAl2025CausalBench} M. Chevalley et al. (2025). The CausalBench Challenge: A Machine Learning Contest for Gene Network Inference from Single-Cell Perturbation Data. Proceedings of the Fourth Conference on Causal Learning and Reasoning.
+
+\end{thebibliography}
+
+\end{document}

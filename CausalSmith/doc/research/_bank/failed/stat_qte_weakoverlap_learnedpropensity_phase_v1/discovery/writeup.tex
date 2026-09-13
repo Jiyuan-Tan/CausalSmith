@@ -1,0 +1,1469 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}qte\_\allowbreak{}weakoverlap\_\allowbreak{}learnedpropensity\_\allowbreak{}phase}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A boundary-adapted growing Bernoulli likelihood preserves the compensated infinitely divisible clipped-IPW quantile law uniformly over gamma-separated scheduled rows, while the finite-variance branch admits a uniform learned-propensity Gaussian approximation. The constrained signed Riesz expansion yields the rate \(J_n^{-s}+n^{-1/2}J_n^{(\alpha_a-1)/2}+J_n^{\alpha_a}/n\) and the corrected transfer condition \(E_{a,n}M_n^{\gamma_a-1}=o_P(1)\). On the noncritical domain, the arm laws combine into \(Z_{P,n}=\ell_{1,P,n}L_{1,P}-\ell_{0,P,n}L_{0,P}\), and fully refitted arm-vector subsampling estimates this moving row law uniformly without requiring convergence of the recombination weights, yielding both asymmetric pointwise intervals and a finite-\(\mathcal T\) simultaneous max-band. The separate critical fold-labelled Poisson question remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest weak-overlap QTE theorem uses the observed true propensity. Regular estimated-propensity quantile and series-logit results do not provide the singular Hall-boundary signed-functional expansion, uniform row-wise learned-propensity limits away from \(\gamma=2\), or inference valid under local \(1/\log n\) changes in the two arm scales.
+
+\paragraph{Niche.} A feasible full-population QTE procedure must preserve signed cancellation at a Hall boundary, use a positive-weight convex argmin and empirical clipping correction, retain learned-score covariance in regular arms, and approximate a moving noncritical two-arm row law rather than a nonexistent common fixed limit.
+
+\paragraph{Fill.} The project derives the constrained-sieve log and signed-functional rates, proves the amplified oracle-transfer condition and its escape-perturbation necessity, establishes heavy and Gaussian arm expansions uniformly on gamma-separated scheduled rows, recombines them into \(Z_{P,n}\) without a subsequential-weight requirement, and proves uniform conditional validity of fully refitted arm-vector subsampling for both asymmetric pointwise intervals and a finite-quantile simultaneous max-band.
+
+\section{Related work}
+
+Avella-Medina, Davis, and Samorodnitsky (2025, arXiv:2506.18215v1) provide the observed-true-propensity fixed-quantile benchmark but no feasible propensity-estimation theorem. The present class \(\mathcal P_{\mathrm S}\) is not literally their published class: it is narrower through its smooth one-dimensional boundary chart and uniform second-order Hall structure, but weaker, and therefore incomparable overall, in requiring only convergence of the finite nested quantile-score vector rather than a full conditional endpoint outcome law. The finite-\(\mathcal T\) oracle law is rederived by score-law factorization, not inherited through class inclusion. Hirano, Imbens, and Ridder (2003) motivate regular growing-likelihood projection; the proof here adds singular boundary information geometry and a uniform signed Riesz expansion. Firpo (2007) supplies regular QTE context, while the Gaussian branch here permits finite inverse moments and retains shared first-stage covariance. Heiler and Kazak (2021) motivate irregular subsampling, whereas the proved procedure refits both arm estimators and uses full-sample arm weights to recover the moving noncritical row law.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Delta(\tau)=q_1(\tau)-q_0(\tau),\quad\tau\in\mathcal T\).
+Primary functional / estimator / diagnostic: \(\widehat\Delta^{\mathrm{bc}}(\tau)=\widehat q_1^{\mathrm{bc}}(\tau)-\widehat q_0^{\mathrm{bc}}(\tau)\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{sample size}
+  \item \texttt{i} --- \texttt{observation index}; \(\{1,\ldots,n\}\)
+  \item \texttt{j} --- \texttt{order-\allowbreak{}statistic or basis index}; \texttt{a positive integer}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{treatment-\allowbreak{}arm set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{0,1\}\)
+  \item \texttt{X} --- \texttt{baseline covariate}; a compact measurable space; \([0,1]\) on the primitive chart
+  \item \texttt{A} --- \texttt{binary treatment}; \(\mathcal A\)
+  \item \texttt{Y(0)} --- \texttt{control potential outcome}; \(\mathbb R\)
+  \item \texttt{Y(1)} --- \texttt{treated potential outcome}; \(\mathbb R\)
+  \item \texttt{\textbackslash{}\allowbreak{}zeta} --- \texttt{boundary-\allowbreak{}chart outcome noise}; \texttt{a centered logistic law}
+  \item \texttt{Y} --- \texttt{observed outcome}
+  \par\smallskip\noindent\emph{Definition.} \(Y=A Y(1)+(1-A)Y(0)\)
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{observed vector}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(X_i,A_i,Y_i)\)
+  \item \texttt{P} --- \texttt{law of one observed-\allowbreak{}data and potential-\allowbreak{}outcome draw}; \texttt{data-\allowbreak{}generating law}
+  \item \texttt{P\_\allowbreak{}X} --- \texttt{covariate marginal}
+  \par\smallskip\noindent\emph{Definition.} the \(X\)-marginal of \(P\)
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}a} --- \texttt{arm propensity}; \(\pi_a(x)=P(A=a\mid X=x)\), \(a\in\mathcal A\)
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}a} --- \texttt{arm inverse-\allowbreak{}weight tail index}; \((1,\infty]\)
+  \par\smallskip\noindent\emph{Definition.} the Hall exponent parameter when the propensity lower tail is polynomial, with the convention \(\gamma_a=\infty\) when \(\operatorname*{ess\,inf}\pi_a(X)>0\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm H\}\allowbreak{}} --- \texttt{heavy-\allowbreak{}arm set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_{\mathrm H}=\{a\in\mathcal A:1<\gamma_a<2\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm G\}\allowbreak{}} --- \texttt{finite-\allowbreak{}variance arm set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_{\mathrm G}=\{a\in\mathcal A:2<\gamma_a\le\infty\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal T} --- \texttt{finite quantile-\allowbreak{}index set}; \(\mathcal T\subset[\eta,1-\eta]\) for fixed \(\eta\in(0,1/2)\)
+  \item \texttt{R} --- \texttt{number of target quantiles}
+  \par\smallskip\noindent\emph{Definition.} \(R=|\mathcal T|\)
+  \item \texttt{F\_\allowbreak{}a} --- \texttt{marginal potential-\allowbreak{}outcome distribution}; \(F_a(y)=P\{Y(a)\le y\}\)
+  \item \texttt{q\_\allowbreak{}a} --- \texttt{marginal potential-\allowbreak{}outcome quantile}; \(q_a(\tau)=\inf\{y:F_a(y)\ge\tau\}\)
+  \item \texttt{f\_\allowbreak{}a} --- \texttt{density at a target quantile}; \(f_a(\tau)=F_a'(q_a(\tau))\)
+  \item \texttt{f\_\allowbreak{}\{a\textbackslash{}\allowbreak{}mid X\}\allowbreak{}} --- \texttt{conditional potential-\allowbreak{}outcome density}; \(f_{a\mid X}(y\mid x)\) is the conditional density of \(Y(a)\) given \(X=x\)
+  \item \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}tau\}\allowbreak{}} --- \texttt{signed quantile score}; \(\psi_{a,\tau}(y)=\tau-\mathbf1\{y\le q_a(\tau)\}\)
+  \item \texttt{m\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}tau\}\allowbreak{}} --- \texttt{conditional signed-\allowbreak{}score regression}; \(m_{a,\tau}(x)=E_P[\psi_{a,\tau}(Y(a))\mid X=x]\)
+  \item \texttt{K\_\allowbreak{}a} --- \texttt{chosen endpoint-\allowbreak{}indexed conditional outcome kernel}; \(t\mapsto K_a(t,\cdot)\) is a fixed Borel regular conditional law under \(P\) of \(Y(a)\) given \(\pi_a(X)=t\)
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}tau\}\allowbreak{}} --- \texttt{chosen Borel conditional-\allowbreak{}score version}; \(\kappa_{a,\tau}(t)=\int\psi_{a,\tau}(y)K_a(t,dy)\) is the score version induced by the chosen Borel regular conditional law
+  \item \texttt{\textbackslash{}\allowbreak{}omega\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{mark\}\allowbreak{}\}\allowbreak{}} --- \texttt{endpoint-\allowbreak{}score modulus}; \(\{\omega:[0,1]\to[0,\infty):\omega(t)\to0\text{ as }t\downarrow0\}\)
+  \item \texttt{c\_\allowbreak{}a} --- \texttt{positive Hall constant}; \((0,\infty)\); defined only for arms with \(\gamma_a<\infty\)
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}a} --- \texttt{positive Hall remainder exponent}; \((0,\infty)\); defined only for arms with \(\gamma_a<\infty\)
+  \item \texttt{G\_\allowbreak{}a} --- \texttt{endpoint conditional outcome-\allowbreak{}mark law}; probability laws on \(\mathbb R\); \texttt{a representative endpoint outcome law whose pushforward through the finite score map determines the oracle limit}
+  \item \texttt{\textbackslash{}\allowbreak{}Psi\_\allowbreak{}a} --- \texttt{finite quantile-\allowbreak{}score map}; \(\Psi_a(y)=(\psi_{a,\tau}(y))_{\tau\in\mathcal T}\in\mathbb R^R\)
+  \item \texttt{H\_\allowbreak{}a} --- \texttt{endpoint quantile-\allowbreak{}score law}; probability laws on \(\prod_{\tau\in\mathcal T}\{\tau-1,\tau\}\subset\mathbb R^R\)
+  \par\smallskip\noindent\emph{Definition.} \(H_a=G_a\circ\Psi_a^{-1}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde G\_\allowbreak{}a} --- \texttt{alternative representative endpoint outcome law}; probability laws on \(\mathbb R\)
+  \item \texttt{F\_\allowbreak{}a\textasciicircum{}\{\textbackslash{}\allowbreak{}pi\}\allowbreak{}} --- \texttt{arm propensity distribution}; \(F_a^{\pi}(t)=P\{\pi_a(X)\le t\}\)
+  \item \texttt{t\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{population tail threshold}
+  \par\smallskip\noindent\emph{Definition.} \(t_{a,n}=\inf\{t\in(0,1]:ntF_a^{\pi}(t)\ge1\}\), with \(\inf\varnothing=1\)
+  \item \texttt{h\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{population tail normalization}
+  \par\smallskip\noindent\emph{Definition.} \(h_{a,n}=t_{a,n}^{-1}\)
+  \item \texttt{d\_\allowbreak{}a} --- \texttt{endpoint-\allowbreak{}chart coordinate}; \(d_a:[0,1]\to[0,1]\), with \(d_a(x)=0\) only at arm \(a\)'s weak-overlap endpoint
+  \item \texttt{\textbackslash{}\allowbreak{}alpha\_\allowbreak{}a} --- \texttt{boundary exponent}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_a=(\gamma_a-1)^{-1}\) when \(\gamma_a<\infty\), and \(\alpha_a=0\) when \(\gamma_a=\infty\)
+  \item \texttt{g\_\allowbreak{}a} --- \texttt{smooth log-\allowbreak{}propensity remainder}; a real function on \([0,1]\)
+  \item \texttt{s} --- \texttt{Hölder smoothness}; \((1,\infty)\)
+  \item \texttt{r} --- \texttt{local-\allowbreak{}polynomial degree}; \texttt{nonnegative integers}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B\_\allowbreak{}J} --- \texttt{spline dictionary}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_J=\{B_{1,J},\ldots,B_{J,J}\}\) of degree \(r\)
+  \item \texttt{J\_\allowbreak{}n} --- \texttt{sieve dimension}; \texttt{positive integers}
+  \item \texttt{K} --- \texttt{cross-\allowbreak{}fitting fold count}; \texttt{fixed integers greater than one}
+  \item \texttt{I\_\allowbreak{}k} --- \texttt{evaluation-\allowbreak{}fold index set}; a partition element of \(\{1,\ldots,n\}\)
+  \item \texttt{b\_\allowbreak{}0} --- \texttt{positive cutoff exponent}; \((0,\infty)\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}pi\_\allowbreak{}\{a,\allowbreak{}-\allowbreak{}k\}\allowbreak{}} --- \texttt{cross-\allowbreak{}fitted boundary propensity learner}; a training-fold function into \((0,1)\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat F\_\allowbreak{}a\textasciicircum{}\{\textbackslash{}\allowbreak{}pi\}\allowbreak{}} --- \texttt{empirical fitted-\allowbreak{}propensity distribution}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat F_a^{\pi}(t)=n^{-1}\sum_{i=1}^n\mathbf1\{\widehat\pi_{a,-k(i)}(X_i)\le t\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat t\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{empirical tail threshold}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat t_{a,n}=\inf\{t\in(0,1]:nt\widehat F_a^{\pi}(t)\ge1\}\), with \(\inf\varnothing=1\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat h\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{estimated tail normalization}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat h_{a,n}=\widehat t_{a,n}^{-1}\)
+  \item \texttt{\textbackslash{}\allowbreak{}bar\textbackslash{}\allowbreak{}vartheta} --- \texttt{maximal clipping multiplier}; \((0,1)\)
+  \item \texttt{\textbackslash{}\allowbreak{}vartheta\_\allowbreak{}a} --- \texttt{clipping-\allowbreak{}rank multiplier}; a prespecified element of a finite grid in \([0,\bar\vartheta]\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat p\_\allowbreak{}\{a,\allowbreak{}(j)\}\allowbreak{}} --- \texttt{fitted-\allowbreak{}propensity order statistic}
+  \par\smallskip\noindent\emph{Definition.} the \(j\)-th order statistic of \(\{\widehat\pi_{a,-k(i)}(X_i):1\le i\le n\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat b\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{data-\allowbreak{}driven clipping threshold}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat b_{a,n}=\vartheta_a\widehat p_{a,(\lceil\widehat h_{a,n}\rceil\wedge n)}\)
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}a} --- \texttt{heavy-\allowbreak{}arm clipping-\allowbreak{}scale limit}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_a=\vartheta_a\) for \(a\in\mathcal A_{\mathrm H}\)
+  \item \texttt{b\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{population comparison threshold}
+  \par\smallskip\noindent\emph{Definition.} \(b_{a,n}=\theta_a/h_{a,n}\) for \(a\in\mathcal A_{\mathrm H}\)
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{boundary log-\allowbreak{}error rate}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_{a,n}=J_n^{-s}+\{J_n^{\alpha_a+1}/n\}^{1/2}\)
+  \item \texttt{M\_\allowbreak{}n} --- \texttt{slow tail-\allowbreak{}band multiplier}; \texttt{positive deterministic sequences diverging to infinity}
+  \item \texttt{u\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{heavy-\allowbreak{}arm tail-\allowbreak{}band boundary}
+  \par\smallskip\noindent\emph{Definition.} \(u_{a,n}=M_n/h_{a,n}\)
+  \item \texttt{E\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{sample-\allowbreak{}relevant punctured relative tail error}
+  \par\smallskip\noindent\emph{Definition.} \(E_{a,n}=\max_k\max_{i\in I_k:0<\pi_a(X_i)\le u_{a,n}}|\widehat\pi_{a,-k}(X_i)/\pi_a(X_i)-1|\), with an empty maximum equal to zero
+  \item \texttt{D\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{interior signed-\allowbreak{}score discrepancy}
+  \par\smallskip\noindent\emph{Definition.} \(D_{a,n}(\tau)=h_{a,n}^{-1}\sum_k\sum_{i\in I_k}\mathbf1\{A_i=a,\pi_a(X_i)>u_{a,n}\}\psi_{a,\tau}(Y_i)[(\widehat\pi_{a,-k}(X_i)\vee b_{a,n})^{-1}-(\pi_a(X_i)\vee b_{a,n})^{-1}]\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}pi\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{esc\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{a,\allowbreak{}-\allowbreak{}k\}\allowbreak{}} --- \texttt{escape-\allowbreak{}perturbed propensity learner}; the learner constructed in \(\text{def:escape-perturbation}\)
+  \item \texttt{E\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{esc\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{escape-\allowbreak{}learner punctured relative tail error}
+  \par\smallskip\noindent\emph{Definition.} the definition of \(E_{a,n}\) with \(\widehat\pi^{\mathrm{esc}}_{a,-k}\) replacing \(\widehat\pi_{a,-k}\)
+  \item \texttt{D\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{esc\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{escape-\allowbreak{}learner interior discrepancy}
+  \par\smallskip\noindent\emph{Definition.} the definition of \(D_{a,n}\) with \(\widehat\pi^{\mathrm{esc}}_{a,-k}\) replacing \(\widehat\pi_{a,-k}\)
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}\textbackslash{}\allowbreak{}tau} --- \texttt{quantile check loss}; \(\rho_\tau(v)=v\{\tau-\mathbf1(v<0)\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}a} --- \texttt{feasible clipped-\allowbreak{}IPW arm quantile}; a sample map into \(\mathbb R^{|\mathcal T|}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde q\_\allowbreak{}\{a,\allowbreak{}-\allowbreak{}k\}\allowbreak{}} --- \texttt{cross-\allowbreak{}fitted preliminary arm quantile}; a training-fold map into \(\mathbb R^{|\mathcal T|}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\textbackslash{}\allowbreak{}psi\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}tau,\allowbreak{}-\allowbreak{}k\}\allowbreak{}} --- \texttt{preliminary signed score}; \(\widetilde\psi_{a,\tau,-k}(y)=\tau-\mathbf1\{y\le\widetilde q_{a,-k}(\tau)\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat Q\_\allowbreak{}\{a,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}tau\}\allowbreak{}} --- \texttt{local feasible check-\allowbreak{}loss process}; a convex function on \(\mathbb R\)
+  \item \texttt{m\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{tail\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}tau\}\allowbreak{}} --- \texttt{endpoint signed-\allowbreak{}score mean}
+  \par\smallskip\noindent\emph{Definition.} \(m^{\mathrm{tail}}_{a,\tau}=\int\psi_{a,\tau}(y)G_a(dy)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}theta\}\allowbreak{}} --- \texttt{heavy-\allowbreak{}arm clipping drift}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{a,\theta}(\tau)=-\theta_a^{\gamma_a-1}m^{\mathrm{tail}}_{a,\tau}/\gamma_a\)
+  \item \texttt{k\_\allowbreak{}n} --- \texttt{intermediate order count}; positive integers with \(k_n\to\infty\), \(k_n/n\to0\), and \(k_n(k_n/n)^{1/(\gamma_a-1)}\to\infty\) uniformly over finite-index arms
+  \item \texttt{Z\_\allowbreak{}\{a,\allowbreak{}i\}\allowbreak{}} --- \texttt{fitted inverse propensity}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{a,i}=1/\widehat\pi_{a,-k(i)}(X_i)\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}gamma\_\allowbreak{}a} --- \texttt{arm tail-\allowbreak{}regime diagnostic}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\gamma_a=1+\{k_n^{-1}\sum_{j=1}^{k_n}\log(Z_{a,(j)}/Z_{a,(k_n+1)})\}^{-1}\), where the order statistics are decreasing and the value is \(+\infty\) when the denominator is zero
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal A\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm H\}\allowbreak{}} --- \texttt{estimated heavy-\allowbreak{}arm set}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\mathcal A}_{\mathrm H}=\{a\in\mathcal A:\widehat\gamma_a<2\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal A\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm G\}\allowbreak{}} --- \texttt{estimated finite-\allowbreak{}variance arm set}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\mathcal A}_{\mathrm G}=\mathcal A\setminus\widehat{\mathcal A}_{\mathrm H}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}theta\}\allowbreak{}} --- \texttt{estimated arm clipping drift}
+  \par\smallskip\noindent\emph{Definition.} the fully empirical estimate in \(\text{def:drift-correction}\), set to zero on \(\widehat{\mathcal A}_{\mathrm G}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta\_\allowbreak{}a} --- \texttt{estimated heavy-\allowbreak{}arm clipping scale}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_a=\widehat h_{a,n}\widehat b_{a,n}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat m\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{tail\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}tau\}\allowbreak{}} --- \texttt{estimated endpoint signed-\allowbreak{}score mean}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat m^{\mathrm{tail}}_{a,\tau}=\frac{\sum_{i=1}^n\mathbf1\{A_i=a,\widehat\pi_{a,-k(i)}(X_i)\le\widehat p_{a,(k_n)}\}\widetilde\psi_{a,\tau,-k(i)}(Y_i)}{\sum_{i=1}^n\mathbf1\{A_i=a,\widehat\pi_{a,-k(i)}(X_i)\le\widehat p_{a,(k_n)}\}}\), with value zero when the denominator is zero
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf K\_\allowbreak{}f} --- \texttt{density kernel}; \texttt{a fixed bounded nonnegative probability kernel}
+  \item \texttt{\textbackslash{}\allowbreak{}omega\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{density bandwidth}; positive deterministic sequences with \(\omega_{a,n}\to0\), \(h_{a,n}/(n\omega_{a,n})\to0\) on \(\mathcal A_{\mathrm H}\), and \((\sqrt n\,\omega_{a,n})^{-1}\to0\) on \(\mathcal A_{\mathrm G}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat f\_\allowbreak{}a} --- \texttt{estimated target density}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat f_a(\tau)=\max\{n^{-1/4},\frac{\sum_i\mathbf1\{A_i=a\}\mathsf K_f((Y_i-\widehat q_a(\tau))/\omega_{a,n})/[(\widehat\pi_{a,-k(i)}(X_i)\vee\widehat b_{a,n})\omega_{a,n}]}{\sum_i\mathbf1\{A_i=a\}/(\widehat\pi_{a,-k(i)}(X_i)\vee\widehat b_{a,n})}\}\), with the ratio set to zero when its denominator is zero
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}a\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bc\}\allowbreak{}\}\allowbreak{}} --- \texttt{drift-\allowbreak{}compensated arm quantile}; the sample map constructed in \(\text{def:drift-correction}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf Z\_\allowbreak{}\{a,\allowbreak{}\textbackslash{}\allowbreak{}theta\}\allowbreak{}} --- \texttt{centered infinitely divisible score vector}; \(\mathbb R^{|\mathcal T|}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathrm\{IF\}\allowbreak{}\_\allowbreak{}a} --- \texttt{Gaussian arm influence function}
+  \par\smallskip\noindent\emph{Definition.} \(\mathrm{IF}_a(O;\tau)=f_a(\tau)^{-1}[m_{a,\tau}(X)+\mathbf1\{A=a\}\{\psi_{a,\tau}(Y)-m_{a,\tau}(X)\}/\pi_a(X)]\)
+  \item \texttt{H\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{arm normalization}
+  \par\smallskip\noindent\emph{Definition.} \(H_{a,n}=h_{a,n}\) on \(\mathcal A_{\mathrm H}\) and \(H_{a,n}=\sqrt n\) on \(\mathcal A_{\mathrm G}\)
+  \item \texttt{H\_\allowbreak{}n} --- \texttt{QTE normalization}
+  \par\smallskip\noindent\emph{Definition.} \(H_n=\max_{a\in\mathcal A}H_{a,n}\)
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{arm recombination weight}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{a,n}=H_{a,n}/H_n\)
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}a} --- \texttt{subsequential arm recombination limit}; \([0,1]\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{estimated arm normalization}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat H_{a,n}=\widehat h_{a,n}\) for \(a\in\widehat{\mathcal A}_{\mathrm H}\) and \(\widehat H_{a,n}=\sqrt n\) for \(a\in\widehat{\mathcal A}_{\mathrm G}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}n} --- \texttt{estimated QTE normalization}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat H_n=\max_{a\in\mathcal A}\widehat H_{a,n}\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}ell\_\allowbreak{}\{a,\allowbreak{}n\}\allowbreak{}} --- \texttt{estimated arm recombination weight}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\ell_{a,n}=\widehat H_{a,n}/\widehat H_n\)
+  \item \texttt{\textbackslash{}\allowbreak{}Delta} --- \texttt{quantile treatment-\allowbreak{}effect vector}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta(\tau)=q_1(\tau)-q_0(\tau)\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Delta\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bc\}\allowbreak{}\}\allowbreak{}} --- \texttt{feasible compensated QTE vector}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Delta^{\mathrm{bc}}=\widehat q_1^{\mathrm{bc}}-\widehat q_0^{\mathrm{bc}}\)
+  \item \texttt{L\_\allowbreak{}a} --- \texttt{arm limit vector}; \(\mathbb R^{|\mathcal T|}\)
+  \item \texttt{m} --- \texttt{subsample size}; positive integers not exceeding \(n\)
+  \item \texttt{p} --- \texttt{subsampling quantile index}; \((0,1)\)
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{nominal noncoverage probability}; \((0,1)\)
+  \item \texttt{B} --- \texttt{conditionally randomized subsample index set}; Conditionally on \(O_1,\ldots,O_n\), \(B\) is uniform over all \(b\subset\{1,\ldots,n\}\) with \(|b|=m\); each such set has conditional probability \(\binom{n}{m}^{-1}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\_\allowbreak{}B} --- \texttt{conditional subsampling law}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P_B(B=b\mid O_1,\ldots,O_n)=\binom{n}{m}^{-1}\) for every \(b\subset\{1,\ldots,n\}\) with \(|b|=m\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}\{a,\allowbreak{}B\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bc\}\allowbreak{}\}\allowbreak{}} --- \texttt{refitted subsample arm quantile}
+  \par\smallskip\noindent\emph{Definition.} the complete rule for \(\widehat q_a^{\mathrm{bc}}\) recomputed using only indices in \(B\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}\{a,\allowbreak{}m,\allowbreak{}B\}\allowbreak{}} --- \texttt{refitted subsample arm normalization}
+  \par\smallskip\noindent\emph{Definition.} the complete rule for \(\widehat H_{a,n}\) recomputed at sample size \(m\) using only indices in \(B\)
+  \item \texttt{V\_\allowbreak{}\{B,\allowbreak{}a\}\allowbreak{}} --- \texttt{refitted subsample arm statistic}; \(V_{B,a}:\mathcal T\to\mathbb R\) is the armwise statistic constructed in \(\text{def:vector-subsampling}\)
+  \item \texttt{T\_\allowbreak{}\{B,\allowbreak{}n\}\allowbreak{}} --- \texttt{recombined subsample QTE statistic}; \(T_{B,n}:\mathcal T\to\mathbb R\) is the statistic constructed in \(\text{def:vector-subsampling}\)
+  \item \texttt{c\_\allowbreak{}\{n,\allowbreak{}p\}\allowbreak{}} --- \texttt{conditional subsampling quantile}
+  \par\smallskip\noindent\emph{Definition.} \(c_{n,p}(\tau)=\inf\{t\in\mathbb R:\mathbb P_B\{T_{B,n}(\tau)\le t\mid O_1,\ldots,O_n\}\ge p\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm H\}\allowbreak{}} --- \texttt{uniform weak-\allowbreak{}overlap model class}; defined by \(\text{def:hall-class}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm S\}\allowbreak{}} --- \texttt{boundary-\allowbreak{}smooth propensity subclass}; defined by \(\text{def:smooth-class}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{fold\}\allowbreak{}\}\allowbreak{}} --- \texttt{critical-\allowbreak{}resolution fold-\allowbreak{}experiment handle}; defined by \(\text{def:fold-handle}\)
+  \item \texttt{Z\_\allowbreak{}\{P,\allowbreak{}n\}\allowbreak{}} --- \texttt{moving QTE row-\allowbreak{}limit vector}; \(\mathbb R^{|\mathcal T|}\)
+  \par\smallskip\noindent\emph{Definition.} \(Z_{P,n}=\ell_{1,P,n}L_{1,P}-\ell_{0,P,n}L_{0,P}\) on the noncritical domain of \(\text{def:moving-row-law}\)
+  \item \texttt{M\_\allowbreak{}\{B,\allowbreak{}n\}\allowbreak{}} --- \texttt{refitted subsample maximum statistic}
+  \par\smallskip\noindent\emph{Definition.} \(M_{B,n}=\max_{\tau\in\mathcal T}|T_{B,n}(\tau)|\)
+  \item \texttt{c\textasciicircum{}\{\textbackslash{}\allowbreak{}max\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}p\}\allowbreak{}} --- \texttt{conditional maximum-\allowbreak{}statistic subsampling quantile}
+  \par\smallskip\noindent\emph{Definition.} \(c^{\max}_{n,p}=\inf\{t\in\mathbb R:\mathbb P_B(M_{B,n}\le t\mid O_1,\ldots,O_n)\ge p\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{sim\}\allowbreak{}\}\allowbreak{}} --- \texttt{finite-\allowbreak{}quantile simultaneous confidence band}; \(\mathcal C_n^{\mathrm{sim}}(\tau)=[\widehat\Delta^{\mathrm{bc}}(\tau)-(\widehat H_n/n)c^{\max}_{n,1-\alpha},\widehat\Delta^{\mathrm{bc}}(\tau)+(\widehat H_n/n)c^{\max}_{n,1-\alpha}]\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid]\label{ass:iid}
+\(O_1,\ldots,O_n\) are independent and identically distributed under \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent sampling, \cite{Firpo2007}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=A Y(1)+(1-A)Y(0)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{Firpo2007}).
+\end{assumption}
+
+\begin{assumption}[ass:unconfoundedness]\label{ass:unconfoundedness}
+\((Y(0),Y(1))\perp A\mid X\).
+\par\smallskip\noindent\emph{Standard} (Conditional unconfoundedness, \cite{Firpo2007}).
+\end{assumption}
+
+\begin{assumption}[ass:positivity]\label{ass:positivity}
+\(P\{0<\pi_a(X)<1\}=1\) for every \(a\in\mathcal A\).
+\par\smallskip\noindent\emph{Standard} (Positivity without strict overlap, \cite{AvellaMedinaDavisSamorodnitsky2025}).
+\end{assumption}
+
+\begin{assumption}[ass:hall]\label{ass:hall}
+For every arm with \(\gamma_a<\infty\), \(F_a^{\pi}(t)=c_at^{\gamma_a-1}\{1+O(t^{\rho_a})\}\) as \(t\downarrow0\), with a remainder envelope, validity threshold, and positive parameter bounds common over the class.
+\par\smallskip\noindent\emph{Novel.} This uniform second-order form strengthens the anchor's lawwise regular variation. Compact boundary-power charts with Hölder remainders satisfy it by uniform inversion.
+\end{assumption}
+
+\begin{assumption}[ass:finite-variance]\label{ass:finite-variance}
+\(\max_{a\in\mathcal A_{\mathrm G}}E_P[1/\pi_a(X)]\le C_{\mathrm G}<\infty\).
+\par\smallskip\noindent\emph{Standard} (Finite inverse-propensity second moment for IPW scores, \cite{KhanTamer2010}).
+\end{assumption}
+
+\begin{assumption}[ass:tail-marks]\label{ass:tail-marks}
+For every \(a\in\mathcal A_{\mathrm H}\), fix the Borel regular conditional law \(t\mapsto K_a(t,\cdot)\) and, for every \(\tau\in\mathcal T\), the induced Borel regular conditional-score version \(\kappa_{a,\tau}(t)=\int\psi_{a,\tau}(y)K_a(t,dy)\); these chosen versions satisfy \(\sup_{a,\tau}|\kappa_{a,\tau}(t)-m^{\mathrm{tail}}_{a,\tau}|\le\omega_{\mathrm{mark}}(t)\) for all sufficiently small \(t>0\).
+\par\smallskip\noindent\emph{Novel.} Fixing a common Borel conditional kernel makes every null-index endpoint evaluation and all nested scores jointly well posed, while the common score modulus holds in smooth conditional-location families with compactly bounded error scales.
+\end{assumption}
+
+\begin{assumption}[ass:quantile-density]\label{ass:quantile-density}
+\(\inf_{a\in\mathcal A,\tau\in\mathcal T}f_a(\tau)>0\).
+\par\smallskip\noindent\emph{Standard} (Positive density at target quantiles, \cite{Firpo2007}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-density-modulus]\label{ass:conditional-density-modulus}
+\(\sup_{a,\tau,|v|\le u}|f_{a\mid X}(q_a(\tau)+v\mid X)-f_{a\mid X}(q_a(\tau)\mid X)|\to0\) almost surely as \(u\downarrow0\), under one deterministic modulus common over the class.
+\par\smallskip\noindent\emph{Novel.} The common modulus is the uniform-curvature restriction absent from a lawwise density condition. Logistic location families with compact scale and location classes satisfy it.
+\end{assumption}
+
+\begin{assumption}[ass:uniform-chart]\label{ass:uniform-chart}
+On the primitive boundary chart, \(X\sim\operatorname{Unif}[0,1]\).
+\par\smallskip\noindent\emph{Novel.} This paper-specific coordinate restriction exposes boundary information explicitly. It is satisfied after a probability-integral-transform chart when the covariate index has a continuous distribution.
+\end{assumption}
+
+\begin{assumption}[ass:boundary-link]\label{ass:boundary-link}
+For every arm with \(\gamma_a<\infty\), \(\pi_a(x)=d_a(x)^{\alpha_a}\exp\{g_a(x)\}\); when \(\gamma_a=\infty\), \(\pi_a(x)=\exp\{g_a(x)\}\).
+\par\smallskip\noindent\emph{Novel.} This chart includes polynomial approach to zero and smooth bounded-away arms under the explicit \(\gamma_a=\infty\) convention. Beta-like treatment rules and smooth multiplicative departures satisfy it.
+\end{assumption}
+
+\begin{assumption}[ass:opposite-overlap]\label{ass:opposite-overlap}
+Fixed \(\varepsilon>0\) and \(t_\star>0\) satisfy \(\sup_{x:d_a(x)\le t_\star}\pi_a(x)\le1-\varepsilon\) for every \(a\in\mathcal A_{\mathrm H}\).
+\par\smallskip\noindent\emph{Novel.} This local subclass restriction separates each studied zero-propensity endpoint from simultaneous near-deterministic assignment at that same endpoint. Two-sided logistic-odds charts satisfy it on fixed endpoint neighborhoods even when the opposite arm is heavy at the other endpoint.
+\end{assumption}
+
+\begin{assumption}[ass:holder]\label{ass:holder}
+Every \(g_a\) and \(m_{a,\tau}\) belongs to a fixed Hölder ball \(C^s([0,1])\) with \(s>1\).
+\par\smallskip\noindent\emph{Standard} (Hölder smoothness, \cite{Dorn2025}).
+\end{assumption}
+
+\begin{assumption}[ass:gamma-separation]\label{ass:gamma-separation}
+Every arm satisfies \(\gamma_a\in[1+\epsilon_\gamma,2-\epsilon_\gamma]\cup[2+\epsilon_\gamma,\overline\gamma]\cup\{\infty\}\), for fixed \(\epsilon_\gamma>0\) and finite \(\overline\gamma\).
+\par\smallskip\noindent\emph{Standard} (Compact separation from a phase boundary, \cite{HeilerKazak2021}).
+\end{assumption}
+
+\begin{assumption}[ass:anti-concentration]\label{ass:anti-concentration}
+Over the gamma-separated laws \(P\in\mathcal P_{\mathrm S}\) for which the common deterministic heavy- and Gaussian-arm schedules apply at sample size \(n\), the moving row laws satisfy both
+\[
+\lim_{\eta\downarrow0}\limsup_{n\to\infty}\sup_P
+\max_{\tau\in\mathcal T}\sup_{x\in\mathbb R}
+P_P\{|Z_{P,n}(\tau)-x|\le\eta\}=0
+\]
+and
+\[
+\lim_{\eta\downarrow0}\limsup_{n\to\infty}\sup_P
+\sup_{x\in\mathbb R}
+P_P\{\bigl|\|Z_{P,n}\|_\infty-x\bigr|\le\eta\}=0.
+\]
+\par\smallskip\noindent\emph{Standard} (Uniform moving-law coordinate and maximum anti-concentration, \cite{PolitisRomanoWolf1999}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:hall-class]\label{def:hall-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal P_{\mathrm H}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\mathrm H}=\{P:P\text{ satisfies }\text{ass:iid},\text{ass:consistency},\text{ass:unconfoundedness},\text{ass:positivity},\text{ass:hall},\text{ass:finite-variance},\text{ass:tail-marks},\text{ass:quantile-density},\text{ass:conditional-density-modulus}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iid}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}unconfoundedness}; \texttt{ass:\allowbreak{}positivity}; \texttt{ass:\allowbreak{}hall}; \texttt{ass:\allowbreak{}finite-\allowbreak{}variance}; \texttt{ass:\allowbreak{}tail-\allowbreak{}marks}; \texttt{ass:\allowbreak{}quantile-\allowbreak{}density}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}density-\allowbreak{}modulus}.
+\end{definition}
+
+\begin{definition}[def:smooth-class]\label{def:smooth-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal P_{\mathrm S}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\mathrm S}=\{P\in\mathcal P_{\mathrm H}:P\text{ satisfies }\text{ass:uniform-chart},\text{ass:boundary-link},\text{ass:opposite-overlap},\text{ass:holder}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}uniform-\allowbreak{}chart}; \texttt{ass:\allowbreak{}boundary-\allowbreak{}link}; \texttt{ass:\allowbreak{}opposite-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}holder}.
+\end{definition}
+
+\begin{definition}[def:boundary-learner]\label{def:boundary-learner}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Boundary-\allowbreak{}adapted cross-\allowbreak{}fitted Bernoulli series learner}
+\par\smallskip\noindent\emph{Construction.} For each arm \(a\) and fold \(k\), and for \(d_a(x)>0\), put
+\[
+p_{a,J_n}(x;\alpha,\beta)
+=\exp\!\left\{\alpha\log d_a(x)+\sum_{j=1}^{J_n}\beta_jB_{j,J_n}(x)\right\}.
+\]
+At the single chart endpoint \(d_a(x)=0\), set
+\(p_{a,J_n}(x;\alpha,\beta)=e^{-J_n}\).  Let
+\[
+\Theta_{a,J_n}
+=\left\{(\alpha,\beta)\in[0,J_n]\times[-J_n,J_n]^{J_n}:
+p_{a,J_n}(x;\alpha,\beta)\le 1-e^{-J_n}
+\text{ for every }x\text{ with }d_a(x)>0\right\}.
+\]
+Define \((\widehat\alpha_{a,-k},\widehat\beta_{a,-k})\) as the unique maximizer over \(\Theta_{a,J_n}\) of
+\[
+\sum_{i\notin I_k}
+\left[
+\mathbf 1\{A_i=a\}\log p_{a,J_n}(X_i;\alpha,\beta)
++\{1-\mathbf 1\{A_i=a\}\}
+\log\{1-p_{a,J_n}(X_i;\alpha,\beta)\}
+\right]
+-e^{-J_n}\left(\alpha^2+\sum_{j=1}^{J_n}\beta_j^2\right),
+\]
+and set \(\widehat\pi_{a,-k}(x)=p_{a,J_n}(x;\widehat\alpha_{a,-k},\widehat\beta_{a,-k})\).
+\par\smallskip\noindent\emph{Inputs.} training observations \(\{O_i:i\notin I_k\}\); \texttt{the prespecified arm chart and spline dictionary}; \texttt{the deterministic compact probability-\allowbreak{}range and ridge rules}.
+\end{definition}
+
+\begin{definition}[def:quantile-estimator]\label{def:quantile-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Feasible positive-\allowbreak{}weight clipped-\allowbreak{}IPW quantile}
+\par\smallskip\noindent\emph{Construction.} Compute \(\widehat t_{a,n}\) by the explicit generalized inverse, set \(\widehat h_{a,n}=1/\widehat t_{a,n}\) and \(\widehat b_{a,n}=\vartheta_a\widehat p_{a,(\lceil\widehat h_{a,n}\rceil\wedge n)}\), and define \(\widehat q_a(\tau)\) as the smallest minimizer of \(q\mapsto\sum_k\sum_{i\in I_k}\mathbf1\{A_i=a\}\rho_\tau(Y_i-q)/(\widehat\pi_{a,-k}(X_i)\vee\widehat b_{a,n})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{the sample}; \texttt{fold-\allowbreak{}specific fitted propensities}; the prespecified multiplier grid in \([0,\bar\vartheta]\).
+\end{definition}
+
+\begin{definition}[def:local-objective]\label{def:local-objective}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Centered local feasible objective}
+\par\smallskip\noindent\emph{Construction.} \(\widehat Q_{a,n,\tau}(t)=nh_{a,n}^{-2}\sum_k\sum_{i\in I_k}\mathbf1\{A_i=a\}(\widehat\pi_{a,-k}(X_i)\vee\widehat b_{a,n})^{-1}[\rho_\tau\{Y_i-q_a(\tau)-th_{a,n}/n\}-\rho_\tau\{Y_i-q_a(\tau)\}]\). Population quantities only center and normalize this proof process.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}text\{def:\allowbreak{}boundary-\allowbreak{}learner\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}text\{def:\allowbreak{}quantile-\allowbreak{}estimator\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:preliminary-quantiles]\label{def:preliminary-quantiles}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cross-\allowbreak{}fitted preliminary arm quantiles}
+\par\smallskip\noindent\emph{Construction.} Within each outer training sample, use fixed inner folds to refit \(\text{def:boundary-learner}\), its generalized-inverse scale, and its order-statistic clipping threshold. Define \(\widetilde q_{a,-k}\) as the smallest inner-fold clipped-IPW minimizer and \(\widetilde\psi_{a,\tau,-k}(y)=\tau-\mathbf1\{y\le\widetilde q_{a,-k}(\tau)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{outer-\allowbreak{}fold training data}; \texttt{fixed inner folds}; \texttt{the same multiplier grid}.
+\end{definition}
+
+\begin{definition}[def:drift-correction]\label{def:drift-correction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Wholly empirical armwise clipping-\allowbreak{}drift correction}
+\par\smallskip\noindent\emph{Construction.} For every arm, compute \(\widehat\gamma_a\) from the stated intermediate Hill formula and classify it by \(\widehat{\mathcal A}_{\mathrm H}\) and \(\widehat{\mathcal A}_{\mathrm G}\). For an empirically heavy arm, compute \(\widehat m^{\mathrm{tail}}_{a,\tau}\), set \(\widehat\theta_a=\widehat h_{a,n}\widehat b_{a,n}\), and form \(\widehat\mu_{a,\theta}(\tau)=-\widehat\theta_a^{\widehat\gamma_a-1}\widehat m^{\mathrm{tail}}_{a,\tau}/\widehat\gamma_a\). For an empirically finite-variance arm, set \(\widehat\mu_{a,\theta}=0\). Compute \(\widehat f_a(\tau)\) from its displayed weighted kernel formula and set \(\widehat q_a^{\mathrm{bc}}=\widehat q_a-(\widehat h_{a,n}/n)\widehat\mu_{a,\theta}/\widehat f_a\). All thresholds, scores, classifications, and densities are sample-computed; none uses \(q_a\), \(f_a\), \(m^{\mathrm{tail}}_{a,\tau}\), \(\theta_a\), \(\mathcal A_{\mathrm H}\), or \(\mathcal A_{\mathrm G}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{fold-\allowbreak{}specific fits}; \texttt{nested preliminary quantiles}; \texttt{prespecified intermediate-\allowbreak{}order and bandwidth sequences}.
+\end{definition}
+
+\begin{definition}[def:oracle-limit]\label{def:oracle-limit}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Centered oracle Lévy score}
+\par\smallskip\noindent\emph{Construction.} For \(t=(t_\tau)_{\tau\in\mathcal T}\), define \[\log E\exp\{it^\top\mathsf Z_{a,\theta}\}=\int_0^\infty\int_{\mathbb R^R}\left[\exp\left\{i\sum_{\tau\in\mathcal T}\frac{t_\tau u_\tau}{\max\{z,\theta_a\}}\right\}-1-i\sum_{\tau\in\mathcal T}\frac{t_\tau u_\tau}{\max\{z,\theta_a\}}\right]H_a(du)(\gamma_a-1)z^{\gamma_a-1}dz.\] The Lévy integrand and \(\mathsf Z_{a,\theta}\) therefore depend on the endpoint input only through the declared score law \(H_a\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{the Hall index}; the endpoint quantile-score law \(H_a\); \texttt{clipping-\allowbreak{}scale limit}.
+\end{definition}
+
+\begin{definition}[def:escape-perturbation]\label{def:escape-perturbation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tail-\allowbreak{}band escape perturbation}
+\par\smallskip\noindent\emph{Construction.} For \(a\in\mathcal A_{\mathrm H}\), multiply \(\widehat\pi_{a,-k}(x)\) by \(1+M_n^{-(\gamma_a-1)}\) whenever \(\widehat\pi_{a,-k}(x)\le M_n/\widehat h_{a,n}\), leave it unchanged elsewhere, and reapply the same probability-range constraint. Call the result \(\widehat\pi^{\mathrm{esc}}_{a,-k}\), and compute \(E^{\mathrm{esc}}_{a,n}\) and \(D^{\mathrm{esc}}_{a,n}\) from that learner.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}text\{def:\allowbreak{}boundary-\allowbreak{}learner\}\allowbreak{}}; the tail-band sequence \(M_n\).
+\end{definition}
+
+\begin{definition}[def:vector-subsampling]\label{def:vector-subsampling}
+\par\smallskip\noindent\emph{Defined object.} Refitted arm-vector \(m\)-out-of-\(n\) procedure
+\par\smallskip\noindent\emph{Construction.} Choose \(m\to\infty\) with \(m/n\to0\). Conditionally on the observed full sample \(O_1,\ldots,O_n\), draw \(B\) according to \(\mathbb P_B\), uniformly over all subsets of \(\{1,\ldots,n\}\) having cardinality \(m\). For every realized \(B\), refit all folds, generalized-inverse scales, order-statistic clips, preliminary quantiles, endpoint corrections, and densities. For \(a\in\mathcal A\) and \(\tau\in\mathcal T\), set \(V_{B,a}(\tau)=m\widehat H_{a,m,B}^{-1}\{\widehat q_{a,B}^{\mathrm{bc}}(\tau)-\widehat q_a^{\mathrm{bc}}(\tau)\}\), set \(T_{B,n}(\tau)=\widehat\ell_{1,n}V_{B,1}(\tau)-\widehat\ell_{0,n}V_{B,0}(\tau)\), and define
+\[
+c_{n,p}(\tau)=\inf\{t\in\mathbb R:\mathbb P_B\{T_{B,n}(\tau)\le t\mid O_1,\ldots,O_n\}\ge p\}.
+\]
+For simultaneous inference over the finite set \(\mathcal T\), define
+\[
+M_{B,n}=\max_{\tau\in\mathcal T}|T_{B,n}(\tau)|,
+\qquad
+c^{\max}_{n,p}=\inf\{t\in\mathbb R:\mathbb P_B\{M_{B,n}\le t\mid O_1,\ldots,O_n\}\ge p\}.
+\]
+Thus the conditional law is the complete uniform empirical subsampling measure; conditionally independent draws from \(\mathbb P_B\) give its Monte Carlo approximation.
+\par\smallskip\noindent\emph{Inputs.} \texttt{the full sample}; \texttt{the complete armwise algorithm}; \texttt{a subsample size sequence}; a conditional uniform randomizer over size-\(m\) subsets, or exact enumeration of all such subsets.
+\end{definition}
+
+\begin{definition}[def:fold-handle]\label{def:fold-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Critical-\allowbreak{}resolution fold-\allowbreak{}experiment handle}
+\par\smallskip\noindent\emph{Construction.} \texttt{Represent training and evaluation extremes as one joint fold-\allowbreak{}labelled Poisson experiment,\allowbreak{} apply the measurable boundary-\allowbreak{}likelihood map induced by the constrained learner,\allowbreak{} and then map the weighted signed score through Knight's convex argmin identity.}
+\par\smallskip\noindent\emph{Inputs.} \texttt{fold labels}; \texttt{the constrained Bernoulli likelihood}; \texttt{endpoint outcome marks}.
+\end{definition}
+
+\begin{definition}[def:moving-row-law]\label{def:moving-row-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Moving noncritical QTE row law}
+\par\smallskip\noindent\emph{Construction.} For every noncritical law \(P\in\mathcal P_{\mathrm S}\) satisfying \(\gamma_{a,P}\ne2\) for every \(a\in\mathcal A\), equivalently \(\mathcal A=\mathcal A_{\mathrm H}(P)\cup\mathcal A_{\mathrm G}(P)\), define the joint arm-limit vector \(L_P=(L_{0,P},L_{1,P})\) as follows.  If \(a\in\mathcal A_{\mathrm H}(P)\), then \(L_{a,P}=\mathsf Z_{a,\theta,P}/f_{a,P}\), with \(\mathsf Z_{a,\theta,P}\) given by \(\text{def:oracle-limit}\).  If \(a\in\mathcal A_{\mathrm G}(P)\), then \(L_{a,P}\) is centered Gaussian with covariance induced by \(\mathrm{IF}_{a,P}\).  Heavy coordinates are independent of the other arm limit, while two Gaussian coordinates have cross-covariance \(E_P[\mathrm{IF}_{0,P}\mathrm{IF}_{1,P}^{\top}]\).  Put \(H_{a,P,n}=h_{a,P,n}\) on \(\mathcal A_{\mathrm H}(P)\), \(H_{a,P,n}=\sqrt n\) on \(\mathcal A_{\mathrm G}(P)\), \(H_{P,n}=\max_{a\in\mathcal A}H_{a,P,n}\), and \(\ell_{a,P,n}=H_{a,P,n}/H_{P,n}\).  The moving row law is the law under \(P\) of
+\[
+Z_{P,n}=\ell_{1,P,n}L_{1,P}-\ell_{0,P,n}L_{0,P}.
+\]
+It is used only with the applicable heavy- and Gaussian-arm learner schedules; those schedules are estimator-side hypotheses and are not membership conditions for \(\mathcal P_{\mathrm S}\).
+\par\smallskip\noindent\emph{Inputs.} a noncritical member law of \(\mathcal P_{\mathrm S}\); \texttt{the armwise heavy or Gaussian limit laws}; \texttt{the population arm normalizations}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:smooth-inclusion]\label{prop:smooth-inclusion}
+The class \(\mathcal P_{\mathrm S}\) is nonempty in both mixed and two-heavy regimes. Set \(d_1(x)=x\) and \(d_0(x)=1-x\). A mixed neighborhood is generated by \(X\sim\operatorname{Unif}[0,1]\), \(\pi_1(x)=x^{3/2}/2\), \(\pi_0(x)=1-x^{3/2}/2\), and \(Y(a)=a+X+\zeta\) with centered logistic \(\zeta\): here \(\mathcal A_{\mathrm H}=\{1\}\), \(\gamma_1=5/3\), \(\mathcal A_{\mathrm G}=\{0\}\), and \(\gamma_0=\infty\) under the bounded-support convention. A two-heavy neighborhood is generated by \(\pi_1(x)=x^{\alpha_1}/\{x^{\alpha_1}+(1-x)^{\alpha_0}\}\) and \(\pi_0=1-\pi_1\), with compact \(\alpha_a>1\). Both neighborhoods obey common Hall, endpoint-score, and density moduli; the mixed center has nonzero treated endpoint drift at \(\tau=1/2\).
+\end{proposition}
+\begin{proof}
+Construct the mixed law as follows.  Let \(X\sim {\rm Unif}[0,1]\), let \(\zeta\) have the centered logistic distribution and be independent of \(X\), and, conditionally on \(X=x\), draw \(A\) as a Bernoulli variable with success probability
+\[
+\pi _1(x)=\frac{x^{3/2}}2,\qquad \pi _0(x)=1-\frac{x^{3/2}}2 .
+\]
+Set \(Y(a)=a+X+\zeta\) and \(Y=AY(1)+(1-A)Y(0)\).  The last equality is \(\text{ass:consistency}\), and the conditional construction of \(A\), together with independence of \(\zeta\), gives \((Y(0),Y(1))\perp A\mid X\), as required by \(\text{ass:unconfoundedness}\).  Both propensities lie strictly between zero and one except possibly at the two \(P_X\)-null endpoints, so \(\text{ass:positivity}\) holds.
+
+For \(0<t<1/2\),
+\[
+F_1^\pi(t)
+=P\!\left\{X\le (2t)^{2/3}\right\}
+=2^{2/3}t^{2/3}.
+\]
+Thus \(c_1=2^{2/3}\), \(\gamma _1-1=2/3\), and \(\gamma _1=5/3\); the Hall remainder is identically zero.  On the other hand, \(\pi _0(X)\ge1/2\) almost surely, so the stated convention gives \(\gamma _0=\infty\) and \(E\{1/\pi _0(X)\}\le2\).  With \(d_1(x)=x\), \(g_1(x)=-\log2\), and
+\[
+g_0(x)=\log\!\left(1-\frac{x^{3/2}}2\right),
+\]
+\(\text{ass:boundary-link}\) holds.  Both \(g_1\) and \(g_0\) belong to a common \(C^{3/2}\) ball.  On a sufficiently small neighborhood of \(d_1=0\), \(\pi _1\le1/2\), which verifies \(\text{ass:opposite-overlap}\).
+
+Write \(\lambda(z)=e^{-z}(1+e^{-z})^{-2}\) and \(\Lambda(z)=(1+e^{-z})^{-1}\).  Then
+\[
+f_{a\mid X}(y\mid x)=\lambda(y-a-x),\qquad
+m_{a,\tau}(x)=\tau-\Lambda\{q_a(\tau)-a-x\}.
+\]
+The logistic density and its derivative are bounded, so the conditional-density modulus is deterministic and common, and every \(m_{a,\tau}\) is smooth.  Moreover,
+\[
+f_a(\tau)=\int_0^1\lambda\{q_a(\tau)-a-x\}\,dx>0 .
+\]
+Because \(\mathcal T\) and \(\mathcal A\) are finite, the minimum of these finitely many positive numbers is positive, proving \(\text{ass:quantile-density}\).  Conditional on \(\pi _1(X)=t\), one has \(X=(2t)^{2/3}\).  The Lipschitz property of \(\Lambda\) therefore gives, uniformly over \(\tau\in\mathcal T\),
+\[
+\left|\kappa_{1,\tau}(t)-\kappa_{1,\tau}(0)\right|
+\le \|\lambda\|_\infty(2t)^{2/3}.
+\]
+Taking \(G_1\) to be the law of \(1+\zeta\) gives \(\kappa_{1,\tau}(0)=m^{\rm tail}_{1,\tau}\), so \(\text{ass:tail-marks}\) holds with a deterministic power modulus.  The variable \(X+\zeta\) is symmetric about \(1/2\), hence \(q_1(1/2)=3/2\) and
+\[
+m^{\rm tail}_{1,1/2}
+=\frac12-P\{1+\zeta\le3/2\}
+=\frac12-\Lambda(1/2)\ne0 .
+\]
+
+For a two-heavy family, fix \(s=3/2\) and choose \((\alpha _0,\alpha _1)\) in any compact rectangle contained in \((3/2,\infty)^2\).  Put
+\[
+\pi _1(x)=\frac{x^{\alpha _1}}
+{x^{\alpha _1}+(1-x)^{\alpha _0}},
+\qquad
+\pi _0(x)=\frac{(1-x)^{\alpha _0}}
+{x^{\alpha _1}+(1-x)^{\alpha _0}},
+\]
+and retain the same outcome construction.  With \(d_1(x)=x\), \(d_0(x)=1-x\), and
+\[
+g_0(x)=g_1(x)
+=-\log\{x^{\alpha _1}+(1-x)^{\alpha _0}\},
+\]
+the boundary-link and common Hölder conditions hold.  As \(x\downarrow0\),
+\[
+\pi _1(x)=x^{\alpha _1}\{1+O(x^{\rho})\},
+\]
+and, as \(x\uparrow1\),
+\[
+\pi _0(x)=(1-x)^{\alpha _0}\{1+O((1-x)^{\rho})\},
+\]
+for a common \(\rho>0\) after shrinking the compact parameter rectangle if necessary.  Monotone inversion and \(X\sim{\rm Unif}[0,1]\) give
+\[
+F_a^\pi(t)=c_at^{1/\alpha _a}\{1+O(t^{\rho_a})\},
+\qquad
+\gamma _a=1+\frac1{\alpha _a}\in(1,2).
+\]
+Compactness supplies common positive bounds for \(c_a,\rho_a\) and the validity threshold.  The two zero-propensity endpoints are disjoint, so \(\text{ass:opposite-overlap}\) holds on fixed endpoint neighborhoods.  The preceding logistic calculations supply the common mark and density moduli.  Hence both displayed families are members of \(\mathcal P_{\rm S}\), establishing nonemptiness in the mixed and two-heavy regimes.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit neighborhoods reconcile binary propensity coherence with either one or two weak-overlap endpoints. \textit{Gap.} The oracle anchor imposes lawwise tail behavior but does not construct a uniform smooth class for a growing propensity likelihood. \textit{Consumer.} These neighborhoods provide legal mixed-branch and two-heavy designs for the expansion and simulations.
+
+\begin{lemma}[lem:boundary-likelihood]\label{lem:boundary-likelihood}
+Fix \(b_0>1\).  Suppose that \(\mathcal B_J\) is the normalized local B-spline basis on a quasi-uniform partition and that its degree \(r\) satisfies \(r+1\ge s\) and \(2r+1>\sup_{a\in\mathcal A_{\rm H}}\alpha_a\).  Uniformly over \(P\in\mathcal P_{\rm S}\), heavy arms, fixed folds, and \(\tau\in\mathcal T\), the learner satisfies, up to a fixed power of \(\log n\),
+\[
+\sup_{d_a(x)\ge n^{-b_0}}
+\left|\log\widehat\pi_{a,-k}(x)-\log\pi_a(x)\right|
+=O_P(\delta_{a,n}),
+\]
+\[
+\left|\int m_{a,\tau}(x)
+\frac{\widehat\pi_{a,-k}(x)-\pi_a(x)}{\pi_a(x)}\,dP_X(x)\right|
+=O_P\!\left(J_n^{-s}+n^{-1/2}J_n^{(\alpha_a-1)/2}
++\frac{J_n^{\alpha_a}}n\right),
+\]
+and the corresponding relative-error square integral is
+\[
+O_P\!\left(J_n^{-2s}+\frac{J_n^{\alpha_a}}n\right).
+\]
+For \(J_n=\lfloor n^\xi\rfloor\) with
+\[
+\frac1{s(\alpha_a+1)}<\xi<\frac1{\alpha_a+1},
+\]
+there is a deterministic \(M_n\uparrow\infty\) such that
+\[
+E_{a,n}M_n^{\gamma_a-1}=o_P(1),
+\qquad
+\max_{\tau\in\mathcal T}|D_{a,n}(\tau)|=o_P(1).
+\]
+At \(\alpha_a=s=3/2\) and \(J_n=\lfloor n^{3/10}\rfloor\), the log-error order is \(O_P(n^{-1/8}{\rm polylog}\,n)\), the signed-functional order is \(O_P(n^{-17/40}{\rm polylog}\,n)\), and the normalized interior discrepancy is \(O_P(n^{-1/40}{\rm polylog}\,n)\).
+\end{lemma}
+\begin{proof}
+Fix an arm and suppress its subscript.  Write \(\eta=\log\pi=\alpha\log d+g\),
+\(Z_J=(\log d,B_{1,J},\ldots,B_{J,J})^\top\), and
+\[
+ \langle v,w\rangle_I=E_P\!\left[\frac{\pi(X)}{1-\pi(X)}v(X)w(X)\right].
+\tag{1}
+\]
+The upper probability constraint, \(\text{ass:opposite-overlap}\), and compactness make the denominator harmless on the population neighborhood below.  The special value at the single endpoint enters neither a population integral nor, by \(\text{ass:uniform-chart}\), the sample likelihood with positive probability.
+
+We first derive the deterministic sieve bounds.  Cellwise Taylor polynomials patched by the degree-\(r\) B-splines give \(g_J\) with
+\[
+ \|g-g_J\|_\infty\le C J^{-s}.
+\tag{2}
+\]
+The Hall condition and boundedness of \(g\) imply, for small \(u\),
+\[
+ C_1u^{\gamma-1}\le P\{d(X)^\alpha\le u\}\le C_2u^{\gamma-1},
+ \qquad \alpha=(\gamma-1)^{-1}.
+\tag{3}
+\]
+Thus the increasing quantile \(Q_\pi(v)\) satisfies \(Q_\pi(v)\ge Cv^\alpha\).  For any measurable set \(C_0\) of measure at least \(c/J\),
+\[
+ \int_{C_0}\pi(x)\,dx\ge\int_0^{c/J}Q_\pi(v)\,dv\ge C J^{-(\alpha+1)}.
+\tag{4}
+\]
+On each knot cell, finite-dimensional norm equivalence supplies a subset of fixed relative measure on which a degree-\(r\) polynomial exceeds a fixed multiple of its coefficient norm.  Applying (4), using local support, and profiling \(\log d\) against the spline space gives
+\[
+ cJ^{-(\alpha+1)}\|v\|_2^2
+ \le\left\|\sum_jv_jB_{j,J}\right\|_I^2\le CJ^{-1}\|v\|_2^2,
+\tag{5}
+\]
+\[
+ \lambda_{\min}E_P\!\left[\frac{\pi(X)}{1-\pi(X)}Z_JZ_J^\top\right]
+ \ge cJ^{-(\alpha+1)}.
+\tag{6}
+\]
+For (6), partition the level sets in (3) into \(J\) probability blocks and apply polynomial norm equivalence to the residual of \(\log d\) on each block.  The exponential tail of \(-\log d\) following from (3), together with \(2r+1>\alpha\), makes every moment used below finite.  The constants are uniform because the Hölder radii, Hall envelopes, validity thresholds, and parameter bounds are common over \(\mathcal P_{\mathrm S}\).
+
+Let \(\eta_J\) be the population sieve maximizer.  Population-score Taylor expansion around the approximant in (2), followed by (5)--(6), yields
+\[
+ \sup_{d(x)\ge n^{-b_0}}|\eta_J(x)-\eta(x)|
+ \le C J^{-s}(\log n)^C.
+\tag{7}
+\]
+For a direction \(v\), the centered likelihood score is the sum of the mean-zero variables
+\[
+ \frac{\{\mathbf1(A=a)-\pi(X)\}v(X)}{1-\pi(X)}.
+\]
+Truncate at \(|\log d|\le C\log n\).  Exponential Markov bounds for the bounded truncation and (3), followed by a union bound over the \(J+1\) coordinates, give
+\[
+ |(\mathbb P_{-k}-P)s_v|
+ \le C(\log n)^C\{n^{-1/2}\|v\|_I+n^{-1}\|v\|_\infty\}.
+\tag{8}
+\]
+Applying the same calculation to locally supported basis products gives
+\[
+ \sup_{\|v\|_I=1}|(\mathbb P_{-k}-P)\{\pi(1-\pi)^{-1}v^2\}|=o_P(1),
+\tag{9}
+\]
+because \(J^{\alpha+1}\log n/n\to0\).  Taylor's formula for
+\(\log(1-e^u)\), (8)--(9), strict concavity from the ridge, and the likelihood basic inequality now imply
+\[
+ \sup_{d(x)\ge n^{-b_0}}|\widehat\eta_{-k}(x)-\eta(x)|
+ =O_P\!\left[(\log n)^C\{J^{-s}+(J^{\alpha+1}/n)^{1/2}\}\right].
+\tag{10}
+\]
+If a constraint is active, its normal-cone inner product with the displacement toward \(\eta_J\) is nonpositive, so the same bound holds.  This proves the log-error assertion.
+
+For \(L_\tau(v)=\int m_\tau v\,dP_X\), let \(r_{\tau,J}\) be its Riesz representer on the sieve under (1).  On boundary cell \(j\), \(\pi\) has order \((j/J)^\alpha\) in the rearrangement sense of (4), while a normalized local spline has integral of order \(J^{-1}\).  Cellwise Cauchy--Schwarz and \(\sum_{j\ge1}j^{-\alpha}<\infty\) give
+\[
+ \|r_{\tau,J}\|_I^2\le C J^{\alpha-1}.
+\tag{11}
+\]
+Expanding \(e^{\widehat\eta-\eta}\), using (8) in the single Riesz direction, (2), and (9), gives
+\[
+ \int m_\tau(x)\frac{\widehat\pi_{-k}(x)-\pi(x)}{\pi(x)}\,dP_X(x)
+ =O_P\!\left((\log n)^C
+ \{J^{-s}+n^{-1/2}J^{(\alpha-1)/2}+J^\alpha/n\}\right).
+\tag{12}
+\]
+The final term is the integrated exponential Taylor remainder.  The same cell calculation without the linear functional gives
+\[
+ \int\left\{\frac{\widehat\pi_{-k}(x)-\pi(x)}{\pi(x)}\right\}^2dP_X(x)
+ =O_P\!\left((\log n)^C\{J^{-2s}+J^\alpha/n\}\right).
+\tag{13}
+\]
+This proves both likelihood-functional assertions.
+
+By (3), \(P\{d(X)<n^{-b_0}\}\le Cn^{-b_0}\).  Since \(b_0>1\), iid sampling and a union bound show that no sample point lies there with probability tending to one.  Hence (10) gives
+\(E_{a,n}=O_P((\log n)^C\delta_{a,n})\).  Choose deterministic \(M_n\uparrow\infty\) slowly enough that
+\[
+ (\log n)^C\delta_{a,n}M_n^{\gamma_a-1}\to0.
+\tag{14}
+\]
+On \(\{\pi>u=M_n/h\}\), clipping is inactive with probability tending to one.  Conditional on the training sample, decompose \(D_{a,n}\) into mean and centered parts and use
+\[
+ \widehat\pi^{-1}-\pi^{-1}
+ =-\frac{\widehat\pi-\pi}{\pi^2}
+ +\frac{(\widehat\pi-\pi)^2}{\pi^2\widehat\pi}.
+\tag{15}
+\]
+Equations (12)--(13) bound the conditional mean by
+\[
+ \frac n h\{J^{-s}+n^{-1/2}J^{(\alpha-1)/2}+J^\alpha/n\}(\log n)^C+o_P(1).
+\tag{16}
+\]
+The removed band contributes at most
+\(CE_{a,n}M_n^{\gamma-1}=o_P(1)\), since Hall integration and the generalized inverse give \(c_an h^{-\gamma}\to1\).  The conditional variance of the centered part is bounded by (13) times the corresponding truncated inverse-propensity integral and is \(o_P(1)\) after making \(M_n\) still slower.  With \(J=n^\xi\) and \(n/h\asymp n^{1/(\alpha+1)}\), every exponent in (16) is negative when
+\[
+ \frac1{s(\alpha+1)}<\xi<\frac1{\alpha+1}.
+\]
+Thus \(E_{a,n}M_n^{\gamma_a-1}=o_P(1)\) and
+\(\max_{\tau\in\mathcal T}|D_{a,n}(\tau)|=o_P(1)\).
+
+At \(\alpha=s=3/2\), \(J=n^{3/10}\), (10) has exponent \(-1/8\).  The three exponents in (12) are \(-18/40,-17/40,-22/40\), and multiplication by \(n/h\asymp n^{2/5}\) gives \(-1/40\).  These are the asserted numerical orders.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the early kill test and now derives, rather than assumes, the corrected amplified oracle-transfer condition. \textit{Gap.} Hirano, Imbens, and Ridder control a regular-overlap likelihood projection, not this singular signed Hall-boundary functional. \textit{Consumer.} The lemma supplies a primitive flexible first stage for the non-Gaussian quantile argmin.
+
+\begin{proposition}[prop:finite-variance-sanity]\label{prop:finite-variance-sanity}
+On the mixed center in \(\text{prop:smooth-inclusion}\), use the quasi-uniform growing spline schedule in \(\text{lem:boundary-likelihood}\), with \(J_n\to\infty\), \(J_n\log n/n\to0\), and \(J_n^{-s}\log(n/J_n)\to0\).  Then
+\[
+\inf_x\pi_0(x)=\frac12,\qquad t_{0,n}\to\frac12,\qquad h_{0,n}\to2,
+\]
+\[
+\widehat p_{0,(\lceil\widehat h_{0,n}\rceil)}\to_P\frac12,\qquad
+\widehat b_{0,n}\to_P\frac{\vartheta_0}2<\frac12.
+\]
+Thus clipping is asymptotically inactive on the control arm, its drift correction is zero with probability tending to one, and its feasible objective equals the untrimmed fitted-weight objective with probability tending to one.
+\end{proposition}
+\begin{proof}
+Here \(\pi_0(x)=1-x^{3/2}/2\), so direct inversion gives
+\[
+F_0^\pi(t)=
+\begin{cases}
+0,&t\le1/2,\\
+1-\{2(1-t)\}^{2/3},&1/2<t<1,\\
+1,&t\ge1.
+\end{cases}
+\tag{17}
+\]
+Thus \(F_0^\pi(1/2+v)=4v/3+O(v^2)\), and the equation
+\(ntF_0^\pi(t)=1\) gives
+\[
+t_{0,n}=\frac12+\frac{3}{2n}+O(n^{-2}),\qquad h_{0,n}\to2.
+\tag{18}
+\]
+
+Let \(V_J=\operatorname{span}(\mathcal B_J)\), and let \(r_J\) be the residual after profiling \(\log(1-x)\) against \(V_J\) in Bernoulli information norm.  On the final knot cell, the change \(u=J(1-x)\) leaves the nonpolynomial part \(\log u\), while \(-\log J\) is absorbed by the constant spline.  Norm equivalence and the fact that \(\log u\) is not a degree-\(r\) polynomial give
+\[
+\|r_J\|_I^2\asymp J^{-1}.
+\tag{19}
+\]
+Taylor approximation of the smooth true log propensity on that cell and the defining orthogonality give the population profiled coefficient
+\[
+\alpha_J=O(J^{-s}).
+\tag{20}
+\]
+The profiled score has standard deviation of order \((N\|r_J\|_I^2)^{1/2}\), while its negative derivative has order \(N\|r_J\|_I^2\).  The bounded Bernoulli exponential-moment calculation therefore yields
+\[
+\widehat\alpha_{-k}-\alpha_J=O_P\{\sqrt{J/N}\}.
+\tag{21}
+\]
+The corresponding local-spline score calculation and inverse inequality give
+\[
+\|\widehat g_{-k}^{\rm prof}-g_J^{\rm prof}\|_\infty
+=O_P\{\sqrt{J\log J/N}+J^{-s}\}.
+\tag{22}
+\]
+The uniform design and a union bound for the distance of evaluation points from the endpoint, combined with the last-cell representation, give
+\[
+\max_{i\in I_k}|r_J(X_i)|=O_P\{\log(N/J)\}.
+\tag{23}
+\]
+Combining (20)--(23), over finitely many folds,
+\[
+\max_i|\widehat\eta_{0,-k(i)}(X_i)-\eta_0(X_i)|
+=O_P\!\left\{\sqrt{J/N}\log(N/J)+J^{-s}\log(N/J)
++\sqrt{J\log J/N}+J^{-s}\right\}=o_P(1).
+\tag{24}
+\]
+Indeed, \(J\log N/N\to0\) implies \(J/N\to0\) and
+\(\sqrt{J/N}\log(N/J)\to0\), since \(\sqrt x\log(1/x)\to0\); the separately added condition handles the approximation term.  Exponentiation on the bounded true range now gives
+\[
+\max_i|\widehat\pi_{0,-k(i)}(X_i)-\pi_0(X_i)|=o_P(1).
+\tag{25}
+\]
+
+The fitted empirical distribution is consequently sandwiched between translates of the empirical distribution of the true propensities.  Indicator variances and (17) imply convergence at every continuity point, so the generalized inverse and (18) yield
+\(\widehat h_{0,n}\to_P2\).  Every fixed lower order statistic of the true propensities tends to \(1/2\); the tight rank
+\(\lceil\widehat h_{0,n}\rceil\) and (25) therefore give
+\[
+\widehat p_{0,(\lceil\widehat h_{0,n}\rceil)}\to_P\frac12,\qquad
+\widehat b_{0,n}\to_P\frac{\vartheta_0}{2}<\frac12,
+\tag{26}
+\]
+where \(\vartheta_0\le\bar\vartheta<1\).
+
+Because \(k_n/n\to0\), (17) and (25) also imply
+\(\max_{j\le k_n+1}|Z_{0,(j)}-2|=o_P(1)\).  Hence the nonnegative Hill log-spacing average tends to zero and its reciprocal diverges under the declared convention:
+\(\widehat\gamma_0\to_P\infty\).  The arm is classified as Gaussian and its drift is zero with probability tending to one.  Finally, (25)--(26) imply
+\(\min_i\widehat\pi_{0,-k(i)}(X_i)>\widehat b_{0,n}\) with probability tending to one, so every clipped weight equals its untrimmed fitted weight.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The profiled residual calculation proves sample-point consistency under the added approximation-tail condition, and this in turn proves fixed-rank clipping, Hill classification, and exact disappearance of the control correction. \textit{Gap.} This is a required estimator-centering sanity result rather than a standalone novelty claim. \textit{Consumer.} It certifies that the mixed-regime Gaussian control arm is centered at its untrimmed marginal quantile.
+
+\begin{lemma}[lem:score-law-factorization]\label{lem:score-law-factorization}
+Write \(R=|\mathcal T|\) and order the finite index set as \(\tau_{(1)}<\cdots<\tau_{(R)}\). The threshold indicators \(\mathbf1\{Y(a)\le q_a(\tau_{(r)})\}\) are nested, so \(\Psi_a(Y(a))\) is supported on the \(R+1\) cells cut out by the ordered thresholds. For every \(a\in\mathcal A_{\mathrm H}\) and every sufficiently small \(t>0\), \[\left\|K_a(t,\cdot)\circ\Psi_a^{-1}-H_a\right\|_{\mathrm{TV}}=\left\|\operatorname{Law}\{\Psi_a(Y(a))\mid\pi_a(X)=t\}-H_a\right\|_{\mathrm{TV}}\le R\,\omega_{\mathrm{mark}}(t).\] Indeed, each endpoint cell probability differs by at most \(\omega_{\mathrm{mark}}(t)\) and each interior cell probability is a difference of two adjacent threshold probabilities. Moreover, if \(\widetilde G_a((-\infty,q_a(\tau)])=G_a((-\infty,q_a(\tau)])\) for every \(\tau\in\mathcal T\), then \(\widetilde G_a\circ\Psi_a^{-1}=H_a\); hence the law in \(\text{def:oracle-limit}\) is invariant to replacing \(G_a\) by \(\widetilde G_a\).
+\end{lemma}
+\begin{proof}
+Order the finite set as \(\tau_{(1)}<\cdots<\tau_{(R)}\), and abbreviate \(q_r=q_a(\tau_{(r)})\).  Quantile monotonicity gives \(q_1\le\cdots\le q_R\).  Define the cells
+\[
+C_0=(-\infty,q_1],\quad
+C_r=(q_r,q_{r+1}]\ (1\le r<R),\quad
+C_R=(q_R,\infty).
+\]
+Empty cells are allowed.  The vector of threshold indicators, and hence \(\Psi_a(y)\), is constant on every \(C_r\); therefore its support has at most \(R+1\) points.
+
+Put
+\[
+p_r(t)=K_a(t,(-\infty,q_r]),\qquad
+p_r(0)=G_a((-\infty,q_r]).
+\]
+By the definitions of \(\kappa_{a,\tau}\) and \(\psi_{a,\tau}\),
+\[
+\kappa_{a,\tau_{(r)}}(t)=\tau_{(r)}-p_r(t),
+\qquad
+m^{\rm tail}_{a,\tau_{(r)}}=\tau_{(r)}-p_r(0).
+\]
+Thus \(\text{ass:tail-marks}\) yields
+\[
+|p_r(t)-p_r(0)|\le\omega_{\rm mark}(t)
+\quad(1\le r\le R).
+\]
+The discrepancies of the cell probabilities are at most
+\[
+\omega_{\rm mark}(t),\quad
+2\omega_{\rm mark}(t),\ldots,2\omega_{\rm mark}(t),\quad
+\omega_{\rm mark}(t),
+\]
+because an interior cell probability is \(p_{r+1}-p_r\).  Total variation on this finite support is one half the sum of the absolute cell discrepancies, and hence
+\[
+\left\|K_a(t,\cdot)\circ\Psi_a^{-1}-H_a\right\|_{\rm TV}
+\le\frac12\{2\omega_{\rm mark}(t)+2(R-1)\omega_{\rm mark}(t)\}
+=R\omega_{\rm mark}(t).
+\]
+The equality with the displayed conditional law follows from the chosen Borel regular conditional kernel \(K_a\).
+
+Finally, if \(\widetilde G_a((-\infty,q_r])=G_a((-\infty,q_r])\) for all \(r\), the preceding cell-difference formulas show that \(\widetilde G_a\) and \(G_a\) assign the same mass to every \(C_r\).  Since \(\Psi_a\) is constant on these cells,
+\[
+\widetilde G_a\circ\Psi_a^{-1}
+=G_a\circ\Psi_a^{-1}
+=H_a.
+\]
+The characteristic exponent in \(\text{def:oracle-limit}\) integrates only with respect to \(H_a\), so it is unchanged by replacing \(G_a\) with \(\widetilde G_a\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite collection of quantile scores records only nested threshold-cell probabilities, so coordinate score moduli control the entire endpoint mark vector in total variation. \textit{Gap.} The oracle anchor is written with an endpoint outcome-mark law; this lemma isolates the strictly smaller score-law object actually used by its finite-quantile Lévy integrand. \textit{Consumer.} The feasible oracle-transfer theorem can invoke a common score modulus without assuming convergence of the full conditional outcome law at the propensity endpoint.
+
+\begin{theorem}[thm:oracle-preservation]\label{thm:oracle-preservation}
+Fix the heavy-arm sieve degree and a deterministic learner schedule satisfying the hypotheses and the strict sieve window of \(\text{lem:boundary-likelihood}\), and let \(M_n\) be the sequence delivered there.  Let \(d_{\mathrm{BL}}\) denote bounded-Lipschitz distance on \(\mathbb R^R\).  Uniformly over all \(P\in\mathcal P_{\mathrm S}\) satisfying \(\text{ass:gamma-separation}\) and all \(a\in\mathcal A_{\mathrm H}(P)\),
+\[
+d_{\mathrm{BL}}\!\left(
+\mathcal L_P\!\left[\left\{\frac{n}{h_{a,P,n}}
+\bigl(\widehat q_a^{\mathrm{bc}}(\tau)-q_{a,P}(\tau)\bigr)\right\}_{\tau\in\mathcal T}\right],
+\mathcal L_P(L_{a,P})\right)\longrightarrow0,
+\]
+where \(L_{a,P}=\mathsf Z_{a,\theta,P}/f_{a,P}\) is the heavy coordinate in \(\text{def:moving-row-law}\).  On the same domain, uniformly on compact local-parameter sets, the deterministic and centered Knight remainders of \(\widehat Q_{a,n,\tau}\) converge to \(f_{a,P}(\tau)t^2/2\),
+\[
+\widehat h_{a,n}/h_{a,P,n}\to_P1,
+\qquad
+\widehat h_{a,n}\widehat b_{a,n}\to_P\theta_a=\vartheta_a,
+\]
+and the preliminary quantiles, tail index, endpoint score, target density, and empirical clipping-drift correction are consistent.  Hence, for every fixed noncritical \(P\in\mathcal P_{\mathrm S}\) on the same applicable heavy schedule,
+\[
+\left(\frac{n}{h_{a,P,n}}
+\{\widehat q_a^{\mathrm{bc}}(\tau)-q_{a,P}(\tau)\}\right)_{\tau\in\mathcal T}
+\Rightarrow (L_{a,P}(\tau))_{\tau\in\mathcal T}.
+\]
+The same fixed-law limit holds for the true-propensity, population-clip estimator.  The endpoint input enters only through \(H_{a,P}\), by \(\text{lem:score-law-factorization}\).
+\end{theorem}
+\begin{proof}
+Write \(c_{a,P}\), \(\gamma_{a,P}\), and \(h_{a,P,n}\) when row-law dependence matters, and set \(L_{a,P}=\mathsf Z_{a,\theta,P}/f_{a,P}\).  All suprema in this proof are over the gamma-separated heavy-arm domain and the fixed schedule in the statement.
+
+The uniform Hall expansion in \(\text{ass:hall}\), the common positive bounds on \(c_{a,P}\), \(\rho_{a,P}\), and \(\gamma_{a,P}\), and the definition of \(t_{a,n}\) give, by substitution and monotonicity,
+\[
+\sup_P\left|c_{a,P}n t_{a,P,n}^{\gamma_{a,P}}-1\right|\longrightarrow0,
+\qquad
+h_{a,P,n}=(c_{a,P}n)^{1/\gamma_{a,P}}\{1+o(1)\}.
+\tag{H2}
+\]
+In particular, \(h_{a,P,n}/n\to0\) uniformly because \(\gamma_{a,P}\ge1+\epsilon_\gamma\).
+
+Put \(Z_{i,P}=h_{a,P,n}\pi_{a,P}(X_i)\) and \(U_{i,P}=\Psi_{a,P}(Y_i)\).  Consistency and unconfoundedness imply that, conditionally on \(X_i\), the event \(A_i=a\) has probability \(\pi_{a,P}(X_i)\) and its mark has the potential-outcome score law.  Thus, for every compactly supported continuous \(g\), a Stieltjes change of variables, (H2), and \(\text{lem:score-law-factorization}\) give
+\[
+\begin{split}
+&nE_P\!\left[\mathbf1\{A_i=a\}g(Z_{i,P},U_{i,P})\right]\\
+&\quad\longrightarrow
+\int_0^\infty\!\int_{\mathbb R^R}g(z,u)H_{a,P}(du)
+(\gamma_{a,P}-1)z^{\gamma_{a,P}-1}\,dz,
+\end{split}
+\tag{H3}
+\]
+uniformly in \(P\).  The Hall remainder is uniform on compact \(z\)-sets after scaling by \(h_{a,P,n}\), and the mark error is at most \(R\omega_{\mathrm{mark}}(z/h_{a,P,n})\), which tends uniformly to zero.  For nonnegative \(g\), independence in \(\text{ass:iid}\) gives the exact Laplace identity
+\[
+E_P\exp\!\left\{-\sum_{i=1}^n\mathbf1\{A_i=a\}g(Z_{i,P},U_{i,P})\right\}
+=\left[1-E_P\{\mathbf1(A_i=a)(1-e^{-g(Z_{i,P},U_{i,P})})\}\right]^n.
+\tag{H4}
+\]
+Equations (H3)--(H4), using \(n\log(1-x_n)=-nx_n+o(1)\) whenever \(nx_n=O(1)\), prove uniform convergence of the marked point process on compact \(z\)-annuli.
+
+Define the population-clipped oracle score
+\[
+S_{a,P,n}(\tau)=\frac1{h_{a,P,n}}\sum_{i=1}^n
+\frac{\mathbf1\{A_i=a\}\psi_{a,\tau}(Y_i)}
+{\pi_{a,P}(X_i)\vee b_{a,P,n}}.
+\tag{H5}
+\]
+Applying (H4) to truncated versions of \(u_\tau/\max\{z,\theta_a\}\) and centering gives
+\[
+S_{a,P,n}-E_PS_{a,P,n}\ \Longrightarrow_{\mathrm{unif}}\ \mathsf Z_{a,\theta,P}.
+\tag{H6}
+\]
+The truncation is uniform.  For \(z>C\), the centered second moment is at most
+\(C_1\int_C^\infty z^{\gamma_{a,P}-3}dz\le C_2C^{-\epsilon_\gamma}\), while for \(z<c\) the probability of any point is at most
+\(C_3\int_0^c z^{\gamma_{a,P}-1}dz\le C_4c^{1+\epsilon_\gamma}\).  These bounds also prove uniform tightness, including when \(\theta_a=0\).
+
+Because \(E_Pm_{a,\tau}(X)=E_P\psi_{a,\tau}\{Y(a)\}=0\), only clipping contributes to the mean.  Hall integration and \(\text{ass:tail-marks}\) give
+\[
+\begin{split}
+E_PS_{a,P,n}(\tau)
+&=\frac n{h_{a,P,n}}E_P\!\left[m_{a,\tau}(X)
+\left\{\frac{\pi_a(X)}{\pi_a(X)\vee\theta_a/h_{a,P,n}}-1\right\}\right]\\
+&\longrightarrow m^{\mathrm{tail}}_{a,\tau}(\gamma_{a,P}-1)
+\int_0^{\theta_a}(z/\theta_a-1)z^{\gamma_{a,P}-2}\,dz\\
+&=-\frac{\theta_a^{\gamma_{a,P}-1}}{\gamma_{a,P}}
+m^{\mathrm{tail}}_{a,\tau}=\mu_{a,\theta,P}(\tau),
+\end{split}
+\tag{H7}
+\]
+uniformly, with the integral interpreted as zero at \(\theta_a=0\).  Direct integration proves both the sign and the constant; no drift is part of the causal target.
+
+The count sandwich induced by the punctured relative-error bound in \(\text{lem:boundary-likelihood}\), together with (H2), gives
+\[
+\widehat h_{a,n}/h_{a,P,n}\to_P1,
+\qquad
+h_{a,P,n}\widehat p_{a,(\lceil\widehat h_{a,n}\rceil)}\to_P1,
+\qquad
+\widehat h_{a,n}\widehat b_{a,n}\to_P\vartheta_a=\theta_a,
+\tag{H8}
+\]
+uniformly.  To transfer the score, split at \(u_{a,n}=M_n/h_{a,P,n}\).  The reciprocal identity and the definition of \(D_{a,n}\) imply
+\[
+\begin{split}
+\max_{\tau\in\mathcal T}|S^{\mathrm{fe}}_{a,P,n}(\tau)-S_{a,P,n}(\tau)|
+&\le C E_{a,n}\frac1{h_{a,P,n}}\sum_{i=1}^n
+\frac{\mathbf1\{A_i=a,\ \pi_a(X_i)\le M_n/h_{a,P,n}\}}
+{\pi_a(X_i)\vee b_{a,P,n}}\\
+&\quad+\max_{\tau\in\mathcal T}|D_{a,n}(\tau)|+o_P(1).
+\end{split}
+\tag{H9}
+\]
+Hall integration bounds the normalized sum in (H9) by \(O_P(M_n^{\gamma_{a,P}-1})\), uniformly.  Therefore the two conclusions of \(\text{lem:boundary-likelihood}\), in particular the corrected condition \(E_{a,n}M_n^{\gamma_{a,P}-1}=o_P(1)\), make (H9) \(o_P(1)\).  The relative-error square-integral conclusion of that lemma gives the same transfer for the local curvature term.
+
+For completeness, direct case analysis of the signs of \(e\), \(e-v\), and zero gives Knight's identity
+\[
+\rho_\tau(e-v)-\rho_\tau(e)
+=-v\{\tau-\mathbf1(e\le0)\}
++\int_0^v\{\mathbf1(e\le s)-\mathbf1(e\le0)\}\,ds.
+\tag{H10}
+\]
+Use \(e=Y_i-q_a(\tau)\) and \(v=t h_{a,P,n}/n\).  Conditional expectation, \(\text{ass:conditional-density-modulus}\), and the clipped-set probability \(O(h_{a,P,n}^{1-\gamma_{a,P}})\) yield, uniformly for \(t\) in compact sets and \(\tau\in\mathcal T\),
+\[
+E_P\{\text{Knight remainder}\}=\frac12f_{a,P}(\tau)t^2+o(1).
+\tag{H11}
+\]
+The centered remainder has variance at most \(C|t|^3h_{a,P,n}/n=o(1)\), uniformly by (H2).  Equations (H6)--(H11) therefore give
+\[
+\widehat Q_{a,n,\tau}(t)
+=\frac12f_{a,P}(\tau)t^2
+-t\{\mathsf Z_{a,\theta,P}(\tau)+\mu_{a,\theta,P}(\tau)\}+o_P(1)
+\tag{H12}
+\]
+in uniform bounded-Lipschitz distance, jointly over the finite set \(\mathcal T\).
+
+It remains to verify that the correction is empirical.  At \(t_{a,k}=F_{a,P}^{\pi,-1}(k_n/n)\), uniform Hall inversion gives
+\[
+t_{a,k}\asymp(k_n/n)^{1/(\gamma_{a,P}-1)},
+\qquad
+nP\{A=a,\pi_a(X)\le t_{a,k}\}\asymp k_nt_{a,k}\to\infty.
+\tag{H13}
+\]
+The tail-count sandwich, the uniform second-order Hall remainder, and integration of the empirical tail survival function yield \(\widehat\gamma_a-\gamma_{a,P}=o_P(1)\).  Equation (H13), the common endpoint-score modulus, and the inner-fold version of the convex argument following (H12) yield
+\(\max_{\tau\in\mathcal T}|\widehat m^{\mathrm{tail}}_{a,\tau}-m^{\mathrm{tail}}_{a,\tau}|=o_P(1)\).
+
+The density estimator denominator divided by \(n\) converges to one.  Its kernel numerator has expectation \(f_{a,P}(\tau)+o(1)\) by the common density modulus and clipping-tail bound.  Its variance is at most
+\[
+\frac C{n\omega_{a,n}}E_P\!\left[
+\frac{\pi_a(X)}{\{\pi_a(X)\vee b_{a,P,n}\}^2}\right]
+\le \frac{C h_{a,P,n}^{2-\gamma_{a,P}}}{n\omega_{a,n}}
+\le \frac{C h_{a,P,n}}{n\omega_{a,n}}=o(1).
+\tag{H14}
+\]
+The common conditional-density modulus supplies a uniform upper bound on target densities: choose fixed \(v_0>0\) at which the modulus is at most one and integrate the resulting lower probability bound on the interval of radius \(v_0\).  Together with \(\text{ass:quantile-density}\), this justifies every division by \(f_{a,P}\).  Also
+\(|\widehat q_a-q_a|/\omega_{a,n}=O_P\{h_{a,P,n}/(n\omega_{a,n})\}=o_P(1)\).  Hence
+\[
+\widehat f_a-f_{a,P}=o_P(1),
+\qquad
+\widehat\mu_{a,\theta}-\mu_{a,\theta,P}=o_P(1)
+\tag{H15}
+\]
+uniformly over arms and quantiles.
+
+The curvature in (H12) is uniformly bounded below by \(\text{ass:quantile-density}\).  Comparing the convex objective at the unique quadratic minimizer and at its two perturbations by \(\pm\varepsilon\) makes the smallest minimizer uniformly tight and yields
+\[
+\frac n{h_{a,P,n}}(\widehat q_a-q_{a,P})
+\ \Longrightarrow_{\mathrm{unif}}\ 
+\frac{\mathsf Z_{a,\theta,P}+\mu_{a,\theta,P}}{f_{a,P}}.
+\tag{H16}
+\]
+Subtracting the empirical term in \(\text{def:drift-correction}\) and using (H8) and (H15) proves the uniform bounded-Lipschitz claim.  Every fixed noncritical \(P\) is a singleton subfamily, giving the fixed-law corollary.  Replacing fitted propensities and the empirical clip by their population counterparts deletes (H9) and (H8), respectively, proving oracle recovery.  Finally, \(\text{lem:score-law-factorization}\) shows that (H3), and thus the Lévy law, uses only \(H_{a,P}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem now leads with uniform bounded-Lipschitz approximation to each gamma-separated scheduled row's compensated heavy-arm law and retains the fixed-law result only as a noncritical corollary. \textit{Gap.} Observed-propensity theory does not prove feasible signed-score transfer under the amplified condition \(E_{a,n}M_n^{\gamma_a-1}=o_P(1)\). \textit{Consumer.} It supplies the irregular coordinate of the formally declared moving row law.
+
+\begin{theorem}[thm:sharp-transfer]\label{thm:sharp-transfer}
+The amplification order is intrinsic. On the nonzero-drift mixed witness, the escape learner satisfies \(E^{\mathrm{esc}}_{a,n}M_n^{\gamma_a-1}\to_P1\) and \(D^{\mathrm{esc}}_{a,n}\to_P0\), preserves every fixed-window endpoint mark limit, but shifts the normalized feasible heavy-arm quantile by \(-m^{\mathrm{tail}}_{a,\tau}/f_a(\tau)\). Therefore uniform oracle transfer for this perturbed sequence requires vanishing control at the order \(E^{\mathrm{esc}}_{a,n}M_n^{\gamma_a-1}\); the order is not a sufficient-rate artifact.
+\end{theorem}
+\begin{proof}
+The strengthened row-uniform theorem thm:oracle-preservation in particular gives the fitted-scale consistency used below on this fixed mixed witness; ass:anti-concentration is not used in this argument.
+
+Fix the treated arm of the nonzero-drift mixed witness and set
+\(\gamma=\gamma_a\), \(h=h_{a,n}\), \(u=M_n/h\), and
+\(\epsilon_n=M_n^{-(\gamma-1)}\).  The likelihood lemma gives
+\(E_{a,n}=o_P(\epsilon_n)\), and oracle preservation gives
+\(\widehat h_{a,n}/h\to_P1\).  Strictly inside the fitted tail band,
+\[
+\frac{\widehat\pi^{\rm esc}_{a,-k}}{\pi_a}-1
+=(1+\epsilon_n)\left(1+\frac{\widehat\pi_{a,-k}-\pi_a}{\pi_a}\right)-1
+=\epsilon_n+o_P(\epsilon_n).
+\tag{38}
+\]
+The number of points with \(\pi_a(X_i)\le u/2\) has mean of order
+\(hM_n^{\gamma-1}\to\infty\) and variance no larger than its mean.  Thus
+\[
+E^{\rm esc}_{a,n}M_n^{\gamma-1}\to_P1.
+\tag{39}
+\]
+Above \(u\), the rules differ only on an \(o_P(1)\)-relative shell.  Hall integration over it, multiplied by \(\epsilon_n\), is \(o_P(1)\); since \(D_{a,n}\to_P0\), this proves \(D^{\rm esc}_{a,n}\to_P0\).  On every fixed window \(h\pi_a\le C\), the multiplier tends uniformly to one, preserving the endpoint mark limit.
+
+For fixed \(C>\theta_a\), clipping is inactive on
+\(C/h<\pi_a<M_n/h\).  Conditional on training folds, the mean difference of the normalized linear scores is
+\[
+-\frac{\epsilon_n n}{h}\{1+o_P(1)\}
+\int_{C/h}^{M_n/h}\kappa_{a,\tau}(t)\,dF_a^\pi(t).
+\tag{40}
+\]
+The mark modulus and Hall expansion make the integral
+\[
+m^{\rm tail}_{a,\tau}c_ah^{-(\gamma-1)}
+\{M_n^{\gamma-1}-C^{\gamma-1}\}\{1+o(1)\}.
+\]
+Because \(\epsilon_nM_n^{\gamma-1}=1\), \(c_an h^{-\gamma}\to1\), and
+\(\epsilon_nC^{\gamma-1}\to0\), (40) tends to
+\(-m^{\rm tail}_{a,\tau}\).  Its centered conditional variance is at most
+\[
+C_1\epsilon_n^2\frac n{h^2}\int_{C/h}^{M_n/h}t^{-1}\,dF_a^\pi(t)+o_P(1)
+=O_P(\epsilon_n^2C^{\gamma-2})+o_P(1)=o_P(1).
+\]
+The fixed clipped window is a tight score multiplied by \(\epsilon_n\), so, jointly over finite \(\mathcal T\),
+\[
+S_n^{\rm esc}-S_n\to_P-m_a^{\rm tail}.
+\tag{41}
+\]
+The intermediate-band drift ingredients are unchanged to first order, and common multiplicative factors cancel from Hill spacings.  The positive-curvature argmin expansion gives
+\[
+\frac n{h_{a,n}}\{\widehat q_a^{\rm bc,esc}(\tau)
+-\widehat q_a^{\rm bc}(\tau)\}
+\to_P-\frac{m^{\rm tail}_{a,\tau}}{f_a(\tau)}.
+\]
+The endpoint score is nonzero on the mixed witness.  Hence exact order
+\(M_n^{-(\gamma_a-1)}\) changes the normalized limit despite fixed-window preservation, proving intrinsic necessity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The separately notated perturbation isolates compensator mass that fixed-window convergence misses. \textit{Gap.} No located QTE result gives an escaping-tail-band necessity theorem for learned inverse weights. \textit{Consumer.} The result gives a sharp diagnostic for whether a boundary learner can inherit oracle calibration.
+
+\begin{theorem}[thm:gaussian-branch]\label{thm:gaussian-branch}
+Fix a normalized quasi-uniform spline basis of degree sufficient for \(C^s\) approximation and a deterministic growing dimension satisfying
+\[
+J_n\to\infty,\qquad
+\sqrt n\,J_n^{-2s}\to0,\qquad
+\frac{J_n^{\alpha_a}}{\sqrt n}\to0,\qquad
+\frac{J_n^{\alpha_a+1}\log n}{n}\to0,\qquad
+\frac{J_n\log n}{n}\to0,
+\qquad
+J_n^{-s}\log(n/J_n)\to0,
+\]
+with \(\alpha_a=0\) under the bounded-support convention.  Let \(d_{\mathrm{BL}}\) denote bounded-Lipschitz distance on \(\mathbb R^R\).  Uniformly over all \(P\in\mathcal P_{\mathrm S}\) satisfying \(\text{ass:gamma-separation}\) and all \(a\in\mathcal A_{\mathrm G}(P)\),
+\[
+d_{\mathrm{BL}}\!\left(
+\mathcal L_P\!\left[\left\{\sqrt n\bigl(\widehat q_a(\tau)-q_{a,P}(\tau)\bigr)\right\}_{\tau\in\mathcal T}\right],
+\mathcal L_P(L_{a,P})\right)\longrightarrow0,
+\]
+where \(L_{a,P}\) is the Gaussian coordinate in \(\text{def:moving-row-law}\), and for every \(\varepsilon>0\),
+\[
+\sup_{P,a}P_P\!\left{
+\max_{\tau\in\mathcal T}\left|
+\sqrt n\{\widehat q_a(\tau)-q_{a,P}(\tau)\}
+-\frac1{\sqrt n}\sum_{i=1}^n\mathrm{IF}_{a,P}(O_i;\tau)
+\right|>\varepsilon\right}\longrightarrow0.
+\]
+The data-driven clip is first-order negligible and \(\widehat q_a^{\mathrm{bc}}=\widehat q_a\) with probability tending to one uniformly on this domain.  The joint Gaussian covariance is \(E_P[\mathrm{IF}_{a,P}\mathrm{IF}_{a',P}^{\top}]\).  In particular, every fixed noncritical \(P\in\mathcal P_{\mathrm S}\) on the same applicable Gaussian schedule has the displayed lawwise influence-function expansion and Gaussian limit.
+\end{theorem}
+\begin{proof}
+Fix a finite-variance arm and write \(q_{a,P}\), \(f_{a,P}\), and \(\mathrm{IF}_{a,P}\) when needed.  Let \(L_{a,P}\) be centered Gaussian with covariance
+\[
+\Sigma_{a,P}=E_P\!\left[
+\{\mathrm{IF}_{a,P}(O;\tau)\}_{\tau\in\mathcal T}
+\{\mathrm{IF}_{a,P}(O;\tau)\}_{\tau\in\mathcal T}^{\!\top}\right].
+\tag{G1}
+\]
+All uniformities below are on the gamma-separated Gaussian-arm domain and the fixed schedule in the statement.
+
+For a log-propensity direction \(g\), direct differentiation of the Bernoulli likelihood gives
+\[
+s_g(O)=\frac{\{\mathbf1(A=a)-\pi_a(X)\}g(X)}{1-\pi_a(X)},
+\qquad
+\mathcal I_{a,P}(g_1,g_2)=E_P\!\left[
+\frac{\pi_a(X)}{1-\pi_a(X)}g_1(X)g_2(X)\right].
+\tag{G2}
+\]
+The derivative of the signed functional is \(\dot\Lambda_{a,P}(g)=E_P\{m_{a,\tau}(X)g(X)\}\).  Its information-space Riesz representer is
+\[
+r_{a,\tau,P}(X)=m_{a,\tau}(X)\frac{1-\pi_a(X)}{\pi_a(X)},
+\tag{G3}
+\]
+because substituting (G3) in (G2) gives \(\mathcal I_{a,P}(r_{a,\tau,P},g)=\dot\Lambda_{a,P}(g)\).  Moreover,
+\[
+E_Ps_{r_{a,\tau,P}}^2
+=E_P\!\left[m_{a,\tau}(X)^2\frac{1-\pi_a(X)}{\pi_a(X)}\right]
+\le C_{\mathrm G}
+\tag{G4}
+\]
+by \(\text{ass:finite-variance}\) and \(|m_{a,\tau}|\le1\).  Hence the division and projection are legitimate.
+
+Let \(r_{a,\tau,P,J}\) be the information projection of (G3) on the likelihood sieve.  On cells at distance \(j/J\) from the endpoint, \(\text{ass:boundary-link}\), normalized local B-spline support, and the Hölder approximation in \(\text{ass:holder}\) give, after summing cellwise powers,
+\[
+\|s_{r_{a,\tau,P,J}}-s_{r_{a,\tau,P}}\|_{L^2(P)}=o(1)
+\tag{G5}
+\]
+uniformly for finite \(\gamma_{a,P}>2\), equivalently \(\alpha_{a,P}<1\).  The same calculation and the likelihood score equation give
+\[
+\sqrt n\,|\text{product approximation bias}|\le C\sqrt nJ_n^{-2s},
+\qquad
+\sqrt n\,|\text{reciprocal quadratic remainder}|
+=O_P(J_n^{\alpha_{a,P}}/\sqrt n),
+\tag{G6}
+\]
+and empirical-Hessian replacement is
+\(O_P[\{J_n^{\alpha_{a,P}+1}\log n/n\}^{1/2}]=o_P(1)\).  Each term is \(o_P(1)\) by the displayed schedule.
+
+If \(\gamma_{a,P}=\infty\), the fixed Hölder-ball radius and \(\pi_a=\exp(g_a)\) imply \(\inf_x\pi_a(x)\ge e^{-C}>0\).  Profiling the extra \(\log d_a\) direction against the quasi-uniform spline space gives a residual with squared norm \(O(J_n^{-1})\), a profiled coefficient error \(O_P(\sqrt{J_n/n})\), maximum sample residual \(O_P\{\log(n/J_n)\}\), and profiled spline-function supremum error
+\(O_P\{\sqrt{J_n\log J_n/n}+J_n^{-s}\}\).  Thus \(J_n\log n/n\to0\) and \(J_n^{-s}\log(n/J_n)\to0\) imply fitted-propensity consistency at every sample point.  This is exactly the profiling conclusion established for the mixed bounded arm in \(\text{prop:finite-variance-sanity}\), with constants uniform on the fixed Hölder ball.
+
+For each fold, (G2)--(G6), the score equation, and the nonpositive inner product of a concave maximizer's feasible displacement with its normal-cone residual yield
+\[
+\sqrt n\sum_{k=1}^K\frac{|I_k|}{n}
+\int m_{a,\tau}(x)
+\frac{\widehat\pi_{a,-k}(x)-\pi_a(x)}{\pi_a(x)}\,dP_X(x)
+=\frac1{\sqrt n}\sum_{i=1}^n s_{r_{a,\tau,P}}(O_i)+o_P(1).
+\tag{G7}
+\]
+The coefficient is one because each observation appears in \(K-1\) training folds, each of size \(n(K-1)/K+O(1)\).  Conditional on a training fold, cross-fitting makes the centered evaluation error mean zero.  Its conditional variance is bounded by
+\[
+C\int\frac{(\widehat\pi_{a,-k}-\pi_a)^2}{\pi_a}\,dP_X
+=O_P(J_n^{-2s}+J_n^{2\alpha_{a,P}}/n)=o_P(1),
+\tag{G8}
+\]
+because \(2\alpha_{a,P}<\alpha_{a,P}+1\) for finite \(\gamma_{a,P}>2\), while the bounded branch has \(\alpha_{a,P}=0\).
+
+Clipping is first-order negligible.  In the bounded branch, sample-point consistency and the common lower bound make clipping inactive with probability tending to one.  For finite \(\gamma_{a,P}>2\), define the proof intermediate \(b^\circ_{a,P,n}=\vartheta_a/h_{a,P,n}\).  Hall inversion gives \(h_{a,P,n}=(c_{a,P}n)^{1/\gamma_{a,P}}\{1+o(1)\}\), and Hall integration gives
+\[
+\sqrt n\left|E_Pm_{a,\tau}(X)
+\left\{\frac{\pi_a(X)}{\pi_a(X)\vee b^\circ_{a,P,n}}-1\right\}\right|
+\le Cn^{1/2-(\gamma_{a,P}-1)/\gamma_{a,P}}=o(1)
+\tag{G9}
+\]
+uniformly because \(\gamma_{a,P}\ge2+\epsilon_\gamma\).  The centered clipping difference has variance tending uniformly to zero because Stieltjes integration of \(\text{ass:hall}\) yields
+\(E_P[\pi_a(X)^{-1}\mathbf1\{\pi_a(X)\le u\}]\le Cu^{\gamma_{a,P}-2}\).  The count sandwich for the fitted generalized inverse gives \(\widehat b_{a,n}/b^\circ_{a,P,n}\to_P1\) when \(\vartheta_a>0\); if \(\vartheta_a=0\), both are zero.  Thus (G9) also holds for the empirical threshold.
+
+Direct case analysis gives
+\[
+\rho_\tau(e-v)-\rho_\tau(e)
+=-v\{\tau-\mathbf1(e\le0)\}
++\int_0^v\{\mathbf1(e\le s)-\mathbf1(e\le0)\}\,ds.
+\tag{G10}
+\]
+Apply (G10) with \(v=t/\sqrt n\).  Then \(\text{ass:conditional-density-modulus}\), \(\text{ass:quantile-density}\), (G7)--(G9), and conditional variance control give, uniformly on compact \(t\)-sets,
+\[
+\widehat Q^{\mathrm G}_{a,n,\tau}(t)
+=\frac12f_{a,P}(\tau)t^2-
+t\frac1{\sqrt n}\sum_{i=1}^n
+\left[
+\frac{\mathbf1(A_i=a)\psi_{a,\tau}(Y_i)}{\pi_a(X_i)}
+-s_{r_{a,\tau,P}}(O_i)
+\right]+o_P(1).
+\tag{G11}
+\]
+Using (G3), the bracket is exactly
+\[
+m_{a,\tau}(X_i)+\frac{\mathbf1(A_i=a)
+\{\psi_{a,\tau}(Y_i)-m_{a,\tau}(X_i)\}}{\pi_a(X_i)}
+=f_{a,P}(\tau)\mathrm{IF}_{a,P}(O_i;\tau).
+\tag{G12}
+\]
+It is centered because \(E_P\psi_{a,\tau}\{Y(a)\}=0\).
+
+It remains to verify the uniform Gaussian approximation.  Since \(\mathcal T\) is finite, (G12), the density lower bound, and \(|m|,|\psi|\le1\) reduce multivariate Lindeberg to the inverse-weight term.  For finite \(\gamma_{a,P}\ge2+\epsilon_\gamma\), Stieltjes integration of the common Hall bound gives, for large \(x\),
+\[
+E_P\!\left[\frac{\mathbf1(A=a)}{\pi_a(X)^2}
+\mathbf1\{\pi_a(X)^{-1}>x\}\right]
+=E_P\!\left[\frac1{\pi_a(X)}\mathbf1\{\pi_a(X)<x^{-1}\}\right]
+\le Cx^{-(\gamma_{a,P}-2)}\le Cx^{-\epsilon_\gamma}.
+\tag{G13}
+\]
+For \(\gamma_{a,P}=\infty\), the common Hölder-ball lower bound makes the summands uniformly bounded.  Taking \(x\) proportional to \(\sqrt n\) in (G13) proves uniform Lindeberg.  For each fixed coefficient vector, expand the characteristic function of the corresponding scalar projection to second order on the Lindeberg-truncated event; the remainder is bounded by its truncated second moment.  Gaussian smoothing and Fourier inversion, followed by removal of the smoothing, give uniform bounded-Lipschitz convergence to the centered Gaussian vector with row covariance (G1), without requiring covariance convergence across rows.
+
+The common curvature lower bound maps (G11) to its smallest convex minimizer, uniformly, and gives
+\[
+\sqrt n\{\widehat q_a(\tau)-q_{a,P}(\tau)\}
+=\frac1{\sqrt n}\sum_{i=1}^n\mathrm{IF}_{a,P}(O_i;\tau)+o_P(1)
+\tag{G14}
+\]
+jointly over the finite arm--quantile vector.  Gamma separation and uniform Hill consistency classify every Gaussian arm correctly, so \(\widehat q_a^{\mathrm{bc}}=\widehat q_a\) with probability tending uniformly to one.  Equations (G13)--(G14) prove both uniform conclusions.  Restricting to a singleton noncritical law gives the fixed-law corollary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The formal claim now records both the uniform influence-function remainder and uniform Gaussian bounded-Lipschitz approximation on its explicit scheduled domain. \textit{Gap.} Regular QTE results do not give this profiled boundary-sieve expansion with finite inverse moments and an empirical clipping rule. \textit{Consumer.} It supplies regular arm coordinates and their shared learned-score covariance.
+
+\begin{theorem}[thm:joint-qte]\label{thm:joint-qte}
+Fix common deterministic armwise schedules satisfying \(\text{thm:oracle-preservation}\) on every heavy arm and \(\text{thm:gaussian-branch}\) on every finite-variance arm.  Uniformly over the laws \(P\in\mathcal P_{\mathrm S}\) satisfying \(\text{ass:gamma-separation}\),
+\[
+d_{\mathrm{BL}}\!\left(
+\mathcal L_P\!\left\{\frac n{H_{P,n}}
+(\widehat\Delta^{\mathrm{bc}}-\Delta_P)\right\},
+\mathcal L_P(Z_{P,n})\right)\longrightarrow0.
+\]
+This principal conclusion does not require \(\ell_{a,P,n}\) to converge.  For every fixed noncritical \(P\in\mathcal P_{\mathrm S}\) for which \(\gamma_{a,P}\ne2\) for both arms and the same applicable schedules hold, along each subsequence such that \(\ell_{a,P,n}\to\ell_{a,P}\),
+\[
+\frac n{H_{P,n}}(\widehat\Delta^{\mathrm{bc}}-\Delta_P)
+\Rightarrow \ell_{1,P}L_{1,P}-\ell_{0,P}L_{0,P}.
+\]
+For fixed unequal heavy indices the smaller index dominates; equal heavy indices retain both Hall constants; a heavy arm dominates a finite-variance arm; and two finite-variance arms retain their learned-score cross-arm covariance.  In a two-heavy law the endpoint coordinates are independent because the two rare-event endpoint neighborhoods are disjoint.
+\end{theorem}
+\begin{proof}
+For a row law \(P\), define
+\[
+W_{a,P,n}=\frac n{H_{a,P,n}}(\widehat q_a^{\mathrm{bc}}-q_{a,P}).
+\tag{Q1}
+\]
+The preceding heavy and Gaussian theorems give uniform bounded-Lipschitz convergence for the corresponding coordinates.
+
+For a finite-\(\gamma\) Gaussian arm, the intermediate-order empirical survival calculation used for the heavy Hill statistic, now with \(\gamma_{a,P}>2\), gives \(\widehat\gamma_a-\gamma_{a,P}=o_P(1)\) uniformly.  If \(\gamma_{a,P}=\infty\), the fixed Hölder ball makes \(1/\pi_a\) uniformly bounded and equicontinuous; its upper \(k_n/n\) order-statistic log spacings are therefore \(o_P(1)\), so the Hill reciprocal diverges.  Gamma separation yields
+\[
+\sup_PP_P\{\widehat{\mathcal A}_{\mathrm G}\ne\mathcal A_{\mathrm G}\}\longrightarrow0.
+\tag{Q2}
+\]
+Thus \(\widehat q_a^{\mathrm{bc}}=\widehat q_a\) on the Gaussian arm with probability tending uniformly to one.
+
+The armwise conclusions hold jointly.  For two heavy arms, \(\text{ass:opposite-overlap}\) and binary treatment give disjoint sufficiently small endpoint neighborhoods.  For compactly supported nonnegative \(g_0,g_1\), one observation cannot enter both endpoint point processes, and the iid Laplace transform is
+\[
+\left[1-\frac{\nu_{0,P,n}(1-e^{-g_0})}{n}
+-\frac{\nu_{1,P,n}(1-e^{-g_1})}{n}+o(n^{-1})\right]^n.
+\tag{Q3}
+\]
+Uniform Hall and score-mark convergence turn (Q3) into the product of the two limiting Laplace functionals, proving independence of the heavy endpoint limits.  With one heavy and one Gaussian arm, truncate the Gaussian summands on the heavy endpoint set.  The discarded variance tends uniformly to zero by \(\text{ass:finite-variance}\) and the Hall bound in (G13).  On a retained heavy endpoint event, binary treatment kills the other arm's residual term, while its regression term is bounded by one.  The one-observation cross term between a compact endpoint transform and the Gaussian exponential is therefore at most \(Cn^{-3/2}\); multiplication by \(n\) makes it vanish.  Hence the heavy and Gaussian limits are independent.  With two Gaussian arms, the joint Lindeberg characteristic-function calculation retains cross-covariance \(E_P[\mathrm{IF}_{0,P}\mathrm{IF}_{1,P}^{\top}]\).  Consequently,
+\[
+\sup_Pd_{\mathrm{BL}}\!\left{
+\mathcal L_P(W_{0,P,n},W_{1,P,n}),
+\mathcal L_P(L_{0,P},L_{1,P})\right}\longrightarrow0.
+\tag{Q4}
+\]
+
+The estimator definition gives the exact identity
+\[
+\frac n{H_{P,n}}(\widehat\Delta^{\mathrm{bc}}-\Delta_P)
+=\ell_{1,P,n}W_{1,P,n}-\ell_{0,P,n}W_{0,P,n}.
+\tag{Q5}
+\]
+By \(\text{def:moving-row-law}\), the corresponding linear image of the limit vector is
+\[
+Z_{P,n}=\ell_{1,P,n}L_{1,P}-\ell_{0,P,n}L_{0,P}.
+\tag{Q6}
+\]
+Since \(0\le\ell_{a,P,n}\le1\), the map in (Q5) has Lipschitz norm at most two.  Applying it to (Q4) proves
+\[
+\sup_Pd_{\mathrm{BL}}\!\left[
+\mathcal L_P\!\left\{\frac n{H_{P,n}}
+(\widehat\Delta^{\mathrm{bc}}-\Delta_P)\right\},
+\mathcal L_P(Z_{P,n})\right]\longrightarrow0,
+\tag{Q7}
+\]
+without convergence of the recombination weights.
+
+For fixed noncritical \(P\), Hall inversion gives
+\(h_{a,P,n}=(c_{a,P}n)^{1/\gamma_{a,P}}\{1+o(1)\}\).  Two unequal heavy indices therefore make the smaller index's normalization dominate.  Equal indices retain the ratio of Hall constants.  Since \(h_{a,P,n}/\sqrt n\to\infty\) for \(\gamma_{a,P}<2\), a heavy arm dominates a Gaussian arm.  Two Gaussian arms both have scale \(\sqrt n\) and retain the covariance in (Q4).  Along a subsequence with \(\ell_{a,P,n}\to\ell_{a,P}\), (Q7) and bounded-Lipschitz continuity under deterministic linear maps yield
+\[
+\frac n{H_{P,n}}(\widehat\Delta^{\mathrm{bc}}-\Delta_P)
+\Rightarrow\ell_{1,P}L_{1,P}-\ell_{0,P}L_{0,P}.
+\]
+The factorization in (Q3) gives the asserted two-heavy independence.  The construction and every limit statement above are confined to noncritical fixed laws and to the gamma-separated uniform domain, exactly as required by \(\text{def:moving-row-law}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact arm-scale identity transfers the uniform joint arm approximation to \(\mathcal L_P(Z_{P,n})\) without convergence of \(\ell_{a,P,n}\). \textit{Gap.} A fixed subsequential limit cannot represent local \(1/\log n\) changes in unequal heavy-arm scales. \textit{Consumer.} It supplies the moving row distribution targeted by refitted inference.
+
+\begin{theorem}[thm:vector-subsampling]\label{thm:vector-subsampling}
+Fix deterministic learner schedules satisfying the heavy- and Gaussian-arm hypotheses of \(\text{thm:joint-qte}\) both at \(N=n\) and after every refit at \(N=m\), including \(J_N\log N/N\to0\), \(J_N^{-s}\log(N/J_N)\to0\), and every displayed approximation-tail condition, where \(m\to\infty\) and \(m/n\to0\). Under \(\text{ass:gamma-separation}\) and \(\text{ass:anti-concentration}\), for every \(\varepsilon>0\),
+\[
+\sup_P P_P\!\left\{
+d_{\mathrm{BL}}\!\left(
+\mathcal L_B(T_{B,n}\mid O_1,\ldots,O_n),
+\mathcal L_P(Z_{P,n})\right)>\varepsilon\right\}\longrightarrow0,
+\]
+where the supremum is over exactly the gamma-separated laws \(P\in\mathcal P_{\mathrm S}\) on which those common schedules apply. Moreover, the asymmetric pointwise intervals obey
+\[
+\max_{\tau\in\mathcal T}\sup_P\left|
+P_P\!\left\{\Delta_P(\tau)\in
+\left[
+\widehat\Delta^{\mathrm{bc}}(\tau)-\frac{\widehat H_n}{n}c_{n,1-\alpha/2}(\tau),
+\widehat\Delta^{\mathrm{bc}}(\tau)-\frac{\widehat H_n}{n}c_{n,\alpha/2}(\tau)
+\right]\right\}-(1-\alpha)\right|\longrightarrow0.
+\]
+Define the finite-\(\mathcal T\) simultaneous band by
+\[
+\mathcal C_n^{\mathrm{sim}}(\tau)=
+\left[
+\widehat\Delta^{\mathrm{bc}}(\tau)-\frac{\widehat H_n}{n}c^{\max}_{n,1-\alpha},
+\widehat\Delta^{\mathrm{bc}}(\tau)+\frac{\widehat H_n}{n}c^{\max}_{n,1-\alpha}
+\right].
+\]
+Then
+\[
+\sup_P\left|
+P_P\!\left\{\Delta_P(\tau)\in\mathcal C_n^{\mathrm{sim}}(\tau)
+\text{ for every }\tau\in\mathcal T\right\}-(1-\alpha)
+\right|\longrightarrow0.
+\]
+For every fixed noncritical \(P\in\mathcal P_{\mathrm S}\) satisfying the same schedules, the conditional law converges in \(P\)-probability along any subsequence with \(\ell_{a,P,n}\to\ell_{a,P}\) to the law of \(\ell_{1,P}L_{1,P}-\ell_{0,P}L_{0,P}\), and the pointwise intervals and simultaneous band have limiting coverage \(1-\alpha\). There exist gamma-separated two-heavy row sequences with \(\gamma_{0,P_n}-\gamma_{1,P_n}=c/\log n\) for which raw scalar subsampling at \(m=n^\beta\), \(0<\beta<1\), converges to a different arm mixture from the full-sample moving row law. This counterexample refutes uniform approximation by a single fixed-law limit and raw scalar subsampling, but not the moving-law validity of the refitted arm-vector procedure.
+\end{theorem}
+\begin{proof}
+This proof is against the max-band statement and definitions on graph main e6edde2f3d57; the argument below establishes both retained pointwise coverage and the added simultaneous corollary.
+
+We prove conditional approximation to the moving law in \(\text{def:moving-row-law}\), uniformly over the scheduled gamma-separated domain. At sample size \(N\), put
+\[
+W_{P,N}^{\circ}=\left\{
+\frac N{\widehat H_{a,N}}(\widehat q_{a,N}^{\mathrm{bc}}-q_{a,P})
+\right\}_{a\in\mathcal A}.
+\tag{S1}
+\]
+The uniform armwise expansions and scale consistency in \(\text{thm:oracle-preservation}\) and \(\text{thm:gaussian-branch}\), together with the gamma separation in \(\text{ass:gamma-separation}\), yield a permutation-symmetric leading statistic \(S_{P,N}\) such that, for every \(\varepsilon>0\),
+\[
+\sup_PP_P\{\|W_{P,N}^{\circ}-S_{P,N}\|>\varepsilon\}\to0,
+\qquad
+\sup_Pd_{\mathrm{BL}}\{\mathcal L_P(S_{P,N}),\mathcal L_P(L_P)\}\to0.
+\tag{S2}
+\]
+Here and below every supremum is over the gamma-separated laws in \(\mathcal P_{\mathrm S}\) on which the displayed schedules apply. For \(\gamma_a=\infty\), \(\text{ass:boundary-link}\) and the common Hölder radius in \(\text{ass:holder}\) imply a common positive lower bound for \(\pi_a\) on the compact chart. Hence the upper \(k_N/N\) quantile of \(1/\widehat\pi_a\) lies uniformly within \(o_P(1)\) of its finite endpoint, its Hill log-spacing average is \(o_P(1)\), and \(\widehat\gamma_a\to_P\infty\). Thus the classification used in (S2) also holds on the bounded-support branch.
+
+Let \(g:\mathbb R^{2R}\to[-1,1]\) be one-Lipschitz and define the complete-subsample average
+\[
+U_{n,m,P}(g)=\binom nm^{-1}\sum_{|b|=m}g(S_{P,b})
+=E_B\{g(S_{P,B})\mid O_1,\ldots,O_n\}.
+\tag{S3}
+\]
+Successively subtracting conditional expectations over proper coordinate subsets gives the orthogonal decomposition
+\[
+g(S_{P,m})-E_Pg(S_{P,m})
+=\sum_{j=1}^m\sum_{|C|=j}h_{P,m,j}(O_C),
+\tag{S4}
+\]
+where each \(h_{P,m,j}\) has conditional mean zero given any \(j-1\) arguments. If
+\(\zeta_{P,m,j}=E_Ph_{P,m,j}(O_1,\ldots,O_j)^2\), independence in \(\text{ass:iid}\), orthogonality, and counting the \(m\)-subsets containing a fixed \(j\)-subset give
+\[
+\begin{split}
+\operatorname{Var}_P\{U_{n,m,P}(g)\}
+&=\sum_{j=1}^m\frac{\binom mj^2}{\binom nj}\zeta_{P,m,j}\\
+&\le\frac mn\sum_{j=1}^m\binom mj\zeta_{P,m,j}
+=\frac mn\operatorname{Var}_P\{g(S_{P,m})\}
+\le4m/n.
+\end{split}
+\tag{S5}
+\]
+The inequality uses \(\binom mj/\binom nj\le m/n\), while the last bound uses \(|g|\le1\). Since a uniform \(m\)-subset of an iid sample has unconditionally the law of \(m\) iid observations, (S2)--(S5) imply
+\[
+U_{n,m,P}(g)-E_Pg(L_P)\to_P0
+\tag{S6}
+\]
+uniformly in \(P\).
+
+The family \(\{L_P\}\) is uniformly tight. Indeed, the Gaussian coordinates have a common second-moment bound by \(\text{ass:finite-variance}\) and the uniform influence-function expansion in \(\text{thm:gaussian-branch}\), while the heavy coordinates have the uniform small- and large-jump bounds established in \(\text{thm:oracle-preservation}\). On a common compact ball, the unit bounded-Lipschitz class has a finite uniform supremum-norm net. Applying (S5) to this net and using uniform tightness off the ball upgrades (S6) to
+\[
+\sup_PP_P\!\left\{
+d_{\mathrm{BL}}\bigl(\mathcal L_B(S_{P,B}\mid O_1^n),
+\mathcal L_P(L_P)\bigr)>\varepsilon\right\}\longrightarrow0.
+\tag{S7}
+\]
+The unconditional-law identity and (S2) also give
+\[
+\begin{split}
+&E_P\mathbb P_B\{\|W_{P,B}^{\circ}-S_{P,B}\|>\varepsilon\mid O_1^n\}\\
+&\qquad=P_P\{\|W_{P,m}^{\circ}-S_{P,m}\|>\varepsilon\}\longrightarrow0
+\end{split}
+\tag{S8}
+\]
+uniformly. Markov's inequality applied to the conditional error probability in (S8) combines (S7)--(S8) into conditional uniform convergence of the refitted arm vector.
+
+By \(\text{def:vector-subsampling}\),
+\[
+V_{B,a}=W_{P,B,a}^{\circ}-C_{B,a},
+\qquad
+C_{B,a}=\frac m{\widehat H_{a,m,B}}
+(\widehat q_{a,n}^{\mathrm{bc}}-q_{a,P}).
+\tag{S9}
+\]
+Uniform tightness in (S2), scale consistency, and Hall inversion under \(\text{ass:hall}\) give
+\[
+\|C_{B,a}\|=O_P\!\left(\frac m{H_{a,P,m}}\frac{H_{a,P,n}}n\right)
+=\begin{cases}
+O_P\{(m/n)^{1-1/\gamma_{a,P}}\},&a\in\mathcal A_{\mathrm H},\\
+O_P\{(m/n)^{1/2}\},&a\in\mathcal A_{\mathrm G}.
+\end{cases}
+\tag{S10}
+\]
+Both rates are uniformly \(o_P(1)\): the Gaussian conclusion uses \(m/n\to0\), while in the heavy branch \(\text{ass:gamma-separation}\) gives
+\(1-1/\gamma_{a,P}\ge\epsilon_\gamma/(1+\epsilon_\gamma)>0\). Scale consistency also gives
+\(\max_a|\widehat\ell_{a,n}-\ell_{a,P,n}|=o_P(1)\) uniformly. Recombination has Lipschitz norm at most two because \(0\le\widehat\ell_{a,n},\ell_{a,P,n}\le1\). Therefore (S7)--(S10) prove
+\[
+\sup_PP_P\!\left\{
+d_{\mathrm{BL}}\!\left(
+\mathcal L_B(T_{B,n}\mid O_1^n),
+\mathcal L_P(Z_{P,n})\right)>\varepsilon\right\}\longrightarrow0.
+\tag{S11}
+\]
+
+Let
+\[
+X_{P,n}=\frac n{\widehat H_n}(\widehat\Delta^{\mathrm{bc}}-\Delta_P).
+\tag{S12}
+\]
+The full-sample approximation in \(\text{thm:joint-qte}\), uniform consistency of \(\widehat H_n/H_{P,n}\), and uniform tightness imply
+\[
+\sup_Pd_{\mathrm{BL}}\{\mathcal L_P(X_{P,n}),\mathcal L_P(Z_{P,n})\}\to0.
+\tag{S13}
+\]
+For a real random variable \(U\), approximate the half-line indicator \(\mathbf1\{U\le x\}\) from above and below by piecewise-linear functions with transition width \(\eta\). After rescaling, these functions have bounded-Lipschitz norm at most \(1+1/\eta\). Consequently a bounded-Lipschitz discrepancy \(\delta\) changes the half-line probability by at most \((1+1/\eta)\delta\) plus the probability assigned by the reference law to an interval of radius \(\eta\). Apply this inequality to each coordinate of (S11) and (S13). The coordinatewise modulus in \(\text{ass:anti-concentration}\), followed first by \(n\to\infty\) and then by \(\eta\downarrow0\), yields
+\[
+\max_{\tau\in\mathcal T}\sup_P\left|
+P_P\!\left\{
+c_{n,\alpha/2}(\tau)\le X_{P,n}(\tau)
+\le c_{n,1-\alpha/2}(\tau)\right\}-(1-\alpha)
+\right|\to0.
+\tag{S14}
+\]
+Convergence in probability of the conditional bounded-Lipschitz discrepancy suffices here because that discrepancy is bounded, so truncation converts it to uniform convergence of its expectation. The event in (S14) is exactly coverage by the asymmetric pointwise interval in the statement.
+
+For simultaneous coverage, use the map \(\phi:\mathbb R^R\to\mathbb R\), \(\phi(x)=\|x\|_\infty\). It is one-Lipschitz because
+\[
+|\|x\|_\infty-\|y\|_\infty|\le\|x-y\|_\infty.
+\tag{S15}
+\]
+Hence composition with \(\phi\) cannot increase bounded-Lipschitz distance. Equations (S11) and (S13) therefore compare, uniformly, the conditional law of
+\(M_{B,n}=\phi(T_{B,n})\), the law of \(\phi(X_{P,n})\), and the row law of \(\phi(Z_{P,n})\). Applying the same two-sided half-line smoothing inequality, now with the max-law modulus in \(\text{ass:anti-concentration}\), gives
+\[
+\sup_P\left|
+P_P\{\|X_{P,n}\|_\infty\le c^{\max}_{n,1-\alpha}\}-(1-\alpha)
+\right|\to0.
+\tag{S16}
+\]
+By the definitions of \(X_{P,n}\) and \(\mathcal C_n^{\mathrm{sim}}\), the event in (S16) equals
+\[
+\{\Delta_P(\tau)\in\mathcal C_n^{\mathrm{sim}}(\tau)
+\text{ for every }\tau\in\mathcal T\}.
+\tag{S17}
+\]
+This proves the simultaneous coverage assertion. The finiteness of \(\mathcal T\) ensures that the statistic is a finite-dimensional continuous maximum and that the displayed band is a finite collection of intervals.
+
+For fixed noncritical \(P\), every subsequence has a further subsequence along which both bounded recombination weights converge. Equation (S11) then gives the stated fixed-law conditional limit; (S14) and (S16) give the fixed-law pointwise and simultaneous coverage conclusions. To certify the scope of the fixed-limit failure, take the two-heavy family in \(\text{prop:smooth-inclusion}\), an interior \(\gamma\in(1,2)\), equal Hall constants, fixed nondegenerate endpoint score laws and target densities, and
+\[
+\gamma_{0,P_n}=\gamma+\frac c{2\log n},
+\qquad
+\gamma_{1,P_n}=\gamma-\frac c{2\log n},
+\qquad c>0.
+\tag{S18}
+\]
+These rows remain gamma-separated with common constants. Hall inversion yields
+\[
+\log\{h_{0,P_n,n}/h_{1,P_n,n}\}
+=\{\gamma_{0,P_n}^{-1}-\gamma_{1,P_n}^{-1}\}\log n+o(1)
+\longrightarrow-c/\gamma^2.
+\tag{S19}
+\]
+Thus the full-sample row law retains the mixture
+\(L_{1,P_n}-e^{-c/\gamma^2}L_{0,P_n}\), while fixing a row and sending a new sample size to infinity eliminates the larger-index arm. Independence and nondegeneracy distinguish these laws: equality of their characteristic functions near zero would force the characteristic function of a nonzero multiple of \(L_{0,P_n}\) to be one near zero, hence force degeneracy.
+
+If raw scalar subsampling uses \(m=n^\beta\), \(0<\beta<1\), then
+\[
+\log\{h_{0,P_n,m}/h_{1,P_n,m}\}\longrightarrow-\beta c/\gamma^2,
+\tag{S20}
+\]
+so it approaches \(L_1-e^{-\beta c/\gamma^2}L_0\), not the full-sample moving mixture. The refitted vector instead standardizes each arm at its own \(m\)-scale and recombines with the full-sample \(\widehat\ell_{a,n}\), reproducing (S19). Hence (S18)--(S20) refute only a common fixed-limit approximation and raw scalar subsampling; they affirm the moving-law validity in (S11).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The complete-subsample variance bound and armwise refitting yield uniform conditional bounded-Lipschitz approximation to the same moving law as the full statistic; the sup-norm contraction then calibrates the finite-quantile maximum. \textit{Gap.} Raw scalar subsampling changes the arm mixture on local tail-index rows, whereas full-sample recombination restores it. \textit{Consumer.} It yields asymmetric pointwise intervals and a finite-quantile simultaneous max-band with coverage uniform over exactly the gamma-separated scheduled class.
+
+\begin{openendedquestion}[oeq:critical-fold-law]\label{oeq:critical-fold-law}
+Using \(\mathfrak H_{\mathrm{fold}}\), characterize the joint limit of learned endpoint marks, their compensator, and the feasible convex argmin when \(nJ_n^{-(\alpha_a+1)}\to\kappa\in(0,\infty)\). Determine necessary and sufficient primitive conditions for an infinitely divisible limit, a Cox mixture, or a more general fold-coupled Poisson functional.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Order-one training-fold boundary information can couple evaluation marks despite cross-fitting. \textit{Gap.} The located work has oracle weights, regular likelihood scores, or scalar stable sums, not a fold-labelled critical boundary experiment. \textit{Consumer.} A solution would support aggressive propensity adaptation outside the subcritical preservation window.
+
+\section{Interpretation}
+
+For a varying noncritical law \(P\), the inferential object is \(Z_{P,n}\), not a universal weak limit. For fixed unequal heavy-tail indices, the smaller index dominates asymptotically; for gaps of order \(1/\log n\), both arms remain visible with row-dependent weights. Arm-vector refitting estimates the two arm fluctuations at their own subsample scales and then restores the full-sample weights, which reproduces the row law without requiring those weights to converge. Coordinatewise conditional quantiles give asymmetric pointwise intervals, while the conditional quantile of the refitted sup-norm gives simultaneous coverage over the fixed finite set \(\mathcal T\).
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The uniform theory excludes a neighborhood of \(\gamma_a=2\), uses a fixed finite quantile set, and is proved on the boundary-smooth class rather than the unrestricted Hall class. The latter is narrower than the oracle anchor in chart smoothness and uniform second-order tails but incomparable in endpoint outcomes because only the finite score-vector law is controlled. The approximation-tail condition is imposed at both full and refitted sample sizes. Simultaneous coverage is only for the declared finite \(\mathcal T\), not for an infinite quantile process, and uses the declared max-law anti-concentration modulus in addition to the coordinatewise modulus. The moving-law definition and fixed-law corollaries apply only when every arm is noncritical. The critical fold-labelled point-process law is not asserted here.
+
+\section{Honest scope}
+
+The contribution is feasible uniform row-wise transfer and inference on the gamma-separated scheduled class: the constrained likelihood has the displayed signed-functional rate and corrected amplified condition; the positive-weight estimator has a compensated heavy-arm law; the finite-variance estimator has the learned-propensity influence function and a Hall-derived uniform Lindeberg bound; and the normalized QTE is uniformly bounded-Lipschitz close to \(\mathcal L_P(Z_{P,n})\). Fully refitted arm-vector subsampling estimates the same moving noncritical law and gives uniform asymmetric pointwise coverage under the coordinatewise row-law anti-concentration modulus and uniform finite-\(\mathcal T\) simultaneous coverage under the corresponding sup-norm modulus. The \(1/\log n\) witness refutes only fixed-mixture uniformity and raw scalar subsampling. No claim is made at \(\gamma=2\), for an infinite quantile process, or for the separate critical fold-law question.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AvellaMedinaDavisSamorodnitsky2025} Avella-Medina, M., Davis, R. A., and Samorodnitsky, G. (2025). Estimating quantile treatments without strict overlap. arXiv:2506.18215v1.
+
+  \bibitem{HiranoImbensRidder2003} Hirano, K., Imbens, G. W., and Ridder, G. (2003). Efficient estimation of average treatment effects using the estimated propensity score. Econometrica 71, 1161--1190.
+
+  \bibitem{Firpo2007} Firpo, S. (2007). Efficient semiparametric estimation of quantile treatment effects. Econometrica 75, 259--276.
+
+  \bibitem{MaWang2020} Ma, X. and Wang, J. (2020). Robust inference using inverse probability weighting. Journal of the American Statistical Association 115, 1851--1860.
+
+  \bibitem{HeilerKazak2021} Heiler, P. and Kazak, E. (2021). Valid inference for treatment effect parameters under irregular identification and many extreme propensity scores. Journal of Econometrics 222, 1083--1108.
+
+  \bibitem{Dorn2025} Dorn, J. (2025). How much weak overlap can doubly robust \(t\)-statistics handle? arXiv:2504.13273.
+
+  \bibitem{SantAnnaSongXu2022} Sant'Anna, P. H. C., Song, X., and Xu, Q. (2022). Covariate distribution balance via propensity scores. Journal of Applied Econometrics 37, 1093--1120.
+
+  \bibitem{KhanTamer2010} Khan, S. and Tamer, E. (2010). Irregular identification, support conditions, and inverse weight estimation. Econometrica 78, 2021--2042.
+
+  \bibitem{Knight1998} Knight, K. (1998). Limiting distributions for \(L_1\) regression estimators under general conditions. Annals of Statistics 26, 755--770.
+
+  \bibitem{PolitisRomanoWolf1999} Politis, D. N., Romano, J. P., and Wolf, M. (1999). Subsampling. Springer.
+
+\end{thebibliography}
+
+\end{document}

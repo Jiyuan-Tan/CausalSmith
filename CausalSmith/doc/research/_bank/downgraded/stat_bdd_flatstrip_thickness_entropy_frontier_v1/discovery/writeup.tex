@@ -1,0 +1,2008 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}bdd\_\allowbreak{}flatstrip\_\allowbreak{}thickness\_\allowbreak{}entropy\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} One explicit split-sample global-bandwidth severity-net estimator, using neither \(\kappa\) nor a regime label, attains the isolated rate \(n^{-1/(\kappa+2)}\), the pervasive rate \((\log n/n)^{1/(\kappa+2)}\), and the classical regular-design rate \((\log n/n)^{1/4}\). The regular exponent is not claimed as new; the contribution is its simultaneous attainment by the same procedure together with the two depleted-design rates.
+
+\section{Project justification}
+
+\paragraph{Gap.} Boundary regression with regular or vanishing one-sided mass needs one measurable causal-trace estimator whose stochastic index set reflects thin-site multiplicity without first knowing the exponent or choosing a profile regime.
+
+\paragraph{Niche.} The contribution is a global-bandwidth empirical severity-net oracle over the declared bivariate side-mass classes, together with a direct evaluation on regular, isolated, and pervasive designs. The regular \(1/4\) exponent is classical; the cross-regime attainment is the new role of that corollary.
+
+\paragraph{Fill.} Lower-mass bands and ordered greedy anchors control the conditional maximum by \(1\vee J_P\). Evaluating the proved oracle at the isolated, pervasive, and regular balances yields all three rates for the identical total estimator, with no preliminary regime selection and no use of \(\kappa\) in its construction.
+
+\section{Related work}
+
+Gaiffas (2005) studies univariate regularly varying designs and pointwise minimax behavior; Gaiffas (2007) studies pointwise adaptation over smoothness in an inhomogeneous univariate design, and its logarithmic lower bound concerns smoothness adaptation whereas the present \(L\) is fixed; Gaiffas (2009) uses spatially normalized loss for univariate designs with finitely many density zeros. Their dimensions, targets, and losses differ, so none of those classes includes the present class or is included by it. Product embeddings may support lower submodels, but they do not transfer an upper theorem. For a continuous score density bounded below by \(\underline f>0\) on the \(h_0\)-neighborhood of \(B\), each one-sided half-ball has area \(\pi h^2/2\), and hence \(a_P(x,h)\geq(\pi\underline f/2)h^2\), including the endpoints of the declared segment. Thus the positive-density boundary design of Cattaneo, Titiunik, and Yu overlaps the present \(\mathrm{Reg}(c_{\mathrm{reg}})\) class only after matching the conditional \(\sigma\)-sub-Gaussian tail, trace envelope, Lipschitz, and frozen base-mass constants. In particular, for each declared \(\kappa>2\), the regular lower bound implies \(q_t(x,h)\geq c_mh^\kappa\) when \(c_m\leq c_{\mathrm{reg}}h_0^{2-\kappa}\). Their full class has different tail and smoothness conditions, and its upper theorem does not transfer to the present vanishing-density laws. A converse transfers only on an exact common subclass, under the same loss and an unrestricted estimator class. The regular rate is classical; only simultaneous attainment by the same severity-net estimator together with the isolated and pervasive rates is claimed here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_P(x)=E_P[Y(1)-Y(0)\mid X=x],\quad x\in B\).
+Primary functional / estimator / diagnostic: \(\tau_P(x)=\lim_{z\to x,z\in A_1}E_{P^{\mathrm{obs}}}[Y\mid X=z,T=1]-\lim_{z\to x,z\in A_0}E_{P^{\mathrm{obs}}}[Y\mid X=z,T=0]\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N\)
+  \item \texttt{D} --- \texttt{score domain}; \(2^{\mathbb R^2}\)
+  \par\smallskip\noindent\emph{Definition.} \(D=[-1,1]^2\)
+  \item \texttt{B} --- \texttt{target segment}; \(2^D\)
+  \par\smallskip\noindent\emph{Definition.} \(B=\{(0,s):|s|\leq1/2\}\)
+  \item \texttt{A0} --- \texttt{control-\allowbreak{}side region}; \(2^D\)
+  \par\smallskip\noindent\emph{Definition.} \(A_0=\{(r,s)\in D:r<0\}\)
+  \item \texttt{A1} --- \texttt{treated-\allowbreak{}side region}; \(2^D\)
+  \par\smallskip\noindent\emph{Definition.} \(A_1=\{(r,s)\in D:r\geq0\}\)
+  \item \texttt{R} --- \texttt{first score coordinate}; \([-1,1]\)
+  \item \texttt{S} --- \texttt{second score coordinate}; \([-1,1]\)
+  \item \texttt{X} --- \texttt{score vector}; \(D\)
+  \par\smallskip\noindent\emph{Definition.} \(X=(R,S)\)
+  \item \texttt{Y0} --- \texttt{control potential outcome}; \(\mathbb R\)
+  \item \texttt{Y1} --- \texttt{treated potential outcome}; \(\mathbb R\)
+  \item \texttt{T} --- \texttt{treatment indicator}; \(\{0,1\}\)
+  \item \texttt{Y} --- \texttt{observed outcome}; \(\mathbb R\)
+  \item \texttt{O} --- \texttt{observed vector}; \(D\times\{0,1\}\times\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,T,Y)\)
+  \item \texttt{P} --- \texttt{causal full-\allowbreak{}data law}; \(\mathcal P(D\times\mathbb R^2\times\{0,1\}\times\mathbb R)\)
+  \item \texttt{Pobs} --- \texttt{observed-\allowbreak{}data law}; \(\mathcal P(D\times\{0,1\}\times\mathbb R)\)
+  \par\smallskip\noindent\emph{Definition.} \(P^{\mathrm{obs}}=P\circ O^{-1}\)
+  \item \texttt{m0} --- \texttt{control conditional mean}; \(D\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(m_{0,P}(x)=E_P[Y(0)\mid X=x]\) for the smooth representative
+  \item \texttt{m1} --- \texttt{treated conditional mean}; \(D\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(m_{1,P}(x)=E_P[Y(1)\mid X=x]\) for the smooth representative
+  \item \texttt{g0} --- \texttt{observed control regression}; \(A_0\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(g_{0,P}(x)=E_{P^{\mathrm{obs}}}[Y\mid X=x,T=0]\)
+  \item \texttt{g1} --- \texttt{observed treated regression}; \(A_1\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(g_{1,P}(x)=E_{P^{\mathrm{obs}}}[Y\mid X=x,T=1]\)
+  \item \texttt{theta0} --- \texttt{control boundary trace}; \(B\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{0,P}=m_{0,P}|_B\)
+  \item \texttt{theta1} --- \texttt{treated boundary trace}; \(B\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{1,P}=m_{1,P}|_B\)
+  \item \texttt{tauP} --- \texttt{causal boundary trace}; \(B\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau_P=\theta_{1,P}-\theta_{0,P}\)
+  \item \texttt{kappa} --- \texttt{mass exponent}; \((2,\infty)\)
+  \item \texttt{epsilon} --- \texttt{exponent separation}; \((0,\infty)\)
+  \item \texttt{kappaBar} --- \texttt{upper exponent bound}; \((2,\infty)\)
+  \item \texttt{K} --- \texttt{compact exponent set}; \(2^{(2,\infty)}\)
+  \par\smallskip\noindent\emph{Definition.} \(K\subseteq[2+\epsilon,\bar\kappa]\)
+  \item \texttt{h0} --- \texttt{maximum radius}; \((0,1/8]\)
+  \item \texttt{L} --- \texttt{smoothness and trace-\allowbreak{}envelope constant}; \((0,\infty)\)
+  \item \texttt{sigma} --- \texttt{sub-\allowbreak{}Gaussian scale}; \((0,\infty)\)
+  \item \texttt{cm} --- \texttt{lower-\allowbreak{}mass constant}; \((0,\infty)\)
+  \item \texttt{Cm} --- \texttt{thinness threshold}; \((0,\infty)\)
+  \item \texttt{Ciso} --- \texttt{isolated-\allowbreak{}profile constant}; \((0,\infty)\)
+  \item \texttt{cJ} --- \texttt{pervasive-\allowbreak{}packing constant}; \((0,\infty)\)
+  \item \texttt{q0} --- \texttt{control-\allowbreak{}side local mass}; \(B\times(0,h_0]\to[0,1]\)
+  \item \texttt{q1} --- \texttt{treated-\allowbreak{}side local mass}; \(B\times(0,h_0]\to[0,1]\)
+  \item \texttt{aP} --- \texttt{two-\allowbreak{}sided thickness}; \(B\times(0,h_0]\to[0,1]\)
+  \item \texttt{JP} --- \texttt{thin-\allowbreak{}site packing profile}; \((0,h_0]\times[0,\infty)\to\mathbb N_0\)
+  \item \texttt{BaseKappa} --- \texttt{base law class}; \(2^{\mathcal P(D\times\mathbb R^2\times\{0,1\}\times\mathbb R)}\)
+  \item \texttt{IsoKappa} --- \texttt{isolated law class}; \(2^{\mathrm{Base}_\kappa}\)
+  \item \texttt{PervKappa} --- \texttt{pervasive law class}; \(2^{\mathrm{Base}_\kappa}\)
+  \item \texttt{alpha} --- \texttt{density exponent}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\alpha=\kappa-2\)
+  \item \texttt{VDisk} --- \texttt{disk slice constant}; \((0,4)\)
+  \par\smallskip\noindent\emph{Definition.} \(V_{\mathrm{disk}}=4\int_0^1\sqrt{1-r^2}\,dr\)
+  \item \texttt{Zalpha} --- \texttt{isolated-\allowbreak{}density normalizer}; \((0,\infty)\)
+  \item \texttt{fPerv} --- \texttt{pervasive density}; \(D\to[0,\infty)\)
+  \item \texttt{fIso} --- \texttt{isolated density}; \(D\to[0,\infty)\)
+  \item \texttt{CAlpha} --- \texttt{pervasive half-\allowbreak{}ball coefficient}; \((0,\infty)\)
+  \item \texttt{DAlpha} --- \texttt{isolated half-\allowbreak{}ball coefficient}; \((0,\infty)\)
+  \item \texttt{QPervAlpha} --- \texttt{pervasive tent coefficient}; \((0,\infty)\)
+  \item \texttt{QIsoAlpha} --- \texttt{isolated tent coefficient}; \((0,\infty)\)
+  \item \texttt{psiJh} --- \texttt{boundary tent}; \(D\to[0,1]\)
+  \item \texttt{aTent} --- \texttt{tent amplitude}; \((0,\infty)\)
+  \item \texttt{Z0} --- \texttt{control disturbance}; \(\mathbb R\)
+  \item \texttt{Z1} --- \texttt{treated disturbance}; \(\mathbb R\)
+  \item \texttt{PZeroIso} --- \texttt{isolated baseline law}; \(\mathcal P(D\times\mathbb R^2\times\{0,1\}\times\mathbb R)\)
+  \item \texttt{PZeroPerv} --- \texttt{pervasive baseline law}; \(\mathcal P(D\times\mathbb R^2\times\{0,1\}\times\mathbb R)\)
+  \item \texttt{PJhIso} --- \texttt{isolated tent law}; \(\mathcal P(D\times\mathbb R^2\times\{0,1\}\times\mathbb R)\)
+  \item \texttt{PJhPerv} --- \texttt{pervasive tent law}; \(\mathcal P(D\times\mathbb R^2\times\{0,1\}\times\mathbb R)\)
+  \item \texttt{n1} --- \texttt{first-\allowbreak{}half size}; \(\mathbb N_0\)
+  \par\smallskip\noindent\emph{Definition.} \(n_1=\lfloor n/2\rfloor\)
+  \item \texttt{n2} --- \texttt{second-\allowbreak{}half size}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(n_2=n-n_1\)
+  \item \texttt{I1} --- \texttt{first-\allowbreak{}half indices}; \(2^{\{1,\ldots,n\}}\)
+  \par\smallskip\noindent\emph{Definition.} \(I_1=\{1,\ldots,n_1\}\)
+  \item \texttt{I2} --- \texttt{second-\allowbreak{}half indices}; \(2^{\{1,\ldots,n\}}\)
+  \par\smallskip\noindent\emph{Definition.} \(I_2=\{n_1+1,\ldots,n\}\)
+  \item \texttt{Hn} --- \texttt{dyadic bandwidth grid}; \(2^{(0,h_0]}\)
+  \item \texttt{Un} --- \texttt{dyadic severity grid}; \(2^{[0,1]}\)
+  \item \texttt{qHat1} --- \texttt{first-\allowbreak{}half empirical side mass}; \(\{0,1\}\times B\times H_n\to[0,1]\)
+  \item \texttt{bn} --- \texttt{empirical mass confidence radius}; \([0,1]\to(0,\infty)\)
+  \item \texttt{qUpper} --- \texttt{upper confidence side mass}; \(\{0,1\}\times B\times H_n\to[0,1]\)
+  \item \texttt{qLower} --- \texttt{lower confidence side mass}; \(\{0,1\}\times B\times H_n\to[0,1]\)
+  \item \texttt{aUpper} --- \texttt{upper confidence thickness}; \(B\times H_n\to[0,1]\)
+  \item \texttt{aLower} --- \texttt{lower confidence thickness}; \(B\times H_n\to[0,1]\)
+  \item \texttt{C1} --- \texttt{ordered first-\allowbreak{}half boundary candidate list}; \(H_n\to\bigcup_{m=2}^{4n_1+2}B^m\)
+  \item \texttt{G1} --- \texttt{explicit first-\allowbreak{}half boundary grid}; \(H_n\to2^B\)
+  \item \texttt{JHat} --- \texttt{empirical packing count}; \(H_n\times[0,\infty)\to\mathbb N\)
+  \item \texttt{uHat} --- \texttt{empirical lower-\allowbreak{}mass severity band}; \(B\times H_n\to U_n\)
+  \item \texttt{N2t} --- \texttt{second-\allowbreak{}half side count}; \(\{0,1\}\times B\times H_n\to\mathbb N_0\)
+  \item \texttt{yTilde2t} --- \texttt{total second-\allowbreak{}half raw side average}; \(\{0,1\}\times B\times H_n\to\mathbb R\)
+  \item \texttt{PiL} --- \texttt{trace-\allowbreak{}envelope projection}; \(\mathbb R\to[-L,L]\)
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_L(z)=\max\{-L,\min\{z,L\}\}\)
+  \item \texttt{Pi2L} --- \texttt{contrast-\allowbreak{}envelope projection}; \(\mathbb R\to[-2L,2L]\)
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_{2L}(z)=\max\{-2L,\min\{z,2L\}\}\)
+  \item \texttt{yBar2t} --- \texttt{clipped second-\allowbreak{}half side average}; \(\{0,1\}\times B\times H_n\to[-L,L]\)
+  \item \texttt{gRep} --- \texttt{tie-\allowbreak{}safe pattern-\allowbreak{}preserving representative}; \(B\times H_n\to B\)
+  \item \texttt{Anchor1} --- \texttt{ordered empirical severity-\allowbreak{}net anchor set}; \(H_n\times U_n\to2^B\)
+  \item \texttt{gamma1} --- \texttt{first-\allowbreak{}covering-\allowbreak{}anchor assignment}; \(B\times H_n\to B\)
+  \item \texttt{VHat} --- \texttt{global empirical bias-\allowbreak{}variance criterion}; \(H_n\to[0,\infty]\)
+  \item \texttt{hHat} --- \texttt{selected global bandwidth}; \(H_n\)
+  \item \texttt{tauHatH} --- \texttt{fixed-\allowbreak{}bandwidth anchor-\allowbreak{}extension estimator}; \(H_n\times B\to[-2L,2L]\)
+  \item \texttt{tauHat} --- \texttt{global-\allowbreak{}bandwidth profile-\allowbreak{}adaptive estimator}; \(B\to[-2L,2L]\)
+  \item \texttt{cReg} --- \texttt{regular-\allowbreak{}design lower-\allowbreak{}mass constant}; \((0,\infty)\)
+  \item \texttt{RegClass} --- \texttt{regular-\allowbreak{}design law class}; \(2^{\mathcal P(D\times\mathbb R^2\times\{0,1\}\times\mathbb R)}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent and identically distributed with law \(P^{\mathrm{obs}}\).
+\par\smallskip\noindent\emph{Standard} (Independent random sampling, \cite{CattaneoTitiunikYu2025BoundaryRD}).
+\end{assumption}
+
+\begin{assumption}[ass:sharp-assignment]\label{ass:sharp-assignment}
+\(T=\mathbf1\{R\geq0\}\) almost surely under \(P\).
+\par\smallskip\noindent\emph{Standard} (Sharp boundary discontinuity assignment, \cite{HahnToddVanderKlaauw2001RD}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=TY(1)+(1-T)Y(0)\) almost surely under \(P\).
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{HahnToddVanderKlaauw2001RD}).
+\end{assumption}
+
+\begin{assumption}[ass:causal-mean-lipschitz]\label{ass:causal-mean-lipschitz}
+For each \(t\in\{0,1\}\), \(m_{t,P}\) is \(L\)-Lipschitz on the closed \(h_0\)-neighborhood of \(B\) within \(D\).
+\par\smallskip\noindent\emph{Standard} (Lipschitz continuity at an RD boundary, \cite{HahnToddVanderKlaauw2001RD}).
+\end{assumption}
+
+\begin{assumption}[ass:trace-envelope]\label{ass:trace-envelope}
+\(\sup_{x\in B}|\theta_{t,P}(x)|\leq L\) for each \(t\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Bounded regression-function envelope, \cite{Gaiffas2005DegenerateDesignRates}).
+\end{assumption}
+
+\begin{assumption}[ass:subgaussian-errors]\label{ass:subgaussian-errors}
+For every \(\lambda\in\mathbb R\), \(E_P[\exp\{\lambda[Y-Tm_{1,P}(X)-(1-T)m_{0,P}(X)]\}\mid X,T]\leq\exp(\sigma^2\lambda^2/2)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Conditional sub-Gaussian regression errors, \cite{Gaiffas2009UniformInhomogeneous}).
+\end{assumption}
+
+\begin{assumption}[ass:exponent-window]\label{ass:exponent-window}
+\(\kappa\in K\subseteq[2+\epsilon,\bar\kappa]\).
+\par\smallskip\noindent\emph{Standard} (Compact regularity-parameter window, \cite{Gaiffas2005DegenerateDesignRates}).
+\end{assumption}
+
+\begin{assumption}[ass:base-mass]\label{ass:base-mass}
+\(q_t(x,h)\geq c_mh^\kappa\) for every \(x\in B\), \(t\in\{0,1\}\), and \(0<h\leq h_0\).
+\par\smallskip\noindent\emph{Novel.} Polynomial one-sided depletion occurs when a bivariate score density behaves as \(|r|^{\kappa-2}\) transverse to an eligibility boundary; the normalized flat densities give concrete examples.
+\end{assumption}
+
+\begin{assumption}[ass:isolated-thin-site]\label{ass:isolated-thin-site}
+\(J_P(h,C_mh^\kappa)\geq1\) for every \(0<h\leq h_0\).
+\par\smallskip\noindent\emph{Novel.} A threshold-thin site models a localized geographic or administrative support bottleneck.
+\end{assumption}
+
+\begin{assumption}[ass:isolated-envelope]\label{ass:isolated-envelope}
+\(J_P(h,u)\leq C_{\mathrm{iso}}\{1+h^{-1}(u/h^2)^{1/(\kappa-2)}\}\) whenever \(0<h\leq h_0\) and \(C_mh^\kappa\leq u\leq1\).
+\par\smallskip\noindent\emph{Novel.} A normalized radial-power density realizes the envelope because sites below a mass threshold occupy a centered interval.
+\end{assumption}
+
+\begin{assumption}[ass:pervasive-profile]\label{ass:pervasive-profile}
+\(J_P(h,C_mh^\kappa)\geq c_J/h\) for every \(0<h\leq h_0\).
+\par\smallskip\noindent\emph{Novel.} A density proportional to \(|r|^{\kappa-2}\) realizes transverse scarcity along the entire flat boundary.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:side-masses]\label{def:side-masses}
+\par\smallskip\noindent\emph{Defined object.} \texttt{One-\allowbreak{}sided ball masses}
+\par\smallskip\noindent\emph{Construction.} For \(x\in B\) and \(0<h\leq h_0\), set \(q_t(x,h)=P\{X\in A_t,\|X-x\|_2\leq h\}\) and \(a_P(x,h)=\min\{q_0(x,h),q_1(x,h)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{B}; \texttt{h0}.
+\end{definition}
+
+\begin{definition}[def:packing-profile]\label{def:packing-profile}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Thin-\allowbreak{}site packing profile}
+\par\smallskip\noindent\emph{Construction.} For \(0<h\leq h_0\) and \(u\in[0,\infty)\), set
+\(J_P(h,u)=\max\{|F|:F\subseteq\{x\in B:a_P(x,h)\leq u\},
+\|x-x'\|_2\geq h\text{ for distinct }x,x'\in F\}\), with value zero for an
+empty thin set.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{B}; \texttt{aP}.
+\end{definition}
+
+\begin{definition}[def:base-class]\label{def:base-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Base polynomial-\allowbreak{}thickness causal class}
+\par\smallskip\noindent\emph{Construction.} \(\mathrm{Base}_\kappa=\{P:P\text{ satisfies }\mathsf A_{\mathrm{sharp}},\mathsf A_{\mathrm{cons}},\mathsf A_{\mathrm{Lip}},\mathsf A_{\mathrm{env}},\mathsf A_{\mathrm{subG}},\mathsf A_{\mathrm{mass}}\text{ at }\kappa\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}sharp-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}causal-\allowbreak{}mean-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}trace-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}subgaussian-\allowbreak{}errors}; \texttt{ass:\allowbreak{}base-\allowbreak{}mass}.
+\end{definition}
+
+\begin{definition}[def:isolated-class]\label{def:isolated-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Isolated-\allowbreak{}thinning class}
+\par\smallskip\noindent\emph{Construction.} \(\mathrm{Iso}_\kappa=\{P\in\mathrm{Base}_\kappa:P\text{ satisfies }\mathsf A_{\mathrm{one}}\text{ and }\mathsf A_{\mathrm{iso}}\text{ for every displayed }h,u\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}sharp-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}causal-\allowbreak{}mean-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}trace-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}subgaussian-\allowbreak{}errors}; \texttt{ass:\allowbreak{}base-\allowbreak{}mass}; \texttt{ass:\allowbreak{}isolated-\allowbreak{}thin-\allowbreak{}site}; \texttt{ass:\allowbreak{}isolated-\allowbreak{}envelope}.
+\end{definition}
+
+\begin{definition}[def:pervasive-class]\label{def:pervasive-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pervasive-\allowbreak{}thinning class}
+\par\smallskip\noindent\emph{Construction.} \(\mathrm{Perv}_\kappa=\{P\in\mathrm{Base}_\kappa:P\text{ satisfies }\mathsf A_{\mathrm{perv}}\text{ for every displayed }h\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}sharp-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}causal-\allowbreak{}mean-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}trace-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}subgaussian-\allowbreak{}errors}; \texttt{ass:\allowbreak{}base-\allowbreak{}mass}; \texttt{ass:\allowbreak{}pervasive-\allowbreak{}profile}.
+\end{definition}
+
+\begin{definition}[def:flat-densities]\label{def:flat-densities}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Normalized flat score witnesses}
+\par\smallskip\noindent\emph{Construction.} With \(\alpha=\kappa-2\), set \(Z_\alpha=\int_D\min\{1,\sqrt{r^2+s^2}\}^{\alpha}drds=4-V_{\mathrm{disk}}\alpha/(\alpha+2)\), \(f_{\mathrm{perv},\alpha}(r,s)=(\alpha+1)|r|^\alpha/4\), and \(f_{\mathrm{iso},\alpha}(r,s)=\min\{1,\sqrt{r^2+s^2}\}^{\alpha}/Z_\alpha\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{kappa}; \texttt{D}.
+\end{definition}
+
+\begin{definition}[def:mass-and-tent-coefficients]\label{def:mass-and-tent-coefficients}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mass and tent coefficients}
+\par\smallskip\noindent\emph{Construction.} Set \(C_\alpha=((\alpha+1)/2)\int_0^1w^\alpha\sqrt{1-w^2}dw\), \(D_\alpha=V_{\mathrm{disk}}/\{(\alpha+2)Z_\alpha\}\), \(Q_{\mathrm{perv},\alpha}=4C_\alpha/\{(\alpha+3)(\alpha+4)\}\), and \(Q_{\mathrm{iso},\alpha}=4D_\alpha/\{(\alpha+3)(\alpha+4)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{alpha}; \texttt{Zalpha}; \texttt{VDisk}.
+\end{definition}
+
+\begin{definition}[def:gaussian-tents]\label{def:gaussian-tents}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Causal Gaussian tent experiments}
+\par\smallskip\noindent\emph{Construction.} For \(0<h\leq\min\{h_0,1/3\}\), choose \(3h\)-separated \(x_j\in B\), set \(\psi_{j,h}(z)=(1-\|z-x_j\|_2/h)_+\) and \(a_{\mathrm{tent}}=Lh/4\). Let \(Z_0,Z_1\) be independent standard Gaussians independent of \(X\), set \(T=\mathbf1\{R\geq0\}\) and \(Y=TY(1)+(1-T)Y(0)\). The baseline laws use the corresponding flat density and \(Y(t)=\sigma Z_t\); each tent law instead uses \(Y(1)=a_{\mathrm{tent}}\psi_{j,h}(X)+\sigma Z_1\) and \(Y(0)=-a_{\mathrm{tent}}\psi_{j,h}(X)+\sigma Z_0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{fPerv}; \texttt{fIso}; \texttt{L}; \texttt{sigma}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:profile-adaptive-estimator]\label{def:profile-adaptive-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total global-\allowbreak{}bandwidth empirical-\allowbreak{}severity-\allowbreak{}net estimator}
+\par\smallskip\noindent\emph{Construction.} Put \(m=n_1\) and \(\ell_n=\log(en)\), and split the observations into \(I_1\) and \(I_2\).  Let
+\[
+ H_n=\{h_02^{-j}:0\leq j\leq\lceil\log_2n\rceil\},
+ \qquad
+ U_n=\{0,1\}\cup
+ \{2^{-\ell}:0\leq\ell\leq\lceil\log_2(m\vee1)\rceil\}.
+\]
+On \(I_1\), set
+\[
+ \widehat q^{(1)}_t(x,h)
+ =(m\vee1)^{-1}\sum_{i\in I_1}
+ \mathbf 1\{X_i\in A_t,\ \|X_i-x\|_2\leq h\},
+ \qquad
+ b_n(v)=\sqrt{\frac{12v\ell_n}{m\vee1}}
+       +\frac{20\ell_n}{m\vee1},
+\]
+\[
+ q^U_t(x,h)=\min\{1,\widehat q^{(1)}_t(x,h)+b_n(\widehat q^{(1)}_t(x,h))\},
+ \quad
+ q^L_t(x,h)=\max\{0,\widehat q^{(1)}_t(x,h)-b_n(\widehat q^{(1)}_t(x,h))\},
+\]
+and \(a^U(x,h)=\min_tq^U_t(x,h)\), \(a^L(x,h)=\min_tq^L_t(x,h)\).
+
+For \(h\in H_n\), form the source-labeled list consisting of
+\((-1/2,0,0)\), \((1/2,0,1)\), and every
+\[
+ \left(S_i+e\sqrt{h^2-R_i^2},i,e\right),
+ \qquad i\in I_1,\quad e\in\{-1,1\},
+\]
+for which \(|R_i|\leq h\) and
+\(S_i+e\sqrt{h^2-R_i^2}\in[-1/2,1/2]\).
+Sort lexicographically by boundary coordinate, then by \(i\), then by \(e\),
+and at repeated coordinates retain the least source label.  Write the
+remaining coordinates as
+\(-1/2=z_0<\cdots<z_M=1/2\), and set
+\[
+ C_1(h)=((0,z_0),\ldots,(0,z_M)).
+\]
+Put \(M_h=\lceil16/h\rceil\), sort the union
+\[
+ \{z_0,\ldots,z_M\}\cup
+ \{-1/2+j/M_h:0\leq j\leq M_h\}
+\]
+as \(-1/2=w_0<\cdots<w_Q=1/2\), and define
+\[
+ G_1(h)=\{(0,w_j):0\leq j\leq Q\}
+ \cup
+ \left\{\left(0,\frac{w_j+w_{j+1}}2\right):0\leq j<Q\right\}.
+\]
+For \(x=(0,s)\in B\), define \(g_h(x)=x\) if \(s=w_j\) for some \(j\);
+otherwise, for the unique \(j\) with \(w_j<s<w_{j+1}\), define
+\[
+ g_h(x)=\left(0,\frac{w_j+w_{j+1}}2\right).
+\]
+
+For \(v\geq0\), let \(u(v)\) be the smallest element of \(U_n\) at least
+\(\min\{1,v\}\), and set
+\[
+ \widehat J(h,v)=1\vee\max\left\{|F|:
+ \begin{array}{l}
+ F\subseteq G_1(h),\\
+ \|x-x'\|_2\geq h/2\ \text{for distinct }x,x'\in F,\\
+ a^U(x,h)\leq u(v)\ \text{for every }x\in F
+ \end{array}\right\}.
+\]
+Define the empirical lower-mass severity for every \(x\in B\), through its representative, by
+\[
+ \widehat u(x,h)=
+ \begin{cases}
+ 0,&a^L(g_h(x),h)=0,\\
+ \min\{v\in U_n\setminus\{0\}:v\geq a^L(g_h(x),h)\},&a^L(g_h(x),h)>0.
+ \end{cases}
+\]
+For \(v\in U_n\), let
+\(\mathcal G_1(h,v)=\{g\in G_1(h):\widehat u(g,h)=v\}\).
+Scan \(\mathcal G_1(h,v)\) in increasing boundary-coordinate order and
+retain a point if and only if its distance from every previously retained
+point is at least \(h\).  The retained ordered set is
+\(\mathcal A_1(h,v)\).  For \(x\in B\), put \(g=g_h(x)\) and
+\(v=\widehat u(g,h)\), and let \(\gamma_1(x,h)\) be the first point of
+\(\mathcal A_1(h,v)\) within distance strictly less than \(h\) of \(g\),
+with \(g\) itself used when it is an anchor.
+
+For \(g\in G_1(h)\), put
+\[
+ Z_n(g,h)=1+\log\!\left[
+ e\widehat J\!\left(
+ h,128\left\{\widehat u(g,h)+\frac{\ell_n}{m\vee1}\right\}\right)\right].
+\]
+Call \(h\) admissible if
+\[
+ n_2a^L(g,h)\geq2^{14}Z_n(g,h)
+ \quad\text{for every }g\in G_1(h).
+\]
+Set
+\[
+ \widehat V(h)=
+ \begin{cases}
+ Lh+16\sigma\displaystyle\max_{g\in G_1(h)}
+ \sqrt{\dfrac{Z_n(g,h)}{n_2a^L(g,h)}},
+ &h\ \text{is admissible},\\[2ex]
+ +\infty,&h\ \text{is not admissible}.
+ \end{cases}
+\]
+If at least one bandwidth is admissible, let \(\widehat h\) be the smallest
+minimizer of \(\widehat V(h)\) over \(h\in H_n\); otherwise put
+\(\widehat h=h_0\).
+
+On \(I_2\), for \(a\in B\), define
+\[
+ N^{(2)}_t(a,h)=\sum_{i\in I_2}
+ \mathbf1\{X_i\in A_t,\ \|X_i-a\|_2\leq h\},
+\]
+\[
+ \widetilde Y^{(2)}_t(a,h)=
+ \begin{cases}
+ 0,&N^{(2)}_t(a,h)=0,\\[1ex]
+ \dfrac{\sum_{i\in I_2}Y_i
+ \mathbf1\{X_i\in A_t,\ \|X_i-a\|_2\leq h\}}
+ {N^{(2)}_t(a,h)},&N^{(2)}_t(a,h)>0,
+ \end{cases}
+\quad
+ \overline Y^{(2)}_t(a,h)=\Pi_L(\widetilde Y^{(2)}_t(a,h)).
+\]
+The fixed-bandwidth anchor extension and the final estimator are
+\[
+ \widehat\tau_{n,h}(x)=
+ \Pi_{2L}\!\left[
+ \overline Y^{(2)}_1(\gamma_1(x,h),h)
+ -\overline Y^{(2)}_0(\gamma_1(x,h),h)\right],
+ \qquad
+ \widehat\tau_n(x)=\widehat\tau_{n,\widehat h}(x).
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{n}; \texttt{B}; \texttt{h0}; \texttt{L}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:regular-design-class]\label{def:regular-design-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Regular side-\allowbreak{}mass design class}
+\par\smallskip\noindent\emph{Construction.} For \(c_{\mathrm{reg}}>0\), define
+\[
+ \mathrm{Reg}(c_{\mathrm{reg}})=
+ \left\{P\in\bigcup_{\kappa\in K}\mathrm{Base}_\kappa:
+ \inf_{\substack{x\in B\\0<h\leq h_0}}
+ \frac{a_P(x,h)}{h^2}\geq c_{\mathrm{reg}}\right\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{cReg}; \texttt{K}; \texttt{BaseKappa}; \texttt{B}; \texttt{h0}; \texttt{aP}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:flat-witness-validity]\label{prop:flat-witness-validity}
+For every \(\kappa\in K\), the Cartesian formulas define Borel score laws with support \(D\). With \(c_m=2^{-(\bar\kappa-2)-5}\), \(C_m=2^{\bar\kappa-2}+1\), \(c_J=1\), and \(C_{\mathrm{iso}}=5+4\cdot8^{1/\epsilon}\), \(P^{0,\mathrm{iso}}\in\mathrm{Iso}_\kappa\) and \(P^{0,\mathrm{perv}}\in\mathrm{Perv}_\kappa\). For every \(x=(0,s_0)\in B\) and \(0<h\leq h_0\), \(2^{-\alpha-3}h^\kappa\leq q_t^{\mathrm{perv}}(x,h)\leq h^\kappa/2\), \(q_t^{\mathrm{iso}}(x,h)\geq2^{-\alpha-5}h^\kappa\), and \(q_t^{\mathrm{iso}}(x,h)\leq2^\alpha h^2(|s_0|+h)^\alpha\); when \(|s_0|\geq2h\), also \(q_t^{\mathrm{iso}}(x,h)\geq2^{-\alpha-3}h^2|s_0|^\alpha\). At the origin, \(q_t^{\mathrm{iso}}(0,h)=D_\alpha h^\kappa\), and the isolated packing envelope holds for every admissible \(u\), including \(u=1\). Every tent law is a Borel causal law in the same profile class, obeys consistency, has \(L\)-Lipschitz means, and separates \(\tau_P\) from the baseline by \(Lh/2\) at its active center. The squared-tent identities are \(\int_D\psi_{j,h}^2f_{\mathrm{perv},\alpha}=Q_{\mathrm{perv},\alpha}h^\kappa\) and \(\int_D\psi_{0,h}^2f_{\mathrm{iso},\alpha}=Q_{\mathrm{iso},\alpha}h^\kappa\). Hence \(\mathrm{KL}((P^{j,h,\mathrm{perv}}_{\mathrm{obs}})^{\otimes n},(P^{0,\mathrm{perv}}_{\mathrm{obs}})^{\otimes n})=nL^2Q_{\mathrm{perv},\alpha}h^{\kappa+2}/(32\sigma^2)\), with the isolated coefficients at the centered site. Constants are uniform over \(K\). At \(\kappa=3\), \(Q_{\mathrm{perv},1}=1/15\) and the divergence is \(nL^2h^5/(480\sigma^2)\).
+\end{proposition}
+\begin{proof}
+Put \(A=\bar\kappa-2\).  By the exponent-window assumption,
+\[
+ \epsilon\leq \alpha=\kappa-2\leq A.
+\]
+We first verify the two score laws.  Direct Cartesian integration gives
+\[
+ \int_D \frac{\alpha+1}{4}|r|^\alpha\,dr\,ds
+ =\frac{\alpha+1}{4}\frac{2}{\alpha+1}\,2=1.
+\]
+The number \(V_{\mathrm{disk}}\) is the Lebesgue area of the unit disk, by its
+vertical-slice definition.  For \(0\leq \rho\leq1\), the identity
+\(1-\rho^\alpha=\int_\rho^1\alpha t^{\alpha-1}\,dt\), nonnegative integration,
+and the linear scaling of area yield
+\[
+\begin{aligned}
+ 4-Z_\alpha
+ &=\int_{\{z:\|z\|_2\leq1\}}(1-\|z\|_2^\alpha)\,dz\\
+ &=\int_0^1\alpha t^{\alpha-1}
+       \operatorname{Leb}\{z:\|z\|_2\leq t\}\,dt\\
+ &=V_{\mathrm{disk}}\int_0^1\alpha t^{\alpha+1}\,dt
+ =V_{\mathrm{disk}}\frac{\alpha}{\alpha+2}.
+\end{aligned}
+\]
+Thus the asserted formula for \(Z_\alpha\) is exact.  Moreover, the integrand
+defining \(Z_\alpha\) is at most one, while on
+\(\{(r,s)\in D:|r|\geq1/2\}\), a set of area two, it is at least
+\(2^{-\alpha}\).  Consequently
+\[
+ 2^{1-\alpha}\leq Z_\alpha\leq4.
+ \tag{1}
+\]
+Both displayed densities are therefore nonnegative Borel functions of integral
+one.  Each is positive away respectively from the line \(r=0\) or the single
+point \((0,0)\); every nonempty relatively open subset of \(D\) contains a
+positive-Lebesgue-measure subset on which the corresponding density is positive.
+Hence both score laws have support \(D\).
+
+Fix \(x=(0,s_0)\in B\) and \(0<h\leq h_0\).  Since
+\(|s_0|\leq1/2\) and \(h_0\leq1/8\), the entire Euclidean ball of radius \(h\)
+about \(x\) lies in \(D\), and every point in that ball has norm at most
+\(|s_0|+h\leq5/8\).  Reflection in the line \(r=0\) shows that the two
+one-sided masses agree for either score density; the convention at \(r=0\) is
+irrelevant because both laws are absolutely continuous.
+
+For the pervasive density, vertical Cartesian slices give, for either
+\(t\in\{0,1\}\),
+\[
+ q_t^{\mathrm{perv}}(x,h)
+ =\frac{\alpha+1}{2}\int_0^h r^\alpha\sqrt{h^2-r^2}\,dr
+ =C_\alpha h^{\alpha+2}=C_\alpha h^\kappa.
+ \tag{2}
+\]
+The half-ball contains the rectangle with
+\(0\leq |r|\leq h/2\) on the relevant side and
+\(|s-s_0|\leq h/2\).  It is contained in the rectangle with
+\(0\leq |r|\leq h\) and \(|s-s_0|\leq h\).  Integrating the pervasive density
+over these rectangles gives
+\[
+ \frac{\alpha+1}{4}h\int_0^{h/2}r^\alpha\,dr
+ =2^{-\alpha-3}h^\kappa
+ \leq q_t^{\mathrm{perv}}(x,h)
+ \leq \frac{\alpha+1}{4}(2h)\int_0^h r^\alpha\,dr
+ =\frac12h^\kappa.
+ \tag{3}
+\]
+These rectangles remain inside \(D\) at both endpoints of \(B\).
+
+For the isolated density, consider on the relevant side the rectangle
+\(h/2\leq |r|\leq3h/4\), \(|s-s_0|\leq h/4\).  Its area is \(h^2/8\), it lies
+in the radius-\(h\) ball because \((3/4)^2+(1/4)^2<1\), and its points have
+norm at least \(h/2\).  Using \(Z_\alpha\leq4\) from (1),
+\[
+ q_t^{\mathrm{iso}}(x,h)
+ \geq \frac1{Z_\alpha}\frac{h^2}{8}\left(\frac h2\right)^\alpha
+ \geq2^{-\alpha-5}h^\kappa.
+ \tag{4}
+\]
+Conversely, the relevant half-ball is contained in a rectangle of area
+\(2h^2\), and throughout that rectangle intersected with the ball its norm is
+at most \(|s_0|+h\).  The lower bound on \(Z_\alpha\) in (1) therefore gives
+\[
+ q_t^{\mathrm{iso}}(x,h)
+ \leq 2^{\alpha-1}\,2h^2(|s_0|+h)^\alpha
+ =2^\alpha h^2(|s_0|+h)^\alpha.
+ \tag{5}
+\]
+If \(|s_0|\geq2h\), use instead the rectangle
+\(0\leq|r|\leq h/2\), \(|s-s_0|\leq h/2\), of area \(h^2/2\).  On it,
+\(\|z\|_2\geq |s_0|-h/2\geq |s_0|/2\).  Again using
+\(Z_\alpha\leq4\),
+\[
+ q_t^{\mathrm{iso}}(x,h)
+ \geq\frac14\frac{h^2}{2}left(\frac{|s_0|}{2}\right)^\alpha
+ =2^{-\alpha-3}h^2|s_0|^\alpha.
+ \tag{6}
+\]
+
+At the origin the clipping in the density is inactive on the ball.  The
+preceding nonnegative-integral calculation on the unit disk also gives
+\[
+ \int_{\{\|z\|_2\leq1\}}\|z\|_2^\alpha\,dz
+ =V_{\mathrm{disk}}-V_{\mathrm{disk}}\frac{\alpha}{\alpha+2}
+ =\frac{2V_{\mathrm{disk}}}{\alpha+2}.
+\]
+Linear scaling by \(h\) and reflection across \(r=0\) now imply
+\[
+ q_t^{\mathrm{iso}}(0,h)
+ =\frac{V_{\mathrm{disk}}}{(\alpha+2)Z_\alpha}h^{\alpha+2}
+ =D_\alpha h^\kappa.
+ \tag{7}
+\]
+
+We next verify the class constants.  Since \(\alpha\leq A\), (3)--(4) imply
+for both score laws
+\[
+ q_t(x,h)\geq 2^{-A-5}h^\kappa=c_mh^\kappa.
+ \tag{8}
+\]
+For the pervasive law, (3) and
+\(C_m=2^A+1>1/2\) show that every site of \(B\) is thin at level
+\(C_mh^\kappa\).  The points
+\(s_j=-1/2+jh\), \(0\leq j\leq\lfloor1/h\rfloor\), form an
+\(h\)-separated subset of \([-1/2,1/2]\), while no such subset has more than
+\(\lfloor1/h\rfloor+1\) points.  Hence
+\[
+ J_{P^{0,\mathrm{perv}}}(h,C_mh^\kappa)
+ =\lfloor1/h\rfloor+1\geq h^{-1}=c_Jh^{-1}.
+ \tag{9}
+\]
+For the isolated law, (5) at \(s_0=0\) gives
+\(q_t^{\mathrm{iso}}(0,h)\leq2^\alpha h^\kappa<C_mh^\kappa\), so the origin is
+a thin site for every admitted \(h\).
+
+It remains to prove the full isolated profile rather than only its thinnest
+level.  Let \(u\geq0\) and suppose
+\(a_{P^{0,\mathrm{iso}}}((0,s_0),h)\leq u\).  The two side masses are equal, so
+(6) shows that either \(|s_0|<2h\), or
+\[
+ |s_0|\leq 2\,8^{1/\alpha}left(\frac{u}{h^2}\right)^{1/\alpha}.
+\]
+Thus the thin set is contained in the centered interval of radius
+\[
+ R=2h+2\,8^{1/\alpha}left(\frac{u}{h^2}\right)^{1/\alpha}.
+\]
+An \(h\)-separated subset of an interval of radius \(R\) has cardinality at
+most \(1+2R/h\).  Since \(\alpha\geq\epsilon\), it follows that
+\[
+\begin{aligned}
+ J_{P^{0,\mathrm{iso}}}(h,u)
+ &\leq5+4\,8^{1/\alpha}h^{-1}
+       \left(\frac{u}{h^2}\right)^{1/\alpha}\\
+ &\leq \left(5+4\,8^{1/\epsilon}\right)
+   \left\{1+h^{-1}\left(\frac{u}{h^2}\right)^{1/\alpha}\right\}.
+\end{aligned}
+ \tag{10}
+\]
+This derivation holds for every \(u\geq0\), so in particular it holds for every
+required \(C_mh^\kappa\leq u\leq1\), including \(u=1\).  Equations (8)--(10),
+together with the definitions of the base, isolated, and pervasive classes,
+establish all score-law membership conditions with the constants in the claim.
+
+We now construct the full-data laws.  For either score density, take the product
+of its Borel probability measure with two independent standard Gaussian
+measures, let \(X,Z_0,Z_1\) be the coordinate maps, and apply the Borel maps in
+the Gaussian-tent definition to obtain \(T,Y(0),Y(1),Y\).  This gives a Borel
+causal law and gives sharp assignment and consistency pointwise.  Write \(P^0\)
+for the corresponding baseline law and \(P^{j,h}\) for its tent law at \(x_j\).
+Under a baseline law, \(m_{0,P}=m_{1,P}=0\).  Under a tent law,
+\[
+ m_{1,P}(z)=a_{\mathrm{tent}}\psi_{j,h}(z),\qquad
+ m_{0,P}(z)=-a_{\mathrm{tent}}\psi_{j,h}(z).
+ \tag{11}
+\]
+The distance map is one-Lipschitz and the positive-part map is one-Lipschitz;
+hence \(\psi_{j,h}\) is \(h^{-1}\)-Lipschitz.  Because
+\(a_{\mathrm{tent}}=Lh/4\), both means in (11) are \(L/4\)-Lipschitz, and their
+boundary traces have absolute value at most
+\(a_{\mathrm{tent}}\leq Lh_0/4\leq L/32<L\).  Conditional on \((X,T)\), the
+centered observed error is
+\(\sigma\{TZ_1+(1-T)Z_0\}\), so for every \(\lambda\in\mathbb R\),
+\[
+ E\!\left[\exp\!\left(\lambda\sigma\{TZ_1+(1-T)Z_0\}\right)\mid X,T\right]
+ =\exp(\sigma^2\lambda^2/2).
+ \tag{12}
+\]
+Thus every baseline and tent law satisfies the smoothness, envelope, and
+sub-Gaussian requirements.  Tents change no score marginal, so (8)--(10) put
+each tent law in the same profile class as its baseline.  At its active center
+\(x_j\), (11) gives
+\[
+ \|\tau_{P^{j,h}}-\tau_{P^0}\|_\infty
+ \geq \tau_{P^{j,h}}(x_j)-\tau_{P^0}(x_j)
+ =2a_{\mathrm{tent}}=Lh/2.
+ \tag{13}
+\]
+
+For completeness, we compute the squared-tent integrals without circular
+coordinates.  Let \(d(z)=\|z-x_j\|_2\) and let \(\mu_{\mathrm{perv}}\) denote
+the pervasive score law.  By (2), for \(0\leq t\leq h\),
+\[
+ \mu_{\mathrm{perv}}\{d(X)\leq t\}=2C_\alpha t^\kappa.
+\]
+The elementary identity
+\[
+ (1-d/h)_+^2=\int_d^h\frac2h(1-t/h)\,dt
+\]
+(with the integral interpreted as zero when \(d>h\)) and nonnegative
+integration give
+\[
+\begin{aligned}
+ \int_D\psi_{j,h}^2 f_{\mathrm{perv},\alpha}
+ &=\int_0^h\frac2h(1-t/h)\,2C_\alpha t^\kappa\,dt\\
+ &=\frac{4C_\alpha}{(\kappa+1)(\kappa+2)}h^\kappa
+ =Q_{\mathrm{perv},\alpha}h^\kappa,
+\end{aligned}
+ \tag{14}
+\]
+because \(\kappa+1=\alpha+3\) and \(\kappa+2=\alpha+4\).  At the centered
+isolated site, (7) similarly gives
+\(\mu_{\mathrm{iso}}\{\|X\|_2\leq t\}=2D_\alpha t^\kappa\), and the same
+calculation yields
+\[
+ \int_D\psi_{0,h}^2 f_{\mathrm{iso},\alpha}
+ =Q_{\mathrm{iso},\alpha}h^\kappa.
+ \tag{15}
+\]
+
+Finally, under a tent law the conditional observed mean relative to its baseline
+is \(\mu_j(X,T)=(2T-1)a_{\mathrm{tent}}\psi_{j,h}(X)\).  Direct expansion of
+the logarithm of the two equal-variance Gaussian densities gives conditional
+Kullback--Leibler divergence \(\mu_j(X,T)^2/(2\sigma^2)\).  Since the score laws
+are identical, (14) and \(a_{\mathrm{tent}}^2=L^2h^2/16\) imply
+\[
+ \operatorname{KL}(P^{j,h,\mathrm{perv}}_{\mathrm{obs}},
+                    P^{0,\mathrm{perv}}_{\mathrm{obs}})
+ =\frac{L^2Q_{\mathrm{perv},\alpha}}{32\sigma^2}h^{\kappa+2}.
+\]
+The log likelihood ratio for an independent product is the sum of its
+one-observation log likelihood ratios.  Taking expectations therefore gives
+\[
+ \operatorname{KL}\!\left((P^{j,h,\mathrm{perv}}_{\mathrm{obs}})^{\otimes n},
+ (P^{0,\mathrm{perv}}_{\mathrm{obs}})^{\otimes n}\right)
+ =\frac{nL^2Q_{\mathrm{perv},\alpha}}{32\sigma^2}h^{\kappa+2}.
+ \tag{16}
+\]
+Replacing (14) by (15) proves the centered isolated formula.
+
+All displayed constants are uniform on the exponent window.  Indeed, (1),
+(3), (4), and (7) bound \(Z_\alpha,C_\alpha,D_\alpha\) above and away from zero
+using only \(\epsilon\) and \(A\); division by
+\((\alpha+3)(\alpha+4)\) does the same for both \(Q\)-coefficients.  The class
+constants themselves are the fixed values \(2^{-A-5}\), \(2^A+1\), \(1\), and
+\(5+4\cdot8^{1/\epsilon}\).  At \(\kappa=3\), one has \(\alpha=1\) and
+\[
+ C_1=\int_0^1w\sqrt{1-w^2}\,dw=\frac13,
+ \qquad Q_{\mathrm{perv},1}=\frac{4(1/3)}{4\cdot5}=\frac1{15}.
+\]
+Substitution into (16) gives exactly
+\(nL^2h^5/(480\sigma^2)\), completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This attributed supporting result records the normalized witness and divergence calculation from the banked \(\texttt{stat\_bdd\_thickness\_estimability\_frontier}\) analysis. \textit{Gap.} No separate novelty is claimed for the witness; it certifies that the endpoint classes used by the oracle theorem are nonempty causal-law classes. \textit{Consumer.} It supplies auditable class-membership and information checks for the estimator theorem.
+
+\begin{theorem}[thm:profile-adaptive-estimator]\label{thm:profile-adaptive-estimator}
+The total anchor-extension estimator \(\widehat\tau_n\) is jointly Borel measurable in the sample and \(x\in B\), is defined on zero-count samples and when no bandwidth is admissible, and uses neither \(\kappa\) nor the profile class.  There are finite constants \(C_0,C\), depending only on the fixed class constants and uniform over \(\kappa\in K\), such that, for \(n\geq2\) and \(P\in\mathrm{Base}_\kappa\),
+\[
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C\inf_{h\in H_n}\sup_{x\in B}
+ \left[
+ Lh+\sigma\sqrt{
+ \frac{1+\log\!\left(
+ e\left\{1\vee J_P\!\left(h,\min\{1,C_0a_P(x,h)\}\right)\right\}
+ \right)}
+ {n a_P(x,h)}}\right]
+ +C(L+\sigma)\frac{\log^2(en)}{n}.
+\]
+The selected bandwidth \(\widehat h\in H_n\) is a single \(I_1\)-measurable global bandwidth, and the same \(\widehat h\) is used at every \(x\in B\).
+\end{theorem}
+\begin{proof}
+Let \(\mathcal E_n\) be the first-half event supplied by
+\(\mathrm{lem{:}empirical\text{-}packing\text{-}comparison\text{-}same\text{-}radius}\).
+Uniformly over the declared union of base classes,
+\[
+ P(\mathcal E_n^c)\leq Cn^{-3}.
+ \tag{T1}
+\]
+All lists and grids in the estimator are finite.  The measurability part of
+that lemma makes the source-labeled sorting, refined grid, and representative
+map Borel.  Dyadic severity rounding, the ordered greedy scan, the
+first-covering-anchor rule, finite maximization over \(G_1(h)\), and
+smallest-minimizer selection over the finite set \(H_n\) use finitely many
+Borel comparisons and arithmetic operations.  Second-half counts and sums
+are Borel, their zero-count branches are explicit, and both projections are
+continuous.  Hence
+\((O_1,\ldots,O_n,x)\mapsto\widehat\tau_n(x)\) is jointly Borel.  For each
+sample, it is constant on finitely many open boundary cells with explicitly
+assigned endpoints.  Since \(\tau_P\) is continuous on \(B\) by the
+Lipschitz assumption, its supremum loss is the supremum over rational points
+in those cells together with the finitely many endpoints, and is therefore
+measurable.  The displayed zero-count and no-admissible-bandwidth clauses
+make the estimator total.  Inspection of its construction shows that it
+contains neither \(\kappa\) nor a profile-class label.
+
+For \(h\in H_n\), define
+\[
+ z_P(x,h)=1+\log\!\left(
+ e\{1\vee J_P(h,\min\{1,C_0a_P(x,h)\})\}\right)
+\]
+and
+\[
+ V_P(h)=\sup_{x\in B}\left[
+ Lh+\sigma\sqrt{\frac{z_P(x,h)}{na_P(x,h)}}\right],
+ \qquad
+ \mathcal R_P=\min_{h\in H_n}V_P(h).
+ \tag{T2}
+\]
+The base-mass assumption gives
+\(a_P(x,h)\geq c_mh^\kappa>0\), while an \(h\)-separated subset of the
+unit-length segment \(B\) is finite.  Thus every division and logarithm in
+\((\mathrm{T2})\) is well defined, and the minimum is attained.  Choose
+\(C_0\) no smaller than the numerical population-threshold constant in
+\(\mathrm{lem{:}empirical\text{-}severity\text{-}net\text{-}extension}\).
+
+We first compare criteria in the informative regime.  Suppose
+\[
+ n_1\inf_{x\in B}a_P(x,h)\geq C\log(en).
+ \tag{T3}
+\]
+On \(\mathcal E_n\), equation \((\mathrm{P3})\) of the packing lemma, the
+exact empirical-pattern identity at \(x\) and \(g_h(x)\), and the second
+conclusion of the severity-net lemma imply, for every \(x\in B\),
+\[
+ a^L(g_h(x),h)\geq\tfrac12a_P(x,h),
+ \qquad
+ Z_n(g_h(x),h)\leq C z_P(x,h).
+ \tag{T4}
+\]
+Here monotonicity of \(J_P(h,\cdot)\) justifies replacing the constant in
+the severity-net lemma by \(C_0\).  Every \(g\in G_1(h)\) is its own
+representative.  Therefore, if \((\mathrm{T3})\) holds and the resulting
+lower bounds also imply admissibility, maximizing \((\mathrm{T4})\) over
+\(g\in G_1(h)\) gives
+\[
+ \widehat V(h)\leq C V_P(h).
+ \tag{T5}
+\]
+
+Let \(h_\star\) minimize \((\mathrm{T2})\), put
+\(\ell=\log(en)\), and first suppose that
+\[
+ \mathcal R_P<c_\star\sigma/\sqrt\ell,
+ \tag{T6}
+\]
+where \(c_\star>0\) is a sufficiently small numerical constant.  The
+variance term at \(h_\star\) is at most \(\mathcal R_P\), and
+\(z_P(x,h_\star)\geq1\), so
+\[
+ \frac{na_P(x,h_\star)}{z_P(x,h_\star)}
+ \geq\frac{\sigma^2}{\mathcal R_P^2}
+ >c_\star^{-2}\ell,
+ \qquad x\in B.
+ \tag{T7}
+\]
+For \(n\geq2\), both \(n_1\) and \(n_2\) are fixed positive fractions of
+\(n\), up to numerical constants.  Taking \(c_\star\) sufficiently small,
+\((\mathrm{T7})\) implies \((\mathrm{T3})\); then \((\mathrm{T4})\) gives
+\[
+ \frac{n_2a^L(g,h_\star)}{Z_n(g,h_\star)}
+ \geq c\frac{na_P(g,h_\star)}{z_P(g,h_\star)}
+ \geq2^{14},\qquad g\in G_1(h_\star).
+\]
+Thus \(h_\star\) is admissible, and the definition of the smallest
+minimizer together with \((\mathrm{T5})\) yields
+\[
+ \widehat V(\widehat h)\leq\widehat V(h_\star)
+ \leq C\mathcal R_P
+ \quad\text{on }\mathcal E_n.
+ \tag{T8}
+\]
+
+The complementary regime requires no additional law condition.  Suppose
+\(\mathcal R_P\geq c_\star\sigma/\sqrt\ell\), and put
+\(\rho_n=(\ell^2/n)^{1/\kappa}\).  For all sufficiently large \(n\), the
+dyadic grid contains \(h_s\) such that
+\[
+ \rho_n\leq h_s<2\rho_n.
+ \tag{T9}
+\]
+Existence is uniform for \(\kappa\in K\): the exponent window is compact,
+\(\rho_n<h_0\) eventually, and \(\rho_n\) remains above the smallest grid
+point \(h_02^{-\lceil\log_2n\rceil}\).  The base-mass assumption gives
+\[
+ \inf_{x\in B}a_P(x,h_s)\geq c_mh_s^\kappa
+ \geq c_m\ell^2/n.
+ \tag{T10}
+\]
+On \(\mathcal E_n\), equation \((\mathrm{P3})\) applies for all large
+\(n\).  Independently of the law, an \(h_s/2\)-separated subset of the
+unit-length segment has at most \(1+2/h_s\) points.  Hence the definition of
+\(\widehat J\) gives
+\[
+ \max_{g\in G_1(h_s)}Z_n(g,h_s)
+ \leq C\log(e/h_s)\leq C\ell.
+ \tag{T11}
+\]
+Equations \((\mathrm{T10})\)--\((\mathrm{T11})\) imply
+\(n_2a^L(g,h_s)\geq c\ell^2\geq2^{14}Z_n(g,h_s)\) for every grid point,
+so \(h_s\) is admissible.  They also give
+\[
+ \widehat V(h_s)
+ \leq CL\rho_n+C\sigma/\sqrt\ell
+ \leq C\sigma/\sqrt\ell
+ \leq C\mathcal R_P.
+ \tag{T12}
+\]
+The penultimate inequality holds uniformly on
+\(K\subseteq[2+\epsilon,\bar\kappa]\), because
+\(n^{-1/\kappa}\ell^{2/\kappa+1/2}\to0\) uniformly on that compact window;
+its constant may depend on the fixed ratio \(L/\sigma\).  Minimization again
+gives \((\mathrm{T8})\).
+
+Consequently, for all sufficiently large \(n\), on \(\mathcal E_n\) at
+least one bandwidth is admissible.  On that event \(\widehat h\) is the
+ordinary smallest minimizer, is measurable with respect to \(I_1\), and the
+same selected bandwidth is used at every boundary point.
+
+Invoke the conditional conclusion of
+\(\mathrm{lem{:}empirical\text{-}severity\text{-}net\text{-}extension}\)
+at this single \(I_1\)-measurable bandwidth.  The event \(\mathcal E_n\) is
+also \(I_1\)-measurable, so the tower property and \((\mathrm{T8})\) yield
+\[
+ E_P\!\left[\|\widehat\tau_n-\tau_P\|_\infty
+ \mathbf1_{\mathcal E_n}\right]
+ \leq C\mathcal R_P.
+ \tag{T13}
+\]
+On \(\mathcal E_n^c\), the trace-envelope assumption and the two
+projections bound the loss by \(4L\).  Equations \((\mathrm{T1})\) and
+\((\mathrm{T13})\), together with
+\(n^{-3}\leq\log^2(en)/n\), therefore give
+\[
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C\mathcal R_P+C(L+\sigma)\frac{\log^2(en)}{n},
+\]
+which is precisely the asserted oracle inequality.  The minimization over
+\(h\) remains outside the supremum over \(x\) because the construction uses
+one global bandwidth.  For the finitely many sample sizes not covered by the
+admissibility argument, both the estimator and the target lie in
+\([-2L,2L]\), whereas \(\mathcal R_P\geq\sigma/\sqrt n\) because
+\(z_P\geq1\) and \(a_P\leq1\).  Enlarging \(C\), uniformly over \(K\),
+extends the same displayed inequality to every \(n\geq2\).  The explicit
+fallback \(\widehat h=h_0\) handles any no-admissible-bandwidth sample and
+is itself \(I_1\)-measurable.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corrected theorem proves the profile-sensitive \(\inf_h\sup_x\) risk bound for an explicit one-bandwidth anchor-extension estimator. \textit{Gap.} The former \(\sup_x\inf_h\) display was incompatible with one global bandwidth and relied on an unproved varying-radius maximal inequality. \textit{Consumer.} The result supplies a total, measurable, exponent-free estimator whose stochastic penalty is computable from first-half anchor multiplicities.
+
+\begin{theorem}[thm:exact-endpoint-minimax-lower-bounds]\label{thm:exact-endpoint-minimax-lower-bounds}
+There exist constants \(c>0\) and \(n_0\in\mathbb N\), depending only on the fixed class constants and the compact exponent window \(K\), such that, simultaneously for every \(\kappa\in K\) and every \(n\geq n_0\),
+\[
+ \inf_{\widetilde\tau_n}\sup_{P\in\mathrm{Iso}_\kappa}
+ E_P\|\widetilde\tau_n-\tau_P\|_\infty
+ \geq c n^{-1/(\kappa+2)}
+\]
+and
+\[
+ \inf_{\widetilde\tau_n}\sup_{P\in\mathrm{Perv}_\kappa}
+ E_P\|\widetilde\tau_n-\tau_P\|_\infty
+ \geq c\left(\frac{\log n}{n}\right)^{1/(\kappa+2)}.
+\]
+Each infimum is over all estimators \(\widetilde\tau_n\) based on \(O_1,\ldots,O_n\) whose coordinate map is jointly Borel on the observed sample space and \(B\), and for which the displayed supremum losses are measurable.  No bounded-range or continuity restriction is imposed on an estimator.
+\end{theorem}
+\begin{proof}
+Fix \(\kappa\in K\), \(n\geq2\), and an arbitrary estimator \(\widetilde\tau_n\) in the quantifier of the theorem.  We first remove any range issue without restricting that quantifier.  The trace-envelope assumption and \(\tau_P=\theta_{1,P}-\theta_{0,P}\) give
+\[
+ |\tau_P(x)|\leq2L,
+ \qquad x\in B,\qquad
+ P\in\mathrm{Iso}_\kappa\cup\mathrm{Perv}_\kappa.
+ \tag{L1}
+\]
+Define the pointwise clipped estimator
+\[
+ \widetilde\tau_n^{\mathrm c}(x)=\Pi_{2L}\!\left(\widetilde\tau_n(x)\right),
+ \qquad x\in B.
+ \tag{L2}
+\]
+The scalar projection onto \([-2L,2L]\) is Borel and satisfies
+\(|\Pi_{2L}(z)-a|\leq|z-a|\) for every \(a\in[-2L,2L]\).  Hence, by \((\mathrm{L1})\),
+\[
+ \|\widetilde\tau_n^{\mathrm c}-\tau_P\|_\infty
+ \leq\|\widetilde\tau_n-\tau_P\|_\infty
+ \tag{L3}
+\]
+for every law in either class.  It is therefore enough to lower-bound the risk of the bounded estimator \(\widetilde\tau_n^{\mathrm c}\); the same lower bound then holds for the original unrestricted estimator.
+
+Write \(A=\bar\kappa-2\).  The exponent-window assumption gives
+\[
+ \epsilon\leq\alpha=\kappa-2\leq A.
+ \tag{L4}
+\]
+The uniform-coefficient conclusion of
+\(\mathrm{prop{:}flat\text{-}witness\text{-}validity}\) implies
+\[
+ 0<\overline Q:=
+ \sup_{\alpha\in[\epsilon,A]}
+ \max\{Q_{\mathrm{iso},\alpha},Q_{\mathrm{perv},\alpha}\}<\infty.
+ \tag{L5}
+\]
+Set
+\[
+ A_\star=\frac{L^2\overline Q}{32\sigma^2}.
+ \tag{L6}
+\]
+
+We derive the two-experiment inequality needed below.  Let \(Q_0,Q_1\) be probability laws, let \(v_0,v_1\) lie in a metric space with \(\Delta=d(v_0,v_1)>0\), and let \(\widehat v\) be measurable.  Define
+\[
+ \phi=\mathbf1\{d(\widehat v,v_1)\leq d(\widehat v,v_0)\}.
+\]
+By the triangle inequality, \(d(\widehat v,v_0)\geq\Delta/2\) on \(\{\phi=1\}\) and \(d(\widehat v,v_1)\geq\Delta/2\) on \(\{\phi=0\}\).  Therefore
+\[
+ \max_{j\in\{0,1\}}E_{Q_j}d(\widehat v,v_j)
+ \geq\frac{\Delta}{4}
+ \{Q_0(\phi=1)+Q_1(\phi=0)\}
+ \geq\frac{\Delta}{4}\{1-\|Q_1-Q_0\|_{\mathrm{TV}}\}.
+ \tag{L7}
+\]
+When \(\operatorname{KL}(Q_1,Q_0)<\infty\), take densities \(p_0,p_1\) with respect to a common dominating measure and put \(\rho=\int\sqrt{p_0p_1}\).  Jensen's inequality under \(Q_1\) gives
+\[
+ \log\rho
+ =\log E_{Q_1}\sqrt{p_0/p_1}
+ \geq-\frac12\operatorname{KL}(Q_1,Q_0).
+ \tag{L8}
+\]
+Cauchy--Schwarz gives
+\[
+\begin{aligned}
+ \|Q_1-Q_0\|_{\mathrm{TV}}
+ &\leq\frac12
+ \left\{\int(\sqrt{p_1}-\sqrt{p_0})^2\right\}^{1/2}
+ \left\{\int(\sqrt{p_1}+\sqrt{p_0})^2\right\}^{1/2}\\
+ &=\sqrt{1-\rho^2}.
+\end{aligned}
+ \tag{L9}
+\]
+Thus, if \(\operatorname{KL}(Q_1,Q_0)\leq1/8\), equations \((\mathrm{L7})\)--\((\mathrm{L9})\) yield
+\[
+ \max_{j\in\{0,1\}}E_{Q_j}d(\widehat v,v_j)
+ \geq c_{\mathrm{test}}\Delta,
+ \qquad
+ c_{\mathrm{test}}=
+ \frac{1-\sqrt{1-e^{-1/8}}}{4}>0.
+ \tag{L10}
+\]
+
+For the isolated experiment, define
+\[
+ \eta_{\mathrm I}
+ =\min\left\{h_0,\frac13,1,
+ (8A_\star)^{-1/(4+\epsilon)}\right\},
+ \qquad
+ h_{\mathrm I}=\eta_{\mathrm I}n^{-1/(\kappa+2)}.
+ \tag{L11}
+\]
+Use the isolated baseline \(P^{0,\mathrm{iso}}\) and its centered tent law \(P^{0,h_{\mathrm I},\mathrm{iso}}\) from
+\(\mathrm{def{:}gaussian\text{-}tents}\).  Since
+\(0<h_{\mathrm I}\leq\min\{h_0,1/3\}\), the exact membership conclusion of
+\(\mathrm{prop{:}flat\text{-}witness\text{-}validity}\) puts both laws in
+\(\mathrm{Iso}_\kappa\).  The same proposition gives
+\[
+ \Delta_{\mathrm I}:=
+ \|\tau_{P^{0,h_{\mathrm I},\mathrm{iso}}}
+       -\tau_{P^{0,\mathrm{iso}}}\|_\infty
+ \geq\frac{Lh_{\mathrm I}}2
+ \tag{L12}
+\]
+and, under independent sampling, the exact product divergence
+\[
+\begin{aligned}
+ &\operatorname{KL}\!\left(
+ (P^{0,h_{\mathrm I},\mathrm{iso}}_{\mathrm{obs}})^{\otimes n},
+ (P^{0,\mathrm{iso}}_{\mathrm{obs}})^{\otimes n}\right)\\
+ &\qquad=
+ \frac{nL^2Q_{\mathrm{iso},\alpha}h_{\mathrm I}^{\kappa+2}}
+      {32\sigma^2}
+ \leq A_\star\eta_{\mathrm I}^{\kappa+2}
+ \leq A_\star\eta_{\mathrm I}^{4+\epsilon}
+ \leq\frac18.
+\end{aligned}
+ \tag{L13}
+\]
+Here \(n h_{\mathrm I}^{\kappa+2}=\eta_{\mathrm I}^{\kappa+2}\), while the penultimate inequality follows from \(\eta_{\mathrm I}\leq1\) and \(\kappa+2\geq4+\epsilon\).  Apply \((\mathrm{L10})\) with the supremum metric and \(\widehat v=\widetilde\tau_n^{\mathrm c}\).  Equations \((\mathrm{L3})\), \((\mathrm{L12})\), and \((\mathrm{L13})\) show that every unrestricted measurable estimator obeys
+\[
+ \sup_{P\in\mathrm{Iso}_\kappa}
+ E_P\|\widetilde\tau_n-\tau_P\|_\infty
+ \geq\frac{c_{\mathrm{test}}L\eta_{\mathrm I}}2
+ n^{-1/(\kappa+2)}.
+ \tag{L14}
+\]
+Taking the infimum proves the isolated lower bound.
+
+For the pervasive experiment, put
+\[
+ \eta_{\mathrm P}
+ =\min\left\{h_0,\frac1{12},1,
+ [16(\bar\kappa+2)A_\star]^{-1/(4+\epsilon)}\right\},
+ \qquad
+ h_{\mathrm P}=\eta_{\mathrm P}
+ \left(\frac{\log n}{n}\right)^{1/(\kappa+2)}.
+ \tag{L15}
+\]
+For \(n\geq2\), this radius lies in \((0,\min\{h_0,1/3\}]\).  Define
+\[
+ M=\left\lfloor\frac1{3h_{\mathrm P}}\right\rfloor+1,
+ \qquad
+ x_j=\left(0,-\frac12+3h_{\mathrm P}(j-1)\right),
+ \quad 1\leq j\leq M.
+ \tag{L16}
+\]
+Because \(M-1=\lfloor(3h_{\mathrm P})^{-1}\rfloor\),
+\[
+ -\frac12\leq-\frac12+3h_{\mathrm P}(j-1)
+ \leq-\frac12+3h_{\mathrm P}(M-1)\leq\frac12.
+ \tag{L17}
+\]
+Thus every center belongs to the declared segment \(B\), including the possible endpoint, and distinct centers are \(3h_{\mathrm P}\)-separated.  Since \(h_{\mathrm P}\leq1/12\),
+\[
+ \frac1{3h_{\mathrm P}}
+ \leq M
+ \leq\frac1{3h_{\mathrm P}}+1
+ \leq\frac2{3h_{\mathrm P}}.
+ \tag{L18}
+\]
+In particular, \(M\asymp h_{\mathrm P}^{-1}\) with numerical constants and \(M\geq2\).
+
+Let \(P_0=P^{0,\mathrm{perv}}\) be the pervasive baseline and, for
+\(1\leq j\leq M\), let \(P_j=P^{j,h_{\mathrm P},\mathrm{perv}}\) be the tent law centered at \(x_j\).  The exact membership conclusion of
+\(\mathrm{prop{:}flat\text{-}witness\text{-}validity}\), applied to every center in \((\mathrm{L17})\), gives
+\[
+ P_0,P_1,\ldots,P_M\in\mathrm{Perv}_\kappa.
+ \tag{L19}
+\]
+At \(x_j\), the tent definition gives \(\psi_{j,h_{\mathrm P}}(x_j)=1\).  If \(k\ne j\), then \(\|x_j-x_k\|_2\geq3h_{\mathrm P}>h_{\mathrm P}\), and hence \(\psi_{k,h_{\mathrm P}}(x_j)=0\).  The baseline trace is zero and a tent shifts the two observed-side means in opposite directions, so, including comparisons with the baseline,
+\[
+ \|\tau_{P_j}-\tau_{P_k}\|_\infty
+ \geq\frac{Lh_{\mathrm P}}2=:\Delta_{\mathrm P},
+ \qquad 0\leq j<k\leq M.
+ \tag{L20}
+\]
+
+For each \(1\leq j\leq M\), the exact Kullback--Leibler identity in the witness proposition and \((\mathrm{L5})\)--\((\mathrm{L6})\) imply
+\[
+\begin{aligned}
+ \operatorname{KL}\!\left((P_j^{\mathrm{obs}})^{\otimes n},
+ (P_0^{\mathrm{obs}})^{\otimes n}\right)
+ &\leq A_\star n h_{\mathrm P}^{\kappa+2}\\
+ &=A_\star\eta_{\mathrm P}^{\kappa+2}\log n
+ \leq\frac{\log n}{16(\bar\kappa+2)}.
+\end{aligned}
+ \tag{L21}
+\]
+The last step follows exactly as in \((\mathrm{L13})\), using
+\(\eta_{\mathrm P}\leq1\), \(\kappa+2\geq4+\epsilon\), and the last term in the minimum in \((\mathrm{L15})\).
+By \((\mathrm{L18})\),
+\[
+\begin{aligned}
+ \log M
+ &\geq -\log(3h_{\mathrm P})\\
+ &=\frac{\log n-\log\log n}{\kappa+2}
+   -\log(3\eta_{\mathrm P})\\
+ &\geq\frac{\log n}{2(\bar\kappa+2)}
+\end{aligned}
+ \tag{L22}
+\]
+for all \(n\geq n_0\), where \(n_0\) is independent of \(\kappa\in K\); here \(3\eta_{\mathrm P}\leq1/4\), and the last inequality uses \(\kappa+2\leq\bar\kappa+2\) after enlarging \(n_0\).  Combining \((\mathrm{L21})\)--\((\mathrm{L22})\) proves the requested fixed-fraction information bound
+\[
+ \frac1M\sum_{j=1}^M
+ \operatorname{KL}\!\left((P_j^{\mathrm{obs}})^{\otimes n},
+ (P_0^{\mathrm{obs}})^{\otimes n}\right)
+ \leq\frac18\log M.
+ \tag{L23}
+\]
+
+We derive the multiple-testing step.  Let \(J\) be uniform on
+\(\{1,\ldots,M\}\), and conditionally on \(J=j\), let \(W\) have law
+\(Q_j=(P_j^{\mathrm{obs}})^{\otimes n}\).  Put
+\(\overline Q=M^{-1}\sum_{j=1}^M Q_j\) and
+\(Q_0=(P_0^{\mathrm{obs}})^{\otimes n}\).  Expanding
+\(\log(dQ_j/dQ_0)=\log(dQ_j/d\overline Q)+
+\log(d\overline Q/dQ_0)\) and averaging gives
+\[
+ \frac1M\sum_{j=1}^M\operatorname{KL}(Q_j,Q_0)
+ =I(J;W)+\operatorname{KL}(\overline Q,Q_0),
+ \tag{L24}
+\]
+so \(I(J;W)\) is bounded by the left-hand side.  For any decision rule
+\(\widehat J(W)\), put \(p_e=P\{\widehat J\ne J\}\).  The chain rule for conditional entropy, followed by conditioning on the binary error indicator, gives
+\[
+ H(J\mid W)\leq\log2+p_e\log(M-1)
+ \leq\log2+p_e\log M.
+ \tag{L25}
+\]
+Since \(I(J;W)=\log M-H(J\mid W)\), equations
+\((\mathrm{L23})\)--\((\mathrm{L25})\) imply
+\[
+ p_e\geq1-\frac{(1/8)\log M+\log2}{\log M}.
+ \tag{L26}
+\]
+Enlarge the same uniform \(n_0\) until \(\log2/\log M\leq1/4\), which is possible by \((\mathrm{L22})\).  Then \(p_e\geq5/8\).
+
+For the clipped estimator \(\widetilde\tau_n^{\mathrm c}\), let \(\widehat J\) be the least index in \(\{1,\ldots,M\}\) minimizing
+\(\|\widetilde\tau_n^{\mathrm c}-\tau_{P_j}\|_\infty\).  The stipulated measurability of the finite collection of supremum losses makes this rule measurable.  On \(\{\widehat J\ne j\}\), its nearest-point property and \((\mathrm{L20})\) give
+\[
+\begin{aligned}
+ \Delta_{\mathrm P}
+ &\leq\|\tau_{P_j}-\widetilde\tau_n^{\mathrm c}\|_\infty
+      +\|\widetilde\tau_n^{\mathrm c}-\tau_{P_{\widehat J}}\|_\infty\\
+ &\leq2\|\widetilde\tau_n^{\mathrm c}-\tau_{P_j}\|_\infty.
+\end{aligned}
+ \tag{L27}
+\]
+Averaging \((\mathrm{L27})\) over \(j\), using \(p_e\geq5/8\), the exact membership \((\mathrm{L19})\), and the contraction \((\mathrm{L3})\), yields
+\[
+\begin{aligned}
+ \sup_{P\in\mathrm{Perv}_\kappa}
+ E_P\|\widetilde\tau_n-\tau_P\|_\infty
+ &\geq\frac1M\sum_{j=1}^M
+ E_{P_j}\|\widetilde\tau_n^{\mathrm c}-\tau_{P_j}\|_\infty\\
+ &\geq\frac{5\Delta_{\mathrm P}}{16}
+ =\frac{5L\eta_{\mathrm P}}{32}
+ \left(\frac{\log n}{n}\right)^{1/(\kappa+2)}.
+\end{aligned}
+ \tag{L28}
+\]
+Taking the infimum over all unrestricted measurable estimators proves the pervasive lower bound.  Finally, take
+\[
+ c=\min\left\{
+ \frac{c_{\mathrm{test}}L\eta_{\mathrm I}}2,
+ \frac{5L\eta_{\mathrm P}}{32}
+ \right\}>0.
+\]
+The constants \(\overline Q,A_\star,\eta_{\mathrm I},\eta_{\mathrm P},c\), and the threshold \(n_0\) depend only on the fixed constants and on
+\([2+\epsilon,\bar\kappa]\), so they are uniform over \(\kappa\in K\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supporting converse re-establishes the exact isolated two-point and pervasive multiple-testing benchmarks attributed to the banked parent \(\texttt{stat\_bdd\_thickness\_estimability\_frontier}\). \textit{Gap.} The endpoint benchmarks and converse architecture are supporting, attributed results; the present note's novelty is simultaneous attainment by one total severity-net estimator. \textit{Consumer.} The same-estimator endpoint proposition combines these unrestricted-estimator lower bounds with the established upper oracle.
+
+\begin{proposition}[prop:same-estimator-endpoint-adaptation]\label{prop:same-estimator-endpoint-adaptation}
+Corollary (same-estimator consequence for the endpoint classes of
+\(\texttt{stat\_bdd\_thickness\_estimability\_frontier}\)).  There exist constants \(0<c\leq C<\infty\) and \(n_0\in\mathbb N\), uniform over \(K\), such that for every \(\kappa\in K\) and \(n\geq n_0\), the single total estimator \(\widehat\tau_n\), without knowledge of \(\kappa\) or the endpoint class, satisfies
+\[
+ c n^{-1/(\kappa+2)}
+ \leq
+ \inf_{\widetilde\tau_n}\sup_{P\in\mathrm{Iso}_\kappa}
+ E_P\|\widetilde\tau_n-\tau_P\|_\infty
+ \leq
+ \sup_{P\in\mathrm{Iso}_\kappa}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C n^{-1/(\kappa+2)}
+\]
+and
+\[
+ c\left(\frac{\log n}{n}\right)^{1/(\kappa+2)}
+ \leq
+ \inf_{\widetilde\tau_n}\sup_{P\in\mathrm{Perv}_\kappa}
+ E_P\|\widetilde\tau_n-\tau_P\|_\infty
+ \leq
+ \sup_{P\in\mathrm{Perv}_\kappa}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C\left(\frac{\log n}{n}\right)^{1/(\kappa+2)}.
+\]
+Both infima range over all measurable estimators in
+\(\mathrm{thm{:}exact\text{-}endpoint\text{-}minimax\text{-}lower\text{-}bounds}\).  Thus the isolated and pervasive upper rates of the identical total estimator match the corresponding unrestricted-estimator minimax lower bounds.
+\end{proposition}
+\begin{proof}
+The construction of \(\widehat\tau_n\) contains neither \(\kappa\) nor an endpoint-class label.  We evaluate the global-bandwidth oracle inequality in
+\(\mathrm{thm{:}profile\text{-}adaptive\text{-}estimator}\), whose optimization order is \(\inf_h\sup_x\), at one deterministic common bandwidth for each endpoint class.
+
+Fix \(\kappa\in K\), write \(\alpha=\kappa-2\), and first suppose
+\(P\in\mathrm{Iso}_\kappa\).  Put
+\[
+ b_n=n^{-1/(\kappa+2)}.
+\]
+For all sufficiently large \(n\), uniformly over \(\kappa\in K\), the dyadic grid contains \(h_b\) such that
+\[
+ b_n\leq h_b<2b_n.
+ \tag{E1}
+\]
+Indeed, \(b_n<h_0\) eventually uniformly on \(K\), while the smallest element of \(H_n\) is at most \(h_0/n<b_n\); consecutive grid elements differ by a factor of two.  For \(x\in B\), define the proof intermediate
+\[
+ w_x=\frac{a_P(x,h_b)}{h_b^\kappa}.
+\]
+The base-mass assumption gives \(w_x\geq c_m\).  The oracle constant \(C_0\) may be enlarged without invalidating the oracle inequality because
+\(J_P(h,u)\) is nondecreasing in \(u\).  Enlarge it, if necessary, so that
+\(C_0c_m\geq C_m\).  For all sufficiently large \(n\),
+\[
+ u_x:=\min\{1,C_0a_P(x,h_b)\}
+ \geq C_mh_b^\kappa,
+ \tag{E2}
+\]
+where \(C_mh_b^\kappa\leq1\) is used.
+
+If \(C_0w_xh_b^\kappa\leq1\), the isolated-envelope assumption at
+\(u_x=C_0w_xh_b^\kappa\) gives
+\[
+\begin{aligned}
+ J_P(h_b,u_x)
+ &\leq C_{\mathrm{iso}}\left\{1+h_b^{-1}
+ \left(\frac{C_0w_xh_b^\kappa}{h_b^2}\right)^{1/\alpha}\right\}\\
+ &=C_{\mathrm{iso}}\left\{1+C_0^{1/\alpha}w_x^{1/\alpha}\right\}.
+\end{aligned}
+ \tag{E3}
+\]
+If \(C_0w_xh_b^\kappa>1\), the same assumption at \(u_x=1\) gives
+\[
+ J_P(h_b,1)
+ \leq C_{\mathrm{iso}}\left\{1+h_b^{-1-2/\alpha}\right\}.
+ \tag{E4}
+\]
+The premise of this second case implies
+\[
+ w_x^{1/\alpha}>C_0^{-1/\alpha}h_b^{-\kappa/\alpha}
+ =C_0^{-1/\alpha}h_b^{-1-2/\alpha}.
+ \tag{E5}
+\]
+Thus, in both cases, compactness of
+\([\epsilon,\bar\kappa-2]\) gives a constant \(C\), uniform over
+\(\kappa\in K\), for which
+\[
+ 1\vee J_P(h_b,u_x)
+ \leq C\{1+w_x^{1/\alpha}\}.
+ \tag{E6}
+\]
+Moreover,
+\[
+ \sup_{\alpha\in[\epsilon,\bar\kappa-2]}
+ \sup_{w\geq c_m}
+ \frac{1+\log\!\left(eC\{1+w^{1/\alpha}\}\right)}{w}<\infty.
+ \tag{E7}
+\]
+Indeed, compactness bounds \(1/\alpha\), so the numerator is at most a constant times \(1+\log_+w\), and
+\((1+\log_+w)/w\) is bounded on \([c_m,\infty)\).
+
+Using \(a_P(x,h_b)=w_xh_b^\kappa\), equations
+\((\mathrm{E6})\)--\((\mathrm{E7})\) imply
+\[
+\begin{aligned}
+ &Lh_b+\sigma\sqrt{
+ \frac{1+\log\!\left(e\{1\vee J_P(h_b,u_x)\}\right)}
+ {n a_P(x,h_b)}}\\
+ &\qquad\leq Lh_b+\frac{C\sigma}{\sqrt{nh_b^\kappa}}
+ \leq Cb_n.
+\end{aligned}
+ \tag{E8}
+\]
+The last inequality uses \((\mathrm{E1})\) and
+\(nb_n^{\kappa+2}=1\).  It is uniform in \(x\), \(P\), and
+\(\kappa\in K\).  The oracle remainder obeys
+\[
+ \sup_{\kappa\in K}
+ \frac{\log^2(en)/n}{n^{-1/(\kappa+2)}}\longrightarrow0,
+ \tag{E9}
+\]
+because the ratio is at most
+\(\log^2(en)n^{-1+1/(4+\epsilon)}\).  Evaluating the infimum in
+\(\mathrm{thm{:}profile\text{-}adaptive\text{-}estimator}\) at \(h_b\), taking the supremum over \(x\), and then over
+\(P\in\mathrm{Iso}_\kappa\), proves
+\[
+ \sup_{P\in\mathrm{Iso}_\kappa}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq Cn^{-1/(\kappa+2)}.
+ \tag{E10}
+\]
+
+For the pervasive endpoint, a bound valid on all of
+\(\mathrm{Base}_\kappa\) suffices.  If \(F\subseteq B\) is
+\(h\)-separated, order its second coordinates.  Consecutive coordinates differ by at least \(h\), while the segment has length one, and hence
+\(|F|\leq1+1/h\).  Since \(h\leq h_0\leq1/8\), the definition of
+\(J_P\) gives, for every \(u\geq0\),
+\[
+ 1\vee J_P(h,u)\leq\frac2h.
+ \tag{E11}
+\]
+Put
+\[
+ r_n=\left(\frac{\log n}{n}\right)^{1/(\kappa+2)}
+\]
+and choose \(h_r\in H_n\) with
+\(r_n\leq h_r<2r_n\).  The same grid argument proves existence for all sufficiently large \(n\), uniformly over \(K\).  The base-mass assumption, equation \((\mathrm{E11})\), and
+\(nr_n^{\kappa+2}=\log n\) yield
+\[
+\begin{aligned}
+ &\sup_{x\in B}\left[
+ Lh_r+\sigma\sqrt{
+ \frac{1+\log\!\left(e\{1\vee
+ J_P(h_r,\min\{1,C_0a_P(x,h_r)\})\}\right)}
+ {n a_P(x,h_r)}}\right]\\
+ &\qquad\leq Lh_r+C\sigma
+ \sqrt{\frac{\log(e/h_r)}{nc_mh_r^\kappa}}
+ \leq Cr_n.
+\end{aligned}
+ \tag{E12}
+\]
+The final comparison is uniform because \(\kappa\in K\).  The oracle remainder is \(o(r_n)\) uniformly on \(K\).  Since
+\(\mathrm{Perv}_\kappa\subseteq\mathrm{Base}_\kappa\), evaluating the theorem at \(h_r\) gives
+\[
+ \sup_{P\in\mathrm{Perv}_\kappa}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C\left(\frac{\log n}{n}\right)^{1/(\kappa+2)}.
+ \tag{E13}
+\]
+
+Let \(\mathcal R^{\mathrm I}_{n,\kappa}\) and
+\(\mathcal R^{\mathrm P}_{n,\kappa}\) denote the unrestricted-estimator minimax risks in
+\(\mathrm{thm{:}exact\text{-}endpoint\text{-}minimax\text{-}lower\text{-}bounds}\).  That theorem, equations \((\mathrm{E10})\)--\((\mathrm{E13})\), and the fact that an infimum over all estimators is no larger than the risk of the particular jointly Borel estimator \(\widehat\tau_n\) give
+\[
+ c n^{-1/(\kappa+2)}
+ \leq\mathcal R^{\mathrm I}_{n,\kappa}
+ \leq\sup_{P\in\mathrm{Iso}_\kappa}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C n^{-1/(\kappa+2)}
+ \tag{E14}
+\]
+and
+\[
+ c\left(\frac{\log n}{n}\right)^{1/(\kappa+2)}
+ \leq\mathcal R^{\mathrm P}_{n,\kappa}
+ \leq\sup_{P\in\mathrm{Perv}_\kappa}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C\left(\frac{\log n}{n}\right)^{1/(\kappa+2)}.
+ \tag{E15}
+\]
+Thus the identical total estimator attains the minimax order on both endpoint classes without preliminary regime selection and without knowledge of \(\kappa\).  The converse benchmarks and testing architecture are attributed to the banked parent; the new conclusion here is simultaneous attainment by the present estimator.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Common global bandwidths at the isolated and pervasive balances evaluate the established oracle, while the exact endpoint converse theorem certifies that both resulting upper rates are minimax-order sharp. \textit{Gap.} The endpoint lower benchmarks are attributed to the banked parent; the result supplied here is simultaneous attainment by one profile-free estimator. \textit{Consumer.} Together with the regular-design corollary, this proposition gives one deployable estimator across all three named regimes while claiming exact minimax order only for the isolated and pervasive endpoints.
+
+\begin{lemma}[lem:empirical-packing-comparison-same-radius]\label{lem:empirical-packing-comparison-same-radius}
+There are numerical constants \(c,C<\infty\) and events \(\mathcal E_n\) such that
+\[
+ \inf_{P\in\bigcup_{\kappa\in K}\mathrm{Base}_\kappa}P(\mathcal E_n)
+ \geq 1-Cn^{-3}.
+\]
+If \(n_1\geq1\), then, on \(\mathcal E_n\), simultaneously for every
+\(h\in H_n\) and \(u\in U_n\) satisfying
+\(n_1u\geq C\log(en)\),
+\[
+ J_P(h,u)
+ \leq \widehat J\!\left(h,c\{u+\log(en)/n_1\}\right)
+ \leq C\left\{1\vee
+ J_P\!\left(h,C\{u+\log(en)/n_1\}\right)\right\}.                 \tag{P1}
+\]
+On the same event,
+\[
+ a^L(x,h)\leq a_P(x,h)\leq a^U(x,h)                              \tag{P2}
+\]
+for every \(x\in B\) and \(h\in H_n\), and
+\[
+ \tfrac12a_P(x,h)\leq a^L(x,h)\leq a_P(x,h)\leq a^U(x,h)\leq2a_P(x,h) \tag{P3}
+\]
+whenever \(n_1a_P(x,h)\geq C\log(en)\).  For every \(h\in H_n\), the
+source-labeled sorting, duplicate removal, deterministic refinement, and
+midpoint operations defining \(C_1(h)\) and \(G_1(h)\) are Borel functions
+of \((X_i)_{i\in I_1}\), and \(\widehat J(h,v)\) is Borel for every
+\(v\geq0\).  In particular, the upper comparison in \((\mathrm{P1})\) uses
+the same radius \(h\), and the floor \(1\vee J_P\) covers an empty population
+thin set.
+\end{lemma}
+\begin{proof}
+Put \(m=n_1\) and \(\ell=\log(en)\).  If \(m=0\), the premise
+\(mu\geq C\ell\) in \((\mathrm{P1})\) is impossible.  Moreover, the
+definitions give \(q_t^L=0\) and \(q_t^U=1\), so \((\mathrm{P2})\) holds.
+Thus it remains to consider \(m\geq1\).
+
+For \(t\in\{0,1\}\), \(s\in[-1/2,1/2]\), and \(h\in H_n\), define
+\[
+ \mathcal C_{t,s,h}
+ =\{z\in A_t:\|z-(0,s)\|_2\leq h\}.
+ \tag{P4}
+\]
+For fixed points \(z_i=(r_i,s_i)\), membership of \(z_i\) in
+\(\mathcal C_{t,s,h}\), viewed as a function of \(s\), is identically zero
+unless \(z_i\in A_t\) and \(|r_i|\leq h\); otherwise it is the indicator of
+the closed interval
+\[
+ [s_i-\sqrt{h^2-r_i^2},\ s_i+\sqrt{h^2-r_i^2}].
+ \tag{P5}
+\]
+For a fixed pair \((t,h)\), the at most \(2N\) distinct endpoints in
+\((\mathrm{P5})\) determine at most \(2N+1\) open cells and at most \(2N\)
+endpoint traces.  The latter term is needed when left and right endpoints
+tie.  Consequently the shatter coefficient of
+\[
+ \mathcal C_n=\{\mathcal C_{t,s,h}:t\in\{0,1\},
+ s\in[-1/2,1/2],\ h\in H_n\}
+\]
+satisfies
+\[
+ \Pi_{\mathcal C_n}(N)
+ \leq2|H_n|(4N+1)\leq C_1(N+1)\ell .
+ \tag{P6}
+\]
+
+We record the relative empirical inequality used below and derive it here.
+If \(P_m\) is the empirical law of \(m\) independent observations, then for
+any measurable class \(\mathcal A\), \(x\geq1\), and
+\(\Gamma=x+\log\{8\Pi_{\mathcal A}(2m)\}\),
+\[
+ \Pr\!\left\{\exists C\in\mathcal A:\ |P_m(C)-P(C)|>
+ \sqrt{\frac{2P_m(C)\Gamma}{m}}+\frac{7\Gamma}{3m}\right\}
+ \leq2e^{-x}.
+ \tag{P7}
+\]
+To verify \((\mathrm{P7})\), introduce an independent empirical law
+\(P'_m\), pair the two samples, and condition on the pooled pairs.  Randomly
+swapping the two members of each pair represents
+\(P_m(C)-P'_m(C)\) as a sum of independent centered signed variables, each
+bounded by \(m^{-1}\), with conditional variance at most
+\(2\bar p_C/m\), where
+\(\bar p_C=\{P_m(C)+P'_m(C)\}/2\).  The elementary inequality
+\[
+ e^v\leq1+v+\frac{v^2}{2(1-|v|/3)},\qquad |v|<3,
+\]
+and independence imply, for \(0<\lambda<3m\),
+\[
+ \log E\!\left[
+ e^{\lambda\{P_m(C)-P'_m(C)\}}\mid\text{pooled pairs}\right]
+ \leq\frac{\lambda^2(2\bar p_C/m)}{2\{1-\lambda/(3m)\}}.
+\]
+Exponential Markov's inequality, optimization in \(\lambda\), and the same
+calculation for the negative tail therefore give, for every pooled trace and
+every \(z>0\),
+\[
+ \Pr\!\left\{|P_m(C)-P'_m(C)|>
+ 2\sqrt{\frac{\bar p_Cz}{m}}+\frac{2z}{3m}
+ \mathrel{\Big|}\text{pooled pairs}\right\}\leq2e^{-z}.
+ \tag{P8}
+\]
+There are at most \(\Pi_{\mathcal A}(2m)\) pooled traces, so a union bound
+applies to \((\mathrm{P8})\).  We now eliminate the ghost count.  Apply the
+same displayed moment bound to the unused half and separate the cases
+\(P_m(C)\geq P(C)\) and \(P_m(C)<P(C)\).  In the first case substitute
+\(P(C)\leq P_m(C)\); in the second substitute
+\(P(C)\leq P_m(C)+d\), where \(d=|P_m(C)-P(C)|\).  In the latter case use
+\[
+ 2\sqrt{d\Gamma/m}\leq d/2+2\Gamma/m.
+\]
+Solving the resulting two quadratic inequalities shows that failure of the
+bound in \((\mathrm{P7})\) is contained in the union of at most four upper
+or lower allocation-tail events of the form \((\mathrm{P8})\), with total
+probability at most
+\[
+ 8\Pi_{\mathcal A}(2m)e^{-\Gamma}=e^{-x}.
+\]
+This proves \((\mathrm{P7})\), with slack in its displayed factor two.  The
+argument depends only on the finitely many pooled traces; increasing finite
+trace subfamilies therefore also covers a nonattained supremum.
+
+Apply \((\mathrm{P7})\) to \(\mathcal C_n\) with \(x=3\ell\).  By
+\((\mathrm{P6})\), for all sufficiently large \(n\),
+\(\Gamma\leq6\ell\).  Enlarging a numerical failure constant covers the
+finitely many remaining \(n\), and therefore there is an event
+\(\mathcal E_n\) such that, uniformly in the underlying law,
+\[
+ P(\mathcal E_n^c)\leq C_2n^{-3}
+ \tag{P9}
+\]
+and, on \(\mathcal E_n\), simultaneously for every \(C\in\mathcal C_n\),
+\[
+ |P_m(C)-P(C)|\leq
+ \sqrt{\frac{12P_m(C)\ell}{m}}+\frac{20\ell}{m}.
+ \tag{P10}
+\]
+The closed intervals in \((\mathrm{P5})\) include every breakpoint trace,
+including ties.  Since
+\(P_m(\mathcal C_{t,s,h})=\widehat q_t^{(1)}((0,s),h)\), equation
+\((\mathrm{P10})\) and the definitions of \(b_n,q_t^L,q_t^U\) imply
+\[
+ q_t^L(x,h)\leq q_t(x,h)\leq q_t^U(x,h)
+ \tag{P11}
+\]
+simultaneously in \(x,t,h\).  Taking minima over \(t\) proves
+\((\mathrm{P2})\).  If \(mq_t(x,h)\geq C_3\ell\), solving the two quadratic
+inequalities in \((\mathrm{P10})\) gives
+\[
+ \tfrac12q_t(x,h)\leq q_t^L(x,h)\leq q_t(x,h)
+ \leq q_t^U(x,h)\leq2q_t(x,h).
+ \tag{P12}
+\]
+When \(ma_P(x,h)\geq C_3\ell\), both side masses satisfy the premise of
+\((\mathrm{P12})\); taking minima proves \((\mathrm{P3})\).
+
+Fix \(h\in H_n\).  Every endpoint in \((\mathrm{P5})\) generated by a
+first-half score and lying in the target segment occurs in the source-labeled
+list defining \(C_1(h)\).  Lexicographic ordering is total, and retaining
+the least source label at a repeated coordinate retains that coordinate.
+The same is true when a deterministic mesh point ties a breakpoint.  No
+first-half membership indicator changes inside an open cell of the refined
+list.  Since \(M_h=\lceil16/h\rceil\), consecutive deterministic mesh
+points are separated by at most \(h/16\).  Thus the representative in the
+definition satisfies, at cells and ties alike,
+\[
+ \|g_h(x)-x\|_2\leq h/32,
+ \qquad
+ \widehat q_t^{(1)}(g_h(x),h)=\widehat q_t^{(1)}(x,h).
+ \tag{P13}
+\]
+
+Let \(F\) be an \(h\)-separated subset of
+\(\{x\in B:a_P(x,h)\leq u\}\).  For each \(x\in F\), choose
+\(t_x\) with \(q_{t_x}(x,h)\leq u\), which is possible by the definition
+of \(a_P\).  Put \(z=\widehat q_{t_x}^{(1)}(x,h)\).  From
+\((\mathrm{P10})\),
+\[
+ z\leq u+\sqrt{12z\ell/m}+20\ell/m
+ \leq u+z/2+26\ell/m,
+\]
+and hence \(z\leq2u+52\ell/m\).  Substituting this bound into \(b_n(z)\),
+using \(2\sqrt{uv}\leq u+v\), and invoking \((\mathrm{P13})\) yields
+\[
+ a^U(g_h(x),h)\leq C_4\{u+\ell/m\}.
+ \tag{P14}
+\]
+For distinct \(x,x'\in F\), equation \((\mathrm{P13})\) gives
+\[
+ \|g_h(x)-g_h(x')\|_2
+ \geq h-h/32-h/32=15h/16>h/2.
+ \tag{P15}
+\]
+The upward dyadic rounding in the definition satisfies, for every
+\(v\geq0\),
+\[
+ u(v)\leq\min\{1,2v+m^{-1}\},
+ \qquad
+ u(v)\geq\min\{1,v\}.
+ \tag{P16}
+\]
+Choose the numerical constant \(c\geq C_4\).  If
+\(c\{u+\ell/m\}\leq1\), equations \((\mathrm{P14})\) and
+\((\mathrm{P16})\) make \(g_h(F)\) feasible in the empirical packing
+problem defining \(\widehat J(h,c\{u+\ell/m\})\); if the argument exceeds
+one, feasibility follows from \(a^U\leq1=u(c\{u+\ell/m\})\).
+Equation \((\mathrm{P15})\) also makes the map injective.  Maximizing over
+\(F\) proves
+\[
+ J_P(h,u)\leq\widehat J(h,c\{u+\ell/m\}).
+ \tag{P17}
+\]
+This includes \(u=1\).
+
+Conversely, let \(G=\{g_1<\cdots<g_M\}\) be a nonempty feasible set for
+\(\widehat J(h,v)\), ordered along \(B\).  Equations \((\mathrm{P11})\)
+and \((\mathrm{P16})\) imply
+\[
+ a_P(g,h)\leq a^U(g,h)\leq u(v)
+ \leq\min\{1,2v+m^{-1}\},\qquad g\in G.
+ \tag{P18}
+\]
+Feasibility gives consecutive gaps at least \(h/2\); collinearity of
+\(B\) therefore gives
+\[
+ \|g_{j+2}-g_j\|_2
+ =\|g_{j+2}-g_{j+1}\|_2+\|g_{j+1}-g_j\|_2\geq h.
+ \tag{P19}
+\]
+The odd and even sublists are consequently \(h\)-separated at the same
+physical radius \(h\), and \((\mathrm{P18})\) makes both feasible for the
+population packing problem.  Hence
+\[
+ M\leq2J_P(h,\min\{1,2v+m^{-1}\}).
+ \tag{P20}
+\]
+If the feasible maximum is empty, the defining floor of \(\widehat J\) is
+one.  Substitute \(v=c\{u+\ell/m\}\) in \((\mathrm{P20})\), use monotonicity
+of \(J_P(h,\cdot)\), and enlarge \(C\) to obtain
+\[
+ \widehat J(h,c\{u+\ell/m\})
+ \leq C\{1\vee J_P(h,C\{u+\ell/m\})\}.
+ \tag{P21}
+\]
+Together, \((\mathrm{P17})\) and \((\mathrm{P21})\) prove \((\mathrm{P1})\).
+No comparison between different radii has been used.
+
+Finally, the square-root endpoint map in the candidate list is continuous
+on its closed domain.  Candidate inclusion, finite lexicographic sorting,
+least-label duplicate removal, deterministic refinement, and midpoint
+formation are Borel operations.  After absent candidate slots are encoded
+by their Borel presence indicators, the finite maximum defining
+\(\widehat J\) is a maximum of finitely many Borel feasibility indicators.
+Thus \(C_1(h)\), \(G_1(h)\), and \(\widehat J(h,v)\) have the asserted
+measurability, completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma remains a pure first-half, tie-safe same-radius comparison with the mandatory unit floor. \textit{Gap.} It does not itself make an outcome-risk assertion; that role is now discharged by the separate severity-net extension lemma. \textit{Consumer.} The anchor construction uses its confidence bounds, pattern representative, and exact-radius population comparison.
+
+\begin{lemma}[lem:empirical-severity-net-extension]\label{lem:empirical-severity-net-extension}
+Let \(\mathcal E_n\) be the event in
+\(\mathrm{lem{:}empirical\text{-}packing\text{-}comparison\text{-}same\text{-}radius}\).
+For every \(\kappa\in K\), \(P\in\mathrm{Base}_\kappa\), and the constants in \(\mathrm{def{:}profile\text{-}adaptive\text{-}estimator}\), the following hold on \(\mathcal E_n\).  First, for every \(h\in H_n\), \(v\in U_n\), and \(x\in B\),
+\[
+ |\mathcal A_1(h,v)|
+ \leq
+ \widehat J\!\left(h,128\left\{v+\frac{\log(en)}{n_1\vee1}\right\}\right),
+ \qquad
+ \|x-\gamma_1(x,h)\|_2<\frac{33h}{32}.
+\]
+Second, if \(n_1a_P(x,h)\geq C\log(en)\), then
+\[
+ \widehat J\!\left(
+ h,128\left\{\widehat u(g_h(x),h)+
+ \frac{\log(en)}{n_1\vee1}\right\}\right)
+ \leq C\left\{1\vee
+ J_P\!\left(h,\min\{1,Ca_P(x,h)\}\right)\right\}.
+\]
+Third, if \(h\) is admissible, then, conditionally on \(I_1\),
+\[
+ E_P\!\left[
+ \|\widehat\tau_{n,h}-\tau_P\|_\infty\mid I_1\right]
+ \leq C\widehat V(h).
+\]
+The constants are uniform over \(\kappa\in K\).  No union over \(H_n\) occurs in the last inequality because \(h\) is fixed conditionally on \(I_1\).
+\end{lemma}
+\begin{proof}
+Write \(m=n_1\), \(r_n=\log(en)/(m\vee1)\), and fix \(h\in H_n\).
+The representative construction in
+\(\mathrm{lem{:}empirical\text{-}packing\text{-}comparison\text{-}same\text{-}radius}\)
+gives, including at every breakpoint tie,
+\[
+ \|g_h(x)-x\|_2\leq h/32,\qquad
+ \widehat q^{(1)}_t(g_h(x),h)=\widehat q^{(1)}_t(x,h),
+ \quad t=0,1.                                                     \tag{S1}
+\]
+Thus \(a^L\), \(a^U\), and \(\widehat u\) agree at \(x\) and \(g_h(x)\).
+The ordered greedy rule is maximal in each finite band.  Its anchors are
+\(h\)-separated, and every member of the band not retained is at distance
+strictly less than \(h\) from an earlier retained anchor.  Hence the first
+covering anchor exists and
+\[
+ \|x-\gamma_1(x,h)\|_2
+ \leq\|x-g_h(x)\|_2+\|g_h(x)-\gamma_1(x,h)\|_2
+ <33h/32.                                                        \tag{S2}
+\]
+
+We next control the size of an anchor band.  Put
+\(b(z)=\sqrt{12zr_n}+20r_n\).  If
+\(d=\max\{0,z-b(z)\}\), then
+\[
+ \min\{1,z+b(z)\}\leq128(d+r_n).                                 \tag{S3}
+\]
+Indeed, when \(d=0\), \(z\leq\sqrt{12zr_n}+20r_n\); solving this quadratic
+gives \(z\leq43r_n\), and then \(z+b(z)\leq86r_n\).
+When \(d>0\), \(z=d+b(z)\), and
+\[
+ b(z)\leq\sqrt{12dr_n}+\sqrt{12b(z)r_n}+20r_n
+ \leq\sqrt{12dr_n}+\frac{b(z)}2+26r_n.
+\]
+Therefore \(b(z)\leq2\sqrt{12dr_n}+52r_n\leq d+64r_n\), proving
+\((\mathrm{S3})\).  Choose a side attaining
+\(a^L(g,h)=\min_tq^L_t(g,h)\) and apply \((\mathrm{S3})\) to its empirical
+mass.  This yields
+\[
+ a^U(g,h)\leq128\{a^L(g,h)+r_n\}.                                \tag{S4}
+\]
+If \(g\in\mathcal A_1(h,v)\), then \(a^L(g,h)\leq v\).
+Equations \((\mathrm{S4})\) and the cap built into the rounding map \(u\)
+show that this anchor set is feasible for the maximum defining
+\(\widehat J(h,128\{v+r_n\})\).  Its \(h\)-separation is stronger than the
+required \(h/2\)-separation, proving the asserted cardinality bound.
+
+For the population comparison, suppose \(ma_P(x,h)\geq C\log(en)\).
+Apply \((\mathrm{P3})\) first at \(x\), whose premise is the displayed informative-mass assumption.  Equation \((\mathrm{S1})\) then transfers \(a^L(x,h)\) to \(a^L(g_h(x),h)\), and \((\mathrm{P2})\) gives \(a_P(g_h(x),h)\) at least this transferred lower bound.  After enlarging \(C\), the informative premise therefore holds at \(g_h(x)\) as well, so \((\mathrm{P3})\) applies there.  Consequently both \(a_P(x,h)\) and \(a_P(g_h(x),h)\) lie between \(a^L(g_h(x),h)\) and twice that quantity.  The positive dyadic rounding
+therefore gives
+\[
+ \widehat u(g_h(x),h)\leq2a^L(g_h(x),h)\leq2a_P(x,h),
+ \qquad r_n\leq C a_P(x,h).                                      \tag{S5}
+\]
+Let \(G\) be feasible in the definition of
+\(\widehat J(h,128\{\widehat u(g_h(x),h)+r_n\})\).
+On \(\mathcal E_n\), \((\mathrm{P2})\) implies that every \(g\in G\) obeys
+\[
+ a_P(g,h)\leq a^U(g,h)
+ \leq u\!\left(128\{\widehat u(g_h(x),h)+r_n\}\right)
+ \leq\min\{1,Ca_P(x,h)\},                                        \tag{S6}
+\]
+where the last inequality follows from
+\(u(w)\leq\min\{1,2w+(m\vee1)^{-1}\}\) and \((\mathrm{S5})\).
+Ordering \(G\) along the line \(B\), its odd and even sublists are
+\(h\)-separated because adjacent points of \(G\) are \(h/2\)-separated.
+Each sublist is therefore feasible for the population packing in
+\((\mathrm{S6})\), and
+\[
+ |G|\leq2J_P\!\left(h,\min\{1,Ca_P(x,h)\}\right).
+\]
+If the finite maximum is empty, the outer floor equals one.  Combining the
+two cases proves the second assertion with \(1\vee J_P\).
+
+It remains to prove the stochastic assertion.  Condition on \(I_1\); the
+bandwidth \(h\), all anchor sets, and all assignments are now fixed.
+For \(a\in\mathcal A_1(h,v)\), let
+\[
+ q_t(a,h)=P\{X\in A_t,\ \|X-a\|_2\leq h\},
+ \qquad
+ M_v=|\mathcal A_1(h,v)|,
+\]
+and put
+\[
+ Z_v=1+\log\!\left[
+ e\widehat J\!\left(h,128\{v+r_n\}\right)\right].
+\]
+On \(\mathcal E_n\), \((\mathrm{P2})\) gives
+\[
+ q_t(a,h)\geq a_P(a,h)\geq a^L(a,h).                             \tag{S7}
+\]
+If \(h\) is admissible, no anchor belongs to the zero band.  Nor can an
+anchor belong to the smallest positive band: its upper endpoint is at most
+\((m\vee1)^{-1}\), whereas \(n_2/(m\vee1)\leq2\) for \(n\geq2\), contradicting
+\(n_2a^L(a,h)\geq2^{14}Z_v\) and \(Z_v\geq2\).
+Consequently, in every nonempty anchor band,
+\[
+ v/2<a^L(a,h)\leq v,\qquad M_v\leq e^{Z_v-1}.                    \tag{S8}
+\]
+
+Define
+\[
+ K_h=\max_{g\in G_1(h)}
+ \sqrt{\frac{Z_n(g,h)}{n_2a^L(g,h)}}.
+\]
+Order the nonempty positive bands as \(v_0<\cdots<v_J\).
+They are dyadic, so \(v_j\geq2^jv_0\).  By \((\mathrm{S8})\), for every
+anchor and side, the binomial Chernoff calculation gives
+\[
+ P\{N^{(2)}_t(a,h)<n_2v_j/4\mid I_1\}
+ \leq\exp(-n_2v_j/16).                                           \tag{S9}
+\]
+This follows directly from
+\(E[e^{-\lambda N}\mid I_1]=(1-q+qe^{-\lambda})^{n_2}\),
+\(\log(1+w)\leq w\), and optimization at
+\(e^{-\lambda}=1/2\), using \(q\geq v_j/2\).
+Admissibility and \((\mathrm{S8})\) imply both
+\(n_2v_j\geq2^{14}Z_v\) and
+\(n_2v_j\geq2^jn_2v_0\).  A union bound in \((a,t,j)\) therefore gives
+\[
+ P\{\text{\((\mathrm{S9})\) fails for some anchor and side}\mid I\_1\}
+ \leq C\exp(-c n\_2v\_0).                                         \tag{S10}
+\]
+
+For \(i\in I_2\), set
+\[
+ \varepsilon_i
+ =Y_i-T_im_{1,P}(X_i)-(1-T_i)m_{0,P}(X_i).
+\]
+Independence and the conditional sub-Gaussian assumption imply, conditional
+on all second-half scores, that every average over a nonempty fixed index
+set \(A\) satisfies
+\[
+ P\!\left\{\left|\frac1{|A|}\sum_{i\in A}\varepsilon_i\right|
+ >\sigma\sqrt{\frac{2z}{|A|}}\ \middle|\ X_i,\ i\in I_2\right\}
+ \leq2e^{-z}.                                                     \tag{S11}
+\]
+On the count event in \((\mathrm{S10})\), apply \((\mathrm{S11})\) in band
+\(j\) with \(z=4(Z_v+3j+s)\), then take a union over the two sides and the
+\(M_v\) anchors.  Since \(M_v\leq e^{Z_v-1}\),
+\[
+ P\!\left\{
+ \max_{j,a,t}\left|
+ \frac{\sum_{i\in I_2}\varepsilon_i
+ \mathbf1\{X_i\in A_t,\|X_i-a\|_2\leq h\}}
+ {N^{(2)}_t(a,h)}
+ \right|
+ >C\sigma\max_j
+ \sqrt{\frac{Z_v+j+s}{n_2v_j}}
+ \ \middle|\ I_1\right\}
+ \leq Ce^{-s}.                                                     \tag{S12}
+\]
+There is no bandwidth union in this calculation.
+
+Choose an anchor in the lowest nonempty band.  By \((\mathrm{S8})\),
+\[
+ K_h^2\geq\frac1{n_2v_0}.
+\]
+Also \(Z_v/(n_2v_j)\leq K_h^2\), and
+\[
+ \frac{j}{n_2v_j}\leq
+ \frac{j2^{-j}}{n_2v_0}\leq CK_h^2,
+ \qquad
+ \frac{s}{n_2v_j}\leq sK_h^2.                                   \tag{S13}
+\]
+Thus the threshold in \((\mathrm{S12})\) is at most
+\(C\sigma K_h\sqrt{1+s}\).  Integrating the tail in \(s\) yields an expected
+maximum at most \(C\sigma K_h\).  The exceptional count probability in
+\((\mathrm{S10})\) is also on this scale, because
+\[
+ e^{-c n_2v_0}\leq C(n_2v_0)^{-1/2}\leq CK_h.                    \tag{S14}
+\]
+The estimator and target both lie in \([-2L,2L]\), so its contribution is
+at most \(C L K_h\), which is \(C\sigma K_h\) with the allowed dependence
+of \(C\) on the fixed ratio \(L/\sigma\).
+
+Finally, if \(N^{(2)}_t(a,h)>0\), every included score lies within \(h\) of
+\(a=\gamma_1(x,h)\).  By \((\mathrm{S2})\) and the Lipschitz assumption,
+\[
+ \left|
+ \frac{\sum_{i\in I_2}m_{t,P}(X_i)
+ \mathbf1\{X_i\in A_t,\|X_i-a\|_2\leq h\}}
+ {N^{(2)}_t(a,h)}
+ -\theta_{t,P}(x)\right|
+ \leq\frac{65}{32}Lh.                                             \tag{S15}
+\]
+All points used in \((\mathrm{S15})\) lie in the closed \(h_0\)-neighborhood
+of \(B\), as required by the Lipschitz assumption.  The trace-envelope
+assumption places \(\theta_{t,P}(x)\) in \([-L,L]\), so projection onto
+\([-L,L]\), and then projection of the contrast onto \([-2L,2L]\), cannot
+increase the error.  Summing \((\mathrm{S15})\) over the two sides and using
+\((\mathrm{S12})\)--\((\mathrm{S14})\) gives
+\[
+ E_P[\|\widehat\tau_{n,h}-\tau_P\|_\infty\mid I_1]
+ \leq C\{Lh+\sigma K_h\}\leq C\widehat V(h),
+\]
+which proves the lemma.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma proves anchor coverage, packing-controlled anchor cardinality, and the conditional second-half maximum at one fixed bandwidth. \textit{Gap.} It replaces the invalid exposed-arc population-mass substitution with direct binomial count control and conditional sub-Gaussian maxima over finite anchors. \textit{Consumer.} The headline theorem applies it at the single first-half-measurable minimizer.
+
+\begin{proposition}[prop:regular-design-same-estimator]\label{prop:regular-design-same-estimator}
+For every \(c_{\mathrm{reg}}>0\), there is a finite constant \(C\), depending only on \(c_{\mathrm{reg}}\) and the fixed class constants and uniform over the exponent window \(K\), such that, for all sufficiently large \(n\),
+\[
+ \sup_{P\in\mathrm{Reg}(c_{\mathrm{reg}})}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C\left(\frac{\log n}{n}\right)^{1/4}.
+\]
+This is attained by the same total global-bandwidth estimator \(\widehat\tau_n\) as in the isolated and pervasive conclusions; it uses neither \(\kappa\) nor a regime label.
+\end{proposition}
+\begin{proof}
+Fix \(c_{\mathrm{reg}}>0\), let
+\[
+ \rho_n=\left(\frac{\log n}{n}\right)^{1/4},
+ \qquad \ell_n=\log(en),
+\]
+and take \(n\) sufficiently large that \(n\geq2\), \(\rho_n<h_0\), and
+\(h_0 2^{-\lceil\log_2 n\rceil}<\rho_n\).  Such an \(n\) exists because
+\(\rho_n\to0\) and
+\(h_0 2^{-\lceil\log_2 n\rceil}\leq h_0/n=o(\rho_n)\).  The dyadic
+definition of \(H_n\) then gives a smallest grid element \(h_{\rho}\) that
+is at least \(\rho_n\).  It is not the smallest element of \(H_n\), so its
+immediate dyadic successor below it is \(h_{\rho}/2<\rho_n\).  Consequently,
+\[
+ \rho_n\leq h_{\rho}<2\rho_n. \tag{R1}
+\]
+
+Let \(P\in\mathrm{Reg}(c_{\mathrm{reg}})\) be arbitrary.  By
+\(\mathrm{def{:}regular\text{-}design\text{-}class}\), there is a
+\(\kappa_P\in K\) such that \(P\in\mathrm{Base}_{\kappa_P}\), and
+\[
+ a_P(x,h)\geq c_{\mathrm{reg}}h^2
+ \quad\text{for every }x\in B\text{ and }0<h\leq h_0. \tag{R2}
+\]
+We next derive the packing estimate needed to evaluate the oracle bound.
+Fix \(0<h\leq h_0\), \(u\geq0\), and an \(h\)-separated set
+\(F\subseteq\{x\in B:a_P(x,h)\leq u\}\).  If \(|F|=M\geq1\), write its
+second coordinates in increasing order as
+\(-1/2\leq s_1<\cdots<s_M\leq1/2\).  Since Euclidean distance on the
+vertical segment \(B\) equals distance between second coordinates,
+\(s_{j+1}-s_j\geq h\).  Therefore
+\[
+ (M-1)h\leq s_M-s_1\leq1,
+ \qquad
+ M\leq 1+h^{-1}\leq 2h^{-1}, \tag{R3}
+\]
+where the last inequality uses \(h\leq h_0\leq1/8\).  Taking the maximum
+in \(\mathrm{def{:}packing\text{-}profile}\), and treating the empty thin
+set by its stipulated value zero, yields the uniform bound
+\[
+ 1\vee J_P(h,u)\leq\frac{2}{h}
+ \quad(0<h\leq h_0,\ u\geq0). \tag{R4}
+\]
+
+For the oracle integrand in
+\(\mathrm{thm{:}profile\text{-}adaptive\text{-}estimator}\), equations
+\((\mathrm{R1})\), \((\mathrm{R2})\), and \((\mathrm{R4})\) imply,
+simultaneously for every \(x\in B\),
+\[
+\begin{aligned}
+&Lh_{\rho}+\sigma\sqrt{
+ \frac{1+\log\!\left(
+ e\left\{1\vee J_P\!\left(h_{\rho},
+ \min\{1,C_0a_P(x,h_{\rho})\}\right)\right\}\right)}
+ {n a_P(x,h_{\rho})}} \\
+&\quad\leq 2L\rho_n+
+ \frac{\sigma}{\sqrt{c_{\mathrm{reg}}}}
+ \sqrt{\frac{1+\log(2e/h_{\rho})}{n h_{\rho}^2}} \\
+&\quad\leq 2L\rho_n+
+ \frac{\sigma}{\sqrt{c_{\mathrm{reg}}}}
+ \sqrt{\frac{1+\log(2e/\rho_n)}{n\rho_n^2}}. \tag{R5}
+\end{aligned}
+\]
+For all sufficiently large \(n\),
+\[
+ 1+\log(2e/\rho_n)
+ =1+\log(2e)+\frac14\{\log n-\log\log n\}
+ \leq C_1\log n, \tag{R6}
+\]
+where \(C_1\) is numerical.  Since \(n\rho_n^4=\log n\), equations
+\((\mathrm{R5})\)--\((\mathrm{R6})\) give
+\[
+ \sup_{x\in B}\left[
+ Lh_{\rho}+\sigma\sqrt{
+ \frac{1+\log\!\left(
+ e\left\{1\vee J_P\!\left(h_{\rho},
+ \min\{1,C_0a_P(x,h_{\rho})\}\right)\right\}\right)}
+ {n a_P(x,h_{\rho})}}
+ \right]
+ \leq C_2\rho_n, \tag{R7}
+\]
+with \(C_2\) depending only on \(L\), \(\sigma\), and
+\(c_{\mathrm{reg}}\).
+
+Apply \(\mathrm{thm{:}profile\text{-}adaptive\text{-}estimator}\) to
+\(P\in\mathrm{Base}_{\kappa_P}\) and evaluate its infimum at
+\(h_{\rho}\in H_n\).  Its constant is uniform over
+\(\kappa_P\in K\), so \((\mathrm{R7})\) gives
+\[
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C_3\rho_n+C_3(L+\sigma)\frac{\ell_n^2}{n}. \tag{R8}
+\]
+Moreover,
+\[
+ \frac{\ell_n^2/n}{\rho_n}
+ =\frac{(1+\log n)^2}{n^{3/4}(\log n)^{1/4}}longrightarrow0; \tag{R9}
+\]
+indeed, after writing \(n=e^z\), the denominator contains
+\(e^{3z/4}\), which dominates the displayed polynomial in \(z\), as
+follows directly from the power-series lower bounds for the exponential.
+Thus the second term in \((\mathrm{R8})\) is at most a constant multiple of
+\(\rho_n\) for all sufficiently large \(n\).  Because \(P\) was arbitrary,
+taking the supremum over \(P\in\mathrm{Reg}(c_{\mathrm{reg}})\) proves
+\[
+ \sup_{P\in\mathrm{Reg}(c_{\mathrm{reg}})}
+ E_P\|\widehat\tau_n-\tau_P\|_\infty
+ \leq C\left(\frac{\log n}{n}\right)^{1/4}.
+\]
+Finally, the estimator here is exactly the total global-bandwidth estimator
+\(\widehat\tau_n\) appearing in the invoked oracle theorem.  Its frozen
+sample map contains neither \(\kappa_P\), \(c_{\mathrm{reg}}\), nor any
+regime label, and the theorem explicitly records that it uses neither the
+exponent nor the profile class.  Hence no estimator or tuning rule has been
+changed in passing to the regular-design endpoint.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The universal packing bound \(1\vee J_P(h,u)\leq2/h\) and \(a_P(x,h)\geq c_{\mathrm{reg}}h^2\) evaluate the proved oracle at \(h\asymp(\log n/n)^{1/4}\). \textit{Gap.} The regular exponent is classical; the contribution is that the same global-bandwidth severity-net estimator attains it without a regime label while also attaining the isolated and pervasive rates. \textit{Consumer.} It supplies the regular endpoint of the one-procedure cross-regime comparison and pins down the exact positive-density overlap used in comparator positioning.
+
+\section{Interpretation}
+
+A regular design has two-dimensional one-sided ball mass of order \(h^2\), so the universal segment packing bound contributes the familiar supremum logarithm and the oracle balance is \(h+\sqrt{\log(1/h)/(nh^2)}\), giving \((\log n/n)^{1/4}\). Under isolated thinning, the severity-dependent packing envelope removes that logarithm at the worst site; under pervasive thinning, the segment-wide packing logarithm remains. Because the same first-half severity net and one selected global bandwidth implement every case, these are genuine same-procedure conclusions rather than an oracle switch among estimators.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The oracle is deliberately global-bandwidth: its optimization order is \(\inf_h\sup_x\), not the stronger \(\sup_x\inf_h\). The result does not claim arbitrary-profile local-oracle exactness, point-dependent bandwidth adaptation, or exact simultaneous bands beyond the separately declared finite-pattern construction. Constants are uniform only on the compact exponent window bounded away from two.
+
+\section{Honest scope}
+
+The proved oracle is evaluated for one explicit, total estimator on three law-defined regimes: regular side mass, isolated thinning, and pervasive thinning. The resulting upper rates are \((\log n/n)^{1/4}\), \(n^{-1/(\kappa+2)}\), and \((\log n/n)^{1/(\kappa+2)}\), respectively, and the estimator uses neither the exponent nor a regime label. The regular exponent is a classical benchmark, not a new minimax claim. Comparator transfer is asserted only on an exact common subclass with matching assumptions, loss, and estimator quantifiers. No arbitrary-profile, pointwise-bandwidth, local-oracle, or arbitrary-pattern simultaneous-band claim is made.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Gaiffas2005DegenerateDesignRates} Gaiffas, Stephane (2005). Convergence rates for pointwise curve estimation with a degenerate design. Mathematical Methods of Statistics 14, 1--27. arXiv:math/0410354.
+
+  \bibitem{Gaiffas2007PointwiseAdaptive} Gaiffas, Stéphane (2007). On pointwise adaptive curve estimation based on inhomogeneous data. ESAIM: Probability and Statistics 11, 344--364. arXiv:math/0503715.
+
+  \bibitem{Gaiffas2009UniformInhomogeneous} Gaiffas, Stephane (2009). Uniform estimation of a signal based on inhomogeneous data. Statistica Sinica 19, 427--447.
+
+  \bibitem{Bertin2004SupNormRandomDesign} Bertin, Karine (2004). Minimax exact constant in sup-norm for nonparametric regression with random design. Journal of Statistical Planning and Inference 123, 225--242.
+
+  \bibitem{AntoniadisPenskySapatinas2014DensityZeros} Antoniadis, Anestis, Marianna Pensky, and Theofanis Sapatinas (2014). Nonparametric regression estimation based on spatially inhomogeneous data: minimax global convergence rates and adaptivity. ESAIM: Probability and Statistics 18, 100--158.
+
+  \bibitem{HahnToddVanderKlaauw2001RD} Hahn, Jinyong, Petra Todd, and Wilbert van der Klaauw (2001). Identification and estimation of treatment effects with a regression-discontinuity design. Econometrica 69, 201--209.
+
+  \bibitem{CattaneoTitiunikYu2025BoundaryRD} Cattaneo, Matias D., Rocio Titiunik, and Ruiqi Rae Yu (2025). Estimation and inference in boundary discontinuity designs: location-based methods. arXiv:2505.05670, revised May 2026.
+
+  \bibitem{CattaneoTitiunikYu2026DistanceBoundary} Cattaneo, Matias D., Rocio Titiunik, and Ruiqi Rae Yu (2026). Estimation and inference in boundary discontinuity designs: distance-based methods. Journal of Econometrics, article 106266.
+
+  \bibitem{CattaneoTitiunikYu2025BoundarySurvey} Cattaneo, Matias D., Rocio Titiunik, and Ruiqi Rae Yu (2025). Boundary discontinuity designs: theory and practice. arXiv:2511.06474, revised February 2026.
+
+  \bibitem{ChenGao2026} Chen, Xiaohong, and Wayne Yuan Gao (2026). Thin Sets Are Not Equally Thin: Minimax Learning of Submanifold Integrals. Cowles Foundation Discussion Paper 2450R1 (March 2026).
+
+\end{thebibliography}
+
+\end{document}

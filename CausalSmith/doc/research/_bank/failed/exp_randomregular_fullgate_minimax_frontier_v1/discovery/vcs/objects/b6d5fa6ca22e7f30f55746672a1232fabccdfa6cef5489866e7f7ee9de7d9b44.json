@@ -1,0 +1,58 @@
+{
+  "node_type": "meta",
+  "body": {
+    "qid": "exp_randomregular_fullgate_minimax_frontier",
+    "specialization": "v1",
+    "cluster": "experimentation",
+    "target_estimand": "\\(\\tau_n=n^{-1}\\sum_{i\\in V_n}\\{y_i(\\mathbf 1_n)-y_i(\\mathbf 0_n)\\}\\)",
+    "estimand_functional": "\\(R(G_n)\\asymp r(n,d_n)=d_n^2/[n\\log(d_n+1)]\\), attained on the eventual branch \\(M_n<n\\) by \\((\\operatorname{Law}(Z^{\\mathrm{seed}}\\mid G),\\widehat\\tau_{\\mathrm{seed}})\\)",
+    "sampling_model": {
+      "design": "The graph \\(G=G_n\\) is revealed first. The experimenter then chooses a graph-measurable law on \\(\\{0,1\\}^{V_n}\\); when \\(M_n<n\\), the attaining law draws \\(k_n\\) uniform seeds with replacement and treats the union of their closed neighborhoods, while the finite fallback assigns all units treatment when \\(M_n\\ge n\\).",
+      "units": "The population \\(V_n\\) and every potential outcome are fixed conditional on \\(G\\). The graph is random only for the high-probability frontier statement.",
+      "treatment": "Exactly one binary assignment \\(Z\\) is drawn and all realized outcomes are observed. Seed multiplicities are integrated out of the estimator by conditional Rao--Blackwell weights.",
+      "overlap": "No unit-level Bernoulli overlap is imposed. The seed branch is entered only when \\(M_n<n\\), where all endpoint exposure probabilities used in ratios are graph-computable and positive. When \\(M_n\\ge n\\), the compiler forms no inverse-probability quantity and returns the all-treated fallback.",
+      "nuisance_estimation": "None. Intermediate-exposure potential outcomes are unrestricted and ignored; no prior outcomes, repeated rounds, endpoint means, behavioral model, or superpopulation outcome law is used."
+    },
+    "comparator_promise_table": [
+      {
+        "comparator_bibkey": "KandirosHarshawSavje2026Minimax",
+        "comparator_claim": "Corollary 5.4 gives \\(d/n\\lesssim\\mathcal R(G,\\tau_{\\mathrm{GATE}},2)\\lesssim d^2/n\\) with high probability for random \\(d\\)-regular \\(G\\) and \\(d=o(\\sqrt n)\\).",
+        "matched_by": "thm:matched-frontier",
+        "match_kind": "strict_tightening"
+      },
+      {
+        "comparator_bibkey": "KandirosEtAl2024ConflictGraph",
+        "comparator_claim": "Theorem 4.1 bounds the modified Horvitz--Thompson variance by \\(12.5\\lambda(\\mathcal H)/n\\) times the sum of endpoint empirical second moments.",
+        "matched_by": "thm:matched-frontier",
+        "match_kind": "strict_tightening"
+      },
+      {
+        "comparator_bibkey": "KandirosHarshawSavje2026Minimax",
+        "comparator_claim": "Algorithm 4 is the paper's polynomial approximation design, Proposition 4.3 states its guarantee, and Theorem C.11 is the imported 2-approximation for Partial Vertex Cover used as a subroutine.",
+        "matched_by": "prop:finite-compiler",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "UganderYin2023RGCR",
+        "comparator_claim": "Theorem 4.8 bounds GATE Horvitz--Thompson variance for randomized one-hop-max clustering under bounded outcomes and restricted growth.",
+        "matched_by": "lem:schur-certificate",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "HarshawMiddletonSavje2026OptimizedVariance",
+        "comparator_claim": "The paper characterizes admissible estimable quadratic variance bounds and gives convex programs selecting minimally conservative bounds for linear estimators.",
+        "matched_by": "thm:honest-confidence",
+        "match_kind": "downgraded_to_informed_by"
+      }
+    ],
+    "tldr": "For a revealed uniform simple \\(d_n\\)-regular network with unrestricted arbitrary neighborhood interference and only endpoint empirical second-moment bounds, the proposed minimax MSE is \\(d_n^2/[n\\log(d_n+1)]\\). A balanced simultaneous-exposure number yields a design-uniform Beta--Bernoulli converse, with its random-regular scale obtained by direct uniform-simple switchings below the verified Kim--Vu threshold and monotone coupling above it. A one-shot with-replacement neighborhood-seed design yields an unbiased observed-data estimator and an exact positive-semidefinite Schur-power covariance certificate on \\(M_n<n\\); a branch-safe finite compiler returns an all-treated fallback without forming inverse-probability ratios otherwise. The remaining open content is a uniform Boolean radius-two operator estimate, or a direct certificate bound at the same rate; resolving it gives matching bounds over every procedure and an honest shrinking confidence interval for the full GATE.",
+    "project_justification": {
+      "gap": "KandirosHarshawSavje2026Minimax, Corollary 5.4, leaves \\(d_n/n\\lesssim R(G_n)\\lesssim d_n^2/n\\) for the identical random-regular full-GATE problem, a polynomial factor-\\(d_n\\) gap. Existing cluster and conflict-graph designs do not supply a matching all-procedure converse or exploit balanced two-arm endpoint revelation.",
+      "niche": "The bipartite GATE conflict geometry singles out two unstudied objects: the largest balanced pair of opposite endpoint centers at distance greater than two and the centered covariance of control exposure under a fixed-count neighborhood-seed assignment.",
+      "fill": "The proposal characterizes the balanced-packing scale using direct uniform-simple switchings below the verified sandwich threshold and monotone coupling above it, converts that scale to an all-design Bayes lower bound, and matches it with a graph-measurable seed design whose covariance has an exact Schur-power representation. A branch-safe finite compiler avoids undefined exposure ratios, and a centered Boolean collision theorem closes the only remaining upper-bound step before the graph certificate yields finite-sample coverage."
+    },
+    "related_work": "KandirosHarshawSavje2026Minimax, arXiv:2608.04909v1, Corollary 5.4 and Appendix E.4, is the closest comparator: it places the identical random-regular GATE risk between \\(d_n/n\\) and \\(d_n^2/n\\), while Sections 3.2--3.3 build design-based Le Cam mixtures from one-sided conflict-graph information. Its Algorithm 4 and Proposition 4.3 give its polynomial approximation design, using the imported Partial Vertex Cover 2-approximation in Theorem C.11; the exact branch-safe seed compiler is informed by that algorithm but certifies a different assignment law. KandirosEtAl2024ConflictGraph, arXiv:2411.10908v3, Algorithm 1 and Theorem 4.1, supplies randomized priority conflict resolution and the \\(\\lambda(\\mathcal H)/n\\) covariance-norm upper bound; the proposed seed law replaces that generic geometry and strictly improves its random-regular GATE scale. UganderYin2023RGCR, Sections 2.3 and 4.3, randomizes graph decompositions and integrates exposure probabilities, but Theorem 4.8 assumes uniformly bounded outcomes and evaluates a fixed Horvitz--Thompson procedure rather than unrestricted minimax risk. AronowSamii2017GeneralInterference supplies the exposure-mapping and inverse-probability foundation. CooperEtAl2002RandomRegular studies ordinary independence rather than signed balanced radius-two packing. BehagueIlkovicMontgomery2025Sandwich, Theorem 1.1, supplies the monotone transfer only in its verified regime \\(d_n\\ge C\\log n\\); the below-threshold argument is instead a direct degree-preserving switching enumeration under the uniform simple law. Xu2025SwitchingGraphMatrices, CCC 2025 Section 2.2, Theorems 14--15, motivates graph-shape trace moments for polynomial matrices, while BauerschmidtEtAl2020EdgeRigidity and Sarid2023SpectralGap control nonconstant adjacency eigenvalues; none covers Boolean collision corrections uniformly over the target regime. HarshawMiddletonSavje2026OptimizedVariance, Sections 4--6, explains why variance is generally unestimable and how conservative quadratic bounds can be optimized, but it does not select the minimax design. ShiEtAl2020FreedomChoice provides the prospective consumer: its first-round all-free versus all-fixed degree-four public-goods comparison is local to closed pools and was run with only two whole-network replicates per setup.",
+    "technical_internal_limitation": "The stronger heuristic \\(\\|B_2(G_n)P_n\\|_{\\mathrm{op}}=O(d_n)\\) is not needed and is not claimed. A row-sum bound on duplicate walks is inadequate near \\(d_n=o(\\sqrt n)\\) because it retains a large approximately constant component. Exact finite enumeration and observed spectra are falsification checks only and cannot establish the uniform asymptotic operator statement.",
+    "honest_scope": "The balanced Bayes calculation, the direct uniform-simple switching argument below the verified sandwich threshold, the monotone coupling above it, and the Schur covariance identity are presolve evidence to be independently proved, not established inputs. Open-ended Question 1 is load-bearing; the matched theorem is not asserted independently of it. The seed probabilities, covariance matrix, Rao--Blackwell weights, and seed estimator are defined only when \\(M_n<n\\); on the complementary finite branch the compiler returns the all-treated fallback without forming any ratio. The proposal concerns one assignment, unrestricted intermediate ANI outcomes, and the full population GATE. It does not cover later strategic feedback, final wealth, two-hop individual payoff, repeated experiments, nonuniform graph draws, or claims that the ShiEtAl2020FreedomChoice behavioral model is worst case. As sanity checks, fixed degree gives the standard \\(n^{-1}\\) MSE order, and high-girth expanders reduce the Boolean operator to an adjacency polynomial."
+  }
+}

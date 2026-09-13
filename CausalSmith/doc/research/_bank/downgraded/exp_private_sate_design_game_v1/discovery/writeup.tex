@@ -1,0 +1,818 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}private\_\allowbreak{}sate\_\allowbreak{}design\_\allowbreak{}game}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Exact finite-population SATE inference under local privacy reduces to a fourteen-pattern, degree-\(N\) polynomial channel game with an inner exact confidence linear program. At \(N=4\), \(\alpha=2/5\), and \(\lambda=1000\), rational certificates bracket the unrestricted optimum within \(5.94\times10^{-6}\), while revealed-input dominance and monotone privacy feasibility force balanced allocation for every \(\lambda\ge1000\). Four-ary response strictly beats every balanced binary-partition response throughout \([999.9,1000.1]\). No optimizer-attaining balanced-binary cell or actual equality-set boundary is established.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing causal local-privacy theory optimizes population estimation risk or asymptotic confidence width, exact randomization inference fixes a nonprivate observation experiment, and staircase optimality applies to convex single-draw utilities. Their intersection leaves the exact common-channel SATE confidence game and its design boundaries unresolved.
+
+\paragraph{Niche.} The finite binary schedule, complete-randomization orbit structure, and four protected input values make the causal nuisance finite while preserving the nonconvex product-channel difficulty.
+
+\paragraph{Fill.} The project supplies a lossless schedule-orbit reduction, an explicit fourteen-output Blackwell refinement, exact fixed-channel primal--dual confidence inference, an attained degree-\(N\) polynomial formulation, a global polynomial-dual certificate method, a certified nonbinary interval, and a balanced-allocation theorem for the stated four-unit regime. It does not claim the previously proposed balanced-binary phase boundary, whose optimizer-attaining certificate remains open.
+
+\section{Related work}
+
+Kairouz, Oh, and Viswanath (2016), Section 7 and Lemma 22, provide the cube decomposition underlying the staircase factorization of a pure locally private column. The present reduction uses that geometric basis and adds the problem-specific strengthening: it explicitly absorbs the constant ray into complementary nonconstant patterns, normalizes the resulting fourteen weights, extracts an input-independent postprocessing kernel, and thereby obtains Blackwell dominance for the entire finite-population confidence game. Their convex-utility output-size conclusions do not apply because the optimized product-channel confidence utility is not convex in the required direction. Ohnishi and Awan (2025) study locally private causal inference for a superpopulation PATE under Bernoulli treatment and asymptotic estimation or inference; the present target is the fixed-population SATE under complete randomization with a hidden assignment. Rigdon and Hudgens (2015) treat exact finite-population SATE inference without this local channel-design game. Schafer and Stark (2009) motivate least-favorable-prior confidence optimization for a fixed experiment. Chen, Cormode, Bharadwaj, Romov, and Ozgur (2024) optimize distributed-private mechanisms and allocation but do not derive this schedulewise exact common-channel game or its boundaries. Ghazi, Nasser, Calmon, and Issa (2026) obtain partition mechanisms for simple binary testing, whereas the current confidence problem has many schedule nulls and no single likelihood-ratio ordering.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau(s)=N^{-1}\sum_{i=1}^{N}\{Y_i(1)-Y_i(0)\}\).
+Primary functional / estimator / diagnostic: \(L^\star_{N,\alpha}(\lambda)=\min_{1\le m<N}\inf_{Q\in\mathcal D_\lambda}\inf_{C:\,\inf_s\Pr_{s,Q}\{\tau(s)\in C(Z)\}\ge1-\alpha}\sup_s\mathbb E_{s,Q}|C(Z)|\).
+\begin{itemize}
+  \item \texttt{N} --- \texttt{integer}; \(\{4,5,\ldots\}\); \texttt{number of labeled experimental units}
+  \item \texttt{alpha} --- \texttt{real}; \((0,1/2)\); \texttt{noncoverage level}
+  \item \texttt{epsilon} --- \texttt{real}; \((0,\infty)\); \texttt{local differential-\allowbreak{}privacy parameter}
+  \item \texttt{lambda} --- \texttt{real}; \((1,\infty)\); \texttt{multiplicative local-\allowbreak{}privacy budget}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda=\exp(\varepsilon)\)
+  \item \texttt{m} --- \texttt{integer}; \(\{1,\ldots,N-1\}\); \texttt{number of treated units}
+  \item \texttt{I} --- \texttt{finite index set}; \texttt{unit labels}
+  \par\smallskip\noindent\emph{Definition.} \(I=\{1,\ldots,N\}\)
+  \item \texttt{X} --- \texttt{finite alphabet}; \texttt{private assignment-\allowbreak{}-\allowbreak{}outcome input}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=\{(0,0),(0,1),(1,0),(1,1)\}\)
+  \item \texttt{Y} --- \texttt{fixed potential-\allowbreak{}outcome array}; \(Y:I\times\{0,1\}\to\{0,1\}\); \texttt{finite-\allowbreak{}population potential outcomes}
+  \item \texttt{s} --- \texttt{schedule}; \texttt{fixed labeled binary potential-\allowbreak{}outcome schedule}
+  \par\smallskip\noindent\emph{Definition.} \(s=((Y_i(0),Y_i(1)))_{i\in I}\)
+  \item \texttt{W} --- \texttt{random assignment vector}; \(\{w\in\{0,1\}^{N}:\sum_i w_i=m\}\); \texttt{complete randomization}
+  \item \texttt{Zspace} --- \texttt{finite alphabet}; \texttt{local report space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Z\) is an arbitrary finite report alphabet
+  \item \texttt{Q} --- \texttt{Markov kernel}; \(Q:\mathcal X\rightsquigarrow\mathcal Z\); \texttt{common finite-\allowbreak{}output local channel}
+  \item \texttt{D} --- \texttt{channel class}; \texttt{pure-\allowbreak{}local-\allowbreak{}private channel class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D_\lambda=\{Q:Q(z\mid x)\le\lambda Q(z\mid x')\ \text{for all }x,x',z\}\)
+  \item \texttt{Z} --- \texttt{random transcript}; \texttt{privatized reports}
+  \par\smallskip\noindent\emph{Definition.} \(Z=(Z_1,\ldots,Z_N)\)
+  \item \texttt{O} --- \texttt{finite set}; \texttt{schedule-\allowbreak{}orbit space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_N=\{n\in\mathbb Z_+^4:\sum_{a,b}n_{ab}=N\}\)
+  \item \texttt{tau} --- \texttt{finite-\allowbreak{}population causal contrast}; \(\tau:\mathcal O_N\to\mathbb R\); \texttt{sample average treatment effect}
+  \par\smallskip\noindent\emph{Definition.} \(\tau(n)=(n_{01}-n_{10})/N=N^{-1}\sum_i\{Y_i(1)-Y_i(0)\}\)
+  \item \texttt{T} --- \texttt{finite grid}; \texttt{SATE action grid}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T_N=\{-1,-1+1/N,\ldots,1\}\)
+  \item \texttt{H} --- \texttt{report histogram}; \texttt{permutation-\allowbreak{}invariant transcript}
+  \par\smallskip\noindent\emph{Definition.} \(H=(H_z)_{z\in\mathcal Z}\) with \(\sum_zH_z=N\)
+  \item \texttt{C} --- \texttt{randomized confidence kernel}; \(C:\operatorname{range}(H)\rightsquigarrow2^{\mathcal T_N}\); \texttt{reported exact SATE confidence set}
+  \item \texttt{c} --- \texttt{inclusion-\allowbreak{}probability array}; \texttt{randomized confidence action}
+  \par\smallskip\noindent\emph{Definition.} \(c_{h,t}=\Pr\{t\in C(Z)\mid H=h\}\in[0,1]\)
+  \item \texttt{P} --- \texttt{probability kernel}; \(P_{n,m,Q}(h)\); \texttt{exact orbit-\allowbreak{}to-\allowbreak{}histogram law}
+  \item \texttt{V} --- \texttt{real-\allowbreak{}valued functional}; \(V_m(Q)\); \texttt{fixed-\allowbreak{}channel minimax expected cardinality}
+  \item \texttt{S} --- \texttt{subset index}; \(\{S:\varnothing\ne S\subsetneq\mathcal X\}\); \texttt{nonconstant staircase high set}
+  \item \texttt{p} --- \texttt{staircase pattern family}; \texttt{four-\allowbreak{}input pure-\allowbreak{}private rays}
+  \par\smallskip\noindent\emph{Definition.} \(p_S(x)=1+(\lambda-1)\mathbf 1\{x\in S\}\)
+  \item \texttt{A} --- \texttt{compact polytope}; \texttt{normalized staircase-\allowbreak{}weight space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_\lambda=\{a\in\mathbb R_+^{14}:\sum_Sa_Sp_S(x)=1\ \text{for every }x\in\mathcal X\}\)
+  \item \texttt{a} --- \texttt{weight vector}; \(\mathcal A_\lambda\); \texttt{channel-\allowbreak{}design variable}
+  \item \texttt{Qa} --- \texttt{Markov kernel}; \texttt{fourteen-\allowbreak{}output staircase refinement}
+  \par\smallskip\noindent\emph{Definition.} \(Q_a(S\mid x)=a_Sp_S(x)\)
+  \item \texttt{K} --- \texttt{Markov kernel}; \(K:\{S:\varnothing\ne S\subsetneq\mathcal X\}\rightsquigarrow\mathcal Z\); \texttt{input-\allowbreak{}independent postprocessing map}
+  \item \texttt{rho} --- \texttt{nonnegative coefficient array}; \(\rho_{n,m,h}(\lambda)\); \texttt{orbit likelihood coefficient after staircase factorization}
+  \par\smallskip\noindent\emph{Definition.} \(P_{n,m,Q_a}(h)=\rho_{n,m,h}(\lambda)a^h\)
+  \item \texttt{d} --- \texttt{lifted confidence array}; degree-\(N\) common-channel lifting
+  \par\smallskip\noindent\emph{Definition.} \(d_{h,t}=a^h c_{h,t}\), where \(a^h=\prod_Sa_S^{h_S}\)
+  \item \texttt{G} --- \texttt{polynomial optimization problem}; \(\mathsf G_m(\lambda,\alpha)\); \texttt{joint channel-\allowbreak{}and-\allowbreak{}confidence game}
+  \item \texttt{Lstar} --- \texttt{real-\allowbreak{}valued function}; \(L^\star_{N,\alpha}(\lambda)\); \texttt{optimal exact private confidence risk}
+  \par\smallskip\noindent\emph{Definition.} \(L^\star_{N,\alpha}(\lambda)=\min_{1\le m<N}\inf_QV_m(Q)\)
+  \item \texttt{R} --- \texttt{binary-\allowbreak{}output Markov kernel}; \texttt{randomized response after a nontrivial binary partition}
+  \par\smallskip\noindent\emph{Definition.} \(R_{S,\lambda}(1\mid x)=\{1+(\lambda-1)\mathbf 1(x\in S)\}/(\lambda+1)\)
+  \item \texttt{B} --- \texttt{subset of privacy budgets}; \(\mathcal B_{N,\alpha}\subset(1,\infty)\); \texttt{balanced-\allowbreak{}binary equality set}
+  \item \texttt{Delta} --- \texttt{nonnegative real-\allowbreak{}valued function}; \(\Delta_{N,\alpha}(\lambda)\); \texttt{balanced-\allowbreak{}binary optimality gap}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{N,\alpha}(\lambda)=\min_{m\in\{\lfloor N/2\rfloor,\lceil N/2\rceil\},S}V_m(R_{S,\lambda})-L^\star_{N,\alpha}(\lambda)\)
+  \item \texttt{J} --- \texttt{semialgebraic cell}; \((1,\infty)\times(0,1/2)\); \texttt{parameter region with fixed channel and confidence active sets}
+  \item \texttt{Gamma} --- \texttt{certificate family}; \(\Gamma_J\); \texttt{optimizer-\allowbreak{}attaining active-\allowbreak{}set continuation certificate}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-population]\label{ass:fixed-population}
+\(s\) is fixed before assignment randomization.
+\par\smallskip\noindent\emph{Standard} (Neyman finite-population randomization model, \cite{RigdonHudgens2015}).
+\end{assumption}
+
+\begin{assumption}[ass:binary-outcomes]\label{ass:binary-outcomes}
+\(Y_i(w)\in\{0,1\}\) for every \(i\in I\) and \(w\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (binary potential outcomes, \cite{RigdonHudgens2015}).
+\end{assumption}
+
+\begin{assumption}[ass:complete-randomization]\label{ass:complete-randomization}
+\(\Pr(W=w)=\binom{N}{m}^{-1}\mathbf 1\{\sum_iw_i=m\}\).
+\par\smallskip\noindent\emph{Standard} (complete randomization with a fixed treatment count, \cite{RigdonHudgens2015}).
+\end{assumption}
+
+\begin{assumption}[ass:common-channel]\label{ass:common-channel}
+\(Q_i=Q\) for every \(i\in I\).
+\par\smallskip\noindent\emph{Standard} (common noninteractive local channel, \cite{KairouzOhViswanath2016}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-product]\label{ass:conditional-product}
+\(\Pr(Z=z\mid s,W,Q)=\prod_{i\in I}Q(z_i\mid W_i,Y_i(W_i))\).
+\par\smallskip\noindent\emph{Standard} (noninteractive conditional independence, \cite{KairouzOhViswanath2016}).
+\end{assumption}
+
+\begin{assumption}[ass:pure-local-privacy]\label{ass:pure-local-privacy}
+\(Q(z\mid x)\le\lambda Q(z\mid x')\) for every \(x,x'\in\mathcal X\) and every report \(z\).
+\par\smallskip\noindent\emph{Standard} (pure local differential privacy, \cite{KairouzOhViswanath2016}).
+\end{assumption}
+
+\begin{assumption}[ass:hidden-assignment-protocol]\label{ass:hidden-assignment-protocol}
+\(\sigma(\text{analyst information})=\sigma(Z,N,m,Q)\).
+\par\smallskip\noindent\emph{Novel.} The condition models a trial in which an assignment service sends each participant a treatment and the analyst receives only locally privatized reports; client-side telemetry and secret-shared assignment services instantiate this separation.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:orbit-space]\label{def:orbit-space}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal O_N\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal O_N=\{n=(n_{00},n_{01},n_{10},n_{11})\in\mathbb Z_+^4:\sum_{a,b\in\{0,1\}}n_{ab}=N\}\), where \(n_{ab}=\#\{i:(Y_i(0),Y_i(1))=(a,b)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}binary-\allowbreak{}outcomes}.
+\end{definition}
+
+\begin{definition}[def:orbit-kernel]\label{def:orbit-kernel}
+\par\smallskip\noindent\emph{Defined object.} \(P_{n,m,Q}\)
+\par\smallskip\noindent\emph{Construction.} For \(L_x(v)=\sum_zQ(z\mid x)v_z\), set \(P_{n,m,Q}(h)=\binom{N}{m}^{-1}[u^mv^h]\prod_{a,b\in\{0,1\}}\{L_{0a}(v)+uL_{1b}(v)\}^{n_{ab}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{m}; \texttt{Q}; \texttt{h}.
+\end{definition}
+
+\begin{definition}[def:confidence-lp]\label{def:confidence-lp}
+\par\smallskip\noindent\emph{Defined object.} \texttt{fixed-\allowbreak{}channel exact-\allowbreak{}confidence program}
+\par\smallskip\noindent\emph{Construction.} \(V_m(Q)=\min_{0\le c\le1,\ell}\ell\) subject to \(\sum_hP_{n,m,Q}(h)c_{h,\tau(n)}\ge1-\alpha\) and \(\sum_{h,t}P_{n,m,Q}(h)c_{h,t}\le\ell\) for every \(n\in\mathcal O_N\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}; \texttt{Q}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:staircase-polytope]\label{def:staircase-polytope}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal A_\lambda\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal A_\lambda=\{a\in\mathbb R_+^{14}:\sum_{\varnothing\ne S\subsetneq\mathcal X}a_S[1+(\lambda-1)\mathbf 1\{x\in S\}]=1\ \text{for every }x\in\mathcal X\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{lambda}.
+\end{definition}
+
+\begin{definition}[def:lifted-game]\label{def:lifted-game}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf G_m(\lambda,\alpha)\)
+\par\smallskip\noindent\emph{Construction.} Factor \(P_{n,m,Q_a}(h)=\rho_{n,m,h}(\lambda)a^h\) and minimize \(\ell\) over \(a\in\mathcal A_\lambda\) and \(d\) subject to \(0\le d_{h,t}\le a^h\), \(\sum_h\rho_{n,m,h}(\lambda)d_{h,\tau(n)}\ge1-\alpha\), and \(\sum_{h,t}\rho_{n,m,h}(\lambda)d_{h,t}\le\ell\) for every \(n\in\mathcal O_N\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}; \texttt{lambda}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:balanced-binary-set]\label{def:balanced-binary-set}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal B_{N,\alpha}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal B_{N,\alpha}=\{\lambda>1:\Delta_{N,\alpha}(\lambda)=0\}\), where \(\Delta_{N,\alpha}(\lambda)=\min_{m\in\{\lfloor N/2\rfloor,\lceil N/2\rceil\},\,\varnothing\ne S\subsetneq\mathcal X}V_m(R_{S,\lambda})-L^\star_{N,\alpha}(\lambda)\).
+\end{definition}
+
+\begin{definition}[def:continuation-handle]\label{def:continuation-handle}
+\par\smallskip\noindent\emph{Defined object.} \(\Gamma_J\)
+\par\smallskip\noindent\emph{Construction.} Extract a fixed channel-support and confidence-active-set description from \(\mathsf G_m(\lambda,\alpha)\); solve its algebraic stationarity and complementary-slackness equations; then certify every inactive slack and global polynomial residual on \(J\) by facewise identities, Bernstein or Handelman coefficients, or a Fritz John strengthened sum-of-squares certificate.
+\par\smallskip\noindent\emph{Inputs.} \texttt{J}; \texttt{G}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:orbit-staircase-lp]\label{thm:orbit-staircase-lp}
+For every \(N,m,\alpha,\lambda\) and every admissible finite-output \(Q\), symmetrizing the confidence rule reduces schedules to \(\mathcal O_N\) and transcripts to \(H\) with exact law \(P_{n,m,Q}\). Moreover, there exist \(a\in\mathcal A_\lambda\) and an input-independent postprocessing kernel \(K\) such that \(Q=Q_aK\), so \(V_m(Q_a)\le V_m(Q)\). For fixed \(Q\), the fixed-channel exact-confidence program and its finite least-favorable-prior dual have equal attained values.
+\end{theorem}
+\begin{proof}
+Let \(\mathfrak S_N\) act on labeled schedules, assignments, and report vectors by the same permutation of coordinates.  The schedule is fixed before this randomization, and the hidden-assignment protocol ensures that the analyst's random input is exhausted by the report vector together with the known design quantities.  By complete randomization, for every permutation \(g\),
+\[
+ \Pr(W=w)=\Pr(W=gw).
+\]
+By the common-channel and conditional-product assumptions,
+\[
+ \Pr_{gs,Q}(Z=gz)=\Pr_{s,Q}(Z=z).
+\]
+Moreover \(\tau(gs)=\tau(s)\), because relabeling does not change any of the four potential-outcome type counts.  Given an arbitrary confidence kernel \(C\), define its symmetrization by first drawing \(G\) uniformly from \(\mathfrak S_N\), independently of all other randomization, and then applying \(C\) to \(GZ\).  For a fixed schedule \(s\), its coverage is
+\[
+ \frac1{N!}\sum_{g\in\mathfrak S_N}
+ \Pr_{gs,Q}\{\tau(gs)\in C(Z)\}\ge 1-\alpha,
+\]
+and its expected cardinality is the corresponding average of the original losses over the orbit of \(s\), hence is no larger than the original worst-schedule loss.  The symmetrized rule is constant on permutation orbits of report vectors, which are precisely their histograms \(H\).  Under binary outcomes, schedule orbits are precisely the vectors \(n\in\mathcal O_N\).
+
+For \(L_x(v)=\sum_zQ(z\mid x)v_z\), a type-\((a,b)\) unit contributes \(L_{0a}(v)\) if untreated and \(uL_{1b}(v)\) if treated.  Multiplication over the fixed type counts, extraction of exactly \(m\) treated factors and histogram \(h\), and division by the \(\binom Nm\) equiprobable assignments give
+\[
+ P_{n,m,Q}(h)=\binom Nm^{-1}[u^mv^h]
+ \prod_{a,b\in\{0,1\}}\{L_{0a}(v)+uL_{1b}(v)\}^{n_{ab}}.
+\]
+Setting every \(v_z=1\) makes every \(L_x(v)=1\), so summing the numerator over \(h\) gives \([u^m](1+u)^N=\binom Nm\); thus this is a probability law.  Equivalently, if \(j_{ab}\) is the treated count of type \((a,b)\), expansion gives the multivariate hypergeometric mass
+\[
+ \Pr(j\mid n,m)=\binom Nm^{-1}\prod_{a,b}\binom{n_{ab}}{j_{ab}},
+ \qquad \sum_{a,b}j_{ab}=m,
+\]
+followed by independent multinomial report histograms.  This proves the orbit and histogram reduction without collapsing the nuisance orbit \(n\) to \(\tau(n)\).
+
+It remains to reduce the channel.  Delete any identically zero output column.  A remaining column \(q=(Q(z\mid x))_{x\in\mathcal X}\) is strictly positive: if one entry were zero, pure local privacy would force all entries to be zero.  Order its entries as \(v_1\le v_2\le v_3\le v_4\), let \(S_j\) contain the coordinates in positions \(j+1,\ldots,4\), and put \(d_j=v_{j+1}-v_j\).  Since \(v_4\le\lambda v_1\),
+\[
+ c_0:=v_1-\frac{v_4-v_1}{\lambda-1}
+     =\frac{\lambda v_1-v_4}{\lambda-1}\ge0.
+\]
+Direct evaluation at each ordered coordinate gives the layer identity
+\[
+ q=c_0\mathbf 1+\sum_{j=1}^3\frac{d_j}{\lambda-1}p_{S_j}.
+\]
+For any fixed nonempty proper \(S_0\subset\mathcal X\),
+\[
+ \mathbf 1=\frac{p_{S_0}+p_{S_0^c}}{\lambda+1}.
+\]
+Consequently there are coefficients \(b_{zS}\ge0\) such that
+\[
+ Q(z\mid x)=\sum_S b_{zS}p_S(x).
+\]
+Let \(a_S=\sum_zb_{zS}\).  Row normalization of \(Q\) implies
+\[
+ \sum_Sa_Sp_S(x)=\sum_zQ(z\mid x)=1
+\]
+for every \(x\), hence \(a\in\mathcal A_\lambda\).  When \(a_S>0\), set \(K(z\mid S)=b_{zS}/a_S\); for a zero-weight row choose any probability distribution.  Then \(K\) is input independent and
+\[
+ \sum_SQ_a(S\mid x)K(z\mid S)
+ =\sum_Sa_Sp_S(x)\frac{b_{zS}}{a_S}=Q(z\mid x),
+\]
+where zero-weight terms vanish.  Thus \(Q=Q_aK\).  Independent application of \(K\) to the \(N\) reports simulates the original product experiment under every schedule and assignment.  Any rule for \(Q\) therefore induces a rule for \(Q_a\) with identical coverage and loss, proving \(V_m(Q_a)\le V_m(Q)\).
+
+Finally, conditional on a histogram \(h\), define
+\[
+ c_{h,t}=\Pr\{t\in C(Z)\mid H=h\}.
+\]
+Conversely, every array \(0\le c_{h,t}\le1\) is realizable by including the finitely many \(t\)'s independently with those conditional probabilities.  Since expectation of cardinality is additive,
+\[
+ \Pr_n\{\tau(n)\in C\}=\sum_hP_{n,m,Q}(h)c_{h,\tau(n)},
+ \qquad
+ \mathbb E_n|C|=\sum_{h,t}P_{n,m,Q}(h)c_{h,t}.
+\]
+These are exactly the constraints in the fixed-channel program.  Attach multipliers \(\eta_n\ge0\) to the coverage constraints and \(\pi_n\ge0\) to the loss constraints.  The Lagrangian coefficient of the free variable \(\ell\) is \(1-\sum_n\pi_n\), so a finite infimum requires \(\sum_n\pi_n=1\).  The coefficient of \(c_{h,t}\) is
+\[
+ A_{h,t}=\sum_n\pi_nP_{n,m,Q}(h)
+ -\sum_{n:\tau(n)=t}\eta_nP_{n,m,Q}(h).
+\]
+Minimizing over \(0\le c_{h,t}\le1\) contributes \(\min(0,A_{h,t})\).  Hence the dual is
+\[
+ \max_{\substack{\pi\ge0,\ \sum_n\pi_n=1\\ \eta\ge0}}
+ (1-\alpha)\sum_n\eta_n-
+ \sum_{h,t}\left[
+ \sum_{n:\tau(n)=t}\eta_nP_{n,m,Q}(h)-
+ \sum_n\pi_nP_{n,m,Q}(h)
+ \right]_+.
+\]
+Equivalently introduce \(s_{h,t}\ge0\) with \(A_{h,t}+s_{h,t}\ge0\) and subtract \(\sum_{h,t}s_{h,t}\) in the objective.  The primal is feasible by \(c_{h,t}=1\), and restricting \(0\le\ell\le2N+1\) preserves an optimum and makes its feasible set compact.  The dual is feasible at \(\eta=0\) and any probability vector \(\pi\).  The cited finite linear-programming strong-duality lemma therefore gives attained equal values.  This also identifies \(\pi\) as a finite least-favorable loss prior and completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem turns an infinite-output private confidence-design problem with \(4^N\) schedules into a finite exact decision game without discarding composite schedule nuisance. \textit{Gap.} Kairouz, Oh, and Viswanath treat convex column-separable utilities, Rigdon and Hudgens treat exact SATE inference without privacy, and Schafer and Stark fix the experiment; none proves their joint reduction. \textit{Consumer.} It supplies the finite certified optimization layer required by a hidden-assignment A/B-testing protocol to return schedulewise exact SATE confidence sets.
+
+\begin{theorem}[thm:polynomial-attainment]\label{thm:polynomial-attainment}
+For every fixed \(N,m,\alpha,\lambda\), \(\inf_QV_m(Q)\) equals the attained optimum of \(\mathsf G_m(\lambda,\alpha)\), whose only nonlinear constraints are \(d_{h,t}\le a^h\) of degree \(N\). The graph of \(L^\star_{N,\alpha}(\lambda)\), the gap \(\Delta_{N,\alpha}(\lambda)\), and the set \(\mathcal B_{N,\alpha}\) are semialgebraic; for fixed \(N,\alpha\), \(\mathcal B_{N,\alpha}\) is a relatively closed finite union of intervals and points.
+\end{theorem}
+\begin{proof}
+For a staircase report \(S\), every factor in the orbit generating function has the form
+\[
+ Q_a(S\mid x)=a_Sp_S(x).
+\]
+If the histogram is \(h\), exactly \(h_S\) such factors use report \(S\); therefore the common factor is
+\[
+ a^h=\prod_Sa_S^{h_S},\qquad \sum_Sh_S=N.
+\]
+Removing it from the coefficient extraction leaves a nonnegative coefficient \(\rho_{n,m,h}(\lambda)\), so
+\[
+ P_{n,m,Q_a}(h)=\rho_{n,m,h}(\lambda)a^h.
+\]
+The coefficient \(\rho\) is a polynomial in \(\lambda\), apart from the positive constant denominator \(\binom Nm\).
+
+Given \((a,c)\), put \(d_{h,t}=a^hc_{h,t}\).  Then \(0\le d_{h,t}\le a^h\), and substitution in every coverage and loss constraint gives exactly \(\mathsf G_m(\lambda,\alpha)\).  Conversely, if \((a,d)\) is feasible, define \(c_{h,t}=d_{h,t}/a^h\) when \(a^h>0\).  Division is used only under this strict positivity.  When \(a^h=0\), the constraint \(0\le d_{h,t}\le a^h\) forces \(d_{h,t}=0\), and the corresponding histogram has zero probability for every schedule, so any \(c_{h,t}\in[0,1]\) may be chosen.  This proves the two-way equivalence.
+
+The polytope \(\mathcal A_\lambda\) is nonempty: assigning weight \((\lambda+3)^{-1}\) to each of the four singleton high sets and zero elsewhere satisfies all four normalization equations.  It is closed.  Moreover, for every nonempty \(S\), choosing \(x\in S\) in the normalization equation yields \(\lambda a_S\le1\), so it is bounded.  Thus it is compact.  The constraints give \(0\le d_{h,t}\le1\); the all-grid rule supplies a feasible point with \(\ell=2N+1\), and loss nonnegativity gives \(\ell\ge0\) on every feasible point.  Hence an optimizing sublevel set with \(0\le\ell\le2N+1\) is nonempty and compact, and the polynomial objective attains its minimum.  By the preceding theorem, minimizing over all finite-output channels equals minimizing over \(a\in\mathcal A_\lambda\).  Since \(\sum_Sh_S=N\), each monomial \(a^h\) has degree exactly \(N\); all other displayed constraints are linear in \((d,\ell)\) for fixed parameters.  This proves the attainment and degree claims.
+
+For semialgebraicity, retain \((\lambda,\alpha)\) as variables.  The feasibility constraints of each \(\mathsf G_m\) are finitely many polynomial equalities and inequalities after multiplying by the positive constants \(\binom Nm\).  The assertion that \(r\) is its optimum is the first-order ordered-field formula
+\[
+ \exists(a,d)\;\bigl[\operatorname{Feas}_m(a,d,r)\bigr]
+ \ \wedge\ 
+ \forall(a',d',r')\;\bigl[
+ \operatorname{Feas}_m(a',d',r')\Longrightarrow r\le r'
+ \bigr].
+\]
+The cited semialgebraic-projection theorem converts this formula into a semialgebraic graph.  Taking the minimum over the finitely many \(m\)'s uses only finite unions and intersections, hence the graph of \(L^\star_{N,\alpha}(\lambda)\) is semialgebraic.  The same argument applies to each fixed binary channel \(R_{S,\lambda}\): its entries have denominator \(\lambda+1>0\), so clearing that denominator preserves every inequality.  Finite minimization over balanced \(m\) and nontrivial \(S\), subtraction of the graph of \(L^\star\), and the equation \(\Delta=0\) prove semialgebraicity of the graph of \(\Delta\) and of \(\mathcal B_{N,\alpha}\).
+
+It remains to prove relative closedness.  Let \(Q,Q'\) share a finite output alphabet and put \(d=\max_n\operatorname{TV}(P_{n,m,Q},P_{n,m,Q'})\).  The value-modulus lemma gives continuity of \(V_m\) in the channel rows.  To vary privacy, fix \(\lambda_0>1\) and mix a \(\lambda_0\)-private fourteen-output channel \(Q\) with the uniform input-independent channel \(U(z\mid x)=1/14\):
+\[
+ Q_\theta=(1-\theta)Q+\theta U.
+\]
+For \(1<\lambda'<\lambda_0\), the sufficient condition
+\[
+ \frac{\theta}{1-\theta}\ge
+ \frac{14(\lambda_0-\lambda')}{\lambda'-1}
+\]
+implies \(Q_\theta(z\mid x)\le\lambda'Q_\theta(z\mid x')\) for all \(x,x',z\), because \(Q(z\mid x')\le1\).  The required \(\theta\) tends to zero as \(\lambda'\to\lambda_0\).  If instead \(\lambda'\ge\lambda_0\), the original \(Q\) remains feasible.
+
+For lower semicontinuity, take any convergent sequence of privacy parameters together with optimizing allocations and fourteen-output channels.  The allocation set is finite, so pass first to a subsequence on which \(m\) is constant.  Compactness of the product of row simplices gives a further convergent subsequence; privacy inequalities pass to the limit, and the value-modulus lemma passes the objective to the limit.  For upper semicontinuity, use an optimizer at \(\lambda_0\), the preceding mixture for parameters below \(\lambda_0\), and unchanged feasibility for parameters above.  Thus \(L^\star_{N,\alpha}(\lambda)\) is continuous in \(\lambda\).  Every binary-channel value is continuous by its explicit row probabilities and the same modulus.  Consequently \(\Delta_{N,\alpha}\), a finite minimum of continuous binary values minus \(L^\star\), is continuous and nonnegative.  Its zero set \(\mathcal B_{N,\alpha}\) is relatively closed in \((1,\infty)\).  Finally, the cited one-dimensional semialgebraic decomposition says that this set is a finite union of intervals and points, completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Attainment and semialgebraicity make an exact phase boundary a legitimate finite algebraic target rather than a numerical heuristic. \textit{Gap.} Generic polynomial optimization yields existence machinery, but the degree-\(N\) lifting and equality-set formulation are specific to the common-channel exact-confidence game. \textit{Consumer.} The result reduces mechanism selection at algebraic privacy and coverage levels to finite certificate verification and isolates a finite list of possible design-regime changes.
+
+\begin{theorem}[thm:certificate-characterization]\label{thm:certificate-characterization}
+Fix \(N=4\).  On a semialgebraic cell \(J\) where the channel support, confidence-primal basis, confidence-dual basis, signs of the dual positive parts, and signs of all nonzero basis denominators are fixed, any explicitly supplied certificate \(\Gamma_J\) that (i) gives primal and dual feasible solutions with a common value for a balanced binary candidate and (ii) gives, for every allocation, a matching global lower bound over \(\mathcal A_\lambda\), certifies \((\lambda,\alpha)\in\mathcal B_{4,\alpha}\).  If two adjacent subcells carry verified certificates proving respectively \(\Delta_{4,\alpha}(\lambda)=0\) and \(\Delta_{4,\alpha}(\lambda)>0\), their common internal frontier is an actual boundary of \(\mathcal B_{4,\alpha}\); every point of that frontier is a real root of a basis-determinant, inactive-slack, residual-contact, or candidate-value-difference polynomial generated by the two certificates.
+\end{theorem}
+\begin{proof}
+Work at a parameter point in a cell \(J\) satisfying the proposed statement.  Let \(u_\Gamma\) be the common primal and dual value certified for the displayed balanced binary candidate.  Primal feasibility gives
+\[
+ L^\star_{4,\alpha}(\lambda)\le u_\Gamma.
+\]
+For each allocation \(m\in\{1,2,3\}\), the certificate supplies a dual lower functional \(L_{\Gamma,m}(a)\) whose dual feasibility implies, by weak duality,
+\[
+ V_m(Q_a)\ge L_{\Gamma,m}(a)
+ \qquad(a\in\mathcal A_\lambda).
+\]
+The globally certified residual is
+\[
+ r_{\Gamma,m}(a):=L_{\Gamma,m}(a)-u_\Gamma\ge0
+ \qquad(a\in\mathcal A_\lambda).
+\]
+Therefore \(V_m(Q_a)\ge u_\Gamma\) for every allocation and staircase weight.  The staircase-refinement theorem says that every admissible finite-output channel is a postprocessing of some \(Q_a\), and hence has value no smaller than that \(Q_a\).  Taking all infima yields
+\[
+ L^\star_{4,\alpha}(\lambda)\ge u_\Gamma.
+\]
+Together with the candidate upper bound this is equality.  Because the candidate is a balanced binary randomized-response channel, the definition of \(\Delta\) now gives
+\[
+ 0\le\Delta_{4,\alpha}(\lambda)
+ \le u_\Gamma-L^\star_{4,\alpha}(\lambda)=0,
+\]
+so \((\lambda,\alpha)\in\mathcal B_{4,\alpha}\).  This is the claimed certificate sufficiency.
+
+On \(J\), a fixed confidence-primal or confidence-dual basis is obtained by solving a fixed finite linear system.  Cramer's rule expresses every basic variable and objective as a rational function of \((\lambda,\alpha)\) and of any algebraic channel coordinates.  The assumed nonvanishing determinants make every division legal, and their fixed signs permit multiplication by denominators without reversing an inequality.  Complementary slackness, inactive slacks, active privacy faces, and candidate-value comparisons are therefore finitely many polynomial equalities and sign conditions.  The residual certificates are likewise finite polynomial identities and nonnegativity conditions.  Thus the region on which a particular certificate remains valid is semialgebraic by the cited projection result.
+
+Suppose two adjacent certified subcells have respectively \(\Delta=0\) and \(\Delta>0\).  Continuity of \(\Delta\), proved in the polynomial-attainment theorem, shows that their common internal frontier is an actual relative boundary of \(\mathcal B_{4,\alpha}\).  Let \(p\) be a point on this frontier.  If every basis determinant, inactive slack, residual, and candidate-value difference generated by the two certificates were nonzero at \(p\), continuity of this finite family of polynomials would preserve all their signs in a neighborhood of \(p\).  The same active descriptions and the same conclusion about \(\Delta\) would then persist across \(p\), contradicting that the adjacent certified signs are different.  Hence at least one such polynomial vanishes at \(p\), which proves the boundary-root assertion in the narrowed statement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the exact optimality certificate and finite boundary-candidate theorem needed to turn a phase diagram into mathematics. \textit{Gap.} Mai supplies generic finite-convergence conditions, while the present equivalence must fuse a confidence LP saddle, privacy-face stationarity, and global residual positivity without assuming a rational optimizer. \textit{Consumer.} It gives an independently checkable certificate format for choosing a private trial design and for auditing the privacy budget at which the optimal channel family changes.
+
+\begin{openendedquestion}[oeq:actual-balanced-binary-boundary]\label{oeq:actual-balanced-binary-boundary}
+For \(N=4\), determine a nonempty two-dimensional parameter cell \(J\), an explicit optimizing channel family, and an attaining certificate \(\Gamma_J\) for which one algebraically isolated endpoint lies on the boundary of \(\mathcal B_{4,\alpha}\); prove the sign of \(\Delta_{4,\alpha}(\lambda)\) on both adjacent cells and identify which channel support or confidence active set changes at that endpoint.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This node is retained as the exact unresolved structural question whose solution would be needed before advertising a balanced-binary phase boundary. \textit{Gap.} No optimizer-attaining global certificate, nonempty equality cell, frontier polynomial, transverse root, adjacent sign pair, or active-set transition has been proved from the frozen primitives and exact artifacts. \textit{Consumer.} Only a future resolution could yield a certified switch point between one-bit and richer hidden-assignment reporting protocols; the current results provide an exclusion interval, not such a threshold.
+
+\begin{proposition}[prop:boundary-reductions]\label{prop:boundary-reductions}
+At \(\lambda=1\), every admissible channel is input-independent and \(L^\star_{N,\alpha}(1)=(2N+1)(1-\alpha)\). If privacy is removed, \(Q\) is the identity channel, and assignment is revealed, the orbit program reduces to exact binary-outcome randomization-test inversion for the finite-population SATE.
+\end{proposition}
+\begin{proof}
+Interpret the value at \(\lambda=1\) by the same finite decision problem with the closed-boundary privacy inequalities.  For any \(x,x'\) and report \(z\), those inequalities give both \(Q(z\mid x)\le Q(z\mid x')\) and \(Q(z\mid x')\le Q(z\mid x)\), hence
+\[
+ Q(z\mid x)=Q(z\mid x').
+\]
+Thus the conditional-product report law is independent of the schedule and assignment; write its common histogram law as \(P_0\).  Every \(t=k/N\in\mathcal T_N\), \(-N\le k\le N\), is attained by a binary schedule: if \(k\ge0\), take \(n_{01}=k,n_{10}=0,n_{00}=N-k\), and if \(k<0\), take \(n_{10}=-k,n_{01}=0,n_{00}=N+k\).  Coverage at that schedule implies
+\[
+ \sum_hP_0(h)c_{h,t}\ge1-\alpha.
+\]
+Summing over the \(2N+1\) grid points and using finite additivity gives
+\[
+ \sup_s\mathbb E_s|C|
+ =\sum_t\sum_hP_0(h)c_{h,t}
+ \ge(2N+1)(1-\alpha).
+\]
+Equality is attained by reporting \(\mathcal T_N\) with probability \(1-\alpha\) and the empty set with probability \(\alpha\), independently of the transcript.  Therefore
+\[
+ L^\star_{N,\alpha}(1)=(2N+1)(1-\alpha).
+\]
+
+Now remove privacy, reveal assignment, and take the identity channel on \(\mathcal X\).  The observed transcript is exactly the collection of pairs \((W_i,Y_i(W_i))\).  Under the permutation reduction its histogram law is obtained from
+\[
+ \binom Nm^{-1}[u^mv^h]
+ \prod_{a,b}\{v_{(0,a)}+uv_{(1,b)}\}^{n_{ab}},
+\]
+which is precisely the complete-randomization distribution of the observed treatment-by-outcome table under fixed potential-outcome schedule \(n\).  For each \(t\in\mathcal T_N\), define the randomized acceptance function \(\varphi_t(h)=c_{h,t}\).  The orbit-program constraint
+\[
+ \sum_hP_{n,m,Q}(h)\varphi_{\tau(n)}(h)\ge1-\alpha
+\]
+for every \(n\) says exactly that the test rejecting when \(t\) is not included has level at most \(\alpha\) simultaneously over every schedule with \(\tau(n)=t\).  Inverting these tests gives
+\[
+ C(h)=\{t:\text{the level-}\alpha\text{ randomization test at }t\text{ accepts}\},
+\]
+with auxiliary randomization represented by \(c\).  Conversely every such exact randomization-test inversion yields the same array and constraints.  The loss constraints are exactly its worst-schedule expected cardinality.  Hence the orbit program reduces to exact binary-outcome finite-population randomization-test inversion for the SATE.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The two boundary reductions verify that the proposed game agrees with the uninformative experiment and the classical nonprivate exact-randomization problem. \textit{Gap.} These reductions are sanity checks rather than novelty claims; their role is to prevent the private game from silently changing the causal target or coverage notion. \textit{Consumer.} They calibrate software tests at the privacy extremes and connect the private procedure to established exact SATE inversion.
+
+\begin{lemma}[lem:finite-lp-strong-duality]\label{lem:finite-lp-strong-duality}
+\texttt{A feasible finite-\allowbreak{}dimensional linear program with finite optimal value and its feasible dual attain equal optimal values;\allowbreak{} optimal primal and dual solutions are characterized by complementary slackness.}
+\end{lemma}
+
+\begin{lemma}[lem:semialgebraic-projection]\label{lem:semialgebraic-projection}
+The coordinate projection of a semialgebraic subset of a finite-dimensional real space is semialgebraic.  Every semialgebraic subset of \(\mathbb R\) has finitely many connected components, each an interval or a point.
+\end{lemma}
+
+\begin{lemma}[lem:experiment-value-modulus]\label{lem:experiment-value-modulus}
+For two common channels \(Q,Q'\) on the same finite report alphabet, let \(d=\max_{n\in\mathcal O_N}\operatorname{TV}(P_{n,m,Q},P_{n,m,Q'})\).  Then
+\[
+ |V_m(Q)-V_m(Q')|\le(2N+1)\left\{d+\frac d{\alpha+d}\right\}
+ \le(2N+1)(1+\alpha^{-1})d,
+\]
+and
+\[
+ d\le N\max_{x\in\mathcal X}\operatorname{TV}\{Q(\cdot\mid x),Q'(\cdot\mid x)\}.
+\]
+\end{lemma}
+\begin{proof}
+Let \(C\) be optimal under \(Q\), whose existence follows from the finite compact confidence program, and let \(K_N=2N+1\).  Total variation changes the probability of any event by at most \(d\) and the expectation of any random variable in \([0,K_N]\) by at most \(K_Nd\).  Hence under \(Q'\), \(C\) has coverage at least \(1-\alpha-d\) and worst loss at most \(V_m(Q)+K_Nd\).  Because \(\alpha>0\), the number \(\theta=d/(\alpha+d)\) is defined and belongs to \([0,1]\).  Mix \(C\) with the full grid with probability \(\theta\).  Its coverage is at least
+\[
+ (1-\theta)(1-\alpha-d)+\theta=1-\alpha,
+\]
+and its loss is at most
+\[
+ V_m(Q)+K_Nd+K_N\theta.
+\]
+Thus \(V_m(Q')-V_m(Q)\le K_N\{d+d/(\alpha+d)\}\).  Interchanging \(Q,Q'\) gives the absolute-value bound, and \(d/(\alpha+d)\le d/\alpha\) gives the second inequality.
+
+Conditional on a fixed assignment and schedule, couple the \(i\)-th reports maximally.  The probability that any pair differs is at most the sum of the \(N\) row total variations, hence at most \(N\max_x\operatorname{TV}\{Q(\cdot\mid x),Q'(\cdot\mid x)\}\).  Total variation is no larger than the disagreement probability of a coupling.  Averaging this coupling over complete randomization and then applying the histogram map cannot increase total variation.  Taking the maximum over \(n\) proves the final display.
+\end{proof}
+
+\begin{lemma}[lem:allocation-reflection]\label{lem:allocation-reflection}
+After optimization over common channels and confidence rules, complete randomization with \(m\) treated units and with \(N-m\) treated units have the same minimax expected-cardinality value.
+\end{lemma}
+\begin{proof}
+Map an assignment to \(W'_i=1-W_i\), a schedule to \(Y'_i(0)=Y_i(1)\), \(Y'_i(1)=Y_i(0)\), and permute a channel's four input rows by \((w,y)\mapsto(1-w,y)\).  Complete randomization sends \(m\) treated units bijectively to \(N-m\) treated units and preserves the uniform mass.  Row permutation preserves every local-privacy inequality, the common-channel property, and the conditional product.  Moreover
+\[
+ \tau(s')=\frac1N\sum_i\{Y_i(0)-Y_i(1)\}=-\tau(s).
+\]
+Reflect every reported confidence set by \(A\mapsto-A\).  Coverage probabilities and cardinalities are unchanged.  The construction is an involution, so it gives inequalities in both directions and therefore equality of the two optimized values.
+\end{proof}
+
+\begin{lemma}[lem:polynomial-dual-polarization]\label{lem:polynomial-dual-polarization}
+Fix \(m,\lambda,\alpha\), a probability vector \(\pi\) on \(\mathcal O_N\), and numbers \(\eta_n\ge0\).  Define
+\[
+ \beta=(1-\alpha)\sum_n\eta_n,
+ \qquad
+ k_h=\sum_{t\in\mathcal T_N}\left[
+ \sum_{n:\tau(n)=t}\eta_n\rho_{n,m,h}(\lambda)
+ -\sum_n\pi_n\rho_{n,m,h}(\lambda)
+ \right]_+,
+\]
+and \(F(a)=\sum_hk_ha^h\).  If \(v^1,\ldots,v^q\) are all vertices of \(\mathcal A_\lambda\), and \(\mathsf T_F\) is the symmetric \(N\)-linear form whose diagonal is \(F\), then every legal common channel satisfies
+\[
+ V_m(Q_a)\ge\beta-F(a)
+ \ge\beta-\max_{j_1,\ldots,j_N}\mathsf T_F(v^{j_1},\ldots,v^{j_N}).
+\]
+\end{lemma}
+\begin{proof}
+For every probability vector \(\pi\) and every \(\eta\ge0\), set each upper-bound dual slack equal to the positive part of the coverage-weighted density minus the loss-prior density.  This makes every dual inequality obtained from the fixed-confidence program feasible.  Substituting
+\[
+ P_{n,m,Q_a}(h)=\rho_{n,m,h}(\lambda)a^h.
+\]
+Because \(a^h\ge0\), it passes through the positive part: \([a^hx]_+=a^h[x]_+\).  Weak duality then gives
+\[
+ V_m(Q_a)\ge (1-\alpha)\sum_n\eta_n-\sum_hk_ha^h
+ =\beta-F(a).
+\]
+
+For a histogram \(h\), let \(M_h=N!/\prod_Sh_S!\).  Define the ordered tensor entry corresponding to \((S_1,\ldots,S_N)\) to be \(k_h/M_h\), where \(h\) records the multiplicities of the \(S_i\)'s.  There are \(M_h\) ordered tuples with that histogram, so \(\mathsf T_F(a,\ldots,a)=F(a)\).  Compactness of \(\mathcal A_\lambda\) and the finite-dimensional polytope representation give \(a=\sum_j\theta_jv^j\), with \(\theta_j\ge0\) and \(\sum_j\theta_j=1\).  Multilinearity yields
+\[
+ F(a)=\sum_{j_1,\ldots,j_N}
+ \theta_{j_1}\cdots\theta_{j_N}
+ \mathsf T_F(v^{j_1},\ldots,v^{j_N}).
+\]
+The coefficients in this sum are nonnegative and sum to one.  Hence \(F(a)\) is no larger than the maximum displayed tensor entry, proving the second inequality.
+\end{proof}
+
+\begin{lemma}[lem:exact-four-unit-certificates]\label{lem:exact-four-unit-certificates}
+The following rational certificates hold.  At \(N=4\), \(\alpha=2/5\), and \(\lambda=1000\),
+\[
+ \inf_{a\in\mathcal A_{1000}}V_2(Q_a)\ge\frac{129113957}{50000000},
+ \qquad
+ V_2(Q_{\rm four})\le\frac{64557127}{25000000},
+ \qquad
+ \inf_QV_1(Q)\ge\frac{637}{240},
+\]
+where \(Q_{\rm four}\) is four-ary randomized response.  There is also a feasible four-ary rule of value at most \(25823/10000\), while every balanced binary partition \(R_{S,1000}\) has value greater than \(258239/100000\).  At \(N=4,m=2,\lambda=3,\alpha=1/10\), if \(Q_b=R_{\{(0,1),(1,0)\},3}\), \(Q_f\) is four-ary randomized response, and \(Q_{\rm mix}=\tfrac12Q_b\oplus\tfrac12Q_f\) is their tagged common-channel midpoint, then
+\[
+ V_2(Q_b)>\frac{347}{50},\qquad
+ V_2(Q_f)>\frac{737}{100},\qquad
+ V_2(Q_{\rm mix})\le\frac{711}{100}.
+\]
+\end{lemma}
+\begin{proof}
+This is a finite proof by rational certificates.  The tables are the supplied files \(\texttt{exp\_private\_sate\_design\_game\_certificates.json}\) and \(\texttt{exp\_private\_sate\_design\_game\_global\_certificate.json}\); their checkers are \(\texttt{exp\_private\_sate\_design\_game\_check.py}\) and \(\texttt{exp\_private\_sate\_design\_game\_global\_probe.py}\).  The first certificate table has SHA--256 digest
+\[
+ \texttt{4c32dddf7093638a292b88300e868c7368504cec89d05e9fb198f18726db782c},
+\]
+and the global table has digest
+\[
+ \texttt{7426747494bca951371e872ef5ffc9bc0216dedc03fc51febfed5c97bccc1781}.
+\]
+Their exact checkers have respective digests
+\[
+ \texttt{eaf987a32d429062180c4ef382f401e8948ac2d44b01555946c935db0f4abac8}
+\]
+and
+\[
+ \texttt{a7dd8220d13b510c0445962df66e3ef570360891f14efc1bb2046ff1d8da509c}.
+\]
+The first checker enumerates the \(35=\binom73\) schedule orbits, every one of the \(\binom42=6\) assignments, and every report histogram.  It constructs each probability by repeated convolution of the four rational channel rows and verifies that it agrees with the coefficient formula for \(P_{n,m,Q}\) and sums to one.  For each supplied primal array it checks \(0\le c_{h,t}\le1\), all \(35\) coverage inequalities, and all \(35\) loss inequalities.  For each supplied dual array it checks \(\pi_n,\eta_n,s_{h,t}\ge0\), \(\sum_n\pi_n=1\), and, for every \((h,t)\),
+\[
+ \sum_n\pi_nP_n(h)-\sum_{n:\tau(n)=t}\eta_nP_n(h)+s_{h,t}\ge0.
+\]
+All operations are integer arithmetic on reduced fractions.  Primal feasibility gives the stated upper bounds and dual feasibility gives the stated strict lower bounds by weak duality.  This verifies all seven representatives of binary partitions; complements merely relabel their two outputs.  The same exhaustive checks at \((\lambda,\alpha)=(3,1/10)\) give the three curvature inequalities.
+
+For the unrestricted \(m=2\) lower bound, the second checker forms all \(35\times2380\) exact coefficients \(6\rho_{n,2,h}(1000)\), constructs \(k_h\) from the supplied rational \((\pi,\eta)\), and applies the polynomial-dual lemma.  The four normalization rows have rank four because the four singleton staircase columns are independent.  In a polytope \(\{a\ge0:Ma=\mathbf1\}\) with \(\operatorname{rank}(M)=4\), the positive support columns of a vertex must be linearly independent: otherwise a nonzero supported null vector would perturb the vertex in both signs while preserving nonnegativity for sufficiently small magnitude.  Thus every vertex has support at most four.  Conversely every such vertex is found by extending its independent support to a four-column basis and solving the corresponding basic system, allowing zero basic entries.  Exhausting the \(\binom{14}{4}=1001\) bases therefore proves that the deduplicated list of \(41\) feasible vertices is complete.
+
+Let \(B=2^{40}\).  The checker scales the nonnegative tensor entries by \(1000^{-4}\) and the vertices by \(1000\), replaces each scaled rational \(x\) by \(\lceil Bx\rceil\), and rounds each of four successive nonnegative tensor contractions upward by \(\lceil\text{sum}/B\rceil\).  Positivity implies inductively that every rounded contraction is an upper enclosure.  Exhaustion of all \(41^4=2825761\) ordered vertex tuples yields
+\[
+ \max_{j_1,j_2,j_3,j_4}\mathsf T_F(v^{j_1},v^{j_2},v^{j_3},v^{j_4})
+ \le\frac{886118597}{1099511627776}.
+\]
+Subtracting this fraction from the exact \(\beta=(3/5)\sum_n\eta_n\) in the table and cross-multiplying positive denominators verifies
+\[
+ \beta-\frac{886118597}{1099511627776}
+ \ge\frac{129113957}{50000000}.
+\]
+The polynomial-dual lemma proves the first global lower bound.
+
+For \(m=1\), the supplied identity-experiment dual is feasible and has value \(637/240\).  Every private channel is a stochastic postprocessing of the revealed input, so simulation followed by an arbitrary confidence rule proves \(V_1(Q)\ge V_1(Q_{\rm id})\ge637/240\).  The sharper four-ary primal array passes all exact coverage and loss checks at \(64557127/25000000\).  The two checker executions terminate with every enumerated inequality true, establishing all displayed rational claims.
+\end{proof}
+
+\begin{lemma}[lem:revealed-input-allocation-lower-bound]\label{lem:revealed-input-allocation-lower-bound}
+At \(N=4\), \(m=1\), and \(\alpha=2/5\), let \(Q^{\mathrm{id}}\) be the revealed-input channel on \(\mathcal Z=\mathcal X\), defined by \(Q^{\mathrm{id}}(z\mid x)=\mathbf 1\{z=x\}\). Then
+\[
+ V_1(Q^{\mathrm{id}})\ge \frac{637}{240}.
+\]
+For every finite-output common channel \(Q\), whether private or not, \(V_1(Q)\ge V_1(Q^{\mathrm{id}})\). Consequently \(V_1(Q)\ge637/240\) uniformly over every local-privacy class.
+\end{lemma}
+\begin{proof}
+Write an orbit as \(n=(n_{00},n_{01},n_{10},n_{11})\), enumerate \(\mathcal O_4\) lexicographically, and put
+\[
+ P^{\mathrm{id}}_n(h)=P_{n,1,Q^{\mathrm{id}}}(h),
+ \qquad
+ h=(h_{00},h_{01},h_{10},h_{11}).
+\]
+The orbit-kernel definition applies because complete randomization assigns exactly one of the four units to treatment and the identity channel reports each realized input \((W_i,Y_i(W_i))\) without error.
+
+We first give an exact dual certificate rather than assuming the displayed lower bound. Define nonnegative arrays \(\pi=(\pi_n)\) and \(\eta=(\eta_n)\) by the following table; every unlisted entry is zero.
+\[
+\begin{array}{c|c|c@{\qquad}c|c|c}
+n&\pi_n&\eta_n&n&\pi_n&\eta_n\\ \hline
+(0,0,4,0)&0&1/16 &(0,2,0,2)&0&1/4\\
+(0,3,0,1)&1/4&5/12 &(0,4,0,0)&0&1/16\\
+(1,0,0,3)&0&1/6 &(1,0,1,2)&0&1/4\\
+(1,0,2,1)&0&3/8 &(1,0,3,0)&1/4&5/12\\
+(1,1,0,2)&1/4&1/2 &(1,1,2,0)&1/4&0\\
+(1,2,0,1)&0&3/8 &(2,0,0,2)&0&5/8\\
+(2,0,1,1)&0&1/2 &(2,0,2,0)&0&1/4\\
+(2,1,0,1)&0&1/4 &(3,0,0,1)&0&1/6
+\end{array}
+\]
+Direct addition gives
+\[
+ \sum_{n\in\mathcal O_4}\pi_n=1,
+ \qquad
+ \sum_{n\in\mathcal O_4}\eta_n=\frac{14}{3}.
+\]
+For a report histogram \(h\) and an action \(t\in\mathcal T_4\), define
+\[
+ b_h=\sum_n\pi_nP^{\mathrm{id}}_n(h),
+ \qquad
+ e_{h,t}=\sum_{n:\,\tau(n)=t}\eta_nP^{\mathrm{id}}_n(h).
+\]
+The identity kernel is especially transparent. If the unique treated unit has type \((a,b)\), its report is \((1,b)\), while every other unit of type \((a',b')\) reports \((0,a')\). Therefore the orbit-kernel coefficient formula reduces to
+\[
+ P^{\mathrm{id}}_n(h)
+ =\frac14\sum_{a,b\in\{0,1\}}n_{ab}
+ \mathbf 1\!\left\{
+ h=\left(
+ n_{00}+n_{01}-\mathbf 1\{a=0\},
+ n_{10}+n_{11}-\mathbf 1\{a=1\},
+ \mathbf 1\{b=0\},
+ \mathbf 1\{b=1\}
+ \right)\right\}.
+\]
+Substitution of the displayed \(\pi\) and \(\eta\) into this formula gives exactly four nonzero positive parts:
+\[
+\begin{array}{c|c|c}
+h&t&[e_{h,t}-b_h]_+\\ \hline
+(0,3,1,0)&-3/4&1/24\\
+(0,3,1,0)&-1/2&1/32\\
+(3,0,0,1)& 1/2&1/32\\
+(3,0,0,1)& 3/4&1/24
+\end{array}
+\]
+All other positive parts vanish. Hence
+\[
+ \sum_{h,t}[e_{h,t}-b_h]_+
+ =\frac1{24}+\frac1{32}+\frac1{32}+\frac1{24}
+ =\frac7{48}.
+\]
+
+For completeness, let \((c,\ell)\) be any feasible point of the fixed-channel confidence program. Weighting its loss constraints by \(\pi_n\), using \(\sum_n\pi_n=1\), and then weighting its coverage constraints by \(\eta_n\) gives
+\[
+ \ell\ge \sum_{h,t}b_hc_{h,t},
+ \qquad
+ \sum_{h,t}e_{h,t}c_{h,t}
+ \ge (1-\alpha)\sum_n\eta_n.
+\]
+Because \(0\le c_{h,t}\le1\), subtraction yields the weak-duality inequality
+\[
+\begin{aligned}
+ \ell
+ &\ge \sum_{h,t}e_{h,t}c_{h,t}
+      -\sum_{h,t}(e_{h,t}-b_h)c_{h,t}\\
+ &\ge (1-\alpha)\sum_n\eta_n
+      -\sum_{h,t}[e_{h,t}-b_h]_+\\
+ &=\frac35\frac{14}{3}-\frac7{48}
+ =\frac{637}{240}.
+\end{aligned}
+\]
+Taking the infimum over feasible \((c,\ell)\) proves \(V_1(Q^{\mathrm{id}})\ge637/240\).
+
+Finally, fix any finite-output common channel \(Q\). From the identity transcript \(X_i=(W_i,Y_i(W_i))\), independently draw \(Z_i\sim Q(\cdot\mid X_i)\) and then apply any randomized confidence rule designed for \(Z\). By conditional product randomization, the resulting confidence set has, for every fixed schedule, exactly the same distribution, coverage, and expected cardinality as in the experiment using \(Q\) directly. Thus every feasible rule for \(Q\) induces a feasible rule with the same worst-schedule loss for \(Q^{\mathrm{id}}\). Taking infima gives
+\[
+ V_1(Q^{\mathrm{id}})\le V_1(Q),
+\]
+which proves the claimed uniform bound.
+\end{proof}
+
+\begin{theorem}[thm:certified-nonbinary-regime-and-balance-ray]\label{thm:certified-nonbinary-regime-and-balance-ray}
+For \(N=4\) and \(\alpha=2/5\), every global optimizer of \(L^\star_{4,2/5}(\lambda)\) uses the balanced allocation \(m=2\) for every \(\lambda\ge1000\). At \(\lambda=1000\),
+\[
+ \frac{129113957}{50000000}
+ \le L^\star_{4,2/5}(1000)
+ \le \frac{64557127}{25000000}.
+\]
+Moreover,
+\[
+ [999.9,1000.1]\cap\mathcal B_{4,2/5}=\varnothing,
+\]
+so no balanced randomized response after a nontrivial binary partition is globally optimal anywhere in that interval. Separately, at \(N=4\), \(m=2\), \(\lambda=3\), and \(\alpha=1/10\), the mapping \(Q\mapsto-V_2(Q)\) is not convex, so the confidence objective does not satisfy the convex-utility premise of the generic extreme-point shortcut.
+\end{theorem}
+\begin{proof}
+For \(j\in\{1,2,3\}\), define the allocation-specific value
+\[
+ U_j(\lambda)=\inf_{Q\in\mathcal D_\lambda}V_j(Q).
+\]
+This is an auxiliary notation, while the causal design target remains
+\[
+ L^\star_{4,2/5}(\lambda)=\min_{j\in\{1,2,3\}}U_j(\lambda).
+\]
+
+The exact four-unit certificate at \(\lambda=1000\) supplies a feasible four-output channel and confidence rule at \(m=2\) with loss at most
+\[
+ U_2(1000)\le \frac{64557127}{25000000}.
+\]
+If \(\lambda\ge1000\), then every \(Q\in\mathcal D_{1000}\) also belongs to \(\mathcal D_\lambda\): indeed,
+\[
+ Q(z\mid x)\le1000Q(z\mid x')
+ \le\lambda Q(z\mid x')
+\]
+for every \(x,x'\in\mathcal X\) and \(z\), where nonnegativity of channel probabilities and \(\lambda\ge1000\) justify the second inequality. The same certified channel and the same confidence rule therefore remain feasible, with their schedulewise laws and loss unchanged. Consequently
+\[
+ U_2(\lambda)\le \frac{64557127}{25000000}
+ \qquad(\lambda\ge1000).
+\]
+
+The revealed-input lower-bound lemma applies to every channel, without a privacy restriction, and hence gives
+\[
+ U_1(\lambda)\ge\frac{637}{240}
+ \qquad(\lambda>1).
+\]
+Allocation reflection, applied within the same common-channel class \(\mathcal D_\lambda\), gives
+\[
+ U_3(\lambda)=U_1(\lambda)\ge\frac{637}{240}.
+\]
+The separation is strict because
+\[
+ \frac{637}{240}-\frac{64557127}{25000000}
+ =\frac{5391119}{75000000}>0.
+\]
+Thus, for every \(\lambda\ge1000\), neither \(m=1\) nor \(m=3\) can minimize the three allocation-specific values, whereas \(m=2\) has a strictly smaller feasible upper bound. Polynomial attainment supplies an optimizer for each allocation-specific channel game, and the allocation set is finite. It follows that every global optimizer uses \(m=2\) throughout the asserted ray.
+
+At \(\lambda=1000\), the exact simultaneous polynomial-dual certificate also gives
+\[
+ U_2(1000)\ge\frac{129113957}{50000000}.
+\]
+Because the preceding strict comparison excludes \(m=1,3\), one has \(L^\star_{4,2/5}(1000)=U_2(1000)\), which proves the displayed bracket.
+
+We next verify the interval-specific nonbinary conclusion. For \(r\)-ary randomized response, direct subtraction of a row at \(\lambda\) and at \(\lambda_0\) gives
+\[
+ \operatorname{TV}\!\left\{Q_{r,\lambda}(\cdot\mid x),
+ Q_{r,\lambda_0}(\cdot\mid x)\right\}
+ =\frac{(r-1)|\lambda-\lambda_0|}
+ {(\lambda+r-1)(\lambda_0+r-1)}.
+\]
+Set \(\lambda_0=1000\). When \(|\lambda-1000|\le1/10\), the sum of the product-experiment total-variation bounds from the experiment-value modulus lemma for the binary and four-output channels is at most
+\[
+ 4\left\{
+ \frac{1/10}{1000^2}+
+ \frac{3/10}{1000^2}
+ \right\}
+ =\frac{16}{10\cdot1000^2}.
+\]
+Here \(4=N\), and each displayed denominator is a valid lower bound because \(\lambda+1\ge1000.9\), \(\lambda_0+1=1001\), \(\lambda+3\ge1002.9\), and \(\lambda_0+3=1003\). Applying the value modulus separately to the two channels and adding gives a total value perturbation at most
+\[
+ (2N+1)(1+\alpha^{-1})\frac{16}{10\cdot1000^2}
+ =9\left(1+\frac{1}{2/5}\right)
+   \frac{16}{10\cdot1000^2}
+ =\frac{63}{1250000}.
+\]
+At \(\lambda_0=1000\), the exact certificate gives a feasible four-output value
+\[
+ U=\frac{25823}{10000}
+\]
+and, for every nontrivial binary partition \(S\), the lower bound
+\[
+ V_2(R_{S,1000})>D,
+ \qquad D=\frac{258239}{100000}.
+\]
+Their certified gap dominates the perturbation because
+\[
+ D-U-\frac{63}{1250000}
+ =\frac{9}{100000}-\frac{63}{1250000}
+ =\frac{99}{2500000}>0.
+\]
+If \(\delta_2(\lambda)\) and \(\delta_4(\lambda)\) denote the two value-modulus bounds, respectively, the preceding calculation states \(\delta_2(\lambda)+\delta_4(\lambda)\le63/1250000\). Thus, for every \(\lambda\in[999.9,1000.1]\) and every nontrivial \(S\),
+\[
+\begin{aligned}
+ V_2(R_{S,\lambda})-V_2(Q_{4,\lambda})
+ &\ge V_2(R_{S,1000})-V_2(Q_{4,1000})
+       -\delta_2(\lambda)-\delta_4(\lambda)\\
+ &>D-U-\frac{63}{1250000}>0.
+\end{aligned}
+\]
+Therefore the continued four-output channel has strictly smaller fixed-channel value than every \(R_{S,\lambda}\). Since the unrestricted value is no greater than that four-output value, the definition of the balanced-binary gap implies
+\[
+ \Delta_{4,2/5}(\lambda)>0,
+\]
+and hence \([999.9,1000.1]\cap\mathcal B_{4,2/5}=\varnothing\).
+
+Finally, take \(N=4\), \(m=2\), \(\lambda=3\), and \(\alpha=1/10\). The exact certificate provides a binary channel \(Q_b\), a four-output channel \(Q_f\), and their tagged midpoint \(Q_{\mathrm{mix}}=\tfrac12Q_b\oplus\tfrac12Q_f\), satisfying
+\[
+ V_2(Q_b)>\frac{347}{50},
+ \qquad
+ V_2(Q_f)>\frac{737}{100},
+ \qquad
+ V_2(Q_{\mathrm{mix}})\le\frac{711}{100}.
+\]
+It follows that
+\[
+ V_2(Q_{\mathrm{mix}})
+ <\frac{1431}{200}
+ <\frac{V_2(Q_b)+V_2(Q_f)}2.
+\]
+This violates the midpoint inequality required for concavity of \(V_2\). Equivalently, \(Q\mapsto-V_2(Q)\) is not convex, proving the final clause.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The certified ray proves balanced allocation for every privacy budget at least 1000, while the pointwise bracket and two-sided interval exclusion rule out a universal balanced-binary channel story. \textit{Gap.} Kairouz, Oh, and Viswanath and Ghazi, Nasser, Calmon, and Issa prove binary or partition structure for single-draw divergence objectives, not this fourfold composite-confidence loss or its allocation game. \textit{Consumer.} At these four-unit parameters, a protocol designer may restrict the allocation to two treated units for every privacy budget at least 1000, but must retain nonbinary channel candidates near 1000.
+
+\section{Interpretation}
+
+The two-parameter equality locus consists of pairs \((\lambda,\alpha)\) satisfying \(\lambda\in\mathcal B_{N,\alpha}\). For a fixed \(\alpha\), the set \(\mathcal B_{N,\alpha}\subset(1,\infty)\) is only the horizontal section of that locus, and an endpoint is a one-dimensional section boundary. A two-dimensional optimizer cell would have to be proved before a transverse fixed-\(\alpha\) root could be called an actual phase boundary. The current certificates instead identify a two-sided exclusion interval in one fixed section.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact unrestricted lower certificate at \((N,\alpha,\lambda)=(4,2/5,1000)\) misses the feasible upper value by \(297/50000000\). This positive slack is small enough for the stated value bracket but prevents identification of a minimizing channel. The checked balanced-binary fixed-channel duals also fail to yield a matching lower bound over the full staircase polytope. Consequently there is no equality identity to continue, and no certified two-dimensional cell, frontier polynomial, isolating interval, sign change of \(\Delta_{4,\alpha}(\lambda)\), or channel-support or confidence-basis transition has been obtained.
+
+\section{Honest scope}
+
+The proved contribution consists of the exact orbit kernel, fourteen-output Blackwell refinement, fixed-channel primal--dual program, attained polynomial formulation, nonconvexity witness, global positive-tolerance bracket, balanced allocation for \(N=4\), \(\alpha=2/5\), and every \(\lambda\ge1000\), and the nonbinary exclusion interval \([999.9,1000.1]\). The certificate-characterization theorem remains conditional: it explains how an explicitly supplied attaining family would certify a cell and boundary, but no such family is supplied. In particular, the paper does not claim a nonempty balanced-binary equality cell, an endpoint polynomial, an isolated root, a sign-certified phase transition, four-output sufficiency, general-\(N\) balance, or a practical advantage at conventional coverage. Consumer use requires a hidden-assignment protocol in which the analyst observes only privatized reports and the known design quantities.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KairouzOhViswanath2016} Peter Kairouz, Sewoong Oh, and Pramod Viswanath. Extremal Mechanisms for Local Differential Privacy. Journal of Machine Learning Research, 17:1--51, 2016. arXiv:1407.1338.
+
+  \bibitem{OhnishiAwan2025} Yuki Ohnishi and Jordan Awan. Locally Private Causal Inference for Randomized Experiments. Journal of Machine Learning Research, 26(14):1--40, 2025. arXiv:2301.01616.
+
+  \bibitem{RigdonHudgens2015} Joseph Rigdon and Michael G. Hudgens. Randomization Inference for Treatment Effects on a Binary Outcome. Statistics in Medicine, 34(6):924--935, 2015. doi:10.1002/sim.6384.
+
+  \bibitem{SchaferStark2009} Chad M. Schafer and Philip B. Stark. Constructing Confidence Regions of Optimal Expected Size. Journal of the American Statistical Association, 104(487):1080--1089, 2009. doi:10.1198/jasa.2009.tm07420.
+
+  \bibitem{ChenCormodeBharadwajRomovOzgur2024} Wei-Ning Chen, Graham Cormode, Akash Bharadwaj, Peter Romov, and Ayfer Ozgur. Federated Experiment Design under Distributed Differential Privacy. Proceedings of AISTATS, 2024. arXiv:2311.04375.
+
+  \bibitem{Mai2023} Ngoc Hoang Anh Mai. Exact Polynomial Optimization Strengthened with Fritz John Conditions. arXiv:2205.04254, version 3, 2023.
+
+  \bibitem{BienstockDelPiaHildebrand2023} Daniel Bienstock, Alberto Del Pia, and Robert Hildebrand. Complexity, Exactness, and Rationality in Polynomial Optimization. Mathematical Programming, 2023. arXiv:2011.08347.
+
+  \bibitem{GhaziNasserCalmonIssa2026} Elena Ghazi, Jawad Nasser, Flavio Calmon, and Ibrahim Issa. Sort, Partition, Randomize: Optimal Binary Hypothesis Testing under Local Differential Privacy. arXiv:2606.07443, 2026.
+
+  \bibitem{RawatVajhaKurriSarwate2026} Supriya Rawat, Myna Vajha, Gowtham R. Kurri, and Anand Sarwate. Extreme Points of the \((0,\delta)\)-LDP Polytope with Small Input Size and Arbitrary Output Sizes. arXiv:2606.09161, 2026.
+
+  \bibitem{ElangovanJog2024} Karan Elangovan and Varun Jog. Extreme-Point Geometry of \((0,\delta)\)-Local Differential Privacy. IEEE International Symposium on Information Theory, 2024. doi:10.1109/ISIT57864.2024.10619506.
+
+  \bibitem{AronowChangLopatto2025} Peter M. Aronow, Haoge Chang, and Alec Lopatto. Fast Computation of Exact Confidence Intervals for Randomized Experiments with Binary Outcomes. Journal of Econometrics, 2025. arXiv:2305.09906.
+
+  \bibitem{Blackwell1953} David Blackwell. Equivalent Comparisons of Experiments. Annals of Mathematical Statistics, 24(2):265--272, 1953. doi:10.1214/aoms/1177729032.
+
+  \bibitem{AcharyaCanonneFreitagTyagi2019} Jayadev Acharya, Clement Canonne, Cody Freitag, and Himanshu Tyagi. Test without Trust: Optimal Locally Private Distribution Testing. Proceedings of AISTATS, 2019. arXiv:1808.02174.
+
+  \bibitem{WilliamsonShmoys2011} David P. Williamson and David B. Shmoys. The Design of Approximation Algorithms. Cambridge University Press, 2011.
+
+  \bibitem{BochnakCosteRoy1998} Jacek Bochnak, Michel Coste, and Marie-Francoise Roy. Real Algebraic Geometry. Springer, 1998. doi:10.1007/978-3-662-03718-8.
+
+\end{thebibliography}
+
+\end{document}

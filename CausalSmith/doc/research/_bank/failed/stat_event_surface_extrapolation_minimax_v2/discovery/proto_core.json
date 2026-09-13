@@ -1,0 +1,1683 @@
+{
+  "qid": "stat_event_surface_extrapolation_minimax",
+  "specialization": "v2",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "T",
+      "type": "integer",
+      "space": "\\{3,4,\\ldots\\}",
+      "role": "number of post-baseline calendar dates"
+    },
+    {
+      "name": "N",
+      "type": "integer",
+      "space": "\\mathbb N",
+      "role": "per-wave sampling-budget index"
+    },
+    {
+      "name": "delta",
+      "type": "scalar",
+      "space": "(0,1)",
+      "role": "maximal terminal fraction"
+    },
+    {
+      "name": "m",
+      "type": "integer",
+      "space": "\\mathbb N",
+      "role": "number of terminal dates after the last score date",
+      "refs": [
+        "T",
+        "delta"
+      ]
+    },
+    {
+      "name": "beta",
+      "type": "scalar",
+      "space": "(0,1]",
+      "role": "Holder exponent"
+    },
+    {
+      "name": "L",
+      "type": "scalar",
+      "space": "(0,\\infty)",
+      "role": "Holder radius"
+    },
+    {
+      "name": "B",
+      "type": "scalar",
+      "space": "[0,\\infty)",
+      "role": "cohort-deviation radius"
+    },
+    {
+      "name": "alpha",
+      "type": "scalar",
+      "space": "(0,1/2)",
+      "role": "miscoverage probability"
+    },
+    {
+      "name": "sigma",
+      "type": "scalar",
+      "space": "(0,\\infty)",
+      "role": "known cell-level standard deviation"
+    },
+    {
+      "name": "q",
+      "type": "vector",
+      "space": "\\{q\\in(0,1)^T:\\sum_{g=1}^Tq_g=1\\}",
+      "role": "fixed cohort shares",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "scalar",
+      "space": "[1,\\infty)",
+      "def": "\\(n=N\\)",
+      "role": "per-wave sample size",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "I",
+      "type": "index set",
+      "space": "\\{1,\\ldots,T\\}",
+      "role": "calendar and cohort grid",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "set-valued map",
+      "sig": "t\\mapsto\\{g\\in I:g\\le t\\}",
+      "def": "\\(G_t=\\{g\\in I:g\\le t\\}\\)",
+      "role": "cohorts treated by date \\(t\\)",
+      "refs": [
+        "I"
+      ]
+    },
+    {
+      "name": "C",
+      "type": "set-valued map",
+      "sig": "t\\mapsto\\{g\\in I:g>t\\}",
+      "def": "\\(C_t=\\{g\\in I:g>t\\}\\)",
+      "role": "not-yet-treated cohorts at date \\(t\\)",
+      "refs": [
+        "I"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "index set",
+      "space": "\\{(g,t):1\\le t\\le T-m,\\ g\\in G_t\\}",
+      "role": "observed group-time score cells",
+      "refs": [
+        "T",
+        "m",
+        "G"
+      ]
+    },
+    {
+      "name": "f",
+      "type": "vector",
+      "space": "\\mathbb R^T",
+      "role": "calendar ATT path",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "u",
+      "type": "array",
+      "space": "\\mathbb R^{T\\times T}",
+      "role": "cohort deviations from the calendar path",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "tau",
+      "type": "array",
+      "space": "\\mathbb R^{T\\times T}",
+      "role": "cohort-time causal effect surface",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "mu0",
+      "type": "array",
+      "space": "\\mathbb R^{T\\times(T+1)}",
+      "role": "untreated potential-outcome cell means",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "lambda",
+      "type": "vector",
+      "space": "\\mathbb R^T",
+      "role": "common untreated calendar changes",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "Ybar",
+      "type": "Gaussian cell-mean array",
+      "space": "\\mathbb R^{T\\times(T+1)}",
+      "role": "cohort-stratified repeated-cross-section means",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "qtail",
+      "type": "vector",
+      "space": "(0,1)^{T-1}",
+      "role": "not-yet-treated cohort mass",
+      "refs": [
+        "T",
+        "q",
+        "C"
+      ]
+    },
+    {
+      "name": "YbarC",
+      "type": "vector",
+      "space": "\\mathbb R^{T-1}",
+      "role": "pooled not-yet-treated cell means",
+      "refs": [
+        "T",
+        "Ybar",
+        "q",
+        "qtail",
+        "C"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "random vector",
+      "space": "\\mathbb R^{|O|}",
+      "role": "not-yet-treated DiD score vector",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "parameter pair",
+      "space": "\\mathbb R^T\\times\\mathbb R^{T\\times T}",
+      "def": "\\(x=(f,u)\\)",
+      "role": "Gaussian-experiment parameter",
+      "refs": [
+        "f",
+        "u",
+        "T"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "linear operator",
+      "sig": "\\mathbb R^T\\times\\mathbb R^{T\\times T}\\to\\mathbb R^{|O|}",
+      "role": "observed cohort-surface operator",
+      "refs": [
+        "T",
+        "O"
+      ]
+    },
+    {
+      "name": "ell",
+      "type": "linear functional",
+      "sig": "\\mathbb R^T\\times\\mathbb R^{T\\times T}\\to\\mathbb R",
+      "role": "terminal calendar ATT functional",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "thetaT",
+      "type": "scalar",
+      "space": "\\mathbb R",
+      "def": "\\(\\theta_T=f_T=\\sum_{g=1}^Tq_g\\tau_{g,T}\\)",
+      "role": "terminal calendar ATT",
+      "refs": [
+        "f",
+        "q",
+        "tau",
+        "T"
+      ]
+    },
+    {
+      "name": "b",
+      "type": "matrix",
+      "space": "\\mathbb R^{|O|\\times T}",
+      "role": "baseline contrast loading",
+      "refs": [
+        "O",
+        "T"
+      ]
+    },
+    {
+      "name": "V",
+      "type": "matrix",
+      "space": "\\mathbb S_{++}^{|O|}",
+      "role": "contemporaneous score covariance factor",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "Sigma_nest",
+      "type": "matrix",
+      "space": "\\mathbb S_{++}^{|O|}",
+      "role": "nested calendar-exhaustion covariance",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "Sigma_diag",
+      "type": "matrix",
+      "space": "\\mathbb S_{++}^{|O|}",
+      "role": "date-block-diagonal covariance with matched within-date score marginals",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "Zdiag",
+      "type": "random vector",
+      "space": "\\mathbb R^{|O|}",
+      "role": "matched-date-block independent score vector",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "vdiag",
+      "type": "vector",
+      "space": "(0,\\infty)^{T-m}",
+      "role": "effective per-date variance in the matched-date-block experiment",
+      "refs": [
+        "T",
+        "m"
+      ]
+    },
+    {
+      "name": "Ztilde",
+      "type": "random vector",
+      "space": "\\mathbb R^{T-m}",
+      "role": "generalized least-squares aggregated matched-date-block scores",
+      "refs": [
+        "T",
+        "m"
+      ]
+    },
+    {
+      "name": "Sdiag",
+      "type": "function",
+      "sig": "\\mathbb N\\times\\mathbb N\\to\\mathbb R_+",
+      "role": "finite matched-date-block information sum"
+    },
+    {
+      "name": "rho_diag",
+      "type": "scalar",
+      "space": "[0,\\infty)",
+      "role": "matched-date-block Holder boundary envelope"
+    },
+    {
+      "name": "M",
+      "type": "convex centrosymmetric class",
+      "space": "2^{\\mathbb R^T\\times\\mathbb R^{T\\times T}}",
+      "role": "Holder-plus-bounded-cohort parameter class",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "omega",
+      "type": "function",
+      "sig": "\\mathbb R_+\\times\\mathbb S_{++}^{|O|}\\to\\mathbb R_+",
+      "role": "covariance-weighted modulus",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "scalar",
+      "space": "[0,\\infty)",
+      "role": "calendar-exhaustion phase envelope"
+    },
+    {
+      "name": "k",
+      "type": "integer",
+      "space": "\\mathbb N",
+      "role": "generic terminal comparison depth"
+    },
+    {
+      "name": "kstar",
+      "type": "integer",
+      "space": "\\{m,\\ldots,\\lfloor\\delta T\\rfloor\\}",
+      "role": "oracle comparison depth",
+      "refs": [
+        "m",
+        "delta",
+        "T"
+      ]
+    },
+    {
+      "name": "hmod",
+      "type": "function",
+      "sig": "(0,\\infty)\\to\\mathbb R^T\\times\\mathbb R^{T\\times T}",
+      "role": "canonically selected modulus difference",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "xminus",
+      "type": "function",
+      "sig": "(0,\\infty)\\to M",
+      "role": "lower canonical modulus endpoint",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "xplus",
+      "type": "function",
+      "sig": "(0,\\infty)\\to M",
+      "role": "upper canonical modulus endpoint",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "omegaprime",
+      "type": "function",
+      "sig": "(0,\\infty)\\to[0,\\infty)",
+      "role": "right derivative and measurable supergradient of the modulus"
+    },
+    {
+      "name": "Rplus",
+      "type": "set",
+      "space": "2^{(0,\\infty)}",
+      "role": "admissible positive-standard-deviation modulus radii"
+    },
+    {
+      "name": "j",
+      "type": "integer",
+      "space": "\\mathbb N",
+      "role": "infimum-approximation index"
+    },
+    {
+      "name": "rMSEseq",
+      "type": "sequence",
+      "space": "Rplus^{\\mathbb N}",
+      "role": "infimum-approaching MSE radii",
+      "refs": [
+        "Rplus"
+      ]
+    },
+    {
+      "name": "rCIseq",
+      "type": "sequence",
+      "space": "Rplus^{\\mathbb N}",
+      "role": "infimum-approaching interval radii",
+      "refs": [
+        "Rplus"
+      ]
+    },
+    {
+      "name": "biasdelta",
+      "type": "function",
+      "sig": "Rplus\\to[0,\\infty)",
+      "role": "worst-case affine bias",
+      "refs": [
+        "Rplus"
+      ]
+    },
+    {
+      "name": "sddelta",
+      "type": "function",
+      "sig": "Rplus\\to(0,\\infty)",
+      "role": "affine standard deviation on admissible radii",
+      "refs": [
+        "Rplus"
+      ]
+    },
+    {
+      "name": "thetahat",
+      "type": "statistic family",
+      "sig": "Rplus\\to\\mathbb R",
+      "role": "modulus affine estimator",
+      "refs": [
+        "Rplus"
+      ]
+    },
+    {
+      "name": "cv",
+      "type": "function",
+      "sig": "\\mathbb R_+\\to\\mathbb R_+",
+      "role": "absolute noncentral-normal critical value"
+    },
+    {
+      "name": "CI",
+      "type": "sequence of random intervals",
+      "space": "(2^{\\mathbb R})^{\\mathbb N}",
+      "role": "infimum-approaching bias-aware honest intervals"
+    },
+    {
+      "name": "Rstar",
+      "type": "scalar",
+      "space": "[0,\\infty)",
+      "role": "global minimax squared-error risk"
+    },
+    {
+      "name": "ELstar",
+      "type": "scalar",
+      "space": "[0,\\infty)",
+      "role": "shortest worst-case expected length among honest intervals"
+    },
+    {
+      "name": "A_lift",
+      "type": "operator handle",
+      "role": "bounded right-inverse lift for terminal bumps"
+    },
+    {
+      "name": "H_adapt",
+      "type": "method handle",
+      "role": "covariance-whitened multiscale adaptation handle"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:index-range",
+      "kind": "design",
+      "condition": "\\(T\\ge3\\)",
+      "free_symbols": [
+        "T"
+      ],
+      "standard": {
+        "name": "nondegenerate staggered calendar",
+        "cite": "CallawaySantAnna2021"
+      },
+      "used_by": [
+        "lem:score-covariance",
+        "thm:minimax-frontier"
+      ]
+    },
+    {
+      "id": "ass:terminal-range",
+      "kind": "design",
+      "condition": "\\(1\\le m\\le\\delta T\\)",
+      "free_symbols": [
+        "m",
+        "delta",
+        "T"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This triangular terminal range represents studies whose unsupported late-calendar segment grows but remains a fixed fraction of the observed horizon. Administrative panels ending shortly after the final adoption wave satisfy it."
+      },
+      "used_by": [
+        "lem:uniform-bounded-lift",
+        "thm:minimax-frontier",
+        "thm:honest-length"
+      ]
+    },
+    {
+      "id": "ass:sample-range",
+      "kind": "sampling",
+      "condition": "\\(N/T\\ge1\\)",
+      "free_symbols": [
+        "N",
+        "T"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This joint calendar--sample scaling keeps the average adoption-cohort cell populated as the calendar grows. Repeated administrative extracts with cross-sectional size at least proportional to the number of resolved adoption waves satisfy it."
+      },
+      "used_by": [
+        "lem:score-covariance",
+        "thm:minimax-frontier"
+      ]
+    },
+    {
+      "id": "ass:balanced-cohorts",
+      "kind": "design",
+      "condition": "\\(c_q/T\\le q_g\\le C_q/T\\quad(g\\in I)\\)",
+      "free_symbols": [
+        "q",
+        "T",
+        "I"
+      ],
+      "constants": [
+        "\\(0<c_q\\le1\\)",
+        "\\(1\\le C_q<\\infty\\)"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This triangular share restriction represents staggered rollouts with no asymptotically negligible adoption wave. Equal rollout waves and quota-based phase-ins satisfy it, while the constants allow stable size differences."
+      },
+      "used_by": [
+        "lem:uniform-bounded-lift",
+        "thm:minimax-frontier"
+      ]
+    },
+    {
+      "id": "ass:parallel-trends",
+      "kind": "identification",
+      "condition": "\\(\\mu^0_{g,t}-\\mu^0_{g,0}=\\lambda_t\\quad(g\\in I,\\ t\\in I)\\)",
+      "free_symbols": [
+        "mu0",
+        "lambda",
+        "I"
+      ],
+      "standard": {
+        "name": "unconditional parallel trends with a common baseline",
+        "cite": "CallawaySantAnna2021"
+      },
+      "used_by": [
+        "lem:score-covariance"
+      ]
+    },
+    {
+      "id": "ass:gaussian-cells",
+      "kind": "sampling",
+      "condition": "\\(\\bar Y_{g,t}\\sim\\mathcal N(\\mu^0_{g,t}+\\mathbf 1\\{g\\le t\\}\\tau_{g,t},\\sigma^2/(nq_g))\\) independently over \\(g\\in I\\) and \\(t\\in\\{0\\}\\cup I\\), with \\(\\mathbf 1\\{g\\le0\\}=0\\)",
+      "free_symbols": [
+        "Ybar",
+        "mu0",
+        "tau",
+        "sigma",
+        "n",
+        "q",
+        "I"
+      ],
+      "standard": {
+        "name": "known-variance Gaussian cell-mean experiment",
+        "cite": "Donoho1994"
+      },
+      "used_by": [
+        "lem:score-covariance",
+        "thm:minimax-frontier",
+        "thm:honest-length"
+      ]
+    },
+    {
+      "id": "ass:holder-calendar",
+      "kind": "smoothness",
+      "condition": "\\(|f_t-f_s|\\le L|(t-s)/T|^{\\beta}\\quad(s,t\\in I)\\)",
+      "free_symbols": [
+        "f",
+        "L",
+        "beta",
+        "T",
+        "I"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This fractional-calendar condition encodes effects that change smoothly in normalized time as reporting frequency grows. Gradual macroeconomic exposure, institutional learning, and biological latency tied to the study horizon provide concrete settings."
+      },
+      "used_by": [
+        "lem:uniform-bounded-lift",
+        "thm:minimax-frontier",
+        "thm:honest-length"
+      ]
+    },
+    {
+      "id": "ass:bounded-cohort-deviation",
+      "kind": "heterogeneity",
+      "condition": "\\(|u_{g,t}|\\le B\\quad(g,t\\in I)\\)",
+      "free_symbols": [
+        "u",
+        "B",
+        "I"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This restriction permits arbitrary signs and rankings of adoption-cohort heterogeneity while bounding its substantive magnitude. It holds when cohort exposure intensity or implementation quality ranges over a fixed policy-relevant scale."
+      },
+      "used_by": [
+        "lem:uniform-bounded-lift",
+        "thm:minimax-frontier",
+        "thm:honest-length"
+      ]
+    },
+    {
+      "id": "ass:calendar-centering",
+      "kind": "normalization",
+      "condition": "\\(\\sum_{g=1}^Tq_gu_{g,t}=0\\quad(t\\in I)\\)",
+      "free_symbols": [
+        "q",
+        "u",
+        "T",
+        "I"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This normalization defines the calendar ATT as the fixed-share cohort average. Any cohort effect surface admits it after subtracting that calendar average, so it does not restrict heterogeneity."
+      },
+      "used_by": [
+        "lem:uniform-bounded-lift",
+        "thm:minimax-frontier"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:tail-mass",
+      "name": "Not-yet-treated mass",
+      "construction": "\\(q_{>t}=\\sum_{g\\in C_t}q_g\\quad(1\\le t<T)\\)",
+      "free_symbols": [
+        "qtail",
+        "q",
+        "C",
+        "T"
+      ]
+    },
+    {
+      "id": "def:pooled-control",
+      "name": "Pooled not-yet-treated mean",
+      "construction": "\\(\\bar Y_{C_t,t}=q_{>t}^{-1}\\sum_{g\\in C_t}q_g\\bar Y_{g,t}\\quad(1\\le t<T)\\)",
+      "free_symbols": [
+        "YbarC",
+        "qtail",
+        "q",
+        "Ybar",
+        "C",
+        "T"
+      ]
+    },
+    {
+      "id": "def:effect-surface",
+      "name": "Cohort-time effect surface",
+      "construction": "\\(\\tau_{g,t}=f_t+u_{g,t}\\quad(g,t\\in I)\\)",
+      "free_symbols": [
+        "tau",
+        "f",
+        "u",
+        "I"
+      ]
+    },
+    {
+      "id": "def:score-vector",
+      "name": "Not-yet-treated score",
+      "construction": "\\(Z_{g,t}=(\\bar Y_{g,t}-\\bar Y_{g,0})-(\\bar Y_{C_t,t}-\\bar Y_{C_t,0})\\quad((g,t)\\in O)\\)",
+      "free_symbols": [
+        "Z",
+        "Ybar",
+        "YbarC",
+        "O"
+      ]
+    },
+    {
+      "id": "def:model-class",
+      "name": "\\(\\mathcal M_{T,m}(\\beta,L,B,q)\\)",
+      "construction": "\\(\\mathcal M_{T,m}(\\beta,L,B,q)=\\{(f,u)\\in\\mathbb R^T\\times\\mathbb R^{T\\times T}: |f_t-f_s|\\le L|(t-s)/T|^{\\beta}\\text{ for all }s,t\\in I,\\ |u_{g,t}|\\le B\\text{ for all }g,t\\in I,\\ \\sum_{g=1}^Tq_gu_{g,t}=0\\text{ for all }t\\in I\\}\\)",
+      "free_symbols": [
+        "M",
+        "T",
+        "m",
+        "beta",
+        "L",
+        "B",
+        "q",
+        "f",
+        "u",
+        "I"
+      ],
+      "by_member_properties": [
+        "ass:holder-calendar",
+        "ass:bounded-cohort-deviation",
+        "ass:calendar-centering"
+      ]
+    },
+    {
+      "id": "def:observation-operator",
+      "name": "Observed cohort-surface operator",
+      "construction": "\\((Kx)_{g,t}=f_t+u_{g,t}\\quad((g,t)\\in O)\\)",
+      "free_symbols": [
+        "K",
+        "x",
+        "f",
+        "u",
+        "O"
+      ]
+    },
+    {
+      "id": "def:target-functional",
+      "name": "Terminal calendar functional",
+      "construction": "\\(\\ell(x)=\\theta_T=f_T\\)",
+      "free_symbols": [
+        "ell",
+        "x",
+        "thetaT",
+        "f",
+        "T"
+      ]
+    },
+    {
+      "id": "def:baseline-loading",
+      "name": "Baseline contrast loading",
+      "construction": "\\(b_{(g,t),j}=-\\mathbf 1\\{j=g\\}+\\mathbf 1\\{j\\in C_t\\}q_j/q_{>t}\\quad((g,t)\\in O,\\ j\\in I)\\)",
+      "free_symbols": [
+        "b",
+        "O",
+        "I",
+        "C",
+        "q",
+        "qtail"
+      ]
+    },
+    {
+      "id": "def:contemporaneous-covariance",
+      "name": "Contemporaneous covariance factor",
+      "construction": "\\(V_{(g,t),(h,s)}=\\mathbf 1\\{t=s\\}(\\mathbf 1\\{g=h\\}/q_g+1/q_{>t})\\quad((g,t),(h,s)\\in O)\\)",
+      "free_symbols": [
+        "V",
+        "O",
+        "q",
+        "qtail"
+      ]
+    },
+    {
+      "id": "def:nested-covariance",
+      "name": "Nested exhaustion covariance",
+      "construction": "\\(\\Sigma_{\\mathrm{nest}}=(\\sigma^2/N)\\{V+b\\operatorname{diag}(q)^{-1}b^{\\prime}\\}\\)",
+      "free_symbols": [
+        "Sigma_nest",
+        "sigma",
+        "N",
+        "V",
+        "b",
+        "q"
+      ]
+    },
+    {
+      "id": "def:matched-diagonal-covariance",
+      "name": "Matched-date-block diagonal covariance",
+      "construction": "\\((\\Sigma_{\\mathrm{diag}})_{(g,t),(h,s)}=\\mathbf 1\\{t=s\\}(\\Sigma_{\\mathrm{nest}})_{(g,t),(h,t)}\\), and \\(Z^{\\mathrm{diag}}\\sim\\mathcal N(Kx,\\Sigma_{\\mathrm{diag}})\\). Thus each entire within-date score covariance is matched and dependence across distinct dates is deleted.",
+      "free_symbols": [
+        "Sigma_diag",
+        "Sigma_nest",
+        "Zdiag",
+        "K",
+        "x",
+        "O"
+      ]
+    },
+    {
+      "id": "def:diagonal-date-aggregation",
+      "name": "Matched-date-block effective replication",
+      "construction": "For \\(t\\le T-m\\), let \\(\\Sigma_{tt}^{\\mathrm{diag}}\\) be the \\(G_t\\times G_t\\) block, \\(v_t^{\\mathrm{diag}}=\\{\\mathbf 1^{\\prime}(\\Sigma_{tt}^{\\mathrm{diag}})^{-1}\\mathbf 1\\}^{-1}\\), and \\(\\widetilde Z_t=v_t^{\\mathrm{diag}}\\mathbf 1^{\\prime}(\\Sigma_{tt}^{\\mathrm{diag}})^{-1}Z_t^{\\mathrm{diag}}\\). Under \\(q_g=1/T\\), writing \\(r=T-t\\), this gives \\(v_{T-r}^{\\mathrm{diag}}=2\\sigma^2T^2/\\{Nr(T-r)\\}\\).",
+      "free_symbols": [
+        "vdiag",
+        "Ztilde",
+        "G",
+        "Sigma_diag",
+        "Zdiag",
+        "T",
+        "m",
+        "q",
+        "sigma",
+        "N"
+      ]
+    },
+    {
+      "id": "def:diagonal-information",
+      "name": "Finite matched-date-block information sum",
+      "construction": "\\(S_{m,k}^{\\mathrm{diag}}=\\sum_{r=m}^{m+k-1}(v_{T-r}^{\\mathrm{diag}})^{-1}=\\frac{N}{2\\sigma^2T^2}\\left[T\\frac{k(2m+k-1)}{2}-\\frac{(m+k-1)(m+k)(2m+2k-1)-(m-1)m(2m-1)}{6}\\right]\\)",
+      "free_symbols": [
+        "Sdiag",
+        "m",
+        "k",
+        "vdiag",
+        "T",
+        "N",
+        "sigma"
+      ]
+    },
+    {
+      "id": "def:diagonal-envelope",
+      "name": "Matched-date-block boundary envelope",
+      "construction": "\\(\\rho^{\\mathrm{diag}}_{N,T,m}=\\min_{1\\le k\\le\\lfloor\\delta T\\rfloor-m+1}\\left\\{L\\left(\\frac{m+k-1}{T}\\right)^{\\beta}+(S_{m,k}^{\\mathrm{diag}})^{-1/2}\\right\\}\\)",
+      "free_symbols": [
+        "rho_diag",
+        "N",
+        "T",
+        "m",
+        "delta",
+        "L",
+        "beta",
+        "Sdiag"
+      ]
+    },
+    {
+      "id": "def:modulus",
+      "name": "Covariance-weighted modulus",
+      "construction": "\\(\\omega_{\\Sigma}(r)=\\sup\\{\\ell(x_+)-\\ell(x_-):x_+,x_-\\in\\mathcal M_{T,m}(\\beta,L,B,q),\\ \\|K(x_+-x_-)\\|_{\\Sigma^{-1}}\\le r\\}\\)",
+      "free_symbols": [
+        "omega",
+        "ell",
+        "xplus",
+        "xminus",
+        "M",
+        "T",
+        "m",
+        "beta",
+        "L",
+        "B",
+        "q",
+        "K"
+      ]
+    },
+    {
+      "id": "def:phase-envelope",
+      "name": "Calendar-exhaustion phase envelope",
+      "construction": "\\(\\rho_{N,T,m}=\\min_{m\\le k\\le\\lfloor\\delta T\\rfloor}\\{L(k/T)^{\\beta}+Bk/(T-k)+\\sigma\\sqrt{T/N}/k\\},\\quad k^{\\star}\\in\\operatorname*{argmin}_{m\\le k\\le\\lfloor\\delta T\\rfloor}\\{L(k/T)^{\\beta}+Bk/(T-k)+\\sigma\\sqrt{T/N}/k\\}\\)",
+      "free_symbols": [
+        "rho",
+        "kstar",
+        "N",
+        "T",
+        "m",
+        "delta",
+        "L",
+        "beta",
+        "B",
+        "sigma"
+      ]
+    },
+    {
+      "id": "def:canonical-modulus-selection",
+      "name": "Canonical exposed-face and supergradient selection",
+      "construction": "For each \\(r>0\\), choose \\(h_r\\) as the lexicographically least Euclidean-minimum-norm maximizer of \\(\\ell(h)\\) over the closed set \\(\\{h\\in2\\mathcal M_{T,m}(\\beta,L,B,q):\\|Kh\\|_{\\Sigma_{\\mathrm{nest}}^{-1}}\\le r\\}\\), after setting coordinates of \\(u\\) used by neither \\(K\\) nor \\(\\ell\\) to zero; put \\(x_r^+=h_r/2\\), \\(x_r^-=-h_r/2\\), and \\(\\omega'_{\\Sigma_{\\mathrm{nest}}}(r)=\\partial_+\\omega_{\\Sigma_{\\mathrm{nest}}}(r)\\), the right derivative of the concave modulus. The right derivative is a Borel measurable supergradient.",
+      "free_symbols": [
+        "hmod",
+        "ell",
+        "M",
+        "T",
+        "m",
+        "beta",
+        "L",
+        "B",
+        "q",
+        "K",
+        "Sigma_nest",
+        "u",
+        "xplus",
+        "xminus",
+        "omegaprime",
+        "omega"
+      ]
+    },
+    {
+      "id": "def:affine-estimator",
+      "name": "Total modulus affine estimator on positive-variance radii",
+      "construction": "\\(\\mathcal R_+=\\{r>0:\\omega'_{\\Sigma_{\\mathrm{nest}}}(r)>0,\\ \\|Kh_r\\|_{\\Sigma_{\\mathrm{nest}}^{-1}}=r\\}\\). For \\(r\\in\\mathcal R_+\\), \\(\\widehat\\theta_r=\\{\\omega'_{\\Sigma_{\\mathrm{nest}}}(r)/r\\}\\langle Kh_r,Z\\rangle_{\\Sigma_{\\mathrm{nest}}^{-1}}\\), \\(b_r=\\{\\omega_{\\Sigma_{\\mathrm{nest}}}(r)-r\\omega'_{\\Sigma_{\\mathrm{nest}}}(r)\\}/2\\), and \\(s_r=\\omega'_{\\Sigma_{\\mathrm{nest}}}(r)>0\\). Choose deterministic sequences \\(r_{\\mathrm{MSE},j},r_{\\mathrm{CI},j}\\in\\mathcal R_+\\) satisfying \\(b_{r_{\\mathrm{MSE},j}}^2+s_{r_{\\mathrm{MSE},j}}^2\\le(1+j^{-1})\\inf_{r\\in\\mathcal R_+}(b_r^2+s_r^2)\\) and \\(s_{r_{\\mathrm{CI},j}}\\operatorname{cv}_{\\alpha}(b_{r_{\\mathrm{CI},j}}/s_{r_{\\mathrm{CI},j}})\\le(1+j^{-1})\\inf_{r\\in\\mathcal R_+}s_r\\operatorname{cv}_{\\alpha}(b_r/s_r)\\).",
+      "free_symbols": [
+        "Rplus",
+        "omega",
+        "omegaprime",
+        "Sigma_nest",
+        "K",
+        "hmod",
+        "thetahat",
+        "Z",
+        "biasdelta",
+        "sddelta",
+        "rMSEseq",
+        "rCIseq",
+        "j",
+        "cv",
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:honest-interval",
+      "name": "Infimum-approaching bias-aware modulus intervals",
+      "construction": "\\(\\operatorname{cv}_{\\alpha}(t)=\\inf\\{c:\\Pr(|\\mathcal N(t,1)|\\le c)\\ge1-\\alpha\\}\\), and for each \\(j\\in\\mathbb N\\), \\(C_{\\alpha,j}(Z)=[\\widehat\\theta_{r_{\\mathrm{CI},j}}\\pm s_{r_{\\mathrm{CI},j}}\\operatorname{cv}_{\\alpha}(b_{r_{\\mathrm{CI},j}}/s_{r_{\\mathrm{CI},j}})]\\).",
+      "free_symbols": [
+        "cv",
+        "alpha",
+        "CI",
+        "j",
+        "Z",
+        "thetahat",
+        "rCIseq",
+        "sddelta",
+        "biasdelta"
+      ]
+    },
+    {
+      "id": "def:risk-and-length",
+      "name": "Global minimax criteria",
+      "construction": "\\(R^{\\star}=\\inf_{\\widetilde\\theta}\\sup_{x\\in\\mathcal M_{T,m}}\\mathbb E_x[(\\widetilde\\theta-\\ell(x))^2],\\quad \\operatorname{EL}^{\\star}_{\\alpha}=\\inf_{C:\\inf_{x\\in\\mathcal M_{T,m}}\\Pr_x\\{\\ell(x)\\in C(Z)\\}\\ge1-\\alpha}\\sup_{x\\in\\mathcal M_{T,m}}\\mathbb E_x[\\operatorname{length}C(Z)]\\)",
+      "free_symbols": [
+        "Rstar",
+        "ELstar",
+        "M",
+        "T",
+        "m",
+        "ell",
+        "alpha",
+        "Z"
+      ]
+    },
+    {
+      "id": "def:lift-handle",
+      "name": "Boundary-bump lift handle",
+      "construction": "Construct \\(A_{\\mathrm{lift}}\\) by backward mass transport from each unobserved cohort block \\(C_t\\) to the adjacent observed block \\(G_t\\), fixing row sums by calendar centering and measuring transport cost in the whitened norm induced by \\(\\Sigma_{\\mathrm{nest}}^{-1}\\).",
+      "free_symbols": [
+        "A_lift",
+        "C",
+        "G",
+        "q",
+        "Sigma_nest"
+      ]
+    },
+    {
+      "id": "def:adaptation-handle",
+      "name": "Covariance-whitened multiscale handle",
+      "construction": "Build \\(H_{\\mathrm{adapt}}\\) from dyadic terminal contrasts of \\(\\Sigma_{\\mathrm{nest}}^{-1/2}Z\\), calibrate their joint Gaussian maximum, and select comparison depth by a Lepski rule constrained by a self-similarity certificate.",
+      "free_symbols": [
+        "H_adapt",
+        "Sigma_nest",
+        "Z"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:score-covariance",
+      "kind": "lemma",
+      "statement": "Under the cohort-stratified repeated-cross-section design, \\(Z\\sim\\mathcal N(Kx,\\Sigma_{\\mathrm{nest}})\\) exactly. In particular, \\(\\operatorname{Cov}(Z_{g,t},Z_{h,s})=(\\sigma^2/N)[\\mathbf 1\\{t=s\\}(\\mathbf 1\\{g=h\\}/q_g+1/q_{>t})+\\sum_{a=1}^Tb_{(g,t),a}b_{(h,s),a}/q_a]\\). The first term records contemporaneous control-pool exhaustion and the Gram term records the shared nested baseline contrasts.",
+      "free_symbols": [
+        "Z",
+        "K",
+        "x",
+        "Sigma_nest",
+        "sigma",
+        "N",
+        "q",
+        "qtail",
+        "T",
+        "b"
+      ],
+      "depends_on": [
+        "ass:index-range",
+        "ass:sample-range",
+        "ass:parallel-trends",
+        "ass:gaussian-cells",
+        "def:tail-mass",
+        "def:pooled-control",
+        "def:effect-surface",
+        "def:score-vector",
+        "def:observation-operator",
+        "def:baseline-loading",
+        "def:contemporaneous-covariance",
+        "def:nested-covariance"
+      ],
+      "status": "to-prove",
+      "justification": "The exact covariance turns disappearance of controls into a computable information problem.",
+      "gap": "Sant'Anna and Zhao derive a two-period repeated-cross-section influence function; this lemma gives the exact growing-calendar covariance of nested not-yet-treated scores.",
+      "consumer": "A staggered event-study analyst can compute the covariance input from cohort shares and cell counts."
+    },
+    {
+      "id": "lem:total-modulus-rule",
+      "kind": "lemma",
+      "statement": "For every \\(r>0\\), the canonical modulus maximizer exists after irrelevant coordinates are set to zero; the resulting map \\(r\\mapsto h_r\\) is Borel measurable. The modulus is finite, increasing, and concave, its right derivative is a Borel measurable supergradient, and \\(\\mathcal R_+\\) is nonempty. For every \\(r\\in\\mathcal R_+\\), \\(s_r>0\\), \\(b_r\\) is the exact maximal absolute bias of \\(\\widehat\\theta_r\\), and each infimum-approaching sequence in the definition exists. Consequently every \\(\\widehat\\theta_{r_{\\mathrm{MSE},j}}\\) and \\(C_{\\alpha,j}\\) is a total measurable procedure even at radii where the modulus is nondifferentiable.",
+      "free_symbols": [
+        "hmod",
+        "omega",
+        "omegaprime",
+        "Rplus",
+        "sddelta",
+        "biasdelta",
+        "thetahat",
+        "rMSEseq",
+        "CI",
+        "alpha",
+        "j"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:observation-operator",
+        "def:target-functional",
+        "def:nested-covariance",
+        "def:modulus",
+        "def:canonical-modulus-selection",
+        "def:affine-estimator",
+        "def:honest-interval"
+      ],
+      "status": "to-prove",
+      "justification": "A computable optimal-recovery rule must remain defined at exposed-face changes and must never divide by zero standard deviation.",
+      "gap": "General modulus theory permits set-valued extremizers; this lemma supplies a total measurable selection for the finite staggered-DiD program used by the frontier.",
+      "consumer": "Numerical convex programs can return reproducible weights and valid intervals at every admissible design point."
+    },
+    {
+      "id": "lem:uniform-bounded-lift",
+      "kind": "lemma",
+      "statement": "There are constants \\(0<c_{\\mathrm L}\\le C_{\\mathrm L}<\\infty\\), depending only on \\(\\beta,\\delta,c_q,C_q\\), such that uniformly over \\(N/T\\ge1\\) and \\(1\\le m\\le\\delta T\\), \\(c_{\\mathrm L}\\rho_{N,T,m}\\le\\omega_{\\Sigma_{\\mathrm{nest}}}(1)\\le C_{\\mathrm L}\\rho_{N,T,m}\\). At depth \\(k^{\\star}\\), applying \\(A_{\\mathrm{lift}}\\) to a canonical terminal Holder bump gives endpoints in \\(\\mathcal M_{T,m}(\\beta,L,B,q)\\), deviation difference at most \\(2B\\), and Mahalanobis energy at most one. The lift constants are independent of \\(N,T,m\\). In the homogeneous case \\(B=0\\), the information contribution of \\(k\\) terminal comparison dates is of order \\(Nk^2/(\\sigma^2T)\\), so the stochastic term is \\(\\sigma\\sqrt{T/N}/k\\), matching the corrected matched-date-block sanity experiment.",
+      "free_symbols": [
+        "beta",
+        "delta",
+        "q",
+        "T",
+        "N",
+        "m",
+        "rho",
+        "omega",
+        "Sigma_nest",
+        "kstar",
+        "A_lift",
+        "M",
+        "L",
+        "B",
+        "u",
+        "K",
+        "sigma"
+      ],
+      "depends_on": [
+        "ass:terminal-range",
+        "ass:sample-range",
+        "ass:balanced-cohorts",
+        "ass:holder-calendar",
+        "ass:bounded-cohort-deviation",
+        "ass:calendar-centering",
+        "def:model-class",
+        "def:observation-operator",
+        "def:nested-covariance",
+        "def:phase-envelope",
+        "def:lift-handle",
+        "prop:matched-diagonal-calibration"
+      ],
+      "status": "to-prove",
+      "justification": "The lower bound requires a dimension-free cohort-surface lift, and the upper envelope must respect the exact boundary information sum.",
+      "gap": "Armstrong and Kolesar place an extremal function in an observed regression mean; no published result constructs this bounded right inverse for staggered-DiD scores.",
+      "consumer": "The lemma transfers optimal-recovery lower bounds to the actual cohort-time effect surface."
+    },
+    {
+      "id": "thm:minimax-frontier",
+      "kind": "theorem",
+      "statement": "Uniformly over \\(N/T\\ge1\\) and \\(1\\le m\\le\\delta T\\), \\(c_R\\rho_{N,T,m}^2\\le R^{\\star}\\le\\liminf_{j\\to\\infty}\\sup_{x\\in\\mathcal M_{T,m}}\\mathbb E_x[(\\widehat\\theta_{r_{\\mathrm{MSE},j}}-\\ell(x))^2]\\le C_R\\rho_{N,T,m}^2\\), where the constants depend only on \\(\\beta,\\delta,c_q,C_q\\). The oracle depth minimizes \\(L(k/T)^{\\beta}+Bk/(T-k)+\\sigma\\sqrt{T/N}/k\\); its interior transition surfaces equate pairs of these three terms, and the terminal boundary phase is \\(k^{\\star}=m\\). Mandatory homogeneous sanity check: if \\(B=0\\), \\(m=o(k_0)\\), and \\(1\\ll k_0\\ll T\\), where \\(k_0=\\{\\sigma^2T^{2\\beta+1}/(NL^2)\\}^{1/(2\\beta+2)}\\), then both the nested envelope and its matched-date-block calibration have root-MSE order \\(L^{1/(\\beta+1)}\\{\\sigma^2/(NT)\\}^{\\beta/(2\\beta+2)}\\).",
+      "free_symbols": [
+        "N",
+        "T",
+        "m",
+        "delta",
+        "Rstar",
+        "rho",
+        "j",
+        "M",
+        "thetahat",
+        "rMSEseq",
+        "ell",
+        "kstar",
+        "L",
+        "beta",
+        "B",
+        "sigma"
+      ],
+      "depends_on": [
+        "ass:index-range",
+        "ass:terminal-range",
+        "ass:sample-range",
+        "ass:balanced-cohorts",
+        "ass:gaussian-cells",
+        "ass:holder-calendar",
+        "ass:bounded-cohort-deviation",
+        "ass:calendar-centering",
+        "def:model-class",
+        "def:target-functional",
+        "def:modulus",
+        "def:phase-envelope",
+        "def:affine-estimator",
+        "def:risk-and-length",
+        "lem:score-covariance",
+        "lem:total-modulus-rule",
+        "prop:matched-diagonal-calibration",
+        "lem:uniform-bounded-lift"
+      ],
+      "status": "to-prove",
+      "justification": "The frontier prices smooth extrapolation, cohort composition, and the vanishing precision of late comparison dates in one causal target.",
+      "gap": "Donoho gives the Gaussian shell and Borusyak, Jaravel, and Spiess diagnose missing long-run comparisons; neither computes this DiD exhaustion modulus or proves its bounded lift.",
+      "consumer": "Event-study analyses obtain a principled comparison depth and a diagnosis of the binding smoothness, heterogeneity, or exhaustion component."
+    },
+    {
+      "id": "thm:honest-length",
+      "kind": "theorem",
+      "statement": "For every \\(j\\in\\mathbb N\\), \\(C_{\\alpha,j}(Z)\\) satisfies \\(\\inf_{x\\in\\mathcal M_{T,m}}\\Pr_x\\{\\ell(x)\\in C_{\\alpha,j}(Z)\\}\\ge1-\\alpha\\) exactly. Its half-length is within a factor \\(1+j^{-1}\\) of the infimum over positive-standard-deviation affine modulus intervals. Moreover, uniformly over the design range, \\(c_{\\alpha}\\rho_{N,T,m}\\le\\operatorname{EL}^{\\star}_{\\alpha}\\le\\liminf_{j\\to\\infty}\\sup_{x\\in\\mathcal M_{T,m}}\\mathbb E_x[\\operatorname{length}C_{\\alpha,j}(Z)]\\le C_{\\alpha}\\rho_{N,T,m}\\).",
+      "free_symbols": [
+        "j",
+        "CI",
+        "alpha",
+        "Z",
+        "x",
+        "M",
+        "T",
+        "m",
+        "ell",
+        "sddelta",
+        "ELstar",
+        "rho",
+        "hmod"
+      ],
+      "depends_on": [
+        "ass:terminal-range",
+        "ass:gaussian-cells",
+        "ass:holder-calendar",
+        "ass:bounded-cohort-deviation",
+        "def:model-class",
+        "def:modulus",
+        "def:canonical-modulus-selection",
+        "def:affine-estimator",
+        "def:honest-interval",
+        "def:risk-and-length",
+        "lem:score-covariance",
+        "lem:total-modulus-rule",
+        "lem:uniform-bounded-lift",
+        "thm:minimax-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The honest-length objective has the same corrected exhaustion scale as MSE but requires its own bias-aware tuning sequence.",
+      "gap": "Armstrong and Kolesar optimize intervals for a supplied Gaussian operator, while this theorem derives honest length under the calendar-exhaustion operator and bounded cohort lift.",
+      "consumer": "Researchers obtain a bias-aware interval that remains defined at nondifferentiable tuning radii."
+    },
+    {
+      "id": "prop:matched-diagonal-calibration",
+      "kind": "proposition",
+      "statement": "Set \\(q_g=1/T\\) and \\(B=0\\). At date \\(t=T-r\\), the within-date covariance block has diagonal \\(2\\sigma^2T(1+1/r)/N\\) and off-diagonal \\(2\\sigma^2T/(Nr)\\). Generalized least-squares aggregation over the \\(T-r\\) treated-cohort scores therefore gives \\(\\widetilde Z_{T-r}\\sim\\mathcal N(f_{T-r},v_{T-r}^{\\mathrm{diag}})\\), independently across dates under \\(\\Sigma_{\\mathrm{diag}}\\), with \\(v_{T-r}^{\\mathrm{diag}}=2\\sigma^2T^2/\\{Nr(T-r)\\}\\). The information in radii \\(r=m,\\ldots,m+k-1\\) equals the displayed finite sum \\(S_{m,k}^{\\mathrm{diag}}\\). If \\(m=o(k)\\) and \\(k=o(T)\\), then \\(S_{m,k}^{\\mathrm{diag}}\\sim Nk^2/(4\\sigma^2T)\\), so the standard-error term is \\(2\\sigma\\sqrt{T/N}/k\\). Hence if \\(k_0=\\{\\sigma^2T^{2\\beta+1}/(NL^2)\\}^{1/(2\\beta+2)}\\), \\(1\\ll k_0\\ll T\\), and \\(m=o(k_0)\\), the Holder boundary envelope and minimax root-MSE are of order \\(L^{1/(\\beta+1)}\\{\\sigma^2/(NT)\\}^{\\beta/(2\\beta+2)}\\). For \\(T=3\\), \\(m=1\\), constant \\(f\\), and zero \\(u\\), the best linear unbiased variances are \\(36\\sigma^2/(7N)\\) under the nested covariance and \\(9\\sigma^2/(2N)\\) after deleting only cross-date dependence.",
+      "free_symbols": [
+        "q",
+        "T",
+        "B",
+        "sigma",
+        "N",
+        "m",
+        "Sigma_diag",
+        "Ztilde",
+        "f",
+        "vdiag",
+        "Sdiag",
+        "k",
+        "L",
+        "beta",
+        "rho_diag",
+        "u",
+        "Sigma_nest"
+      ],
+      "depends_on": [
+        "ass:terminal-range",
+        "ass:sample-range",
+        "ass:holder-calendar",
+        "def:model-class",
+        "def:nested-covariance",
+        "def:matched-diagonal-covariance",
+        "def:diagonal-date-aggregation",
+        "def:diagonal-information",
+        "def:diagonal-envelope",
+        "def:modulus"
+      ],
+      "status": "to-prove",
+      "justification": "The exact finite information sum prevents an erroneous square-root bandwidth calibration and supplies a mandatory homogeneous check on the nested frontier.",
+      "gap": "Armstrong and Kolesar derive a direct-regression Holder calibration; this supporting proposition derives the variance sequence induced by the staggered-DiD date blocks.",
+      "consumer": "The calculation provides a reproducible simulation benchmark and detects any nested-envelope phase with the wrong boundary exponent."
+    },
+    {
+      "id": "oeq:adaptive-exhaustion",
+      "kind": "openendedquestion",
+      "statement": "For fixed \\(0<\\beta_-<\\beta_+\\le1\\), characterize the weakest covariance-aware self-similarity condition under which the procedure generated by \\(H_{\\mathrm{adapt}}\\) yields one interval that is uniformly honest over \\(\\bigcup_{\\beta\\in[\\beta_-,\\beta_+]}\\mathcal M_{T,m}(\\beta,L,B,q)\\) and has expected length of order \\(\\rho_{N,T,m}(\\beta)\\) simultaneously for every \\(\\beta\\in[\\beta_-,\\beta_+]\\); also establish impossibility without that condition.",
+      "free_symbols": [
+        "beta",
+        "H_adapt",
+        "M",
+        "T",
+        "m",
+        "L",
+        "B",
+        "q",
+        "rho",
+        "N"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:phase-envelope",
+        "def:adaptation-handle",
+        "thm:honest-length"
+      ],
+      "status": "to-prove",
+      "justification": "Declared smoothness is the central sensitivity input, while unrestricted honest adaptation over a Holder union is unavailable.",
+      "gap": "Classical self-similar bands treat direct or independently noisy curves; they do not characterize self-similarity under nested exhaustion covariance.",
+      "consumer": "Analysts with several plausible smoothness exponents could report one valid interval when the data certify multiscale signal."
+    }
+  ],
+  "sampling_model": {
+    "design": "Fixed cohort-stratified repeated cross sections at a common baseline and dates \\(1,\\ldots,T\\), with cohort \\(g\\) treated from date \\(g\\) onward.",
+    "units": "Independent Gaussian cohort-time cell means with known variance \\(\\sigma^2/(Nq_g)\\) at each wave.",
+    "treatment": "For each \\(t\\le T-m\\), cohort \\(g\\le t\\) is compared with pooled set \\(C_t\\); no untreated cohort remains for the target at \\(T\\).",
+    "overlap": "Fixed shares satisfy \\(c_q/T\\le q_g\\le C_q/T\\), and \\(q_{>t}>0\\) at every score date.",
+    "nuisance_estimation": "No nuisance function is estimated inside the exact score experiment; the bounded cohort surface is optimized jointly with the Holder path."
+  },
+  "estimand_functional": "\\(\\widehat\\theta_{r_{\\mathrm{MSE},j}}=\\{\\omega'_{\\Sigma_{\\mathrm{nest}}}(r_{\\mathrm{MSE},j})/r_{\\mathrm{MSE},j}\\}\\langle Kh_{r_{\\mathrm{MSE},j}},Z\\rangle_{\\Sigma_{\\mathrm{nest}}^{-1}},\\quad j\\to\\infty\\)",
+  "target_estimand": "\\(\\theta_T=f_T=\\sum_{g=1}^Tq_g\\tau_{g,T}\\)",
+  "bibliography": [
+    {
+      "key": "BorusyakJaravelSpiess2024",
+      "citation": "Borusyak, Kirill, Xavier Jaravel, and Jann Spiess. 2024. ``Revisiting Event-Study Designs: Robust and Efficient Estimation.'' Review of Economic Studies 91: 3253--3285. Section 3.3, Proposition 5. doi:10.1093/restud/rdae007."
+    },
+    {
+      "key": "CallawaySantAnna2021",
+      "citation": "Callaway, Brantly, and Pedro H. C. Sant'Anna. 2021. ``Difference-in-Differences with Multiple Time Periods.'' Journal of Econometrics 225: 200--230. doi:10.1016/j.jeconom.2020.12.001."
+    },
+    {
+      "key": "SantAnnaZhao2020",
+      "citation": "Sant'Anna, Pedro H. C., and Jun B. Zhao. 2020. ``Doubly Robust Difference-in-Differences Estimators.'' Journal of Econometrics 219: 101--122. doi:10.1016/j.jeconom.2020.06.003."
+    },
+    {
+      "key": "Donoho1994",
+      "citation": "Donoho, David L. 1994. ``Statistical Estimation and Optimal Recovery.'' Annals of Statistics 22: 238--270. doi:10.1214/aos/1176325367."
+    },
+    {
+      "key": "ArmstrongKolesar2018",
+      "citation": "Armstrong, Timothy B., and Michal Kolesar. 2018. ``Optimal Inference in a Class of Regression Models.'' Econometrica 86: 655--683. doi:10.3982/ECTA14434."
+    },
+    {
+      "key": "ArmstrongKolesar2020",
+      "citation": "Armstrong, Timothy B., and Michal Kolesar. 2020. ``Simple and Honest Confidence Intervals in Nonparametric Regression.'' Quantitative Economics 11: 1--39. Theorem 3.1, pp. 15--16. doi:10.3982/QE1199."
+    },
+    {
+      "key": "RambachanRoth2023",
+      "citation": "Rambachan, Ashesh, and Jonathan Roth. 2023. ``A More Credible Approach to Parallel Trends.'' Review of Economic Studies 90: 2555--2591. doi:10.1093/restud/rdad018."
+    },
+    {
+      "key": "RothSantAnnaBilinskiPoe2023",
+      "citation": "Roth, Jonathan, Pedro H. C. Sant'Anna, Alyssa Bilinski, and John Poe. 2023. ``What's Trending in Difference-in-Differences? A Synthesis of the Recent Econometrics Literature.'' Journal of Econometrics 235: 2218--2244. doi:10.1016/j.jeconom.2023.03.008."
+    },
+    {
+      "key": "CohenFogarty2022",
+      "citation": "Cohen, Peter L., and Colin B. Fogarty. 2022. ``Gaussian Prepivoting for Finite Population Causal Inference.'' Journal of the Royal Statistical Society, Series B 84: 295--320. doi:10.1111/rssb.12439."
+    },
+    {
+      "key": "GenoveseWasserman2008",
+      "citation": "Genovese, Christopher R., and Larry Wasserman. 2008. ``Adaptive Confidence Bands.'' Annals of Statistics 36: 875--905. doi:10.1214/07-AOS500."
+    },
+    {
+      "key": "Bull2012",
+      "citation": "Bull, Adam D. 2012. ``Honest Adaptive Confidence Bands and Self-Similar Functions.'' Electronic Journal of Statistics 6: 1490--1516. doi:10.1214/12-EJS720."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "BorusyakJaravelSpiess2024",
+      "comparator_claim": "Section 3.3, Proposition 5, shows that sufficiently long-run nonnegative weighted effects are not identified without extrapolation when no never-treated units remain.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CallawaySantAnna2021",
+      "comparator_claim": "The paper identifies group-time ATTs, defines calendar aggregations, and provides simultaneous inference for identified collections.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SantAnnaZhao2020",
+      "comparator_claim": "Proposition 1 derives the repeated-cross-section efficient influence function and its efficiency bound for the two-period ATT.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Donoho1994",
+      "comparator_claim": "Gaussian linear-functional difficulty is characterized through a modulus, and affine minimax rules are near global minimax rules.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2018",
+      "comparator_claim": "Known-variance Gaussian confidence procedures over convex regression classes are characterized by ordered moduli and sharp expected-length bounds.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2020",
+      "comparator_claim": "Theorem 3.1 on pp. 15--16 derives a simple honest interval and its Holder boundary bias--variance calibration for nonparametric regression.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "RambachanRoth2023",
+      "comparator_claim": "Uniformly valid DiD confidence sets are constructed under bounded post-treatment deviations from observed pre-trends.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CohenFogarty2022",
+      "comparator_claim": "Loewner covariance dominance and Anderson's theorem order Gaussian procedures for symmetric convex acceptance regions.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    }
+  ],
+  "tldr": "A fixed-cohort repeated-cross-section event study induces an exact Gaussian score experiment with shrinking not-yet-treated pools and nested shared-baseline dependence. The calendar ATT is Holder-smooth, while centered cohort deviations are bounded but unrestricted. The kernel computes the DiD exhaustion modulus, proves a dimension-free lift of terminal boundary bumps, and matches total measurable affine procedures with global minimax MSE and honest-length lower bounds. The corrected information accumulation is quadratic in comparison depth, yielding stochastic scale \\(\\sigma\\sqrt{T/N}/k\\) and homogeneous Holder bandwidth denominator \\(2\\beta+2\\). A matched-date-block experiment supplies a fully finite-sample calibration rather than a novelty claim.",
+  "project_justification": {
+    "gap": "Staggered-DiD methods stop where valid comparisons disappear or conduct inference for already identified effects. Optimal-recovery results begin after the Gaussian operator and class are supplied. Neither literature prices disappearing controls, cohort composition, and smooth calendar extrapolation jointly.",
+    "niche": "The exact score experiment is a growing inverse problem whose causal design determines a nested covariance, quadratic boundary information accumulation, and a bounded nuisance lift.",
+    "fill": "The project derives the covariance, proves the lift, computes the corrected uniform phase envelope, constructs total infimum-approaching estimators and honest intervals, and matches their global lower bounds."
+  },
+  "related_work": "Callaway and Sant'Anna define the group-time effects and calendar aggregations that give the target causal meaning. Borusyak, Jaravel, and Spiess show in Section 3.3, Proposition 5, that long-run event-study effects lose valid comparisons; this motivates explicit smooth extrapolation. Sant'Anna and Zhao establish the two-period repeated-cross-section information benchmark, while the covariance lemma derives the growing-calendar nested score geometry. Donoho supplies the Gaussian modulus architecture. Armstrong and Kolesar's 2020 Theorem 3.1 on pp. 15--16 informs the direct-regression Holder calibration and bias-aware construction, but does not compute the staggered-DiD exhaustion modulus or bounded lift. Rambachan and Roth study trend-violation sensitivity, which is distinct from bounded cohort heterogeneity in the treatment-effect surface. Cohen and Fogarty inform covariance-order diagnostics; no generic covariance ordering is claimed here.",
+  "technical_internal_limitation": "The matched comparison deletes cross-date dependence only after preserving each full within-date covariance block. Fully diagonalizing individual cohort-score coordinates creates artificial within-date replication and is not a valid sanity experiment for the exhaustion frontier. Equal date-block marginals do not by themselves order the nested and block-diagonal experiments. The exact Gaussian model also separates the calendar-exhaustion geometry from non-Gaussian coupling and nuisance estimation.",
+  "honest_scope": "Every displayed risk, length, lift, selection, and calibration claim remains to be proved. The field-level contribution is the DiD exhaustion modulus, bounded lift, global minimax MSE, and honest-length frontier. Generic modulus machinery and the matched-date-block reduction are supporting ingredients. Smoothness adaptation remains an open-ended question requiring an additional self-similarity condition.",
+  "seeds": [
+    "seed:global-modulus-frontier",
+    "seed:honest-length-frontier",
+    "seed:fixed-marginal-diagonal-calibration",
+    "seed:terminal-simultaneous-band",
+    "seed:dimension-free-lift",
+    "seed:semiparametric-efficiency",
+    "seed:transition-limit-law",
+    "seed:smoothness-adaptation",
+    "seed:calendar-policy-learning",
+    "seed:permutation-inversion"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:global-modulus-frontier",
+      "anchor": "BorusyakJaravelSpiess2024, Section 3.3, Proposition 5; Donoho1994, Sections 1--3",
+      "question": "Characterize minimax MSE for a terminal calendar ATT after valid comparison dates end.",
+      "first_changed_proof_step": "Lift a scalar boundary bump through the bounded cohort surface under the derived covariance.",
+      "destination_search": "No cited result occupies this target--operator pair.",
+      "motif": "M11(a)+M7",
+      "target_tier": "field",
+      "red_team": "The generic modulus theorem does not compute the DiD operator or its bounded lift.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "disposition": "selected"
+    },
+    {
+      "id": "seed:honest-length-frontier",
+      "anchor": "ArmstrongKolesar2018, Section 3; RambachanRoth2023, Sections 3--4",
+      "question": "Characterize shortest uniformly honest length for the same terminal ATT.",
+      "first_changed_proof_step": "Compute the ordered modulus under nested exhaustion covariance.",
+      "destination_search": "No cited honest-DiD result uses this target and covariance.",
+      "motif": "M11(a)",
+      "target_tier": "field",
+      "red_team": "The statistical shell is known but the DiD modulus and lift are not.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "disposition": "selected-and-merged"
+    },
+    {
+      "id": "seed:fixed-marginal-diagonal-calibration",
+      "anchor": "SantAnnaZhao2020, Proposition 1; ArmstrongKolesar2020, Theorem 3.1, pp. 15--16",
+      "question": "Derive the matched-date-block information sum and Holder boundary rate.",
+      "first_changed_proof_step": "Aggregate the compound-symmetric within-date block before deleting cross-date covariance.",
+      "destination_search": "Retained only as a calibration.",
+      "motif": "M2+M11(a)",
+      "target_tier": "supporting",
+      "red_team": "The calculation is not a field-level novelty claim.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 2,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "disposition": "supporting calibration"
+    },
+    {
+      "id": "seed:terminal-simultaneous-band",
+      "anchor": "CallawaySantAnna2021, Section 4; GenoveseWasserman2008, Theorems 1--2",
+      "question": "Optimize a simultaneous band over terminal calendar ATTs.",
+      "first_changed_proof_step": "Replace one bump by a covariance-weighted terminal packing.",
+      "destination_search": "No cited paper optimizes extrapolation-band width.",
+      "motif": "M11(a)",
+      "target_tier": "flagship",
+      "red_team": "Growing terminal dimension changes the packing.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "disposition": "deferred"
+    },
+    {
+      "id": "seed:dimension-free-lift",
+      "anchor": "Donoho1994, Sections 1--3; ArmstrongKolesar2020, Theorem 3.1, pp. 15--16",
+      "question": "Construct a dimension-free lift of terminal Holder bumps.",
+      "first_changed_proof_step": "Build a bounded right inverse of the cohort-observation map.",
+      "destination_search": "No cited result supplies this DiD lift.",
+      "motif": "M7+M11(a)",
+      "target_tier": "subfield",
+      "red_team": "Copying a bump across cohorts violates centering or boundedness.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "disposition": "central lemma"
+    },
+    {
+      "id": "seed:semiparametric-efficiency",
+      "anchor": "SantAnnaZhao2020, Proposition 1",
+      "question": "Derive a tangent-cone efficiency bound for the late target.",
+      "first_changed_proof_step": "Replace a regular projection by a nonregular extrapolation cone.",
+      "destination_search": "Nonvanishing extrapolation bias obstructs the regular lane.",
+      "motif": "M11(b)",
+      "target_tier": "subfield",
+      "red_team": "The terminal target is not point identified without structure.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "disposition": "dropped"
+    },
+    {
+      "id": "seed:transition-limit-law",
+      "anchor": "BorusyakJaravelSpiess2024, Section 4.2",
+      "question": "Derive a tuning transition law.",
+      "first_changed_proof_step": "Allow data-dependent triangular weights.",
+      "destination_search": "Exact Gaussianity makes fixed-tuning laws immediate.",
+      "motif": "M11(c)",
+      "target_tier": "subfield",
+      "red_team": "No new law arises for deterministic tuning.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 2,
+        "novelty": 2,
+        "feasibility": 5,
+        "consumer_value": 3
+      },
+      "disposition": "dropped"
+    },
+    {
+      "id": "seed:smoothness-adaptation",
+      "anchor": "ArmstrongKolesar2018, Section 3.4; Bull2012",
+      "question": "Find the weakest self-similarity condition for honest adaptation.",
+      "first_changed_proof_step": "Whiten multiscale contrasts under nested covariance.",
+      "destination_search": "No cited result treats exhaustion covariance.",
+      "motif": "M11(a)+M8",
+      "target_tier": "field",
+      "red_team": "Unrestricted Holder adaptation is impossible.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "disposition": "open-ended extension"
+    },
+    {
+      "id": "seed:calendar-policy-learning",
+      "anchor": "CallawaySantAnna2021, Section 4",
+      "question": "Choose a treatment policy from a late-calendar forecast.",
+      "first_changed_proof_step": "Introduce a policy class and welfare score.",
+      "destination_search": "The supplied design contains no policy choice.",
+      "motif": "M16",
+      "target_tier": "subfield",
+      "red_team": "Wrapping the estimator in welfare maximization does not create an identified decision problem.",
+      "scores": {
+        "direct_evidence": 1,
+        "mathematical_depth": 2,
+        "novelty": 1,
+        "feasibility": 1,
+        "consumer_value": 2
+      },
+      "disposition": "dropped"
+    },
+    {
+      "id": "seed:permutation-inversion",
+      "anchor": "CallawaySantAnna2021, Section 5",
+      "question": "Invert cohort permutations for finite-sample inference.",
+      "first_changed_proof_step": "Find a group action preserving adoption dates and covariance.",
+      "destination_search": "No such exchangeability group is present.",
+      "motif": "M17",
+      "target_tier": "subfield",
+      "red_team": "Permuting cohort labels changes control pools.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 2,
+        "novelty": 2,
+        "feasibility": 1,
+        "consumer_value": 3
+      },
+      "disposition": "dropped"
+    }
+  ],
+  "literature_map": [
+    {
+      "thread": "staggered-DiD estimands and long-run exhaustion",
+      "settled": "Callaway and Sant'Anna define calendar aggregations; Borusyak, Jaravel, and Spiess show loss of long-run comparisons in Section 3.3, Proposition 5.",
+      "unoccupied_pair": "Neither derives minimax risk under a Holder calendar path and exact exhaustion covariance.",
+      "sources": [
+        "CallawaySantAnna2021",
+        "BorusyakJaravelSpiess2024"
+      ]
+    },
+    {
+      "thread": "repeated-cross-section information",
+      "settled": "Sant'Anna and Zhao derive the two-period repeated-cross-section efficient influence function.",
+      "unoccupied_pair": "Their result does not give the growing nested covariance or terminal modulus.",
+      "sources": [
+        "SantAnnaZhao2020"
+      ]
+    },
+    {
+      "thread": "Gaussian modulus and Holder optimal recovery",
+      "settled": "Donoho gives the modulus architecture; Armstrong and Kolesar give optimal Gaussian confidence rules and the direct Holder calibration.",
+      "unoccupied_pair": "They do not derive the cohort-surface operator, bounded lift, or exhaustion envelope.",
+      "sources": [
+        "Donoho1994",
+        "ArmstrongKolesar2018",
+        "ArmstrongKolesar2020"
+      ]
+    },
+    {
+      "thread": "honest DiD inference",
+      "settled": "Rambachan and Roth construct valid inference under bounded violations of parallel trends.",
+      "unoccupied_pair": "That nuisance differs from smooth treatment-effect extrapolation with bounded cohort deviations.",
+      "sources": [
+        "RambachanRoth2023",
+        "RothSantAnnaBilinskiPoe2023"
+      ]
+    },
+    {
+      "thread": "nearest-subsumption check",
+      "settled": "The cited synthesis covers staggered timing, sensitivity, and simultaneous inference.",
+      "unoccupied_pair": "No cited result combines the exact triangular score operator, global minimax MSE, honest length, and a dimension-free lift.",
+      "sources": [
+        "RothSantAnnaBilinskiPoe2023"
+      ]
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Borusyak, Jaravel, and Spiess",
+      "year": 2024,
+      "venue": "Review of Economic Studies",
+      "bibkey": "BorusyakJaravelSpiess2024",
+      "one_line": "Section 3.3, Proposition 5, isolates loss of long-run identification after valid comparisons disappear.",
+      "relevant_to": "thm:minimax-frontier"
+    },
+    {
+      "author": "Callaway and Sant'Anna",
+      "year": 2021,
+      "venue": "Journal of Econometrics",
+      "bibkey": "CallawaySantAnna2021",
+      "one_line": "Section 4 defines calendar aggregation of group-time ATTs.",
+      "relevant_to": "lem:score-covariance"
+    },
+    {
+      "author": "Sant'Anna and Zhao",
+      "year": 2020,
+      "venue": "Journal of Econometrics",
+      "bibkey": "SantAnnaZhao2020",
+      "one_line": "Proposition 1 gives the repeated-cross-section influence function and variance bound.",
+      "relevant_to": "lem:score-covariance"
+    },
+    {
+      "author": "Donoho",
+      "year": 1994,
+      "venue": "Annals of Statistics",
+      "bibkey": "Donoho1994",
+      "one_line": "Sections 1--3 connect Gaussian estimation to the modulus and affine optimal recovery.",
+      "relevant_to": "thm:minimax-frontier"
+    },
+    {
+      "author": "Armstrong and Kolesar",
+      "year": 2018,
+      "venue": "Econometrica",
+      "bibkey": "ArmstrongKolesar2018",
+      "one_line": "Section 3 develops modulus estimators and optimal Gaussian confidence rules.",
+      "relevant_to": "thm:honest-length"
+    },
+    {
+      "author": "Armstrong and Kolesar",
+      "year": 2020,
+      "venue": "Quantitative Economics",
+      "bibkey": "ArmstrongKolesar2020",
+      "one_line": "Theorem 3.1 on pp. 15--16 gives the simple honest Holder interval calibration.",
+      "relevant_to": "prop:matched-diagonal-calibration"
+    },
+    {
+      "author": "Rambachan and Roth",
+      "year": 2023,
+      "venue": "Review of Economic Studies",
+      "bibkey": "RambachanRoth2023",
+      "one_line": "Sections 3--4 construct uniformly valid DiD confidence sets under bounded trend violations.",
+      "relevant_to": "thm:honest-length"
+    },
+    {
+      "author": "Roth, Sant'Anna, Bilinski, and Poe",
+      "year": 2023,
+      "venue": "Journal of Econometrics",
+      "bibkey": "RothSantAnnaBilinskiPoe2023",
+      "one_line": "The survey maps staggered timing and sensitivity without an exhaustion minimax theory.",
+      "relevant_to": "oeq:adaptive-exhaustion"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":\"The closest statistical results are Donoho's Gaussian modulus theorem and Armstrong and Kolesar's optimal confidence procedures. The closest causal results are Borusyak, Jaravel, and Spiess, Section 3.3, Proposition 5, on disappearing long-run comparisons and Sant'Anna and Zhao on repeated-cross-section information.\",\"non_subsumption\":\"No cited theorem combines fractional-Holder calendar extrapolation, bounded unrestricted cohort deviations, the derived nested exhaustion covariance, and a dimension-free bounded lift.\",\"strict_gap\":\"The statistical comparators take the operator as given and the causal comparators do not derive this late-calendar minimax problem. The kernel derives the operator, proves the lift, and computes the corrected \\\\(k^{-1}\\\\) exhaustion frontier uniformly in \\\\(N,T,m\\\\). Generic modulus machinery and the matched-date-block calculation are supporting rather than novelty claims.\",\"used_exemplars\":\"The motivation follows Borusyak, Jaravel, and Spiess, Section 3.3, Proposition 5. The decision architecture follows Donoho, Sections 1--3. Confidence calibration is informed by Armstrong and Kolesar's 2020 Theorem 3.1 on pp. 15--16.\"}"
+}

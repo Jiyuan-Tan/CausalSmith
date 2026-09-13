@@ -1,0 +1,1106 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}cate\_\allowbreak{}local\_\allowbreak{}overlap\_\allowbreak{}nuisance\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For the exact local-zero model, the sharp supplied-propensity theorem gives \(R_n^e\asymp n^{-\gamma/(2\gamma+d+\kappa)}\) for every \(\kappa\geq0\) by an explicit annular estimator and genuine full-support exact-uniform Bernoulli lower laws.  The total data-only first-order estimator gives \(c n^{-\gamma/(2\gamma+d+\kappa)}\leq R_n\leq C n^{-t/(2t+d+\kappa)}\), where \(t=\min\{\gamma,\alpha+\beta\}\).  At bounded overlap, KennedyBalakrishnanRobinsWasserman2024MinimaxCATE already covers the same higher-order upper rate and nuisance elbow and applies to known uniform design.  This note therefore presents its \(\kappa=0\) result only as an explicitly total one-sided exact-uniform specialization using the known Lebesgue Gram matrix, deterministic rank rounding, singular-value flooring, clipping, and an all-dataset fallback.  That specialization gives \(R_n\leq C\max\{n^{-\gamma/(2\gamma+d)},n^{-1/D_\star}\}\), with \(D_\star=1+d/(2\gamma)+d/(2(\alpha+\beta))\), and matches the supplied-propensity lower bound when \(\alpha+\beta\geq d\gamma/(2\gamma+d)\), including equality without a logarithm.  Below that elbow only the exact-uniform nuisance converse remains open; for \(\kappa>0\), the higher-order frontier and critical logarithms remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} KennedyBalakrishnanRobinsWasserman2024MinimaxCATE already proves the same bounded-overlap higher-order upper rate and nuisance elbow and its theorem applies when the design is known uniform, so neither that rate nor that elbow is a novelty claim here.  Its displayed perforated-support lower witness is not a member of the singleton exact-uniform class and therefore does not settle the below-elbow nuisance converse.  No cited result supplies the sharp multivariate Bernoulli CATE benchmark at the local propensity zero for every \(\kappa\), and no cited result supplies the complete unknown-propensity higher-order frontier for \(\kappa>0\).
+
+\paragraph{Niche.} The distinct theorem-level content is the sharp supplied-propensity local-zero benchmark for every \(\kappa\), proved with an annular estimator and genuine full-support exact-uniform Bernoulli laws.  On the bounded-overlap slice, exact uniformity makes the Lebesgue projection Gram matrix known and permits the published higher-order architecture to be presented as a fully finite, one-sided, explicitly total implementation on every dataset.
+
+\paragraph{Fill.} The paper gives an explicit total annular supplied-propensity estimator and a matching exact-class Bernoulli two-point construction, proving \(R_n^e\asymp n^{-\gamma/(2\gamma+d+\kappa)}\) for every \(\kappa\geq0\).  It also gives the all-\(\kappa\) total first-order bracket.  For \(\kappa=0\), it specializes the already-covered KBRW higher-order rate architecture using the exact Lebesgue Gram matrix, deterministic rank rounding, singular-value flooring, clipping, and an all-dataset fallback, obtaining \(R_n\leq C\max\{n^{-\gamma/(2\gamma+d)},n^{-1/D_\star}\}\).  This improves this note's first-order upper bound and, with the supplied-propensity lower bound, proves oracle-rate equality from the elbow onward; it is not presented as a new bounded-overlap rate or elbow.
+
+\section{Related work}
+
+KennedyBalakrishnanRobinsWasserman2024MinimaxCATE, Theorems 1--2 and Definition 2 with equation (14), supplies the closest bounded-overlap pointwise CATE frontier.  Its upper theorem already has the same higher-order rate and nuisance elbow stated here and applies when the design is known uniform.  Accordingly, the present result at kappa zero is only an explicitly total one-sided exact-uniform implementation and specialization: the known Lebesgue Gram matrix, deterministic projection-rank rounding, singular-value flooring, clipping, and an all-dataset fallback make every step finite and defined on every sample.  The comparator's displayed perforated-support lower witness is outside the singleton exact-uniform class, so it does not establish the below-elbow lower bound here.  The distinct theorem-level advance is instead the all-\(\kappa\) sharp supplied-propensity local-zero result, including its full-support exact-uniform Bernoulli construction.  Kennedy2023DRCATE supplies bounded-overlap local-polynomial R-learner motivation, while LiuMukherjeeNeweyRobins2017EmpiricalHOIF and ShenGaoWittenHan2020 motivate higher-order projection corrections.  RobinsTchetgenLiVanderVaart2009, Theorem 2.1, requires partition-local perturbations and does not directly cover the overlapping smooth frames needed to preserve full support.  GaoHan2020 concerns integrated random-design contrast risk; Gaiffas2005DegenerateDesign concerns scalar pointwise regression under a design zero; Dorn2025WeakOverlapTStatistics concerns weak-overlap average-effect inference and scalar regression; and Kim2026RKHSPointwiseCATE retains a global overlap lower bound.  WagerAthey2018CausalForests and GRFReference motivate the application: the official \(\texttt{grf}\) workflow learns nuisance regressions and uses treatment-balance restrictions, but no claim is made that its causal forest attains the rates proved here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_P(0)\), defined exclusively as the value at zero of the unique continuous extension of \(\mu_{1,P}-\mu_{0,P}\).
+Primary functional / estimator / diagnostic: The causal target is \(\tau_P(0)\), already identified from the observed law by \(\mathrm{prop:causal\mbox{-}identification}\).  The supplied-propensity attainer in \(\mathrm{thm:oracle\mbox{-}minimax}\) is the following explicit total map.  Let \(D=[1/2,1]^d\), let \(v_\gamma(z)\) be the vector of all monomials \(z^\nu\) of total degree at most \(\lceil\gamma\rceil-1\), and define the deterministic positive-definite matrix and polynomial kernel
+\[
+ H_\gamma=\int_D v_\gamma(z)v_\gamma(z)^{\mathsf T}\,dz,
+ \qquad
+ q_\gamma(z)=v_\gamma(0)^{\mathsf T}H_\gamma^{-1}v_\gamma(z).
+\]
+Set \(h_n=n^{-1/(2\gamma+d+\kappa)}\).  For each observation with \(X_i\in h_nD\), compute
+\[
+ Z_i^e=\frac{A_iY_i}{e_P(X_i)}-\frac{(1-A_i)Y_i}{1-e_P(X_i)},
+\]
+and set its summand to zero when \(X_i\notin h_nD\).  With \(\Pi_{[-3/4,3/4]}(u)=\min\{\max\{u,-3/4\},3/4\}\), output
+\[
+ \widehat\tau_n^e(0)=\Pi_{[-3/4,3/4]}\!\left(
+ \frac1n\sum_{i=1}^n h_n^{-d}q_\gamma(X_i/h_n)
+ \mathbf 1\{X_i\in h_nD\}Z_i^e
+ \right).
+\]
+The monomial basis, exact Gram integral and inverse, bandwidth, finite average, and clipping are deterministic finite operations.  Since \(h_nD\) is separated from the propensity-zero corner and \(e_P\) is bounded away from zero on that annulus, no displayed denominator vanishes; setting the summand to zero off the annulus makes the estimator total on every dataset.  It attains \(R_n^e\asymp n^{-\gamma/(2\gamma+d+\kappa)}\) for every \(\kappa\geq0\).
+
+For \(\kappa=0\), the established data-only functional is the total second-order estimator \(\widehat\tau^{(2)}_{n,h,k}(0)\) constructed in \(\mathrm{lem:bounded\mbox{-}overlap\mbox{-}second\mbox{-}order\mbox{-}risk}\).  It uses a one-sided localized polynomial fit, a finite projection correction with the known exact Lebesgue Gram matrix, deterministic rank rounding, singular-value flooring, clipping, and an all-dataset fallback.  With \(S=\alpha+\beta\), \(S_\star=d\gamma/(2\gamma+d)\), and \(D_\star=1+d/(2\gamma)+d/(2S)\), deterministic tuning gives
+\[
+ c n^{-\gamma/(2\gamma+d)}
+ \leq R_n(d,0,\alpha,\beta,\gamma,L)
+ \leq C\max\left\{n^{-\gamma/(2\gamma+d)},n^{-1/D_\star}\right\}.
+\]
+This is an explicitly total exact-uniform specialization of the bounded-overlap higher-order architecture: KennedyBalakrishnanRobinsWasserman2024MinimaxCATE already covers the same upper rate and elbow and applies when the design is known uniform.  The data-only and supplied-propensity risks have the same pure-power rate when \(S\geq S_\star\), including equality without a logarithmic factor.  Below that elbow the displayed upper bound is proved but its matching exact-uniform nuisance lower bound is not.
+
+For \(\kappa>0\), the total first-order functional from \(\mathrm{thm:first\mbox{-}order\mbox{-}upper}\) gives, with \(t=\min\{\gamma,\alpha+\beta\}\),
+\[
+ c n^{-\gamma/(2\gamma+d+\kappa)}
+ \leq R_n(d,\kappa,\alpha,\beta,\gamma,L)
+ \leq C n^{-t/(2t+d+\kappa)},
+\]
+and the unresolved higher-order local-zero branches are precisely those retained in \(\mathrm{oeq:sharp\mbox{-}frontier}\)..
+\begin{itemize}
+  \item \texttt{d} --- \texttt{fixed covariate dimension}; \(\mathbb N_{+}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The dimension of the covariate cube.}
+  \item \texttt{kappa} --- \texttt{fixed local-\allowbreak{}overlap exponent}; \([0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The power governing the treatment-\allowbreak{}probability zero at the target corner.}
+  \item \texttt{alpha} --- \texttt{fixed propensity-\allowbreak{}multiplier smoothness}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The H\textbackslash{}\allowbreak{}"older order of the unknown propensity multiplier.}
+  \item \texttt{beta} --- \texttt{fixed control-\allowbreak{}regression smoothness}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The H\textbackslash{}\allowbreak{}"older order of the control regression.}
+  \item \texttt{gamma} --- \texttt{fixed contrast smoothness}; \((\beta,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} The H\"older order of the treatment contrast, with \(\gamma>\beta\).
+  \item \texttt{L} --- \texttt{fixed regularity radius}; \([4,\infty)\); \texttt{model constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The known radius of every H\textbackslash{}\allowbreak{}"older ball.}
+  \item \texttt{n} --- \texttt{sample size}; \(\{2,3,\ldots\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of observed independent units.}
+  \item \texttt{Xspace} --- \texttt{compact covariate space}; \([0,1]^d\); \texttt{sample space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=[0,1]^d\).
+  \item \texttt{Aspace} --- \texttt{binary treatment space}; \(\{0,1\}\); \texttt{sample space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{0,1\}\).
+  \item \texttt{Yspace} --- \texttt{binary outcome space}; \(\{0,1\}\); \texttt{sample space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y=\{0,1\}\).
+  \item \texttt{r} --- \texttt{corner radius}; \(r:\mathcal X\to[0,1]\); \texttt{overlap geometry}
+  \par\smallskip\noindent\emph{Definition.} \(r(x)=\lVert x\rVert_{\infty}=\max_{1\le j\le d}x_j\).
+  \item \texttt{rkappa} --- \texttt{corner-\allowbreak{}overlap weight}; \(r_{\kappa}:\mathcal X\to[0,1]\); \texttt{overlap geometry}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\kappa}(x)=1\) if \(\kappa=0\), and \(r_{\kappa}(x)=r(x)^{\kappa}\) if \(\kappa>0\).
+  \item \texttt{Holder} --- \texttt{isotropic H\textbackslash{}\allowbreak{}"older ball}; sets of real functions on \(\mathcal X\); \texttt{regularity class}
+  \par\smallskip\noindent\emph{Definition.} For \(s>0\) and \(m=\lceil s\rceil-1\), \(\mathcal H^s_d(L)=\{f:\mathcal X\to\mathbb R:\max_{|\nu|\le m}\lVert D^{\nu}f\rVert_{\infty}\le L,\ \max_{|\nu|=m}\sup_{x\ne x'}|D^{\nu}f(x)-D^{\nu}f(x')|/\lVert x-x'\rVert_{\infty}^{s-m}\le L\}\).
+  \item \texttt{X} --- \texttt{observed covariate vector}; \(\mathcal X\); \texttt{data component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The pre-\allowbreak{}treatment covariate.}
+  \item \texttt{A} --- \texttt{observed treatment indicator}; \(\mathcal A\); \texttt{data component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The realized binary treatment.}
+  \item \texttt{Y} --- \texttt{observed outcome}; \(\mathcal Y\); \texttt{data component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The realized binary response.}
+  \item \texttt{Y0} --- \texttt{control potential outcome}; \(\mathcal Y\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \(Y(0)\), the potential response under control.
+  \item \texttt{Y1} --- \texttt{treated potential outcome}; \(\mathcal Y\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \(Y(1)\), the potential response under treatment.
+  \item \texttt{O} --- \texttt{observed data unit}; \(\mathcal X\times\mathcal A\times\mathcal Y\); \texttt{data unit}
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,A,Y)\).
+  \item \texttt{P} --- \texttt{full-\allowbreak{}data probability law}; laws of \((X,A,Y,Y(0),Y(1))\); \texttt{model law}
+  \par\smallskip\noindent\emph{Definition.} A causal completion whose observed marginal is the law of \(O\).
+  \item \texttt{gP} --- \texttt{propensity multiplier}; \(g_P:\mathcal X\to\mathbb R\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} The unknown multiplier in the local propensity representation under \(P\).
+  \item \texttt{eP} --- \texttt{propensity score}; \(e_P:\mathcal X\to[0,1]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(e_P(x)=P(A=1\mid X=x)\).
+  \item \texttt{mu0P} --- \texttt{continuous control outcome-\allowbreak{}regression version}; \(\mu_{0,P}:\mathcal X\to[0,1]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{0,P}\) is the unique continuous H\"older version on \(\mathcal X\) of \(x\mapsto\mathbb E_P[Y\mid X=x,A=0]\); equality with the conditional mean is imposed only for \(P_X\)-almost every \(x\).
+  \item \texttt{mu1P} --- \texttt{continuous treated outcome-\allowbreak{}regression version}; \(\mu_{1,P}:\mathcal X\to[0,1]\); \texttt{outcome regression}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{1,P}\) is the unique continuous H\"older version on \(\mathcal X\) of \(x\mapsto\mathbb E_P[Y\mid X=x,A=1]\); equality with the conditional mean is imposed only for \(P_X\)-almost every \(x\).
+  \item \texttt{nu0P} --- \texttt{continuous control potential-\allowbreak{}outcome regression version}; \(\nu_{0,P}:\mathcal X\to[0,1]\); \texttt{causal regression}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_{0,P}\) is the unique continuous H\"older version on \(\mathcal X\) of \(x\mapsto\mathbb E_P[Y(0)\mid X=x]\); equality with the conditional mean is understood only for \(P_X\)-almost every \(x\).
+  \item \texttt{nu1P} --- \texttt{continuous treated potential-\allowbreak{}outcome regression version}; \(\nu_{1,P}:\mathcal X\to[0,1]\); \texttt{causal regression}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_{1,P}\) is the unique continuous H\"older version on \(\mathcal X\) of \(x\mapsto\mathbb E_P[Y(1)\mid X=x]\); equality with the conditional mean is understood only for \(P_X\)-almost every \(x\).
+  \item \texttt{tauP} --- \texttt{conditional average treatment contrast}; \(\tau_P:\mathcal X\to[-3/4,3/4]\); \texttt{target function}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_P\) is the unique continuous extension to \(\mathcal X\) of the \(P_X\)-almost-everywhere observed contrast \(x\mapsto\mu_{1,P}(x)-\mu_{0,P}(x)\); in particular, \(\tau_P(0)\) is the value at zero of that extension.
+  \item \texttt{Pclass} --- \texttt{exact local-\allowbreak{}overlap model class}; \texttt{sets of full-\allowbreak{}data laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} The class \(\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)\) constructed in \(\mathrm{def:exact\mbox{-}model}\).
+  \item \texttt{On} --- \texttt{observed sample}; \((\mathcal X\times\mathcal A\times\mathcal Y)^n\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(O_{1:n}=(O_1,\ldots,O_n)\).
+  \item \texttt{T} --- \texttt{Borel estimator}; \(T:(\mathcal X\times\mathcal A\times\mathcal Y)^n\to\mathbb R\); \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} An arbitrary Borel-measurable estimator based only on \(O_{1:n}\).
+  \item \texttt{Rn} --- \texttt{unknown-\allowbreak{}propensity minimax mean-\allowbreak{}absolute risk}; \([0,3/2]\); \texttt{focal statistical object}
+  \par\smallskip\noindent\emph{Definition.} The risk \(R_n(d,\kappa,\alpha,\beta,\gamma,L)\) constructed in \(\mathrm{def:unknown\mbox{-}risk}\).
+  \item \texttt{Roracle} --- \texttt{supplied-\allowbreak{}propensity minimax mean-\allowbreak{}absolute risk}; \([0,3/2]\); \texttt{oracle comparator}
+  \par\smallskip\noindent\emph{Definition.} The oracle risk \(R_n^{e}\) constructed in \(\mathrm{def:oracle\mbox{-}risk}\).
+  \item \texttt{rhoOracle} --- \texttt{oracle benchmark rate}; \((0,1]\); \texttt{oracle rate}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n^{e}=n^{-\gamma/(2\gamma+d+\kappa)}\).
+  \item \texttt{rho0} --- \texttt{bounded-\allowbreak{}overlap benchmark rate}; \((0,1]\); \texttt{published-\allowbreak{}rate reduction}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{n,0}=n^{-\gamma/(2\gamma+d)}\vee n^{-1/(1+d/(2\gamma)+d/(2(\alpha+\beta)))}\).
+  \item \texttt{rho} --- \texttt{sharp unknown-\allowbreak{}propensity rate function}; positive deterministic functions of \((n,d,\kappa,\alpha,\beta,\gamma,L)\); \texttt{open focal object}
+  \par\smallskip\noindent\emph{Definition.} The rate \(\rho_n(d,\kappa,\alpha,\beta,\gamma,L)\) specified by the frontier handle in \(\mathrm{def:frontier\mbox{-}handle}\).
+  \item \texttt{That} --- \texttt{total computable local CATE estimator}; Borel functions of \(O_{1:n}\) with values in \([-3/4,3/4]\); \texttt{attaining estimator}
+  \par\smallskip\noindent\emph{Definition.} The estimator \(\widehat\tau_n(0)\) specified by the construction handle in \(\mathrm{def:estimator\mbox{-}handle}\).
+  \item \texttt{MixturePair} --- \texttt{full-\allowbreak{}support two-\allowbreak{}mixture testing program}; pairs of priors on \(\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)\); \texttt{lower-\allowbreak{}bound handle}
+  \par\smallskip\noindent\emph{Definition.} The product-mixture handle \(\mathfrak H_n^{\mathrm{mix}}\) specified in \(\mathrm{def:mixture\mbox{-}handle}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_{1:n}\sim P_O^{\otimes n}\).
+\par\smallskip\noindent\emph{Standard} (Independent and identically distributed sampling, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-design]\label{ass:uniform-design}
+\(P_X=\operatorname{Unif}([0,1]^d)\).
+\par\smallskip\noindent\emph{Standard} (Known uniform random design, \cite{GaoHan2020}).
+\end{assumption}
+
+\begin{assumption}[ass:local-propensity-shape]\label{ass:local-propensity-shape}
+\(e_P(x)=r_{\kappa}(x)g_P(x)/4\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Novel.} A polynomial treatment-scarcity boundary arises when eligibility, capacity, or take-up fades continuously toward a covariate corner; an unknown bounded smooth multiplier allows local calibration to vary without replacing the geometric zero by an oracle quantity.
+\end{assumption}
+
+\begin{assumption}[ass:multiplier-envelope]\label{ass:multiplier-envelope}
+\(1\le g_P(x)\le2\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Two-sided regular-variation multiplier envelope, \cite{Gaiffas2005DegenerateDesign}).
+\end{assumption}
+
+\begin{assumption}[ass:multiplier-holder]\label{ass:multiplier-holder}
+\(g_P\in\mathcal H_d^{\alpha}(L)\).
+\par\smallskip\noindent\emph{Standard} (H\"older-smooth propensity component, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:control-holder]\label{ass:control-holder}
+\(\mu_{0,P}\in\mathcal H_d^{\beta}(L)\).
+\par\smallskip\noindent\emph{Standard} (H\"older-smooth control regression, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:contrast-holder]\label{ass:contrast-holder}
+\(\tau_P\in\mathcal H_d^{\gamma}(L)\).
+\par\smallskip\noindent\emph{Standard} (Separately smooth H\"older treatment contrast, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:control-interiority]\label{ass:control-interiority}
+\(1/8\le\mu_{0,P}(x)\le7/8\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Interior Bernoulli control mean, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:treated-interiority]\label{ass:treated-interiority}
+\(1/8\le\mu_{1,P}(x)\le7/8\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Interior Bernoulli treated mean, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:bernoulli-response]\label{ass:bernoulli-response}
+For every \(a\in\{0,1\}\), \(Y\mid(X=x,A=a)\sim\operatorname{Bernoulli}(\mu_{a,P}(x))\) for \(P_X\)-almost every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Binary regression experiment, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=A Y(1)+(1-A)Y(0)\) almost surely under \(P\).
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-exchangeability]\label{ass:conditional-exchangeability}
+\((Y(0),Y(1))\perp A\mid X\) under \(P\).
+\par\smallskip\noindent\emph{Standard} (Conditional exchangeability, \cite{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:exact-model]\label{def:exact-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pclass}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)=\{P:\ P_X=\operatorname{Unif}([0,1]^d),\ e_P=r_{\kappa}g_P/4,\ 1\le g_P\le2,\ g_P\in\mathcal H_d^{\alpha}(L),\ \mu_{0,P}\in\mathcal H_d^{\beta}(L),\ \tau_P\in\mathcal H_d^{\gamma}(L),\ 1/8\le\mu_{0,P},\mu_{1,P}\le7/8,\ Y\mid X=x,A=a\text{ is Bernoulli with mean }\mu_{a,P}(x)\text{ for }P_X\text{-almost every }x,\ Y=Y(A),\ (Y(0),Y(1))\perp A\mid X\}\), where \(\mu_{0,P}\), \(\mu_{1,P}\), \(\nu_{0,P}\), and \(\nu_{1,P}\) denote their unique continuous H\"older versions and \(\tau_P(0)\) is defined only through the continuous extension of \(\mu_{1,P}-\mu_{0,P}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}uniform-\allowbreak{}design}; \texttt{ass:\allowbreak{}local-\allowbreak{}propensity-\allowbreak{}shape}; \texttt{ass:\allowbreak{}multiplier-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}multiplier-\allowbreak{}holder}; \texttt{ass:\allowbreak{}control-\allowbreak{}holder}; \texttt{ass:\allowbreak{}contrast-\allowbreak{}holder}; \texttt{ass:\allowbreak{}control-\allowbreak{}interiority}; \texttt{ass:\allowbreak{}treated-\allowbreak{}interiority}; \texttt{ass:\allowbreak{}bernoulli-\allowbreak{}response}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}exchangeability}.
+\end{definition}
+
+\begin{definition}[def:unknown-risk]\label{def:unknown-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rn}
+\par\smallskip\noindent\emph{Construction.} \[R_n(d,\kappa,\alpha,\beta,\gamma,L)=\inf_{T\,\mathrm{Borel}}\sup_{P\in\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)}\mathbb E_P\left|T(O_{1:n})-\tau_P(0)\right|.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}exact-\allowbreak{}model}; \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}.
+\end{definition}
+
+\begin{definition}[def:oracle-risk]\label{def:oracle-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Roracle}
+\par\smallskip\noindent\emph{Construction.} \[R_n^e(d,\kappa,\beta,\gamma,L)=\inf_{T^e\,\mathrm{Borel}}\sup_{P\in\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)}\mathbb E_P\left|T^e(O_{1:n},e_P)-\tau_P(0)\right|.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}exact-\allowbreak{}model}; \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}.
+\end{definition}
+
+\begin{definition}[def:frontier-handle]\label{def:frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{rho}
+\par\smallskip\noindent\emph{Construction.} Determine \(\rho_n(d,\kappa,\alpha,\beta,\gamma,L)\) by jointly optimizing annular contrast bias, rare-treatment local mass, projection approximation of the two unequal-smoothness nuisances, every nondegenerate and degenerate correction variance, and Gram-stabilization error; retain harmonic annular sums on equality surfaces.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}unknown-\allowbreak{}risk}; \texttt{def:\allowbreak{}oracle-\allowbreak{}risk}.
+\end{definition}
+
+\begin{definition}[def:estimator-handle]\label{def:estimator-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{That}
+\par\smallskip\noindent\emph{Construction.} Construct \(\widehat\tau_n(0)\) by sample splitting, an annular boundary local-polynomial R-equation, finite-dimensional empirical projection U-statistic corrections indexed by the separately optimized nuisance orders, spectral flooring of every empirical Gram matrix, clipping to \([-3/4,3/4]\), and a deterministic fallback on every exceptional dataset; all coefficients are sample moments and finite matrix operations.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}frontier-\allowbreak{}handle}; \texttt{def:\allowbreak{}exact-\allowbreak{}model}.
+\end{definition}
+
+\begin{definition}[def:mixture-handle]\label{def:mixture-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{MixturePair}
+\par\smallskip\noindent\emph{Construction.} Begin with the legal rough-nuisance slice \(d=1\), \(\kappa=0\), and \(\alpha+\beta<\gamma/(2\gamma+1)\): build \(\mathfrak H_n^{\mathrm{mix}}\) from a smooth squared frame on the full uniform interval, coordinated Rademacher perturbations of \(g_P\) and \(\mu_{0,P}\), and a macro contrast perturbation, and control the fixed-\(n\) Bernoulli product-mixture Hellinger distance. Only after this kill test succeeds, extend the handle to the full uniform cube by corner tapering, smooth tie-surface compensation, and the two-convex-mixture method without deleting support.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}exact-\allowbreak{}model}; \texttt{def:\allowbreak{}frontier-\allowbreak{}handle}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:causal-identification]\label{prop:causal-identification}
+For every \(P\in\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)\), \(0<e_P(x)<1\) for Lebesgue-almost every \(x\in\mathcal X\). For each \(a\in\{0,1\}\), the observed identity \(\mu_{a,P}(x)=\mathbb E_P[Y\mid X=x,A=a]\) and the potential-outcome identity \(\nu_{a,P}(x)=\mathbb E_P[Y(a)\mid X=x]\) hold only for \(P_X\)-almost every \(x\). Consistency and conditional exchangeability imply \(\nu_{a,P}(x)=\mu_{a,P}(x)\) for \(P_X\)-almost every \(x\), and uniqueness of their continuous H\"older versions extends this equality to every \(x\in\mathcal X\). Consequently \(\tau_P(0)\), defined exclusively as the value at zero of the unique continuous extension of \(\mu_{1,P}-\mu_{0,P}\), is determined by the observed-data law.
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)\).  By \(\mathrm{ass:local\mbox{-}propensity\mbox{-}shape}\) and \(\mathrm{ass:multiplier\mbox{-}envelope}\),
+\[
+ e_P(x)=\frac{r_\kappa(x)g_P(x)}4,
+ \qquad 1\le g_P(x)\le2.
+\]
+If \(\kappa=0\), then \(r_\kappa\equiv1\), and hence \(1/4\le e_P(x)\le1/2\) for every \(x\).  If \(\kappa>0\), then \(r_\kappa(x)>0\) except at the single point \(x=0\), while \(r_\kappa(x)\le1\).  Thus, in either case,
+\[
+ 0<e_P(x)\le\frac12<1
+\]
+for Lebesgue-almost every \(x\in\mathcal X\).  The exceptional singleton has probability zero by \(\mathrm{ass:uniform\mbox{-}design}\).
+
+Fix \(a\in\{0,1\}\).  On the full-measure set on which \(P(A=a\mid X=x)>0\), consistency gives
+\[
+ \mathbb E_P[Y\mid X=x,A=a]
+ =\mathbb E_P[Y(a)\mid X=x,A=a].
+\]
+Conditional exchangeability gives
+\[
+ \mathbb E_P[Y(a)\mid X=x,A=a]
+ =\mathbb E_P[Y(a)\mid X=x].
+\]
+These are equalities of versions of conditional expectations, and hence are asserted only for \(P_X\)-almost every \(x\).  By the definitions of \(\mu_{a,P}\) and \(\nu_{a,P}\), they imply
+\[
+ \mu_{a,P}(x)=\nu_{a,P}(x)
+ \quad\text{for }P_X\text{-almost every }x.
+\]
+Both sides are continuous on \(\mathcal X\).  If they differed at some \(x_0\), continuity would give a relatively open neighborhood on which their absolute difference is positive.  Every nonempty relatively open subset of the cube has positive uniform measure, contradicting almost-everywhere equality.  Therefore \(\mu_{a,P}=\nu_{a,P}\) everywhere on \(\mathcal X\).
+
+The observed law determines the almost-everywhere versions of \(\mu_{0,P}\) and \(\mu_{1,P}\).  Two continuous functions on a full-support uniform design that agree almost everywhere agree everywhere by the preceding argument.  Their continuous versions, their difference, and consequently the value at zero of the unique continuous extension \(\tau_P\) are therefore determined by the observed law.  No conditional mean at the null point \(x=0\) was used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separates the measure-zero propensity zero from partial identification and fixes the causal interpretation of the point target. \textit{Gap.} The bounded-overlap identification statement in KennedyBalakrishnanRobinsWasserman2024MinimaxCATE does not state the continuous-extension argument at a propensity zero. \textit{Consumer.} Applied CATE analysts can distinguish lack of local precision from failure of point identification at a treatment-scarce boundary.
+
+\begin{theorem}[thm:oracle-minimax]\label{thm:oracle-minimax}
+There exist constants \(0<c_e\le C_e<\infty\), depending only on \((d,\kappa,\beta,\gamma,L)\), such that \(c_e\rho_n^e\le R_n^e\le C_e\rho_n^e\) for every \(n\ge2\), where \(\rho_n^e=n^{-\gamma/(2\gamma+d+\kappa)}\). The upper bound is attained by a total annular local-polynomial inverse-propensity estimator, and the lower bound uses two genuine full-support uniform-design Bernoulli laws with the same supplied propensity.
+\end{theorem}
+\begin{proof}
+Write \(m_\gamma=\lceil\gamma\rceil-1\), let \(v_\gamma(z)\) be the finite vector of all monomials \(z^\nu\) with \(|\nu|\leq m_\gamma\), and put \(D=[1/2,1]^d\).  Its Gram matrix
+\[
+ H_\gamma=\int_Dv_\gamma(z)v_\gamma(z)^{\mathsf T}\,dz
+\]
+is positive definite: if \(c^{\mathsf T}H_\gamma c=0\), then the continuous polynomial \(c^{\mathsf T}v_\gamma\) vanishes almost everywhere on \(D\), hence everywhere on the interior of \(D\), and therefore all its coefficients vanish.  Define
+\[
+ q_\gamma(z)=v_\gamma(0)^{\mathsf T}H_\gamma^{-1}v_\gamma(z).
+\]
+It follows directly that, for every polynomial \(p\) of total degree at most \(m_\gamma\),
+\[
+ \int_Dq_\gamma(z)p(z)\,dz=p(0).
+ \tag{1}
+\]
+
+The condition \(\mathrm{ass:contrast\mbox{-}holder}\), applied on each segment from \(0\) to \(x\), gives a polynomial \(p_{P,h}\) of degree at most \(m_\gamma\) such that
+\[
+ \sup_{z\in D}\left|\tau_P(hz)-p_{P,h}(z)\right|\leq C_1h^\gamma,
+ \qquad p_{P,h}(0)=\tau_P(0).
+ \tag{2}
+\]
+For completeness, when \(m_\gamma=0\), this is precisely the defining H\"older inequality.  When \(m_\gamma\geq1\), apply the fundamental theorem of calculus successively to \(t\mapsto\tau_P(thz)\) through order \(m_\gamma\).  After subtracting the Taylor polynomial, the defining \((\gamma-m_\gamma)\)-H\"older bound makes the increment of every order-\(m_\gamma\) derivative at most \(L\lVert hz\rVert_\infty^{\gamma-m_\gamma}\), while the remaining \(m_\gamma\) integrations contribute \(\lVert hz\rVert_\infty^{m_\gamma}\).  Summing over the finitely many multi-indices proves (2), including integer \(\gamma\), for which the order-\((\gamma-1)\) derivatives are Lipschitz.
+
+For \(h\in(0,1]\), let \(D_h=hD\).  The supplied propensity is never inverted outside \(D_h\).  On \(D_h\), the definition of \(r_\kappa\) and the propensity-shape and multiplier-envelope properties incorporated in \(\mathrm{def:exact\mbox{-}model}\) give
+\[
+ \frac{h^\kappa}{2^\kappa4}\leq e_P(x)\leq\frac{h^\kappa}{2},
+ \qquad 1-e_P(x)\geq\frac12,
+ \tag{3}
+\]
+where the first lower bound is also valid at \(\kappa=0\).  Define
+\[
+ Z_P(O)=\frac{AY}{e_P(X)}-\frac{(1-A)Y}{1-e_P(X)}
+\]
+on \(\{X\in D_h\}\), and set the summand below to zero off that set.  By \(\mathrm{ass:bernoulli\mbox{-}response}\),
+\[
+ \mathbb E_P[Z_P(O)\mid X=x]=\mu_{1,P}(x)-\mu_{0,P}(x)=\tau_P(x),
+ \tag{4}
+\]
+and, because \(Y\) is binary, using (3) and the disjointness of the two treatment indicators gives
+\[
+ \mathbb E_P[Z_P(O)^2\mid X=x]
+ =\frac{\mu_{1,P}(x)}{e_P(x)}+\frac{\mu_{0,P}(x)}{1-e_P(x)}
+ \leq C_2h^{-\kappa}.
+ \tag{5}
+\]
+The total oracle estimator is
+\[
+ \widehat\tau^{e}_{h}
+ =\Pi_{[-3/4,3/4]}\!\left[
+ \frac1n\sum_{i=1}^nh^{-d}q_\gamma(X_i/h)
+ \mathbf 1\{X_i\in D_h\}Z_P(O_i)
+ \right],
+ \tag{6}
+\]
+where \(\Pi_I(u)=\min\{\max\{u,\inf I\},\sup I\}\).  Formula (6) is Borel and defined on every sample; (3) shows that it never divides by zero.  By the uniform-design property incorporated in \(\mathrm{def:exact\mbox{-}model}\), (1), (2), and (4), its unclipped expectation has bias at most
+\[
+ \left|\int_Dq_\gamma(z)\tau_P(hz)\,dz-\tau_P(0)\right|
+ \leq \lVert q_\gamma\rVert_{L^1(D)}C_1h^\gamma.
+ \tag{7}
+\]
+By \(\mathrm{ass:iid\mbox{-}sampling}\), (5), and the change of variables \(x=hz\),
+\[
+ \operatorname{Var}_P(\widehat\tau^{e}_{h,\mathrm{unclipped}})
+ \leq\frac1n\int_{D_h}h^{-2d}q_\gamma(x/h)^2C_2h^{-\kappa}\,dx
+ \leq\frac{C_3}{nh^{d+\kappa}}.
+ \tag{8}
+\]
+Clipping cannot increase distance to \(\tau_P(0)\in[-3/4,3/4]\).  Therefore (7), (8), and \(\mathbb E|W-\mathbb EW|\leq\{\operatorname{Var}(W)\}^{1/2}\) yield
+\[
+ \sup_{P\in\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)}
+ \mathbb E_P|\widehat\tau_h^e-\tau_P(0)|
+ \leq C_4\left\{h^\gamma+(nh^{d+\kappa})^{-1/2}\right\}.
+ \tag{9}
+\]
+Taking \(h=c_0n^{-1/(2\gamma+d+\kappa)}\), with a fixed \(c_0\in(0,1]\), proves the asserted oracle upper bound.
+
+For the converse, choose a fixed \(C^\infty\) function \(\psi\) on the cube with \(\psi(0)=1\), \(|\psi|\leq1\), and support contained in \([0,1/2]^d\).  Fix \(g_P\equiv1\), \(e_P=r_\kappa/4\), and \(\mu_{0,P}\equiv1/2\).  For \(\varepsilon\in\{-1,1\}\), set
+\[
+ \tau_\varepsilon(x)=\varepsilon a h^\gamma\psi(x/h),
+ \qquad \mu_{1,\varepsilon}(x)=\frac12+\tau_\varepsilon(x),
+ \tag{10}
+\]
+where \(a>0\) is fixed sufficiently small as a function only of \((d,\gamma,L)\).  Scaling each derivative in the definition of \(\mathcal H_d^\gamma(L)\) shows that the H\"older seminorm of the perturbation in (10) is at most a constant times \(a\); its lower-order derivative suprema are at most the same constant because \(h\leq1\).  Thus (10), the constant baseline, and the constant multiplier obey all H\"older restrictions.  Decreasing \(a\) if necessary gives \(1/8\leq\mu_{0,P},\mu_{1,P}\leq7/8\).
+
+These observed laws have genuine causal completions.  Conditional on \(X=x\), draw \(Y(0)\) and \(Y(1)\) independently as Bernoulli variables with means \(\mu_{0,P}(x)\) and \(\mu_{1,\varepsilon}(x)\), draw \(A\) independently of them with mean \(e_P(x)\), and set \(Y=AY(1)+(1-A)Y(0)\).  Consistency and conditional exchangeability then hold by construction.  Hence \(\mathrm{def:exact\mbox{-}model}\) shows that both laws, denoted \(P_+\) and \(P_-\), belong to the exact class and supply the oracle with the same function \(e_P\).
+
+For Bernoulli probabilities \(u,v\in[1/8,7/8]\), direct summation gives
+\[
+ \chi^2\{\operatorname{Bernoulli}(u),\operatorname{Bernoulli}(v)\}
+ =\frac{(u-v)^2}{v(1-v)}\leq C_5(u-v)^2.
+ \tag{11}
+\]
+The treatment and control mechanisms are otherwise identical, so (10), (11), and the uniform-design property in \(\mathrm{def:exact\mbox{-}model}\) imply
+\[
+ \chi^2(P_+,P_-)
+ \leq C_6a^2h^{2\gamma}\int_{[0,h/2]^d}r(x)^\kappa\,dx
+ \leq C_7a^2h^{2\gamma+d+\kappa}.
+ \tag{12}
+\]
+The last power follows from \(x=hz\); the remaining integral is finite and positive for every \(\kappa\geq0\).  Independence gives the exact identity
+\[
+ 1+\chi^2(P_+^{\otimes n},P_-^{\otimes n})
+ =\{1+\chi^2(P_+,P_-)\}^n.
+ \tag{13}
+\]
+Choose the fixed constant \(c_0\) in \(h=c_0n^{-1/(2\gamma+d+\kappa)}\) sufficiently small that (12)--(13) make the product chi-square divergence at most \(1/4\).  If \(Q\ll R\), Cauchy--Schwarz applied to \(\int|dQ/dR-1|\,dR\) yields
+\[
+ \lVert Q-R\rVert_{\mathrm{TV}}\leq\frac12\sqrt{\chi^2(Q,R)};
+\]
+hence the product total variation is at most \(1/4\).
+
+Finally, put \(\Delta=|\tau_+(0)-\tau_-(0)|=2ah^\gamma\).  For any oracle estimator \(T^e\), the two events \(E_\varepsilon=\{|T^e-\tau_\varepsilon(0)|\geq\Delta/2\}\) cover the sample space pointwise.  Integrating their indicators against the smaller of the two product densities gives
+\[
+ P_+^{\otimes n}(E_+)+P_-^{\otimes n}(E_-)
+ \geq1-\lVert P_+^{\otimes n}-P_-^{\otimes n}\rVert_{\mathrm{TV}}
+ \geq\frac34.
+\]
+Consequently,
+\[
+ \max_{\varepsilon\in\{-1,1\}}
+ \mathbb E_{P_\varepsilon}|T^e-\tau_\varepsilon(0)|
+ \geq\frac{\Delta}{4}\cdot\frac34
+ \geq c_1h^\gamma.
+\]
+Taking the infimum over oracle estimators proves the lower bound.  Enlarging constants covers every \(n\geq2\).  Every constant is independent of \(n\); neither construction uses \(\alpha\), and the constant baseline belongs to every prescribed \(\beta\)-ball.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the distinct theorem-level benchmark: an explicit total annular supplied-propensity estimator and a matching pair of genuine full-support exact-uniform Bernoulli laws isolate treatment-scarcity information loss for every \(\kappa\geq0\). \textit{Gap.} Gaiffas2005DegenerateDesign treats scalar Gaussian regression, whereas this theorem proves a multivariate causal Bernoulli contrast benchmark at a corner propensity zero and supplies a finite clipped estimator that is total on every dataset. \textit{Consumer.} The sharp all-\(\kappa\) oracle rate is the denominator in the unknown-versus-supplied propensity comparison and the theorem-level local-zero advance against which the data-only brackets are assessed.
+
+\begin{theorem}[thm:first-order-upper]\label{thm:first-order-upper}
+A total clipped three-block local-polynomial moment estimator satisfies \[\sup_{P\in\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)}\mathbb E_P|\widehat\tau_n^{(1)}(0)-\tau_P(0)|\le C\{h^{\gamma}+h^{\alpha+\beta}+(nh^{d+\kappa})^{-1/2}\}\] for every \(h\in(0,1]\) with \(nh^{d+\kappa}\ge1\). Consequently \(R_n\lesssim n^{-t/(2t+d+\kappa)}\) for \(t=\min\{\gamma,\alpha+\beta\}\), and \(R_n\asymp R_n^e\) whenever \(\alpha+\beta\ge\gamma\).
+\end{theorem}
+\begin{proof}
+Let \(D=[1/2,1]^d\), \(D_h=hD\), and, for \(s\in\{\alpha,\beta,\gamma\}\), let \(v_s\) contain all monomials of total degree at most \(m_s=\lceil s\rceil-1\).  Put
+\[
+ H_s=\int_Dv_s(z)v_s(z)^{\mathsf T}\,dz,
+ \qquad \lambda_s=\lambda_{\min}(H_s)>0. \tag{14}
+\]
+Positive definiteness follows by the polynomial argument in the proof of \(\mathrm{thm:oracle\mbox{-}minimax}\).  Split the observations deterministically into three blocks \(I_1,I_2,I_3\) whose sizes \(N_j\) differ by at most one.  If \(n<6\), define the estimator to be zero.  The resulting bounded loss is absorbed by increasing the final constant, so below assume \(n\ge6\), in which case \(N_j\ge n/4\).
+
+Define the first-block coefficient and clipped multiplier pilot by
+\[
+ \widehat c_g
+ =H_\alpha^{-1}\frac1{N_1}\sum_{i\in I_1}h^{-d}\mathbf1\{X_i\in D_h\}v_\alpha(X_i/h)
+ \frac{4A_i}{r_\kappa(X_i)},
+ \qquad
+ \widehat g(x)=\Pi_{[1,2]}\{v_\alpha(x/h)^{\mathsf T}\widehat c_g\}, \tag{15}
+\]
+for \(x\in D_h\).  The ratio in (15) is evaluated only on \(D_h\), where \(r_\kappa>0\).  Since
+\[
+ \mathbb E_P\left[\frac{4A}{r_\kappa(X)}\,\middle|\,X=x\right]=g_P(x),
+ \qquad
+ \mathbb E_P\left[\left.\left(\frac{4A}{r_\kappa(X)}\right)^2\right|X=x\right]
+ \le C h^{-\kappa}, \tag{16}
+\]
+the H\"older Taylor calculation used in (2), the fixed inverse in (14), and independence yield, uniformly on \(D_h\),
+\[
+ \mathbb E_P|\widehat g(x)-g_P(x)|^2
+ \le C\left\{h^{2\alpha}+(nh^{d+\kappa})^{-1}\right\}. \tag{17}
+\]
+Indeed, the expectation of the empirical vector in (15) is \(\int_Dv_\alpha(z)g_P(hz)\,dz\); its polynomial-approximation bias is \(O(h^\alpha)\), and each entry has variance at most \(C/(N_1h^{d+\kappa})\).  Projection onto \([1,2]\), which contains \(g_P(x)\), cannot increase squared error.
+
+For a symmetric matrix \(M=U\operatorname{diag}(\eta_j)U^{\mathsf T}\), write
+\[
+ \mathcal F_s(M)=U\operatorname{diag}\{\max(\eta_j,\lambda_s/4)\}U^{\mathsf T}. \tag{18}
+\]
+This spectral functional is continuous and positive definite even when eigenvalues coincide.  On block \(I_2\), define
+\[
+ \widehat G_0=\frac1{N_2}\sum_{i\in I_2}h^{-d}\mathbf1\{X_i\in D_h\}(1-A_i)
+ v_\beta(X_i/h)v_\beta(X_i/h)^{\mathsf T},
+\]
+\[
+ \widehat s_0=\frac1{N_2}\sum_{i\in I_2}h^{-d}\mathbf1\{X_i\in D_h\}(1-A_i)v_\beta(X_i/h)Y_i,
+ \qquad
+ \widehat\mu_0(x)=\Pi_{[1/8,7/8]}\{v_\beta(x/h)^{\mathsf T}\mathcal F_\beta(\widehat G_0)^{-1}\widehat s_0\}. \tag{19}
+\]
+Since \(e_P\le1/2\), the population matrix \(G_0=\int_D(1-e_P(hz))v_\beta v_\beta^{\mathsf T}dz\) satisfies \(G_0\succeq H_\beta/2\).  Every entry of \(\widehat G_0-G_0\) has variance at most \(C/(N_2h^d)\).  Finite dimensionality, Chebyshev's inequality, and the union bound therefore give
+\[
+ P\{\lVert\widehat G_0-G_0\rVert_{\mathrm{op}}>\lambda_\beta/4\}
+ \le C(nh^d)^{-1}. \tag{20}
+\]
+On the complementary event the inverse is uniformly bounded.  Subtracting the scaled Taylor polynomial for \(\mu_{0,P}\) from the normal equation in (19) leaves a deterministic \(O(h^\beta)\) approximation vector and a centered empirical vector with coordinate variance \(O((nh^d)^{-1})\).  On the event in (20), clipping bounds squared error by a constant.  Consequently, uniformly on \(D_h\),
+\[
+ \mathbb E_P|\widehat\mu_0(x)-\mu_{0,P}(x)|^2
+ \le C\left\{h^{2\beta}+(nh^d)^{-1}\right\}. \tag{21}
+\]
+
+Set \(\widehat e(x)=r_\kappa(x)\widehat g(x)/4\) on \(D_h\).  On the third block, define
+\[
+ \widehat Q=\frac1{N_3}\sum_{i\in I_3}h^{-d}\mathbf1\{X_i\in D_h\}
+ \frac{A_i}{\widehat e(X_i)}v_\gamma(X_i/h)v_\gamma(X_i/h)^{\mathsf T}, \tag{22}
+\]
+\[
+ \widehat b=\frac1{N_3}\sum_{i\in I_3}h^{-d}\mathbf1\{X_i\in D_h\}v_\gamma(X_i/h)
+ \left\{\frac{A_i}{\widehat e(X_i)}-\frac{1-A_i}{1-\widehat e(X_i)}\right\}
+ \{Y_i-\widehat\mu_0(X_i)\}, \tag{23}
+\]
+and
+\[
+ \widehat\tau_h^{(1)}(0)
+ =\Pi_{[-3/4,3/4]}\!\left\{v_\gamma(0)^{\mathsf T}
+ \mathcal F_\gamma(\widehat Q)^{-1}\widehat b\right\}. \tag{24}
+\]
+Equations (15), (18)--(19), and (22)--(24) consist of sample moments, fixed finite matrices, continuous spectral flooring, inversion of a matrix whose eigenvalues are bounded below, and clipping.  They thus define a Borel output for every dataset.  Together with the explicit zero fallback for \(n<6\), (24) is total.
+
+It remains to prove its risk.  Conditional on the first two blocks, \(1\le\widehat g\le2\), so on \(D_h\)
+\[
+ \frac12\le\frac{e_P(x)}{\widehat e(x)}=\frac{g_P(x)}{\widehat g(x)}\le2. \tag{25}
+\]
+The population counterpart of (22) is therefore at least \(H_\gamma/2\).  Its entries have conditional variance at most \(C/(N_3h^{d+\kappa})\), because \(e_P/\widehat e^{,2}\le Ch^{-\kappa}\) on \(D_h\).  As in (20),
+\[
+ P\{\lVert\widehat Q-\mathbb E(\widehat Q\mid I_1,I_2)\rVert_{\mathrm{op}}>\lambda_\gamma/4\mid I_1,I_2\}
+ \le C(nh^{d+\kappa})^{-1}. \tag{26}
+\]
+
+For fixed pilots, direct conditioning using \(\mathrm{ass:bernoulli\mbox{-}response}\) gives the exact score identity
+\[
+ \mathbb E_P\!\left[\left.
+ \left\{\frac A{\widehat e}-\frac{1-A}{1-\widehat e}\right\}(Y-\widehat\mu_0)
+ \right|X=x,I_1,I_2\right]
+ =\frac{e_P}{\widehat e}\tau_P
+ +\frac{e_P-\widehat e}{\widehat e(1-\widehat e)}(\mu_{0,P}-\widehat\mu_0). \tag{27}
+\]
+Moreover, the multiplier envelope and \(\widehat g\in[1,2]\) imply
+\[
+ \left|\frac{e_P-\widehat e}{\widehat e(1-\widehat e)}\right|
+ \le C|g_P-\widehat g|. \tag{28}
+\]
+Let \(p_{P,h}\) be the scaled degree-\(m_\gamma\) Taylor polynomial from (2), and let \(c_{P,h}\) be its coefficient vector in the basis \(v_\gamma\).  Subtracting \(\widehat Qc_{P,h}\) from (23), then using (25), (27), (28), and (2), bounds the norm of its conditional mean by
+\[
+ C h^\gamma+C h^{-d}\int_{D_h}|\widehat g-g_P|\,|\widehat\mu_0-\mu_{0,P}|\,dx. \tag{29}
+\]
+The two pilot blocks are independent.  Cauchy--Schwarz in probability, followed by (17) and (21), gives
+\[
+ \mathbb E\!\left[h^{-d}\int_{D_h}|\widehat g-g_P|\,|\widehat\mu_0-\mu_{0,P}|\,dx\right]
+ \le C\{h^\alpha+(nh^{d+\kappa})^{-1/2}\}
+       \{h^\beta+(nh^d)^{-1/2}\}. \tag{30}
+\]
+If \(nh^{d+\kappa}\ge1\), then \(nh^d\ge nh^{d+\kappa}\ge1\), and expansion of (30) yields
+\[
+ \text{the right side of (30)}
+ \le C\left\{h^{\alpha+\beta}+(nh^{d+\kappa})^{-1/2}\right\}. \tag{31}
+\]
+
+Finally, conditional on the pilots, every coordinate of the centered version of \(\widehat b-\widehat Qc_{P,h}\) has variance at most \(C/(nh^{d+\kappa})\): on \(D_h\), all bases, outcomes, pilots, and \(c_{P,h}\) are bounded, and every squared term containing \(A/\widehat e\) has conditional expectation bounded by \(e_P/\widehat e^{,2}\le Ch^{-\kappa}\); the control term is bounded.  Thus its expected Euclidean norm is at most \(C(nh^{d+\kappa})^{-1/2}\).  On the complement of (26), the inverse in (24) is uniformly bounded.  On the exceptional event, clipping bounds the loss, and (26) contributes at most \(C(nh^{d+\kappa})^{-1}\le C(nh^{d+\kappa})^{-1/2}\).  Combining this fact with (29)--(31), and using that clipping cannot increase distance to \(\tau_P(0)\), proves
+\[
+ \sup_{P\in\mathcal P(d,\kappa,\alpha,\beta,\gamma,L)}
+ \mathbb E_P|\widehat\tau_h^{(1)}(0)-\tau_P(0)|
+ \le C\left\{h^\gamma+h^{\alpha+\beta}+(nh^{d+\kappa})^{-1/2}\right\}. \tag{32}
+\]
+
+Put \(t=\min\{\gamma,\alpha+\beta\}\) and choose \(h=n^{-1/(2t+d+\kappa)}\).  Then \(nh^{d+\kappa}\ge1\), and every term in (32) is at most \(Cn^{-t/(2t+d+\kappa)}\).  This proves the minimax upper bound because (24) is one admissible data-only estimator.  Conversely, every data-only estimator is an oracle estimator that ignores its supplied propensity, so \(R_n^e\le R_n\).  If \(\alpha+\beta\ge\gamma\), then \(t=\gamma\), and (32), together with \(\mathrm{thm:oracle\mbox{-}minimax}\), gives
+\[
+ c n^{-\gamma/(2\gamma+d+\kappa)}\le R_n\le C n^{-\gamma/(2\gamma+d+\kappa)}.
+\]
+This argument uses separate smoothness only for \(g_P\), \(\mu_{0,P}\), and \(\tau_P\); it never imposes smoothness on \(\mathbb E_P[Y\mid X]\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This establishes a nonempty oracle-attainment region with a fully implementable estimator and prevents the main question from being only a converse project. \textit{Gap.} Kennedy2023DRCATE assumes bounded propensities and nondegenerate local Gram matrices; its remainder calculation does not include the factor \(h^{\kappa}\) in effective treated information. \textit{Consumer.} Users with sufficiently smooth combined propensity and control nuisances obtain an immediate benchmark for attainable local precision without estimating any forest-specific rate.
+
+\begin{openendedquestion}[oeq:sharp-frontier]\label{oeq:sharp-frontier}
+Put \(S=\alpha+\beta\), \(S_\star=d\gamma/(2\gamma+d)\), and \(D_\star=1+d/(2\gamma)+d/(2S)\).  The bounded-overlap case now has the proved upper bound
+\[
+ R_n(d,0,\alpha,\beta,\gamma,L)
+ \leq C\max\left\{n^{-\gamma/(2\gamma+d)},n^{-1/D_\star}\right\}
+\]
+and the exact oracle rate without a logarithmic multiplier when \(S\geq S_\star\).  Resolve the remaining frontier as follows.  When \(\kappa=0\) and \(S<S_\star\), determine whether the upper rate \(n^{-1/D_\star}\) is minimax sharp by constructing a matching full-support fixed-\(n\) Bernoulli product-mixture lower experiment on the exact uniform-design class, or derive the correct sharper lower rate.  When \(\kappa>0\), determine the explicit piecewise rate \(\rho_n(d,\kappa,\alpha,\beta,\gamma,L)\), every critical logarithmic factor, a total data-only attaining estimator, a matching same-class lower experiment, and the necessary-and-sufficient partition for \(R_n\asymp R_n^e\) versus \(R_n/R_n^e\to\infty\).  No branch may assume smoothness of \(\mathbb E_P[Y\mid X]\), delete covariate support, or substitute an oracle submodel for the full class.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The remaining question now cleanly separates the missing exact-uniform converse below the bounded-overlap elbow from the still-undetermined local-zero frontier. \textit{Gap.} No cited comparator supplies either the required full-support fixed-\(n\) lower experiment on the rough bounded-overlap slice or the complete Holder frontier at a propensity zero. \textit{Consumer.} Resolving these branches would determine when weak local overlap and unknown propensity calibration create an information-theoretic penalty for pointwise CATE precision.
+
+\begin{openendedquestion}[oeq:full-support-mixture]\label{oeq:full-support-mixture}
+First resolve the legal kill-test slice \(d=1\), \(\kappa=0\), and \(\alpha+\beta<\gamma/(2\gamma+1)\): construct full-support priors on genuine i.i.d. Bernoulli laws in \(\mathcal P(1,0,\alpha,\beta,\gamma,L)\) whose values of \(\tau_P(0)\) attain the nuisance-dominated separation in \(\rho_{n,0}\) and whose fixed-\(n\) product mixtures have Hellinger distance bounded away from its testing maximum, or prove that the mixture handle cannot attain that separation and derive the replacement lower experiment that does. Conditional on passing this test, construct the corresponding same-class lower experiment in every primitive regime in which \(\rho_n/\rho_n^e\to\infty\), including unequal nuisance smoothness, noninteger corner powers, and max-norm tie surfaces, without deleting covariate support.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The exact-class converse is the decisive novelty test because one-observation mixture cancellation does not control the shared-prior product experiment. \textit{Gap.} Definition 1 and the Hellinger argument in KennedyBalakrishnanRobinsWasserman2024MinimaxCATE put zero design mass on nuisance-bump transition regions; RobinsTchetgenLiVanderVaart2009 requires a partition-local dependence structure that overlapping smooth frames do not satisfy verbatim. \textit{Consumer.} A successful construction becomes a reusable lower-bound device for nonlinear causal functionals under known full-support random designs.
+
+\begin{lemma}[lem:bounded-overlap-second-order-risk]\label{lem:bounded-overlap-second-order-risk}
+Suppose \(\kappa=0\), put \(S=\alpha+\beta\), and let \(h\in(0,1]\) and \(k\geq1\) be deterministic.  There is an explicitly defined total Borel estimator \(\widehat\tau^{(2)}_{n,h,k}(0)\), using only \(O_{1:n}\), the known uniform design law, fixed bounded pilots, a one-sided local-polynomial basis, an exact Lebesgue projection Gram matrix, ordered second-order \(U\)-statistic corrections to both its matrix and vector moments, singular-value flooring, and clipping, such that
+\[
+ \sup_{P\in\mathcal P(d,0,\alpha,\beta,\gamma,L)}
+ \mathbb E_P\left|\widehat\tau^{(2)}_{n,h,k}(0)-\tau_P(0)\right|
+ \leq C\left\{
+ h^\gamma+\ell^S+h^\gamma\ell^\alpha
+ +(nh^d)^{-1/2}+\frac{\sqrt{k}}{nh^d}
+ \right\},
+ \qquad \ell=hk^{-1/d}.
+\]
+Consequently,
+\[
+ \sup_{P\in\mathcal P(d,0,\alpha,\beta,\gamma,L)}
+ \mathbb E_P\left|\widehat\tau^{(2)}_{n,h,k}(0)-\tau_P(0)\right|
+ \leq C\left\{
+ h^\gamma+\ell^S+
+ \sqrt{\frac{1}{nh^d}\left(1+\frac{k}{nh^d}\right)}
+ \right\}.
+\]
+Here \(C<\infty\) depends only on \((d,\alpha,\beta,\gamma,L)\), not on \((n,h,k)\), and the estimator is defined on every sample, including samples having no observations in the localization cube.
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal P(d,0,\alpha,\beta,\gamma,L)\), and write \(e=e_P\), \(\mu_0=\mu_{0,P}\), and \(\tau=\tau_P\).  All expectations below are under \(P\).  By \(\mathrm{def:exact\mbox{-}model}\), \(\mathrm{ass:uniform\mbox{-}design}\), \(\mathrm{ass:local\mbox{-}propensity\mbox{-}shape}\), \(\mathrm{ass:multiplier\mbox{-}envelope}\), \(\mathrm{ass:multiplier\mbox{-}holder}\), \(\mathrm{ass:control\mbox{-}holder}\), \(\mathrm{ass:contrast\mbox{-}holder}\), \(\mathrm{ass:control\mbox{-}interiority}\), \(\mathrm{ass:treated\mbox{-}interiority}\), and \(\mathrm{ass:bernoulli\mbox{-}response}\), on \(D=[0,1]^d\) we have
+\[
+ P_X=\operatorname{Unif}(D),\qquad
+ \frac14\leq e(x)=\frac{g_P(x)}4\leq\frac12,
+ \qquad e\in\mathcal H_d^\alpha(L/4),
+ \qquad \mu_0\in\mathcal H_d^\beta(L),
+ \qquad \tau\in\mathcal H_d^\gamma(L),
+ \tag{1}
+\]
+with \(\mu_{1,P}=\mu_0+\tau\), \(|\tau|\leq3/4\), and the stated conditional Bernoulli laws.  Assumption \(\mathrm{ass:iid\mbox{-}sampling}\) makes \(O_1,\ldots,O_n\) independent.
+
+For \(s>0\), set \(m_s=\lceil s\rceil-1\) and choose
+\[
+ p=m_\gamma+\max\{m_\alpha,m_\beta\}.
+\]
+For a positive integer \(M\), partition \(D\) into the \(M^d\) half-open cubes of side \(M^{-1}\), with the closed upper-face convention on the boundary.  Let \(\mathcal B_M\) be the functions whose restriction to each cell is a polynomial of total degree at most \(p\).  This is a finite-dimensional space with
+\[
+ K_M=\dim(\mathcal B_M)=a_pM^d,
+ \qquad a_p=\binom{p+d}{d}.
+ \tag{2}
+\]
+Scaled tensor Legendre polynomials on each cell, restricted to multi-indices of total degree at most \(p\) and extended by zero off that cell, give an explicit Lebesgue-orthonormal basis \(b_M:D\to\mathbb R^{K_M}\).  Hence its exactly known Gram matrix is
+\[
+ \Omega_M=\int_D b_M(z)b_M(z)^{\mathsf T}\,dz=I_{K_M}.
+ \tag{3}
+\]
+
+For the deterministic tuning proxy \(k\geq1\), put \(M=M_0+\lfloor k^{1/d}\rfloor\), where the fixed integer \(M_0\) is selected below.  Abbreviate \(b_k=b_M\), and let \(\Pi_k\) be the orthogonal projection onto \(\mathcal B_M\) in \(L_2(D,dz)\).  Because \(k\geq1\) and \(M_0\) is fixed,
+\[
+ K_M\leq Ck,
+ \qquad M^{-1}\leq Ck^{-1/d}.
+ \tag{4}
+\]
+Repeated one-dimensional Taylor expansion along coordinate segments, with the derivative bounds and the order-\((s-m_s)\) H\"older modulus in the definition of \(\mathcal H_d^s(L)\), gives a cellwise remainder bounded by \(C(h/M)^s\) on every physical cell of side \(h/M\).  The same conclusion holds for \(s\leq1\), with the cellwise constant approximant.  Orthogonal projection has no larger \(L_2\) error than this explicit piecewise polynomial.  Multiplication by a fixed polynomial of degree at most \(m_\gamma\) raises total degree by at most \(m_\gamma\), so the choice of \(p\) keeps every required approximant in \(\mathcal B_M\).  Thus, for every component \(v_j\) of the fixed basis introduced below,
+\[
+ \begin{split}
+ \left\|(I-\Pi_k)\{v_j(e(h\,\cdot)-3/8)\}\right\|_2&\leq C\ell^\alpha,\\
+ \left\|(I-\Pi_k)(\mu_0(h\,\cdot)-1/2)\right\|_2&\leq C\ell^\beta,\\
+ \left\|(I-\Pi_k)\{e(h\,\cdot)v_j\}\right\|_2&\leq C\ell^\alpha,
+ \end{split}
+ \qquad \ell=hk^{-1/d}.
+ \tag{5}
+\]
+All constants in (5) are uniform over the model class by (1).
+
+Let \(v:D\to\mathbb R^q\) be a fixed Lebesgue-orthonormal basis of polynomials of total degree at most \(m_\gamma\), where \(q=\binom{m_\gamma+d}{d}\).  Define
+\[
+ Q=\int_Dv(z)v(z)^{\mathsf T}e(hz)\{1-e(hz)\}\,dz,
+ \qquad
+ R=\int_Dv(z)e(hz)\{1-e(hz)\}\tau(hz)\,dz,
+ \tag{6}
+\]
+put \(\theta=Q^{-1}R\), and set \(\tau_h(hz)=v(z)^{\mathsf T}\theta\).  From (1) and orthonormality,
+\[
+ \lambda_0 I_q\preceq Q\preceq\frac14I_q,
+ \qquad \lambda_0=\frac3{16}.
+ \tag{7}
+\]
+Thus \(Q\) is invertible and \(\theta\) is uniformly bounded.
+
+Let \(T_\tau\) be the order-\(m_\gamma\) Taylor polynomial of \(\tau\) at the corner.  The Taylor remainder argument used above yields
+\[
+ \sup_{z\in D}|\tau(hz)-T_\tau(hz)|\leq Ch^\gamma.
+ \tag{8}
+\]
+Write \(T_\tau(hz)=v(z)^{\mathsf T}a_\tau\).  Subtracting \(Qa_\tau\) from \(Q\theta=R\) gives
+\[
+ \theta-a_\tau
+ =Q^{-1}\int_Dv(z)e(hz)\{1-e(hz)\}
+ \{\tau(hz)-T_\tau(hz)\}\,dz.
+ \tag{9}
+\]
+Equations (7)--(9), boundedness of the fixed basis \(v\) on compact \(D\), and Cauchy--Schwarz imply
+\[
+ \|\theta-a_\tau\|\leq Ch^\gamma,
+ \qquad
+ \sup_{z\in D}|\tau_h(hz)-T_\tau(hz)|\leq Ch^\gamma.
+ \tag{10}
+\]
+Consequently,
+\[
+ \sup_{z\in D}|\tau_h(hz)-\tau(hz)|\leq Ch^\gamma,
+ \qquad
+ |\tau_h(0)-\tau(0)|\leq Ch^\gamma.
+ \tag{11}
+\]
+
+We now define the estimator.  Use the fixed bounded pilots
+\[
+ \bar e(x)=3/8,
+ \qquad \bar\mu(x)=1/2.
+ \tag{12}
+\]
+For \(x\in D\), put
+\[
+ w_h(x)=h^{-d}\mathbf1\{x\in hD\},\qquad
+ v_h(x)=v(x/h)\mathbf1\{x\in hD\},\qquad
+ b_{h,k}(x)=b_k(x/h)\mathbf1\{x\in hD\}.
+\]
+For \(o=(x,a,y)\), define
+\[
+ \phi_{a1}(o)=a\{a-\bar e(x)\},
+ \qquad
+ \phi_{y1}(o)=\{y-\bar\mu(x)\}\{a-\bar e(x)\},
+ \tag{13}
+\]
+and, for \(o_r=(x_r,a_r,y_r)\), define
+\[
+ \begin{split}
+ \phi_{a2}(o_1,o_2)
+ &=-\{a_1-\bar e(x_1)\}
+ b_{h,k}(x_1)^{\mathsf T}\Omega_M^{-1}b_{h,k}(x_2)a_2,\\
+ \phi_{y2}(o_1,o_2)
+ &=-\{a_1-\bar e(x_1)\}
+ b_{h,k}(x_1)^{\mathsf T}\Omega_M^{-1}b_{h,k}(x_2)
+ \{y_2-\bar\mu(x_2)\}.
+ \end{split}
+ \tag{14}
+\]
+For \(\mathbb P_nf=n^{-1}\sum_i f(O_i)\) and \(\mathbb U_nH=\{n(n-1)\}^{-1}\sum_{i\ne j}H(O_i,O_j)\), set
+\[
+ \begin{split}
+ \widetilde Q={}&\mathbb P_n\!\left[
+ w_h(X)v_h(X)\phi_{a1}(O)v_h(X)^{\mathsf T}\right]\\
+ &+\mathbb U_n\!\left[
+ w_h(X_1)w_h(X_2)v_h(X_1)\phi_{a2}(O_1,O_2)v_h(X_2)^{\mathsf T}\right],\\
+ \widetilde R={}&\mathbb P_n\!\left[
+ w_h(X)v_h(X)\phi_{y1}(O)\right]\\
+ &+\mathbb U_n\!\left[
+ w_h(X_1)w_h(X_2)v_h(X_1)\phi_{y2}(O_1,O_2)\right].
+ \end{split}
+ \tag{15}
+\]
+The two fixed-basis factors in the matrix correction are required for the matrix cancellation below.  Since \(\widetilde Q\) need not be symmetric, choose the following deterministic Borel singular-value decomposition \(\widetilde Q=U\operatorname{diag}(s_1,\ldots,s_q)V^{\mathsf T}\).  Diagonalize \(\widetilde Q^{\mathsf T}\widetilde Q\), and within each eigenspace project the coordinate vectors in lexicographic order, retain the first linearly independent projections, and apply Gram--Schmidt with positive first nonzero coordinate; this fixes \(V\).  If \(V_j\) is its \(j\)-th column and \(s_j>0\), set \(U_j=\widetilde QV_j/s_j\).  Complete the zero-singular-value columns of \(U\) by applying the same lexicographic projection and sign rule to the orthogonal complement of the positive-singular-value columns.  This finite rule resolves signs, tied subspaces, and zero singular values, and is Borel in the entries of \(\widetilde Q\).  Define
+\[
+ \widetilde Q_{\mathrm{fl}}
+ =U\operatorname{diag}(s_1\vee\lambda_0/2,\ldots,s_q\vee\lambda_0/2)V^{\mathsf T}
+ \tag{16}
+\]
+and
+\[
+ \widehat\tau^{(2)}_{n,h,k}(0)
+ =\operatorname{clip}_{[-3/4,3/4]}
+ \left\{v(0)^{\mathsf T}\widetilde Q_{\mathrm{fl}}^{-1}\widetilde R\right\}.
+ \tag{17}
+\]
+Equations (2)--(4) and (12)--(17) involve only fixed polynomial evaluations, exact Lebesgue integrals, finite sample averages, an ordered finite \(U\)-statistic, and finite matrix operations.  Flooring makes the inverse exist and clipping bounds the output on every dataset, including a dataset with no point in \(hD\).  Hence (17) is a total Borel map of \(O_{1:n}\).
+
+It remains to bound its risk.  Write \(\delta_e=e-\bar e\), \(\delta_\mu=\mu_0-\bar\mu\), and use a superscript \(h\) for stretching to \(D\), for example \(\delta_e^h(z)=\delta_e(hz)\).  Put \(\widetilde S=\widetilde R-\widetilde Q\theta\).  The conditional Bernoulli laws in \(\mathrm{ass:bernoulli\mbox{-}response}\) give
+\[
+ \begin{split}
+ \mathbb E[\phi_{y1}(O)\mid X=x]
+ &=e(x)\{1-\bar e(x)\}\tau(x)+\delta_e(x)\delta_\mu(x),\\
+ \mathbb E[\phi_{a1}(O)\mid X=x]
+ &=e(x)\{1-\bar e(x)\},\\
+ \mathbb E[\phi_{y2}(O_1,O_2)\mid X_1=x_1,X_2=x_2]
+ &=-\delta_e(x_1)b_{h,k}(x_1)^{\mathsf T}\Omega_M^{-1}b_{h,k}(x_2)
+ \{\delta_\mu(x_2)+e(x_2)\tau(x_2)\},\\
+ \mathbb E[\phi_{a2}(O_1,O_2)\mid X_1=x_1,X_2=x_2]
+ &=-\delta_e(x_1)b_{h,k}(x_1)^{\mathsf T}\Omega_M^{-1}b_{h,k}(x_2)e(x_2).
+ \end{split}
+ \tag{18}
+\]
+Indeed, the first identity follows by conditioning separately on \(A=1\) and \(A=0\); the remaining identities follow directly from \(\mathbb E[A\mid X]=e(X)\) and the conditional outcome means.
+
+Put
+\[
+ F=\delta_\mu^h+e^h\{\tau^h-\tau_h^h\}.
+\]
+After the changes of variables \(x_r=hz_r\), the first-order part of the \(j\)-th coordinate of \(\mathbb E\widetilde S\) is
+\[
+ \int_D v_j\delta_e^h\delta_\mu^h\,dz
+ +\int_D v_j e^h(1-\bar e)\{\tau^h-\tau_h^h\}\,dz,
+\]
+whereas (3), (14), and (18) show that its second-order part is
+\[
+ -\int_Dv_j\delta_e^h\Pi_kF\,dz.
+\]
+Since \(\delta_e^h=e^h-\bar e\), adding and subtracting \(\int_Dv_j\delta_e^he^h(\tau^h-\tau_h^h)\,dz\) gives the complete score decomposition
+\[
+ \begin{split}
+ \mathbb E\widetilde S_j
+ ={}&\int_Dv_j(z)\delta_e^h(z)(I-\Pi_k)
+ \left[\delta_\mu^h+e^h\{\tau^h-\tau_h^h\}\right](z)\,dz\\
+ &+\int_Dv_j(z)e^h(z)\{1-e^h(z)\}
+ \{\tau^h(z)-\tau_h^h(z)\}\,dz.
+ \end{split}
+ \tag{19}
+\]
+The second line of (19) is retained in the bound.  By (1), (11), and boundedness of the fixed \(v_j\), its absolute value is at most \(Ch^\gamma\).  For the first line, \((I-\Pi_k)F\) is orthogonal to \(\mathcal B_M\), whence
+\[
+ \int_Dv_j\delta_e^h(I-\Pi_k)F\,dz
+ =\int_D(I-\Pi_k)(v_j\delta_e^h)(I-\Pi_k)F\,dz.
+\]
+Furthermore, (5), (11), \(e\leq1/2\), and the contraction \(\|(I-\Pi_k)f\|_2\leq\|f\|_2\) yield
+\[
+ \|(I-\Pi_k)F\|_2
+ \leq C\ell^\beta+Ch^\gamma.
+\]
+Therefore Cauchy--Schwarz and (5) imply, coordinatewise and hence in the fixed dimension \(q\),
+\[
+ \|\mathbb E\widetilde S\|
+ \leq C\{h^\gamma+\ell^{\alpha+\beta}+h^\gamma\ell^\alpha\}
+ =C\{h^\gamma+\ell^S+h^\gamma\ell^\alpha\}.
+ \tag{20}
+\]
+
+The same correction controls the mean matrix.  For coordinates \(j,r\), equations (6), (15), and (18) give
+\[
+ \begin{split}
+ \{\mathbb E\widetilde Q-Q\}_{jr}
+ &=\int_Dv_j\delta_e^h(I-\Pi_k)(e^hv_r)\,dz\\
+ &=\int_D(I-\Pi_k)(v_j\delta_e^h)(I-\Pi_k)(e^hv_r)\,dz.
+ \end{split}
+ \tag{21}
+\]
+Applying the cell-width form of (5) to both factors yields
+\[
+ \|\mathbb E\widetilde Q-Q\|_{\mathrm{op}}
+ \leq C(h/M)^{2\alpha}\leq CM_0^{-2\alpha},
+ \qquad
+ \|\mathbb E\widetilde Q-Q\|_{\mathrm{op}}\leq C\ell^{2\alpha}.
+ \tag{22}
+\]
+Choose the fixed integer \(M_0\) sufficiently large that
+\[
+ C(h/M)^{2\alpha}\leq CM_0^{-2\alpha}\leq\lambda_0/4
+ \qquad\text{for all }h\in(0,1]\text{ and }k\geq1.
+ \tag{23}
+\]
+For every unit vector \(a\), (7), (22), and (23) then imply
+\[
+ \|\mathbb E\widetilde Qa\|
+ \geq\|Qa\|-\|(\mathbb E\widetilde Q-Q)a\|
+ \geq3\lambda_0/4.
+ \tag{24}
+\]
+Thus \(s_{\min}(\mathbb E\widetilde Q)\geq3\lambda_0/4\).
+
+We next derive the stochastic terms.  Because \(\mathbb P_nf=\mathbb U_n[f(O_1)]\), each coordinate of \(\widetilde S\), and each entry of \(\widetilde Q\), is an ordered second-order \(U\)-statistic; symmetrizing its kernel leaves the statistic unchanged.  For any square-integrable symmetric kernel \(\xi\), direct enumeration of pairs of index-pairs and independence from \(\mathrm{ass:iid\mbox{-}sampling}\) give
+\[
+ \operatorname{Var}\{\mathbb U_n\xi\}
+ \leq\frac4n\mathbb E\left[\mathbb E\{\xi(O_1,O_2)\mid O_1\}^2\right]
+ +\frac{2}{n(n-1)}\mathbb E\{\xi(O_1,O_2)^2\}.
+ \tag{25}
+\]
+Indeed, disjoint index-pairs have zero covariance; after division by \(n^2(n-1)^2\), at most \(4n(n-1)(n-2)\) ordered pair-pairs share one index and at most \(2n(n-1)\) share both, and Cauchy--Schwarz bounds their covariances by the displayed conditional and unconditional second moments.
+
+The first-order part of each kernel has second moment at most
+\[
+ C\int_{hD}h^{-2d}\,dx=Ch^{-d},
+ \tag{26}
+\]
+because \(A,Y\), the pilots, the fixed basis \(v\), and \(\tau_h\) are uniformly bounded by (1), (10), and compactness.  For the growing basis, the exact Gram identity gives
+\[
+ \begin{split}
+ &\int_D\int_D
+ \left\{b_k(z_1)^{\mathsf T}\Omega_M^{-1}b_k(z_2)\right\}^2\,dz_1\,dz_2\\
+ &\qquad=\operatorname{tr}\left(
+ \Omega_M^{-1}\Omega_M\Omega_M^{-1}\Omega_M\right)
+ =K_M\leq Ck.
+ \end{split}
+ \tag{27}
+\]
+The two local weights and the substitutions \(x_r=hz_r\) therefore imply
+\[
+ \mathbb E\{\xi(O_1,O_2)^2\}\leq C\{h^{-d}+kh^{-2d}\}.
+ \tag{28}
+\]
+For \(\widetilde S\), the second-order kernel contains the bounded second-observation factor \(Y_2-\bar\mu(X_2)-A_2\tau_h(X_2)\); for \(\widetilde Q\), it contains \(A_2v_h(X_2)^{\mathsf T}\).  Integrating out one observation produces \(\Pi_k\) applied to \(\delta_\mu^h+e^h(\tau^h-\tau_h^h)\), to a fixed-polynomial multiple of \(e^h\), or to a fixed-polynomial multiple of \(\delta_e^h\).  Projection contraction, followed by the one remaining localization integral, gives for either one-index projection, after interchanging the arguments if necessary,
+\[
+ \mathbb E\left[\mathbb E\{\xi(O_1,O_2)\mid O_1\}^2\right]\leq Ch^{-d}.
+ \tag{29}
+\]
+Combining (25)--(29) and summing the fixed number of coordinates proves
+\[
+ \begin{split}
+ \mathbb E\|\widetilde S-\mathbb E\widetilde S\|^2
+ &\leq C\left\{\frac1{nh^d}+\frac{k}{n^2h^{2d}}\right\},\\
+ \mathbb E\|\widetilde Q-\mathbb E\widetilde Q\|_{\mathrm F}^2
+ &\leq C\left\{\frac1{nh^d}+\frac{k}{n^2h^{2d}}\right\}.
+ \end{split}
+ \tag{30}
+\]
+
+Set
+\[
+ u=\left\{\frac1{nh^d}+\frac{k}{n^2h^{2d}}\right\}^{1/2}.
+ \tag{31}
+\]
+If \(u\) exceeds a sufficiently small fixed constant, clipping and \(|\tau(0)|\leq3/4\) make the claimed risk bound immediate after increasing \(C\).  Otherwise define
+\[
+ \mathcal G=\{\|\widetilde Q-\mathbb E\widetilde Q\|_{\mathrm{op}}<\lambda_0/4\}.
+\]
+Equations (24) and (30), Markov's inequality, and \(u\leq1\) give
+\[
+ \mathbb P(\mathcal G^c)\leq Cu^2\leq Cu.
+ \tag{32}
+\]
+On \(\mathcal G\), for every unit vector \(a\),
+\[
+ \|\widetilde Qa\|
+ \geq\|\mathbb E\widetilde Qa\|-\|(\widetilde Q-\mathbb E\widetilde Q)a\|
+ >\lambda_0/2.
+\]
+Thus \(s_{\min}(\widetilde Q)>\lambda_0/2\), flooring is inactive, and \(\|\widetilde Q^{-1}\|_{\mathrm{op}}\leq2/\lambda_0\).  Since \(v(0)^{\mathsf T}\theta=\tau_h(0)\),
+\[
+ \left|v(0)^{\mathsf T}\widetilde Q^{-1}\widetilde R-\tau_h(0)\right|
+ =\left|v(0)^{\mathsf T}\widetilde Q^{-1}\widetilde S\right|
+ \leq\frac{2\|v(0)\|}{\lambda_0}\|\widetilde S\|.
+ \tag{33}
+\]
+Clipping onto \([-3/4,3/4]\) is a contraction toward \(\tau(0)\), which lies in that interval by the two interiority assumptions.  Hence (11), (20), (30), (32), (33), and Cauchy--Schwarz imply
+\[
+ \begin{split}
+ \mathbb E\left|\widehat\tau^{(2)}_{n,h,k}(0)-\tau(0)\right|
+ &\leq Ch^\gamma+C\|\mathbb E\widetilde S\|
+ +C\left\{\mathbb E\|\widetilde S-\mathbb E\widetilde S\|^2\right\}^{1/2}
+ +\frac32\mathbb P(\mathcal G^c)\\
+ &\leq C\left\{h^\gamma+\ell^S+h^\gamma\ell^\alpha
+ +(nh^d)^{-1/2}+\frac{\sqrt{k}}{nh^d}\right\}.
+ \end{split}
+ \tag{34}
+\]
+In particular, the explicit residual on the second line of (19) has been carried through (20) and is absorbed by the \(h^\gamma\) term in (34).  Since \(0<\ell\leq1\), \(h^\gamma\ell^\alpha\leq h^\gamma\).  Finally, for nonnegative \(a,b\), \(a+b\leq\sqrt{2(a^2+b^2)}\); with \(a=(nh^d)^{-1/2}\) and \(b=\sqrt{k}/(nh^d)\), this gives the second displayed inequality in the lemma after changing \(C\).  Every constant used above depends only on \((d,\alpha,\beta,\gamma,L)\), so taking the supremum over \(P\) completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma turns the higher-order blueprint into a total estimator, retains the direct weighted contrast-approximation residual of order \(h^\gamma\) in the complete score decomposition, and exposes every bias and variance term needed for rate optimization. \textit{Gap.} Published higher-order CATE constructions motivate the form, but this proof is specialized to the exact uniform law and verifies both corrected moments, the retained \(O(h^\gamma)\) score residual, and stabilization on the present Bernoulli class. \textit{Consumer.} The bounded-overlap theorem uses this inequality, with the retained residual absorbed by its existing \(h^\gamma\) approximation term, to derive the nuisance elbow and all-\(n\) upper rate.
+
+\begin{theorem}[thm:bounded-overlap-second-order]\label{thm:bounded-overlap-second-order}
+Suppose \(\kappa=0\), put \(S=\alpha+\beta\), and define
+\[
+ S_\star=\frac{d\gamma}{2\gamma+d},
+ \qquad
+ D_\star=1+\frac d{2\gamma}+\frac d{2S}.
+\]
+Then every \(P\in\mathcal P(d,0,\alpha,\beta,\gamma,L)\) satisfies
+\[
+ e_P(x)=g_P(x)/4\in[1/4,1/2]
+ \qquad\text{for every }x\in\mathcal X.
+\]
+There are constants \(0<c\leq C<\infty\), depending only on \((d,\alpha,\beta,\gamma,L)\), such that for every \(n\geq2\),
+\[
+ c n^{-\gamma/(2\gamma+d)}
+ \leq R_n(d,0,\alpha,\beta,\gamma,L)
+ \leq C\max\left\{n^{-\gamma/(2\gamma+d)},
+ n^{-1/D_\star}\right\}.
+\]
+The upper bound is attained by a total one-sided localized second-order projection R-learner.  In particular, if \(S\geq S_\star\), then
+\[
+ R_n(d,0,\alpha,\beta,\gamma,L)
+ \asymp n^{-\gamma/(2\gamma+d)}.
+\]
+There is no logarithmic multiplier at \(S=S_\star\): at that equality the two finite bias--variance balances coincide.  If \(S<S_\star\), the result asserts the displayed bracket with upper rate \(n^{-1/D_\star}\) but does not assert a matching nuisance-dominated lower bound.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal P(d,0,\alpha,\beta,\gamma,L)\).  By the definition of \(r_{\kappa}\), \(r_0(x)=1\) for every \(x\in\mathcal X\).  Therefore \(\mathrm{ass:local\mbox{-}propensity\mbox{-}shape}\) and \(\mathrm{ass:multiplier\mbox{-}envelope}\) give
+\[
+ e_P(x)=\frac{r_0(x)g_P(x)}4=\frac{g_P(x)}4,
+ \qquad
+ \frac14\leq e_P(x)\leq\frac12
+ \tag{35}
+\]
+for every \(x\in\mathcal X\).  Thus this is the original exact-uniform model on its bounded-overlap parameter slice, not a replacement class.
+
+For the lower bound, every data-only Borel estimator \(T\) induces the admissible supplied-propensity estimator \(T^e(o_{1:n},e)=T(o_{1:n})\), which ignores its second argument and has the same loss under every law.  The definitions \(\mathrm{def:unknown\mbox{-}risk}\) and \(\mathrm{def:oracle\mbox{-}risk}\) therefore imply
+\[
+ R_n^e(d,0,\beta,\gamma,L)
+ \leq R_n(d,0,\alpha,\beta,\gamma,L).
+ \tag{36}
+\]
+The supplied-propensity lower bound in \(\mathrm{thm:oracle\mbox{-}minimax}\), specialized to \(\kappa=0\), and (36) give
+\[
+ c_e n^{-\gamma/(2\gamma+d)}
+ \leq R_n(d,0,\alpha,\beta,\gamma,L)
+ \qquad(n\geq2).
+ \tag{37}
+\]
+The two laws used there are genuine full-support uniform-design Bernoulli laws in the exact class.
+
+For the upper bound, invoke the already established \(\mathrm{lem:bounded\mbox{-}overlap\mbox{-}second\mbox{-}order\mbox{-}risk}\).  Put \(S=\alpha+\beta\) and \(\ell=hk^{-1/d}\).  Since \(h\in(0,1]\), \(k\geq1\), and \(\alpha>0\), one has \(0<\ell\leq1\) and hence \(h^\gamma\ell^\alpha\leq h^\gamma\).  The lemma's explicitly defined estimator thus satisfies
+\[
+ \sup_{P\in\mathcal P(d,0,\alpha,\beta,\gamma,L)}
+ \mathbb E_P\left|\widehat\tau^{(2)}_{n,h,k}(0)-\tau_P(0)\right|
+ \leq C\left\{h^\gamma+\ell^S+(nh^d)^{-1/2}
+ +\frac{\sqrt{k}}{nh^d}\right\}.
+ \tag{38}
+\]
+
+First suppose \(S<S_\star\).  Put \(\delta=D_\star^{-1}\) and choose, up to the bounded-ratio admissible-rank rounding built into the lemma,
+\[
+ h_n=n^{-1/(\gamma D_\star)}=n^{-\delta/\gamma},
+ \qquad
+ k_n\asymp n^{(d/S-d/\gamma)/D_\star}
+ =n^{\delta d(1/S-1/\gamma)}.
+ \tag{39}
+\]
+Because \(S<S_\star<\gamma\), the exponent of \(k_n\) is positive.  With \(\ell_n=h_nk_n^{-1/d}\), equation (39) yields
+\[
+ \ell_n\asymp n^{-\delta/S},
+ \qquad
+ h_n^\gamma\asymp\ell_n^S\asymp n^{-\delta}.
+ \tag{40}
+\]
+Moreover, the identity \(1=\delta\{1+d/(2\gamma)+d/(2S)\}\) gives
+\[
+ \frac{\sqrt{k_n}}{nh_n^d}
+ \asymp n^{-1+\delta d/(2S)+\delta d/(2\gamma)}
+ =n^{-\delta}.
+ \tag{41}
+\]
+The exponent of the nondegenerate term \((nh_n^d)^{-1/2}\) exceeds \(\delta\) by
+\[
+ \left(\frac12-\frac{\delta d}{2\gamma}\right)-\delta
+ =\frac{d(1/S-1/\gamma)-2}{4D_\star}\geq0,
+ \tag{42}
+\]
+where the last inequality is equivalent to \(S\leq d\gamma/(2\gamma+d)=S_\star\).  Substitution of (40)--(42) into (38) proves
+\[
+ R_n(d,0,\alpha,\beta,\gamma,L)\leq Cn^{-1/D_\star}
+ \qquad(S<S_\star).
+ \tag{43}
+\]
+
+Now suppose \(S\geq S_\star\).  Choose
+\[
+ h_n=n^{-1/(2\gamma+d)},
+ \qquad
+ k_n\asymp nh_n^d,
+ \tag{44}
+\]
+again using the lemma's deterministic rank rounding.  Then
+\[
+ h_n^\gamma=(nh_n^d)^{-1/2}\asymp\frac{\sqrt{k_n}}{nh_n^d}
+ =n^{-\gamma/(2\gamma+d)},
+ \qquad
+ \ell_n\asymp n^{-1/d}.
+ \tag{45}
+\]
+The definition of \(S_\star\) gives the exact equivalence
+\[
+ S\geq S_\star
+ \quad\Longleftrightarrow\quad
+ \frac Sd\geq\frac\gamma{2\gamma+d},
+\]
+so (45) implies
+\[
+ \ell_n^S\lesssim n^{-\gamma/(2\gamma+d)}.
+ \tag{46}
+\]
+Equations (38) and (44)--(46) prove the supplied-propensity-rate upper bound for \(S\geq S_\star\).  The estimator from the lemma is total for every \(n\geq2\); deterministic rounding and the finitely many small-sample cases are absorbed by enlarging \(C\), since clipping bounds the absolute loss by \(3/2\).
+
+Finally, \(D_\star^{-1}\leq\gamma/(2\gamma+d)\) holds exactly when \(S\leq S_\star\).  Thus (43) and the high-smoothness upper bound combine to give
+\[
+ R_n(d,0,\alpha,\beta,\gamma,L)
+ \leq C\max\left\{n^{-\gamma/(2\gamma+d)},n^{-1/D_\star}\right\}.
+ \tag{47}
+\]
+Together with (37), this proves the asserted bracket and rate equality when \(S\geq S_\star\).  At \(S=S_\star\),
+\[
+ D_\star=2+\frac d\gamma,
+ \qquad
+ \frac1{D_\star}=\frac\gamma{2\gamma+d}.
+ \tag{48}
+\]
+Equations (45), (46), and (48) show that finitely many pure-power bias and variance terms agree; no dyadic or harmonic summation occurs.  Hence no logarithmic multiplier is introduced at equality.  For \(S<S_\star\), (37) and (43) give only the stated bracket, and no nuisance-dominated converse has been inferred.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem records an explicitly total one-sided exact-uniform specialization of the KBRW higher-order architecture, using the known Lebesgue Gram matrix, deterministic rank rounding, singular-value flooring, clipping, and an all-dataset fallback.  KBRW's upper theorem already has the same bounded-overlap rate and elbow and applies to known uniform design; the theorem's role here is computable totalization and improvement over this note's first-order bound, not rate novelty. \textit{Gap.} The bounded-overlap upper rate and nuisance elbow are already covered by KennedyBalakrishnanRobinsWasserman2024MinimaxCATE.  Its displayed perforated-support lower construction does not belong to the singleton exact-uniform class, so only the below-elbow exact-uniform nuisance converse remains unresolved here. \textit{Consumer.} Users receive a finite, total exact-uniform implementation-level precision benchmark for local CATE estimation under bounded treatment probabilities, without any claim that the rate is new or that an existing causal forest attains it.
+
+\section{Interpretation}
+
+The all-\(\kappa\) supplied-propensity theorem quantifies the information loss caused by treatment scarcity at the corner before charging for learning the propensity multiplier.  At bounded overlap, the exact-uniform totalized specialization of the published higher-order architecture shows that unknown propensity variation does not change the pointwise CATE rate once \(\alpha+\beta\geq d\gamma/(2\gamma+d)\); this is an implementation and class-specialization statement, not a claim that the rate or elbow is new.  Below that elbow, the constructed estimator gives the displayed exact-uniform upper rate, but the missing lower experiment prevents declaring a nuisance penalty.  Near an actual propensity zero \(\kappa>0\), the data-only result remains the first-order bracket, so the theorem is a precision benchmark rather than an attainment claim about an existing causal forest.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The bounded-overlap higher-order upper calculation and its total exact-uniform implementation are closed, but the rate and elbow themselves are already covered by KennedyBalakrishnanRobinsWasserman2024MinimaxCATE.  The below-elbow exact-uniform converse remains structurally unresolved: with \(S=\alpha+\beta<\gamma\), disjoint partition-local contrast bumps at amplitude \(\delta=\ell^S\) have smoothness scale \(\delta\ell^{-\gamma}=\ell^{S-\gamma}\), overlapping smooth squared frames violate the partition-local premise of RobinsTchetgenLiVanderVaart2009 and generate shared-sign multi-observation terms, and filling transition holes contributes \(nh^d\delta^2\) at the proposed scale.  For \(\kappa>0\), an upper proof must additionally control rare-treatment projection and stabilization terms, while lower constructions must repair noninteger corner powers and max-norm tie surfaces without deleting support.  No product-mixture converse is asserted.
+
+\section{Honest scope}
+
+The sharp supplied-propensity result \(R_n^e\asymp n^{-\gamma/(2\gamma+d+\kappa)}\) holds for every \(\kappa\geq0\) and is attained by the explicit total annular estimator.  For \(\kappa=0\), KennedyBalakrishnanRobinsWasserman2024MinimaxCATE already covers the same higher-order upper rate and nuisance elbow and applies to known uniform design; this paper supplies only an explicitly total one-sided exact-uniform specialization.  That specialization proves \(c n^{-\gamma/(2\gamma+d)}\leq R_n\leq C\max\{n^{-\gamma/(2\gamma+d)},n^{-1/D_\star}\}\) and hence the supplied-propensity rate when \(\alpha+\beta\geq d\gamma/(2\gamma+d)\), with no logarithmic multiplier at equality.  When \(\alpha+\beta<d\gamma/(2\gamma+d)\), no matching exact-uniform nuisance lower bound is claimed.  For \(\kappa>0\), only the established first-order data-only bracket is claimed; the higher-order upper and lower frontier, critical logarithms, and complete oracle-penalty classification remain open.  No claim is made that the existing \(\texttt{grf}\) causal forest attains any displayed rate.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE} Edward H. Kennedy, Sivaraman Balakrishnan, James M. Robins, and Larry Wasserman (2024), ``Minimax Rates for Heterogeneous Causal Effect Estimation,'' \emph{Annals of Statistics} 52, 793--816, Theorems 1--2, Definition 1, and Sections 3--4. DOI: 10.1214/24-AOS2369.
+
+  \bibitem{Kennedy2023DRCATE} Edward H. Kennedy (2023), ``Towards Optimal Doubly Robust Estimation of Heterogeneous Causal Effects,'' \emph{Electronic Journal of Statistics} 17, 3008--3049, Theorem 3, Corollaries 3--4, and Section 4. DOI: 10.1214/23-EJS2157.
+
+  \bibitem{RobinsTchetgenLiVanderVaart2009} James M. Robins, Eric Tchetgen Tchetgen, Lingling Li, and Aad van der Vaart (2009), ``Semiparametric Minimax Rates,'' \emph{Electronic Journal of Statistics} 3, 1305--1321, Theorem 2.1 and Section 3. DOI: 10.1214/09-EJS479.
+
+  \bibitem{ShenGaoWittenHan2020} Yandi Shen, Chao Gao, Daniela Witten, and Fang Han (2020), ``Optimal Estimation of Variance in Nonparametric Regression with Random Design,'' \emph{Annals of Statistics} 48, 3589--3618, Sections 3 and 6. DOI: 10.1214/20-AOS1944.
+
+  \bibitem{LiuMukherjeeNeweyRobins2017EmpiricalHOIF} Lin Liu, Rajarshi Mukherjee, Whitney K. Newey, and James M. Robins (2017, revised 2026), ``Semiparametric Efficient Empirical Higher Order Influence Function Estimators,'' arXiv:1705.07577, Theorem 1 and Sections 3--4.
+
+  \bibitem{GaoHan2020} Zijun Gao and Yanjun Han (2020), ``Minimax Optimal Nonparametric Estimation of Heterogeneous Treatment Effects,'' \emph{Advances in Neural Information Processing Systems} 33, Theorem 2 and Section 4.
+
+  \bibitem{Gaiffas2005DegenerateDesign} St\'ephane Ga\"iffas (2005), ``Convergence Rates for Pointwise Curve Estimation with a Degenerate Design,'' \emph{Mathematical Methods of Statistics} 14, 1--27, Theorem 1 and Sections 2--5.
+
+  \bibitem{Dorn2025WeakOverlapTStatistics} Jacob Dorn (2025), ``Can Doubly-Robust T-Statistics Handle Weak Overlap?,'' arXiv:2504.13273, Theorem 1, Theorem 2, and Sections 2--4.
+
+  \bibitem{Kim2026RKHSPointwiseCATE} Seok-Jin Kim (2026), ``Optimal and Structure-Adaptive CATE Estimation with Kernel Ridge Regression,'' arXiv:2602.18958, Theorem 1 and Corollary 4.
+
+  \bibitem{AtheyWager2021PolicyLearning} Susan Athey and Stefan Wager (2021), ``Policy Learning with Observational Data,'' \emph{Econometrica} 89, 133--161, Theorems 1 and 5. DOI: 10.3982/ECTA15732.
+
+  \bibitem{WagerAthey2018CausalForests} Stefan Wager and Susan Athey (2018), ``Estimation and Inference of Heterogeneous Treatment Effects Using Random Forests,'' \emph{Journal of the American Statistical Association} 113, 1228--1242.
+
+  \bibitem{GRFReference} The \texttt{grf} developers (accessed 2026), ``The GRF Algorithm'' and ``Causal Forest'' documentation, Sections ``Orthogonalization,'' ``Selecting Balanced Splits,'' and ``Overlap Issues.''
+
+\end{thebibliography}
+
+\end{document}

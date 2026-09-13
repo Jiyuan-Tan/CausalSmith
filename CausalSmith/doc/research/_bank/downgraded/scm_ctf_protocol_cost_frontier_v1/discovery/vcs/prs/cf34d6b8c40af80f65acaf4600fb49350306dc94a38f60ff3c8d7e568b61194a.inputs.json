@@ -1,0 +1,308 @@
+{
+  "units": [
+    {
+      "unit": "thm:cost-optimal-certificate-feasible",
+      "targets": [
+        "prop:fixed-factor-obstruction",
+        "lem:fixed-transcript-size",
+        "thm:uniform-source-normal-form",
+        "lem:canonical-certificate-bound",
+        "oeq:oracle-search-frontier",
+        "thm:cost-optimal-certificate-feasible",
+        "prop:certificate-infeasibility",
+        "thm:ordinary-subclass-equivalence"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "prop:fixed-factor-obstruction",
+            "proof_tex": "Write \\(D=D_T\\), and let \\(U\\) denote the vertex set of the current source factor in the published recursion, initially \\(U=T\\).  By the published-recursion lemma, its least closed set \\(H\\) contains exactly the vertices having a directed path in \\(D[U]\\) to \\(C_j\\): indeed, the closure condition says that whenever \\(u\\to v\\) is an arc of \\(D[U]\\) and \\(v\\in H\\), then \\(u\\in H\\).  Iterating this condition backwards from \\(C_j\\) gives\n\\[\n H=\\operatorname{An}_{C_j}(D[U])\n   :=\\{u\\in U:u\\leadsto c\\text{ in }D[U]\\text{ for some }c\\in C_j\\},\n\\]\nwhere a path of length zero is allowed.  The algorithm succeeds if \\(H=C_j\\), fails if \\(H=U\\ne C_j\\), and otherwise replaces \\(U\\) by the bidirected component \\(B\\) of \\(G^{\\leftrightarrow}[H]\\) containing \\(C_j\\).  The component is unique because \\(G^{\\leftrightarrow}[C_j]\\) is connected.  In the recursive case \\(C_j\\subseteq B\\subseteq H\\subsetneq U\\), and \\(G^{\\leftrightarrow}[B]\\) is connected.  Thus these properties are invariants of the recursion, and every nonterminal step strictly reduces \\(|U|\\).\n\nSuppose first that \\(F\\in\\mathfrak O(T,C_j)\\).  We prove inductively that \\(F\\subseteq U\\) at every recursive call.  This holds initially because \\(F\\subseteq T\\).  If it holds for the current \\(U\\), then every \\(v\\in F\\) has, by the definition of \\(\\mathfrak O(T,C_j)\\), a path to \\(C_j\\) in \\(D[F]\\).  Since \\(D[F]\\) is an induced subgraph of \\(D[U]\\), \\(F\\subseteq H\\).  Moreover, \\(G^{\\leftrightarrow}[F]\\) is connected and \\(F\\) contains \\(C_j\\), so every vertex of \\(F\\) lies in the bidirected component \\(B\\) of \\(H\\) that contains \\(C_j\\).  Hence \\(F\\subseteq B\\), establishing the induction.  Because \\(C_j\\subsetneq F\\), the equality \\(H=C_j\\) can never occur.  Strict decrease makes the recursion finite, so its only possible terminal outcome is \\(H=U\\ne C_j\\), namely \\(\\operatorname{FAIL}\\).\n\nConversely, suppose that \\(\\operatorname{IDENTIFY}^{+}\\) returns \\(\\operatorname{FAIL}\\).  At the terminal call the current set \\(U\\) satisfies \\(H=U\\ne C_j\\).  The recursion invariants give \\(C_j\\subsetneq U\\subseteq T\\) and connectedness of \\(G^{\\leftrightarrow}[U]\\).  The equality\n\\[\n U=H=\\operatorname{An}_{C_j}(D[U])\n\\]\nsays that every vertex of \\(U\\) reaches some vertex of \\(C_j\\) in \\(D[U]\\).  Taking \\(F=U\\) therefore gives \\(F\\in\\mathfrak O(T,C_j)\\).  This proves both implications."
+          },
+          {
+            "id": "lem:fixed-transcript-size",
+            "proof_tex": "Put \\(n_T=|T|\\).  When \\(\\mathfrak O(T,C_j)=\\varnothing\\), Proposition \\(\\mathrm{Fixed\\ factor\\ obstruction}\\) rules out a failure terminal state, so the recursion terminates with \\(H=C_j\\).  At every nonterminal call its new source set \\(B\\) is a strict subset of the old source set \\(U\\).  Therefore the number \\(q\\) of strict restrictions satisfies\n\\[\n q\\le |T|-|C_j|\\le |T|-1<|T|.\n\\]\nIn particular it is at most \\(|T|\\), as claimed.\n\nIndex the vertices of \\(T\\) once.  Each of \\(U_r\\), \\(H_r\\), and \\(B_r\\) is then represented by an \\(n_T\\)-bit mask.  The at most \\(q+1\\le n_T+1\\) recorded triples use at most \\(3n_T(n_T+1)\\) mask bits, plus \\(O(n_T\\log(n_T+1))\\) self-delimiting framing bits.  Thus the representation has \\(O(n_T^2)\\) bits apart from the already indexed source and request literals.\n\nVerification is direct.  From \\(G\\) and the recorded literal values, compare the two values attached to every directed edge to construct \\(D_T[U_r]\\).  A reverse graph traversal from \\(C_j\\) computes \\(\\operatorname{An}_{C_j}(D_T[U_r])\\), which must equal the recorded \\(H_r\\).  An undirected traversal along bidirected edges computes the component of \\(G^{\\leftrightarrow}[H_r]\\) containing \\(C_j\\), which must equal \\(B_r\\).  The verifier also checks \\(B_r\\subsetneq U_r\\), \\(U_{r+1}=B_r\\), and the terminal equality \\(H_q=C_j\\).  These operations are graph traversals and literal comparisons and hence are polynomial in the displayed finite encoding."
+          }
+        ],
+        "resolved_oeqs": [
+          {
+            "source_id": "oeq:oracle-search-frontier",
+            "theorem": {
+              "id": "thm:explicit-oracle-enumeration-frontier",
+              "kind": "theorem",
+              "statement": "Let \\(m=|\\mathcal A|\\) and \\(L=|\\mathrm{LIT}|\\).  Exact minimum-cost optimization over uniform certificates accepted by \\(\\operatorname{Acc}\\) has a deterministic algorithm using at most \\(2^m\\) distinct queries to \\(\\mathcal O_{\\mathrm{src}}\\), time \\(2^{O(m+L)}\\operatorname{poly}(N_{\\mathrm{in}}+N_{\\mathcal O})\\), and oracle-answer space \\(2^{O(m+L)}\\operatorname{poly}(N_{\\mathrm{in}}+N_{\\mathcal O})\\).  It returns the lexicographically first optimum certificate when \\(\\operatorname{Opt}<+\\infty\\), and otherwise certifies \\(\\operatorname{Opt}=+\\infty\\).  Thus the first alternative in the oracle-search question holds; the bound does not assert a subexponential oracle lower bound or a compact scalar identifying functional.",
+              "free_symbols": [
+                "A",
+                "LIT",
+                "Ecert",
+                "Acc",
+                "Osrc",
+                "Nin",
+                "Noracle",
+                "Opt"
+              ],
+              "depends_on": [
+                "ass:bounded-domains",
+                "ass:binary-rational-cost",
+                "ass:positive-source-law",
+                "ass:measured-ancestry",
+                "def:physical-instance-encoding",
+                "def:target-factorization",
+                "def:legal-protocols",
+                "def:literal-encoding",
+                "def:source-slice",
+                "def:value-match-dependency",
+                "def:fixed-factor-obstruction",
+                "def:restriction-transcript",
+                "def:protocol-slice-record",
+                "def:acquisition-certificate",
+                "def:certificate-cost",
+                "def:optimal-cost",
+                "def:operational-acceptance",
+                "lem:published-ctf-realize-runtime",
+                "prop:fixed-factor-obstruction",
+                "lem:fixed-transcript-size"
+              ],
+              "proof_tex": "Put \\(m=|\\mathcal A|\\), \\(L=|\\mathrm{LIT}|\\), and \\(n=|V|\\).  We construct the algorithm and prove its completeness.\n\nFirst enumerate the \\(2^m\\) protocol masks in canonical order.  Membership in \\(\\Pi\\) is decided from the explicit action record: count SELECT actions, check precedence closure and order, conflicts, the at-most-once mechanism condition, and the stipulated CTF-REALIZE compatibility test.  The published CTF-REALIZE runtime lemma makes the last check polynomial in the finite protocol and graph encoding.  Query \\(\\mathcal O_{\\mathrm{src}}\\) once for each legal mask and cache the reply.  Thus there are at most \\(2^m\\) distinct oracle queries.  A reply equal to \\(\\bot\\), or with a malformed support index, contributes no candidate.\n\nFor a remaining protocol \\(S\\), enumerate all \\(2^L\\) literal masks \\(\\ell\\).  The literal table decides catalogue membership and consistency, and the returned support table decides exactly whether \\(H_{\\mathrm{slice}}(S,\\ell)\\) has positive mass.  For every defined slice, perform the ancestral-set transformation and its bidirected-district factorization used by the complete run.  A partition of at most \\(n\\) vertices has at most \\(n\\) districts, so this produces at most \\(n\\) canonical initial source factors per slice.  The measured-ancestry check deletes every ill-typed candidate.\n\nFix one remaining triple \\((S,\\ell,T)\\) and a target factor \\(C_j\\).  Enumerate \\(\\Omega_j\\).  If its free request positions have domain sizes \\(q_1,\\ldots,q_r\\), then the equality type is induced by an assignment and hence introduces no additional choices, while\n\\[\n |\\Omega_j|=\\prod_{h=1}^{r}q_h\n \\,\\le\\,2^{\\sum_{h=1}^{r}q_h}\n \\,\\le\\,2^L.\n\\]\nThe first inequality uses \\(q\\le2^q\\) for every positive integer \\(q\\), and the second uses the fact that the request-literal table contains one literal for each of those \\(q_h\\) values.  For each branch instantiate the value comparisons, construct \\(D_T\\), and execute the deterministic ancestor--district recursion.  Proposition \\(\\mathrm{Fixed\\ factor\\ obstruction}\\) decides success, and Lemma \\(\\mathrm{Fixed\\ transcript\\ size}\\) constructs and verifies the unique recorded restriction sequence.  The triple is a uniform witness for \\(j\\) exactly when the same encoded source and transcript pass the acceptance checks for every branch.  Hence this test is both sound and complete for one uniform record; it is not a quantifier exchange from pointwise witnesses.\n\nFor every protocol \\(S\\), let\n\\[\n K(S)=\\{j\\in[k]:\\text{some enumerated }(\\ell,T,\\tau_j)\n                 \\text{ is a uniform witness for }C_j\\},\n\\]\nand retain the lexicographically first witness for each member.  The definition of a uniform certificate gives the following exact equivalence:\n\\[\n \\exists E\\;\\operatorname{Acc}(Q,E;G)=1\n \\quad\\Longleftrightarrow\\quad\n \\exists\\mathcal P\\subseteq\\Pi\\;\n       \\bigcup_{S\\in\\mathcal P}K(S)=[k].                                      \\tag{1}\n\\]\nFor the forward implication, each owned factor in an accepted record supplies a witness counted in \\(K(S)\\) for that record's protocol.  For the reverse implication, assign each factor to the first selected protocol covering it, insert its retained record, merge identical records and ownership masks, and sort.  The resulting records satisfy the parsing, positivity, source-typing, uniform-transcript, and factor-coverage clauses of \\(\\operatorname{Acc}\\).  The complete factor search consequently finds every target factor and does not return \\(\\operatorname{FAIL}\\).\n\nWrite \\(w(S)=\\sum_{a\\in S}c(a)\\).  Because distinct protocols are charged once and records from one protocol share its cost, (1) turns the acquisition problem into the explicit weighted cover\n\\[\n \\operatorname{Opt}\n   =\\min_{\\mathcal P\\subseteq\\Pi:\\,\\cup_{S\\in\\mathcal P}K(S)=[k]}\n      \\sum_{S\\in\\mathcal P}w(S),                                               \\tag{2}\n\\]\nwith the minimum of the empty feasible set interpreted as \\(+\\infty\\).  This is a derived optimization identity, not a redefinition of \\(\\operatorname{Opt}\\).\n\nList the candidate protocols as \\(S_1,\\ldots,S_M\\), where \\(M\\le2^m\\).  For \\(U\\subseteq[k]\\), set \\(D_0(\\varnothing)=0\\), \\(D_0(U)=+\\infty\\) for \\(U\\ne\\varnothing\\), and\n\\[\n D_i(U)=\\min\\{D_{i-1}(U),\\ D_{i-1}(U\\setminus K(S_i))+w(S_i)\\}.                 \\tag{3}\n\\]\nInduction on \\(i\\) shows that \\(D_i(U)\\) is the minimum cost of protocols among \\(S_1,\\ldots,S_i\\) covering \\(U\\): an optimum either omits \\(S_i\\), giving the first term, or includes it, leaving only \\(U\\setminus K(S_i)\\) to earlier protocols.  Hence \\(D_M([k])\\) equals (2).  Exact binary-rational arithmetic compares the two alternatives, and storing the lexicographically first predecessor on ties reconstructs the promised certificate.\n\nIt remains to bound resources.  Since every \\(C_j\\) is nonempty, the request-literal table has at least one literal with first coordinate \\(j\\), and these coordinates are disjoint; consequently \\(k\\le L\\).  Candidate generation performs at most\n\\[\n 2^m\\,2^L\\,n k\\,2^L\n   =2^{O(m+L)}\\operatorname{poly}(N_{\\mathrm{in}})\n\\]\nlocal checks.  The dynamic program uses \\(M2^k\\le2^{m+L}\\) updates.  Every support-table bit actually read is included in \\(N_{\\mathcal O}\\), and exact sums of the input rational costs have total bit complexity bounded by the same exponential factor times a polynomial in the encoded costs.  Cached replies occupy \\(O(N_{\\mathcal O})\\) bits, while the candidate table, witnesses, and two dynamic-program layers occupy \\(2^{O(m+L)}\\operatorname{poly}(N_{\\mathrm{in}}+N_{\\mathcal O})\\) bits.  These estimates prove the asserted time, space, and query bounds and answer the open-ended question by its positive alternative.",
+              "status": "proved"
+            }
+          }
+        ],
+        "added_lemmas": [
+          {
+            "id": "lem:published-identify-plus-recursion",
+            "kind": "lemma",
+            "statement": "Let \\(C\\subseteq U\\) be the vertex sets of the target and current labelled source factors in a call to \\(\\operatorname{IDENTIFY}^{+}\\), with \\(G^{\\leftrightarrow}[U]\\) connected.  The algorithm forms the least \\(H\\), \\(C\\subseteq H\\subseteq U\\), for which no term outside \\(H\\) carries a value occurring in the parent subscript of a term inside \\(H\\).  It returns the marginal when \\(H=C\\), returns \\(\\operatorname{FAIL}\\) when \\(H=U\\ne C\\), and otherwise recurses on the unique bidirected district of \\(G[H]\\) containing \\(C\\).  Every such recursive call strictly decreases \\(|U|\\).",
+            "free_symbols": [
+              "Cj",
+              "Tsource",
+              "G",
+              "IDplus"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "RaghavanBareinboim2026CTFIDUPlus",
+              "locator": "Algorithm 1, lines 3--13, page 4; termination sentence in the proof of Lemma 3.4, page 29",
+              "carrier": "logical-claim",
+              "url": "https://causalai.net/r144.pdf",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Checked directly against the cited algorithm and proof on 2026-09-11; the node is a faithful notation-level paraphrase rather than an extended quotation."
+              }
+            }
+          },
+          {
+            "id": "lem:published-ctf-realize-runtime",
+            "kind": "lemma",
+            "statement": "For a finite counterfactual query with \\(q\\) terms and a causal graph with \\(n\\) vertices, CTF-REALIZE decides whether the query is realizable from the given explicit action set in \\(O(qn^2)\\) time and the same order of space.",
+            "free_symbols": [
+              "G",
+              "Q"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "RaghavanBareinboim2025Realizability",
+              "locator": "Theorem 3.5, page 6, and Appendix C.3, page 20",
+              "carrier": "logical-claim",
+              "url": "https://causalai.net/r113.pdf",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Checked directly against Appendix C.3 on 2026-09-11; notation was renamed only to avoid collision with this note's factor count."
+              }
+            }
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "prop:fixed-factor-obstruction",
+            "proposed": {
+              "id": "prop:fixed-factor-obstruction",
+              "kind": "proposition",
+              "statement": "Fix a labelled source factor \\(T\\) and nonempty target factor \\(C_j\\subseteq T\\), with each observable variable appearing at most once and both \\(G^{\\leftrightarrow}[T]\\) and \\(G^{\\leftrightarrow}[C_j]\\) connected. Then \\(\\operatorname{IDENTIFY}^{+}(G,C_j,T)=\\operatorname{FAIL}\\) if and only if \\(\\mathfrak O(T,C_j)\\neq\\varnothing\\).",
+              "free_symbols": [
+                "Tsource",
+                "Cj",
+                "j",
+                "G",
+                "IDplus",
+                "F",
+                "Dmatch"
+              ],
+              "depends_on": [
+                "def:value-match-dependency",
+                "def:fixed-factor-obstruction",
+                "lem:published-identify-plus-recursion"
+              ],
+              "status": "to-prove",
+              "justification": "This static iff obstruction is the local mathematical object needed to replace an opaque recursive failure trace.",
+              "gap": "Raghavan and Bareinboim (2026), Lemmas 3.3--3.4, characterize failure through a ctf-hedge detected by recursion; they do not state the restriction-invariant connected-ancestor iff form.",
+              "consumer": "The relational compiler uses the obstruction formula without materializing transitive closure or enumerating protocols."
+            },
+            "reason": "Adds the published recursion leaf that supplies the algorithmic transition rule used in the proof.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [
+          {
+            "node_id": "thm:uniform-source-normal-form",
+            "what_is_open": "The unproved step is the exchange from branchwise witnesses, \\(\\forall\\omega\\in\\Omega_j\\,\\exists(S,\\ell,T,\\tau)\\), to one fixed protocol, slice, source, and transcript satisfying \\(\\exists(S,\\ell,T,\\tau)\\,\\forall\\omega\\in\\Omega_j\\).",
+            "obstruction": "Neither the published factor loop nor any frozen assumption supplies that exchange. The object \\(\\mathsf H_{\\mathrm{norm}}\\) is only a proof-handle definition whose construction itself says to prove persistence, so using it would smuggle the theorem into a premise. Equality-type changes alter \\(D_T\\), and hence can alter both the ancestor set and the obstruction family.",
+            "attempted": "I propagated an arbitrary connected obstruction through every ancestor and district restriction, which proves the fixed-label result. Uniform induction then fails at its first step: on two vertices \\(u\\leftrightarrow v\\) and \\(u\\to v\\), with target \\(\\{v\\}\\), the matching branch contains \\(u\\to v\\) in \\(D_T\\) and has obstruction \\(\\{u,v\\}\\), while a nonmatching branch deletes that arc and succeeds. No frozen premise proves that a source selected by the complete run avoids such complementary branch behavior.",
+            "partial_result": "For a fixed assignment branch, the obstruction proposition gives a complete local success test and the transcript lemma gives an \\(O(|T|^2)\\)-bit witness.  Moreover, if one assumes the missing uniform choices\n\\[\n \\forall j\\in[k]\\;\\exists(S_j,\\ell_j,T_j,\\tau_j)\\;\n \\forall\\omega\\in\\Omega_j\\quad\n (S_j,\\ell_j,T_j,\\tau_j)\\text{ succeeds at }\\omega,\n\\]\nthen retaining one such record per \\(j\\) immediately gives at most \\(k\\) nonempty records and at most \\(k\\) protocols; all retained protocols came from \\(E_0\\), and nonnegativity of \\(c\\) gives \\(\\operatorname{Cost}(E)\\le\\operatorname{Cost}(E_0)\\).  Conversely, the clauses defining \\(\\operatorname{Acc}\\) directly make the recorded sources successful inputs to the complete factor loop.  Thus only the displayed movement of the source and transcript outside the \\(\\Omega_j\\)-quantifier remains unproved."
+          },
+          {
+            "node_id": "lem:canonical-certificate-bound",
+            "what_is_open": "The unresolved implication is that every feasible generic acquired collection is dominated in cost by a certificate with at most \\(k\\) nonempty records.",
+            "obstruction": "That implication is exactly the unresolved uniform-source normal form. The fixed-label transcript bound alone controls the size of a chosen record but cannot supply a single record valid over every branch.",
+            "attempted": "I derived the record-count, transcript encoding, polynomial bit bound, and lexicographic-minimum argument after conditioning on the uniform-source theorem; removing that condition would silently assume the crux.",
+            "partial_result": "Conditional on the uniform-source theorem, discard empty-ownership records and merge identical retained records.  There are then at most \\(k\\) records.  With \\(n=|V|\\), the explicit mask encoding from the transcript lemma can be padded to at most\n\\[\n 8(n+1)^2\\left\\lceil\\log_2(n+|\\mathrm{LIT}|+k+2)\\right\\rceil\n\\]\nbits per transcript.  Adding the fixed-width masks gives exactly the displayed \\(B_{\\mathrm{cert}}\\) upper bound.  The self-delimiting structural input explicitly lists every vertex, action, literal, and factor, so each of \\(n,|\\mathcal A|,|\\mathrm{LIT}|,k\\) is at most \\(N_{\\mathrm{in}}\\); elementary domination then yields \\(B_{\\mathrm{cert}}\\le8k(N_{\\mathrm{in}}+1)^4\\).  Finiteness and exact rational costs give a lexicographically first minimum among the bounded certificates.  What is missing is the unconditional appeal to the unresolved uniform-source theorem needed to dominate every accepting generic acquisition \\(E_0\\)."
+          },
+          {
+            "node_id": "thm:cost-optimal-certificate-feasible",
+            "what_is_open": "The exhaustive optimizer is proved once a cost-dominating bounded certificate is known, but that bounded-certificate premise remains unproved for an arbitrary feasible physical acquisition.",
+            "obstruction": "The theorem depends on both the uniform-source normal form and the canonical-certificate lemma. Marking it proved now would convert their unresolved quantifier exchange into an implicit assumption.",
+            "attempted": "I gave the complete bounded-string enumeration, exact rational tie-breaking, cached-oracle accounting, and output reconstruction conditional on the canonical bound. I also resolved the separate unrestricted-oracle search question by a direct protocol-and-label dynamic program over already uniform certificates.",
+            "partial_result": "Conditional on the canonical-certificate lemma, enumerate the fewer than \\(2^{B_{\\mathrm{cert}}+1}\\) binary strings of length at most \\(B_{\\mathrm{cert}}\\), reject malformed strings, and run \\(\\operatorname{Acc}\\) on the rest while caching one reply per distinct protocol.  Compare the exact binary-rational costs and break ties lexicographically.  The canonical lemma guarantees that the selected string is \\(E^{\\star}\\).  Branch enumeration and transcript verification contribute at most another \\(2^{O(B_{\\mathrm{cert}})}\\) factor because \\(|\\mathrm{LIT}|\\le B_{\\mathrm{cert}}\\) when \\(k\\ge1\\).  This proves the claimed output and runtime once the unresolved uniform-source and canonical-certificate nodes are available."
+          },
+          {
+            "node_id": "prop:certificate-infeasibility",
+            "what_is_open": "The missing direction is that absence of an accepted certificate of length at most \\(B_{\\mathrm{cert}}\\) excludes every feasible generic acquisition.",
+            "obstruction": "Only the unresolved uniform-source and canonical-certificate statements connect an arbitrary accepting collection to that bounded search space.",
+            "attempted": "I proved the finite dichotomy and enumeration argument conditional on the canonical bound; there is no independent route from a failed bounded search to generic infeasibility in the frozen core.",
+            "partial_result": "Conditional on the canonical-certificate lemma, feasibility is equivalent to the existence of an accepted certificate among the finitely many strings of length at most \\(B_{\\mathrm{cert}}\\).  If none is accepted, the feasible set in the definition of \\(\\operatorname{Opt}\\) is empty and hence \\(\\operatorname{Opt}=+\\infty\\); if one is accepted, the alternatives are disjoint.  Exhaustive enumeration with cached replies has the stated exponential time, and in the negative case no output certificate length is charged.  The only missing implication is the unresolved reduction from an arbitrary accepting acquired collection to a bounded uniform certificate."
+          },
+          {
+            "node_id": "thm:ordinary-subclass-equivalence",
+            "what_is_open": "The unresolved part is accepted uniform-certificate construction and the reverse feasibility equivalence, not the Layer-2.5 slice translation or cost accounting.",
+            "obstruction": "The definition of \\(E_{\\mathbf B}\\) assigns one fixed labelled source and transcript to each factor by invoking the unresolved uniform-source theorem. Ordinary source-family identification provides all assignment slices of a purchased intervention set, but it does not by itself prove that one of those concrete slices is uniform over \\(\\Omega_j\\).",
+            "attempted": "I checked legality, positive assignment support, exact slice equality, zero-cost READ augmentation, recovery of the ordinary RAND-endpoint family, and distinct-protocol cost preservation in both directions. The proof stops exactly at uniform ownership and does not substitute a smaller ordinary class.",
+            "partial_result": "For a distinct ordinary intervention set \\(B\\), the embedded mask \\(S_B\\) contains one fresh SELECT, one RAND action for each \\(v\\in B\\), and every zero-cost READ.  The construction makes it precedence closed, conflict free, mechanism-once, and physically compatible.  Independence and uniformity of its RAND labels give positive probability to every \\(b\\in\\mathfrak X_B\\), and consistency of the translated regime gives\n\\[\n \\operatorname{Slice}(S_B,\\ell_{B,b})\n   =P_b(V\\setminus B)=Q[V\\setminus B](\\,\\cdot\\,;b).\n\\]\nDistinct protocols are indexed by distinct \\(B\\), so their cost is\n\\[\n \\sum_{B\\text{ distinct}}\\sum_{v\\in B}\\kappa_v.\n\\]\nConversely, every protocol in the image has a unique RAND-endpoint set \\(B\\); adding missing READ actions changes neither legality nor cost, and all its positive RAND-label slices recover the full ordinary source family for that \\(B\\).  Thus protocol legality, slice semantics, and cost preservation hold in both directions.  The unresolved point is the construction of the accepted record list \\(E_{\\mathbf B}\\): its definition invokes the unproved assertion that one fixed labelled slice and transcript can own each factor uniformly over \\(\\Omega_j\\).  Without that quantifier step, the claimed equality between ordinary feasibility and the present uniform-certificate acceptance predicate has not been proved."
+          }
+        ]
+      }
+    },
+    {
+      "unit": "lem:known-one-action-cover-corollary",
+      "targets": [
+        "lem:known-one-action-cover-corollary"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:known-one-action-cover-corollary",
+            "proof_tex": "Fix an instance \\((G^{+},\\mathcal A,Q)\\in\\mathfrak C_{1}\\).  Since \\(\\mathcal A\\) is finite, the legal-protocol class \\(\\Pi\\subseteq 2^{\\mathcal A}\\) is finite.  For \\(S\\in\\Pi\\), put\n\\[\n w(S):=\\sum_{a\\in S}c(a).\n\\]\nBy Assumption \\(\\text{ass:binary-rational-cost}\\), \\(w(S)\\) is a nonnegative rational.  By Assumption \\(\\text{ass:single-paid-action}\\), there is exactly one \\(a_S\\in S\\) with \\(c(a_S)>0\\), so \\(w(S)=c(a_S)\\); all mandatory enrollment, readout, or compatibility actions in that protocol have zero cost.  Distinct protocols remain distinct set-cover objects even if they contain the same paid action, as required by Definition \\(\\text{def:certificate-cost}\\), which charges anew for each distinct acquired protocol.\n\nFor every \\(S\\in\\Pi\\), define \\(U(S)\\subseteq[k]\\) as follows.  An index \\(j\\) belongs to \\(U(S)\\) precisely when there are a literal label \\(\\ell\\), an extracted labelled source factor \\(T\\), and a restriction transcript \\(\\tau_j\\) such that the singleton-ownership record\n\\[\n R_{S,j}=(b_S,b_{\\ell},b_{\\{j\\}},b_T,\\tau_j)\n\\]\nis individually valid under Definitions \\(\\text{def:acquisition-certificate}\\) and \\(\\text{def:operational-acceptance}\\).  In particular, this requires \\(S\\in\\Pi\\), a nonbottom oracle reply, an in-catalogue and well-typed label, a defined slice event of strictly positive support, a source factor extracted from the measured returned law with the required measured-ancestry closure, and a transcript which succeeds for every assignment and induced equality type in \\(\\Omega_j\\).  Thus \\(U(S)\\) does not treat a zero-probability conditioning event, an unmeasured ancestor, or an assignment-dependent source switch as a certificate.  This also states all support and boundary conditions used below; the argument performs no division or limiting operation.\n\nWe first prove the exact reduction.  Let \\(E\\) satisfy \\(\\operatorname{Acc}(Q,E;G)=1\\), and set \\(\\mathcal P(E):=\\operatorname{Prot}(E)\\).  Operational acceptance says that the nonempty ownership masks of the records in \\(E\\) partition \\([k]\\).  Hence, for each \\(j\\in[k]\\), its unique owning record uses some \\(S_j\\in\\mathcal P(E)\\) and passes the preceding individual validity checks.  Assumption \\(\\text{ass:factorwise-no-synergy}\\) makes this certification independent of the presence of the other acquired protocols.  Therefore \\(j\\in U(S_j)\\), and consequently\n\\[\n [k]=\\bigcup_{S\\in\\mathcal P(E)}U(S).\n\\]\nThus \\(\\mathcal P(E)\\) is a weighted set cover.  Moreover, Definition \\(\\text{def:certificate-cost}\\) gives the exact equality\n\\[\n \\operatorname{Cost}(E)\n =\\sum_{S\\in\\mathcal P(E)}\\sum_{a\\in S}c(a)\n =\\sum_{S\\in\\mathcal P(E)}w(S).\n\\tag{1}\n\\]\n\nConversely, let \\(\\mathcal P\\subseteq\\Pi\\) satisfy \\(\\bigcup_{S\\in\\mathcal P}U(S)=[k]\\).  For every \\(j\\), choose \\(s(j)\\in\\mathcal P\\) with \\(j\\in U(s(j))\\), together with witnesses \\((\\ell_j,T_j,\\tau_j)\\) from the definition of \\(U(s(j))\\).  Form a certificate from the singleton-ownership records \\(R_{s(j),j}\\), and let \\(\\mathcal P':=\\{s(j):j\\in[k]\\}\\subseteq\\mathcal P\\).  Each record has a legal protocol, an allowed value label, positive source support, measured ancestry, and a transcript uniform over \\(\\Omega_j\\).  The ownership masks \\(\\{j\\}\\) partition \\([k]\\).  Assumption \\(\\text{ass:protocolwise-legality}\\) ensures that placing these protocols on distinct fresh units does not invalidate any protocol, and Assumption \\(\\text{ass:factorwise-no-synergy}\\) ensures that each chosen record remains a certificate when the records are combined.  The exhaustive run required by Definition \\(\\text{def:operational-acceptance}\\) therefore finds every displayed successful branch and does not return \\(\\operatorname{FAIL}\\).  The resulting \\(E(\\mathcal P)\\) satisfies\n\\[\n \\operatorname{Acc}(Q,E(\\mathcal P);G)=1,\n \\qquad\n \\operatorname{Cost}(E(\\mathcal P))\n =\\sum_{S\\in\\mathcal P'}w(S)\n \\le \\sum_{S\\in\\mathcal P}w(S),\n\\tag{2}\n\\]\nwhere the inequality uses \\(w(S)\\ge0\\).\n\nBecause \\(\\Pi\\) is finite, any feasible set-cover instance has an optimal cover.  Repeatedly deleting a redundant protocol from an optimal cover terminates with an inclusion-minimal optimal cover \\(\\mathcal P^{\\star}\\), without increasing its cost.  For every \\(S\\in\\mathcal P^{\\star}\\), inclusion minimality supplies an index\n\\[\n j_S\\in U(S)\\setminus\\bigcup_{S'\\in\\mathcal P^{\\star}\\setminus\\{S\\}}U(S').\n\\]\nChoose \\(s(j_S)=S\\) and assign every remaining index to any protocol covering it.  Then the image \\(\\mathcal P'\\) in (2) equals \\(\\mathcal P^{\\star}\\), so equality holds in (2).  Equation (1) shows that the set-cover optimum is at most \\(\\operatorname{Opt}\\), and this equality case of (2) shows the reverse inequality.  Therefore\n\\[\n \\operatorname{Opt}\n =\\min_{\\mathcal P\\subseteq\\Pi:\\,\\bigcup_{S\\in\\mathcal P}U(S)=[k]}\n   \\sum_{S\\in\\mathcal P}w(S).\n\\tag{3}\n\\]\nIf the cover family is empty, the first implication proves that no accepted certificate exists, so both sides of (3) are \\(+\\infty\\) under Definition \\(\\text{def:optimal-cost}\\).\n\nIt remains to prove the stated finite harmonic guarantee when \\(\\operatorname{Opt}<+\\infty\\).  The cited lemma \\(\\text{lem:published-weighted-greedy-approximation}\\) records the published weighted-greedy rule and its classical logarithmic guarantee; we give the exact \\(H_k\\) charging calculation needed here.  First select every protocol of weight zero and let\n\\[\n R_0:=[k]\\setminus\\bigcup_{S:\\,w(S)=0}U(S).\n\\]\nThis changes neither the greedy cost nor the optimum.  While \\(R_{i-1}\\ne\\varnothing\\), choose a protocol \\(S_i\\) minimizing\n\\[\n \\frac{w(S)}{|U(S)\\cap R_{i-1}|}\n\\tag{4}\n\\]\nover protocols with \\(U(S)\\cap R_{i-1}\\ne\\varnothing\\), and set \\(R_i=R_{i-1}\\setminus U(S_i)\\).  Feasibility from \\(\\operatorname{Opt}<+\\infty\\) guarantees that the minimizing family in (4) is nonempty.  Finiteness of \\(\\Pi\\) guarantees attainment, and all ratios after the zero-weight preprocessing have positive denominator and positive numerator.  At least one index is removed at each step, so the procedure terminates in at most \\(k\\) steps.\n\nWrite \\(r_i=|U(S_i)\\cap R_{i-1}|\\), and charge each index first covered at step \\(i\\) the amount \\(\\rho_j=w(S_i)/r_i\\).  Then\n\\[\n \\sum_{i}w(S_i)=\\sum_{j\\in R_0}\\rho_j.\n\\tag{5}\n\\]\nLet \\(\\mathcal P^{\\star}\\) be an optimal cover in (3), and fix \\(S\\in\\mathcal P^{\\star}\\).  Order the \\(m:=|U(S)\\cap R_0|\\) relevant indices of \\(U(S)\\) by the times at which greedy first covers them.  Immediately before the \\(q\\)-th such index is covered, at least \\(m-q+1\\) of these indices remain uncovered.  Protocol \\(S\\) is therefore eligible in (4) with denominator at least \\(m-q+1\\).  Greedy minimality in (4) yields\n\\[\n \\rho_{j_q}\\le \\frac{w(S)}{m-q+1}.\n\\]\nSumming and using \\(m\\le k\\) gives\n\\[\n \\sum_{j\\in U(S)\\cap R_0}\\rho_j\n \\le w(S)\\sum_{q=1}^{m}\\frac{1}{m-q+1}\n =w(S)H_m\n \\le w(S)H_k.\n\\tag{6}\n\\]\nWhen \\(w(S)=0\\), all of \\(U(S)\\) was removed before defining \\(R_0\\), so (6) holds with both sides zero.  Since \\(\\mathcal P^{\\star}\\) covers every index, every \\(j\\in R_0\\) occurs in at least one sum on the left of (6).  Nonnegativity of the charges, (5), (6), and (3) imply\n\\[\n \\sum_i w(S_i)\n =\\sum_{j\\in R_0}\\rho_j\n \\le\\sum_{S\\in\\mathcal P^{\\star}}\n      \\sum_{j\\in U(S)\\cap R_0}\\rho_j\n \\le H_k\\sum_{S\\in\\mathcal P^{\\star}}w(S)\n =H_k\\operatorname{Opt}.\n\\tag{7}\n\\]\nThe selected protocols cover \\([k]\\).  Applying the cover-to-certificate construction in (2), while omitting any unused zero-weight protocol, produces an accepted legal certificate \\(E_{\\mathrm{gr}}\\) with\n\\[\n \\operatorname{Cost}(E_{\\mathrm{gr}})\n \\le\\sum_i w(S_i)\n \\le H_k\\operatorname{Opt}.\n\\]\n\nFor a smallest exact check, take \\(k=2\\) and three independently legal one-paid-action protocols with factor sets \\(\\{1,2\\}\\), \\(\\{1\\}\\), and \\(\\{2\\}\\), of respective weights \\(2,1,1\\).  Equation (3) gives optimum \\(2\\), and every allowed greedy tie also costs \\(2\\), agreeing with (7).  The no-synergy promise is load-bearing: if two protocols have \\(U(S_1)=U(S_2)=\\varnothing\\) but their two-source combination certifies both factors, an accepted acquisition exists although the induced set-cover instance is infeasible.  Protocolwise legality is likewise load-bearing: if \\(U(S_1)=\\{1\\}\\) and \\(U(S_2)=\\{2\\}\\) but the pair is forbidden jointly, the set-cover instance is feasible while no corresponding combined certificate is legal.  These witnesses explain why the reduction and approximation are confined to the promised subclass."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:published-weighted-greedy-approximation",
+            "kind": "lemma",
+            "statement": "The standard weighted greedy minimum-hitting-set algorithm is a published logarithmic-factor approximation in the worst case.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "AkbariEtesamiKiyavash2025Optimal",
+              "locator": "Appendix F.1, page 50, immediately before Algorithm 11",
+              "carrier": "logical-claim",
+              "verbatim_statement": "It has been shown that this greedy algorithm achieves a logarithmic-factor approximation of the optimal hitting set in the worst case.",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Transcribed from Appendix F.1, page 50 of the JMLR PDF at https://jmlr.org/papers/volume26/22-1516/22-1516.pdf."
+              }
+            }
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "lem:known-one-action-cover-corollary",
+            "proposed": "On \\(\\mathfrak C_{1}\\), assign to every \\(S\\in\\Pi\\) the weight \\(w(S)=\\sum_{a\\in S}c(a)\\) and the factor set \\(U(S)=\\{j\\in[k]:C_j\\text{ has an individually valid uniform certificate record using }S\\}\\). Accepted acquisition certificates induce covers of \\([k]\\) with the same cost, and every cover induces an accepted certificate of no greater cost; an optimal inclusion-minimal cover induces one of the same cost. Thus \\(\\operatorname{Opt}\\) equals the weighted-set-cover optimum, with both values \\(+\\infty\\) when infeasible. If \\(\\operatorname{Opt}<+\\infty\\), the standard weighted greedy algorithm, after including all zero-weight protocols, returns an accepted legal certificate \\(E_{\\mathrm{gr}}\\) satisfying \\(\\operatorname{Cost}(E_{\\mathrm{gr}})\\le H_k\\operatorname{Opt}\\).",
+            "reason": "The unconditional return assertion is false on an infeasible member of \\(\\mathfrak C_{1}\\): if no protocol individually certifies some factor, then \\(\\operatorname{Opt}=+\\infty\\) and no accepted certificate can be returned. The proposed claim retains exact equivalence, including the infeasible case, and adds the necessary condition \\(\\operatorname{Opt}<+\\infty\\) only to the greedy-return clause.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "lem:known-one-action-cover-corollary",
+            "proposed": {
+              "id": "lem:known-one-action-cover-corollary",
+              "kind": "lemma",
+              "statement": "On \\(\\mathfrak C_{1}\\), assign to every \\(S\\in\\Pi\\) the weight \\(w(S)=\\sum_{a\\in S}c(a)\\) and the factor set \\(U(S)=\\{j\\in[k]:C_j\\text{ has an individually valid uniform certificate record using }S\\}\\). Accepted acquisition certificates induce covers of \\([k]\\) with the same cost, and every cover induces an accepted certificate of no greater cost; an optimal inclusion-minimal cover induces one of the same cost. Thus \\(\\operatorname{Opt}\\) equals the weighted-set-cover optimum, with both values \\(+\\infty\\) when infeasible. If \\(\\operatorname{Opt}<+\\infty\\), the standard weighted greedy algorithm, after including all zero-weight protocols, returns an accepted legal certificate \\(E_{\\mathrm{gr}}\\) satisfying \\(\\operatorname{Cost}(E_{\\mathrm{gr}})\\le H_k\\operatorname{Opt}\\).",
+              "free_symbols": [
+                "Gplus",
+                "A",
+                "Q",
+                "C",
+                "Cj",
+                "j",
+                "k",
+                "Hk",
+                "S",
+                "Pi",
+                "c",
+                "Ecert",
+                "Cost",
+                "Opt",
+                "Acc"
+              ],
+              "depends_on": [
+                "def:target-factorization",
+                "def:legal-protocols",
+                "def:acquisition-certificate",
+                "def:operational-acceptance",
+                "def:one-action-cover-class",
+                "def:certificate-cost",
+                "def:optimal-cost",
+                "ass:binary-rational-cost",
+                "ass:single-paid-action",
+                "ass:protocolwise-legality",
+                "ass:factorwise-no-synergy",
+                "lem:published-weighted-greedy-approximation"
+              ],
+              "status": "to-prove",
+              "justification": "This inherited corollary records the sole regime in which the familiar harmonic cover guarantee is valid and prevents it from being attributed to the general physical protocol problem.",
+              "gap": "There is no claimed novelty relative to Akbari, Etesami, and Kiyavash (2025): Lemma 3 on page 8 is the minimum-weight hedge-hitting equivalence, the approximation discussion on page 12 applies greedy minimum-weight hitting set, and Corollary 2 on pages 7--8 records logarithmic inapproximability. The present corollary merely marks the physical restrictions under which that already-known cover logic applies.",
+              "consumer": "Experiment planners with isolated single-assay protocols obtain the familiar harmonic approximation without extrapolating it to protocols with shared-source synergy."
+            },
+            "reason": "The narrowed claim needs the legal-protocol, factorization, certificate, and operational-acceptance definitions used by the cost-preserving reduction, as well as the cited published provenance of weighted greedy, in its declared proof spine.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": []
+      }
+    },
+    {
+      "unit": "prop:positive-physical-separation",
+      "targets": [
+        "prop:positive-physical-separation"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "prop:positive-physical-separation",
+            "proof_tex": "Put \\(Y_x^{(m)}\\) and \\(Z_x^{(m)}\\) for the potential responses obtained by replacing the occurrence of \\(X\\) in the corresponding structural equation of \\(M_m\\) by \\(x\\).  The equations in Definition \\(\\mathrm{Positive\\ binary\\ separation\\ models\\ and\\ catalogue}\\) give the following complete table:\n\\[\n\\begin{array}{c|cc|cc}\n &Y_0^{(m)}&Z_0^{(m)}&Y_1^{(m)}&Z_1^{(m)}\\\\ \\hline\nm=1&U_A\\mathbin\\oplus E_Y&U_B\\mathbin\\oplus E_Z&U_B\\mathbin\\oplus E_Y&U_C\\mathbin\\oplus E_Z\\\\\nm=2&U_A\\mathbin\\oplus E_Y&U_B\\mathbin\\oplus E_Z&U_C\\mathbin\\oplus E_Y&U_A\\mathbin\\oplus E_Z.\n\\end{array}\n\\tag{1}\n\\]\nThe same definition states that \\(U_X,U_A,U_B,U_C\\) are mutually independent fair bits, that \\(E_Y,E_Z\\) are mutually independent \\(\\operatorname{Bernoulli}(\\varepsilon)\\) bits, and that the two groups are independent.  Hence, for each \\(m\\in\\{1,2\\}\\) and \\(x\\in\\{0,1\\}\\), the two pre-noise bits occurring in \\((Y_x^{(m)},Z_x^{(m)})\\) in (1) are distinct independent fair bits.  If \\(B\\) is a fair bit independent of a bit \\(E\\), then, for each \\(b\\in\\{0,1\\}\\),\n\\[\n \\Pr(B\\mathbin\\oplus E=b)\n =\\sum_{e=0}^1\\Pr(E=e)\\Pr(B=b\\mathbin\\oplus e)\n =\\frac12\\sum_{e=0}^1\\Pr(E=e)=\\frac12.\n\\tag{2}\n\\]\nApplying (2) coordinatewise and using the independence just identified yields\n\\[\n \\Pr_{M_m}\\!\\left(Y_x^{(m)}=y,Z_x^{(m)}=z\\right)=\\frac14\n \\quad(m\\in\\{1,2\\},\\ x,y,z\\in\\{0,1\\}).\n\\tag{3}\n\\]\n\nWe next verify all ordinary regimes, rather than inferring their equality from a smaller collection.  Fix\n\\(r=(r_X,r_Y,r_Z)\\in\\{\\mathrm{natural},0,1\\}^{\\{X,Y,Z\\}}\\), and let \\(P_{m,r}\\) denote the law in model \\(M_m\\) after replacing the structural equation of every coordinate \\(W\\) with \\(r_W\\in\\{0,1\\}\\) by the constant \\(r_W\\).  Intervening on either sink has no effect on the other equations.  If \\(X\\) is fixed to \\(x\\), equation (3) says that the unfixed members of \\(\\{Y,Z\\}\\) are independent fair bits.  If \\(X\\) is natural, then \\(X=U_X\\); conditional on \\(X=x\\), the same assertion follows from (3), and its conditional law does not depend on \\(x\\).  Since \\(U_X\\) is fair and independent of all response and noise bits, the natural coordinates under \\(P_{m,r}\\) are therefore mutually independent fair bits, while every fixed coordinate equals its assigned value.  Consequently, for every \\(a=(a_X,a_Y,a_Z)\\in\\{0,1\\}^3\\),\n\\[\n P_{m,r}(a)\n =\\prod_{W:\\,r_W\\ne\\mathrm{natural}}\\mathbf 1\\{a_W=r_W\\}\n  \\prod_{W:\\,r_W=\\mathrm{natural}}\\frac12,\n \\qquad m\\in\\{1,2\\}.\n\\tag{4}\n\\]\nThere are exactly \\(3^3=27\\) choices of \\(r\\), so (4) proves equality of the two models under every stated ordinary observational or simultaneous node-interventional regime.\n\nBoth structural systems are recursive in the order \\(X\\) before \\(Y,Z\\).  The displayed functions make \\(X\\) a directed parent of each of \\(Y,Z\\).  In \\(M_1\\), the exogenous bit \\(U_B\\) is an input to both the \\(Y\\)- and \\(Z\\)-response functions, and in \\(M_2\\), \\(U_A\\) is such a shared input; this is represented by \\(Y\\leftrightarrow Z\\).  No response exogenous variable is shared with \\(X\\).  Thus each model is compatible with the ADMG having \\(X\\to Y\\), \\(X\\to Z\\), and \\(Y\\leftrightarrow Z\\).  Moreover, at \\(\\varepsilon=1/10\\), every atom of the six exogenous bits has positive probability.  Formula (4) shows directly that every assignment consistent with an ordinary regime has positive probability.  The edge-specific source laws used below are also positive: in \\(M_1\\) their two response coordinates are independent fair bits, while in \\(M_2\\) any pair sharing \\(U_A\\) has diagonal-cell probability \\(\\tfrac12((1-\\varepsilon)^2+\\varepsilon^2)>0\\) and off-diagonal-cell probability \\(\\varepsilon(1-\\varepsilon)>0\\).  This verifies the claimed positive-law support condition.\n\nThe cross-world probabilities do not agree.  By (1), \\(Y_0^{(1)}\\) depends only on \\((U_A,E_Y)\\), whereas \\(Z_1^{(1)}\\) depends only on \\((U_C,E_Z)\\).  These pairs are independent, and (2) makes both responses fair, so\n\\[\n \\Pr_{M_1}(Y_0=1,Z_1=1)=\\frac12\\cdot\\frac12=\\frac14.\n\\tag{5}\n\\]\nIn \\(M_2\\), both responses use \\(U_A\\).  Conditioning on that fair bit and using independence of \\(E_Y,E_Z\\) gives\n\\[\n\\begin{aligned}\n \\Pr_{M_2}(Y_0=1,Z_1=1)\n &=\\Pr(U_A=1,E_Y=0,E_Z=0)\n   +\\Pr(U_A=0,E_Y=1,E_Z=1)\\\\\n &=\\frac12(1-\\varepsilon)^2+\\frac12\\varepsilon^2.\n\\end{aligned}\n\\tag{6}\n\\]\nSubstitution of \\(\\varepsilon=1/10\\) into (6) gives\n\\[\n \\frac12\\left(\\frac9{10}\\right)^2+\n \\frac12\\left(\\frac1{10}\\right)^2\n =\\frac{41}{100}.\n\\tag{7}\n\\]\n\nIt remains to verify the physical acquisition and its cost.  Under \\(S_{\\mathrm{ind}}\\), the edge-specific action \\(\\chi_{Y,0}\\) replaces the value transmitted from \\(X\\) to the mechanism for \\(Y\\) by zero and leaves the transmission to \\(Z\\) natural.  Thus the acquired variables satisfy\n\\[\n X^{\\mathrm{ind}}=U_X,\\qquad\n Y^{\\mathrm{ind}}=Y_0,\\qquad\n Z^{\\mathrm{ind}}=Z_{U_X}.\n\\tag{8}\n\\]\nThe event \\(X^{\\mathrm{ind}}=1\\) has probability \\(1/2>0\\).  Since \\(U_X\\) is independent of all variables entering \\((Y_0,Z_1)\\), (8) implies, in either model,\n\\[\n\\begin{aligned}\n &\\Pr\\!\\left(Y^{\\mathrm{ind}}=1,Z^{\\mathrm{ind}}=1\n       \\mid X^{\\mathrm{ind}}=1,S_{\\mathrm{ind}}\\right)\\\\\n &\\qquad=\\Pr(Y_0=1,Z_1=1\\mid U_X=1)\n =\\Pr(Y_0=1,Z_1=1).\n\\end{aligned}\n\\tag{9}\n\\]\nBy Definition \\(\\mathrm{Acquired\\ regime}\\), the source oracle returns and caches the complete law and exact support of this protocol.  By Definition \\(\\mathrm{Measured\\ source\\ slice}\\), the READ projection conditioned on the positive event \\(X=1\\) is therefore a defined source slice, so its \\((Y,Z)=(1,1)\\) cell is exactly the left side of (9).\n\nUnder \\(S_{\\mathrm{dir}}\\), the two edge-specific actions transmit zero to the \\(Y\\)-mechanism and one to the \\(Z\\)-mechanism.  Hence\n\\[\n Y^{\\mathrm{dir}}=Y_0,\\qquad Z^{\\mathrm{dir}}=Z_1,\n\\tag{10}\n\\]\nso the unconditioned READ law directly exposes the same joint.  To check legality using Definition \\(\\mathrm{Legal\\ protocol\\ class}\\), each displayed protocol contains exactly the single fresh-iid SELECT \\(s\\); every listed edge mechanism and every READ mechanism occurs at most once; the catalogue order places \\(s\\) before the CTF-RAND actions and those actions before the READs; and the catalogue declares no conflicts.  The explicit executions (8) and (10) simultaneously assign only the indicated child-specific transmissions on one selected unit, which supplies the required CTF-REALIZE compatibility witness on \\(G^+\\).  Therefore \\(S_{\\mathrm{ind}},S_{\\mathrm{dir}}\\in\\Pi(G^+,\\mathcal A_{\\mathrm{sep}})\\).\n\nFinally, Definition \\(\\mathrm{Distinct\\text{-}protocol\\ cost}\\) charges each action once for the sole acquired protocol, independently of how many slices are taken from it.  Definition \\(\\mathrm{Positive\\ binary\\ separation\\ models\\ and\\ catalogue}\\) assigns unit cost to each of \\(\\chi_{Y,0},\\chi_{Z,1}\\) and zero cost to \\(s,\\rho_X,\\rho_Y,\\rho_Z\\).  Therefore\n\\[\n \\operatorname{Cost}(S_{\\mathrm{ind}})=1,\n \\qquad\n \\operatorname{Cost}(S_{\\mathrm{dir}})=1+1=2.\n\\tag{11}\n\\]\nEquations (5)--(11) prove the asserted counterfactual separation, the cost-one positive identifying slice, and the cost-two direct acquisition."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [],
+        "open_obligations": []
+      }
+    }
+  ]
+}

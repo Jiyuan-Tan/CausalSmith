@@ -1,0 +1,1474 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}staggered\_\allowbreak{}nuclear\_\allowbreak{}radius}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The paper indexes the Gaussian panel experiment by admissible tuples \(\vartheta_n=(L_n,D_n)\), so the latent counterfactual matrix remains part of the experiment index even when tuples induce the same observed law. Its principal proved benchmark is the balanced rank-one L-mask rate \(\rho_{\alpha,n}^{\star}\asymp\sigma\sqrt n\) at each fixed \(\mu>1\), established by an all-procedure lower bound and a total polynomial-time one-block certificate whose conditional Gaussian, finite-simulation, homogeneous Taylor, and fallback contributions are controlled separately. Theorem \ref{thm:boundary-frontier-obstruction} is the boundary companion for every \(0<\kappa\le1\): at \(\mu=1\), both normalized balanced overlap Grams equal one, the matching rate is \(\rho_{\alpha,n}^{\star}\asymp\sigma\) when \(s_-<s_+\), and the radius is exactly zero when \(s_-=s_+\), even though \(\mathfrak R_n\ge\sigma\sqrt{2n}\). Thus neither the fixed-\mu>1 rate nor a tangent-modulus lower comparison extends to the saturated boundary. The shrinking-incoherence layer and multi-chart patterns beyond the proved one-block case remain open in Open-ended Question \ref{oeq:boundary-layer-and-general-wedge}. The diffuse-weight ATT interval is only a coverage-valid duality corollary.
+
+\section{Project justification}
+
+\paragraph{Gap.} Yan and Wainwright impose separate low-rank structures on \(M^\star\) and \(N^\star\), with no joint structure between them. This note instead imposes a single low-rank structure on the untreated matrix \(L\) and permits an arbitrary treatment-effect matrix \(D\) supported on \(W\). The note's realized treated mean \(L+D\) therefore need not be low rank, while Yan--Wainwright's low-rank matrices need not satisfy this note's known-rank, strong-factor, or global-incoherence restrictions; neither full class contains the other. Their scalar theory uses row- and column-side subblock conditioning, signal-to-noise and noise restrictions, and target-local leverage conditions, but not this note's global-incoherence condition. Thus no constructive upper bound transfers across the full classes, and converse transfer to their richer realized-data experiment requires a separate fixed-\(N^\star\) embedding. More broadly, sharp staggered-panel inference remains coordinatewise or functional-specific, whereas global matrix confidence theory uses random or isotropic measurements; no located result gives this note's tuple-indexed honest nuclear ball under a deterministic adoption wedge together with both the fixed-interior frontier and the saturated-incoherence boundary characterization.
+
+\paragraph{Niche.} Known rank, independent Gaussian cells, strong factors, global incoherence, and uniform lower bounds on overlap Grams isolate a deterministic-wedge confidence problem with a genuine phase split: the balanced rank-one one-block L-mask has a strict-slack regime \(\mu>1\) and a saturated boundary \(\mu=1\), where the normalized overlap Grams equal one for every allowed \(0<\kappa\le1\).
+
+\paragraph{Fill.} For the balanced rank-one L-mask, Theorem \ref{thm:balanced-frontier} proves matching \(\sigma\sqrt n\) upper and lower bounds only when \(\mu>1\) is fixed. Its note-specific total spectral certificate is audited term by term, including conditional Gaussian calibration, finite simulation, the homogeneous Taylor remainder, and fallback; no constructive result is imported from a different comparator class. Theorem \ref{thm:boundary-frontier-obstruction} proves the full \(\mu=1\) phase change for every fixed \(0<\kappa\le1\): the radius is of order \(\sigma\) if \(s_-<s_+\), is zero if \(s_-=s_+\), and is negligible relative to the unrestricted tangent modulus. Open-ended Question \ref{oeq:boundary-layer-and-general-wedge} separates the unresolved shrinking-incoherence layer from multi-chart wedge patterns beyond the proved one-block case.
+
+\section{Related work}
+
+Yan and Wainwright provide the closest computational and inferential comparison. Their setup imposes separate low-rank structures on \(M^\star\) and \(N^\star\), with no joint structure between them. This note instead imposes a single low-rank structure on \(L\) and permits arbitrary supported \(D\), so the realized treated mean \(L+D\) need not be low rank; conversely, their low-rank matrices need not obey this note's known-rank, strong-factor, or global-incoherence restrictions. Hence neither full class contains the other. Their four-block SVD theory gives non-asymptotic entrywise Gaussian approximations and matching scalar lower bounds under row- and column-side subblock conditioning, signal-to-noise and noise restrictions, and target-local leverage conditions. No constructive upper bound transfers across the full classes. For a converse comparison in Yan--Wainwright's richer realized-data experiment, one must separately fix \(N^\star\) across the hypercube and vary only \(M^{\star,\epsilon}=L^\epsilon\); in this note's tuple notation this means taking \(D^\epsilon=N^\star-L^\epsilon\) on \(W\). The present \(D^\epsilon=0\) proof is an observed-law lower bound and does not itself furnish that richer-experiment embedding. Bai and Ng supply the tall-wide factor-rotation architecture and asymptotic counterfactual expansions under strong observed subblocks; block transport is used here as a supporting identification lemma. Carpentier and Nickl supply testing reductions for honest nuclear confidence diameter in isotropic Gaussian trace regression, with rank adaptation as their central obstruction. Capponi and Stojnic analyze worst-case Frobenius residuals for nuclear-norm minimization with one missing block, a procedure-specific target distinct from the uniformly honest radius. Chen, Fan, Ma, and Yan study debiased uncertainty quantification under random sampling, where sampling isometry replaces deterministic block geometry. Chatterjee characterizes qualitative recoverability under arbitrary deterministic masks, and Arkhangelsky and Imbens organize factor and assignment-pattern distinctions without a global honest matrix radius. Against these comparators, Theorem \ref{thm:balanced-frontier} supplies the fixed-\(\mu>1\) interior \(\sigma\sqrt n\) frontier, whereas Theorem \ref{thm:boundary-frontier-obstruction} shows for every \(0<\kappa\le1\) that the \(\mu=1\) frontier is only order \(\sigma\), or exactly zero at the known-level elbow, despite an order-\(\sigma\sqrt n\) unrestricted tangent modulus. Xia, Yan, and Wainwright and Farias, Li, and Peng remain functional-specific benchmarks; the ATT proposition claims coverage transfer and no optimal-length comparison.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\rho_{\alpha,n}^{\star}\).
+Primary functional / estimator / diagnostic: \(\rho_{\alpha,n}^{\star}=\inf_{(\widehat L_n,R_n)\in\mathcal H_{\alpha,n}}\sup_{\vartheta_n\in\Theta_n}\mathbb E_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}[R_n]\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{asymptotic index}
+  \item \texttt{N\_\allowbreak{}n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{row dimension}
+  \par\smallskip\noindent\emph{Definition.} number of units at index \(n\)
+  \item \texttt{T\_\allowbreak{}n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{column dimension}
+  \par\smallskip\noindent\emph{Definition.} number of periods at index \(n\)
+  \item \texttt{r} --- \texttt{positive integer}; \(\mathbb N\); \texttt{known fixed rank}
+  \item \texttt{alpha} --- \texttt{scalar}; \((0,1/4)\); \texttt{miscoverage level}
+  \item \texttt{sigma} --- \texttt{scalar}; \((0,\infty)\); \texttt{known noise standard deviation}
+  \item \texttt{c\_\allowbreak{}dim} --- \texttt{scalar}; \((0,1]\); \texttt{aspect-\allowbreak{}ratio constant}
+  \item \texttt{mu} --- \texttt{scalar}; \([1,\infty)\); \texttt{incoherence constant}
+  \item \texttt{kappa} --- \texttt{scalar}; \((0,1]\); \texttt{overlap-\allowbreak{}Gram lower bound}
+  \item \texttt{s\_\allowbreak{}minus} --- \texttt{scalar}; \((0,\infty)\); \texttt{lower strong-\allowbreak{}factor constant}
+  \item \texttt{s\_\allowbreak{}plus} --- \texttt{scalar}; \((0,\infty)\); \texttt{upper strong-\allowbreak{}factor constant}
+  \item \texttt{z\_\allowbreak{}q} --- \texttt{scalar functional}; \(\mathbb R\); \texttt{standard Gaussian quantile}
+  \par\smallskip\noindent\emph{Definition.} \(z_q=\Phi^{-1}(q)\)
+  \item \texttt{g\_\allowbreak{}n} --- \texttt{deterministic vector}; \(\{1,\ldots,T_n+1\}^{N_n}\); \texttt{adoption schedule}
+  \par\smallskip\noindent\emph{Definition.} \(g_{i,n}\) is the first treated period of unit \(i\)
+  \item \texttt{Omega\_\allowbreak{}n} --- \texttt{deterministic index set}; \(2^{\{1,\ldots,N_n\}\times\{1,\ldots,T_n\}}\); \texttt{untreated observation wedge}
+  \item \texttt{W\_\allowbreak{}n} --- \texttt{deterministic index set}; \(2^{\{1,\ldots,N_n\}\times\{1,\ldots,T_n\}}\); \texttt{treated missing-\allowbreak{}counterfactual wedge}
+  \par\smallskip\noindent\emph{Definition.} \(W_n=\Omega_n^{c}\)
+  \item \texttt{b} --- \texttt{block index}; \texttt{a finite deterministic label set}; \texttt{four-\allowbreak{}block chart index}
+  \item \texttt{I\_\allowbreak{}b} --- \texttt{row index set}; \(2^{\{1,\ldots,N_n\}}\); \texttt{missing-\allowbreak{}block rows}
+  \item \texttt{C\_\allowbreak{}b} --- \texttt{row index set}; \(2^{\{1,\ldots,N_n\}}\); \texttt{control rows}
+  \item \texttt{P\_\allowbreak{}b} --- \texttt{column index set}; \(2^{\{1,\ldots,T_n\}}\); \texttt{pre-\allowbreak{}treatment columns}
+  \item \texttt{Q\_\allowbreak{}b} --- \texttt{column index set}; \(2^{\{1,\ldots,T_n\}}\); \texttt{post-\allowbreak{}treatment columns}
+  \item \texttt{B\_\allowbreak{}n} --- \texttt{deterministic finite collection}; \(\{(I_b,C_b,P_b,Q_b):b\in\mathcal B_n\}\); \texttt{staircase four-\allowbreak{}block decomposition}
+  \par\smallskip\noindent\emph{Definition.} a disjoint rectangular cover \(W_n=\bigsqcup_{b\in\mathcal B_n}I_b\times Q_b\) with \((I_b\times P_b)\cup(C_b\times P_b)\cup(C_b\times Q_b)\subseteq\Omega_n\)
+  \item \texttt{P\_\allowbreak{}A} --- \texttt{linear projection}; \(\mathbb R^{N_n\times T_n}\to\mathbb R^{N_n\times T_n}\); \texttt{coordinate projection}
+  \par\smallskip\noindent\emph{Definition.} \((P_A X)_{it}=X_{it}\mathbf 1\{(i,t)\in A\}\)
+  \item \texttt{norm\_\allowbreak{}nuc} --- \texttt{matrix norm}; \texttt{nuclear loss}
+  \par\smallskip\noindent\emph{Definition.} \(\lVert X\rVert_*=\sum_j s_j(X)\)
+  \item \texttt{norm\_\allowbreak{}op} --- \texttt{matrix norm}; \texttt{dual norm for weights}
+  \par\smallskip\noindent\emph{Definition.} \(\lVert X\rVert_{\mathrm{op}}=s_1(X)\)
+  \item \texttt{norm\_\allowbreak{}F} --- \texttt{matrix norm}; \texttt{observed Gaussian metric}
+  \par\smallskip\noindent\emph{Definition.} \(\lVert X\rVert_F=\{\sum_{i,t}X_{it}^2\}^{1/2}\)
+  \item \texttt{L\_\allowbreak{}n} --- \texttt{matrix}; \(\mathbb R^{N_n\times T_n}\); \texttt{untreated potential-\allowbreak{}outcome mean matrix}
+  \item \texttt{U\_\allowbreak{}n} --- \texttt{matrix}; \(\mathbb R^{N_n\times r}\); \texttt{unit factors}
+  \par\smallskip\noindent\emph{Definition.} the left singular-vector matrix in \(L_n=U_nS_nV_n^{\top}\)
+  \item \texttt{S\_\allowbreak{}n} --- \texttt{diagonal matrix}; \(\mathbb R^{r\times r}\); \texttt{factor strength}
+  \par\smallskip\noindent\emph{Definition.} the positive singular-value matrix in \(L_n=U_nS_nV_n^{\top}\)
+  \item \texttt{V\_\allowbreak{}n} --- \texttt{matrix}; \(\mathbb R^{T_n\times r}\); \texttt{time factors}
+  \par\smallskip\noindent\emph{Definition.} the right singular-vector matrix in \(L_n=U_nS_nV_n^{\top}\)
+  \item \texttt{E\_\allowbreak{}n} --- \texttt{random matrix}; \(\mathbb R^{N_n\times T_n}\); \texttt{cell noise}
+  \item \texttt{D\_\allowbreak{}n} --- \texttt{matrix}; \(\mathbb R^{N_n\times T_n}\); \texttt{treatment-\allowbreak{}effect matrix}
+  \item \texttt{Y\_\allowbreak{}n} --- \texttt{random matrix}; \(\mathbb R^{N_n\times T_n}\); \texttt{observed outcome matrix}
+  \par\smallskip\noindent\emph{Definition.} \(Y_n=L_n+D_n+E_n\)
+  \item \texttt{X\_\allowbreak{}n} --- \texttt{random observed-\allowbreak{}coordinate vector}; \(\mathbb R^{|\Omega_n|}\); \texttt{observed experiment datum}
+  \par\smallskip\noindent\emph{Definition.} \(X_n=\operatorname{vec}_{\Omega_n}(P_{\Omega_n}Y_n)\)
+  \item \texttt{theta\_\allowbreak{}n} --- \texttt{parameter tuple}; \(\mathbb R^{N_n\times T_n}\times\mathbb R^{N_n\times T_n}\); \texttt{index of the statistical experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\vartheta_n=(L_n,D_n)\)
+  \item \texttt{Theta\_\allowbreak{}n} --- \texttt{parameter space}; \texttt{admissible low-\allowbreak{}rank and treatment-\allowbreak{}effect tuples}
+  \item \texttt{P\_\allowbreak{}theta\_\allowbreak{}n} --- \texttt{probability law}; \(\mathcal P(\mathbb R^{N_nT_n})\); \texttt{full outcome law used by the ATT corollary}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P_{\vartheta,n}=\mathcal N(\operatorname{vec}(L_n+D_n),\sigma^2I_{N_nT_n})\)
+  \item \texttt{Q\_\allowbreak{}theta\_\allowbreak{}n} --- \texttt{probability law}; \(\mathcal P(\mathbb R^{|\Omega_n|})\); \texttt{tuple-\allowbreak{}indexed observed experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb Q_{\vartheta,n}=\mathcal L_{\mathbb P_{\vartheta,n}}(X_n)=\mathcal N(\operatorname{vec}_{\Omega_n}(L_n),\sigma^2I_{|\Omega_n|})\)
+  \item \texttt{Xi\_\allowbreak{}n} --- \texttt{auxiliary random vector}; \(\mathbb R^{|\Omega_n|}\); \texttt{Gaussian randomization for independent pilot and inference copies}
+  \par\smallskip\noindent\emph{Definition.} \(\Xi_n\sim\mathcal N(0,\sigma^2I_{|\Omega_n|})\) independently of \(X_n\)
+  \item \texttt{Zeta\_\allowbreak{}n} --- \texttt{auxiliary random seed}; \([0,1]^{\mathbb N}\); \texttt{independent seed for conditional Gaussian quantile simulation}
+  \par\smallskip\noindent\emph{Definition.} \(\Zeta_n\sim\operatorname{Unif}([0,1]^{\mathbb N})\) independently of \((X_n,\Xi_n)\)
+  \item \texttt{PrQ\_\allowbreak{}theta\_\allowbreak{}n} --- \texttt{probability functional}; \texttt{joint probability in the observed experiment and over declared procedure randomization}
+  \par\smallskip\noindent\emph{Definition.} \(\Pr_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}\)
+  \item \texttt{EQ\_\allowbreak{}theta\_\allowbreak{}n} --- \texttt{expectation functional}; \texttt{joint expectation in the observed experiment and over declared procedure randomization}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb E_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}\)
+  \item \texttt{PrP\_\allowbreak{}theta\_\allowbreak{}n} --- \texttt{probability functional}; \texttt{joint probability under the full outcome law and over declared procedure randomization}
+  \par\smallskip\noindent\emph{Definition.} \(\Pr_{\mathbb P_{\vartheta,n},\Xi_n,\Zeta_n}\)
+  \item \texttt{M\_\allowbreak{}n} --- \texttt{indexed experiment}; \texttt{family of observed-\allowbreak{}data laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak E_n=\{\mathbb Q_{\vartheta,n}:\vartheta_n\in\Theta_n\}\)
+  \item \texttt{Tangent\_\allowbreak{}n} --- \texttt{linear space}; \(2^{\mathbb R^{N_n\times T_n}}\); \texttt{rank-\allowbreak{}manifold tangent space}
+  \item \texttt{omega\_\allowbreak{}n} --- \texttt{scalar functional}; \([0,\infty)\); \texttt{wedge nuclear tangent modulus}
+  \item \texttt{Rgeom\_\allowbreak{}n} --- \texttt{scalar}; \([0,\infty)\); \texttt{worst-\allowbreak{}case geometric radius}
+  \item \texttt{Lhat\_\allowbreak{}n} --- \texttt{random matrix}; \(\mathbb R^{N_n\times T_n}\); \texttt{counterfactual center}
+  \item \texttt{R\_\allowbreak{}n} --- \texttt{random scalar}; \([0,\infty)\); \texttt{observable nuclear radius}
+  \item \texttt{H\_\allowbreak{}alpha\_\allowbreak{}n} --- \texttt{class of procedures}; \texttt{uniformly honest procedures}
+  \item \texttt{rho\_\allowbreak{}star\_\allowbreak{}n} --- \texttt{scalar}; \([0,\infty)\); \texttt{minimax expected honest radius}
+  \item \texttt{A\_\allowbreak{}n} --- \texttt{deterministic matrix}; \(\mathbb R^{N_n\times T_n}\); \texttt{ATT weight matrix}
+  \item \texttt{a\_\allowbreak{}n} --- \texttt{positive scalar}; \((0,\infty)\); \texttt{diffuseness envelope}
+  \item \texttt{tau\_\allowbreak{}A\_\allowbreak{}n} --- \texttt{scalar}; \(\mathbb R\); \texttt{diffuse-\allowbreak{}weight ATT}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_{A,n}=\langle A_n,D_n\rangle\)
+  \item \texttt{tauhat\_\allowbreak{}A\_\allowbreak{}n} --- \texttt{random scalar}; \(\mathbb R\); \texttt{ATT estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau_{A,n}=\langle A_n,P_{W_n}(Y_n-\widehat L_n)\rangle\)
+  \item \texttt{CI\_\allowbreak{}A\_\allowbreak{}n} --- \texttt{random interval}; \(2^{\mathbb R}\); \texttt{ATT confidence interval}
+  \item \texttt{b\_\allowbreak{}0} --- \texttt{deterministic chart index}; \(\mathcal B_n\); \texttt{synchronization gauge and anchor chart}
+  \par\smallskip\noindent\emph{Definition.} \(b_0\) is the lexicographically first element of \(\mathcal B_n\)
+  \item \texttt{C\_\allowbreak{}0\_\allowbreak{}n} --- \texttt{deterministic row index set}; \(2^{\{1,\ldots,N_n\}}\); \texttt{common never-\allowbreak{}treated anchor rows}
+  \par\smallskip\noindent\emph{Definition.} \(C_{0,n}=C_{b_0}\)
+  \item \texttt{P\_\allowbreak{}0\_\allowbreak{}n} --- \texttt{deterministic column index set}; \(2^{\{1,\ldots,T_n\}}\); \texttt{common pre-\allowbreak{}treatment anchor columns}
+  \par\smallskip\noindent\emph{Definition.} \(P_{0,n}=P_{b_0}\)
+  \item \texttt{c\_\allowbreak{}chart} --- \texttt{scalar}; \((0,1]\); \texttt{anchor-\allowbreak{}size constant}
+  \item \texttt{gamma\_\allowbreak{}graph} --- \texttt{scalar}; \((0,1]\); \texttt{chart-\allowbreak{}graph spectral-\allowbreak{}gap constant}
+  \item \texttt{d\_\allowbreak{}chart} --- \texttt{positive integer}; \(\mathbb N\); \texttt{chart-\allowbreak{}incidence bound}
+  \item \texttt{Pi\_\allowbreak{}r} --- \texttt{spectral truncation map}; \(\mathbb R^{a\times b}\to\mathbb R^{a\times b}\); \texttt{local rank truncation}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_r(A)=\sum_{j=1}^{\min\{r,a,b\}}s_j(A)u_j(A)v_j(A)^{\top}\), with deterministic lexicographic signs and bases at ties and with zero singular directions padded when a later factor representation requests \(r\) columns
+  \item \texttt{qf\_\allowbreak{}r} --- \texttt{total deterministic orthonormalization map}; \(\operatorname{qf}_r:\mathbb R^{m\times r}\to\operatorname{St}(m,r)\) for \(m\ge r\); \texttt{dimension-\allowbreak{}preserving chart whitening}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{qf}_r(H)\) applies exact-arithmetic modified Gram--Schmidt to the ordered list consisting of the \(r\) columns of \(H\), followed by \(e_1,\ldots,e_m\), skips zero residuals, fixes each sign by its first nonzero coordinate, and returns the first \(r\) accepted vectors; this is a measurable fallback when \(H\) is rank deficient
+  \item \texttt{polar\_\allowbreak{}r} --- \texttt{total deterministic polar map}; \(\operatorname{polar}_r:\mathbb R^{r\times r}\to\mathsf O(r)\); \texttt{measurable Procrustes solution on singular as well as nonsingular inputs}
+  \par\smallskip\noindent\emph{Definition.} if \(A=P\operatorname{diag}(s_1,\ldots,s_r)Q^{\top}\) is the full singular-value decomposition with decreasing singular values and lexicographically selected bases and signs at every tie and zero singular value, then \(\operatorname{polar}_r(A)=PQ^{\top}\)
+  \item \texttt{G\_\allowbreak{}n} --- \texttt{weighted graph}; \texttt{overlap graph for local spectral charts}
+  \par\smallskip\noindent\emph{Definition.} \(G_n=(\mathcal V_n,\mathcal E_n,w_n)\)
+  \item \texttt{X1\_\allowbreak{}n} --- \texttt{random observed-\allowbreak{}coordinate vector}; \(\mathbb R^{|\Omega_n|}\); \texttt{pilot copy}
+  \par\smallskip\noindent\emph{Definition.} \(X_n^{(1)}=X_n+\Xi_n\)
+  \item \texttt{X2\_\allowbreak{}n} --- \texttt{random observed-\allowbreak{}coordinate vector}; \(\mathbb R^{|\Omega_n|}\); \texttt{inference copy}
+  \par\smallskip\noindent\emph{Definition.} \(X_n^{(2)}=X_n-\Xi_n\)
+  \item \texttt{F\_\allowbreak{}n} --- \texttt{block-\allowbreak{}transport map}; \(\mathbb R^{|\Omega_n|}\to\mathbb R^{|W_n|}\); \texttt{common-\allowbreak{}anchor missing-\allowbreak{}wedge completion map}
+  \item \texttt{Jhat\_\allowbreak{}n} --- \texttt{random linear map}; \(\mathbb R^{|\Omega_n|}\to\mathbb R^{|W_n|}\); \texttt{plug-\allowbreak{}in Fr\textbackslash{}\allowbreak{}'\{e\}\allowbreak{}chet derivative of block transport}
+  \item \texttt{Sigmahat\_\allowbreak{}n} --- \texttt{random covariance matrix}; \(\mathbb R^{|W_n|\times|W_n|}\); \texttt{conditional covariance of the Gaussian linearization}
+  \item \texttt{Xtilde\_\allowbreak{}n} --- \texttt{random matrix}; \(\mathbb R^{N_n\times T_n}\); \texttt{synchronized pilot mean matrix}
+  \item \texttt{Acal\_\allowbreak{}n} --- \texttt{deterministic finite rectangle collection}; \texttt{observed rectangles used by the pilot}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_n=\{C_{0,n}\times P_{0,n}\}\cup\{C_b\times P_b,(I_b\cup C_b)\times P_{0,n},C_{0,n}\times(P_b\cup Q_b):b\in\mathcal B_n\}\)
+  \item \texttt{epsilon\_\allowbreak{}A} --- \texttt{deterministic nonnegative scalar family}; \texttt{rectanglewise Gaussian operator-\allowbreak{}norm threshold}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_A=\sqrt{2}\sigma\{\sqrt{|\operatorname{row}(A)|}+\sqrt{|\operatorname{col}(A)|}+\sqrt{2\log(8(|\mathcal B_n|+1)/\alpha)}\}\) for \(A\in\mathcal A_n\)
+  \item \texttt{epsilon\_\allowbreak{}n} --- \texttt{deterministic nonnegative scalar}; \([0,\infty)\); \texttt{uniform local spectral-\allowbreak{}noise threshold}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_n=\max_{A\in\mathcal A_n}\varepsilon_A\)
+  \item \texttt{delta\_\allowbreak{}hat\_\allowbreak{}n} --- \texttt{random nonnegative scalar}; \([0,\infty)\); \texttt{observable local singular-\allowbreak{}gap lower certificate}
+  \item \texttt{Mhat\_\allowbreak{}n} --- \texttt{random nonnegative scalar}; \([0,\infty)\); \texttt{observable local spectral-\allowbreak{}size envelope}
+  \item \texttt{tau\_\allowbreak{}n} --- \texttt{deterministic nonnegative scalar}; \([0,\infty)\); \texttt{proved post-\allowbreak{}synchronization operator-\allowbreak{}norm envelope}
+  \item \texttt{C\_\allowbreak{}0} --- \texttt{positive universal constant}; \((0,\infty)\); \texttt{Taylor remainder constant}
+  \par\smallskip\noindent\emph{Definition.} \(C_0=64\)
+  \item \texttt{Good\_\allowbreak{}n} --- \texttt{event}; \texttt{simultaneous raw Gaussian spectral event}
+  \item \texttt{Fall\_\allowbreak{}n} --- \texttt{event}; \texttt{fallback event of the total certificate}
+  \item \texttt{qcirc\_\allowbreak{}alpha\_\allowbreak{}n} --- \texttt{random scalar}; \([0,\infty)\); \texttt{exact conditional Gaussian nuclear quantile}
+  \item \texttt{K\_\allowbreak{}n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{conditional Gaussian simulation count}
+  \item \texttt{eta\_\allowbreak{}n} --- \texttt{positive scalar}; \((0,1)\); \texttt{Dvoretzky-\allowbreak{}-\allowbreak{}Kiefer-\allowbreak{}-\allowbreak{}Wolfowitz quantile inflation}
+  \item \texttt{qhat\_\allowbreak{}alpha\_\allowbreak{}n} --- \texttt{random scalar}; \([0,\infty)\); \texttt{conditional nuclear-\allowbreak{}norm Gaussian quantile}
+  \item \texttt{mathscr\_\allowbreak{}R\_\allowbreak{}n} --- \texttt{random scalar}; \([0,\infty)\); \texttt{homogeneous observable second-\allowbreak{}order transport remainder}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr R_n^{(2)}=C_0r^{3/2}\tau_n^2(\widehat\delta_n^{-1}+\widehat M_n\widehat\delta_n^{-2}+\widehat M_n^2\widehat\delta_n^{-3})\) on the stable branch, with the deterministic covering radius on the fallback branch
+  \item \texttt{Rhat\_\allowbreak{}alpha\_\allowbreak{}n} --- \texttt{random scalar}; \([0,\infty)\); \texttt{balanced one-\allowbreak{}block spectral certificate}
+  \item \texttt{WSVD\_\allowbreak{}n} --- \texttt{randomized algorithm}; \(X_n\mapsto(\widehat L_n,\widehat R_{\alpha,n})\); \texttt{total wedge-\allowbreak{}aware spectral procedure with a balanced one-\allowbreak{}block rate guarantee}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:aspect-ratio]\label{ass:aspect-ratio}
+\[c_{\mathrm{dim}}\le N_n/T_n\le c_{\mathrm{dim}}^{-1}.\]
+\par\smallskip\noindent\emph{Standard} (balanced-growth panel asymptotics, \cite{BaiNg2021}).
+\end{assumption}
+
+\begin{assumption}[ass:dimension-growth]\label{ass:dimension-growth}
+\[\min\{N_n,T_n\}\longrightarrow\infty.\]
+\par\smallskip\noindent\emph{Standard} (large-panel asymptotics, \cite{BaiNg2021}).
+\end{assumption}
+
+\begin{assumption}[ass:coverage-level]\label{ass:coverage-level}
+\[0<\alpha<1/4.\]
+\par\smallskip\noindent\emph{Standard} (fixed confidence level, \cite{CarpentierNickl2015}).
+\end{assumption}
+
+\begin{assumption}[ass:staggered-mask]\label{ass:staggered-mask}
+\[\Omega_n=\{(i,t):t<g_{i,n}\}.\]
+\par\smallskip\noindent\emph{Standard} (fixed deterministic staggered-adoption mask, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:known-rank]\label{ass:known-rank}
+\[\operatorname{rank}(L_n)=r.\]
+\par\smallskip\noindent\emph{Standard} (known exact rank, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:strong-factors]\label{ass:strong-factors}
+\[s_-\sqrt{N_nT_n}\le s_r(L_n)\le s_1(L_n)\le s_+\sqrt{N_nT_n}.\]
+\par\smallskip\noindent\emph{Standard} (normalized strong-factor bounds, \cite{BaiNg2021}).
+\end{assumption}
+
+\begin{assumption}[ass:incoherence]\label{ass:incoherence}
+\[\max\left\{\frac{N_n}{r}\max_i\lVert U_{n,i\cdot}\rVert_2^2,\frac{T_n}{r}\max_t\lVert V_{n,t\cdot}\rVert_2^2\right\}\le\mu.\]
+\par\smallskip\noindent\emph{Standard} (matrix incoherence, \cite{ChenFanMaYan2019}).
+\end{assumption}
+
+\begin{assumption}[ass:overlap-grams]\label{ass:overlap-grams}
+\[\min_{b\in\mathcal B_n}\min\left\{\lambda_{\min}\!\left(\frac{N_n}{|C_b|}U_{n,C_b}^{\top}U_{n,C_b}\right),\lambda_{\min}\!\left(\frac{T_n}{|P_b|}V_{n,P_b}^{\top}V_{n,P_b}\right)\right\}\ge\kappa.\]
+\par\smallskip\noindent\emph{Standard} (quantitative observed-subblock factor condition, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:gaussian-cells]\label{ass:gaussian-cells}
+\[\{E_{n,it}/\sigma:1\le i\le N_n,\ 1\le t\le T_n\}\overset{\mathrm{iid}}{\sim}\mathcal N(0,1).\]
+\par\smallskip\noindent\emph{Standard} (independent Gaussian cell noise, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:balanced-dimensions]\label{ass:balanced-dimensions}
+\[N_n=T_n=n.\]
+\par\smallskip\noindent\emph{Standard} (balanced square-panel benchmark, \cite{CapponiStojnic2024}).
+\end{assumption}
+
+\begin{assumption}[ass:even-benchmark]\label{ass:even-benchmark}
+\[n\in2\mathbb N.\]
+\par\smallskip\noindent\emph{Standard} (even-dimensional block benchmark, \cite{CapponiStojnic2024}).
+\end{assumption}
+
+\begin{assumption}[ass:balanced-l-mask]\label{ass:balanced-l-mask}
+\[W_n=\{n/2+1,\ldots,n\}\times\{n/2+1,\ldots,n\}.\]
+\par\smallskip\noindent\emph{Standard} (one-block-missing L-mask, \cite{CapponiStojnic2024}).
+\end{assumption}
+
+\begin{assumption}[ass:rank-one-benchmark]\label{ass:rank-one-benchmark}
+\[r=1.\]
+\par\smallskip\noindent\emph{Standard} (rank-one four-block benchmark, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:balanced-one-chart]\label{ass:balanced-one-chart}
+\[\bigl(\mathcal B_n,I_{b_0},C_{b_0},P_{b_0},Q_{b_0}\bigr)=\bigl(\{b_0\},\{n/2+1,\ldots,n\},\{1,\ldots,n/2\},\{1,\ldots,n/2\},\{n/2+1,\ldots,n\}\bigr).\]
+\par\smallskip\noindent\emph{Standard} (rank-one balanced four-block chart, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:att-support]\label{ass:att-support}
+\[P_{W_n}A_n=A_n.\]
+\par\smallskip\noindent\emph{Standard} (treated-wedge weighting, \cite{XiaYanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:att-normalization]\label{ass:att-normalization}
+\[\sum_{(i,t)\in W_n}A_{n,it}=1.\]
+\par\smallskip\noindent\emph{Standard} (convex ATT weights, \cite{FariasLiPeng2021}).
+\end{assumption}
+
+\begin{assumption}[ass:att-nonnegative]\label{ass:att-nonnegative}
+\[\min_{(i,t)\in W_n}A_{n,it}\ge0.\]
+\par\smallskip\noindent\emph{Standard} (nonnegative ATT weights, \cite{FariasLiPeng2021}).
+\end{assumption}
+
+\begin{assumption}[ass:att-diffuse]\label{ass:att-diffuse}
+\[\lVert A_n\rVert_{\mathrm{op}}\le a_n.\]
+\par\smallskip\noindent\emph{Standard} (spectral diffuseness of a linear functional, \cite{FariasLiPeng2021}).
+\end{assumption}
+
+\begin{assumption}[ass:treatment-support]\label{ass:treatment-support}
+\[P_{\Omega_n}D_n=0.\]
+\par\smallskip\noindent\emph{Standard} (post-adoption treatment-effect support, \cite{ArkhangelskyImbens2024}).
+\end{assumption}
+
+\begin{assumption}[ass:common-row-anchor]\label{ass:common-row-anchor}
+\[\forall b\in\mathcal B_n,\qquad C_{0,n}\subseteq C_b.\]
+\par\smallskip\noindent\emph{Novel.} A persistent never-treated cohort is present in staggered-adoption applications with late or absent adoption and supplies a common row anchor across cohort charts.
+\end{assumption}
+
+\begin{assumption}[ass:common-column-anchor]\label{ass:common-column-anchor}
+\[\forall b\in\mathcal B_n,\qquad P_{0,n}\subseteq P_b.\]
+\par\smallskip\noindent\emph{Novel.} A shared baseline window is natural when every cohort has a common pre-adoption history and makes chart alignment empirically checkable.
+\end{assumption}
+
+\begin{assumption}[ass:anchor-size]\label{ass:anchor-size}
+\[\min\{|C_{0,n}|/N_n,|P_{0,n}|/T_n\}\ge c_{\mathrm{chart}}.\]
+\par\smallskip\noindent\emph{Standard} (nonvanishing donor and pretreatment fractions, \cite{BaiNg2021}).
+\end{assumption}
+
+\begin{assumption}[ass:chart-gap]\label{ass:chart-gap}
+\[\lambda_2(\mathcal L_{\mathrm{norm}}(G_n))\ge\gamma_{\mathrm{graph}}.\]
+\par\smallskip\noindent\emph{Novel.} The condition requires overlapping cohort charts to form a well-connected synchronization network; common-baseline designs and nested cohort staircases with a persistent donor anchor satisfy it.
+\end{assumption}
+
+\begin{assumption}[ass:chart-incidence]\label{ass:chart-incidence}
+\[\max_{(i,t)\in\Omega_n}\sum_{b\in\mathcal B_n}\mathbf 1\{(i,t)\in (I_b\cup C_b)\times(P_b\cup Q_b)\}\le d_{\mathrm{chart}}.\]
+\par\smallskip\noindent\emph{Novel.} Bounded chart incidence is satisfied by coarsened adoption cohorts with bounded overlap multiplicity and prevents a single observed cell from being reused across an increasing number of local fits.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Note-\allowbreak{}specific admissible tuple class with a single low-\allowbreak{}rank untreated-\allowbreak{}outcome matrix}
+\par\smallskip\noindent\emph{Construction.} \[
+\Theta_n=\left\{\vartheta_n=(L_n,D_n):P_{\Omega_n}D_n=0,\ \operatorname{rank}(L_n)=r,\ s_-\sqrt{N_nT_n}\le s_r(L_n)\le s_1(L_n)\le s_+\sqrt{N_nT_n},\ \max\left\{\frac{N_n}{r}\max_i\lVert U_{n,i\cdot}\rVert_2^2,\frac{T_n}{r}\max_t\lVert V_{n,t\cdot}\rVert_2^2\right\}\le\mu,\ \min_{b\in\mathcal B_n}\min\left\{\lambda_{\min}\!\left(\frac{N_n}{|C_b|}U_{n,C_b}^{\top}U_{n,C_b}\right),\lambda_{\min}\!\left(\frac{T_n}{|P_b|}V_{n,P_b}^{\top}V_{n,P_b}\right)\right\}\ge\kappa\right\}.
+\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}staggered-\allowbreak{}mask}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}support}; \texttt{ass:\allowbreak{}known-\allowbreak{}rank}; \texttt{ass:\allowbreak{}strong-\allowbreak{}factors}; \texttt{ass:\allowbreak{}incoherence}; \texttt{ass:\allowbreak{}overlap-\allowbreak{}grams}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}cells}.
+\end{definition}
+
+\begin{definition}[def:observed-experiment]\label{def:observed-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tuple-\allowbreak{}indexed observed experiment}
+\par\smallskip\noindent\emph{Construction.} \[\mathfrak E_n=\{\mathbb Q_{\vartheta,n}:\vartheta_n\in\Theta_n\},\qquad \mathbb Q_{\vartheta,n}=\mathcal L_{\mathbb P_{\vartheta,n}}(X_n)=\mathcal N(\operatorname{vec}_{\Omega_n}(L_n),\sigma^2I_{|\Omega_n|}).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{Theta\_\allowbreak{}n}; \texttt{P\_\allowbreak{}theta\_\allowbreak{}n}; \texttt{X\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:tangent-space]\label{def:tangent-space}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rank-\allowbreak{}manifold tangent space}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal T_n(L_n)=\{U_nB^{\top}+CV_n^{\top}:B\in\mathbb R^{T_n\times r},\ C\in\mathbb R^{N_n\times r}\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{L\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:wedge-modulus]\label{def:wedge-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Wedge nuclear tangent modulus}
+\par\smallskip\noindent\emph{Construction.} \[\omega_n(L_n,\Omega_n)=\sup_{\Delta\in\mathcal T_n(L_n)}\left\{\lVert P_{W_n}\Delta\rVert_*:\lVert P_{\Omega_n}\Delta\rVert_F\le\sigma\sqrt{r(N_n+T_n)}\right\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{L\_\allowbreak{}n}; \texttt{Omega\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:geometric-radius]\label{def:geometric-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Worst-\allowbreak{}case wedge geometry radius}
+\par\smallskip\noindent\emph{Construction.} \[\mathfrak R_n=\sup_{\vartheta_n=(L_n,D_n)\in\Theta_n}\omega_n(L_n,\Omega_n).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{Theta\_\allowbreak{}n}; \texttt{omega\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:honest-procedures]\label{def:honest-procedures}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniformly honest nuclear-\allowbreak{}ball procedures}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal H_{\alpha,n}=\left\{(\widehat L_n,R_n):(\widehat L_n,R_n)\text{ is measurable in }(X_n,\Xi_n,\Zeta_n),\ R_n\ge0,\ \inf_{\vartheta_n=(L_n,D_n)\in\Theta_n}\Pr_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}\!\left(\lVert P_{W_n}(\widehat L_n-L_n)\rVert_*\le R_n\right)\ge1-\alpha\right\}.\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}coverage-\allowbreak{}level}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}support}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}cells}.
+\end{definition}
+
+\begin{definition}[def:minimax-radius]\label{def:minimax-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Minimax expected observable nuclear radius}
+\par\smallskip\noindent\emph{Construction.} \[\rho_{\alpha,n}^{\star}=\inf_{(\widehat L_n,R_n)\in\mathcal H_{\alpha,n}}\ \sup_{\vartheta_n\in\Theta_n}\mathbb E_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}[R_n].\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{H\_\allowbreak{}alpha\_\allowbreak{}n}; \texttt{Theta\_\allowbreak{}n}; \texttt{Q\_\allowbreak{}theta\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:chart-graph]\label{def:chart-graph}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}layer overlap chart synchronization}
+\par\smallskip\noindent\emph{Construction.} Order \(\mathcal B_n\) lexicographically, let \(b_0\) be first, put \(\mathcal V_n=\mathcal B_n\), and compute \(\Pi_r((X_n^{(1)})_{C_bP_b})=\widehat U_b\widehat S_b\widehat V_b^{\top}\), where \(\widehat U_b\in\mathbb R^{|C_b|\times r}\), \(\widehat S_b\in\mathbb R^{r\times r}\), and \(\widehat V_b\in\mathbb R^{|P_b|\times r}\), using zero padding and the lexicographic singular bases fixed by \(\Pi_r\) if the observed rank is below \(r\). Join \(b<c\) precisely when \(R_{bc}=C_b\cap C_c\) and \(S_{bc}=P_b\cap P_c\) both have cardinality at least \(r\), and set \(w_{bc}=|R_{bc}|/N_n+|S_{bc}|/T_n\) and \(d_b=\sum_{c:\{b,c\}\in\mathcal E_n}w_{bc}\). The conformable row and column overlap frames are \(H^U_{b,bc}=\operatorname{qf}_r((\widehat U_b)_{R_{bc},\cdot})\in\mathbb R^{|R_{bc}|\times r}\) and \(H^V_{b,bc}=\operatorname{qf}_r((\widehat V_b)_{S_{bc},\cdot})\in\mathbb R^{|S_{bc}|\times r}\). Define \(\widehat O^U_{bc}=\operatorname{polar}_r((H^U_{b,bc})^{\top}H^U_{c,bc})\) and \(\widehat O^V_{bc}=\operatorname{polar}_r((H^V_{b,bc})^{\top}H^V_{c,bc})\), each in \(\mathsf O(r)\), and put \(\widehat O^Z_{cb}=\widehat O^{Z\top}_{bc}\). For \(Z\in\{U,V\}\), the normalized connection Laplacian is the \((r|\mathcal B_n|)\)-square block matrix with \(\mathcal L^Z_{bb}=I_r\), \(\mathcal L^Z_{bc}=-w_{bc}\widehat O^Z_{bc}/\sqrt{d_bd_c}\) on edges, and zero off edges; equivalently it represents the objective \(\sum_{b<c}w_{bc}\lVert Q_b^Z-\widehat O^Z_{bc}Q_c^Z\rVert_F^2\). Select the lexicographically first orthonormal basis of its bottom \(r\)-dimensional eigenspace, block it as \(\widetilde Q_b^Z\in\mathbb R^{r\times r}\), set \(\widehat Q_{b_0}^Z=I_r\), and for \(b\ne b_0\) set \(\widehat Q_b^Z=\operatorname{polar}_r(\widetilde Q_b^Z(\widetilde Q_{b_0}^Z)^{\top})\). If a chart core or required overlap has fewer than \(r\) indices, some \(d_b=0\), or the scalar graph is disconnected, the construction returns the global fallback specified in Definition \ref{def:wedge-spectral-procedure}; hence synchronization is defined on every input. When \( |\mathcal B_n|=1\), set \(\widehat Q_{b_0}^U=\widehat Q_{b_0}^V=I_r\), declare the scalar graph connected, and use synchronization amplification one; no normalized-Laplacian eigenvalue is evaluated.
+\par\smallskip\noindent\emph{Inputs.} \texttt{B\_\allowbreak{}n}; \texttt{C\_\allowbreak{}0\_\allowbreak{}n}; \texttt{P\_\allowbreak{}0\_\allowbreak{}n}; \texttt{X1\_\allowbreak{}n}; \texttt{Pi\_\allowbreak{}r}; \texttt{qf\_\allowbreak{}r}; \texttt{polar\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:randomized-split]\label{def:randomized-split}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Independent Gaussian pilot and inference copies}
+\par\smallskip\noindent\emph{Construction.} Draw \(\Xi_n\sim\mathcal N(0,\sigma^2I_{|\Omega_n|})\) independently of \(X_n\), and set \(X_n^{(1)}=X_n+\Xi_n\) and \(X_n^{(2)}=X_n-\Xi_n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{X\_\allowbreak{}n}; \texttt{sigma}; \texttt{Omega\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:synchronized-pilot]\label{def:synchronized-pilot}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Synchronized local spectral pilot}
+\par\smallskip\noindent\emph{Construction.} Run Definition \ref{def:chart-graph}. With \(a_b=|C_b||P_b|\), form the conformable anchor averages
+\[
+A_U=\sum_{b\in\mathcal B_n}a_b\operatorname{qf}_r((\widehat U_b)_{C_{0,n},\cdot})\widehat Q_b^U\in\mathbb R^{|C_{0,n}|\times r},
+\qquad
+A_V=\sum_{b\in\mathcal B_n}a_b\operatorname{qf}_r((\widehat V_b)_{P_{0,n},\cdot})\widehat Q_b^V\in\mathbb R^{|P_{0,n}|\times r},
+\]
+and set \(\overline U_0=\operatorname{qf}_r(A_U)\) and \(\overline V_0=\operatorname{qf}_r(A_V)\). Let
+\(\overline K_0=\overline U_0^{\top}(X_n^{(1)})_{C_{0,n}P_{0,n}}\overline V_0\), take its lexicographic full singular-value decomposition \(P_0S_0Q_0^{\top}\), and define
+\(\overline F_0=\overline U_0P_0S_0^{1/2}\) and
+\(\overline G_0=\overline V_0Q_0S_0^{1/2}\).
+Put \(R_b=I_b\cup C_b\) and \(S_b=P_b\cup Q_b\), and compute
+\[
+F_b^{(0)}=(X_n^{(1)})_{R_bP_{0,n}}\overline G_0
+(\overline G_0^{\top}\overline G_0)^{\dagger},
+\qquad
+G_b^{(0)}=((X_n^{(1)})_{C_{0,n}S_b})^{\top}\overline F_0
+(\overline F_0^{\top}\overline F_0)^{\dagger},
+\]
+followed, in the same gauge, by
+\[
+F_b=(X_n^{(1)})_{R_bP_b}G_{b,P_b}^{(0)}
+(G_{b,P_b}^{(0)\top}G_{b,P_b}^{(0)})^{\dagger},
+\qquad
+G_b=((X_n^{(1)})_{C_bS_b})^{\top}F_{b,C_b}^{(0)}
+(F_{b,C_b}^{(0)\top}F_{b,C_b}^{(0)})^{\dagger}.
+\]
+Here and below juxtaposition before a displayed pseudoinverse denotes matrix multiplication; in particular, the two preceding displays have the same dimensions as in the original construction.
+For each row \(i\), let \(\mathcal B_i^F=\{b:i\in R_b\}\), and, when this set is nonempty, set
+\[
+\widetilde F_i=\sum_{b\in\mathcal B_i^F}\lambda_{ib}^FF_{b,i\cdot},
+\qquad
+\lambda_{ib}^F=\frac{|P_b|}{\sum_{c\in\mathcal B_i^F}|P_c|}.
+\]
+For each column \(t\), let \(\mathcal B_t^G=\{b:t\in S_b\}\), and, when this set is nonempty, set
+\[
+\widetilde G_t=\sum_{b\in\mathcal B_t^G}\lambda_{tb}^GG_{b,t\cdot},
+\qquad
+\lambda_{tb}^G=\frac{|C_b|}{\sum_{c\in\mathcal B_t^G}|C_c|}.
+\]
+Empty aggregates are zero rows, sums follow lexicographic chart order, and all ties use the declared lexicographic rules. Set
+\(\widetilde X_{it}=\widetilde F_i\widetilde G_t^{\top}\) on \(\Omega_n\) and
+\(\widetilde X_{it}=0\) on \(W_n\).
+Use
+\[
+\mathcal A_n=\{C_{0,n}\times P_{0,n}\}\cup
+\{C_b\times P_b,(I_b\cup C_b)\times P_{0,n},
+C_{0,n}\times(P_b\cup Q_b):b\in\mathcal B_n\},
+\]
+\[
+\varepsilon_A=\sqrt{2}\sigma\left\{\sqrt{|\operatorname{row}(A)|}
++\sqrt{|\operatorname{col}(A)|}
++\sqrt{2\log(8(|\mathcal B_n|+1)/\alpha)}\right\},
+\qquad
+\varepsilon_n=\max_{A\in\mathcal A_n}\varepsilon_A.
+\]
+Let \(a_{\mathrm{sync},n}=1\) if \(|\mathcal B_n|=1\), and let
+\(a_{\mathrm{sync},n}=1+d_{\mathrm{chart}}/\gamma_{\mathrm{graph}}\) otherwise. The condition-number-valid post-synchronization envelope is
+\[
+\tau_n=
+4096\,a_{\mathrm{sync},n}
+\left[
+1+\frac{s_+}{\kappa s_-}
+\max_{A\in\mathcal A_n}
+\sqrt{\frac{N_nT_n}
+{|\operatorname{row}(A)|\,|\operatorname{col}(A)|}}
+\right]^4\varepsilon_n.
+\]
+Finally define
+\[
+\widehat\delta_n=\min_{A\in\mathcal A_n}
+\{s_r((X_n^{(1)})_A)-2\varepsilon_A\}_+,
+\qquad
+\widehat M_n=\max_{A\in\mathcal A_n}
+\{\|\Pi_r((X_n^{(1)})_A)\|_{\mathrm{op}}+\varepsilon_A\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{X1\_\allowbreak{}n}; \texttt{B\_\allowbreak{}n}; \texttt{Pi\_\allowbreak{}r}; \texttt{qf\_\allowbreak{}r}; \texttt{polar\_\allowbreak{}r}; \texttt{G\_\allowbreak{}n}; \texttt{alpha}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:balanced-good-event]\label{def:balanced-good-event}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Balanced raw Gaussian spectral event}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal G_n=\left\{\max_{A\in\mathcal A_n}\lVert (X_n^{(1)})_A-L_{n,A}\rVert_{\mathrm{op}}\le\varepsilon_A\right\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{X1\_\allowbreak{}n}; \texttt{L\_\allowbreak{}n}; \texttt{Acal\_\allowbreak{}n}; \texttt{epsilon\_\allowbreak{}A}.
+\end{definition}
+
+\begin{definition}[def:transport-map]\label{def:transport-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common-\allowbreak{}anchor transport map and derivative}
+\par\smallskip\noindent\emph{Construction.} For \(x\in\mathbb R^{|\Omega_n|}\), set \[(F_n(x))_{I_bQ_b}=x_{I_bP_{0,n}}\{\Pi_r(x_{C_{0,n}P_{0,n}})\}^{\dagger}x_{C_{0,n}Q_b},\qquad b\in\mathcal B_n.\] For a rank-\(r\) matrix \(B=USV^{\top}\), put \(D\Pi_{r,B}[H]=UU^{\top}H+HVV^{\top}-UU^{\top}HVV^{\top}\). For \(f(A,B,C)=A\{\Pi_r(B)\}^{\dagger}C\), define \(Df_{A,B,C}[H_1,H_2,H_3]=H_1B^{\dagger}C+A\,D(B^{\dagger})[D\Pi_{r,B}[H_2]]C+AB^{\dagger}H_3\), where \[D(B^{\dagger})[H]=-B^{\dagger}HB^{\dagger}+B^{\dagger}B^{\dagger\top}H^{\top}(I-BB^{\dagger})+(I-B^{\dagger}B)H^{\top}B^{\dagger\top}B^{\dagger}.\] On the stable branch, assemble the unique coordinate Jacobian \(\widehat J_n=DF_n(\widetilde X_{\Omega_n})\in\mathbb R^{|W_n|\times|\Omega_n|}\) by lexicographic ordering of observed and missing cells.
+\par\smallskip\noindent\emph{Inputs.} \texttt{B\_\allowbreak{}n}; \texttt{C\_\allowbreak{}0\_\allowbreak{}n}; \texttt{P\_\allowbreak{}0\_\allowbreak{}n}; \texttt{Pi\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:wedge-spectral-procedure]\label{def:wedge-spectral-procedure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total wedge-\allowbreak{}aware spectral certificate with balanced one-\allowbreak{}block calibration}
+\par\smallskip\noindent\emph{Construction.} Check from the fixed design that every rectangle in \(\mathcal A_n\) is contained in \(\Omega_n\), that both of its dimensions are at least \(r\), that the chart graph is connected under the singleton convention of Definition \ref{def:chart-graph}, that its normalized scalar gap is at least \(\gamma_{\mathrm{graph}}\) when it has more than one vertex, and that the computed chart incidence is at most \(d_{\mathrm{chart}}\). Run Definitions \ref{def:chart-graph}--\ref{def:transport-map}. The stable branch is the event that these design checks hold and \(\widehat\delta_n\ge4\tau_n\); denote its complement by \(\mathcal F_n\). On the stable branch set
+\[
+\operatorname{vec}_{W_n}(\widehat L_n)
+=F_n(\widetilde X_{\Omega_n})
++\widehat J_n\{X_n^{(2)}-\widetilde X_{\Omega_n}\},
+\qquad
+\widehat\Sigma_n=2\sigma^2\widehat J_n\widehat J_n^{\top}.
+\]
+Conditional on \(X_n^{(1)}\),
+\(\widehat J_n\{X_n^{(2)}-\operatorname{vec}_{\Omega_n}(L_n)\}\)
+is centered Gaussian with covariance \(\widehat\Sigma_n\). Let
+\(\mathring q_{\alpha,n}\) be the conditional \(1-\alpha/4\) quantile of
+\(\|\operatorname{mat}_{W_n}(\widehat\Sigma_n^{1/2}Z)\|_*\), where
+\(Z\sim\mathcal N(0,I_{|W_n|})\). Set
+\[
+K_n=\left\lceil128\alpha^{-2}\log(8n/\alpha)\right\rceil,
+\qquad
+\eta_n=\sqrt{\frac{\log(8n/\alpha)}{2K_n}},
+\qquad
+p_n=\min\{1,1-\alpha/4+\eta_n\}.
+\]
+Reading \(\Zeta_n\) in coordinate order, generate
+\(G_k=\widehat\Sigma_n^{1/2}z_k\), with
+\(z_k\overset{\mathrm{iid}}{\sim}\mathcal N(0,I_{|W_n|})\), order
+\(T_k=\|\operatorname{mat}_{W_n}(G_k)\|_*\) by value and then simulation index, and put
+\[
+\widehat q_{\alpha,n}
+=T_{(\min\{K_n,\lceil K_np_n\rceil\})}.
+\]
+On the stable branch define
+\[
+\mathscr R_n^{(2)}
+=C_0r^{3/2}\tau_n^2
+\left(\widehat\delta_n^{-1}
++\widehat M_n\widehat\delta_n^{-2}
++\widehat M_n^2\widehat\delta_n^{-3}\right),
+\qquad
+\widehat R_{\alpha,n}
+=\widehat q_{\alpha,n}+\mathscr R_n^{(2)}.
+\]
+On \(\mathcal F_n\), set
+\[
+P_{W_n}\widehat L_n=0,\qquad
+\mathring q_{\alpha,n}=0,\qquad
+\widehat q_{\alpha,n}=0,\qquad
+\mathscr R_n^{(2)}=0,\qquad
+\widehat R_{\alpha,n}
+=s_+\sqrt{r\min\{N_n,T_n\}N_nT_n}.
+\]
+The last radius dominates \(\|P_{W_n}L_n\|_*\). All singular values, pseudoinverses, polar factors, square roots, simulation orderings, and gauges use the declared total lexicographic conventions. Thus \(\mathsf{WSVD}_n\), as well as every random quantity used in its radius audit, is measurable and finite on every input.
+\par\smallskip\noindent\emph{Inputs.} \texttt{X\_\allowbreak{}n}; \texttt{Xi\_\allowbreak{}n}; \texttt{Zeta\_\allowbreak{}n}; \texttt{B\_\allowbreak{}n}; \texttt{C\_\allowbreak{}0\_\allowbreak{}n}; \texttt{P\_\allowbreak{}0\_\allowbreak{}n}; \texttt{r}; \texttt{alpha}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:packing-handle]\label{def:packing-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Overlap-\allowbreak{}aligned tangent-\allowbreak{}packing handle}
+\par\smallskip\noindent\emph{Construction.} Start from the least singular directions of the cohort overlap Grams, lift them into \(\mathcal T_n(L_n)\), assign a Varshamov--Gilbert sign code across orthogonal cohort charts, and use the fixed-rank exponential-map retraction while bounding the observed Gaussian Kullback--Leibler divergence of the resulting tuple-indexed laws \(\mathbb Q_{\vartheta,n}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B\_\allowbreak{}n}; \texttt{U\_\allowbreak{}n}; \texttt{V\_\allowbreak{}n}; \texttt{L\_\allowbreak{}n}; \texttt{Q\_\allowbreak{}theta\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:att-interval]\label{def:att-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nuclear-\allowbreak{}dual ATT interval}
+\par\smallskip\noindent\emph{Construction.} \[\mathrm{CI}_{A,n}=\left[\widehat\tau_{A,n}\ \pm\ \left\{\lVert A_n\rVert_{\mathrm{op}}\widehat R_{\alpha/2,n}+z_{1-\alpha/4}\sigma\lVert A_n\rVert_F\right\}\right].\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{tauhat\_\allowbreak{}A\_\allowbreak{}n}; \texttt{A\_\allowbreak{}n}; \texttt{Rhat\_\allowbreak{}alpha\_\allowbreak{}n}; \texttt{alpha}; \texttt{sigma}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:block-transport]\label{lem:block-transport}
+For every \(\vartheta_n=(L_n,D_n)\in\Theta_n\) and every \(b\in\mathcal B_n\), \(\operatorname{rank}(L_{n,C_bP_b})=r\) implies \[L_{n,I_bQ_b}=L_{n,I_bP_b}L_{n,C_bP_b}^{\dagger}L_{n,C_bQ_b}.\] Hence the tuple-indexed missing-block mean is a functional of the observed mean under \(\mathbb Q_{\vartheta,n}\).
+\end{lemma}
+\begin{proof}
+Write the thin singular-value decomposition as
+\[
+L_n=U_nS_nV_n^{\top}.
+\]
+Assumption \ref{ass:known-rank} makes \(S_n\) invertible.  For a fixed chart \(b\),
+\[
+L_{n,C_bP_b}=U_{n,C_b}S_nV_{n,P_b}^{\top}.
+\]
+The displayed rank hypothesis is \(r\).  Since both outer factors have \(r\) columns, it implies
+\(\operatorname{rank}(U_{n,C_b})=\operatorname{rank}(V_{n,P_b})=r\).  Thus the two Gram matrices are invertible.  The Moore--Penrose inverse of the displayed full-rank factorization is
+\[
+L_{n,C_bP_b}^{\dagger}
+=V_{n,P_b}(V_{n,P_b}^{\top}V_{n,P_b})^{-1}
+S_n^{-1}(U_{n,C_b}^{\top}U_{n,C_b})^{-1}U_{n,C_b}^{\top}.
+\]
+Direct multiplication, using each inverse only after the preceding rank conclusion, gives
+\[
+\begin{aligned}
+L_{n,I_bP_b}L_{n,C_bP_b}^{\dagger}L_{n,C_bQ_b}
+&=U_{n,I_b}S_nV_{n,P_b}^{\top}
+V_{n,P_b}(V_{n,P_b}^{\top}V_{n,P_b})^{-1}
+S_n^{-1}(U_{n,C_b}^{\top}U_{n,C_b})^{-1}U_{n,C_b}^{\top}
+U_{n,C_b}S_nV_{n,Q_b}^{\top}\\
+&=U_{n,I_b}S_nV_{n,Q_b}^{\top}
+=L_{n,I_bQ_b}.
+\end{aligned}
+\]
+By the four-block cover in the definition of \(B_n\), \(I_b\times P_b\), \(C_b\times P_b\), and \(C_b\times Q_b\) are subsets of \(\Omega_n\).  Assumption \ref{ass:treatment-support} and Definition \ref{def:observed-experiment} say that the mean of each of these observed blocks under \(\mathbb Q_{\vartheta,n}\) is the corresponding block of \(L_n\).  Hence the right-hand side of the identity is a functional of the tuple-indexed observed mean, whereas the causal counterfactual remains \(L_{n,I_bQ_b}\); the identity proves their equality rather than defining it.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The identity supplies the algebraic map used by the benchmark certificate and is not itself the novelty claim. \textit{Gap.} Bai and Ng use tall-wide rotation for imputation but do not make this tuple-indexed block identity the basis of an honest nuclear ball. \textit{Consumer.} The synchronized spectral certificate uses the identity to combine observed blocks while keeping the latent target attached to the experiment index.
+
+\begin{theorem}[thm:balanced-frontier]\label{thm:balanced-frontier}
+Assume additionally that \(s_-\le s_+\) and \(\mu>1\). Under the balanced rank-one one-block L-mask assumptions, there exist constants \(0<c<C<\infty\), depending only on \(\alpha\), \(\mu\), \(\kappa\), \(s_-\), and \(s_+\), such that for all sufficiently large even \(n\),
+\[
+c\sigma\sqrt n\le\rho_{\alpha,n}^{\star}\le C\sigma\sqrt n.
+\]
+The upper bound is attained by the total polynomial-time one-block procedure \(\mathsf{WSVD}_n\), whose conditional Gaussian, finite-simulation, homogeneous Taylor, and fallback contributions are each \(O(\sigma\sqrt n)\). The lower bound holds for every procedure uniformly honest over all tuples \(\vartheta_n\in\Theta_n\).
+\end{theorem}
+\begin{proof}
+The upper bound follows from Lemma \ref{lem:balanced-wsvd-certificate} and Definition \ref{def:minimax-radius}:
+\[
+\rho_{\alpha,n}^{\star}
+\le\sup_{\vartheta_n\in\Theta_n}
+\mathbb E_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}
+[\widehat R_{\alpha,n}]
+\le C\sigma\sqrt n.
+\]
+
+We prove the all-procedure lower bound directly.  Put \(m=n/2\), let
+\(C=P=\{1,\ldots,m\}\), \(I=Q=\{m+1,\ldots,n\}\), and set
+\(v=n^{-1/2}\mathbf1_n\).  Choose \(s_0\in[s_-,s_+]\), possible because
+\(s_-\le s_+\), and let \(d=\lfloor m/2\rfloor\).  Select orthonormal vectors
+\[
+w_j=2^{-1/2}(e_{m+2j-1}-e_{m+2j}),
+\qquad 1\le j\le d.
+\]
+They are supported on \(I\) and orthogonal to \(\mathbf1_I\).  Fix
+\(\lambda>0\), put
+\[
+\beta=\frac{\sqrt2\lambda\sigma}{s_0n},
+\qquad
+a=\{1-2d\beta^2\}^{1/2},
+\]
+and, for \(\epsilon=(\epsilon_1,\ldots,\epsilon_d)\in\{-1,1\}^d\), define
+\[
+u_C^\epsilon=n^{-1/2}\mathbf1_C,
+\qquad
+u_I^\epsilon=a\,n^{-1/2}\mathbf1_I
++\beta\sum_{j=1}^d\epsilon_jw_j,
+\qquad
+L^\epsilon=s_0n\,u^\epsilon v^{\top},
+\qquad
+D^\epsilon=0.
+\]
+For all sufficiently large \(n\), \(2d\beta^2<1\), so \(a\) is positive and well defined.  Orthogonality gives
+\[
+\lVert u^\epsilon\rVert_2^2
+=\frac12+\frac{a^2}{2}+d\beta^2=1.
+\]
+Hence \(L^\epsilon\) has rank one and singular value \(s_0n\).  Moreover,
+\[
+2\lVert u_C^\epsilon\rVert_2^2=1,
+\qquad
+2\lVert v_P\rVert_2^2=1,
+\]
+so both overlap Grams equal one and satisfy every \(\kappa\le1\).  Since
+\(\sqrt n\,\beta=O(n^{-1/2})\) and \(a\to1\),
+\[
+n\max_i|u_i^\epsilon|^2\longrightarrow1,
+\qquad
+n\max_t|v_t|^2=1
+\]
+uniformly in \(\epsilon\).  The strict inequality \(\mu>1\) therefore gives incoherence for all sufficiently large \(n\).  Treatment support is immediate from \(D^\epsilon=0\), so every
+\(\vartheta^\epsilon=(L^\epsilon,D^\epsilon)\) belongs to \(\Theta_n\).
+
+Only the observed block \(I\times P\) depends on \(\epsilon\).  For
+\[
+H_j=w_j(v_P/\lVert v_P\rVert_2)^{\top},
+\]
+the matrices \(H_j\) are orthonormal in Frobenius inner product, and the Gaussian projections satisfy
+\[
+Z_j=\langle H_j,X_{IP}\rangle
+=\lambda\sigma\epsilon_j+\sigma\xi_j,
+\qquad
+\xi_j\overset{\mathrm{iid}}{\sim}\mathcal N(0,1).
+\]
+All remaining observed Gaussian coordinates are independent of \(\epsilon\).  Under the uniform prior on the hypercube, the posterior bits therefore factor, and the optimal bit decision is
+\(\operatorname{sign}(Z_j)\), with independent error probability
+\[
+p=\Phi(-\lambda)>0.
+\]
+For any possibly randomized decoder \(\widetilde\epsilon\), the posterior mass of a Hamming ball is maximized by centering it at the coordinatewise posterior mode.  Consequently, for every \(0<\delta<p\),
+\[
+2^{-d}\sum_\epsilon
+\Pr_\epsilon\{d_H(\widetilde\epsilon,\epsilon)\le\delta d\}
+\le\Pr\{\operatorname{Bin}(d,p)\le\delta d\}
+\le\exp\{-2d(p-\delta)^2\}.
+\]
+For completeness, the last inequality follows by applying exponential Markov inequality to the product Bernoulli moment-generating function and optimizing its positive parameter.
+
+Now take an arbitrary \((\widehat L_n,R_n)\in\mathcal H_{\alpha,n}\).  From its center define \(\widetilde\epsilon_j\) by the sign of the coefficient along
+\(w_j(v_Q/\lVert v_Q\rVert_2)^{\top}\), breaking zero ties lexicographically.  The common component is orthogonal to every \(w_j\).  If this sign is wrong, that coefficient differs from its true value by at least \(\lambda\sigma\).  Since the corresponding missing-block directions are Frobenius-orthonormal and nuclear norm dominates Frobenius norm,
+\[
+\lVert P_W(\widehat L_n-L^\epsilon)\rVert_*
+\ge\lambda\sigma\sqrt{d_H(\widetilde\epsilon,\epsilon)}.
+\]
+Put \(\delta=p/2\) and \(r_n=\lambda\sigma\sqrt{\delta d}\).  Uniform honesty implies
+\[
+\Pr_\epsilon\{d_H(\widetilde\epsilon,\epsilon)\le\delta d\}
+\ge1-\alpha-\Pr_\epsilon\{R_n\ge r_n\}.
+\]
+Averaging this inequality over \(\epsilon\) and using the preceding binomial bound shows, for all sufficiently large \(d\),
+\[
+2^{-d}\sum_\epsilon\Pr_\epsilon\{R_n\ge r_n\}
+\ge1-\alpha-e^{-dp^2/2}\ge\frac12.
+\]
+Thus some admissible \(\epsilon\) satisfies
+\[
+\mathbb E_\epsilon R_n\ge\frac{r_n}{2}
+\ge c\sigma\sqrt n.
+\]
+Taking the supremum over \(\Theta_n\), and then the infimum over every uniformly honest procedure, proves the lower bound.  The construction uses only the observed-law family; the arbitrary treatment-effect component is fixed at zero and never conflated with the missing counterfactual.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem distinguishes collective low-rank uncertainty from the order-\(n\) radius obtained by summing entrywise intervals in the fixed strict-incoherence interior \(\mu>1\); Theorem \ref{thm:boundary-frontier-obstruction} records the different \(\mu=1\) behavior for every \(0<\kappa\le1\), including the known-level zero-radius elbow. \textit{Gap.} Yan and Wainwright impose separate low-rank structures on \(M^\star\) and \(N^\star\), with no joint structure between them. This note instead imposes a single low-rank \(L\) and permits arbitrary \(D\) supported on \(W\); because their matrices need not satisfy this note's restrictions and this note's \(L+D\) need not be low rank, neither full class contains the other, and no constructive upper bound transfers. Capponi and Stojnic study a procedure-specific Frobenius residual rather than an all-procedure tuple-indexed honest nuclear radius. Comparator-transfer remark: to transfer the converse to the Yan--Wainwright realized-data class, fix \(N^\star\) across the hypercube and vary only \(M^{\star,\epsilon}=L^\epsilon\); in tuple notation use \(D^\epsilon=N^\star-L^\epsilon\) on \(W\). The current proof with \(D^\epsilon=0\) does not itself furnish that richer-experiment embedding. \textit{Consumer.} Researchers can report a simultaneous uncertainty set for the entire treated counterfactual block at the \(\sigma\sqrt n\) scale in the stated fixed-\(\mu>1\) benchmark, while using Theorem \ref{thm:boundary-frontier-obstruction}, rather than extrapolation, at \(\mu=1\).
+
+\begin{lemma}[lem:randomized-split-law]\label{lem:randomized-split-law}
+For every \(\vartheta_n=(L_n,D_n)\in\Theta_n\), conditional on the fixed design, \(X_n^{(1)}\) and \(X_n^{(2)}\) are independent and each has distribution \(\mathcal N(\operatorname{vec}_{\Omega_n}(L_n),2\sigma^2I_{|\Omega_n|})\).
+\end{lemma}
+\begin{proof}
+Under Definition \ref{def:observed-experiment} and Assumption \ref{ass:treatment-support}, write
+\[
+X_n=\operatorname{vec}_{\Omega_n}(L_n)+e_n,
+\qquad
+e_n\sim\mathcal N(0,\sigma^2I_{|\Omega_n|}).
+\]
+Definition \ref{def:randomized-split} supplies an independent
+\(\Xi_n\sim\mathcal N(0,\sigma^2I_{|\Omega_n|})\).  Therefore
+\[
+X_n^{(1)}=\operatorname{vec}_{\Omega_n}(L_n)+e_n+\Xi_n,
+\qquad
+X_n^{(2)}=\operatorname{vec}_{\Omega_n}(L_n)+e_n-\Xi_n.
+\]
+Both centered errors are Gaussian with covariance \(2\sigma^2I_{|\Omega_n|}\), while their cross-covariance is
+\[
+\operatorname{Cov}(e_n+\Xi_n,e_n-\Xi_n)
+=\sigma^2I_{|\Omega_n|}-\sigma^2I_{|\Omega_n|}=0.
+\]
+The pair is jointly Gaussian because it is a linear image of the jointly Gaussian vector \((e_n,\Xi_n)\).  Zero cross-covariance therefore gives independence, proving the assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The independent copy makes the conditional covariance calibration exact once the pilot is fixed. \textit{Gap.} The four-block literature uses leave-one-out expansions; the randomized Gaussian split gives an exact conditional experiment for a joint nuclear certificate. \textit{Consumer.} The certificate uses the inference copy for a conditionally Gaussian one-step correction and the pilot copy for synchronization.
+
+\begin{lemma}[lem:total-wsvd]\label{lem:total-wsvd}
+For every fixed design and realization of \((X_n,\Xi_n,\Zeta_n)\), \(\mathsf{WSVD}_n\) returns one measurable pair \((\widehat L_n,\widehat R_{\alpha,n})\). On the stable branch, \(\widehat J_n\in\mathbb R^{|W_n|\times|\Omega_n|}\), \(\widehat\Sigma_n=2\sigma^2\widehat J_n\widehat J_n^{\top}\) is positive semidefinite, \(\widehat q_{\alpha,n}\) is a finite order statistic, and the homogeneous \(\mathscr R_n^{(2)}\) is finite and observable. Every failed design, rank, or stability check returns the declared finite fallback. The arithmetic cost is polynomial in \(N_n\), \(T_n\), \(|\mathcal B_n|\), and \(\alpha^{-1}\).
+\end{lemma}
+\begin{proof}
+The maps \(\Pi_r\), \(\operatorname{qf}_r\), and \(\operatorname{polar}_r\) are total and measurable by their deterministic basis, sign, and zero-padding rules. Hence every local factor, every connection-Laplacian block, and every synchronized factor is measurable. Finite lexicographically ordered sums make \(\widetilde X_n\) measurable. Every pseudoinverse and singular value in Definitions \ref{def:synchronized-pilot} and \ref{def:transport-map} is a Borel function of a finite matrix.
+
+On the stable branch the coordinate derivative has one output coordinate for every cell in \(W_n\) and one input coordinate for every cell in \(\Omega_n\), so
+\[
+\widehat J_n\in\mathbb R^{|W_n|\times|\Omega_n|}.
+\]
+Consequently
+\[
+\widehat\Sigma_n=2\sigma^2\widehat J_n\widehat J_n^{\top}
+\in\mathbb R^{|W_n|\times|W_n|},
+\qquad
+x^{\top}\widehat\Sigma_nx
+=2\sigma^2\|\widehat J_n^{\top}x\|_2^2\ge0.
+\]
+Thus its lexicographically chosen positive-semidefinite square root exists. The simulation count
+\(K_n=\lceil128\alpha^{-2}\log(8n/\alpha)\rceil\) is finite because \(n\ge1\) and \(0<\alpha<1/4\); the selected index lies in \(\{1,\ldots,K_n\}\), so \(\widehat q_{\alpha,n}\) is a finite measurable order statistic. Stability gives \(\widehat\delta_n\ge4\tau_n>0\), so every inverse power in \(\mathscr R_n^{(2)}\) is finite. On the complement, the corrected fallback clause assigns finite values to the center, both quantiles, the remainder, and the radius. Hence the returned pair exists and is measurable on every input.
+
+All operations are singular-value decompositions of matrices of dimensions at most \(N_n\times T_n\), eigendecompositions of order at most \(r|\mathcal B_n|\), matrix multiplications and pseudoinverses of these sizes, and \(K_n\) Gaussian draws followed by sorting. Their arithmetic cost is polynomial in \(N_n,T_n,|\mathcal B_n|\), and \(\alpha^{-1}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Totality and dimensional conformity are prerequisites for treating the displayed certificate as a statistical procedure. \textit{Gap.} Existing local four-block algorithms do not specify a globally synchronized, all-input covariance-and-quantile map. \textit{Consumer.} The honesty theorem can quantify over the procedure without excluding singular samples or leaving implementation choices implicit.
+
+\begin{lemma}[lem:balanced-sync-envelope]\label{lem:balanced-sync-envelope}
+Under the balanced rank-one one-chart assumptions, the synchronization gauge is \(1\) and no graph transport is performed. On \(\mathcal G_n\), after putting every fitted factor in the population anchor gauge, each local spectral fit, anchor regression, deterministic aggregate, and fitted observed block used by \(F_n\) has operator-norm error at most
+\[
+\tau_n
+=4096\left(1+\frac{2s_+}{\kappa s_-}\right)^4\varepsilon_n.
+\]
+Consequently \(\tau_n=O(\sigma\sqrt n)\), uniformly over \(\vartheta_n\in\Theta_n\), with the implicit constant depending only on \(\alpha,\kappa,s_-\), and \(s_+\).
+\end{lemma}
+\begin{proof}
+Put \(m=n/2\).  In the singleton chart, \(C=C_{b_0}\), \(I=I_{b_0}\), \(P=P_{b_0}\), and \(Q=Q_{b_0}\) all have cardinality \(m\), while \(C_{0,n}=C\) and \(P_{0,n}=P\).  Definition \ref{def:chart-graph} therefore sets both synchronization rotations to the identity and \(a_{\mathrm{sync},n}=1\).
+
+Let
+\[
+B=L_{n,CP}=U_{n,C}S_nV_{n,P}^{\top}.
+\]
+Assumption \ref{ass:overlap-grams} and \(N_n=T_n=n\) imply
+\[
+\lVert U_{n,C}x\rVert_2^2\ge\frac{\kappa}{2}\lVert x\rVert_2^2,
+\qquad
+\lVert V_{n,P}x\rVert_2^2\ge\frac{\kappa}{2}\lVert x\rVert_2^2.
+\]
+Since \(r=1\), Assumption \ref{ass:strong-factors} consequently yields
+\[
+s_1(B)\ge \frac{\kappa s_-n}{2}=: \delta_0,
+\qquad
+\max_{A\in\mathcal A_n}\lVert L_{n,A}\rVert_{\mathrm{op}}
+\le s_+n=:M_0.
+\]
+Also, the definition of \(\varepsilon_n\), the balanced rectangle sizes, and \(|\mathcal B_n|=1\) give
+\[
+\varepsilon_n
+\le\sqrt2\sigma\left(2\sqrt n+\sqrt{2\log(16/\alpha)}\right)
+=O(\sigma\sqrt n).
+\]
+Thus, for all sufficiently large \(n\), \(\varepsilon_n\le\delta_0/16\).
+
+We record the deterministic rank-one perturbation calculation used at every stage.  If \(B_0=suv^{\top}\), \(\lVert u\rVert_2=\lVert v\rVert_2=1\), \(s\ge\delta_0\), and \(\lVert E\rVert_{\mathrm{op}}\le\varepsilon_n\le\delta_0/16\), then, for the leading singular triplet \((\widehat u,\widehat s,\widehat v)\) in the fixed sign gauge,
+\[
+|\widehat s-s|\le\varepsilon_n,
+\qquad
+\lVert(I-uu^{\top})\widehat u\rVert_2
+\le\frac{2\varepsilon_n}{\delta_0},
+\qquad
+\lVert(I-vv^{\top})\widehat v\rVert_2
+\le\frac{2\varepsilon_n}{\delta_0}.
+\]
+Indeed, the first inequality follows from the two variational definitions of the largest singular value.  Projecting
+\((B_0+E)\widehat v=\widehat s\widehat u\) onto \(u^{\perp}\) gives
+\(\widehat s\lVert(I-uu^{\top})\widehat u\rVert_2\le\varepsilon_n\); use
+\(\widehat s\ge s-\varepsilon_n\ge15\delta_0/16\), and argue symmetrically for \(\widehat v\).
+
+In the balanced singular-value gauge, every first anchor regression is a product
+\[
+\frac{A\widehat v}{\sqrt{\widehat s}}
+=A(\widehat v\sqrt{\widehat s})(\widehat s)^{-1},
+\]
+or its transpose.  Adding and subtracting \(A_0v/\sqrt s\), using the preceding bounds,
+\(\lVert A-A_0\rVert_{\mathrm{op}}\le\varepsilon_n\), and
+\(\lVert A_0\rVert_{\mathrm{op}}\le M_0\), gives
+\[
+\begin{aligned}
+\left\lVert\frac{A\widehat v}{\sqrt{\widehat s}}
+-\frac{A_0v}{\sqrt s}\right\rVert_2
+&\le
+\frac{\varepsilon_n}{\sqrt{\widehat s}}
++\frac{M_0\lVert\widehat v-v\rVert_2}{\sqrt{\widehat s}}
++M_0\left|\widehat s^{-1/2}-s^{-1/2}\right|\\
+&\le16(1+M_0/\delta_0)^2
+\frac{\varepsilon_n}{\sqrt{\delta_0}}.
+\end{aligned}
+\]
+The square-root difference in the last line uses
+\[
+|\widehat s^{-1/2}-s^{-1/2}|
+=\frac{|\widehat s-s|}
+{\sqrt{\widehat s}\sqrt s(\sqrt{\widehat s}+\sqrt s)}
+\le\frac{\varepsilon_n}{\delta_0^{3/2}}.
+\]
+Repeating the same add-and-subtract calculation for the refinement step, and then using
+\[
+\lVert\widehat f\widehat g^{\top}-fg^{\top}\rVert_{\mathrm{op}}
+\le\lVert\widehat f-f\rVert_2\lVert g\rVert_2
++\lVert f\rVert_2\lVert\widehat g-g\rVert_2
++\lVert\widehat f-f\rVert_2\lVert\widehat g-g\rVert_2,
+\]
+shows that every fitted block has error at most
+\[
+2048\left(1+\frac{M_0}{\delta_0}\right)^4\varepsilon_n
+\le4096\left(1+\frac{2s_+}{\kappa s_-}\right)^4\varepsilon_n
+=\tau_n.
+\]
+There is only one representation of each row and column, so deterministic aggregation introduces no further amplification.  On \(\mathcal G_n\), all input perturbations used above are bounded by their \(\varepsilon_A\), hence by \(\varepsilon_n\).  This proves the simultaneous envelope and, by the displayed deterministic bound on \(\varepsilon_n\), its \(O(\sigma\sqrt n)\) order uniformly over \(\Theta_n\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The one-chart calculation isolates the exact perturbation scale before nonlinear block transport. \textit{Gap.} Published four-block analyses control scalar entries; this lemma records the joint operator envelope required by a nuclear-radius Taylor bound. \textit{Consumer.} The balanced radius audit substitutes this envelope into every first- and second-order certificate term.
+
+\begin{lemma}[lem:balanced-radius-audit]\label{lem:balanced-radius-audit}
+Under the balanced rank-one one-chart assumptions, there are constants \(c_1,C_1,C_2<\infty\), depending only on \(\alpha,\mu,\kappa,s_-,s_+\), such that, uniformly over \(\vartheta_n\in\Theta_n\), \[\mathbb E[\mathring q_{\alpha,n}]\le C_1\sigma\sqrt n,\qquad \mathbb E[(\widehat q_{\alpha,n}-\mathring q_{\alpha,n})_+]\le C_1\sigma\sqrt n,\qquad \mathbb E[\widehat q_{\alpha,n}]\le C_2\sigma\sqrt n.\] On \(\mathcal G_n\cap\mathcal F_n^c\), \(\widehat\delta_n\asymp s_-n\), \(\widehat M_n=O(s_+n)\), and therefore \[\mathscr R_n^{(2)}\le C_2\frac{\sigma^2}{s_-}\le C_2\sigma\sqrt n,\qquad \mathbb E[\mathscr R_n^{(2)}\mathbf 1\{\mathcal F_n^c\}]\le C_2\sigma\sqrt n.\] Moreover, for all sufficiently large even \(n\), \[\Pr(\mathcal F_n)\le C_1\exp\{-c_1s_-^2n/\sigma^2\}\le C_2\frac{\sigma}{s_+n},\qquad s_+n^{3/2}\Pr(\mathcal F_n)\le C_2\sigma\sqrt n.\] The first display separately bounds the exact conditional Gaussian term and its finite-simulation inflation. The other displays follow from the large population chart gap of order \(s_-n\), a Gaussian operator-norm tail evaluated at that gap, the stability test \(\widehat\delta_n\ge4\tau_n\), and the homogeneous identity \(\mathscr R_n^{(2)}=C_0\tau_n^2(\widehat\delta_n^{-1}+\widehat M_n\widehat\delta_n^{-2}+\widehat M_n^2\widehat\delta_n^{-3})\). Thus synchronization, Monte Carlo calibration, Taylor remainder, and fallback contributions each have order at most \(\sigma\sqrt n\) without cancellation.
+\end{lemma}
+\begin{proof}
+Put \(m=n/2\), and abbreviate
+\[
+\delta_0=\frac{\kappa s_-n}{2},
+\qquad
+M_0=s_+n,
+\qquad
+\chi=1+\frac{s_+}{\kappa s_-}.
+\]
+The balanced rectangle collection has at most three distinct rectangles.  For a matrix \(G\) with independent \(\mathcal N(0,2\sigma^2)\) entries, the Gaussian operator-norm concentration calculation gives
+\[
+\Pr\!\left\{\lVert G\rVert_{\mathrm{op}}>
+\sqrt2\sigma(\sqrt a+\sqrt b+t)\right\}\le e^{-t^2/2}.
+\]
+With the threshold in Definition \ref{def:synchronized-pilot} and a union bound,
+\[
+\sup_{\vartheta_n\in\Theta_n}\Pr(\mathcal G_n^c)
+\le\frac{3\alpha}{16}<\frac{\alpha}{4}.
+\]
+The same inequality evaluated at \(t\asymp\delta_0/\sigma\), together with
+\(\varepsilon_n=O(\sigma\sqrt n)\), yields, for all sufficiently large \(n\),
+\[
+\Pr(\mathcal F_n)
+\le C_1\exp\{-c_1s_-^2n/\sigma^2\}.
+\]
+Here \(c_1\) absorbs the fixed \(\kappa\); the displayed exponent is weaker than the direct order-\(n^2\) exponent and is therefore valid.  Since an exponential dominates \(n^{-1}\), after increasing the threshold in \(n\),
+\[
+\Pr(\mathcal F_n)\le C_2\frac{\sigma}{s_+n},
+\qquad
+s_+n^{3/2}\Pr(\mathcal F_n)\le C_2\sigma\sqrt n.
+\]
+
+We next audit the conditional Gaussian term.  Let
+\[
+\mathcal H_n=
+\left\{\max_{A\in\mathcal A_n}
+\lVert(X_n^{(1)})_A-L_{n,A}\rVert_{\mathrm{op}}
+\le\delta_0/4\right\}.
+\]
+On the stable branch, the derivative of
+\(f(A,B,C)=AB^{\dagger}C\) is the sum of the three displayed derivative terms in Definition \ref{def:transport-map}.  In rank one, each term has rank at most one, so their sum has rank at most three.  The overlap inequalities, stability, and the perturbation calculation in Lemma \ref{lem:balanced-sync-envelope} give
+\[
+\lVert\widehat J_n\rVert_{\mathrm{HS}}^2\le Cn,
+\qquad
+\lVert\widehat J_n\rVert_{\ell_2\to F}\le C,
+\]
+on \(\mathcal H_n\cap\mathcal F_n^c\), where the constants depend only on
+\(\kappa,s_-,s_+\).  For example, the \(H_1\) term has Hilbert--Schmidt norm squared
+\[
+m\lVert B^{\dagger}C\rVert_F^2\le Cm,
+\]
+the \(H_3\) term is symmetric, and the \(H_2\) term is bounded by inserting
+\(\lVert B^{\dagger}\rVert_{\mathrm{op}}\le C/n\) and
+\(\lVert A\rVert_{\mathrm{op}},\lVert C\rVert_{\mathrm{op}}\le Cn\)
+in the three summands of \(D(B^{\dagger})\).  The same bounds hold for the plug-in matrices on \(\mathcal H_n\cap\mathcal F_n^c\).
+
+On \(\mathcal H_n^c\cap\mathcal F_n^c\), the same derivative formula, now using only
+\(\widehat\delta_n\ge4\tau_n\), gives the deterministic polynomial envelope
+\[
+\lVert\widehat J_n\rVert_{\mathrm{HS}}
+\le C\sqrt n\left(1+\frac{\widehat M_n}{\tau_n}\right)^2,
+\qquad
+\lVert\widehat J_n\rVert_{\ell_2\to F}
+\le C\left(1+\frac{\widehat M_n}{\tau_n}\right)^2.
+\]
+The preceding Gaussian operator-norm tail, integrated against this polynomial, implies
+\[
+\mathbb E\!\left[
+\left\{\lVert\widehat J_n\rVert_{\mathrm{HS}}
++\sqrt{\log K_n}\lVert\widehat J_n\rVert_{\ell_2\to F}\right\}
+\mathbf1_{\mathcal H_n^c\cap\mathcal F_n^c}\right]
+\le C\sqrt n.
+\]
+Indeed, \(\widehat M_n\) is bounded by \(M_0+\varepsilon_n\) plus the same maximum Gaussian operator norm, whereas
+\(\Pr(\mathcal H_n^c)\le C\exp(-c s_-^2n^2/\sigma^2)\); every fixed polynomial moment is therefore absorbed by that exponential.
+
+If \(Z_n=\operatorname{mat}_{W_n}(\widehat\Sigma_n^{1/2}Z)\), then conditionally on the pilot,
+\[
+\mathbb E(\lVert Z_n\rVert_*\mid X_n^{(1)})
+\le\sqrt3\,\mathbb E(\lVert Z_n\rVert_F\mid X_n^{(1)})
+\le\sqrt6\,\sigma\lVert\widehat J_n\rVert_{\mathrm{HS}}
+\le C\sigma\sqrt n
+\]
+on \(\mathcal H_n\cap\mathcal F_n^c\).  Markov's inequality at conditional probability \(\alpha/4\), the polynomial-tail integral on
+\(\mathcal H_n^c\cap\mathcal F_n^c\), and the convention
+\(\mathring q_{\alpha,n}=0\) on \(\mathcal F_n\) give
+\[
+\mathring q_{\alpha,n}
+\le\frac4\alpha\mathbb E(\lVert Z_n\rVert_*\mid X_n^{(1)}),
+\qquad
+\mathbb E\mathring q_{\alpha,n}\le C_1\sigma\sqrt n.
+\]
+Moreover, on \(\mathcal H_n\cap\mathcal F_n^c\), \(\lVert Z_n\rVert_*\), as a function of the underlying standard Gaussian vector, is \(C\sigma\)-Lipschitz because its matrix rank is at most three and
+\(\lVert\widehat J_n\rVert_{\ell_2\to F}\le C\).  Integrating the elementary Gaussian tail bound there, using the preceding polynomial-tail integral on
+\(\mathcal H_n^c\cap\mathcal F_n^c\), and using
+\(\log K_n=O(\log\log n+\log\alpha^{-1})\) gives
+\[
+\mathbb E\!\left[
+\max_{1\le k\le K_n}T_k\mathbf1_{\mathcal F_n^c}\right]
+\le C\sigma\{\sqrt n+\sqrt{\log K_n}\}
+\le C_2\sigma\sqrt n.
+\]
+Here the maximum is read as zero on \(\mathcal F_n\), consistently with the fallback convention.  Since
+\(0\le\widehat q_{\alpha,n}\le\max_kT_k\),
+\[
+\mathbb E[(\widehat q_{\alpha,n}-\mathring q_{\alpha,n})_+]
+\le C_1\sigma\sqrt n,
+\qquad
+\mathbb E\widehat q_{\alpha,n}\le C_2\sigma\sqrt n.
+\]
+
+On \(\mathcal G_n\cap\mathcal F_n^c\), Weyl's inequality and the population bounds give
+\[
+c\,s_-n\le\widehat\delta_n\le C\,s_+n,
+\qquad
+\widehat M_n\le C\,s_+n.
+\]
+The synchronization envelope obeys
+\(\tau_n\le C\chi^4\sigma\sqrt n\).  Substitution into the homogeneous formula, with \(r=1\), yields term by term
+\[
+\begin{aligned}
+\mathscr R_n^{(2)}
+&=C_0\tau_n^2
+\left\{\widehat\delta_n^{-1}
++\widehat M_n\widehat\delta_n^{-2}
++\widehat M_n^2\widehat\delta_n^{-3}\right\}\\
+&\le
+C\sigma^2n\left\{\frac1{s_-n}
++\frac{s_+n}{s_-^2n^2}
++\frac{s_+^2n^2}{s_-^3n^3}\right\}
+\le C_2\frac{\sigma^2}{s_-}
+\le C_2\sigma\sqrt n
+\end{aligned}
+\]
+for all sufficiently large \(n\).  The same \(\widehat\delta_n\) and
+\(\widehat M_n\) orders hold throughout
+\(\mathcal H_n\cap\mathcal F_n^c\), whether or not the sharper event
+\(\mathcal G_n\) occurs.  On
+\(\mathcal H_n^c\cap\mathcal F_n^c\), stability still gives
+\(\widehat\delta_n\ge4\tau_n\), while
+\[
+\widehat M_n\le M_0+
+\max_A\lVert(X_n^{(1)})_A-L_{n,A}\rVert_{\mathrm{op}}+\varepsilon_n.
+\]
+Integrating the preceding Gaussian tail after the large-gap cutoff bounds the expectation of
+\(\tau_n+\widehat M_n+\widehat M_n^2/\tau_n\) on that event by
+\(C\sigma\sqrt n\).  Consequently
+\[
+\mathbb E[\mathscr R_n^{(2)}\mathbf1_{\mathcal F_n^c}]
+\le C_2\sigma\sqrt n.
+\]
+Thus the Gaussian quantile, finite simulation, homogeneous remainder, and fallback are controlled separately, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A termwise benchmark audit rules out a formally honest but diameter-scale expected radius. \textit{Gap.} Neither scalar staggered-panel inference nor Frobenius residual theory audits conditional nuclear quantiles, nonlinear remainder, simulation, and fallback on one common scale. \textit{Consumer.} The benchmark certificate and two-sided minimax theorem use these four bounds without cancellation.
+
+\begin{lemma}[lem:balanced-wsvd-certificate]\label{lem:balanced-wsvd-certificate}
+Under the balanced rank-one one-chart assumptions, for all sufficiently large even \(n\), the total algorithm \(\mathsf{WSVD}_n\) is randomized polynomial-time and \[(\widehat L_n,\widehat R_{\alpha,n})\in\mathcal H_{\alpha,n},\qquad \sup_{\vartheta_n\in\Theta_n}\mathbb E_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}[\widehat R_{\alpha,n}]\le C\sigma\sqrt n,\] where \(C\) depends only on \(\alpha,\mu,\kappa,s_-,s_+\). Honesty includes every singular or failed-stability sample through the deterministic fallback, and the expected-radius assertion follows by adding the separately controlled conditional Gaussian, simulation, homogeneous Taylor, and fallback terms in Lemma \ref{lem:balanced-radius-audit}.
+\end{lemma}
+\begin{proof}
+On the stable branch, Lemma \ref{lem:block-transport} gives
+\[
+\operatorname{vec}_{W_n}(L_n)
+=F_n(\operatorname{vec}_{\Omega_n}(L_n)).
+\]
+Let \(\ell_n=\operatorname{vec}_{\Omega_n}(L_n)\) and
+\(\widetilde\ell_n=\operatorname{vec}_{\Omega_n}(\widetilde X_n)\).  From Definition \ref{def:wedge-spectral-procedure},
+\[
+\operatorname{vec}_{W_n}(\widehat L_n-L_n)
+=\widehat J_n(X_n^{(2)}-\ell_n)
++\left\{F_n(\widetilde\ell_n)-F_n(\ell_n)
+-\widehat J_n(\widetilde\ell_n-\ell_n)\right\}.
+\]
+On \(\mathcal G_n\cap\mathcal F_n^c\), Lemma \ref{lem:balanced-sync-envelope} bounds every argument perturbation by \(\tau_n\), and stability places every intervening anchor singular value above \(\widehat\delta_n/2\).  Expanding each occurrence of the inverse by
+\[
+(B+H)^{-1}-B^{-1}
+=-B^{-1}H(B+H)^{-1}
+\]
+on the rank-one row and column spaces, and bounding the three possible placements of two perturbations, gives
+\[
+\left\lVert
+F_n(\widetilde\ell_n)-F_n(\ell_n)
+-\widehat J_n(\widetilde\ell_n-\ell_n)
+\right\rVert_*
+\le
+C_0\tau_n^2
+\left(\widehat\delta_n^{-1}
++\widehat M_n\widehat\delta_n^{-2}
++\widehat M_n^2\widehat\delta_n^{-3}\right)
+=\mathscr R_n^{(2)}.
+\]
+No division occurs before the stable lower bound \(\widehat\delta_n>0\) is invoked.
+
+By Lemma \ref{lem:randomized-split-law}, conditionally on \(X_n^{(1)}\),
+\[
+\widehat J_n(X_n^{(2)}-\ell_n)
+\sim\mathcal N(0,\widehat\Sigma_n).
+\]
+It therefore has nuclear norm at most \(\mathring q_{\alpha,n}\) with conditional probability at least \(1-\alpha/4\).  Conditional on the pilot, put
+\[
+B_k=\mathbf1\{T_k<\mathring q_{\alpha,n}\}.
+\]
+By the definition of the left \(1-\alpha/4\) quantile,
+\(\mathbb E(B_k\mid X_n^{(1)})\le1-\alpha/4\).  Applying exponential Markov inequality to
+\(\prod_k\mathbb E[\exp\{t(B_k-\mathbb EB_k)\}\mid X_n^{(1)}]\), and optimizing over \(t>0\), gives the Bernoulli bound
+\[
+\Pr\!\left\{K_n^{-1}\sum_{k=1}^{K_n}B_k>
+1-\alpha/4+\eta_n
+\ \middle|\ X_n^{(1)}\right\}
+\le e^{-2K_n\eta_n^2}
+=\frac{\alpha}{8n}.
+\]
+On its complement, fewer than \(K_np_n\) simulated values are strictly below
+\(\mathring q_{\alpha,n}\), so the definition of \(p_n\) ensures
+\(\widehat q_{\alpha,n}\ge\mathring q_{\alpha,n}\).  The balanced Gaussian rectangle bound in Lemma \ref{lem:balanced-radius-audit} gives
+\(\Pr(\mathcal G_n^c)<\alpha/4\).  A union bound, using \(n\ge2\), shows that on the stable branch the nuclear ball fails with probability at most
+\[
+\frac{\alpha}{4}+\frac{\alpha}{4}+\frac{\alpha}{16}<\alpha.
+\]
+On the fallback branch,
+\[
+\lVert P_{W_n}L_n\rVert_*
+\le\lVert L_n\rVert_*
+\le r\,s_+\sqrt{N_nT_n}
+\le s_+\sqrt{r\min\{N_n,T_n\}N_nT_n},
+\]
+where the last inequality uses \(r\le\min\{N_n,T_n\}\).  Since the fallback center is zero, coverage there is deterministic.  This proves
+\((\widehat L_n,\widehat R_{\alpha,n})\in\mathcal H_{\alpha,n}\).
+
+Lemma \ref{lem:total-wsvd} gives randomized polynomial time.  Finally, Lemma \ref{lem:balanced-radius-audit} and the fallback identity \(N_n=T_n=n\), \(r=1\), give
+\[
+\begin{aligned}
+\sup_{\vartheta_n\in\Theta_n}\mathbb E\widehat R_{\alpha,n}
+&\le
+\sup_{\vartheta_n}\mathbb E[
+\widehat q_{\alpha,n}\mathbf1_{\mathcal F_n^c}]
++\sup_{\vartheta_n}\mathbb E[
+\mathscr R_n^{(2)}\mathbf1_{\mathcal F_n^c}]
++s_+n^{3/2}\sup_{\vartheta_n}\Pr(\mathcal F_n)\\
+&\le C\sigma\sqrt n.
+\end{aligned}
+\]
+Every expectation and probability in the last display is under the joint law \(\mathbb Q_{\vartheta,n}\) and the declared independent randomization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This benchmark-only lemma supplies the constructive half of the field-grade minimax frontier. \textit{Gap.} Existing results do not give a total polynomial-time honest nuclear ball with every expected-radius component verified at the balanced L-mask scale. \textit{Consumer.} The principal frontier theorem uses this certificate for its upper bound.
+
+\begin{proposition}[prop:diffuse-att]\label{prop:diffuse-att}
+For every \(\vartheta_n=(L_n,D_n)\in\Theta_n\) under the balanced rank-one one-block L-mask assumptions and every deterministic \(A_n\) satisfying treated support, normalization, nonnegativity, and diffuseness, \[\Pr_{\mathbb P_{\vartheta,n},\Xi_n,\Zeta_n}\{\tau_{A,n}\in\mathrm{CI}_{A,n}\}\ge1-\alpha.\] The half-length is at most \(a_n\widehat R_{\alpha/2,n}+z_{1-\alpha/4}\sigma\lVert A_n\rVert_F\); this is a coverage result from nuclear--operator duality, not an optimal-length assertion.
+\end{proposition}
+\begin{proof}
+Because \(P_{W_n}A_n=A_n\) and \(Y_n=L_n+D_n+E_n\),
+\[
+\begin{aligned}
+\widehat\tau_{A,n}-\tau_{A,n}
+&=\langle A_n,P_{W_n}(Y_n-\widehat L_n)\rangle
+-\langle A_n,D_n\rangle\\
+&=\langle A_n,P_{W_n}(L_n-\widehat L_n)\rangle
++\langle A_n,P_{W_n}E_n\rangle.
+\end{aligned}
+\]
+To verify nuclear--operator duality directly, write a singular-value decomposition
+\(B=\sum_js_ju_jv_j^{\top}\).  Then
+\[
+|\langle A_n,B\rangle|
+=\left|\sum_js_ju_j^{\top}A_nv_j\right|
+\le\lVert A_n\rVert_{\mathrm{op}}\sum_js_j
+=\lVert A_n\rVert_{\mathrm{op}}\lVert B\rVert_*.
+\]
+Applying this identity with \(B=P_{W_n}(L_n-\widehat L_n)\) gives
+\[
+|\langle A_n,P_{W_n}(L_n-\widehat L_n)\rangle|
+\le\lVert A_n\rVert_{\mathrm{op}}
+\lVert P_{W_n}(\widehat L_n-L_n)\rVert_*.
+\]
+Apply Lemma \ref{lem:balanced-wsvd-certificate} with miscoverage level \(\alpha/2\), which remains in \((0,1/4)\).  Its honesty event
+\[
+\mathcal E_L=
+\{\lVert P_{W_n}(\widehat L_n-L_n)\rVert_*
+\le\widehat R_{\alpha/2,n}\}
+\]
+has probability at least \(1-\alpha/2\).  By Assumption \ref{ass:gaussian-cells}, the cell errors on \(W_n\) are independent of the observed coordinates on \(\Omega_n\); they are also independent of \(\Xi_n\) and \(\Zeta_n\) by their definitions.  Hence
+\[
+\langle A_n,P_{W_n}E_n\rangle
+\sim\mathcal N(0,\sigma^2\lVert A_n\rVert_F^2).
+\]
+Therefore the two-sided Gaussian event
+\[
+\mathcal E_E=
+\{|\langle A_n,P_{W_n}E_n\rangle|
+\le z_{1-\alpha/4}\sigma\lVert A_n\rVert_F\}
+\]
+has probability \(1-\alpha/2\).  A union bound gives
+\(\Pr(\mathcal E_L\cap\mathcal E_E)\ge1-\alpha\).  On this intersection, the two preceding inequalities are exactly the membership inequality
+\(\tau_{A,n}\in\mathrm{CI}_{A,n}\).  Finally,
+\(\lVert A_n\rVert_{\mathrm{op}}\le a_n\) gives the asserted half-length bound.  Treated support is used in the algebra; normalization and nonnegativity give the ATT interpretation but are not needed for the coverage inequality.  No optimal-length conclusion is drawn.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Nuclear/operator duality transfers the global counterfactual certificate to a pre-specified diffuse ATT, while the independent treated-cell noise is covered separately. \textit{Gap.} Functional-specific papers derive sharper tailored laws; this result is solely a coverage-valid duality corollary. \textit{Consumer.} Applied staggered-adoption studies can reuse the global matrix uncertainty set for one valid weighted ATT interval.
+
+\begin{openendedquestion}[oeq:general-wedge-frontier]\label{oeq:general-wedge-frontier}
+For the full tuple space \(\Theta_n\), without the balanced one-block restriction and without common anchors, graph-gap, or bounded-incidence restrictions beyond quantitative overlap Grams, is there a randomized polynomial-time procedure \((\widehat L_n,R_n)\in\mathcal H_{\alpha,n}\) and a constant \(c>0\) such that \[\sup_{\vartheta_n\in\Theta_n}\mathbb E_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}[R_n]\lesssim\mathfrak R_n\quad\text{and}\quad\rho_{\alpha,n}^{\star}\ge c\mathfrak R_n?\] The handle is an overlap-aligned tangent packing in the tuple-indexed experiment, paired with nonorthogonal transport or synchronization on the unanchored chart graph.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the load-bearing open content needed for a matched all-wedge minimax characterization rather than a common-anchor upper theorem. \textit{Gap.} Carpentier and Nickl use isotropic trace-regression mixtures, while Yan and Wainwright use scalar local bounds; neither treats exact-rank tuple-indexed alternatives over every deterministic staircase. \textit{Consumer.} A positive answer would determine when global counterfactual uncertainty is intrinsic to the wedge rather than to a particular synchronization scheme.
+
+\begin{theorem}[thm:boundary-frontier-obstruction]\label{thm:boundary-frontier-obstruction}
+Assume the balanced rank-one one-block L-mask conditions, \(\mu=1\), \(0<\kappa\le 1\), and \(0<s_-\le s_+\).  Then both normalized overlap Grams in the unique balanced chart equal \(1\), so the value of \(\kappa\) does not further restrict this boundary class.  For all sufficiently large even \(n\), the minimax expected honest radius has the following complete boundary characterization.
+\[
+\begin{array}{ll}
+s_-<s_+:& c_\alpha\sigma\le \rho_{\alpha,n}^{\star}\le C_\alpha\sigma,
+\quad\text{hence }\rho_{\alpha,n}^{\star}\asymp\sigma,\\[3pt]
+s_-=s_+:& \rho_{\alpha,n}^{\star}=0,
+\end{array}
+\]
+where \(0<c_\alpha<C_\alpha<\infty\) depend only on \(\alpha\).  The first upper bound and the zero-radius result are attained by deterministic \(O(n^2)\)-time procedures in \(\mathcal H_{\alpha,n}\); in the second line the common factor level is known because the parameter-space constants coincide.  In both cases
+\[
+\mathfrak R_n\ge \sigma\sqrt{2n}
+\qquad\text{and}\qquad
+\frac{\rho_{\alpha,n}^{\star}}{\mathfrak R_n}\longrightarrow0.
+\]
+Consequently, no positive constant can make an all-procedure inequality \(\rho_{\alpha,n}^{\star}\ge c\mathfrak R_n\) hold over every parameter choice and wedge allowed by the model.  The obstruction is that at \(\mu=1\) the admissible rank-one singular vectors have only coordinatewise sign choices, whereas the unrestricted rank-manifold tangent space still contains continuous directions.
+\end{theorem}
+\begin{proof}
+Put \(n=2m\).  By the balanced-dimension, even-benchmark, balanced-L-mask, and balanced-one-chart assumptions, the unique chart has
+\[
+C:=C_{b_0}=P:=P_{b_0}=\{1,\ldots,m\},\qquad
+I:=I_{b_0}=Q:=Q_{b_0}=\{m+1,\ldots,2m\},
+\]
+where the repeated labels distinguish row from column sets, and
+\[
+W_n=I\times Q,qquad
+\Omega_n=(C\times P)\mathbin{\sqcup}(I\times P)
+\mathbin{\sqcup}(C\times Q),qquad |\Omega_n|=3m^2.       \tag{1}
+\]
+In particular, every cell used below belongs to the observed wedge whenever it lies in one of the three rectangles in (1).
+
+We first identify the entire \(\mu=1\) boundary class.  By the model-class definition together with the known-rank, rank-one-benchmark, and strong-factor assumptions, every \(\vartheta_n=(L_n,D_n)\in\Theta_n\) admits a singular-value decomposition
+\[
+L_n=s_nu_nv_n^{\top},\qquad
+\lVert u_n\rVert_2=\lVert v_n\rVert_2=1,qquad
+s_-n\le s_n\le s_+n.                                    \tag{2}
+\]
+At \(\mu=1\), the incoherence assumption becomes
+\[
+|u_{n,i}|^2\le n^{-1}\quad(1\le i\le n),
+\qquad |v_{n,t}|^2\le n^{-1}\quad(1\le t\le n).        \tag{3}
+\]
+The \(n\) nonnegative quantities on each side of (3) sum to one, so every inequality in (3) is an equality.  Consequently there are signs \(p_i,q_t\in\{-1,1\}\) and a level \(\ell_n=s_n/n\in[s_-,s_+]\) such that
+\[
+u_{n,i}=\frac{p_i}{\sqrt n},\qquad
+v_{n,t}=\frac{q_t}{\sqrt n},\qquad
+L_{n,it}=\ell_np_iq_t.                                  \tag{4}
+\]
+The two normalized overlap Grams in the unique chart are well defined because \(|C|=|P|=m>0\).  Equation (4) gives
+\[
+\frac{n}{|C|}u_{n,C}^{\top}u_{n,C}
+=\frac{n}{m}\sum_{i\in C}\frac1n=1,
+\qquad
+\frac{n}{|P|}v_{n,P}^{\top}v_{n,P}
+=\frac{n}{m}\sum_{t\in P}\frac1n=1.                  \tag{5}
+\]
+Thus every boundary matrix satisfies the overlap-Gram assumption for every \(0<\kappa\le1\), and the value of \(\kappa\) imposes no further restriction on this boundary class.
+
+We next establish the claimed geometric lower bound.  The class is nonempty: choose \(p_i=q_t=1\), \(\ell_n=s_-\), and \(D_n=0\).  Equations (2)--(5), the treatment-support assumption, and \(0<\kappa\le1\) verify every member property in the model-class definition.  For this matrix, let \(q=(q_1,\ldots,q_n)^{\top}\), and take a vector \(h\in\mathbb R^n\) supported on \(I\).  Since \(v_n=q/\sqrt n\),
+\[
+\Delta=hq^{\top}=(\sqrt n\,h)v_n^{\top}\in\mathcal T_n(L_n)       \tag{6}
+\]
+by the tangent-space definition.  By (1) and the support of \(h\),
+\[
+\lVert P_{\Omega_n}\Delta\rVert_F
+=\lVert h_Iq_P^{\top}\rVert_F
+=\sqrt m\,\lVert h\rVert_2,
+\qquad
+\lVert P_{W_n}\Delta\rVert_*
+=\lVert h_Iq_Q^{\top}\rVert_*
+=\sqrt m\,\lVert h\rVert_2.                            \tag{7}
+\]
+Here a rank-one matrix \(ab^{\top}\) has its sole nonzero singular value equal to \(\lVert a\rVert_2\lVert b\rVert_2\), proving the nuclear-norm equality.  Choose \(h\) so that \(\sqrt m\lVert h\rVert_2=\sigma\sqrt{2n}\).  Since \(r=1\) and \(N_n=T_n=n\), this \(\Delta\) is feasible in the wedge-modulus definition.  The geometric-radius definition therefore yields
+\[
+\mathfrak R_n\ge \omega_n(L_n,\Omega_n)
+\ge\sigma\sqrt{2n}.                                    \tag{8}
+\]
+
+For completeness, \(\mathfrak R_n\) is finite on this class.  For any boundary \(L_n\) and any \(\Delta\in\mathcal T_n(L_n)\), multiplication on the left and right by the diagonal sign matrices generated by \(p\) and \(q\) preserves Frobenius and nuclear norms and turns \(\Delta_{it}\) into an additive array \(A_{it}=a_i+d_t\).  Fix \(i_0\in C\) and \(t_0\in P\).  Then
+\[
+A_{it}=A_{i t_0}+A_{i_0t}-A_{i_0t_0}qquad(i\in I, t\in Q).       \tag{9}
+\]
+Using \((x+y+z)^2\le3(x^2+y^2+z^2)\), summing (9), and observing that the three collections on its right are disjoint subsets of \(\Omega_n\), we obtain
+\[
+\lVert A_{I Q}\rVert_F^2
+\le3m^2\lVert P_{\Omega_n}A\rVert_F^2.                \tag{10}
+\]
+The missing block has rank at most two, and Cauchy--Schwarz applied to its singular values gives
+\[
+\lVert P_{W_n}\Delta\rVert_*
+\le\sqrt2\lVert P_{W_n}\Delta\rVert_F
+\le\sqrt6m\lVert P_{\Omega_n}\Delta\rVert_F.         \tag{11}
+\]
+Thus every wedge modulus, and hence its supremum over \(\Theta_n\), is a finite real number.
+
+We now construct a uniformly valid relative-sign pilot.  Fix the same \(i_0\in C\) and \(t_0\in P\), set \(\operatorname{sign}(0)=1\), and define from observed coordinates
+\[
+\widehat p_i=\operatorname{sign}\!\left(\sum_{t\in P}X_{n,it}X_{n,i_0t}\right),
+\qquad
+\widehat q_t=\operatorname{sign}\!\left(\sum_{i\in C}X_{n,it}X_{n,it_0}\right).    \tag{12}
+\]
+All cells in (12) belong to \(\Omega_n\) by (1).  The observed-experiment definition, which follows from treatment support and the Gaussian-cell assumption, gives \(X_{n,it}=L_{n,it}+E_{n,it}\) on these coordinates.  For \(i\ne i_0\), multiplying the row score in (12) by \(p_ip_{i_0}\), and absorbing deterministic signs into the centered Gaussian errors, gives
+\[
+S_i=\sum_{t=1}^{m}(\ell_n+\varepsilon_t)(\ell_n+\delta_t)
+=m\ell_n^2+G_i+H_i,                                    \tag{13}
+\]
+where the pairs \((\varepsilon_t,\delta_t)\) are independent over \(t\), the two coordinates in each pair are independent \(\mathcal N(0,\sigma^2)\), and
+\[
+G_i=\ell_n\sum_{t=1}^{m}(\varepsilon_t+\delta_t)
+\sim\mathcal N(0,2m\ell_n^2\sigma^2),
+\qquad H_i=\sum_{t=1}^{m}\varepsilon_t\delta_t.         \tag{14}
+\]
+For \(G\sim\mathcal N(0,v)\), exponential Markov inequality and minimization over \(a>0\) give
+\[
+\Pr(G\le-x)\le\inf_{a>0}\exp\{-ax+a^2v/2\}
+=\exp\{-x^2/(2v)\}.                                   \tag{15}
+\]
+Applying (15) to (14) yields
+\[
+\Pr\!\left(G_i\le-\frac{m\ell_n^2}{2}\right)
+\le\exp\!\left\{-\frac{m\ell_n^2}{16\sigma^2}\right\}.       \tag{16}
+\]
+For \(0<a<\sigma^{-2}\), conditioning on one Gaussian coordinate and integrating the other proves directly that
+\[
+\mathbb E\exp(-a\varepsilon_t\delta_t)
+=(1-\sigma^4a^2)^{-1/2}.                                \tag{17}
+\]
+If \(0<a\le(2\sigma^2)^{-1}\), then \(-\tfrac12\log(1-\sigma^4a^2)\le\sigma^4a^2\).  Independence, (17), and exponential Markov inequality imply
+\[
+\Pr\!\left(H_i\le-\frac{m\ell_n^2}{2}\right)
+\le\exp\!\left\{-\frac{ma\ell_n^2}{2}+m\sigma^4a^2\right\}.  \tag{18}
+\]
+Taking \(a=\min\{\ell_n^2/(4\sigma^4),(2\sigma^2)^{-1}\}\), and using \(\ell_n\ge s_->0\), gives
+\[
+\Pr\!\left(H_i\le-\frac{m\ell_n^2}{2}\right)\le e^{-mc_2},
+\qquad
+c_2=\min\!\left\{\frac{s_-^4}{16\sigma^4},\frac14\right\}>0. \tag{19}
+\]
+If \(S_i\le0\), at least one of the events in (16) and (19) occurs.  Thus, with
+\[
+c_1=\frac{s_-^2}{16\sigma^2},\qquad c_\star=\min\{c_1,c_2\}>0,
+\]
+we have
+\[
+\mathbb Q_{\vartheta,n}\{\widehat p_i\ne p_ip_{i_0}\}
+\le e^{-mc_1}+e^{-mc_2}\qquad(i\ne i_0).               \tag{20}
+\]
+For \(i=i_0\), the row score is a sum of squares and is positive almost surely.  Interchanging rows and columns proves the same bound for \(\widehat q_t\ne q_tq_{t_0}\), while the reference-column score is positive almost surely.  Consequently, for
+\[
+\mathcal S_n=
+\{\widehat p_i=p_ip_{i_0}\ \text{for every }i,
+\ \widehat q_t=q_tq_{t_0}\ \text{for every }t\},
+\]
+the union bound, which requires no independence among the scores, yields
+\[
+\sup_{\vartheta_n\in\Theta_n}
+\mathbb Q_{\vartheta,n}(\mathcal S_n^c)
+\le2(n-1)(e^{-mc_1}+e^{-mc_2})
+\le4ne^{-mc_\star}.                                    \tag{21}
+\]
+
+Suppose first that \(s_-<s_+\).  Let \(\Phi\) be the standard-normal distribution function and put \(z_\alpha=\Phi^{-1}(1-\alpha/4)>0\), using the coverage-level assumption.  Define
+\[
+\widehat\ell_n=\frac1{3m^2}\sum_{(i,t)\in\Omega_n}
+X_{n,it}\widehat p_i\widehat q_t,
+\qquad
+\widehat L_{n,it}=\widehat\ell_n\widehat p_i\widehat q_t,
+\qquad
+R_n=\frac{z_\alpha}{\sqrt3}\sigma.                    \tag{22}
+\]
+On \(\mathcal S_n\), set \(c=p_{i_0}q_{t_0}\).  Then \(\widehat p_i\widehat q_t=cp_iq_t\), and (4), (22), and the independent Gaussian-cell assumption imply
+\[
+\widehat\ell_n=c(\ell_n+Z_n),
+\qquad
+Z_n=\frac1{3m^2}\sum_{(i,t)\in\Omega_n}p_iq_tE_{n,it}
+\sim\mathcal N\!\left(0,\frac{\sigma^2}{3m^2}\right).           \tag{23}
+\]
+It follows on \(\mathcal S_n\) that
+\[
+P_{W_n}(\widehat L_n-L_n)=Z_np_Iq_Q^{\top},
+\qquad
+\lVert P_{W_n}(\widehat L_n-L_n)\rVert_*=m|Z_n|.       \tag{24}
+\]
+By the choice of \(z_\alpha\),
+\[
+\mathbb Q_{\vartheta,n}\{m|Z_n|>R_n\}=\alpha/2.       \tag{25}
+\]
+For all sufficiently large even \(n\), the right side of (21) is at most \(\alpha/2\).  The union bound applied to (21), (24), and (25), without any independence assertion between \(\mathcal S_n\) and \(Z_n\), proves
+\[
+\inf_{\vartheta_n\in\Theta_n}
+\Pr_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}
+\!\left\{\lVert P_{W_n}(\widehat L_n-L_n)\rVert_*\le R_n\right\}
+\ge1-\alpha.                                            \tag{26}
+\]
+Thus (22) belongs to \(\mathcal H_{\alpha,n}\) by the honest-procedures definition.  It is deterministic conditional on \(X_n\), and computing its row and column correlations, signed average, and outer-product completion takes \(O(n^2)\) arithmetic operations.  Since its radius is deterministic, the minimax-radius definition gives
+\[
+\rho_{\alpha,n}^{\star}\le C_\alpha\sigma,
+\qquad C_\alpha:=\frac{z_\alpha}{\sqrt3}.             \tag{27}
+\]
+
+For the all-procedure lower bound, retain the fixed signs \(p_i=q_t=1\), and define
+\[
+a_\alpha=\frac{1-2\alpha}{2\sqrt3}>0,
+\qquad
+\delta_n=\frac{a_\alpha\sigma}{m},
+\qquad
+\ell_0=s_-,\qquad \ell_1=s_-+\delta_n.                \tag{28}
+\]
+Because \(s_-<s_+\), the condition \(\ell_1\le s_+\) holds for all sufficiently large \(n\).  Let
+\[
+L^{(j)}=\ell_j\mathbf1_n\mathbf1_n^{\top},qquad D^{(j)}=0,
+\qquad j\in\{0,1\}.
+\]
+Equations (2)--(5) and treatment support verify that both tuples belong to the same \(\Theta_n\).  Their observed Gaussian mean vectors differ by \(\delta_n\) in each of the \(3m^2\) coordinates of \(\Omega_n\).
+
+Let \(f_0,f_1\) be their observed Gaussian densities.  Completing the square in each coordinate gives the Hellinger affinity
+\[
+A:=\int\sqrt{f_0f_1}
+=\exp\!\left\{-\frac{\lVert
+\operatorname{vec}_{\Omega_n}(L^{(1)}-L^{(0)})\rVert_2^2}
+{8\sigma^2}\right\}
+=\exp\!\left\{-\frac{3a_\alpha^2}{8}\right\}.       \tag{29}
+\]
+Writing total variation as one half of the \(L^1\) distance and applying Cauchy--Schwarz gives
+\[
+\begin{aligned}
+d_{\mathrm{TV}}(\mathbb Q_0,\mathbb Q_1)
+&=\frac12\int|\sqrt{f_0}-\sqrt{f_1}|(\sqrt{f_0}+\sqrt{f_1})\\
+&\le\frac12\{(2-2A)(2+2A)\}^{1/2}
+=\sqrt{1-A^2}\\
+&\le\frac{\sqrt3a_\alpha}{2}
+=\frac{1-2\alpha}{4}.                                  \tag{30}
+\end{aligned}
+\]
+The penultimate inequality follows from \(1-e^{-x}\le x\) for \(x\ge0\).  Adjoining the common independent laws of \(\Xi_n\) and \(\Zeta_n\) leaves total variation unchanged, because integration over that common product factor leaves the \(L^1\) distance unchanged.
+
+Take an arbitrary \((\widehat L_n,R_n)\in\mathcal H_{\alpha,n}\), and on the common sample space define
+\[
+\mathcal A_j=
+\{\lVert P_{W_n}(\widehat L_n-L^{(j)})\rVert_*\le R_n\},
+\qquad j\in\{0,1\}.
+\]
+Uniform honesty gives \(\Pr_j(\mathcal A_j)\ge1-\alpha\).  Total variation gives \(\Pr_0(\mathcal A_1)\ge\Pr_1(\mathcal A_1)-d_{\mathrm{TV}}(\mathbb Q_0,\mathbb Q_1)\), so (30) implies
+\[
+\Pr_0(\mathcal A_0\cap\mathcal A_1)
+\ge1-2\alpha-d_{\mathrm{TV}}(\mathbb Q_0,\mathbb Q_1)
+\ge\frac34(1-2\alpha).                                 \tag{31}
+\]
+On this intersection, the triangle inequality for the nuclear norm gives
+\[
+2R_n\ge\lVert P_{W_n}(L^{(1)}-L^{(0)})\rVert_*
+=\delta_n\lVert\mathbf1_I\mathbf1_Q^{\top}\rVert_*
+=m\delta_n=a_\alpha\sigma.                             \tag{32}
+\]
+Therefore
+\[
+\sup_{\vartheta_n\in\Theta_n}
+\mathbb E_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}[R_n]
+\ge\mathbb E_0[R_n]
+\ge\frac{3a_\alpha(1-2\alpha)}8\sigma
+=c_\alpha\sigma,
+\qquad
+c_\alpha:=\frac{3(1-2\alpha)^2}{16\sqrt3}>0.          \tag{33}
+\]
+Taking the infimum over all honest procedures in (33), and combining with (27), proves
+\[
+c_\alpha\sigma\le\rho_{\alpha,n}^{\star}\le C_\alpha\sigma,
+\qquad \rho_{\alpha,n}^{\star}\asymp\sigma,          \tag{34}
+\]
+where both displayed constants depend only on \(\alpha\).  This lower bound varies only the positive factor level in a fixed-sign two-point subexperiment; the treatment-effect matrix is fixed at zero.  Thus it is an observed-law lower bound for the counterfactual radius, not an identification of a causal treatment effect by definition.
+
+It remains to treat \(s_-=s_+\).  Write the known common value as \(s_0:=s_-=s_+>0\).  Use the relative signs in (12), and set
+\[
+\overline X_n^{\mathrm{sgn}}
+=\frac1{3m^2}\sum_{(i,t)\in\Omega_n}X_{n,it}\widehat p_i\widehat q_t,
+\qquad
+\widehat c_n=\operatorname{sign}(\overline X_n^{\mathrm{sgn}}),
+\]
+\[
+\widehat L_{n,it}=s_0\widehat c_n\widehat p_i\widehat q_t,
+\qquad R_n=0.                                           \tag{35}
+\]
+On \(\mathcal S_n\), equation (23) becomes
+\[
+\overline X_n^{\mathrm{sgn}}=c(s_0+Z_n),
+\qquad
+Z_n\sim\mathcal N\!\left(0,\frac{\sigma^2}{3m^2}\right).       \tag{36}
+\]
+Hence \(\widehat c_n=c\) whenever \(\mathcal S_n\) occurs and \(Z_n>-s_0\), and on that event (35) equals \(L_n\) at every cell.  Applying (15) to (36) and using (21),
+\[
+\sup_{\vartheta_n\in\Theta_n}
+\Pr_{\mathbb Q_{\vartheta,n},\Xi_n,\Zeta_n}
+\{P_{W_n}\widehat L_n\ne P_{W_n}L_n\}
+\le4ne^{-mc_\star}
++\exp\!\left\{-\frac{3m^2s_0^2}{2\sigma^2}\right\}.            \tag{37}
+\]
+For all sufficiently large even \(n\), the right side is at most \(\alpha\).  Therefore the deterministic \(O(n^2)\)-time pair in (35) belongs to \(\mathcal H_{\alpha,n}\).  Its radius is identically zero.  Since every radius in the honest-procedures definition is nonnegative, the minimax-radius definition yields
+\[
+0\le\rho_{\alpha,n}^{\star}\le0,
+\qquad\text{so}\qquad \rho_{\alpha,n}^{\star}=0.      \tag{38}
+\]
+
+Finally, (8), (27), and finiteness from (11) imply in the nondegenerate case that
+\[
+0\le\frac{\rho_{\alpha,n}^{\star}}{\mathfrak R_n}
+\le\frac{z_\alpha}{\sqrt{6n}}\longrightarrow0,         \tag{39}
+\]
+whereas the ratio is identically zero in the known-level case by (8) and (38).  Thus no fixed positive constant can make \(\rho_{\alpha,n}^{\star}\ge c\mathfrak R_n\) hold uniformly over all model settings and wedges admitted by the frozen assumptions.  Equations (4), (6), and (9) identify the obstruction: at \(\mu=1\), admissible singular-vector magnitudes are fixed and only coordinatewise signs remain, while the rank-manifold tangent space in the wedge-modulus definition still contains unrestricted continuous directions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem gives the full saturated-incoherence boundary frontier, including the exact known-level elbow, and proves why the unrestricted tangent modulus is not a same-class minimax lower benchmark there. \textit{Gap.} The fixed-\(\mu>1\) interior theorem has order \(\sigma\sqrt n\), but it does not cover the active boundary \(\mu=1\); the boundary instead has order \(\sigma\) for a nondegenerate level interval and zero radius for a known singleton level. \textit{Consumer.} Researchers can choose the correct honest-radius scale at the saturated boundary and avoid extrapolating either the fixed-interior frontier or the unrestricted tangent modulus to \(\mu=1\).
+
+\begin{openendedquestion}[oeq:boundary-layer-and-general-wedge]\label{oeq:boundary-layer-and-general-wedge}
+Determine the minimax order of \(\rho_{\alpha,n}^{\star}\) in the two regimes not settled by the boundary and fixed-interior theorems: first, the balanced rank-one L-mask when the incoherence bound is allowed to depend on \(n\), with \(\mu=\mu(n)>1\) and \(\mu(n)\downarrow1\); second, arbitrary quantitatively admissible interior multi-chart wedges with fixed \(\mu>1\) and \(0<\kappa\le1\).  In each regime, determine whether a polynomial-time uniformly honest spectral certificate and a same-class all-procedure lower bound match.  No interpolation rate between the zero/\(\sigma\) boundary frontier and the fixed-interior \(\sigma\sqrt n\) frontier is asserted.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The proved endpoints leave two mathematically distinct problems: the shrinking layer next to active incoherence and the geometry of arbitrary interior multi-chart wedges. \textit{Gap.} Neither the boundary sign experiment nor the fixed-\(\mu>1\) one-block packing supplies a uniform interpolation theorem or a matching arbitrary-wedge certificate. \textit{Consumer.} A solution would tell panel researchers when boundary discreteness ceases to dominate and whether general staggered wedges admit a computationally matched honest-radius frontier.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The \(\sigma\sqrt n\) certificate and minimax frontier are confined to the balanced rank-one one-block L-mask with fixed \(\mu>1\). The displayed multi-chart synchronization is a total computational construction, but no rate or honesty theorem is asserted for a general connected wedge. A broader interior theorem requires a uniform post-synchronization envelope and nuclear-mask amplification bound together with a same-class packing preserving exact rank, strong factors, global incoherence, every chartwise overlap, and controlled observed-law divergence. Separately, neither the fixed-interior packing nor the saturated-boundary sign reduction is uniform in a shrinking-incoherence layer \(\mu_n\downarrow1\); Open-ended Question \ref{oeq:boundary-layer-and-general-wedge} records both unresolved regimes without positing an interpolation rate.
+
+\section{Honest scope}
+
+The matching balanced rank-one bounds for fixed \(\mu>1\), their total one-block spectral certificate, the full \(\mu=1\) boundary characterization for every \(0<\kappa\le1\), and the diffuse-weight ATT coverage corollary are the proved deliverables. At the boundary the radius is order \(\sigma\) when \(s_-<s_+\) and zero when the common level is known through \(s_-=s_+\); neither result extends the strict-slack \(\sigma\sqrt n\) claim to \(\mu=1\). The exact conditional Gaussian term, Monte Carlo inflation, homogeneous Taylor remainder, and fallback contribution are separately bounded at the fixed-\mu>1 benchmark scale. Both the shrinking-incoherence layer and a rate-optimal honest certificate with a matching all-procedure lower bound for multi-chart wedge patterns remain open in Open-ended Question \ref{oeq:boundary-layer-and-general-wedge}. No theorem is asserted for a multi-chart connected wedge, unknown rank, approximate low rank, dependent or heteroskedastic errors, adaptive adoption, or optimal ATT length.
+
+\begin{thebibliography}{99}
+
+  \bibitem{YanWainwright2024} Yuling Yan and Martin J. Wainwright (2024), Entrywise Inference for Missing Panel Data: A Simple and Instance-Optimal Approach, author-hosted/arXiv:2401.13665v1 artifact (https://wainwrigwork.github.io/bib/papers/YanWai24.pdf), especially Section 2.2 and Theorems 1--2.
+
+  \bibitem{BaiNg2021} Jushan Bai and Serena Ng (2021), Matrix Completion, Counterfactuals, and Factor Analysis of Missing Data, Journal of the American Statistical Association 116, 1746--1763, especially Proposition 2 and Section 6.
+
+  \bibitem{CarpentierNickl2015} Alexandra Carpentier and Richard Nickl (2015), On Signal Detection and Confidence Sets for Low Rank Inference Problems, Electronic Journal of Statistics 9, 2675--2688, especially Theorems 1 and 4.
+
+  \bibitem{CapponiStojnic2024} Agostino Capponi and Mihailo Stojnic (2024), Exact Error in Matrix Completion: Approximately Low-Rank Structures and Missing Blocks, arXiv:2401.00578, especially Theorems 3.4--3.5.
+
+  \bibitem{ChenFanMaYan2019} Yuxin Chen, Jianqing Fan, Cong Ma, and Yuling Yan (2019), Inference and Uncertainty Quantification for Noisy Matrix Completion, Proceedings of the National Academy of Sciences 116, 22931--22937.
+
+  \bibitem{Chatterjee2020} Sourav Chatterjee (2020), A Deterministic Theory of Low Rank Matrix Completion, IEEE Transactions on Information Theory 66, 8046--8055.
+
+  \bibitem{XiaYanWainwright2024} Eric Xia, Yuling Yan, and Martin J. Wainwright (2024), Inference under Staggered Adoption: Case Study of the Affordable Care Act, arXiv:2412.09482.
+
+  \bibitem{FariasLiPeng2021} Vivek F. Farias, Andrew A. Li, and Tianyi Peng (2021), Learning Treatment Effects in Panels with General Intervention Patterns, Advances in Neural Information Processing Systems 34.
+
+  \bibitem{ChoiYuan2024} Jungjun Choi and Ming Yuan (2024), Matrix Completion When Missing Is Not at Random and Its Applications in Causal Panel Data Models, Journal of the American Statistical Association.
+
+  \bibitem{KoltchinskiiTsybakovLounici2011} Vladimir Koltchinskii, Alexandre B. Tsybakov, and Karim Lounici (2011), Nuclear-Norm Penalization and Optimal Rates for Noisy Low-Rank Matrix Completion, Annals of Statistics 39, 2302--2329.
+
+  \bibitem{CarpentierEisertGrossNickl2015} Alexandra Carpentier, Jens Eisert, David Gross, and Richard Nickl (2015), Uncertainty Quantification for Matrix Compressed Sensing and Quantum Tomography Problems, arXiv:1504.03234.
+
+  \bibitem{ArkhangelskyImbens2024} Dmitry Arkhangelsky and Guido Imbens (2024), Causal Models for Longitudinal and Panel Data: A Survey, The Econometrics Journal 27, C1--C61, especially Sections 7.2 and 10.
+
+\end{thebibliography}
+
+\end{document}

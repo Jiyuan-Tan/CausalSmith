@@ -1,0 +1,246 @@
+{
+  "units": [
+    {
+      "unit": "thm:private-lower-envelope",
+      "targets": [
+        "thm:private-lower-envelope"
+      ],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:private-lower-envelope",
+            "proof_tex": "First, randomization and privacy cannot improve the nonprivate minimax risk.  Fix an \\(\\epsilon_n\\)-differentially private mechanism with output \\(T\\in[-2,2]\\), and define the deterministic measurable map\n\\[\n \\overline T(D)=\\mathbb E[T\\mid D].\n\\]\nFor every \\(P\\in\\mathcal M_H\\), conditional Jensen's inequality gives, dataset by dataset,\n\\[\n \\bigl|\\overline T(D)-\\tau_P(x_0)\\bigr|\n \\le \\mathbb E\\!\\left[\\left.|T-\\tau_P(x_0)|\\,\\right|D\\right].                 \\tag{16}\n\\]\nTaking expectation under \\(P^{\\otimes n}\\), then the supremum over \\(P\\in\\mathcal M_H\\), and finally the infimum over private mechanisms proves\n\\[\n R_n^{\\mathrm{DP}}\\ge R_n^{\\mathrm{NP}}.                                      \\tag{17}\n\\]\n\nWe next derive the private testing inequality used for both privacy branches.  Write \\(M_D\\) for the output law conditional on dataset \\(D\\), and, for an input law \\(Q\\), write \\(MQ=\\int M_D\\,Q(dD)\\) for the induced output law.  If \\(D\\sim_1D'\\), pure differential privacy in both adjacency directions implies, for every measurable event \\(E\\),\n\\[\n M_D(E)-M_{D'}(E)\\le (e^{\\epsilon_n}-1)M_{D'}(E)\\le e^{\\epsilon_n}-1.\n\\]\nThe same inequality with \\(D,D'\\) interchanged and the variational characterization of total variation therefore yield\n\\[\n \\operatorname{TV}(M_D,M_{D'})\\le e^{\\epsilon_n}-1\\le2\\epsilon_n,             \\tag{18}\n\\]\nwhere the last inequality uses \\(\\epsilon_n\\le1\\) from \\(\\text{ass:privacy-range}\\).  Join arbitrary datasets by a shortest replacement path.  The triangle inequality and (18) give\n\\[\n \\operatorname{TV}(M_D,M_{D'})\\le2\\epsilon_n d_{\\mathrm H}(D,D').\n\\]\nConsequently, for any input laws \\(Q_+,Q_-\\), any coupling \\(\\Gamma\\) of them, and any output event \\(E\\),\n\\[\n\\begin{aligned}\n \\left|(MQ_+)(E)-(MQ_-)(E)\\right|\n &=\\left|\\int\\{M_D(E)-M_{D'}(E)\\}\\,d\\Gamma(D,D')\\right|\\\\\n &\\le2\\epsilon_n\\int d_{\\mathrm H}(D,D')\\,d\\Gamma(D,D').\n\\end{aligned}\n\\]\nTaking the supremum over \\(E\\) gives\n\\[\n \\operatorname{TV}(MQ_+,MQ_-)\n \\le2\\epsilon_n\\mathbb E_\\Gamma d_{\\mathrm H}(D,D').                         \\tag{19}\n\\]\nSuppose now that every law in the support of \\(Q_s\\) has target value \\(\\vartheta_s\\), with \\(\\delta_0=|\\vartheta_+-\\vartheta_-|\\), and define its Bayes absolute risk by \\(\\mathcal R_s(M)=\\mathbb E_{Q_s,M}|T-\\vartheta_s|\\).  Classify an output according to the nearer of \\(\\vartheta_+\\) and \\(\\vartheta_-\\), resolving ties deterministically, and let \\(E\\) be the event that the classifier selects \\(+\\).  A classification error under sign \\(s\\) implies \\(|T-\\vartheta_s|\\ge\\delta_0/2\\), while\n\\[\n (MQ_+)(E^c)+(MQ_-)(E)\n =1-\\{(MQ_+)(E)-(MQ_-)(E)\\}\n \\ge1-\\operatorname{TV}(MQ_+,MQ_-).\n\\]\nHence\n\\[\n \\mathcal R_+(M)+\\mathcal R_-(M)\n \\ge \\frac{\\delta_0}{2}\n       \\{1-\\operatorname{TV}(MQ_+,MQ_-)\\}.                                  \\tag{20}\n\\]\n\nFor the direct localization branch, fix a nonnegative \\(C^\\infty\\) function \\(g_0\\), supported in \\([-1/2,1/2]^d\\), bounded by one, and satisfying \\(g_0(0)=1\\), and put \\(g_h(x)=g_0((x-x_0)/h)\\).  By \\(\\text{ass:interior-point}\\), its support lies in \\([0,1]^d\\) whenever \\(h\\le1/4\\).  For \\(s\\in\\{-1,1\\}\\), construct a causal law by taking \\(X\\) uniform and, conditionally on \\(X\\), drawing \\(A\\), \\(Y_0\\), and \\(Y_1\\) independently with \\(A\\sim\\operatorname{Bernoulli}(1/2)\\) and\n\\[\n Y_0\\mid X\\sim\\operatorname{Bernoulli}(1/2),\n \\qquad\n Y_1\\mid X\\sim\\operatorname{Bernoulli}(1/2+s\\Delta g_h(X)),\n\\]\nfollowed by \\(Y=AY_1+(1-A)Y_0\\).  For \\(\\Delta\\le1/4\\), the observed outcome is in \\(\\{0,1\\}\\subset[-1,1]\\), overlap holds because \\(e_0\\le1/4\\), and consistency and conditional exchangeability hold by construction.  The propensity and control regression are constant, while\n\\[\n \\tau_s(x)=s\\Delta g_h(x).\n\\]\nScale differentiation gives \\(\\|\\Delta g_h\\|_{\\mathcal H^\\gamma}\\le C\\Delta h^{-\\gamma}\\).  Thus, after choosing a class-dependent constant small enough, \\(\\Delta\\le c h^\\gamma\\) implies that both laws belong to \\(\\mathcal M_H\\); all other defining restrictions are the frozen assumptions in \\(\\text{def:holder-class}\\).  Their targets are separated by \\(2\\Delta\\).\n\nDenote these laws by \\(P_+\\) and \\(P_-\\), and set \\(Q_s=P_s^{\\otimes n}\\).  Couple the two one-record laws by using the same \\(X\\), \\(A\\), and a common uniform random variable to generate the relevant Bernoulli outcome.  Conditional on \\(X=x\\), disagreement can occur only when \\(A=1\\), and its probability is \\(\\Delta g_h(x)\\).  Uniform design and the support of \\(g_h\\) therefore give\n\\[\n \\mathbb P(O_+\\ne O_-)\n =\\Delta\\int_{[0,1]^d}g_h(x)\\,dx\n \\le C\\Delta h^d.                                                               \\tag{21}\n\\]\nApplying this coupling independently to the \\(n\\) records gives expected Hamming distance at most \\(Cn\\Delta h^d\\).  Since \\(n\\epsilon_n\\ge1\\), the truncation in \\(r_G\\) is inactive.  Choose\n\\[\n \\Delta=c_G r_G,\n \\qquad h=c_h\\Delta^{1/\\gamma},                                                  \\tag{22}\n\\]\nwith fixed constants satisfying the support and Hölder-radius restrictions above.  Equations (19)--(22) yield\n\\[\n \\operatorname{TV}(MQ_+,MQ_-)\n \\le Cn\\epsilon_n\\Delta^{1+d/\\gamma}\\le\\tfrac12\n\\]\nafter decreasing \\(c_G\\), because \\(n\\epsilon_n r_G^{1+d/\\gamma}=1\\).  Equation (20), followed by the fact that a Bayes risk is at most the worst-case risk over its support, proves\n\\[\n R_n^{\\mathrm{DP}}\\ge c r_G.                                                     \\tag{23}\n\\]\n\nIt remains to obtain the fuzzy branch.  If \\(r_F\\le C_0r_G\\) for a fixed constant \\(C_0\\), (23) already implies \\(R_n^{\\mathrm{DP}}\\ge c r_F\\).  Otherwise put\n\\[\n \\Delta=c_Fr_F,\\qquad\n h=c_h\\Delta^{1/\\gamma},\\qquad\n \\ell=c_\\ell\\Delta^{1/q},\\qquad\n a=c_a\\ell^\\alpha,\\qquad b=c_b\\ell^\\beta.                  \\tag{24}\n\\]\nBecause \\(q=\\alpha+\\beta\\), (24) gives \\(ab\\asymp\\Delta\\).  The fixed constants can be chosen so that \\(ab\\le c h^\\gamma\\).  The result \\(\\text{lem:fuzzy-membership-singletons}\\) then shows that every component law \\(P_{s,\\lambda}\\) belongs to \\(\\mathcal M_H\\), with target independent of \\(\\lambda\\).  Since \\(n^2\\epsilon_n\\ge1\\), the truncation in \\(r_F\\) is also inactive, and\n\\[\n n^2\\epsilon_n r_F^{\\,1+d/\\gamma+d/q}=1.                                        \\tag{25}\n\\]\nMoreover, \\(r_F>C_0r_G\\), with \\(C_0\\) chosen large enough to absorb fixed scale constants, implies\n\\[\n n\\epsilon_n r_F^{\\,1+d/\\gamma}\\ge c,\n \\qquad\n n r_F^{d/q}=\\{n\\epsilon_n r_F^{\\,1+d/\\gamma}\\}^{-1}\\le C.                  \\tag{26}\n\\]\nAfter decreasing \\(c_\\ell\\), (26) gives \\(n\\ell^d\\le c_0\\), so \\(\\text{lem:component-hamming-transport}\\) applies.  Combining that lemma with (19) yields\n\\[\n \\begin{aligned}\n \\operatorname{TV}(M\\Pi_+^n,M\\Pi_-^n)\n &\\le C\\epsilon_nabn^2h^d\\ell^d\\\\\n &\\le Cn^2\\epsilon_n\\Delta^{\\,1+d/\\gamma+d/q}\n \\le\\tfrac12,                                                                  \\tag{27}\n \\end{aligned}\n\\]\nwhere the last inequality follows from (25) after decreasing \\(c_F\\).  Since \\(K(x_0)=1\\), the definition of the fuzzy family gives the exact separation\n\\[\n \\left|\\tau_+(x_0)-\\tau_-(x_0)\\right|\n =\\frac{2ab}{1/4-a^2}\\asymp ab\\asymp\\Delta.                                  \\tag{28}\n\\]\nThe denominator in (28) is positive because the fixed propensity amplitude was chosen smaller than \\(1/2\\), as required by the membership lemma.  Applying (20) to the shared-prior mixtures in (27), and then bounding each Bayes risk by the worst-case risk over its component laws, proves\n\\[\n R_n^{\\mathrm{DP}}\\ge c r_F.                                                     \\tag{29}\n\\]\nTogether, (17), (23), and (29) imply, after taking the smallest of their fixed constants,\n\\[\n R_n^{\\mathrm{DP}}\n \\ge c\\max\\{R_n^{\\mathrm{NP}},r_G,r_F\\}\n =c\\max\\{R_n^{\\mathrm{NP}},\\rho_n^{\\mathrm{priv}}\\},\n\\]\nwhere the final equality is \\(\\text{def:rates}\\)."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "thm:bounded-density-private-lower-envelope",
+            "kind": "theorem",
+            "statement": "Every law in \\(\\mathcal M_H\\) has covariate density equal to one, and hence \\(\\mathcal M_H\\subseteq\\mathcal M_{\\mathrm{bd}}\\) because \\(L^{-1}\\le1\\le L\\).  On \\(\\mathcal M_{\\mathrm{bd}}\\), for \\(n^{-1}\\le\\epsilon_n\\le1\\),\n\\[\n R_{n,\\mathrm{bd}}^{\\mathrm{DP}}\n \\ge c\\max\\{R_{n,\\mathrm{bd}}^{\\mathrm{NP}},r_G,r_F\\}\n =c\\max\\{R_{n,\\mathrm{bd}}^{\\mathrm{NP}},\\rho_n^{\\mathrm{priv}}\\}.\n\\]\nThis is a lower-bound transfer only; it asserts neither validity of the exact-uniform estimator nor a matched phase diagram on \\(\\mathcal M_{\\mathrm{bd}}\\).",
+            "free_symbols": [
+              "M_H",
+              "M_bd",
+              "L",
+              "n",
+              "epsilon_n",
+              "R_NP_bd",
+              "R_DP_bd",
+              "r_G",
+              "r_F",
+              "rho_priv"
+            ],
+            "depends_on": [
+              "ass:privacy-range",
+              "ass:uniform-design",
+              "def:holder-class",
+              "def:bounded-density-class",
+              "def:bounded-density-risks",
+              "def:rates",
+              "thm:private-lower-envelope"
+            ],
+            "proof_tex": "If \\(P\\in\\mathcal M_H\\), then \\(\\text{ass:uniform-design}\\) gives \\(dP_X/dx=1\\) almost everywhere.  Since the declared class constant satisfies \\(L\\ge2\\), one has \\(L^{-1}\\le1\\le L\\).  Every other member condition in \\(\\text{def:bounded-density-class}\\) is also a member condition of \\(\\text{def:holder-class}\\).  Thus\n\\[\n \\mathcal M_H\\subseteq\\mathcal M_{\\mathrm{bd}}.                                \\tag{30}\n\\]\n\nWe use only the two comparisons stated in the corollary.  First, for any private randomized output \\(T\\), let \\(\\overline T(D)=\\mathbb E[T\\mid D]\\).  Conditional Jensen's inequality, now for every \\(P\\in\\mathcal M_{\\mathrm{bd}}\\), gives\n\\[\n \\mathbb E_{P^{\\otimes n}}\\left|\\overline T(D_n)-\\tau_P(x_0)\\right|\n \\le\n \\mathbb E_{P^{\\otimes n},M_{\\varepsilon_n}}\n \\left|T-\\tau_P(x_0)\\right|.\n\\]\nAfter taking the supremum over \\(\\mathcal M_{\\mathrm{bd}}\\) and the infimum over private mechanisms,\n\\[\n R_{n,\\mathrm{bd}}^{\\mathrm{DP}}\n \\ge R_{n,\\mathrm{bd}}^{\\mathrm{NP}}.                                           \\tag{31}\n\\]\nSecond, the private mechanisms in the two minimax problems range over the same set of kernels on \\(\\mathcal O^n\\).  Therefore minimax monotonicity and (30) imply\n\\[\n R_{n,\\mathrm{bd}}^{\\mathrm{DP}}\n \\ge R_n^{\\mathrm{DP}}\n \\ge c_{\\mathrm{lb}}\\max\\{r_G,r_F\\},                                           \\tag{32}\n\\]\nwhere the last inequality is the privacy part of \\(\\text{thm:private-lower-envelope}\\).  If \\(x=R_{n,\\mathrm{bd}}^{\\mathrm{NP}}\\) and \\(y=\\max\\{r_G,r_F\\}\\), (31)--(32) give\n\\[\n R_{n,\\mathrm{bd}}^{\\mathrm{DP}}\n \\ge \\min\\{1,c_{\\mathrm{lb}}\\}\\max\\{x,y\\}.\n\\]\nRenaming the positive fixed constant and using \\(\\rho_n^{\\mathrm{priv}}=\\max\\{r_G,r_F\\}\\) from \\(\\text{def:rates}\\) proves the claim.  No upper bound or exact-uniform construction is used.",
+            "status": "proved",
+            "justification": "The exact-uniform class is a subclass of the bounded-density causal class, so both intrinsic privacy barriers remain valid on the broader model even though the design-specific estimator need not transfer.",
+            "gap": "The exact-uniform construction does not establish achievability under an unknown density, but subclass monotonicity still yields a sharp lower-side comparison with the Kennedy-style bounded-density model.",
+            "consumer": "The corollary separates a broadly applicable privacy impossibility from the design-specific matched upper frontier."
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "symbol-add",
+            "name": "M_bd",
+            "proposed": {
+              "name": "M_bd",
+              "type": "Class of causal laws",
+              "space": "Laws on \\(Y_0,Y_1,A,X\\)",
+              "role": "unknown bounded-density coupled-nuisance Hölder class",
+              "refs": [
+                "P",
+                "Y_0",
+                "Y_1",
+                "A",
+                "X",
+                "d",
+                "alpha",
+                "beta",
+                "gamma",
+                "q",
+                "L",
+                "e_0"
+              ]
+            },
+            "reason": "Introduces notation for the aligned bounded-density causal class required by the lower-bound transfer.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "R_NP_bd",
+            "proposed": {
+              "name": "R_NP_bd",
+              "type": "\\([0,2]\\)",
+              "role": "bounded-density nonprivate minimax absolute risk",
+              "refs": [
+                "T_NP",
+                "M_bd",
+                "tau",
+                "x_0",
+                "n"
+              ]
+            },
+            "reason": "Introduces the nonprivate minimax comparator on the bounded-density class.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "R_DP_bd",
+            "proposed": {
+              "name": "R_DP_bd",
+              "type": "\\([0,2]\\)",
+              "role": "bounded-density pure-central-private minimax absolute risk",
+              "refs": [
+                "T_DP",
+                "M_epsilon",
+                "M_bd",
+                "tau",
+                "x_0",
+                "n",
+                "epsilon_n"
+              ]
+            },
+            "reason": "Introduces the pure-central-private minimax risk on the bounded-density class.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-add",
+            "id": "def:bounded-density-class",
+            "proposed": {
+              "id": "def:bounded-density-class",
+              "name": "Unknown bounded-density coupled-nuisance Hölder class",
+              "construction": "Let \\(dx\\) denote Lebesgue measure on \\([0,1]^d\\).  Define \\(\\mathcal M_{\\mathrm{bd}}\\) to be the class of laws \\(P\\) such that \\((P,Y_0,Y_1,A,X)\\) induces records in \\(\\mathcal O\\), satisfies \\(\\text{ass:consistency}\\), \\(\\text{ass:exchangeability}\\), \\(\\text{ass:overlap}\\), \\(\\text{ass:propensity-holder}\\), \\(\\text{ass:arm-holder}\\), \\(\\text{ass:effect-holder}\\), and \\(\\text{ass:low-nuisance}\\), and has \\(P_X\\ll dx\\) with\n\\[\n L^{-1}\\le \\frac{dP_X}{dx}(x)\\le L\n \\quad\\text{for Lebesgue-almost every }x\\in[0,1]^d.\n\\]",
+              "free_symbols": [
+                "M_bd",
+                "P",
+                "Y_0",
+                "Y_1",
+                "A",
+                "X",
+                "O",
+                "P_X",
+                "d",
+                "L"
+              ],
+              "by_member_properties": [
+                "ass:consistency",
+                "ass:exchangeability",
+                "ass:overlap",
+                "ass:propensity-holder",
+                "ass:arm-holder",
+                "ass:effect-holder",
+                "ass:low-nuisance"
+              ]
+            },
+            "reason": "Adds the aligned broader law class while retaining every causal, support, overlap, and Hölder restriction of the exact-uniform class except known uniformity.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-add",
+            "id": "def:bounded-density-risks",
+            "proposed": {
+              "id": "def:bounded-density-risks",
+              "name": "Bounded-density nonprivate and private minimax risks",
+              "construction": "For the bounded-density class, define\n\\[\n R_{n,\\mathrm{bd}}^{\\mathrm{NP}}\n =\\inf_{T_{\\mathrm{NP}}}\\sup_{P\\in\\mathcal M_{\\mathrm{bd}}}\n   \\mathbb E_{P^{\\otimes n}}\\left|T_{\\mathrm{NP}}(D_n)-\\tau_P(x_0)\\right|\n\\]\nand\n\\[\n R_{n,\\mathrm{bd}}^{\\mathrm{DP}}\n =\\inf_{M_{\\varepsilon_n}:\\,\\varepsilon_n\\text{-DP}}\n   \\sup_{P\\in\\mathcal M_{\\mathrm{bd}}}\n   \\mathbb E_{P^{\\otimes n},M_{\\varepsilon_n}}\n   \\left|T_{\\mathrm{DP}}-\\tau_P(x_0)\\right|,\n\\]\nwhere privacy is pure central privacy on the same operational record space \\(\\mathcal O^n\\) under replacement adjacency \\(\\sim_1\\).",
+              "free_symbols": [
+                "R_NP_bd",
+                "T_NP",
+                "P",
+                "M_bd",
+                "D_n",
+                "tau",
+                "x_0",
+                "n",
+                "R_DP_bd",
+                "M_epsilon",
+                "epsilon_n",
+                "T_DP",
+                "O",
+                "sim_1"
+              ],
+              "inputs": [
+                "def:bounded-density-class"
+              ]
+            },
+            "reason": "Defines the two minimax risks needed to state the lower-only bounded-density corollary.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:private-lower-envelope",
+            "proposed": {
+              "id": "thm:private-lower-envelope",
+              "kind": "theorem",
+              "statement": "On the known exact-uniform class \\(\\mathcal M_H\\), for \\(n^{-1}\\le\\epsilon_n\\le1\\), every \\(\\epsilon_n\\)-differentially private estimator satisfies \\(R_n^{\\mathrm{DP}}\\ge c\\max\\{R_n^{\\mathrm{NP}},r_G,r_F\\}=c\\max\\{R_n^{\\mathrm{NP}},\\rho_n^{\\mathrm{priv}}\\}\\). The \\(r_F\\) branch follows by setting \\(ab\\asymp r_F\\), \\(h\\asymp r_F^{1/\\gamma}\\), and \\(\\ell\\asymp r_F^{1/q}\\) in the component coupling before applying a central-private two-prior testing inequality.",
+              "free_symbols": [
+                "epsilon_n",
+                "n",
+                "M_H",
+                "R_DP",
+                "R_NP",
+                "r_G",
+                "r_F",
+                "rho_priv",
+                "a",
+                "b",
+                "h",
+                "ell",
+                "gamma",
+                "q"
+              ],
+              "depends_on": [
+                "ass:privacy-range",
+                "ass:interior-point",
+                "def:holder-class",
+                "def:private-risk",
+                "def:nonprivate-risk",
+                "def:rates",
+                "lem:fuzzy-membership-singletons",
+                "lem:component-hamming-transport"
+              ],
+              "status": "to-prove",
+              "justification": "The lower bound certifies that both privacy balances are intrinsic to the causal class.",
+              "gap": "Cai et al. establish the direct pointwise-regression privacy barrier, while no published result adds the coupled-nuisance \\(n^2\\epsilon_n\\) branch for CATE.",
+              "consumer": "It prevents private CATE algorithms from being benchmarked only against ordinary private regression."
+            },
+            "reason": "Declares the fuzzy-family membership lemma that the target proof uses directly to place both shared-prior supports inside the exact-uniform model.",
+            "direction": "correct"
+          },
+          {
+            "kind": "estimand-functional-replace",
+            "id": "metadata:estimand-functional",
+            "proposed": "\\(R_n^{\\mathrm{DP}}\\ge c\\max\\{R_n^{\\mathrm{NP}},\\rho_n^{\\mathrm{priv}}\\},\\quad R_{n,\\mathrm{bd}}^{\\mathrm{DP}}\\ge c\\max\\{R_{n,\\mathrm{bd}}^{\\mathrm{NP}},\\rho_n^{\\mathrm{priv}}\\},\\quad R_n^{\\mathrm{DP}}\\asymp\\max\\{R_n^{\\mathrm{NP}},\\rho_n^{\\mathrm{priv}}\\}\\ \\text{if }q\\ge q_0\\ \\text{or }\\rho_n^{\\mathrm{priv}}\\ge cb_n,\\quad \\rho_n^{\\mathrm{priv}}=\\max\\{(n\\epsilon_n)^{-\\gamma/(\\gamma+d)},(n^2\\epsilon_n)^{-1/(1+d/\\gamma+d/(\\alpha+\\beta))}\\}\\). The bounded-density display is a lower bound only.",
+            "reason": "Records the broader lower-bound corollary without extending the design-specific achievability or phase diagram.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [],
+        "prose_updates": {
+          "tldr": "On the deliberately restricted class with a known exact-uniform covariate law and bounded observed outcomes, pointwise CATE is a regression-functional hybrid whose pure-central privacy cost has the two scales \\(\\rho_n^{\\mathrm{priv}}=\\max\\{(n\\epsilon_n)^{-\\gamma/(\\gamma+d)},(n^2\\epsilon_n)^{-1/(1+d/\\gamma+d/(\\alpha+\\beta))}\\}\\). One second-order local estimator and a positive fuzzy Hamming-transport converse yield the matched frontier whenever privacy leads or nuisance smoothness is above the nonprivate elbow. Separately, the exact-uniform class is a subclass of the aligned unknown bounded-density class because its density is one, so both privacy lower barriers also hold on that broader Kennedy-style model. This is a lower-bound transfer only: neither the occupancy-normalized estimator nor the matched phase diagram is claimed beyond exact uniformity. The remaining exact-uniform question is a stability transfer from the attained benchmark to the symbolic nonprivate minimax risk in the privacy-inactive below-elbow region.",
+          "project_justification": {
+            "fill": "On the known exact-uniform class, a single \\(p^2+3p\\)-coordinate Laplace release contains the score block, the upper-triangular Gram block, and their two exact occupancy-normalized corrections; every subsequent symmetry and spectral operation is postprocessing. Boundedness is imposed only on observed outcomes, with causal and kernel bounds derived from consistency, armwise exchangeability, and overlap. A smooth positive exact-uniform fuzzy family supplies singleton cancellation and a componentwise Hamming coupling. Because the uniform density equals one, subclass inclusion and conditional Jensen additionally transfer both privacy lower barriers, but no upper bound, to the aligned unknown bounded-density class. One open symbolic-risk transfer question remains confined to the exact-uniform model and separate from the queued nonprivate converse."
+          },
+          "sampling_model": {
+            "design": "The matched estimation theorem uses a known exact-uniform covariate law \\(X\\sim\\operatorname{Unif}([0,1]^d)\\) with independent sampling and replacement adjacency. A separate lower-only corollary enlarges the law class to an unknown density satisfying \\(L^{-1}\\le dP_X/dx\\le L\\); the exact-uniform estimator and phase diagram are not asserted on that broader class."
+          },
+          "related_work": "Kennedy et al. (2024), Theorem 1 and Remark 2, analyze a bounded-density random-design Hölder model; Theorem 2 and Appendix B.8 add design-estimation conditions for attainability. Their localized fuzzy hypotheses and higher-order local R-moment architecture inform this proposal. The exact-uniform class is narrower than their design setting, while the new bounded-density corollary uses only inclusion of the uniform subclass to transfer the two privacy lower barriers; it does not transfer the exact-uniform estimator or claim Kennedy et al.'s nonprivate result settles the symbolic exact-uniform risk. Kennedy (2023), Theorems 1--3 and Sections 3--5, gives pseudo-outcome oracle inequalities and local-polynomial error bounds, but risk control alone supplies no neighboring-record stability. Niu et al. (2022), Theorem 6, proves \\(f\\)-DP composition for a sample-split multi-stage CATE meta-algorithm without a Hölder minimax utility theorem. Schröder, Melnychuk, and Feuerriegel (2025), page 3 and Theorems 1 and 3, assume bounded observed outcomes and develop approximate-DP orthogonal two-stage CATE releases for finite or functional queries; they do not provide a pure-central Hölder pointwise minimax rate or the \\(n^2\\epsilon_n\\) coupled-nuisance branch. Chaudhuri et al. (2024), Algorithm 1 and Theorem 2, stabilize bounded-kernel U-statistics using local Hájek projections; the exact-uniform binomial normalization here is a causal-specific construction. Cai, Chakraborty, and Vuursteen (2024), Theorems 2.1, 3.4, and 4.4, establish pointwise Besov-regression rates under heterogeneous distributed privacy rather than one-database pure central privacy with causal nuisances. Acharya, Sun, and Zhang (2021), Theorems 1 and 3, and Lalanne, Garivier, and Gribonval (2023), the main transport reduction, supply private testing inequalities but no smooth causal shared-prior coupling. Nissim, Raskhodnikova, and Smith (2007), Sections 1.2--1.3, explain why typical occupancy cannot replace a worst-neighbor sensitivity certificate. Every comparator remains methodological input and informed-by positioning.",
+          "technical_internal_limitation": "The exact occupancy normalization and deterministic projection geometry require a known exact-uniform random design with equal public cell volumes. Thus the upper theorem, matched frontier, and phase diagram do not extend here to an unknown or merely bounded covariate density, and the iid theorem does not automatically cover a deterministic uniform grid. Only the privacy lower barriers transfer to the broader bounded-density class, by inclusion of the uniform subclass and conditional Jensen. On the exact-uniform class, the upper theorem still contains the explicit benchmark \\(b_n\\); replacing it by \\(R_n^{\\mathrm{NP}}\\) below the nuisance elbow and outside privacy-leading regimes is the stated open-ended question, not an assumed consequence of generic output perturbation.",
+          "honest_scope": "The causal boundedness consequence, projection identity, pair sensitivity, fuzzy membership, component transport, upper envelope, lower envelope, and phase diagram concern the known exact-uniform class with bounded observed outcomes. The full symbolic decomposition is settled there for \\(q\\ge q_0\\) and whenever \\(\\rho_n^{\\mathrm{priv}}\\gtrsim b_n\\), and it remains open for \\(q<q_0\\) when privacy is inactive relative to \\(b_n\\). The queued exact-uniform nonprivate converse is neither cited as established nor duplicated. On the aligned unknown bounded-density class, this note proves only \\(R_{n,\\mathrm{bd}}^{\\mathrm{DP}}\\gtrsim\\max\\{R_{n,\\mathrm{bd}}^{\\mathrm{NP}},r_G,r_F\\}\\) by conditional Jensen and subclass monotonicity; it asserts no estimator, upper rate, matched phase diagram, or symbolic transfer there. Privacy sequences with \\(\\epsilon_n<n^{-1}\\) and deterministic fixed designs remain outside the stated theorems.",
+          "statement_notes": []
+        }
+      }
+    }
+  ]
+}

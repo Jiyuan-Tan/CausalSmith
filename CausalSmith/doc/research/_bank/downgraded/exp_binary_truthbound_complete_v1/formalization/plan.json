@@ -1,0 +1,929 @@
+{
+  "qid": "exp_binary_truthbound_complete",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "lean_target_subdirectory": "CausalSmith/Experimentation/EXP_BinaryTruthboundComplete_Research",
+  "lean_namespace": "CausalSmith.Experimentation.BinaryTruthbound",
+  "feasibility": "needs-new-infrastructure",
+  "decisions": [
+    "The brief carries no paper manifest (`state.theorems` absent), so the paper-scoped preamble is inert: no `local_id` is stamped on any statement node and the stdout `theorems` manifest is empty. Every delivered statement node is nevertheless mapped to a Lean `theorem` and kept in F2-F4 scope.",
+    "Schedules are encoded as `Theta := I -> Fin 2` (not `Bool`) so the Causalean Boolean-cube Moebius calculus `Causalean.Panel.PO.Mobius.{indicator, delta, coeff_sum, prod_indicator_eq, mobius_expansion}` applies verbatim to the Moebius coefficients `beta_S`.",
+    "The randomization layer is the finite design-based layer `Causalean.Experimentation.DesignBased.FiniteDesign` (finite-sum `E`/`Var`/`Cov`/`Pr`), not the measure-theoretic `PO/` superpopulation layer: the paper fixes the schedule and makes the assignment the only random object, which is exactly this substrate's stance. REVISED round 6: that reuse is at the E/Var/Cov/Pr LEVEL only. `FiniteDesign` is embedded as the `design` field of a paper-local composite `Setup` structure in the artifact module, which additionally hosts the fixed binary schedule space `Theta = I -> Fin 2`, the support-positivity field `p_pos` (absent from `FiniteDesign`, which requires only `p_nonneg`), the observation map `O`, the score vectors `v`, and -- through `def:score-variance` over that `Setup` -- the derived `X_z`, `c`, `tau`, `A`, `f`. `FiniteDesign` is therefore NOT the S1 world label; S1's disposition is `define-local` with `reuse: null`.",
+    "`def:boolean-mobius-spaces` is realized by ONE degree-indexed definition `observableSpan (r : WithTop Nat)`, with `E_J = observableSpan top` and `E_{J,r} = observableSpan r`; `def:bound-program` likewise realizes `F_J` and `F_{J,r}` as one degree-indexed `optValue r`. This keeps the one-node-one-object mapping while matching the core's shared construction.",
+    "The triangular-array assumption `ass:block-independence` is encoded by factorization of the finite joint mass function of the `(X_Bj,G_Bj)` pairs against the ROW LAW's OWN coordinate marginals, not against a separately supplied per-block design. The `BlockArray` bundle therefore carries only the row-`B` randomization law `rowLaw B : FiniteDesign (forall j, Omega B j)` (the earlier `blockDesign` field is dropped), and `tau_Bj`, `sigma_Bj^2`, `b_Bj` and the `Var(G_Bj)` of `ass:bound-lln` are all defined as row-law moments of the coordinate statistics `fun w => X B j (w j)` / `fun w => G B j (w j)`. This makes the encoding equivalent to the core condition in BOTH directions: the earlier `blockDesign`-indexed right-hand side silently forced each pair marginal to agree with an unrelated law (and the still earlier `rowLaw B = prodDesign (blockDesign B)` field forced atomwise, not pairwise, independence), neither of which the core assumes. The factorization still does not identify assignment atoms when the pair map is non-injective, which is correct. The separate product experiment of `thm:tensorization` is constructed directly with `Causalean.Experimentation.DesignBased.prodDesign`, so its assignment-law independence is structural and is derived rather than supplied through an unrelated `BlockArray` hypothesis.",
+    "S5 is a LOCAL COMPOSITE world (`disposition: define-local`), not a `prodDesign` reuse. It has two components: the locally defined `BlockArray` triangular-array bundle over an arbitrary row law (component (a)), and the independent product experiment (component (b)). `Causalean.Experimentation.DesignBased.prodDesign` is retained as a justified reuse INSIDE `def:product-experiment` and `thm:tensorization`, where the assignment law is by construction a product of independent component laws; it is not the world-level realization, because it cannot host `rowLaw B : FiniteDesign (forall j, Omega B j)` with only pair-level factorization, nor the `X_Bj`/`G_Bj` model. All other S5-bound nodes keep their previous dispositions.",
+    "`oeq:school-exposure-block` is a Case (B) open question: the frozen node states that the Paluck-Shepherd-Aronow assignment atoms, exposure-coordinate map, direct-effect coefficients, automorphism orbits and separator states are all absent from the core, so no truth condition is specified. It is mapped to a descriptive non-Prop `_root_.String` payload, never a `theorem`, and no delivered theorem depends on it.",
+    "REVISED this round (round 5): the frozen cited gate `lem:lindeberg-feller-independent-array` is THREADED into `thm:studentized-coverage`'s `hyps`, because the core carries that `depends_on` edge with frozen `source.carrier: logical-claim` and a logical cited claim must be an explicit hypothesis of every consumer; round 4's withdrawal is reversed. Independently of that, and NOT regressed, the numerator central limit theorem of `thm:studentized-coverage` is supplied in Lean by REUSE of the tier-1 Causalean theorem `Causalean.Experimentation.DesignBased.dependency_studentized_cdf` (`DependencyCLT.lean:57`, full signature read in round 4) at a DIAGONAL dependency graph; the consumer stays in scope (`defer_tier: false`, `gate: false`) and is proved conditional on the threaded gate under the gate-consumer rule. Two prior-round claims are withdrawn as factually wrong: (a) `DependencyCLT` is not product-design-only -- `dependency_studentized_cdf` takes an ARBITRARY `D : forall n, FiniteDesign (Omega n)` over a `Fintype`/`MeasurableSpace`/`MeasurableSingletonClass` carrier together with `Dep : forall n, DepGraph (X n) (D n).toMeasure`, which is exactly the shape the `BlockArray` row law has; only `prodDesign_clt` (`IndepSummandsCLT.lean:87`) is product-specific, and the previous round wrongly extended that restriction to the dependency-graph theorem; (b) the cited gate is therefore not the consumer's indispensable substrate. Instantiation, checked field by field against the read signature: `Omega B := forall j, Omega B j`, `D B := Arr.rowLaw B`, `iota B := Fin B`, `X B j w := Arr.X B j (w j) - blockTau Arr B j` (the paper's centered `Y_Bj`), `Dep B` the diagonal graph `G i j := i = j` whose `indep` field is `ProbabilityTheory.iIndepFun.indepFun_finset` (`Mathlib.Probability.Independence.Basic`, signature confirmed: disjoint `S T : Finset iota` give `IndepFun (fun a i => f i a) (fun a i => f i a)`, literally the `DepGraph.indep` shape) applied to the `BlockIndependence`-to-`iIndepFun` bridge -- for the diagonal relation, non-adjacent index sets are exactly disjoint ones; `Dmax := 1` (`nbhd i = {i}`), `M := 2 * M` from `ass:uniform-score-bound` (paper eq. (3)), `hmean` the centering identity, `v B := B * V_B` with `hv` the covariance-cancellation identity `E[(sum_j Y_Bj)^2] = sum_j sigma^2_Bj`, `c := V / 2` with `hvc` the eventual `V_B >= V/2` of paper eq. (4), and `hcard` trivial for `Fin B`. Its conclusion `Pr(depSum (X B) / sqrt (v B) <= s) -> stdNormalCdf s` IS the paper's statement about `T_B = sqrt B (tauHat_B - tauBar_B) / sqrt V_B`, already in the native `FiniteDesign.Pr` presentation, so no measure round-trip is needed on the conclusion side. The paper-owned content the core claims for itself -- centering, the `2M` envelope, `s_B^2 = B V_B -> infinity`, the variance identity and the pair-independence bridge -- remains in-scope build-inline work; only the classical limit step changes provider, from an assumed citation to a proved library theorem.",
+    "The frozen cited gate `lem:lindeberg-feller-independent-array` remains RECORDED at the source's own generality (its `status: cited`, `source`, `gate`, `gate_class` and `defer_tier` keys are frozen and untouched, and F1 emits no discharge stamp), and as of round 5 it is again a declared premise of its one consumer `thm:studentized-coverage`. Its conclusion is spelled as pointwise convergence of the row-sum CDF to `stdNormalCdf`, which is what Billingsley's `S_n/s_n => N` means for the continuous standard normal limit (Causalean's `stdNormalCdf t` is definitionally `(gaussianReal 0 1).real (Set.Iic t)`, `GaussianCDF.lean:42`) -- a faithful rendering of the verbatim source and the same presentation `dependency_studentized_cdf` and `conservative_wald_liminf_of_studentized_cdf` use. It is NOT discharged either: `dependency_studentized_cdf` is the uniformly bounded bounded-degree-dependency instance, not the general Lindeberg-Feller theorem, so its conclusion does not type-match the cited statement; `bin/gate.ts --discharge` remains the only supported replacement path."
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A fixed finite binary potential-outcome schedule \\(\\theta\\in\\Theta=\\{0,1\\}^I\\) on \\(K\\) coordinates \\(I=\\{0,\\dots,K-1\\}\\), together with a known finite randomization \\(p\\) whose support is a nonempty finite assignment set \\(Z\\) with \\(p_z>0\\) for \\(z\\in Z\\) and \\(\\sum_{z\\in Z}p_z=1\\). Assignment \\(z\\) reveals exactly the restriction \\(\\theta|_{O_z}\\) on an observed coordinate set \\(O_z\\subseteq I\\) and produces the linear score \\(X_z(\\theta)=v_z^\\top\\theta\\) for a known coefficient vector \\(v_z\\in\\mathbb R^K\\). The assignment is the only source of randomness: the schedule is fixed and is not drawn from a superpopulation. The design mean score coefficient is \\(c=\\sum_zp_zv_z\\), the target is \\(\\tau(\\theta)=c^\\top\\theta\\), the variance matrix is \\(A=\\sum_zp_zv_zv_z^\\top-cc^\\top\\), and the true randomization variance is \\(f(\\theta)=\\theta^\\top A\\theta=\\operatorname{Var}_p\\{X_z(\\theta)\\}\\). Assignment probabilities may be arbitrary positive reals.",
+      "binds_symbols": [
+        "K",
+        "I",
+        "Z",
+        "z",
+        "p",
+        "O_z",
+        "v_z",
+        "\\Theta",
+        "\\theta",
+        "X_z",
+        "c",
+        "\\tau",
+        "A",
+        "f",
+        "i",
+        "k"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.HT.Estimator",
+        "Causalean.Experimentation.DesignBased.Exposure"
+      ],
+      "notes": "REVISED round 6 (world-level disposition): S1 is a LOCAL COMPOSITE world, `define-local`, not a `FiniteDesign` reuse. The previous entry declared `reuse: Causalean.Experimentation.DesignBased.FiniteDesign` at world level, which mislabels the substrate: `FiniteDesign Omega` is exactly and only a probability mass function on a finite assignment carrier (`structure FiniteDesign` fields `p`, `p_nonneg`, `p_sum`, `DesignCore.lean:46-52` -- re-read this round), so it can carry the randomization `p` on `Omega = Z` but hosts NONE of the other objects this world binds: no support positivity `p_z > 0` (it requires only `p_nonneg`), no binary schedule space, no observation map, no score vectors, and none of the derived score/variance objects. The world is therefore realized by a paper-local composite structure `Setup` in `Basic.lean` (the artifact module) whose fields are: `K : Nat` with `I := Fin K` and the fixed binary schedule space `Theta := I -> Fin 2` (schedules are `Fin 2`-valued, not `Bool`, per the Moebius decision in `decisions`); an EMBEDDED REUSED randomization field `design : FiniteDesign Z` on a `Fintype` assignment carrier `Z`, plus the paper's support-positivity field `p_pos : forall z, 0 < design.p z` (the source of `pi_S > 0`, which `FiniteDesign` does not provide); the observation map `O : Z -> Finset I`; and the score vectors `v : Z -> I -> Real`. The S1-bound derived objects `X_z`, `c`, `tau`, `A`, `f` are then defined over that `Setup` on top of the reused statistic API `FiniteDesign.E`/`Var`/`Cov`/`Pr` (`DesignCore.lean:61-80`, finite sums, exactly the paper's `E_p`/`Var_p`), and are hosted by this world through the `def:score-variance` node (`designVarianceFn E hobs : ScoreVarianceData E` with companions `score`, `targetCoeff`, `targetTau`, `varianceMatrix`, `trueVarianceFn`), which remains their single node-level realization -- no object is mapped twice. Substrate level of the reuse, one line: `FiniteDesign` is reused as the E/Var/Cov/Pr randomization layer embedded in `Setup`, not as the ambient world. Consequences for the rest of the plan: none of the S1-bound nodes moves -- every one of them was already written against `E : Setup` (`ass:observable-score`, `def:observable-complex`, `def:score-variance`, `def:expected-rule`, `def:bound-program`, `def:dual-and-admissibility`, `def:witness-experiment`), so this round only corrects the S-block label to match the plan the nodes already carry. Re-search trace for a packaged ambient design-based world bundling schedule space + observation map + score vectors (round 6, re-surveying only the substrate this edit touches): Grep '^structure (Setup|.*Design|.*Experiment|.*World|.*Mapping|.*Estimator)' over /soalnas/.../Causalean/Experimentation -> `FiniteDesign` (`DesignCore.lean:46`, pmf only), `Experiment` (`ExposureMappingInterference/Asymptotics/Consistency.lean:43`), `SAHExperiment` (`UnknownInterference/Consistency.lean:60`), `LHExperiment` (`TwoStageInterference/Asymptotic/Setup.lean:65`), `AdaptiveExperiment` (`Sequential/AdaptiveDesign.lean:48`), `LocalDependenceCLT` (`Asymptotics/SteinCLT.lean:55`). The nearest of these, `Experiment`, is the CONFIRMING PRECEDENT for the shape this fix prescribes rather than a fit: its fields are `Omega`/`iota`/`Theta`/`Delta` carriers, an EMBEDDED `D : FiniteDesign Omega` randomization field, exposure-indexed real potential outcomes `y : iota -> Delta -> Real`, an exposure mapping `f : Omega -> Theta -> Delta` and unit traits `theta : iota -> Theta` (lines 43-63, read this round) -- i.e. Causalean itself realizes an ambient design-based world as a local composite structure embedding `FiniteDesign`, exactly as `Setup` will. It is not reusable here because it carries no observed-coordinate set `O_z subseteq I`, no binary schedule space, no score vectors `v_z` and no support positivity, and its outcomes are real-valued and indexed by exposure VALUES rather than by observed coordinates -- the same abstraction gap already recorded for the exposure/HT layer. Mathlib-side lean_leansearch 'finite randomization design with observed coordinate sets' -> nothing at this abstraction (Mathlib has `PMF`, not a design-based experiment bundle). Hence the composite is local while its randomization field is reused, and `Experiment` is recorded as the analogous module F2 should imitate for the `Setup` field layout. The Causalean exposure/HT layer stays bypass-justified: the paper's estimator is an arbitrary observed-data truth table on a binary cube, not an HT weight, and only `def:aronow-samii-binary-correction` touches the HT specialization. Surveyed and NOT used at this level: `Causalean/PO/` (measure-theoretic superpopulation; the paper is finite-population and fixed-schedule)."
+    },
+    {
+      "id": "S2",
+      "world": "The Boolean function space \\(\\mathbb R^\\Theta\\) with its unique multilinear (Moebius) expansion: every \\(u:\\Theta\\to\\mathbb R\\) is \\(u=\\sum_{S\\subseteq I}\\beta_Sm_S\\) with squarefree monomials \\(m_S(\\theta)=\\prod_{i\\in S}\\theta_i\\), \\(m_\\varnothing=1\\), and coefficients \\(\\beta_S=\\sum_{T\\subseteq S}(-1)^{|S|-|T|}u(\\mathbf 1_T)\\) obtained by inclusion-exclusion at the vertex schedules \\(\\mathbf 1_T\\). Inside it sit the downward-closed observable complex \\(\\mathcal J\\), the observable spans \\(\\mathcal E_{\\mathcal J}\\) and \\(\\mathcal E_{\\mathcal J,r}\\), the joint observation probabilities \\(\\pi_S=\\sum_{z:S\\subseteq O_z}p_z\\), the assignment truth tables \\(g_z:\\{0,1\\}^{O_z}\\to\\mathbb R\\) with their design expectations \\(b_g\\), and the centered coordinates \\(x_i=2\\theta_i-1\\) in which outcome complementation \\(\\theta\\mapsto\\mathbf 1_K-\\theta\\) acts as \\(x\\mapsto-x\\) and splits the space by degree parity \\(d\\).",
+      "binds_symbols": [
+        "S",
+        "m_S",
+        "\\mathcal J",
+        "\\mathcal E_{\\mathcal J}",
+        "r",
+        "\\mathcal E_{\\mathcal J,r}",
+        "\\beta_S",
+        "\\pi_S",
+        "T",
+        "\\mathbf 1_T",
+        "d",
+        "\\mathbf 1_K",
+        "x_i",
+        "x",
+        "g_z",
+        "b_g",
+        "b",
+        "b'"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Panel.PO.Mobius",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Algebra.BigOperators.Ring.Finset"
+      ],
+      "notes": "Search trace: Grep '(obius|multilinear|inclusion.exclusion|Boolean cube)' over ../Causalean -> `Causalean/Panel/PO/Mobius.lean` (namespace `Causalean.Panel.PO.Mobius`) supplies exactly this world's engine on `iota -> Fin 2`: `indicator A` (the vertex schedule `1_T`), `delta tau S` (the coefficient `beta_S`), `prod_indicator_eq` (the monomial `m_S` at a vertex), `coeff_sum` (the `(1-1)^{|R\\T|}` cancellation the paper's proof uses), and `mobius_expansion`. Mathlib-side check: lean_leansearch 'Mobius inversion on the Boolean cube / multilinear expansion of a function on {0,1}^n' returns only `Finset.prod_powerset`-style algebra, no packaged Boolean Fourier/Moebius layer. Gap to bridge: `mobius_expansion` normalizes `tau (fun _ => 0) = 0` and sums over NONEMPTY `S`, whereas the paper keeps `beta_empty = u(0)`; F2/F3 apply it to `u - u(0)` (or reprove the unnormalized form in `Helpers/BooleanMobius.lean` by the same three-step argument documented in that file's header). Uniqueness of the expansion (needed at four places in the paper) is a small induction on `|T|` over `u(1_T) = sum_{S subseteq T} beta_S`."
+    },
+    {
+      "id": "S3",
+      "world": "The finite observable-margin program over the fixed design: a prespecified full-support weighting \\(q\\in\\Delta^\\circ(\\Theta)\\), the conservative cone \\(\\mathcal C_{\\mathcal J}(f)=\\{b\\in\\mathcal E_{\\mathcal J}:b\\ge f\\text{ on }\\Theta\\}\\), the primal values \\(F_{\\mathcal J}\\) and \\(F_{\\mathcal J,r}\\), the dual margin polytope \\(\\mathcal D_{\\mathcal J}(q)=\\{\\mu\\ge0:\\mathbb E_\\mu m_S=\\mathbb E_qm_S\\ \\forall S\\in\\mathcal J\\}\\), the Pareto order on \\(\\mathcal C_{\\mathcal J}(f)\\), and the published comparator objects: a symmetric design-compatible matrix \\(H\\) with its binary-cube restriction \\(h_H(\\theta)=\\theta^\\top H\\theta\\), and the binary Aronow--Samii zero-pairwise-inclusion tables \\(g_z^{\\mathrm{AS}}\\) with expected correction \\(b_{\\mathrm{AS}}\\). All coefficients are arbitrary reals; rationality is imposed only where an exact certificate is claimed.",
+      "binds_symbols": [
+        "q",
+        "\\mathcal C_{\\mathcal J}(f)",
+        "F_{\\mathcal J}",
+        "F_{\\mathcal J,r}",
+        "\\mu",
+        "\\mathcal D_{\\mathcal J}(q)",
+        "H",
+        "h_H",
+        "g_z^{\\mathrm{AS}}",
+        "b_{\\mathrm{AS}}"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.LP.ConicDuality",
+        "Causalean.Mathlib.Optimization.RationalLP",
+        "Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative",
+        "Mathlib.Analysis.Convex.Cone.InnerDual",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "notes": "Search trace: Grep '(farkas|strong_duality|LinearProgram|polyhedr)' over ../Causalean -> `PO/ID/Partial/LP/ConicDuality.lean` (namespace `Causalean.PartialID.ConicProgram`: `weak_duality`, `dualValue_le_primalValue`, `farkas`, `strong_duality_primal_attained`, `strong_duality_zero_gap`) and `Mathlib/Optimization/RationalLP.lean` (namespace `Causalean.Mathlib.Optimization.RationalLP`: Fourier-Motzkin elimination plus `exists_rational_primal_optimizer` and `exists_rational_optimal_primal_dual`). Mathlib-side check: lean_leansearch 'Farkas lemma / finitely generated cone is closed' -> `ProperCone.hyperplane_separation_of_notMem`, `ProperCone.relative_hyperplane_separation`, `Set.Finite.isClosed_convexHull`; no finite-dimensional Farkas-Minkowski-Weyl (`PointedCone` finitely-generated closedness) is packaged. Consequence: the REAL-coefficient duality of `thm:dual-complete-class` is built inline in `Helpers/FiniteConeDuality.lean` following the paper's own self-contained nearest-point argument (the paper never invokes an external LP theorem), with `ConicProgram.{weak_duality, farkas, strong_duality_zero_gap}` as the analogous module F3 adapts (gap: Hilbert-space `ProperCone` phrasing vs. the paper's explicitly finitely generated cone in `R^Theta`). The RATIONAL certificate of `prop:rational-certificates` is a direct fit for `exists_rational_optimal_primal_dual`. `ExposureMappingInterference/Variance/Conservative.lean` (`htA2`, `E_htVarEst_add_htA2_ge`, `htCovEstA`, `E_htCovEstA_le`) is the analogous module for the Aronow-Samii comparator (gap: Causalean states expectation-level conservativeness for real outcomes under an exposure mapping; the paper needs the binary-cube membership `b_AS in C_J(f) cap E_{J,2}`)."
+    },
+    {
+      "id": "S4",
+      "world": "The six-coordinate three-atom witness experiment \\(\\mathfrak E_\\star\\): \\(K=6\\), \\(p_z=1/3\\), \\(O_1=(1,3,5)\\), \\(O_2=(3,4)\\), \\(O_3=(0,1,2,5)\\), \\(v_1=(0,-2,0,-1,0,3)\\), \\(v_2=(0,0,0,1,-1,0)\\), \\(v_3=(-2,-1,2,0,0,1)\\), with uniform objective weights on \\(\\Theta=\\{0,1\\}^6\\). Its certificates are the centered quadratic \\(P(x)\\), the all-degree optimizer \\(b^\\star=[107+P(x)-3x_0x_1x_2x_5]/72\\), the degree-two optimizer \\(r^\\star=[110+P(x)]/72\\), the nonnegative rational assignment tables \\(h_z^\\star\\), and the rational dual distributions \\(\\mu^\\star\\) (uniform on sixteen schedules) and \\(\\nu^\\star\\) (uniform on eight schedules).",
+      "binds_symbols": [
+        "\\mathfrak E_\\star",
+        "P",
+        "b^\\star",
+        "r^\\star",
+        "h_z^\\star",
+        "\\mu^\\star",
+        "\\nu^\\star"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Mathlib.Data.Rat.Defs",
+        "Mathlib.Tactic.NormNum.Basic",
+        "Mathlib.Tactic.FinCases"
+      ],
+      "notes": "Search trace: Grep for a stored six-coordinate/three-atom witness experiment over ../Causalean/Experimentation (`Glob Experimentation/**/*.lean` + Grep 'witness|107/72|sqrt 17') -> nothing; witness instances in Causalean are Bernoulli/complete-randomization designs (`DesignBased/Designs/*.lean`), not this one. This world is a concrete instance of the S1 `Setup` structure with rational data (its embedded `design` field is a `FiniteDesign (Fin 3)`, the reused randomization layer; the six coordinates, the three observation sets and the three score vectors are `Setup` fields, not `FiniteDesign` ones), so it is defined locally; the arithmetic is `Fin`-enumeration plus `decide`/`norm_num` over `Rat` (64 schedules, 28 table entries)."
+    },
+    {
+      "id": "S5",
+      "world": "A composite blockwise world with two components. (a) A triangular array of blocks: in row \\(B\\) there are \\(B\\) blocks \\(j=1,\\dots,B\\) with fixed potential outcomes, whose assignments are the coordinates of one known finite row-\\(B\\) randomization law on the product carrier of the block assignment sets; that law is an arbitrary finite randomization, and the only independence imposed on it is the assumed independence of the pairs \\((X_{Bj},G_{Bj})\\) across \\(j\\). Block \\(j\\) carries an assignment-random block score \\(X_{Bj}\\) with design mean \\(\\tau_{Bj}=\\mathbb EX_{Bj}\\) and design variance \\(\\sigma_{Bj}^2=\\operatorname{Var}(X_{Bj})\\), and an assignment-level bound estimator \\(G_{Bj}\\) with design mean \\(b_{Bj}=\\mathbb EG_{Bj}\\), all four moments taken under that same row-\\(B\\) law. Row averages are \\(\\widehat\\tau_B=B^{-1}\\sum_jX_{Bj}\\), \\(\\bar\\tau_B=B^{-1}\\sum_j\\tau_{Bj}\\), \\(V_B=B^{-1}\\sum_j\\sigma_{Bj}^2\\), \\(W_B=B^{-1}\\sum_jb_{Bj}\\) and \\(\\widehat W_B=B^{-1}\\sum_jG_{Bj}\\), with limits \\(V_B\\to V>0\\) and (when it exists) \\(W_B\\to W<\\infty\\), a uniform score bound \\(M\\), a nominal level \\(\\alpha\\), the standard normal distribution function \\(\\Phi\\), the critical value \\(z_\\alpha=\\Phi^{-1}(1-\\alpha/2)\\) and the studentized interval \\(I_B(\\alpha)\\). (b) Separately, the independent product experiment, whose assignment law is by construction the product of independent component randomizations: deterministic block weights \\(a_j\\), component scores \\(X_j\\), component optima \\(F_j\\) and \\(F_{j,r}\\), and the product optima \\(F_{\\mathrm{prod}}\\) and \\(F_{\\mathrm{prod},r}\\). Component (b) is a special case of component (a)'s carrier but not conversely: the row law of (a) is never assumed to factorize into per-block laws.",
+      "binds_symbols": [
+        "B",
+        "j",
+        "a_j",
+        "X_j",
+        "F_j",
+        "F_{j,r}",
+        "F_{\\mathrm{prod}}",
+        "F_{\\mathrm{prod},r}",
+        "X_{Bj}",
+        "G_{Bj}",
+        "\\tau_{Bj}",
+        "\\sigma_{Bj}^2",
+        "b_{Bj}",
+        "V_B",
+        "W_B",
+        "\\widehat W_B",
+        "\\widehat\\tau_B",
+        "\\bar\\tau_B",
+        "M",
+        "V",
+        "W",
+        "\\alpha",
+        "\\Phi",
+        "z_\\alpha",
+        "I_B"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.ProductVariance",
+        "Causalean.Experimentation.DesignBased.Chebyshev",
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Causalean.Experimentation.DesignBased.GaussianCDF",
+        "Causalean.Experimentation.DesignBased.WaldCoverage",
+        "Causalean.Experimentation.DesignBased.FiniteDesignMeasure",
+        "Causalean.Experimentation.DesignBased.DependencyCLT"
+      ],
+      "notes": "REVISED round 2 (world-level disposition): S5 is a LOCAL COMPOSITE world, `define-local`, not a `prodDesign` reuse. The previous entry declared `reuse: Causalean.Experimentation.DesignBased.prodDesign` at world level, which was wrong: `prodDesign` realizes only component (b), the separate independent product experiment; it cannot host component (a), whose row law is an ARBITRARY `rowLaw B : FiniteDesign (forall j, Omega B j)` carrying merely pair-level factorization of the `(X_Bj,G_Bj)` statistics, nor the `X_Bj`/`G_Bj` triangular-array model itself. The world is therefore realized by the locally defined `BlockArray` bundle (row-`B` assignment carriers, one `rowLaw B`, the score/bound coordinate statistics `X B j`, `G B j`, the row-law moments and row averages, `waldInterval`) over the reused `FiniteDesign` layer, PLUS the product-experiment component. `prodDesign` remains a justified reuse one level down, inside `def:product-experiment` and `thm:tensorization` only (see those node entries); it is not a world-level reuse declaration and is never applied to `BlockArray`. Search trace for a packaged triangular-array/blockwise bundle (this revise round): Grep 'structure .*(Array|Row|Block|Triangular)' over /soalnas/.../Causalean/Experimentation -> NO matches (Causalean's design-based layer carries no row/block bundle structure at all); Grep 'rowLaw|triangular|TriangularArray' over /soalnas/.../Causalean -> only `Stat/CLT/MartingaleArray/**` (measure-theoretic martingale arrays, wrong abstraction for a finite `FiniteDesign` row law) and Stein-method dependency-graph CLT files; Mathlib-side lean_leansearch 'triangular array of independent random variables indexed by rows' -> only iid strong-law results. Hence the bundle is built locally in `Helpers/BlockArray.lean`. Layer split inside the world: (a) Product-experiment component (`def:product-experiment`, `thm:tensorization`): `prodDesign` (`Product.lean:49`, namespace `Causalean.Experimentation.DesignBased`) makes cross-block independence structural, and `FiniteDesign.Var_prod_linear_comb` (`ProductVariance.lean:90`) gives `Var(sum_j c_j g_j(w_j)) = sum_j c_j^2 Var(g_j)` directly. (b) Triangular-array component (`BlockArray`): the row law is an ARBITRARY `FiniteDesign (forall j, Omega B j)`, NOT a `prodDesign` -- the core only assumes the `(X_Bj,G_Bj)` pairs are independent under it -- so the product-specific lemmas above do not apply and the variance additivity is derived instead from `FiniteDesign.Var_linear_comb` (`DesignCore.lean:235`, valid on any finite design: `Var(sum_i c_i X_i) = sum_i sum_j c_i c_j Cov(X_i,X_j)`) together with a small local lemma turning the assumed pair-mass factorization into `Cov = 0` off the diagonal via `FiniteDesign.Cov_eq` (`DesignCore.lean:148`). Re-search trace for that bridge (previous revise round, unchanged): Grep '(Cov_.*zero|Var_sum|Var_add|indep)' over /soalnas/.../Causalean/Experimentation/DesignBased -> only `Cov_prod_apply_of_ne`/`E_prod_apply₂`/`Var_prod_apply` (all `prodDesign`-only) plus the generic `Var_linear_comb`/`Cov_eq`/`Cov_comm`/`Cov_linear_comb` in `DesignCore.lean`; Mathlib-side lean_leansearch 'expectation of a product of independent random variables factorizes' -> `ProbabilityTheory.IndepFun.integral_mul`, measure-theoretic and at the wrong abstraction for a finite design. Hence: reuse `Var_linear_comb` + `Cov_eq`, build the factorization-to-zero-covariance step inline (small). `tau_Bj`, `sigma_Bj^2`, `b_Bj` and `Var(G_Bj)` are row-law moments of the coordinate statistics, so no auxiliary per-block design is carried. `FiniteDesign.chebyshev` (`Chebyshev.lean:40`) and `FiniteDesign.tendstoInProb_of_var` (`InProb.lean:63`) give the denominator weak law; `stdNormalCdf`, `stdNormalCdf_neg`, `continuous_stdNormalCdf` (`GaussianCDF.lean:42,64,70`) supply `Phi` and `z_alpha`. NUMERATOR CLT INPUT (round 4 finding, retained; round-5 amendment on provenance): the Lean proof route is the REUSED Causalean theorem `Causalean.Experimentation.DesignBased.dependency_studentized_cdf` (`DependencyCLT.lean:57`), while the frozen cited gate `lem:lindeberg-feller-independent-array` is again threaded as a declared hypothesis of `thm:studentized-coverage` (the core's `depends_on` edge with `carrier: logical-claim` makes that mandatory regardless of the proof route) -- the two coexist: the gate is the core-mandated interface for the classical limit step, the library theorem is how that step is discharged for these bounded hypotheses. Round 3's claim that `DependencyCLT` is stated `on a product design` was wrong; the signature read this round is `(D : forall n, FiniteDesign (Omega n)) {iota : Nat -> Type*} [forall n, Fintype (iota n)] (X : forall n, iota n -> Omega n -> Real) (Dep : forall n, DepGraph (X n) (D n).toMeasure) (Dmax) (hdeg) (M) (hM) (hbound) (hmean) (v) (hv) (c) (hc) (hvc) (hcard) (s) : Tendsto (fun n => (D n).Pr (fun w => depSum (X n) w / sqrt (v n) <= s)) atTop (nhds (stdNormalCdf s))` -- an ARBITRARY finite design per row, with no product structure anywhere. Only `prodDesign_clt` (`IndepSummandsCLT.lean:87`) carries the product restriction. This world therefore instantiates it at `D B := Arr.rowLaw B`, `iota B := Fin B`, `X B j w := Arr.X B j (w j) - blockTau Arr B j`, and the DIAGONAL dependency graph `G i j := i = j` (`Dmax = 1`, since `DepGraph.nbhd i = {i}`), whose `indep` obligation -- non-adjacent, i.e. disjoint, finsets carry independent tuples -- is discharged from the `BlockIndependence`-to-`iIndepFun` bridge by `ProbabilityTheory.iIndepFun.indepFun_finset`. `FiniteDesignMeasure` is still reused, but only to STATE the `DepGraph` over `(Arr.rowLaw B).toMeasure` (`FiniteDesign.toMeasure` `:51` as a sum of weighted Diracs, `IsProbabilityMeasure` `:64`, `integral_toMeasure`, `variance_toMeasure`, `toMeasure_real_setOf`); the theorem's conclusion is already in the native `FiniteDesign.Pr` form, so no back-conversion of the conclusion is needed. `ProductMeasure.lean:91` (`prodDesign_iIndepFun_coords`) gives coordinate independence only for product designs, so the `BlockIndependence`-to-`iIndepFun` step is still built inline for the arbitrary row law (finite: the coordinate statistics have finite range, so singleton-vector mass factorization sums to factorization over Borel sets). Search trace (round 4): Grep 'dependency_studentized_cdf|DepGraph|structure DepGraph|def depSum' over ../Causalean -> `Experimentation/DesignBased/DependencyCLT.lean:57` (the theorem), `Experimentation/DesignBased/WaldPipeline.lean:57` (`dependency_wald_coverage`, the same CLT chained into coverage but only for a DETERMINISTIC conservative `vhat`, so it is an analogous module here rather than an instantiation -- the paper's `hat W_B` is random), `Mathlib/Probability/SteinMethod/DepGraphCLT.lean:51` (`structure DepGraph`: fields `G`, `decG`, `refl`, `symm`, `meas`, `indep`) and `.../DependencyCLT.lean:51` (`depSum X = fun w => sum over i of X i w`); Mathlib-side lean_loogle `ProbabilityTheory.iIndepFun.indepFun_finset` -> confirmed present with exactly the `DepGraph.indep` conclusion shape. Mathlib still supplies no independent-triangular-array Lindeberg-Feller theorem (lean_leansearch 'Lindeberg-Feller CLT for triangular arrays' -> iid strong-law results only), which is why the cited node stays recorded as an undischarged gate and, per the citation-gate rule, is threaded into its one consumer."
+    },
+    {
+      "id": "S6",
+      "world": "The open school-network application handle \\(\\mathcal H_{\\mathrm{school}}\\): the published two-stage Paluck--Shepherd--Aronow school assignment law, its exposure mapping and direct-effect score, together with the requested orbit-and-separator route (quotient by exact design automorphisms, separator-local Boolean Moebius states, and a rational lifting map preserving every global domination inequality and observable margin). No assignment atoms, exposure-coordinate map, direct-effect coefficients, automorphism orbits or separator states are supplied by the core, so this world is descriptive only: it fixes no mathematical object over which a truth condition could be stated.",
+      "binds_symbols": [
+        "\\mathcal H_{\\mathrm{school}}"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "notes": "Search trace: Grep 'Paluck|school|PSA' over ../Causalean/Experimentation -> no school-network design records; `ExposureMappingInterference/` formalizes the Aronow-Samii exposure framework abstractly (no concrete school data). Because the core supplies no typed finite inputs, this S-block and its consumer `oeq:school-exposure-block` are encoded as non-assertive descriptive payloads, never as Props with invented witnesses."
+    }
+  ],
+  "substrate_survey": [
+    {
+      "module": "Causalean/Experimentation/DesignBased/DesignCore.lean",
+      "verdict": "reused",
+      "note": "REVISED round 6 (reuse LEVEL): `FiniteDesign` is reused as the E/Var/Cov/Pr randomization layer embedded as the `design` field of the paper-local `Setup`/`BlockArray`/witness structures, NOT as the ambient world of S1 -- the structure is a bare pmf on a finite carrier (`p`, `p_nonneg`, `p_sum`, `DesignCore.lean:46-52`) and hosts no support positivity, binary schedule space, observation map, score vectors or derived score/variance objects, all of which S1 binds. At that statistic level the reuse is exact: `E`/`Var`/`Cov`/`Pr` (`DesignCore.lean:61-80`) are literally the finite sums the paper writes for `E_p`/`Var_p`, and are the randomization layer under S1, S4 and S5. Also supplies the general-design `Var_linear_comb` (line 235) and `Cov_eq` (line 148) used for the triangular-array row-law variance additivity, where the `prodDesign`-only lemmas do not apply."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/Product.lean",
+      "verdict": "reused",
+      "note": "`prodDesign` realizes the independent product experiment at NODE level (`def:product-experiment`, `thm:tensorization`) only; it is not the S5 world-level realization (see the S5 notes). It is NOT used for the triangular block array: the core assumes only that the `(X_Bj,G_Bj)` pairs are independent under the row law, which is weaker than the row law being a product of per-block designs, and the `BlockArray` bundle carrying `X_Bj`/`G_Bj` has no Causalean analogue (Grep 'structure .*(Array|Row|Block|Triangular)' over Causalean/Experimentation -> no matches)."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/ProductVariance.lean",
+      "verdict": "reused",
+      "note": "`FiniteDesign.Var_prod_linear_comb`, `Cov_prod_apply_of_ne`, `Var_prod_apply` give the product-design variance decompositions used by `thm:tensorization`. They are `prodDesign`-specific and therefore not available for the abstract row law of the triangular array, which uses `DesignCore.Var_linear_comb` + `Cov_eq` instead."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/Chebyshev.lean",
+      "verdict": "reused",
+      "note": "`FiniteDesign.chebyshev` is the denominator weak law engine (paper equations (10)-(11))."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/InProb.lean",
+      "verdict": "reused",
+      "note": "`FiniteDesign.TendstoInProb`, `tendstoInProb_of_var`, `.sub`, `.const_mul` package `hat W_B - W_B ->p 0`."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/GaussianCDF.lean",
+      "verdict": "reused",
+      "note": "`stdNormalCdf` (+ `_neg`, continuity, monotonicity) is `Phi` and defines `z_alpha`."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/WaldCoverage.lean",
+      "verdict": "reused",
+      "note": "`conservative_wald_liminf_of_studentized_cdf` is the oracle-variance coverage step; the random-`hat W_B` case follows the `wald_coverage_feasible` pattern."
+    },
+    {
+      "module": "Causalean/Experimentation/ExposureMappingInterference/Asymptotics/Intervals.lean",
+      "verdict": "analogous-module",
+      "note": "`wald_coverage_feasible` is the exact proof pattern for an estimated variance with a `Pr(Vhat < (1-eps)Var) -> 0` input; F3 adapts it with `R_B = max(hat W_B,0)/V_B`."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/IndepSummandsCLT.lean",
+      "verdict": "surveyed-not-used",
+      "note": "`prodDesign_clt` (`:87`) takes per-coordinate designs `D : forall n i, FiniteDesign (alpha n i)` and states its conclusion at `prodDesign (D n)`; the triangular array's `rowLaw B` is an arbitrary finite design with only pair-level factorization, so this particular theorem is not instantiable there. Round 4 note: that restriction is specific to THIS file and was wrongly generalized to `DependencyCLT.lean` in round 3 -- `dependency_studentized_cdf` has no product restriction and is now the reused numerator CLT (see that module's entry). `prodDesign_clt` remains surveyed-not-used and does not discharge the frozen cited gate either."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/FiniteDesignMeasure.lean",
+      "verdict": "reused",
+      "note": "Added round 3; role narrowed round 4. `FiniteDesign.toMeasure` (`:51`, sum of weighted Diracs) with its `IsProbabilityMeasure` instance (`:64`) and the dictionary `integral_toMeasure` / `variance_toMeasure` / `toMeasure_real_setOf` is what lets `thm:studentized-coverage` STATE the diagonal `DepGraph` over `(Arr.rowLaw B).toMeasure`, as `dependency_studentized_cdf` requires, and prove its `indep` field. No conclusion-side round-trip is needed any more: the reused theorem already concludes in `FiniteDesign.Pr` form. The carrier `forall j, Omega B j` is a `Fintype` with the top sigma-algebra, so the file's `[Fintype] [MeasurableSpace] [MeasurableSingletonClass]` instances are available and every coordinate statistic is measurable."
+    },
+    {
+      "module": "Causalean/Panel/PO/Mobius.lean",
+      "verdict": "reused",
+      "note": "`indicator`, `delta`, `prod_indicator_eq`, `coeff_sum`, `mobius_expansion` are the Boolean Moebius engine for S2."
+    },
+    {
+      "module": "Causalean/Mathlib/Optimization/RationalLP.lean",
+      "verdict": "reused",
+      "note": "`exists_rational_optimal_primal_dual` supplies rational primal/dual optimizers with matching objectives for `prop:rational-certificates`."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/LP/ConicDuality.lean",
+      "verdict": "analogous-module",
+      "note": "`weak_duality`, `farkas`, `strong_duality_zero_gap` carry the separation/duality pattern; phrased over Hilbert `ProperCone`s, so F3 adapts rather than instantiates."
+    },
+    {
+      "module": "Causalean/Experimentation/ExposureMappingInterference/Variance/Conservative.lean",
+      "verdict": "analogous-module",
+      "note": "`htA2`/`E_htVarEst_add_htA2_ge` is the Young zero-joint correction in expectation; the paper needs its binary-cube membership statement."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/Exposure.lean",
+      "verdict": "bypass-justified",
+      "note": "Exposure mappings index outcomes by exposure values; the paper's observable structure is an observed-coordinate set `O_z` on a binary cube, a different abstraction."
+    },
+    {
+      "module": "Causalean/Experimentation/ExposureMappingInterference/Asymptotics/Consistency.lean",
+      "verdict": "analogous-module",
+      "note": "Added round 6. `structure Experiment` (`:43-63`) is Causalean's own ambient design-based world: carriers plus an EMBEDDED `D : FiniteDesign Omega` randomization field plus the model data (`y : iota -> Delta -> Real`, `f : Omega -> Theta -> Delta`, `theta : iota -> Theta`). It is the precedent and field-layout reference for the paper-local `Setup` that realizes S1 -- confirming that a composite structure embedding `FiniteDesign`, not `FiniteDesign` itself, is the right world-level object. Not instantiable here: no observed-coordinate set `O_z subseteq I`, no binary schedule space, no score vectors `v_z`, no support positivity, and outcomes are real-valued and exposure-indexed rather than binary and coordinate-observed."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/HT/{Estimator,Unbiased,Variance}.lean",
+      "verdict": "bypass-justified",
+      "note": "The paper's estimators are arbitrary observed-data truth tables, not inverse-probability weights; HT enters only inside `def:aronow-samii-binary-correction`."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/DependencyCLT.lean",
+      "verdict": "reused",
+      "note": "REVISED round 4 (was wrongly folded into a bypass-justified `dependency-graph machinery is for locally dependent units` entry, and round 3 additionally mis-stated it as product-design-only). `dependency_studentized_cdf` (`:57`) is stated over an ARBITRARY `D : forall n, FiniteDesign (Omega n)` with `Dep : forall n, DepGraph (X n) (D n).toMeasure`; exact independence is the DEGENERATE case of local dependence, obtained by the diagonal graph `G i j := i = j` with `Dmax = 1`, so it applies verbatim to the triangular array's arbitrary row law. It supplies the whole numerator CLT of `thm:studentized-coverage` in the native `FiniteDesign.Pr` presentation that `conservative_wald_liminf_of_studentized_cdf` consumes. Round-5 amendment: this reuse is the PROOF ROUTE for that step; it does not remove the frozen cited gate `lem:lindeberg-feller-independent-array` from the consumer's `hyps`, since the core declares that logical-claim dependency and only `bin/gate.ts --discharge` may replace it."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/WaldPipeline.lean",
+      "verdict": "analogous-module",
+      "note": "`dependency_wald_coverage` (`:57`) chains exactly the two decls this paper uses (`dependency_studentized_cdf` then `conservative_wald_liminf_of_studentized_cdf`) and its lines 78-94 are the reference assembly F3 should follow, including the `hvarpos` derivation from `hvc`/`hcard`. Gap: it requires a DETERMINISTIC conservative variance `vhat : Nat -> Real`, whereas the paper's `hat W_B` is random, so the coverage half still needs the `wald_coverage_feasible` pattern with `R_B = max(hat W_B,0)/V_B`. Instantiable directly only for the deterministic-`W_B` sub-case."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/EdgeVarianceBound.lean",
+      "verdict": "bypass-justified",
+      "note": "Edge-variance bounds for exposure-graph designs; this paper's bound estimator is an arbitrary observed-data lookup table, not an edge-indexed variance bound."
+    },
+    {
+      "module": "Causalean/Experimentation/TwoStageInterference/**",
+      "verdict": "bypass-justified",
+      "note": "Two-stage compound designs with within-group stratified interference; the paper has no two-stage structure."
+    },
+    {
+      "module": "Causalean/PO/**",
+      "verdict": "bypass-justified",
+      "note": "Measure-theoretic superpopulation potential outcomes; the paper is fixed-schedule finite-population, and the design-based sibling layer is the faithful one."
+    },
+    {
+      "module": "Causalean/Stat/CLT/MartingaleArray/Main.lean",
+      "verdict": "surveyed-not-used",
+      "note": "`martingaleArrayCLT` (with a conditional Lindeberg condition) is a heavier measure-theoretic route needing a filtration and conditional-expectation bridge; the independent-block case is covered outright by the reused `dependency_studentized_cdf` at a diagonal graph."
+    }
+  ],
+  "nodes": {
+    "ass:observable-score": {
+      "lean_kind": "assumption",
+      "lean_name": "ObservableScore",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "`def ObservableScore (E : Setup) : Prop := forall z i, v z i <> 0 -> i in E.O z` (design compatibility of the linear score: `supp(v_z) subseteq O_z`).",
+      "notes": "Modeling assumption (design restriction), kept as a threaded Prop hypothesis; it is exactly the design-compatibility condition of Harshaw-Middleton-Savje. Search trace: Grep 'design compat|supp.*subseteq|observable score' over ../Causalean/Experimentation -> no packaged predicate (`Exposure.lean` conditions are about propensity positivity, not score support); Mathlib-side irrelevant (a support predicate). Used inline by `prop:variance-estimability` and as a field-level input to `def:score-variance`."
+    },
+    "ass:complement-invariant-variance": {
+      "lean_kind": "assumption",
+      "lean_name": "ComplementInvariantVariance",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "`def ComplementInvariantVariance (E : Setup) : Prop := forall i, sum_k A i k = 0` (i.e. `A * 1_K = 0`).",
+      "notes": "Novel proposal-specific symmetry restriction on the design (equal total coordinate loading of every assignment score). Modeling assumption: threaded into `thm:complement-degree-collapse`, never discharged. Search trace: Grep 'complement|zero-sum contrast|row sum zero' over ../Causalean/Experimentation -> nothing; Mathlib-side `Matrix.mulVec` row-sum algebra only."
+    },
+    "ass:complement-invariant-objective": {
+      "lean_kind": "assumption",
+      "lean_name": "ComplementInvariantObjective",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "`def ComplementInvariantObjective (q : Theta -> Real) : Prop := forall theta, q theta = q (complement theta)` where `complement theta i = 1 - theta i` on `Fin 2`.",
+      "notes": "Modeling assumption on the prespecified objective weights (satisfied by uniform and any paired weighting). Threaded into `thm:complement-degree-collapse`; the theorem's own statement records that without it no odd-degree collapse is claimed. Search trace: Grep 'complement invariant|symmetric prior|paired weights' over ../Causalean -> nothing at this abstraction."
+    },
+    "ass:block-independence": {
+      "lean_kind": "assumption",
+      "lean_name": "BlockIndependence",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.FiniteDesignMeasure"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockArray.lean",
+      "statement_sketch": "`def BlockIndependence (Arr : BlockArray) : Prop := forall (B : Nat) (x g : Fin B -> Real), (Arr.rowLaw B).Pr (fun w => forall j, Arr.X B j (w j) = x j and Arr.G B j (w j) = g j) = prod over j of (Arr.rowLaw B).Pr (fun w => Arr.X B j (w j) = x j and Arr.G B j (w j) = g j)` -- the finite joint mass function of the row-`B` pairs `(X_Bj,G_Bj)` factors into ITS OWN coordinate marginals under the row law, for every vector of pair values.",
+      "notes": "Modeling assumption (independent randomized score/bound pairs under the row-`B` randomization law). REVISED this round: the right-hand side is the row law's own coordinate marginals, not the marginals of a separately supplied `Arr.blockDesign B j`. The previous `blockDesign`-indexed form was only a one-way refinement -- it additionally forced each pair marginal to agree with an unrelated law -- and the form before that (`rowLaw B = prodDesign (blockDesign B)`) forced independence of the assignment ATOMS, which is strictly stronger than the core's pair independence when the `(X,G)` map is non-injective. The mass-factorization form here is equivalent to the core condition in both directions on finite carriers, and still does not identify atoms with equal `(X,G)` values. Consequence for the rest of the S5 bundle: `blockDesign` is dropped from `BlockArray`, and `blockTau`, `sigmaSq`, `blockBoundMean` and the `Var(G_Bj)` of `ass:bound-lln` become row-law moments of `fun w => X B j (w j)` / `fun w => G B j (w j)`. Threaded into `thm:studentized-coverage`; the separate product experiment constructs its product assignment law directly with `prodDesign` and does not use this predicate. ROUND-4 REVISION (dependency closure of the missed-reuse correction; the predicate's Lean shape is UNCHANGED): the `iIndepFun` bridge lemma introduced in round 3 is RETAINED but re-aimed. Its consumer is no longer the cited gate but the DIAGONAL `DepGraph` required by the reused `Causalean.Experimentation.DesignBased.dependency_studentized_cdf`: prove, beside the predicate in the same file, `BlockIndependence Arr -> ProbabilityTheory.iIndepFun (fun j w => (Arr.X B j (w j), Arr.G B j (w j))) (Arr.rowLaw B).toMeasure` and its centered-score corollary for `fun j w => Arr.X B j (w j) - blockTau Arr B j` (composition with a measurable map, `iIndepFun.comp`), then package the diagonal graph `G i j := i = j` as a `DepGraph` term: `refl`/`symm` are trivial, `decG` is `instDecidableEqFin`, `meas` is `measurable_of_finite`, and `indep` -- disjoint (= non-adjacent) finsets carry independent tuples -- is exactly `ProbabilityTheory.iIndepFun.indepFun_finset S T hST hindep hmeas` (signature confirmed by lean_loogle this round). This is build-inline and finite: on the `Fintype` carrier `forall j, Omega B j` the coordinate statistics have finite range, so the assumed singleton-vector mass factorization sums to factorization over arbitrary Borel sets, and `FiniteDesign.toMeasure_apply` / `toMeasure_real_setOf` (`FiniteDesignMeasure.lean`) convert between `Pr` and measure. Search trace for a ready-made version (round 3): Grep 'iIndepFun|IndepFun' over Causalean/Experimentation/DesignBased -> only `ProductMeasure.lean:91,98,109,122,141` (`prodDesign_iIndepFun_coords` and friends), all conditioned on the law BEING a `prodDesign`, hence inapplicable to an arbitrary row law; Mathlib-side lean_leansearch 'independence of finitely valued random variables from factorization of the joint pmf' -> `ProbabilityTheory.iIndepFun_iff_map_prod_eq_prod_map` style characterizations over general measures, usable as the target shape but not as a finite-design instance. Earlier search trace (previous revise round, unchanged): Grep '(Cov_.*zero|Var_sum|Var_add|indep)' over Causalean/Experimentation/DesignBased -> no named finite-design independence predicate exists (independence is always structural via `prodDesign`), so the predicate is defined locally over `FiniteDesign.Pr` (`DesignCore.lean`)."
+    },
+    "ass:uniform-score-bound": {
+      "lean_kind": "assumption",
+      "lean_name": "UniformScoreBound",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockArray.lean",
+      "statement_sketch": "`def UniformScoreBound (Arr : BlockArray) (M : Real) : Prop := forall B j w, |X B j w| <= M` with `M < infinity` a real constant.",
+      "notes": "Modeling/support assumption (uniform boundedness of block scores). Threaded into `thm:studentized-coverage`, where the Lindeberg condition is DERIVED from it plus `ass:nondegenerate-average-variance` (paper equations (3)-(5)); it is not itself a substrate fact. Search trace: Grep 'bounded.*score|hbound' over ../Causalean/Experimentation/DesignBased -> boundedness always appears as a hypothesis (`hbound` in `prodDesign_clt`, `var_edge_sum_le`), never as a named reusable predicate."
+    },
+    "ass:nondegenerate-average-variance": {
+      "lean_kind": "assumption",
+      "lean_name": "NondegenerateAverageVariance",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Order.Filter.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockArray.lean",
+      "statement_sketch": "`def NondegenerateAverageVariance (Arr : BlockArray) (V : Real) : Prop := 0 < V and Tendsto (fun B => V_B Arr B) atTop (nhds V)`, where `V_B = B^{-1} sum_j sigmaSq Arr B j` and `sigmaSq Arr B j := (Arr.rowLaw B).Var (fun w => Arr.X B j (w j))`.",
+      "notes": "Modeling/regularity assumption (nondegenerate limiting design variance). Threaded into `thm:studentized-coverage` and used for `s_B^2 -> infinity` and the eventual bound `V_B >= V/2`. Revised this round only in its ambient bundle: `sigma_Bj^2` is now the row-law design variance of the coordinate statistic (see `ass:block-independence`), which is what the core's `sigma_{Bj}^2 = Var(X_{Bj})` means; the Lean shape of the predicate is unchanged. Search trace: Grep 'hvarpos|nondegener|0 < v n' over ../Causalean/Experimentation -> appears only as hypotheses in `WaldCoverage.lean`/`Intervals.lean`, no named predicate."
+    },
+    "ass:bound-lln": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundTableVarianceNegligible",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.ProductVariance"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockArray.lean",
+      "statement_sketch": "`def BoundTableVarianceNegligible (Arr : BlockArray) : Prop := Tendsto (fun B => (1/B^2) * sum_{j<B} (Arr.rowLaw B).Var (fun w => Arr.G B j (w j))) atTop (nhds 0)`.",
+      "notes": "Primitive empirical-process condition on the realized bound tables (`B^{-2} sum_j Var(G_Bj) -> 0`), declared as its own `ass:` node by the author; kept threaded. REVISED this round: `Var(G_Bj)` is the row-law design variance of the coordinate statistic, matching the core's `Var(G_{Bj})` under the row-`B` randomization law (see `ass:block-independence`); the previous phrasing took the variance under a separately supplied `blockDesign B j`. It is NOT the denominator weak law: the theorem derives `hat W_B - W_B ->p 0` from it via `FiniteDesign.Var_linear_comb` (`DesignCore.lean:235`) plus the `BlockIndependence`-induced vanishing of off-diagonal covariances, then `chebyshev`; the `prodDesign`-only `Var_prod_linear_comb` is NOT applicable here because the row law is an arbitrary finite design. Search trace: Grep 'Var.*tendsto.*0|variance negligib' over ../Causalean/Experimentation -> `htEffectVarEst_undershoot_tendsto_zero` and `var_NsqVhat_tendsto_zero_of_conditions` are the analogous (estimator-specific) conditions in the Aronow-Samii paper folder; Mathlib-side lean_leansearch 'triangular array variance negligibility' -> nothing packaged."
+    },
+    "ass:block-conservativeness": {
+      "lean_kind": "assumption",
+      "lean_name": "BlockConservativeness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockArray.lean",
+      "statement_sketch": "`def BlockConservativeness (Arr : BlockArray) : Prop := forall B j, sigmaSq Arr B j <= blockBoundMean Arr B j` (`b_Bj >= sigma_Bj^2`), both moments taken under `Arr.rowLaw B` on the coordinate statistics.",
+      "notes": "Modeling assumption (conservative expected randomization-variance bound per block). Threaded into `thm:studentized-coverage`, where it yields `W_B >= V_B`. Revised this round only in its ambient bundle: `sigma_Bj^2` and `b_Bj` are now row-law moments (see `ass:block-independence`), so the inequality compares two moments of the SAME law, as the core does; the Lean shape of the predicate is unchanged. Search trace: Grep 'conservat' over ../Causalean/Experimentation -> `E_htEffectVarEst_ge`, `E_varHat_conservative` PROVE conservativeness for specific estimators; there is no generic per-block predicate, and here it must remain an assumption because `G_Bj` is an arbitrary bound estimator."
+    },
+    "def:observable-complex": {
+      "lean_kind": "def",
+      "lean_name": "observableComplex",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "`def observableComplex (E : Setup) : Finset (Finset E.I) := univ.powerset.filter (fun S => exists z, S subseteq E.O z)`, together with the companion lemma `observableComplex_downward_closed`.",
+      "notes": "Search trace: Grep 'simplicial|downward closed|complex' over ../Causalean -> nothing (Causalean has no abstract simplicial-complex layer); Mathlib-side lean_leansearch 'downward closed family of finite sets / abstract simplicial complex' -> `SimplicialComplex` is geometric (affine, in `Mathlib.Analysis.Convex.SimplicialComplex`), a different abstraction. Defined locally as a `Finset (Finset I)` so that membership is decidable and `pi_S > 0` is immediate from support positivity."
+    },
+    "def:boolean-mobius-spaces": {
+      "lean_kind": "def",
+      "lean_name": "observableSpan",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Panel.PO.Mobius"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "`def monomial (S : Finset I) : Theta -> Real := fun theta => prod over i in S of (theta i : Real)` and `def observableSpan (E : Setup) (r : WithTop Nat) : Submodule Real (Theta -> Real) := span Real {monomial S | S in observableComplex E and (S.card : WithTop Nat) <= r}`; `E_J := observableSpan E top`, `E_{J,r} := observableSpan E r`.",
+      "notes": "One degree-indexed definition realizes both spaces of the node (see `decisions`). `monomial S` coincides with the Causalean vertex-product `Causalean.Panel.PO.Mobius.prod_indicator_eq` at every vertex schedule, which is the bridge lemma in `Helpers/BooleanMobius.lean`. Search trace as recorded for S2 (Grep 'obius|multilinear' over ../Causalean -> `Panel/PO/Mobius.lean`; leansearch for a Boolean Fourier/Moebius layer in Mathlib -> none)."
+    },
+    "def:score-variance": {
+      "lean_kind": "def",
+      "lean_name": "designVarianceFn",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "The tagged `designVarianceFn E hobs : ScoreVarianceData E` packages all five paper objects: `X_z(theta)`, `c`, `tau(theta)`, `A`, and `f(theta)`. The raw formula companions `score`, `targetCoeff`, `targetTau`, `varianceMatrix`, and `trueVarianceFn` supply those fields, and `designVarianceFn_eq_Var` identifies `trueVarianceFn` with finite-design variance.",
+      "notes": "The primary construction now explicitly takes the core input `hobs : ObservableScore E`; it no longer accepts an arbitrary incompatible setup. The bridge uses `FiniteDesign.Var_eq` plus the finite expectation algebra. ROUND-6 NOTE (bookkeeping only; disposition, `defer_tier`, `target_file` and statement sketch all unchanged): these five derived objects are the score/variance objects the S1 world hosts, and they are defined over the paper-local composite `Setup` (whose `design` field is the reused `FiniteDesign`) rather than over `FiniteDesign` itself, which carries no schedule space, observation map or score vectors. This node remains their single node-level realization, so the one-to-one core mapping is untouched; the reuse consumed here is at the E/Var/Cov level (`FiniteDesign.E`, `Var`, `Var_eq`, `DesignCore.lean:61-80`)."
+    },
+    "def:expected-rule": {
+      "lean_kind": "def",
+      "lean_name": "expectedRule",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "`def restrict (E : Setup) (z) (theta) : E.O z -> Fin 2 := fun i => theta i` and `def expectedRule (E : Setup) (g : forall z, (E.O z -> Fin 2) -> Real) : Theta -> Real := fun theta => E.design.E (fun z => g z (restrict E z theta))`.",
+      "notes": "Direct reuse of `FiniteDesign.E` (finite sum `sum_z p z * X z`), so `b_g` is by definition a design expectation and no integrability side conditions arise. Search trace: Grep 'restrict|table|truth table' over ../Causalean/Experimentation -> no observed-data-table layer exists (Causalean estimators are always explicit HT/Hajek formulas), so the table type is defined locally."
+    },
+    "def:bound-program": {
+      "lean_kind": "def",
+      "lean_name": "optValue",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Order.ConditionallyCompleteLattice.Basic",
+        "Causalean.PO.ID.Partial.LP.ConicDuality"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "`conservativeCone E r` is the degree-filtered feasible set and `unrestrictedConservativeCone E := conservativeCone E top` is the paper symbol `C_J(f)`. `optValue E (q : FullSupportObjective E) r` is the infimum of the weighted objective over the degree-filtered cone; `F_J := optValue E q top` and `F_{J,r} := optValue E q r`.",
+      "notes": "`sInf` here is the conditionally-complete-lattice infimum on `Real` (`Mathlib.Order.ConditionallyCompleteLattice.Basic`, the module recorded above); it is used for the definition and attainment is PROVED in `thm:dual-complete-class` (the paper proves compactness of the sublevel set from full support of `q` and `f >= 0`), matching the paper's `min` notation. Search trace: Grep 'primalValue|sInf.*feasible' over ../Causalean -> `ConicProgram.primalValue`/`dualValue` use the same `sInf`/`sSup` pattern (analogous module, Hilbert-space phrasing); Mathlib-side lean_leansearch 'linear program optimal value attained polytope' -> only generic `IsCompact.exists_isMinOn`, which is what the local attainment proof uses."
+    },
+    "def:dual-and-admissibility": {
+      "lean_kind": "def",
+      "lean_name": "dualMarginPolytope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Cone.InnerDual"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "The tagged `dualMarginPolytope E (q : FullSupportObjective E) : DualAndAdmissibilityData E` packages both the nonnegative observable-moment-matching set and the Pareto predicate. `ParetoAdmissible E b` explicitly excludes a feasible `b'` that is pointwise no larger and strictly smaller somewhere.",
+      "notes": "The primary construction is restricted to the full-support simplex and includes both clauses of the core node."
+    },
+    "def:aronow-samii-binary-correction": {
+      "lean_kind": "def",
+      "lean_name": "asBinaryCorrection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative",
+        "Causalean.Experimentation.DesignBased.Exposure"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/AronowSamiiBinary.lean",
+      "statement_sketch": "Under explicit singleton positivity and HT score-identity arguments, `asTable` is the displayed positive-joint quadratic plus zero-joint Young replacement, and `asBinaryCorrection` is its expected rule. Both declarations take those specialization premises, so the node is not defined outside the paper's HT domain.",
+      "notes": "Analogous module for F3: `htA2` and `E_htVarEst_add_htA2_ge` (`Variance/Conservative.lean`) formalize exactly this Young correction over zero-joint pairs, and `Exposure.propPairSame`/`Cov_expoInd_same` supply the `pi_{ik} - pi_i pi_k` covariance identity. Gap to bridge: Causalean works with real potential outcomes `y_i(d)` under an exposure mapping and concludes an expectation inequality, whereas the node needs the binary sampling-total specialization `v_{z,i} = 1{i in O_z}/pi_{\\{i\\}}` and membership in the Boolean quadratic span. Search trace: Grep 'htA2|Young|zero pairwise' over ../Causalean/Experimentation -> the two decls above; Mathlib-side not applicable."
+    },
+    "def:witness-experiment": {
+      "lean_kind": "def",
+      "lean_name": "witnessSetup",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Mathlib.Tactic.FinCases"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/WitnessData.lean",
+      "statement_sketch": "The tagged `witnessSetup : WitnessExperimentData` packages the concrete six-coordinate design, uniform full-support objective, score/variance construction, displayed polynomial `P`, optimizers `bStar` and `rStar`, assignment tables `hStar`, and dual weights `muStar` and `nuStar`.",
+      "notes": "All data are rational literals; `p_nonneg`/`p_sum` discharge by `norm_num`. Search trace: Grep for an existing witness with these constants over ../Causalean and ../CausalSmith/CausalSmith/Experimentation -> none (Causalean's stored designs are Bernoulli/complete/cluster randomizations); defined locally as a concrete instance of the S1 `Setup` structure, whose embedded `design` field is the reused `FiniteDesign (Fin 3)` carrying the three atom probabilities `p_z = 1/3`."
+    },
+    "def:product-experiment": {
+      "lean_kind": "def",
+      "lean_name": "productExperiment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.ProductVariance"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockArray.lean",
+      "statement_sketch": "`productExperiment B comp a q` packages `prodDesign`, the weighted aggregate score, the product objective weight, and `Set.univ` of the dependent `ProductAssignmentRule` type generated by all product observation sets.",
+      "notes": "The dependent-sum coordinate presentation avoids a noncanonical flattening. Product assignment-law independence is structural in `prodDesign`; the product data now explicitly retain both the objective weights and every joint observed-data table. THIS NODE (with `thm:tensorization`) is where the `prodDesign` reuse lives, after the S5 world-level reuse declaration was withdrawn this round: the construction is `define-local` because it packages the reused `Causalean.Experimentation.DesignBased.prodDesign` (`Product.lean:49`, signature re-confirmed this round) together with the weighted aggregate score, the product objective weights and the product observed-data-table family, none of which `prodDesign` supplies. It shares only the `Helpers/BlockArray.lean` file with the triangular-array bundle, never its `rowLaw`/`BlockIndependence` hypotheses. Search trace (this revise round): Grep 'prodDesign|structure .*(Array|Row|Block)' over Causalean/Experimentation/DesignBased -> `Product.lean` (`prodDesign`, `E_prod_prod`, `Cov_prod_apply_of_ne`), `ProductVariance.lean` (`Var_prod_linear_comb`, line 90), `ProductBlock.lean`; no packaged aggregate-score/objective-weight product bundle exists, so the wrapper is local."
+    },
+    "def:wald-interval": {
+      "lean_kind": "def",
+      "lean_name": "waldInterval",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.GaussianCDF",
+        "Causalean.Experimentation.DesignBased.WaldCoverage"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockArray.lean",
+      "statement_sketch": "`def waldInterval (Arr) (B) (alpha zAlpha : Real) (_hAlpha : 0 < alpha ∧ alpha < 1) (_hzAlpha : 0 <= zAlpha ∧ stdNormalCdf zAlpha = 1 - alpha/2) (w) : Set Real := Icc (tauHat Arr B w - zAlpha * sqrt (max (WHat Arr B w) 0 / B)) (tauHat Arr B w + zAlpha * sqrt (max (WHat Arr B w) 0 / B))`.",
+      "notes": "REVISED round 7 after the scaffold redirect: `alpha`, `0 < alpha < 1`, cutoff nonnegativity, and `stdNormalCdf zAlpha = 1 - alpha/2` are explicit signature inputs of `waldInterval`; the previous implementation mentioned the characterization only in this plan note while allowing every real cutoff, which made the Lean definition strictly broader than the paper interval. `z_alpha` is carried as a characterized value (the Causalean convention in `WaldCoverage.lean:60` and `Intervals.lean:47`) rather than through an inverse-CDF function, avoiding construction of `Phi^{-1}`. The truncation `max(hat W_B, 0)` is kept exactly as the core writes it. The forced downstream `coverageProbability` wrapper and both coverage clauses of `studentized_wald_coverage` now pass these witnesses; the theorem's cited `_of_gate` hypothesis and all unrelated clauses are unchanged. Search trace: Grep 'wald|Icc.*sqrt' over ../Causalean/Experimentation -> `conservative_wald_liminf_of_studentized_cdf` uses the equivalent absolute-value event `|theta - est| <= z sqrt(vhat/m)`; the bridge to the `Icc` membership form is a one-line `abs_sub_le_iff` lemma."
+    },
+    "def:school-handle": {
+      "lean_kind": "def",
+      "lean_name": "schoolDecompositionHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "OpenSchoolBlock.lean",
+      "statement_sketch": "`def schoolDecompositionHandle : _root_.String` -- a descriptive payload naming the route's required (and absent) ingredients: the published two-stage school assignment law, exposure mapping, direct-effect score, exact design automorphism orbits, separator-local Boolean Moebius states, and rational lifting map preserving every global domination inequality and observable margin. It also states that the solver determines whether a lossless bounded-width decomposition and a useful nontrivial block exist.",
+      "notes": "This node is a research route, not a mathematical object: the core supplies no assignment atoms, exposure map or coefficients, so any `Prop`-valued or witness-bearing encoding would invent structure the core does not contain. Encoded as a closed non-Prop `_root_.String` payload whose content changes when the route's stated ingredients change. It is never used as a premise of any delivered theorem. Search trace: Grep 'Paluck|school|separator|orbit' over ../Causalean -> no school-network records; Mathlib-side not applicable."
+    },
+    "thm:observable-mobius": {
+      "lean_kind": "theorem",
+      "lean_name": "expectedRule_mem_observableSpan_iff",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Panel.PO.Mobius",
+        "Causalean.Experimentation.DesignBased.DesignCore"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TObservableMobius.lean",
+      "hyps": [],
+      "statement_sketch": "Three conjuncts, as the core states them: (i) `b : Theta -> Real` is `expectedRule E g` for some family of assignment tables iff `b in observableSpan E top`, equivalently iff its Moebius coefficients `beta S b = sum_{T subseteq S} (-1)^{|S|-|T|} b (vertex T)` vanish for every `S notin observableComplex E`; (ii) every `b = sum_{S in J} beta S * monomial S` is implemented assignmentwise and unbiasedly by `g z y = sum_{S subseteq O z} (beta S / jointObsProb E S) * monomial S`; (iii) `expectedRule E g` is universally conservative iff `expectedRule E g theta >= designVarianceFn E theta` for every `theta in Theta`.",
+      "notes": "Build-inline, paper-owned (`status: proved`). Reuse: `Causalean.Panel.PO.Mobius.{delta, coeff_sum, prod_indicator_eq, mobius_expansion}` for the expansion and its uniqueness (bridged in `Helpers/BooleanMobius.lean`); `FiniteDesign.{E_sum, E_const_mul, E_congr}` for the finite rearrangement `sum_z p_z sum_{S subseteq O_z} ... = sum_S (beta_S/pi_S) m_S sum_{z : S subseteq O_z} p_z`; `pi_S > 0` from support positivity. Search trace: Grep 'obius' over ../Causalean (hit `Panel/PO/Mobius.lean`) and Grep 'estimable|unbiased.*table' over ../Causalean/Experimentation (only HT-specific unbiasedness `E_htTotal`/`E_htMean`, a different abstraction); Mathlib-side lean_leansearch 'unique multilinear expansion of function on hypercube' -> nothing."
+    },
+    "thm:dual-complete-class": {
+      "lean_kind": "theorem",
+      "lean_name": "optValue_eq_dual_and_paretoCompleteClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.LP.ConicDuality",
+        "Mathlib.Analysis.InnerProductSpace.Projection.Minimal",
+        "Mathlib.Analysis.Convex.Cone.InnerDual",
+        "Mathlib.Topology.Algebra.Module.FiniteDimension"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TDualCompleteClass.lean",
+      "hyps": [],
+      "statement_sketch": "For every full-support `q`: (i) the primal infimum is attained; (ii) `optValue E q top = sSup ((fun mu => sum_theta mu theta * designVarianceFn E theta) '' dualMarginPolytope E q)` with the supremum attained; (iii) feasible `b` and feasible `mu` are jointly optimal iff `mu theta > 0 -> b theta = designVarianceFn E theta`; (iv) every minimizer is `ParetoAdmissible`; (v) every `ParetoAdmissible` member of the cone minimizes the objective for some full-support `q`. All for arbitrary real assignment probabilities positive on the finite support.",
+      "notes": "Build-inline, paper-owned and the hardest delivered proof; `defer_tier` stays false. F3 plan (the paper's own route, in `Helpers/FiniteConeDuality.lean`): (a) feasibility via the observable constant `C = max f`; (b) the sublevel bound `0 <= b(theta) <= L/q_theta` from full support and `f >= 0`, hence compactness in the finite-dimensional `observableSpan` and attainment (`IsCompact.exists_isMinOn`); (c) closedness of the finitely generated active-constraint cone plus the nearest-point argument giving `a in cone`, i.e. the Farkas step (Mathlib anchor: `exists_norm_eq_iInf_of_complete_convex` in `Mathlib.Analysis.InnerProductSpace.Projection.Minimal`, the module recorded above, which supplies the closest-point existence the paper's argument opens with); (d) complementary slackness from the nonnegative gap `sum_theta mu_theta (b - f)`; (e) the complete-class converse by separating the polyhedral cone `T` from the compact set `N`. Analogous module for (c)-(e): `Causalean.PartialID.ConicProgram.{farkas, weak_duality, strong_duality_zero_gap}` -- gap to bridge: it is phrased over Hilbert `ProperCone`s with a closedness constraint qualification, so F3 either instantiates at `EuclideanSpace Real Theta` after proving the finitely generated cone closed, or replays the paper's elementary nearest-point argument (recommended, since the paper supplies every step). Search trace: Grep '(farkas|strong_duality|LinearProgram|polyhedr)' over ../Causalean -> `LP/ConicDuality.lean`, `Mathlib/Optimization/{RationalLP,KKT}.lean`; Mathlib-side lean_leansearch 'Farkas lemma' -> `ProperCone.hyperplane_separation_of_notMem`, `ProperCone.relative_hyperplane_separation`, and 'finitely generated cone is closed' -> only `Set.Finite.isClosed_convexHull` (convex hull, not conical hull), so the conical closedness step is local build work (small-to-medium induction on generators)."
+    },
+    "prop:rational-certificates": {
+      "lean_kind": "theorem",
+      "lean_name": "rational_primal_dual_certificates",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.Optimization.RationalLP"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TRationalCertificates.lean",
+      "hyps": [],
+      "statement_sketch": "If every `p z`, every `v z i` and every `q theta` is rational, then there are rational `beta*` and rational `mu*` that are primal- resp. dual-feasible with equal objectives, complementary slackness holds termwise, and the implementation formula of `thm:observable-mobius` yields rational assignment tables `g z`.",
+      "notes": "Build-inline; the workhorse is a direct fit: `Causalean.Mathlib.Optimization.RationalLP.exists_rational_optimal_primal_dual` (`RationalLP.lean:781`) returns rational `xStar`, `yStar` with `PrimalFeasible`, `DualFeasible`, equal objective and dual objective, and primal optimality, from feasibility plus a rational lower bound -- exactly the paper's `exact primal-dual certificate`. F3 work is the encoding bridge: index the `Program` rows by `Theta` and its columns by `observableComplex E` (`Fin n` after a `Fintype.equivFin`), show feasibility (the constant bound) and boundedness (`f >= 0`, full support), then transport the rational optimizers back to `beta*`/`mu*` and to the rational tables via `jointObsProb` positivity. Search trace: Grep 'rational.*optimizer|exists_rational' over ../Causalean -> `RationalLP.lean:416, 781`; Mathlib-side lean_leansearch 'rational optimal solution of a rational linear program' -> only `Mathlib.Tactic.Linarith` oracles (simplex/Fourier-Motzkin as tactic internals, not usable as lemmas)."
+    },
+    "prop:variance-estimability": {
+      "lean_kind": "theorem",
+      "lean_name": "designVariance_estimable_iff",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Panel.PO.Mobius"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TVarianceEstimability.lean",
+      "hyps": [
+        "ass:observable-score"
+      ],
+      "statement_sketch": "Under `ObservableScore E`: `designVarianceFn E in observableSpan E top` iff for every distinct pair `i, k` never jointly contained in an `O z`, `targetCoeff E i * targetCoeff E k = 0`; and design-estimability of `f` is equivalent to that membership.",
+      "notes": "Build-inline, small. Uses the multilinear expansion `f(theta) = sum_i A_ii theta_i + 2 sum_{i<k} A_ik theta_i theta_k` on the binary cube (`theta_i^2 = theta_i` -- immediate for `Fin 2` values by `fin_cases`), the uniqueness lemma from `Helpers/BooleanMobius.lean`, and `A_ik = -c_i c_k` on never-jointly-observed pairs (which is where `ObservableScore` enters, giving `v_{z,i} v_{z,k} = 0`). Covers `K = 0, 1` vacuously. Search trace: Grep 'estimab' over ../Causalean/Experimentation -> `E_htVarEst` (exact unbiasedness of the HT variance estimator under positive joints) is the closest, a different criterion at a different abstraction; Mathlib-side not applicable."
+    },
+    "prop:hms-class-inclusion": {
+      "lean_kind": "theorem",
+      "lean_name": "hms_quadratic_mem_observableSpan_strict",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "THMSClassInclusion.lean",
+      "hyps": [],
+      "statement_sketch": "For symmetric `H` with `H_ii = 0` on never-observed coordinates and `H_ik = 0` on never-jointly-observed distinct pairs: `hQuad H in observableSpan E 2 <= observableSpan E 3`; if moreover `(H - A).PosSemidef` then `hQuad H in conservativeCone E 2`; and the inclusion of such `h_H` in `conservativeCone E 2` is strict, witnessed by the constant `1 + max_theta f theta` (which is in the cone but has `b(0) > 0 = h_H(0)`).",
+      "notes": "Build-inline, small-to-medium. Reuse: `Matrix.PosSemidef` and `Matrix.PosSemidef.re_dotProduct_nonneg`/`of_dotProduct_mulVec_nonneg` from `Mathlib/LinearAlgebra/Matrix/PosDef.lean` give `theta^T (H - A) theta >= 0` directly. The strictness conjunct is stated exactly as the core does (a concrete constant function), so no model-independent tautology is introduced. Search trace: Grep 'PosSemidef|design compatible matrix' over ../Causalean/Experimentation -> nothing (the Causalean variance bounds are scalar/edge-sum, not matrix-quadratic); Mathlib-side lean_leansearch 'positive semidefinite quadratic form nonneg' -> `Matrix.PosSemidef` API confirmed present."
+    },
+    "thm:complement-degree-collapse": {
+      "lean_kind": "theorem",
+      "lean_name": "optValue_odd_degree_collapse",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Panel.PO.Mobius"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TComplementDegreeCollapse.lean",
+      "hyps": [
+        "ass:complement-invariant-variance",
+        "ass:complement-invariant-objective"
+      ],
+      "statement_sketch": "Under `ComplementInvariantVariance E`, `ComplementInvariantObjective q`, and the symbol-domain premise `hfull : FullSupportWeight E q`: `optValue E ⟨q,hfull⟩ (2*d+1) = optValue E ⟨q,hfull⟩ (2*d)` for every `d : Nat`; consequently cubic terms cannot improve the quadratic optimum, and if `|O z| <= 3` for every `z` then the unrestricted and quadratic optima agree. No collapse is claimed when `q` is not complement invariant.",
+      "notes": "Build-inline, medium. Route (the paper's): `f(1_K - theta) = f(theta)` from `A * 1_K = 0`; symmetrization `bbar = (b + b compose complement)/2` stays feasible, stays in `observableSpan` (complementation maps `m_S` into the span of `m_T`, `T subseteq S`, using downward closure), preserves the objective by the complement-invariance of `q` and the bijective change of variables; then the centered basis `x_i = 2 theta_i - 1` (a triangular, degree- and support-preserving change of basis, proved in `Helpers/BooleanMobius.lean`) shows symmetrization kills exactly the odd-degree terms. Search trace: Grep 'complement|parity|Fourier|centered coordinate' over ../Causalean -> `Experimentation/DesignBased/Designs/BernoulliMoments.lean` has +/-1 moment algebra for Bernoulli designs (analogous idiom, different object); Mathlib-side lean_leansearch 'Boolean Fourier expansion parity of degree' -> nothing packaged."
+    },
+    "prop:witness-hms-sdp-optimum": {
+      "lean_kind": "theorem",
+      "lean_name": "witness_hms_sdp_optimum",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.Trace",
+        "Mathlib.Analysis.Real.Sqrt"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TWitnessSDPOptimum.lean",
+      "hyps": [],
+      "statement_sketch": "For `witnessSetup`, the minimum of `2^{-6} sum_theta theta^T H theta` over symmetric `H` with `(H - A).PosSemidef` and the six displayed zero restrictions equals `7/6 + sqrt 17 / 9`; consequently it exceeds `107/72` by `(8 sqrt 17 - 23)/72` and `55/36` by `(4 sqrt 17 - 13)/36`.",
+      "notes": "Build-inline, medium. Route (the paper's, fully explicit): objective rewriting `2^{-6} sum_theta theta^T H theta = Q . H` with `Q = (I + 1 1^T)/4`; the forced entries of `M = H - A` on the six unobservable pairs; the exact dual slack matrix `S` with its `L D L^T` factorization (all diagonal entries of `D` nonnegative because `5 sqrt 17 > 19` and `sqrt 17 < 9`) giving `S . M >= 0` as a sum of `D_ll * (L e_l)^T M (L e_l)`; and the rank-one primal `M* = (4/(9 sqrt 17)) w w^T` attaining the bound. Reuse: `Matrix.PosSemidef` (`of_dotProduct_mulVec_nonneg`, `PosSemidef` of `c . w w^T` for `c >= 0`) and `Matrix.trace`/`trace_transpose_mul`; the `sqrt 17` arithmetic is `Real.sq_sqrt` + `nlinarith`. Search trace: Grep 'PosSemidef|LDL|semidefinite' over ../Causalean -> `Mathlib/Optimization/KKT.lean` (KKT conditions, not SDP duality) and nothing in Experimentation; Mathlib-side lean_leansearch 'trace of product of two positive semidefinite matrices is nonnegative' -> `Matrix.PosSemidef.trace_nonneg` plus the `PosDef` API, enough to run the explicit factorization argument."
+    },
+    "thm:quartic-separation": {
+      "lean_kind": "theorem",
+      "lean_name": "witness_quartic_separation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Panel.PO.Mobius",
+        "Mathlib.Tactic.FinCases",
+        "Mathlib.Tactic.NormNum.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TQuarticSeparation.lean",
+      "hyps": [],
+      "statement_sketch": "For `witnessSetup` with uniform `q`: `optValue = 107/72`, `optValue (r = 2) = optValue (r = 3) = 55/36`, gap `1/24`; every Harshaw-Middleton-Savje compatible quadratic candidate lies in `conservativeCone 2 <= conservativeCone 3` (via `prop:hms-class-inclusion`) so the same `55/36` certificate rules it out, without asserting that `55/36` is the optimum of the smaller semidefinite class; `rStar theta - bStar theta = (1 + x_0 x_1 x_2 x_5)/24 in {0, 1/12}`; `bStar = (1/3) sum_z hStar z (restrict z theta)` with every table entry in `[0,5]`; `muStar` certifies `107/72` and `nuStar` certifies `55/36` by exact observable-margin equalities and complementary slackness across all sixty-four schedules.",
+      "notes": "Build-inline, the largest arithmetic node. Certificate data and per-schedule tables live in `Helpers/WitnessData.lean` + `Helpers/WitnessCertificates.lean` (the `9A` matrix, the observable complex `{empty, 6 singletons, 9 pairs, 5 triples, 0125}`, the sixty-four rational slacks of `72(bStar - f)`, the twenty-eight table entries and their local Moebius inversions, and the margin counts of `muStar`/`nuStar`), so `TQuarticSeparation.lean` is assembly plus the duality/optimality citations. Upper bounds come from feasibility of `bStar`/`rStar`; lower bounds from `thm:dual-complete-class` (weak duality + complementary slackness) with the two explicit dual distributions; the degree-three lower bound uses the restricted-degree weak-duality inequality; `thm:complement-degree-collapse` gives the independent confirmation `F_{J,3} = F_{J,2}`; `prop:witness-hms-sdp-optimum` supplies the exact `7/6 + sqrt 17/9` direct comparator value and the `(8 sqrt 17 - 23)/72` gap. All finite checks are `decide`/`Finset.sum` normalization over `Rat` after `fin_cases`. Search trace: as for S4 -- no stored witness of this shape anywhere in ../Causalean or ../CausalSmith/CausalSmith/Experimentation."
+    },
+    "thm:aronow-samii-specialization": {
+      "lean_kind": "theorem",
+      "lean_name": "asBinaryCorrection_mem_conservativeCone_two",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative",
+        "Causalean.Experimentation.DesignBased.Exposure"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TAronowSamiiSpecialization.lean",
+      "hyps": [],
+      "statement_sketch": "In the binary Horvitz-Thompson sampling-total specialization (`pi_{\\{i\\}} > 0`, `v_{z,i} = 1{i in O_z}/pi_{\\{i\\}}`): `asBinaryCorrection E in conservativeCone E 2`; the excess is the explicit sum `(1/2) sum over zero-joint pairs of (theta_i + theta_k)^2 >= 0`; and across the model class the embedding is strict, since in `witnessSetup` `bStar in conservativeCone top` but `bStar notin observableSpan 3` and it improves the degree-at-most-three optimum by `1/24`.",
+      "notes": "Build-inline, medium. Analogous module: `htA2`/`E_htVarEst_add_htA2_ge`/`E_htCovEstA_le` in `Variance/Conservative.lean` carry the same Young-inequality zero-joint correction; gap to bridge is the binary-cube algebra (`theta_i^2 = theta_i`) and the membership in `observableSpan 2` (Causalean stops at the expectation inequality). The strictness conjunct is imported wholesale from `thm:quartic-separation`, so no new claim is manufactured here. Search trace: Grep 'Young|htA2|zero pairwise inclusion' over ../Causalean/Experimentation -> the three decls above; Mathlib-side `add_sq_nonneg`-style algebra only."
+    },
+    "thm:tensorization": {
+      "lean_kind": "theorem",
+      "lean_name": "optValue_product_tensorization",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.ProductVariance",
+        "Causalean.Experimentation.DesignBased.ProductBlock"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TTensorization.lean",
+      "hyps": [],
+      "statement_sketch": "For the independent product experiment: `optValue_prod top = sum_j a_j^2 * F_j` and `optValue_prod r = sum_j a_j^2 * F_{j,r}` for every `r`, even when the comparison class contains cross-block joint observed-data interactions; primal rules add and dual certificates tensor; and for `B` identical copies of `witnessSetup` with `a_j = 1/B` the optima are `107/(72 B)` and `55/(36 B)` with gap `1/(24 B)`.",
+      "notes": "Build-inline, medium-large. The unrelated `BlockArray` hypothesis was removed during F2 redirect: this theorem's product law is definitionally `prodDesign`, so its independence is derived in-proof. REVISED this round only in provenance bookkeeping: together with `def:product-experiment`, this node is now the sole home of the `prodDesign` reuse (the S5 world-level reuse declaration was withdrawn because `prodDesign` cannot host the arbitrary-row-law `BlockArray` model); the node's own disposition, `defer_tier`, statement and proof route are unchanged, and it consumes no `BlockArray` predicate. The statement now includes additive primal-rule feasibility, tensor-product dual-certificate feasibility against every joint observable moment, and the advertised degree-three witness optimum. Reuse: `prodDesign` + `FiniteDesign.Var_prod_linear_comb` give `f_prod = sum_j a_j^2 f_j` (paper equation (27)) with cross-block covariances structurally zero; `E_prod_prod`/`E_prod_block_mul` give the product factorization of observable moments (paper equation (39)); `Cov_prod_disjoint_zero` is available if a block-level covariance argument is preferred. The restricted-degree half re-derives its own restricted primal/dual (paper equations (32)-(37)) rather than reusing the unrestricted conclusion."
+    },
+    "thm:studentized-coverage": {
+      "lean_kind": "theorem",
+      "lean_name": "studentized_wald_coverage",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Chebyshev",
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Causalean.Experimentation.DesignBased.GaussianCDF",
+        "Causalean.Experimentation.DesignBased.WaldCoverage",
+        "Causalean.Experimentation.DesignBased.FiniteDesignMeasure",
+        "Causalean.Experimentation.DesignBased.DependencyCLT",
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TStudentizedCoverage.lean",
+      "hyps": [
+        "ass:block-independence",
+        "ass:uniform-score-bound",
+        "ass:nondegenerate-average-variance",
+        "ass:bound-lln",
+        "ass:block-conservativeness",
+        "lem:lindeberg-feller-independent-array"
+      ],
+      "statement_sketch": "A conjunction of six separately scoped implications: (i) the numerator CDF limit assumes exactly the cited `LindebergFellerIndependentArray` gate, `BlockIndependence`, `UniformScoreBound`, and `NondegenerateAverageVariance`; (ii) `hat W_B - W_B ->p 0` assumes exactly `BlockIndependence` and `BoundTableVarianceNegligible`; (iii) `V_B <= W_B` assumes exactly `BlockConservativeness`; (iv) the liminf coverage clause repeats the numerator prerequisites and adds denominator negligibility, block conservativeness, `0 < alpha < 1`, and the normal-cutoff characterization, passing both witnesses to `coverageProbability`; (v) the exact coverage limit repeats the numerator, denominator, and conservativeness prerequisites, carries the same interval-defining alpha and cutoff witnesses, and has its own `W >= 0` and `W_B -> W` premises; (vi) feasible studentization repeats the numerator and denominator prerequisites and has its own `W_B - V_B -> 0` premise, with no conservativeness or cutoff burden. Every mathematical conclusion is unchanged, and each numerator-dependent clause carries its own explicit `_of_gate` binder for the frozen cited dependency.",
+      "notes": "REVISED round 5 (the reviewer-flagged P4 violation): the frozen cited gate `lem:lindeberg-feller-independent-array` is RE-THREADED into this node's `hyps`. The core's `depends_on` carries that edge and its frozen `source.carrier` is `logical-claim`, so the citation-gate rule applies without exception -- a logical cited dependency must be an explicit hypothesis of every consumer, and F1 may never drop it or emit a non-gate form; round 4's withdrawal (on the ground that a library theorem happens to cover the bounded instance) was a planner-side relabelling of frozen provenance and is reversed. This node itself stays IN SCOPE and paper-owned: `defer_tier: false`, `gate: false`, proved CONDITIONAL on the threaded gate under the gate-consumer rule, with all five `ass:` nodes still threaded. Nothing else about the node moves. The round-4 reuse finding is NOT regressed: `Causalean.Experimentation.DesignBased.dependency_studentized_cdf` (`DependencyCLT.lean:57`) remains a confirmed, field-by-field checked instantiation for the numerator limit in this bounded-score setting, and F3 should use it as the proof route for step (i) -- the threaded gate is the core-mandated interface for the classical limit step, the library theorem is how that step is actually discharged in Lean for these hypotheses; either route closes (i), and the gate hypothesis remains in the statement because the core declares it. Round 3's contrary claim that `DependencyCLT` is `stated over a dependency graph on a product design` stays withdrawn as false: the signature takes `D : forall n, FiniteDesign (Omega n)` with `Dep : forall n, DepGraph (X n) (D n).toMeasure` and imposes no product structure; only `prodDesign_clt` is product-specific. NUMERATOR ROUTE (each field matched against the read signature): `Omega B := forall j, Omega B j` (a `Fintype` with `MeasurableSpace`/`MeasurableSingletonClass`, the same instances `FiniteDesignMeasure` already requires), `D B := Arr.rowLaw B`, `iota B := Fin B`, `X B j := fun w => Arr.X B j (w j) - blockTau Arr B j` (the paper's `Y_Bj`, eq. (1)); `Dep B` is the DIAGONAL graph `G i j := i = j` over `(Arr.rowLaw B).toMeasure` -- `refl`/`symm` trivial, `decG := instDecidableEqFin`, `meas := measurable_of_finite`, and `indep` (non-adjacent = disjoint finsets carry independent tuples) from `ProbabilityTheory.iIndepFun.indepFun_finset` applied to the `BlockIndependence`-to-`iIndepFun` bridge recorded on `ass:block-independence`; `Dmax := 1` since `DepGraph.nbhd i = {i}` for the diagonal relation; `hM`/`hbound` with `M := 2 * M` from `UniformScoreBound` (paper eq. (3)); `hmean` from the definition of `blockTau` plus `integral_toMeasure`; `v B := B * V_B` with `hv : (Arr.rowLaw B).E (fun w => depSum (X B) w ^ 2) = B * V_B`, which is paper eq. (2) plus the off-diagonal covariance cancellation already derived for the denominator (general-design `Var_linear_comb` + `Cov_eq`, so no product law is needed); `c := V / 2` with `hc` from `NondegenerateAverageVariance` and `hvc : eventually, V/2 * (card (Fin B)) <= B * V_B` reducing to the eventual `V_B >= V/2` of paper eq. (4); `hcard` trivial for `Fin B`. The conclusion `Pr(depSum (X B) w / sqrt (v B) <= s) -> stdNormalCdf s` unfolds to `T_B = sqrt B (tauHat_B - tauBar_B) / sqrt V_B` because `depSum (X B) = B * (tauHat_B - tauBar_B)` and `sqrt (B * V_B) = sqrt B * sqrt V_B`, and it is already a `FiniteDesign.Pr` statement, so no measure round-trip is needed on the conclusion. The paper's own equations (1)-(5) are NOT discarded: (1)-(4) are exactly the `hv`/`hbound`/`hvc` verifications above, and eq. (5) is a delivered in-scope lemma of this file -- the Lindeberg premise of the threaded gate `LindebergFellerIndependentArray`, verified (not assumed) from the `2M` envelope and `s_B -> infinity`, so that the gate is applicable at `k_B = B`, `Y_Bj`, `s_B = sqrt (B * V_B)`; the same bounded-envelope fact is what makes the reused bounded-summand dependency CLT applicable, which is why the two routes to step (i) share their verification work. `WaldPipeline.dependency_wald_coverage` (`:57`) is the analogous end-to-end assembly F3 should read (its lines 78-94 show the `hvarpos`-from-`hvc` step verbatim), but it is not instantiable here because it needs a DETERMINISTIC conservative `vhat` while the paper's `hat W_B` is random. DENOMINATOR AND ASSEMBLY (unchanged): `Var(hat W_B) = B^{-2} sum_j Var(G_Bj)` from the general-design `FiniteDesign.Var_linear_comb` (`DesignCore.lean:235`) plus the factorization-induced vanishing of off-diagonal covariances, then `FiniteDesign.chebyshev` for `hat W_B - W_B ->p 0`; `W_B >= V_B` from `BlockConservativeness`; coverage assembly via `conservative_wald_liminf_of_studentized_cdf` (`WaldCoverage.lean:45`) and the `wald_coverage_feasible` pattern (`Intervals.lean:184`) with `R_B = max(hat W_B,0)/V_B`. The core's finite-support stress test (eqs. (27)-(29)) remains a companion lemma in the same file and uses no gate."
+    },
+    "oeq:school-exposure-block": {
+      "lean_kind": "def",
+      "lean_name": "schoolExposureBlockOpenQuestion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "OpenSchoolBlock.lean",
+      "oeq_case": "B",
+      "hyps": [],
+      "statement_sketch": "`def schoolExposureBlockOpenQuestion : _root_.String` -- a descriptive, non-assertive payload recording: the requested object (a nontrivial finite exposure block drawn from the published Paluck-Shepherd-Aronow school-network design, with its assignment law and direct-effect score unchanged); the four desiderata (losslessness of the reduced rational program, lifted primal and dual certificates verifying the unreduced observable-margin optimum, a strict higher-order improvement over the best observable quadratic bound, and an unaltered estimand); the obstruction (the core supplies no assignment atoms, exposure-coordinate map, direct-effect coefficients, automorphism orbits, separator states or candidate block); what was attempted (observable-margin reduction, automorphism quotient, independent-product tensorization) and why each is unavailable; and the explicit disclaimer that no claim about a higher-order school-network improvement follows from the abstract handle alone.",
+      "notes": "Case (B) of the two-case rule, read from the frozen node: the `obligation` block states that the truth conditions (which block, which reduction, which lifting map) are undefined and that inventing them would change the published design and estimand. Hence a descriptive non-`Prop` payload with NO selector, procedure, rate, confidence or lower-bound witness fields, and never `PUnit`/`Unit`/`True`/an empty tag -- the payload's text changes if any listed regime, desideratum or disclaimer changes. Excluded from the theorems manifest; `defer_tier` false; no delivered theorem depends on it (`thm:observable-mobius`, `thm:dual-complete-class`, `thm:quartic-separation` are its dependencies, not its consumers)."
+    },
+    "lem:lindeberg-feller-independent-array": {
+      "lean_kind": "assumption",
+      "lean_name": "LindebergFellerIndependentArray",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Independence.Basic",
+        "Mathlib.Probability.Moments.Variance",
+        "Mathlib.MeasureTheory.Integral.Bochner.Basic",
+        "Causalean.Experimentation.DesignBased.GaussianCDF"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation_discharged": false,
+      "source": "cite:billingsley-1995-probability-measure-thm-27-2",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "statement_sketch": "`def LindebergFellerIndependentArray : Sort 0` (unshadowable spelling of the proposition universe) quantifies over an arbitrary sequence of measurable probability spaces `(Omega n, P n)`, row sizes `k n`, and rows of real random variables `Y n : Fin (k n) -> Omega n -> Real` that are measurable, `iIndepFun` under `P n`, centered (`integral (Y n j) (P n) = 0`) and square-integrable, together with scales `s n > 0` satisfying `s n ^ 2 = sum_j variance (Y n j) (P n)`. Premise: for every `eps > 0`, `(s n)^{-2} * sum_j integral over {|Y n j| > eps * s n} of (Y n j)^2 -> 0`. Conclusion: for every `x : Real`, `(P n).real {w | (sum_j Y n j w) / s n <= x} -> stdNormalCdf x`. No finite-support, `FiniteDesign`, boundedness or product-structure restriction occurs in the interface -- it is the cited theorem's own generality.",
+      "notes": "Frozen cited substrate interface (core `status: cited`, frozen `source.carrier: logical-claim`, Billingsley 1995 Theorem 27.2), encoded as a named Prop with the unshadowable `Sort 0` spelling. Its frozen keys are untouched -- `defer_tier: true`, `gate: true`, `gate_class: cited`, `citation_discharged: false`, `source` -- it stays listed in `infrastructure_needed[]` under this exact core node id and excluded from the theorem manifest, because F1 may never emit a non-gate or discharged form for a `status: cited` statement. REVISED round 5: it is RE-THREADED into `thm:studentized-coverage`'s `hyps`, its only consumer in the core (`used_by` via that node's `depends_on` edge). The gate rule is unconditional for a frozen `status: cited` statement whose `source.carrier` is `logical-claim`: it is encoded as a named Prop and threaded into every logical consumer, and F1 may neither drop that edge nor emit a non-gate form, however the Lean proof of the consumer is eventually organized. Round 4 withdrew the threading because a library theorem covers the bounded instance; that was a planner-side relabelling of frozen provenance and is reversed. The round-4 reuse finding itself stands and is not regressed: `Causalean.Experimentation.DesignBased.dependency_studentized_cdf` (`DependencyCLT.lean:57`) does take an arbitrary `D : forall n, FiniteDesign (Omega n)` and, at a diagonal `DepGraph` built from the already-planned `BlockIndependence`-to-`iIndepFun` bridge, does yield the consumer's numerator CDF limit for these bounded hypotheses -- it is recorded as the reuse F3 should use for that step, which is why the consumer stays `defer_tier: false`, `gate: false` and fully in scope. That reuse is NOT a discharge of this node: `dependency_studentized_cdf` is the uniformly bounded bounded-degree-dependency instance and its conclusion does not type-match the general independent-array Lindeberg-Feller statement (which imposes no boundedness and only a Lindeberg premise), so the node keeps `citation_discharged: false` and `bin/gate.ts --discharge` remains the only supported replacement path; F1 emits no discharge stamp. The interface stays written at the source's own generality (arbitrary probability spaces, `iIndepFun` centered square-integrable rows, positive scale, Lindeberg premise) with a pointwise `stdNormalCdf` conclusion -- what `S_n/s_n => N` means for the continuous normal limit (`stdNormalCdf t` is definitionally `(gaussianReal 0 1).real (Set.Iic t)`, `GaussianCDF.lean:42`) -- so the recorded citation remains a faithful rendering of the frozen source and the standing invitation for an upstream Mathlib contribution. Search trace (round 4, Mathlib side): lean_leansearch 'Lindeberg-Feller central limit theorem triangular array' and lean_loogle for a Lindeberg-hypothesis CLT -> Mathlib still has only the iid CLT plus martingale/Stein material, no independent-triangular-array Lindeberg-Feller theorem; Causalean side: Grep 'theorem .*_clt|Lindeberg|dependency_studentized_cdf' over ../Causalean -> `IndepSummandsCLT.prodDesign_clt` (`:87`, product designs, bounded summands), `DependencyCLT.dependency_studentized_cdf` (`:57`, ARBITRARY finite design + bounded-degree dependency graph, bounded summands -- now the consumer's reuse), `WaldPipeline.dependency_wald_coverage` (`:57`), `Stat/CLT/MartingaleArray/Main.lean` (`martingaleArrayCLT`, conditional-Lindeberg martingale array, a different premise set needing a filtration bridge). None of these is the cited theorem itself, which is why the gate is recorded rather than removed."
+    }
+  },
+  "citations": [
+    {
+      "id": "cite:billingsley-1995-probability-measure-thm-27-2",
+      "title": "Probability and Measure, third edition",
+      "authors": "Patrick Billingsley",
+      "year": 1995,
+      "doi": "10.1002/0470316962",
+      "locator": "Theorem 27.2",
+      "verbatim_statement": "Suppose that for each n the sequence X_{n1},...,X_{nr_n} is independent and satisfies (27.7). If (27.8) holds for all positive ε, then S_n/s_n ⇒ N.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified against Patrick Billingsley, Probability and Measure, 3rd ed. (Wiley, 1995), Theorem 27.2, pp. 359–360, from the University of Colorado-hosted scan: https://www.colorado.edu/amath/sites/default/files/attached-files/billingsley.pdf",
+        "at": "2026-09-07T18:38:37.517Z"
+      }
+    }
+  ],
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": "The composite `Setup` structure that REALIZES the S1 world in this artifact module (round 6): coordinate count `K` with `I = Fin K` and the fixed binary schedule space `Theta = I -> Fin 2`, an embedded reused randomization field `design : FiniteDesign Z` on a `Fintype` assignment carrier, the support-positivity field `p_pos : forall z, 0 < design.p z` that `FiniteDesign` does not supply, the observation map `O : Z -> Finset I`, and the score vectors `v : Z -> I -> Real`; then the S2/S3 layer over it -- `observableComplex`, `monomial`, `observableSpan`, `designVarianceFn` and companions (the S1-hosted derived score/variance objects `X_z`, `c`, `tau`, `A`, `f`), `expectedRule`, `conservativeCone`/`optValue`, `dualMarginPolytope`/`ParetoAdmissible` -- and the three algebraic assumption Props.",
+      "projected_lines": 380
+    },
+    {
+      "file": "Helpers/BooleanMobius.lean",
+      "contents": "Boolean Moebius layer over `Causalean.Panel.PO.Mobius`: the unnormalized expansion and its uniqueness, `beta` coefficients, vertex evaluation, downward-closure stability, local-cube inversion for assignment tables, and the centered basis `x_i = 2 theta_i - 1` with its degree/support-preserving triangular change of basis.",
+      "projected_lines": 520
+    },
+    {
+      "file": "Helpers/FiniteConeDuality.lean",
+      "contents": "Column-parameterized finite LP over `R^Theta`: feasibility, sublevel compactness and primal attainment, closedness of the finitely generated active cone, the nearest-point separation (Farkas) step, strong duality with dual attainment, complementary slackness, and the polyhedral-cone/compact-set separation used for the complete-class converse. Parameterized by the column set so both `optValue top` and `optValue r` instantiate it (required by `thm:tensorization`).",
+      "projected_lines": 600
+    },
+    {
+      "file": "Helpers/WitnessData.lean",
+      "contents": "`witnessSetup` and its rational data, the `9A` matrix, the enumerated observable complex, `witnessP`, `bStar`, `rStar`, `hStar`, `muStar`, `nuStar`.",
+      "projected_lines": 300
+    },
+    {
+      "file": "Helpers/WitnessCertificates.lean",
+      "contents": "The finite verification lemmas: the sixty-four rational slacks of `72(bStar - f)`, the twenty-eight assignment-table entries and their local Moebius inversions, `bStar`'s coefficient table, membership/non-membership in the degree-three span, the `muStar`/`nuStar` observable-margin counts and complementary slackness.",
+      "projected_lines": 560
+    },
+    {
+      "file": "Helpers/AronowSamiiBinary.lean",
+      "contents": "`jointObsProb`, `asTable`, `asBinaryCorrection` and the Young-inequality excess identity.",
+      "projected_lines": 260
+    },
+    {
+      "file": "Helpers/CitedGates.lean",
+      "contents": "`LindebergFellerIndependentArray` (the cited Billingsley Theorem 27.2 interface, `Sort 0`, stated at the source's generality with a pointwise `stdNormalCdf` conclusion). Recorded as the frozen cited gate and, as of round 5, threaded again as an explicit hypothesis of `studentized_wald_coverage` in `TStudentizedCoverage.lean`, per the citation-gate rule for a `logical-claim` carrier. The file header records that the Lean proof of the numerator step goes through the reused `dependency_studentized_cdf`, so that the threaded citation is read as the core's declared interface for the classical limit step rather than as dead code.",
+      "projected_lines": 70
+    },
+    {
+      "file": "Helpers/BlockArray.lean",
+      "contents": "The composite S5 world: the arbitrary-row-law triangular-array bundle `BlockArray` (with no per-block design field), its row-law moments and averages, `waldInterval`, the five block assumption Props, the derived denominator-law lemmas, and the `BlockIndependence`-to-`iIndepFun` bridge lemma under `(Arr.rowLaw B).toMeasure` plus its centered-score corollary and (round 4) the resulting DIAGONAL `DepGraph` term `blockDepGraph Arr B : DepGraph (centered scores) (Arr.rowLaw B).toMeasure` with its `nbhd`-cardinality lemma `card = 1`, which `TStudentizedCoverage.lean` feeds to the reused `dependency_studentized_cdf`; plus the separate `productExperiment` wrapper whose assignment law is constructed with `prodDesign` for `thm:tensorization`.",
+      "projected_lines": 500
+    },
+    {
+      "file": "OpenSchoolBlock.lean",
+      "contents": "`schoolDecompositionHandle` and `schoolExposureBlockOpenQuestion` (descriptive `String` payloads).",
+      "projected_lines": 70
+    },
+    {
+      "file": "TObservableMobius.lean",
+      "contents": "`expectedRule_mem_observableSpan_iff`.",
+      "projected_lines": 400
+    },
+    {
+      "file": "TDualCompleteClass.lean",
+      "contents": "`optValue_eq_dual_and_paretoCompleteClass`.",
+      "projected_lines": 520
+    },
+    {
+      "file": "TRationalCertificates.lean",
+      "contents": "`rational_primal_dual_certificates` (bridge to `RationalLP.exists_rational_optimal_primal_dual`).",
+      "projected_lines": 340
+    },
+    {
+      "file": "TVarianceEstimability.lean",
+      "contents": "`designVariance_estimable_iff`.",
+      "projected_lines": 240
+    },
+    {
+      "file": "THMSClassInclusion.lean",
+      "contents": "`hms_quadratic_mem_observableSpan_strict`.",
+      "projected_lines": 260
+    },
+    {
+      "file": "TComplementDegreeCollapse.lean",
+      "contents": "`optValue_odd_degree_collapse`.",
+      "projected_lines": 380
+    },
+    {
+      "file": "TWitnessSDPOptimum.lean",
+      "contents": "`witness_hms_sdp_optimum`.",
+      "projected_lines": 480
+    },
+    {
+      "file": "TQuarticSeparation.lean",
+      "contents": "`witness_quartic_separation` (assembly over the two witness helper files).",
+      "projected_lines": 480
+    },
+    {
+      "file": "TAronowSamiiSpecialization.lean",
+      "contents": "`asBinaryCorrection_mem_conservativeCone_two`.",
+      "projected_lines": 320
+    },
+    {
+      "file": "TTensorization.lean",
+      "contents": "`optValue_product_tensorization`.",
+      "projected_lines": 460
+    },
+    {
+      "file": "TStudentizedCoverage.lean",
+      "contents": "`studentized_wald_coverage` as six separately scoped implications: the numerator clause takes the cited `LindebergFellerIndependentArray` gate plus exactly its three block prerequisites; the denominator and conservativeness clauses take only their own prerequisites; and every coverage/refinement clause repeats exactly the numerator, denominator, conservativeness, cutoff, and limit premises it uses. Existing helpers verify the `dependency_studentized_cdf` hypotheses at `Arr.rowLaw B` with the diagonal dependency graph (centering, the `2M` envelope, `hv : E[depSum^2] = B * V_B`, the variance floor `V/2`, and `card (Fin B) -> infinity`).",
+      "projected_lines": 560
+    }
+  ],
+  "infrastructure_needed": [
+    {
+      "id": "lem:lindeberg-feller-independent-array",
+      "kind": "mathlib-lemma",
+      "description": "Lindeberg-Feller central limit theorem for a triangular array of independent real random variables (Billingsley 1995, Theorem 27.2), recorded as the frozen cited gate and threaded (round 5) into its one consumer `thm:studentized-coverage`, which is therefore delivered conditional on it while staying in scope. Its numerator step is additionally covered in Lean by the reused tier-1 `Causalean.Experimentation.DesignBased.dependency_studentized_cdf` at a diagonal dependency graph, which is the proof route for the bounded-score hypotheses but does not type-match, and so does not discharge, this general statement. It remains listed because Mathlib still has no independent-triangular-array Lindeberg-Feller theorem and neither Causalean CLT type-matches this general (unbounded, Lindeberg-only) statement; discharging it would be an upstream contribution via `bin/gate.ts --discharge`.",
+      "effort": "medium"
+    }
+  ],
+  "theorems": [],
+  "feasibility_notes": "Every core node is mapped exactly once and every core symbol is bound by one of the six S-blocks. Confirmed reusable Causalean decls (signatures read from source, not guessed): `Causalean.Experimentation.DesignBased.FiniteDesign` reused at the E/Var/Cov/Pr level as the randomization field embedded in the paper-local `Setup`/`BlockArray`/witness structures (structure fields `p`/`p_nonneg`/`p_sum` at `DesignCore.lean:46-52`, statistic API at `:61-80`; it is NOT the S1 world label -- see the round-6 note below), `prodDesign` (`Product.lean:49`), `FiniteDesign.Var_prod_linear_comb` (`ProductVariance.lean:90`, for the product experiment of `thm:tensorization`), `FiniteDesign.Var_linear_comb` (`DesignCore.lean:235`) and `FiniteDesign.Cov_eq` (`DesignCore.lean:148`) (for the triangular array, whose row law is an arbitrary finite design), `FiniteDesign.chebyshev` (`Chebyshev.lean:40`), `FiniteDesign.TendstoInProb`/`tendstoInProb_of_var` (`InProb.lean:56,63`), `stdNormalCdf`/`stdNormalCdf_neg`/`continuous_stdNormalCdf` (`GaussianCDF.lean:42,64,70`), `conservative_wald_liminf_of_studentized_cdf` (`WaldCoverage.lean:45`), `dependency_studentized_cdf` (`DependencyCLT.lean:57`, added round 4: an arbitrary-finite-design bounded-degree-dependency CLT, instantiated at the diagonal graph to give the numerator limit of `thm:studentized-coverage`) together with `DepGraph`/`depSum` (`Mathlib/Probability/SteinMethod/DepGraphCLT.lean:51`, `DependencyCLT.lean:51`) and Mathlib's `ProbabilityTheory.iIndepFun.indepFun_finset`, `Causalean.Panel.PO.Mobius.{indicator, delta, prod_indicator_eq, coeff_sum, mobius_expansion}` (`Panel/PO/Mobius.lean:52-195`), and `Causalean.Mathlib.Optimization.RationalLP.exists_rational_optimal_primal_dual` (`RationalLP.lean:781`). Analogous modules recorded for adaptation: `Causalean.PartialID.ConicProgram.{weak_duality, farkas, strong_duality_zero_gap}` for the real-coefficient duality, `ExposureMappingInterference/Asymptotics/Intervals.lean:184` (`wald_coverage_feasible`) for the random-denominator coverage assembly, and `ExposureMappingInterference/Variance/Conservative.lean` (`htA2`, `E_htVarEst_add_htA2_ge`) for the Aronow-Samii Young correction. Build-inline (in scope, `defer_tier` false): all eight assumption Props, all eleven definitions, and all eleven delivered statements, including the two heavy ones -- `thm:dual-complete-class` (finite-cone separation, strong duality, complementary slackness and the Pareto complete-class converse, all supplied step by step by the paper; Mathlib has Farkas for Hilbert `ProperCone`s but no packaged closedness of a finitely generated cone, so that step is a local induction) and `thm:quartic-separation` plus `prop:witness-hms-sdp-optimum` (large but purely finite rational and `Q(sqrt 17)` arithmetic over 64 schedules, with an explicit `L D L^T` dual-slack certificate). Deferred: exactly one node, the frozen cited gate `lem:lindeberg-feller-independent-array` (Billingsley 1995, Theorem 27.2, carrier `logical-claim`), encoded as a `Sort 0` Prop with its frozen gate keys intact and (round 5) threaded into its one consumer `thm:studentized-coverage`, which is delivered conditional on it while remaining fully in scope (`defer_tier: false`, `gate: false`) under the gate-consumer rule; the Lean proof of the numerator step still goes through the reused `Causalean.Experimentation.DesignBased.dependency_studentized_cdf`, which covers the bounded-score instance but does not type-match and hence does not discharge the general cited statement. `oeq:school-exposure-block` is a Case (B) descriptive `String` payload, excluded from the manifest, with no delivered theorem depending on it. THIS REVISE ROUND (round 6) patched exactly the one flagged defect -- the S1 world label -- and its closure, and re-ran the deterministic plan gate afterwards. S1 is no longer declared a `FiniteDesign` reuse but a LOCAL COMPOSITE world (`disposition: define-local`, `reuse: null`): `Causalean.Experimentation.DesignBased.DesignCore.FiniteDesign` is a bare pmf on a finite assignment carrier (`p`, `p_nonneg`, `p_sum`, re-read this round at `DesignCore.lean:46-52`) and hosts none of the further objects S1 binds, so the world is realized by a paper-local composite `Setup` structure in `Basic.lean` that EMBEDS `design : FiniteDesign Z` as its reused randomization layer and additionally carries the fixed binary schedule space `Theta = I -> Fin 2` (with `I = Fin K`), the support-positivity field `p_pos : forall z, 0 < design.p z` (the source of `pi_S > 0`, which `FiniteDesign` does not provide), the observation map `O : Z -> Finset I`, the score vectors `v : Z -> I -> Real`, and -- via `def:score-variance` over that `Setup` -- the derived `X_z`, `c`, `tau`, `A`, `f`. `FiniteDesign` is correspondingly recorded in the substrate survey as reused at the E/Var/Cov/Pr level, not the world level, with that one-line justification. Closure touched, all bookkeeping-only: the S1 entry (disposition, `reuse`, notes, plus a round-6 re-search trace over `Causalean/Experimentation` and Mathlib for a packaged design-based world bundling schedule space, observation map and scores -- none exists), the S4 notes and the `def:witness-experiment` note (the witness is an instance of the S1 `Setup`, whose `design` field is the `FiniteDesign (Fin 3)`), the `def:score-variance` note, the `DesignCore.lean` survey note, the `Basic.lean` file-plan entry and the first `decisions` entry on the randomization layer; one survey entry was ADDED, `ExposureMappingInterference/Asymptotics/Consistency.lean` as `analogous-module`, because the round-6 re-search turned up Causalean's own `structure Experiment` (`:43-63`) -- carriers plus an embedded `D : FiniteDesign Omega` field plus the model data -- which is the precedent confirming that an ambient design-based world is a composite structure EMBEDDING `FiniteDesign` rather than `FiniteDesign` itself, and is the field-layout reference F2 should imitate for `Setup` (it is not itself instantiable here: exposure-indexed real outcomes, no observed-coordinate set, no score vectors, no support positivity). NOTHING ELSE MOVED: no node's `lean_kind`, disposition, `reuse`, `defer_tier`, `gate`, `members`, `hyps` or `target_file` changed, and both prior fixes are preserved verbatim -- the round-4 reuse of `dependency_studentized_cdf` at the diagonal dependency graph with its corrected non-product-design rationale (S5 notes, `DependencyCLT.lean` survey entry, `thm:studentized-coverage` node), and the round-5 threading of `lem:lindeberg-feller-independent-array` as an explicit hyp of `thm:studentized-coverage`. Deterministic gate re-check after the S1 edit: (P1) all 32 core nodes (8 assumptions, 11 definitions, 13 statements = 11 delivered `thm:`/`prop:` + the `oeq:` + the cited `lem:`) are keyed exactly once in `nodes`, and every core symbol is bound by exactly one of S1-S6 -- the S1 binding list is unchanged by this edit, so symbol coverage is preserved; (P2) no class node exists in this core (no `by_member_properties`), so `members` is vacuous; (P3) `lean_kind` still matches every core node kind (assumptions and the cited gate `assumption`, constructions `def`, the Case (B) OEQ `def`, delivered statements `theorem`); (P4) every statement's `hyps` is unchanged and remains a subset of its `depends_on` with every assumption dependency covered directly -- `prop:variance-estimability` [`ass:observable-score`], `thm:complement-degree-collapse` [the two complement assumptions], `thm:studentized-coverage` [the five block assumptions + the cited gate]; (P5) `reuse` is now null for S1, which leaves NO `reuse` decl anywhere in the plan (every S-block and every node is `define-local`), so P5 is discharged vacuously -- the reused Causalean decls are the ones recorded per node in `modules` and in the substrate survey (`FiniteDesign` + `E`/`Var`/`Cov`/`Pr`, `prodDesign`, `Var_prod_linear_comb`, `Var_linear_comb`, `Cov_eq`, `chebyshev`, `tendstoInProb_of_var`, `stdNormalCdf`, `conservative_wald_liminf_of_studentized_cdf`, `dependency_studentized_cdf`, the `Panel/PO/Mobius` layer and `RationalLP.exists_rational_optimal_primal_dual`), each read from source; no node claims a whole-node `reuse` discharge, and in particular no `ass:` node is discharged and the cited gate carries no discharge stamp; (P6) all module paths still resolve (S1's module list is unchanged). The previous round (round 5) patched exactly the one then-flagged mechanical defect and its closure: `thm:studentized-coverage` now lists its frozen cited logical dependency `lem:lindeberg-feller-independent-array` in `hyps` (six entries: the five `ass:` nodes plus the gate), restoring the P4 property that every logical cited dependency is an explicit hypothesis of its consumer; the gate node's own frozen keys (`status: cited`, `source`, `gate: true`, `gate_class: cited`, `citation_discharged: false`, `defer_tier: true`) and its `infrastructure_needed[]` entry are untouched and no discharge stamp is emitted; the consumer keeps `defer_tier: false`, `gate: false`, `lean_kind: theorem` and is proved conditional on the gate under the gate-consumer rule. Closure touched: the S5 numerator paragraph, the `lem:` node notes, the `Helpers/CitedGates.lean` and `TStudentizedCoverage.lean` file-plan entries, the `DependencyCLT.lean` survey note, the `infrastructure_needed` description and two `decisions` entries. Round 4's reuse finding is explicitly NOT regressed: `dependency_studentized_cdf` stays `reused` and remains the recorded proof route for the numerator step, alongside the threaded interface. No node's `lean_kind`, disposition, `defer_tier`, `gate`, `members`, `target_file` or any other statement's `hyps` changed, the one-to-one node mapping and the empty theorems manifest are intact, and the derived verdict stays `needs-new-infrastructure`. The previous round (round 4) patched exactly the two then-flagged defects -- the missed reuse of `Causalean.Experimentation.DesignBased.dependency_studentized_cdf` at `thm:studentized-coverage`/S5, and the defer-mistag rationale that called `DependencyCLT` product-design-only -- plus their dependency closure, changing no other node. (1) `thm:studentized-coverage` took its numerator CLT from the reused theorem (and, in round 4 only, dropped the cited gate from its `hyps` -- that drop is reversed in round 5, the reuse is retained). The signature was read this round in full (`DependencyCLT.lean:57`): it quantifies over an ARBITRARY `D : forall n, FiniteDesign (Omega n)` on a `Fintype`/`MeasurableSpace`/`MeasurableSingletonClass` carrier with `Dep : forall n, DepGraph (X n) (D n).toMeasure`, so round 3's assertion that it is `stated over a dependency graph on a product design` was simply wrong -- that restriction belongs to `prodDesign_clt` alone. Instantiation is field-by-field checked in the node entry: `D B := Arr.rowLaw B`, `iota B := Fin B`, `X B j w := Arr.X B j (w j) - blockTau Arr B j`, the diagonal graph `G i j := i = j` (`Dmax = 1`, `indep` from `ProbabilityTheory.iIndepFun.indepFun_finset`, whose signature was confirmed by lean_loogle and matches the `DepGraph.indep` field exactly), `M := 2 * M`, `v B := B * V_B`, `c := V / 2`, `hcard` trivial; the conclusion is already the paper's `T_B` CDF statement in native `FiniteDesign.Pr` form, so the coverage assembly through `conservative_wald_liminf_of_studentized_cdf` is unchanged and needs no measure round-trip. (2) `lem:lindeberg-feller-independent-array` keeps every frozen key (`status: cited`, `source`, `gate: true`, `gate_class: cited`, `citation_discharged: false`, `defer_tier: true`) and its `infrastructure_needed[]` entry; round 4 made it non-load-bearing and round 5 restored it as its consumer's declared premise. It is NOT discharged in either round, since the bounded-summand dependency-graph theorem does not type-match the general unbounded Lindeberg-only statement, and F1 emits no discharge stamp. (3) Closure: the S5 notes and modules were corrected (the false product-design claim removed, `DependencyCLT` added, `FiniteDesignMeasure`'s role narrowed to stating the `DepGraph`); the substrate survey now carries `DependencyCLT.lean` as `reused`, `WaldPipeline.lean` as `analogous-module` (its `dependency_wald_coverage` chains the same two decls but needs a deterministic `vhat`, while the paper's `hat W_B` is random) and `EdgeVarianceBound.lean` alone as `bypass-justified`; `ass:block-independence` keeps its Lean shape, and its round-3 `iIndepFun` bridge lemma is retained and re-aimed at the diagonal `DepGraph` term now built beside it in `Helpers/BlockArray.lean`; the `IndepSummandsCLT`, `MartingaleArray` and `FiniteDesignMeasure` survey notes, the `Helpers/CitedGates.lean`, `Helpers/BlockArray.lean` and `TStudentizedCoverage.lean` file-plan entries, and the `infrastructure_needed` description were updated to match. No node's `lean_kind`, disposition, `defer_tier` or `gate` changed, no other statement's `hyps` changed, the theorems manifest stays empty, and the derived verdict is unchanged (`needs-new-infrastructure`, from the one recorded cited gate). The earlier revise round (round 2) patched exactly the flagged S5 world-model defect and its dependency closure: S5 is no longer declared a `prodDesign` reuse but a LOCAL COMPOSITE world (`disposition: define-local`, `reuse: null`) with two components -- the locally built `BlockArray` triangular-array bundle over an arbitrary `rowLaw B : FiniteDesign (forall j, Omega B j)` with only pair-level factorization and the `X_Bj`/`G_Bj` statistics (no Causalean analogue exists: Grep 'structure .*(Array|Row|Block|Triangular)' over Causalean/Experimentation returns no matches, and 'rowLaw|triangular' over Causalean returns only the measure-theoretic `Stat/CLT/MartingaleArray/**`), and the independent product experiment. `Causalean.Experimentation.DesignBased.prodDesign` (`Product.lean:49`, re-confirmed this round) is retained as the justified reuse one level down, inside `def:product-experiment` and `thm:tensorization` only, and the product component is split into its own `Helpers/ProductExperiment.lean` so the reuse boundary is visible in the file layout; `Causalean.Experimentation.DesignBased.DesignCore.FiniteDesign` remains the reused randomization layer under both components. No node's disposition, `defer_tier`, `gate`, `hyps`, statement or proof route changed, and the single cited gate and the (empty) theorems manifest are untouched. The previous revise round had patched the `ass:block-independence` defect and its dependency closure: the independence predicate now factorizes the row law's joint pair-mass into that SAME law's coordinate marginals (a two-way faithful refinement of the core condition), the redundant `blockDesign` field is dropped from the S5 `BlockArray` bundle so that `tau_Bj`, `sigma_Bj^2`, `b_Bj` and `Var(G_Bj)` in `ass:nondegenerate-average-variance`, `ass:bound-lln` and `ass:block-conservativeness` are moments of the row law as the core defines them, and the denominator-law route in `thm:studentized-coverage` switches from the `prodDesign`-only `Var_prod_linear_comb` to the general-design `Var_linear_comb` plus a small `Cov = 0` lemma from the assumed factorization. `def:product-experiment` and `thm:tensorization` are unaffected: they build their product law directly with `prodDesign` and never consume `BlockIndependence`. All NODE dispositions, `defer_tier` flags and the theorem-node mapping are unchanged across all four rounds; the only world-level disposition change is S5's, made in round 2, and the only changes touching the single cited gate are to its consumption -- threaded in round 3, withdrawn in round 4 in favour of the library reuse, and re-threaded in round 5 because the core's `logical-claim` dependency edge makes threading mandatory regardless of the proof route -- with its `gate`, `gate_class`, `defer_tier`, `citation_discharged` and `source` keys untouched throughout. Overall verdict, derived from the per-node decisions: `needs-new-infrastructure` (one deferred substrate gate; everything else formalizable now)."
+}

@@ -1,0 +1,122 @@
+%%% FIELD proof-prop-three-block-kill-test
+We first prove that the unrestricted randomized-interval problem reduces exactly to the stated finite linear program.  Fix \(\gamma\in[0,\Gamma_{\mathrm{vac}}]\).  By the three-block experiment definition and the bounded-outcomes assumption, a grid-valued schedule is a vector
+\[
+s=(c_1,c_2,t,c_3)\in\{-M,0,M\}^{4}
+\]
+satisfying \(|c_2-c_1|+|c_3-c_2|\le\gamma\).  Denote the finite set of such schedules by \(\mathcal S_\gamma\).  By the target definition, its target value is
+\[
+\tau_s=t-c_2\in\mathcal G_M:=\{-2M,-M,0,M,2M\}.
+\]
+The randomization in \(\mathcal E_3\) is deterministic outside block \(2\), while the two block-\(2\) arms each have probability \(1/2\).  Hence the attainable record set \(\mathcal R_\gamma\) is finite; write \(P_s(r)\) for the design probability of record \(r\) under schedule \(s\).
+
+Let \(I\subseteq[-2M,2M]\) be any nonempty closed interval and define
+\[
+d(I)=
+\begin{cases}
+[\min(I\cap\mathcal G_M),\max(I\cap\mathcal G_M)],&I\cap\mathcal G_M\ne\varnothing,\\
+\{-2M\},&I\cap\mathcal G_M=\varnothing.
+\end{cases}
+\]
+This is an interval whose endpoints belong to \(\mathcal G_M\).  If \(g\in\mathcal G_M\), then
+\[
+\mathbf 1\{g\in d(I)\}\ge \mathbf 1\{g\in I\},
+\qquad
+\operatorname{len}(d(I))\le \operatorname{len}(I).
+\]
+Indeed, the first inequality is immediate when \(g\in I\), because then \(g\) lies between the smallest and largest elements of \(I\cap\mathcal G_M\); when \(I\cap\mathcal G_M=\varnothing\), its right-hand side is zero for every \(g\in\mathcal G_M\).  For the second inequality, the two extreme points of a nonempty \(I\cap\mathcal G_M\) lie in \(I\), while in the empty-intersection case \(d(I)\) has length zero.
+
+Given any admissible Markov kernel from the honest-minimax-length definition, push its interval action forward through \(d\).  The two displayed inequalities show, schedule by schedule, that this operation weakly increases coverage and weakly decreases expected length.  Conversely, every kernel supported on the finite set
+\[
+\mathcal A_M:=\{[a,b]:a,b\in\mathcal G_M,\ a\le b\}
+\]
+is an admissible kernel in the original problem.  Thus restricting the action space to \(\mathcal A_M\) does not change the minimax value.  For \(r\in\mathcal R_\gamma\) and \(I\in\mathcal A_M\), let \(x_{rI}\) be the conditional probability of action \(I\) at record \(r\).  The honest-minimax-length definition then gives exactly
+\[
+\begin{aligned}
+\text{minimize }&L,\\
+\text{subject to }&x_{rI}\ge0,\qquad \sum_{I\in\mathcal A_M}x_{rI}=1 &&(r\in\mathcal R_\gamma),\\
+&\sum_{r\in\mathcal R_\gamma}P_s(r)\sum_{I\in\mathcal A_M}x_{rI}\mathbf 1\{\tau_s\in I\}\ge1-\alpha &&(s\in\mathcal S_\gamma),\\
+&\sum_{r\in\mathcal R_\gamma}P_s(r)\sum_{I\in\mathcal A_M}x_{rI}\operatorname{len}(I)\le L &&(s\in\mathcal S_\gamma),\\
+&L\ge0.
+\end{aligned}
+\]
+This is the finite linear program in the three-block LP construction.  The auxiliary uniform randomizer realizes any feasible finite probability vector \((x_{rI})_{I\in\mathcal A_M}\), so the reduction works in both directions and is exact.
+
+We now set \(\alpha=0.1\) and \(\gamma=0\).  By the control-TV assumption, the sum of the two nonnegative increments is at most zero, so both increments vanish.  Therefore \(c_1=c_2=c_3=:c\), and every schedule is uniquely indexed by
+\[
+s=(c,t)\in\{-M,0,M\}^{2},\qquad \tau_s=t-c.
+\]
+Under this schedule, the control-assignment record
+\[
+r_c^0=(c,z_0,c,c)
+\]
+has probability \(1/2\) and is independent of \(t\), while the treatment-assignment record
+\[
+r_{c,t}^1=(c,z_1,t,c)
+\]
+has probability \(1/2\).
+
+Consider the following primal policy from the zero-drift certificate.  At \(r_{c,t}^1\), report the singleton \(\{t-c\}\).  At \(r_c^0\), report
+\[
+[-M-c,M-c]\quad\text{with probability }\frac7{10},
+\]
+and report each of the three singletons \(\{-M-c\}\), \(\{-c\}\), and \(\{M-c\}\) with probability \(1/10\).  All endpoints belong to \(\mathcal G_M\), all actions lie in \([-2M,2M]\), and the four probabilities sum to one.  For schedule \((c,t)\), the treatment branch covers \(t-c\) with probability one.  On the control branch, the hull covers \(t-c\), as does exactly the singleton indexed by \(t\), so its conditional coverage is
+\[
+\frac7{10}+\frac1{10}=\frac8{10}.
+\]
+Consequently the unconditional coverage is
+\[
+\frac12\cdot1+\frac12\cdot\frac8{10}=\frac9{10}=1-\alpha.
+\]
+Only the hull has positive length, and its length is \(2M\).  Thus every schedule has expected length
+\[
+\frac12\left(\frac7{10}\right)(2M)=\frac7{10}M.
+\]
+This proves \(\mathfrak L^{(3)}_{0.1,0}\le0.7M\).
+
+For the matching lower bound, first normalize \(M=1\).  This loses no generality because division of every outcome and interval endpoint by the declared positive number \(M\) preserves assignment probabilities and coverage and divides every interval length by \(M\); multiplication by \(M\) gives the inverse transformation.
+
+We verify the dual certificate directly, including weak duality.  For a primal-feasible pair \((x,L)\), write \(C_s\) and \(E_s\) for its coverage and expected length under schedule \(s\).  Suppose numbers \(\lambda_s,\rho_s\ge0\) and unrestricted \(z_r\) satisfy
+\[
+\sum_sP_s(r)\left\{\lambda_s\mathbf 1\{\tau_s\in I\}-\rho_s\operatorname{len}(I)\right\}+z_r\le0
+\]
+for every record--action pair and satisfy \(\sum_s\rho_s\le1\).  Multiplication by \(x_{rI}\), summation, primal normalization, the coverage constraints, the length constraints, and \(L\ge0\), in that order, give
+\[
+\begin{aligned}
+0
+&\ge \sum_{r,I}x_{rI}\left[\sum_sP_s(r)\{\lambda_s\mathbf 1(\tau_s\in I)-\rho_s\operatorname{len}(I)\}+z_r\right]\\
+&=\sum_s\lambda_s C_s-\sum_s\rho_sE_s+\sum_rz_r\\
+&\ge \frac9{10}\sum_s\lambda_s-L\sum_s\rho_s+\sum_rz_r\\
+&\ge \frac9{10}\sum_s\lambda_s-L+\sum_rz_r.
+\end{aligned}
+\]
+Hence every such certificate gives
+\[
+L\ge\frac9{10}\sum_s\lambda_s+\sum_rz_r.
+\]
+
+Set \(\lambda_{(0,t)}=1\) for \(t\in\{-1,0,1\}\), set \(\rho_{(0,-1)}=1\), and set every other \(\lambda_s\) and \(\rho_s\) to zero.  Put \(z_r=-1/2\) at \(r_0^0\) and at each of \(r_{0,-1}^1,r_{0,0}^1,r_{0,1}^1\), and put \(z_r=0\) elsewhere.  Then \(\sum_s\rho_s=1\).  At a record outside these four records, every term is zero.  At \(r_0^0\), let
+\[
+k(I)=|I\cap\{-1,0,1\}|.
+\]
+The left side of the dual constraint is
+\[
+\frac{k(I)-\operatorname{len}(I)-1}{2}.
+\]
+Every grid interval satisfies \(\operatorname{len}(I)\ge k(I)-1\): this is immediate for \(k(I)\le1\), while for \(k(I)\ge2\) the distance between the smallest and largest included points is at least \(k(I)-1\).  Thus the control-record constraint holds.  At \(r_{0,-1}^1\), the left side is
+\[
+\frac{\mathbf 1\{-1\in I\}-\operatorname{len}(I)-1}{2}\le0.
+\]
+At \(r_{0,t}^1\) for \(t\in\{0,1\}\), it is
+\[
+\frac{\mathbf 1\{t\in I\}-1}{2}\le0.
+\]
+The certificate is therefore dual feasible, and its objective is
+\[
+\frac9{10}\cdot3+4\left(-\frac12\right)=\frac7{10}.
+\]
+The direct weak-duality calculation yields \(L\ge0.7\) for every normalized primal procedure.  Together with the primal policy and scale equivariance, this proves
+\[
+\mathfrak L^{(3)}_{0.1,0}=0.7M.
+\]
+
+Finally, conditional on \(r_c^0\), each of the three observationally compatible targets has marginal coverage \(0.8\).  The two extreme targets are covered jointly only when the hull is selected, an event of conditional probability \(0.7\), and the conditional expected length is \((7/10)(2M)=1.4M\), not \(1.6M\).  Thus the displayed feasible policy itself proves that the three marginal constraints do not entail the claimed larger conditional-length bound.  All value calculations above use \(\gamma=0\) and the unrestricted finite action set; they provide no matching primal--dual certificate, and the proposition makes no exact-value claim, for positive drift or for a concurrent-only restriction.

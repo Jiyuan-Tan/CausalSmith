@@ -1,0 +1,1707 @@
+{
+  "qid": "scm_order_world_partition_compiler",
+  "specialization": "v1",
+  "cluster": "scm",
+  "symbols": [
+    {
+      "name": "k",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of endogenous coordinates"
+    },
+    {
+      "name": "[k]",
+      "type": "finite index set",
+      "def": "\\([k]=\\{1,\\ldots,k\\}\\)",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "D",
+      "type": "family of endogenous alphabets",
+      "space": "\\((\\mathcal D_i)_{i\\in[k]}\\)",
+      "role": "endogenous value sets constrained by Assumption~1",
+      "refs": [
+        "k",
+        "[k]"
+      ]
+    },
+    {
+      "name": "V",
+      "type": "ordered endogenous vector",
+      "space": "\\(V=(V_1,\\ldots,V_k)\\) with \\(V_i\\in\\mathcal D_i\\)",
+      "role": "causal variables in the fixed order",
+      "refs": [
+        "k",
+        "D"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "finite product space",
+      "def": "\\(\\mathcal X=\\prod_{i=1}^k\\mathcal D_i\\)",
+      "refs": [
+        "k",
+        "D"
+      ]
+    },
+    {
+      "name": "f",
+      "type": "tuple of deterministic structural maps",
+      "space": "\\(f=(f_1,\\ldots,f_k)\\)",
+      "role": "one structural realization constrained by Assumption~2",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "shared exogenous state space",
+      "space": "\\(\\mathcal U\\)",
+      "role": "common latent variation in a standard order-compatible recursive structural causal model"
+    },
+    {
+      "name": "nu",
+      "type": "probability law on the shared exogenous state space",
+      "space": "\\(\\nu\\in\\Delta(\\mathcal U)\\)",
+      "role": "exogenous law in the standard parent-subset model class",
+      "refs": [
+        "U"
+      ]
+    },
+    {
+      "name": "Pa",
+      "type": "family of endogenous parent sets",
+      "space": "\\((\\operatorname{pa}_i)_{i\\in[k]}\\)",
+      "role": "parent subsets constrained by order compatibility",
+      "refs": [
+        "k",
+        "[k]"
+      ]
+    },
+    {
+      "name": "phi",
+      "type": "tuple of parent-subset structural maps",
+      "sig": "\\(\\varphi_i:\\prod_{t\\in\\operatorname{pa}_i}\\mathcal D_t\\times\\mathcal U\\to\\mathcal D_i\\) for \\(i\\in[k]\\)",
+      "role": "structural equations in the standard recursive model class",
+      "refs": [
+        "k",
+        "[k]",
+        "D",
+        "U",
+        "Pa"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "complete canonical response-system carrier",
+      "space": "\\(\\mathfrak F\\)",
+      "role": "saturated all-predecessor carrier used only after the canonicalization equivalence",
+      "refs": [
+        "k",
+        "D",
+        "f"
+      ]
+    },
+    {
+      "name": "mu",
+      "type": "nonnegative latent weight function",
+      "space": "\\(\\mu\\in\\mathbb R_{+}^{\\mathfrak F}\\)",
+      "role": "shared exogenous weights normalized by Assumption~3",
+      "refs": [
+        "F"
+      ]
+    },
+    {
+      "name": "Mord",
+      "type": "standard class of finite order-compatible recursive structural causal models",
+      "space": "\\(\\mathcal M_{\\mathrm{ord}}\\)",
+      "role": "target class with arbitrary predecessor parent subsets and shared exogenous variation",
+      "refs": [
+        "k",
+        "D",
+        "U",
+        "nu",
+        "Pa",
+        "phi"
+      ]
+    },
+    {
+      "name": "Mcan",
+      "type": "canonical saturated order-only model class",
+      "space": "\\(\\mathcal M_{\\mathrm{can}}\\)",
+      "role": "equivalent all-predecessor response-law carrier used by the compiler and endpoint optimization",
+      "refs": [
+        "k",
+        "D",
+        "F",
+        "mu"
+      ]
+    },
+    {
+      "name": "p",
+      "type": "observational probability mass function",
+      "space": "\\(p\\in\\Delta(\\mathcal X)\\)",
+      "role": "supplied dense table or exact sparse support list",
+      "refs": [
+        "X"
+      ]
+    },
+    {
+      "name": "I",
+      "type": "intervention",
+      "space": "\\(I:[k]\\rightharpoonup\\bigcup_{i=1}^k\\mathcal D_i\\)",
+      "role": "valid partial assignment applied coordinatewise",
+      "refs": [
+        "k",
+        "[k]",
+        "D"
+      ]
+    },
+    {
+      "name": "gamma",
+      "type": "raw explicit unnested counterfactual conjunction",
+      "space": "\\(\\gamma=\\bigwedge_q\\{V_{i_q,I_q}=y_q\\}\\)",
+      "role": "one input Boolean term before deterministic normalization",
+      "refs": [
+        "V",
+        "I",
+        "D"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of retained conjunctions"
+    },
+    {
+      "name": "Gamma",
+      "type": "ordered raw conjunction list",
+      "def": "\\(\\boldsymbol\\gamma=(\\gamma_1,\\ldots,\\gamma_r)\\)",
+      "refs": [
+        "gamma",
+        "r"
+      ]
+    },
+    {
+      "name": "Nq",
+      "type": "deterministic query normalizer",
+      "sig": "\\(\\mathsf N:\\gamma\\mapsto\\gamma^{\\circ}\\), extended componentwise as \\(\\mathsf N(\\boldsymbol\\gamma)=(\\gamma_1^{\\circ},\\ldots,\\gamma_r^{\\circ})\\)",
+      "role": "value-preserving normalization to predecessor-only retained atoms",
+      "refs": [
+        "Gamma",
+        "r",
+        "V",
+        "I",
+        "k"
+      ]
+    },
+    {
+      "name": "gamman",
+      "type": "normalized single conjunction",
+      "def": "\\(\\gamma^{\\circ}=\\mathsf N(\\gamma)\\)",
+      "refs": [
+        "Nq",
+        "gamma"
+      ]
+    },
+    {
+      "name": "GammaN",
+      "type": "ordered normalized conjunction list",
+      "def": "\\(\\boldsymbol\\gamma^{\\circ}=\\mathsf N(\\boldsymbol\\gamma)=(\\gamma_1^{\\circ},\\ldots,\\gamma_r^{\\circ})\\)",
+      "refs": [
+        "Nq",
+        "Gamma",
+        "gamman",
+        "r"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "rational coefficient vector",
+      "space": "\\(c=(c_1,\\ldots,c_r)\\in\\mathbb Q^r\\)",
+      "refs": [
+        "r"
+      ]
+    },
+    {
+      "name": "g",
+      "type": "deterministic counterfactual score",
+      "def": "\\(g(f)=\\sum_{j=1}^r c_j\\mathbf 1\\{\\gamma_j^{\\circ}(f)\\}\\)",
+      "refs": [
+        "f",
+        "GammaN",
+        "c",
+        "r"
+      ]
+    },
+    {
+      "name": "ggamma",
+      "type": "single-conjunction indicator score",
+      "def": "\\(g_{\\gamma^{\\circ}}(f)=\\mathbf 1\\{\\gamma^{\\circ}(f)\\}\\)",
+      "refs": [
+        "gamman",
+        "f"
+      ]
+    },
+    {
+      "name": "fu",
+      "type": "canonical response system induced by one exogenous state",
+      "def": "\\(f^u=(f_1^u,\\ldots,f_k^u)\\), where \\(f_i^u(x_{<i})=\\varphi_i(x_{\\operatorname{pa}_i},u)\\)",
+      "refs": [
+        "U",
+        "phi",
+        "Pa",
+        "k",
+        "D"
+      ]
+    },
+    {
+      "name": "theta",
+      "type": "causal expected score",
+      "def": "\\(\\theta_g(\\mathcal M)=\\mathbb E_{\\nu}[g(f^U)]\\) for \\(\\mathcal M\\in\\mathcal M_{\\mathrm{ord}}\\), equivalently \\(\\theta_g=\\mathbb E_{\\mu}[g(f)]\\) on its canonical image",
+      "refs": [
+        "Mord",
+        "nu",
+        "fu",
+        "g",
+        "Mcan",
+        "mu",
+        "f"
+      ]
+    },
+    {
+      "name": "H",
+      "type": "finite normalized context set",
+      "def": "\\(\\mathcal H\\) is the set of distinct interventions occurring in \\(\\boldsymbol\\gamma^{\\circ}=\\mathsf N(\\boldsymbol\\gamma)\\), augmented by the factual context \\(\\varnothing\\)",
+      "refs": [
+        "I",
+        "Nq",
+        "GammaN"
+      ]
+    },
+    {
+      "name": "h",
+      "type": "positive integer",
+      "def": "\\(h=|\\mathcal H|\\)",
+      "refs": [
+        "H"
+      ]
+    },
+    {
+      "name": "Bh",
+      "type": "positive integer",
+      "def": "\\(B_h=\\operatorname{Bell}(h)\\)",
+      "refs": [
+        "h"
+      ]
+    },
+    {
+      "name": "E",
+      "type": "ordered intervention evaluation map",
+      "sig": "\\(E:\\mathfrak F\\times\\mathcal H\\to\\mathcal X\\)",
+      "role": "factual and intervention-world evaluator",
+      "refs": [
+        "F",
+        "H",
+        "X"
+      ]
+    },
+    {
+      "name": "xprefix",
+      "type": "complete evaluated prefix",
+      "def": "\\(x^w_{\\le i}=(E(f,w)_1,\\ldots,E(f,w)_i)\\)",
+      "refs": [
+        "E",
+        "f",
+        "H",
+        "k"
+      ]
+    },
+    {
+      "name": "pi",
+      "type": "set partition",
+      "space": "\\(\\pi_i\\in\\operatorname{Part}(\\mathcal H)\\)",
+      "role": "equality type of complete world prefixes",
+      "refs": [
+        "H",
+        "xprefix"
+      ]
+    },
+    {
+      "name": "v",
+      "type": "factual cell",
+      "space": "\\(v\\in\\mathcal X\\)",
+      "refs": [
+        "X"
+      ]
+    },
+    {
+      "name": "Fv",
+      "type": "factual response fibre",
+      "space": "\\(F_v\\subseteq\\mathfrak F\\)",
+      "role": "response systems reproducing cell \\(v\\)",
+      "refs": [
+        "v",
+        "F"
+      ]
+    },
+    {
+      "name": "Av",
+      "type": "attainable truth-vector set",
+      "space": "\\(A_v\\subseteq\\{0,1\\}^r\\)",
+      "role": "joint, not marginal, normalized-term dependence within factual cell \\(v\\)",
+      "refs": [
+        "v",
+        "r",
+        "GammaN",
+        "Fv"
+      ]
+    },
+    {
+      "name": "lg",
+      "type": "cellwise lower score",
+      "space": "\\(\\mathbb Q\\)",
+      "role": "minimum of the rational score over \\(A_v\\)",
+      "refs": [
+        "Av",
+        "c",
+        "v"
+      ]
+    },
+    {
+      "name": "ug",
+      "type": "cellwise upper score",
+      "space": "\\(\\mathbb Q\\)",
+      "role": "maximum of the rational score over \\(A_v\\)",
+      "refs": [
+        "Av",
+        "c",
+        "v"
+      ]
+    },
+    {
+      "name": "Lg",
+      "type": "lower endpoint functional",
+      "space": "\\(\\mathbb R\\)",
+      "role": "sharp lower bound under \\(p\\)",
+      "refs": [
+        "p",
+        "lg",
+        "X"
+      ]
+    },
+    {
+      "name": "Ug",
+      "type": "upper endpoint functional",
+      "space": "\\(\\mathbb R\\)",
+      "role": "sharp upper bound under \\(p\\)",
+      "refs": [
+        "p",
+        "ug",
+        "X"
+      ]
+    },
+    {
+      "name": "Thetag",
+      "type": "identified set",
+      "def": "\\(\\Theta_g(p)=\\{\\theta_g(\\mathcal M):\\mathcal M\\in\\mathcal M_{\\mathrm{ord}}\\text{ is compatible with }p\\}\\)",
+      "refs": [
+        "theta",
+        "Mord",
+        "p"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "nonnegative integer",
+      "def": "\\(s=|\\operatorname{supp}(p)|\\)",
+      "refs": [
+        "p",
+        "X"
+      ]
+    },
+    {
+      "name": "Nin",
+      "type": "positive integer",
+      "def": "\\(N_{\\mathrm{in}}\\) is the bit length of the explicitly listed alphabets, raw unnested conjunction list, rational coefficients, and dense or sparse observational input; deterministic normalization and construction of \\(\\mathcal H\\) are charged within this input size",
+      "refs": [
+        "D",
+        "Gamma",
+        "c",
+        "p",
+        "Nq",
+        "H"
+      ]
+    },
+    {
+      "name": "C1",
+      "type": "single-conjunction compiler",
+      "sig": "\\(\\mathsf C_1(v,\\gamma^{\\circ})\\)",
+      "role": "layered representative transition algorithm on normalized contexts",
+      "refs": [
+        "v",
+        "gamman",
+        "pi",
+        "E",
+        "H"
+      ]
+    },
+    {
+      "name": "Cr",
+      "type": "joint-score compiler",
+      "sig": "\\(\\mathsf C_r(v,\\boldsymbol\\gamma^{\\circ},c)\\)",
+      "role": "partition-plus-truth-flag transition algorithm on normalized contexts",
+      "refs": [
+        "v",
+        "GammaN",
+        "c",
+        "pi",
+        "E",
+        "r",
+        "H"
+      ]
+    },
+    {
+      "name": "fhat",
+      "type": "sparse response-system certificate",
+      "space": "\\(\\widehat f\\in\\mathfrak F\\)",
+      "role": "stored response rows plus one default per coordinate",
+      "refs": [
+        "F"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "length of the separation chain"
+    },
+    {
+      "name": "Wsep",
+      "type": "binary ordered variable vector",
+      "def": "\\(W^{(n)}=(S,T,X_1,\\ldots,X_n,Y)\\) with \\(S\\prec T\\prec X_1\\prec\\cdots\\prec X_n\\prec Y\\)",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "Hsep",
+      "type": "three-context set",
+      "def": "\\(\\mathcal H_n^{\\mathrm{sep}}=\\{\\varnothing,A,B\\}\\), where \\(A=\\operatorname{do}(S=1)\\) and \\(B=\\operatorname{do}(S=1,T=1)\\)",
+      "refs": [
+        "Wsep",
+        "I"
+      ]
+    },
+    {
+      "name": "gammasep",
+      "type": "separation conjunction",
+      "def": "\\(\\gamma_n^{\\mathrm{sep}}=\\{T_A=0\\}\\wedge\\bigwedge_{i=1}^n\\{X_{i,A}=0\\}\\wedge\\{Y_B=1\\}\\)",
+      "refs": [
+        "Wsep",
+        "Hsep",
+        "n"
+      ]
+    },
+    {
+      "name": "Rnum",
+      "type": "path-retaining numeric-history baseline",
+      "sig": "\\(\\mathsf R_{\\mathrm{num}}(v,\\gamma^{\\circ})\\)",
+      "role": "explicit baseline that stores complete numeric prefixes and never merges distinct histories",
+      "refs": [
+        "v",
+        "gamman",
+        "E",
+        "H"
+      ]
+    },
+    {
+      "name": "Nnum",
+      "type": "numeric-history count",
+      "space": "\\(\\mathbb N\\)",
+      "role": "number of accepting numeric prefixes retained by \\(\\mathsf R_{\\mathrm{num}}\\) immediately before \\(Y\\)",
+      "refs": [
+        "Rnum",
+        "Wsep",
+        "gammasep",
+        "n"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "residual-state complexity",
+      "space": "\\(\\rho(h)\\in\\mathbb N\\)",
+      "role": "minimum worst-case number of exact online continuation states",
+      "refs": [
+        "h"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:finite-alphabets",
+      "kind": "model",
+      "condition": "For every \\(i\\in[k]\\), the alphabet \\(\\mathcal D_i\\) is nonempty, finite, and explicitly listed in the input.",
+      "free_symbols": [
+        "k",
+        "[k]",
+        "D"
+      ],
+      "standard": {
+        "name": "Finite discrete endogenous support",
+        "cite": "RossettoAntonucci2026"
+      },
+      "used_by": [
+        "def:canonical-carrier-class",
+        "def:joint-representatives",
+        "def:ordered-evaluation",
+        "def:ordered-scm-class",
+        "def:single-representatives",
+        "prop:canonical-carrier-equivalence"
+      ]
+    },
+    {
+      "id": "ass:order-compatible-parent-sets",
+      "kind": "structural",
+      "condition": "For every \\(i\\in[k]\\), \\(\\operatorname{pa}_i\\subseteq\\{1,\\ldots,i-1\\}\\).",
+      "free_symbols": [
+        "k",
+        "[k]",
+        "Pa"
+      ],
+      "standard": {
+        "name": "Order-compatible recursive parent sets",
+        "cite": "RossettoAntonucci2026"
+      },
+      "used_by": [
+        "def:ordered-scm-class",
+        "prop:canonical-carrier-equivalence"
+      ]
+    },
+    {
+      "id": "ass:complete-predecessor-functions",
+      "kind": "canonical-response-carrier",
+      "condition": "\\(\\mathfrak F=\\{f=(f_1,\\ldots,f_k):f_i:\\prod_{t<i}\\mathcal D_t\\to\\mathcal D_i\\text{ for every }i\\in[k]\\}\\).",
+      "free_symbols": [
+        "F",
+        "k",
+        "[k]",
+        "D",
+        "f"
+      ],
+      "standard": {
+        "name": "Complete canonical order-only response carrier",
+        "cite": "RossettoAntonucci2026"
+      },
+      "used_by": [
+        "def:canonical-carrier-class",
+        "prop:canonical-carrier-equivalence",
+        "thm:partition-continuation",
+        "lem:representative-transition"
+      ]
+    },
+    {
+      "id": "ass:shared-exogenous-law",
+      "kind": "latent-variation",
+      "condition": "\\(\\sum_{f\\in\\mathfrak F}\\mu(f)=1\\).",
+      "free_symbols": [
+        "mu",
+        "F"
+      ],
+      "standard": {
+        "name": "Single shared exogenous response law",
+        "cite": "RossettoAntonucci2026"
+      },
+      "used_by": [
+        "def:canonical-carrier-class",
+        "prop:canonical-carrier-equivalence",
+        "thm:joint-score-compiler"
+      ]
+    },
+    {
+      "id": "ass:explicit-rational-score",
+      "kind": "query-syntax",
+      "condition": "The input score is supplied as an explicit finite list \\(\\sum_{j=1}^r c_j\\mathbf 1\\{\\gamma_j\\}\\) of raw unnested conjunctions with \\(c_j\\in\\mathbb Q\\), and the compiled score uses their deterministic normal forms \\(\\gamma_j^{\\circ}\\).",
+      "free_symbols": [
+        "g",
+        "Gamma",
+        "gamma",
+        "Nq",
+        "GammaN",
+        "gamman",
+        "c",
+        "r"
+      ],
+      "standard": {
+        "name": "Explicit unnesting into finite counterfactual conjunctions",
+        "cite": "RossettoAntonucci2026"
+      },
+      "used_by": [
+        "def:query-normalizer",
+        "def:joint-representatives",
+        "def:truth-support",
+        "thm:single-conjunction-compiler",
+        "thm:joint-score-compiler"
+      ]
+    },
+    {
+      "id": "ass:observational-compatibility",
+      "kind": "data-compatibility",
+      "condition": "For every \\(v\\in\\mathcal X\\), \\(p(v)=\\mu\\bigl(\\{f\\in\\mathfrak F:E(f,\\varnothing)=v\\}\\bigr)\\).",
+      "free_symbols": [
+        "v",
+        "X",
+        "p",
+        "mu",
+        "f",
+        "F",
+        "E"
+      ],
+      "standard": {
+        "name": "Observational compatibility of the structural causal model",
+        "cite": "RossettoAntonucci2026"
+      },
+      "used_by": [
+        "def:factual-fibre",
+        "def:sharp-endpoints",
+        "thm:joint-score-compiler"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:ordered-scm-class",
+      "name": "Standard order-compatible finite recursive structural causal model class",
+      "construction": "\\(\\mathcal M_{\\mathrm{ord}}=\\{(k,(\\mathcal D_i)_{i=1}^k,\\mathcal U,\\nu,(\\operatorname{pa}_i)_{i=1}^k,(\\varphi_i)_{i=1}^k):k\\geq1,\\ (\\mathcal D_i)_{i=1}^k\\text{ satisfies finite discrete support},\\ (\\operatorname{pa}_i)_{i=1}^k\\text{ satisfies order compatibility},\\ V_i=\\varphi_i(V_{\\operatorname{pa}_i},U),\\ U\\sim\\nu\\}\\).",
+      "free_symbols": [
+        "Mord",
+        "k",
+        "D",
+        "U",
+        "nu",
+        "Pa",
+        "phi",
+        "V"
+      ],
+      "by_member_properties": [
+        "ass:finite-alphabets",
+        "ass:order-compatible-parent-sets"
+      ]
+    },
+    {
+      "id": "def:canonical-carrier-class",
+      "name": "Saturated canonical order-only response-law class",
+      "construction": "\\(\\mathcal M_{\\mathrm{can}}=\\{(k,(\\mathcal D_i)_{i=1}^k,\\mathfrak F,\\mu):k\\geq1,\\ (\\mathcal D_i)_{i=1}^k\\text{ satisfies finite discrete support},\\ \\mathfrak F\\text{ is the complete canonical order-only response carrier},\\ \\mu\\text{ is a probability law on }\\mathfrak F\\}\\).",
+      "free_symbols": [
+        "Mcan",
+        "k",
+        "D",
+        "F",
+        "mu"
+      ],
+      "by_member_properties": [
+        "ass:finite-alphabets",
+        "ass:complete-predecessor-functions",
+        "ass:shared-exogenous-law"
+      ]
+    },
+    {
+      "id": "def:ordered-evaluation",
+      "name": "Ordered factual or intervention evaluation",
+      "construction": "For \\(i=1,\\ldots,k\\), set \\(E(f,I)_i=I(i)\\) when \\(i\\in\\operatorname{dom}(I)\\), and set \\(E(f,I)_i=f_i(E(f,I)_1,\\ldots,E(f,I)_{i-1})\\) otherwise.",
+      "free_symbols": [
+        "E",
+        "f",
+        "I",
+        "k",
+        "D",
+        "V"
+      ],
+      "inputs": [
+        "f",
+        "I"
+      ]
+    },
+    {
+      "id": "def:query-normalizer",
+      "name": "Deterministic predecessor normal form",
+      "construction": "Process every raw atom \\(V_{i,I}=y\\) in source order. Delete each intervention pair on a coordinate \\(t>i\\). If \\(i\\in\\operatorname{dom}(I)\\), replace the atom by the truth constant \\(\\mathbf 1\\{I(i)=y\\}\\); otherwise sort predecessor pairs by coordinate and coalesce repeated identical pairs. Simplify truth constants inside each conjunction, preserve the order of surviving conjunctions, and define \\(\\boldsymbol\\gamma^{\\circ}=\\mathsf N(\\boldsymbol\\gamma)\\) and its distinct retained context set \\(\\mathcal H\\).",
+      "free_symbols": [
+        "Nq",
+        "Gamma",
+        "GammaN",
+        "gamma",
+        "gamman",
+        "V",
+        "I",
+        "k",
+        "r",
+        "H"
+      ],
+      "inputs": [
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:prefix-partition",
+      "name": "Complete-prefix equality partition",
+      "construction": "For every layer \\(i\\in\\{0,\\ldots,k\\}\\), define \\(w\\sim_{\\pi_i}w'\\) if and only if \\(x^w_{\\leq i}=x^{w'}_{\\leq i}\\), and let \\(\\pi_i\\) be the induced partition of \\(\\mathcal H\\).",
+      "free_symbols": [
+        "pi",
+        "xprefix",
+        "H",
+        "k",
+        "E",
+        "f"
+      ],
+      "inputs": [
+        "f",
+        "H"
+      ]
+    },
+    {
+      "id": "def:factual-fibre",
+      "name": "Factual response fibre",
+      "construction": "\\(F_v=\\{f\\in\\mathfrak F:E(f,\\varnothing)=v\\}\\).",
+      "free_symbols": [
+        "Fv",
+        "f",
+        "F",
+        "E",
+        "v"
+      ],
+      "inputs": [
+        "v"
+      ]
+    },
+    {
+      "id": "def:truth-support",
+      "name": "Joint attainable truth support",
+      "construction": "\\(A_v=\\{(\\mathbf 1\\{\\gamma_1^{\\circ}(f)\\},\\ldots,\\mathbf 1\\{\\gamma_r^{\\circ}(f)\\}):f\\in F_v\\}\\subseteq\\{0,1\\}^r\\).",
+      "free_symbols": [
+        "Av",
+        "v",
+        "GammaN",
+        "r",
+        "f",
+        "Fv"
+      ],
+      "inputs": [
+        "v",
+        "GammaN"
+      ]
+    },
+    {
+      "id": "def:single-representatives",
+      "name": "Single-conjunction representative transition",
+      "construction": "After deterministic normalization, at layer \\(i+1\\) and for each block \\(T\\in\\pi_i\\), intervened worlds take their intervention constants and natural worlds share one output. If that output is not pinned, branch once on each distinct intervention constant in \\(T\\) and once on one scanned representative of \\(\\mathcal D_{i+1}\\) outside those constants when such a value exists; reject inconsistent natural pins.",
+      "free_symbols": [
+        "C1",
+        "Nq",
+        "pi",
+        "H",
+        "I",
+        "D",
+        "gamman",
+        "k"
+      ],
+      "inputs": [
+        "v",
+        "gamman"
+      ]
+    },
+    {
+      "id": "def:joint-representatives",
+      "name": "Joint-score representative transition",
+      "construction": "After deterministic normalization, a state is \\(\\left(\\pi_i,a_i\\right)\\) with \\(a_i\\in\\{0,1\\}^r\\). For each block, branch on intervention constants and on constants tested there by still-live normalized conjunctions, plus one fresh representative when available; update every flag by conjunction with its coordinate-\\(i+1\\) tests.",
+      "free_symbols": [
+        "Cr",
+        "Nq",
+        "pi",
+        "r",
+        "H",
+        "I",
+        "D",
+        "GammaN",
+        "k"
+      ],
+      "inputs": [
+        "v",
+        "GammaN",
+        "c"
+      ]
+    },
+    {
+      "id": "def:cell-labels",
+      "name": "Cellwise extremal score labels",
+      "construction": "\\(\\ell_g(v)=\\min_{a\\in A_v}c^\\top a\\) and \\(u_g(v)=\\max_{a\\in A_v}c^\\top a\\).",
+      "free_symbols": [
+        "lg",
+        "ug",
+        "v",
+        "Av",
+        "c"
+      ],
+      "inputs": [
+        "Av",
+        "c"
+      ]
+    },
+    {
+      "id": "def:sharp-endpoints",
+      "name": "Observational cell-sum endpoint functional",
+      "construction": "\\(L_g(p)=\\sum_{v\\in\\mathcal X}p(v)\\ell_g(v)\\) and \\(U_g(p)=\\sum_{v\\in\\mathcal X}p(v)u_g(v)\\).",
+      "free_symbols": [
+        "Lg",
+        "Ug",
+        "p",
+        "v",
+        "X",
+        "lg",
+        "ug"
+      ],
+      "inputs": [
+        "p",
+        "lg",
+        "ug"
+      ]
+    },
+    {
+      "id": "def:sparse-response-completion",
+      "name": "Sparse rows plus defaults",
+      "construction": "For every accepted transition path, store each natural parent-tuple and selected output encountered by coordinate \\(i\\); define \\(\\widehat f_i\\) by these consistent rows and assign one fixed default in \\(\\mathcal D_i\\) to every unlisted parent tuple.",
+      "free_symbols": [
+        "fhat",
+        "C1",
+        "Cr",
+        "f",
+        "D",
+        "k",
+        "H"
+      ],
+      "inputs": [
+        "C1",
+        "Cr"
+      ]
+    },
+    {
+      "id": "def:numeric-history-baseline",
+      "name": "Path-retaining numeric-history baseline",
+      "construction": "At layer \\(i\\), \\(\\mathsf R_{\\mathrm{num}}\\) stores the complete numeric prefixes \\(x^w_{\\leq i}\\) for every \\(w\\in\\mathcal H\\) together with the current conjunction flag. It expands every feasible numeric next column, immediately discards a path only when it violates a factual or query pin, and merges paths only when their complete stored numeric histories and flags are identical.",
+      "free_symbols": [
+        "Rnum",
+        "xprefix",
+        "H",
+        "E",
+        "v",
+        "gamman",
+        "k"
+      ],
+      "inputs": [
+        "v",
+        "gamman",
+        "H"
+      ]
+    },
+    {
+      "id": "def:separation-family",
+      "name": "Three-context pin-resistant separation family",
+      "construction": "For each \\(n\\geq1\\), use binary \\(W^{(n)}\\), factual cell \\((S,T,X_1,\\ldots,X_n,Y)=(0,0,0,\\ldots,0,0)\\), contexts \\(\\mathcal H_n^{\\mathrm{sep}}\\), and conjunction \\(\\gamma_n^{\\mathrm{sep}}\\). This conjunction is already predecessor-normal and satisfies \\(\\mathsf N(\\gamma_n^{\\mathrm{sep}})=\\gamma_n^{\\mathrm{sep}}\\).",
+      "free_symbols": [
+        "n",
+        "Wsep",
+        "Hsep",
+        "gammasep",
+        "v",
+        "Nq"
+      ],
+      "inputs": [
+        "n"
+      ]
+    },
+    {
+      "id": "def:residual-minimality-handle",
+      "name": "Causal residual-distinguishability handle",
+      "construction": "Define two feasible normalized prefixes to be residual-equivalent when every common legal suffix of complete-predecessor response rows and every terminal normalized conjunction give the same acceptance answer; use causal suffix distinguishers to separate residuals or use this equivalence to derive a uniformly coarser canonical state.",
+      "free_symbols": [
+        "rho",
+        "h",
+        "pi",
+        "f",
+        "gamman",
+        "H",
+        "Nq"
+      ],
+      "inputs": [
+        "h",
+        "H"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:query-normalization",
+      "kind": "lemma",
+      "statement": "For every valid explicit unnested input list \\(\\boldsymbol\\gamma\\), the map \\(\\mathsf N\\) is deterministic, runs in \\(O(N_{\\mathrm{in}})\\) time, and produces a predecessor-only normalized list \\(\\boldsymbol\\gamma^{\\circ}\\). For every \\(f\\in\\mathfrak F\\) and every term index \\(j\\), \\(\\mathbf 1\\{\\gamma_j(f)\\}=\\mathbf 1\\{\\gamma_j^{\\circ}(f)\\}\\); hence the raw and normalized rational scores agree pointwise. Later-coordinate deletions use recursiveness, self-intervention simplification uses \\(E(f,I)_i=I(i)\\), and canonical ordering changes no intervention. Thus every subsequent runtime uses exactly the normalized context set \\(\\mathcal H\\) without claiming that arbitrary nested syntax is accepted.",
+      "free_symbols": [
+        "Nq",
+        "Nin",
+        "Gamma",
+        "GammaN",
+        "gamma",
+        "gamman",
+        "f",
+        "F",
+        "g",
+        "E",
+        "I",
+        "H",
+        "r"
+      ],
+      "depends_on": [
+        "ass:complete-predecessor-functions",
+        "ass:explicit-rational-score",
+        "def:ordered-evaluation",
+        "def:query-normalizer"
+      ],
+      "status": "to-prove",
+      "justification": "This lemma makes the predecessor-only compiler interface an explicit value-preserving reduction rather than a silent syntactic assumption.",
+      "gap": "The order-only response-signature literature permits general intervention atoms, while the continuation proof needs a normalized predecessor-only retained dialect; the exact preprocessing contract is not part of the equality-partition result.",
+      "consumer": "Every compiler theorem can measure \\(h\\) on the smaller normalized context set while preserving the input query value."
+    },
+    {
+      "id": "prop:canonical-carrier-equivalence",
+      "kind": "proposition",
+      "statement": "Every \\(\\mathcal M\\in\\mathcal M_{\\mathrm{ord}}\\) has a value-equivalent canonical image in \\(\\mathcal M_{\\mathrm{can}}\\): push \\(\\nu\\) forward by \\(u\\mapsto f^u\\), so \\(\\mu(f)=\\nu(\\{u:f^u=f\\})\\). This preserves every factual and intervention-world evaluation, every explicit unnested score, and the observational law. Conversely, every \\(\\mathcal M_{\\mathrm{can}}\\) is a member of \\(\\mathcal M_{\\mathrm{ord}}\\) by taking \\(\\operatorname{pa}_i=\\{1,\\ldots,i-1\\}\\), \\(\\mathcal U=\\mathfrak F\\) with law \\(\\mu\\), and \\(\\varphi_i(x_{<i},f)=f_i(x_{<i})\\). Therefore, for every supplied \\(p\\) and score \\(g\\), the attainable set of \\(\\theta_g\\) over observationally compatible models is identical in the two classes, and sharp-bound optimization may be carried out over the saturated carrier. This is the canonicalization and equivalence established by Rossetto--Antonucci for causal orders, restated as the compiler interface rather than as a novelty claim.",
+      "free_symbols": [
+        "Mord",
+        "Mcan",
+        "U",
+        "nu",
+        "Pa",
+        "phi",
+        "F",
+        "mu",
+        "f",
+        "fu",
+        "E",
+        "Gamma",
+        "g",
+        "p",
+        "theta",
+        "k"
+      ],
+      "depends_on": [
+        "ass:finite-alphabets",
+        "ass:order-compatible-parent-sets",
+        "ass:complete-predecessor-functions",
+        "ass:shared-exogenous-law",
+        "def:ordered-scm-class",
+        "def:canonical-carrier-class",
+        "def:ordered-evaluation"
+      ],
+      "status": "to-prove",
+      "justification": "The sourced equivalence licenses the compiler's saturated response carrier while keeping the target class equal to standard order-compatible recursive models with parent subsets.",
+      "gap": "Rossetto--Antonucci supply this equivalence; it is an imported interface fact and carries no novelty claim.",
+      "consumer": "The endpoint theorems can optimize over complete-predecessor response rows without redefining an arbitrary recursive structural causal model as saturated."
+    },
+    {
+      "id": "thm:partition-continuation",
+      "kind": "theorem",
+      "statement": "Let \\(\\mathcal H\\) be the context set produced by \\(\\mathsf N\\). Fix \\(i\\in\\{0,\\ldots,k\\}\\). Any two feasible partial evaluations through coordinate \\(i\\) that induce the same partition \\(\\pi_i\\) have exactly the same support of subsequent world-value columns subject to all later factual and normalized-query pins. Every legal representative transition is realizable by selecting one natural output per block, and every accepting transition path extends by sparse-response completion to a complete \\(\\widehat f\\in\\mathfrak F\\) with at most \\(kh\\) stored rows and one default per coordinate.",
+      "free_symbols": [
+        "Nq",
+        "GammaN",
+        "k",
+        "pi",
+        "H",
+        "E",
+        "xprefix",
+        "f",
+        "fhat",
+        "F",
+        "h",
+        "D"
+      ],
+      "depends_on": [
+        "ass:finite-alphabets",
+        "ass:complete-predecessor-functions",
+        "def:ordered-scm-class",
+        "def:ordered-evaluation",
+        "def:query-normalizer",
+        "def:prefix-partition",
+        "def:sparse-response-completion",
+        "lem:query-normalization"
+      ],
+      "status": "to-prove",
+      "justification": "This is the exact continuation invariant that removes numeric alphabet labels from the persistent state after value-preserving normalization.",
+      "gap": "Halpern supplies finite causal certificates and Rossetto--Antonucci quotient completed response signatures; neither proves equality of complete normalized prefixes to be a local right congruence.",
+      "consumer": "A production compiler can reuse one canonical state for every numeric history with the same cross-world normalized-prefix equality type."
+    },
+    {
+      "id": "lem:representative-transition",
+      "kind": "lemma",
+      "statement": "For one normalized conjunction, the single-conjunction representative transition is sound and complete: within any block, all values outside the distinct intervention constants induce the same refinement and future support, so one fresh value suffices. Across all branching blocks the number of representative column choices is at most \\(3^{(h-1)/3}\\). For \\(r\\) normalized conjunctions, the joint-score representative transition is sound and complete after truth flags are included, and the number of representative column choices is at most \\( (r+1)^{h-1}\\).",
+      "free_symbols": [
+        "C1",
+        "Cr",
+        "Nq",
+        "pi",
+        "H",
+        "h",
+        "D",
+        "I",
+        "GammaN",
+        "gamman",
+        "r"
+      ],
+      "depends_on": [
+        "ass:finite-alphabets",
+        "ass:complete-predecessor-functions",
+        "ass:explicit-rational-score",
+        "def:single-representatives",
+        "def:joint-representatives",
+        "lem:query-normalization",
+        "thm:partition-continuation"
+      ],
+      "status": "to-prove",
+      "justification": "The representative bounds convert normalized-state sufficiency into alphabet-independent transition complexity.",
+      "gap": "Published response-signature and finite-model algorithms enumerate alphabet-indexed function values rather than quotienting untested constants within each normalized prefix block.",
+      "consumer": "Implementers obtain a complete branching rule that scans large alphabets only polynomially."
+    },
+    {
+      "id": "thm:single-conjunction-compiler",
+      "kind": "theorem",
+      "statement": "For every factual cell \\(v\\) and raw explicit unnested conjunction \\(\\gamma\\), first compute \\(\\gamma^{\\circ}=\\mathsf N(\\gamma)\\) and its normalized context set \\(\\mathcal H\\), and let \\(h=|\\mathcal H|\\). Set \\(r=1\\), \\(\\gamma_1^{\\circ}=\\gamma^{\\circ}\\), \\(c_1=1\\), and \\(g=g_{\\gamma^{\\circ}}\\), where \\(g_{\\gamma^{\\circ}}(f)=\\mathbf 1\\{\\gamma^{\\circ}(f)\\}\\). Under this coefficient convention, \\(\\ell_g(v)=\\min_{f\\in F_v}g_{\\gamma^{\\circ}}(f)\\), \\(u_g(v)=\\max_{f\\in F_v}g_{\\gamma^{\\circ}}(f)\\), \\(L_g(p)=\\sum_{v\\in\\mathcal X}p(v)\\ell_g(v)\\), and \\(U_g(p)=\\sum_{v\\in\\mathcal X}p(v)u_g(v)\\). The compiler \\(\\mathsf C_1\\) decides whether some \\(f\\in F_v\\) satisfies \\(\\gamma^{\\circ}\\), and returns a sparse witness when one exists, in \\(B_h3^{(h-1)/3}\\operatorname{poly}(N_{\\mathrm{in}})\\) time including normalization. A false self-intervention truth constant produced by \\(\\mathsf N\\) makes the conjunction identically false. Otherwise a retained atom \\(V_{i,I}=y\\) is true for every \\(f\\in F_v\\) if and only if \\( |\\mathcal D_i|=1\\), or \\(I\\) agrees with \\(v\\) and \\(v_i=y\\); hence the conjunction's false bit is decided by a linear scan of normalized constants and retained atoms. By the canonical-carrier equivalence, the endpoints \\(L_g(p)\\) and \\(U_g(p)\\) are sharp over the standard parent-subset class \\(\\mathcal M_{\\mathrm{ord}}\\), and total sparse-input time is \\(sB_h3^{(h-1)/3}\\operatorname{poly}(N_{\\mathrm{in}})\\) after charging dense or sparse input reading. On the same order-only class and conjunction target, these endpoints equal those of Rossetto--Antonucci, while the sparse-input construction strictly replaces their completed-signature alphabet-product quotient by an \\(h\\)-parameter transition system.",
+      "free_symbols": [
+        "v",
+        "gamma",
+        "Nq",
+        "gamman",
+        "GammaN",
+        "ggamma",
+        "r",
+        "c",
+        "g",
+        "H",
+        "h",
+        "C1",
+        "f",
+        "Fv",
+        "fhat",
+        "Bh",
+        "Nin",
+        "V",
+        "I",
+        "D",
+        "X",
+        "Av",
+        "lg",
+        "ug",
+        "p",
+        "s",
+        "Lg",
+        "Ug",
+        "Mord",
+        "Mcan",
+        "theta"
+      ],
+      "depends_on": [
+        "ass:explicit-rational-score",
+        "ass:observational-compatibility",
+        "def:query-normalizer",
+        "def:factual-fibre",
+        "def:truth-support",
+        "def:single-representatives",
+        "def:cell-labels",
+        "def:sharp-endpoints",
+        "lem:query-normalization",
+        "lem:representative-transition",
+        "def:ordered-scm-class",
+        "def:canonical-carrier-class",
+        "prop:canonical-carrier-equivalence"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem gives an exact sharp-bound routine whose exponential factor depends on the normalized world count rather than alphabet cardinality.",
+      "gap": "Rossetto--Antonucci's exact lifted program retains an alphabet-product optimization space; this theorem is a strict computational tightening on the same order-only model and conjunction target.",
+      "consumer": "Sharp probabilities of necessity, sufficiency, and other explicit multi-world conjunctions become tractable when the normalized number of contexts is small even with many-valued variables."
+    },
+    {
+      "id": "thm:joint-score-compiler",
+      "kind": "theorem",
+      "statement": "For every factual cell \\(v\\), first compute \\(\\boldsymbol\\gamma^{\\circ}=\\mathsf N(\\boldsymbol\\gamma)\\), its normalized context set \\(\\mathcal H\\), and \\(h=|\\mathcal H|\\). The compiler \\(\\mathsf C_r\\) then computes exactly the joint truth support \\(A_v\\), one sparse witness for every reachable terminal truth vector, and the labels \\(\\ell_g(v),u_g(v)\\) in \\(B_h2^r(r+1)^{h-1}\\operatorname{poly}(N_{\\mathrm{in}})\\) time including normalization. By the canonical-carrier equivalence, over the standard parent-subset class \\(\\mathcal M_{\\mathrm{ord}}\\), \\(\\Theta_g(p)=[L_g(p),U_g(p)]\\). Each endpoint is attained by a shared-exogenous model with one atom of mass \\(p(v)\\) for each \\(v\\in\\operatorname{supp}(p)\\), and every intermediate value is attained by mixing the endpoint models. No termwise optimization replaces \\(A_v\\).",
+      "free_symbols": [
+        "v",
+        "Nq",
+        "Gamma",
+        "GammaN",
+        "H",
+        "Cr",
+        "r",
+        "c",
+        "Av",
+        "fhat",
+        "lg",
+        "ug",
+        "Bh",
+        "h",
+        "Nin",
+        "g",
+        "mu",
+        "f",
+        "theta",
+        "Thetag",
+        "Mord",
+        "p",
+        "Lg",
+        "Ug",
+        "s",
+        "Mcan"
+      ],
+      "depends_on": [
+        "ass:shared-exogenous-law",
+        "ass:explicit-rational-score",
+        "ass:observational-compatibility",
+        "def:ordered-scm-class",
+        "def:query-normalizer",
+        "def:truth-support",
+        "def:joint-representatives",
+        "def:cell-labels",
+        "def:sharp-endpoints",
+        "def:sparse-response-completion",
+        "lem:query-normalization",
+        "thm:partition-continuation",
+        "lem:representative-transition",
+        "def:canonical-carrier-class",
+        "prop:canonical-carrier-equivalence"
+      ],
+      "status": "to-prove",
+      "justification": "Joint flags preserve cross-term dependence while sparse cellwise witnesses turn exact normalized feasibility into sharp partial identification.",
+      "gap": "Rossetto--Antonucci establish the same sharp order-only identified set by completed response signatures, while Zhang--Tian--Bareinboim use broader canonical polynomial programs; neither gives this alphabet-independent joint compiler.",
+      "consumer": "Explicitly unnested mediation scores and other rational combinations can be bounded without the invalid practice of optimizing their conjunctions separately."
+    },
+    {
+      "id": "prop:pin-resistant-separation",
+      "kind": "proposition",
+      "statement": "For the explicitly defined baseline \\(\\mathsf R_{\\mathrm{num}}\\), the retention invariant is exact: after each layer it retains every feasible complete numeric history that obeys the pins already encountered, and it never merges two distinct such histories. In the three-context separation family, after the factual and normalized-query pins through \\(X_n\\) have been enforced, for every \\(a=(a_1,\\ldots,a_n)\\in\\{0,1\\}^n\\) there is a feasible retained history with \\(X_{i,B}=a_i\\), because the factual, \\(A\\)-world, and \\(B\\)-world predecessor tuples are distinct and unrestricted response rows can assign their outputs independently; each history extends through the remaining pin \\(Y_B=1\\). Therefore \\(N_{\\mathrm{num}}(n)=2^n\\) immediately before \\(Y\\). From the layer after \\(T\\) through that pre-\\(Y\\) layer, all these histories induce the same three-singleton partition and \\(\\mathsf C_1\\) retains one accepting partition state at each layer. This is a separation only from \\(\\mathsf R_{\\mathrm{num}}\\), not from all reduced decision diagrams or compilation languages.",
+      "free_symbols": [
+        "n",
+        "Wsep",
+        "Hsep",
+        "gammasep",
+        "Rnum",
+        "Nnum",
+        "C1",
+        "pi",
+        "f",
+        "F"
+      ],
+      "depends_on": [
+        "ass:complete-predecessor-functions",
+        "def:numeric-history-baseline",
+        "def:separation-family",
+        "thm:partition-continuation",
+        "thm:single-conjunction-compiler"
+      ],
+      "status": "to-prove",
+      "justification": "The self-contained family shows that the quotient removes an exponential collection of feasible numeric histories even under eager pin propagation.",
+      "gap": "This proposition certifies a representation separation against the displayed path-retaining baseline and makes no claim about a published implementation or a lower bound for reduced multi-valued decision diagrams.",
+      "consumer": "Compiler designers obtain a concrete regression family for testing whether an implementation has realized partition-state compression."
+    },
+    {
+      "id": "oeq:residual-minimality",
+      "kind": "openendedquestion",
+      "statement": "Using the causal residual-distinguishability handle, characterize \\(\\rho(h)\\): are the \\(B_h\\) equality partitions pairwise distinguishable by legal causal suffixes and terminal normalized conjunctions, or is there a uniformly coarser exact continuation quotient? In the latter case, derive the resulting improved single-conjunction runtime; in the former case, certify the \\(B_h\\) state lower bound without claiming an \\(h\\log h\\) time lower bound.",
+      "free_symbols": [
+        "rho",
+        "h",
+        "Bh",
+        "pi",
+        "f",
+        "gamman",
+        "Nq",
+        "H",
+        "C1",
+        "Nin"
+      ],
+      "depends_on": [
+        "def:residual-minimality-handle",
+        "thm:partition-continuation",
+        "thm:single-conjunction-compiler"
+      ],
+      "status": "to-prove",
+      "justification": "Sufficiency leaves open the mathematically sharper question of the coarsest exact causal continuation state.",
+      "gap": "Darwiche--Marquis provide general succinctness methodology and Rossetto--Antonucci request finer quotients, but no causal Myhill--Nerode frontier for these normalized \\(h\\)-world residuals is known from the inspected literature.",
+      "consumer": "A minimality theorem would certify the state representation, while a coarsening would immediately improve every compiled sharp-bound query in the class."
+    }
+  ],
+  "sampling_model": {
+    "design": "Identification is conditional on an exactly supplied observational law \\(p\\); an optional statistical layer consists of independent draws from \\(p\\) after the query, order, and alphabets are fixed.",
+    "units": "Each observational unit reveals one factual vector \\(V\\in\\mathcal X\\); the shared exogenous response type is latent.",
+    "treatment": "Interventions occur only inside the counterfactual query and are not randomized observations in the maintained identification problem.",
+    "overlap": "No overlap condition is imposed because the target is partially identified from the full observational law; known zero-mass cells receive no exogenous atom.",
+    "nuisance_estimation": "No nuisance function is estimated in the theorem-level kernel. If \\(p\\) is replaced by empirical frequencies, the compiled cell labels are fixed and the endpoints are sample means, but this standard corollary is outside the novelty claim."
+  },
+  "estimand_functional": "\\(\\Theta_g(p)=[L_g(p),U_g(p)]=[\\sum_{v\\in\\mathcal X}p(v)\\ell_g(v),\\sum_{v\\in\\mathcal X}p(v)u_g(v)]\\)",
+  "target_estimand": "\\(\\theta_g(\\mathcal M)=\\mathbb E_{\\nu}[g(f^U)]\\), equivalently \\(\\mathbb E_{\\mu}[g(f)]\\) on the canonical carrier",
+  "bibliography": [
+    {
+      "key": "RossettoAntonucci2026",
+      "citation": "Eric Rossetto and Alessandro Antonucci. Partial Identification under Causal Orders by Linear Programming. arXiv:2608.24427v1, 25 Aug 2026."
+    },
+    {
+      "key": "Halpern2000",
+      "citation": "Joseph Y. Halpern. Axiomatizing Causal Reasoning. Journal of Artificial Intelligence Research, 12:317--337, 2000. DOI: \\(10.1613/\\mathrm{jair}.648\\)."
+    },
+    {
+      "key": "DarwicheMarquis2002",
+      "citation": "Adnan Darwiche and Pierre Marquis. A Knowledge Compilation Map. Journal of Artificial Intelligence Research, 17:229--264, 2002. DOI: \\(10.1613/\\mathrm{jair}.989\\)."
+    },
+    {
+      "key": "ZhangTianBareinboim2022",
+      "citation": "Junzhe Zhang, Jin Tian, and Elias Bareinboim. Partial Counterfactual Identification from Observational and Experimental Data. Proceedings of the International Conference on Machine Learning, 2022. arXiv:2110.05690."
+    },
+    {
+      "key": "IbelingIcard2020",
+      "citation": "Duligur Ibeling and Thomas Icard. Probabilistic Reasoning across the Causal Hierarchy. Proceedings of the AAAI Conference on Artificial Intelligence, 2020. arXiv:2001.02889."
+    },
+    {
+      "key": "HanChenDarwiche2023",
+      "citation": "Yunqiu Han, Yizuo Chen, and Adnan Darwiche. On the Complexity of Counterfactual Reasoning. Proceedings of the International Joint Conference on Artificial Intelligence, 2023. arXiv:2211.13447."
+    },
+    {
+      "key": "ZaffalonEtAl2024",
+      "citation": "Marco Zaffalon, Alessandro Antonucci, Rafael Cabanas, David Huber, and Dario Azzimonti. Efficient Computation of Counterfactual Bounds. International Journal of Approximate Reasoning, 164:109111, 2024. DOI: \\(10.1016/\\mathrm{j.ijar}.2023.109111\\)."
+    },
+    {
+      "key": "GanianGrundelWietheger2025",
+      "citation": "Robert Ganian, Marlene Gr\\\"{u}ndel, and Simon Wietheger. Gateways to Tractability for Satisfiability in Pearl's Causal Hierarchy. arXiv:2511.08091v1, 2025."
+    },
+    {
+      "key": "HuberEtAl2023",
+      "citation": "David Huber, Yizuo Chen, Alessandro Antonucci, Adnan Darwiche, and Marco Zaffalon. Tractable Bounding of Counterfactual Queries by Knowledge Compilation. TPM@UAI 2023. arXiv:2310.03352, 2023."
+    },
+    {
+      "key": "FangSantos2019",
+      "citation": "Zheng Fang and Andres Santos. Inference on Directionally Differentiable Functions. Review of Economic Studies, 86:377--412, 2019. DOI: \\(10.1093/\\mathrm{restud}/\\mathrm{rdy049}\\)."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "RossettoAntonucci2026",
+      "comparator_claim": "The lifted linear program gives the order-only optimum, and an attaining structural causal model exists.",
+      "matched_by": "Theorem 2",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "GanianGrundelWietheger2025",
+      "comparator_claim": "The \\(\\mathrm{SAT}^{\\mathrm{lin}}_{\\mathrm{counterfact}}\\) problem uses inequalities over probability terms on one common domain, and Theorem~11 is fixed-parameter tractable in \\(d+n\\).",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Halpern2000",
+      "comparator_claim": "Input-signature satisfiability for recursive finite causal models is \\(\\mathsf{NP}\\)-complete.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DarwicheMarquis2002",
+      "comparator_claim": "Compilation languages are ranked by succinctness and by supported polynomial-time queries and transformations.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhangTianBareinboim2022",
+      "comparator_claim": "Finite canonical structural causal models reduce arbitrary discrete counterfactual bounds to sharp polynomial programs.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HuberEtAl2023",
+      "comparator_claim": "Fixed structural equations are compiled into arithmetic circuits to accelerate approximate causal-EM inner-bound computation.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "For standard finite order-compatible recursive structural causal models with arbitrary predecessor parent subsets and shared exogenous variation, the sourced causal-order canonicalization first permits sharp-bound optimization over a saturated all-predecessor response carrier. A deterministic value-preserving normalizer then derives predecessor-only retained contexts from explicit unnested intervention atoms, and the equality partition of complete factual and normalized intervention-world prefixes is an exact continuation state. Representative transitions yield exact conjunction and joint-score compilers whose exponential factors depend on the normalized number of worlds and score terms but not on alphabet cardinalities. Sparse traceback and one exogenous atom per positive observational cell attain the sharp cell-sum endpoints. A self-contained three-context binary family separates this state from an explicitly defined path-retaining numeric-history baseline, while Bell-state minimality remains open.",
+  "project_justification": {
+    "gap": "The closest exact order-only method proves canonical equivalence between parent-subset recursive models and complete all-predecessor response carriers, then enumerates completed response signatures before quotienting them by observational and query evaluations, leaving an alphabet-product optimization space. It does not establish either a value-preserving predecessor normal form for a prefix compiler or complete-prefix equality as an exact local continuation state.",
+    "niche": "Explicit unnested queries with few normalized factual or intervention contexts but many endogenous coordinates or large alphabets admit a smaller semantic state on the equivalent canonical carrier: later unrestricted all-predecessor response rows see only which worlds currently share a complete input tuple.",
+    "fill": "The project keeps the standard parent-subset SCM class as its target, invokes the sourced canonical-carrier equivalence, proves the deterministic normalization lemma and equality-type continuation theorem on that carrier, derives complete representative transitions and explicit \\(h\\)- and \\(r\\)-dependent bounds, reconstructs sparse response systems, certifies sharp endpoints for the standard class, and gives a self-contained pin-resistant separation against the defined numeric-history baseline without claiming universal decision-diagram optimality."
+  },
+  "related_work": "Rossetto and Antonucci, in \\emph{Partial Identification under Causal Orders by Linear Programming}, establish in Theorems~1--4 and their lifted-program and constructive-sharpness results the exact order-only identified set and the equivalence that permits optimization over complete all-predecessor response signatures even when a standard recursive model has parent subsets. The present compiler takes that sourced equivalence as its interface and strictly tightens the query-specific construction for small \\(h\\); it does not redefine arbitrary recursive structural causal models as saturated. Halpern supplies finite recursive causal certificates and broad satisfiability hardness, but not a world-count continuation parameter; predecessor-only retained contexts are derived by the normalization lemma rather than imposed as Halpern syntax or as a maintained assumption. Ganian, Gr\\\"{u}ndel, and Wietheger, in the 2025 preprint \\emph{Gateways to Tractability for Satisfiability in Pearl's Causal Hierarchy}, study \\(\\mathrm{SAT}^{\\mathrm{lin}}_{\\mathrm{counterfact}}\\), whose inputs are inequalities over probability terms on one common domain, and prove in Theorem~11 fixed-parameter tractability in their \\(d+n\\) parameter; no reduction, embedding, separation, or tightening is claimed here. Huber and coauthors, in \\emph{Tractable Bounding of Counterfactual Queries by Knowledge Compilation}, compile fixed structural equations into arithmetic circuits for approximate causal-EM inner bounds; the present problem instead exactly quantifies, through the causal-order canonical carrier, over the standard parent-subset models compatible with \\(p\\) alone. Darwiche and Marquis supply the distinction between succinctness and supported online operations, which motivates the residual-minimality question but is not claimed as a causal theorem. Zhang, Tian, and Bareinboim cover arbitrary graphs and heterogeneous data through canonical polynomial programs, a broader setting excluded here. Han, Chen, and Darwiche control multi-world width when mechanisms are fully specified, whereas the current state quantifies over unknown mechanisms. Zaffalon and coauthors demonstrate the hardness of partially specified graphical models even on polytrees, explaining why prescribed sparse graphs are not absorbed into the order-only result.",
+  "technical_internal_limitation": "The equality partition is insufficient when a sparse parent graph is prescribed as part of the model class. In the chain \\(A\\to B\\to Y\\) without \\(A\\to Y\\), two two-world histories can have the same partition of complete \\((A,B)\\) prefixes but different equality of the actual parent \\(B\\) supplied to \\(Y\\), hence different feasible future outcomes. The standard order-compatible target class allows parent subsets, but its sharp-bound optimization uses the Rossetto--Antonucci saturated canonical carrier; that equivalence does not license the same quotient after conditioning on a prescribed sparse graph. Dense input reading, explicit unnesting, and rational bit complexity are charged; prescribed sparse graphs, independence restrictions, cycles, succinct nested syntax, experimental-table constraints, and claims about all reduced multi-valued decision diagrams are excluded.",
+  "honest_scope": "The Rossetto--Antonucci canonical equivalence from standard order-compatible parent-subset models to the saturated all-predecessor response carrier is credited and restated only as an interface proposition. The normalization lemma, continuation theorem, representative bounds, joint truth-state compiler, sparse reconstruction, cellwise attainment, false-bit criterion, and self-contained three-context separation are proposed as results to prove. Sanity Corollary~1 records the factual reduction and credits its \\(r=1\\) endpoint equality to Rossetto--Antonucci without a novelty claim. The standard finite-model certificate, broad hardness, completed-response sharpness, and sample-mean inference are credited rather than claimed. The coarsest residual state and any matching Bell-number lower bound remain open, as do prescribed-sparse-graph, factorized-exogenous, multi-regime, and direct nested-syntax extensions.",
+  "seeds": [
+    "seed:prefix-partition-compiler",
+    "seed:bell-minimality",
+    "seed:sparse-graph-boundary-state",
+    "seed:multi-regime-partition",
+    "seed:direct-nested-syntax",
+    "seed:factor-aware-partition",
+    "seed:endpoint-inference",
+    "seed:order-free-compilation"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:prefix-partition-compiler",
+      "rank": 1,
+      "title": "Exact equality-partition continuation for order-only finite structural causal models",
+      "anchor_bibkey": "RossettoAntonucci2026",
+      "anchor_read": "The anchor was opened at its Introduction, Theorems~1--4, the lifted linear program theorem, the canonicalization and constructive sharpness arguments, and its Conclusion. The proof licenses the complete all-predecessor response carrier for the standard order-compatible class, then enumerates completed response signatures before quotienting by observational and query evaluations.",
+      "opportunity": "After importing the anchor's canonical-carrier equivalence, move the quotient to partial multi-world evaluation: prove that equality of complete prefixes is a right congruence for every later canonical response row, then compile sharp cell labels without enumerating response signatures.",
+      "first_changed_proof_step": "Replace the anchor's completed-signature equivalence classes by an induction on coordinates in which one common natural output is chosen independently for each current equality block.",
+      "destination_search": "Searches for finite causal models combined with equality patterns, prefix continuation, Bell-number states, finite-domain uninterpreted functions, coherent uninterpreted programs, and counterfactual knowledge compilation found general equality abstractions but no causal \\(h\\)-context theorem with alphabet-independent exponential dependence.",
+      "motif": "M20",
+      "target_tier": "field",
+      "score": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 24
+      },
+      "red_team": "Immediate from Rossetto--Antonucci because their lifted classes already identify observationally and query-equivalent response signatures.",
+      "rebuttal": "Their classes are defined after full response evaluation and retain an alphabet-product bound; they do not prove that a local prefix equality type preserves all continuation supports or yield the stated \\(h\\)-parameter runtimes.",
+      "anti_pattern_check": "The result does not relabel the published linear program: its focal object is an exact streaming continuation state with a constructive transition system and an explicit representation separation.",
+      "disposition": "selected"
+    },
+    {
+      "id": "seed:bell-minimality",
+      "rank": 2,
+      "title": "A causal Myhill--Nerode frontier for world-partition states",
+      "anchor_bibkey": "DarwicheMarquis2002",
+      "anchor_read": "The anchor was opened at its Introduction, Definition~3.1 and the succinctness comparisons, Sections~4--5 on supported queries and transformations, and its Conclusion. Its proof discipline separates representation size from online operations by polynomial translations and distinguishability arguments.",
+      "anchor_quote": "There are three key aspects of any knowledge compilation approach: the succinctness of the target language; the class of queries; and the class of transformations.",
+      "opportunity": "Determine whether all \\(\\operatorname{Bell}(h)\\) partitions are pairwise distinguishable residuals for order-only counterfactual continuation, or construct a uniformly smaller exact quotient.",
+      "first_changed_proof_step": "Replace propositional-language translations by causal suffix distinguishers that must share one ordered structural system and must distinguish two prefix partitions through later response rows and literals.",
+      "destination_search": "The target--method search combined causal Myhill--Nerode, residual counterfactual language, Bell lower bounds, ordered decision diagrams, and equality types; no pairwise causal residual theorem was located.",
+      "motif": "M6",
+      "target_tier": "flagship",
+      "score": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 23
+      },
+      "red_team": "Immediate from ordinary automaton minimization because partitions are the obvious states of equality logic.",
+      "rebuttal": "State sufficiency does not imply minimality; causal suffixes obey a shared ordered response system, so ordinary arbitrary suffix distinguishers do not transfer.",
+      "anti_pattern_check": "The seed asks for both directions of an exact residual characterization rather than presenting the current upper bound as optimal.",
+      "disposition": "survived-literature-scan"
+    },
+    {
+      "id": "seed:multi-regime-partition",
+      "rank": 4,
+      "title": "Joint continuation compilation for observational and experimental tables",
+      "anchor_bibkey": "ZhangTianBareinboim2022",
+      "anchor_read": "The anchor was opened at its Introduction, Theorem~2.4 on finite canonical structural causal models, the polynomial-program construction in Section~3, its attainment argument, and its Conclusion. The construction preserves all supplied regimes by canonical latent response types.",
+      "anchor_quote": "Solving such polynomial programs is in general computationally expensive.",
+      "opportunity": "Find an equality-pattern state that preserves cross-regime latent coupling and gives exact sharp bounds without enumerating the complete canonical response domain.",
+      "first_changed_proof_step": "The one-table proof's private atom for each factual cell fails first: a single response row contributes simultaneously to several regime cells, so the state must retain a coupling signature across table prefixes.",
+      "destination_search": "Searches pairing multi-source counterfactual bounds with quotient automata, equality types, response-row coupling, and symbolic circuits found canonical polynomial programs and approximate causal EM, but no exact alphabet-independent continuation compiler.",
+      "motif": "M20",
+      "target_tier": "flagship",
+      "score": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 21
+      },
+      "red_team": "Immediate by adding one truth flag for every supplied table cell to the single-table compiler.",
+      "rebuttal": "Truth flags record evaluations but not the shared latent mass constraints tying regimes; the cellwise attainment construction ceases to be valid at exactly that step.",
+      "anti_pattern_check": "The seed is not merely a larger linear program; the open object is a common-SCM continuation state and a constructive coupling theorem.",
+      "disposition": "survived-literature-scan"
+    },
+    {
+      "id": "seed:direct-nested-syntax",
+      "rank": 5,
+      "title": "Syntax-directed compilation of nested counterfactual formulas",
+      "anchor_bibkey": "IbelingIcard2020",
+      "anchor_read": "The anchor was opened at its Introduction, Theorem~1 on finitary completeness, the small-model normal-form construction, Theorem~2 on \\(\\mathsf{PSPACE}\\), and its Conclusion and Future Work. The normal form enumerates complete intervention-indexed valuations.",
+      "anchor_quote": "Satisfiability and validity for \\(\\mathcal L_1\\), \\(\\mathcal L_2\\), and \\(\\mathcal L_3\\) can be decided in polynomial space.",
+      "opportunity": "Compile bounded-live-world nested Boolean formulas directly, avoiding the explicit disjunctive unnesting used by order-only response-signature bounds.",
+      "first_changed_proof_step": "Replace full intervention-indexed valuation atoms in the logical normal form by a syntax-directed environment that carries live bindings together with the prefix equality partition.",
+      "destination_search": "Searches for nested counterfactual automata, bounded live worlds, direct counterfactual circuits, and equality-partition semantics found logical \\(\\mathsf{PSPACE}\\) bounds and graphical parallel-world merging but no parameterized sharp-bound compiler.",
+      "motif": "M20",
+      "target_tier": "flagship",
+      "score": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 21
+      },
+      "red_team": "Immediate from recursive syntactic unnesting because every nested formula is a finite Boolean combination of unnested worlds.",
+      "rebuttal": "That transformation may materialize exponentially many conjunctions and does not provide a continuation congruence for live substitution bindings.",
+      "anti_pattern_check": "The seed's focal object is a direct syntax automaton, not the already published unnesting identity.",
+      "disposition": "credible-not-finalist"
+    },
+    {
+      "id": "seed:sparse-graph-boundary-state",
+      "rank": 3,
+      "title": "Separator-augmented continuation states for sparse acyclic graphs",
+      "anchor_bibkey": "HanChenDarwiche2023",
+      "anchor_read": "The anchor was opened at its Introduction, Theorem~1 and Corollaries~1--2 on twin-network width, Theorem~2 on separator duplication, the multi-world discussion, and its Conclusion. Its construction transports a base elimination structure to parallel worlds when mechanisms are fixed.",
+      "anchor_quote": "The (causal) treewidth of a twin network is at most twice the (causal) treewidth of its base network plus one.",
+      "opportunity": "Characterize the finite boundary information that must augment equality partitions when natural outputs depend only on prescribed sparse parent projections, and seek \\(f(h,w)\\operatorname{poly}(N)\\) sharp-bound evaluation.",
+      "first_changed_proof_step": "The order-only transition proof fails because distinct complete prefixes can induce the same sparse parent tuple; the first replacement is a separator-indexed equivalence on the parent projections exposed at the current bag.",
+      "destination_search": "The target--method search joined response-function uncertainty with multi-world treewidth, causal treewidth, credal polytrees, and separator states. Han--Chen--Darwiche cover fixed mechanisms, while Zaffalon et al. prove hardness for partially specified polytrees; no necessary-and-sufficient boundary state was located.",
+      "motif": "M6+M20",
+      "target_tier": "flagship",
+      "score": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "red_team": "Immediate by running ordinary junction-tree inference on the \\(h\\)-world network.",
+      "rebuttal": "Junction-tree inference presupposes fixed factors; sharp partial identification quantifies over unknown response functions and must preserve which sparse parent calls are forced equal across worlds.",
+      "anti_pattern_check": "The seed explicitly confronts the prescribed-sparse-graph counterexample and the polytree hardness boundary.",
+      "disposition": "survived-literature-scan"
+    },
+    {
+      "id": "seed:factor-aware-partition",
+      "rank": 7,
+      "title": "Orbit continuation under districtwise exogenous factorization",
+      "anchor_bibkey": "ZhangTianBareinboim2022",
+      "anchor_read": "The anchor's Introduction, Theorem~2.4, canonical c-component construction, polynomial constraints, proof appendix, and Conclusion were opened. Its first departure from the shared-exogenous linear program is the product factorization across latent districts.",
+      "anchor_quote": "Solving such polynomial programs is in general computationally expensive.",
+      "opportunity": "Construct a factor-aware orbit state whose size is controlled by worlds and district width rather than by endogenous alphabet cardinalities.",
+      "first_changed_proof_step": "Replace cellwise arbitrary mixing by a tensor-compatible continuation invariant because district independence introduces multiplicative constraints across response rows.",
+      "destination_search": "Searches for factorized response-type quotients, district orbits, symmetric polynomial programs, and credal causal compilation found canonical polynomial programs and credal mappings but no alphabet-independent exact orbit quotient.",
+      "motif": "M20",
+      "target_tier": "flagship",
+      "score": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "red_team": "Immediate by applying the prefix compiler independently inside each latent district.",
+      "rebuttal": "Independent local feasibility does not preserve the polynomial product constraints that determine a common observational law and sharp counterfactual endpoint.",
+      "anti_pattern_check": "The proposal would need a new tensor or orbit theorem, so it is not padded as an easy extension of the shared-exogenous case.",
+      "disposition": "credible-not-finalist"
+    },
+    {
+      "id": "seed:endpoint-inference",
+      "rank": 8,
+      "title": "Uniform inference for compiled order-only sharp endpoints",
+      "anchor_bibkey": "RossettoAntonucci2026",
+      "anchor_read": "The anchor's Introduction, exact-bound theorem, lifted linear program, empirical examples, and Conclusion were opened. It supplies identification and attainment but no uniform endpoint inference theorem.",
+      "opportunity": "Use compiled cell labels to characterize regular and degenerate laws and construct finite-sample or uniformly valid confidence regions for sharp endpoint pairs without enumerating response signatures.",
+      "first_changed_proof_step": "After compiling the fixed cell labels, replace ordinary nonregular linear-program inference by a multinomial mean problem; the unresolved step is scalable exact projection when unobserved cells retain positive candidate mass.",
+      "destination_search": "Searches for inference on counterfactual-bound linear programs, directionally differentiable endpoints, and exact multinomial projection found general directional-delta and intersection-bound methods but no compiler-aware finite-sample projection with the stated complexity.",
+      "motif": "M20+M8",
+      "target_tier": "field",
+      "score": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 16
+      },
+      "red_team": "Immediate from the sample-mean central limit theorem because compiled lower and upper cell labels are fixed.",
+      "rebuttal": "Pointwise asymptotic normality is immediate and is not the seed; scalable uniform or exact projection over candidate multinomial laws remains the nontrivial object.",
+      "anti_pattern_check": "The standard sample-mean corollary is explicitly excluded from the novelty claim.",
+      "disposition": "credible-not-finalist"
+    },
+    {
+      "id": "seed:order-free-compilation",
+      "rank": 9,
+      "title": "Avoiding enumeration of linear extensions of a query-induced partial order",
+      "anchor_bibkey": "RossettoAntonucci2026",
+      "anchor_read": "The anchor was opened at Theorem~4 on invariance across compatible total orders and its proof, in addition to the Introduction and Conclusion.",
+      "opportunity": "Compile directly on a partial order without enumerating its linear extensions.",
+      "first_changed_proof_step": "Attempt to replace a chosen total order by an antichain transition.",
+      "destination_search": "The anchor's order-invariance theorem already makes any single compatible total order sufficient for the same bound.",
+      "motif": "none",
+      "target_tier": "subfield",
+      "score": {
+        "direct_evidence": 5,
+        "mathematical_depth": 1,
+        "novelty": 0,
+        "feasibility": 5,
+        "consumer_value": 2,
+        "total": 13
+      },
+      "red_team": "Immediate from Rossetto--Antonucci's order-invariance theorem because one arbitrary linear extension already yields the sharp value.",
+      "rebuttal": "The objection holds for the proposed value-computation target; a partial-order implementation alone would be engineering rather than a new theorem.",
+      "anti_pattern_check": "Rejected as already settled rather than padded into the candidate pool.",
+      "disposition": "dropped-novelty-collapsed"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "seed:prefix-partition-compiler",
+      "threads": [
+        {
+          "bibkey": "RossettoAntonucci2026",
+          "settled": "Equivalence of standard order-compatible parent-subset models with the complete all-predecessor response carrier for sharp-bound optimization, exact order-only response-signature linear programs, lifted evaluation classes, order and marginalization invariance, nested-query unnesting, and constructive sharpness.",
+          "boundary": "Its quotient is formed after complete evaluation and its displayed size retains the product of endogenous alphabet sizes."
+        },
+        {
+          "bibkey": "Halpern2000",
+          "settled": "Finite recursive causal satisfiability has finite certificates and input-signature satisfiability is \\(\\mathsf{NP}\\)-complete.",
+          "boundary": "The result does not parameterize by the number of simultaneous factual and intervention worlds and does not give a continuation quotient."
+        },
+        {
+          "bibkey": "DarwicheMarquis2002",
+          "settled": "Compilation languages are compared by succinctness and by the online queries and transformations they support.",
+          "boundary": "The map supplies comparison discipline, not the causal right-congruence or the representative transition counts."
+        },
+        {
+          "bibkey": "HuberEtAl2023",
+          "settled": "Fixed structural equations are compiled into arithmetic circuits to accelerate approximate causal-EM inner-bound computation.",
+          "boundary": "The compiled mechanisms are fixed and the bounds are approximate inner bounds, whereas the present kernel exactly quantifies over unrestricted complete-predecessor response functions compatible with \\(p\\) alone."
+        }
+      ],
+      "method_adapted": "From Darwiche--Marquis, the proposal fixes the supported operation before asserting succinctness; from Halpern, it adapts finite partial-function extension; from Rossetto--Antonucci, it retains cellwise attainment while replacing completed-signature enumeration by a prefix induction.",
+      "writing_exemplar_used": "RossettoAntonucci2026",
+      "closest_paper_check": "No inspected source states the conjunction of an exact \\(h\\)-world prefix equality continuation theorem, complete representative transitions, alphabet-independent exponential dependence, joint truth-vector preservation, and sparse sharpness witnesses.",
+      "disposition": "kept"
+    },
+    {
+      "candidate": "seed:bell-minimality",
+      "threads": [
+        {
+          "bibkey": "DarwicheMarquis2002",
+          "settled": "Succinctness comparisons require translations or separations relative to supported operations.",
+          "boundary": "It does not identify residual states for causal multi-world continuation."
+        },
+        {
+          "bibkey": "Halpern2000",
+          "settled": "Small explicit recursive causal models encode hard satisfiability witnesses.",
+          "boundary": "The reductions do not distinguish every pair of equality partitions."
+        },
+        {
+          "bibkey": "RossettoAntonucci2026",
+          "settled": "Finer quotient-space reductions are explicitly left open.",
+          "boundary": "The paper gives neither a Bell lower bound nor a smaller complete state."
+        }
+      ],
+      "method_adapted": "A causal Myhill--Nerode relation would adapt succinctness separation to suffixes consisting of legal ordered response rows and terminal literals.",
+      "writing_exemplar_used": "DarwicheMarquis2002",
+      "closest_paper_check": "The exact target remains unoccupied, but no general family of pairwise causal suffix distinguishers is presently available.",
+      "disposition": "kept-as-open-question"
+    },
+    {
+      "candidate": "seed:sparse-graph-boundary-state",
+      "threads": [
+        {
+          "bibkey": "HanChenDarwiche2023",
+          "settled": "For fully specified models, twin-network and multi-world inference widths are controlled by base treewidth and causal treewidth.",
+          "boundary": "Mechanisms are fixed, whereas the proposed sharp-bound state must quantify over all compatible response functions."
+        },
+        {
+          "bibkey": "ZaffalonEtAl2024",
+          "settled": "Exact post-interventional inference in partially specified polytree models is \\(\\mathsf{NP}\\)-hard, and credal-network exactness is limited to a subclass.",
+          "boundary": "The hardness result does not rule out fixed-parameter tractability in world count and separator width."
+        },
+        {
+          "bibkey": "ZhangTianBareinboim2022",
+          "settled": "Canonical finite structural causal models give sharp polynomial programs on arbitrary discrete graphs and data regimes.",
+          "boundary": "The canonical response domain retains exponential alphabet and graph dependence and supplies no separator continuation quotient."
+        },
+        {
+          "bibkey": "RossettoAntonucci2026",
+          "settled": "The order-only model deliberately abstains from sparse graphical restrictions.",
+          "boundary": "The complete-prefix quotient is not sufficient for prescribed sparse parents."
+        }
+      ],
+      "method_adapted": "The proposed boundary state would combine Han--Chen--Darwiche separator transport with response-function equivalence classes, starting from the explicit sparse-parent counterexample.",
+      "writing_exemplar_used": "ZaffalonEtAl2024",
+      "closest_paper_check": "No inspected theorem characterizes a necessary-and-sufficient separator augmentation under unknown mechanisms; the current proof architecture only settles the complete-predecessor class.",
+      "disposition": "deferred-for-feasibility"
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Eric Rossetto and Alessandro Antonucci",
+      "year": 2026,
+      "venue": "arXiv preprint",
+      "bibkey": "RossettoAntonucci2026",
+      "one_line": "In \\emph{Partial Identification under Causal Orders by Linear Programming}, Theorems~1--4 together with the lifted-program and constructive-sharpness results establish canonical complete-response equivalence, exact order-only counterfactual bounds, and an evaluation quotient with alphabet-product size.",
+      "relevant_to": "thm:single-conjunction-compiler"
+    },
+    {
+      "author": "Joseph Y. Halpern",
+      "year": 2000,
+      "venue": "Journal of Artificial Intelligence Research",
+      "bibkey": "Halpern2000",
+      "one_line": "Theorem~4.4 gives the finite-signature causal satisfiability certificate and hardness mechanism adapted only as background here.",
+      "relevant_to": "thm:partition-continuation"
+    },
+    {
+      "author": "Adnan Darwiche and Pierre Marquis",
+      "year": 2002,
+      "venue": "Journal of Artificial Intelligence Research",
+      "bibkey": "DarwicheMarquis2002",
+      "one_line": "The knowledge-compilation map separates target-language succinctness from supported online queries and transformations.",
+      "relevant_to": "oeq:residual-minimality"
+    },
+    {
+      "author": "Junzhe Zhang, Jin Tian, and Elias Bareinboim",
+      "year": 2022,
+      "venue": "International Conference on Machine Learning",
+      "bibkey": "ZhangTianBareinboim2022",
+      "one_line": "Theorem~2.4 reduces arbitrary discrete-graph counterfactual bounds to finite canonical structural causal models and polynomial programs.",
+      "relevant_to": "thm:joint-score-compiler"
+    },
+    {
+      "author": "Duligur Ibeling and Thomas Icard",
+      "year": 2020,
+      "venue": "AAAI Conference on Artificial Intelligence",
+      "bibkey": "IbelingIcard2020",
+      "one_line": "Finitary completeness and a small-model argument yield \\(\\mathsf{PSPACE}\\) decision procedures for an expressive probabilistic counterfactual language.",
+      "relevant_to": "oeq:residual-minimality"
+    },
+    {
+      "author": "Yunqiu Han, Yizuo Chen, and Adnan Darwiche",
+      "year": 2023,
+      "venue": "International Joint Conference on Artificial Intelligence",
+      "bibkey": "HanChenDarwiche2023",
+      "one_line": "Twin and multi-world networks for fully specified structural causal models have width controlled by the base network's treewidth and causal treewidth.",
+      "relevant_to": "thm:partition-continuation"
+    },
+    {
+      "author": "Marco Zaffalon, Alessandro Antonucci, Rafael Cabanas, David Huber, and Dario Azzimonti",
+      "year": 2024,
+      "venue": "International Journal of Approximate Reasoning",
+      "bibkey": "ZaffalonEtAl2024",
+      "one_line": "Exact partially specified causal inference is \\(\\mathsf{NP}\\)-hard even on polytrees, while credal-network and causal-EM methods cover broader graphical settings.",
+      "relevant_to": "oeq:residual-minimality"
+    },
+    {
+      "author": "Robert Ganian, Marlene Gr\\\"{u}ndel, and Simon Wietheger",
+      "year": 2025,
+      "venue": "arXiv preprint",
+      "bibkey": "GanianGrundelWietheger2025",
+      "one_line": "In \\emph{Gateways to Tractability for Satisfiability in Pearl's Causal Hierarchy}, the \\(\\mathrm{SAT}^{\\mathrm{lin}}_{\\mathrm{counterfact}}\\) problem uses inequalities over probability terms on one common domain, and Theorem~11 is fixed-parameter tractable in \\(d+n\\).",
+      "relevant_to": "thm:single-conjunction-compiler"
+    },
+    {
+      "author": "David Huber, Yizuo Chen, Alessandro Antonucci, Adnan Darwiche, and Marco Zaffalon",
+      "year": 2023,
+      "venue": "TPM@UAI",
+      "bibkey": "HuberEtAl2023",
+      "one_line": "In \\emph{Tractable Bounding of Counterfactual Queries by Knowledge Compilation}, fixed structural equations are compiled into arithmetic circuits for approximate causal-EM inner bounds rather than exact order-only quantification from \\(p\\).",
+      "relevant_to": "thm:joint-score-compiler"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":\"Rossetto--Antonucci prove that standard order-compatible parent-subset models may be represented by a complete all-predecessor response carrier for sharp-bound optimization, then derive exact lifted response-signature bounds after full evaluation with a quotient bounded by the observational alphabet product. Huber and coauthors compile fixed structural equations for approximate causal-EM inner bounds. Neither result gives an online \\\\(h\\\\)-world quotient whose exponential dependence excludes alphabet size while exactly ranging over the standard causal-order class compatible with \\\\(p\\\\).\",\"early_kill_test\":\"Kill the kernel if two feasible normalized numeric histories with the same prefix partition have different complete suffix-column supports, or if two histories with the same partition and live-term flags have different terminal truth-vector supports. A prior theorem with the same causal continuation state and bounds also forces a novelty pivot.\",\"kernel\":\"On the sourced saturated carrier equivalent to the standard parent-subset causal-order class, the new object is the equality partition of complete evaluated prefixes across factual and normalized intervention worlds, viewed as an exact existential continuation state.\",\"negative_search_scope\":\"The bounded scan covered response signatures, finite causal satisfiability, causal and ordinary knowledge compilation, equality and uninterpreted-function abstractions, multi-world inference, and credal or canonical sharp bounds. It did not locate the exact specialization; it cannot certify that no unindexed equality-abstraction theorem exists.\",\"presolve_receipt\":\"The unverified presolve reports exhaustive and randomized checks of normalization-sensitive local transitions, joint truth supports, mixed alphabets, sparse traceback, and the three-context numeric-baseline separation. These checks motivate the statements but are not treated as proofs or citations.\",\"strict_delta\":\"After the sourced canonicalization and a linear-time value-preserving normalization, the proposal derives cellwise query compilation in \\\\(B_h3^{(h-1)/3}\\\\operatorname{poly}(N_{\\\\mathrm{in}})\\\\) time for one conjunction and \\\\(B_h2^r(r+1)^{h-1}\\\\operatorname{poly}(N_{\\\\mathrm{in}})\\\\) time for an explicit rational score, then reconstructs a sharp attaining canonical model with one positive-mass exogenous atom per observed support cell. Through canonical equivalence, these are endpoints for the standard parent-subset class; the new results change the parameterized exponent and representation while leaving the published identified set intact.\"}"
+}

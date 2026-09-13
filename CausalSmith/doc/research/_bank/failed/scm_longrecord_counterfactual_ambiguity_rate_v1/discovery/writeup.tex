@@ -1,0 +1,1061 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}longrecord\_\allowbreak{}counterfactual\_\allowbreak{}ambiguity\_\allowbreak{}rate}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A known finite controlled transition law leaves the same unit's counterfactual path partially identified because it does not determine a response-program coupling. The theorem gives the first explicit unconditional \(O(\sqrt{\log T/T})\) expected-diameter certificate over the complete stationary transition-response fiber, without a response-mass floor or contraction of the conditional counterfactual kernels. It also realizes the synchronizer--two-permutation triangle as a legal causal family, identifies its Poisson martingale and conditional reward exactly, and proves root-\(T\) maximal control on the triangle's full boundary. The interior triangle and the complete-fiber root-\(T\) upper bound remain open, while the established full-support binary lower theorem rules out a uniformly faster rate. Haugh--Singal instead give sharp finite-horizon linear-program bounds for EWAC in a restricted dishonest-casino SCM and prove in Section 4.3 that \(\mathrm{EWAC}/T\) converges almost surely to an SCM-independent stationary expression. Their result is asymptotic full identification within that restricted model, not a finite-horizon rate theorem; no equivalence or class inclusion with the present fiber is asserted.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest dynamic-counterfactual comparator, HaughSingal2026Casino, derives sharp finite-horizon linear-program bounds for EWAC under a restricted dishonest-casino SCM with time-homogeneous and time-inhomogeneous emission couplings. Section 4.3 additionally proves that \(\mathrm{EWAC}/T\) converges almost surely to an SCM-independent expression determined by the stationary loaded-state frequency and the fair and loaded emission means, hence asymptotic full identification within that restricted model. It is not a finite-horizon rate theorem. No equivalence or class inclusion with the complete stationary transition-response fiber is asserted. Existing one-transition compatible-coupling bounds, finite canonical programs, and fixed-kernel Poisson concentration likewise do not control the posterior-normalized whole-polytope supremum at vanishing response masses.
+
+\paragraph{Niche.} The unresolved sharp question is whether the explicit complete-fiber \(O(\sqrt{\log T/T})\) upper certificate can be improved to root-\(T\), matching the full-support feedback lower witness. The legal synchronizer--two-permutation triangle isolates the first nontrivial interior obstruction without changing the causal graph, response stationarity, support condition, or Poisson condition. If the whole-polytope maximal inequality is eventually proved, the frozen Poisson identity and coarsening domination immediately give an \(O(T^{-1/2})\) expected-width bound; this is a roadmap implication, not a delivered theorem.
+
+\paragraph{Fill.} The achieved contribution is the first explicit unconditional \(O(\sqrt{\log T/T})\) expected-width certificate over the complete stationary transition-response fiber, together with a legal causal triangle realization and root-\(T\) control on its full boundary. Unlike the casino result, this is a finite-horizon uniform bound over transition-response couplings, does not rely on a direct intervention fixing the hidden state, and does not claim point identification. The exact triangle identities connect the recursion to \(M_T(q)\), the full-record counterfactual reward, and a subrange of the sharp compatible interval. No interior or whole-polytope root-\(T\) maximal bound is claimed.
+
+\section{Related work}
+
+HaughSingal2026Casino derives sharp finite-horizon linear-program bounds for EWAC under the authors' restricted dishonest-casino SCM with time-homogeneous and time-inhomogeneous emission couplings. Section 4.3 additionally proves that \(\mathrm{EWAC}/T\) converges almost surely to an SCM-independent expression determined by the stationary loaded-state frequency and the fair and loaded emission means, so time-averaged EWAC is fully identified asymptotically within that restricted model. That result is not a finite-horizon rate theorem. The casino setup uses a direct intervention fixing the hidden state to the fair die; the present finite-horizon transition-response-coupling bound does not rely on such an intervention. No equivalence, embedding, or class inclusion is asserted. LallyKazemiPaoletti2026RobustCounterfactualMDP gives sharp one-transition compatible-SCM bounds, and ZhangTianBareinboim2022PartialCounterfactual supplies generic finite canonical-SCM optimization, but neither gives a long-record uniform rate for one stationary response law reused across dates. SayedanaCainesMahajan2025 supplies the fixed-kernel Poisson telescoping move; the additional issue here is uniformity over posterior-conditioned response laws. HaughSingal2023DynamicLatent gives finite-record dynamic latent-state programs without a record-length contraction theorem. The self-normalized and sequential-complexity tools in deLaPenaLaiShao2009 and RakhlinSridharanTewari2015 motivate possible maximal arguments, but no theorem from either source is invoked as if it evaluated this boundary-singular response-filter family. OberstSontag2019 and LorberbomJohnsonMaddisonTarlowHazan2021 select or study particular couplings rather than the entire compatible interval. KaidoMolinariStoye2019CalibratedProjection motivates nuisance-region projection; the separate confidence-fiber result uses finite-sample rowwise coverage and deterministic set inclusion.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(I_T(P,\rho,b,o,e)=\{\mathbb E_{q,\rho,b,\pi,o}[T^{-1}\sum_{t=1}^T r(Z_t)\mid E_T=e]:q\in\Theta(P)\}\).
+Primary functional / estimator / diagnostic: \([\min_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e),\max_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e)]\), with one stationary response-mass vector shared across every date and hidden branch.
+\begin{itemize}
+  \item \texttt{d} --- \texttt{positive integer}; \(\{2,3,\ldots\}\); \texttt{Cardinality of the state space.}
+  \item \texttt{k} --- \texttt{positive integer}; \(\{1,2,\ldots\}\); \texttt{Cardinality of the action space.}
+  \item \texttt{T} --- \texttt{positive integer}; \(\{1,2,\ldots\}\); \texttt{Length of the factual record and counterfactual reward average.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal S} --- \texttt{finite state set}; \(|\mathcal S|=d\); \texttt{State space.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{finite action set}; \(|\mathcal A|=k\); \texttt{Action space.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R} --- \texttt{finite response-\allowbreak{}program set}; \(\mathcal S^{\mathcal S\times\mathcal A}\); \texttt{Canonical deterministic transition-\allowbreak{}response programs.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R=\{f: f:\mathcal S\times\mathcal A\to\mathcal S\}\).
+  \item \texttt{P} --- \texttt{known controlled Markov kernel}; \(\Delta(\mathcal S)^{\mathcal S\times\mathcal A}\); \texttt{Nominal interventional transition law.}
+  \item \texttt{\textbackslash{}\allowbreak{}epsilon} --- \texttt{positive real constant}; \((0,1]\); \texttt{Lower bound on positive nominal transition cells.}
+  \item \texttt{\textbackslash{}\allowbreak{}rho} --- \texttt{known initial distribution}; \(\Delta(\mathcal S)\); \texttt{Common initial-\allowbreak{}state law.}
+  \item \texttt{b} --- \texttt{known stationary deterministic policy}; \(\mathcal A^{\mathcal S}\); \texttt{Factual policy.}
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{known stationary deterministic policy}; \(\mathcal A^{\mathcal S}\); \texttt{Alternative target policy.}
+  \item \texttt{r} --- \texttt{known bounded reward}; \([0,1]^{\mathcal S}\); \texttt{Per-\allowbreak{}period target-\allowbreak{}state reward.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O} --- \texttt{finite observation set}; \texttt{Range of the possibly coarsened factual record.}
+  \item \texttt{o} --- \texttt{known deterministic observation map}; \(\mathcal O^{\mathcal S}\); \texttt{Arbitrary state coarsening.}
+  \item \texttt{K\_\allowbreak{}\{\textbackslash{}\allowbreak{}pi\}\allowbreak{}} --- \texttt{target-\allowbreak{}policy Markov kernel}; \(\Delta(\mathcal S)^{\mathcal S}\); \texttt{Nominal transition kernel under the alternative policy.}
+  \par\smallskip\noindent\emph{Definition.} \(K_{\pi}(z,z')=P(z'\mid z,\pi(z))\).
+  \item \texttt{g} --- \texttt{real constant}; \texttt{Common nominal average reward appearing in the Poisson equation.}
+  \item \texttt{h} --- \texttt{Poisson bias function}; \(\mathbb R^{\mathcal S}\); \texttt{A solution of the target-\allowbreak{}policy Poisson equation.}
+  \item \texttt{B} --- \texttt{nonnegative real constant}; \([0,\infty)\); \texttt{Upper bound on the span of the Poisson solution.}
+  \item \texttt{\textbackslash{}\allowbreak{}Theta(P)} --- \texttt{compatible canonical-\allowbreak{}response polytope}; \(\Delta(\mathcal R)\); \texttt{The complete fiber of stationary response-\allowbreak{}program laws compatible with the nominal controlled transition law.}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta(P)=\{q\in\Delta(\mathcal R):\sum_{f\in\mathcal R}q_f\mathbf 1\{f(x,a)=y\}=P(y\mid x,a)\text{ for all }(x,a,y)\}\).
+  \item \texttt{q} --- \texttt{stationary response-\allowbreak{}program law}; \(\Theta(P)\); \texttt{A candidate causal mechanism in the compatible fiber.}
+  \item \texttt{F\_\allowbreak{}t} --- \texttt{response-\allowbreak{}program draw}; \(\mathcal R\); The period-\(t\) exogenous response program reused across the factual and alternative worlds.
+  \par\smallskip\noindent\emph{Definition.} \(F_t\sim q\) for \(t=1,\ldots,T\).
+  \item \texttt{X\_\allowbreak{}0} --- \texttt{factual initial state}; \(\mathcal S\); \texttt{Initial state in the factual world.}
+  \par\smallskip\noindent\emph{Definition.} \(X_0\sim\rho\).
+  \item \texttt{Z\_\allowbreak{}0} --- \texttt{counterfactual initial state}; \(\mathcal S\); \texttt{The same unit's initial state in the alternative world.}
+  \item \texttt{X\_\allowbreak{}t} --- \texttt{factual state process}; \(\mathcal S\); \texttt{Factual trajectory generated by the observed policy.}
+  \par\smallskip\noindent\emph{Definition.} \(X_t=F_t(X_{t-1},b(X_{t-1}))\) for \(t=1,\ldots,T\).
+  \item \texttt{Z\_\allowbreak{}t} --- \texttt{counterfactual state process}; \(\mathcal S\); \texttt{Same-\allowbreak{}unit counterfactual trajectory under the alternative policy.}
+  \par\smallskip\noindent\emph{Definition.} \(Z_t=F_t(Z_{t-1},\pi(Z_{t-1}))\) for \(t=1,\ldots,T\).
+  \item \texttt{E\_\allowbreak{}T} --- \texttt{factual evidence}; \(\mathcal O^{T+1}\); \texttt{Possibly coarsened factual record used for abduction.}
+  \par\smallskip\noindent\emph{Definition.} \(E_T=(o(X_0),o(X_1),\ldots,o(X_T))\).
+  \item \texttt{\textbackslash{}\allowbreak{}Pr\_\allowbreak{}\{P,\allowbreak{}\textbackslash{}\allowbreak{}rho,\allowbreak{}b,\allowbreak{}o\}\allowbreak{}} --- \texttt{induced factual-\allowbreak{}record probability law}; \texttt{The common factual law used for evidence positivity,\allowbreak{} conditioning,\allowbreak{} and every outer expectation.}
+  \par\smallskip\noindent\emph{Definition.} \(\Pr_{P,\rho,b,o}(E_T=(u_0,\ldots,u_T))=\sum_{s_{0:T}\in\mathcal S^{T+1}}\rho(s_0)\prod_{t=1}^T P(s_t\mid s_{t-1},b(s_{t-1}))\prod_{t=0}^T\mathbf 1\{o(s_t)=u_t\}\).
+  \item \texttt{x\_\allowbreak{}\{0:\allowbreak{}T\}\allowbreak{}} --- \texttt{positive-\allowbreak{}probability full factual-\allowbreak{}state path}; \(\{(x_0,\ldots,x_T)\in\mathcal S^{T+1}:\rho(x_0)\prod_{t=1}^T P(x_t\mid x_{t-1},b(x_{t-1}))>0\}\); \texttt{A full factual path on which the uncoarsened counterfactual query is conditioned.}
+  \item \texttt{e} --- \texttt{positive-\allowbreak{}probability coarsened evidence value}; \(\{e'\in\mathcal O^{T+1}:\Pr_{P,\rho,b,o}(E_T=e')>0\}\); \texttt{A coarsened factual record on which the counterfactual query is conditioned.}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha\_\allowbreak{}t(q)} --- \texttt{conditional counterfactual state distribution}; \(\Delta(\mathcal S)\); \texttt{Filter entering the conditional Poisson decomposition.}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_t(q)(z)=\Pr_q(Z_t=z\mid X_{0:t})\) under full factual-state conditioning.
+  \item \texttt{L\_\allowbreak{}q} --- \texttt{conditional counterfactual transition kernel}; \(L_q(x,y)(z,z')\); \texttt{Alternative-\allowbreak{}world kernel after abduction on one factual transition.}
+  \par\smallskip\noindent\emph{Definition.} \(L_q(x,y)(z,z')=\sum_{f\in\mathcal R}q_f\mathbf 1\{f(x,b(x))=y,\ f(z,\pi(z))=z'\}/P(y\mid x,b(x))\) on positive factual transitions.
+  \item \texttt{Q\_\allowbreak{}\{q,\allowbreak{}T\}\allowbreak{}(P,\allowbreak{}\textbackslash{}\allowbreak{}rho,\allowbreak{}b,\allowbreak{}o,\allowbreak{}e)} --- \texttt{coarsened-\allowbreak{}record conditional counterfactual average reward}; \(Q_{q,T}(P,\rho,b,o,e)=\mathbb E_{q,\rho,b,\pi,o}[T^{-1}\sum_{t=1}^T r(Z_t)\mid E_T=e]\); \texttt{Mechanism-\allowbreak{}specific same-\allowbreak{}unit counterfactual target conditional on coarsened evidence under the explicitly indexed factual law.}
+  \item \texttt{Q\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{full\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{q,\allowbreak{}T\}\allowbreak{}(x\_\allowbreak{}\{0:\allowbreak{}T\}\allowbreak{})} --- \texttt{full-\allowbreak{}record conditional counterfactual average reward}; \(Q^{\mathrm{full}}_{q,T}(x_{0:T})=\mathbb E_{q,\rho,b,\pi}[T^{-1}\sum_{t=1}^T r(Z_t)\mid X_{0:T}=x_{0:T}]\); \texttt{Mechanism-\allowbreak{}specific target conditional on the full factual state path.}
+  \item \texttt{I\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{full\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}T(P,\allowbreak{}\textbackslash{}\allowbreak{}rho,\allowbreak{}b,\allowbreak{}x\_\allowbreak{}\{0:\allowbreak{}T\}\allowbreak{})} --- \texttt{sharp full-\allowbreak{}record identified interval}; \(2^{[0,1]}\); \texttt{Range of the full-\allowbreak{}record conditional target over the complete compatible stationary-\allowbreak{}response fiber.}
+  \item \texttt{D\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{full\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}T(P,\allowbreak{}\textbackslash{}\allowbreak{}rho,\allowbreak{}b,\allowbreak{}x\_\allowbreak{}\{0:\allowbreak{}T\}\allowbreak{})} --- \texttt{nonnegative full-\allowbreak{}record interval diameter}; \texttt{Same-\allowbreak{}unit counterfactual ambiguity after observing the full state path.}
+  \par\smallskip\noindent\emph{Definition.} \(D^{\mathrm{full}}_T(P,\rho,b,x_{0:T})=\sup I^{\mathrm{full}}_T(P,\rho,b,x_{0:T})-\inf I^{\mathrm{full}}_T(P,\rho,b,x_{0:T})\).
+  \item \texttt{I\_\allowbreak{}T(P,\allowbreak{}\textbackslash{}\allowbreak{}rho,\allowbreak{}b,\allowbreak{}o,\allowbreak{}e)} --- \texttt{sharp coarsened-\allowbreak{}record identified interval}; \(2^{[0,1]}\); \texttt{Range of the coarsened-\allowbreak{}record conditional target over the complete compatible stationary-\allowbreak{}response fiber.}
+  \item \texttt{D\_\allowbreak{}T(P,\allowbreak{}\textbackslash{}\allowbreak{}rho,\allowbreak{}b,\allowbreak{}o,\allowbreak{}e)} --- \texttt{nonnegative coarsened-\allowbreak{}record interval diameter}; \texttt{Same-\allowbreak{}unit counterfactual ambiguity after the coarsened record.}
+  \par\smallskip\noindent\emph{Definition.} \(D_T(P,\rho,b,o,e)=\sup I_T(P,\rho,b,o,e)-\inf I_T(P,\rho,b,o,e)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}t(q)} --- \texttt{conditional Poisson martingale difference}; \texttt{Centered increment indexed by the compatible response law.}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_t(q)=\alpha_{t-1}(q)\{L_q(X_{t-1},X_t)-K_{\pi}\}h\).
+  \item \texttt{M\_\allowbreak{}T(q)} --- \texttt{polytope-\allowbreak{}indexed martingale sum}; \texttt{The focal stochastic process whose uniform maximal inequality yields the sharp rate.}
+  \par\smallskip\noindent\emph{Definition.} \(M_T(q)=\sum_{t=1}^T\Delta_t(q)\).
+  \item \texttt{R\_\allowbreak{}t} --- \texttt{binary factual sign process}; \(\{-1,1\}\); \texttt{Independent fair signs driving the synchronizer-\allowbreak{}-\allowbreak{}two-\allowbreak{}permutation recursion.}
+  \par\smallskip\noindent\emph{Definition.} \(R_t=2X_t-1\) on the uniform binary-row kill-test face.
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{mixture weight}; \([0,1]\); \texttt{Weight separating the synchronizer vertex from the permutation edge in the kill-\allowbreak{}test face.}
+  \item \texttt{\textbackslash{}\allowbreak{}vartheta} --- \texttt{mixture weight}; \([0,1]\); \texttt{Weight between the two permutation vertices in the kill-\allowbreak{}test face.}
+  \item \texttt{m} --- \texttt{positive integer}; \texttt{Number of canonical response programs.}
+  \par\smallskip\noindent\emph{Definition.} \(m=d^{dk}=|\mathcal R|\).
+  \item \texttt{C\_\allowbreak{}\{d,\allowbreak{}k,\allowbreak{}\textbackslash{}\allowbreak{}epsilon,\allowbreak{}B\}\allowbreak{}} --- \texttt{explicit nonnegative constant}; \texttt{Conditional width constant implied by the explicit whole-\allowbreak{}polytope maximal-\allowbreak{}inequality target.}
+  \par\smallskip\noindent\emph{Definition.} \(C_{d,k,\epsilon,B}=1024B d^{dk}/\epsilon\).
+  \item \texttt{p\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{bin\}\allowbreak{}\}\allowbreak{}} --- \texttt{binary controlled-\allowbreak{}transition marginal vector}; \([0,1]^4\); \texttt{Nominal one-\allowbreak{}probabilities in the binary lower-\allowbreak{}bound construction.}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\mathrm{bin}}=(1/2,1/2,1/4,3/4)\) in response-coordinate order \((0,0),(1,0),(0,1),(1,1)\).
+  \item \texttt{q\_\allowbreak{}0} --- \texttt{binary response-\allowbreak{}program law}; \(\Delta(\{0,1\}^4)\); \texttt{Full-\allowbreak{}support baseline mechanism in the lower-\allowbreak{}bound construction.}
+  \par\smallskip\noindent\emph{Definition.} \(q_0\) is the product Bernoulli response law with coordinate means \(p_{\mathrm{bin}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}+\allowbreak{}} --- \texttt{binary response-\allowbreak{}program law}; \(\Delta(\{0,1\}^4)\); \texttt{Positive-\allowbreak{}feedback extremal component.}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_+\) is uniform on \(\{0000,0001,1111,1101\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}-\allowbreak{}} --- \texttt{binary response-\allowbreak{}program law}; \(\Delta(\{0,1\}^4)\); \texttt{Negative-\allowbreak{}feedback extremal component.}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_-\) is uniform on \(\{0011,0001,1100,1101\}\).
+  \item \texttt{q\_\allowbreak{}+\allowbreak{}} --- \texttt{binary compatible response-\allowbreak{}program law}; \texttt{First full-\allowbreak{}support mechanism in the lower-\allowbreak{}bound pair.}
+  \par\smallskip\noindent\emph{Definition.} \(q_+=(q_0+\nu_+)/2\).
+  \item \texttt{q\_\allowbreak{}-\allowbreak{}} --- \texttt{binary compatible response-\allowbreak{}program law}; \texttt{Second full-\allowbreak{}support mechanism in the lower-\allowbreak{}bound pair.}
+  \par\smallskip\noindent\emph{Definition.} \(q_-=(q_0+\nu_-)/2\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak W\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{bin\}\allowbreak{}\}\allowbreak{}} --- \texttt{binary full-\allowbreak{}support witness}; A specified pair of compatible stationary response laws producing root-\(T\) ambiguity.
+  \item \texttt{n\_\allowbreak{}\{x,\allowbreak{}a\}\allowbreak{}} --- \texttt{positive calibration sample size}; \(\{1,2,\ldots\}\); Number of independent generative draws from nominal transition row \((x,a)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat P} --- \texttt{empirical controlled transition kernel}; \(\Delta(\mathcal S)^{\mathcal S\times\mathcal A}\); \texttt{Rowwise multinomial estimate from the independent calibration sample.}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{confidence error probability}; \((0,1)\); \texttt{Familywise calibration error level.}
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}\{x,\allowbreak{}a\}\allowbreak{}} --- \texttt{rowwise simultaneous confidence radius}; Cellwise Hoeffding radius for calibration row \((x,a)\).
+  \par\smallskip\noindent\emph{Definition.} \(\delta_{x,a}=\sqrt{\log(2d^2k/\alpha)/(2n_{x,a})}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{simultaneous transition-\allowbreak{}law confidence region}; \texttt{Rowwise Hoeffding region intersected with the known support,\allowbreak{} positivity,\allowbreak{} and Poisson classes.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat I\_\allowbreak{}\{T,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}(P,\allowbreak{}\textbackslash{}\allowbreak{}rho,\allowbreak{}b,\allowbreak{}o,\allowbreak{}e)} --- \texttt{random confidence fiber}; \(2^{[0,1]}\); \texttt{Interval hull of sharp coarsened-\allowbreak{}record intervals over transition laws retained by the simultaneous calibration region.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}\{d,\allowbreak{}k,\allowbreak{}T\}\allowbreak{}(\textbackslash{}\allowbreak{}epsilon,\allowbreak{}B)} --- \texttt{stationary iid-\allowbreak{}response SCM class}; \texttt{Model class defined by the primitive member properties below.}
+  \item \texttt{R\_\allowbreak{}0} --- \texttt{binary initial factual sign}; \(\{-1,1\}\); \texttt{Initial sign needed by the synchronizer-\allowbreak{}-\allowbreak{}two-\allowbreak{}permutation recursion.}
+  \par\smallskip\noindent\emph{Definition.} \(R_0=2X_0-1=-1\) on the uniform binary-row kill-test construction with \(X_0=0\).
+  \item \texttt{m\_\allowbreak{}t(\textbackslash{}\allowbreak{}lambda,\allowbreak{}\textbackslash{}\allowbreak{}vartheta)} --- \texttt{conditional counterfactual spin process}; \([-1,1]\); \texttt{Conditional target-\allowbreak{}state spin realized by the explicit synchronizer-\allowbreak{}-\allowbreak{}two-\allowbreak{}permutation response-\allowbreak{}law family.}
+  \par\smallskip\noindent\emph{Definition.} On the legal uniform binary-row kill-test construction, \(R_0=-1\), \(m_0(\lambda,\vartheta)=-1\), and \(m_t(\lambda,\vartheta)=R_t[(1-\lambda)+\lambda\{(1-\vartheta)+\vartheta R_{t-1}\}m_{t-1}(\lambda,\vartheta)]\) for \(t=1,\ldots,T\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:positive-cells]\label{ass:positive-cells}
+Every positive nominal transition cell satisfies \(P(y\mid x,a)\ge\epsilon\).
+\par\smallskip\noindent\emph{Standard} (finite-support transition overlap, \cite{LallyKazemiPaoletti2026RobustCounterfactualMDP}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-response]\label{ass:iid-response}
+The response programs \(F_1,\ldots,F_T\) are independent and identically distributed with common law \(q\).
+\par\smallskip\noindent\emph{Standard} (Markovian independent exogenous responses, \cite{ZhangTianBareinboim2022PartialCounterfactual}).
+\end{assumption}
+
+\begin{assumption}[ass:initial-exogeneity]\label{ass:initial-exogeneity}
+The response-program sequence \(F_{1:T}\) is independent of \(X_0\).
+\par\smallskip\noindent\emph{Standard} (initial-state exogeneity, \cite{OberstSontag2019}).
+\end{assumption}
+
+\begin{assumption}[ass:shared-origin]\label{ass:shared-origin}
+The factual and alternative worlds start from the same unit-level state: \(Z_0=X_0\).
+\par\smallskip\noindent\emph{Standard} (SCM consistency under shared exogenous state, \cite{OberstSontag2019}).
+\end{assumption}
+
+\begin{assumption}[ass:poisson-equation]\label{ass:poisson-equation}
+The target kernel admits the Poisson equation \(r-g\mathbf 1=h-K_{\pi}h\).
+\par\smallskip\noindent\emph{Standard} (average-reward Poisson equation, \cite{SayedanaCainesMahajan2025}).
+\end{assumption}
+
+\begin{assumption}[ass:poisson-span]\label{ass:poisson-span}
+The Poisson solution satisfies \(\operatorname{span}(h)=\max_z h(z)-\min_z h(z)\le B\).
+\par\smallskip\noindent\emph{Standard} (bounded Poisson bias span, \cite{SayedanaCainesMahajan2025}).
+\end{assumption}
+
+\begin{assumption}[ass:calibration-independence]\label{ass:calibration-independence}
+The rowwise multinomial calibration sample used to form \(\widehat P\) is independent of \(E_T\).
+\par\smallskip\noindent\emph{Standard} (independent sample splitting for set-valued inference, \cite{KaidoMolinariStoye2019CalibratedProjection}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Stationary compatible response-\allowbreak{}SCM class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_{d,k,T}(\epsilon,B)=\{(P,q,\rho,b,\pi,o,r,g,h): q\in\Theta(P),\ F_{1:T}\text{ satisfies the iid-response and initial-exogeneity conditions},\ Z_0=X_0,\ P\text{ satisfies positive-cells},\ r-g\mathbf 1=h-K_{\pi}h,\ \operatorname{span}(h)\le B\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positive-\allowbreak{}cells}; \texttt{ass:\allowbreak{}iid-\allowbreak{}response}; \texttt{ass:\allowbreak{}initial-\allowbreak{}exogeneity}; \texttt{ass:\allowbreak{}shared-\allowbreak{}origin}; \texttt{ass:\allowbreak{}poisson-\allowbreak{}equation}; \texttt{ass:\allowbreak{}poisson-\allowbreak{}span}.
+\end{definition}
+
+\begin{definition}[def:coupled-trajectories]\label{def:coupled-trajectories}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Shared-\allowbreak{}response factual and counterfactual trajectories}
+\par\smallskip\noindent\emph{Construction.} Draw \(X_0\sim\rho\), set \(Z_0=X_0\), draw \(F_t\stackrel{\mathrm{iid}}{\sim}q\), and recursively set \(X_t=F_t(X_{t-1},b(X_{t-1}))\) and \(Z_t=F_t(Z_{t-1},\pi(Z_{t-1}))\) for \(t=1,\ldots,T\); report \(E_T=(o(X_0),\ldots,o(X_T))\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{q}; \texttt{\textbackslash{}\allowbreak{}rho}; \texttt{b}; \texttt{\textbackslash{}\allowbreak{}pi}; \texttt{o}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:factual-record-law]\label{def:factual-record-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Induced factual-\allowbreak{}record law}
+\par\smallskip\noindent\emph{Construction.} For every \((u_0,\ldots,u_T)\in\mathcal O^{T+1}\), define \[\Pr_{P,\rho,b,o}(E_T=(u_0,\ldots,u_T))=\sum_{s_{0:T}\in\mathcal S^{T+1}}\rho(s_0)\prod_{t=1}^T P(s_t\mid s_{t-1},b(s_{t-1}))\prod_{t=0}^T\mathbf 1\{o(s_t)=u_t\}.\] This law is common to every \(q\in\Theta(P)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{\textbackslash{}\allowbreak{}rho}; \texttt{b}; \texttt{o}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:sharp-interval]\label{def:sharp-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sharp coarsened-\allowbreak{}record stationary-\allowbreak{}response interval}
+\par\smallskip\noindent\emph{Construction.} For every \(e\in\mathcal O^{T+1}\) with \(\Pr_{P,\rho,b,o}(E_T=e)>0\), define \(I_T(P,\rho,b,o,e)=\{Q_{q,T}(P,\rho,b,o,e):q\in\Theta(P)\}=[\min_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e),\max_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e)]\) and \(D_T(P,\rho,b,o,e)=\max_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e)-\min_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{\textbackslash{}\allowbreak{}rho}; \texttt{b}; \texttt{o}; \texttt{e}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:full-record-functionals]\label{def:full-record-functionals}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full-\allowbreak{}record conditional target and sharp interval}
+\par\smallskip\noindent\emph{Construction.} For every \(x_{0:T}\in\mathcal S^{T+1}\) with \(\rho(x_0)\prod_{t=1}^T P(x_t\mid x_{t-1},b(x_{t-1}))>0\), define \(Q^{\mathrm{full}}_{q,T}(x_{0:T})=\mathbb E_{q,\rho,b,\pi}[T^{-1}\sum_{t=1}^T r(Z_t)\mid X_{0:T}=x_{0:T}]\), \(I^{\mathrm{full}}_T(P,\rho,b,x_{0:T})=\{Q^{\mathrm{full}}_{q,T}(x_{0:T}):q\in\Theta(P)\}\), and \(D^{\mathrm{full}}_T(P,\rho,b,x_{0:T})=\sup I^{\mathrm{full}}_T(P,\rho,b,x_{0:T})-\inf I^{\mathrm{full}}_T(P,\rho,b,x_{0:T})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{\textbackslash{}\allowbreak{}rho}; \texttt{b}; \texttt{\textbackslash{}\allowbreak{}pi}; \texttt{r}; \texttt{x\_\allowbreak{}\{0:\allowbreak{}T\}\allowbreak{}}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:endpoint-program]\label{def:endpoint-program}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Stationary shared-\allowbreak{}response endpoint program}
+\par\smallskip\noindent\emph{Construction.} For coarsened evidence \(e\), enumerate factual-state paths compatible with \(e\) and alternative-state paths; at every date multiply the same stationary selector \(q_f\) through the factor \(\sum_{f\in\mathcal R}q_f\mathbf 1\{f(x_{t-1},b(x_{t-1}))=x_t,\ f(z_{t-1},\pi(z_{t-1}))=z_t\}\), sum all hidden paths, divide by \(\Pr_{P,\rho,b,o}(E_T=e)\), and minimize or maximize the resulting conditional reward over \(q\in\Theta(P)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{\textbackslash{}\allowbreak{}rho}; \texttt{b}; \texttt{\textbackslash{}\allowbreak{}pi}; \texttt{o}; \texttt{r}; \texttt{e}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:poisson-martingale]\label{def:poisson-martingale}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional Poisson martingale family}
+\par\smallskip\noindent\emph{Construction.} For each \(q\in\Theta(P)\), propagate \(\alpha_t(q)\), form \(\Delta_t(q)=\alpha_{t-1}(q)\{L_q(X_{t-1},X_t)-K_{\pi}\}h\), and set \(M_T(q)=\sum_{t=1}^T\Delta_t(q)\); control the whole family by a self-normalized face decomposition using predictable quadratic variation rather than a likelihood-denominator lower bound.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{q}; \texttt{X\_\allowbreak{}t}; \texttt{K\_\allowbreak{}\{\textbackslash{}\allowbreak{}pi\}\allowbreak{}}; \texttt{h}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:binary-witness]\label{def:binary-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Legal full-\allowbreak{}support binary feedback witness}
+\par\smallskip\noindent\emph{Construction.} In coordinate order \((0,0),(1,0),(0,1),(1,1)\), take \(\mathcal S=\mathcal A=\{0,1\}\), \(X_0=Z_0=0\), \(b\equiv0\), \(\pi\equiv1\), let \(o\) be the identity map, let \(r(z)=z\), take nominal one-probabilities \(p_{\mathrm{bin}}\), and use the response laws \(q_0,\nu_+,\nu_-,q_+,q_-\) declared above. This tuple is \(\mathfrak W_{\mathrm{bin}}\).
+\end{definition}
+
+\begin{definition}[def:triangle-handle]\label{def:triangle-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Legal synchronizer-\allowbreak{}-\allowbreak{}two-\allowbreak{}permutation kill-\allowbreak{}test family}
+\par\smallskip\noindent\emph{Construction.} Take \(\mathcal S=\mathcal A=\{0,1\}\), use response-coordinate order
+\[
+ \bigl(f(0,0),f(1,0),f(0,1),f(1,1)\bigr),
+\]
+and set \(\rho=\delta_0\), \(b(x)=0\), \(\pi(x)=1\), \(o(x)=x\), \(r(x)=x\), and \(P(y\mid x,a)=1/2\) for all \(x,a,y\in\{0,1\}\).  Put \(R_0=2X_0-1=-1\).  For \(w\in\{0,1\}^4\), let \(\delta_w\) denote point mass on the response program with coordinate vector \(w\), and define
+\[
+ q^{\mathrm s}=\frac12\{\delta_{(0,0,0,0)}+\delta_{(1,1,1,1)}\},\qquad
+ q^{0}=\frac12\{\delta_{(0,0,1,0)}+\delta_{(1,1,0,1)}\},
+\]
+\[
+ q^{1}=\frac12\{\delta_{(0,1,0,1)}+\delta_{(1,0,1,0)}\},\qquad
+ q^{\triangle}_{\lambda,\vartheta}
+ =(1-\lambda)q^{\mathrm s}
+   +\lambda\{(1-\vartheta)q^0+\vartheta q^1\}.
+\]
+The synchronizer--two-permutation triangular family is
+\(\{q^{\triangle}_{\lambda,\vartheta}:0\leq\lambda,\vartheta\leq1\}\subseteq\Theta(P)\).  On a factual path put \(R_t=2X_t-1\), let \(m_0=-1\), and define
+\[
+ m_t=R_t\left[(1-\lambda)+\lambda\{(1-\vartheta)+\vartheta R_{t-1}\}m_{t-1}\right].
+\]
+Equivalently, with \(u=\lambda\), \(v=\lambda(2\vartheta-1)\), and \(Y_t=R_tm_t\), one has \(Y_0=1\), \(0\leq u\leq1\), \(-u\leq v\leq u\), and
+\[
+ Y_t=
+ \begin{cases}
+  1-u+uY_{t-1},&R_{t-1}=1,\\
+  1-u+vY_{t-1},&R_{t-1}=-1.
+ \end{cases}
+\]
+The kill-test process is \(S_T(u,v)=\sum_{t=1}^T m_t(u,v)\) on the compact parameter triangle
+\[
+ \mathcal T=\{(u,v):0\leq u\leq1,\ -u\leq v\leq u\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{\textbackslash{}\allowbreak{}rho}; \texttt{b}; \texttt{\textbackslash{}\allowbreak{}pi}; \texttt{o}; \texttt{r}; \texttt{\textbackslash{}\allowbreak{}lambda}; \texttt{\textbackslash{}\allowbreak{}vartheta}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:confidence-region]\label{def:confidence-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Simultaneous multinomial transition region}
+\par\smallskip\noindent\emph{Construction.} Define \(\mathcal C_{\alpha}\) as the set of controlled kernels \(P'\) with the known zero pattern, \(P'(y\mid x,a)\ge\epsilon\) on positive cells, \(|P'(y\mid x,a)-\widehat P(y\mid x,a)|\le\delta_{x,a}\) for every cell, and some \((g',h')\) satisfying \(r-g'\mathbf 1=h'-K'_{\pi}h'\) and \(\operatorname{span}(h')\le B\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat P}; \texttt{n\_\allowbreak{}\{x,\allowbreak{}a\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}alpha}; \texttt{\textbackslash{}\allowbreak{}epsilon}; \texttt{B}; \texttt{r}; \texttt{\textbackslash{}\allowbreak{}pi}.
+\end{definition}
+
+\begin{definition}[def:confidence-fiber]\label{def:confidence-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Honest confidence fiber}
+\par\smallskip\noindent\emph{Construction.} If \(\mathcal C_{\alpha}\neq\varnothing\), set \(\widehat I_{T,\alpha}(P,\rho,b,o,e)=\operatorname{hull}(\bigcup_{P'\in\mathcal C_{\alpha}}I_T(P',\rho,b,o,e))\); if \(\mathcal C_{\alpha}=\varnothing\), set \(\widehat I_{T,\alpha}(P,\rho,b,o,e)=[0,1]\). The known zero pattern ensures that every \(e\) positive under \(\Pr_{P,\rho,b,o}\) is positive under each retained \(\Pr_{P',\rho,b,o}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}; \texttt{P}; \texttt{\textbackslash{}\allowbreak{}rho}; \texttt{b}; \texttt{o}; \texttt{e}; \texttt{T}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:stationary-shared-response-endpoints]\label{prop:stationary-shared-response-endpoints}
+For every \((P,q,\rho,b,\pi,o,r,g,h)\in\mathfrak M_{d,k,T}(\epsilon,B)\) and every \(e\in\mathcal O^{T+1}\) satisfying \(\Pr_{P,\rho,b,o}(E_T=e)>0\), the stationary shared-response endpoint program returns exactly \(I_T(P,\rho,b,o,e)\). Its minimum and maximum are attained by \(q^-,q^+\in\Theta(P)\), with the same response-mass vector reused at every date and on every hidden branch.
+\end{proposition}
+\begin{proof}
+Write \(e=(e_0,\ldots,e_T)\), and define the finite set of factual paths compatible with the coarsened evidence by
+\[
+ \mathcal H_e
+ =\{x_{0:T}\in\mathcal S^{T+1}:o(x_t)=e_t\text{ for every }t=0,\ldots,T\}.
+\]
+For \(q\in\Theta(P)\), \(x_{0:T}\in\mathcal H_e\), \(z_{0:T}\in\mathcal S^{T+1}\), and \(t\geq 1\), put
+\[
+ A_t^q(x_{0:T},z_{0:T})
+ =\sum_{f\in\mathcal R}q_f
+ \mathbf 1\!\left\{f(x_{t-1},b(x_{t-1}))=x_t,\ 
+ f(z_{t-1},\pi(z_{t-1}))=z_t\right\}.
+\]
+The shared-origin condition in \(\mathfrak M_{d,k,T}(\epsilon,B)\), the coupled-trajectory construction, initial exogeneity, and the iid-response condition imply, date by date, that
+\[
+ \Pr_q(X_{0:T}=x_{0:T},Z_{0:T}=z_{0:T})
+ =\rho(x_0)\mathbf 1\{z_0=x_0\}
+   \prod_{t=1}^T A_t^q(x_{0:T},z_{0:T}).                                      \tag{1}
+\]
+Indeed, after the common initial state is fixed, the two transitions at date \(t\) are deterministic functions of the same draw \(F_t\), so their joint conditional probability is exactly \(A_t^q\); independence of the draws across dates gives the product in (1).
+
+Define the finite path-sum numerator
+\[
+ N_e(q)=
+ \sum_{x_{0:T}\in\mathcal H_e}
+ \sum_{z_{0:T}\in\mathcal S^{T+1}}
+ \rho(x_0)\mathbf 1\{z_0=x_0\}
+ \left(\frac1T\sum_{s=1}^T r(z_s)\right)
+ \prod_{t=1}^T A_t^q(x_{0:T},z_{0:T}).                                      \tag{2}
+\]
+This is precisely the joint expectation of \(T^{-1}\sum_{s=1}^T r(Z_s)\) times \(\mathbf 1\{E_T=e\}\), by (1) and the definition of \(\mathcal H_e\).
+
+It remains to identify the denominator.  Marginally in the factual world, initial exogeneity and the iid-response condition give
+\[
+ \Pr_q(X_{0:T}=x_{0:T})
+ =\rho(x_0)\prod_{t=1}^T
+   \sum_{f\in\mathcal R}q_f
+   \mathbf 1\{f(x_{t-1},b(x_{t-1}))=x_t\}.                                 \tag{3}
+\]
+Because \(q\in\Theta(P)\), each factor in (3) equals
+\[
+ \sum_{f\in\mathcal R}q_f
+ \mathbf 1\{f(x_{t-1},b(x_{t-1}))=x_t\}
+ =P(x_t\mid x_{t-1},b(x_{t-1})).                                           \tag{4}
+\]
+Summing (3) over \(x_{0:T}\in\mathcal H_e\) and using (4) and the definition of the factual-record law therefore yields
+\[
+ \Pr_q(E_T=e)
+ =\sum_{x_{0:T}\in\mathcal H_e}\rho(x_0)
+   \prod_{t=1}^T P(x_t\mid x_{t-1},b(x_{t-1}))
+ =\Pr_{P,\rho,b,o}(E_T=e)=:p_e.                                            \tag{5}
+\]
+Thus the evidence probability is the same for every compatible mechanism.  The stated evidence-support condition gives \(p_e>0\), which justifies division, and (2)--(5) prove the explicit identity
+\[
+ Q_{q,T}(P,\rho,b,o,e)=\frac{N_e(q)}{p_e}.                                  \tag{6}
+\]
+Equations (2) and (6) are exactly the objective evaluated by the stationary shared-response endpoint program: every factual path compatible with \(e\) and every alternative path is enumerated, the displayed joint-response factor is multiplied at every date, and the resulting reward numerator is divided by the common factual evidence probability.
+
+We next prove that the displayed minimum and maximum exist.  The response-program set \(\mathcal R=\mathcal S^{\mathcal S\times\mathcal A}\) is finite.  The model-class membership of the tuple supplies the displayed \(q\in\Theta(P)\), so \(\Theta(P)\) is nonempty.  It is the subset of the finite-dimensional simplex specified by the finitely many linear equalities in its definition, and hence is closed and bounded.  More explicitly, every sequence in \(\Theta(P)\) has, by repeated subsequence extraction over the finitely many coordinates in \([0,1]\), a coordinatewise convergent subsequence; the limiting vector remains nonnegative, has total mass one, and satisfies all compatibility equalities after taking limits.  Thus its limit lies in \(\Theta(P)\).
+
+Each \(A_t^q(x_{0:T},z_{0:T})\) is linear in \(q\), so (2) is a polynomial of degree at most \(T\) in the finitely many coordinates \((q_f)_{f\in\mathcal R}\).  By \(p_e>0\), (6) is continuous on \(\Theta(P)\).  Let
+\[
+ m=\inf_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e),\qquad
+ M=\sup_{q\in\Theta(P)}Q_{q,T}(P,\rho,b,o,e).
+\]
+The objective lies in \([0,1]\) because \(r\) does.  Choose sequences whose objective values tend to \(m\) and \(M\).  The subsequence property just proved and continuity of (6) provide limits \(q^-,q^+\in\Theta(P)\) satisfying
+\[
+ Q_{q^-,T}(P,\rho,b,o,e)=m,
+ \qquad
+ Q_{q^+,T}(P,\rho,b,o,e)=M.                                                \tag{7}
+\]
+
+Finally, \(\Theta(P)\) is convex because all its defining constraints are linear.  If \(m<M\), then for \(s\in[0,1]\),
+\[
+ q_s=(1-s)q^-+s q^+\in\Theta(P),
+ \qquad
+ \varphi(s)=Q_{q_s,T}(P,\rho,b,o,e)
+\]
+is a continuous polynomial quotient with \(\varphi(0)=m\) and \(\varphi(1)=M\).  For any \(v\in(m,M)\), the elementary nested-interval construction that retains endpoints \(a_n,b_n\) with \(\varphi(a_n)\leq v\leq\varphi(b_n)\) and bisects \([a_n,b_n]\) produces a common limit \(s_v\); continuity gives \(\varphi(s_v)=v\).  If \(m=M\), the assertion is immediate.  Consequently,
+\[
+ \{Q_{q,T}(P,\rho,b,o,e):q\in\Theta(P)\}=[m,M].                            \tag{8}
+\]
+By the definition of the sharp interval, (7)--(8) show that the endpoint program returns exactly \(I_T(P,\rho,b,o,e)\), with attained endpoints.  In (1)--(2) the optimizer \(q^-\), respectively \(q^+\), is one fixed response-mass vector appearing in every factor, at every date, and for every hidden path; no date-specific or branch-specific selector has been introduced.  This proves the final shared-stationarity assertion.  The positive-cell and Poisson conditions are part of the stated model class but are not needed for this finite-horizon endpoint characterization beyond the separately assumed positivity of the realized evidence probability.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supporting proposition fixes the stationary shared-selector optimization object used by the rate and confidence statements. \textit{Gap.} ZhangTianBareinboim2022PartialCounterfactual supplies generic finite canonical-SCM optimization, and HaughSingal2023DynamicLatent uses time-invariant response distributions; the proposition records only the shared stationary-response specialization needed here and is not presented as a separate novelty claim. \textit{Consumer.} The rate analysis and calibration-set inversion use attained endpoints of one response law shared across dates.
+
+\begin{lemma}[lem:coarsening-domination]\label{lem:coarsening-domination}
+For every \(e\in\mathcal O^{T+1}\) with \(\Pr_{P,\rho,b,o}(E_T=e)>0\), \[D_T(P,\rho,b,o,e)\le\mathbb E_{\Pr_{P,\rho,b,o}}\!\left[D^{\mathrm{full}}_T(P,\rho,b,X_{0:T})\mid E_T=e\right].\] Consequently, \[\mathbb E_{\Pr_{P,\rho,b,o}}D_T(P,\rho,b,o,E_T)\le\mathbb E_{\Pr_{P,\rho,b,o}}D^{\mathrm{full}}_T(P,\rho,b,X_{0:T}).\]
+\end{lemma}
+\begin{proof}
+Put \(Y_T=T^{-1}\sum_{t=1}^T r(Z_t)\).  Fix a value \(e\) having positive factual probability.  For every full state path \(x_{0:T}\), define
+\[
+ w_e(x_{0:T})=
+ \Pr_{P,\rho,b,o}(X_{0:T}=x_{0:T}\mid E_T=e).
+\]
+By the compatibility equations in \(\Theta(P)\), the factual transition probability under every \(q\in\Theta(P)\) is
+\[
+ \Pr_q(X_t=y\mid X_{t-1}=x)
+ =\sum_{f\in\mathcal R}q_f\mathbf 1\{f(x,b(x))=y\}
+ =P(y\mid x,b(x)).
+\]
+The initial law is \(\rho\) by the coupled-trajectory construction.  Hence the joint law of \(X_{0:T}\), and consequently every weight \(w_e(x_{0:T})\), is independent of \(q\).  The weights are nonnegative, sum to one, and vanish unless the path has positive factual probability and \((o(x_0),\ldots,o(x_T))=e\).
+
+The tower property for the nested sigma-fields \(\sigma(E_T)\subseteq\sigma(X_{0:T})\) gives, for each \(q\in\Theta(P)\),
+\[
+\begin{aligned}
+ Q_{q,T}(P,\rho,b,o,e)
+ &=\mathbb E_q\!\left[\mathbb E_q(Y_T\mid X_{0:T})\mid E_T=e\right]\\
+ &=\sum_{x_{0:T}}w_e(x_{0:T})Q^{\mathrm{full}}_{q,T}(x_{0:T}).
+\end{aligned}
+\]
+For arbitrary \(q_1,q_0\in\Theta(P)\), the definition of the full-record diameter therefore implies
+\[
+\begin{aligned}
+ Q_{q_1,T}(P,\rho,b,o,e)-Q_{q_0,T}(P,\rho,b,o,e)
+ &=\sum_{x_{0:T}}w_e(x_{0:T})
+ \left\{Q^{\mathrm{full}}_{q_1,T}(x_{0:T})
+       -Q^{\mathrm{full}}_{q_0,T}(x_{0:T})\right\}\\
+ &\le \sum_{x_{0:T}}w_e(x_{0:T})
+ D^{\mathrm{full}}_T(P,\rho,b,x_{0:T})\\
+ &=\mathbb E_{\Pr_{P,\rho,b,o}}\!\left[
+ D^{\mathrm{full}}_T(P,\rho,b,X_{0:T})\mid E_T=e\right].
+\end{aligned}
+\]
+Taking the supremum over \(q_1\) and the infimum over \(q_0\), as prescribed by the sharp-interval definition, proves the first inequality.  Finally, multiply it by \(\Pr_{P,\rho,b,o}(E_T=e)\), sum over the finite set of positive-probability values \(e\), and apply the law of total expectation.  This proves the asserted unconditional inequality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This moves arbitrary state coarsening to a conditional averaging step without applying a full-record functional to an observation record or assuming filter contraction. \textit{Gap.} OberstSontag2019 samples one selected POMDP mechanism, and vanHandel2009 studies stability within a fixed hidden model; neither compares coarsened and full-record envelopes over all compatible response mechanisms. \textit{Consumer.} Users with privacy-coarsened or latent factual records inherit any full-record expected-width certificate.
+
+\begin{lemma}[lem:poisson-martingale]\label{lem:poisson-martingale}
+After shifting \(h\) to have range in \([0,B]\), each \(\Delta_t(q)\) is a martingale difference under \(\Pr_{P,\rho,b,o}\), its conditional range has length at most \(B\), and for every \(q\in\Theta(P)\) the exact full-record identity \[T\{Q^{\mathrm{full}}_{q,T}(X_{0:T})-g\}=\alpha_0(q)K_{\pi}h-\alpha_T(q)K_{\pi}h+M_T(q)\] holds \(\Pr_{P,\rho,b,o}\)-almost surely.
+\end{lemma}
+\begin{proof}
+Because \(K_{\pi}\) is a stochastic kernel, replacing \(h\) by \(h-c\mathbf 1\) leaves \(h-K_{\pi}h\) unchanged.  Take \(c=\min_{z\in\mathcal S}h(z)\).  The Poisson-span assumption then gives
+\[
+ 0\le h(z)\le B\qquad(z\in\mathcal S),
+\]
+while the Poisson equation remains \(r-g\mathbf 1=h-K_{\pi}h\).
+
+Let \(\mathcal F^X_t=\sigma(X_0,\ldots,X_t)\).  Consider a realized positive factual transition \((x,y)\).  Compatibility and positivity give
+\[
+ \sum_{z'\in\mathcal S}L_q(x,y)(z,z')
+ =\frac{\sum_f q_f\mathbf 1\{f(x,b(x))=y\}}
+ {P(y\mid x,b(x))}=1,
+\]
+so \(L_q(x,y)(z,\cdot)\) is a probability distribution.  Independence of the response programs across dates, together with their independence of \(X_0\), implies the filtering recursion
+\[
+ \alpha_t(q)=\alpha_{t-1}(q)L_q(X_{t-1},X_t).
+\]
+Indeed, conditional on \(X_{t-1}=x\) and \(X_t=y\), the date-\(t\) response program has mass
+\[
+ \frac{q_f\mathbf 1\{f(x,b(x))=y\}}{P(y\mid x,b(x))},
+\]
+and it is conditionally independent of the response programs at earlier dates.  The same independence also shows that, conditional on \(X_{0:t}\), the future factual variables \(X_{t+1:T}\) are conditionally independent of \(Z_t\).  Thus
+\[
+ \mathbb E_q[r(Z_t)\mid X_{0:T}]=\alpha_t(q)r.
+\]
+
+For every \(x,z,z'\), summing the joint numerator defining \(L_q\) over the next factual state gives
+\[
+\begin{aligned}
+ \sum_{y:P(y\mid x,b(x))>0}P(y\mid x,b(x))L_q(x,y)(z,z')
+ &=\sum_{f\in\mathcal R}q_f\mathbf 1\{f(z,\pi(z))=z'\}\\
+ &=P(z'\mid z,\pi(z))=K_{\pi}(z,z').
+\end{aligned}
+\]
+The omitted terms have zero numerator by compatibility.  Since \(X_t\), conditionally on \(\mathcal F^X_{t-1}\), has law \(P(\cdot\mid X_{t-1},b(X_{t-1}))\), the preceding display yields
+\[
+ \mathbb E[\Delta_t(q)\mid\mathcal F^X_{t-1}]
+ =\alpha_{t-1}(q)(K_{\pi}-K_{\pi})h=0.
+\]
+Thus \(\Delta_t(q)\) is a martingale difference under the common factual law.  Given \(\mathcal F^X_{t-1}\), its possible values have the form
+\[
+ \alpha_{t-1}(q)L_q(X_{t-1},y)h-alpha_{t-1}(q)K_{\pi}h.
+\]
+The first term is the expectation of an \([0,B]\)-valued function under a probability distribution, and the second term is constant with respect to \(y\).  Consequently the conditional range has length at most \(B\).
+
+It remains to establish the identity.  The filtering recursion and the definition of \(M_T(q)\) give
+\[
+ M_T(q)=\sum_{t=1}^T\left\{\alpha_t(q)h-alpha_{t-1}(q)K_{\pi}h\right\}.
+\]
+On the other hand, the Poisson equation and the preceding conditional-expectation identity give
+\[
+ T\{Q^{\mathrm{full}}_{q,T}(X_{0:T})-g\}
+ =\sum_{t=1}^T\alpha_t(q)(h-K_{\pi}h).
+\]
+Subtracting the second display from the first telescopes exactly:
+\[
+ M_T(q)-T\{Q^{\mathrm{full}}_{q,T}(X_{0:T})-g\}
+ =\alpha_T(q)K_{\pi}h-\alpha_0(q)K_{\pi}h.
+\]
+Rearrangement proves
+\[
+ T\{Q^{\mathrm{full}}_{q,T}(X_{0:T})-g\}
+ =\alpha_0(q)K_{\pi}h-\alpha_T(q)K_{\pi}h+M_T(q)
+\]
+almost surely under the common factual law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The identity isolates full-record ambiguity in a posterior-normalized martingale family with a uniformly bounded terminal bias. \textit{Gap.} SayedanaCainesMahajan2025 derives the analogous decomposition and concentration for one fixed MDP kernel, not a supremum over a record-adaptive compatible-response polytope whose masses may vanish. \textit{Consumer.} The decomposition supplies the proof interface for the square kill test and any whole-polytope rate inequality.
+
+\begin{openendedquestion}[oeq:polytope-maximal-inequality]\label{oeq:polytope-maximal-inequality}
+As the first D0 obligation, determine whether the synchronizer--two-permutation square satisfies \[\sup_{T\ge1}T^{-1/2}\mathbb E\sup_{(\lambda,\vartheta)\in[0,1]^2}\left|\sum_{t=1}^T m_t(\lambda,\vartheta)\right|<\infty.\] An affirmative answer must give a bound uniform on the entire two-parameter square and then determine whether its predictable-scale argument localizes over every face of \(\Theta(P)\) to prove \[\mathbb E_{\Pr_{P,\rho,b,o}}\sup_{q\in\Theta(P)}|M_T(q)|\le \frac{511B d^{dk}}{\epsilon}\sqrt T\quad\text{for every }T\ge1.\] A negative answer must give an explicit horizon-dependent \(\lambda_T,\vartheta_T\) counterselection and derive the sharp replacement rate for \(\mathbb E_{\Pr_{P,\rho,b,o}}D_T(P,\rho,b,o,E_T)\) on the unchanged model class.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The two-parameter square is the smallest unsolved interior face and the mandatory falsification test for the whole-polytope parametric rate. \textit{Gap.} HaughSingal2026Casino, arXiv version 3, pages 9--11, Sections 4.2--4.3, assumes exogenous noise vectors independent across time, independence of transition and emission noise, a direct intervention fixing the hidden state to the fair die, ambiguity only in the time-homogeneous emission coupling, and an irreducible aperiodic hidden chain. It proves asymptotic full identification of time-averaged EWAC under those restrictions, not a finite root-\(T\) rate over the complete stationary response-program fiber. No model-class inclusion or transfer is asserted. deLaPenaLaiShao2009 and RakhlinSridharanTewari2015 provide general maximal-inequality tools but do not evaluate this posterior-normalized response-polytope family at vanishing response masses. \textit{Consumer.} The result either supplies the first uniform ingredient for the conditional root-rate theorem or identifies the sharp slower headline rate through a legal face of the same causal model.
+
+\begin{theorem}[thm:binary-sharpness]\label{thm:binary-sharpness}
+The construction \(\mathfrak W_{\mathrm{bin}}\) belongs to \(\mathfrak M_{2,2,T}(1/4,2)\); every one of the sixteen response programs has mass at least \(1/128\) under each of \(q_+\) and \(q_-\), and \[Q^{\mathrm{full}}_{q_+,T}(X_{0:T})-Q^{\mathrm{full}}_{q_-,T}(X_{0:T})=\frac{1}{2T}\sum_{j=1}^T\bigl(1-2^{-(T-j+1)}\bigr)(2X_j-1).\] With the identity observation map, \(E_T=X_{0:T}\), and consequently \(\liminf_{T\to\infty}\sqrt T\,\mathbb E_{\Pr_{P,\rho,b,o}}[D_T(P,\rho,b,o,E_T)]\ge1/\sqrt{2\pi}\). Thus no uniform upper rate on this model class can be \(o(T^{-1/2})\), even on a full-support region of response laws.
+\end{theorem}
+\begin{proof}
+Write a response program as \(f=(f_{00},f_{10},f_{01},f_{11})\), in the coordinate order fixed in Definition \(\mathfrak W_{\mathrm{bin}}\).  The controlled kernel determined by \(p_{\mathrm{bin}}\) is
+\[
+ P(1\mid 0,0)=P(1\mid 1,0)=\frac12,
+ \qquad
+ P(1\mid 0,1)=\frac14,
+ \qquad
+ P(1\mid 1,1)=\frac34 .
+\]
+The probabilities of output zero are the complements of these four numbers.  Consequently every transition cell is positive and is at least \(1/4\), as required by the positive-cells condition.
+
+We first check compatibility and full support.  Directly averaging the four displayed programs in each of the definitions of \(\nu_+\) and \(\nu_-\) gives
+\[
+ \bigl(\mathbb E_{\nu_s}f_{00},\mathbb E_{\nu_s}f_{10},
+        \mathbb E_{\nu_s}f_{01},\mathbb E_{\nu_s}f_{11}\bigr)
+ =\left(\frac12,\frac12,\frac14,\frac34\right)=p_{\mathrm{bin}},
+ \qquad s\in\{+,-\}.
+\]
+The product law \(q_0\) has the same coordinate means by its definition.  Affinity of coordinate marginals under mixtures therefore shows, for every response coordinate \((x,a)\) and output \(y\),
+\[
+ \sum_f q_s(f)\mathbf 1\{f(x,a)=y\}=P(y\mid x,a),
+ \qquad s\in\{+,-\}.
+\]
+Thus \(q_+,q_-\in\Theta(P)\) by the definition of the compatible-response polytope.  Moreover, independence of the four coordinates under \(q_0\) gives
+\[
+ \min_f q_0(f)
+ =\left(\frac12\right)^2\left(\frac14\right)^2
+ =\frac1{64}.
+\]
+Since \(q_s=(q_0+\nu_s)/2\) and \(\nu_s(f)\ge 0\),
+\[
+ q_s(f)\ge\frac12q_0(f)\ge\frac1{128}
+ \quad\text{for every one of the sixteen programs and }s\in\{+,-\}.
+\]
+
+For either \(s\in\{+,-\}\), take the programs \(F_1,\ldots,F_T\) independently with common law \(q_s\), independently of the deterministic initial state \(X_0=Z_0=0\).  This verifies the iid-response, initial-exogeneity, and shared-origin clauses in the definition of \(\mathfrak M_{d,k,T}(\epsilon,B)\).  Under the target policy, the nominal kernel and reward vector are
+\[
+ K_\pi=\begin{pmatrix}3/4&1/4\\[2pt]1/4&3/4\end{pmatrix},
+ \qquad r=\begin{pmatrix}0\\1\end{pmatrix}.
+\]
+Set \(g=1/2\), \(h(0)=0\), and \(h(1)=2\).  Then
+\[
+ K_\pi h=\begin{pmatrix}1/2\\3/2\end{pmatrix},
+ \qquad
+ h-K_\pi h=\begin{pmatrix}-1/2\\1/2\end{pmatrix}
+ =r-g\mathbf 1,
+ \qquad
+ \operatorname{span}(h)=2.
+\]
+Hence the Poisson-equation and Poisson-span clauses hold with \(B=2\).  Together with compatibility and the \(1/4\) positive-cell floor proved above, all member properties in Definition \(\mathfrak M_{d,k,T}(\epsilon,B)\) hold.  Thus each of the two mechanisms specified by \(\mathfrak W_{\mathrm{bin}}\) is in \(\mathfrak M_{2,2,T}(1/4,2)\).
+
+We next derive the finite-record formula.  Fix \(x,b,z\in\{0,1\}\), where \(b\) is the observed factual next state, and define
+\[
+ L_s(x,b)(z,1)
+ :=\Pr_{q_s}\{F(z,1)=1\mid F(x,0)=b\}.
+\]
+The action-zero coordinate is Bernoulli \(1/2\) under every law just considered, so the conditioning event has probability \(1/2\).  Under the product law, the two coordinates in this conditional probability are distinct and hence
+\[
+ q_0\{f(x,0)=b,f(z,1)=1\}=\frac18+\frac z4.
+\]
+Enumeration of the four programs in the supports of \(\nu_+\) and \(\nu_-\) gives, independently of \(x\),
+\[
+ \nu_+\{f(x,0)=b,f(z,1)=1\}=\frac{z+b}{4},
+ \qquad
+ \nu_-\{f(x,0)=b,f(z,1)=1\}=\frac{1+z-b}{4}.
+\]
+Using \(q_s=(q_0+\nu_s)/2\) in numerator and denominator therefore yields the exact conditional kernels
+\[
+ L_+(x,b)(z,1)=\frac z2+\frac14+\frac{b-1/2}{4},
+ \qquad
+ L_-(x,b)(z,1)=\frac z2+\frac14-\frac{b-1/2}{4}.
+ \tag{1}
+\]
+All denominators in this calculation equal \(1/2\), so no conditional probability is taken on a null event.
+
+Let \(x_{0:T}\) be any factual path of positive probability.  Independence of the response draws and initial-state exogeneity give the conditional factorization
+\[
+ \Pr_{q_s}(F_{1:T}=f_{1:T}\mid X_{0:T}=x_{0:T})
+ =\prod_{t=1}^T
+ \frac{q_s(f_t)\mathbf 1\{f_t(x_{t-1},0)=x_t\}}
+ {P(x_t\mid x_{t-1},0)}.
+ \tag{2}
+\]
+Indeed, before division the joint mass is the product of the \(T\) numerator factors, and summing each factor over \(f_t\) gives its positive denominator by \(q_s\in\Theta(P)\).  Hence, conditionally on the full factual path, the target process is Markov with the time-\(t\) kernel in (1), with \(b=x_t\).
+
+Put \(R_t=2x_t-1\), and let
+\[
+ m_t^s=\mathbb E_{q_s}[Z_t\mid X_{0:T}=x_{0:T}],
+ \qquad \delta_t=m_t^+-m_t^-.
+\]
+The shared origin gives \(m_0^+=m_0^-=0\).  Taking conditional expectations in (1), using (2), gives for \(t\ge1\)
+\[
+ m_t^s=\frac12m_{t-1}^s+\frac14+s\frac{R_t}{8},
+ \qquad
+ \delta_t=\frac12\delta_{t-1}+\frac{R_t}{4},
+\]
+where \(s\) is interpreted as \(+1\) or \(-1\).  Iteration from \(\delta_0=0\) gives
+\[
+ \delta_t=\frac14\sum_{j=1}^t2^{-(t-j)}R_j.
+\]
+Because \(r(z)=z\), Definition \(Q^{\mathrm{full}}_{q,T}\) and a finite interchange of the two sums now imply
+\[
+ \begin{aligned}
+ Q^{\mathrm{full}}_{q_+,T}(x_{0:T})
+ -Q^{\mathrm{full}}_{q_-,T}(x_{0:T})
+ &=\frac1T\sum_{t=1}^T\delta_t\\
+ &=\frac1{4T}\sum_{j=1}^TR_j\sum_{t=j}^T2^{-(t-j)}\\
+ &=\frac1{2T}\sum_{j=1}^T
+ \left(1-2^{-(T-j+1)}\right)(2x_j-1).
+ \end{aligned}
+ \tag{3}
+\]
+This proves the asserted equality for every positive-probability path, and hence with \(x_{0:T}=X_{0:T}\) almost surely.
+
+It remains to establish the sharp rate consequence.  Under \(b\equiv0\), the first two nominal response coordinates show that
+\[
+ \Pr(X_t=1\mid X_{t-1})=\frac12.
+\]
+Thus \(R_1,\ldots,R_T\) are independent symmetric signs under the factual-record law.  Since the observation map is the identity, the events \(\{E_T=e\}\) and \(\{X_{0:T}=e\}\) coincide.  The coarsened and full conditional targets therefore coincide, and since \(q_+,q_-\in\Theta(P)\), the definition of the sharp interval gives
+\[
+ D_T(P,\rho,b,o,E_T)
+ \ge
+ \left|Q^{\mathrm{full}}_{q_+,T}(X_{0:T})
+       -Q^{\mathrm{full}}_{q_-,T}(X_{0:T})\right|.
+ \tag{4}
+\]
+
+For completeness, we derive the exact absolute-moment asymptotic needed in (4).  Let
+\[
+ S_T=\sum_{j=1}^TR_j,
+ \qquad
+ W_T=\sum_{j=1}^T\left(1-2^{-(T-j+1)}\right)R_j.
+\]
+The geometric sum gives the deterministic comparison
+\[
+ |W_T-S_T|
+ \le\sum_{j=1}^T2^{-(T-j+1)}=1-2^{-T}<1.
+ \tag{5}
+\]
+Write \(c_m=4^{-m}\binom{2m}{m}\).  Symmetry of the binomial law and the telescoping identity
+\[
+ \sum_{j=m+1}^{2m}(j-m)\binom{2m}{j}
+ =m\binom{2m-1}{m}=\frac m2\binom{2m}{m}
+\]
+give
+\[
+ \mathbb E|S_{2m}|=2m c_m.
+ \tag{6}
+\]
+Conditioning on \(S_{2m}\), the average of \(|S_{2m}+1|\) and \(|S_{2m}-1|\) equals \(|S_{2m}|\) unless \(S_{2m}=0\), when it equals one.  Since \(\Pr(S_{2m}=0)=c_m\),
+\[
+ \mathbb E|S_{2m+1}|=(2m+1)c_m.
+ \tag{7}
+\]
+
+To evaluate \(c_m\), set \(I_n=\int_0^{\pi/2}\cos^n(u)\,du\).  Integration by parts gives \(I_n=(n-1)I_{n-2}/n\), while \(I_0=\pi/2\) and \(I_1=1\).  Consequently
+\[
+ I_{2m}=\frac\pi2c_m,
+ \qquad
+ I_{2m+1}=\frac1{(2m+1)c_m},
+ \qquad
+ I_{2m-1}=\frac1{2m c_m}.
+\]
+Because \(0<\cos u<1\) for \(0<u<\pi/2\),
+\(I_{2m+1}<I_{2m}<I_{2m-1}\).  Substitution of the preceding formulas yields
+\[
+ \frac1{\sqrt{\pi(m+1/2)}}<c_m<\frac1{\sqrt{\pi m}},
+\]
+and hence \(\sqrt m\,c_m\to1/\sqrt\pi\).  Equations (6) and (7) therefore prove, along the even and odd subsequences respectively,
+\[
+ \frac{\mathbb E|S_T|}{\sqrt T}\longrightarrow\sqrt{\frac2\pi}.
+ \tag{8}
+\]
+The reverse triangle inequality and (5) show that the same limit holds with \(W_T\) in place of \(S_T\).
+
+Finally, (3) and (4) imply
+\[
+ \sqrt T\,\mathbb E_{\Pr_{P,\rho,b,o}}[D_T(P,\rho,b,o,E_T)]
+ \ge \frac1{2\sqrt T}\mathbb E|W_T|.
+\]
+Taking the lower limit and applying (8) gives
+\[
+ \liminf_{T\to\infty}\sqrt T\,
+ \mathbb E_{\Pr_{P,\rho,b,o}}[D_T(P,\rho,b,o,E_T)]
+ \ge\frac12\sqrt{\frac2\pi}=\frac1{\sqrt{2\pi}}.
+\]
+Any uniform \(o(T^{-1/2})\) upper rate would contradict this fixed legal sequence of instances.  Since both witnessing response laws put at least \(1/128\) mass on every deterministic response program, the obstruction persists after restricting the two indistinguishable candidate mechanisms to this full-support region; it is not caused by zero response masses.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A legal full-support feedback construction rules out any uniformly faster ambiguity rate and shows that the boundary phenomenon is not driven by zero response masses. \textit{Gap.} The one-transition bounds in LallyKazemiPaoletti2026RobustCounterfactualMDP and the special-casino qualitative convergence of time-homogeneous and time-inhomogeneous \(\mathrm{EWAC}/T\) bounds in HaughSingal2026Casino do not give a lower-rate witness for recursive stationary-feedback counterfactuals. \textit{Consumer.} Study designers learn that doubling counterfactual precision can require approximately four times the factual record length even under benign nominal transitions.
+
+\begin{theorem}[thm:confidence-fiber]\label{thm:confidence-fiber}
+Suppose each transition row has \(n_{x,a}\) independent multinomial calibration draws, the nominal zero pattern is known, and calibration is independent of the factual record. Then \[\Pr_{\mathrm{cal}}\left\{I_T(P,\rho,b,o,e)\subseteq\widehat I_{T,\alpha}(P,\rho,b,o,e)\text{ for every }T\ge1\text{ and every }e\in\mathcal O^{T+1}\text{ with }\Pr_{P,\rho,b,o}(E_T=e)>0\right\}\ge1-\alpha.\] Both coarsened-record endpoints are therefore covered simultaneously for every fixed factual-law-positive record, even when response masses are zero and the endpoint-active face changes.
+\end{theorem}
+\begin{proof}
+For each \((x,a)\in\mathcal S\times\mathcal A\), write \(Y^{x,a}_1,\ldots,Y^{x,a}_{n_{x,a}}\) for the multinomial calibration draws from the row \(P(\cdot\mid x,a)\).  For \(y\in\mathcal S\), define
+\[
+ V^{x,a,y}_i=\mathbf 1\{Y^{x,a}_i=y\},
+ \qquad
+ \widehat P(y\mid x,a)=\frac{1}{n_{x,a}}\sum_{i=1}^{n_{x,a}}V^{x,a,y}_i.
+\]
+The variables \(V^{x,a,y}_i\), with \(i\) varying and \((x,a,y)\) fixed, are independent, take values in \([0,1]\), and have common expectation \(P(y\mid x,a)\), by the stated rowwise multinomial sampling scheme.  Since \(d\ge2\), \(k\ge1\), \(0<\alpha<1\), and \(n_{x,a}\ge1\), the radius \(\delta_{x,a}\) is strictly positive.  Applying Lemma \(\mathrm{lem:hoeffding\mbox{-}one\mbox{-}sided}\) first to the variables \(V^{x,a,y}_i\) and then to \(-V^{x,a,y}_i\), and adding the two one-sided bounds, gives
+\[
+ \Pr_{\mathrm{cal}}\!\left\{
+ \left|\widehat P(y\mid x,a)-P(y\mid x,a)\right|>\delta_{x,a}
+ \right\}
+ \le 2\exp\{-2n_{x,a}\delta_{x,a}^{,2}\}
+ =\frac{\alpha}{d^2k}.
+\]
+No independence between distinct cells is required for the next step.  Define the single calibration event
+\[
+ \mathcal H=
+ \bigcap_{x\in\mathcal S}\bigcap_{a\in\mathcal A}\bigcap_{y\in\mathcal S}
+ \left\{
+ \left|\widehat P(y\mid x,a)-P(y\mid x,a)\right|\le\delta_{x,a}
+ \right\}.
+\]
+There are exactly \(d^2k\) indexed cells.  Therefore the union bound and the preceding display imply
+\[
+ \Pr_{\mathrm{cal}}(\mathcal H^c)
+ \le
+ \sum_{x\in\mathcal S}\sum_{a\in\mathcal A}\sum_{y\in\mathcal S}
+ \frac{\alpha}{d^2k}
+ =\alpha,
+ \qquad
+ \Pr_{\mathrm{cal}}(\mathcal H)\ge1-\alpha.
+\]
+
+We next show deterministically that \(\mathcal H\) implies the asserted simultaneous inclusion.  On \(\mathcal H\), the true kernel \(P\) obeys every cellwise inequality in Definition \(\mathrm{def:confidence\mbox{-}region}\).  It has the stipulated zero pattern because that pattern is the nominal one.  On each nonzero cell it obeys \(P(y\mid x,a)\ge\epsilon\) by Assumption \(\mathrm{ass:positive\mbox{-}cells}\).  Finally, the pair \((g,h)\) witnesses the last two constraints in that definition: Assumption \(\mathrm{ass:poisson\mbox{-}equation}\) gives
+\[
+ r-g\mathbf 1=h-K_{\pi}h,
+\]
+and Assumption \(\mathrm{ass:poisson\mbox{-}span}\) gives \(\operatorname{span}(h)\le B\).  Hence
+\[
+ P\in\mathcal C_{\alpha}
+ \quad\text{on }\mathcal H,
+\]
+so in particular \(\mathcal C_{\alpha}\ne\varnothing\) there.
+
+Fix any integer \(T\ge1\) and any \(e\in\mathcal O^{T+1}\) satisfying \(\Pr_{P,\rho,b,o}(E_T=e)>0\).  We record why all intervals in the defining union are well typed.  By Definition \(\mathrm{def:factual\mbox{-}record\mbox{-}law}\), positivity of this probability implies, because the displayed sum is finite and has nonnegative summands, that there is a state path \(s_{0:T}\) such that \(\rho(s_0)>0\), \(o(s_t)=e_t\) for every \(t\), and
+\[
+ P(s_t\mid s_{t-1},b(s_{t-1}))>0
+ \quad (t=1,\ldots,T).
+\]
+Every \(P'\in\mathcal C_{\alpha}\) has the same zero pattern as \(P\); consequently each corresponding transition probability under \(P'\) is positive.  The same path then contributes a strictly positive summand to \(\Pr_{P',\rho,b,o}(E_T=e)\).  Thus \(I_T(P',\rho,b,o,e)\) is defined for every retained \(P'\), as required by Definition \(\mathrm{def:sharp\mbox{-}interval}\).
+
+On \(\mathcal H\), the membership \(P\in\mathcal C_{\alpha}\) and Definition \(\mathrm{def:confidence\mbox{-}fiber}\) now give, simultaneously for this and every other admissible \((T,e)\),
+\[
+ \begin{aligned}
+ I_T(P,\rho,b,o,e)
+ &\subseteq
+ \bigcup_{P'\in\mathcal C_{\alpha}}I_T(P',\rho,b,o,e)\\
+ &\subseteq
+ \operatorname{hull}\!\left(
+   \bigcup_{P'\in\mathcal C_{\alpha}}I_T(P',\rho,b,o,e)
+ \right)
+ =\widehat I_{T,\alpha}(P,\rho,b,o,e).
+ \end{aligned}
+\]
+The event \(\mathcal H\) does not depend on \(T\), on \(e\), or on an optimizer over \(\Theta(P)\).  It is therefore contained in the event inside the probability in the theorem.  The bound \(\Pr_{\mathrm{cal}}(\mathcal H)\ge1-\alpha\) proves the displayed simultaneous claim.
+
+For completeness, the independence assumption supplies the advertised post-record interpretation rather than being needed for the preceding set inclusion.  The event \(\mathcal H\) is measurable with respect to the calibration sample.  By Assumption \(\mathrm{ass:calibration\mbox{-}independence}\), for every fixed \(T\) and every factual-law-positive \(e\),
+\[
+ \Pr\{\mathcal H\mid E_T=e\}
+ =\Pr_{\mathrm{cal}}(\mathcal H)
+ \ge1-\alpha.
+\]
+Since \(\mathcal H\) implies inclusion of the entire sharp interval, this is simultaneous conditional coverage of its lower and upper endpoints.  The argument never divides by a response-program mass, assumes that such a mass is positive, differentiates an endpoint optimizer, or requires the optimizer to remain on one face of \(\Theta(P)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Set inversion delivers honest endpoint coverage under the explicitly indexed factual law without differentiating a nonunique optimizer or excluding response-polytope boundaries. \textit{Gap.} KaidoMolinariStoye2019CalibratedProjection gives uniform asymptotic projection inference for moment models, while LallyKazemiPaoletti2026RobustCounterfactualMDP explicitly leaves estimated transition laws open; neither provides this exact simultaneous stationary-response fiber. \textit{Consumer.} An analyst with independent simulator or calibration transitions can attach a finite-sample confidence statement to the sharp coarsened-record counterfactual interval.
+
+\begin{lemma}[lem:hoeffding-one-sided]\label{lem:hoeffding-one-sided}
+Let \(N\ge 1\), and let \(Y_1,\ldots,Y_N\) be independent real-valued random variables such that \(a_i\le Y_i\le b_i\) almost surely.  Put \(\overline Y=N^{-1}\sum_{i=1}^N Y_i\) and \(\mu=\mathbb E[\overline Y]\).  Then, for every \(u>0\),
+\[
+ \Pr\{\overline Y-\mu\ge u\}
+ \le
+ \exp\!\left\{-\frac{2N^2u^2}{\sum_{i=1}^N(b_i-a_i)^2}\right\}.
+\]
+\end{lemma}
+
+\begin{theorem}[thm:legal-triangle-and-universal-logarithmic-bound]\label{thm:legal-triangle-and-universal-logarithmic-bound}
+On the legal binary synchronizer--two-permutation family in Definition \(\texttt{def:triangle-handle}\), the factual signs \(R_1,\ldots,R_T\) are independent fair signs, the displayed recursion is exactly the conditional counterfactual-spin recursion, and
+\[
+ M_T\bigl(q^{\triangle}_{\lambda,\vartheta}\bigr)
+ =\frac12 S_T(u,v),\qquad
+ Q^{\mathrm{full}}_{q^{\triangle}_{\lambda,\vartheta},T}(X_{0:T})
+ =\frac12+\frac{S_T(u,v)}{2T}.
+\]
+Consequently the complete compatible interval dominates the triangular-family range divided by \(2T\).  For every fixed \((u,v)\) in the triangle,
+\[
+ \mathbb E|S_T(u,v)|\leq\sqrt T,
+\]
+and on the union \(\partial\mathcal T\) of its three boundary edges,
+\[
+ \mathbb E\sup_{(u,v)\in\partial\mathcal T}|S_T(u,v)|\leq13\sqrt T.
+\]
+The corresponding conditional-reward range restricted to these boundary response laws therefore satisfies
+\[
+ \mathbb E\left[
+ \sup_{(u,v)\in\partial\mathcal T}Q^{\mathrm{full}}_{q^{\triangle}_{\lambda,\vartheta},T}(X_{0:T})
+ -\inf_{(u,v)\in\partial\mathcal T}Q^{\mathrm{full}}_{q^{\triangle}_{\lambda,\vartheta},T}(X_{0:T})
+ \right]\leq\frac{13}{\sqrt T}.
+\]
+For the unchanged complete stationary-response class, without response-mass positivity or conditional-kernel contraction, let
+\[
+ m=d^{dk},\qquad
+ N_T=\left(1+\frac{4T^{3/2}}{\epsilon}\right)^m.
+\]
+Then the following unconditional whole-polytope bound holds for every \(T\geq1\):
+\[
+ \mathbb E_{\Pr_{P,\rho,b,o}}D_T(P,\rho,b,o,E_T)
+ \leq
+ \min\left\{1,\frac{2B}{T}
+ +B\sqrt{\frac{2\log(2N_T)}{T}}
+ +\frac{T+1}{2T^{3/2}}\right\}.
+\]
+Thus the proved uniform rate on the complete polytope is \(O(\sqrt{\log T/T})\), while the entire boundary of the legal two-dimensional kill-test face has the root-\(T\) maximal scale.  No claim is made here that the same maximal bound holds in the face interior or on all of \(\Theta(P)\).
+\end{theorem}
+\begin{proof}
+We first verify that the displayed square parametrizes a subset of the stated causal model rather than merely an abstract recursion.  Every coordinate of each of \(q^{\mathrm s},q^0,q^1\) is Bernoulli \(1/2\), because each law gives equal mass to one response vector and its coordinatewise complement.  Hence, for \(j\in\{\mathrm s,0,1\}\), every \(x,a,y\in\{0,1\}\) satisfies
+\[
+ \sum_{f\in\mathcal R}q^j_f\mathbf 1\{f(x,a)=y\}=\frac12=P(y\mid x,a).
+ \tag{1}
+\]
+The compatibility equations are affine, so (1) implies \(q^{\triangle}_{\lambda,\vartheta}\in\Theta(P)\) for every \(0\leq\lambda,\vartheta\leq1\).  All nominal transition cells equal \(1/2\), so the positive-cell condition holds with \(\epsilon=1/2\).  Under \(b\equiv0\), (1) also gives
+\[
+ \Pr(X_t=y\mid X_{0:t-1})=\frac12,
+\]
+and the iid-response and initial-exogeneity assumptions therefore make \(R_1,\ldots,R_T\) independent fair signs, with the explicitly specified \(R_0=-1\).
+
+Under \(q^{\mathrm s}\), conditioning on a factual transition makes the target output equal the factual output.  Under \(q^0\), the target-output spin equals the factual-output spin times the preceding target-state spin.  Under \(q^1\), it equals the factual-output spin times the preceding factual-state spin times the preceding target-state spin.  These three assertions can also be checked directly from the response vectors: for the first vector in each antipodal pair the respective target bits are
+\[
+ y,\qquad y\mathbin{\mathsf{xor}}(1-z),\qquad
+ y\mathbin{\mathsf{xor}}x\mathbin{\mathsf{xor}}z.
+ \tag{2}
+\]
+Each vertex assigns probability \(1/2\) to either value of the factual output, so Bayes' rule leaves the three mixture weights unchanged after conditioning on that output.  Taking the conditional expectation of the target spin in (2), and using the shared origin \(Z_0=X_0=0\), yields
+\[
+ m_0=-1,\qquad
+ m_t=R_t\left[(1-\lambda)+\lambda(1-\vartheta)m_{t-1}
+                 +\lambda\vartheta R_{t-1}m_{t-1}\right].
+ \tag{3}
+\]
+This is the recursion in the definition.  With \(Y_t=R_tm_t\), \(u=\lambda\), and \(v=\lambda(2\vartheta-1)\), equation (3) gives exactly
+\[
+ Y_0=R_0m_0=1,\qquad
+ Y_t=1-u+c_{t-1}Y_{t-1},\qquad
+ c_{t-1}=\begin{cases}u,&R_{t-1}=1,\\v,&R_{t-1}=-1.\end{cases}
+ \tag{4}
+\]
+
+The target-policy nominal kernel has both rows \((1/2,1/2)\).  Set \(g=1/2\) and \(h(z)=z\).  Then
+\[
+ K_{\pi}h=\frac12\mathbf 1,\qquad
+ h-K_{\pi}h=r-g\mathbf 1,\qquad
+ \operatorname{span}(h)=1.
+ \tag{5}
+\]
+Thus the Poisson and span assumptions hold with \(B=1\), and the construction belongs to \(\mathfrak M_{2,2,T}(1/2,1)\).  On a full factual path, \(\alpha_t h=(1+m_t)/2\), whereas \(\alpha_{t-1}K_{\pi}h=1/2\).  The definition of the Poisson increment and (5) therefore give the exact identities
+\[
+ \Delta_t\bigl(q^{\triangle}_{\lambda,\vartheta}\bigr)=\frac{m_t}{2},
+ \qquad
+ M_T\bigl(q^{\triangle}_{\lambda,\vartheta}\bigr)=\frac12\sum_{t=1}^Tm_t,
+ \tag{6}
+\]
+and, because \(r(z)=z\),
+\[
+ Q^{\mathrm{full}}_{q^{\triangle}_{\lambda,\vartheta},T}(X_{0:T})
+ =\frac1T\sum_{t=1}^T\alpha_t r
+ =\frac12+\frac1{2T}\sum_{t=1}^Tm_t.
+ \tag{7}
+\]
+The boundary terms in the frozen Poisson identity agree here because \(K_{\pi}h\) is constant, so (6) and (7) are also mutually consistent with that identity.
+
+Let \(\operatorname{rng}_{\mathcal T}S_T=\sup_{(u,v)\in\mathcal T}S_T(u,v)-\inf_{(u,v)\in\mathcal T}S_T(u,v)\).  Since the triangular family lies in \(\Theta(P)\), the identity observation map and (7) imply
+\[
+ D_T(P,\rho,b,o,X_{0:T})
+ \geq \frac{\operatorname{rng}_{\mathcal T}S_T}{2T}.
+ \tag{8}
+\]
+This is the required link from the kill test to the sharp causal interval.  In particular, on the edge \(v=u\), equation (4) gives \(Y_t=1\), so \(S_T(u,u)=\sum_{t=1}^TR_t\).  Hence
+\[
+ \sup_{\mathcal T}|S_T|
+ \leq\left|\sum_{t=1}^TR_t\right|+\operatorname{rng}_{\mathcal T}S_T.
+ \tag{9}
+\]
+Thus any future construction for which \(T^{-1/2}\mathbb E\sup_{\mathcal T}|S_T|\) diverges automatically gives, by (8), (9), and \(\mathbb E|\sum_tR_t|\leq\sqrt T\), a divergent root-\(T\)-normalized lower bound for the diameter on this unchanged causal model.
+
+We next prove the fixed-parameter and boundary bounds.  Induction in (4), using \(|v|\leq u\leq1\), gives \(|Y_t|\leq1\): if \(R_{t-1}=1\), then \(1-u+uY_{t-1}\in[1-2u,1]\), and if \(R_{t-1}=-1\), its absolute value is at most \(1-u+|v|\leq1\).  For fixed \((u,v)\), \(Y_t\) is measurable with respect to \(R_1,\ldots,R_{t-1}\), while \(R_t\) is an independent fair sign.  Therefore \(m_t=R_tY_t\) is a martingale difference, distinct terms are orthogonal, and
+\[
+ \mathbb E S_T(u,v)^2=\sum_{t=1}^T\mathbb EY_t^2\leq T,
+ \qquad
+ \mathbb E|S_T(u,v)|\leq\sqrt T.
+ \tag{10}
+\]
+
+There are three boundary edges.  We already observed that \(S_T(u,u)=\sum_tR_t\), so (10) bounds the first edge by \(\sqrt T\).  On the edge \(u=1\), let \(N_{t-1}\) count the negative signs among \(R_0,\ldots,R_{t-1}\).  Equation (4) gives
+\[
+ Y_t=v^{N_{t-1}}.
+ \tag{11}
+\]
+For \(v=a\in[0,1]\), put \(\xi_t=R_t\); for \(v=-a\), put \(\xi_t=R_t(-1)^{N_{t-1}}\).  In either case \((\xi_t)\) is a fair-sign martingale-difference sequence, and (11) writes \(m_t=a^{N_{t-1}}\xi_t\).  The weights are nonnegative and nonincreasing in \(t\).  If \(A_j=\sum_{t=1}^j\xi_t\), summation by parts gives
+\[
+ \left|\sum_{t=1}^T a^{N_{t-1}}\xi_t\right|
+ \leq\max_{1\leq j\leq T}|A_j|.
+ \tag{12}
+\]
+For completeness, the elementary finite-horizon martingale maximal estimate used here follows by applying the stopping time at the first crossing of a level \(x\) to the submartingale \(|A_j|\):
+\[
+ x\Pr\left\{\max_{j\leq T}|A_j|\geq x\right\}
+ \leq \mathbb E\left[|A_T|\mathbf 1\left\{\max_{j\leq T}|A_j|\geq x\right\}\right].
+\]
+Integrating in \(x\) and applying Cauchy--Schwarz yields
+\[
+ \mathbb E\max_{j\leq T}|A_j|^2
+ \leq2\mathbb E\left[|A_T|\max_{j\leq T}|A_j|\right]
+ \leq2\sqrt{T\,\mathbb E\max_{j\leq T}|A_j|^2},
+\]
+and hence \(\mathbb E\max_{j\leq T}|A_j|\leq2\sqrt T\).  Applying this separately to the positive and negative halves of the \(v\)-edge in (12) proves
+\[
+ \mathbb E\sup_{-1\leq v\leq1}|S_T(1,v)|\leq4\sqrt T.
+ \tag{13}
+\]
+
+On the remaining edge \(v=-u\), equation (3) becomes
+\[
+ m_t(u)=(1-u)R_t+uR_tm_{t-1}(u).
+ \tag{14}
+\]
+Put \(a_\ell(u)=(1-u)u^\ell\), \(W_{t,\ell}=\prod_{j=0}^{\ell}R_{t-j}\), and \(V_t=m_0\prod_{j=1}^tR_j\).  Iterating (14) gives
+\[
+ m_t(u)=\sum_{\ell=0}^{t-1}a_\ell(u)W_{t,\ell}+u^tV_t.
+ \tag{15}
+\]
+For fixed \(t\), the \(W_{t,\ell}\) are pairwise orthogonal in \(L^2\).  Moreover, \(m'_t(u)=R_tY'_t(u)\) is a martingale difference as \(t\) varies.  Differentiating (15), using orthogonality for the first sum and then the Euclidean triangle inequality over \(t\), yields
+\[
+ \left\|\frac{d}{du}S_T(u,-u)\right\|_2
+ \leq
+ \sqrt{T\sum_{\ell=0}^{\infty}\{a'_\ell(u)\}^2}
+ +\sqrt{\sum_{t=1}^Tt^2u^{2t-2}}.
+ \tag{16}
+\]
+Direct differentiation of the geometric series gives, for \(0\leq u<1\),
+\[
+ \sum_{\ell=0}^{\infty}\{a'_\ell(u)\}^2
+ =\frac{2}{(1-u)(1+u)^3}.
+ \tag{17}
+\]
+Consequently the integral of the first term in (16) is at most \(2\sqrt{2T}\).  For the second term, use
+\[
+ \sum_{t=1}^Tt^2u^{2t-2}
+ \leq\min\left\{T^3,\frac{2}{(1-u)^3}\right\}.
+\]
+Integration over \([0,1-1/T]\) and \([1-1/T,1]\), respectively, bounds its integral by \((2\sqrt2+1)\sqrt T\).  Since \(S_T(0,0)=\sum_tR_t\), the fundamental theorem of calculus, Tonelli's theorem, (10), and (16)--(17) give
+\[
+ \mathbb E\sup_{0\leq u\leq1}|S_T(u,-u)|
+ \leq\sqrt T+2\sqrt{2T}+(2\sqrt2+1)\sqrt T
+ =(2+4\sqrt2)\sqrt T<8\sqrt T.
+ \tag{18}
+\]
+Adding (10) on \(v=u\), (13), and (18) proves the stated \(13\sqrt T\) boundary bound.  By (7), the conditional-reward range on those boundary laws is the range of \(S_T\) divided by \(2T\); since a real-valued range is at most twice the supremum of the absolute value, its expected value is at most \(13/\sqrt T\).  Notice that the proof includes the noncontracting corners.
+
+It remains to prove the unconditional complete-polytope fallback.  Fix a positive-probability full factual path and \(q,q'\in\Theta(P)\), and put \(\delta=\lVert q-q'\rVert_1\).  For every positive factual transition \((x,y)\) and alternative state \(z\), the definition of \(L_q\) and the positive-cell assumption imply
+\[
+ \begin{aligned}
+ \bigl\|L_q(x,y)(z,\cdot)-L_{q'}(x,y)(z,\cdot)\bigr\|_{\mathrm{TV}}
+ &\leq\frac1{2P(y\mid x,b(x))}
+ \sum_{f\in\mathcal R}|q_f-q'_f|\mathbf 1\{f(x,b(x))=y\}\\
+ &\leq\frac{\delta}{2\epsilon}.
+ \end{aligned}
+ \tag{19}
+\]
+Telescoping the two products of stochastic kernels, and using contraction of total variation under multiplication by a stochastic kernel, gives
+\[
+ \lVert\alpha_t(q)-\alpha_t(q')\rVert_{\mathrm{TV}}
+ \leq\frac{t\delta}{2\epsilon}.
+ \tag{20}
+\]
+Because \(0\leq r\leq1\), (20) gives
+\[
+ \left|Q^{\mathrm{full}}_{q,T}-Q^{\mathrm{full}}_{q',T}\right|
+ \leq\frac1T\sum_{t=1}^T\frac{t\delta}{2\epsilon}
+ =\frac{(T+1)\delta}{4\epsilon}.
+ \tag{21}
+\]
+
+Set \(\eta=\epsilon T^{-3/2}\).  A maximal \(\eta\)-separated subset \(\mathcal N_T\) of \(\Theta(P)\) in \(\ell_1\) is an internal \(\eta\)-net.  To bound its size, work in the affine hull of \(\Theta(P)\), of dimension \(s\leq m\).  The disjoint \(\ell_1\)-balls of radius \(\eta/2\) around its points lie in a ball of radius \(2+\eta/2\), since the simplex has \(\ell_1\)-diameter two.  Comparing \(s\)-dimensional volumes gives
+\[
+ |\mathcal N_T|\leq\left(1+\frac4\eta\right)^s
+ \leq\left(1+\frac{4T^{3/2}}\epsilon\right)^m=N_T.
+ \tag{22}
+\]
+The zero-dimensional case has one net point and obeys the same bound.
+
+For a fixed net point, the frozen Poisson-martingale lemma says that the increments of \(M_T(q)\) have conditional mean zero and conditional range of length at most \(B\).  The elementary conditional range calculation
+\[
+ \mathbb E[\exp\{\theta W\}\mid\mathcal F]
+ \leq\exp\{\theta^2B^2/8\}
+ \tag{23}
+\]
+holds whenever \(\mathbb E(W\mid\mathcal F)=0\) and the conditional range of \(W\) has length at most \(B\): convexity bounds the exponential by its endpoint chord, and two differentiations of the logarithm of that chord bound its second derivative by \(B^2/4\), with value and first derivative zero at \(\theta=0\).  Iterating (23) gives
+\[
+ \mathbb E\exp\{\pm\theta M_T(q)\}
+ \leq\exp\{\theta^2B^2T/8\}.
+ \tag{24}
+\]
+For \(B>0\), Jensen's inequality, (24), and optimization in \(\theta>0\) yield
+\[
+ \mathbb E\max_{q\in\mathcal N_T}|M_T(q)|
+ \leq B\sqrt{\frac{T\log(2|\mathcal N_T|)}2}.
+ \tag{25}
+\]
+When \(B=0\), every increment has zero conditional range and the left side of (25) is zero, so (25) remains valid.
+
+Shift \(h\) so that \(0\leq h\leq B\).  The exact frozen Poisson identity then implies
+\[
+ \left|Q^{\mathrm{full}}_{q,T}-g\right|
+ \leq\frac{B+|M_T(q)|}{T}.
+ \tag{26}
+\]
+Equations (22), (25), and (26) bound the expected diameter over the net by
+\[
+ \frac{2B}{T}+B\sqrt{\frac{2\log(2N_T)}T}.
+ \tag{27}
+\]
+Every two full-polytope endpoints can be approximated by net points within \(\eta\).  Applying (21) twice shows that the full-polytope diameter exceeds the net diameter by at most
+\[
+ \frac{(T+1)\eta}{2\epsilon}=\frac{T+1}{2T^{3/2}}.
+ \tag{28}
+\]
+Taking factual-path expectations in (27)--(28), and applying the established coarsening-domination lemma, proves the displayed bound for arbitrary deterministic \(o\).  Finally, every conditional average of \(r\in[0,1]\) lies in \([0,1]\), so the diameter is at most one.  Taking the minimum with this logical bound completes the proof.  Since \(m=d^{dk}\) is fixed and \(\log N_T\leq m\log(1+4T^{3/2}/\epsilon)\), the displayed quantity is strictly below one for all sufficiently large \(T\) and is \(O(\sqrt{\log T/T})\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The contribution is the first explicit unconditional \(O(\sqrt{\log T/T})\) expected-width certificate over the complete stationary transition-response fiber, together with a legal causal realization of the synchronizer--two-permutation triangle and root-\(T\) control on its full boundary. This matters because it gives a finite-horizon uniform guarantee without response-mass positivity or conditional-kernel contraction. Unlike Haugh--Singal's restricted dishonest-casino result, it is a uniform transition-response-coupling bound, does not rely on direct hidden-state intervention, and does not claim point identification. \textit{Gap.} The whole-polytope upper rate has a \(\sqrt{\log T}\) gap above the full-support root-\(T\) lower witness. The legal triangle's interior supremum is not controlled, and no legal horizon-dependent selector with divergent root-\(T\)-normalized width is known. Haugh--Singal's sharp finite-horizon EWAC linear programs and their separate almost-sure asymptotic identification result do not supply this missing maximal inequality, and no model-class equivalence or inclusion is asserted. \textit{Consumer.} Users obtain an explicit finite-horizon expected-width certificate on the complete compatible fiber and an exact causal interpretation of the triangle boundary analysis; neither interior root-\(T\) control nor point identification is implied.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The complete-fiber proof uses an internal \(\ell_1\)-net of radius \(\epsilon T^{-3/2}\); its entropy produces the \(\sqrt{\log T}\) gap. The legal triangle argument controls every fixed parameter and all three boundary edges, including noncontracting corners, but it does not control a record-dependent optimizer in the two-dimensional interior. Nor has a legal horizon-dependent selector with divergent root-\(T\)-normalized width been found. The residual open question is the stated whole-polytope maximal inequality. If it is eventually proved, the frozen Poisson identity and coarsening domination immediately yield an \(O(T^{-1/2})\) expected-width bound; that implication is retained only as roadmap prose because its premise remains open.
+
+\section{Honest scope}
+
+Every proved width bound is an expectation at its stated deterministic sample length. There is no recordwise or anytime shrinkage claim: rare factual records may retain unit diameter. The result assumes one stationary iid response law shared across dates and hidden branches, but imposes neither a positive lower bound on its masses nor contraction of every conditional counterfactual kernel. The Poisson equation with a common scalar average reward is essential; absorbing target models with class-dependent reward averages are outside the theorem. The unconditional delivered rate over the complete fiber is \(O(\sqrt{\log T/T})\). The legal triangle proves root-\(T\) control only pointwise and on its full boundary, not in its interior or on all of \(\Theta(P)\). The potential \(O(T^{-1/2})\) consequence of the unresolved maximal inequality is not a delivered theorem. The Haugh--Singal comparison is descriptive only, with no asserted equivalence, embedding, or class inclusion.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LallyKazemiPaoletti2026RobustCounterfactualMDP} Jessica Lally, Milad Kazemi, and Nicola Paoletti (2026), ``Robust Counterfactual Inference in Markov Decision Processes,'' AAMAS; arXiv:2502.13731, version 5.
+
+  \bibitem{SayedanaCainesMahajan2025} Borna Sayedana, Peter E. Caines, and Aditya Mahajan (2025), ``Concentration of Cumulative Reward in Markov Decision Processes,'' Journal of Machine Learning Research 26; arXiv:2411.18551, version 2.
+
+  \bibitem{ZhangTianBareinboim2022PartialCounterfactual} Junzhe Zhang, Jin Tian, and Elias Bareinboim (2022), ``Partial Counterfactual Identification from Observational and Experimental Data,'' Proceedings of the 39th International Conference on Machine Learning, pages 26548--26558.
+
+  \bibitem{LorberbomJohnsonMaddisonTarlowHazan2021} Guy Lorberbom, Daniel D. Johnson, Chris J. Maddison, Daniel Tarlow, and Tamir Hazan (2021), ``Learning Generalized Gumbel-Max Causal Mechanisms,'' Advances in Neural Information Processing Systems 34.
+
+  \bibitem{OberstSontag2019} Michael Oberst and David Sontag (2019), ``Counterfactual Off-Policy Evaluation with Gumbel-Max Structural Causal Models,'' Proceedings of the 36th International Conference on Machine Learning.
+
+  \bibitem{HaughSingal2026Casino} Martin B. Haugh and Raghav Singal (2026), ``A Counterfactual Analysis of the Dishonest Casino,'' arXiv:2405.15120, version 3, pages 9--11, Sections 4.2--4.3.
+
+  \bibitem{HaughSingal2023DynamicLatent} Martin B. Haugh and Raghav Singal (2023), ``Counterfactual Analysis in Dynamic Latent State Models,'' Proceedings of the 40th International Conference on Machine Learning, pages 12647--12677.
+
+  \bibitem{KaidoMolinariStoye2019CalibratedProjection} Hiroaki Kaido, Francesca Molinari, and Jörg Stoye (2019), ``Confidence Intervals for Projections of Partially Identified Parameters,'' Econometrica 87, 1397--1432.
+
+  \bibitem{vanHandel2009} Ramon van Handel (2009), ``Uniform Observability of Hidden Markov Models and Filter Stability for Unstable Signals,'' Annals of Applied Probability 19, 1172--1199.
+
+  \bibitem{DoucMoulinesRitov2009} Randal Douc, Eric Moulines, and Ya'acov Ritov (2009), ``Forgetting of the Initial Condition for the Filter in General State-Space Hidden Markov Chain: A Coupling Approach,'' Electronic Journal of Probability 14, 27--49.
+
+  \bibitem{deLaPenaLaiShao2009} Victor H. de la Peña, Tze Leung Lai, and Qi-Man Shao (2009), Self-Normalized Processes: Limit Theory and Statistical Applications, Springer.
+
+  \bibitem{BennettKallusOprescuSunWang2024RobustOPE} Andrew Bennett, Nathan Kallus, Miruna Oprescu, Wen Sun, and Kaiwen Wang (2024), ``Efficient and Sharp Off-Policy Evaluation in Robust Markov Decision Processes,'' Advances in Neural Information Processing Systems 37.
+
+  \bibitem{RakhlinSridharanTewari2015} Alexander Rakhlin, Karthik Sridharan, and Ambuj Tewari (2015), ``Sequential Complexities and Uniform Martingale Laws of Large Numbers,'' Probability Theory and Related Fields 161, 111--153.
+
+  \bibitem{Hoeffding1963ProbabilityInequalities} Wassily Hoeffding (1963), ``Probability Inequalities for Sums of Bounded Random Variables,'' \emph{Journal of the American Statistical Association} 58(301), 13--30. DOI: \texttt{10.1080/01621459.1963.10500830}.
+
+\end{thebibliography}
+
+\end{document}

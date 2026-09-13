@@ -1,0 +1,1320 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}threearm\_\allowbreak{}facecorner\_\allowbreak{}sharp\_\allowbreak{}constant}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For the fixed three-arm contrast \((1,-1/2,-1/2)\) and any common finite outcome interval \([L,U]\), an exact endpoint-transfer theorem makes the unrestricted and iid bounded minimax values \((U-L)^2\) times their binary values. The eight-type orbit game remains a literal reduction only for binary endpoint schedules. Its new field-level kernel identifies the half-wedge Airy constant \(C_3=-a_1'\), transfers it through the singular \(\eta=0\) fiber, and gives the sharp \(n^{-1/6}\) iid allocation frontier with penalty \(2\zeta_1^2+4\zeta_2^2+4\zeta_3^2\). A Rao--Blackwellized bounded Airy rule and a rescaled endpoint complete-schedule prior attain the matching upper and lower expansions.
+
+\section{Project justification}
+
+\paragraph{Gap.} Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Theorems 2.1--2.3) give the two-arm reduced experiment and bounded endpoint transfer, while the accepted repository parent supplies the binary multi-arm orbit reduction. Neither source determines the three-arm half-wedge constant, controls its singular transverse fiber, derives its allocation frontier, or proves that the three-arm binary value transfers exactly to every common bounded interval.
+
+\paragraph{Niche.} For an active arm contrasted with the equally weighted average of two labelled comparators, zero-sum normalization permits an exact bounded endpoint transfer, while the binary endpoint adversary retains a genuinely three-arm half-wedge geometry and a nonregular \(\eta=0\) bridge absent from two-arm theory.
+
+\paragraph{Fill.} The project proves a design-preserving finite-\(n\) endpoint equality, derives the exact half-wedge Airy constant and singular finite-orbit bridge, constructs a Rao--Blackwellized bounded estimator and rescaled endpoint prior, and establishes the necessary-and-sufficient \(n^{-1/6}\) allocation frontier with the squared-width risk scaling.
+
+\section{Related work}
+
+Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Theorems 2.1--2.2) identify the balanced two-arm binary reduced experiment, and their Theorem 2.3 proves the two-arm bounded endpoint transfer that motivates the design-preserving three-arm proof here. Their Theorem 3.1 and Appendix C inform the one-dimensional Airy correction, but do not determine the labelled three-arm half-wedge constant or singular transverse bridge. The accepted repository parent \(\texttt{exp\_multiarm\_secondorder\_minimax\_frontier}\) supplies the lossless labelled eight-type reduction for binary schedules only. Hull (2026, Theorem 1 and proof A.4) informs two-arm endpoint-game and posterior-mean constructions. Mukerjee, Dasgupta, and Rubin (2018, Sections 2--3 and Theorem 1) supply general arm-labelled contrasts and unequal replication with linear unbiased estimation. Bai (2023, Theorems 3.1--3.3) informs the first-order allocation square completion; Zhao and Ding (2023) and Li and Ding (2017) provide regular multi-arm finite-population asymptotics. Levit (1981) and Bickel (1981) inform the spectral route, while Aronow and Lopatto (2026, Theorems 1--3) impose design unbiasedness, which is not imposed here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_{[L,U]}(z^{[L,U]})=n^{-1}\sum_{i=1}^n\{Y_i^{[L,U]}(1)-[Y_i^{[L,U]}(2)+Y_i^{[L,U]}(3)]/2\}\) for a fixed complete schedule in \([L,U]^{3n}\), with the binary target \(\tau(z)\) obtained at \([L,U]=[0,1]\)..
+Primary functional / estimator / diagnostic: For fixed finite \(L<U\), with \(W=U-L\),
+\[
+\rho_{n,[L,U]}^{\mathrm{all}}
+=W^2\{n^{-1}-C_3n^{-4/3}+o(n^{-4/3})\},
+\qquad C_3=-a_1',
+\]
+and, uniformly on compact sets of \(\zeta_n=n^{1/6}(q_n-q^\star)\),
+\[
+\rho_{n,[L,U]}^{\mathrm{iid}}(q_n)
+=W^2\left[n^{-1}+n^{-4/3}\{\mathsf P(\zeta_n)-C_3\}
++o(n^{-4/3})\right].
+\].
+\begin{itemize}
+  \item \texttt{n} --- \texttt{finite-\allowbreak{}population size}; \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of labelled experimental units.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{treatment-\allowbreak{}arm set}; \(2^{\{1,2,3\}}\); \texttt{arm labels}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{1,2,3\}\).
+  \item \texttt{i} --- \texttt{unit index}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic labelled unit.}
+  \item \texttt{a} --- \texttt{arm index}; \(\mathcal A\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic treatment-\allowbreak{}arm label.}
+  \item \texttt{c} --- \texttt{contrast vector}; \(\mathbb R^3\); \texttt{target weights}
+  \par\smallskip\noindent\emph{Definition.} \(c=(1,-1/2,-1/2)\).
+  \item \texttt{q\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{contrast-\allowbreak{}weighted allocation}; \(\Delta_3\); \texttt{candidate optimal iid design}
+  \par\smallskip\noindent\emph{Definition.} \(q^\star=(1/2,1/4,1/4)\), equivalently \(q_a^\star=|c_a|/\sum_{b\in\mathcal A}|c_b|\).
+  \item \texttt{t} --- \texttt{binary response type}; \(\{0,1\}^3\); \texttt{nature-\allowbreak{}state index}
+  \par\smallskip\noindent\emph{Definition.} \(t=(t_1,t_2,t_3)\) records one unit's three potential outcomes.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal T} --- \texttt{response-\allowbreak{}type set}; \(2^{\{0,1\}^3}\); \texttt{finite nature alphabet}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T=\{0,1\}^3\), containing the eight arm-labelled binary response types.
+  \item \texttt{z} --- \texttt{complete response schedule}; \(\mathcal T^n\); \texttt{finite-\allowbreak{}population state}
+  \par\smallskip\noindent\emph{Definition.} \(z=(t_1,\ldots,t_n)\) fixes all three potential outcomes of every labelled unit before assignment.
+  \item \texttt{Y\_\allowbreak{}i(a)} --- \texttt{fixed potential outcome}; \(\{0,1\}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \(Y_i(a)=t_{i,a}\).
+  \item \texttt{A} --- \texttt{assignment vector}; \(\mathcal A^n\); \texttt{sole random variable}
+  \par\smallskip\noindent\emph{Definition.} \(A=(A_1,\ldots,A_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D} --- \texttt{assignment law}; \(\Delta(\mathcal A^n)\); \texttt{unrestricted design decision}
+  \par\smallskip\noindent\emph{Definition.} The schedule-independent probability law of \(A\).
+  \item \texttt{Y\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{observed outcome}; \(\{0,1\}\); \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} \(Y_i^{\mathrm{obs}}=Y_i(A_i)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O\_\allowbreak{}n} --- \texttt{observed-\allowbreak{}data space}; \(2^{(\mathcal A\times\{0,1\})^n}\); \texttt{sample space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_n=(\mathcal A\times\{0,1\})^n\) contains \(((A_i,Y_i^{\mathrm{obs}}))_{i=1}^n\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau} --- \texttt{estimator}; \(\{f:\mathcal O_n\to[-1,1]\}\); \texttt{analysis decision}
+  \par\smallskip\noindent\emph{Definition.} \texttt{An arbitrary measurable,\allowbreak{} possibly biased decision rule clipped to the target range.}
+  \item \texttt{\textbackslash{}\allowbreak{}mu(t)} --- \texttt{unit-\allowbreak{}level contrast}; \([-1,1]\); \texttt{unit target}
+  \par\smallskip\noindent\emph{Definition.} \(\mu(t)=t_1-(t_2+t_3)/2=\sum_{a\in\mathcal A}c_at_a\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau(z)} --- \texttt{finite-\allowbreak{}population causal contrast}; \([-1,1]\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\tau(z)=n^{-1}\sum_{i=1}^n\mu(t_i)=n^{-1}\sum_{i=1}^n\{Y_i(1)-(Y_i(2)+Y_i(3))/2\}\).
+  \item \texttt{R\_\allowbreak{}n(\textbackslash{}\allowbreak{}mathcal D,\allowbreak{}\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau;\allowbreak{}z)} --- \texttt{design-\allowbreak{}based squared-\allowbreak{}error risk}; \([0,4]\); \texttt{loss}
+  \par\smallskip\noindent\emph{Definition.} \(R_n(\mathcal D,\widehat\tau;z)=\mathbb E_{\mathcal D}[(\widehat\tau-\tau(z))^2]\), with expectation only over \(A\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{all\}\allowbreak{}\}\allowbreak{}} --- \texttt{unrestricted minimax risk}; \([0,4]\); \texttt{primary minimax value}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n^{\mathrm{all}}=\inf_{\mathcal D,\widehat\tau}\max_{z\in\mathcal T^n}R_n(\mathcal D,\widehat\tau;z)\).
+  \item \texttt{q} --- \texttt{iid allocation vector}; \(\operatorname{int}(\Delta_3)\); \texttt{iid design parameter}
+  \par\smallskip\noindent\emph{Definition.} \(q=(q_1,q_2,q_3)\) with \(q_a>0\) and \(\sum_{a\in\mathcal A}q_a=1\).
+  \item \texttt{q\_\allowbreak{}n} --- \texttt{iid allocation triangular array}; \(\operatorname{int}(\Delta_3)\); \texttt{allocation-\allowbreak{}frontier sequence}
+  \par\smallskip\noindent\emph{Definition.} The allocation vector used at population size \(n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}q} --- \texttt{iid assignment law}; \(\Delta(\mathcal A^n)\); \texttt{restricted design}
+  \par\smallskip\noindent\emph{Definition.} Under \(\mathcal D_q\), the coordinates \(A_i\) are independent and \(\Pr(A_i=a)=q_a\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{iid\}\allowbreak{}\}\allowbreak{}(q)} --- \texttt{iid-\allowbreak{}design minimax risk}; \([0,4]\); \texttt{design comparator value}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n^{\mathrm{iid}}(q)=\inf_{\widehat\tau}\max_{z\in\mathcal T^n}R_n(\mathcal D_q,\widehat\tau;z)\).
+  \item \texttt{d\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{all\}\allowbreak{}\}\allowbreak{}} --- \texttt{unrestricted deficit from first-\allowbreak{}order risk}; \(\mathbb R\); \texttt{normalized gain}
+  \par\smallskip\noindent\emph{Definition.} \(d_n^{\mathrm{all}}=n^{-1}-\rho_n^{\mathrm{all}}\).
+  \item \texttt{d\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{iid\}\allowbreak{}\}\allowbreak{}(q)} --- \texttt{iid deficit from first-\allowbreak{}order optimum}; \(\mathbb R\); \texttt{allocation-\allowbreak{}sensitive gain}
+  \par\smallskip\noindent\emph{Definition.} \(d_n^{\mathrm{iid}}(q)=n^{-1}-\rho_n^{\mathrm{iid}}(q)\).
+  \item \texttt{m} --- \texttt{response-\allowbreak{}type count vector}; \(\mathbb Z_+^{\mathcal T}\); \texttt{schedule orbit}
+  \par\smallskip\noindent\emph{Definition.} \(m=(m_t)_{t\in\mathcal T}\), where \(m_t=\#\{i:t_i=t\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n} --- \texttt{eight-\allowbreak{}type count simplex}; \(2^{\mathbb Z_+^{\mathcal T}}\); \texttt{finite orbit state space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_n=\{m\in\mathbb Z_+^{\mathcal T}:\sum_{t\in\mathcal T}m_t=n\}\).
+  \item \texttt{r} --- \texttt{arm-\allowbreak{}count vector}; \(\mathbb Z_+^3\); \texttt{assignment orbit}
+  \par\smallskip\noindent\emph{Definition.} \(r=(r_1,r_2,r_3)\), where \(r_a=\sum_{i=1}^n\mathbf 1\{A_i=a\}\).
+  \item \texttt{x} --- \texttt{observed-\allowbreak{}success count vector}; \(\mathbb Z_+^3\); \texttt{observation orbit}
+  \par\smallskip\noindent\emph{Definition.} \(x=(x_1,x_2,x_3)\), where \(x_a=\sum_{i=1}^n\mathbf 1\{A_i=a\}Y_i^{\mathrm{obs}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{assignment-\allowbreak{}orbit law}; \(\Delta(\{r\in\mathbb Z_+^3:\sum_ar_a=n\})\); \texttt{symmetrized design decision}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_r\) is the probability assigned to the uniform labelled assignment orbit with arm counts \(r\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta} --- \texttt{invariant orbit decision rule}; \(\{g:(r,x)\mapsto[-1,1]\}\); \texttt{symmetrized analysis decision}
+  \par\smallskip\noindent\emph{Definition.} \(\delta(r,x)\) is the reported contrast after observing the allocation and success counts.
+  \item \texttt{h} --- \texttt{latent type-\allowbreak{}by-\allowbreak{}arm table}; \(\mathbb Z_+^{\mathcal T\times\mathcal A}\); \texttt{likelihood summation index}
+  \par\smallskip\noindent\emph{Definition.} \(h=(h_{t,a})\) records how many response-type \(t\) units are assigned to arm \(a\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H(m,\allowbreak{}r,\allowbreak{}x)} --- \texttt{feasible latent-\allowbreak{}table set}; \(2^{\mathbb Z_+^{\mathcal T\times\mathcal A}}\); \texttt{orbit-\allowbreak{}likelihood fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal H(m,r,x)\) contains all \(h\) with row sums \(m_t\), column sums \(r_a\), and \(\sum_{t:t_a=1}h_{t,a}=x_a\) for every \(a\).
+  \item \texttt{P\_\allowbreak{}m(x\textbackslash{}\allowbreak{}mid r)} --- \texttt{orbit likelihood}; \([0,1]\); \texttt{finite experiment kernel}
+  \par\smallskip\noindent\emph{Definition.} The probability of \(x\) under uniform labelled assignment conditional on arm counts \(r\) and schedule orbit \(m\).
+  \item \texttt{G\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{all\}\allowbreak{}\}\allowbreak{}} --- \texttt{unrestricted finite orbit-\allowbreak{}game value}; \([0,4]\); \texttt{finite reduction}
+  \par\smallskip\noindent\emph{Definition.} The minimax value of the eight-type orbit game when the designer chooses a distribution over \(r\).
+  \item \texttt{G\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{iid\}\allowbreak{}\}\allowbreak{}(q)} --- \texttt{iid finite orbit-\allowbreak{}game value}; \([0,4]\); \texttt{finite iid reduction}
+  \par\smallskip\noindent\emph{Definition.} The eight-type orbit-game value with the multinomial law of \(r\) induced by \(\mathcal D_q\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu(t)} --- \texttt{arm-\allowbreak{}label contrast}; \(\{-1,0,1\}\); \texttt{transverse tangent coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(\nu(t)=t_2-t_3\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{local response-\allowbreak{}type intensity vector}; \(\mathbb R_+^{\mathcal T\setminus\{000,111\}}\); \texttt{local nature parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda=(\lambda_t)\) is the \(n^{2/3}\)-scale intensity of the six response types off the edge spanned by \(000\) and \(111\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta} --- \texttt{local target coordinate}; \(\mathbb R\); \texttt{diffusive coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=\sum_{t\notin\{000,111\}}\lambda_t\mu(t)\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta} --- \texttt{local arm-\allowbreak{}label coordinate}; \(\mathbb R\); \texttt{stratum coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(\eta=\sum_{t\notin\{000,111\}}\lambda_t\nu(t)\).
+  \item \texttt{L} --- \texttt{lower outcome endpoint}; \(\mathbb R\); \texttt{bounded-\allowbreak{}outcome normalization}
+  \par\smallskip\noindent\emph{Definition.} A fixed finite lower endpoint of the common outcome interval, with \(L<U\).
+  \item \texttt{V(\textbackslash{}\allowbreak{}theta,\allowbreak{}\textbackslash{}\allowbreak{}eta)} --- \texttt{face/\allowbreak{}corner tangent potential}; \(\mathbb R_+\); \texttt{limiting adversarial cost}
+  \par\smallskip\noindent\emph{Definition.} \(V(\theta,\eta)=\max\{|\theta|/2,|\eta|/4\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal E\_\allowbreak{}\textbackslash{}\allowbreak{}eta(\textbackslash{}\allowbreak{}psi)} --- \texttt{fiber energy}; \([0,\infty]\); \texttt{spectral value functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_\eta(\psi)=\int_{\mathbb R}\{4|\psi'(u)|^2+V(u,\eta)|\psi(u)|^2\}\,du\) for \(\psi\in H^1(\mathbb R)\).
+  \item \texttt{a\_\allowbreak{}1'} --- \texttt{Airy derivative zero}; \((-\infty,0)\); \texttt{explicit constant primitive}
+  \par\smallskip\noindent\emph{Definition.} The largest negative zero of \(\operatorname{Ai}'\).
+  \item \texttt{C\_\allowbreak{}3} --- \texttt{three-\allowbreak{}arm second-\allowbreak{}order constant}; \((0,\infty)\); \texttt{headline constant}
+  \par\smallskip\noindent\emph{Definition.} \(C_3=-a_1'=1.018792971647\ldots\).
+  \item \texttt{\textbackslash{}\allowbreak{}phi\_\allowbreak{}3} --- \texttt{positive even fiber ground state}; \(H^1(\mathbb R)\); \texttt{least-\allowbreak{}favorable local density root}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_3\) is the positive multiple of \(u\mapsto\operatorname{Ai}(|u|/2-C_3)\) normalized by \(\int\phi_3^2=1\).
+  \item \texttt{s\_\allowbreak{}3} --- \texttt{Airy feedback}; \(C^1(\mathbb R)\); \texttt{nonlinear shrinkage}
+  \par\smallskip\noindent\emph{Definition.} \(s_3(u)=-2\phi_3'(u)/\phi_3(u)\).
+  \item \texttt{T\_\allowbreak{}\{n,\allowbreak{}q\}\allowbreak{}} --- \texttt{centered contrast score}; \(\mathbb R\); \texttt{unbiased base estimator}
+  \par\smallskip\noindent\emph{Definition.} \(T_{n,q}=n^{-1}\sum_{i=1}^n c_{A_i}(Y_i^{\mathrm{obs}}-1/2)/q_{A_i}\).
+  \item \texttt{U\_\allowbreak{}n} --- label score at \(q^\star\); \(\mathbb R\); \texttt{observable transverse coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(U_n=n^{-1}\sum_{i=1}^n\{\mathbf 1(A_i=2)(Y_i^{\mathrm{obs}}-1/2)/q_2^\star-\mathbf 1(A_i=3)(Y_i^{\mathrm{obs}}-1/2)/q_3^\star\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}\{n,\allowbreak{}q\}\allowbreak{}} --- \texttt{Airy-\allowbreak{}feedback estimator}; \([-1,1]\); finite-\(n\) upper construction
+  \par\smallskip\noindent\emph{Definition.} \(\delta_{n,q}=\operatorname{proj}_{[-1,1]}\{T_{n,q}-n^{-2/3}s_3(n^{1/3}T_{n,q})\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}zeta\_\allowbreak{}n} --- \texttt{scaled allocation displacement}; \(\{v\in\mathbb R^3:v_1+v_2+v_3=0\}\); \texttt{finite allocation-\allowbreak{}frontier coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(\zeta_n=n^{1/6}(q_n-q^\star)\).
+  \item \texttt{\textbackslash{}\allowbreak{}zeta} --- \texttt{local allocation displacement}; \(\{v\in\mathbb R^3:v_1+v_2+v_3=0\}\); \texttt{limiting allocation-\allowbreak{}frontier coordinate}
+  \par\smallskip\noindent\emph{Definition.} A subsequential limit of \(\zeta_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf P(\textbackslash{}\allowbreak{}zeta)} --- \texttt{allocation penalty}; \(\mathbb R_+\); \texttt{frontier functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf P(\zeta)=2\zeta_1^2+4\zeta_2^2+4\zeta_3^2\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar q(\textbackslash{}\allowbreak{}mathcal D)} --- \texttt{expected allocation share}; \(\Delta_3\); \texttt{allocation summary for the converse}
+  \par\smallskip\noindent\emph{Definition.} \(\bar q_a(\mathcal D)=n^{-1}\mathbb E_{\mathcal D}[r_a]\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{half-\allowbreak{}effect prior parameter}; \((-1/3,1/3)\); \texttt{lower-\allowbreak{}bound parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A scalar local mean parameter used to generate complete schedules before assignment.}
+  \item \texttt{b\_\allowbreak{}a(\textbackslash{}\allowbreak{}alpha)} --- \texttt{arm-\allowbreak{}labelled posterior coefficient}; \(\mathbb R\); \texttt{posterior-\allowbreak{}target coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(b_1(\alpha)=(|\alpha|-\alpha^2)/(1-\alpha^2)\) and \(b_2(\alpha)=b_3(\alpha)=-\alpha^2/(1-\alpha^2)\).
+  \item \texttt{f} --- \texttt{local prior density}; \(\{g\ge0:\int_{\mathbb R}g=1\}\); \texttt{Van Trees input}
+  \par\smallskip\noindent\emph{Definition.} A smooth compactly supported approximation to \(\phi_3^2\).
+  \item \texttt{X} --- \texttt{local prior draw}; \(\mathbb R\); \texttt{prior randomizer}
+  \par\smallskip\noindent\emph{Definition.} \(X\) has density \(f\).
+  \item \texttt{p\_\allowbreak{}t(\textbackslash{}\allowbreak{}alpha)} --- \texttt{half-\allowbreak{}effect type probability}; \([0,1]\); \texttt{local schedule generator}
+  \par\smallskip\noindent\emph{Definition.} \(p_{000}=1/2-|\alpha|+\alpha/2\), \(p_{111}=1/2-|\alpha|-\alpha/2\), \(p_{101}=p_{110}=\max(\alpha,0)\), \(p_{001}=p_{010}=\max(-\alpha,0)\), and \(p_{100}=p_{011}=0\).
+  \item \texttt{I(f)} --- \texttt{location Fisher information}; \([0,\infty]\); \texttt{lower-\allowbreak{}bound kinetic term}
+  \par\smallskip\noindent\emph{Definition.} \(I(f)=\int_{\mathbb R}f'(u)^2/f(u)\,du\).
+  \item \texttt{m\_\allowbreak{}1(f)} --- \texttt{absolute first moment}; \(\mathbb R_+\); \texttt{lower-\allowbreak{}bound potential term}
+  \par\smallskip\noindent\emph{Definition.} \(m_1(f)=\int_{\mathbb R}|u|f(u)\,du\).
+  \item \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}\{A,\allowbreak{}n\}\allowbreak{}} --- \texttt{half-\allowbreak{}effect complete-\allowbreak{}schedule prior}; \(\Delta(\mathcal T^n)\); \texttt{sharp local converse}
+  \par\smallskip\noindent\emph{Definition.} The label-preserving local prior constructed from \(\alpha=n^{-1/3}X\) and the four half-effect response types.
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon\_\allowbreak{}n} --- \texttt{broad-\allowbreak{}prior scale}; \((0,1/4]\); \texttt{allocation regularization scale}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_n=n^{-1/4}/4\).
+  \item \texttt{V\_\allowbreak{}a} --- \texttt{broad-\allowbreak{}prior arm perturbation}; \([-1,1]\); \texttt{prior randomizer}
+  \par\smallskip\noindent\emph{Definition.} The \(V_a\) are independent with density \(15(1-v^2)^2/16\) on \([-1,1]\).
+  \item \texttt{P\_\allowbreak{}a} --- \texttt{broad-\allowbreak{}prior arm success probability}; \([1/4,3/4]\); \texttt{schedule-\allowbreak{}generation parameter}
+  \par\smallskip\noindent\emph{Definition.} \(P_a=1/2+\varepsilon_nV_a\).
+  \item \texttt{U\_\allowbreak{}i} --- \texttt{shared latent rank}; \([0,1]\); \texttt{complete-\allowbreak{}schedule generator}
+  \par\smallskip\noindent\emph{Definition.} The \(U_i\) are independent uniform variables and are independent of the arm perturbations.
+  \item \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}\{B,\allowbreak{}n\}\allowbreak{}} --- \texttt{broad complete-\allowbreak{}schedule prior}; \(\Delta(\mathcal T^n)\); \texttt{allocation coercivity}
+  \par\smallskip\noindent\emph{Definition.} The law induced by \(Y_i(a)=\mathbf 1\{U_i\le P_a\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}n} --- \texttt{allocation-\allowbreak{}regularized schedule prior}; \(\Delta(\mathcal T^n)\); \texttt{unrestricted-\allowbreak{}design lower construction}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_n=(1-n^{-1/4})\Pi_{A,n}+n^{-1/4}\Pi_{B,n}\).
+  \item \texttt{M} --- \texttt{decision-\allowbreak{}grid resolution}; \(\mathbb N\); \texttt{finite certificate index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The reciprocal mesh scale for rational action discretization.}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}M} --- \texttt{rational action grid}; \(2^{[-1,1]}\); \texttt{finite decision set}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_M=\{-1+j/M:0\le j\le2M\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}\{n,\allowbreak{}M\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{all\}\allowbreak{}\}\allowbreak{}} --- \texttt{unrestricted grid-\allowbreak{}game value}; \([0,4]\); \texttt{computable certificate}
+  \par\smallskip\noindent\emph{Definition.} The exact rational eight-type orbit-game value when actions are restricted to \(\Gamma_M\).
+  \item \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}\{n,\allowbreak{}M\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{iid\}\allowbreak{}\}\allowbreak{}(q)} --- \texttt{iid grid-\allowbreak{}game value}; \([0,4]\); \texttt{computable iid certificate}
+  \par\smallskip\noindent\emph{Definition.} The corresponding exact rational value under the multinomial allocation law induced by \(q\).
+  \item \texttt{\textbackslash{}\allowbreak{}epsilon\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bridge\}\allowbreak{}\}\allowbreak{}} --- \texttt{singular-\allowbreak{}neighborhood radius}; \((0,\infty)\); \texttt{bridge localization}
+  \par\smallskip\noindent\emph{Definition.} \(\epsilon_n^{\mathrm{bridge}}=n^{-1/12}\).
+  \item \texttt{U} --- \texttt{upper outcome endpoint}; \(\mathbb R\); \texttt{bounded-\allowbreak{}outcome normalization}
+  \par\smallskip\noindent\emph{Definition.} A fixed finite upper endpoint satisfying \(U>L\).
+  \item \texttt{W} --- \texttt{outcome interval width}; \(\mathbb R_+\); \texttt{endpoint-\allowbreak{}transfer scale}
+  \par\smallskip\noindent\emph{Definition.} \(W=U-L>0\).
+  \item \texttt{z\textasciicircum{}\{[L,\allowbreak{}U]\}\allowbreak{}} --- \texttt{bounded complete response schedule}; \([L,U]^{3n}\); \texttt{bounded finite-\allowbreak{}population state}
+  \par\smallskip\noindent\emph{Definition.} \(z^{[L,U]}=(Y_i^{[L,U]}(a))_{i,a}\) is fixed before assignment.
+  \item \texttt{Y\_\allowbreak{}i\textasciicircum{}\{[L,\allowbreak{}U]\}\allowbreak{}(a)} --- \texttt{fixed bounded potential outcome}; \([L,U]\); \texttt{bounded causal primitive}
+  \par\smallskip\noindent\emph{Definition.} The potential outcome of labelled unit \(i\) under arm \(a\) in schedule \(z^{[L,U]}\).
+  \item \texttt{Y\_\allowbreak{}i\textasciicircum{}\{[L,\allowbreak{}U],\allowbreak{}\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{observed bounded outcome}; \([L,U]\); \texttt{bounded observed data}
+  \par\smallskip\noindent\emph{Definition.} \(Y_i^{[L,U],\mathrm{obs}}=Y_i^{[L,U]}(A_i)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O\_\allowbreak{}\{n,\allowbreak{}[L,\allowbreak{}U]\}\allowbreak{}} --- \texttt{bounded observed-\allowbreak{}data space}; \((\mathcal A\times[L,U])^n\); \texttt{bounded sample space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_{n,[L,U]}=(\mathcal A\times[L,U])^n\) contains \(((A_i,Y_i^{[L,U],\mathrm{obs}}))_{i=1}^n\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{[L,\allowbreak{}U]\}\allowbreak{}} --- \texttt{bounded-\allowbreak{}outcome estimator}; \(\{f:\mathcal O_{n,[L,U]}\to[-W,W]\}\); \texttt{bounded analysis decision}
+  \par\smallskip\noindent\emph{Definition.} \texttt{An arbitrary measurable decision rule clipped to the bounded causal target range.}
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{[L,\allowbreak{}U]\}\allowbreak{}(z\textasciicircum{}\{[L,\allowbreak{}U]\}\allowbreak{})} --- \texttt{bounded finite-\allowbreak{}population causal contrast}; \([-W,W]\); \texttt{bounded target estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_{[L,U]}(z^{[L,U]})=n^{-1}\sum_i\sum_{a\in\mathcal A}c_aY_i^{[L,U]}(a)\).
+  \item \texttt{R\_\allowbreak{}\{n,\allowbreak{}[L,\allowbreak{}U]\}\allowbreak{}(\textbackslash{}\allowbreak{}mathcal D,\allowbreak{}\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{[L,\allowbreak{}U]\}\allowbreak{};\allowbreak{}z\textasciicircum{}\{[L,\allowbreak{}U]\}\allowbreak{})} --- \texttt{bounded design-\allowbreak{}based squared-\allowbreak{}error risk}; \([0,4W^2]\); \texttt{bounded loss}
+  \par\smallskip\noindent\emph{Definition.} \(R_{n,[L,U]}=\mathbb E_{\mathcal D}[\{\widehat\tau_{[L,U]}-\tau_{[L,U]}(z^{[L,U]})\}^2]\), with expectation only over assignment.
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}\{n,\allowbreak{}[L,\allowbreak{}U]\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{all\}\allowbreak{}\}\allowbreak{}} --- \texttt{bounded unrestricted minimax risk}; \([0,4W^2]\); \texttt{bounded primary minimax value}
+  \par\smallskip\noindent\emph{Definition.} The joint design-and-estimator minimax value over fixed schedules in \([L,U]^{3n}\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}\{n,\allowbreak{}[L,\allowbreak{}U]\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{iid\}\allowbreak{}\}\allowbreak{}(q)} --- \texttt{bounded iid-\allowbreak{}design minimax risk}; \([0,4W^2]\); \texttt{bounded design comparator value}
+  \par\smallskip\noindent\emph{Definition.} The bounded minimax value with assignment fixed to \(\mathcal D_q\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}\{n,\allowbreak{}q\}\allowbreak{}\textasciicircum{}\{[L,\allowbreak{}U]\}\allowbreak{}} --- \texttt{Rao-\allowbreak{}-\allowbreak{}Blackwellized bounded Airy estimator}; \([-W,W]\); \texttt{bounded finite-\allowbreak{}n upper construction}
+  \par\smallskip\noindent\emph{Definition.} The conditional expectation of \(W\delta_{n,q}\) after independent Bernoulliization of each normalized observed bounded outcome.
+  \item \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}n\textasciicircum{}\{[L,\allowbreak{}U]\}\allowbreak{}} --- \texttt{rescaled endpoint complete-\allowbreak{}schedule prior}; \(\Delta([L,U]^{3n})\); \texttt{bounded lower construction}
+  \par\smallskip\noindent\emph{Definition.} The pushforward of \(\Pi_n\) under \(t_{i,a}\mapsto L+Wt_{i,a}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-finite-population]\label{ass:fixed-finite-population}
+The complete binary schedule \(z\) is fixed; probability statements condition on it.
+\par\smallskip\noindent\emph{Standard} (Neyman finite-population potential-outcome model, \cite{MukerjeeDasguptaRubin2018}).
+\end{assumption}
+
+\begin{assumption}[ass:schedule-independent-randomization]\label{ass:schedule-independent-randomization}
+The assignment law \(\mathcal D\) is selected without observing the relevant fixed complete schedule, whether binary \(z\) or bounded \(z^{[L,U]}\).
+\par\smallskip\noindent\emph{Standard} (Known randomized assignment independent of fixed potential outcomes, \cite{MukerjeeDasguptaRubin2018}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:unrestricted-game]\label{def:unrestricted-game}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Binary endpoint unrestricted three-\allowbreak{}arm minimax game}
+\par\smallskip\noindent\emph{Construction.} The binary endpoint value is
+\[
+\rho_n^{\mathrm{all}}=\inf_{\mathcal D\in\Delta(\mathcal A^n),\,\widehat\tau:\mathcal O_n\to[-1,1]}
+\max_{z\in\mathcal T^n}\mathbb E_{\mathcal D}\{\widehat\tau-\tau(z)\}^2.
+\]
+Here \(\mathcal T=\{0,1\}^3\), so this definition is literally the binary endpoint game.  Its relation to a continuous bounded schedule class is a separate minimax-value identity, not a literal eight-type orbit representation of every bounded schedule.
+\par\smallskip\noindent\emph{Inputs.} \texttt{z}; \texttt{\textbackslash{}\allowbreak{}mathcal D}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:iid-game]\label{def:iid-game}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Binary endpoint iid allocation minimax game}
+\par\smallskip\noindent\emph{Construction.} For an interior allocation vector \(q\), the binary endpoint iid value is
+\[
+\rho_n^{\mathrm{iid}}(q)=\inf_{\widehat\tau:\mathcal O_n\to[-1,1]}
+\max_{z\in\mathcal T^n}\mathbb E_{\mathcal D_q}\{\widehat\tau-\tau(z)\}^2.
+\]
+This is the iid restriction of the binary endpoint game.  The continuous bounded-schedule value is defined separately and is linked to this value by endpoint transfer rather than by treating continuous schedules as eight response types.
+\par\smallskip\noindent\emph{Inputs.} \texttt{z}; \texttt{q}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:orbit-likelihood]\label{def:orbit-likelihood}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact eight-\allowbreak{}type orbit likelihood}
+\par\smallskip\noindent\emph{Construction.} \[P_m(x\mid r)=\frac{\prod_{a\in\mathcal A}r_a!}{n!}\sum_{h\in\mathcal H(m,r,x)}\prod_{t\in\mathcal T}\frac{m_t!}{\prod_{a\in\mathcal A}h_{t,a}!}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}; \texttt{r}; \texttt{x}.
+\end{definition}
+
+\begin{definition}[def:orbit-games]\label{def:orbit-games}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite orbit-\allowbreak{}game constructions}
+\par\smallskip\noindent\emph{Construction.} Let \(\pi\) range over laws on arm-count vectors \(r\) with \(\sum_ar_a=n\), and let \(\delta(r,x)\in[-1,1]\). Define \(G_n^{\mathrm{all}}=\inf_{\pi,\delta}\max_{m\in\mathcal M_n}\sum_r\pi_r\sum_xP_m(x\mid r)\{\delta(r,x)-n^{-1}\sum_tm_t\mu(t)\}^2\). Define \(G_n^{\mathrm{iid}}(q)\) by fixing \(\pi_r=n!\prod_aq_a^{r_a}/\prod_ar_a!\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}orbit-\allowbreak{}likelihood}.
+\end{definition}
+
+\begin{definition}[def:tangent-program]\label{def:tangent-program}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Eight-\allowbreak{}type tangent cost}
+\par\smallskip\noindent\emph{Construction.} \[V(\theta,\eta)=\min_{\lambda\ge0}\left\{\sum_{t\notin\{000,111\}}\lambda_t\mu(t)^2:\sum_t\lambda_t\mu(t)=\theta,\ \sum_t\lambda_t\nu(t)=\eta\right\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}.
+\end{definition}
+
+\begin{definition}[def:face-corner-energy]\label{def:face-corner-energy}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Stratified face/\allowbreak{}corner spectral experiment}
+\par\smallskip\noindent\emph{Construction.} For each fixed \(\eta\), minimize \(\mathcal E_\eta(\psi)=\int_{\mathbb R}\{4|\psi'(u)|^2+V(u,\eta)|\psi(u)|^2\}\,du\) over \(\psi\in H^1(\mathbb R)\) with \(\int\psi^2=1\). The full value is the infimum over fibers \(\eta\in\mathbb R\); the transverse dual is allowed to be a probability measure, including a point mass at \(\eta=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}tangent-\allowbreak{}program}.
+\end{definition}
+
+\begin{definition}[def:airy-feedback-procedure]\label{def:airy-feedback-procedure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Iid Airy-\allowbreak{}feedback procedure}
+\par\smallskip\noindent\emph{Construction.} Under \(\mathcal D_q\), compute \(T_{n,q}=n^{-1}\sum_i c_{A_i}(Y_i^{\mathrm{obs}}-1/2)/q_{A_i}\) and report \(\delta_{n,q}=\operatorname{proj}_{[-1,1]}\{T_{n,q}-n^{-2/3}s_3(n^{1/3}T_{n,q})\}\), where \(s_3=-2\phi_3'/\phi_3\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{C\_\allowbreak{}3}.
+\end{definition}
+
+\begin{definition}[def:half-effect-prior]\label{def:half-effect-prior}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Label-\allowbreak{}preserving half-\allowbreak{}effect schedule prior}
+\par\smallskip\noindent\emph{Construction.} Draw \(X\) with density \(f\), set \(\alpha=n^{-1/3}X\), and condition on \(|\alpha|<1/3\). Independently across labelled units draw response types according to \(p_t(\alpha)\). The induced law on complete schedules is \(\Pi_{A,n}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{f}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:allocation-regularized-prior]\label{def:allocation-regularized-prior}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Allocation-\allowbreak{}regularized complete-\allowbreak{}schedule prior}
+\par\smallskip\noindent\emph{Construction.} Draw \(V_a\) and \(U_i\) as specified, set \(P_a=1/2+\varepsilon_nV_a\), and form \(Y_i(a)=\mathbf 1\{U_i\le P_a\}\); the induced complete-schedule law is \(\Pi_{B,n}\). Define \(\Pi_n=(1-n^{-1/4})\Pi_{A,n}+n^{-1/4}\Pi_{B,n}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}half-\allowbreak{}effect-\allowbreak{}prior}.
+\end{definition}
+
+\begin{definition}[def:grid-certificate]\label{def:grid-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact rational finite-\allowbreak{}orbit certificate}
+\par\smallskip\noindent\emph{Construction.} Restrict each orbit decision \(\delta(r,x)\) to a mixture over \(\Gamma_M\), linearize the resulting squared risks with nonnegative joint design--action weights, and minimize their common upper bound over the design-orbit law for \(\Lambda_{n,M}^{\mathrm{all}}\), or fix the multinomial \(q\)-law for \(\Lambda_{n,M}^{\mathrm{iid}}(q)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}orbit-\allowbreak{}games}.
+\end{definition}
+
+\begin{definition}[def:singular-bridge-handle]\label{def:singular-bridge-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Singular finite-\allowbreak{}orbit bridge handle}
+\par\smallskip\noindent\emph{Construction.} Start from the exact likelihood \(P_m(x\mid r)\); stratify local type counts by \((\theta,\eta)\); use a discrete Stein expansion only in the target coordinate; retain zero-likelihood cells through the primal risk inequalities; compactify duals as probability measures in \(\eta\) with fiberwise \(H^1\) control in \(\theta\); and construct liminf and recovery comparisons uniform on shrinking neighborhoods of \(\eta=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}orbit-\allowbreak{}likelihood}; \texttt{def:\allowbreak{}face-\allowbreak{}corner-\allowbreak{}energy}.
+\end{definition}
+
+\begin{definition}[def:bounded-games]\label{def:bounded-games}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Bounded three-\allowbreak{}arm minimax games}
+\par\smallskip\noindent\emph{Construction.} Fix finite endpoints \(L<U\) and write \(W=U-L\).  A bounded complete schedule is
+\(z^{[L,U]}=(Y_i^{[L,U]}(a))_{i,a}\in[L,U]^{3n}\), it produces
+\(Y_i^{[L,U],\mathrm{obs}}=Y_i^{[L,U]}(A_i)\), and its causal contrast is
+\[
+\tau_{[L,U]}(z^{[L,U]})
+=\frac1n\sum_{i=1}^n\sum_{a\in\mathcal A}c_aY_i^{[L,U]}(a).
+\]
+Because \(\sum_ac_a=0\), \(\sum_{a:c_a>0}c_a=1\), and
+\(\sum_{a:c_a<0}|c_a|=1\), this target lies in \([-W,W]\).  Let
+\(\mathcal O_{n,[L,U]}=(\mathcal A\times[L,U])^n\), let
+\(\widehat\tau_{[L,U]}:\mathcal O_{n,[L,U]}\to[-W,W]\), and define
+\[
+R_{n,[L,U]}(\mathcal D,\widehat\tau_{[L,U]};z^{[L,U]})
+=\mathbb E_{\mathcal D}\left[
+\left\{\widehat\tau_{[L,U]}-\tau_{[L,U]}(z^{[L,U]})\right\}^2\right].
+\]
+The bounded unrestricted and iid minimax values are
+\[
+\rho_{n,[L,U]}^{\mathrm{all}}
+=\inf_{\mathcal D,\widehat\tau_{[L,U]}}
+\sup_{z^{[L,U]}\in[L,U]^{3n}}
+R_{n,[L,U]}(\mathcal D,\widehat\tau_{[L,U]};z^{[L,U]}),
+\]
+and
+\[
+\rho_{n,[L,U]}^{\mathrm{iid}}(q)
+=\inf_{\widehat\tau_{[L,U]}}
+\sup_{z^{[L,U]}\in[L,U]^{3n}}
+R_{n,[L,U]}(\mathcal D_q,\widehat\tau_{[L,U]};z^{[L,U]}).
+\]
+The assignment law is selected independently of the fixed bounded schedule, exactly as in the binary game.
+\par\smallskip\noindent\emph{Inputs.} \texttt{L}; \texttt{U}; \texttt{z\textasciicircum{}\{[L,\allowbreak{}U]\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}mathcal D}; \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:bounded-endpoint-constructions]\label{def:bounded-endpoint-constructions}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rao-\allowbreak{}-\allowbreak{}Blackwellized bounded estimator and endpoint prior}
+\par\smallskip\noindent\emph{Construction.} Fix finite \(L<U\), put \(W=U-L\), and let observed data be generated from the fixed schedule under \(\mathcal D_q\).  Conditional on the realized bounded data, generate independent auxiliary variables
+\[
+B_i\mid A,Y_i^{[L,U],\mathrm{obs}}
+\sim\operatorname{Bernoulli}\left(
+\frac{Y_i^{[L,U],\mathrm{obs}}-L}{W}\right),\qquad 1\leq i\leq n.
+\]
+The Rao--Blackwellized bounded Airy rule is
+\[
+\delta_{n,q}^{[L,U]}(A,Y^{[L,U],\mathrm{obs}})
+=W\,\mathbb E_B\left[
+\delta_{n,q}\bigl((A_i,B_i)_{i=1}^n\bigr)
+\mathrel{}\middle|\mathrel{} A,Y^{[L,U],\mathrm{obs}}
+\right].
+\]
+It takes values in \([-W,W]\).  The bounded endpoint prior
+\(\Pi_n^{[L,U]}\) is the pushforward of \(\Pi_n\) under the coordinatewise map
+\(t_{i,a}\mapsto L+Wt_{i,a}\).  Thus it is a prior on fixed complete bounded schedules supported on the endpoints \(\{L,U\}^{3n}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}bounded-\allowbreak{}games}; \texttt{def:\allowbreak{}airy-\allowbreak{}feedback-\allowbreak{}procedure}; \texttt{def:\allowbreak{}allocation-\allowbreak{}regularized-\allowbreak{}prior}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:imported-eight-type-orbit-infrastructure]\label{prop:imported-eight-type-orbit-infrastructure}
+Import the lossless exact labelled eight-type orbit-game reduction established in the accepted repository parent \(\texttt{exp\_multiarm\_secondorder\_minimax\_frontier}\). For every \(n\), common permutation symmetrization identifies \[\rho_n^{\mathrm{all}}=G_n^{\mathrm{all}},\qquad \rho_n^{\mathrm{iid}}(q)=G_n^{\mathrm{iid}}(q).\] Its exact likelihood is \(P_m(x\mid r)\), and its attained finite primal and dual games retain zero arm counts and zero-likelihood observation cells.
+\end{proposition}
+\begin{proof}
+Let \(\mathfrak S_n\) act simultaneously on unit labels in schedules, assignments, and observations.  Fix a schedule-independent pair \((\mathcal D,\widehat\tau)\).  Draw \(\sigma\) uniformly from \(\mathfrak S_n\), relabel the input by \(\sigma\), apply \((\mathcal D,\widehat\tau)\), and undo the relabelling in the reported data.  By the fixed-schedule condition and schedule independence, for every \(z\), the risk of this randomized symmetrization is the average of the original risks over \(\{\sigma z:\sigma\in\mathfrak S_n\}\), and hence is at most
+\[
+\max_{z'\in\mathcal T^n}R_n(\mathcal D,\widehat\tau;z').
+\]
+Conditional averaging of the randomized action \(D\) given the observed data \(O\) cannot increase squared loss, since
+\[
+\mathbb E\{D-\tau(z)\}^2
+=\{\mathbb E(D\mid O)-\tau(z)\}^2+\mathbb E\operatorname{Var}(D\mid O).
+\]
+Thus a deterministic invariant rule suffices.
+
+An invariant assignment law is constant on each orbit of \(\mathcal A^n\).  An orbit is indexed by \(r\), contains \(n!/\prod_a r_a!\) assignments, and hence an invariant law is uniquely a mixture \(\pi\) of uniform laws on these orbits.  An observed binary labelled array has orbit invariant \((r,x)\), so an invariant deterministic action is precisely \(\delta(r,x)\).  Likewise, two complete schedules are in the same orbit exactly when their eight type counts \(m\) agree, so maximization over schedules becomes maximization over \(\mathcal M_n\).
+
+Fix \(m,r,x\).  For each \(h\in\mathcal H(m,r,x)\), the number of labelled assignments producing \(h\) is
+\[
+\prod_{t\in\mathcal T}\frac{m_t!}{\prod_{a\in\mathcal A}h_{t,a}!}.
+\]
+Dividing their sum by the orbit size gives exactly the likelihood in \(\textnormal{def:orbit-likelihood}\):
+\[
+P_m(x\mid r)=\frac{\prod_a r_a!}{n!}
+\sum_{h\in\mathcal H(m,r,x)}
+\prod_{t\in\mathcal T}\frac{m_t!}{\prod_a h_{t,a}!}.
+\]
+Substitution into the invariant risk gives \(G_n^{\mathrm{all}}\), proving \(\rho_n^{\mathrm{all}}=G_n^{\mathrm{all}}\).  Under \(\mathcal D_q\), independence gives
+\[
+\pi_r=\frac{n!}{\prod_a r_a!}\prod_aq_a^{r_a},
+\]
+so the same substitution gives \(\rho_n^{\mathrm{iid}}(q)=G_n^{\mathrm{iid}}(q)\).  The state spaces are finite and the action interval is compact, so all decision minima are attained.  No argument deletes an orbit with \(r_a=0\); when \(P_m(x\mid r)=0\), its summand is zero while the corresponding primal cell remains in the finite game.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This imported proposition is infrastructure only: it fixes the exact labelled finite experiment on which the new asymptotic claims are built. \textit{Gap.} No novelty is claimed for the orbit equality; the accepted repository parent supplies it, while the unresolved step is its uniform second-order analysis at the singular face/corner fiber. \textit{Consumer.} The imported finite experiment is the common starting point for the Airy constant, the singular bridge, and the allocation-frontier claims.
+
+\begin{lemma}[lem:tangent-half-wedge]\label{lem:tangent-half-wedge}
+The six response types outside \(\{000,111\}\) have \((\mu(t),\nu(t),\mu(t)^2)\) equal to \((-1/2,-1,1/4)\), \((-1/2,1,1/4)\), \((-1,0,1)\), \((1,0,1)\), \((1/2,-1,1/4)\), and \((1/2,1,1/4)\). Consequently the tangent program has the exact value \[V(\theta,\eta)=\max\{|\theta|/2,|\eta|/4\}.\] Integer response-type counts recover every compact set of local coordinates with \(O(n^{-2/3})\) coordinate and cost error.
+\end{lemma}
+\begin{proof}
+Direct substitution in \(\mu(t)=t_1-(t_2+t_3)/2\) and \(\nu(t)=t_2-t_3\) gives, in the order \(001,010,011,100,101,110\),
+\[
+(\mu,\nu,\mu^2)
+=(-1/2,-1,1/4),\,(-1/2,1,1/4),\,(-1,0,1),\,
+  (1,0,1),\,(1/2,-1,1/4),\,(1/2,1,1/4).
+\]
+Every one of these six triples satisfies
+\[
+ \mu(t)^2\geq \frac{|\mu(t)|}{2},
+ \qquad
+ \mu(t)^2\geq \frac{|\nu(t)|}{4}.
+\]
+Consequently every feasible \(\lambda\) in the tangent program satisfies, by the triangle inequality,
+\[
+\sum_t\lambda_t\mu(t)^2\geq\frac{|\theta|}{2},
+\qquad
+\sum_t\lambda_t\mu(t)^2\geq\frac{|\eta|}{4}.
+\]
+
+For the reverse inequality put \(S=\max\{2|\theta|,|\eta|\}\).  If \(S=0\), take all four masses below equal to zero.  If \(S>0\), for \(\sigma,\tau\in\{-1,1\}\) assign to the half-effect type having \((\mu,\nu)=(\sigma/2,\tau)\) the mass
+\[
+ \lambda_{\sigma,\tau}
+ =\frac S4\left(1+\sigma\frac{2\theta}{S}\right)
+             \left(1+\tau\frac{\eta}{S}\right).
+\]
+These masses are nonnegative, their \(\mu\)-sum is \(\theta\), their \(\nu\)-sum is \(\eta\), and their total mass is \(S\).  Since every such type has cost \(1/4\), the achieved cost is
+\[
+ \frac S4=\max\left\{\frac{|\theta|}{2},\frac{|\eta|}{4}\right\}.
+\]
+This proves the exact formula for \(V\).
+
+Finally, on a compact coordinate set the four displayed masses are uniformly bounded.  Round each \(n^{2/3}\lambda_{\sigma,\tau}\) to a nonnegative integer and put all unused units in type \(000\).  Each of the two coordinates and the scaled cost changes by at most a constant times \(n^{-2/3}\), uniformly on that compact set; for all sufficiently large \(n\) the reservoir count is nonnegative.  This gives the asserted integer recovery along the full integer sequence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The polyhedral potential is the first mathematical step that differs from the published scalar two-arm boundary. \textit{Gap.} The two-arm potential in Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Section 3) is \(|\theta|\); no cited work derives this labelled face/corner support function. \textit{Consumer.} The explicit potential identifies which complete schedules drive second-order risk and makes the proposed constant numerically and analytically evaluable.
+
+\begin{lemma}[lem:label-preserving-bayes-expansion]\label{lem:label-preserving-bayes-expansion}
+Under \(\Pi_{A,n}\), conditional on \(\alpha\) and any assignment vector, the signed observations \(\operatorname{sign}(c_{A_i})(2Y_i^{\mathrm{obs}}-1)\) are independent with success probability \((1+\alpha)/2\), while the posterior mean of \(\tau(z)\) retains the arm-labelled coefficient \(b_{A_i}(\alpha)\). For \(\alpha=n^{-1/3}u\), the generalized information inequality and conditional-residual term give, uniformly over every schedule-independent \(\mathcal D\), the second-order coefficient \[I(f)+\{2\bar q_1(\mathcal D)-1/2\}m_1(f),\] up to \(o(1)\). The cusp at \(\alpha=0\) has cancelling traces and creates no extra boundary term.
+\end{lemma}
+\begin{proof}
+Put \(s=|\alpha|\), \(\alpha_+=\max(\alpha,0)\), and \(\alpha_-=\max(-\alpha,0)\).  The six displayed nonzero probabilities in \(\textnormal{def:half-effect-prior}\) are nonnegative for \(|\alpha|<1/3\) and sum to one.  Direct enumeration gives
+\[
+\mathbb E_\alpha\mu(t)=\alpha,
+\qquad
+\mathbb E_\alpha\mu(t)^2=\frac{s}{2},
+\]
+and
+\[
+\Pr_\alpha\{Y(1)=1\}=\frac{1+\alpha}{2},
+\qquad
+\Pr_\alpha\{Y(2)=1\}=\Pr_\alpha\{Y(3)=1\}=\frac{1-\alpha}{2}.
+\]
+Let \(Z_i=\operatorname{sign}(c_{A_i})(2Y_i^{\mathrm{obs}}-1)\).  Conditional on \((\alpha,A)\), schedule independence and the product construction of \(\Pi_{A,n}\) imply that the \(Z_i\) are independent and
+\[
+\Pr_\alpha(Z_i=1\mid A)=\frac{1+\alpha}{2}
+\]
+for every arm label.
+
+Because a binary \(Z\in\{-1,1\}\) has an affine conditional regression, its regression is determined by its mean and covariance.  Here \(\mathbb E_\alpha Z=\alpha\), while enumeration gives
+\[
+\mathbb E_\alpha\{\mu(t)Z\mid A=1\}=|\alpha|,
+\qquad
+\mathbb E_\alpha\{\mu(t)Z\mid A=2\}
+=\mathbb E_\alpha\{\mu(t)Z\mid A=3\}=0.
+\]
+Consequently
+\[
+\mathbb E_\alpha\{\mu(t_i)\mid A_i=a,Z_i\}
+=\alpha+b_a(\alpha)(Z_i-\alpha),
+\]
+with precisely the declared coefficients \(b_a(\alpha)\).  Conditional independence across units yields
+\[
+g(\alpha,A,Z):=\mathbb E_\alpha\{\tau(z)\mid A,Z\}
+=\alpha+\frac1n\sum_{i=1}^n b_{A_i}(\alpha)(Z_i-\alpha)
+\]
+and the conditional-residual identity
+\[
+\mathbb E_\alpha\operatorname{Var}\{\tau(z)\mid\alpha,A,Z\}
+=\frac{s/2-\alpha^2}{n}
+-\frac{1-\alpha^2}{n^2}\,
+\mathbb E_{\mathcal D}\sum_{i=1}^n b_{A_i}(\alpha)^2.
+\tag{1}
+\]
+
+Differentiate \(g\) at fixed \((A,Z)\) separately on the two half-lines.  Since \(\mathbb E_\alpha(Z_i-\alpha)=0\),
+\[
+\mathbb E_\alpha\{\partial_\alpha g(\alpha,A,Z)\}
+=1-\sum_a\bar q_a(\mathcal D)b_a(\alpha)
+=1-\frac{\bar q_1(\mathcal D)|\alpha|-\alpha^2}{1-\alpha^2}.
+\tag{2}
+\]
+The two formulas for \(g\) have the same trace at zero.  Hence integration by parts on \((-1/3,0)\) and \((0,1/3)\) produces opposite traces at zero, which cancel.
+
+Let \(\varpi_n(\alpha)=n^{1/3}f(n^{1/3}\alpha)\), let \(\ell_\alpha(A,Z)\) be the conditional likelihood, and set
+\[
+S_\alpha=\partial_\alpha\log\{\varpi_n(\alpha)\ell_\alpha(A,Z)\}.
+\]
+The compact support of \(f\), the cancellation just proved, and integration by parts give, for every estimator \(D(A,Z)\),
+\[
+\mathbb E\{(D-g)S_\alpha\}=\mathbb E(\partial_\alpha g).
+\]
+Cauchy--Schwarz therefore yields
+\[
+\mathbb E(D-g)^2\geq
+\frac{\{\mathbb E(\partial_\alpha g)\}^2}{\mathbb E S_\alpha^2}.
+\tag{3}
+\]
+The prior-likelihood score cross term has mean zero, and the Bernoulli likelihood information is \(n/(1-\alpha^2)\).  Therefore
+\[
+\mathbb E S_\alpha^2
+=n^{2/3}I(f)+n\,\mathbb E\frac1{1-\alpha^2}.
+\tag{4}
+\]
+With \(\alpha=n^{-1/3}u\), compact support permits Taylor expansion uniformly over every \(\bar q(\mathcal D)\in\Delta_3\):
+\[
+\{\mathbb E(\partial_\alpha g)\}^2
+=1-2\bar q_1(\mathcal D)n^{-1/3}m_1(f)+O_f(n^{-2/3}),
+\]
+\[
+\{\mathbb E S_\alpha^2\}^{-1}
+=\frac1n-I(f)n^{-4/3}+O_f(n^{-5/3}).
+\tag{5}
+\]
+Equation (1) contributes
+\[
+\frac12m_1(f)n^{-4/3}+O_f(n^{-5/3}).
+\tag{6}
+\]
+Combining (3)--(6) with total conditional variance proves, uniformly over schedule-independent \(\mathcal D\),
+\[
+\inf_D\mathbb E(D-\tau)^2
+\geq \frac1n-n^{-4/3}
+\left[I(f)+\{2\bar q_1(\mathcal D)-1/2\}m_1(f)\right]
++O_f(n^{-5/3}),
+\]
+which is the claimed coefficient, including the arm-labelled posterior term and the conditional residual.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This coefficient is the early kill test: omitting the label-dependent posterior target or its residual variance changes the proposed potential and constant. \textit{Gap.} The published two-arm lower bound uses a scalar target and symmetric least-favorable prior; it has no arm-labelled posterior coefficient or allocation-sensitive residual term. \textit{Consumer.} The exact coefficient supplies a trustworthy lower-bound diagnostic before the singular experiment-convergence argument is attempted.
+
+\begin{theorem}[thm:sharp-face-corner-expansion]\label{thm:sharp-face-corner-expansion}
+The stratified face/corner experiment has value \[\inf_{\eta\in\mathbb R}\inf_{\psi\in H^1(\mathbb R):\int\psi^2=1}\mathcal E_\eta(\psi)=\inf_{\psi:\int\psi^2=1}\int_{\mathbb R}\{4|\psi'(u)|^2+|u||\psi(u)|^2/2\}\,du=C_3.\] The least fiber is \(\eta=0\); \(\phi_3\) is its positive even ground state, satisfies \(\phi_3'(0)=0\), and has eigenvalue \(C_3=-a_1'\). Along the full integer sequence, the imported exact orbit games obey \[\rho_n^{\mathrm{all}}=\frac1n-C_3n^{-4/3}+o(n^{-4/3}),\qquad \rho_n^{\mathrm{iid}}(q^\star)=\frac1n-C_3n^{-4/3}+o(n^{-4/3}).\] Thus iid \(q^\star\) is second-order minimax and \(\rho_n^{\mathrm{iid}}(q^\star)-\rho_n^{\mathrm{all}}=o(n^{-4/3})\). The new assertion is the exact half-wedge constant and its uniform transfer through the singular labelled finite experiment; the orbit equality itself is inherited infrastructure.
+\end{theorem}
+\begin{proof}
+By \(\textnormal{lem:tangent-half-wedge}\) and \(\textnormal{def:face-corner-energy}\),
+\[
+V(u,\eta)=\max\{|u|/2,|\eta|/4\}\geq |u|/2.
+\]
+The Airy fiber calculus then gives
+\[
+\inf_{\eta\in\mathbb R}\inf_{\substack{\psi\in H^1(\mathbb R)\\ \int\psi^2=1}}
+\mathcal E_\eta(\psi)
+=\inf_{\substack{\psi\in H^1(\mathbb R)\\ \int\psi^2=1}}
+\int_{\mathbb R}\left\{4|\psi'(u)|^2+\frac{|u|}{2}|\psi(u)|^2\right\}\,du
+=C_3,
+\]
+with equality at \(\eta=0\).  The same lemma identifies the normalized minimizer as \(\phi_3(u)\propto\operatorname{Ai}(|u|/2-C_3)\), gives \(\phi_3'(0)=0\), and hence gives \(\operatorname{Ai}'(-C_3)=0\).  Positivity of the ground state and the declared ordering of Airy derivative zeros select the largest negative zero, so \(C_3=-a_1'\).
+
+The matching finite-\(n\) construction gives
+\[
+\rho_n^{\mathrm{iid}}(q^\star)
+\leq \frac1n-C_3n^{-4/3}+o(n^{-4/3}).
+\tag{7}
+\]
+Because the unrestricted design class contains \(\mathcal D_{q^\star}\),
+\[
+\rho_n^{\mathrm{all}}\leq\rho_n^{\mathrm{iid}}(q^\star).
+\tag{8}
+\]
+For every schedule-independent \(\mathcal D\), the prior part of \(\textnormal{prop:matching-finite-n-constructions}\) gives
+\[
+\inf_{\widehat\tau}\mathbb E_{z\sim\Pi_n}
+R_n(\mathcal D,\widehat\tau;z)
+\geq \frac1n-C_3n^{-4/3}+o(n^{-4/3}),
+\tag{9}
+\]
+uniformly in \(\mathcal D\).  A maximum over \(\mathcal T^n\) dominates its average under \(\Pi_n\).  Taking the estimator infimum and then the design infimum in (9) yields
+\[
+\rho_n^{\mathrm{all}}
+\geq \frac1n-C_3n^{-4/3}+o(n^{-4/3}).
+\tag{10}
+\]
+Equations (7)--(10) prove the two displayed risk expansions.  Their difference is \(o(n^{-4/3})\).  Finally, \(\textnormal{thm:uniform-singular-value-bridge}\) supplies the value-level passage through \(\eta=0\), including all zero-likelihood cells and dormant constraints, so no stronger cellwise equivalence is being used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem identifies the exact nonlinear binary endpoint gain; the proved bounded corollary transfers that gain, with squared-width scaling, to every common finite interval. \textit{Gap.} The published two-arm theory gives neither the three-arm half-wedge eigenvalue \(-a_1'\) nor the singular labelled finite-orbit bridge; its bounded theorem also does not itself establish the three-arm transfer. \textit{Consumer.} For an active treatment compared with two equally weighted comparators, the binary theorem and bounded corollary give the sharp worst-case MSE benchmark on any known common outcome interval.
+
+\begin{theorem}[thm:local-allocation-frontier]\label{thm:local-allocation-frontier}
+Let \((q_n)\) be iid allocation vectors with \(q_n\to q^\star\). Uniformly whenever \(\zeta_n=n^{1/6}(q_n-q^\star)\) ranges over a compact subset of \(\{v:v_1+v_2+v_3=0\}\), \[\rho_n^{\mathrm{iid}}(q_n)=\frac1n+n^{-4/3}\{\mathsf P(\zeta_n)-C_3\}+o(n^{-4/3}).\] Hence an iid allocation array retains the unrestricted sharp correction \(C_3\) if and only if \(n^{1/6}(q_n-q^\star)\to0\). If \(q_n\to q^\star\) and \(n^{1/6}\|q_n-q^\star\|\to\infty\), then \(n^{4/3}\{\rho_n^{\mathrm{iid}}(q_n)-n^{-1}\}\to\infty\). The penalty \(\mathsf P(\zeta)=2\zeta_1^2+4\zeta_2^2+4\zeta_3^2\) is the constrained Hessian of \(q\mapsto\frac14\sum_ac_a^2/q_a\), and the displayed expansion proves its uniform coupling to the half-wedge experiment.
+\end{theorem}
+\begin{proof}
+Define
+\[
+F(q)=\frac14\sum_{a\in\mathcal A}\frac{c_a^2}{q_a}.
+\]
+Directly from \(\textnormal{def:airy-feedback-procedure}\), for every fixed schedule,
+\[
+\mathbb ET_{n,q}=\tau(z),
+\qquad
+\operatorname{Var}(T_{n,q})
+=\frac{F(q)}n-\frac1{n^2}\sum_i\mu(t_i)^2.
+\tag{11}
+\]
+For \(q\) in a fixed neighborhood of the interior point \(q^\star\), the independent centered summands are uniformly bounded, whence their averaged third absolute moment is \(O(n^{-3/2})\).  Put
+\[
+A_n=n^{-2/3}\sum_i\mu(t_i)^2,
+\qquad x=n^{1/3}\tau(z).
+\]
+Taylor expansion using the bounded Lipschitz derivatives supplied by \(\textnormal{lem:airy-fiber-calculus}\) gives, uniformly in the schedule,
+\[
+R_n(\mathcal D_q,\delta_{n,q};z)
+=\frac{F(q)}n+n^{-4/3}
+\left[-A_n-2F(q)s_3'(x)+s_3(x)^2
++2n^{-1/3}A_ns_3'(x)\right]+O(n^{-3/2}).
+\tag{12}
+\]
+Indeed, the cross-term remainder is bounded by a constant times \(n^{-2/3}n^{2/3}\mathbb E|T_{n,q}-\tau(z)|^3=O(n^{-3/2})\), and the square remainder is no larger because \(s_3^2\) is Lipschitz.
+
+The response-type list in \(\textnormal{lem:tangent-half-wedge}\) gives \(\mu(t)^2\geq|\mu(t)|/2\).  Thus
+\[
+A_n\geq |x|/2,
+\qquad 0\leq A_n\leq n^{1/3}.
+\tag{13}
+\]
+The constrained gradient of \(F\) vanishes at \(q^\star\), so \(q-q^\star=O(n^{-1/6})\) implies
+\[
+F(q)-1=O(n^{-1/3}).
+\tag{14}
+\]
+Using the Riccati identity \(s_3^2-2s_3'=|x|/2-C_3\), equations (12)--(14), and \(|s_3'(x)|\leq K(1+|x|)^{-1/2}\), we obtain
+\[
+\max_zR_n(\mathcal D_q,\delta_{n,q};z)
+\leq\frac{F(q)}n-C_3n^{-4/3}+o(n^{-4/3}),
+\tag{15}
+\]
+uniformly on compact sets of \(n^{1/6}(q-q^\star)\).  Projection cannot increase squared distance from \(\tau(z)\in[-1,1]\).  The reverse inequality in (15) is \(\textnormal{lem:q-dependent-half-effect-bound}\), hence
+\[
+\rho_n^{\mathrm{iid}}(q_n)
+=\frac{F(q_n)}n-C_3n^{-4/3}+o(n^{-4/3}).
+\tag{16}
+\]
+
+Write \(d=q-q^\star\), where \(d_1+d_2+d_3=0\).  Taylor expansion at the interior point \(q^\star\) gives, with a uniform cubic remainder,
+\[
+F(q^\star+d)
+=1+2d_1^2+4d_2^2+4d_3^2+O(\|d\|^3).
+\tag{17}
+\]
+Substituting \(d=n^{-1/6}\zeta_n\) into (16)--(17) proves the asserted uniform expansion with penalty \(\mathsf P\).
+
+If \(\zeta_n\to0\), the expansion matches the unrestricted coefficient \(-C_3\) from \(\textnormal{thm:sharp-face-corner-expansion}\).  If a bounded \(\zeta_n\) does not converge to zero, a subsequence converges to a nonzero \(\zeta\), and positive definiteness of \(\mathsf P\) gives a different coefficient.  If \(\|\zeta_n\|\to\infty\), the second bound in \(\textnormal{lem:q-dependent-half-effect-bound}\) and strong convexity of \(F\) near \(q^\star\) give constants \(k,K>0\) such that
+\[
+n^{4/3}\left\{\rho_n^{\mathrm{iid}}(q_n)-\frac1n\right\}
+\geq k n^{1/3}\|q_n-q^\star\|^2-K
+=k\|\zeta_n\|^2-K\longrightarrow\infty.
+\]
+These exhaustive alternatives prove both the necessary-and-sufficient frontier and the divergence assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This necessary-and-sufficient frontier turns the design into a first-class object and quantifies exactly when allocation error erases the second-order minimax gain. \textit{Gap.} Bai (2023, Theorems 3.1--3.3) gives a first-order quadratic allocation result for linear procedures, while Zhao and Ding (2023) hold limiting multi-arm proportions fixed; neither derives the \(n^{-1/6}\) threshold or couples it to nonlinear minimax risk. \textit{Consumer.} A multi-arm trial can translate the theorem into an allocation-tolerance rule: deviations smaller than \(n^{-1/6}\) preserve the sharp gain, while local deviations incur the explicit penalty.
+
+\begin{proposition}[prop:matching-finite-n-constructions]\label{prop:matching-finite-n-constructions}
+At \(q=q^\star\), the explicit estimator \(\delta_{n,q^\star}\) satisfies \[\max_{z\in\mathcal T^n}R_n(\mathcal D_{q^\star},\delta_{n,q^\star};z)\le n^{-1}-C_3n^{-4/3}+o(n^{-4/3})\] uniformly over complete schedules. The explicit prior \(\Pi_n\) satisfies, uniformly over every schedule-independent \(\mathcal D\), \[\inf_{\widehat\tau}\mathbb E_{z\sim\Pi_n}R_n(\mathcal D,\widehat\tau;z)\ge n^{-1}-C_3n^{-4/3}+o(n^{-4/3}).\] The broad component yields a positive quadratic coercivity term in \(\|\bar q(\mathcal D)-q^\star\|\); completing the square against the linear half-effect-prior term contributes only \(o(n^{-4/3})\). Finally, with \(M=n\), both rational grid programs bracket their continuous orbit games within \(1/(4n^2)=o(n^{-4/3})\).
+\end{proposition}
+\begin{proof}
+At \(q=q^\star\), the identity \(c_a/q_a^\star=2\operatorname{sign}(c_a)\) gives
+\[
+T_{n,q^\star}=\frac1n\sum_{i=1}^n W_i,
+\qquad
+W_i=\operatorname{sign}(c_{A_i})(2Y_i^{\mathrm{obs}}-1)\in\{-1,1\}.
+\]
+For a fixed schedule, iid assignment makes the \(W_i\) independent and direct summation over arms gives
+\[
+\mathbb EW_i=\mu(t_i),
+\qquad
+\operatorname{Var}(T_{n,q^\star})
+=\frac1n-\frac1{n^2}\sum_i\mu(t_i)^2.
+\tag{18}
+\]
+Put \(Q=\sum_i\mu(t_i)^2\), \(A_n=Q/n^{2/3}\), \(x=n^{1/3}\tau(z)\), and \(\varepsilon=T_{n,q^\star}-\tau(z)\).  Bounded independence gives \(\mathbb E|\varepsilon|^3=O(n^{-3/2})\), uniformly in \(z\).  Taylor expansion using the regularity in \(\textnormal{lem:airy-fiber-calculus}\) yields
+\[
+\mathbb E\left[
+\varepsilon-n^{-2/3}s_3\{x+n^{1/3}\varepsilon\}
+\right]^2
+=\frac1n+n^{-4/3}
+\left[-A_n-2(1-Q/n)s_3'(x)+s_3(x)^2\right]
++O(n^{-3/2}).
+\tag{19}
+\]
+The cross-term remainder is bounded by a constant times \(n^{-2/3}n^{2/3}\mathbb E|\varepsilon|^3\), and the squared-feedback remainder is no larger because \(s_3^2\) is Lipschitz.
+
+Every binary response type satisfies \(\mu(t)^2\geq|\mu(t)|/2\), so
+\[
+A_n\geq |x|/2,
+\qquad 0\leq A_n\leq n^{1/3}.
+\tag{20}
+\]
+The Riccati identity converts the bracket in (19) to
+\[
+-A_n+\frac{|x|}{2}-C_3+2n^{-1/3}A_ns_3'(x).
+\tag{21}
+\]
+For all sufficiently large \(n\), boundedness of \(s_3'\) makes (21) decreasing in \(A_n\).  Its maximum under (20) is attained at \(A_n=|x|/2\), while
+\[
+n^{-1/3}|x|\,|s_3'(x)|
+\leq K n^{-1/3}|x|(1+|x|)^{-1/2}=O(n^{-1/6})
+\]
+because \(|x|\leq n^{1/3}\).  Projection onto \([-1,1]\) cannot increase squared distance from \(\tau(z)\in[-1,1]\).  Equations (18)--(21) prove the uniform upper bound.
+
+For the lower construction, \(\textnormal{lem:label-preserving-bayes-expansion}\) gives
+\[
+B_{A,n}(\mathcal D)\geq
+\frac1n-n^{-4/3}
+\left[I(f)+\frac12m_1(f)+2m_1(f)
+\{\bar q_1(\mathcal D)-1/2\}\right]+O_f(n^{-5/3}),
+\tag{22}
+\]
+and \(\textnormal{lem:broad-prior-coercivity}\) gives
+\[
+B_{B,n}(\mathcal D)\geq
+\frac{1+k\|\bar q(\mathcal D)-q^\star\|^2}{n}-Kn^{-9/8}.
+\tag{23}
+\]
+Bayes risk is concave in the prior because it is an infimum of linear risk functionals.  With \(\gamma_n=n^{-1/4}\) and \(d=\bar q(\mathcal D)-q^\star\), the mixture prior therefore satisfies
+\[
+B_{\Pi_n}(\mathcal D)\geq
+\frac1n-\{I(f)+m_1(f)/2\}n^{-4/3}
++k n^{-5/4}\|d\|^2
+-2m_1(f)n^{-4/3}d_1
+-O_f(n^{-11/8})-O_f(n^{-5/3}).
+\tag{24}
+\]
+The exact square completion is
+\[
+k n^{-5/4}\|d\|^2-2m_1(f)n^{-4/3}d_1
+\geq-\frac{m_1(f)^2}{k}n^{-17/12}
+=o(n^{-4/3}).
+\tag{25}
+\]
+Choose smooth compactly supported even densities by cutting off and smoothing \(\phi_3^2\).  The Airy variational identity gives \(I(f)+m_1(f)/2\to C_3\).  A diagonal cutoff sequence makes this approximation and the remainders in (24) jointly \(o(n^{-4/3})\), uniformly in \(\mathcal D\).  Equations (24)--(25) prove the prior lower bound.
+
+Finally, \(\textnormal{lem:grid-randomization-bound}\) with \(M=n\) gives
+\[
+0\leq\Lambda_{n,n}^{\mathrm{all}}-G_n^{\mathrm{all}}\leq\frac1{4n^2},
+\qquad
+0\leq\Lambda_{n,n}^{\mathrm{iid}}(q)-G_n^{\mathrm{iid}}(q)\leq\frac1{4n^2}.
+\]
+Since \(n^{-2}=o(n^{-4/3})\), these are the asserted finite rational brackets.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition makes the asymptotic saddle operational and prevents the sharp value from resting on an unattained formal operator. \textit{Gap.} The two-arm paper constructs a scalar feedback rule and scalar Airy-squared priors; the proposed constructions must preserve arm labels and regularize every dependent assignment law without changing the second-order coefficient. \textit{Consumer.} The estimator is directly implementable under iid \(q^\star\), while the rational certificates allow exact finite-sample auditing of its worst-case risk.
+
+\begin{proposition}[prop:pooled-two-arm-sanity]\label{prop:pooled-two-arm-sanity}
+On the restricted schedule class \(Y_i(2)=Y_i(3)\) for every \(i\), pool assignment labels \(2\) and \(3\). Under \(q^\star\), the resulting observation has balanced two-arm assignment, the target becomes \(n^{-1}\sum_i\{Y_i(1)-Y_i(2)\}\), and the exact orbit likelihood reduces to the shifted-binomial experiment of Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Theorem 2.1). Its restricted-class second-order constant is \(-4^{1/3}a_1'\), providing the required two-arm sanity reduction without asserting that this restricted constant equals \(C_3\).
+\end{proposition}
+\begin{proof}
+Assume \(Y_i(2)=Y_i(3)\) and denote their common value by \(Y_i(0)\).  Under \(q^\star\),
+\[
+\Pr(A_i=1)=\frac12,
+\qquad
+\Pr(A_i\in\{2,3\})=\frac12.
+\]
+After mapping labels \(2,3\) to \(0\), the assignments are iid balanced two-arm assignments.  The split between labels \(2\) and \(3\) is ancillary conditional on the pooled label because the corresponding potential outcomes coincide.  Moreover,
+\[
+\tau(z)=\frac1n\sum_i\left\{Y_i(1)-\frac{Y_i(2)+Y_i(3)}2\right\}
+=\frac1n\sum_i\{Y_i(1)-Y_i(0)\}.
+\]
+In the exact orbit likelihood, summing over all splits \(r_2+r_3=r_0\) and their latent-table columns leaves the hypergeometric count for assignment to the pooled arm.  The declared published two-arm orbit reduction therefore identifies the invariant kernel with the shifted-binomial experiment.  The declared sharp two-arm theorem gives the coefficient \(-4^{1/3}a_1'\).  Because \(C_3=-a_1'\), this restricted coefficient differs from \(C_3\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction verifies the normalization and distinguishes the new worst-case three-arm geometry from an embedded two-arm submodel. \textit{Gap.} The published scalar experiment supplies the known special case but does not establish how the unrestricted eight-type adversary lowers the constant to \(C_3\). \textit{Consumer.} The identity provides a regression test for symbolic and numerical implementations of the eight-type likelihood.
+
+\begin{openendedquestion}[oeq:uniform-singular-bridge]\label{oeq:uniform-singular-bridge}
+Can one construct a uniform liminf and recovery comparison between the exact eight-type orbit games and the stratified face/corner experiment, with risk error \(o(n^{-4/3})\), simultaneously for \(|\eta|\le\epsilon_n^{\mathrm{bridge}}\), the coalesced fiber \(\eta=0\), every mixture on the \(000\)--\(111\) nuisance edge, every zero-likelihood observation cell, and every dormant finite-game primal constraint? The comparison must justify measure-valued concentration on \(\eta=0\), continuity of the fiber wavefunction and its \(\theta\)-derivative at \(\theta=\pm|\eta|/2\), and absence of an artificial \(\eta\)-diffusion or \(\eta\)-boundary condition.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the genuine unresolved proof boundary separating a compelling formal constant from a theorem valid for the full labelled finite experiment. \textit{Gap.} Appendix C of Sudijono, Dobriban, and Tchetgen Tchetgen (2026) controls a one-dimensional lattice, while the prior orbit proposal permits arbitrary versions on null cells; neither result supplies uniform singular-fiber recovery. \textit{Consumer.} Closing the bridge validates the sharp constant, the allocation frontier, and the finite certificates simultaneously; failure pinpoints the first labelled orbit that requires a different limit experiment.
+
+\begin{lemma}[lem:airy-classical-properties]\label{lem:airy-classical-properties}
+The Airy function \(\operatorname{Ai}\) is the real solution of \(y''(x)=xy(x)\) that decays at \(+\infty\); its largest derivative zero \(a_1'\) is simple, \(\operatorname{Ai}(x)>0\) for \(x\geq a_1'\), and the standard Airy asymptotics imply \(-\operatorname{Ai}'(x)/\operatorname{Ai}(x)=x^{1/2}+O(x^{-1})\) as \(x\to+\infty\).
+\end{lemma}
+
+\begin{lemma}[lem:airy-fiber-calculus]\label{lem:airy-fiber-calculus}
+For every \(\eta\in\mathbb R\), the fiber form in \(\mathcal E_\eta\) has a lowest eigenvalue, and
+\[
+\inf_{\eta\in\mathbb R}\inf_{\psi\in H^1(\mathbb R):\,\int\psi^2=1}
+\mathcal E_\eta(\psi)=C_3.
+\]
+At \(\eta=0\) the normalized minimizer is \(\phi_3\); it is positive and even, solves
+\[
+-4\phi_3''(u)+\frac{|u|}{2}\phi_3(u)=C_3\phi_3(u),
+\qquad \phi_3'(0)=0,
+\]
+and \(s_3=-2\phi_3'/\phi_3\) obeys
+\[
+s_3(u)^2-2s_3'(u)=\frac{|u|}{2}-C_3.
+\]
+Moreover \(s_3'\) is bounded and Lipschitz, \(s_3^2\) is Lipschitz, and
+\[
+|s_3'(u)|\leq K(1+|u|)^{-1/2}
+\]
+for a finite constant \(K\).
+\end{lemma}
+\begin{proof}
+The tangent calculation gives
+\[
+V(u,\eta)=\max\{|u|/2,|\eta|/4\}\geq |u|/2=V(u,0).
+\]
+Thus every fiber energy dominates the \(\eta=0\) energy, while \(\eta=0\) is admissible, so the infimum over fibers equals the bottom of
+\[
+H_0=-4\frac{d^2}{du^2}+\frac{|u|}{2}.
+\]
+Put \(C=-a_1'\) and \(\phi(u)=\operatorname{Ai}(|u|/2-C)\).  The cited Airy facts make \(\phi\) positive and square-integrable.  On \(u>0\),
+\[
+-4\phi''(u)+\frac u2\phi(u)
+=-\operatorname{Ai}''(u/2-C)+\frac u2\operatorname{Ai}(u/2-C)
+=C\phi(u),
+\]
+and the same identity holds on \(u<0\).  Since \(\operatorname{Ai}'(-C)=0\), the even extension has \(\phi'(0)=0\) and no distributional point mass in \(\phi''\).
+
+For \(\psi\in C_c^\infty(\mathbb R)\), integration by parts on the two half-lines, with the boundary terms at zero cancelling because \(\phi'\) has common zero trace, yields the ground-state identity
+\[
+\int_{\mathbb R}\left\{4|\psi'|^2+
+\left(\frac{|u|}{2}-C\right)|\psi|^2\right\}du
+=4\int_{\mathbb R}\phi(u)^2
+\left|\left(\frac{\psi}{\phi}\right)'(u)\right|^2du\geq0.
+\]
+Density extends this inequality to \(H^1(\mathbb R)\).  Equality holds for the normalized \(\phi\), proving that the lowest value is \(C=C_3\) and that \(\phi_3\) is the normalized ground state.
+
+Dividing the eigenvalue equation by \(\phi_3\) and differentiating the logarithm gives
+\[
+s_3^2-2s_3'=4\frac{\phi_3''}{\phi_3}
+=\frac{|u|}{2}-C_3.
+\]
+On each half-line the Airy equation makes \(s_3\) smooth.  The common Neumann trace at zero and the differential identity show that \(s_3'\) has a common finite trace there.  The cited Airy asymptotics give \(s_3(u)=\operatorname{sign}(u)\sqrt{|u|/2}+O(|u|^{-1})\), whence \(s_3'(u)=O(|u|^{-1/2})\) and \(s_3''(u)=O(|u|^{-3/2})\).  Compactness on bounded intervals then proves the stated boundedness and Lipschitz properties, including that of \(s_3^2\).
+
+For fixed \(\eta\), the potential \(V(\cdot,\eta)\) is continuous and coercive, so the direct method gives a normalized form minimizer.  Its weak Euler equation is
+\[
+-4\psi''+V(\cdot,\eta)\psi=\lambda_\eta\psi.
+\]
+In one dimension \(H^1\) functions are continuous; the equation then implies that \(\psi'\) is continuous at \(u=\pm|\eta|/2\).  Hence the interfaces impose continuity of both the wavefunction and its first derivative, with no additional boundary term.
+\end{proof}
+
+\begin{lemma}[lem:broad-prior-coercivity]\label{lem:broad-prior-coercivity}
+There exist constants \(k,K>0\), independent of \(n\) and of the schedule-independent assignment law \(\mathcal D\), such that the broad complete-schedule prior satisfies
+\[
+\inf_{\widehat\tau}
+\mathbb E_{z\sim\Pi_{B,n}}R_n(\mathcal D,\widehat\tau;z)
+\geq \frac{1+k\|\bar q(\mathcal D)-q^\star\|^2}{n}
+-K n^{-9/8}.
+\]
+The inequality remains valid when one or more expected arm shares are zero.
+\end{lemma}
+\begin{proof}
+The prior density \(w(v)=15(1-v^2)^2/16\) satisfies
+\[
+\int_{-1}^1\frac{w'(v)^2}{w(v)}\,dv
+=\int_{-1}^1 15v^2\,dv=10.
+\]
+Since \(P_a=1/2+\varepsilon_nV_a\) and \(\varepsilon_n=n^{-1/4}/4\), the prior information for \(P_a\) is \(10/\varepsilon_n^2=160n^{1/2}\).  Conditional on \((P,A)\), the observations are independent Bernoulli variables, and their expected information matrix is diagonal with entry
+\[
+\kappa_n\mathbb E_{\mathcal D}r_a,
+\qquad
+\kappa_n=\mathbb E\{P_a(1-P_a)\}^{-1}=4+O(n^{-1/2}),
+\]
+uniformly because \(P_a\in[1/4,3/4]\).
+
+For \(\beta(P)=\sum_ac_aP_a\), coordinatewise integration by parts and vector Cauchy--Schwarz give
+\[
+\inf_D\mathbb E(D-\beta)^2
+\geq\sum_{a=1}^3
+\frac{c_a^2}{\kappa_n\mathbb E_{\mathcal D}r_a+160n^{1/2}}.
+\tag{26}
+\]
+The numerator is the gradient \(c\), and the denominator is the sum of likelihood and prior information.  Writing \(q=\bar q(\mathcal D)\), the scaled limit of the right side is
+\[
+F(q)=\frac14\sum_a\frac{c_a^2}{q_a}.
+\]
+Cauchy--Schwarz gives
+\[
+F(q)\geq\frac14\left(\sum_a|c_a|\right)^2=1,
+\]
+with equality only at \(q=q^\star\).  The Hessian is positive definite on the simplex tangent plane at \(q^\star\).  Compactness away from \(q^\star\), together with the positive ridge in (26), gives constants \(k_0,K_0>0\), uniformly on the closed simplex, such that
+\[
+\sum_a\frac{c_a^2}{\kappa_n n q_a+160n^{1/2}}
+\geq\frac{1+2k_0\|q-q^\star\|^2}{n}-K_0n^{-3/2}.
+\tag{27}
+\]
+
+Conditional on \(P\), \(\mathbb E\{\tau(z)\mid P\}=\beta(P)\).  Since \(\sum_ac_a=0\), the unit contrast vanishes unless \(U_i\) falls between \(\min_aP_a\) and \(\max_aP_a\), an interval of length at most \(2\varepsilon_n\).  Independence across \(i\) then implies
+\[
+\mathbb E\{\tau(z)-\beta(P)\}^2
+\leq\frac{2\varepsilon_n}{n}=O(n^{-5/4}).
+\tag{28}
+\]
+The \(L^2\) triangle inequality applied to (26)--(28), followed by squaring, gives
+\[
+\inf_D\mathbb E(D-\tau)^2
+\geq\frac{1+k\|q-q^\star\|^2}{n}-Kn^{-9/8}
+\]
+after decreasing \(k>0\) and increasing \(K<\infty\).  The ridge denominators in (26) remain positive when some \(q_a=0\), so the conclusion includes the simplex boundary.
+\end{proof}
+
+\begin{lemma}[lem:grid-randomization-bound]\label{lem:grid-randomization-bound}
+For every \(n,M\) and every interior \(q\),
+\[
+0\leq\Lambda_{n,M}^{\mathrm{all}}-G_n^{\mathrm{all}}
+\leq\frac1{4M^2},
+\qquad
+0\leq\Lambda_{n,M}^{\mathrm{iid}}(q)-G_n^{\mathrm{iid}}(q)
+\leq\frac1{4M^2}.
+\]
+\end{lemma}
+\begin{proof}
+Restricting actions cannot lower either minimax value, proving the two left inequalities.  Conversely, for any action \(d\in[-1,1]\), choose the adjacent points \(g_-\leq d\leq g_+\) of \(\Gamma_M\) and randomize between them so that the randomized action \(G\) has mean \(d\).  Since \(g_+-g_-=1/M\),
+\[
+\operatorname{Var}(G)\leq\frac{(g_+-g_-)^2}{4}
+=\frac1{4M^2}.
+\]
+For every target value \(\tau\),
+\[
+\mathbb E(G-\tau)^2=(d-\tau)^2+\operatorname{Var}(G)
+\leq(d-\tau)^2+\frac1{4M^2}.
+\]
+Apply this replacement independently at each finite observation orbit \((r,x)\), and then take the same maxima and minima as in the two orbit games.  This proves both right inequalities, including cells of zero likelihood because the construction is defined on every cell.
+\end{proof}
+
+\begin{lemma}[lem:q-dependent-half-effect-bound]\label{lem:q-dependent-half-effect-bound}
+There is a neighborhood \(\mathcal N\) of \(q^\star\) such that, for
+\[
+F(q)=\frac14\sum_{a\in\mathcal A}\frac{c_a^2}{q_a},
+\]
+the following lower bounds hold.  Uniformly for \(q_n-q^\star=O(n^{-1/6})\),
+\[
+\rho_n^{\mathrm{iid}}(q_n)
+\geq \frac{F(q_n)}n-C_3n^{-4/3}+o(n^{-4/3}).
+\]
+Uniformly for arbitrary \(q_n\in\mathcal N\) with \(q_n\to q^\star\),
+\[
+\rho_n^{\mathrm{iid}}(q_n)\geq\frac{F(q_n)}n-O(n^{-4/3}).
+\]
+Both bounds are witnessed by explicit \(q_n\)-dependent priors on complete binary schedules.
+\end{lemma}
+\begin{proof}
+Fix \(q\) near \(q^\star\) and define
+\[
+F=F(q),\qquad d_a=\frac{c_a}{4Fq_a}.
+\]
+Then
+\[
+\sum_ac_ad_a=1,\qquad
+4\sum_aq_ad_a^2=F^{-1},
+\]
+and \(d\to(1/2,-1/2,-1/2)\) as \(q\to q^\star\).  Put
+\[
+u=1+\frac{d_3-d_2}{2},\quad
+v=1+\frac{d_2-d_3}{2},\quad
+e_0=-1-\frac{d_2+d_3}{2},\quad
+e_1=-1+\frac{d_2+d_3}{2}.
+\]
+For \(\alpha>0\), assign probabilities
+\[
+p_{101}=u\alpha,\quad p_{110}=v\alpha,\quad
+p_{000}=\frac12+e_0\alpha,\quad
+p_{111}=\frac12+e_1\alpha,
+\tag{4}
+\]
+and zero to the other types.  For \(\alpha<0\), complement every bit in the law at \(|\alpha|\).  At zero put mass \(1/2\) on each of \(000,111\).  Since \(u,v\to1\) and \(e_0,e_1\) remain bounded, (4) is a probability law for all sufficiently small \(|\alpha|\), uniformly on a fixed neighborhood of \(q^\star\).  The identities
+\[
+u+v=2,\quad e_0+e_1=-2,\quad
+d_1=1+\frac{d_2+d_3}{2}
+\]
+show directly that
+\[
+\mathbb E_\alpha\mu(t)=\alpha,\qquad
+\Pr_\alpha\{Y(a)=1\}=\frac12+d_a\alpha,\qquad
+\mathbb E_\alpha\mu(t)^2=\frac{|\alpha|}{2}.
+\tag{5}
+\]
+Draw labelled unit types independently from (4), with
+\(\alpha=n^{-1/3}X\) and an even smooth compactly supported density \(f\) for \(X\).  This is an explicit prior on complete schedules, chosen after \(q\), as is permitted in a Bayes lower bound for the fixed-\(q\) minimax game.
+
+Conditional on \((\alpha,A)\), observations are independent Bernoulli variables with probabilities in (5).  Their information for \(\alpha\) is
+\[
+n\sum_aq_a\frac{d_a^2}{1/4-d_a^2\alpha^2}
+=\frac nF+O(n\alpha^2).
+\tag{6}
+\]
+Let \(g_q(\alpha,A,Y)=\mathbb E_\alpha\{\tau(z)\mid A,Y\}\).  Exact binary conditioning gives
+\[
+g_q=\alpha+\frac1n\sum_i
+\frac{\operatorname{Cov}_\alpha(\mu,Y(A_i))}
+     {\operatorname{Var}_\alpha(Y(A_i))}
+\{Y_i-\mathbb E_\alpha Y(A_i)\}.
+\tag{7}
+\]
+The finite sums in (4) give, uniformly for \(q\) near \(q^\star\),
+\[
+\frac{\operatorname{Cov}_\alpha(\mu,Y(a))}
+     {\operatorname{Var}_\alpha(Y(a))}
+=B_a(q)|\alpha|+O(\alpha^2),
+\quad
+(B_1,B_2,B_3)=(2,d_2-d_3,d_3-d_2).
+\tag{8}
+\]
+Define \(H(q)=\sum_aq_ad_aB_a(q)\).  Then \(H\) is continuous and
+\[
+L(q^\star)=\frac12.
+\tag{9}
+\]
+Differentiating (7) on the two half-lines and averaging at the true parameter yields
+\[
+\mathbb E_\alpha(\partial_\alpha g_q)
+=1-H(q)|\alpha|+O(\alpha^2).
+\tag{10}
+\]
+As in the label-preserving calculation, the two traces at zero agree, so integration by parts has no cusp term.
+
+Apply the integration-by-parts information inequality proved there.  Equations (6) and (10), followed by \(\alpha=n^{-1/3}X\), give
+\[
+\inf_D\mathbb E(D-g_q)^2
+\geq
+\frac Fn-n^{-4/3}
+\{F^2I(f)+2FH(q)m_1(f)\}+O_f(n^{-5/3}).
+\tag{11}
+\]
+By (5), the conditional residual variance contributes
+\[
+\frac12m_1(f)n^{-4/3}+O_f(n^{-5/3})
+\]
+with a positive sign to the risk; the variance explained in (7) is \(O(\alpha^2/n)\).  Consequently
+\[
+\rho_n^{\mathrm{iid}}(q)
+\geq \frac Fn-n^{-4/3}
+\left[F^2I(f)+\{2FH(q)-1/2\}m_1(f)\right]
++O_f(n^{-5/3}).
+\tag{12}
+\]
+
+If \(q-q^\star=O(n^{-1/6})\), then \(F\to1\) and \(H(q)\to1/2\), uniformly on compact scaled sets.  Choose even smooth compactly supported densities approaching \(\phi_3^2\).  The Airy variational identity gives
+\[
+I(f)+\frac12m_1(f)\longrightarrow C_3.
+\]
+A diagonal choice whose cutoff grows sufficiently slowly makes the remainder in (12) uniform and proves the first assertion.  For the second assertion, keep one fixed compactly supported \(f\); continuity of \(F\) and \(L\) bounds the bracket in (12) on \(\mathcal N\), giving the stated \(O(n^{-4/3})\) lower bound.
+\end{proof}
+
+\begin{lemma}[lem:published-two-arm-orbit-reduction]\label{lem:published-two-arm-orbit-reduction}
+\texttt{In the balanced two-\allowbreak{}arm binary finite-\allowbreak{}population minimax problem,\allowbreak{} permutation symmetrization reduces the exact labelled observation law to the shifted-\allowbreak{}binomial experiment.}
+\end{lemma}
+
+\begin{lemma}[lem:published-two-arm-sharp-constant]\label{lem:published-two-arm-sharp-constant}
+For the balanced two-arm binary finite-population minimax problem with unit contrast \(Y_i(1)-Y_i(0)\), the second-order minimax deficit constant, in the normalization used by the shifted-binomial experiment, is \(-4^{1/3}a_1'\).
+\end{lemma}
+
+\begin{theorem}[thm:uniform-singular-value-bridge]\label{thm:uniform-singular-value-bridge}
+At the minimax-value level needed for the sharp expansion, the singular bridge has a positive answer.  The exact eight-type orbit games admit primal recovery by the Airy-feedback rules and dual recovery by complete-schedule priors supported asymptotically on the coalesced fiber \(\eta=0\), with errors \(o(n^{-4/3})\), without deleting zero-likelihood cells or dormant primal constraints.  The primal comparison is uniform over every \(000\)--\(111\) edge mixture, while the dual may localize at a least-favorable interior point of that edge.  Fiber minimizers have continuous wavefunction and first derivative at \(\theta=\pm|\eta|/2\), and the least fiber has the Neumann trace at \(\eta=0\).  No diffusion or boundary condition in the \(\eta\) direction occurs.  This is a two-sided comparison of minimax values; it does not assert a cellwise Le Cam equivalence for every individual transverse stratum.
+\end{theorem}
+\begin{proof}
+The exact orbit proposition holds for every integer \(n\) and retains all zero-count and zero-likelihood cells.  The upper part of \(\textnormal{prop:matching-finite-n-constructions}\) is uniform over all complete schedules.  Its proof depends on a schedule only through
+\[
+x=n^{1/3}\tau(z),
+\qquad
+A_n=n^{-2/3}\sum_i\mu(t_i)^2,
+\qquad
+A_n\geq |x|/2.
+\]
+This inequality covers every mixture on the \(000\)--\(111\) edge, its endpoints, all six outgoing directions, and macroscopic departures.  It supplies primal recovery with error \(o(n^{-4/3})\) along the full integer sequence.
+
+For dual recovery, the half-effect component of \(\Pi_n\) has \(\eta=0\): the positive pair \(101,110\), and the negative pair \(001,010\), have cancelling \(\nu\)-coordinates.  Smooth cutoff priors converge to \(\phi_3^2\) in the target coordinate.  The broad component has mixing mass \(n^{-1/4}\), so it vanishes in the local transverse limit, while \(\textnormal{lem:broad-prior-coercivity}\) keeps the Bayes inequality uniform over every schedule-independent design.  Thus the dual recovery is a probability measure concentrated asymptotically on \(\eta=0\), with the same \(o(n^{-4/3})\) value error.
+
+The grid-randomization bound transfers both recoveries to finite rational games within \(1/(4n^2)=o(n^{-4/3})\).  Since the grid construction assigns actions on every \((r,x)\), null cells are retained rather than assigned arbitrary deleted versions.  The Airy fiber calculus supplies continuity of the wavefunction and its first derivative across \(\theta=\pm|\eta|/2\), and the Neumann trace at \(\eta=0\).  Neither the primal expansion nor the dual information calculation differentiates in \(\eta\); this coordinate indexes fibers and the transverse dual is a probability measure.  Therefore no \(\eta\)-diffusion or transverse boundary condition is introduced.  These two recovery inequalities establish the asserted minimax-value bridge, while not implying cellwise Le Cam equivalence.
+\end{proof}
+
+\begin{lemma}[lem:published-two-arm-experimental-reductions]\label{lem:published-two-arm-experimental-reductions}
+\texttt{In the balanced two-\allowbreak{}arm binary finite-\allowbreak{}population problem,\allowbreak{} the minimax risk of the reduced shifted-\allowbreak{}binomial experiment equals the minimax risk obtained by jointly optimizing over all schedule-\allowbreak{}independent assignment laws and all estimators;\allowbreak{} the reduced game has a unique minimax rule and a least-\allowbreak{}favorable-\allowbreak{}prior Bayes representation.}
+\end{lemma}
+
+\begin{lemma}[lem:published-two-arm-bounded-endpoint-transfer]\label{lem:published-two-arm-bounded-endpoint-transfer}
+In the published two-arm finite-population problem, for every finite \(L<U\), the unrestricted minimax squared-error risk over schedules in \([L,U]^{2n}\) is exactly \((U-L)^2\) times the binary minimax risk, and a conditional Bernoulliization of the binary minimax rule attains that value.
+\end{lemma}
+
+\begin{theorem}[thm:bounded-outcome-endpoint-transfer]\label{thm:bounded-outcome-endpoint-transfer}
+Fix \(n\geq1\) and finite constants \(L<U\), and put \(W=U-L\).  For every schedule-independent assignment law \(\mathcal D\), without any positivity or independence restriction on its coordinates,
+\[
+\inf_{\widehat\tau_{[L,U]}}
+\sup_{z^{[L,U]}\in[L,U]^{3n}}
+R_{n,[L,U]}(\mathcal D,\widehat\tau_{[L,U]};z^{[L,U]})
+=W^2\inf_{\widehat\tau}
+\max_{z\in\mathcal T^n}R_n(\mathcal D,\widehat\tau;z).
+\]
+Consequently the exact finite-\(n\) equalities
+\[
+\rho_{n,[L,U]}^{\mathrm{all}}=W^2\rho_n^{\mathrm{all}},
+\qquad
+\rho_{n,[L,U]}^{\mathrm{iid}}(q)=W^2\rho_n^{\mathrm{iid}}(q)
+\]
+hold for every interior \(q\).  Together with the binary orbit reduction they imply
+\[
+\rho_{n,[L,U]}^{\mathrm{all}}=W^2G_n^{\mathrm{all}},
+\qquad
+\rho_{n,[L,U]}^{\mathrm{iid}}(q)=W^2G_n^{\mathrm{iid}}(q).
+\]
+The last two equalities identify minimax values only: the eight-type kernel \(P_m(x\mid r)\) is not asserted to be a literal orbit likelihood for nonendpoint bounded schedules.
+\end{theorem}
+\begin{proof}
+Fix \(n\), \(L<U\), a schedule-independent \(\mathcal D\), and set \(W=U-L>0\).  We first hold \(\mathcal D\) fixed.
+
+For any clipped bounded rule \(d\) and binary schedule \(z=(t_i)_{i=1}^n\), set \(Y_i^{[L,U]}(a)=L+Wt_{i,a}\).  Since \(\sum_ac_a=0\),
+\[
+\tau_{[L,U]}(z^{[L,U]})
+=\frac1n\sum_{i,a}c_a(L+Wt_{i,a})=W\tau(z).
+\tag{29}
+\]
+The normalized rule
+\[
+d^{\mathrm{bin}}((A_i,t_{i,A_i})_{i=1}^n)
+=W^{-1}d((A_i,L+Wt_{i,A_i})_{i=1}^n)
+\]
+is measurable and lies in \([-1,1]\).  Equation (29) gives
+\[
+R_{n,[L,U]}(\mathcal D,d;z^{[L,U]})
+=W^2R_n(\mathcal D,d^{\mathrm{bin}};z).
+\]
+Endpoint schedules form a subset of \([L,U]^{3n}\), so
+\[
+\inf_d\sup_{z^{[L,U]}}R_{n,[L,U]}(\mathcal D,d;z^{[L,U]})
+\geq W^2\inf_{\widehat\tau}\max_{z\in\mathcal T^n}
+R_n(\mathcal D,\widehat\tau;z).
+\tag{30}
+\]
+
+For the reverse inequality, fix a clipped binary rule \(e\) and a bounded schedule.  Put
+\[
+p_{i,a}=\frac{Y_i^{[L,U]}(a)-L}{W}\in[0,1].
+\]
+Independently of \(A\), generate conditionally independent \(B_i(a)\sim\operatorname{Bernoulli}(p_{i,a})\), and define
+\[
+d_e(A,Y^{[L,U],\mathrm{obs}})
+=W\,\mathbb E_B\left[
+e((A_i,B_i(A_i))_{i=1}^n)\mid A,Y^{[L,U],\mathrm{obs}}
+\right].
+\tag{31}
+\]
+The conditional expectation depends on the fixed bounded schedule only through the observed probabilities \(p_{i,A_i}\), so (31) is an observed-data rule.  Convexity gives values in \([-W,W]\).  Moreover, by zero-sum of \(c\),
+\[
+\mathbb E_B\tau(B)
+=\frac1n\sum_{i,a}c_ap_{i,a}
+=W^{-1}\tau_{[L,U]}(z^{[L,U]}).
+\tag{32}
+\]
+Conditional Jensen applied to \(e(A,B^{\mathrm{obs}})-\tau(B)\) yields
+\[
+\left\{d_e-W\mathbb E_B\tau(B)\right\}^2
+\leq W^2\mathbb E_B\left[
+\{e(A,B^{\mathrm{obs}})-\tau(B)\}^2\mid A,z^{[L,U]}
+\right].
+\tag{33}
+\]
+Taking expectation over \(A\), interchanging the finite expectations, and using schedule independence of \(\mathcal D\),
+\[
+R_{n,[L,U]}(\mathcal D,d_e;z^{[L,U]})
+\leq W^2\mathbb E_BR_n(\mathcal D,e;B)
+\leq W^2\max_{z\in\mathcal T^n}R_n(\mathcal D,e;z).
+\tag{34}
+\]
+Taking the bounded-schedule supremum and then the infimum over \(e\) proves the reverse of (30).  Thus the fixed-design equality is exact.  Infimizing over the identical schedule-independent design class gives the unrestricted equality; fixing \(\mathcal D_q\) gives the iid equality.  Finally, \(\textnormal{prop:imported-eight-type-orbit-infrastructure}\) yields the two orbit-value identities.  The auxiliary averaging in (31)--(34) proves only equality of minimax values, not a literal eight-type representation of a nonendpoint schedule.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem proves exact fixed-design and minimax equalities using endpoint inclusion and a valid Rao--Blackwellized observed-data rule. \textit{Gap.} It generalizes the published two-arm endpoint transfer to the present zero-sum three-arm contrast and unrestricted schedule-independent design class. \textit{Consumer.} Every binary sharp expansion, allocation comparison, estimator, and lower prior can be transported to a common bounded interval with the correct squared-width scaling.
+
+\begin{proposition}[prop:bounded-matching-finite-n-constructions]\label{prop:bounded-matching-finite-n-constructions}
+Fix finite endpoints \(L<U\), independent of \(n\), and put \(W=U-L\).  At \(q=q^\star\), the Rao--Blackwellized estimator \(\delta_{n,q^\star}^{[L,U]}\) satisfies
+\[
+\sup_{z^{[L,U]}\in[L,U]^{3n}}
+R_{n,[L,U]}(\mathcal D_{q^\star},\delta_{n,q^\star}^{[L,U]};z^{[L,U]})
+\leq W^2\left\{\frac1n-C_3n^{-4/3}+o(n^{-4/3})\right\}.
+\]
+The rescaled endpoint prior \(\Pi_n^{[L,U]}\) satisfies, uniformly over every schedule-independent assignment law \(\mathcal D\),
+\[
+\inf_{\widehat\tau_{[L,U]}}
+\mathbb E_{z^{[L,U]}\sim\Pi_n^{[L,U]}}
+R_{n,[L,U]}(\mathcal D,\widehat\tau_{[L,U]};z^{[L,U]})
+\geq W^2\left\{\frac1n-C_3n^{-4/3}+o(n^{-4/3})\right\}.
+\]
+Thus both bounded procedures are explicit finite-\(n\) maps or priors, and no exact finite-\(n\) saddle attainment is asserted.
+\end{proposition}
+\begin{proof}
+The upper bound in \(\textnormal{prop:matching-finite-n-constructions}\) holds for \(\delta_{n,q^\star}\).  Apply the Rao--Blackwell construction in \(\textnormal{def:bounded-endpoint-constructions}\) with this binary rule.  Inequality (34) from \(\textnormal{thm:bounded-outcome-endpoint-transfer}\) gives
+\[
+\sup_{z^{[L,U]}}R_{n,[L,U]}(\mathcal D_{q^\star},
+\delta_{n,q^\star}^{[L,U]};z^{[L,U]})
+\leq W^2\left\{\frac1n-C_3n^{-4/3}+o(n^{-4/3})\right\}.
+\]
+
+For the lower construction, \(\Pi_n^{[L,U]}\) is supported on endpoint schedules.  Given any bounded rule \(d\), normalize its restriction to endpoint data as in the lower-bound part of the endpoint-transfer proof, obtaining a clipped binary rule \(d^{\mathrm{bin}}\).  The pushforward definition and (29) give
+\[
+\mathbb E_{z^{[L,U]}\sim\Pi_n^{[L,U]}}
+R_{n,[L,U]}(\mathcal D,d;z^{[L,U]})
+=W^2\mathbb E_{z\sim\Pi_n}R_n(\mathcal D,d^{\mathrm{bin}};z).
+\]
+Taking the infimum over \(d\) and applying the binary prior lower bound proves the second display uniformly in \(\mathcal D\).  Since \(0<W<\infty\) is fixed, multiplication by \(W^2\) preserves the order \(o(n^{-4/3})\).
+\end{proof}
+
+\begin{theorem}[thm:bounded-sharp-face-corner-corollary]\label{thm:bounded-sharp-face-corner-corollary}
+For fixed finite endpoints \(L<U\), with \(W=U-L\), the bounded three-arm minimax values obey
+\[
+\rho_{n,[L,U]}^{\mathrm{all}}
+=\frac{W^2}{n}-W^2C_3n^{-4/3}+o(n^{-4/3}),
+\qquad
+\rho_{n,[L,U]}^{\mathrm{iid}}(q^\star)
+=\frac{W^2}{n}-W^2C_3n^{-4/3}+o(n^{-4/3}).
+\]
+Consequently
+\(\rho_{n,[L,U]}^{\mathrm{iid}}(q^\star)-\rho_{n,[L,U]}^{\mathrm{all}}=o(n^{-4/3})\).  After normalization by \(W^2\), the half-wedge spectral value remains exactly \(C_3=-a_1'\).
+\end{theorem}
+\begin{proof}
+For every \(n\), \(\textnormal{thm:bounded-outcome-endpoint-transfer}\) gives
+\[
+\rho_{n,[L,U]}^{\mathrm{all}}=W^2\rho_n^{\mathrm{all}},
+\qquad
+\rho_{n,[L,U]}^{\mathrm{iid}}(q^\star)=W^2\rho_n^{\mathrm{iid}}(q^\star).
+\]
+Substitute the two expansions in \(\textnormal{thm:sharp-face-corner-expansion}\).  Because \(W\) is fixed, finite, and positive, \(W^2o(n^{-4/3})=o(n^{-4/3})\).  Subtraction gives the risk-gap assertion.  Division by \(W^2>0\) shows that normalization leaves the dimensionless spectral value \(C_3=-a_1'\) unchanged.
+\end{proof}
+
+\begin{theorem}[thm:bounded-local-allocation-frontier-corollary]\label{thm:bounded-local-allocation-frontier-corollary}
+Let fixed finite endpoints \(L<U\) have width \(W=U-L\), and let \(q_n\to q^\star\).  Uniformly whenever \(\zeta_n=n^{1/6}(q_n-q^\star)\) ranges over a compact subset of the simplex tangent plane,
+\[
+\rho_{n,[L,U]}^{\mathrm{iid}}(q_n)
+=\frac{W^2}{n}+W^2n^{-4/3}\{\mathsf P(\zeta_n)-C_3\}
++o(n^{-4/3}).
+\]
+Thus the bounded iid array retains the unrestricted bounded sharp correction if and only if
+\(n^{1/6}(q_n-q^\star)\to0\).  If \(q_n\to q^\star\) and
+\(n^{1/6}\|q_n-q^\star\|\to\infty\), then
+\[
+n^{4/3}\left\{\rho_{n,[L,U]}^{\mathrm{iid}}(q_n)-W^2/n\right\}\longrightarrow\infty.
+\]
+The allocation threshold is unchanged and its risk penalty is multiplied by \(W^2\).
+\end{theorem}
+\begin{proof}
+For every \(n\), endpoint transfer gives
+\[
+\rho_{n,[L,U]}^{\mathrm{iid}}(q_n)
+=W^2\rho_n^{\mathrm{iid}}(q_n).
+\tag{35}
+\]
+Multiply the uniform expansion from \(\textnormal{thm:local-allocation-frontier}\) by the fixed constant \(W^2\).  Its remainder remains \(o(n^{-4/3})\), uniformly on the same compact subsets, proving the displayed bounded expansion.  Because \(W^2>0\), equation (35) preserves the necessary-and-sufficient condition for matching the unrestricted sharp correction.  Finally,
+\[
+n^{4/3}\left\{\rho_{n,[L,U]}^{\mathrm{iid}}(q_n)-W^2/n\right\}
+=W^2n^{4/3}\left\{\rho_n^{\mathrm{iid}}(q_n)-1/n\right\},
+\]
+so the binary divergence conclusion implies the bounded one.
+\end{proof}
+
+\begin{proposition}[prop:bounded-pooled-two-arm-sanity]\label{prop:bounded-pooled-two-arm-sanity}
+On the bounded restricted schedule class
+\(Y_i^{[L,U]}(2)=Y_i^{[L,U]}(3)\) for every \(i\), pooling labels \(2\) and \(3\) under \(q^\star\) produces balanced two-arm assignment and the causal target becomes the active-arm mean minus the pooled-comparator mean.  The endpoint subclass is represented by the published shifted-binomial experiment, while the entire bounded pooled problem has minimax risk \(W^2\) times that binary value.  Its second-order deficit coefficient is therefore \(W^2(-4^{1/3}a_1')\).  This is a value transfer; \(P_m(x\mid r)\) is not a literal likelihood for a nonendpoint bounded schedule.
+\end{proposition}
+\begin{proof}
+Write the common comparator outcome as \(Y_i^{[L,U]}(0)\).  Since \(q_1^\star=1/2\) and \(q_2^\star+q_3^\star=1/2\), pooling labels \(2,3\) maps \(\mathcal D_{q^\star}\) to iid balanced two-arm assignment.  The split between the two pooled labels is ancillary because their potential outcomes agree, and
+\[
+\tau_{[L,U]}(z^{[L,U]})
+=\frac1n\sum_i\{Y_i^{[L,U]}(1)-Y_i^{[L,U]}(0)\}.
+\]
+On endpoint schedules, normalization by \(W>0\) gives the balanced binary two-arm problem.  The declared published experimental-reduction result identifies its minimax value with the shifted-binomial value, the declared published endpoint-transfer result gives the exact multiplier \(W^2\) for the full bounded problem, and the declared sharp-constant result gives binary coefficient \(-4^{1/3}a_1'\).  Hence the bounded coefficient is \(W^2(-4^{1/3}a_1')\).  Because endpoint transfer averages binary endpoint experiments, it establishes a value identity and does not turn a nonendpoint bounded schedule into an eight-type orbit.
+\end{proof}
+
+\section{Interpretation}
+
+Changing the measurement scale from binary endpoints to a common interval of width \(W\) multiplies every squared-error benchmark and allocation penalty by \(W^2\), but it does not change \(q^\star\), the \(n^{-1/6}\) allocation tolerance, or the dimensionless constant \(C_3\). The continuous bounded experiment is handled by Rao--Blackwellized endpoint randomization, not by pretending each bounded response is one of eight binary types.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The bounded transfer is an exact equality of minimax values and a construction of a bounded estimator; it is not a literal finite-orbit representation of each continuous schedule. Within the binary game, the lower bound still fails if the posterior target is scalarized: the arm-labelled coefficient \(b_{A_i}(\alpha)\) and its residual-variance term are necessary. The unrestricted prior still needs its vanishing broad component to control linear allocation sensitivity. Finally, \(\eta=0\) is a minimizing singular fiber rather than a boundary of \(\mathbb R^2\); no transverse Laplacian or boundary condition is introduced.
+
+\section{Honest scope}
+
+The lossless labelled eight-type orbit reduction is inherited and applies literally to binary endpoint schedules. For every fixed finite common interval \([L,U]\), the new endpoint theorem proves only the exact minimax-value identities \(\rho_{n,[L,U]}^{\mathrm{all}}=(U-L)^2\rho_n^{\mathrm{all}}\) and \(\rho_{n,[L,U]}^{\mathrm{iid}}(q)=(U-L)^2\rho_n^{\mathrm{iid}}(q)\), together with explicit Rao--Blackwellized estimators and endpoint priors. The result does not claim a continuous-schedule eight-type likelihood, uniqueness of the unrestricted design, equality with fixed-count complete randomization, cellwise Le Cam equivalence, or exact finite-\(n\) saddle attainment. The singular bridge remains a two-sided comparison of minimax values, and the pooled-comparator check remains a restricted two-arm submodel rather than an equality of its Airy constant with \(C_3\).
+
+\begin{thebibliography}{99}
+
+  \bibitem{SudijonoDobribanTchetgen2026} Timothy Sudijono, Edgar Dobriban, and Eric Tchetgen Tchetgen (2026), ``Sharp Minimax Theory for Randomized Experiments,'' arXiv:2608.13822.
+
+  \bibitem{Hull2026} Peter Hull (2026), ``Optimal Experimental Design and Estimation when Potential Outcomes are Bounded,'' arXiv:2608.09812.
+
+  \bibitem{Bai2023} Yuehao Bai (2023), ``Why Randomize? Minimax Optimality under Permutation Invariance,'' Journal of Econometrics 232(2), 565--575, doi:10.1016/j.jeconom.2021.10.009.
+
+  \bibitem{MukerjeeDasguptaRubin2018} Rahul Mukerjee, Tirthankar Dasgupta, and Donald B. Rubin (2018), ``Using Standard Tools From Finite Population Sampling to Improve Causal Inference for Complex Experiments,'' Journal of the American Statistical Association 113(522), 868--881, doi:10.1080/01621459.2017.1294076.
+
+  \bibitem{ZhaoDing2023} Anqi Zhao and Peng Ding (2023), ``Covariate Adjustment in Multi-Armed, Possibly Factorial Experiments,'' Journal of the Royal Statistical Society: Series B 85(1), 1--23, doi:10.1093/jrsssb/qkac003.
+
+  \bibitem{LiDing2017} Xinran Li and Peng Ding (2017), ``General Forms of Finite Population Central Limit Theorems with Applications to Causal Inference,'' Journal of the American Statistical Association 112(520), 1759--1769, doi:10.1080/01621459.2017.1295865.
+
+  \bibitem{Levit1981} B. Ya. Levit (1981), ``On Asymptotic Minimax Estimates of the Second Order,'' Theory of Probability and Its Applications 25(3), 552--568, doi:10.1137/1125066.
+
+  \bibitem{Bickel1981} Peter J. Bickel (1981), ``Minimax Estimation of the Mean of a Normal Distribution When the Parameter Space Is Restricted,'' The Annals of Statistics 9(6), 1301--1309, doi:10.1214/AOS/1176345646.
+
+  \bibitem{AronowLopatto2026} P. M. Aronow and Patrick Lopatto (2026), ``Minimax Unbiased Estimation for Finite Populations with Bounded Outcomes,'' arXiv:2605.20572.
+
+\end{thebibliography}
+
+\end{document}

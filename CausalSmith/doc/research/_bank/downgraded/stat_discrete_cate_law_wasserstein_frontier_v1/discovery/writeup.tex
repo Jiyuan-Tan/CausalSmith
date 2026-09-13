@@ -1,0 +1,715 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}discrete\_\allowbreak{}cate\_\allowbreak{}law\_\allowbreak{}wasserstein\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} High-dimensional categorical adjustment makes every CATE location a difference of two armwise ratios, while the same unknown cell mass controls both sampling information and the atom's target weight.  On the unchanged observational model class, the paper proves the uniform logarithmic characterization \(c_\epsilon L_{n,d}\le R_{n,d,\epsilon}\le C_\epsilon\log(ed)L_{n,d}\), the exact \(d/n\) dense frontier when \(n\ge d^3\), and the exact bounded-category parametric-risk boundary, using the explicit total empirical probability-valued estimator for achievability.  The exact sparse-to-dense frontier remains open: grouped reconstruction is an explicit candidate blueprint, not a delivered estimator, until its split, tuning, factorial statistics, covariance control, finite program, fallback, and matching same-class converse are supplied.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing causal theory treats scalar averages, while population-of-parameters theory fixes entity weights or trial counts. Neither literature determines the squared \(W_1\) risk of the population-weighted categorical CATE law when masses, propensities, and both arm regressions are unknown.
+
+\paragraph{Niche.} The unoccupied regime is a coupled multinomial-ratio inverse problem in which null cells and tied effects are legal and a valid output must be one coherent probability measure.
+
+\paragraph{Fill.} The paper supplies observed-law identification, a mass-weighted Lipschitz extension, a computable total empirical probability-valued estimator, complementary same-class lower constructions, a uniform at-most-\(\log(ed)\) characterization with an explicit four-branch lower-benchmark phase diagram, the exact \(d/n\) dense frontier, and the bounded-category parametric-risk boundary.  It also states an explicit grouped moment-reconstruction blueprint for attacking the remaining gap, without presenting that blueprint as a constructed or rate-certified estimator.
+
+\section{Related work}
+
+Zeng et al. use the same observed categorical model class with unknown masses, propensities, and arm regressions, but their target is a scalar mean rather than the population CATE law.  Vinayak--Kong--Kakade study a different paired-binomial experiment with common fixed trials and equal entity weights; Han--Jiao--Weissman study a different one-population multinomial experiment and local sorted-distribution moments; and Lee--Bacak--Kennedy work in a different heterogeneous-trial regularity regime with observed trial counts and smooth mixing densities.  These papers motivate approximation, positive reconstruction, and sparse-to-dense comparisons, but none supplies the coupled unknown-mass observational frontier here.  Kennedy et al. concern smooth CATE-function loss, Chernozhukov et al. motivate effect-distribution reporting under regular sorting, and Mizuguchi--Sawamura provide the categorical-profile dexamethasone application; none changes the present target or closes its remaining logarithmic gap.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(G_P=\sum_{x:p_x>0}p_x\delta_{\mu_{1x}-\mu_{0x}}\).
+Primary functional / estimator / diagnostic: \(\widehat G_{\mathrm{emp}}=\sum_{x=1}^ds(\widehat q_x)\delta_{\bar\tau(\widehat q_x)},\qquad c_\epsilon L_{n,d}\le R_{n,d,\epsilon}\le C_\epsilon U_{n,d}\).
+\begin{itemize}
+  \item \(n\) --- \texttt{sample size}; \(\mathbb N\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of observed units.}
+  \item \(d\) --- \texttt{alphabet size}; \(\{2,3,\ldots\}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of categorical confounder cells.}
+  \item \(d_n\) --- \texttt{alphabet-\allowbreak{}size sequence}; \(\{2,3,\ldots\}^{\mathbb N}\); \texttt{asymptotic regime}
+  \par\smallskip\noindent\emph{Definition.} A deterministic triangular sequence of category counts indexed by \(n\).
+  \item \(\epsilon\) --- \texttt{overlap constant}; \((0,1/2)\); \texttt{model parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known fixed armwise overlap bound.}
+  \item \([d]\) --- \texttt{covariate alphabet}; \texttt{finite sets}; \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \([d]=\{1,\ldots,d\}\).
+  \item \(i\) --- \texttt{unit index}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic observed-\allowbreak{}unit index.}
+  \item \(x\) --- \texttt{cell index}; \([d]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic categorical confounder cell.}
+  \item \(a\) --- \texttt{treatment index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treatment arm.}
+  \item \(y\) --- \texttt{outcome index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic binary outcome value.}
+  \item \(X\) --- \texttt{observed covariate}; \([d]\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed categorical confounder.}
+  \item \(A\) --- \texttt{observed treatment}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed binary treatment.}
+  \item \(Y\) --- \texttt{observed outcome}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed binary outcome.}
+  \item \(Y(a)\) --- \texttt{potential outcome}; \(\{0,1\}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome under treatment arm \(a\).
+  \item \(O_i\) --- \texttt{observed unit}; \([d]\times\{0,1\}^2\); \texttt{sample}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(X_i,A_i,Y_i)\).
+  \item \(P\) --- \texttt{full-\allowbreak{}data law}; laws of \((X,A,Y,Y(0),Y(1))\); \texttt{model}
+  \par\smallskip\noindent\emph{Definition.} Law whose observed margin generates each \(O_i\).
+  \item \(P^n\) --- \texttt{sampling law}; \texttt{product probability laws}; \texttt{sampling model}
+  \par\smallskip\noindent\emph{Definition.} The \(n\)-fold product of the observed margin of \(P\).
+  \item \(p_x\) --- \texttt{cell mass}; \([0,1]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(p_x=P(X=x)\).
+  \item \(e_x\) --- \texttt{propensity}; \([0,1]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(e_x=P(A=1\mid X=x)\) for \(p_x>0\).
+  \item \(\mu_{ax}\) --- \texttt{outcome regression}; \([0,1]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{ax}=E_P[Y\mid A=a,X=x]\) for \(p_x>0\).
+  \item \(\tau_x\) --- \texttt{cell CATE}; \([-1,1]\); \texttt{causal functional}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_x=\mu_{1x}-\mu_{0x}\) for \(p_x>0\).
+  \item \(\mathcal P([-1,1])\) --- \texttt{probability-\allowbreak{}measure space}; Borel probability measures on \([-1,1]\); \texttt{target space}
+  \par\smallskip\noindent\emph{Definition.} The set of Borel probability measures on \([-1,1]\).
+  \item \(\delta_t\) --- \texttt{Dirac probability measure}; \(\mathcal P([-1,1])\); \texttt{measure primitive}
+  \par\smallskip\noindent\emph{Definition.} Unit point mass at \(t\in[-1,1]\).
+  \item \(G_P\) --- \texttt{population CATE law}; \(\mathcal P([-1,1])\); \texttt{causal target}
+  \par\smallskip\noindent\emph{Definition.} Target measure constructed in \(\mathrm{def:cate-law}\).
+  \item \(W_1\) --- \texttt{Wasserstein distance}; \(\mathcal P([-1,1])^2\to[0,2]\); \texttt{loss}
+  \par\smallskip\noindent\emph{Definition.} The order-one Wasserstein distance for the Euclidean metric on \([-1,1]\).
+  \item \(\widehat G\) --- \texttt{CATE-\allowbreak{}law estimator}; measurable maps from the sample space to \(\mathcal P([-1,1])\); \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} Generic probability-valued estimator based on \(O_1,\ldots,O_n\).
+  \item \(q_{ay,x}\) --- \texttt{observed four-\allowbreak{}cell probability}; \([0,1]\); \texttt{observed-\allowbreak{}data primitive}
+  \par\smallskip\noindent\emph{Definition.} \(q_{ay,x}=P(X=x,A=a,Y=y)\).
+  \item \(q_x\) --- \texttt{observed cell vector}; \(\mathbb R_+^4\); \texttt{observed-\allowbreak{}data primitive}
+  \par\smallskip\noindent\emph{Definition.} \(q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x})\).
+  \item \(v_x\) --- \texttt{comparison cell vector}; \(\mathbb R_+^4\); \texttt{analytic argument}
+  \par\smallskip\noindent\emph{Definition.} Generic comparison vector in categorical cell \(x\).
+  \item \(u\) --- \texttt{generic four-\allowbreak{}cell vector}; \(\mathbb R_+^4\); \texttt{analytic argument}
+  \par\smallskip\noindent\emph{Definition.} Generic nonnegative vector with coordinates \(u_{ay}\).
+  \item \(v\) --- \texttt{comparison four-\allowbreak{}cell vector}; \(\mathbb R_+^4\); \texttt{analytic argument}
+  \par\smallskip\noindent\emph{Definition.} Generic nonnegative comparison vector with coordinates \(v_{ay}\).
+  \item \(s_a(u)\) --- \texttt{arm-\allowbreak{}mass functional}; \(\mathbb R_+^4\to\mathbb R_+\); \texttt{analytic primitive}
+  \par\smallskip\noindent\emph{Definition.} \(s_a(u)=u_{a0}+u_{a1}\).
+  \item \(s(u)\) --- \texttt{total-\allowbreak{}mass functional}; \(\mathbb R_+^4\to\mathbb R_+\); \texttt{analytic primitive}
+  \par\smallskip\noindent\emph{Definition.} \(s(u)=s_0(u)+s_1(u)\).
+  \item \(\mathcal C_\epsilon\) --- \texttt{overlap cone}; subsets of \(\mathbb R_+^4\); \texttt{model geometry}
+  \par\smallskip\noindent\emph{Definition.} Cone constructed in \(\mathrm{def:overlap-cone}\).
+  \item \(\bar\mu_a(u)\) --- \texttt{global arm-\allowbreak{}mean extension}; \(\mathbb R_+^4\to[0,1]\); \texttt{analytic construction}
+  \par\smallskip\noindent\emph{Definition.} \(\bar\mu_a(u)=u_{a1}/\max\{s_a(u),\epsilon s(u)\}\) when \(s(u)>0\), and \(0\) otherwise.
+  \item \(\bar\tau(u)\) --- \texttt{global effect extension}; \(\mathbb R_+^4\to[-1,1]\); \texttt{analytic construction}
+  \par\smallskip\noindent\emph{Definition.} \(\bar\tau(u)=\bar\mu_1(u)-\bar\mu_0(u)\).
+  \item \(f\) --- \texttt{test function}; real functions on \([-1,1]\); \texttt{Wasserstein dual argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic normalized one-\allowbreak{}Lipschitz test function.}
+  \item \(\mathcal F_1\) --- \texttt{normalized Lipschitz class}; sets of real functions on \([-1,1]\); \texttt{Wasserstein dual class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_1=\{f:f(0)=0,\ |f(t)-f(t')|\le |t-t'|\}\).
+  \item \(F_f(u)\) --- \texttt{mass-\allowbreak{}weighted Lipschitz extension}; \(\mathbb R_+^4\to\mathbb R\); \texttt{focal analytic object}
+  \par\smallskip\noindent\emph{Definition.} \(F_f(u)=s(u)f(\bar\tau(u))\).
+  \item \(\widehat q_x\) --- \texttt{empirical observed cell vector}; \(\mathbb R_+^4\); \texttt{statistic}
+  \par\smallskip\noindent\emph{Definition.} Its \((a,y)\) coordinate is \(n^{-1}\sum_{i=1}^n\mathbf 1\{X_i=x,A_i=a,Y_i=y\}\).
+  \item \(\widehat G_{\mathrm{emp}}\) --- \texttt{total empirical CATE-\allowbreak{}law estimator}; \(\mathcal P([-1,1])\); \texttt{explicit estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator constructed in \(\mathrm{def:empirical-estimator}\).
+  \item \(\mathcal M_{d,\epsilon}\) --- \texttt{unrestricted categorical causal model}; \texttt{sets of full-\allowbreak{}data laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Model class constructed in \(\mathrm{def:model-class}\).
+  \item \(R_{n,d,\epsilon}\) --- \texttt{minimax squared-\allowbreak{}Wasserstein risk}; \([0,4]\); \texttt{focal statistical object}
+  \par\smallskip\noindent\emph{Definition.} Risk constructed in \(\mathrm{def:minimax-risk}\).
+  \item \(L_{n,d}\) --- \texttt{proved lower benchmark}; \([0,1]\); \texttt{rate benchmark}
+  \par\smallskip\noindent\emph{Definition.} \(L_{n,d}=\max\{\min(1,d/[n\log(ed)]),\min(d/n,n^{-2/3})\}\).
+  \item \(U_{n,d}\) --- \texttt{proved upper benchmark}; \([0,1]\); \texttt{rate benchmark}
+  \par\smallskip\noindent\emph{Definition.} \(U_{n,d}=\min(1,d/n)\).
+  \item \(c_\epsilon\) --- \texttt{positive lower-\allowbreak{}bound constant}; \((0,\infty)\); \texttt{bound constant}
+  \par\smallskip\noindent\emph{Definition.} A constant depending only on \(\epsilon\).
+  \item \(C_\epsilon\) --- \texttt{finite upper-\allowbreak{}bound constant}; \((0,\infty)\); \texttt{bound constant}
+  \par\smallskip\noindent\emph{Definition.} A finite constant depending only on \(\epsilon\).
+  \item \(K\) --- \texttt{joint moment degree}; \(\{2,3,\ldots\}\); \texttt{tuning parameter}
+  \par\smallskip\noindent\emph{Definition.} Degree selected from \(n\), \(d\), and pilot cell geometry by the grouped reconstruction handle.
+  \item \(\widehat G_{\mathrm{grp}}\) --- \texttt{grouped positive-\allowbreak{}reconstruction estimator}; \(\mathcal P([-1,1])\); \texttt{open-\allowbreak{}kernel estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator to be derived from the handle in \(\mathrm{def:grouped-reconstruction-handle}\).
+  \item \(\rho(n,d)\) --- \texttt{sharp all-\allowbreak{}regime rate scale}; positive numerical functions on \(\mathbb N\times\{2,3,\ldots\}\); \texttt{open focal object}
+  \par\smallskip\noindent\emph{Definition.} The explicit numerical frontier to be derived by \(\mathrm{oeq:sharp-all-regime-frontier}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+For each \(a\in\{0,1\}\), \(P\{Y=Y(a)\mid A=a\}=1\).
+\par\smallskip\noindent\emph{Standard} (Consistency of potential outcomes, \cite{HernanRobins2020}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-exchangeability]\label{ass:conditional-exchangeability}
+For each \(a\in\{0,1\}\), \(Y(a)\mathrel{\perp\!\!\!\perp}A\mid X\) under \(P\).
+\par\smallskip\noindent\emph{Standard} (Conditional exchangeability, \cite{HernanRobins2020}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-overlap]\label{ass:fixed-overlap}
+For every \(x\in[d]\) with \(p_x>0\), \(\epsilon\le e_x\le1-\epsilon\).
+\par\smallskip\noindent\emph{Standard} (Uniform treatment overlap for categorical adjustment, \cite{ZengBalakrishnanHanKennedy2024}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The observations \(O_1,\ldots,O_n\) are independent with common law equal to the observed margin of \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent and identically distributed sampling, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unrestricted categorical causal model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{d,\epsilon}=\{P: X\in[d], A,Y,Y(0),Y(1)\in\{0,1\}, P\text{ satisfies }\mathrm{ass:consistency},\mathrm{ass:conditional\mbox{-}exchangeability},\mathrm{ass:fixed\mbox{-}overlap}\}\) for every \(d\ge2\) and fixed \(0<\epsilon<1/2\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}overlap}.
+\end{definition}
+
+\begin{definition}[def:cate-law]\label{def:cate-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Population CATE law}
+\par\smallskip\noindent\emph{Construction.} \(G_P=\sum_{x:p_x>0}p_x\delta_{\tau_x}\in\mathcal P([-1,1])\).
+\par\smallskip\noindent\emph{Inputs.} \(P\).
+\end{definition}
+
+\begin{definition}[def:observed-cell-table]\label{def:observed-cell-table}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed four-\allowbreak{}cell table}
+\par\smallskip\noindent\emph{Construction.} For each \(x\in[d]\), set \(q_x=(P(X=x,A=0,Y=0),P(X=x,A=0,Y=1),P(X=x,A=1,Y=0),P(X=x,A=1,Y=1))\).
+\par\smallskip\noindent\emph{Inputs.} \(P\).
+\end{definition}
+
+\begin{definition}[def:overlap-cone]\label{def:overlap-cone}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed overlap cone}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_\epsilon=\{u\in\mathbb R_+^4: \epsilon s(u)\le s_a(u)\le(1-\epsilon)s(u)\text{ for }a=0,1\}\).
+\par\smallskip\noindent\emph{Inputs.} \(\epsilon\).
+\end{definition}
+
+\begin{definition}[def:global-extension]\label{def:global-extension}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mass-\allowbreak{}weighted global effect extension}
+\par\smallskip\noindent\emph{Construction.} For \(u\in\mathbb R_+^4\), set \(\bar\mu_a(u)=u_{a1}/\max\{s_a(u),\epsilon s(u)\}\) when \(s(u)>0\) and \(0\) otherwise, set \(\bar\tau(u)=\bar\mu_1(u)-\bar\mu_0(u)\), and set \(F_f(u)=s(u)f(\bar\tau(u))\) for \(f\in\mathcal F_1\).
+\par\smallskip\noindent\emph{Inputs.} \(u\); \(f\); \(\epsilon\).
+\end{definition}
+
+\begin{definition}[def:empirical-estimator]\label{def:empirical-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total empirical CATE-\allowbreak{}law estimator}
+\par\smallskip\noindent\emph{Construction.} Compute \(\widehat q_x\) for every \(x\in[d]\) and output \(\widehat G_{\mathrm{emp}}=\sum_{x=1}^d s(\widehat q_x)\delta_{\bar\tau(\widehat q_x)}\).
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(n\); \(d\); \(\epsilon\).
+\end{definition}
+
+\begin{definition}[def:minimax-risk]\label{def:minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{All-\allowbreak{}estimator minimax risk}
+\par\smallskip\noindent\emph{Construction.} \(R_{n,d,\epsilon}=\inf_{\widehat G}\sup_{P\in\mathcal M_{d,\epsilon}}E_{P^n}[W_1(\widehat G,G_P)^2]\), where the infimum is over all measurable \(\mathcal P([-1,1])\)-valued estimators.
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(d\); \(\epsilon\).
+\end{definition}
+
+\begin{definition}[def:benchmarks]\label{def:benchmarks}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Verified lower and upper benchmark scales}
+\par\smallskip\noindent\emph{Construction.} \(L_{n,d}=\max\{\min(1,d/[n\log(ed)]),\min(d/n,n^{-2/3})\}\) and \(U_{n,d}=\min(1,d/n)\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(d\).
+\end{definition}
+
+\begin{definition}[def:grouped-reconstruction-handle]\label{def:grouped-reconstruction-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Candidate mass-\allowbreak{}weighted grouped moment-\allowbreak{}reconstruction blueprint}
+\par\smallskip\noindent\emph{Construction.} This node is a candidate blueprint, not a constructed estimator.  A complete instantiation would have to specify, as deterministic functions of \(n\), \(d\), and \(\epsilon\), the sample split, pilot mass shells and effect intervals, degree \(K\), finite grid, joint four-cell factorial statistics, exact covariance bound, feasibility tolerances, nonnegative Hausdorff-moment program, aggregation and mass normalization, Rao--Blackwellization rule, and deterministic fallback.  Only after those choices are given and measurability, feasibility, and risk are proved does the resulting sample map define \(\widehat G_{\mathrm{grp}}\in\mathcal P([-1,1])\).
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(n\); \(d\); \(\epsilon\).
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:observed-law-identification]\label{lem:observed-law-identification}
+For every \(P\in\mathcal M_{d,\epsilon}\), the causal law \(G_P\) is identified by the observed table as \(G_P=\sum_{x:s(q_x)>0}s(q_x)\delta_{q_{11,x}/s_1(q_x)-q_{01,x}/s_0(q_x)}\), and every table with \(q_x\in\mathcal C_\epsilon\) and \(\sum_xs(q_x)=1\) admits a full-data completion in \(\mathcal M_{d,\epsilon}\).
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M_{d,\epsilon}\).  For every \(x\in[d]\), finite additivity and \(\mathrm{def:observed\mbox{-}cell\mbox{-}table}\) give
+\[
+s(q_x)=\sum_{a=0}^1\sum_{y=0}^1P(X=x,A=a,Y=y)=P(X=x)=p_x.
+\]
+If \(p_x>0\), then
+\[
+s_1(q_x)=p_xP(A=1\mid X=x)=p_xe_x,
+\qquad
+s_0(q_x)=p_x(1-e_x).
+\]
+The fixed-overlap assumption implies \(s_a(q_x)\geq\epsilon p_x>0\) for both arms.  Hence conditioning and the definition of \(q_{ay,x}\) yield
+\[
+\frac{q_{a1,x}}{s_a(q_x)}=P(Y=1\mid A=a,X=x)=\mu_{ax}.
+\]
+Consequently \(q_x\in\mathcal C_\epsilon\), and
+\[
+\frac{q_{11,x}}{s_1(q_x)}-\frac{q_{01,x}}{s_0(q_x)}
+=\mu_{1x}-\mu_{0x}=\tau_x.
+\]
+Substitution into \(\mathrm{def:cate\mbox{-}law}\) proves the displayed observed-table formula.  Its causal interpretation follows without an additional identification premise: by consistency,
+\(Y=Y(a)\) on \(\{A=a\}\), and by conditional exchangeability the conditional law of \(Y(a)\) given \((A=a,X=x)\) equals its law given \(X=x\).  The division used here is justified by fixed overlap and \(p_x>0\).
+
+Conversely, suppose that \(q_x\in\mathcal C_\epsilon\) for all \(x\) and \(\sum_xs(q_x)=1\).  Put \(p_x=s(q_x)\).  For \(p_x>0\), define
+\[
+e_x=\frac{s_1(q_x)}{p_x},
+\qquad
+\mu_{ax}=\frac{q_{a1,x}}{s_a(q_x)}.
+\]
+The cone inequalities give \(\epsilon\leq e_x\leq1-\epsilon\) and \(s_a(q_x)>0\), while nonnegativity gives \(0\leq\mu_{ax}\leq1\).  Draw \(X\) with probabilities \((p_x)_{x\in[d]}\).  Conditional on an occupied value \(X=x\), draw \(A\sim\operatorname{Bernoulli}(e_x)\) and draw \(Y(0),Y(1)\) independently of \(A\), with \(Y(a)\sim\operatorname{Bernoulli}(\mu_{ax})\); then set \(Y=Y(A)\).  Values conditional on a null cell may be chosen arbitrarily.  This construction satisfies consistency, conditional exchangeability, and fixed overlap.  Moreover, for every \(a,y,x\),
+\[
+P(X=x,A=a,Y=1)=p_xP(A=a\mid X=x)\mu_{ax}=q_{a1,x},
+\]
+and the analogous identity for \(Y=0\) follows from \(q_{a0,x}=s_a(q_x)-q_{a1,x}\).  Thus its observed table is exactly the prescribed table, completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction makes lower bounds on observed multinomial tables valid causal lower bounds on the unchanged target. \textit{Gap.} ZengBalakrishnanHanKennedy2024 identifies only scalar means on the same table, while the present functional retains the entire mass-weighted effect law. \textit{Consumer.} The reduction lets categorical-profile analyses compute and audit the target directly from observed arm--outcome cells.
+
+\begin{lemma}[lem:mass-weighted-extension]\label{lem:mass-weighted-extension}
+For every \(f\in\mathcal F_1\) and \(u,v\in\mathbb R_+^4\), \(|F_f(u)-F_f(v)|\le(4+2/\epsilon)\lVert u-v\rVert_1\). If \(q_x,v_x\in\mathcal C_\epsilon\) for \(x\in[d]\) and \(\sum_xs(q_x)=\sum_xs(v_x)=1\), then \(W_1(\sum_xs(q_x)\delta_{\bar\tau(q_x)},\sum_xs(v_x)\delta_{\bar\tau(v_x)})=\sup_{f\in\mathcal F_1}|\sum_xF_f(q_x)-\sum_xF_f(v_x)|\).
+\end{lemma}
+\begin{proof}
+Write \(S=s(u)\), and define
+\[
+g_a(u)=S\bar\mu_a(u),\qquad h(u)=g_1(u)-g_0(u),
+\]
+with both functions set to zero at \(u=0\).  Since \(0\leq u_{a1}\leq s_a(u)\leq\max\{s_a(u),\epsilon S\}\), one has \(0\leq g_a(u)\leq S\), \(|h(u)|\leq S\), and, when \(S>0\), \(\bar\tau(u)=h(u)/S\).
+
+We first establish a global bound for \(g_a\).  On the half-space \(s_a(u)\leq\epsilon s(u)\),
+\[
+g_a(u)=u_{a1}/\epsilon,
+\]
+so every coordinate derivative has absolute value at most \(1/\epsilon\).  On the half-space \(s_a(u)\geq\epsilon s(u)\), put \(z=u_{a1}\) and \(t=s_a(u)\).  There
+\[
+g_a(u)=\frac{s(u)z}{t}.
+\]
+Because \(0\leq z\leq t\) and \(t\geq\epsilon s(u)\), direct differentiation with respect to each of the four coordinates shows that every coordinate derivative has absolute value at most \(1+1/\epsilon\).  The two formulas agree on \(t=\epsilon s(u)\).  Subdividing the line segment joining any two nonnegative vectors at its possible crossing of that hyperplane, and integrating the coordinate-gradient bound on each piece, therefore gives
+\[
+|g_a(u)-g_a(v)|\leq(1+1/\epsilon)\lVert u-v\rVert_1.
+\]
+Continuity at the origin follows from \(0\leq g_a(u)\leq s(u)\).  Thus
+\[
+|h(u)-h(v)|\leq(2+2/\epsilon)\lVert u-v\rVert_1.
+\]
+
+Let \(T=s(v)\), and without loss of generality suppose \(S\geq T\).  If \(T=0\), the normalization \(f(0)=0\), the one-Lipschitz property, and \(|h(u)|\leq S\) imply \(|F_f(u)-F_f(v)|\leq S\leq\lVert u-v\rVert_1\).  If \(T>0\), then
+\[
+\begin{aligned}
+|F_f(u)-F_f(v)|
+&\leq |S-T|\,|f(h(u)/S)|
+   +T\left|f(h(u)/S)-f(h(v)/T)\right|\\
+&\leq |S-T|+T\left|h(u)/S-h(v)/T\right|\\
+&\leq2|S-T|+|h(u)-h(v)|\\
+&\leq(4+2/\epsilon)\lVert u-v\rVert_1.
+\end{aligned}
+\]
+Here \(|f(r)|\leq|r|\leq1\), \(|h(v)|\leq T\), and \(|S-T|\leq\lVert u-v\rVert_1\) justify the successive inequalities.  This proves the first assertion on all of \(\mathbb R_+^4\), including the boundary where an arm count or the total mass vanishes.
+
+For the second assertion, define the two finite atomic probability measures in its display by \(Q\) and \(V\), respectively.  They are probability measures because their weights are nonnegative and sum to one, and their atoms lie in \([-1,1]\).  We verify the required dual identity directly for finite measures.  List the distinct atoms in the union of their supports as \(z_1<\cdots<z_m\), let \(\sigma=Q-V\), and put \(C_j=\sigma(({-}\infty,z_j])\).  Since \(\sigma([-1,1])=0\), summation by parts gives, for every one-Lipschitz \(f\),
+\[
+\int f\,d\sigma=-\sum_{j=1}^{m-1}C_j\{f(z_{j+1})-f(z_j)\}.
+\]
+The absolute value is at most \(\sum_{j<m}|C_j|(z_{j+1}-z_j)\).  Equality is attained by prescribing the successive increments of \(f\) to be \(-\operatorname{sgn}(C_j)(z_{j+1}-z_j)\); subtracting the constant \(f(0)\) preserves these increments and enforces normalization.  On the primal side, every coupling must transport at least \(|C_j|\) units across the cut \((z_j,z_{j+1})\), while the monotone left-to-right matching of the two atomic masses transports exactly this amount across each cut.  Decomposing distance into crossed adjacent gaps therefore shows
+\[
+W_1(Q,V)=\sum_{j=1}^{m-1}|C_j|(z_{j+1}-z_j)
+=\sup_{f\in\mathcal F_1}\left|\int f\,d(Q-V)\right|.
+\]
+Finally, the definitions give \(\int f\,dQ=\sum_xF_f(q_x)\) and \(\int f\,dV=\sum_xF_f(v_x)\).  Substitution proves the claimed equality.  Membership in \(\mathcal C_\epsilon\) also ensures that \(\bar\tau\) agrees with the untruncated armwise ratios wherever the mass is positive.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} One simultaneous Lipschitz bound preserves unknown mass weighting and converts Wasserstein recovery into a joint moment problem. \textit{Gap.} VinayakKongKakade2019Change controls a fixed entity-weighted paired-binomial law; its proof does not contain the mass-weighted ratio extension needed for random observational cells. \textit{Consumer.} The inequality provides the common deterministic interface for both the empirical estimator and the grouped positive reconstruction.
+
+\begin{theorem}[thm:empirical-upper]\label{thm:empirical-upper}
+For all \(n\ge1\), \(d\ge2\), and \(0<\epsilon<1/2\), the computable estimator \(\widehat G_{\mathrm{emp}}\) is \(\mathcal P([-1,1])\)-valued and satisfies \(\sup_{P\in\mathcal M_{d,\epsilon}}E_{P^n}[W_1(\widehat G_{\mathrm{emp}},G_P)^2]\le C_\epsilon U_{n,d}\).
+\end{theorem}
+\begin{proof}
+For every realized sample, all coordinates of \(\widehat q_x\) are nonnegative and
+\[
+\sum_{x=1}^d s(\widehat q_x)
+=\frac1n\sum_{i=1}^n\sum_{x=1}^d\mathbf 1\{X_i=x\}=1.
+\]
+Moreover, \(0\leq\bar\mu_a(u)\leq1\) for every nonnegative \(u\), so \(\bar\tau(u)\in[-1,1]\).  Thus \(\widehat G_{\mathrm{emp}}\) is always a Borel probability measure, including when some empirical cell or arm count is zero.
+
+Fix \(P\in\mathcal M_{d,\epsilon}\).  The definitions give \(s(q_x)=p_x\).  On every occupied cell, fixed overlap gives \(s_a(q_x)>0\) and \(\bar\mu_a(q_x)=q_{a1,x}/s_a(q_x)=\mu_{ax}\).  Hence \(G_P=\sum_xs(q_x)\delta_{\bar\tau(q_x)}\).  We next give a coupling bound that does not require the random vectors \(\widehat q_x\) to lie in the overlap cone.  For arbitrary nonnegative collections \((u_x,v_x)\) satisfying \(\sum_xs(u_x)=\sum_xs(v_x)=1\), pair mass \(m_x=\min\{s(u_x),s(v_x)\}\) between the two atoms having label \(x\), and couple all residual mass arbitrarily.  The two residual totals agree and equal \(\frac12\sum_x|s(u_x)-s(v_x)|\); their transport cost is at most twice this total.  Define \(f_0(t)=t\) and \(h(u)=s(u)\bar\tau(u)=F_{f_0}(u)\).  Since \(f_0\in\mathcal F_1\), \(\mathrm{lem:mass\mbox{-}weighted\mbox{-}extension}\) gives
+\[
+|h(u)-h(v)|\leq(4+2/\epsilon)\lVert u-v\rVert_1.
+\]
+If \(s(u_x)\geq s(v_x)>0\), then
+\[
+m_x\left|\bar\tau(u_x)-\bar\tau(v_x)\right|
+\leq |h(u_x)-h(v_x)|+|s(u_x)-s(v_x)|,
+\]
+and the same inequality holds after interchanging the two vectors; it is also immediate when one mass is zero.  The preceding Lipschitz bound for \(h\) and \(|s(u)-s(v)|\leq\lVert u-v\rVert_1\) consequently imply
+\[
+W_1\left(\sum_xs(u_x)\delta_{\bar\tau(u_x)},
+          \sum_xs(v_x)\delta_{\bar\tau(v_x)}\right)
+\leq(6+2/\epsilon)\sum_x\lVert u_x-v_x\rVert_1.
+\]
+Applying this with \(u_x=\widehat q_x\) and \(v_x=q_x\), and writing \(C_0=6+2/\epsilon\), gives
+\[
+W_1(\widehat G_{\mathrm{emp}},G_P)^2
+\leq C_0^2\left(\sum_{x,a,y}|\widehat q_{ay,x}-q_{ay,x}|\right)^2
+\leq4dC_0^2\sum_{x,a,y}(\widehat q_{ay,x}-q_{ay,x})^2.
+\]
+Under independent sampling, the \(4d\) empirical coordinates are multinomial proportions.  Hence
+\[
+\sum_{x,a,y}E_{P^n}(\widehat q_{ay,x}-q_{ay,x})^2
+=\frac1n\sum_{x,a,y}q_{ay,x}(1-q_{ay,x})\leq\frac1n.
+\]
+It follows that the risk is at most \(4C_0^2d/n\).  Independently, the diameter of \([-1,1]\) gives \(W_1^2\leq4\).  Therefore
+\[
+\sup_{P\in\mathcal M_{d,\epsilon}}E_{P^n}W_1(\widehat G_{\mathrm{emp}},G_P)^2
+\leq \min\{4,4C_0^2d/n\}
+\leq C_\epsilon\min\{1,d/n\}=C_\epsilon U_{n,d},
+\]
+for the finite constant \(C_\epsilon=4\max\{1,C_0^2\}\), as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is a total estimator on the original class and supplies a sharp dense-regime achievability check without trimming null cells. \textit{Gap.} ZengBalakrishnanHanKennedy2024 bounds scalar plug-in estimators, and VinayakKongKakade2019Change assumes fixed repeated trials; neither gives this probability-valued observational law estimator. \textit{Consumer.} It gives an immediately implementable conservative law estimate for saturated categorical PONV profiles.
+
+\begin{theorem}[thm:separated-atom-lower]\label{thm:separated-atom-lower}
+There is \(c_\epsilon>0\), depending only on \(\epsilon\), such that, for every \(n\ge1\) and \(d\ge2\), \(R_{n,d,\epsilon}\ge c_\epsilon\min\{d/n,n^{-2/3}\}\), with the lower experiment contained in \(\mathcal M_{d,\epsilon}\) and allowing every measurable probability-valued estimator.
+\end{theorem}
+\begin{proof}
+Fix \(n\geq1\) and \(d\geq2\), and put
+\[
+k=\min\{d,\lfloor n^{1/3}\rfloor\},\qquad
+t_j=\frac{2j-k-1}{4k},\qquad
+\Delta=\frac1{64}\sqrt{\frac{k}{n}}
+\quad(1\leq j\leq k).
+\]
+Then \(k\geq1\), \(n\geq k^3\), and \(\Delta\leq1/(64k)\).  For each \(v\in\{-1,1\}^k\), assign mass \(p_j=1/k\) and propensity \(e_j=1/2\) to cells \(1,\ldots,k\), leave the other cells null, and set
+\[
+\tau_j(v)=t_j+\Delta v_j,\qquad
+\mu_{1j}(v)=\frac{1+\tau_j(v)}2,\qquad
+\mu_{0j}(v)=\frac{1-\tau_j(v)}2.
+\]
+The spacing \(t_{j+1}-t_j=1/(2k)>2\Delta\) makes the atoms strictly increasing for every \(v\), and \(|t_j|+\Delta<1/2\) makes both Bernoulli means lie in \((0,1)\).  Since \(e_j=1/2\in[\epsilon,1-\epsilon]\), the completion in \(\mathrm{lem:observed\mbox{-}law\mbox{-}identification}\) produces laws \(P_v\in\mathcal M_{d,\epsilon}\).
+
+The target under \(P_v\) is \(G_v=k^{-1}\sum_{j=1}^k\delta_{\tau_j(v)}\).  The atoms have a common order under every vertex.  Matching equal quantile intervals therefore gives, for all \(v,w\),
+\[
+W_1(G_v,G_w)=\frac1k\sum_{j=1}^k|\tau_j(v)-\tau_j(w)|
+=\frac{2\Delta}{k}H(v,w),
+\]
+where \(H\) denotes Hamming distance.  For completeness, this matching is optimal because any coupling that crosses two ordered pairs can be uncrossed, and
+\(|r-s'|+|r'-s|\geq|r-s|+|r'-s'|\) whenever \(r\leq r'\) and \(s\leq s'\).
+
+If \(v,w\) are neighbors, only one cell changes.  Each of its four observed probabilities is either \((1+\tau_j)/(4k)\) or \((1-\tau_j)/(4k)\), hence is at least \(1/(8k)\), and the absolute change of every coordinate is \(\Delta/(2k)\).  Thus the one-observation chi-square divergence, in either direction, obeys
+\[
+\chi^2(P_v,P_w)
+\leq4\frac{\Delta^2/(4k^2)}{1/(8k)}
+=\frac{8\Delta^2}{k}.
+\]
+The elementary inequalities \(\log z\leq z-1\) and product additivity of relative entropy give
+\[
+D(P_v^n\Vert P_w^n)\leq n\chi^2(P_v,P_w)
+\leq\frac1{512}.
+\]
+Also \(\lVert Q-R\rVert_{\mathrm{TV}}\leq\sqrt{D(Q\Vert R)/2}\): indeed, applying the log-sum inequality to the set where the density of \(Q\) exceeds that of \(R\) reduces the assertion to the Bernoulli inequality, whose second derivative proof gives binary relative entropy at least twice the squared difference.  Therefore neighboring product experiments satisfy
+\[
+\lVert P_v^n-P_w^n\rVert_{\mathrm{TV}}\leq1/32.
+\]
+
+Let \(\widehat G\) be any measurable probability-valued estimator, and choose measurably a closest member \(G_{\widehat v}\) of the finite family, breaking ties lexicographically.  The triangle inequality and the nearest-member property imply
+\[
+W_1(\widehat G,G_v)\geq\frac12W_1(G_{\widehat v},G_v)
+=\frac{\Delta}{k}H(\widehat v,v).
+\]
+Average over the uniform prior on \(v\).  For coordinate \(j\), the two equally weighted mixture laws conditional on \(v_j=1\) and \(v_j=-1\) have total variation at most \(1/32\), by pairing each vertex with its \(j\)-neighbor and using convexity of total variation.  Every test of that bit therefore has average error at least \((1-1/32)/2=31/64\).  Summing over coordinates yields
+\[
+2^{-k}\sum_vE_{P_v^n}W_1(\widehat G,G_v)
+\geq\frac{31}{64}\Delta.
+\]
+Jensen's inequality, first under each experiment and then under the finite prior, gives
+\[
+\sup_vE_{P_v^n}W_1(\widehat G,G_v)^2
+\geq\left(\frac{31}{64}\right)^2\Delta^2
+=\frac{31^2}{64^2\,4096}\frac{k}{n}.
+\]
+Finally, \(\lfloor n^{1/3}\rfloor\geq n^{1/3}/2\), so
+\[
+\frac{k}{n}\geq\frac12\min\{d/n,n^{-2/3}\}.
+\]
+Taking the infimum over all measurable \(\widehat G\), and using that every \(P_v\) belongs to the original model, proves the theorem with a universal positive constant, which is in particular an admissible \(c_\epsilon\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A separated-atom hypercube exposes a full-law difficulty that is invisible to scalar effect averages. \textit{Gap.} The fuzzy hypotheses in ZengBalakrishnanHanKennedy2024 separate a scalar mean, while this construction separates ordered effect laws in \(W_1\) and keeps neighboring observational experiments close. \textit{Consumer.} The theorem prevents analysts from reporting scalar-optimal error bars as uncertainty for an entire categorical CATE distribution.
+
+\begin{theorem}[thm:scalar-transfer-lower]\label{thm:scalar-transfer-lower}
+For constants depending only on \(\epsilon\), \(R_{n,d,\epsilon}\ge c_\epsilon\min\{1,d/[n\log(ed)]\}\) for every \(n\ge1\) and \(d\ge2\), by a same-class reduction in which \(\int|t|\,dG_P(t)\) equals the normalized \(\ell_1\) separation of two categorical mass vectors.
+\end{theorem}
+\begin{proof}
+We use the lower experiment certified by \texttt{stat\_discrete\_optimal\_value\_minimax\_matched/thm:all-estimator-lower}, whose normalized two-categorical-sample subexperiment has squared-error minimax risk at least
+\(c\min\{1,d/[n\log(ed)]\}\) for estimating one half of the \(\ell_1\) distance between two unknown probability vectors on \([d]\).  We now verify, rather than assume, that this exact subexperiment is a subexperiment of the present causal model and that its scalar target is a one-Lipschitz image of \(G_P\).
+
+Let \(r=(r_x)_{x\in[d]}\) and \(s=(s_x)_{x\in[d]}\) be the two probability vectors in that lower experiment, and define an observed table by
+\[
+q_{11,x}=q_{00,x}=\frac{r_x}{4},
+\qquad
+q_{10,x}=q_{01,x}=\frac{s_x}{4}.
+\]
+Then
+\[
+p_x=\frac{r_x+s_x}{2},\qquad e_x=\frac12,
+\qquad
+\mu_{1x}=\frac{r_x}{r_x+s_x},\qquad
+\mu_{0x}=\frac{s_x}{r_x+s_x}
+\]
+on every occupied cell.  The table lies in \(\mathcal C_\epsilon\), since \(0<\epsilon<1/2\), and hence has a completion in \(\mathcal M_{d,\epsilon}\) by \(\mathrm{lem:observed\mbox{-}law\mbox{-}identification}\).  Direct substitution, with null cells omitted, gives the required pushforward identity
+\[
+\int_{-1}^1|t|\,dG_P(t)
+=\sum_{x:r_x+s_x>0}\frac{r_x+s_x}{2}
+  \left|\frac{r_x-s_x}{r_x+s_x}\right|
+=\frac12\sum_{x=1}^d|r_x-s_x|.
+\]
+
+There is also an explicit observation kernel from the donor experiment to the causal experiment.  Given independent samples of size \(n\) from each of \(r\) and \(s\), generate each of \(n\) output observations using an independent fair sign.  On an \(r\)-sign, take the next unused \(r\)-label and select \((A,Y)=(1,1)\) or \((0,0)\) fairly; on an \(s\)-sign, take the next unused \(s\)-label and select \((A,Y)=(1,0)\) or \((0,1)\) fairly.  At most \(n\) labels are requested from either input sample.  Independence of the input sequences and signs shows that the outputs are independent with the displayed table.  Thus the causal experiment is no more informative than the donor experiment.
+
+For any probability-valued estimator \(\widehat G\), set \(\widehat T=\int|t|\,d\widehat G(t)\).  Every coupling \(\gamma\) of \(\widehat G\) and \(G_P\) satisfies
+\[
+|\widehat T-T|
+\leq\int\bigl||t|-|t'|\bigr|\,d\gamma(t,t')
+\leq\int|t-t'|\,d\gamma(t,t'),
+\]
+so taking the infimum over couplings gives \(|\widehat T-T|\leq W_1(\widehat G,G_P)\).  Applying the donor all-estimator lower bound after the observation kernel, then taking the supremum over this same-class subfamily and the infimum over \(\widehat G\), proves
+\[
+R_{n,d,\epsilon}\geq c\min\{1,d/[n\log(ed)]\}.
+\]
+The universal \(c\) may be denoted by \(c_\epsilon\), which proves the stated claim without restricting the original model class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This floor carries the rare-cell unknown-mass obstruction into the law target without assuming a stand-in CATE functional. \textit{Gap.} The in-repository scalar theorem supplies the normalized \(\ell_1\) hard family; the new work must prove that its actual causal subexperiment pushes forward to \(G_P\) with the displayed identity. \textit{Consumer.} It supplies a necessary consistency condition for every probability-valued CATE-law estimator.
+
+\begin{theorem}[thm:all-regime-bracket]\label{thm:all-regime-bracket}
+Uniformly over \(n\ge1\) and \(d\ge2\), \(c_\epsilon L_{n,d}\le R_{n,d,\epsilon}\le C_\epsilon U_{n,d}\).
+\end{theorem}
+\begin{proof}
+Fix \(n\geq 1\), \(d\geq 2\), and \(0<\epsilon<1/2\).  By \(\mathrm{thm:separated\mbox{-}atom\mbox{-}lower}\) and \(\mathrm{thm:scalar\mbox{-}transfer\mbox{-}lower}\), there are constants \(c_{1,\epsilon}>0\) and \(c_{2,\epsilon}>0\), depending only on \(\epsilon\), for which
+\[
+ R_{n,d,\epsilon}\geq c_{1,\epsilon}\min\!\left\{\frac dn,n^{-2/3}\right\},
+ \qquad
+ R_{n,d,\epsilon}\geq c_{2,\epsilon}\min\!\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+If \(r\geq c_1 a\) and \(r\geq c_2 b\) for nonnegative \(a,b,r\) and positive \(c_1,c_2\), then
+\[
+ r\geq \min\{c_1,c_2\}\max\{a,b\}.
+\]
+Applying this elementary implication and then \(\mathrm{def:benchmarks}\) gives
+\[
+ R_{n,d,\epsilon}\geq
+ \min\{c_{1,\epsilon},c_{2,\epsilon}\}
+ \max\!\left\{
+   \min\!\left(1,\frac{d}{n\log(ed)}\right),
+   \min\!\left(\frac dn,n^{-2/3}\right)
+ \right\}
+ =c_\epsilon L_{n,d},
+\]
+after setting \(c_\epsilon=\min\{c_{1,\epsilon},c_{2,\epsilon}\}>0\).
+
+For the upper bound, \(\widehat G_{\mathrm{emp}}\) is, by \(\mathrm{thm:empirical\mbox{-}upper}\), a measurable \(\mathcal P([-1,1])\)-valued statistic.  It is therefore an admissible decision rule in the infimum defining \(R_{n,d,\epsilon}\) in \(\mathrm{def:minimax\mbox{-}risk}\).  Hence
+\[
+ \begin{aligned}
+ R_{n,d,\epsilon}
+ &\leq \sup_{P\in\mathcal M_{d,\epsilon}}
+ E_{P^n}\!\left[W_1(\widehat G_{\mathrm{emp}},G_P)^2\right] \\
+ &\leq C_\epsilon\min\!\left(1,\frac dn\right)
+ =C_\epsilon U_{n,d},
+ \end{aligned}
+\]
+where the second inequality is \(\mathrm{thm:empirical\mbox{-}upper}\) and the equality is \(\mathrm{def:benchmarks}\).  All constants depend only on the fixed overlap constant \(\epsilon\), so both inequalities hold uniformly over the stated \(n\) and \(d\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem combines complementary same-class lower obstructions with the total empirical upper bound; its explicit benchmarks imply the uniform at-most-\(\log(ed)\) characterization. \textit{Gap.} The raw bracket is sharp in the dense branch but leaves an at-most-logarithmic factor in the sparse and transitional regimes. \textit{Consumer.} The bounds provide valid sample-size diagnostics on the full observational class before the exact frontier is known.
+
+\begin{theorem}[thm:dense-frontier]\label{thm:dense-frontier}
+If \(n\ge d^3\), then \(c_\epsilon d/n\le R_{n,d,\epsilon}\le C_\epsilon d/n\) on the full class \(\mathcal M_{d,\epsilon}\).
+\end{theorem}
+\begin{proof}
+Assume \(n\geq d^3\).  Then \(d\leq n^{1/3}\), so
+\[
+\min\{d/n,n^{-2/3}\}=d/n.
+\]
+The lower inequality follows from \(\mathrm{thm:separated\mbox{-}atom\mbox{-}lower}\).  Also \(d/n\leq1\), and hence \(U_{n,d}=d/n\) by \(\mathrm{def:benchmarks}\).  The upper inequality follows from \(\mathrm{thm:empirical\mbox{-}upper}\).  The upper supremum remains over all of \(\mathcal M_{d,\epsilon}\); only the valid lower-bound witness is a subfamily.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This matching regime is the first solved portion of the frontier and a mandatory calibration point for any sparse reconstruction. \textit{Gap.} Paired-binomial law recovery fixes entity weights and trials, while categorical ATE theory targets a scalar; neither yields the \(d/n\) observational law frontier. \textit{Consumer.} Analysts with many observations per categorical profile obtain an exact order for full-distribution recovery.
+
+\begin{proposition}[prop:consistency-boundaries]\label{prop:consistency-boundaries}
+For fixed \(0<\epsilon<1/2\) and any sequence \(d_n\ge2\), \(d_n/n\to0\) implies \(R_{n,d_n,\epsilon}\to0\), while \(R_{n,d_n,\epsilon}\to0\) implies \(d_n/[n\log(ed_n)]\to0\).
+\end{proposition}
+\begin{proof}
+Fix \(0<\epsilon<1/2\).  If \(d_n/n\to0\), then \(\mathrm{thm:all\mbox{-}regime\mbox{-}bracket}\) gives
+\[
+0\leq R_{n,d_n,\epsilon}\leq C_\epsilon\min\{1,d_n/n\}\longrightarrow0.
+\]
+Conversely, if \(R_{n,d_n,\epsilon}\to0\), the scalar component of the same theorem gives
+\[
+c_\epsilon\min\{1,d_n/[n\log(ed_n)]\}
+\leq R_{n,d_n,\epsilon}\longrightarrow0.
+\]
+Because \(c_\epsilon>0\), the minimum on the left converges to zero.  For a nonnegative sequence \(r_n\), \(\min\{1,r_n\}\to0\) implies \(r_n\to0\); apply this with \(r_n=d_n/[n\log(ed_n)]\).  This proves the claimed sufficient and necessary boundaries without asserting that the logarithmic gap between them is closed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition records exactly what the current two-sided theory says about consistency without disguising the logarithmic gap. \textit{Gap.} ZengBalakrishnanHanKennedy2024 gives scalar consistency restrictions, not necessary and sufficient regions for a probability law under \(W_1\). \textit{Consumer.} Study designers can distinguish a proved safe regime from a proved impossible regime for categorical heterogeneity reporting.
+
+\begin{proposition}[prop:parametric-risk-boundary]\label{prop:parametric-risk-boundary}
+For fixed \(0<\epsilon<1/2\) and any sequence \(d_n\ge2\), \(\sup_{n\ge1}nR_{n,d_n,\epsilon}<\infty\) if and only if \(\sup_{n\ge1}d_n<\infty\).
+\end{proposition}
+\begin{proof}
+Fix \(0<\epsilon<1/2\).  If \(D=\sup_nd_n<\infty\), then \(\mathrm{thm:empirical\mbox{-}upper}\) and the definition of minimax risk imply
+\[
+nR_{n,d_n,\epsilon}\leq C_\epsilon n\min\{1,d_n/n\}
+\leq C_\epsilon d_n\leq C_\epsilon D
+\]
+for every \(n\), so the supremum is finite.
+
+Conversely, suppose \((d_n)\) is unbounded.  There is a strictly increasing subsequence \((n_m)\) for which \(d_{n_m}\to\infty\); necessarily \(n_m^{1/3}\to\infty\).  The separated-atom lower bound yields
+\[
+n_mR_{n_m,d_{n_m},\epsilon}
+\geq c_\epsilon\min\{d_{n_m},n_m^{1/3}\}\longrightarrow\infty.
+\]
+Thus \(\sup_n nR_{n,d_n,\epsilon}=\infty\).  This proves both directions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This exact boundary is available even though the sparse minimax rate is not yet known. \textit{Gap.} Existing population-of-parameters rates index fixed entities and trials; they do not characterize root-risk behavior under growing observational categories. \textit{Consumer.} The result tells practitioners when ordinary parametric precision for the whole CATE law is mathematically impossible.
+
+\begin{openendedquestion}[oeq:sharp-all-regime-frontier]\label{oeq:sharp-all-regime-frontier}
+Remove the remaining at-most-\(\log(ed)\) gap in the proved same-class characterization
+\[
+ c_\epsilon L_{n,d}\leq R_{n,d,\epsilon}
+ \leq C_\epsilon\log(ed)L_{n,d}
+\]
+for every \(n\geq1\) and \(d\geq2\).  Specifically, determine an explicit numerical function \(\rho(n,d)\), not defined by a minimax optimization, fully specify a measurable probability-valued estimator \(\widehat G_{\mathrm{grp}}\) by instantiating or replacing the candidate blueprint in \(\mathrm{def:grouped\mbox{-}reconstruction\mbox{-}handle}\), and prove a matching converse on \(\mathcal M_{d,\epsilon}\) such that
+\[
+ c_\epsilon\rho(n,d)\leq R_{n,d,\epsilon}
+ \leq \sup_{P\in\mathcal M_{d,\epsilon}}
+ E_{P^n}\!\left[W_1(\widehat G_{\mathrm{grp}},G_P)^2\right]
+ \leq C_\epsilon\rho(n,d).
+\]
+The answer must determine which elbows in \(\mathrm{prop:lower\mbox{-}benchmark\mbox{-}phase\mbox{-}diagram}\) are genuine, give the exact consistency region, reproduce the \(d/n\) lower bound on the separated-atom hypercube, and yield a nonconstant guarantee for two effect clusters with unknown unequal masses and propensities at both overlap boundaries.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The remaining mathematical target is to remove the proved at-most-\(\log(ed)\) gap on the unchanged observational class and determine which candidate elbows are genuine. \textit{Gap.} No verified argument yet controls the coupled mass-weighted treated--control moment process uniformly over the Lipschitz dual class, and the existing same-class lower families do not select the sharp interpolation. \textit{Consumer.} A solved frontier would calibrate categorical-profile CATE-law reporting without asserting individual treatment-effect recovery or point identification of a zero atom.
+
+\begin{proposition}[prop:uniform-log-characterization]\label{prop:uniform-log-characterization}
+Uniformly over \(n\geq1\) and \(d\geq2\), there are constants \(c_\epsilon>0\) and \(C_\epsilon<\infty\), depending only on \(\epsilon\), such that
+\[
+ c_\epsilon L_{n,d}\leq R_{n,d,\epsilon}
+ \leq C_\epsilon\log(ed)L_{n,d}.
+\]
+Thus the explicit lower benchmark characterizes the minimax squared-Wasserstein risk to within a factor of at most \(\log(ed)\) on the original unrestricted model class.
+\end{proposition}
+\begin{proof}
+The lower inequality is the lower inequality in \(\mathrm{thm:all\mbox{-}regime\mbox{-}bracket}\).  For the upper inequality, put \(\ell=\log(ed)\).  Since \(d\geq2\), one has \(\ell=1+\log d>1\).  For every \(a\geq0\) and every \(\ell\geq1\),
+\[
+ \ell\min\!\left\{1,\frac a\ell\right\}=\min\{\ell,a\}\geq\min\{1,a\}.
+\]
+Taking \(a=d/n\) yields the first comparison requested in the claim:
+\[
+ U_{n,d}=\min\!\left(1,\frac dn\right)
+ \leq \log(ed)\min\!\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+The first term in the maximum defining \(L_{n,d}\) in \(\mathrm{def:benchmarks}\) is exactly \(\min\{1,d/[n\log(ed)]\}\).  Therefore
+\[
+ U_{n,d}
+ \leq \log(ed)\min\!\left\{1,\frac{d}{n\log(ed)}\right\}
+ \leq \log(ed)L_{n,d}.
+\]
+Combining this deterministic comparison with the upper inequality \(R_{n,d,\epsilon}\leq C_\epsilon U_{n,d}\) from \(\mathrm{thm:all\mbox{-}regime\mbox{-}bracket}\) proves
+\[
+ R_{n,d,\epsilon}\leq C_\epsilon\log(ed)L_{n,d}.
+\]
+The constants inherited from that theorem depend only on \(\epsilon\), which establishes uniformity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition turns the two explicit benchmark bounds into a same-class all-regime characterization whose only unresolved multiplicative loss is at most \(\log(ed)\). \textit{Gap.} The remaining logarithmic factor is not resolved by the existing lower families or the empirical estimator. \textit{Consumer.} The result gives a uniform quantitative approximation to the minimax risk before the exact sparse and transitional frontier is known.
+
+\begin{proposition}[prop:lower-benchmark-phase-diagram]\label{prop:lower-benchmark-phase-diagram}
+For every \(n>1\) and \(d\geq2\), the lower benchmark has the phase diagram
+\[
+L_{n,d}=
+\begin{cases}
+ d/n,
+   & d\leq n^{1/3},\\
+ n^{-2/3},
+   & n^{1/3}<d\leq n^{1/3}\log(ed),\\
+ d/[n\log(ed)],
+   & n^{1/3}\log(ed)<d<n\log(ed),\\
+ 1,
+   & d\geq n\log(ed).
+\end{cases}
+\]
+At every shared boundary the adjacent formulas agree, so the displayed allocation of equality is immaterial.  The first branch condition \(d\leq n^{1/3}\) is equivalent to \(n\geq d^3\); on that branch \(\mathrm{thm:dense\mbox{-}frontier}\) gives \(c_\epsilon L_{n,d}\leq R_{n,d,\epsilon}\leq C_\epsilon L_{n,d}\).
+\end{proposition}
+\begin{proof}
+Fix \(n>1\) and \(d\geq2\), and abbreviate \(\ell=\log(ed)\).  Then \(\ell>1\).  By \(\mathrm{def:benchmarks}\),
+\[
+ L_{n,d}=\max\{A,B\},\qquad
+ A=\min\!\left\{1,\frac{d}{n\ell}\right\},\qquad
+ B=\min\!\left\{\frac dn,n^{-2/3}\right\}.
+\]
+We evaluate this maximum in four exhaustive regimes.
+
+If \(d\leq n^{1/3}\), then \(d/n\leq n^{-2/3}\), so \(B=d/n\).  Also \(\ell>1\) implies \(d/(n\ell)<d/n\leq1\), whence \(A=d/(n\ell)\leq B\).  Thus \(L_{n,d}=d/n\).
+
+If \(n^{1/3}<d\leq n^{1/3}\ell\), then \(d/n>n^{-2/3}\), so \(B=n^{-2/3}\).  Moreover
+\[
+ \frac{d}{n\ell}\leq\frac{n^{1/3}\ell}{n\ell}=n^{-2/3}<1,
+\]
+where the last strict inequality uses \(n>1\).  Hence \(A=d/(n\ell)\leq B\), and \(L_{n,d}=n^{-2/3}\).
+
+If \(n^{1/3}\ell<d<n\ell\), then \(d>n^{1/3}\), so \(B=n^{-2/3}\), while the upper inequality gives \(d/(n\ell)<1\), so \(A=d/(n\ell)\).  The lower inequality gives
+\[
+ A=\frac{d}{n\ell}>\frac{n^{1/3}\ell}{n\ell}=n^{-2/3}=B.
+\]
+Consequently \(L_{n,d}=d/[n\log(ed)]\).
+
+Finally, if \(d\geq n\ell\), then \(d/(n\ell)\geq1\), so \(A=1\).  Since \(B\leq1\), it follows that \(L_{n,d}=1\).  These regimes are exhaustive because \(\ell>1\) and \(n>1\) imply
+\[
+ n^{1/3}<n^{1/3}\ell<n\ell.
+\]
+At \(d=n^{1/3}\), one has \(d/n=n^{-2/3}\); at \(d=n^{1/3}\ell\), one has \(d/(n\ell)=n^{-2/3}\); and at \(d=n\ell\), one has \(d/(n\ell)=1\).  Thus adjacent formulas coincide at all shared boundaries.
+
+Because \(n,d>0\), cubing preserves order, and \(d\leq n^{1/3}\) is equivalent to \(d^3\leq n\).  On this first branch, \(L_{n,d}=d/n\) by the calculation above, while \(\mathrm{thm:dense\mbox{-}frontier}\) gives
+\[
+ c_\epsilon\frac dn\leq R_{n,d,\epsilon}\leq C_\epsilon\frac dn.
+\]
+Substitution of \(L_{n,d}=d/n\) proves the final assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit branches expose every candidate elbow left for a sharp converse or improved estimator to confirm or remove. \textit{Gap.} Only the first branch is currently known to equal the minimax rate up to overlap-only constants. \textit{Consumer.} The phase diagram separates the proved dense frontier from the unresolved transitional and sparse regimes.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact frontier is not proved outside the dense branch: the current lower and upper bounds differ by at most \(\log(ed)\), and it is unknown which of the displayed \(n^{1/3}\), \(n^{1/3}\log(ed)\), and \(n\log(ed)\) elbows persist in the minimax rate.  The grouped reconstruction node is only a candidate blueprint.  It still requires an explicit split, shells, degree, grid, factorial statistic, exact covariance bound, feasibility tolerance, fallback, uniform Lipschitz-indexed risk proof, and matching same-class converse.  The early checks must retain unknown unequal weights, null cells, ties, and propensities at both overlap boundaries; a scalar-rate certificate contradicted by the separated-atom \(d/n\) floor must be rejected.
+
+\section{Honest scope}
+
+The target is the population law of conditional mean effects, not the law of individual potential-outcome differences, and Wasserstein recovery alone cannot certify an atom at zero.  What is proved is a same-class all-regime characterization within a factor of at most \(\log(ed)\), the exact \(d/n\) frontier for \(n\ge d^3\), the total empirical estimator's uniform risk bound, the stated one-sided consistency implications, and the exact bounded-category parametric-risk boundary.  The exact sparse and transitional rate, the exact consistency region, the genuineness of the candidate phase elbows, and any rate guarantee for the grouped blueprint remain open.
+
+\begin{thebibliography}{99}
+
+  \bibitem{HernanRobins2020} Miguel A. Hernán and James M. Robins (2020), \emph{Causal Inference: What If}, Chapman and Hall/CRC.
+
+  \bibitem{vanDerVaart1998} Aad W. van der Vaart (1998), \emph{Asymptotic Statistics}, Cambridge University Press.
+
+  \bibitem{ZengBalakrishnanHanKennedy2024} Zhenghao Zeng, Sivaraman Balakrishnan, Yanjun Han, and Edward H. Kennedy (2024, revised 2026), ``Causal Inference with High-Dimensional Discrete Covariates,'' arXiv:2405.00118.
+
+  \bibitem{VinayakKongKakade2019Change} Ramya Korlakai Vinayak, Weihao Kong, and Sham M. Kakade (2019), ``Optimal Estimation of Change in a Population of Parameters,'' arXiv:1911.12568.
+
+  \bibitem{VinayakKongValiantKakade2019} Ramya Korlakai Vinayak, Weihao Kong, Gregory Valiant, and Sham M. Kakade (2019), ``Maximum Likelihood Estimation for Learning Populations of Parameters,'' \emph{Proceedings of Machine Learning Research} 97, 6448--6457.
+
+  \bibitem{TianKongValiant2017} Kevin Tian, Weihao Kong, and Gregory Valiant (2017), ``Learning Populations of Parameters,'' \emph{Advances in Neural Information Processing Systems} 30.
+
+  \bibitem{HanJiaoWeissman2018} Yanjun Han, Jiantao Jiao, and Tsachy Weissman (2018), ``Local Moment Matching: A Unified Methodology for Symmetric Functional Estimation and Distribution Estimation under Wasserstein Distance,'' \emph{Proceedings of Machine Learning Research} 75.
+
+  \bibitem{LeeBacakKennedy2025} JungHo Lee, Valerio Baćak, and Edward H. Kennedy (2025, revised 2026), ``Learning Smooth Populations of Parameters with Trial Heterogeneity,'' arXiv:2507.23140.
+
+  \bibitem{KennedyBalakrishnanRobinsWasserman2024} Edward H. Kennedy, Sivaraman Balakrishnan, James M. Robins, and Larry Wasserman (2024), ``Minimax Rates for Heterogeneous Causal Effect Estimation,'' \emph{The Annals of Statistics} 52, 793--816.
+
+  \bibitem{ChernozhukovFernandezValLuo2018} Victor Chernozhukov, Iván Fernández-Val, and Ye Luo (2018), ``The Sorted Effects Method: Discovering Heterogeneous Effects Beyond Their Averages,'' \emph{Econometrica} 86, 1911--1938.
+
+  \bibitem{BasuBrillYekutieli2026} Pallavi Basu, Barak Brill, and Daniel Yekutieli (2026), ``Exact Confidence Intervals for the Mixing Distribution from Binomial Mixture Distribution Samples,'' \emph{Journal of Computational and Graphical Statistics}.
+
+  \bibitem{ZengKennedyBodnarNaimi2023} Zhenghao Zeng, Edward H. Kennedy, Lisa M. Bodnar, and Ashley I. Naimi (2023, revised 2024), ``Efficient Generalization and Transportation,'' arXiv:2302.00092.
+
+  \bibitem{MizuguchiSawamura2023} Taisuke Mizuguchi and Shigehito Sawamura (2023), ``Machine Learning-Based Causal Models for Predicting the Response of Individual Patients to Dexamethasone Treatment as Prophylactic Antiemetic,'' \emph{Scientific Reports} 13, 7549.
+
+  \bibitem{XueWang2023} Xiangjie Xue and Yong Wang (2023), ``Estimating the Proportion of True Null Hypotheses from a Discrete Mixture Distribution,'' \emph{Australian and New Zealand Journal of Statistics} 65.
+
+\end{thebibliography}
+
+\end{document}

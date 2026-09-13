@@ -1,0 +1,192 @@
+%%% FIELD target-proof
+First, randomization and privacy cannot improve the nonprivate minimax risk.  Fix an \(\epsilon_n\)-differentially private mechanism with output \(T\in[-2,2]\), and define the deterministic measurable map
+\[
+ \overline T(D)=\mathbb E[T\mid D].
+\]
+For every \(P\in\mathcal M_H\), conditional Jensen's inequality gives, dataset by dataset,
+\[
+ \bigl|\overline T(D)-\tau_P(x_0)\bigr|
+ \le \mathbb E\!\left[\left.|T-\tau_P(x_0)|\,\right|D\right].                 \tag{16}
+\]
+Taking expectation under \(P^{\otimes n}\), then the supremum over \(P\in\mathcal M_H\), and finally the infimum over private mechanisms proves
+\[
+ R_n^{\mathrm{DP}}\ge R_n^{\mathrm{NP}}.                                      \tag{17}
+\]
+
+We next derive the private testing inequality used for both privacy branches.  Write \(M_D\) for the output law conditional on dataset \(D\), and, for an input law \(Q\), write \(MQ=\int M_D\,Q(dD)\) for the induced output law.  If \(D\sim_1D'\), pure differential privacy in both adjacency directions implies, for every measurable event \(E\),
+\[
+ M_D(E)-M_{D'}(E)\le (e^{\epsilon_n}-1)M_{D'}(E)\le e^{\epsilon_n}-1.
+\]
+The same inequality with \(D,D'\) interchanged and the variational characterization of total variation therefore yield
+\[
+ \operatorname{TV}(M_D,M_{D'})\le e^{\epsilon_n}-1\le2\epsilon_n,             \tag{18}
+\]
+where the last inequality uses \(\epsilon_n\le1\) from \(\text{ass:privacy-range}\).  Join arbitrary datasets by a shortest replacement path.  The triangle inequality and (18) give
+\[
+ \operatorname{TV}(M_D,M_{D'})\le2\epsilon_n d_{\mathrm H}(D,D').
+\]
+Consequently, for any input laws \(Q_+,Q_-\), any coupling \(\Gamma\) of them, and any output event \(E\),
+\[
+\begin{aligned}
+ \left|(MQ_+)(E)-(MQ_-)(E)\right|
+ &=\left|\int\{M_D(E)-M_{D'}(E)\}\,d\Gamma(D,D')\right|\\
+ &\le2\epsilon_n\int d_{\mathrm H}(D,D')\,d\Gamma(D,D').
+\end{aligned}
+\]
+Taking the supremum over \(E\) gives
+\[
+ \operatorname{TV}(MQ_+,MQ_-)
+ \le2\epsilon_n\mathbb E_\Gamma d_{\mathrm H}(D,D').                         \tag{19}
+\]
+Suppose now that every law in the support of \(Q_s\) has target value \(\vartheta_s\), with \(\delta_0=|\vartheta_+-\vartheta_-|\), and define its Bayes absolute risk by \(\mathcal R_s(M)=\mathbb E_{Q_s,M}|T-\vartheta_s|\).  Classify an output according to the nearer of \(\vartheta_+\) and \(\vartheta_-\), resolving ties deterministically, and let \(E\) be the event that the classifier selects \(+\).  A classification error under sign \(s\) implies \(|T-\vartheta_s|\ge\delta_0/2\), while
+\[
+ (MQ_+)(E^c)+(MQ_-)(E)
+ =1-\{(MQ_+)(E)-(MQ_-)(E)\}
+ \ge1-\operatorname{TV}(MQ_+,MQ_-).
+\]
+Hence
+\[
+ \mathcal R_+(M)+\mathcal R_-(M)
+ \ge \frac{\delta_0}{2}
+       \{1-\operatorname{TV}(MQ_+,MQ_-)\}.                                  \tag{20}
+\]
+
+For the direct localization branch, fix a nonnegative \(C^\infty\) function \(g_0\), supported in \([-1/2,1/2]^d\), bounded by one, and satisfying \(g_0(0)=1\), and put \(g_h(x)=g_0((x-x_0)/h)\).  By \(\text{ass:interior-point}\), its support lies in \([0,1]^d\) whenever \(h\le1/4\).  For \(s\in\{-1,1\}\), construct a causal law by taking \(X\) uniform and, conditionally on \(X\), drawing \(A\), \(Y_0\), and \(Y_1\) independently with \(A\sim\operatorname{Bernoulli}(1/2)\) and
+\[
+ Y_0\mid X\sim\operatorname{Bernoulli}(1/2),
+ \qquad
+ Y_1\mid X\sim\operatorname{Bernoulli}(1/2+s\Delta g_h(X)),
+\]
+followed by \(Y=AY_1+(1-A)Y_0\).  For \(\Delta\le1/4\), the observed outcome is in \(\{0,1\}\subset[-1,1]\), overlap holds because \(e_0\le1/4\), and consistency and conditional exchangeability hold by construction.  The propensity and control regression are constant, while
+\[
+ \tau_s(x)=s\Delta g_h(x).
+\]
+Scale differentiation gives \(\|\Delta g_h\|_{\mathcal H^\gamma}\le C\Delta h^{-\gamma}\).  Thus, after choosing a class-dependent constant small enough, \(\Delta\le c h^\gamma\) implies that both laws belong to \(\mathcal M_H\); all other defining restrictions are the frozen assumptions in \(\text{def:holder-class}\).  Their targets are separated by \(2\Delta\).
+
+Denote these laws by \(P_+\) and \(P_-\), and set \(Q_s=P_s^{\otimes n}\).  Couple the two one-record laws by using the same \(X\), \(A\), and a common uniform random variable to generate the relevant Bernoulli outcome.  Conditional on \(X=x\), disagreement can occur only when \(A=1\), and its probability is \(\Delta g_h(x)\).  Uniform design and the support of \(g_h\) therefore give
+\[
+ \mathbb P(O_+\ne O_-)
+ =\Delta\int_{[0,1]^d}g_h(x)\,dx
+ \le C\Delta h^d.                                                               \tag{21}
+\]
+Applying this coupling independently to the \(n\) records gives expected Hamming distance at most \(Cn\Delta h^d\).  Since \(n\epsilon_n\ge1\), the truncation in \(r_G\) is inactive.  Choose
+\[
+ \Delta=c_G r_G,
+ \qquad h=c_h\Delta^{1/\gamma},                                                  \tag{22}
+\]
+with fixed constants satisfying the support and Hölder-radius restrictions above.  Equations (19)--(22) yield
+\[
+ \operatorname{TV}(MQ_+,MQ_-)
+ \le Cn\epsilon_n\Delta^{1+d/\gamma}\le\tfrac12
+\]
+after decreasing \(c_G\), because \(n\epsilon_n r_G^{1+d/\gamma}=1\).  Equation (20), followed by the fact that a Bayes risk is at most the worst-case risk over its support, proves
+\[
+ R_n^{\mathrm{DP}}\ge c r_G.                                                     \tag{23}
+\]
+
+It remains to obtain the fuzzy branch.  If \(r_F\le C_0r_G\) for a fixed constant \(C_0\), (23) already implies \(R_n^{\mathrm{DP}}\ge c r_F\).  Otherwise put
+\[
+ \Delta=c_Fr_F,\qquad
+ h=c_h\Delta^{1/\gamma},\qquad
+ \ell=c_\ell\Delta^{1/q},\qquad
+ a=c_a\ell^\alpha,\qquad b=c_b\ell^\beta.                  \tag{24}
+\]
+Because \(q=\alpha+\beta\), (24) gives \(ab\asymp\Delta\).  The fixed constants can be chosen so that \(ab\le c h^\gamma\).  The result \(\text{lem:fuzzy-membership-singletons}\) then shows that every component law \(P_{s,\lambda}\) belongs to \(\mathcal M_H\), with target independent of \(\lambda\).  Since \(n^2\epsilon_n\ge1\), the truncation in \(r_F\) is also inactive, and
+\[
+ n^2\epsilon_n r_F^{\,1+d/\gamma+d/q}=1.                                        \tag{25}
+\]
+Moreover, \(r_F>C_0r_G\), with \(C_0\) chosen large enough to absorb fixed scale constants, implies
+\[
+ n\epsilon_n r_F^{\,1+d/\gamma}\ge c,
+ \qquad
+ n r_F^{d/q}=\{n\epsilon_n r_F^{\,1+d/\gamma}\}^{-1}\le C.                  \tag{26}
+\]
+After decreasing \(c_\ell\), (26) gives \(n\ell^d\le c_0\), so \(\text{lem:component-hamming-transport}\) applies.  Combining that lemma with (19) yields
+\[
+ \begin{aligned}
+ \operatorname{TV}(M\Pi_+^n,M\Pi_-^n)
+ &\le C\epsilon_nabn^2h^d\ell^d\\
+ &\le Cn^2\epsilon_n\Delta^{\,1+d/\gamma+d/q}
+ \le\tfrac12,                                                                  \tag{27}
+ \end{aligned}
+\]
+where the last inequality follows from (25) after decreasing \(c_F\).  Since \(K(x_0)=1\), the definition of the fuzzy family gives the exact separation
+\[
+ \left|\tau_+(x_0)-\tau_-(x_0)\right|
+ =\frac{2ab}{1/4-a^2}\asymp ab\asymp\Delta.                                  \tag{28}
+\]
+The denominator in (28) is positive because the fixed propensity amplitude was chosen smaller than \(1/2\), as required by the membership lemma.  Applying (20) to the shared-prior mixtures in (27), and then bounding each Bayes risk by the worst-case risk over its component laws, proves
+\[
+ R_n^{\mathrm{DP}}\ge c r_F.                                                     \tag{29}
+\]
+Together, (17), (23), and (29) imply, after taking the smallest of their fixed constants,
+\[
+ R_n^{\mathrm{DP}}
+ \ge c\max\{R_n^{\mathrm{NP}},r_G,r_F\}
+ =c\max\{R_n^{\mathrm{NP}},\rho_n^{\mathrm{priv}}\},
+\]
+where the final equality is \(\text{def:rates}\).
+
+%%% FIELD bounded-density-class-construction
+Let \(dx\) denote Lebesgue measure on \([0,1]^d\).  Define \(\mathcal M_{\mathrm{bd}}\) to be the class of laws \(P\) such that \((P,Y_0,Y_1,A,X)\) induces records in \(\mathcal O\), satisfies \(\text{ass:consistency}\), \(\text{ass:exchangeability}\), \(\text{ass:overlap}\), \(\text{ass:propensity-holder}\), \(\text{ass:arm-holder}\), \(\text{ass:effect-holder}\), and \(\text{ass:low-nuisance}\), and has \(P_X\ll dx\) with
+\[
+ L^{-1}\le \frac{dP_X}{dx}(x)\le L
+ \quad\text{for Lebesgue-almost every }x\in[0,1]^d.
+\]
+
+%%% FIELD bounded-density-risks-construction
+For the bounded-density class, define
+\[
+ R_{n,\mathrm{bd}}^{\mathrm{NP}}
+ =\inf_{T_{\mathrm{NP}}}\sup_{P\in\mathcal M_{\mathrm{bd}}}
+   \mathbb E_{P^{\otimes n}}\left|T_{\mathrm{NP}}(D_n)-\tau_P(x_0)\right|
+\]
+and
+\[
+ R_{n,\mathrm{bd}}^{\mathrm{DP}}
+ =\inf_{M_{\varepsilon_n}:\,\varepsilon_n\text{-DP}}
+   \sup_{P\in\mathcal M_{\mathrm{bd}}}
+   \mathbb E_{P^{\otimes n},M_{\varepsilon_n}}
+   \left|T_{\mathrm{DP}}-\tau_P(x_0)\right|,
+\]
+where privacy is pure central privacy on the same operational record space \(\mathcal O^n\) under replacement adjacency \(\sim_1\).
+
+%%% FIELD bounded-density-corollary-statement
+Every law in \(\mathcal M_H\) has covariate density equal to one, and hence \(\mathcal M_H\subseteq\mathcal M_{\mathrm{bd}}\) because \(L^{-1}\le1\le L\).  On \(\mathcal M_{\mathrm{bd}}\), for \(n^{-1}\le\epsilon_n\le1\),
+\[
+ R_{n,\mathrm{bd}}^{\mathrm{DP}}
+ \ge c\max\{R_{n,\mathrm{bd}}^{\mathrm{NP}},r_G,r_F\}
+ =c\max\{R_{n,\mathrm{bd}}^{\mathrm{NP}},\rho_n^{\mathrm{priv}}\}.
+\]
+This is a lower-bound transfer only; it asserts neither validity of the exact-uniform estimator nor a matched phase diagram on \(\mathcal M_{\mathrm{bd}}\).
+
+%%% FIELD bounded-density-corollary-proof
+If \(P\in\mathcal M_H\), then \(\text{ass:uniform-design}\) gives \(dP_X/dx=1\) almost everywhere.  Since the declared class constant satisfies \(L\ge2\), one has \(L^{-1}\le1\le L\).  Every other member condition in \(\text{def:bounded-density-class}\) is also a member condition of \(\text{def:holder-class}\).  Thus
+\[
+ \mathcal M_H\subseteq\mathcal M_{\mathrm{bd}}.                                \tag{30}
+\]
+
+We use only the two comparisons stated in the corollary.  First, for any private randomized output \(T\), let \(\overline T(D)=\mathbb E[T\mid D]\).  Conditional Jensen's inequality, now for every \(P\in\mathcal M_{\mathrm{bd}}\), gives
+\[
+ \mathbb E_{P^{\otimes n}}\left|\overline T(D_n)-\tau_P(x_0)\right|
+ \le
+ \mathbb E_{P^{\otimes n},M_{\varepsilon_n}}
+ \left|T-\tau_P(x_0)\right|.
+\]
+After taking the supremum over \(\mathcal M_{\mathrm{bd}}\) and the infimum over private mechanisms,
+\[
+ R_{n,\mathrm{bd}}^{\mathrm{DP}}
+ \ge R_{n,\mathrm{bd}}^{\mathrm{NP}}.                                           \tag{31}
+\]
+Second, the private mechanisms in the two minimax problems range over the same set of kernels on \(\mathcal O^n\).  Therefore minimax monotonicity and (30) imply
+\[
+ R_{n,\mathrm{bd}}^{\mathrm{DP}}
+ \ge R_n^{\mathrm{DP}}
+ \ge c_{\mathrm{lb}}\max\{r_G,r_F\},                                           \tag{32}
+\]
+where the last inequality is the privacy part of \(\text{thm:private-lower-envelope}\).  If \(x=R_{n,\mathrm{bd}}^{\mathrm{NP}}\) and \(y=\max\{r_G,r_F\}\), (31)--(32) give
+\[
+ R_{n,\mathrm{bd}}^{\mathrm{DP}}
+ \ge \min\{1,c_{\mathrm{lb}}\}\max\{x,y\}.
+\]
+Renaming the positive fixed constant and using \(\rho_n^{\mathrm{priv}}=\max\{r_G,r_F\}\) from \(\text{def:rates}\) proves the claim.  No upper bound or exact-uniform construction is used.

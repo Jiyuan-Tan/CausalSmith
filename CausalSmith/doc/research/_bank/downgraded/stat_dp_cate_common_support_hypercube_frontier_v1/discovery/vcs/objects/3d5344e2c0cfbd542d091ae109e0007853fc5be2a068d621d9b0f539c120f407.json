@@ -1,0 +1,65 @@
+{
+  "node_type": "meta",
+  "body": {
+    "qid": "stat_dp_cate_common_support_hypercube_frontier",
+    "specialization": "v1",
+    "cluster": "stat",
+    "target_estimand": "\\(\\tau_Q^{\\mathrm c}(x_0)=\\mathbb E_Q[Y(1)-Y(0)\\mid X=x_0]\\)",
+    "estimand_functional": "\\(\\bar\\tau_{\\mathrm{DP}}(x_0;h,k)=\\operatorname{clip}_{[-1,1]}\\{\\widehat\\tau_{\\mathrm{DP}}(x_0;h,k)\\}\\), and \\(C_n(h,k)=[\\bar\\tau_{\\mathrm{DP}}(x_0;h,k)\\pm\\{B(h,k)+S(h,k,\\eta)+G(h,k,\\eta,\\epsilon_n,\\delta_n)\\}]\\cap[-1,1]\\).",
+    "sampling_model": {
+      "design": "Independent observations from \\(P_Q\\), with a deterministic three-way sample split and known uniform covariate design on \\(\\mathcal P_{\\mathrm{att}}\\).",
+      "units": "\\(D_n=(O_1,\\ldots,O_n)\\), where \\(O_i=(X_i,A_i,Y_i)\\).",
+      "treatment": "Binary observational treatment with conditional ignorability and \\(\\kappa\\le\\pi_Q(x)\\le1-\\kappa\\).",
+      "overlap": "Uniform overlap is fixed over \\(\\mathcal X\\); the full class also has a positive density band around \\(x_0\\).",
+      "nuisance_estimation": "Private tensor-spline sufficient-statistic releases for \\(\\pi_Q\\) and \\(\\mu_{0,Q}\\), followed by Hölder-ball projection; a separate block supplies the privatized linear and quadratic local moments.",
+      "privacy": "Replacement \\((\\epsilon_n,\\delta_n)\\)-differential privacy under parallel composition across disjoint blocks, a single joint Gaussian release within each block, and post-processing for stabilization and interval formation."
+    },
+    "comparator_promise_table": [
+      {
+        "comparator_bibkey": "KennedyBalakrishnanRobinsWasserman2024",
+        "comparator_claim": "The higher-order local-polynomial learner attains the privacy-free pointwise CATE minimax rate under its regularity conditions.",
+        "matched_by": "Proposition 2",
+        "match_kind": "equivalence"
+      },
+      {
+        "comparator_bibkey": "ArmstrongKolesar2020",
+        "comparator_claim": "Worst-case bias-aware local-polynomial confidence intervals are honest and shrink at the optimal nonparametric rate.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "LeeOkuiWhang2017",
+        "comparator_claim": "A doubly robust uniform confidence band is constructed for a lower-dimensional CATE function under nonprivate sampling.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "SchroederMelnychukFeuerriegel2025",
+        "comparator_claim": "DP-CATE preserves Neyman orthogonality asymptotically and gives quasi-oracle conditions for private two-stage CATE learners.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "SchroederHartensteinFeuerriegel2025",
+        "comparator_claim": "Theorem 4.6 constructs a valid private interval for the population ATE from private point and variance estimates.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "ShohamEtAl2026",
+        "comparator_claim": "A black-box resampling framework converts a private estimator into an asymptotically valid and tight nonparametric confidence interval.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      }
+    ],
+    "tldr": "The raw private higher-order estimator retains its uniform finite-sample remainder bound because clipping occurs only after estimation.  Clipping the released center to \\([-1,1]\\) cannot increase its error from the bounded causal CATE and makes the reported higher-order set a nonempty random interval on every transcript.  On the uniform-design attainable class \\(\\mathcal P_{\\mathrm{att}}\\), this interval achieves \\(1\\wedge r_{\\mathrm{up}}\\), while the fixed-dimensional direct-regression interval proved on \\(\\mathcal P_{\\mathrm{full}}\\) remains valid after restriction.  A public selector gives the attainable upper \\(C\\min\\{1\\wedge r_{\\mathrm{up}},1\\wedge[n^{-\\beta/(2\\beta+d)}\\vee N_{\\mathrm{priv}}^{-\\beta/(\\beta+d)}]\\}\\); the uniform-design witness from the ordinary lower bound belongs to the attainable class and gives the stated two-sided nonsharp bracket.  On the unchanged full class, only the ordinary \\(\\gamma\\)-smooth lower and \\(\\beta\\)-smooth direct-regression upper are certified, and the sharp private frontier remains the sole open statement.",
+    "project_justification": {
+      "gap": "Private CATE papers provide point releases or quasi-oracle guarantees, and private causal interval papers treat regular average effects. They do not give a uniform pointwise Hölder CATE coverage theorem that accounts simultaneously for higher-order nuisance bias, sampling uncertainty, privacy composition, and privacy noise.",
+      "niche": "A bias-aware fixed-length construction on a fixed KBRW-attainable positive-density submodel permits honest nonregular causal inference without assuming the desired coverage or length and without relying on the rejected paired-microcell lower bound.",
+      "fill": "The project privatizes every pilot and localized moment in the attainable higher-order construction and proves a raw-estimator remainder bound uniformly over every finite higher-order basis dimension.  The downstream center is clipped before interval formation; projection onto \\([-1,1]\\) preserves the remainder event for the bounded causal target and guarantees a nonempty reported interval on every transcript.  The resulting interval has uniform finite-sample coverage and phase-sensitive mean interval length at most \\(C(1\\wedge r_{\\mathrm{up}})\\) on \\(\\mathcal P_{\\mathrm{att}}\\).  A fixed-dimensional direct-regression interval on \\(\\mathcal P_{\\mathrm{full}}\\) also restricts to the attainable class.  Selecting publicly between the two constructions and transferring the ordinary uniform-design lower witness gives, under \\(L_\\pi\\ge\\kappa\\), \\(\\delta_n\\le c_0/n\\), and sufficiently large \\(n\\), the attainable bracket with lower endpoint \\(c[n^{-\\gamma/(2\\gamma+d)}\\vee\\{1\\wedge(n\\epsilon_n)^{-\\gamma/(\\gamma+d)}\\}]\\) and upper endpoint \\(C\\min\\{1\\wedge r_{\\mathrm{up}},1\\wedge[n^{-\\beta/(2\\beta+d)}\\vee N_{\\mathrm{priv}}^{-\\beta/(\\beta+d)}]\\}\\).  The higher-order upper is not transferred to the unchanged full class, whose exact frontier remains unresolved."
+    },
+    "related_work": "Kennedy, Balakrishnan, Robins, and Wasserman (2024) establish the privacy-free pointwise CATE rate and motivate the higher-order local-polynomial architecture.  Their upper theorem uses its stated design-density and population-Gram conditions; here the higher-order identities and raw-estimator remainder are certified for the uniform-design attainable construction, including arbitrary finite basis rank, and downstream clipping changes neither calculation nor sensitivity.  KBRW's density-hole fuzzy lower is not asserted to transfer to the present full class with a positive anchor density band.  On \\(\\mathcal P_{\\mathrm{att}}\\), the paper instead combines its nonempty private higher-order interval with the restricted fixed-dimensional direct-regression interval and proves an ordinary two-law lower using uniform-design attainable witnesses.  The resulting bracket is nonsharp but the selector can strictly improve the higher-order upper.  The separate full-class result remains the ordinary \\(\\gamma\\)-smooth lower versus the \\(\\beta\\)-smooth direct-regression upper.  Robins, Li, Tchetgen Tchetgen, and van der Vaart (2008) supply the higher-order influence-function perspective behind the attainable quadratic correction.  Armstrong and Kolesár (2020) motivate honest fixed-length intervals that expose worst-case smoothing bias.  Lee, Okui, and Whang (2017) provide nonprivate doubly robust CATE bands in a lower-dimensional heterogeneity problem.  Schröder, Melnychuk, and Feuerriegel (2025) study private orthogonal CATE learning but do not derive this pointwise Hölder coverage and length phase; Schröder, Hartenstein, and Feuerriegel (2025) treat private intervals for the regular population ATE.  Shoham, Shenfeld, Velner-Harris, and Ligett (2026) give an asymptotic resampling conversion for private estimators, whereas the present intervals use explicit uniform finite-sample bias control.  Dwork and Roth (2014) provide the Gaussian mechanism and post-processing fact used by both private constructions.",
+    "technical_internal_limitation": "The higher-order privacy term comes from the global sensitivity \\(m^{-1}(h^{-d}+kh^{-2d})\\) of the clipped quadratic-moment release and is proved only as an attainable-submodel upper cost.  Center clipping is downstream and does not reduce this sensitivity or alter the raw-estimator remainder.  The separate full-class direct-regression release has sensitivity \\(O((nh^d)^{-1})\\) but incurs armwise bias \\(O(h^\\beta)\\), so it does not determine whether the smoother \\(\\gamma\\)-contrast, the nuisance interaction \\(q\\), or a stabilized private Gram controls the sharp frontier.  The invalid paired-microcell transport step is not revived.",
+    "honest_scope": "Settled results are replacement privacy and uniform finite-sample coverage of the explicit clipped-center higher-order interval on \\(\\mathcal P_{\\mathrm{att}}\\), including the unchanged raw-estimator remainder, nonemptiness on every transcript, unrestricted finite basis rank, and achieved length upper \\(1\\wedge r_{\\mathrm{up}}\\).  The attainable-class nonsharp minimax bracket takes the better of that interval and the restricted direct-regression interval; its lower witness has uniform design and satisfies every attainable assumption.  The attainable higher-order upper is not transferred to \\(\\mathcal P_{\\mathrm{full}}\\).  On the full class, the ordinary lower and fixed-dimensional direct-regression upper give \\(c[n^{-\\gamma/(2\\gamma+d)}\\vee\\{1\\wedge(n\\epsilon_n)^{-\\gamma/(\\gamma+d)}\\}]\\le\\mathcal L_n^*(\\mathcal P_{\\mathrm{full}})\\le C[1\\wedge\\{n^{-\\beta/(2\\beta+d)}\\vee N_{\\mathrm{priv}}^{-\\beta/(\\beta+d)}\\}]\\) under \\(L_\\pi\\ge\\kappa\\), \\(\\delta_n\\le c_0/n\\), and sufficiently large \\(n\\).  Whether either bracket is tight, including whether a \\(q\\)-driven or private-Gram branch is unavoidable, remains unresolved.  After the present re-certification, \\(\\mathrm{oeq{:}sharp\\text{-}full\\text{-}class\\text{-}length\\text{-}frontier}\\) is the only open statement."
+  }
+}

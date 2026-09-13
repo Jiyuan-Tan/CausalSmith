@@ -1,0 +1,517 @@
+{
+  "units": [
+    {
+      "unit": "thm:adaptive-minimax-lower",
+      "targets": [
+        "lem:ipw-identification",
+        "prop:fixed-propensity-sanity",
+        "thm:ipw-rowwise-upper",
+        "thm:adaptive-minimax-lower",
+        "lem:blind-tangent-control",
+        "lem:blind-ratio-expansion",
+        "thm:blind-iff",
+        "prop:markov-witness",
+        "lem:multiplier-primitives",
+        "thm:simultaneous-bands",
+        "oeq:sharp-constant"
+      ],
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:ipw-identification",
+            "proof_tex": "Fix a cell \\((i,j)\\) and write \\(\\mathcal H=\\mathbb G_{o(i,j)-1}\\).  Consistency gives\n\\[\n A_{ij}Y_{ij}=A_{ij}Y_{ij}(1),\\qquad\n (1-A_{ij})Y_{ij}=(1-A_{ij})Y_{ij}(0).\n\\]\nSequential randomization and the tower property therefore give\n\\[\n\\begin{aligned}\n E_P\\!\\left[\\frac{A_{ij}Y_{ij}}{p_{ij}}\\middle|\\mathcal H\\right]\n &=E_P\\!\\left[\n \\frac{Y_{ij}(1)}{p_{ij}}\n E_P[A_{ij}\\mid\\mathcal H,Y_{ij}(0),Y_{ij}(1)]\n \\middle|\\mathcal H\\right]\n =\\mu^1_{ij},\\\\\n E_P\\!\\left[\\frac{(1-A_{ij})Y_{ij}}{1-p_{ij}}\\middle|\\mathcal H\\right]\n &=\\mu^0_{ij}.\n\\end{aligned}\n\\]\nThe divisions are valid because overlap gives \\(p_{ij},1-p_{ij}\\ge q>0\\).  Subtracting proves\n\\[\n E_P[Z^{\\mathrm{ipw}}_{ij}\\mid\\mathcal H]\n =\\mu^1_{ij}-\\mu^0_{ij}=M_{ij},\n \\qquad E_P[E_{ij}\\mid\\mathcal H]=0.\n\\]\nThus the row-major sequence is adapted and is a matrix martingale-difference array.  Since only one arm contributes to the score and the potential outcomes are bounded,\n\\[\n |Z^{\\mathrm{ipw}}_{ij}|\\le \\frac Bq,\n \\qquad |M_{ij}|\\le 2B,\n \\qquad |E_{ij}|\\le \\frac{3B}{q}.\n\\]\nMoreover,\n\\[\n\\begin{aligned}\n E_P[(Z^{\\mathrm{ipw}}_{ij})^2\\mid\\mathcal H]\n &=E_P\\!\\left[\\frac{Y_{ij}(1)^2}{p_{ij}}+\n \\frac{Y_{ij}(0)^2}{1-p_{ij}}\\middle|\\mathcal H\\right]\\\\\n &\\le B^2\\left(\\frac1{p_{ij}}+\\frac1{1-p_{ij}}\\right)\n \\le \\frac{2B^2}{q}.\n\\end{aligned}\n\\]\nBecause \\(M_{ij}\\) is the conditional mean of the score, conditional centering can only reduce the second moment, and hence\n\\[\n E_P[E_{ij}^2\\mid\\mathcal H]\n =\\operatorname{Var}_P(Z^{\\mathrm{ipw}}_{ij}\\mid\\mathcal H)\n \\le \\frac{2B^2}{q}.\n\\]\nThis proves every asserted identification, support, increment, and conditional-variance claim."
+          },
+          {
+            "id": "prop:fixed-propensity-sanity",
+            "proof_tex": "Under the displayed specialization,\n\\[\n b^0_{nm}=q^{-1/2}\\sqrt{n^{-1}+nm^{-2}}\\asymp n^{-1/2},\n\\]\nbecause \\(n/m\\to c_0\\in(0,\\infty)\\).  If \\(\\lambda_{nm}\\asymp B\\sqrt{n\\log n}\\), then\n\\[\n \\frac{B\\sqrt{nm}}{\\lambda_{nm}}\\sqrt{\\log(en)}\\,b^0_{nm}\n \\asymp 1,\n\\]\nand taking the minimum with one preserves two-sided constant bounds.  If instead \\(\\lambda_{nm}\\asymp B\\sqrt{nm}\\), the same expression is asymptotic, up to fixed constants, to \\(\\sqrt{\\log n/n}\\), which is below one eventually.  This proves the two rate calculations.\n\nFor the stochastic assertion, take \\(U=n^{-1/2}\\mathbf 1_n\\), \\(V=m^{-1/2}\\mathbf 1_m\\), and \\(M=\\lambda_{nm}UV^\\top\\).  Fix \\(d\\in(0,B/4]\\), put \\(Y_{ij}(0)=d\\), \\(Y_{ij}(1)=d+M_{ij}\\), and draw all assignments independently as \\(\\operatorname{Bernoulli}(q_0)\\).  When \\(\\lambda_{nm}\\asymp B\\sqrt{n\\log n}\\), bounded aspect ratio implies \\(\\max_{ij}|M_{ij}|=O(B\\sqrt{\\log n/n})\\), so the outcome bound holds for all sufficiently large \\(n\\).  Direct subtraction gives\n\\[\n E_{ij}=(A_{ij}-q_0)c_{nm},\\qquad\n c_{nm}=\\frac{d+M_{ij}}{q_0}+\\frac d{1-q_0},\n\\]\nwhere \\(c_{nm}\\) is bounded above and below by positive fixed multiples of \\(B\\).  Consequently\n\\[\n (EV)_i=\\frac{c_{nm}}{\\sqrt m}\\sum_{j=1}^m(A_{ij}-q_0).\n\\]\nThe rows are independent.  Hoeffding's inequality gives the upper bound\n\\(\\max_i|(EV)_i|=O_P(B\\sqrt{\\log n})\\).  For completeness, a matching lower bound follows directly from binomial coefficients: Stirling's bounds imply that for fixed \\(q_0\\in(0,1)\\) there are constants \\(c_1,c_2,c_3>0\\) such that, uniformly for \\(1\\le t\\le c_1\\sqrt m\\),\n\\[\n P\\!\\left(\\left|m^{-1/2}\\sum_{j=1}^m(A_{ij}-q_0)\\right|\\ge c_2t\\right)\n \\ge c_3e^{-t^2/c_3}.\n\\]\nIndeed, retain the single binomial mass at the nearest integer to \\(mq_0+t\\sqrt m\\), use the factorial form of that mass, apply the two-sided Stirling bounds, and use the second-order Taylor bound for the Bernoulli relative entropy on a fixed neighborhood of \\(q_0\\).  Taking \\(t=\\eta\\sqrt{\\log n}\\) with \\(\\eta>0\\) small makes the last probability at least \\(n^{-1/2}\\) for all large \\(n\\).  Independence across rows then yields\n\\[\n P\\!\\left\\{\\max_i|(EV)_i|\\ge cB\\sqrt{\\log n}\\right\\}\\longrightarrow1.\n\\]\nSince \\(\\sigma_1(M)=\\lambda_{nm}\\asymp B\\sqrt{n\\log n}\\), the required normalized maximum is \\(\\Theta_P(1)\\).\n\nFinally, constant propensity gives \\(\\bar p_i=q_0\\) and \\(Z^{\\bar p}=Z^{\\mathrm{ipw}}\\).  The definition of the residual therefore gives \\(Z^{\\mathrm B}=Z^{\\mathrm{ipw}}+D^{\\mathrm B}+R^{\\mathrm B}\\).  Substitution into the definition of \\(H^{\\mathrm B}\\) gives\n\\[\n H^{\\mathrm B}_{ij}=\\frac{\\mu^1_{ij}}{q_0}+\\frac{\\mu^0_{ij}}{1-q_0},\n\\]\nwhich proves the tangent formula.  The qualification in the statement is necessary because \\(D^{\\mathrm B}\\) can also vanish on a realized event where \\(\\widehat p_i=q_0\\)."
+          },
+          {
+            "id": "thm:ipw-rowwise-upper",
+            "proof_tex": "Let \\(N=nm\\) and expose the cells in row-major order.  Identification gives a scalar martingale difference at each exposed cell.  Apply self-adjoint dilation to the one-entry rectangular increment:\n\\[\n \\mathcal D_{ij}=\n \\begin{pmatrix}0&E_{ij}e_ie_j^\\top\\\\E_{ij}e_je_i^\\top&0\\end{pmatrix}.\n\\]\nThe identification lemma gives \\(\\lVert\\mathcal D_{ij}\\rVert\\le3B/q\\).  Its conditional square is block diagonal, and summing the conditional squares gives\n\\[\n \\left\\lVert\\sum_{i,j}E_P[\\mathcal D_{ij}^2\\mid\\mathbb G_{o(i,j)-1}]\\right\\rVert\n \\le \\frac{2B^2(n\\vee m)}q.\n\\]\nThe cited matrix Freedman inequality, applied to both signs of the dilation, therefore yields uniformly over the class\n\\[\n \\lVert E\\rVert=O_P(\\eta_{nm}),\\qquad\n \\eta_{nm}=B\\left\\{\n \\sqrt{\\frac{(n\\vee m)\\log(e(n+m))}{q}}+\n \\frac{\\log(e(n+m))}{q}\\right\\}.\n\\]\n\nIt remains to translate this operator bound without using any predictability of \\(U\\) or \\(V\\).  Put \\(P_U=UU^\\top\\), and let \\(\\widehat U,\\widehat V,\\widehat\\Sigma\\) be the leading singular triple of \\(M+E\\).  On \\(\\{\\lVert E\\rVert\\le\\lambda_{nm}/2\\}\\), Weyl's variational inequality follows directly from the min--max formula and gives\n\\(\\sigma_r(\\widehat\\Sigma)\\ge\\lambda_{nm}-\\lVert E\\rVert\\).  Since \\((I-P_U)M=0\\), the singular-vector equation gives\n\\[\n (I-P_U)\\widehat U\\widehat\\Sigma=(I-P_U)E\\widehat V,\n\\]\nand hence\n\\[\n \\lVert(I-P_U)\\widehat U\\rVert\n \\le\\frac{\\lVert E\\rVert}{\\lambda_{nm}-\\lVert E\\rVert}\n \\le\\frac{2\\lVert E\\rVert}{\\lambda_{nm}}.\n\\]\nThe polar factor of \\(U^\\top\\widehat U\\) then gives an \\(R\\in\\mathbb O_r\\) satisfying\n\\[\n \\lVert\\widehat UR-U\\rVert\n \\le\\sqrt2\\,\\lVert(I-P_U)\\widehat U\\rVert;\n\\]\nthis follows by diagonalizing the cosines of the principal angles and comparing \\(2(1-\\cos t)\\le2\\sin^2t\\).  Off the displayed event the left side is at most two.  Because a maximum row norm is bounded by the operator norm,\n\\[\n \\mathcal L(\\widehat U^{\\mathrm I},U)\n \\le C\\sqrt{\\frac n{\\mu r}}\n \\left(1\\wedge\\frac{\\lVert E\\rVert}{\\lambda_{nm}}\\right)\n =O_P(a^{\\mathrm{loose}}_{nm}).\n\\]\nThe rank projection does not change the leading \\(r\\) singular vectors of the score.  No loading family entered the argument.  The final non-improvability assertion follows from the explicit obstruction proposition, which has \\(b_{nn}\\to0\\) but nonvanishing normalized row loss."
+          },
+          {
+            "id": "thm:adaptive-minimax-lower",
+            "proof_tex": "We give the packing and its observed-data likelihood explicitly.  Because \\(r\\) is fixed, partition \\(I\\) into \\(r\\) blocks \\(I_s\\) and \\(J\\) into \\(r\\) blocks \\(J_s\\), with block sizes differing by at most one.  Write \\(N_s=|I_s|\\), \\(M_s=|J_s|\\), and let \\(v_s\\) be the unit vector that is constant on \\(J_s\\) and zero off that block.  For \\(s\\ge2\\), define \\(u_s\\) analogously on \\(I_s\\).  On \\(I_1\\), let \\(u_0=N_1^{-1/2}\\mathbf1_{I_1}\\), choose an anchor \\(k_0\\in I_1\\), and, for each \\(k\\in I_1\\setminus\\{k_0\\}\\), put\n\\[\n w_k=\\frac{e_k-e_{k_0}}{\\sqrt2},\\qquad\n u_k=\\frac{u_0+\\delta w_k}{\\sqrt{1+\\delta^2}},\n \\qquad\n \\delta=a\\frac{B}{\\lambda_{nm}}\\sqrt{\\frac{\\log(en)}q},\n\\]\nwhere \\(a>0\\) is a sufficiently small fixed constant.  The vectors \\(w_k\\) are unit vectors orthogonal to \\(u_0\\), so every \\(u_k\\) is unit.  Disjoint block support makes\n\\[\n U_k=(u_k,u_2,\\ldots,u_r),\\qquad V=(v_1,\\ldots,v_r)\n\\]\northonormal matrices.  Define\n\\[\n M_k=\\lambda_{nm}U_kV^\\top,\n\\]\nand also define \\(M_0\\) by replacing \\(u_k\\) with \\(u_0\\).\n\nWe next verify class membership rather than putting it into the construction.  For rows outside \\(I_1\\), the squared leverage is \\(N_s^{-1}=(1+o(1))r/n\\).  On \\(I_1\\),\n\\[\n \\lVert e_i^\\top U_k\\rVert_2\n \\le N_1^{-1/2}+\\delta/\\sqrt2.\n\\]\nBounded aspect ratio and the definition of \\(b_{nm}\\), on the event-free regime \\(b_{nm}\\le c_0<1\\), imply\n\\[\n \\delta\\sqrt n\\le C a b_{nm}.\n\\]\nBecause \\(\\mu>1\\), choose \\(c_0a\\) small enough that the last two displays are at most \\(\\sqrt{\\mu r/n}\\) for every sufficiently large \\(n\\).  The same block calculation gives \\(\\lVert V\\rVert_{2,\\infty}\\le\\sqrt{\\mu r/m}\\).  All \\(r\\) singular values of \\(M_k\\) equal \\(\\lambda_{nm}\\), so exact rank, the signal floor, and the condition-number bound hold.\n\nChoose \\(c_1\\) small depending on \\(r\\).  The block formula and \\(\\lambda_{nm}\\le c_1B\\sqrt{nm}\\) give, uniformly in \\(k\\),\n\\[\n \\max_{i,j}|(M_k)_{ij}|\n \\le C_rc_1B+C_r\\frac{\\lambda_{nm}\\delta}{\\sqrt m}\n \\le \\frac B2\n\\]\nfor all sufficiently large dimensions; the second term is \\(O(B\\sqrt{\\log n/m})\\).  Now set \\(p_{ij}=q\\), \\(Y_{ij}(0)=0\\), and independently over cells draw \\(Y_{ij}(1)\\in\\{-B,B\\}\\) with\n\\[\n P_k\\{Y_{ij}(1)=B\\}=\\frac12\\left(1+\\frac{(M_k)_{ij}}B\\right).\n\\]\nDraw all assignments independently of all potential outcomes as \\(\\operatorname{Bernoulli}(q)\\).  The preceding entry bound makes these probabilities lie in \\([1/4,3/4]\\).  Sequential randomization, overlap, and bounded outcomes hold, and independence of potential outcomes across cells gives \\(\\mu^1=M_k\\), \\(\\mu^0=0\\).  Thus every \\(P_k\\) is in the frozen model class.\n\nOnly treated observations carry parameter information.  If \\(x,y\\in[-B/2,B/2]\\), Taylor's theorem for Bernoulli relative entropy on \\([1/4,3/4]\\) gives\n\\[\n \\operatorname{kl}\\!\\left(\\frac{1+x/B}{2},\\frac{1+y/B}{2}\\right)\n \\le C\\frac{(x-y)^2}{B^2}.\n\\]\nConsequently the Kullback--Leibler divergence between the observed laws, which include the constant recorded propensity, satisfies\n\\[\n \\begin{aligned}\n \\operatorname{KL}(P_k^{\\mathcal O},P_0^{\\mathcal O})\n &\\le \\frac{Cq}{B^2}\\lVert M_k-M_0\\rVert_F^2\\\\\n &=\\frac{Cq\\lambda_{nm}^2}{B^2}\\lVert u_k-u_0\\rVert_2^2\n \\le Ca^2\\log(en).\n \\end{aligned}\n\\]\n\nThere are \\(D=N_1-1\\asymp n\\) alternatives.  If \\(k\\ne\\ell\\), inspect row \\(k\\).  In that row the only nonzero coordinate of both factor matrices is their first coordinate, and right multiplication by an orthogonal matrix preserves its row norm.  Therefore, for every \\(R\\in\\mathbb O_r\\),\n\\[\n \\lVert e_k^\\top(U_kR-U_\\ell)\\rVert_2\n \\ge\\left|\\lVert e_k^\\top U_k\\rVert_2-\n \\lVert e_k^\\top U_\\ell\\rVert_2\\right|\n =\\frac{\\delta}{\\sqrt{2(1+\\delta^2)}}.\n\\]\nIt follows that their normalized losses are separated by at least\n\\[\n s_{nm}=c\\sqrt{\\frac n{\\mu r}}\\,\\delta.\n\\]\n\nFor completeness, the multiple-testing step is derived rather than assumed.  Let \\(\\Theta\\) be uniform on the \\(D\\) alternatives and let \\(\\overline P=D^{-1}\\sum_kP_k^{\\mathcal O}\\).  The identity\n\\[\n \\frac1D\\sum_k\\operatorname{KL}(P_k^{\\mathcal O},\\overline P)\n =\\frac1D\\sum_k\\operatorname{KL}(P_k^{\\mathcal O},P_0^{\\mathcal O})\n -\\operatorname{KL}(\\overline P,P_0^{\\mathcal O})\n\\]\nshows that the mutual information is at most \\(Ca^2\\log(en)\\).  If \\(P_e\\) is the error probability of any decoder, conditioning entropy first on the error indicator gives\n\\[\n \\log D-I(\\Theta;\\mathcal O)\n =H(\\Theta\\mid\\mathcal O)\n \\le\\log2+P_e\\log D.\n\\]\nChoose \\(a\\) so that \\(Ca^2\\log(en)\\le\\tfrac18\\log D\\) eventually.  Then \\(P_e\\ge1/2\\).  Decoding an arbitrary estimator by its nearest packed subspace shows, by the triangle inequality for the orthogonal-quotient row metric, that\n\\[\n \\sup_kE_k[\\mathcal L(\\widetilde U,U_k)]\\ge c s_{nm}.\n\\]\nFinally, bounded aspect ratio and fixed \\(r,\\mu,K,q\\) give\n\\[\n \\sqrt{\\frac n{\\mu r}}\\,\\delta\n \\asymp \\frac{B\\sqrt{n\\log(en)/q}}{\\lambda_{nm}}\n \\asymp b_{nm},\n\\]\nbecause \\(b_{nm}<1\\) removes the truncation.  Taking the infimum over all \\(\\mathcal O_{n,m}\\)-measurable estimators proves the asserted lower bound on the constant-propensity subclass, hence on the full class."
+          },
+          {
+            "id": "lem:blind-tangent-control",
+            "proof_tex": "Overlap implies \\(\\bar p_i\\in[q,1-q]\\).  Projection onto \\([q/2,1-q/2]\\) fixes every \\(\\bar p_i\\) and is one-Lipschitz, so, with \\(\\widetilde p_i=m^{-1}\\sum_jA_{ij}\\),\n\\[\n |\\widehat p_i-\\bar p_i|\n \\le|\\widetilde p_i-\\bar p_i|\n \\le\\left|\\frac1m\\sum_j(A_{ij}-p_{ij})\\right|\n +\\left|\\frac1m\\sum_j(p_{ij}-E_Pp_{ij})\\right|.\n\\]\nFor a fixed row, the first sum consists of consecutive bounded martingale differences in the global filtration.  Conditional Hoeffding iteration gives\n\\[\n P\\!\\left(\\left|m^{-1}\\sum_j(A_{ij}-p_{ij})\\right|>t\\right)\n \\le2e^{-2mt^2}.\n\\]\nA union bound over \\(n\\) rows and propensity-path stability therefore give\n\\[\n \\delta_n:=\\max_i|\\widehat p_i-\\bar p_i|\n =O_P\\!\\left(\\sqrt{\\frac{\\log(en)}m}\\right).\n\\]\nBounded outcomes imply \\(|\\mu^a_{ij}|\\le B\\).  Hence overlap gives\n\\[\n |H^{\\mathrm B}_{ij}|\n \\le \\frac{2B}{q^2},\n \\qquad\n \\lVert D^{\\mathrm B}\\rVert\n \\le\\lVert D^{\\mathrm B}\\rVert_F\n \\le\\frac{2B}{q^2}\\delta_n\\sqrt{nm}\n =O_P\\!\\left(Bq^{-2}\\sqrt{n\\log(en)}\\right).\n\\]\nWhen \\(b_{nm}=o(1)\\), its truncation is inactive eventually.  Since \\(K,r,\\mu\\ge1\\) and bounded aspect ratio gives \\(\\sqrt n\\le c_-^{-1/2}\\sqrt m\\), the frontier formula yields\n\\[\n \\frac{Bq^{-2}\\sqrt{n\\log(en)}}{\\lambda_{nm}}\n \\le Cq^{-3/2}b_{nm}.\n\\]\nHere \\(q\\) and the aspect constants are fixed, so\n\\(\\lVert D^{\\mathrm B}\\rVert/\\lambda_{nm}=O_P(b_{nm})=o_P(1)\\).\n\nWeyl's min--max inequality, applied once to each of the two singular values defining the gap, gives\n\\[\n \\begin{aligned}\n \\sigma_r(T^{\\mathrm B})-\\sigma_{r+1}(T^{\\mathrm B})\n &\\ge \\sigma_r(M^{\\mathrm B})-\\sigma_{r+1}(M^{\\mathrm B})\n -2\\lVert D^{\\mathrm B}\\rVert\\\\\n &\\ge c_{\\mathrm B}\\lambda_{nm}-2\\lVert D^{\\mathrm B}\\rVert.\n \\end{aligned}\n\\]\nThe last display is at least \\((c_{\\mathrm B}/2)\\lambda_{nm}\\) with probability tending to one.  The convention at saturated rank is preserved because the absent singular value is zero."
+          },
+          {
+            "id": "lem:blind-ratio-expansion",
+            "proof_tex": "Put \\(t_i=\\widehat p_i-\\bar p_i\\) and \\(s_i=1-\\bar p_i\\).  The exact reciprocal identities\n\\[\n \\frac1{\\bar p_i+t_i}=\\frac1{\\bar p_i}-\\frac{t_i}{\\bar p_i^2}\n +\\frac{t_i^2}{\\bar p_i^2(\\bar p_i+t_i)},\n\\]\nand\n\\[\n \\frac1{s_i-t_i}=\\frac1{s_i}+\\frac{t_i}{s_i^2}\n +\\frac{t_i^2}{s_i^2(s_i-t_i)}\n\\]\ngive the asserted decomposition with\n\\[\n\\begin{aligned}\n R^{\\mathrm B}_{ij}\n &=-t_i\\{Q_{ij}-H^{\\mathrm B}_{ij}\\}+t_i^2S_{ij},\\\\\n Q_{ij}&=\\frac{A_{ij}Y_{ij}}{\\bar p_i^2}\n +\\frac{(1-A_{ij})Y_{ij}}{(1-\\bar p_i)^2},\\\\\n S_{ij}&=\\frac{A_{ij}Y_{ij}}{\\bar p_i^2\\widehat p_i}\n -\\frac{(1-A_{ij})Y_{ij}}{(1-\\bar p_i)^2(1-\\widehat p_i)}.\n\\end{aligned}\n\\]\nAll denominators are bounded away from zero: \\(\\bar p_i\\in[q,1-q]\\) and \\(\\widehat p_i\\in[q/2,1-q/2]\\).  Sequential randomization gives\n\\(E_P[Q_{ij}\\mid\\mathbb G_{o(i,j)-1}]=H^{\\mathrm B}_{ij}\\), so \\(Q-H^{\\mathrm B}\\) is a bounded matrix martingale-difference array.  Self-adjoint dilation and the cited matrix Freedman inequality give\n\\[\n \\lVert Q-H^{\\mathrm B}\\rVert\n =O_P\\!\\left(Bq^{-2}\\sqrt{(n\\vee m)\\log(e(n+m))}\n +Bq^{-2}\\log(e(n+m))\\right).\n\\]\nThe tangent-control lemma gives \\(\\max_i|t_i|=O_P(\\sqrt{\\log(en)/m})\\), while \\(\\max_{ij}|S_{ij}|\\le CBq^{-3}\\).  Since left multiplication by \\(\\operatorname{diag}(t_i)\\) has operator norm \\(\\max_i|t_i|\\),\n\\[\n\\begin{aligned}\n \\lVert R^{\\mathrm B}\\rVert\n &\\le \\max_i|t_i|\\,\\lVert Q-H^{\\mathrm B}\\rVert\n +CBq^{-3}\\sqrt{nm}\\max_i t_i^2\\\\\n &=O_P(Bq^{-3}\\log(en)),\n\\end{aligned}\n\\]\nwhere bounded aspect ratio absorbs the smaller logarithmic and rectangular factors.\n\nThe conditional mean assertion follows separately from\n\\[\n E_P[Z^{\\bar p}_{ij}\\mid\\mathbb G_{o(i,j)-1}]\n =\\frac{p_{ij}\\mu^1_{ij}}{\\bar p_i}\n -\\frac{(1-p_{ij})\\mu^0_{ij}}{1-\\bar p_i}=M^{\\mathrm B}_{ij}.\n\\]\nThe centered array \\(Z^{\\bar p}-M^{\\mathrm B}\\) has increments bounded by \\(CB/q\\) and conditional second moments bounded by \\(CB^2/q^2\\).  Matrix Freedman thus gives\n\\[\n \\lVert Z^{\\bar p}-M^{\\mathrm B}\\rVert\n =O_P\\!\\left(Bq^{-1}\\sqrt{(n\\vee m)\\log(e(n+m))}\n +Bq^{-1}\\log(e(n+m))\\right).\n\\]\nCombining this with the residual bound controls\n\\(Z^{\\mathrm B}-T^{\\mathrm B}\\).  Tangent control supplies a gap at least \\((c_{\\mathrm B}/2)\\lambda_{nm}\\) with probability tending to one.  Repeating the singular-equation and polar-factor argument from the loose IPW theorem, now around \\(T^{\\mathrm B}\\), yields\n\\[\n \\mathcal L(\\widehat U^{\\mathrm B},U^{\\mathrm B})\n \\le C\\sqrt{\\frac n{\\mu r}}\n \\left(1\\wedge\\frac{\\lVert Z^{\\mathrm B}-T^{\\mathrm B}\\rVert}{\\lambda_{nm}}\\right)\n =O_P(a^{\\mathrm B,loose}_{nm}).\n\\]\nThis proof uses only operator perturbation.  It does not convert an endogenous future singular factor into a predictable martingale weight, which is precisely why it does not yield the originally asserted \\(b_{nm}\\) rowwise rate."
+          },
+          {
+            "id": "thm:blind-iff",
+            "proof_tex": "For orthonormal matrices define\n\\[\n d_0(Q_1,Q_2)=\\min_{R\\in\\mathbb O_r}\\lVert Q_1R-Q_2\\rVert_{2,\\infty}.\n\\]\nRight multiplication by an orthogonal matrix is an isometry for every row norm.  If \\(R_{12}\\) and \\(R_{23}\\) are minimizing sequences, their product is admissible for the first-to-third comparison, so the ordinary triangle inequality gives the quotient triangle inequality for \\(d_0\\).  Multiplication by \\(\\sqrt{n/(\\mu r)}\\) shows that \\(\\mathcal L\\) has the same triangle and reverse-triangle inequalities.\n\nThe loose blind expansion gives\n\\[\n \\mathcal L(\\widehat U^{\\mathrm B},U^{\\mathrm B})=O_P(d_{nm}).\n\\]\nThe loose recorded-IPW theorem has a no-larger order because \\(q<1/2\\) and the definition of \\(d_{nm}\\) dominates its two terms.  Hence\n\\[\n \\mathcal L(\\widehat U^{\\mathrm I},U)=O_P(d_{nm}).\n\\]\nApplying the reverse triangle inequality first to \\((\\widehat U^{\\mathrm B},U^{\\mathrm B},U)\\) and then to \\((\\widehat U^{\\mathrm B},\\widehat U^{\\mathrm I},U^{\\mathrm B},U)\\) gives\n\\[\n\\begin{aligned}\n \\left|\\mathcal L(\\widehat U^{\\mathrm B},U)-\\rho_{nm}\\right|\n &\\le\\mathcal L(\\widehat U^{\\mathrm B},U^{\\mathrm B}),\\\\\n |\\widehat\\rho_{nm}-\\rho_{nm}|\n &\\le\\mathcal L(\\widehat U^{\\mathrm B},U^{\\mathrm B})\n +\\mathcal L(\\widehat U^{\\mathrm I},U).\n\\end{aligned}\n\\]\nThis proves both \\(O_P(d_{nm})\\) assertions.  If \\(d_{nm}=O(b_{nm})\\), each displayed variable differs from \\(\\rho_{nm}\\) by \\(O_P(b_{nm})\\).  The three equivalences follow in both directions by the triangle inequality.  Dividing the second display by \\(b_{nm}\\) also shows that divergence of the observable discrepancy forces divergence of the blind loss whenever the resolution condition holds."
+          },
+          {
+            "id": "prop:markov-witness",
+            "proof_tex": "Write \\(s_{ij}=(-1)^{i+j}\\) and \\(X_{i,j}=2A_{ij}-1\\), with \\(X_{i,0}=2A_i^{\\mathrm{init}}-1\\).  The construction gives\n\\[\n 2p_{ij}-1=\\tfrac12s_{ij}X_{i,j-1},\\qquad\n E[X_{i,j}\\mid\\mathbb G_{o(i,j)-1}]=\\tfrac12s_{ij}X_{i,j-1}.\n\\]\nThus every propensity is \\(1/4\\) or \\(3/4\\), and current assignment is generated from a probability measurable before the cell.  The two potential outcomes are also measurable before the cell and have absolute value at most \\(h+\\theta/2\\le B\\).  Sequential randomization and overlap follow.  Direct subtraction yields\n\\[\n M_{ij}=\\theta s_{ij}\n =\\theta\\,(-1)^i(-1)^j.\n\\]\nBecause \\(n_\\ell,m_\\ell\\) are even, its left and right singular vectors are the normalized alternating sign vectors, its only singular value is \\(\\theta\\sqrt{n_\\ell m_\\ell}\\), and its two incoherence constants and condition number equal one.\n\nThe baseline is fair.  The displayed recursion preserves fairness, so \\(E[p_{ij}]=1/2\\) and \\(\\bar p_i=1/2\\).  With \\(C_{ij}=hs_{ij}X_{i,j-1}\\), direct algebra gives\n\\[\n\\begin{aligned}\n M^{\\mathrm B}_{ij}\n &=2\\{p_{ij}(C_{ij}+\\tfrac\\theta2s_{ij})\n -(1-p_{ij})(C_{ij}-\\tfrac\\theta2s_{ij})\\}\\\\\n &=h+\\theta s_{ij}.\n\\end{aligned}\n\\]\nThe constant and alternating rank-one matrices are orthogonal on both sides.  Hence the two nonzero singular values of \\(M^{\\mathrm B}\\) are \\(h\\sqrt{n_\\ell m_\\ell}\\) and \\(\\theta\\sqrt{n_\\ell m_\\ell}\\), and the primitive gap is\n\\[\n (h-\\theta)\\sqrt{n_\\ell m_\\ell}\n =\\frac{h-\\theta}{\\theta}\\lambda_{n_\\ell m_\\ell}.\n\\]\n\nWe record the concentration calculation used below.  The innovations\n\\[\n \\varepsilon_{i,j}=X_{i,j}-\\tfrac12s_{ij}X_{i,j-1}\n\\]\nare bounded martingale differences.  Recursively substituting this relation expresses any deterministic linear form \\(\\sum_j a_jX_{i,j}\\) as a martingale transform of the \\(\\varepsilon_{i,j}\\) plus one bounded initial term.  The transform coefficients are obtained by convolution with \\((1,2^{-1},2^{-2},\\ldots)\\), whose \\(\\ell_1\\) norm is two.  Conditional Hoeffding iteration therefore gives\n\\[\n E\\exp\\!\\left(t\\sum_ja_jX_{i,j}\\right)\n \\le \\exp(Ct^2\\lVert a\\rVert_2^2)\n\\]\nup to an immaterial bounded initial factor.  Rows are independent.  Taking \\(a_j=m^{-1}\\), followed by a union bound, proves both propensity-path stability and\n\\[\n \\max_i|\\widehat p_i-1/2|=O_P\\!\\left(\\sqrt{\\frac{\\log n_ell}{m_\\ell}}\\right);\n\\]\nclipping is inactive with probability tending to one.\n\nFor later use, substitution into the tangent gives\n\\[\n H^{\\mathrm B}_{ij}=X_{i,j-1}(4hs_{ij}+\\theta),\\qquad\n D^{\\mathrm B}_{ij}=-(\\widehat p_i-1/2)H^{\\mathrm B}_{ij}.\n\\]\nThe preceding subgaussian bound implies\n\\[\n \\lVert D^{\\mathrm B}\\rVert=O_P(B\\sqrt{n_\\ell\\log n_\\ell})\n =o_P(\\sqrt{n_\\ell m_\\ell})\n\\]\nand\n\\[\n \\max_i|e_i^\\top D^{\\mathrm B}\\mathbf1_{m_\\ell}/\\sqrt{m_\\ell}|\n =O_P(B\\log n_\\ell/\\sqrt{m_\\ell}).\n\\]\nThe second display uses the same linear-form bound once for the row sum of \\(H^{\\mathrm B}\\) and once for the row fraction.\n\nWe now justify the estimator conclusions.  A deterministic singular-vector calculation used twice below is as follows.  If a matrix with simple leading singular value \\(s\\), gap \\(g\\), incoherent leading vectors \\(u,v\\), and perturbation \\(Q\\) satisfies \\(\\lVert Q\\rVert=o(g)\\), then its singular equations, after aligning signs, give\n\\[\n \\max_i|\\widehat u_i-u_i|\n \\le C\\left\\{\n \\frac{\\lVert Qv\\rVert_\\infty}{g}\n +\\frac{\\lVert u\\rVert_\\infty\\lVert Q\\rVert}{g}\n +\\frac{\\max_i\\lVert e_i^\\top Q\\rVert_2}{s}\\frac{\\lVert Q\\rVert}{g}\n \\right\\}.\n\\]\nTo verify it, write the \\(i\\)-th row of \\((S+Q)\\widehat v=\\widehat s\\widehat u\\), add and subtract \\(Qv\\), use the principal-angle bound obtained by projecting the singular equation, and use the min--max bounds on \\(\\widehat s-s\\).  Every remainder is one of the last two displayed products.\n\nFor the recorded score, the perturbation is \\(E\\).  Conditional Hoeffding gives\n\\[\n \\lVert EV\\rVert_\\infty=O_P(B\\sqrt{\\log n_\\ell}),\\qquad\n \\max_i\\lVert e_i^\\top E\\rVert_2=O_P(B\\sqrt{m_\\ell}).\n\\]\nThe independent-row subgaussian bound above, applied to bilinear forms and then to \\(1/4\\)-nets of the two unit spheres, gives \\(\\lVert E\\rVert=O_P(B\\sqrt{n_\\ell+m_\\ell})\\).  With \\(s=g=\\theta\\sqrt{n_\\ell m_\\ell}\\), the rowwise calculation proves\n\\[\n \\mathcal L(\\widehat U^{\\mathrm I},U)\n =O_P\\!\\left(\\sqrt{\\frac{\\log n_\\ell}{n_\\ell}}\\right).\n\\]\n\nFor the blind score, use the exact ratio expansion.  The same row-subgaussian and net arguments give\n\\[\n \\lVert Z^{\\bar p}-M^{\\mathrm B}\\rVert=O_P(B\\sqrt{n_\\ell+m_\\ell}),\n \\qquad\n \\lVert R^{\\mathrm B}\\rVert=O_P(B\\log n_\\ell).\n\\]\nThey also give, for the constant right singular vector \\(v_0=m_\\ell^{-1/2}\\mathbf1\\),\n\\[\n \\lVert(Z^{\\mathrm B}-M^{\\mathrm B})v_0\\rVert_\\infty\n =O_P(B\\sqrt{\\log n_\\ell}),\n \\qquad\n \\max_i\\lVert e_i^\\top(Z^{\\mathrm B}-M^{\\mathrm B})\\rVert_2\n =O_P(B\\sqrt{m_\\ell}).\n\\]\nTogether with the tangent bounds, the same rowwise singular-vector calculation around \\(M^{\\mathrm B}\\), whose leading gap is \\((h-\\theta)\\sqrt{n_\\ell m_\\ell}\\), yields\n\\[\n \\sqrt{n_\\ell}\\left\\lVert\\widehat U^{\\mathrm B}-n_\\ell^{-1/2}\\mathbf1\\right\\rVert_\\infty=o_P(1).\n\\]\nApplying it with perturbation \\(D^{\\mathrm B}\\) alone gives the identical conclusion for \\(U^{\\mathrm B}\\).\n\nThe normalized maximum-row distance between the constant and alternating unit vectors is exactly two: either global sign leaves half of the rows separated by \\(2/\\sqrt{n_\\ell}\\).  The quotient reverse-triangle inequality therefore gives\n\\[\n \\rho_{n_\\ell m_\\ell}\\to2,\\qquad\n \\widehat\\rho_{n_\\ell m_\\ell}\\to2,\\qquad\n \\mathcal L(\\widehat U^{\\mathrm B},U)\\to2.\n\\]\nFinally, substitution of \\(\\lambda_{n_\\ell m_\\ell}=\\theta\\sqrt{n_\\ell m_\\ell}\\) into the frontier definition gives\n\\(b_{n_\\ell m_\\ell}\\asymp\\sqrt{\\log n_\\ell/n_\\ell}\\).  This proves all membership, boundary, rate, and diagnostic assertions without invoking a published normalization procedure."
+          },
+          {
+            "id": "lem:multiplier-primitives",
+            "proof_tex": "Identification gives \\(E_P[E_{ij}\\mid\\mathbb G_{o(i,j)-1}]=0\\).  The loadings and \\(s_g\\) are deterministic, so multiplication by \\(\\sqrt N g_{ij}/s_g\\) proves the vector martingale-difference assertion.  Variance nondegeneracy, dense loadings, and the increment bound from identification give\n\\[\n |X_{k,g}|\n \\le\\frac{\\sqrt N(C_\\infty/N)(3B/q)}{\\sqrt{c_s}B/\\sqrt N}\n =\\frac{3C_\\infty}{q\\sqrt{c_s}}.\n\\]\nThus \\(N^{-1}\\sum_kE_P\\lVert X_k\\rVert_\\infty^3=O(1)\\), uniformly over the model class; since \\(N\\to\\infty\\), it is at most \\(N^{1/8}\\) eventually.  Bounded aspect ratio and \\(d\\le n^\\kappa\\) give\n\\[\n \\frac{\\log^{7/2}d}{N^{1/4}}\n \\le C\\frac{\\log^{7/2}(en)}{\\sqrt n}\\longrightarrow0.\n\\]\n\nFor each pair \\((g,g')\\), set\n\\[\n D_{k,gg'}=X_{k,g}X_{k,g'}-\n E_P[X_{k,g}X_{k,g'}\\mid\\mathbb G_{k-1}].\n\\]\nThese are scalar martingale differences bounded by a fixed constant, with predictable quadratic variation at most a fixed multiple of \\(N\\).  The scalar case of the cited Freedman inequality and a union bound over at most \\(d^2\\) pairs give\n\\[\n \\max_{g,g'}\\left|N^{-1}\\sum_kD_{k,gg'}\\right|\n =O_P\\!\\left(\\sqrt{\\frac{\\log(ed)}N}+\\frac{\\log(ed)}N\\right)\n =O_P\\!\\left(\\sqrt{\\frac{\\log(ed)}N}\\right).\n\\]\nFinally,\n\\[\n N^{-1/2}\\log^{1/2}(ed)\n =o\\{N^{-1/8}\\log^{-2}(eNd)\\}\n\\]\nunder polynomial growth.  This proves precisely the oracle primitive claims.  None of these calculations compares \\(\\widehat e_{ij}\\) with \\(E_{ij}\\); such a comparison cannot be obtained merely by calling a rank approximation deterministic when the fit contains observations later than the held-out cell."
+          },
+          {
+            "id": "thm:simultaneous-bands",
+            "proof_tex": "For every deterministic loading,\n\\[\n \\widehat\\tau_g-\\tau_g=\\sum_{i,j}g_{ij}E_{ij}\n\\]\nby the definitions of the score and causal contrast.  Identification makes the summands a row-major scalar martingale-difference sequence.  Their predictable quadratic variation and increment envelope satisfy\n\\[\n \\sum_{i,j}E_P[g_{ij}^2E_{ij}^2\\mid\\mathbb G_{o(i,j)-1}]\n \\le\\frac{2B^2}{q}\\lVert g\\rVert_F^2,\n \\qquad\n \\max_{i,j}|g_{ij}E_{ij}|\n \\le\\frac{3BC_\\infty}{qN}.\n\\]\nThe divisions use \\(q>0\\), and the second inequality uses the dense-loading bound.  The two-sided scalar Freedman inequality implies, with \\(x>0\\),\n\\[\n P\\!\\left\\{|\\widehat\\tau_g-\\tau_g|>\n 2B\\sqrt{\\frac{\\lVert g\\rVert_F^2x}{q}}\n +\\frac{2BC_\\infty x}{qN}\\right\\}\\le2e^{-x}.\n\\]\nTake \\(x=\\log(2d/\\alpha)\\) and apply a union bound over the predeclared family.  The failure probability is at most \\(2de^{-x}=\\alpha\\), proving simultaneous coverage.  The average-loading upper bound \\(\\lVert g\\rVert_F^2\\le C_g/N\\) gives the displayed radius order.  Its leading term is the pointwise martingale scale multiplied by \\(\\sqrt{\\log d}\\); neither the definition nor the proof of \\(b_{nm}\\) contains \\(d\\)."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:tropp-matrix-freedman",
+            "kind": "lemma",
+            "statement": "Let \\((Y_k,\\mathcal H_k)\\) be a finite self-adjoint matrix martingale of dimension \\(d\\), with differences \\(X_k=Y_k-Y_{k-1}\\) satisfying \\(\\lambda_{\\max}(X_k)\\le R\\) almost surely, and put \\(W_k=\\sum_{s\\le k}E[X_s^2\\mid\\mathcal H_{s-1}]\\).  Then, for all \\(t\\ge0\\) and \\(\\sigma^2>0\\),\n\\[\n P\\!\\left(\\text{there is a }k:\\lambda_{\\max}(Y_k)\\ge t\n \\text{ and }\\lVert W_k\\rVert\\le\\sigma^2\\right)\n \\le d\\exp\\!\\left\\{-\\frac{t^2/2}{\\sigma^2+Rt/3}\\right\\}.\n\\]",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "Tropp2011Freedman",
+              "locator": "Theorem 1.6",
+              "carrier": "logical-claim",
+              "arxiv": "1101.3039",
+              "url": "https://arxiv.org/abs/1101.3039",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "The theorem locator and stable arXiv carrier are supplied; self-adjoint dilation to rectangular matrices is proved in this solve."
+              }
+            }
+          },
+          {
+            "id": "prop:adaptive-endogenous-target-obstruction",
+            "kind": "proposition",
+            "statement": "On the even square path \\(m=n\\), fix \\(r=1\\), \\(\\mu=2\\), \\(K=1\\), \\(q<1/2\\), and \\(\\lambda_{nn}=cBn\\) for a sufficiently small fixed \\(c>0\\).  There is a sequence in \\(\\mathfrak P^{\\mathrm{pred}}_{n,n}(1,2,1,q,B,\\lambda)\\) with constant recorded propensity \\(p_{ij}=1/2\\) and \\(b_{nn}\\to0\\), but\n\\[\n \\liminf_{n\\to\\infty}P\\{\\mathcal L(\\widehat U^{\\mathrm I},U)>c_0\\}>0\n\\]\nfor a fixed \\(c_0>0\\).  Thus sequential randomization alone does not make the future singular factors predictable with respect to earlier score increments, and the \\(O_P(b_{nm})\\) IPW--SVD conclusion is false on the frozen predictable class.",
+            "free_symbols": [
+              "n",
+              "m",
+              "r",
+              "mu",
+              "K",
+              "q",
+              "B",
+              "lambda",
+              "p",
+              "b",
+              "P",
+              "L",
+              "UhatI",
+              "U"
+            ],
+            "depends_on": [
+              "def:global-filtration",
+              "def:predictable-class",
+              "def:ipw-score",
+              "def:ipw-svd",
+              "def:rowwise-loss",
+              "def:frontier-rate",
+              "lem:ipw-identification"
+            ],
+            "proof_tex": "Let \\(C=B/4\\).  In the first row set \\(Y_{1j}(1)=Y_{1j}(0)=C\\), and draw \\(A_{1j}\\) independently as \\(\\operatorname{Bernoulli}(1/2)\\).  Put \\(S_j=2A_{1j}-1\\) and, after the first row has been observed, define\n\\[\n v=n^{-1/2}(S_1,\\ldots,S_n)^\\top,\\qquad\n u=(0,(n-1)^{-1/2},\\ldots,(n-1)^{-1/2})^\\top.\n\\]\nFor \\(i\\ge2\\), set \\(Y_{ij}(0)=0\\), \\(Y_{ij}(1)=\\lambda_{nn}u_iv_j\\), and continue to draw the assignments independently as \\(\\operatorname{Bernoulli}(1/2)\\).  These later potential outcomes are measurable before their cells because the whole first row precedes them in row-major order.  Assignments are independent of the current potential outcomes given the past, so sequential randomization holds.  If \\(c\\le1/2\\), then\n\\[\n |Y_{ij}(1)|=\\frac{cBn}{\\sqrt{n(n-1)}}\\le B\n\\]\nfor all sufficiently large \\(n\\).  The effect matrix is\n\\[\n M=\\lambda_{nn}uv^\\top.\n\\]\nIt has exact rank one, singular value \\(\\lambda_{nn}\\), condition number one, \\(\\lVert v\\rVert_\\infty=n^{-1/2}\\), and \\(\\lVert u\\rVert_\\infty=(n-1)^{-1/2}\\le\\sqrt{2/n}\\).  Thus every defining condition of the class holds.\n\nThe first score row equals \\(2C(S_1,\\ldots,S_n)=a_nv^\\top\\), where \\(a_n=2C\\sqrt n\\).  In later rows,\n\\[\n Z^{\\mathrm{ipw}}_{ij}=2A_{ij}M_{ij}=M_{ij}+(2A_{ij}-1)M_{ij}.\n\\]\nConsequently\n\\[\n Z^{\\mathrm{ipw}}=(\\lambda_{nn}u+a_ne_1)v^\\top+F,\n\\]\nwhere the first row of \\(F\\) is zero and, conditional on the first row, its remaining entries are independent signs times \\(\\lambda_{nn}/\\sqrt{n(n-1)}\\).  A standard net calculation is elementary here: for fixed unit vectors \\(x,y\\), Hoeffding's exponential bound applied to \\(x^\\top Fy\\), followed by a union bound over \\(1/4\\)-nets of the two unit spheres, gives\n\\[\n \\lVert F\\rVert=O_P(\\lambda_{nn}/\\sqrt n)=o_P(\\lambda_{nn}).\n\\]\nIndeed, each net has cardinality at most \\(9^n\\), and the bilinear form divided by \\(\\lambda_{nn}/n\\) has variance proxy at most one, so a threshold that is a sufficiently large multiple of \\(\\sqrt n\\) defeats the two net cardinalities.\n\nLet \\((\\widehat u,\\widehat v,\\widehat\\sigma)\\) be the leading singular triple, with the sign chosen so that \\(v^\\top\\widehat v\\ge0\\).  The preceding operator bound and the singular gap of the rank-one first term imply\n\\[\n v^\\top\\widehat v\\longrightarrow1,\\qquad\n \\widehat\\sigma/\\lambda_{nn}\\longrightarrow1\n\\]\nin probability.  The first row of \\(F\\) is zero, so the first row of the singular-vector equation is exact:\n\\[\n \\widehat\\sigma\\widehat u_1=e_1^\\top Z^{\\mathrm{ipw}}\\widehat v\n =a_n v^\\top\\widehat v.\n\\]\nIt follows that\n\\[\n \\sqrt n\\,|\\widehat u_1-u_1|\n =\\frac{\\sqrt n\\,a_n}{\\widehat\\sigma}|v^\\top\\widehat v|\n \\longrightarrow \\frac{2C}{cB}>0.\n\\]\nSince \\(u_1=0\\), changing the global sign cannot reduce this row error.  Hence\n\\[\n \\mathcal L(\\widehat U^{\\mathrm I},U)\n \\ge\\sqrt{n/2}\\,|\\widehat u_1|\n \\longrightarrow \\frac{\\sqrt2C}{cB}>0.\n\\]\nOn the other hand, direct substitution of \\(m=n\\), \\(r=K=1\\), \\(\\mu=2\\), and \\(\\lambda_{nn}=cBn\\) into the frontier definition gives \\(b_{nn}\\asymp\\sqrt{\\log n/n}\\to0\\).  This is the required explicit obstruction.",
+            "status": "proved"
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "prop:fixed-propensity-sanity",
+            "proposed": "Let \\(p_{ij}=q_0\\in(q,1-q)\\), \\(n/m\\to c_0\\in(0,\\infty)\\), and \\(r=\\mu=K=1\\).  If \\(\\lambda_{nm}\\asymp B\\sqrt{n\\log n}\\), then \\(b_{nm}\\asymp1\\); there exists a bounded rank-one law with a deterministic nonzero common control-arm mean for which \\(\\sqrt n\\lVert EV/\\sigma_1(M)\\rVert_\\infty=\\Theta_P(1)\\).  If \\(\\lambda_{nm}\\asymp B\\sqrt{nm}\\), then \\(b_{nm}\\asymp\\sqrt{\\log n/n}\\).  For every constant-propensity law,\n\\[\n Z^{\\mathrm B}=Z^{\\mathrm{ipw}}+D^{\\mathrm B}+R^{\\mathrm B},\\qquad\n D^{\\mathrm B}_{ij}=-(\\widehat p_i-q_0)\n \\left\\{\\frac{\\mu^1_{ij}}{q_0}+\\frac{\\mu^0_{ij}}{1-q_0}\\right\\}.\n\\]\nThus empirical row normalization has a first-order denominator tangent whenever the displayed derivative loading is nonzero; the identity does not assert that the realized tangent is nonzero on every sample.",
+            "reason": "The original phrase about common arm means did not state an existential law, and its final tangent sentence was literally false on samples where the empirical fraction equals the constant propensity.  The replacement makes the witness and the realized-zero qualification explicit.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:ipw-rowwise-upper",
+            "proposed": "Uniformly over \\(P\\in\\mathfrak P^{\\mathrm{pred}}_{n,m}(r,\\mu,K,q,B,\\lambda)\\), define the loose adaptive radius\n\\[\n a^{\\mathrm{loose}}_{nm}=\n \\sqrt{\\frac n{\\mu r}}\\left[1\\wedge\n \\frac B{\\lambda_{nm}}\\left\\{\n \\sqrt{\\frac{(n\\vee m)\\log(e(n+m))}{q}}+\n \\frac{\\log(e(n+m))}{q}\\right\\}\\right].\n\\]\nThen recorded-propensity IPW--SVD satisfies\n\\(\\mathcal L(\\widehat U^{\\mathrm I},U)=O_P(a^{\\mathrm{loose}}_{nm})\\).  This maximum-row assertion is pointwise in the target and contains no factor depending on \\(|\\mathcal G_n|\\).  In general \\(a^{\\mathrm{loose}}_{nm}\\) cannot be replaced by \\(b_{nm}\\) on this class, as witnessed by the adaptive constant-propensity construction in Proposition \\(\\mathrm{prop:adaptive\\mbox{-}endogenous\\mbox{-}target\\mbox{-}obstruction}\\).",
+            "reason": "The frozen class permits future singular factors to depend on earlier score noise.  Proposition \\(\\mathrm{prop:adaptive\\mbox{-}endogenous\\mbox{-}target\\mbox{-}obstruction}\\) is an explicit constant-propensity member with \\(b_{nn}\\to0\\) but nonvanishing IPW--SVD row loss.  Matrix Freedman and operator perturbation still give the displayed honest loose rate under the same class.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:adaptive-minimax-lower",
+            "proposed": "Fix \\(r\\), \\(K\\), and an incoherence envelope \\(\\mu>1\\).  Positive constants \\(c_0,c_1,c_2\\), depending only on these fixed quantities, \\(q\\), and the aspect bounds, exist such that, for all sufficiently large \\(n,m\\), whenever \\(b_{nm}\\le c_0\\) and \\(\\lambda_{nm}\\le c_1B\\sqrt{nm}\\),\n\\[\n \\inf_{\\widetilde U\\in\\mathfrak E_{n,m}}\n \\sup_{P\\in\\mathfrak P^{\\mathrm{pred}}_{n,m}(r,\\mu,K,q,B,\\lambda)}\n E_P[\\mathcal L(\\widetilde U,U)]\\ge c_2b_{nm}.\n\\]\nThe bound already holds on an independent constant-propensity submodel with \\(p_{ij}=q\\), so observing \\(p\\) does not weaken it.  The strict slack \\(\\mu>1\\) is needed by the continuous local row packing used here.",
+            "reason": "The continuous row-local packing needs strict leverage slack.  At \\(r=1\\) and \\(\\mu=1\\), every admissible unit vector has coordinate magnitudes exactly \\(n^{-1/2}\\), so this local packing is unavailable.  The replacement states exactly the regime proved by the constant-propensity Fano construction.",
+            "direction": "narrow"
+          },
+          {
+            "id": "lem:blind-ratio-expansion",
+            "proposed": "Under overlap, bounded outcomes, bounded aspect ratio, propensity-path stability, the primitive oracle gap, and \\(b_{nm}=o(1)\\),\n\\[\n Z^{\\mathrm B}=Z^{\\bar p}+D^{\\mathrm B}+R^{\\mathrm B},\\qquad\n E_P[Z^{\\bar p}_{ij}\\mid\\mathbb G_{o(i,j)-1}]=M^{\\mathrm B}_{ij}.\n\\]\nMoreover,\n\\[\n \\lVert R^{\\mathrm B}\\rVert=O_P(Bq^{-3}\\log(en)).\n\\]\nWriting\n\\[\n a^{\\mathrm B,loose}_{nm}=\\sqrt{\\frac n{\\mu r}}\\left[1\\wedge\n \\frac B{\\lambda_{nm}}\\left\\{\n q^{-1}\\sqrt{(n\\vee m)\\log(e(n+m))}+q^{-3}\\log(en)\n \\right\\}\\right],\n\\]\nthe blind fit obeys \\(\\mathcal L(\\widehat U^{\\mathrm B},U^{\\mathrm B})=O_P(a^{\\mathrm B,loose}_{nm})\\).  The frozen assumptions do not imply the sharper claim that the residual contributes \\(o_P(b_{nm})\\) to maximum-row loss.",
+            "reason": "The exact ratio expansion yields an operator residual of order \\(Bq^{-3}\\log(en)\\), but the frozen adaptive class does not make the random future singular factors predictable.  The claimed \\(o_P(b_{nm})\\) maximum-row contribution therefore does not follow; the replacement gives the operator-based loose rate.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:blind-iff",
+            "proposed": "Under the hypotheses of the blind ratio expansion, define\n\\[\n d_{nm}=\\sqrt{\\frac n{\\mu r}}\\left[1\\wedge\n \\frac B{\\lambda_{nm}}\\left\\{\n q^{-1}\\sqrt{(n\\vee m)\\log(e(n+m))}+q^{-3}\\log(en)\n \\right\\}\\right].\n\\]\nThen\n\\[\n \\left|\\mathcal L(\\widehat U^{\\mathrm B},U)-\\rho_{nm}\\right|=O_P(d_{nm}),\n \\qquad\n |\\widehat\\rho_{nm}-\\rho_{nm}|=O_P(d_{nm}).\n\\]\nConsequently, in every subregime where the explicit comparison \\(d_{nm}=O(b_{nm})\\) holds,\n\\[\n \\mathcal L(\\widehat U^{\\mathrm B},U)=O_P(b_{nm})\n \\quad\\Longleftrightarrow\\quad\n \\rho_{nm}=O_P(b_{nm})\n \\quad\\Longleftrightarrow\\quad\n \\widehat\\rho_{nm}=O_P(b_{nm}).\n\\]\nIn that subregime, \\(\\widehat\\rho_{nm}/b_{nm}\\to\\infty\\) implies failure of the frontier rate.  Without \\(d_{nm}=O(b_{nm})\\), the observed discrepancy is certified only up to the explicit \\(d_{nm}\\) resolution.",
+            "reason": "The triangle argument certifies the diagnostic only at the stochastic resolution established for both fits.  After correcting those rates, that resolution is \\(d_{nm}\\), and the frontier-scale equivalence is valid precisely in subregimes where \\(d_{nm}=O(b_{nm})\\).",
+            "direction": "narrow"
+          },
+          {
+            "id": "lem:multiplier-primitives",
+            "proposed": "Let \\(N=nm\\), \\(d=|\\mathcal G_n|\\), and order cells by \\(o\\).  Under sequential randomization, overlap, bounded outcomes, polynomial family growth, dense average-scale loadings, and variance nondegeneracy, \\((X_{k,g},\\mathbb G_k)_{k=1}^N\\) is a \\(d\\)-dimensional martingale-difference array,\n\\[\n N^{-1}\\sum_{k=1}^NE_P[\\lVert X_k\\rVert_\\infty^3]=O(1)\\le N^{1/8},\n \\qquad \\log^{7/2}d=o(N^{1/4}),\n\\]\nand\n\\[\n \\max_{g,g'\\in\\mathcal G_n}\\left|N^{-1}\\sum_{k=1}^N\n \\{X_{k,g}X_{k,g'}-E_P[X_{k,g}X_{k,g'}\\mid\\mathbb G_{k-1}]\\}\\right|\n =O_P\\!\\left(\\sqrt{\\frac{\\log(ed)}N}\\right)\n =o_P(N^{-1/8}\\log^{-2}(eNd)).\n\\]\nThese oracle conclusions do not assert consistency or positivity of the leave-one-cell-out residual studentizers.",
+            "reason": "The martingale increment and oracle covariance calculations are valid, but a leave-one-cell-out rank fit uses observations later than the held-out cell.  A deterministic rank-approximation inequality does not imply the asserted residual covariance consistency or positive studentizers under the globally adaptive class.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:simultaneous-bands",
+            "proposed": "Let \\(N=nm\\) and \\(d=|\\mathcal G_n|\\).  Under the predictable experiment class, polynomial family growth, and deterministic dense average-scale loadings, define\n\\[\n R_{g,\\alpha}=2B\\sqrt{\\frac{\\lVert g\\rVert_F^2}{q}\\log\\!\\frac{2d}{\\alpha}}\n +\\frac{2BC_\\infty}{qN}\\log\\!\\frac{2d}{\\alpha}.\n\\]\nThen, for every finite \\(n,m\\),\n\\[\n P\\!\\left(\\tau_g\\in[\\widehat\\tau_g-R_{g,\\alpha},\n \\widehat\\tau_g+R_{g,\\alpha}]\\text{ for every }g\\in\\mathcal G_n\\right)\n \\ge1-\\alpha.\n\\]\nUniformly in \\(g\\),\n\\[\n R_{g,\\alpha}=O\\!\\left(\n B\\sqrt{\\frac{\\log(2|\\mathcal G_n|/\\alpha)}{nmq}}\n +\\frac{B\\log(2|\\mathcal G_n|/\\alpha)}{qnm}\\right).\n\\]\nThus the simultaneous stochastic radius has the separate \\(\\sqrt{\\log|\\mathcal G_n|}\\) inflation and this factor is not part of \\(b_{nm}\\).  This conservative finite-sample result makes no claim that the frozen leave-one-cell-out multiplier critical value is asymptotically exact.",
+            "reason": "Feasible multiplier exactness depends on the unsupported leave-one-cell-out residual step.  The direct IPW martingale nevertheless gives an explicit finite-sample simultaneous band with the required separate square-root logarithmic family multiplier.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:ipw-rowwise-upper",
+            "proposed": {
+              "id": "thm:ipw-rowwise-upper",
+              "kind": "theorem",
+              "statement": "Uniformly over \\(P\\in\\mathfrak P^{\\mathrm{pred}}_{n,m}(r,\\mu,K,q,B,\\lambda)\\), define the loose adaptive radius\n\\[\n a^{\\mathrm{loose}}_{nm}=\n \\sqrt{\\frac n{\\mu r}}\\left[1\\wedge\n \\frac B{\\lambda_{nm}}\\left\\{\n \\sqrt{\\frac{(n\\vee m)\\log(e(n+m))}{q}}+\n \\frac{\\log(e(n+m))}{q}\\right\\}\\right].\n\\]\nThen recorded-propensity IPW--SVD satisfies\n\\(\\mathcal L(\\widehat U^{\\mathrm I},U)=O_P(a^{\\mathrm{loose}}_{nm})\\).  This maximum-row assertion is pointwise in the target and contains no factor depending on \\(|\\mathcal G_n|\\).  In general \\(a^{\\mathrm{loose}}_{nm}\\) cannot be replaced by \\(b_{nm}\\) on this class, as witnessed by the adaptive constant-propensity construction in Proposition \\(\\mathrm{prop:adaptive\\mbox{-}endogenous\\mbox{-}target\\mbox{-}obstruction}\\).",
+              "free_symbols": [
+                "P",
+                "n",
+                "m",
+                "r",
+                "mu",
+                "K",
+                "q",
+                "B",
+                "lambda",
+                "b",
+                "L",
+                "UhatI",
+                "U",
+                "G"
+              ],
+              "depends_on": [
+                "def:predictable-class",
+                "def:rowwise-loss",
+                "def:ipw-svd",
+                "def:frontier-rate",
+                "lem:ipw-identification",
+                "prop:fixed-propensity-sanity",
+                "lem:tropp-matrix-freedman",
+                "prop:adaptive-endogenous-target-obstruction"
+              ],
+              "status": "to-prove"
+            },
+            "reason": "The narrowed theorem uses the cited matrix Freedman leaf and the explicit adaptive obstruction; both dependencies must be recorded.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "lem:blind-ratio-expansion",
+            "proposed": {
+              "id": "lem:blind-ratio-expansion",
+              "kind": "lemma",
+              "statement": "Under overlap, bounded outcomes, bounded aspect ratio, propensity-path stability, the primitive oracle gap, and \\(b_{nm}=o(1)\\),\n\\[\n Z^{\\mathrm B}=Z^{\\bar p}+D^{\\mathrm B}+R^{\\mathrm B},\\qquad\n E_P[Z^{\\bar p}_{ij}\\mid\\mathbb G_{o(i,j)-1}]=M^{\\mathrm B}_{ij}.\n\\]\nMoreover,\n\\[\n \\lVert R^{\\mathrm B}\\rVert=O_P(Bq^{-3}\\log(en)).\n\\]\nWriting\n\\[\n a^{\\mathrm B,loose}_{nm}=\\sqrt{\\frac n{\\mu r}}\\left[1\\wedge\n \\frac B{\\lambda_{nm}}\\left\\{\n q^{-1}\\sqrt{(n\\vee m)\\log(e(n+m))}+q^{-3}\\log(en)\n \\right\\}\\right],\n\\]\nthe blind fit obeys \\(\\mathcal L(\\widehat U^{\\mathrm B},U^{\\mathrm B})=O_P(a^{\\mathrm B,loose}_{nm})\\).  The frozen assumptions do not imply the sharper claim that the residual contributes \\(o_P(b_{nm})\\) to maximum-row loss.",
+              "free_symbols": [
+                "Zblind",
+                "Zbar",
+                "pbar",
+                "i",
+                "j",
+                "A",
+                "Y",
+                "P",
+                "Gglobal",
+                "ord",
+                "MB",
+                "Dblind",
+                "Rblind",
+                "UhatB",
+                "Ublind",
+                "L",
+                "b",
+                "n",
+                "m",
+                "B",
+                "q",
+                "r",
+                "mu",
+                "lambda"
+              ],
+              "depends_on": [
+                "ass:sequential-randomization",
+                "ass:overlap",
+                "ass:bounded-outcomes",
+                "ass:propensity-path-stability",
+                "ass:oracle-blind-gap",
+                "ass:aspect-ratio",
+                "def:blind-tangent",
+                "def:blind-svd",
+                "def:blind-expansion-residual",
+                "def:rowwise-loss",
+                "def:frontier-rate",
+                "lem:blind-tangent-control",
+                "lem:tropp-matrix-freedman"
+              ],
+              "status": "to-prove"
+            },
+            "reason": "The corrected proof uses matrix Freedman directly and the new statement names the explicit loose radius parameters.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:blind-iff",
+            "proposed": {
+              "id": "thm:blind-iff",
+              "kind": "theorem",
+              "statement": "Under the hypotheses of the blind ratio expansion, define\n\\[\n d_{nm}=\\sqrt{\\frac n{\\mu r}}\\left[1\\wedge\n \\frac B{\\lambda_{nm}}\\left\\{\n q^{-1}\\sqrt{(n\\vee m)\\log(e(n+m))}+q^{-3}\\log(en)\n \\right\\}\\right].\n\\]\nThen\n\\[\n \\left|\\mathcal L(\\widehat U^{\\mathrm B},U)-\\rho_{nm}\\right|=O_P(d_{nm}),\n \\qquad\n |\\widehat\\rho_{nm}-\\rho_{nm}|=O_P(d_{nm}).\n\\]\nConsequently, in every subregime where the explicit comparison \\(d_{nm}=O(b_{nm})\\) holds,\n\\[\n \\mathcal L(\\widehat U^{\\mathrm B},U)=O_P(b_{nm})\n \\quad\\Longleftrightarrow\\quad\n \\rho_{nm}=O_P(b_{nm})\n \\quad\\Longleftrightarrow\\quad\n \\widehat\\rho_{nm}=O_P(b_{nm}).\n\\]\nIn that subregime, \\(\\widehat\\rho_{nm}/b_{nm}\\to\\infty\\) implies failure of the frontier rate.  Without \\(d_{nm}=O(b_{nm})\\), the observed discrepancy is certified only up to the explicit \\(d_{nm}\\) resolution.",
+              "free_symbols": [
+                "rho",
+                "rhohat",
+                "n",
+                "m",
+                "L",
+                "UhatB",
+                "UhatI",
+                "U",
+                "b",
+                "q",
+                "mu",
+                "r",
+                "B",
+                "lambda"
+              ],
+              "depends_on": [
+                "def:predictable-class",
+                "def:blind-tangent",
+                "def:blind-diagnostic",
+                "def:frontier-rate",
+                "lem:blind-tangent-control",
+                "lem:blind-ratio-expansion",
+                "thm:ipw-rowwise-upper"
+              ],
+              "status": "to-prove"
+            },
+            "reason": "The replacement statement explicitly names the loose stochastic resolution, so its additional parameters must be in the free-symbol closure.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "lem:multiplier-primitives",
+            "proposed": {
+              "id": "lem:multiplier-primitives",
+              "kind": "lemma",
+              "statement": "Let \\(N=nm\\), \\(d=|\\mathcal G_n|\\), and order cells by \\(o\\).  Under sequential randomization, overlap, bounded outcomes, polynomial family growth, dense average-scale loadings, and variance nondegeneracy, \\((X_{k,g},\\mathbb G_k)_{k=1}^N\\) is a \\(d\\)-dimensional martingale-difference array,\n\\[\n N^{-1}\\sum_{k=1}^NE_P[\\lVert X_k\\rVert_\\infty^3]=O(1)\\le N^{1/8},\n \\qquad \\log^{7/2}d=o(N^{1/4}),\n\\]\nand\n\\[\n \\max_{g,g'\\in\\mathcal G_n}\\left|N^{-1}\\sum_{k=1}^N\n \\{X_{k,g}X_{k,g'}-E_P[X_{k,g}X_{k,g'}\\mid\\mathbb G_{k-1}]\\}\\right|\n =O_P\\!\\left(\\sqrt{\\frac{\\log(ed)}N}\\right)\n =o_P(N^{-1/8}\\log^{-2}(eNd)).\n\\]\nThese oracle conclusions do not assert consistency or positivity of the leave-one-cell-out residual studentizers.",
+              "free_symbols": [
+                "n",
+                "m",
+                "G",
+                "ord",
+                "Xnorm",
+                "Gglobal",
+                "P",
+                "g",
+                "gprime",
+                "soracle",
+                "i",
+                "j",
+                "B",
+                "q"
+              ],
+              "depends_on": [
+                "def:global-filtration",
+                "def:predictable-class",
+                "def:ipw-score",
+                "lem:ipw-identification",
+                "ass:polynomial-family",
+                "ass:average-loadings",
+                "ass:dense-loadings",
+                "ass:variance-nondegeneracy",
+                "lem:tropp-matrix-freedman"
+              ],
+              "status": "to-prove"
+            },
+            "reason": "The narrowed oracle lemma removes unsupported residual-fit conclusions and their estimator-side dependencies, while adding the concentration theorem actually used.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:simultaneous-bands",
+            "proposed": {
+              "id": "thm:simultaneous-bands",
+              "kind": "theorem",
+              "statement": "Let \\(N=nm\\) and \\(d=|\\mathcal G_n|\\).  Under the predictable experiment class, polynomial family growth, and deterministic dense average-scale loadings, define\n\\[\n R_{g,\\alpha}=2B\\sqrt{\\frac{\\lVert g\\rVert_F^2}{q}\\log\\!\\frac{2d}{\\alpha}}\n +\\frac{2BC_\\infty}{qN}\\log\\!\\frac{2d}{\\alpha}.\n\\]\nThen, for every finite \\(n,m\\),\n\\[\n P\\!\\left(\\tau_g\\in[\\widehat\\tau_g-R_{g,\\alpha},\n \\widehat\\tau_g+R_{g,\\alpha}]\\text{ for every }g\\in\\mathcal G_n\\right)\n \\ge1-\\alpha.\n\\]\nUniformly in \\(g\\),\n\\[\n R_{g,\\alpha}=O\\!\\left(\n B\\sqrt{\\frac{\\log(2|\\mathcal G_n|/\\alpha)}{nmq}}\n +\\frac{B\\log(2|\\mathcal G_n|/\\alpha)}{qnm}\\right).\n\\]\nThus the simultaneous stochastic radius has the separate \\(\\sqrt{\\log|\\mathcal G_n|}\\) inflation and this factor is not part of \\(b_{nm}\\).  This conservative finite-sample result makes no claim that the frozen leave-one-cell-out multiplier critical value is asymptotically exact.",
+              "free_symbols": [
+                "G",
+                "g",
+                "P",
+                "tauhat",
+                "tau",
+                "alpha",
+                "B",
+                "n",
+                "m",
+                "q",
+                "b"
+              ],
+              "depends_on": [
+                "def:predictable-class",
+                "ass:polynomial-family",
+                "ass:average-loadings",
+                "ass:dense-loadings",
+                "def:contrast-process",
+                "def:frontier-rate",
+                "lem:ipw-identification",
+                "lem:multiplier-primitives",
+                "lem:tropp-matrix-freedman"
+              ],
+              "status": "to-prove"
+            },
+            "reason": "The conservative theorem no longer uses leave-one-out residuals, predictable covariance stabilization, or nonsaturation; its dependency graph is replaced by the direct martingale ingredients.",
+            "direction": "correct"
+          },
+          {
+            "kind": "estimand-functional-replace",
+            "id": "metadata:estimand-functional",
+            "proposed": "\\(M_{ij}=E_P[Z^{\\mathrm{ipw}}_{ij}\\mid\\mathbb G_{o(i,j)-1}],\\quad \\widehat U^{\\mathrm I}=\\operatorname{left}_r(\\mathcal P_r(Z^{\\mathrm{ipw}})),\\quad \\mathcal L(\\widehat U^{\\mathrm I},U)=O_P(a^{\\mathrm{loose}}_{nm})\\), where \\(a^{\\mathrm{loose}}_{nm}=\\sqrt{n/(\\mu r)}\\left[1\\wedge(B/\\lambda_{nm})\\{\\sqrt{(n\\vee m)\\log(e(n+m))/q}+\\log(e(n+m))/q\\}\\right]\\).",
+            "reason": "The frozen functional advertised the disproved sharper IPW--SVD guarantee.  This replacement records the proved identifying equality, estimator map, and honest uniform loose rate.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [
+          {
+            "node_id": "oeq:sharp-constant",
+            "what_is_open": "Determine the exact local information experiment and its maximum-row minimax constant, then compare its optimal estimator with recorded IPW--SVD.",
+            "obstruction": "The rate-normalized lower packing supplies only an unspecified positive constant, while the valid uniform upper bound is at a larger adaptive spectral radius.  The explicit endogenous-factor law also shows that recorded IPW--SVD is not uniformly \\(b_{nm}\\)-rate attaining on the frozen class.  Neither result identifies the local likelihood geometry needed for \\(C_\\star\\).",
+            "attempted": "A row-local constant-propensity Fano packing was completed, and a filtration-preserving adaptive construction was used to test IPW--SVD.  These settle a positive converse and refute uniform sharp attainment but do not yield a least-favorable local asymptotic experiment.",
+            "partial_result": "The fixed-propensity Fano construction proves a positive \\(b_{n_\\ell m_\\ell}\\)-normalized lower bound when \\(\\mu>1\\).  The valid uniform achievability result from the frozen class is only the explicit spectral loose radius \\(a^{\\mathrm{loose}}_{n_\\ell m_\\ell}\\), and the adaptive endogenous-factor construction proves that recorded IPW--SVD need not attain the smaller \\(b_{n_\\ell m_\\ell}\\) scale.  These facts bound neither the exact likelihood information constant nor the best risk of all observed-data estimators sharply enough to determine \\(C_\\star\\)."
+          }
+        ]
+      }
+    },
+    {
+      "unit": "thm:dwivedi-separation",
+      "targets": [
+        "thm:dwivedi-separation"
+      ],
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:dwivedi-separation",
+            "proof_tex": "Put \\(n=n_\\ell=2\\ell\\) and \\(m=m_\\ell=2\\lceil\\gamma\\ell\\rceil\\).  We first verify membership of the Markov witness in the predictable class, condition by condition.  Since\n\\[\n \\frac{m_\\ell}{n_\\ell}=\\frac{\\lceil\\gamma\\ell\\rceil}{\\ell}\\longrightarrow\\gamma\n \\quad\\text{and}\\quad c_-<\\gamma<c_+,\n\\]\nthere is \\(\\ell_0\\) such that \\(c_-\\le m_\\ell/n_\\ell\\le c_+\\) whenever \\(\\ell\\ge\\ell_0\\).  This proves the condition in \\(\\mathrm{ass:aspect\\mbox{-}ratio}\\) along the witness path.\n\nFix a cell \\((i,j)\\).  If \\(j=1\\), then \\(A_{i0}=A_i^{\\mathrm{init}}\\) belongs to \\(\\mathbb G_0\\); if \\(j\\ge2\\), then \\(A_{i,j-1}\\) has been recorded before global step \\(o(i,j)\\).  Hence \\(A_{i,j-1}\\), \\(p_{ij}\\), and both \\(Y_{ij}(0)\\) and \\(Y_{ij}(1)\\) in \\(\\mathrm{def:markov\\mbox{-}witness}\\) are \\(\\mathbb G_{o(i,j)-1}\\)-measurable.  Consequently,\n\\[\n \\sigma\\!\\left(\\mathbb G_{o(i,j)-1},Y_{ij}(0),Y_{ij}(1)\\right)\n =\\mathbb G_{o(i,j)-1}\n \\quad\\text{up to completion}.\n\\]\nBy the definition of the recorded propensity and by the witness construction,\n\\[\n \\begin{aligned}\n P\\!\\left(A_{ij}=1\\mid\\mathbb G_{o(i,j)-1},Y_{ij}(0),Y_{ij}(1)\\right)\n &=P\\!\\left(A_{ij}=1\\mid\\mathbb G_{o(i,j)-1}\\right)\\\\\n &=p_{ij}.\n \\end{aligned}\n\\]\nThus \\(\\mathrm{ass:sequential\\mbox{-}randomization}\\) holds.  Because each product \\((-1)^{i+j}(2A_{i,j-1}-1)\\) is either \\(-1\\) or \\(1\\),\n\\[\n p_{ij}\\in\\left\\{\\frac14,\\frac34\\right\\}.\n\\]\nThe strict inequality \\(q<1/4\\) therefore gives \\(q\\le p_{ij}\\le1-q\\), which is exactly \\(\\mathrm{ass:overlap}\\).  Moreover, for \\(a\\in\\{0,1\\}\\), the triangle inequality and the amplitude restriction in \\(\\mathrm{def:markov\\mbox{-}witness}\\) give\n\\[\n |Y_{ij}(a)|\\le |C_{ij}|+\\frac{\\theta}{2}\n =h+\\frac{\\theta}{2}\\le B.\n\\]\nThis verifies \\(\\mathrm{ass:bounded\\mbox{-}outcomes}\\).\n\nSince the two potential outcomes are measurable with respect to the conditioning field, their conditional means equal the outcomes themselves.  Subtracting the two displayed formulas in \\(\\mathrm{def:markov\\mbox{-}witness}\\) yields\n\\[\n M_{ij}=\\mu^1_{ij}-\\mu^0_{ij}=\\theta(-1)^{i+j}.\n\\]\nLet \\(s\\in\\mathbb R^n\\) and \\(t\\in\\mathbb R^m\\) have coordinates \\(s_i=(-1)^i\\) and \\(t_j=(-1)^j\\).  Then\n\\[\n M=\\theta st^\\top\n   =\\left(\\frac{s}{\\sqrt n}\\right)\n      \\bigl(\\theta\\sqrt{nm}\\bigr)\n      \\left(\\frac{t}{\\sqrt m}\\right)^\\top .\n\\]\nBecause \\(\\theta>0\\), this is a singular-value decomposition with rank one, sole singular value \\(\\theta\\sqrt{nm}\\), and singular vectors \\(U=s/\\sqrt n\\) and \\(V=t/\\sqrt m\\), up to their common harmless sign.  It follows equation by equation that\n\\[\n \\lVert U\\rVert_{2,\\infty}=n^{-1/2}=\\sqrt{\\frac{1\\cdot1}{n}},\n \\qquad\n \\lVert V\\rVert_{2,\\infty}=m^{-1/2}=\\sqrt{\\frac{1\\cdot1}{m}},\n\\]\n\\[\n \\frac{\\sigma_1(M)}{\\sigma_1(M)}=1,\n \\qquad\n \\sigma_1(M)=\\theta\\sqrt{nm}.\n\\]\nThus \\(\\mathrm{ass:exact\\mbox{-}rank}\\), \\(\\mathrm{ass:left\\mbox{-}incoherence}\\), \\(\\mathrm{ass:right\\mbox{-}incoherence}\\), \\(\\mathrm{ass:condition\\mbox{-}number}\\), and \\(\\mathrm{ass:signal\\mbox{-}floor}\\) hold with \\((r,\\mu,K,\\lambda_{nm})=(1,1,1,\\theta\\sqrt{nm})\\).  Together with the design, boundedness, and aspect checks above, the membership definition \\(\\mathrm{def:predictable\\mbox{-}class}\\) gives\n\\[\n W_\\ell\\in\n \\mathfrak P^{\\mathrm{pred}}_{n_\\ell,m_\\ell}\n \\left(1,1,1,q,B,\\theta\\sqrt{n_\\ell m_\\ell}\\right)\n \\quad\\text{for every }\\ell\\ge\\ell_0.\n\\]\n\nWe next prove that this member is outside the published Dwivedi model.  For every \\(j\\ge2\\), \\(\\mathrm{def:markov\\mbox{-}witness}\\) gives\n\\[\n \\mu^1_{ij}\n =h(-1)^{i+j}(2A_{i,j-1}-1)+\\frac{\\theta}{2}(-1)^{i+j}.\n\\]\nChanging \\(A_{i,j-1}\\) from zero to one changes this mean by \\(2h(-1)^{i+j}\\ne0\\).  Both values of \\(A_{i,j-1}\\) have positive conditional probability because its recorded propensity lies in \\(\\{1/4,3/4\\}\\).  Hence this is genuine, rather than null-set, dependence of the current arm mean on a past treatment.  The published model restriction recorded in \\(\\mathrm{lem:dwivedi\\mbox{-}exogenous\\mbox{-}model\\mbox{-}scope}\\) requires the current counterfactual to be generated from exogenous unit and time factors and exogenous noise and expressly excludes dependence on past treatment.  The Markov witness therefore cannot be generated by that model.\n\nFor the converse separation, consider \\(\\mathrm{def:dwivedi\\mbox{-}full\\mbox{-}rank\\mbox{-}witness}\\).  On \\([0,1]^2\\),\n\\[\n 0\\le f^{\\mathrm D}_1(u,v)=e^{uv}\\le e,\n \\qquad\n \\left|\\frac{\\partial}{\\partial u}e^{uv}\\right|=ve^{uv}\\le e,\n \\qquad\n \\left|\\frac{\\partial}{\\partial v}e^{uv}\\right|=ue^{uv}\\le e.\n\\]\nThe one-dimensional mean-value theorem, applied once in each coordinate, therefore shows that \\(f^{\\mathrm D}_1\\) is bounded and coordinatewise \\(e\\)-Lipschitz; \\(f^{\\mathrm D}_0=0\\) is bounded and coordinatewise Lipschitz with constant zero.  The independent uniform factors have compact support and density one.  Thus these functions and factors satisfy the nonlinear-factor and factor-distribution conditions recorded in \\(\\mathrm{lem:dwivedi\\mbox{-}nonlinear\\mbox{-}extension\\mbox{-}scope}\\).  The remaining conditions of that cited theorem are simultaneously satisfiable: take an independent constant one-half treatment policy, independent bounded centered noise, and independent uniform factors for the constant control arm.  These choices preserve the two arm means and hence preserve\n\\[\n M^{\\mathrm D}_{ij}=e^{u_i^{\\mathrm D}v_j^{\\mathrm D}}.\n\\]\nThis constructs a law in the published nonlinear-factor setting whose effect matrix is \\(M^{\\mathrm D}\\).\n\nIt remains to compute its rank.  Independent variables with continuous uniform laws have no ties with probability one; a finite union bound over pairs shows that all \\(u_i^{\\mathrm D}\\) are distinct and all \\(v_j^{\\mathrm D}\\) are distinct almost surely.  We use the following elementary zero-count argument on this probability-one event.  If \\(x_1<\\cdots<x_d\\) are distinct real numbers, then every nonzero function\n\\[\n F(y)=\\sum_{k=1}^d c_k e^{x_k y}\n\\]\nhas at most \\(d-1\\) distinct real zeros.  Indeed, the assertion is immediate for \\(d=1\\).  For the induction step, suppose \\(F\\) had \\(d\\) distinct zeros and put\n\\[\n H(y)=e^{-x_1y}F(y)=c_1+\\sum_{k=2}^d c_k e^{(x_k-x_1)y}.\n\\]\nRolle's theorem would give at least \\(d-1\\) distinct zeros of\n\\[\n H'(y)=\\sum_{k=2}^d c_k(x_k-x_1)e^{(x_k-x_1)y}.\n\\]\nThe induction hypothesis forces \\(c_k(x_k-x_1)=0\\) for every \\(k\\ge2\\).  Distinctness gives \\(x_k-x_1\\ne0\\), so \\(c_k=0\\) for \\(k\\ge2\\); the zeros of the constant \\(H=c_1\\) then force \\(c_1=0\\), contradicting nontriviality.  This proves the zero-count assertion.\n\nLet \\(d=\\min(n,m)\\), choose any \\(d\\) rows and \\(d\\) columns of \\(M^{\\mathrm D}\\), and permute them so that the selected \\(u\\)'s and \\(v\\)'s are increasing.  If this square submatrix were singular, there would be coefficients \\(c_1,\\ldots,c_d\\), not all zero, for which\n\\[\n \\sum_{k=1}^d c_k e^{u_k^{\\mathrm D}v_j^{\\mathrm D}}=0,\n \\qquad j=1,\\ldots,d.\n\\]\nThe corresponding exponential sum would have the \\(d\\) distinct zeros \\(v_1^{\\mathrm D},\\ldots,v_d^{\\mathrm D}\\), contradicting the zero-count assertion.  The submatrix is therefore invertible, so\n\\[\n \\operatorname{rank}(M^{\\mathrm D})\\ge d.\n\\]\nThe reverse inequality holds for every \\(n\\)-by-\\(m\\) matrix, and hence\n\\[\n \\operatorname{rank}(M^{\\mathrm D})=\\min(n,m)\n \\quad\\text{almost surely}.\n\\]\nFor a fixed \\(r\\), eventually \\(\\min(n_\\ell,m_\\ell)>r\\), so this source-compatible law violates \\(\\mathrm{ass:exact\\mbox{-}rank}\\) and is excluded from \\(\\mathfrak P^{\\mathrm{pred}}_{n_\\ell,m_\\ell}(r,\\mu,K,q,B,\\lambda)\\), independently of the other class restrictions.\n\nWe have exhibited a member of the predictable low-rank class outside the published factor class and a member of the published nonlinear-factor class outside every fixed-rank predictable class along the dimension path.  Thus neither model class contains the other.  Finally, \\(\\mathrm{lem:dwivedi\\mbox{-}nearest\\mbox{-}neighbor\\mbox{-}scope}\\) records that the cited Theorem 3.1 and equations (17)--(18) bound the squared error of a scalar nearest-neighbor estimate at a fixed unit and time, whereas the present frontier concerns normalized maximum-row loss for a left singular space.  The differing targets together with the two explicit class witnesses prove that neither uniform guarantee is a specialization of the other, which is the claimed non-representability in both directions."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:dwivedi-exogenous-model-scope",
+            "kind": "lemma",
+            "statement": "In the published model of Dwivedi et al., an exogenous quantity is generated independently of all other sources of randomness, equation (4) generates each potential outcome from treatment-indexed exogenous unit and time factors plus exogenous noise, and the model expressly requires the counterfactual at a decision time not to depend on past treatment.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "DwivediTianTomkinsKlasnjaMurphyShah2025",
+              "locator": "pages 2382--2383, definition of exogenous, equation (1) discussion, and equation (4)",
+              "carrier": "logical-claim",
+              "verbatim_statement": "Equation (4): \\(Y_{i,t}^{(a)}=f^{(a)}(u_i^{(a)},v_t^{(a)})+\\epsilon_{i,t}^{(a)}\\).",
+              "arxiv": "2202.06891v5",
+              "doi": "10.1214/25-AOS2519",
+              "url": "https://doi.org/10.1214/25-AOS2519",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Checked against the accepted-version source and PDF; the equation and published pagination agree."
+              }
+            }
+          },
+          {
+            "id": "lem:dwivedi-nearest-neighbor-scope",
+            "kind": "lemma",
+            "statement": "Dwivedi et al.'s published Theorem 3.1 and equations (17)--(18) give a high-probability squared-error bound for their nearest-neighbor estimator of one treatment-specific mean counterfactual at a fixed unit and time under their Assumptions 1--5.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "DwivediTianTomkinsKlasnjaMurphyShah2025",
+              "locator": "Theorem 3.1 and equations (17)--(18), page 2389",
+              "carrier": "logical-claim",
+              "verbatim_statement": "Theorem 3.1: Non-asymptotic error bound for \\(\\widehat\\theta_{i,t,\\eta}^{(a)}\\).",
+              "arxiv": "2202.06891v5",
+              "doi": "10.1214/25-AOS2519",
+              "url": "https://doi.org/10.1214/25-AOS2519",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Checked against Theorem 3.1 and its displayed bounds in the accepted-version PDF."
+              }
+            }
+          },
+          {
+            "id": "lem:dwivedi-nonlinear-extension-scope",
+            "kind": "lemma",
+            "statement": "Dwivedi et al.'s published Assumptions 6--7 permit bounded coordinatewise Lipschitz nonlinear functions of exogenous unit and time factors supported on a compact cube with lower-bounded time-factor density, and their Theorem 4.1 gives the corresponding unit-by-time nearest-neighbor error bound under Assumptions 1, 2, 4, 6, and 7.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "DwivediTianTomkinsKlasnjaMurphyShah2025",
+              "locator": "Assumptions 6--7, page 2397, and Theorem 4.1, page 2398",
+              "carrier": "logical-claim",
+              "verbatim_statement": "Equation (27): \\(\\theta_{i,t}^{(a)}=E[Y_{i,t}^{(a)}\\mid U,V]=f^{(a)}(u_i^{(a)},v_t^{(a)})\\).",
+              "arxiv": "2202.06891v5",
+              "doi": "10.1214/25-AOS2519",
+              "url": "https://doi.org/10.1214/25-AOS2519",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Checked against Assumptions 6--7 and Theorem 4.1 in the accepted-version PDF."
+              }
+            }
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:dwivedi-separation",
+            "proposed": {
+              "id": "thm:dwivedi-separation",
+              "kind": "theorem",
+              "statement": "Fix \\(q<1/4\\) and the amplitudes in \\(\\mathrm{def:markov\\mbox{-}witness}\\). For all sufficiently large \\(\\ell\\), the bounded Markov law \\(W_\\ell\\) lies in \\(\\mathfrak P^{\\mathrm{pred}}_{n_\\ell,m_\\ell}(1,1,1,q,B,\\theta\\sqrt{n_\\ell m_\\ell})\\), but its arm means depend on \\(A_{i,j-1}\\), so it is not generated by the exogenous unit and time factors in Dwivedi et al.'s published equation (4) on page 2383. Conversely, their published Assumption 6 on page 2397 and Theorem 4.1 on page 2398 contain the bounded Lipschitz nonlinear-factor law generated by \\(f^{\\mathrm D}_0\\), \\(f^{\\mathrm D}_1\\), \\(u^{\\mathrm D}\\), and \\(v^{\\mathrm D}\\), for which \\(\\operatorname{rank}(M^{\\mathrm D})=\\min(n,m)\\) almost surely; this law is excluded by \\(\\operatorname{rank}(M)=r\\) for fixed \\(r\\). Thus their unit-by-time nearest-neighbor bound in published Theorem 3.1 and equations (17)--(18) on page 2389 and the normalized maximum-row IPW-SVD frontier are non-representable in either direction.",
+              "free_symbols": [
+                "W",
+                "P",
+                "npath",
+                "mpath",
+                "ell",
+                "q",
+                "B",
+                "theta",
+                "A",
+                "i",
+                "j",
+                "n",
+                "m",
+                "M",
+                "r",
+                "fD0",
+                "fD1",
+                "uD",
+                "vD",
+                "MD"
+              ],
+              "depends_on": [
+                "def:predictable-class",
+                "def:markov-witness",
+                "def:dwivedi-full-rank-witness",
+                "ass:exact-rank",
+                "lem:dwivedi-exogenous-model-scope",
+                "lem:dwivedi-nearest-neighbor-scope",
+                "lem:dwivedi-nonlinear-extension-scope"
+              ],
+              "status": "to-prove",
+              "justification": "This gives the exact model-theoretic separation from the closest adaptive pooled unit-by-time factor result.",
+              "gap": "Dwivedi et al., published Theorem 3.1 and equations (17)--(18) on page 2389, control a nearest-neighbor unit-by-time arm-mean error under the factor structure in equation (4) on page 2383, not a row-subspace loss under treatment-path-dependent arm means.",
+              "consumer": "Referees can distinguish the row-factor target and predictable-mask domain from published adaptive counterfactual imputation."
+            },
+            "reason": "The proof uses three published comparator facts, so the target's dependency metadata must declare the corresponding cited leaves.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": []
+      }
+    }
+  ]
+}

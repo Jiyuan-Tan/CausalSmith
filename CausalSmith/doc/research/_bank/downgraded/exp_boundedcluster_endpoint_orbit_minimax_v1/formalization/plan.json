@@ -1,0 +1,816 @@
+{
+  "qid": "exp_boundedcluster_endpoint_orbit_minimax",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "target_dir": "CausalSmith/Experimentation/EXP_BoundedclusterEndpointOrbitMinimax_Research",
+  "lean_namespace": "CausalSmith.Experimentation.BoundedclusterEndpointOrbitMinimax",
+  "feasibility": "needs-new-infrastructure",
+  "feasibility_reason": "Every paper-owned node (assumptions, the eight constructions, and all eight delivered statements) is build-inline at defer_tier:false on top of confirmed Causalean substrate, with the S1 ambient world built locally as a composite saturation-experiment record over reused design-based probability components (see D8). The only defer_tier:true nodes are the two frozen cited leaves lem:sion-compact-minimax and lem:weak-rational-convex-optimization, which are substrate gates by frozen provenance and are threaded as named Prop hypotheses into their direct consumers; the GLS leaf is threaded as the minimal external oracle-optimization interface, with its oracle premises and its algorithmic call/step/bit output, so the compiler construction and its bounds rest on it explicitly (see D7).",
+  "env": [
+    {
+      "id": "S1",
+      "world": "A fixed finite population of \\(N=\\sum_{g\\in\\mathcal G}s_g\\) units is partitioned into \\(m\\) labeled clusters \\(\\mathcal G=\\{1,\\ldots,m\\}\\) of sizes \\(s_g\\in\\{3,\\ldots,b\\}\\). Potential outcomes are fixed and bounded, \\(Y_{gi}(z,a)\\in[0,1]\\), and depend on the realized assignment only through unit \\(i\\)'s own treatment \\(z\\in\\{0,1\\}\\) and its cluster's saturation label \\(a\\in\\mathcal A=\\{1,\\ldots,K\\}\\); there is no superpopulation sampling. A randomized design \\(D\\in\\Delta(\\mathcal X)\\), with arbitrary dependence across clusters and stages, draws the complete feasible assignment \\(X=((A_g,S_g))_{g\\in\\mathcal G}\\), where \\(|S_g|=r_{s_g,A_g}\\) for a prescribed treated-count table \\(0\\le r_{q,a}\\le q\\). The observation map \\(\\mathcal O(X)=\\{(g,i,\\mathbf 1\\{i\\in S_g\\},A_g)\\}\\) reveals \\(V=(Y_{gi}(\\mathbf 1\\{i\\in S_g\\},A_g))_{g,i}\\in[0,1]^N\\), and an arbitrary measurable rule \\(\\delta(X,V)\\in[-L,L]\\) is scored by the design-based squared error \\(\\mathcal R(D,\\delta;Y)=\\mathbb E_D[(\\delta(X,V)-\\tau(Y))^2]\\), where only \\(X\\) is random, for the person-weighted contrast \\(\\tau(Y)=N^{-1}\\sum_{g}\\sum_{i\\le s_g}\\sum_{z,a}c_{z,a}Y_{gi}(z,a)\\) with rational \\(c\\), \\(\\sum_{z,a}c_{z,a}=0\\), and radius \\(L=\\tfrac12\\sum_{z,a}|c_{z,a}|\\). The benchmarks are the unrestricted minimax risk \\(R^\\star=\\inf_{D,\\delta}\\sup_{Y\\in\\mathcal M}\\mathcal R(D,\\delta;Y)\\) and its common-probability independent-saturation restriction \\(R_{\\mathrm{ind}}\\).",
+      "binds_symbols": [
+        "K",
+        "\\mathcal A",
+        "b",
+        "m",
+        "\\mathcal G",
+        "s",
+        "N",
+        "r",
+        "c",
+        "Y",
+        "\\mathcal M",
+        "\\tau",
+        "L",
+        "X",
+        "\\mathcal X",
+        "\\mathcal O",
+        "V",
+        "D",
+        "\\delta",
+        "\\mathcal R",
+        "R^\\star",
+        "R_{\\mathrm{ind}}"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "local_world_name": "SaturationExperiment",
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Risk",
+        "Causalean.Experimentation.DesignBased.Exposure",
+        "Causalean.Experimentation.DesignBased.PotentialOutcome",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Experimentation.DesignBased.TwoStage",
+        "Causalean.Stat.Minimax.MinimaxValue"
+      ],
+      "builds_on": [
+        "Causalean.Experimentation.DesignBased.FiniteDesign",
+        "Causalean.Experimentation.DesignBased.FiniteDesign.E",
+        "Causalean.Experimentation.DesignBased.FiniteDesign.map",
+        "Causalean.Experimentation.DesignBased.FiniteDesign.mse",
+        "Causalean.Experimentation.DesignBased.completeRandomization",
+        "Causalean.Experimentation.DesignBased.Yobs",
+        "Causalean.Experimentation.DesignBased.expoInd",
+        "Causalean.Experimentation.DesignBased.compound",
+        "Causalean.Stat.minimaxValue",
+        "Causalean.Stat.minimaxValue_mono_class_of_nonneg"
+      ],
+      "notes": "CORRECTED (round 2): this world is LOCAL composite saturation-experiment scaffolding, not a wholesale reuse. `FiniteDesign Ω` (Causalean/Experimentation/DesignBased/DesignCore.lean:44) is only a probability mass function on a fintype with `E`/`Var`/`map`/`Pr` algebra; it carries no feasible two-stage assignment space, no potential outcomes, no observation map, no estimator, and no design-based experiment, so it is recorded here as SUPPORTING PROBABILITY-LAYER REUSE (a component) rather than as the world itself. F2 emits in Basic.lean the local composite record chain that IS the world: (i) `SaturationInstance` carrying \\((K,b,m,s,r,c)\\) with `2 ≤ K`, `3 ≤ s g`, `s g ≤ b`, `r q a ≤ q`, `∑ c = 0`, `c ≠ 0` and both-arm nonvanishing, from which \\(N\\), \\(\\mathcal A\\), \\(\\mathcal G\\) and \\(L=\\tfrac12\\sum|c_{z,a}|\\) are derived; (ii) the feasible-assignment fintype `Assignment inst := ∀ g, Σ a : Label inst, {S : Finset (Fin (s g)) // S.card = r (s g) a}` with its `Fintype`/`DecidableEq` instances — this is \\(\\mathcal X\\), the exact-count two-stage action space; (iii) `RawSchedule inst := ∀ g, Fin (s g) → Assignment inst → ℝ` (see D1) with the reduced \\(Y_{gi}(z,a)\\) derived under `ass:stratified-interference`; (iv) the observation map `obsSet : Assignment inst → Finset (RevealedIndex inst)` (\\(\\mathcal O\\)) and the revealed vector `revealed : Assignment inst → RawSchedule inst → (Fin N → ℝ)` (\\(V\\)); (v) `tau : RawSchedule inst → ℝ`; (vi) the estimator type `Rule inst := Assignment inst → (Fin N → ℝ) → Set.Icc (-L inst) (L inst)` (\\(\\delta\\)); (vii) the composite experiment record `SaturationExperiment inst` bundling a `design : FiniteDesign (Assignment inst)` with a `rule : Rule inst`, and the risk `R : SaturationExperiment inst → RawSchedule inst → ℝ`; (viii) `R^\\star` and `R_{\\mathrm{ind}}` as minimax values over the corresponding procedure classes. Probability-layer components reused inside that record, each confirmed in source: `FiniteDesign`/`E`/`map`/`mse` (DesignCore.lean:44, Risk.lean:46 — `mse` supplies the squared-error algebra behind `R`), `completeRandomization n₁ hn : FiniteDesign {S : Finset V // S.card = n₁}` (Designs/CompleteRandomization.lean:58, uniform on exactly-\\(r_{q,a}\\)-subsets and total at \\(r_{q,a}\\in\\{0,q\\}\\) since the binomial coefficient is one) for the second stage, `compound`/`E_compound` (TwoStage.lean:64) for the conditionally-independent two-stage law, the exposure bookkeeping `Yobs`/`expoInd` (PotentialOutcome.lean:46) as the pattern for `revealed` with exposure alphabet \\(\\Delta=\\{0,1\\}\\times\\mathcal A\\) and unit attribute \\(\\theta_{gi}=g\\), and `Causalean.Stat.minimaxValue` (Stat/Minimax/MinimaxValue.lean:62) plus `minimaxValue_mono_class_of_nonneg` (which gives \\(R^\\star\\le R_{\\mathrm{ind}}\\) for free). Analogous composite-record precedent to imitate: `Causalean.Experimentation.TwoStageInterference.Asymptotic.LHExperiment` (Asymptotic/Setup.lean:65) bundles a stage-1 `FiniteDesign (StratAssign ι)`, per-group allocation `FiniteDesign`s, partial-interference potential outcomes and carried regularity in exactly this local-composite style; also `ExposureMappingInterference/Asymptotics/Consistency.lean:43` (`Experiment`) and `UnknownInterference/Consistency.lean:60` (`SAHExperiment`). Bypass-justified for the composite layer: none of those records has a saturation-label-indexed exact-count table \\(r_{q,a}\\), an anonymous-saturation exposure summary, or an unrestricted clipped nonlinear rule, so no instantiation yields this world. Search trace: grepped ../Causalean for `^\\s*(structure|class)\\s+\\w*(Experiment|Oracle|Handle|Compiler)` (5 hits, all read or classified above) and for `(structure|class|abbrev) .*(Experiment|Design|Setup|Instance)` in Causalean/Experimentation; read Causalean/Experimentation/DesignBased/{DesignCore,Risk,Exposure,PotentialOutcome,TwoStage,Designs/CompleteRandomization}.lean, TwoStageInterference/{Basic,Stratified}.lean and TwoStageInterference/Asymptotic/Setup.lean:55-109; globbed Causalean/Experimentation/**/*.lean (103 files). Mathlib side: `Finset.powersetCard`/`Fintype` instances only; no experiment-record abstraction exists there."
+    },
+    {
+      "id": "S2",
+      "world": "A finite bounded squared-loss decision game obtained by quotienting the experiment by the finite symmetry group \\(\\Gamma=\\prod_{g}\\mathfrak S_{s_g}\\rtimes\\prod_{q}\\mathfrak S_{m_q}\\) of within-cluster unit permutations and permutations of equal-size clusters. Nature's finite state space is the response-orbit set \\(\\mathcal K=\\{0,1\\}^{2KN}/\\Gamma\\) of size-tagged histograms of cluster response types, carrying rational targets \\(\\theta_\\kappa\\in[-L,L]\\); the procedure's finite action-index space is the assignment-orbit set \\(\\mathcal N=\\mathcal X/\\Gamma\\) of label histograms \\((n_{q,a})\\); data live in the observation-orbit set \\(\\mathcal W\\) of size-tagged histograms of local triples \\((a,u,v)\\). The experiment is the rational stabilizer-weighted kernel \\(H_{\\kappa n\\omega}\\ge0\\) with \\(\\sum_\\omega H_{\\kappa n\\omega}=1\\), assembled from the local exact-count kernels \\(P_{t,a}(u,v)\\). A procedure is a probability vector \\((d_n)_{n\\in\\mathcal N}\\) together with clipped decisions \\(\\delta_{n\\omega}\\in[-L,L]\\), scored by \\(\\sum_{n,\\omega}d_nH_{\\kappa n\\omega}(\\delta_{n\\omega}-\\theta_\\kappa)^2\\); equivalently, in perspective variables \\(t_{n\\omega}=d_n\\delta_{n\\omega}\\), by \\(\\sum_{n,\\omega}H_{\\kappa n\\omega}(t_{n\\omega}-d_n\\theta_\\kappa)^2/d_n\\) with the closed value \\(0\\) at \\(d_n=0\\). Its primal value is \\(\\operatorname{val}(\\mathsf P)\\); the dual value \\(\\operatorname{val}(\\mathsf Q)\\) maximizes \\(\\min_n b_n(\\pi)\\) over priors \\(\\pi\\in\\Delta(\\mathcal K)\\), where \\(b_n(\\pi)\\) is the posterior residual obtained by completing the square with the guarded posterior mean \\(h_{n\\omega}/a_{n\\omega}\\); rational certificates \\(\\underline R\\le\\overline R\\) with tolerance \\(\\varepsilon\\in\\mathbb Q_{>0}\\), and the compiler \\(\\mathfrak C\\) producing them, live in this game.",
+      "binds_symbols": [
+        "\\Gamma",
+        "\\mathcal K",
+        "\\mathcal N",
+        "\\mathcal W",
+        "P",
+        "H",
+        "\\theta",
+        "\\overline R",
+        "\\underline R",
+        "\\mathsf P",
+        "\\mathsf Q",
+        "\\varepsilon",
+        "\\mathfrak C"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "reuse",
+      "reuse": "Causalean.Stat.Minimax.FiniteSquaredLoss.Model",
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Core",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Mixing",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Saddle",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter",
+        "Causalean.Stat.Minimax.FiniteKernelBayes",
+        "Causalean.Stat.FiniteRaoBlackwell.DesignPushforward",
+        "Causalean.Stat.FiniteRaoBlackwell.RaoBlackwell",
+        "Causalean.Stat.Minimax.MinimaxValue"
+      ],
+      "builds_on": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Model",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Procedure",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.risk",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.risk_nonneg",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Model.posteriorMean",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Model.posteriorResidual",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Model.squaredRisk_eq_posteriorResidual_add",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Model.iInf_squaredRisk_eq_posteriorResidual",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Model.sInf_posteriorResidual_le_minimaxValue",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.finite_bounded_squared_loss_has_saddle",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.mixProcedure",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.risk_mixProcedure_le",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.barycenterProcedure",
+        "Causalean.Stat.FiniteRaoBlackwell.conditionalMeanAlongMap",
+        "Causalean.Stat.FiniteRaoBlackwell.E_map_conditionalMeanAlongMap_sq_le"
+      ],
+      "notes": "This is the single highest-leverage reuse decision and it is an exact abstraction match, not an analogy. `FiniteSquaredLoss.Procedure X l u` (Causalean/Stat/Minimax/FiniteSquaredLoss/Core.lean:33) is literally a `FiniteDesign R` plus `∀ r, X r → Set.Icc l u` — the pair \\((d,\\delta)\\) with clipping built in — and `risk P tau q theta = ∑ r, q.design.p r * ∑ x, P theta r x * (δ - tau theta)^2` (Core.lean:43) is the orbit risk \\(\\rho_\\kappa\\). `Model Theta B X` (PosteriorBarycenter.lean:27) packages exactly \\((H,\\theta)\\) with `P_nonneg`/`P_sum` = the kernel facts (13)/(6); `Model.posteriorMean` (PosteriorBarycenter.lean:79) is the guarded \\(h_{n\\omega}/a_{n\\omega}\\) with the paper's zero-likelihood convention already proved total (`predictiveTarget_eq_zero_of_predictiveMass_eq_zero`), `Model.posteriorResidual` is \\(b_n(\\pi)\\), `squaredRisk_eq_posteriorResidual_add` is the paper's completion-of-the-square identity (18)/(38) verbatim, `iInf_squaredRisk_eq_posteriorResidual` is (19), and `sInf_posteriorResidual_le_minimaxValue` is weak duality. `finite_bounded_squared_loss_has_saddle` (Saddle.lean:157) delivers attainment of a design, a clipped decision table, and a least-favorable prior together with \\(\\operatorname{val}(\\mathsf P)=\\operatorname{val}(\\mathsf Q)=\\)`minimaxValue`. The orbit quotient itself reuses `Causalean.Stat.FiniteRaoBlackwell.conditionalMeanAlongMap` + `E_map_conditionalMeanAlongMap_sq_le` + `conditionalMeanAlongMap_mem_Icc` (Stat/FiniteRaoBlackwell/DesignPushforward.lean:122-263): pushing a design along a map and replacing the rule by its conditional mean weakly decreases squared risk and stays clipped, with zero-mass fibers total. Bypass justification for the un-reused parts: the orbit index types \\(\\mathcal K,\\mathcal N,\\mathcal W\\) and the kernel \\(H\\) are this paper's exact-count saturation construction and have no library analogue; the sibling accepted-bank module `CausalSmith/Experimentation/EXP_MultiarmSecondorderMinimaxFrontier_Research/Helpers/OrbitLikelihood.lean` (`orbitLik`, `orbitLik_sum_obs`, `labeledObservation_card_ratio_eq_orbitLik`) and `Helpers/FiniteGame.lean` (`finite_orbit_game_has_saddle`) carry the SAME proof pattern in the no-interference multi-arm setting and are the references F3 should adapt; the gap to bridge is the two-stage label-plus-exact-subset local kernel and the equal-size-cluster stabilizer divisor \\(\\binom{m_q}{(n_{q,a})_a}\\), which the sibling does not have. Search trace: read the four FiniteSquaredLoss files, FiniteRaoBlackwell/{DesignPushforward,RaoBlackwell}.lean, Stat/Minimax/MinimaxValue.lean; `lean_local_search minimaxValue`; grepped Causalean for `symmetriz|groupAverage|orbitAverage|InvariantDesign` (only Rademacher symmetrization, unrelated); `## ` index of ../doc/API.md incl. section 10z."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:sion-1958-general-minimax",
+      "title": "On General Minimax Theorems",
+      "authors": "Maurice Sion",
+      "year": 1958,
+      "bibkey": "Sion1958",
+      "citation": "Sion, Maurice. 1958. ``On General Minimax Theorems.'' Pacific Journal of Mathematics 8(1): 171--176.",
+      "locator": "Theorem 3.4, page 174",
+      "carrier": "logical-claim",
+      "doi": "10.2140/pjm.1958.8.171",
+      "url": "https://msp.org/pjm/1958/8-1/pjm-v8-n1-p14-p.pdf",
+      "used_by": [
+        "lem:sion-compact-minimax"
+      ],
+      "verbatim_statement": "Let \\(M\\) and \\(N\\) be convex, compact spaces, and \\(f\\) a function on \\(M\\times N\\), quasi-concave-convex and u.s.c.-l.s.c. Then \\(\\sup\\inf f=\\inf\\sup f\\).",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Transcribed from Maurice Sion, On general minimax theorems, Pacific Journal of Mathematics 8 (1958), Theorem 3.4, publisher PDF."
+      }
+    },
+    {
+      "id": "cite:gls-1988-weak-convex-optimization",
+      "title": "Geometric Algorithms and Combinatorial Optimization",
+      "authors": "Martin Grötschel, László Lovász, and Alexander Schrijver",
+      "year": 1988,
+      "bibkey": "GrotschelLovaszSchrijver1988",
+      "citation": "Grötschel, Martin, László Lovász, and Alexander Schrijver. 1988. Geometric Algorithms and Combinatorial Optimization. Algorithms and Combinatorics 2. Berlin: Springer-Verlag.",
+      "locator": "Theorem (4.3.13), pages 113--114, together with Definition (2.1.16), page 53, the oracle-polynomial convention on page 55, and Problem (2.1.22), page 56",
+      "carrier": "logical-claim",
+      "url": "https://www.zib.de/userpage/groetschel/pubnew/paper/groetschellovaszschrijver1988.pdf",
+      "used_by": [
+        "lem:weak-rational-convex-optimization"
+      ],
+      "verbatim_statement": "Output: A vector \\(y\\in S(K,\\varepsilon)\\) such that \\(f(y)<f(x)+\\varepsilon\\) for all \\(x\\in S(K,-\\varepsilon)\\).",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Verified against the primary PDF at the stated locations. Theorem (4.3.13) takes a positive rational accuracy \\(\\varepsilon\\), a centered convex body \\((K;n,R,r,a_0)\\) given by weak membership, and a globally defined convex function \\(f:\\mathbb R^n\\to\\mathbb R\\) whose oracle, for rational \\(x\\) and positive rational \\(\\delta\\), returns rational \\(t\\) with \\(|f(x)-t|<\\delta\\). Definition (2.1.16) expands centeredness as rational data with \\(B(a_0,r)\\subseteq K\\subseteq B(0,R)\\). Problem (2.1.22) specifies that the returned vector is rational, and page 55 makes oracle-polynomial time polynomial in the body's rational encoding and the further inputs, hence logarithmic in inverse binary accuracy. The displayed output sentence is transcribed from Theorem (4.3.13), with notation normalized to LaTeX. One further call to the stated value oracle at the rational output supplies a rational approximate objective value to any requested rational accuracy."
+      }
+    }
+  ],
+  "nodes": {
+    "ass:bounded-outcomes": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedOutcomes",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Mathlib.Data.Fintype.BigOperators"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement_sketch": "def BoundedOutcomes (inst) (Y : RawSchedule inst) : Prop := ∀ g i x, Y g i x ∈ Set.Icc (0:ℝ) 1",
+      "notes": "Support restriction on the data-generating schedule, kept as a threaded hypothesis and never discharged (it is a declared `ass:` node and a genuine restriction on nature, not a library fact). One named `def … : Prop`, referenced both as a member of the class `def:model-class` and directly in `thm:strict-correlated-advantage.hyps`; a shared atom is still one def. Search trace: grepped Causalean/Experimentation for `Icc 0 1|BoundedOutcome|bounded.*outcome|0 ≤ Y` — only inline coordinate bounds inside asymptotic files (ExposureMappingInterference/Asymptotics/*, TwoStageInterference/Asymptotic/*), no reusable named predicate; the nearest packaged analogue is the sibling `HullSchedule N L U` bundle in CausalSmith/Experimentation/EXP_MultiarmSecondorderMinimaxFrontier_Research/Basic.lean:229, which fixes two-arm no-interference bounds and does not fit. Mathlib side: `Set.Icc` membership is the primitive; there is nothing to reuse beyond it."
+    },
+    "ass:stratified-interference": {
+      "lean_kind": "assumption",
+      "lean_name": "AnonymousSaturationInterference",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.TwoStageInterference.Stratified",
+        "Causalean.Experimentation.DesignBased.Exposure"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement_sketch": "def AnonymousSaturationInterference (inst) (Y : RawSchedule inst) : Prop := ∀ g i (x x' : Assignment inst), (x g).1 = (x' g).1 → (i ∈ (x g).2 ↔ i ∈ (x' g).2) → Y g i x = Y g i x'",
+      "notes": "Causal-structural assumption: each unit's outcome is invariant under assignments agreeing on its own treatment indicator and its cluster's saturation label, which is what licenses the reduced writing \\(Y_{gi}(z,a)\\). Kept threaded (declared `ass:`), never discharged and never escalated. Encoding decision: the world carries the RAW assignment-indexed schedule so that this Prop is a real restriction rather than a vacuous truth of the reduced type; the reduced \\(Y_{gi}(z,a)\\) and the revealed vector are derived from it (mirrors `exists_strat_factor` in Causalean). Analogous module carrying the same pattern: `Causalean.Experimentation.TwoStageInterference.StratifiedInterference` and `stratExposure` (Causalean/Experimentation/TwoStageInterference/Stratified.lean:53-88) — Hudgens–Halloran Assumption 2 with exposure summary (own treatment, number of treated others) plus its factorization lemma; bypass-justified because the paper's exposure summary is (own treatment, cluster saturation label) rather than a treated-others count, so the predicate is not the same set of schedules and no instantiation of the Causalean version yields it. Search trace: grepped Causalean/Experimentation for `Stratified|stratified` (hit TwoStageInterference/Stratified.lean, Designs/Stratified.lean — the latter is a randomization design, not an interference restriction); read TwoStageInterference/{Basic,Stratified}.lean and DesignBased/{Exposure,PotentialOutcome}.lean. Mathlib side: not a Mathlib-shaped fact."
+    },
+    "def:model-class": {
+      "lean_kind": "structure",
+      "lean_name": "BoundedAnonymousSaturationSchedule",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:bounded-outcomes",
+        "ass:stratified-interference"
+      ],
+      "member_fields": [
+        {
+          "assumption": "ass:bounded-outcomes",
+          "field": "bounded",
+          "type": "BoundedOutcomes inst schedule"
+        },
+        {
+          "assumption": "ass:stratified-interference",
+          "field": "anonymous",
+          "type": "AnonymousSaturationInterference inst schedule"
+        }
+      ],
+      "notes": "\\(\\mathcal M\\) as a bundling structure over a `SaturationInstance`: one field `schedule : RawSchedule inst` plus exactly the two member Props, one per `by_member_properties` entry, typed by that member's Prop def. Nature's space in every statement is this structure (its binary sub-cube \\(\\mathcal M\\cap\\{0,1\\}^{2KN}\\) is the `Bool`-valued restriction, which is a `Fintype` and becomes \\(\\Theta\\) for the reused `FiniteSquaredLoss.Model`). Search trace: no Causalean structure bundles bounded plus anonymous-saturation invariance (see the two member traces); the closest packaged model class is the sibling's `HullSchedule` bundle, which is two-arm and no-interference."
+    },
+    "def:endpoint-extension": {
+      "lean_kind": "def",
+      "lean_name": "endpointExtension",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Mathlib.Algebra.BigOperators.Ring.Finset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/EndpointExtension.lean",
+      "inputs": [
+        "an estimator table on binary observation cells"
+      ],
+      "statement_sketch": "noncomputable def endpointExtension (inst) (d : Assignment inst → (RevealedIndex inst → Bool) → ℝ) (x : Assignment inst) (v : RevealedIndex inst → ℝ) : ℝ := ∑ e : RevealedIndex inst → Bool, (∏ j, if e j then v j else 1 - v j) * d x e",
+      "notes": "Encoding decision: the multilinear/Bernoulli extension is defined ALGEBRAICALLY as the paper's own expanded form, equation (54) of thm:bit-certified-orbit-compiler, i.e. a finite sum over binary vectors on the revealed coordinates weighted by the product of \\(v_j\\) and \\(1-v_j\\). This is the right abstraction: it makes \\(\\overline d\\) total on all of \\(\\mathbb R^N\\), keeps the decoder division-free, and avoids importing product-measure machinery for a purely finite identity. Its Bernoulli reading (a conditionally independent Bernoulli draw with means \\(V\\)) is then a lemma, not the definition, and the quadratic Jensen step (6)-(7) is proved from `E`-algebra over the same finite weights. Search trace: grepped Causalean for `multilinear|Multilinear|BernoulliRound|bernoulliRound|endpoint|Endpoint` (40 files, all unrelated: parametric-integral analyticity, Wald coverage, MSM sensitivity); `lean_leansearch \"expectation of a function of independent Bernoulli random variables equals multilinear extension\"` returned only `ProbabilityTheory.iIndepFun.integral_prod_comp`, `IndepFun.integral_mul*`, and `ContinuousMultilinearMap.map_add_univ` — no finite multilinear-extension API. Analogous reference for F3: `CausalSmith/Experimentation/EXP_SnipeDegreeFrontier_Research/Helpers/BernoulliFourier.lean` (`centeredMonomial`, `E_coordinate_prod`, `E_centeredMonomial_mul`) carries the same product-weight bookkeeping over independent coordinates; gap to bridge is the clipped target and the observation-cell indexing."
+    },
+    "def:local-kernel": {
+      "lean_kind": "def",
+      "lean_name": "localExactCountKernel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/LocalKernel.lean",
+      "inputs": [
+        "a size-tagged cluster response type",
+        "a saturation label"
+      ],
+      "statement_sketch": "noncomputable def localExactCountKernel (inst) (q : ℕ) (t : ClusterRespType inst q) (a : Label inst) (u v : ℕ) : ℚ := ((Finset.univ.powersetCard (r q a)).filter (fun S => treatedOnes t a S = u ∧ controlOnes t a S = v)).card / (q.choose (r q a))",
+      "notes": "Rational by construction (a card over a positive `Nat.choose`), with the boundary cases \\(r_{q,a}\\in\\{0,q\\}\\) total because the denominator is one. Normalization \\(\\sum_{u,v}P_{t,a}(u,v)=1\\) is proved by partitioning `powersetCard` along \\((u,v)\\), and the probabilistic reading is the reused uniform exact-count design `Causalean.Experimentation.DesignBased.completeRandomization` (Designs/CompleteRandomization.lean:58) together with `completeRandomization_card` (:44), which supplies the \\(\\binom q{r_{q,a}}\\) cardinality. Search trace: read Designs/CompleteRandomization.lean and Designs/Stratified.lean; grepped Causalean/Experimentation for exact-count/saturation local likelihood tables — none indexes a response type by a \\(2K\\)-bit unit response word. Mathlib side: `Finset.powersetCard`, `Finset.card_powersetCard`, `Nat.choose`, `Nat.multinomial` (Mathlib.Data.Nat.Choose.Multinomial) are the reused primitives; verified `SimpleGraph`/`Nat.choose` API by reading the sibling module that already imports Multinomial."
+    },
+    "def:orbit-kernel": {
+      "lean_kind": "def",
+      "lean_name": "orbitObservationKernel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/OrbitKernel.lean",
+      "inputs": [
+        "the local kernels from def:local-kernel"
+      ],
+      "statement_sketch": "noncomputable def orbitObservationKernel (inst) (kappa : RespOrbit inst) (n : AssignOrbit inst) (omega : ObsOrbit inst) : ℚ  -- coefficient extraction from ∏_t (∑_{a,u,v} P_{t,a}(u,v) z_{a,u,v})^{kappa q t}, divided by the stabilizer multinomial, zero on incompatible label margins",
+      "notes": "Defined by the paper's coefficient extraction, realized as an explicit finite sum over allocations of local observation triples to the clusters recorded by \\(\\kappa\\) (equivalently the dynamic-programming recursion of Step 1 of the compiler proof), divided by the positive stabilizer multinomial \\(\\binom{m_q}{(n_{q,a})_a}\\) and set to zero on incompatible margins. Also carries \\(\\theta_\\kappa\\) and the orbit index fintypes \\(\\Gamma,\\mathcal K,\\mathcal N,\\mathcal W\\), and the two facts `H ≥ 0`, `∑_ω H = 1` that let F2 package \\((H,\\theta)\\) directly as a reused `FiniteSquaredLoss.Model`. Analogous module: sibling `EXP_MultiarmSecondorderMinimaxFrontier_Research/Helpers/OrbitLikelihood.lean` — `orbitLik`, `orbitLik_nonneg`, `orbitLik_sum_obs`, `labeledObservationAssignments_card_cast`, `allocationOrbitCard_cast_eq_factorial_div` — is the SAME construction for a one-stage multi-arm allocation; F3 adapts it, the gap being the two-stage (label, exact subset) local factor and the equal-size-cluster product over \\(q\\). Search trace: globbed and grepped that sibling's Helpers directory for declaration names; grepped Causalean for orbit/stabilizer kernels — none. Mathlib side: `Nat.multinomial`, `Finset.prod_pow`, `Finset.sum_pow` style bookkeeping only."
+    },
+    "def:primal-game": {
+      "lean_kind": "def",
+      "lean_name": "primalOrbitProgram",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Core",
+        "Causalean.Stat.Minimax.MinimaxValue"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/OrbitGame.lean",
+      "inputs": [
+        "the rational orbit kernel H",
+        "the orbit target θ"
+      ],
+      "statement_sketch": "noncomputable def primalOrbitProgram (inst) : ℝ := Causalean.Stat.minimaxValue (FiniteSquaredLoss.risk (orbitModel inst).P (orbitModel inst).tau : FiniteSquaredLoss.Procedure (ObsCell inst) (-L inst) (L inst) → RespOrbit inst → ℝ)  -- plus a `PrimalFeasible` Prop in perspective coordinates (d,t) and the equivalence lemma",
+      "notes": "Thin wrapper, deliberately: the closed quadratic perspective is obtained for free by working in the reused `FiniteSquaredLoss.Procedure` coordinates \\((d,\\delta)\\) with \\(t_{n\\omega}=d_n\\delta_{n\\omega}\\) — on \\(d_n>0\\) the summand is \\((t-d\\theta)^2/d\\), and \\(|t_{n\\omega}|\\le Ld_n\\) forces \\(t=0\\) hence value \\(0\\) at \\(d_n=0\\), which is exactly the paper's closed perspective. F2 also emits the perspective-coordinate `PrimalFeasible` predicate (the compiler theorem's certificate check (47) is stated in it) and the lemma identifying the two forms, so no separate convexity/compactness development is needed: `convex_procedureSet`, `isCompact_procedureSet`, `continuous_rawRisk`, `mixProcedure`, `risk_mixProcedure_le`, `isCompact_convexHull_riskVectors` are all already in Causalean (FiniteSquaredLoss/{Core,Mixing}.lean). Search trace: read FiniteSquaredLoss/{Core,Mixing,Saddle,PosteriorBarycenter}.lean in full outline and Core.lean:20-79 in source; `lean_local_search minimaxValue`."
+    },
+    "def:dual-game": {
+      "lean_kind": "def",
+      "lean_name": "dualOrbitProgram",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter",
+        "Causalean.Stat.Minimax.FiniteKernelBayes"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/OrbitGame.lean",
+      "inputs": [
+        "the rational orbit kernel H",
+        "the orbit target θ"
+      ],
+      "statement_sketch": "noncomputable def dualOrbitProgram (inst) : ℝ := sSup {v | ∃ pi : FiniteDesign (RespOrbit inst), ∀ n, v ≤ (orbitModel inst).posteriorResidual pi n}  -- with b_n(π) := Model.posteriorResidual and a_{nω}, h_{nω} the reused predictiveMass / predictiveTarget",
+      "notes": "The paper's \\(a_{n\\omega},h_{n\\omega},b_n(\\pi)\\) are, verbatim, the reused `Model.predictiveMass`, `Model.predictiveTarget`, and `Model.posteriorResidual` (Causalean/Stat/Minimax/FiniteSquaredLoss/PosteriorBarycenter.lean:49,71,124); the paper's zero-likelihood convention `a=0 ⇒ h=0 ⇒ contribute 0` is already proved there (`joint_eq_zero_of_predictiveMass_eq_zero`, `predictiveTarget_eq_zero_of_predictiveMass_eq_zero`, `posteriorMean` guarded by an `if`), and the rotated-cone/completing-the-square identity is `Model.squaredRisk_eq_posteriorResidual_add`. So this node is a wrapper fixing the sup over priors; nothing about second-order cones needs formalizing, since the paper only uses the cone representation as a computational encoding. Search trace: as for def:primal-game, plus read PosteriorBarycenter.lean:23-137 in source."
+    },
+    "def:independence-feasibility-system": {
+      "lean_kind": "def",
+      "lean_name": "IndependentSaturationSaddleFeasible",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter",
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Mathlib.Data.Nat.Choose.Multinomial"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/IndependenceSystem.lean",
+      "inputs": [
+        "the primal and dual orbit data"
+      ],
+      "statement_sketch": "def IndependentSaturationSaddleFeasible (inst) : Prop := ∃ (p : Label inst → ℝ) (delta : ∀ n, ObsCell inst n → Set.Icc (-L inst) (L inst)) (pi : FiniteDesign (RespOrbit inst)) (v : ℝ), p ∈ stdSimplex ℝ _ ∧ (∀ kappa, ∑ n, ∑ omega, indepOrbitMass inst p n * H .. * (delta n omega - theta kappa)^2 ≤ v) ∧ (∀ n, v ≤ (orbitModel inst).posteriorResidual pi n)",
+      "notes": "Construction node (has `inputs`), so `lean_kind:\"def\"` even though it is Prop-valued. Includes the independent-saturation orbit mass \\(d_n(p)=\\prod_q\\binom{m_q}{(n_{q,a})_a}\\prod_a p_a^{n_{q,a}}\\) with the paper's \\(0^0=1\\) convention (`Monoid.npow` on \\(\\mathbb R\\) already gives `p^0 = 1`, so faces of the simplex are literal, no side condition), its normalization by the multinomial theorem, and the clipping domain. Search trace: grepped Causalean/Experimentation for a common-probability independent two-stage saturation law — `Designs/Bernoulli.lean` and `Designs/ClusterRandomization.lean` give independent Bernoulli and cluster designs but neither exposes the label-histogram orbit mass; `Causalean.Experimentation.DesignBased.compound` (TwoStage.lean:64, with `E_compound`) is the reused primitive for the conditionally-independent second stage. Mathlib side: `Finset.prod_pow`, `Nat.multinomial`, multinomial theorem bookkeeping."
+    },
+    "def:compiler-handle": {
+      "lean_kind": "def",
+      "lean_name": "orbitCompilerHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Core",
+        "Causalean.Mathlib.Optimization.RationalLP"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/CompilerHandle.lean",
+      "inputs": [
+        "a rational saturation instance",
+        "a rational tolerance ε"
+      ],
+      "gate_params": [
+        "lem:weak-rational-convex-optimization"
+      ],
+      "statement_sketch": "noncomputable def orbitCompilerHandle (inst) (eps : ℚ) (heps : 0 < eps) (hGLS : WeakRationalConvexOptimizationOracle) : CompilerHandle inst eps  -- record: kernel := orbitObservationKernel, target := theta, primalPoint (rational, exactly feasible after clipping repair), dualPrior (rational, exactly on the simplex), upper/lower : ℚ, decoder := the division-free recursion, plus the per-stage rational bit-size/step-count ledger whose optimization rows are the `OracleRunLedger` returned by `hGLS`",
+      "notes": "CORRECTED (round 2): the handle now takes the reshaped GLS interface as an explicit hypothesis parameter `hGLS : WeakRationalConvexOptimizationOracle`, and its optimization stage is DISCHARGED BY that interface rather than by a bare existence claim. F2 must, inside this construction, supply the interface's oracle premises from objects this plan builds locally: (i) the `CenteredRationalBody` data for the primal polytope \\(C_{\\mathrm P}\\) of (16)-(18) and the dual polytope \\(C_{\\mathrm D}\\) of (24)-(26), whose rational centers, inner radii, outer radii and encoding lengths are exactly the displayed formulas (17), (25); (ii) a `WeakMembershipOracle` for each, obtained from exact rational testing of the finitely many displayed linear inequalities (a strong membership test is a fortiori weakly sound, in both directions of the carried clauses); (iii) a `RationalApproxValueOracle` for the globally convex primal objective \\(F\\) of (8)/(11) and for \\(-G\\) of (20), which are EXACTLY rationally evaluable, so the oracle is instantiated with error \\(0<\\delta\\) trivially; (iv) the rational accuracies \\(\\alpha_{\\mathrm P}\\), \\(\\alpha_{\\mathrm D}\\) of (31), (39). The interface then returns the rational weakly optimal points, their rational approximate values, and the `OracleRunLedger`s; the handle's bit/step fields are the composition of those ledgers with the directly computed exact-arithmetic rows (canonical histogram enumeration, bounded-alphabet dynamic programming with the (5) state bound, facial reduction for zero-mass cells, clipping repair, outward rounding and direct verification (47)/(49), and Bernoulli-recursion decoding). Encoding decision (D3, refined by D7): \\(\\mathfrak C\\) is a `def` returning a record whose fields are the CONSTRUCTED mathematical objects (exact rational kernel, rational primal point, rational prior, outward-rounded \\(\\overline R,\\underline R\\), and the division-free decoder circuit of (51)-(53)) together with that explicit ledger; no external machine model is axiomatized, and the only imported algorithmic content is the frozen cited interface. Search trace: as recorded on lem:weak-rational-convex-optimization (re-run this round: grepped ../Causalean for `weakMembership|WeakMembership|oracle|Oracle|ellipsoid|Ellipsoid`, 30 statistical-only hits; globbed Causalean/Mathlib/Optimization/**/*.lean, 20 files, no oracle framework), so the GLS engine stays cited. Analogous reference for F3: sibling `Helpers/RationalLPBridge.lean` (`gridProgram`, `gridProgram_feasible_iff`, `gridLP_rational_value_exists`, `gridProgram_optimal_primal_dual_exists`) plus `Causalean.Mathlib.Optimization.RationalLP` for the rational-certificate plumbing; gap to bridge is the quadratic perspective objective in place of a pure LP and the oracle-premise construction (i)-(iv) above."
+    },
+    "lem:conditional-uniformity": {
+      "lean_kind": "lemma",
+      "lean_name": "conditional_uniformity_without_loss",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.FiniteRaoBlackwell.DesignPushforward",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Experimentation.DesignBased.TwoStage",
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Mathlib.Analysis.Convex.Jensen"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ConditionalUniformity.lean",
+      "hyps": [
+        "def:model-class"
+      ],
+      "local_id": "t1",
+      "notes": "L-block. `hyps` is the bundled class, which covers the `ass:stratified-interference` dependency (its `anonymous` member is what makes the unit-permutation action well defined on schedules and revealed vectors). Proof plan: (i) the within-cluster group \\(G_0=\\prod_g\\mathfrak S_{s_g}\\) acts on assignments and schedules; (ii) push \\(D\\) forward along the group action and replace \\(\\delta\\) by its conditional mean — reuse `Causalean.Stat.FiniteRaoBlackwell.conditionalMeanAlongMap` with `E_map_conditionalMeanAlongMap_sq_le` (no-larger squared risk), `conditionalMeanAlongMap_mem_Icc` (stays clipped), and `conditionalMeanAlongMap_of_fiberMass_eq_zero` (the paper's totalization \\(\\widetilde\\delta=0\\) on null assignments); (iii) identify the resulting second stage with `completeRandomization` in each cluster, uniform on exactly-\\(r_{s_g,a_g}\\) subsets, conditionally independent given the label vector via `compound`/`E_compound`; boundary counts are literal since the binomial coefficient is one; (iv) conclude \\(R^\\star\\) is unchanged by `minimaxValue` monotonicity in the procedure class. Search trace: grepped Causalean for `symmetriz|groupAverage|orbitAverage|InvariantDesign` (no design-symmetrization lemma; the Rademacher hits are unrelated) and read Stat/FiniteRaoBlackwell/{DesignPushforward,RaoBlackwell,Sufficiency}.lean; Mathlib side `inner_le_nnorm`-style not relevant, the convexity input is `Mathlib.Analysis.Convex.Jensen`, already used by DesignPushforward. Build-inline: only the group action and the second-stage identification are new."
+    },
+    "thm:endpoint-orbit-equivalence": {
+      "lean_kind": "theorem",
+      "lean_name": "endpoint_orbit_equivalence",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Saddle",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Mixing",
+        "Causalean.Stat.FiniteRaoBlackwell.DesignPushforward",
+        "Causalean.Stat.Minimax.MinimaxValue"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TEndpointOrbitEquivalence.lean",
+      "hyps": [
+        "def:model-class",
+        "lem:sion-compact-minimax"
+      ],
+      "local_id": "t2",
+      "notes": "T-block, the paper's engine. `hyps` = the bundled class (covering both assumption dependencies) plus the frozen cited Sion gate threaded as a named Prop hypothesis; the theorem is proved CONDITIONAL on that gate and is itself fully in scope. Proof plan: (a) \\(|\\tau(Y)|\\le L\\) and clipping from the zero-sum contrast; (b) endpoint completion via `def:endpoint-extension` and the algebraic quadratic-Jensen identity \\(\\mathbb E Z^2-(\\mathbb E Z)^2\\ge0\\) over the explicit product weights — no measure theory; (c) the \\(\\Gamma\\)-orbit reduction and conditional-mean replacement reusing `conditionalMeanAlongMap` + `E_map_conditionalMeanAlongMap_sq_le`, with prior-side concavity by `mixProcedure`/`risk_mixProcedure_le`; (d) \\(\\Pr\\{\\omega\\mid\\kappa,n\\}=H_{\\kappa n\\omega}\\) and \\(\\sum_\\omega H=1\\) from `def:orbit-kernel`; (e) \\(\\operatorname{val}(\\mathsf P)=\\operatorname{val}(\\mathsf Q)=R^\\star\\) with attainment on both sides, posterior-mean rule on positive-mass cells and arbitrary clipped values on zero-mass cells, obtained by instantiating the reused `FiniteSquaredLoss.finite_bounded_squared_loss_has_saddle` (Saddle.lean:157) at the orbit `Model`, together with `Model.squaredRisk_eq_posteriorResidual_add`, `Model.iInf_squaredRisk_eq_posteriorResidual`, `Model.posteriorMean`. Note that Causalean's saddle theorem internally applies `Sion.exists_isSaddlePointOn` (Mathlib.Topology.Sion) via `Mathlib.Topology.Sion`, so the cited leaf is factually available in the library; it nevertheless stays a cited gate here because provenance and carrier are frozen before F1 — discharge, if wanted, is the supported `bin/gate.ts --discharge` path, which F1 does not perform. The \\((m+1)^{O(2^{2Kb}+K2^b)}\\) orbit-size clause is proved as an explicit `Fintype.card` bound on the three orbit index types."
+    },
+    "thm:hypergraph-nonrepresentability": {
+      "lean_kind": "theorem",
+      "lean_name": "hypergraph_nonrepresentability_size_three",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Combinatorics.SimpleGraph.Clique"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "THypergraphNonrepresentability.lean",
+      "hyps": [],
+      "local_id": "t3",
+      "notes": "T-block, a direct corollary of lem:local-interiority-hypergraph-obstruction at \\(K=2,q=3,r_{3,1}=1\\), where \\(h=\\max\\{1,2\\}=2\\) and \\(z_\\star=0\\), so the three label-one control coordinates are pairwise but not triple-wise observable. No assumptions in `depends_on`, hence empty `hyps`. Reuses Mathlib's `SimpleGraph.IsIndepSet` with `SimpleGraph.isIndepSet_iff` (independence = pairwise non-adjacency), which is precisely the contradiction step. Search trace: `lean_local_search IsIndepSet` and `lean_leansearch \"independent set complex of a graph, downward closed family not representable by pairwise conflicts\"` → `SimpleGraph.IsIndepSet`, `isIndepSet_iff`, `isIndepSet_iff_isAntichain_adj` in Mathlib.Combinatorics.SimpleGraph.Clique; no library statement of non-representability of a compatibility complex, which is the (small, build-inline) new content."
+    },
+    "thm:independence-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "independence_frontier_iff_saddle_feasible",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter",
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Mathlib.Data.Nat.Choose.Multinomial"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TIndependenceFrontier.lean",
+      "hyps": [],
+      "local_id": "t4",
+      "notes": "T-block. `depends_on` contains no assumption node, so `hyps` is empty; the model-class content enters through thm:endpoint-orbit-equivalence, which this theorem invokes. GATE THREADING (transitive): the frozen Sion gate reaches this node only through thm:endpoint-orbit-equivalence, whose Lean statement carries the gate hypothesis; F2 must therefore pass the same named gate hypothesis parameter down, and P4 forbids listing it in this node's `hyps` because it is not in this node's `depends_on`. Proof plan: attainment of the restricted minimum by finiteness/continuity; both directions of the feasibility characterization from primal feasibility plus dual attainment in thm:endpoint-orbit-equivalence and the class inclusion \\(R^\\star\\le R_{\\mathrm{ind}}\\) (`Causalean.Stat.minimaxValue_mono_class_of_nonneg`); the three positive-support equalities (40),(41),(43) by the sandwich (39) whose middle identity is exactly the reused `Model.squaredRisk_eq_posteriorResidual_add`, with `Model.posteriorMean` supplying the guarded posterior mean and the zero-likelihood faces already total in Causalean. Build-inline; no missing substrate. Search trace: read FiniteSquaredLoss/PosteriorBarycenter.lean and Stat/Minimax/MinimaxValue.lean; grepped Causalean for an independence-vs-correlated design frontier — none."
+    },
+    "thm:strict-correlated-advantage": {
+      "lean_kind": "theorem",
+      "lean_name": "strict_correlated_advantage_two_cluster",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter",
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Mathlib.Data.Rat.BigOperators"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TStrictCorrelatedAdvantage.lean",
+      "hyps": [
+        "ass:bounded-outcomes"
+      ],
+      "local_id": "t5",
+      "notes": "T-block, the certified numerical separation. `hyps` lists `ass:bounded-outcomes` directly, since it is in `depends_on` and no class is; it is the input to the contrast-perturbation bound (28). PAPER-OWNED AND IN SCOPE at defer_tier:false despite being the heaviest proof in the plan. Proof plan: rebuild the two-cluster likelihood table (4)-(5) over the 816 cluster types and 333336 unordered response orbits; the 78-entry rational decision vector (8) and the outward integer rounding (10)-(12) give \\(\\overline R=682490711/500000000\\); the 17-orbit prior (14) with the reused `Model.posteriorResidual` in each of the three assignment blocks gives (17)-(19); the 15-orbit prior (21) plus the exact quadratic minimization (23)-(25) gives \\(R_{\\mathrm{ind}}>13659/10000\\); the contrast neighbourhood follows from the \\(\\sqrt{\\cdot}\\) Lipschitz bound (29)-(32). PRINCIPAL PROOF RISK, flagged for F3: the maximum over 333336 orbits must not be discharged by brute kernel reduction. The row structure factorizes over the two cluster types (equations (4) are products of per-type count vectors \\(C_{a,t,k}\\)), so the plan is to bound the orbit maximum by a per-type quantity — enumerating 816 types, not their 333336 pairs — and to keep every certificate in `ℚ` with integer numerators. Helper file `Helpers/TwoClusterCertificate.lean` holds the tables and per-type bounds; F2 may split it further. Search trace: grepped Causalean for rational minimax certificates — `Causalean.Mathlib.Optimization.RationalLP` is the only rational-certificate substrate and is LP-shaped; analogous reference is the sibling's `Helpers/K3Numerics.lean` (`k3_rational_separation`, `fullDataRuleRiskBound`, `scalarBayesCertificate`) with its eight `K3FullDataRisk*.lean` split files, which is the same certified-separation pattern at smaller scale and shows the file-splitting discipline to imitate."
+    },
+    "prop:complement-symmetry-equality": {
+      "lean_kind": "theorem",
+      "lean_name": "complement_symmetry_independent_minimax",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.FiniteRaoBlackwell.DesignPushforward",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Mathlib.Analysis.Convex.Jensen"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TComplementSymmetryEquality.lean",
+      "hyps": [
+        "def:model-class"
+      ],
+      "local_id": "t6",
+      "notes": "T-block (a `prop:` node maps to a theorem). `hyps` is the bundled class, covering the `ass:stratified-interference` dependency used for the well-definedness of the complement action (4) on schedules. Proof plan: the local involution \\(\\rho(a,S)=(3-a,S^c)\\) is feasible because \\(r_{3,1}=1,r_{3,2}=2\\) are read off the displayed numbers (no global interiority); the coefficient symmetry \\(c_{z,a}=c_{1-z,3-a}\\) gives \\(\\tau(C_eY)=\\tau(Y)\\) and \\(V_Y(C_ex)=V_{C_eY}(x)\\); averaging the transported designs over \\(e\\in\\{0,1\\}^{\\mathcal G}\\) produces the uniform \\(6^{-m}\\) design, i.e. independent labels at \\(p=1/2\\) with conditionally uniform exact-count subsets (`completeRandomization`), and the mixed rule (13) is admissible by convexity; conclude with `lem:conditional-uniformity` and class inclusion. Transitive gate note: the Sion gate reaches this node only through thm:independence-frontier / thm:endpoint-orbit-equivalence; F2 threads the same hypothesis parameter, and P4 forbids adding it to this node's `hyps`. Build-inline. Search trace: as for lem:conditional-uniformity (same DesignPushforward and CompleteRandomization survey)."
+    },
+    "lem:sion-compact-minimax": {
+      "lean_kind": "assumption",
+      "lean_name": "SionCompactMinimax",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Sion"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:sion-1958-general-minimax",
+      "target_file": "Basic.lean",
+      "hyps": [],
+      "in_theorems_manifest": false,
+      "statement_sketch": "def SionCompactMinimax : Sort 0 := ∀ {E F : Type} [AddCommGroup E] [Module ℝ E] [TopologicalSpace E] .. (M : Set E) (N : Set F), M.Nonempty → Convex ℝ M → IsCompact M → N.Nonempty → Convex ℝ N → IsCompact N → ∀ f : E → F → ℝ, (usc/quasiconcave in the first argument) → (lsc/quasiconvex in the second) → sSup .. = sInf ..",
+      "notes": "Frozen cited leaf (`status:\"cited\"`, `carrier:\"logical-claim\"`), so it is a substrate gate with `lean_kind:\"assumption\"`: F2 emits it as a named proposition using the unshadowable `Sort 0` result syntax (never a shadowable `Prop` identifier) and threads it as a hypothesis into its only direct consumer thm:endpoint-orbit-equivalence. It is not a proof obligation, is excluded from the `theorems` manifest, and no delivered theorem is claimed unconditionally on it. Factual note for downstream: Mathlib DOES contain this result as `Sion.exists_isSaddlePointOn` (`.lake/packages/mathlib/Mathlib/Topology/Sion.lean:406-458`, saddle-point form) and Causalean's `FiniteSquaredLoss.finite_bounded_squared_loss_has_saddle` already uses it, so the citation-discharge path is realistically available — but provenance and carrier are fixed before F1, so F1 keeps the cited gate form and does not stamp `citation_discharged`. Search trace: grepped `.lake/packages/mathlib/Mathlib/Topology/Sion.lean` for `Sion|IsSaddlePointOn`; read the import list of Causalean/Stat/Minimax/FiniteSquaredLoss/Saddle.lean."
+    },
+    "lem:weak-rational-convex-optimization": {
+      "lean_kind": "assumption",
+      "lean_name": "WeakRationalConvexOptimizationOracle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.Optimization.RationalLP",
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.Data.Nat.Log"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:gls-1988-weak-convex-optimization",
+      "target_file": "Basic.lean",
+      "hyps": [],
+      "in_theorems_manifest": false,
+      "interface_shape": {
+        "kind": "external oracle-optimization interface",
+        "supporting_records": [
+          {
+            "name": "CenteredRationalBody",
+            "lean_kind": "structure",
+            "role": "GLS Definition (2.1.16): the rational encoding of a centered convex body — dimension `p`, rational center `a₀ : Fin p → ℚ`, rational radii `r R : ℚ` with `0 < r ≤ R`, and the carried geometry `Metric.ball (a₀ : Fin p → ℝ) r ⊆ K` and `K ⊆ Metric.ball 0 R`, together with its rational encoding length `encLen : ℕ`."
+          },
+          {
+            "name": "WeakMembershipOracle",
+            "lean_kind": "structure",
+            "role": "GLS weak-membership oracle for `K`: a function `Fin p → ℚ → ℚ → Bool` answering `(x, δ)` with the carried soundness clauses `ans = true → x ∈ S(K, δ)` and `ans = false → x ∉ S(K, -δ)`, plus a per-call step charge."
+          },
+          {
+            "name": "RationalApproxValueOracle",
+            "lean_kind": "structure",
+            "role": "GLS approximate-value oracle for a globally defined convex `f`: a function `(Fin p → ℚ) → ℚ → ℚ` returning, for rational `x` and rational `δ > 0`, a rational `t` with the carried clause `|f x - t| < δ`, plus a per-call step charge."
+          },
+          {
+            "name": "OracleRunLedger",
+            "lean_kind": "structure",
+            "role": "the algorithmic output: `oracleCalls`, `arithSteps`, `outputBits : ℕ` actually consumed by the run."
+          },
+          {
+            "name": "erodeIn / erodeOut",
+            "lean_kind": "def",
+            "role": "the source's \\(S(K,\\alpha)=\\{x:\\operatorname{dist}(x,K)\\le\\alpha\\}\\) and \\(S(K,-\\alpha)=\\{x:B(x,\\alpha)\\subseteq K\\}\\), equation (12) of the compiler proof."
+          }
+        ],
+        "oracle_premises": [
+          "a `CenteredRationalBody p K`",
+          "a `WeakMembershipOracle p K`",
+          "a `RationalApproxValueOracle p f` for a globally defined `f` with `ConvexOn ℝ Set.univ f`",
+          "a rational accuracy `0 < α`"
+        ],
+        "outputs": [
+          "a rational point `y : Fin p → ℚ` with `(y : Fin p → ℝ) ∈ erodeOut K α`",
+          "weak optimality against the EROSION comparator: `∀ x ∈ erodeIn K α, f y ≤ f x + α`",
+          "a rational approximate value `vy : ℚ` with `|f y - vy| ≤ α` (one further value-oracle call at `y`)",
+          "an `OracleRunLedger` whose `oracleCalls`, `arithSteps` and `outputBits` are bounded by a fixed polynomial in `p`, `body.encLen`, the oracle step charges, and `Nat.log 2 ⌈1/α⌉` — the source's oracle-polynomial convention (page 55), i.e. the accuracy enters through its logarithm"
+        ]
+      },
+      "statement_sketch": "def WeakRationalConvexOptimizationOracle : Sort 0 := ∃ poly : ℕ → ℕ → ℕ → ℕ → ℕ, (∀ a b c d, ...monotone/polynomial witness...) ∧ ∀ (p : ℕ) (K : Set (Fin p → ℝ)) (hK : Convex ℝ K) (body : CenteredRationalBody p K) (f : (Fin p → ℝ) → ℝ) (hf : ConvexOn ℝ Set.univ f) (mem : WeakMembershipOracle p K) (val : RationalApproxValueOracle p f) (alpha : ℚ), 0 < alpha → ∃ (y : Fin p → ℚ) (vy : ℚ) (run : OracleRunLedger), ((fun i => (y i : ℝ)) ∈ erodeOut K alpha) ∧ (∀ x ∈ erodeIn K alpha, f (fun i => (y i : ℝ)) ≤ f x + alpha) ∧ |f (fun i => (y i : ℝ)) - vy| ≤ alpha ∧ run.oracleCalls ≤ poly p body.encLen (mem.charge + val.charge) (Nat.log 2 ⌈alpha⁻¹⌉₊) ∧ run.arithSteps ≤ poly .. ∧ run.outputBits ≤ poly ..",
+      "notes": "CORRECTED (round 2): the round-1 sketch was only a bare existence statement over arbitrary `ConvexOn` functions, which understated the citation (it omitted the weak-membership and rational approximate-value oracles the source REQUIRES) and overstated nothing but delivered nothing algorithmic — so it could not justify constructing `def:compiler-handle` or its bit/step bounds. It is now the MINIMAL named external oracle-optimization interface: GLS Theorem (4.3.13) read together with Definition (2.1.16) (centered rational body), the oracle-polynomial convention on page 55, and Problem (2.1.22) (rational output), i.e. exactly the four locators in the frozen `source.locator`. Nothing beyond those locators is asserted: the interface quantifies over the two oracles and the centered rational encoding as PREMISES, and its conclusion carries both the mathematical output (a rational weakly feasible point beating the erosion comparator, with a rational approximate value) and the ALGORITHMIC output (an oracle-call / arithmetic-step / output-bit ledger bounded by a single fixed polynomial in the dimension, the body's rational encoding length, the oracle charges, and \\(\\log(1/\\alpha)\\)). The polynomial is existentially quantified ONCE, outside the instance quantifiers, which is what makes the bound uniform and therefore usable; quantifying it per instance would be vacuous. Frozen cited leaf (`status:\"cited\"`, `carrier:\"logical-claim\"`) so `lean_kind:\"assumption\"` stands: F2 emits it as a named proposition using the unshadowable `Sort 0` result syntax and threads it into `def:compiler-handle` (as a hypothesis parameter of the construction, since the handle's optimization stage and its bit/step fields are produced by it) and into its direct statement consumer thm:bit-certified-orbit-compiler (in `hyps`). Excluded from the `theorems` manifest; not a proof obligation. The supporting records listed in `interface_shape.supporting_records` are non-Prop encoding scaffolding for this one gate (they carry the source's own oracle specifications), not additional gates and not additional core nodes. The EROSION comparator \\(S(K,-\\alpha)\\) is kept exactly as the source states it, because Step 4 of the compiler proof constructs a strictly interior comparator by two-stage uniform mixing precisely to meet that premise; weakening it to a comparison against all of \\(K\\) would overstate the citation. Genuinely infeasible to build here: this is the GLS ellipsoid method over rational oracles, a major upstream contribution. Search trace (re-run this round): grepped ../Causalean for `weakMembership|WeakMembership|oracle|Oracle|ellipsoid|Ellipsoid` — 30 files, all statistical (ERM oracle, oracle inequalities, Rademacher/localization), zero computational-oracle or ellipsoid machinery; globbed Causalean/Mathlib/Optimization/**/*.lean (20 files: KKT, RationalLP, SimplexTruncation*, SimplexActiveSet*, WeightedSimplex*, AffineSignCellClosure/*) — no ellipsoid method, no weak membership/value oracle, no oracle-polynomial framework; grepped the `## ` section index of ../doc/API.md including section 10z — optimization entries are affine sign-cell closure and simplex KKT only. Mathlib side: no ellipsoid method, no oracle model, no bit-complexity ledger (Mathlib's convex-analysis API is analytic, not algorithmic); the only reusable pieces are `ConvexOn`, `Metric.ball`, `Metric.thickening`/`dist` for the two erosions, and `Nat.log`."
+    },
+    "thm:bit-certified-orbit-compiler": {
+      "lean_kind": "theorem",
+      "lean_name": "bit_certified_orbit_compiler",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter",
+        "Causalean.Stat.Minimax.FiniteSquaredLoss.Mixing",
+        "Causalean.Mathlib.Optimization.RationalLP",
+        "Mathlib.Data.Nat.Choose.Multinomial"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TBitCertifiedOrbitCompiler.lean",
+      "hyps": [
+        "lem:weak-rational-convex-optimization"
+      ],
+      "local_id": "t7",
+      "notes": "T-block. `hyps` threads the frozen GLS gate, RESHAPED this round (round 2) into the named external oracle-optimization interface `WeakRationalConvexOptimizationOracle` (weak-membership + rational approximate-value oracle premises, erosion comparator, and an oracle-polynomial call/step/bit ledger); the theorem is proved conditional on it and is otherwise entirely in scope (a gate consumer is never deferred for its own ungated content). The interface is threaded twice and consistently: as this theorem's hypothesis parameter, and as the same parameter of the `def:compiler-handle` construction it invokes — so the handle's optimization stage and every claimed bit/step bound trace to the interface's own algorithmic output rather than to a bare existence claim. Transitive Sion-gate note: this node also invokes thm:endpoint-orbit-equivalence, so F2 threads that theorem's Sion hypothesis parameter as well; P4 forbids listing it here since it is not in this node's `depends_on`. Proof plan follows the five steps of the source proof: exact rational orbit compilation with polynomial bit growth; the globally convex primal oracle \\(\\Phi_\\theta\\) of (8)/(11) as a max of affine functions agreeing with the closed perspective on the feasible set, and the globally concave dual oracle (20) as a min of affine functions agreeing with `Model.posteriorResidual` on the simplex (both zero-face-total by the already-proved Causalean guards, and both EXACTLY rationally evaluable, which is what instantiates the interface's `RationalApproxValueOracle` premise at any requested \\(\\delta\\)); the explicit rational well-bounding polytopes (16)-(18), (24)-(26) instantiating `CenteredRationalBody`, with exact rational inequality testing instantiating `WeakMembershipOracle`; the strict-erosion comparators (32), (40) built by two-stage uniform mixing (reusing `mixProcedure`/`risk_mixProcedure_le` for the convexity accounting), which is precisely what meets the interface's \\(S(K,-\\alpha)\\) premise; clipping repair (34)-(36) and the outward-rounding tolerance ledger (43)-(46) giving \\(\\underline R\\le R^\\star\\le\\overline R\\) with gap \\(<\\varepsilon\\); the running-time conclusion as the composition of the interface's returned `OracleRunLedger`s with the directly computed exact-arithmetic rows; and the division-free decoder recursion (51)-(53) proved equal to `def:endpoint-extension` by (54), hence total on \\(\\mathbb R^N\\). Encoding decision (D3, refined by D7): the polynomial-time clause is formalized as explicit rational bit-size and step-count bounds carried by the `CompilerHandle` record — the optimization rows imported from the cited interface, all other rows proved locally — not against an external machine model; the claim that no exact optimizer is rational is stated as the absence of such a conjunct, matching the source's explicit non-assertion. Build-inline; the honest residual risk is proof length, not missing substrate."
+    },
+    "lem:local-interiority-hypergraph-obstruction": {
+      "lean_kind": "lemma",
+      "lean_name": "local_interiority_hypergraph_obstruction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Combinatorics.SimpleGraph.Clique",
+        "Mathlib.Data.Nat.Choose.Multinomial"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/HypergraphObstruction.lean",
+      "hyps": [],
+      "local_id": "t8",
+      "notes": "L-block, the general local obstruction; `depends_on` holds only the two kernel constructions, so `hyps` is empty and the interiority premise \\(1\\le r_{q,a}<q\\) is an explicit argument of the lemma, not an assumption node. Proof plan: cardinality bookkeeping on \\(E_1(S)=S\\), \\(E_0(S)=U_q\\setminus S\\) with \\(|S|=r_{q,a}\\) gives \\(|E_{z_\\star}(S)|=h\\) while \\(|I|=h+1\\); every \\(h\\)-subset is realized by an explicit feasible assignment, extended to a global assignment because \\(0\\le r_{q',a'}\\le q'\\) always admits a subset; the graph step reuses `SimpleGraph.IsIndepSet`/`SimpleGraph.isIndepSet_iff`; the kernel step is a nonnegativity-plus-support argument on the expansion of `def:orbit-kernel`, showing no term arises from a pairwise closure and no cancellation can hide one. Small and routine given the constructions — build-inline. Search trace: `lean_local_search IsIndepSet`; `lean_leansearch` on non-representability of a downward-closed family by pairwise conflicts (only the Clique/IndepSet API); grepped Causalean/Graph/**/*.lean surface via the ../doc/API.md `## ` index (sections 1-4b are DAG/d-separation/SWIG/c-component machinery, no compatibility-complex or hypergraph-representability material)."
+    }
+  },
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": [
+        "S1 LOCAL composite world scaffolding: SaturationInstance, Assignment fintype (exact-count two-stage action space), RawSchedule, observation map, revealed vector, tau, L, Rule, the composite `SaturationExperiment` record bundling a `FiniteDesign (Assignment inst)` with a clipped rule, risk, R*, R_ind",
+        "S2 orbit-game scaffolding hooks",
+        "ass:bounded-outcomes",
+        "ass:stratified-interference",
+        "def:model-class",
+        "lem:sion-compact-minimax (Sort 0 gate)",
+        "lem:weak-rational-convex-optimization (Sort 0 gate: the oracle-optimization interface plus its CenteredRationalBody / WeakMembershipOracle / RationalApproxValueOracle / OracleRunLedger records and the erodeIn / erodeOut defs)"
+      ],
+      "projected_lines": 640,
+      "note": "If the S1 composite record chain plus the two gate interfaces push this past ~900 lines post-proof, split the gate interfaces into Helpers/ExternalOracles.lean (an independent leaf with no dependence on the world)."
+    },
+    {
+      "file": "Helpers/EndpointExtension.lean",
+      "contents": [
+        "def:endpoint-extension",
+        "quadratic-Jensen and endpoint-completion lemmas"
+      ],
+      "projected_lines": 380
+    },
+    {
+      "file": "Helpers/LocalKernel.lean",
+      "contents": [
+        "def:local-kernel",
+        "normalization and boundary-count lemmas"
+      ],
+      "projected_lines": 340
+    },
+    {
+      "file": "Helpers/OrbitKernel.lean",
+      "contents": [
+        "orbit index fintypes Gamma, K, N, W and theta",
+        "def:orbit-kernel",
+        "H nonneg and row-sum-one, packaged as a FiniteSquaredLoss.Model"
+      ],
+      "projected_lines": 560
+    },
+    {
+      "file": "Helpers/OrbitGame.lean",
+      "contents": [
+        "def:primal-game",
+        "def:dual-game",
+        "perspective-coordinate equivalence lemmas"
+      ],
+      "projected_lines": 420
+    },
+    {
+      "file": "Helpers/ConditionalUniformity.lean",
+      "contents": [
+        "lem:conditional-uniformity"
+      ],
+      "projected_lines": 480
+    },
+    {
+      "file": "Helpers/HypergraphObstruction.lean",
+      "contents": [
+        "lem:local-interiority-hypergraph-obstruction"
+      ],
+      "projected_lines": 400
+    },
+    {
+      "file": "Helpers/IndependenceSystem.lean",
+      "contents": [
+        "independent-saturation orbit mass d_n(p)",
+        "def:independence-feasibility-system"
+      ],
+      "projected_lines": 360
+    },
+    {
+      "file": "Helpers/CompilerHandle.lean",
+      "contents": [
+        "CompilerHandle record",
+        "the explicit rational well-bounding polytopes and their CenteredRationalBody / WeakMembershipOracle / RationalApproxValueOracle instantiations",
+        "def:compiler-handle (taking the GLS oracle interface as a hypothesis parameter)",
+        "bit-size and stage-count ledger, optimization rows imported from the interface's OracleRunLedger"
+      ],
+      "projected_lines": 600
+    },
+    {
+      "file": "Helpers/TwoClusterCertificate.lean",
+      "contents": [
+        "two-cluster K=2 count tables C_{a,t,k}",
+        "the 78-entry rational decision vector and the three rational priors",
+        "per-cluster-type factorized bounds used by TStrictCorrelatedAdvantage"
+      ],
+      "projected_lines": 600,
+      "note": "F2 may split by assignment block (11 / 12 / 22) as the sibling K3FullDataRisk* files do."
+    },
+    {
+      "file": "TEndpointOrbitEquivalence.lean",
+      "contents": [
+        "thm:endpoint-orbit-equivalence"
+      ],
+      "projected_lines": 620
+    },
+    {
+      "file": "THypergraphNonrepresentability.lean",
+      "contents": [
+        "thm:hypergraph-nonrepresentability"
+      ],
+      "projected_lines": 180
+    },
+    {
+      "file": "TIndependenceFrontier.lean",
+      "contents": [
+        "thm:independence-frontier"
+      ],
+      "projected_lines": 520
+    },
+    {
+      "file": "TStrictCorrelatedAdvantage.lean",
+      "contents": [
+        "thm:strict-correlated-advantage"
+      ],
+      "projected_lines": 560
+    },
+    {
+      "file": "TComplementSymmetryEquality.lean",
+      "contents": [
+        "prop:complement-symmetry-equality"
+      ],
+      "projected_lines": 460
+    },
+    {
+      "file": "TBitCertifiedOrbitCompiler.lean",
+      "contents": [
+        "thm:bit-certified-orbit-compiler"
+      ],
+      "projected_lines": 700,
+      "note": "If it exceeds ~900 lines post-proof, split the tolerance ledger (Step 4) into Helpers/ToleranceLedger.lean and the decoder (Step 5) into Helpers/Decoder.lean, both independent proof chains."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "decision": "The world carries the RAW assignment-indexed schedule `RawSchedule inst : ∀ g, Fin (s g) → Assignment inst → ℝ`, and `ass:stratified-interference` is the invariance Prop on it; the reduced \\(Y_{gi}(z,a)\\) is derived. Rationale: with a schedule typed directly on \\((g,i,z,a)\\) the assumption would be vacuous, which would misrepresent the paper's causal-structural restriction; this also mirrors Causalean's `StratifiedInterference` + `exists_strat_factor` pattern."
+    },
+    {
+      "id": "D2",
+      "decision": "The primal and dual programs are formalized in the reused `Causalean.Stat.Minimax.FiniteSquaredLoss` coordinates \\((d,\\delta)\\) with the perspective variable \\(t_{n\\omega}=d_n\\delta_{n\\omega}\\) supplied as an equivalent presentation. The closed quadratic perspective at \\(d_n=0\\) then holds by construction rather than by a separate limit argument, and second-order cones are treated as a computational encoding of the same programs, not as formal objects."
+    },
+    {
+      "id": "D3",
+      "decision": "The compiler theorem's Turing-model polynomial-time clause is formalized as explicit rational bit-size and step-count bounds carried by the constructed `CompilerHandle` record, with the mathematically checkable certificates (\\(\\underline R\\le R^\\star\\le\\overline R\\), gap \\(<\\varepsilon\\), total division-free decoder equal to the endpoint extension) as the theorem's conclusions. The rows of that ledger corresponding to the weak-optimization stage are IMPORTED from the cited oracle interface's own `OracleRunLedger` (see D7); every other row is computed and proved locally. No external machine model is axiomatized, and the source's explicit non-assertion about rational exact optimizers is honoured by omitting any such conjunct."
+    },
+    {
+      "id": "D4",
+      "decision": "No tautological conjuncts: the compiler's oracle-polynomial running-time comparison against the cited GLS bound is stated only through that citation's threaded hypothesis, and the informal 'not strongly polynomial' and 'certificates may be large in practice' clauses of the paper's internal-limitation section are presentation-only narrative, kept out of the formal statements."
+    },
+    {
+      "id": "D5",
+      "decision": "Frozen cited gates are threaded into their DIRECT consumers only (the nodes whose `depends_on` lists them), because P4 requires `hyps ⊆ depends_on`. Transitive consumers (thm:independence-frontier, thm:strict-correlated-advantage, prop:complement-symmetry-equality, thm:bit-certified-orbit-compiler for Sion) inherit the gate through the invoked theorem's hypothesis, and each such node records that explicitly in its notes so F2 threads the same hypothesis parameter."
+    },
+    {
+      "id": "D6",
+      "decision": "Local ids t1-t8 are assigned to the eight delivered statements. This run carries no paper manifest (`state.theorems` empty), so the ids are plan-internal and the two cited gates are excluded from the manifest."
+    },
+    {
+      "id": "D7",
+      "decision": "ROUND-2 CORRECTION. The GLS gate lem:weak-rational-convex-optimization is encoded as the minimal named EXTERNAL ORACLE-OPTIMIZATION INTERFACE, not as a bare existence statement over arbitrary convex functions: its premises are a centered rational convex body, a weak-membership oracle, a rational approximate-value oracle and a rational accuracy; its conclusion carries the rational weakly feasible point beating the EROSION comparator \\(S(K,-\\alpha)\\), a rational approximate value, and an oracle-call / arithmetic-step / output-bit ledger bounded by a single fixed polynomial (existentially quantified once, outside the instance quantifiers) in the dimension, the body's rational encoding length, the oracle charges and \\(\\log(1/\\alpha)\\). Rationale: this is exactly the frozen `source.locator` content — Theorem (4.3.13) with Definition (2.1.16), the oracle-polynomial convention on page 55, and Problem (2.1.22) — and it is the weakest form that can actually justify constructing `def:compiler-handle` and its bit/step bounds. The interface is threaded into `def:compiler-handle` as a construction parameter and into thm:bit-certified-orbit-compiler as a `hyps` entry; the compiler proof discharges each oracle premise from locally built objects (exact rational inequality tests on the displayed polytopes; exact rational evaluation of the primal and dual objectives)."
+    },
+    {
+      "id": "D8",
+      "decision": "ROUND-2 CORRECTION. The S1 ambient world is LOCAL composite saturation-experiment scaffolding (`SaturationInstance` -> `Assignment` fintype -> `RawSchedule` -> observation map / revealed vector / `tau` / `Rule` -> the `SaturationExperiment` record -> risk -> \\(R^\\star, R_{\\mathrm{ind}}\\)), with `Causalean.Experimentation.DesignBased.FiniteDesign` and the surrounding design-based algebra recorded as SUPPORTING PROBABILITY-LAYER REUSE (components of the record), not as the world. Rationale: `FiniteDesign` is only a probability mass function on a fintype and carries none of the feasible two-stage assignment space, potential outcomes, observation map, estimator or design-based experiment that S1 binds. `Causalean.Experimentation.TwoStageInterference.Asymptotic.LHExperiment` is the precedent for this local-composite style inside Causalean itself."
+    }
+  ],
+  "infrastructure_needed": [
+    {
+      "id": "lem:sion-compact-minimax",
+      "kind": "mathlib-lemma",
+      "description": "Sion's general minimax theorem on compact convex sets, frozen as a cited logical-claim gate; Mathlib's `Sion.exists_isSaddlePointOn` already covers it, so the debt is discharge bookkeeping rather than new mathematics.",
+      "effort": "small"
+    },
+    {
+      "id": "lem:weak-rational-convex-optimization",
+      "kind": "mathlib-lemma",
+      "description": "Grötschel-Lovász-Schrijver Theorem (4.3.13) as a named oracle-optimization interface: given a centered rational convex body, a weak-membership oracle and a rational approximate-value oracle for a globally defined convex function, oracle-polynomial weak constrained minimization returning a rational point that beats the erosion comparator S(K,-alpha), a rational approximate value, and an oracle-call/step/output-bit ledger polynomial in the dimension, the body's encoding length and log(1/alpha). No ellipsoid method, weak-membership/value oracle model, or bit-complexity ledger exists in Mathlib or Causalean; a major upstream contribution.",
+      "effort": "large"
+    }
+  ],
+  "theorems": [
+    {
+      "theorem_local_id": "t1",
+      "node": "lem:conditional-uniformity",
+      "lean_name": "conditional_uniformity_without_loss"
+    },
+    {
+      "theorem_local_id": "t2",
+      "node": "thm:endpoint-orbit-equivalence",
+      "lean_name": "endpoint_orbit_equivalence"
+    },
+    {
+      "theorem_local_id": "t3",
+      "node": "thm:hypergraph-nonrepresentability",
+      "lean_name": "hypergraph_nonrepresentability_size_three"
+    },
+    {
+      "theorem_local_id": "t4",
+      "node": "thm:independence-frontier",
+      "lean_name": "independence_frontier_iff_saddle_feasible"
+    },
+    {
+      "theorem_local_id": "t5",
+      "node": "thm:strict-correlated-advantage",
+      "lean_name": "strict_correlated_advantage_two_cluster"
+    },
+    {
+      "theorem_local_id": "t6",
+      "node": "prop:complement-symmetry-equality",
+      "lean_name": "complement_symmetry_independent_minimax"
+    },
+    {
+      "theorem_local_id": "t7",
+      "node": "thm:bit-certified-orbit-compiler",
+      "lean_name": "bit_certified_orbit_compiler"
+    },
+    {
+      "theorem_local_id": "t8",
+      "node": "lem:local-interiority-hypergraph-obstruction",
+      "lean_name": "local_interiority_hypergraph_obstruction"
+    }
+  ],
+  "self_check": {
+    "P1_all_nodes_mapped": "20 core nodes (2 assumptions + 8 definitions + 10 statements), each with exactly one entry in `nodes`; all 35 core symbols bound (22 by S1, 13 by S2), sampling model bound by S1.",
+    "P2_class_members": "def:model-class is the only class node; its `members` array is exactly its core `by_member_properties` = [ass:bounded-outcomes, ass:stratified-interference], one field per member typed by that member's Prop def.",
+    "P3_lean_kind": "assumptions -> assumption; def:model-class (by_member_properties) -> structure; the seven `inputs` constructions -> def; statements -> lemma for the two core `kind:\"lemma\"` nodes (lem:conditional-uniformity, lem:local-interiority-hypergraph-obstruction), theorem for the theorem/proposition nodes, assumption for the two cited logical-claim gates.",
+    "P4_hyps_subset_depends_on": "Every `hyps` entry is in that node's core `depends_on`; assumption dependencies are covered directly (thm:strict-correlated-advantage) or via the bundled class def:model-class (lem:conditional-uniformity, thm:endpoint-orbit-equivalence, prop:complement-symmetry-equality); nodes with no assumption dependency have empty `hyps`.",
+    "P5_reuse_decls_exist": "Exactly one S-block `reuse` value is a decl after the round-2 correction: S2 reuses `Causalean.Stat.Minimax.FiniteSquaredLoss.Model` (PosteriorBarycenter.lean:27), read in source. S1 is now `define-local` with `reuse: null` (its composite world is local; `FiniteDesign` and the design-based algebra are recorded in `builds_on` as supporting probability-layer components). All node `reuse` fields are null; supporting decls appear in `builds_on`/notes and were each confirmed by reading the declaring file or `lean_local_search`.",
+    "P6_modules_resolve": "Every listed module corresponds to an existing file under ../Causalean/ or the Mathlib package (verified by Glob/Read); new files appear only in `target_file` and `file_plan`."
+  }
+}

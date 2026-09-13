@@ -1,0 +1,946 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}update\_\allowbreak{}budget\_\allowbreak{}neyman\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Policy updates are a scarce experimental-design resource, but requiring updates and merely allowing them have different frontiers. The exactly-\(B\) normalized excess MSE has three regimes: the chronological term \(B\{(n+1)^{1/B}-1\}/n\) for \(B\leq\log(n+1)\), a \(\log(n+1)/n\) plateau through \(B\asymp\sqrt{n\log n}\), and compulsory-batching loss \((B/n)^2\) thereafter. The at-most-\(B\) envelope reaches order \((\log n)/n\) after order \(\log n\) useful updates, while the exact-batch harm becomes rate-dominant only at the later square-root elbow. A deterministic-prefix plug-in design matches the frontier up to constants and supports a uniformly valid fixed-time Wald interval. The sharp chronological constant and the literal factor-two saturation threshold remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing adaptive Neyman results provide first-order efficiency, fixed-stage upper rates, unrestricted lower bounds, or low-switching constructions, but do not give a matched actual-MSE phase diagram for every required exact update count with integer allocations and deterministic batch-contrast weights. In particular, they do not separate useful-update saturation near \(\log n\) from compulsory-batching dominance near \(\sqrt{n\log n}\).
+
+\paragraph{Niche.} The exact-count chronological design has two distinct losses. Delayed variance learning controls the frontier until it plateaus at order \(\log(n+1)/n\), whereas the per-batch treatment-count lattice contributes \((B/n)^2\) and becomes dominant only beyond the square-root elbow. The at-most budget can stop at the earlier elbow; an exactly-\(B\) policy cannot discard compulsory batches.
+
+\paragraph{Fill.} The project proves the risk decomposition and the matching every-\(B\) frontier, derives its three integer-indexed regimes directly, characterizes the at-most envelope and large-constant operational-factor saturation, retains the \(1/3\) maximum-batching witness, and attaches studentized fixed-time inference to a matching deterministic-prefix design. It does not infer the literal factor-two threshold from order bounds.
+
+\section{Related work}
+
+Li and Simchi-Levi give low-update constructions and characterize sequential efficiency through average propensity; their timing-collapsed benchmark does not furnish the present every-required-update phase diagram. Zhao derives fixed-stage competitive upper exponents and an unrestricted adaptive proxy-risk lower bound, whereas the present result concerns actual weighted-estimator MSE under a fixed exactly-\(B\) chronological decision class. Hirano and Porter's endogenous-information-set representation motivates the local chronological experiment, and Armstrong's adaptive efficiency bound supplies a first-order least-favorable-score template. Batched-bandit grids and feedback-gap arguments of Perchet, Rigollet, Chassang, and Snowberg and of Gao, Han, Ren, and Zhou inform the construction under a different reward-regret loss. Cai and Rafi and Yamin motivate compact-interior pilot comparisons; Wright isolates static integer-allocation loss; and Blackwell, Pashley, and Valentino motivate volume-weighted exact-count batch contrasts. No theorem-level transfer to Li--Simchi-Levi's or Zhao's full design games is claimed. A Gaussian parameter-submodel converse can transfer upward to a larger outcome-law class only when the admissible decision class and the risk functional are held fixed. The public Amazon adaptive-abtester is the operational cadence consumer, not evidence for the mathematical lower bound.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau=\mu_1-\mu_0\).
+Primary functional / estimator / diagnostic: \(\widehat\tau_d=\sum_{b=1}^B w_bD_b\), with \(\Psi^{=}_{n,B}=\inf_{d\in\mathfrak D_{n,B}}\sup_{(\mu,\sigma)\in\Theta}\{n\mathbb E_{P^{d}_{\mu,\sigma}}[(\widehat\tau_d-\tau)^2]-V^*(\sigma)\}\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{total number of experimental units}
+  \item \texttt{p\_\allowbreak{}n} --- \texttt{deterministic rational number}; \((0,1/2]\); \texttt{smaller share of a nearest-\allowbreak{}to-\allowbreak{}balanced one-\allowbreak{}batch exact allocation}
+  \par\smallskip\noindent\emph{Definition.} \(p_n=\lfloor n/2\rfloor/n\)
+  \item \texttt{B} --- \texttt{positive integer}; \(\{1,\ldots,\lfloor n/4\rfloor\}\); \texttt{required number of batches}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{finite set}; \texttt{control and treatment arms}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{0,1\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}ell} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{lower standard-\allowbreak{}deviation bound}
+  \item \texttt{u} --- \texttt{positive real constant}; \((\ell,\infty)\); \texttt{upper standard-\allowbreak{}deviation bound}
+  \item \texttt{M} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{mean bound}
+  \item \texttt{\textbackslash{}\allowbreak{}mu} --- \texttt{arm-\allowbreak{}mean vector}; \(\mathbb R^{\mathcal A}\); \texttt{arm-\allowbreak{}specific interventional outcome means}
+  \item \texttt{\textbackslash{}\allowbreak{}sigma} --- \texttt{positive arm-\allowbreak{}standard-\allowbreak{}deviation vector}; \((0,\infty)^{\mathcal A}\); \texttt{outcome standard deviations}
+  \item \texttt{\textbackslash{}\allowbreak{}Theta} --- \texttt{parameter space}; \texttt{compact Gaussian parameter box}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta=[-M,M]^{\mathcal A}\times[\ell,u]^{\mathcal A}\)
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{real parameter}; \texttt{difference in arm-\allowbreak{}specific interventional means}
+  \par\smallskip\noindent\emph{Definition.} \(\tau=\mu_1-\mu_0\)
+  \item \texttt{m} --- \texttt{deterministic integer vector}; \(\mathbb N^B\); \texttt{batch sizes}
+  \item \texttt{T} --- \texttt{deterministic cumulative-\allowbreak{}size vector}; \texttt{batch endpoints}
+  \par\smallskip\noindent\emph{Definition.} \(T_0=0\) and \(T_b=\sum_{j=1}^b m_j\)
+  \item \texttt{t} --- \texttt{deterministic weight vector}; \texttt{batch volume shares}
+  \par\smallskip\noindent\emph{Definition.} \(t_b=m_b/n\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf E} --- \texttt{standard Borel observation space}; \(\{0,1\}\times\mathbb R\); \texttt{one-\allowbreak{}unit assignment-\allowbreak{}response coordinate space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf E=\{0,1\}\times\mathbb R\), equipped with \(2^{\{0,1\}}\otimes\mathcal B(\mathbb R)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf H} --- \texttt{sequence of canonical prefix-\allowbreak{}history spaces}; \texttt{law-\allowbreak{}independent domains for chronological policy maps}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf H_0=\{\varnothing\}\) and \(\mathsf H_b=\mathsf E^{T_b}\) for \(1\le b\le B\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G} --- \texttt{sequence of canonical sigma-\allowbreak{}algebras}; \texttt{law-\allowbreak{}independent measurable structures on prefix histories}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_0=\{\varnothing,\{\varnothing\}\}\) and \(\mathcal G_b=\mathcal B(\mathsf E)^{\otimes T_b}\) for \(1\le b\le B\)
+  \item \texttt{Z} --- \texttt{canonical binary coordinate vector}; measurable maps from \(\mathsf H_B\) to \(\{0,1\}^n\); \texttt{assignment coordinates of the canonical observed record}
+  \item \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{canonical real coordinate vector}; measurable maps from \(\mathsf H_B\) to \(\mathbb R^n\); \texttt{one revealed response coordinate per randomized unit}
+  \item \texttt{O} --- \texttt{canonical observed-\allowbreak{}record coordinate}; the identity map on \(\mathsf H_B\); \texttt{complete observed data,\allowbreak{} including assignment history and one revealed outcome per unit}
+  \par\smallskip\noindent\emph{Definition.} \(O=((Z_i,Y_i^{\mathrm{obs}}))_{i=1}^n\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal F} --- \texttt{canonical coordinate filtration}; \texttt{law-\allowbreak{}independent chronological coordinate filtration}
+  \par\smallskip\noindent\emph{Definition.} On \(\mathsf H_B\), let \(O^{(b)}=((Z_i,Y_i^{\mathrm{obs}}))_{i=1}^{T_b}\) and set \(\mathcal F_b=\sigma(O^{(b)})=(O^{(b)})^{-1}(\mathcal G_b)\), with \(\mathcal F_0\) trivial
+  \item \texttt{q} --- \texttt{sequence of integer-\allowbreak{}valued policy maps}; \(q_b:(\mathsf H_{b-1},\mathcal G_{b-1})\to(\mathbb Z,2^{\mathbb Z}),\ 1\le b\le B\); \texttt{law-\allowbreak{}independent chronological rules for exact treated counts}
+  \item \texttt{Q} --- \texttt{integer-\allowbreak{}valued random vector}; measurable maps from \(\mathsf H_B\) to \(\mathbb Z^B\); \texttt{realized exact treated counts}
+  \par\smallskip\noindent\emph{Definition.} \(Q_b=q_b(O^{(b-1)})\)
+  \item \texttt{p} --- \texttt{predictable allocation-\allowbreak{}share random vector}; \texttt{realized batchwise treatment shares}
+  \par\smallskip\noindent\emph{Definition.} \(p_b=Q_b/m_b=q_b(O^{(b-1)})/m_b\)
+  \item \texttt{D} --- \texttt{batch-\allowbreak{}contrast vector}; \(\mathbb R^B\); \texttt{treated-\allowbreak{}minus-\allowbreak{}control batch means}
+  \item \texttt{w} --- \texttt{deterministic weight vector}; \(\mathbb R^B\); \texttt{normalized batch aggregation weights}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}d} --- \texttt{real-\allowbreak{}valued estimator}; \texttt{weighted batch-\allowbreak{}contrast estimator}
+  \item \texttt{f\_\allowbreak{}\textbackslash{}\allowbreak{}sigma} --- \texttt{real function}; \([1/4,3/4]\to\mathbb R_+\); \texttt{one-\allowbreak{}unit variance objective}
+  \item \texttt{p\textasciicircum{}*(\textbackslash{}\allowbreak{}sigma)} --- \texttt{allocation functional}; \([1/4,3/4]\); \texttt{constrained oracle Neyman share}
+  \item \texttt{V\textasciicircum{}*(\textbackslash{}\allowbreak{}sigma)} --- \texttt{positive real functional}; \texttt{constrained oracle normalized variance}
+  \item \texttt{r\_\allowbreak{}\textbackslash{}\allowbreak{}sigma} --- \texttt{nonnegative real function}; \([1/4,3/4]\to\mathbb R_+\); \texttt{allocation regret}
+  \item \texttt{d} --- \texttt{design-\allowbreak{}estimator policy tuple}; \texttt{admissible chronological allocation and weighting policy}
+  \par\smallskip\noindent\emph{Definition.} \(d=(m,q,w)\)
+  \item \texttt{P\textasciicircum{}\{d\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mu,\allowbreak{}\textbackslash{}\allowbreak{}sigma\}\allowbreak{}} --- \texttt{probability law}; probability laws on \((\mathsf H_B,\mathcal G_B)\); \texttt{joint observed-\allowbreak{}data law induced by the chronological policy and Gaussian response kernels}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak D\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{class of design-\allowbreak{}estimator tuples}; exactly-\(B\) feasible decision class
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{real-\allowbreak{}valued risk functional}; \texttt{normalized excess MSE}
+  \item \texttt{\textbackslash{}\allowbreak{}Psi\textasciicircum{}\{=\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{nonnegative real number}; exactly-\(B\) minimax frontier
+  \item \texttt{\textbackslash{}\allowbreak{}Psi\textasciicircum{}\{\textbackslash{}\allowbreak{}le\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{nonnegative real number}; at-most-\(B\) minimax envelope
+  \item \texttt{L\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{positive real number}; \texttt{chronological learning benchmark}
+  \item \texttt{R\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{positive real number}; \texttt{learning-\allowbreak{}plus-\allowbreak{}lattice benchmark}
+  \item \texttt{F\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{positive real functional}; \(\mathbb N^B\to\mathbb R_+\); \texttt{schedule cost}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat v} --- \texttt{Borel arm-\allowbreak{}variance functional on canonical histories}; \((a,k,h)\mapsto\widehat v_a(k;h)\in[\ell^2,u^2]\); \texttt{projected deterministic-\allowbreak{}prefix arm-\allowbreak{}variance functional}
+  \item \texttt{d\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{pre\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{constructed design-\allowbreak{}estimator tuple}; \texttt{deterministic-\allowbreak{}prefix plug-\allowbreak{}in design}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat Q\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{positive statistic}; \texttt{observable normalized variance estimator}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathrm\{se\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}} --- \texttt{positive statistic}; \texttt{standard-\allowbreak{}error estimator}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{real constant}; \((0,1)\); \texttt{nominal error probability}
+  \item \texttt{z\_\allowbreak{}\textbackslash{}\allowbreak{}gamma} --- \texttt{real-\allowbreak{}valued quantile functional}; \texttt{standard-\allowbreak{}normal quantile}
+  \par\smallskip\noindent\emph{Definition.} \(z_\gamma=\Phi^{-1}(\gamma)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}(\textbackslash{}\allowbreak{}alpha)} --- \texttt{random interval}; \texttt{fixed-\allowbreak{}time Wald interval}
+  \item \texttt{\textbackslash{}\allowbreak{}Psi\_\allowbreak{}\textbackslash{}\allowbreak{}infty(n)} --- \texttt{nonnegative real number}; \texttt{best exact-\allowbreak{}batch frontier over all feasible batch counts}
+  \item \texttt{A} --- \texttt{real constant}; \((1,\infty)\); \texttt{saturation comparison factor}
+  \item \texttt{B\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{sat\}\allowbreak{}\}\allowbreak{}(n,\allowbreak{}A)} --- \texttt{positive integer functional}; saturation count at comparison factor \(A>1\)
+  \item \texttt{s} --- \texttt{fixed positive real constant}; \((\ell,u)\); \texttt{known fixed scale on the local Gaussian path}
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{LAN\}\allowbreak{}\}\allowbreak{}} --- \texttt{method handle}; \texttt{fixed-\allowbreak{}scale chronological Gaussian score-\allowbreak{}and-\allowbreak{}decision reduction}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:parameter-box]\label{ass:parameter-box}
+The parameter satisfies \((\mu,\sigma)\in\Theta\).
+\par\smallskip\noindent\emph{Standard} (compact nondegenerate interior variance class, \cite{Yamin2026WhenHowPilot}).
+\end{assumption}
+
+\begin{assumption}[ass:deterministic-partition]\label{ass:deterministic-partition}
+The schedule satisfies \(m\in\{(m_1,\ldots,m_B)\in\mathbb N^B:m_b\ge4\ \text{for all }b,\ \sum_{b=1}^B m_b=n\}\).
+\par\smallskip\noindent\emph{Standard} (deterministic positive-size batch grid, \cite{PerchetRigolletChassangSnowberg2016Batched}).
+\end{assumption}
+
+\begin{assumption}[ass:predictable-counts]\label{ass:predictable-counts}
+For every \(1\le b\le B\), \(q_b:(\mathsf H_{b-1},\mathcal G_{b-1})\to(\mathbb Z,2^{\mathbb Z})\) is Borel measurable.
+\par\smallskip\noindent\emph{Standard} (non-anticipating batched adaptation, \cite{HiranoPorter2023SequentialRepresentations}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-overlap-counts]\label{ass:fixed-overlap-counts}
+For every \(1\le b\le B\) and every \(h\in\mathsf H_{b-1}\), \(\lceil m_b/4\rceil\le q_b(h)\le\lfloor3m_b/4\rfloor\).
+\par\smallskip\noindent\emph{Standard} (fixed-overlap condition specialized to exact counts, \cite{CookMishlerRamdas2024EfficientInference}).
+\end{assumption}
+
+\begin{assumption}[ass:deterministic-simplex-weights]\label{ass:deterministic-simplex-weights}
+The vector \(w\) belongs to \(\{v\in[0,1]^B:\sum_{b=1}^Bv_b=1\}\).
+\par\smallskip\noindent\emph{Standard} (deterministic normalized aggregation of batch contrasts, \cite{BlackwellPashleyValentino2023BANA}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:observed-adaptive-law]\label{def:observed-adaptive-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed adaptive Gaussian experiment}
+\par\smallskip\noindent\emph{Construction.} Fix \(d=(m,q,w)\) satisfying ass:deterministic-partition, ass:predictable-counts, and ass:fixed-overlap-counts. On the fixed measurable spaces \((\mathsf H_b,\mathcal G_b)\), start with the point mass at \(O^{(0)}=\varnothing\). Recursively for \(b=1,\ldots,B\), given \(h\in\mathsf H_{b-1}\), set \(k=q_b(h)\), draw \(z\in\{0,1\}^{m_b}\) from the Borel kernel \[K_b^Z(z\mid h)=\binom{m_b}{k}^{-1}\mathbf 1\!\left\{\sum_{j=1}^{m_b}z_j=k\right\},\] then draw \(y\in\mathbb R^{m_b}\) from \[K_{b,\mu,\sigma}^Y(dy\mid h,z)=\bigotimes_{j=1}^{m_b}\mathcal N(\mu_{z_j},\sigma_{z_j}^2)(dy_j),\] and append \((z_j,y_j)_{j=1}^{m_b}\) to \(h\). The resulting finite Ionescu--Tulcea recursion defines \(P^{d}_{\mu,\sigma}\) on \((\mathsf H_B,\mathcal G_B)\); \(O\) is the identity coordinate, \(Q_b=q_b(O^{(b-1)})\), and \(\mathcal F_b=\sigma(O^{(b)})\). Thus the experiment contains the assignment history and exactly one revealed Gaussian response per unit.
+\par\smallskip\noindent\emph{Inputs.} \texttt{d}; \texttt{\textbackslash{}\allowbreak{}mu}; \texttt{\textbackslash{}\allowbreak{}sigma}.
+\end{definition}
+
+\begin{definition}[def:batch-contrast]\label{def:batch-contrast}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Batchwise mean difference}
+\par\smallskip\noindent\emph{Construction.} For \(I_b=\{T_{b-1}+1,\ldots,T_b\}\), \(D_b=Q_b^{-1}\sum_{i\in I_b}Z_iY_i^{\mathrm{obs}}-(m_b-Q_b)^{-1}\sum_{i\in I_b}(1-Z_i)Y_i^{\mathrm{obs}}\), where \(Q_b=q_b(O^{(b-1)})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}; \texttt{T}; \texttt{q}; \texttt{Z}; \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:weighted-estimator]\label{def:weighted-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministically weighted batch estimator}
+\par\smallskip\noindent\emph{Construction.} \(\widehat\tau_d=\sum_{b=1}^B w_bD_b\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{w}; \texttt{D}.
+\end{definition}
+
+\begin{definition}[def:exact-b-designs]\label{def:exact-b-designs}
+\par\smallskip\noindent\emph{Defined object.} Exactly-\(B\) chronological design class
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak D_{n,B}=\{d=(m,q,w):m\text{ satisfies ass:deterministic-partition};\ q=(q_b)_{b=1}^B\text{ consists of maps }q_b:(\mathsf H_{b-1},\mathcal G_{b-1})\to(\mathbb Z,2^{\mathbb Z})\text{ satisfying ass:predictable-counts and ass:fixed-overlap-counts};\ w\text{ satisfies ass:deterministic-simplex-weights}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}deterministic-\allowbreak{}partition}; \texttt{ass:\allowbreak{}predictable-\allowbreak{}counts}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}overlap-\allowbreak{}counts}; \texttt{ass:\allowbreak{}deterministic-\allowbreak{}simplex-\allowbreak{}weights}.
+\end{definition}
+
+\begin{definition}[def:oracle-loss]\label{def:oracle-loss}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Constrained Neyman loss and regret}
+\par\smallskip\noindent\emph{Construction.} For \(p\in[1/4,3/4]\), \(f_\sigma(p)=\sigma_1^2/p+\sigma_0^2/(1-p)\), \(p^*(\sigma)=\operatorname{clip}_{[1/4,3/4]}\{\sigma_1/(\sigma_1+\sigma_0)\}\), \(V^*(\sigma)=f_\sigma(p^*(\sigma))\), and \(r_\sigma(p)=f_\sigma(p)-V^*(\sigma)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}sigma}.
+\end{definition}
+
+\begin{definition}[def:normalized-risk]\label{def:normalized-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Normalized excess MSE}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R_{n,B}(d;\mu,\sigma)=n\,\mathbb E_{P^{d}_{\mu,\sigma}}[(\widehat\tau_d-\tau)^2]-V^*(\sigma)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d}; \texttt{\textbackslash{}\allowbreak{}mu}; \texttt{\textbackslash{}\allowbreak{}sigma}.
+\end{definition}
+
+\begin{definition}[def:frontiers]\label{def:frontiers}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact and at-\allowbreak{}most update frontiers}
+\par\smallskip\noindent\emph{Construction.} \(\Psi^{=}_{n,B}=\inf_{d\in\mathfrak D_{n,B}}\sup_{(\mu,\sigma)\in\Theta}\mathcal R_{n,B}(d;\mu,\sigma)\) and \(\Psi^{\le}_{n,B}=\min_{1\le b\le B}\Psi^{=}_{n,b}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathfrak D\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}Theta}; \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:rate-benchmarks]\label{def:rate-benchmarks}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Learning and lattice benchmarks}
+\par\smallskip\noindent\emph{Construction.} \(L_{n,B}=B\{(n+1)^{1/B}-1\}/n\) and \(R_{n,B}=L_{n,B}+(B/n)^2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:schedule-cost]\label{def:schedule-cost}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Chronological schedule cost}
+\par\smallskip\noindent\emph{Construction.} \(F_{n,B}(m)=n^{-1}\sum_{b=1}^B\{m_b/(T_{b-1}+1)+1/m_b\}\) for every deterministic partition \(m\) at indices \((n,B)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:prefix-variance]\label{def:prefix-variance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Projected deterministic-\allowbreak{}prefix arm variance}
+\par\smallskip\noindent\emph{Construction.} For \(0\le c\le B\), \(h=((z_i,y_i))_{i=1}^{T_c}\in\mathsf H_c\), \(a\in\mathcal A\), and an integer \(k\ge0\), put \(j=\min\{k,\sum_{i=1}^{T_c}\mathbf 1\{z_i=a\}\}\). Let \(\widehat v_a(k;h)\) equal the unbiased sample variance of the first \(j\) coordinates \(y_i\) with \(z_i=a\), projected onto \([\ell^2,u^2]\), when \(j\ge2\); set \(\widehat v_a(k;h)=\ell^2\) when \(j<2\). This defines a Borel function on every canonical history, and on feasible histories it uses the requested \(k\) arm observations whenever they exist.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathsf H}; \texttt{\textbackslash{}\allowbreak{}ell}; \texttt{u}.
+\end{definition}
+
+\begin{definition}[def:prefix-design]\label{def:prefix-design}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministic-\allowbreak{}prefix plug-\allowbreak{}in design}
+\par\smallskip\noindent\emph{Construction.} Construct \(d^{\mathrm{pre}}_{n,B}\) as follows. Among all positive integer partitions with \(m_b\ge4\), \(\sum_bm_b=n\), and \(m_b\in4\mathbb N\) for \(b<B\), take the lexicographically first minimizer of \(F_{n,B}(m)\), and put \(w_b=m_b/n\). For each \(b\) and \(h\in\mathsf H_{b-1}\), let \(k_b=\lfloor T_{b-1}/4\rfloor\) and \(\mathcal K_b=\{\lceil m_b/4\rceil,\ldots,\lfloor3m_b/4\rfloor\}\). If \(k_b<2\), define \(q_b(h)\) as the element \(k\in\mathcal K_b\) minimizing \(|k-m_b/2|\), with the smaller \(k\) breaking a tie. If \(k_b\ge2\), define \(q_b(h)\) as the element \(k\in\mathcal K_b\) minimizing \(\widehat v_1(k_b;h)/(k/m_b)+\widehat v_0(k_b;h)/(1-k/m_b)\), again with the smaller \(k\) breaking a tie. These finite-valued tie-broken argmin rules are Borel maps on \((\mathsf H_{b-1},\mathcal G_{b-1})\). The law \(P^{d^{\mathrm{pre}}_{n,B}}_{\mu,\sigma}\) is the recursive canonical law in def:observed-adaptive-law generated by these maps.
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{B}; \texttt{\textbackslash{}\allowbreak{}ell}; \texttt{u}.
+\end{definition}
+
+\begin{definition}[def:variance-estimator]\label{def:variance-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministic-\allowbreak{}prefix variance estimator}
+\par\smallskip\noindent\emph{Construction.} At time \(n\), put \(k_n=\lfloor n/4\rfloor\) and, for each \(a\in\mathcal A\), \(\widehat v_{a,n}=\widehat v_a(k_n;O)\). Then put \(\widehat Q_{n,B}=n^{-1}\sum_{b=1}^Bm_b\{\widehat v_{1,n}/p_b+\widehat v_{0,n}/(1-p_b)\}\) and \(\widehat{\mathrm{se}}_{n,B}=(\widehat Q_{n,B}/n)^{1/2}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{pre\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}}; \texttt{O}.
+\end{definition}
+
+\begin{definition}[def:wald-interval]\label{def:wald-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}time Wald interval}
+\par\smallskip\noindent\emph{Construction.} For \(0<\alpha<1\), \(\mathcal I_{n,B}(\alpha)=[\widehat\tau_{d^{\mathrm{pre}}_{n,B}}-z_{1-\alpha/2}\widehat{\mathrm{se}}_{n,B},\widehat\tau_{d^{\mathrm{pre}}_{n,B}}+z_{1-\alpha/2}\widehat{\mathrm{se}}_{n,B}]\), where \(z_\gamma\) is the \(\gamma\)-quantile of \(\mathcal N(0,1)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{pre\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathrm\{se\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:saturation]\label{def:saturation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Operational saturation count}
+\par\smallskip\noindent\emph{Construction.} \(\Psi_\infty(n)=\min_{1\le b\le\lfloor n/4\rfloor}\Psi^{=}_{n,b}\) and, for \(A>1\), \(B_{\mathrm{sat}}(n,A)=\min\{B:\Psi^{=}_{n,B}\le A\Psi_\infty(n)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}Psi\textasciicircum{}\{=\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}Psi\textasciicircum{}\{\textbackslash{}\allowbreak{}le\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}B\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:lan-handle]\label{def:lan-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Chronological LAN handle}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf H_{\mathrm{LAN}}\) means: restrict to the fixed-scale path \(\sigma_1(\theta)=s e^\theta\), \(\sigma_0(\theta)=s e^{-\theta}\); factor the adaptive-history score into martingale increments of Fisher information two per revealed outcome; transport the induced local Gaussian experiment through the predictable maps \(p_b\); and optimize the cumulative quadratic expansion of \(r_\sigma(p_b)\) jointly with the batch schedule.
+\par\smallskip\noindent\emph{Inputs.} \texttt{s}; \texttt{\textbackslash{}\allowbreak{}mathcal F}; \texttt{p}; \texttt{r\_\allowbreak{}\textbackslash{}\allowbreak{}sigma}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:observed-law-wellposed]\label{prop:observed-law-wellposed}
+For every \(d\in\mathfrak D_{n,B}\) and \((\mu,\sigma)\in\Theta\), each pair of kernels in def:observed-adaptive-law is Borel and their chronological recursion determines a unique probability law \(P^{d}_{\mu,\sigma}\) on \((\mathsf H_B,\mathcal G_B)\). The filtration \((\mathcal F_b)_{b=0}^B\) is the coordinate filtration and is independent of \((\mu,\sigma)\); moreover, \(Q_b=q_b(O^{(b-1)})\) and \(p_b=Q_b/m_b\) are \(\mathcal F_{b-1}\)-measurable and satisfy the exact-count bounds pathwise. The distribution of \(\widehat\tau_d\), the risk \(\mathcal R_{n,B}\), and the frontiers \(\Psi^{=}_{n,B}\) and \(\Psi^{\le}_{n,B}\) depend only on these observed laws. Under \(d^{\mathrm{pre}}_{n,B}\), the same is true of \(\widehat Q_{n,B}\) and \(\mathcal I_{n,B}(\alpha)\). Any latent potential-outcome augmentation that is independent across units and has the same two Gaussian arm marginals, with an arbitrary within-unit copula, induces the same observed laws and the same values of all these quantities.
+\end{proposition}
+\begin{proof}
+Fix \(d=(m,q,w)\in\mathfrak D_{n,B}\) and \((\mu,\sigma)\in\Theta\).  The count bounds and \(m_b\geq4\) imply
+\[
+1\leq \lceil m_b/4\rceil\leq q_b(h)\leq\lfloor3m_b/4\rfloor\leq m_b-1.
+\]
+Consequently the binomial coefficient in \(K_b^Z\) is nonzero and both denominators used in \(D_b\) are positive.  Since \(q_b\) is Borel measurable by ass:predictable-counts and its range is countable, \((h,z)\mapsto K_b^Z(z\mid h)\) is a Borel probability kernel.  For fixed \((\mu,\sigma)\), the Gaussian density
+\[
+(z,y)\longmapsto \prod_{j=1}^{m_b}
+ \frac{1}{\sqrt{2\pi}\sigma_{z_j}}
+ \exp\!\left\{-\frac{(y_j-\mu_{z_j})^2}{2\sigma_{z_j}^2}\right\}
+\]
+is Borel and integrates to one, so \(K_{b,\mu,\sigma}^Y\) is also a Borel probability kernel.  Starting with \(P_0=\delta_{\varnothing}\), define, for every Borel \(A\subseteq\mathsf H_b\),
+\[
+P_b(A)=\int_{\mathsf H_{b-1}}\sum_{z\in\{0,1\}^{m_b}}
+ K_b^Z(z\mid h)\int_{\mathbb R^{m_b}}
+ \mathbf 1\{(h,(z,y))\in A\}K_{b,\mu,\sigma}^Y(dy\mid h,z)P_{b-1}(dh).
+\]
+Measurability of the integrand shows inductively that \(P_b\) is a probability measure.  The displayed recursion also proves uniqueness at every stage, because its right-hand side is determined by \(P_{b-1}\) and the two fixed kernels.  Thus \(P_B=P^d_{\mu,\sigma}\) exists uniquely.
+
+The spaces, coordinate maps, and sigma-fields \(\mathcal F_b=\sigma(O^{(b)})\) were fixed before choosing \((\mu,\sigma)\); hence the filtration is parameter independent.  By its definition, \(Q_b=q_b(O^{(b-1)})\) is \(\mathcal F_{b-1}\)-measurable, as is \(p_b=Q_b/m_b\), and the count bounds above hold on every canonical history.  The positivity just proved makes each \(D_b\) a Borel function of \(O\).  It follows successively from def:weighted-estimator, def:normalized-risk, def:frontiers, def:variance-estimator, and def:wald-interval that \(\widehat\tau_d\), \(\mathcal R_{n,B}\), the two frontiers, \(\widehat Q_{n,B}\), and \(\mathcal I_{n,B}(\alpha)\) are determined by these observed-data laws.
+
+Finally consider an augmentation by independent unit-level pairs \((Y_i(0),Y_i(1))\) having the stated Gaussian marginals and arbitrary within-unit copulas.  Conditional on a prefix and on the next assignment vector, unit \(i\)'s revealed coordinate is \(Y_i(Z_i)\), whose conditional law is \(\mathcal N(\mu_{Z_i},\sigma_{Z_i}^2)\); independence across units makes the joint conditional law exactly \(K_{b,\mu,\sigma}^Y\).  The assignment kernel is still \(K_b^Z\).  Induction over \(b\) in the preceding recursion therefore gives the same \(P^d_{\mu,\sigma}\), independently of the within-unit copula.  All listed functionals consequently have the same values.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition makes the statistical experiment and every optimization criterion well posed without selecting an unidentified joint coupling of counterfactual outcomes. \textit{Gap.} Adaptive Neyman analyses often begin from potential-outcome marginals, but this frontier requires an explicit observed-data experiment because the assignment law evolves with the revealed history. \textit{Consumer.} The platform can evaluate risk, choose a cadence, and report coverage using only randomized assignments and revealed responses.
+
+\begin{proposition}[prop:risk-decomposition]\label{prop:risk-decomposition}
+For every \(d\in\mathfrak D_{n,B}\), \(\widehat\tau_d\) is unbiased for \(\tau\) and \[\mathcal R_{n,B}(d;\mu,\sigma)=V^*(\sigma)\sum_{b=1}^B\frac{(w_b-t_b)^2}{t_b}+\sum_{b=1}^B\frac{w_b^2}{t_b}\,\mathbb E_{P^{d}_{\mu,\sigma}}[r_\sigma(p_b)].\]
+\end{proposition}
+\begin{proof}
+Fix \(d\in\mathfrak D_{n,B}\).  Conditional on \(\mathcal F_{b-1}\) and the batch-
+\(b\) assignment vector, the revealed responses are independent Gaussian variables with their arm-specific means and variances.  The exact-count bounds make both cells nonempty, and hence
+\[
+\mathbb E(D_b\mid\mathcal F_{b-1},Z_{I_b})=\mu_1-\mu_0=\tau,
+\qquad
+\operatorname{Var}(D_b\mid\mathcal F_{b-1},Z_{I_b})
+=\frac{\sigma_1^2}{Q_b}+\frac{\sigma_0^2}{m_b-Q_b}
+=\frac{f_\sigma(p_b)}{m_b}.
+\]
+The right side depends on the assignment vector only through its predictable exact count, so the same two identities hold after conditioning only on \(\mathcal F_{b-1}\).  Thus each \(D_b\) is unbiased for \(\tau\).  If \(a<b\), then \(D_a-\tau\) is \(\mathcal F_{b-1}\)-measurable and conditional centering gives
+\[
+\mathbb E[(D_a-\tau)(D_b-\tau)]
+=\mathbb E\!\left[(D_a-\tau)\mathbb E(D_b-\tau\mid\mathcal F_{b-1})\right]=0.
+\]
+Assumption ass:deterministic-simplex-weights now yields
+\[
+\mathbb E(\widehat\tau_d)=\sum_{b=1}^Bw_b\tau=\tau
+\]
+and, using \(m_b=nt_b\),
+\[
+n\operatorname{Var}(\widehat\tau_d)
+=\sum_{b=1}^B\frac{w_b^2}{t_b}\,\mathbb E[f_\sigma(p_b)]
+=V^*(\sigma)\sum_{b=1}^B\frac{w_b^2}{t_b}
++\; +\;\sum_{b=1}^B\frac{w_b^2}{t_b}\,\mathbb E[r_\sigma(p_b)].
+\]
+Because \(\sum_bw_b=\sum_bt_b=1\), direct expansion gives
+\[
+\sum_{b=1}^B\frac{(w_b-t_b)^2}{t_b}
+=\sum_{b=1}^B\frac{w_b^2}{t_b}-2\sum_{b=1}^Bw_b+\sum_{b=1}^Bt_b
+=\sum_{b=1}^B\frac{w_b^2}{t_b}-1.
+\]
+Subtracting \(V^*(\sigma)\) according to def:normalized-risk proves the asserted identity.  The expectation throughout is under \(P^d_{\mu,\sigma}\), whose existence was established in prop:observed-law-wellposed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identity exposes weight mismatch and chronological allocation regret as the only two sources of design loss. \textit{Gap.} Li and Simchi-Levi decompose feasible-estimator error, and Dai, Gradu, and Harshaw connect Neyman regret to variance, but neither identity retains exact-count batch grids and arbitrary deterministic batch weights. \textit{Consumer.} It turns an update-cadence choice in the Amazon adaptive-abtester workflow into two auditable cost components.
+
+\begin{lemma}[lem:prefix-design-admissible]\label{lem:prefix-design-admissible}
+For every \(n\ge4\) and \(1\le B\le\lfloor n/4\rfloor\), the constructed tuple satisfies \(d^{\mathrm{pre}}_{n,B}\in\mathfrak D_{n,B}\). In particular, every \(q_b\) is Borel measurable on \((\mathsf H_{b-1},\mathcal G_{b-1})\), its values lie in \(\{\lceil m_b/4\rceil,\ldots,\lfloor3m_b/4\rfloor\}\), and under its recursively induced law \(P^{d^{\mathrm{pre}}_{n,B}}_{\mu,\sigma}\), the realized count \(Q_b=q_b(O^{(b-1)})\) is \(\mathcal F_{b-1}\)-measurable.
+\end{lemma}
+\begin{proof}
+The feasible set of schedules used in def:prefix-design is nonempty: take \(m_b=4\) for \(b<B\) and \(m_B=n-4(B-1)\geq4\).  It is finite, so the lexicographically first minimizer of \(F_{n,B}\) exists.  By construction it satisfies ass:deterministic-partition, and \(w_b=m_b/n\) is deterministic, nonnegative, and sums to one, as required by ass:deterministic-simplex-weights.
+
+For every \(m_b\geq4\),
+\[
+\mathcal K_b=\{\lceil m_b/4\rceil,\ldots,\lfloor3m_b/4\rfloor\}
+\]
+is a nonempty finite set.  On a fixed prefix space, selecting the first \(j\) coordinates having \(z_i=a\), taking their polynomial sample-variance formula when \(j\geq2\), and projecting onto a closed interval are Borel operations.  Hence every map \(h\mapsto\widehat v_a(k_b;h)\) in def:prefix-variance is Borel.  If \(k_b<2\), the tie-broken nearest-balanced rule is constant.  If \(k_b\geq2\), then for each \(k\in\mathcal K_b\) the displayed objective in def:prefix-design is Borel; the event that a particular \(k\) is its smallest minimizer is a finite intersection of Borel weak and strict comparison events.  Thus the tie-broken argmin \(q_b\) is Borel and satisfies ass:predictable-counts.  Its range is contained in \(\mathcal K_b\), so ass:fixed-overlap-counts holds pathwise.
+
+All four membership conditions in def:exact-b-designs have now been verified, proving \(d^{\mathrm{pre}}_{n,B}\in\mathfrak D_{n,B}\).  Under the recursive law of def:observed-adaptive-law, \(O^{(b-1)}\) is \(\mathcal F_{b-1}\)-measurable; composition with the Borel map \(q_b\) shows that \(Q_b=q_b(O^{(b-1)})\) is \(\mathcal F_{b-1}\)-measurable.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The frontier upper bound is meaningful only after the deterministic-prefix construction is shown to satisfy every chronological, count, and weighting constraint. \textit{Gap.} Published low-switching rules do not verify membership in this exact-count class with a separate feasible grid in every positive batch. \textit{Consumer.} The admissibility certificate translates the mathematical schedule into a batch plan that can be instantiated without violating the platform's allocation constraints.
+
+\begin{theorem}[thm:exact-b-frontier]\label{thm:exact-b-frontier}
+There exist constants \(0<c<C<\infty\), depending only on \((\ell,u)\), such that uniformly over every \(n\ge4\) and \(1\le B\le\lfloor n/4\rfloor\), \[cR_{n,B}\le\Psi^{=}_{n,B}\le CR_{n,B}.\] The upper bound is attained up to \(C\) by \(d^{\mathrm{pre}}_{n,B}\), and the lower bound holds over the full class \(\mathfrak D_{n,B}\) after joint optimization over deterministic weights.
+\end{theorem}
+\begin{proof}
+Write
+\[
+H(m)=\sum_{b=1}^B\frac{m_b}{T_{b-1}+1},\qquad
+J(m)=\sum_{b=1}^B\frac1{m_b},\qquad
+F_{n,B}(m)=\frac{H(m)+J(m)}n.
+\]
+We first prove a chronological lower bound.  Choose \(s_0\in(\ell,u)\).  By continuity there is a closed interval \(I=[a_0,a_1]\subset(1/4,3/4)\), containing \(1/2\) in its interior, such that
+\[
+\sigma_0(\vartheta)=s_0,qquad
+\sigma_1(\vartheta)=s_0\frac{\vartheta}{1-\vartheta}
+\]
+belong to \([\ell,u]\) for every \(\vartheta\in I\).  Fix \(\mu_0=\mu_1=0\), which is permitted by ass:parameter-box.  On this submodel \(p^*(\sigma(\vartheta))=\vartheta\), and direct common-denominator algebra gives, for every \(p\in[1/4,3/4]\),
+\[
+r_{\sigma(\vartheta)}(p)
+=\frac{(\sigma_1(\vartheta)+\sigma_0(\vartheta))^2}
+ {p(1-p)}(p-\vartheta)^2
+\geq c_0(p-\vartheta)^2,                                      \tag{1}
+\]
+where \(c_0>0\) depends only on \((\ell,u)\).
+
+Let \(\varpi\) be a continuously differentiable probability density supported in the interior of \(I\), vanishing at its two support endpoints, bounded below on a smaller nonempty interval \(I_0\), and satisfying
+\(I_\varpi=\int(\varpi'/\varpi)^2\varpi<\infty\).  Such a density is obtained, for example, by normalizing a smooth bump function.  In the adaptive likelihood through time \(T\), conditional assignment probabilities contain no \(\vartheta\)-derivative because the realized policy maps are parameter-free.  A treated Gaussian observation has Fisher information
+\[
+2\left\{\frac{d}{d\vartheta}\log\sigma_1(\vartheta)\right\}^2
+=\frac{2}{\vartheta^2(1-\vartheta)^2},
+\]
+whereas a control observation has zero information on this submodel.  Outcome scores at successive reveals are conditionally centered, so their cross-products have expectation zero.  Since \(I\) is compact inside \((0,1)\), the history information is therefore at most \(C_0T\), uniformly over every chronological policy.
+
+For completeness, the required information inequality follows directly by integration by parts.  If \(\delta\) is any history-measurable estimator of \(\vartheta\), and \(S_\vartheta\) is the history score, the boundary condition on \(\varpi\) gives
+\[
+1=\int \mathbb E_\vartheta\!\left[(\delta-\vartheta)
+ \left\{S_\vartheta+\frac{\varpi'(\vartheta)}{\varpi(\vartheta)}\right\}\right]
+ \varpi(\vartheta)d\vartheta.
+\]
+Cauchy--Schwarz and the zero conditional mean of the score imply
+\[
+\int\mathbb E_\vartheta[(\delta-\vartheta)^2]\varpi(\vartheta)d\vartheta
+\geq\frac1{I_\varpi+C_0T}.                                  \tag{2}
+\]
+Apply (2) to the history-measurable \(p_b\) with \(T=T_{b-1}\).  Also, pathwise, \(p_b\) lies on the grid \(\{j/m_b:j\in\mathbb Z\}\).  On every full grid cell contained in \(I_0\), integration of squared distance to the nearest endpoint gives a constant times \(m_b^{-3}\); there are a constant times \(m_b\) such cells.  The finitely many remaining values of \(m_b\geq4\) are absorbed by decreasing the constant.  Hence
+\[
+\int\mathbb E_\vartheta[(p_b-\vartheta)^2]\varpi(\vartheta)d\vartheta
+\geq \frac{c_1}{m_b^2}.                                     \tag{3}
+\]
+Taking one half of the sum of (2) and (3), and then using (1), yields, with
+\(h_b=(T_{b-1}+1)^{-1}+m_b^{-2}\),
+\[
+\int\mathbb E_\vartheta[r_{\sigma(\vartheta)}(p_b)]
+ \varpi(\vartheta)d\vartheta\geq c_2h_b.                   \tag{4}
+\]
+This is one Bayes lower bound with one common prior, so it may be summed over batches.
+
+On the submodel, \(V^*(\sigma(\vartheta))\geq v_0>0\).  Integrating prop:risk-decomposition and using (4) gives
+\[
+\sup_{(\mu,\sigma)\in\Theta}\mathcal R_{n,B}(d;\mu,\sigma)
+\geq v_0\sum_b\frac{(w_b-t_b)^2}{t_b}
+ +c_2\sum_b\frac{w_b^2}{t_b}h_b.                            \tag{5}
+\]
+Put \(d_b=c_2h_b/v_0\).  The minimum of the right side of (5) over all real weights satisfying \(\sum_bw_b=1\), and hence also a lower bound for its minimum over simplex weights, is obtained by a Lagrange multiplier and equals
+\[
+v_0\left\{\left(\sum_{b=1}^B\frac{t_b}{1+d_b}\right)^{-1}-1\right\}.
+\]
+Because \(0\leq h_b\leq1+1/16\), this expression is bounded below by a fixed positive multiple of \(\sum_bt_bh_b\).  Indeed, with
+\(x=\sum_bt_bd_b/(1+d_b)\), it equals \(v_0x/(1-x)\), while
+\(x\geq(1+\max_bd_b)^{-1}\sum_bt_bd_b\).  Therefore every admissible \(d\) satisfies
+\[
+\sup_{\Theta}\mathcal R_{n,B}(d;\mu,\sigma)
+\geq \frac{c_3}{n}\sum_{b=1}^B
+ \left\{\frac{m_b}{T_{b-1}+1}+\frac1{m_b}\right\}
+=c_3F_{n,B}(m).                                              \tag{6}
+\]
+
+We next establish the matching constructive bound.  Under exact overlap, every arm has at least \(\lfloor T/4\rfloor\) observations by deterministic time \(T\).  Listing an arm's responses in their order of appearance gives independent \(\mathcal N(\mu_a,\sigma_a^2)\) variables: this follows inductively from the response kernel, because the next response, conditional on the past and its assigned arm, has that fixed Gaussian law.  Thus the first \(k=\lfloor T/4\rfloor\) responses used by def:prefix-variance form a deterministic-size Gaussian sample.  If \(k\geq2\), an orthogonal change of coordinates shows that
+\((k-1)S_a^2/\sigma_a^2\) is a sum of \(k-1\) independent squared standard normals.  Since \(\mathbb E Z^2=1\) and \(\mathbb E Z^4=3\),
+\[
+\mathbb E(S_a^2-\sigma_a^2)^2=\frac{2\sigma_a^4}{k-1}.
+\]
+Projection onto \([\ell^2,u^2]\), which contains \(\sigma_a^2\), cannot increase absolute error.
+
+For \(v=(v_1,v_0)\in[\ell^2,u^2]^2\), the continuous minimizer of
+\(v_1/p+v_0/(1-p)\) over \([1/4,3/4]\) is
+\[
+G(v)=\operatorname{clip}_{[1/4,3/4]}
+ \frac{\sqrt{v_1}}{\sqrt{v_1}+\sqrt{v_0}}.
+\]
+The map \(G\) is Lipschitz on this compact box, while every true objective has uniformly bounded second derivative on \([1/4,3/4]\).  Consequently
+\[
+\mathbb E|G(\widehat v)-p^*(\sigma)|^2\leq \frac{C_1}{T+1}. \tag{7}
+\]
+Here is a boundary-safe excess-risk argument.  For \(F_v(p)=v_1/p+v_0/(1-p)\), all
+\(F_v\) are uniformly strongly convex, and
+\(\sup_p|(F_v-F_{\widetilde v})'(p)|\leq C\|v-\widetilde v\|\).
+The two variational inequalities for their constrained minimizers therefore give
+\[
+|G(v)-G(\widetilde v)|\leq C\|v-\widetilde v\|,
+\qquad
+F_v(G(\widetilde v))-F_v(G(v))\leq C\|v-\widetilde v\|^2.
+\]
+This argument remains valid when either minimizer is a clipping endpoint.  If
+\(m_b\in4\mathbb N\), both clipping endpoints belong to the feasible count grid.  A grid point within \(m_b^{-1}\) of \(G(\widehat v)\) has estimated objective excess at most
+\(C m_b^{-2}\); strong convexity then puts the exact discrete minimizer within
+\(C m_b^{-1}\) of \(G(\widehat v)\).  Comparing true and estimated objectives between these two points, and using \(2xy\leq x^2+y^2\), gives
+\[
+\mathbb E[r_\sigma(p_b)]
+\leq C_3\left\{\frac1{T_{b-1}+1}+\frac1{m_b^2}\right\}.   \tag{8}
+\]
+The fallback cases \(k<2\) obey (8) after enlarging \(C_3\), because the parameter and allocation sets are compact and then \(T_{b-1}\) is bounded.  In the sole possibly non-multiple-of-four final batch, the feasible interval endpoints are displaced by less than \(m_B^{-1}\).  A boundary derivative can then be nonzero, so the valid uniform bound is
+\[
+\mathbb E[r_\sigma(p_B)]
+\leq C_3\left\{\frac1{T_{B-1}+1}+\frac1{m_B}\right\}.      \tag{9}
+\]
+
+For the prefix design, \(w_b=t_b\).  Proposition prop:risk-decomposition, (8), and (9) imply
+\[
+\sup_\Theta\mathcal R_{n,B}(d^{\mathrm{pre}}_{n,B};\mu,\sigma)
+\leq C_4F_{n,B}(m)+\frac{C_4}{n}.                           \tag{10}
+\]
+The extra \(n^{-1}\) is absorbed below because \(B\{(n+1)^{1/B}-1\}\geq\log(n+1)\).
+
+It remains to optimize the deterministic schedule.  Put \(x_b=T_b+1\).  Since
+\(x_b/x_{b-1}=1+m_b/(T_{b-1}+1)\) and \(\prod_bx_b/x_{b-1}=n+1\), the elementary inequality
+\(\log y\leq y-1\), followed by convexity of \(y\mapsto e^y\), gives
+\[
+H(m)\geq B\{(n+1)^{1/B}-1\}.                               \tag{11}
+\]
+Cauchy--Schwarz gives \(J(m)n\geq B^2\).  These are the two lower terms in \(R_{n,B}\).
+
+For the converse schedule bound, set \(\rho=(n+1)^{1/B}\).  If
+\(B\leq\log(n+1)\), use the real increments
+\[
+a_b=4+(n-4B)\frac{\rho^{b-1}(\rho-1)}{n},\qquad \sum_ba_b=n,
+\]
+round each \(a_b\), \(b<B\), downward to a positive multiple of four, and put the accumulated remainder into the last batch.  Here \(\rho\geq e\).  The rounding loss before any endpoint is at most \(4(b-1)\); separating according as the exponential part of that endpoint is at most or exceeds \(8b\) shows that the rounded endpoint is at least a fixed fraction of the unrounded endpoint.  Hence
+\[
+H(m)\leq C B(\rho-1),\qquad
+J(m)\leq B/4\leq C B(\rho-1).                              \tag{12}
+\]
+The last-batch remainder contributes at most a further constant to \(H\).  This also covers \(B=1\); the finitely many boundary cases are obtained by the feasible schedule \((4,\ldots,4,n-4(B-1))\) and absorbed into the same numerical constant.
+
+If \(B>\log(n+1)\), put \(h=n/B\).  Use initial batches \(4,16,\ldots,4^K\), where \(K\) is maximal with \(4^K\leq h\), and distribute the remaining units over the remaining \(B-K\) batches in quantities within four of their average, all but the last being multiples of four.  Since
+\(K\leq\log h/\log4<B\), this is feasible.  The geometric prefix has total size at most \(4h/3\), each of its ratios is at most four, and its reciprocal-size sum is at most \(1/3\).  The remaining batch sizes are between fixed positive multiples of \(h\), their cumulative denominators grow by a fixed multiple of \(h\), and therefore
+\[
+H(m)\leq C\{\log h+\log B\}\leq C\log(n+1),
+\qquad
+J(m)\leq C\left(1+\frac{B^2}{n}\right).                   \tag{13}
+\]
+For \(x=\log(n+1)/B\in(0,1)\),
+\(x\leq e^x-1\leq(e-1)x\), so the logarithmic term in (13) is comparable to \(B(\rho-1)\); the additive constant is absorbed as \(n\geq4\).  Equations (12)--(13) prove
+\[
+\min_mF_{n,B}(m)\leq C_5\left[
+ \frac{B\{(n+1)^{1/B}-1\}}n+\left(\frac Bn\right)^2\right]
+=C_5R_{n,B}.                                                 \tag{14}
+\]
+
+The schedule in def:prefix-design minimizes \(F_{n,B}\), so (10) and (14) give the claimed upper bound and identify the asserted attaining policy.  Conversely, (6), (11), and the Cauchy--Schwarz bound for \(J\), followed by the infimum over all schedules, policies, and deterministic simplex weights, give the lower bound.  Every constant used after choosing the interior submodel depends only on \((\ell,u)\), completing the uniform assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem makes the feedback budget a first-class design parameter and separates the learning price from repeated integer quantization. \textit{Gap.} Zhao gives a fixed-stage upper exponent and an unrestricted proxy-risk lower bound; Li and Simchi-Levi give logarithmic batching and nuisance-rate bounds. Neither supplies this matched every-\(B\) actual-MSE frontier. \textit{Consumer.} An A/B testing operator can compare the statistical value of each permitted number of policy revisions before choosing a deployment cadence.
+
+\begin{theorem}[thm:exact-anchors]\label{thm:exact-anchors}
+The finite-sample one-batch frontier obeys the identity \[\Psi^{=}_{n,1}=\min_{k\in\{\lceil n/4\rceil,\ldots,\lfloor3n/4\rfloor\}}\ \sup_{\sigma_0,\sigma_1\in[\ell,u]}\left\{\frac{\sigma_1^2}{k/n}+\frac{\sigma_0^2}{1-k/n}-V^*(\sigma)\right\}.\] Here each \(k\) corresponds to the constant singleton-domain policy \(q_1(\varnothing)=k\). A nearest-to-balanced count is minimax. With \(p_n=\lfloor n/2\rfloor/n\le1/2\), a complete case split over the clipped-oracle regions \(\sigma_1/\sigma_0<1/3\), \(\sigma_1/\sigma_0\in[1/3,3]\), and \(\sigma_1/\sigma_0>3\) gives \[\Psi^{=}_{n,1}=\frac{u^2}{p_n}+\frac{\ell^2}{1-p_n}-V^*(\sigma)\big|_{\sigma_1=u,\,\sigma_0=\ell}.\] For odd \(n\), this is exactly \[\frac{2nu^2}{n-1}+\frac{2n\ell^2}{n+1}-V^*(\sigma)\big|_{\sigma_1=u,\,\sigma_0=\ell};\] the ceiling count has the symmetric opposite worst orientation and the same minimax value. For even \(n\), the two variance orientations tie at \(p_n=1/2\), and explicit evaluation of the clipped oracle yields \[\Psi^{=}_{n,1}=\begin{cases}(u-\ell)^2,&u\le3\ell,\\ 2u^2/3-2\ell^2,&u\ge3\ell,\end{cases}\] continuously at \(u=3\ell\). In particular, the second value also arises at \(\sigma_1=u,\sigma_0=\ell\) and is not zero there. For two batches, \(\Psi^{=}_{n,2}\asymp n^{-1/2}\) uniformly over the fixed parameter box; an attaining-order construction uses a balanced pilot of order \(n^{1/2}\), a clipped exact-count plug-in second wave, and an admissible deterministic weight choice.
+\end{theorem}
+\begin{proof}
+When \(B=1\), the domain \(\mathsf H_0\) is a singleton, so ass:predictable-counts makes \(q_1(\varnothing)=k\) deterministic, while ass:deterministic-simplex-weights forces \(w_1=1\).  Proposition prop:risk-decomposition therefore gives exactly
+\[
+\Psi^=_{n,1}=\min_{\lceil n/4\rceil\leq k\leq\lfloor3n/4\rfloor}
+ \sup_{\sigma_0,\sigma_1\in[\ell,u]}
+ \{f_\sigma(k/n)-V^*(\sigma)\};                            \tag{1}
+\]
+the means disappear because the estimator is unbiased.
+
+Let \(p\leq1/2\).  On the interior-oracle region
+\(1/3\leq\sigma_1/\sigma_0\leq3\), direct algebra gives
+\[
+f_\sigma(p)-V^*(\sigma)
+=\frac{\{\sigma_1(1-p)-\sigma_0p\}^2}{p(1-p)}.              \tag{2}
+\]
+For any pair with \(\sigma_1<\sigma_0\), exchanging its coordinates does not change
+\(V^*\), whereas it changes the loss by
+\[
+(\sigma_0^2-\sigma_1^2)
+\left\{\frac1p-\frac1{1-p}\right\}\geq0.                   \tag{3}
+\]
+Thus it suffices to consider \(\sigma_1\geq\sigma_0\).  If \(u\leq3\ell\), this half of the box is in the interior-oracle region.  For a fixed ratio, (2) increases under common positive scaling; after setting \(\sigma_1=u\), its nonnegative numerator increases as \(\sigma_0\) decreases.  Its maximum is therefore \((u,\ell)\).
+
+Suppose instead that \(u>3\ell\).  On the part of the interior-oracle region with
+\(1\leq\sigma_1/\sigma_0\leq3\), the same scaling argument first sets
+\(\sigma_1=u\), and then (2) increases as the ratio increases.  Its maximum is the boundary pair \((u,u/3)\).  On the upper clipped region \(\sigma_1>3\sigma_0\), the loss is
+\[
+\sigma_1^2(1/p-4/3)+\sigma_0^2\{1/(1-p)-4\}.               \tag{4}
+\]
+Its first coefficient is positive and its second is nonpositive, so its maximum is
+\((u,\ell)\).  The boundary value at \((u,u/3)\) is no larger, because the coefficient of \(\sigma_0^2\) in (4) is nonpositive.  Finally, every point in the lower clipped region is, by (3), dominated by its coordinate exchange in the upper clipped region.  The boundary ratios \(1/3\) and \(3\) agree continuously with (2).  Equations (2)--(4) are the promised complete clipped-region case split and show
+\[
+\sup_{\sigma_0,\sigma_1\in[\ell,u]}
+ \{f_\sigma(p)-V^*(\sigma)\}=f_{(u,\ell)}(p)-V^*(u,\ell)
+\quad(1/4\leq p\leq1/2).                                   \tag{5}
+\]
+The right side is decreasing on this interval because the oracle share for \((u,\ell)\) exceeds \(1/2\).  Symmetry under simultaneous exchange of the arms and replacement \(p\mapsto1-p\) now proves that the minimizers in (1) are the count or counts nearest to \(n/2\).  Taking \(p_n=\lfloor n/2\rfloor/n\) proves the first displayed identity in the theorem.  For odd \(n\), substituting
+\(p_n=(n-1)/(2n)\) gives
+\[
+f_{(u,\ell)}(p_n)=\frac{2nu^2}{n-1}+\frac{2n\ell^2}{n+1},
+\]
+and the ceiling count has the symmetric opposite worst orientation and the same value.
+
+For even \(n\), \(p_n=1/2\).  If \(u\leq3\ell\), the oracle for \((u,\ell)\) is interior and
+\[
+2u^2+2\ell^2-(u+\ell)^2=(u-\ell)^2.
+\]
+If \(u\geq3\ell\), it is clipped at \(3/4\), and
+\[
+2u^2+2\ell^2-\left(\frac43u^2+4\ell^2\right)
+=\frac23u^2-2\ell^2.
+\]
+Both expressions equal \(4\ell^2\) at \(u=3\ell\), which also verifies the stated continuity and the nonzero value at the extreme orientation.
+
+For \(B=2\), thm:exact-b-frontier and
+\[
+R_{n,2}=\frac{2(\sqrt{n+1}-1)}n+\frac4{n^2}\asymp n^{-1/2}
+\]
+give the matching lower rate.  An explicit upper-rate witness is as follows.  For \(n\geq16\), take
+\(m_1=4\lfloor\sqrt n/4\rfloor\), \(m_2=n-m_1\), use the balanced count in batch one, estimate both variances from that deterministic pilot, and in batch two minimize the clipped exact-count plug-in objective.  Put \(w_1=0,w_2=1\).  For \(8\leq n<16\), take \(m_1=4\); enlarging a fixed constant covers these finitely many cases.  The pilot contains \(m_1/2\) independent observations per arm, so the Gaussian sample-variance calculation and plug-in argument used in thm:exact-b-frontier give
+\[
+\mathbb E[r_\sigma(p_2)]\leq C\left(\frac1{m_1}+\frac1{m_2}\right).
+\]
+Here the \(m_2^{-1}\) term safely includes a possible non-multiple-of-four boundary displacement.  With \(t_1=m_1/n\), prop:risk-decomposition gives exactly
+\[
+\mathcal R_{n,2}
+=\frac{m_1}{n-m_1}V^*(\sigma)
+ +\frac n{n-m_1}\mathbb E[r_\sigma(p_2)]
+\leq C\left(\frac{m_1}{n}+\frac1{m_1}+\frac1{m_2}\right)
+\leq Cn^{-1/2}.
+\]
+The schedule, both exact counts, and \((0,1)\) weights satisfy all defining constraints, so this is an admissible attaining-order construction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Closed one- and two-wave anchors prevent the general frontier from hiding an incorrect endpoint or pilot exponent. \textit{Gap.} Cai and Rafi analyze fixed pilots, Yamin gives a boundary-driven global pilot rate, and Zhao gives an upper exponent; none jointly treats the nondegenerate Gaussian interior, exact counts, deterministic weights, and a matching two-wave lower bound. \textit{Consumer.} Two-wave experiments can use the square-root pilot as a principled default while quantifying when one-wave balance is preferable.
+
+\begin{theorem}[thm:envelope-overscheduling]\label{thm:envelope-overscheduling}
+There exist constants \(0<c<C<\infty\), depending only on \((\ell,u)\), such that \[cL_{n,B}\le\Psi^{\le}_{n,B}\le CL_{n,B}\] uniformly over feasible \((n,B)\). Hence \(\Psi_\infty(n)\asymp(\log n)/n\), and for every sufficiently large fixed \(A\), \(B_{\mathrm{sat}}(n,A)\asymp\log n\). In contrast, when \(n=4B\) and the box contains \((\sigma_1,\sigma_0)=(2,1)\), \(\Psi^{=}_{n,B}\ge1/3\), so compulsory overscheduling is separated from the at-most-\(B\) envelope.
+\end{theorem}
+\begin{proof}
+Let \(h=\log(n+1)\) and \(q_{n,b}=(b/n)^2\). The exact-batch frontier theorem and the definition of \(R_{n,b}\) provide constants \(c_0,C_0>0\), depending only on \((\ell,u)\), such that
+\[
+c_0\{L_{n,b}+q_{n,b}\}\leq\Psi^{=}_{n,b}
+\leq C_0\{L_{n,b}+q_{n,b}\}                       \tag{1}
+\]
+at every feasible integer \(b\). Define \(g(x)=x(e^{h/x}-1)\) for \(x>0\). If \(y=h/x\), then
+\[
+g'(x)=e^y(1-y)-1<0,                                 \tag{2}
+\]
+because \(d\{e^y(1-y)\}/dy=-ye^y<0\) and \(e^0(1-0)=1\). Hence \(b\mapsto L_{n,b}=g(b)/n\) decreases. It follows from (1) and the definition of \(\Psi^{\leq}_{n,B}\) that
+\[
+\Psi^{\leq}_{n,B}
+=\min_{1\leq b\leq B}\Psi^{=}_{n,b}
+\geq c_0\min_{1\leq b\leq B}L_{n,b}
+=c_0L_{n,B}.                                        \tag{3}
+\]
+
+For the upper bound put \(b_*=\min\{B,\lceil h\rceil\}\). The inequality \(e^x-1\geq x\) gives \(L_{n,B}\geq h/n\). If \(B\leq h\), then \(b_*=B\), and, since the tangent inequality \(\log x\leq x-1\) gives \(h\leq n\),
+\[
+q_{n,B}\leq\frac{h^2}{n^2}\leq\frac{h}{n}\leq L_{n,B}. \tag{4}
+\]
+Thus (1) gives \(\Psi^{\leq}_{n,B}\leq2C_0L_{n,B}\). If \(B\geq\lceil h\rceil\), then \(b_*=\lceil h\rceil\). For \(0\leq x\leq1\), convexity of the exponential gives
+\(x\leq e^x-1\leq(e-1)x\). Because \(h/b_*\leq1\), \(h\geq\log5>1\), and \(h\leq n\),
+\[
+R_{n,b_*}
+\leq(e-1)\frac{h}{n}+\frac{(h+1)^2}{n^2}
+\leq C_1\frac{h}{n}
+\leq C_1L_{n,B}.                                    \tag{5}
+\]
+Equations (1) and (5) give the desired upper bound.
+
+With \(N=\lfloor n/4\rfloor\), one has \(N\geq n/4-1\geq h\) for \(n\geq20\): the second inequality holds at \(n=20\), and the derivative of \(x/4-1-\log(x+1)\) is positive thereafter. Hence
+\[
+\frac{h}{n}\leq L_{n,N}\leq(e-1)\frac{h}{n}.       \tag{6}
+\]
+The finitely many remaining \(n\geq4\) are absorbed by fixed positive constants. Applying (3) at \(B=N\), and using the feasible choice \(b_*=\lceil h\rceil\) in (5), proves
+\[
+\Psi_\infty(n)=\Psi^{\leq}_{n,N}
+\asymp_{\ell,u}\frac{\log(n+1)}{n}
+\asymp_{\ell,u}\frac{\log n}{n}.                  \tag{7}
+\]
+
+For saturation set \(\phi(x)=(e^x-1)/x\). Its derivative has numerator \(e^x(x-1)+1\), which is positive for \(x>0\) because its derivative is \(xe^x>0\) and its value at zero is zero. Thus \(\phi\) increases to infinity, and
+\[
+\frac{L_{n,B}}{h/n}=\phi(h/B).                       \tag{8}
+\]
+Let \(K\) be an upper constant in (7). For fixed \(A>1\), choose \(\kappa_A\in(0,1)\) with \(c_0\phi(1/\kappa_A)>AK\). If \(B\leq\kappa_Ah\), then (1), (7), and (8) imply
+\[
+\Psi^{=}_{n,B}>A\Psi_\infty(n),                    \tag{9}
+\]
+so \(B_{\mathrm{sat}}(n,A)\geq\kappa_Ah\), up to integer adjustment. On the other hand, (1) and (5) imply
+\(\Psi^{=}_{n,\lceil h\rceil}\leq K'h/n\), whereas (7) implies
+\(\Psi_\infty(n)\geq kh/n\). Therefore every fixed
+\(A\geq A_0:=\max\{2,K'/k\}\) satisfies
+\[
+B_{\mathrm{sat}}(n,A)\leq\lceil h\rceil.           \tag{10}
+\]
+This proves the claimed saturation order for every sufficiently large fixed comparison factor, without asserting the literal factor-two case.
+
+It remains to verify the endpoint witness. If \(n=4B\), the positive-size constraint \(m_b\geq4\) and \(\sum_bm_b=n\) force \(m_b=4\) and \(t_b=1/B\) for every batch. At \((\sigma_1,\sigma_0)=(2,1)\), exact-count overlap gives \(p_b\in\{1/4,1/2,3/4\}\), and the oracle-loss definition gives
+\[
+\min_{p\in\{1/4,1/2,3/4\}}f_{(2,1)}(p)
+=\min\left\{\frac{52}{3},10,\frac{28}{3}\right\}
+=\frac{28}{3},
+\qquad V^*(2,1)=9.                                  \tag{11}
+\]
+Rearranging the risk decomposition therefore gives, for every admissible \(d\),
+\[
+\mathcal R_{n,B}(d;\mu,(2,1))
+=B\sum_{b=1}^Bw_b^2\mathbb E[f_{(2,1)}(p_b)]-9
+\geq\frac{28}{3}B\sum_{b=1}^Bw_b^2-9
+\geq\frac13,                                        \tag{12}
+\]
+where \(\sum_bw_b=1\) and
+\[
+B\sum_{b=1}^Bw_b^2-\left(\sum_{b=1}^Bw_b\right)^2
+=\sum_{1\leq a<b\leq B}(w_a-w_b)^2\geq0
+\]
+give \(B\sum_bw_b^2\geq1\). Taking \(\mu=(0,0)\in[-M,M]^{\mathcal A}\), then taking the supremum over the parameter box and the infimum over \(d\in\mathfrak D_{n,B}\), proves \(\Psi^{=}_{n,B}\geq1/3\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result separates two operationally different elbows: allowing updates ceases to improve the rate at order \(\log n\), but forcing every batch to be used becomes rate-dominant only at order \(\sqrt{n\log n}\). \textit{Gap.} Low-switching Neyman and batched-bandit results show that few updates can suffice, but they allow surplus batches to be ignored and therefore do not supply the exact-count three-regime overscheduling phase diagram. \textit{Consumer.} The Amazon adaptive-abtester consumer obtains an order-\(\log n\) scale for useful policy revisions, a distinct order-\(\sqrt{n\log n}\) warning threshold for mandatory cadence, and no unsupported promise that a factor-two target is reached at the first scale.
+
+\begin{theorem}[thm:uniform-wald]\label{thm:uniform-wald}
+For each fixed \(0<\alpha<1\), under \(d^{\mathrm{pre}}_{n,B}\), \[\sup_{1\le B\le\lfloor n/4\rfloor}\sup_{(\mu,\sigma)\in\Theta}\left|P^{d^{\mathrm{pre}}_{n,B}}_{\mu,\sigma}\{\tau\in\mathcal I_{n,B}(\alpha)\}-(1-\alpha)\right|\to0.\] Moreover, \(\widehat Q_{n,B}\) is uniformly ratio-consistent for the predictable variance of \(\sqrt n(\widehat\tau_{d^{\mathrm{pre}}_{n,B}}-\tau)\), and the corresponding studentized statistic converges uniformly to \(\mathcal N(0,1)\).
+\end{theorem}
+\begin{proof}
+Fix the prefix design and reveal, within each batch, its whole assignment vector before revealing that batch's responses one at a time.  Let \(X_{ni}\) be unit \(i\)'s centered contribution to
+\(S_n=\sqrt n(\widehat\tau_{d^{\mathrm{pre}}_{n,B}}-\tau)\).  Since \(w_b=m_b/n\), for a unit in batch \(b\),
+\[
+X_{ni}=\begin{cases}
+ (Y_i^{\mathrm{obs}}-\mu_1)/(\sqrt n\,p_b),&Z_i=1,\\
+ -(Y_i^{\mathrm{obs}}-\mu_0)/(\sqrt n\,(1-p_b)),&Z_i=0.
+\end{cases}                                                   \tag{1}
+\]
+Immediately before its response is revealed, the coefficient in (1) is measurable and the centered response is an independent centered Gaussian.  Thus the \(X_{ni}\) are martingale differences in the refined chronological filtration and are conditionally Gaussian.  Exact overlap and ass:parameter-box give
+\[
+\max_i\mathbb E(X_{ni}^2\mid\text{past})\leq\frac{16u^2}{n},
+\qquad
+\sum_i\mathbb E(X_{ni}^4)\leq\frac{C}{n}.                  \tag{2}
+\]
+In particular, the conditional Lindeberg sum tends to zero uniformly.  Adding the conditional variances in (1) gives the predictable variance
+\[
+Q_n=\sum_i\mathbb E(X_{ni}^2\mid\text{past})
+=\frac1n\sum_{b=1}^Bm_b f_\sigma(p_b),                     \tag{3}
+\]
+which is bounded between two fixed positive constants depending only on \((\ell,u)\).
+
+For an integer \(m\geq4\), let
+\[
+g_m(\sigma)=\min_{\lceil m/4\rceil\leq q\leq\lfloor3m/4\rfloor}
+ f_\sigma(q/m).
+\]
+The first-batch count is deterministic.  Define the deterministic quantity
+\[
+v_{n,B}(\sigma)=\frac{m_1}{n}f_\sigma(p_1)
+ +\frac1n\sum_{b=2}^Bm_bg_{m_b}(\sigma),                    \tag{4}
+\]
+with the sum empty when \(B=1\).  If \(\widehat f_b\) is the prefix estimated objective, its exact grid minimizer satisfies the deterministic empirical-minimization inequality
+\[
+0\leq f_\sigma(p_b)-g_{m_b}(\sigma)
+\leq2\sup_{p\in[1/4,3/4]}|\widehat f_b(p)-f_\sigma(p)|.
+\]
+The deterministic-prefix Gaussian sample-variance calculation in thm:exact-b-frontier, together with the compact overlap interval, therefore implies
+\[
+\sup_{\Theta}\mathbb E|f_\sigma(p_b)-g_{m_b}(\sigma)|
+\leq\frac{C}{\sqrt{T_{b-1}+1}}.                             \tag{5}
+\]
+The finitely many fallback prefixes are covered by increasing \(C\).  Consequently, by Cauchy--Schwarz,
+\[
+\sup_\Theta\mathbb E|Q_n-v_{n,B}(\sigma)|
+\leq C\sum_{b=2}^B\frac{t_b}{\sqrt{T_{b-1}+1}}
+\leq C\left\{\frac{H(m)}n\right\}^{1/2}.                  \tag{6}
+\]
+
+We verify that the last bound vanishes uniformly over the prefix schedules.  For
+\(2\leq B\leq\log(n+1)\), schedule optimality and the constructive bound in thm:exact-b-frontier give
+\[
+H(m)/n\leq F_{n,B}(m)\leq C R_{n,B}leq Cn^{-1/2}+o(1).
+\]
+For \(B>\log(n+1)\), let \(\bar m\) minimize \(J\) over the same finite schedule class and order its first \(B-1\) entries nondecreasingly.  Moving four units from an entry exceeding another by more than seven strictly decreases \(J\), so all its entries are within a fixed additive constant of \(n/B\).  Hence
+\(H(\bar m)\leq C\{n/B+\log B\}\).  Since the prefix schedule \(m\) minimizes \(H+J\) and \(J(m)\geq J(\bar m)\),
+\[
+H(m)\leq H(\bar m),
+\qquad
+\frac{H(m)}n\leq C\left\{\frac1B+\frac{\log B}{n}\right\}=o(1).
+\]
+For \(B=1\), (3) is deterministic and equals (4).  Thus (6) proves, uniformly over every admissible sequence \(B=B_n\) and every parameter sequence,
+\[
+Q_n/v_{n,B}(\sigma)\longrightarrow1\quad\text{in probability}. \tag{7}
+\]
+
+We now derive the Gaussian limit rather than assume it.  Normalize (1) by
+\(v_{n,B}(\sigma)^{1/2}\), write the resulting increments as \(\xi_{ni}\), and let
+\(a_{ni}=\mathbb E(\xi_{ni}^2\mid\text{past})\) and
+\(A_n=\sum_ia_{ni}=Q_n/v_{n,B}(\sigma)\).  For fixed \(u_0\in\mathbb R\), conditional Gaussianity gives exactly
+\[
+\mathbb E\!\left[
+ \exp\{iu_0\xi_{ni}+u_0^2a_{ni}/2\}\mid\text{past}\right]=1.
+\]
+Therefore
+\(M_n=\exp\{iu_0\sum_i\xi_{ni}+u_0^2A_n/2\}\) has expectation one.  Both
+\(Q_n\) and \(v_{n,B}(\sigma)\) are uniformly bounded above and away from zero, so
+\(|M_n|\) is uniformly bounded.  By (7), bounded convergence in probability gives
+\[
+\mathbb E\exp\!\left(iu_0\frac{S_n}{\sqrt{v_{n,B}(\sigma)}}\right)
+=e^{-u_0^2/2}\mathbb E M_n+o(1)=e^{-u_0^2/2}+o(1).           \tag{8}
+\]
+This characteristic-function calculation proves the standard-normal limit along every sequence of batch counts and parameters; a contradiction subsequence argument makes it uniform over those indices.
+
+It remains to studentize.  At time \(n\), exact overlap supplies at least
+\(k_n=\lfloor n/4\rfloor\) observations from each arm.  The first \(k_n\) arm responses are deterministic-size independent Gaussian samples, so projection and the variance calculation above give
+\[
+\sup_\Theta\mathbb E(\widehat v_{a,n}-\sigma_a^2)^2\leq C/n.
+\]
+Since \(p_b\in[1/4,3/4]\) and \(n^{-1}\sum_bm_b=1\), def:variance-estimator implies
+\[
+|\widehat Q_{n,B}-Q_n|
+\leq4\sum_{a=0}^1|\widehat v_{a,n}-\sigma_a^2|=o_P(1)       \tag{9}
+\]
+uniformly.  The positive lower bound for \(Q_n\) turns (9) into ratio consistency.  Combining (7)--(9),
+\[
+\frac{\widehat\tau_{d^{\mathrm{pre}}_{n,B}}-\tau}
+ {\widehat{\mathrm{se}}_{n,B}}
+=\frac{S_n}{\sqrt{\widehat Q_{n,B}}}
+\Longrightarrow\mathcal N(0,1)
+\]
+uniformly over \(B\) and \(\Theta\).  Since the standard normal distribution is continuous at
+\(\pm z_{1-\alpha/2}\), the event defining def:wald-interval has probability tending uniformly to
+\(1-\alpha\), which is exactly the asserted fixed-time coverage statement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A frontier without valid uncertainty quantification would not support a production cadence decision. \textit{Gap.} Zhang, Janson, and Murphy fix the batch count and grow every batch, while adaptive AIPW results use per-unit Bernoulli policies; neither covers this exact-count, potentially small-cell frontier family. \textit{Consumer.} The same batch outputs used to choose the update cadence yield a fixed-time confidence interval for the ATE.
+
+\begin{openendedquestion}[oeq:sharp-chronological-constant]\label{oeq:sharp-chronological-constant}
+Using \(\mathsf H_{\mathrm{LAN}}\), determine whether \(n\Psi_\infty(n)/\log n\) has a limit, characterize the sharp limit or sharp liminf and limsup over the fixed variance box, construct a logarithmic-batch schedule attaining the same sharp object, and decide whether the literal threshold \(B_{\mathrm{sat}}(n,2)\) is of order \(\log n\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Only a matched chronological constant can convert order-optimal saturation into the literal factor-two operational claim. \textit{Gap.} Hirano and Porter characterize attainable sequential limits and Armstrong derives first-order efficiency bounds, but neither computes cumulative pre-update allocation loss or a saturation constant. \textit{Consumer.} A sharp answer determines the smallest update count that is certifiably within a factor two of the best feasible cadence.
+
+\begin{proposition}[prop:exact-b-phase-diagram]\label{prop:exact-b-phase-diagram}
+There exist constants \(0<c<C<\infty\), depending only on \((\ell,u)\), for which the following three-regime description holds uniformly over all \(n\geq4\) and \(1\leq B\leq\lfloor n/4\rfloor\), with an empty displayed integer range omitted:
+\[
+\Psi^{=}_{n,B}\asymp_{\ell,u}
+\begin{cases}
+\displaystyle \frac{B}{n}\bigl\{(n+1)^{1/B}-1\bigr\},
+&1\leq B\leq\lfloor\log(n+1)\rfloor,\\[6pt]
+\displaystyle \frac{\log(n+1)}{n},
+&\lceil\log(n+1)\rceil\leq B\leq
+ \lfloor\sqrt{n\log(n+1)}\rfloor,\\[6pt]
+\displaystyle \left(\frac{B}{n}\right)^2,
+&\lceil\sqrt{n\log(n+1)}\rceil\leq B\leq\lfloor n/4\rfloor.
+\end{cases}
+\]
+Here \(X\asymp_{\ell,u}Y\) means \(cY\leq X\leq CY\). Moreover,
+\[
+cL_{n,B}\leq\Psi^{\leq}_{n,B}\leq CL_{n,B},
+\qquad
+\Psi_\infty(n)\asymp_{\ell,u}\frac{\log(n+1)}{n},
+\]
+and there is a constant \(A_0>1\), depending only on \((\ell,u)\), such that every fixed \(A\geq A_0\) satisfies
+\[
+B_{\mathrm{sat}}(n,A)\asymp_{\ell,u,A}\log(n+1).
+\]
+Thus useful updates saturate at order \(\log n\), whereas the harm from compulsory exact batching becomes rate-dominant only at order \(\sqrt{n\log n}\). No conclusion for the literal choice \(A=2\) is asserted. Finally, if \(n=4B\) and \([\ell,u]^2\) contains \((\sigma_1,\sigma_0)=(2,1)\), then \(\Psi^{=}_{n,B}\geq1/3\).
+\end{proposition}
+\begin{proof}
+Put \(h=\log(n+1)\), and put \(q_{n,B}=(B/n)^2\). By the exact-batch frontier theorem and the definition of \(R_{n,B}\), there are constants \(c_0,C_0>0\), depending only on \((\ell,u)\), such that
+\[
+c_0\{L_{n,B}+q_{n,B}\}
+\leq \Psi^{=}_{n,B}
+\leq C_0\{L_{n,B}+q_{n,B}\}.                    \tag{1}
+\]
+Since \((n+1)^{1/B}=e^{h/B}\),
+\[
+L_{n,B}=\frac{B}{n}\{e^{h/B}-1\}.               \tag{2}
+\]
+
+First suppose \(B\leq h\). The elementary inequality \(e^x-1\geq x\), applied at \(x=h/B\), gives
+\[
+L_{n,B}\geq \frac{h}{n}.                         \tag{3}
+\]
+For \(n\geq4\), the tangent inequality \(\log x\leq x-1\) gives \(h\leq n\); hence \(B\leq h\) implies
+\[
+q_{n,B}=\frac{B^2}{n^2}leq\frac{h^2}{n^2}leq\frac{h}{n}leq L_{n,B}. \tag{4}
+\]
+Equations (1) and (4) prove the first regime.
+
+Now suppose \(B\geq h\), and set \(x=h/B\in(0,1]\). Convexity of the exponential function on \([0,1]\), together with its tangent inequality at zero, yields
+\[
+x\leq e^x-1\leq(e-1)x.
+\]
+Using (2),
+\[
+\frac{h}{n}\leq L_{n,B}\leq(e-1)\frac{h}{n}.     \tag{5}
+\]
+If \(B^2\leq nh\), then \(q_{n,B}\leq h/n\), and (1) and (5) give
+\(\Psi^{=}_{n,B}\asymp_{\ell,u}h/n\). If \(B^2\geq nh\), then \(q_{n,B}\geq h/n\), and (1) and (5) give
+\(\Psi^{=}_{n,B}\asymp_{\ell,u}q_{n,B}\). The stated floors and ceilings are exactly the integer forms of \(B\leq h\), \(h\leq B\leq\sqrt{nh}\), and \(B\geq\sqrt{nh}\). At an integer endpoint the adjacent formulae are comparable by (3) or (5), and empty ranges for small \(n\) require no assertion. This proves the three-regime display uniformly, including all feasible small \(n\) after enlargement of the same constants.
+
+For the at-most frontier, define \(g(x)=x(e^{h/x}-1)\) for \(x>0\). With \(y=h/x>0\), differentiation gives
+\[
+g'(x)=e^y(1-y)-1<0,                               \tag{6}
+\]
+because the derivative of \(y\mapsto e^y(1-y)\) is \(-ye^y<0\), and its value at zero is one. Thus \(b\mapsto L_{n,b}=g(b)/n\) is decreasing. From (1), the definition of the at-most frontier, and nonnegativity of \(q_{n,b}\),
+\[
+\Psi^{\leq}_{n,B}
+=\min_{1\leq b\leq B}\Psi^{=}_{n,b}
+\geq c_0\min_{1\leq b\leq B}L_{n,b}
+=c_0L_{n,B}.                                      \tag{7}
+\]
+For the reverse bound let \(b_* =\min\{B,\lceil h\rceil\}\). If \(B\leq h\), then \(b_*=B\), and (4) and (1) give
+\(\Psi^{\leq}_{n,B}\leq 2C_0L_{n,B}\). If \(B\geq\lceil h\rceil\), then \(b_*=\lceil h\rceil\leq h+1\). Since \(h\geq\log5>1\) and \(h\leq n\), (5), now at \(b_*\), gives
+\[
+R_{n,b_*}
+\leq(e-1)\frac{h}{n}+\frac{(h+1)^2}{n^2}
+\leq C_1\frac{h}{n}
+\leq C_1L_{n,B}.                                  \tag{8}
+\]
+Therefore \(\Psi^{\leq}_{n,B}\leq C_0C_1L_{n,B}\). Together with (7), this proves the envelope bound.
+
+Let \(N=\lfloor n/4\rfloor\). For \(n\geq20\), the inequality \(N\geq n/4-1\geq\log(n+1)=h\) follows by checking it at \(n=20\) and observing that the derivative of \(x/4-1-\log(x+1)\) is positive for \(x\geq20\). Thus (5) yields \(L_{n,N}\asymp h/n\); the finitely many remaining \(4\leq n<20\) are absorbed into fixed positive constants. Applying (7) at \(B=N\), and applying (8) with the feasible index \(b_*=\lceil h\rceil\) for \(n\geq20\), gives
+\[
+\Psi_\infty(n)=\Psi^{\leq}_{n,N}\asymp_{\ell,u}\frac{h}{n}. \tag{9}
+\]
+
+We next justify the saturation assertion without claiming a factor-two result. Define
+\[
+\phi(x)=\frac{e^x-1}{x},\qquad x>0.
+\]
+Its derivative has numerator \(e^x(x-1)+1\), whose derivative is \(xe^x>0\) and whose value at zero is zero. Hence \(\phi\) is increasing and \(\phi(x)\to\infty\). By (2),
+\[
+\frac{L_{n,B}}{h/n}=\phi(h/B).                    \tag{10}
+\]
+Let \(K<\infty\) be an upper constant in (9). For any fixed \(A>1\), choose \(\kappa_A\in(0,1)\) so small that
+\(c_0\phi(1/\kappa_A)>AK\). If \(B\leq\kappa_Ah\), then (1), (9), and (10) imply
+\[
+\Psi^{=}_{n,B}\geq c_0L_{n,B}>AK\frac{h}{n}\geq A\Psi_\infty(n). \tag{11}
+\]
+Thus \(B_{\mathrm{sat}}(n,A)\geq\kappa_Ah\), up to an immaterial integer adjustment. Conversely, (1) and (8) give
+\(\Psi^{=}_{n,\lceil h\rceil}\leq K'h/n\), while (9) gives
+\(\Psi_\infty(n)\geq kh/n\) for some \(k>0\). Therefore, with
+\(A_0=\max\{2,K'/k\}\), every fixed \(A\geq A_0\) obeys
+\[
+B_{\mathrm{sat}}(n,A)\leq\lceil h\rceil.          \tag{12}
+\]
+Equations (11) and (12) prove the stated order. They deliberately do not cover \(A=2\) unless the unknown constants happen to permit it.
+
+Finally assume \(n=4B\) and that the variance box contains \((2,1)\). Membership in the exact-batch design class forces \(m_b=4\) for every \(b\), hence \(t_b=1/B\), while exact-count overlap forces \(p_b\in\{1/4,1/2,3/4\}\) pathwise. Direct calculation from the oracle-loss definition gives
+\[
+\min_{p\in\{1/4,1/2,3/4\}} f_{(2,1)}(p)
+=\min\left\{\frac{52}{3},10,\frac{28}{3}\right\}
+=\frac{28}{3},
+\qquad V^*(2,1)=9.                                \tag{13}
+\]
+The risk decomposition, rearranged using
+\(\sum_b(w_b-t_b)^2/t_b=\sum_bw_b^2/t_b-1\), therefore yields for every admissible design
+\[
+\mathcal R_{n,B}(d;\mu,(2,1))
+=B\sum_{b=1}^Bw_b^2\,
+  \mathbb E[f_{(2,1)}(p_b)]-9
+\geq\frac{28}{3}B\sum_{b=1}^Bw_b^2-9
+\geq\frac{28}{3}-9=\frac13,                       \tag{14}
+\]
+where the last inequality follows from \(\sum_bw_b=1\) and the identity
+\[
+B\sum_{b=1}^Bw_b^2-\left(\sum_{b=1}^Bw_b\right)^2
+=\sum_{1\leq a<b\leq B}(w_a-w_b)^2\geq0.
+\]
+Taking \(\mu=(0,0)\in[-M,M]^{\mathcal A}\), then taking the supremum over the parameter box and the infimum over designs, proves the endpoint witness.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The fixed-scale path in \(\mathsf H_{\mathrm{LAN}}\) holds \(s\) fixed. If common scale is allowed to vary as an unknown nuisance along the local path, the efficient information for the variance-ratio parameter depends on the treated and control counts, so the information-two calculation cannot be imported unchanged. The sharp-constant analysis must preserve this distinction.
+
+\section{Honest scope}
+
+The proved claims are the two-sided every-\(B\) order frontier, its three-regime exact-batch phase diagram, the at-most envelope, saturation at order \(\log n\) for a sufficiently large fixed comparison factor, the exact one-batch formula, the two-batch exponent, the \(1/3\) maximum-batching witness, and uniform fixed-time Wald coverage for the constructed design. Useful-update saturation occurs at order \(\log n\), while compulsory exact-batching loss becomes rate-dominant only at order \(\sqrt{n\log n}\). The exact leading constant of \(\Psi_\infty(n)\), a uniformly matching sharp schedule, the exact finite-sample two-batch minimax rule, and the literal factor-two saturation threshold remain open. No result is claimed for a comparator's broader design or risk game merely because its outcome-law class contains the Gaussian submodel.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LiSimchiLevi2026SequentialEfficiency} Li, Jiachun, and David Simchi-Levi. 2026. Semiparametric Efficiency in Sequential Experiments: Characterization and Design via Average Propensity. arXiv:2606.31190.
+
+  \bibitem{Zhao2026AdaptiveNeyman} Zhao, Jinglong. 2023, revised 2026. Adaptive Neyman Allocation. arXiv:2309.08808.
+
+  \bibitem{HiranoPorter2023SequentialRepresentations} Hirano, Keisuke, and Jack R. Porter. 2023. Asymptotic Representations for Sequential Decisions, Adaptive Experiments, and Batched Bandits. arXiv:2302.03117.
+
+  \bibitem{Armstrong2022EfficiencyBounds} Armstrong, Timothy B. 2022. Asymptotic Efficiency Bounds for a Class of Experimental Designs. arXiv:2205.02726.
+
+  \bibitem{PerchetRigolletChassangSnowberg2016Batched} Perchet, Vianney, Philippe Rigollet, Sylvain Chassang, and Erik Snowberg. 2016. Batched Bandit Problems. Annals of Statistics 44(2): 660--681. DOI: 10.1214/15-AOS1381.
+
+  \bibitem{GaoHanRenZhou2019BatchedBandits} Gao, Zijun, Yanjun Han, Zhimei Ren, and Zhengqing Zhou. 2019. Batched Multi-armed Bandits Problem. Advances in Neural Information Processing Systems 32: 501--511.
+
+  \bibitem{DaiGraduHarshaw2023ClipOGD} Dai, Jessica, Paula Gradu, and Christopher Harshaw. 2023. Clip-OGD: An Experimental Design for Adaptive Neyman Allocation in Sequential Experiments. Advances in Neural Information Processing Systems 36.
+
+  \bibitem{NoarovFogliatoBertranRoth2025StrongerNeyman} Noarov, Georgy, Riccardo Fogliato, Martin Bertran, and Aaron Roth. 2025. Stronger Neyman Regret Guarantees for Adaptive Experimental Design. Proceedings of the International Conference on Machine Learning.
+
+  \bibitem{CaiRafi2024SmallPilots} Cai, Yong, and Ahnaf Rafi. 2024. On the Performance of the Neyman Allocation with Small Pilots. Journal of Econometrics 244(1), article 105793.
+
+  \bibitem{HahnHiranoKarlan2011AdaptivePropensity} Hahn, Jinyong, Keisuke Hirano, and Dean Karlan. 2011. Adaptive Experimental Design Using the Propensity Score. Journal of Business and Economic Statistics 29(1): 96--108.
+
+  \bibitem{BlackwellPashleyValentino2023BANA} Blackwell, Matthew, Nicole E. Pashley, and Dominic Valentino. 2023. Batch Adaptive Designs to Improve Efficiency in Social Science Experiments. Working paper.
+
+  \bibitem{Yamin2026WhenHowPilot} Yamin, Juan C. 2026. When and How to Pilot: Design Rules for Two-Wave Experiments. arXiv:2607.16982, version 2.
+
+  \bibitem{Wright2017ExactAllocation} Wright, Tommy. 2017. Exact Optimal Sample Allocation: More Efficient than Neyman. Statistics and Probability Letters 129: 50--57.
+
+  \bibitem{ZhangJansonMurphy2020BOLS} Zhang, Kelly W., Lucas Janson, and Susan A. Murphy. 2020. Inference for Batched Bandits. Advances in Neural Information Processing Systems 33.
+
+  \bibitem{CookMishlerRamdas2024EfficientInference} Cook, Thomas, Alan Mishler, and Aaditya Ramdas. 2024. Semiparametric Efficient Inference in Adaptive Experiments. Proceedings of the Third Conference on Causal Learning and Reasoning.
+
+  \bibitem{ChenAndrews2026OptimalConditional} Chen, Jiafeng, and Isaiah Andrews. 2023, revised 2026. Optimal Conditional Inference in Adaptive Experiments. arXiv:2309.12162.
+
+  \bibitem{NiuRen2025AssumptionLean} Niu, Zhen, and Zhichao Ren. 2025. Assumption-Lean Weak Limits and Tests for Two-Stage Adaptive Experiments. arXiv:2505.10747.
+
+  \bibitem{AmazonAdaptiveABTester} Amazon Science. 2025. Adaptive A/B Testing: Implementation of an Adaptive Experimental Design Algorithm. Public software repository.
+
+\end{thebibliography}
+
+\end{document}

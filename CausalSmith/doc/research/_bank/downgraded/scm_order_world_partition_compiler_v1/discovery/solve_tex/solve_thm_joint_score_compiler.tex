@@ -1,0 +1,326 @@
+%%% FIELD cited-ra-statement
+For a fixed finite total causal order, Rossetto--Antonucci's complete canonical response-signature linear programs have the same lower and upper extrema as optimization over all observationally compatible structural causal models consistent with that order, optimizing structural causal models exist, and quotienting completed signatures by their observational-cell and conjunction-truth evaluations preserves those extrema and attainment.
+%%% FIELD proof-query-normalization
+Fix a raw atom \(A=\{V_{i,I}=y\}\), and let \(I_{\leq i}\) be the restriction of \(I\) to coordinates at most \(i\). By \texttt{def:ordered-evaluation}, induction on \(t=1,\ldots,i\) gives
+\[
+ E(f,I)_t=E(f,I_{\leq i})_t.
+\]
+Indeed, at coordinate \(t\) both evaluations use the same intervention entry when one is present, and otherwise they evaluate the same response map on coordinates strictly below \(t\), which agree by the induction hypothesis. Thus deleting intervention entries with index greater than \(i\) leaves the truth value of \(A\) unchanged. If \(i\in\operatorname{dom}(I)\), the same definition gives
+\[
+ E(f,I)_i=I(i),
+ \qquad
+ \mathbf 1\{V_{i,I}=y\}=\mathbf 1\{I(i)=y\},
+\]
+so self-intervention replacement is pointwise valid. Otherwise every retained intervention coordinate precedes \(i\). Sorting the encodings of these pairs and coalescing repeated identical pairs leaves the represented partial map unchanged and hence leaves \(E(f,I)_i\) unchanged. Simplification of truth constants preserves the Boolean value of the conjunction.
+
+Applying these observations to every atom, in source order, proves for every \(f\in\mathfrak F\) and \(j\in\{1,\ldots,r\}\) that
+\[
+ \mathbf 1\{\gamma_j(f)\}
+ =\mathbf 1\{\gamma_j^{\circ}(f)\}.
+\]
+Multiplication by \(c_j\) and summation give the pointwise score identity
+\[
+ \sum_{j=1}^r c_j\mathbf 1\{\gamma_j(f)\}
+ =\sum_{j=1}^r c_j\mathbf 1\{\gamma_j^{\circ}(f)\}
+ =g(f).
+\]
+Every surviving intervention coordinate is strictly below the atom's target coordinate, so the normalized list is predecessor-only.
+
+It remains to account for preprocessing time. Build deterministic tries for the explicitly listed alphabets while reading them. Scan the raw token stream once, validate each coordinate and value in those tries, discard a later-coordinate pair when it is read, and place retained integer coordinate encodings in a deterministic binary radix trie. Reading that trie in coordinate order is a stable canonical ordering whose work is linear in the total bit length of its keys. A second scan coalesces identical adjacent pairs and simplifies constants. A deterministic binary trie on the normalized context encodings constructs the distinct set \(\mathcal H\). Each operation is linear in the number of input or emitted bits, and normalization emits no more intervention-pair or atom tokens than it reads. By the definition of \(N_{\mathrm{in}}\), the total time is \(O(N_{\mathrm{in}})\). The prescribed source order and canonical coordinate order make \(\mathsf N\) deterministic. This argument concerns only the supplied explicit unnested syntax and makes no claim for succinct nested syntax.
+%%% FIELD proof-canonical-equivalence
+Let \(\mathcal M\in\mathcal M_{\mathrm{ord}}\). For every \(u\in\mathcal U\), define the response system declared in the frozen notation by
+\[
+ f_i^u(x_{<i})=\varphi_i(x_{\operatorname{pa}_i},u).
+\]
+Assumption~\texttt{ass:order-compatible-parent-sets} makes the restriction \(x_{\operatorname{pa}_i}\) well typed. The coordinates outside \(\operatorname{pa}_i\) are ignored, and Assumption~\texttt{ass:complete-predecessor-functions} therefore gives \(f^u\in\mathfrak F\). Put \(\Psi(u)=f^u\) and define the push-forward law
+\[
+ \mu(f)=\nu\!\left(\Psi^{-1}(\{f\})\right),
+ \qquad f\in\mathfrak F.
+\]
+The carrier \(\mathfrak F\) is finite because every alphabet is finite by Assumption~\texttt{ass:finite-alphabets}. The displayed preimages are the events of the finite-valued random response system \(f^U\), and they partition \(\mathcal U\). Hence
+\[
+ \mu(f)\geq0,
+ \qquad
+ \sum_{f\in\mathfrak F}\mu(f)=\nu(\mathcal U)=1.
+\]
+Thus the image belongs to \(\mathcal M_{\mathrm{can}}\) by \texttt{def:canonical-carrier-class}.
+
+For any valid intervention \(I\), induction in the causal order proves equality of the original and canonical evaluations. At an intervened coordinate both values are \(I(i)\). At a natural coordinate, equality below \(i\) and order compatibility give
+\[
+ \begin{aligned}
+ E(f^u,I)_i
+ &=f_i^u(E(f^u,I)_{<i})\\
+ &=\varphi_i(E(f^u,I)_{\operatorname{pa}_i},u)\\
+ &=\varphi_i(V^I_{\operatorname{pa}_i}(u),u)
+ =V_i^I(u).
+ \end{aligned}
+\]
+Therefore every factual and intervention-world vector agrees pointwise. An explicit unnested conjunction is a finite Boolean function of these vectors, so every such conjunction and every rational score are preserved. In particular,
+\[
+ g(f^u)=g_{\mathcal M}(u),
+ \qquad
+ \mathbb E_{\mu}[g(f)]
+ =\sum_{f\in\mathfrak F}\nu(\Psi^{-1}(\{f\}))g(f)
+ =\mathbb E_{\nu}[g(f^U)].
+\]
+Taking \(I=\varnothing\) proves preservation of the observational distribution.
+
+Conversely, take an element of \(\mathcal M_{\mathrm{can}}\), set \(\mathcal U=\mathfrak F\), \(\nu=\mu\), and define
+\[
+ \operatorname{pa}_i=\{1,\ldots,i-1\},
+ \qquad
+ \varphi_i(x_{<i},f)=f_i(x_{<i}).
+\]
+These parent sets satisfy Assumption~\texttt{ass:order-compatible-parent-sets}; the single exogenous variable is shared by all coordinates; and ordered evaluation is exactly \(E(f,I)\). This is a member of \(\mathcal M_{\mathrm{ord}}\) with the same observational and counterfactual laws. The two constructions preserve compatibility with every supplied \(p\) and preserve \(\theta_g\) in both directions. Hence the compatible attainable sets, and therefore their extrema, are identical. Lemma~\texttt{lem:rossetto-antonucci-order-lp-interface} verifies the statement's attribution of this canonical order interface to Rossetto--Antonucci; the equivalence used here has also been derived directly above.
+%%% FIELD proof-partition-continuation
+Fix a factual cell vector \(v\) supplying the factual pins, and consider response rows consistent with those pins. For a retained context \(w\), write \(w(t)\) for its intervention constant at \(t\). The following anchor identity is needed because \(\varnothing\) need not belong to \(\mathcal H\):
+\[
+ x^w_{\leq i}=v_{\leq i}
+ \quad\Longleftrightarrow\quad
+ w(t)=v_t\text{ for every }t\leq i\text{ in }\operatorname{dom}(w).
+ \tag{1}
+\]
+For the forward implication, an intervention entry unequal to \(v_t\) gives unequal values at coordinate \(t\). For the reverse implication, induction on \(t\leq i\) applies \texttt{def:ordered-evaluation}: an intervened coordinate equals the agreeing constant \(v_t\), while at a natural coordinate the common preceding tuple is \(v_{<t}\), and factual membership gives \(f_t(v_{<t})=v_t\). Consequently the subset
+\[
+ A_i(v)=\{w\in\mathcal H:x^w_{\leq i}=v_{\leq i}\}
+\]
+is determined by \(v\), the named interventions, and \(i\), independently of the numerical history. By \texttt{def:prefix-partition}, it is either empty or one entire block of \(\pi_i\).
+
+The claim about continuation is vacuous after the last coordinate, so take \(i<k\) and put \(q=i+1\). For a block \(T\in\pi_i\), define
+\[
+ N_T=\{w\in T:q\notin\operatorname{dom}(w)\},
+ \qquad
+ J_T=T\setminus N_T.
+\]
+All worlds in \(T\) have the same complete predecessor tuple. Thus \texttt{def:ordered-evaluation} forces a common value \(z_T\in\mathcal D_q\) on all worlds in \(N_T\), while a world \(w\in J_T\) has the fixed value \(w(q)\). If \(T=A_i(v)\) and \(N_T\neq\varnothing\), factual compatibility additionally forces \(z_T=v_q\). Any hard normalized-query pins at coordinate \(q\) must agree with these values. Conversely, predecessor tuples belonging to distinct blocks are distinct. Assumption~\texttt{ass:complete-predecessor-functions} therefore permits the values \(z_T\) on distinct unanchored blocks to be selected independently.
+
+It follows that a column \(y=(y_w)_{w\in\mathcal H}\) is legal at coordinate \(q\) exactly when, for every block \(T\),
+\[
+ y_w=w(q)\quad(w\in J_T),
+ \qquad
+ y_w=z_T\quad(w\in N_T)
+ \tag{2}
+\]
+for an allowed \(z_T\in\mathcal D_q\), with \(z_T=v_q\) on the anchored block, and all entries satisfy the factual and normalized-query pins at \(q\). Conditions (1)--(2) refer to the preceding evaluation only through \(\pi_i\); the possibly empty factual anchor is known from \(v\) and the interventions. Given such a column, assign the row of \(f_q\) at the predecessor tuple of every block with a natural world to \(z_T\). Distinct blocks supply distinct tuples, and the anchored assignment agrees with the factual row. This realizes every legal column.
+
+Now take two feasible histories with the same partition \(\pi_i\). The characterization gives exactly the same set of legal numerical columns for both histories. Appending the same column splits each old block according to equality of its new entries, while distinct old blocks cannot merge because their earlier complete prefixes remain unequal. Hence the two successors have the same partition \(\pi_q\). Iterating this argument for \(q=i+1,\ldots,k\) proves equality of the support of every later column sequence subject to all later pins. Both inclusions follow because every legal selection is realizable on either history.
+
+Finally, consider an accepting transition path. At coordinate \(q\), record the pair consisting of the predecessor tuple and \(z_T\) once for each block \(T\) containing a natural retained world. There are at most \(h\) such records per coordinate. If the same tuple is encountered by two natural worlds, they lie in the same block and (2) assigns the same output, so all recorded rows are consistent. Choose the default of \(\widehat f_q\) to be \(v_q\), which exists in the nonempty alphabet by Assumption~\texttt{ass:finite-alphabets}, and use it on every unlisted tuple as in \texttt{def:sparse-response-completion}. If the factual tuple was recorded, the anchor condition assigned it \(v_q\); if it was not recorded, the default assigns it \(v_q\). Thus the completed system obeys every factual pin. Induction over coordinates shows that it reproduces every stored retained-world column, since every natural retained-world call uses its recorded row and every intervened coordinate uses its constant. The result lies in \(\mathfrak F\), has at most \(kh\) stored rows, and uses one default per coordinate.
+%%% FIELD proposed-representative-statement
+For one normalized conjunction, the single-conjunction representative transition is sound and complete: within any block, all values outside the distinct intervention constants induce the same refinement and future support, so one fresh value suffices. Across all branching blocks the number of representative column choices is at most \(3^{h/3}\). For \(r\) normalized conjunctions, the joint-score representative transition is sound and complete after truth flags are included, and the number of representative column choices is at most \((r+1)^h\).
+%%% FIELD proof-representative-transition
+Put \(q=i+1\), and first consider a block \(T\in\pi_i\) for one normalized conjunction. By \texttt{thm:partition-continuation}, all natural worlds in \(T\) call one response row. If there is no natural world, the column on \(T\) is fixed by interventions. If factual or conjunction pins on natural worlds in \(T\) require two distinct values, the transition is infeasible; if they require one value, the natural output is fixed and the block does not branch.
+
+In the remaining case let \(C_T\) be the set of distinct intervention constants in \(T\). For any \(z,z'\in\mathcal D_q\setminus C_T\), the natural worlds form one successor subblock distinct from every intervention-constant subblock under either choice. Thus \(z\) and \(z'\) induce the same partition refinement and violate no current natural pin. The continuation theorem gives the same future support. A choice in \(C_T\), by contrast, merges the natural subblock with the worlds bearing that constant and is retained separately. Hence retaining every element of \(C_T\) and one scanned element of \(\mathcal D_q\setminus C_T\), when the latter set is nonempty, is sound and complete, including singleton and exhausted alphabets.
+
+If a branching block contains \(a\) intervened and \(b\geq1\) natural worlds and has size \(t=a+b\), its representative count is at most \(a+1\leq t\). For integer \(t=1,2,3\), direct calculation gives \(t\leq3^{t/3}\). For \(t\geq3\), the function \(x\mapsto\log(x)/x\) is decreasing, so
+\[
+ \frac{\log t}{t}\leq\frac{\log3}{3},
+ \qquad
+ t\leq3^{t/3}.
+\]
+If \(t_1,\ldots,t_m\) are the sizes of the branching blocks, then they are disjoint subsets of \(\mathcal H\), and therefore
+\[
+ \prod_{j=1}^m t_j
+ \leq3^{\sum_jt_j/3}
+ \leq3^{h/3}.
+ \tag{3}
+\]
+No subtraction of one from \(h\) is valid when the normalized context set omits the factual context and its factual-equivalent block is empty.
+
+For the joint compiler, attach a flag vector \(a_i\in\{0,1\}^r\) to the partition. At a fixed world-coordinate, coalesce repeated identical tests within each live term. If one live term tests two distinct constants there, its flag must become zero at this coordinate, so set it to zero before constructing representatives. This value-preserving preprocessing leaves at most one tested constant for each live-term/world pair.
+
+For an unpinned natural group in \(T\), let \(C_T\) now contain all distinct intervention constants and all constants tested there by still-live terms. Two outputs outside \(C_T\) have the same equality relation to every intervention constant and fail exactly the same current tests. They therefore induce the same successor partition and flag vector, and \texttt{thm:partition-continuation} gives identical future support. Retaining the elements of \(C_T\cap\mathcal D_q\) and one fresh alphabet value, when available, is consequently sound and complete. Every retained representative is legal exactly when its direct intervention, factual, and test checks pass, and the row construction in the continuation theorem realizes it.
+
+If \(T\) has \(a\) intervened and \(b\geq1\) natural worlds, then there are at most \(a+rb+1\) representatives. With \(t=a+b\) and \(r\geq1\),
+\[
+ a+rb+1\leq rt+1\leq(r+1)^t,
+\]
+where the last inequality retains the constant and linear terms in the binomial expansion. Multiplying over disjoint branching blocks gives
+\[
+ \prod_T(r+1)^{|T|}\leq(r+1)^h.
+ \tag{4}
+\]
+The flag update is conjunction with exactly the current coordinate's tests. Hence a zero flag needs no further information, while a live flag records exactly that all processed tests have passed. Equality of the partition and flags is therefore a right congruence for future transitions. Equations (3)--(4) prove the corrected representative counts and the preceding arguments prove soundness and completeness.
+%%% FIELD proof-single-compiler
+By \texttt{lem:query-normalization}, computing \(\gamma^{\circ}=\mathsf N(\gamma)\) costs \(O(N_{\mathrm{in}})\) and preserves its truth for every response system. Under \(r=1\), \(c_1=1\), the definition of the joint truth support specializes to
+\[
+ A_v=\{(g_{\gamma^{\circ}}(f)):f\in F_v\}\subseteq\{0,1\}.
+\]
+Consequently \texttt{def:cell-labels} gives
+\[
+ \ell_g(v)=\min_{f\in F_v}g_{\gamma^{\circ}}(f),
+ \qquad
+ u_g(v)=\max_{f\in F_v}g_{\gamma^{\circ}}(f).
+ \tag{5}
+\]
+The fibre \(F_v\) is nonempty: prescribe \(f_i(v_{<i})=v_i\) at every coordinate and use an arbitrary value from the nonempty alphabet on every other row.
+
+The dynamic program begins with the unique partition of \(\mathcal H\) at layer zero, applies \(\mathsf C_1\)'s representative transitions, and merges equal successor partitions. Induction over coordinates using \texttt{lem:representative-transition} proves that its states are exactly the partitions induced by feasible partial response systems satisfying all factual and conjunction pins already encountered. Soundness follows because every retained representative is realized by a response row; completeness follows because every concrete legal output has a retained representative with the same successor partition and future support. Hence a terminal accepting state exists if and only if some \(f\in F_v\) satisfies \(\gamma^{\circ}\).
+
+Store a predecessor state and selected representative column on the first edge reaching each state. When a state has several concrete histories, \texttt{thm:partition-continuation} permits the selected successor column to be realized from the stored representative history as well. Backtracking an accepting terminal state therefore produces a legal column path. Sparse-response completion then returns \(\widehat f\in F_v\) with at most \(kh\) stored rows and default \(v_i\) at coordinate \(i\).
+
+There are at most \(B_h\) partition states per layer. The corrected exact transition count is at most \(3^{h/3}\), so the total work is
+\[
+ B_h3^{h/3}\operatorname{poly}(N_{\mathrm{in}})
+ =3^{1/3}B_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}}).
+\]
+The constant \(3^{1/3}\), the \(k\) layers, alphabet scans, pin checks, canonical partition encodings, and traceback are absorbed in the displayed polynomial factor. Thus the runtime has exactly the form claimed in the theorem, including when \(h=0\).
+
+We next derive the false bit. Let \(A=\{V_{i,I}=y\}\) be a retained atom. Then \(i\notin\operatorname{dom}(I)\), and every intervention coordinate is below \(i\). We claim
+\[
+ \bigl(\forall f\in F_v:\ E(f,I)_i=y\bigr)
+ \quad\Longleftrightarrow\quad
+ |\mathcal D_i|=1
+ \ \text{or}\ 
+ \bigl(I(t)=v_t\text{ for every }t\in\operatorname{dom}(I)\text{ and }v_i=y\bigr).
+ \tag{6}
+\]
+If \(|\mathcal D_i|=1\), input validity forces \(y\) to be the unique value. If \(I\) agrees with \(v\), ordered induction below \(i\) gives \(E(f,I)_{<i}=v_{<i}\) for every \(f\in F_v\), and then \(E(f,I)_i=f_i(v_{<i})=v_i=y\). This proves the reverse implication.
+
+For the forward implication, suppose \(|\mathcal D_i|>1\). If \(I\) agrees with \(v\) but \(v_i\neq y\), every member of \(F_v\) falsifies the atom. If \(I\) disagrees with \(v\), its first disagreeing intervention coordinate makes the complete \(I\)-world prefix differ permanently from the factual complete prefix. Choose \(z\in\mathcal D_i\setminus\{y\}\), prescribe the factual rows \(f_t(v_{<t})=v_t\), prescribe arbitrary consistent rows along the distinct \(I\)-world prefix through \(i-1\), and set
+\[
+ f_i(E(f,I)_{<i})=z,
+ \qquad
+ f_i(v_{<i})=v_i.
+\]
+The two arguments of \(f_i\) are distinct, so the prescriptions are consistent. Complete all other rows by defaults. The resulting member of \(F_v\) falsifies the atom, proving (6).
+
+A false truth constant produced by normalization makes the entire conjunction false. Otherwise, if every retained atom satisfies the right side of (6), every response system in \(F_v\) satisfies the conjunction, so \(\ell_g(v)=1\). If some atom fails that condition, the response system just constructed falsifies that atom and hence the conjunction, so \(\ell_g(v)=0\). A linear scan of constants and retained atoms therefore decides the false bit. This argument needs one witness falsifying one atom, not one witness simultaneously falsifying all atoms. The empty conjunction has both labels equal to one, and the true bit is the accepting-state decision already proved.
+
+For any compatible canonical law \(\mu\), the disjoint fibres \((F_v)_{v\in\mathcal X}\), observational compatibility, and (5) give
+\[
+ \theta_g
+ =\sum_{v\in\mathcal X}\sum_{f\in F_v}\mu(f)g(f),
+ \qquad
+ \sum_{f\in F_v}\mu(f)=p(v),
+ \qquad
+ \ell_g(v)\leq g(f)\leq u_g(v).
+\]
+Since \(\mu(f)\geq0\), summation yields
+\[
+ L_g(p)\leq\theta_g\leq U_g(p).
+ \tag{7}
+\]
+For every positive-mass cell, choose a minimizing response system and assign it exogenous mass \(p(v)\); this gives a compatible law attaining \(L_g(p)\). Choosing maximizers gives one attaining \(U_g(p)\). Zero-mass cells require no atom. Convex mixtures of the endpoint laws preserve \(p\) and fill the interval. Proposition~\texttt{prop:canonical-carrier-equivalence} transfers these sharp endpoints to \(\mathcal M_{\mathrm{ord}}\).
+
+Lemma~\texttt{lem:rossetto-antonucci-order-lp-interface} says that Rossetto--Antonucci's canonical response-signature program has the sharp extrema over this same order-only class and observational law. Since (7) and its attaining constructions characterize those extrema, the endpoint values coincide. Their cited interface begins with completed predecessor response signatures and then quotients by observational-cell and query-truth evaluations. The present construction instead generates only reachable partitions for the requested cells and never constructs a completed signature; its exponential indices are \(B_h\) and \(3^{(h-1)/3}\), while alphabet processing is a charged polynomial scan. This establishes the stated representational replacement.
+
+On a sparse input, the procedure is run only for the \(s\) explicitly listed positive-mass cells, giving
+\[
+ sB_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}}).
+\]
+For a dense input, reading every supplied cell is already included in \(N_{\mathrm{in}}\). No omitted sample cell is treated as a structural zero.
+%%% FIELD proof-joint-compiler
+Normalize first. Lemma~\texttt{lem:query-normalization} shows that this costs \(O(N_{\mathrm{in}})\) and preserves each conjunction truth value and hence \(g(f)\). At layer \(i\), maintain flags satisfying
+\[
+ a_{i,j}=1
+ \quad\Longleftrightarrow\quad
+ \text{every normalized atom of \(\gamma_j^{\circ}\) at a coordinate at most \(i\) is true}.
+ \tag{8}
+\]
+An empty conjunction starts at one, and a term containing a false normalized constant starts at zero. At coordinate \(i+1\), update a live flag by conjunction with all its tests at that coordinate; a dead flag remains zero. Repeated identical tests are coalesced, while two distinct constants tested on the same world-coordinate set that term's flag to zero, exactly as in \texttt{lem:representative-transition}.
+
+We prove by induction on \(i\) that the reachable states \((\pi_i,a_i)\) are exactly the partition-and-partial-truth pairs induced by feasible partial response systems in \(F_v\). The assertion holds at layer zero after initializing constant flags. Suppose it holds at layer \(i\). For every concrete legal column, \texttt{lem:representative-transition} supplies a representative inducing the same successor partition and updated flags; conversely, every retained representative is realized by a consistent response row. These are the two directions of the induction step. If two histories merge into the same state, \texttt{thm:partition-continuation} gives identical future column support, and equality of flags gives identical truth status for every processed atom. Therefore the merge loses neither a terminal truth vector nor a feasible continuation. When \(i=k\), all tests have been processed, so (8) gives
+\[
+ \{a_k:(\pi_k,a_k)\text{ is reachable for some }\pi_k\}=A_v.
+ \tag{9}
+\]
+
+There are at most \(B_h2^r\) states per layer. The corrected exact representative count is \((r+1)^h\), whence the work is bounded by
+\[
+ B_h2^r(r+1)^h\operatorname{poly}(N_{\mathrm{in}})
+ =B_h2^r(r+1)^{h-1}\bigl((r+1)\operatorname{poly}(N_{\mathrm{in}})\bigr).
+\]
+Because the \(r\) explicitly supplied terms occupy at least \(r\) input tokens, \(r+1\leq N_{\mathrm{in}}+1\); the extra factor is polynomial in the charged input size. The \(k\) layers, normalized-test updates, alphabet scans, canonicalization, and exact rational comparisons are likewise polynomial. This proves the advertised runtime, including the constant-context case \(h=0\).
+
+For the first occurrence of each state, store its predecessor and concrete representative column. The continuation theorem permits that column to be transferred to the stored representative history whenever histories with the same state were merged. Backtracking from one terminal state for each distinct reachable \(a\), followed by \texttt{def:sparse-response-completion}, returns a complete witness in \(F_v\) for every vector in (9), using at most \(kh\) stored rows and one default per coordinate. Scanning this exact finite set and performing rational dot products computes
+\[
+ \ell_g(v)=\min_{a\in A_v}c^\top a,
+ \qquad
+ u_g(v)=\max_{a\in A_v}c^\top a.
+ \tag{10}
+\]
+
+Let \(\mu\) be any canonical law compatible with \(p\). The fibres \(F_v\) are disjoint and exhaust \(\mathfrak F\), and Assumption~\texttt{ass:observational-compatibility} gives their masses. Thus
+\[
+ \begin{aligned}
+ \theta_g&=\sum_{v\in\mathcal X}\sum_{f\in F_v}\mu(f)g(f),\\
+ \sum_{f\in F_v}\mu(f)&=p(v),\\
+ \ell_g(v)&\leq g(f)\leq u_g(v)\qquad(f\in F_v).
+ \end{aligned}
+\]
+Nonnegativity of \(\mu\) yields
+\[
+ L_g(p)\leq\theta_g\leq U_g(p).
+ \tag{11}
+\]
+This is optimization of \(c^\top a\) over the joint set \(A_v\). Replacing \(A_v\) by a Cartesian product of termwise truth supports is not licensed and can change the extrema.
+
+The bounds are attained. Finiteness and nonemptiness of \(F_v\) permit selection, for every \(v\) with \(p(v)>0\), of compiler witnesses \(f_v^-\) and \(f_v^+\) attaining the two values in (10). Define shared-exogenous laws by assigning
+\[
+ \mu^-(f_v^-)=p(v),
+ \qquad
+ \mu^+(f_v^+)=p(v).
+\]
+Different factual fibres are disjoint, so response systems selected for different cells are distinct; the displayed assignments are unambiguous and their masses sum to one. Each endpoint model has exactly one positive-mass exogenous atom per positive-mass observational cell, has factual law \(p\), and satisfies
+\[
+ \mathbb E_{\mu^-}[g(f)]=L_g(p),
+ \qquad
+ \mathbb E_{\mu^+}[g(f)]=U_g(p).
+\]
+For \(\lambda\in[0,1]\), the law \((1-\lambda)\mu^-+\lambda\mu^+\) remains compatible with \(p\) and has score \((1-\lambda)L_g(p)+\lambda U_g(p)\). Hence the canonical identified set is the full interval. Proposition~\texttt{prop:canonical-carrier-equivalence} transfers both the soundness inclusion and all attaining models to the standard parent-subset class, proving
+\[
+ \Theta_g(p)=[L_g(p),U_g(p)].
+\]
+%%% FIELD proof-separation
+The retention invariant for \(\mathsf R_{\mathrm{num}}\) follows directly by induction from \texttt{def:numeric-history-baseline}. Initially the empty history is feasible. At every next coordinate the baseline expands every feasible numerical column and discards exactly a successor violating a factual or conjunction pin already encountered. It therefore retains every and only feasible pinned complete numerical history. Its merge rule identifies paths only when all stored numerical prefixes and the flag agree, so distinct feasible histories are never merged.
+
+We use the corrected separation conjunction, which includes the redundant factual atom \(\{S_{\varnothing}=0\}\). Each of its interventions concerns only predecessors of the atom's target, and no target is self-intervened. Therefore the normalization specified in \texttt{def:separation-family} leaves every atom in predecessor normal form. Its distinct contexts are exactly
+\[
+ \{\varnothing,A,B\}=\mathcal H_n^{\mathrm{sep}};
+\]
+in particular, the factual context is retained because it occurs in the displayed factual atom, not because normalization adjoins it. On the fixed factual-zero fibre this added atom is always true, so it does not change the feasible histories or terminal acceptance relative to the originally displayed nonfactual requirements.
+
+Write the three worlds as \(0=\varnothing\), \(A\), and \(B\). Immediately after \(S,T\), their complete prefixes are
+\[
+ (0,0),
+ \qquad
+ (1,0),
+ \qquad
+ (1,1),
+ \tag{12}
+\]
+respectively. The factual cell supplies the first pair, both interventions set \(S=1\), the atom \(T_A=0\) pins the natural \(A\)-row, and \(B\) intervenes to set \(T=1\). The three prefixes in (12) are pairwise distinct.
+
+Fix any \(a=(a_1,\ldots,a_n)\in\{0,1\}^n\). At coordinate \(X_i\), prescribe
+\[
+ X_{i,0}=0,
+ \qquad
+ X_{i,A}=0,
+ \qquad
+ X_{i,B}=a_i.
+ \tag{13}
+\]
+At every such coordinate the worlds have pairwise distinct complete predecessor tuples because their prefixes already differ in (12). Assumption~\texttt{ass:complete-predecessor-functions} permits the three natural rows in (13) to be assigned independently. Induction over \(i\) realizes all assignments without conflict. At \(Y\), the three predecessor tuples are still distinct; prescribe
+\[
+ Y_0=0,
+ \qquad
+ Y_B=1,
+\]
+and choose the unused \(A\)-row arbitrarily. Sparse completion gives a member of \(\mathfrak F\). Thus every \(a\) determines a feasible pre-\(Y\) history satisfying all earlier pins and admitting an accepting completion.
+
+Conversely, before \(Y\), the factual cell, interventions, and conjunction fix every stored entry except \((X_{1,B},\ldots,X_{n,B})\), which is binary. Hence at most \(2^n\) pinned histories exist. Construction (13) supplies all of them, and different vectors \(a\) give different complete numerical histories. The retention invariant and no-merge rule imply
+\[
+ N_{\mathrm{num}}(n)=2^n.
+\]
+
+Complete prefixes cannot become equal after they differ, so every retained history induces the same three-singleton partition from the layer after \(T\) through the pre-\(Y\) layer. In \(\mathsf C_1\), at every \(X_i\) the factual and \(A\)-world singleton outputs are pinned to zero. The unpinned \(B\)-world is also a singleton block and has no intervention constant at that coordinate; all its alphabet values induce the same singleton refinement, so one fresh representative suffices. Thus only one accepting partition state is retained at each such layer, and the terminal requirement \(Y_B=1\) is feasible. This proves the stated separation from the explicitly path-retaining baseline and makes no claim about arbitrary reduced decision diagrams or other compilation languages.
+%%% FIELD replacement-canonical-statement
+Every \(\mathcal M\in\mathcal M_{\mathrm{ord}}\) has a value-equivalent canonical image in \(\mathcal M_{\mathrm{can}}\): push \(\nu\) forward by \(u\mapsto f^u\), so \(\mu(f)=\nu(\{u:f^u=f\})\). This preserves every factual and intervention-world evaluation, every explicit unnested score, and the observational law. Conversely, every \(\mathcal M_{\mathrm{can}}\) is a member of \(\mathcal M_{\mathrm{ord}}\) by taking \(\operatorname{pa}_i=\{1,\ldots,i-1\}\), \(\mathcal U=\mathfrak F\) with law \(\mu\), and \(\varphi_i(x_{<i},f)=f_i(x_{<i})\). Therefore, for every supplied \(p\) and score \(g\), the attainable set of \(\theta_g\) over observationally compatible models is identical in the two classes, and sharp-bound optimization may be carried out over the saturated carrier. This is the canonicalization and equivalence established by Rossetto--Antonucci for causal orders, restated as the compiler interface rather than as a novelty claim.
+%%% FIELD replacement-query-statement
+For every valid explicit unnested input list \(\boldsymbol\gamma\), the map \(\mathsf N\) is deterministic, runs in \(O(N_{\mathrm{in}})\) time, and produces a predecessor-only normalized list \(\boldsymbol\gamma^{\circ}\). For every \(f\in\mathfrak F\) and every term index \(j\), \(\mathbf 1\{\gamma_j(f)\}=\mathbf 1\{\gamma_j^{\circ}(f)\}\); hence the raw and normalized rational scores agree pointwise. Later-coordinate deletions use recursiveness, self-intervention simplification uses \(E(f,I)_i=I(i)\), and canonical ordering changes no intervention. Thus every subsequent runtime uses exactly the normalized context set \(\mathcal H\) without claiming that arbitrary nested syntax is accepted.
+%%% FIELD replacement-single-statement
+For every factual cell \(v\) and raw explicit unnested conjunction \(\gamma\), first compute \(\gamma^{\circ}=\mathsf N(\gamma)\) and its normalized context set \(\mathcal H\), and let \(h=|\mathcal H|\). Set \(r=1\), \(\gamma_1^{\circ}=\gamma^{\circ}\), \(c_1=1\), and \(g=g_{\gamma^{\circ}}\), where \(g_{\gamma^{\circ}}(f)=\mathbf 1\{\gamma^{\circ}(f)\}\). Under this coefficient convention, \(\ell_g(v)=\min_{f\in F_v}g_{\gamma^{\circ}}(f)\), \(u_g(v)=\max_{f\in F_v}g_{\gamma^{\circ}}(f)\), \(L_g(p)=\sum_{v\in\mathcal X}p(v)\ell_g(v)\), and \(U_g(p)=\sum_{v\in\mathcal X}p(v)u_g(v)\). The compiler \(\mathsf C_1\) decides whether some \(f\in F_v\) satisfies \(\gamma^{\circ}\), and returns a sparse witness when one exists, in \(B_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}})\) time including normalization. A false self-intervention truth constant produced by \(\mathsf N\) makes the conjunction identically false. Otherwise a retained atom \(V_{i,I}=y\) is true for every \(f\in F_v\) if and only if \(|\mathcal D_i|=1\), or \(I\) agrees with \(v\) and \(v_i=y\); hence the conjunction's false bit is decided by a linear scan of normalized constants and retained atoms. By the canonical-carrier equivalence, the endpoints \(L_g(p)\) and \(U_g(p)\) are sharp over the standard parent-subset class \(\mathcal M_{\mathrm{ord}}\), and total sparse-input time is \(sB_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}})\) after charging dense or sparse input reading. On the same order-only class and conjunction target, these endpoints equal those of Rossetto--Antonucci, while the sparse-input construction strictly replaces their completed-signature alphabet-product quotient by an \(h\)-parameter transition system.
+%%% FIELD replacement-joint-statement
+For every factual cell \(v\), first compute \(\boldsymbol\gamma^{\circ}=\mathsf N(\boldsymbol\gamma)\), its normalized context set \(\mathcal H\), and \(h=|\mathcal H|\). The compiler \(\mathsf C_r\) then computes exactly the joint truth support \(A_v\), one sparse witness for every reachable terminal truth vector, and the labels \(\ell_g(v),u_g(v)\) in \(B_h2^r(r+1)^{h-1}\operatorname{poly}(N_{\mathrm{in}})\) time including normalization. By the canonical-carrier equivalence, over the standard parent-subset class \(\mathcal M_{\mathrm{ord}}\), \(\Theta_g(p)=[L_g(p),U_g(p)]\). Each endpoint is attained by a shared-exogenous model with one atom of mass \(p(v)\) for each \(v\in\operatorname{supp}(p)\), and every intermediate value is attained by mixing the endpoint models. No termwise optimization replaces \(A_v\).

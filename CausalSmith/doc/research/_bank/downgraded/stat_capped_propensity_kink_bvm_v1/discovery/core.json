@@ -1,0 +1,1614 @@
+{
+  "qid": "stat_capped_propensity_kink_bvm",
+  "specialization": "v1",
+  "cluster": "stat",
+  "target_estimand": "\\(\\Psi_\\delta(P)=\\mathbb E[Y^{q_\\delta}]\\)",
+  "estimand_functional": "\\(\\Psi_\\delta(P)=\\mathbb E_P[\\mu_0(X)+\\tau(X)\\min\\{1,\\delta e(X)\\}]\\)",
+  "sampling_model": {
+    "design": "Independent and identically distributed observational sampling from an unrestricted binary-treatment law; the explicit posterior theorem specializes to \\(X\\sim\\mathrm{Unif}[0,1]\\) and \\(e(x)=x\\).",
+    "units": "\\(O_i=(X_i,A_i,Y_i)\\), for \\(i=1,\\ldots,n\\).",
+    "treatment": "Binary treatment with unknown observational propensity \\(e(x)\\); the intervention uses \\(q_\\delta(1\\mid x)=\\min\\{1,\\delta e(x)\\}\\).",
+    "overlap": "Strong overlap is not assumed. The policy preserves observational support, and the histogram benchmark has essential propensity infimum zero and essential supremum one.",
+    "nuisance_estimation": "All observations update independent Beta histogram coordinates for the propensity and two arm-specific Bernoulli regressions on \\(J_n=\\lceil n^{1/3}\\rceil\\) equal bins; independent Dirichlet Bayesian-bootstrap weights perform the one-step correction."
+  },
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ZhouOpacic2022",
+      "comparator_claim": "The paper studies the intervention \\(\\min\\{1,e^\\delta\\pi(x)\\}\\) and develops identification and estimation of its interventional effects.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LuedtkeVanDerLaan2016",
+      "comparator_claim": "The optimal-value parameter is pathwise differentiable if and only if its stated exceptional-law variance condition holds.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Kennedy2019",
+      "comparator_claim": "Smooth incremental propensity-score interventions admit a nonparametric efficient influence function and efficient one-step estimation without positivity.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "YiuEtAl2025",
+      "comparator_claim": "Uniform no-bias, \\(L_2\\)-stability, and empirical-process conditions imply a semiparametric one-step posterior Bernstein--von Mises theorem.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SchmidtWikle2026",
+      "comparator_claim": "For twice continuously differentiable stochastic intervention maps with stable influence functions, the corrected posterior is asymptotically efficient and its credible intervals have pointwise frequentist coverage.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Castillo2014",
+      "comparator_claim": "Dirichlet random histograms attain the optimal sup-norm posterior contraction rate for Hölder densities.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LevisEtAl2025",
+      "comparator_claim": "A margin condition controls nonsmooth branch selection and permits root-\\(n\\) influence-function inference for covariate-assisted causal bounds.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AudibertTsybakov2007",
+      "comparator_claim": "The plug-in classification boundary error has the sharp \\(1+\\alpha\\) margin power under sup-norm regression error.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BreunigLiuYu2025",
+      "comparator_claim": "A corrected causal posterior has an efficient Gaussian limit and exact pointwise credible-set coverage under product-rate conditions and strong overlap.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HiranoPorter2012",
+      "comparator_claim": "Nondifferentiability in a finite-dimensional local experiment rules out regular locally unbiased estimation.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "FangSantos2019",
+      "comparator_claim": "Ordinary bootstrap validity for a directionally differentiable map requires full differentiability, while a derivative bootstrap can remain valid.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Multiplying a treatment probability and capping it at one defines a support-preserving intervention but introduces a kink at \\(e(X)=1/\\delta\\). The proposal characterizes the exact pathwise-differentiability frontier by the outcome-relevant cap quantity \\(K_\\delta(P)\\), derives the bounded canonical gradient and an exact branch-specific one-step remainder, proves the sharp margin modulus for cap crossings, and establishes pointwise one-step posterior Gaussian calibration and credible-set coverage for an explicit all-data Beta histogram posterior whose draws cross the cap and whose truth violates strong overlap. A legal finite-partition tangent supplies the nonregular converse. Uniform validity under laws drifting across the regularity boundary remains a first-class open question.",
+  "project_justification": {
+    "gap": "The capped probability-multiplication policy is already explicit in the interventional-effects literature, but smooth stochastic-intervention efficiency and posterior theorems cannot differentiate through its interior cap. General one-step posterior theory assumes the exact remainder and empirical-process conditions that cap-crossing draws violate, and existing histogram contraction does not cover joint conditional coordinates with unequal random arm counts.",
+    "niche": "The missing object is a complete regularity-and-calibration theory for one identified, positivity-robust stochastic intervention at laws that may touch the cap or the propensity endpoints.",
+    "fill": "The project joins an if-and-only-if regularity theorem, a bounded canonical gradient, an exact crossing remainder with a sharp margin equality example, and a concrete conjugate histogram posterior theorem proved by random-count concentration and boundary-bin localization."
+  },
+  "related_work": "Zhou and Opacic define and motivate multiplicative propensity interventions capped at one; their results are the policy anchor and do not supply a cap-contact regularity analysis. Kennedy derives efficient influence functions and one-step estimation for smooth incremental odds interventions without positivity, supplying the score calculus on each fixed branch. Luedtke and van der Laan give the closest exact exceptional-law differentiability theorem for an optimal treatment value, but their kink is driven by the outcome contrast and has a different cancellation mechanism. Yiu et al. provide the general Bayesian-bootstrap one-step posterior transfer theorem, whose remainder, stability, and empirical-process obligations are verified here for a nonsmooth target. Schmidt and Wikle verify those obligations for twice continuously differentiable stochastic interventions using Taylor and influence-function Lipschitz arguments; the capped map violates both steps. Castillo's strong contraction theorem motivates conjugate histogram coordinates but concerns a single density rather than conditional treatment and outcome laws with unequal arm counts. Levis et al. and Audibert--Tsybakov supply the credited margin-localization technique and classical \\(1+\\alpha\\) exponent; the proposed novelty is the exact capped causal remainder and its overlap-free branch geometry, not the generic exponent. Breunig, Liu, and Yu provide a smooth causal posterior-coverage benchmark under product rates and strong overlap. Hirano--Porter and Fang--Santos inform the nonregular diagnostic and open local-inference question rather than serving as claims the proposal purports to sharpen.",
+  "technical_internal_limitation": "The explicit posterior theorem is intentionally proved first on the canonical law \\(X\\sim\\mathrm{Unif}[0,1]\\), \\(e(x)=x\\), with Bernoulli Lipschitz outcomes. Its early kill test is \\(\\delta=2\\), \\(\\mu_0=1/4\\), and \\(\\mu_1=3/4\\): the deterministic posterior sieve and the empirical-process remainder for the corrected draw must be proved uniformly while retaining all-data fitting and cap crossings. The bin-count calculation gives minimum expected arm count of order \\(n/J_n^2\\), and the boundary-bin calculation gives at most \\(2J_n\\rho_n+4\\) uncertain bins, so no strong-overlap or no-crossing repair appears necessary. A simulation cannot substitute for this theorem. SoftBART, simultaneous inference over \\(\\delta\\), and uniform inference for triangular arrays approaching cap contact are outside the proved core.",
+  "honest_scope": "The iff regularity theorem, exact remainder, sharp one-step crossing modulus, explicit histogram concentration and empirical-process theorem, and pointwise posterior coverage are all to be proved. The generic \\(1+\\alpha\\) margin exponent, general one-step posterior transfer, smooth stochastic-intervention theory, and generic nondifferentiable bootstrap theory are credited prior art. The sharp local confidence-interval constant and adaptation across regular and nonregular sequences remain explicitly open. Nonregularity rules out regular asymptotically linear Gaussian inference; it does not rule out every root-\\(n\\)-length confidence procedure.",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "sample_size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Sample size \\(n\\).",
+      "role": "index"
+    },
+    {
+      "name": "delta",
+      "type": "policy_multiplier",
+      "space": "\\((1,\\infty)\\)",
+      "def": "Fixed propensity multiplier \\(\\delta>1\\).",
+      "role": "policy_index"
+    },
+    {
+      "name": "c",
+      "type": "cap_threshold",
+      "space": "\\((0,1)\\)",
+      "def": "Interior cap threshold \\(c=1/\\delta\\).",
+      "role": "regime_parameter",
+      "refs": [
+        "delta"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "outcome_bound",
+      "space": "\\([1,\\infty)\\)",
+      "def": "Known outcome envelope \\(M\\), normalized to be at least one.",
+      "role": "regularity_constant"
+    },
+    {
+      "name": "b",
+      "type": "bernoulli_mean_bound",
+      "space": "\\((0,1/2)\\)",
+      "def": "Fixed interior bound \\(b\\) for the histogram outcome means.",
+      "role": "regularity_constant"
+    },
+    {
+      "name": "L",
+      "type": "lipschitz_radius",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Fixed Lipschitz radius \\(L\\).",
+      "role": "regularity_constant"
+    },
+    {
+      "name": "alpha",
+      "type": "margin_exponent",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Punctured propensity-margin exponent \\(\\alpha\\).",
+      "role": "regime_parameter"
+    },
+    {
+      "name": "C_margin",
+      "type": "margin_constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Finite margin constant \\(C_{\\mathrm m}\\).",
+      "role": "regularity_constant"
+    },
+    {
+      "name": "gamma",
+      "type": "noncoverage_level",
+      "space": "\\((0,1)\\)",
+      "def": "Prespecified noncoverage level \\(\\gamma\\).",
+      "role": "inference_parameter"
+    },
+    {
+      "name": "mathcal_X",
+      "type": "covariate_space",
+      "space": "standard Borel space",
+      "def": "Generic standard Borel covariate space \\(\\mathcal X\\); the explicit histogram subclass is supported on the measurable coordinate interval \\([0,1]\\subseteq\\mathcal X\\).",
+      "role": "sample_space"
+    },
+    {
+      "name": "X",
+      "type": "baseline_covariate",
+      "space": "\\(\\mathcal X\\)",
+      "def": "Observed baseline covariate \\(X\\).",
+      "role": "data_component",
+      "refs": [
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "binary_treatment",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "Observed binary treatment \\(A\\).",
+      "role": "data_component"
+    },
+    {
+      "name": "Y_0",
+      "type": "control_potential_outcome",
+      "space": "\\([-M,M]\\)",
+      "def": "Potential outcome \\(Y(0)\\).",
+      "role": "causal_object",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "Y_1",
+      "type": "treated_potential_outcome",
+      "space": "\\([-M,M]\\)",
+      "def": "Potential outcome \\(Y(1)\\).",
+      "role": "causal_object",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "observed_outcome",
+      "space": "\\([-M,M]\\)",
+      "def": "Observed outcome \\(Y\\).",
+      "role": "data_component",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "observed_unit",
+      "space": "\\(\\mathcal X\\times\\{0,1\\}\\times[-M,M]\\)",
+      "def": "Observed unit \\(O=(X,A,Y)\\).",
+      "role": "data_unit",
+      "refs": [
+        "mathcal_X",
+        "X",
+        "A",
+        "Y",
+        "M"
+      ]
+    },
+    {
+      "name": "O_i",
+      "type": "iid_sample",
+      "space": "\\(O^n\\)",
+      "def": "The sample \\(O_1,\\ldots,O_n\\).",
+      "role": "data",
+      "refs": [
+        "O",
+        "n"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "observed_data_law",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Law \\(P\\) of one observed unit.",
+      "role": "model",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "P_X",
+      "type": "covariate_marginal",
+      "space": "\\(\\mathcal P(\\mathcal X)\\)",
+      "def": "Marginal law \\(P_X\\) of \\(X\\) under \\(P\\).",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "X",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "e",
+      "type": "propensity_score",
+      "sig": "\\(\\mathcal X\\to[0,1]\\)",
+      "def": "Observational propensity \\(e(x)=P(A=1\\mid X=x)\\).",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "A",
+        "X",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "mu_0",
+      "type": "control_outcome_regression",
+      "sig": "\\(\\mathcal X\\to[-M,M]\\)",
+      "def": "Control regression \\(\\mu_0(x)=\\mathbb E_P[Y\\mid A=0,X=x]\\), with an arbitrary bounded version where the arm is unsupported.",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "Y",
+        "A",
+        "X",
+        "M",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "mu_1",
+      "type": "treated_outcome_regression",
+      "sig": "\\(\\mathcal X\\to[-M,M]\\)",
+      "def": "Treated regression \\(\\mu_1(x)=\\mathbb E_P[Y\\mid A=1,X=x]\\), with an arbitrary bounded version where the arm is unsupported.",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "Y",
+        "A",
+        "X",
+        "M",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "tau",
+      "type": "conditional_treatment_contrast",
+      "sig": "\\(\\mathcal X\\to[-2M,2M]\\)",
+      "def": "Conditional contrast \\(\\tau(x)=\\mu_1(x)-\\mu_0(x)\\).",
+      "role": "nuisance",
+      "refs": [
+        "mu_0",
+        "mu_1",
+        "M",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "q_delta",
+      "type": "capped_stochastic_policy",
+      "sig": "\\(\\{0,1\\}\\times\\mathcal X\\to[0,1]\\)",
+      "def": "Capped intervention with \\(q_\\delta(1\\mid x)=\\min\\{1,\\delta e(x)\\}\\) and \\(q_\\delta(0\\mid x)=1-q_\\delta(1\\mid x)\\).",
+      "role": "policy",
+      "refs": [
+        "delta",
+        "e",
+        "A",
+        "X",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "Y_q_delta",
+      "type": "stochastic_intervention_potential_outcome",
+      "space": "\\([-M,M]\\)",
+      "def": "Potential outcome \\(Y^{q_\\delta}\\) under a treatment draw from \\(q_\\delta(\\cdot\\mid X)\\).",
+      "role": "causal_target",
+      "refs": [
+        "q_delta",
+        "Y_0",
+        "Y_1",
+        "M",
+        "X"
+      ]
+    },
+    {
+      "name": "Psi_delta",
+      "type": "capped_intervention_mean",
+      "space": "\\([-M,M]\\)",
+      "def": "Observed-data functional \\(\\Psi_\\delta(P)=\\mathbb E_P[\\mu_0(X)+\\tau(X)\\min\\{1,\\delta e(X)\\}]\\).",
+      "role": "target_estimand",
+      "refs": [
+        "P",
+        "mu_0",
+        "tau",
+        "delta",
+        "e",
+        "X",
+        "M"
+      ]
+    },
+    {
+      "name": "K_delta",
+      "type": "kink_signal",
+      "space": "\\([0,4M^2]\\)",
+      "def": "Kink signal \\(K_\\delta(P)=\\mathbb E_P[\\tau(X)^2\\mathbf 1\\{e(X)=c\\}]\\).",
+      "role": "regularity_frontier",
+      "refs": [
+        "P",
+        "tau",
+        "e",
+        "c",
+        "X",
+        "M"
+      ]
+    },
+    {
+      "name": "w_1",
+      "type": "treated_residual_weight",
+      "sig": "\\([0,1]\\to[0,\\delta]\\)",
+      "def": "Weight \\(w_1(r)=\\delta\\) for \\(r\\le c\\) and \\(w_1(r)=1/r\\) for \\(r>c\\).",
+      "role": "eif_component",
+      "refs": [
+        "delta",
+        "c"
+      ]
+    },
+    {
+      "name": "w_0",
+      "type": "control_residual_weight",
+      "sig": "\\([0,1]\\to[0,1]\\)",
+      "def": "Weight \\(w_0(r)=(1-\\delta r)/(1-r)\\) for \\(r<c\\) and \\(w_0(r)=0\\) for \\(r\\ge c\\).",
+      "role": "eif_component",
+      "refs": [
+        "delta",
+        "c"
+      ]
+    },
+    {
+      "name": "m_P",
+      "type": "uncentered_efficient_signal",
+      "sig": "\\(O\\to\\mathbb R\\)",
+      "def": "Uncentered signal defined in \\(\\text{def:eif-signal}\\).",
+      "role": "estimating_signal",
+      "refs": [
+        "O",
+        "P"
+      ]
+    },
+    {
+      "name": "D_P",
+      "type": "efficient_influence_function",
+      "sig": "\\(O\\to\\mathbb R\\)",
+      "def": "Centered signal \\(D_P=m_P-\\Psi_\\delta(P)\\).",
+      "role": "influence_function",
+      "refs": [
+        "O",
+        "m_P",
+        "Psi_delta",
+        "P"
+      ]
+    },
+    {
+      "name": "V_P",
+      "type": "efficiency_bound",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Variance \\(V_P=P[D_P^2]\\).",
+      "role": "efficiency_bound",
+      "refs": [
+        "P",
+        "D_P"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "candidate_propensity",
+      "sig": "\\(\\mathcal X\\to[0,1]\\)",
+      "def": "Candidate propensity function \\(s\\).",
+      "role": "procedure_input",
+      "refs": [
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "u_0",
+      "type": "candidate_control_regression",
+      "sig": "\\(\\mathcal X\\to[-M,M]\\)",
+      "def": "Candidate control regression \\(u_0\\).",
+      "role": "procedure_input",
+      "refs": [
+        "mathcal_X",
+        "M"
+      ]
+    },
+    {
+      "name": "u_1",
+      "type": "candidate_treated_regression",
+      "sig": "\\(\\mathcal X\\to[-M,M]\\)",
+      "def": "Candidate treated regression \\(u_1\\).",
+      "role": "procedure_input",
+      "refs": [
+        "mathcal_X",
+        "M"
+      ]
+    },
+    {
+      "name": "eta",
+      "type": "nuisance_candidate",
+      "space": "\\(\\{(s,u_0,u_1)\\}\\)",
+      "def": "Nuisance candidate \\(\\eta=(s,u_0,u_1)\\).",
+      "role": "procedure_input",
+      "refs": [
+        "s",
+        "u_0",
+        "u_1"
+      ]
+    },
+    {
+      "name": "m_eta",
+      "type": "candidate_uncentered_signal",
+      "sig": "\\(O\\to\\mathbb R\\)",
+      "def": "Everywhere-defined capped correction signal in \\(\\text{def:candidate-signal}\\).",
+      "role": "estimating_signal",
+      "refs": [
+        "O",
+        "eta"
+      ]
+    },
+    {
+      "name": "R_eta",
+      "type": "one_step_remainder",
+      "space": "\\(\\mathbb R\\)",
+      "def": "One-step bias \\(R(P,\\eta)=P[m_\\eta]-\\Psi_\\delta(P)\\).",
+      "role": "rate_object",
+      "refs": [
+        "P",
+        "m_eta",
+        "Psi_delta",
+        "eta"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "propensity_radius",
+      "space": "\\((0,1)\\)",
+      "def": "Supremum-norm propensity error radius \\(\\rho\\).",
+      "role": "rate_parameter"
+    },
+    {
+      "name": "epsilon",
+      "type": "outcome_radius",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Branch-relevant \\(L_2(P_X)\\) outcome-regression error radius \\(\\varepsilon\\).",
+      "role": "rate_parameter",
+      "refs": [
+        "P_X"
+      ]
+    },
+    {
+      "name": "mathcal_M_np",
+      "type": "nonparametric_law_class",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Unrestricted bounded-outcome observational model \\(\\mathcal M_{\\mathrm{np}}\\) defined in \\(\\text{def:np-model}\\).",
+      "role": "model_class",
+      "refs": [
+        "P",
+        "O"
+      ]
+    },
+    {
+      "name": "mathcal_M_margin",
+      "type": "margin_law_class",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Punctured-margin subclass \\(\\mathcal M_{\\mathrm m}(\\alpha,C_{\\mathrm m})\\) defined in \\(\\text{def:margin-model}\\).",
+      "role": "model_class",
+      "refs": [
+        "P",
+        "O",
+        "alpha",
+        "C_margin"
+      ]
+    },
+    {
+      "name": "mathcal_M_hist",
+      "type": "histogram_benchmark_class",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Explicit cap-crossing histogram benchmark class \\(\\mathcal M_{\\mathrm{hist}}(b,L)\\) defined in \\(\\text{def:hist-model}\\).",
+      "role": "model_class",
+      "refs": [
+        "P",
+        "O",
+        "b",
+        "L"
+      ]
+    },
+    {
+      "name": "J_n",
+      "type": "number_of_bins",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of equal bins \\(J_n=\\lceil n^{1/3}\\rceil\\).",
+      "role": "tuning_parameter",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "B_j",
+      "type": "histogram_bin",
+      "space": "\\(2^{\\mathcal X}\\)",
+      "def": "Equal bin \\(B_j=[(j-1)/J_n,j/J_n)\\), with the last bin closed at one.",
+      "role": "construction_component",
+      "refs": [
+        "mathcal_X",
+        "J_n"
+      ]
+    },
+    {
+      "name": "N_j",
+      "type": "bin_count",
+      "space": "\\(\\{0,\\ldots,n\\}\\)",
+      "def": "Count \\(N_j=\\sum_{i=1}^n\\mathbf 1\\{X_i\\in B_j\\}\\).",
+      "role": "data_summary",
+      "refs": [
+        "n",
+        "O_i",
+        "X",
+        "B_j"
+      ]
+    },
+    {
+      "name": "N_aj",
+      "type": "arm_bin_count",
+      "space": "\\(\\{0,\\ldots,n\\}\\)",
+      "def": "Arm count \\(N_{aj}=\\sum_{i=1}^n\\mathbf 1\\{A_i=a,X_i\\in B_j\\}\\).",
+      "role": "data_summary",
+      "refs": [
+        "n",
+        "O_i",
+        "A",
+        "X",
+        "B_j"
+      ]
+    },
+    {
+      "name": "Pi_n",
+      "type": "beta_histogram_posterior",
+      "space": "\\(\\mathcal P(\\eta)\\)",
+      "def": "All-data conjugate nuisance posterior \\(\\Pi_n\\) defined in \\(\\text{def:histogram-posterior}\\).",
+      "role": "posterior",
+      "refs": [
+        "eta"
+      ]
+    },
+    {
+      "name": "rho_n",
+      "type": "histogram_propensity_rate",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Rate \\(\\rho_n=J_n^{-1}+\\sqrt{J_n\\log n/n}\\).",
+      "role": "rate_object",
+      "refs": [
+        "J_n",
+        "n"
+      ]
+    },
+    {
+      "name": "epsilon_n",
+      "type": "histogram_outcome_rate",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Rate \\(\\varepsilon_n=J_n^{-1}+\\sqrt{J_n(\\log n)^2/n}\\).",
+      "role": "rate_object",
+      "refs": [
+        "J_n",
+        "n"
+      ]
+    },
+    {
+      "name": "H_n",
+      "type": "deterministic_posterior_sieve",
+      "space": "\\(2^\\eta\\)",
+      "def": "Deterministic truth-centered histogram sieve defined in \\(\\text{def:posterior-sieve}\\).",
+      "role": "proof_object",
+      "refs": [
+        "eta"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "bayesian_bootstrap_weights",
+      "space": "\\(\\Delta^{n-1}\\)",
+      "def": "Conditional Bayesian-bootstrap weights \\(W=(W_1,\\ldots,W_n)\\sim\\mathrm{Dirichlet}(1,\\ldots,1)\\), independent of \\(\\eta\\sim\\Pi_n\\) given the data.",
+      "role": "posterior_randomness",
+      "refs": [
+        "n",
+        "eta",
+        "Pi_n",
+        "O_i"
+      ]
+    },
+    {
+      "name": "Psi_star",
+      "type": "corrected_posterior_draw",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Corrected draw \\(\\Psi_\\delta^*\\) defined in \\(\\text{def:corrected-posterior}\\).",
+      "role": "estimator",
+      "refs": [
+        "delta"
+      ]
+    },
+    {
+      "name": "P_n",
+      "type": "empirical_measure",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Empirical measure \\(\\mathbb P_n=n^{-1}\\sum_{i=1}^n\\delta_{O_i}\\).",
+      "role": "empirical_process",
+      "refs": [
+        "O",
+        "O_i",
+        "n"
+      ]
+    },
+    {
+      "name": "G_n",
+      "type": "empirical_process",
+      "sig": "\\(L_2(P)\\to\\mathbb R\\)",
+      "def": "Empirical process \\(\\mathbb G_n=\\sqrt n(\\mathbb P_n-P)\\).",
+      "role": "empirical_process",
+      "refs": [
+        "n",
+        "P_n",
+        "P"
+      ]
+    },
+    {
+      "name": "d_BL",
+      "type": "bounded_lipschitz_metric",
+      "sig": "\\(\\mathcal P(\\mathbb R)^2\\to[0,\\infty)\\)",
+      "def": "Bounded-Lipschitz metric \\(d_{\\mathrm{BL}}\\) on probability laws.",
+      "role": "convergence_metric"
+    },
+    {
+      "name": "CI_n",
+      "type": "equal_tailed_credible_interval",
+      "space": "\\(2^{\\mathbb R}\\)",
+      "def": "Equal-tailed \\((1-\\gamma)\\)-credible interval \\(C_n^\\gamma\\) from the conditional law of \\(\\Psi_\\delta^*\\).",
+      "role": "inference_object",
+      "refs": [
+        "gamma",
+        "Psi_star"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "cap_atom_partition_cell",
+      "space": "\\(2^{\\mathcal X}\\)",
+      "def": "One of \\(\\{e=c,\\tau>0\\}\\) and \\(\\{e=c,\\tau<0\\}\\) having nonzero contrast integral.",
+      "role": "nonregularity_witness",
+      "refs": [
+        "mathcal_X",
+        "e",
+        "c",
+        "tau"
+      ]
+    },
+    {
+      "name": "P_t",
+      "type": "propensity_tangent_submodel",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Two-sided submodel \\(P_t\\) that keeps \\(P_X\\) and the outcome conditionals fixed and sets \\(e_t=e+t\\mathbf 1_B\\) for sufficiently small \\(|t|\\).",
+      "role": "nonregularity_witness",
+      "refs": [
+        "P",
+        "O",
+        "P_X",
+        "e",
+        "B"
+      ]
+    },
+    {
+      "name": "S_B",
+      "type": "tangent_score",
+      "sig": "\\(O\\to\\mathbb R\\)",
+      "def": "Bounded score \\(S_B(O)=\\mathbf 1_B(X)(A-c)/\\{c(1-c)\\}\\).",
+      "role": "nonregularity_witness",
+      "refs": [
+        "O",
+        "B",
+        "X",
+        "A",
+        "c"
+      ]
+    },
+    {
+      "name": "h",
+      "type": "margin_shell_width",
+      "space": "\\((0,c)\\)",
+      "def": "Fixed shell width \\(h\\) for the sharpness construction.",
+      "role": "construction_constant",
+      "refs": [
+        "c"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "margin_distance",
+      "space": "\\([0,h]\\)",
+      "def": "Boundary distance \\(U\\) with distribution \\(P(U\\le t)=(t/h)^\\alpha\\) for \\(0\\le t\\le h\\).",
+      "role": "construction_component",
+      "refs": [
+        "P",
+        "h",
+        "alpha"
+      ]
+    },
+    {
+      "name": "P_lf",
+      "type": "least_favorable_margin_law",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Continuous-margin law \\(P_{\\mathrm{lf}}\\) defined in \\(\\text{def:margin-witness}\\).",
+      "role": "sharpness_witness",
+      "refs": [
+        "P",
+        "O"
+      ]
+    },
+    {
+      "name": "eta_lf",
+      "type": "least_favorable_nuisance_candidate",
+      "space": "\\(\\eta\\)",
+      "def": "Candidate \\(\\eta_{\\mathrm{lf}}\\) defined in \\(\\text{def:margin-witness}\\).",
+      "role": "sharpness_witness",
+      "refs": [
+        "eta"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-sampling",
+      "kind": "sampling",
+      "condition": "The observations \\(O_1,\\ldots,O_n\\) are independent and identically distributed from \\(P\\).",
+      "free_symbols": [
+        "O_i",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent and identically distributed sampling",
+        "cite": "vanDerVaart1998"
+      },
+      "used_by": [
+        "thm:histogram-sieve-equicontinuity"
+      ]
+    },
+    {
+      "id": "ass:bounded-outcome",
+      "kind": "support",
+      "condition": "The outcome satisfies \\(P(|Y|\\le M)=1\\).",
+      "free_symbols": [
+        "P",
+        "Y",
+        "M"
+      ],
+      "standard": {
+        "name": "Uniformly bounded outcome",
+        "cite": "LuedtkeVanDerLaan2016"
+      },
+      "used_by": [
+        "def:margin-model",
+        "def:np-model"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal",
+      "condition": "The observed outcome satisfies \\(Y=AY_1+(1-A)Y_0\\) almost surely.",
+      "free_symbols": [
+        "Y",
+        "A",
+        "Y_1",
+        "Y_0"
+      ],
+      "standard": {
+        "name": "Causal consistency",
+        "cite": "ZhouOpacic2022"
+      },
+      "used_by": [
+        "prop:causal-identification"
+      ]
+    },
+    {
+      "id": "ass:conditional-exchangeability",
+      "kind": "causal",
+      "condition": "The pair \\((Y_0,Y_1)\\) is conditionally independent of \\(A\\) given \\(X\\).",
+      "free_symbols": [
+        "Y_0",
+        "Y_1",
+        "A",
+        "X"
+      ],
+      "standard": {
+        "name": "Conditional exchangeability",
+        "cite": "ZhouOpacic2022"
+      },
+      "used_by": [
+        "prop:causal-identification"
+      ]
+    },
+    {
+      "id": "ass:punctured-margin",
+      "kind": "regularity",
+      "condition": "For every \\(0<t\\le c\\wedge(1-c)\\), \\(P\\{0<|e(X)-c|\\le t\\}\\le C_{\\mathrm m}t^\\alpha\\).",
+      "free_symbols": [
+        "P",
+        "e",
+        "X",
+        "c",
+        "C_margin",
+        "alpha"
+      ],
+      "standard": {
+        "name": "Tsybakov-type punctured margin condition",
+        "cite": "LevisEtAl2025"
+      },
+      "used_by": [
+        "def:margin-model",
+        "prop:sharp-margin-modulus"
+      ]
+    },
+    {
+      "id": "ass:hist-uniform-covariate",
+      "kind": "design",
+      "condition": "The covariate satisfies \\(X\\sim\\mathrm{Unif}[0,1]\\) under \\(P\\).",
+      "free_symbols": [
+        "X",
+        "P",
+        "mathcal_X"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This is an explicit canonical random-design benchmark with positive density at the cap and both propensity endpoints represented; it is satisfied by a uniformly distributed scalar baseline score."
+      },
+      "used_by": [
+        "def:hist-model"
+      ]
+    },
+    {
+      "id": "ass:hist-identity-propensity",
+      "kind": "treatment_law",
+      "condition": "The observational propensity satisfies \\(e(x)=x\\) for every \\(x\\in[0,1]\\).",
+      "free_symbols": [
+        "e",
+        "mathcal_X"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The identity propensity is a transparent calibrated-risk benchmark with continuous cap contact and no strong overlap; it includes the practically relevant case in which a scalar assignment score is calibrated to treatment frequency."
+      },
+      "used_by": [
+        "def:hist-model"
+      ]
+    },
+    {
+      "id": "ass:hist-bernoulli-outcome",
+      "kind": "outcome_law",
+      "condition": "For each \\(a\\in\\{0,1\\}\\), the conditional law of \\(Y\\) given \\(A=a,X=x\\) is Bernoulli with mean \\(\\mu_a(x)\\).",
+      "free_symbols": [
+        "Y",
+        "A",
+        "X",
+        "mu_0",
+        "mu_1"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Binary endpoints are common for clinical and policy events, and conjugacy makes every posterior coordinate and zero-count fallback explicit."
+      },
+      "used_by": [
+        "def:hist-model"
+      ]
+    },
+    {
+      "id": "ass:hist-lipschitz-outcomes",
+      "kind": "smoothness",
+      "condition": "For each \\(a\\in\\{0,1\\}\\), \\(|\\mu_a(x)-\\mu_a(x')|\\le L|x-x'|\\) for all \\(x,x'\\in[0,1]\\).",
+      "free_symbols": [
+        "mu_0",
+        "mu_1",
+        "L",
+        "mathcal_X"
+      ],
+      "standard": {
+        "name": "Hölder smoothness of order one for outcome nuisance functions",
+        "cite": "SchmidtWikle2026"
+      },
+      "used_by": [
+        "def:hist-model"
+      ]
+    },
+    {
+      "id": "ass:hist-interior-outcome-means",
+      "kind": "nondegeneracy",
+      "condition": "For each \\(a\\in\\{0,1\\}\\) and \\(x\\in[0,1]\\), \\(b\\le\\mu_a(x)\\le1-b\\).",
+      "free_symbols": [
+        "mu_0",
+        "mu_1",
+        "b",
+        "mathcal_X"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Event probabilities separated from zero and one describe outcomes with irreducible noise and guarantee a nondegenerate inferential target in the explicit benchmark."
+      },
+      "used_by": [
+        "def:hist-model"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:np-model",
+      "name": "Bounded-outcome observational model",
+      "construction": "\\(\\mathcal M_{\\mathrm{np}}=\\{P\\in\\mathcal P(O):P\\text{ satisfies }\\text{ass:bounded-outcome}\\}\\).",
+      "free_symbols": [
+        "mathcal_M_np",
+        "P",
+        "O"
+      ],
+      "by_member_properties": [
+        "ass:bounded-outcome"
+      ]
+    },
+    {
+      "id": "def:margin-model",
+      "name": "Punctured-margin model",
+      "construction": "\\(\\mathcal M_{\\mathrm m}(\\alpha,C_{\\mathrm m})=\\{P\\in\\mathcal M_{\\mathrm{np}}:P\\text{ satisfies }\\text{ass:punctured-margin}\\}\\).",
+      "free_symbols": [
+        "mathcal_M_margin",
+        "alpha",
+        "C_margin",
+        "P",
+        "mathcal_M_np"
+      ],
+      "by_member_properties": [
+        "ass:bounded-outcome",
+        "ass:punctured-margin"
+      ]
+    },
+    {
+      "id": "def:hist-model",
+      "name": "Explicit cap-crossing histogram benchmark",
+      "construction": "\\(\\mathcal M_{\\mathrm{hist}}(b,L)=\\{P\\in\\mathcal P(O):P\\text{ satisfies }\\text{ass:hist-uniform-covariate},\\text{ass:hist-identity-propensity},\\text{ass:hist-bernoulli-outcome},\\text{ass:hist-lipschitz-outcomes},\\text{ass:hist-interior-outcome-means}\\}\\).",
+      "free_symbols": [
+        "mathcal_M_hist",
+        "b",
+        "L",
+        "P",
+        "O"
+      ],
+      "by_member_properties": [
+        "ass:hist-uniform-covariate",
+        "ass:hist-identity-propensity",
+        "ass:hist-bernoulli-outcome",
+        "ass:hist-lipschitz-outcomes",
+        "ass:hist-interior-outcome-means"
+      ]
+    },
+    {
+      "id": "def:cap-policy",
+      "name": "Capped propensity intervention",
+      "construction": "\\(q_\\delta(1\\mid x)=\\min\\{1,\\delta e(x)\\}\\) and \\(q_\\delta(0\\mid x)=1-q_\\delta(1\\mid x)\\).",
+      "free_symbols": [
+        "q_delta",
+        "delta",
+        "e",
+        "c",
+        "X"
+      ],
+      "inputs": [
+        "delta",
+        "e"
+      ]
+    },
+    {
+      "id": "def:target-functional",
+      "name": "Capped intervention mean",
+      "construction": "\\(\\Psi_\\delta(P)=\\mathbb E_P[\\mu_0(X)+\\tau(X)q_\\delta(1\\mid X)]\\).",
+      "free_symbols": [
+        "Psi_delta",
+        "P",
+        "mu_0",
+        "tau",
+        "q_delta",
+        "X"
+      ],
+      "inputs": [
+        "P",
+        "q_delta"
+      ]
+    },
+    {
+      "id": "def:kink-signal",
+      "name": "Outcome-relevant cap-contact signal",
+      "construction": "\\(K_\\delta(P)=\\mathbb E_P[\\tau(X)^2\\mathbf 1\\{e(X)=c\\}]\\).",
+      "free_symbols": [
+        "K_delta",
+        "P",
+        "tau",
+        "e",
+        "c",
+        "X"
+      ],
+      "inputs": [
+        "P",
+        "delta"
+      ]
+    },
+    {
+      "id": "def:branch-weights",
+      "name": "Branchwise residual weights",
+      "construction": "\\(w_1(r)=\\delta\\mathbf 1\\{r\\le c\\}+r^{-1}\\mathbf 1\\{r>c\\}\\) and \\(w_0(r)=\\{(1-\\delta r)/(1-r)\\}\\mathbf 1\\{r<c\\}\\), with the displayed branches defining the values at \\(r=0,1,c\\).",
+      "free_symbols": [
+        "w_1",
+        "w_0",
+        "delta",
+        "c"
+      ],
+      "inputs": [
+        "delta",
+        "c"
+      ]
+    },
+    {
+      "id": "def:eif-signal",
+      "name": "Regular-side uncentered signal",
+      "construction": "\\(m_P(O)=\\mu_0(X)+\\tau(X)q_\\delta(1\\mid X)+Aw_1(e(X))\\{Y-\\mu_1(X)\\}+(1-A)w_0(e(X))\\{Y-\\mu_0(X)\\}+\\delta\\mathbf 1\\{e(X)<c\\}\\tau(X)\\{A-e(X)\\}\\), and \\(D_P=m_P-\\Psi_\\delta(P)\\).",
+      "free_symbols": [
+        "m_P",
+        "D_P",
+        "O",
+        "mu_0",
+        "tau",
+        "q_delta",
+        "X",
+        "A",
+        "w_1",
+        "e",
+        "Y",
+        "mu_1",
+        "w_0",
+        "delta",
+        "c",
+        "Psi_delta",
+        "P"
+      ],
+      "inputs": [
+        "P",
+        "delta"
+      ]
+    },
+    {
+      "id": "def:candidate-signal",
+      "name": "Everywhere-defined candidate correction signal",
+      "construction": "\\(m_\\eta(O)=u_0(X)+\\{u_1(X)-u_0(X)\\}\\min\\{1,\\delta s(X)\\}+Aw_1(s(X))\\{Y-u_1(X)\\}+(1-A)w_0(s(X))\\{Y-u_0(X)\\}+\\delta\\mathbf 1\\{s(X)<c\\}\\{u_1(X)-u_0(X)\\}\\{A-s(X)\\}\\).",
+      "free_symbols": [
+        "m_eta",
+        "eta",
+        "O",
+        "u_0",
+        "X",
+        "u_1",
+        "delta",
+        "s",
+        "A",
+        "w_1",
+        "Y",
+        "w_0",
+        "c"
+      ],
+      "inputs": [
+        "eta",
+        "delta"
+      ]
+    },
+    {
+      "id": "def:one-step-remainder",
+      "name": "One-step bias",
+      "construction": "\\(R(P,\\eta)=P[m_\\eta]-\\Psi_\\delta(P)\\).",
+      "free_symbols": [
+        "R_eta",
+        "P",
+        "eta",
+        "m_eta",
+        "Psi_delta"
+      ],
+      "inputs": [
+        "P",
+        "eta"
+      ]
+    },
+    {
+      "id": "def:histogram-partition",
+      "name": "Deterministic equal-bin partition",
+      "construction": "Set \\(J_n=\\lceil n^{1/3}\\rceil\\) and \\(B_j=[(j-1)/J_n,j/J_n)\\) for \\(j<J_n\\), with \\(B_{J_n}=[(J_n-1)/J_n,1]\\); compute \\(N_j\\) and \\(N_{aj}\\) from all \\(n\\) observations.",
+      "free_symbols": [
+        "J_n",
+        "n",
+        "B_j",
+        "N_j",
+        "N_aj",
+        "O_i"
+      ],
+      "inputs": [
+        "n",
+        "O_i"
+      ]
+    },
+    {
+      "id": "def:histogram-posterior",
+      "name": "All-data Beta histogram posterior",
+      "construction": "Independently over bins, assign \\(s_j\\sim\\mathrm{Beta}(1,1)\\) and \\(u_{aj}\\sim\\mathrm{Beta}(1,1)\\); update \\(s_j\\) with the \\(N_j\\) treatment indicators and update \\(u_{aj}\\) with the \\(N_{aj}\\) outcomes in arm \\(a\\), retaining the prior as the total zero-count fallback. Extend each draw constantly on \\(B_j\\) to obtain \\(\\eta=(s,u_0,u_1)\\sim\\Pi_n\\).",
+      "free_symbols": [
+        "Pi_n",
+        "s",
+        "u_0",
+        "u_1",
+        "eta",
+        "B_j",
+        "N_j",
+        "N_aj",
+        "A",
+        "Y"
+      ],
+      "inputs": [
+        "B_j",
+        "N_j",
+        "N_aj",
+        "O_i"
+      ]
+    },
+    {
+      "id": "def:posterior-sieve",
+      "name": "Branch-relevant deterministic sieve",
+      "construction": "For a sufficiently large fixed \\(C\\), let \\(H_n\\) be the set of histogram draws satisfying \\(\\|s-e\\|_\\infty\\le C\\rho_n\\), \\(\\|u_0-\\mu_0\\|_{L_2(P_X)}+\\|u_1-\\mu_1\\|_{L_2(P_X)}\\le C\\varepsilon_n\\), \\(\\sup_{x\\le c+C\\rho_n}|u_0(x)-\\mu_0(x)|\\le C\\rho_n\\), and \\(\\sup_{x\\ge c-C\\rho_n}|u_1(x)-\\mu_1(x)|\\le C\\rho_n\\), where \\(\\rho_n=J_n^{-1}+\\sqrt{J_n\\log n/n}\\) and \\(\\varepsilon_n=J_n^{-1}+\\sqrt{J_n(\\log n)^2/n}\\).",
+      "free_symbols": [
+        "H_n",
+        "eta",
+        "s",
+        "e",
+        "rho_n",
+        "u_0",
+        "mu_0",
+        "P_X",
+        "u_1",
+        "mu_1",
+        "epsilon_n",
+        "c",
+        "J_n",
+        "n"
+      ],
+      "inputs": [
+        "P",
+        "n",
+        "J_n"
+      ]
+    },
+    {
+      "id": "def:corrected-posterior",
+      "name": "Bayesian-bootstrap one-step posterior",
+      "construction": "Draw \\(\\eta\\sim\\Pi_n\\) and, conditionally independently given the data, \\(W\\sim\\mathrm{Dirichlet}(1,\\ldots,1)\\); set \\(\\Psi_\\delta^*=\\sum_{i=1}^nW_i m_\\eta(O_i)\\).",
+      "free_symbols": [
+        "Psi_star",
+        "eta",
+        "Pi_n",
+        "W",
+        "n",
+        "m_eta",
+        "O_i",
+        "delta"
+      ],
+      "inputs": [
+        "Pi_n",
+        "W",
+        "O_i"
+      ]
+    },
+    {
+      "id": "def:credible-interval",
+      "name": "Equal-tailed corrected credible interval",
+      "construction": "\\(C_n^\\gamma=[Q_{\\gamma/2}(\\Psi_\\delta^*\\mid O_1,\\ldots,O_n),Q_{1-\\gamma/2}(\\Psi_\\delta^*\\mid O_1,\\ldots,O_n)]\\), where \\(Q_r\\) denotes a conditional posterior quantile.",
+      "free_symbols": [
+        "CI_n",
+        "gamma",
+        "Psi_star",
+        "O_i",
+        "n",
+        "delta"
+      ],
+      "inputs": [
+        "Psi_star",
+        "gamma"
+      ]
+    },
+    {
+      "id": "def:margin-witness",
+      "name": "Continuous cap-shell witness",
+      "construction": "For \\(0<\\rho<\\min\\{h,1-c\\}\\) and \\(h<c\\), take \\(U\\) with \\(P(U\\le t)=(t/h)^\\alpha\\) on \\([0,h]\\), set \\(X=U\\), \\(e(X)=c-U\\), draw \\(A\\mid X\\sim\\mathrm{Bernoulli}(e(X))\\), and set \\(\\mu_0=0\\), \\(\\mu_1=1\\), and \\(Y=A\\) under \\(P_{\\mathrm{lf}}\\); set \\(s=e+\\rho\\), \\(u_0=\\mu_0\\), and \\(u_1=\\mu_1\\) in \\(\\eta_{\\mathrm{lf}}\\).",
+      "free_symbols": [
+        "rho",
+        "h",
+        "c",
+        "U",
+        "P",
+        "alpha",
+        "X",
+        "e",
+        "A",
+        "mu_0",
+        "mu_1",
+        "Y",
+        "P_lf",
+        "s",
+        "u_0",
+        "u_1",
+        "eta_lf"
+      ],
+      "inputs": [
+        "rho",
+        "h",
+        "alpha",
+        "delta"
+      ]
+    },
+    {
+      "id": "def:local-inference-handle",
+      "name": "Finite-cell conditional-modulus handle",
+      "construction": "Start from the legal finite-partition propensity score \\(S_B\\), derive the Gaussian-threshold limit experiment for \\(n^{-1/2}\\)-local crossings of \\(e=c\\), and optimize connected intervals by the conditional modulus while estimating only the active cap cells and the sign of their contrasts.",
+      "free_symbols": [
+        "S_B",
+        "n",
+        "e",
+        "c",
+        "B",
+        "tau"
+      ],
+      "inputs": [
+        "S_B",
+        "B",
+        "tau"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:causal-identification",
+      "kind": "proposition",
+      "statement": "Under consistency and conditional exchangeability, the causal mean satisfies \\(\\mathbb E[Y^{q_\\delta}]=\\Psi_\\delta(P)=\\mathbb E_P[\\mu_0(X)+\\tau(X)\\min\\{1,\\delta e(X)\\}]\\); no strong-overlap condition is required because \\(q_\\delta(1\\mid x)=0\\) when \\(e(x)=0\\) and \\(q_\\delta(0\\mid x)=0\\) when \\(e(x)=1\\).",
+      "free_symbols": [
+        "Y_q_delta",
+        "q_delta",
+        "Psi_delta",
+        "P",
+        "mu_0",
+        "X",
+        "tau",
+        "delta",
+        "e"
+      ],
+      "depends_on": [
+        "ass:consistency",
+        "ass:conditional-exchangeability",
+        "def:cap-policy",
+        "def:target-functional"
+      ],
+      "justification": "This fixes the causal interpretation while keeping identification separate from the statistical regularity problem.",
+      "gap": "Zhou and Opacic identify related interventional effects; this proposition specializes their support-preserving logic to the exact capped mean used below.",
+      "consumer": "Analysts can interpret every regularity and posterior result as inference for a feasible capped probability-multiplication policy.",
+      "proof_tex": "Put \\(p_1(X)=e(X)\\) and \\(p_0(X)=1-e(X)\\).  We first establish the arm-specific regression identity only where the corresponding observational arm has support.  For \\(a\\in\\{0,1\\}\\), conditional exchangeability in \\(\\textnormal{ass:conditional-exchangeability}\\) and consistency in \\(\\textnormal{ass:consistency}\\) give\n\\[\n\\begin{aligned}\n p_a(X)\\,\\mathbb E[Y_a\\mid X]\n &=\\mathbb E[\\mathbf 1\\{A=a\\}Y_a\\mid X] \\\\\n &=\\mathbb E[\\mathbf 1\\{A=a\\}Y\\mid X] \\\\\n &=p_a(X)\\,\\mu_a(X)\n\\end{aligned}\n\\qquad P\\text{-almost surely}.\n\\]\nThe first equality uses conditional independence of \\(Y_a\\) and \\(A\\) given \\(X\\), the second uses \\(Y=Y_a\\) on \\(\\{A=a\\}\\), and the last is the defining property of the conditional outcome regression.  All conditional expectations exist because the potential and observed outcomes are bounded by \\(M\\).  Hence\n\\[\n\\mathbb E[Y_a\\mid X]=\\mu_a(X)\n\\quad\\text{on }\\{p_a(X)>0\\},\n\\]\nup to a \\(P_X\\)-null set.  This conclusion does not divide by \\(p_a(X)\\) on the zero-support set.\n\nWrite \\(q_a(X)=q_\\delta(a\\mid X)\\).  The policy in \\(\\textnormal{def:cap-policy}\\) is support preserving.  Indeed,\n\\[\nq_1(X)=\\min\\{1,\\delta e(X)\\}=0\\quad\\text{on }\\{p_1(X)=0\\},\n\\]\nand, since \\(p_0(X)=0\\) implies \\(e(X)=1\\),\n\\[\nq_0(X)=1-\\min\\{1,\\delta e(X)\\}=0\\quad\\text{on }\\{p_0(X)=0\\}.\n\\]\nCombining these support relations with the preceding arm-specific identity yields, for each \\(a\\in\\{0,1\\}\\),\n\\[\nq_a(X)\\,\\mathbb E[Y_a\\mid X]=q_a(X)\\mu_a(X)\n\\qquad P_X\\text{-almost surely}.\n\\]\n\nTo evaluate the intervention mean, let \\(A^{q_\\delta}\\) denote the treatment draw used in the definition of \\(Y^{q_\\delta}\\), conditionally independent of \\((Y_0,Y_1)\\) given \\(X\\), with conditional probabilities \\(q_\\delta(\\cdot\\mid X)\\).  Thus \\(Y^{q_\\delta}=A^{q_\\delta}Y_1+(1-A^{q_\\delta})Y_0\\).  Conditional expectation followed by the tower property gives\n\\[\n\\begin{aligned}\n\\mathbb E[Y^{q_\\delta}]\n&=\\mathbb E_P\\!\\left[q_1(X)\\mathbb E[Y_1\\mid X]+q_0(X)\\mathbb E[Y_0\\mid X]\\right] \\\\\n&=\\mathbb E_P\\!\\left[q_1(X)\\mu_1(X)+q_0(X)\\mu_0(X)\\right] \\\\\n&=\\mathbb E_P\\!\\left[\\mu_0(X)+q_1(X)\\{\\mu_1(X)-\\mu_0(X)\\}\\right] \\\\\n&=\\mathbb E_P\\!\\left[\\mu_0(X)+\\tau(X)\\min\\{1,\\delta e(X)\\}\\right] \\\\\n&=\\Psi_\\delta(P).\n\\end{aligned}\n\\]\nThe penultimate equality uses the definition of \\(\\tau\\), and the last uses \\(\\textnormal{def:target-functional}\\) together with \\(\\textnormal{def:cap-policy}\\).  At \\(e(X)=0\\), the coefficient of the unsupported treated regression is zero; at \\(e(X)=1\\), \\(q_0(X)=0\\), equivalently the algebraic expression \\(\\mu_0(X)+\\tau(X)\\) equals \\(\\mu_1(X)\\).  Therefore arbitrary bounded versions of unsupported-arm regressions cancel, and neither strict positivity nor a uniform strong-overlap bound is used.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:regularity-frontier",
+      "kind": "theorem",
+      "statement": "For every \\(P\\in\\mathcal M_{\\mathrm{np}}\\), the map \\(P\\mapsto\\Psi_\\delta(P)\\) is pathwise differentiable in the unrestricted observational model if and only if \\(K_\\delta(P)=0\\). At every such regular law its canonical gradient is \\(D_P\\), its efficiency bound is \\(V_P\\), and \\(D_P\\) is uniformly bounded by a constant depending only on \\(M\\) and \\(\\delta\\). If \\(K_\\delta(P)>0\\), no regular asymptotically linear estimator with an ordinary root-\\(n\\) Gaussian limit exists at \\(P\\).",
+      "free_symbols": [
+        "P",
+        "mathcal_M_np",
+        "Psi_delta",
+        "delta",
+        "K_delta",
+        "D_P",
+        "V_P",
+        "M",
+        "n"
+      ],
+      "depends_on": [
+        "def:np-model",
+        "def:target-functional",
+        "def:kink-signal",
+        "def:branch-weights",
+        "def:eif-signal"
+      ],
+      "justification": "The exact regularity frontier determines when efficient inference is mathematically available and when posterior Gaussian calibration is impossible.",
+      "gap": "Luedtke and van der Laan characterize an outcome-rule kink; Zhou and Opacic define the capped propensity policy. Neither gives the propensity-kink criterion \\(K_\\delta(P)=0\\) or this positivity-robust canonical gradient.",
+      "consumer": "A practitioner can diagnose whether an atom in a discrete or heaped assignment score invalidates Wald or Gaussian posterior inference for the capped policy.",
+      "proof_tex": "Put \\(f(x)=\\mu _0(x)+\\tau(x)q_\\delta(1\\mid x)\\).  First note that \\(K_\\delta(P)=0\\) is equivalent to\n\\begin{equation}\n \\tau(X)=0\\quad P\\text{-almost surely on }\\{e(X)=c\\},                                      \\tag{1}\n\\end{equation}\nbecause the integrand in the definition of \\(K_\\delta(P)\\) is nonnegative.\n\nWe prove sufficiency without an overlap assumption.  Let \\(\\{P_t:|t|<t_0\\}\\) be an arbitrary two-sided dominated quadratic-mean differentiable submodel through \\(P=P_0\\), with score \\(S\\in L_2^0(P)\\).  If \\(p_t=dP_t/d\\nu\\) for a common dominating measure, quadratic-mean differentiability says\n\\begin{equation}\n \\sqrt{p_t}=\\sqrt p+\\frac t2S\\sqrt p+r_t,\\qquad \\|r_t\\|_{L_2(\\nu)}=o(|t|).\n\\end{equation}\nSquaring and applying Cauchy--Schwarz to every term containing \\(r_t\\) gives\n\\begin{equation}\n \\|p_t-p-tpS\\|_{L_1(\\nu)}=o(|t|).                                                        \\tag{2}\n\\end{equation}\nThus every bounded marginal or first-moment measure obtained from \\(P_t\\) has an \\(L_1\\) first-order expansion.\n\nTo handle propensity endpoints explicitly, dominate the covariate marginal measures and write, at a given \\(x\\),\n\\begin{equation}\n p=dP_X/d\\nu_X,\\quad a=dP(X\\in dx,A=1)/d\\nu_X,\\quad\n b_a=d\\,E_P[Y\\mathbf 1\\{A=a,X\\in dx\\}]/d\\nu_X.\n\\end{equation}\nThe vector \\(z=(p,a,b_1,b_0)\\) lies in the moment cone\n\\begin{equation}\n p\\ge0,\\qquad 0\\le a\\le p,\\qquad |b_1|\\le Ma,\\qquad |b_0|\\le M(p-a).                    \\tag{3}\n\\end{equation}\nThe contribution of \\(x\\) to \\(\\Psi_\\delta\\) is the following continuous, positively homogeneous function on this cone:\n\\begin{equation}\n F(z)=\n \\begin{cases}\n \\displaystyle \\delta b_1+\\frac{(p-\\delta a)b_0}{p-a},&a<cp,\\\\[6pt]\n \\displaystyle \\frac{pb_1}{a},&a\\ge cp, p>0,\\\\[4pt]\n 0,&p=0.\n \\end{cases}                                                                            \\tag{4}\n\\end{equation}\nIndeed, substituting \\(e=a/p\\), \\(\\mu _1=b_1/a\\), and \\(\\mu _0=b_0/(p-a)\\) into the defining functional yields (4).  On the lower cone, \\(p-a\\ge(1-c)p\\); on the upper cone, \\(a\\ge cp\\).  Direct differentiation, using (3), shows that every partial derivative of either branch is bounded by a constant depending only on \\(M\\) and \\(\\delta\\).  For example,\n\\begin{equation}\n \\partial_aF_-=-\\frac{(\\delta-1)p\\mu _0}{p-a},\\qquad\n \\partial_pF_-=\\frac{(\\delta-1)a\\mu _0}{p-a},\n\\end{equation}\nand\n\\begin{equation}\n \\partial_aF_+=-\\frac{\\mu _1}{e},\\qquad \\partial_pF_+=\\mu _1,qquad\n \\partial_{b_1}F_+=\\frac1e.\n\\end{equation}\nThe remaining derivatives are \\(\\partial_{b_1}F_-=\\delta\\) and\n\\(\\partial_{b_0}F_-=(1-\\delta e)/(1-e)\\).  A line segment in (3) crosses \\(a=cp\\) at most once, and the two formulas in (4) agree there.  Integrating the branchwise derivative bounds along the segment therefore proves\n\\begin{equation}\n |F(z)-F(z')|\\le C_{M,\\delta}\\|z-z'\\|_1                                                 \\tag{5}\n\\end{equation}\nfor all two moment vectors in the cone, including the origin by homogeneity.\n\nAt a boundary point \\(a=cp>0\\), the two gradients, in the coordinate order \\((p,a,b_1,b_0)\\), are\n\\begin{equation}\n (\\mu _0,-\\delta\\mu _0,\\delta,0)\\quad\\hbox{and}\\quad\n (\\mu _1,-\\delta\\mu _1,\\delta,0).                                                       \\tag{6}\n\\end{equation}\nThey agree precisely when \\(\\tau=0\\).  At a point with \\(p=0\\), every two-sided feasible derivative in the cone is zero: nonnegativity for positive and negative \\(t\\) first forces \\(\\dot p=0\\), and (3) then forces \\(\\dot a=\\dot b_0=\\dot b_1=0\\).  Equations (1), (5), and (6), together with the \\(L_1\\) expansion (2), permit dominated convergence of the difference quotient of \\(\\int F(z_t)\\,d\\nu_X\\).  Hence every such submodel has a linear derivative.\n\nFor completeness, write \\(S_X=E_P[S\\mid X]\\).  Conditional differentiation gives\n\\(\\dot e=E_P[(A-e)S\\mid X]\\), and, on a supported arm,\n\\(\\dot\\mu_a=E_P[(Y-\\mu_a)S\\mid A=a,X]\\).  Substitution into the derivative just obtained yields, term by term,\n\\begin{equation}\n\\begin{aligned}\n \\dot\\Psi_\\delta(P)[S]\n &=E_P[(f(X)-\\Psi_\\delta(P))S]\n   +E_P\\!\\left[Aw_1(e(X))(Y-\\mu _1(X))S\\right]\\\\\n &\\quad+E_P\\!\\left[(1-A)w_0(e(X))(Y-\\mu _0(X))S\\right]\n   +\\delta E_P\\!\\left[\\mathbf1\\{e(X)<c\\}\\tau(X)(A-e(X))S\\right]\\\\\n &=E_P[D_P S].\n\\end{aligned}                                                                             \\tag{7}\n\\end{equation}\nAt \\(e=0\\) the treated residual has zero probability, and at \\(e=1\\) the control residual has zero probability; thus (7) never divides by the probability of an unsupported observed arm.  At \\(e=c\\), (1) makes the choice of one-sided derivative immaterial.\n\nThe unrestricted dominated tangent space has closure \\(L_2^0(P)\\): for any bounded mean-zero \\(S\\), the laws with density \\(1+tS\\) are legal for sufficiently small \\(|t|\\), and truncation and centering approximate every member of \\(L_2^0(P)\\).  Consequently (7) identifies \\(D_P\\) as the canonical gradient.  Moreover \\(0\\le w_1\\le\\delta\\), \\(0\\le w_0\\le1\\), \\(|Y-\\mu_a|\\le2M\\), and \\(|\\tau|\\le2M\\).  Hence\n\\begin{equation}\n |D_P|\\le (4+4\\delta)M                                                                    \\tag{8}\n\\end{equation}\nis one valid uniform bound, and the efficiency bound is \\(E_P[D_P^2]=V_P\\).\n\nFor necessity, suppose \\(K_\\delta(P)>0\\).  At least one of\n\\(B_+=\\{e=c,\\tau>0\\}\\) and \\(B_-=\\{e=c,\\tau<0\\}\\) has\n\\(\\kappa_B=E_P[\\tau(X)\\mathbf1_B(X)]\\ne0\\).  Choose that \\(B\\), keep \\(P_X\\) and both conditional outcome laws fixed, and put \\(e_t=e+t\\mathbf1_B\\) for\n\\(|t|<\\frac12\\min(c,1-c)\\).  Its likelihood ratio is exactly\n\\begin{equation}\n \\frac{dP_t}{dP}=1+tS_B,\\qquad\n S_B=\\mathbf1_B(X)\\frac{A-c}{c(1-c)},                                                     \\tag{9}\n\\end{equation}\nso it is a legal two-sided quadratic-mean differentiable submodel with bounded score.  Only \\(B\\) changes the target, and therefore\n\\begin{equation}\n \\Psi_\\delta(P_t)-\\Psi_\\delta(P)\n =\\kappa_B\\{\\min(1,1+\\delta t)-1\\}\n =\\begin{cases}\\delta t\\kappa_B,&t<0,\\\\0,&t>0.\\end{cases}                              \\tag{10}\n\\end{equation}\nThe two derivatives disagree.  Thus pathwise differentiability fails.\n\nFinally, a regular asymptotically linear estimator with influence function \\(\\phi\\) would, under the local version \\(t=h/\\sqrt n\\) of (9), have a local centering shift linear in \\(h\\), namely \\(hE_P[\\phi S_B]\\).  This follows directly by expanding\n\\begin{equation}\n \\sum_{i=1}^n\\log(1+hS_B(O_i)/\\sqrt n)\n =h\\mathbb G_nS_B-\\tfrac12h^2E_P[S_B^2]+o_P(1)\n\\end{equation}\nand exponentially tilting the joint central limit theorem for\n\\(n^{-1/2}\\sum_i(\\phi(O_i),S_B(O_i))\\).  Regular centering at\n\\(\\Psi_\\delta(P_{h/\\sqrt n})\\) would therefore require the local target shift to be the same linear function of \\(h\\).  Equation (10) is not linear because \\(\\kappa_B\\ne0\\), which proves the final assertion.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:legal-finite-partition-tangent",
+      "kind": "proposition",
+      "statement": "Whenever \\(K_\\delta(P)>0\\), one may choose \\(B\\) so that \\(P_t\\) is a legal two-sided dominated Bernoulli submodel with bounded finite-partition score \\(S_B\\), and the two one-sided derivatives of \\(\\Psi_\\delta(P_t)\\) at zero are \\(0\\) and \\(\\delta\\mathbb E_P[\\tau(X)\\mathbf 1_B(X)]\\ne0\\). Thus signed cancellation of \\(\\mathbb E_P[\\tau(X)\\mathbf 1\\{e(X)=c\\}]\\) cannot restore differentiability.",
+      "free_symbols": [
+        "K_delta",
+        "P",
+        "delta",
+        "B",
+        "P_t",
+        "S_B",
+        "Psi_delta",
+        "tau",
+        "X",
+        "e",
+        "c"
+      ],
+      "depends_on": [
+        "def:kink-signal",
+        "def:cap-policy",
+        "def:target-functional"
+      ],
+      "justification": "A legal localized score closes the necessity direction without perturbing binary probabilities outside their support.",
+      "gap": "Hirano and Porter provide the generic nondifferentiable-experiment implication; the proposed finite-partition tangent embeds that obstruction in the exact binary-treatment cap model.",
+      "consumer": "The construction supplies a falsification experiment for any claimed regular estimator at an outcome-relevant cap atom.",
+      "proof_tex": "Since \\(K_\\delta(P)>0\\), the nonnegative random variable\n\\(\\tau(X)^2\\mathbf1\\{e(X)=c\\}\\) is positive with positive probability.  Decompose its support into\n\\(B_+=\\{e=c,\\tau>0\\}\\) and \\(B_-=\\{e=c,\\tau<0\\}\\).  If both\n\\(E_P[\\tau\\mathbf1_{B_+}]\\) and \\(E_P[\\tau\\mathbf1_{B_-}]\\) were zero, positivity and negativity on the respective sets would imply that \\(\\tau=0\\) almost surely on \\(\\{e=c\\}\\), contradicting \\(K_\\delta(P)>0\\).  Choose a set \\(B\\) for which\n\\begin{equation}\n \\kappa_B:=E_P[\\tau(X)\\mathbf1_B(X)]\\ne0.                                                 \\tag{11}\n\\end{equation}\n\nFor \\(|t|<\\frac12\\min(c,1-c)\\), define \\(P_t\\) by leaving \\(P_X\\) and the conditional law of \\(Y\\) given \\((A,X)\\) unchanged and using propensity\n\\(e_t=e+t\\mathbf1_B\\).  On \\(B\\), both Bernoulli probabilities remain strictly between zero and one; off \\(B\\), the law is unchanged.  Consequently \\(P_t\\) is dominated by \\(P\\), and a direct calculation for \\(A=0,1\\) gives\n\\begin{equation}\n \\frac{dP_t}{dP}=1+t\\mathbf1_B(X)\\frac{A-c}{c(1-c)}=1+tS_B.                              \\tag{12}\n\\end{equation}\nThe score is bounded and is measurable with respect to the finite partition generated by \\(B\\) and the two treatment values.  Since\n\\(E_P[S_B]=0\\), expansion of \\(\\sqrt{1+tS_B}\\) proves quadratic-mean differentiability with score \\(S_B\\).\n\nThe outcome regressions and \\(P_X\\) do not vary, so the definition of the target yields\n\\begin{equation}\n \\Psi_\\delta(P_t)-\\Psi_\\delta(P)\n =E_P\\!\\left[\\tau(X)\\mathbf1_B(X)\n \\{\\min(1,\\delta(c+t))-1\\}\\right].                                                       \\tag{13}\n\\end{equation}\nBecause \\(\\delta c=1\\), (13) equals \\(0\\) for \\(t>0\\) and\n\\(\\delta t\\kappa_B\\) for \\(t<0\\).  The right derivative is therefore zero and the left derivative is \\(\\delta\\kappa_B\\ne0\\) by (11).  The construction localizes to one sign of \\(\\tau\\), so cancellation between positive and negative cap cells is irrelevant.",
+      "status": "proved"
+    },
+    {
+      "id": "lem:exact-branch-remainder",
+      "kind": "lemma",
+      "statement": "For every bounded nuisance candidate \\(\\eta=(s,u_0,u_1)\\), including ties \\(s=c\\) assigned to the saturated branch, the exact identity is\n\\begin{equation}\nR(P,\\eta)=\\delta\\mathbb E_P\\!\\left[\\tau(X)|e(X)-c|\\mathbf 1\\!\\left\\{\\mathbf 1\\{s(X)<c\\}\\ne\\mathbf 1\\{e(X)<c\\}\\right\\}\\right]+\\mathbb E_P\\!\\left[(s(X)-e(X))\\left\\{\\mathbf 1\\{s(X)<c\\}\\frac{(\\delta-1)(u_0(X)-\\mu_0(X))}{1-s(X)}+\\mathbf 1\\{s(X)\\ge c\\}\\frac{u_1(X)-\\mu_1(X)}{s(X)}\\right\\}\\right].\n\\end{equation}\nEvery displayed denominator is bounded away from zero on its active branch. Consequently, if \\(0<\\rho\\le c\\wedge(1-c)\\), \\(\\|s-e\\|_\\infty\\le\\rho\\), the branch-relevant outcome error is at most \\(\\varepsilon\\), and \\(P\\in\\mathcal M_{\\mathrm m}(\\alpha,C_{\\mathrm m})\\), then\n\\begin{equation}\n |R(P,\\eta)|\\le C_{\\delta,M,C_{\\mathrm m}}\\{\\rho\\varepsilon+\\rho^{1+\\alpha}\\}.\n\\end{equation}",
+      "depends_on": [
+        "def:margin-model",
+        "def:candidate-signal",
+        "def:one-step-remainder"
+      ],
+      "justification": "The equality isolates the only nonsmooth bias and gives the rate condition used by both frequentist one-step and posterior corrections.",
+      "gap": "Kennedy's smooth stochastic-policy remainder has no crossing term, while Levis et al. give a margin upper envelope for different max-min bounds rather than this exact branch-specific identity.",
+      "consumer": "Posterior and machine-learning users can verify root-\\(n\\) bias control using only the outcome regression on the branch that is actually observed with stable probability.",
+      "proof_tex": "Put \\(q(r)=\\min\\{1,\\delta r\\}\\), \\(I_s(x)=\\mathbf 1\\{s(x)<c\\}\\), \\(I_e(x)=\\mathbf 1\\{e(x)<c\\}\\), and \\(d_s(x)=\\delta I_s(x)\\).  Thus \\(d_s\\) is the slope selected by the candidate signal; in particular, the saturated slope \\(d_s=0\\) is selected when \\(s=c\\).  Also put \\(v_a=u_a-\\mu_a\\) for \\(a\\in\\{0,1\\}\\).  All equalities below involving \\(X\\) hold \\(P_X\\)-almost surely.\n\nThe definitions of \\(e\\) and \\(\\mu_a\\), with the arbitrary bounded versions on unsupported arms understood, imply the everywhere-valid weighted identities\n\\[\n\\begin{aligned}\n \\mathbb E_P[A(Y-u_1(X))\\mid X]\n &=e(X)\\{\\mu_1(X)-u_1(X)\\}=-e(X)v_1(X),\\\\\n \\mathbb E_P[(1-A)(Y-u_0(X))\\mid X]\n &=(1-e(X))\\{\\mu_0(X)-u_0(X)\\}=-(1-e(X))v_0(X),\\\\\n \\mathbb E_P[A-s(X)\\mid X]&=e(X)-s(X).\n\\end{aligned}\n\\]\nFor example, the first equality remains valid when \\(e(X)=0\\), because both sides are then zero; hence no conditional mean on an unsupported arm is being divided by its arm probability.\n\nThe branch-weight definitions give, pointwise on \\([0,1]\\),\n\\[\n q(s)=s w_1(s),\\qquad 1-q(s)=(1-s)w_0(s).\n\\]\nIndeed, for \\(s<c\\) these identities read \\(\\delta s=s\\delta\\) and \\(1-\\delta s=(1-s)(1-\\delta s)/(1-s)\\), while for \\(s\\ge c\\) they read \\(1=s(1/s)\\) and \\(0=(1-s)0\\); at \\(s=c\\), \\(w_1(c)=\\delta=1/c\\).  Conditional expectation of the candidate signal and the preceding weighted identities therefore yield\n\\[\n\\begin{aligned}\n &\\mathbb E_P[m_\\eta(O)\\mid X]-\\{\\mu_0(X)+\\tau(X)q(e(X))\\}\\\\\n &\\quad=\\tau(X)\\{q(s(X))+d_s(X)(e(X)-s(X))-q(e(X))\\}\\\\\n &\\qquad +(e(X)-s(X))\n \\bigl[\\{d_s(X)-w_1(s(X))\\}v_1(X)\n       +\\{w_0(s(X))-d_s(X)\\}v_0(X)\\bigr].\n\\end{aligned}\n\\tag{1}\n\\]\nTo verify (1) directly, substitute \\(u_a=\\mu_a+v_a\\).  The coefficient of \\(\\tau\\) is \\(q(s)+d_s(e-s)-q(e)\\); the coefficient of \\(v_1\\) is\n\\[\n q(s)+d_s(e-s)-e w_1(s)=(e-s)\\{d_s-w_1(s)\\},\n\\]\nand the coefficient of \\(v_0\\) is\n\\[\n 1-q(s)-d_s(e-s)-(1-e)w_0(s)=(e-s)\\{w_0(s)-d_s\\}.\n\\]\n\nThe hinge has the following exact selected-tangent gap:\n\\[\n q(s)+d_s(e-s)-q(e)\n =\\delta |e-c|\\mathbf 1\\{I_s\\ne I_e\\}.\n\\tag{2}\n\\]\nIf \\(e\\) and \\(s\\) are on the same branch, both sides of (2) vanish.  If \\(s<c\\le e\\), its left-hand side is \\(\\delta s+\\delta(e-s)-1=\\delta(e-c)\\).  If \\(e<c\\le s\\), it is \\(1-\\delta e=\\delta(c-e)\\).  These cases include the relevant ties because both indicators use strict inequality; when \\(e=c\\), the right-hand side and the corresponding gap are both zero.\n\nIt remains to simplify the outcome-error term in (1).  On the lower branch \\(s<c\\),\n\\[\n d_s-w_1(s)=0,\n \\qquad\n w_0(s)-d_s=\\frac{1-\\delta s}{1-s}-\\delta\n =-\\frac{\\delta-1}{1-s}.\n\\tag{3}\n\\]\nOn the saturated branch \\(s\\ge c\\),\n\\[\n d_s=w_0(s)=0,\n \\qquad w_1(s)=\\frac1s,\n\\tag{4}\n\\]\nwhere (4) also holds at \\(s=c\\) because \\(w_1(c)=\\delta=1/c\\).  Substitution of (2)--(4) into (1), followed by integration with respect to \\(P_X\\), and then use of the definition \\(R(P,\\eta)=P[m_\\eta]-\\Psi_\\delta(P)\\), proves\n\\[\n\\begin{aligned}\nR(P,\\eta)\n&=\\delta\\mathbb E_P\\!\\left[\\tau(X)|e(X)-c|\n \\mathbf 1\\!\\left\\{\\mathbf 1\\{s(X)<c\\}\\ne\\mathbf 1\\{e(X)<c\\}\\right\\}\\right]\\\\\n&\\quad+\\mathbb E_P\\!\\left[(s(X)-e(X))\\left\\{\n \\mathbf 1\\{s(X)<c\\}\\frac{(\\delta-1)(u_0(X)-\\mu_0(X))}{1-s(X)}\n +\\mathbf 1\\{s(X)\\ge c\\}\\frac{u_1(X)-\\mu_1(X)}{s(X)}\n \\right\\}\\right].\n\\end{aligned}\n\\tag{5}\n\\]\nThe braces in (5) are an everywhere-defined branchwise function: only the quotient belonging to the active branch is evaluated.  On the lower branch,\n\\[\n 1-s>1-c=\\frac{\\delta-1}{\\delta},\n \\qquad \\frac{\\delta-1}{1-s}<\\delta,\n\\tag{6}\n\\]\nwhereas on the saturated branch\n\\[\n s\\ge c=\\frac1\\delta,\n \\qquad \\frac1s\\le\\delta.\n\\tag{7}\n\\]\nThus every active denominator is bounded away from zero, including at the specified tie \\(s=c\\).\n\nFor the rate assertion, write the stated branch-relevant \\(L_2(P_X)\\) error condition explicitly as\n\\[\n \\|I_s v_0\\|_{L_2(P_X)}+\\|(1-I_s)v_1\\|_{L_2(P_X)}\\le\\varepsilon.\n\\tag{8}\n\\]\nBy (6)--(8) and \\(\\|s-e\\|_\\infty\\le\\rho\\), the absolute value of the second expectation in (5) is at most\n\\[\n \\delta\\rho\\left{\\mathbb E_P[|I_s v_0|]\n +\\mathbb E_P[|(1-I_s)v_1|]\\right}\n \\le \\delta\\rho\\varepsilon.\n\\tag{9}\n\\]\nThe last inequality follows directly from\n\\(0\\le\\mathbb E_P[(|Z|-\\mathbb E_P|Z|)^2]\n=\\mathbb E_P[Z^2]-(\\mathbb E_P|Z|)^2\\), applied to each summand, so no additional moment condition is used.\n\nIf the two branch indicators disagree and \\(e(X)\\ne c\\), then \\(c\\) lies between \\(s(X)\\) and \\(e(X)\\); hence\n\\[\n 0<|e(X)-c|\\le |e(X)-s(X)|\\le\\rho.\n\\tag{10}\n\\]\nWhen \\(e(X)=c\\), the factor \\(|e(X)-c|\\) is zero.  Since \\(u_a\\) and \\(\\mu_a\\) take values in \\([-M,M]\\), in particular \\(|\\tau|\\le2M\\).  Using (10), the punctured-margin condition, and the required range \\(0<\\rho\\le c\\wedge(1-c)\\), the absolute value of the first expectation in (5) is therefore at most\n\\[\n\\begin{aligned}\n \\delta\\mathbb E_P\\!\\left[|\\tau(X)|\\,|e(X)-c|\\mathbf 1\\{I_s\\ne I_e\\}\\right]\n &\\le 2\\delta M\\rho\\,P\\{0<|e(X)-c|\\le\\rho\\}\\\\\n &\\le 2\\delta M C_{\\mathrm m}\\rho^{1+\\alpha}.\n\\end{aligned}\n\\tag{11}\n\\]\nCombining (9) and (11) proves\n\\[\n |R(P,\\eta)|\n \\le \\delta\\rho\\varepsilon+2\\delta M C_{\\mathrm m}\\rho^{1+\\alpha}\n \\le C_{\\delta,M,C_{\\mathrm m}}\\{\\rho\\varepsilon+\\rho^{1+\\alpha}\\},\n\\]\nfor example with \\(C_{\\delta,M,C_{\\mathrm m}}=\\delta+2\\delta M C_{\\mathrm m}\\), as claimed.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:sharp-margin-modulus",
+      "kind": "proposition",
+      "statement": "For every \\(\\alpha>0\\), \\(h<c\\), and sufficiently small \\(0<\\rho<\\min\\{h,1-c\\}\\), the construction \\((P_{\\mathrm{lf}},\\eta_{\\mathrm{lf}})\\) belongs to \\(\\mathcal M_{\\mathrm m}(\\alpha,h^{-\\alpha})\\), satisfies \\(\\|s-e\\|_\\infty=\\rho\\) with the true outcome regressions, and obeys \\[R(P_{\\mathrm{lf}},\\eta_{\\mathrm{lf}})=\\frac{\\delta\\alpha}{(\\alpha+1)h^\\alpha}\\rho^{1+\\alpha}.\\] Hence the exponent \\(1+\\alpha\\) cannot be improved uniformly for this unsmoothed one-step correction over the stated cap-shell class. This is sharpness of the correction modulus, not a minimax lower bound over all estimators.",
+      "free_symbols": [
+        "alpha",
+        "rho",
+        "h",
+        "c",
+        "P_lf",
+        "eta_lf",
+        "mathcal_M_margin",
+        "s",
+        "e",
+        "R_eta",
+        "delta"
+      ],
+      "depends_on": [
+        "ass:punctured-margin",
+        "def:margin-model",
+        "def:margin-witness",
+        "lem:exact-branch-remainder"
+      ],
+      "justification": "The equality witness distinguishes a sharp cap-crossing modulus from a merely sufficient margin bound.",
+      "gap": "Audibert and Tsybakov establish the generic classification exponent; the legal causal witness preserves the capped intervention, treatment law, bounded outcomes, and exact one-step signal.",
+      "consumer": "Method developers obtain a hard threshold for nuisance rates below which the unsmoothed correction cannot have negligible root-\\(n\\) bias.",
+      "proof_tex": "Under the construction, \\(e=c-U\\in(c-h,c]\\subset(0,1)\\), so the Bernoulli treatment law is legal; \\(Y=A\\in[0,1]\\subset[-M,M]\\), and hence the bounded-outcome condition holds.  Since \\(P(U=0)=0\\), there is no propensity atom at \\(c\\).  For every admissible \\(t\\),\n\\begin{equation}\n P_{\\mathrm{lf}}\\{0<|e(X)-c|\\le t\\}\n =P(0<U\\le t)\n =\\begin{cases}(t/h)^\\alpha,&t\\le h,\\\\1,&t>h,\n \\end{cases}\n \\le h^{-\\alpha}t^\\alpha.                                                               \\tag{19}\n\\end{equation}\nThus \\(P_{\\mathrm{lf}}\\in\\mathcal M_{\\mathrm m}(\\alpha,h^{-\\alpha})\\).  The candidate satisfies \\(s-e=\\rho\\) everywhere, so\n\\(\\|s-e\\|_\\infty=\\rho\\), and it uses \\(u_a=\\mu_a\\), making the propensity--outcome product in the exact remainder zero.\n\nThe true propensity is below the cap almost surely.  The candidate is on the saturated branch exactly when \\(U\\le\\rho\\), up to the null endpoint convention.  Since \\(\\tau=1\\), the exact remainder identity therefore reduces to\n\\begin{equation}\n R(P_{\\mathrm{lf}},\\eta_{\\mathrm{lf}})\n =\\delta E[U\\mathbf1\\{U\\le\\rho\\}].                                                     \\tag{20}\n\\end{equation}\nThe distribution of \\(U\\) has density \\(\\alpha u^{\\alpha-1}/h^\\alpha\\) on \\((0,h)\\).  Because \\(\\rho<h\\), direct integration gives\n\\begin{equation}\n E[U\\mathbf1\\{U\\le\\rho\\}]\n =\\frac{\\alpha}{h^\\alpha}\\int_0^\\rho u^\\alpha\\,du\n =\\frac{\\alpha}{(\\alpha+1)h^\\alpha}\\rho^{1+\\alpha}.                                   \\tag{21}\n\\end{equation}\nEquations (20)--(21) prove the equality.  Any uniform upper modulus of smaller order than \\(\\rho^{1+\\alpha}\\) for this same unsmoothed correction and nuisance neighborhood would contradict this member of the class, establishing the stated, procedure-specific sharpness.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:histogram-sieve-equicontinuity",
+      "kind": "theorem",
+      "statement": "For every fixed \\(P\\in\\mathcal M_{\\mathrm{hist}}(b,L)\\), under iid sampling and the all-data Beta histogram posterior with \\(J_n=\\lceil n^{1/3}\\rceil\\), a sufficiently large deterministic constant in \\(H_n\\) gives \\(\\Pi_n(H_n\\mid O_1,\\ldots,O_n)\\to1\\) in \\(P\\)-probability. Moreover, \\[\\sup_{\\eta\\in H_n}|\\mathbb G_n(m_\\eta-m_P)|\\to0\\] in outer \\(P\\)-probability. The proof must retain posterior cap crossings, use the minimum expected arm count of order \\(n/J_n^2\\), and localize changing branches to at most \\(2J_n\\rho_n+4\\) bins. In particular, \\(\\sqrt n\\{\\rho_n\\varepsilon_n+\\rho_n^2\\}\\to0\\).",
+      "free_symbols": [
+        "P",
+        "mathcal_M_hist",
+        "b",
+        "L",
+        "O_i",
+        "n",
+        "Pi_n",
+        "J_n",
+        "H_n",
+        "eta",
+        "G_n",
+        "m_eta",
+        "m_P",
+        "rho_n",
+        "epsilon_n"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "def:hist-model",
+        "def:histogram-partition",
+        "def:histogram-posterior",
+        "def:posterior-sieve",
+        "lem:exact-branch-remainder"
+      ],
+      "justification": "This is the load-bearing new probability theorem that turns an abstract one-step posterior transfer into an explicit cap-crossing Bayesian procedure.",
+      "gap": "Castillo controls a single density histogram; Yiu et al. and Schmidt--Wikle require rather than derive this joint unequal-arm contraction and posterior-indexed threshold equicontinuity.",
+      "consumer": "Users of conjugate Bayesian nuisance models obtain a fully specified, all-data calibration theorem without sample splitting or a no-crossing restriction.",
+      "proof_tex": "Fix \\(P\\in\\mathcal M_{\\mathrm{hist}}(b,L)\\) and abbreviate \\(J=J_n\\).  Constants below may depend on \\(b,L,\\delta\\), but not on \\(n\\) or the bin index.  Since \\(J=\\lceil n^{1/3}\\rceil\\), \\(J\\asymp n^{1/3}\\) and \\(n/J^2\\to\\infty\\).\n\nWe first establish a simultaneous count event.  Uniform design gives \\(P_X(B_j)=J^{-1}\\), and the arm--bin probabilities are exactly\n\\begin{equation}\n p_{1j}=\\int_{B_j}x\\,dx=\\frac{2j-1}{2J^2},\\qquad\n p_{0j}=\\int_{B_j}(1-x)\\,dx=\\frac{2(J-j)+1}{2J^2}.                                      \\tag{22}\n\\end{equation}\nFor a binomial variable \\(N\\) with mean \\(\\lambda\\), the exponential Markov bound applied to \\(e^{-tN}\\), optimized over \\(t>0\\), gives\n\\(P(N\\le\\lambda/2)\\le e^{-\\lambda/8}\\).  Applying this bound and its upper-tail analogue to \\(N_j,N_{1j},N_{0j}\\), then taking a union bound, shows that with probability tending to one,\n\\begin{equation}\n N_j\\asymp n/J,\\qquad\n N_{1j}\\ge \\frac{nj}{4J^2},\\qquad\n N_{0j}\\ge\\frac{n(J-j+1)}{4J^2}                                                         \\tag{23}\n\\end{equation}\nsimultaneously in \\(j\\).  In particular, the minimum expected and realized arm count has order \\(n/J^2\\), rather than \\(n/J\\), and still diverges.\n\nWe use the following elementary beta tail calculation.  If \\(Z\\mid K,m\\sim\\mathrm{Beta}(K+1,m-K+1)\\), integration of the beta density gives\n\\begin{equation}\n P(Z\\ge z\\mid K,m)=P\\{\\mathrm{Bin}(m+1,z)\\le K\\},qquad z\\in(0,1),                     \\tag{24}\n\\end{equation}\nwith the analogous lower-tail identity.  Applying exponential Markov to the binomial variable on the right of (24), and using\n\\(\\log(1+v)\\le v\\), proves that for universal constants \\(C_0,c_0>0\\),\n\\begin{equation}\n P\\!\\left(\\left.|Z-K/m|>C_0\\{\\sqrt{x/m}+x/m\\}\\,\\right|K,m\\right)\n \\le 2e^{-c_0x}                                                                          \\tag{25}\n\\end{equation}\nfor \\(m\\ge1\\), with the evident interpretation at \\(K=0,m\\).  This derivation also covers posterior parameters at the endpoints and does not assume an interior empirical proportion.\n\nConditional on the covariates in bin \\(j\\), Hoeffding's exponential-moment argument for the independent treatment indicators gives, simultaneously in \\(j\\),\n\\begin{equation}\n \\left|\\frac1{N_j}\\sum_{i:X_i\\in B_j}A_i-\\frac1{N_j}\\sum_{i:X_i\\in B_j}X_i\\right|\n \\le C\\sqrt{\\frac{\\log n}{N_j}}                                                         \\tag{26}\n\\end{equation}\noutside an event of probability \\(o(1)\\).  Every point in a bin is within \\(J^{-1}\\) of every other point in that bin.  Combining (23), (25) with \\(x=C\\log n\\), (26), and a union bound over bins shows that, on a frequentist event of probability tending to one, the propensity posterior assigns probability tending to one to\n\\begin{equation}\n \\|s-e\\|_\\infty\\le C\\left\\{J^{-1}+\\sqrt{J\\log n/n}\\right\\}=C\\rho_n.                   \\tag{27}\n\\end{equation}\n\nFor the outcome coordinates, condition on the arm--bin memberships and covariates.  The observed outcomes in a cell are independent Bernoulli variables.  Their conditional means differ from any fixed value \\(\\mu_a(x_j)\\), \\(x_j\\in B_j\\), by at most \\(L/J\\).  Hoeffding's bound and (25), now with \\(m=N_{aj}\\), imply that the joint posterior assigns probability tending to one to\n\\begin{equation}\n |u_{aj}-\\mu_a(x)|\n \\le C\\left\\{J^{-1}+\\sqrt{\\frac{\\log n}{N_{aj}}}+\\frac{\\log n}{N_{aj}}\\right\\},\n \\qquad x\\in B_j,                                                                        \\tag{28}\n\\end{equation}\nsimultaneously for both arms and all bins.  The total zero-count fallback is harmless because (23) implies that every \\(N_{aj}\\) is positive on the event being used.\n\nIntegrating the square of (28), invoking (23), and using\n\\(\\sum_{k=1}^Jk^{-1}\\le1+\\log J\\) and \\(\\sum_{k=1}^Jk^{-2}\\le2\\), gives for each arm\n\\begin{equation}\n\\begin{aligned}\n \\|u_a-\\mu_a\\|_{L_2(P_X)}^2\n &\\le C\\left\\{J^{-2}+\\frac1J\\sum_{j=1}^J\\frac{\\log n}{N_{aj}}\n                   +\\frac1J\\sum_{j=1}^J\\frac{(\\log n)^2}{N_{aj}^2}\\right\\}\\\\\n &\\le C\\left\\{J^{-2}+\\frac{J(\\log n)^2}{n}\n                   +\\frac{J^3(\\log n)^2}{n^2}\\right\\}\n \\le C\\varepsilon_n^2.\n\\end{aligned}                                                                             \\tag{29}\n\\end{equation}\nFor all sufficiently large \\(n\\), \\(c+C\\rho_n<(1+c)/2\\).  Hence every control cell meeting \\(\\{x\\le c+C\\rho_n\\}\\) has control probability bounded below by \\((1-c)/2\\), and (23) can be sharpened there to \\(N_{0j}\\ge C^{-1}n/J\\).  Similarly, every treated cell meeting \\(\\{x\\ge c-C\\rho_n\\}\\) has \\(N_{1j}\\ge C^{-1}n/J\\).  Equation (28) consequently yields\n\\begin{equation}\n \\sup_{x\\le c+C\\rho_n}|u_0(x)-\\mu_0(x)|\n +\\sup_{x\\ge c-C\\rho_n}|u_1(x)-\\mu_1(x)|\\le C\\rho_n.                                  \\tag{30}\n\\end{equation}\nChoosing the fixed constant in \\(H_n\\) larger than the constants in (27), (29), and (30), and using the union bounds implicit in (25), proves\n\\begin{equation}\n \\Pi_n(H_n\\mid O_1,\\ldots,O_n)\\longrightarrow1\n\\end{equation}\nin \\(P\\)-probability.  This establishes joint contraction despite the unequal random arm counts.\n\nIt remains to prove the asserted empirical-process statement.  Put\n\\(I_s(x)=\\mathbf1\\{s(x)<c\\}\\), \\(I_e(x)=\\mathbf1\\{x<c\\}\\), and\n\\(Z(O)=(1,A,Y,AY)\\).  The two exact branch representations of the signal are\n\\begin{equation}\n m_\\eta=\n \\begin{cases}\n \\delta AY+(1-\\delta A)u_0+(1-A)w_0(s)(Y-u_0),&I_s=1,\\\\\n u_1+(A/s)(Y-u_1),&I_s=0.\n \\end{cases}                                                                             \\tag{31}\n\\end{equation}\nOn the first branch, \\(1-s\\ge1-c\\); on the second, \\(s\\ge c\\).  The coefficient maps in (31) are therefore Lipschitz, with constants depending only on \\(\\delta\\).  By (27) and (30), the candidate coefficients differ from their true coefficients by \\(O(\\rho_n)\\) whenever candidate and truth use the same branch.\n\nIf the branches differ, (27) forces \\(|x-c|\\le C\\rho_n\\).  At \\(x=c\\), direct subtraction of the two true branch formulas in (31) equals\n\\(\\delta\\tau(x)(A-c)\\).  Lipschitz continuity of \\(x\\), \\(\\mu_0(x)\\), and \\(\\mu_1(x)\\), together with the branch denominator bounds, therefore gives the following explicit finite-basis decomposition, obtained by freezing the coefficients at one point in every bin:\n\\begin{equation}\n m_\\eta-m_P\n =\\delta\\tau(X)(A-c)(I_s-I_e)+r_n+\n   \\sum_{j=1}^J\\sum_{k=1}^4 a_{jk}(\\eta)Z_k(O)\\mathbf1\\{X\\in B_j\\},                    \\tag{32}\n\\end{equation}\nwhere \\(r_n\\) is deterministic, \\(\\|r_n\\|_{L_2(P)}\\le C/J\\), and\n\\begin{equation}\n \\sup_{\\eta\\in H_n}\\max_{j,k}|a_{jk}(\\eta)|\\le C(\\rho_n+J^{-1}).                      \\tag{33}\n\\end{equation}\nTo verify (32), freeze separately the lower and upper coefficients in (31).  Their within-bin oscillation is \\(O(J^{-1})\\).  Subtract the candidate coefficient on its selected branch, which costs \\(O(\\rho_n)\\) by (27) and (30).  On a differing branch subtract the boundary jump \\(\\delta\\tau(A-c)\\); the residual costs \\(O(|x-c|+J^{-1})=O(\\rho_n+J^{-1})\\).  Each remaining frozen expression is a linear combination of the four displayed coordinates of \\(Z\\), proving (32)--(33) equation by equation from (31).\n\nOnly bins intersecting \\([c-C\\rho_n,c+C\\rho_n]\\) can support \\(I_s-I_e\\).  Their deterministic number \\(B_n\\) obeys\n\\begin{equation}\n B_n\\le2JC\\rho_n+4.                                                                      \\tag{34}\n\\end{equation}\nFor \\(h(O)=\\tau(X)(A-c)\\) and their union \\(H\\), the triangle inequality gives\n\\begin{equation}\n \\sup_{\\eta\\in H_n}|\\mathbb G_n\\{h(I_s-I_e)\\}|\n \\le\\sum_{j:B_j\\subset H}|\\mathbb G_n(h\\mathbf1_{B_j})|\n     +|\\mathbb G_n(hI_e\\mathbf1_H)|.                                                     \\tag{35}\n\\end{equation}\nThe iid assumption and Cauchy--Schwarz imply\n\\(E_P|\\mathbb G_ng|\\le\\|g\\|_{L_2(P)}\\).  Since \\(h\\) is bounded and every bin has mass \\(1/J\\), taking expectations in (35) and using (34) yields\n\\begin{equation}\n E_P\\sup_{\\eta\\in H_n}|\\mathbb G_n\\{h(I_s-I_e)\\}|\n \\le C\\left\\{\\sqrt J\\rho_n+J^{-1/2}+\\sqrt{\\rho_n+J^{-1}}\\right\\}=o(1).               \\tag{36}\n\\end{equation}\nLikewise, (33) gives\n\\begin{equation}\n E_P\\sup_{\\eta\\in H_n}\\left|\n \\mathbb G_n\\sum_{j,k}a_{jk}(\\eta)Z_k\\mathbf1_{B_j}\\right|\n \\le C(\\rho_n+J^{-1})\\sum_{j,k}\\|Z_k\\mathbf1_{B_j}\\|_2\n \\le C(\\rho_n+J^{-1})\\sqrt J=o(1).                                                      \\tag{37}\n\\end{equation}\nFinally \\(\\mathbb G_nr_n=o_P(1)\\) because its variance is at most\n\\(\\|r_n\\|_2^2=O(J^{-2})\\).  Markov's inequality applied to (36)--(37) and (32) proves the outer-probability equicontinuity assertion.  Notice that no branch of a posterior draw was fixed in this argument.\n\nThe rate assertion follows directly from \\(J\\asymp n^{1/3}\\):\n\\begin{equation}\n \\rho_n=O(n^{-1/3}\\sqrt{\\log n}),\\qquad\n \\varepsilon_n=O(n^{-1/3}\\log n),\n\\end{equation}\nand hence\n\\begin{equation}\n \\sqrt n(\\rho_n\\varepsilon_n+\\rho_n^2)\n =O(n^{-1/6}(\\log n)^{3/2})\\longrightarrow0.                                             \\tag{38}\n\\end{equation}",
+      "status": "proved"
+    },
+    {
+      "id": "thm:histogram-bvm-coverage",
+      "kind": "theorem",
+      "statement": "For every fixed \\(P\\in\\mathcal M_{\\mathrm{hist}}(b,L)\\), \\(K_\\delta(P)=0\\), \\(V_P>0\\), and the corrected posterior satisfies \\[d_{\\mathrm{BL}}\\!\\left(\\mathcal L\\!\\left(\\sqrt n\\{\\Psi_\\delta^*-\\mathbb P_nm_P\\}\\mid O_1,\\ldots,O_n\\right),\\mathcal N(0,V_P)\\right)\\to0\\] in \\(P\\)-probability. Its equal-tailed interval has pointwise frequentist coverage \\(P\\{\\Psi_\\delta(P)\\in C_n^\\gamma\\}\\to1-\\gamma\\). The class violates strong overlap because \\(e(x)=x\\) on \\([0,1]\\), and posterior draws are not constrained to remain on the true side of the cap.",
+      "free_symbols": [
+        "P",
+        "mathcal_M_hist",
+        "b",
+        "L",
+        "K_delta",
+        "delta",
+        "V_P",
+        "d_BL",
+        "n",
+        "Psi_star",
+        "P_n",
+        "m_P",
+        "O_i",
+        "CI_n",
+        "gamma",
+        "Psi_delta",
+        "e",
+        "mathcal_X"
+      ],
+      "depends_on": [
+        "def:hist-model",
+        "def:corrected-posterior",
+        "def:credible-interval",
+        "thm:regularity-frontier",
+        "lem:exact-branch-remainder",
+        "thm:histogram-sieve-equicontinuity"
+      ],
+      "justification": "The theorem delivers efficient Gaussian posterior uncertainty and nominal coverage for the policy-natural hard cap without restoring overlap.",
+      "gap": "Schmidt and Wikle prove this conclusion for smooth intervention maps; the capped map fails their Taylor and pointwise-Lipschitz steps, which the exact remainder and boundary-bin theorem replace.",
+      "consumer": "An analysis of capped enrollment, prescribing, or encouragement probabilities can report calibrated posterior intervals even when baseline treatment probabilities approach zero or one.",
+      "proof_tex": "Fix a law in the stated class.  Uniform design and \\(e(x)=x\\) imply\n\\(P\\{e(X)=c\\}=0\\), so \\(K_\\delta(P)=0\\).  They also give the punctured margin bound\n\\begin{equation}\n P\\{0<|e(X)-c|\\le t\\}\\le2t                                                            \\tag{39}\n\\end{equation}\nfor every sufficiently small \\(t\\).  By the exact remainder identity, the definition of \\(H_n\\), (39), and the rate conclusion of the histogram theorem,\n\\begin{equation}\n \\sup_{\\eta\\in H_n}\\sqrt n\\,|P(m_\\eta-m_P)|\n \\le C\\sqrt n(\\rho_n\\varepsilon_n+\\rho_n^2)=o(1).                                     \\tag{40}\n\\end{equation}\nTogether with histogram equicontinuity, (40) implies\n\\begin{equation}\n \\sup_{\\eta\\in H_n}\\sqrt n\\,|\\mathbb P_n(m_\\eta-m_P)|=o_P(1).                       \\tag{41}\n\\end{equation}\n\nWe also need the weighted empirical term.  The branch formulas and branch-relevant uniform bounds used in (31)--(34) imply the pointwise envelope\n\\begin{equation}\n \\sup_{\\eta\\in H_n}|m_\\eta(O)-m_P(O)|\n \\le C\\{\\rho_n+\\mathbf1(|X-c|\\le C\\rho_n)\\}.                                          \\tag{42}\n\\end{equation}\nThe empirical mass of the deterministic shell in (42) converges to its probability, which is \\(O(\\rho_n)\\), up to an \\(o_P(1)\\) term.  Therefore\n\\begin{equation}\n \\sup_{\\eta\\in H_n}\\mathbb P_n(m_\\eta-m_P)^2=o_P(1).                                 \\tag{43}\n\\end{equation}\n\nConditionally on the data, Dirichlet weights have\n\\begin{equation}\n \\operatorname{Var}_W\\!\\left(\\sqrt n\\sum_{i=1}^n(W_i-n^{-1})d_i\\right)\n =\\frac n{n+1}\\{\\mathbb P_nd^2-(\\mathbb P_nd)^2\\}.                                    \\tag{44}\n\\end{equation}\nApply (44), (43), and conditional Markov inequality, then integrate over\n\\(\\eta\\sim\\Pi_n\\).  Since the histogram theorem gives \\(\\Pi_n(H_n\\mid O^n)\\to1\\), while every signal is bounded uniformly over all beta draws by a constant depending only on \\(\\delta\\), we obtain\n\\begin{equation}\n \\sqrt n\\sum_{i=1}^n(W_i-n^{-1})\\{m_\\eta(O_i)-m_P(O_i)\\}=o_{P,\\Pi_n,W}(1).             \\tag{45}\n\\end{equation}\n\nIt remains to identify the leading conditional law.  Represent the Dirichlet weights as\n\\(W_i=E_i/\\sum_{k=1}^nE_k\\), where, conditionally on the data, the \\(E_i\\) are independent standard exponential variables.  With\n\\(z_i=m_P(O_i)\\) and \\(\\bar z=\\mathbb P_nm_P\\), the exact identity is\n\\begin{equation}\n \\sqrt n\\sum_i(W_i-n^{-1})z_i\n =\\frac{n}{\\sum_iE_i}\\frac1{\\sqrt n}\\sum_i(E_i-1)(z_i-\\bar z).                         \\tag{46}\n\\end{equation}\nThe multiplier law of large numbers makes the first factor tend conditionally to one.  Because the \\(z_i\\) are uniformly bounded, expansion of the conditional characteristic function of the second factor in (46), using\n\\(E(E_i-1)=0\\), \\(E(E_i-1)^2=1\\), and a uniform third-moment remainder, gives a centered normal limit with variance\n\\(\\mathbb P_n(z_i-\\bar z)^2\\).  The iid law of large numbers and\n\\(Pm_P=\\Psi_\\delta(P)\\) give\n\\begin{equation}\n \\mathbb P_n(z_i-\\bar z)^2\\longrightarrow\n P\\{m_P-\\Psi_\\delta(P)\\}^2=V_P.                                                        \\tag{47}\n\\end{equation}\nThus (46) converges conditionally, in bounded-Lipschitz distance and in \\(P\\)-probability, to \\(N(0,V_P)\\).\n\nFinally decompose the corrected draw exactly as\n\\begin{equation}\n\\begin{aligned}\n \\sqrt n\\{\\Psi_\\delta^*-\\mathbb P_nm_P\\}\n &=\\sqrt n\\sum_i(W_i-n^{-1})m_P(O_i)\\\\\n &\\quad+\\sqrt n\\sum_i(W_i-n^{-1})\\{m_\\eta(O_i)-m_P(O_i)\\}\n       +\\sqrt n\\mathbb P_n(m_\\eta-m_P).\n\\end{aligned}                                                                             \\tag{48}\n\\end{equation}\nThe last two terms are negligible by (41) and (45), uniformly on posterior mass tending to one; the complement changes bounded-Lipschitz expectations by at most twice its posterior probability.  Equations (46)--(48) prove the asserted conditional Bernstein--von Mises limit.\n\nSince \\(D_P=m_P-\\Psi_\\delta(P)\\) is bounded and has positive variance, the ordinary iid characteristic-function proof gives\n\\begin{equation}\n \\sqrt n\\{\\mathbb P_nm_P-\\Psi_\\delta(P)\\}\\ \\rightsquigarrow\\ N(0,V_P).                \\tag{49}\n\\end{equation}\nBounded-Lipschitz convergence to a normal law with \\(V_P>0\\) implies convergence of each fixed posterior quantile.  If \\(z_r\\) is the \\(r\\)-quantile of \\(N(0,1)\\), the endpoints of \\(C_n^\\gamma\\) are consequently\n\\begin{equation}\n \\mathbb P_nm_P+n^{-1/2}\\sqrt{V_P}\\,z_{\\gamma/2}+o_P(n^{-1/2}),\\qquad\n \\mathbb P_nm_P+n^{-1/2}\\sqrt{V_P}\\,z_{1-\\gamma/2}+o_P(n^{-1/2}).                      \\tag{50}\n\\end{equation}\nCombining (49), (50), and \\(z_{\\gamma/2}=-z_{1-\\gamma/2}\\) yields\n\\(P\\{\\Psi_\\delta(P)\\in C_n^\\gamma\\}\\to1-\\gamma\\).\n\nFinally, \\(e(x)=x\\) has essential infimum zero and \\(1-e(x)=1-x\\) also has essential infimum zero, so no positive strong-overlap constant exists.  The beta posterior has full support on \\((0,1)\\) in every bin with positive parameters; the construction imposes no side-of-cap restriction, and the proof above explicitly retained the changing indicators in (32)--(36).",
+      "status": "proved"
+    },
+    {
+      "id": "prop:smooth-special-case",
+      "kind": "proposition",
+      "statement": "If \\(P\\{e(X)=c\\}=0\\), then \\(K_\\delta(P)=0\\), the regularity theorem applies, and on each of the two fixed branches \\(D_P\\) equals the ordinary smooth propensity-dependent stochastic-intervention gradient obtained by differentiating \\(q_\\delta(1\\mid x)\\) with derivative \\(\\delta\\mathbf 1\\{e(x)<c\\}\\). Thus the result reduces to standard smooth stochastic-policy efficiency theory whenever the cap boundary has no mass.",
+      "free_symbols": [
+        "P",
+        "e",
+        "X",
+        "c",
+        "K_delta",
+        "delta",
+        "D_P",
+        "q_delta"
+      ],
+      "depends_on": [
+        "def:cap-policy",
+        "def:kink-signal",
+        "def:eif-signal",
+        "thm:regularity-frontier"
+      ],
+      "justification": "The reduction checks the new gradient against the established smooth calculation away from the kink.",
+      "gap": "Kennedy supplies the smooth branch calculation; the proposition records exact agreement rather than claiming that component as new.",
+      "consumer": "Existing software for smooth stochastic interventions can be validated against the capped formula on datasets with no estimated cap contact.",
+      "proof_tex": "If \\(P\\{e(X)=c\\}=0\\), then the indicator in the definition of \\(K_\\delta(P)\\) vanishes almost surely, and hence \\(K_\\delta(P)=0\\).  The regularity theorem therefore applies.\n\nAway from \\(c\\), the map \\(q(r)=\\min(1,\\delta r)\\) is differentiable with\n\\(q'(r)=\\delta\\mathbf1\\{r<c\\}\\).  The ordinary conditional differentiation formula for\n\\(E[\\mu_0+\\tau q(e)]\\), derived by differentiating the covariate marginal, the two outcome regressions, and the propensity in turn, is\n\\begin{equation}\n\\begin{aligned}\n &\\mu_0(X)+\\tau(X)q(e(X))-\\Psi_\\delta(P)\\\\\n &\\quad+A\\frac{q(e(X))}{e(X)}\\{Y-\\mu_1(X)\\}\n +(1-A)\\frac{1-q(e(X))}{1-e(X)}\\{Y-\\mu_0(X)\\}\n +q'(e(X))\\tau(X)\\{A-e(X)\\}.\n\\end{aligned}                                                                             \\tag{51}\n\\end{equation}\nEvery ratio in (51) is used only on a supported arm.  On \\(e<c\\),\n\\(q(e)/e=\\delta=w_1(e)\\) and\n\\((1-q(e))/(1-e)=w_0(e)\\); on \\(e>c\\), these ratios are\n\\(1/e=w_1(e)\\) and \\(0=w_0(e)\\).  Substitution in (51) gives exactly \\(D_P\\) almost surely.  This proves the claimed reduction by direct calculation.",
+      "status": "proved"
+    },
+    {
+      "id": "oeq:uniform-local-honest-inference",
+      "kind": "openendedquestion",
+      "statement": "Does the Gaussian-threshold experiment generated by the finite-partition handle admit a total connected interval with asymptotic coverage at least \\(1-\\gamma\\) uniformly over \\(n^{-1/2}\\)-local submodels crossing \\(e=c\\), whose expected length attains the sharp conditional-modulus constant and which reduces to the efficient Wald interval along sequences with vanishing cap signal?",
+      "free_symbols": [
+        "gamma",
+        "n",
+        "e",
+        "c",
+        "K_delta"
+      ],
+      "depends_on": [
+        "def:local-inference-handle",
+        "thm:regularity-frontier",
+        "prop:legal-finite-partition-tangent"
+      ],
+      "justification": "Pointwise regularity and pointwise posterior coverage do not resolve inference for laws drifting toward an outcome-relevant cap atom.",
+      "gap": "Hirano--Porter and Fang--Santos give generic nonregular limits and bootstrap repairs; neither computes the capped causal tangent cone, sharp interval constant, or adaptation cost.",
+      "consumer": "Studies with discretized or heaped propensity scores need valid uncertainty statements when cap contact cannot be ruled out from the data.",
+      "obligation": {
+        "what_is_open": "Construction and optimality proof for one connected interval that is uniformly valid in the full multi-cell Gaussian-threshold experiment, attains the sharp conditional-modulus constant, and adapts to the efficient Wald interval when the cap signal vanishes.",
+        "obstruction": "The frozen handle does not specify the local parameter set, the normalization of expected length, or the conditional modulus whose constant is to be optimized. Those choices change both existence and the sharp constant. The proved pointwise Bernstein--von Mises theorem cannot supply uniform validity across the nondifferentiable local boundary.",
+        "attempted": "Reduced the legal finite-cell tangent to its Gaussian shift limit and computed the kinked local target map. This exposes the adaptation conflict but does not determine a unique sharp interval without the missing decision-theoretic specification.",
+        "partial_result": "For a chosen active cell \\(B\\), let \\(\\kappa_B=E_P[\\tau(X)\\mathbf1_B(X)]\\ne0\\) and use the local propensity path \\(e_{h,n}=e+h\\mathbf1_B/\\sqrt n\\).  The finite-cell likelihood experiment is locally asymptotically normal with score information\n\\begin{equation}\n I_B=E_P[S_B^2]=\\frac{P_X(B)}{c(1-c)},\n\\end{equation}\nwhereas its local target increment is the kinked map\n\\begin{equation}\n \\sqrt n\\{\\Psi_\\delta(P_{h/\\sqrt n})-\\Psi_\\delta(P)\\}\n \\longrightarrow \\delta\\kappa_B\\min(h,0).\n\\end{equation}\nThus the required interval problem reduces, already in one active cell, to confidence intervals for a kinked functional of the mean in a Gaussian shift experiment; ordinary efficient Wald adaptation cannot be justified by the regular-side influence function uniformly across \\(h=0\\)."
+      },
+      "status": "to-prove"
+    }
+  ],
+  "bibliography": [
+    {
+      "key": "ZhouOpacic2022",
+      "citation": "Xiang Zhou and Aleksei Opacic. Marginal Interventional Effects. arXiv:2206.10717, 2022, revised 2025."
+    },
+    {
+      "key": "SchmidtWikle2026",
+      "citation": "Tyler M. Schmidt and Nathan B. Wikle. Calibrated Bayesian Inference for Stochastic Intervention Effects. arXiv:2608.02924, 2026."
+    },
+    {
+      "key": "LuedtkeVanDerLaan2016",
+      "citation": "Alexander R. Luedtke and Mark J. van der Laan. Statistical Inference for the Mean Outcome under a Possibly Non-Unique Optimal Treatment Strategy. Annals of Statistics, 44(2):713--742, 2016. DOI: 10.1214/15-AOS1384."
+    },
+    {
+      "key": "Kennedy2019",
+      "citation": "Edward H. Kennedy. Nonparametric Causal Effects Based on Incremental Propensity Score Interventions. Journal of the American Statistical Association, 114(526):645--656, 2019. DOI: 10.1080/01621459.2017.1422737."
+    },
+    {
+      "key": "HiranoPorter2012",
+      "citation": "Keisuke Hirano and Jack R. Porter. Impossibility Results for Nondifferentiable Functionals. Econometrica, 80(4):1769--1790, 2012. DOI: 10.3982/ECTA8681."
+    },
+    {
+      "key": "YiuEtAl2025",
+      "citation": "Andrew Yiu, Edwin Fong, Chris Holmes, and Judith Rousseau. Semiparametric Posterior Corrections. Journal of the Royal Statistical Society Series B, 87(2):378--403, 2025. DOI: 10.1093/jrsssb/qkaf005."
+    },
+    {
+      "key": "Castillo2014",
+      "citation": "Ismaël Castillo. On Bayesian Supremum Norm Contraction Rates. Annals of Statistics, 42(5):2058--2091, 2014. DOI: 10.1214/14-AOS1253."
+    },
+    {
+      "key": "LevisEtAl2025",
+      "citation": "Alexander W. Levis, Matteo Bonvini, Zhenghao Zeng, Luke Keele, and Edward H. Kennedy. Covariate-Assisted Bounds on Causal Effects with Instrumental Variables. Journal of the Royal Statistical Society Series B, 87(3):674--699, 2025. DOI: 10.1093/jrsssb/qkaf028."
+    },
+    {
+      "key": "AudibertTsybakov2007",
+      "citation": "Jean-Yves Audibert and Alexandre B. Tsybakov. Fast Learning Rates for Plug-In Classifiers. Annals of Statistics, 35(2):608--633, 2007. DOI: 10.1214/009053606000001217."
+    },
+    {
+      "key": "BreunigLiuYu2025",
+      "citation": "Christoph Breunig, Ruixuan Liu, and Zhengfei Yu. Double-Robust Bayesian Inference on Average Treatment Effects. Econometrica, 93(2):613--640, 2025. DOI: 10.3982/ECTA21442."
+    },
+    {
+      "key": "FangSantos2019",
+      "citation": "Zheng Fang and Andres Santos. Inference on Directionally Differentiable Functions. Review of Economic Studies, 86(1):377--412, 2019. DOI: 10.1093/restud/rdy049."
+    },
+    {
+      "key": "vanDerVaart1998",
+      "citation": "Aad W. van der Vaart. Asymptotic Statistics. Cambridge University Press, 1998."
+    }
+  ]
+}

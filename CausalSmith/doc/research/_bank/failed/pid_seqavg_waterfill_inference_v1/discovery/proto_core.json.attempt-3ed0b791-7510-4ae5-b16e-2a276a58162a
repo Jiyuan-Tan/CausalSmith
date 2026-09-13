@@ -1,0 +1,1349 @@
+{
+  "qid": "pid_seqavg_waterfill_inference",
+  "specialization": "v1",
+  "cluster": "partialid",
+  "symbols": [
+    {
+      "name": "ymin",
+      "type": "real constant",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The lower endpoint \\(y_{\\min}\\) of the known outcome range."
+    },
+    {
+      "name": "ymax",
+      "type": "real constant",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The upper endpoint \\(y_{\\max}\\) of the known outcome range."
+    },
+    {
+      "name": "Lspace0",
+      "type": "measurable space",
+      "space": "standard Borel",
+      "def": "The baseline-covariate space \\(\\mathcal L_0\\)."
+    },
+    {
+      "name": "Lspace1",
+      "type": "measurable space",
+      "space": "standard Borel",
+      "def": "The intermediate-covariate space \\(\\mathcal L_1\\)."
+    },
+    {
+      "name": "Yspace",
+      "type": "measurable space",
+      "space": "\\([y_{\\min},y_{\\max}]\\)",
+      "def": "The bounded outcome space \\(\\mathcal Y=[y_{\\min},y_{\\max}]\\).",
+      "refs": ["ymin", "ymax"]
+    },
+    {
+      "name": "Ospace",
+      "type": "measurable space",
+      "space": "\\(\\mathcal L_0\\times\\{0,1\\}\\times\\mathcal L_1\\times\\{0,1\\}\\times\\mathcal Y\\)",
+      "def": "The observed-data space \\(\\mathcal O\\).",
+      "refs": ["Lspace0", "Lspace1", "Yspace"]
+    },
+    {
+      "name": "L0",
+      "type": "random element",
+      "space": "\\(\\mathcal L_0\\)",
+      "def": "The baseline covariate \\(L_0\\).",
+      "refs": ["Lspace0"]
+    },
+    {
+      "name": "A0",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The first binary treatment \\(A_0\\)."
+    },
+    {
+      "name": "L1",
+      "type": "random element",
+      "space": "\\(\\mathcal L_1\\)",
+      "def": "The intermediate covariate \\(L_1\\).",
+      "refs": ["Lspace1"]
+    },
+    {
+      "name": "A1",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The second binary treatment \\(A_1\\)."
+    },
+    {
+      "name": "Y",
+      "type": "random variable",
+      "space": "\\(\\mathcal Y\\)",
+      "def": "The observed bounded outcome \\(Y\\).",
+      "refs": ["Yspace"]
+    },
+    {
+      "name": "H1",
+      "type": "random element",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\)",
+      "def": "The second-decision history \\(H_1=(L_0,L_1)\\).",
+      "refs": ["L0", "L1"]
+    },
+    {
+      "name": "O",
+      "type": "random element",
+      "space": "\\(\\mathcal O\\)",
+      "def": "The observed vector \\(O=(L_0,A_0,L_1,A_1,Y)\\).",
+      "refs": ["L0", "A0", "L1", "A1", "Y", "Ospace"]
+    },
+    {
+      "name": "P",
+      "type": "probability law",
+      "space": "\\(\\mathcal P(\\mathcal O)\\)",
+      "def": "The observed-data law \\(P\\).",
+      "refs": ["Ospace"]
+    },
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The sample size \\(n\\)."
+    },
+    {
+      "name": "Sample",
+      "type": "random vector",
+      "space": "\\(\\mathcal O^n\\)",
+      "def": "The sample \\(\\mathbb O_n=(O_1,\\ldots,O_n)\\).",
+      "refs": ["O", "Ospace", "n"]
+    },
+    {
+      "name": "astar",
+      "type": "treatment regime",
+      "space": "\\(\\{0,1\\}^2\\)",
+      "def": "The fixed sustained regime \\(\\bar a=(1,1)\\)."
+    },
+    {
+      "name": "Ystar",
+      "type": "counterfactual random variable",
+      "space": "\\(\\mathcal Y\\)",
+      "def": "The counterfactual outcome \\(Y^{1,1}\\) under \\(\\bar a=(1,1)\\).",
+      "refs": ["Yspace", "astar"]
+    },
+    {
+      "name": "Q",
+      "type": "probability law",
+      "space": "full-data laws containing \\(Y^{1,1}\\)",
+      "def": "A candidate compatible full-data law \\(Q\\).",
+      "refs": ["Ystar"]
+    },
+    {
+      "name": "eps",
+      "type": "real constant",
+      "space": "\\((0,1/2)\\)",
+      "def": "The observed propensity-overlap constant \\(\\varepsilon\\)."
+    },
+    {
+      "name": "pi0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\to(0,1)\\)",
+      "sig": "\\(\\pi_0(\\ell_0)=P(A_0=1\\mid L_0=\\ell_0)\\)",
+      "def": "The first observed propensity \\(\\pi_0\\).",
+      "refs": ["P", "A0", "L0", "Lspace0"]
+    },
+    {
+      "name": "pi1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\to(0,1)\\)",
+      "sig": "\\(\\pi_1(h)=P(A_1=1\\mid A_0=1,H_1=h)\\)",
+      "def": "The second observed propensity \\(\\pi_1\\).",
+      "refs": ["P", "A0", "A1", "H1", "Lspace0", "Lspace1"]
+    },
+    {
+      "name": "G",
+      "type": "Markov kernel",
+      "space": "\\(\\mathcal L_0\\rightsquigarrow\\mathcal L_1\\)",
+      "sig": "\\(G(d\\ell_1\\mid\\ell_0)=P(d\\ell_1\\mid A_0=1,L_0=\\ell_0)\\)",
+      "def": "The treated first-period covariate kernel \\(G\\).",
+      "refs": ["P", "A0", "L0", "L1", "Lspace0", "Lspace1"]
+    },
+    {
+      "name": "F",
+      "type": "Markov kernel",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\rightsquigarrow\\mathcal Y\\)",
+      "sig": "\\(F(dy\\mid h)=P(dy\\mid A_0=A_1=1,H_1=h)\\)",
+      "def": "The sustained-path outcome kernel \\(F\\).",
+      "refs": ["P", "A0", "A1", "H1", "Y", "Yspace"]
+    },
+    {
+      "name": "Ppath",
+      "type": "probability law",
+      "space": "\\(\\mathcal P(\\mathcal L_0\\times\\mathcal L_1\\times\\mathcal Y)\\)",
+      "def": "The treated-path law \\(R(d\\ell_0,d\\ell_1,dy)=P(d\\ell_0)G(d\\ell_1\\mid\\ell_0)F(dy\\mid\\ell_0,\\ell_1)\\).",
+      "refs": ["P", "G", "F", "Lspace0", "Lspace1", "Yspace"]
+    },
+    {
+      "name": "Sigma0",
+      "type": "real constant",
+      "space": "\\([1,\\infty)\\)",
+      "def": "The early-stage transported second-moment budget \\(\\Sigma_0\\)."
+    },
+    {
+      "name": "Sigma1",
+      "type": "real constant",
+      "space": "\\([1,\\infty)\\)",
+      "def": "The late-stage second-moment budget \\(\\Sigma_1\\)."
+    },
+    {
+      "name": "Sigma",
+      "type": "budget vector",
+      "space": "\\([1,\\infty)^2\\)",
+      "def": "The sensitivity budget \\(\\Sigma=(\\Sigma_0,\\Sigma_1)\\).",
+      "refs": ["Sigma0", "Sigma1"]
+    },
+    {
+      "name": "h0Q",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal Y\\to(0,\\infty)\\)",
+      "def": "For a full law \\(Q\\), \\(h_0^Q(L_0,Y^{1,1})=\\pi_0(L_0)/Q(A_0=1\\mid L_0,Y^{1,1})\\).",
+      "refs": ["Q", "pi0", "A0", "L0", "Ystar", "Lspace0", "Yspace"]
+    },
+    {
+      "name": "h1Q",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\times\\mathcal Y\\to(0,\\infty)\\)",
+      "def": "For a full law \\(Q\\), \\(h_1^Q(H_1,Y^{1,1})=\\pi_1(H_1)/Q(A_1=1\\mid A_0=1,H_1,Y^{1,1})\\).",
+      "refs": ["Q", "pi1", "A0", "A1", "H1", "Ystar", "Lspace0", "Lspace1", "Yspace"]
+    },
+    {
+      "name": "B0Q",
+      "type": "real functional",
+      "space": "\\([1,\\infty]\\)",
+      "def": "The early budget functional \\(B_0(Q)=E_R[(h_0^Q)^2h_1^Q]\\).",
+      "refs": ["Q", "Ppath", "h0Q", "h1Q"]
+    },
+    {
+      "name": "B1Q",
+      "type": "real functional",
+      "space": "\\([1,\\infty]\\)",
+      "def": "The late budget functional \\(B_1(Q)=E_R[(h_1^Q)^2]\\).",
+      "refs": ["Q", "Ppath", "h1Q"]
+    },
+    {
+      "name": "muQ",
+      "type": "real functional",
+      "space": "\\([y_{\\min},y_{\\max}]\\)",
+      "def": "The target mean \\(\\mu(Q)=E_Q[Y^{1,1}]\\).",
+      "refs": ["Q", "Ystar", "ymin", "ymax"]
+    },
+    {
+      "name": "Qclass",
+      "type": "class of probability laws",
+      "space": "subsets of the full-data-law space",
+      "def": "The compatible sequential average-case class \\(\\mathfrak Q(P,\\Sigma)\\).",
+      "refs": ["P", "Sigma", "Q"]
+    },
+    {
+      "name": "Theta",
+      "type": "set-valued functional",
+      "space": "compact subsets of \\([y_{\\min},y_{\\max}]\\)",
+      "def": "The compatible counterfactual-mean set \\(\\Theta(P,\\Sigma)=\\{\\mu(Q):Q\\in\\mathfrak Q(P,\\Sigma)\\}\\).",
+      "refs": ["P", "Sigma", "muQ", "Qclass", "ymin", "ymax"]
+    },
+    {
+      "name": "w0",
+      "type": "measurable function",
+      "space": "\\(L^{4/3}(R)\\)",
+      "def": "The product weight \\(w_0\\), intended to equal \\(h_0h_1\\).",
+      "refs": ["Ppath"]
+    },
+    {
+      "name": "w1",
+      "type": "measurable function",
+      "space": "\\(L^2(R)\\)",
+      "def": "The late weight \\(w_1\\), intended to equal \\(h_1\\).",
+      "refs": ["Ppath"]
+    },
+    {
+      "name": "Wclass",
+      "type": "convex class",
+      "space": "subsets of \\(L^{4/3}(R)\\times L^2(R)\\)",
+      "def": "The perspective-feasible weight class \\(\\mathcal W(P,\\Sigma)\\).",
+      "refs": ["P", "Sigma", "w0", "w1", "Ppath"]
+    },
+    {
+      "name": "Signs",
+      "type": "finite index set",
+      "space": "\\(\\{-1,+1\\}\\)",
+      "def": "The objective-sign set \\(\\mathcal S_{\\pm}=\\{-1,+1\\}\\)."
+    },
+    {
+      "name": "v",
+      "type": "real-valued functional",
+      "space": "\\(\\mathcal S_{\\pm}\\times[1,\\infty)^2\\to\\mathbb R\\)",
+      "def": "The signed perspective value \\(v_s(P,\\Sigma)=\\inf_{(w_0,w_1)\\in\\mathcal W(P,\\Sigma)}E_R[sYw_0]\\).",
+      "refs": ["Signs", "P", "Sigma", "Wclass", "Ppath", "Y", "w0", "w1"]
+    },
+    {
+      "name": "Lower",
+      "type": "real-valued functional",
+      "space": "\\([1,\\infty)^2\\to[y_{\\min},y_{\\max}]\\)",
+      "def": "The lower endpoint \\(L(P,\\Sigma)=v_{+1}(P,\\Sigma)\\).",
+      "refs": ["P", "Sigma", "v", "ymin", "ymax"]
+    },
+    {
+      "name": "Upper",
+      "type": "real-valued functional",
+      "space": "\\([1,\\infty)^2\\to[y_{\\min},y_{\\max}]\\)",
+      "def": "The upper endpoint \\(U(P,\\Sigma)=-v_{-1}(P,\\Sigma)\\).",
+      "refs": ["P", "Sigma", "v", "ymin", "ymax"]
+    },
+    {
+      "name": "projh0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal Y\\to[0,\\infty)\\)",
+      "def": "For \\((w_0,w_1)\\), the projected early ratio \\(h_0^{\\Pi}(L_0,Y)=E_R[w_0\\mid L_0,Y]/E_R[w_1\\mid L_0,Y]\\).",
+      "refs": ["w0", "w1", "Ppath", "L0", "Y", "Lspace0", "Yspace"]
+    },
+    {
+      "name": "projh1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\times\\mathcal Y\\to[0,\\infty)\\)",
+      "def": "The projected late ratio \\(h_1^{\\Pi}=w_1\\).",
+      "refs": ["w1", "Lspace0", "Lspace1", "Yspace"]
+    },
+    {
+      "name": "projw0",
+      "type": "measurable function",
+      "space": "\\(L^{4/3}(R)\\)",
+      "def": "The projected product weight \\(w_0^{\\Pi}=h_0^{\\Pi}h_1^{\\Pi}\\).",
+      "refs": ["projh0", "projh1", "Ppath"]
+    },
+    {
+      "name": "eta0",
+      "type": "nonnegative real variable",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The global early-budget price \\(\\eta_0\\)."
+    },
+    {
+      "name": "eta1",
+      "type": "nonnegative real variable",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The global late-budget price \\(\\eta_1\\)."
+    },
+    {
+      "name": "a0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\to\\mathbb R\\)",
+      "def": "The baseline normalization root \\(a_0(L_0)\\).",
+      "refs": ["Lspace0", "L0"]
+    },
+    {
+      "name": "a1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\to\\mathbb R\\)",
+      "def": "The second-history normalization root \\(a_1(H_1)\\).",
+      "refs": ["Lspace0", "Lspace1", "H1"]
+    },
+    {
+      "name": "u0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal Y\\to[0,\\infty)\\)",
+      "def": "On a positive-price face, \\(u_0=\\max\\{\\pi_0,-(sY+a_0)/\\eta_0\\}\\).",
+      "refs": ["pi0", "Signs", "Y", "a0", "eta0", "Lspace0", "Yspace"]
+    },
+    {
+      "name": "phi0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal Y\\to\\mathbb R\\)",
+      "def": "The first minimized loss \\(\\phi_0=u_0(sY+a_0)+(\\eta_0/2)u_0^2\\).",
+      "refs": ["u0", "Signs", "Y", "a0", "eta0", "Lspace0", "Yspace"]
+    },
+    {
+      "name": "u1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\times\\mathcal Y\\to[0,\\infty)\\)",
+      "def": "On a positive-price face, \\(u_1=\\max\\{\\pi_1,-(\\phi_0+a_1)/\\eta_1\\}\\).",
+      "refs": ["pi1", "phi0", "a1", "eta1", "Lspace0", "Lspace1", "Yspace"]
+    },
+    {
+      "name": "phi1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\times\\mathcal Y\\to\\mathbb R\\)",
+      "def": "The second minimized loss \\(\\phi_1=u_1(\\phi_0+a_1)+(\\eta_1/2)u_1^2\\).",
+      "refs": ["u1", "phi0", "a1", "eta1", "Lspace0", "Lspace1", "Yspace"]
+    },
+    {
+      "name": "Dual",
+      "type": "extended-real functional",
+      "space": "\\([0,\\infty)^2\\times\\mathcal A_0\\times\\mathcal A_1\\to\\overline{\\mathbb R}\\)",
+      "def": "The dual criterion \\(\\mathcal D_s(\\eta,a)=-\\{\\eta_0\\Sigma_0+\\eta_1\\Sigma_1\\}/2-E_R[a_0]-E_R[a_1]+E_R[\\phi_1]\\), extended to zero prices by lower-semicontinuous closure of its positive-price epigraph.",
+      "refs": ["Signs", "eta0", "eta1", "Sigma0", "Sigma1", "a0", "a1", "phi1", "Ppath"]
+    },
+    {
+      "name": "Sreg",
+      "type": "budget index set",
+      "space": "compact subsets of \\((1,\\infty)^2\\)",
+      "def": "A fixed compact regular budget region \\(\\mathbb S\\subset(1,\\infty)^2\\)."
+    },
+    {
+      "name": "m1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\to\\mathbb R\\)",
+      "def": "The conditional loss mean \\(m_1(H_1)=E_F[\\phi_1\\mid H_1]\\).",
+      "refs": ["H1", "F", "phi1", "Lspace0", "Lspace1"]
+    },
+    {
+      "name": "g1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\to\\mathbb R\\)",
+      "def": "The late pseudo-outcome regression \\(g_1=m_1-a_1\\).",
+      "refs": ["m1", "a1", "Lspace0", "Lspace1"]
+    },
+    {
+      "name": "g0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\to\\mathbb R\\)",
+      "def": "The baseline pseudo-outcome regression \\(g_0(L_0)=E_G[g_1(H_1)\\mid L_0]\\).",
+      "refs": ["L0", "G", "g1", "H1", "Lspace0"]
+    },
+    {
+      "name": "d0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal Y\\to[0,\\infty)\\)",
+      "def": "The early floor derivative \\(d_0=(sY+a_0+\\eta_0\\pi_0)_+\\).",
+      "refs": ["Signs", "Y", "a0", "eta0", "pi0", "Lspace0", "Yspace"]
+    },
+    {
+      "name": "d1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\times\\mathcal Y\\to[0,\\infty)\\)",
+      "def": "The late floor derivative \\(d_1=(\\phi_0+a_1+\\eta_1\\pi_1)_+\\).",
+      "refs": ["phi0", "a1", "eta1", "pi1", "Lspace0", "Lspace1", "Yspace"]
+    },
+    {
+      "name": "b0",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\to[0,\\infty)\\)",
+      "def": "The early propensity-floor correction \\(b_0(L_0)=E_R[u_1d_0\\mid L_0]\\).",
+      "refs": ["L0", "Ppath", "u1", "d0", "Lspace0"]
+    },
+    {
+      "name": "b1",
+      "type": "measurable function",
+      "space": "\\(\\mathcal L_0\\times\\mathcal L_1\\to[0,\\infty)\\)",
+      "def": "The late propensity-floor correction \\(b_1(H_1)=E_F[d_1\\mid H_1]\\).",
+      "refs": ["H1", "F", "d1", "Lspace0", "Lspace1"]
+    },
+    {
+      "name": "betas",
+      "type": "optimizer-and-score bundle",
+      "space": "a product of two scalars and conditional-function spaces",
+      "def": "For sign \\(s\\), \\(\\beta_s(P,\\Sigma)=(\\eta_0,\\eta_1,a_0,a_1,m_1,g_1,g_0,b_0,b_1)\\) is the population optimizer-and-score bundle.",
+      "refs": ["Signs", "P", "Sigma", "eta0", "eta1", "a0", "a1", "m1", "g1", "g0", "b0", "b1"]
+    },
+    {
+      "name": "Cs",
+      "type": "real scalar",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The priced-budget constant \\(C_s=(\\eta_0\\Sigma_0+\\eta_1\\Sigma_1)/2\\).",
+      "refs": ["eta0", "eta1", "Sigma0", "Sigma1"]
+    },
+    {
+      "name": "Psi",
+      "type": "measurable score",
+      "space": "\\(\\mathcal O\\times\\mathbb S\\to\\mathbb R\\)",
+      "def": "The uncentered endpoint score \\(\\Psi_s=g_0-a_0-C_s+\\frac{A_0}{\\pi_0}(g_1-g_0)+\\frac{A_0A_1}{\\pi_0\\pi_1}(\\phi_1-m_1)+b_0(A_0-\\pi_0)+\\frac{A_0}{\\pi_0}b_1(A_1-\\pi_1)\\).",
+      "refs": ["Ospace", "Sreg", "Signs", "g0", "a0", "Cs", "A0", "pi0", "g1", "A1", "pi1", "phi1", "m1", "b0", "b1"]
+    },
+    {
+      "name": "Ds",
+      "type": "centered score",
+      "space": "\\(L^2_0(P)\\)",
+      "def": "The centered signed score \\(D_s(O;\\Sigma)=\\Psi_s(O;\\Sigma)-v_s(P,\\Sigma)\\).",
+      "refs": ["O", "Sigma", "Psi", "v", "P"]
+    },
+    {
+      "name": "nu",
+      "type": "primitive nuisance bundle",
+      "space": "a product of propensity and Markov-kernel spaces",
+      "def": "The primitive observed-law nuisance \\(\\nu(P)=(\\pi_0,\\pi_1,G,F)\\).",
+      "refs": ["P", "pi0", "pi1", "G", "F"]
+    },
+    {
+      "name": "rn",
+      "type": "positive deterministic sequence",
+      "space": "\\((0,\\infty)^{\\mathbb N}\\)",
+      "def": "The primitive nuisance-learning rate \\(r_n\\).",
+      "refs": ["n"]
+    },
+    {
+      "name": "RootHandle",
+      "type": "proof-and-construction handle",
+      "space": "Banach-space conditional root maps",
+      "def": "The conditional-root stability handle \\(\\mathfrak R\\): apply a Banach-space implicit-function expansion to the nested maps \\(E_F[u_1\\mid H_1]-1\\) and \\(E_R[u_0u_1\\mid L_0]-1\\), then apply a two-dimensional Schur-complement expansion to the budget equations, while differentiating both propensity floors inside the clipped losses.",
+      "refs": ["F", "Ppath", "u0", "u1", "H1", "L0", "pi0", "pi1", "eta0", "eta1"]
+    },
+    {
+      "name": "Kfold",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "A fixed number \\(K_{\\mathrm{fold}}\\) of sample-splitting folds."
+    },
+    {
+      "name": "nuhat",
+      "type": "cross-fitted nuisance estimator",
+      "space": "the same product space as \\(\\nu\\)",
+      "def": "The training-fold primitive estimate \\(\\widehat\\nu^{(-k)}\\).",
+      "refs": ["nu", "Kfold", "Sample"]
+    },
+    {
+      "name": "betahat",
+      "type": "cross-fitted optimizer bundle",
+      "space": "the same product space as \\(\\beta_s\\)",
+      "def": "The bundle \\(\\widehat\\beta_s^{(-k)}(\\Sigma)=(\\widehat\\eta_0,\\widehat\\eta_1,\\widehat a_0,\\widehat a_1,\\widehat m_1,\\widehat g_1,\\widehat g_0,\\widehat b_0,\\widehat b_1)\\) obtained by solving the nested conditional roots and two price equations and then evaluating the score regressions after substituting \\(\\widehat\\nu^{(-k)}\\).",
+      "refs": ["betas", "nuhat", "Signs", "Sigma", "eta0", "eta1", "a0", "a1", "m1", "g1", "g0", "b0", "b1"]
+    },
+    {
+      "name": "vhat",
+      "type": "cross-fitted estimator process",
+      "space": "\\(\\ell^\\infty(\\mathcal S_{\\pm}\\times\\mathbb S)\\)",
+      "def": "The signed one-step process \\(\\widehat v_s(\\Sigma)=n^{-1}\\sum_{i=1}^n\\Psi_s(O_i;\\widehat\\beta_s^{(-k(i))}(\\Sigma))\\).",
+      "refs": ["Signs", "Sreg", "n", "Psi", "Sample", "betahat"]
+    },
+    {
+      "name": "Lhat",
+      "type": "estimator process",
+      "space": "\\(\\ell^\\infty(\\mathbb S)\\)",
+      "def": "The lower endpoint process \\(\\widehat L(\\Sigma)=\\widehat v_{+1}(\\Sigma)\\).",
+      "refs": ["Sreg", "vhat"]
+    },
+    {
+      "name": "Uhat",
+      "type": "estimator process",
+      "space": "\\(\\ell^\\infty(\\mathbb S)\\)",
+      "def": "The upper endpoint process \\(\\widehat U(\\Sigma)=-\\widehat v_{-1}(\\Sigma)\\).",
+      "refs": ["Sreg", "vhat"]
+    },
+    {
+      "name": "Gproc",
+      "type": "Gaussian process",
+      "space": "\\(\\ell^\\infty(\\mathcal S_{\\pm}\\times\\mathbb S)\\)",
+      "def": "The tight mean-zero Gaussian process \\(\\mathbb G\\) with covariance kernel \\(\\operatorname{Cov}_P\\{D_s(O;\\Sigma),D_{s'}(O;\\Sigma')\\}\\).",
+      "refs": ["Signs", "Sreg", "P", "Ds", "O", "Sigma"]
+    },
+    {
+      "name": "c0",
+      "type": "nonnegative real constant",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The early coordinate \\(c_0\\) of the calibration-ray direction."
+    },
+    {
+      "name": "c1",
+      "type": "nonnegative real constant",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The late coordinate \\(c_1\\) of the calibration-ray direction."
+    },
+    {
+      "name": "kmax",
+      "type": "positive real constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The terminal calibration value \\(\\kappa_{\\max}\\)."
+    },
+    {
+      "name": "Kray",
+      "type": "compact interval",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The calibration domain \\(\\mathbb K=[0,\\kappa_{\\max}]\\).",
+      "refs": ["kmax"]
+    },
+    {
+      "name": "ray",
+      "type": "continuous map",
+      "space": "\\(\\mathbb K\\to[1,\\infty)^2\\)",
+      "def": "The fixed calibration ray \\(r_c(\\kappa)=(1+c_0\\kappa,1+c_1\\kappa)\\), where \\(c_0+c_1>0\\).",
+      "refs": ["Kray", "c0", "c1"]
+    },
+    {
+      "name": "b",
+      "type": "real constant",
+      "space": "\\([y_{\\min},y_{\\max}]\\)",
+      "def": "The fixed substantive benchmark \\(b\\).",
+      "refs": ["ymin", "ymax"]
+    },
+    {
+      "name": "alpha",
+      "type": "real constant",
+      "space": "\\((0,1)\\)",
+      "def": "The simultaneous-band error probability \\(\\alpha\\)."
+    },
+    {
+      "name": "f",
+      "type": "nonincreasing function",
+      "space": "\\(\\mathbb K\\to[y_{\\min},y_{\\max}]\\)",
+      "def": "The lower sensitivity curve \\(f(\\kappa)=L\\{P,r_c(\\kappa)\\}\\).",
+      "refs": ["Kray", "ymin", "ymax", "Lower", "P", "ray"]
+    },
+    {
+      "name": "Tb",
+      "type": "extended-real functional",
+      "space": "\\([0,\\infty]\\)",
+      "def": "The breakdown map \\(T_b(g)=\\inf\\{\\kappa\\in\\mathbb K:g(\\kappa)\\le b\\}\\), with \\(\\inf\\varnothing=+\\infty\\).",
+      "refs": ["b", "Kray"]
+    },
+    {
+      "name": "ell",
+      "type": "random band endpoint",
+      "space": "\\(\\ell^\\infty(\\mathbb K)\\)",
+      "def": "The full-ray lower band endpoint \\(\\ell\\), equal to the clipped common-multiplier lower endpoint on \\(r_c^{-1}(\\mathbb S)\\) and to \\(y_{\\min}\\) elsewhere.",
+      "refs": ["Kray", "ray", "Sreg", "ymin"]
+    },
+    {
+      "name": "uband",
+      "type": "random band endpoint",
+      "space": "\\(\\ell^\\infty(\\mathbb K)\\)",
+      "def": "The full-ray upper band endpoint \\(u\\), equal to the clipped common-multiplier upper endpoint on \\(r_c^{-1}(\\mathbb S)\\) and to \\(y_{\\max}\\) elsewhere.",
+      "refs": ["Kray", "ray", "Sreg", "ymax"]
+    },
+    {
+      "name": "ellmon",
+      "type": "random monotone band endpoint",
+      "space": "\\(\\ell^\\infty(\\mathbb K)\\)",
+      "def": "The monotone lower envelope \\(\\ell^{\\mathrm{mon}}(\\kappa)=\\sup_{t\\in\\mathbb K:t\\ge\\kappa}\\ell(t)\\).",
+      "refs": ["Kray", "ell"]
+    },
+    {
+      "name": "umon",
+      "type": "random monotone band endpoint",
+      "space": "\\(\\ell^\\infty(\\mathbb K)\\)",
+      "def": "The monotone upper envelope \\(u^{\\mathrm{mon}}(\\kappa)=\\inf_{t\\in\\mathbb K:t\\le\\kappa}u(t)\\).",
+      "refs": ["Kray", "uband"]
+    },
+    {
+      "name": "Cbreak",
+      "type": "random closed set",
+      "space": "subsets of \\([0,\\infty]\\)",
+      "def": "The breakdown confidence set \\(\\mathcal C_b=\\{T_b(g):g\\text{ is nonincreasing on }\\mathbb K,\\ \\ell^{\\mathrm{mon}}\\le g\\le u^{\\mathrm{mon}}\\}\\).",
+      "refs": ["Tb", "Kray", "ellmon", "umon"]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid",
+      "kind": "sampling",
+      "condition": "\\(O_1,\\ldots,O_n\\) are independent and identically distributed with law \\(P\\).",
+      "free_symbols": ["Sample", "n", "P", "O"],
+      "standard": {"name": "Independent sampling", "cite": "ChernozhukovEtAl2018DML"},
+      "used_by": ["thm:uniform-process"]
+    },
+    {
+      "id": "ass:bounded-outcome",
+      "kind": "support",
+      "condition": "\\(P(y_{\\min}\\le Y\\le y_{\\max})=1\\).",
+      "free_symbols": ["P", "ymin", "Y", "ymax"],
+      "standard": {"name": "Known bounded outcome scale", "cite": "ZhangZhao2026AverageCase"},
+      "used_by": ["thm:sharp-interval", "thm:full-ray-inversion"]
+    },
+    {
+      "id": "ass:overlap-zero",
+      "kind": "overlap",
+      "condition": "\\(\\varepsilon\\le\\pi_0(L_0)\\le1-\\varepsilon\\) almost surely.",
+      "free_symbols": ["eps", "pi0", "L0"],
+      "standard": {"name": "Sequential overlap at the first decision", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["thm:sharp-interval", "thm:uniform-process"]
+    },
+    {
+      "id": "ass:overlap-one",
+      "kind": "overlap",
+      "condition": "\\(\\varepsilon\\le\\pi_1(H_1)\\le1-\\varepsilon\\) almost surely under \\(R\\).",
+      "free_symbols": ["eps", "pi1", "H1", "Ppath"],
+      "standard": {"name": "Sequential overlap at the second decision", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["thm:sharp-interval", "thm:uniform-process"]
+    },
+    {
+      "id": "ass:compatibility",
+      "kind": "class-member property",
+      "condition": "The observed law induced by \\(Q\\) through consistency equals \\(P\\).",
+      "free_symbols": ["Q", "P"],
+      "standard": {"name": "Observed-law compatibility", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["def:compatible-laws"]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "class-member property",
+      "condition": "\\(Q(Y=Y^{1,1}\\mid A_0=A_1=1)=1\\).",
+      "free_symbols": ["Q", "Y", "Ystar", "A0", "A1"],
+      "standard": {"name": "Consistency on the target treatment path", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["def:compatible-laws"]
+    },
+    {
+      "id": "ass:full-positive-zero",
+      "kind": "class-member property",
+      "condition": "\\(Q(A_0=1\\mid L_0,Y^{1,1})>0\\) almost surely.",
+      "free_symbols": ["Q", "A0", "L0", "Ystar"],
+      "standard": {"name": "Full-data positivity at the first decision", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["def:compatible-laws"]
+    },
+    {
+      "id": "ass:full-positive-one",
+      "kind": "class-member property",
+      "condition": "\\(Q(A_1=1\\mid A_0=1,H_1,Y^{1,1})>0\\) almost surely.",
+      "free_symbols": ["Q", "A0", "A1", "H1", "Ystar"],
+      "standard": {"name": "Full-data positivity at the second decision", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["def:compatible-laws"]
+    },
+    {
+      "id": "ass:full-budget-zero",
+      "kind": "class-member property",
+      "condition": "\\(B_0(Q)\\le\\Sigma_0\\).",
+      "free_symbols": ["B0Q", "Q", "Sigma0"],
+      "novel": {"flag": true, "justification": "The transported early-stage second moment measures average rather than worst-case confounding and is finite for bounded latent selection odds; it can be calibrated by refitting the two treatment mechanisms after deleting observed history variables."},
+      "used_by": ["def:compatible-laws"]
+    },
+    {
+      "id": "ass:full-budget-one",
+      "kind": "class-member property",
+      "condition": "\\(B_1(Q)\\le\\Sigma_1\\).",
+      "free_symbols": ["B1Q", "Q", "Sigma1"],
+      "novel": {"flag": true, "justification": "The late-stage second moment is the history-indexed longitudinal counterpart of the average-case budget and is satisfied by square-integrable full-data propensity ratios, including models with rare large deviations."},
+      "used_by": ["def:compatible-laws"]
+    },
+    {
+      "id": "ass:weight-floor-one",
+      "kind": "class-member property",
+      "condition": "\\(w_1\\ge\\pi_1\\) almost surely under \\(R\\).",
+      "free_symbols": ["w1", "pi1", "Ppath"],
+      "standard": {"name": "Propensity-ratio lower support restriction", "cite": "ZhangZhao2026AverageCase"},
+      "used_by": ["def:perspective-class"]
+    },
+    {
+      "id": "ass:weight-floor-zero",
+      "kind": "class-member property",
+      "condition": "\\(w_0\\ge\\pi_0w_1\\) almost surely under \\(R\\).",
+      "free_symbols": ["w0", "pi0", "w1", "Ppath"],
+      "standard": {"name": "Sequential propensity-ratio lower support restriction", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["def:perspective-class"]
+    },
+    {
+      "id": "ass:weight-normalize-one",
+      "kind": "class-member property",
+      "condition": "\\(E_R[w_1\\mid H_1]=1\\) almost surely.",
+      "free_symbols": ["Ppath", "w1", "H1"],
+      "standard": {"name": "Late sequential density-ratio normalization", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["def:perspective-class"]
+    },
+    {
+      "id": "ass:weight-normalize-zero",
+      "kind": "class-member property",
+      "condition": "\\(E_R[w_0\\mid L_0]=1\\) almost surely.",
+      "free_symbols": ["Ppath", "w0", "L0"],
+      "standard": {"name": "Early sequential density-ratio normalization", "cite": "Tan2025SequentialSensitivity"},
+      "used_by": ["def:perspective-class"]
+    },
+    {
+      "id": "ass:weight-budget-one",
+      "kind": "class-member property",
+      "condition": "\\(E_R[w_1^2]\\le\\Sigma_1\\).",
+      "free_symbols": ["Ppath", "w1", "Sigma1"],
+      "novel": {"flag": true, "justification": "This is the directly calibratable average strength of second-stage selection and permits rare extreme confounding that a uniform odds-ratio cap forbids."},
+      "used_by": ["def:perspective-class"]
+    },
+    {
+      "id": "ass:weight-budget-zero",
+      "kind": "class-member property",
+      "condition": "\\(E_R[w_0^2/w_1]\\le\\Sigma_0\\).",
+      "free_symbols": ["Ppath", "w0", "w1", "Sigma0"],
+      "novel": {"flag": true, "justification": "The perspective moment is the observed-law form of the early ratio budget transported through later selection; it is finite for square-integrable sequential ratios and respects the marginal history at which early confounding is defined."},
+      "used_by": ["def:perspective-class"]
+    },
+    {
+      "id": "ass:regular-compact",
+      "kind": "index regularity",
+      "condition": "\\(\\mathbb S\\) is a nonempty compact subset of \\((1,\\infty)^2\\).",
+      "free_symbols": ["Sreg"],
+      "standard": {"name": "Compact sensitivity-index set", "cite": "ZhangZhao2026AverageCase"},
+      "used_by": ["oeq:root-stability", "thm:uniform-process"]
+    },
+    {
+      "id": "ass:regular-prices",
+      "kind": "optimizer regularity",
+      "condition": "There exist constants \\(0<\\underline\\eta<\\overline\\eta<\\infty\\) such that \\(\\underline\\eta\\le\\eta_t(s,\\Sigma)\\le\\overline\\eta\\) for every \\(t\\in\\{0,1\\}\\), \\(s\\in\\mathcal S_{\\pm}\\), and \\(\\Sigma\\in\\mathbb S\\).",
+      "free_symbols": ["eta0", "eta1", "Signs", "Sigma", "Sreg"],
+      "constants": ["\\(\\underline\\eta\\)", "\\(\\overline\\eta\\)"],
+      "standard": {"name": "Interior Lagrange-multiplier regularity", "cite": "ZhangZhao2026AverageCase"},
+      "used_by": ["oeq:root-stability", "thm:uniform-process"]
+    },
+    {
+      "id": "ass:unique-optimizer",
+      "kind": "optimizer regularity",
+      "condition": "\\(\\beta_s(P,\\Sigma)\\) is unique for every \\(s\\in\\mathcal S_{\\pm}\\) and \\(\\Sigma\\in\\mathbb S\\).",
+      "free_symbols": ["betas", "P", "Sigma", "Signs", "Sreg"],
+      "standard": {"name": "Unique regular optimizer", "cite": "ZhangZhao2026AverageCase"},
+      "used_by": ["oeq:root-stability", "thm:uniform-process"]
+    },
+    {
+      "id": "ass:root-identification",
+      "kind": "operator regularity",
+      "condition": "After profiling the conditional roots, the essential infimum over \\(s\\in\\mathcal S_{\\pm}\\) and \\(\\Sigma\\in\\mathbb S\\) of \\(\\min\\{P_R(u_0>\\pi_0\\mid L_0),P_R(u_1>\\pi_1\\mid H_1),\\sigma_{\\min}[\\partial_{(\\eta_0,\\eta_1)}\\{E_R(u_0^2u_1),E_R(u_1^2)\\}]\\}\\) is at least \\(c_{\\mathrm{root}}>0\\).",
+      "free_symbols": ["Signs", "Sreg", "Sigma", "u0", "u1", "eta0", "eta1", "Ppath", "pi0", "pi1", "L0", "H1"],
+      "constants": ["\\(c_{\\mathrm{root}}\\)"],
+      "standard": {"name": "Uniform strong identification for nested Z-estimation", "cite": "NeweyMcFadden1994"},
+      "used_by": ["oeq:root-stability"]
+    },
+    {
+      "id": "ass:clipping-margin",
+      "kind": "margin",
+      "condition": "For some \\(C_{\\mathrm{mar}}<\\infty\\), \\(\\sup_{s\\in\\mathcal S_{\\pm},\\Sigma\\in\\mathbb S}P_R\\{|sY+a_0+\\eta_0\\pi_0|\\le t\\ \\text{or}\\ |\\phi_0+a_1+\\eta_1\\pi_1|\\le t\\}\\le C_{\\mathrm{mar}}t\\) for every \\(t>0\\).",
+      "free_symbols": ["Ppath", "Signs", "Sreg", "Sigma", "phi0", "a0", "a1", "eta0", "eta1", "pi0", "pi1", "Y"],
+      "constants": ["\\(C_{\\mathrm{mar}}\\)"],
+      "standard": {"name": "Linear margin condition at clipping thresholds", "cite": "AudibertTsybakov2007"},
+      "used_by": ["oeq:root-stability", "thm:uniform-process"]
+    },
+    {
+      "id": "ass:nuisance-estimability",
+      "kind": "nuisance complexity",
+      "condition": "Each component of the primitive bundle \\(\\nu(P)\\) admits an estimator trained on an independent sample for which the sum of the appropriate \\(L^2(P)\\), \\(L^2(R)\\), and kernel-integrated errors is \\(O_P(r_n)\\).",
+      "free_symbols": ["nu", "P", "Ppath", "rn"],
+      "standard": {"name": "Cross-fitted primitive nuisance estimability", "cite": "ChernozhukovEtAl2018DML"},
+      "used_by": ["oeq:root-stability", "thm:uniform-process"]
+    },
+    {
+      "id": "ass:quadratic-rate",
+      "kind": "rate",
+      "condition": "\\(\\sqrt n\\,r_n^2\\to0\\).",
+      "free_symbols": ["n", "rn"],
+      "standard": {"name": "Orthogonal-score product-rate condition", "cite": "ChernozhukovEtAl2018DML"},
+      "used_by": ["thm:uniform-process"]
+    },
+    {
+      "id": "ass:variance-nondegenerate",
+      "kind": "variance",
+      "condition": "\\(\\inf_{s\\in\\mathcal S_{\\pm},\\Sigma\\in\\mathbb S}\\operatorname{Var}_P\\{D_s(O;\\Sigma)\\}>0\\).",
+      "free_symbols": ["Signs", "Sigma", "Sreg", "P", "Ds", "O"],
+      "standard": {"name": "Uniform score nondegeneracy", "cite": "ZhangZhao2026AverageCase"},
+      "used_by": ["thm:uniform-process"]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:compatible-laws",
+      "name": "Sequential average-case compatible laws",
+      "construction": "\\(\\mathfrak Q(P,\\Sigma)=\\{Q: Q\\text{ induces }P,\\ Q(Y=Y^{1,1}\\mid A_0=A_1=1)=1,\\ Q(A_0=1\\mid L_0,Y^{1,1})>0,\\ Q(A_1=1\\mid A_0=1,H_1,Y^{1,1})>0,\\ B_0(Q)\\le\\Sigma_0,\\ B_1(Q)\\le\\Sigma_1\\}\\).",
+      "free_symbols": ["Qclass", "P", "Sigma", "Q", "Y", "Ystar", "A0", "A1", "L0", "H1", "B0Q", "B1Q", "Sigma0", "Sigma1"],
+      "by_member_properties": ["ass:compatibility", "ass:consistency", "ass:full-positive-zero", "ass:full-positive-one", "ass:full-budget-zero", "ass:full-budget-one"]
+    },
+    {
+      "id": "def:perspective-class",
+      "name": "Sequential perspective feasible set",
+      "construction": "\\(\\mathcal W(P,\\Sigma)=\\{(w_0,w_1)\\in L^{4/3}(R)\\times L^2(R):w_1\\ge\\pi_1,\\ w_0\\ge\\pi_0w_1,\\ E_R[w_1\\mid H_1]=1,\\ E_R[w_0\\mid L_0]=1,\\ E_R[w_1^2]\\le\\Sigma_1,\\ E_R[w_0^2/w_1]\\le\\Sigma_0\\}\\).",
+      "free_symbols": ["Wclass", "P", "Sigma", "w0", "w1", "Ppath", "pi0", "pi1", "H1", "L0", "Sigma0", "Sigma1"],
+      "by_member_properties": ["ass:weight-floor-one", "ass:weight-floor-zero", "ass:weight-normalize-one", "ass:weight-normalize-zero", "ass:weight-budget-one", "ass:weight-budget-zero"]
+    },
+    {
+      "id": "def:identified-set",
+      "name": "Compatible counterfactual-mean set",
+      "construction": "\\(\\Theta(P,\\Sigma)=\\{E_Q[Y^{1,1}]:Q\\in\\mathfrak Q(P,\\Sigma)\\}\\).",
+      "free_symbols": ["Theta", "P", "Sigma", "Q", "Ystar", "Qclass"],
+      "inputs": ["def:compatible-laws"]
+    },
+    {
+      "id": "def:endpoints",
+      "name": "Perspective endpoints",
+      "construction": "\\(L(P,\\Sigma)=\\inf_{(w_0,w_1)\\in\\mathcal W(P,\\Sigma)}E_R[Yw_0]\\) and \\(U(P,\\Sigma)=\\sup_{(w_0,w_1)\\in\\mathcal W(P,\\Sigma)}E_R[Yw_0]\\).",
+      "free_symbols": ["Lower", "Upper", "P", "Sigma", "w0", "w1", "Wclass", "Ppath", "Y"],
+      "inputs": ["def:perspective-class"]
+    },
+    {
+      "id": "def:projection",
+      "name": "Factorization-restoring conditional projection",
+      "construction": "Given \\((w_0,w_1)\\in\\mathcal W(P,\\Sigma)\\), set \\(h_0^{\\Pi}=E_R[w_0\\mid L_0,Y]/E_R[w_1\\mid L_0,Y]\\), \\(h_1^{\\Pi}=w_1\\), and \\(w_0^{\\Pi}=h_0^{\\Pi}w_1\\).",
+      "free_symbols": ["w0", "w1", "Wclass", "P", "Sigma", "Ppath", "L0", "Y", "projh0", "projh1", "projw0"],
+      "inputs": ["def:perspective-class"]
+    },
+    {
+      "id": "def:dual",
+      "name": "Two-price conditional-root dual",
+      "construction": "For \\(\\eta_0,\\eta_1>0\\), solve \\(E_R[u_1\\mid H_1]=1\\) for \\(a_1(H_1)\\) at each history and solve \\(E_R[u_0u_1\\mid L_0]=1\\) for \\(a_0(L_0)\\), with the history roots recomputed; evaluate \\(\\mathcal D_s\\), and define the zero-price value by the lower-semicontinuous closure as \\(\\eta_t\\downarrow0\\).",
+      "free_symbols": ["eta0", "eta1", "Ppath", "u1", "H1", "a1", "u0", "L0", "a0", "Dual", "Signs"],
+      "inputs": ["def:endpoints"]
+    },
+    {
+      "id": "def:root-handle",
+      "name": "Conditional-root perturbation handle",
+      "construction": "Use \\(\\mathfrak R\\) to obtain the optimizer bundle from estimated primitive kernels: invert the two nested conditional normalization maps in their \\(L^2\\) function spaces, form the two-budget Schur complement, and retain the two explicit propensity-floor derivatives \\(b_0\\) and \\(b_1\\) in the endpoint score.",
+      "free_symbols": ["RootHandle", "nu", "betas", "b0", "b1"],
+      "inputs": ["def:dual"]
+    },
+    {
+      "id": "def:one-step",
+      "name": "Cross-fitted one-step endpoint process",
+      "construction": "Partition \\(\\mathbb O_n\\) into \\(K_{\\mathrm{fold}}\\) folds, estimate \\(\\widehat\\nu^{(-k)}\\) on each training complement, solve the conditional-root dual for \\(\\widehat\\beta_s^{(-k)}(\\Sigma)\\), and set \\(\\widehat v_s(\\Sigma)=n^{-1}\\sum_{i=1}^n\\Psi_s(O_i;\\widehat\\beta_s^{(-k(i))}(\\Sigma))\\), \\(\\widehat L=\\widehat v_{+1}\\), and \\(\\widehat U=-\\widehat v_{-1}\\).",
+      "free_symbols": ["Sample", "n", "Kfold", "nuhat", "betahat", "Signs", "Sigma", "vhat", "Psi", "Lhat", "Uhat"],
+      "inputs": ["def:root-handle"]
+    },
+    {
+      "id": "def:ray",
+      "name": "Calibration ray and breakdown point",
+      "construction": "\\(r_c(\\kappa)=(1+c_0\\kappa,1+c_1\\kappa)\\), \\(f(\\kappa)=L\\{P,r_c(\\kappa)\\}\\), and \\(T_b(f)=\\inf\\{\\kappa\\in\\mathbb K:f(\\kappa)\\le b\\}\\), with \\(\\inf\\varnothing=+\\infty\\).",
+      "free_symbols": ["ray", "Kray", "c0", "c1", "f", "Lower", "P", "Tb", "b"],
+      "inputs": ["def:endpoints"]
+    },
+    {
+      "id": "def:full-band",
+      "name": "Range-extended monotone full-ray band",
+      "construction": "Use one common \\((1-\\alpha)\\) Gaussian-multiplier critical value for the joint signed process on \\(r_c^{-1}(\\mathbb S)\\), clip it to \\([y_{\\min},y_{\\max}]\\), put \\([\\ell(\\kappa),u(\\kappa)]=[y_{\\min},y_{\\max}]\\) outside that set, and set \\(\\ell^{\\mathrm{mon}}(\\kappa)=\\sup_{t\\ge\\kappa}\\ell(t)\\), \\(u^{\\mathrm{mon}}(\\kappa)=\\inf_{t\\le\\kappa}u(t)\\).",
+      "free_symbols": ["Gproc", "ray", "Sreg", "ymin", "ymax", "ell", "uband", "Kray", "ellmon", "umon", "alpha"],
+      "inputs": ["def:one-step", "def:ray"]
+    },
+    {
+      "id": "def:breakdown-confidence",
+      "name": "Set-valued breakdown inversion",
+      "construction": "\\(\\mathcal C_b=\\{T_b(g):g\\text{ is nonincreasing on }\\mathbb K,\\ \\ell^{\\mathrm{mon}}(\\kappa)\\le g(\\kappa)\\le u^{\\mathrm{mon}}(\\kappa)\\text{ for every }\\kappa\\in\\mathbb K\\}\\).",
+      "free_symbols": ["Cbreak", "Tb", "Kray", "ellmon", "umon"],
+      "inputs": ["def:full-band"]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:projection-factorization",
+      "kind": "lemma",
+      "statement": "For every \\((w_0,w_1)\\in\\mathcal W(P,\\Sigma)\\), the projection in Definition 5 satisfies \\(E_R[Yw_0^{\\Pi}]=E_R[Yw_0]\\), \\(E_R[w_0^{\\Pi}\\mid L_0]=1\\), \\(w_0^{\\Pi}\\ge\\pi_0w_1\\), and \\(E_R[(w_0^{\\Pi})^2/w_1]\\le E_R[w_0^2/w_1]\\); hence \\(w_0^{\\Pi}=h_0^{\\Pi}(L_0,Y)h_1^{\\Pi}(H_1,Y)\\) restores the required early-history factorization without changing the objective.",
+      "free_symbols": ["w0", "w1", "Wclass", "P", "Sigma", "Ppath", "Y", "L0", "pi0", "projh0", "projh1", "projw0", "H1"],
+      "depends_on": ["def:perspective-class", "def:projection", "ass:overlap-one"],
+      "status": "to-prove",
+      "justification": "This is the first proof step that fails under a naive stage-by-stage application of cross-sectional water filling.",
+      "gap": "Tan's compatibility construction preserves the restricted history under box constraints, while Zhang and Zhao use one-stage quadratic weights; neither proves this conditional perspective contraction.",
+      "consumer": "The lemma converts any convex-program optimizer into ratios that can be pasted into a compatible longitudinal full law."
+    },
+    {
+      "id": "thm:sharp-interval",
+      "kind": "theorem",
+      "statement": "For every finite \\(\\Sigma\\in[1,\\infty)^2\\), \\(\\Theta(P,\\Sigma)=[L(P,\\Sigma),U(P,\\Sigma)]\\). The feasible set \\(\\mathcal W(P,\\Sigma)\\) is weakly compact in \\(L^{4/3}(R)\\times L^2(R)\\); both extrema are attained; the projected endpoint ratios generate compatible laws in \\(\\mathfrak Q(P,\\Sigma)\\); and convex interpolation followed by projection attains every value between the endpoints.",
+      "free_symbols": ["Sigma", "Theta", "P", "Lower", "Upper", "Wclass", "Ppath", "Qclass"],
+      "depends_on": ["ass:bounded-outcome", "ass:overlap-zero", "ass:overlap-one", "def:compatible-laws", "def:perspective-class", "def:identified-set", "def:endpoints", "lem:projection-factorization"],
+      "status": "to-prove",
+      "justification": "Sharpness must refer to one compatible full-law class, not merely to a relaxed weight program.",
+      "gap": "Tan proves compatible sharpness for sequential range bounds and Zhang and Zhao prove one-treatment quadratic sharpness; the transported perspective budget and restricted early ratio are absent from both.",
+      "consumer": "An analyst evaluating the sustained regime \\((1,1)\\) obtains an exact sensitivity interval rather than a conservative longitudinal relaxation."
+    },
+    {
+      "id": "thm:two-price-dual",
+      "kind": "theorem",
+      "statement": "For \\(s\\in\\mathcal S_{\\pm}\\) and finite \\(\\Sigma\\in[1,\\infty)^2\\), \\(v_s(P,\\Sigma)=\\sup_{\\eta_0,\\eta_1\\ge0,a_0,a_1}\\mathcal D_s(\\eta,a)\\). On every positive-price face the maximizing weights are the nested clipped-affine pair \\((u_0u_1,u_1)\\), where the conditional roots uniquely solve \\(E_R[u_1\\mid H_1]=1\\) and \\(E_R[u_0u_1\\mid L_0]=1\\). If a price is zero, the same value is the lower-semicontinuous positive-price limit with the corresponding pointwise minimizer interpreted as set-valued; if \\(\\Sigma_t=1\\), the forced equality face is reduced before dualization.",
+      "free_symbols": ["Signs", "Sigma", "v", "P", "eta0", "eta1", "a0", "a1", "Dual", "u0", "u1", "Ppath", "H1", "L0", "Sigma0", "Sigma1"],
+      "depends_on": ["def:perspective-class", "def:endpoints", "def:dual", "thm:sharp-interval"],
+      "status": "to-prove",
+      "justification": "Two global budget prices and conditional scalar roots make the sharp interval evaluable and expose its regular and nonregular faces.",
+      "gap": "Zhang and Zhao have one price and one conditional root; Tan has nested check-loss duals for range constraints, not coupled quadratic perspective budgets or zero-price faces.",
+      "consumer": "The dual supplies a stable computation and the optimizer objects required for endpoint differentiation."
+    },
+    {
+      "id": "thm:boundary-reductions",
+      "kind": "theorem",
+      "statement": "If \\(\\Sigma_1=1\\), then \\(w_1=1\\) almost surely and the program reduces to one-stage average-case water filling for \\(h_0^{\\Pi}(L_0,Y)\\) under the \\(L_1\\)-mixed path law. If \\(\\Sigma_0=1\\), then \\(w_0=w_1\\) almost surely and it reduces to one-stage average-case water filling for \\(h_1^{\\Pi}(H_1,Y)\\). At \\((\\Sigma_0,\\Sigma_1)=(1,1)\\), \\(L(P,\\Sigma)=U(P,\\Sigma)=E_R[Y]\\). When \\(\\Sigma_0=1\\), the reduced program and its positive-price dual are algebraically identical to Zhang and Zhao's one-stage average-case problem applied to the path pseudo-population with covariate \\(H_1\\), outcome \\(Y\\), and propensity \\(\\pi_1\\).",
+      "free_symbols": ["Sigma0", "Sigma1", "w1", "w0", "projh0", "L0", "Y", "L1", "Ppath", "projh1", "H1", "Lower", "Upper", "P", "Sigma", "pi1"],
+      "depends_on": ["def:perspective-class", "def:endpoints", "thm:two-price-dual"],
+      "status": "to-prove",
+      "justification": "The reductions are the required sanity checks and prevent invalid finite-price formulas on unit-budget faces.",
+      "gap": "No longitudinal average-case paper records both unit-budget reductions or the corner identity.",
+      "consumer": "Implementations can dispatch boundary budgets to certified one-stage solvers and reproduce the published cross-sectional analysis exactly."
+    },
+    {
+      "id": "oeq:root-stability",
+      "kind": "openendedquestion",
+      "statement": "Can the handle \\(\\mathfrak R\\), under the stated primitive learner rate, clipping margin, and strong root-identification conditions, establish uniformly over \\(s\\in\\mathcal S_{\\pm}\\) and \\(\\Sigma\\in\\mathbb S\\) both \\(\\|\\Psi_s(\\widehat\\beta_s)-\\Psi_s(\\beta_s)\\|_{L^2(P)}=o_P(1)\\) and \\(\\sup_{s,\\Sigma}|P\\Psi_s(\\widehat\\beta_s;\\Sigma)-v_s(P,\\Sigma)|=O_P(r_n^2)\\), together with a common square-integrable envelope and stochastic equicontinuity for the fitted score paths, including perturbations of both propensity floors, both global prices, and both conditional normalization roots?",
+      "free_symbols": ["RootHandle", "rn", "Signs", "Sigma", "Sreg", "Psi", "betahat", "betas", "P", "v", "pi0", "pi1", "eta0", "eta1", "a0", "a1"],
+      "depends_on": ["ass:regular-compact", "ass:regular-prices", "ass:unique-optimizer", "ass:root-identification", "ass:clipping-margin", "ass:nuisance-estimability", "def:root-handle", "thm:two-price-dual"],
+      "status": "to-prove",
+      "justification": "This question isolates the nonroutine statistical step instead of assuming the desired second-order remainder.",
+      "gap": "Zhang and Zhao prove a one-root quadratic bias bound, and double machine learning handles fixed orthogonal scores; neither controls nested conditional roots and coupled prices whose clipping floors depend on two estimated propensities.",
+      "consumer": "A positive answer validates flexible machine-learning inference for the exact sharp endpoint rather than only for finite-support or oracle optimizer calculations."
+    },
+    {
+      "id": "thm:uniform-process",
+      "kind": "theorem",
+      "statement": "If Open-ended Question 1 is resolved affirmatively, then uniformly over \\(s\\in\\mathcal S_{\\pm}\\) and \\(\\Sigma\\in\\mathbb S\\), \\(\\sqrt n\\{\\widehat v_s(\\Sigma)-v_s(P,\\Sigma)\\}=n^{-1/2}\\sum_{i=1}^nD_s(O_i;\\Sigma)+o_P(1)\\). The process converges in \\(\\ell^\\infty(\\mathcal S_{\\pm}\\times\\mathbb S)\\) to \\(\\mathbb G\\), the displayed \\(D_s\\) is the efficient influence function in the dominated nonparametric observed-law model, and a single feasible Gaussian multiplier critical value yields a joint simultaneous band for \\(L\\) and \\(U\\) on \\(\\mathbb S\\).",
+      "free_symbols": ["Signs", "Sigma", "Sreg", "n", "vhat", "v", "P", "Ds", "Sample", "Gproc", "Lower", "Upper"],
+      "depends_on": ["ass:iid", "ass:regular-compact", "ass:regular-prices", "ass:unique-optimizer", "ass:clipping-margin", "ass:nuisance-estimability", "ass:quadratic-rate", "ass:variance-nondegenerate", "def:one-step", "oeq:root-stability"],
+      "status": "to-prove",
+      "justification": "The same sharp partial-identification object needs uniform endpoint inference, with every optimizer-dependent derivative included.",
+      "gap": "Zhang and Zhao's one-treatment band has one optimizer equation; Bonvini and coauthors study longitudinal bounds under a different sensitivity model; Tan explicitly leaves sample sensitivity analysis open.",
+      "consumer": "The joint band permits simultaneous reporting over clinically interpretable early and late confounding budgets without choosing a single calibration after viewing the data."
+    },
+    {
+      "id": "thm:full-ray-inversion",
+      "kind": "theorem",
+      "statement": "Let \\(r_c\\) be any fixed nonzero calibration ray and let \\(\\mathcal C_b\\) be Definition 11. If the common-multiplier band covers \\(L\\) on \\(r_c^{-1}(\\mathbb S)\\), then the range extension and monotone envelopes cover \\(f\\) on all of \\(\\mathbb K\\), and \\(P\\{T_b(f)\\in\\mathcal C_b\\}\\ge1-\\alpha+o(1)\\). The conclusion holds for tied crossings, flat crossings, absent crossings with \\(T_b(f)=+\\infty\\), and ray segments on zero-price or unit-budget faces; no shrinking Gaussian band is asserted on those excluded faces.",
+      "free_symbols": ["ray", "Kray", "Cbreak", "Lower", "Sreg", "f", "P", "Tb", "ell", "uband", "ellmon", "umon", "b", "alpha"],
+      "depends_on": ["ass:bounded-outcome", "def:ray", "def:full-band", "def:breakdown-confidence", "thm:boundary-reductions", "thm:uniform-process"],
+      "status": "to-prove",
+      "justification": "Breakdown is a set-valued inverse, so coverage should survive nontransversal and boundary cases without a delta method for a unique root.",
+      "gap": "Masten and Poirier analyze a different one-period breakdown frontier, while Ren, Telschow, and Schwartzman give generic band inversion but not a sequential sensitivity band with nonregular-face extension.",
+      "consumer": "A decision maker receives an honest confidence set for the least average-confounding budget that overturns the fixed-regime conclusion, even when the sensitivity curve is flat or never crosses the benchmark."
+    }
+  ],
+  "target_estimand": "\\(\\mu(Q)=E_Q[Y^{1,1}]\\)",
+  "estimand_functional": "\\(\\Theta(P,\\Sigma)=[\\inf_{(w_0,w_1)\\in\\mathcal W(P,\\Sigma)}E_R[Yw_0],\\ \\sup_{(w_0,w_1)\\in\\mathcal W(P,\\Sigma)}E_R[Yw_0]]\\)",
+  "sampling_model": {
+    "design": "Independent superpopulation sampling from the observed longitudinal law \\(P\\).",
+    "units": "\\(O_i=(L_{0i},A_{0i},L_{1i},A_{1i},Y_i)\\), for \\(i=1,\\ldots,n\\).",
+    "treatment": "Two binary observational treatment decisions; the target regime \\((1,1)\\) is fixed before analysis.",
+    "overlap": "Both observed propensities are bounded in \\([\\varepsilon,1-\\varepsilon]\\) on histories relevant to the target path.",
+    "nuisance_estimation": "Fixed-fold cross-fitting estimates only the primitive observed-law bundle \\(\\nu=(\\pi_0,\\pi_1,G,F)\\); prices and conditional roots are recomputed from each training-fold law."
+  },
+  "bibliography": [
+    {
+      "key": "Tan2025SequentialSensitivity",
+      "citation": "Tan, Z. (2025). Sensitivity models and bounds under sequential unmeasured confounding in longitudinal studies. \\emph{Biometrika} 112(1), Article asae044."
+    },
+    {
+      "key": "ZhangZhao2026AverageCase",
+      "citation": "Zhang, Y. and Zhao, Q. (2026). An average-case sensitivity analysis for unmeasured confounding. \\emph{Biometrika} 113(2), Article asag030."
+    },
+    {
+      "key": "BonviniKennedyVenturaWasserman2022MSM",
+      "citation": "Bonvini, M., Kennedy, E. H., Ventura, V., and Wasserman, L. (2022). Sensitivity analysis for marginal structural models. arXiv:2210.04681."
+    },
+    {
+      "key": "DornGuoKallus2025DVDS",
+      "citation": "Dorn, J., Guo, K., and Kallus, N. (2025). Doubly-valid doubly-sharp sensitivity analysis for causal inference with unmeasured confounding. \\emph{Journal of the American Statistical Association} 120(549), 331--342."
+    },
+    {
+      "key": "ChernozhukovEtAl2018DML",
+      "citation": "Chernozhukov, V. and coauthors (2018). Double/debiased machine learning for treatment and structural parameters. \\emph{The Econometrics Journal} 21(1), C1--C68."
+    },
+    {
+      "key": "NeweyMcFadden1994",
+      "citation": "Newey, W. K. and McFadden, D. (1994). Large sample estimation and hypothesis testing. In \\emph{Handbook of Econometrics}, Volume 4, 2111--2245."
+    },
+    {
+      "key": "AudibertTsybakov2007",
+      "citation": "Audibert, J.-Y. and Tsybakov, A. B. (2007). Fast learning rates for plug-in classifiers. \\emph{Annals of Statistics} 35(2), 608--633."
+    },
+    {
+      "key": "MastenPoirier2020Breakdown",
+      "citation": "Masten, M. A. and Poirier, A. (2020). Inference on breakdown frontiers. \\emph{Quantitative Economics} 11(1), 41--111."
+    },
+    {
+      "key": "MastenPoirierZhang2024Sensitivity",
+      "citation": "Masten, M. A., Poirier, A., and Zhang, L. (2024). Assessing sensitivity to unconfoundedness: estimation and inference. \\emph{Journal of Business and Economic Statistics} 42(1), 1--13."
+    },
+    {
+      "key": "RenTelschowSchwartzman2024InverseSets",
+      "citation": "Ren, J., Telschow, F. J. E., and Schwartzman, A. (2024). Inverse set estimation and inversion of simultaneous confidence intervals. \\emph{Journal of the Royal Statistical Society: Series C} 73(4), 1082--1104."
+    },
+    {
+      "key": "IshikawaHeKanamori2026Convex",
+      "citation": "Ishikawa, K., He, N., and Kanamori, T. (2026). A convex framework for confounding robust inference. \\emph{Journal of Machine Learning Research} 27(62), 1--53."
+    },
+    {
+      "key": "ZhangEtAl2026Incremental",
+      "citation": "Shen, S., Bacak, V., and Kennedy, E. H. (2026). Sensitivity analysis for incremental effects, with application to a study of victimization and offending. arXiv:2601.17779."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ZhangZhao2026AverageCase",
+      "comparator_claim": "The cross-sectional second-moment propensity-ratio model has a sharp counterfactual-mean endpoint represented by a one-global-price clipped-affine optimizer.",
+      "matched_by": "Theorem 3",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "Tan2025SequentialSensitivity",
+      "comparator_claim": "The primary sequential range-bounded model has observed-law convex sharp bounds and compatible endpoint-attaining full laws.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DornGuoKallus2025DVDS",
+      "comparator_claim": "Cross-sectional marginal-sensitivity endpoints admit semiparametrically efficient doubly-valid and doubly-sharp estimators.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BonviniKennedyVenturaWasserman2022MSM",
+      "comparator_claim": "Longitudinal marginal-structural-model sensitivity bounds and associated estimating equations are available under a differently normalized propensity model.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "RenTelschowSchwartzman2024InverseSets",
+      "comparator_claim": "Inverting a simultaneous confidence band yields simultaneous inner and outer confidence sets for inverse images without one-to-one structure.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "MastenPoirier2020Breakdown",
+      "comparator_claim": "A one-period breakdown frontier admits directionally differentiable estimators and lower uniform confidence bands under its stated crossing regularity.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "IshikawaHeKanamori2026Convex",
+      "comparator_claim": "Offline contextual-bandit policy values under convex confounding uncertainty admit sharp lower-bound estimators through convex duality and M-estimation.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Average-case sensitivity replaces a worst-case propensity-ratio cap by a calibratable second moment, but its published sharpness and inference theory is cross-sectional. For two observational treatment decisions and the fixed regime \\((1,1)\\), this proposal characterizes the entire compatible counterfactual-mean set by a weakly compact perspective program, restores the early ratio's required \\((L_0,Y)\\) factorization by conditional projection, constructs endpoint-attaining full laws, and derives a two-global-price conditional clipped-affine dual on active and boundary faces. The statistical kernel is an optimizer-aware efficient score with both propensity-floor corrections and a primitive-rate proof of uniform quadratic held-out bias, yielding a joint multiplier band on regular budget regions. Range extension and monotone set inversion then provide honest full-ray breakdown confidence sets at ties, flat crossings, absent crossings, and excluded nonregular faces.",
+  "project_justification": {
+    "gap": "Zhang and Zhao solve the one-treatment second-moment model and explicitly name longitudinal observations as future work; Tan solves the compatible longitudinal full-law problem for pointwise ratio bounds but leaves specialized computation and sample inference open. The first missing identification step is a history-respecting projection under a transported perspective budget, and the first missing inference step is stability of nested conditional roots and two global prices when both clipping floors are estimated.",
+    "niche": "The intersection of compatible sequential normalization, average-case quadratic confounding budgets, exact computable sharpness, and optimizer-sensitive uniform inference is unoccupied by the papers located through exact target--method searches. Recent longitudinal incremental-effect work also leaves its own dual and estimator unresolved and uses range-bounded rather than second-moment ratios.",
+    "fill": "The project supplies one observed-law perspective program equal to the compatible-full-law identified interval, an exact two-price conditional-root dual including unit-budget and zero-price faces, a cross-fitted efficient endpoint process on compact regular regions, and a deterministic full-domain breakdown inversion that remains honest where Gaussian shrinking is unavailable."
+  },
+  "related_work": "Tan's Lemma 1 and Proposition 1 provide the compatibility and constructive-pasting template for two-period primary sensitivity ratios, but their constraints are pointwise boxes and the paper explicitly leaves sample sensitivity analysis for later work. Zhang and Zhao's Proposition 1, efficient-influence-function theorems, and multiplier-band theorem provide the one-stage clipped-affine and inference templates; their Discussion explicitly identifies observations over time as an extension. Dorn, Guo, and Kallus motivate differentiating a sharp optimized bound and controlling cross-fitted remainders, while their marginal sensitivity model and robustness targets differ. Bonvini, Kennedy, Ventura, and Wasserman treat time-varying treatment in marginal structural models, but their longitudinal propensity construction omits the Tan normalization that couples early and late ratios. Ishikawa, He, and Kanamori establish generic convex confounding-robust policy evaluation, but not the present restricted-history factorization, transported budget, compatible-law attainment, or two-period floor-sensitive score. Masten and Poirier motivate breakdown as the weakest assumptions sustaining a conclusion, and Ren, Telschow, and Schwartzman supply the deterministic band-inversion principle; both inform the final reporting layer rather than constitute theorem-level targets.",
+  "technical_internal_limitation": "The candidate score has passed finite-support optimized-value derivative checks in the presolve, but those checks are not evidence of a general tangent-space theorem. The project is killed if a certified two-baseline, two-history, three-outcome perturbation reveals a missing first-order term, or if simultaneous perturbation of primitive nuisances and recomputed prices produces linear rather than quadratic held-out bias.",
+  "honest_scope": "The population projection, compactness, dual boundary treatment, and compatible-law pasting remain claims to prove. The principal open content is Open-ended Question 1. Gaussian inference is confined to a fixed compact regular budget region at one data-generating law; outside it, the proposed full-ray band is honest because it uses the deterministic outcome range and may be uninformative. The proposal does not cover learned dynamic regimes, shrinking Gaussian inference on zero-price or unit-budget faces, or common-law joint sets for several regimes.",
+  "seeds": [
+    "seed:sharp-sequential-perspective",
+    "seed:population-dual-only",
+    "seed:optimizer-aware-uniform-inference",
+    "seed:full-ray-breakdown",
+    "seed:common-law-regime-vector",
+    "seed:boundary-limit-law",
+    "seed:floor-corrected-efficiency",
+    "seed:k-period-recursion",
+    "seed:critical-calibration-map",
+    "seed:model-comparison-frontier"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:sharp-sequential-perspective",
+      "rank": 1,
+      "anchor": "ZhangZhao2026AverageCase, Discussion; Tan2025SequentialSensitivity, Lemma 1 and Proposition 1",
+      "motif": "M10+M8",
+      "target_tier": "field",
+      "kernel": "Exact compatible-full-law interval equals a sequential perspective program, with projection, attainment, two-price dual, and uniform endpoint inference.",
+      "first_changed_proof_step": "Replace the one-stage mean-one reduction by a conditional projection that preserves the objective and two normalizations while contracting \\(E_R[w_0^2/w_1]\\).",
+      "destination_search": "Exact searches for longitudinal average-case sensitivity, sequential second-moment propensity ratios, and two-price conditional roots returned Tan and Zhang--Zhao but no paper combining them.",
+      "red_team": "Cynical objection: this is immediate by nesting Zhang--Zhao twice. Rebuttal: nesting does not restore the \\(h_0(L_0,Y)\\) restriction, prove common-law attainment, or handle a transported perspective moment and coupled global prices.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 5, "novelty": 5, "feasibility": 4, "consumer_value": 5},
+      "status": "selected"
+    },
+    {
+      "id": "seed:population-dual-only",
+      "rank": 5,
+      "anchor": "ZhangZhao2026AverageCase, Proposition 1; Tan2025SequentialSensitivity, Lemma 1",
+      "motif": "M10",
+      "target_tier": "subfield",
+      "kernel": "Population sharpness and an exact two-price dual, including zero-price and unit-budget faces, without an inference layer.",
+      "first_changed_proof_step": "Prove weak compactness in \\(L^{4/3}(R)\\times L^2(R)\\) from the perspective moment and close the zero-price dual by finite-dimensional budget separation.",
+      "destination_search": "The generic convex confounding paper by Ishikawa, He, and Kanamori was checked and does not impose the sequential normalizations or compatible-law factorization.",
+      "red_team": "Cynical objection: generic convex duality already yields this result. Rebuttal: generic duality does not identify the compatible full-law set or derive the nested roots, but the missing inference rung limits standalone value.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 4, "novelty": 4, "feasibility": 5, "consumer_value": 3},
+      "status": "merged-into-selected"
+    },
+    {
+      "id": "seed:optimizer-aware-uniform-inference",
+      "rank": 2,
+      "anchor": "ZhangZhao2026AverageCase, efficient-influence-function and multiplier-band theorems; Tan2025SequentialSensitivity, sample sensitivity discussion",
+      "motif": "M11(b)+M11(c)",
+      "target_tier": "field",
+      "kernel": "A canonical gradient and joint uniform Gaussian limit for sequential quadratic-bound endpoints with two estimated floors, prices, and conditional roots.",
+      "first_changed_proof_step": "Differentiate the optimized sequential loss with respect to both observed propensities before invoking envelope cancellation for roots and prices.",
+      "destination_search": "Searches for a longitudinal quadratic sensitivity endpoint influence function found Bonvini and coauthors under a different model and Zhang--Zhao only in one period.",
+      "red_team": "Cynical objection: the envelope theorem plus double machine learning makes the result routine. Rebuttal: the score acquires two nonstandard floor derivatives and the required root-map stability is infinite dimensional and presently unproved.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 5, "novelty": 4, "feasibility": 3, "consumer_value": 5},
+      "status": "selected-as-open-spine"
+    },
+    {
+      "id": "seed:full-ray-breakdown",
+      "rank": 6,
+      "anchor": "MastenPoirier2020Breakdown, Sections on uniform bands; RenTelschowSchwartzman2024InverseSets, Theorem 1",
+      "motif": "M3+M8",
+      "target_tier": "subfield",
+      "kernel": "Invert a full-domain sensitivity band into a breakdown confidence set that covers ties, flats, absent crossings, and nonregular faces.",
+      "first_changed_proof_step": "Replace inverse-function asymptotics by set-valued inversion after deterministic range extension and monotone tightening.",
+      "destination_search": "No sequential average-case breakdown paper was located, but Ren's theorem already supplies the central deterministic inclusion.",
+      "red_team": "Cynical objection: once a simultaneous band exists, the inversion is immediate from Ren and coauthors. Rebuttal: the nonregular-face domain repair is useful, but the objection holds against treating inversion alone as the kernel.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 2, "novelty": 3, "feasibility": 5, "consumer_value": 5},
+      "status": "retained-only-as-downstream-theorem"
+    },
+    {
+      "id": "seed:common-law-regime-vector",
+      "rank": 3,
+      "anchor": "Tan2025SequentialSensitivity, multiple-treatment-strategy propositions; ZhangZhao2026AverageCase, Discussion",
+      "motif": "M10+M8",
+      "target_tier": "flagship",
+      "kernel": "Characterize the support function of the joint set of several regime means under one full law and give necessary and sufficient conditions for simultaneous coordinatewise attainment.",
+      "first_changed_proof_step": "Replace Tan's separable regime-by-regime pasting by a gluing theorem that preserves shared quadratic budgets and all cross-regime consistency identities.",
+      "destination_search": "Targeted searches found Tan's simultaneous attainment under range bounds and recent incremental-regime work, but no common-law vector set under second-moment budgets.",
+      "red_team": "Cynical objection: Tan already proves simultaneous attainment. Rebuttal: his construction is separable for the primary range model, whereas shared quadratic budgets couple regime support functions and may make coordinatewise extrema incompatible.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 5, "novelty": 5, "feasibility": 2, "consumer_value": 5},
+      "status": "survived-but-deferred"
+    },
+    {
+      "id": "seed:boundary-limit-law",
+      "rank": 7,
+      "anchor": "ZhangZhao2026AverageCase, positive-price inference; MastenPoirier2020Breakdown, directional limit theory",
+      "motif": "M11(c)+M7",
+      "target_tier": "field",
+      "kernel": "Derive a face-switching directional limit law for endpoint estimators as a budget approaches a zero-price or unit-budget boundary.",
+      "first_changed_proof_step": "Localize the convex value map at a complementarity switch and derive the tangent cone before studentization.",
+      "destination_search": "No paper was found for boundary limits of sequential average-case sensitivity prices; generic directional-delta theory is adjacent but not constructive for the nested program.",
+      "red_team": "Cynical objection: this is a standard directional delta method for a convex program. Rebuttal: the conditional-root tangent cone is nonstandard, but no sufficiently direct proof architecture or immediate consumer was found.",
+      "scores": {"direct_evidence": 3, "mathematical_depth": 5, "novelty": 4, "feasibility": 2, "consumer_value": 3},
+      "status": "dropped-after-deep-scan"
+    },
+    {
+      "id": "seed:floor-corrected-efficiency",
+      "rank": 4,
+      "anchor": "ZhangZhao2026AverageCase, Theorems on efficient influence functions; DornGuoKallus2025DVDS, semiparametric efficiency theorem",
+      "motif": "M11(b)",
+      "target_tier": "field",
+      "kernel": "Establish the semiparametric efficiency bound for a fixed sequential second-moment endpoint and prove that omitting either propensity-floor term is first-order biased.",
+      "first_changed_proof_step": "Decompose the observed-law tangent space by baseline, transition, outcome, and two treatment scores and differentiate each clipping floor.",
+      "destination_search": "The located influence-function papers cover one treatment or different longitudinal constraints; neither displays two floor corrections.",
+      "red_team": "Cynical objection: floor corrections are routine chain-rule terms. Rebuttal: they are easy to omit and alter the canonical gradient, but the result is stronger when joined to uniform price/root stability rather than isolated.",
+      "scores": {"direct_evidence": 5, "mathematical_depth": 4, "novelty": 4, "feasibility": 4, "consumer_value": 4},
+      "status": "merged-into-selected"
+    },
+    {
+      "id": "seed:k-period-recursion",
+      "rank": 9,
+      "anchor": "Tan2025SequentialSensitivity, Proposition 4 for general periods; ZhangZhao2026AverageCase, Discussion",
+      "motif": "M10+M8",
+      "target_tier": "flagship",
+      "kernel": "Generalize the perspective program and global-price recursion to an arbitrary fixed number of treatment periods.",
+      "first_changed_proof_step": "Inductively identify the nested perspective moments and history projections at every period.",
+      "destination_search": "Tan already supplies the general-period range-bound recursion, while no quadratic analogue was found.",
+      "red_team": "Cynical objection: this is the prohibited routine \\(T=2\\)-to-general-\\(T\\) extension. Rebuttal fails absent a new dimensionality or stability theorem, so the seed is dropped.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 4, "novelty": 2, "feasibility": 2, "consumer_value": 4},
+      "status": "dropped"
+    },
+    {
+      "id": "seed:critical-calibration-map",
+      "rank": 8,
+      "anchor": "ZhangZhao2026AverageCase, calibration study; MastenPoirier2020Breakdown, breakdown-frontier definition",
+      "motif": "M3",
+      "target_tier": "field",
+      "kernel": "Map deletion of observed history blocks to a two-coordinate budget ray and characterize the critical calibration value sustaining a fixed-regime conclusion.",
+      "first_changed_proof_step": "Derive a law-level map from nested observed propensity ratios to transported second moments rather than treating deleted-covariate values as informal benchmarks.",
+      "destination_search": "Calibration is discussed by Zhang--Zhao and generic breakdown work, but no canonical longitudinal map was located.",
+      "red_team": "Cynical objection: the deletion map depends on arbitrary covariate groupings and cannot support a universal theorem. The objection holds for a standalone kernel, so only fixed-ray inversion is retained.",
+      "scores": {"direct_evidence": 3, "mathematical_depth": 3, "novelty": 3, "feasibility": 3, "consumer_value": 4},
+      "status": "dropped"
+    },
+    {
+      "id": "seed:model-comparison-frontier",
+      "rank": 10,
+      "anchor": "Tan2025SequentialSensitivity, range-bounded model; ZhangZhao2026AverageCase, comparison of worst- and average-case models",
+      "motif": "M3+M6",
+      "target_tier": "field",
+      "kernel": "Derive the exact observed-law frontier at which sequential range-bounded and second-moment identified intervals coincide or strictly diverge.",
+      "first_changed_proof_step": "Solve the extremal conversion between stagewise essential-supremum caps and transported quadratic budgets under both normalizations.",
+      "destination_search": "The cross-sectional paper compares the two models qualitatively and numerically; no sequential iff frontier was found.",
+      "red_team": "Cynical objection: \\(L^\\infty\\) implies an \\(L^2\\) bound by a one-line norm inequality. Rebuttal: an iff endpoint-equivalence frontier would require optimizer geometry, but the current evidence does not establish a nontrivial reverse direction.",
+      "scores": {"direct_evidence": 4, "mathematical_depth": 3, "novelty": 3, "feasibility": 2, "consumer_value": 3},
+      "status": "dropped-after-deep-scan"
+    }
+  ],
+  "literature_map": [
+    {
+      "thread": "Cross-sectional average-case sensitivity",
+      "sources": ["ZhangZhao2026AverageCase"],
+      "settled": "Proposition 1 gives the one-global-price clipped-affine optimizer; the efficient-influence-function theorems and multiplier-band theorem provide one-step inference for a scalar sensitivity path.",
+      "open_boundary": "The Discussion explicitly calls for extension to observations over time; the source has neither sequential product weights nor two history-specific normalizations.",
+      "subsumption_check": "Does not subsume the kernel because setting \\(\\Sigma_0=1\\) reduces the sequential program to its one-stage model on the path pseudo-population, whereas two active budgets create the missing coupled problem."
+    },
+    {
+      "thread": "Compatible sequential sensitivity",
+      "sources": ["Tan2025SequentialSensitivity"],
+      "settled": "Lemma 1 characterizes compatible two-period primary density ratios and constructs a full law; Proposition 1 gives a nested convex representation for range-bounded ratios; the multiple-strategy section separates coordinatewise and simultaneous attainment.",
+      "open_boundary": "The paper uses pointwise ratio boxes, not marginal-history second moments, and its final discussion leaves specialized algorithms and sample sensitivity analysis open.",
+      "subsumption_check": "Does not subsume the perspective budget, conditional projection, two-price dual, or optimizer-aware endpoint process."
+    },
+    {
+      "thread": "Inference for sharp sensitivity bounds",
+      "sources": ["DornGuoKallus2025DVDS", "BonviniKennedyVenturaWasserman2022MSM", "ChernozhukovEtAl2018DML"],
+      "settled": "Cross-sectional sharp bounds can have efficient and robust one-step estimators, longitudinal marginal-structural bounds admit adjacent estimating equations, and cross-fitting reduces fixed-score remainder control to nuisance products.",
+      "open_boundary": "None treats an endpoint whose observed propensity enters two clipping floors while two global prices and conditional normalization roots are recomputed from estimated kernels.",
+      "subsumption_check": "The exact target--method search returned no closer estimator theorem; these papers donate the tangent-space decomposition and conditional held-out expansion only."
+    },
+    {
+      "thread": "Band inversion and breakdown",
+      "sources": ["MastenPoirier2020Breakdown", "MastenPoirierZhang2024Sensitivity", "RenTelschowSchwartzman2024InverseSets"],
+      "settled": "One-period sensitivity frontiers have uniform-band methods, and simultaneous bands can be inverted deterministically into inner and outer inverse sets without one-to-one structure.",
+      "open_boundary": "These results do not create the required sequential endpoint band or address a calibration ray that traverses unit-budget and zero-price faces.",
+      "subsumption_check": "The inversion step is therefore positioned as an informed-by downstream theorem, not as an independent novelty claim."
+    },
+    {
+      "thread": "Recent convex and longitudinal neighbors",
+      "sources": ["IshikawaHeKanamori2026Convex", "ZhangEtAl2026Incremental"],
+      "settled": "Generic convex confounding-robust policy evaluation has sharp lower-bound M-estimation, and recent incremental-intervention work identifies longitudinal range-model bounds.",
+      "open_boundary": "The generic framework lacks compatible sequential ratio factorization, while the incremental paper leaves its longitudinal dual and estimator open and does not use average-case second moments.",
+      "subsumption_check": "Neither paper contains the fixed-regime sequential quadratic kernel or its two-price score."
+    }
+  ],
+  "novelty_justification": {
+    "closest_results": "The closest identification result is Tan's two-period primary range-bound theorem; the closest target-and-method result is Zhang and Zhao's cross-sectional second-moment theorem and uniform-band theory.",
+    "exact_gap": "A quadratic early ratio is transported by the late ratio, so the observed-law constraint is the perspective moment \\(E_R[w_0^2/w_1]\\). This destroys the direct history factorization used to paste a full law and creates two coupled global prices. For inference, both propensity scores determine moving clipping floors, while conditional roots and prices are implicit functionals of estimated kernels.",
+    "strict_delta": "Theorem 1 turns a relaxed convex value into the exact compatible-full-law interval and proves attainment; Theorem 2 supplies an evaluable two-price dual on active and inactive faces; Theorem 4 derives a new efficient endpoint process rather than importing a one-stage score; Theorem 5 extends honest reporting to the entire calibration ray without claiming boundary Gaussianity.",
+    "collision_search": "Searches through September 10, 2026 for longitudinal or sequential average-case sensitivity, second-moment propensity-ratio bounds, two-price conditional roots, and longitudinal quadratic endpoint influence functions found the cited papers and the 2026 incremental-effect preprint, but no result subsuming this kernel."
+  },
+  "literature_checklist": [
+    {
+      "author": "Yao Zhang and Qingyuan Zhao",
+      "year": 2026,
+      "venue": "Biometrika",
+      "bibkey": "ZhangZhao2026AverageCase",
+      "one_line": "Read the Introduction, Proposition 1 construction and proof route, efficient-influence-function section, multiplier-band theorem, and Discussion naming longitudinal extension.",
+      "relevant_to": "thm:two-price-dual"
+    },
+    {
+      "author": "Zhiqiang Tan",
+      "year": 2025,
+      "venue": "Biometrika",
+      "bibkey": "Tan2025SequentialSensitivity",
+      "one_line": "Read the Introduction, Lemma 1 compatibility theorem and constructive proof, Proposition 1, multiple-strategy discussion, and sample-sensitivity conclusion.",
+      "relevant_to": "thm:sharp-interval"
+    },
+    {
+      "author": "Jacob Dorn, Kevin Guo, and Nathan Kallus",
+      "year": 2025,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "DornGuoKallus2025DVDS",
+      "one_line": "Read the sharp-bound setup, recentered influence-function construction, efficiency theorem, conditional orthogonality lemma, and score-convergence proof.",
+      "relevant_to": "thm:uniform-process"
+    },
+    {
+      "author": "Matteo Bonvini, Edward H. Kennedy, Valerie Ventura, and Larry Wasserman",
+      "year": 2022,
+      "venue": "arXiv",
+      "bibkey": "BonviniKennedyVenturaWasserman2022MSM",
+      "one_line": "Read the Introduction, time-varying treatment section, longitudinal moment derivation, and Conclusion to delimit the differently constrained inference result.",
+      "relevant_to": "oeq:root-stability"
+    },
+    {
+      "author": "Victor Chernozhukov and coauthors",
+      "year": 2018,
+      "venue": "The Econometrics Journal",
+      "bibkey": "ChernozhukovEtAl2018DML",
+      "one_line": "Read the orthogonal-score and cross-fitting construction, product-rate conditions, and main asymptotic-linearity proof to isolate what must be derived for the optimizer-dependent score.",
+      "relevant_to": "oeq:root-stability"
+    },
+    {
+      "author": "Matthew A. Masten and Alexandre Poirier",
+      "year": 2020,
+      "venue": "Quantitative Economics",
+      "bibkey": "MastenPoirier2020Breakdown",
+      "one_line": "Read the motivation, directional-differentiability discussion, uniform lower-band construction, and Conclusion.",
+      "relevant_to": "thm:full-ray-inversion"
+    },
+    {
+      "author": "Junting Ren, Fabian J. E. Telschow, and Armin Schwartzman",
+      "year": 2024,
+      "venue": "Journal of the Royal Statistical Society: Series C",
+      "bibkey": "RenTelschowSchwartzman2024InverseSets",
+      "one_line": "Read the Introduction, Theorem 1 and its proof, lower-excursion corollary, and Discussion on band inversion.",
+      "relevant_to": "thm:full-ray-inversion"
+    },
+    {
+      "author": "Kei Ishikawa, Niao He, and Takafumi Kanamori",
+      "year": 2026,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "IshikawaHeKanamori2026Convex",
+      "one_line": "Checked the published abstract and theorem scope for generic convex sharp policy-value estimation under confounding uncertainty.",
+      "relevant_to": "thm:sharp-interval"
+    },
+    {
+      "author": "Shuying Shen, Valerio Bacak, and Edward H. Kennedy",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "ZhangEtAl2026Incremental",
+      "one_line": "Read the Introduction, longitudinal identification section, and Conclusion, which leave the range-model dual and estimator unresolved.",
+      "relevant_to": "oeq:root-stability"
+    }
+  ]
+}

@@ -1,0 +1,2036 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}unknowncutoff\_\allowbreak{}weaklate\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The paper studies fixed-\(\alpha\) expected length of connected honest intervals for fuzzy-RD LATE when both the compliance jump and its unknown cutoff become statistically weak.  A parameter-exact outcome-invariant mixture gives the finite-sample lower bound with coefficient \(2(1-v)\) and a nonshrinking limit below the explicit witness threshold \(\lambda_w=315(M/32)^{1/s}/(256s)\).  This is a one-sided elbow, not the exact critical frontier.  At \(s=1\), a total four-fold rectangular scan--refine--invert rule attains the known-cutoff order when \(n\kappa_n^3\) dominates \(\log(e/\kappa_n)\).  For \(s>1\), the frozen affine moving-window profile is disproved as a uniform localizer, so the detectable-region bracket and the fixed-level critical-window law remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Known-cutoff weak fuzzy-RD inference and fixed-jump unknown-cutoff localization do not characterize honest connected LATE-interval length when the first-stage denominator and its location weaken jointly.  Existing shrinking-jump location results do not yield the explicit causal witness elbow \(\lambda_w\), its parameter-exact \(2(1-v)\) connected-length coefficient, or an exact critical-window law.  In the higher-smoothness problem, general stochastic maximal inequalities are also insufficient because the frozen moving-window profile can be misranked already at the population level under separate one-sided smoothness.
+
+\paragraph{Niche.} The joint experiment combines a nonconvex union over cutoff locations, a causal outcome--treatment ratio, separate one-sided observable smoothness that permits a derivative kink, and fixed-level connected-length loss.  The parameter-exact common-outcome construction makes the full likelihood depend only on \((X,D)\), so outcome-assisted localization cannot evade its explicit location entropy.  The higher-smoothness counterexample separately shows that a locally affine compliance trend can make a displaced profile split fit better than the true split.
+
+\paragraph{Fill.} On one unchanged observable-law class, the project proves an explicit finite-sample location-mixture converse with coefficient \(2(1-v)\), evaluates its one-sided threshold \(\lambda_w=(sC_\psi C_h)^{-1}\), and gives a total four-fold interval attaining known-cutoff order on the Lipschitz face.  For \(s>1\), it proves an exact projection counterexample to the frozen profile and retains the proposed detectable-region bracket as an OEQ requiring a genuinely different estimator or profile, or a negative resolution.  The exact critical-window frontier is not claimed.
+
+\section{Related work}
+
+Noack and Rothe (2024) supply the known-cutoff bias-aware Anderson--Rubin template and separate smoothness restrictions on observable outcome and treatment regressions. Our binary-outcome, uniform-design, unknown-cutoff triangular class adapts that template but is not their published parameter space.  Porter and Yu (2015) obtain unknown-cutoff oracle substitution under a fixed discontinuity in a sharp-design treatment-effect problem.  Frick, Munk, and Sieling (2014) motivate multiscale scan architecture, while Chernozhukov, Chetverikov, and Kato (2014) provide general stochastic maximal-control tools; neither prevents the deterministic population-score misranking in the higher-smoothness counterexample.  M{\"u}ller and Song (1997) and Tuvaandorj (2020) concern shrinking-jump or nonparametric location experiments; neither converts translated-cutoff multiplicity into the proved \(2(1-v)\) fixed-level connected LATE-length bound below \(\lambda_w\), and no equation-level proposition from Tuvaandorj is used here.  Armstrong and Koles{\'a}r (2018) supply an ordered-modulus and test-inversion template for convex fixed-index classes.  Madrid Padilla, Yu, Wang, and Rinaldo (2022) study aligned multivariate change channels without the monotone fuzzy-RD causal restrictions or the common-outcome likelihood cancellation used here.  Kowalska, van de Wiel, and van der Pas (2025 version) use a Bayesian unknown-cutoff fuzzy-RD model, and Arai, Otsu, and Seo (2026) discuss fuzzy and unknown-discontinuity extensions separately.  The proved frontier advance is the explicit one-sided location-mixture converse together with Lipschitz oracle attainment; a replacement higher-smoothness procedure and the exact critical-window connected-length law remain open.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_P=y_P/d_P=E_P[Y(1)-Y(0)\mid R=C,X=c_P]\).
+Primary functional / estimator / diagnostic: \(I_n^{\mathrm{SI}}=I_n^{\mathrm{SI},1}\) when \(s=1\); when \(1<s\le2\), it is the full-parameter fallback if \(\mathsf F_{\mathrm{prof}}=1\) or a displayed deterministic/denominator check fails, and otherwise it is \(\operatorname{hull}\{\theta\in\Theta:|\widehat y-\theta\widehat d|\le2r_{\mathrm{prof}}\}\) at the returned center \(\widehat c_{\mathrm{prof}}\)..
+\begin{itemize}
+  \item \texttt{n} --- \texttt{sample-\allowbreak{}size index}; \(\mathbb N\); \texttt{indexes the triangular experiment}
+  \item \texttt{s} --- \texttt{smoothness exponent}; \([1,2]\); \texttt{governs the local regression class}
+  \item \texttt{M} --- \texttt{smoothness radius}; \([2,\infty)\); \texttt{bounds observable one-\allowbreak{}sided reduced-\allowbreak{}form extensions}
+  \item \texttt{v} --- \texttt{observable outcome-\allowbreak{}variance floor and correlation-\allowbreak{}separation constant}; \((0,1/64)\); \texttt{keeps transformed-\allowbreak{}outcome noise nondegenerate while permitting rare treatment}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{miscoverage level}; \((0,1/4)\); \texttt{fixes the honesty requirement}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{critical-\allowbreak{}window coordinate}; \((0,\infty)\); \texttt{indexes limits with signal information comparable to location entropy}
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}n} --- \texttt{positive compliance-\allowbreak{}strength sequence}; \((0,1/8]\); \texttt{allows the fuzzy first-\allowbreak{}stage jump to vanish}
+  \item \texttt{X} --- \texttt{running variable}; \([0,1]\); \texttt{indexes the unknown assignment threshold}
+  \item \texttt{R} --- \texttt{monotone treatment-\allowbreak{}response type}; \(\{N,C,A\}\); \texttt{records never-\allowbreak{}taker,\allowbreak{} complier,\allowbreak{} or always-\allowbreak{}taker status}
+  \item \texttt{D(z)} --- \texttt{binary potential treatment receipt}; \(\{0,1\}\); \texttt{encodes monotone compliance}
+  \par\smallskip\noindent\emph{Definition.} \(D(z)=0\) for \(R=N\), \(D(z)=z\) for \(R=C\), and \(D(z)=1\) for \(R=A\).
+  \item \texttt{Y(d)} --- \texttt{binary potential outcome}; \(\{0,1\}\); \texttt{defines the local complier causal contrast}
+  \item \texttt{c\_\allowbreak{}P} --- \texttt{unknown assignment cutoff attached to the law}; \((0,1)\); \texttt{is the discontinuity location}
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}\{r,\allowbreak{}a,\allowbreak{}b,\allowbreak{}P\}\allowbreak{}} --- \texttt{witness latent response-\allowbreak{}cell regression}; \([0,1]\to\mathbb R\); \texttt{constructs the finite lower-\allowbreak{}bound family and does not define the main minimax class}
+  \par\smallskip\noindent\emph{Definition.} For a constructed witness law, the conditional mass at \(X=x\) assigned to \(R=r\), \(Y(0)=a\), and \(Y(1)=b\).
+  \item \texttt{P} --- \texttt{full-\allowbreak{}data triangular-\allowbreak{}array law}; \texttt{indexes causal data-\allowbreak{}generating processes through observable reduced forms}
+  \par\smallskip\noindent\emph{Definition.} A law of the declared potential variables and observables under threshold assignment at \(c_P\).
+  \item \texttt{Z} --- \texttt{threshold assignment}; \(\{0,1\}\); \texttt{is the discontinuous instrument}
+  \par\smallskip\noindent\emph{Definition.} \(Z=\mathbf 1\{X\ge c_P\}\).
+  \item \texttt{D} --- \texttt{observed treatment receipt}; \(\{0,1\}\); \texttt{is the endogenous treatment}
+  \par\smallskip\noindent\emph{Definition.} \(D=D(Z)\).
+  \item \texttt{Y} --- \texttt{observed outcome}; \(\{0,1\}\); \texttt{is the observed causal response}
+  \par\smallskip\noindent\emph{Definition.} \(Y=Y(D)\).
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{observed unit}; \([0,1]\times\{0,1\}^2\); \texttt{is the sampling unit}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(X_i,D_i,Y_i)\), for \(i=1,\ldots,n\).
+  \item \texttt{p\_\allowbreak{}\{d,\allowbreak{}y,\allowbreak{}P\}\allowbreak{}} --- \texttt{observable conditional cell regression}; \([0,1]\to[0,1]\); \texttt{certifies positivity inside the explicit witness}
+  \par\smallskip\noindent\emph{Definition.} \(p_{d,y,P}(x)=P(D=d,Y=y\mid X=x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{V,\allowbreak{}P\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{one-\allowbreak{}sided observable reduced-\allowbreak{}form regression}; \(\{x\in[0,1]:x<c_P\}\to[0,1]\) when \(\ell=-\) and \(\{x\in[0,1]:x\ge c_P\}\to[0,1]\) when \(\ell=+\); \texttt{defines the smooth observable primitives used by both upper bounds}
+  \par\smallskip\noindent\emph{Definition.} The observable conditional-mean regression restricted to the indicated side of \(c_P\), with \(\mu_{V,P}^{\ell}(c_P)\) denoting the corresponding one-sided limit.
+  \item \texttt{d\_\allowbreak{}P} --- \texttt{compliance discontinuity}; \((0,1]\); \texttt{is the local first-\allowbreak{}stage denominator}
+  \par\smallskip\noindent\emph{Definition.} \(d_P=\mu_{D,P}^{+}(c_P)-\mu_{D,P}^{-}(c_P)\).
+  \item \texttt{y\_\allowbreak{}P} --- \texttt{reduced-\allowbreak{}form outcome discontinuity}; \([-1,1]\); \texttt{is the local intent-\allowbreak{}to-\allowbreak{}treat numerator}
+  \par\smallskip\noindent\emph{Definition.} \(y_P=\mu_{Y,P}^{+}(c_P)-\mu_{Y,P}^{-}(c_P)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Theta} --- \texttt{effect-\allowbreak{}label space}; \([-1,1]\); \texttt{is the parameter space for local complier effects}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta=[-1,1]\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}P} --- \texttt{fuzzy-\allowbreak{}RD local average treatment effect}; \(\Theta\); \texttt{is the causal target}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_P=y_P/d_P\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n} --- \texttt{known-\allowbreak{}location nonparametric noise scale}; \((0,1]\); \texttt{normalizes weak-\allowbreak{}denominator interval length}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n=n^{-s/(2s+1)}\).
+  \item \texttt{T\_\allowbreak{}n} --- \texttt{cutoff-\allowbreak{}localization information index}; \((0,\infty)\); \texttt{compares local jump information with location entropy}
+  \par\smallskip\noindent\emph{Definition.} \(T_n=n\kappa_n^{2+1/s}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}n} --- \texttt{triangular class of observable-\allowbreak{}smooth monotone fuzzy-\allowbreak{}RD laws}; \texttt{is the minimax parameter space}
+  \item \texttt{I\_\allowbreak{}n} --- \texttt{measurable connected confidence-\allowbreak{}interval rule}; \(([0,1]\times\{0,1\}^2)^n\to\{\text{connected subsets of }\Theta\}\); \texttt{is the decision rule over which minimax length is optimized}
+  \item \texttt{I\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{known\}\allowbreak{}\}\allowbreak{}} --- \texttt{measurable known-\allowbreak{}cutoff connected confidence-\allowbreak{}interval rule}; \(\bigl(([0,1]\times\{0,1\}^2)^n\times[1/4,3/4]\bigr)\to\{\text{connected subsets of }\Theta\}\); \texttt{is the oracle decision rule that receives the supplied cutoff as an input}
+  \item \texttt{L\_\allowbreak{}n} --- \texttt{minimax fixed-\allowbreak{}level expected connected-\allowbreak{}interval length}; \([0,2]\); \texttt{is the headline statistical frontier}
+  \item \texttt{L\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{known\}\allowbreak{}\}\allowbreak{}} --- \texttt{known-\allowbreak{}cutoff minimax expected connected-\allowbreak{}interval length}; \([0,2]\); \texttt{is the oracle benchmark}
+  \item \texttt{a\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{effect-\allowbreak{}label half-\allowbreak{}separation}; \((0,1)\); \texttt{fixes the parameter-\allowbreak{}exact high-\allowbreak{}separation pair of causal labels}
+  \par\smallskip\noindent\emph{Definition.} \(a_\star=1-v\).
+  \item \texttt{b} --- \texttt{common potential-\allowbreak{}outcome discordance mass}; \((0,1)\); \texttt{keeps every parameter-\allowbreak{}exact common potential-\allowbreak{}outcome cell strictly positive}
+  \par\smallskip\noindent\emph{Definition.} \(b=1-v/2\).
+  \item \texttt{\textbackslash{}\allowbreak{}psi} --- \texttt{compactly supported quartic compliance profile}; \(\mathbb R\to[0,1]\); \texttt{generates smooth translated first-\allowbreak{}stage jumps}
+  \item \texttt{g\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{smooth common outcome-\allowbreak{}effect profile}; \([0,1]\to[-a_\star,a_\star]\); \texttt{assigns opposite effect labels on two cutoff plateaus}
+  \item \texttt{q\_\allowbreak{}\{a,\allowbreak{}b\}\allowbreak{}} --- \texttt{common potential-\allowbreak{}outcome cell table}; \([0,1]\to[0,1]\); \texttt{makes the conditional outcome law invariant across cutoff alternatives}
+  \item \texttt{m\_\allowbreak{}\{d,\allowbreak{}y\}\allowbreak{}} --- \texttt{common conditional outcome margin}; \([0,1]\to(0,1)\); \texttt{is the outcome margin shared by all response types and cutoff alternatives}
+  \par\smallskip\noindent\emph{Definition.} \(m_{d,y}(x)=\sum_{a_0,a_1\in\{0,1\}}\mathbf 1\{(1-d)a_0+da_1=y\}q_{a_0,a_1}(x)\).
+  \item \texttt{R\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{outcome-\allowbreak{}invariant comparison law}; \texttt{dominates the translated witness mixtures}
+  \item \texttt{h\_\allowbreak{}n} --- \texttt{least-\allowbreak{}favorable bump width}; \((0,\infty)\); \texttt{balances compliance height and smoothness}
+  \par\smallskip\noindent\emph{Definition.} \(h_n=(32\kappa_n/M)^{1/s}\).
+  \item \texttt{J\_\allowbreak{}n} --- \texttt{number of translated alternatives per effect label}; \(\mathbb N_0\); \texttt{measures cutoff-\allowbreak{}location multiplicity}
+  \par\smallskip\noindent\emph{Definition.} \(J_n=\lfloor(16h_n)^{-1}\rfloor\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal W\_\allowbreak{}n} --- \texttt{finite outcome-\allowbreak{}invariant location-\allowbreak{}mixture witness family}; \texttt{certifies the unknown-\allowbreak{}cutoff lower bound}
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{crit\}\allowbreak{}\}\allowbreak{}} --- \texttt{critical-\allowbreak{}window derivation handle}; \texttt{specifies the noncommittal route for deriving the exact frontier}
+  \item \texttt{I\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{SI\}\allowbreak{},\allowbreak{}1\}\allowbreak{}} --- \texttt{Lipschitz four-\allowbreak{}fold scan-\allowbreak{}-\allowbreak{}refine-\allowbreak{}-\allowbreak{}invert connected interval}; is the total explicit interval rule proved to attain the oracle order on the face \(s=1\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat c\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{prof\}\allowbreak{}\}\allowbreak{}} --- \texttt{profile-\allowbreak{}selected cutoff center}; \([1/4,3/4]\); \texttt{is the cutoff coordinate returned by the higher-\allowbreak{}smoothness common-\allowbreak{}versus-\allowbreak{}piecewise affine profile}
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf F\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{prof\}\allowbreak{}\}\allowbreak{}} --- \texttt{profile-\allowbreak{}construction fallback indicator}; \(\{0,1\}\); \texttt{makes singular-\allowbreak{}design and weak-\allowbreak{}profile fallbacks an explicit measurable output}
+  \item \texttt{I\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{SI\}\allowbreak{}\}\allowbreak{}} --- \texttt{smoothness-\allowbreak{}indexed total connected confidence-\allowbreak{}interval rule}; dispatches to the proved rectangular Lipschitz rule at \(s=1\) and to the explicit but performance-unresolved profile branch at \(s>1\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The observations \(O_1,\ldots,O_n\) are independent and identically distributed under \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent random-design sampling, \cite{NoackRothe2024}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-running-variable]\label{ass:uniform-running-variable}
+The marginal law of \(X\) under \(P\) is uniform on \([0,1]\).
+\par\smallskip\noindent\emph{Standard} (Uniform random-design specialization, \cite{PorterYu2015}).
+\end{assumption}
+
+\begin{assumption}[ass:interior-cutoff]\label{ass:interior-cutoff}
+The cutoff satisfies \(c_P\in[1/4,3/4]\).
+\par\smallskip\noindent\emph{Standard} (Interior cutoff trimming, \cite{PorterYu2015}).
+\end{assumption}
+
+\begin{assumption}[ass:potential-reduced-form-continuity]\label{ass:potential-reduced-form-continuity}
+For each \(z\in\{0,1\}\), the maps \(x\mapsto E_P[D(z)\mid X=x]\) and \(x\mapsto E_P[Y(D(z))\mid X=x]\) are continuous at \(c_P\).
+\par\smallskip\noindent\emph{Standard} (Fuzzy-RD continuity of potential reduced forms, \cite{HahnToddVanDerKlaauw2001}).
+\end{assumption}
+
+\begin{assumption}[ass:observable-holder-extensions]\label{ass:observable-holder-extensions}
+For every \(V\in\{D,Y\}\) and \(\ell\in\{-,+\}\), the one-sided regression \(\mu_{V,P}^{\ell}\) admits an extension to \([0,1]\) in the radius-\(M\) H\"older ball of order \(s\), with the derivative interpreted in the usual way when \(s>1\).
+\par\smallskip\noindent\emph{Standard} (Adapted/sufficient specialization, cf. NoackRothe2024 (one-sided observable H{\"o}lder extensions), \cite{NoackRothe2024}).
+\end{assumption}
+
+\begin{assumption}[ass:local-compliance-strength]\label{ass:local-compliance-strength}
+The compliance discontinuity satisfies \(\kappa_n\le d_P\le2\kappa_n\).
+\par\smallskip\noindent\emph{Novel.} The factor-two shell is a deliberate strength-indexed triangular slice that defines uniform minimax risk at the scale \(\kappa_n\); it is not attributed to a published fuzzy-RD assumption. It allows arbitrary local-to-zero strength sequences and groups laws whose compliance jumps have the same empirical order, as occurs when take-up contrasts weaken across increasingly local study populations.
+\end{assumption}
+
+\begin{assumption}[ass:observable-outcome-variance-floor]\label{ass:observable-outcome-variance-floor}
+For each \(\ell\in\{-,+\}\) and every \(x\) on side \(\ell\) of \(c_P\), \(\operatorname{Var}_P(Y\mid X=x,\ell)\ge v\).
+\par\smallskip\noindent\emph{Standard} (Adapted/sufficient specialization, cf. NoackRothe2024 (binary-outcome variance floor), \cite{NoackRothe2024}).
+\end{assumption}
+
+\begin{assumption}[ass:observable-correlation-separation]\label{ass:observable-correlation-separation}
+For each \(\ell\in\{-,+\}\) and every \(x\) on side \(\ell\) of \(c_P\), \[|\operatorname{Cov}_P(Y,D\mid X=x,\ell)|\le(1-v)\sqrt{\operatorname{Var}_P(Y\mid X=x,\ell)\operatorname{Var}_P(D\mid X=x,\ell)}.\] If \(\operatorname{Var}_P(D\mid X=x,\ell)=0\), then the covariance is zero and the display is interpreted as \(0\le0\), without forming a correlation coefficient.
+\par\smallskip\noindent\emph{Standard} (Adapted/sufficient specialization, cf. NoackRothe2024 (observable correlation separation), \cite{NoackRothe2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal P_n(s,M,v,\kappa_n)=\{P:\text{ properties ass:iid-sampling, ass:uniform-running-variable, ass:interior-cutoff, ass:potential-reduced-form-continuity, ass:observable-holder-extensions, ass:local-compliance-strength, ass:observable-outcome-variance-floor, and ass:observable-correlation-separation hold at index }n\}.\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}running-\allowbreak{}variable}; \texttt{ass:\allowbreak{}interior-\allowbreak{}cutoff}; \texttt{ass:\allowbreak{}potential-\allowbreak{}reduced-\allowbreak{}form-\allowbreak{}continuity}; \texttt{ass:\allowbreak{}observable-\allowbreak{}holder-\allowbreak{}extensions}; \texttt{ass:\allowbreak{}local-\allowbreak{}compliance-\allowbreak{}strength}; \texttt{ass:\allowbreak{}observable-\allowbreak{}outcome-\allowbreak{}variance-\allowbreak{}floor}; \texttt{ass:\allowbreak{}observable-\allowbreak{}correlation-\allowbreak{}separation}.
+\end{definition}
+
+\begin{definition}[def:minimax-length]\label{def:minimax-length}
+\par\smallskip\noindent\emph{Defined object.} \texttt{L\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \[L_n(\kappa_n)=\inf_{I_n}\sup_{P\in\mathcal P_n}E_P[|I_n(O_1,\ldots,O_n)|],\qquad \inf_{P\in\mathcal P_n}P\{\theta_P\in I_n(O_1,\ldots,O_n)\}\ge1-\alpha,\] where the infimum ranges over measurable connected intervals contained in \(\Theta\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:known-cutoff-length]\label{def:known-cutoff-length}
+\par\smallskip\noindent\emph{Defined object.} \texttt{L\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{known\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \[L_n^{\mathrm{known}}(\kappa_n)=\inf_{I_n^{\mathrm{known}}}\sup_{P\in\mathcal P_n}E_P[|I_n^{\mathrm{known}}((O_1,\ldots,O_n),c_P)|],\qquad \inf_{P\in\mathcal P_n}P\{\theta_P\in I_n^{\mathrm{known}}((O_1,\ldots,O_n),c_P)\}\ge1-\alpha,\] where the infimum ranges only over measurable rules of the declared known-cutoff oracle type with connected values contained in \(\Theta\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:quartic-profile]\label{def:quartic-profile}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}psi}
+\par\smallskip\noindent\emph{Construction.} \[\psi(u)=(1-u^2)^2\mathbf 1\{|u|\le1\}.\]
+\end{definition}
+
+\begin{definition}[def:common-outcome-profile]\label{def:common-outcome-profile}
+\par\smallskip\noindent\emph{Defined object.} \texttt{g\_\allowbreak{}\textbackslash{}\allowbreak{}star}
+\par\smallskip\noindent\emph{Construction.} Let \(B(t)=1-10t^3+15t^4-6t^5\). Define \(g_\star(x)=a_\star\) on \([0,3/8]\), \(g_\star(x)=a_\star\{2B(4x-3/2)-1\}\) on \((3/8,5/8)\), and \(g_\star(x)=-a_\star\) on \([5/8,1]\).
+\end{definition}
+
+\begin{definition}[def:common-outcome-table]\label{def:common-outcome-table}
+\par\smallskip\noindent\emph{Defined object.} \texttt{q\_\allowbreak{}\{a,\allowbreak{}b\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Set \(b=1-v/2\).  For \(x\in[0,1]\), define \(q_{00}(x)=q_{11}(x)=(1-b)/2\), \(q_{01}(x)=\{b+g_\star(x)\}/2\), and \(q_{10}(x)=\{b-g_\star(x)\}/2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}common-\allowbreak{}outcome-\allowbreak{}profile}.
+\end{definition}
+
+\begin{definition}[def:outcome-invariant-reference]\label{def:outcome-invariant-reference}
+\par\smallskip\noindent\emph{Defined object.} \texttt{R\_\allowbreak{}\textbackslash{}\allowbreak{}star}
+\par\smallskip\noindent\emph{Construction.} Under \(R_\star\), \(X\sim\operatorname{Unif}[0,1]\), \(R_\star(D=d\mid X=x)=1/2\), and \(R_\star(Y=y\mid D=d,X=x)=m_{d,y}(x)\). This comparison law is used only as a dominating measure for the two in-class mixtures.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}common-\allowbreak{}outcome-\allowbreak{}table}.
+\end{definition}
+
+\begin{definition}[def:outcome-invariant-family]\label{def:outcome-invariant-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal W\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} For \(j=1,\ldots,J_n\), set \(c_{j,+}=1/4+(2j-1)h_n\) and \(c_{j,-}=5/8+(2j-1)h_n\). For \(\ell\in\{+,-\}\), put \(w_{j,\ell}(x)=\kappa_n\psi((x-c_{j,\ell})/h_n)\), \(\pi_{C,a,b,P_{j,\ell}}(x)=w_{j,\ell}(x)q_{a,b}(x)\), and \(\pi_{A,a,b,P_{j,\ell}}(x)=\pi_{N,a,b,P_{j,\ell}}(x)=\{1-w_{j,\ell}(x)\}q_{a,b}(x)/2\). The induced laws form \(\mathcal W_n=\{P_{j,\ell}:1\le j\le J_n,\ell\in\{+,-\}\}\), each with cutoff \(c_{j,\ell}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}quartic-\allowbreak{}profile}; \texttt{def:\allowbreak{}common-\allowbreak{}outcome-\allowbreak{}table}.
+\end{definition}
+
+\begin{definition}[def:scan-invert]\label{def:scan-invert}
+\par\smallskip\noindent\emph{Defined object.} \texttt{I\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{SI\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} If \(s=1\), define \(I_n^{\mathrm{SI}}=I_n^{\mathrm{SI},1}\) by
+\(\mathrm{def:lipschitz\mbox{-}scan\mbox{-}invert}\).  Suppose instead
+that \(1<s\le2\), and set \(m=\lfloor n/4\rfloor\).  If \(m=0\),
+return \(I_n^{\mathrm{SI}}=\Theta\) before forming folds or a
+\(1/m\) statistic.  Otherwise obtain
+\((\widehat c_{\mathrm{prof}},\mathsf F_{\mathrm{prof}})\) from
+\(\mathrm{def:profile\mbox{-}cutoff\mbox{-}center}\).  If
+\(\mathsf F_{\mathrm{prof}}=1\), return \(\Theta\).  On the remaining
+branch put
+\[
+ K_1(u)=(4-6u)\mathbf 1\{0\le u\le1\},\qquad
+ b_s=m^{-1/(2s+1)},\qquad L_\alpha=\log(32/\alpha),
+\]
+\[
+ R_{\mathrm{prof}}
+ =\frac{2^{16}L_\alpha}{m\kappa_n^2}+\frac1n,
+ \qquad
+ r_{\mathrm{prof}}
+ =8Mb_s^s+16MR_{\mathrm{prof}}
+  +8\|K_1\|_\infty
+     \sqrt{\frac{L_\alpha}{mb_s}}.
+\]
+If \(b_s>1/8\), return \(\Theta\) before forming a fourth-fold
+contrast.  On the remaining branch, using the fourth fold and the
+fixed denominator \(mb_s\), define
+\[
+ \widehat\Delta_{4,b_s}^{V}(t)
+ =\frac1{mb_s}\sum_{i\in F_4}V_i
+ \left\{K_1\!\left(\frac{X_i-t}{b_s}\right)
+       -K_1\!\left(\frac{t-X_i}{b_s}\right)\right\},
+ \quad V\in\{D,Y\},
+\]
+and set \(\widehat y=\widehat\Delta_{4,b_s}^{Y}
+(\widehat c_{\mathrm{prof}})\) and
+\(\widehat d=\widehat\Delta_{4,b_s}^{D}
+(\widehat c_{\mathrm{prof}})\).  If
+\(R_{\mathrm{prof}}>b_s/8\), \(r_{\mathrm{prof}}>\kappa_n/8\), or
+\(\widehat d<\kappa_n/2\), return \(\Theta\).  Otherwise return
+\[
+ I_n^{\mathrm{SI}}
+ =\operatorname{hull}\left\{\theta\in\Theta:
+ |\widehat y-\theta\widehat d|\le2r_{\mathrm{prof}}\right\}.
+\]
+The higher-smoothness branch is a completely specified measurable
+sample map; no performance assertion for that branch is part of this
+definition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}lipschitz-\allowbreak{}scan-\allowbreak{}invert}; \texttt{def:\allowbreak{}profile-\allowbreak{}cutoff-\allowbreak{}center}.
+\end{definition}
+
+\begin{definition}[def:critical-handle]\label{def:critical-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{crit\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \texttt{Derive bias-\allowbreak{}compensated local likelihoods indexed jointly by cutoff and effect label;\allowbreak{} solve the normalized optimal-\allowbreak{}recovery problem for the compliance and outcome compensation profiles;\allowbreak{} truncate and renormalize the translated-\allowbreak{}cutoff mixtures at the support boundary;\allowbreak{} retain the effect-\allowbreak{}label coordinate in the testing experiment;\allowbreak{} and invert the resulting tests before taking the shortest honest connected hull.}
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}minimax-\allowbreak{}length}; \texttt{def:\allowbreak{}outcome-\allowbreak{}invariant-\allowbreak{}family}.
+\end{definition}
+
+\begin{definition}[def:lipschitz-scan-invert]\label{def:lipschitz-scan-invert}
+\par\smallskip\noindent\emph{Defined object.} \texttt{I\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{SI\}\allowbreak{},\allowbreak{}1\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Set \(m=\lfloor n/4\rfloor\).  If \(m=0\), define
+\(I_n^{\mathrm{SI},1}(O_1,\ldots,O_n)=\Theta\) and stop; in
+particular, this branch is taken before forming folds, before using a
+\(1/m\) statistic, and before defining \(b=m^{-1/3}\).  If \(m\ge1\),
+form the four deterministic folds
+\(F_j=\{(j-1)m+1,\ldots,jm\}\), discarding observations with index
+larger than \(4m\), and put
+\[
+ K_0(u)=\mathbf 1\{0\le u\le1\},\qquad
+ H=\frac{\kappa_n}{2^{12}M}.
+\]
+For \(V\in\{D,Y\}\), \(j\in\{1,2,3,4\}\), \(h>0\), and any
+\(t\) for which \([t-h,t+h]\subset[0,1]\), define the fixed-denominator
+contrast
+\[
+ \widehat\Delta_{j,h}^{V}(t)
+ =\frac1{mh}\sum_{i\in F_j}V_i
+ \left\{K_0\!\left(\frac{X_i-t}{h}\right)
+       -K_0\!\left(\frac{t-X_i}{h}\right)\right\}.
+\]
+Let
+\[
+ \mathcal G_H=\left\{\frac14+\frac{kH}{64}:
+ 0\le k\le\left\lfloor\frac{32}{H}\right\rfloor\right\},
+ \qquad
+ \mathcal S_H=\left\{t\in\mathcal G_H:
+ \widehat\Delta_{1,H}^{D}(t)
+ \ge\max_{q\in\mathcal G_H}\widehat\Delta_{1,H}^{D}(q)
+       -\frac{\kappa_n}{8}\right\},
+\]
+and let \(B_H\) be the union, intersected with \([1/4,3/4]\), of the
+closed \(H\)-neighborhoods of the points in \(\mathcal S_H\).  On each
+closed component of \(B_H\), take the deterministic grid that includes
+both endpoints and has mesh at most \(1/n\); let \(\mathcal G_n(B_H)\)
+be the union of these grids.  Define \(\widehat c\) as the smallest
+maximizer over \(\mathcal G_n(B_H)\) of
+\[
+ t\longmapsto
+ \overline\Delta_H^D(t)
+ =\frac12\left\{\widehat\Delta_{2,H}^{D}(t)
+                 +\widehat\Delta_{3,H}^{D}(t)\right\}.
+\]
+Now put
+\[
+ b=m^{-1/3},\qquad L_\alpha=\log(32/\alpha),\qquad
+ R_c=\frac{2^{16}L_\alpha}{m\kappa_n^2}+\frac1n,
+\]
+\[
+ r_n=8Mb+\frac{16\kappa_nR_c}{b}+16MR_c
+     +8\|K_0\|_\infty\sqrt{\frac{L_\alpha}{mb}},
+\]
+If \(b>1/8\), return \(I_n^{\mathrm{SI},1}=\Theta\) before forming a
+fold-four contrast.  On the remaining branch set
+\[
+ \widehat y=\widehat\Delta_{4,b}^{Y}(\widehat c),
+ \qquad
+ \widehat d=\widehat\Delta_{4,b}^{D}(\widehat c).
+\]
+If \(R_c>H/8\) or \(r_n>\kappa_n/8\), return
+\(I_n^{\mathrm{SI},1}=\Theta\).  If those checks pass but
+\(\widehat d<\kappa_n/2\), again return \(\Theta\).  Otherwise return
+\[
+ I_n^{\mathrm{SI},1}
+ =\operatorname{hull}\left\{\theta\in\Theta:
+       |\widehat y-\theta\widehat d|\le2r_n\right\},
+\]
+with the hull of the empty set defined to be empty.  All maximizers use
+the displayed smallest-argument tie breaking, so this is a measurable
+map of the sample.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:profile-cutoff-center]\label{def:profile-cutoff-center}
+\par\smallskip\noindent\emph{Defined object.} \texttt{(\textbackslash{}\allowbreak{}widehat c\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{prof\}\allowbreak{}\}\allowbreak{},\allowbreak{}\textbackslash{}\allowbreak{}mathsf F\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{prof\}\allowbreak{}\}\allowbreak{})}
+\par\smallskip\noindent\emph{Construction.} Set \(m=\lfloor n/4\rfloor\).  If \(m=0\), return
+\((\widehat c_{\mathrm{prof}},\mathsf F_{\mathrm{prof}})=(1/2,1)\)
+and stop; this branch precedes the definition of \(b=m^{-1/3}\), every
+\(1/m\) statistic, and every fold construction.  If \(m\ge1\), put
+\[
+ b=m^{-1/3},\qquad
+ H=\left(\frac{\kappa_n}{2^{12}M}\right)^{1/s},\qquad
+ \delta=\frac{\kappa_n}{32},
+\]
+form \(F_j=\{(j-1)m+1,\ldots,jm\}\), \(j=1,\ldots,4\), and take a
+deterministic grid \(\mathcal T_n\subset[1/4,3/4]\) containing both
+endpoints and having mesh at most
+\(\eta_n=\min\{n^{-1},bH/64\}\).  For \(\ell\in\{-,+\}\), define
+\[
+ z_{t,-}(x)=\left(1,\frac{t-x}{H}\right)^\top,
+ \quad A_{t,-}=[t-H,t),\qquad
+ z_{t,+}(x)=\left(1,\frac{x-t}{H}\right)^\top,
+ \quad A_{t,+}=[t,t+H],
+\]
+Here \(H\le2^{-8}<1/4\), by \(\kappa_n\le1/8\), \(M\ge2\), and
+\(1<s\le2\), so every displayed flank is contained in \([0,1]\).
+For \(j\in\{1,2\}\), put
+\[
+ \widehat G_{j,t}^{\ell}
+ =\frac1m\sum_{i\in F_j}
+   \mathbf 1\{X_i\in A_{t,\ell}\}
+   z_{t,\ell}(X_i)z_{t,\ell}(X_i)^\top.
+\]
+Under the uniform design the corresponding population matrix is
+\[
+ G_H=H\begin{pmatrix}1&1/2\\[2pt]1/2&1/3\end{pmatrix},
+ \qquad
+ \lambda_{\min}(G_H)=\frac{H(4-\sqrt{13})}{6}.
+\]
+If any displayed empirical flank matrix has smallest eigenvalue below
+\(H(4-\sqrt{13})/12\), return \((1/2,1)\).
+
+Otherwise, on each training fold \(j\in\{1,2\}\) and at every
+\(t\in\mathcal T_n\), compute the lexicographically smallest constrained
+least-squares fits of \(D\): a common affine fit on
+\([t-H,t+H]\) and two separate affine fits on \(A_{t,-}\) and
+\(A_{t,+}\).  Each affine fit has intercept in \([-b,1+b]\) and slope
+in \([-M-b,M+b]\); these compact constraints make every fit total and
+measurable.  Denote the common and piecewise fitted functions by
+\(\widehat g_{j,t}^{0}\) and \(\widehat g_{j,t}^{1}\), respectively.
+For \((j,k)=(1,2)\) and \((2,3)\), define the held-out improvement
+\[
+ \widehat Q_{j\to k}(t)=\frac1m\sum_{i\in F_k}
+ \mathbf 1\{|X_i-t|\le H\}
+ \left[
+   \{D_i-\widehat g_{j,t}^{0}(X_i)\}^2
+  -\{D_i-\widehat g_{j,t}^{1}(X_i)\}^2
+ \right],
+ \qquad
+ \widehat Q(t)=\frac{\widehat Q_{1\to2}(t)+
+                           \widehat Q_{2\to3}(t)}2.
+\]
+Let \(\widetilde c\) be the smallest maximizer of \(\widehat Q\).  Let
+\(\widehat d_{\mathrm{prof}}(\widetilde c)\) be the average, over the
+two training folds, of the fitted right intercept minus fitted left
+intercept at \(\widetilde c\).  If
+\(\widehat d_{\mathrm{prof}}(\widetilde c)<\kappa_n-8\delta\), return
+\((\widetilde c,1)\); otherwise return \((\widetilde c,0)\).  Thus the
+fallback indicator \(\mathsf F_{\mathrm{prof}}\) is an explicit
+component of the returned object.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:wald-late-identification]\label{prop:wald-late-identification}
+For every \(P\in\mathcal P_n\), continuity of the potential reduced forms, monotonicity encoded by \(R\in\{N,C,A\}\), consistency, and exclusion imply \[d_P=P(R=C\mid X=c_P),\qquad y_P=E_P[(Y(1)-Y(0))\mathbf 1\{R=C\}\mid X=c_P].\] Therefore \(\theta_P=y_P/d_P=E_P[Y(1)-Y(0)\mid R=C,X=c_P]\), where all conditional quantities at \(c_P\) are their continuous versions.
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal P_n\).  By the definitions of threshold assignment and observed treatment, the right and left limits of the treatment regression are, respectively,
+\[
+ \mu^+_{D,P}(c_P)=E_P[D(1)\mid X=c_P],\qquad
+ \mu^-_{D,P}(c_P)=E_P[D(0)\mid X=c_P].
+\]
+Here the equalities at \(c_P\) use the continuous versions supplied by assumption ass:potential-reduced-form-continuity.  The response-type definition gives the pointwise identity
+\[
+ D(1)-D(0)=\mathbf 1\{R=C\}.
+\]
+Subtracting the two preceding conditional expectations therefore yields
+\[
+ d_P=E_P[D(1)-D(0)\mid X=c_P]=P(R=C\mid X=c_P).
+\]
+Likewise, consistency and exclusion are encoded by \(Y=Y(D)\): immediately to the right of the cutoff the observed potential response is \(Y(D(1))\), and immediately to the left it is \(Y(D(0))\).  Hence continuity of the potential reduced forms gives
+\[
+ y_P=E_P[Y(D(1))-Y(D(0))\mid X=c_P].
+\]
+For never-takers and always-takers, \(D(1)=D(0)\), whereas for compliers \((D(0),D(1))=(0,1)\).  Consequently, pointwise,
+\[
+ Y(D(1))-Y(D(0))=(Y(1)-Y(0))\mathbf 1\{R=C\},
+\]
+and thus
+\[
+ y_P=E_P[(Y(1)-Y(0))\mathbf 1\{R=C\}\mid X=c_P].
+\]
+Assumption ass:local-compliance-strength gives \(d_P\ge\kappa_n>0\), so division is valid.  Dividing the last display by the formula for \(d_P\) proves
+\[
+ \theta_P=\frac{y_P}{d_P}=E_P[Y(1)-Y(0)\mid R=C,X=c_P].
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition connects the observable jump ratio that drives inference to the complier causal effect without imposing latent-cell smoothness on the minimax class. \textit{Gap.} HahnToddVanDerKlaauw2001 supplies the standard fuzzy-RD Wald interpretation; the proposition records that interpretation for the observable triangular class used by the frontier. \textit{Consumer.} Every interval-length theorem can be read as inference for a local complier effect rather than for an abstract ratio of discontinuities.
+
+\begin{theorem}[thm:known-cutoff-benchmark]\label{thm:known-cutoff-benchmark}
+There exist constants \(0<c_0<C_0<\infty\), depending only on \(s,M,v,\alpha\), such that for all sufficiently large \(n\), \[c_0\min\{1,\rho_n/\kappa_n\}\le L_n^{\mathrm{known}}(\kappa_n)\le C_0\min\{1,\rho_n/\kappa_n\}.\]
+\end{theorem}
+\begin{proof}
+Put \(c=c_P\), which is supplied to the oracle rule.  We first construct an explicit uniformly honest rule.  Let
+\[
+ K(u)=(4-6u)\mathbf 1\{0\le u\le1\}.
+\]
+Then \(\int_0^1K(u)\,du=1\), \(\int_0^1uK(u)\,du=0\), and \(B_K=\int_0^1K(u)^2\,du<\infty\).  Set \(h=n^{-1/(2s+1)}\).  For \(V\in\{D,Y\}\), define the sample maps
+\[
+ \widehat\mu_V^+=\frac1{nh}\sum_{i=1}^nK\left(\frac{X_i-c}{h}\right)
+ \mathbf 1\{c\le X_i\le c+h\}V_i,
+\]
+\[
+ \widehat\mu_V^-=\frac1{nh}\sum_{i=1}^nK\left(\frac{c-X_i}{h}\right)
+ \mathbf 1\{c-h\le X_i<c\}V_i.
+\]
+For all sufficiently large \(n\), assumption ass:interior-cutoff ensures that both windows lie in \([0,1]\).  Uniformity of \(X\) and a change of variables show that their expectations are the corresponding integrals of \(K(u)\mu^\ell_{V,P}(c\pm hu)\).
+
+For \(s=1\), the H\"older condition directly bounds the bias by
+\[
+ M h\int_0^1|K(u)|u\,du.
+\]
+For \(1<s\le2\), write \(\beta=s-1\).  The fundamental theorem of calculus and the derivative H\"older bound give
+\[
+ |f(c+t)-f(c)-tf'(c)|
+ \le\int_0^{|t|}M r^\beta\,dr
+ =\frac{M}{s}|t|^s.
+\]
+The zero first moment of \(K\) cancels the linear term, giving the same order \(C_KMh^s\).  Since \(0\le V_i\le1\), independence and the uniform design give
+\[
+ \operatorname{Var}_P(\widehat\mu_V^\ell)\le\frac{B_K}{nh}.
+\]
+For any centered random variable \(U\), the pointwise inequality \(\mathbf 1\{|U|>t\}\le U^2/t^2\) implies \(P(|U|>t)\le E[U^2]/t^2\).  Applying this inequality to the four estimators and taking a union bound, there is a constant \(C=C(s,M,\alpha)\) such that, with probability at least \(1-\alpha\), all four errors are at most \(C\rho_n/2\).  Thus, for
+\[
+ \widehat d=\widehat\mu_D^+-\widehat\mu_D^-,\qquad
+ \widehat y=\widehat\mu_Y^+-\widehat\mu_Y^-,\qquad r_n=C\rho_n,
+\]
+the event
+\[
+ \mathcal E_P=\{|\widehat d-d_P|\le r_n,\ |\widehat y-y_P|\le r_n\}
+\]
+has probability at least \(1-\alpha\), uniformly over \(P\in\mathcal P_n\).
+
+If \(\kappa_n\le2r_n\), define the oracle interval to be \(\Theta\).  Otherwise put
+\[
+ \widetilde d=\max\{\widehat d,\kappa_n/2\},\qquad
+ \widetilde\theta=\Pi_\Theta(\widehat y/\widetilde d),
+\]
+where \(\Pi_\Theta\) is metric projection onto \([-1,1]\), and define
+\[
+ I_n^{\mathrm{known}}=
+ \Theta\cap[\widetilde\theta-4r_n/\kappa_n,
+              \widetilde\theta+4r_n/\kappa_n].
+\]
+This is a measurable connected interval.  On \(\mathcal E_P\) in the second regime, \(\widehat d\ge d_P-r_n>\kappa_n/2\), so \(\widetilde d=\widehat d\).  Since \(|y_P|=|\theta_P|d_P\le d_P\),
+\[
+ \left|\frac{\widehat y}{\widehat d}-\frac{y_P}{d_P}\right|
+ \le\frac{|\widehat y-y_P|}{\widehat d}
+ +\frac{|y_P|\,|\widehat d-d_P|}{d_P\widehat d}
+ \le\frac{2r_n}{\widehat d}\le\frac{4r_n}{\kappa_n}.
+\]
+Projection cannot increase distance from \(\theta_P\in\Theta\), so the interval covers \(\theta_P\) on \(\mathcal E_P\).  It is therefore uniformly \((1-\alpha)\)-honest.  Its length is deterministically at most \(8r_n/\kappa_n\) in the second regime and is two in the first.  Because \(r_n=C\rho_n\), enlarging a constant if necessary gives
+\[
+ L_n^{\mathrm{known}}(\kappa_n)\le C_0\min\{1,\rho_n/\kappa_n\}.
+\]
+
+For the converse, it is enough to exhibit two laws in the same class with the supplied cutoff \(c=1/2\).  Let
+\[
+ \varphi(u)=(1-u^2)^2\mathbf 1\{|u|\le1\},\quad
+ a_n=\eta\min\{\kappa_n,\rho_n\},\quad
+ \delta_n=a_n/\kappa_n,\quad
+ h_a=(8a_n/M)^{1/s},
+\]
+where \(\eta\in(0,1/8]\) will be fixed below.  Under both laws, take \(X\) uniform and, conditionally on \(X\), assign response-type probabilities
+\[
+ P(R=C)=\kappa_n,\qquad P(R=N)=P(R=A)=\frac{1-\kappa_n}{2}.
+\]
+For never-takers and always-takers let the four potential-outcome cells each have probability \(1/4\).  Under \(P_t\), \(t\in\{0,1\}\), give compliers the table
+\[
+ q_{00,t}=q_{11,t}=\frac38,\qquad
+ q_{01,t}(x)=\frac{1/4+g_t(x)}2,\qquad
+ q_{10,t}(x)=\frac{1/4-g_t(x)}2,\qquad
+ g_t(x)=t\delta_n\varphi\left(\frac{x-c}{h_a}\right).
+\]
+For large \(n\), \(h_a<1/4\); all cells are nonnegative because \(\delta_n\le\eta\le1/8\).  Both laws have
+\[
+ \mu_D^-=(1-\kappa_n)/2,\qquad \mu_D^+=(1+\kappa_n)/2,
+\]
+and their outcome extensions are
+\[
+ \mu_{Y,P_t}^-(x)=\frac12-\frac{\kappa_ng_t(x)}2,\qquad
+ \mu_{Y,P_t}^+(x)=\frac12+\frac{\kappa_ng_t(x)}2.
+\]
+The derivative calculations \(\lVert\varphi'\rVert_\infty\le2\) and \([\varphi']_{s-1}\le8\), together with \(h_a^s=8a_n/M\), show that the nonconstant outcome parts have Lipschitz constant at most \(M/8\) for \(s=1\), and derivative supremum at most \(M/8\) and derivative H\"older seminorm at most \(M/2\) for \(1<s\le2\).  Thus the observable extensions lie in the radius-\(M\) H\"older ball.  The corresponding potential reduced forms are the same continuous functions, so the causal continuity condition holds.  At the cutoff,
+\[
+ d_{P_t}=\kappa_n,\qquad \theta_{P_0}=0,\qquad \theta_{P_1}=\delta_n.
+\]
+
+For completeness, the binary outcome has mean \(1/2\mp\kappa_ng_t/2\) on the two sides, so
+\[
+ \operatorname{Var}_{P_t}(Y\mid X=x)=\frac14-\frac{\kappa_n^2g_t(x)^2}{4}>\frac{63}{256}>v.
+\]
+Also \(\operatorname{Var}(D\mid X=x)=(1-\kappa_n^2)/4\ge63/256\), and a direct two-point covariance calculation on either side gives
+\[
+ |\operatorname{Cov}(Y,D\mid X=x)|=\frac{\kappa_n|g_t(x)|(1-\kappa_n)}4\le\frac1{256}.
+\]
+The resulting absolute correlation is at most \(1/63<63/64<1-v\).  Thus \(P_0,P_1\in\mathcal P_n\).
+
+Under \(P_0\), each outcome cell within a treatment stratum is equiprobable.  On the left, passing to \(P_1\) changes only the two \(D=0\) cells by \(\pm\kappa_ng_1(x)/2\); on the right it changes only the two \(D=1\) cells by those amounts.  Since the relevant baseline cell probability is \((1+\kappa_n)/4\), the conditional chi-square divergence is at most \(2\kappa_n^2g_1(x)^2\).  Therefore, with \(C_\varphi=\int_{-1}^1\varphi(u)^2\,du=256/315\),
+\[
+ \chi^2(P_1,P_0)\le2C_\varphi a_n^2h_a.
+\]
+Product expansion and \(1+x\le e^x\) yield
+\[
+ \chi^2(P_1^{\otimes n},P_0^{\otimes n})
+ \le\exp\left\{2C_\varphi n a_n^2(8a_n/M)^{1/s}\right\}-1.
+\]
+Since \(n\rho_n^{2+1/s}=1\), the exponent is at most a constant times \(\eta^{2+1/s}\).  Choose \(\eta=\eta(s,M,\alpha)>0\) small enough that the last display is at most \((1-2\alpha)^2\).  Writing \(L=dP_1^{\otimes n}/dP_0^{\otimes n}\), the total-variation identity and Cauchy--Schwarz give
+\[
+ \operatorname{TV}(P_1^{\otimes n},P_0^{\otimes n})
+ =\frac12E_{P_0^{\otimes n}}|L-1|
+ \le\frac12\sqrt{\chi^2(P_1^{\otimes n},P_0^{\otimes n})}
+ \le\frac{1-2\alpha}{2}.
+\]
+If an oracle interval is honest under both laws, then under \(P_0\) the probability that it contains both \(0\) and \(\delta_n\) is at least
+\[
+ 1-2\alpha-\operatorname{TV}(P_0^{\otimes n},P_1^{\otimes n})
+ \ge\frac{1-2\alpha}{2}.
+\]
+Connectedness forces its length to be at least \(\delta_n\) on that event.  Hence
+\[
+ \sup_{P\in\mathcal P_n}E_P[|I_n^{\mathrm{known}}|]
+ \ge\frac{\eta(1-2\alpha)}2\min\{1,\rho_n/\kappa_n\}.
+\]
+Taking the infimum over honest oracle rules proves the lower bound and completes the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The oracle rate isolates weak-denominator uncertainty from the additional cost of locating the cutoff and is uniform over the observable reduced-form class. \textit{Gap.} NoackRothe2024 proves honest known-cutoff Anderson--Rubin coverage and regular strong-first-stage equivalence, but does not state this triangular-array minimax expected-length order. \textit{Consumer.} The all-regime frontier uses this theorem as its required oracle reduction when the cutoff is supplied or strongly localized.
+
+\begin{openendedquestion}[oeq:critical-window-frontier]\label{oeq:critical-window-frontier}
+Using \(\mathsf H_{\mathrm{crit}}\), determine a nonvariational
+fixed-\(\alpha\) expression for \(L_n(\kappa_n)\) with a uniform
+remainder throughout \(T_n\asymp\log(1/\kappa_n)\), and construct an
+honest connected interval attaining that expression.  In particular,
+for every \(\lambda\in(0,\infty)\), derive and match the limiting
+expected length along sequences satisfying
+\(T_n/\log(1/\kappa_n)\to\lambda\).  The result must retain
+effect-label testing, agree with the exact \(s=1\) common-outcome
+plateau experiment, have a \(\lambda\downarrow0\) converse that
+recovers Theorem 2's nonshrinking lower bound, with no matched
+below-boundary value claimed without a separate attaining upper bound,
+and agree in order with Theorems 1 and 3 as
+\(\lambda\uparrow\infty\).  It must strictly extend the known-cutoff
+honesty result of Noack and Rothe (2024) by evaluating connected
+expected length uniformly over the unknown cutoff \(c_P\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The critical window is the only unresolved region where cutoff entropy and weak-denominator uncertainty remain of the same order, so evaluating it completes the frontier rather than juxtaposing regimes. \textit{Gap.} ArmstrongKolesar2018 evaluates fixed-level length through ordered moduli on convex fixed-index classes; the present experiment is a nonconvex union of translated causal ratio models with an effect-label coordinate. \textit{Consumer.} The resulting formula gives the signal threshold and interval length needed to plan, audit, and interpret fuzzy-RD studies whose operative cutoff is not recorded.
+
+\begin{lemma}[lem:rectangular-jump-scan-localization]\label{lem:rectangular-jump-scan-localization}
+Suppose \(s=1\), \(P\in\mathcal P_n\), and use the notation in the
+definition of \(I_n^{\mathrm{SI}}\).  Write
+\(\Delta_H^D(t)=E_P[\widehat\Delta_{j,H}^D(t)]\), which is independent
+of \(j\), and define
+\[
+ \mathcal E_1=\left\{
+ \max_{t\in\mathcal G_H}
+ \left|\widehat\Delta_{1,H}^{D}(t)-\Delta_H^D(t)\right|
+ \le\frac{\kappa_n}{16}\right\}.
+\]
+Then
+\[
+ P(\mathcal E_1^c)
+ \le2N_H\exp\{-2^{-11}mH\kappa_n^2\},
+ \qquad N_H\le1+32/H,
+\]
+every retained \(H\)-neighborhood is contained in
+\([c_P-2H,c_P+2H]\) on \(\mathcal E_1\), and, for every
+\(u\ge16/n\),
+\[
+ P\bigl(\{|\widehat c-c_P|>u\}\cap\mathcal E_1\bigr)
+ \le9\exp\{-2^{-16}m\kappa_n^2u\}.
+\]
+\end{lemma}
+\begin{proof}
+Put \(f(x)=E_P[D\mid X=x]\).  By
+\(\mathrm{ass:observable\mbox{-}holder\mbox{-}extensions}\) at
+\(s=1\), the two one-sided extensions are \(M\)-Lipschitz.  Let
+\(a=f(c_P-)\), let \(d=f(c_P+)-f(c_P-)=d_P\), and define
+\[
+ e(x)=\begin{cases}
+ f(x)-a,&x<c_P,\\
+ f(x)-a-d,&x\ge c_P.
+ \end{cases}
+\]
+Both pieces vanish at \(c_P\).  Hence each is \(M\)-Lipschitz on its
+side, and, if \(x<c_P<y\),
+\[
+ |e(y)-e(x)|\le M(y-c_P)+M(c_P-x)=M(y-x).
+\]
+Thus \(e\) is globally \(M\)-Lipschitz and
+\[
+ f(x)=a+d\mathbf 1\{x\ge c_P\}+e(x). \tag{1}
+\]
+The bounds \(\kappa_n\le1/8\) and \(M\ge2\) give
+\(H\le2^{-16}<1/4\).  Together with
+\(c_P,t\in[1/4,3/4]\), from
+\(\mathrm{ass:interior\mbox{-}cutoff}\) and the scan definition, this
+ensures that every \(H\)-window below is contained in the support
+\([0,1]\); no boundary extrapolation is being used.
+Uniformity of \(X\), from
+\(\mathrm{ass:uniform\mbox{-}running\mbox{-}variable}\), and
+\(\int_0^1K_0(u)\,du=1\) give, for all scan locations,
+\[
+ \Delta_H^D(t)=d\left(1-\frac{|t-c_P|}{H}\right)_++Q_e(t),
+ \qquad
+ Q_e(t)=\frac1H\int_0^H\{e(t+x)-e(t-x)\}\,dx. \tag{2}
+\]
+The Lipschitz property gives
+\[
+ |Q_e(t)|\le MH,
+ \qquad |Q_e(t)-Q_e(q)|\le2M|t-q|. \tag{3}
+\]
+There is \(q\in\mathcal G_H\) with \(|q-c_P|\le H/64\), including
+when \(c_P\) is a trimmed endpoint.  Since \(d\ge\kappa_n\) by
+\(\mathrm{ass:local\mbox{-}compliance\mbox{-}strength}\) and
+\(MH=\kappa_n/2^{12}\), (2)--(3) imply
+\[
+ \Delta_H^D(q)\ge\frac{63}{64}\kappa_n-\frac{\kappa_n}{2^{12}},
+ \qquad
+ \sup_{|t-c_P|\ge H}|\Delta_H^D(t)|
+ \le\frac{\kappa_n}{2^{12}}. \tag{4}
+\]
+
+For fixed \(t\), one summand \(W_i(t)\) in the fixed-denominator
+contrast has \(|W_i(t)|\le H^{-1}\),
+\(E_P[W_i(t)^2]\le2H^{-1}\), and its centered version is bounded by
+\(2H^{-1}\).  For \(|z|<3\), expansion of the exponential series and
+\(k!\ge2\,3^{k-2}\) for \(k\ge2\) give
+\[
+ e^z\le1+z+\frac{z^2}{2(1-|z|/3)}.
+\]
+Applying this inequality conditionally to each centered summand,
+multiplying the moment-generating-function bounds using
+\(\mathrm{ass:iid\mbox{-}sampling}\), applying Markov's inequality,
+and optimizing the exponential parameter yield
+\[
+ P\left\{\left|m^{-1}\sum_{i\in F_1}
+       (W_i(t)-E_PW_i(t))\right|>x\right\}
+ \le2\exp\left\{-\frac{mx^2}{4/H+4x/(3H)}\right\}. \tag{5}
+\]
+At \(x=\kappa_n/16\le1/128\), (5) is at most
+\(2\exp\{-2^{-11}mH\kappa_n^2\}\).  A union bound over
+\(N_H=1+\lfloor32/H\rfloor\le1+32/H\) grid points proves the first
+display in the lemma.  On \(\mathcal E_1\), the empirical value at
+\(q\) exceeds every empirical value at distance at least \(H\) from
+\(c_P\) by more than \(\kappa_n/8\), by (4) and two deviations of
+size \(\kappa_n/16\).  Every retained center is consequently within
+\(H\) of \(c_P\), and its \(H\)-neighborhood is contained in
+\([c_P-2H,c_P+2H]\).
+
+For \(|t-c_P|\le H\), (2)--(3) imply
+\[
+ \Delta_H^D(c_P)-\Delta_H^D(t)
+ \ge\left(\frac{\kappa_n}{H}-2M\right)|t-c_P|
+ \ge\frac{\kappa_n}{2H}|t-c_P|. \tag{6}
+\]
+For \(H\le|t-c_P|\le2H\), the same difference is at least
+\(\kappa_n-2MH\ge\kappa_n/2\).  On \(\mathcal E_1\), the set
+\(B_H\) contains \(c_P\), because it contains the \(H\)-neighborhood
+of its empirical coarse maximizer, which was just shown to lie within
+\(H\) of \(c_P\).  Hence the componentwise grid contains a point
+\(c_n\) with \(|c_n-c_P|\le1/n\).  The Lipschitz constant of the
+right side of (2) is at most
+\(d/H+2M\le3\kappa_n/H\).  Since \(u\ge16/n\), replacing \(c_P\)
+by \(c_n\) consumes at most \(3\kappa_nu/(16H)\) of the separation
+in (6).
+
+We give the stopped exponential calculation for the local maximizer.
+For \(0<r\le H\), moving \(t\) to the right by at most \(r\) changes
+the rectangular weight only on the three boundary strips at
+\(c_n-H,c_n,c_n+H\).  Their squared coefficients sum to six, so the
+integrated squared weight is at most \(6r/H^2\), while the absolute
+weight is at most \(2/H\).  Reveal the observations in the three
+strips in increasing running-variable order, interleaving equal
+relative positions.  Centering each newly revealed contribution gives
+martingale increments bounded by \(4/H\); for \(2m\) observations the
+predictable quadratic variation up to displacement \(R\) is at most
+\(12mR/H^2\).  The exponential-series inequality used in (5) shows
+that, for \(0<\eta H<3/4\),
+\[
+ \exp\left\{\eta S_k-
+ \frac{\eta^2V_k}{2(1-4\eta/(3H))}\right\}
+\]
+is a nonnegative supermartingale.  Stopping it at the first crossing
+and using Markov's inequality is legitimate because the scan grid is
+finite.  On the annulus \(r_j=2^ju\le t-c_n<2r_j\), the deterministic
+separation, including the grid error, is at least
+\(\kappa_nr_j/(8H)\).  Thus the unnormalized sum of the \(2m\)
+fold-two and fold-three contributions must cross
+\(m\kappa_nr_j/(4H)\).  With \(\eta=\kappa_nH/2^7\),
+\(\kappa_n\le1/8\), and \(V_k\le24mr_j/H^2\), the exponent is bounded
+above by
+\[
+ -\frac{m\kappa_n^2r_j}{2^9}
+ +\frac{12m\kappa_n^2r_j}
+ {2^{14}(1-1/768)}
+ \le-2^{-13}m\kappa_n^2r_j. \tag{7}
+\]
+The decreasing-order filtration gives the same bound on the left.
+Once an annulus reaches distance \(H\), use the separation
+\(\kappa_n/2\) and the full-window quadratic-variation bound; this is
+no weaker than (7) after reducing its numerical exponent.  Summing the
+dyadic annuli proves
+\[
+ P\bigl(\{|\widehat c-c_P|>u\}\cap\mathcal E_1\bigr)
+ \le9\exp\{-2^{-16}m\kappa_n^2u\}.
+\]
+Indeed, if \(2^{-16}m\kappa_n^2u\le\log9\), the right side is at least
+one; otherwise the two geometric series generated by (7) are bounded
+by the displayed right side.  For \(u>2H\), the event is empty by the
+already proved containment.  This proves every assertion of the lemma.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma supplies the population triangular profile, the global scan bound, and the stopped local-refinement inequality for the actual rectangular sample map. \textit{Gap.} The exponential \(m\kappa_n^2u\) tail is derived with displayed constants rather than borrowed from fixed-jump asymptotics. \textit{Consumer.} It is the localization input for the Lipschitz honesty and expected-length proof.
+
+\begin{theorem}[thm:lipschitz-strong-signal-oracle-attainment]\label{thm:lipschitz-strong-signal-oracle-attainment}
+On the Lipschitz face \(s=1\), there are finite constants
+\(C_1,C_2\), depending only on \(M,v,\alpha\), such that, for all
+sufficiently large \(n\), if
+\[
+ T_n=n\kappa_n^3\ge C_1\log(e/\kappa_n),
+\]
+then \(I_n^{\mathrm{SI},1}\) is uniformly honest over
+\(\mathcal P_n(1,M,v,\kappa_n)\) and
+\[
+ \sup_{P\in\mathcal P_n}E_P[|I_n^{\mathrm{SI},1}|]
+ \le C_2\min\{1,\rho_n/\kappa_n\}.
+\]
+Consequently
+\(L_n(\kappa_n)\asymp L_n^{\mathrm{known}}(\kappa_n)\) in this
+region, uniformly over sequences \(\kappa_n\in(0,1/8]\), where at
+\(s=1\) one has \(\rho_n=n^{-1/3}\).
+\end{theorem}
+\begin{proof}
+On the asserted face,
+\[
+ H=\frac{\kappa_n}{2^{12}M},\qquad
+ b=m^{-1/3},\qquad
+ T_n=n\kappa_n^3,\qquad
+ \rho_n=n^{-1/3}. \tag{8}
+\]
+Put
+\[
+ L_\alpha=\log(32/\alpha),\qquad A_\alpha=2^{16}L_\alpha,
+ \qquad
+ B_{M,\alpha}=1+\log\!\left(
+   \frac{16(1+2^{17}M)}{\alpha}\right),
+\]
+and define the finite constants
+\[
+ C_r=8M+16A_\alpha+1+16M(A_\alpha+1)+8\sqrt{L_\alpha},
+\]
+\[
+ c_3=2^{-24}M^{-1},\qquad c_2=2^{-22},
+\]
+\[
+ C_F=2(3ec_3)^{-1/3}+12(2ec_2)^{-1/2},
+ \qquad C_2=16C_r+4C_F,
+\]
+\[
+ C_1=\max\left\{
+ 2^{27}MB_{M,\alpha},\;
+ 2^{15}M(8A_\alpha+1),\;
+ 8(8C_r)^3,\;
+ 2^{30}ML_\alpha
+ \right\}. \tag{9}
+\]
+These constants are deliberately conservative.  The \(m=0\) branch
+in the definition makes the rule total for every \(n\); for all
+sufficiently large \(n\), which is the range of the theorem,
+\(m\ge n/8\ge1\), \(b\le1/8\), and the nontrivial branch is available.
+Since \(\widehat c\in[1/4,3/4]\), the inequality \(b\le1/8\) also
+places every fold-four window inside \([0,1]\).
+
+Since \(N_H\le1+2^{17}M/\kappa_n\),
+\[
+ \log(16N_H/\alpha)
+ \le B_{M,\alpha}\log(e/\kappa_n). \tag{10}
+\]
+Moreover,
+\[
+ 2^{-11}mH\kappa_n^2
+ \ge\frac{T_n}{2^{26}M}. \tag{11}
+\]
+The first term in (9), the signal condition, and
+\(\mathrm{lem:rectangular\mbox{-}jump\mbox{-}scan\mbox{-}localization}\)
+therefore give
+\[
+ P(\mathcal E_1^c)\le\alpha/8. \tag{12}
+\]
+The same lemma, at
+\(R_c=A_\alpha/(m\kappa_n^2)+1/n\), yields
+\[
+ P\bigl(\{|\widehat c-c_P|>R_c\}\cap\mathcal E_1\bigr)
+ \le9e^{-L_\alpha}=\frac{9\alpha}{32}, \tag{13}
+\]
+because \(R_c\ge16/n\), using \(m\le n/4\),
+\(\kappa_n\le1/8\), and \(A_\alpha>1\).
+
+We next verify the deterministic fallbacks.  Let
+\(q=\kappa_n/b\).  Since \(b^{-3}=m\) and \(m\ge n/8\),
+\[
+ q^3=m\kappa_n^3\ge T_n/8. \tag{14}
+\]
+The signal condition and (9) imply \(q\ge1\).  Direct substitution,
+using \(n\ge4m\), gives
+\[
+ r_n\le C_rb. \tag{15}
+\]
+Indeed, after division by \(b\), the four terms in \(r_n\) are bounded
+respectively by \(8M\), \(16A_\alpha+1\),
+\(16M(A_\alpha+1)\), and \(8\sqrt{L_\alpha}\).  Equations (9),
+(14), and (15) imply \(r_n\le\kappa_n/8\).  Also
+\[
+ \frac{R_c}{H}
+ =2^{12}M\left\{
+ \frac{A_\alpha}{m\kappa_n^3}+\frac1{n\kappa_n}
+ \right\}
+ \le\frac{2^{12}M(8A_\alpha+1)}{T_n}
+ \le\frac18, \tag{16}
+\]
+where \(n\kappa_n\ge n\kappa_n^3=T_n\).  Thus every deterministic
+fallback check passes under the stated signal condition for all
+sufficiently large \(n\).
+
+Fix \(P\in\mathcal P_n\) and write \(\theta=\theta_P\).  By
+\(\mathrm{prop:wald\mbox{-}late\mbox{-}identification}\),
+\(y_P-\theta d_P=0\), and \(|\theta|\le1\) because
+\(\theta\in\Theta=[-1,1]\).  The conditional regression of
+\(U=Y-\theta D\), separately on either side of \(c_P\), is therefore
+\(2M\)-Lipschitz and has zero level jump.  Gluing the two pieces at
+their common one-sided value makes that regression globally
+\(2M\)-Lipschitz.  Conditional on folds one through three,
+\(\widehat c\) is fixed and fold four is independent by
+\(\mathrm{ass:iid\mbox{-}sampling}\).  On
+\(|\widehat c-c_P|\le R_c\), the rectangular moment identity gives
+\[
+ \left|E_P\left[
+ \widehat y-\theta\widehat d\mid F_1,F_2,F_3\right]\right|
+ \le2Mb. \tag{17}
+\]
+For treatment, applying (2)--(3) from the localization proof at
+bandwidth \(b\), and using \(d_P\le2\kappa_n\), gives
+\[
+ \left|E_P[\widehat d\mid F_1,F_2,F_3]-d_P\right|
+ \le Mb+\frac{2\kappa_nR_c}{b}+2MR_c. \tag{18}
+\]
+Every division is legitimate because \(m\ge1\), \(b>0\), and
+\(\kappa_n>0\).  Moreover, the nonnegative term
+\(16\kappa_nR_c/b\) in \(r_n\), together with
+\(r_n\le\kappa_n/8\), implies \(R_c/b\le1/128\), so the shifted
+cutoff lies inside the kernel window.
+
+For completeness, the fold-four concentration follows directly from
+the exponential-series inequality used in the localization proof.
+The summand for \(U\) is bounded by \(2/b\), is supported on a set of
+\(X\)-probability \(2b\), and has second moment at most \(8/b\); the
+corresponding bounds for \(D\) are \(1/b\) and \(2/b\).  Multiplication
+of the conditional moment-generating functions and Markov's inequality
+therefore show, for all sufficiently large \(n\), that
+\[
+ \left|\widehat y-\theta\widehat d
+ -E_P[\widehat y-\theta\widehat d\mid F_1,F_2,F_3]\right|
+ \le8\sqrt{\frac{L_\alpha}{mb}} \tag{19}
+\]
+except on an event of probability at most \(\alpha/8\).  The linear
+term in the Bernstein denominator is absorbed because
+\(mb=m^{2/3}\to\infty\).  Combining (17), (19), and the definition of
+\(r_n\) yields
+\[
+ |\widehat y-\theta_P\widehat d|\le2r_n. \tag{20}
+\]
+If \(\widehat d<\kappa_n/2\), the rule returns \(\Theta\), which
+contains \(\theta_P\).  Otherwise (20) puts \(\theta_P\) in the
+inverted set.  By (12), (13), and (19), the total failure probability
+is at most
+\[
+ \frac\alpha8+\frac{9\alpha}{32}+\frac\alpha8
+ =\frac{17\alpha}{32}<\alpha.
+\]
+The bounds are uniform in \(P\), proving honesty.
+
+When \(\widehat d\ge\kappa_n/2\), the accepted labels form an interval
+of length at most
+\[
+ \frac{4r_n}{\widehat d}\le\frac{8r_n}{\kappa_n}. \tag{21}
+\]
+On \(|\widehat c-c_P|\le b/8\), (18),
+\(Mb\le r_n/8\le\kappa_n/64\),
+\(2MR_c\le r_n/8\le\kappa_n/64\), and a fold-four treatment
+fluctuation at most \(\kappa_n/8\) imply
+\(\widehat d>\kappa_n/2\).  Hence the full-length fallback event is
+contained in a coarse-scan failure, a localization error exceeding
+\(b/8\), or a fold-four treatment deviation exceeding
+\(\kappa_n/8\).  From (10)--(14), the localization lemma, and the same
+fold-four exponential calculation,
+\[
+ P\{\widehat d<\kappa_n/2\}
+ \le2e^{-c_3q^3}+12e^{-c_2q^2}. \tag{22}
+\]
+Here the first term follows because the first term of (9) gives
+\(\log N_H\le q^3/(2^{24}M)\); the localization exponent at \(b/8\)
+is at least \(2^{-19}q^2\); and the treatment Bernstein exponent is
+larger than \(2^{-22}q^2\).  Thus every constant in (22) follows from
+the preceding displayed inequalities.
+
+The elementary one-variable optimizations
+\[
+ \sup_{q\ge1}qe^{-c_3q^3}\le(3ec_3)^{-1/3},
+ \qquad
+ \sup_{q\ge1}qe^{-c_2q^2}\le(2ec_2)^{-1/2}
+\]
+turn (22) into
+\[
+ P\{\widehat d<\kappa_n/2\}
+ \le C_F\frac{b}{\kappa_n}. \tag{23}
+\]
+Because \(m\ge n/8\), \(b\le2\rho_n\).  Taking expectations in
+(21), using the maximal length two on the fallback, and applying
+(15) and (23) give
+\[
+ \sup_{P\in\mathcal P_n}E_P|I_n^{\mathrm{SI},1}|
+ \le\frac{8C_rb}{\kappa_n}+\frac{2C_Fb}{\kappa_n}
+ \le C_2\frac{\rho_n}{\kappa_n}. \tag{24}
+\]
+Equations (9) and (14) imply \(\rho_n/\kappa_n<1\) in the asserted
+region.  Thus (24) has the claimed minimum form.
+
+Finally, every unknown-cutoff interval rule induces a known-cutoff rule
+that ignores its supplied value of \(c_P\), so
+\(L_n^{\mathrm{known}}(\kappa_n)\le L_n(\kappa_n)\).  The already
+proved \(\mathrm{thm:known\mbox{-}cutoff\mbox{-}benchmark}\), the
+definition of \(L_n\), and (24) imply
+\[
+ c_0\min\{1,\rho_n/\kappa_n\}
+ \le L_n^{\mathrm{known}}(\kappa_n)
+ \le L_n(\kappa_n)
+ \le C_2\min\{1,\rho_n/\kappa_n\}.
+\]
+This proves the Lipschitz oracle-order assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the proved strong-signal result: an explicit total interval attains the oracle connected-length order on the Lipschitz face. \textit{Gap.} It extends fixed-jump cutoff substitution to a vanishing compliance jump with uniform honest expected length, but only under the existing \(s=1\) observable class. \textit{Consumer.} It gives implementable bandwidths, fallbacks, and a signal threshold for Lipschitz fuzzy-RD studies with an unrecorded cutoff.
+
+\begin{lemma}[lem:profile-cutoff-localization]\label{lem:profile-cutoff-localization}
+Fix \(1<s\le2\), \(M\ge2\), and \(v\in(0,1/64)\).  The asserted
+uniform localization inequality for
+\((\widehat c_{\mathrm{prof}},\mathsf F_{\mathrm{prof}})\) is false on
+\(\mathcal P_n(s,M,v,\kappa_n)\).  More precisely, for every
+\[
+ 0<\varepsilon<\frac{1}{2(2+1/s)},
+ \qquad \kappa_n=\frac18n^{-\varepsilon},
+ \qquad H_n=\left(\frac{\kappa_n}{2^{12}M}\right)^{1/s},
+ \qquad m=\lfloor n/4\rfloor,
+\]
+there is, for all sufficiently large \(n\), a law
+\(P_n\in\mathcal P_n(s,M,v,\kappa_n)\) with \(c_{P_n}=1/2\) such that
+\[
+ \frac{T_n}{\log(e/\kappa_n)}\longrightarrow\infty,
+ \qquad \frac{16}{n}\le\frac{H_n}{8},
+\]
+and
+\[
+ P_n\{\mathsf F_{\mathrm{prof}}=1\}
+ +P_n\!\left(\left\{|\widehat c_{\mathrm{prof}}-c_{P_n}|>
+                    H_n/8\right\}
+       \cap\{\mathsf F_{\mathrm{prof}}=0\}\right)
+ \longrightarrow1.
+\]
+Consequently, there are no positive constants
+\(A_{\mathrm{prof}},a_{\mathrm{prof}},C_{\mathrm{prof}}\), depending
+only on \(s,M\), such that, simultaneously for every
+\(P\in\mathcal P_n(s,M,v,\kappa_n)\), every index satisfying
+\(T_n\ge C_{\mathrm{prof}}\log(e/\kappa_n)\), and every
+\(16/n\le u\le H_n\),
+\[
+ P\{\mathsf F_{\mathrm{prof}}=1\}
+ +P\!\left(\{|\widehat c_{\mathrm{prof}}-c_P|>u\}
+       \cap\{\mathsf F_{\mathrm{prof}}=0\}\right)
+ \le A_{\mathrm{prof}}\exp\{-a_{\mathrm{prof}}m\kappa_n^2u\}.
+\]
+\end{lemma}
+\begin{proof}
+Fix \(s\in(1,2]\), \(M\ge2\), \(v\in(0,1/64)\), and choose
+\[
+ 0<\varepsilon<\frac{1}{2(2+1/s)},
+ \qquad
+ \kappa_n=\frac18 n^{-\varepsilon},
+ \qquad
+ H_n=\left(\frac{\kappa_n}{2^{12}M}\right)^{1/s},
+ \qquad c=\frac12,
+ \qquad m=\lfloor n/4\rfloor.
+ \tag{1}
+\]
+Write \(q_n=\kappa_n/H_n\).  Since \(s>1\),
+\[
+ q_n=(2^{12}M)^{1/s}\kappa_n^{\,1-1/s}\longrightarrow0.
+ \tag{2}
+\]
+
+We first construct the full-data law.  Let \(X\) be uniform on
+\([0,1]\).  Conditional on \(X=x\), assign the monotone response type
+\(R\) the probabilities
+\[
+ P_n(R=A\mid X=x)=\frac14,
+ \qquad
+ P_n(R=C\mid X=x)=w_n(x),
+ \qquad
+ P_n(R=N\mid X=x)=\frac34-w_n(x),
+ \tag{3}
+\]
+where
+\[
+ w_n(x)=
+ \begin{cases}
+  \kappa_n,&x<c,\\
+  \kappa_n+q_n(x-c),&x\ge c.
+ \end{cases}
+ \tag{4}
+\]
+By (2), \(0\le w_n(x)\le\kappa_n+q_n/2<1/4\) for all sufficiently
+large \(n\); hence the three masses in (3) are nonnegative and sum to
+one.  Given \((X,R)\), let \(U\) be Bernoulli with success probability
+\(1/2\), independently of \((X,R)\), and set
+\[
+ Y(0)=Y(1)=U.
+ \tag{5}
+\]
+Use the frozen threshold assignment \(Z=\mathbf 1\{X\ge c\}\), the
+frozen monotone treatment rule \(D=D(Z)\), and independent copies
+across units.
+
+We verify every condition defining the model class.  From (3)--(4),
+\[
+ E_{P_n}[D(0)\mid X=x]=\frac14,
+ \qquad
+ E_{P_n}[D(1)\mid X=x]=\frac14+w_n(x).
+ \tag{6}
+\]
+Both functions in (6) are continuous at \(c\), because the two
+one-sided values of \(w_n\) there are \(\kappa_n\).  By (5),
+\(E_{P_n}[Y(D(z))\mid X=x]=1/2\) for both \(z\in\{0,1\}\).  Thus
+\(\mathrm{ass:potential\mbox{-}reduced\mbox{-}form\mbox{-}continuity}\)
+holds.  The observable treatment regressions are
+\[
+ \mu_{D,P_n}^{-}(x)=\frac14,
+ \qquad
+ \mu_{D,P_n}^{+}(x)=\frac14+\kappa_n+q_n(x-c).
+ \tag{7}
+\]
+The left side has a constant extension, and the displayed affine
+formula extends the right side to \([0,1]\).  For all sufficiently
+large \(n\), these extensions take values in \([0,1]\), have uniformly
+bounded suprema, have derivative suprema at most \(q_n\), and have
+zero derivative H\"older seminorm.  Equation (2) and \(M\ge2\)
+therefore place them in the radius-\(M\), order-\(s\) H\"older ball
+required by
+\(\mathrm{ass:observable\mbox{-}holder\mbox{-}extensions}\).  The two
+observable outcome regressions are the constant \(1/2\), so they obey
+the same condition.  Moreover,
+\[
+ d_{P_n}=\mu_{D,P_n}^{+}(c)-\mu_{D,P_n}^{-}(c)=\kappa_n,
+ \tag{8}
+\]
+which verifies \(\mathrm{ass:local\mbox{-}compliance\mbox{-}strength}\).
+Finally, (5) and the independence of \(U\) give, on both sides
+\(\ell\),
+\[
+ \operatorname{Var}_{P_n}(Y\mid X=x,\ell)=\frac14>v,
+ \qquad
+ \operatorname{Cov}_{P_n}(Y,D\mid X=x,\ell)=0.
+ \tag{9}
+\]
+Thus the variance floor and correlation-separation conditions hold.
+The sampling is independent, the design is uniform, and \(c=1/2\) is
+interior.  Equations (3), (5)--(9), together with those three facts,
+prove
+\[
+ P_n\in\mathcal P_n(s,M,v,\kappa_n)
+ \quad\text{for all sufficiently large }n.
+ \tag{10}
+\]
+
+We next evaluate exactly the population criterion induced by the
+moving-window profile.  For a candidate \(t\) satisfying
+\(|t-c|\le H_n\), put
+\[
+ z=\frac{x-t}{H_n},
+ \qquad
+ r=\frac{c-t}{H_n},
+ \qquad
+ f_r(z)=\mathbf 1\{z\ge r\}(1+z-r).
+ \tag{11}
+\]
+After subtracting the common affine function \(1/4\), (7) is
+\(\kappa_nf_r(z)\) on \([t-H_n,t+H_n]\).  Write
+\(\mu_{D,P_n}(x)=E_{P_n}[D\mid X=x]\) for the observable conditional
+treatment mean, equal to the appropriate side of (7).  For every measurable
+prediction \(g\), conditional variance decomposition gives
+\[
+E_{P_n}[\{D-g(X)\}^2\mid X=x]
+=\operatorname{Var}_{P_n}(D\mid X=x)
+ +\{\mu_{D,P_n}(x)-g(x)\}^2.
+\tag{12}
+\]
+The variance term in (12) is identical for the common-affine and
+piecewise-affine models, so it cancels from their risk difference.
+Let \(\mathcal A_{n,t}^0\) and \(\mathcal A_{n,t}^1\) denote,
+respectively, the constrained common-affine and constrained
+piecewise-affine classes used by the frozen construction at \(t\).  We
+define, before using either object,
+\[
+ R_{n,t}(g)=E_{P_n}\!\left[
+   \mathbf 1\{|X-t|\le H_n\}\{D-g(X)\}^2\right],
+ \qquad
+ Q_n(t)=\inf_{g\in\mathcal A_{n,t}^0}R_{n,t}(g)
+       -\inf_{g\in\mathcal A_{n,t}^1}R_{n,t}(g).
+\]
+
+Here is the complete projection calculation.  With the basis
+\(e(z)=(1,z)^\top\), the common, left-flank, and right-flank Gram
+matrices and their inverses are
+\[
+ G_0=\int_{-1}^{1}e(z)e(z)^\top dz
+   =\begin{pmatrix}2&0\\0&2/3\end{pmatrix},
+ \qquad
+ G_0^{-1}=\begin{pmatrix}1/2&0\\0&3/2\end{pmatrix},
+ \tag{13}
+\]
+\[
+ G_- =\int_{-1}^{0}e(z)e(z)^\top dz
+   =\begin{pmatrix}1&-1/2\\-1/2&1/3\end{pmatrix},
+ \qquad
+ G_-^{-1}=\begin{pmatrix}4&6\\6&12\end{pmatrix},
+ \tag{14}
+\]
+and
+\[
+ G_+ =\int_{0}^{1}e(z)e(z)^\top dz
+   =\begin{pmatrix}1&1/2\\1/2&1/3\end{pmatrix},
+ \qquad
+ G_+^{-1}=\begin{pmatrix}4&-6\\-6&12\end{pmatrix}.
+ \tag{15}
+\]
+The determinants are \(4/3\) for \(G_0\) and \(1/12\) for each of
+\(G_-\) and \(G_+\).  They are therefore positive definite and full
+rank, so every inversion in (13)--(15) is permitted.
+If \(0\le r\le1\), the left moment is zero and both the common and
+right moments equal
+\[
+ u(r)=\int_r^1 e(z)(1+z-r)\,dz
+ =\begin{pmatrix}
+ (r-3)(r-1)/2\\[2pt]
+ (r-1)(r^2-2r-5)/6
+ \end{pmatrix}.
+ \tag{16}
+\]
+If \(-1\le r\le0\), the left, right, and common moments are,
+respectively,
+\[
+ u_-(r)=\int_r^0 e(z)(1+z-r)\,dz
+ =\begin{pmatrix}r(r-2)/2\\ r^2(r-3)/6\end{pmatrix},
+ \tag{17}
+\]
+\[
+ u_+(r)=\int_0^1 e(z)(1+z-r)\,dz
+ =\begin{pmatrix}-(2r-3)/2\\ -(3r-5)/6\end{pmatrix},
+ \qquad
+ u_0(r)=u_-(r)+u_+(r)
+ =\begin{pmatrix}
+ (r-3)(r-1)/2\\[2pt]
+ (r-1)(r^2-2r-5)/6
+ \end{pmatrix}.
+ \tag{18}
+\]
+For a regression function with moment vector \(u\) and Gram matrix
+\(G\), the squared norm of its least-squares projection is
+\(u^\top G^{-1}u\).  Let \(\overline Q_n(t)\) denote common risk minus
+piecewise risk when the affine coefficient constraints are omitted.
+After the change of variables \(x=t+H_nz\),
+\[
+ \overline Q_n(t)=H_n\kappa_n^2q(r),
+ \tag{19}
+\]
+where (13)--(18) give, without an omitted remainder,
+\[
+ q(r)=
+ \begin{cases}
+ u_-(r)^\top G_-^{-1}u_-(r)
+ +u_+(r)^\top G_+^{-1}u_+(r)
+ -u_0(r)^\top G_0^{-1}u_0(r),&-1\le r\le0,\\[3pt]
+ u(r)^\top G_+^{-1}u(r)-u(r)^\top G_0^{-1}u(r),&0\le r\le1,
+ \end{cases}
+ \tag{20}
+\]
+\[
+ q(r)=
+ \begin{cases}
+ \displaystyle
+ \frac{(1+r)^2(7r^4-32r^3+27r^2+22r+4)}{24},&-1\le r\le0,\\[7pt]
+ \displaystyle
+ \frac{(1-r)^2(7r^4-52r^3+99r^2-10r+4)}{24},&0\le r\le1.
+ \end{cases}
+ \tag{21}
+\]
+This also verifies directly that the population projection is the
+object being evaluated, rather than assuming the desired profile
+separation.  On the compact set of \(r\)'s used below, the coefficients
+obtained from (13)--(18) are bounded numerical multiples of
+\(\kappa_n\) in the \(z\) parametrization.  In the original
+\(x\) parametrization, their slopes are therefore \(O(q_n)\).  Their
+local-coordinate intercepts are \(1/4+O(\kappa_n)\); if an affine
+function is instead written with a global \(x\)-intercept, that
+intercept is \(1/4+O(q_n)\).  By (2), the coefficients in either
+parametrization are strictly inside the compact constraints in
+\(\mathrm{def:profile\mbox{-}cutoff\mbox{-}center}\) for all large
+\(n\).  Hence \(Q_n(t)=\overline Q_n(t)\), and (19)--(21) hold with
+\(Q_n\) in place of \(\overline Q_n\), at every point used in the
+comparison.
+
+The exact formula has a strict displacement gain:
+\[
+ q(0)=\frac16,
+ \qquad
+ q\left(\frac25\right)=\frac{5949}{31250},
+ \qquad
+ \Delta:=q\left(\frac25\right)-q(0)
+       =\frac{1111}{46875}>0.
+ \tag{22}
+\]
+Moreover, \(q(r)\le1/6\) for \(|r|\le1/8\).  On the negative half,
+differentiating the first polynomial in (21) gives
+\[
+ q'(r)=\frac{(1+r)(7r^4-22r^3+2r^2+20r+5)}4>0,
+ \qquad -\frac18\le r\le0,
+ \tag{23}
+\]
+because the second factor is at least
+\(5+20r\ge5/2\).  On the positive half, exact factorization gives
+\[
+ \frac16-q(r)
+ =-\frac{r(r^2-4r+1)(7r^3-38r^2+51r-18)}{24}\ge0,
+ \qquad 0\le r\le\frac18.
+ \tag{24}
+\]
+Indeed, \(r^2-4r+1>0\) on this interval, whereas
+\(7r^3-38r^2+51r-18\le7/512+51/8-18<0\).  This proves the asserted
+local bound.
+
+Let \(t_n^\circ=c-(2/5)H_n\).  This point is in \([1/4,3/4]\) because
+\(H_n<1/4\).  The deterministic grid in the frozen construction has
+mesh at most
+\(\eta_n=\min\{n^{-1},m^{-1/3}H_n/64\}\), so it contains a point
+\(\bar t_n\) such that
+\[
+ |\bar t_n-t_n^\circ|\le\eta_n,
+ \qquad
+ \frac{\eta_n}{H_n}\le\frac{m^{-1/3}}{64}\longrightarrow0.
+ \tag{25}
+\]
+Continuity of the polynomial in (21), together with (22)--(25), yields
+eventually
+\[
+ Q_n(\bar t_n)
+ \ge H_n\kappa_n^2\left(\frac16+\frac{3\Delta}{4}\right),
+ \qquad
+ \sup_{|t-c|\le H_n/8}Q_n(t)
+ \le\frac{H_n\kappa_n^2}{6}.
+ \tag{26}
+\]
+
+It remains to show that random fitting cannot reverse the fixed gap in
+(26).  We give the empirical comparison rather than assume a maximal
+inequality.  Every localized squared-loss function used on the first
+three folds is indexed by one interval center and at most four affine
+coefficients in the fixed compact coefficient boxes of the
+construction.  Since \(D\in\{0,1\}\), these losses have an envelope
+\(B_M<\infty\) depending only on \(M\).  Put
+\(\delta_m=m^{-3}\), take a deterministic \(\delta_m\)-mesh of the
+cutoff-coordinate interval, and put a deterministic
+\(\delta_m\)-net on every coefficient box.  There are at most
+\(C_Mm^{C_M}\) representatives.  If \(t\) is replaced by its nearest
+mesh point, every changed support or flank indicator lies in one of a
+fixed collection of \(O(m^3)\) boundary bands, each having Lebesgue
+length at most \(C\delta_m\).  Uniformity of \(X\) gives probability at
+most \(C\delta_m\) to each band.  For a fold of size \(m\), write
+\(N_B\) for its number of observations in a boundary band \(B\).  The
+union bound and
+\[
+ P_n\{N_B\ge4\}\le {m\choose4}(C\delta_m)^4
+\]
+show that the probability some such band contains four observations
+is \(O(m^3m^4\delta_m^4)=O(m^{-5})\).  Off this event, replacing \(t\)
+by its mesh representative changes an empirical risk by
+\(O_M(m^{-1})\).  If the affine slope is represented in the normalized
+flank coordinate, its loss on an unchanged support varies by at most
+\(O_M(\delta_m/H_n)\); in an unnormalized coordinate the smaller bound
+\(O_M(\delta_m)\) applies.  Coefficient discretization contributes
+\(O_M(\delta_m)\).  The corresponding population-risk errors satisfy
+the same bounds, in addition to the \(O_M(\delta_m)\) boundary-mass
+term, by the uniform design.  From (1),
+\(m^{-3}/H_n=o(m^{-1})\).  Thus the deterministic finite net
+approximates empirical and population risks uniformly by
+\(O_M(m^{-1})\) on an event whose probability tends to one.
+
+For completeness, the required finite-net concentration follows
+directly from boundedness.  If \(W\) is centered and
+\(|W|\le B_M\), convexity of the exponential on
+\([-B_M,B_M]\) gives
+\[
+ E e^{aW}\le\cosh(aB_M)\le e^{a^2B_M^2/2}.
+ \tag{27}
+\]
+The first inequality is the expectation of the chord bound for
+\(e^{aw}\) on \([-B_M,B_M]\), using \(E[W]=0\).  The second follows
+term by term from
+\((2k)!\ge2^k k!\) in the power series for \(\cosh\).
+Exponential Markov inequality applied to independent copies and then
+optimized at \(a=t/B_M^2\) therefore gives
+\[
+ P\left(\left|m^{-1}\sum_{i=1}^mW_i\right|>t\right)
+ \le2\exp\left\{-\frac{mt^2}{2B_M^2}\right\}.
+ \tag{28}
+\]
+A union bound over the polynomial net, followed by the preceding
+approximation, proves on each of the first three folds
+\[
+ \sup_{t,g}\left|
+  \frac1m\sum_{i\in F_j}\mathbf 1\{|X_i-t|\le H_n\}
+       \{D_i-g(X_i)\}^2
+  -E_{P_n}\!\left[\mathbf 1\{|X-t|\le H_n\}
+       \{D-g(X)\}^2\right]
+ \right|
+ =O_{P_n}\!\left(\sqrt{\frac{\log n}{n}}\right).
+ \tag{29}
+\]
+The same construction with separate left- and right-flank indicators
+covers the piecewise class.  Because the supremum in (29) ranges over
+every admissible coefficient vector, it also covers a fitted function
+trained on an independent fold.
+
+Let \(e_n\) denote a common random upper bound in (29), defined over
+the full deterministic loss classes.  Let \(\mathcal G_n\) be the
+event that all empirical Gram checks in the frozen construction pass.
+Only on \(\mathcal G_n\) are the fitted scores and their maximizer
+formed.  On that event, uniform empirical-risk minimization implies,
+for each model \(k\in\{0,1\}\), training fold \(j\), and candidate
+\(t\),
+\[
+ 0\le R_{n,t}(\widehat g_{j,t}^{k})
+       -\inf_{g\in\mathcal A_{n,t}^k}R_{n,t}(g)\le2e_n.
+ \tag{30}
+\]
+Applying (29) on the held-out fold and using (30) for the common and
+piecewise fits gives, on \(\mathcal G_n\),
+\[
+ \sup_{t\in\mathcal T_n}|\widehat Q(t)-Q_n(t)|
+ =O_{P_n}\!\left(\sqrt{\frac{\log n}{n}}\right).
+ \tag{31}
+\]
+On \(\mathcal G_n^c\), the construction stops
+before defining a score or a maximizer and returns
+\(\mathsf F_{\mathrm{prof}}=1\); no undefined maximizer is invoked.
+The empirical-process event underlying (29) is defined directly over
+the full deterministic loss classes and hence is meaningful whether
+or not \(\mathcal G_n\) occurs.
+
+By (1),
+\[
+ \frac{\sqrt{\log n/n}}{H_n\kappa_n^2}
+ =O\!\left(n^{-1/2+\varepsilon(2+1/s)}\sqrt{\log n}\right)
+ \longrightarrow0.
+ \tag{32}
+\]
+Let \(\mathcal E_n\) be the event, defined through the uniform
+empirical-risk deviations over the deterministic classes, on which
+those deviations are small enough that, whenever \(\mathcal G_n\)
+occurs, the supremum in (31) is smaller than
+\(H_n\kappa_n^2\Delta/4\).  Equations (29) and (32) give
+\(P_n(\mathcal E_n)\to1\), whether or not the Gram checks pass.  On
+\(\mathcal E_n\cap\mathcal G_n\), (26) shows that the score at
+\(\bar t_n\) is strictly larger than the score at every grid point in
+\([c-H_n/8,c+H_n/8]\).  The smallest maximizer \(\widetilde c\), which
+is defined on \(\mathcal G_n\), must therefore satisfy
+\[
+ |\widetilde c-c|>H_n/8
+ \quad\text{on }\mathcal E_n\cap\mathcal G_n.
+ \tag{33}
+\]
+If \(\mathcal G_n^c\) occurs, the first probability in the target
+display applies.  If \(\mathcal E_n\cap\mathcal G_n\) occurs, then the
+later fitted-jump check either fails, in which case it again returns
+\(\mathsf F_{\mathrm{prof}}=1\), or it passes, in which case
+\(\widehat c_{\mathrm{prof}}=\widetilde c\) and (33) places the center
+outside the stated radius.  The two events counted in the next display
+are disjoint, and their union contains \(\mathcal E_n\).  Consequently,
+\[
+ P_n\{\mathsf F_{\mathrm{prof}}=1\}
+ +P_n\!\left(\{|\widehat c_{\mathrm{prof}}-c|>H_n/8\}
+       \cap\{\mathsf F_{\mathrm{prof}}=0\}\right)
+ \ge P_n(\mathcal E_n)\longrightarrow1.
+ \tag{34}
+\]
+
+Finally,
+\[
+ T_n=n\kappa_n^{2+1/s}
+ =8^{-(2+1/s)}n^{\,1-\varepsilon(2+1/s)},
+ \tag{35}
+\]
+so \(T_n/\log(e/\kappa_n)\to\infty\).  Also
+\(nH_n\to\infty\), and therefore \(16/n\le H_n/8\) eventually.  For
+arbitrary fixed positive
+\(A_{\mathrm{prof}},a_{\mathrm{prof}},C_{\mathrm{prof}}\), the signal
+condition with \(C_{\mathrm{prof}}\) eventually holds, whereas the
+claimed right side at \(u_n=H_n/8\) is
+\[
+ A_{\mathrm{prof}}
+ \exp\left\{-\frac{a_{\mathrm{prof}}m\kappa_n^2H_n}{8}\right\}
+ =A_{\mathrm{prof}}
+ \exp\left\{-\frac{a_{\mathrm{prof}}m}{8n(2^{12}M)^{1/s}}T_n\right\}
+ \longrightarrow0,
+ \tag{36}
+\]
+because \(m/n\to1/4\) and (35) diverges.  Equations (34) and (36)
+contradict the frozen positive inequality for every choice of its three
+constants and prove the stated negative result.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This counterexample is load-bearing because it prevents the higher-smoothness argument from using a false localization property of the frozen moving-window profile. \textit{Gap.} The obstruction is deterministic rather than a missing maximal inequality: within the unchanged class, the population profile can strictly prefer a displaced split to every split near the true cutoff. \textit{Consumer.} The higher-smoothness detectable-region OEQ uses this result to exclude the frozen profile as an attaining witness and to require a genuinely different estimator or a negative frontier conclusion.
+
+\begin{openendedquestion}[oeq:smooth-detectable-region-bracket]\label{oeq:smooth-detectable-region-bracket}
+For \(1<s\le2\), determine under the unchanged class
+\(\mathcal P_n(s,M,v,\kappa_n)\) whether a genuinely different total
+estimator or cutoff profile, together with same-class slope-kink lower
+pairs, establishes the detectable-region frontier
+\[
+ L_n(\kappa_n)\asymp
+ \min\left\{1,\frac{\rho_n}{\kappa_n}
+                  +\frac1{n\kappa_n^3}\right\}
+ \qquad\text{when}\qquad
+ T_n\gtrsim\log(e/\kappa_n).
+\]
+The frozen common-versus-piecewise affine moving-window profile in the
+\(1<s\le2\) branch of \(I_n^{\mathrm{SI}}\) cannot establish this upper
+bracket through the proposed localization route:
+the counterexample in
+\(\mathrm{lem:profile\mbox{-}cutoff\mbox{-}localization}\) has
+\(T_n/\log(e/\kappa_n)\to\infty\), yet the profile falls back or selects
+a center farther than \(H_n/8\), where
+\(H_n=(\kappa_n/(2^{12}M))^{1/s}\), with probability tending to one
+because its population score is larger at a displaced split.  A positive
+resolution must therefore construct and analyze a genuinely different
+estimator or profile; alternatively, a negative resolution must prove
+that the proposed frontier itself is unattainable.  Either resolution
+must give explicit constants for uniform honesty and expected length,
+derive a same-class lower construction for the term
+\(1/(n\kappa_n^3)\), and decide whether oracle order is both sufficient
+and necessary on the face \(n\kappa_n^2\rho_n\gtrsim1\).  No
+cross-side derivative-matching assumption may be added, and the frozen
+profile branch may not be reused as an attaining witness.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This question now carries the genuine higher-smoothness frontier problem after the frozen moving-window profile has been refuted on the unchanged class. \textit{Gap.} A positive answer requires a new total estimator or cutoff profile with a valid uniform upper proof, while a matched frontier also requires a same-class slope-kink lower pair; the frozen profile cannot supply the former through its proposed localization route. \textit{Consumer.} Its answer will determine whether cutoff uncertainty contributes the candidate term beyond the known-cutoff rate and, if so, which replacement procedure attains it.
+
+\begin{proposition}[prop:outcome-invariant-witness-high-separation]\label{prop:outcome-invariant-witness-high-separation}
+Suppose \(h_n\le 1/32\), with \(a_\star=1-v\) and \(b=1-v/2\).  Then \(J_n\ge2\), the cutoff locations in \(\mathcal W_n\) lie in \([1/4,3/4]\), and the supports of distinct compliance profiles are disjoint up to Lebesgue-null endpoints.  The common potential-outcome table satisfies
+\[
+q_{00}(x)=q_{11}(x)=\frac v4,
+\qquad
+\frac v4\le q_{01}(x),q_{10}(x)\le1-\frac{3v}{4},
+\qquad
+\sum_{u_0,u_1\in\{0,1\}}q_{u_0,u_1}(x)=1.
+\]
+All twelve latent masses defining every \(P_{j,\ell}\in\mathcal W_n\) are nonnegative and sum to one; the always-taker and never-taker masses are strictly positive everywhere, and the complier masses are strictly positive wherever \(w_{j,\ell}>0\).  No H\"older restriction on these latent cells is used.  The observable one-sided extensions are
+\[
+\mu_{D,P_{j,\ell}}^{-}(x)=\frac{1-w_{j,\ell}(x)}2,
+\qquad
+\mu_{D,P_{j,\ell}}^{+}(x)=\frac{1+w_{j,\ell}(x)}2,
+\]
+\[
+\mu_{Y,P_{j,\ell}}^{-}(x)=\frac12-\frac{g_\star(x)w_{j,\ell}(x)}2,
+\qquad
+\mu_{Y,P_{j,\ell}}^{+}(x)=\frac12+\frac{g_\star(x)w_{j,\ell}(x)}2.
+\]
+They belong to the radius-\(M\), order-\(s\) H\"older ball.  The potential reduced forms are continuous at \(c_{j,\ell}\), and
+\[
+d_{P_{j,\ell}}=\kappa_n,
+\qquad
+\theta_{P_{j,+}}=a_\star=1-v,
+\qquad
+\theta_{P_{j,-}}=-a_\star=-(1-v).
+\]
+Writing \(p_{j,\ell}^{D,Y}\) and \(p_{j,\ell}^{D}\) for the conditional observable cell probabilities, one has
+\[
+m_{d,y}(x)\ge\frac v2,
+\qquad
+p_{j,\ell}^{D,Y}(x,d,y)
+=p_{j,\ell}^{D}(x,d)m_{d,y}(x)
+\ge\frac{7v}{32}>0.
+\]
+On either observable side,
+\[
+\operatorname{Var}_{P_{j,\ell}}(D\mid X=x)=\frac{1-w_{j,\ell}(x)^2}{4}>0,
+\]
+\[
+\operatorname{Var}_{P_{j,\ell}}(Y\mid X=x)
+=\frac{1-g_\star(x)^2}{4}
++g_\star(x)^2\operatorname{Var}_{P_{j,\ell}}(D\mid X=x)
+=\frac{1-g_\star(x)^2w_{j,\ell}(x)^2}{4}
+\ge\frac{63}{256}>v,
+\]
+and
+\[
+\left|\operatorname{corr}_{P_{j,\ell}}(Y,D\mid X=x)\right|
+=\frac{|g_\star(x)|\sqrt{1-w_{j,\ell}(x)^2}}
+       {\sqrt{1-g_\star(x)^2w_{j,\ell}(x)^2}}
+\le |g_\star(x)|\le1-v.
+\]
+The formula remains valid when \(w_{j,\ell}(x)=0\); treatment variance is never degenerate in this witness.  Consequently \(\mathcal W_n\subset\mathcal P_n\).  Moreover, with \(R_\star\) as the outcome-invariant reference,
+\[
+\frac{dP_{j,\ell}}{dR_\star}
+=1+(2D-1)\operatorname{sgn}(X-c_{j,\ell})w_{j,\ell}(X)
+\quad R_\star\text{-almost surely},
+\]
+so every product likelihood ratio is measurable with respect to \(\sigma((X_i,D_i)_{i=1}^n)\).  Finally,
+\[
+\int_{-1}^{1}\psi(u)^2\,du=\frac{256}{315},
+\qquad
+E_{R_\star}\!\left[
+\frac{dP_{j,\ell}}{dR_\star}
+\frac{dP_{k,r}}{dR_\star}
+\right]=1
+\]
+for distinct \((j,\ell)\ne(k,r)\), and, for
+\(Q_{\ell,n}=J_n^{-1}\sum_{j=1}^{J_n}P_{j,\ell}^{\otimes n}\),
+\[
+\chi^2(Q_{\ell,n},R_\star^{\otimes n})
+=\frac{\left(1+\frac{256}{315}\kappa_n^2h_n\right)^n-1}{J_n}.
+\]
+\end{proposition}
+\begin{proof}
+Write \(a=a_\star=1-v\) and \(b=1-v/2\).  We verify each model property and likelihood calculation used by the lower bound.
+
+First, \(h_n\le1/32\) implies \((16h_n)^{-1}\ge2\), and hence
+\[
+J_n=\left\lfloor(16h_n)^{-1}\right\rfloor\ge2.
+\tag{1}
+\]
+For \(1\le j\le J_n\), the location formulas in \(\mathrm{def:outcome\mbox{-}invariant\mbox{-}family}\) give
+\[
+c_{j,+}-h_n=\frac14+2(j-1)h_n\ge\frac14,
+\qquad
+c_{j,+}+h_n=\frac14+2jh_n\le\frac38,
+\tag{2}
+\]
+and similarly
+\[
+[c_{j,-}-h_n,c_{j,-}+h_n]\subset[5/8,3/4].
+\tag{3}
+\]
+Centers within either label are separated by \(2h_n\), and the two labels use the disjoint plateau intervals in (2)--(3).  Because \(\psi\) is supported on \([-1,1]\), distinct supports meet at most at endpoints.  Uniformity of \(X\) makes those endpoints null, and therefore
+\[
+w_{j,\ell}(x)w_{k,r}(x)=0
+\quad\text{for Lebesgue-almost every }x
+\quad\text{whenever }(j,\ell)\ne(k,r).
+\tag{4}
+\]
+
+Next, \(B'(t)=-30t^2(1-t)^2\le0\), \(B(0)=1\), and \(B(1)=0\).  Thus \(\mathrm{def:common\mbox{-}outcome\mbox{-}profile}\) gives \(|g_\star(x)|\le a=1-v\).  By the corrected construction in \(\mathrm{def:common\mbox{-}outcome\mbox{-}table}\),
+\[
+q_{00}=q_{11}=\frac v4,
+\qquad
+q_{01}=\frac{1-v/2+g_\star}{2},
+\qquad
+q_{10}=\frac{1-v/2-g_\star}{2}.
+\tag{5}
+\]
+The four entries sum to one.  Since \(|g_\star|\le1-v\),
+\[
+\frac v4
+=\frac{1-v/2-(1-v)}2
+\le q_{01},q_{10}
+\le\frac{1-v/2+(1-v)}2
+=1-\frac{3v}{4}.
+\tag{6}
+\]
+Together with \(v>0\), (5)--(6) show that every common-table cell is strictly positive.
+
+The quartic profile obeys \(0\le\psi\le1\).  Hence \(0\le w_{j,\ell}\le\kappa_n\le1/8\), and the latent masses
+\[
+\pi_{C,u_0,u_1,P_{j,\ell}}=w_{j,\ell}q_{u_0,u_1},
+\qquad
+\pi_{A,u_0,u_1,P_{j,\ell}}
+=\pi_{N,u_0,u_1,P_{j,\ell}}
+=\frac{1-w_{j,\ell}}2q_{u_0,u_1}
+\tag{7}
+\]
+are nonnegative.  The always-taker and never-taker cells are bounded below by
+\[
+\frac{1-1/8}{2}\frac v4=\frac{7v}{64}>0,
+\tag{8}
+\]
+and a complier cell is positive wherever \(w_{j,\ell}>0\).  Summing (7) over response types and the four potential-outcome cells gives
+\[
+\sum_{u_0,u_1}q_{u_0,u_1}
+\left(w_{j,\ell}+\frac{1-w_{j,\ell}}2+
+                    \frac{1-w_{j,\ell}}2\right)=1.
+\tag{9}
+\]
+This proves validity of the latent law using positivity alone; no smoothness of an individual latent cell is imposed or used.
+
+We next verify the observable and potential reduced forms defining \(\mathcal P_n\).  The response-type weights in (7) imply
+\[
+E[D(z)\mid X=x]=\frac{1-w_{j,\ell}(x)}2+z\,w_{j,\ell}(x).
+\tag{10}
+\]
+Because the potential-outcome table is common to every response type, (5) gives
+\[
+E[Y(0)\mid X=x]=\frac{1-g_\star(x)}2,
+\qquad
+E[Y(1)\mid X=x]=\frac{1+g_\star(x)}2.
+\tag{11}
+\]
+Combining (10)--(11) yields
+\[
+E[Y(D(z))\mid X=x]
+=\frac12+g_\star(x)\left(z-\frac12\right)w_{j,\ell}(x).
+\tag{12}
+\]
+Equations (10)--(12), consistency, and \(Z=\mathbf 1\{X\ge c_{j,\ell}\}\) give the four displayed observable extensions in the statement.
+
+It remains to check their H\"older radii.  On \((-1,1)\),
+\[
+\psi'(u)=-4u(1-u^2),
+\qquad
+\psi''(u)=-4+12u^2.
+\tag{13}
+\]
+Both \(\psi\) and \(\psi'\) join continuously to zero at \(\{-1,1\}\).  Consequently
+\[
+\lVert\psi'\rVert_\infty\le2,
+\qquad
+\operatorname{Lip}(\psi')\le8.
+\tag{14}
+\]
+When \(s=1\), the identity \(h_n=32\kappa_n/M\) and (14) give
+\[
+\operatorname{Lip}(w_{j,\ell})
+\le\frac{2\kappa_n}{h_n}=\frac{M}{16}.
+\tag{15}
+\]
+When \(1<s\le2\), put \(\beta=s-1\).  The bounded, globally Lipschitz function \(\psi'\) has \(\beta\)-H\"older seminorm at most \(8\): for arguments within unit distance this follows from (14), and for arguments farther apart it follows from \(2\lVert\psi'\rVert_\infty\le4\).  Since \(h_n^s=32\kappa_n/M\) and \(h_n\le1\), scaling gives
+\[
+\lVert w_{j,\ell}'\rVert_\infty
+\le\frac{2\kappa_n}{h_n}
+=\frac{M}{16}h_n^{s-1}\le\frac{M}{16},
+\qquad
+[w_{j,\ell}']_{s-1}
+\le\frac{8\kappa_n}{h_n^s}=\frac{M}{4}.
+\tag{16}
+\]
+By (2)--(3), \(g_\star=a\) on the support of every \(+\) profile and \(g_\star=-a\) on the support of every \(-\) profile.  Since each profile vanishes off its support,
+\[
+g_\star w_{j,+}=a w_{j,+},
+\qquad
+g_\star w_{j,-}=-a w_{j,-}
+\quad\text{on }[0,1].
+\tag{17}
+\]
+Thus, for \(s=1\), the treatment and outcome extensions have Lipschitz constants at most \(M/32\) and \(aM/32\), respectively.  For \(1<s\le2\), their derivative suprema are bounded by the same quantities and their derivative H\"older seminorms are at most \(M/8\) and \(aM/8\), respectively.  Since \(a<1\), all four extensions have supremum norm at most \(1/2+\kappa_n/2\le9/16\).  Even under the convention that the radius bounds the sum of these norm components,
+\[
+\frac9{16}+\frac{M}{32}+\frac{M}{8}\le M
+\tag{18}
+\]
+because \(M\ge2\); deleting the derivative-seminorm term when \(s=1\) only strengthens the inequality.  Hence the extensions satisfy \(\mathrm{ass:observable\mbox{-}holder\mbox{-}extensions}\).  Equations (10), (12), and (17) are continuous at \(c_{j,\ell}\), so \(\mathrm{ass:potential\mbox{-}reduced\mbox{-}form\mbox{-}continuity}\) also holds.
+
+Since \(w_{j,\ell}(c_{j,\ell})=\kappa_n>0\), the observable treatment extensions give
+\[
+d_{P_{j,\ell}}=\kappa_n.
+\tag{19}
+\]
+The outcome extensions and (17) give
+\[
+y_{P_{j,+}}=a\kappa_n,
+\qquad
+y_{P_{j,-}}=-a\kappa_n.
+\tag{20}
+\]
+Division by the positive denominator in (19) is therefore legitimate, and the definition of \(\theta_P\) yields the causal labels \(1-v\) and \(-(1-v)\).  The cutoff is interior by (2)--(3), \(X\) is uniform by construction, and taking independent copies gives the required iid sample.
+
+For nondegeneracy and outcome invariance, the common table makes the conditional law of \(Y\) given \((D=d,X=x)\) Bernoulli with success probability
+\[
+E[Y\mid D=d,X=x]=\frac12+g_\star(x)\left(d-\frac12\right).
+\tag{21}
+\]
+Every success or failure probability in (21) is at least
+\[
+\frac{1-|g_\star(x)|}{2}\ge\frac v2.
+\tag{22}
+\]
+On either side of the cutoff, the two conditional treatment probabilities are \((1+w_{j,\ell})/2\) and \((1-w_{j,\ell})/2\), in an order determined by the side, so each is at least \(7/16\).  Therefore the common-table factorization gives
+\[
+p_{j,\ell}^{D,Y}(x,d,y)
+=p_{j,\ell}^{D}(x,d)m_{d,y}(x)
+\ge\frac{7v}{32}>0.
+\tag{23}
+\]
+This strict positivity permits density cancellation below; no comparison of the joint-cell floor with the model constant \(v\) is needed or asserted.
+
+Let \(w=w_{j,\ell}(x)\) and \(g=g_\star(x)\).  On either side, \(D\mid X=x\) is Bernoulli with parameter \((1+w)/2\) or \((1-w)/2\), and hence
+\[
+V_D:=\operatorname{Var}(D\mid X=x)=\frac{1-w^2}{4}\ge\frac{63}{256}>0.
+\tag{24}
+\]
+The conditional variance identity and (21) give
+\[
+\operatorname{Var}(Y\mid X=x)
+=\frac{1-g^2}{4}+g^2V_D
+=\frac{1-g^2w^2}{4}
+\ge\frac{63}{256}>\frac1{64}>v,
+\tag{25}
+\]
+where the first lower bound uses \(|g|\le1\) and \(w\le1/8\), and the last uses \(0<v<1/64\).  Likewise,
+\[
+\operatorname{Cov}(Y,D\mid X=x)=gV_D.
+\tag{26}
+\]
+Because (24) is strictly positive, (24)--(26) imply the exact formula
+\[
+|\operatorname{corr}(Y,D\mid X=x)|
+=\frac{|g|\sqrt{1-w^2}}{\sqrt{1-g^2w^2}}
+\le |g|\le1-v.
+\tag{27}
+\]
+Indeed, \(g^2\le1\) gives \(1-w^2\le1-g^2w^2\).  Formula (27) also applies at \(w=0\), where its square-root ratio equals one.  No treatment-degenerate point occurs in this witness by (24); if such a point occurred in a different law, (26) would give zero covariance and the convention in \(\mathrm{ass:observable\mbox{-}correlation\mbox{-}separation}\) would apply without forming a correlation coefficient.  Equations (2)--(27) verify every member property in \(\mathrm{def:model\mbox{-}class}\), so
+\[
+\mathcal W_n\subset\mathcal P_n.
+\tag{28}
+\]
+
+Finally, under \(R_\star\), \(D\) is conditionally fair given \(X\), while (21) is the same strictly positive conditional outcome margin as under every \(P_{j,\ell}\).  Cancelling that margin in the full observable density ratio gives, outside the null event \(X=c_{j,\ell}\),
+\[
+L_{j,\ell}:=\frac{dP_{j,\ell}}{dR_\star}
+=1+(2D-1)\operatorname{sgn}(X-c_{j,\ell})w_{j,\ell}(X).
+\tag{29}
+\]
+Thus the one-unit and product likelihood ratios are measurable with respect to the corresponding \((X,D)\) sigma-fields.  Direct integration gives
+\[
+\int_{-1}^{1}\psi(u)^2\,du
+=2\left(1-\frac43+\frac65-\frac47+\frac19\right)
+=\frac{256}{315}.
+\tag{30}
+\]
+Conditioning on \(X\) under \(R_\star\) in (29), and using \(E_{R_\star}[2D-1\mid X]=0\), yields
+\[
+E_{R_\star}[L_{j,\ell}L_{k,r}]
+=1+\int_0^1
+\operatorname{sgn}(x-c_{j,\ell})
+\operatorname{sgn}(x-c_{k,r})
+w_{j,\ell}(x)w_{k,r}(x)\,dx.
+\tag{31}
+\]
+For distinct indices, (4) makes (31) equal to one.  For equal indices, the substitution \(u=(x-c_{j,\ell})/h_n\) and (30) give
+\[
+E_{R_\star}[L_{j,\ell}^2]
+=1+\frac{256}{315}\kappa_n^2h_n.
+\tag{32}
+\]
+Independence raises (31)--(32) to the \(n\)-th power.  Expanding the square of the equally weighted mixture likelihood ratio gives \(J_n\) diagonal terms and \(J_n(J_n-1)\) off-diagonal terms.  Subtracting one therefore yields
+\[
+\chi^2(Q_{\ell,n},R_\star^{\otimes n})
+=\frac{\left(1+\frac{256}{315}\kappa_n^2h_n\right)^n-1}{J_n},
+\]
+which completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit positivity, observable smoothness, exact variance and correlation, factorization, and second-moment calculations make outcome-assisted localization fail on a legal parameter-exact high-separation causal subexperiment. \textit{Gap.} Aligned multivariate change-point analyses do not provide a monotone fuzzy-RD latent construction whose outcome margin cancels exactly while its two LATE labels are separated by \(2(1-v)\). \textit{Consumer.} The finite-sample lower theorem uses the family to transfer honesty between the opposite labels \(\pm(1-v)\) without allowing the outcome channel to eliminate the location-entropy barrier.
+
+\begin{theorem}[thm:finite-sample-location-barrier-explicit-elbow]\label{thm:finite-sample-location-barrier-explicit-elbow}
+With \(a_\star=1-v\), put
+\[
+C_\psi=\frac{256}{315},
+\qquad
+C_h=\left(\frac{32}{M}\right)^{1/s},
+\qquad
+\lambda_w=(sC_\psi C_h)^{-1}
+=\frac{315}{256s}\left(\frac{M}{32}\right)^{1/s}.
+\]
+If \(h_n\le1/32\), then the high-separation outcome-invariant witness gives the finite-sample bound
+\[
+L_n(\kappa_n)
+\ge2(1-v)\left[
+1-2\alpha-
+\sqrt{\frac{\left(1+C_\psi\kappa_n^2h_n\right)^n-1}{J_n}}
+\right]_+.
+\]
+Along every admissible triangular sequence,
+\[
+\frac1s\log(1/\kappa_n)-C_\psi C_hT_n\longrightarrow+\infty
+\quad\Longrightarrow\quad
+\liminf_{n\to\infty}L_n(\kappa_n)
+\ge2(1-v)(1-2\alpha).
+\]
+In particular,
+\[
+\limsup_{n\to\infty}
+\frac{T_n}{\log(1/\kappa_n)}<\lambda_w
+\quad\Longrightarrow\quad
+\liminf_{n\to\infty}L_n(\kappa_n)
+\ge2(1-v)(1-2\alpha).
+\]
+For \(s=1\), \(\lambda_w=315M/8192\).  The sufficient regime contains sequences on which the known-cutoff minimax length shrinks to zero: for every \(0<\gamma<(2+1/s)^{-1}\), the eventual choice \(\kappa_n=\rho_n(\log n)^\gamma\) satisfies the first displayed limit and \(L_n^{\mathrm{known}}(\kappa_n)\to0\).  The constant \(\lambda_w\) is an explicit one-sided witness threshold; this theorem does not claim that it is the exact critical frontier.
+\end{theorem}
+\begin{proof}
+Let \(I_n\) be an arbitrary measurable connected interval rule satisfying the uniform coverage condition in \(\mathrm{def:minimax\mbox{-}length}\).  By \(\mathrm{prop:outcome\mbox{-}invariant\mbox{-}witness\mbox{-}high\mbox{-}separation}\), each component of \(Q_{+,n}\) is in \(\mathcal P_n\) and has causal target \(a_\star=1-v\), while each component of \(Q_{-,n}\) is in \(\mathcal P_n\) and has target \(-a_\star=-(1-v)\).  Averaging the componentwise honesty inequalities gives
+\[
+Q_{+,n}\{a_\star\in I_n\}\ge1-\alpha,
+\qquad
+Q_{-,n}\{-a_\star\in I_n\}\ge1-\alpha.
+\tag{33}
+\]
+For probability measures \(Q\ll R\), Cauchy--Schwarz applied to the density ratio proves
+\[
+\operatorname{TV}(Q,R)
+=\frac12E_R\left|\frac{dQ}{dR}-1\right|
+\le\frac12\sqrt{E_R\left(\frac{dQ}{dR}-1\right)^2}
+=\frac12\sqrt{\chi^2(Q,R)}.
+\tag{34}
+\]
+The triangle inequality for total variation, (34), and the equal chi-square identities for the two labels yield
+\[
+\operatorname{TV}(Q_{+,n},Q_{-,n})
+\le\operatorname{TV}(Q_{+,n},R_\star^{\otimes n})
+   +\operatorname{TV}(Q_{-,n},R_\star^{\otimes n})
+\le
+\sqrt{\frac{\left(1+C_\psi\kappa_n^2h_n\right)^n-1}{J_n}}.
+\tag{35}
+\]
+Transfer the second event in (33) from \(Q_{-,n}\) to \(Q_{+,n}\) by the definition of total variation, and intersect it with the first event in (33).  The union bound and (35) give
+\[
+Q_{+,n}\{-a_\star,a_\star\in I_n\}
+\ge1-2\alpha-
+\sqrt{\frac{\left(1+C_\psi\kappa_n^2h_n\right)^n-1}{J_n}}.
+\tag{36}
+\]
+A connected subset of \(\Theta=[-1,1]\) containing both labels has Lebesgue length at least \(2a_\star=2(1-v)\).  Since \(Q_{+,n}\) is the uniform mixture of in-class product laws,
+\[
+\sup_{P\in\mathcal P_n}E_P[|I_n|]
+\ge E_{Q_{+,n}}[|I_n|]
+\ge2(1-v)\left[
+1-2\alpha-
+\sqrt{\frac{\left(1+C_\psi\kappa_n^2h_n\right)^n-1}{J_n}}
+\right]_+.
+\tag{37}
+\]
+Taking the infimum over all honest rules proves the finite-sample assertion.
+
+We now evaluate (37).  The definitions of \(h_n\), \(C_h\), and \(T_n\) imply
+\[
+h_n=C_h\kappa_n^{1/s},
+\qquad
+n\kappa_n^2h_n=C_hT_n.
+\tag{38}
+\]
+Whenever \(h_n\le1/32\), the number \(x=(16h_n)^{-1}\) is at least two.  Since \(\lfloor x\rfloor\ge x/2\) for \(x\ge2\),
+\[
+J_n\ge\frac1{32h_n}.
+\tag{39}
+\]
+Using \(1+x\le e^x\), equations (38)--(39) bound the chi-square term in (37) by
+\[
+\frac{\left(1+C_\psi\kappa_n^2h_n\right)^n-1}{J_n}
+\le32h_n\exp\{C_\psi n\kappa_n^2h_n\}
+=32C_h\kappa_n^{1/s}\exp\{C_\psi C_hT_n\}.
+\tag{40}
+\]
+The logarithm of the final expression is
+\[
+\log(32C_h)-\frac1s\log(1/\kappa_n)+C_\psi C_hT_n.
+\tag{41}
+\]
+Suppose
+\[
+\frac1s\log(1/\kappa_n)-C_\psi C_hT_n\longrightarrow+\infty.
+\tag{42}
+\]
+Because \(T_n>0\), condition (42) implies \(\log(1/\kappa_n)\to\infty\).  Hence \(\kappa_n\to0\), so \(h_n\to0\) and (39)--(41) apply eventually.  Equation (41) tends to \(-\infty\), and thus the square-root term in (37) tends to zero.  We conclude that
+\[
+\liminf_{n\to\infty}L_n(\kappa_n)
+\ge2(1-v)(1-2\alpha).
+\tag{43}
+\]
+
+For the ratio corollary, suppose
+\[
+\limsup_n\frac{T_n}{\log(1/\kappa_n)}<\lambda_w.
+\tag{44}
+\]
+Condition (44) forces \(\kappa_n\to0\).  Otherwise, along a subsequence bounded away from zero, \(T_n=n\kappa_n^{2+1/s}\) would diverge at least linearly while \(\log(1/\kappa_n)\) remained bounded, contradicting (44).  Choose \(\varepsilon>0\) so that eventually
+\[
+\frac{T_n}{\log(1/\kappa_n)}\le\lambda_w-\varepsilon.
+\]
+Since \(C_\psi C_h\lambda_w=1/s\),
+\[
+\frac1s\log(1/\kappa_n)-C_\psi C_hT_n
+\ge C_\psi C_h\varepsilon\log(1/\kappa_n)
+\longrightarrow+\infty.
+\tag{45}
+\]
+Thus (44) implies (42), and (43) proves the stated corollary.  Substitution of \(s=1\) gives
+\[
+\lambda_w=\frac{315}{256}\frac{M}{32}=\frac{315M}{8192}.
+\]
+
+Finally, fix \(0<\gamma<(2+1/s)^{-1}\) and, for all sufficiently large \(n\), set
+\[
+\kappa_n=\rho_n(\log n)^\gamma
+=n^{-s/(2s+1)}(\log n)^\gamma.
+\tag{46}
+\]
+This sequence is positive and eventually at most \(1/8\).  Direct calculation gives
+\[
+T_n=n\kappa_n^{2+1/s}
+=(\log n)^{\gamma(2+1/s)}=o(\log n),
+\tag{47}
+\]
+while
+\[
+\log(1/\kappa_n)
+=\frac{s}{2s+1}\log n-\gamma\log\log n
+\asymp\log n.
+\tag{48}
+\]
+Equations (47)--(48) imply (42).  Moreover,
+\[
+\frac{\rho_n}{\kappa_n}=(\log n)^{-\gamma}\longrightarrow0.
+\]
+The upper inequality in \(\mathrm{thm:known\mbox{-}cutoff\mbox{-}benchmark}\) therefore gives \(L_n^{\mathrm{known}}(\kappa_n)\to0\), whereas (43) remains in force.  This proves the oracle-shrinking comparison.  No converse or attaining construction is supplied at or above \(\lambda_w\), so the conclusion remains the asserted one-sided witness threshold.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The bound gives an explicit finite-sample connected-length certificate and evaluates the largest one-sided signal-to-entropy threshold delivered by this exact witness calculation. \textit{Gap.} Known-cutoff weak-instrument inference and shrinking-jump cutoff-location rates do not imply the \(2(1-v)\) connected LATE-length bound or the explicit threshold \(\lambda_w\) under a jointly unknown and vanishing first stage. \textit{Consumer.} Analysts can compute \(\lambda_w\) and identify sequences on which an administratively undocumented cutoff makes every honest connected LATE interval nonshrinking, despite a shrinking known-cutoff benchmark.
+
+\section{Interpretation}
+
+The ratio \(T_n/\log(1/\kappa_n)\) compares local jump information with the number of disjoint candidate cutoffs.  Below the explicit witness threshold \(\lambda_w=(sC_\psi C_h)^{-1}\), the two mixtures with causal labels \(\pm(1-v)\) merge in total variation, so honesty and connectedness force asymptotic expected length at least \(2(1-v)(1-2\alpha)\), even along sequences for which known-cutoff intervals shrink.  This sufficient converse does not locate the exact critical transition.  At \(s=1\), strong signal permits the proved rectangular scan and oracle-order inversion.  For \(s>1\), the frozen affine profile fails at the population level, so a different criterion or a negative frontier theorem is necessary.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The lower construction evaluates only one side of the critical experiment.  At \(T_n/\log(1/\kappa_n)\to\lambda_w\), the first-order coordinate does not determine the witness mixture limit because the second-order centering \(C_\psi C_hT_n-s^{-1}\log(1/\kappa_n)\) remains; above \(\lambda_w\), this chi-square argument becomes uninformative.  The higher-smoothness profile branch remains a total measurable map but is not a valid uniform localizer on the stated class: a legal population score favors a displaced split, and maximal inequalities cannot repair that deterministic failure.  Neither limitation affects the finite-sample \(2(1-v)\) lower bound or the proved Lipschitz-face upper theorem, but the exact critical law, a replacement higher-smoothness estimator, and a matching slope-kink lower pair remain open.
+
+\section{Honest scope}
+
+The Wald interpretation, known-cutoff benchmark, strengthened finite-sample location-mixture barrier, and Lipschitz-face oracle attainment retain their stated scope.  The explicit \(\lambda_w\) condition is a sufficient one-sided witness threshold and is not advertised as the exact signal-to-entropy boundary.  The coefficient \(2(1-v)\) comes from the legal common-outcome witness with \(a_\star=1-v\) and \(b=1-v/2\); no latent-cell H{\"o}lder restriction is imposed or claimed, and no observable joint-cell floor larger than \(v\) is required or asserted.  For \(s>1\), the paper proves only that the frozen common-versus-piecewise moving-window profile fails its proposed uniform localization inequality on the unchanged class; it does not conclude that every estimator fails or that the candidate detectable-region bracket is false.  No cross-side derivative matching, adaptation guarantee, disconnected-set result, or matched critical-window constant is added.  Noack--Rothe-style refers only to the observable-regression and nondegeneracy template; equality with, or inclusion in, their published parameter space is not claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{HahnToddVanDerKlaauw2001} Hahn, Jinyong, Petra Todd, and Wilbert van der Klaauw (2001), ``Identification and Estimation of Treatment Effects with a Regression-Discontinuity Design,'' Econometrica 69(1), 201--209.
+
+  \bibitem{MullerSong1997} M{\"u}ller, Hans-Georg, and Kai-Sheng Song (1997), ``Two-stage change-point estimators in smooth regression models,'' Statistics and Probability Letters 34(4), 323--335, doi:10.1016/S0167-7152(96)00197-6.
+
+  \bibitem{PorterYu2015} Porter, Jack, and Ping Yu (2015), ``Regression discontinuity designs with unknown discontinuity points: Testing and estimation,'' Journal of Econometrics 189(1), 132--147, doi:10.1016/j.jeconom.2015.06.002.
+
+  \bibitem{ArmstrongKolesar2018} Armstrong, Timothy B., and Michal Koles{\'a}r (2018), ``Optimal Inference in a Class of Regression Models,'' Econometrica 86(2), 655--683, doi:10.3982/ECTA14434, arXiv:1511.06028.
+
+  \bibitem{FrickMunkSieling2014} Frick, Klaus, Axel Munk, and Hannes Sieling (2014), ``Multiscale change point inference,'' Journal of the Royal Statistical Society: Series B 76(3), 495--580, doi:10.1111/rssb.12047, arXiv:1301.7212.
+
+  \bibitem{ChernozhukovChetverikovKato2014} Chernozhukov, Victor, Denis Chetverikov, and Kengo Kato (2014), ``Gaussian Approximation of Suprema of Empirical Processes,'' Annals of Statistics 42(4), 1564--1597, arXiv:1212.6885.
+
+  \bibitem{AndrewsKitagawaMcCloskey2021} Andrews, Isaiah, Toru Kitagawa, and Adam McCloskey (2021), ``Inference after estimation of breaks,'' Journal of Econometrics 224(1), 39--59, doi:10.1016/j.jeconom.2020.07.036.
+
+  \bibitem{NoackRothe2024} Noack, Claudia, and Christoph Rothe (2024), ``Bias-Aware Inference in Fuzzy Regression Discontinuity Designs,'' Econometrica 92(3), 687--711, doi:10.3982/ECTA19466, arXiv:1906.04631.
+
+  \bibitem{Tuvaandorj2020} Tuvaandorj, Purevdorj (2020), ``Regression discontinuity designs, white noise models, and minimax,'' Journal of Econometrics 218(2), 587--608, doi:10.1016/j.jeconom.2020.04.030.
+
+  \bibitem{MadridPadillaYuWangRinaldo2022} Madrid Padilla, Oscar Hernan, Yi Yu, Daren Wang, and Alessandro Rinaldo (2022), ``Optimal nonparametric multivariate change point detection and localization,'' IEEE Transactions on Information Theory, arXiv:1910.13289.
+
+  \bibitem{KowalskaVanDeWielVanDerPas2025} Kowalska, Julia M., Mark A. van de Wiel, and St{\'e}phanie van der Pas (2025 version), ``Bayesian Regression Discontinuity Design with Unknown Cutoff,'' arXiv:2406.11585.
+
+  \bibitem{AraiOtsuSeo2026} Arai, Yoichi, Taisuke Otsu, and Myung Hwan Seo (2026), ``Causal Inference on Regression Discontinuity Designs by High-Dimensional Methods,'' KEO Discussion Paper 200.
+
+\end{thebibliography}
+
+\end{document}

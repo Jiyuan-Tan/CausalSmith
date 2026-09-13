@@ -1,0 +1,896 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}transition\_\allowbreak{}merge\_\allowbreak{}att\_\allowbreak{}region}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} On the compact binary four-period latent-transition model, the singular case with distinct treated terminal rows and exactly one collided control terminal row admits an exact observable treatment. Terminal splitting reduces the forty-coordinate existential fiber to displayed ten-variable systems and exactly thirty-two collided-state, orientation, and relative-alignment branches. A Collins-style sign certificate is necessary and sufficient for branch feasibility and aggregate-ATT point identification; the associated exact algorithm returns the attained, possibly disconnected image with Thom-encoded endpoints, latent witnesses, and discarded-branch certificates. An explicit injective one-parameter family of one-collision laws has exactly two separated quotient ATT values throughout, with a dense rational subfamily. This proves positive-dimensional persistence, not relative openness in the full collision variety. The contribution is the structural reduction and causal certificate grammar, not a generic CAD complexity improvement, a completion of the other collision patterns, or an overlap theorem for Ahn--Kasahara's regular class.
+
+\section{Project justification}
+
+\paragraph{Gap.} Ahn--Kasahara's parameter and ATT identification results impose their stated RSM, M, ID, and TI--LT regular conditions, while Higgins and Jochmans's four-observation theorem requires rank, type-separation, and connectivity conditions; neither classifies the one-collided-control-row merger stratum or supplies an explicit positive-dimensional family with two aggregate-ATT values. Geiger--Meek and Collins supply general real quantifier elimination but leave the economically meaningful two-arm branch structure opaque.
+
+\paragraph{Niche.} Exactly one collided control terminal row is the first nonregular stratum on which full-path splitting, rank failure, probability-box contact, and relative treatment-control alignment interact but remain reducible to ten variables. Within it, an explicitly parameterized observed-law path permits a direct persistence proof without a generic or relative-open claim.
+
+\paragraph{Fill.} The project proves the reduction, gives the observable \(\mathscr L_{k_0,\sigma}\) classification, computes the exact attained ATT image on all thirty-two labeled branches, and supplies an injective one-parameter one-collision family whose two quotient ATT values remain separated, including a dense rational subfamily.
+
+\section{Related work}
+
+Ahn--Kasahara is the closest econometric comparator in the same full-path latent-transition architecture: their parameter and ATT results operate under their stated regular conditions. Those results motivate the estimand and architecture here; the compact class \(\mathcal M_\eta\) and its singular one-collision stratum are not asserted to equal, contain, or extend the Ahn--Kasahara identification class, and only the architecture and ATT formula transfer as motivation. Higgins and Jochmans give a four-observation Markov-mixture identification benchmark under rank, separation, and connectivity conditions, but do not classify a two-arm alignment fiber with one collided control terminal row. Critch's binary hidden Markov geometry motivates rational splitting and semialgebraic membership, but has neither two treatment arms nor a causal alignment functional. Geiger--Meek and Collins provide generic real quantifier elimination and exact CAD certification; they do not provide the model-specific ten-coordinate reduction, branch labels, ATT image, or endpoint representations. Basu supplies the relevant worst-case real-algebraic complexity benchmark. Duarte, Finkelstein, Knox, Mummolo, and Shpitser motivate polynomial optimization for discrete causal bounds, while the present object is an exact attained semialgebraic image. Henry, Kitamura, and Salanie study a different exclusion-driven finite-mixture set. Romano--Shaikh motivates set inversion; the finite-sample coverage theorem here is auxiliary and appendix-tier and asserts neither endpoint nor Hausdorff consistency. The persistence evidence is exactly the explicit injective one-parameter family proved here, not a relatively open chamber in a larger collision variety.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau=(\mathbb E[X_3(1)-X_3(0)\mid D=1],\mathbb E[X_4(1)-X_4(0)\mid D=1])\).
+Primary functional / estimator / diagnostic: \(\mathcal I_{k_0}^{1\mathrm c}(P)=\{\bar\tau_P([\psi]):[\psi]\in\Phi_{\eta,k_0}^{1\mathrm c}(P)\}\).
+\begin{itemize}
+  \item \texttt{eta} --- \texttt{fixed rational scalar}; \(\mathbb Q\cap(0,3/20)\); \texttt{common compact-\allowbreak{}interior bound}
+  \item \texttt{U} --- \texttt{scalar}
+  \par\smallskip\noindent\emph{Definition.} \(U=1-\eta\)
+  \item \texttt{A} --- \texttt{finite state space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{0,1\}\)
+  \item \texttt{T} --- \texttt{finite date set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T=\{1,2,3,4\}\)
+  \item \texttt{Delta31} --- \texttt{probability simplex}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{31}=\{p\in[0,1]^{32}:\sum_w p(w)=1\}\)
+  \item \texttt{Z} --- \texttt{latent random variable}; \(\{1,2\}\); \texttt{latent transition type}
+  \item \texttt{D} --- \texttt{observed random variable}; \(\mathcal A\)
+  \par\smallskip\noindent\emph{Definition.} \(D=1\) denotes treatment beginning after date \(2\)
+  \item \texttt{X\_\allowbreak{}pot} --- \texttt{binary potential-\allowbreak{}outcome process}
+  \par\smallskip\noindent\emph{Definition.} \(X^{\mathrm{pot}}=(X_t(d):t\in\mathcal T,\ d\in\mathcal A)\)
+  \item \texttt{X} --- \texttt{observed binary process}
+  \par\smallskip\noindent\emph{Definition.} \(X=(X_1,X_2,X_3,X_4)\), where \(X_t=X_t(D)\) and \(X_t(0)=X_t(1)\) for \(t\le2\)
+  \item \texttt{W} --- \texttt{observed random vector}
+  \par\smallskip\noindent\emph{Definition.} \(W=(X_1,X_2,X_3,X_4,D)\)
+  \item \texttt{B} --- \texttt{Bernoulli probability kernel}; \([0,1]\times\mathcal A\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(B(q;x)=q^x(1-q)^{1-x}\)
+  \item \texttt{psi} --- \texttt{structural parameter vector}
+  \par\smallskip\noindent\emph{Definition.} \(\psi=(\pi,(e_z,u_{zd},a_{zi},b_{z3j},b_{z4k},c_{z3j},c_{z4k})_{z\in\{1,2\},\ d,i,j,k\in\mathcal A})\), with \(\pi_1=\pi\) and \(\pi_2=1-\pi\)
+  \item \texttt{Theta\_\allowbreak{}eta} --- \texttt{compact structural parameter space}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_\eta=\{\psi:\pi,e_z,u_{zd},a_{zi},b_{z3j},b_{z4k},c_{z3j},c_{z4k}\in[\eta,U]\}\)
+  \item \texttt{kappa} --- \texttt{observed-\allowbreak{}arm transition parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_{zd3j}=(1-d)b_{z3j}+dc_{z3j}\) and \(\kappa_{zd4k}=(1-d)b_{z4k}+dc_{z4k}\)
+  \item \texttt{F} --- \texttt{full-\allowbreak{}path probability map}; \(\Theta_\eta\to\Delta_{31}\)
+  \par\smallskip\noindent\emph{Definition.} \(F(\psi)_{ijkld}=\sum_{z=1}^{2}\pi_zB(e_z;d)B(u_{zd};i)B(a_{zi};j)B(\kappa_{zd3j};k)B(\kappa_{zd4k};l)\)
+  \item \texttt{P} --- \texttt{observed full-\allowbreak{}path law}; \(\Delta_{31}\)
+  \par\smallskip\noindent\emph{Definition.} \(P=(P_{ijkld})_{i,j,k,l,d\in\mathcal A}\)
+  \item \texttt{M\_\allowbreak{}eta} --- \texttt{compact observed-\allowbreak{}law class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_\eta=F(\Theta_\eta)\)
+  \item \texttt{p\_\allowbreak{}d} --- \texttt{arm probability}
+  \par\smallskip\noindent\emph{Definition.} \(p_d=P(D=d)\)
+  \item \texttt{w\_\allowbreak{}zd} --- \texttt{posterior type weight}
+  \par\smallskip\noindent\emph{Definition.} \(w_{zd}=\pi_zB(e_z;d)/p_d\)
+  \item \texttt{O\_\allowbreak{}t} --- \texttt{observed treated mean}
+  \par\smallskip\noindent\emph{Definition.} \(O_t(P)=\mathbb E_P[X_t\mid D=1]\) for \(t\in\{3,4\}\)
+  \item \texttt{m\_\allowbreak{}z2} --- \texttt{type-\allowbreak{}specific untreated counterfactual mean}
+  \par\smallskip\noindent\emph{Definition.} \(m_{z2}=(1-u_{z1})a_{z0}+u_{z1}a_{z1}\)
+  \item \texttt{m\_\allowbreak{}z3} --- \texttt{type-\allowbreak{}specific untreated counterfactual mean}
+  \par\smallskip\noindent\emph{Definition.} \(m_{z3}=(1-m_{z2})b_{z30}+m_{z2}b_{z31}\)
+  \item \texttt{m\_\allowbreak{}z4} --- \texttt{type-\allowbreak{}specific untreated counterfactual mean}
+  \par\smallskip\noindent\emph{Definition.} \(m_{z4}=(1-m_{z3})b_{z40}+m_{z3}b_{z41}\)
+  \item \texttt{tau} --- \texttt{aggregate ATT vector}
+  \par\smallskip\noindent\emph{Definition.} \(\tau(\psi;P)=(\tau_3,\tau_4)\), where \(\tau_t=O_t(P)-\sum_{z=1}^{2}w_{z1}m_{zt}\)
+  \item \texttt{S2} --- \texttt{two-\allowbreak{}element permutation group}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak S_2=\{\mathrm{id},\mathrm{sw}\}\)
+  \item \texttt{sigma\_\allowbreak{}psi} --- \texttt{simultaneous type-\allowbreak{}permutation action}
+  \par\smallskip\noindent\emph{Definition.} For \(\sigma\in\mathfrak S_2\), \(\sigma\psi\) replaces every type-indexed coordinate \(q_z\) by \(q_{\sigma^{-1}(z)}\) in both arms
+  \item \texttt{tilde\_\allowbreak{}Phi} --- \texttt{labeled global transition-\allowbreak{}alignment fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde\Phi_\eta(P)=\{\psi\in\Theta_\eta:F(\psi)=P\}\)
+  \item \texttt{Phi} --- \texttt{quotient global transition-\allowbreak{}alignment fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi_\eta(P)=\widetilde\Phi_\eta(P)/\mathfrak S_2\) under simultaneous type permutation
+  \item \texttt{bar\_\allowbreak{}tau} --- \texttt{quotient aggregate-\allowbreak{}ATT map}
+  \par\smallskip\noindent\emph{Definition.} \(\bar\tau_P([\psi])=\tau(\psi;P)\)
+  \item \texttt{k0} --- \texttt{collided control terminal state}; \(\mathcal A\)
+  \item \texttt{Theta\_\allowbreak{}one} --- \texttt{one-\allowbreak{}collided-\allowbreak{}control-\allowbreak{}row structural stratum}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{\eta,k_0}^{1\mathrm c}=\{\psi\in\Theta_\eta:(\kappa_{104k_0}-\kappa_{204k_0},\kappa_{104,1-k_0}-\kappa_{204,1-k_0},\kappa_{1140}-\kappa_{2140},\kappa_{1141}-\kappa_{2141})\in\{0\}\times(\mathbb R\setminus\{0\})^3\}\)
+  \item \texttt{M\_\allowbreak{}one} --- \texttt{observed one-\allowbreak{}collision law class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\eta,k_0}^{1\mathrm c}=\{P\in\mathcal M_\eta:\varnothing\ne\widetilde\Phi_\eta(P)\subseteq\Theta_{\eta,k_0}^{1\mathrm c}\}\)
+  \item \texttt{tilde\_\allowbreak{}Phi\_\allowbreak{}one} --- \texttt{labeled one-\allowbreak{}collision subfiber}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde\Phi_{\eta,k_0}^{1\mathrm c}(P)=\{\psi\in\Theta_{\eta,k_0}^{1\mathrm c}:F(\psi)=P\}\)
+  \item \texttt{Phi\_\allowbreak{}one} --- \texttt{quotient one-\allowbreak{}collision subfiber}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi_{\eta,k_0}^{1\mathrm c}(P)=\widetilde\Phi_{\eta,k_0}^{1\mathrm c}(P)/\mathfrak S_2\) under simultaneous type permutation
+  \item \texttt{I\_\allowbreak{}one} --- \texttt{joint sharp ATT image on the one-\allowbreak{}collision stratum}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_{k_0}^{1\mathrm c}(P)=\{\bar\tau_P([\psi]):[\psi]\in\Phi_{\eta,k_0}^{1\mathrm c}(P)\}\)
+  \item \texttt{I\_\allowbreak{}one\_\allowbreak{}t} --- \texttt{marginal sharp ATT image}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_{k_0,t}^{1\mathrm c}(P)=\operatorname{proj}_t\mathcal I_{k_0}^{1\mathrm c}(P)\) for \(t\in\{3,4\}\)
+  \item \texttt{H} --- \texttt{arm-\allowbreak{}conditional prefix tensor}
+  \par\smallskip\noindent\emph{Definition.} \(H_d(i,j,k)=P(X_1=i,X_2=j,X_3=k\mid D=d)\)
+  \item \texttt{N} --- \texttt{arm-\allowbreak{}conditional terminal-\allowbreak{}one tensor}
+  \par\smallskip\noindent\emph{Definition.} \(N_d(i,j,k)=P(X_1=i,X_2=j,X_3=k,X_4=1\mid D=d)\)
+  \item \texttt{v} --- \texttt{terminal-\allowbreak{}transition chart coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(v=(v_{zdk})_{z\in\{1,2\},d,k\in\mathcal A}\)
+  \item \texttt{R} --- \texttt{latent prefix chart coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(R=(R_{zd}(i,j,k))_{z\in\{1,2\},d,i,j,k\in\mathcal A}\)
+  \item \texttt{Tmass} --- \texttt{latent two-\allowbreak{}period mass}
+  \par\smallskip\noindent\emph{Definition.} \(T_{zd}^{R}(i,j)=\sum_{k\in\mathcal A}R_{zd}(i,j,k)\)
+  \item \texttt{Smass} --- \texttt{latent initial-\allowbreak{}state mass}
+  \par\smallskip\noindent\emph{Definition.} \(S_{zd}^{R}(i)=\sum_{j\in\mathcal A}T_{zd}^{R}(i,j)\)
+  \item \texttt{rho} --- \texttt{rank-\allowbreak{}one polynomial family}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{zdj}(R)=R_{zd}(0,j,0)R_{zd}(1,j,1)-R_{zd}(0,j,1)R_{zd}(1,j,0)\)
+  \item \texttt{Sigma} --- \texttt{relative-\allowbreak{}alignment set}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma=\{\mathrm{id},\mathrm{sw}\}\)
+  \item \texttt{gamma\_\allowbreak{}sigma} --- \texttt{cross-\allowbreak{}arm alignment polynomial family}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_{zi}^{\sigma}(R)=T_{\sigma(z),0}^{R}(i,1)S_{z1}^{R}(i)-T_{z1}^{R}(i,1)S_{\sigma(z),0}^{R}(i)\)
+  \item \texttt{chi} --- \texttt{observable terminal-\allowbreak{}collision minors}
+  \par\smallskip\noindent\emph{Definition.} \(\chi_{dk}^{ij}(P)=N_d(i,j,k)H_d(0,0,k)-N_d(0,0,k)H_d(i,j,k)\)
+  \item \texttt{s} --- \texttt{orientation vector}; \(\{-1,1\}^{3}\); \texttt{signs of the three noncollided terminal differences}
+  \item \texttt{y} --- \texttt{ten-\allowbreak{}dimensional reduced coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(y=(v_{110},v_{210},v_{111},v_{211},v_{10,1-k_0},v_{20,1-k_0},r_{00},r_{01},r_{10},r_{11})\), where \(r_{ij}=R_{10}(i,j,k_0)\)
+  \item \texttt{y\_\allowbreak{}prime} --- \texttt{independent ten-\allowbreak{}dimensional reduced coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(y^{\prime}\in\mathbb R^{10}\) is an independent copy of \(y\) used for pairwise target comparisons
+  \item \texttt{G\_\allowbreak{}branch} --- \texttt{reduced branch system}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr G_{k_0,s,\sigma}(P,\eta;y)\) is the explicit twelve-equality and finite-sign system in Definition \(\mathrm{def:ten-variable-system}\)
+  \item \texttt{L\_\allowbreak{}certificate} --- \texttt{observable Collins projection list}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr L_{k_0,\sigma}(P,\eta)\) is the union of the Collins projection polynomials generated from \(\mathscr G_{k_0,s,\sigma}\) and from every two-copy target-nonconstancy system comparing it with \(\mathscr G_{k_0,s',\sigma'}\), after all coordinates \(y,y'\) are eliminated and only \(P,\eta\) remain
+  \item \texttt{rec\_\allowbreak{}one} --- \texttt{one-\allowbreak{}collision reconstruction map}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{rec}_{k_0,s,\sigma}(P,y)\) is the structural vector recovered from the terminal splits and positive-mass ratios in Definition \(\mathrm{def:ten-variable-system}\)
+  \item \texttt{OneCAD} --- \texttt{exact branch-\allowbreak{}aware ATT algorithm}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{OneCollisionATT}(P,\eta)\) runs the fixed projection-and-lifting schedule in Definition \(\mathrm{def:one-collision-algorithm}\)
+  \item \texttt{psi\_\allowbreak{}diamond} --- \texttt{rational benchmark representation}
+  \par\smallskip\noindent\emph{Definition.} \(\psi^{\diamond}\) has \(\pi=1/2\), \((e_1,e_2)=(3/5,2/5)\), \((u_{10},u_{20})=(3/10,7/10)\), \((u_{11},u_{21})=(2/5,3/5)\), \(a_{z0}=3/10\), \(a_{z1}=4/5\), control rows \((b_{130},b_{131})=(1/5,3/5)\), \((b_{230},b_{231})=(3/5,3/10)\), \((b_{140},b_{141})=(1/2,7/10)\), \((b_{240},b_{241})=(1/2,2/5)\), and treated rows \((c_{130},c_{131})=(3/10,7/10)\), \((c_{230},c_{231})=(3/5,1/5)\), \((c_{140},c_{141})=(1/5,7/10)\), \((c_{240},c_{241})=(4/5,3/10)\)
+  \item \texttt{psi\_\allowbreak{}diamond\_\allowbreak{}sw} --- \texttt{cross-\allowbreak{}arm-\allowbreak{}swapped rational benchmark representation}
+  \par\smallskip\noindent\emph{Definition.} \(\psi^{\diamond,\mathrm{sw}}\) keeps the treated coordinates of \(\psi^{\diamond}\), swaps its two complete control components, and sets \(\pi=3/5\) and \(e_1=e_2=1/2\)
+  \item \texttt{P\_\allowbreak{}diamond} --- \texttt{exact rational benchmark law}
+  \par\smallskip\noindent\emph{Definition.} \(P^{\diamond}=F(\psi^{\diamond})\)
+  \item \texttt{CertificateHandle} --- \texttt{certificate-\allowbreak{}compression handle}
+  \par\smallskip\noindent\emph{Definition.} Handle: eliminate the four split variables first with the two-by-two rank equations, organize the resulting gcd alternatives by signed subresultant sequences, and use the full \(\mathscr L_{k_0,\sigma}\) CAD certificate to certify or refute every proposed deletion
+  \item \texttt{n} --- \texttt{positive integer sample size}; \(\mathbb N_{>0}\)
+  \item \texttt{W\_\allowbreak{}n} --- \texttt{random sample}
+  \par\smallskip\noindent\emph{Definition.} \(W^{(n)}=(W_1,\ldots,W_n)\)
+  \item \texttt{P\_\allowbreak{}hat} --- \texttt{empirical full-\allowbreak{}path PMF}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat P_n(w)=n^{-1}\sum_{r=1}^{n}\mathbf 1\{W_r=w\}\)
+  \item \texttt{alpha} --- \texttt{confidence error probability}; \((0,1)\)
+  \item \texttt{delta\_\allowbreak{}n} --- \texttt{multinomial confidence radius}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_n(\alpha)=\sqrt{\log(64/\alpha)/(2n)}\)
+  \item \texttt{C\_\allowbreak{}tau} --- \texttt{one-\allowbreak{}collision ATT confidence region}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{n,k_0}^{\tau}=\bigcup_{Q\in\mathcal M_{\eta,k_0}^{1\mathrm c}:\lVert Q-\widehat P_n\rVert_\infty\le\delta_n(\alpha)}\mathcal I_{k_0}^{1\mathrm c}(Q)\)
+  \item \texttt{psi\_\allowbreak{}diamond\_\allowbreak{}theta} --- \texttt{one-\allowbreak{}parameter structural representation family}
+  \par\smallskip\noindent\emph{Definition.} For \(\vartheta\in(-1/100,1/100)\), \(\psi^{\diamond}_{\vartheta}\) is obtained from \(\psi^{\diamond}\) by replacing only \(c_{130}=3/10\) with \(c_{130}=3/10+\vartheta\)
+  \item \texttt{psi\_\allowbreak{}diamond\_\allowbreak{}sw\_\allowbreak{}theta} --- \texttt{cross-\allowbreak{}arm-\allowbreak{}swapped one-\allowbreak{}parameter structural representation family}
+  \par\smallskip\noindent\emph{Definition.} For \(\vartheta\in(-1/100,1/100)\), \(\psi^{\diamond,\mathrm{sw}}_{\vartheta}\) is obtained from \(\psi^{\diamond,\mathrm{sw}}\) by replacing only its treated coordinate \(c_{130}=3/10\) with \(c_{130}=3/10+\vartheta\)
+  \item \texttt{P\_\allowbreak{}diamond\_\allowbreak{}theta} --- \texttt{one-\allowbreak{}parameter observed full-\allowbreak{}path law family}
+  \par\smallskip\noindent\emph{Definition.} \(P^{\diamond}_{\vartheta}=F(\psi^{\diamond}_{\vartheta})\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:eta-domain]\label{ass:eta-domain}
+\(\eta\in\mathbb Q\cap(0,3/20)\)
+\par\smallskip\noindent\emph{Novel.} Any data-generating process with nondegenerate latent shares, assignment probabilities, and transition rows satisfies this compact-interior restriction for some smaller rational \(\eta\). Rationality permits exact input encoding, while the box makes every stratum-restricted image attained. This condition is maintained independently and is not attributed to Ahn--Kasahara's common-support condition.
+\end{assumption}
+
+\begin{assumption}[ass:path-factorization]\label{ass:path-factorization}
+\(P=F(\psi)\)
+\par\smallskip\noindent\emph{Standard} (Two-type first-order latent Markov path factorization with treatment-arm transition independence, \cite{AhnKasahara2026}).
+\end{assumption}
+
+\begin{assumption}[ass:compact-box]\label{ass:compact-box}
+\(\psi\in\Theta_\eta\)
+\par\smallskip\noindent\emph{Novel.} The common box is credible in applications without nearly deterministic type shares, selection, or transitions. It is stronger than bounding treatment assignment alone and is maintained transparently to define a compact sensitivity model, not to claim coverage of the full published class.
+\end{assumption}
+
+\begin{assumption}[ass:one-collision-pattern]\label{ass:one-collision-pattern}
+\(\varnothing\ne\widetilde\Phi_\eta(P)\subseteq\Theta_{\eta,k_0}^{1\mathrm c}\)
+\par\smallskip\noindent\emph{Novel.} The exclusive stratum contains observed laws for which every compatible compact-box representation has the same single control-row collision while the other three terminal rows remain distinct. Such pooling is natural when latent groups share one next-state probability but differ elsewhere. Exclusivity makes the named stratum a complete causal model rather than a selected representation and, by compactness of the global fiber, keeps its noncollided gaps bounded away from zero at each law.
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(W_1,\ldots,W_n\overset{\mathrm{iid}}{\sim}P\)
+\par\smallskip\noindent\emph{Standard} (Independent multinomial sampling, \cite{RomanoShaikh2010}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compactly boxed latent-\allowbreak{}transition law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_\eta=\{P\in\Delta_{31}:\exists\psi\,[P=F(\psi)\land\psi\in\Theta_\eta]\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}eta-\allowbreak{}domain}; \texttt{ass:\allowbreak{}path-\allowbreak{}factorization}; \texttt{ass:\allowbreak{}compact-\allowbreak{}box}.
+\end{definition}
+
+\begin{definition}[def:one-collision-class]\label{def:one-collision-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{One-\allowbreak{}collided-\allowbreak{}control-\allowbreak{}row law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\eta,k_0}^{1\mathrm c}=\{P\in\mathcal M_\eta:\varnothing\ne\widetilde\Phi_\eta(P)\subseteq\Theta_{\eta,k_0}^{1\mathrm c}\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}eta-\allowbreak{}domain}; \texttt{ass:\allowbreak{}path-\allowbreak{}factorization}; \texttt{ass:\allowbreak{}compact-\allowbreak{}box}; \texttt{ass:\allowbreak{}one-\allowbreak{}collision-\allowbreak{}pattern}.
+\end{definition}
+
+\begin{definition}[def:global-fibers]\label{def:global-fibers}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Labeled and quotient global transition-\allowbreak{}alignment fibers}
+\par\smallskip\noindent\emph{Construction.} \(\widetilde\Phi_\eta(P)=\{\psi\in\Theta_\eta:F(\psi)=P\}\) and \(\Phi_\eta(P)=\widetilde\Phi_\eta(P)/\mathfrak S_2\), where \(\mathfrak S_2\) acts by simultaneous type permutation
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{eta}.
+\end{definition}
+
+\begin{definition}[def:one-collision-region]\label{def:one-collision-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Quotient-\allowbreak{}induced sharp ATT image on the completed stratum}
+\par\smallskip\noindent\emph{Construction.} \(\widetilde\Phi_{\eta,k_0}^{1\mathrm c}(P)=\{\psi\in\Theta_{\eta,k_0}^{1\mathrm c}:F(\psi)=P\}\), \(\Phi_{\eta,k_0}^{1\mathrm c}(P)=\widetilde\Phi_{\eta,k_0}^{1\mathrm c}(P)/\mathfrak S_2\), \(\bar\tau_P([\psi])=\tau(\psi;P)\), and \(\mathcal I_{k_0}^{1\mathrm c}(P)=\{\bar\tau_P([\psi]):[\psi]\in\Phi_{\eta,k_0}^{1\mathrm c}(P)\}\), with \(\mathcal I_{k_0,t}^{1\mathrm c}(P)=\operatorname{proj}_t\mathcal I_{k_0}^{1\mathrm c}(P)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{eta}; \texttt{k0}.
+\end{definition}
+
+\begin{definition}[def:ten-variable-system]\label{def:ten-variable-system}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Ten-\allowbreak{}variable terminal-\allowbreak{}splitting systems}
+\par\smallskip\noindent\emph{Construction.} For fixed \(k_0\in\mathcal A\), \(s\in\{-1,1\}^{3}\), and \(\sigma\in\Sigma\), first impose \(\chi_{0k_0}^{01}=\chi_{0k_0}^{10}=\chi_{0k_0}^{11}=0\) and set \(v_{10k_0}=v_{20k_0}=N_0(0,0,k_0)/H_0(0,0,k_0)\). Retain \(r_{ij}=R_{10}(i,j,k_0)\), set \(R_{20}(i,j,k_0)=H_0(i,j,k_0)-r_{ij}\), and for each of the other three blocks set \(R_{1d}(i,j,k)=[N_d(i,j,k)-v_{2dk}H_d(i,j,k)]/(v_{1dk}-v_{2dk})\) and \(R_{2d}=H_d-R_{1d}\). The free coordinate is exactly \(y=(v_{110},v_{210},v_{111},v_{211},v_{10,1-k_0},v_{20,1-k_0},r_{00},r_{01},r_{10},r_{11})\in\mathbb R^{10}\). The system \(\mathscr G_{k_0,s,\sigma}(P,\eta;y)\) contains the eight cleared equalities \(\rho_{zdj}(R)=0\), the four cleared equalities \(\gamma_{zi}^{\sigma}(R)=0\), the three strict orientation signs \(s_{dk}(v_{1dk}-v_{2dk})>0\), \(R_{zd}(i,j,k)\ge\eta^5\), and both cleared signs \(q-\eta\ge0\) and \(U-q\ge0\) for every reconstructed \(q\in\{v_{zdk},u_{zd},a_{zi},\kappa_{zd3j},\pi_z,e_z\}\). Reconstruction uses \(T_{zd}^{R}(i,j)=\sum_kR_{zd}(i,j,k)\), \(S_{zd}^{R}(i)=\sum_jT_{zd}^{R}(i,j)\), \(w_{zd}=\sum_iS_{zd}^{R}(i)\), \(u_{zd}=S_{zd}^{R}(1)/w_{zd}\), \(a_{zi}=T_{z1}^{R}(i,1)/S_{z1}^{R}(i)\), \(\kappa_{zd3j}=R_{zd}(0,j,1)/T_{zd}^{R}(0,j)\), \(\pi_z=p_0w_{\sigma(z),0}+p_1w_{z1}\), and \(e_z=p_1w_{z1}/\pi_z\). Every cleared denominator is one of the explicitly positive quantities \(H_d,T_{zd}^{R},S_{zd}^{R},w_{zd},p_d\) or an orientation-signed terminal difference.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{eta}; \texttt{k0}; \texttt{s}; \texttt{Sigma}.
+\end{definition}
+
+\begin{definition}[def:observable-sign-certificate]\label{def:observable-sign-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable one-\allowbreak{}collision sign certificate}
+\par\smallskip\noindent\emph{Construction.} Order \(y\) as displayed in \(\mathrm{def:ten-variable-system}\). For each \(s\), apply Collins projection recursively: at each coordinate adjoin all coefficients, leading coefficients, discriminants, pairwise resultants, and signed principal subresultant coefficients of every equality against every inequality boundary in \(\mathscr G_{k_0,s,\sigma}\), then delete that coordinate. Adjoin the three collision minors and the two collided-row box numerators. To test target constancy, for every \(s'\) and \(\sigma'\in\Sigma\), form a second copy \(y'\), impose both branch systems, and adjoin the cleared strict inequality \(\sum_{t=3}^{4}[\tau_t(\operatorname{rec}_{k_0,s,\sigma}(P,y);P)-\tau_t(\operatorname{rec}_{k_0,s',\sigma'}(P,y');P)]^2>0\). Project every coordinate in \(y,y'\), leaving polynomials only in the observable cells of \(P\) and \(\eta\). The finite list \(\mathscr L_{k_0,\sigma}(P,\eta)\) is the union of these feasibility and nonconstancy projection polynomials over all eight \(s\). Its certificate records the sign of every member and the signed Sturm--Habicht lifting table, including zero cells. Feasibility and equality of both ATT coordinates across all branches are decided by exact sign-invariant lifting, with a retained sample point or a first violated sign attached to every decision.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{eta}; \texttt{k0}; \texttt{Sigma}.
+\end{definition}
+
+\begin{definition}[def:one-collision-algorithm]\label{def:one-collision-algorithm}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact one-\allowbreak{}collision ATT algorithm}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{OneCollisionATT}(P,\eta)\) takes reduced rational encodings of \(\eta\) and the thirty-two cells of \(P\); enumerates exactly \(2\cdot2^3\cdot2=32\) labeled branches \((k_0,s,\sigma)\); builds each ten-variable system \(\mathscr G_{k_0,s,\sigma}\); performs the fixed Collins projection and signed Sturm--Habicht lifting in \(\mathrm{def:observable-sign-certificate}\); and projects each retained cell through \(\tau(\operatorname{rec}_{k_0,s,\sigma}(P,y);P)\). The joint image is returned as a quantifier-free Boolean combination of integer-polynomial sign conditions in \((\tau_3,\tau_4)\). Each marginal is returned as an ordered finite union of closed intervals and isolated points whose endpoints have a square-free integer polynomial, rational isolating interval, and Thom sign sequence. Every endpoint carries a reconstructed real-algebraic \(\psi\) and its \((k_0,s,\sigma)\) label; every discarded branch carries an exact sign or polynomial infeasibility certificate.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{eta}.
+\end{definition}
+
+\begin{definition}[def:benchmark-law]\label{def:benchmark-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact one-\allowbreak{}collision persistence family}
+\par\smallskip\noindent\emph{Construction.} For every \(\vartheta\in(-1/100,1/100)\), let \(\psi^{\diamond}_{\vartheta}\) be obtained from \(\psi^{\diamond}\) by replacing only \(c_{130}=3/10\) by \(c_{130}(\vartheta)=3/10+\vartheta\), and let \(\psi^{\diamond,\mathrm{sw}}_{\vartheta}\) be obtained from \(\psi^{\diamond,\mathrm{sw}}\) by the identical replacement of its treated coordinate. All other primitive coordinates are unchanged. Define \(P^{\diamond}_{\vartheta}=F(\psi^{\diamond}_{\vartheta})\). Thus \(\psi^{\diamond}_{0}=\psi^{\diamond}\), \(\psi^{\diamond,\mathrm{sw}}_{0}=\psi^{\diamond,\mathrm{sw}}\), and \(P^{\diamond}_{0}=P^{\diamond}\).
+\end{definition}
+
+\begin{definition}[def:certificate-compression-handle]\label{def:certificate-compression-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Analytic certificate-\allowbreak{}compression handle}
+\par\smallskip\noindent\emph{Construction.} Use \(\mathsf{CertificateHandle}\): eliminate the four collided-block split coordinates through the rank-one determinant equations, branch only on their signed subresultant gcd alternatives, and audit any reduced list against the complete \(\mathscr L_{k_0,\sigma}\) sign table.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{eta}; \texttt{k0}.
+\end{definition}
+
+\begin{definition}[def:confidence-inversion]\label{def:confidence-inversion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}sample full-\allowbreak{}PMF inversion}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_{n,k_0}^{\tau}=\bigcup_{Q\in\mathcal M_{\eta,k_0}^{1\mathrm c}:\lVert Q-\widehat P_n\rVert_\infty\le\delta_n(\alpha)}\mathcal I_{k_0}^{1\mathrm c}(Q)\), where \(\delta_n(\alpha)=\sqrt{\log(64/\alpha)/(2n)}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{W\_\allowbreak{}n}; \texttt{eta}; \texttt{k0}; \texttt{alpha}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:quotient-att]\label{lem:quotient-att}
+For every \(P\in\mathcal M_\eta\), \(\psi\in\widetilde\Phi_\eta(P)\), and \(\sigma\in\mathfrak S_2\), one has \(F(\sigma\psi)=P\) and \(\tau(\sigma\psi;P)=\tau(\psi;P)\). The map \(\bar\tau_P([\psi])=\tau(\psi;P)\) is therefore well defined on \(\Phi_\eta(P)\) and on every \(\Phi_{\eta,k_0}^{1\mathrm c}(P)\).
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M_\eta\), \(\psi\in\widetilde\Phi_\eta(P)\), and \(\sigma\in\mathfrak S_2\).  The box restriction gives \(B(e_z;d)\geq\eta\), so
+\[
+ p_d=\sum_{z=1}^2\pi_zB(e_z;d)\geq\eta>0.
+\]
+Thus every posterior weight used below is defined.  The interpretation of the transition parameters and iterated expectation give
+\[
+ \mathbb E_\psi[X_2(0)\mid Z=z,D=1]
+ =(1-u_{z1})a_{z0}+u_{z1}a_{z1}=m_{z2},
+\]
+and, successively,
+\[
+ \mathbb E_\psi[X_3(0)\mid Z=z,D=1]
+ =(1-m_{z2})b_{z30}+m_{z2}b_{z31}=m_{z3},
+\]
+\[
+ \mathbb E_\psi[X_4(0)\mid Z=z,D=1]
+ =(1-m_{z3})b_{z40}+m_{z3}b_{z41}=m_{z4}.
+\]
+Since \(w_{z1}=\mathbb P_\psi(Z=z\mid D=1)\), another application of iterated expectation yields
+\[
+ \mathbb E_\psi[X_t(0)\mid D=1]=\sum_{z=1}^2w_{z1}m_{zt},\qquad t\in\{3,4\}.
+\]
+Consistency gives \(O_t(P)=\mathbb E_\psi[X_t(1)\mid D=1]\).  Consequently the structurally defined causal target is related to the observed law by
+\[
+ \mathbb E_\psi[X_t(1)-X_t(0)\mid D=1]
+ =O_t(P)-\sum_{z=1}^2w_{z1}m_{zt}=\tau_t(\psi;P).
+\]
+This establishes the causal interpretation rather than defining it by the observed law.
+
+Under the simultaneous action, every type-indexed coordinate satisfies \(q_z(\sigma\psi)=q_{\sigma^{-1}(z)}(\psi)\).  Relabeling the finite sum in the definition of \(F\) therefore gives, cell by cell,
+\[
+ F(\sigma\psi)_{ijkld}
+ =\sum_{z=1}^2\pi_{\sigma^{-1}(z)}B(e_{\sigma^{-1}(z)};d)
+   B(u_{\sigma^{-1}(z),d};i)B(a_{\sigma^{-1}(z),i};j)
+   B(\kappa_{\sigma^{-1}(z),d,3,j};k)B(\kappa_{\sigma^{-1}(z),d,4,k};l)
+ =F(\psi)_{ijkld}=P_{ijkld}.
+\]
+The same relabeling shows
+\[
+ w_{z1}(\sigma\psi)=w_{\sigma^{-1}(z),1}(\psi),
+ \qquad m_{zt}(\sigma\psi)=m_{\sigma^{-1}(z),t}(\psi).
+\]
+Hence
+\[
+ \tau_t(\sigma\psi;P)
+ =O_t(P)-\sum_{z=1}^2w_{\sigma^{-1}(z),1}m_{\sigma^{-1}(z),t}
+ =\tau_t(\psi;P).
+\]
+The box \(\Theta_\eta\) is itself invariant under this permutation.  Therefore \(\sigma\psi\in\widetilde\Phi_\eta(P)\), and \(\tau\) is constant on every orbit.  This proves that \(\bar\tau_P\) is well defined on \(\Phi_\eta(P)\), and restriction proves the same assertion on \(\Phi_{\eta,k_0}^{1\mathrm c}(P)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The causal image is meaningful only after simultaneous latent labels are removed without changing aggregate ATT. \textit{Gap.} Regular mixture identification is commonly stated up to labels, but the quotient-induced causal functional must still be checked before singular branch images are pooled. \textit{Consumer.} The public \(ak\) package may report endpoint witnesses with arbitrary latent labels without changing the reported ATT set.
+
+\begin{theorem}[thm:dimension-reduction]\label{thm:dimension-reduction}
+For every rational \(\eta\in(0,3/20)\), \(k_0\in\mathcal A\), and \(P\in\mathcal M_{\eta,k_0}^{1\mathrm c}\), terminal splitting induces a surjection from the union of the sixteen feasible \((s,\sigma)\) ten-variable solution sets \(\{y:\mathscr G_{k_0,s,\sigma}(P,\eta;y)\}\) onto \(\widetilde\Phi_{\eta,k_0}^{1\mathrm c}(P)\). Thus the forty-coordinate existential description in \((R,v)\in\mathbb R^{32}\times\mathbb R^8\) is exactly reduced to six terminal coordinates and four prefix splits. Across \(k_0\in\mathcal A\) there are exactly thirty-two labeled \((k_0,s,\sigma)\) branches. Rank failures and all \(\eta\)-box contacts occur as zero or weak-sign cells inside these systems and create no omitted branch.
+\end{theorem}
+\begin{proof}
+Fix the displayed \(\eta,k_0,P\).  By \(P\in\mathcal M_{\eta,k_0}^{1\mathrm c}\), the global fiber is nonempty and every one of its points has the specified single collision.  For \(\psi\) in that fiber define the arm-conditional latent prefix mass
+\[
+ R_{zd}^{\psi}(i,j,k)
+ =w_{zd}B(u_{zd};i)B(a_{zi};j)B(\kappa_{zd3j};k),
+ \qquad v_{zdk}^{\psi}=\kappa_{zd4k}.
+\]
+Summing over \(z\), first without and then with the event \(X_4=1\), gives the two terminal-splitting identities
+\[
+ H_d(i,j,k)=R_{1d}^{\psi}(i,j,k)+R_{2d}^{\psi}(i,j,k),
+ \qquad
+ N_d(i,j,k)=v_{1dk}^{\psi}R_{1d}^{\psi}(i,j,k)+v_{2dk}^{\psi}R_{2d}^{\psi}(i,j,k).
+ \tag{1}
+\]
+Every factor in \(F\) lies in \([\eta,U]\).  Moreover \(p_d\leq U\), so
+\[
+ w_{zd}=\frac{\pi_zB(e_z;d)}{p_d}\geq\frac{\eta^2}{U}>\eta^2,
+ \qquad R_{zd}^{\psi}(i,j,k)>\eta^5.
+ \tag{2}
+\]
+Thus all conditional masses in (1) are strictly positive.
+
+At the collided block \((d,k)=(0,k_0)\), the definition of \(\Theta_{\eta,k_0}^{1\mathrm c}\) gives \(v_{10k_0}^{\psi}=v_{20k_0}^{\psi}\).  Equation (1) then implies
+\[
+ N_0(i,j,k_0)=v_{10k_0}^{\psi}H_0(i,j,k_0),
+ \]
+so the three minors \(\chi_{0k_0}^{01},\chi_{0k_0}^{10},\chi_{0k_0}^{11}\) vanish and, since \(H_0(0,0,k_0)>0\),
+\[
+ v_{10k_0}^{\psi}=v_{20k_0}^{\psi}
+ =\frac{N_0(0,0,k_0)}{H_0(0,0,k_0)}.
+ \tag{3}
+\]
+The four numbers \(R_{10}^{\psi}(i,j,k_0)\) remain free splits.  In each of the other three blocks the terminal difference is nonzero.  Solving the two-by-two linear system (1) gives, without any rank inversion,
+\[
+ R_{1d}^{\psi}(i,j,k)
+ =\frac{N_d(i,j,k)-v_{2dk}^{\psi}H_d(i,j,k)}{v_{1dk}^{\psi}-v_{2dk}^{\psi}},
+ \qquad R_{2d}^{\psi}(i,j,k)=H_d(i,j,k)-R_{1d}^{\psi}(i,j,k).
+ \tag{4}
+\]
+Choose \(s_{dk}=\operatorname{sgn}(v_{1dk}^{\psi}-v_{2dk}^{\psi})\) in those three blocks.  There are \(2^3\) possible choices of \(s\).
+
+For each \(z,d,j\), the factorization of \(R^{\psi}\) gives
+\[
+ R_{zd}^{\psi}(0,j,0)R_{zd}^{\psi}(1,j,1)
+ =R_{zd}^{\psi}(0,j,1)R_{zd}^{\psi}(1,j,0),
+ \tag{5}
+\]
+which is precisely \(\rho_{zdj}(R^{\psi})=0\).  There are \(2\cdot2\cdot2=8\) equations in (5).  If the arm-local control labels are aligned with the treated labels by \(\sigma\), the shared transition \(a_{zi}\) says
+\[
+ \frac{T_{\sigma(z),0}^{R^{\psi}}(i,1)}{S_{\sigma(z),0}^{R^{\psi}}(i)}
+ =\frac{T_{z1}^{R^{\psi}}(i,1)}{S_{z1}^{R^{\psi}}(i)}.
+\]
+The denominators are positive by (2), and cross multiplication gives the four equations
+\[
+ \gamma_{zi}^{\sigma}(R^{\psi})=0,
+ \qquad z\in\{1,2\},\ i\in\mathcal A.
+ \tag{6}
+\]
+All reconstructed primitives equal the coordinates of \(\psi\), so their weak box signs hold.  Equations (2)--(6) show that the six noncollided terminal probabilities and four collided-block splits form a solution \(y\) of one of the sixteen systems indexed by \((s,\sigma)\).  Reconstruction returns \(\psi\).  This proves surjectivity in one direction.
+
+Conversely, take a solution \(y\) of \(\mathscr G_{k_0,s,\sigma}(P,\eta;y)\), and form \(R,v\) by the displayed splitting formulas.  The imposed signs make every denominator in (4) nonzero, while the imposed lower bounds give \(R_{zd}(i,j,k)>0\).  Put
+\[
+ T_{zd}(i,j)=\sum_kR_{zd}(i,j,k),\quad
+ S_{zd}(i)=\sum_jT_{zd}(i,j),\quad
+ w_{zd}=\sum_iS_{zd}(i).
+\]
+These quantities are positive, and (1), which holds by construction, implies \(\sum_z w_{zd}=1\).  For fixed \(z,d,j\), positivity and \(\rho_{zdj}=0\) imply
+\[
+ \frac{R_{zd}(0,j,1)}{R_{zd}(0,j,0)}
+ =\frac{R_{zd}(1,j,1)}{R_{zd}(1,j,0)}.
+\]
+After normalizing both sides, the common Bernoulli probability is
+\[
+ \kappa_{zd3j}=\frac{R_{zd}(0,j,1)}{T_{zd}(0,j)},
+ \]
+and hence
+\[
+ R_{zd}(i,j,k)=T_{zd}(i,j)B(\kappa_{zd3j};k).
+ \tag{7}
+\]
+The definitions of \(u_{zd}\) and the arm-local pre-transition give
+\[
+ T_{zd}(i,j)=w_{zd}B(u_{zd};i)B(a_{zdi};j),
+ \qquad a_{zdi}=\frac{T_{zd}(i,1)}{S_{zd}(i)}.
+ \tag{8}
+\]
+Equation (6), again using positive \(S\), says
+\[
+ a_{\sigma(z),0,i}=a_{z1i}.
+ \tag{9}
+\]
+Declare structural type \(z\) to be treated arm-local component \(z\) and control arm-local component \(\sigma(z)\), and denote the common value in (9) by \(a_{zi}\).  Set
+\[
+ \pi_z=p_0w_{\sigma(z),0}+p_1w_{z1},
+ \qquad e_z=\frac{p_1w_{z1}}{\pi_z}.
+ \tag{10}
+\]
+Because \(p_0,p_1>0\), (10) has a positive denominator and gives
+\[
+ \pi_ze_z=p_1w_{z1},\qquad
+ \pi_z(1-e_z)=p_0w_{\sigma(z),0},\qquad
+ \sum_z\pi_z=p_0+p_1=1.
+ \tag{11}
+\]
+All coordinates in (7)--(10), including \(v\), satisfy the imposed weak box signs, so the reconstructed vector lies in \(\Theta_\eta\).  Combining (7), (8), and (11) recovers the prefix factors in \(F\).  The two identities (1) recover respectively every \(X_4=1\) cell and, by subtraction, every \(X_4=0\) cell.  Therefore
+\[
+ F(\operatorname{rec}_{k_0,s,\sigma}(P,y))=P.
+\]
+The strict orientation signs and (3) give exactly the required one-collision pattern, so reconstruction lies in \(\widetilde\Phi_{\eta,k_0}^{1\mathrm c}(P)\).  This proves the converse and hence exactness of the reduction.
+
+There are six free terminal coordinates because the three noncollided blocks contribute two each; the collided terminal value is fixed by (3).  There are four free prefix splits, and every other one of the original thirty-two \(R\)-coordinates is fixed by (1).  Thus the forty coordinates \((R,v)\) reduce to ten.  For fixed \(k_0\), the inventory has \(2^3\) orientations and two relative alignments, hence sixteen branches; multiplying by the two choices of \(k_0\) gives thirty-two.  No spectral, moment, or coefficient matrix is inverted anywhere.  A rank failure is retained by the polynomial equalities, a vanishing projection coefficient is retained as a zero cell, and every box contact is retained by a weak inequality.  The only divided quantities are the explicitly positive masses or the three orientation-signed nonzero terminal differences.  Therefore none of these cases creates an omitted branch.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the structural reduction that makes the singular causal fiber auditable and supplies the exact thirty-two-branch inventory. \textit{Gap.} Geiger and Meek's Sections 2 and 3.2--3.4 supply general real quantifier elimination for polynomial latent-variable models, observable constraints, identification, and bounds, but do not expose this model's forty-to-ten terminal-splitting reduction. Higgins and Jochmans's Theorem 1 identifies finite Markov-mixture primitives from four consecutive observations under their Assumptions 1--3; its rank and separation conditions exclude rather than classify the coupled-arm one-collided-control-row fiber. \textit{Consumer.} A branch checker for \(ak\) can certify that a one-collision search neither drops a rank-zero solution nor counts an orientation boundary as infeasible.
+
+\begin{theorem}[thm:observable-classification]\label{thm:observable-classification}
+For every \(P\in\Delta_{31}\), \(k_0\in\mathcal A\), and \(\sigma\in\Sigma\), the signed list \(\mathscr L_{k_0,\sigma}(P,\eta)\) is observable and finite. Its sign vector and signed Sturm--Habicht lifting table are necessary and sufficient for each of the eight oriented systems \(\mathscr G_{k_0,s,\sigma}(P,\eta;y)\) to have a real solution. After combining the two relative alignments, \(\mathcal I_{k_0}^{1\mathrm c}(P)\) is a singleton if and only if every accepted cell has zero oscillation in both reconstructed coordinates \(\tau_3\) and \(\tau_4\) and the two alignment images coincide. If this condition fails, the same certificate returns two accepted cells and reconstructed latent witnesses having unequal ATT vectors. These equivalences include vanishing rank coefficients, alignment coincidences, and every compact-box face.
+\end{theorem}
+\begin{proof}
+On the maintained one-collision stratum, \(p_d\geq\eta>0\).  Hence \(H_d\) and \(N_d\) are observable rational functions of the thirty-two cells of \(P\), with the only denominator \(p_d\).  Multiplication by positive powers of \(p_0p_1\) converts every equality or weak/strict sign in \(\mathscr G_{k_0,s,\sigma}\) into an equivalent integer-polynomial sign condition in \((P,\eta,y)\).  The system has finitely many such polynomials because it has ten variables, twelve equalities, three orientation inequalities, finitely many mass inequalities, and two box inequalities for each member of a finite list of reconstructed primitives.
+
+Apply the cited cylindrical-algebraic-decomposition lemma to this finite family in the fixed coordinate order.  The coefficients, leading coefficients, discriminants, resultants, and signed principal subresultant coefficients prescribed in the observable-sign-certificate definition are polynomials only in the remaining coordinates at each projection step.  After all ten coordinates have been eliminated, they are polynomials only in \((P,\eta)\).  Thus \(\mathscr L_{k_0,\sigma}(P,\eta)\) is finite and observable.  Sign-invariant lifting, including its zero sections, has the following exact equivalence for every \(s\):
+\[
+ \exists y\;\mathscr G_{k_0,s,\sigma}(P,\eta;y)
+ \quad\Longleftrightarrow\quad
+ \text{the signed lifting table accepts at least one cell above }(P,\eta).
+ \tag{12}
+\]
+Necessity follows because any solution lies in one lifted cell and realizes its recorded signs.  Sufficiency follows because an accepted sample point satisfies every equality and weak or strict inequality of the original system.  Signed subresultant data determine multiplicities and signs at common roots, so (12) remains valid when a leading coefficient, discriminant, rank coefficient, or inequality boundary vanishes.
+
+By the proved terminal-splitting reduction and quotient invariance,
+\[
+ \mathcal I_{k_0}^{1\mathrm c}(P)
+ =\bigcup_{s\in\{-1,1\}^3}\ \bigcup_{\sigma\in\Sigma}
+ \left\{\tau(\operatorname{rec}_{k_0,s,\sigma}(P,y);P):
+ \mathscr G_{k_0,s,\sigma}(P,\eta;y)\right\}.
+ \tag{13}
+\]
+The assumption \(\varnothing\ne\widetilde\Phi_\eta(P)\subseteq\Theta_{\eta,k_0}^{1\mathrm c}\) makes (13) nonempty.  A nonempty set in \(\mathbb R^2\) is a singleton exactly when no two of its elements differ.  For two reconstructed points, that difference is nonzero exactly when
+\[
+ \sum_{t=3}^4
+ \left[\tau_t(\operatorname{rec}_{k_0,s,\sigma}(P,y);P)
+ -\tau_t(\operatorname{rec}_{k_0,s',\sigma'}(P,y');P)\right]^2>0.
+ \tag{14}
+\]
+All denominators in (14) are positive reconstructed masses; clearing their squares preserves the strict sign.  The observable-sign-certificate definition applies the same projection and lifting to (14) together with both branch systems, for every \((s,\sigma,s',\sigma')\).  It therefore decides the existence of an unequal pair.  Nonexistence is equivalent to zero oscillation within every accepted cell and equality between every pair of nonempty alignment images.  Existence supplies two accepted real-algebraic sample points; reconstruction supplies two compatible latent vectors with unequal ATT.  This proves necessity, sufficiency, and the asserted counter-witness property on zero, alignment-coincidence, and box-contact cells alike.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the requested observable necessary-and-sufficient point-identification classification on the completed merger stratum. \textit{Gap.} Ahn--Kasahara's Proposition 4 identifies parameters under RSM, M, and ID, and their Proposition 5 and Corollary 1 identify LTATT and aggregate ATT under the stated TI--LT regular conditions; those results do not classify ATT constancy after one terminal collision. Higgins and Jochmans's Theorem 1 identifies a finite mixture of Markov chains from four consecutive observations under their Assumptions 1--3, including an observable rank condition and type-separating walk conditions, but does not classify this coupled-arm collision fiber or its aggregate-ATT image. Geiger and Meek's Sections 3.3--3.4 show how real quantifier elimination obtains implicit observable constraints and answers identification or bounding questions for polynomial models, without the present causal branch labels or reconstructed counter-witness grammar. \textit{Consumer.} The Dodd--Frank, Norwegian patenting, and ADA analyses can distinguish an observed-law ATT sign from a sign induced by one arbitrary cross-arm merger resolution.
+
+\begin{theorem}[thm:exact-one-collision-region]\label{thm:exact-one-collision-region}
+For rational \(\eta\) and rational \(P\in\mathcal M_{\eta,0}^{1\mathrm c}\cup\mathcal M_{\eta,1}^{1\mathrm c}\), \(\mathsf{OneCollisionATT}(P,\eta)\) terminates after examining exactly thirty-two labeled \((k_0,s,\sigma)\) branches and returns, for each \(k_0\), exactly the attained joint image \(\mathcal I_{k_0}^{1\mathrm c}(P)\) as a quantifier-free semialgebraic formula. It returns each nonempty \(\mathcal I_{k_0,t}^{1\mathrm c}(P)\) as a finite ordered union of closed intervals and isolated points with Thom-encoded real-algebraic endpoints, a reconstructed feasible latent representation for every endpoint and isolated component, and an exact infeasibility certificate for every discarded branch. The theorem claims equivalence to Collins real quantifier elimination after the proved ten-coordinate reduction and claims no improvement in generic worst-case CAD complexity.
+\end{theorem}
+\begin{proof}
+Assume that \(\eta\) and the cells of \(P\) are rational and that \(P\in\mathcal M_{\eta,0}^{1\mathrm c}\cup\mathcal M_{\eta,1}^{1\mathrm c}\).  After the positive denominators \(p_d\) are cleared, every branch is a finite sign system with rational, hence integer after common rescaling, polynomial coefficients.  The algorithm enumerates
+\[
+ 2\cdot 2^3\cdot 2=32
+\]
+labels \((k_0,s,\sigma)\).  The finiteness and termination assertion of the cited cylindrical-algebraic-decomposition lemma, applied to each of these fixed finite systems, proves that this loop terminates.  The image equality proved in the observable-classification theorem shows that the disjunction of the accepted branch projections is exactly \(\mathcal I_{k_0}^{1\mathrm c}(P)\), not an outer approximation.  Introducing free coordinates \((q_3,q_4)\) and adjoining
+\[
+ q_t=\tau_t(\operatorname{rec}_{k_0,s,\sigma}(P,y);P),\qquad t=3,4,
+\]
+then clearing positive denominators and eliminating \(y\), gives the claimed quantifier-free integer-polynomial sign formula for the joint image.
+
+It remains to justify attainment and the stated one-dimensional format.  The set \(\Theta_\eta\) is compact, \(F\) is continuous, and therefore
+\[
+ K(P)=\{\psi\in\Theta_\eta:F(\psi)=P\}
+\]
+is compact.  The exclusive-stratum assumption says \(K(P)\subseteq\Theta_{\eta,k_0}^{1\mathrm c}\), so \(K(P)=\widetilde\Phi_{\eta,k_0}^{1\mathrm c}(P)\).  Also \(p_1\geq\eta\), and every denominator in \(w_{z1}\) and in the ATT recurrence is positive.  Hence \(\psi\mapsto\tau(\psi;P)\) is continuous on \(K(P)\).  It follows that the joint image and both coordinate projections are compact and every endpoint is attained.
+
+Quantifier elimination makes each marginal a semialgebraic subset of \(\mathbb R\).  To see its exact form directly, collect the finitely many nonzero univariate polynomials in its quantifier-free formula.  Their real roots partition \(\mathbb R\) into finitely many points and open intervals on each of which every polynomial has constant sign.  A compact union of selected pieces is therefore a finite ordered union of closed intervals and isolated points.  Because the input coefficients are rational, every boundary root is real algebraic.  Square-free factorization, rational root isolation, derivative-sign evaluation, and the signed lifting table give its square-free polynomial, rational isolating interval, and Thom sign sequence.
+
+If \(q_t\) is such an endpoint, compactness gives \(\psi\in K(P)\) with \(\tau_t(\psi;P)=q_t\).  The dimension-reduction theorem puts this \(\psi\) in an accepted labeled branch, and exact lifting supplies a real-algebraic \(y\) and hence the reconstructed real-algebraic endpoint witness.  Conversely, an alleged discarded branch would be feasible only if its existential sign formula were true, contradicting its exact CAD rejection; the first failed sign or projection polynomial is therefore an exact infeasibility certificate.  These arguments prove equivalence to real quantifier elimination after the ten-coordinate reduction.  No step changes the generic CAD projection schedule or its worst-case complexity, so no complexity improvement is claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem turns a singular point-identification failure into an exact attained causal region without convexifying disconnected components. \textit{Gap.} Duarte and coauthors provide successively refined polynomial-program outer bounds and \(\epsilon\)-sharpness, while Collins CAD provides general exact elimination; neither result supplies this reduced transition-alignment system, its fixed branch inventory, or causal endpoint witnesses. \textit{Consumer.} The \(ak\) package receives a terminating exact-arithmetic backend for the completed singular stratum and can display the latent representation attaining each reported endpoint.
+
+\begin{proposition}[prop:open-chamber-benchmark]\label{prop:open-chamber-benchmark}
+For every rational \(0<\eta<3/20\) and every real \(\vartheta\) with \(|\vartheta|<1/100\), one has \(\psi^{\diamond}_{\vartheta},\psi^{\diamond,\mathrm{sw}}_{\vartheta}\in\Theta_{\eta,0}^{1\mathrm c}\) and
+\[
+F(\psi^{\diamond}_{\vartheta})=F(\psi^{\diamond,\mathrm{sw}}_{\vartheta})=P^{\diamond}_{\vartheta}\in\mathcal M_{\eta,0}^{1\mathrm c}.
+\]
+The labeled global fiber is
+\[
+\widetilde\Phi_\eta(P^{\diamond}_{\vartheta})
+=\{\sigma\psi^{\diamond}_{\vartheta}:\sigma\in\mathfrak S_2\}
+\cup\{\sigma\psi^{\diamond,\mathrm{sw}}_{\vartheta}:\sigma\in\mathfrak S_2\}.
+\]
+Consequently the global and one-collision quotient fibers coincide and have exactly the two classes represented by \(\psi^{\diamond}_{\vartheta}\) and \(\psi^{\diamond,\mathrm{sw}}_{\vartheta}\). Their ATT vectors are, respectively,
+\[
+\left(\frac{9}{250}+\frac{3\vartheta}{10},-\frac{33}{2500}+\frac{3\vartheta}{20}\right)
+\quad\text{and}\quad
+\left(-\frac{1}{500}+\frac{3\vartheta}{10},\frac{49}{5000}+\frac{3\vartheta}{20}\right).
+\]
+Thus each marginal sharp image consists of the corresponding two displayed coordinates, with gaps \(19/500\) and \(23/1000\). The map \(\vartheta\mapsto P^{\diamond}_{\vartheta}\) is affine and injective. Its image is therefore a positive-dimensional persistence family inside the one-collision model, and it contains a dense rational subfamily. At \(\vartheta=0\) this gives \(\mathcal I_{0,3}^{1\mathrm c}(P^{\diamond})=\{-1/500,9/250\}\) and \(\mathcal I_{0,4}^{1\mathrm c}(P^{\diamond})=\{-33/2500,49/5000\}\). No relative-openness claim in a larger collision variety is made.
+\end{proposition}
+\begin{proof}
+Fix \(\eta\in\mathbb Q\cap(0,3/20)\) and \(\vartheta\in\mathbb R\) with \(|\vartheta|<1/100\). We first verify the probability box and equality of the two observed laws. The only perturbed primitive satisfies
+\[
+ \frac{29}{100}<\frac{3}{10}+\vartheta<\frac{31}{100}.
+ \tag{1}
+\]
+Every other primitive of either representation lies in \([1/5,4/5]\). Since \(\eta<3/20<1/5\) and \(U=1-\eta>17/20>4/5\), (1) proves that both representations lie strictly inside \(\Theta_\eta\).
+
+For \(\psi^{\diamond}_{\vartheta}\), the arm probabilities and posterior type weights are
+\[
+ p_1=\frac12\frac35+\frac12\frac25=\frac12,
+ \qquad p_0=\frac12,
+ \qquad (w_{10},w_{20})=\left(\frac25,\frac35\right),
+ \qquad (w_{11},w_{21})=\left(\frac35,\frac25\right).
+ \tag{2}
+\]
+For \(\psi^{\diamond,\mathrm{sw}}_{\vartheta}\), the type probabilities are \((3/5,2/5)\) and both assignment probabilities are \(1/2\). Hence its posterior weights are \((3/5,2/5)\) in both arms. The two representations have identical treated components with identical treated weights. In the control arm, the second representation pairs weight \(3/5\) with the former second component and weight \(2/5\) with the former first component. Commutativity of this two-term mixture, applied directly to the definition of \(F\), therefore gives
+\[
+ F(\psi^{\diamond}_{\vartheta})_{ijkld}
+ =F(\psi^{\diamond,\mathrm{sw}}_{\vartheta})_{ijkld}
+ =P^{\diamond}_{\vartheta,ijkld}
+ \quad\text{for every }i,j,k,l,d\in\mathcal A.
+ \tag{3}
+\]
+
+We next prove that (3) exhausts the global fiber. For a fixed arm \(d\), define the observable \(2\)-by-\(2\) matrices, with row index \(l\) and column index \(i\), by
+\[
+ Q_{jk}^{d}(l,i)=P^{\diamond}_{\vartheta}(X_1=i,X_2=j,X_3=k,X_4=l\mid D=d).
+\]
+In any two-type representation of this conditional law, put \(q_{zj}=\kappa_{zd3j}\), \(v_{zk}=\kappa_{zd4k}\), let \(V_k\) have column \(z\) equal to \((1-v_{zk},v_{zk})^{\mathsf T}\), and set
+\[
+ S_j(z,i)=w_{zd}B(u_{zd};i)B(a_{zi};j).
+\]
+The full-path factorization gives, entry by entry,
+\[
+ Q_{jk}^{d}=V_k\operatorname{diag}\bigl(B(q_{1j};k),B(q_{2j};k)\bigr)S_j.
+ \tag{4}
+\]
+
+Consider the treated arm. In its displayed representation,
+\[
+ |\det V_0|=\frac35,
+ \qquad |\det V_1|=\frac25,
+ \tag{5}
+\]
+and, because both types have \(a_{z0}=3/10\), \(a_{z1}=4/5\),
+\[
+ \det S_j=w_{11}w_{21}B(3/10;j)B(4/5;j)(u_{21}-u_{11}),
+\]
+so that
+\[
+ \det S_0=\frac{21}{3125},
+ \qquad \det S_1=\frac{36}{3125}.
+ \tag{6}
+\]
+Every factor \(B(q_{zj};k)\) in (4) is at least \(1/5\) throughout \(|\vartheta|<1/100\). Equations (4)--(6) imply the uniform recovery-minor bound
+\[
+ |\det Q_{jk}^{1}|\ge
+ \frac25\left(\frac15\right)^2\frac{21}{3125}
+ =\frac{42}{390625}>0.
+ \tag{7}
+\]
+Thus all four treated matrices are invertible. Moreover,
+\[
+ Q_{01}^{1}(Q_{00}^{1})^{-1}Q_{10}^{1}(Q_{11}^{1})^{-1}
+ =V_1\operatorname{diag}(\lambda_1(\vartheta),\lambda_2)V_1^{-1},
+ \tag{8}
+\]
+where direct cancellation in (4) yields
+\[
+ \lambda_1(\vartheta)
+ =\frac{\operatorname{odds}(3/10+\vartheta)}{\operatorname{odds}(7/10)}
+ =\frac{3(3+10\vartheta)}{7(7-10\vartheta)},
+ \qquad
+ \lambda_2
+ =\frac{\operatorname{odds}(3/5)}{\operatorname{odds}(1/5)}=6.
+ \tag{9}
+\]
+For \(|\vartheta|<1/100\), monotonicity of the first rational function gives
+\[
+ 0<\lambda_1(\vartheta)<\frac{31}{161},
+ \qquad
+ (\lambda_2-\lambda_1(\vartheta))^2>\left(\frac{935}{161}\right)^2>0.
+ \tag{10}
+\]
+Thus the two eigenvalues in (8) are distinct, uniformly along the family. The two one-dimensional eigenspaces of the observable matrix in (8) are consequently exactly the two columns of \(V_1\); normalizing each probability column to sum to one recovers \(V_1\) up to permutation. Next,
+\[
+ Q_{00}^{1}(Q_{01}^{1})^{-1}V_1
+ =V_0\operatorname{diag}\left(\frac{1-q_{10}}{q_{10}},\frac{1-q_{20}}{q_{20}}\right),
+ \tag{11}
+\]
+so column normalization recovers \(V_0\) in the same order. Finally,
+\[
+ S_j=V_0^{-1}Q_{j0}^{1}+V_1^{-1}Q_{j1}^{1}.
+ \tag{12}
+\]
+The two summands on the right of (12) equal \(\operatorname{diag}(1-q_{1j},1-q_{2j})S_j\) and \(\operatorname{diag}(q_{1j},q_{2j})S_j\), respectively. Their row sums recover \(q_{zj}\); summing \(S_0+S_1\) and taking positive-mass ratios recovers \(w_{z1}\), \(u_{z1}\), and \(a_{zi}\). Because (7) is observable, every alternative treated decomposition has invertible factors in (4), so the same argument applies to it. Hence the treated decomposition is unique up to type permutation. In particular, every globally compatible representation has
+\[
+ a_{10}=a_{20}=\frac3{10},
+ \qquad a_{11}=a_{21}=\frac45.
+ \tag{13}
+\]
+
+The control conditional law is independent of \(\vartheta\). Define the observable quantities
+\[
+ g_{ij}=P^{\diamond}_{\vartheta}(X_3=1\mid X_1=i,X_2=j,D=0),
+ \qquad
+ h_{ij}=P^{\diamond}_{\vartheta}(X_3=1,X_4=1\mid X_1=i,X_2=j,D=0).
+\]
+All conditioning events have positive probability by the strict probability box. Exact evaluation from (3) gives
+\[
+ (g_{ij})=
+ \begin{pmatrix}41/115&111/230\\[2pt]23/45&11/30\end{pmatrix},
+ \qquad
+ (h_{ij})=
+ \begin{pmatrix}103/575&174/575\\[2pt]49/225&14/75\end{pmatrix},
+ \tag{14}
+\]
+and
+\[
+ P^{\diamond}_{\vartheta}(X_4=1\mid X_1=i,X_2=j,X_3=0,D=0)=\frac12
+ \quad\text{for every }i,j.
+ \tag{15}
+\]
+In an arbitrary compatible control decomposition, let \(\lambda_i=P(Z=1\mid X_1=i,D=0)\), \(q_{zj}=\kappa_{z0,3,j}\), and \(v_{zk}=\kappa_{z0,4,k}\). Equation (13) makes \(Z\) conditionally independent of \(X_2\) given \((X_1,D=0)\), whence
+\[
+ g_{ij}=\lambda_iq_{1j}+(1-\lambda_i)q_{2j}.
+ \tag{16}
+\]
+The two observable row differences are
+\[
+ g_{00}-g_{10}=-\frac{32}{207},
+ \qquad g_{01}-g_{11}=\frac8{69}.
+ \tag{17}
+\]
+By (16), (17) implies \(\lambda_0\ne\lambda_1\) and \(q_{1j}\ne q_{2j}\) for both \(j\). Multiplying (15) by the positive conditional probability of \(X_3=0\) gives, for \(i=0,1\),
+\[
+ \lambda_i(1-q_{1j})(v_{10}-1/2)
+ +(1-\lambda_i)(1-q_{2j})(v_{20}-1/2)=0.
+ \tag{18}
+\]
+The determinant of the two equations (18) is
+\[
+ (\lambda_0-\lambda_1)(1-q_{1j})(1-q_{2j})\ne0,
+\]
+because the compact box has \(q_{zj}<1\). Therefore
+\[
+ v_{10}=v_{20}=\frac12.
+ \tag{19}
+\]
+
+For the noncollided terminal row, (14), (16), and (17) give
+\[
+ \beta_j=\frac{h_{0j}-h_{1j}}{g_{0j}-g_{1j}},
+ \qquad (\beta_0,\beta_1)=\left(\frac14,1\right),
+\]
+and
+\[
+ h_{ij}-\beta_jg_{ij}=c_j,
+ \qquad (c_0,c_1)=\left(\frac9{100},-\frac9{50}\right).
+ \tag{20}
+\]
+Because \(\lambda_0\ne\lambda_1\), equality of the two affine mixtures in (20) forces the corresponding component equalities
+\[
+ q_{z0}(v_{z1}-1/4)=\frac9{100},
+ \qquad q_{z1}(v_{z1}-1)=-\frac9{50}
+ \quad (z=1,2).
+ \tag{21}
+\]
+Likewise, the two observed identities \(g_{i1}=3(1-g_{i0})/4\), together with (16) at the two distinct values \(\lambda_0,\lambda_1\), imply
+\[
+ q_{z1}=\frac34(1-q_{z0})
+ \quad (z=1,2).
+ \tag{22}
+\]
+Writing \(x=q_{z0}\) and \(v=v_{z1}\), equations (21)--(22) become
+\[
+ x(v-1/4)=\frac9{100},
+ \qquad (1-x)(1-v)=\frac6{25}.
+\]
+Eliminating \(x\) gives
+\[
+ 50v^2-55v+14=(5v-2)(10v-7)=0.
+ \tag{23}
+\]
+The discriminant in (23) is \(225>0\). Since (17) forbids the two types from using the same root, the unordered control triples are exactly
+\[
+ (q_{z0},q_{z1},v_{z1})
+ \in\left\{
+ \left(\frac35,\frac3{10},\frac25\right),
+ \left(\frac15,\frac35,\frac7{10}\right)
+ \right\}.
+ \tag{24}
+\]
+For the second triple in (24), (14) and (16) give \((\lambda_0,\lambda_1)=(14/23,2/9)\). Since \(P^{\diamond}_{\vartheta}(X_1=0\mid D=0)=23/50\), its control weight and initial-state probability are
+\[
+ w_{10}=\frac{23}{50}\frac{14}{23}+\frac{27}{50}\frac29=\frac25,
+ \qquad
+ u_{10}=\frac{(27/50)(2/9)}{2/5}=\frac3{10}.
+ \tag{25}
+\]
+The other component consequently has weight \(3/5\) and initial-state probability \(7/10\). This recovers the displayed control decomposition up to permutation. For completeness, the two determinants in (18), under the labeling used in (25), are the fixed values
+\[
+ \frac{128}{1035}\quad\text{and}\quad\frac{112}{1035},
+ \tag{26}
+\]
+while (17), (23), and (26) show explicitly that every treated and control recovery minor or discriminant used in the argument is uniformly nonzero along the entire family.
+
+The treated and control arm decompositions are now separately unique up to permutation. There are exactly two relative alignments. Indeed, the identities following from the definition of posterior weights are
+\[
+ \pi_z=p_0w_{z0}+p_1w_{z1},
+ \qquad e_z=\frac{p_1w_{z1}}{\pi_z}.
+ \tag{27}
+\]
+Pairing control weights \((2/5,3/5)\) with treated weights \((3/5,2/5)\) in the displayed order gives \((\pi_1,\pi_2)=(1/2,1/2)\) and \((e_1,e_2)=(3/5,2/5)\). Crossing the pairing gives \((\pi_1,\pi_2)=(3/5,2/5)\) and \((e_1,e_2)=(1/2,1/2)\). Both solutions have strict box slack, and (27) leaves no third alignment.
+
+For either relative alignment and either simultaneous labeling, the first terminal difference in the definition of \(\Theta_{\eta,0}^{1\mathrm c}\) is zero and the absolute values of the remaining three differences are
+\[
+ \left(\left|\frac7{10}-\frac25\right|,
+ \left|\frac15-\frac45\right|,
+ \left|\frac7{10}-\frac3{10}\right|\right)
+ =\left(\frac3{10},\frac35,\frac25\right).
+ \tag{28}
+\]
+Thus every compatible representation is in \(\Theta_{\eta,0}^{1\mathrm c}\). Equations (3)--(28) prove that \(P^{\diamond}_{\vartheta}\in\mathcal M_{\eta,0}^{1\mathrm c}\), that its labeled global fiber is precisely the simultaneous permutations of the two displayed representations, and that the global and one-collision quotient fibers coincide and contain exactly two classes.
+
+By Lemma \(\mathrm{lem{:}quotient\text{-}att}\), \(\tau\) is invariant under every simultaneous type permutation, so it remains only to evaluate one representative of each of these two quotient classes. For the displayed alignment, the untreated recursions in the definition of \(\tau\) give
+\[
+ (m_{12},m_{13},m_{14})=\left(\frac12,\frac25,\frac{29}{50}\right),
+ \qquad
+ (m_{22},m_{23},m_{24})=\left(\frac35,\frac{21}{50},\frac{229}{500}\right).
+ \tag{29}
+\]
+Only the type-one treated transition out of \(X_2=0\) varies. By (2) and \(P(X_2=0\mid Z=1,D=1)=1-m_{12}=1/2\), the observed treated mean at date \(3\) is
+\[
+ O_3(P^{\diamond}_{\vartheta})
+ =\frac{111}{250}+w_{11}(1-m_{12})\vartheta
+ =\frac{111}{250}+\frac{3\vartheta}{10}.
+ \tag{30}
+\]
+For type one the treated date-four transition difference is \(c_{141}-c_{140}=7/10-1/5=1/2\). Therefore
+\[
+ O_4(P^{\diamond}_{\vartheta})
+ =\frac{259}{500}+w_{11}(1-m_{12})(c_{141}-c_{140})\vartheta
+ =\frac{259}{500}+\frac{3\vartheta}{20}.
+ \tag{31}
+\]
+For the crossed alignment, the corresponding untreated recursions are
+\[
+ (m_{12},m_{13},m_{14})=\left(\frac12,\frac9{20},\frac{91}{200}\right),
+ \qquad
+ (m_{22},m_{23},m_{24})=\left(\frac35,\frac{11}{25},\frac{147}{250}\right).
+ \tag{32}
+\]
+The untreated quantities in (29) and (32) do not depend on \(\vartheta\). Weighting by \((3/5,2/5)\) gives, respectively,
+\[
+ \left(\sum_z w_{z1}m_{z3},\sum_z w_{z1}m_{z4}\right)
+ =\left(\frac{51}{125},\frac{332}{625}\right)
+ \quad\text{and}\quad
+ \left(\frac{223}{500},\frac{2541}{5000}\right).
+ \tag{33}
+\]
+Subtracting these two vectors from (30)--(31) gives
+\[
+ \tau(\psi^{\diamond}_{\vartheta};P^{\diamond}_{\vartheta})
+ =\left(\frac9{250}+\frac{3\vartheta}{10},
+ -\frac{33}{2500}+\frac{3\vartheta}{20}\right),
+ \tag{34}
+\]
+\[
+ \tau(\psi^{\diamond,\mathrm{sw}}_{\vartheta};P^{\diamond}_{\vartheta})
+ =\left(-\frac1{500}+\frac{3\vartheta}{10},
+ \frac{49}{5000}+\frac{3\vartheta}{20}\right).
+ \tag{35}
+\]
+The exhaustion of the quotient fiber proves that these two vectors, and only these two vectors, form the sharp joint image. Their date-three gap is \(19/500\), and their date-four gap is \(23/1000\), independently of \(\vartheta\). Hence the asserted marginal two-point sets and their specialization at \(\vartheta=0\) follow.
+
+Finally, the full observed cell with \((i,j,k,l,d)=(0,0,1,1,1)\) obeys
+\[
+ P^{\diamond}_{\vartheta,00111}-P^{\diamond}_{0,00111}
+ =\left(\frac12\frac35\frac35\frac7{10}\frac7{10}\right)\vartheta
+ =\frac{441}{5000}\vartheta.
+ \tag{36}
+\]
+Thus \(\vartheta\mapsto P^{\diamond}_{\vartheta}\) is affine and injective. Its image is a nondegenerate one-dimensional open affine segment in the one-collision model. For rational \(\vartheta\), every primitive and hence every cell of \(P^{\diamond}_{\vartheta}\) is rational; the rational parameters are dense in the interval. This proves positive-dimensional rational persistence of the two separated ATT classes. Equation (36) does not imply, and the proposition does not assert, relative openness in any larger collision variety.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An explicit injective one-parameter family proves that the disconnected two-value geometry persists on a positive-dimensional subset rather than occurring at one isolated observed law; it makes no claim of relative openness in the full collision variety. \textit{Gap.} Generic label switching does not establish a causal ATT gap after quotienting simultaneous labels, and the cited mixture papers provide no exact one-collision persistence family with two aggregate-ATT values. \textit{Consumer.} Regression tests for the public package can follow the rational parameter path, verify both branch witnesses and their fixed ATT gaps, and prevent replacement of the attained two-point set by its interval hull.
+
+\begin{theorem}[thm:finite-sample-coverage]\label{thm:finite-sample-coverage}
+Under independent multinomial sampling, for every \(n\ge1\), \(\inf_{P\in\mathcal M_{\eta,k_0}^{1\mathrm c}}P^n\{\mathcal I_{k_0}^{1\mathrm c}(P)\subseteq\mathcal C_{n,k_0}^{\tau}\}\ge1-\alpha\). The event covers both marginal identified sets simultaneously. No endpoint-consistency, Hausdorff-consistency, or branch-persistence conclusion is asserted.
+\end{theorem}
+\begin{proof}
+For a fixed cell \(w\), put \(Y_r=\mathbf 1\{W_r=w\}\) and \(q=P(w)\).  Then the \(Y_r\)'s are independent Bernoulli variables with mean \(q\).  For every real \(\lambda\), elementary one-variable calculus gives the Bernoulli exponential bound
+\[
+ \mathbb E\exp\{\lambda(Y_r-q)\}
+ =(1-q)e^{-\lambda q}+qe^{\lambda(1-q)}
+ \leq e^{\lambda^2/8}.
+ \tag{27}
+\]
+For completeness, let \(K(\lambda)\) be the logarithm of the middle expression.  Exponential tilting preserves the Bernoulli form, with some tilted success probability \(q_\lambda\), and therefore
+\[
+ K(0)=K'(0)=0,
+ \qquad K''(\lambda)=q_\lambda(1-q_\lambda)\leq\tfrac14.
+\]
+Taylor's formula with integral remainder gives \(K(\lambda)\leq\lambda^2/8\), proving (27) without an additional probabilistic premise.  Markov's inequality and independence now imply, for \(\lambda>0\),
+\[
+ P^n\{\widehat P_n(w)-P(w)\geq\delta\}
+ \leq\exp\{-\lambda n\delta+n\lambda^2/8\}.
+\]
+Choosing \(\lambda=4\delta\), and applying the same calculation to \(-Y_r\), yields
+\[
+ P^n\{|\widehat P_n(w)-P(w)|>\delta\}\leq2e^{-2n\delta^2}.
+ \tag{28}
+\]
+There are thirty-two cells.  With \(\delta=\delta_n(\alpha)\), (28) and the union bound give, uniformly in \(P\),
+\[
+ P^n\{\|\widehat P_n-P\|_\infty>\delta_n(\alpha)\}
+ \leq32\cdot2\exp\{-2n\delta_n(\alpha)^2\}=\alpha.
+ \tag{29}
+\]
+On the complementary event, the true \(P\) itself belongs to
+\[
+ \{Q\in\mathcal M_{\eta,k_0}^{1\mathrm c}:
+ \|Q-\widehat P_n\|_\infty\leq\delta_n(\alpha)\}.
+\]
+The definition of \(\mathcal C_{n,k_0}^{\tau}\) then includes the entire set \(\mathcal I_{k_0}^{1\mathrm c}(P)\), not merely the ATT value of a selected representation.  Taking probabilities in (29) and then the infimum over the maintained law class proves
+\[
+ \inf_{P\in\mathcal M_{\eta,k_0}^{1\mathrm c}}
+ P^n\{\mathcal I_{k_0}^{1\mathrm c}(P)
+ \subseteq\mathcal C_{n,k_0}^{\tau}\}\geq1-\alpha.
+\]
+One event contains the joint set, so projecting it covers both marginal identified sets simultaneously.  No step controls lower hemicontinuity, branch persistence, endpoints, or Hausdorff distance; accordingly no such consistency conclusion follows from this argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Finite-sample full-PMF inversion provides honest coverage of every disconnected component without choosing a latent branch. \textit{Gap.} Romano--Shaikh develops general inference for identified sets under stated pointwise and uniform conditions; this auxiliary result uses finite multinomial concentration to cover the entire completed-stratum image and deliberately makes no topology-consistency claim. \textit{Consumer.} Applied analyses can attach a finite-sample honest region to the exact singular identified set while clearly separating coverage from set estimation.
+
+\begin{openendedquestion}[oeq:compress-observable-certificate]\label{oeq:compress-observable-certificate}
+Can the complete Collins projection list \(\mathscr L_{k_0,\sigma}\) be reduced to a strictly smaller, economically interpretable and irredundant collection of observable minors and signed resultants that still determines branch feasibility and singleton aggregate ATT on \(\mathcal M_{\eta,k_0}^{1\mathrm c}\)? Establish sufficiency of the reduced list and prove irredundancy by constructing, for every retained sign, two rational laws agreeing on all other proposed signs but differing in feasibility or ATT constancy.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The exact certificate is finite and computable, but a minimal observable diagnostic would reveal which empirical path restrictions actually govern point identification. \textit{Gap.} Neither general CAD theory nor latent-mixture identification results isolate an irredundant causal sign basis for this one-collision stratum. \textit{Consumer.} The public \(ak\) interface could replace a large algebraic certificate by a concise diagnostic explaining which observed cell relation creates the ATT ambiguity.
+
+\begin{lemma}[lem:cad-quantifier-elimination]\label{lem:cad-quantifier-elimination}
+\texttt{For every finite family of real polynomials,\allowbreak{} a finite sign-\allowbreak{}invariant cylindrical algebraic decomposition adapted to that family can be computed. Its cylindrical lifting decides every Boolean combination of their sign conditions,\allowbreak{} yields an equivalent quantifier-\allowbreak{}free formula after projection,\allowbreak{} and represents sections by continuous semialgebraic real-\allowbreak{}root functions. For rational input,\allowbreak{} real-\allowbreak{}algebraic sample points and boundary roots admit square-\allowbreak{}free polynomials,\allowbreak{} rational isolating intervals,\allowbreak{} and Thom derivative-\allowbreak{}sign encodings.}
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The completed object is the compact stratum with distinct treated terminal rows and exactly one collided control terminal row. Laws whose global compact fiber also contains representations from another collision pattern are outside this class. The exact certificate uses Collins-style projection after the model-specific reduction and may retain generic worst-case real-quantifier-elimination cost. The benchmark proves persistence only along its explicit one-dimensional observed-law family; it does not prove that these laws form a relatively open subset of the full collision variety.
+
+\section{Honest scope}
+
+The quotient semantics, forty-to-ten reduction, thirty-two-branch classification, exact stratum-restricted region, explicit positive-dimensional disconnected persistence family, and auxiliary appendix-tier finite-sample coverage result are the completed claims. The remaining open content is whether the complete CAD projection list can be compressed to a strictly smaller, sufficient, economically interpretable, and irredundant observable sign basis; no irredundancy result is claimed. Ahn--Kasahara's regular identification results are comparators only: no internal overlap-equality, model-inclusion, or regular-chart theorem is claimed. No result is claimed for the other terminal-collision strata, for an unboxed singular class, for relative openness of the benchmark family in a larger collision variety, or for Hausdorff consistency.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AhnKasahara2026} Ahn, Young, and Hiroyuki Kasahara. 2026. ``Event-Study Designs for Discrete Outcomes with Latent Transition Heterogeneity.'' CEI Working Paper 2026-02 and arXiv:2603.07914.
+
+  \bibitem{HigginsJochmans2023} Higgins, Ayden, and Koen Jochmans. 2023. ``Identification of Mixtures of Dynamic Discrete Choices.'' \emph{Journal of Econometrics} 237: 105462.
+
+  \bibitem{Critch2013} Critch, Andrew J. 2013. ``Binary Hidden Markov Models and Varieties.'' \emph{Journal of Algebraic Statistics} 4: 1--26.
+
+  \bibitem{GeigerMeek1999} Geiger, Dan, and Christopher Meek. 1999. ``Quantifier Elimination for Statistical Problems.'' In \emph{Proceedings of the Fifteenth Conference on Uncertainty in Artificial Intelligence}, 226--235. Morgan Kaufmann.
+
+  \bibitem{Collins1975} Collins, George E. 1975. ``Quantifier Elimination for Real Closed Fields by Cylindrical Algebraic Decomposition.'' In \emph{Automata Theory and Formal Languages}, 134--183. Springer.
+
+  \bibitem{Basu2014} Basu, Saugata. 2014. ``Algorithms in Real Algebraic Geometry: A Survey.'' arXiv:1409.1534.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024} Duarte, Guilherme, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. 2024. ``An Automated Approach to Causal Inference in Discrete Settings.'' \emph{Journal of the American Statistical Association} 119: 1778--1793.
+
+  \bibitem{HenryKitamuraSalanie2014} Henry, Marc, Yuichi Kitamura, and Bernard Salanie. 2014. ``Partial Identification of Finite Mixtures in Econometric Models.'' \emph{Quantitative Economics} 5: 123--144.
+
+  \bibitem{RomanoShaikh2010} Romano, Joseph P., and Azeem M. Shaikh. 2010. ``Inference for the Identified Set in Partially Identified Econometric Models.'' \emph{Econometrica} 78: 169--211.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,809 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}minhedge\_\allowbreak{}reliability\_\allowbreak{}hypergraph}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A probabilistic ADMG currently yields one high-plausibility identifiable realization, not the total chance that a fixed causal query is identifiable or the minimal edge combinations that destroy it.  The project makes those combinations the hyperedges of \(\mathcal O_{XY}\) and compresses every hedge into a \(2b-2\)-edge core plus directed ancestry obligations.  For general \(b\), the proved exact compiler projects deterministic reachability, enumerates raw minimal directed-Steiner witnesses, tests global minimality across every core, and suppresses duplicates canonically; its \(2^{O(b\log(b+1))}\operatorname{poly}(n)(1+W)\) total-time guarantee is explicitly sensitive to the number \(W\) of raw witnesses and is not an accepted-output delay bound.  The enumeration headline is the complete \(b\le2\) labelled transition-DAG and induced-path algorithm with polynomial preprocessing, worst-case delay, exhaustion, and space.  Once \(\mathcal O_{XY}\) is explicit, standard exact literal-weighted CNF model counting on a supplied incidence decomposition yields reliability and all edge sensitivities, while exact successful-realization counting is \(\#\mathrm P\)-complete already at \(b=2\).
+
+\section{Project justification}
+
+\paragraph{Gap.} Ordinary ID certifies failure in one ADMG by a hedge, and edgeID chooses one plausible identifiable subgraph, but neither theory compiles all globally minimal uncertain-edge causes of failure.  The additional general-\(b\) output-delay question remains open because raw candidates from one sparse core can be dominated by an obstruction from another core.
+
+\paragraph{Niche.} Maximum envelope district size \(b\) bounds the local bidirected and forest part of every hedge without bounding its directed ancestry paths or the incidence treewidth of the resulting obstruction hypergraph.  This separates an unconditional candidate-sensitive exact compiler from the stronger partial-extension oracle needed for accepted-output delay.
+
+\paragraph{Fill.} The project supplies the sparse-core representation, an unconditional exact general-\(b\) compiler with fixed-parameter polynomial work per raw projected Steiner witness and canonical global filtering, a complete polynomial-delay construction for every \(b\le2\) envelope, the reliability and sensitivity implementation corollaries, and a width-two causal counting-hardness boundary.  It retains general-\(b\) worst-case delay as an explicit open frontier.
+
+\section{Related work}
+
+Shpitser and Pearl (2008) establish soundness and completeness of ordinary ID through hedge certificates; Shpitser (2023, Proposition 1, \(\mathrm{arXiv}:2307.03750\)) gives the corrected equivalence between ID failure and a hedge for the original query.  These results supply the causal equivalence used here, not support enumeration.  Akbari et al. (2023) formulate probabilistic ADMGs and prove edge ID is NP-complete, while Akbari, Etesami, and Kiyavash (2025, Definition 6, Algorithm 2, and Lemma 7) use only the vertex-minimal hedges needed for a minimum hitting-set intervention problem in one fixed graph.  Neither work enumerates uncertain-edge-minimal failure supports across all realizations.  Kobayashi, Kurita, and Wasa (2022, Theorem 16) prove linear-delay, polynomial-space enumeration of minimal directed Steiner subgraphs.  Here that theorem is used only for raw witnesses after an injectively labelled deterministic-reachability projection; the local proof supplies support canonicalization, all-core deletion tests, and least-core ownership.  Those filters give candidate-sensitive total time, not general-\(b\) accepted-output delay.  Kenig and Mizrahi (2025) give fixed-parameter delay for minimal transversals when an explicit bounded-incidence-treewidth decomposition is supplied, but bounded causal district size does not bound the incidence treewidth of \(\mathcal O_{XY}\).  Generic explicit-hypergraph dualization likewise does not provide the missing implicit extension oracle coupled to existential core choice and multiple-root reachability, so no quasi-polynomial or fixed-parameter delay conclusion is imported from it.  Samer and Szeider (2010) and Dudek, Phan, and Vardi (2020) provide the standard exact weighted-CNF machinery used after compilation; Goharshady and Mohammadi (2020) place that computation within established reliability methodology.  Provan (1986) and Provan and Ball (1983) supply the counting-hardness sources for the width-preserving causal reduction.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(P_x(y)\).
+Primary functional / estimator / diagnostic: \(R_{XY}(p)=\Pr_p\{P_x(y)\text{ is identifiable in }G_Z\}=\sum_{S:\operatorname{Fail}(S)=0}\prod_{e\in S}p_e\prod_{e\notin S}(1-p_e),\quad p\in[0,1]^{E^{?}}\).
+\begin{itemize}
+  \item \texttt{V} --- \texttt{finite vertex set}; \texttt{Observed variables of the uncertain causal envelope.}
+  \item \texttt{order} --- \texttt{strict total order}; \(V\times V\); \texttt{Fixes acyclicity and all deterministic tie breaking.}
+  \par\smallskip\noindent\emph{Definition.} The supplied topological order on \(V\).
+  \item \texttt{EDet} --- \texttt{finite mixed-\allowbreak{}edge set}; \(\mathcal E(V)\); \texttt{Edges present in every realization.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The deterministic directed and bidirected backbone edges.}
+  \item \texttt{EUnc} --- \texttt{finite mixed-\allowbreak{}edge set}; \(\mathcal E(V)\); \texttt{Ground set of the obstruction hypergraph.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The uncertain directed and bidirected edges.}
+  \item \texttt{GEnv} --- \texttt{ADMG}; \texttt{Full all-\allowbreak{}present envelope.}
+  \par\smallskip\noindent\emph{Definition.} \(G^{+}=(V,E^{\mathrm{det}}\cup E^{?})\).
+  \item \texttt{X} --- \texttt{vertex subset}; \(2^V\); \texttt{Intervention variables.}
+  \item \texttt{Y} --- \texttt{vertex subset}; \(2^V\); \texttt{Outcome variables.}
+  \item \texttt{Q} --- \texttt{causal query}; \texttt{Fixed ordinary interventional query.}
+  \par\smallskip\noindent\emph{Definition.} \(Q=P_x(y)\).
+  \item \texttt{p} --- \texttt{real probability vector}; \([0,1]^{E^{?}}\); \texttt{Edge-\allowbreak{}presence probabilities on the full closed real cube;\allowbreak{} rational coordinates are required only by exact-\allowbreak{}arithmetic complexity statements.}
+  \par\smallskip\noindent\emph{Definition.} \(p=(p_e:e\in E^{?})\).
+  \item \texttt{Z} --- \texttt{random edge subset}; \(2^{E^{?}}\); \texttt{Uncertain edges realized as present.}
+  \par\smallskip\noindent\emph{Definition.} \(Z=\{e\in E^{?}:Z_e=1\}\).
+  \item \texttt{GS} --- \texttt{ADMG-\allowbreak{}valued map}; \(2^{E^{?}}\to\operatorname{ADMG}(V)\); Realized graph indexed by support \(S\).
+  \par\smallskip\noindent\emph{Definition.} \(G_S=(V,E^{\mathrm{det}}\cup S)\).
+  \item \texttt{ID} --- \texttt{deterministic algorithm}; \((G_S,Q)\mapsto\{\mathrm{success},\mathrm{fail}\}\); \texttt{Decision oracle and canonical failure-\allowbreak{}label extractor.}
+  \par\smallskip\noindent\emph{Definition.} Ordinary ID with recursive calls, district children, and forest ties ordered by \(\prec\).
+  \item \texttt{Fail} --- \texttt{Boolean set function}; \(2^{E^{?}}\to\{0,1\}\); \texttt{Monotone causal failure predicate.}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Fail}(S)=1\) exactly when \(\operatorname{ID}(G_S,Q)\) fails.
+  \item \texttt{b} --- \texttt{nonnegative integer}; \texttt{Causal width parameter.}
+  \par\smallskip\noindent\emph{Definition.} \(b=\max\{|D|:D\text{ is a bidirected district of }G^{+}\}\), with maximum zero when \(V=\varnothing\).
+  \item \texttt{CoreFamily} --- \texttt{finite family of labelled sparse hedge cores}; \texttt{Bounded local templates before ancestry support enumeration.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak C=\{c=(F_0,F_1,A,K_c):c\text{ satisfies the construction in Definition~\ref{def:sparse-core-family}}\}\).
+  \item \texttt{O} --- \texttt{simple hypergraph}; \(2^{E^{?}}\); \texttt{Minimal uncertain-\allowbreak{}edge supports for nonidentifiability.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_{XY}\) is the antichain specified in Definition~\ref{def:obstruction-hypergraph}.
+  \item \texttt{tau} --- \texttt{nonnegative integer}; \texttt{Incidence-\allowbreak{}treewidth of the explicit obstruction hypergraph.}
+  \par\smallskip\noindent\emph{Definition.} \(\tau=\operatorname{tw}(\operatorname{Inc}(\mathcal O_{XY}))\).
+  \item \texttt{Tdec} --- \texttt{finite rooted tree with finite vertex bags}; \texttt{Candidate certificate whose validity and width are imposed separately.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T\) is a supplied decomposition certificate.
+  \item \texttt{lambda} --- \texttt{positive real vector}; \((0,\infty)^{E^{?}}\); \texttt{Interior-\allowbreak{}cube odds variables for the independence-\allowbreak{}polynomial factorization.}
+  \par\smallskip\noindent\emph{Definition.} For \(p\in(0,1)^{E^{?}}\), \(\lambda_e=p_e/(1-p_e)\).
+  \item \texttt{IO} --- \texttt{multivariate polynomial}; \texttt{Generating function of obstruction-\allowbreak{}free edge sets.}
+  \par\smallskip\noindent\emph{Definition.} \(I_{\mathcal O}(\lambda)\) is specified in Definition~\ref{def:independence-polynomial}.
+  \item \texttt{R} --- \texttt{real-\allowbreak{}valued function}; \([0,1]^{E^{?}}\to[0,1]\); \texttt{Exact reliability of causal identification.}
+  \par\smallskip\noindent\emph{Definition.} \(R_{XY}(p)=\Pr_p\{\operatorname{Fail}(Z)=0\}\).
+  \item \texttt{GradR} --- \texttt{real vector-\allowbreak{}valued function}; \([0,1]^{E^{?}}\to[-1,0]^{E^{?}}\); \texttt{Polynomial edge-\allowbreak{}refinement sensitivities on the full closed real cube.}
+  \par\smallskip\noindent\emph{Definition.} \(\nabla R_{XY}(p)=(\partial R_{XY}/\partial p_e:e\in E^{?})\).
+  \item \texttt{Bows} --- \texttt{finite family of available labelled bows}; \texttt{All width-\allowbreak{}two source obstructions,\allowbreak{} with edge identities retained.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B=\{\beta=(x,r,e^{\to},e^{\leftrightarrow}):x\in X,\ r\in V\setminus X,\ e^{\to}=(x\to r)\in E^{\mathrm{det}}\cup E^{?},\ e^{\leftrightarrow}=(x\leftrightarrow r)\in E^{\mathrm{det}}\cup E^{?}\}\).
+  \item \texttt{Haux} --- \texttt{finite labelled directed acyclic graph}; \texttt{Expands each bow edge and each body arrow into a deterministic or uniquely uncertain-\allowbreak{}labelled arc before deterministic-\allowbreak{}path projection.}
+  \par\smallskip\noindent\emph{Definition.} \(H^{\mathrm{aux}}\) is the width-two auxiliary network of Definition~\ref{def:width-two-auxiliary-network}.
+  \item \texttt{Diamond} --- \texttt{worked uncertain-\allowbreak{}ADMG envelope}; \texttt{Nontrivial duplicate-\allowbreak{}suppression witness for deterministic-\allowbreak{}path projection.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D\) is the deterministic-diamond instance specified in Definition~\ref{def:deterministic-diamond-instance}.
+  \item \texttt{TNodes} --- \texttt{finite transition-\allowbreak{}vertex set}; \texttt{The source,\allowbreak{} sink,\allowbreak{} and one vertex for each relevant uncertain edge occurrence in the auxiliary network.}
+  \par\smallskip\noindent\emph{Definition.} \(W^{\mathrm{proj}}=\{\sigma,t\}\cup\{u_e:e\text{ labels an uncertain arc of }H^{\mathrm{aux}}\}\).
+  \item \texttt{Nsucc} --- \texttt{nonnegative integer}; \texttt{Number of identifiable edge realizations.}
+  \par\smallskip\noindent\emph{Definition.} \(N_{XY}=|\{S\subseteq E^{?}:\operatorname{Fail}(S)=0\}|\).
+  \item \texttt{TLabels} --- \texttt{uncertain-\allowbreak{}edge-\allowbreak{}set labelling map}; \(W^{\mathrm{proj}}\to2^{E^{?}}\); \texttt{Identifies an induced transition path with its uncertain-\allowbreak{}edge support.}
+  \par\smallskip\noindent\emph{Definition.} \(L(\sigma)=L(t)=\varnothing\) and \(L(u_e)=\{e\}\).
+  \item \texttt{EnumHandle} --- \texttt{algorithmic handle}; \texttt{Concrete starting move for the open general enumeration theorem.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The root-\allowbreak{}ordered sparse-\allowbreak{}core extendability search specified in Definition\textasciitilde{}\textbackslash{}\allowbreak{}ref\{def:\allowbreak{}enumeration-\allowbreak{}handle\}\allowbreak{}.}
+  \item \texttt{TArcs} --- \texttt{finite directed transition-\allowbreak{}arc set}; \(W^{\mathrm{proj}}\times W^{\mathrm{proj}}\); \texttt{Projects every maximal deterministic segment of the auxiliary network between consecutive uncertain arcs.}
+  \par\smallskip\noindent\emph{Definition.} \(A^{\mathrm{proj}}\) is the deterministic-reachability arc set specified in Definition~\ref{def:transition-arcs}.
+  \item \texttt{Tproj} --- \texttt{directed acyclic graph}; Injective deterministic-path quotient for \(b\le2\).
+  \par\smallskip\noindent\emph{Definition.} \(T^{\mathrm{proj}}=(W^{\mathrm{proj}},A^{\mathrm{proj}})\) is the corrected labelled transition graph specified in Definition~\ref{def:width-two-projection}.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:edge-partition]\label{ass:edge-partition}
+\(E^{\mathrm{det}}\cap E^{?}=\varnothing\).
+\par\smallskip\noindent\emph{Standard} (Disjoint deterministic--uncertain edge encoding, \cite{akbari2023uncertain}).
+\end{assumption}
+
+\begin{assumption}[ass:query-disjointness]\label{ass:query-disjointness}
+\(X\cap Y=\varnothing\).
+\par\smallskip\noindent\emph{Standard} (Disjoint intervention and outcome sets, \cite{shpitserpearl2008hierarchy}).
+\end{assumption}
+
+\begin{assumption}[ass:product-edge-law]\label{ass:product-edge-law}
+\((Z_e:e\in E^{?})\) are mutually independent with \(\Pr(Z_e=1)=p_e\).
+\par\smallskip\noindent\emph{Standard} (Independent Bernoulli edge uncertainty, \cite{akbari2023uncertain}).
+\end{assumption}
+
+\begin{assumption}[ass:ordinary-admg-semantics]\label{ass:ordinary-admg-semantics}
+Every \(G_S\) represents the unrestricted semi-Markovian SCM class associated with that ADMG.
+\par\smallskip\noindent\emph{Standard} (Ordinary nonparametric ADMG identification model, \cite{shpitserpearl2008hierarchy}).
+\end{assumption}
+
+\begin{assumption}[ass:supplied-incidence-decomposition]\label{ass:supplied-incidence-decomposition}
+\(\mathcal T\) is a nice tree decomposition of \(\operatorname{Inc}(\mathcal O_{XY})\) of width \(\tau\).
+\par\smallskip\noindent\emph{Standard} (Supplied incidence-tree decomposition, \cite{samerszeider2010modelcounting}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:realization]\label{def:realization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Realized ADMG}
+\par\smallskip\noindent\emph{Construction.} For \(S\subseteq E^{?}\), set \(G_S=(V,E^{\mathrm{det}}\cup S)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{V}; \texttt{EDet}; \texttt{EUnc}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:failure-predicate]\label{def:failure-predicate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Ordinary-\allowbreak{}ID failure predicate}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Fail}(S)=\mathbf 1\{\operatorname{ID}(G_S,P_x(y))\text{ returns failure}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{GS}; \texttt{Q}.
+\end{definition}
+
+\begin{definition}[def:obstruction-hypergraph]\label{def:obstruction-hypergraph}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Minimal failure-\allowbreak{}support hypergraph}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal O_{XY}=\{S\subseteq E^{?}:\operatorname{Fail}(S)=1\text{ and }\operatorname{Fail}(S\setminus\{e\})=0\text{ for every }e\in S\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{EUnc}; \texttt{Fail}.
+\end{definition}
+
+\begin{definition}[def:sparse-core-family]\label{def:sparse-core-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sparse hedge-\allowbreak{}core family}
+\par\smallskip\noindent\emph{Construction.} Enumerate tuples \(c=(F_0,F_1,A,K_c)\) inside one bidirected district of \(G^{+}\), where \(\varnothing\ne A\subseteq F_0\subsetneq F_1\), \(F_0\cap X=\varnothing\), and \(F_1\cap X\ne\varnothing\). Select one outgoing directed edge toward \(A\) for every vertex of \(F_1\setminus A\), with the selections on \(F_0\setminus A\) retained inside the larger forest; select a bidirected spanning tree of \(F_0\) and extend it to a bidirected spanning tree of \(F_1\). Let \(K_c\) be the uncertain edges in this common selected union, and retain only tuples whose selected edges occur in \(G^{+}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{GEnv}; \texttt{X}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:enumeration-handle]\label{def:enumeration-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Root-\allowbreak{}ordered sparse-\allowbreak{}core extendability handle}
+\par\smallskip\noindent\emph{Construction.} Start from each \(c\in\mathfrak C\); project maximal deterministic directed reachability outside \(X\); order the roots in \(A_c\); branch only on uncertain edges assigned to the first root whose current reachability obligation they privately satisfy; query whether a partial support extends to a support not dominated by a completed support from any core; and recompute the canonical ID failure label only when a support is emitted.
+\par\smallskip\noindent\emph{Inputs.} \texttt{CoreFamily}; \texttt{EDet}; \texttt{EUnc}; \texttt{X}; \texttt{Y}; \texttt{ID}.
+\end{definition}
+
+\begin{definition}[def:reliability]\label{def:reliability}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Identification reliability}
+\par\smallskip\noindent\emph{Construction.} \(R_{XY}(p)=\sum_{S\subseteq E^{?}:\operatorname{Fail}(S)=0}\prod_{e\in S}p_e\prod_{e\in E^{?}\setminus S}(1-p_e)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{Fail}.
+\end{definition}
+
+\begin{definition}[def:independence-polynomial]\label{def:independence-polynomial}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Obstruction independence polynomial}
+\par\smallskip\noindent\emph{Construction.} \(I_{\mathcal O}(\lambda)=\sum_{J\subseteq E^{?}:\,\forall h\in\mathcal O_{XY},\,h\nsubseteq J}\prod_{e\in J}\lambda_e\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{lambda}.
+\end{definition}
+
+\begin{definition}[def:available-bows]\label{def:available-bows}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Available labelled bows}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal B=\{\beta=(x,r,e^{\to},e^{\leftrightarrow}):x\in X,\ r\in V\setminus X,\ e^{\to}=(x\to r)\in E^{\mathrm{det}}\cup E^{?},\ e^{\leftrightarrow}=(x\leftrightarrow r)\in E^{\mathrm{det}}\cup E^{?}\}\); write \(r_\beta=r\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{GEnv}; \texttt{EDet}; \texttt{EUnc}; \texttt{X}.
+\end{definition}
+
+\begin{definition}[def:transition-vertices]\label{def:transition-vertices}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Width-\allowbreak{}two transition vertices}
+\par\smallskip\noindent\emph{Construction.} Let \(A_H^{?}\) be the uncertain-labelled arcs of \(H^{\mathrm{aux}}\).  Since the labelling in Definition~\ref{def:width-two-auxiliary-network} is injective, write \(a_e\) for the unique arc labelled by \(e\).  Set
+\[
+ W^{\mathrm{proj}}=\{\sigma,t\}\cup\{u_e:a_e\in A_H^{?}\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{Haux}; \texttt{EUnc}.
+\end{definition}
+
+\begin{definition}[def:transition-labels]\label{def:transition-labels}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Width-\allowbreak{}two injective uncertain-\allowbreak{}edge labels}
+\par\smallskip\noindent\emph{Construction.} Define \(L:W^{\mathrm{proj}}\to2^{E^{?}}\) by \(L(\sigma)=L(t)=\varnothing\) and \(L(u_e)=\{e\}\).  For a directed path \(P\), put \(L(P)=\bigcup_{u\in P}L(u)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{TNodes}; \texttt{EUnc}.
+\end{definition}
+
+\begin{definition}[def:transition-arcs]\label{def:transition-arcs}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Width-\allowbreak{}two auxiliary transition arcs}
+\par\smallskip\noindent\emph{Construction.} Let \(H^{\mathrm{det}}\) be the deterministic-arc subgraph of \(H^{\mathrm{aux}}\), and let \(a_e=(q_e^-,q_e^+)\).  The arc set \(A^{\mathrm{proj}}\) contains exactly: \(\sigma\to t\) when \(\sigma_H\) reaches \(t_H\) in \(H^{\mathrm{det}}\); \(\sigma\to u_e\) when \(\sigma_H\) reaches \(q_e^-\) in \(H^{\mathrm{det}}\); \(u_e\to t\) when \(q_e^+\) reaches \(t_H\) in \(H^{\mathrm{det}}\); and \(u_e\to u_f\) when \(q_e^+\) reaches \(q_f^-\) in \(H^{\mathrm{det}}\).  Length-zero deterministic paths are allowed.
+\par\smallskip\noindent\emph{Inputs.} \texttt{TNodes}; \texttt{Haux}.
+\end{definition}
+
+\begin{definition}[def:width-two-projection]\label{def:width-two-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Width-\allowbreak{}two injective deterministic-\allowbreak{}path projection}
+\par\smallskip\noindent\emph{Construction.} For \(b\le2\), set \(T^{\mathrm{proj}}=(W^{\mathrm{proj}},A^{\mathrm{proj}})\) using Definitions~\ref{def:transition-vertices}--\ref{def:transition-arcs}.  Order its internal vertices by the type and endpoint tuple of their edge labels under \(\prec\).  A search state consists of an induced directed prefix \(P=(\sigma=v_0,\ldots,v_k)\) and a surviving induced subgraph \(H\) containing \(v_k\) and \(t\).  Initially \(P=(\sigma)\) and \(H=T^{\mathrm{proj}}\).  For each out-neighbor \(w\) of \(v_k\) in \(H\), in the fixed order, set
+\[
+ H_w=H-\bigl(\{v_k\}\cup(N_H^+(v_k)\setminus\{w\})\bigr).
+\]
+Create the child \((P\cdot w,H_w)\) exactly when \(t\) is reachable from \(w\) in \(H_w\).  On reaching \(t\), emit \(L(P)\).  Depth-first traversal of these children is the width-two projected enumerator.
+\par\smallskip\noindent\emph{Inputs.} \texttt{TNodes}; \texttt{TLabels}; \texttt{TArcs}; \texttt{order}.
+\end{definition}
+
+\begin{definition}[def:deterministic-diamond-instance]\label{def:deterministic-diamond-instance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministic-\allowbreak{}diamond worked instance}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal D\) have ordered vertices \(x\prec r\prec a\prec b\prec c\prec y\), intervention \(X=\{x\}\), outcome \(Y=\{y\}\), deterministic directed edges \(r\to a,r\to b,a\to c,b\to c,c\to y\), uncertain edges \(e_1=x\to r\) and \(e_2=x\leftrightarrow r\), and query \(P_x(y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{order}; \texttt{X}; \texttt{Y}; \texttt{Q}.
+\end{definition}
+
+\begin{definition}[def:counting-problem]\label{def:counting-problem}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Successful-\allowbreak{}realization count}
+\par\smallskip\noindent\emph{Construction.} \(N_{XY}=|\{S\subseteq E^{?}:\operatorname{ID}(G_S,P_x(y))\text{ succeeds}\}|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{EUnc}; \texttt{GS}; \texttt{Q}.
+\end{definition}
+
+\begin{definition}[def:width-two-auxiliary-network]\label{def:width-two-auxiliary-network}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Width-\allowbreak{}two injectively labelled auxiliary network}
+\par\smallskip\noindent\emph{Construction.} Introduce fresh vertices \(\sigma_H,t_H\) and one fresh vertex \(a_\beta\) for every \(\beta=(x,r,e^{\to},e^{\leftrightarrow})\in\mathcal B\).  The labelled auxiliary DAG \(H^{\mathrm{aux}}\) has vertex set
+\[
+ \{\sigma_H,t_H\}\cup(V\setminus X)\cup\{a_\beta:\beta\in\mathcal B\}.
+\]
+For every \(\beta\), add \(\sigma_H\to a_\beta\), deterministic when \(e^{\leftrightarrow}\in E^{\mathrm{det}}\) and otherwise labelled by \(e^{\leftrightarrow}\in E^{?}\); add \(a_\beta\to r_\beta\), deterministic when \(e^{\to}\in E^{\mathrm{det}}\) and otherwise labelled by \(e^{\to}\in E^{?}\).  Add every directed edge \(u\to v\) of the envelope with \(u,v\in V\setminus X\), marking it deterministic or labelling it by the corresponding uncertain edge, and add deterministic \(y\to t_H\) for every \(y\in Y\).  An uncertain edge labels at most one auxiliary arc.  For \(S\subseteq E^{?}\), \(H^{\mathrm{aux}}_S\) retains all deterministic arcs and exactly the labelled arcs whose labels lie in \(S\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{V}; \texttt{EDet}; \texttt{EUnc}; \texttt{X}; \texttt{Y}; \texttt{Bows}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:failure-upward]\label{lem:failure-upward}
+For all \(S,T\subseteq E^{?}\), if \(S\subseteq T\) and \(\operatorname{Fail}(S)=1\), then \(\operatorname{Fail}(T)=1\).
+\end{lemma}
+\begin{proof}
+Let \(S\subseteq T\subseteq E^{?}\) and suppose that \(\operatorname{Fail}(S)=1\).  By Definition~\ref{def:failure-predicate} and Lemma~\ref{lem:original-query-hedge-characterization}, there are nonempty sets \(A\subseteq F_0\subsetneq F_1\) and selected directed and bidirected subgraphs in \(G_S\) forming a hedge for the original query \(P_x(y)\).  Definition~\ref{def:realization} gives
+\[
+ E(G_S)=E^{\mathrm{det}}\cup S\subseteq E^{\mathrm{det}}\cup T=E(G_T).
+\]
+Consequently every selected forest edge and every directed path from \(A\) to \(Y\) in \(G_S[V\setminus X]\) is also present in \(G_T[V\setminus X]\).  The same pair \((F_0,F_1)\) is therefore a hedge for the same original query in \(G_T\).  Applying Lemma~\ref{lem:original-query-hedge-characterization} again yields \(\operatorname{Fail}(T)=1\), as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Upward closure turns causal failure into a monotone Boolean property whose prime supports are exactly \(\mathcal O_{XY}\). \textit{Gap.} Akbari et al. (2023, Lemma 3) prove the contrapositive formula-validity statement; this lemma records the exact support order used by the compiler. \textit{Consumer.} It permits single-edge deletion tests for global minimality and the obstruction-free reliability formula.
+
+\begin{theorem}[thm:sparse-core-reduction]\label{thm:sparse-core-reduction}
+Every \(h\in\mathcal O_{XY}\) is a globally inclusion-minimal member of \(\bigcup_{c\in\mathfrak C}\{K_c\cup J:\text{ every }a\in A_c\text{ reaches }Y\text{ in the directed part of }(V,E^{\mathrm{det}}\cup K_c\cup J)[V\setminus X]\}\), and every globally minimal member of this union belongs to \(\mathcal O_{XY}\). Each \(K_c\) contains at most \(2b-2\) selected edges, and \(|\mathfrak C|\le |V|2^{O(b\log(b+1))}\).
+\end{theorem}
+\begin{proof}
+Write \(\mathscr U\) for the union displayed in the theorem.  We first prove the following certificate statement: if \(\operatorname{Fail}(S)=1\), then some \(U\in\mathscr U\) satisfies \(U\subseteq S\).
+
+By Lemma~\ref{lem:original-query-hedge-characterization}, failure in \(G_S\) supplies nonempty vertex sets
+\[
+ A\subseteq F_0\subsetneq F_1,qquad F_0\cap X=\varnothing,qquad F_1\cap X\ne\varnothing,
+\]
+such that both \(F_0\) and \(F_1\) are bidirected connected, every vertex of each set has a directed path within that set to \(A\), and every \(a\in A\) reaches \(Y\) in \(G_S[V\setminus X]\).  Since \(F_1\) is bidirected connected in \(G_S\), it is contained in a bidirected district of \(G^{+}\); hence \(|F_1|\le b\) by the definition of \(b\).
+
+Choose, for each \(v\in F_0\setminus A\), the first arrow on a shortest directed path in \(F_0\) from \(v\) to \(A\).  For \(v\in F_1\setminus F_0\), choose the first arrow on a shortest directed path in \(F_1\) from \(v\) to \(F_0\), and after the path first enters \(F_0\) use the choices already made there.  Every chosen arrow lies in \(G_S\).  The distance to \(F_0\), followed by the distance to \(A\) inside \(F_0\), strictly decreases along chosen arrows; equivalently, acyclicity of the supplied topological order forbids a directed cycle.  Thus the choices form an \(A\)-rooted directed forest on \(F_1\), and its restriction to \(F_0\) is the selected inner forest.  It has exactly \(|F_1|-|A|\) arrows.
+
+Choose a bidirected spanning tree \(T_0\) of \(G_S[F_0]\).  Starting with this tree, repeatedly add a bidirected edge of the connected graph \(G_S[F_1]\) joining the current vertex set to a vertex or component not yet joined.  Adding such an edge never creates a cycle between already joined components, and the process terminates with a spanning tree \(T_1\) of \(F_1\) containing \(T_0\).  It has \(|F_1|-1\) edges.  Hence the common selected union has
+\[
+ (|F_1|-|A|)+(|F_1|-1)
+ \le 2|F_1|-2
+ \le 2b-2
+\]
+edges, because \(A\ne\varnothing\).  Let \(c\in\mathfrak C\) be the resulting template and let \(K_c\) be the uncertain edges in that union.  For every \(a\in A\), choose one directed \(a\)-to-\(Y\) path in \(G_S[V\setminus X]\), and let \(J\) be the set of its uncertain directed edges not already in \(K_c\), over all \(a\).  Then
+\[
+ U:=K_c\cup J\subseteq S,qquad U\in\mathscr U.
+\]
+The selected core and these ancestry paths form a hedge in \(G_U\), so Lemma~\ref{lem:original-query-hedge-characterization} also gives \(\operatorname{Fail}(U)=1\).  This proves the certificate statement.
+
+Now let \(h\in\mathcal O_{XY}\).  Applying the certificate statement with \(S=h\) gives a failing \(U\in\mathscr U\) with \(U\subseteq h\).  If \(U\subsetneq h\), choose \(e\in h\setminus U\).  Lemma~\ref{lem:failure-upward} would give \(\operatorname{Fail}(h\setminus\{e\})=1\), contrary to Definition~\ref{def:obstruction-hypergraph}.  Thus \(U=h\).  If a strict subset \(W\subsetneq h\) belonged to \(\mathscr U\), its core and ancestry paths would be a hedge, so the same argument would contradict minimality of \(h\).  Therefore \(h\) is globally inclusion-minimal in \(\mathscr U\).
+
+Conversely, let \(U\) be globally inclusion-minimal in \(\mathscr U\).  Its selected core and root-to-\(Y\) paths satisfy every condition in Lemma~\ref{lem:original-query-hedge-characterization}, whence \(\operatorname{Fail}(U)=1\).  If \(\operatorname{Fail}(U\setminus\{e\})=1\) for some \(e\in U\), the certificate statement applied to \(U\setminus\{e\}\) would produce \(W\in\mathscr U\) with \(W\subseteq U\setminus\{e\}\), contradicting global minimality.  Definition~\ref{def:obstruction-hypergraph} therefore gives \(U\in\mathcal O_{XY}\).
+
+It remains to count templates.  The envelope districts partition \(V\), so there are at most \(|V|\) of them.  In a district of size \(d\le b\), assigning each vertex to one of \(A\), \(F_0\setminus A\), \(F_1\setminus F_0\), or the complement gives at most \(4^d\) choices for the nested sets.  A selected successor map has at most \(d^d\) encodings.  Root a spanning tree at the \(\prec\)-least vertex and record the parent of every other vertex; this injects all labelled spanning trees into at most \(d^{d-1}\) parent maps.  Moreover, a spanning tree of \(F_1\) containing a spanning tree of \(F_0\) determines the latter by restriction, so no second tree factor is needed.  Edge-existence and forest conditions can only discard encodings.  Thus the number of templates in one district is at most
+\[
+ 4^d d^d d^{d-1}=2^{O(d\log(d+1))},
+\]
+with the evident constant convention for \(d\le1\).  Summing over at most \(|V|\) districts proves \(|\mathfrak C|\le |V|2^{O(b\log(b+1))}\) and completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem isolates all unbounded support size in directed ancestry while keeping the genuinely causal hedge templates fixed-parameter bounded. \textit{Gap.} Shpitser (2023, Proposition 1) gives the original-query hedge equivalence, and Akbari et al. provide a hedge hull, but neither gives a sparse edge-labelled template representation across uncertain realizations. \textit{Consumer.} It reduces causal obstruction compilation to a bounded-root directed support problem usable by the general enumerator.
+
+\begin{openendedquestion}[oeq:canonical-partial-support-recursion]\label{oeq:canonical-partial-support-recursion}
+Can the root-ordered sparse-core extendability handle be realized by a finite partial-support state and child map such that every live child has a globally minimal completion, children partition all completions, completed supports are never dominated by another core, and the extension test runs in \(2^{O(b\log b)}\operatorname{poly}(|V|+|E^{\mathrm{det}}|+|E^{?}|)\) time?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the genuine open step: completed-support dominators are ordered, but their obligations have not been shown stable under partial extension across competing cores. \textit{Gap.} Steiner branching supplies extension for fully selectable edge witnesses, and bounded-treewidth transversal branching supplies extension for an explicit hypergraph; neither provides this projected, implicit, cross-core extension oracle. \textit{Consumer.} A positive resolution supplies the missing correctness and worst-delay invariant for the obstruction compiler; a negative resolution identifies the parameter that must replace \(b\).
+
+\begin{theorem}[thm:canonical-enumeration]\label{thm:canonical-enumeration}
+Put \(n=|V|+|E^{\mathrm{det}}|+|E^{?}|\), and order \(\mathfrak C\) by the deterministic encoding induced by the supplied order.  There is a deterministic polynomial-space algorithm which, for every \(c\in\mathfrak C\), constructs a polynomial-size, injectively uncertain-edge-labelled deterministic-reachability projection and examines the minimal directed-Steiner subgraphs of that projection.  Call the uncertain-edge label set of each examined subgraph a raw per-core candidate, and let \(W\) be the total number of examined subgraphs, counted with their cores and witnesses.  The algorithm outputs every member of \(\mathcal O_{XY}\) exactly once and no other support, certifies global inclusion-minimality, and records the canonical original-query \(\operatorname{ID}\) failure label of every output.  Core generation and per-core initialization require in total \(2^{O(b\log(b+1))}\operatorname{poly}(n)\) work, and the complete run requires
+\[
+ 2^{O(b\log(b+1))}\operatorname{poly}(n)(1+W)
+\]
+exact time and polynomial working space.  Thus the work charged to each raw candidate is fixed-parameter polynomial.  The bound is candidate-sensitive and does not assert a worst-case delay between accepted outputs for general \(b\).
+\end{theorem}
+\begin{proof}
+Put
+\[
+ n=|V|+|E^{\mathrm{det}}|+|E^{?}|,
+ \qquad m=|E^{?}|,
+ \qquad M=|\mathfrak C|.
+\]
+For \(c=(F_0,F_1,A_c,K_c)\in\mathfrak C\) and \(H\subseteq E^{?}\), define the core-feasibility predicate
+\[
+ \Phi_c(H)=1
+ \quad\Longleftrightarrow\quad
+ \left\{
+ \begin{array}{l}
+ K_c\subseteq H,\quad\text{and}\\[2mm]
+ \text{every }a\in A_c\text{ reaches a vertex of }Y\text{ in the directed part of}
+ (V,E^{\mathrm{det}}\cup H)[V\setminus X].
+ \end{array}
+ \right.
+ \tag{1}
+\]
+This is well typed because \(A_c\subseteq F_0\) and \(F_0\cap X=\varnothing\) by Definition~\ref{def:sparse-core-family}.  Reachability is monotone under edge addition, so
+\[
+ H\subseteq H'\ \text{ and }\ \Phi_c(H)=1
+ \quad\Longrightarrow\quad
+ \Phi_c(H')=1.
+ \tag{2}
+\]
+Theorem~\ref{thm:sparse-core-reduction} identifies \(\mathcal O_{XY}\) with the globally inclusion-minimal members of
+\[
+ \mathscr U=\{H\subseteq E^{?}:\Phi_c(H)=1\text{ for some }c\in\mathfrak C\}.
+\]
+By monotonicity (2), one-edge deletions characterize global minimality:
+\[
+ H\in\mathcal O_{XY}
+ \quad\Longleftrightarrow\quad
+ \left[
+ \begin{array}{l}
+ \Phi_c(H)=1\text{ for some }c\in\mathfrak C,\quad\text{and}\\
+ \Phi_d(H\setminus\{e\})=0
+ \text{ for every }e\in H\text{ and every }d\in\mathfrak C.
+ \end{array}
+ \right]
+ \tag{3}
+\]
+Indeed, the right side says precisely that \(H\in\mathscr U\) and no one-edge deletion is in \(\mathscr U\).  If a proper subset \(H'\subsetneq H\) were in \(\mathscr U\), then for any \(e\in H\setminus H'\), (2) would put \(H\setminus\{e\}\) in \(\mathscr U\), a contradiction.  The converse is immediate.
+
+We next construct the promised projection for one fixed core \(c\).  Add a new sink \(t\).  Let \(D_c^0\) contain the directed edges of \(E^{\mathrm{det}}\) with endpoints in \(V\setminus X\), the directed edges of \(K_c\) with endpoints in \(V\setminus X\), and a new deterministic edge \(y\to t\) for every \(y\in Y\).  Let
+\[
+ U_c=\{e\in E^{?}\setminus K_c:e\text{ is directed and both endpoints of }e
+ \text{ lie in }V\setminus X\}.
+\]
+Assumption~\ref{ass:edge-partition} makes the deterministic edges and the optional edges in \(U_c\) disjoint.  For each \(e\in U_c\), introduce two private vertices \(u_e^-\) and \(u_e^+\) and the private gadget edge
+\[
+ g_e:u_e^-\longrightarrow u_e^+.
+\]
+For each \(a\in A_c\), introduce a terminal copy \(\bar a\).  Form a forward transition graph by adding
+\[
+ \begin{array}{ll}
+ \bar a\to t &\text{if }a\leadsto t\text{ in }D_c^0,\\
+ \bar a\to u_e^- &\text{if }a\leadsto \operatorname{tail}(e)\text{ in }D_c^0,\\
+ u_e^+\to t &\text{if }\operatorname{head}(e)\leadsto t\text{ in }D_c^0,\\
+ u_e^+\to u_f^- &\text{if }\operatorname{head}(e)\leadsto \operatorname{tail}(f)
+                    \text{ in }D_c^0,
+ \end{array}
+ \tag{4}
+\]
+for all well-typed \(a,e,f\), together with every gadget edge \(g_e\).  Zero-length deterministic paths are allowed in the reachability tests.  Reverse all the edges in this transition graph and call the result \(\Gamma_c\).  Its root is \(t\), its terminal set is \(\bar A_c=\{\bar a:a\in A_c\}\), and the reversed copy of \(g_e\), still denoted \(g_e\), has the unique label \(e\).  The private split vertices make the label map injective: distinct elements of \(U_c\) label distinct gadget edges, and no transition edge has a label.
+
+For \(H\supseteq K_c\), let \(\Gamma_c[H]\) retain every unlabelled edge of \(\Gamma_c\) and retain \(g_e\) exactly when \(e\in H\cap U_c\).  Segmenting a directed path at its optional uncertain edges proves
+\[
+ \Phi_c(H)=1
+ \quad\Longleftrightarrow\quad
+ \Gamma_c[H]\text{ contains a directed }t\text{-to-}\bar a\text{ path for every }
+ \bar a\in\bar A_c.
+ \tag{5}
+\]
+For the forward implication, take an \(a\)-to-\(Y\) path from (1), append the corresponding \(y\to t\), and list its edges in \(U_c\) as \(e_1,\ldots,e_q\) in path order.  Each segment before \(e_1\), between \(e_i\) and \(e_{i+1}\), and after \(e_q\) lies in \(D_c^0\), so (4) gives a forward \(\bar a\)-to-\(t\) path using exactly the listed gadget edges.  Reversal gives the required path in \(\Gamma_c[H]\).  If \(q=0\), the edge \(\bar a\to t\) in (4) gives the path.  Conversely, reverse a \(t\)-to-\(\bar a\) path in \(\Gamma_c[H]\), replace every transition edge by a witnessing path in \(D_c^0\), and replace every gadget edge \(g_e\) by the original edge \(e\).  Concatenation gives an \(a\)-to-\(Y\) directed walk using only \(E^{\mathrm{det}}\cup H\) outside \(X\); deleting closed subwalks yields a directed path.  This proves (5).
+
+The graph \(\Gamma_c\) has \(O(m+b)\) vertices and \(O(m^2+bm)\) edges.  All conditions in (4) are computable by polynomially many graph-reachability searches.  Apply Lemma~\ref{lem:directed-steiner-enumeration} to \(\Gamma_c\), root \(t\), and terminals \(\bar A_c\).  It enumerates without repetition every inclusion-minimal edge subgraph \(T\) containing a \(t\)-to-\(\bar a\) path for all \(\bar a\in\bar A_c\), with polynomial per-core preprocessing, delay, and space.  Associate to a raw subgraph \(T\) the uncertain support
+\[
+ L_c(T)=K_c\cup\{e\in U_c:g_e\in T\}.
+ \tag{6}
+\]
+Equation (5) gives \(\Phi_c(L_c(T))=1\).
+
+Different minimal Steiner subgraphs can have the same label set, so we suppress that within-core multiplicity canonically rather than storing previous supports.  Given a feasible \(H\supseteq K_c\), choose, in the fixed encoding order, one \(t\)-to-\(\bar a\) path in \(\Gamma_c[H]\) for every \(\bar a\in\bar A_c\), take their edge union, and scan that union's edges in reverse encoding order.  Delete a scanned edge exactly when all terminals remain reachable from \(t\).  Denote the final subgraph by \(C_c(H)\).  Every operation is a reachability test, so \(C_c(H)\) is computable in polynomial time.  It is inclusion-minimal: when an edge is retained, its deletion destroys a required reachability at that stage; subsequent deletions cannot restore reachability.  Therefore \(C_c(H)\) is one of the subgraphs enumerated by Lemma~\ref{lem:directed-steiner-enumeration}.  For a raw \(T\), retain it only if
+\[
+ T=C_c(L_c(T)).
+ \tag{7}
+\]
+For a fixed pair \((c,H)\), at most one raw subgraph passes (7), and if \(C_c(H)\) uses every gadget labelled by \(H\setminus K_c\), exactly one passes.
+
+We can now state the complete filter.  For each retained raw \(T\), set \(H=L_c(T)\).  Test (3) by scanning every \(e\in H\) and every \(d\in\mathfrak C\).  A test of \(\Phi_d(H\setminus\{e\})\) first checks \(K_d\subseteq H\setminus\{e\}\) and then performs at most \(|A_d|\le b\) directed-reachability searches in the graph in (1).  Reject \(H\) if any such test is positive.  Otherwise let
+\[
+ \operatorname{own}(H)=\min\{d\in\mathfrak C:\Phi_d(H)=1\}
+ \tag{8}
+\]
+in the fixed core order, and output \(H\) only from the run for \(c=\operatorname{own}(H)\).  The set in (8) is nonempty because the raw subgraph itself establishes \(\Phi_c(H)=1\).
+
+Soundness is immediate from (3): every output lies in \(\mathcal O_{XY}\), hence is globally minimal across all cores.  For coverage, fix \(H\in\mathcal O_{XY}\) and put \(c_* =\operatorname{own}(H)\).  First observe that
+\[
+ H\setminus K_{c_*}\subseteq U_{c_*}.
+ \tag{9}
+\]
+Indeed, an edge in \(H\setminus(K_{c_*}\cup U_{c_*})\) is either bidirected or is a directed edge unavailable in the induced directed graph on \(V\setminus X\).  Deleting it leaves \(K_{c_*}\) present and leaves every path certifying \(\Phi_{c_*}(H)=1\) unchanged, contrary to (3).  Equation (5) makes \(\Gamma_{c_*}[H]\) feasible, so \(C_{c_*}(H)\) exists.  It must use every gadget \(g_e\) with \(e\in H\setminus K_{c_*}\).  Otherwise its paths, expanded as in the converse proof of (5), would prove
+\[
+ \Phi_{c_*}(H\setminus\{e\})=1,
+\]
+contradicting (3).  Hence (6) gives \(L_{c_*}(C_{c_*}(H))=H\).  The directed-Steiner enumerator eventually visits this canonical subgraph; it passes (7), (3), and (8), and therefore outputs \(H\).  Equation (7) prevents a second output from the same core, while (8) prevents an output from any other core.  Thus every obstruction is output exactly once.  Finiteness of \(\mathfrak C\) and exhaustion of each directed-Steiner enumerator prove termination and certified exhaustion.
+
+For every accepted \(H\), Definition~\ref{def:obstruction-hypergraph} gives \(\operatorname{Fail}(H)=1\).  Run the fixed deterministic \(\operatorname{ID}\) procedure on that realization and record its ordered recursion trace.  Lemma~\ref{lem:ordinary-id-polynomial-decision} bounds the decision time polynomially; recording the already computed, deterministically tie-broken trace adds at most linear overhead in that computation.  This supplies the canonical original-query failure label.
+
+It remains to account for time and space.  The proof of Theorem~\ref{thm:sparse-core-reduction} gives
+\[
+ M\le |V|2^{O(b\log(b+1))}.
+ \tag{10}
+\]
+The tuple encodings in Definition~\ref{def:sparse-core-family} can be generated in their fixed order and checked in polynomial time, so (10), construction (4), and the cited per-core preprocessing bound cost \(2^{O(b\log(b+1))}\operatorname{poly}(n)\) in total over all cores.  Let \(W\) be the number of raw Steiner subgraphs examined over all core runs, with witnesses and cores counted separately.  The raw enumerators use \(\operatorname{poly}(n)\) work per raw subgraph and polynomial work before their first and after their last subgraphs.  Tests (7)--(8) and (3) use at most \((m+1)M\) core-feasibility tests per raw subgraph.  Consequently the complete exact run takes
+\[
+ 2^{O(b\log(b+1))}\operatorname{poly}(n)(1+W)
+\tag{11}
+\]
+time.  Process one core at a time and regenerate the core iterator on demand during (3) and (8).  One directed-Steiner state, one support bit vector, and one core-feasibility workspace then use \(\operatorname{poly}(n)\) memory; neither prior raw candidates nor prior outputs are stored.
+
+Finally, (11) is deliberately not an accepted-output delay bound.  The filter can reject raw candidates strictly containing an obstruction feasible for a competing core, and the sparse-core reduction supplies no bound on how many such candidates can occur between two accepted outputs.  More structurally, if already certified obstructions are \(B_1,\ldots,B_q\), then a prospective support \(H\) avoids their domination exactly when
+\[
+ B_i\nsubseteq H\text{ for every }i
+ \quad\Longleftrightarrow\quad
+ (E^{?}\setminus H)\cap B_i\ne\varnothing\text{ for every }i.
+\tag{12}
+\]
+Thus partial pruning must enforce a hypergraph-transversal constraint on the excluded edges while simultaneously satisfying the existential core choice and all root-reachability groups in (1).  Proposition~\ref{prop:width-parameter-separation} shows that bounded \(b\), even \(b=2\), does not bound the incidence treewidth of \(\mathcal O_{XY}\).  Hence neither a bounded-incidence-width extension oracle nor a general-\(b\) delay bound follows from the frozen assumptions, and an explicit-hypergraph dualization bound cannot be substituted for the missing implicit coupled-extension oracle.  This proves exactly the candidate-sensitive claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem gives the strongest unconditional general-width result: exact global obstruction compilation with canonical duplicate suppression and fixed-parameter polynomial work per raw projected witness. \textit{Gap.} A worst-case delay bound between accepted outputs still requires the open partial-support extension oracle that couples cross-core non-domination to multiple-root reachability. \textit{Consumer.} The uncertain-ADMG sampler and edgeID workflow can use this as an exact offline compiler and report its raw-candidate count; online polynomial-delay reporting is certified by the width-two theorem.
+
+\begin{theorem}[thm:width-two-enumeration]\label{thm:width-two-enumeration}
+If \(b\le2\), then \(\operatorname{Fail}(S)=1\) if and only if there is \(\beta=(x,r,e^{\to},e^{\leftrightarrow})\in\mathcal B\) whose two edges lie in \(E^{\mathrm{det}}\cup S\) and for which \(r\) reaches \(Y\) in the directed part of \(G_S[V\setminus X]\).  Under the corrected auxiliary-network projection, \(\mathcal O_{XY}\) is exactly the family \(\{L(P):P\text{ is an induced directed }\sigma\text{-to-}t\text{ path in }T^{\mathrm{proj}}\}\).  The child rule in Definition~\ref{def:width-two-projection} enumerates this family exactly once with polynomial preprocessing, worst-case delay including first output and exhaustion, and polynomial working space.
+\end{theorem}
+\begin{proof}
+Assume \(b\leq 2\).  We first identify failure with reachability in the auxiliary network.  By Lemma~\ref{lem:width-two-bow-characterization}, for every \(S\subseteq E^{?}\),
+\[
+ \operatorname{Fail}(S)=1
+ \quad\Longleftrightarrow\quad
+ \begin{gathered}
+ \text{there is }\beta=(x,r,e^{\to},e^{\leftrightarrow})\in\mathcal B
+ \text{ with }e^{\to},e^{\leftrightarrow}\in E^{\mathrm{det}}\cup S,\\
+ \text{and }r\text{ reaches some vertex of }Y
+ \text{ in the directed part of }G_S[V\setminus X].
+ \end{gathered}
+\tag{1}
+\]
+For a fixed \(\beta\), Definition~\ref{def:width-two-auxiliary-network} represents its two bow edges by
+\(\sigma_H\to a_\beta\to r_\beta\), represents the directed graph on \(V\setminus X\) by the body of \(H^{\mathrm{aux}}\), and joins every \(y\in Y\) deterministically to \(t_H\).  A labelled arc is retained in \(H^{\mathrm{aux}}_S\) exactly when its uncertain edge belongs to \(S\).  Consequently, the right-hand side of (1) holds if and only if \(H^{\mathrm{aux}}_S\) contains a directed \(\sigma_H\)-to-\(t_H\) path.  The converse direction here uses the fact that every arc leaving \(\sigma_H\) starts one of the private bow paths, so every such auxiliary path selects a member of \(\mathcal B\) and then follows only body arrows to \(Y\).
+
+We next verify the injectivity needed by the projection rather than taking it as an asserted property of the construction.  A bidirected uncertain edge can label only the first arc of the private path for the unique bow having its typed endpoint pair, and a directed uncertain edge out of \(X\) can label only the second arc of that same private path.  A directed body edge has both endpoints in \(V\setminus X\), so it cannot also be a directed bow edge.  No bidirected edge labels a body arc.  Since \(E^{\mathrm{det}}\cap E^{?}=\varnothing\) by Assumption~\ref{ass:edge-partition}, deterministic and uncertain copies cannot collide.  Hence every \(e\in E^{?}\) labels at most one auxiliary arc.
+
+Let \(A_H^{?}\) denote the labelled auxiliary arcs, write \(a_e=(q_e^-,q_e^+)\) for the arc labelled by \(e\), and define
+\[
+ U(S)=\{u_e:a_e\in A_H^{?},\ e\in S\}.
+\]
+Definitions~\ref{def:transition-vertices}--\ref{def:transition-arcs} give the exact equivalence
+\[
+ \sigma_H\leadsto t_H\text{ in }H^{\mathrm{aux}}_S
+ \quad\Longleftrightarrow\quad
+ \sigma\leadsto t\text{ in }
+ T^{\mathrm{proj}}[\{\sigma,t\}\cup U(S)].
+\tag{2}
+\]
+Indeed, given a path on the left, list its labelled arcs in their path order.  The deterministic segment before the first labelled arc, between every two consecutive labelled arcs, and after the last labelled arc gives, respectively, the transition arcs from \(\sigma\), between the corresponding vertices \(u_e\), and to \(t\).  If the path has no labelled arc, it gives \(\sigma\to t\).  Conversely, replace each transition arc by a deterministic path witnessing the reachability condition in Definition~\ref{def:transition-arcs}, and insert the labelled auxiliary arc at every internal transition vertex.  Concatenation gives the path on the left.  It cannot repeat a vertex, because \(H^{\mathrm{aux}}\) is acyclic.  The same argument shows that \(T^{\mathrm{proj}}\) is acyclic: a directed cycle among transition vertices, after expansion and insertion of their labelled arcs, would give a directed cycle in \(H^{\mathrm{aux}}\), while \(\sigma\) has no incoming transition arc and \(t\) has no outgoing transition arc.
+
+By Lemma~\ref{lem:failure-upward} and Definition~\ref{def:obstruction-hypergraph},
+\[
+ C\in\mathcal O_{XY}
+ \quad\Longleftrightarrow\quad
+ \operatorname{Fail}(C)=1
+ \text{ and }\operatorname{Fail}(D)=0
+ \text{ for every }D\subsetneq C.
+\tag{3}
+\]
+For the nontrivial implication, if every one-edge deletion of \(C\) succeeds but some \(D\subsetneq C\) fails, choose \(e\in C\setminus D\); upward closure would make \(C\setminus\{e\}\) fail, a contradiction.
+
+Let \(C\in\mathcal O_{XY}\).  Equations (1)--(2) give a transition path whose internal labels form a set \(D\subseteq C\).  That path also proves \(\operatorname{Fail}(D)=1\), so (3) forces \(D=C\).  This transition path is induced.  Otherwise it has an arc from a path vertex \(v_i\) to a nonconsecutive later vertex \(v_j\), and replacing the subpath \(v_i,\ldots,v_j\) by that arc produces a transition path whose internal labels are a proper subset of \(C\), contradicting (3).
+
+Conversely, let \(P=(\sigma=v_0,v_1,\ldots,v_k=t)\) be an induced directed path in \(T^{\mathrm{proj}}\), and put \(C=L(P)\).  Equation (2) gives \(\operatorname{Fail}(C)=1\).  Suppose that a proper subset \(D\subsetneq C\) failed.  Another application of (2) would give a transition path all of whose internal vertices belong to \(\{u_e:e\in D\}\).  The relative order of any two vertices common to two directed paths in a DAG is the same: reversing their order would create directed paths in both directions and hence a directed cycle.  Thus this second path is obtained from the ordered internal vertex set of \(P\) by omitting at least one vertex.  At some omission, two vertices consecutive on the second path are nonconsecutive on \(P\); the arc between them is a chord of \(P\), a contradiction.  Therefore no proper subset of \(C\) fails, and (3) yields \(C\in\mathcal O_{XY}\).
+
+This correspondence is one-to-one.  If two induced transition paths had the same label union, injectivity of the auxiliary labels would give them the same internal vertex set.  Acyclicity fixes the relative order of that set by the preceding argument, so the two paths would be identical.  We have therefore proved
+\[
+ \mathcal O_{XY}
+ =\{L(P):P\text{ is an induced directed }\sigma\text{-to-}t
+       \text{ path in }T^{\mathrm{proj}}\}.
+\tag{4}
+\]
+Notice that (3)--(4) impose minimality against every auxiliary path and hence against every competing bow start; minimality is not merely local to one selected bow.
+
+It remains to prove the enumeration guarantees.  At a search state \((P,H)\), with last prefix vertex \(v\), maintain the following invariant: \(P\) is an induced prefix; \(H\) contains \(v\) and \(t\) but none of the earlier prefix vertices; and every vertex that could create a chord from an earlier prefix vertex to a later suffix vertex has already been deleted.  The invariant holds initially.  If an induced completion has next vertex \(w\), it cannot later use any member of \(N_H^+(v)\setminus\{w\}\), because the arc from \(v\) to that member would be a chord.  It also cannot revisit \(v\).  Hence it survives in
+\[
+ H_w=H-\bigl(\{v\}\cup(N_H^+(v)\setminus\{w\})\bigr).
+\]
+Conversely, if \(t\) is reachable from \(w\) in \(H_w\), choose a shortest directed \(w\)-to-\(t\) path in \(H_w\).  A shortest directed path has no forward chord, since such a chord would shorten it.  Appending it to \(P\cdot w\) creates no chord from \(v\), by the definition of \(H_w\), and no chord from an earlier prefix vertex, by the induction invariant.  Thus the child has an induced completion.  The reachability test is therefore exact: every created child contains an output, and every rejected child contains none.  Children with distinct \(w\) partition the completions by their next vertex.  Induction on the remaining path length proves coverage and exhaustion, while the partition and the bijection (4) prove duplicate suppression.  Every emitted support is globally minimal by (4).
+
+For the complexity bound, put \(N=|W^{\mathrm{proj}}|\) and \(M=|A^{\mathrm{proj}}|\).  The auxiliary network has polynomial size: an ADMG has only polynomially many typed edges and \(|\mathcal B|\leq |X|\,|V\setminus X|\).  Constructing \(T^{\mathrm{proj}}\) requires only polynomially many reachability searches in the deterministic auxiliary subgraph, so preprocessing is polynomial.  At a state there are at most \(N\) candidate out-neighbors, and construction of \(H_w\) together with a reachability search costs \(O(N+M)\), giving \(O(N(N+M))\) work for a complete scan of one state.  The recursion depth is at most \(N\).  Between consecutive outputs, depth-first search finishes scans on at most \(N\) old stack frames and descends through at most \(N\) new frames; the same bound applies before the first output and from the last output to certified exhaustion.  Thus the conservative worst-case delay is
+\[
+ O\bigl(N^2(N+M)\bigr),
+\]
+which is polynomial in the input size.  Storing the fixed transition graph and one surviving-vertex bit set per stack level uses polynomial working space.
+
+Finally, if \(\sigma\to t\) is present, its induced path emits \(\varnothing\).  Every longer \(\sigma\)-to-\(t\) path has \(\sigma\to t\) as a chord; algorithmically, choosing any other first neighbor deletes \(t\), so that branch fails its reachability test.  Hence the empty obstruction is emitted once and suppresses every nonminimal nonempty support.  This also completes the boundary case and all claimed preprocessing, delay, space, coverage, minimality, duplicate-suppression, and exhaustion guarantees.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Shpitser (2023, Proposition 1) supplies the original-query hedge equivalence; the theorem specializes its certificates at district size two and validates a complete projection algorithm without the unresolved multiple-root recursion. \textit{Gap.} The original-query criterion in Shpitser (2023, Proposition 1) is not an enumeration result, while directed-path and Steiner enumeration do not suppress the exponential multiplicity of deterministic path witnesses or collisions between bow starts that yield the same uncertain support. \textit{Consumer.} It gives an immediately implementable exact compiler for uncertain envelopes with only pairwise latent-confounding districts.
+
+\begin{proposition}[prop:deterministic-diamond-projection]\label{prop:deterministic-diamond-projection}
+For \(\mathcal D\), the largest bidirected district has size \(b=2\).  In the corrected auxiliary network, the two distinct deterministic paths \(r\to a\to c\to y\) and \(r\to b\to c\to y\) induce the same transition arc \(u_{e_1}\to t\).  The unique induced \(\sigma\)-to-\(t\) transition path has label union \(\{e_1,e_2\}\), which is the unique member of \(\mathcal O_{XY}\); hence the projected enumerator emits it exactly once.
+\end{proposition}
+\begin{proof}
+In \(\mathcal D\), the only bidirected edge of the full envelope is \(e_2=x\leftrightarrow r\).  Hence \(\{x,r\}\) is a bidirected district of size two, every other district is a singleton, and Definition~\ref{def:deterministic-diamond-instance} gives \(b=2\).
+
+There is exactly one available bow,
+\[
+ \beta=(x,r,e_1,e_2),
+ \qquad e_1=x\to r,
+ \qquad e_2=x\leftrightarrow r.
+\]
+In \(H^{\mathrm{aux}}\), its private path is
+\[
+ \sigma_H\xrightarrow{e_2}a_\beta
+ \xrightarrow{e_1}r.
+\]
+All remaining arcs on a route from \(r\) to \(t_H\) are deterministic.  In particular, the two distinct paths
+\[
+ r\to a\to c\to y\to t_H
+ \qquad\text{and}\qquad
+ r\to b\to c\to y\to t_H
+\]
+both witness the single Boolean reachability relation from the head \(r\) of the arc labelled \(e_1\) to \(t_H\).  By Definition~\ref{def:transition-arcs}, they therefore create one transition arc \(u_{e_1}\to t\), rather than two copies.
+
+The two uncertain auxiliary arcs give precisely the internal transition vertices \(u_{e_2}\) and \(u_{e_1}\).  Length-zero deterministic reachability gives \(\sigma\to u_{e_2}\) and \(u_{e_2}\to u_{e_1}\).  There is no deterministic route from \(\sigma_H\) to the tail \(a_\beta\) of the \(e_1\)-arc, nor from the head \(a_\beta\) of the \(e_2\)-arc to \(t_H\), because the omitted arc in each case is the other uncertain bow arc.  There is also no deterministic \(\sigma_H\)-to-\(t_H\) route.  Consequently the unique directed, and hence unique induced, transition path is
+\[
+ \sigma\to u_{e_2}\to u_{e_1}\to t.
+\]
+Definition~\ref{def:transition-labels} gives its label union as
+\[
+ L(\sigma,u_{e_2},u_{e_1},t)=\{e_1,e_2\}.
+\]
+Theorem~\ref{thm:width-two-enumeration} now yields
+\(\mathcal O_{XY}=\{\{e_1,e_2\}\}\), and its exact-once enumeration result shows that this support is emitted once despite the two deterministic diamond arms.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The instance exposes the exact duplicate mechanism that deterministic-path projection must quotient before enumeration. \textit{Gap.} Ordinary path enumeration visits both arms of the deterministic diamond even though neither arm changes the uncertain-edge support. \textit{Consumer.} It is a worked regression test for projection, label-union canonicalization, and duplicate suppression in the width-two compiler.
+
+\begin{proposition}[prop:reliability-implementation-corollary]\label{prop:reliability-implementation-corollary}
+On the full real cube \(p\in[0,1]^{E^{?}}\), \(R_{XY}(p)=\sum_{S\subseteq E^{?}:\operatorname{Fail}(S)=0}\prod_{e\in S}p_e\prod_{e\in E^{?}\setminus S}(1-p_e)\) is a multilinear polynomial and \(\partial R_{XY}/\partial p_e=-\Pr_{p_{-e}}\{\operatorname{Fail}(Z\setminus\{e\})=0,\operatorname{Fail}(Z\cup\{e\})=1\}\in[-1,0]\), including at boundary points by polynomial evaluation. On the interior cube \(p\in(0,1)^{E^{?}}\), the same polynomial satisfies \(R_{XY}(p)=\prod_{e\in E^{?}}(1-p_e)\,I_{\mathcal O}((p_e/(1-p_e))_{e\in E^{?}})\).
+\end{proposition}
+\begin{proof}
+Put \(M=E^{?}\).  Because \(M\) is finite and failure is upward closed by Lemma~\ref{lem:failure-upward}, for every \(S\subseteq M\),
+\[
+ \operatorname{Fail}(S)=0
+ \quad\Longleftrightarrow\quad
+ (\forall h\in\mathcal O_{XY})\ h\nsubseteq S. \tag{1}
+\]
+Indeed, the reverse implication follows because any failing \(S\) contains an inclusion-minimal failing subset, which belongs to \(\mathcal O_{XY}\); the forward implication follows from upward closure.  This also covers \(\varnothing\in\mathcal O_{XY}\), in which case no set satisfies the right-hand side.
+
+Definition~\ref{def:reliability} and the product edge law give
+\[
+ R_{XY}(p)=\sum_{S\subseteq M:\,\operatorname{Fail}(S)=0}
+ \prod_{f\in S}p_f\prod_{f\in M\setminus S}(1-p_f). \tag{2}
+\]
+Every variable \(p_f\) occurs to degree at most one in every summand, so (2) is a multilinear polynomial on the full real cube.
+
+Fix \(e\in M\).  For \(A\subseteq M\setminus\{e\}\), write
+\[
+ w_{p_{-e}}(A)=\prod_{f\in A}p_f
+ \prod_{f\in M\setminus(A\cup\{e\})}(1-p_f),
+\]
+and put \(s_i(A)=\mathbf 1\{\operatorname{Fail}(A\cup i\{e\})=0\}\) for \(i\in\{0,1\}\), where \(A\cup0\{e\}=A\).  Partitioning (2) by the value of the \(e\)-coordinate yields
+\[
+ R_{XY}(p)=\sum_A w_{p_{-e}}(A)\bigl((1-p_e)s_0(A)+p_es_1(A)\bigr).
+\]
+Polynomial differentiation therefore gives, at every interior or boundary point,
+\[
+ \frac{\partial R_{XY}}{\partial p_e}
+ =\sum_A w_{p_{-e}}(A)(s_1(A)-s_0(A)). \tag{3}
+\]
+Upward closure implies \(s_1(A)\le s_0(A)\).  Thus the summand difference is minus the indicator of
+\(
+\{\operatorname{Fail}(A)=0,\operatorname{Fail}(A\cup\{e\})=1\}
+\), and (3) is exactly
+\[
+ -\Pr_{p_{-e}}\!\left\{\operatorname{Fail}(Z\setminus\{e\})=0,
+ \operatorname{Fail}(Z\cup\{e\})=1\right\}\in[-1,0].
+\]
+
+Finally suppose \(p\in(0,1)^M\), so every division defining \(\lambda_f=p_f/(1-p_f)\) is valid.  By (1) and Definition~\ref{def:independence-polynomial},
+\[
+\begin{aligned}
+ \prod_{f\in M}(1-p_f)I_{\mathcal O}(\lambda)
+ &=\sum_{J:\,(\forall h\in\mathcal O_{XY})\,h\nsubseteq J}
+ \prod_{f\in J}(1-p_f)\frac{p_f}{1-p_f}
+ \prod_{f\notin J}(1-p_f)\\
+ &=\sum_{J:\,\operatorname{Fail}(J)=0}
+ \prod_{f\in J}p_f\prod_{f\notin J}(1-p_f)
+ =R_{XY}(p).
+\end{aligned}
+\]
+This proves all three assertions with the stated interior restriction only where odds are used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is an algebraic implementation corollary of compiling the monotone failure event into its minimal-support antichain, not an independent novelty claim. \textit{Gap.} Akbari et al. use products of edge probabilities to rank one realization; after the new obstruction compiler makes the negative monotone clauses explicit, the total mass and pivotal-edge derivative identities follow by standard literal weighting and conditioning. \textit{Consumer.} Practitioners obtain total confidence and the marginal value of resolving uncertainty about each edge from the compiler output.
+
+\begin{proposition}[prop:incidence-reliability-implementation]\label{prop:incidence-reliability-implementation}
+As an implementation corollary of Proposition~\ref{prop:reliability-implementation-corollary} and standard exact literal-weighted CNF model counting on incidence decompositions, given \(\mathcal O_{XY}\), an exact-arithmetic input \(p\in(\mathbb Q\cap[0,1])^{E^{?}}\), and \(\mathcal T\), one can compute \(R_{XY}(p)\) and every coordinate of \(\nabla R_{XY}(p)\) exactly in \(2^{O(\tau)}\operatorname{poly}(|\mathcal O_{XY}|+|E^{?}|+|\mathcal T|+B)\) bit operations, where \(B\) is the total input bit length of \(p\). A standard project--join bag state records assignments of incident uncertain-edge vertices and one witnessed-zero flag for each obstruction clause; derivatives use the conditioned evaluations \(p_e=1\) and \(p_e=0\), so the guarantee includes boundary coordinates.
+\end{proposition}
+\begin{proof}
+Form the negative monotone CNF
+\[
+ \Phi_{\mathcal O}=\bigwedge_{h\in\mathcal O_{XY}}
+ \left(\bigvee_{e\in h}\neg z_e\right). \tag{1}
+\]
+By Proposition~\ref{prop:reliability-implementation-corollary}, an assignment \(z\) satisfies (1) exactly when its present-edge set is an identifying realization.  Give literals the weights \(w(z_e=1)=p_e\) and \(w(z_e=0)=1-p_e\).  Hence the literal-weighted model count of (1) equals \(R_{XY}(p)\).  Lemma~\ref{lem:incidence-sat-counting} supplies the standard incidence-decomposition architecture; we spell out the weighted specialization to establish the exact-arithmetic and derivative claims.
+
+Normalize the supplied certificate \(\mathcal T\) to a rooted nice incidence decomposition, with introduce-vertex, introduce-incidence, forget-vertex, and join nodes.  This introduces only a polynomial number of bags and does not increase width.  At a bag \(B_t\), a state is a pair \((\alpha,s)\): \(\alpha\) assigns \(0\) or \(1\) to every uncertain-edge vertex in \(B_t\), and \(s_h\in\{0,1\}\) for every obstruction vertex \(h\in B_t\).  The flag \(s_h=1\) means that an already introduced incidence \((e,h)\) has \(\alpha_e=0\), so clause \(h\) has already obtained a true literal.  The table value is the total weight of assignments to forgotten edge vertices that realize the state and satisfy every forgotten clause.
+
+The empty leaf has value one.  Introducing an edge vertex extends \(\alpha\) with both values and introduces no weight.  Introducing a clause vertex sets its flag to zero.  Introducing an incidence \((e,h)\) replaces \(s_h\) by \(s_h\vee\mathbf 1\{\alpha_e=0\}\).  When forgetting \(e\), the two child entries are combined as
+\[
+ T_t(\alpha,s)=(1-p_e)T_{t'}(\alpha\cup\{e\mapsto0\},s)
+                  +p_eT_{t'}(\alpha\cup\{e\mapsto1\},s). \tag{2}
+\]
+Forgetting a clause discards the states with flag zero and then removes its flag.  At a join, child assignments on bag edge vertices must agree, and clause flags combine by coordinatewise disjunction; the parent entry is the sum of the products over all pairs of child flag vectors with the prescribed disjunction.  The running-intersection property ensures that forgotten edge sets in the two children are disjoint and that every incidence is introduced exactly once.  Induction on the decomposition tree therefore proves the table invariant.  At the empty root the sole entry is precisely the weighted count of (1).  An empty obstruction gives an empty clause, whose flag can never become one, and hence correctly produces value zero.
+
+A bag has at most \(\tau+1\) vertices, so it has at most \(2^{\tau+1}\) states.  Even the direct enumeration of compatible flag pairs at a join costs \(2^{O(\tau)}\); every other transition has the same or smaller cost.  Thus one evaluation uses
+\[
+ 2^{O(\tau)}\operatorname{poly}(|\mathcal O_{XY}|+|E^{?}|+|\mathcal T|)
+\]
+rational operations.
+
+For bit complexity, write \(p_e=a_e/d_e\) in lowest terms.  By the table invariant, each entry is a nonnegative sum over a disjoint family of assignments of forgotten variables and is at most one.  Its denominator divides the product of the corresponding \(d_e\)'s.  Therefore reduced numerators and denominators have \(O(B+|E^{?}|+\tau)\) bits, and additions, multiplications, and reductions in all transitions cost a polynomial in the displayed input length.  The evaluation consequently takes
+\[
+ 2^{O(\tau)}\operatorname{poly}(|\mathcal O_{XY}|+|E^{?}|+|\mathcal T|+B)
+\]
+bit operations.
+
+For each \(e\), run the same recurrence twice with \(p_e=1\) and \(p_e=0\).  Equation~(3) in Proposition~\ref{prop:reliability-implementation-corollary} gives
+\[
+ \frac{\partial R_{XY}}{\partial p_e}
+ =R_{XY}(p_e=1,p_{-e})-R_{XY}(p_e=0,p_{-e}).
+\]
+The factor of \(2|E^{?}|\) is polynomial, the width and decomposition are unchanged, and fixed weights zero and one add no bit cost.  This computes all coordinates exactly, including when any input coordinate is on the boundary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition records a standard exact weighted-model-counting implementation of the newly compiled obstruction hypergraph and charges the supplied decomposition and rational bit lengths. \textit{Gap.} Samer and Szeider supply the incidence-treewidth counting recurrence, and Dudek et al. supply literal-weighted project--join dynamic programming; this proposition claims no new generic dynamic program and only instantiates those methods after causal obstruction compilation. \textit{Consumer.} edgeID can evaluate identification reliability and graph-refinement sensitivities whenever the emitted support hypergraph has small incidence treewidth.
+
+\begin{theorem}[thm:width-two-counting-hardness]\label{thm:width-two-counting-hardness}
+Computing \(N_{XY}\) is \(\#\mathrm{P}\)-complete under polynomial-time counting reductions even for topologically ordered envelopes with \(b=2\). Hardness holds when every uncertain edge has probability \(1/2\): prepend to an acyclic source--sink network the deterministic edges \(x\to s\) and \(x\leftrightarrow s\), query \(P_x(t)\), and invoke Shpitser (2023, Proposition 1) to obtain equivalence between original-query ID failure and \(s\)-to-\(t\) reachability; membership follows by guessing \(S\) and running ordinary ID.
+\end{theorem}
+\begin{proof}
+Membership in \(\#\mathrm P\) follows by using one nondeterministic bit for every \(e\in E^{?}\), thereby choosing each support \(S\) along exactly one computation branch, and accepting precisely when ordinary \(\operatorname{ID}(G_S,P_x(t))\) succeeds.  Lemma~\ref{lem:ordinary-id-polynomial-decision} makes this acceptance predicate decidable in polynomial time.
+
+For hardness, let \(B=(L,R,F)\) be a bipartite graph.  Construct the topologically ordered DAG network on \(\{s,t\}\cup L\cup R\) with uncertain arrows
+\[
+ a_u=(s\to u)\quad(u\in L),
+ \qquad b_v=(v\to t)\quad(v\in R),
+\]
+and deterministic arrows \(u\to v\) for \(uv\in F\).  Prepend a fresh treatment vertex \(x\) and the deterministic bow edges \(x\to s\) and \(x\leftrightarrow s\), set \(X=\{x\}\), \(Y=\{t\}\), and query \(P_x(t)\).  The only nonsingleton bidirected district is \(\{x,s\}\), so \(b=2\).  Lemma~\ref{lem:width-two-bow-characterization} gives
+\[
+ \operatorname{Fail}(S)=1
+ \quad\Longleftrightarrow\quad
+ s\text{ reaches }t\text{ using the selected network arrows}. \tag{1}
+\]
+For the displayed network, the right-hand side of (1) holds exactly when some \(uv\in F\) has both \(a_u\in S\) and \(b_v\in S\).  Thus the vertex set
+\[
+ I_S=\{u\in L:a_u\in S\}\cup\{v\in R:b_v\in S\}
+\]
+is independent in \(B\) exactly when \(\operatorname{ID}\) succeeds.  The map \(S\mapsto I_S\) is a bijection, so \(N_{XY}\) is the number of independent sets of \(B\).  Complementation is a bijection between independent sets and vertex covers.  Lemma~\ref{lem:bipartite-vertex-cover-counting-hardness} therefore gives \(\#\mathrm P\)-hardness, indeed by a parsimonious transformation followed by this bijection and hence certainly under polynomial-time counting reductions.  Assigning probability \(1/2\) to every uncertain arrow makes all supports equiprobable and does not alter the count.  Together with membership, this proves the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lower bound shows that small causal districts permit output-sensitive explanations without making the total probability problem easy. \textit{Gap.} Akbari et al. establish NP-completeness of selecting one identifiable graph; Provan establishes reliability counting hardness without a causal width-preserving reduction. \textit{Consumer.} The result tells users when exact reliability needs structural width such as \(\tau\), despite a simple latent-confounding pattern.
+
+\begin{proposition}[prop:width-parameter-separation]\label{prop:width-parameter-separation}
+For every \(k\ge1\), there is an envelope with \(b=2\), \(O(k)\) vertices and edges, and \(|\mathcal O_{XY}|=2^k\). There is also a family with \(b=2\) and polynomial-size \(\mathcal O_{XY}\) whose incidence treewidth is unbounded.
+\end{proposition}
+\begin{proof}
+For the first family, take vertices \(x,s=v_0,v_1,\ldots,v_k=t\) and, for every \(i\in\{1,\ldots,k\}\), two branch vertices \(a_i,b_i\).  Add the deterministic bow \(x\to s\), \(x\leftrightarrow s\).  For each \(i\), make the four arrows
+\[
+ v_{i-1}\to a_i,quad a_i\to v_i,quad
+ v_{i-1}\to b_i,quad b_i\to v_i
+\]
+uncertain, and add no other edges.  Use \(X=\{x\}\), \(Y=\{t\}\).  The only nonsingleton district is \(\{x,s\}\), so \(b=2\), and the size of the envelope is \(O(k)\).  By Lemma~\ref{lem:width-two-bow-characterization}, a support fails exactly when it contains an \(s\)-to-\(t\) path.  An inclusion-minimal such support chooses exactly one of the two length-two branches in each stage.  Conversely every such choice is a path and deletion of any selected arrow breaks it.  Hence
+\[
+ |\mathcal O_{XY}|=2^k.
+\]
+
+For the second family, let \(B_k=K_{k,k}\) with parts \(L=\{u_1,\ldots,u_k\}\) and \(R=\{v_1,\ldots,v_k\}\).  Use the same deterministic bow and the directed network with uncertain \(a_i=s\to u_i\), uncertain \(b_j=v_j\to t\), and deterministic \(u_i\to v_j\) for all \(i,j\).  Again \(b=2\).  The bow characterization shows directly that
+\[
+ \mathcal O_{XY}=\bigl\{\{a_i,b_j\}:1\le i,j\le k\bigr\}, \tag{1}
+\]
+so the hypergraph has \(k^2\) hyperedges and \(2k\) ground elements.
+
+Its incidence graph is the graph obtained from \(K_{k,k}\) by subdividing every edge once, the subdivision vertex for \(a_ib_j\) being the obstruction \(\{a_i,b_j\}\).  Contracting one edge at every subdivision recovers \(K_{k,k}\).  Moreover, \(K_{k,k}\) has a \(K_{k+1}\) minor: use the \(k-1\) disjoint branch sets \(\{u_i,v_i\}\) for \(i<k\), together with the singleton branch sets \(\{u_k\}\) and \(\{v_k\}\).  These \(k+1\) branch sets are pairwise adjacent.  Treewidth does not increase under deletion or contraction: from a tree decomposition, deletion changes nothing, while contraction replaces the two endpoints by the contracted vertex in every bag and preserves connectedness of its bag set.  Also every clique of size \(q\) occurs in some bag, since the connected subtrees of bags containing its vertices intersect pairwise and subtrees of a tree have the Helly property; hence \(\operatorname{tw}(K_q)=q-1\).  It follows that the incidence graph in (1) has treewidth at least \(k\).  Thus its incidence treewidth is unbounded although \(b=2\) and \(\mathcal O_{XY}\) has polynomial size.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The two constructions separate causal district width, output size, and reliability-evaluation width. \textit{Gap.} Neither causal identification nor classical reliability work records this three-way parameter separation for uncertain ADMG queries. \textit{Consumer.} It prevents misleading total-time claims and guides whether users should enumerate, compile by incidence width, or approximate.
+
+\begin{proposition}[prop:bow-sanity]\label{prop:bow-sanity}
+For the graph with deterministic \(X\to M\to Y\), uncertain \(X\to Y\) of probability \(q\in[0,1]\), and uncertain \(X\leftrightarrow Y\) of probability \(r\in[0,1]\), \(\mathcal O_{XY}=\{\{X\to Y,X\leftrightarrow Y\}\}\), \(R_{XY}=1-qr\), \(\partial R_{XY}/\partial q=-r\), and \(\partial R_{XY}/\partial r=-q\), including on the boundary of the square.
+\end{proposition}
+\begin{proof}
+Let \(e^{\to}=X\to Y\) and \(e^{\leftrightarrow}=X\leftrightarrow Y\).  In the full envelope the only nonsingleton bidirected district is \(\{X,Y\}\), so \(b=2\).  The pair \((e^{\to},e^{\leftrightarrow})\) is the only available bow crossing the intervention set, and its root \(Y\) reaches the outcome set by a length-zero path in \(V\setminus X\).  Lemma~\ref{lem:width-two-bow-characterization} therefore gives
+\[
+ \operatorname{Fail}(S)=1
+ \quad\Longleftrightarrow\quad
+ \{e^{\to},e^{\leftrightarrow}\}\subseteq S.
+\]
+Definition~\ref{def:obstruction-hypergraph} yields
+\(
+\mathcal O_{XY}=\{\{e^{\to},e^{\leftrightarrow}\}\}
+\).  Under the product edge law the failure probability is \(qr\), so Proposition~\ref{prop:reliability-implementation-corollary} gives, on the full square,
+\[
+ R_{XY}(q,r)=1-qr,qquad
+ \frac{\partial R_{XY}}{\partial q}=-r,qquad
+ \frac{\partial R_{XY}}{\partial r}=-q.
+\]
+These identities are polynomial identities and hence include every boundary point.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction recovers the familiar bow obstruction and checks the sign and normalization of the reliability gradient. \textit{Gap.} It is a required special-case reduction, not an independent novelty claim. \textit{Consumer.} It supplies a transparent unit test for any implementation of enumeration and exact differentiation.
+
+\begin{lemma}[lem:original-query-hedge-characterization]\label{lem:original-query-hedge-characterization}
+Under ordinary nonparametric ADMG semantics, for every realization \(G_S\), ordinary \(\operatorname{ID}(G_S,P_x(y))\) fails if and only if there are nonempty vertex sets \(A\subseteq F_0\subsetneq F_1\subseteq V\) forming a hedge for the original query: each \(F_i\) is bidirected connected and admits a directed subgraph in which every vertex reaches \(A\), \(F_0\cap X=\varnothing\), \(F_1\cap X\ne\varnothing\), and every vertex of \(A\) reaches \(Y\) by a directed path in \(G_S[V\setminus X]\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the published original-query failure criterion used to convert graphical ID failure into a finite hedge witness. \textit{Gap.} The result is imported at theorem granularity; all edge-labelled sparsification is derived in this note. \textit{Consumer.} It supports failure monotonicity, sparse cores, and the width-two bow characterization.
+
+\begin{lemma}[lem:ordinary-id-polynomial-decision]\label{lem:ordinary-id-polynomial-decision}
+For a finite ADMG and an ordinary interventional query, the success-or-failure decision of the ordinary \(\operatorname{ID}\) algorithm is computable in time polynomial in the graph encoding size.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} Polynomial graphical ID decision is the verifier needed for membership of the realization count in \(\#\mathrm P\). \textit{Gap.} Only the decision-time fact is imported; the counting reduction is proved locally. \textit{Consumer.} It supports the membership half of the counting theorem.
+
+\begin{lemma}[lem:width-two-bow-characterization]\label{lem:width-two-bow-characterization}
+If \(b\le2\), then for every \(S\subseteq E^{?}\), \(\operatorname{Fail}(S)=1\) if and only if there is \(\beta=(x,r,e^{\to},e^{\leftrightarrow})\in\mathcal B\) such that \(e^{\to},e^{\leftrightarrow}\in E^{\mathrm{det}}\cup S\) and \(r\) reaches \(Y\) in the directed part of \(G_S[V\setminus X]\).
+\end{lemma}
+\begin{proof}
+Suppose first that \(\operatorname{Fail}(S)=1\).  Lemma~\ref{lem:original-query-hedge-characterization} gives a hedge \(A\subseteq F_0\subsetneq F_1\).  Bidirected connectivity puts \(F_1\) inside a district of \(G_S\), hence inside a district of \(G^{+}\).  The hypothesis \(b\le2\), strict containment, and nonemptiness imply
+\[
+ |F_1|=2,qquad |F_0|=1.
+\]
+Write \(F_0=\{r\}\) and \(F_1=\{x,r\}\).  Since \(F_0\cap X=\varnothing\) and \(F_1\cap X\ne\varnothing\), one has \(r\notin X\) and \(x\in X\).  The nonempty root set satisfies \(A=\{r\}\).  Bidirected connectivity of \(F_1\) forces \(x\leftrightarrow r\), while the directed forest condition on the two vertices forces \(x\to r\).  Both edges belong to \(E^{\mathrm{det}}\cup S\), and the hedge ancestry condition says that \(r\) reaches \(Y\) in \(G_S[V\setminus X]\).  Thus these two labelled edges define the required \(\beta\in\mathcal B\).
+
+Conversely, suppose such a bow exists.  Set \(F_0=A=\{r\}\) and \(F_1=\{x,r\}\).  The singleton \(F_0\) is bidirected connected, \(F_1\) is bidirected connected via \(e^{\leftrightarrow}\), and \(e^{\to}\) is an \(A\)-rooted directed forest on \(F_1\).  The defining restrictions \(x\in X\), \(r\notin X\), and the assumed path from \(r\) to \(Y\) verify all remaining original-query hedge conditions.  Lemma~\ref{lem:original-query-hedge-characterization} therefore yields \(\operatorname{Fail}(S)=1\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This isolates the causal part of the width-two theorem from the transition-graph implementation. \textit{Gap.} The published hedge criterion does not perform this district-size-two specialization. \textit{Consumer.} It supports the counting reduction, parameter separations, and bow sanity check while the projection definition is corrected.
+
+\begin{lemma}[lem:incidence-sat-counting]\label{lem:incidence-sat-counting}
+For a CNF formula with incidence-treewidth \(k\), maximum clause size \(\ell\), and a supplied incidence-tree decomposition with \(N\) nodes, the number of satisfying assignments can be computed in \(O(4^k k\ell N)\) time.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the classical unweighted incidence-treewidth counting substrate. \textit{Gap.} The rational literal weights and all derivatives are adapted and proved in the implementation proposition. \textit{Consumer.} It anchors the incidence-decomposition recurrence.
+
+\begin{lemma}[lem:bipartite-vertex-cover-counting-hardness]\label{lem:bipartite-vertex-cover-counting-hardness}
+Counting vertex covers in a bipartite graph is \(\#\mathrm P\)-complete.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the classical source problem for the width-preserving causal counting reduction. \textit{Gap.} The causal ADMG construction and the exact success bijection are proved in this note. \textit{Consumer.} It supplies the sole external hardness premise for the counting theorem.
+
+\begin{lemma}[lem:directed-steiner-enumeration]\label{lem:directed-steiner-enumeration}
+For a finite directed graph with \(n_D\) vertices and \(m_D\) edges, a root \(r\), and terminals \(W_D\) not containing \(r\), all inclusion-minimal subgraphs containing a directed \(r\)-to-\(w\) path for every \(w\in W_D\) can be enumerated with \(O(n_D+m_D)\) worst-case delay after \(O(n_Dm_D)\) preprocessing and with \(O(n_D^2)\) working space.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This supplies the raw minimal directed-Steiner enumerator used after deterministic-reachability projection. \textit{Gap.} The published theorem does not treat fixed deterministic edges, uncertain-edge support projection, or global domination across causal cores; those adaptations are proved in Theorem~\ref{thm:canonical-enumeration}. \textit{Consumer.} It provides polynomial work between raw projected witnesses, while the causal theorem performs support canonicalization and global filtering.
+
+\section{Interpretation}
+
+For envelopes with \(b\le2\), minimal failure supports can be streamed with certified polynomial delay and exhaustion.  For larger districts, the unconditional algorithm is an exact offline compiler whose runtime should be reported together with the number of raw projected Steiner witnesses and the number rejected by global domination.  Reliability and derivative computation apply after the obstruction hypergraph has been compiled; they do not convert the candidate-sensitive general compiler into a delay algorithm.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+For already accepted obstructions \(B_1,\ldots,B_q\), a prospective support \(H\) avoids domination exactly when \(B_i\nsubseteq H\) for every \(i\), equivalently when the excluded set \(E^{?}\setminus H\) intersects every \(B_i\).  Partial pruning therefore contains a hypergraph-transversal constraint coupled to an existential sparse-core choice and multiple-root reachability groups.  Bounded district size \(b\) does not imply bounded incidence treewidth for this obstruction family, so the supplied assumptions do not furnish the required extension oracle; explicit-hypergraph dualization does not justify a quasi-polynomial delay claim for the implicit coupled problem.  The proved general algorithm instead enumerates raw projected directed-Steiner witnesses, canonicalizes equal supports, and filters strict cross-core domination, which permits an unbounded number of rejected candidates between accepted outputs.
+
+\section{Honest scope}
+
+The sparse-core reduction, the candidate-sensitive exact general-\(b\) compiler, the complete \(b\le2\) labelled-transition-DAG algorithm, and the width-two counting reduction are proved results.  The general compiler has total time \(2^{O(b\log(b+1))}\operatorname{poly}(n)(1+W)\), where \(W\) counts raw projected minimal directed-Steiner subgraphs with their cores and witnesses; it makes no worst-case accepted-output-delay claim.  General-\(b\) delay remains precisely the open root-ordered partial-support recursion and coupled extension test posed by the existing OEQ.  The reliability identity, full-gradient formula, and incidence-treewidth evaluation are implementation propositions from standard exact literal-weighted CNF methods after \(\mathcal O_{XY}\) is explicit.  No claim is made that edge probabilities are calibrated, that one identifying formula is common to all successful realizations, that \(b\) controls output size or incidence treewidth, or that the candidate-sensitive compiler has been implemented.
+
+\begin{thebibliography}{99}
+
+  \bibitem{akbari2023uncertain} Sina Akbari, Fateme Jamshidi, Ehsan Mokhtarian, Matthew J. Vowels, Jalal Etesami, and Negar Kiyavash. Causal Effect Identification in Uncertain Causal Networks. NeurIPS, 2023. \(\mathrm{arXiv}:2208.04627\).
+
+  \bibitem{shpitserpearl2008hierarchy} Ilya Shpitser and Judea Pearl. Complete Identification Methods for the Causal Hierarchy. Journal of Machine Learning Research, 9:1941--1979, 2008.
+
+  \bibitem{shpitser2023idfail} Ilya Shpitser. When Does the ID Algorithm Fail? \(\mathrm{arXiv}:2307.03750\), 2023. Proposition 1.
+
+  \bibitem{akbari2025optimal} Sina Akbari, Jalal Etesami, and Negar Kiyavash. Optimal Experiment Design for Causal Effect Identification. Journal of Machine Learning Research, 26(28):1--56, 2025. Definition 6, Algorithm 2, and Lemma 7 on pages 10--12.
+
+  \bibitem{khachiyanetal2007pathcut} Leonid Khachiyan, Endre Boros, Khaled Elbassioni, Vladimir Gurvich, and Kazuhisa Makino. Enumerating Disjunctions and Conjunctions of Paths and Cuts in Reliability Theory. Discrete Applied Mathematics, 155:137--149, 2007. DOI: \(10.1016/j.dam.2006.04.032\).
+
+  \bibitem{kobayashietal2022steiner} Yasuaki Kobayashi, Kazuhiro Kurita, and Kunihiro Wasa. Linear-Delay Enumeration for Minimal Steiner Problems. PODS, 2022. DOI: \(10.1145/3517804.3524148\).
+
+  \bibitem{kenigmizrahi2025transversals} Batya Kenig and Dan Shlomo Mizrahi. Enumeration of Minimal Hitting Sets Parameterized by Treewidth. ICDT, 2025. DOI: \(10.4230/\mathrm{LIPIcs}.\mathrm{ICDT}.2025.8\).
+
+  \bibitem{samerszeider2010modelcounting} Marko Samer and Stefan Szeider. A Fixed-Parameter Algorithm for \(\#\mathrm{SAT}\) with Parameter Incidence Treewidth. Journal of Discrete Algorithms, 8:50--64, 2010. DOI: \(10.1016/j.jda.2009.06.002\).
+
+  \bibitem{dudekphanvardi2020dpmc} Jeffrey M. Dudek, Vu H. N. Phan, and Moshe Y. Vardi. DPMC: Weighted Model Counting by Dynamic Programming on Project--Join Trees. CP, 2020. \(\mathrm{arXiv}:2008.08748\).
+
+  \bibitem{goharshadymohammadi2020reliability} Amir Kafshdar Goharshady and Fatemeh Mohammadi. An Efficient Algorithm for Computing Network Reliability in Small Treewidth. Reliability Engineering and System Safety, 193, 2020. \(\mathrm{arXiv}:1712.09692\).
+
+  \bibitem{provan1986acyclicreliability} J. Scott Provan. The Complexity of Reliability Computations in Planar and Acyclic Graphs. SIAM Journal on Computing, 15:694--702, 1986. DOI: \(10.1137/0215050\).
+
+  \bibitem{provanball1983counting} J. Scott Provan and Michael O. Ball. The Complexity of Counting Cuts and of Computing the Probability that a Graph Is Connected. SIAM Journal on Computing, 12:777--788, 1983. DOI: \(10.1137/0212053\).
+
+  \bibitem{guoperkovic2021minimal} F. Richard Guo and Emilija Perkovic. Minimal Enumeration of All Possible Total Effects in a Markov Equivalence Class. AISTATS, 2021. \(\mathrm{arXiv}:2010.08611\).
+
+  \bibitem{duarteetal2024autobounds} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association, 2024. DOI: \(10.1080/01621459.2023.2216909\).
+
+\end{thebibliography}
+
+\end{document}

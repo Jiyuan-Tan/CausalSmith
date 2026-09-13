@@ -1,0 +1,1488 @@
+{
+  "qid": "stat_rmst_endpoint_weighted_efficiency",
+  "specialization": "v1",
+  "cluster": "stat",
+  "target_estimand": "\\(\\theta=E_P[\\min\\{T(1),1\\}-\\min\\{T(0),1\\}]\\)",
+  "estimand_functional": "\\(\\widehat\\theta=n^{-1}\\sum_{i=1}^n\\{\\psi_1(\\widehat\\eta_{-k(i)};O_i)-\\psi_0(\\widehat\\eta_{-k(i)};O_i)\\},\\quad r_n\\asymp(\\log n/n)^{1/3},\\quad \\sqrt n(\\widehat\\theta-\\theta)=n^{-1/2}\\sum_{i=1}^nD(O_i)+o_P(1)\\)",
+  "sampling_model": {
+    "design": "Two-fold cross-fitting under i.i.d. sampling from \\(P\\in\\mathcal P_4\\).",
+    "units": "Each unit contributes \\(O_i=(X_i,A_i,U_i,\\Delta_i)\\).",
+    "treatment": "Binary observational treatment with \\(1/4\\le\\pi_1(x)\\le3/4\\).",
+    "overlap": "Censoring follow-up satisfies \\(G_a(t\\mid x)=(1-t)^2g_a(t,x)\\) and vanishes at the fixed horizon.",
+    "nuisance_estimation": "Treatment propensity, event hazard, and rescaled censoring residual are unknown and learned foldwise by the endpoint local-cubic handle; no estimator-side rate is assumed."
+  },
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "westling2024inference",
+      "comparator_claim": "Theorem 4 gives a cross-fitted asymptotic-linear survival estimator under a uniform censoring floor and high-level nuisance product rates, and Section 5.3 obtains RMST inference by integration.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "tian2020endpoint",
+      "comparator_claim": "Theorem A1 gives a Gaussian limit for an unadjusted Kaplan--Meier RMST integral at the support endpoint under a finite weighted tail integral.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "diaz2019improved",
+      "comparator_claim": "The paper develops efficient covariate-adjusted RMST estimation for randomized trials at an ordinary fixed follow-up horizon.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "cattaneo2024boundary",
+      "comparator_claim": "Theorem 1 gives whole-support local-polynomial conditional-density rates under nondegenerate local information and a smooth positive design density.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "jiangdoksum2003local",
+      "comparator_claim": "Theorem 3.2 gives pointwise asymptotic normality for local-polynomial Nelson--Aalen hazard smoothing strictly below the upper support boundary.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "jingShaoWang2003selfnormalized",
+      "comparator_claim": "Self-normalized Gaussian approximation for independent sums is available under finite \\(2+\\delta\\) moments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "morenz2024debiased",
+      "comparator_claim": "The paper gives cross-fitted debiased inference for smooth counterfactual survival functionals, including survival integrals, under left-truncated right-censored sampling and high-level nuisance conditions; it does not derive primitive exact-quadratic terminal-cell rates, weak-moment Studentization, or efficiency at a vanishing-censoring endpoint.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "In a designed-depletion or calibrated loss-to-follow-up regime, the censoring time is the earlier of two conditionally independent continuous loss or availability times whose near-horizon survivals vanish linearly, giving the known quadratic endpoint order while leaving the smooth residual censoring law unknown. At the scientific horizon, this quadratic censoring makes the influence function for survival itself non-square-integrable, but the remaining-life factor in fixed-endpoint RMST cancels one endpoint power and leaves a finite efficiency bound. The paper constructs a total cross-fitted one-step estimator with a uniform expansion over the stated radius-20 H\\\"older primitive class while learning the treatment propensity, event hazard, and rescaled censoring residual. At every interior law, normalized smooth censoring-density tilts preserve the exact quadratic factor, all finite smooth generating submodels are differentiable in quadratic mean and hence locally asymptotically normal, and compactness plus observed-law identifiability extend estimator regularity to every relevant in-class DQM local alternative. Simultaneous local-cubic concentration in the last time--covariate cells gives nuisance rate \\( (\\log n/n)^{1/3} \\), and a terminal-strip Fano packing proves a matching minimax sup-norm lower bound for learning the event hazard over the same primitive class. This sharp primitive rate, exact product drift, weak \\(5/2\\)-moment Studentization, full endpoint-efficiency certificate, and uniform Wald coverage form the publishable kernel.",
+  "project_justification": {
+    "gap": "Westling et al. establish machine-learning inference for treatment-specific survival and integrated RMST under a censoring floor and high-level nuisance-rate conditions. Morenz, Wolock, and Carone develop debiased machine learning for smooth counterfactual survival functionals under left truncation and right censoring, again using high-level nuisance conditions rather than deriving a primitive exact-quadratic endpoint rate. Classical endpoint Kaplan--Meier theory permits vanishing follow-up for integrated functionals but has no conditional confounding adjustment or learned nuisance blocks. Existing local-polynomial hazard theory does not supply uniform last-cell concentration when the predictable risk set collapses quadratically, and generic convolution theory does not itself verify censoring paths, LAN, or full-model estimator regularity for this endpoint experiment.",
+    "niche": "The nonempty niche is a fixed-target efficiency theorem on a primitive smooth class where survival-at-endpoint inference is irregular, RMST remains regular, the nuisance fits must preserve the known quadratic factor, and the feasible score may lack a third moment.",
+    "fill": "The project integrates the survival score before analysis, learns the smooth event hazard and \\(q_a=S_ag_a\\) by explicit boundary-adaptive cubic risk-set equations, proves their terminal-cell \\((\\log n/n)^{1/3}\\) rate without assuming it, and matches the event-hazard upper rate by a same-class terminal-strip Fano lower bound. It propagates the exact product drift through cross-fitting and proves variance consistency and a uniform Studentized limit from a \\(5/2\\)-moment envelope. At interior laws it constructs normalized censoring-density tilts that retain \\(G_a(t\\mid x)=(1-t)^2g_a(t,x)\\), verifies DQM and i.i.d. LAN for all finite smooth generators, proves tangent density, and uses compactness, identifiability, endpoint score continuity, and the uniform expansion to establish regularity along every relevant in-class DQM local alternative before applying the convolution bound."
+  },
+  "related_work": "Westling, Luedtke, Gilbert, and Carone (2024) is the closest treatment-specific survival reference: its Theorem 4 supplies a cross-fitted asymptotic-linear survival estimator under a censoring floor and high-level nuisance product rates, and Section 5.3 obtains RMST inference by integrating the survival-process limit. Morenz, Wolock, and Carone (2024), arXiv:2411.09017, is the closest broader survival-functional DML comparator: it treats smooth counterfactual survival functionals, including survival integrals, with flexible nuisance learning under left-truncated right-censored sampling, but it does not derive the exact-quadratic primitive nuisance rate, the weak-moment Studentization argument, or efficiency at a horizon where censoring survival vanishes. Tian et al. (2020), Theorem A1, and Stute (1995) show that an unadjusted Kaplan--Meier integral can retain a Gaussian endpoint limit under a weighted tail condition; they neither adjust for conditional confounding nor learn the present conditional nuisance blocks. Diaz et al. (2019) establish efficient covariate-adjusted RMST estimation in randomized trials with ordinary follow-up. Cattaneo et al. (2024), Theorem 1 and Appendix A.5, provide normalized local-polynomial bases and boundary-uniform Gram arguments under nondegenerate information and a smooth positive design density; here the terminal risk degenerates and \\(f\\) may be only measurable within its band. Jiang and Doksum (2003), equations (2.5)--(2.8) and Theorems 3.2 and 3.4, provide local-polynomial Nelson--Aalen algebra but restrict asymptotics below an upper boundary with positive risk. Fan and Guerre (2016) provide whole-support polynomial reproduction and boundary geometry, while their smooth-design condition is replaced here by a density-band sandwich. Munch et al. (2024), Theorem 9 and Corollary 13, give integrated conditional-hazard rates under positive endpoint follow-up; Efromovich (2024) gives mean-integrated-squared-error theory rather than simultaneous terminal sup-norm control. Stone (1982) supplies the classical H\\\"older minimax benchmark but not censoring-depleted terminal information. Jing, Shao, and Wang (2003) supply a weak-moment self-normalization template, and Chernozhukov et al. (2018) supply cross-fit conditioning and orthogonal product-remainder organization. Van der Vaart (1998), Theorems 7.2 and 25.20, supplies the generic DQM-to-LAN and scalar convolution machinery; the present proof constructs the event and censoring submodels, establishes their DQM property and tangent density, and proves regularity for arbitrary relevant in-class DQM local alternatives before invoking that machinery.",
+  "technical_internal_limitation": "The decisive terminal-cell kill test is discharged by thm:primitive-endpoint-concentration. Its proof establishes an at-risk Gram of order \\(Mh_M^4\\), preserves coercivity under an arbitrary measurable density \\(f\\), controls the martingale numerator and Taylor remainder simultaneously, and makes low-count fallbacks uniformly negligible. Formalization must preserve those coupled bounds; weakening them to an \\(n^{-1/4}\\) nuisance rate would no longer imply the headline expansion. Numerical values from the presolve witness are diagnostics and are not theorem claims.",
+  "honest_scope": "Identification of the fixed contrast is standard. Estimation, variance consistency, and inference at the quadratic endpoint are uniform over the stated primitive class, whereas convolution efficiency is pointwise at each interior law. The efficiency proof includes normalized compact-time censoring-density tilts, proves by integration by parts that their residual survivals retain the exact quadratic factor and \\(C^{3,1}\\) regularity, verifies DQM and LAN for the finite smooth generators, and establishes estimator regularity along every relevant DQM local alternative that remains in \\(\\mathcal P_4\\). No efficiency claim is made at boundary laws. The theorem fixes horizon \\(1\\), censoring exponent \\(2\\), one-dimensional covariate, smoothness order \\(4\\), and all radius and band constants. Within this class, the learned event-hazard sup-norm rate \\((\\log n/n)^{1/3}\\) is minimax sharp; the converse is not a minimax lower bound for RMST risk or for each other nuisance. The result does not cover an estimated endpoint exponent, a shorter moving horizon, a parametric hazard subclass, or a different target. For an in-class sanity check, fixing \\(\\delta\\in(0,1)\\), setting \\(\\tau=1-\\delta\\), and diagnostically restricting the same factor-preserving learner and score to \\([0,\\tau]\\) gives \\(G_a(t\\mid x)\\ge\\delta^2/2\\), the ordinary positive-follow-up regime covered by Westling et al. (2024). This diagnostic restriction does not alter the main horizon \\(1\\) target. The general censoring-exponent phase diagram remains separate.",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "sample size"
+    },
+    {
+      "name": "i",
+      "type": "index",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "treatment-arm index",
+      "space": "\\(\\{0,1\\}\\)"
+    },
+    {
+      "name": "t",
+      "type": "time index",
+      "space": "\\([0,1)\\)"
+    },
+    {
+      "name": "\\delta",
+      "type": "diagnostic horizon margin",
+      "space": "\\((0,1)\\)",
+      "role": "fixed constant used only in the shorter-horizon sanity check"
+    },
+    {
+      "name": "\\tau",
+      "type": "diagnostic horizon",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\tau:=1-\\delta\\)",
+      "role": "shorter horizon used only in the in-class sanity check",
+      "refs": [
+        "\\delta"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "covariate index",
+      "space": "\\([0,1]\\)"
+    },
+    {
+      "name": "X",
+      "type": "random variable",
+      "space": "\\([0,1]\\)"
+    },
+    {
+      "name": "A",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)"
+    },
+    {
+      "name": "T",
+      "type": "event-time random variable",
+      "space": "\\([0,\\infty]\\)"
+    },
+    {
+      "name": "C",
+      "type": "censoring-time random variable",
+      "space": "\\([0,1]\\)"
+    },
+    {
+      "name": "T(a)",
+      "type": "potential event-time random variable",
+      "space": "\\([0,\\infty]\\)",
+      "refs": [
+        "a"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "observed-time random variable",
+      "space": "\\([0,1)\\)",
+      "def": "\\(U:=\\min\\{T,C\\}\\)",
+      "refs": [
+        "T",
+        "C"
+      ]
+    },
+    {
+      "name": "\\Delta",
+      "type": "event indicator",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "\\(\\Delta:=\\mathbf 1\\{T\\le C\\}\\)",
+      "refs": [
+        "T",
+        "C"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "observed data unit",
+      "space": "\\([0,1]\\times\\{0,1\\}\\times[0,1)\\times\\{0,1\\}\\)",
+      "def": "\\(O:=(X,A,U,\\Delta)\\)",
+      "refs": [
+        "X",
+        "A",
+        "U",
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "O_i",
+      "type": "observed data unit",
+      "def": "\\(O_i\\) is observation \\(i\\)",
+      "refs": [
+        "O",
+        "i"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "probability law",
+      "space": "laws of \\(O\\)",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "E_P",
+      "type": "expectation operator",
+      "def": "expectation under \\(P\\)",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "f",
+      "type": "density",
+      "space": "measurable functions on \\([0,1]\\)",
+      "def": "Lebesgue density of \\(X\\) under \\(P\\)",
+      "refs": [
+        "X",
+        "P"
+      ]
+    },
+    {
+      "name": "\\pi_1",
+      "type": "propensity function",
+      "space": "functions on \\([0,1]\\)",
+      "def": "\\(\\pi_1(x):=P(A=1\\mid X=x)\\)",
+      "refs": [
+        "P",
+        "A",
+        "X",
+        "x"
+      ]
+    },
+    {
+      "name": "\\pi_a",
+      "type": "arm propensity function",
+      "space": "functions on \\([0,1]\\)",
+      "def": "\\(\\pi_a(x):=a\\pi_1(x)+(1-a)\\{1-\\pi_1(x)\\}\\)",
+      "refs": [
+        "a",
+        "\\pi_1",
+        "x"
+      ]
+    },
+    {
+      "name": "\\lambda_a",
+      "type": "conditional event hazard",
+      "space": "functions on \\([0,1)\\times[0,1]\\)",
+      "sig": "\\((t,x)\\mapsto\\lambda_a(t,x)\\)",
+      "refs": [
+        "a",
+        "t",
+        "x"
+      ]
+    },
+    {
+      "name": "S_a",
+      "type": "conditional event survival",
+      "space": "functions on \\([0,1]\\times[0,1]\\)",
+      "def": "\\(S_a(t\\mid x):=\\exp\\{-\\int_0^t\\lambda_a(v,x)\\,dv\\}\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "\\lambda_a"
+      ]
+    },
+    {
+      "name": "g_a",
+      "type": "rescaled censoring-survival residual",
+      "space": "functions on \\([0,1)\\times[0,1]\\) satisfying \\(g_a(0,x)=1\\)",
+      "sig": "\\((t,x)\\mapsto g_a(t,x)\\)",
+      "refs": [
+        "a",
+        "t",
+        "x"
+      ]
+    },
+    {
+      "name": "G_a",
+      "type": "conditional censoring survival",
+      "space": "functions on \\([0,1]\\times[0,1]\\)",
+      "def": "\\(G_a(t\\mid x):=(1-t)^2g_a(t,x)\\) for \\(t<1\\) and \\(G_a(1\\mid x):=0\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "g_a"
+      ]
+    },
+    {
+      "name": "q_a",
+      "type": "rescaled at-risk function",
+      "space": "functions on \\([0,1)\\times[0,1]\\)",
+      "def": "\\(q_a(t,x):=S_a(t\\mid x)g_a(t,x)\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "S_a",
+        "g_a"
+      ]
+    },
+    {
+      "name": "N",
+      "type": "event counting process",
+      "def": "\\(N(t):=\\mathbf 1\\{U\\le t,\\Delta=1\\}\\)",
+      "refs": [
+        "t",
+        "U",
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "Y_{\\mathrm{risk}}",
+      "type": "at-risk process",
+      "def": "\\(Y_{\\mathrm{risk}}(t):=\\mathbf 1\\{U\\ge t\\}\\)",
+      "refs": [
+        "t",
+        "U"
+      ]
+    },
+    {
+      "name": "M_a",
+      "type": "event martingale",
+      "def": "\\(M_a(t):=N(t)-\\int_0^tY_{\\mathrm{risk}}(v)\\lambda_a(v,X)\\,dv\\) on \\(A=a\\)",
+      "refs": [
+        "a",
+        "t",
+        "N",
+        "Y_{\\mathrm{risk}}",
+        "\\lambda_a",
+        "X",
+        "A"
+      ]
+    },
+    {
+      "name": "m_a",
+      "type": "conditional restricted mean",
+      "space": "functions on \\([0,1]\\)",
+      "def": "\\(m_a(x):=\\int_0^1S_a(v\\mid x)\\,dv\\)",
+      "refs": [
+        "a",
+        "x",
+        "S_a"
+      ]
+    },
+    {
+      "name": "\\theta_a",
+      "type": "arm-specific causal restricted mean",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\theta_a:=E_P[m_a(X)]\\)",
+      "refs": [
+        "a",
+        "E_P",
+        "m_a",
+        "X"
+      ]
+    },
+    {
+      "name": "\\theta",
+      "type": "causal RMST contrast",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\theta:=\\theta_1-\\theta_0\\)",
+      "refs": [
+        "\\theta_a"
+      ]
+    },
+    {
+      "name": "H_a",
+      "type": "remaining-life weight",
+      "space": "functions on \\([0,1)\\times[0,1]\\)",
+      "def": "\\(H_a(t,x):=S_a(t\\mid x)^{-1}\\int_t^1S_a(v\\mid x)\\,dv\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "S_a"
+      ]
+    },
+    {
+      "name": "D_a",
+      "type": "arm influence component",
+      "space": "\\(L^2(P)\\)",
+      "def": "\\(D_a(O):=m_a(X)-\\theta_a-\\mathbf 1\\{A=a\\}\\pi_a(X)^{-1}\\int_0^U H_a(t,X)G_a(t\\mid X)^{-1}\\,dM_a(t)\\)",
+      "refs": [
+        "a",
+        "O",
+        "m_a",
+        "X",
+        "\\theta_a",
+        "A",
+        "\\pi_a",
+        "U",
+        "H_a",
+        "t",
+        "G_a",
+        "M_a"
+      ]
+    },
+    {
+      "name": "D",
+      "type": "contrast influence function",
+      "space": "\\(L^2(P)\\)",
+      "def": "\\(D:=D_1-D_0\\)",
+      "refs": [
+        "D_a"
+      ]
+    },
+    {
+      "name": "V_P",
+      "type": "influence variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(V_P:=E_P[D(O)^2]\\)",
+      "refs": [
+        "E_P",
+        "D",
+        "O"
+      ]
+    },
+    {
+      "name": "\\lVert\\cdot\\rVert_{C^{3,1}}",
+      "type": "isotropic Hölder norm",
+      "def": "the maximum of the suprema of derivatives through order three and the Lipschitz seminorms of the third derivatives"
+    },
+    {
+      "name": "\\mathcal H^4_{20}",
+      "type": "isotropic Hölder ball",
+      "def": "\\(\\mathcal H^4_{20}(\\mathcal X):=\\{h:\\lVert h\\rVert_{C^{3,1}(\\mathcal X)}\\le20\\}\\)",
+      "refs": [
+        "\\lVert\\cdot\\rVert_{C^{3,1}}"
+      ]
+    },
+    {
+      "name": "\\mathcal P_4",
+      "type": "model class",
+      "space": "probability laws",
+      "ref": "def:quadratic-holder-class"
+    },
+    {
+      "name": "\\mathcal P_4^{\\circ}",
+      "type": "interior model subclass",
+      "space": "probability laws",
+      "ref": "def:interior-holder-class"
+    },
+    {
+      "name": "\\rho_{\\mathrm{int}}",
+      "type": "interior-slack functional",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\rho_{\\mathrm{int}}(P):=\\min\\{\\operatorname*{ess\\,inf}_x(f(x)-1/2),\\operatorname*{ess\\,inf}_x(2-f(x)),\\inf_x(\\pi_1(x)-1/4),\\inf_x(3/4-\\pi_1(x)),\\inf_{a,t,x}(\\lambda_a(t,x)-1/2),\\inf_{a,t,x}(2-\\lambda_a(t,x)),\\inf_{a,t,x}(g_a(t,x)-1/2),\\inf_{a,t,x}(2-g_a(t,x)),20-\\lVert\\pi_1\\rVert_{C^{3,1}},\\min_a\\{20-\\lVert\\lambda_a\\rVert_{C^{3,1}}\\},\\min_a\\{20-\\lVert g_a\\rVert_{C^{3,1}}\\}\\}\\)",
+      "refs": [
+        "P",
+        "f",
+        "x",
+        "\\pi_1",
+        "a",
+        "t",
+        "\\lambda_a",
+        "g_a",
+        "\\lVert\\cdot\\rVert_{C^{3,1}}"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "training-sample size"
+    },
+    {
+      "name": "J_M",
+      "type": "positive integer",
+      "def": "\\(J_M:=\\max\\{1,\\lfloor(M/\\log(M+2))^{1/12}\\rfloor\\}\\)",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "h_M",
+      "type": "bandwidth",
+      "space": "\\((0,1]\\)",
+      "def": "\\(h_M:=J_M^{-1}\\)",
+      "refs": [
+        "M",
+        "J_M"
+      ]
+    },
+    {
+      "name": "r_M",
+      "type": "primitive nuisance rate",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(r_M:=h_M^4+\\sqrt{\\log(M+2)/(Mh_M^4)}+\\log(M+2)/(Mh_M^4)\\)",
+      "refs": [
+        "M",
+        "h_M"
+      ]
+    },
+    {
+      "name": "\\widehat\\pi_a",
+      "type": "learned propensity",
+      "space": "functions on \\([0,1]\\)",
+      "refs": [
+        "a"
+      ]
+    },
+    {
+      "name": "\\widehat\\lambda_a",
+      "type": "learned event hazard",
+      "space": "functions on \\([0,1)\\times[0,1]\\)",
+      "refs": [
+        "a"
+      ]
+    },
+    {
+      "name": "\\widehat g_a",
+      "type": "learned rescaled censoring residual",
+      "space": "functions on \\([0,1)\\times[0,1]\\)",
+      "refs": [
+        "a"
+      ]
+    },
+    {
+      "name": "\\widehat\\eta",
+      "type": "foldwise nuisance learner",
+      "def": "\\(\\widehat\\eta:=(\\widehat\\pi_a,\\widehat\\lambda_a,\\widehat g_a)_{a=0,1}\\)",
+      "refs": [
+        "a",
+        "\\widehat\\pi_a",
+        "\\widehat\\lambda_a",
+        "\\widehat g_a"
+      ]
+    },
+    {
+      "name": "\\widehat S_a",
+      "type": "learned event survival",
+      "def": "\\(\\widehat S_a(t\\mid x):=\\exp\\{-\\int_0^t\\widehat\\lambda_a(v,x)\\,dv\\}\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "\\widehat\\lambda_a"
+      ]
+    },
+    {
+      "name": "\\widehat G_a",
+      "type": "learned censoring weight",
+      "def": "\\(\\widehat G_a(t\\mid x):=(1-t)^2\\widehat g_a(t,x)\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "\\widehat g_a"
+      ]
+    },
+    {
+      "name": "\\widehat H_a",
+      "type": "learned remaining-life weight",
+      "def": "\\(\\widehat H_a(t,x):=\\widehat S_a(t\\mid x)^{-1}\\int_t^1\\widehat S_a(v\\mid x)\\,dv\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "\\widehat S_a"
+      ]
+    },
+    {
+      "name": "\\widehat m_a",
+      "type": "learned conditional restricted mean",
+      "def": "\\(\\widehat m_a(x):=\\int_0^1\\widehat S_a(v\\mid x)\\,dv\\)",
+      "refs": [
+        "a",
+        "x",
+        "\\widehat S_a"
+      ]
+    },
+    {
+      "name": "\\bar\\pi_a",
+      "type": "generic propensity function",
+      "refs": [
+        "a"
+      ]
+    },
+    {
+      "name": "\\bar\\lambda_a",
+      "type": "generic event hazard",
+      "refs": [
+        "a"
+      ]
+    },
+    {
+      "name": "\\bar g_a",
+      "type": "generic rescaled censoring residual",
+      "refs": [
+        "a"
+      ]
+    },
+    {
+      "name": "\\bar\\eta",
+      "type": "generic nuisance triple",
+      "def": "\\(\\bar\\eta:=(\\bar\\pi_a,\\bar\\lambda_a,\\bar g_a)_{a=0,1}\\)",
+      "refs": [
+        "a",
+        "\\bar\\pi_a",
+        "\\bar\\lambda_a",
+        "\\bar g_a"
+      ]
+    },
+    {
+      "name": "\\bar S_a",
+      "type": "generic event survival",
+      "def": "\\(\\bar S_a(t\\mid x):=\\exp\\{-\\int_0^t\\bar\\lambda_a(v,x)\\,dv\\}\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "\\bar\\lambda_a"
+      ]
+    },
+    {
+      "name": "\\bar G_a",
+      "type": "generic censoring weight",
+      "def": "\\(\\bar G_a(t\\mid x):=(1-t)^2\\bar g_a(t,x)\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "\\bar g_a"
+      ]
+    },
+    {
+      "name": "\\bar H_a",
+      "type": "generic remaining-life weight",
+      "def": "\\(\\bar H_a(t,x):=\\bar S_a(t\\mid x)^{-1}\\int_t^1\\bar S_a(v\\mid x)\\,dv\\)",
+      "refs": [
+        "a",
+        "t",
+        "x",
+        "\\bar S_a"
+      ]
+    },
+    {
+      "name": "\\bar m_a",
+      "type": "generic conditional restricted mean",
+      "def": "\\(\\bar m_a(x):=\\int_0^1\\bar S_a(v\\mid x)\\,dv\\)",
+      "refs": [
+        "a",
+        "x",
+        "\\bar S_a"
+      ]
+    },
+    {
+      "name": "\\psi_a",
+      "type": "integrated one-step score",
+      "space": "measurable functions of \\(O\\)",
+      "ref": "def:rmst-score"
+    },
+    {
+      "name": "k",
+      "type": "deterministic fold map",
+      "sig": "\\(k:\\{1,\\ldots,n\\}\\to\\{1,2\\}\\)",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "W_i",
+      "type": "cross-fitted score contribution",
+      "space": "\\(\\mathbb R\\)",
+      "ref": "def:cross-fitted-estimator",
+      "refs": [
+        "i"
+      ]
+    },
+    {
+      "name": "\\widehat\\theta",
+      "type": "total estimator",
+      "space": "\\(\\mathbb R\\)",
+      "ref": "def:cross-fitted-estimator"
+    },
+    {
+      "name": "\\widehat V",
+      "type": "nonnegative variance estimator",
+      "space": "\\([0,\\infty)\\)",
+      "ref": "def:cross-fitted-estimator"
+    },
+    {
+      "name": "\\Phi",
+      "type": "standard normal distribution function"
+    },
+    {
+      "name": "\\alpha",
+      "type": "nominal error probability",
+      "space": "\\((0,1)\\)"
+    },
+    {
+      "name": "z_{1-\\alpha/2}",
+      "type": "standard normal quantile",
+      "def": "\\(z_{1-\\alpha/2}:=\\Phi^{-1}(1-\\alpha/2)\\)",
+      "refs": [
+        "\\Phi",
+        "\\alpha"
+      ]
+    },
+    {
+      "name": "\\mathcal I_{n,\\alpha}",
+      "type": "Wald confidence interval",
+      "ref": "def:wald-interval",
+      "refs": [
+        "n",
+        "z_{1-\\alpha/2}"
+      ]
+    },
+    {
+      "name": "P^{\\star}",
+      "type": "witness probability law",
+      "space": "probability laws",
+      "ref": "def:heavy-tail-witness"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-sampling",
+      "kind": "sampling",
+      "condition": "\\((O_i)_{i=1}^n\\stackrel{\\mathrm{i.i.d.}}{\\sim}P\\).",
+      "free_symbols": [
+        "O_i",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent and identically distributed sampling",
+        "cite": "chernozhukov2018dml"
+      },
+      "used_by": [
+        "thm:uniform-endpoint-efficiency"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal-structural",
+      "condition": "\\(T=T(A)\\).",
+      "free_symbols": [
+        "T",
+        "T(a)",
+        "A"
+      ],
+      "standard": {
+        "name": "Potential-outcome consistency",
+        "cite": "westling2024inference"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:treatment-exchangeability",
+      "kind": "causal-structural",
+      "condition": "\\(\\forall a\\in\\{0,1\\},\\ T(a)\\perp A\\mid X\\).",
+      "free_symbols": [
+        "T(a)",
+        "A",
+        "X",
+        "a"
+      ],
+      "standard": {
+        "name": "Conditional treatment exchangeability",
+        "cite": "westling2024inference"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:independent-censoring",
+      "kind": "causal-structural",
+      "condition": "\\(T\\perp C\\mid(A,X)\\).",
+      "free_symbols": [
+        "T",
+        "C",
+        "A",
+        "X"
+      ],
+      "standard": {
+        "name": "Conditional independent censoring",
+        "cite": "westling2024inference"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:canonical-gradient-efficiency",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:covariate-density-band",
+      "kind": "support",
+      "condition": "\\(1/2\\le f(x)\\le2\\quad\\operatorname{Leb}\\text{-a.e. }x\\in[0,1]\\).",
+      "free_symbols": [
+        "f",
+        "x"
+      ],
+      "constants": [
+        "\\(1/2\\)",
+        "\\(2\\)"
+      ],
+      "standard": {
+        "name": "Random-design density bounded above and below",
+        "cite": "cattaneo2024boundary"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:treatment-overlap",
+      "kind": "support",
+      "condition": "\\(\\forall x\\in[0,1],\\ 1/4\\le\\pi_1(x)\\le3/4\\).",
+      "free_symbols": [
+        "\\pi_1",
+        "x"
+      ],
+      "constants": [
+        "\\(1/4\\)",
+        "\\(3/4\\)"
+      ],
+      "standard": {
+        "name": "Uniform treatment overlap",
+        "cite": "westling2024inference"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:event-hazard-band",
+      "kind": "support",
+      "condition": "\\(\\forall(a,t,x)\\in\\{0,1\\}\\times[0,1)\\times[0,1],\\ 1/2\\le\\lambda_a(t,x)\\le2\\).",
+      "free_symbols": [
+        "\\lambda_a",
+        "a",
+        "t",
+        "x"
+      ],
+      "constants": [
+        "\\(1/2\\)",
+        "\\(2\\)"
+      ],
+      "standard": {
+        "name": "Bounded continuous-time event intensity",
+        "cite": "jiangdoksum2003local"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:quadratic-censoring-endpoint",
+      "kind": "tail-rate",
+      "condition": "\\(\\forall(a,t,x)\\in\\{0,1\\}\\times[0,1)\\times[0,1],\\ G_a(t\\mid x)=(1-t)^2g_a(t,x)\\).",
+      "free_symbols": [
+        "G_a",
+        "g_a",
+        "a",
+        "t",
+        "x"
+      ],
+      "constants": [
+        "\\(2\\)"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This condition represents a designed-depletion or calibrated loss-to-follow-up regime, rather than ordinary administrative censoring with an atom at the horizon. Concretely, let the observed censoring time be the earlier of two conditionally independent continuous loss or availability times whose conditional survivals each vanish linearly as \\(t\\uparrow1\\); their product has the known quadratic endpoint order, while smooth treatment- and covariate-dependent deviations are absorbed into the unknown residual \\(g_a\\). The design or external follow-up protocol supplies only the endpoint order \\(2\\), not the censoring law or \\(g_a\\), so nuisance learning remains necessary."
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:censoring-residual-envelope",
+      "kind": "support",
+      "condition": "\\(\\forall(a,t,x)\\in\\{0,1\\}\\times[0,1)\\times[0,1],\\ 1/2\\le g_a(t,x)\\le2\\).",
+      "free_symbols": [
+        "g_a",
+        "a",
+        "t",
+        "x"
+      ],
+      "constants": [
+        "\\(1/2\\)",
+        "\\(2\\)"
+      ],
+      "standard": {
+        "name": "Bounded positive residual tail factor",
+        "cite": "stute1995clt"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:propensity-holder",
+      "kind": "smoothness",
+      "condition": "\\(\\pi_1\\in\\mathcal H^4_{20}([0,1])\\).",
+      "free_symbols": [
+        "\\pi_1",
+        "\\mathcal H^4_{20}"
+      ],
+      "constants": [
+        "\\(4\\)",
+        "\\(20\\)"
+      ],
+      "standard": {
+        "name": "Isotropic Hölder smoothness of order four",
+        "cite": "stone1982optimal"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:hazard-holder",
+      "kind": "smoothness",
+      "condition": "\\(\\forall a\\in\\{0,1\\},\\ \\lambda_a\\in\\mathcal H^4_{20}([0,1]^2)\\).",
+      "free_symbols": [
+        "\\lambda_a",
+        "\\mathcal H^4_{20}",
+        "a"
+      ],
+      "constants": [
+        "\\(4\\)",
+        "\\(20\\)"
+      ],
+      "standard": {
+        "name": "Joint isotropic Hölder smoothness of order four",
+        "cite": "stone1982optimal"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:residual-holder",
+      "kind": "smoothness",
+      "condition": "\\(\\forall a\\in\\{0,1\\},\\ g_a\\in\\mathcal H^4_{20}([0,1]^2)\\).",
+      "free_symbols": [
+        "g_a",
+        "\\mathcal H^4_{20}",
+        "a"
+      ],
+      "constants": [
+        "\\(4\\)",
+        "\\(20\\)"
+      ],
+      "standard": {
+        "name": "Joint isotropic Hölder smoothness of order four",
+        "cite": "stone1982optimal"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-minimax-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:interior-slack",
+      "kind": "regularity",
+      "condition": "\\(\\rho_{\\mathrm{int}}(P)>0\\).",
+      "free_symbols": [
+        "\\rho_{\\mathrm{int}}",
+        "P"
+      ],
+      "standard": {
+        "name": "Relative interior of a smooth semiparametric model",
+        "cite": "vanderVaart1998"
+      },
+      "used_by": [
+        "def:interior-holder-class",
+        "thm:canonical-gradient-efficiency"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:quadratic-holder-class",
+      "name": "\\(\\mathcal P_4\\)",
+      "construction": "\\(\\mathcal P_4:=\\{P:P\\text{ satisfies consistency, conditional exchangeability, conditional independent censoring, the displayed density and treatment-overlap bands, the event-hazard band, the exact quadratic censoring factorization with its residual envelope and survival shape, and the three radius-}20\\text{ Hölder conditions for every }a\\in\\{0,1\\}\\}\\).",
+      "free_symbols": [
+        "\\mathcal P_4",
+        "P",
+        "a"
+      ],
+      "by_member_properties": [
+        "ass:consistency",
+        "ass:treatment-exchangeability",
+        "ass:independent-censoring",
+        "ass:covariate-density-band",
+        "ass:treatment-overlap",
+        "ass:event-hazard-band",
+        "ass:quadratic-censoring-endpoint",
+        "ass:censoring-residual-envelope",
+        "ass:propensity-holder",
+        "ass:hazard-holder",
+        "ass:residual-holder"
+      ]
+    },
+    {
+      "id": "def:interior-holder-class",
+      "name": "\\(\\mathcal P_4^{\\circ}\\)",
+      "construction": "\\(\\mathcal P_4^{\\circ}:=\\{P\\in\\mathcal P_4:\\rho_{\\mathrm{int}}(P)>0\\}\\).",
+      "free_symbols": [
+        "\\mathcal P_4^{\\circ}",
+        "\\mathcal P_4",
+        "\\rho_{\\mathrm{int}}",
+        "P"
+      ],
+      "by_member_properties": [
+        "ass:consistency",
+        "ass:treatment-exchangeability",
+        "ass:independent-censoring",
+        "ass:covariate-density-band",
+        "ass:treatment-overlap",
+        "ass:event-hazard-band",
+        "ass:quadratic-censoring-endpoint",
+        "ass:censoring-residual-envelope",
+        "ass:propensity-holder",
+        "ass:hazard-holder",
+        "ass:residual-holder",
+        "ass:interior-slack"
+      ]
+    },
+    {
+      "id": "def:rmst-score",
+      "name": "integrated orthogonal score \\(\\psi_a\\)",
+      "construction": "\\[\\psi_a(\\bar\\eta;O):=\\bar m_a(X)-\\frac{\\mathbf 1\\{A=a\\}}{\\bar\\pi_a(X)}\\left\\{\\frac{\\Delta\\bar H_a(U,X)}{\\bar G_a(U\\mid X)}-\\int_0^U\\frac{\\bar H_a(t,X)\\bar\\lambda_a(t,X)}{\\bar G_a(t\\mid X)}\\,dt\\right\\}.\\]",
+      "free_symbols": [
+        "\\psi_a",
+        "a",
+        "\\bar\\eta",
+        "O",
+        "\\bar m_a",
+        "X",
+        "A",
+        "\\bar\\pi_a",
+        "\\Delta",
+        "\\bar H_a",
+        "U",
+        "\\bar G_a",
+        "t",
+        "\\bar\\lambda_a"
+      ],
+      "inputs": [
+        "\\bar\\eta",
+        "O"
+      ]
+    },
+    {
+      "id": "def:endpoint-learning-handle",
+      "name": "quadratic-endpoint local-cubic learning handle",
+      "construction": "On a training sample \\((O_i)_{i=1}^M\\), put \\(J=J_M\\), \\(h=h_M=J^{-1}\\), \\(I_j=[jh,(j+1)h)\\), and \\(K_\\ell=[\\ell h,(\\ell+1)h)\\) for \\(j,\\ell\\in\\{0,\\ldots,J-1\\}\\), assigning \\(x=1\\) to \\(K_{J-1}\\); write \\(d_j=1-jh\\).  Let \\(p(z_t,z_x)\\) be the fixed vector of the ten monomials of total degree at most three, \\(v(z)=(1,z,z^2,z^3)^{\\mathsf T}\\), \\(p_{j\\ell}(t,x)=p((t-jh)/h,(x-\\ell h)/h)\\), and \\(v_\\ell(x)=v((x-\\ell h)/h)\\).  Define the known positive constants\n\\[\n \\beta_*:=\\lambda_{\\min}\\!\\left\\{\\int_{[0,1]^2}(1-z_t)^2p(z_t,z_x)p(z_t,z_x)^{\\mathsf T}\\,dz_t\\,dz_x\\right\\},\n \\qquad\n \\beta_\\pi:=\\lambda_{\\min}\\!\\left\\{\\int_0^1v(z)v(z)^{\\mathsf T}\\,dz\\right\\}.\n\\]\nFor every arm and time--covariate cell form\n\\[\n R_{aj\\ell}:=\\sum_{i=1}^M\\mathbf 1\\{A_i=a,X_i\\in K_\\ell\\}\n \\int_{I_j}Y_{i,\\mathrm{risk}}(t)p_{j\\ell}(t,X_i)p_{j\\ell}(t,X_i)^{\\mathsf T}\\,dt,\n\\]\n\\[\n b_{aj\\ell}:=\\sum_{i=1}^M\\mathbf 1\\{A_i=a,X_i\\in K_\\ell,U_i\\in I_j,\\Delta_i=1\\}p_{j\\ell}(U_i,X_i),\n\\]\n\\[\n Q_{aj\\ell}:=\\sum_{i=1}^M\\mathbf 1\\{A_i=a,X_i\\in K_\\ell\\}\n \\int_{I_j}(1-t)^2p_{j\\ell}(t,X_i)p_{j\\ell}(t,X_i)^{\\mathsf T}\\,dt,\n\\]\n\\[\n c_{aj\\ell}:=\\sum_{i=1}^M\\mathbf 1\\{A_i=a,X_i\\in K_\\ell\\}\n \\int_{I_j}Y_{i,\\mathrm{risk}}(t)p_{j\\ell}(t,X_i)\\,dt.\n\\]\nDeclare the cell successful when\n\\[\n \\lambda_{\\min}(R_{aj\\ell})\\ge e^{-2}\\beta_*Mh^2d_j^2/32\n \\quad\\hbox{and}\\quad\n \\lambda_{\\min}(Q_{aj\\ell})\\ge\\beta_*Mh^2d_j^2/16.\n\\]\nOn a successful cell set \\(\\widehat\\gamma_{aj\\ell}=R_{aj\\ell}^{-1}b_{aj\\ell}\\), \\(\\widehat\\zeta_{aj\\ell}=Q_{aj\\ell}^{-1}c_{aj\\ell}\\),\n\\[\n \\widehat\\lambda_a(t,x)=\\operatorname{clip}_{[1/2,2]}\\{p_{j\\ell}(t,x)^{\\mathsf T}\\widehat\\gamma_{aj\\ell}\\},\n \\qquad\n \\widehat q_a^{\\mathrm{raw}}(t,x)=p_{j\\ell}(t,x)^{\\mathsf T}\\widehat\\zeta_{aj\\ell}.\n\\]\nIf the cell is unsuccessful, set \\(\\widehat\\lambda_a(t,x)=1\\) and mark that cell for the residual fallback below.  From the resulting piecewise hazard define\n\\[\n \\widehat S_a(t\\mid x):=\\exp\\!\\left\\{-\\int_0^t\\widehat\\lambda_a(s,x)\\,ds\\right\\}.\n\\]\nOn each successful cell set\n\\[\n \\widehat g_a(t,x)=\\operatorname{clip}_{[1/2,2]}\\left\\{\\frac{\\widehat q_a^{\\mathrm{raw}}(t,x)}{\\widehat S_a(t\\mid x)}\\right\\};\n\\]\non each unsuccessful cell set \\(\\widehat g_a(t,x)=1\\).  Thus \\(\\widehat G_a(t\\mid x)=(1-t)^2\\widehat g_a(t,x)\\), and define \\(\\widehat H_a\\) and \\(\\widehat m_a\\) from \\(\\widehat\\lambda_a\\) by the same integral formulas as \\(H_a\\) and \\(m_a\\).\n\nFor every covariate cell form\n\\[\n P_\\ell:=\\sum_{i=1}^M\\mathbf 1\\{X_i\\in K_\\ell\\}v_\\ell(X_i)v_\\ell(X_i)^{\\mathsf T},\n \\qquad\n s_\\ell:=\\sum_{i=1}^M\\mathbf 1\\{X_i\\in K_\\ell\\}v_\\ell(X_i)A_i.\n\\]\nIf \\(\\lambda_{\\min}(P_\\ell)\\ge\\beta_\\pi Mh/4\\), set \\(\\widehat\\alpha_\\ell=P_\\ell^{-1}s_\\ell\\) and\n\\[\n \\widehat\\pi_1(x)=\\operatorname{clip}_{[1/4,3/4]}\\{v_\\ell(x)^{\\mathsf T}\\widehat\\alpha_\\ell\\},\n \\qquad \\widehat\\pi_0(x)=1-\\widehat\\pi_1(x);\n\\]\notherwise set \\(\\widehat\\pi_1(x)=\\widehat\\pi_0(x)=1/2\\) on that cell.  Half-open cells and the stated last-cell convention select a unique formula at every input.  These fixed threshold, clipping, and fallback rules define a Borel-measurable total learner using only the training observations, \\(M,h_M\\), the fixed bases, and the displayed class constants.",
+      "free_symbols": [
+        "M",
+        "J_M",
+        "h_M",
+        "i",
+        "O_i",
+        "a",
+        "A",
+        "X",
+        "U",
+        "\\Delta",
+        "Y_{\\mathrm{risk}}",
+        "\\widehat\\pi_a",
+        "\\widehat\\lambda_a",
+        "\\widehat g_a",
+        "\\widehat S_a",
+        "\\widehat G_a",
+        "\\widehat H_a",
+        "\\widehat m_a",
+        "H_a",
+        "m_a"
+      ],
+      "inputs": [
+        "M",
+        "h_M",
+        "def:quadratic-holder-class"
+      ]
+    },
+    {
+      "id": "def:cross-fitted-estimator",
+      "name": "total cross-fitted estimator and variance estimator",
+      "construction": "Split the indices deterministically into two folds, learn \\(\\widehat\\eta_{-k(i)}\\) by def:endpoint-learning-handle on the opposite fold, set \\(W_i:=\\psi_1(\\widehat\\eta_{-k(i)};O_i)-\\psi_0(\\widehat\\eta_{-k(i)};O_i)\\), and define \\(\\widehat\\theta:=n^{-1}\\sum_{i=1}^nW_i\\) and \\(\\widehat V:=\\max\\{n^{-1},n^{-1}\\sum_{i=1}^n(W_i-\\widehat\\theta)^2\\}\\); use the fixed values \\(0\\) and \\(1\\) for \\(\\widehat\\theta\\) and \\(\\widehat V\\), respectively, when \\(n<4\\) or the observed sample lies outside its declared support.",
+      "free_symbols": [
+        "i",
+        "n",
+        "k",
+        "W_i",
+        "\\widehat\\eta",
+        "\\psi_a",
+        "O_i",
+        "\\widehat\\theta",
+        "\\widehat V"
+      ],
+      "inputs": [
+        "def:endpoint-learning-handle",
+        "def:rmst-score",
+        "O_i",
+        "n"
+      ]
+    },
+    {
+      "id": "def:wald-interval",
+      "name": "fixed-endpoint Wald interval",
+      "construction": "\\(\\mathcal I_{n,\\alpha}:=[\\widehat\\theta-z_{1-\\alpha/2}\\sqrt{\\widehat V/n},\\widehat\\theta+z_{1-\\alpha/2}\\sqrt{\\widehat V/n}]\\) for \\(\\alpha\\in(0,1)\\).",
+      "free_symbols": [
+        "\\mathcal I_{n,\\alpha}",
+        "n",
+        "\\alpha",
+        "\\widehat\\theta",
+        "z_{1-\\alpha/2}",
+        "\\widehat V"
+      ],
+      "inputs": [
+        "\\widehat\\theta",
+        "\\widehat V",
+        "n"
+      ]
+    },
+    {
+      "id": "def:heavy-tail-witness",
+      "name": "quadratic-endpoint heavy-tail witness \\(P^{\\star}\\)",
+      "construction": "Under \\(P^{\\star}\\), let \\(X\\sim\\mathrm{Unif}[0,1]\\), \\(\\pi_1(x)=0.4+0.2x\\), \\(\\lambda_a(t,x)=1+a/2+x/4\\), and \\(g_a(t,x)=\\exp(-xt/4)\\); generate conditionally independent potential event times with these hazards and censoring times with survival \\((1-t)^2g_a(t,x)\\), and set the observed variables by consistency.",
+      "free_symbols": [
+        "P^{\\star}",
+        "X",
+        "\\pi_1",
+        "x",
+        "\\lambda_a",
+        "a",
+        "t",
+        "g_a",
+        "T(a)",
+        "C"
+      ],
+      "inputs": [
+        "X",
+        "A",
+        "T(a)",
+        "C"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:uniform-endpoint-efficiency",
+      "kind": "theorem",
+      "statement": "For the total data maps \\((\\widehat\\theta,\\widehat V)\\) and every \\(\\varepsilon>0\\), \\[\\sup_{P\\in\\mathcal P_4}P\\!\\left(\\left|\\sqrt n(\\widehat\\theta-\\theta)-n^{-1/2}\\sum_{i=1}^nD(O_i)\\right|>\\varepsilon\\right)\\to0,\\qquad \\sup_{P\\in\\mathcal P_4}P\\!\\left(\\left|\\widehat V/V_P-1\\right|>\\varepsilon\\right)\\to0,\\] and \\[\\sup_{P\\in\\mathcal P_4}\\sup_{z\\in\\mathbb R}\\left|P\\!\\left(\\frac{\\sqrt n(\\widehat\\theta-\\theta)}{\\sqrt{\\widehat V}}\\le z\\right)-\\Phi(z)\\right|\\to0.\\] The construction uses only \\((O_i)_{i=1}^n\\) and the known constants defining \\(\\mathcal P_4\\).",
+      "free_symbols": [
+        "\\widehat\\theta",
+        "\\widehat V",
+        "\\theta",
+        "n",
+        "i",
+        "D",
+        "O_i",
+        "V_P",
+        "P",
+        "\\mathcal P_4",
+        "\\Phi"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "def:quadratic-holder-class",
+        "def:rmst-score",
+        "def:endpoint-learning-handle",
+        "def:cross-fitted-estimator",
+        "lem:exact-integrated-drift",
+        "lem:endpoint-moment-envelope",
+        "thm:primitive-endpoint-concentration"
+      ],
+      "proof_tex": "Let \\(\\eta\\) denote the true nuisance triple and put \\(\\phi(\\bar\\eta;O):=\\psi_1(\\bar\\eta;O)-\\psi_0(\\bar\\eta;O)\\).  By \\(\\textnormal{def:rmst-score}\\) and the definitions of \\(D_a\\) and \\(D\\),\n\\[\n \\phi(\\eta;O)=\\theta+D(O).                                             \\tag{U1}\n\\]\nWe first establish endpoint score continuity.  Suppose an in-band deterministic triple \\(\\bar\\eta\\) has all three primitive sup-norm errors at most \\(e\\).  The hazard band and the identity\n\\[\n H_a(t,x)=\\int_t^1\\exp\\!\\left\\{-\\int_t^v\\lambda_a(s,x)\\,ds\\right\\}dv\n\\]\ngive by the mean-value theorem\n\\[\n |\\bar H_a(t,x)-H_a(t,x)|\\le e\\int_t^1(v-t)\\,dv\n =\\frac12e(1-t)^2,\\qquad |\\bar m_a(x)-m_a(x)|\\le Ce.                   \\tag{U2}\n\\]\nThe treatment-overlap and residual bands, \\(H_a(t,x)\\le1-t\\), and elementary reciprocal identities imply\n\\[\n \\left|\\frac{\\bar H_a}{\\bar G_a}-\\frac{H_a}{G_a}\\right|\n +\\left|\\frac{\\bar H_a\\bar\\lambda_a}{\\bar G_a}\n       -\\frac{H_a\\lambda_a}{G_a}\\right|\n \\le\\frac{Ce}{1-t},                                                    \\tag{U3}\n\\]\nand the same calculation controls the reciprocal propensity.  With\n\\[\n B(O):=1+\\frac{\\Delta}{1-U}+\\log\\frac1{1-U},\n\\]\ndirect substitution in \\(\\psi_a\\) yields\n\\[\n |\\phi(\\bar\\eta;O)-\\phi(\\eta;O)|\\le CeB(O),\n \\qquad E_P\\{\\phi(\\bar\\eta;O)-\\phi(\\eta;O)\\}^2\\le Ce^2.              \\tag{U4}\n\\]\nUniformity follows because the event subdensity at \\(u\\) is bounded by \\(C(1-u)^2\\), so the square of \\(\\Delta/(1-U)\\) is integrable, while every fixed power of the logarithm is integrable.  This is the endpoint calculation recorded in \\(\\textnormal{lem:endpoint-moment-envelope}\\).  Since all learned primitives are clipped to their known bands, the first inequality in (U4), with \\(e\\) replaced by a class constant, also holds outside a nuisance good event.\n\nFor validation fold \\(k\\), let \\(\\mathcal G_k\\) be the event that the learner trained on the opposite fold of size \\(M\\), where \\(|M-n/2|\\le1\\), has total primitive sup-norm error at most \\(Cr_M\\).  By \\(\\textnormal{thm:primitive-endpoint-concentration}\\),\n\\[\n \\sup_{P\\in\\mathcal P_4}P(\\mathcal G_k^c)\\longrightarrow0.            \\tag{U5}\n\\]\nThe definitions of \\(J_M,h_M,r_M\\) give\n\\[\n h_M\\asymp\\left\\{\\frac{\\log M}{M}\\right\\}^{1/12},\n \\qquad r_M=O\\!\\left\\{\\left(\\frac{\\log M}{M}\\right)^{1/3}\\right\\}. \\tag{U6}\n\\]\nOn \\(\\mathcal G_k\\), \\(\\textnormal{lem:exact-integrated-drift}\\), applied to both arms, yields the exact product-remainder bound\n\\[\n \\left|E_P\\{\\phi(\\widehat\\eta_{-k};O)\\mid\\widehat\\eta_{-k}\\}-\\theta\\right|\n \\le Cr_M^2.                                                           \\tag{U7}\n\\]\n\nConditional on the opposite-fold training data, the validation observations are independent of \\(\\widehat\\eta_{-k}\\).  By (U4), the conditional variance of the centered validation sum\n\\[\n n^{-1/2}\\sum_{i:k(i)=k}\\left[\n \\phi(\\widehat\\eta_{-k};O_i)-\\phi(\\eta;O_i)\n -E_P\\{\\phi(\\widehat\\eta_{-k};O)-\\phi(\\eta;O)\\mid\\widehat\\eta_{-k}\\}\n \\right]\n\\]\nis at most \\(Cr_M^2\\) on \\(\\mathcal G_k\\).  Conditional Chebyshev inequality, (U5), and a union bound over two folds make both centered sums \\(o_P(1)\\) uniformly.  The conditional means satisfy, by (U6)--(U7),\n\\[\n C\\sqrt n\\,r_M^2=O\\{n^{-1/6}(\\log n)^{2/3}\\}=o(1).                    \\tag{U8}\n\\]\nCombining (U1) and (U5)--(U8) proves\n\\[\n \\sqrt n(\\widehat\\theta-\\theta)\n =n^{-1/2}\\sum_{i=1}^nD(O_i)+o_P(1)                                   \\tag{U9}\n\\]\nuniformly over \\(\\mathcal P_4\\).\n\nFor variance consistency, take \\(p=5/2\\).  By \\(\\textnormal{lem:endpoint-moment-envelope}\\), there are \\(0<c<C<\\infty\\) such that\n\\[\n c\\le V_P\\le C,\\qquad \\sup_{P\\in\\mathcal P_4}E_P|D(O)|^p<C.          \\tag{U10}\n\\]\nThus\n\\[\n \\sup_P E_P\\{D(O)^2\\mathbf 1(|D(O)|>K)\\}\n \\le K^{2-p}\\sup_PE_P|D(O)|^p\\longrightarrow0.                       \\tag{U11}\n\\]\nApply Chebyshev's inequality to the bounded truncation of \\(D^2\\) and Markov's inequality to (U11), first letting \\(n\\to\\infty\\) and then \\(K\\to\\infty\\).  This proves\n\\[\n n^{-1}\\sum_{i=1}^nD(O_i)^2-E_PD(O)^2=o_P(1)                           \\tag{U12}\n\\]\nuniformly.  The analogous first-moment truncation gives \\(n^{-1}\\sum_iD(O_i)=o_P(1)\\) uniformly.\n\nOn \\(\\mathcal G_k\\), conditional Markov inequality and (U4) give\n\\[\n n^{-1}\\sum_{i=1}^n\\{W_i-\\theta-D(O_i)\\}^2=o_P(1)                    \\tag{U13}\n\\]\nuniformly; (U5) removes the bad training events.  Cauchy--Schwarz, (U12), and (U13) show that the centered empirical second moment of the \\(W_i\\)'s differs by \\(o_P(1)\\) from that of the \\(D(O_i)\\)'s.  The latter converges uniformly to \\(V_P\\).  The lower bound in (U10) makes the floor \\(n^{-1}\\) inactive with probability tending uniformly to one, and hence\n\\[\n \\sup_{P\\in\\mathcal P_4}P\\!\\left(\\left|\\widehat V/V_P-1\\right|>\\varepsilon\\right)\n \\longrightarrow0.                                                    \\tag{U14}\n\\]\n\nIt remains to prove the uniform normal approximation without a third moment.  Put \\(Z_P:=D/\\sqrt{V_P}\\).  By (U10), \\(E_PZ_P=0\\), \\(E_PZ_P^2=1\\), and \\(\\sup_PE_P|Z_P|^p<C\\).  Hence, for every sequence \\(P_n\\in\\mathcal P_4\\),\n\\[\n E_{P_n}\\{Z_{P_n}^2\\mathbf 1(|Z_{P_n}|>\\varepsilon\\sqrt n)\\}\n \\le C(\\varepsilon\\sqrt n)^{2-p}\\longrightarrow0.                    \\tag{U15}\n\\]\nFor \\(R(y):=e^{iy}-1-iy+y^2/2\\), the elementary bound \\(|R(y)|\\le Cy^2\\min\\{|y|,1\\}\\), split at \\(|Z_{P_n}|=\\varepsilon\\sqrt n\\), gives\n\\[\n E_{P_n}e^{itZ_{P_n}/\\sqrt n}=1-\\frac{t^2}{2n}+o(n^{-1}),\n \\qquad \\left(E_{P_n}e^{itZ_{P_n}/\\sqrt n}\\right)^n\\longrightarrow e^{-t^2/2}. \\tag{U16}\n\\]\nThus the normalized sum converges weakly to a standard normal along every sequence \\(P_n\\).  Continuity of \\(\\Phi\\) upgrades weak convergence to Kolmogorov convergence; a failure of uniformity would produce a contradicting sequence.  Therefore\n\\[\n \\sup_{P\\in\\mathcal P_4}\\sup_{z\\in\\mathbb R}\n \\left|P\\!\\left\\{\n \\frac{n^{-1/2}\\sum_{i=1}^nD(O_i)}{\\sqrt{V_P}}\\le z\n \\right\\}-\\Phi(z)\\right|\\longrightarrow0.                            \\tag{U17}\n\\]\nEquations (U9), (U10), and (U14), followed by the usual distribution-function sandwich and uniform continuity of \\(\\Phi\\), prove the displayed uniform Studentized conclusion.  The support fallback has probability zero for every \\(P\\in\\mathcal P_4\\), and the small-sample fallback is inactive for all sufficiently large \\(n\\).  The explicit cell rules in \\(\\textnormal{def:endpoint-learning-handle}\\), together with finite sums, parameter-dependent Lebesgue integrals, thresholded matrix inversion, clipping, and deterministic fallbacks, are Borel measurable and use only the observations and known class constants.  Thus \\((\\widehat\\theta,\\widehat V)\\) are total data maps with all three asserted uniform properties.",
+      "justification": "This is the feasible-inference kernel: learned primitive rates, endpoint score continuity, exact product drift, weak-moment variance consistency, and uniform Studentization hold on all of \\(\\mathcal P_4\\); the separate LAN argument is needed only for pointwise efficiency at interior laws.",
+      "gap": "Westling et al. (2024) obtain RMST inference by integrating a survival-curve limit under a censoring floor and assumed nuisance product rates. Morenz, Wolock, and Carone (2024) give counterfactual survival-functional DML under truncation and right-censoring support with high-level nuisance conditions, but do not supply the exact-quadratic primitive rate, \\(5/2\\)-moment Studentization, or endpoint-efficiency theorem. Tian et al. (2020) treat an unadjusted Kaplan--Meier integral without learned conditional causal nuisances.",
+      "consumer": "It supplies a fixed-horizon adjusted RMST confidence interval for the parotid-carcinoma analysis and a theoretically justified endpoint mode for CFsurvival.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:canonical-gradient-efficiency",
+      "kind": "theorem",
+      "statement": "For every \\(P\\in\\mathcal P_4^{\\circ}\\), \\(D=D_1-D_0\\) is the observed-data canonical gradient of \\(\\theta\\) in the locally unrestricted independent-censoring model, the tangent closure generated by admissible smooth submodels has squared norm \\(V_P\\), and every regular estimator has asymptotic variance at least \\(V_P\\); the estimator in thm:uniform-endpoint-efficiency attains this bound.",
+      "free_symbols": [
+        "P",
+        "\\mathcal P_4^{\\circ}",
+        "D",
+        "D_a",
+        "\\theta",
+        "V_P"
+      ],
+      "depends_on": [
+        "def:interior-holder-class",
+        "lem:endpoint-moment-envelope",
+        "thm:uniform-endpoint-efficiency",
+        "lem:iid-dqm-implies-lan",
+        "lem:semiparametric-convolution-bound",
+        "ass:interior-slack",
+        "ass:independent-censoring"
+      ],
+      "proof_tex": "Fix \\(P\\in\\mathcal P_4^{\\circ}\\) and write \\(\\delta_0:=\\rho_{\\mathrm{int}}(P)>0\\).  By \\(\\textnormal{ass:interior-slack}\\) and \\(\\textnormal{def:interior-holder-class}\\), every band and H\\\"older-radius restriction has positive slack at \\(P\\).  The given identifying functional is\n\\[\n \\theta(P)=E_P\\{m_1(X)-m_0(X)\\}.                                      \\tag{E1}\n\\]\nBy \\(\\textnormal{lem:endpoint-moment-envelope}\\), \\(E_PD=0\\), \\(D\\in L^2(P)\\), and \\(\\lVert D\\rVert_{L^2(P)}^2=V_P\\).\n\nWe first compute the pathwise derivative and exhibit the full smooth tangent space, including censoring directions.  The independent-censoring observed likelihood factorizes into the marginal law of \\(X\\), the conditional law of \\(A\\) given \\(X\\), and the two competing-risk factors generated conditionally on \\((A,X)\\) by the event and censoring laws.  Let\n\\[\n k_a(t,x):=-\\partial_tG_a(t\\mid x),\\qquad\n \\nu_a^C(t,x):=\\frac{k_a(t,x)}{G_a(t\\mid x)},\n\\]\nwhere the second expression is used only for \\(t<1\\).  The survival-shape requirement in \\(\\mathcal P_4\\), \\(G_a(0\\mid x)=g_a(0,x)=1\\), and \\(G_a(1\\mid x)=0\\) imply \\(k_a\\ge0\\) and \\(\\int_0^1k_a(t,x)\\,dt=1\\).  Define\n\\[\n N^C(t):=\\mathbf 1\\{U\\le t,\\Delta=0\\},\\qquad\n M_a^C(t):=N^C(t)-\\int_0^tY_{\\mathrm{risk}}(s)\\nu_a^C(s,X)\\,ds\n \\quad\\hbox{on }\\{A=a\\}.                                             \\tag{E2}\n\\]\nAll stochastic integrals below terminate strictly before one almost surely.  Successive conditional expectation and the absence of simultaneous event and censoring jumps show that the covariate, treatment, event-martingale, and censoring-martingale score spaces are mutually orthogonal.\n\nFor a bounded mean-zero covariate score \\(u\\), differentiation of (E1) gives\n\\[\n \\dot\\theta_X(u)=E_P[\\{m_1(X)-m_0(X)-\\theta\\}u(X)]\n                 =E_P\\{D(O)u(X)\\}.                                   \\tag{E3}\n\\]\nA treatment perturbation leaves (E1) unchanged.  Its score has conditional mean zero given \\(X\\), while the event components of \\(D\\) have conditional mean zero given \\((A,X)\\); hence its derivative and its covariance with \\(D\\) are zero.\n\nLet \\(b_a\\) be bounded and smooth with support in \\([0,1-\\kappa]\\times[0,1]\\) for some \\(\\kappa>0\\), and set \\(\\lambda_{a,e}=\\lambda_a\\exp(eb_a)\\).  The event-hazard band permits differentiation under the defining survival integral, giving\n\\[\n \\left.\\partial_eS_{a,e}(v\\mid x)\\right|_{e=0}\n =-S_a(v\\mid x)\\int_0^v\\lambda_a(t,x)b_a(t,x)\\,dt.\n\\]\nFubini's theorem is applicable because the integrand is bounded and supported away from the terminal point.  With \\(\\sigma_1=1\\) and \\(\\sigma_0=-1\\), it yields\n\\[\n \\dot\\theta(b_a)\n =-\\sigma_aE_P\\!\\left[\\int_0^1S_a(t\\mid X)H_a(t,X)\n             \\lambda_a(t,X)b_a(t,X)\\,dt\\right].                       \\tag{E4}\n\\]\nThe observed event score is\n\\[\n S^T_{a,b}(O):=\\mathbf 1\\{A=a\\}\\int_0^1b_a(t,X)\\,dM_a(t).\n\\]\nBy \\(\\textnormal{ass:independent-censoring}\\),\n\\[\n E_P\\{Y_{\\mathrm{risk}}(t)\\mid A=a,X\\}=S_a(t\\mid X)G_a(t\\mid X).\n\\]\nThe martingale isometry, treatment overlap, and Fubini therefore give\n\\[\n \\begin{split}\n E_P\\{D(O)S^T_{a,b}(O)\\}\n &=-\\sigma_aE_P\\!\\left[\n   \\frac{\\mathbf 1\\{A=a\\}}{\\pi_a(X)}\n   \\int_0^1\\frac{H_a(t,X)}{G_a(t\\mid X)}b_a(t,X)\n       Y_{\\mathrm{risk}}(t)\\lambda_a(t,X)\\,dt\\right]\\\\\n &=-\\sigma_aE_P\\!\\left[\\int_0^1S_a(t\\mid X)H_a(t,X)\n             \\lambda_a(t,X)b_a(t,X)\\,dt\\right]\n =\\dot\\theta(b_a).                                                     \\tag{E5}\n \\end{split}\n\\]\nA censoring perturbation does not alter (E1).  Every censoring score has conditional mean zero given \\((A,X)\\) and is orthogonal to the event martingales because their predictable quadratic covariation is zero.  It follows that both its target derivative and its covariance with \\(D\\) vanish.\n\nWe next show that these calculations cover the locally unrestricted tangent closure.  Smooth bounded mean-zero functions are dense in \\(L_0^2(P_X)\\), and smooth logistic directions are dense in the treatment-score space because \\(1/4\\le\\pi_1\\le3/4\\).  For event directions define the finite information measure\n\\[\n d\\mu_a^T(t,x):=f(x)\\pi_a(x)S_a(t\\mid x)G_a(t\\mid x)\n                    \\lambda_a(t,x)\\,dt\\,dx.\n\\]\nBounded smooth functions compactly supported below one are dense in \\(L^2(\\mu_a^T)\\): first truncate a square-integrable function to \\([0,1-\\kappa]\\), then truncate its magnitude, and finally approximate it by smooth functions on the compact rectangle.  For censoring, bounded smooth functions \\(d_a(t,x)\\), compactly supported in time below one, are dense in the latent space \\(L^2(f(x)\\pi_a(x)k_a(t,x)\\,dt\\,dx)\\).  Conditional centering and conditional expectation are contractions in \\(L^2\\), so their observed coarsening scores are dense in the observed censoring-score space.  Thus the four displayed smooth score families generate the full independent-censoring tangent space.\n\nIt remains to verify that censoring directions in that density assertion are realized by genuine submodels of the exact endpoint class.  For a finite collection \\(d_{a,j}\\) of bounded smooth functions supported in \\([0,1-\\kappa]\\times[0,1]\\), put \\(d_{a,e}:=\\sum_je_jd_{a,j}\\) and define\n\\[\n Z_{a,e}(x):=\\int_0^1k_a(s,x)e^{d_{a,e}(s,x)}\\,ds,\\qquad\n k_{a,e}(t,x):=\\frac{k_a(t,x)e^{d_{a,e}(t,x)}}{Z_{a,e}(x)},\\qquad\n G_{a,e}(t\\mid x):=\\int_t^1k_{a,e}(s,x)\\,ds.                           \\tag{E6}\n\\]\nBecause \\(k_a\\ge0\\) integrates to one, \\(Z_{a,e}>0\\), \\(k_{a,e}\\ge0\\), \\(G_{a,e}(0\\mid x)=1\\), and \\(G_{a,e}\\) is nonincreasing with limit zero at one.  Hence (E6) is a valid continuous censoring survival.  Put\n\\[\n g_{a,e}(t,x):=\\frac{G_{a,e}(t\\mid x)}{(1-t)^2},\\qquad t<1.             \\tag{E7}\n\\]\nThis gives the exact quadratic factorization by construction.  No derivative is lost in (E7).  Indeed, integration by parts gives\n\\[\n \\int_t^1k_a(s,x)e^{d_{a,e}(s,x)}\\,ds\n =G_a(t\\mid x)e^{d_{a,e}(t,x)}\n  +\\int_t^1G_a(s\\mid x)e^{d_{a,e}(s,x)}\n                   \\partial_sd_{a,e}(s,x)\\,ds.                         \\tag{E8}\n\\]\nNear one, the second term vanishes and \\(d_{a,e}=0\\), so \\(g_{a,e}=g_a/Z_{a,e}\\).  Away from one, division by \\((1-t)^2\\) is harmless.  At \\(t=0\\), (E8) also expresses \\(Z_{a,e}\\) using only \\(G_a=(1-t)^2g_a\\), \\(d_{a,e}\\), and their derivatives.  Differentiating (E8) in \\(x\\) through order three and using the Lipschitz seminorm of the third derivatives proves \\(Z_{a,e},Z_{a,e}^{-1},g_{a,e}\\in C^{3,1}\\), and the same formula proves\n\\[\n \\lVert g_{a,e}-g_a\\rVert_{C^{3,1}}\\longrightarrow0\n \\quad\\hbox{as }\\lVert e\\rVert\\to0.                                  \\tag{E9}\n\\]\nThe positive slack \\(\\delta_0\\) consequently preserves the residual band and radius restriction for all sufficiently small \\(\\lVert e\\rVert\\).  It also preserves every other restriction when the other likelihood factors are perturbed as below.  Thus (E6)--(E9) establish censoring paths inside \\(\\mathcal P_4\\), rather than merely formal censoring scores.\n\nWe now verify differentiability in quadratic mean and local asymptotic normality for every finite collection of generators.  Let \\(u_j,c_j,b_{a,j},d_{a,j}\\), \\(j=1,\\ldots,r\\), be bounded smooth covariate, treatment, event, and censoring directions; take the event and censoring directions compactly supported below one and \\(E_Pu_j(X)=0\\).  Write \\(u_e,c_e,b_{a,e},d_{a,e}\\) for their linear combinations and define simultaneously\n\\[\n f_e(x):=\\frac{f(x)e^{u_e(x)}}{E_Pe^{u_e(X)}},\\qquad\n \\pi_{1,e}(x):=\\operatorname{expit}\\{\\operatorname{logit}\\pi_1(x)+c_e(x)\\},\n \\qquad \\lambda_{a,e}(t,x):=\\lambda_a(t,x)e^{b_{a,e}(t,x)},            \\tag{E10}\n\\]\ntogether with (E6).  Generate \\(T(0),T(1)\\) conditionally on \\(X\\) from the two perturbed event hazards, generate \\(A\\) from \\(\\pi_{1,e}\\), generate \\(C\\) from \\(G_{A,e}\\) independently of the potential event times given \\((A,X)\\), and set \\(T=T(A)\\).  This latent extension preserves consistency, treatment exchangeability, and conditional independent censoring.  The marginal density need not be smooth in \\(\\mathcal P_4\\).  Uniform convergence of the ratios in (E10), continuity of multiplication and smooth composition in \\(C^{3,1}\\), (E9), and the slack \\(\\delta_0\\) show that \\(P_e\\in\\mathcal P_4\\) for all sufficiently small \\(\\lVert e\\rVert\\).\n\nFor the censoring factor, set\n\\[\n \\mu_{a,j}(x):=\\int_0^1k_a(s,x)d_{a,j}(s,x)\\,ds,\\qquad\n \\overline d_{a,j}(t,x):=G_a(t\\mid x)^{-1}\n                 \\int_t^1k_a(s,x)d_{a,j}(s,x)\\,ds.\n\\]\nDirect differentiation of the censoring likelihood in (E6) gives the coordinate score\n\\[\n s^C_{a,j}(O)=\\mathbf 1\\{A=a\\}\\left[\n (1-\\Delta)\\{d_{a,j}(U,X)-\\mu_{a,j}(X)\\}\n +\\Delta\\{\\overline d_{a,j}(U,X)-\\mu_{a,j}(X)\\}\\right].              \\tag{E11}\n\\]\nEquivalently, differentiating \\(\\overline d_{a,j}\\) shows\n\\[\n s^C_{a,j}(O)=\\mathbf 1\\{A=a\\}\\int_0^1\n       \\{d_{a,j}(t,X)-\\overline d_{a,j}(t,X)\\}\\,dM_a^C(t).            \\tag{E12}\n\\]\nThe quantities in braces in (E11) are bounded by a constant times \\(\\lVert d_{a,j}\\rVert_\\infty\\), including at the endpoint.  Taylor expansion of \\(e^{d_{a,e}}\\), \\(Z_{a,e}^{-1}\\), and the tail integral in (E6) is therefore uniform in the observed unit and has second-order remainder \\(O(\\lVert e\\rVert^2)\\).\n\nThe event likelihood has log ratio, on \\(\\{A=a\\}\\),\n\\[\n \\Delta b_{a,e}(U,X)-\\int_0^U\\lambda_a(t,X)\n                  \\{e^{b_{a,e}(t,X)}-1\\}\\,dt,\n\\]\nwhose linear term is \\(\\int b_{a,e}\\,dM_a\\) and whose remainder is uniformly \\(O(\\lVert e\\rVert^2)\\).  The normalized exponential covariate factor and logistic treatment factor have linear terms \\(u_e(X)\\) and \\(\\{A-\\pi_1(X)\\}c_e(X)\\), respectively, with the same uniform second-order control.  Consequently the total score vector has coordinates\n\\[\n s_j(O)=u_j(X)+\\{A-\\pi_1(X)\\}c_j(X)\n +\\sum_{a=0}^1\\mathbf 1\\{A=a\\}\\int_0^1b_{a,j}(t,X)\\,dM_a(t)\n +\\sum_{a=0}^1s^C_{a,j}(O).                                           \\tag{E13}\n\\]\nExpanding the square root of the product likelihood ratio, and using boundedness of every displayed linear score and uniform second-order remainder, gives for a common dominating measure \\(\\nu\\)\n\\[\n \\int\\left\\{\\sqrt{dP_e/d\\nu}-\\sqrt{dP/d\\nu}\n       -\\frac12e^{\\mathsf T}s\\sqrt{dP/d\\nu}\\right\\}^2d\\nu\n =O(\\lVert e\\rVert^4)=o(\\lVert e\\rVert^2).                            \\tag{E14}\n\\]\nThus every finite smooth generating submodel is differentiable in quadratic mean.  After removing linearly redundant coordinates, \\(\\textnormal{lem:iid-dqm-implies-lan}\\) applied to (E14) proves LAN of its i.i.d. local experiments, with information matrix \\(E_P(ss^{\\mathsf T})\\).\n\nWe next place \\(D\\) in the closure of these LAN score spaces.  The event component in arm \\(a\\) has formal coefficient\n\\[\n b_a^{\\star}(t,x):=-\\sigma_a\\frac{H_a(t,x)}{\\pi_a(x)G_a(t\\mid x)}.\n\\]\nThe event-hazard band gives \\(H_a(t,x)\\le1-t\\), while the residual band gives \\(G_a(t\\mid x)\\ge(1-t)^2/2\\).  The density, treatment, survival, and hazard bands then imply\n\\[\n \\int_{1-\\kappa}^1\\!\\int_0^1|b_a^{\\star}(t,x)|^2\\,d\\mu_a^T(t,x)\n \\le C\\int_{1-\\kappa}^1\\!\\int_0^1\n             \\frac{H_a(t,x)^2}{G_a(t\\mid x)}\\,dx\\,dt\n \\le C\\kappa.                                                         \\tag{E15}\n\\]\nMultiplying \\(b_a^{\\star}\\) by a smooth cutoff that is one below \\(1-2\\kappa\\) and zero above \\(1-\\kappa\\), and then applying smooth approximation on the compact rectangle, produces admissible event directions whose scores converge in \\(L^2(P)\\) to the event part of \\(D\\).  The bounded smooth mean-zero function \\(m_1-m_0-\\theta\\) is itself an admissible covariate score.  Thus \\(D\\) belongs to the tangent closure.  Equations (E3)--(E5), orthogonality to treatment and censoring scores, and density of the four generator families prove that \\(D\\) represents the derivative on the full locally unrestricted independent-censoring tangent space.  It is therefore the canonical gradient and its squared norm is \\(V_P\\).\n\nFor completeness, we prove that the displayed estimator is regular not only along the constructed generators but along every relevant in-class DQM local alternative.  Let \\(e\\mapsto P_e\\in\\mathcal P_4\\) be any DQM submodel through \\(P\\), fix a local vector \\(h\\), and put \\(P_n:=P_{h/\\sqrt n}\\).  DQM implies \\(H(P_n,P)\\to0\\).  Marginalization cannot increase Hellinger distance, so the marginal densities satisfy \\(\\lVert f_n-f\\rVert_1\\to0\\).\n\nThe fixed radius H\\\"older balls for \\(\\pi_{1,n},\\lambda_{a,n},g_{a,n}\\) are uniformly bounded and equicontinuous.  To see the required compactness directly, evaluate any subsequence on successively finer finite rational grids, take a diagonal convergent subsubsequence of these bounded finite vectors, and use the common Lipschitz bound to upgrade grid convergence to uniform convergence.  Thus every subsequence has a further subsequence converging uniformly to limits \\(\\pi_1^{\\dagger},\\lambda_a^{\\dagger},g_a^{\\dagger}\\).  The inequality between the \\(L^1\\) distance of two dominated densities and their Hellinger distance, obtained by Cauchy--Schwarz after factoring \\(|p-q|=|\\sqrt p-\\sqrt q|(\\sqrt p+\\sqrt q)\\), gives total-variation convergence.  The observed \\((X,A)\\) law and the lower density band identify \\(\\pi_1^{\\dagger}=\\pi_1\\).  On every \\([0,1-\\kappa]\\), the observed conditional risk probability and event subdensity are\n\\[\n R_a(t,x)=S_a(t\\mid x)G_a(t\\mid x),\\qquad\n e_a(t,x)=R_a(t,x)\\lambda_a(t,x),                                   \\tag{E16}\n\\]\nand \\(R_a\\) is bounded below by a positive constant depending only on \\(\\kappa\\).  Convergence of the observed laws, the lower bounds on \\(f\\pi_a\\), and uniform convergence of the candidate primitives imply equality of the limiting quantities in (E16) with those of \\(P\\).  Hence \\(\\lambda_a^{\\dagger}=e_a/R_a=\\lambda_a\\) on \\([0,1-\\kappa]\\).  The defining exponential integral then gives \\(S_a^{\\dagger}=S_a\\), so \\(G_a^{\\dagger}=R_a/S_a=G_a\\), and division by \\((1-t)^2\\) gives \\(g_a^{\\dagger}=g_a\\) there.  Since \\(\\kappa>0\\) is arbitrary and both residual limits are continuous on the compact square, equality extends to the endpoint.  Every subsequential limit is therefore the true primitive, which proves\n\\[\n \\lVert\\pi_{1,n}-\\pi_1\\rVert_\\infty\n +\\max_a\\lVert\\lambda_{a,n}-\\lambda_a\\rVert_\\infty\n +\\max_a\\lVert g_{a,n}-g_a\\rVert_\\infty\\longrightarrow0.             \\tag{E17}\n\\]\n\nThe endpoint continuity calculation used in \\(\\textnormal{thm:uniform-endpoint-efficiency}\\) gives, for two in-band primitive triples at sup-norm distance \\(e_n\\),\n\\[\n |D_{P_n}(O)-D_P(O)|\n \\le C e_n\\left\\{1+\\frac{\\Delta}{1-U}+\\log\\frac1{1-U}\\right\\}\n       +C\\lVert f_n-f\\rVert_1.                                        \\tag{E18}\n\\]\nThe envelope calculation in \\(\\textnormal{lem:endpoint-moment-envelope}\\) supplies a uniform \\(5/2\\)-moment for the braces under both \\(P_n\\) and \\(P\\).  Equations (E17)--(E18), truncation, and dominated convergence therefore yield \\(D_{P_n}-D_P\\to0\\) in \\(L^2(P_n)\\) and in \\(L^2(P)\\).  Total-variation convergence plus the same uniform integrability gives\n\\[\n V_{P_n}=E_{P_n}D_{P_n}^2\\longrightarrow E_PD_P^2=V_P.                \\tag{E19}\n\\]\n\nApply \\(\\textnormal{thm:uniform-endpoint-efficiency}\\) under the triangular sequence \\(P_n\\).  Its uniform expansion gives\n\\[\n \\sqrt n\\{\\widehat\\theta-\\theta(P_n)\\}\n =n^{-1/2}\\sum_{i=1}^nD_{P_n}(O_i)+o_{P_n}(1).                         \\tag{E20}\n\\]\nBy the uniform \\(5/2\\)-moment bound and the positive variance lower bound in \\(\\textnormal{lem:endpoint-moment-envelope}\\), for every \\(\\varepsilon>0\\),\n\\[\n E_{P_n}\\!\\left[\\frac{D_{P_n}^2}{V_{P_n}}\n  \\mathbf 1\\{|D_{P_n}|>\\varepsilon\\sqrt{nV_{P_n}}\\}\\right]\n \\le Cn^{-1/4}\\longrightarrow0.                                      \\tag{E21}\n\\]\nApply to \\(D_{P_n}/\\sqrt{V_{P_n}}\\) the characteristic-function expansion derived in (U15)--(U16) of \\(\\textnormal{thm:uniform-endpoint-efficiency}\\).  Equation (E21) is exactly its tail-remainder condition, so (E19)--(E21) imply that (E20) converges to \\(N(0,V_P)\\), independently of \\(h\\).  This is regularity along every relevant DQM local alternative in \\(\\mathcal P_4\\).\n\nAll premises of \\(\\textnormal{lem:semiparametric-convolution-bound}\\) are now verified: the finite smooth generating experiments are LAN by (E14), \\(D\\) is the canonical gradient in their closure by (E15), and every full-model regular estimator is regular relative to each generating experiment.  The convolution conclusion gives asymptotic variance at least \\(\\lVert D\\rVert_2^2=V_P\\).  Equations (E19)--(E21) prove that the estimator of \\(\\textnormal{thm:uniform-endpoint-efficiency}\\) is itself full-model regular and has limit \\(N(0,V_P)\\).  It therefore attains the bound at every \\(P\\in\\mathcal P_4^{\\circ}\\).",
+      "justification": "The proof now realizes censoring directions by normalized smooth density tilts, proves validity, the exact quadratic factor, \\(C^{3,1}\\) continuity, DQM, and tangent density, and then proves estimator regularity along every relevant in-class DQM local alternative by Hellinger compactness, observed-law identifiability, endpoint score continuity, and uniform Lindeberg control.",
+      "gap": "Westling et al. (2024), Theorem 2, derives the survival-at-time gradient under positive censoring through the horizon. The present result integrates the score where \\(G_a(1\\mid x)=0\\), proves event and censoring tangent closure, verifies the finite-experiment DQM-to-LAN premise, and establishes full-model regularity rather than only regularity along selected event tilts.",
+      "consumer": "The efficiency certificate lets applied analysts compare adjusted RMST procedures on the correct endpoint information scale, with attainment justified against every relevant in-class DQM local alternative.",
+      "status": "proved"
+    },
+    {
+      "id": "lem:exact-integrated-drift",
+      "kind": "lemma",
+      "statement": "For every \\(P\\in\\mathcal P_4\\) and every deterministic triple \\(\\bar\\eta\\) satisfying the primitive bands, \\[E_P[\\psi_a(\\bar\\eta;O)]-\\theta_a=E_P\\!\\left[\\int_0^1S_a(t\\mid X)\\bar H_a(t,X)\\left\\{\\frac{\\pi_a(X)g_a(t,X)}{\\bar\\pi_a(X)\\bar g_a(t,X)}-1\\right\\}\\{\\bar\\lambda_a(t,X)-\\lambda_a(t,X)\\}\\,dt\\right].\\] In particular, its absolute value is bounded by a class constant times \\(\\lVert\\bar\\lambda_a-\\lambda_a\\rVert_\\infty(\\lVert\\bar g_a-g_a\\rVert_\\infty+\\lVert\\bar\\pi_a-\\pi_a\\rVert_\\infty)\\).",
+      "free_symbols": [
+        "P",
+        "\\mathcal P_4",
+        "\\bar\\eta",
+        "E_P",
+        "\\psi_a",
+        "a",
+        "O",
+        "\\theta_a",
+        "S_a",
+        "t",
+        "X",
+        "\\bar H_a",
+        "\\pi_a",
+        "g_a",
+        "\\bar\\pi_a",
+        "\\bar g_a",
+        "\\bar\\lambda_a",
+        "\\lambda_a"
+      ],
+      "depends_on": [
+        "def:quadratic-holder-class",
+        "def:rmst-score"
+      ],
+      "justification": "The identity removes the apparent endpoint singularity before bounding the nuisance remainder and exposes the exact orthogonal product drift.",
+      "gap": "Westling et al. (2024), Supplementary Lemma 1 and the proof of Theorem 4, give the survival-curve drift; direct time integration and cancellation of the known quadratic factor are not developed there.",
+      "consumer": "It converts primitive uniform local-polynomial rates into the second-order remainder required by the fixed-endpoint estimator.",
+      "proof_tex": "Fix an arm \\(a\\), a law \\(P\\in\\mathcal P_4\\), and an in-band deterministic triple \\(\\bar\\eta\\).  Conditional independent censoring and the no-atom condition give\n\\[\n E_P\\{Y_{\\mathrm{risk}}(t)\\mid A=a,X=x\\}=S_a(t\\mid x)G_a(t\\mid x),\n\\]\nand\n\\[\n P\\{U\\in dt,\\Delta=1\\mid A=a,X=x\\}\n =S_a(t\\mid x)G_a(t\\mid x)\\lambda_a(t,x)\\,dt.\n\\]\nAll ensuing integrals are absolutely integrable: \\(\\bar H_a(t,x)\\le1-t\\), \\(G_a/\\bar G_a=g_a/\\bar g_a\\le4\\), and both hazards are bounded.  Tonelli and Fubini are therefore applicable.  The conditional mean of the expression in braces in def:rmst-score equals\n\\[\n \\int_0^1 S_a(t\\mid x)G_a(t\\mid x)\n \\frac{\\bar H_a(t,x)}{\\bar G_a(t\\mid x)}\n \\{\\lambda_a(t,x)-\\bar\\lambda_a(t,x)\\}\\,dt. \\tag{12}\n\\]\nFor \\(v\\in[0,1]\\), differentiation along the segment\n\\(\\lambda_{a,s}=\\lambda_a+s(\\bar\\lambda_a-\\lambda_a)\\) and integration in \\(s\\) give the Duhamel identity\n\\[\n \\bar S_a(v\\mid x)-S_a(v\\mid x)\n =-\\int_0^v S_a(t\\mid x)\\bar S_a(v\\mid x)\\bar S_a(t\\mid x)^{-1}\n \\{\\bar\\lambda_a(t,x)-\\lambda_a(t,x)\\}\\,dt.\n\\]\nIntegration in \\(v\\), followed by Fubini, yields\n\\[\n \\bar m_a(x)-m_a(x)\n =-\\int_0^1S_a(t\\mid x)\\bar H_a(t,x)\n \\{\\bar\\lambda_a(t,x)-\\lambda_a(t,x)\\}\\,dt. \\tag{13}\n\\]\nMultiply (12) by the conditional treatment probability \\(\\pi_a(x)\\), by the score factor \\(-1/\\bar\\pi_a(x)\\), and add (13).  Since\n\\(G_a/\\bar G_a=g_a/\\bar g_a\\) for every \\(t<1\\), we obtain pointwise in \\(x\\), and hence after averaging over \\(X\\),\n\\[\n E_P[\\psi_a(\\bar\\eta;O)]-\\theta_a\n =E_P\\!\\left[\\int_0^1S_a(t\\mid X)\\bar H_a(t,X)\n \\left\\{\\frac{\\pi_a(X)g_a(t,X)}{\\bar\\pi_a(X)\\bar g_a(t,X)}-1\\right\\}\n \\{\\bar\\lambda_a(t,X)-\\lambda_a(t,X)\\}\\,dt\\right].\n\\]\nThe denominator in the ratio is at least \\((1/4)(1/2)=1/8\\), whereas\n\\[\n |\\pi_ag_a-\\bar\\pi_a\\bar g_a|\n \\le |\\pi_a|\\,|g_a-\\bar g_a|+|\\bar g_a|\\,|\\pi_a-\\bar\\pi_a|\n \\le \\lVert g_a-\\bar g_a\\rVert_\\infty+2\\lVert\\pi_a-\\bar\\pi_a\\rVert_\\infty.\n\\]\nTogether with \\(S_a\\le1\\), \\(\\bar H_a(t,x)\\le1-t\\), and integration over a unit interval, this proves the asserted product bound with a class constant.",
+      "status": "proved"
+    },
+    {
+      "id": "lem:endpoint-moment-envelope",
+      "kind": "lemma",
+      "statement": "There exist constants \\(0<c<C<\\infty\\) such that \\(c\\le V_P\\le C\\) for every \\(P\\in\\mathcal P_4\\), and for every fixed \\(p\\in(2,3)\\), \\[\\sup_{P\\in\\mathcal P_4}E_P|D(O)|^p<\\infty.\\] One admissible envelope is a class constant times \\(1+\\Delta/(1-U)+\\log\\{1/(1-U)\\}\\).",
+      "free_symbols": [
+        "V_P",
+        "P",
+        "\\mathcal P_4",
+        "E_P",
+        "D",
+        "O",
+        "\\Delta",
+        "U"
+      ],
+      "depends_on": [
+        "def:quadratic-holder-class",
+        "lem:exact-integrated-drift"
+      ],
+      "justification": "Uniform Studentization must be justified with more than two moments but without the false third- or fourth-moment shortcut.",
+      "gap": "Jing, Shao, and Wang (2003) treat self-normalized independent sums under finite \\(2+\\delta\\) moments, while Westling et al. (2024) use bounded influence functions supplied by censoring positivity.",
+      "consumer": "This envelope supports ratio-consistent empirical influence variance and uniform Gaussian approximation for the feasible cross-fitted statistic.",
+      "proof_tex": "Write \\(r=1-t\\).  The hazard band implies, uniformly in \\((a,t,x)\\),\n\\[\n e^{-2}\\le S_a(t\\mid x)\\le1,\n \\qquad e^{-2}r\\le H_a(t,x)=\\int_t^1\n \\exp\\!\\left\\{-\\int_t^v\\lambda_a(s,x)\\,ds\\right\\}dv\\le r. \\tag{14}\n\\]\nThe one-jump martingale isometry, justified directly from the two conditional relations in the proof of lem:exact-integrated-drift, gives\n\\[\n V_P=\\operatorname{Var}_P\\{m_1(X)-m_0(X)\\}\n +E_P\\!\\left[\\sum_{a=0}^1\\frac1{\\pi_a(X)}\n \\int_0^1\\frac{H_a(t,X)^2S_a(t\\mid X)\\lambda_a(t,X)}{G_a(t\\mid X)}\\,dt\\right]. \\tag{15}\n\\]\nIndeed, the two arm martingales are orthogonal because their treatment indicators are disjoint, and each has conditional mean zero given \\(X\\), so both are orthogonal to the covariate term.  By (14), \\(G_a=r^2g_a\\), and the primitive bands, each integrand in (15) is at least \\(e^{-6}/4\\).  Since\n\\(1/\\pi_0+1/\\pi_1\\ge4\\),\n\\[\n V_P\\ge e^{-6}. \\tag{16}\n\\]\nThe same relations bound each integrand by \\(4\\), while \\(1/\\pi_a\\le4\\), and the covariate contrast lies in \\([-1,1]\\); thus, for example, \\(V_P\\le33\\).  This establishes the two uniform variance bounds.\n\nThe score itself obeys a sharper observationwise envelope.  From (14), \\(G_a\\ge r^2/2\\), \\(\\lambda_a\\le2\\), and \\(1/\\pi_a\\le4\\),\n\\[\n |D(O)|\\le C\\left[1+\\frac{\\Delta}{1-U}\n +\\log\\!\\left\\{\\frac1{1-U}\\right\\}\\right]=:C B(O). \\tag{17}\n\\]\nConditionally on \\((A=a,X=x)\\), the observed-event density is bounded above by\n\\(4(1-t)^2\\).  Hence, for \\(2<p<3\\),\n\\[\n E_P\\!\\left[\\frac{\\Delta}{(1-U)^p}\\,middle|,A=a,X=x\\right]\n \\le4\\int_0^1r^{2-p}\\,dr=\\frac4{3-p}. \\tag{18}\n\\]\nAlso, by conditional independent censoring,\n\\[\n P\\!\\left\\{\\log\\frac1{1-U}>v\\,middle|,A=a,X=x\\right\\}\n =P\\{U>1-e^{-v}\\mid A=a,X=x\\}\n \\le2e^{-2v}. \\tag{19}\n\\]\nThe tail-integral formula applied to (19) gives every positive moment of the logarithm uniformly.  Equations (17)--(19) and \\((x+y+z)^p\\le3^{p-1}(x^p+y^p+z^p)\\) prove\n\\(\\sup_{P\\in\\mathcal P_4}E_P|D(O)|^p<\\infty\\) for every fixed \\(p\\in(2,3)\\).",
+      "status": "proved"
+    },
+    {
+      "id": "prop:heavy-tail-witness-validity",
+      "kind": "proposition",
+      "statement": "The constructed law \\(P^{\\star}\\) belongs to \\(\\mathcal P_4^{\\circ}\\), and at \\(P=P^{\\star}\\) it satisfies \\(E_P|D(O)|^{5/2}<\\infty\\) and \\(E_P|D(O)|^3=\\infty\\).",
+      "free_symbols": [
+        "P^{\\star}",
+        "\\mathcal P_4^{\\circ}",
+        "P",
+        "E_P",
+        "D",
+        "O"
+      ],
+      "depends_on": [
+        "def:interior-holder-class",
+        "def:heavy-tail-witness",
+        "lem:endpoint-moment-envelope"
+      ],
+      "justification": "The witness shows that the weak-moment argument is structural rather than cosmetic and rules out proofs that silently invoke a third moment.",
+      "gap": "The positive-censoring frameworks of Westling et al. (2024) and Díaz et al. (2019) exclude this endpoint behavior by construction.",
+      "consumer": "It gives referees and software authors a concrete stress test for variance and Studentization implementations.",
+      "proof_tex": "Under \\(P^{\\star}\\), the density is \\(f\\equiv1\\), the propensity ranges from \\(0.4\\) to \\(0.6\\), the two hazards range within \\([1,1.75]\\), and\n\\(g_a(t,x)=e^{-xt/4}\\in[e^{-1/4},1]\\).  The derivatives through order three and the Lipschitz constants of the third derivatives of these functions are all strictly smaller than \\(20\\).  Every displayed band and Hölder-radius constraint consequently has positive slack.  Moreover,\n\\[\n \\frac{\\partial}{\\partial t}\\{(1-t)^2e^{-xt/4}\\}\n =-e^{-xt/4}\\left\\{2(1-t)+\\frac{x}{4}(1-t)^2\\right\\}\\le0,\n\\]\nthe survival starts at one and decreases continuously to zero, and the stated conditional construction supplies consistency, treatment exchangeability, and independent censoring.  Hence \\(P^{\\star}\\in\\mathcal P_4^{\\circ}\\).\n\nThe \\(5/2\\)-moment assertion follows immediately from lem:endpoint-moment-envelope.  To prove that the third moment is infinite, fix either arm and write \\(r=1-t\\).  The bands, or the explicit exponential formula, give constants \\(c_1,c_2>0\\) such that for all sufficiently small \\(r\\),\n\\[\n \\frac{H_a(1-r,x)}{G_a(1-r\\mid x)}\\ge\\frac{c_1}{r},\n \\qquad\n \\int_0^{1-r}\\frac{H_a(t,x)\\lambda_a(t,x)}{G_a(t\\mid x)}\\,dt\n \\le c_2\\log(1/r). \\tag{38}\n\\]\nOn \\(A=a\\) and an observed event at \\(U=1-r\\), the event jump in the corresponding arm component of \\(D\\) has absolute size at least \\(c_1/(\\pi_a(X)r)\\), whereas all remaining terms are bounded by a constant plus \\(c_2\\log(1/r)\\).  Thus, for some \\(r_0,c_3>0\\), \\(|D|\\ge c_3/r\\) on such events with \\(r<r_0\\).  Their conditional density is\n\\[\n S_a(1-r\\mid x)G_a(1-r\\mid x)\\lambda_a(1-r,x)\\,dr\\ge c_4r^2\\,dr\n\\]\nfor a constant \\(c_4>0\\).  Treatment probabilities are uniformly positive, so Tonelli's theorem and (38) yield\n\\[\n E_{P^{\\star}}|D(O)|^3\n \\ge c_5\\int_0^{r_0}r^{-3}r^2\\,dr\n =\\infty.\n\\]\nThis proves both moment claims without invoking a third- or fourth-moment bound.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:uniform-wald-coverage",
+      "kind": "proposition",
+      "statement": "For every fixed \\(\\alpha\\in(0,1)\\), \\[\\sup_{P\\in\\mathcal P_4}\\left|P\\{\\theta\\in\\mathcal I_{n,\\alpha}\\}-(1-\\alpha)\\right|\\to0.\\]",
+      "free_symbols": [
+        "P",
+        "\\mathcal P_4",
+        "\\theta",
+        "\\mathcal I_{n,\\alpha}",
+        "n",
+        "\\alpha"
+      ],
+      "depends_on": [
+        "def:wald-interval",
+        "thm:uniform-endpoint-efficiency",
+        "def:cross-fitted-estimator"
+      ],
+      "justification": "The operational deliverable is an honest fixed-horizon confidence interval, not merely an oracle linear representation.",
+      "gap": "Existing causal RMST Wald procedures require positive follow-up or high-level nuisance conditions and do not establish uniform coverage on the displayed quadratic-endpoint primitive class.",
+      "consumer": "The result directly supports nominal confidence reporting for adjusted five-year RMST contrasts in CFsurvival-style analyses.",
+      "proof_tex": "Fix \\(\\alpha\\in(0,1)\\) and put \\(z_\\alpha:=z_{1-\\alpha/2}\\). By def:cross-fitted-estimator, \\(\\widehat V\\ge n^{-1}>0\\), so division by \\(\\sqrt{\\widehat V}\\) is valid. Define \\(Z_{n,P}:=\\sqrt n(\\widehat\\theta-\\theta)/\\sqrt{\\widehat V}\\) and \\(F_{n,P}(z):=P(Z_{n,P}\\le z)\\). By def:wald-interval,\\[\\{\\theta\\in\\mathcal I_{n,\\alpha}\\}=\\{-z_\\alpha\\le Z_{n,P}\\le z_\\alpha\\}.\\]Let \\(F_{n,P}(y-) := \\lim_{u\\uparrow y}F_{n,P}(u)\\), which exists because every distribution function is nondecreasing. Hence\\[P\\{-z_\\alpha\\le Z_{n,P}\\le z_\\alpha\\}=F_{n,P}(z_\\alpha)-F_{n,P}((-z_\\alpha)-).\\]Set \\(\\delta_n:=\\sup_{P\\in\\mathcal P_4}\\sup_{z\\in\\mathbb R}|F_{n,P}(z)-\\Phi(z)|\\). The third conclusion of thm:uniform-endpoint-efficiency gives \\(\\delta_n\\to0\\). For every \\(P\\in\\mathcal P_4\\), the definition of \\(\\delta_n\\), followed by passage to the limit \\(u\\uparrow-z_\\alpha\\) and continuity of \\(\\Phi\\), yields\\[|F_{n,P}(z_\\alpha)-\\Phi(z_\\alpha)|\\le\\delta_n,\\qquad |F_{n,P}((-z_\\alpha)-)-\\Phi(-z_\\alpha)|\\le\\delta_n.\\]Therefore, by the triangle inequality,\\[\\sup_{P\\in\\mathcal P_4}\\left|P\\{\\theta\\in\\mathcal I_{n,\\alpha}\\}-\\{\\Phi(z_\\alpha)-\\Phi(-z_\\alpha)\\}\\right|\\le2\\delta_n\\to0.\\]Finally, def:wald-interval defines \\(z_\\alpha=\\Phi^{-1}(1-\\alpha/2)\\). Since \\(\\alpha\\in(0,1)\\), the standard normal distribution function is continuous and symmetric, and thus \\(\\Phi(z_\\alpha)=1-\\alpha/2\\) and \\(\\Phi(-z_\\alpha)=\\alpha/2\\). Consequently \\(\\Phi(z_\\alpha)-\\Phi(-z_\\alpha)=1-\\alpha\\), which proves the claimed uniform coverage.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:primitive-endpoint-concentration",
+      "kind": "theorem",
+      "statement": "The answer is affirmative.  The local-cubic handle in def:endpoint-learning-handle has a measurable total completion for which there are constants \\(C,c>0\\), depending only on the displayed class constants and the fixed polynomial bases, such that for all sufficiently large \\(M\\),\n\\[\n \\sup_{P\\in\\mathcal P_4}P\\!\\left(\n \\max_{a\\in\\{0,1\\}}\\lVert\\widehat\\lambda_a-\\lambda_a\\rVert_\\infty+\n \\max_{a\\in\\{0,1\\}}\\lVert\\widehat g_a-g_a\\rVert_\\infty+\n \\lVert\\widehat\\pi_1-\\pi_1\\rVert_\\infty>C r_M\\right)\n \\le C M^{-2}+C J_M^2\\exp(-cMh_M^3).\n\\]\nIn particular, \\(r_M=O\\{(\\log M/M)^{1/3}\\}\\), uniformly over the arbitrary measurable covariate densities allowed by \\(\\mathcal P_4\\).",
+      "free_symbols": [
+        "M",
+        "P",
+        "\\mathcal P_4",
+        "a",
+        "\\widehat\\lambda_a",
+        "\\lambda_a",
+        "\\widehat g_a",
+        "g_a",
+        "\\widehat\\pi_a",
+        "\\pi_1",
+        "r_M",
+        "J_M",
+        "h_M",
+        "f"
+      ],
+      "depends_on": [
+        "def:quadratic-holder-class",
+        "def:endpoint-learning-handle"
+      ],
+      "proof_tex": "Put \\(J=J_M\\), \\(h=h_M\\), \\(I_j=[jh,(j+1)h)\\), \\(K_\\ell=[\\ell h,(\\ell+1)h)\\), and \\(d_j=1-jh\\), with the right endpoint included in \\(K_{J-1}\\).  Let \\(p\\) be the ten normalized monomials of total degree at most three and let \\(L:=\\sup_{[0,1]^2}\\lVert p\\rVert<\\infty\\).  The matrix\n\\[\n B_*:=\\int_{[0,1]^2}(1-z_t)^2p(z_t,z_x)p(z_t,z_x)^{\\mathsf T}\\,dz_t\\,dz_x\n\\]\nis positive definite: for nonzero \\(u\\), the polynomial \\(u^{\\mathsf T}p\\) is nonzero on an open set, so \\(u^{\\mathsf T}B_*u>0\\).  Hence \\(\\beta_*:=\\lambda_{\\min}(B_*)>0\\).  Likewise \\(\\beta_\\pi:=\\lambda_{\\min}\\{\\int_0^1v(z)v(z)^{\\mathsf T}\\,dz\\}>0\\).  Both are computable constants of the fixed bases.\n\nWe use the following bounded-summand inequality, derived here rather than assumed.  If independent centered variables \\(Z_i\\) satisfy \\(|Z_i|\\le b\\) and \\(\\sum_iE_PZ_i^2\\le v\\), expansion of the exponential series and \\(k!\\ge2\\,3^{k-2}\\) for \\(k\\ge2\\) gives, for \\(0<s<3/b\\),\n\\[\n \\log E_P\\exp\\!\\left(s\\sum_iZ_i\\right)\n \\le\\frac{s^2v}{2(1-sb/3)}.\n\\]\nExponential Markov inequality, optimized at \\(s=u/(v+bu/3)\\), and the same calculation for \\(-Z_i\\), imply\n\\[\n P\\!\\left(\\left|\\sum_iZ_i\\right|>u\\right)\n \\le2\\exp\\!\\left\\{-\\frac{u^2}{2(v+bu/3)}\\right\\}.                    \\tag{C1}\n\\]\n\nFor the hazard equations in \\(\\textnormal{def:endpoint-learning-handle}\\), conditional independent censoring and the absence of atoms before one give\n\\[\n E_P\\{Y_{\\mathrm{risk}}(t)\\mid A=a,X=x\\}=S_a(t\\mid x)G_a(t\\mid x),\n\\]\n\\[\n P\\{U\\in dt,\\Delta=1\\mid A=a,X=x\\}\n =S_a(t\\mid x)G_a(t\\mid x)\\lambda_a(t,x)\\,dt.                         \\tag{C2}\n\\]\nThe primitive bands imply \\(f(x)\\pi_a(x)S_a(t\\mid x)g_a(t,x)\\ge e^{-2}/16\\).  With \\(t=jh+hz_t\\),\n\\[\n 1-t=d_j-hz_t\\ge d_j(1-z_t).\n\\]\nA change of variables therefore gives\n\\[\n \\lambda_{\\min}\\{E_PR_{aj\\ell}\\}\n \\ge(e^{-2}\\beta_*/16)Mh^2d_j^2.                                     \\tag{C3}\n\\]\nAn entry of one summand of \\(R_{aj\\ell}\\) is bounded by \\(L^2h\\).  Cauchy--Schwarz and (C2) bound its variance by \\(Ch^3d_j^2\\).  Applying (C1) entrywise, using \\(\\lVert B\\rVert_{\\mathrm{op}}\\le10\\max_{r,s}|B_{rs}|\\), and then Weyl's inequality proves that, except on an event of probability at most \\(C\\exp(-cMhd_j^2)\\),\n\\[\n \\lambda_{\\min}(R_{aj\\ell})\\ge e^{-2}\\beta_*Mh^2d_j^2/32,\n \\qquad \\operatorname{tr}(R_{aj\\ell})\\le CMh^2d_j^2.                 \\tag{C4}\n\\]\nSince \\(d_j\\ge h\\), the failure probability in (C4) is at most \\(C\\exp(-cMh^3)\\).\n\nLet \\(p_{j\\ell}^{\\mathsf T}\\gamma^0_{aj\\ell}\\) be the third-order Taylor polynomial of \\(\\lambda_a\\) at the lower-left corner, interpreted one-sidedly at a boundary.  The radius-\\(20\\) \\(C^{3,1}\\) condition and multivariate Taylor's formula give\n\\[\n \\sup_{I_j\\times K_\\ell}|\\lambda_a-p_{j\\ell}^{\\mathsf T}\\gamma^0_{aj\\ell}|\n \\le Ch^4.                                                            \\tag{C5}\n\\]\nThe normal equations decompose exactly as\n\\[\n \\begin{split}\n b_{aj\\ell}-R_{aj\\ell}\\gamma^0_{aj\\ell}\n ={}&\\sum_{i=1}^M\\mathbf 1\\{A_i=a,X_i\\in K_\\ell\\}\n       \\int_{I_j}p_{j\\ell}(t,X_i)\\,dM_{a,i}(t)\\\\\n &+\\sum_{i=1}^M\\mathbf 1\\{A_i=a,X_i\\in K_\\ell\\}\n       \\int_{I_j}Y_{i,\\mathrm{risk}}(t)p_{j\\ell}(t,X_i)\n       \\{\\lambda_a(t,X_i)-p_{j\\ell}(t,X_i)^{\\mathsf T}\\gamma^0_{aj\\ell}\\}\\,dt.\n                                                                            \\tag{C6}\n \\end{split}\n\\]\nEach coordinate of one subject's martingale contribution is centered by (C2), bounded by a class constant, and has variance at most \\(Ch^2d_j^2\\) by the martingale isometry.  Taking\n\\[\n u=C\\{(Mh^2d_j^2\\log(M+2))^{1/2}+\\log(M+2)\\}\n\\]\nin (C1), with a sufficiently large fixed \\(C\\), makes its failure probability at most \\(CM^{-5}\\).  On (C4), inversion of the Gram matrix, (C5)--(C6), and the trace bound yield\n\\[\n \\sup_{I_j\\times K_\\ell}|\\widehat\\lambda_a-\\lambda_a|\n \\le C\\left[h^4+\\sqrt{\\frac{\\log(M+2)}{Mh^2d_j^2}}\n +\\frac{\\log(M+2)}{Mh^2d_j^2}\\right]\\le Cr_M.                        \\tag{C7}\n\\]\nThe last inequality uses \\(d_j\\ge h\\), and clipping is nonexpansive relative to the true in-band hazard.\n\nFor the direct rescaled-risk equations, \\(f\\pi_a\\ge1/8\\) gives\n\\[\n \\lambda_{\\min}(E_PQ_{aj\\ell})\\ge(\\beta_*/8)Mh^2d_j^2.               \\tag{C8}\n\\]\nAn entry of one summand is bounded by \\(Chd_j^2\\) and has variance at most \\(Ch^3d_j^4\\).  Equation (C1) therefore makes failure of the threshold \\(\\beta_*Mh^2d_j^2/16\\) have probability at most \\(C\\exp(-cMh)\\).  The function \\(q_a=S_ag_a\\) has a class-uniform \\(C^{3,1}\\) norm by differentiation under the defining survival integral and the product and chain rules.  Its cellwise cubic Taylor error is consequently at most \\(Ch^4\\).\n\nFor each coordinate, one subject's centered response is\n\\[\n \\mathbf 1\\{A_i=a,X_i\\in K_\\ell\\}\\int_{I_j}p_{j\\ell}(t,X_i)\n \\{Y_{i,\\mathrm{risk}}(t)-(1-t)^2q_a(t,X_i)\\}\\,dt.\n\\]\nIt is bounded by \\(Ch\\), and (C2) plus Cauchy--Schwarz bounds its variance by \\(Ch^3d_j^2\\).  Applying (C1), (C8), and the cubic Taylor bound gives\n\\[\n \\lVert\\widehat q_a^{\\mathrm{raw}}-q_a\\rVert_{\\infty,I_j\\times K_\\ell}\n \\le C\\left[h^4+\\sqrt{\\frac{\\log(M+2)}{Mhd_j^2}}\n +\\frac{\\log(M+2)}{Mhd_j^2}\\right]\\le Cr_M.                          \\tag{C9}\n\\]\nThe event-hazard band gives \\(e^{-2}\\le S_a,\\widehat S_a\\le1\\), and the exponential integral is Lipschitz on this band:\n\\[\n \\lVert\\widehat S_a-S_a\\rVert_\\infty\n \\le\\lVert\\widehat\\lambda_a-\\lambda_a\\rVert_\\infty.\n\\]\nSince \\(q_a=S_ag_a\\), division by \\(\\widehat S_a\\) followed by clipping to \\([1/2,2]\\) turns (C7) and (C9) into\n\\[\n \\lVert\\widehat g_a-g_a\\rVert_\\infty\\le Cr_M.                        \\tag{C10}\n\\]\n\nFor the propensity equation, the density lower bound gives \\(\\lambda_{\\min}(E_PP_\\ell)\\ge Mh\\beta_\\pi/2\\).  The bounded-matrix version of (C1) makes failure of the threshold \\(Mh\\beta_\\pi/4\\) have probability at most \\(C\\exp(-cMh)\\).  A one-dimensional cubic Taylor expansion of \\(\\pi_1\\), followed by (C1) applied to\n\\[\n \\mathbf 1\\{X_i\\in K_\\ell\\}v_\\ell(X_i)\\{A_i-\\pi_1(X_i)\\},\n\\]\ngives\n\\[\n \\lVert\\widehat\\pi_1-\\pi_1\\rVert_\\infty\n \\le C\\left[h^4+\\sqrt{\\frac{\\log(M+2)}{Mh}}\n +\\frac{\\log(M+2)}{Mh}\\right]\\le Cr_M.                              \\tag{C11}\n\\]\nClipping is again nonexpansive.\n\nThere are two arms, \\(J^2\\) time--covariate cells, \\(J\\) propensity cells, and fixed matrix dimensions.  A union bound over the Gram events contributes at most \\(CJ^2\\exp(-cMh^3)\\); choosing the numerator constants so their fixed-coordinate union contributes at most \\(CM^{-2}\\) proves the displayed finite-sample inequality from (C7), (C10), and (C11).  On threshold failures the explicit values \\(\\widehat\\lambda_a=1\\), \\(\\widehat g_a=1\\), and \\(\\widehat\\pi_1=1/2\\) in \\(\\textnormal{def:endpoint-learning-handle}\\) make the learner total.  Thresholded inversion is Borel measurable, as are finite sums, the displayed integrals, and clipping.\n\nFinally, the definition of \\(J_M\\) gives \\(h_M\\asymp\\{\\log(M+2)/M\\}^{1/12}\\).  The bias and terminal event-noise terms in \\(r_M\\) are both of order \\((\\log M/M)^{1/3}\\), and the Bernstein linear term is smaller.  No smoothness of \\(f\\) was used: only its lower and upper bands entered the population Gram sandwich and variance bounds.  This proves the theorem uniformly over the entire primitive class.",
+      "justification": "The theorem derives simultaneous finite-sample control of the random at-risk Gram matrices, martingale and direct-risk numerators, cubic Taylor remainders, clipping, division, and explicit fallbacks under only the primitive class bands. Its \\((\\log M/M)^{1/3}\\) upper rate is paired with \\(\\textnormal{thm:primitive-endpoint-minimax-lower-bound}\\), whose legal terminal-strip Fano subclass has information \\(O(Mh^{12})\\) and separation \\(h^4\\).",
+      "gap": "Cattaneo et al. (2024), Theorem 1, assumes nondegenerate local information and a smooth positive design density; Jiang and Doksum (2003), Theorems 3.2 and 3.4, remain below an upper boundary with positive risk; and Morenz, Wolock, and Carone (2024) impose high-level nuisance conditions for truncated and right-censored survival functionals. None supplies simultaneous terminal-cell sup-norm concentration when risk decays quadratically and \\(f\\) is arbitrary measurable within its band. The present upper bound closes that gap and the same-class Fano theorem proves its event-hazard exponent minimax sharp.",
+      "status": "proved"
+    },
+    {
+      "id": "lem:semiparametric-convolution-bound",
+      "kind": "lemma",
+      "statement": "At \\(P\\in\\mathcal P_4^{\\circ}\\), suppose the finite-dimensional local experiments generated by finite collections of scores from the tangent score space are locally asymptotically normal, and suppose an estimator sequence is regular relative to all those experiments. If \\(\\theta\\) is pathwise differentiable with canonical gradient \\(D\\) in the closure of that score space, then every weak limit law of the centered estimator sequence is the convolution of \\(N(0,E_P[D(O)^2])\\) and another probability law. In particular, whenever its asymptotic variance exists, it is at least \\(V_P=E_P[D(O)^2]\\).",
+      "free_symbols": [
+        "P",
+        "\\mathcal P_4^{\\circ}",
+        "\\theta",
+        "D",
+        "E_P",
+        "O",
+        "V_P"
+      ],
+      "depends_on": [
+        "def:interior-holder-class"
+      ],
+      "source": {
+        "cite": "vanderVaart1998",
+        "locator": "Theorem 25.20 (Convolution theorem), scalar specialization",
+        "carrier": "logical-claim",
+        "verbatim_statement": "Suppose that the sequence of experiments is locally asymptotically normal and that the estimator sequence is regular. Then its limit distribution is the convolution of the efficient normal distribution and another probability distribution.",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Transcribed from van der Vaart (1998), Theorem 25.20, and specialized in the node statement to the scalar canonical gradient."
+        }
+      },
+      "status": "cited"
+    },
+    {
+      "id": "thm:primitive-endpoint-minimax-lower-bound",
+      "kind": "theorem",
+      "statement": "There are constants \\(c_0,c_1>0\\), depending only on the displayed primitive-class constants, such that, for every sufficiently large \\(M\\),\n\\[\n\\inf_{\\widetilde\\lambda}\\ \\sup_{P\\in\\mathcal P_4}\nP^{\\otimes M}\\!\\left\\{\n\\max_{a\\in\\{0,1\\}}\\lVert\\widetilde\\lambda_a-\\lambda_a\\rVert_\\infty\n\\ge c_0\\left(\\frac{\\log M}{M}\\right)^{1/3}\n\\right\\}\\ge c_1.\n\\]\nThe infimum ranges over all measurable estimators of the pair of event hazards based on the \\(M\\) observed data units. Thus the uniform sup-norm exponent in \\(\\textnormal{thm:primitive-endpoint-concentration}\\) is minimax sharp over the same class \\(\\mathcal P_4\\).",
+      "free_symbols": [
+        "M",
+        "P",
+        "\\mathcal P_4",
+        "a",
+        "\\lambda_a"
+      ],
+      "depends_on": [
+        "def:quadratic-holder-class",
+        "thm:primitive-endpoint-concentration",
+        "ass:consistency",
+        "ass:treatment-exchangeability",
+        "ass:independent-censoring",
+        "ass:covariate-density-band",
+        "ass:treatment-overlap",
+        "ass:event-hazard-band",
+        "ass:quadratic-censoring-endpoint",
+        "ass:censoring-residual-envelope",
+        "ass:propensity-holder",
+        "ass:hazard-holder",
+        "ass:residual-holder"
+      ],
+      "proof_tex": "We prove the assertion on a finite subclass of \\(\\mathcal P_4\\).  Because the supremum in the theorem is over all of \\(\\mathcal P_4\\), a lower bound on this subclass is also a lower bound on the original experiment.\n\nFix a nonnegative function \\(\\varphi\\in C_c^\\infty((1/4,3/4)^2)\\) such that\n\\[\n \\lVert\\varphi\\rVert_\\infty=\\varphi(1/2,1/2)=1.\n\\]\nSuch a function is obtained, for example, by normalizing the product of two copies of the function\n\\[\n s\\longmapsto\n \\begin{cases}\n \\exp\\!\\left\\{-[(s-1/4)(3/4-s)]^{-1}\\right\\},&s\\in(1/4,3/4),\\\\\n 0,&s\\notin(1/4,3/4).\n \\end{cases}\n\\]\nLet \\(K_\\varphi<\\infty\\) be large enough to bound the absolute values of all partial derivatives of \\(\\varphi\\) through order four and, via the mean-value theorem, the Euclidean Lipschitz seminorms of its third derivatives.  Choose a fixed \\(\\rho>0\\) satisfying\n\\[\n \\rho\\le\\frac12,\n \\qquad\n \\rho K_\\varphi\\le1.                                      \\tag{1}\n\\]\nThe choices of \\(\\varphi\\) and \\(\\rho\\) are universal and do not depend on \\(M\\) or on an unknown law.\n\nFix a constant \\(\\gamma>0\\), whose value will be reduced below, and, for every sufficiently large \\(M\\), define\n\\[\n b:=\\left(\\frac{\\gamma\\log M}{M}\\right)^{1/12},\n \\qquad\n N_M:=\\left\\lfloor\\frac{1}{2b}\\right\\rfloor .             \\tag{2}\n\\]\nThen \\(b<1/8\\), \\(N_M\\ge2\\), and \\(N_M\\to\\infty\\).  Since \\(\\lfloor y\\rfloor\\ge y/2\\) for \\(y\\ge2\\), eventually\n\\[\n \\log N_M\n \\ge \\log\\!\\left(\\frac{1}{4b}\\right)\n =\\frac1{12}\\{\\log M-\\log\\log M-\\log\\gamma\\}-\\log4\n \\ge\\frac1{13}\\log M.                                    \\tag{3}\n\\]\n\nWe now construct the finite subclass.  Under \\(P_0\\), let \\(X\\) be uniform on \\([0,1]\\), let \\(A\\) be independent of \\(X\\) with \\(P_0(A=1)=1/2\\), set \\(g_0=g_1=1\\), and set \\(\\lambda_0=\\lambda_1=1\\) on \\([0,1]^2\\).  Given \\(X\\), generate \\(T(0)\\), \\(T(1)\\), and \\(C\\) mutually independently and independently of \\(A\\), give each \\(T(a)\\) hazard one, and give \\(C\\), conditionally on either arm and \\(X=x\\), survival\n\\[\n P_0(C\\ge t\\mid A=a,X=x)=(1-t)^2,\n \\qquad 0\\le t<1.\n\\]\nExtend the event hazards as one after time one and put \\(T=T(A)\\).  This last equality verifies \\(\\textnormal{ass:consistency}\\); the conditional construction verifies \\(\\textnormal{ass:treatment-exchangeability}\\) and \\(\\textnormal{ass:independent-censoring}\\).  The identities \\(f=1\\), \\(\\pi_1=1/2\\), \\(\\lambda_a=1\\), and \\(g_a=1\\) verify, respectively, \\(\\textnormal{ass:covariate-density-band}\\), \\(\\textnormal{ass:treatment-overlap}\\), \\(\\textnormal{ass:event-hazard-band}\\), \\(\\textnormal{ass:quadratic-censoring-endpoint}\\), and \\(\\textnormal{ass:censoring-residual-envelope}\\).  These primitive functions are constant, so they also verify \\(\\textnormal{ass:propensity-holder}\\), \\(\\textnormal{ass:hazard-holder}\\), and \\(\\textnormal{ass:residual-holder}\\).  The function \\((1-t)^2\\) is a nonincreasing survival tending to zero at one.  Its density is \\(2(1-t)\\), and the event distributions are continuous, so there is no event or censoring atom before one.  Consequently \\(P_0\\in\\mathcal P_4\\) by \\(\\textnormal{def:quadratic-holder-class}\\).\n\nFor \\(j=1,\\ldots,N_M\\), put \\(x_j:=2(j-1)b\\) and define, with \\(\\varphi\\) understood to be zero outside its displayed support,\n\\[\n B_j(t,x):=\\rho b^4\n \\varphi\\!\\left(\\frac{1-t}{b},\\frac{x-x_j}{b}\\right),\n \\qquad\n \\lambda_{1,j}(t,x):=1+B_j(t,x),\n \\qquad\n \\lambda_{0,j}(t,x):=1.                                  \\tag{4}\n\\]\nLet \\(P_j\\) be generated exactly as \\(P_0\\), except that the conditional hazard of \\(T(1)\\) is \\(\\lambda_{1,j}\\).  The perturbation is supported in\n\\[\n \\mathcal R_j:=\n (1-3b/4,1-b/4)\\times(x_j+b/4,x_j+3b/4).                  \\tag{5}\n\\]\nThe covariate projections of these rectangles are pairwise disjoint because consecutive \\(x_j\\)'s differ by \\(2b\\).  Moreover, \\(N_M\\le(2b)^{-1}\\) implies\n\\[\n x_{N_M}+3b/4=2(N_M-1)b+3b/4\\le1-5b/4<1,\n\\]\nso every \\(\\mathcal R_j\\) lies in \\([0,1)^2\\).\n\nFor every multi-index \\(\\nu\\) with \\(|\\nu|\\le3\\), the chain rule gives\n\\[\n \\lVert\\partial^\\nu B_j\\rVert_\\infty\n \\le \\rho K_\\varphi b^{4-|\\nu|}\n \\le \\rho K_\\varphi,                                    \\tag{6}\n\\]\nand the mean-value theorem, applied to each third derivative and using the fourth-derivative bound included in \\(K_\\varphi\\), gives\n\\[\n [\\partial^\\nu B_j]_{\\mathrm{Lip}}\n \\le \\rho K_\\varphi,\n \\qquad |\\nu|=3.                                         \\tag{7}\n\\]\nBecause \\(\\varphi\\) has compact support in the open square, its zero extension is smooth; hence (6)--(7) also hold across the edge of \\(\\mathcal R_j\\).  Equations (1), (6), and (7), together with \\(1\\le1+B_j\\le1+\\rho\\le3/2\\), show that \\(\\lambda_{1,j}\\) obeys \\(\\textnormal{ass:event-hazard-band}\\) and \\(\\textnormal{ass:hazard-holder}\\) (indeed its displayed Hölder norm is at most \\(2<20\\)).  All other primitives retain their \\(P_0\\) values.  Since \\(B_j\\) vanishes on a neighborhood of every boundary, extending the event hazard as one after time one introduces neither a discontinuity nor an atom.  Therefore every defining condition remains valid, and\n\\[\n P_j\\in\\mathcal P_4,\n \\qquad j=1,\\ldots,N_M.                                  \\tag{8}\n\\]\nAt \\((t,x)=(1-b/2,x_j+b/2)\\), the function \\(B_j\\) equals \\(\\rho b^4\\), whereas \\(B_k\\) vanishes there for every \\(k\\ne j\\).  Thus, if\n\\[\n d(\\lambda_j,\\lambda_k)\n :=\\max_{a\\in\\{0,1\\}}\\lVert\\lambda_{a,j}-\\lambda_{a,k}\\rVert_\\infty,\n\\]\nthen\n\\[\n d(\\lambda_j,\\lambda_k)\\ge\\rho b^4,\n \\qquad j\\ne k.                                          \\tag{9}\n\\]\n\nIt remains to quantify the information in the observed data.  The laws \\(P_j\\) and \\(P_0\\) differ only conditionally on \\(A=1\\).  Given \\((A=1,X=x)\\), the event part of the observed-data density at \\(u\\) is \\(S_{1,j}(u\\mid x)G_1(u\\mid x)\\lambda_{1,j}(u,x)\\), while the censoring part is \\(S_{1,j}(u\\mid x)\\{-dG_1(u\\mid x)\\}\\).  Dividing each part by its baseline counterpart therefore gives, for \\(P_j\\)-almost every observed unit,\n\\[\n \\log\\frac{dP_j}{dP_0}(U,\\Delta\\mid A=1,X=x)\n =\\Delta\\log\\{1+B_j(U,x)\\}-\\int_0^U B_j(t,x)\\,dt.       \\tag{10}\n\\]\nConditional independent censoring and the hazard construction give\n\\[\n P_j(U\\ge t\\mid A=1,X=x)=S_{1,j}(t\\mid x)G_1(t\\mid x),  \\tag{11}\n\\]\nand the event subdistribution has Lebesgue density\n\\[\n t\\longmapsto S_{1,j}(t\\mid x)G_1(t\\mid x)\\{1+B_j(t,x)\\}.\n\\]\nTaking the \\(P_j\\)-expectation of (10), integrating the first term against this event density, and writing the nonnegative second term as\n\\[\n E_{P_j}\\!\\left[\\int_0^U B_j(t,X)\\,dt\\,\\middle|\\,A=1,X=x\\right]\n =\\int_0^1 S_{1,j}(t\\mid x)G_1(t\\mid x)B_j(t,x)\\,dt\n\\]\nby (11), yields the exact identity\n\\[\n \\begin{split}\n \\operatorname{KL}(P_j,P_0)\n ={}&\\frac12\\int_0^1\\!\\int_0^1\n S_{1,j}(t\\mid x)G_1(t\\mid x)\\\\\n &\\quad\\times\\bigl[\\{1+B_j(t,x)\\}\\log\\{1+B_j(t,x)\\}-B_j(t,x)\\bigr],dt,dx.\n \\end{split}                                               \\tag{12}\n\\]\nHere the factor \\(1/2\\) is the probability of treatment, and the integration in \\(x\\) uses \\(f=1\\).\n\nFor \\(0\\le y\\le1/2\\), set \\(r(y)=(1+y)\\log(1+y)-y\\).  Since \\(r(0)=r'(0)=0\\) and \\(r''(y)=(1+y)^{-1}\\le1\\), two integrations of \\(r''\\) give\n\\[\n 0\\le r(y)\\le\\frac{y^2}{2}.                              \\tag{13}\n\\]\nOn \\(\\mathcal R_j\\), (5) gives \\(G_1(t\\mid x)=(1-t)^2\\le b^2\\); also \\(S_{1,j}\\le1\\), \\(B_j^2\\le\\rho^2b^8\\), and \\(\\operatorname{Leb}(\\mathcal R_j)\\le b^2\\).  Outside \\(\\mathcal R_j\\), the integrand in (12) is zero.  Hence (12)--(13) imply, for the universal constant \\(C_0:=\\rho^2/4\\),\n\\[\n \\operatorname{KL}(P_j,P_0)\\le C_0b^{12}.                 \\tag{14}\n\\]\nBy the definition of the product experiment \\(P_j^{\\otimes M}\\), its log likelihood ratio is the sum of the \\(M\\) one-observation log likelihood ratios.  Taking expectation under that product law therefore gives\n\\[\n \\operatorname{KL}(P_j^{\\otimes M},P_0^{\\otimes M})\n =M\\operatorname{KL}(P_j,P_0)\n \\le C_0Mb^{12}=C_0\\gamma\\log M.                          \\tag{15}\n\\]\n\nFor completeness, we derive the needed finite-hypothesis testing inequality.  Let \\(J\\) be uniform on \\(\\{1,\\ldots,N_M\\}\\), and, conditionally on \\(J=j\\), let the sample \\(Z\\) have law \\(Q_j:=P_j^{\\otimes M}\\).  Define \\(\\overline Q:=N_M^{-1}\\sum_{j=1}^{N_M}Q_j\\) and \\(Q_0:=P_0^{\\otimes M}\\).  Expansion of the logarithms under the common dominating measure gives\n\\[\n \\frac1{N_M}\\sum_{j=1}^{N_M}\\operatorname{KL}(Q_j,Q_0)\n =\\frac1{N_M}\\sum_{j=1}^{N_M}\\operatorname{KL}(Q_j,\\overline Q)\n  +\\operatorname{KL}(\\overline Q,Q_0).                    \\tag{16}\n\\]\nThe first term on the right is the mutual information \\(I(J;Z)\\), and the second is nonnegative.  Equations (15)--(16) imply\n\\[\n I(J;Z)\\le C_0\\gamma\\log M.                              \\tag{17}\n\\]\nFor an arbitrary decoder \\(\\widehat J=\\widehat J(Z)\\), let \\(E=\\mathbf 1\\{\\widehat J\\ne J\\}\\) and \\(p_e=P(E=1)\\).  Because \\(E\\) is determined by \\((J,Z)\\), the entropy chain rule gives\n\\[\n H(J\\mid Z)=H(E\\mid Z)+H(J\\mid E,Z).\n\\]\nMoreover, \\(H(E\\mid Z)\\le\\log2\\); on \\(\\{E=0\\}\\), \\(J=\\widehat J(Z)\\) is determined by \\(Z\\); and on \\(\\{E=1\\}\\), its conditional entropy is at most \\(\\log N_M\\).  Therefore\n\\[\n H(J\\mid Z)\\le\\log2+p_e\\log N_M.                         \\tag{18}\n\\]\nSince \\(H(J)=\\log N_M=I(J;Z)+H(J\\mid Z)\\), (18) entails\n\\[\n p_e\\ge1-\\frac{I(J;Z)+\\log2}{\\log N_M}.                  \\tag{19}\n\\]\nChoose \\(\\gamma>0\\) small enough that \\(13C_0\\gamma\\le1/8\\).  By (3) and (17), \\(I(J;Z)\\le(1/8)\\log N_M\\), and, because \\(N_M\\to\\infty\\), also \\(\\log2\\le(1/8)\\log N_M\\) for all sufficiently large \\(M\\).  Taking the infimum over decoders in (19) thus yields\n\\[\n \\inf_{\\widehat J}\\frac1{N_M}\\sum_{j=1}^{N_M}\n Q_j(\\widehat J\\ne j)\\ge\\frac34.                         \\tag{20}\n\\]\n\nFinally, fix any measurable estimator \\(\\widetilde\\lambda=(\\widetilde\\lambda_0,\\widetilde\\lambda_1)\\).  Decode by choosing the smallest index minimizing \\(d(\\widetilde\\lambda,\\lambda_j)\\).  This decoder is measurable because it compares finitely many measurable real-valued losses.  If, under \\(Q_j\\),\n\\[\n d(\\widetilde\\lambda,\\lambda_j)<\\frac{\\rho b^4}{2},      \\tag{21}\n\\]\nthen for every \\(k\\ne j\\), the triangle inequality and (9) give\n\\[\n d(\\widetilde\\lambda,\\lambda_k)\n \\ge d(\\lambda_j,\\lambda_k)-d(\\widetilde\\lambda,\\lambda_j)\n >\\frac{\\rho b^4}{2};\n\\]\nhence \\(j\\) is the unique minimizer and the decoder is correct.  Taking contrapositives, averaging over \\(j\\), and invoking (20) gives\n\\[\n \\begin{split}\n \\sup_{P\\in\\mathcal P_4}P^{\\otimes M}\\!\\left\\{\n \\max_a\\lVert\\widetilde\\lambda_a-\\lambda_a\\rVert_\\infty\n \\ge\\frac{\\rho b^4}{2}\\right\\}\n &\\ge \\max_{1\\le j\\le N_M}Q_j\\!\\left\\{\n d(\\widetilde\\lambda,\\lambda_j)\\ge\\frac{\\rho b^4}{2}\\right\\}\\\\\n &\\ge\\frac1{N_M}\\sum_{j=1}^{N_M}Q_j\\!\\left\\{\n d(\\widetilde\\lambda,\\lambda_j)\\ge\\frac{\\rho b^4}{2}\\right\\}\\\\\n &\\ge\\frac34.                                             \\tag{22}\n \\end{split}\n\\]\nBy (2), \\(b^4=\\gamma^{1/3}(\\log M/M)^{1/3}\\).  Taking the infimum over all measurable \\(\\widetilde\\lambda\\) in (22) proves the claimed lower bound with\n\\[\n c_0:=\\frac{\\rho\\gamma^{1/3}}{2},\n \\qquad\n c_1:=\\frac34.\n\\]\nThese constants depend only on universal choices compatible with the displayed primitive-class constants.  The subclass in (8) fixes \\(f=1\\), \\(\\pi_1=1/2\\), and \\(g_a=1\\), so every lower-bound instance is a member of the same class \\(\\mathcal P_4\\), notwithstanding that the class permits arbitrary measurable \\(f\\) within its band.  Finally, \\(\\textnormal{thm:primitive-endpoint-concentration}\\) supplies the matching uniform upper order \\((\\log M/M)^{1/3}\\).  Thus the event-hazard sup-norm rate is minimax sharp over \\(\\mathcal P_4\\); no lower bound for the RMST risk is claimed.",
+      "justification": "This converse proves that the terminal \\(Mh_M^4\\) information bottleneck and the \\((\\log M/M)^{1/3}\\) event-hazard rate are intrinsic to the observed-data class rather than artifacts of the proposed learner.",
+      "gap": "Cattaneo et al. treat nondegenerate boundary information, while Jiang and Doksum stop below the censoring endpoint; neither gives a same-class observed-data terminal-strip minimax lower bound.",
+      "consumer": "No alternative observed-data learner can improve the uniform event-hazard sup-norm order on \\(\\mathcal P_4\\); this is not a lower bound for RMST risk.",
+      "status": "proved"
+    },
+    {
+      "id": "lem:iid-dqm-implies-lan",
+      "kind": "lemma",
+      "statement": "A finite-dimensional i.i.d. parametric model that is differentiable in quadratic mean at its base law \\(P\\) is locally asymptotically normal there, with information matrix equal to the second-moment matrix of its quadratic-mean score.",
+      "free_symbols": [
+        "P"
+      ],
+      "depends_on": [],
+      "source": {
+        "cite": "vanderVaart1998",
+        "locator": "Theorem 7.2, i.i.d. DQM likelihood expansion",
+        "carrier": "logical-claim",
+        "verbatim_statement": "Differentiability in quadratic mean of a finite-dimensional model yields the locally asymptotically normal likelihood expansion for its i.i.d. experiments.",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Transcribed at the implication level used here from van der Vaart (1998), Theorem 7.2; the node records only the DQM-to-LAN conclusion invoked in the proof."
+        }
+      },
+      "status": "cited"
+    }
+  ],
+  "bibliography": [
+    {
+      "key": "westling2024inference",
+      "citation": "Westling, T., Luedtke, A., Gilbert, P., and Carone, M. (2024). Inference for treatment-specific survival curves using machine learning. Journal of the American Statistical Association 119(546), 1541--1553. DOI: 10.1080/01621459.2023.2205060. arXiv:2106.06602."
+    },
+    {
+      "key": "tian2020endpoint",
+      "citation": "Tian, L., Jin, H., Uno, H., Lu, Y., Huang, B., Anderson, K. M., and Wei, L.-J. (2020). On the empirical choice of the time window for restricted mean survival time. Biometrics 76(4), 1157--1166. DOI: 10.1111/biom.13237."
+    },
+    {
+      "key": "diaz2019improved",
+      "citation": "Díaz, I., Colantuoni, E., Hanley, D. F., and Rosenblum, M. (2019). Improved precision in the analysis of randomized trials with survival outcomes, without assuming proportional hazards. Lifetime Data Analysis 25, 439--468. arXiv:1511.08404."
+    },
+    {
+      "key": "stute1995clt",
+      "citation": "Stute, W. (1995). The central limit theorem under random censorship. Annals of Statistics 23(2), 422--439. DOI: 10.1214/aos/1176324528."
+    },
+    {
+      "key": "cattaneo2024boundary",
+      "citation": "Cattaneo, M. D., Chandak, R., Jansson, M., and Ma, X. (2024). Boundary adaptive local polynomial conditional density estimators. Bernoulli 30(4), 3193--3223. DOI: 10.3150/23-BEJ1711. arXiv:2204.10359."
+    },
+    {
+      "key": "jiangdoksum2003local",
+      "citation": "Jiang, J., and Doksum, K. (2003). On local polynomial estimation of hazard rates and their derivatives under random censoring. Lecture Notes--Monograph Series 42, 463--482. DOI: 10.2307/4356253."
+    },
+    {
+      "key": "fanGuerre2016multivariate",
+      "citation": "Fan, Y., and Guerre, E. (2016). Multivariate local polynomial estimators: uniform boundary properties and asymptotic linear representation. Advances in Econometrics 36, 489--537. DOI: 10.1108/S0731-905320160000036023."
+    },
+    {
+      "key": "munch2024halhazard",
+      "citation": "Munch, A., Gerds, T. A., van der Laan, M. J., and Rytgaard, H. C. W. (2024). Estimating conditional hazard functions and densities with the highly-adaptive lasso. arXiv:2404.11083."
+    },
+    {
+      "key": "efromovich2024conditional",
+      "citation": "Efromovich, S. (2024). Conditional hazard rate estimation for right censored data. Bernoulli 30(3), 2423--2449. DOI: 10.3150/23-BEJ1679."
+    },
+    {
+      "key": "jingShaoWang2003selfnormalized",
+      "citation": "Jing, B.-Y., Shao, Q.-M., and Wang, Q. (2003). Self-normalized Cramér-type large deviations for independent random variables. Annals of Probability 31(4), 2167--2215. DOI: 10.1214/aop/1068646382."
+    },
+    {
+      "key": "chernozhukov2018dml",
+      "citation": "Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. The Econometrics Journal 21(1), C1--C68. arXiv:1608.00060."
+    },
+    {
+      "key": "stone1982optimal",
+      "citation": "Stone, C. J. (1982). Optimal global rates of convergence for nonparametric regression. Annals of Statistics 10(4), 1040--1053."
+    },
+    {
+      "key": "vanderVaart1998",
+      "citation": "van der Vaart, A. W. (1998). Asymptotic Statistics. Cambridge University Press."
+    },
+    {
+      "key": "morenz2024debiased",
+      "citation": "Morenz, E. R., Wolock, C. J., and Carone, M. (2024). Debiased machine learning for counterfactual survival functionals based on left-truncated right-censored data. arXiv:2411.09017. DOI: 10.48550/arXiv.2411.09017."
+    }
+  ]
+}

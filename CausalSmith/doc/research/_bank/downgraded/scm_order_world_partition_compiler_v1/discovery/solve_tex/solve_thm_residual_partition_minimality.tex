@@ -1,0 +1,209 @@
+%%% FIELD representative-proof
+Put \(q=i+1\).  We first prove the single-conjunction claim.  Fix a block \(T\in\pi_i\), and partition it into the worlds on which \(q\) is intervened and the worlds on which \(q\) is natural.  By the definition of \(\pi_i\), all natural worlds in \(T\) have the same complete predecessor tuple.  Hence, by \texttt{ass:complete-predecessor-functions} and \texttt{def:ordered-evaluation}, they all call one row of \(f_q\).  If there is no natural world, the column on \(T\) is fixed by the interventions.  If that natural row is constrained by a factual or normalized-conjunction pin, two distinct required values make the transition infeasible, while one required value fixes the row and leaves no branch.
+
+It remains to consider an unconstrained natural row.  Let \(C_T\subseteq\mathcal D_q\) be the set of distinct intervention constants occurring in \(T\) at coordinate \(q\).  If \(z,z'\in\mathcal D_q\setminus C_T\), then choosing \(z\) or \(z'\) gives precisely the same successor equality partition: in either case the natural worlds form one successor subblock, distinct from every subblock carrying an intervention constant.  Blocks distinct at layer \(i\) cannot merge after appending a coordinate because their complete prefixes were already unequal.  Neither \(z\) nor \(z'\) violates a current natural pin, since the row is unconstrained.  Therefore \texttt{thm:partition-continuation} implies that these two choices have the same support of every legal continuation.  A choice \(z\in C_T\), on the other hand, merges the natural subblock with exactly the worlds carrying \(z\), so each such value must be retained separately.  Thus the representatives in \texttt{def:single-representatives}---every element of \(C_T\), together with one scanned element of \(\mathcal D_q\setminus C_T\) when that set is nonempty---are complete.  They are sound because \texttt{ass:complete-predecessor-functions} permits the common natural row to be assigned the selected representative, and \texttt{ass:finite-alphabets} supplies both the finite scan and a value for every unused row.  This also covers singleton alphabets and the case \(C_T=\mathcal D_q\).
+
+Suppose a branching block contains \(a\) intervened worlds and \(b\geq1\) natural worlds, and write \(t=a+b=|T|\).  The number of distinct intervention constants is at most \(a\), so the number of representatives is at most
+\[
+ |C_T|+1\leq a+1\leq t.
+\]
+For \(t=1,2,3\), direct evaluation gives \(t\leq3^{t/3}\).  For \(t\geq3\), the function \(x\mapsto(\log x)/x\) is nonincreasing, and hence
+\[
+ \frac{\log t}{t}\leq\frac{\log3}{3},
+ \qquad t\leq3^{t/3}.
+\]
+If \(T_1,\ldots,T_m\) are the branching blocks, they are disjoint subsets of \(\mathcal H\).  Consequently
+\[
+ \prod_{j=1}^m \#\{\text{representatives on }T_j\}
+ \leq \prod_{j=1}^m3^{|T_j|/3}
+ =3^{\sum_j|T_j|/3}
+ \leq3^{h/3}.
+\tag{1}
+\]
+Nonbranching blocks contribute the factor one.  Notice that no factual world was counted in this argument: by definition, \(\mathcal H\) is exactly the retained normalized context set and need not contain \(\varnothing\).
+
+For the joint compiler, append to the partition a flag vector \(a_i\in\{0,1\}^r\).  The invariant is that \((a_i)_j=1\) exactly when every normalized atom of term \(j\) processed through layer \(i\) has been satisfied.  A zero flag is absorbing.  At coordinate \(q\), duplicate identical tests within a live term and world can be coalesced.  If that pair contains tests of two distinct constants, no value can satisfy both, so its flag is set to zero before representatives are formed.  This preprocessing is pointwise truth preserving and leaves at most one tested constant for each live-term/world pair.
+
+Fix an unpinned natural group in a block \(T\), with \(a\) intervened and \(b\geq1\) natural worlds.  Let \(K_T\) be the union of the distinct intervention constants in \(T\) and the constants tested at coordinate \(q\) on its natural worlds by the still-live terms.  Tests on intervened worlds are evaluated directly from their intervention constants and do not constrain the natural row.  If \(z,z'\in\mathcal D_q\setminus K_T\), then \(z\) and \(z'\) have the same equality relation to every intervention value and fail exactly the same current tests.  They therefore induce the same successor partition and the same updated flag vector.  The partition continuation theorem then gives the same attainable future columns, while the flag invariant gives the same terminal truth-vector support.  Retaining every value of \(K_T\cap\mathcal D_q\) and one fresh value outside \(K_T\), when one exists, is consequently complete.  Conversely, every retained value is realized by assigning that value to the shared natural response row; direct intervention and factual-row consistency checks establish soundness.  Query tests update flags and do not impose spurious hard constraints.
+
+There are at most \(a\) distinct intervention constants and at most \(rb\) live tested constants, so the representative count is at most \(a+rb+1\).  With \(t=a+b\) and \(r\geq1\),
+\[
+ a+rb+1\leq rt+1\leq(r+1)^t,
+\tag{2}
+\]
+where the second inequality follows from the constant and linear terms in the binomial expansion of \((r+1)^t\).  Multiplication over the disjoint branching blocks yields
+\[
+ \prod_T\#\{\text{joint representatives on }T\}
+ \leq\prod_T(r+1)^{|T|}
+ \leq(r+1)^h.
+\tag{3}
+\]
+The invariant on \(a_i\) follows inductively because the update is conjunction with exactly the tests at the new coordinate.  Thus equality of the partition and the flags is a right congruence for later representative transitions.  Equations~(1)--(3) prove the two asserted bounds, and the row-realization and quotient arguments prove soundness and completeness.
+
+%%% FIELD single-compiler-proof
+By \texttt{lem:query-normalization}, computing \(\gamma^{\circ}=\mathsf N(\gamma)\) takes \(O(N_{\mathrm{in}})\) time and preserves the truth value for every \(f\in\mathfrak F\).  Under \(r=1\), \(c_1=1\), and \(\gamma_1^{\circ}=\gamma^{\circ}\), \texttt{def:truth-support} specializes to
+\[
+ A_v=\{(g_{\gamma^{\circ}}(f)):f\in F_v\}\subseteq\{0,1\}.
+\]
+The fibre \(F_v\) is nonempty: for every coordinate \(i\), prescribe \(f_i(v_{<i})=v_i\), and assign an arbitrary element of the nonempty finite alphabet \(\mathcal D_i\) to every other row.  Since \(\mathfrak F\) is finite, the extrema below are attained.  Definitions \texttt{def:cell-labels} and \texttt{def:factual-fibre} therefore give
+\[
+ \ell_g(v)=\min_{f\in F_v}g_{\gamma^{\circ}}(f),
+ \qquad
+ u_g(v)=\max_{f\in F_v}g_{\gamma^{\circ}}(f).
+\tag{4}
+\]
+
+The compiler starts from the unique partition of \(\mathcal H\) at layer zero, applies the transitions of \texttt{def:single-representatives}, and merges equal successor partitions.  We prove by induction on \(i\) that its states after coordinate \(i\) are exactly the partitions induced by feasible partial response systems satisfying the factual pins and all normalized-conjunction pins already processed.  The assertion is immediate at \(i=0\).  For the induction step, soundness of \texttt{lem:representative-transition} realizes every retained column by legal response rows, while its completeness maps every concrete legal column to a retained column with the same successor partition and future support.  This proves the invariant at \(i+1\).  At \(i=k\), a terminal accepting state consequently exists if and only if some \(f\in F_v\) satisfies \(\gamma^{\circ}\).  Thus the accepting-state decision computes \(u_g(v)\).
+
+For witness recovery, store a predecessor pointer and its selected representative column on the first edge reaching each state.  If several numerical histories merge, \texttt{thm:partition-continuation} guarantees that a representative successor feasible from one history has a successor with the same partition and future support from the stored history.  Backtracking an accepting terminal state therefore gives a legal column path.  At coordinate \(i\), use default value \(v_i\) for \(\widehat f_i\).  The factual row is then correct without being stored, and every encountered natural row whose selected output is \(v_i\) may also be omitted.  Each of the at most \(h\) retained-world prefix blocks contributes at most one remaining nondefault row.  The construction in \texttt{def:sparse-response-completion} hence yields \(\widehat f\in F_v\) with at most \(kh\) stored rows and one default per coordinate.
+
+There are at most \(B_h\) partition states in a layer.  Equation~(1) of \texttt{lem:representative-transition} bounds the representative columns leaving a state by \(3^{h/3}\).  Thus, including \(k\) layers, alphabet scans, pin checks, canonical partition encodings, and traceback, the running time is
+\[
+ B_h3^{h/3}\operatorname{poly}(N_{\mathrm{in}})
+ =3^{1/3}B_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}})
+ =B_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}}).
+\tag{5}
+\]
+The last equality is equality of asymptotic forms: the fixed factor \(3^{1/3}\) is absorbed into the polynomial factor.  The same convention covers \(h=0\), for which there is one empty-context state.  All alphabet dependence in (5) is confined to scans charged by \(N_{\mathrm{in}}\).
+
+We now compute the lower truth bit.  Let \(A=\{V_{i,I}=y\}\) be a retained normalized atom.  Normalization ensures \(i\notin\operatorname{dom}(I)\) and \(\operatorname{dom}(I)\subseteq\{1,\ldots,i-1\}\).  We claim
+\[
+ \left[\forall f\in F_v,\ E(f,I)_i=y\right]
+ \quad\Longleftrightarrow\quad
+ |\mathcal D_i|=1
+ \ \text{or}\ 
+ \left[I(t)=v_t\ \text{for every }t\in\operatorname{dom}(I)\ \text{and}\ v_i=y\right].
+\tag{6}
+\]
+If \(|\mathcal D_i|=1\), validity of the atom forces \(y\) to be its unique value.  If \(I\) agrees with \(v\) and \(v_i=y\), ordered induction below \(i\), using \texttt{def:ordered-evaluation}, gives \(E(f,I)_{<i}=v_{<i}\) for every \(f\in F_v\), and hence
+\[
+ E(f,I)_i=f_i(v_{<i})=v_i=y.
+\]
+This proves the reverse implication in (6).
+
+For the converse, suppose \(|\mathcal D_i|>1\).  If \(I\) agrees with \(v\) but \(v_i\neq y\), every member of \(F_v\) falsifies the atom.  If \(I\) disagrees with \(v\), let \(t<i\) be its first disagreeing intervention coordinate.  Along the factual path prescribe \(f_q(v_{<q})=v_q\).  Up to \(t-1\), the \(I\)-world equals the factual path; at \(t\), the intervention creates a different prefix, which stays different as a complete tuple at every later coordinate.  Recursively assign arbitrary legal values to every natural row on that distinct \(I\)-path through \(i-1\).  Choose \(z\in\mathcal D_i\setminus\{y\}\) and prescribe
+\[
+ f_i(E(f,I)_{<i})=z,
+ \qquad f_i(v_{<i})=v_i.
+\]
+The two arguments are distinct because their coordinate \(t\) values differ, so the prescriptions are consistent.  Complete all unused rows by arbitrary defaults.  Assumptions \texttt{ass:finite-alphabets} and \texttt{ass:complete-predecessor-functions} then give an \(f\in F_v\) that falsifies \(A\).  This proves (6).
+
+A false self-intervention constant produced by \(\mathsf N\) makes the whole conjunction identically false.  Otherwise, the conjunction is true for every \(f\in F_v\) if and only if every retained atom satisfies the right side of (6): sufficiency follows by conjunction, and if one atom fails, the preceding construction supplies a member of \(F_v\) falsifying that atom and hence the conjunction.  Therefore a linear scan of normalized constants and retained atoms computes \(\ell_g(v)\).  The empty conjunction has \(\ell_g(v)=u_g(v)=1\); an inconsistent collection of pins has no accepting path and hence \(u_g(v)=0\).
+
+It remains to prove soundness and sharpness of the cell sums.  Let \(\mu\) be any observationally compatible canonical law.  The factual fibres \((F_v)_{v\in\mathcal X}\) are disjoint and cover \(\mathfrak F\), while \texttt{ass:observational-compatibility} gives \(\sum_{f\in F_v}\mu(f)=p(v)\).  Using (4), nonnegativity of \(\mu\), and \texttt{def:sharp-endpoints},
+\[
+ \begin{aligned}
+ \theta_g
+ &=\sum_{v\in\mathcal X}\sum_{f\in F_v}\mu(f)g(f),\\
+ p(v)\ell_g(v)
+ &\leq\sum_{f\in F_v}\mu(f)g(f)
+ \leq p(v)u_g(v),\\
+ L_g(p)&\leq\theta_g\leq U_g(p).
+ \end{aligned}
+\tag{7}
+\]
+For each cell with \(p(v)>0\), choose an attained minimizer \(f_v^-\in F_v\) and put mass \(p(v)\) on it.  Different cells select different response systems because their factual evaluations differ.  The resulting law has exactly one exogenous atom per positive-mass cell, is observationally compatible, and attains \(L_g(p)\).  Choosing attained maximizers \(f_v^+\) analogously attains \(U_g(p)\).  Zero-mass cells need no atom.  Convex mixtures of the two laws preserve \(p\) and fill the interval between the endpoints.  Proposition \texttt{prop:canonical-carrier-equivalence} transfers both endpoint constructions and the causal score to \(\mathcal M_{\mathrm{ord}}\).
+
+Lemma \texttt{lem:rossetto-antonucci-order-lp-interface} states that the Rossetto--Antonucci complete-signature program has the same sharp extrema on this order-only class and supplied observational law.  Equation~(7) and the attaining laws therefore prove equality of endpoint values.  Their interface starts from completed predecessor response signatures; the present procedure constructs only reachable equality partitions for the requested cell and query.  Hence the completed-signature alphabet-product quotient is replaced by the \(h\)-indexed transition system, with alphabet enumeration appearing only in the polynomially charged input scans.
+
+On a sparse observational input, only its \(s\) explicitly listed positive-mass cells contribute to either endpoint.  Running the cell procedure on those cells gives
+\[
+ sB_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}}).
+\]
+On a dense input, reading all supplied cells is already charged in \(N_{\mathrm{in}}\).  Thus an omitted sparse cell is used only because its supplied mass is zero, never because a sample zero was silently treated as a structural impossibility.
+
+%%% FIELD residual-partition-proof
+We use exactly the existential-support equivalence in \texttt{def:residual-minimality-handle}.  By \texttt{thm:partition-continuation}, two feasible prefixes with the same complete-prefix equality partition \(\pi_i\) have the same attainable support of every later retained-world value-column sequence subject to every legal later factual and normalized-query pin.  A terminal predecessor-normal conjunction is a finite collection of tests on such values.  Its acceptance is feasible from one prefix if and only if a column sequence satisfying all of those tests belongs to its support, and this holds if and only if such a sequence belongs to the other prefix's support.  The two existentially supplied completing response systems may be different.  Thus equality of \(\pi_i\) implies residual equivalence.  Since a set of size \(h\) has \(B_h=\operatorname{Bell}(h)\) partitions,
+\[
+ \rho(h)\leq B_h.
+\tag{8}
+\]
+
+We prove the reverse inequality on one finite binary instance for each \(h\).  Identify the retained contexts with \([h]=\{1,\ldots,h\}\), and set
+\[
+ \mathscr C_h=\{C:\varnothing\neq C\subsetneq[h]\}.
+\]
+Take binary endogenous variables in the order
+\[
+ S\ \prec\ (Z_C:C\in\mathscr C_h)\ \prec\ Y,
+\tag{9}
+\]
+where the selector variables are put in any fixed order.  Pin the factual path to zero.  For each \(j\in[h]\), define the nonfactual intervention
+\[
+ I_j=\operatorname{do}\!\left(S=1,\ Z_C=1\text{ for every }C\in\mathscr C_h\text{ such that }j\in C\right),
+\tag{10}
+\]
+leaving every unlisted selector and \(Y\) natural, and set \(\mathcal H=\{I_1,\ldots,I_h\}\).  If \(h\geq2\), then \(I_j\neq I_\ell\) for \(j\neq\ell\), because \(Z_{\{j\}}\) is intervened on under \(I_j\) and is natural under \(I_\ell\).  If \(h=1\), then \(\mathscr C_h\) is empty and \(I_1=\operatorname{do}(S=1)\).  Hence \(|\mathcal H|=h\) in all cases.  Every retained world starts with \(S=1\), whereas the factual path starts with \(S=0\); consequently every factual predecessor row used below is distinct from every retained-world predecessor row at the same later coordinate.
+
+Let \(m=1+|\mathscr C_h|\), the layer after all coordinates preceding \(Y\).  Fix a partition \(\alpha\in\operatorname{Part}([h])\).  We construct a feasible prefix \(P_\alpha\) through layer \(m\).  At \(S\), set the factual natural response to zero; every retained world has value one by (10).  At selector \(Z_C\), prescribe every natural response row reached by a retained world to have the common value
+\[
+ z_C^\alpha=
+ \begin{cases}
+ 0,&C\text{ is a block of }\alpha,\\
+ 1,&C\text{ is not a block of }\alpha,
+ \end{cases}
+\tag{11}
+\]
+and prescribe the separately reached factual row to be zero.  These prescriptions are consistent: retained worlds with the same predecessor tuple receive the same value in (11), different predecessor tuples index different complete-predecessor rows, and the factual tuple is separated by its \(S\)-coordinate.  Assumption \texttt{ass:complete-predecessor-functions} permits all prescribed rows, and \texttt{ass:finite-alphabets} supplies defaults for the unused rows.
+
+For every \(j\in[h]\), equations (10)--(11) give
+\[
+ E(f,I_j)_{Z_C}=
+ \begin{cases}
+ 1,&j\in C,\\
+ z_C^\alpha,&j\notin C.
+ \end{cases}
+\tag{12}
+\]
+If \(C\) is not a block of \(\alpha\), (12) is constantly one.  If \(C\) is a block of \(\alpha\), (12) is its membership indicator.  Therefore indices in the same \(\alpha\)-block agree at every selector.  Conversely, if \(j\) and \(\ell\) lie in distinct \(\alpha\)-blocks and \(A\) is the block containing \(j\), then \(A\) is nonempty and proper, and \(Z_A\) has value one in world \(I_j\) and zero in world \(I_\ell\).  For the one-block partition, no block belongs to \(\mathscr C_h\), and all selector columns are constant.  Hence
+\[
+ x^{I_j}_{\leq m}=x^{I_\ell}_{\leq m}
+ \quad\Longleftrightarrow\quad
+ j\text{ and }\ell\text{ lie in the same block of }\alpha.
+\tag{13}
+\]
+Thus \(P_\alpha\) is feasible, is consistent with all factual zero pins, and induces exactly \(\alpha\).  Every one of the \(B_h\) partitions occurs at the same layer of the single instance (9).
+
+We next separate any two distinct partitions.  Let \(\alpha\neq\beta\).  If a block of \(\beta\) meets two blocks of \(\alpha\), choose such indices \(j,\ell\), let \(A\) be the \(\alpha\)-block containing \(j\), and define
+\[
+ b_t=\mathbf1\{t\notin A\},\qquad t\in[h].
+\tag{14}
+\]
+Then \(b\) is constant on every \(\alpha\)-block and nonconstant on the chosen \(\beta\)-block.  If no \(\beta\)-block meets two \(\alpha\)-blocks, then \(\beta\) refines \(\alpha\).  Since the partitions differ, some \(\alpha\)-block meets two \(\beta\)-blocks, so interchanging the names \(\alpha\) and \(\beta\) reduces to the preceding case.  Thus every unordered pair can be oriented so that a binary vector \(b\) is constant on every block of the first partition and nonconstant on a block of the second.  When \(h=1\), there is only one partition and no pair requires separation.
+
+For the oriented pair, use the common legal future factual pin \(Y=0\) and the terminal conjunction
+\[
+ \delta_b=\bigwedge_{j=1}^h\{Y_{I_j}=b_j\}.
+\tag{15}
+\]
+Every coordinate intervened on in \(I_j\) precedes \(Y\), and \(Y\notin\operatorname{dom}(I_j)\).  Therefore \texttt{def:query-normalizer} neither deletes an intervention pair nor applies self-intervention simplification to (15); it only canonically orders the predecessor assignments.  All \(I_j\) occur, they are distinct, and no factual atom occurs.  Hence normalization retains exactly \(\mathcal H=\{I_1,\ldots,I_h\}\) and does not adjoin \(\varnothing\).
+
+From \(P_\alpha\), each block \(A'\in\alpha\) has one complete predecessor tuple at \(Y\).  Since \(b\) is constant on \(A'\), assign the corresponding natural row of \(f_Y\) that common bit.  Assign the factual \(Y\)-row zero.  This prescription is consistent because distinct \(\alpha\)-blocks have distinct tuples by (13), while the factual tuple is distinct from every retained tuple by its \(S\)-coordinate.  Completing unused rows arbitrarily gives, by \texttt{ass:complete-predecessor-functions} and \texttt{def:ordered-evaluation}, a response system extending \(P_\alpha\) that obeys the common factual pin and accepts (15).
+
+From \(P_\beta\), choose a \(\beta\)-block containing \(j,\ell\) with \(b_j\neq b_\ell\).  Equation (13), with \(\beta\) in place of \(\alpha\), gives the same complete predecessor tuple at \(Y\) in those two worlds.  Therefore every completing response system must satisfy
+\[
+ E(f,I_j)_Y=f_Y(x^{I_j}_{<Y})
+ =f_Y(x^{I_\ell}_{<Y})=E(f,I_\ell)_Y,
+\]
+which is incompatible with the two requirements in (15).  Acceptance is thus feasible from \(P_\alpha\) and infeasible from \(P_\beta\) under one common legal pin specification and conjunction.  In accordance with \texttt{def:residual-minimality-handle}, the completion witnessing feasibility from \(P_\alpha\) is existentially quantified independently of completions considered from \(P_\beta\); no common numerical response table is imposed.
+
+All \(B_h\) prefixes are pairwise residual-inequivalent, so
+\[
+ \rho(h)\geq B_h.
+\tag{16}
+\]
+Combining (8) and (16) proves \(\rho(h)=B_h=\operatorname{Bell}(h)\).  Finally, \texttt{thm:single-conjunction-compiler} supplies the upper bound
+\[
+ B_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}}).
+\]
+The construction proves only a lower bound on the number of states for this exact existential-support interface.  It neither lower-bounds the time needed to manipulate those states nor quantifies over all reduced multi-valued decision diagrams.
+
+%%% FIELD residual-answer-statement
+Under the existential-support residual equivalence of \texttt{def:residual-minimality-handle}, for every \(h\in\mathbb N_{+}\),
+\[
+ \rho(h)=B_h=\operatorname{Bell}(h).
+\]
+The equality-partition summary is uniformly exact, and one binary ordered instance realizes pairwise distinguishable prefixes for all \(B_h\) partitions, so no uniformly coarser exact continuation quotient exists.  The single-conjunction compiler \(\mathsf C_1\) retains the upper bound \(B_h3^{(h-1)/3}\operatorname{poly}(N_{\mathrm{in}})\).  This state lower bound implies neither an \(h\log h\) running-time lower bound nor a lower bound for all reduced multi-valued decision diagrams.
+
+%%% FIELD residual-answer-proof
+The equality \(\rho(h)=B_h\), uniform exactness of equality partitions, and the fixed-instance pairwise separation are exactly the conclusions of \texttt{thm:residual-partition-minimality}.  The same theorem, by its declared dependence on \texttt{thm:single-conjunction-compiler}, records the displayed compiler upper bound and explicitly restricts the lower-bound conclusion to the existential-support state interface.  These conclusions answer the two alternatives in the open-ended question.

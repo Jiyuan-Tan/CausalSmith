@@ -1,0 +1,717 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}inspection\_\allowbreak{}separable\_\allowbreak{}switch\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Scheduled inspections identify factual competing-event bin probabilities but erase the within-bin ordering needed to splice the cause-1 hazard from arm 1 with the cause-2 hazard from arm 0. Conditional on an externally calibrated common hazard ceiling \(L\), disclosed as a novel maintained sensitivity restriction, the sharp component-risk interval is obtained by one-bin incidence-survival support envelopes and an exact backward recursion; replacing \(L\) by a conservative \(\bar L\ge L\) can only enlarge the interval. The headline open result remains the exact active-ceiling question of whether every envelope extremum has a universal finite common-piece representation, now equipped with a fully specified positive-cell two-cycle constrained-Hessian kill test. Matched mesh-width bounds and finite-sample multinomial inversion remain consequences and do not substitute for that structural theorem.
+
+\section{Project justification}
+
+\paragraph{Gap.} Resolved-time separable-effect theory identifies the cross-arm hazard integral, and discrete competing-risk partial-identification theory treats latent-duration distributions, but neither characterizes the sharp grouped-data component-risk frontier conditional on a transparently calibrated intensity ceiling or its monotone sensitivity expansion when that ceiling is relaxed.
+
+\paragraph{Niche.} The missing object is the exact active-ceiling one-bin incidence-survival support envelope under two simultaneous factual endpoint constraints, including whether every optimizer can be compressed to a parameter-uniform finite switching word and whether the claim survives an exact positive-cell two-cycle Hessian test.
+
+\paragraph{Fill.} The project treats \(L\) as an externally calibrated maintained restriction, derives nested identified sets under \(L\) and \(\bar L\), builds the attainable survival-flow frontier, and seeks an explicit universal common-piece bound through the specified cycle-compression predicate. It then composes local envelopes into globally sharp endpoints, derives the matched inspection-mesh modulus, and projects a simultaneous multinomial confidence region through the certified endpoint map.
+
+\section{Related work}
+
+StensrudYoungDidelezRobinsHernan2022, Sections 5--6 and Supplementary Appendix B, motivates treatment decomposition and proves a discrete-time identifying g-functional under dismissible component conditions; its observation model fixes within-period order and does not make a numerical intensity ceiling an identifying parameter. MartinussenStensrud2023, Sections 2.3--2.4 and Appendix 8.1, supplies the resolved-time cross-arm hazard integral and influence-function benchmark; grouped bin triples do not recover its integrands, and its bounded-intensity regularity does not calibrate the common ceiling that determines the present identified set. Accordingly, \(L\) is disclosed here as a novel maintained sensitivity-model restriction, calibrated before analysis from a scientifically certified envelope in an external exact-time registry or audited event-trigger system, with \(\bar L\) providing a conservative nested-set analysis. StensrudHernanTchetgenRobinsDidelezYoung2021, Sections 6, 8, and 10, generalizes the g-formula and applies it to monthly kidney injury and death in SPRINT while describing within-interval ordering as practically negligible on fine grids. Kim2023CompetingRisks, Sections 2--4, formulates a sequential nonlinear sharp-bounds problem for discretely measured latent competing durations, but the target and feasible set are not hazard-spliced component risks. LasserreHenrionPrieurTrelat2008, Theorems 2.3 and 3.6, converts nonlinear control to occupation measures and convergent moment relaxations; convergence does not recover an exact ordinary control with uniformly many pieces. ZhuTrelatCerf2016 shows that Pontryagin conditions alone do not rule out chattering, while BayerTeichmann2006 gives finite atomic moment representations that do not preserve chronological survival dynamics. MaathuisHudgens2011 and SchmidBerger2021 describe grouped competing-risk inference for factual incidence functions. ChafaiConcordet2009, Theorem 2.2, gives the input-law covering-region argument used for finite-sample inversion. FangSantos2019 and FirpoGalvaoParker2023 explain why derivative-aware resampling is the appropriate later refinement at endpoint ties, but derivative theory is not substituted for exact set coverage here. The 2026 ParkSuk2026 preprint concerns two-arm versus four-arm identification and estimation, not grouped continuous-time hazard frontiers.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\psi=\int_0^T\exp\{-\Lambda_1^1(t)-\Lambda_2^0(t)\}\lambda_1^1(t)\,dt\).
+Primary functional / estimator / diagnostic: \(\Theta_I(\psi;\mathbf z)=[D_1(\mathbf z),U_1(\mathbf z)],\quad U_k=H_{\mathbf z_k}(U_{k+1}),\quad D_k=h_{\mathbf z_k}(D_{k+1}),\quad U_{K+1}=D_{K+1}=0\).
+\begin{itemize}
+  \item \(T\) --- \texttt{study horizon}; \((0,\infty)\); \texttt{design constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed terminal time.}
+  \item \(L\) --- \texttt{hazard ceiling}; \((0,\infty)\); \texttt{calibrated sensitivity-\allowbreak{}model constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Prespecified common upper bound on every cause-\allowbreak{}specific hazard,\allowbreak{} treated as a maintained sensitivity-\allowbreak{}model constant rather than as routine separable-\allowbreak{}effect regularity.}
+  \item \(\bar L\) --- \texttt{conservative hazard ceiling}; \([L,\infty)\); \texttt{sensitivity-\allowbreak{}analysis constant}
+  \par\smallskip\noindent\emph{Definition.} A prespecified ceiling used to assess sensitivity to relaxing \(L\).
+  \item \(c\) --- \texttt{ceiling index}; \(\{L,\bar L\}\); \texttt{sensitivity index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A ceiling value at which the compatible identified set is evaluated.}
+  \item \(K\) --- \texttt{number of inspection bins}; \(\mathbb N\); \texttt{design constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed positive number of bins.}
+  \item \(t_k\) --- \texttt{inspection time}; \([0,T]\); \texttt{design}
+  \par\smallskip\noindent\emph{Definition.} The fixed grid satisfies \(0=t_0<t_1<\cdots<t_K=T\).
+  \item \(\Delta_k\) --- \texttt{bin width}; \((0,T]\); \texttt{mesh}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_k:=t_k-t_{k-1}\) for \(k=1,\ldots,K\).
+  \item \(A\) --- \texttt{treatment assignment}; \(\{0,1\}\); \texttt{treatment}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed randomized treatment arm.}
+  \item \(\lambda_j^a\) --- \texttt{factual cause-\allowbreak{}specific hazard}; \(\lambda_j^a:[0,T]\to[0,L]\), \(a\in\{0,1\}\), \(j\in\{1,2\}\); \texttt{primitive law}
+  \par\smallskip\noindent\emph{Definition.} Deterministic Lebesgue-measurable cause-specific hazard in arm \(a\).
+  \item \(\Lambda_j^a\) --- \texttt{cumulative factual hazard}; \(\Lambda_j^a(t)=\int_0^t\lambda_j^a(u)\,du\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} Cumulative hazard for cause \(j\) in arm \(a\).
+  \item \(S^{a_Y,a_D}\) --- \texttt{component-\allowbreak{}intervention survival function}; \(S^{a_Y,a_D}(t)=\exp\{-\Lambda_1^{a_Y}(t)-\Lambda_2^{a_D}(t)\}\); \texttt{counterfactual functional}
+  \par\smallskip\noindent\emph{Definition.} Survival under the intervention that assigns the event component to \(a_Y\) and the competing-event component to \(a_D\).
+  \item \(F_1^{a_Y,a_D}(T)\) --- \texttt{component-\allowbreak{}intervention cause-\allowbreak{}1 risk}; \([0,1]\); \texttt{causal risk}
+  \par\smallskip\noindent\emph{Definition.} \(F_1^{a_Y,a_D}(T):=\int_0^T S^{a_Y,a_D}(t)\lambda_1^{a_Y}(t)\,dt\).
+  \item \(\psi\) --- \texttt{hybrid component risk}; \([0,1]\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\psi:=F_1^{1,0}(T)\).
+  \item \(F_1^0(T)\) --- \texttt{factual arm-\allowbreak{}0 cause-\allowbreak{}1 risk}; \([0,1]\); \texttt{identified factual risk}
+  \par\smallskip\noindent\emph{Definition.} \(F_1^0(T):=F_1^{0,0}(T)\).
+  \item \(\operatorname{SDE}\) --- \texttt{separable direct effect}; \([-1,1]\); \texttt{causal contrast}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{SDE}:=\psi-F_1^0(T)\).
+  \item \(O_i\) --- \texttt{observed subject record}; \(\{0,1\}\times(\{1,2\}\times\{1,\ldots,K\}\cup\{\mathrm{survive}\})\); \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} Treatment, first-failure inspection bin and adjudicated cause, or survival through \(T\), for subject \(i\).
+  \item \((p_{ak},q_{ak},s_{ak})\) --- \texttt{factual conditional bin triple}; \(\{(p,q,s)\in[0,1]^3:p+q+s=1,\ s>0\}\); \texttt{observed law}
+  \par\smallskip\noindent\emph{Definition.} Conditional probabilities of cause 1, cause 2, and end-of-bin survival in arm \(a\), given factual survival to \(t_{k-1}\).
+  \item \(\mathbf z_k\) --- \texttt{two-\allowbreak{}arm bin observation}; \texttt{observed law}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf z_k:=((p_{1k},q_{1k},s_{1k}),(p_{0k},q_{0k},s_{0k}))\).
+  \item \(\mathbf z\) --- \texttt{full grouped factual law}; \texttt{observed law}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf z:=(\mathbf z_1,\ldots,\mathbf z_K)\).
+  \item \(\mathcal I_c(\mathbf z)\) --- \texttt{ceiling-\allowbreak{}indexed identified set}; subsets of \([0,1]\); \texttt{sensitivity identified set}
+  \par\smallskip\noindent\emph{Definition.} The attainable values of \(F_1^{1,0}(T)\) among measurable hazard quadruples bounded by \(c\) that obey component splicing and reproduce \(\mathbf z\), constructed by the ceiling-indexed identified-set definition.
+  \item \(\mathcal M(\mathbf z)\) --- \texttt{compatible bounded-\allowbreak{}hazard model class}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} The class constructed in \(\mathrm{def{:}model\text{-}class}\).
+  \item \(\Delta\) --- \texttt{generic one-\allowbreak{}bin width}; \((0,T]\); \texttt{local design constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Length of a generic inspection bin.}
+  \item \(\tau\) --- \texttt{normalized one-\allowbreak{}bin length}; \((0,\infty)\); \texttt{local regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\tau:=L\Delta\).
+  \item \(\zeta\) --- \texttt{generic compatible two-\allowbreak{}arm one-\allowbreak{}bin observation}; \texttt{local observed law}
+  \par\smallskip\noindent\emph{Definition.} \(\zeta:=((p_1,q_1,s_1),(p_0,q_0,s_0))\).
+  \item \(C_a\) --- \texttt{factual total cumulative hazard in a generic bin}; \([0,2\tau]\); \texttt{derived observed quantity}
+  \par\smallskip\noindent\emph{Definition.} \(C_a:=-\log s_a\) for \(a\in\{0,1\}\).
+  \item \(b(C,\tau)\) --- \texttt{ceiling-\allowbreak{}active factual incidence boundary}; \([0,1]\); \texttt{compatibility boundary}
+  \par\smallskip\noindent\emph{Definition.} \(b(C,\tau):=0\) for \(C\le\tau\), and \(b(C,\tau):=e^{-\tau}\cosh(C-\tau)-e^{-C}\) for \(\tau<C\le2\tau\).
+  \item \(\mathbf c\) --- \texttt{normalized one-\allowbreak{}bin hazard quadruple}; \(L^{\infty}([0,\tau];[0,1]^4)\); \texttt{control}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf c:=(x,z,y,w):=(\lambda_1^1,\lambda_2^1,\lambda_2^0,\lambda_1^0)/L\) after rescaling time by \(L\).
+  \item \(\mathbf X_{\mathbf c}\) --- \texttt{one-\allowbreak{}bin survival-\allowbreak{}flow state}; \(\mathbf X_{\mathbf c}=(S_1,P_1,S_0,P_0,S,R)\); \texttt{control state}
+  \par\smallskip\noindent\emph{Definition.} The state starts at \((1,0,1,0,1,0)\) and solves \(S_1'=-(x+z)S_1\), \(P_1'=xS_1\), \(S_0'=-(w+y)S_0\), \(P_0'=wS_0\), \(S'=-(x+y)S\), and \(R'=xS\).
+  \item \(\mathcal A_{\zeta}\) --- \texttt{attainable hybrid incidence-\allowbreak{}survival set}; subsets of \([0,1]^2\); \texttt{identified-\allowbreak{}set kernel}
+  \par\smallskip\noindent\emph{Definition.} The set constructed in \(\mathrm{def{:}one\text{-}bin\text{-}attainable}\).
+  \item \(v\) --- \texttt{continuation value}; \([0,1]\); \texttt{support direction}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Conditional hybrid cause-\allowbreak{}1 risk after the current bin.}
+  \item \(H_{\zeta}\) --- \texttt{upper one-\allowbreak{}bin support envelope}; \(H_{\zeta}:[0,1]\to[0,1]\); \texttt{sharp upper local endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(H_{\zeta}(v):=\sup_{(r,s)\in\mathcal A_{\zeta}}(r+vs)\).
+  \item \(h_{\zeta}\) --- \texttt{lower one-\allowbreak{}bin support envelope}; \(h_{\zeta}:[0,1]\to[0,1]\); \texttt{sharp lower local endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(h_{\zeta}(v):=\inf_{(r,s)\in\mathcal A_{\zeta}}(r+vs)\).
+  \item \(B\) --- \texttt{universal common-\allowbreak{}piece bound}; \(\mathbb N\); \texttt{headline structural object}
+  \par\smallskip\noindent\emph{Definition.} Integer to be derived in \(\mathrm{oeq{:}universal\text{-}finite\text{-}switch}\), independent of \(L\), \(\Delta\), \(\zeta\), and \(v\).
+  \item \(E(g,\ell)\) --- \texttt{elementary exponential integral}; \([0,\infty)\); \texttt{finite-\allowbreak{}program primitive}
+  \par\smallskip\noindent\emph{Definition.} \(E(g,\ell):=(1-e^{-g\ell})/g\) for \(g>0\), with \(E(0,\ell):=\ell\).
+  \item \(\boldsymbol\theta\) --- \texttt{two-\allowbreak{}cycle switching-\allowbreak{}length vector}; \((0,1)^8\); \texttt{early-\allowbreak{}kill parameter}
+  \par\smallskip\noindent\emph{Definition.} The eight positive durations of the repeated \((x,y)\)-corner word \((0,0),(1,0),(1,1),(0,1),(0,0),(1,0),(1,1),(0,1)\) with \(z=w=1\) on the normalized unit bin.
+  \item \(\boldsymbol\theta_\star\) --- \texttt{reference two-\allowbreak{}cycle schedule}; \((0,1)^8\); \texttt{positive-\allowbreak{}cell early-\allowbreak{}kill witness}
+  \par\smallskip\noindent\emph{Definition.} \(\boldsymbol\theta_\star:=(1/8,\ldots,1/8)\).
+  \item \(s_\star\) --- \texttt{reference factual end-\allowbreak{}survival}; \((0,1)\); \texttt{early-\allowbreak{}kill observed probability}
+  \par\smallskip\noindent\emph{Definition.} \(s_\star:=e^{-3/2}\).
+  \item \(p_{1\star}\) --- \texttt{reference arm-\allowbreak{}1 cause-\allowbreak{}1 probability}; \((0,1)\); \texttt{early-\allowbreak{}kill observed probability}
+  \par\smallskip\noindent\emph{Definition.} \(p_{1\star}:=\frac{1-e^{-1/4}}{2}(e^{-1/8}+e^{-3/8}+e^{-7/8}+e^{-9/8})\).
+  \item \(p_{0\star}\) --- \texttt{reference arm-\allowbreak{}0 cause-\allowbreak{}1 probability}; \((0,1)\); \texttt{early-\allowbreak{}kill observed probability}
+  \par\smallskip\noindent\emph{Definition.} \(p_{0\star}:=(1-e^{-1/8})(1+e^{-1/8}+e^{-3/4}+e^{-7/8})+\frac{1-e^{-1/4}}{2}(e^{-1/4}+e^{-1/2}+e^{-1}+e^{-5/4})\).
+  \item \(q_{a\star}\) --- \texttt{reference cause-\allowbreak{}2 probabilities}; \((0,1)\); \texttt{early-\allowbreak{}kill observed probability}
+  \par\smallskip\noindent\emph{Definition.} The remaining factual probability in arm \(a\) for the early-kill observation.
+  \item \(\zeta_\star\) --- \texttt{positive-\allowbreak{}cell two-\allowbreak{}cycle observation}; \texttt{early-\allowbreak{}kill observed law}
+  \par\smallskip\noindent\emph{Definition.} \(\zeta_\star:=((p_{1\star},q_{1\star},s_\star),(p_{0\star},q_{0\star},s_\star))\), the factual law induced by \(\boldsymbol\theta_\star\) with \(z=w=1\); all six cells are strictly positive.
+  \item \(\Phi(\boldsymbol\theta)\) --- \texttt{unit-\allowbreak{}length and four-\allowbreak{}endpoint residual}; \(\mathbb R^5\); \texttt{early-\allowbreak{}kill constraint map}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi(\boldsymbol\theta):=(\sum_{i=1}^8\theta_i-1,P_1(1)-p_{1\star},S_1(1)-s_\star,P_0(1)-p_{0\star},S_0(1)-s_\star)\) under the two-cycle word with \(z=w=1\).
+  \item \(\mathcal T_\star\) --- \texttt{feasible two-\allowbreak{}cycle switching set}; \texttt{early-\allowbreak{}kill feasible set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T_\star:=\{\boldsymbol\theta\in(0,1)^8:\Phi(\boldsymbol\theta)=0\}\).
+  \item \(\mathcal G_0(\boldsymbol\theta)\) --- \texttt{zero-\allowbreak{}continuation hybrid support objective}; \([0,1]\); \texttt{early-\allowbreak{}kill objective}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_0(\boldsymbol\theta):=R(1)\) for the two-cycle word, corresponding to continuation value \(v=0\).
+  \item \(\boldsymbol\mu\) --- \texttt{normal endpoint multiplier}; \(\mathbb R^5\); \texttt{early-\allowbreak{}kill multiplier}
+  \par\smallskip\noindent\emph{Definition.} Multiplier for the unit-length equation and four factual endpoint equations \(\Phi(\boldsymbol\theta)=0\).
+  \item \(\mathscr Q(\boldsymbol\theta,\boldsymbol\mu)\) --- \texttt{constrained Lagrangian Hessian}; \texttt{early-\allowbreak{}kill sign predicate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr Q(\boldsymbol\theta,\boldsymbol\mu):=\left.\nabla_{\boldsymbol\theta}^2[\mathcal G_0(\boldsymbol\theta)-\boldsymbol\mu^{\mathsf T}\Phi(\boldsymbol\theta)]\right|_{\ker D\Phi(\boldsymbol\theta)}\).
+  \item \(\vartheta_B\) --- \texttt{finite common-\allowbreak{}piece parameter vector}; \texttt{computational parameter}
+  \par\smallskip\noindent\emph{Definition.} The interval lengths and four hazard levels constructed in \(\mathrm{def{:}finite\text{-}piece\text{-}program}\).
+  \item \(U_k\) --- \texttt{upper suffix endpoint}; \([0,1]\); \texttt{global upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} Upper sharp conditional risk from bin \(k\) onward, constructed in \(\mathrm{def{:}global\text{-}endpoints}\).
+  \item \(D_k\) --- \texttt{lower suffix endpoint}; \([0,1]\); \texttt{global lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} Lower sharp conditional risk from bin \(k\) onward, constructed in \(\mathrm{def{:}global\text{-}endpoints}\).
+  \item \(W(\mathbf z)\) --- \texttt{identification width}; \([0,1]\); \texttt{mesh-\allowbreak{}loss functional}
+  \par\smallskip\noindent\emph{Definition.} \(W(\mathbf z):=U_1-D_1\).
+  \item \(M\) --- \texttt{bounded cumulative-\allowbreak{}intensity radius}; \((0,\infty)\); \texttt{uniformity constant}
+  \par\smallskip\noindent\emph{Definition.} Fixed constant defining the regime \(LT\le M\).
+  \item \(n\) --- \texttt{sample size}; \(\mathbb N\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independently sampled subjects.}
+  \item \(\alpha\) --- \texttt{miscoverage level}; \((0,1)\); \texttt{inference constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nominal error probability.}
+  \item \(m\) --- \texttt{number of unconditional multinomial cells}; \(\mathbb N\); \texttt{sampling dimension}
+  \par\smallskip\noindent\emph{Definition.} \(m:=2(2K+1)\).
+  \item \(\pi\) --- \texttt{unconditional observed-\allowbreak{}cell probability vector}; the \(m\)-category probability simplex with arm masses \(1/2\); \texttt{population observed law}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Joint probabilities of treatment and the grouped first-\allowbreak{}event outcome.}
+  \item \(\widehat\pi\) --- \texttt{empirical observed-\allowbreak{}cell frequency vector}; the \(m\)-category probability simplex; \texttt{estimator input}
+  \par\smallskip\noindent\emph{Definition.} Empirical frequencies calculated from \(O_1,\ldots,O_n\).
+  \item \(\epsilon_n\) --- \texttt{simultaneous multinomial radius}; \((0,1]\); \texttt{confidence radius}
+  \par\smallskip\noindent\emph{Definition.} \(\epsilon_n:=\sqrt{\log(2m/\alpha)/(2n)}\).
+  \item \(\mathcal C_n\) --- \texttt{compatible simultaneous confidence region}; \texttt{inference input}
+  \par\smallskip\noindent\emph{Definition.} The region constructed in \(\mathrm{def{:}multinomial\text{-}region}\).
+  \item \(\mathrm{CI}_n\) --- \texttt{identified-\allowbreak{}set confidence interval}; closed intervals in \([0,1]\); \texttt{confidence set}
+  \par\smallskip\noindent\emph{Definition.} Outward projection of \(\mathcal C_n\) through the sharp endpoint map, constructed in \(\mathrm{def{:}confidence\text{-}interval}\).
+  \item \(\varepsilon_{\mathrm{num}}\) --- \texttt{certified numerical endpoint error}; \([0,\infty)\); \texttt{computational certificate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Deterministic outward error certificate for all inner and outer optimizations.}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:balanced-randomization]\label{ass:balanced-randomization}
+\(\Pr(A=1)=\Pr(A=0)=1/2\).
+\par\smallskip\noindent\emph{Standard} (Balanced baseline randomization, \cite{StensrudYoungDidelezRobinsHernan2022}).
+\end{assumption}
+
+\begin{assumption}[ass:measurable-hazards]\label{ass:measurable-hazards}
+Each \(\lambda_j^a\) is Lebesgue measurable on \([0,T]\).
+\par\smallskip\noindent\emph{Standard} (Measurable cause-specific intensity model, \cite{MartinussenStensrud2023}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-hazards]\label{ass:bounded-hazards}
+\(0\le\lambda_j^a(t)\le L\) for every \(a\in\{0,1\}\), \(j\in\{1,2\}\), and almost every \(t\in[0,T]\).
+\par\smallskip\noindent\emph{Novel.} The common numerical ceiling is a maintained identifying and sensitivity restriction, not a standard consequence of separable-effects theory. A valid value can be prespecified from an external exact-time registry or audited event-trigger system that supplies a scientifically certified envelope \(\lambda_j^a(t)\le L_{aj}(t)\) over the protocol window: take \(L:=\sup_{a,j,t}L_{aj}(t)\) and round upward. This route is realistic for endpoints monitored by an externally validated surveillance system with a documented maximum event intensity; when only a more conservative envelope is defensible, the analysis is repeated at \(\bar L\).
+\end{assumption}
+
+\begin{assumption}[ass:cause-one-splicing]\label{ass:cause-one-splicing}
+The cause-1 hazard under \((a_Y,a_D)\) equals \(\lambda_1^{a_Y}\).
+\par\smallskip\noindent\emph{Standard} (Cause-1 dismissible component restriction, \cite{MartinussenStensrud2023}).
+\end{assumption}
+
+\begin{assumption}[ass:cause-two-splicing]\label{ass:cause-two-splicing}
+The cause-2 hazard under \((a_Y,a_D)\) equals \(\lambda_2^{a_D}\).
+\par\smallskip\noindent\emph{Standard} (Cause-2 dismissible component restriction, \cite{MartinussenStensrud2023}).
+\end{assumption}
+
+\begin{assumption}[ass:grouped-first-event-observation]\label{ass:grouped-first-event-observation}
+\(O_i\) records no exact failure time or within-bin event order beyond the first-failure bin and adjudicated cause.
+\par\smallskip\noindent\emph{Standard} (Grouped competing-risk observation scheme, \cite{MaathuisHudgens2011}).
+\end{assumption}
+
+\begin{assumption}[ass:factual-law-reproduction]\label{ass:factual-law-reproduction}
+\(\mathbf z\) equals the conditional grouped first-event law induced by \((\lambda_j^a)_{a,j}\) under factual assignments \((a_Y,a_D)=(a,a)\).
+\par\smallskip\noindent\emph{Standard} (Consistency of grouped factual event probabilities, \cite{StensrudYoungDidelezRobinsHernan2022}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-subjects]\label{ass:iid-subjects}
+\(O_1,\ldots,O_n\) are independent and identically distributed with cell law \(\pi\).
+\par\smallskip\noindent\emph{Standard} (Independent multinomial sampling, \cite{ChafaiConcordet2009}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal M(\mathbf z)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M(\mathbf z):=\{(\lambda_j^a)_{a,j}:\lambda_j^a\text{ are measurable }[0,T]\to[0,L],\ S^{a_Y,a_D}(t)=e^{-\Lambda_1^{a_Y}(t)-\Lambda_2^{a_D}(t)},\text{ and the factual laws reproduce }\mathbf z\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}measurable-\allowbreak{}hazards}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}hazards}; \texttt{ass:\allowbreak{}cause-\allowbreak{}one-\allowbreak{}splicing}; \texttt{ass:\allowbreak{}cause-\allowbreak{}two-\allowbreak{}splicing}; \texttt{ass:\allowbreak{}factual-\allowbreak{}law-\allowbreak{}reproduction}.
+\end{definition}
+
+\begin{definition}[def:ceiling-indexed-identified-set]\label{def:ceiling-indexed-identified-set}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal I_c(\mathbf z)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_c(\mathbf z):=\{F_1^{1,0}(T):(\lambda_j^a)_{a,j}\text{ are measurable }[0,T]\to[0,c],\ S^{a_Y,a_D}(t)=e^{-\Lambda_1^{a_Y}(t)-\Lambda_2^{a_D}(t)},\text{ and the factual laws reproduce }\mathbf z\}\) for \(c\in\{L,\bar L\}\).
+\par\smallskip\noindent\emph{Inputs.} \(c\); \(\mathbf z\); \(F_1^{a_Y,a_D}(T)\).
+\end{definition}
+
+\begin{definition}[def:one-bin-attainable]\label{def:one-bin-attainable}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal A_{\zeta}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal A_{\zeta}:=\{(R(\tau),S(\tau)):\mathbf c\in L^{\infty}([0,\tau];[0,1]^4),\ (P_1(\tau),1-S_1(\tau)-P_1(\tau),S_1(\tau))=(p_1,q_1,s_1),\ (P_0(\tau),1-S_0(\tau)-P_0(\tau),S_0(\tau))=(p_0,q_0,s_0)\}\).
+\par\smallskip\noindent\emph{Inputs.} \(\zeta\); \(\tau\); \(\mathbf X_{\mathbf c}\).
+\end{definition}
+
+\begin{definition}[def:support-envelopes]\label{def:support-envelopes}
+\par\smallskip\noindent\emph{Defined object.} \((H_{\zeta},h_{\zeta})\)
+\par\smallskip\noindent\emph{Construction.} \(H_{\zeta}(v):=\sup_{(r,s)\in\mathcal A_{\zeta}}(r+vs)\) and \(h_{\zeta}(v):=\inf_{(r,s)\in\mathcal A_{\zeta}}(r+vs)\) for \(v\in[0,1]\).
+\par\smallskip\noindent\emph{Inputs.} \(\mathcal A_{\zeta}\); \(v\).
+\end{definition}
+
+\begin{definition}[def:finite-piece-program]\label{def:finite-piece-program}
+\par\smallskip\noindent\emph{Defined object.} \(\vartheta_B\)
+\par\smallskip\noindent\emph{Construction.} Choose \(\vartheta_B=((\ell_i)_{i=1}^B,(c_{ji}^a)_{a,j,i})\) with \(\ell_i\ge0\), \(\sum_i\ell_i=\Delta\), and \(c_{ji}^a\in[0,L]\). For any piecewise-constant pair \((g_i,d_i)\), set \(V_0=1\), \(V_i=V_{i-1}e^{-(g_i+d_i)\ell_i}\), \(P=\sum_iV_{i-1}g_iE(g_i+d_i,\ell_i)\), and \(Q=\sum_iV_{i-1}d_iE(g_i+d_i,\ell_i)\). Impose \((P_a,Q_a,V_a)=(p_a,q_a,s_a)\) for both factual arms and optimize \(R+vV\) after applying the same recursion to \((c_{1i}^1,c_{2i}^0)\).
+\par\smallskip\noindent\emph{Inputs.} \(B\); \(\Delta\); \(L\); \(E(g,\ell)\); \(\zeta\); \(v\).
+\end{definition}
+
+\begin{definition}[def:cycle-compression-handle]\label{def:cycle-compression-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{the endpoint-\allowbreak{}preserving cycle-\allowbreak{}compression handle}
+\par\smallskip\noindent\emph{Construction.} Use the fully specified normalized instance \(\zeta_\star\) at \(v=0\). Fix \(z=w=1\), parameterize the repeated corner word \((0,0),(1,0),(1,1),(0,1)\) by \(\boldsymbol\theta\), and evaluate \(\Phi\) and \(\mathcal G_0\) exactly by \(E(g,\ell)\). At every normal stationary point satisfying \(\nabla\mathcal G_0=D\Phi^{\mathsf T}\boldsymbol\mu\), compute \(\mathscr Q\). A compression certificate is a \(C^2\) curve \(\boldsymbol\theta(s)\) with \(\Phi(\boldsymbol\theta(s))=0\), \(\mathcal G_0'(0)=0\), \(\mathcal G_0''(0)>0\) for the upper problem, and a finite \(s_1\) at which one duration vanishes while \(\mathcal G_0(\boldsymbol\theta(s_1))\ge\mathcal G_0(\boldsymbol\theta(0))\); locally, \(\lambda_{\max}(\mathscr Q)>0\) is the exact improving-direction sign. An obstruction certificate is an interior \(\boldsymbol\theta\in\mathcal T_\star\) with \(\mathscr Q\preceq0\) and the exact strict separation \(\mathcal G_0(\boldsymbol\theta)=\max_{\boldsymbol\eta\in\overline{\mathcal T}_\star}\mathcal G_0(\boldsymbol\eta)>\max_{\boldsymbol\eta\in\partial\overline{\mathcal T}_\star}\mathcal G_0(\boldsymbol\eta)\); reverse the Hessian and objective inequalities for the lower problem. After this kill test, treat flat, single-control singular, abnormal, and boundary phases by endpoint-preserving pulse replacement and compact limiting arguments.
+\par\smallskip\noindent\emph{Inputs.} \(\zeta_\star\); \(\boldsymbol\theta\); \(\Phi(\boldsymbol\theta)\); \(\mathcal G_0(\boldsymbol\theta)\); \(\mathscr Q(\boldsymbol\theta,\boldsymbol\mu)\); \(E(g,\ell)\).
+\end{definition}
+
+\begin{definition}[def:global-endpoints]\label{def:global-endpoints}
+\par\smallskip\noindent\emph{Defined object.} \((D_k,U_k)_{k=1}^{K+1}\)
+\par\smallskip\noindent\emph{Construction.} Set \(U_{K+1}=D_{K+1}=0\) and evaluate backward by \(U_k:=H_{\mathbf z_k}(U_{k+1})\) and \(D_k:=h_{\mathbf z_k}(D_{k+1})\) for \(k=K,\ldots,1\).
+\par\smallskip\noindent\emph{Inputs.} \(K\); \(\mathbf z_k\); \(H_{\zeta}\); \(h_{\zeta}\).
+\end{definition}
+
+\begin{definition}[def:multinomial-region]\label{def:multinomial-region}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal C_n\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_n:=\{\pi':\pi'\text{ has arm masses }1/2,\ \|\pi'-\widehat\pi\|_{\infty}\le\epsilon_n,\text{ and its induced conditional bin triples satisfy the compatibility inequalities in }\mathrm{prop{:}exact\text{-}bin\text{-}compatibility}\}\).
+\par\smallskip\noindent\emph{Inputs.} \(\widehat\pi\); \(\epsilon_n\); \texttt{prop:\allowbreak{}exact-\allowbreak{}bin-\allowbreak{}compatibility}.
+\end{definition}
+
+\begin{definition}[def:confidence-interval]\label{def:confidence-interval}
+\par\smallskip\noindent\emph{Defined object.} \(\mathrm{CI}_n\)
+\par\smallskip\noindent\emph{Construction.} If \(\mathcal C_n\neq\varnothing\), set \(\mathrm{CI}_n:=[\inf_{\pi'\in\mathcal C_n}D_1(\pi')-\varepsilon_{\mathrm{num}},\ \sup_{\pi'\in\mathcal C_n}U_1(\pi')+\varepsilon_{\mathrm{num}}]\cap[0,1]\); if \(\mathcal C_n=\varnothing\), set \(\mathrm{CI}_n:=[0,1]\).
+\par\smallskip\noindent\emph{Inputs.} \(\mathcal C_n\); \(D_k\); \(U_k\); \(\varepsilon_{\mathrm{num}}\).
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:exact-bin-compatibility]\label{prop:exact-bin-compatibility}
+A factual triple \((p,q,s)\) on a normalized bin of length \(\tau\) is generated by two measurable hazards in \([0,1]\) if and only if \(p,q,s\ge0\), \(p+q+s=1\), \(0<-\log s\le2\tau\), and \(b(-\log s,\tau)\le p\le1-s-b(-\log s,\tau)\), with the zero-total-hazard boundary included by \(s=1\) and \(p=q=0\). Every endpoint and every intermediate feasible \(p\) is attained by a finite pulse schedule.
+\end{proposition}
+\begin{proof}
+Work on the normalized interval \([0,\tau]\), as permitted by \(\mathrm{ass{:}bounded\text{-}hazards}\).  For a candidate factual pair write
+\[
+ X(t):=\int_0^t x(u)\,du,\quad\quad Z(t):=\int_0^t z(u)\,du,
+ \quad\quad X:=X(\tau),\quad Z:=Z(\tau),\quad C:=X+Z.
+\]
+The factual survival-flow equations in \(\mathbf X_{\mathbf c}\) and \(\mathrm{ass{:}factual\text{-}law\text{-}reproduction}\) give
+\[
+ s=e^{-C},\quad\quad
+ p=\int_0^\tau e^{-X(t)-Z(t)}x(t)\,dt
+   =\int_{[0,\tau]}e^{-Z(t)}\,d(1-e^{-X(t)}),
+ \quad\quad q=1-s-p.                                           \tag{1}
+\]
+Because \(0\le x,z\le1\), one has \(0\le X,Z\le\tau\), hence \(0\le C\le2\tau\), and boundedness gives \(s\ge e^{-2\tau}>0\).  If \(C=0\), nonnegativity forces \(x=z=0\) almost everywhere, and (1) gives the stated boundary \((p,q,s)=(0,0,1)\).  Henceforth suppose \(C>0\).
+
+Fix the endpoint totals \(X,Z\), and put \(d:=(C-\tau)_+\).  The rate constraints imply, pointwise,
+\[
+ \max\{0,t-(\tau-X)\}\le X(t)\le\min\{t,X\},
+ \quad\quad
+ \max\{0,t-(\tau-Z)\}\le Z(t)\le\min\{t,Z\}.             \tag{2}
+\]
+For fixed \(Z(\cdot)\), integration by parts in (1) gives
+\[
+ p=e^{-Z}(1-e^{-X})+
+   \int_0^\tau (1-e^{-X(t)})e^{-Z(t)}z(t)\,dt,              \tag{3}
+\]
+so increasing \(X(t)\) pointwise, at fixed \(X\), cannot decrease \(p\).  For fixed \(X(\cdot)\), the first integral in (1) shows directly that decreasing \(Z(t)\) pointwise, at fixed \(Z\), cannot decrease \(p\).  Thus (2) proves, by the earliest--latest pulse rearrangement,
+\[
+ p_{\min}(X,Z)=e^{-Z}\cosh(d)-e^{-C},
+ \quad\quad
+ p_{\max}(X,Z)=1-e^{-X}\cosh(d).                           \tag{4}
+\]
+For example, the maximum uses \(x=1\) on \([0,X]\) and \(z=1\) on \([\tau-Z,\tau]\); their overlap has length \(d\).  Integrating first over the nonoverlap and then over the overlap gives the second formula in (4).  Reversing the two pulses gives the first formula.  This also proves (4) when \(d=0\).
+
+The admissible total \(X\) ranges over
+\[
+ (C-\tau)_+\le X\le\min\{C,\tau\},\quad\quad Z=C-X.           \tag{5}
+\]
+Both quantities in (4) are increasing in \(X\).  If \(C\le\tau\), optimizing (4) over (5) gives \(0\le p\le1-e^{-C}\).  If \(\tau<C\le2\tau\), it gives
+\[
+ e^{-\tau}\cosh(C-\tau)-e^{-C}
+ \le p\le
+ 1-e^{-\tau}\cosh(C-\tau).
+\]
+Since \(s=e^{-C}\), the left endpoint is \(b(C,\tau)\) and the right endpoint is \(1-s-b(C,\tau)\).  This proves necessity, including nonnegativity and the adding-up equality required by \(\mathrm{ass{:}grouped\text{-}first\text{-}event\text{-}observation}\).
+
+It remains to prove sufficiency and exact attainment.  When \(0<C\le\tau\), use one active interval of length \(C\) and set \((x,z)=(\gamma,1-\gamma)\) there and \((0,0)\) elsewhere.  Then the total hazard is one on the active interval and
+\[
+ s=e^{-C},\quad\quad p=\gamma(1-e^{-C}),\quad\quad 0\le\gamma\le1,
+\]
+which attains the whole required interval.  When \(\tau<C\le2\tau\), put \(d=C-\tau\), set \((x,z)=(\gamma,1-\gamma)\) on \([0,\tau-d)\), and set \((x,z)=(1,1)\) on \([\tau-d,\tau]\).  Then
+\[
+ p=\gamma(1-e^{-(\tau-d)})
+   +\frac12e^{-(\tau-d)}(1-e^{-2d}),                       \tag{6}
+\]
+while the total cumulative hazard is \(C\).  At \(\gamma=0\), (6) equals \(b(C,\tau)\); at \(\gamma=1\), it equals \(1-e^{-C}-b(C,\tau)\), and it is affine in \(\gamma\).  Thus every intermediate \(p\) is attained.  All constructions are finite piecewise-constant pulse schedules and their remaining probability is \(q=1-p-s\).  This proves the equivalence and every boundary assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition separates empirical compatibility from the causal frontier and makes boundary observations admissible rather than silently imposing positive cells. \textit{Gap.} Kim2023CompetingRisks encodes discrete latent-risk restrictions by nonlinear inequalities, whereas this result gives the exact ceiling-sensitive image of a two-hazard continuous-time factual flow in one inspection bin. \textit{Consumer.} The compatibility inequalities define the feasible population laws searched by every endpoint program and by the simultaneous confidence inversion.
+
+\begin{theorem}[thm:attainment-and-interval]\label{thm:attainment-and-interval}
+For every compatible \(\zeta\), the set \(\mathcal A_{\zeta}\) is compact, \(H_{\zeta}(v)\) and \(h_{\zeta}(v)\) are attained for every \(v\in[0,1]\), and the image of the compatible one-bin hazard space under \((r,s)\mapsto r+vs\) is the full interval \([h_{\zeta}(v),H_{\zeta}(v)]\). The same connected survival-flow construction gives interval sharpness after concatenating bins.
+\end{theorem}
+\begin{proof}
+Fix a compatible \(\zeta\).  We use survival-flow coordinates, not randomization over causal models.  For one factual arm with endpoint triple \((p,q,s)\), let \(\mathcal F(p,q)\) consist of pairs \((f_1,f_2)\in L^\infty([0,\tau];[0,1]^2)\) for which
+\[
+ V(t):=1-\int_0^t(f_1(u)+f_2(u))\,du,\quad\quad
+ 0\le f_j(t)\le V(t)\ \text{a.e.},\quad\quad
+ \int_0^\tau f_1=p,quad \int_0^\tau f_2=q.               \tag{7}
+\]
+This set is nonempty by \(\mathrm{prop{:}exact\text{-}bin\text{-}compatibility}\).  It is convex because every condition in (7) is affine except for inequalities that are preserved under convex combinations.  Moreover, \(V'=-(f_1+f_2)\ge-2V\) almost everywhere, so
+\[
+ (e^{2t}V(t))'\ge0,\quad\quad e^{-2\tau}\le V(t)\le1.          \tag{8}
+\]
+Consequently the hazards \(c_j:=f_j/V\) are measurable and lie in \([0,1]\), and \(V'=-(c_1+c_2)V\).  Conversely, a measurable factual hazard pair gives (7) by setting \(f_j=c_jV\).  Thus (7) is exactly, rather than a relaxation of, the factual hazard model.
+
+We next prove the needed compactness directly.  Let \((f_{1n},f_{2n})\) be a sequence in \(\mathcal F(p,q)\), and write \(F_{jn}(t)=\int_0^t f_{jn}\).  These primitives take values in \([0,\tau]\) and are one-Lipschitz.  Successive subsequence selection on a countable dense subset of \([0,\tau]\), followed by the common Lipschitz bound, produces a subsequence for which both primitives converge uniformly to one-Lipschitz, absolutely continuous functions \(F_j\).  Put \(f_j=F_j'\) at their almost-everywhere differentiability points.  Then \(0\le f_j\le1\).  Uniform convergence of the primitives gives convergence of integrals against interval indicators; approximation of an arbitrary \(g\in L^1\) by interval-step functions and the uniform bound \(|f_{jn}|\le1\) therefore gives
+\[
+ \int_0^\tau g f_{jn}\longrightarrow\int_0^\tau g f_j.   \tag{9}
+\]
+Thus this is weak-star convergence, proved here in the only form needed.  If \(V_n=1-F_{1n}-F_{2n}\), then \(V_n\to V:=1-F_1-F_2\) uniformly.  The inequalities in (7) pass to the limit: for every nonnegative \(g\in L^1\),
+\[
+ \int g(f_j-V)=\lim_n\int g(f_{jn}-V_n)\le0,
+\]
+so \(f_j\le V\) almost everywhere; nonnegativity is identical.  The endpoint integrals also pass to the limit.  Hence the limit belongs to \(\mathcal F(p,q)\), and (8) holds for it.
+
+Apply this construction simultaneously to the two factual arms.  In arm 1 write \(x_n=f_{11,n}/V_{1n}\), and in arm 0 write \(y_n=f_{02,n}/V_{0n}\), where the second subscript denotes cause 2.  Uniform convergence of \(V_{an}\), (8), and (9) imply, for every \(g\in L^1\),
+\[
+ \int g(x_n-x)
+ =\int g f_{11,n}(V_{1n}^{-1}-V_1^{-1})
+   +\int \frac{g}{V_1}(f_{11,n}-f_{11})\longrightarrow0,   \tag{10}
+\]
+and similarly \(y_n\to y\) weak-star.  The primitives of \(x_n\) and \(y_n\) converge pointwise by (10) and uniformly by their common one-Lipschitz bounds.  Therefore the hybrid survivals
+\[
+ S_n(t)=\exp\!\left\{-\int_0^t(x_n(u)+y_n(u))\,du\right\}
+\]
+converge uniformly to \(S\).  Finally,
+\[
+ \left|\int x_nS_n-\int xS\right|
+ \le \int|S_n-S|+\left|\int S(x_n-x)\right|\longrightarrow0,  \tag{11}
+\]
+where the last term uses (10) with the bounded continuous, hence integrable, function \(S\).  Equations (10)--(11) also give \(S_n(\tau)\to S(\tau)\).  Thus every sequence in \(\mathcal A_\zeta\) has a convergent subsequence whose limit remains in \(\mathcal A_\zeta\).  Since \(\mathcal A_\zeta\subset[0,1]^2\), it is compact.  The continuous functional \((r,s)\mapsto r+vs\) therefore attains both \(H_\zeta(v)\) and \(h_\zeta(v)\).
+
+For interval sharpness, take any two compatible pairs of factual flows and interpolate each of the four flows linearly.  Convexity of (7) preserves both factual endpoint triples.  Bound (8) and the quotient calculation (10), now with the interpolation parameter in place of \(n\), show that the resulting hazards, hybrid survival, and hybrid incidence vary continuously.  Hence the compatible hazard space is path connected in survival-flow coordinates, and its continuous scalar image \(r+vs\) is connected.  A compact connected subset of \(\mathbb R\) containing its attained minimum and maximum is exactly \([h_\zeta(v),H_\zeta(v)]\).
+
+For finitely many bins, take the finite Cartesian product of the binwise flow spaces and concatenate the resulting hazards.  This product is path connected, factual endpoint constraints remain binwise, and the terminal hybrid risk is a continuous function of the bin pairs, namely \(\sum_k r_k\prod_{\ell<k}s_\ell\).  Its image is therefore again the full interval between its attained endpoints.  This proves the final assertion without convexifying \(\mathcal A_\zeta\) and without introducing latent independence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Sharp partial identification requires actual compatible hazard models at both endpoints and every intermediate value, not a convex-hull relaxation. \textit{Gap.} LasserreHenrionPrieurTrelat2008 proves compact occupation-measure optimization and weak-control bounds under general conditions, but it does not establish connectedness or ordinary-hazard interval sharpness for these coupled factual and hybrid flows. \textit{Consumer.} This result validates reporting a single sharp interval for the component risk and supplies endpoint existence for the switching question.
+
+\begin{openendedquestion}[oeq:universal-finite-switch]\label{oeq:universal-finite-switch}
+Does there exist a universal finite integer \(B\), independent of \(L\), \(\Delta\), compatible \(\zeta\), and \(v\in[0,1]\), such that both \(H_{\zeta}(v)\) and \(h_{\zeta}(v)\) are attained by a compatible hazard quadruple constant on at most \(B\) common subintervals? Establish the answer constructively: if affirmative, derive an explicit valid \(B\), prove equality with the finite optimization over \(\vartheta_B\), and characterize the optimizing incidence-survival tradeoff across normal, flat, singular, abnormal, and boundary regimes; if negative, construct a compatible family for which every exact optimizer has unbounded switching complexity. The mandatory early-kill instance is the positive-cell law \(\zeta_\star\) on the normalized unit bin at \(v=0\): within the \(z=w=1\) phase, analyze two complete repetitions of \((x,y)=(0,0),(1,0),(1,1),(0,1)\) under \(\Phi(\boldsymbol\theta)=0\). For the upper problem, \(\lambda_{\max}(\mathscr Q)>0\) is the constrained-Hessian sign for an improving local exchange, while an exact obstruction requires \(\mathscr Q\preceq0\) together with \(\max_{\overline{\mathcal T}_\star}\mathcal G_0>\max_{\partial\overline{\mathcal T}_\star}\mathcal G_0\); the lower problem uses the reversed signs.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: it decides whether the exact active-ceiling sharp frontier is a fixed-dimensional elementary program, and the specified two-cycle Hessian test can kill an invalid compression claim before mesh or inference work obscures the obstruction. \textit{Gap.} Kim2023CompetingRisks supplies sequential nonlinear programs for a different discrete latent-duration model, while LasserreHenrionPrieurTrelat2008 supplies only convergent measure relaxations and ZhuTrelatCerf2016 shows that generic smooth control problems may chatter; none resolves endpoint-preserving finite compression for the hazard-spliced frontier. \textit{Consumer.} A positive result makes exact ceiling-indexed grouped-data separable-effect bounds auditable for monthly competing-event analyses such as the SPRINT kidney-injury example in StensrudHernanTchetgenRobinsDidelezYoung2021; a certified two-cycle obstruction identifies the precise complexity barrier and forces a pivot rather than a gridded surrogate.
+
+\begin{theorem}[thm:global-sharp-recursion]\label{thm:global-sharp-recursion}
+For every compatible full grouped law \(\mathbf z\), the sharp identified set of \(\psi\) is exactly \([D_1,U_1]\), where \((D_k,U_k)\) is the backward recursion in \(\mathrm{def{:}global\text{-}endpoints}\). Binwise endpoint paths can be concatenated into one full quadruple in \(\mathcal M(\mathbf z)\), so the recursion is globally attainable and not merely an outer bound. The sharp identified set of \(\operatorname{SDE}\) is \([D_1-F_1^0(T),U_1-F_1^0(T)]\).
+\end{theorem}
+\begin{proof}
+First make the observed-law map explicit.  For a hazard quadruple and arm \(a\), conditional on factual survival to \(t_{k-1}\),
+\[
+\begin{aligned}
+ p_{ak}&=\int_{t_{k-1}}^{t_k}
+ \exp\!\left\{-\int_{t_{k-1}}^t(\lambda_1^a+\lambda_2^a)(u)\,du\right\}
+ \lambda_1^a(t)\,dt,\\
+ q_{ak}&=\int_{t_{k-1}}^{t_k}
+ \exp\!\left\{-\int_{t_{k-1}}^t(\lambda_1^a+\lambda_2^a)(u)\,du\right\}
+ \lambda_2^a(t)\,dt,\\
+ s_{ak}&=\exp\!\left\{-\int_{t_{k-1}}^{t_k}(\lambda_1^a+\lambda_2^a)(u)\,du\right\}.
+\end{aligned}                                                     \tag{14}
+\]
+Assumption \(\mathrm{ass{:}balanced\text{-}randomization}\) gives positive arm mass \(1/2\), so these conditional laws are determined by the \(m=2(2K+1)\) observable probabilities.  Assumptions \(\mathrm{ass{:}measurable\text{-}hazards}\) and \(\mathrm{ass{:}bounded\text{-}hazards}\) give \(s_{ak}\ge e^{-2L\Delta_k}>0\), making every conditioning and division in (14) valid.  Thus, under the two splicing assumptions and factual-law reproduction, the identified set is the causal set
+\[
+ \Theta_I(\psi;\mathbf z)
+ :=\left\{F_1^{1,0}(T):(\lambda_j^a)_{a,j}\in\mathcal M(\mathbf z)\right\},  \tag{15}
+\]
+not an interval introduced by definition.
+
+For a bin entered with hybrid survival one, let \((r,s)\in\mathcal A_{\mathbf z_k}\) be its hybrid cause-1 incidence and exit survival.  If \(w\in[0,1]\) is a conditional cause-1 risk generated by a compatible suffix, concatenation and the survival-flow equations give the conditional total risk
+\[
+ r+s w.                                                        \tag{16}
+\]
+Controls on disjoint bins may be selected independently because the maintained hazards are only required to be measurable and bounded and (14) imposes the factual constraints separately within each conditional bin.  Hence, if \(\mathcal J_k\) denotes the attainable conditional risks from bin \(k\) onward,
+\[
+ \mathcal J_k=\{r+s w:(r,s)\in\mathcal A_{\mathbf z_k},\ w\in\mathcal J_{k+1}\},
+ \quad\quad \mathcal J_{K+1}=\{0\}.                              \tag{17}
+\]
+By \(\mathrm{thm{:}attainment\text{-}and\text{-}interval}\), every set in (17) is compact and its full finite-bin image is an interval.  Suppose inductively that \(\mathcal J_{k+1}=[D_{k+1},U_{k+1}]\).  Since every hybrid exit survival satisfies \(s>0\), (16) is nondecreasing in \(w\), and therefore
+\[
+ \max\mathcal J_k
+ =\max_{(r,s)\in\mathcal A_{\mathbf z_k}}(r+sU_{k+1})
+ =H_{\mathbf z_k}(U_{k+1})=U_k,
+\]
+and, identically,
+\[
+ \min\mathcal J_k
+ =\min_{(r,s)\in\mathcal A_{\mathbf z_k}}(r+sD_{k+1})
+ =h_{\mathbf z_k}(D_{k+1})=D_k.                              \tag{18}
+\]
+Backward induction proves \(\mathcal J_1=[D_1,U_1]\).
+
+Endpoint attainment in (18) is global.  Choose each bin's endpoint hazard quadruple supplied by \(\mathrm{thm{:}attainment\text{-}and\text{-}interval}\), undo the time normalization, and concatenate its four components on the fixed intervals \([t_{k-1},t_k]\).  A finite concatenation of measurable \([0,L]\)-valued functions is measurable and \([0,L]\)-valued.  Equation (14) shows that it reproduces every factual conditional triple, while \(\mathrm{ass{:}cause\text{-}one\text{-}splicing}\) and \(\mathrm{ass{:}cause\text{-}two\text{-}splicing}\) show that the hybrid path is made from those same selected components.  Thus the concatenation lies in \(\mathcal M(\mathbf z)\), proving from (15), rather than assuming, that
+\[
+ \Theta_I(\psi;\mathbf z)=[D_1,U_1].                         \tag{19}
+\]
+
+Finally, factual arm-0 cause-1 risk is observed:
+\[
+ F_1^0(T)=\sum_{k=1}^K p_{0k}\prod_{\ell<k}s_{0\ell}.        \tag{20}
+\]
+It is therefore constant over \(\mathcal M(\mathbf z)\).  Subtracting (20) pointwise from (19) proves that the sharp identified set of \(\operatorname{SDE}\) is \([D_1-F_1^0(T),U_1-F_1^0(T)]\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The scalar continuation value is what turns one-bin support geometry into the full-study sharp identified set. \textit{Gap.} StensrudHernanTchetgenRobinsDidelezYoung2021 uses a resolved within-period temporal order in its identifying g-formula, whereas this theorem composes all compatible within-bin continuous-time orders without selecting one. \textit{Consumer.} The recursion gives the population benchmark needed to quantify how much monthly inspection alone can change the reported kidney-component risk.
+
+\begin{proposition}[prop:ceiling-sensitivity-monotonicity]\label{prop:ceiling-sensitivity-monotonicity}
+For every \(\bar L\ge L\) and every \(\mathbf z\) compatible under ceiling \(L\), \(\mathcal I_L(\mathbf z)\subseteq\mathcal I_{\bar L}(\mathbf z)\) and \[\inf\mathcal I_{\bar L}(\mathbf z)\le D_1=\inf\mathcal I_L(\mathbf z)\le U_1=\sup\mathcal I_L(\mathbf z)\le\sup\mathcal I_{\bar L}(\mathbf z).\] Therefore \(U_1-D_1\le\sup\mathcal I_{\bar L}(\mathbf z)-\inf\mathcal I_{\bar L}(\mathbf z)\). The same nesting holds for the separable-direct-effect sets after subtracting the factual quantity \(F_1^0(T)\).
+\end{proposition}
+\begin{proof}
+Let \(\bar L\ge L\), and fix a law \(\mathbf z\) compatible under ceiling \(L\).  Every measurable hazard quadruple taking values in \([0,L]^4\) also takes values in \([0,\bar L]^4\).  The splicing equations and factual law are unchanged when the admissible ceiling is enlarged.  The definition \(\mathrm{def{:}ceiling\text{-}indexed\text{-}identified\text{-}set}\) therefore gives the set inclusion
+\[
+ \mathcal I_L(\mathbf z)\subseteq\mathcal I_{\bar L}(\mathbf z).  \tag{21}
+\]
+Both sets are nonempty because the smaller one is nonempty.  Taking infima and suprema in (21), and using \(\mathrm{thm{:}global\text{-}sharp\text{-}recursion}\) at ceiling \(L\), yields
+\[
+ \inf\mathcal I_{\bar L}(\mathbf z)
+ \le \inf\mathcal I_L(\mathbf z)=D_1
+ \le U_1=\sup\mathcal I_L(\mathbf z)
+ \le \sup\mathcal I_{\bar L}(\mathbf z).                  \tag{22}
+\]
+Subtracting the first term in (22) from the last and comparing the middle difference gives the claimed width inequality.  By (20) in \(\mathrm{thm{:}global\text{-}sharp\text{-}recursion}\), \(F_1^0(T)\) is a fixed observable functional of \(\mathbf z\).  Translation of both sets in (21) by this same number preserves inclusion and widths, proving the separable-direct-effect assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The ceiling determines the feasible hazard class, so nesting under a conservative larger ceiling is the minimum transparent sensitivity guarantee. \textit{Gap.} MartinussenStensrud2023 uses resolved hazards to identify the cross-arm integral, but it does not compare sharp grouped-data endpoints across alternative numerical intensity ceilings. \textit{Consumer.} Analysts can report the primary interval at an externally calibrated ceiling and a conservative interval at \(\bar L\), with guaranteed nesting rather than an informal robustness comparison.
+
+\begin{theorem}[thm:matched-mesh-width]\label{thm:matched-mesh-width}
+For every fixed \(M>0\), there exist constants \(0<c_M\le C_M<\infty\), depending only on \(M\), such that whenever \(LT\le M\) and \(L\max_k\Delta_k\le1\), \[c_ML^2\sum_{k=1}^K\Delta_k^2\le\sup_{\mathbf z:\mathcal M(\mathbf z)\ne\varnothing}W(\mathbf z)\le C_ML^2\sum_{k=1}^K\Delta_k^2.\] The lower bound is attained in order by compatible positive-cell pulse laws, and the upper bound holds over all measurable compatible hazard quadruples.
+\end{theorem}
+\begin{proof}
+Put \(d_k:=L\Delta_k\).  We first derive a uniform one-bin modulus.  On bin \(k\), for any compatible model define
+\[
+ X:=\int_{t_{k-1}}^{t_k}\lambda_1^1(t)\,dt,
+ \quad\quad Y:=\int_{t_{k-1}}^{t_k}\lambda_2^0(t)\,dt,
+\]
+and let \(p_1,q_0\) be the corresponding factual conditional incidences.  From the factual and hybrid survival equations, nonnegativity, and the ceiling,
+\[
+\begin{aligned}
+ 0\le X-p_1
+ &=\int_{t_{k-1}}^{t_k}\lambda_1^1(t)(1-S_1(t))\,dt
+ \le\int_0^{\Delta_k}L(2Lu)\,du=d_k^2,\\
+ 0\le Y-q_0&\le d_k^2.
+\end{aligned}                                                \tag{23}
+\]
+Here the binwise survivals start at one and \(1-e^{-a}\le a\) gives \(1-S_a(t_{k-1}+u)\le2Lu\).  Thus two compatible models reproducing the same triple obey \(|X-X'|\le d_k^2\) and \(|Y-Y'|\le d_k^2\).  If \((r,s)\) and \((r',s')\) are their hybrid pairs, the same calculation gives \(0\le X-r\le d_k^2\), while \(s=e^{-X-Y}\).  Since \(u\mapsto e^{-u}\) is one-Lipschitz on \([0,\infty)\),
+\[
+ |r-r'|\le2d_k^2,\quad\quad |s-s'|\le2d_k^2.                    \tag{24}
+\]
+Consequently, uniformly for \(v\in[0,1]\),
+\[
+ H_{\mathbf z_k}(v)-h_{\mathbf z_k}(v)\le4d_k^2.           \tag{25}
+\]
+
+Every affine function defining either envelope has slope \(s\in[0,1]\).  Directly from the supremum and infimum definitions, both \(H_{\mathbf z_k}\) and \(h_{\mathbf z_k}\) are nondecreasing and one-Lipschitz.  Since \(U_{k+1}\ge D_{k+1}\), (25) and the recursion give
+\[
+\begin{aligned}
+ U_k-D_k
+ &=H_{\mathbf z_k}(U_{k+1})-h_{\mathbf z_k}(D_{k+1})\\
+ &\le \{H_{\mathbf z_k}(U_{k+1})-h_{\mathbf z_k}(U_{k+1})\}
+      +U_{k+1}-D_{k+1}\\
+ &\le4d_k^2+U_{k+1}-D_{k+1}.
+\end{aligned}
+\]
+Backward summation yields
+\[
+ \sup_{\mathbf z:\mathcal M(\mathbf z)\ne\varnothing}W(\mathbf z)
+ \le4L^2\sum_{k=1}^K\Delta_k^2.                            \tag{26}
+\]
+
+For the matching lower bound, assume \(0<d_k\le1\) and define
+\[
+ \rho_k=e^{-d_k/2},\quad\quad t_k=\frac{1-\rho_k}{2},\quad\quad
+ u_k=-\log(1-t_k),\quad\quad m_k=\log\frac{1-t_k}{\rho_k}.     \tag{27}
+\]
+Then \(u_k,m_k>0\) and \(2(u_k+m_k)=d_k\).  Use the same compatible factual triple \((t_k,t_k,\rho_k)\) in both arms.  In normalized time, the upper schedule consists successively of a \(z\)-pulse of length \(u_k\), an \(x\)-pulse of length \(m_k\), a \(y\)-pulse of length \(u_k\), and a \(w\)-pulse of length \(m_k\).  The lower schedule uses successively a \(w\)-pulse of length \(u_k\), a \(y\)-pulse of length \(m_k\), an \(x\)-pulse of length \(u_k\), and a \(z\)-pulse of length \(m_k\).  In original time each pulse has height \(L\) and its displayed length is divided by \(L\), so the four pulses fill exactly \(\Delta_k\).
+
+For example, a first pulse of length \(u_k\) has incidence \(1-e^{-u_k}=t_k\), while the second component then has incidence
+\[
+ e^{-u_k}(1-e^{-m_k})=(1-t_k)-\rho_k=t_k.
+\]
+Thus both schedules reproduce both factual triples and all three cells are positive.  Their hybrid survivals are both \(\rho_k\), whereas their hybrid cause-1 incidences are
+\[
+ r_{Uk}=1-e^{-m_k}=\frac{t_k}{1-t_k},
+ \quad\quad
+ r_{Dk}=e^{-m_k}(1-e^{-u_k})=\frac{\rho_k t_k}{1-t_k}.
+\]
+The local incidence gap is therefore
+\[
+ \delta_k=\frac{2t_k^2}{1-t_k}.                             \tag{28}
+\]
+Since \(d_k\le1\), integration of \(e^{-u}\) on \([0,d_k/2]\) gives
+\[
+ t_k=\frac{1-e^{-d_k/2}}2\ge\frac{d_ke^{-1/2}}4,
+ \quad\quad \delta_k\ge\frac{e^{-1}}8d_k^2.                   \tag{29}
+\]
+Concatenate all upper schedules and all lower schedules.  Because their hybrid exit survivals agree bin by bin, their full-risk difference is
+\[
+ \sum_{k=1}^K\left(\prod_{\ell<k}\rho_\ell\right)\delta_k.
+\]
+Under \(LT\le M\), every preceding product is at least \(e^{-M/2}\).  Equations (28)--(29) therefore give one compatible positive-cell law for which
+\[
+ W(\mathbf z)\ge \frac{e^{-M/2-1}}8L^2\sum_{k=1}^K\Delta_k^2.  \tag{30}
+\]
+Combining (26) and (30) proves the theorem with the explicit constants \(c_M=e^{-M/2-1}/8\) and \(C_M=4\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The matched modulus separates deterministic causal information loss from statistical error and gives an inspection-frequency design criterion. \textit{Gap.} StensrudHernanTchetgenRobinsDidelezYoung2021 states only that temporal ordering becomes less important on fine grids, while GroeneboomMaathuisWellner2008 and MaathuisHudgens2011 study sampling rates for factual subdistributions rather than this adversarial causal identification width. \textit{Consumer.} Trial analysts can choose an inspection mesh that guarantees the worst compatible separable-risk ambiguity is below a prespecified clinical tolerance.
+
+\begin{proposition}[prop:inactive-ceiling-reduction]\label{prop:inactive-ceiling-reduction}
+If \(C_0+C_1\le\tau\), then for every \(v\in[0,1]\), \[H_{\zeta}(v)=\frac{p_1}{1-q_1}+v\frac{s_1(1-q_0)}{1-q_1},\qquad h_{\zeta}(v)=\frac{p_1s_0}{1-p_0}+v\frac{(1-p_1)s_0}{1-p_0}.\] These values are attained by four sequential hazard pulses. As \(\max_k\Delta_k\to0\) along compatible refinements of a resolved hazard law, the global interval collapses to the continuous-time functional \(F_1^{1,0}(T)\) of MartinussenStensrud2023.
+\end{proposition}
+\begin{proof}
+Normalize the bin by \(L\), and write
+\[
+ X=\int_0^\tau x(t)\,dt,\quad\quad Y=\int_0^\tau y(t)\,dt.
+\]
+For factual arm 1, the Stieltjes representation in (1), together with \(0\le Z(t)\le Z=C_1-X\), gives
+\[
+ e^{-Z}(1-e^{-X})\le p_1\le1-e^{-X}.
+\]
+Solving these inequalities is legal because \(s_1>0\) and gives
+\[
+ -\log(1-p_1)\le X\le\log\frac{1-q_1}{s_1}.                \tag{31}
+\]
+Applying the same argument to cause 2 in factual arm 0 gives
+\[
+ -\log(1-q_0)\le Y\le\log\frac{1-p_0}{s_0}.                \tag{32}
+\]
+The denominators in (31)--(32) are positive because each contains the positive survival cell.
+
+For the hybrid pair, the same cumulative-hazard ordering yields
+\[
+ e^{-Y}(1-e^{-X})\le r\le1-e^{-X},
+ \quad\quad s=e^{-X-Y}.                                         \tag{33}
+\]
+For \(0\le v\le1\), the upper expression
+\[
+ 1-e^{-X}+ve^{-X-Y}
+\]
+is nondecreasing in \(X\) and nonincreasing in \(Y\).  Equations (31)--(33) therefore imply
+\[
+ r+vs\le \frac{p_1}{1-q_1}
+          +v\frac{s_1(1-q_0)}{1-q_1}.                       \tag{34}
+\]
+Similarly, the lower expression
+\[
+ e^{-Y}(1-e^{-X})+ve^{-X-Y}
+ =e^{-Y}\{1-(1-v)e^{-X}\}
+\]
+is nondecreasing in \(X\) and nonincreasing in \(Y\), so
+\[
+ r+vs\ge \frac{p_1s_0}{1-p_0}
+          +v\frac{(1-p_1)s_0}{1-p_0}.                       \tag{35}
+\]
+
+Both inequalities are sharp under the stated ceiling condition.  For (34), set
+\[
+ Z=-\log(1-q_1),\quad X=\log\frac{1-q_1}{s_1},\quad
+ Y=-\log(1-q_0),\quad W=\log\frac{1-q_0}{s_0},              \tag{36}
+\]
+and use unit-height pulses in the order \(z,x,y,w\), with respective lengths \(Z,X,Y,W\).  Arm 1 then has \(p_1=e^{-Z}(1-e^{-X})\), arm 0 has \(q_0=1-e^{-Y}\), and the hybrid places \(x\) before \(y\), so equality holds in (34).  The four lengths in (36) sum to \(C_1+C_0\le\tau\); any remaining time has zero hazards.
+
+For (35), set
+\[
+ X=-\log(1-p_1),\quad Z=\log\frac{1-p_1}{s_1},\quad
+ W=-\log(1-p_0),\quad Y=\log\frac{1-p_0}{s_0},              \tag{37}
+\]
+and use the order \(w,y,x,z\).  This reproduces both factual triples, puts \(y\) before \(x\) in the hybrid path, has the same total length \(C_0+C_1\), and attains (35).  Thus (34)--(35) equal the support envelopes, and the displayed formulas in the proposition follow.
+
+Finally consider compatible grouped laws obtained by refining a fixed measurable bounded hazard quadruple while \(\max_k\Delta_k\to0\).  That quadruple is feasible for every refinement, so its resolved value \(F_1^{1,0}(T)\) belongs to every sharp interval by \(\mathrm{thm{:}global\text{-}sharp\text{-}recursion}\).  The upper bound proved in \(\mathrm{thm{:}matched\text{-}mesh\text{-}width}\) gives
+\[
+ 0\le U_1-D_1\le4L^2\sum_k\Delta_k^2
+ \le4L^2T\max_k\Delta_k\longrightarrow0.                 \tag{38}
+\]
+Hence both endpoints converge to that fixed continuous-time functional.  No within-bin order is identified at a positive mesh; collapse follows only in the stated limit.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This sanity reduction recovers an elementary pulse frontier when the ceiling is inactive and the published resolved-time risk when the mesh vanishes. \textit{Gap.} MartinussenStensrud2023 gives the resolved-time functional but not the grouped-data pulse envelope or the finite-mesh reduction. \textit{Consumer.} The formula provides a closed-form validation case for exact endpoint software and a transparent benchmark for fine scheduled inspections.
+
+\begin{theorem}[thm:uniform-confidence-inversion]\label{thm:uniform-confidence-inversion}
+For every compatible \(\pi\) and every \(n\ge1\), the interval \(\mathrm{CI}_n\) satisfies \[\Pr_{\pi}\bigl([D_1(\pi),U_1(\pi)]\subseteq\mathrm{CI}_n\bigr)\ge1-\alpha.\] The guarantee is uniform over boundary and nearly point-identified laws. If endpoint computations use approximation, the same coverage holds when \(\varepsilon_{\mathrm{num}}\) is a proven outward bound propagated through the one-Lipschitz backward recursion; a feasible grid value without such a certificate does not qualify.
+\end{theorem}
+\begin{proof}
+Let \(I_{ij}\) be the indicator that subject \(i\) occupies unconditional cell \(j\), so \(\widehat\pi_j=n^{-1}\sum_i I_{ij}\) and \(\mathbb E_\pi I_{ij}=\pi_j\) by \(\mathrm{ass{:}iid\text{-}subjects}\).  We first derive the concentration inequality used below.  For a Bernoulli variable \(I\) of mean \(p\), put
+\[
+ K(t):=\log\mathbb E e^{t(I-p)}.
+\]
+Exponential tilting keeps a Bernoulli law, so \(K(0)=K'(0)=0\) and
+\[
+ K''(t)=p_t(1-p_t)\le\frac14
+\]
+for its tilted success probability \(p_t\).  Twice integrating this bound gives \(K(t)\le t^2/8\) for positive or negative \(t\).  Independence and Markov's inequality consequently yield, for \(u>0\),
+\[
+ \Pr_\pi(\widehat\pi_j-\pi_j\ge u)
+ \le\inf_{t>0}\exp\{-ntu+nt^2/8\}=e^{-2nu^2}.
+\]
+Applying the same calculation to \(-t\) and then adding the two tails gives
+\[
+ \Pr_\pi(|\widehat\pi_j-\pi_j|>u)\le2e^{-2nu^2}.            \tag{39}
+\]
+The union bound over the \(m\) cells, with \(u=\epsilon_n\), gives
+\[
+ \Pr_\pi\bigl(\|\widehat\pi-\pi\|_\infty\le\epsilon_n\bigr)
+ \ge1-2m e^{-2n\epsilon_n^2}=1-\alpha.                     \tag{40}
+\]
+
+On the event in (40), the true \(\pi\) has arm masses \(1/2\) by \(\mathrm{ass{:}balanced\text{-}randomization}\), lies in the displayed simultaneous band, and its induced conditional triples satisfy \(\mathrm{prop{:}exact\text{-}bin\text{-}compatibility}\) because \(\pi\) is assumed compatible and reproduces the grouped factual law.  Hence \(\pi\in\mathcal C_n\), so \(\mathcal C_n\ne\varnothing\).  The sharpness theorem gives
+\[
+ \Theta_I(\psi;\pi)=[D_1(\pi),U_1(\pi)].                   \tag{41}
+\]
+Because the infimum and supremum in \(\mathrm{def{:}confidence\text{-}interval}\) range over a set containing \(\pi\),
+\[
+ \inf_{\pi'\in\mathcal C_n}D_1(\pi')
+ \le D_1(\pi)\le U_1(\pi)
+ \le\sup_{\pi'\in\mathcal C_n}U_1(\pi').                 \tag{42}
+\]
+All four endpoints in (42) lie in \([0,1]\), so intersecting the outward interval with \([0,1]\) cannot remove the true identified set.  A nonnegative certified \(\varepsilon_{\mathrm{num}}\) only enlarges it.  Combining (40)--(42) proves
+\[
+ \inf_{\pi\ \mathrm{compatible}}
+ \Pr_\pi\{[D_1(\pi),U_1(\pi)]\subseteq\mathrm{CI}_n\}
+ \ge1-\alpha.
+\]
+If \(\mathcal C_n\) is empty off the event in (40), the stipulated fallback \([0,1]\) is harmless.
+
+For the computational clause, directly from \(0\le s\le1\),
+\[
+ |H_\zeta(v)-H_\zeta(v')|\le|v-v'|,
+ \quad\quad |h_\zeta(v)-h_\zeta(v')|\le|v-v'|.                \tag{43}
+\]
+Thus a proven outward local endpoint error accumulates through the backward recursion by addition, with no amplification; a proven outer-optimization error is then added once more.  When \(\varepsilon_{\mathrm{num}}\) bounds that total deterministic error, (42) remains valid with the numerical endpoints.  A merely feasible inner value supplies only one side of an optimization and does not establish the outward inequalities in (42), which proves the final qualification.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Input-law inversion covers the entire population identified set without relying on differentiability or positive cell probabilities. \textit{Gap.} ChafaiConcordet2009 controls multinomial-law coverage and ImbensManski2004 studies confidence intervals under partial identification, but neither projects an exact region through a nonconvex hazard-spliced endpoint recursion with certified numerical enlargement. \textit{Consumer.} This gives finite-sample reporting for sparse grouped competing-event trials once the exact frontier computation is available.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact five-piece positive-cell family and fixed-grid optimizations establish feasible support values only. The unresolved phase has both nuisance hazards saturated and negative factual-incidence multipliers; first-order switching equations permit repeated four-corner cycles. The mandatory early-kill instance fixes a positive-cell law induced by two equal-duration cycles and asks whether the exact constrained Lagrangian Hessian yields an endpoint-preserving deletion exchange or a strict interior-over-boundary obstruction. Excluding a simultaneous interior singular arc by the Goh condition and compressing isolated single-control singular arcs does not by itself settle that sign predicate or bound the number of globally optimal bang cycles.
+
+\section{Honest scope}
+
+Factual-bin compatibility, compact attainment, interval sharpness, backward gluing, ceiling-sensitivity nesting, the inactive-ceiling reduction, matched mesh order, and confidence-region coverage are supporting claims to prove. The universal finite-piece theorem over the exact active-ceiling frontier is the open kernel, and its first kill test is the fully specified positive-cell two-cycle constrained-Hessian problem. The model maintains hazard-component splicing and a common ceiling \(L\) externally calibrated before analysis; the ceiling is not a standard separable-effects implication, and conclusions are conditional on its validity. Reporting \(\bar L\ge L\) gives a nested conservative interval but does not eliminate this sensitivity restriction. The model does not assert latent independence, add covariates, address loss to follow-up, or claim a validated SPRINT reanalysis. In the resolved-time or vanishing-mesh special case the interval must collapse to the published continuous-time separable-risk functional.
+
+\begin{thebibliography}{99}
+
+  \bibitem{StensrudYoungDidelezRobinsHernan2022} Mats J. Stensrud, Jessica G. Young, Vanessa Didelez, James M. Robins, and Miguel A. Hernán. Separable Effects for Causal Inference in the Presence of Competing Events. \emph{Journal of the American Statistical Association}, 117:175--183, 2022. doi:10.1080/01621459.2020.1765783.
+
+  \bibitem{StensrudHernanTchetgenRobinsDidelezYoung2021} Mats J. Stensrud, Miguel A. Hernán, Eric J. Tchetgen Tchetgen, James M. Robins, Vanessa Didelez, and Jessica G. Young. A Generalized Theory of Separable Effects in Competing Event Settings. \emph{Lifetime Data Analysis}, 27:588--631, 2021. doi:10.1007/s10985-021-09530-8.
+
+  \bibitem{MartinussenStensrud2023} Torben Martinussen and Mats Julius Stensrud. Estimation of Separable Direct and Indirect Effects in Continuous Time. \emph{Biometrics}, 79:127--139, 2023. doi:10.1111/biom.13559.
+
+  \bibitem{Kim2023CompetingRisks} Dongwoo Kim. Partially Identifying Competing Risks Models: An Application to the War on Cancer. \emph{Journal of Econometrics}, 234:536--564, 2023. doi:10.1016/j.jeconom.2021.07.007.
+
+  \bibitem{LasserreHenrionPrieurTrelat2008} Jean-Bernard Lasserre, Didier Henrion, Christophe Prieur, and Emmanuel Trélat. Nonlinear Optimal Control via Occupation Measures and LMI-Relaxations. \emph{SIAM Journal on Control and Optimization}, 47:1643--1666, 2008. doi:10.1137/070685051.
+
+  \bibitem{ZhuTrelatCerf2016} Jiamin Zhu, Emmanuel Trélat, and Max Cerf. Planar Tilting Maneuver of a Spacecraft: Singular Arcs in the Minimum Time Problem and Chattering. \emph{Discrete and Continuous Dynamical Systems B}, 21:1347--1388, 2016. doi:10.3934/dcdsb.2016.21.1347.
+
+  \bibitem{BayerTeichmann2006} Christian Bayer and Josef Teichmann. The Proof of Tchakaloff's Theorem. \emph{Proceedings of the American Mathematical Society}, 134:3035--3040, 2006. doi:10.1090/S0002-9939-06-08249-9.
+
+  \bibitem{GroeneboomMaathuisWellner2008} Piet Groeneboom, Marloes H. Maathuis, and Jon A. Wellner. Current Status Data with Competing Risks: Limiting Distribution of the MLE. \emph{Annals of Statistics}, 36:1064--1089, 2008. doi:10.1214/009053607000000983.
+
+  \bibitem{MaathuisHudgens2011} Marloes H. Maathuis and Michael G. Hudgens. Nonparametric Inference for Competing Risks Current Status Data with Continuous, Discrete or Grouped Observation Times. \emph{Biometrika}, 98:325--340, 2011. doi:10.1093/biomet/asq083.
+
+  \bibitem{SchmidBerger2021} Matthias Schmid and Moritz Berger. Competing Risks Analysis for Discrete Time-to-Event Data. \emph{WIREs Computational Statistics}, 13:e1529, 2021. doi:10.1002/wics.1529.
+
+  \bibitem{ChafaiConcordet2009} Djalil Chafaï and Didier Concordet. Confidence Regions for the Multinomial Parameter with Small Sample Size. \emph{Journal of the American Statistical Association}, 104:1071--1079, 2009. doi:10.1198/jasa.2009.tm08152.
+
+  \bibitem{ImbensManski2004} Guido W. Imbens and Charles F. Manski. Confidence Intervals for Partially Identified Parameters. \emph{Econometrica}, 72:1845--1857, 2004. doi:10.1111/j.1468-0262.2004.00555.x.
+
+  \bibitem{FangSantos2019} Zheng Fang and Andres Santos. Inference on Directionally Differentiable Functions. \emph{Review of Economic Studies}, 86:377--412, 2019. doi:10.1093/restud/rdy049.
+
+  \bibitem{FirpoGalvaoParker2023} Sergio Firpo, Antonio F. Galvao, and Thomas Parker. Uniform Inference for Value Functions. \emph{Journal of Econometrics}, 235:1944--1974, 2023. doi:10.1016/j.jeconom.2022.11.009.
+
+  \bibitem{BreumMunchGerdsMartinussen2023} Marie Skov Breum, Anders Munch, Thomas A. Gerds, and Torben Martinussen. Estimation of Separable Direct and Indirect Effects in a Continuous-Time Illness-Death Model. \emph{Lifetime Data Analysis}, 30:143--180, 2024. doi:10.1007/s10985-023-09601-y.
+
+  \bibitem{ParkSuk2026} Chan Park and Youmi Suk. Separable Effects in Four-Arm and Two-Arm Designs. arXiv:2605.05984, 2026.
+
+\end{thebibliography}
+
+\end{document}

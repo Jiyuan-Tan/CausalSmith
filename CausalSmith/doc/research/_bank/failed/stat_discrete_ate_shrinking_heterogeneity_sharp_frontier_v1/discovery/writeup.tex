@@ -1,0 +1,646 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}discrete\_\allowbreak{}ate\_\allowbreak{}shrinking\_\allowbreak{}heterogeneity\_\allowbreak{}sharp\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The kernel is the finite-sample minimax MSE frontier for an identified ATE when high-dimensional discrete adjustment cells have effects within a calibrated maximal radius \(\sigma M\) of the ATE.  The exact split-sample empirical-mass estimator gives collision-scale risk \(M^2/n\) for \(2\le d\le n\) when \(\sigma^2d^2\le n\), while the inherited rare-cell approximation branch gives the same rate when \(u_{n,d}\le n^{-1}\), equivalently \(d^2\le n\log^2(en)\).  Thus approximate common effects retain collision-scale estimation on the union of these two directly checkable regions.  At the still-unresolved benchmark \(d=n\), \(\sigma^2=\log^2(en)/n\), an exactly normalized shared-design marked family fails because its global outcome shift makes the full mixtures distinguishable; the conditionally centered marked-coupling repair remains open, and no global frontier formula is asserted.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest published work gives the binary-outcome unrestricted and exact-homogeneity endpoints and explicitly leaves maximal-radius dependence unresolved.  The accepted same-class parent gives a nonmatching bracket; the present results close the additional union \(\sigma^2d^2\le n\) or \(d^2\le n\log^2(en)\) for \(d\le n\), but not the remaining radius-dependent wedge.
+
+\paragraph{Niche.} Unknown random cell masses, unknown overlapping propensities, empty cells, supportwise centering around the ATE, and only conditional second moments make the residual converse neither fixed-design shrinkage nor a routine polynomial-functional problem.  The corrected residual wedge additionally enforces \(u_{n,d}>n^{-1}\), so already-closed approximation-scale points are excluded.
+
+\paragraph{Fill.} The project gives a total empirical-mass estimator, proves collision-scale minimax risk on the union of the empirical and rare-cell approximation regions, and proves a full-mixture obstruction for the displayed benchmark prior.  For lower-bound transfer, the published binary anchor embeds in the present real-outcome class through \(Y'=M(Y-1/2)\), which scales ATEs and squared risks by \(M\) and \(M^2\).  For the real-outcome upper bound, the declared envelopes imply \(E_P[Y^2\mid A=a,X=k]\le v_{ak}+\mu_{ak}^2\le5M^2/4\).  The precisely specified conditionally centered shared-design converse remains open.
+
+\section{Related work}
+
+Zeng, Balakrishnan, Han, and Kennedy (2024, revised 2026) provide the binary-outcome baseline in Theorems 2--4; Section 4.2 identifies the unresolved radius dependence and discusses extension under bounded conditional second moments.  Their binary anchor transfers into the present centered real-outcome class by \(Y'=M(Y-1/2)\): conditional means then lie in \([-M/2,M/2]\), conditional central variances are at most \(M^2/4\), ATE separations scale by \(M\), and squared-error lower bounds scale by \(M^2\).  Conversely, the real-outcome upper analysis uses only \(E_P[Y^2\mid A=a,X=k]\le v_{ak}+\mu_{ak}^2\le5M^2/4\), not bounded outcomes.  Section 7's 401(k) eligibility and net-assets analysis is the consumer but does not validate overlap or its reported intervals.  The internal accepted parent supplies the same-class bracket and the channel and factorial-lift obstructions.  The approximation and mixture architectures are informed by Zeng et al.'s cited polynomial-functional literature, but none of those sources resolves exact normalization, self-centering, or supportwise radius here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau=E_P[Y(1)-Y(0)]\).
+Primary functional / estimator / diagnostic: \(\tau(P)=\sum_{k=1}^dp_k(\mu_{1k}-\mu_{0k})\).
+\begin{itemize}
+  \item \(n\) --- \texttt{sample size}; \(\{3,4,\ldots\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of observed units.}
+  \item \(d\) --- \texttt{alphabet size}; \(\{2,\ldots,\lfloor n^2/\log(en)\rfloor\}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of available discrete-\allowbreak{}confounder categories.}
+  \item \(i\) --- \texttt{sample index}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic observed-\allowbreak{}unit index.}
+  \item \(\epsilon\) --- \texttt{overlap constant}; \((0,1/2)\); \texttt{model parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed known lower bound on both treatment probabilities in occupied cells.}
+  \item \(M\) --- \texttt{outcome scale}; \([1,\infty)\); \texttt{model parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed known scale for conditional means,\allowbreak{} conditional central variances,\allowbreak{} and effect heterogeneity.}
+  \item \(\sigma\) --- \texttt{heterogeneity radius}; \([0,2]\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} Fixed known maximal conditional-effect radius in units of \(M\).
+  \item \(a\) --- \texttt{treatment level}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treatment level.}
+  \item \(k\) --- \texttt{cell index}; \(\{1,\ldots,d\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic discrete-\allowbreak{}confounder category.}
+  \item \(X\) --- \texttt{discrete confounder}; \(\{1,\ldots,d\}\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Pretreatment confounder.}
+  \item \(A\) --- \texttt{treatment}; \(\{0,1\}\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed binary treatment.}
+  \item \(Y\) --- \texttt{outcome}; \(\mathbb R\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed real-\allowbreak{}valued outcome.}
+  \item \(Y(a)\) --- \texttt{potential outcome}; \(\mathbb R\); \texttt{causal object}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome under treatment level \(a\).
+  \item \(O\) --- \texttt{one-\allowbreak{}unit observed record}; \(\{1,\ldots,d\}\times\{0,1\}\times\mathbb R\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(O:=(X,A,Y)\).
+  \item \(O_i\) --- \texttt{sample record}; the space of \(O\); \texttt{sample data}
+  \par\smallskip\noindent\emph{Definition.} The \(i\)-th observed record \(O_i=(X_i,A_i,Y_i)\).
+  \item \(P\) --- \texttt{one-\allowbreak{}unit full-\allowbreak{}data law}; probability laws for \(X,A,Y(0),Y(1),Y\); \texttt{model}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Law of one full-\allowbreak{}data unit.}
+  \item \(P_O\) --- \texttt{one-\allowbreak{}unit observed-\allowbreak{}data law}; probability laws on the space of \(O\); \texttt{observed model}
+  \par\smallskip\noindent\emph{Definition.} Observed margin of \(P\).
+  \item \(Q_P^{(n)}\) --- \texttt{sample law}; probability laws on the \(n\)-fold observed-data space; \texttt{sampling law}
+  \par\smallskip\noindent\emph{Definition.} \(Q_P^{(n)}:=P_O^{\otimes n}\).
+  \item \(p_k\) --- \texttt{cell mass}; \([0,1]\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(p_k:=P(X=k)\).
+  \item \(\pi_k\) --- \texttt{propensity}; \([0,1]\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_k:=P(A=1\mid X=k)\) on cells with \(p_k>0\).
+  \item \(\mu_{ak}\) --- \texttt{conditional arm mean}; \(\mathbb R\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{ak}:=E_P[Y\mid A=a,X=k]\) on cells with \(p_k>0\).
+  \item \(v_{ak}\) --- \texttt{conditional central variance}; \([0,\infty)\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(v_{ak}:=E_P[(Y-\mu_{ak})^2\mid A=a,X=k]\) on cells with \(p_k>0\).
+  \item \(\tau_k\) --- \texttt{cell treatment effect}; \(\mathbb R\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_k:=\mu_{1k}-\mu_{0k}\).
+  \item \(\tau(P)\) --- \texttt{average treatment effect}; \([-M,M]\); \texttt{target}
+  \par\smallskip\noindent\emph{Definition.} \(\tau(P):=\sum_{k=1}^d p_k\tau_k\).
+  \item \(\mathcal P_{n,d,\epsilon,M,\sigma}\) --- \texttt{radius-\allowbreak{}constrained experiment class}; \texttt{sets of one-\allowbreak{}unit full-\allowbreak{}data laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class defined in \(\mathrm{def:radius\text{-}class}\).
+  \item \(\mathsf R_{n,d,\epsilon,M,\sigma}\) --- \texttt{minimax mean squared error}; \([0,\infty)\); \texttt{risk target}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf R_{n,d,\epsilon,M,\sigma}:=\inf_T\sup_{P\in\mathcal P_{n,d,\epsilon,M,\sigma}}E_{Q_P^{(n)}}[(T-\tau(P))^2]\), where the infimum ranges over all observed-sample estimators.
+  \item \(b_{n,d}\) --- \texttt{collision baseline}; \((0,\infty)\); \texttt{benchmark rate}
+  \par\smallskip\noindent\emph{Definition.} \(b_{n,d}:=n^{-1}+dn^{-2}\).
+  \item \(u_{n,d}\) --- \texttt{rare-\allowbreak{}cell approximation scale}; \((0,\infty)\); \texttt{benchmark rate}
+  \par\smallskip\noindent\emph{Definition.} \(u_{n,d}:=d^2/[n^2\log^2(en)]\).
+  \item \(v_{n,d}\) --- \texttt{unmatched-\allowbreak{}mass scale}; \((0,1]\); \texttt{benchmark rate}
+  \par\smallskip\noindent\emph{Definition.} \(v_{n,d}:=\min\{1,d^2/n^2\}\).
+  \item \(q_{n,d,\sigma}^{\mathrm{em}}\) --- \texttt{empirical-\allowbreak{}mass upper scale}; \((0,\infty)\); \texttt{proved-\allowbreak{}candidate upper rate}
+  \par\smallskip\noindent\emph{Definition.} \(q_{n,d,\sigma}^{\mathrm{em}}:=n^{-1}+\min\{1,u_{n,d},d/n^2+\sigma^2v_{n,d}\}\).
+  \item \(\operatorname{clip}_{[-M,M]}\) --- \texttt{clipping map}; maps from \(\mathbb R\) to \([-M,M]\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{clip}_{[-M,M]}(z):=\max\{-M,\min\{M,z\}\}\) for \(z\in\mathbb R\).
+  \item \(m_0\) --- \texttt{pilot-\allowbreak{}block size}; \(\mathbb N\); \texttt{construction index}
+  \par\smallskip\noindent\emph{Definition.} \(m_0:=\lfloor n/2\rfloor\).
+  \item \(m_1\) --- \texttt{correction-\allowbreak{}block size}; \(\mathbb N\); \texttt{construction index}
+  \par\smallskip\noindent\emph{Definition.} \(m_1:=n-m_0\).
+  \item \(N_{ak}^{(0)}\) --- \texttt{pilot arm-\allowbreak{}cell count}; \(\{0,\ldots,m_0\}\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(N_{ak}^{(0)}:=\sum_{i=1}^{m_0}\mathbf 1\{X_i=k,A_i=a\}\).
+  \item \(N_k^{(0)}\) --- \texttt{pilot cell count}; \(\{0,\ldots,m_0\}\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(N_k^{(0)}:=N_{0k}^{(0)}+N_{1k}^{(0)}\).
+  \item \(J_k^{(0)}\) --- \texttt{pilot matched-\allowbreak{}cell indicator}; \(\{0,1\}\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(J_k^{(0)}:=\mathbf 1\{N_{0k}^{(0)}N_{1k}^{(0)}>0\}\).
+  \item \(\overline Y_{ak}^{(0)}\) --- \texttt{guarded pilot arm-\allowbreak{}cell mean}; \(\mathbb R\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(\overline Y_{ak}^{(0)}:=(N_{ak}^{(0)})^{-1}\sum_{i=1}^{m_0}Y_i\mathbf 1\{X_i=k,A_i=a\}\) if \(N_{ak}^{(0)}>0\), and \(\overline Y_{ak}^{(0)}:=0\) if \(N_{ak}^{(0)}=0\).
+  \item \(\widehat\Delta_k^{(0)}\) --- \texttt{guarded pilot cell contrast}; \(\mathbb R\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Delta_k^{(0)}:=J_k^{(0)}(\overline Y_{1k}^{(0)}-\overline Y_{0k}^{(0)})\); hence it is zero in an empty or one-arm-only pilot cell.
+  \item \(R_0\) --- \texttt{pilot normalization count}; \(\{0,\ldots,m_0\}\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(R_0:=\sum_{k=1}^dN_k^{(0)}J_k^{(0)}\), the total pilot occupancy in cells containing both arms.
+  \item \(w_k^{(0)}\) --- \texttt{pilot occupancy weight}; \([0,1]\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(w_k^{(0)}:=N_k^{(0)}J_k^{(0)}/R_0\) if \(R_0>0\), and \(w_k^{(0)}:=0\) if \(R_0=0\).
+  \item \(\widetilde\tau\) --- \texttt{clipped occupancy pilot}; \([-M,M]\); \texttt{estimator input}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde\tau:=\operatorname{clip}_{[-M,M]}(\sum_{k=1}^dw_k^{(0)}\widehat\Delta_k^{(0)})\); in particular \(\widetilde\tau=0\) when \(R_0=0\).
+  \item \(N_{ak}^{(1)}\) --- \texttt{correction-\allowbreak{}block arm-\allowbreak{}cell count}; \(\{0,\ldots,m_1\}\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(N_{ak}^{(1)}:=\sum_{i=m_0+1}^n\mathbf 1\{X_i=k,A_i=a\}\).
+  \item \(N_k^{(1)}\) --- \texttt{correction-\allowbreak{}block cell count}; \(\{0,\ldots,m_1\}\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(N_k^{(1)}:=N_{0k}^{(1)}+N_{1k}^{(1)}\).
+  \item \(J_k^{(1)}\) --- \texttt{correction-\allowbreak{}block matched-\allowbreak{}cell indicator}; \(\{0,1\}\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(J_k^{(1)}:=\mathbf 1\{N_{0k}^{(1)}N_{1k}^{(1)}>0\}\).
+  \item \(\overline Y_{ak}^{(1)}\) --- \texttt{guarded correction-\allowbreak{}block arm-\allowbreak{}cell mean}; \(\mathbb R\); \texttt{sample construction}
+  \par\smallskip\noindent\emph{Definition.} \(\overline Y_{ak}^{(1)}:=(N_{ak}^{(1)})^{-1}\sum_{i=m_0+1}^nY_i\mathbf 1\{X_i=k,A_i=a\}\) if \(N_{ak}^{(1)}>0\), and \(\overline Y_{ak}^{(1)}:=0\) if \(N_{ak}^{(1)}=0\).
+  \item \(\widehat\tau^{\mathrm{em}}\) --- \texttt{empirical-\allowbreak{}mass-\allowbreak{}corrected estimator}; \([-M,M]\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator constructed in \(\mathrm{def:empirical\text{-}mass\text{-}estimator}\).
+  \item \(\mathcal W\) --- \texttt{residual shrinking-\allowbreak{}radius wedge}; sets of admissible triples \((n,d,\sigma)\); \texttt{open-\allowbreak{}problem domain}
+  \par\smallskip\noindent\emph{Definition.} The unresolved parameter set defined in \(\mathrm{def:residual\text{-}wedge}\).
+  \item \(c_{\epsilon}\) --- \texttt{lower comparison constant}; \((0,1)\); \texttt{bound constant}
+  \par\smallskip\noindent\emph{Definition.} A constant depending only on \(\epsilon\).
+  \item \(C_{\epsilon}\) --- \texttt{upper comparison constant}; \((1,\infty)\); \texttt{bound constant}
+  \par\smallskip\noindent\emph{Definition.} A constant depending only on \(\epsilon\).
+  \item \(\sigma_n^\star\) --- \texttt{benchmark radius}; \((0,2)\); \texttt{kill-\allowbreak{}test parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_n^\star:=\log(en)/\sqrt n\).
+  \item \(\ell_n^\star\) --- \texttt{benchmark effective logarithm}; \((1,\infty)\); \texttt{kill-\allowbreak{}test parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_n^\star:=\log\{e+n(\sigma_n^\star)^2\}\).
+  \item \(\Delta_n^\star\) --- \texttt{benchmark target shift}; \((0,M)\); \texttt{kill-\allowbreak{}test parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_n^\star:=M\sigma_n^\star/(4\ell_n^\star)\).
+  \item \(h\) --- \texttt{hypothesis sign}; \(\{-1,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index of the two benchmark mixture hypotheses.}
+  \item \(z\) --- \texttt{balanced mark vector}; \(\{-1,0,1\}^n\); \texttt{latent mark}
+  \par\smallskip\noindent\emph{Definition.} A latent vector with coordinates \(z_k\).
+  \item \(\mathcal Z_n\) --- \texttt{balanced mark set}; subsets of \(\{-1,0,1\}^n\); \texttt{prior support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Z_n:=\{z:\sum_{k=1}^nz_k=0,\ \sum_{k=1}^n\mathbf 1\{|z_k|=1\}=2\lfloor n/2\rfloor\}\).
+  \item \(P_{h,z}^\star\) --- \texttt{benchmark full-\allowbreak{}data law}; \texttt{one-\allowbreak{}unit full-\allowbreak{}data laws}; \texttt{prior support law}
+  \par\smallskip\noindent\emph{Definition.} Law constructed in \(\mathrm{def:benchmark\text{-}marked\text{-}family}\).
+  \item \(\Pi_h^\star\) --- \texttt{benchmark prior}; \texttt{probability measures on one-\allowbreak{}unit full-\allowbreak{}data laws}; \texttt{mixture prior}
+  \par\smallskip\noindent\emph{Definition.} Uniform pushforward of \(z\in\mathcal Z_n\) through \(z\mapsto P_{h,z}^\star\).
+  \item \(\mathbb Q_h^\star\) --- \texttt{benchmark full-\allowbreak{}sample mixture law}; probability laws on the \(n\)-fold observed-data space; \texttt{mixture experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb Q_h^\star:=\int Q_P^{(n)}\,d\Pi_h^\star(P)\).
+  \item \(\overline Z_n\) --- \texttt{signed-\allowbreak{}outcome test statistic}; \([-M/2,M/2]\); \texttt{kill-\allowbreak{}test statistic}
+  \par\smallskip\noindent\emph{Definition.} \(\overline Z_n:=n^{-1}\sum_{i=1}^n(2A_i-1)Y_i\).
+  \item \(\rho_n\) --- \texttt{benchmark feasible separation}; \([0,2]\); \texttt{open focal object}
+  \par\smallskip\noindent\emph{Definition.} Maximal normalized ATE separation derived by \(\mathrm{oeq:repair\text{-}benchmark\text{-}prior}\) under its support and mixture-distance constraints.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The observed records satisfy \(O_1,\ldots,O_n\stackrel{\mathrm{iid}}{\sim}P_O\).
+\par\smallskip\noindent\emph{Standard} (independent and identically distributed sampling, \cite{ZengBalakrishnanHanKennedy2024}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=Y(a)\) on the event \(A=a\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (consistency, \cite{HernanRobins2020}).
+\end{assumption}
+
+\begin{assumption}[ass:exchangeability]\label{ass:exchangeability}
+\(Y(a)\perp A\mid X\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (conditional exchangeability, \cite{HernanRobins2020}).
+\end{assumption}
+
+\begin{assumption}[ass:overlap]\label{ass:overlap}
+\(\epsilon\le\pi_k\le1-\epsilon\) for every \(k\) with \(p_k>0\).
+\par\smallskip\noindent\emph{Standard} (fixed positivity on occupied discrete cells, \cite{ZengBalakrishnanHanKennedy2024}).
+\end{assumption}
+
+\begin{assumption}[ass:mean-envelope]\label{ass:mean-envelope}
+\(-M/2\le\mu_{ak}\le M/2\) for every \(a\) and every \(k\) with \(p_k>0\).
+\par\smallskip\noindent\emph{Standard} (bounded conditional-mean envelope, centered real-outcome variant, \cite{ZengBalakrishnanHanKennedy2024}).
+\end{assumption}
+
+\begin{assumption}[ass:second-moment-envelope]\label{ass:second-moment-envelope}
+\(v_{ak}\le M^2\) for every \(a\) and every \(k\) with \(p_k>0\).
+\par\smallskip\noindent\emph{Standard} (uniform conditional second-central-moment envelope, \cite{ZengBalakrishnanHanKennedy2024}).
+\end{assumption}
+
+\begin{assumption}[ass:maximal-effect-radius]\label{ass:maximal-effect-radius}
+\(\max_{k:p_k>0}|\tau_k-\tau(P)|\le\sigma M\).
+\par\smallskip\noindent\emph{Novel.} A calibrated \(\sigma\) is a substantive bound on effect modification across prespecified adjustment cells. It is satisfied by approximately common-effect scientific models and can be varied as a transparent sensitivity parameter rather than selected to optimize an estimator.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:radius-class]\label{def:radius-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Radius-\allowbreak{}constrained discrete-\allowbreak{}confounder class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{n,d,\epsilon,M,\sigma}:=\{P:\text{ for the displayed }n,d,\epsilon,M,\sigma,\ P\text{ satisfies }\mathrm{ass:consistency},\mathrm{ass:exchangeability},\mathrm{ass:overlap},\mathrm{ass:mean\text{-}envelope},\mathrm{ass:second\text{-}moment\text{-}envelope},\mathrm{ass:maximal\text{-}effect\text{-}radius}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}mean-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}second-\allowbreak{}moment-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}maximal-\allowbreak{}effect-\allowbreak{}radius}.
+\end{definition}
+
+\begin{definition}[def:occupancy-pilot]\label{def:occupancy-pilot}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total clipped occupancy-\allowbreak{}weighted pilot}
+\par\smallskip\noindent\emph{Construction.} On records \(1,\ldots,m_0\), form \(N_{ak}^{(0)}\), \(N_k^{(0)}\), \(J_k^{(0)}\), the guarded means \(\overline Y_{ak}^{(0)}\), and \(\widehat\Delta_k^{(0)}\). Set \(R_0=\sum_{k=1}^dN_k^{(0)}J_k^{(0)}\), use \(w_k^{(0)}=N_k^{(0)}J_k^{(0)}/R_0\) when \(R_0>0\) and \(w_k^{(0)}=0\) when \(R_0=0\), and return \(\widetilde\tau=\operatorname{clip}_{[-M,M]}(\sum_{k=1}^dw_k^{(0)}\widehat\Delta_k^{(0)})\). Thus an empty pilot, an entirely unmatched pilot, and every empty or one-arm-only pilot cell contribute zero, and every denominator is guarded.
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(n\); \(d\); \(M\).
+\end{definition}
+
+\begin{definition}[def:empirical-mass-estimator]\label{def:empirical-mass-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Empirical-\allowbreak{}mass correction of the exact occupancy pilot}
+\par\smallskip\noindent\emph{Construction.} For \(n\ge8\), compute exactly the \(\widetilde\tau\) in \(\mathrm{def:occupancy\text{-}pilot}\) on the first \(m_0\) records. On the remaining \(m_1\) records form the guarded correction-block quantities and set \[\widehat\tau^{\mathrm{em}}:=\operatorname{clip}_{[-M,M]}\!\left[\widetilde\tau+\frac1{m_1}\sum_{k=1}^dN_k^{(1)}J_k^{(1)}\{\overline Y_{1k}^{(1)}-\overline Y_{0k}^{(1)}-\widetilde\tau\}\right].\] An empty or entirely unmatched correction block returns \(\widetilde\tau\), while empty and one-arm-only correction cells contribute zero. For \(3\le n<8\), set \(\widehat\tau^{\mathrm{em}}:=0\).
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(n\); \(d\); \(M\); \(\widetilde\tau\).
+\end{definition}
+
+\begin{definition}[def:residual-wedge]\label{def:residual-wedge}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Residual wedge after the parent endpoints and both collision-\allowbreak{}scale regions}
+\par\smallskip\noindent\emph{Construction.} \[
+ \mathcal W:=\left\{(n,d,\sigma):
+ n\ge3,\quad
+ 2\le d\le\left\lfloor\frac{n^2}{\log(en)}\right\rfloor,\quad
+ 0<\sigma<2,\quad
+ \frac1n<u_{n,d}<1,\quad
+ \bigl[d>n\ \text{or}\ \sigma^2d^2>n\bigr]
+ \right\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(d\); \(\sigma\); \(u_{n,d}\).
+\end{definition}
+
+\begin{definition}[def:benchmark-marked-family]\label{def:benchmark-marked-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exactly normalized shared-\allowbreak{}design global-\allowbreak{}shift marked family}
+\par\smallskip\noindent\emph{Construction.} Fix \(d=n\), \(\sigma=\sigma_n^\star\), \(h\in\{-1,1\}\), and \(z\in\mathcal Z_n\). Define \(P_{h,z}^\star\) by \(p_k=1/n\), \(\pi_k=1/2\), and \(\tau_k=h\Delta_n^\star+(M\sigma_n^\star/2)z_k\). Set \(\mu_{ak}=(2a-1)\tau_k/2\). Conditional on \(X=k\), draw \(A\sim\operatorname{Bernoulli}(1/2)\); independently draw each \(Y(a)\in\{-M/2,M/2\}\) with \(P\{Y(a)=M/2\mid X=k\}=1/2+(2a-1)\tau_k/(2M)\), and set \(Y=Y(A)\). Let \(\Pi_h^\star\) be uniform over \(\{P_{h,z}^\star:z\in\mathcal Z_n\}\). Every support law is exactly normalized, has the same deterministic design \((p_k,\pi_k)=(1/n,1/2)\), satisfies \(\tau(P_{h,z}^\star)=h\Delta_n^\star\), and obeys \(\max_k|\tau_k-\tau(P_{h,z}^\star)|\le M\sigma_n^\star/2\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(M\); \(h\); \(z\); \(\mathcal Z_n\).
+\end{definition}
+
+\begin{definition}[def:benchmark-repair-handle]\label{def:benchmark-repair-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditionally centered marked-\allowbreak{}coupling handle}
+\par\smallskip\noindent\emph{Construction.} At \(d=n\) and \(\sigma=\sigma_n^\star\), replace the common shift in \(\mathrm{def:benchmark\text{-}marked\text{-}family}\) by a bounded mark score centered conditionally on the shared design, couple that score differently to the arm means under \(h=-1\) and \(h=1\), impose exact mass normalization before mixing, and optimize \(\rho_n\) subject to supportwise radius and full-sample total variation at most \(1/3\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(M\); \(\sigma_n^\star\).
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:empirical-mass-upper]\label{lem:empirical-mass-upper}
+Let \(\widehat\tau^{\mathrm{em}}\) be exactly the estimator in \(\mathrm{def:empirical\text{-}mass\text{-}estimator}\), whose pilot is exactly \(\mathrm{def:occupancy\text{-}pilot}\). There is \(C_{\epsilon}<\infty\) such that, uniformly over \(n\ge3\), \(2\le d\le n\), \(0\le\sigma\le2\), and \(P\in\mathcal P_{n,d,\epsilon,M,\sigma}\), \[E_{Q_P^{(n)}}[(\widehat\tau^{\mathrm{em}}-\tau(P))^2]\le C_{\epsilon}M^2\left(\frac1n+\sigma^2\frac{d^2}{n^2}\right).\]
+\end{lemma}
+\begin{proof}
+Write \(m=m_1\), \(t=\widetilde\tau\), \(e=t-\tau(P)\), and
+\[
+ \delta_k=\tau_k-\tau(P),\qquad
+ U=\frac1m\sum_{k=1}^dN_k^{(1)}(1-J_k^{(1)}),\qquad
+ S=\frac1m\sum_{k=1}^dN_k^{(1)}\delta_k.
+\]
+All three quantities are defined even when cells or blocks are empty by \(\mathrm{def:occupancy\text{-}pilot}\) and \(\mathrm{def:empirical\text{-}mass\text{-}estimator}\).  The mean envelope gives \(|\tau_k|\leq M\) on occupied cells and hence \(|\tau(P)|\leq M\).  The maximal-radius assumption gives \(|\delta_k|\leq\sigma M\), while the definition of \(\tau(P)\) gives
+\[
+ \sum_{k=1}^dp_k\delta_k
+ =\sum_{k=1}^dp_k\tau_k-\tau(P)\sum_{k=1}^dp_k=0.
+\]
+
+We first prove the needed unmatched-mass estimate.  Put
+\[
+ s_{ak}=P(X=k,A=a),\qquad
+ V_{ak}=N_{ak}^{(1)}\mathbf 1\{N_{1-a,k}^{(1)}=0\}.
+\]
+Then \(mU=\sum_{k,a}V_{ak}\) exactly: an unmatched nonempty cell contributes its entire occupancy in its unique observed arm, and an empty or matched cell contributes zero.  Fix \((a,k)\), set \(\alpha=s_{ak}\) and \(\beta=s_{1-a,k}\), and use the multinomial factorial-moment identities supplied by iid sampling.  Since \(N^2=N(N-1)+N\),
+\[
+ E[V_{ak}^2]
+ =m\alpha(1-\beta)^{m-1}
+  +m(m-1)\alpha^2(1-\beta)^{m-2}.
+\]
+For distinct cells \(k\ne\ell\), if \(\gamma=s_{c\ell}\) and \(\phi=s_{1-c,\ell}\), the same identity gives
+\[
+ E[V_{ak}V_{c\ell}]
+ =m(m-1)\alpha\gamma(1-\beta-\phi)^{m-2},
+\]
+whereas \(V_{0k}V_{1k}=0\).  Overlap implies
+\(
+ \alpha\leq\epsilon^{-1}\beta
+\)
+and
+\(
+ \gamma\leq\epsilon^{-1}\phi
+\);
+these inequalities also hold when the relevant cell mass is zero.  For \(m\geq4\), \((1-x)^r\leq e^{-rx}\) and the finite bounds on \(\sup_{x\geq0}xe^{-x}\) and \(\sup_{x\geq0}x^2e^{-x}\) therefore yield
+\[
+ E[V_{ak}^2]\leq C_{\epsilon},
+ \qquad
+ E[V_{ak}V_{c\ell}]\leq C_{\epsilon}\quad(k\ne\ell).
+\]
+There are \(2d\) diagonal terms and fewer than \(4d^2\) ordered cross terms.  Consequently,
+\[
+ E[U^2]\leq C_{\epsilon}\frac{d^2}{m^2}.
+\]
+The deterministic inequality \(0\leq U\leq1\) supplies the uniform refinement
+\[
+ E[U^2]\leq C_{\epsilon}\min\left\{1,\frac{d^2}{m^2}\right\}. \tag{1}
+\]
+
+Next isolate the correction-block outcome noise
+\[
+ W=\frac1m\sum_{k=1}^dN_k^{(1)}J_k^{(1)}
+ \left\{(\overline Y_{1k}^{(1)}-\mu_{1k})
+ -(\overline Y_{0k}^{(1)}-\mu_{0k})\right\}.
+\]
+Let \(\mathscr G\) be generated by the pilot and all correction-block \((X,A)\) values.  Iid sampling makes the outcome residuals conditionally independent across observations, and their conditional means vanish.  Thus \(E[W\mid\mathscr G]=0\), and the second-moment envelope gives
+\[
+ E[W^2\mid\mathscr G]
+ \leq \frac{M^2}{m^2}\sum_{k=1}^d
+ (N_k^{(1)})^2J_k^{(1)}
+ \left(\frac1{N_{1k}^{(1)}}+\frac1{N_{0k}^{(1)}}\right). \tag{2}
+\]
+The displayed reciprocals occur only when \(J_k^{(1)}=1\), so no division by zero is present.  Conditional on \(N_k^{(1)}=r\), the treated count is \(B\sim\operatorname{Bin}(r,\pi_k)\).  For \(B\sim\operatorname{Bin}(r,q)\) with \(q>0\),
+\[
+ E\left[\frac{\mathbf1\{B>0\}}B\right]
+ \leq2E\left[\frac1{B+1}\right]
+ =\frac{2\{1-(1-q)^{r+1}\}}{(r+1)q}
+ \leq\frac2{(r+1)q}. \tag{3}
+\]
+Apply (3) to the two arms, discard the other-arm indicator, and use \(\pi_k,1-\pi_k\geq\epsilon\).  The conditional expectation of the \(k\)-th summand in (2) is at most
+\[
+ \frac{4r^2}{(r+1)\epsilon}\leq\frac{4r}{\epsilon}.
+\]
+Since \(\sum_kE[N_k^{(1)}]=m\), (2) yields
+\[
+ E[W^2]\leq\frac{4M^2}{\epsilon m}. \tag{4}
+\]
+
+On a matched correction cell write
+\(
+ \widehat\Delta_k^{(1)}=\overline Y_{1k}^{(1)}-\overline Y_{0k}^{(1)}
+\), and put
+\[
+ T_{\rm raw}=t+\frac1m\sum_{k=1}^dN_k^{(1)}J_k^{(1)}
+ (\widehat\Delta_k^{(1)}-t).
+\]
+The value assigned to \(\widehat\Delta_k^{(1)}\) off the event \(J_k^{(1)}=1\) is immaterial because its coefficient is zero.  Before the final clipping, direct algebra in the estimator definition gives the exact identity
+\[
+ T_{\rm raw}-\tau(P)
+ =W+S+\frac1m\sum_{k=1}^dN_k^{(1)}(1-J_k^{(1)})(e-\delta_k). \tag{5}
+\]
+Indeed, expand \(T_{\rm raw}=t+m^{-1}\sum_kN_k^{(1)}J_k^{(1)}(\widehat\Delta_k^{(1)}-t)\), insert \(\widehat\Delta_k^{(1)}=\tau_k\) plus the residual defining \(W\) on matched cells, and use \(\sum_kN_k^{(1)}=m\).  Because \(m^{-1}\sum_{i=m_0+1}^n\delta_{X_i}=S\), iid sampling and the centering identity above imply
+\[
+ E[S]=0,\qquad E[S^2]\leq\frac{\sigma^2M^2}{m}. \tag{6}
+\]
+Moreover, if the last term of (5) is denoted by \(H\), then
+\[
+ |H|\leq U(|e|+\sigma M). \tag{7}
+\]
+The pilot and correction blocks are independent by iid sampling.  Hence (1) and (7) imply
+\[
+ E[H^2]
+ \leq2\{E[e^2]+\sigma^2M^2\}E[U^2]. \tag{8}
+\]
+The cited matched-cell occupancy bound \(\mathrm{lem:published\text{-}occupancy\text{-}risk}\), applied to the first \(m_0\) records, gives
+\[
+ E[e^2]\leq C_{\epsilon}M^2
+ \left(\sigma^2+\frac1{m_0}+\frac d{m_0^2}\right).
+\]
+For \(n\geq8\), \(m_0,m_1\geq n/2-1\); since \(d\leq n\), this reduces to
+\[
+ E[e^2]\leq C_{\epsilon}M^2(\sigma^2+n^{-1}),
+ \qquad
+ E[U^2]\leq C_{\epsilon}d^2/n^2. \tag{9}
+\]
+The conditional mean-zero property of \(W\) makes its cross term with the other terms in (5) vanish.  Applying \((x+y)^2\leq2x^2+2y^2\) to \(S+H\), and then using (4), (6), (8), and (9), gives
+\[
+ \begin{aligned}
+ E[(T_{\rm raw}-\tau(P))^2]
+ &\leq E[W^2]+2E[S^2]+2E[H^2]\\
+ &\leq C_{\epsilon}M^2\left\{
+ \frac1n+\frac{\sigma^2}{n}
+ +(\sigma^2+n^{-1})\frac{d^2}{n^2}\right\}\\
+ &\leq C_{\epsilon}M^2\left(\frac1n+\sigma^2\frac{d^2}{n^2}\right),
+ \end{aligned}
+\]
+where the last line uses \(d\leq n\) and \(0\leq\sigma\leq2\).  Since \(\tau(P)\in[-M,M]\), projection onto \([-M,M]\) cannot increase squared error, so the same bound holds for \(\widehat\tau^{\mathrm{em}}\).  Finally, when \(3\leq n<8\), the definition returns zero and the mean envelope gives \((0-\tau(P))^2\leq M^2\leq8M^2/n\).  Enlarging \(C_{\epsilon}\) proves the claim uniformly over every stated sample size, including null cells and entirely unmatched blocks.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact total estimator resolves a polynomial benchmark gap and supplies a stable low-degree branch under conditional second moments. \textit{Gap.} Zeng et al.'s binary-outcome occupancy analysis yields a term of order \(\sigma^2+d/n^2+1/n\); this real-outcome empirical-mass correction multiplies \(\sigma^2\) by squared unmatched mass for \(d\le n\). \textit{Consumer.} For \(d=\lfloor n^{3/4}\rfloor\) and \(\sigma^2=u_{n,d}\), it certifies MSE of order \(M^2/n\) for sparse categorical adjustment.
+
+\begin{theorem}[thm:refined-bracket]\label{thm:refined-bracket}
+There are constants \(0<c_{\epsilon}\le C_{\epsilon}<\infty\) such that throughout the declared parameter range, \[c_{\epsilon}M^2\{b_{n,d}+\sigma^2\min(1,u_{n,d})\}\le\mathsf R_{n,d,\epsilon,M,\sigma}\le C_{\epsilon}M^2q_{n,d,\sigma}^{\mathrm{em}}.\] This is an infimum-risk upper bound: for \(d\le n\) it combines \(\mathrm{lem:empirical\text{-}mass\text{-}upper}\) with the inherited bounds, and for \(d>n\) it equals the accepted parent's upper envelope. No claim about an algebraically unspecified selector is part of the theorem. Relative to the accepted parent's upper rate \(n^{-1}+\min\{1,u_{n,d},\sigma^2+d/n^2\}\), it is a strict tightening whenever \(d\le n\) and \(d/n^2+\sigma^2d^2/n^2<\min\{u_{n,d},\sigma^2+d/n^2\}\).
+\end{theorem}
+\begin{proof}
+The accepted same-class result \(\mathrm{lem:accepted\text{-}parent\text{-}bracket}\) gives, on exactly \(\mathcal P_{n,d,\epsilon,M,\sigma}\),
+\[
+ c_{\epsilon}M^2\{b_{n,d}+\sigma^2\min(1,u_{n,d})\}
+ \leq\mathsf R_{n,d,\epsilon,M,\sigma}
+\]
+and supplies a particular total data-driven estimator with risk at most
+\[
+ C_{\epsilon}M^2\left[\frac1n+
+ \min\left\{1,u_{n,d},\sigma^2+\frac d{n^2}\right\}\right]. \tag{10}
+\]
+This proves the asserted lower inequality without changing the model class.
+
+For the upper inequality, denote the total estimator supplied with (10) by \(T^{\rm par}\).  If \(d>n\), then \(v_{n,d}=1\), and the right side of (10) is exactly
+\[
+ C_{\epsilon}M^2\left[\frac1n+
+ \min\left\{1,u_{n,d},\frac d{n^2}+\sigma^2v_{n,d}\right\}\right]
+ =C_{\epsilon}M^2q_{n,d,\sigma}^{\mathrm{em}}. \tag{11}
+\]
+If \(d\leq n\), then \(v_{n,d}=d^2/n^2\), and \(\mathrm{lem:empirical\text{-}mass\text{-}upper}\) gives the second, total, data-driven candidate
+\[
+ E[(\widehat\tau^{\mathrm{em}}-\tau(P))^2]
+ \leq C_{\epsilon}M^2\left(\frac1n+\sigma^2v_{n,d}\right). \tag{12}
+\]
+Define one estimator from the sample by using \(\widehat\tau^{\mathrm{em}}\) when \(d\leq n\) and
+\[
+ \sigma^2v_{n,d}
+ \leq\min\left\{1,u_{n,d},\sigma^2+\frac d{n^2}\right\},
+\]
+and using \(T^{\rm par}\) otherwise.  This rule depends only on the known inputs \((n,d,\sigma)\); both branches are total on every sample.  Combining (10) and (12), and enlarging the comparison constant to the larger branch constant, gives
+\[
+ \begin{aligned}
+ \mathsf R_{n,d,\epsilon,M,\sigma}
+ &\leq C_{\epsilon}M^2\left[\frac1n+
+ \min\left\{1,u_{n,d},\sigma^2+\frac d{n^2},\sigma^2v_{n,d}\right\}\right]\\
+ &\leq C_{\epsilon}M^2\left[\frac1n+
+ \min\left\{1,u_{n,d},\frac d{n^2}+\sigma^2v_{n,d}\right\}\right]\\
+ &=C_{\epsilon}M^2q_{n,d,\sigma}^{\mathrm{em}}.
+ \end{aligned}
+\]
+This proves the upper inequality and exhibits the deterministic selector that witnesses it.
+
+It remains to verify the strict-improvement clause.  When \(d\leq n\),
+\(
+ u_{n,d}\leq1/\log^2(en)<1
+\).
+If
+\[
+ \frac d{n^2}+\sigma^2\frac{d^2}{n^2}
+ <\min\left\{u_{n,d},\sigma^2+\frac d{n^2}\right\},
+\]
+then the third entry in the definition of \(q_{n,d,\sigma}^{\mathrm{em}}\) is strictly smaller than every active entry of the parent's minimum.  Adding the common term \(n^{-1}\) preserves strict inequality, proving the final assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the strongest justified finite-sample advance without importing unspecified estimator bytes. \textit{Gap.} The accepted same-class parent has the displayed lower benchmark but the larger upper radius branch \(\sigma^2+d/n^2\); the empirical-mass branch strictly improves it on the displayed nondegenerate region. \textit{Consumer.} It gives analysts a conservative finite-sample risk certificate before the residual wedge is solved.
+
+\begin{proposition}[prop:empirical-mass-collision-region]\label{prop:empirical-mass-collision-region}
+Uniformly over \(2\le d\le n\) and \(0\le\sigma\le2\) satisfying
+\[
+ \sigma^2d^2\le n
+ \quad\text{or}\quad
+ u_{n,d}\le \frac1n,
+\]
+equivalently satisfying the first inequality or \(d^2\le n\log^2(en)\),
+\[
+ \mathsf R_{n,d,\epsilon,M,\sigma}\asymp_{\epsilon}\frac{M^2}{n}.
+\]
+In particular, for \(d=\lfloor n^{3/4}\rfloor\) and \(\sigma^2=u_{n,d}\), the minimax mean squared error is of order \(M^2/n\).
+\end{proposition}
+\begin{proof}
+Fix admissible \(n,d,\sigma\) with \(2\le d\le n\).  The lower inequality of \(\mathrm{thm:refined\text{-}bracket}\), followed by the definition \(b_{n,d}=n^{-1}+dn^{-2}\), gives
+\[
+ \mathsf R_{n,d,\epsilon,M,\sigma}
+ \ge c_{\epsilon}M^2\{b_{n,d}+\sigma^2\min(1,u_{n,d})\}
+ \ge c_{\epsilon}M^2b_{n,d}
+ \ge c_{\epsilon}\frac{M^2}{n}.                                      \tag{1}
+\]
+This lower bound applies in both branches of the asserted union.
+
+Suppose first that \(\sigma^2d^2\le n\).  Because \(d\le n\), \(\mathrm{lem:empirical\text{-}mass\text{-}upper}\) applies to the total estimator \(\widehat\tau^{\mathrm{em}}\).  The definition of minimax risk and that lemma imply
+\[
+ \begin{aligned}
+ \mathsf R_{n,d,\epsilon,M,\sigma}
+ &\le \sup_{P\in\mathcal P_{n,d,\epsilon,M,\sigma}}
+ E_{Q_P^{(n)}}[(\widehat\tau^{\mathrm{em}}-\tau(P))^2]\\
+ &\le C_{\epsilon}M^2\left(\frac1n+\sigma^2\frac{d^2}{n^2}\right)
+ \le 2C_{\epsilon}\frac{M^2}{n}.                                    \tag{2}
+ \end{aligned}
+\]
+The last inequality uses exactly \(\sigma^2d^2\le n\).
+
+Suppose instead that \(u_{n,d}\le n^{-1}\).  By the upper inequality of \(\mathrm{thm:refined\text{-}bracket}\) and the definition of \(q_{n,d,\sigma}^{\mathrm{em}}\),
+\[
+ \begin{aligned}
+ \mathsf R_{n,d,\epsilon,M,\sigma}
+ &\le C_{\epsilon}M^2q_{n,d,\sigma}^{\mathrm{em}}\\
+ &=C_{\epsilon}M^2\left[\frac1n+
+ \min\left\{1,u_{n,d},\frac d{n^2}+\sigma^2v_{n,d}\right\}\right]\\
+ &\le C_{\epsilon}M^2\left(\frac1n+u_{n,d}\right)
+ \le 2C_{\epsilon}\frac{M^2}{n}.                                    \tag{3}
+ \end{aligned}
+\]
+Combining (1) with (2) or (3) proves the uniform comparison.  Since \(n,d\), and \(\log(en)\) are positive,
+\[
+ u_{n,d}\le\frac1n
+ \quad\Longleftrightarrow\quad
+ \frac{d^2}{n^2\log^2(en)}\le\frac1n
+ \quad\Longleftrightarrow\quad
+ d^2\le n\log^2(en),                                                   \tag{4}
+\]
+which proves the stated equivalent form.
+
+Finally take \(d=\lfloor n^{3/4}\rfloor\) and \(\sigma^2=u_{n,d}\).  For every \(n\ge3\), \(2\le d\le n\), and
+\[
+ \sigma^2d^2
+ =\frac{d^4}{n^2\log^2(en)}
+ \le\frac{n}{\log^2(en)}
+ \le n.                                                               \tag{5}
+\]
+Thus this sequence is in the first branch, and (1)--(2) give the asserted order \(M^2/n\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem-level result combines two independently evaluable sufficient conditions: the empirical-mass branch \(\sigma^2d^2\le n\) and the inherited approximation branch \(u_{n,d}\le n^{-1}\). \textit{Gap.} The accepted parent leaves radius-dependent gaps, but its \(u_{n,d}\) upper branch and the empirical-mass correction together already close this full union at the collision scale. \textit{Consumer.} For sparse adjustment tables, the result specifies when a calibrated near-homogeneity assumption is sufficient for parametric-order ATE estimation; it does not claim necessity outside the proved union.
+
+\begin{lemma}[lem:global-shift-prior-fails]\label{lem:global-shift-prior-fails}
+For every \(n\ge3\), every support law of \(\Pi_h^\star\) belongs to \(\mathcal P_{n,n,\epsilon,M,\sigma_n^\star}\), the two design marginals are identical, and their ATE intervals are the singletons \(\{-\Delta_n^\star\}\) and \(\{\Delta_n^\star\}\). For the full-sample mixtures \(\mathbb Q_h^\star:=\int Q_P^{(n)}\,d\Pi_h^\star(P)\), the sign test based on \(\overline Z_n\) gives \[\operatorname{TV}(\mathbb Q_{-1}^\star,\mathbb Q_1^\star)\ge1-2\exp\!\left\{-\frac{n(\Delta_n^\star)^2}{2M^2}\right\}=1-2\exp\!\left\{-\frac{\log^2(en)}{32\log^2(e+\log^2(en))}\right\}.\] Hence this exactly normalized supportwise-radius family violates the required mixture-distance bound for all sufficiently large \(n\); the failed condition is full-mixture indistinguishability, caused by its hypothesis-wide outcome shift.
+\end{lemma}
+\begin{proof}
+Fix \(n\geq3\), \(h\in\{-1,1\}\), and \(z\in\mathcal Z_n\).  Elementary differentiation shows that \(x\mapsto\log(ex)/\sqrt{x}\) decreases for \(x\geq3\), so
+\[
+ 0<\sigma_n^\star\leq\frac{\log(3e)}{\sqrt3}<\frac43.
+\]
+Also \(\ell_n^\star>1\).  Therefore every effect in \(\mathrm{def:benchmark\text{-}marked\text{-}family}\) satisfies
+\[
+ \frac{|\tau_k|}{M}
+ \leq\frac{\Delta_n^\star}{M}+\frac{\sigma_n^\star}{2}
+ =\frac{\sigma_n^\star}{4\ell_n^\star}+\frac{\sigma_n^\star}{2}
+ <1. \tag{13}
+\]
+Thus all displayed Bernoulli probabilities are in \([0,1]\).  Their conditional means are
+\[
+ E[Y(a)\mid X=k]
+ =\frac M2\left[2\left\{\frac12+\frac{(2a-1)\tau_k}{2M}\right\}-1\right]
+ =\frac{(2a-1)\tau_k}{2}=\mu_{ak},
+\]
+which obey the mean envelope by (13), and their conditional central variances are at most \(M^2/4\), hence obey the second-moment envelope.  The construction draws \(A\) independently of both potential outcomes conditional on \(X\) and sets \(Y=Y(A)\); consequently conditional exchangeability and consistency hold.  Its propensity is \(1/2\), which obeys overlap because \(0<\epsilon<1/2\).
+
+Exact mass normalization follows from \(p_k=1/n\) for \(1\leq k\leq n\).  Since \(z\in\mathcal Z_n\) has \(\sum_kz_k=0\),
+\[
+ \tau(P_{h,z}^\star)
+ =\frac1n\sum_{k=1}^n\left(h\Delta_n^\star+\frac{M\sigma_n^\star}{2}z_k\right)
+ =h\Delta_n^\star, \tag{14}
+\]
+and, for every occupied cell,
+\[
+ |\tau_k-\tau(P_{h,z}^\star)|
+ =\frac{M\sigma_n^\star}{2}|z_k|
+ \leq\frac{M\sigma_n^\star}{2}
+ \leq M\sigma_n^\star. \tag{15}
+\]
+Equations (13)--(15) and the preceding checks prove \(P_{h,z}^\star\in\mathcal P_{n,n,\epsilon,M,\sigma_n^\star}\).  They also prove that both mixture hypotheses have the identical deterministic design \((p_k,\pi_k)=(1/n,1/2)\), and that their ATE supports are the singletons \(\{h\Delta_n^\star\}\).
+
+For the distance calculation set \(Z_i=(2A_i-1)Y_i\).  Conditional on any fixed \((h,z)\), the \(Z_i\) are iid, lie in \([-M/2,M/2]\), and satisfy
+\[
+ E[Z_i\mid h,z]
+ =\sum_{k=1}^n\frac1n\sum_{a=0}^1\frac12(2a-1)\mu_{ak}
+ =\frac12\tau(P_{h,z}^\star)
+ =\frac{h\Delta_n^\star}{2}. \tag{16}
+\]
+For completeness, let a random variable \(V\) lie in \([a,b]\), put \(p=(EV-a)/(b-a)\), and set \(t=\lambda(b-a)\).  Convexity of the exponential gives
+\[
+ E e^{\lambda(V-EV)}
+ \leq e^{-pt}\{1-p+pe^t\}.
+\]
+If \(g(t)=\log[e^{-pt}\{1-p+pe^t\}]\), then \(g(0)=g'(0)=0\), while \(g''(t)\) is the variance of a Bernoulli variable under an exponential tilt and hence is at most \(1/4\).  Integrating this inequality twice, for either sign of \(t\), gives \(g(t)\leq t^2/8\).  With \(b-a=M\),
+\[
+ E\exp\{\lambda(V-EV)\}\leq\exp(\lambda^2M^2/8). \tag{17}
+\]
+Exponential Markov inequality applied to (16), optimized at \(\lambda=2\Delta_n^\star/M^2\), therefore yields uniformly in \(z\)
+\[
+ Q_{P_{1,z}^\star}^{(n)}(\overline Z_n\leq0)
+ \leq\exp\left\{-\frac{n(\Delta_n^\star)^2}{2M^2}\right\},
+ \qquad
+ Q_{P_{-1,z}^\star}^{(n)}(\overline Z_n\geq0)
+ \leq\exp\left\{-\frac{n(\Delta_n^\star)^2}{2M^2}\right\}. \tag{18}
+\]
+Integrating (18) over the two uniform priors preserves both bounds.  With \(B=\{\overline Z_n>0\}\), the variational definition of total variation then gives
+\[
+ \begin{aligned}
+ \operatorname{TV}(\mathbb Q_{-1}^\star,\mathbb Q_1^\star)
+ &\geq \mathbb Q_1^\star(B)-\mathbb Q_{-1}^\star(B)\\
+ &\geq1-2\exp\left\{-\frac{n(\Delta_n^\star)^2}{2M^2}\right\}\\
+ &=1-2\exp\left\{-\frac{\log^2(en)}{32\log^2(e+\log^2(en))}\right\},
+ \end{aligned}
+\]
+where the last equality uses the definitions of \(\sigma_n^\star\), \(\ell_n^\star\), and \(\Delta_n^\star\).  The exponent tends to infinity because \(\log(en)/\log(e+\log^2(en))\to\infty\).  Hence the lower bound on total variation tends to one and in particular exceeds \(1/3\) for all sufficiently large \(n\).  The full-mixture indistinguishability condition fails despite exact normalization, common design, and realization-wise radius control; equation (16) identifies the hypothesis-wide outcome shift as the cause.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The benchmark calculation kills the simplest marked-prior route before any global frontier formula is asserted. \textit{Gap.} The accepted parent records a channel obstruction but does not test an exactly normalized shared-design marked family at the radius-dependent benchmark. \textit{Consumer.} Any valid lower-bound construction must remove the globally testable shift rather than merely randomize balanced cell marks.
+
+\begin{openendedquestion}[oeq:repair-benchmark-prior]\label{oeq:repair-benchmark-prior}
+At \(d=n\) and \(\sigma=\sigma_n^\star\), carry out \(\mathrm{def:benchmark\text{-}repair\text{-}handle}\): determine the maximal \(\rho_n\) for supportwise feasible, exactly normalized priors with identical design marginals, ATEs concentrated in disjoint intervals separated by \(M\rho_n\), and full-sample total variation at most \(1/3\). Prove either \(\rho_n\sqrt n\to\infty\), which supplies a substantive same-class lower bound inside the accepted parent's residual wedge, or a quantitative obstruction showing that this conditionally centered shared-design program cannot exceed the parametric separation order. Only a benchmark construction that passes exact normalization, realization-wise radius, target concentration, and full-mixture distance may be extended across \(\mathcal W\); no global rate formula is committed before that test.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This isolates the first converse calculation after removing both the empirical region and the already-closed \(u_{n,d}\le n^{-1}\) approximation region. \textit{Gap.} At \(d=n\) and \(\sigma^2=\log^2(en)/n\), neither closed-region condition holds.  The outer separation bracket remains logarithmically nonmatching, and the conditionally centered marked-score program is not specified tightly enough to decide whether super-parametric separation is feasible. \textit{Consumer.} A benchmark construction passing normalization, realization-wise radius, target concentration, and full-mixture distance would justify extending a rare-cell converse into the corrected residual wedge; a universal parametric obstruction would rule out that architecture.
+
+\begin{lemma}[lem:published-occupancy-risk]\label{lem:published-occupancy-risk}
+Under \(\mathrm{ass:iid\text{-}sampling}\), \(\mathrm{ass:overlap}\), \(\mathrm{ass:mean\text{-}envelope}\), \(\mathrm{ass:second\text{-}moment\text{-}envelope}\), and \(\mathrm{ass:maximal\text{-}effect\text{-}radius}\), the clipped matched-cell occupancy estimator \(\widetilde\tau\) computed from the first \(m_0\) observations satisfies, for \(n\geq 8\),
+\[
+ E_{Q_P^{(n)}}\!\left[(\widetilde\tau-\tau(P))^2\right]
+ \leq C_{\epsilon}M^2\left(\sigma^2+\frac1{m_0}+\frac d{m_0^2}\right)
+\]
+uniformly over \(P\in\mathcal P_{n,d,\epsilon,M,\sigma}\).  The statement is the rescaled real-outcome, bounded-conditional-second-moment form of the published matched-cell occupancy bound.
+\end{lemma}
+
+\begin{lemma}[lem:accepted-parent-bracket]\label{lem:accepted-parent-bracket}
+Throughout the declared range, there are total observed-sample estimators and constants depending only on \(\epsilon\) for which
+\[
+ c_{\epsilon}M^2\left\{b_{n,d}+\sigma^2\min(1,u_{n,d})\right\}
+ \leq \mathsf R_{n,d,\epsilon,M,\sigma}
+ \leq C_{\epsilon}M^2\left[\frac1n+\min\left\{1,u_{n,d},\sigma^2+\frac d{n^2}\right\}\right].
+\]
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+A hypothesis-independent outcome-channel transfer gives only product-scale separation, and the natural centered linear Chebyshev factorial lift has excessive singleton-pair variance even with oracle centering at \(\sigma=0\).  The explicit family \(\Pi_h^\star\) further shows that exact normalization, identical design marginals, supportwise radius, and separated ATEs are not sufficient: its hypothesis-wide outcome shift yields a sign test with total variation tending to one at \(d=n\) and \(\sigma^2=\log^2(en)/n\).  The newly closed approximation branch removes every \(d\le n\) point with \(u_{n,d}\le n^{-1}\) from the residual problem.  Any replacement converse must operate in the corrected wedge, eliminate the globally visible first-order coefficient, and control the full marked likelihood.
+
+\section{Honest scope}
+
+Consistency and exchangeability identify the displayed ATE.  The established claims are the empirical-mass risk bound, the refined infimum-risk bracket, collision-scale minimax risk for \(2\le d\le n\) whenever \(\sigma^2d^2\le n\) or \(u_{n,d}\le n^{-1}\), and failure of the displayed benchmark global-shift prior.  The open domain \(\mathcal W\) now requires \(n^{-1}<u_{n,d}<1\) in addition to \(d>n\) or \(\sigma^2d^2>n\); the benchmark marked-prior repair remains open inside that domain.  No global sharp rate, unspecified selector, unknown-radius adaptation, confidence interval, bounded-outcome assumption, overlap validation, or claim about the reported 401(k) intervals is included.
+
+\begin{thebibliography}{99}
+
+  \bibitem{ZengBalakrishnanHanKennedy2024} Zeng, Zhenghao, Sivaraman Balakrishnan, Yanjun Han, and Edward H. Kennedy. 2024. "Causal Inference with High-dimensional Discrete Covariates." arXiv:2405.00118, version 3 dated 2026.
+
+  \bibitem{AcceptedParent2026} CausalSmith. 2026. "Discrete ATE Heterogeneity Frontier." Internal accepted proposal \(\mathrm{stat\_discrete\_ate\_heterogeneity\_frontier\_v1}\); non-archival research artifact.
+
+  \bibitem{JiaoVenkatHanWeissman2015} Jiao, Jiantao, Kartik Venkat, Yanjun Han, and Tsachy Weissman. 2015. "Minimax Estimation of Functionals of Discrete Distributions." IEEE Transactions on Information Theory 61(5): 2835--2885.
+
+  \bibitem{WuYang2019} Wu, Yihong, and Pengkun Yang. 2019. "Chebyshev Polynomials, Moment Matching, and Optimal Estimation of the Unseen." Annals of Statistics 47(2): 857--883.
+
+  \bibitem{HanJiaoWeissman2018} Han, Yanjun, Jiantao Jiao, and Tsachy Weissman. 2018. "Local Moment Matching: A Unified Methodology for Symmetric Functional Estimation and Distribution Estimation under Wasserstein Distance." Proceedings of Machine Learning Research 75: 1--33.
+
+  \bibitem{OrlitskySureshWu2016} Orlitsky, Alon, Ananda Theertha Suresh, and Yihong Wu. 2016. "Optimal Prediction of the Number of Unseen Species." Proceedings of the National Academy of Sciences 113(47): 13283--13288.
+
+  \bibitem{RobinsLiMukherjeeTchetgenVanderVaart2017} Robins, James, Lingling Li, Rajarshi Mukherjee, Eric Tchetgen Tchetgen, and Aad van der Vaart. 2017. "Minimax Estimation of a Functional on a Structured High-Dimensional Model." Annals of Statistics 45(5): 1951--1987.
+
+  \bibitem{PolyanskiyWu2026} Polyanskiy, Yury, and Yihong Wu. 2026. "Dualizing Le Cam's Method for Functional Estimation I: General Theory." Annals of Statistics 54(1): 1--24.
+
+  \bibitem{HernanRobins2020} Hernán, Miguel A., and James M. Robins. 2020. Causal Inference: What If. Boca Raton: Chapman and Hall/CRC.
+
+\end{thebibliography}
+
+\end{document}

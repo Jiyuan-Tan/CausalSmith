@@ -1,0 +1,470 @@
+%%% FIELD proof-sanity-witness
+Let the displayed functions be fixed. The propensity satisfies
+\[
+  \frac{15}{32}\le e(x)\le\frac{17}{32},
+\]
+and \(m_0(x)=3/8\). Moreover,
+\[
+  m_1(x)=m_0(x)+\tau(x)=\frac12+\eta\sin(2\pi x_1),
+  \qquad
+  \frac{15}{32}\le m_1(x)\le\frac{17}{32}.
+\]
+Thus all three pointwise margin assumptions hold. For \(r=\lVert x-z\rVert_2\),
+\[
+ |e(x)-e(z)|\le \frac1{16}\min\{r,1\}\le \frac1{16}r^\alpha\le Lr^\alpha.
+\]
+Here the middle inequality holds separately for \(r\le1\) and \(r\ge1\). Hence the propensity-smoothness assumption holds. The constant function \(m_0\) satisfies the baseline-smoothness assumption. Finally,
+\[
+ |\tau(x)-\tau(z)|
+ \le |\eta|\min\{2,2\pi r\}
+ \le 2\pi|\eta|\min\{r,1\}
+ \le \frac{\pi}{16}r^\gamma
+ \le Lr^\gamma,
+\]
+and \(\lVert\tau\rVert_\infty\le5/32<L\), so the CATE-smoothness assumption also holds.
+
+It remains to exhibit a full-data law rather than only observed regressions. Draw \(X\sim\lambda\), then, conditionally on \(X=x\), draw \(A\sim\operatorname{Bernoulli}(e(x))\) independently of conditionally independent variables
+\[
+ Y(0)\sim\operatorname{Bernoulli}(m_0(x)),
+ \qquad
+ Y(1)\sim\operatorname{Bernoulli}(m_1(x)),
+\]
+and set \(Y=AY(1)+(1-A)Y(0)\). This construction gives consistency and conditional exchangeability, while its observed propensity and arm regressions are exactly \(e,m_0,m_1\). Consequently it is a member of the class in \(\texttt{def:causal-law-class}\).
+
+By Fubini's theorem and \(\int_0^1\sin(2\pi u)\,du=0\),
+\[
+ \bar\tau=\int_{[0,1]^d}\tau(x)\,dx=\frac18.
+\]
+The definition of \(D\) then gives
+\[
+ D(P)^2
+ =\eta^2\int_{[0,1]^d}\sin^2(2\pi x_1)\,dx
+ =\frac{\eta^2}{2},
+ \qquad
+ D(P)=\frac{|\eta|}{\sqrt2}.
+\]
+At \(\eta=0\), the effect is the nonzero constant \(1/8\in I\), so the constructed law belongs to \(\mathcal H_0\).
+
+%%% FIELD proof-known-propensity
+First, the propensity margin makes every displayed denominator positive. Conditional on \(X=x\), consistency of the observed arm regressions yields
+\[
+ \begin{aligned}
+ \mathbb E_P[(A-e(x))Y\mid X=x]
+ &=e(x)\{1-e(x)\}m_1(x)
+   -\{1-e(x)\}e(x)m_0(x)\\
+ &=e(x)\{1-e(x)\}\tau(x).
+ \end{aligned}
+\]
+Division by \(e(x)\{1-e(x)\}\ge3/16\) proves \(\mathbb E_P[W\mid X]=\tau(X)\). More sharply, on \(A=1\), \(|W|\le1/e(X)\le4\), and on \(A=0\), \(|W|\le1/\{1-e(X)\}\le4\); hence \(|W|\le4\) almost surely.
+
+We next give an explicit upper test. Partition \(\mathcal X\) into \(J=m^d\) equal cubes and define
+\[
+ K_m(x,z)=J\mathbf 1\{x,z\text{ are in the same cube}\},
+ \qquad K_m^0(x,z)=K_m(x,z)-1.
+\]
+For \(n\ge2\), put
+\[
+ T_m=\frac1{n(n-1)}\sum_{i\ne j}W_iW_jK_m^0(X_i,X_j).
+\]
+This is a measurable function of \((O^n,e_P)\). Let \(\Pi_m\) denote the \(L^2(\lambda)\)-orthogonal projection onto functions constant on the cubes. Independence, the preceding conditional-mean identity, and the uniform-design assumption give
+\[
+ \theta_m:=\mathbb E_PT_m
+ =\lVert\Pi_m\tau-\bar\tau\rVert_2^2.
+\]
+Because \(\Pi_m\) preserves constants, orthogonality gives the Pythagorean identity
+\[
+ D(P)^2=\theta_m+\lVert\tau-\Pi_m\tau\rVert_2^2.
+\]
+The CATE-smoothness assumption and the cube diameter \(\sqrt d/m\) imply
+\[
+ \lVert\tau-\Pi_m\tau\rVert_2^2
+ \le L^2d^\gamma m^{-2\gamma},
+ \qquad
+ \theta_m\ge D(P)^2-L^2d^\gamma m^{-2\gamma}.
+\]
+
+For completeness, expand the variance directly. The first centered projection of the symmetric order-two kernel is
+\[
+ W\{\Pi_m\tau(X)-\bar\tau\}-\theta_m,
+\]
+whose variance is at most \(16\theta_m\), since \(|W|\le4\). The squared \(L^2(P^2)\) norm of the original kernel is at most
+\[
+ 4^4\iint K_m^0(x,z)^2\,d\lambda(x)d\lambda(z)
+ =256(J-1).
+\]
+Subtracting projections cannot increase the squared norm. Expanding the covariance of the pair average according to whether two index pairs share one or zero observations therefore gives
+\[
+ \operatorname{Var}_P(T_m)
+ \le \frac{64\theta_m}{n}
+      +\frac{512(J-1)}{n(n-1)}.                                      \tag{1}
+\]
+Under \(\mathcal H_0\), \(\tau\) is constant, so \(\theta_m=0\). Thus the test
+\[
+ \phi_m=\mathbf 1\!\left\{T_m>
+ \left(\frac{10240(J-1)}{n(n-1)}\right)^{1/2}\right\}
+\]
+has null rejection probability at most \(1/20=a_0\) by (1) and Chebyshev's inequality. If
+\[
+ D(P)^2\ge C_1\left\{m^{-2\gamma}+\frac{\sqrt J}{n}\right\},          \tag{2}
+\]
+where \(C_1\) depends only on \(\gamma,d,L\) and is sufficiently large, then the projection bound makes \(\theta_m\) at least a fixed large multiple of both the rejection threshold and \(1/n\). Applying Chebyshev to the lower tail in (1) gives
+\[
+ \mathbb P_P(\phi_m=0)
+ \le
+ \frac{64\theta_m/n+512(J-1)/\{n(n-1)\}}
+ {\left[\theta_m-\{10240(J-1)/(n(n-1))\}^{1/2}\right]^2}
+ \le b_0,                                                            \tag{3}
+\]
+after increasing \(C_1\). Choose \(m\) to be the nearest integer at least two to \(n^{2/(4\gamma+d)}\). Then both terms on the right of (2) are bounded by a constant times \(n^{-4\gamma/(4\gamma+d)}\). Equations (2)--(3) and the definition of the known-propensity critical radius prove
+\[
+ \rho_{n,e}^*\le C n^{-2\gamma/(4\gamma+d)}.                          \tag{4}
+\]
+
+We prove the converse on a submodel with the same supplied propensity. Fix \(e\equiv1/2\), \(m_0\equiv3/8\), and the null \(\tau_0\equiv1/8\). Choose a nonzero function \(\psi\in C_c^\infty((1/4,3/4)^d)\) with \(\int\psi=0\). For the \(J=m^d\) cubes let \(\psi_j\) be its translate and rescaling to cube \(j\), and for \(\lambda=(\lambda_1,\ldots,\lambda_J)\in\{-1,1\}^J\) put
+\[
+ f_\lambda=\sum_{j=1}^J\lambda_j\psi_j,
+ \qquad
+ \tau_\lambda=\frac18+\delta f_\lambda,
+ \qquad
+ \delta=\varepsilon m^{-\gamma}.                                    \tag{5}
+\]
+The supports have a fixed relative collar. Hence there is a constant \(C_\psi\) such that every \(f_\lambda\) has supremum norm at most \(C_\psi\) and Hölder-\(\gamma\) seminorm at most \(C_\psi m^\gamma\). Choosing the fixed \(\varepsilon>0\) sufficiently small, as a function only of \(\gamma,d,L\), makes every law in (5) satisfy the CATE Hölder restriction and all Bernoulli margins. The constant \(e\) and \(m_0\) satisfy their restrictions for every \(\alpha,\beta\in(0,1]\). The conditional-independent Bernoulli coupling used in the sanity witness supplies consistency and exchangeability. Thus the null and all alternatives belong to the unchanged causal class. Also,
+\[
+ \int f_\lambda=0,
+ \qquad
+ D(P_\lambda)^2
+ =\delta^2\sum_{j=1}^J\int\psi_j^2
+ =\delta^2\lVert\psi\rVert_2^2.                                    \tag{6}
+\]
+Let \(P_0\) be the null observed law. Only the treated outcome regression changes, and its null value is \(1/2\). Therefore the one-observation likelihood ratio is
+\[
+ \frac{dP_\lambda}{dP_0}(O)
+ =1+2\delta f_\lambda(X)(2Y-1)\mathbf1\{A=1\}.                       \tag{7}
+\]
+For independent uniform sign vectors \(\lambda,\lambda'\), (7), uniform design, and disjoint supports give
+\[
+ \mathbb E_{P_0}\!\left[\frac{dP_\lambda}{dP_0}
+                         \frac{dP_{\lambda'}}{dP_0}\right]
+ =1+2\delta^2m^{-d}\lVert\psi\rVert_2^2
+       \sum_{j=1}^J\lambda_j\lambda'_j.                              \tag{8}
+\]
+Let \(\overline P_n=2^{-J}\sum_\lambda P_\lambda^{\otimes n}\). Using \((1+x)^n\le e^{nx}\), then independence of the products \(\lambda_j\lambda'_j\), and finally \(\cosh u\le e^{u^2/2}\), equations (7)--(8) imply
+\[
+ \begin{aligned}
+ 1+\chi^2(\overline P_n,P_0^{\otimes n})
+ &\le\left[\cosh\{2n\delta^2m^{-d}\lVert\psi\rVert_2^2\}\right]^J\\
+ &\le\exp\{2n^2\delta^4m^{-d}\lVert\psi\rVert_2^4\}.
+ \end{aligned}                                                       \tag{9}
+\]
+Take \(m\) to be an integer comparable to \(n^{2/(4\gamma+d)}\). The exponent in (9) is bounded by a constant multiple of \(\varepsilon^4\). Choose \(\varepsilon\) still smaller so that
+\[
+ \operatorname{TV}(\overline P_n,P_0^{\otimes n})
+ \le\frac12\sqrt{\chi^2(\overline P_n,P_0^{\otimes n})}<\frac34.    \tag{10}
+\]
+The displayed total-variation inequality follows directly from Cauchy--Schwarz applied to the likelihood ratio minus one. If a level-\(a_0\) test had type-II error at most \(b_0\) against all alternatives in (5), its rejection expectations under \(P_0^{\otimes n}\) and \(\overline P_n\) would differ by at least \(1-b_0-a_0=3/4\), contradicting (10). By (6) and integer comparability,
+\[
+ \rho_{n,e}^*\ge c n^{-2\gamma/(4\gamma+d)}.                          \tag{11}
+\]
+Combining (4) and (11) proves the claimed benchmark. All constants and the threshold use only \(\gamma,d,L\) because the upper test never estimates \(e\) or \(m_0\), while the lower submodel uses constant nuisances.
+
+%%% FIELD proof-rough-diagnostic
+Write \(M=M_{\mathrm{diag}}\), so \(\ell=(2M)^{-1}\), and put
+\[
+ F_\sigma(x)=\sum_{j=1}^M\sigma_jb_{j,\ell}(x),
+ \qquad
+ G(x)=\sum_{j=1}^M b_{j,\ell}(x)^2,
+ \qquad
+ q=q_\ell=\epsilon_{\mathrm{diag}}\ell^{1/2}.
+\]
+The bump supports are disjoint and separated by collars. The zero extension of \(b\) is Lipschitz with constant one. The elementary inequality \(\min\{1,u\}\le u^{1/10}\) for \(u\ge0\) therefore shows, first within a bump and then across the collars, that
+\[
+ |qF_\sigma(x)-qF_\sigma(z)|
+ \le C\epsilon_{\mathrm{diag}}\ell^{2/5}|x-z|^{1/10}
+ \le C\epsilon_{\mathrm{diag}}|x-z|^{1/10}.                          \tag{12}
+\]
+The same argument applied to \(q^2G\) gives a Hölder-\(1/10\) constant at most \(C\epsilon_{\mathrm{diag}}^2\ell^{9/10}\). Since \(|(b^2)'|\le2\), the function \(q^2G\) is also Lipschitz with constant at most \(2q^2/\ell=2\epsilon_{\mathrm{diag}}^2\). Thus, for sufficiently small fixed \(\epsilon_{\mathrm{diag}}\), the null propensity and baseline meet the two Hölder-\(1/10\) restrictions, while the alternative baseline meets that restriction and the alternative CATE meets the Hölder-one restriction. The null CATE is constant. The bounds \(|F_\sigma|\le1\), \(0\le G\le1\), and \(q\le\epsilon_{\mathrm{diag}}\le1/64\) show directly that \(e,m_0,m_1\) all remain in \([1/4,3/4]\). The conditional-independent Bernoulli construction in \(\texttt{def:rough-prior-diagnostic}\) gives exact uniform design, consistency, and conditional exchangeability. Hence every displayed law belongs to \(\mathcal P(1/10,1/10,1,L,1)\), and every null draw has \(\tau\equiv1/8\).
+
+We next verify the one-observation equality. At a fixed \(x\), at most one bump is nonzero. Write \(v=qb_{j,\ell}(x)\) on that bump and let \(\sigma=\sigma_j\). Under a null component,
+\[
+ e_\sigma=\frac12+\sigma v,
+ \qquad m_{0,\sigma}=\frac38+\sigma v,
+ \qquad m_{1,\sigma}=\frac12+\sigma v.
+\]
+Averaging over the symmetric sign gives
+\[
+ \begin{aligned}
+ \mathbb E_\sigma[(1-e_\sigma)m_{0,\sigma}]&=\frac3{16}-v^2,\\
+ \mathbb E_\sigma[e_\sigma m_{1,\sigma}]&=\frac14+v^2,\\
+ \mathbb E_\sigma[e_\sigma]&=\frac12.
+ \end{aligned}                                                       \tag{13}
+\]
+Under the alternative, \(e_1=1/2\), \(m_{0,1}=3/8-2v^2\), and \(m_{1,1}=1/2+2v^2\), so its corresponding three quantities in (13) are identical. Those quantities determine all four probabilities of \((A,Y)\in\{0,1\}^2\). Outside the bumps \(v=0\), and the same calculation applies. Integration against the common uniform law of \(X\) proves exact equality of the mixed-null and alternative one-observation laws.
+
+For two observations, conditional independence holds given the common sign vector. The law of total covariance and independence of its coordinates give
+\[
+ \begin{aligned}
+ \operatorname{Cov}_{\sigma}(A_i,A_k\mid X_i=x,X_k=z)
+ &=\operatorname{Cov}_{\sigma}\{e_\sigma(x),e_\sigma(z)\}\\
+ &=q^2\sum_{j=1}^M b_{j,\ell}(x)b_{j,\ell}(z).
+ \end{aligned}                                                       \tag{14}
+\]
+The alternative is one fixed iid law, so the corresponding conditional covariance is zero. Thus (14) is the first nonmatching repeated-observation moment.
+
+Finally, \(M\ell=1/2\), the bump supports are disjoint, and a change of variables gives
+\[
+ \int_0^1G(x)\,dx=\frac12\int_0^1b(t)^2\,dt,
+ \qquad
+ \int_0^1G(x)^2\,dx=\frac12\int_0^1b(t)^4\,dt.                       \tag{15}
+\]
+Since \(\tau_1=1/8+4\epsilon_{\mathrm{diag}}^2\ell G\), equations (15) and the definition of \(D\) yield
+\[
+ D(P_{1,\ell})
+ =4\epsilon_{\mathrm{diag}}^2\ell
+ \left\{\frac12\int_0^1b(t)^4\,dt
+ -\frac14\left(\int_0^1b(t)^2\,dt\right)^2\right\}^{1/2}.            \tag{16}
+\]
+The expression in braces is positive because \(G\) is not almost everywhere constant: \(b\) is nonconstant and vanishes off a strict subinterval. This proves every assertion.
+
+%%% FIELD proof-single-scale-upper
+Let \(\mathcal B_m\) be the equal-cube partition and, for \(B\in\mathcal B_m\), write \(\mathbb E_B\) for conditioning on \(X\in B\), \(e_B=\mathbb E_Be\), and \(v_B=e_B(1-e_B)\). Uniform design gives \(\lambda(B)=J^{-1}\). Direct expansion using \(m_1=m_0+\tau\) gives, for every \(c\in I\),
+\[
+ \begin{aligned}
+ g_B(c)
+ &:=\operatorname{Cov}(A,Y\mid X\in B)-c\operatorname{Var}(A\mid X\in B)\\
+ &=\mathbb E_B[e(m_0+\tau)]-e_B\{\mathbb E_Bm_0+\mathbb E_B(e\tau)\}-cv_B\\
+ &=\operatorname{Cov}_B(e,m_0)+(1-e_B)\mathbb E_B[e(\tau-c)].
+ \end{aligned}                                                       \tag{17}
+\]
+For independent \(X,X'\) conditional on \(B\), the covariance identity
+\[
+ \operatorname{Cov}_B(e,m_0)
+ =\frac12\mathbb E_B[(e(X)-e(X'))(m_0(X)-m_0(X'))]
+\]
+and the two Hölder assumptions imply the sharper range bound
+\[
+ |\operatorname{Cov}_B(e,m_0)|
+ \le B_h:=\frac{L^2}{4}d^{(\alpha+\beta)/2}h^{\alpha+\beta}.          \tag{18}
+\]
+Indeed, each conditional range is at most \(Ld^{s/2}h^s\), and the covariance of two variables is at most one quarter of the product of their ranges. The propensity margin gives \(3/16\le v_B\le1/4\). Put
+\[
+ t_B=\frac{\operatorname{Cov}(A,Y\mid X\in B)}{v_B}
+     =\frac{\mathbb E_B(e\tau)}{e_B}
+      +\frac{\operatorname{Cov}_B(e,m_0)}{v_B}.                       \tag{19}
+\]
+The first expression in (19) is also the difference of the two arm-specific outcome means conditional on the bin. The outcome margins therefore imply \(t_B\in I\). For every \(x\in B\), (18)--(19) and CATE smoothness give
+\[
+ |t_B-\tau(x)|\le E_h
+ :=Ld^{\gamma/2}h^\gamma+\frac{16}{3}B_h.                            \tag{20}
+\]
+Define
+\[
+ Q_h(c)=J^{-1}\sum_{B\in\mathcal B_m}g_B(c)^2,
+ \qquad q_h=\min_{c\in I}Q_h(c).
+\]
+Since \(g_B(c)=v_B(t_B-c)\), the distance-to-constants map is one-Lipschitz in \(L^2(\lambda)\). Applying this fact to the step function equal to \(t_B\) on \(B\), and then using (20), yields
+\[
+ q_h\ge\left(\frac3{16}\right)^2\{D(P)-E_h\}_+^2.                    \tag{21}
+\]
+Under a null with true constant \(c_0\), (17)--(18) give \(Q_h(c_0)\le B_h^2\).
+
+We now analyze the statistic in \(\texttt{def:single-scale-fourth-order-test}\). Write \(V(c)=Y-cA\). For two independent observations conditional on the same bin,
+\[
+ \mathbb E[(A_1-A_2)\{V_1(c)-V_2(c)\}\mid X_1,X_2\in B]=2g_B(c).
+\]
+Independence of the two pairs and uniform bin probability therefore gives
+\[
+ \mathbb E_PU_{n,m}(c)
+ =J^3\sum_BJ^{-4}\frac{(2g_B(c))^2}{4}=Q_h(c).                       \tag{22}
+\]
+
+We next establish the variance bound used by the fixed threshold. Let \(H_c\) be the symmetrized order-four kernel. If \(O=(x,a,y)\), \(x\in B\), \(z=y-ca\), and \(r_B=\mathbb E_B(Y-cA)\), direct conditioning of any of the three pairings gives
+\[
+ \mathbb E[H_c\mid O]
+ =\frac{g_B(c)}2\left[(a-e_B)(z-r_B)+g_B(c)\right].                  \tag{23}
+\]
+The range of \(Y-cA\) is at most \(3/2\). Also, by (19), \(|g_B(c)|=v_B|t_B-c|\le1/4\). Hence the squared norm of the centered first projection is no larger than the second moment of (23), which is at most \(Q_h(c)\).
+
+For \(r=2,3,4\), the conditional expectation of \(H_c\) given \(r\) observations vanishes unless their covariates share a bin. Its absolute value is at most \(J^{r-1}\), because the remaining \(4-r\) observations must enter that bin and the bounded unsmoothed factor has absolute value below one. The shared-bin event has probability \(J^{-(r-1)}\), so its squared norm is at most \(J^{r-1}\). To make the variance accounting explicit, define the canonical projections recursively by subtracting from each conditional expectation all lower-order projections. Conditional mean zero makes projections indexed by distinct subsets orthogonal. Expanding the average of \(H_c\) into these projections gives
+\[
+ \operatorname{Var}\{U_{n,m}(c)\}
+ =\sum_{r=1}^4\frac{\binom4r^2}{\binom nr}\lVert h_{r,c}\rVert_2^2.
+\]
+The recursive orthogonal decomposition also shows that \(\lVert h_{r,c}\rVert_2^2\) is at most the squared norm of the corresponding conditional expectation. For \(n\ge8\), the preceding bounds and elementary estimates on the four binomial coefficients give
+\[
+ \operatorname{Var}\{U_{n,m}(c)\}
+ \le1024\left\{\frac{Q_h(c)}n+\frac{J}{n^2}
+ +\frac{J^2}{n^3}+\frac{J^3}{n^4}\right\}.                           \tag{24}
+\]
+Let \(V_{n,J}=J/n^2+J^2/n^3+J^3/n^4\). Under a null, evaluate (24) at \(c_0\), use \(Q_h(c_0)\le B_h^2\), and note that \(\min_cU_{n,m}(c)\le U_{n,m}(c_0)\). Chebyshev's inequality at the threshold in the definition then gives
+\[
+ \sup_{P\in\mathcal H_0}\mathbb P_P\{\phi_{n,m}^{(4)}=1\}
+ \le\frac{1024(B_h^2/n+V_{n,J})}{20480(B_h^2/n+V_{n,J})}
+ =a_0.                                                               \tag{25}
+\]
+For \(n<8\), the test is identically zero, so (25) remains true.
+
+It remains to prove uniform power despite profiling. The population quadratic \(Q_h(c)=J^{-1}\sum_Bv_B^2(t_B-c)^2\) has curvature
+\[
+ q_2=J^{-1}\sum_Bv_B^2\ge\frac9{256}
+\]
+and its unconstrained minimizer \(c_*=(\sum_Bv_B^2t_B)/(\sum_Bv_B^2)\) lies in \(I\). Thus \(Q_h'(c_*)=0\) and \(Q_h(c_*)=q_h\). Write \(U_2\) for the quadratic coefficient of \(U_{n,m}\) and \(S=U_{n,m}'(c_*)/2\). The coefficient kernel for \(U_2\) and the derivative kernel for \(S\) have the same shared-bin support and uniformly bounded factors as \(H_c\). Repeating the overlap decomposition above, now using \(\mathbb ES=0\) and \(\mathbb EU_2=q_2\), gives a universal \(C_0<\infty\) such that
+\[
+ \operatorname{Var}(S)+\operatorname{Var}(U_2)
+ \le C_0\{n^{-1}+V_{n,J}\}.                                        \tag{26}
+\]
+The empirical curvature is nonnegative term by term. On the event \(U_2\ge q_2/2\), completing the square over the real line, and then restricting to \(I\), gives
+\[
+ \min_{c\in I}U_{n,m}(c)
+ \ge U_{n,m}(c_*)-\frac{S^2}{U_2}.                                  \tag{27}
+\]
+Equations (24), (26), Chebyshev's inequality, and a union bound show that, for all sufficiently large \(n\) with \(V_{n,J}\to0\), an event of probability at least \(4/5\) satisfies
+\[
+ \min_{c\in I}U_{n,m}(c)
+ \ge q_h-C_2\left\{\sqrt{q_h/n}+\sqrt{V_{n,J}}+n^{-1}+V_{n,J}\right\}, \tag{28}
+\]
+where \(C_2\) is universal. Indeed, use fixed failure probability \(1/15\) for each of \(U_{n,m}(c_*)\), \(S\), and \(U_2\); the last event has that probability for large \(n\) because \(q_2\ge9/256\).
+
+Because \(V_{n,J}\ge n^{-2}\), (21) and (28) imply that a sufficiently large constant \(C_3\), depending only on the fixed class parameters, makes the rejection probability at least \(4/5\) whenever
+\[
+ D(P)\ge C_3\{E_h+V_{n,J}^{1/4}\}.                                  \tag{29}
+\]
+To see that (29) also dominates the deterministic threshold, note that \(E_h\ge(16/3)B_h\) and
+\[
+ \sqrt{B_h^2/n+V_{n,J}}
+ \le B_h/\sqrt n+\sqrt{V_{n,J}}
+ \le\tfrac12(B_h^2+n^{-1})+\sqrt{V_{n,J}}.
+\]
+Thus (21) makes \(q_h\) a sufficiently large multiple of \(B_h^2+\sqrt{V_{n,J}}\), which both absorbs the error in (28) and exceeds the threshold in (25).
+
+Set \(t=\min\{\gamma,\alpha+\beta\}\). Since \(E_h\le C_4m^{-t}\), choose deterministically
+\[
+ m=\left\lceil n^{2/(4t+d)}\right\rceil
+ \quad\text{if }d\le4t,
+ \qquad
+ m=\left\lceil n^{4/(4t+3d)}\right\rceil
+ \quad\text{if }d>4t.                                               \tag{30}
+\]
+In the first case \(J\lesssim n\), so \(V_{n,J}\asymp J/n^2\), and (29)--(30) give
+\[
+ E_h+V_{n,J}^{1/4}\lesssim n^{-2t/(4t+d)}.
+\]
+In the second case \(J\gtrsim n\), so \(V_{n,J}\asymp J^3/n^4\), and
+\[
+ E_h+V_{n,J}^{1/4}\lesssim n^{-4t/(4t+3d)}.
+\]
+At \(d=4t\), both calculations give \(m\asymp n^{1/(4t)}\), \(J\asymp n\), and rate \(n^{-1/4}\), without a logarithm. In both cases \(V_{n,J}\to0\), validating the large-\(n\) step in (28).
+
+Finally, the quadratic coefficients are total finite-data maps. Store the four counts \(N_{B,a,y}\) in each bin. For each of the fixed \(4^4\) ordered category patterns, the number of distinct-index assignments is the product of the corresponding falling factorials. Summing its quadratic kernel value and dividing by \((n)_4\) gives exactly the ordered U-statistic; empty and low-occupancy bins contribute zero. This costs \(O(n+J)\) arithmetic operations and \(O(J)\) memory. Checking the two endpoints of \(I\) and the stationary point when the nonnegative curvature is positive computes the exact profiled minimum, including the zero-curvature case. This completes the size, power, tuning, and cost assertions.
+
+%%% FIELD proof-no-penalty
+Suppose \(\alpha+\beta\ge\gamma\) and \(d\le4\gamma\). Then the exponent in \(\texttt{prop:single-scale-upper}\) uses \(t=\min\{\gamma,\alpha+\beta\}=\gamma\) and its dense case applies. The explicit test proved there and the definition of \(\rho_n^*\) give
+\[
+ \rho_n^*\le C n^{-2\gamma/(4\gamma+d)}=C r_{\mathrm{or}}(n).        \tag{31}
+\]
+Conversely, every observational test \(\phi(O^n)\) induces a known-propensity test \((O^n,e_P)\mapsto\phi(O^n)\) by ignoring the supplied function. Its rejection probabilities are unchanged on every law in the common null and alternative classes. Hence the feasible set of known-propensity tests contains the observational feasible set and
+\[
+ \rho_{n,e}^*\le\rho_n^*.                                           \tag{32}
+\]
+The lower half of \(\texttt{lem:known-propensity-benchmark}\), followed by (32), yields
+\[
+ c r_{\mathrm{or}}(n)\le\rho_{n,e}^*\le\rho_n^*.                    \tag{33}
+\]
+Combining (31) and (33) proves the two-sided assertion. For \(d=\gamma=1\), \(\alpha=1/10\), and \(\beta=9/10\), the hypotheses hold with equality in \(\alpha+\beta\ge\gamma\), and \(2\gamma/(4\gamma+d)=2/5\), proving the stated example.
+
+%%% FIELD stmt-null-converse-fails
+For \(d=\gamma=1\), \(\alpha=1/10\), \(\beta=9/10\), and every fixed \(L\ge2\), there are constants \(0<c<C<\infty\) and \(n_0\) such that the deterministic mixture optimization satisfies \(r_{\mathrm{mix}}(n)\ge c n^{-5/14}\), whereas \(\rho_n^*\le Cn^{-2/5}\), for every \(n\ge n_0\). Consequently no fixed \(c_{\mathrm{lb}}>0\) can make \(\rho_n^*\ge c_{\mathrm{lb}}r_{\mathrm{mix}}(n)\); in particular, the universal null-supported prior construction requested in the source question does not exist for the frozen feasible set and divergence envelope.
+
+%%% FIELD proof-null-converse-fails
+Fix the displayed parameter values and let \(a=2^{-9}\). For sufficiently large \(n\), set
+\[
+ M_n=\lceil n^{5/14}\rceil,
+ \qquad \kappa_{\mathrm{mix}}=\frac18,
+ \qquad q_e=q_b=0,
+\]
+take \(K=1,w_1=1,u_1=0\), so \(\nu_\theta=\delta_0\), and let \(q_\tau\) be the largest point of \(G_n\) not exceeding \(a/M_n\). Since the mesh of \(G_n\) is \(1/(64n^2)\) and \(M_n=o(n^2)\),
+\[
+ \frac{a}{2M_n}\le q_\tau\le\frac{a}{M_n}                            \tag{34}
+\]
+for all sufficiently large \(n\). The tuple is in \(\Theta_n\): the zero amplitudes meet their restrictions; \(\delta_0\in\mathcal N_n(0)\); \(A_\theta=q_\tau\le1/32\); and, because \(1-2\kappa_{\mathrm{mix}}=3/4\),
+\[
+ q_\tau\le\frac{a}{M_n}
+ \le\frac{3L}{256M_n}
+ =\frac{L}{64}\left(\frac{1-2\kappa_{\mathrm{mix}}}{M_n}\right)^\gamma.
+\]
+For this tuple \(\zeta_2=\zeta_3=\zeta_4=0\), hence \(R_2=R_3=R_4=0\). The frozen divergence formula reduces to
+\[
+ E_n(\theta)
+ =2^{16}\frac{(n)_5M_n^{-4}q_\tau^{10}}{1-16q_\tau}
+ \le2^{17}a^{10}n^5M_n^{-14}
+ \le2^{17}a^{10}<\log2.                                              \tag{35}
+\]
+It follows from the definition of \(V_n\) that \(V_n(\theta)<1/2=3/4-a_0-b_0\), so this tuple is feasible in the maximum defining \(r_{\mathrm{mix}}\). Put
+\[
+ c_b=\left\{\frac34\mu_2-\frac9{16}\mu_1^2\right\}^{1/2}.
+\]
+Since \(\mu_1^2\le\mu_2\) and the nonconstant nonnegative bump is not zero, \(c_b^2\ge3\mu_2/16>0\). Equations (34) and the definition of \(\Delta_n\) now give
+\[
+ r_{\mathrm{mix}}(n)\ge\Delta_n(\theta)=c_bq_\tau
+ \ge c n^{-5/14},\qquad c:=ac_b/4>0.                                 \tag{36}
+\]
+On the other hand, the already proved single-scale upper bound has \(t=1\) and \(d=1\le4t\), so
+\[
+ \rho_n^*\le Cn^{-2/5}.                                               \tag{37}
+\]
+The ratio between the right side of (36) and the right side of (37) grows as \(n^{2/5-5/14}=n^{3/70}\). Thus \(\rho_n^*\ge c_{\mathrm{lb}}r_{\mathrm{mix}}(n)\) is impossible for every fixed positive \(c_{\mathrm{lb}}\).
+
+Finally, the requested priors would imply precisely that impossible inequality. Indeed, at every feasible point with \(V_n\le1/2\), a level-\(a_0\) test with type-II error at most \(b_0\) would make its rejection expectations under the two prior-predictive laws differ by at least \(1-a_0-b_0=3/4\), while total variation would bound that difference by \(V_n\le1/2\). Applying this argument to a maximizer in the finite definition of \(r_{\mathrm{mix}}\) yields the contradicted lower bound. Therefore the source question has the asserted negative answer.
+
+%%% FIELD stmt-test-optimization-not-sharp
+Let \(t=\min\{\gamma,\alpha+\beta\}\) and define
+\[
+ b_n=\begin{cases}
+ n^{-2t/(4t+d)},&d\le4t,\\
+ n^{-4t/(4t+3d)},&d>4t.
+ \end{cases}
+\]
+For every fixed \((\alpha,\beta,\gamma,d,L)\), there are constants \(0<c<C<\infty\) and \(n_0\) such that
+\[
+ c n^{-2\gamma/(4\gamma+d)}\le\rho_n^*\le Cb_n
+\]
+for every \(n\ge n_0\). This is an honest all-regime bracket, not a matched frontier. Moreover, for \(d=\gamma=1\), \(\alpha=1/10\), \(\beta=9/10\), and every fixed \(L\ge2\), the frozen testing optimization satisfies \(r_{\mathrm{test}}(n)\ge4\{\Lambda_n/n\}^{1/4}\) for all sufficiently large \(n\), while \(\rho_n^*\asymp n^{-2/5}\). Hence \(r_{\mathrm{test}}(n)/\rho_n^*\to\infty\), and the common sharp rate requested in the source question cannot be defined from \(r_{\mathrm{test}}\) and \(r_{\mathrm{mix}}\).
+
+%%% FIELD proof-test-optimization-not-sharp
+Every observational test becomes a known-propensity test by ignoring the supplied propensity, so the definitions of the two experiments imply \(\rho_{n,e}^*\le\rho_n^*\). The lower bound in \(\texttt{lem:known-propensity-benchmark}\) therefore gives
+\[
+ \rho_n^*\ge c n^{-2\gamma/(4\gamma+d)}.                              \tag{38}
+\]
+The test and deterministic tuning in \(\texttt{prop:single-scale-upper}\) give \(\rho_n^*\le Cb_n\), with \(b_n\) exactly as displayed in the statement. This proves the all-regime bracket.
+
+For every \(\mathbf k\in\mathcal K_n\), the \(q=1\) stochastic term in the frozen envelope is independent of the rank and equals
+\[
+ S_1(\mathbf k)
+ =\left(\frac{2^8\Lambda_n}{n}\right)^{1/2}
+ =16\left(\frac{\Lambda_n}{n}\right)^{1/2}.                          \tag{39}
+\]
+All bias and stochastic summands are nonnegative. Therefore
+\[
+ U_n(\mathbf k)
+ \ge\min\left\{1,\sqrt{S_1(\mathbf k)}\right\}
+ =\min\left\{1,4\left(\frac{\Lambda_n}{n}\right)^{1/4}\right\}.       \tag{40}
+\]
+Because \(\Lambda_n=O(\log n)\), the second argument of the minimum is below one for all sufficiently large \(n\). Taking the minimum over \(\mathcal K_n\) in (40) proves
+\[
+ r_{\mathrm{test}}(n)\ge4\left(\frac{\Lambda_n}{n}\right)^{1/4}.     \tag{41}
+\]
+For the displayed parameter values, \(\alpha+\beta=\gamma=1\) and \(d=1\le4\gamma\). Both sides of the all-regime bracket are then \(n^{-2/5}\), so \(\rho_n^*\asymp n^{-2/5}\). Combining its upper bound with (41),
+\[
+ \frac{r_{\mathrm{test}}(n)}{\rho_n^*}
+ \ge c\Lambda_n^{1/4}n^{\,2/5-1/4}
+ =c\Lambda_n^{1/4}n^{3/20}\longrightarrow\infty.                    \tag{42}
+\]
+Thus \(r_{\mathrm{test}}\) is not of the order of the critical radius even in a legal regime already solved on the identical class. Whether or not \(r_{\mathrm{mix}}\) happens to match this loose deterministic quantity, the requested conclusion \(\rho_n^*\asymp r_{\mathrm{sharp}}\) cannot follow from the frozen pair. This proves the negative resolution.
+
+%%% FIELD open-propensity-partial
+The proved comparison supplies the sufficient region
+\[
+ \alpha+\beta\ge\gamma\quad\text{and}\quad d\le4\gamma
+ \quad\Longrightarrow\quad
+ \rho_n^*\asymp\rho_{n,e}^*\asymp n^{-2\gamma/(4\gamma+d)}.
+\]
+At the boundary \(d=4\gamma\), this argument gives \(n^{-1/4}\) without a logarithm. Necessity and the order of the ratio on the complement are not established.

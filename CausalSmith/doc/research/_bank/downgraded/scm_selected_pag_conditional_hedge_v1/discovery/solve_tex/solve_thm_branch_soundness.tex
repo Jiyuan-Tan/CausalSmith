@@ -1,0 +1,174 @@
+%%% FIELD proof-branch-soundness
+Fix an arbitrary represented model \(\mathbf M\in\mathfrak M_d^+(\mathcal P)\) and assignments \(x\), \(c\), and \(y\) in their declared discrete support spaces.  For every \(A\subseteq V\), put
+\[
+ \mathcal X_A(\mathbf M)
+ :=\prod_{v\in A}\operatorname{supp}_{\mathbf M}(V_v),
+\]
+with \(\mathcal X_{\varnothing}(\mathbf M)\) equal to the singleton containing the empty assignment.  Each coordinate support is at most countable because the model is discrete, and \(V\) is finite by the definitions of \(V\) and \(n\).  Hence every \(\mathcal X_A(\mathbf M)\), in particular \(\mathcal X_Y(\mathbf M)\), is at most countable.  Assumption \(\mathrm{ass{:}disjoint\text{-}query\text{-}sets}\) makes the assignment \(a\in\mathcal X_W(\mathbf M)\), defined by \(a_X=x\) and \(a_C=c\), well defined.  At a role state \(\rho=(\bar X,\bar C)\), write \(\bar x=a_{\bar X}\) and \(\bar c=a_{\bar C}\), and define the proof-local conditional kernel
+\[
+ K_{\rho,\mathbf M}(y)
+ :=P_{\mathbf M}\!\left(
+ Y=y\mid\operatorname{do}(\bar X=\bar x),
+ \bar C=\bar c,S=\mathbf 1\right).
+ \tag{1}
+\]
+The sets in (1) are pairwise compatible: the definition of a role state gives \(\bar X\mathbin{\dot\cup}\bar C=W=X\cup C\), while \(Y\cap W=\varnothing\) follows from Assumption \(\mathrm{ass{:}disjoint\text{-}query\text{-}sets}\).  The positivity condition in Assumption \(\mathrm{ass{:}positive\text{-}discrete\text{-}selected\text{-}model}\) gives, at every assignment under consideration,
+\[
+ P_{\mathbf M}\!\left(
+ \bar C=\bar c,S=\mathbf 1
+ \mid\operatorname{do}(\bar X=\bar x)\right)>0.
+ \tag{2}
+\]
+In particular, \(P_{\mathbf M}(S=\mathbf 1\mid\operatorname{do}(\bar X=\bar x))\) is at least the quantity in (2) and is positive.  Thus every conditional probability and every division below is defined, including the boundary case \(\bar C=\varnothing\).
+
+We first prove invariance along the role-state graph.  At its root \(\rho_0=(X,C)\), Definition \(\mathrm{def{:}target\text{-}query}\) gives
+\[
+ K_{\rho_0,\mathbf M}(y)
+ =P_{\mathbf M}(Y=y\mid\operatorname{do}(X=x),C=c,S=\mathbf 1)
+ =\psi_{\mathbf M}(y;x,c).
+ \tag{3}
+\]
+Consider an edge that moves a nonempty current bucket intersection \(T\subseteq\bar X\) from treatment to conditioning.  Definition \(\mathrm{def{:}reachable\text{-}role\text{-}graph}\) includes this edge only when the corresponding Rule--2 separation holds.  Apply Lemma \(\mathrm{lem{:}selected\text{-}rule\text{-}two}\) with
+\[
+ A_0=Y,\qquad B_0=T,\qquad C_0=\bar C,
+ \qquad D_0=\bar X\setminus T.
+\]
+These four sets are pairwise disjoint by the role partition and \(Y\cap W=\varnothing\).  Using the restrictions of \(a\) on both sides of the Rule--2 equality yields
+\[
+\begin{aligned}
+ K_{(\bar X,\bar C),\mathbf M}(y)
+ &=P_{\mathbf M}\!\left(
+ Y=y\mid \bar C=\bar c,
+ \operatorname{do}(T=a_T,\bar X\setminus T=a_{\bar X\setminus T}),
+ S=\mathbf 1\right)\\
+ &=P_{\mathbf M}\!\left(
+ Y=y\mid T=a_T,\bar C=\bar c,
+ \operatorname{do}(\bar X\setminus T=a_{\bar X\setminus T}),
+ S=\mathbf 1\right)\\
+ &=K_{(\bar X\setminus T,\,\bar C\cup T),\mathbf M}(y).
+\end{aligned}
+\tag{4}
+\]
+If instead an edge moves a nonempty \(T\subseteq\bar C\) from conditioning to treatment, apply the same lemma with
+\[
+ A_0=Y,\qquad B_0=T,\qquad C_0=\bar C\setminus T,
+ \qquad D_0=\bar X.
+\]
+Reading its equality from right to left gives
+\[
+ K_{(\bar X,\bar C),\mathbf M}(y)
+ =K_{(\bar X\cup T,\,\bar C\setminus T),\mathbf M}(y).
+ \tag{5}
+\]
+Induction on the length of a directed trace from \(\rho_0\), using (3)--(5), proves
+\[
+ K_{\rho,\mathbf M}(y)=\psi_{\mathbf M}(y;x,c)
+ \quad\text{for every reachable role state }\rho.
+ \tag{6}
+\]
+
+Suppose now that Branch-sCIDP succeeds at \(\rho=(\bar X,\bar C)\).  Its terminal sIDP call has outcome set \(A_0=Y\cup\bar C\) and intervention set \(B_0=\bar X\).  They are disjoint, and \(A_0\neq\varnothing\) by Assumption \(\mathrm{ass{:}nonempty\text{-}outcome}\).  The instruction to run sIDP in Definition \(\mathrm{def{:}branch\text{-}scidp}\) invokes the published algorithm, including the continuous-version choice at every Rule L2 application required in Lemma \(\mathrm{lem{:}sidp\text{-}soundness}\).  That lemma, with its positive-discrete specialization licensed by the cited Remark 4.4(2), therefore gives, pointwise for every \(y'\in\mathcal X_Y(\mathbf M)\),
+\[
+ F_\rho(y',\bar c;\bar x;P_{\mathrm{obs},\mathbf M})
+ =J_{\rho,\mathbf M}(y',\bar c;\bar x).
+ \tag{7}
+\]
+This conclusion is on the full published class \(\mathfrak M_d^+(\mathcal P)\), not merely on the rational binary certificate subclass.  The events indexed by \(y'\in\mathcal X_Y(\mathbf M)\) are disjoint and exhaust the outcome assignment space.  That space is at most countable, as shown above, and the summands in (7) are nonnegative point masses.  Countable additivity of the selected interventional probability measure and the definition of \(D_{\rho,\mathbf M}\) therefore give
+\[
+\begin{aligned}
+ \sum_{y'\in\mathcal X_Y(\mathbf M)}
+ F_\rho(y',\bar c;\bar x;P_{\mathrm{obs},\mathbf M})
+ &=\sum_{y'\in\mathcal X_Y(\mathbf M)}
+ J_{\rho,\mathbf M}(y',\bar c;\bar x)\\
+ &=P_{\mathbf M}\!\left(
+ \bar C=\bar c\mid\operatorname{do}(\bar X=\bar x),S=\mathbf 1\right)\\
+ &=D_{\rho,\mathbf M}(\bar c;\bar x)>0.
+\end{aligned}
+\tag{8}
+\]
+The last inequality follows by dividing the positive quantity in (2) by the positive selected-intervention normalizer established immediately after (2).  Dividing (7) by (8), applying the definition of conditional probability, and then applying (6), we obtain
+\[
+ \frac{F_\rho(y,\bar c;\bar x;P_{\mathrm{obs},\mathbf M})}
+ {\sum_{y'\in\mathcal X_Y(\mathbf M)}
+ F_\rho(y',\bar c;\bar x;P_{\mathrm{obs},\mathbf M})}
+ =K_{\rho,\mathbf M}(y)
+ =\psi_{\mathbf M}(y;x,c).
+ \tag{9}
+\]
+Thus the normalized returned expression is an observed-law identifying map for the causal target.  Its equality with the target has been derived from Rule--2 invariance, countable additivity, positivity, and sIDP soundness, rather than imposed by definition.
+
+It remains to prove the graph-search and cache bounds.  A role state is uniquely determined by \(\bar X\subseteq W\), since \(\bar C=W\setminus\bar X\).  Hence
+\[
+ |\Omega(\mathcal P;Y,X,C)|\leq 2^{|W|}=2^{|X\cup C|}.
+ \tag{10}
+\]
+A trace with no repeated state and \(r\) visited states has \(r-1\) edges, so (10) gives the asserted upper bound \(2^{|X\cup C|}-1\) on its length.
+
+At each visited state, the outer enumeration tests at most two directions for each of at most \(n\) buckets.  Each manipulated graph has size polynomial in \(n\); the displayed Rule--2 separation is decided by reachability in its finite graph of admissible edge-incidence states, while bucket formation, anterior closure, and region formation are also graph searches of polynomial size.  Since \(|X\cup C|\leq n\), all outer role-state work is therefore
+\[
+ O\!\left(2^n\operatorname{poly}(n)\right).
+ \tag{11}
+\]
+By Lemma \(\mathrm{lem{:}sidp\text{-}recursion\text{-}structure}\), a deterministic region-decomposition subproblem is keyed by one region \(R\subseteq V\), and a fixing subproblem is keyed by one pair \(R\subseteq T_0\subseteq V\).  There are \(2^n\) keys of the first kind and
+\[
+ \#\{(R,T_0):R\subseteq T_0\subseteq V\}
+ =\sum_{T_0\subseteq V}2^{|T_0|}
+ =(1+2)^n=3^n
+ \tag{12}
+\]
+keys of the second kind.  The last equality follows by assigning each vertex independently to \(R\), to \(T_0\setminus R\), or to \(V\setminus T_0\).  The same recursion lemma states that region decomposition descends only to proper region children and that every successful fixing iteration removes a nonempty bucket.  Therefore each deterministic key terminates.  Under Definition \(\mathrm{def{:}shared\text{-}formula\text{-}cache}\), it is evaluated at most once and incurs only \(\operatorname{poly}(n)\) graph work.  Equations (11) and (12) thus bound all cached graph computation by
+\[
+ O\!\left(3^n\operatorname{poly}(n)\right).
+ \tag{13}
+\]
+Each product, quotient, and assembly operation contributes a constant-arity node to the shared formula DAG.  A marginalization over a discrete support is represented by one symbolic summation-binder node whose body and support expression point to cached nodes; it is not expanded into one node per support point.  Thus allowing an at most countable discrete support does not change the graph-search count in (13).  Constructing and emitting all formula nodes, including each such discrete-support summation binder, costs \(O(L_{\mathrm{form}})\) by the definition of \(L_{\mathrm{form}}\).  Combining this output cost with (13) proves
+\[
+ O\!\left(3^n\operatorname{poly}(n)+L_{\mathrm{form}}\right).
+\]
+The proof invoked sIDP soundness only after a terminal call succeeded.  It therefore gives no implication from \(\operatorname{AllFail}\) to nonidentification, exactly as claimed.
+%%% FIELD proof-no-selection-reduction
+Assume \(S=\varnothing\).  The selection event is then certain, so Definition \(\mathrm{def{:}target\text{-}query}\) gives
+\[
+ \psi_{\mathbf M}(y;x,c)
+ =P_{\mathbf M}(Y=y\mid\operatorname{do}(X=x),C=c).
+ \tag{1}
+\]
+The conditioning stratum in (1) is positive by Assumption \(\mathrm{ass{:}positive\text{-}discrete\text{-}selected\text{-}model}\).
+
+First suppose that Branch-sCIDP returns a formula.  By Theorem \(\mathrm{thm{:}branch\text{-}soundness}\), that formula equals (1) for every \(\mathbf M\in\mathfrak M_d^+(\mathcal P)\).  It is therefore an observed-law identifying functional for (1).  The completeness direction in Lemma \(\mathrm{lem{:}cidp\text{-}no\text{-}selection\text{-}contract}\) says that CIDP cannot return \(\operatorname{FAIL}\) for an identifiable conditional effect.  Hence CIDP returns a formula.
+
+Conversely, suppose that CIDP returns a formula.  By the transition contract in Lemma \(\mathrm{lem{:}cidp\text{-}no\text{-}selection\text{-}contract}\), its successful execution produces a sequence
+\[
+ (X,C)=\rho_0\longrightarrow\rho_1\longrightarrow\cdots
+ \longrightarrow\rho_k=(\bar X_\star,\bar C_\star),
+ \tag{2}
+\]
+where every arrow moves a nonempty intersection of a current role set with a bucket and is taken only after the corresponding PAG Rule--2 separation test succeeds.  These are exactly the edge predicates in Definition \(\mathrm{def{:}reachable\text{-}role\text{-}graph}\).  Consequently
+\[
+ \rho_\star=(\bar X_\star,\bar C_\star)
+ \in\Omega(\mathcal P;Y,X,C).
+ \tag{3}
+\]
+The same cited contract says that the final marginal-algorithm call returns an observed-law expression for
+\[
+ Q_{\rho_\star}
+ :=P_{\mathbf M}(Y,\bar C_\star
+       \mid\operatorname{do}(\bar X_\star)).
+ \tag{4}
+\]
+Thus (4) is identified pointwise on the represented observational-law domain and, in particular, over its positive discrete subclass \(\mathfrak M_d^+(\mathcal P)\).  This uses only the source-attested terminal-call contract; it does not assert equality between the output expressions of CIDP and Branch-sCIDP.
+
+The hypotheses of Lemma \(\mathrm{lem{:}sidp\text{-}completeness}\) apply to the terminal joint query with
+\[
+ A_0=Y\cup\bar C_\star,
+ \qquad B_0=\bar X_\star.
+\]
+Indeed, \(A_0\neq\varnothing\) by Assumption \(\mathrm{ass{:}nonempty\text{-}outcome}\).  Moreover, \(A_0\cap B_0=\varnothing\): Definition \(\mathrm{def{:}reachable\text{-}role\text{-}graph}\) keeps \(\bar X_\star\mathbin{\dot\cup}\bar C_\star=X\cup C\), while Assumption \(\mathrm{ass{:}disjoint\text{-}query\text{-}sets}\) gives \(Y\cap(X\cup C)=\varnothing\).  If the sIDP call at \(\rho_\star\) returned \(\operatorname{Fail}\), Lemma \(\mathrm{lem{:}sidp\text{-}completeness}\) would say that (4) is not identified over \(\mathfrak M_d^+(\mathcal P)\), contradicting the preceding paragraph.  Hence that sIDP call succeeds.
+
+By Definition \(\mathrm{def{:}branch\text{-}scidp}\), Branch-sCIDP enumerates every state in \(\Omega(\mathcal P;Y,X,C)\) and calls sIDP at each state.  In view of (3), it therefore succeeds either before reaching \(\rho_\star\) or at \(\rho_\star\).  Its discrete marginalization and normalization at any successful state are defined by positivity.  In particular, at \(\rho_\star\),
+\[
+ \sum_{y'}Q_{\rho_\star}(y',\bar c_\star;\bar x_\star)
+ =P_{\mathbf M}(\bar C_\star=\bar c_\star
+       \mid\operatorname{do}(\bar X_\star=\bar x_\star))>0.
+\]
+The summation is over the full discrete outcome support; when it is countably infinite, the displayed equality follows from countable additivity of nonnegative point masses.  In the boundary case \(\bar C_\star=\varnothing\), the sum equals one.  We have proved both implications between the two success decisions, which is the claimed equivalence.

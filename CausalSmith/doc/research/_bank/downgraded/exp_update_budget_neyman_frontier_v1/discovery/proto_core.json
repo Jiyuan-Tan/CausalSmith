@@ -1,0 +1,1800 @@
+{
+  "qid": "exp_update_budget_neyman_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "total number of experimental units"
+    },
+    {
+      "name": "p_n",
+      "type": "deterministic rational number",
+      "space": "\\((0,1/2]\\)",
+      "def": "\\(p_n=\\lfloor n/2\\rfloor/n\\)",
+      "role": "smaller share of a nearest-to-balanced one-batch exact allocation",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "positive integer",
+      "space": "\\(\\{1,\\ldots,\\lfloor n/4\\rfloor\\}\\)",
+      "role": "required number of batches",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "\\mathcal A",
+      "type": "finite set",
+      "def": "\\(\\mathcal A=\\{0,1\\}\\)",
+      "role": "control and treatment arms"
+    },
+    {
+      "name": "\\ell",
+      "type": "positive real constant",
+      "space": "\\((0,\\infty)\\)",
+      "role": "lower standard-deviation bound"
+    },
+    {
+      "name": "u",
+      "type": "positive real constant",
+      "space": "\\((\\ell,\\infty)\\)",
+      "role": "upper standard-deviation bound",
+      "refs": [
+        "\\ell"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "positive real constant",
+      "space": "\\((0,\\infty)\\)",
+      "role": "mean bound"
+    },
+    {
+      "name": "\\mu",
+      "type": "arm-mean vector",
+      "space": "\\(\\mathbb R^{\\mathcal A}\\)",
+      "role": "arm-specific interventional outcome means",
+      "refs": [
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\sigma",
+      "type": "positive arm-standard-deviation vector",
+      "space": "\\((0,\\infty)^{\\mathcal A}\\)",
+      "role": "outcome standard deviations",
+      "refs": [
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\Theta",
+      "type": "parameter space",
+      "def": "\\(\\Theta=[-M,M]^{\\mathcal A}\\times[\\ell,u]^{\\mathcal A}\\)",
+      "role": "compact Gaussian parameter box",
+      "refs": [
+        "M",
+        "\\ell",
+        "u",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\tau",
+      "type": "real parameter",
+      "def": "\\(\\tau=\\mu_1-\\mu_0\\)",
+      "role": "difference in arm-specific interventional means",
+      "refs": [
+        "\\mu"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "deterministic integer vector",
+      "space": "\\(\\mathbb N^B\\)",
+      "role": "batch sizes",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "deterministic cumulative-size vector",
+      "def": "\\(T_0=0\\) and \\(T_b=\\sum_{j=1}^b m_j\\)",
+      "role": "batch endpoints",
+      "refs": [
+        "m",
+        "B"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "deterministic weight vector",
+      "def": "\\(t_b=m_b/n\\)",
+      "role": "batch volume shares",
+      "refs": [
+        "m",
+        "n",
+        "B"
+      ]
+    },
+    {
+      "name": "\\mathsf E",
+      "type": "standard Borel observation space",
+      "space": "\\(\\{0,1\\}\\times\\mathbb R\\)",
+      "def": "\\(\\mathsf E=\\{0,1\\}\\times\\mathbb R\\), equipped with \\(2^{\\{0,1\\}}\\otimes\\mathcal B(\\mathbb R)\\)",
+      "role": "one-unit assignment-response coordinate space"
+    },
+    {
+      "name": "\\mathsf H",
+      "type": "sequence of canonical prefix-history spaces",
+      "def": "\\(\\mathsf H_0=\\{\\varnothing\\}\\) and \\(\\mathsf H_b=\\mathsf E^{T_b}\\) for \\(1\\le b\\le B\\)",
+      "role": "law-independent domains for chronological policy maps",
+      "refs": [
+        "\\mathsf E",
+        "T",
+        "B"
+      ]
+    },
+    {
+      "name": "\\mathcal G",
+      "type": "sequence of canonical sigma-algebras",
+      "def": "\\(\\mathcal G_0=\\{\\varnothing,\\{\\varnothing\\}\\}\\) and \\(\\mathcal G_b=\\mathcal B(\\mathsf E)^{\\otimes T_b}\\) for \\(1\\le b\\le B\\)",
+      "role": "law-independent measurable structures on prefix histories",
+      "refs": [
+        "\\mathsf E",
+        "\\mathsf H",
+        "T",
+        "B"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "canonical binary coordinate vector",
+      "space": "measurable maps from \\(\\mathsf H_B\\) to \\(\\{0,1\\}^n\\)",
+      "role": "assignment coordinates of the canonical observed record",
+      "refs": [
+        "n",
+        "B",
+        "\\mathsf H"
+      ]
+    },
+    {
+      "name": "Y^{\\mathrm{obs}}",
+      "type": "canonical real coordinate vector",
+      "space": "measurable maps from \\(\\mathsf H_B\\) to \\(\\mathbb R^n\\)",
+      "role": "one revealed response coordinate per randomized unit",
+      "refs": [
+        "n",
+        "B",
+        "\\mathsf H",
+        "Z"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "canonical observed-record coordinate",
+      "space": "the identity map on \\(\\mathsf H_B\\)",
+      "def": "\\(O=((Z_i,Y_i^{\\mathrm{obs}}))_{i=1}^n\\)",
+      "role": "complete observed data, including assignment history and one revealed outcome per unit",
+      "refs": [
+        "Z",
+        "Y^{\\mathrm{obs}}",
+        "n",
+        "B",
+        "\\mathsf H"
+      ]
+    },
+    {
+      "name": "\\mathcal F",
+      "type": "canonical coordinate filtration",
+      "def": "On \\(\\mathsf H_B\\), let \\(O^{(b)}=((Z_i,Y_i^{\\mathrm{obs}}))_{i=1}^{T_b}\\) and set \\(\\mathcal F_b=\\sigma(O^{(b)})=(O^{(b)})^{-1}(\\mathcal G_b)\\), with \\(\\mathcal F_0\\) trivial",
+      "role": "law-independent chronological coordinate filtration",
+      "refs": [
+        "O",
+        "Z",
+        "Y^{\\mathrm{obs}}",
+        "T",
+        "B",
+        "\\mathsf H",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "sequence of integer-valued policy maps",
+      "space": "\\(q_b:(\\mathsf H_{b-1},\\mathcal G_{b-1})\\to(\\mathbb Z,2^{\\mathbb Z}),\\ 1\\le b\\le B\\)",
+      "role": "law-independent chronological rules for exact treated counts",
+      "refs": [
+        "B",
+        "\\mathsf H",
+        "\\mathcal G"
+      ]
+    },
+    {
+      "name": "Q",
+      "type": "integer-valued random vector",
+      "space": "measurable maps from \\(\\mathsf H_B\\) to \\(\\mathbb Z^B\\)",
+      "def": "\\(Q_b=q_b(O^{(b-1)})\\)",
+      "role": "realized exact treated counts",
+      "refs": [
+        "q",
+        "O",
+        "\\mathcal F",
+        "B",
+        "\\mathsf H"
+      ]
+    },
+    {
+      "name": "p",
+      "type": "predictable allocation-share random vector",
+      "def": "\\(p_b=Q_b/m_b=q_b(O^{(b-1)})/m_b\\)",
+      "role": "realized batchwise treatment shares",
+      "refs": [
+        "q",
+        "Q",
+        "O",
+        "m",
+        "B"
+      ]
+    },
+    {
+      "name": "D",
+      "type": "batch-contrast vector",
+      "space": "\\(\\mathbb R^B\\)",
+      "role": "treated-minus-control batch means",
+      "refs": [
+        "B",
+        "Z",
+        "Y^{\\mathrm{obs}}",
+        "T",
+        "Q",
+        "m"
+      ]
+    },
+    {
+      "name": "w",
+      "type": "deterministic weight vector",
+      "space": "\\(\\mathbb R^B\\)",
+      "role": "normalized batch aggregation weights",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau_d",
+      "type": "real-valued estimator",
+      "role": "weighted batch-contrast estimator",
+      "refs": [
+        "w",
+        "D"
+      ]
+    },
+    {
+      "name": "f_\\sigma",
+      "type": "real function",
+      "sig": "\\([1/4,3/4]\\to\\mathbb R_+\\)",
+      "role": "one-unit variance objective",
+      "refs": [
+        "\\sigma"
+      ]
+    },
+    {
+      "name": "p^*(\\sigma)",
+      "type": "allocation functional",
+      "space": "\\([1/4,3/4]\\)",
+      "role": "constrained oracle Neyman share",
+      "refs": [
+        "\\sigma"
+      ]
+    },
+    {
+      "name": "V^*(\\sigma)",
+      "type": "positive real functional",
+      "role": "constrained oracle normalized variance",
+      "refs": [
+        "f_\\sigma",
+        "p^*(\\sigma)"
+      ]
+    },
+    {
+      "name": "r_\\sigma",
+      "type": "nonnegative real function",
+      "sig": "\\([1/4,3/4]\\to\\mathbb R_+\\)",
+      "role": "allocation regret",
+      "refs": [
+        "f_\\sigma",
+        "V^*(\\sigma)"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "design-estimator policy tuple",
+      "def": "\\(d=(m,q,w)\\)",
+      "role": "admissible chronological allocation and weighting policy",
+      "refs": [
+        "m",
+        "q",
+        "w"
+      ]
+    },
+    {
+      "name": "P^{d}_{\\mu,\\sigma}",
+      "type": "probability law",
+      "space": "probability laws on \\((\\mathsf H_B,\\mathcal G_B)\\)",
+      "role": "joint observed-data law induced by the chronological policy and Gaussian response kernels",
+      "refs": [
+        "O",
+        "d",
+        "\\mu",
+        "\\sigma",
+        "\\mathcal F",
+        "\\mathsf H",
+        "\\mathcal G",
+        "q",
+        "Q",
+        "Z",
+        "Y^{\\mathrm{obs}}",
+        "T",
+        "m",
+        "B"
+      ]
+    },
+    {
+      "name": "\\mathfrak D_{n,B}",
+      "type": "class of design-estimator tuples",
+      "role": "exactly-\\(B\\) feasible decision class",
+      "refs": [
+        "n",
+        "B",
+        "d"
+      ]
+    },
+    {
+      "name": "\\mathcal R_{n,B}",
+      "type": "real-valued risk functional",
+      "role": "normalized excess MSE",
+      "refs": [
+        "n",
+        "B",
+        "d",
+        "P^{d}_{\\mu,\\sigma}",
+        "\\widehat\\tau_d",
+        "\\tau",
+        "V^*(\\sigma)"
+      ]
+    },
+    {
+      "name": "\\Psi^{=}_{n,B}",
+      "type": "nonnegative real number",
+      "role": "exactly-\\(B\\) minimax frontier",
+      "refs": [
+        "\\mathfrak D_{n,B}",
+        "\\mathcal R_{n,B}",
+        "\\Theta"
+      ]
+    },
+    {
+      "name": "\\Psi^{\\le}_{n,B}",
+      "type": "nonnegative real number",
+      "role": "at-most-\\(B\\) minimax envelope",
+      "refs": [
+        "\\Psi^{=}_{n,B}",
+        "B"
+      ]
+    },
+    {
+      "name": "L_{n,B}",
+      "type": "positive real number",
+      "role": "chronological learning benchmark",
+      "refs": [
+        "n",
+        "B"
+      ]
+    },
+    {
+      "name": "R_{n,B}",
+      "type": "positive real number",
+      "role": "learning-plus-lattice benchmark",
+      "refs": [
+        "L_{n,B}",
+        "n",
+        "B"
+      ]
+    },
+    {
+      "name": "F_{n,B}",
+      "type": "positive real functional",
+      "sig": "\\(\\mathbb N^B\\to\\mathbb R_+\\)",
+      "role": "schedule cost",
+      "refs": [
+        "n",
+        "B",
+        "m",
+        "T"
+      ]
+    },
+    {
+      "name": "\\widehat v",
+      "type": "Borel arm-variance functional on canonical histories",
+      "sig": "\\((a,k,h)\\mapsto\\widehat v_a(k;h)\\in[\\ell^2,u^2]\\)",
+      "role": "projected deterministic-prefix arm-variance functional",
+      "refs": [
+        "\\ell",
+        "u",
+        "\\mathcal A",
+        "\\mathsf H"
+      ]
+    },
+    {
+      "name": "d^{\\mathrm{pre}}_{n,B}",
+      "type": "constructed design-estimator tuple",
+      "role": "deterministic-prefix plug-in design",
+      "refs": [
+        "n",
+        "B",
+        "F_{n,B}",
+        "\\widehat v"
+      ]
+    },
+    {
+      "name": "\\widehat Q_{n,B}",
+      "type": "positive statistic",
+      "role": "observable normalized variance estimator",
+      "refs": [
+        "d^{\\mathrm{pre}}_{n,B}",
+        "\\widehat v",
+        "p",
+        "m",
+        "n"
+      ]
+    },
+    {
+      "name": "\\widehat{\\mathrm{se}}_{n,B}",
+      "type": "positive statistic",
+      "role": "standard-error estimator",
+      "refs": [
+        "\\widehat Q_{n,B}",
+        "n"
+      ]
+    },
+    {
+      "name": "\\alpha",
+      "type": "real constant",
+      "space": "\\((0,1)\\)",
+      "role": "nominal error probability"
+    },
+    {
+      "name": "z_\\gamma",
+      "type": "real-valued quantile functional",
+      "def": "\\(z_\\gamma=\\Phi^{-1}(\\gamma)\\)",
+      "role": "standard-normal quantile"
+    },
+    {
+      "name": "\\mathcal I_{n,B}(\\alpha)",
+      "type": "random interval",
+      "role": "fixed-time Wald interval",
+      "refs": [
+        "\\widehat\\tau_d",
+        "d^{\\mathrm{pre}}_{n,B}",
+        "\\widehat{\\mathrm{se}}_{n,B}",
+        "\\alpha",
+        "z_\\gamma"
+      ]
+    },
+    {
+      "name": "\\Psi_\\infty(n)",
+      "type": "nonnegative real number",
+      "role": "best exact-batch frontier over all feasible batch counts",
+      "refs": [
+        "\\Psi^{=}_{n,B}",
+        "n"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "real constant",
+      "space": "\\((1,\\infty)\\)",
+      "role": "saturation comparison factor"
+    },
+    {
+      "name": "B_{\\mathrm{sat}}(n,A)",
+      "type": "positive integer functional",
+      "role": "saturation count at comparison factor \\(A>1\\)",
+      "refs": [
+        "\\Psi^{=}_{n,B}",
+        "\\Psi_\\infty(n)",
+        "n",
+        "A"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "fixed positive real constant",
+      "space": "\\((\\ell,u)\\)",
+      "role": "known fixed scale on the local Gaussian path",
+      "refs": [
+        "\\ell",
+        "u"
+      ]
+    },
+    {
+      "name": "\\mathsf H_{\\mathrm{LAN}}",
+      "type": "method handle",
+      "role": "fixed-scale chronological Gaussian score-and-decision reduction",
+      "refs": [
+        "s",
+        "\\mathcal F",
+        "p^*(\\sigma)",
+        "r_\\sigma"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:parameter-box",
+      "kind": "regularity",
+      "condition": "The parameter satisfies \\((\\mu,\\sigma)\\in\\Theta\\).",
+      "free_symbols": [
+        "\\mu",
+        "\\sigma",
+        "\\Theta"
+      ],
+      "standard": {
+        "name": "compact nondegenerate interior variance class",
+        "cite": "Yamin2026WhenHowPilot"
+      },
+      "used_by": [
+        "thm:exact-b-frontier",
+        "thm:exact-anchors",
+        "thm:uniform-wald"
+      ]
+    },
+    {
+      "id": "ass:deterministic-partition",
+      "kind": "design",
+      "condition": "The schedule satisfies \\(m\\in\\{(m_1,\\ldots,m_B)\\in\\mathbb N^B:m_b\\ge4\\ \\text{for all }b,\\ \\sum_{b=1}^B m_b=n\\}\\).",
+      "free_symbols": [
+        "m",
+        "B",
+        "n"
+      ],
+      "standard": {
+        "name": "deterministic positive-size batch grid",
+        "cite": "PerchetRigolletChassangSnowberg2016Batched"
+      },
+      "used_by": [
+        "def:exact-b-designs",
+        "def:observed-adaptive-law",
+        "def:schedule-cost",
+        "def:prefix-design",
+        "thm:exact-b-frontier"
+      ]
+    },
+    {
+      "id": "ass:predictable-counts",
+      "kind": "design",
+      "condition": "For every \\(1\\le b\\le B\\), \\(q_b:(\\mathsf H_{b-1},\\mathcal G_{b-1})\\to(\\mathbb Z,2^{\\mathbb Z})\\) is Borel measurable.",
+      "free_symbols": [
+        "q",
+        "B",
+        "\\mathsf H",
+        "\\mathcal G"
+      ],
+      "standard": {
+        "name": "non-anticipating batched adaptation",
+        "cite": "HiranoPorter2023SequentialRepresentations"
+      },
+      "used_by": [
+        "def:exact-b-designs",
+        "def:observed-adaptive-law",
+        "def:prefix-design",
+        "prop:risk-decomposition",
+        "thm:exact-b-frontier",
+        "thm:uniform-wald"
+      ]
+    },
+    {
+      "id": "ass:fixed-overlap-counts",
+      "kind": "design",
+      "condition": "For every \\(1\\le b\\le B\\) and every \\(h\\in\\mathsf H_{b-1}\\), \\(\\lceil m_b/4\\rceil\\le q_b(h)\\le\\lfloor3m_b/4\\rfloor\\).",
+      "free_symbols": [
+        "m",
+        "q",
+        "B",
+        "\\mathsf H"
+      ],
+      "standard": {
+        "name": "fixed-overlap condition specialized to exact counts",
+        "cite": "CookMishlerRamdas2024EfficientInference"
+      },
+      "used_by": [
+        "def:exact-b-designs",
+        "def:observed-adaptive-law",
+        "def:prefix-design",
+        "thm:exact-b-frontier",
+        "thm:uniform-wald"
+      ]
+    },
+    {
+      "id": "ass:deterministic-simplex-weights",
+      "kind": "estimation",
+      "condition": "The vector \\(w\\) belongs to \\(\\{v\\in[0,1]^B:\\sum_{b=1}^Bv_b=1\\}\\).",
+      "free_symbols": [
+        "w",
+        "B"
+      ],
+      "standard": {
+        "name": "deterministic normalized aggregation of batch contrasts",
+        "cite": "BlackwellPashleyValentino2023BANA"
+      },
+      "used_by": [
+        "def:exact-b-designs",
+        "def:weighted-estimator",
+        "prop:risk-decomposition",
+        "thm:exact-b-frontier"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:observed-adaptive-law",
+      "name": "Observed adaptive Gaussian experiment",
+      "construction": "Fix \\(d=(m,q,w)\\) satisfying ass:deterministic-partition, ass:predictable-counts, and ass:fixed-overlap-counts. On the fixed measurable spaces \\((\\mathsf H_b,\\mathcal G_b)\\), start with the point mass at \\(O^{(0)}=\\varnothing\\). Recursively for \\(b=1,\\ldots,B\\), given \\(h\\in\\mathsf H_{b-1}\\), set \\(k=q_b(h)\\), draw \\(z\\in\\{0,1\\}^{m_b}\\) from the Borel kernel \\[K_b^Z(z\\mid h)=\\binom{m_b}{k}^{-1}\\mathbf 1\\!\\left\\{\\sum_{j=1}^{m_b}z_j=k\\right\\},\\] then draw \\(y\\in\\mathbb R^{m_b}\\) from \\[K_{b,\\mu,\\sigma}^Y(dy\\mid h,z)=\\bigotimes_{j=1}^{m_b}\\mathcal N(\\mu_{z_j},\\sigma_{z_j}^2)(dy_j),\\] and append \\((z_j,y_j)_{j=1}^{m_b}\\) to \\(h\\). The resulting finite Ionescu--Tulcea recursion defines \\(P^{d}_{\\mu,\\sigma}\\) on \\((\\mathsf H_B,\\mathcal G_B)\\); \\(O\\) is the identity coordinate, \\(Q_b=q_b(O^{(b-1)})\\), and \\(\\mathcal F_b=\\sigma(O^{(b)})\\). Thus the experiment contains the assignment history and exactly one revealed Gaussian response per unit.",
+      "free_symbols": [
+        "P^{d}_{\\mu,\\sigma}",
+        "O",
+        "d",
+        "n",
+        "B",
+        "m",
+        "T",
+        "q",
+        "Q",
+        "Z",
+        "Y^{\\mathrm{obs}}",
+        "\\mathcal F",
+        "\\mathsf H",
+        "\\mathcal G",
+        "\\mu",
+        "\\sigma"
+      ],
+      "inputs": [
+        "d",
+        "\\mu",
+        "\\sigma"
+      ]
+    },
+    {
+      "id": "def:batch-contrast",
+      "name": "Batchwise mean difference",
+      "construction": "For \\(I_b=\\{T_{b-1}+1,\\ldots,T_b\\}\\), \\(D_b=Q_b^{-1}\\sum_{i\\in I_b}Z_iY_i^{\\mathrm{obs}}-(m_b-Q_b)^{-1}\\sum_{i\\in I_b}(1-Z_i)Y_i^{\\mathrm{obs}}\\), where \\(Q_b=q_b(O^{(b-1)})\\).",
+      "free_symbols": [
+        "D",
+        "T",
+        "q",
+        "Q",
+        "O",
+        "m",
+        "Z",
+        "Y^{\\mathrm{obs}}",
+        "B"
+      ],
+      "inputs": [
+        "m",
+        "T",
+        "q",
+        "Z",
+        "Y^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "id": "def:weighted-estimator",
+      "name": "Deterministically weighted batch estimator",
+      "construction": "\\(\\widehat\\tau_d=\\sum_{b=1}^B w_bD_b\\).",
+      "free_symbols": [
+        "\\widehat\\tau_d",
+        "w",
+        "D",
+        "B",
+        "d"
+      ],
+      "inputs": [
+        "w",
+        "D"
+      ]
+    },
+    {
+      "id": "def:exact-b-designs",
+      "name": "Exactly-\\(B\\) chronological design class",
+      "construction": "\\(\\mathfrak D_{n,B}=\\{d=(m,q,w):m\\text{ satisfies ass:deterministic-partition};\\ q=(q_b)_{b=1}^B\\text{ consists of maps }q_b:(\\mathsf H_{b-1},\\mathcal G_{b-1})\\to(\\mathbb Z,2^{\\mathbb Z})\\text{ satisfying ass:predictable-counts and ass:fixed-overlap-counts};\\ w\\text{ satisfies ass:deterministic-simplex-weights}\\}\\).",
+      "free_symbols": [
+        "\\mathfrak D_{n,B}",
+        "d",
+        "m",
+        "q",
+        "w",
+        "n",
+        "B",
+        "\\mathsf H",
+        "\\mathcal G"
+      ],
+      "by_member_properties": [
+        "ass:deterministic-partition",
+        "ass:predictable-counts",
+        "ass:fixed-overlap-counts",
+        "ass:deterministic-simplex-weights"
+      ]
+    },
+    {
+      "id": "def:oracle-loss",
+      "name": "Constrained Neyman loss and regret",
+      "construction": "For \\(p\\in[1/4,3/4]\\), \\(f_\\sigma(p)=\\sigma_1^2/p+\\sigma_0^2/(1-p)\\), \\(p^*(\\sigma)=\\operatorname{clip}_{[1/4,3/4]}\\{\\sigma_1/(\\sigma_1+\\sigma_0)\\}\\), \\(V^*(\\sigma)=f_\\sigma(p^*(\\sigma))\\), and \\(r_\\sigma(p)=f_\\sigma(p)-V^*(\\sigma)\\).",
+      "free_symbols": [
+        "f_\\sigma",
+        "\\sigma",
+        "p^*(\\sigma)",
+        "V^*(\\sigma)",
+        "r_\\sigma"
+      ],
+      "inputs": [
+        "\\sigma"
+      ]
+    },
+    {
+      "id": "def:normalized-risk",
+      "name": "Normalized excess MSE",
+      "construction": "\\(\\mathcal R_{n,B}(d;\\mu,\\sigma)=n\\,\\mathbb E_{P^{d}_{\\mu,\\sigma}}[(\\widehat\\tau_d-\\tau)^2]-V^*(\\sigma)\\).",
+      "free_symbols": [
+        "\\mathcal R_{n,B}",
+        "n",
+        "B",
+        "d",
+        "\\mu",
+        "\\sigma",
+        "P^{d}_{\\mu,\\sigma}",
+        "\\widehat\\tau_d",
+        "\\tau",
+        "V^*(\\sigma)"
+      ],
+      "inputs": [
+        "d",
+        "\\mu",
+        "\\sigma"
+      ]
+    },
+    {
+      "id": "def:frontiers",
+      "name": "Exact and at-most update frontiers",
+      "construction": "\\(\\Psi^{=}_{n,B}=\\inf_{d\\in\\mathfrak D_{n,B}}\\sup_{(\\mu,\\sigma)\\in\\Theta}\\mathcal R_{n,B}(d;\\mu,\\sigma)\\) and \\(\\Psi^{\\le}_{n,B}=\\min_{1\\le b\\le B}\\Psi^{=}_{n,b}\\).",
+      "free_symbols": [
+        "\\Psi^{=}_{n,B}",
+        "\\Psi^{\\le}_{n,B}",
+        "n",
+        "B",
+        "d",
+        "\\mathfrak D_{n,B}",
+        "\\Theta",
+        "\\mu",
+        "\\sigma",
+        "\\mathcal R_{n,B}"
+      ],
+      "inputs": [
+        "\\mathfrak D_{n,B}",
+        "\\Theta",
+        "\\mathcal R_{n,B}"
+      ]
+    },
+    {
+      "id": "def:rate-benchmarks",
+      "name": "Learning and lattice benchmarks",
+      "construction": "\\(L_{n,B}=B\\{(n+1)^{1/B}-1\\}/n\\) and \\(R_{n,B}=L_{n,B}+(B/n)^2\\).",
+      "free_symbols": [
+        "L_{n,B}",
+        "R_{n,B}",
+        "n",
+        "B"
+      ],
+      "inputs": [
+        "n",
+        "B"
+      ]
+    },
+    {
+      "id": "def:schedule-cost",
+      "name": "Chronological schedule cost",
+      "construction": "\\(F_{n,B}(m)=n^{-1}\\sum_{b=1}^B\\{m_b/(T_{b-1}+1)+1/m_b\\}\\) for every deterministic partition \\(m\\) at indices \\((n,B)\\).",
+      "free_symbols": [
+        "F_{n,B}",
+        "n",
+        "B",
+        "m",
+        "T"
+      ],
+      "inputs": [
+        "m",
+        "T"
+      ]
+    },
+    {
+      "id": "def:prefix-variance",
+      "name": "Projected deterministic-prefix arm variance",
+      "construction": "For \\(0\\le c\\le B\\), \\(h=((z_i,y_i))_{i=1}^{T_c}\\in\\mathsf H_c\\), \\(a\\in\\mathcal A\\), and an integer \\(k\\ge0\\), put \\(j=\\min\\{k,\\sum_{i=1}^{T_c}\\mathbf 1\\{z_i=a\\}\\}\\). Let \\(\\widehat v_a(k;h)\\) equal the unbiased sample variance of the first \\(j\\) coordinates \\(y_i\\) with \\(z_i=a\\), projected onto \\([\\ell^2,u^2]\\), when \\(j\\ge2\\); set \\(\\widehat v_a(k;h)=\\ell^2\\) when \\(j<2\\). This defines a Borel function on every canonical history, and on feasible histories it uses the requested \\(k\\) arm observations whenever they exist.",
+      "free_symbols": [
+        "\\widehat v",
+        "\\mathcal A",
+        "\\mathsf H",
+        "T",
+        "B",
+        "\\ell",
+        "u"
+      ],
+      "inputs": [
+        "\\mathsf H",
+        "\\ell",
+        "u"
+      ]
+    },
+    {
+      "id": "def:prefix-design",
+      "name": "Deterministic-prefix plug-in design",
+      "construction": "Construct \\(d^{\\mathrm{pre}}_{n,B}\\) as follows. Among all positive integer partitions with \\(m_b\\ge4\\), \\(\\sum_bm_b=n\\), and \\(m_b\\in4\\mathbb N\\) for \\(b<B\\), take the lexicographically first minimizer of \\(F_{n,B}(m)\\), and put \\(w_b=m_b/n\\). For each \\(b\\) and \\(h\\in\\mathsf H_{b-1}\\), let \\(k_b=\\lfloor T_{b-1}/4\\rfloor\\) and \\(\\mathcal K_b=\\{\\lceil m_b/4\\rceil,\\ldots,\\lfloor3m_b/4\\rfloor\\}\\). If \\(k_b<2\\), define \\(q_b(h)\\) as the element \\(k\\in\\mathcal K_b\\) minimizing \\(|k-m_b/2|\\), with the smaller \\(k\\) breaking a tie. If \\(k_b\\ge2\\), define \\(q_b(h)\\) as the element \\(k\\in\\mathcal K_b\\) minimizing \\(\\widehat v_1(k_b;h)/(k/m_b)+\\widehat v_0(k_b;h)/(1-k/m_b)\\), again with the smaller \\(k\\) breaking a tie. These finite-valued tie-broken argmin rules are Borel maps on \\((\\mathsf H_{b-1},\\mathcal G_{b-1})\\). The law \\(P^{d^{\\mathrm{pre}}_{n,B}}_{\\mu,\\sigma}\\) is the recursive canonical law in def:observed-adaptive-law generated by these maps.",
+      "free_symbols": [
+        "d^{\\mathrm{pre}}_{n,B}",
+        "n",
+        "B",
+        "F_{n,B}",
+        "m",
+        "T",
+        "w",
+        "q",
+        "\\widehat v",
+        "\\mathsf H",
+        "\\mathcal G",
+        "P^{d}_{\\mu,\\sigma}",
+        "\\mu",
+        "\\sigma"
+      ],
+      "inputs": [
+        "n",
+        "B",
+        "\\ell",
+        "u"
+      ]
+    },
+    {
+      "id": "def:variance-estimator",
+      "name": "Deterministic-prefix variance estimator",
+      "construction": "At time \\(n\\), put \\(k_n=\\lfloor n/4\\rfloor\\) and, for each \\(a\\in\\mathcal A\\), \\(\\widehat v_{a,n}=\\widehat v_a(k_n;O)\\). Then put \\(\\widehat Q_{n,B}=n^{-1}\\sum_{b=1}^Bm_b\\{\\widehat v_{1,n}/p_b+\\widehat v_{0,n}/(1-p_b)\\}\\) and \\(\\widehat{\\mathrm{se}}_{n,B}=(\\widehat Q_{n,B}/n)^{1/2}\\).",
+      "free_symbols": [
+        "\\widehat v",
+        "\\widehat Q_{n,B}",
+        "\\widehat{\\mathrm{se}}_{n,B}",
+        "n",
+        "B",
+        "\\mathcal A",
+        "O",
+        "m",
+        "p"
+      ],
+      "inputs": [
+        "d^{\\mathrm{pre}}_{n,B}",
+        "O"
+      ]
+    },
+    {
+      "id": "def:wald-interval",
+      "name": "Fixed-time Wald interval",
+      "construction": "For \\(0<\\alpha<1\\), \\(\\mathcal I_{n,B}(\\alpha)=[\\widehat\\tau_{d^{\\mathrm{pre}}_{n,B}}-z_{1-\\alpha/2}\\widehat{\\mathrm{se}}_{n,B},\\widehat\\tau_{d^{\\mathrm{pre}}_{n,B}}+z_{1-\\alpha/2}\\widehat{\\mathrm{se}}_{n,B}]\\), where \\(z_\\gamma\\) is the \\(\\gamma\\)-quantile of \\(\\mathcal N(0,1)\\).",
+      "free_symbols": [
+        "\\mathcal I_{n,B}(\\alpha)",
+        "\\alpha",
+        "z_\\gamma",
+        "n",
+        "B",
+        "\\widehat\\tau_d",
+        "d^{\\mathrm{pre}}_{n,B}",
+        "\\widehat{\\mathrm{se}}_{n,B}"
+      ],
+      "inputs": [
+        "d^{\\mathrm{pre}}_{n,B}",
+        "\\widehat{\\mathrm{se}}_{n,B}"
+      ]
+    },
+    {
+      "id": "def:saturation",
+      "name": "Operational saturation count",
+      "construction": "\\(\\Psi_\\infty(n)=\\min_{1\\le b\\le\\lfloor n/4\\rfloor}\\Psi^{=}_{n,b}\\) and, for \\(A>1\\), \\(B_{\\mathrm{sat}}(n,A)=\\min\\{B:\\Psi^{=}_{n,B}\\le A\\Psi_\\infty(n)\\}\\).",
+      "free_symbols": [
+        "\\Psi_\\infty(n)",
+        "B_{\\mathrm{sat}}(n,A)",
+        "A",
+        "n",
+        "B",
+        "\\Psi^{=}_{n,B}"
+      ],
+      "inputs": [
+        "\\Psi^{=}_{n,B}",
+        "\\Psi^{\\le}_{n,B}"
+      ]
+    },
+    {
+      "id": "def:lan-handle",
+      "name": "Chronological LAN handle",
+      "construction": "\\(\\mathsf H_{\\mathrm{LAN}}\\) means: restrict to the fixed-scale path \\(\\sigma_1(\\theta)=s e^\\theta\\), \\(\\sigma_0(\\theta)=s e^{-\\theta}\\); factor the adaptive-history score into martingale increments of Fisher information two per revealed outcome; transport the induced local Gaussian experiment through the predictable maps \\(p_b\\); and optimize the cumulative quadratic expansion of \\(r_\\sigma(p_b)\\) jointly with the batch schedule.",
+      "free_symbols": [
+        "\\mathsf H_{\\mathrm{LAN}}",
+        "\\sigma",
+        "s",
+        "\\mathcal F",
+        "p",
+        "r_\\sigma",
+        "m",
+        "T",
+        "B"
+      ],
+      "inputs": [
+        "s",
+        "\\mathcal F",
+        "p",
+        "r_\\sigma"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:observed-law-wellposed",
+      "kind": "proposition",
+      "statement": "For every \\(d\\in\\mathfrak D_{n,B}\\) and \\((\\mu,\\sigma)\\in\\Theta\\), each pair of kernels in def:observed-adaptive-law is Borel and their chronological recursion determines a unique probability law \\(P^{d}_{\\mu,\\sigma}\\) on \\((\\mathsf H_B,\\mathcal G_B)\\). The filtration \\((\\mathcal F_b)_{b=0}^B\\) is the coordinate filtration and is independent of \\((\\mu,\\sigma)\\); moreover, \\(Q_b=q_b(O^{(b-1)})\\) and \\(p_b=Q_b/m_b\\) are \\(\\mathcal F_{b-1}\\)-measurable and satisfy the exact-count bounds pathwise. The distribution of \\(\\widehat\\tau_d\\), the risk \\(\\mathcal R_{n,B}\\), and the frontiers \\(\\Psi^{=}_{n,B}\\) and \\(\\Psi^{\\le}_{n,B}\\) depend only on these observed laws. Under \\(d^{\\mathrm{pre}}_{n,B}\\), the same is true of \\(\\widehat Q_{n,B}\\) and \\(\\mathcal I_{n,B}(\\alpha)\\). Any latent potential-outcome augmentation that is independent across units and has the same two Gaussian arm marginals, with an arbitrary within-unit copula, induces the same observed laws and the same values of all these quantities.",
+      "free_symbols": [
+        "d",
+        "\\mathfrak D_{n,B}",
+        "n",
+        "B",
+        "\\mu",
+        "\\sigma",
+        "\\Theta",
+        "P^{d}_{\\mu,\\sigma}",
+        "O",
+        "\\mathsf H",
+        "\\mathcal G",
+        "\\mathcal F",
+        "q",
+        "Q",
+        "p",
+        "m",
+        "\\widehat\\tau_d",
+        "\\mathcal R_{n,B}",
+        "\\Psi^{=}_{n,B}",
+        "\\Psi^{\\le}_{n,B}",
+        "d^{\\mathrm{pre}}_{n,B}",
+        "\\widehat Q_{n,B}",
+        "\\mathcal I_{n,B}(\\alpha)",
+        "\\alpha"
+      ],
+      "depends_on": [
+        "ass:parameter-box",
+        "ass:predictable-counts",
+        "ass:fixed-overlap-counts",
+        "def:observed-adaptive-law",
+        "def:weighted-estimator",
+        "def:exact-b-designs",
+        "def:normalized-risk",
+        "def:frontiers",
+        "def:variance-estimator",
+        "def:wald-interval"
+      ],
+      "status": "to-prove",
+      "justification": "This proposition makes the statistical experiment and every optimization criterion well posed without selecting an unidentified joint coupling of counterfactual outcomes.",
+      "gap": "Adaptive Neyman analyses often begin from potential-outcome marginals, but this frontier requires an explicit observed-data experiment because the assignment law evolves with the revealed history.",
+      "consumer": "The platform can evaluate risk, choose a cadence, and report coverage using only randomized assignments and revealed responses."
+    },
+    {
+      "id": "prop:risk-decomposition",
+      "kind": "proposition",
+      "statement": "For every \\(d\\in\\mathfrak D_{n,B}\\), \\(\\widehat\\tau_d\\) is unbiased for \\(\\tau\\) and \\[\\mathcal R_{n,B}(d;\\mu,\\sigma)=V^*(\\sigma)\\sum_{b=1}^B\\frac{(w_b-t_b)^2}{t_b}+\\sum_{b=1}^B\\frac{w_b^2}{t_b}\\,\\mathbb E_{P^{d}_{\\mu,\\sigma}}[r_\\sigma(p_b)].\\]",
+      "free_symbols": [
+        "d",
+        "\\mathfrak D_{n,B}",
+        "n",
+        "B",
+        "\\widehat\\tau_d",
+        "\\tau",
+        "\\mathcal R_{n,B}",
+        "\\mu",
+        "\\sigma",
+        "V^*(\\sigma)",
+        "w",
+        "t",
+        "P^{d}_{\\mu,\\sigma}",
+        "r_\\sigma",
+        "p"
+      ],
+      "depends_on": [
+        "prop:observed-law-wellposed",
+        "ass:predictable-counts",
+        "ass:deterministic-simplex-weights",
+        "def:batch-contrast",
+        "def:weighted-estimator",
+        "def:exact-b-designs",
+        "def:oracle-loss",
+        "def:normalized-risk"
+      ],
+      "status": "to-prove",
+      "justification": "This identity exposes weight mismatch and chronological allocation regret as the only two sources of design loss.",
+      "gap": "Li and Simchi-Levi decompose feasible-estimator error, and Dai, Gradu, and Harshaw connect Neyman regret to variance, but neither identity retains exact-count batch grids and arbitrary deterministic batch weights.",
+      "consumer": "It turns an update-cadence choice in the Amazon adaptive-abtester workflow into two auditable cost components."
+    },
+    {
+      "id": "lem:prefix-design-admissible",
+      "kind": "lemma",
+      "statement": "For every \\(n\\ge4\\) and \\(1\\le B\\le\\lfloor n/4\\rfloor\\), the constructed tuple satisfies \\(d^{\\mathrm{pre}}_{n,B}\\in\\mathfrak D_{n,B}\\). In particular, every \\(q_b\\) is Borel measurable on \\((\\mathsf H_{b-1},\\mathcal G_{b-1})\\), its values lie in \\(\\{\\lceil m_b/4\\rceil,\\ldots,\\lfloor3m_b/4\\rfloor\\}\\), and under its recursively induced law \\(P^{d^{\\mathrm{pre}}_{n,B}}_{\\mu,\\sigma}\\), the realized count \\(Q_b=q_b(O^{(b-1)})\\) is \\(\\mathcal F_{b-1}\\)-measurable.",
+      "free_symbols": [
+        "n",
+        "B",
+        "d^{\\mathrm{pre}}_{n,B}",
+        "\\mathfrak D_{n,B}",
+        "P^{d}_{\\mu,\\sigma}",
+        "\\mu",
+        "\\sigma",
+        "q",
+        "Q",
+        "O",
+        "m",
+        "\\mathsf H",
+        "\\mathcal G",
+        "\\mathcal F"
+      ],
+      "depends_on": [
+        "ass:deterministic-partition",
+        "ass:predictable-counts",
+        "ass:fixed-overlap-counts",
+        "ass:deterministic-simplex-weights",
+        "def:exact-b-designs",
+        "def:observed-adaptive-law",
+        "def:schedule-cost",
+        "def:prefix-variance",
+        "def:prefix-design"
+      ],
+      "status": "to-prove",
+      "justification": "The frontier upper bound is meaningful only after the deterministic-prefix construction is shown to satisfy every chronological, count, and weighting constraint.",
+      "gap": "Published low-switching rules do not verify membership in this exact-count class with a separate feasible grid in every positive batch.",
+      "consumer": "The admissibility certificate translates the mathematical schedule into a batch plan that can be instantiated without violating the platform's allocation constraints."
+    },
+    {
+      "id": "thm:exact-b-frontier",
+      "kind": "theorem",
+      "statement": "There exist constants \\(0<c<C<\\infty\\), depending only on \\((\\ell,u)\\), such that uniformly over every \\(n\\ge4\\) and \\(1\\le B\\le\\lfloor n/4\\rfloor\\), \\[cR_{n,B}\\le\\Psi^{=}_{n,B}\\le CR_{n,B}.\\] The upper bound is attained up to \\(C\\) by \\(d^{\\mathrm{pre}}_{n,B}\\), and the lower bound holds over the full class \\(\\mathfrak D_{n,B}\\) after joint optimization over deterministic weights.",
+      "free_symbols": [
+        "\\ell",
+        "u",
+        "n",
+        "B",
+        "R_{n,B}",
+        "\\Psi^{=}_{n,B}",
+        "d^{\\mathrm{pre}}_{n,B}",
+        "\\mathfrak D_{n,B}"
+      ],
+      "depends_on": [
+        "prop:observed-law-wellposed",
+        "ass:parameter-box",
+        "ass:deterministic-partition",
+        "ass:predictable-counts",
+        "ass:fixed-overlap-counts",
+        "ass:deterministic-simplex-weights",
+        "def:exact-b-designs",
+        "def:frontiers",
+        "def:rate-benchmarks",
+        "def:schedule-cost",
+        "def:prefix-design",
+        "prop:risk-decomposition",
+        "lem:prefix-design-admissible"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem makes the feedback budget a first-class design parameter and separates the learning price from repeated integer quantization.",
+      "gap": "Zhao gives a fixed-stage upper exponent and an unrestricted proxy-risk lower bound; Li and Simchi-Levi give logarithmic batching and nuisance-rate bounds. Neither supplies this matched every-\\(B\\) actual-MSE frontier.",
+      "consumer": "An A/B testing operator can compare the statistical value of each permitted number of policy revisions before choosing a deployment cadence."
+    },
+    {
+      "id": "thm:exact-anchors",
+      "kind": "theorem",
+      "statement": "The finite-sample one-batch frontier obeys the identity \\[\\Psi^{=}_{n,1}=\\min_{k\\in\\{\\lceil n/4\\rceil,\\ldots,\\lfloor3n/4\\rfloor\\}}\\ \\sup_{\\sigma_0,\\sigma_1\\in[\\ell,u]}\\left\\{\\frac{\\sigma_1^2}{k/n}+\\frac{\\sigma_0^2}{1-k/n}-V^*(\\sigma)\\right\\}.\\] Here each \\(k\\) corresponds to the constant singleton-domain policy \\(q_1(\\varnothing)=k\\). A nearest-to-balanced count is minimax. With \\(p_n=\\lfloor n/2\\rfloor/n\\le1/2\\), a complete case split over the clipped-oracle regions \\(\\sigma_1/\\sigma_0<1/3\\), \\(\\sigma_1/\\sigma_0\\in[1/3,3]\\), and \\(\\sigma_1/\\sigma_0>3\\) gives \\[\\Psi^{=}_{n,1}=\\frac{u^2}{p_n}+\\frac{\\ell^2}{1-p_n}-V^*(\\sigma)\\big|_{\\sigma_1=u,\\,\\sigma_0=\\ell}.\\] For odd \\(n\\), this is exactly \\[\\frac{2nu^2}{n-1}+\\frac{2n\\ell^2}{n+1}-V^*(\\sigma)\\big|_{\\sigma_1=u,\\,\\sigma_0=\\ell};\\] the ceiling count has the symmetric opposite worst orientation and the same minimax value. For even \\(n\\), the two variance orientations tie at \\(p_n=1/2\\), and explicit evaluation of the clipped oracle yields \\[\\Psi^{=}_{n,1}=\\begin{cases}(u-\\ell)^2,&u\\le3\\ell,\\\\ 2u^2/3-2\\ell^2,&u\\ge3\\ell,\\end{cases}\\] continuously at \\(u=3\\ell\\). In particular, the second value also arises at \\(\\sigma_1=u,\\sigma_0=\\ell\\) and is not zero there. For two batches, \\(\\Psi^{=}_{n,2}\\asymp n^{-1/2}\\) uniformly over the fixed parameter box; an attaining-order construction uses a balanced pilot of order \\(n^{1/2}\\), a clipped exact-count plug-in second wave, and an admissible deterministic weight choice.",
+      "free_symbols": [
+        "n",
+        "p_n",
+        "\\Psi^{=}_{n,B}",
+        "u",
+        "\\ell",
+        "\\sigma",
+        "q",
+        "\\mathsf H",
+        "V^*(\\sigma)",
+        "\\Theta",
+        "w"
+      ],
+      "depends_on": [
+        "ass:parameter-box",
+        "ass:deterministic-partition",
+        "ass:fixed-overlap-counts",
+        "ass:deterministic-simplex-weights",
+        "def:oracle-loss",
+        "def:frontiers",
+        "prop:risk-decomposition",
+        "thm:exact-b-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "Closed one- and two-wave anchors prevent the general frontier from hiding an incorrect endpoint or pilot exponent.",
+      "gap": "Cai and Rafi analyze fixed pilots, Yamin gives a boundary-driven global pilot rate, and Zhao gives an upper exponent; none jointly treats the nondegenerate Gaussian interior, exact counts, deterministic weights, and a matching two-wave lower bound.",
+      "consumer": "Two-wave experiments can use the square-root pilot as a principled default while quantifying when one-wave balance is preferable."
+    },
+    {
+      "id": "thm:envelope-overscheduling",
+      "kind": "theorem",
+      "statement": "There exist constants \\(0<c<C<\\infty\\), depending only on \\((\\ell,u)\\), such that \\[cL_{n,B}\\le\\Psi^{\\le}_{n,B}\\le CL_{n,B}\\] uniformly over feasible \\((n,B)\\). Hence \\(\\Psi_\\infty(n)\\asymp(\\log n)/n\\), and for every sufficiently large fixed \\(A\\), \\(B_{\\mathrm{sat}}(n,A)\\asymp\\log n\\). In contrast, when \\(n=4B\\) and the box contains \\((\\sigma_1,\\sigma_0)=(2,1)\\), \\(\\Psi^{=}_{n,B}\\ge1/3\\), so compulsory overscheduling is separated from the at-most-\\(B\\) envelope.",
+      "free_symbols": [
+        "\\ell",
+        "u",
+        "n",
+        "B",
+        "A",
+        "L_{n,B}",
+        "\\Psi^{\\le}_{n,B}",
+        "\\Psi_\\infty(n)",
+        "B_{\\mathrm{sat}}(n,A)",
+        "\\sigma",
+        "\\Psi^{=}_{n,B}"
+      ],
+      "depends_on": [
+        "def:frontiers",
+        "def:rate-benchmarks",
+        "def:saturation",
+        "thm:exact-b-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The result distinguishes the monotone operational budget from the nonmonotone mathematical cost of requiring many positive exact-count batches.",
+      "gap": "Low-switching Neyman designs and batched-bandit results show that few updates can suffice, but they let surplus batches be ignored and do not exhibit an exact-count overscheduling penalty.",
+      "consumer": "The Amazon adaptive-abtester consumer obtains both a stopping scale for useful revisions and a warning against mechanically forcing every available update slot to be used."
+    },
+    {
+      "id": "thm:uniform-wald",
+      "kind": "theorem",
+      "statement": "For each fixed \\(0<\\alpha<1\\), under \\(d^{\\mathrm{pre}}_{n,B}\\), \\[\\sup_{1\\le B\\le\\lfloor n/4\\rfloor}\\sup_{(\\mu,\\sigma)\\in\\Theta}\\left|P^{d^{\\mathrm{pre}}_{n,B}}_{\\mu,\\sigma}\\{\\tau\\in\\mathcal I_{n,B}(\\alpha)\\}-(1-\\alpha)\\right|\\to0.\\] Moreover, \\(\\widehat Q_{n,B}\\) is uniformly ratio-consistent for the predictable variance of \\(\\sqrt n(\\widehat\\tau_{d^{\\mathrm{pre}}_{n,B}}-\\tau)\\), and the corresponding studentized statistic converges uniformly to \\(\\mathcal N(0,1)\\).",
+      "free_symbols": [
+        "\\alpha",
+        "d^{\\mathrm{pre}}_{n,B}",
+        "n",
+        "B",
+        "\\mu",
+        "\\sigma",
+        "\\Theta",
+        "P^{d}_{\\mu,\\sigma}",
+        "\\tau",
+        "\\mathcal I_{n,B}(\\alpha)",
+        "\\widehat Q_{n,B}",
+        "\\widehat\\tau_d"
+      ],
+      "depends_on": [
+        "prop:observed-law-wellposed",
+        "ass:parameter-box",
+        "ass:predictable-counts",
+        "ass:fixed-overlap-counts",
+        "def:prefix-variance",
+        "def:prefix-design",
+        "def:variance-estimator",
+        "def:wald-interval",
+        "prop:risk-decomposition",
+        "thm:exact-b-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "A frontier without valid uncertainty quantification would not support a production cadence decision.",
+      "gap": "Zhang, Janson, and Murphy fix the batch count and grow every batch, while adaptive AIPW results use per-unit Bernoulli policies; neither covers this exact-count, potentially small-cell frontier family.",
+      "consumer": "The same batch outputs used to choose the update cadence yield a fixed-time confidence interval for the ATE."
+    },
+    {
+      "id": "oeq:sharp-chronological-constant",
+      "kind": "openendedquestion",
+      "statement": "Using \\(\\mathsf H_{\\mathrm{LAN}}\\), determine whether \\(n\\Psi_\\infty(n)/\\log n\\) has a limit, characterize the sharp limit or sharp liminf and limsup over the fixed variance box, construct a logarithmic-batch schedule attaining the same sharp object, and decide whether the literal threshold \\(B_{\\mathrm{sat}}(n,2)\\) is of order \\(\\log n\\).",
+      "free_symbols": [
+        "\\mathsf H_{\\mathrm{LAN}}",
+        "n",
+        "\\Psi_\\infty(n)",
+        "\\ell",
+        "u",
+        "B_{\\mathrm{sat}}(n,A)"
+      ],
+      "depends_on": [
+        "ass:parameter-box",
+        "ass:predictable-counts",
+        "def:frontiers",
+        "def:saturation",
+        "def:lan-handle",
+        "thm:exact-b-frontier",
+        "thm:envelope-overscheduling"
+      ],
+      "status": "to-prove",
+      "justification": "Only a matched chronological constant can convert order-optimal saturation into the literal factor-two operational claim.",
+      "gap": "Hirano and Porter characterize attainable sequential limits and Armstrong derives first-order efficiency bounds, but neither computes cumulative pre-update allocation loss or a saturation constant.",
+      "consumer": "A sharp answer determines the smallest update count that is certifiably within a factor two of the best feasible cadence."
+    }
+  ],
+  "sampling_model": {
+    "design": "A deterministic partition into exactly \\(B\\) positive batches. Before outcomes are generated, each count rule is a Borel map \\(q_b:(\\mathsf H_{b-1},\\mathcal G_{b-1})\\to(\\mathbb Z,2^{\\mathbb Z})\\). Evaluating it at the canonical prefix gives the \\(\\mathcal F_{b-1}\\)-measurable count \\(Q_b=q_b(O^{(b-1)})\\), after which the batch is completely randomized conditional on \\(Q_b\\).",
+    "units": "The canonical observed record lies in \\(\\mathsf H_B=(\\{0,1\\}\\times\\mathbb R)^n\\) with its product Borel sigma-algebra. The law is built recursively by appending a randomized assignment vector and then independent Gaussian responses from the assigned-arm kernels; no joint coupling of unobserved arm outcomes is posited.",
+    "treatment": "Binary treatment with every realized batch share constrained to \\([1/4,3/4]\\).",
+    "overlap": "Pathwise exact-count overlap: \\(\\lceil m_b/4\\rceil\\le q_b(h)\\le\\lfloor3m_b/4\\rfloor\\) for every canonical prefix \\(h\\in\\mathsf H_{b-1}\\).",
+    "nuisance_estimation": "Arm variances are learned from deterministic prefixes of each observed arm stream and projected onto \\([\\ell^2,u^2]\\); no random-size chi-square assertion is used."
+  },
+  "estimand_functional": "\\(\\widehat\\tau_d=\\sum_{b=1}^B w_bD_b\\), with \\(\\Psi^{=}_{n,B}=\\inf_{d\\in\\mathfrak D_{n,B}}\\sup_{(\\mu,\\sigma)\\in\\Theta}\\{n\\mathbb E_{P^{d}_{\\mu,\\sigma}}[(\\widehat\\tau_d-\\tau)^2]-V^*(\\sigma)\\}\\)",
+  "target_estimand": "\\(\\tau=\\mu_1-\\mu_0\\)",
+  "bibliography": [
+    {
+      "key": "LiSimchiLevi2026SequentialEfficiency",
+      "citation": "Li, Jiachun, and David Simchi-Levi. 2026. Semiparametric Efficiency in Sequential Experiments: Characterization and Design via Average Propensity. arXiv:2606.31190."
+    },
+    {
+      "key": "Zhao2026AdaptiveNeyman",
+      "citation": "Zhao, Jinglong. 2023, revised 2026. Adaptive Neyman Allocation. arXiv:2309.08808."
+    },
+    {
+      "key": "HiranoPorter2023SequentialRepresentations",
+      "citation": "Hirano, Keisuke, and Jack R. Porter. 2023. Asymptotic Representations for Sequential Decisions, Adaptive Experiments, and Batched Bandits. arXiv:2302.03117."
+    },
+    {
+      "key": "Armstrong2022EfficiencyBounds",
+      "citation": "Armstrong, Timothy B. 2022. Asymptotic Efficiency Bounds for a Class of Experimental Designs. arXiv:2205.02726."
+    },
+    {
+      "key": "PerchetRigolletChassangSnowberg2016Batched",
+      "citation": "Perchet, Vianney, Philippe Rigollet, Sylvain Chassang, and Erik Snowberg. 2016. Batched Bandit Problems. Annals of Statistics 44(2): 660--681. DOI: 10.1214/15-AOS1381."
+    },
+    {
+      "key": "GaoHanRenZhou2019BatchedBandits",
+      "citation": "Gao, Zijun, Yanjun Han, Zhimei Ren, and Zhengqing Zhou. 2019. Batched Multi-armed Bandits Problem. Advances in Neural Information Processing Systems 32: 501--511."
+    },
+    {
+      "key": "DaiGraduHarshaw2023ClipOGD",
+      "citation": "Dai, Jessica, Paula Gradu, and Christopher Harshaw. 2023. Clip-OGD: An Experimental Design for Adaptive Neyman Allocation in Sequential Experiments. Advances in Neural Information Processing Systems 36."
+    },
+    {
+      "key": "NoarovFogliatoBertranRoth2025StrongerNeyman",
+      "citation": "Noarov, Georgy, Riccardo Fogliato, Martin Bertran, and Aaron Roth. 2025. Stronger Neyman Regret Guarantees for Adaptive Experimental Design. Proceedings of the International Conference on Machine Learning."
+    },
+    {
+      "key": "CaiRafi2024SmallPilots",
+      "citation": "Cai, Yong, and Ahnaf Rafi. 2024. On the Performance of the Neyman Allocation with Small Pilots. Journal of Econometrics 244(1), article 105793."
+    },
+    {
+      "key": "HahnHiranoKarlan2011AdaptivePropensity",
+      "citation": "Hahn, Jinyong, Keisuke Hirano, and Dean Karlan. 2011. Adaptive Experimental Design Using the Propensity Score. Journal of Business and Economic Statistics 29(1): 96--108."
+    },
+    {
+      "key": "BlackwellPashleyValentino2023BANA",
+      "citation": "Blackwell, Matthew, Nicole E. Pashley, and Dominic Valentino. 2023. Batch Adaptive Designs to Improve Efficiency in Social Science Experiments. Working paper."
+    },
+    {
+      "key": "Yamin2026WhenHowPilot",
+      "citation": "Yamin, Juan C. 2026. When and How to Pilot: Design Rules for Two-Wave Experiments. arXiv:2607.16982, version 2."
+    },
+    {
+      "key": "Wright2017ExactAllocation",
+      "citation": "Wright, Tommy. 2017. Exact Optimal Sample Allocation: More Efficient than Neyman. Statistics and Probability Letters 129: 50--57."
+    },
+    {
+      "key": "ZhangJansonMurphy2020BOLS",
+      "citation": "Zhang, Kelly W., Lucas Janson, and Susan A. Murphy. 2020. Inference for Batched Bandits. Advances in Neural Information Processing Systems 33."
+    },
+    {
+      "key": "CookMishlerRamdas2024EfficientInference",
+      "citation": "Cook, Thomas, Alan Mishler, and Aaditya Ramdas. 2024. Semiparametric Efficient Inference in Adaptive Experiments. Proceedings of the Third Conference on Causal Learning and Reasoning."
+    },
+    {
+      "key": "ChenAndrews2026OptimalConditional",
+      "citation": "Chen, Jiafeng, and Isaiah Andrews. 2023, revised 2026. Optimal Conditional Inference in Adaptive Experiments. arXiv:2309.12162."
+    },
+    {
+      "key": "NiuRen2025AssumptionLean",
+      "citation": "Niu, Zhen, and Zhichao Ren. 2025. Assumption-Lean Weak Limits and Tests for Two-Stage Adaptive Experiments. arXiv:2505.10747."
+    },
+    {
+      "key": "AmazonAdaptiveABTester",
+      "citation": "Amazon Science. 2025. Adaptive A/B Testing: Implementation of an Adaptive Experimental Design Algorithm. Public software repository."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "LiSimchiLevi2026SequentialEfficiency",
+      "comparator_claim": "The paper gives an average-propensity efficiency lower bound and logarithmic-batch second-order constructions for linear causal functionals.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Zhao2026AdaptiveNeyman",
+      "comparator_claim": "The paper gives a fixed-\\(M\\) upper competitive ratio \\(1+O(T^{-(M-1)/M+\\varepsilon})\\) and an unrestricted lower ratio \\(1+1/(480T)\\).",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HiranoPorter2023SequentialRepresentations",
+      "comparator_claim": "The paper characterizes attainable limit distributions in fixed-stage sequential Gaussian experiments with endogenous information sets.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Armstrong2022EfficiencyBounds",
+      "comparator_claim": "The paper derives first-order efficiency bounds for regular estimation under adaptive assignment.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "PerchetRigolletChassangSnowberg2016Batched",
+      "comparator_claim": "The paper characterizes batch-dependent two-arm reward regret using geometric and recursive grids and matching lower bounds.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GaoHanRenZhou2019BatchedBandits",
+      "comparator_claim": "The paper gives rate-optimal batched-bandit regret bounds up to logarithmic and adaptive-grid factors.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CaiRafi2024SmallPilots",
+      "comparator_claim": "The paper shows that feasible Neyman allocation based on a fixed pilot can have larger asymptotic variance than balanced randomization.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BlackwellPashleyValentino2023BANA",
+      "comparator_claim": "The paper develops a two-wave exact-count batch-adaptive Neyman design with volume-weighted contrasts and conservative variance estimation.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Yamin2026WhenHowPilot",
+      "comparator_claim": "The paper gives conditional minimax-regret allocation and a global two-wave pilot order \\(n^{2/3}\\) over a bounded class that includes variance-boundary sequences.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Wright2017ExactAllocation",
+      "comparator_claim": "The paper gives exact static integer sample-allocation algorithms because rounded continuous Neyman allocation need not minimize variance.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhangJansonMurphy2020BOLS",
+      "comparator_claim": "The paper proves Batched OLS asymptotic normality with a fixed batch count as observations per batch diverge.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CookMishlerRamdas2024EfficientInference",
+      "comparator_claim": "The paper proves fixed-time asymptotic normality and efficient adaptive AIPW inference under changing assignment probabilities.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChenAndrews2026OptimalConditional",
+      "comparator_claim": "The paper derives optimal conditional inference for fixed-horizon batched adaptive experiments, including a Gaussian sufficient-statistic reduction.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "NiuRen2025AssumptionLean",
+      "comparator_claim": "The paper derives assumption-lean weak limits and plug-in bootstrap tests for broad weighted statistics in two-stage adaptive experiments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "NoarovFogliatoBertranRoth2025StrongerNeyman",
+      "comparator_claim": "The paper obtains near-logarithmic anytime Neyman regret under bounded finite-population outcomes and per-unit adaptive Bernoulli assignment.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DaiGraduHarshaw2023ClipOGD",
+      "comparator_claim": "The paper relates expected Neyman regret to estimator variance and constructs conservative intervals for Clip-OGD.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Policy updates are treated as a scarce experimental-design resource. The core result is a uniform every-\\(B\\) minimax frontier for the normalized excess MSE of observed-data Gaussian adaptive Neyman experiments with exact counts: the chronological variance-learning term is \\(B\\{(n+1)^{1/B}-1\\}/n\\), while compulsory exact batching adds a lattice term of order \\((B/n)^2\\). The at-most-\\(B\\) envelope saturates at order \\((\\log n)/n\\), whereas forcing nearly \\(n/4\\) batches can be strictly harmful. A deterministic-prefix plug-in design matches the frontier up to constants and supports a uniformly valid fixed-time Wald interval. The sharp chronological constant and the literal factor-two saturation threshold remain a first-class open question.",
+  "project_justification": {
+    "gap": "Existing adaptive Neyman papers supply first-order efficiency, fixed-stage upper rates, unrestricted lower bounds, or low-switching constructions, but no matched actual-MSE frontier indexed by every exact update count with integer allocations and deterministic batch-contrast weights.",
+    "niche": "Exact batching introduces two losses that average-propensity and reward-regret analyses suppress: observations cannot repair the allocation within their own batch, and each positive batch has its own treatment-count lattice.",
+    "fill": "The project derives the exact risk identity, proves matching schedule and chronological-information bounds, distinguishes exactly from at most \\(B\\), anchors the endpoints, and attaches studentized fixed-time inference to the attaining design. The observed experiment is specified directly through chronological assignment and response kernels, so every frontier and coverage claim is invariant to any unobserved within-unit potential-outcome coupling."
+  },
+  "related_work": "Li and Simchi-Levi characterize sequential efficiency through average propensity and give logarithmic-batch constructions; their timing-collapsed benchmark informs the oracle but does not define the every-update frontier. Zhao derives fixed-stage competitive upper exponents and an unrestricted adaptive proxy-risk lower bound; the present target uses actual weighted-estimator MSE and a fixed-\\(B\\) converse. Hirano and Porter's endogenous-information-set representation motivates the chronological local experiment. Armstrong's adaptive efficiency bound supplies a least-favorable-score template at first order. Perchet, Rigollet, Chassang, and Snowberg and Gao, Han, Ren, and Zhou develop recursive grids and feedback-gap lower bounds for reward regret, which inform the schedule proof under a different loss. Cai and Rafi expose fixed-pilot failures, while Yamin gives conditional minimax-regret pilot rules and a boundary-driven global pilot rate; their results motivate the separate compact-interior two-wave anchor. Wright isolates static integer-allocation loss. Blackwell, Pashley, and Valentino motivate volume-weighted exact-count batch contrasts. Noarov, Fogliato, Bertran, and Roth obtain near-logarithmic per-unit Neyman regret under bounded finite-population conditions; the public Amazon adaptive-abtester repository implements that sequential design family and supplies the operational consumer. Zhang, Janson, and Murphy, Cook, Mishler, and Ramdas, Chen and Andrews, Niu and Ren, and Dai, Gradu, and Harshaw supply distinct inference templates for fixed-batch, two-stage, conditional, or per-unit adaptive experiments. No theorem-level tightening of these differently defined comparators is asserted; they are method and problem-formulation ancestors. The model here is instead defined directly as an observed adaptive-experiment law: assignment histories and the single revealed response per unit are jointly generated by explicit chronological kernels, without an unidentified counterfactual copula.",
+  "technical_internal_limitation": "The fixed-scale path in \\(\\mathsf H_{\\mathrm{LAN}}\\) holds \\(s\\) fixed. If common scale is allowed to vary as an unknown nuisance along the local path, the efficient information for the variance-ratio parameter depends on the treated and control counts, so the information-two calculation cannot be imported unchanged. The sharp-constant analysis must preserve this distinction.",
+  "honest_scope": "The two-sided order frontier, exact one-batch formula, two-batch exponent, envelope order, overscheduling witness, and uniform Wald theorem are formal targets. The exact leading constant of \\(\\Psi_\\infty(n)\\), a uniformly matching sharp schedule, the exact finite-sample two-batch minimax rule, and the factor-two saturation threshold remain open. Under the standard one-batch special case, the frontier reduces to balanced assignment against the worst orientation of the variance box; under two batches it reduces to the square-root-pilot exponent already suggested by multistage upper constructions but adds a matching actual-MSE converse. Every formal risk, minimax, variance-estimation, and coverage object is a functional of the explicit observed-data law; no joint distribution of unobserved arm outcomes is required.",
+  "seeds": [
+    "seed:exact-b-frontier",
+    "seed:chronological-constant",
+    "seed:two-wave-interior",
+    "seed:at-most-envelope",
+    "seed:growing-b-inference",
+    "seed:adaptive-grid-frontier",
+    "seed:weight-allocation-saddle",
+    "seed:non-gaussian-frontier",
+    "seed:multiarm-frontier",
+    "seed:integer-overscheduling"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:exact-b-frontier",
+      "rank": 1,
+      "anchor": "LiSimchiLevi2026SequentialEfficiency",
+      "anchor_location": "Section 3.1, the average-propensity lower bound; Section 4.2, the excess-MSE decomposition; Section 4.4, the linear-functional rate theorem; and Section 7.",
+      "anchor_quote": "Both routes require only a small number of policy updates.",
+      "motif": "M13+M14",
+      "target_tier": "flagship",
+      "kernel": "Characterize, uniformly for every integer \\(1\\le B\\le\\lfloor n/4\\rfloor\\), the minimax normalized excess MSE under exactly \\(B\\) chronological exact-count batches, and pair the design frontier with valid studentized inference.",
+      "first_changed_proof_step": "The average-propensity reduction must be replaced by a batchwise risk identity that retains the time at which the variance ratio becomes learnable; the destination search over adaptive Neyman allocation and fixed feedback budgets found no matching every-\\(B\\) converse.",
+      "red_team": "Immediate from Li and Simchi-Levi because their second-order theorem already gives a logarithmic-batch rate.",
+      "rebuttal": "Their rate is nuisance-rate indexed and their lower bound collapses timing to an average propensity; it does not index every fixed \\(B\\), impose exact counts, distinguish exactly from at most \\(B\\), or optimize deterministic batch-contrast weights.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "survives_step1": true
+    },
+    {
+      "id": "seed:chronological-constant",
+      "rank": 2,
+      "anchor": "HiranoPorter2023SequentialRepresentations",
+      "anchor_location": "Theorem 1 and Section 6, which characterize attainable limits under endogenous sequential information sets.",
+      "anchor_quote": "No single choice of \\(c\\) dominates all the others.",
+      "motif": "M13+M11",
+      "target_tier": "flagship",
+      "kernel": "Compute the local asymptotic minimax constant for cumulative pre-update Neyman-share loss on the fixed-scale Gaussian path \\(\\sigma_1(\\theta)=s e^{\\theta}\\), \\(\\sigma_0(\\theta)=s e^{-\\theta}\\).",
+      "first_changed_proof_step": "The sequential representation must preserve predictable Fisher information and cumulative action loss rather than only terminal decision distributions; searches pairing chronological Gaussian information with Neyman allocation loss found no sharp constant theorem.",
+      "red_team": "This is a routine LAN calculation because each Gaussian observation has Fisher information two.",
+      "rebuttal": "Information two is only the entry calculation; the unresolved step is a single-prior or local-minimax inequality that prices every pre-update action and is attained uniformly while allowing adaptive exact counts and optimized estimator weights.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "survives_step1": true
+    },
+    {
+      "id": "seed:two-wave-interior",
+      "rank": 3,
+      "anchor": "CaiRafi2024SmallPilots",
+      "anchor_location": "The fixed-pilot asymptotic framework in the Introduction and the mixture-limit comparison of feasible Neyman allocation with balance.",
+      "anchor_quote": "The Neyman Allocation can lead to estimates of the ATE with higher asymptotic variance.",
+      "motif": "M13",
+      "target_tier": "field",
+      "kernel": "Over a compact Gaussian variance box bounded away from zero, jointly optimize the growing pilot size, exact pilot and main-wave counts, plug-in rule, and deterministic aggregation weights, with a matching \\(n^{-1/2}\\) normalized-excess frontier.",
+      "first_changed_proof_step": "Replace fixed-pilot mixture asymptotics by a uniform interior expansion balancing pilot opportunity cost against the \\(m^{-1}\\) variance-ratio learning loss; a destination search located Yamin's boundary-driven \\(n^{2/3}\\) pilot theorem but no compact-interior exact-count minimax constant.",
+      "red_team": "Yamin's 2026 pilot-planning theorem already solves the optimal pilot-size problem.",
+      "rebuttal": "Yamin optimizes over a bounded class containing nearly degenerate variances, where uniform learning loss is \\(m^{-1/2}\\); on the stipulated box \\(\\sigma_a\\ge\\ell>0\\), his interior result is \\(m^{-1}\\), leaving the square-root pilot, exact counts, weights, and sharp constant unresolved.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "survives_step1": true
+    },
+    {
+      "id": "seed:at-most-envelope",
+      "rank": 4,
+      "anchor": "LiSimchiLevi2026SequentialEfficiency",
+      "anchor_location": "Appendix A's logarithmic geometric batching construction and Section 7.",
+      "anchor_quote": "Both routes require only a small number of policy updates.",
+      "motif": "M13",
+      "target_tier": "field",
+      "kernel": "Derive the at-most-\\(B\\) lower envelope, the effective number of used batches, and the separation from compulsory exactly-\\(B\\) batching near \\(B=n/4\\).",
+      "first_changed_proof_step": "The design class must separate a monotone capacity constraint from a positive-size exact-batch partition; batched-bandit searches treat surplus batches as ignorable and therefore cannot produce overscheduling.",
+      "red_team": "Exactly-\\(B\\) cannot be nonmonotone because a policy can ignore extra updates.",
+      "rebuttal": "It may ignore feedback but cannot recover units consumed by positive exact-count batches or escape their allocation lattice; at \\(n=4B\\), every cell has size four and the oracle share can be absent from every feasible grid.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 5,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "survives_step1": false,
+      "disposition": "Folded into seed:exact-b-frontier as its operational envelope theorem."
+    },
+    {
+      "id": "seed:growing-b-inference",
+      "rank": 5,
+      "anchor": "ZhangJansonMurphy2020BOLS",
+      "anchor_location": "Theorem 3 and the Introduction's fixed-number-of-batches asymptotic.",
+      "anchor_quote": "We focus on the setting in which the total number of batches is fixed.",
+      "motif": "M14",
+      "target_tier": "field",
+      "kernel": "Prove a ratio-consistent variance estimator, a unit-level martingale CLT, and uniform fixed-time Wald coverage for frontier schedules with fixed through logarithmically growing \\(B\\) and possibly size-four batches.",
+      "first_changed_proof_step": "Batch-level negligibility must be replaced by a unit-level triangular-array martingale argument after revealing each exact assignment vector; searches found fixed-\\(B\\) BOLS and per-unit adaptive AIPW CLTs but no frontier-coupled growing-\\(B\\) result.",
+      "red_team": "Adaptive Wald inference is already established by BOLS and adaptive AIPW papers.",
+      "rebuttal": "Their respective asymptotics require fixed batches with growing cells or per-unit Bernoulli assignment; neither covers the highly unequal exact-count frontier schedules or reproduces their deterministic aggregation weights.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "survives_step1": false
+    },
+    {
+      "id": "seed:adaptive-grid-frontier",
+      "rank": 6,
+      "anchor": "GaoHanRenZhou2019BatchedBandits",
+      "anchor_location": "Theorem 3 and Section 3.2's adaptive-grid crossing-event lower bound.",
+      "anchor_quote": "batch sizes are determined in an adaptive manner",
+      "motif": "M13",
+      "target_tier": "field",
+      "kernel": "Allow batch endpoints themselves to be chronological stopping decisions and determine whether adaptive grids improve the variance-learning frontier over deterministic schedules.",
+      "first_changed_proof_step": "Replace mean-gap testing worlds in the crossing-event tree by nearby variance-ratio paths while controlling exact-count lattice loss.",
+      "red_team": "Gao and coauthors already show adaptive grids do not change the batched frontier.",
+      "rebuttal": "Their conclusion concerns reward regret and retains an \\(M^{-2}\\) lower-bound gap; the squared variance-ratio learning loss and count lattice create a different stopping problem.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "survives_step1": false
+    },
+    {
+      "id": "seed:weight-allocation-saddle",
+      "rank": 7,
+      "anchor": "DaiGraduHarshaw2023ClipOGD",
+      "anchor_location": "Theorem 4.1's Neyman-regret-to-variance comparison and Section 5's variance estimator.",
+      "anchor_quote": "Any adaptive design which aims to achieve Neyman variance must, to some extent, minimize expected Neyman regret.",
+      "motif": "M1+M13",
+      "target_tier": "field",
+      "kernel": "Characterize the saddle between deterministic cross-batch weights and chronological allocation regret, including when volume weights are minimax and when pilots should be downweighted.",
+      "first_changed_proof_step": "Replace the IPW regret identity by an exact quadratic decomposition for weighted batch contrasts, then solve the inner harmonic weight program jointly with the policy.",
+      "red_team": "The optimal weights are immediate inverse-variance weights.",
+      "rebuttal": "Inverse variances depend on unknown arm variances and adaptive counts, while the admissible weights are deterministic; the minimax saddle must trade mismatch from volume weights against learned allocation loss.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 3
+      },
+      "survives_step1": false
+    },
+    {
+      "id": "seed:non-gaussian-frontier",
+      "rank": 8,
+      "anchor": "CaiRafi2024SmallPilots",
+      "anchor_location": "The Introduction and fixed-pilot results isolating high kurtosis as a source of feasible-Neyman failure.",
+      "anchor_quote": "this happens when the outcome variable is relatively homoskedastic or when it exhibits high kurtosis",
+      "motif": "M13+M7",
+      "target_tier": "field",
+      "kernel": "Index the fixed-update frontier by a kurtosis or tail parameter and determine the robust schedule transition between Gaussian variance learning and heavy-tailed pilot protection.",
+      "first_changed_proof_step": "Replace exact chi-square prefix risk by robust scale estimation and search the batch-budget and robust-variance-estimation pair; no matched every-\\(B\\) result was found.",
+      "red_team": "This merely substitutes a robust variance estimator into the Gaussian proof.",
+      "rebuttal": "The tail class changes the attainable prefix estimation rate and therefore the optimal batch grid itself, but establishing a matching chronological lower bound would require a separate least-favorable scale family.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "survives_step1": false
+    },
+    {
+      "id": "seed:multiarm-frontier",
+      "rank": 9,
+      "anchor": "Zhao2026AdaptiveNeyman",
+      "anchor_location": "Sections 5 and 7 on multistage and multiple-treatment extensions.",
+      "anchor_quote": "the optimal allocation in our problem follows the Neyman allocation structure",
+      "motif": "M13",
+      "target_tier": "field",
+      "kernel": "For \\(K\\) Gaussian arms and a linear contrast, characterize the update-budget frontier on the clipped simplex with exact multinomial batch counts.",
+      "first_changed_proof_step": "The scalar variance-ratio learner becomes a constrained covariance or scale-vector learner, and the integer rounding loss becomes a simplex quantization problem; the destination search found multiarm extensions but no sharp update-budget frontier.",
+      "red_team": "This is a routine dimension-dependent extension of the binary result.",
+      "rebuttal": "The simplex boundary, contrast-dependent zero weights, and coupled integer allocation can change both the learning dimension and the lattice term, but the binary theorem should be settled first.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "survives_step1": false
+    },
+    {
+      "id": "seed:integer-overscheduling",
+      "rank": 10,
+      "anchor": "Wright2017ExactAllocation",
+      "anchor_location": "The abstract and exact marginal variance decomposition showing rounded Neyman allocations need not minimize sampling variance.",
+      "anchor_quote": "does not guarantee minimum sampling variance after rounding",
+      "motif": "M13",
+      "target_tier": "subfield",
+      "kernel": "Compute the exact lattice penalty generated by compulsory small batches and characterize variance boxes for which the exactly-\\(B\\) frontier becomes nonmonotone.",
+      "first_changed_proof_step": "Apply discrete marginal variance gains batch by batch under predictable counts, rather than once in a static stratified allocation.",
+      "red_team": "Wright's exact integer allocation algorithm already resolves the lattice problem.",
+      "rebuttal": "Wright treats one static allocation; chronological variance learning and separate deterministic batch-contrast weights prevent collapsing the experiment into that static program.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 3
+      },
+      "survives_step1": false
+    }
+  ],
+  "literature_map": {
+    "chosen_seed": "seed:exact-b-frontier",
+    "adjacent_threads": [
+      {
+        "thread": "Sequential efficiency and adaptive Neyman allocation",
+        "sources": [
+          "LiSimchiLevi2026SequentialEfficiency",
+          "Zhao2026AdaptiveNeyman",
+          "Armstrong2022EfficiencyBounds"
+        ],
+        "settled": "Average-propensity first-order lower bounds, low-switching upper constructions, fixed-stage upper exponents, and an unrestricted \\(1+O(n^{-1})\\) proxy-risk lower bound are available.",
+        "unoccupied_target": "No result gives a matched actual-MSE converse for every exact integer \\(B\\) with exact counts and deterministic batch-contrast weights."
+      },
+      {
+        "thread": "Feedback-budget frontiers",
+        "sources": [
+          "PerchetRigolletChassangSnowberg2016Batched",
+          "GaoHanRenZhou2019BatchedBandits"
+        ],
+        "settled": "Geometric or recursive grids and chronological testing lower bounds characterize batch-dependent reward regret up to logarithmic factors.",
+        "unoccupied_target": "Their loss is mean-gap reward regret, surplus batches may be ignored, and no causal MSE, variance-ratio learning, or exact-count lattice term appears."
+      },
+      {
+        "thread": "Two-wave pilot design",
+        "sources": [
+          "HahnHiranoKarlan2011AdaptivePropensity",
+          "CaiRafi2024SmallPilots",
+          "Yamin2026WhenHowPilot"
+        ],
+        "settled": "Two-stage first-order efficiency, fixed-pilot failure, conditional minimax-regret rules, and a boundary-driven \\(n^{2/3}\\) global pilot rate are known.",
+        "unoccupied_target": "The compact nondegenerate Gaussian interior has a different \\(m^{-1}\\) learning regime; exact counts, jointly optimized deterministic weights, and a matched normalized-excess constant remain open."
+      },
+      {
+        "thread": "Adaptive inference",
+        "sources": [
+          "ZhangJansonMurphy2020BOLS",
+          "CookMishlerRamdas2024EfficientInference",
+          "ChenAndrews2026OptimalConditional",
+          "NiuRen2025AssumptionLean",
+          "DaiGraduHarshaw2023ClipOGD"
+        ],
+        "settled": "Fixed-batch BOLS normality, conditional Gaussian inference, two-stage weak limits and bootstrap tests, adaptive AIPW martingale inference, and conservative variance estimation for per-unit Neyman-regret designs are established.",
+        "unoccupied_target": "No theorem couples uniform studentization to an exact-count frontier schedule whose batch count grows and whose smallest batches need not diverge."
+      },
+      {
+        "thread": "Integer allocation",
+        "sources": [
+          "Wright2017ExactAllocation"
+        ],
+        "settled": "Static rounded continuous Neyman allocation can be suboptimal and exact discrete marginal-allocation algorithms are available.",
+        "unoccupied_target": "The interaction between a separate count lattice in every chronological batch and deterministic aggregation weights is not characterized."
+      }
+    ],
+    "method_exemplars_used": [
+      {
+        "bibkey": "HiranoPorter2023SequentialRepresentations",
+        "adaptation": "Preserve endogenous information sets batch by batch, but direct the representation toward cumulative pre-update loss."
+      },
+      {
+        "bibkey": "DaiGraduHarshaw2023ClipOGD",
+        "adaptation": "Convert allocation loss into excess estimator variance and retain the variance-estimation logic at the batch level."
+      },
+      {
+        "bibkey": "GaoHanRenZhou2019BatchedBandits",
+        "adaptation": "Replace Gaussian mean-gap alternatives in the crossing-event lower-bound tree by local variance-ratio alternatives."
+      },
+      {
+        "bibkey": "ZhangJansonMurphy2020BOLS",
+        "adaptation": "Aggregate batch contrasts while moving from fixed-batch normalization to unit-level martingale studentization."
+      }
+    ],
+    "writing_exemplar_used": {
+      "bibkey": "LiSimchiLevi2026SequentialEfficiency",
+      "adaptation": "Begin from policy revisions as an operational resource, quantify the efficiency approach as the number of permitted updates changes, and end with the cadence decision."
+    }
+  },
+  "literature_checklist": [
+    {
+      "author": "Jiachun Li and David Simchi-Levi",
+      "year": 2026,
+      "venue": "arXiv working paper",
+      "bibkey": "LiSimchiLevi2026SequentialEfficiency",
+      "one_line": "Average-propensity efficiency bound, logarithmic batching, and second-order rates for linear causal functionals.",
+      "relevant_to": "thm:exact-b-frontier"
+    },
+    {
+      "author": "Jinglong Zhao",
+      "year": 2026,
+      "venue": "arXiv working paper, revised version",
+      "bibkey": "Zhao2026AdaptiveNeyman",
+      "one_line": "Fixed-stage competitive upper exponents and an unrestricted adaptive proxy-risk lower bound.",
+      "relevant_to": "thm:exact-b-frontier"
+    },
+    {
+      "author": "Keisuke Hirano and Jack R. Porter",
+      "year": 2023,
+      "venue": "arXiv working paper",
+      "bibkey": "HiranoPorter2023SequentialRepresentations",
+      "one_line": "Recursive Gaussian limit experiments with endogenous chronological information sets.",
+      "relevant_to": "oeq:sharp-chronological-constant"
+    },
+    {
+      "author": "Timothy B. Armstrong",
+      "year": 2022,
+      "venue": "arXiv working paper",
+      "bibkey": "Armstrong2022EfficiencyBounds",
+      "one_line": "First-order efficiency bounds for estimators under adaptive assignment.",
+      "relevant_to": "oeq:sharp-chronological-constant"
+    },
+    {
+      "author": "Vianney Perchet, Philippe Rigollet, Sylvain Chassang, and Erik Snowberg",
+      "year": 2016,
+      "venue": "Annals of Statistics",
+      "bibkey": "PerchetRigolletChassangSnowberg2016Batched",
+      "one_line": "Batch-dependent two-arm reward-regret grids and chronological lower bounds.",
+      "relevant_to": "thm:envelope-overscheduling"
+    },
+    {
+      "author": "Zijun Gao, Yanjun Han, Zhimei Ren, and Zhengqing Zhou",
+      "year": 2019,
+      "venue": "NeurIPS",
+      "bibkey": "GaoHanRenZhou2019BatchedBandits",
+      "one_line": "Static and adaptive-grid regret bounds using recursive grids and crossing-event changes of measure.",
+      "relevant_to": "thm:exact-b-frontier"
+    },
+    {
+      "author": "Yong Cai and Ahnaf Rafi",
+      "year": 2024,
+      "venue": "Journal of Econometrics",
+      "bibkey": "CaiRafi2024SmallPilots",
+      "one_line": "Fixed-pilot feasible Neyman allocation can underperform balance near homoskedasticity or under high kurtosis.",
+      "relevant_to": "thm:exact-anchors"
+    },
+    {
+      "author": "Juan C. Yamin",
+      "year": 2026,
+      "venue": "arXiv working paper",
+      "bibkey": "Yamin2026WhenHowPilot",
+      "one_line": "Conditional minimax-regret pilot allocation and a boundary-driven global two-wave pilot-size rate.",
+      "relevant_to": "thm:exact-anchors"
+    },
+    {
+      "author": "Kelly W. Zhang, Lucas Janson, and Susan A. Murphy",
+      "year": 2020,
+      "venue": "NeurIPS",
+      "bibkey": "ZhangJansonMurphy2020BOLS",
+      "one_line": "Batched OLS normality for a fixed number of batches as each batch grows.",
+      "relevant_to": "thm:uniform-wald"
+    },
+    {
+      "author": "Jessica Dai, Paula Gradu, and Christopher Harshaw",
+      "year": 2023,
+      "venue": "NeurIPS",
+      "bibkey": "DaiGraduHarshaw2023ClipOGD",
+      "one_line": "Neyman-regret variance comparison and conservative inference for per-unit adaptive allocation.",
+      "relevant_to": "prop:risk-decomposition"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":[{\"bibkey\":\"LiSimchiLevi2026SequentialEfficiency\",\"precise_gap\":\"Its average-propensity efficiency bound removes chronology, while its second-order rate is indexed by nuisance-estimation difficulty rather than by each fixed update count.\"},{\"bibkey\":\"Zhao2026AdaptiveNeyman\",\"precise_gap\":\"It gives fixed-stage upper exponents for a terminal proxy-risk criterion and an unrestricted adaptive lower bound, not a matching fixed-stage actual-MSE frontier.\"}],\"non_subsumption_check\":\"Yamin's 2026 two-wave result is the closest newly located paper. It operates over a bounded class containing variance-boundary sequences and derives a global \\\\(n^{2/3}\\\\) pilot rule; it neither subsumes the compact-interior Gaussian two-wave anchor nor addresses every \\\\(B\\\\), exact versus at most \\\\(B\\\\), chronological lower bounds, or frontier-coupled Wald inference.\",\"open_risk\":\"The order frontier is separated from the unresolved sharp chronological constant. The literal factor-two saturation threshold is not claimed as a theorem unless the fixed-scale local Gaussian experiment yields a matching constant and a uniformly attaining logarithmic schedule.\",\"strict_delta\":\"The focal object is the pair \\\\((\\\\Psi^{=}_{n,B},\\\\Psi^{\\\\le}_{n,B})\\\\): a uniform every-\\\\(B\\\\) two-sided frontier for exact-count chronological designs, its separate integer-quantization term, and the nonmonotone cost of compulsory batching. None of the adjacent papers defines this pair or supplies its lower bound.\"}"
+}

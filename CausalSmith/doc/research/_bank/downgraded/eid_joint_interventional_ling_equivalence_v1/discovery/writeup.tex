@@ -1,0 +1,1455 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}joint\_\allowbreak{}interventional\_\allowbreak{}ling\_\allowbreak{}equivalence}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The paper characterizes when two exact-support linear non-Gaussian feedback graphs with a fixed number of latent nodes generate exactly the same joint family of perfect-intervention response kernels. The kernel combines an exact affine and Hall--Rado realization theorem for observed mixing matrices, a finite visible-source partition theorem that eliminates arbitrary source laws, and simultaneous principal-response constraints imposed by one common mechanism. An effective sign-invariant chart compiler and a common-lift theorem expose the genuine open content. The internal square no-latent reduction derives the projection, lift, row-recovery map, and matching-set equality while matching Sharifian et al. only on their published row-recovery clause; a four-node all-parameter witness proves strict refinement over observational equivalence, and a bounded-Laplace characteristic-function inversion supplies an honest graph confidence superset without latent-source recovery.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing results separately characterize observational law-set equivalence for latent cyclic linear non-Gaussian models, graphical intervention equivalence for latent directed acyclic graphs, or full parameter recovery under sufficiently rich second-order experiments. None gives an exact all-cancellations criterion for equality of full affine response-kernel model sets when the graph is exact structural support and one coefficient matrix and source-law tuple must serve every regime.
+
+\paragraph{Niche.} The missing object is a finite coupled invariant that simultaneously represents punctured structural completion, invisible or merged independent sources, principal intervention responses, and common-mechanism gluing on every lower-dimensional stratum.
+
+\paragraph{Fill.} The proposed criterion reduces admissible mechanisms to graph-generated affine and rank charts, reduces arbitrary source-law containment to finite proportional-column surjections, couples regimes through principal response matrices, and asks for an explicit certified compiler with a size-dependent bit bound. The inferential rung compares observable characteristic functions directly on a compact subclass.
+
+\section{Related work}
+
+Dai et al., Theorem 2, motivate a graph-generated equivalence object for latent cyclic linear non-Gaussian models, but that theorem concerns observational distribution sets under a zero-allowed support convention and does not settle the exact-support intervention problem. Zhou et al. encode hard-intervention invariances for latent directed acyclic graphs through augmented maximal ancestral graphs; their object is graphical constraint equivalence rather than equality of cyclic parametric response-kernel sets. Bongers et al. supply the solvability semantics that justify imposing invertibility separately after every intervention; the stronger uniform singular-value margin used only in the inference subclass is not their assumption or result. Hyttinen, Eberhardt, and Hoyer give necessary and sufficient experiment-design conditions for full second-order recovery, which is a different target from the quotient under an arbitrary fixed intervention family. Sharifian et al., Proposition 5.1, establish published row recovery for coordinate \(i\) in a square no-latent model from observational and randomized atomic-intervention distributions. Separately, the internal node \(\texttt{thm:no-latent-reduction}\), proposal Theorem 5, supplies the square projection, lift, response-kernel row-recovery map, and matching-set equality; only its row-recovery clause matches Proposition 5.1. Taeb et al. and Joint Causal Inference make shared mechanisms across environments explicit, but do not provide the required cyclic non-Gaussian common-lift theorem. Dadgostari and Nazemi study aligned response matrices for sensing an entirely latent equilibrium state and identify a single mechanism under target coverage or support conditions; they do not compare graph-indexed full-law sets under observed-node perfect interventions, arbitrary independent sources, and exact cancellations. Schkoda and Drton provide rank-based goodness-of-fit tests, while Wang, Kolar, and Drton provide test inversion for acyclic orderings; the statistical rung instead tests full observable law-set proximity for compact latent feedback models.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(G\equiv_{\mathcal I}H\Longleftrightarrow\mathcal P_{\mathcal I}(G)=\mathcal P_{\mathcal I}(H)\).
+Primary functional / estimator / diagnostic: \(G\equiv_{\mathcal I}H\Longleftrightarrow\operatorname{Cover}_{\mathcal I}(G,H)\wedge\operatorname{Cover}_{\mathcal I}(H,G)\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N\_\allowbreak{}\{\textbackslash{}\allowbreak{}ge 2\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of labeled observed variables.}
+  \item \texttt{ell} --- \texttt{nonnegative integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N\_\allowbreak{}0}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed number of labeled latent variables.}
+  \item \texttt{N} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N}
+  \par\smallskip\noindent\emph{Definition.} \(N=n+\ell\).
+  \item \texttt{Xset} --- \texttt{finite labeled set}; \texttt{\textbackslash{}\allowbreak{}\{X\_\allowbreak{}1,\allowbreak{}\textbackslash{}\allowbreak{}ldots,\allowbreak{}X\_\allowbreak{}n\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed-\allowbreak{}node index set.}
+  \item \texttt{Lset} --- \texttt{finite labeled set}; \texttt{\textbackslash{}\allowbreak{}\{L\_\allowbreak{}1,\allowbreak{}\textbackslash{}\allowbreak{}ldots,\allowbreak{}L\_\allowbreak{}\{\textbackslash{}\allowbreak{}ell\}\allowbreak{}\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Latent-node index set disjoint from \(X\).
+  \item \texttt{Vset} --- \texttt{finite labeled set}; \texttt{X\textbackslash{}\allowbreak{}sqcup L}
+  \par\smallskip\noindent\emph{Definition.} Full node set \(V=X\sqcup L\).
+  \item \texttt{Ical} --- \texttt{finite intervention family}; \texttt{2\textasciicircum{}X}
+  \par\smallskip\noindent\emph{Definition.} A fixed family \(\mathcal I\subseteq 2^X\) containing \(\varnothing\).
+  \item \texttt{Aatom} --- \texttt{atomic-\allowbreak{}intervention target set}; \texttt{2\textasciicircum{}X}
+  \par\smallskip\noindent\emph{Definition.} A set \(A\subseteq X\) of observed coordinates targeted one at a time.
+  \item \texttt{Iatom} --- \texttt{atomic-\allowbreak{}intervention family}; \texttt{2\textasciicircum{}\{2\textasciicircum{}X\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_A^{\mathrm{atom}}=\{\varnothing\}\cup\{\{i\}:i\in A\}\).
+  \item \texttt{G} --- \texttt{directed graph}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(V)}
+  \par\smallskip\noindent\emph{Definition.} A labeled loopless digraph on \(V\).
+  \item \texttt{H} --- \texttt{directed graph}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(V)}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A second labeled loopless digraph on the same node set.}
+  \item \texttt{B} --- \texttt{structural coefficient matrix}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{N\textbackslash{}\allowbreak{}times N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} The coefficient convention is \(V=BV+\varepsilon\), so \(B_{ji}\) is the coefficient on \(i\to j\).
+  \item \texttt{Qmat} --- \texttt{structural operator}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{N\textbackslash{}\allowbreak{}times N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(Q=I_N-B\).
+  \item \texttt{epsilon} --- \texttt{random vector}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}N}
+  \par\smallskip\noindent\emph{Definition.} Exogenous source vector \(\varepsilon=(\varepsilon_i)_{i\in V}\).
+  \item \texttt{Vrand} --- \texttt{random vector}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}N}
+  \par\smallskip\noindent\emph{Definition.} Equilibrium variable \(V=Q^{-1}\varepsilon\) whenever \(Q\) is invertible.
+  \item \texttt{S} --- \texttt{intervention target}; \texttt{\textbackslash{}\allowbreak{}mathcal I}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A set of intervened observed coordinates.}
+  \item \texttt{xS} --- \texttt{intervention value}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}S}
+  \par\smallskip\noindent\emph{Definition.} The constant vector imposed by \(\operatorname{do}(X_S=x)\).
+  \item \texttt{Kernel} --- \texttt{affine response kernel}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}S\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{X\textbackslash{}\allowbreak{}setminus S\}\allowbreak{})}
+  \par\smallskip\noindent\emph{Definition.} \(K_S^{B,\varepsilon}(x)=\mathcal L(X_{X\setminus S}^{\operatorname{do}(X_S=x)})\).
+  \item \texttt{PI} --- \texttt{graph-\allowbreak{}indexed law-\allowbreak{}set map}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(V)\textbackslash{}\allowbreak{}to 2\textasciicircum{}\{\textbackslash{}\allowbreak{}prod\_\allowbreak{}\{S\textbackslash{}\allowbreak{}in\textbackslash{}\allowbreak{}mathcal I\}\allowbreak{}(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}S\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{X\textbackslash{}\allowbreak{}setminus S\}\allowbreak{}))\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P_{\mathcal I}(G)\) is the set of all joint response-kernel tuples generated by admissible mechanisms with graph \(G\).
+  \item \texttt{C} --- \texttt{observed mixing matrix}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{n\textbackslash{}\allowbreak{}times N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(C=(Q^{-1})_{X,:}\) for a mechanism on \(G\).
+  \item \texttt{D} --- \texttt{observed mixing matrix}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{n\textbackslash{}\allowbreak{}times N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} A candidate observed mixing matrix for a mechanism on \(H\).
+  \item \texttt{Children} --- \texttt{child-\allowbreak{}set map}; \texttt{V\textbackslash{}\allowbreak{}to 2\textasciicircum{}V}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{ch}_G(j)=\{k\in V:j\to k\text{ in }G\}\).
+  \item \texttt{pcol} --- \texttt{observed coordinate column}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}n}
+  \par\smallskip\noindent\emph{Definition.} \(p_j=e_j\) if \(j\in X\), and \(p_j=0\) if \(j\in L\).
+  \item \texttt{Mlocal} --- \texttt{local child-\allowbreak{}column matrix}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{n\textbackslash{}\allowbreak{}times |\textbackslash{}\allowbreak{}operatorname\{ch\}\allowbreak{}\_\allowbreak{}G(j)|\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(M_j(C)=C_{:,\operatorname{ch}_G(j)}\).
+  \item \texttt{ulocal} --- \texttt{local affine target}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}n}
+  \par\smallskip\noindent\emph{Definition.} \(u_j(C)=p_j-C_{:,j}\).
+  \item \texttt{Aplain} --- \texttt{affine column fiber}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_j(C)=\{e_j+\sum_{k\in\operatorname{ch}_G(j)}w_ke_k:M_j(C)w=u_j(C)\}\).
+  \item \texttt{Aaff} --- \texttt{punctured affine column fiber}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_j^{\times}(C)=\{q\in\mathcal A_j(C):w_k\ne0\text{ for every }k\in\operatorname{ch}_G(j)\}\).
+  \item \texttt{Wspan} --- \texttt{linear subspace}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(W_j(C)=\operatorname{span}(\mathcal A_j(C))\).
+  \item \texttt{DG} --- \texttt{exact structural mixing domain}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{n\textbackslash{}\allowbreak{}times N\}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D_G\) is the graph-generated set defined by the local affine, Hall--Rado, full-row-rank, and intervention-minor conditions.
+  \item \texttt{Tmap} --- \texttt{affine response matrix map}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{n\textbackslash{}\allowbreak{}times N\}\allowbreak{}\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{|X\textbackslash{}\allowbreak{}setminus S|\textbackslash{}\allowbreak{}times |S|\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(T_S(A)=A_{X\setminus S,S}(A_{S,S})^{-1}\) when \(A_{S,S}\) is invertible.
+  \item \texttt{Rmap} --- \texttt{residual mixing matrix map}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{n\textbackslash{}\allowbreak{}times N\}\allowbreak{}\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{|X\textbackslash{}\allowbreak{}setminus S|\textbackslash{}\allowbreak{}times N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(R_S(A)=A_{X\setminus S,:}-T_S(A)A_{S,:}\).
+  \item \texttt{SquareProj} --- \texttt{square no-\allowbreak{}latent kernel projection}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_A\mathbf K=(K_{\varnothing},(K_{\{i\}})_{i\in A})\) is the projection onto the observational kernel and the atomic kernels indexed by \(\mathcal I_A^{\mathrm{atom}}\).
+  \item \texttt{RowOrbit} --- \texttt{unordered projective row orbit}; \texttt{\textbackslash{}\allowbreak{}operatorname\{Sym\}\allowbreak{}\textasciicircum{}n(\textbackslash{}\allowbreak{}mathbb P\textasciicircum{}\{n-\allowbreak{}1\}\allowbreak{})}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr R(Q)=\{[Q_{r,:}]:r\in X\}\), where \(q\sim q'\) when \(q'=\lambda q\) for some \(\lambda\ne0\).
+  \item \texttt{AtomicLift} --- \texttt{atomic row-\allowbreak{}lift map}
+  \par\smallskip\noindent\emph{Definition.} For \(i\in X\), \(\Lambda_i(v,T)\) is the row on \(X\) with \(\Lambda_i(v,T)_{X\setminus\{i\}}=v\) and \(\Lambda_i(v,T)_i=-vT\).
+  \item \texttt{Gbip} --- \texttt{observational row-\allowbreak{}-\allowbreak{}label bipartite graph}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb G_b(\mathscr R)\) has left vertices \(r\in\mathscr R\), right vertices \(i\in X\), and edge \(r\sim i\) exactly when \(q_i\ne0\) for a representative \(q\in r\).
+  \item \texttt{ObsMatch} --- \texttt{observational matching object}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}operatorname\{PM\}\allowbreak{}(\textbackslash{}\allowbreak{}mathbb G\_\allowbreak{}b)\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm{obs}}(\mathscr R)=\operatorname{PM}(\mathbb G_b(\mathscr R))\), the set of perfect row--label matchings allowed by nonzero diagonal normalization.
+  \item \texttt{RowRecover} --- \texttt{atomic row-\allowbreak{}recovery map}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_i(\Pi_A\mathbf K)\) is the unique class in the observational row orbit not among the lifted interventional residual-unmixing rows \(\{[\Lambda_i(v,T_{\{i\}})]:[v]\in\mathscr R_i\}\); its representative normalized to coordinate \(i\) equal to one gives \(\operatorname{row}_i(B)=e_i^\top-q_i^\top\).
+  \item \texttt{RowMatch} --- \texttt{row-\allowbreak{}restricted matching object}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm{row}}(\Pi_A\mathbf K)=\{\mu\in\mathfrak M_{\mathrm{obs}}(\mathscr R):\mu(\rho_i(\Pi_A\mathbf K))=i\text{ for every }i\in A\}\).
+  \item \texttt{KernelMatch} --- \texttt{kernel-\allowbreak{}compatible matching object}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm{ker}}(\Pi_A\mathbf K)\) is the set of observational row--label matchings realized by square exact-support mechanisms generating the projected kernel tuple \(\Pi_A\mathbf K\).
+  \item \texttt{Visible} --- \texttt{visible-\allowbreak{}source index map}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{n\textbackslash{}\allowbreak{}times N\}\allowbreak{}\textbackslash{}\allowbreak{}to 2\textasciicircum{}V}
+  \par\smallskip\noindent\emph{Definition.} \(U_A=\{i\in V:A_{:,i}\ne0\}\).
+  \item \texttt{fmap} --- \texttt{source-\allowbreak{}grouping map}; \texttt{U\_\allowbreak{}C\textbackslash{}\allowbreak{}twoheadrightarrow U\_\allowbreak{}D}
+  \par\smallskip\noindent\emph{Definition.} A surjection from visible source columns of \(C\) onto visible source columns of \(D\).
+  \item \texttt{avec} --- \texttt{nonzero scaling family}; \texttt{(\textbackslash{}\allowbreak{}mathbb R\textbackslash{}\allowbreak{}setminus\textbackslash{}\allowbreak{}\{0\textbackslash{}\allowbreak{}\}\allowbreak{})\textasciicircum{}\{U\_\allowbreak{}C\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Scalars \(a_i\) satisfying \(C_{:,i}=a_iD_{:,f(i)}\).
+  \item \texttt{Cover} --- \texttt{directed compatibility relation}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(V)\textbackslash{}\allowbreak{}times\textbackslash{}\allowbreak{}mathfrak G(V)\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Cover}_{\mathcal I}(G,H)\) is the universal finite-chart source-partition and simultaneous-response compatibility relation.
+  \item \texttt{Gstar} --- \texttt{directed graph}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(\textbackslash{}\allowbreak{}\{L,\allowbreak{}X\_\allowbreak{}1,\allowbreak{}X\_\allowbreak{}2,\allowbreak{}X\_\allowbreak{}3\textbackslash{}\allowbreak{}\}\allowbreak{})}
+  \par\smallskip\noindent\emph{Definition.} The feedback witness with arrows \(L\to X_1\), \(X_2\to X_1\), \(X_1\to X_2\), and \(L\to X_3\).
+  \item \texttt{Hstar} --- \texttt{directed graph}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(\textbackslash{}\allowbreak{}\{L,\allowbreak{}X\_\allowbreak{}1,\allowbreak{}X\_\allowbreak{}2,\allowbreak{}X\_\allowbreak{}3\textbackslash{}\allowbreak{}\}\allowbreak{})}
+  \par\smallskip\noindent\emph{Definition.} The row-exchanged witness with arrows \(X_2\to X_1\), \(L\to X_2\), \(X_1\to X_2\), and \(L\to X_3\).
+  \item \texttt{coefa} --- \texttt{nonzero coefficient}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textbackslash{}\allowbreak{}setminus\textbackslash{}\allowbreak{}\{0\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Coefficient \(a\) on \(X_2\to X_1\) in \(G_\star\).
+  \item \texttt{coefb} --- \texttt{nonzero coefficient}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textbackslash{}\allowbreak{}setminus\textbackslash{}\allowbreak{}\{0\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Coefficient \(b\) on \(X_1\to X_2\) in \(G_\star\).
+  \item \texttt{coefc} --- \texttt{nonzero coefficient}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textbackslash{}\allowbreak{}setminus\textbackslash{}\allowbreak{}\{0\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Coefficient \(c\) on \(L\to X_1\) in \(G_\star\).
+  \item \texttt{coefd} --- \texttt{nonzero coefficient}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textbackslash{}\allowbreak{}setminus\textbackslash{}\allowbreak{}\{0\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Coefficient \(d\) on \(L\to X_3\) in both witness graphs.
+  \item \texttt{varL} --- \texttt{positive variance}; \texttt{\textbackslash{}\allowbreak{}mathbb R\_\allowbreak{}\{>0\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_L^2=\operatorname{Var}(\varepsilon_L)\).
+  \item \texttt{Fgraph} --- \texttt{finite graph family}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}mathfrak G(V)\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} A finite candidate family \(\mathcal F\).
+  \item \texttt{Lbound} --- \texttt{rational constant}; \texttt{\textbackslash{}\allowbreak{}mathbb Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}ge1\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Operator-norm bound \(L_B\).
+  \item \texttt{kappa} --- \texttt{rational constant}; \texttt{(0,\allowbreak{}1/\allowbreak{}2]\textbackslash{}\allowbreak{}cap\textbackslash{}\allowbreak{}mathbb Q}
+  \par\smallskip\noindent\emph{Definition.} Uniform inverse singular-value margin \(\kappa\).
+  \item \texttt{beta} --- \texttt{rational constant}; \texttt{(0,\allowbreak{}1/\allowbreak{}(8N)]\textbackslash{}\allowbreak{}cap\textbackslash{}\allowbreak{}mathbb Q}
+  \par\smallskip\noindent\emph{Definition.} Exact-support edge margin \(\beta\).
+  \item \texttt{sminus} --- \texttt{positive rational constant}; \texttt{\textbackslash{}\allowbreak{}mathbb Q\_\allowbreak{}\{>0\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} Lower Laplace scale \(s_-\).
+  \item \texttt{splus} --- \texttt{positive rational constant}; \texttt{(s\_\allowbreak{}-\allowbreak{},\allowbreak{}\textbackslash{}\allowbreak{}infty)\textbackslash{}\allowbreak{}cap\textbackslash{}\allowbreak{}mathbb Q}
+  \par\smallskip\noindent\emph{Definition.} Upper Laplace scale \(s_+\).
+  \item \texttt{alpha} --- \texttt{error probability}; \texttt{(0,\allowbreak{}1)}
+  \par\smallskip\noindent\emph{Definition.} Confidence error level \(\alpha\).
+  \item \texttt{m} --- \texttt{sample size per retained regime}; \texttt{\textbackslash{}\allowbreak{}mathbb N}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independent records observed in each retained intervention setting.}
+  \item \texttt{Mreg} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N}
+  \par\smallskip\noindent\emph{Definition.} Number \(M\) of retained settings \(v=(S,x)\) with a random observed output.
+  \item \texttt{tseq} --- \texttt{computable frequency array}; \texttt{\textbackslash{}\allowbreak{}prod\_\allowbreak{}\{k\textbackslash{}\allowbreak{}ge1\}\allowbreak{}(\textbackslash{}\allowbreak{}mathbb Q\textasciicircum{}k)\textasciicircum{}\{\textbackslash{}\allowbreak{}mathbb N\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} For each \(k\), \(t_{k,j}\) is dense in \(\mathbb R^k\) and obeys \(\|t_{k,j}\|_2\le\sqrt{k}j\).
+  \item \texttt{phi} --- \texttt{characteristic-\allowbreak{}function map}; \texttt{\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}k)\textbackslash{}\allowbreak{}times\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}k\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}mathbb C}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_P(t)=\mathbb E_P[\exp(i t^\top Y)]\).
+  \item \texttt{Plaw} --- \texttt{observable retained-\allowbreak{}setting law tuple}; \texttt{\textbackslash{}\allowbreak{}prod\_\allowbreak{}\{v=\allowbreak{}1\}\allowbreak{}\textasciicircum{}M\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{k\_\allowbreak{}v\}\allowbreak{})}
+  \par\smallskip\noindent\emph{Definition.} A response-law tuple \(P=(P_v)_{v=1}^M\).
+  \item \texttt{Qlaw} --- \texttt{observable retained-\allowbreak{}setting law tuple}; \texttt{\textbackslash{}\allowbreak{}prod\_\allowbreak{}\{v=\allowbreak{}1\}\allowbreak{}\textasciicircum{}M\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{k\_\allowbreak{}v\}\allowbreak{})}
+  \par\smallskip\noindent\emph{Definition.} A second response-law tuple \(Q=(Q_v)_{v=1}^M\).
+  \item \texttt{dmetric} --- \texttt{bounded metric}; \texttt{[0,\allowbreak{}2]}
+  \par\smallskip\noindent\emph{Definition.} \(d(P,Q)=M^{-1}\sum_v\sum_{j\ge1}2^{-j}|\phi_{P_v}(t_{k_v,j})-\phi_{Q_v}(t_{k_v,j})|\).
+  \item \texttt{KG} --- \texttt{compact graph law set}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}prod\_\allowbreak{}v\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{k\_\allowbreak{}v\}\allowbreak{})\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(K_G\) is the compact set of retained-setting laws under graph \(G\) and the bounded Laplace subclass.
+  \item \texttt{Jm} --- \texttt{feature truncation}; \texttt{\textbackslash{}\allowbreak{}mathbb N}
+  \par\smallskip\noindent\emph{Definition.} \(J_m=\lceil\log_2(m+1)\rceil\).
+  \item \texttt{epsm} --- \texttt{deviation radius}; \texttt{\textbackslash{}\allowbreak{}mathbb R\_\allowbreak{}\{>0\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\epsilon_m=2\sqrt{\log(4MJ_m/\alpha)/m}\).
+  \item \texttt{Chatm} --- \texttt{random graph confidence superset}; \texttt{2\textasciicircum{}\{\textbackslash{}\allowbreak{}mathcal F\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\mathcal C}_m\) contains graphs whose certified truncated characteristic-function discrepancy is no larger than \(\epsilon_m\) plus the certified optimization tolerance.
+  \item \texttt{delta} --- \texttt{positive separation}; \texttt{\textbackslash{}\allowbreak{}mathbb R\_\allowbreak{}\{>0\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} A fixed population distance margin \(\delta\).
+  \item \texttt{Mle} --- \texttt{zero-\allowbreak{}allowed graph-\allowbreak{}indexed mechanism class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M^{\le}_{\mathcal I}(G)\) is the class of admissible mechanisms whose structural support is contained in \(E(G)\).
+  \item \texttt{PIle} --- \texttt{zero-\allowbreak{}allowed graph-\allowbreak{}indexed law-\allowbreak{}set map}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(V)\textbackslash{}\allowbreak{}to 2\textasciicircum{}\{\textbackslash{}\allowbreak{}prod\_\allowbreak{}\{S\textbackslash{}\allowbreak{}in\textbackslash{}\allowbreak{}mathcal I\}\allowbreak{}(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}S\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{X\textbackslash{}\allowbreak{}setminus S\}\allowbreak{}))\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P^{\le}_{\mathcal I}(G)\) is the response-kernel image of \(\mathfrak M^{\le}_{\mathcal I}(G)\).
+  \item \texttt{Coverle} --- \texttt{downward-\allowbreak{}closed directed compatibility relation}; \texttt{\textbackslash{}\allowbreak{}mathfrak G(V)\textbackslash{}\allowbreak{}times\textbackslash{}\allowbreak{}mathfrak G(V)\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Cover}^{\le}_{\mathcal I}(G,H)\) is the finite exact-stratum source-partition and simultaneous-response cover.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:exact-support]\label{ass:exact-support}
+\(\operatorname{supp}(B)=E(G)\), including \(B_{ii}=0\) because \(G\) is loopless.
+\par\smallskip\noindent\emph{Novel.} Exact support treats every declared arrow as an actual direct equilibrium effect. It is satisfied by sparse linear feedback systems whose reported graph omits zero coefficients, and the margin subclass below supplies a robust nonempty region rather than a generic closure convention.
+\end{assumption}
+
+\begin{assumption}[ass:regime-solvability]\label{ass:regime-solvability}
+\(\det(Q_{V\setminus S,V\setminus S})\ne0\) for every \(S\in\mathcal I\).
+\par\smallskip\noindent\emph{Standard} (Unique solvability under perfect interventions, \cite{BongersForrePetersMooij2021}).
+\end{assumption}
+
+\begin{assumption}[ass:source-independence]\label{ass:source-independence}
+The coordinates \(\{\varepsilon_i:i\in V\}\) are mutually independent.
+\par\smallskip\noindent\emph{Standard} (Independent-component exogeneity, \cite{DaiAlbrechtSpirtesZhang2026}).
+\end{assumption}
+
+\begin{assumption}[ass:source-centering]\label{ass:source-centering}
+\(\mathbb E[\varepsilon_i]=0\) for every \(i\in V\).
+\par\smallskip\noindent\emph{Novel.} Centering is a deliberate location normalization for the intercept-free equilibrium model, not a claim about all linear non-Gaussian systems. It is natural after demeaning equilibrium measurements and makes the affine response intercept entirely attributable to the imposed intervention value.
+\end{assumption}
+
+\begin{assumption}[ass:source-nondegeneracy]\label{ass:source-nondegeneracy}
+For every \(i\in V\), there is no constant \(c\in\mathbb R\) such that \(\Pr(\varepsilon_i=c)=1\).
+\par\smallskip\noindent\emph{Standard} (Nondegenerate independent sources, \cite{DaiAlbrechtSpirtesZhang2026}).
+\end{assumption}
+
+\begin{assumption}[ass:source-nongaussianity]\label{ass:source-nongaussianity}
+No coordinate \(\varepsilon_i\) has a Gaussian law.
+\par\smallskip\noindent\emph{Standard} (Linear non-Gaussian source condition, \cite{DaiAlbrechtSpirtesZhang2026}).
+\end{assumption}
+
+\begin{assumption}[ass:source-second-moment]\label{ass:source-second-moment}
+\(\mathbb E[\varepsilon_i^2]<\infty\) for every \(i\in V\).
+\par\smallskip\noindent\emph{Novel.} Finite second moments are a deliberate population restriction that licenses covariance separation in the explicit witness. It covers equilibrium measurements with finite energy and leaves the source laws otherwise unrestricted, including discrete, asymmetric, and heavy-tailed non-Gaussian laws with finite variance.
+\end{assumption}
+
+\begin{assumption}[ass:perfect-intervention]\label{ass:perfect-intervention}
+\(\operatorname{do}(X_S=x)\) replaces exactly the equations indexed by \(S\) by constants and leaves every other structural coefficient and every unaffected source law unchanged.
+\par\smallskip\noindent\emph{Standard} (Surgical perfect intervention, \cite{BongersForrePetersMooij2021}).
+\end{assumption}
+
+\begin{assumption}[ass:edge-margin]\label{ass:edge-margin}
+\(|B_{ji}|\ge\beta\) for every \(i\to j\) in the graph.
+\par\smallskip\noindent\emph{Standard} (Beta-min exact-support margin, \cite{WangKolarDrton2026}).
+\end{assumption}
+
+\begin{assumption}[ass:coefficient-bound]\label{ass:coefficient-bound}
+\(\|B\|_{\mathrm{op}}\le L_B\).
+\par\smallskip\noindent\emph{Novel.} The operator-norm cap is an inference-subclass restriction used to make certified global optimization compact; it is not imposed on the population equivalence theorem. For any finite collection of mechanisms with bounded direct effects, a rational \(L_B\) can be chosen above their realized norms.
+\end{assumption}
+
+\begin{assumption}[ass:inverse-margin]\label{ass:inverse-margin}
+\(\sigma_{\min}(Q_{V\setminus S,V\setminus S})\ge\kappa\) for every \(S\in\mathcal I\).
+\par\smallskip\noindent\emph{Novel.} The uniform singular-value margin is a deliberate inference-subclass restriction used only for compact certified optimization and continuity and Lipschitz control of matrix inverses. It is stronger than invertibility and unique solvability, is not part of the population solvability conditions, and is not attributed to Bongers et al. or to any cited population-identification result.
+\end{assumption}
+
+\begin{assumption}[ass:laplace-scales]\label{ass:laplace-scales}
+\(\varepsilon_i=s_iZ_i\), where the \(Z_i\) are independent standard centered Laplace variables and \(s_i\in[s_-,s_+]\).
+\par\smallskip\noindent\emph{Novel.} The scaled-Laplace family is a deliberate, transparent inference benchmark rather than a standard LiNG assumption. It supplies non-Gaussian sources with explicit characteristic functions and bounded scale uncertainty, while allowing every graph in the finite family through interior scale choices.
+\end{assumption}
+
+\begin{assumption}[ass:regime-sampling]\label{ass:regime-sampling}
+For each retained setting \(v=(S,x)\), the \(m\) records are independent draws from its response law, and samples from distinct retained settings are independent.
+\par\smallskip\noindent\emph{Standard} (Independent multi-environment sampling, \cite{WangKolarDrton2026}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:exact-support-model-class]\label{def:exact-support-model-class}
+\par\smallskip\noindent\emph{Defined object.} Exact-support latent feedback class \(\mathfrak M_{\mathcal I}(G)\)
+\par\smallskip\noindent\emph{Construction.} \(\{(B,(P_{\varepsilon_i})_{i\in V}):\operatorname{supp}(B)=E(G),\; \det(Q_{V\setminus S,V\setminus S})\ne0\; \forall S\in\mathcal I,\; (P_{\varepsilon_i})_{i\in V}\text{ are mutually independent, nonconstant, and non-Gaussian, and interventions are surgical}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}exact-\allowbreak{}support}; \texttt{ass:\allowbreak{}regime-\allowbreak{}solvability}; \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}source-\allowbreak{}nondegeneracy}; \texttt{ass:\allowbreak{}source-\allowbreak{}nongaussianity}; \texttt{ass:\allowbreak{}perfect-\allowbreak{}intervention}.
+\end{definition}
+
+\begin{definition}[def:response-kernel-tuple]\label{def:response-kernel-tuple}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Joint affine response-\allowbreak{}kernel tuple}
+\par\smallskip\noindent\emph{Construction.} \(\mathbf K_{\mathcal I}(B,\varepsilon)=\bigl(x\mapsto\mathcal L(X_{X\setminus S}^{\operatorname{do}(X_S=x)})\bigr)_{S\in\mathcal I}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{epsilon}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:graph-law-set]\label{def:graph-law-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph response-\allowbreak{}kernel model set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\mathcal I}(G)=\{\mathbf K_{\mathcal I}(B,\varepsilon):(B,(P_{\varepsilon_i})_{i\in V})\in\mathfrak M_{\mathcal I}(G)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:local-affine-fibers]\label{def:local-affine-fibers}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Local exact-\allowbreak{}support column fibers}
+\par\smallskip\noindent\emph{Construction.} For each \(j\in V\), set \(M_j(C)=C_{:,\operatorname{ch}_G(j)}\), \(u_j(C)=p_j-C_{:,j}\), \(\mathcal A_j(C)=\{e_j+\sum_{k\in\operatorname{ch}_G(j)}w_ke_k:M_j(C)w=u_j(C)\}\), \(\mathcal A_j^{\times}(C)=\{q\in\mathcal A_j(C):w_k\ne0\; \forall k\in\operatorname{ch}_G(j)\}\), and \(W_j(C)=\operatorname{span}(\mathcal A_j(C))\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{C}; \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:exact-mixing-domain]\label{def:exact-mixing-domain}
+\par\smallskip\noindent\emph{Defined object.} Graph-generated exact mixing domain \(\mathcal D_G\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal D_G=\{C\in\mathbb R^{n\times N}:\operatorname{rank}(C)=n;\; \operatorname{rank}M_j(C)=\operatorname{rank}[M_j(C),u_j(C)]\; \forall j;\; \operatorname{rank}C_{:,\operatorname{ch}_G(j)\setminus\{k\}}=\operatorname{rank}M_j(C)\text{ or }\operatorname{rank}[C_{:,\operatorname{ch}_G(j)\setminus\{k\}},u_j(C)]>\operatorname{rank}C_{:,\operatorname{ch}_G(j)\setminus\{k\}}\; \forall j,\; k\in\operatorname{ch}_G(j);\; \dim(\sum_{j\in J}W_j(C))\ge|J|\; \forall J\subseteq L;\; \det(C_{S,S})\ne0\; \forall S\in\mathcal I\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:intervention-response-maps]\label{def:intervention-response-maps}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Principal response and residual maps}
+\par\smallskip\noindent\emph{Construction.} For \(A\in\mathbb R^{n\times N}\) and \(S\in\mathcal I\), \(T_S(A)=A_{X\setminus S,S}(A_{S,S})^{-1}\) and \(R_S(A)=A_{X\setminus S,:}-T_S(A)A_{S,:}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:square-no-latent-projection]\label{def:square-no-latent-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Square no-\allowbreak{}latent atomic projection}
+\par\smallskip\noindent\emph{Construction.} For \(\ell=0\), \(A\subseteq X\), and \(\mathcal I_A^{\mathrm{atom}}\subseteq\mathcal I\), define \(\Pi_A\mathbf K=(K_{\varnothing},(K_{\{i\}})_{i\in A})\). Thus the required full atomic family is \(\mathcal I_X^{\mathrm{atom}}=\{\varnothing\}\cup\{\{i\}:i\in X\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Kernel}; \texttt{Aatom}.
+\end{definition}
+
+\begin{definition}[def:square-observational-matching]\label{def:square-observational-matching}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Square observational matching object}
+\par\smallskip\noindent\emph{Construction.} For a square mechanism, let \(\mathscr R(Q)=\{[Q_{r,:}]:r\in X\}\). Construct \(\mathbb G_b(\mathscr R)\) with row-class vertices \(r\), label vertices \(i\in X\), and \((r,i)\) an edge exactly when \(r_i\ne0\). Define \(\mathfrak M_{\mathrm{obs}}(\mathscr R)=\operatorname{PM}(\mathbb G_b(\mathscr R))\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Qmat}.
+\end{definition}
+
+\begin{definition}[def:atomic-row-recovery]\label{def:atomic-row-recovery}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Atomic row-\allowbreak{}recovery map}
+\par\smallskip\noindent\emph{Construction.} For \(i\in A\), let \(\tau_h\mu\) denote translation of a probability law \(\mu\) by \(h\). Define \(T_i\) as the unique linear map satisfying \(K_{\{i\}}(x)=\tau_{T_i x}K_{\{i\}}(0)\) for every \(x\in\mathbb R\); existence follows from \(\texttt{lem:intervention-pushforward}\) and uniqueness from \(\texttt{lem:probability-translation-rigidity}\). Obtain the unordered projective rows \(\mathscr R_i\) of an ICA unmixing matrix directly from \(K_{\{i\}}(0)\); arbitrary source locations do not change these projective rows. Lift \([v]\in\mathscr R_i\) by \(\Lambda_i(v,T_i)_{X\setminus\{i\}}=v\) and \(\Lambda_i(v,T_i)_i=-vT_i\). Define \(\rho_i(\Pi_A\mathbf K)\) as the unique element of \(\mathscr R(Q)\setminus\{[\Lambda_i(v,T_i)]:[v]\in\mathscr R_i\}\), normalize its representative \(q_i\) by \((q_i)_i=1\), and return \(\operatorname{rec}_i(\Pi_A\mathbf K)=e_i^\top-q_i\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{SquareProj}; \texttt{RowOrbit}.
+\end{definition}
+
+\begin{definition}[def:square-matching-objects]\label{def:square-matching-objects}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Row-\allowbreak{}restricted and kernel-\allowbreak{}compatible matchings}
+\par\smallskip\noindent\emph{Construction.} Define \(\mathfrak M_{\mathrm{row}}(\Pi_A\mathbf K)=\{\mu\in\mathfrak M_{\mathrm{obs}}(\mathscr R(Q)):\mu(\rho_i(\Pi_A\mathbf K))=i\text{ for all }i\in A\}\). For \(\mu\in\mathfrak M_{\mathrm{obs}}(\mathscr R(Q))\), normalize the row matched to label \(i\) to have coordinate \(i\) equal to one, stack these rows as \(Q^\mu\), and set \(B^\mu=I_n-Q^\mu\). Define \(\mathfrak M_{\mathrm{ker}}(\Pi_A\mathbf K)\) as the set of such \(\mu\) for which there are mutually independent, nonconstant, non-Gaussian sources \(\varepsilon^\mu\) such that the square mechanism \((B^\mu,\varepsilon^\mu)\) is solvable in every regime in \(\mathcal I_A^{\mathrm{atom}}\) and generates exactly \(\Pi_A\mathbf K\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{SquareProj}; \texttt{ObsMatch}; \texttt{RowRecover}.
+\end{definition}
+
+\begin{definition}[def:directed-chart-cover]\label{def:directed-chart-cover}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Directed coupled chart cover}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Cover}_{\mathcal I}(G,H)\) holds exactly when every \(C\in\mathcal D_G\) admits \(D\in\mathcal D_H\), a surjection \(f:U_C\twoheadrightarrow U_D\), and nonzero \(a_i\) such that \(C_{:,i}=a_iD_{:,f(i)}\) for every \(i\in U_C\) and \(T_S(C)=T_S(D)\) for every \(S\in\mathcal I\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{H}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:coupled-invariant]\label{def:coupled-invariant}
+\par\smallskip\noindent\emph{Defined object.} Coupled exact-support invariant \(\Gamma_{\mathcal I}(G)\)
+\par\smallskip\noindent\emph{Construction.} Compile \(G\) into the finite family of Gaussian-elimination pivot charts for \(\mathcal D_G\), recording on each chart all local rank minors, punctured-coordinate nonvanishing polynomials, Hall--Rado subspace ranks, intervention principal minors, rational response maps \(T_S\), visible-column proportionality minors, source-surjection types, and latent-label orbit representatives.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:population-compiler-handle]\label{def:population-compiler-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sign-\allowbreak{}invariant affine-\allowbreak{}chart compiler handle}
+\par\smallskip\noindent\emph{Construction.} Starting from \(\Gamma_{\mathcal I}(G)\), refine every pivot chart by the signs of the exact-support coordinates, all rank and principal minors, every proportionality minor, and every numerator of a simultaneous response equality; intersect these cells with each finite source-surjection type, eliminate empty cells by constructive polynomial certificates, and canonicalize the surviving records under latent relabeling.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Ical}; \texttt{N}.
+\end{definition}
+
+\begin{definition}[def:common-lift-handle]\label{def:common-lift-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Transition-\allowbreak{}cocycle common-\allowbreak{}lift handle}
+\par\smallskip\noindent\emph{Construction.} Construct, for every separately feasible regime chart, a finite transition graph whose edges record coefficient-chart changes, visible-source surjections, scaled permutations, and their induced maps on common observational columns; seek a global section whose transition compositions are identity on every cycle and whose response matrices equal \(T_S\) simultaneously.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{H}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:witness-mechanisms]\label{def:witness-mechanisms}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}support cycle-\allowbreak{}reversal witness}
+\par\smallskip\noindent\emph{Construction.} On the order \(L,X_1,X_2,X_3\), \(G_\star\) has equations \(L=\varepsilon_L\), \(X_1=cL+aX_2+\varepsilon_1\), \(X_2=bX_1+\varepsilon_2\), and \(X_3=dL+\varepsilon_3\); \(H_\star\) has equations \(L=\varepsilon_L\), \(X_1=b^{-1}X_2-b^{-1}\varepsilon_2\), \(X_2=-ca^{-1}L+a^{-1}X_1-a^{-1}\varepsilon_1\), and \(X_3=dL+\varepsilon_3\), for \(abcd(1-ab)\ne0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{coefa}; \texttt{coefb}; \texttt{coefc}; \texttt{coefd}; \texttt{epsilon}.
+\end{definition}
+
+\begin{definition}[def:compact-laplace-class]\label{def:compact-laplace-class}
+\par\smallskip\noindent\emph{Defined object.} Compact Laplace graph class \(\mathfrak K_G(L_B,\kappa,\beta,s_-,s_+)\)
+\par\smallskip\noindent\emph{Construction.} \(\{(B,(s_i)_{i\in V}):\operatorname{supp}(B)=E(G),\; |B_{ji}|\ge\beta\; \forall i\to j,\; \lVert B\rVert_{\mathrm{op}}\le L_B,\; \sigma_{\min}(Q_{V\setminus S,V\setminus S})\ge\kappa\; \forall S\in\mathcal I,\; s_i\in[s_-,s_+]\; \forall i,\; \varepsilon_i=s_iZ_i,\; Z_i\stackrel{\mathrm{ind}}{\sim}\operatorname{Laplace}(0,1)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}exact-\allowbreak{}support}; \texttt{ass:\allowbreak{}edge-\allowbreak{}margin}; \texttt{ass:\allowbreak{}coefficient-\allowbreak{}bound}; \texttt{ass:\allowbreak{}inverse-\allowbreak{}margin}; \texttt{ass:\allowbreak{}laplace-\allowbreak{}scales}.
+\end{definition}
+
+\begin{definition}[def:characteristic-distance]\label{def:characteristic-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Weighted characteristic-\allowbreak{}function distance}
+\par\smallskip\noindent\emph{Construction.} \(d(P,Q)=M^{-1}\sum_{v=1}^M\sum_{j=1}^{\infty}2^{-j}|\phi_{P_v}(t_{k_v,j})-\phi_{Q_v}(t_{k_v,j})|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Plaw}; \texttt{Qlaw}; \texttt{tseq}; \texttt{Mreg}.
+\end{definition}
+
+\begin{definition}[def:graph-confidence-construction]\label{def:graph-confidence-construction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Certified graph confidence superset}
+\par\smallskip\noindent\emph{Construction.} For a model point, evaluate \(\phi_{G,B,s,S,x}(t)=\exp(i t^\top T_S(C)x)\prod_{i\in V}(1+s_i^2[R_S(C)^\top t]_i^2)^{-1}\). Use the empirical characteristic functions at \(j\le J_m\). For each \(G\in\mathcal F\), minimize the truncated weighted discrepancy over the sign-resolved compact exact-support parameter boxes using interval branch-and-bound. Bound inverse changes by \(\|(I-B_{U,U})^{-1}-(I-B'_{U,U})^{-1}\|_{\mathrm{op}}\le\kappa^{-2}\|B-B'\|_{\mathrm{op}}\), bound response changes by \(\|T_S(C(B))-T_S(C(B'))\|_{\mathrm{op}}\le(\kappa^{-1}+L_B\kappa^{-2})\|B-B'\|_{\mathrm{op}}\), and refine until the lower-bound error is at most \(\epsilon_m\). Put \(G\) in \(\widehat{\mathcal C}_m\) when its certified lower discrepancy does not exceed \(\epsilon_m\) plus the certified tolerance.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Fgraph}; \texttt{m}; \texttt{alpha}; \texttt{tseq}.
+\end{definition}
+
+\begin{definition}[def:zero-allowed-model-class]\label{def:zero-allowed-model-class}
+\par\smallskip\noindent\emph{Defined object.} Zero-allowed latent feedback class \(\mathfrak M^{\le}_{\mathcal I}(G)\)
+\par\smallskip\noindent\emph{Construction.} The zero-allowed mechanism class is
+\[
+\mathfrak M^{\le}_{\mathcal I}(G)=\left\{(B,(P_{\varepsilon_i})_{i\in V}):\operatorname{supp}(B)\subseteq E(G),\ B_{ii}=0,\ \det(Q_{V\setminus S,V\setminus S})\ne0\ \forall S\in\mathcal I,
+\right.\]
+\[
+\left.(P_{\varepsilon_i})_{i\in V}\text{ are mutually independent, nonconstant, and non-Gaussian, and interventions are surgical}\right\}.
+\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}regime-\allowbreak{}solvability}; \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}source-\allowbreak{}nondegeneracy}; \texttt{ass:\allowbreak{}source-\allowbreak{}nongaussianity}; \texttt{ass:\allowbreak{}perfect-\allowbreak{}intervention}.
+\end{definition}
+
+\begin{definition}[def:zero-allowed-graph-law-set]\label{def:zero-allowed-graph-law-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Zero-\allowbreak{}allowed graph response-\allowbreak{}kernel law set}
+\par\smallskip\noindent\emph{Construction.} \[
+\mathcal P^{\le}_{\mathcal I}(G)=\{\mathbf K_{\mathcal I}(B,\varepsilon):(B,(P_{\varepsilon_i})_{i\in V})\in\mathfrak M^{\le}_{\mathcal I}(G)\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Ical}.
+\end{definition}
+
+\begin{definition}[def:downward-closed-cover]\label{def:downward-closed-cover}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Downward-\allowbreak{}closed coupled chart cover}
+\par\smallskip\noindent\emph{Construction.} Write \(F\preceq G\) when \(F\) is the loopless spanning subgraph on \(V\) with \(E(F)\subseteq E(G)\). Define \(\operatorname{Cover}^{\le}_{\mathcal I}(G,H)\) to hold exactly when, for every \(F\preceq G\) and every \(C\in\mathcal D_F\), there exist a spanning subgraph \(K\preceq H\), a matrix \(D\in\mathcal D_K\), a surjection \(f:U_C\twoheadrightarrow U_D\), and nonzero scalars \((a_i)_{i\in U_C}\) such that
+\[
+C_{:,i}=a_iD_{:,f(i)}\quad(i\in U_C),
+\qquad
+T_S(C)=T_S(D)\quad(S\in\mathcal I).
+\]
+All quantifiers over \(F\), \(K\), visible subsets, and surjection types range over finite sets determined by \((N,G,H)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{H}; \texttt{Ical}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:intervention-pushforward]\label{lem:intervention-pushforward}
+For every \(S\in\mathcal I\) and every mechanism in \(\mathfrak M_{\mathcal I}(G)\), \(\det(C_{S,S})\ne0\) and \(K_S^{B,\varepsilon}(x)=\mathcal L(R_S(C)\varepsilon+T_S(C)x)\). Moreover, \(R_S(C)\varepsilon=X_{X\setminus S}-T_S(C)X_S\) observationally. Hence the observational law together with \(\{T_S(C):S\in\mathcal I\}\) determines the entire joint tuple of affine response kernels, including every cancellation and every observationally invisible source.
+\end{lemma}
+\begin{proof}
+Fix \(S\in\mathcal I\), put \(U=V\setminus S\) and \(O=X\setminus S\), and set \(A=Q^{-1}\), so \(C=A_{X,:}\). Assumption \(\texttt{ass:regime-solvability}\), first at \(S\) and then at \(\varnothing\), gives invertibility of \(Q_{U,U}\) and \(Q\), respectively. In the coordinate order \((S,U)\), the Schur-complement identities give
+\[
+\det Q=\det(Q_{U,U})\det\!\left(Q_{S,S}-Q_{S,U}Q_{U,U}^{-1}Q_{U,S}\right)
+\]
+and
+\[
+A_{S,S}=\left(Q_{S,S}-Q_{S,U}Q_{U,U}^{-1}Q_{U,S}\right)^{-1}.
+\]
+Thus
+\[
+\det(C_{S,S})=\det(A_{S,S})=\frac{\det(Q_{U,U})}{\det Q}\ne0. \tag{1}
+\]
+The \((U,S)\) block of \(QA=I_N\) gives
+\[
+A_{U,S}=-Q_{U,U}^{-1}Q_{U,S}A_{S,S}.
+\]
+Since \(Q_{U,S}=-B_{U,S}\), restriction to rows \(O\) and right multiplication by \(A_{S,S}^{-1}\) yield
+\[
+T_S(C)=C_{O,S}C_{S,S}^{-1}=\bigl[Q_{U,U}^{-1}B_{U,S}\bigr]_{O,:}. \tag{2}
+\]
+The \((U,U)\) block of \(QA=I_N\), combined with (2), gives
+\[
+A_{U,U}-Q_{U,U}^{-1}B_{U,S}A_{S,U}=Q_{U,U}^{-1}.
+\]
+Consequently \(R_S(C)\) has zero columns on \(S\) and its columns on \(U\) equal the rows \(O\) of \(Q_{U,U}^{-1}\).
+
+By \(\texttt{ass:perfect-intervention}\), the nonintervened equations under \(\operatorname{do}(X_S=x)\) are
+\[
+Q_{U,U}V_U=\varepsilon_U+B_{U,S}x.
+\]
+Equations (1)--(2) therefore imply, on the structural probability space,
+\[
+X_O^{\operatorname{do}(X_S=x)}=R_S(C)\varepsilon+T_S(C)x,
+\]
+which proves the asserted pushforward formula. Observationally \(X=C\varepsilon\), and direct substitution into the definition of \(R_S\) gives
+\[
+R_S(C)\varepsilon=X_O-T_S(C)X_S. \tag{3}
+\]
+Thus the observational law determines the residual law in (3), and translating that law by \(T_S(C)x\) determines the kernel at every \(x\). Conversely, the kernel itself identifies \(T_S(C)\): if another linear map \(T'_S\) translated the zero-setting law to the same kernel at every \(x\), then \(\texttt{lem:probability-translation-rigidity}\) applied pointwise would give \(T_S=T'_S\). If \(C_{:,i}=0\), then the formula defining \(R_S(C)\) gives \(R_S(C)_{:,i}=0\) for every \(S\), so an observationally invisible source remains intervention-invisible. Empty blocks, \(S=\varnothing\), and \(O=\varnothing\) obey the same identities under the standard empty-matrix conventions. No expectation or moment is invoked.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identity reduces multi-regime full-law comparison to one observational mixture law and finitely many common response matrices. \textit{Gap.} Bongers et al. establish intervention solvability, while the required principal-resolvent pushforward and its source-visibility consequence are not their equivalence result. \textit{Consumer.} The coupled compiler uses the identity to avoid fitting or aligning a different latent-source representation in each intervention regime.
+
+\begin{theorem}[thm:exact-mixing-realization]\label{thm:exact-mixing-realization}
+For every \(C\in\mathbb R^{n\times N}\), \(C\in\mathcal D_G\) if and only if there exists a matrix \(Q=I_N-B\) with exact support \(G\), with \(Q\) and every \(Q_{V\setminus S,V\setminus S}\) invertible, such that \(C=(Q^{-1})_{X,:}\). The backward direction must construct linearly independent representatives from the punctured affine fibers, complete them with the observed columns, and recover every edge coefficient without taking a generic or closure limit.
+\end{theorem}
+\begin{proof}
+Let \(P_X=[I_n\;0]\) denote the row selector from \(\mathbb R^V\) to \(\mathbb R^X\).  For the forward implication, suppose \(Q=I_N-B\) is admissible and \(C=P_XQ^{-1}\).  Then
+\[
+CQ=P_X.                                                                  \tag{7}
+\]
+The \(j\)-th column \(q_j\) of \(Q\) has diagonal coordinate one and has, away from that coordinate, a nonzero entry precisely at every child of \(j\), by exact support and looplessness.  Taking column \(j\) in (7) gives
+\[
+C_{:,j}+C_{:,\operatorname{ch}_G(j)}w=p_j,
+\]
+so \(q_j\in\mathcal A_j^\times(C)\).
+
+We record why the displayed rank tests are exactly local punctured feasibility.  For a matrix \(M\), vector \(u\), and coordinate \(k\), the system \(Mw=u\) is soluble exactly when \(\operatorname{rank}M=\operatorname{rank}[M,u]\).  On a nonempty solution affine space, coordinate \(w_k\) is not identically zero precisely in either of the following mutually exhaustive cases: the deleted column belongs to the span of the remaining columns, equivalently \(\operatorname{rank}M_{-k}=\operatorname{rank}M\); or that column increases rank, in which case \(w_k\) is uniquely determined and is nonzero precisely when \(u\notin\operatorname{col}(M_{-k})\), equivalently
+\[
+\operatorname{rank}[M_{-k},u]>\operatorname{rank}M_{-k}.                 \tag{8}
+\]
+A finite union of proper affine hyperplanes cannot cover a nonempty real affine space: after an affine parametrization, the product of their nonzero defining affine polynomials is a nonzero polynomial, and induction on the number of variables supplies a point where it is nonzero.  Thus (8) for every child coordinate is equivalent to \(\mathcal A_j^\times(C)\neq\varnothing\), including the zero-dimensional and empty-child cases.
+
+Equation (7) and invertibility of \(Q\) imply \(\operatorname{rank}C=n\).  The latent columns \((q_j)_{j\in L}\) are linearly independent and belong to \(W_j(C)\), so every subfamily \(J\subseteq L\) satisfies
+\[
+\dim\left(\sum_{j\in J}W_j(C)\right)\geq |J|.                           \tag{9}
+\]
+Finally, the block determinant calculation (3) gives \(\det(C_{S,S})\neq0\) for every \(S\in\mathcal I\).  Hence \(C\in\mathcal D_G\).
+
+Conversely, suppose \(C\in\mathcal D_G\).  The local tests and the preceding equivalence make every \(\mathcal A_j^\times(C)\) nonempty.  Apply the cited independent-transversal theorem to (9) to obtain independent \(v_j\in W_j(C)\), \(j\in L\).  Each \(v_j\) is a finite linear combination of points of \(\mathcal A_j(C)\).  A nonzero exterior product \(\bigwedge_{j\in L}v_j\), expanded multilinearly, therefore contains a nonzero term \(\bigwedge_{j\in L}q_j^0\) with \(q_j^0\in\mathcal A_j(C)\).  Equivalently, at least one \(\ell\)-row minor of the matrix of latent columns is a polynomial on \(\prod_{j\in L}\mathcal A_j(C)\) that is not identically zero.
+
+For every graph edge \(j\to k\), the coordinate function \(q_j\mapsto(q_j)_k\) is also not identically zero on \(\mathcal A_j(C)\), by (8).  After affine parametrization of all fibers, the product of the selected independence minor and all these coordinate functions is a nonzero polynomial, since a real polynomial ring is an integral domain.  The elementary nonvanishing argument used above selects latent columns
+\[
+q_j\in\mathcal A_j^\times(C),\quad j\in L,                              \tag{10}
+\]
+that are linearly independent.  This chooses an actual point for the fixed \(C\); it makes no genericity assertion about \(C\) and takes no closure.
+
+Choose any \(q_j\in\mathcal A_j^\times(C)\) for each observed \(j\), and stack all chosen columns as \(Q\).  By construction, \(Cq_j=p_j\), so \(CQ=P_X\).  If \(\sum_{j\in V}\lambda_jq_j=0\), applying \(C\) gives \(\sum_{j\in X}\lambda_je_j=0\), hence all observed coefficients vanish; (10) then makes all latent coefficients vanish.  Thus \(Q\) is invertible and
+\[
+C=P_XQ^{-1}.                                                             \tag{11}
+\]
+Every diagonal coordinate of \(Q\) is one, every off-diagonal coordinate not corresponding to an edge is zero, and every edge coordinate is nonzero.  Therefore \(B=I_N-Q\) has exact support \(G\).  For every \(S\in\mathcal I\), Jacobi's principal-minor identity, proved here by the same Schur-complement calculation as (3), gives
+\[
+\det Q_{V\setminus S,V\setminus S}=\det Q\,\det (Q^{-1})_{S,S}
+=\det Q\,\det C_{S,S}\neq0.                                           \tag{12}
+\]
+Thus all required regimes are solvable.  Equations (10)--(12) construct the required exact-support mechanism, including all cancellation and lower-rank strata permitted by \(\mathcal D_G\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the structural-completion theorem that turns exact support and all cancellation strata into finite rank and matching data. \textit{Gap.} Dai et al. use generic matroid and closure arguments for a zero-allowed observational class; this claim is an exact all-parameter realization theorem for punctured affine fibers and intervention minors. \textit{Consumer.} Every later containment and enumeration result needs a graph-only certificate that a candidate observed mixing matrix comes from an admissible feedback mechanism.
+
+\begin{theorem}[thm:coupled-equivalence]\label{thm:coupled-equivalence}
+For every finite \(X\), fixed \(\ell\), finite \(\mathcal I\ni\varnothing\), and loopless graph pair \(G,H\), \(\mathcal P_{\mathcal I}(G)\subseteq\mathcal P_{\mathcal I}(H)\) if and only if \(\operatorname{Cover}_{\mathcal I}(G,H)\). Consequently, \(\mathcal P_{\mathcal I}(G)=\mathcal P_{\mathcal I}(H)\) if and only if both \(\operatorname{Cover}_{\mathcal I}(G,H)\) and \(\operatorname{Cover}_{\mathcal I}(H,G)\) hold. This criterion is exact on lower-dimensional rank, cancellation, nullification, invisible-source, and source-symmetry strata, and it is a finite graph-generated compatibility representation rather than the original structural-existence formula.
+\end{theorem}
+\begin{proof}
+We first prove directed containment. Assume \(\mathcal P_{\mathcal I}(G)\subseteq\mathcal P_{\mathcal I}(H)\), and fix \(C\in\mathcal D_G\). By \(\texttt{thm:exact-mixing-realization}\), choose an exact-support \(G\)-matrix \(Q\) whose observed mixing matrix is \(C\) and which is solvable in every required regime. Equip its visible columns with the Bernoulli diagnostic sources from \(\texttt{lem:finite-mixture-diagnostic}\), and equip its zero columns with arbitrary independent nonconstant non-Gaussian sources. The revised \(\texttt{def:exact-support-model-class}\) makes this an admissible mechanism, so its joint kernel tuple belongs to \(\mathcal P_{\mathcal I}(G)\). By containment it is generated by an admissible \(H\)-mechanism; denote its observed mixing matrix by \(D\). Exact mixing realization gives \(D\in\mathcal D_H\).
+
+The empty-regime kernels are equal, so \(\mathcal L(C\varepsilon)=\mathcal L(D\eta)\). The diagnostic lemma supplies a surjection \(f:U_C\twoheadrightarrow U_D\) and nonzero scalars \(a_i\) such that
+\[
+C_{:,i}=a_iD_{:,f(i)}\qquad(i\in U_C). \tag{7}
+\]
+Fix \(S\in\mathcal I\). By \(\texttt{lem:intervention-pushforward}\), equality of the two kernels gives, with their common zero-setting law \(\mu_S\),
+\[
+\tau_{T_S(C)x}\mu_S=K_S(x)=\tau_{T_S(D)x}\mu_S
+\qquad(x\in\mathbb R^S).
+\]
+Translation rigidity gives \(T_S(C)=T_S(D)\). Thus \((D,f,a)\) satisfies every clause in \(\operatorname{Cover}_{\mathcal I}(G,H)\). This proves necessity without expectations.
+
+Conversely, assume the directed cover and take an arbitrary admissible \(G\)-mechanism with observed mixing matrix \(C\) and source vector \(\varepsilon\). Exact mixing realization puts \(C\) in \(\mathcal D_G\). Choose a cover witness \((D,f,a)\), and use exact mixing realization to construct an exact-support, regime-solvable \(H\)-matrix having observed mixing matrix \(D\). For \(j\in U_D\), set
+\[
+\eta_j=\sum_{i:f(i)=j}a_i\varepsilon_i, \tag{8}
+\]
+and choose arbitrary independent nonconstant non-Gaussian sources on the zero columns of \(D\). The constructive half of \(\texttt{lem:finite-mixture-containment-unrestricted}\) proves that the resulting coordinates are mutually independent, nonconstant, and non-Gaussian; thus they form one admissible source tuple for every regime. Equation (7) gives \(C\varepsilon=D\eta\). Moreover, equality of response matrices and (7) imply, columnwise for every visible \(i\),
+\[
+R_S(C)_{:,i}
+=C_{X\setminus S,i}-T_S(C)C_{S,i}
+=a_iR_S(D)_{:,f(i)}. \tag{9}
+\]
+Invisible columns on either side remain invisible in every regime by the intervention-pushforward lemma. Therefore (8)--(9) and that lemma yield, for every \(S\in\mathcal I\) and \(x\in\mathbb R^S\),
+\[
+\mathcal L\bigl(R_S(C)\varepsilon+T_S(C)x\bigr)
+=\mathcal L\bigl(R_S(D)\eta+T_S(D)x\bigr).
+\]
+The same \(D\) and the same source tuple \(\eta\) realize all regimes, proving \(\mathcal P_{\mathcal I}(G)\subseteq\mathcal P_{\mathcal I}(H)\). Applying the directed result in both orders proves the equality criterion. Exact mixing realization retains every punctured-fiber, Hall--Rado, principal-minor, and lower-dimensional condition, while the diagnostic and merging arguments retain nullification, invisible columns, and source-law symmetries. No closure, genericity, source location, or moment assumption has been introduced.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: a sound-and-complete equality criterion for joint response-kernel model sets under one shared mechanism and source tuple. \textit{Gap.} Dai et al. characterize an observational zero-allowed class, and Zhou et al. characterize acyclic graphical invariances; neither covers exact-support cyclic parametric response-kernel law sets with shared source laws. \textit{Consumer.} Perturbational feedback analyses such as Bicycle can report every hidden-variable graph compatible with all fitted population perturbation kernels instead of treating one graph as uniquely identified.
+
+\begin{openendedquestion}[oeq:separate-versus-joint]\label{oeq:separate-versus-joint}
+Characterize exactly when equality of the graph law sets after projecting onto every single regime \(S\in\mathcal I\) implies equality of the joint graph law sets \(\mathcal P_{\mathcal I}(G)=\mathcal P_{\mathcal I}(H)\). Using the transition-cocycle common-lift handle, derive finite necessary-and-sufficient gluing conditions for regime-specific coefficient charts, source surjections, scaled permutations, and response maps to admit one common \(B\) and one common source-law tuple. If the implication can fail, construct the smallest exact-support latent cyclic graph pair whose every regime projection agrees but whose joint model sets differ.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This question exposes rather than hides the new common-mechanism content that cannot be certified by independent environment fits. \textit{Gap.} Zhou et al. unify pairwise augmented MAG constraints and Taeb et al. score shared parameters in acyclic Gaussian environments, but neither proves a lift theorem for exact-support non-Gaussian feedback law sets. \textit{Consumer.} Multi-perturbation studies can test whether separately adequate latent models represent one invariant biological mechanism or merely unrelated regime-wise explanations.
+
+\begin{theorem}[thm:strict-interventional-refinement]\label{thm:strict-interventional-refinement}
+For the exact-support witness graphs \(G_\star,H_\star\), the moment-free model class satisfies \(\mathcal P_{\{\varnothing\}}(G_\star)=\mathcal P_{\{\varnothing\}}(H_\star)\), but every intervention family containing \(\{X_1\}\) separates the two graph law sets.  The row exchange and nonzero source rescaling give a bijection of the entire exact-support observational parameter spaces, without a centering or moment condition.  On the finite-second-moment submodel, under \(\operatorname{do}(X_1=z)\), every \(G_\star\) kernel satisfies \(\operatorname{Cov}(X_2,X_3)=0\), whereas every \(H_\star\) kernel satisfies \(\operatorname{Cov}(X_2,X_3)=-(c/a)d\sigma_L^2\ne0\), where \(a,c,d\) are the unique inverse-image coefficients under the displayed row-exchange parametrization.
+\end{theorem}
+\begin{proof}
+Write an arbitrary exact-support mechanism on \(G_\star\), as in Definition \(\texttt{def:witness-mechanisms}\), as
+\[
+ L=\varepsilon_L,\qquad
+ X_1=cL+aX_2+\varepsilon_1,\qquad
+ X_2=bX_1+\varepsilon_2,\qquad
+ X_3=dL+\varepsilon_3,
+\]
+where \(a,b,c,d\ne0\) and \(1-ab\ne0\). Define
+\[
+ \alpha=b^{-1},\qquad \beta=a^{-1},\qquad
+ \gamma=-ca^{-1},\qquad \delta=d
+\]
+and
+\[
+ \eta_L=\varepsilon_L,\qquad
+ \eta_1=-b^{-1}\varepsilon_2,\qquad
+ \eta_2=-a^{-1}\varepsilon_1,\qquad
+ \eta_3=\varepsilon_3.
+\]
+All divisions are valid because \(ab\ne0\). Assumption \(\texttt{ass:source-independence}\) implies that \((\eta_L,\eta_1,\eta_2,\eta_3)\) has mutually independent coordinates: this tuple is obtained from \((\varepsilon_L,\varepsilon_1,\varepsilon_2,\varepsilon_3)\) by a coordinate permutation followed by nonzero coordinatewise scalings. The same transformation preserves nonconstancy, because \(rY\) constant with \(r\ne0\) would imply that \(Y=r^{-1}(rY)\) is constant. It preserves non-Gaussianity for the identical reason: if \(rY\) were Gaussian, its nonzero rescaling \(Y=r^{-1}(rY)\) would be Gaussian. Thus Assumptions \(\texttt{ass:source-nondegeneracy}\) and \(\texttt{ass:source-nongaussianity}\) are preserved. No expectation or moment has been used.
+
+The same endogenous vector satisfies the \(H_\star\) equations sample by sample. Indeed, the \(G_\star\) equation for \(X_2\) gives
+\[
+ \alpha X_2+\eta_1
+ =b^{-1}(X_2-\varepsilon_2)
+ =X_1,
+\]
+and the equation for \(X_1\) gives
+\[
+ \gamma L+\beta X_1+\eta_2
+ =-ca^{-1}L+a^{-1}(X_1-\varepsilon_1)
+ =X_2.
+\]
+Also \(L=\eta_L\) and \(X_3=\delta L+\eta_3\). Therefore the two observed vectors are equal almost surely under this coupling, hence have the same observational law.
+
+This map stays in the exact-support strata. By Assumption \(\texttt{ass:exact-support}\), all four displayed structural coefficients for \(G_\star\) are nonzero. Consequently \(\alpha,\beta,\gamma,\delta\ne0\). Moreover
+\[
+ 1-\alpha\beta
+ =1-\frac{1}{ab}
+ =\frac{ab-1}{ab}\ne0.
+\]
+For completeness, in either witness graph the only directed cycle is the two-cycle on \(\{X_1,X_2\}\). For a target \(S\subseteq\{X_1,X_2,X_3\}\), direct expansion of the relevant principal structural matrix gives
+\[
+ \det Q^{G_\star}_{V\setminus S,V\setminus S}
+ =\begin{cases}
+ 1-ab,&S\cap\{X_1,X_2\}=\varnothing,\\[2pt]
+ 1,&S\cap\{X_1,X_2\}\ne\varnothing,
+ \end{cases}
+\]
+and
+\[
+ \det Q^{H_\star}_{V\setminus S,V\setminus S}
+ =\begin{cases}
+ 1-\alpha\beta,&S\cap\{X_1,X_2\}=\varnothing,\\[2pt]
+ 1,&S\cap\{X_1,X_2\}\ne\varnothing.
+ \end{cases}
+\]
+The off-cycle arrows \(L\to X_1\) or \(L\to X_2\) and \(L\to X_3\) occur strictly below the diagonal after ordering the strongly connected components and hence do not change these determinants. Thus Assumption \(\texttt{ass:regime-solvability}\) holds in every intervention regime on one side if and only if it holds on the other; no stability condition is being imposed.
+
+Conversely, let an arbitrary \(H_\star\) mechanism have nonzero coefficients \(\alpha,\beta,\gamma,\delta\), with \(1-\alpha\beta\ne0\), and admissible independent sources \(\eta\). Put
+\[
+ a=\beta^{-1},\qquad b=\alpha^{-1},\qquad
+ c=-\gamma\beta^{-1},\qquad d=\delta
+\]
+and
+\[
+ \varepsilon_L=\eta_L,\qquad
+ \varepsilon_1=-\beta^{-1}\eta_2,\qquad
+ \varepsilon_2=-\alpha^{-1}\eta_1,\qquad
+ \varepsilon_3=\eta_3.
+\]
+Again these sources obey independence, nonconstancy, and non-Gaussianity. Also
+\[
+ 1-ab=1-\frac{1}{\alpha\beta}
+ =\frac{\alpha\beta-1}{\alpha\beta}\ne0.
+\]
+Substitution shows that this construction is inverse to the preceding map on the coefficient tuple and on every coordinate source law. We have therefore obtained a bijection between the entire exact-support observational mechanism spaces, including source laws without a center or a finite moment. Definition \(\texttt{def:graph-law-set}\) now gives
+\[
+ \mathcal P_{\{\varnothing\}}(G_\star)
+ =\mathcal P_{\{\varnothing\}}(H_\star).
+\]
+
+We next analyze the intervention \(\operatorname{do}(X_1=z)\). By Assumption \(\texttt{ass:perfect-intervention}\), the equation for \(X_1\) is replaced by the constant \(z\), while all other coefficients and all unaffected source laws remain fixed. For every \(G_\star\) mechanism this gives
+\[
+ L=\varepsilon_L,\qquad
+ X_2=bz+\varepsilon_2,\qquad
+ X_3=d\varepsilon_L+\varepsilon_3.
+\]
+The random variable \(X_2\) is measurable with respect to \(\sigma(\varepsilon_2)\), while \(X_3\) is measurable with respect to \(\sigma(\varepsilon_L,\varepsilon_3)\). Mutual source independence therefore implies
+\[
+ X_2\mathbin{\perp\!\!\!\perp}X_3
+ \quad\text{under every such kernel}.
+\]
+This conclusion is distributional and uses no moments.
+
+For an arbitrary \(H_\star\) mechanism the intervened equations instead read
+\[
+ X_2=\gamma\eta_L+\beta z+\eta_2,
+ \qquad
+ X_3=\delta\eta_L+\eta_3.
+\]
+If this mechanism additionally obeys Assumption \(\texttt{ass:source-second-moment}\), every covariance in the following expansion exists. Mutual independence gives zero covariance between distinct source coordinates, and hence
+\[
+ \begin{aligned}
+ \operatorname{Cov}(X_2,X_3)
+ &=\gamma\delta\operatorname{Var}(\eta_L)
+   +\gamma\operatorname{Cov}(\eta_L,\eta_3)
+   +\delta\operatorname{Cov}(\eta_2,\eta_L)
+   +\operatorname{Cov}(\eta_2,\eta_3)\\
+ &=\gamma\delta\operatorname{Var}(\eta_L).
+ \end{aligned}
+\]
+Finite second moment and Assumption \(\texttt{ass:source-nondegeneracy}\) imply \(\operatorname{Var}(\eta_L)>0\): variance zero would imply \(\eta_L=\mathbb E[\eta_L]\) almost surely. Exact support gives \(\gamma\delta\ne0\), so the displayed covariance is nonzero. Under the inverse parametrization, \(a=\beta^{-1}\), \(c=-\gamma\beta^{-1}\), \(d=\delta\), and \(\eta_L=\varepsilon_L\). Therefore
+\[
+ \gamma\delta\operatorname{Var}(\eta_L)
+ =-\frac ca d\sigma_L^2\ne0.
+\]
+For a finite-second-moment \(G_\star\) mechanism, the already proved independence gives \(\operatorname{Cov}(X_2,X_3)=0\). This proves the covariance clauses on precisely the stated finite-second-moment submodel; centering is unnecessary because covariance is invariant under translations.
+
+It remains to prove separation of the full moment-free graph law sets, rather than only of their finite-moment submodels. Consider the admissible \(H_\star\) mechanism
+\[
+ (\alpha,\beta,\gamma,\delta)=(3,2,-2,1)
+\]
+with mutually independent standard Laplace sources having density \(u\mapsto e^{-|u|}/2\). Each source is nonconstant and non-Gaussian, and \(1-\alpha\beta=-5\ne0\); the determinant calculation above proves regime solvability for every observed intervention target. Symmetry gives \(\mathbb E[\eta_L]=0\), and two integrations by parts give
+\[
+ \mathbb E[\eta_L^2]
+ =\int_{\mathbb R}u^2\frac{e^{-|u|}}2\,du
+ =\int_0^\infty u^2e^{-u}\,du
+ =2.
+\]
+Thus its \(\{X_1\}\)-intervention kernel satisfies
+\[
+ \operatorname{Cov}(X_2,X_3)
+ =(-2)(1)(2)=-4.
+\]
+In particular, \(X_2\) and \(X_3\) are not independent under this kernel. No \(G_\star\) mechanism, including one whose sources lack moments, can produce that same kernel, because every \(G_\star\) kernel makes these two coordinates independent. Hence this \(H_\star\) joint response-kernel tuple is absent from \(\mathcal P_{\mathcal I}(G_\star)\) whenever \(\{X_1\}\in\mathcal I\), whereas it belongs to \(\mathcal P_{\mathcal I}(H_\star)\). Thus
+\[
+ \mathcal P_{\mathcal I}(G_\star)
+ \ne
+ \mathcal P_{\mathcal I}(H_\star).
+\]
+Together with observational equality, this is strict refinement. The argument concerns population perfect-intervention kernels at fixed \(z\); it uses no overlap or positivity condition and no boundary or limiting argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A uniform all-parameter witness proves that the interventional quotient is strictly finer than the observational quotient without relying on genericity. \textit{Gap.} The zero-allowed version of this witness is false at zero pivots; the claim here is restricted to the newly specified exact nonzero support and re-proves the full parameter-space bijection directly. \textit{Consumer.} The witness tells perturbation planners when one observed-node intervention resolves a feedback reversal and latent-parent ambiguity that no observational sample can resolve.
+
+\begin{theorem}[thm:graph-confidence-superset]\label{thm:graph-confidence-superset}
+Under the compact Laplace class and regime sampling, the certified construction is computable and satisfies \(\inf_{G\in\mathcal F}\inf_{P\in K_G}\Pr_P\{G\in\widehat{\mathcal C}_m\}\ge1-\alpha\) for every \(m\). Moreover, for every fixed \(\delta>0\), uniformly over \(P\in\bigcup_{G\in\mathcal F}K_G\), the probability that \(\widehat{\mathcal C}_m\) contains any \(G'\) with \(\inf_{Q\in K_{G'}}d(P,Q)\ge\delta\) tends to zero. The proof must derive the simultaneous real-and-imaginary Hoeffding radius \(\epsilon_m\), the feature tail \(2^{1-J_m}\), compactness, explicit inverse-resolvent moduli, and termination and consistency of certified global optimization.
+\end{theorem}
+\begin{proof}
+Fix a graph \(G\in\mathcal F\), and let \(e_G=|E(G)|\).  Write
+\(\theta=(B,s)\), where \(s=(s_i)_{i\in V}\), and let
+\(\Theta_G\subseteq\mathbb R^{e_G+N}\) be the parameter set in
+\(\mathfrak K_G(L_B,\kappa,\beta,s_-,s_+)\), with the off-graph entries of
+\(B\) suppressed from the coordinates.  The exact-support and edge-margin
+conditions say, separately for each edge coordinate,
+\[
+ B_{ji}\in[-L_B,-\beta]\cup[\beta,L_B].
+\]
+The upper bound follows from
+\(|B_{ji}|=|e_j^{\mathsf T}Be_i|\leq\lVert B\rVert_{\mathrm{op}}\leq L_B\).
+The scale coordinates lie in \([s_-,s_+]\).  Each of these coordinate
+conditions is closed.  The maps \(B\mapsto\lVert B\rVert_{\mathrm{op}}\)
+and
+\(B\mapsto\sigma_{\min}(I-B_{V\setminus S,V\setminus S})\) are continuous.
+Consequently \(\Theta_G\) is a closed and bounded subset of the
+finite-dimensional space \(\mathbb R^{e_G+N}\), hence is compact.  Notice
+that the lower edge margin is essential here: exact nonzero support without
+that margin would not be a closed condition.
+
+We first derive the response law and the continuity bounds used by the
+certifier.  Fix \(S\in\mathcal I\), put \(W=V\setminus S\) and
+\(O=X\setminus S\), and let \(P_O\) and \(P_W\) denote coordinate
+projections.  Under the surgical intervention \(\operatorname{do}(X_S=x)\),
+the nonintervened equations are
+\[
+ (I-B_{W,W})V_W=B_{W,S}x+\varepsilon_W.
+\]
+The inverse-margin assumption gives
+\[
+ \bigl\|(I-B_{W,W})^{-1}\bigr\|_{\mathrm{op}}
+ \leq \kappa^{-1},
+\]
+so the retained random output is
+\[
+ Y_{S,x}=A_S(B)x+H_S(B)\operatorname{diag}(s)Z,
+ \qquad
+ A_S(B)=P_O(I-B_{W,W})^{-1}B_{W,S},
+\]
+\[
+ H_S(B)=P_O(I-B_{W,W})^{-1}P_W^{\mathsf T}.
+ \tag{1}
+\]
+Here columns of \(H_S(B)\) indexed by \(S\) are zero.  This equation uses
+only surgical intervention and the displayed inverse margin; it neither
+removes nor separates any latent source.
+
+For completeness, (1) agrees with the maps in the certified construction.
+Let \(Q=I-B\), \(K=Q^{-1}\), and order the coordinates as \((S,W)\).
+The empty intervention belongs to \(\mathcal I\), so the inverse-margin
+condition at \(S=\varnothing\) makes \(Q\) invertible.  Since \(Q_{W,W}\)
+is also invertible, block elimination gives that \(K_{S,S}\) is invertible
+and
+\[
+ K_{W,S}K_{S,S}^{-1}
+   =-Q_{W,W}^{-1}Q_{W,S}
+   =Q_{W,W}^{-1}B_{W,S},
+ \tag{2}
+\]
+as well as
+\[
+ K_{W,:}-K_{W,S}K_{S,S}^{-1}K_{S,:}
+   =\bigl[0,\,Q_{W,W}^{-1}\bigr].
+ \tag{3}
+\]
+Restricting (2)--(3) to the rows \(O\), and using
+\(C=K_{X,:}\), proves
+\[
+ A_S(B)=T_S(C),\qquad H_S(B)=R_S(C).
+ \tag{4}
+\]
+The identities have their usual empty-matrix interpretation when
+\(S=\varnothing\); settings with \(O=\varnothing\) are not retained.
+
+For a standard centered Laplace variable, direct integration of its density
+gives
+\[
+ \mathbb E\exp(iuZ_i)
+ =\int_0^\infty e^{-z}\cos(uz)\,dz
+ =(1+u^2)^{-1}.
+\]
+Independence of the \(Z_i\)'s and (1)--(4) therefore yield, for every retained
+setting \(v=(S,x)\),
+\[
+ \phi_{G,\theta,v}(t)
+ =\exp\!\bigl(i t^{\mathsf T}T_S(C)x\bigr)
+   \prod_{i\in V}
+   \left(1+s_i^2[R_S(C)^{\mathsf T}t]_i^2\right)^{-1}.
+ \tag{5}
+\]
+Thus (5) is the characteristic function of the causal response law, rather
+than a definition of that law.
+
+We next give explicit uniform moduli.  For two feasible parameters
+\(\theta=(B,s)\) and \(\theta'=(B',s')\), the resolvent identity gives
+\[
+ \begin{split}
+ &(I-B_{W,W})^{-1}-(I-B'_{W,W})^{-1}\\
+ &\quad=(I-B_{W,W})^{-1}(B_{W,W}-B'_{W,W})
+          (I-B'_{W,W})^{-1}.
+ \end{split}
+\]
+Hence
+\[
+ \lVert H_S(B)-H_S(B')\rVert_{\mathrm{op}}
+ \leq\kappa^{-2}\lVert B-B'\rVert_{\mathrm{op}}.
+ \tag{6}
+\]
+Adding and subtracting
+\(P_O(I-B_{W,W})^{-1}B'_{W,S}\), and using
+\(\lVert B'_{W,S}\rVert_{\mathrm{op}}\leq L_B\), similarly gives
+\[
+ \lVert A_S(B)-A_S(B')\rVert_{\mathrm{op}}
+ \leq(\kappa^{-1}+L_B\kappa^{-2})
+       \lVert B-B'\rVert_{\mathrm{op}}.
+ \tag{7}
+\]
+These are precisely the required inverse-resolvent and response moduli.
+
+Couple the two laws by using the same vector \(Z\).  Since a standard
+Laplace variable has second moment \(2\), Jensen's inequality gives
+\[
+ \mathbb E\lVert Z\rVert_2
+ \leq\bigl(\mathbb E\lVert Z\rVert_2^2\bigr)^{1/2}
+ =\sqrt{2N}.
+\]
+All retained intervention values are zero or a coordinate unit vector, and
+therefore satisfy \(\lVert x\rVert_2\leq1\).  From (6)--(7),
+\[
+ \begin{split}
+ \mathbb E\lVert Y_{S,x}(\theta)-Y_{S,x}(\theta')\rVert_2
+ \leq{}&c_B\lVert B-B'\rVert_{\mathrm{op}}
+       +c_s\lVert s-s'\rVert_\infty,\\
+ c_B={}&\kappa^{-1}+L_B\kappa^{-2}
+          +\sqrt{2N}s_+\kappa^{-2},\\
+ c_s={}&\sqrt{2N}\kappa^{-1}.
+ \end{split}
+ \tag{8}
+\]
+Indeed, the three terms in \(c_B\) respectively bound the two terms in
+(7) and the change of the residual mixing matrix in (6), while \(c_s\)
+bounds the scale change using
+\(\lVert H_S(B')\rVert_{\mathrm{op}}\leq\kappa^{-1}\).
+The elementary inequality \(|e^{iu}-e^{iv}|\leq|u-v|\) then implies
+\[
+ |\phi_{G,\theta,v}(t)-\phi_{G,\theta',v}(t)|
+ \leq\lVert t\rVert_2
+ \left(c_B\lVert B-B'\rVert_{\mathrm{op}}
+       +c_s\lVert s-s'\rVert_\infty\right).
+ \tag{9}
+\]
+
+Equation (5) also proves continuity of the parameter-to-law map in the
+metric \(d\).  Explicitly, for any integer \(J\), the first \(J\) terms in
+\(d\) are continuous by (5), while the remaining terms are uniformly bounded
+by
+\[
+ \frac1M\sum_{v=1}^M\sum_{j>J}2^{-j}\,2=2^{1-J}.
+ \tag{10}
+\]
+First choosing \(J\) to make (10) small and then applying finite-term
+continuity proves continuity in \(d\).  The image \(K_G\) of the compact set
+\(\Theta_G\) is consequently compact.  Since \(\mathcal F\) is finite, this
+holds simultaneously for every candidate graph.
+
+We now make the certified optimization and its termination explicit.  Given
+the data, define
+\[
+ \widehat\phi_{v,j}
+ =\frac1m\sum_{r=1}^m
+   \exp\!\left(i t_{k_v,j}^{\mathsf T}Y_{v,r}\right)
+\]
+and, for \(J=J_m\),
+\[
+ f_{G,m}(\theta)
+ =\frac1M\sum_{v=1}^M\sum_{j=1}^{J}2^{-j}
+   |\widehat\phi_{v,j}-\phi_{G,\theta,v}(t_{k_v,j})|,
+ \qquad
+ \widehat D_{G,m}=\min_{\theta\in\Theta_G}f_{G,m}(\theta).
+ \tag{11}
+\]
+The minimum exists by compactness and continuity.  If every free coordinate
+of \(\theta-\theta'\) is at most \(h\) in absolute value, then
+\(\lVert B-B'\rVert_{\mathrm{op}}
+ \leq\lVert B-B'\rVert_{\mathrm F}\leq Nh\) and
+\(\lVert s-s'\rVert_\infty\leq h\).  The frequency condition and
+\(\sum_{j\geq1}j2^{-j}=2\), together with (9), show that
+\[
+ |f_{G,m}(\theta)-f_{G,m}(\theta')|
+ \leq \Lambda h,
+ \qquad
+ \Lambda=2\sqrt N\,(Nc_B+c_s).
+ \tag{12}
+\]
+This modulus is uniform in \(G\), \(m\), the data, and the retained setting.
+
+Here is a finite certifier that also handles lower-dimensional feasible
+faces.  Split the \(e_G\) edge coordinates into their \(2^{e_G}\) sign
+boxes.  On each sign box, the constraints defining \(\Theta_G\) are finitely
+many rational polynomial weak inequalities: for example,
+\[
+ L_B^2I-B^{\mathsf T}B\succeq0,
+ \qquad
+ (I-B_{W,W})^{\mathsf T}(I-B_{W,W})-\kappa^2I\succeq0,
+ \tag{13}
+\]
+where each positive-semidefinite condition is represented by nonnegativity
+of all its principal minors.  Coordinate-box inequalities complete this
+finite list.  Subdivide every coordinate interval into rational intervals of
+width at most \(h\).  Feasibility of each resulting closed box is decided by
+a finite sign decomposition of the polynomials in (13): project successively
+by adjoining their coefficients, discriminants, and pairwise resultants;
+isolate the finitely many univariate roots by signed remainder sequences;
+and lift through all root sections and open sectors.  At every projection the
+number of variables decreases by one, and every list consists of finitely
+many finite-degree polynomials.  The recursion therefore terminates.  Signs
+are constant on each lifted sector, while root sections are retained, so a
+weak-inequality feasible cell is found if and only if one exists.  In
+particular, the procedure does not discard a feasible point merely because
+it lies on an edge-margin, norm, or singular-value boundary.
+
+For an explicit finite work bound, put
+\[
+ q=e_G+N\leq N^2,
+ \quad W_0=\max\{L_B,s_+-s_-\},
+ \quad r_0=(1+|\mathcal I|)(2^N-1)+2q,
+ \quad d_0=2N,
+\]
+and recursively set
+\[
+ r_{a+1}=4r_a^2d_a^2,
+ \qquad d_{a+1}=2d_a^2
+ \quad(0\leq a<q).
+ \tag{14}
+\]
+The displayed projection construction uses no more than the right-hand side
+of (14) as a coarse bound on, respectively, its next polynomial count and
+degree.  Thus, for tolerance governed by mesh \(h\), at most
+\[
+ 2^{e_G}\left(1+\left\lceil W_0/h\right\rceil\right)^q
+ \prod_{a=0}^{q-1}(2r_ad_a+1)
+ \tag{15}
+\]
+lifted grid cells are inspected, and each retained sample requires \(MJ_m\)
+evaluations of (5).  This deliberately coarse bound is finite and depends
+only on the displayed finite input sizes, rational bounds, and requested
+tolerance.
+
+Choose one algebraic sample point in every nonempty grid box, including root
+sections.  Formula (5), rational matrix arithmetic, and interval evaluation
+of sine and cosine give certified rational enclosures of (11); range reduction
+followed by the alternating power series supplies any requested finite
+precision.  This is also valid in the usual computable-real representation
+of the observed coordinates, relative to their Cauchy names.  If
+\(f_b\) denotes the value at the chosen point of a nonempty box \(b\), then
+(12) gives
+\[
+ \min_b f_b-\Lambda h
+ \leq \widehat D_{G,m}\leq\min_b f_b.
+ \tag{16}
+\]
+Indeed, every feasible parameter and the chosen feasible point in its grid
+box are within coordinate distance \(h\).  Taking a rational
+\(h\leq\epsilon_m/(4\Lambda)\) and evaluating the finitely many \(f_b\)'s
+with total outward-rounding width at most \(\epsilon_m/2\) produces a
+certified interval
+\[
+ [\underline D_{G,m},\overline D_{G,m}]
+ \ni\widehat D_{G,m},
+ \qquad
+ \eta_{G,m}:=\overline D_{G,m}-\underline D_{G,m}\leq\epsilon_m.
+ \tag{17}
+\]
+If there is no feasible cell, the same finite sign decomposition certifies
+\(\Theta_G=\varnothing\); the algorithm assigns discrepancy \(+\infty\) and
+excludes \(G\).  All minima in (11), (16), and (17) concern the nonempty case.
+Coverage assertions for an empty \(K_G\) are vacuous, and such a graph is
+automatically rejected in the separation assertion.
+Because \(\epsilon_m>0\) is a computable real, directed approximation produces
+in finite time a rational \(r_m\) such that
+\(\epsilon_m\leq r_m\leq2\epsilon_m\).  Set
+\(\rho_m=r_m-\epsilon_m\), so \(0\leq\rho_m\leq\epsilon_m\).  The two
+quantities actually compared, \(\underline D_{G,m}\) and \(r_m\), are
+rational; a tie is included.  Hence the procedure terminates and is
+measurable.  In the notation of the frozen construction, its certified
+tolerance is \(\rho_m\), and it includes \(G\) whenever
+\[
+ \underline D_{G,m}\leq r_m=\epsilon_m+\rho_m.
+ \tag{18}
+\]
+Equations (12), (15), and (17) prove, rather than assume, the claimed global
+optimization certification.
+
+It remains to prove the probability statements.  We first derive the stated
+simultaneous radius.  If \(U\in[-1,1]\) and \(\mu=\mathbb EU\), convexity of
+the exponential gives
+\[
+ e^{\lambda u}\leq\frac{1+u}{2}e^\lambda
+                     +\frac{1-u}{2}e^{-\lambda}
+ \quad(-1\leq u\leq1).
+\]
+After expectation and multiplication by \(e^{-\lambda\mu}\), the logarithm
+of the right-hand side is
+\(g(\lambda)=\log(\cosh\lambda+\mu\sinh\lambda)-\lambda\mu\).
+It has \(g(0)=g'(0)=0\), and \(g''(\lambda)\) is the variance of a random
+variable supported on \(\{-1,1\}\), so \(g''(\lambda)\leq1\).  Twice
+integrating this inequality proves
+\[
+ \mathbb E e^{\lambda(U-\mu)}\leq e^{\lambda^2/2}.
+\]
+Independence within a retained setting, exponential Markov inequality, and
+optimization at \(\lambda=a\) therefore give
+\[
+ \Pr\left\{\left|m^{-1}\sum_{r=1}^mU_r-\mu\right|>a\right\}
+ \leq2e^{-ma^2/2}.
+ \tag{19}
+\]
+Both the real and imaginary parts of
+\(\exp(i t_{k_v,j}^{\mathsf T}Y_{v,r})\) lie in \([-1,1]\).  If the complex
+empirical error exceeds \(a\), one of those two real errors exceeds
+\(a/\sqrt2\).  Applying (19) and taking a union bound over the \(MJ_m\)
+features yields
+\[
+ \Pr_P\left\{
+   \max_{v\leq M,\,j\leq J_m}
+   |\widehat\phi_{v,j}-\phi_{P_v}(t_{k_v,j})|>a
+ \right\}
+ \leq4MJ_m e^{-ma^2/4}.
+ \tag{20}
+\]
+With
+\(a=\epsilon_m=2\sqrt{\log(4MJ_m/\alpha)/m}\), the right-hand side of
+(20) is \(\alpha\).  This proves the requested simultaneous
+real-and-imaginary radius with its stated constant.
+
+Suppose now that \(P\in K_G\), and choose a generating
+\(\theta_0\in\Theta_G\).  On the event complementary to that in (20),
+\[
+ \begin{split}
+ \widehat D_{G,m}
+ &\leq f_{G,m}(\theta_0)\\
+ &\leq\frac1M\sum_{v=1}^M\sum_{j=1}^{J_m}2^{-j}\epsilon_m
+ \leq\epsilon_m.
+ \end{split}
+ \tag{21}
+\]
+Since \(\underline D_{G,m}\leq\widehat D_{G,m}\), (18) includes the true
+graph.  Bound (20) is distribution-free and the argument did not depend on
+the particular \(G\), \(P\), or \(\theta_0\).  Therefore
+\[
+ \inf_{G\in\mathcal F}\inf_{P\in K_G}
+ \Pr_P\{G\in\widehat{\mathcal C}_m\}\geq1-\alpha.
+ \tag{22}
+\]
+
+Finally fix \(\delta>0\).  Define the truncated population discrepancy by
+\[
+ d_J(P,Q)=\frac1M\sum_{v=1}^M\sum_{j=1}^{J}2^{-j}
+ |\phi_{P_v}(t_{k_v,j})-\phi_{Q_v}(t_{k_v,j})|.
+\]
+Its empirical counterpart, with data sampled from \(P\), is
+\[
+ \widehat d_J(P,Q)=\frac1M\sum_{v=1}^M\sum_{j=1}^{J}2^{-j}
+ |\widehat\phi_{v,j}-\phi_{Q_v}(t_{k_v,j})|.
+\]
+Because characteristic functions have modulus at most one, the exact feature
+tail is the bound already obtained in (10):
+\[
+ 0\leq d(P,Q)-d_J(P,Q)\leq2^{1-J}.
+ \tag{23}
+\]
+On the event in which the maximum empirical characteristic-function error is
+at most \(a\), the triangle inequality and
+\(M^{-1}\sum_v\sum_{j\leq J}2^{-j}\leq1\) give, simultaneously for every
+candidate law \(Q\),
+\[
+ \widehat d_J(P,Q)\geq d_J(P,Q)-a
+ \geq d(P,Q)-2^{1-J}-a.
+ \tag{24}
+\]
+Consequently, if
+\(\inf_{Q\in K_{G'}}d(P,Q)\geq\delta\), then
+\[
+ \widehat D_{G',m}
+ \geq\delta-2^{1-J_m}-a.
+ \tag{25}
+\]
+This conclusion is simultaneous over all \(G'\in\mathcal F\); no union over
+parameters or source decompositions is needed.
+
+Take \(a=\delta/8\).  Equation (20) gives the distribution-free bound
+\[
+ \sup_P\Pr_P\left\{
+   \max_{v,j\leq J_m}
+   |\widehat\phi_{v,j}-\phi_{P_v}(t_{k_v,j})|>\delta/8
+ \right\}
+ \leq4MJ_m\exp(-m\delta^2/256),
+ \tag{26}
+\]
+which tends to zero because \(J_m=\lceil\log_2(m+1)\rceil\).  Moreover,
+\[
+ 2^{1-J_m}\leq\frac{2}{m+1}\longrightarrow0,
+ \qquad
+ \epsilon_m\longrightarrow0.
+ \tag{27}
+\]
+If \(G'\) is included, (17)--(18) imply
+\[
+ \widehat D_{G',m}
+ \leq\overline D_{G',m}
+ \leq\underline D_{G',m}+\eta_{G',m}
+ \leq\epsilon_m+\rho_m+\eta_{G',m}
+ \leq3\epsilon_m.
+ \tag{28}
+\]
+For all sufficiently large \(m\), (25) with \(a=\delta/8\) is at least
+\(3\delta/4\), whereas (28) is strictly smaller than \(3\delta/4\).
+Thus on the complement of the event in (26), every graph separated from the
+true law by \(\delta\) is excluded.  Taking the supremum over
+\(P\in\bigcup_{G\in\mathcal F}K_G\) and using (26) proves
+\[
+ \sup_{P\in\bigcup_{G\in\mathcal F}K_G}
+ \Pr_P\!\left\{\exists G'\in\widehat{\mathcal C}_m:
+     \inf_{Q\in K_{G'}}d(P,Q)\geq\delta\right\}
+ \longrightarrow0.
+\]
+The proof compares only observable characteristic functions.  Source
+separation, overcomplete independent-component recovery, and a
+single-observational-law equivalence claim play no role.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This rung propagates structural uncertainty through honest graph supersets without recovering or separating latent sources. \textit{Gap.} Schkoda and Drton test necessary latent-SEM rank restrictions, and Wang et al. invert tests for acyclic orderings; neither provides full-law test inversion for intersecting compact latent cyclic intervention models. \textit{Consumer.} A finite perturbation study can report a confidence superset of hidden feedback graphs and discard every candidate separated from the population response laws by a scientifically meaningful margin.
+
+\begin{theorem}[thm:effective-population-compiler]\label{thm:effective-population-compiler}
+Let \(q=|\mathcal I|\), let \(p=nN\), and let \(\lambda\geq1\) be the rational bit length of the labeled graph and intervention input.  There is a terminating exact compiler for both directed cover relations.  It first produces the finite pivot-chart formulas for \(\mathcal D_G\) and \(\mathcal D_H\), then enumerates visible-source subsets and surjections, clears only the nonzero pivot and intervention determinants in the proportionality and simultaneous-response equations, and applies effective sign-condition block elimination to the resulting \(\forall C\,\exists(D,a)\) sentence.  With
+\[
+s=(q+N+1)2^{8N^2},\quad d=4N^3,\quad \tau=(\lambda+1)2^{8N^2},
+\]
+and with the absolute effective constant \(c_{\mathrm{qe}}\) of the cited elimination theorem, one directed decision, including a finite sign-cell certificate, uses at most
+\[
+\mathsf B(N,q,\lambda)
+=(\tau+1)^2(s+1)^{(p+1)(p+N+1)+1}
+(d+1)^{c_{\mathrm{qe}}(p+1)(p+N+1)}                                   \tag{16}
+\]
+bit operations.  Hence comparison uses at most \(2\mathsf B(N,q,\lambda)\) bit operations.  Exhaustive enumeration of the equivalence class modulo latent relabeling terminates within
+\[
+2^{N(N-1)}\bigl(2\mathsf B(N,q,\lambda)+\ell!\,N^2\bigr)               \tag{17}
+\]
+bit operations, apart from a fixed linear-time encoding overhead.  The certificates and bounds cover forced zeros, punctured fibers, Hall--Rado failures, nullification, and all lower-dimensional incidences; the compiler contains no structural-coefficient or source-law quantifier.
+\end{theorem}
+\begin{proof}
+For each local system in \(\mathcal D_G\), express a rank equality as the finite disjunction over possible ranks in which one minor of the selected rank is nonzero and every larger minor vanishes. On a chosen nonzero pivot minor, Gaussian elimination gives a rational affine base point and a rational basis for the direction space of \(\mathcal A_j(C)\); adjoining the base point gives a rational spanning family for \(W_j(C)\). For every \(J\subseteq L\), the Hall--Rado clause is the finite minor condition
+\[
+\operatorname{rank}[W_j(C):j\in J]\ge |J|.
+\]
+Multiplying by the chart's asserted nonzero denominators converts this and every punctured-coordinate test into a Boolean combination of integral polynomial sign conditions without changing the chart's truth value. The intervention-minor conditions are already polynomial nonvanishing conditions. By \(\texttt{thm:exact-mixing-realization}\), the resulting quantifier-free formula \(\operatorname{Dom}_G(C)\) defines exactly \(\mathcal D_G\), including zero signs and lower-dimensional chart intersections.
+
+For visible subsets \(U,W\subseteq V\) and each surjection \(f:U\twoheadrightarrow W\), introduce at most \(N\) scalar variables and impose
+\[
+C_{:,i}=0\Longleftrightarrow i\notin U,
+\quad D_{:,j}=0\Longleftrightarrow j\notin W,
+\quad a_i\ne0,
+\quad C_{:,i}=a_iD_{:,f(i)}. \tag{11}
+\]
+Column nonzeroness is expressed by a positive sum of squares. On the domain charts the response equality is equivalent, without matrix-inverse variables, to
+\[
+C_{O,S}\operatorname{adj}(C_{S,S})\det(D_{S,S})
+=D_{O,S}\operatorname{adj}(D_{S,S})\det(C_{S,S}),
+\quad O=X\setminus S, \tag{12}
+\]
+because the two determinants are asserted nonzero. Let \(\Theta_f(C,D,a)\) conjoin \(\operatorname{Dom}_H(D)\), (11), and (12) for all \(S\). The compiler decides
+\[
+\forall C\in\mathbb R^{n\times N}\left[
+\operatorname{Dom}_G(C)\Longrightarrow
+\bigvee_{U,W,f}\exists D\in\mathbb R^{n\times N}\exists a\in\mathbb R^U\,\Theta_f(C,D,a)
+\right]. \tag{13}
+\]
+The revised unrestricted source-partition theorem and \(\texttt{thm:coupled-equivalence}\) prove that (13) is equivalent to \(\operatorname{Cover}_{\mathcal I}(G,H)\). Thus source laws have already been eliminated by the finite proportional-column relation; real-algebraic elimination is not being applied to the original structural/source feasibility question.
+
+It remains to verify the advertised bounds. A matrix with at most \(N\) rows and columns has at most \(2^{2N}\) minors. Pivot choices for at most \(N\) local systems therefore give at most \(2^{2N^2}\) joint charts. A concatenated Hall matrix has at most \(N\) rows and \(N^2\) columns and fewer than \(2^{N+N^2}\) minors. The \(2^\ell\) Hall subfamilies, the \(q\) intervention blocks, and all zero-pattern formulas multiply the chart count by less than \((q+N+1)2^{4N^2}\). Finally, pairs of visible subsets and partial source maps number at most
+\[
+2^{2N}(N+1)^N\le 2^{3N^2}\qquad(N\ge2).
+\]
+Sharing repeated atoms gives the conservative total \(s=(q+N+1)2^{8N^2}\). Pivot determinants have degree at most \(N\). A Hall minor contains at most \(N\) rational entries, and clearing at most \(N\) chart denominators leaves degree below \(d=4N^3\); (11)--(12) have no larger degree. Expanding fewer than \(2^{8N^2}\) recorded determinant atoms by the Leibniz rule gives coefficient bit length at most \(\tau=(\lambda+1)2^{8N^2}\). These bounds include empty blocks.
+
+Formula (13) has quantifier blocks of sizes at most \(p\) and \(p+N\). Applying \(\texttt{lem:effective-real-quantifier-elimination}\) gives exactly (16), including finite sign conditions and algebraic sample descriptions. Zero sign cells are retained, so forced zeros, nullification, and lower-dimensional incidences are not discarded. Running (13) in both directions costs at most \(2\mathsf B\). There are \(2^{N(N-1)}\) labeled loopless digraphs. For each candidate, compute the lexicographically least adjacency encoding among the \(\ell!\) simultaneous row-and-column permutations fixing observed labels; this costs at most \(\ell!N^2\). Testing all candidates proves (17), termination, and completeness modulo latent relabeling. The argument nowhere uses source centering or moments.
+\end{proof}
+
+\begin{lemma}[lem:linear-independent-transversal]\label{lem:linear-independent-transversal}
+For the finite family of vector subspaces \(\{W_j(C):j\in L\}\), there are representatives \(w_j\in W_j(C)\) that are linearly independent if and only if \(\dim(\sum_{j\in J}W_j(C))\geq |J|\) for every \(J\subseteq L\).
+\end{lemma}
+
+\begin{lemma}[lem:levy-cramer-decomposition]\label{lem:levy-cramer-decomposition}
+\texttt{If a finite sum of independent real random variables is Gaussian,\allowbreak{} then every nonconstant summand is Gaussian.}
+\end{lemma}
+
+\begin{lemma}[lem:square-ica-uniqueness]\label{lem:square-ica-uniqueness}
+\texttt{For a square invertible linear mixture of mutually independent nonconstant sources,\allowbreak{} of which at most one is Gaussian,\allowbreak{} the law of the mixture determines the mixing columns,\allowbreak{} and equivalently the projective rows of the inverse mixing matrix,\allowbreak{} up to permutation and nonzero coordinatewise scaling.}
+\end{lemma}
+
+\begin{lemma}[lem:effective-real-quantifier-elimination]\label{lem:effective-real-quantifier-elimination}
+There is an absolute effective constant \(c_{\mathrm{qe}}\) with the following property.  A first-order formula over a real closed field, built from \(s\) polynomials of degree at most \(d\), with quantifier-block sizes \(k_1,\ldots,k_\omega\), admits effective block elimination.  The arithmetic-operation count and the degrees and integer coefficient bit lengths of the output are bounded by the block-elimination bounds in Theorem 2.27 of the cited source; in particular, for two blocks and no free variables, a bit-operation bound of the form
+\[
+(\tau+1)^2(s+1)^{(k_1+1)(k_2+1)+1}(d+1)^{c_{\mathrm{qe}}(k_1+1)(k_2+1)}
+\]
+is valid after increasing \(c_{\mathrm{qe}}\) once and using ordinary exact integer arithmetic.  The output includes the finite sign conditions and algebraic sample descriptions needed to verify the truth value.
+\end{lemma}
+
+\begin{proposition}[prop:marginal-joint-gluing-criterion]\label{prop:marginal-joint-gluing-criterion}
+For a direction \(G\to H\), a source matrix \(C\in\mathcal D_G\), and \(S\in\mathcal I\), let \(\mathcal W_S(C)\) be the finite union, over visible-column subsets and source surjections, of all triples \((D,f_S,a_S)\) with \(D\in\mathcal D_H\), \(T_S(C)=T_S(D)\), and
+\[
+R_S(C)_{:,i}=(a_S)_iR_S(D)_{:,f_S(i)}
+\]
+for every visible column of \(R_S(C)\). Let \(\mathcal W_\star(C)\) be the observational witness set consisting of triples \((D,f,a)\) with \(C_{:,i}=a_iD_{:,f(i)}\). Then regime-wise projected containment holds exactly when \(\mathcal W_S(C)\ne\varnothing\) for every \(C\in\mathcal D_G\), while joint containment holds exactly when every \(C\in\mathcal D_G\) has a rooted witness \((D,f,a)\in\mathcal W_\star(C)\) satisfying \(T_S(C)=T_S(D)\) simultaneously for all \(S\in\mathcal I\). For such a rooted witness its one observational source partition induces every residual partition, so the transition graph has a global section precisely when all regime vertices attach to one root; all transition compositions then agree automatically. Consequently, equality of all single-regime projections implies joint equality for the pair \((G,H)\) if and only if this rooted common-lift condition holds in both directions whenever all the individual \(\mathcal W_S(C)\)'s are nonempty. This condition is a finite semialgebraic test decided by the effective population compiler.
+\end{proposition}
+\begin{proof}
+Fix \(S\). The intervention-pushforward lemma writes its kernel as the translate of the zero-setting residual mixture by \(T_S(C)x\). If two regime kernels agree, translation rigidity identifies their response maps without a moment condition. Applying \(\texttt{lem:finite-mixture-containment-unrestricted}\) to their residual matrices gives exactly the visible-source surjection and proportionality clauses defining \(\mathcal W_S(C)\). Quantification over \(C\in\mathcal D_G\) proves the regime-wise assertion.
+
+Because \(\varnothing\in\mathcal I\), \(R_\varnothing(C)=C\) and \(T_\varnothing\) is the unique empty map. Hence a joint witness begins at a member \((D,f,a)\in\mathcal W_\star(C)\). If this root also satisfies all response equalities, then for every \(S\) and every \(i\in U_C\),
+\[
+\begin{aligned}
+R_S(C)_{:,i}
+&=C_{X\setminus S,i}-T_S(C)C_{S,i}\\
+&=a_i\bigl(D_{X\setminus S,f(i)}-T_S(D)D_{S,f(i)}\bigr)
+=a_iR_S(D)_{:,f(i)}.
+\end{aligned}\tag{19}
+\]
+Residual columns made zero by (19) are omitted from their residual visible sets, and several fibers may merge further, as permitted by the unrestricted mixture lemma. Thus one observational root induces compatible witnesses at every regime vertex. Conversely, one common mechanism has one observed mixing matrix \(D\); its observational equality supplies one root partition by the diagnostic lemma, and equality of the translated kernels supplies all simultaneous response equations by translation rigidity. This proves the rooted common-lift characterization.
+
+Every witness set is a finite union of the pivot, zero-pattern, surjection, and response sign charts occurring in the exact compiler. Equation (19) is polynomialized by the same adjugate identities, and a transition edge adds only equality of common \(D\)-coordinates and induced proportionalities. Existence of a rooted section is therefore a finite first-order sign condition decided by \(\texttt{thm:effective-population-compiler}\). Applying the criterion in both graph directions proves the final assertion. Separate nonempty regime fibers need not share a root; the statement identifies this common-root condition exactly and does not assume it.
+\end{proof}
+
+\begin{lemma}[lem:probability-translation-rigidity]\label{lem:probability-translation-rigidity}
+Let \(k,r\) be nonnegative integers, let \(\mu\) be a Borel probability measure on \(\mathbb R^k\), and write \(\tau_h\mu\) for its translate by \(h\in\mathbb R^k\). If \(\tau_h\mu=\mu\), then \(h=0\). Consequently, for linear maps \(A,A':\mathbb R^r\to\mathbb R^k\), the identities \(\tau_{Ax}\mu=\tau_{A'x}\mu\) for every \(x\in\mathbb R^r\) imply \(A=A'\).
+\end{lemma}
+\begin{proof}
+The assertion is immediate for \(k=0\). Suppose \(k>0\) and \(h\ne0\). Let \(u=h/\lVert h\rVert_2^2\) and let \(\nu\) be the pushforward of \(\mu\) by \(z\mapsto u^{\mathsf T}z\). Translation invariance of \(\mu\) by \(h\) implies translation invariance of \(\nu\) by one. Since the disjoint half-open intervals \([m,m+1)\), \(m\in\mathbb Z\), cover \(\mathbb R\), at least one has positive \(\nu\)-mass. Unit-translation invariance gives the same positive mass to every one of its integer translates, contradicting that \(\nu\) has total mass one. Hence \(h=0\). For the consequence, fix \(x\). Translating both measures by \(-A'x\) gives \(\tau_{(A-A')x}\mu=\mu\), so the first assertion gives \((A-A')x=0\). This holds for every \(x\), and therefore \(A=A'\). No moment, support-density, or limiting assumption is used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma identifies affine intervention responses from translations of probability laws without requiring expectations. \textit{Gap.} The required step is elementary measure rigidity, but it must be explicit because population sources need not have moments. \textit{Consumer.} The coupled and no-latent theorems use it to replace mean-response identification.
+
+\begin{lemma}[lem:finite-mixture-diagnostic]\label{lem:finite-mixture-diagnostic}
+Let \(k,p\) be nonnegative integers and \(A\in\mathbb R^{k\times p}\). There is a product law of nonconstant non-Gaussian Bernoulli sources \(\xi=(\xi_i)_{i=1}^p\) such that, for every nonnegative integer \(q\), every \(D\in\mathbb R^{k\times q}\), and every vector \(\eta\) of mutually independent nonconstant real sources, the equality \(\mathcal L(A\xi)=\mathcal L(D\eta)\) implies the existence of a surjection \(f:U_A\twoheadrightarrow U_D\) and nonzero scalars \(a_i\) satisfying \(A_{:,i}=a_iD_{:,f(i)}\) for all \(i\in U_A\). This includes \(k=0\) and zero columns.
+\end{lemma}
+\begin{proof}
+We first record an elementary fact used in the zero-column case. If independent real random variables \(Z_1,\ldots,Z_m\) have an almost surely constant sum, then every \(Z_j\) is almost surely constant. Indeed, independence gives
+\[
+1=\left|\mathbb E e^{it\sum_jZ_j}\right|=\prod_j\left|\mathbb E e^{itZ_j}\right|\quad(t\in\mathbb R),
+\]
+and every factor has modulus at most one; hence each factor has modulus one for every \(t\). Equality in the triangle inequality says that \(e^{itZ_j}\) is almost surely constant. Applying this for all rational \(t\) and intersecting the corresponding probability-one events shows that any two support points of \(Z_j\) have zero difference, so \(Z_j\) is constant.
+
+If \(U_A=\varnothing\), then \(A\xi=0\). Were some column of \(D\) nonzero, a linear functional nonzero on that column would turn \(D\eta=0\) into an almost surely constant sum containing a nonconstant scalar multiple of one of the independent \(\eta_j\)'s, contradicting the preceding fact. Thus \(U_D=\varnothing\), and the empty map is the required surjection.
+
+Now let \(r=|U_A|>0\). The field generated over \(\mathbb Q\) by the finitely many entries of \(A\) is countable. Choose positive numbers \((r_i)_{i\in U_A}\) algebraically independent over this field, put \(h_i=r_iA_{:,i}\), choose \(p_i\in(0,1)\), and let \(\xi_i=r_iZ_i\), where the \(Z_i\)'s are independent \(\operatorname{Bernoulli}(p_i)\) variables. On zero columns choose arbitrary independent nonconstant Bernoulli sources. These laws are nonconstant and non-Gaussian. If \(\sum_i m_ih_i=0\) with integers \(m_i\), algebraic independence applied coordinatewise gives \(m_iA_{vi}=0\) for every \(v,i\). Each visible column is nonzero, so every \(m_i=0\). Therefore
+\[
+\Lambda=\bigoplus_{i\in U_A}\mathbb Z h_i
+\]
+is freely generated by the \(h_i\)'s, and \(A\xi\) has the \(2^r\) distinct support points \(\sum_i z_ih_i\), \(z_i\in\{0,1\}\).
+
+Suppose this law equals that of \(\sum_{j\in U_D}Y_j\), where \(Y_j=D_{:,j}\eta_j\). The support of a convolution contains the Minkowski sum of the summand supports: choose neighborhoods of finitely many support points; independence gives positive probability to their product event, and continuity of addition puts their sum in the convolution support. Since the support of \(A\xi\) is finite, fixing one support point of every summand other than \(Y_j\) injects \(\operatorname{supp}(Y_j)\) into that finite support after translation. Hence every \(Y_j\) has finite support. Fix \(y_j^0\in\operatorname{supp}(Y_j)\). Differences of two total support points belong to \(\Lambda\), so every \(y-y_j^0\), \(y\in\operatorname{supp}(Y_j)\), has a unique representation
+\[
+y-y_j^0=\sum_{i\in U_A}\nu_j(y)_ih_i,
+\qquad \nu_j(y)\in\mathbb Z^{U_A}.
+\]
+Define the Laurent probability polynomial
+\[
+F_j(z)=\sum_{y\in\operatorname{supp}(Y_j)}\Pr(Y_j=y)z^{\nu_j(y)}.
+\]
+Independence, equality of the laws, and injectivity of the exponent map to \(\Lambda\) imply coefficientwise
+\[
+\prod_{j\in U_D}F_j(z)=c z^\gamma\prod_{i\in U_A}\bigl((1-p_i)+p_i z_i\bigr) \tag{4}
+\]
+for a positive constant \(c\) and a Laurent monomial \(z^\gamma\).
+
+The ring \(\mathbb R[z_i^{\pm1}:i\in U_A]\) is a unique-factorization domain: iterated Gauss lemmas give unique factorization for the polynomial ring, and localization at the variables preserves it. Each displayed Bernoulli factor is primitive and linear in its own variable, hence irreducible and prime, and factors indexed by distinct variables are nonassociated. Unique factorization in (4) therefore partitions \(U_A\) into disjoint sets \((I_j)_{j\in U_D}\) such that, up to a unit,
+\[
+F_j(z)=c_jz^{\gamma_j}\prod_{i\in I_j}\bigl((1-p_i)+p_i z_i\bigr). \tag{5}
+\]
+Because \(D_{:,j}\ne0\) and \(\eta_j\) is nonconstant, \(Y_j\) is nonconstant, so (5) forces \(I_j\ne\varnothing\). If \(i\in I_j\), two support monomials differing only in the \(i\)-th Bernoulli choice show that \(h_i\) is a difference of two points in \(\operatorname{supp}(Y_j)\). Both points lie on \(\mathbb RD_{:,j}\); hence \(A_{:,i}=a_iD_{:,j}\) for a nonzero scalar \(a_i\). Setting \(f(i)=j\) on \(I_j\) gives a surjection and proves the claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} One graph-dependent Bernoulli product law forces every competing mixture representation to reveal a finite source partition. \textit{Gap.} This original-lattice diagnostic is the constructive necessity step needed when the competing matrix is selected only after a response tuple is presented. \textit{Consumer.} It removes source-law quantifiers from exact-support and downward-closed graph containment.
+
+\begin{lemma}[lem:finite-mixture-containment-unrestricted]\label{lem:finite-mixture-containment-unrestricted}
+Let \(k,p,q\) be nonnegative integers and let \(A\in\mathbb R^{k\times p}\) and \(D\in\mathbb R^{k\times q}\). Write \(U_A\) and \(U_D\) for their sets of nonzero columns, and let \(\mathscr L_0(A)\) be the set of laws of \(A\xi\) as the coordinates of \(\xi\) range independently over all nonconstant, non-Gaussian real laws. Then \(\mathscr L_0(A)\subseteq\mathscr L_0(D)\) if and only if there are a surjection \(f:U_A\twoheadrightarrow U_D\) and nonzero real numbers \(a_i\), \(i\in U_A\), such that \(A_{:,i}=a_iD_{:,f(i)}\) for every \(i\in U_A\). This includes \(k=0\) and zero columns.
+\end{lemma}
+\begin{proof}
+Assume first that \(\mathscr L_0(A)\subseteq\mathscr L_0(D)\). Apply the diagnostic product law supplied by \(\texttt{lem:finite-mixture-diagnostic}\). Containment represents its \(A\)-mixture as a \(D\)-mixture with independent nonconstant non-Gaussian sources, and the diagnostic lemma gives the asserted surjection and scalars.
+
+Conversely, suppose \(f\) and \((a_i)\) exist, and fix any admissible independent source vector \(\xi\) for \(A\). For \(j\in U_D\), define
+\[
+\eta_j=\sum_{i:f(i)=j}a_i\xi_i. \tag{6}
+\]
+The fibers are disjoint and nonempty, so the \(\eta_j\)'s are mutually independent. Each \(\eta_j\) is nonconstant: otherwise the characteristic-function argument at the start of the proof of \(\texttt{lem:finite-mixture-diagnostic}\) would make every nonzero summand \(a_i\xi_i\) constant. It is non-Gaussian by the L\'evy--Cram\'er decomposition theorem \(\texttt{lem:levy-cramer-decomposition}\), because a Gaussian value of the sum in (6) would force every nonconstant summand to be Gaussian. Give each zero-column index of \(D\) an arbitrary independent nonconstant non-Gaussian source, also independent of (6). Then
+\[
+D\eta=\sum_{j\in U_D}D_{:,j}\sum_{i:f(i)=j}a_i\xi_i
+=\sum_{i\in U_A}A_{:,i}\xi_i=A\xi.
+\]
+This proves containment. The same construction covers empty visible sets, using the empty surjection exactly when both visible sets are empty. No location or moment restriction appears in either direction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The visible-column surjection is the exact computable substitute for quantifying over arbitrary independent non-Gaussian source laws. \textit{Gap.} The moment-free theorem must cover invisible columns and irreversible merging without invoking source recovery for a single law. \textit{Consumer.} Every population cover and common-lift test uses this finite relation.
+
+\begin{theorem}[thm:source-partition-containment-unrestricted]\label{thm:source-partition-containment-unrestricted}
+For fixed \(C\in\mathcal D_G\) and \(D\in\mathcal D_H\), every observable mixture law generated from \(C\) by arbitrary mutually independent nonconstant non-Gaussian sources is generated from \(D\) if and only if there exist a surjection \(f:U_C\twoheadrightarrow U_D\) and nonzero scalars \(a_i\) with \(C_{:,i}=a_iD_{:,f(i)}\) for all \(i\in U_C\). The necessity is witnessed by Bernoulli sources in their original free jump lattice, and the sufficiency construction merges independent sources while preserving nonconstancy and non-Gaussianity.
+\end{theorem}
+\begin{proof}
+For a matrix \(A\), the observable laws in the statement are exactly \(\mathscr L_0(A)\) from \(\texttt{lem:finite-mixture-containment-unrestricted}\); zero columns have no effect and may carry arbitrary admissible sources. Applying that lemma with \(A=C\) gives
+\[
+\mathscr L_0(C)\subseteq\mathscr L_0(D)
+\quad\Longleftrightarrow\quad
+\exists f:U_C\twoheadrightarrow U_D\ \exists(a_i)_{i\in U_C}\in(\mathbb R\setminus\{0\})^{U_C}\ 
+\forall i\in U_C:\ C_{:,i}=a_iD_{:,f(i)}.
+\]
+Its diagnostic proof gives the stated original-lattice necessity, and its construction (6), together with L\'evy--Cram\'er decomposition and the characteristic-function nonconstancy argument, gives the stated sufficiency. Membership of \(C\) and \(D\) in their exact mixing domains supplies the graph interpretation but adds no source location or moment premise.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem eliminates the unrestricted source-law quantifier with no centering or moment restriction. \textit{Gap.} Observational distribution-set results do not by themselves supply the exact visible-source surjection needed for a shared multi-regime mechanism. \textit{Consumer.} The population compiler compares graph law sets using finite source-partition types.
+
+\begin{theorem}[thm:zero-allowed-coupled-equivalence]\label{thm:zero-allowed-coupled-equivalence}
+For every loopless graph \(G\), the zero-allowed response-kernel set is the finite exact-support stratification
+\[
+\mathcal P^{\le}_{\mathcal I}(G)=\bigcup_{F\preceq G}\mathcal P_{\mathcal I}(F).
+\]
+For every loopless graph pair \(G,H\),
+\[
+\mathcal P^{\le}_{\mathcal I}(G)\subseteq\mathcal P^{\le}_{\mathcal I}(H)
+\quad\Longleftrightarrow\quad
+\operatorname{Cover}^{\le}_{\mathcal I}(G,H).
+\]
+Consequently the two zero-allowed joint response-kernel law sets are equal if and only if the downward-closed cover holds in both directions. The destination subgraph \(K\preceq H\) may depend on the source stratum \(F\preceq G\) and on \(C\in\mathcal D_F\); it is part of the finite existential chart witness, not a uniformly selected graph.
+\end{theorem}
+\begin{proof}
+Take a mechanism in \(\mathfrak M^{\le}_{\mathcal I}(G)\), and let \(F\) be the loopless spanning graph whose edge set is exactly \(\operatorname{supp}(B)\). Then \(F\preceq G\); the same coefficient matrix, source tuple, and surgical interventions satisfy every condition of \(\mathfrak M_{\mathcal I}(F)\). Conversely, every exact-support mechanism on \(F\preceq G\) has support contained in \(E(G)\) and hence belongs to \(\mathfrak M^{\le}_{\mathcal I}(G)\). Taking response-kernel images proves
+\[
+\mathcal P^{\le}_{\mathcal I}(G)=\bigcup_{F\preceq G}\mathcal P_{\mathcal I}(F). \tag{10}
+\]
+This is an equality of finite unions because a loopless graph has finitely many spanning subgraphs; no monotonicity of exact-support equivalence is asserted.
+
+Assume now \(\mathcal P^{\le}_{\mathcal I}(G)\subseteq\mathcal P^{\le}_{\mathcal I}(H)\). Fix \(F\preceq G\) and \(C\in\mathcal D_F\). Use exact mixing realization and the diagnostic Bernoulli sources exactly as in the necessity proof of \(\texttt{thm:coupled-equivalence}\). The resulting tuple lies in the left side of (10), hence in \(\mathcal P^{\le}_{\mathcal I}(H)\). Any representing zero-allowed \(H\)-mechanism has an exact support graph \(K\preceq H\); its observed mixing matrix \(D\) lies in \(\mathcal D_K\). The diagnostic lemma applied to the common observational law supplies \(f\) and \(a\), and translation rigidity applied to each common response kernel supplies \(T_S(C)=T_S(D)\) for every \(S\). Hence the defining witness of \(\operatorname{Cover}^{\le}_{\mathcal I}(G,H)\) exists.
+
+Conversely, suppose the downward-closed cover holds and take an arbitrary member of \(\mathcal P^{\le}_{\mathcal I}(G)\). By (10), it is generated on some exact stratum \(F\preceq G\), with observed mixing matrix \(C\in\mathcal D_F\). The cover supplies one \(K\preceq H\) and one common witness \((D,f,a)\). The sufficiency construction in the proof of \(\texttt{thm:coupled-equivalence}\), applied to the pair \((F,K)\), constructs an exact-support \(K\)-mechanism with one source tuple whose entire response-kernel tuple equals the given tuple. Since \(K\preceq H\), this mechanism belongs to \(\mathfrak M^{\le}_{\mathcal I}(H)\). This proves directed containment. Repeating the result with \(G,H\) interchanged proves the equality criterion. All exact zeros are represented by the chosen finite support strata, so cancellations and lower-dimensional incidences are retained rather than replaced by closure limits.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem extends the exact-support engine to the full finite zero-allowed class without assuming monotone transfer of exact-support equivalence. \textit{Gap.} Dai et al. treat observational zero-allowed LiNG equivalence, but not equality of joint response-kernel sets realized by one mechanism and source tuple. \textit{Consumer.} The same compiler can audit either exact reported edges or graphs interpreted as allowed-edge superstructures.
+
+\begin{theorem}[thm:zero-allowed-effective-compiler]\label{thm:zero-allowed-effective-compiler}
+Put \(e=N(N-1)\), let \(s,d,\tau,p\) be as in \(\texttt{thm:effective-population-compiler}\), define \(s_{\le}=2^e s\), and set
+\[
+\mathsf B_{\le}(N,q,\lambda)
+=(\tau+1)^2(s_{\le}+1)^{(p+1)(p+N+1)+1}
+(d+1)^{c_{\mathrm{qe}}(p+1)(p+N+1)}.
+\]
+There is a terminating exact compiler for zero-allowed equivalence. One directed downward-closed cover decision uses at most \(2^e\mathsf B_{\le}(N,q,\lambda)\) bit operations, comparison in both directions uses at most \(2^{e+1}\mathsf B_{\le}(N,q,\lambda)\), and enumeration of the zero-allowed equivalence class modulo latent relabeling uses at most
+\[
+2^e\left(2^{e+1}\mathsf B_{\le}(N,q,\lambda)+\ell!N^2\right)
+\]
+bit operations, apart from fixed linear-time encoding overhead. Its certificates contain no coefficient or source-law quantifier and retain every exact-support subgraph stratum.
+\end{theorem}
+\begin{proof}
+For a fixed source stratum \(F\preceq G\), replace the destination domain in formula (13) by the finite disjunction over \(K\preceq H\):
+\[
+\forall C\left[
+\operatorname{Dom}_F(C)\Longrightarrow
+\bigvee_{K\preceq H}\ \bigvee_{U,W,f}
+\exists D\exists a\,\Theta_{K,f}(C,D,a)
+\right]. \tag{14}
+\]
+Here \(\Theta_{K,f}\) is the same explicit domain, proportionality, and simultaneous-response formula as before, with \(\operatorname{Dom}_K(D)\). By \(\texttt{thm:zero-allowed-coupled-equivalence}\), the conjunction of (14) over all \(F\preceq G\) is true exactly when \(\operatorname{Cover}^{\le}_{\mathcal I}(G,H)\) holds. In particular, \(K\) remains inside the existential disjunction and may vary with \(C\); the compiler does not replace (14) by the stronger demand for one uniform destination stratum.
+
+There are at most \(2^e\) destination strata. Relative to the exact compiler, taking their disjunction multiplies the number of polynomial atoms by at most \(2^e\), while neither degrees, coefficient bit lengths, nor the two quantifier-block sizes increase: the same \((D,a)\) variables are reused in each disjunct. Thus each formula (14) has at most \(s_{\le}=2^es\) atoms, degree at most \(d\), bit length at most \(\tau\), and block sizes at most \(p\) and \(p+N\). The cited elimination theorem gives the displayed \(\mathsf B_{\le}\) bound for each \(F\). There are at most \(2^e\) source strata, proving the directed bound. Doubling gives the comparison bound. Finally, enumerate at most \(2^e\) candidate graphs and use the same \(\ell!N^2\) latent-orbit canonicalization per candidate as the exact compiler. This proves the last display and termination. Each \(\operatorname{Dom}_F\) is the exact finite affine/rank representation, so the resulting disjunction explicitly eliminates both the zero pattern and the unrestricted source laws rather than returning the original feasibility quantifier.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite downward-closure disjunction yields a certified decision and enumeration algorithm with an explicit size bound. \textit{Gap.} A black-box coefficient/source feasibility query would not expose or eliminate the support strata and source laws required by the population criterion. \textit{Consumer.} It enumerates all zero-allowed interventionally equivalent candidate graphs modulo latent relabeling.
+
+\begin{theorem}[thm:no-latent-reduction-moment-free]\label{thm:no-latent-reduction-moment-free}
+Let \(\ell=0\), let \(A\subseteq X\), and require \(\mathcal I_A^{\mathrm{atom}}=\{\varnothing\}\cup\{\{i\}:i\in A\}\subseteq\mathcal I\). For every response-kernel tuple \(\mathbf K\) generated by a square exact-support mechanism, the observational law \(K_{\varnothing}\) identifies the unordered projective row orbit \(\mathscr R(Q)\), and hence the bipartite graph \(\mathbb G_b(\mathscr R(Q))\) and matching set \(\mathfrak M_{\mathrm{obs}}(\mathscr R(Q))\). For each \(i\in A\), the atomic kernel identifies \(T_i\) as its unique linear translation parameter; lifting every residual-unmixing row \(v\) by \(\Lambda_i(v,T_i)=(v,-vT_i)\) in the coordinates \((X\setminus\{i\},i)\) recovers exactly the projective rows of \(Q\) except \([Q_{i,:}]\). Therefore \(\rho_i(\Pi_A\mathbf K)=[Q_{i,:}]\) is well defined, its normalization at coordinate \(i\) yields \(\operatorname{rec}_i(\Pi_A\mathbf K)=\operatorname{row}_i(B)\), and
+\[
+\mathfrak M_{\mathrm{ker}}(\Pi_A\mathbf K)=\mathfrak M_{\mathrm{row}}(\Pi_A\mathbf K)=\{\mu\in\mathfrak M_{\mathrm{obs}}(\mathscr R(Q)):\mu([Q_{i,:}])=i\text{ for every }i\in A\}.
+\]
+For \(A=\varnothing\) this is the square observational perfect-matching representation; for \(A=X\), the full atomic family makes this set the singleton true matching and recovers every row of \(B\). No source location or moment condition is required.
+\end{theorem}
+\begin{proof}
+With \(\ell=0\), \(C=Q^{-1}\) is square and invertible. The observational law is the invertible mixture \(X=C\varepsilon\) of mutually independent nonconstant non-Gaussian sources. The cited square-ICA theorem \(\texttt{lem:square-ica-uniqueness}\) therefore identifies the unordered projective columns of \(C\), equivalently the unordered projective rows
+\[
+\mathscr R(Q)=\{[Q_{r,:}]:r\in X\}.
+\]
+Invertibility makes the row classes distinct. Their coordinate zero patterns identify \(\mathbb G_b\), and hence its finite perfect-matching set \(\mathfrak M_{\mathrm{obs}}\).
+
+Fix \(i\in A\) and put \(U=X\setminus\{i\}\). The pushforward lemma gives
+\[
+K_{\{i\}}(x)=\mathcal L\bigl(Q_{U,U}^{-1}\varepsilon_U+T_i x\bigr),
+\qquad T_i=-Q_{U,U}^{-1}Q_{U,i}. \tag{15}
+\]
+Thus \(T_i\) exists as a translation map, and \(\texttt{lem:probability-translation-rigidity}\) makes it unique from the pair of kernels \(K_{\{i\}}(0),K_{\{i\}}(x)\). At \(x=0\), (15) is an invertible square mixture of the \(n-1\) unaffected independent non-Gaussian sources. Square-ICA uniqueness identifies the projective rows of its inverse \(Q_{U,U}\), regardless of source locations. For \(r\in U\) and \(v=Q_{r,U}\),
+\[
+vT_i=Q_{r,U}(-Q_{U,U}^{-1}Q_{U,i})=-Q_{r,i}.
+\]
+Hence \(\Lambda_i(v,T_i)_U=Q_{r,U}\) and \(\Lambda_i(v,T_i)_i=-vT_i=Q_{r,i}\). The lifted classes are exactly \(\{[Q_{r,:}]:r\ne i\}\), whose unique complement in the observational orbit is \([Q_{i,:}]\). Looplessness and \(Q=I_n-B\) give \(Q_{ii}=1\), so normalization returns
+\[
+e_i^{\mathsf T}-Q_{i,:}=\operatorname{row}_i(B). \tag{16}
+\]
+
+For the matching equality, any observational perfect matching normalizes a row-scaled permutation of \(Q\). Thus for a permutation matrix \(P\) and nonsingular diagonal \(\Delta\),
+\[
+Q^\mu=\Delta P Q,
+\qquad \varepsilon^\mu=\Delta P\varepsilon. \tag{17}
+\]
+The transformed sources remain independent, nonconstant, and non-Gaussian, and (17) reproduces the observational law exactly. If \(\mu([Q_{i,:}])=i\), then \(P\) fixes that row and restricts to a permutation \(P_U\) on \(U\), whence
+\[
+Q^\mu_{U,U}=\Delta_UP_UQ_{U,U},\quad
+Q^\mu_{U,i}=\Delta_UP_UQ_{U,i},\quad
+\varepsilon^\mu_U=\Delta_UP_U\varepsilon_U.
+\]
+Direct inversion gives
+\[
+-(Q^\mu_{U,U})^{-1}Q^\mu_{U,i}=-Q_{U,U}^{-1}Q_{U,i},
+\qquad
+(Q^\mu_{U,U})^{-1}\varepsilon^\mu_U=Q_{U,U}^{-1}\varepsilon_U. \tag{18}
+\]
+Therefore a matching satisfying the row condition for every \(i\in A\) uses the single global representation (17) and reproduces every required atomic kernel by (15) and (18). It belongs to \(\mathfrak M_{\mathrm{ker}}\). Conversely, applying the proved recovery map to any common kernel-compatible mechanism forces its row assigned label \(i\) to be the unique recovered class \([Q_{i,:}]\); hence it lies in \(\mathfrak M_{\mathrm{row}}\). This proves the displayed matching-set equality. The cases \(A=\varnothing\) and \(A=X\) follow by imposing, respectively, no row constraints and every row constraint. No expectation, covariance, or limiting step is used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This moment-free reduction checks the coupled criterion against square matching geometry and shows that each atomic kernel fixes exactly one row label. \textit{Gap.} Sharifian et al. supply the published row-recovery comparator, while the projection, translation lift, and matching-set equality are proved here. \textit{Consumer.} For a no-latent system, the general compiler reduces to a finite perfect-matching audit and full atomic interventions recover the coefficient matrix.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The affine and Hall--Rado realization criterion has passed forced-zero, latent-rank, degenerate-pivot, and exact rational witness checks at \(N=4\), but these finite checks do not prove the universal punctured-affine selection theorem. The source-partition argument still requires a full audit of finite-support measure equality in the original jump lattice and non-Gaussian closure after merging. The population compiler must handle every lower-dimensional cell and produce its own explicit complexity bound. The displayed strict-refinement witness does not establish failure of independent regime-wise equivalence; that stronger issue remains Open-ended Question 2.
+
+\section{Honest scope}
+
+The intervention pushforward identity, finite checks, and explicit witness provide proof architecture, not settled results. The sound-and-complete chart theorem, source-factorization theorem, effective compiler, common-lift boundary, internal no-latent projection, lift and matching-set equality, and statistical certification are all stated as claims to prove. Sharifian et al., Proposition 5.1, supplies only the published row-recovery comparator. The theorem is uniform over each finite input size but does not range over unbounded latent cardinality in one run. Under \(\ell=0\), the observational projection equals the square perfect-matching object, and the atomic projection restricts it by the recovered row labels. No strict-extension corollary to Dai et al.'s zero-allowed observational class is asserted because that class permits coefficient-zero strata and omits the coupled intervention object, so its graph-indexed equivalence relation is not the same ordered model-class comparison.
+
+\begin{thebibliography}{99}
+
+  \bibitem{DaiAlbrechtSpirtesZhang2026} H. Dai, I. Albrecht, P. Spirtes, and K. Zhang. Distribution equivalence and structure learning for linear causal models with latent variables and cycles. International Conference on Learning Representations, 2026. arXiv:2603.04780.
+
+  \bibitem{ZhouElahiKocaoglu2025} Z. Zhou, M. Q. Elahi, and M. Kocaoglu. Characterizing interventional equivalence of latent causal models. arXiv:2505.01037, 2025.
+
+  \bibitem{BongersForrePetersMooij2021} S. Bongers, P. Forré, J. Peters, and J. M. Mooij. Foundations of structural causal models with cycles and latent variables. Annals of Statistics, 49(5):2885--2915, 2021.
+
+  \bibitem{HyttinenEberhardtHoyer2012} A. Hyttinen, F. Eberhardt, and P. O. Hoyer. Learning linear cyclic causal models with latent variables. Journal of Machine Learning Research, 13:3387--3439, 2012.
+
+  \bibitem{SharifianSalehkaleybarKiyavash2025} E. Sharifian, S. Salehkaleybar, and N. Kiyavash. Learning cyclic causal models through interventions. Advances in Neural Information Processing Systems, 2025. arXiv:2509.21423.
+
+  \bibitem{TaebGamellaHeinzeDemlBuhlmann2024} A. Taeb, J. L. Gamella, C. Heinze-Deml, and P. Bühlmann. Learning from unknown interventions in linear Gaussian latent variable models. Journal of Machine Learning Research, 25, 2024.
+
+  \bibitem{MooijMagliacaneClaassen2020} J. M. Mooij, S. Magliacane, and T. Claassen. Joint causal inference from multiple contexts. Journal of Machine Learning Research, 21, 2020.
+
+  \bibitem{SchkodaDrton2025} D. Schkoda and M. Drton. Goodness-of-fit tests for linear non-Gaussian structural equation models. Biometrika, 2025. doi:10.1093/biomet/asaf046.
+
+  \bibitem{WangKolarDrton2026} Y. S. Wang, M. Kolar, and M. Drton. Confidence sets for causal orderings. Journal of the American Statistical Association, 2026. doi:10.1080/01621459.2025.2542552.
+
+  \bibitem{CarrascoKotchoni2017} M. Carrasco and R. Kotchoni. Efficient estimation using the characteristic function. Econometric Theory, 33:479--526, 2017.
+
+  \bibitem{DadgostariNazemi2026} F. Dadgostari and N. Nazemi. Equilibrium causal games: separation, identification, and the identifiability of cyclic latent states. arXiv:2607.19531, 2026.
+
+  \bibitem{RohbeckEtAl2024} M. Rohbeck et al. Bicycle: intervention-based causal discovery with cycles. Conference on Causal Learning and Reasoning, 2024.
+
+  \bibitem{Rado1942} R. Rado. A theorem on independence relations. Quarterly Journal of Mathematics, os-13(1):83--89, 1942. doi:10.1093/qmath/os-13.1.83.
+
+  \bibitem{Cramer1936} H. Cramér. Über eine Eigenschaft der normalen Verteilungsfunktion. Mathematische Zeitschrift, 41:405--414, 1936.
+
+  \bibitem{Basu2014} S. Basu. Algorithms in real algebraic geometry: a survey. arXiv:1409.1534, 2014.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,1079 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}cate\_\allowbreak{}local\_\allowbreak{}stabilized\_\allowbreak{}hoif\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} On \(\mathcal R_{\mathrm{pair}}=\{0<\alpha,\beta,\gamma\leq1\}\), one bounded density-free cross-pair estimator attains the optimizer-defined three-term objective without logarithmic loss.  With \(s=(\alpha+\beta)/2\) and \(s_0=d\gamma/\{2(2\gamma+d)\}\), that objective has order \(n^{-1/\{1+d/(2\gamma)+d/(4s)\}}\) below the elbow and \(n^{-\gamma/(2\gamma+d)}\) at and above it.  A uniform-design Bernoulli two-point submodel proves the positive-band lower rate \(n^{-\gamma/(2\gamma+d)}\), so the latter is the positive-band minimax rate when \(s\geq s_0\).  Below the elbow the former is an attained upper benchmark, while a matching positive-band converse remains unresolved.  The order-one region includes \(U=\{0<\alpha<\beta<\gamma<1\}\) outside the banked region.
+
+\section{Project justification}
+
+\paragraph{Gap.} The algebraic three-term KBRW objective was not accompanied by a proof that the present density-free cross-pair estimator attains it on the fixed positive-band class, nor by a positive-band converse.  The published low-smoothness hard laws use density support holes, so they cannot settle the below-elbow minimax rate on \(\mathcal P_{\mathrm{band}}\).
+
+\paragraph{Niche.} On the explicitly restricted positive-band class and \(\mathcal R_{\mathrm{pair}}\), close pairs provide the local mass \(h^{2d}/k\) needed for an order-one product remainder.  Overlap supplies a deterministic population denominator margin, while direct overlap-graph counting controls the diagonal and one-shared-index variance terms of the proved order-one pair kernel.
+
+\paragraph{Fill.} The paper proves the explicit screened cross-pair upper bound, directly minimizes its three-term oracle objective with integer tuning, and supplies a uniform-design Bernoulli two-point lower bound inside the positive-band class.  This closes the positive-band minimax rate at and above the elbow and gives an honest upper/lower bracket below it, without density estimation or logarithmic loss.
+
+\section{Related work}
+
+CausalSmith attains the algebraic three-term objective appearing in KBRW on the fixed positive-band class and \(\mathcal R_{\mathrm{pair}}\).  KBRW Theorem 2 is instead a high-level upper theorem requiring trained nuisance and covariate-law estimators, bounded Gram eigenvalues, basis approximation, and a uniform density-ratio condition, so its full hypothesis package and the present primitive-law package are alternative regimes rather than nested theorem classes.  At the law level \(\mathcal P_{\mathrm{band}}\) is a restricted positive-density submodel of KBRW's broad smooth model where the parametrizations overlap, but KBRW's low-smoothness hard densities have support holes; hence that converse does not transfer.  The standard uniform-design regression submodel does transfer the oracle lower bound.  Shen, Gao, Witten, and Han (2020) and Dobriban, Mukherjee, Robins, and Wang (2026) motivate close-pair contrasts for noncausal variance problems, but neither source proves the causal numerator/denominator identity used here.  Liu, Mukherjee, Newey, and Robins (2017) and Liu, Li, Gu, and Liu (2026) concern empirical-Gram or stabilized HOIF constructions; no projection, spectral, or M\"obius theorem from those papers is imported.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_P(x_0)=\mathbb{E}_P[Y(1)-Y(0)\mid X=x_0]\).
+Primary functional / estimator / diagnostic: For every compact \(K\subset\mathcal R_{\mathrm{pair}}\), there are \(C_K<\infty\) and \(n_K\) such that, for \(n\geq n_K\), \[\sup_{P\in\mathcal{P}_{\mathrm{band}}}\mathbb{E}_P|\widehat{\tau}^{*}_n(x_0)-\tau_P(x_0)|\leq C_K\inf_{(h,k)\in\mathcal T_n}\left[h^\gamma+\left(\frac{h}{k^{1/d}}\right)^{\alpha+\beta}+\left\{\frac{1}{nh^d}\left(1+\frac{k}{nh^d}\right)\right\}^{1/2}\right]=C_Kr_n^*.\].
+\begin{itemize}
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb{N}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of observational units.}
+  \item \texttt{d} --- \texttt{covariate dimension}; \(\mathbb{N}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed dimension of the covariate vector.}
+  \item \texttt{u} --- \texttt{generic smoothness order}; \((0,\infty)\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic H\textbackslash{}\allowbreak{}"older index.}
+  \item \texttt{m\_\allowbreak{}u} --- \texttt{strict integer part}; \(\mathbb{Z}_{\geq 0}\); \texttt{derived index}
+  \par\smallskip\noindent\emph{Definition.} \(m_u=\lceil u\rceil-1\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{propensity smoothness}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The H\textbackslash{}\allowbreak{}"older order of the propensity score.}
+  \item \texttt{\textbackslash{}\allowbreak{}beta} --- \texttt{control-\allowbreak{}regression smoothness}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The H\textbackslash{}\allowbreak{}"older order of the control regression.}
+  \item \texttt{\textbackslash{}\allowbreak{}gamma} --- \texttt{CATE smoothness}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The H\textbackslash{}\allowbreak{}"older order of the continuous CATE.}
+  \item \texttt{s} --- \texttt{average nuisance smoothness}; \((0,\infty)\); \texttt{derived regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \(s=(\alpha+\beta)/2\).
+  \item \texttt{L} --- \texttt{regularity radius}; \([1,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed common H\textbackslash{}\allowbreak{}"older and outcome envelope.}
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon} --- \texttt{overlap constant}; \((0,1/2)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed lower bound on both treatment probabilities.}
+  \item \texttt{f\_\allowbreak{}\{-\allowbreak{}\}\allowbreak{}} --- \texttt{design-\allowbreak{}density lower bound}; \((0,1)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed positive lower envelope of the covariate density.}
+  \item \texttt{f\_\allowbreak{}\{+\allowbreak{}\}\allowbreak{}} --- \texttt{design-\allowbreak{}density upper bound}; \((1,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed upper envelope of the covariate density.}
+  \item \texttt{x\_\allowbreak{}0} --- \texttt{evaluation point}; \((0,1)^d\); \texttt{target index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed interior covariate value.}
+  \item \texttt{Y(0)} --- \texttt{control potential outcome}; \(\mathbb{R}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The potential outcome under control.}
+  \item \texttt{Y(1)} --- \texttt{treated potential outcome}; \(\mathbb{R}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The potential outcome under treatment.}
+  \item \texttt{A} --- \texttt{treatment indicator}; \(\{0,1\}\); \texttt{data component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed binary treatment.}
+  \item \texttt{X} --- \texttt{covariate vector}; \([0,1]^d\); \texttt{data component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed pre-\allowbreak{}treatment covariate vector.}
+  \item \texttt{Y} --- \texttt{observed outcome}; \(\mathbb{R}\); \texttt{data component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The realized outcome.}
+  \item \texttt{O} --- \texttt{observed data unit}; \([0,1]^d\times\{0,1\}\times\mathbb{R}\); \texttt{data unit}
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,A,Y)\).
+  \item \texttt{P} --- \texttt{full-\allowbreak{}data law}; laws of \(Y(0),Y(1),A,X,Y\); \texttt{model}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A joint law for the potential outcomes and observed data.}
+  \item \texttt{O\_\allowbreak{}\{1:\allowbreak{}n\}\allowbreak{}} --- \texttt{observed sample}; \(\mathcal{O}^n\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(O_{1:n}=(O_1,\ldots,O_n)\).
+  \item \texttt{f\_\allowbreak{}P} --- \texttt{covariate density}; \([0,1]^d\to[0,\infty)\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} The Lebesgue density of \(X\) under \(P\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}P} --- \texttt{propensity score}; \([0,1]^d\to[0,1]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_P(x)=P(A=1\mid X=x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{0,\allowbreak{}P\}\allowbreak{}} --- \texttt{control outcome regression}; \([0,1]^d\to\mathbb{R}\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{0,P}(x)=\mathbb{E}_P[Y\mid A=0,X=x]\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{1,\allowbreak{}P\}\allowbreak{}} --- \texttt{treated outcome regression}; \([0,1]^d\to\mathbb{R}\); \texttt{observed regression}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{1,P}(x)=\mathbb{E}_P[Y\mid A=1,X=x]\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}P} --- \texttt{conditional average treatment effect}; \([0,1]^d\to\mathbb{R}\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_P(x)=\mu_{1,P}(x)-\mu_{0,P}(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal\{H\}\allowbreak{}\textasciicircum{}\{u\}\allowbreak{}\_\allowbreak{}d(L)} --- \texttt{isotropic H\textbackslash{}\allowbreak{}"older ball}; sets of functions on \([0,1]^d\); \texttt{regularity class}
+  \par\smallskip\noindent\emph{Definition.} The ball constructed in \(\mathrm{def:holder\mbox{-}ball}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal\{P\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{band\}\allowbreak{}\}\allowbreak{}} --- \texttt{positive-\allowbreak{}band observational H\textbackslash{}\allowbreak{}"older class}; \texttt{sets of full-\allowbreak{}data laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} The explicitly restricted fixed two-sided positive design-density-band observational H\"older class constructed in \(\mathrm{def:band\mbox{-}class}\).
+  \item \texttt{h} --- \texttt{localization bandwidth}; \((0,1]\); \texttt{tuning variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A candidate bandwidth in the optimizer.}
+  \item \texttt{k} --- \texttt{local projection dimension}; \(\mathbb{N}\); \texttt{tuning variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A candidate local projection rank in the optimizer.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal\{T\}\allowbreak{}\_\allowbreak{}n} --- \texttt{optimizer domain}; subsets of \((0,1]\times\mathbb{N}\); \texttt{tuning class}
+  \par\smallskip\noindent\emph{Definition.} The compact-by-finite tuning domain constructed in \(\mathrm{def:tuning\mbox{-}domain}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}n(h,\allowbreak{}k)} --- \texttt{KBRW three-\allowbreak{}term objective}; \((0,\infty)\); \texttt{benchmark functional}
+  \par\smallskip\noindent\emph{Definition.} The objective constructed in \(\mathrm{def:kbrw\mbox{-}objective}\).
+  \item \texttt{(h\_\allowbreak{}n\textasciicircum{}*,\allowbreak{}k\_\allowbreak{}n\textasciicircum{}*)} --- \texttt{optimizer pair}; \(\mathcal{T}_n\); \texttt{benchmark tuning}
+  \par\smallskip\noindent\emph{Definition.} The lexicographically smallest minimizer constructed in \(\mathrm{def:optimizer}\).
+  \item \texttt{N\_\allowbreak{}n\textasciicircum{}*} --- \texttt{effective local sample size}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \(N_n^*=n(h_n^*)^d\).
+  \item \texttt{G\_\allowbreak{}n} --- \texttt{rank-\allowbreak{}feasible regime indicator}; \(\{0,1\}\); \texttt{branch selector}
+  \par\smallskip\noindent\emph{Definition.} \(G_n=\mathbf{1}\{k_n^*(\log n)^3\leq N_n^*\}\).
+  \item \texttt{P\_\allowbreak{}n} --- \texttt{rank-\allowbreak{}stressed regime indicator}; \(\{0,1\}\); \texttt{branch selector}
+  \par\smallskip\noindent\emph{Definition.} \(P_n=1-G_n\).
+  \item \texttt{r\_\allowbreak{}n\textasciicircum{}*} --- \texttt{optimizer-\allowbreak{}defined benchmark}; \((0,\infty)\); \texttt{focal rate}
+  \par\smallskip\noindent\emph{Definition.} \(r_n^*=\Phi_n(h_n^*,k_n^*)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal\{R\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{bank\}\allowbreak{}\}\allowbreak{}} --- \texttt{banked close-\allowbreak{}pair region}; subsets of \((0,\infty)^3\); \texttt{prior-\allowbreak{}achievability region}
+  \par\smallskip\noindent\emph{Definition.} The earlier low-order region constructed in \(\mathrm{def:banked\mbox{-}region}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal\{R\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{pair\}\allowbreak{}\}\allowbreak{}} --- \texttt{first-\allowbreak{}difference validity region}; subsets of \((0,\infty)^3\); \texttt{validity region}
+  \par\smallskip\noindent\emph{Definition.} The coordinatewise at-most-one smoothness region constructed in \(\mathrm{def:pair\mbox{-}regions}\).
+  \item \texttt{U} --- \texttt{outside-\allowbreak{}bank open validity set}; subsets of \((0,\infty)^3\); \texttt{extension witness}
+  \par\smallskip\noindent\emph{Definition.} The open reversed-nuisance-order set constructed in \(\mathrm{def:pair\mbox{-}regions}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}tau\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{pair\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}n(x\_\allowbreak{}0)} --- \texttt{total local cross-\allowbreak{}pair estimator}; bounded measurable functions of \(O_{1:n}\); \texttt{canonical branch estimator}
+  \par\smallskip\noindent\emph{Definition.} The screened and clipped cross-pair ratio constructed in \(\mathrm{def:cross\mbox{-}pair\mbox{-}estimator}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak\{H\}\allowbreak{}\_\allowbreak{}\{G\}\allowbreak{}} --- \texttt{rank-\allowbreak{}feasible cross-\allowbreak{}pair construction handle}; \texttt{density-\allowbreak{}free local cross-\allowbreak{}pair programs}; \texttt{method handle}
+  \par\smallskip\noindent\emph{Definition.} The \(G_n\)-labeled instantiation of the total local cross-pair estimator constructed in \(\mathrm{def:rank\mbox{-}feasible\mbox{-}handle}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak\{H\}\allowbreak{}\_\allowbreak{}\{P\}\allowbreak{}} --- \texttt{rank-\allowbreak{}stressed cross-\allowbreak{}pair construction handle}; \texttt{density-\allowbreak{}free local cross-\allowbreak{}pair programs}; \texttt{method handle}
+  \par\smallskip\noindent\emph{Definition.} The \(P_n\)-labeled instantiation of the total local cross-pair estimator constructed in \(\mathrm{def:rank\mbox{-}stressed\mbox{-}handle}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}tau\}\allowbreak{}\textasciicircum{}\{G\}\allowbreak{}\_\allowbreak{}n(x\_\allowbreak{}0)} --- \texttt{rank-\allowbreak{}feasible branch estimator}; bounded measurable functions of \(O_{1:n}\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} On \(\mathcal R_{\mathrm{pair}}\), the estimator equals \(\widehat\tau_n^{\mathrm{pair}}(x_0)\) through \(\mathfrak H_G\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}tau\}\allowbreak{}\textasciicircum{}\{P\}\allowbreak{}\_\allowbreak{}n(x\_\allowbreak{}0)} --- \texttt{rank-\allowbreak{}stressed branch estimator}; bounded measurable functions of \(O_{1:n}\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} On \(\mathcal R_{\mathrm{pair}}\), the estimator equals \(\widehat\tau_n^{\mathrm{pair}}(x_0)\) through \(\mathfrak H_P\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}tau\}\allowbreak{}\textasciicircum{}\{*\}\allowbreak{}\_\allowbreak{}n(x\_\allowbreak{}0)} --- \texttt{unified total estimator}; bounded measurable functions of \(O_{1:n}\); \texttt{headline estimator}
+  \par\smallskip\noindent\emph{Definition.} The deterministic two-branch estimator constructed in \(\mathrm{def:unified\mbox{-}estimator}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_{1:n}\sim P_O^{\otimes n}\).
+\par\smallskip\noindent\emph{Standard} (Independent and identically distributed sampling, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=A Y(1)+(1-A)Y(0)\) almost surely under \(P\).
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-exchangeability]\label{ass:conditional-exchangeability}
+\((Y(0),Y(1))\perp A\mid X\) under \(P\).
+\par\smallskip\noindent\emph{Standard} (Conditional exchangeability, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:density-band]\label{ass:density-band}
+\(f_{-}\leq f_P(x)\leq f_{+}\) for Lebesgue-almost every \(x\in[0,1]^d\).
+\par\smallskip\noindent\emph{Standard} (Two-sided bounded random-design density, \cite{liu2017semiparametric}).
+\end{assumption}
+
+\begin{assumption}[ass:overlap]\label{ass:overlap}
+\(\varepsilon\leq\pi_P(x)\leq1-\varepsilon\) for every \(x\in[0,1]^d\).
+\par\smallskip\noindent\emph{Standard} (Uniform overlap, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-outcomes]\label{ass:bounded-outcomes}
+\(\max\{|Y(0)|,|Y(1)|\}\leq L\) almost surely under \(P\).
+\par\smallskip\noindent\emph{Standard} (Uniformly bounded potential outcomes, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:holder-propensity]\label{ass:holder-propensity}
+\(\pi_P\in\mathcal{H}^{\alpha}_d(L)\).
+\par\smallskip\noindent\emph{Standard} (H\"older-smooth propensity score, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:holder-control-regression]\label{ass:holder-control-regression}
+\(\mu_{0,P}\in\mathcal{H}^{\beta}_d(L)\).
+\par\smallskip\noindent\emph{Standard} (H\"older-smooth control regression, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:holder-cate]\label{ass:holder-cate}
+\(\tau_P\in\mathcal{H}^{\gamma}_d(L)\).
+\par\smallskip\noindent\emph{Standard} (H\"older-smooth conditional average treatment effect, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:holder-ball]\label{def:holder-ball}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal\{H\}\allowbreak{}\textasciicircum{}\{u\}\allowbreak{}\_\allowbreak{}d(L)}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal{H}^{u}_d(L)=\left\{g:[0,1]^d\to\mathbb{R}:\max_{|v|\leq m_u}\lVert D^v g\rVert_\infty\leq L,\ \max_{|v|=m_u}\sup_{x\neq x'}\frac{|D^v g(x)-D^v g(x')|}{\lVert x-x'\rVert_2^{u-m_u}}\leq L\right\},\qquad m_u=\lceil u\rceil-1.\]
+\end{definition}
+
+\begin{definition}[def:band-class]\label{def:band-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal\{P\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{band\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal{P}_{\mathrm{band}}(\alpha,\beta,\gamma,d,L,\varepsilon,f_{-},f_{+},x_0)=\left\{P:\bigwedge_{j\in\mathcal J}\mathrm{ass}_j(P)\right\},\] where \(\mathcal J\) is exactly the member-property list below.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}density-\allowbreak{}band}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}holder-\allowbreak{}propensity}; \texttt{ass:\allowbreak{}holder-\allowbreak{}control-\allowbreak{}regression}; \texttt{ass:\allowbreak{}holder-\allowbreak{}cate}.
+\end{definition}
+
+\begin{definition}[def:tuning-domain]\label{def:tuning-domain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal\{T\}\allowbreak{}\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal{T}_n=[n^{-1/d},1]\times\{1,\ldots,n^2\}.\]
+\end{definition}
+
+\begin{definition}[def:kbrw-objective]\label{def:kbrw-objective}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}n(h,\allowbreak{}k)}
+\par\smallskip\noindent\emph{Construction.} \[\Phi_n(h,k)=h^\gamma+\left(\frac{h}{k^{1/d}}\right)^{\alpha+\beta}+\left[\frac{1}{nh^d}\left\{1+\frac{k}{nh^d}\right\}\right]^{1/2}.\]
+\end{definition}
+
+\begin{definition}[def:optimizer]\label{def:optimizer}
+\par\smallskip\noindent\emph{Defined object.} \texttt{(h\_\allowbreak{}n\textasciicircum{}*,\allowbreak{}k\_\allowbreak{}n\textasciicircum{}*)}
+\par\smallskip\noindent\emph{Construction.} \[(h_n^*,k_n^*)=\operatorname{lexmin}\operatorname*{arg\,min}_{(h,k)\in\mathcal{T}_n}\Phi_n(h,k),\qquad r_n^*=\Phi_n(h_n^*,k_n^*),\qquad N_n^*=n(h_n^*)^d.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}tuning-\allowbreak{}domain}; \texttt{def:\allowbreak{}kbrw-\allowbreak{}objective}.
+\end{definition}
+
+\begin{definition}[def:regime-partition]\label{def:regime-partition}
+\par\smallskip\noindent\emph{Defined object.} \texttt{(G\_\allowbreak{}n,\allowbreak{}P\_\allowbreak{}n)}
+\par\smallskip\noindent\emph{Construction.} \[G_n=\mathbf{1}\{k_n^*(\log n)^3\leq N_n^*\},\qquad P_n=\mathbf{1}\{k_n^*(\log n)^3>N_n^*\}=1-G_n.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}optimizer}.
+\end{definition}
+
+\begin{definition}[def:banked-region]\label{def:banked-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal\{R\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{bank\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal{R}_{\mathrm{bank}}=\left\{(\alpha,\beta,\gamma)\in(0,\infty)^3:0<\beta<\min\{\alpha,\gamma\},\ \alpha\leq1,\ s<\frac{d/4}{1+d/(2\gamma)}\right\}.\]
+\end{definition}
+
+\begin{definition}[def:rank-feasible-handle]\label{def:rank-feasible-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak\{H\}\allowbreak{}\_\allowbreak{}\{G\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} On \(\mathcal R_{\mathrm{pair}}\), the handle \(\mathfrak H_G\) is the explicit sample map in \(\mathrm{def:cross\mbox{-}pair\mbox{-}estimator}\), and
+\[
+ \widehat\tau_n^G(x_0)=\widehat\tau_n^{\mathrm{pair}}(x_0).
+\]
+The label \(G_n\) records only the deterministic optimizer branch on which the associated theorem is invoked.  The handle contains no empirical Gram matrix, inverse, M\"obius kernel, truncation order, preliminary nuisance estimator, or density estimator.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}optimizer}; \texttt{def:\allowbreak{}regime-\allowbreak{}partition}; \texttt{def:\allowbreak{}pair-\allowbreak{}regions}; \texttt{def:\allowbreak{}cross-\allowbreak{}pair-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:rank-stressed-handle]\label{def:rank-stressed-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak\{H\}\allowbreak{}\_\allowbreak{}\{P\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} On \(\mathcal R_{\mathrm{pair}}\), the handle \(\mathfrak H_P\) is the same explicit sample map in \(\mathrm{def:cross\mbox{-}pair\mbox{-}estimator}\), and
+\[
+ \widehat\tau_n^P(x_0)=\widehat\tau_n^{\mathrm{pair}}(x_0).
+\]
+It is the order-one signed pair contrast \((1,-1)\) at the single resolution \(\delta=h_n^*(k_n^*)^{-1/d}\).  The label \(P_n\) records only the deterministic optimizer branch on which the associated theorem is invoked.  Empty-pair and denominator-screen failures use the bounded fallback already specified in the common estimator; no empirical Gram matrix or density estimator occurs.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}optimizer}; \texttt{def:\allowbreak{}regime-\allowbreak{}partition}; \texttt{def:\allowbreak{}pair-\allowbreak{}regions}; \texttt{def:\allowbreak{}cross-\allowbreak{}pair-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:unified-estimator]\label{def:unified-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}tau\}\allowbreak{}\textasciicircum{}\{*\}\allowbreak{}\_\allowbreak{}n(x\_\allowbreak{}0)}
+\par\smallskip\noindent\emph{Construction.} \[
+ \widehat\tau_n^*(x_0)=\operatorname{clip}_{[-2L,2L]}
+ \left\{G_n\widehat\tau_n^G(x_0)+P_n\widehat\tau_n^P(x_0)\right\}.
+\]
+Each branch is everywhere defined by its own bounded fallback.  On \(\mathcal R_{\mathrm{pair}}\), both handles instantiate \(\widehat\tau_n^{\mathrm{pair}}(x_0)\), while the deterministic exhaustive switch is retained.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}rank-\allowbreak{}feasible-\allowbreak{}handle}; \texttt{def:\allowbreak{}rank-\allowbreak{}stressed-\allowbreak{}handle}; \texttt{def:\allowbreak{}regime-\allowbreak{}partition}; \texttt{def:\allowbreak{}pair-\allowbreak{}regions}; \texttt{def:\allowbreak{}cross-\allowbreak{}pair-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:pair-regions]\label{def:pair-regions}
+\par\smallskip\noindent\emph{Defined object.} \texttt{(\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{pair\}\allowbreak{}\}\allowbreak{},\allowbreak{}U)}
+\par\smallskip\noindent\emph{Construction.} \[
+ \mathcal R_{\mathrm{pair}}
+ =\{(\alpha,\beta,\gamma)\in(0,\infty)^3:0<\alpha\leq1,\ 0<\beta\leq1,\ 0<\gamma\leq1\},
+ \qquad
+ U=\{(\alpha,\beta,\gamma)\in(0,\infty)^3:0<\alpha<\beta<\gamma<1\}.
+\]
+\end{definition}
+
+\begin{definition}[def:cross-pair-estimator]\label{def:cross-pair-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}tau\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{pair\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}n(x\_\allowbreak{}0)}
+\par\smallskip\noindent\emph{Construction.} Set \(h=h_n^*\), \(k=k_n^*\), and
+\[
+ B_h=\prod_{\ell=1}^d\bigl([x_{0\ell}-h,x_{0\ell}+h]\cap[0,1]\bigr),
+ \qquad \delta_{hk}=h k^{-1/d}.
+\]
+Define
+\[
+ E_{hk}=\left\{\{i,j\}:1\leq i<j\leq n,\ X_i,X_j\in B_h,
+ \ \lVert X_i-X_j\rVert_\infty\leq\delta_{hk}\right\}
+\]
+and
+\[
+ \Lambda_{hk}=\binom n2\frac{h^{2d}}{k},
+ \qquad a_0=\varepsilon(1-\varepsilon)f_{-}^2.
+\]
+The denominator and numerator are
+\[
+ D_{hk}=\sum_{\{i,j\}\in E_{hk}}(A_i-A_j)^2,
+ \qquad
+ T_{hk}=\sum_{\{i,j\}\in E_{hk}}(A_i-A_j)(Y_i-Y_j).
+\]
+Set
+\[
+ \widetilde\tau_{hk}=
+ \begin{cases}
+  0, & \Lambda_{hk}<1\ \text{or}\ D_{hk}<a_0\Lambda_{hk},\\
+  T_{hk}/D_{hk}, & \Lambda_{hk}\geq1\ \text{and}\ D_{hk}\geq a_0\Lambda_{hk},
+ \end{cases}
+ \qquad
+ \widehat\tau_n^{\mathrm{pair}}(x_0)=
+ \operatorname{clip}_{[-2L,2L]}(\widetilde\tau_{hk}).
+\]
+This is a measurable, everywhere-defined sample map.  It uses no empirical Gram matrix, inverse, nuisance estimate, or density estimate.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}optimizer}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:cate-identification]\label{lem:cate-identification}
+For every \(P\in\mathcal{P}_{\mathrm{band}}\), the continuous versions selected by the H\"older restrictions satisfy \[\tau_P(x_0)=\mu_{1,P}(x_0)-\mu_{0,P}(x_0)=\mathbb{E}_P[Y(1)-Y(0)\mid X=x_0].\]
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal P_{\mathrm{band}}\).  Membership in \(\mathcal P_{\mathrm{band}}\) makes the potential outcomes bounded and therefore integrable, so all conditional expectations below exist.  For \(a\in\{0,1\}\), consistency gives
+\[
+ \mathbb E_P[Y\mid A=a,X]
+ =\mathbb E_P[Y(a)\mid A=a,X]
+ \quad P\text{-almost surely on }\{A=a\}.
+\]
+Conditional exchangeability then gives
+\[
+ \mathbb E_P[Y(a)\mid A=a,X]
+ =\mathbb E_P[Y(a)\mid X]
+\]
+for \(P_X\)-almost every covariate value at which the arm-\(a\) conditional law is defined.  Uniform overlap makes both arms have positive conditional probability at every covariate value, so the two displayed identities imply
+\[
+ \mu_{1,P}(x)-\mu_{0,P}(x)
+ =\mathbb E_P[Y(1)-Y(0)\mid X=x]
+ \quad\text{for }P_X\text{-almost every }x.
+\]
+By the definition of \(\tau_P\), the left side is \(\tau_P(x)\).  The density-band member property in \(\mathrm{def:band\mbox{-}class}\) implies that \(P_X\) and Lebesgue measure on \([0,1]^d\) have the same null sets: for every measurable \(B\),
+\[
+ f_-\operatorname{Leb}(B)\le P_X(B)\le f_+\operatorname{Leb}(B).
+\]
+Consequently the preceding equality also holds Lebesgue-almost everywhere.  The H\"older restrictions make \(\mu_{0,P}\) and \(\tau_P\) continuous.  Hence \(\mu_{0,P}+\tau_P\) is the unique continuous version of \(\mu_{1,P}\): it agrees with \(\mu_{1,P}\) almost everywhere by the definition of \(\tau_P\), and two continuous functions agreeing Lebesgue-almost everywhere on the cube agree everywhere.  Likewise, select the version of the causal conditional contrast \(\mathbb E_P[Y(1)-Y(0)\mid X=\cdot]\) equal to the continuous function \(\tau_P\); the almost-everywhere identity proves that this is a valid version.  Evaluating these selected continuous versions at the interior point \(x_0\) yields
+\[
+ \tau_P(x_0)=\mu_{1,P}(x_0)-\mu_{0,P}(x_0)
+ =\mathbb E_P[Y(1)-Y(0)\mid X=x_0].
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The point target must be a version-invariant causal law functional before its risk can be studied. \textit{Gap.} Kennedy et al. work with the same continuous H\"older CATE; this lemma makes the version choice explicit for the positive-band class. \textit{Consumer.} Every branch risk bound and the final minimax comparison use this identified point target.
+
+\begin{lemma}[lem:optimizer-partition]\label{lem:optimizer-partition}
+For every \(n\geq2\), the minimizer \((h_n^*,k_n^*)\) exists, is unique after lexicographic selection, and satisfies \(G_n+P_n=1\) and \(G_nP_n=0\). Moreover, \(r_n^*\) equals the exact infimum of the three-term KBRW objective over \(\mathcal T_n\).
+\end{lemma}
+\begin{proof}
+Fix \(n\ge2\).  For every fixed \(k\in\{1,\ldots,n^2\}\), the map \(h\mapsto\Phi_n(h,k)\) is continuous on the compact interval \([n^{-1/d},1]\).  Since there are only finitely many admissible values of \(k\), \(\Phi_n\) attains its minimum on \(\mathcal T_n\).  Its argmin is a nonempty compact subset of a finite union of compact intervals.  First minimize its \(h\)-coordinate and, among the finitely many points having that coordinate, minimize its integer \(k\)-coordinate.  This produces exactly one lexicographically smallest element, namely \((h_n^*,k_n^*)\) in \(\mathrm{def:optimizer}\).  Therefore
+\[
+ r_n^*=\Phi_n(h_n^*,k_n^*)
+ =\min_{(h,k)\in\mathcal T_n}\Phi_n(h,k)
+ =\inf_{(h,k)\in\mathcal T_n}\Phi_n(h,k).
+\]
+Put \(E_n=\{k_n^*(\log n)^3\le N_n^*\}\).  The two definitions in \(\mathrm{def:regime\mbox{-}partition}\) are \(G_n=\mathbf 1_{E_n}\) and \(P_n=\mathbf 1_{E_n^c}\).  Since \(E_n\) and \(E_n^c\) are disjoint and exhaustive, pointwise
+\[
+ G_n+P_n=1,\qquad G_nP_n=0.
+\]
+The weak inequality in \(E_n\) also shows explicitly that the equality boundary belongs to the \(G_n\) branch and is not omitted.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The deterministic split must cover every sample size without an unanalysed tuning boundary. \textit{Gap.} KBRW optimize asymptotic choices; the exact lexicographic optimizer and exhaustive branch selector are new bookkeeping required by a single total estimator. \textit{Consumer.} The unified estimator can switch without data-dependent model selection or uncovered equality cases.
+
+\begin{proposition}[prop:oracle-regression-reduction]\label{prop:oracle-regression-reduction}
+If \(\pi_P\) and \(\mu_{0,P}\) are supplied to the local \(R\)-normal equations and the nuisance-product correction is suppressed, then the oracle local-polynomial branch with \(k=1\) satisfies \[\sup_{P\in\mathcal{P}_{\mathrm{band}}}\mathbb{E}_P|\widehat\tau_n^{\mathrm{or}}(x_0)-\tau_P(x_0)|\leq C\left\{h^\gamma+(nh^d)^{-1/2}\right\}.\] Optimizing \(h\) gives the classical pointwise-regression rate \(n^{-\gamma/(2\gamma+d)}\); if both outcome regressions are supplied, the direct plug-in equals \(\tau_P(x_0)\) exactly.
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal P_{\mathrm{band}}\), and suppose that the true functions \(\pi_P\) and \(\mu_{0,P}\) are supplied.  Define the oracle residual response
+\[
+ Z_i=\frac{(A_i-\pi_P(X_i))(Y_i-\mu_{0,P}(X_i))}
+ {\pi_P(X_i)\{1-\pi_P(X_i)\}}.
+\]
+Consistency and bounded potential outcomes imply \(|\mu_{a,P}(x)|\le L\) for both arms on their continuous versions.  Overlap therefore gives the uniform bound
+\[
+ |Z_i|\le B_Z:=\frac{2L}{\varepsilon(1-\varepsilon)}.
+\]
+Conditioning on \(X_i=x\), and using the definitions of \(\pi_P\) and \(\mu_{a,P}\), gives the exact local \(R\)-identity
+\[
+\begin{aligned}
+ \mathbb E_P[(A_i-\pi_P(x))(Y_i-\mu_{0,P}(x))\mid X_i=x]
+ &=\pi_P(x)\{1-\pi_P(x)\}
+   \{\mu_{1,P}(x)-\mu_{0,P}(x)\},\\
+ \mathbb E_P[Z_i\mid X_i=x]&=\tau_P(x),
+\end{aligned}
+\]
+where the last equality uses \(\mathrm{lem:cate\mbox{-}identification}\).
+
+We now give an everywhere-defined oracle local-polynomial branch.  This also makes precise that \(k=1\) refers to suppression of the nuisance-product projection, not to the fixed-dimensional polynomial used to remove target smoothing bias.  Let
+\[
+ B_h=\{x\in[0,1]^d:\|x-x_0\|_\infty\le h\},
+ \qquad m_\gamma=\lceil\gamma\rceil-1,
+\]
+let \(\mathcal V_\gamma=\{v\in\mathbb Z_{\ge0}^d:|v|\le m_\gamma\}\), and let \(b(z)=(z^v)_{v\in\mathcal V_\gamma}\), with the constant monomial first.  Write \(e_0\) for the coordinate vector selecting that monomial and set
+\[
+ \widehat G_h=\frac1{nh^d}\sum_{i=1}^n
+ \mathbf 1\{X_i\in B_h\}b((X_i-x_0)/h)b((X_i-x_0)/h)^\top.
+\]
+The scaled set \(D_h=(B_h-x_0)/h\) is a product of intervals contained in \([-1,1]\), each of length at least one.  Thus finite-dimensional norm equivalence for polynomials, together with \(f_-\le f_P\le f_+\), gives constants \(0<c_0<C_0<\infty\), depending only on \(d,m_\gamma,f_-,f_+\), such that the population Gram matrix \(G_h=\mathbb E_P\widehat G_h\) obeys
+\[
+ c_0 I\preceq G_h\preceq C_0 I
+ \quad\text{uniformly in }P\in\mathcal P_{\mathrm{band}}
+ \text{ and }h\in(0,1].
+\]
+Indeed, the quadratic form indexed by a coefficient vector \(a\) is an integral of the nonnegative polynomial \((a^\top b)^2\); its infimum over the compact family of such product intervals and over \(\|a\|_2=1\) is positive, because a nonzero polynomial cannot vanish on a set with nonempty interior.
+
+Let
+\[
+ \mathcal E_h=\{\lambda_{\min}(\widehat G_h)\ge c_0/2,
+ \ \lambda_{\max}(\widehat G_h)\le2C_0\}.
+\]
+On \(\mathcal E_h\), define
+\[
+ \widetilde\tau_h=e_0^\top\widehat G_h^{-1}
+ \frac1{nh^d}\sum_{i=1}^n\mathbf1\{X_i\in B_h\}
+ b((X_i-x_0)/h)Z_i;
+\]
+off \(\mathcal E_h\), set \(\widetilde\tau_h=0\), and finally put
+\[
+ \widehat\tau_n^{\mathrm{or}}(x_0)
+ =\operatorname{clip}_{[-2L,2L]}(\widetilde\tau_h).
+\]
+This is a measurable, everywhere-defined local \(R\)-normal-equation estimator and uses no density estimate.
+
+Apply the one-dimensional integral identity successively along the coordinate segments from \(x_0\) to \(X_i\).  Subtracting the resulting polynomial through degree \(m_\gamma\), and using the defining H\"older modulus on the last derivative, supplies a coefficient vector \(\vartheta_h\) whose constant coordinate is \(\tau_P(x_0)\) and such that
+\[
+ \tau_P(X_i)=b((X_i-x_0)/h)^\top\vartheta_h+R_i,
+ \qquad |R_i|\le C_{d,\gamma}Lh^\gamma
+ \quad\text{when }X_i\in B_h.
+\]
+This remains valid when \(\gamma\) is an integer because the definition uses \(m_\gamma=\gamma-1\) and a Lipschitz derivative of order \(m_\gamma\).  Put \(\xi_i=Z_i-\tau_P(X_i)\).  The oracle identity and i.i.d. sampling yield
+\[
+ \mathbb E_P[\xi_i\mid X_i]=0,
+ \qquad |\xi_i|\le B_Z+2L.
+\]
+On \(\mathcal E_h\), exact polynomial reproduction by the empirical normal equations gives
+\[
+\begin{aligned}
+ |\widetilde\tau_h-\tau_P(x_0)|
+ &\le \frac2{c_0}\left\|
+ \frac1{nh^d}\sum_{i=1}^n\mathbf1\{X_i\in B_h\}b_iR_i
+ \right\|_2\\
+ &\quad+\frac2{c_0}\left\|
+ \frac1{nh^d}\sum_{i=1}^n\mathbf1\{X_i\in B_h\}b_i\xi_i
+ \right\|_2,
+\end{aligned}
+\]
+where \(b_i=b((X_i-x_0)/h)\).  The basis is uniformly bounded on \([-1,1]^d\).  Moreover, on \(\mathcal E_h\),
+\[
+ \frac1{nh^d}\sum_{i=1}^n\mathbf1\{X_i\in B_h\}
+ =e_0^\top\widehat G_he_0\le2C_0.
+\]
+The remainder term is consequently at most \(C h^\gamma\).  Conditional independence and the conditional mean-zero property of \(\xi_i\) give
+\[
+ \mathbb E_P\left[
+ \mathbf1_{\mathcal E_h}
+ \left\|\frac1{nh^d}\sum_{i=1}^n
+ \mathbf1\{X_i\in B_h\}b_i\xi_i\right\|_2\right]
+ \le \frac{C}{\sqrt{nh^d}}.
+\]
+For completeness, each entry \(W\) of \(\widehat G_h-G_h\) has mean zero and second moment at most \(C/(nh^d)\).  The pointwise inequality \(\mathbf1\{|W|>t\}\le W^2/t^2\), followed by summation over the fixed number \(|\mathcal V_\gamma|^2\) of entries, therefore implies
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}P(\mathcal E_h^c)
+ \le\frac{C}{nh^d}.
+\]
+Clipping cannot increase error because \(|\tau_P(x_0)|\le2L\), and it bounds the error on \(\mathcal E_h^c\) by \(4L\).  Since \(h\ge n^{-1/d}\) entails \(nh^d\ge1\), combining the preceding bounds proves
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P|\widehat\tau_n^{\mathrm{or}}(x_0)-\tau_P(x_0)|
+ \le C\{h^\gamma+(nh^d)^{-1/2}\}.
+\]
+Taking \(h\) proportional to \(n^{-1/(2\gamma+d)}\) balances the two terms and gives \(n^{-\gamma/(2\gamma+d)}\).  Finally, if both true outcome regressions are supplied, define the direct oracle plug-in by
+\[
+ \widehat\tau_n^{\mathrm{plug}}(x_0)
+ =\mu_{1,P}(x_0)-\mu_{0,P}(x_0).
+\]
+The definition of \(\tau_P\), equivalently \(\mathrm{lem:cate\mbox{-}identification}\), makes this equality exact for every sample.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the required sanity reduction to ordinary random-design pointwise regression. \textit{Gap.} The new corrections must disappear rather than create a spurious density or Gram penalty when the nuisances are oracle-known. \textit{Consumer.} Users in randomized trials or oracle nuisance benchmarks recover the familiar local-polynomial rate as a corollary.
+
+\begin{theorem}[thm:rank-feasible-local-hoif]\label{thm:rank-feasible-local-hoif}
+For every compact \(K\subset\mathcal R_{\mathrm{pair}}\), there are \(C_K<\infty\) and \(n_K\) such that, for every \((\alpha,\beta,\gamma)\in K\), every \(n\geq n_K\) with \(G_n=1\), and the estimator \(\widehat\tau_n^G(x_0)=\widehat\tau_n^{\mathrm{pair}}(x_0)\) instantiated by \(\mathfrak H_G\),
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P\left|\widehat\tau_n^G(x_0)-\tau_P(x_0)\right|
+ \leq C_K\left[(h_n^*)^\gamma+
+ \left\{\frac{h_n^*}{(k_n^*)^{1/d}}\right\}^{\alpha+\beta}
+ +\left(\frac1{N_n^*}\left\{1+\frac{k_n^*}{N_n^*}\right\}\right)^{1/2}\right]
+ =C_Kr_n^*.
+\]
+This everywhere-defined estimator is the clipped explicit local cross-pair ratio.  It uses no empirical Gram matrix, inverse, M\"obius kernel, nuisance estimate, density estimate, or smoothness condition on \(f_P\).  The restriction \(\alpha,\beta,\gamma\leq1\) is essential to the asserted first-difference bias bound.
+\end{theorem}
+\begin{proof}
+For clarity, the proof starts with the exact causal identity.  With \(p=\pi_P\), \(m=\mu_{0,P}\), and \(t=\tau_P\), conditional independence from \(\mathrm{ass:iid\mbox{-}sampling}\) gives, for \((X_i,X_j)=(x,z)\),
+\[
+ \mathbb E_P[(A_i-A_j)(Y_i-Y_j)\mid x,z]
+ =\{p(x)-p(z)\}\{m(x)-m(z)\}
+  +p(x)\{1-p(z)\}t(x)+p(z)\{1-p(x)\}t(z),
+\]
+and
+\[
+ \mathbb E_P[(A_i-A_j)^2\mid x,z]
+ =p(x)\{1-p(z)\}+p(z)\{1-p(x)\}.
+\]
+Indeed, these are obtained by substituting
+\(\mathbb E(Y\mid X=x)=m(x)+p(x)t(x)\) and
+\(\mathbb E(AY\mid X=x)=p(x)\{m(x)+t(x)\}\) into the four-term product expansion.  After subtracting \(\theta=\tau_P(x_0)\) times the second identity, the first-difference H\"older bounds give
+\[
+ \left|\mathbb E_P[(A_i-A_j)(Y_i-Y_j)-\theta(A_i-A_j)^2\mid x,z]\right|
+ \leq C\left\{\delta^{\alpha+\beta}+h^\gamma\right\}
+\]
+on a close edge.  The full occupancy, bias, denominator-screen, and overlapping-pair variance calculation is proved in \(\mathrm{lem:cross\mbox{-}pair\mbox{-}risk\mbox{-}bound}\); it uses only the assumptions declared here and is valid for every \(n\geq2\), independently of \(G_n\).  By \(\mathrm{def:rank\mbox{-}feasible\mbox{-}handle}\), \(\widehat\tau_n^G(x_0)=\widehat\tau_n^{\mathrm{pair}}(x_0)\) on \(\mathcal R_{\mathrm{pair}}\).  Applying that lemma and using
+\[
+ N^{-1/2}+\frac{\sqrt{k}}{N}
+ \leq2\left\{\frac1N\left(1+\frac{k}{N}\right)\right\}^{1/2}
+\]
+proves the displayed \(C_Kr_n^*\) bound, in particular when \(G_n=1\).  The constant in the lemma is uniform on every compact \(K\subset\mathcal R_{\mathrm{pair}}\), so one may take \(n_K=2\) and enlarge \(C_K\) if necessary.  The explicit construction contains no Gram matrix, inverse, M\"obius kernel, nuisance estimate, or density estimate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem now supplies the direct cross-pair benchmark bound on the \(G_n\) label over \(\mathcal R_{\mathrm{pair}}\). \textit{Gap.} The unsupported growing-rank M"obius step is removed; the causal pair identity, occupancy, screen, and collision bounds are all proved directly. \textit{Consumer.} It provides the \(G_n\)-branch inequality used by the unified theorem.
+
+\begin{openendedquestion}[oeq:multiresolution-order-frontier]\label{oeq:multiresolution-order-frontier}
+Derive, rather than posit, a finite correction-order map \(q(\alpha,\beta,\gamma,d)\), a finite family of distance resolutions, and signed weights for \(\mathfrak H_P\) whose separate propensity and control-regression vanishing moments leave bias at most \((h_n^*/(k_n^*)^{1/d})^{\alpha+\beta}\) and whose Hoeffding components are at most the variance term in \(r_n^*\), uniformly on every compact \(K\subset(0,\infty)^3\) whenever \(P_n=1\). Determine the smallest such order and exhibit a derived nonempty open set \(U\subset(0,\infty)^3\setminus\mathcal R_{\mathrm{bank}}\) with \(U\cap(\{\beta>\alpha\}\cup\{\alpha>1\})\neq\varnothing\) on which the construction works. The scheme must remain total under empty cells and singular empirical local Grams and must not estimate \(f_P\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The correction order and enlarged asymmetric smoothness frontier are the genuinely open mathematical content of the sparse-local branch. \textit{Gap.} The banked first-difference identity works only on \(0<\beta<\alpha\leq1\); Dobriban et al. remove polynomial trends for homoskedastic variance, not the two unequally smooth causal nuisances in a local \(R\)-ratio. \textit{Consumer.} A solution gives an implementable density-free estimator for sparse local windows, including a region with reversed nuisance ordering or propensity smoothness above one.
+
+\begin{theorem}[thm:rank-stressed-close-pair]\label{thm:rank-stressed-close-pair}
+For every compact \(K\subset\mathcal R_{\mathrm{pair}}\), there are \(C_K<\infty\) and \(n_K\) such that, for every \((\alpha,\beta,\gamma)\in K\), every \(n\geq n_K\) with \(P_n=1\), and the estimator \(\widehat\tau_n^P(x_0)=\widehat\tau_n^{\mathrm{pair}}(x_0)\) instantiated by \(\mathfrak H_P\),
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P\left|\widehat\tau_n^P(x_0)-\tau_P(x_0)\right|\leq C_Kr_n^*.
+\]
+The correction has order one, its single resolution is \(\delta=h_n^*(k_n^*)^{-1/d}\), and its signed pair contrast is \((1,-1)\).  The validity region contains the nonempty open set
+\[
+ U=\{(\alpha,\beta,\gamma):0<\alpha<\beta<\gamma<1\}
+ \subset\mathcal R_{\mathrm{pair}}\setminus\mathcal R_{\mathrm{bank}}.
+\]
+Thus the theorem supplies an explicit outside-bank open region, but it does not assert containment of all \(\mathcal R_{\mathrm{bank}}\).  The total fallback has no logarithmic loss and uses neither a Gram matrix nor a density estimate or density smoothness.
+\end{theorem}
+\begin{proof}
+By \(\mathrm{def:rank\mbox{-}stressed\mbox{-}handle}\), on \(\mathcal R_{\mathrm{pair}}\) one has
+\(\widehat\tau_n^P(x_0)=\widehat\tau_n^{\mathrm{pair}}(x_0)\).  The equation-by-equation calculation in \(\mathrm{lem:cross\mbox{-}pair\mbox{-}risk\mbox{-}bound}\) does not use \(G_n\) or \(P_n\); therefore its \(C r_n^*\) conclusion holds in particular on the event-independent tuning branch \(P_n=1\).  Uniformity over every compact \(K\subset\mathcal R_{\mathrm{pair}}\) follows from the same constant control.
+
+The construction has correction order one, its sole distance resolution is \(\delta=h k^{-1/d}\), and its signed contrast is \((1,-1)\).  It is total because \(\Lambda_{hk}<1\) and denominator-screen failure both return zero before clipping.  No Gram matrix occurs, so singularity requires no additional case, and no density estimate is used.
+
+Finally,
+\[
+ U=\{(\alpha,\beta,\gamma):0<\alpha<\beta<\gamma<1\}
+\]
+is nonempty, as witnessed by \((1/4,1/2,3/4)\), and open.  It is contained in \(\mathcal R_{\mathrm{pair}}\).  Every member of \(U\) violates the defining banked requirement \(\beta<\alpha\), so
+\[
+ U\subset\mathcal R_{\mathrm{pair}}\setminus\mathcal R_{\mathrm{bank}}.
+\]
+This proves an explicit open outside-bank validity set but does not assert that \(\mathcal R_{\mathrm{pair}}\) contains all of \(\mathcal R_{\mathrm{bank}}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem applies the same total order-one pair estimator on the \(P_n\) label and proves an explicit open validity set outside the banked wedge. \textit{Gap.} It makes no unsupported claim that the corrected region contains every point of \(\mathcal R_{\mathrm{bank}}\). \textit{Consumer.} It provides the \(P_n\)-branch inequality and the reversed nuisance-order witness \(U\).
+
+\begin{theorem}[thm:unified-benchmark-attainment]\label{thm:unified-benchmark-attainment}
+For every compact \(K\subset\mathcal R_{\mathrm{pair}}\), there are \(C_K<\infty\) and \(n_K\) such that, for every \((\alpha,\beta,\gamma)\in K\) and every \(n\geq n_K\), the single total estimator \(\widehat\tau_n^*(x_0)\) satisfies
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}\mathbb E_P\left|\widehat\tau_n^*(x_0)-\tau_P(x_0)\right|
+ \leq C_K\inf_{(h,k)\in\mathcal T_n}\left[h^\gamma+
+ \left(\frac{h}{k^{1/d}}\right)^{\alpha+\beta}+
+ \left\{\frac1{nh^d}\left(1+\frac{k}{nh^d}\right)\right\}^{1/2}\right]
+ =C_Kr_n^*.
+\]
+It switches through the deterministic exhaustive partition \((G_n,P_n)\), has bounded fallbacks on every sample, and both branches instantiate the same explicit clipped cross-pair ratio.  It uses no empirical Gram matrix, M\"obius kernel, nuisance estimate, density estimate, or density smoothness.  This is attainment of the optimizer-defined KBRW objective on the explicitly restricted positive-band class and on \(\mathcal R_{\mathrm{pair}}\), with no claim of class inclusion or validity above first-difference smoothness.
+\end{theorem}
+\begin{proof}
+Fix a compact \(K\subset\mathcal R_{\mathrm{pair}}\).  By \(\mathrm{ass:bounded\mbox{-}outcomes}\) and \(\mathrm{lem:cate\mbox{-}identification}\), \(\theta=\tau_P(x_0)\in[-2L,2L]\).  Projection onto this interval is nonexpansive at \(\theta\): for every real \(z\),
+\[
+ |\operatorname{clip}_{[-2L,2L]}(z)-\theta|\leq|z-\theta|.
+\]
+By \(\mathrm{lem:optimizer\mbox{-}partition}\), \(G_n,P_n\in\{0,1\}\), \(G_n+P_n=1\), and \(G_nP_n=0\).  Applying these deterministic identities to \(\mathrm{def:unified\mbox{-}estimator}\) gives, for every \(P\in\mathcal P_{\mathrm{band}}\),
+\[
+ \mathbb E_P|\widehat\tau_n^*(x_0)-\theta|
+ \leq G_n\mathbb E_P|\widehat\tau_n^G(x_0)-\theta|
+ +P_n\mathbb E_P|\widehat\tau_n^P(x_0)-\theta|.
+\]
+If \(G_n=1\), \(\mathrm{thm:rank\mbox{-}feasible\mbox{-}local\mbox{-}hoif}\) bounds the only nonzero term by \(C_Kr_n^*\).  If \(P_n=1\), \(\mathrm{thm:rank\mbox{-}stressed\mbox{-}close\mbox{-}pair}\) gives the same bound.  These two cases are exhaustive, so taking the supremum over \(P\) yields
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P|\widehat\tau_n^*(x_0)-\tau_P(x_0)|\leq C_Kr_n^*.
+\]
+Finally, \(\mathrm{lem:optimizer\mbox{-}partition}\) identifies \(r_n^*\) with the exact infimum of the displayed three-term objective over \(\mathcal T_n\).  On \(\mathcal R_{\mathrm{pair}}\), both branch handles instantiate the same everywhere-defined clipped cross-pair map from \(\mathrm{def:cross\mbox{-}pair\mbox{-}estimator}\).  Thus the deterministic switch adds neither a transition remainder nor a logarithmic factor, and it uses no estimate or smoothness property of \(f_P\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The deterministic exhaustive switch combines two proved instances of the same total cross-pair estimator without a transition remainder; direct optimizer minimization then converts its guarantee into the explicit elbow rates. \textit{Gap.} The theorem remains restricted to \(\mathcal R_{\mathrm{pair}}\); below the elbow it is an attained upper benchmark rather than a positive-band minimax conclusion. \textit{Consumer.} It supplies the upper half of the positive-band minimax result above the elbow and the upper half of the honest low-smoothness bracket.
+
+\begin{lemma}[lem:cross-pair-risk-bound]\label{lem:cross-pair-risk-bound}
+Suppose \(0<\alpha\leq1\), \(0<\beta\leq1\), and \(0<\gamma\leq1\).  For every \(n\geq2\), set \(h=h_n^*\), \(k=k_n^*\), \(\delta=h k^{-1/d}\), and \(N=N_n^*=nh^d\).  The total local cross-pair estimator in \(\mathrm{def:cross\mbox{-}pair\mbox{-}estimator}\) satisfies, for a constant \(C<\infty\) depending only on \(d,L,\varepsilon,f_{-},f_{+}\),
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P\left|\widehat\tau_n^{\mathrm{pair}}(x_0)-\tau_P(x_0)\right|
+ \leq C\left\{h^\gamma+\delta^{\alpha+\beta}+N^{-1/2}+\frac{\sqrt{k}}{N}\right\}
+ \leq C r_n^*.
+\]
+The estimator is defined on every sample, including when there is no close pair or the denominator screen fails, and it uses neither an estimate nor a smoothness condition for \(f_P\).
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal P_{\mathrm{band}}\), abbreviate \(p(x)=\pi_P(x)\), \(m(x)=\mu_{0,P}(x)\), \(t(x)=\tau_P(x)\), and put \(\theta=t(x_0)\).  By \(\mathrm{ass:bounded\mbox{-}outcomes}\), \(\mathrm{ass:consistency}\), and \(\mathrm{lem:cate\mbox{-}identification}\), \(|Y|\leq L\) almost surely and \(|\theta|\leq2L\).
+
+We first establish the causal pair identity rather than importing a squared-contrast formula.  Conditional on \(X_i=x\), the definitions of the two outcome regressions give
+\[
+ \mathbb E_P(Y_i\mid X_i=x)=m(x)+p(x)t(x),
+ \qquad
+ \mathbb E_P(A_iY_i\mid X_i=x)=p(x)\{m(x)+t(x)\}.
+\]
+By \(\mathrm{ass:iid\mbox{-}sampling}\), observations \(i\) and \(j\) are conditionally independent given \((X_i,X_j)=(x,z)\).  Expanding the four products and substituting the preceding two displays therefore yields
+\[
+\begin{split}
+ &\mathbb E_P\bigl[(A_i-A_j)(Y_i-Y_j)\mid X_i=x,X_j=z\bigr]\\
+ &\quad=p(x)\{m(x)+t(x)\}+p(z)\{m(z)+t(z)\}
+       -p(x)\{m(z)+p(z)t(z)\}-p(z)\{m(x)+p(x)t(x)\}\\
+ &\quad=\{p(x)-p(z)\}\{m(x)-m(z)\}
+       +p(x)\{1-p(z)\}t(x)+p(z)\{1-p(x)\}t(z).
+\end{split}
+\]
+The same conditional independence and \(A^2=A\) give
+\[
+ \mathbb E_P\bigl[(A_i-A_j)^2\mid X_i=x,X_j=z\bigr]
+ =p(x)\{1-p(z)\}+p(z)\{1-p(x)\}.
+\]
+Consequently the conditional expectation of the centered contrast is
+\[
+\begin{split}
+ b(x,z)
+ &:=\mathbb E_P\bigl[(A_i-A_j)(Y_i-Y_j)-\theta(A_i-A_j)^2
+       \mid X_i=x,X_j=z\bigr]\\
+ &=\{p(x)-p(z)\}\{m(x)-m(z)\}
+   +p(x)\{1-p(z)\}\{t(x)-\theta\}
+   +p(z)\{1-p(x)\}\{t(z)-\theta\}.
+\end{split}
+\]
+Because each smoothness index is at most one, \(\mathrm{def:holder\mbox{-}ball}\) and the three H\"older assumptions imply the first-difference inequalities
+\[
+ |p(x)-p(z)|\leq C\lVert x-z\rVert_\infty^\alpha,
+ \qquad
+ |m(x)-m(z)|\leq C\lVert x-z\rVert_\infty^\beta,
+ \qquad
+ |t(x)-t(x_0)|\leq C\lVert x-x_0\rVert_\infty^\gamma.
+\]
+Here and below \(C\) may change from line to line but depends only on \(d,L,\varepsilon,f_{-},f_{+}\).  Thus, whenever \(x,z\in B_h\) and \(\lVert x-z\rVert_\infty\leq\delta\),
+\[
+ |b(x,z)|\leq C\{\delta^{\alpha+\beta}+h^\gamma\}.
+\]
+This is precisely the step that uses \(\alpha,\beta,\gamma\leq1\); first differences do not justify this display for smoothness orders above one.
+
+We next prove the required occupancy estimates from \(\mathrm{ass:density\mbox{-}band}\).  Every coordinate interval of
+\(B_h=\prod_{\ell=1}^d([x_{0\ell}-h,x_{0\ell}+h]\cap[0,1])\)
+has length between \(h\) and \(2h\).  Since \(k\geq1\), \(\delta\leq h\).  For every \(x\in B_h\), each coordinate interval of
+\(B_h\cap\{z:\lVert z-x\rVert_\infty\leq\delta\}\)
+has length at least \(\delta\).  Tonelli's theorem and the two density bounds therefore give, with \(e_{ij}=\{X_i,X_j\in B_h,\ \lVert X_i-X_j\rVert_\infty\leq\delta\}\),
+\[
+ f_{-}^2h^d\delta^d
+ \leq \mathbb P_P(e_{12})
+ \leq f_{+}^2(2h)^d(2\delta)^d.
+\]
+Since \(\delta^d=h^d/k\), this is
+\[
+ f_{-}^2\frac{h^{2d}}{k}
+ \leq \mathbb P_P(e_{12})
+ \leq 4^d f_{+}^2\frac{h^{2d}}{k}.
+\]
+Likewise, conditional integration over the shared point \(X_1\) yields
+\[
+ \mathbb P_P(e_{12}\cap e_{13})
+ \leq f_{+}^3(2h)^d(2\delta)^{2d}
+ =2^{3d}f_{+}^3\frac{h^{3d}}{k^2}.
+\]
+
+For \(p,q\in[\varepsilon,1-\varepsilon]\), the bilinear function
+\(p(1-q)+q(1-p)\) attains its minimum over this rectangle at a corner, where its minimum is \(2\varepsilon(1-\varepsilon)\).  Hence \(\mathrm{ass:overlap}\) and the lower occupancy bound imply
+\[
+ \mathbb E_P D_{hk}
+ =\binom n2\mathbb E_P\left[\mathbf 1_{e_{12}}(A_1-A_2)^2\right]
+ \geq2\varepsilon(1-\varepsilon)f_{-}^2\binom n2\frac{h^{2d}}{k}
+ =2a_0\Lambda_{hk}.
+\]
+
+Put \(S_{hk}=T_{hk}-\theta D_{hk}\) and
+\[
+ \xi_{ij}=\mathbf 1_{e_{ij}}\bigl\{(A_i-A_j)(Y_i-Y_j)-\theta(A_i-A_j)^2\bigr\}.
+\]
+Then \(S_{hk}=\sum_{i<j}\xi_{ij}\), \(|\xi_{ij}|\leq4L\mathbf 1_{e_{ij}}\), and the conditional-bias and upper-occupancy bounds give
+\[
+ |\mathbb E_P S_{hk}|
+ \leq\binom n2 C\frac{h^{2d}}{k}\{h^\gamma+\delta^{\alpha+\beta}\}
+ =C\Lambda_{hk}\{h^\gamma+\delta^{\alpha+\beta}\}.
+\]
+Disjoint unordered pairs are independent by \(\mathrm{ass:iid\mbox{-}sampling}\), so their covariances vanish.  The diagonal terms satisfy
+\[
+ \sum_{i<j}\operatorname{Var}_P(\xi_{ij})
+ \leq Cn^2\mathbb P_P(e_{12})
+ \leq C\Lambda_{hk}.
+\]
+There are at most \(Cn^3\) ordered pairs of edges sharing one index.  Boundedness of \(\xi_{ij}\), the shared-edge estimate, and
+\(\mathbb P_P(e_{12})^2\leq C h^{4d}/k^2\leq C h^{3d}/k^2\) imply
+\[
+ \left|\operatorname{Cov}_P(\xi_{12},\xi_{13})\right|
+ \leq C\left\{\mathbb P_P(e_{12}\cap e_{13})+\mathbb P_P(e_{12})^2\right\}
+ \leq C\frac{h^{3d}}{k^2}.
+\]
+Since \(N=nh^d\) and
+\[
+ \Lambda_{hk}=\frac{n(n-1)}{2}\frac{h^{2d}}{k}
+ =\frac{n-1}{2n}\frac{N^2}{k},
+\]
+summing the shared-index terms proves
+\[
+ \operatorname{Var}_P(S_{hk})
+ \leq C\left\{\Lambda_{hk}+n^3\frac{h^{3d}}{k^2}\right\}
+ \leq C\left\{\Lambda_{hk}+\frac{\Lambda_{hk}^2}{N}\right\}.
+\]
+The identical argument with
+\(\zeta_{ij}=\mathbf 1_{e_{ij}}(A_i-A_j)^2\), for which \(|\zeta_{ij}|\leq\mathbf 1_{e_{ij}}\), gives
+\[
+ \operatorname{Var}_P(D_{hk})
+ \leq C\left\{\Lambda_{hk}+\frac{\Lambda_{hk}^2}{N}\right\}.
+\]
+Thus both the diagonal and shared-index Hoeffding components have been accounted for directly.
+
+Suppose first that \(\Lambda_{hk}\geq1\).  Since \(\mathbb E_P D_{hk}\geq2a_0\Lambda_{hk}\), Chebyshev's inequality gives
+\[
+ \mathbb P_P(D_{hk}<a_0\Lambda_{hk})
+ \leq\frac{\operatorname{Var}_P(D_{hk})}{a_0^2\Lambda_{hk}^2}
+ \leq C\left\{N^{-1}+\Lambda_{hk}^{-1}\right\}.
+\]
+On the successful screen, the untruncated ratio obeys
+\(T_{hk}/D_{hk}-\theta=S_{hk}/D_{hk}\), and \(D_{hk}\geq a_0\Lambda_{hk}\).  Projection onto \([-2L,2L]\) cannot increase distance from \(\theta\in[-2L,2L]\), while on screen failure the raw estimate is zero.  Cauchy--Schwarz therefore yields
+\[
+\begin{split}
+ \mathbb E_P\left|\widehat\tau_n^{\mathrm{pair}}(x_0)-\theta\right|
+ &\leq \frac{|\mathbb E_P S_{hk}|+\sqrt{\operatorname{Var}_P(S_{hk})}}{a_0\Lambda_{hk}}
+       +2L\,\mathbb P_P(D_{hk}<a_0\Lambda_{hk})\\
+ &\leq C\left\{h^\gamma+\delta^{\alpha+\beta}+N^{-1/2}+\Lambda_{hk}^{-1/2}
+       +N^{-1}+\Lambda_{hk}^{-1}\right\}\\
+ &\leq C\left\{h^\gamma+\delta^{\alpha+\beta}+N^{-1/2}+\frac{\sqrt{k}}{N}\right\}.
+\end{split}
+\]
+The last line uses \(N\geq1\), \(\Lambda_{hk}\geq1\), and the displayed exact relation between \(\Lambda_{hk}\) and \(N^2/k\).
+
+If \(\Lambda_{hk}<1\), the construction returns zero before clipping, so the crude clipped loss is at most \(4L\).  For \(n\geq2\),
+\[
+ \frac{\sqrt{k}}{N}
+ =\left\{\frac{n-1}{2n\Lambda_{hk}}\right\}^{1/2}
+ \geq\frac12,
+\]
+and hence the same risk bound follows after increasing \(C\).  Finally,
+\[
+ N^{-1/2}+\frac{\sqrt{k}}{N}
+ \leq2\left\{\frac1N\left(1+\frac{k}{N}\right)\right\}^{1/2},
+\]
+while \(\delta^{\alpha+\beta}=(h/k^{1/d})^{\alpha+\beta}\).  The definition of \(r_n^*\) in \(\mathrm{def:optimizer}\) proves the final comparison.  All bounds are uniform over \(P\in\mathcal P_{\mathrm{band}}\), completing the proof.
+\end{proof}
+
+\begin{proposition}[prop:optimizer-elbow-rate]\label{prop:optimizer-elbow-rate}
+Put \(s=(\alpha+\beta)/2\) and
+\[
+ s_0=\frac{d/4}{1+d/(2\gamma)}=\frac{d\gamma}{2(2\gamma+d)}.
+\]
+For every fixed \((\alpha,\beta,\gamma)\in(0,\infty)^3\), as \(n\to\infty\),
+\[
+ r_n^*\asymp
+ \begin{cases}
+ n^{-1/\{1+d/(2\gamma)+d/(4s)\}},&s<s_0,\\
+ n^{-1/\{2+d/\gamma\}}=n^{-\gamma/(2\gamma+d)},&s\geq s_0.
+ \end{cases}
+\]
+The constants may be chosen uniformly when the smoothness triple ranges over a compact subset of either displayed regime.  Below the elbow, feasible integer-rounded tuning has
+\[
+ h\asymp n^{-(1/\gamma)/\{1+d/(2\gamma)+d/(4s)\}},\qquad
+ k\asymp n^{\{d/(2s)-d/\gamma\}/\{1+d/(2\gamma)+d/(4s)\}}.
+\]
+At and above the elbow, feasible tuning has \(h\asymp n^{-1/(2\gamma+d)}\) and \(k\asymp nh^d\).  These equivalences concern the optimizer-defined oracle-rate functional and introduce no logarithmic factor.
+\end{proposition}
+\begin{proof}
+Write
+\[
+ D_s=1+\frac{d}{2\gamma}+\frac{d}{4s},\qquad
+ \rho_s=D_s^{-1},\qquad q=\frac{1}{2+d/\gamma}.
+\]
+We first prove lower bounds for every feasible \((h,k)\), rather than merely evaluating candidate tunings.  Let \(N=nh^d\) and \(R=\Phi_n(h,k)\).  By \(\mathrm{def:kbrw\mbox{-}objective}\), each nonnegative summand is at most \(R\), while its last summand is at least both \(N^{-1/2}\) and \(\sqrt{k}/N\).  Thus
+\[
+ h^\gamma\leq R,\qquad
+ \left(hk^{-1/d}\right)^{2s}\leq R,\qquad
+ N^{-1/2}\leq R,\qquad
+ \frac{\sqrt{k}}{N}\leq R.
+\]
+The second and fourth inequalities imply, respectively,
+\[
+ k\geq h^dR^{-d/(2s)},qquad k\leq R^2n^2h^{2d}.
+\]
+After cancellation of the positive factor \(h^d\), and then use of \(h^d\leq R^{d/\gamma}\), they give
+\[
+ 1\leq n^2h^dR^{2+d/(2s)}
+ \leq n^2R^{2+d/(2s)+d/\gamma}.
+\]
+Consequently \(R\geq n^{-\rho_s}\).  Similarly, \(N^{-1/2}\leq R\) gives \(h^d\geq n^{-1}R^{-2}\); combining this with \(h^d\leq R^{d/\gamma}\) yields
+\[
+ R\geq n^{-q}.
+\]
+The equality \(\rho_s=q\) is equivalent to
+\[
+ \frac{d}{4s}=1+\frac{d}{2\gamma},
+\]
+which is exactly \(s=s_0\).  Hence \(n^{-\rho_s}\) is the larger lower bound when \(s<s_0\), and \(n^{-q}\) is the larger lower bound when \(s\geq s_0\).  Taking the infimum over \(\mathcal T_n\) proves the required piecewise lower bound for \(r_n^*\), by \(\mathrm{def:optimizer}\).
+
+It remains to give feasible upper bounds, including the integer and boundary restrictions in \(\mathcal T_n\).  Suppose first that \(s<s_0\), and set
+\[
+ a=\frac{\rho_s}{\gamma},\qquad
+ b=\rho_s\left(\frac{d}{2s}-\frac{d}{\gamma}\right),qquad
+ h=n^{-a},\qquad k=\left\lceil n^b\right\rceil.
+\]
+Because \(s_0<\gamma/2\), one has \(b>0\).  Moreover, \(s<s_0\) implies \(D_s>2+d/\gamma\), so \(0<a<1/d\), and direct subtraction gives
+\[
+ 2D_s-\left(\frac{d}{2s}-\frac{d}{\gamma}\right)=2+\frac{2d}{\gamma}>0,
+\]
+so \(b<2\).  Therefore, for all sufficiently large \(n\), \(h\in[n^{-1/d},1]\) and \(1\leq k\leq n^2\).  Since \(n^b\leq k\leq2n^b\),
+\[
+ h^\gamma=n^{-\rho_s},qquad
+ \left(\frac{h}{k^{1/d}}\right)^{2s}\leq n^{-2s(a+b/d)}=n^{-\rho_s},
+\]
+and
+\[
+ N^{-1/2}=n^{-(1-ad)/2}\leq n^{-\rho_s},qquad
+ \frac{\sqrt{k}}{N}\leq\sqrt2\,n^{-(1-ad-b/2)}=\sqrt2\,n^{-\rho_s}.
+\]
+Here the inequality for \(N^{-1/2}\) is again equivalent to \(D_s\geq2+d/\gamma\).  The elementary inequality \(\sqrt{x+y}\leq\sqrt{x}+\sqrt{y}\) now gives \(\Phi_n(h,k)\leq Cn^{-\rho_s}\).
+
+Suppose next that \(s\geq s_0\).  Set
+\[
+ h=n^{-1/(2\gamma+d)},\qquad N=nh^d=n^{2\gamma/(2\gamma+d)},\qquad k=\lceil N\rceil.
+\]
+For all sufficiently large \(n\), this pair belongs to \(\mathcal T_n\), and \(N\leq k\leq2N\).  Hence
+\[
+ h^\gamma=n^{-q},qquad
+ \left(\frac{h}{k^{1/d}}\right)^{2s}\leq n^{-2s/d}\leq n^{-q},
+\]
+where the last inequality is exactly \(s\geq s_0\), and
+\[
+ \left\{\frac1N\left(1+\frac{k}{N}\right)\right\}^{1/2}
+ \leq\sqrt{3}\,N^{-1/2}=\sqrt3\,n^{-q}.
+\]
+This proves the matching upper bounds.  All exponents and the rounding margins are continuous in the smoothness parameters; compactness makes the displayed constants and the sufficiently-large-\(n\) threshold uniform within either regime.  No logarithm entered any lower or upper calculation.
+\end{proof}
+
+\begin{theorem}[thm:positive-band-oracle-lower-bound]\label{thm:positive-band-oracle-lower-bound}
+Fix \(d,L,\varepsilon,f_{-},f_{+}\), and the interior point \(x_0\) as in \(\mathcal P_{\mathrm{band}}\).  For every compact \(K\subset(0,\infty)^3\), there are constants \(c_K>0\) and \(n_K<\infty\) such that, uniformly over \((\alpha,\beta,\gamma)\in K\) and \(n\geq n_K\),
+\[
+ \inf_{\widetilde\tau_n}\sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P\left|\widetilde\tau_n(O_{1:n})-\tau_P(x_0)\right|
+ \geq c_K n^{-\gamma/(2\gamma+d)},
+\]
+where the infimum is over all measurable real-valued estimators.  The lower bound is witnessed by a two-point uniform-design Bernoulli submodel contained in the fixed positive-density-band class.
+\end{theorem}
+\begin{proof}
+We give the promised submodel and verify every class condition.  Choose a nonnegative \(C^\infty\) function \(\psi\) supported on \([-1,1]^d\), with \(\psi(0)=1\) and \(\|\psi\|_\infty\leq1\).  Such a function is obtained, for example, by normalizing the product over coordinates of \(t\mapsto \exp\{-1/(1-t^2)\}\mathbf 1\{|t|<1\}\).  Let
+\[
+ b_h(x)=\kappa h^\gamma\psi\left(\frac{x-x_0}{h}\right),qquad
+ m_\pm(x)=\frac12\pm b_h(x),
+\]
+where \(h\) is smaller than the \(\ell_\infty\)-distance from \(x_0\) to the boundary of \([0,1]^d\), and \(0<\kappa\leq1/4\) will be chosen below.  Under \(P_\pm\), let \(X\) be uniform on \([0,1]^d\), let \(A\mid X\sim\operatorname{Bernoulli}(1/2)\), and, conditionally on \(X=x\), let
+\[
+ Y(0)\sim\operatorname{Bernoulli}(1/2),qquad
+ Y(1)\sim\operatorname{Bernoulli}(m_\pm(x)),
+\]
+with \(Y(0),Y(1),A\) conditionally independent.  Finally set \(Y=AY(1)+(1-A)Y(0)\).
+
+Consistency holds by the last definition, and conditional exchangeability holds by the stipulated conditional independence.  The density is identically one, so \(f_{-}<1<f_{+}\) verifies \(\mathrm{ass:density\mbox{-}band}\).  The propensity is identically \(1/2\), which satisfies \(\varepsilon<1/2<1-\varepsilon\), and both potential outcomes take values in \(\{0,1\}\), hence are bounded in absolute value by \(L\geq1\).  The control regression is \(\mu_{0,P_\pm}\equiv1/2\), the treated regression is \(m_\pm\), and
+\[
+ \tau_{P_\pm}(x)=\pm b_h(x),qquad
+ \tau_{P_\pm}(x_0)=\pm\kappa h^\gamma.
+\]
+Constant functions have all positive-order H\"older seminorms zero and supremum at most one, so \(\pi_{P_\pm}\in\mathcal H_d^\alpha(L)\) and \(\mu_{0,P_\pm}\in\mathcal H_d^\beta(L)\) for every \(\alpha,\beta>0\).  If \(m_\gamma=\lceil\gamma\rceil-1\), the chain rule gives, for \(|v|\leq m_\gamma\),
+\[
+ \|D^v b_h\|_\infty\leq \kappa h^{\gamma-|v|}\|D^v\psi\|_\infty,
+\]
+and the order-\(m_\gamma\) H\"older quotient scales as \(\kappa\) times the corresponding quotient for \(D^{m_\gamma}\psi\).  Choosing \(\kappa\) below a fixed multiple of \(L\) therefore puts both \(\pm b_h\) in \(\mathcal H_d^\gamma(L)\).  On compact smoothness sets the finitely relevant derivative and H\"older norms can be bounded uniformly, so the same positive \(\kappa\) works throughout \(K\).  Thus \(P_+,P_-\in\mathcal P_{\mathrm{band}}\) by \(\mathrm{def:band\mbox{-}class}\), and \(\mathrm{lem:cate\mbox{-}identification}\) shows that the two displayed values of \(\tau_{P_\pm}(x_0)\) are the corresponding causal conditional effects, not merely regression functionals.
+
+We next bound the statistical distance without invoking any support hole.  Conditional on \((X,A)=(x,0)\), the observed outcome laws agree.  Conditional on \((X,A)=(x,1)\), they are Bernoulli with parameters \(p=1/2+b_h(x)\) and \(q=1/2-b_h(x)\).  Since \(|b_h|\leq1/4\),
+\[
+ \chi^2\{\operatorname{Bernoulli}(p),\operatorname{Bernoulli}(q)\}
+ =\frac{(p-q)^2}{q(1-q)}\leq Cb_h(x)^2.
+\]
+After averaging over the common laws of \(X\) and \(A\),
+\[
+ \chi^2(P_{+,O},P_{-,O})\leq C\int_{[0,1]^d}b_h(x)^2\,dx
+ \leq C\kappa^2h^{d+2\gamma}.
+\]
+If \(Z=dP_{+,O}/dP_{-,O}\), then \(\log Z\leq Z-1\) implies
+\[
+ \operatorname{KL}(P_{+,O},P_{-,O})
+ =\mathbb E_{P_{-,O}}[Z\log Z]
+ \leq\mathbb E_{P_{-,O}}[Z(Z-1)]
+ =\chi^2(P_{+,O},P_{-,O}).
+\]
+Thus product additivity gives
+\[
+ \operatorname{KL}(P_{+,O}^{\otimes n},P_{-,O}^{\otimes n})
+ \leq Cn\kappa^2h^{d+2\gamma}.
+\]
+For the testing step we use the equally elementary product identity
+\[
+ 1+\chi^2(P_{+,O}^{\otimes n},P_{-,O}^{\otimes n})
+ =\{1+\chi^2(P_{+,O},P_{-,O})\}^n.
+\]
+Indeed, the product likelihood ratio is \(\prod_{i=1}^n Z_i\), and independence gives \(\mathbb E\prod_iZ_i^2=\prod_i\mathbb EZ_i^2\).
+Choose \(h=a n^{-1/(2\gamma+d)}\), with a fixed \(a>0\) small enough, and decrease \(\kappa\) if necessary.  Then both the displayed product-law Kullback--Leibler divergence and \(n\kappa^2h^{d+2\gamma}\) are bounded by an absolute small constant, and
+\[
+ \chi^2(P_{+,O}^{\otimes n},P_{-,O}^{\otimes n})\leq\frac14.
+\]
+
+For completeness, let \(Q=P_{-,O}^{\otimes n}\), let \(Z=dP_{+,O}^{\otimes n}/dQ\), and observe by Cauchy--Schwarz that
+\[
+ \operatorname{TV}(P_{+,O}^{\otimes n},P_{-,O}^{\otimes n})
+ =\frac12\mathbb E_Q|Z-1|
+ \leq\frac12\{\mathbb E_Q(Z-1)^2\}^{1/2}\leq\frac14.
+\]
+For an arbitrary estimator \(T\), use the test \(\varphi=\mathbf1\{T\geq0\}\).  With \(a_h=\kappa h^\gamma\), a testing error under either law forces absolute estimation error at least \(a_h\).  Therefore
+\[
+ P_+(\varphi=0)+P_-(\varphi=1)
+ =1-\{P_+(\varphi=1)-P_-(\varphi=1)\}\geq1-\operatorname{TV},
+\]
+and hence
+\[
+ \mathbb E_{P_+}|T-a_h|+\mathbb E_{P_-}|T+a_h|
+ \geq a_h\{P_+(\varphi=0)+P_-(\varphi=1)\}
+ \geq a_h(1-\operatorname{TV})\geq\frac34a_h.
+\]
+At least one of the two risks is at least \(3a_h/8\), and \(a_h=\kappa a^\gamma n^{-\gamma/(2\gamma+d)}\).  Taking first the supremum over the full class and then the infimum over \(T\) proves the claim.  The compact-uniform version follows by choosing \(a\), \(\kappa\), and the boundary threshold uniformly on \(K\).
+\end{proof}
+
+\begin{proposition}[prop:positive-band-high-s-minimax]\label{prop:positive-band-high-s-minimax}
+Let \(s=(\alpha+\beta)/2\) and \(s_0=d\gamma/\{2(2\gamma+d)\}\).  For every compact
+\[
+ K\subset\mathcal R_{\mathrm{pair}}\cap\{(\alpha,\beta,\gamma):s\geq s_0\},
+\]
+there are \(0<c_K\leq C_K<\infty\) and \(n_K\) such that, uniformly over \((\alpha,\beta,\gamma)\in K\) and \(n\geq n_K\),
+\[
+ c_Kn^{-\gamma/(2\gamma+d)}
+ \leq
+ \inf_{\widetilde\tau_n}\sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P|\widetilde\tau_n(O_{1:n})-\tau_P(x_0)|
+ \leq C_Kn^{-\gamma/(2\gamma+d)}.
+\]
+Thus, and only in this above-elbow regime, the displayed order is the proved positive-band minimax mean-absolute-risk rate.  If instead \(K\) is a compact subset of \(\mathcal R_{\mathrm{pair}}\cap\{s<s_0\}\), the proved conclusions are only the honest bracket
+\[
+ c_Kn^{-\gamma/(2\gamma+d)}
+ \leq
+ \inf_{\widetilde\tau_n}\sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P|\widetilde\tau_n(O_{1:n})-\tau_P(x_0)|
+ \leq C_Kn^{-1/\{1+d/(2\gamma)+d/(4s)\}}.
+\]
+The matching positive-band low-smoothness converse remains unresolved.
+\end{proposition}
+\begin{proof}
+On a compact \(K\subset\mathcal R_{\mathrm{pair}}\), \(\mathrm{thm:unified\mbox{-}benchmark\mbox{-}attainment}\) supplies the explicit estimator \(\widehat\tau_n^*(x_0)\) and the upper bound \(C_Kr_n^*\).  By \(\mathrm{prop:optimizer\mbox{-}elbow\mbox{-}rate}\), this is at most \(C_Kn^{-\gamma/(2\gamma+d)}\) when \(s\geq s_0\), and at most \(C_Kn^{-1/\{1+d/(2\gamma)+d/(4s)\}}\) when \(s<s_0\).  Since the infimum over all estimators is no larger than the risk of this particular total data-driven estimator, these are the two asserted upper bounds.  The lower bound in both regimes is \(\mathrm{thm:positive\mbox{-}band\mbox{-}oracle\mbox{-}lower\mbox{-}bound}\).  The upper and lower powers coincide exactly when \(s\geq s_0\).  Below the elbow they do not coincide; no larger-class support-hole lower bound is used to close that gap, because such a lower bound need not transfer to the positive-band subclass.
+\end{proof}
+
+\begin{proposition}[prop:cross-pair-saturated-bound]\label{prop:cross-pair-saturated-bound}
+Write \(\bar\alpha=\alpha\wedge1\), \(\bar\beta=\beta\wedge1\), and \(\bar\gamma=\gamma\wedge1\).  For arbitrary \(\alpha,\beta,\gamma>0\), set \(h=h_n^*\), \(k=k_n^*\), \(N=nh^d\), and \(\delta=hk^{-1/d}\).  The already-defined total cross-pair estimator satisfies
+\[
+ \sup_{P\in\mathcal P_{\mathrm{band}}}
+ \mathbb E_P\left|\widehat\tau_n^{\mathrm{pair}}(x_0)-\tau_P(x_0)\right|
+ \leq C\left\{h^{\bar\gamma}+\delta^{\bar\alpha+\bar\beta}+N^{-1/2}+\frac{\sqrt{k}}{N}\right\},
+\]
+where \(C<\infty\) depends only on the fixed class envelopes.  This is an all-smoothness robustness bound for the order-one estimator; when any smoothness index exceeds one it is not an attainment claim for the unsaturated KBRW objective.
+\end{proposition}
+\begin{proof}
+The only smoothness modification needed in the order-one pair calculation is the following saturated increment inequality.  If \(g\in\mathcal H_d^u(L)\) and \(0<u\leq1\), \(\mathrm{def:holder\mbox{-}ball}\) gives \(|g(x)-g(z)|\leq C L\|x-z\|_\infty^u\).  If \(u>1\), the same definition bounds every first partial derivative by \(L\), and the mean-value theorem gives \(|g(x)-g(z)|\leq C L\|x-z\|_\infty\).  Thus, for every \(u>0\),
+\[
+ |g(x)-g(z)|\leq CL\|x-z\|_\infty^{u\wedge1}
+\]
+whenever \(\|x-z\|_\infty\leq1\).
+
+Put \(\theta=\tau_P(x_0)\), \(p_x=\pi_P(x)\), and \(m_x=\mu_{0,P}(x)\).  Conditional independence of two observations and consistency give the exact identities
+\[
+ \begin{aligned}
+ &\mathbb E_P[(A_i-A_j)(Y_i-Y_j)\mid X_i=x,X_j=z]\\
+ &\quad=(p_x-p_z)(m_x-m_z)+p_x(1-p_z)\tau_P(x)+p_z(1-p_x)\tau_P(z),\\
+ &\mathbb E_P[(A_i-A_j)^2\mid X_i=x,X_j=z]
+ =p_x(1-p_z)+p_z(1-p_x).
+ \end{aligned}
+\]
+On an edge in \(E_{hk}\), both points lie in \(B_h\) and \(\|x-z\|_\infty\leq\delta\).  The saturated increment inequality, applied to the three H\"older assumptions, therefore implies
+\[
+ \left|\mathbb E_P\left[(A_i-A_j)(Y_i-Y_j)-\theta(A_i-A_j)^2\mid x,z\right]\right|
+ \leq C\{\delta^{\bar\alpha+\bar\beta}+h^{\bar\gamma}\}.
+\]
+
+We record the occupancy and variance calculation to show that no new condition is hidden.  The density upper band gives
+\[
+ P\{\{1,2\}\in E_{hk}\}\leq C h^d\delta^d=C\frac{h^{2d}}{k}.
+\]
+Hence, for \(S_{hk}=T_{hk}-\theta D_{hk}\) and \(\Lambda_{hk}=\binom n2h^{2d}/k\),
+\[
+ |\mathbb E_PS_{hk}|\leq C\Lambda_{hk}
+ \{h^{\bar\gamma}+\delta^{\bar\alpha+\bar\beta}\}.
+\]
+The bounded-outcome assumption makes the kernels of both \(S_{hk}\) and \(D_{hk}\) uniformly bounded.  Disjoint-pair covariances vanish by independent sampling.  Diagonal pair terms are bounded by \(C\Lambda_{hk}\).  For a one-shared-index configuration, the density band gives directly
+\[
+ \begin{aligned}
+ &P\{\{1,2\}\in E_{hk},\{1,3\}\in E_{hk}\}\\
+ &\quad\leq f_+^3\int_{B_h}
+ \left|B_h\cap\{z:\|z-x\|_\infty\leq\delta\}\right|^2dx
+ \leq C h^d\delta^{2d}=C\frac{h^{3d}}{k^2}.
+ \end{aligned}
+\]
+There are at most \(Cn^3\) such ordered configurations.  Since \(N=nh^d\) and \(\Lambda_{hk}\asymp N^2/k\) for \(n\geq2\), summing the covariance graph yields
+\[
+ \operatorname{Var}_P(S_{hk})\leq C\left(\frac{\Lambda_{hk}^2}{N}+\Lambda_{hk}\right),
+ \qquad
+ \operatorname{Var}_P(D_{hk})\leq C\left(\frac{\Lambda_{hk}^2}{N}+\Lambda_{hk}\right).
+\]
+
+For the denominator margin, each coordinate interval of \(B_h\) has length at least \(h\), and \(\delta\leq h\).  Integrating first over \(x\in B_h\) and then over the at-least-\(\delta^d\) portion of the \(\delta\)-cube around \(x\) that remains in \(B_h\) gives
+\[
+ P\{\{1,2\}\in E_{hk}\}\geq f_-^2h^d\delta^d=f_-^2\frac{h^{2d}}{k}.
+\]
+The bilinear function \(p(1-q)+q(1-p)\) has minimum \(2\varepsilon(1-\varepsilon)\) on \([\varepsilon,1-\varepsilon]^2\).  With \(a_0=\varepsilon(1-\varepsilon)f_-^2\), it follows that
+\[
+ \mathbb E_PD_{hk}\geq2a_0\Lambda_{hk}.
+\]
+When \(\Lambda_{hk}\geq1\), Chebyshev's inequality and the variance bound give
+\[
+ P(D_{hk}<a_0\Lambda_{hk})
+ \leq C\left(N^{-1}+\Lambda_{hk}^{-1}\right).
+\]
+On the successful screen, clipping is nonexpansive at \(\theta\in[-2L,2L]\), so division by \(D_{hk}\geq a_0\Lambda_{hk}\), Cauchy--Schwarz, and the preceding mean and variance bounds give
+\[
+ \mathbb E_P|\widehat\tau_n^{\mathrm{pair}}(x_0)-\theta|
+ \leq C\left\{h^{\bar\gamma}+\delta^{\bar\alpha+\bar\beta}
+ +N^{-1/2}+\Lambda_{hk}^{-1/2}
+ +N^{-1}+\Lambda_{hk}^{-1}\right\}.
+\]
+Here \(N\geq1\), \(\Lambda_{hk}\geq1\), and \(\Lambda_{hk}^{-1/2}\asymp\sqrt{k}/N\), so the last two terms are absorbed by the preceding square-root terms.  If \(\Lambda_{hk}<1\), the definition uses the bounded fallback, while \(\Lambda_{hk}\asymp N^2/k<1\) implies \(\sqrt{k}/N\geq c\), which absorbs the bounded loss.  Taking the supremum over the class proves the proposition.  The exponents are saturated because the order-one contrast uses only first increments; therefore this calculation does not replace an exponent above one by its unsaturated value.
+\end{proof}
+
+\section{Interpretation}
+
+The optimizer has an explicit elbow at \(s_0=d\gamma/\{2(2\gamma+d)\}\).  Below it, balancing localization, the product remainder, and the pair-collision term gives \(r_n^*\asymp n^{-1/\{1+d/(2\gamma)+d/(4s)\}}\); this is an attained upper benchmark, not a proved positive-band minimax rate.  At and above the elbow, \(k\asymp nh^d\) and \(h\asymp n^{-1/(2\gamma+d)}\) give \(r_n^*\asymp n^{-\gamma/(2\gamma+d)}\), matching the positive-band two-point lower bound.  Both deterministic labels invoke the same total cross-pair map.  Any KBRW benchmark comparison outside \(\gamma\geq\beta\) is only an algebraic continuation of the objective, not a transfer of KBRW's full theorem class.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The proved estimator is order one and attains the unsaturated objective only on \(\mathcal R_{\mathrm{pair}}\); its all-smoothness robustness bound saturates every first-difference exponent at one.  Any higher-order extension beyond \(\mathcal R_{\mathrm{pair}}\) would require an explicitly specified random-design contrast or localized M\"obius estimator together with the corresponding projection or normalization bounds, causal numerator/denominator expansion, exceptional-event control, and complete higher-order collision/Hoeffding accounting.  None is asserted here.
+
+\section{Honest scope}
+
+Identification is given by the frozen CATE identification lemma.  The note proves the oracle positive-band lower bound and hence minimax optimality above the elbow.  It does not prove a matching positive-band converse below the elbow, because the published low-smoothness hard laws use density support holes excluded by \(\mathcal P_{\mathrm{band}}\).  It also does not claim arbitrary-smoothness attainment, a higher-order correction, full banked-region containment, adaptive unknown-smoothness inference, or a density-induced slowdown.
+
+\begin{thebibliography}{99}
+
+  \bibitem{kennedy2024minimax} Kennedy, Edward H., Sivaraman Balakrishnan, James M. Robins, and Larry Wasserman. 2024. ``Minimax Rates for Heterogeneous Causal Effect Estimation.'' \emph{Annals of Statistics} 52(2): 793--816. arXiv:2203.00837.
+
+  \bibitem{kennedy2023towards} Kennedy, Edward H. 2023. ``Towards Optimal Doubly Robust Estimation of Heterogeneous Causal Effects.'' \emph{Electronic Journal of Statistics} 17(2): 3008--3049. arXiv:2004.14497.
+
+  \bibitem{niewager2021rlearner} Nie, Xinkun, and Stefan Wager. 2021. ``Quasi-Oracle Estimation of Heterogeneous Treatment Effects.'' \emph{Biometrika} 108(2): 299--319. arXiv:1712.04912.
+
+  \bibitem{robins2008higher} Robins, James M., Lingling Li, Eric Tchetgen Tchetgen, and Aad van der Vaart. 2008. ``Higher Order Influence Functions and Minimax Estimation of Nonlinear Functionals.'' \emph{Probability and Statistics: Essays in Honor of David A. Freedman}, 335--421. arXiv:0805.3040.
+
+  \bibitem{robins2017higher} Robins, James M., Lingling Li, Rajarshi Mukherjee, Eric Tchetgen Tchetgen, and Aad van der Vaart. 2017. ``Minimax Estimation of a Functional on a Structured High-Dimensional Model.'' \emph{Annals of Statistics} 45(5): 1951--1987. arXiv:1512.02174.
+
+  \bibitem{liu2017semiparametric} Liu, Lin, Rajarshi Mukherjee, Whitney K. Newey, and James M. Robins. 2017. ``Semiparametric Efficient Empirical Higher Order Influence Function Estimators.'' CeMMAP Working Paper CWP30/17. arXiv:1705.07577.
+
+  \bibitem{liu2026stabilized} Liu, Na, Chang Li, Yujia Gu, and Lin Liu. 2026. ``Stabilized Higher-Order Influence Functions: Statistical Theory of a Class of Bilinear Forms.'' arXiv:2607.04743.
+
+  \bibitem{shen2020optimal} Shen, Yandi, Chao Gao, Daniela Witten, and Fang Han. 2020. ``Optimal Estimation of Variance in Nonparametric Regression with Random Design.'' \emph{Annals of Statistics} 48(6): 3589--3618. arXiv:1902.10822.
+
+  \bibitem{dobriban2026improved} Dobriban, Edgar, Rajarshi Mukherjee, James M. Robins, and Zixiao Wang. 2026. ``Improved Variance Estimation in Homoskedastic Nonparametric Random-Design Regression via a Two-Scale Approach.'' arXiv:2609.08783v1.
+
+  \bibitem{lee2017doubly} Lee, Sokbae, Ryo Okui, and Yoon-Jae Whang. 2017. ``Doubly Robust Uniform Confidence Band for the Conditional Average Treatment Effect Function.'' \emph{Journal of Applied Econometrics} 32(7): 1207--1225. arXiv:1601.02801.
+
+  \bibitem{calonico2022coverage} Calonico, Sebastian, Matias D. Cattaneo, and Max H. Farrell. 2022. ``Coverage Error Optimal Confidence Intervals for Local Polynomial Regression.'' \emph{Bernoulli} 28(4): 2998--3022. arXiv:1808.01398.
+
+  \bibitem{atheywager2021policy} Athey, Susan, and Stefan Wager. 2021. ``Policy Learning with Observational Data.'' \emph{Econometrica} 89(1): 133--161.
+
+  \bibitem{chernozhukov2021conformal} Chernozhukov, Victor, Kaspar W\"uthrich, and Yinchu Zhu. 2021. ``An Exact and Robust Conformal Inference Method for Counterfactual and Synthetic Controls.'' \emph{Journal of the American Statistical Association} 116(536): 1849--1864.
+
+\end{thebibliography}
+
+\end{document}

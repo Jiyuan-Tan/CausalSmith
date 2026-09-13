@@ -1,0 +1,318 @@
+{
+  "proofs": [
+    {
+      "id": "lem:full-oracle-reduction",
+      "proof_tex": {
+        "tex_ref": "full-oracle-proof"
+      }
+    },
+    {
+      "id": "lem:cyclefree-d-policy",
+      "proof_tex": {
+        "tex_ref": "cyclefree-proof"
+      }
+    },
+    {
+      "id": "thm:feasibility-frontier",
+      "proof_tex": {
+        "tex_ref": "feasibility-proof"
+      }
+    },
+    {
+      "id": "prop:parent-blocking-upper",
+      "proof_tex": {
+        "tex_ref": "parent-upper-proof"
+      }
+    },
+    {
+      "id": "lem:transcript-packing",
+      "proof_tex": {
+        "tex_ref": "transcript-proof"
+      }
+    },
+    {
+      "id": "thm:faithful-witness-realization",
+      "proof_tex": {
+        "tex_ref": "faithful-proof"
+      }
+    },
+    {
+      "id": "thm:exact-supported-slices",
+      "proof_tex": {
+        "tex_ref": "exact-slices-proof"
+      }
+    }
+  ],
+  "added_lemmas": [
+    {
+      "id": "lem:targeted-root-descendant-equivalence",
+      "kind": "lemma",
+      "statement": {
+        "tex_ref": "root-test-statement"
+      },
+      "depends_on": [
+        "def:oracle",
+        "def:descendant-signature",
+        "def:hard-intervention-laws",
+        "def:i-mixture-dag",
+        "ass:mixture-faithfulness"
+      ],
+      "free_symbols": [
+        "I",
+        "V",
+        "a",
+        "t",
+        "barred-set",
+        "G-mix-I",
+        "D-I-a",
+        "O-G"
+      ],
+      "status": "proved",
+      "proof_tex": {
+        "tex_ref": "root-test-proof"
+      }
+    },
+    {
+      "id": "lem:i-mixture-markov-property",
+      "kind": "lemma",
+      "statement": "For every \\(I\\subseteq V\\) and every pairwise disjoint \\(A,B,C\\subseteq V\\), if \\(\\overline A\\perp_{d,\\mathcal G_{\\mathrm m,I}}\\overline B\\mid\\overline C\\), then \\(X_A\\perp_{P_I}X_B\\mid X_C\\).",
+      "depends_on": [
+        "def:mixture-law",
+        "def:i-mixture-dag"
+      ],
+      "free_symbols": [
+        "I",
+        "V",
+        "A-set",
+        "B-set",
+        "C",
+        "barred-set",
+        "G-mix-I",
+        "X-subvector",
+        "P-I"
+      ],
+      "status": "cited",
+      "source": {
+        "cite": "SaeedPanigrahiUhler2020MixtureDAGs",
+        "locator": "Theorem 3.2 (Markov Property)",
+        "carrier": "logical-claim",
+        "verbatim_statement": "If \\([A]\\) and \\([B]\\) are d-separated given \\([C]\\) in the mixture DAG \\(D_{\\mu}\\), then \\(X_A\\perp X_B\\mid X_C\\) in the mixture distribution \\(p_{\\mu}\\).",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Transcribed from Saeed, Panigrahi, and Uhler (ICML 2020), Theorem 3.2; apply it to the post-intervention component DAGs, whose mixture DAG is \\(\\mathcal G_{\\mathrm m,I}\\)."
+        }
+      }
+    }
+  ],
+  "proposed_core_edits": [
+    {
+      "kind": "statement-replace",
+      "id": "lem:cyclefree-d-policy",
+      "reason": "The policy reads descendant membership from marginal oracle answers through the targeted-root descendant equivalence, which must be a declared direct proof dependency.",
+      "direction": "correct",
+      "proposed": {
+        "id": "lem:cyclefree-d-policy",
+        "kind": "lemma",
+        "statement": "For every \\(\\mathfrak m\\in\\mathfrak M_{n,K,d,0}\\), there is a finite exact recovery policy using only targets of size at most \\(d\\). If \\(d=0\\), it outputs the empty oriented union without a paid query. If \\(d\\ge1\\), the \\(n\\) singleton targets recover \\(R_{\\mathbf G}\\) from \\(t\\in D_{\\{a\\}}(a)\\). For each head \\(t\\), process its mixture ancestors with strict descendants before strict ancestors, maintain the already certified set \\(P_t\\subseteq\\operatorname{pa}_{\\cup}(t)\\), and query \\(I=P_t\\cup\\{a\\}\\) for the next candidate \\(a\\); declare \\(a\\in\\operatorname{pa}_{\\cup}(t)\\) exactly when \\(t\\in D_I(a)\\), and stop when \\(|P_t|=d\\). The policy outputs \\(\\mathsf T(\\mathbf G)\\) and uses at most \\(n+n(n-1)\\) paid queries.",
+        "depends_on": [
+          "def:model-class",
+          "def:oracle",
+          "def:descendant-signature",
+          "def:hard-intervention-laws",
+          "ass:mixture-faithfulness",
+          "ass:union-indegree-cap",
+          "ass:cyclic-complexity-cap",
+          "lem:targeted-root-descendant-equivalence"
+        ],
+        "free_symbols": [
+          "model-class",
+          "n",
+          "K",
+          "d",
+          "G-family",
+          "anc-relation",
+          "t",
+          "D-I-a",
+          "a",
+          "pa-union",
+          "P-certified",
+          "I",
+          "T-G"
+        ],
+        "justification": "This verifies that the cycle-free endpoint uses the degree budget itself: certified parents block every indirect surviving path before the next source is tested.",
+        "gap": "VariciKatzWeiSattigeriTajer2024Interventional gives the reverse-ancestor induction but does not formulate the resulting finite minimax recovery policy over the completed shared-kernel model class.",
+        "consumer": "The feasibility theorem uses this policy to certify that panels of size \\(d\\), rather than \\(d+1\\), suffice whenever mixture ancestry is cycle free.",
+        "status": "to-prove"
+      }
+    },
+    {
+      "kind": "statement-replace",
+      "id": "prop:parent-blocking-upper",
+      "reason": "The decoder's observable descendant test is valid for arbitrary mechanism-variation sets by the targeted-root descendant equivalence, not by the full-oracle lemma restricted to \\(\\Delta=V\\).",
+      "direction": "correct",
+      "proposed": {
+        "id": "prop:parent-blocking-upper",
+        "kind": "proposition",
+        "statement": "Let \\(r=\\min\\{d+1,n-1\\}\\). If \\(s\\ge r\\), then \\(N^{\\star}(n,K,d,\\tau,s)\\le F(n,r,s)\\le U_{\\mathrm{PB}}(n,r,s)\\). The decoder retains \\(a\\to t\\) exactly when every cover row \\(I\\) with \\(a\\in I\\) and \\(t\\notin I\\) has \\(t\\in D_I(a)\\); for every nonedge \\(a\\to t\\), the cover contains such a row that also targets an \\(r\\)-set extending \\(\\{a\\}\\cup\\operatorname{pa}_{\\cup}(t)\\).",
+        "depends_on": [
+          "def:minimax-count",
+          "def:blocker-cover",
+          "def:parent-blocking-upper",
+          "lem:full-oracle-reduction",
+          "ass:union-indegree-cap",
+          "lem:targeted-root-descendant-equivalence"
+        ],
+        "free_symbols": [
+          "r",
+          "d",
+          "n",
+          "s",
+          "N-star",
+          "K",
+          "tau",
+          "F-cover",
+          "U-PB",
+          "a",
+          "t",
+          "I",
+          "pa-union",
+          "D-I-a"
+        ],
+        "justification": "This is an explicit non-CADIM upper design that exploits last-parent blocking and works without knowing the union skeleton.",
+        "gap": "CADIM scans ancestor layers with at most quadratic count, while single-DAG separating systems separate endpoints and do not enforce simultaneous parent blockers.",
+        "consumer": "The bound supplies a concrete bounded-panel schedule whenever the exact adaptive frontier is computationally unavailable.",
+        "status": "to-prove"
+      }
+    },
+    {
+      "kind": "statement-replace",
+      "id": "thm:faithful-witness-realization",
+      "reason": "The generic binary realization proof uses the published I-mixture global Markov implication as its soundness half; because it proves existence of faithful positive parameters, the faithfulness and positive-weight assumptions are conclusions here and are removed as circular dependencies.",
+      "direction": "correct",
+      "proposed": {
+        "id": "thm:faithful-witness-realization",
+        "kind": "theorem",
+        "statement": "Every finite graph family used for the feasibility, dense-endpoint, directed-tree, and cycle-free transcript lower bounds admits strictly positive binary component kernels \\(\\boldsymbol\\kappa\\), positive mixture weights \\(\\mathbf w\\), and strictly positive shared target laws \\(\\mathbf q\\) such that the induced laws \\(P_\\ell\\), \\(P_{\\ell,I}\\), and \\(P_I\\) satisfy \\(\\Delta(\\mathbf G,\\boldsymbol\\kappa)=V\\), every declared true edge is active in its child kernel, and simultaneous I-mixture faithfulness holds for every \\(I\\subseteq V\\).",
+        "depends_on": [
+          "ass:component-dags",
+          "def:observational-factorization",
+          "def:mechanism-variation",
+          "def:hard-intervention-laws",
+          "def:mixture-law",
+          "def:i-mixture-dag",
+          "lem:i-mixture-markov-property",
+          "lem:full-oracle-reduction"
+        ],
+        "free_symbols": [
+          "G-family",
+          "kappa-family",
+          "Delta",
+          "V",
+          "w",
+          "q-family",
+          "P-ell",
+          "P-ell-I",
+          "I",
+          "P-I",
+          "G-mix-I"
+        ],
+        "justification": "A graphical lower pair is legally relevant to the population oracle only if compatible faithful mechanisms exist for all queried interventions.",
+        "gap": "The anchor's local necessity examples and the presolve fixtures do not supply an all-parameter simultaneous-faithfulness theorem under padding and topology replication.",
+        "consumer": "The theorem turns every graphical transcript adversary into a valid population-level impossibility result under the stated bridge.",
+        "status": "to-prove"
+      }
+    },
+    {
+      "kind": "statement-replace",
+      "id": "thm:feasibility-frontier",
+      "reason": "The necessity witnesses require the declared simultaneous-faithfulness realization theorem to belong to the direct proof spine.",
+      "direction": "correct",
+      "proposed": {
+        "id": "thm:feasibility-frontier",
+        "kind": "theorem",
+        "statement": "For \\(K\\ge2\\), \\(n\\ge2\\), and \\(1\\le d\\le n-1\\), \\(N^{\\star}(n,K,d,0,s)<\\infty\\) iff \\(s\\ge d\\); for \\(1\\le\\tau\\le n-2\\), \\(N^{\\star}(n,K,d,\\tau,s)<\\infty\\) iff \\(s\\ge\\min\\{d+1,n-1\\}\\). Also \\(N^{\\star}(n,K,0,\\tau,s)=0\\). Each necessity direction is witnessed by two legal models with \\(\\Delta=V\\) whose complete oracles agree for every allowed target, and each sufficiency direction recovers \\(\\mathsf T(\\mathbf G)\\).",
+        "depends_on": [
+          "lem:full-oracle-reduction",
+          "lem:cyclefree-d-policy",
+          "def:minimax-count",
+          "def:model-class",
+          "ass:union-indegree-cap",
+          "ass:cyclic-complexity-cap",
+          "ass:intervention-size-cap",
+          "prop:parent-blocking-upper",
+          "thm:faithful-witness-realization"
+        ],
+        "free_symbols": [
+          "K",
+          "n",
+          "d",
+          "tau",
+          "s",
+          "N-star",
+          "Delta",
+          "V",
+          "O-G",
+          "T-G",
+          "G-family"
+        ],
+        "justification": "The theorem identifies exactly when bounded interventions contain enough joint blocker capacity for union recovery.",
+        "gap": "VariciKatzWeiSattigeriTajer2024Interventional proves a local size threshold but does not prove a full-oracle finite-versus-infinite minimax frontier or legal transcript indistinguishability.",
+        "consumer": "A perturbation platform can rule out an intervention-size budget before collecting data and can identify the smallest multi-target panel size capable of exact latent-state union recovery.",
+        "status": "to-prove"
+      }
+    },
+    {
+      "kind": "statement-replace",
+      "id": "thm:exact-supported-slices",
+      "reason": "The arbitrary-model upper bounds in the exact slices use the targeted-root descendant equivalence directly.",
+      "direction": "correct",
+      "proposed": {
+        "id": "thm:exact-supported-slices",
+        "kind": "theorem",
+        "statement": "The frontier satisfies the following exact reductions: \\(N^{\\star}_{\\mathrm{cf}}(n,K,1,1)=n\\); for two directed trees on three vertices, \\(N^{\\star}_{\\mathrm{tree}}(3,2,1)=\\infty\\) and \\(N^{\\star}_{\\mathrm{tree}}(3,2,2)=3\\); and \\(N^{\\star}(n,K,n-1,n-2,n-1)=n\\).",
+        "depends_on": [
+          "lem:full-oracle-reduction",
+          "lem:transcript-packing",
+          "thm:faithful-witness-realization",
+          "def:structured-counts",
+          "def:minimax-count",
+          "lem:targeted-root-descendant-equivalence"
+        ],
+        "free_symbols": [
+          "N-cyclefree",
+          "n",
+          "K",
+          "N-tree",
+          "N-star"
+        ],
+        "justification": "These exact slices constrain any proposed general formula and expose both adaptive transcript packing and the dense complement-singleton endpoint.",
+        "gap": "None of the cited mixture papers gives an exact total-intervention count even on these full-oracle subclasses.",
+        "consumer": "The slices are regression tests for the general frontier and furnish small exact benchmarks for intervention-policy implementations.",
+        "status": "to-prove"
+      }
+    }
+  ],
+  "open_obligations": [
+    {
+      "node_id": "oeq:universal-frontier",
+      "what_is_open": "An explicit evaluable all-parameter function \\(Q(n,K,d,\\tau,s)\\) with matching universal-factor adaptive upper and legal full-oracle transcript lower bounds.",
+      "obstruction": "The frozen primitives do not show that enough source-plus-last-parent blocker requirements coexist on one legal baseline transcript. Requirements obtained from different baselines cannot be combined in the transcript-packing lemma, while the cover upper bound need not be adaptively optimal.",
+      "attempted": "The parent-blocking inclusion--exclusion cover gives a nonadaptive upper bound, and the transcript-packing lemma turns any one legal baseline family into a hitting-set lower bound. Dense chains and height-one unions make subsets of the requirements coexist, but neither construction realizes the general blocker cover under the simultaneous indegree and cyclic-complexity caps.",
+      "partial_result": "The proved feasibility threshold is exact. Whenever \\(s\\ge r=\\min\\{d+1,n-1\\}\\), \\(N^{\\star}\\le F(n,r,s)\\le U_{\\mathrm{PB}}(n,r,s)\\); at the additional cycle-free feasible endpoint \\(s=d\\), a proved policy uses at most \\(n+n(n-1)\\) queries; and the dense endpoint has exact value \\(n\\)."
+    },
+    {
+      "node_id": "oeq:tree-formula",
+      "what_is_open": "The exact closed form of \\(N^{\\star}_{\\mathrm{tree}}(n,K,s)\\) for arbitrary \\(n\\), \\(K\\), and every feasible \\(s\\).",
+      "obstruction": "Unique component paths bound each local blocker set but do not determine how blockers for different heads and components can be batched in one adaptive target. No frozen result supplies a single legal tree baseline whose changed-target families certify the required global lower count.",
+      "attempted": "Centroid path splitting, complement-singleton panels, and source-swap transcript alternatives were checked. They close the three-vertex two-component instance but do not yield matching counts for arbitrary path overlap patterns.",
+      "partial_result": "For two directed trees on three vertices, the proved values are \\(N^{\\star}_{\\mathrm{tree}}(3,2,1)=\\infty\\) and \\(N^{\\star}_{\\mathrm{tree}}(3,2,2)=3\\); complement-singleton panels also give an \\(n\\)-query upper bound when \\(s=n-1\\)."
+    },
+    {
+      "node_id": "oeq:cyclefree-formula",
+      "what_is_open": "The exact closed form of \\(N^{\\star}_{\\mathrm{cf}}(n,K,d,s)\\) throughout \\(s\\ge d\\).",
+      "obstruction": "Reverse ancestral processing proves correctness at panel size \\(d\\), but its headwise candidate tests can overlap in transcript-dependent ways. The current legal lower alternatives do not certify that the resulting quadratic count, or any proposed batching improvement, is optimal.",
+      "attempted": "Certified-parent blocking yields a policy with at most \\(n+n(n-1)\\) queries, and empty-baseline single-edge alternatives give an antichain-type lower constraint. For \\(d>1\\), these constraints do not force the simultaneous parent blockers used by the upper policy.",
+      "partial_result": "Feasibility is exactly \\(s\\ge d\\); a finite policy uses at most \\(n+n(n-1)\\) queries; and the indegree-one singleton slice is exactly \\(N^{\\star}_{\\mathrm{cf}}(n,K,1,1)=n\\)."
+    }
+  ]
+}

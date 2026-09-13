@@ -1,0 +1,1779 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}recurrent\_\allowbreak{}capacity\_\allowbreak{}transport\_\allowbreak{}regret}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A randomized recurrent-event trial identifies separately capped baseline and residual margins while leaving their dependence unknown, and the raw recurrent paths remain unbounded. The externally prespecified sensitivity restriction \(B+W\le H\) creates a Ferrers transport problem and is not implied by separate capping. The cap-fibre response-tree construction proves every feasible triple coupling attainable, including in the published raw no-carry-over subclass. Exact endpoints and the common-law value polytope yield deterministic and randomized minimax regret and the cap-three recommendation reversal. For inference, a direct sequential-factorization proof now identifies every supported sustained-history atom and hence \((r_{bt},q_w)\); on the explicit quantitative-overlap and cross-fitted product-rate submodel, a longitudinal AIPW Bonferroni rectangle contracts at root-\(n\) rate and its perspective inversion covers the whole value set and every deterministic or randomized robust optimizer, including ties. On the broader pointwise-overlap class \(\mathfrak M_H\), uniformly shrinking inference remains impossible by the vanishing-information two-law construction. Thus the positive quantitative theorem and the negative base-class theorem have disjoint, explicit scopes.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest recurrent-event switching analysis supplies an uncapped no-carry-over equality, scalar sharp bounds, and deterministic decision criteria. BaerStrawdermanErtefaie2023 supplies the factual-arm sequential-CAR setup and influence-function architecture for recurrent-event mean and survival targets, but not an atom-by-atom identification theorem for the complete sustained history, the capped margin vector used here, shared-law deterministic and randomized regret inversion, or the positive-versus-negative uniform-inference boundary. Dahl2008 supplies staircase feasibility only.
+
+\paragraph{Niche.} An externally prespecified joint-capacity sensitivity restriction on two separately capped summaries creates nested antidiagonal support without globally bounding the underlying recurrent-event paths. The attributed staircase feasibility result in Dahl2008, Theorem 4, then becomes an input to a causal sharpness and joint-decision problem rather than the source of novelty.
+
+\paragraph{Fill.} The formal kernel combines the attributed staircase feasibility certificate with an explicit raw-path cap-fibre lift, derives the complete common-law value and regret geometry, and proves the missing inference chain. Sequential CAR and positivity give a finite product of observed transition kernels for every supported absorbing history atom. Explicit backward regressions, cumulative censoring hazards, longitudinal AIPW and ratio influence functions, cross-fitting, Hall-feasible projection, and conservative simultaneous inversion give root-\(n\) value-set and regret-excess contraction on a quantitative regularity submodel. A separate two-law theorem proves that pointwise positivity in the unchanged base class cannot yield uniform shrinkage.
+
+\section{Related work}
+
+JanvinRyalenSarvetStensrud2025 supplies the uncapped residual no-carry-over equality and threshold-wise scalar analysis. The cap-fibre construction here transfers sharpness after intersecting that class with \(B+W\le H\). Dahl2008 supplies the reindexed staircase feasibility criterion, and Hoffman1952 supplies only the fixed-matrix polyhedral error bound used for the new perspective-Lipschitz argument. BaerStrawdermanErtefaie2023 is used for the factual-arm sequential-CAR formulation and motivates longitudinal influence-function estimation; it does not assert identification of the entire sustained-history law. That law is derived here atom by atom from randomization, consistency, sequential CAR, and positivity, then specialized to \(r_{bt}\) and the numerator--denominator representation of \(q_w\). ChernozhukovHongTamer2007, AndrewsSoares2010, and Gafarov2025 motivate inference with binding inequalities and changing faces. The present positive result is a finite-dimensional conservative cross-fitted inversion under quantitative overlap, while the headline two-point theorem shows why the same conclusion is impossible uniformly under pointwise overlap. MontielOleaQiuStoye2026 motivates the decision relevance of the shared payoff set and randomization.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mathbf J=(J_m)_{m\in\mathcal M}\).
+Primary functional / estimator / diagnostic: \(\mathcal V(p_{BT},q)=\{(\pi[\sum_{b<m}\mu_b+\sum_{b\ge m,w}w x_{bw}])_{m\in\mathcal M}:x\in\Gamma_H(p,q)\}\).
+\begin{itemize}
+  \item \texttt{H} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{capacity-\allowbreak{}sensitivity parameter}
+  \par\smallskip\noindent\emph{Definition.} An externally prespecified sensitivity cap applied only to the derived summaries \(B\) and \(W\); a clinical interpretation additionally requires a setting-specific mechanism for the joint restriction \(B+W\le H\).
+  \item \texttt{k} --- \texttt{integer}; \(\{1,\ldots,K-1\}\); \texttt{landmark}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed treatment-\allowbreak{}switch time.}
+  \item \texttt{K} --- \texttt{integer}; \(\{k+1,k+2,\ldots\}\); \texttt{horizon}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The terminal analysis time.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb I\_\allowbreak{}H} --- \texttt{finite set}; \(2^{\mathbb Z}\); \texttt{capped-\allowbreak{}summary support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb I_H=\{0,1,\ldots,H\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M} --- \texttt{finite set}; \(2^{\{1,\ldots,H\}}\); \texttt{policy menu}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A nonempty finite menu of event-\allowbreak{}count thresholds.}
+  \item \texttt{a} --- \texttt{index}; \(\{0,1\}\); \texttt{arm index}
+  \par\smallskip\noindent\emph{Definition.} The sustained-treatment arm index, with \(1\) intensive and \(0\) standard.
+  \item \texttt{\textbackslash{}\allowbreak{}ell} --- \texttt{index}; \(\{0,1,\ldots,K\}\); \texttt{time index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The discrete follow-\allowbreak{}up time index.}
+  \item \texttt{\textbackslash{}\allowbreak{}bar a} --- \texttt{treatment history}; \(\{0,1\}^{K}\); \texttt{intervention path}
+  \par\smallskip\noindent\emph{Definition.} A treatment history through time \(K\); the sustained and single-switch histories are the branches used by the target regimes.
+  \item \texttt{U} --- \texttt{finite-\allowbreak{}horizon response tree}; \texttt{countable FFRCISTG response-\allowbreak{}type space over a finite treatment horizon}; \texttt{primitive counterfactual object}
+  \par\smallskip\noindent\emph{Definition.} \(U=\{(Y_{\ell}^{\bar a},D_{\ell}^{\bar a}):\ell\le K,\bar a\in\{0,1\}^{K}\}\), where every raw count \(Y_{\ell}^{\bar a}\in\mathbb Z_+\) is nondecreasing and death \(D_{\ell}^{\bar a}=1\) is absorbing with no later raw count increment. The horizon and branch set are finite, but raw count coordinates are not capped by \(H\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}\{\textbackslash{}\allowbreak{}ell\}\allowbreak{}\textasciicircum{}a} --- \texttt{random history vector}; \texttt{finite factual-\allowbreak{}arm recurrent-\allowbreak{}event history space}; \texttt{factual at-\allowbreak{}risk censoring history}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal H_{\ell}^a=(Y_{0:\ell}^a,D_{0:\ell}^a)\), the sustained-arm \(a\) recurrent-count and death history through \(\ell\); \(\mathcal H_K^a\) denotes the corresponding full factual-arm path.
+  \item \texttt{R} --- \texttt{random variable}; \(\{0,1\}\); \texttt{assignment}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The randomized baseline treatment assignment.}
+  \item \texttt{C} --- \texttt{random variable}; \(\{0,1,\ldots,K,\infty\}\); \texttt{coarsening variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The right-\allowbreak{}censoring time.}
+  \item \texttt{O} --- \texttt{random element}; \texttt{observed recurrent-\allowbreak{}event history space}; \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} The assigned response-tree path observed up to \(C\), including recurrent counts and death.
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf P} --- \texttt{probability law}; probability measures on \((U,R,C,O)\); \texttt{data-\allowbreak{}generating law}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The joint law of the response tree,\allowbreak{} assignment,\allowbreak{} censoring,\allowbreak{} and observed history.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}H} --- \texttt{model class}; sets of probability laws on \((U,R,C,O)\); \texttt{maintained causal model}
+  \par\smallskip\noindent\emph{Definition.} The raw-path recurrent-event FFRCISTG class with separately capped summaries in \(\text{def:model-class}\).
+  \item \texttt{S\_\allowbreak{}k\textasciicircum{}a} --- \texttt{binary random variable}; \(\{0,1\}\); \texttt{landmark survival}
+  \par\smallskip\noindent\emph{Definition.} \(S_k^a=1-D_k^a\), the survival indicator at the switch time under sustained arm \(a\).
+  \item \texttt{B} --- \texttt{random variable}; \(\mathbb I_H\); \texttt{baseline burden}
+  \par\smallskip\noindent\emph{Definition.} \(B=\min\{Y_k^1,H\}\) among units with \(S_k^1=1\), obtained by capping the raw intensive-arm burden accumulated by \(k\).
+  \item \texttt{T} --- \texttt{random variable}; \(\mathbb I_H\); \texttt{continued-\allowbreak{}treatment residual}
+  \par\smallskip\noindent\emph{Definition.} \(T=\min\{Y_K^1-Y_k^1,H\}\) among units with \(S_k^1=1\), obtained by separately capping the raw post-landmark increment under continued intensive treatment.
+  \item \texttt{W} --- \texttt{random variable}; \(\mathbb I_H\); \texttt{switched residual}
+  \par\smallskip\noindent\emph{Definition.} \(W=\min\{Y_K^{1\to0}-Y_k^{1\to0},H\}\) among units with \(S_k^1=1\), obtained by separately capping the raw post-landmark increment after switching from intensive to standard treatment at \(k\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{scalar}; \((0,1]\); \texttt{intensive-\allowbreak{}arm landmark survival probability}
+  \par\smallskip\noindent\emph{Definition.} \(\pi=\mathsf P(S_k^1=1)\).
+  \item \texttt{b} --- \texttt{index}; \(\mathbb I_H\); \texttt{row index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A baseline-\allowbreak{}burden support point.}
+  \item \texttt{t} --- \texttt{index}; \(\mathbb I_H\); \texttt{residual index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A continued-\allowbreak{}residual support point.}
+  \item \texttt{w} --- \texttt{index}; \(\mathbb I_H\); \texttt{column index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A switched-\allowbreak{}residual support point.}
+  \item \texttt{m} --- \texttt{index}; \(\mathcal M\); \texttt{policy index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A candidate threshold.}
+  \item \texttt{j} --- \texttt{index}; \(\mathcal M\); \texttt{policy-\allowbreak{}comparison index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A comparator threshold.}
+  \item \texttt{r} --- \texttt{index}; \(\mathbb I_H\); \texttt{feasibility index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A Hall-\allowbreak{}prefix boundary index.}
+  \item \texttt{s} --- \texttt{index}; \(\mathbb I_H\); \texttt{CDF index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A cumulative-\allowbreak{}distribution index.}
+  \item \texttt{u} --- \texttt{index}; \(\mathbb I_H\); \texttt{deficit index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A backward-\allowbreak{}deficit maximization index.}
+  \item \texttt{p\_\allowbreak{}\{bt\}\allowbreak{}} --- \texttt{probability mass function}; simplex on \(\mathbb I_H^2\); \texttt{identified intensive-\allowbreak{}survivor joint margin}
+  \par\smallskip\noindent\emph{Definition.} \(p_{bt}=\mathsf P(B=b,T=t\mid S_k^1=1)\).
+  \item \texttt{p\_\allowbreak{}b} --- \texttt{probability mass function}; simplex on \(\mathbb I_H\); \texttt{identified baseline margin}
+  \par\smallskip\noindent\emph{Definition.} \(p_b=\sum_{t\in\mathbb I_H}p_{bt}\).
+  \item \texttt{q\_\allowbreak{}w} --- \texttt{probability mass function}; simplex on \(\mathbb I_H\); \texttt{identified standard-\allowbreak{}survivor residual margin}
+  \par\smallskip\noindent\emph{Definition.} \(q_w=\mathsf P(\min\{Y_K^0-Y_k^0,H\}=w\mid S_k^0=1)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}b} --- \texttt{nonnegative vector}; \(\mathbb R_+^{H+1}\); \texttt{continued-\allowbreak{}residual first-\allowbreak{}moment mass}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_b=\sum_{t\in\mathbb I_H}t p_{bt}\).
+  \item \texttt{L\_\allowbreak{}m} --- \texttt{integer}; \(\{0,1,\ldots,H-1\}\); \texttt{selected-\allowbreak{}row residual ceiling}
+  \par\smallskip\noindent\emph{Definition.} \(L_m=H-m\), the largest residual value eligible for a row with \(b\ge m\).
+  \item \texttt{a\_\allowbreak{}m} --- \texttt{scalar}; \([0,1]\); \texttt{selected-\allowbreak{}row mass}
+  \par\smallskip\noindent\emph{Definition.} \(a_m=\sum_{b=m}^{H}p_b\), the total mass in rows selected by threshold \(m\).
+  \item \texttt{Q\_\allowbreak{}s} --- \texttt{scalar}; \([0,1]\); \texttt{column-\allowbreak{}prefix mass}
+  \par\smallskip\noindent\emph{Definition.} \(Q_s=\sum_{w=0}^{s}q_w\), the residual-margin prefix mass.
+  \item \texttt{A\_\allowbreak{}s} --- \texttt{scalar}; \([0,1]\); \texttt{forced selected-\allowbreak{}prefix mass}
+  \par\smallskip\noindent\emph{Definition.} \(A_s=\sum_{b=H-s}^{H}p_b\), the mass of rows whose eligible columns lie in \(\{0,\ldots,s\}\).
+  \item \texttt{Z\_\allowbreak{}\{ms\}\allowbreak{}\textasciicircum{}\{-\allowbreak{}\}\allowbreak{}} --- \texttt{scalar}; \([0,1]\); \texttt{maximal selected sub-\allowbreak{}CDF}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{ms}^{-}=\min\{a_m,Q_s\}\) for \(0\le s\le L_m\).
+  \item \texttt{Z\_\allowbreak{}\{ms\}\allowbreak{}\textasciicircum{}\{+\allowbreak{}\}\allowbreak{}} --- \texttt{scalar}; \([0,1]\); \texttt{minimal selected sub-\allowbreak{}CDF}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{ms}^{+}=Q_s+\max_{u\in\{s,\ldots,L_m\}}(A_u-Q_u)\) for \(0\le s\le L_m\); the maximization includes the terminal index \(u=L_m\).
+  \item \texttt{x\_\allowbreak{}\{bw\}\allowbreak{}} --- \texttt{nonnegative array}; \(\mathbb R_+^{(H+1)\times(H+1)}\); \texttt{transport plan}
+  \par\smallskip\noindent\emph{Definition.} A candidate coupling mass \(x_{bw}=\mathsf P(B=b,W=w\mid S_k^1=1)\).
+  \item \texttt{z\_\allowbreak{}w} --- \texttt{subprobability mass}; \(\mathbb R_+^{H+1}\); \texttt{selected-\allowbreak{}column subdistribution}
+  \par\smallskip\noindent\emph{Definition.} \(z_w=\sum_{b\ge m}x_{bw}\), the column subdistribution assigned to rows selected by threshold \(m\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}H(p,\allowbreak{}q)} --- \texttt{polytope}; subset of \(\mathbb R_+^{(H+1)\times(H+1)}\); \texttt{capped coupling class}
+  \par\smallskip\noindent\emph{Definition.} The fixed-margin transport plans supported on \(b+w\le H\).
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}\{btw\}\allowbreak{}} --- \texttt{nonnegative array}; \(\mathbb R_+^{(H+1)^3}\); \texttt{triple coupling}
+  \par\smallskip\noindent\emph{Definition.} A candidate joint mass for \((B,T,W)\) among intensive survivors.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G\_\allowbreak{}H(p\_\allowbreak{}\{BT\}\allowbreak{},\allowbreak{}q)} --- \texttt{polytope}; subset of \(\mathbb R_+^{(H+1)^3}\); \texttt{full latent summary class}
+  \par\smallskip\noindent\emph{Definition.} The triple couplings with \((B,T)\) margin \(p_{bt}\), \(W\) margin \(q_w\), and support \(b+w\le H\).
+  \item \texttt{J\_\allowbreak{}m} --- \texttt{scalar}; \(\mathbb R_+\); \texttt{threshold-\allowbreak{}policy capped loss}
+  \par\smallskip\noindent\emph{Definition.} \(J_m=\pi\,\mathsf E[T\mathbf 1\{B<m\}+W\mathbf 1\{B\ge m\}\mid S_k^1=1]\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal V(p\_\allowbreak{}\{BT\}\allowbreak{},\allowbreak{}q)} --- \texttt{compact convex set}; \(\mathbb R^{|\mathcal M|}\); \texttt{joint identified set}
+  \par\smallskip\noindent\emph{Definition.} The set of all threshold-loss vectors generated by one shared plan in \(\Gamma_H(p,q)\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{vector}; \(\mathbb R^{|\mathcal M|}\); \texttt{dual direction}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A support-\allowbreak{}function direction for the joint value set.}
+  \item \texttt{c\_\allowbreak{}b(\textbackslash{}\allowbreak{}lambda)} --- \texttt{scalar array}; \(\mathbb R^{H+1}\); \texttt{row reward coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(c_b(\lambda)=\sum_{m\in\mathcal M}\lambda_m\mathbf 1\{b\ge m\}\).
+  \item \texttt{h\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal V\}\allowbreak{}} --- \texttt{function}; \(\mathbb R^{|\mathcal M|}\to\mathbb R\); \texttt{support function}
+  \par\smallskip\noindent\emph{Definition.} \(h_{\mathcal V}(\lambda)=\sup_{v\in\mathcal V(p_{BT},q)}\lambda^\top v\).
+  \item \texttt{D\_\allowbreak{}\{mj\}\allowbreak{}} --- \texttt{scalar}; \(\mathbb R\); \texttt{signed pairwise shared-\allowbreak{}law worst-\allowbreak{}case loss difference}
+  \par\smallskip\noindent\emph{Definition.} \(D_{mj}=\sup_{v\in\mathcal V(p_{BT},q)}(v_m-v_j)\).
+  \item \texttt{R\_\allowbreak{}m} --- \texttt{nonnegative scalar}; \(\mathbb R_+\); \texttt{worst-\allowbreak{}case regret}
+  \par\smallskip\noindent\emph{Definition.} \(R_m=\max_{j\in\mathcal M}D_{mj}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{finite set}; \(2^{\mathcal M}\); \texttt{deterministic minimax-\allowbreak{}threshold correspondence}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M^\star=\operatorname*{argmin}_{m\in\mathcal M}R_m\).
+  \item \texttt{\textbackslash{}\allowbreak{}underline J\_\allowbreak{}m} --- \texttt{scalar}; \(\mathbb R_+\); \texttt{coordinatewise lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(\underline J_m=\inf_{v\in\mathcal V(p_{BT},q)}v_m\), the sharp scalar lower endpoint for threshold \(m\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline J\_\allowbreak{}m} --- \texttt{scalar}; \(\mathbb R_+\); \texttt{coordinatewise upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(\overline J_m=\sup_{v\in\mathcal V(p_{BT},q)}v_m\), the sharp scalar upper endpoint for threshold \(m\).
+  \item \texttt{D\textasciicircum{}\{\textbackslash{}\allowbreak{}Box\}\allowbreak{}\_\allowbreak{}\{mj\}\allowbreak{}} --- \texttt{scalar}; \(\mathbb R\); \texttt{separate-\allowbreak{}interval pairwise regret}
+  \par\smallskip\noindent\emph{Definition.} \(D^{\Box}_{mm}=0\) and \(D^{\Box}_{mj}=\overline J_m-\underline J_j\) for \(m\ne j\).
+  \item \texttt{R\_\allowbreak{}m\textasciicircum{}\{\textbackslash{}\allowbreak{}Box\}\allowbreak{}} --- \texttt{nonnegative scalar}; \(\mathbb R_+\); \texttt{separate-\allowbreak{}interval worst-\allowbreak{}case regret}
+  \par\smallskip\noindent\emph{Definition.} \(R_m^{\Box}=\max_{j\in\mathcal M}D^{\Box}_{mj}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\textasciicircum{}\{\textbackslash{}\allowbreak{}Box\}\allowbreak{}} --- \texttt{finite set}; \(2^{\mathcal M}\); \texttt{separate-\allowbreak{}interval minimax-\allowbreak{}threshold correspondence}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M^{\Box}=\operatorname*{argmin}_{m\in\mathcal M}R_m^{\Box}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}3} --- \texttt{identified-\allowbreak{}summary parameter set}; \texttt{subset of a finite-\allowbreak{}dimensional Euclidean space}; \texttt{nondegenerate comparison domain}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_3\) is the cap-three domain of tuples \((\pi,(p_b)_{b=0}^{3},(\mu_b)_{b=0}^{3},(q_w)_{w=0}^{3})\) specified in \(\text{def:comparison-domain}\), equipped with its relative topology.
+  \item \texttt{n} --- \texttt{integer}; \(\mathbb N\); \texttt{sample-\allowbreak{}size index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The randomized-\allowbreak{}trial sample size.}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{scalar}; \((0,1)\); \texttt{confidence level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The nominal error probability.}
+  \item \texttt{r\_\allowbreak{}\{bt\}\allowbreak{}} --- \texttt{subprobability mass}; \(\mathbb R_+^{(H+1)^2}\); \texttt{unconditional intensive-\allowbreak{}survivor cell mass}
+  \par\smallskip\noindent\emph{Definition.} \(r_{bt}=\pi p_{bt}\).
+  \item \texttt{s\_\allowbreak{}w} --- \texttt{subprobability mass}; \(\mathbb R_+^{H+1}\); \texttt{perspective column margin}
+  \par\smallskip\noindent\emph{Definition.} \(s_w=\pi q_w\), the unconditional switched-residual column mass among intensive-arm landmark survivors.
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf r} --- \texttt{array}; \(\mathbb R_+^{(H+1)^2}\); \texttt{candidate unconditional cell-\allowbreak{}mass array}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf r=(r_{bt})_{b,t\in\mathbb I_H}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf s} --- \texttt{array}; \(\mathbb R_+^{H+1}\); \texttt{candidate unconditional column-\allowbreak{}margin array}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf s=(s_w)_{w\in\mathbb I_H}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf x} --- \texttt{array}; \(\mathbb R_+^{(H+1)^2}\); \texttt{candidate unconditional transport array}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf x=(x_{bw})_{b,w\in\mathbb I_H}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf X\_\allowbreak{}H(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s)} --- \texttt{polytope-\allowbreak{}valued function}; candidate unconditional margins to subsets of \(\mathbb R_+^{(H+1)^2}\); \texttt{candidate shared-\allowbreak{}law coupling set}
+  \par\smallskip\noindent\emph{Definition.} The perspective Ferrers plans with row masses \(\sum_t r_{bt}\) and column masses \(s_w\), defined in \(\text{def:perspective-regret-functional}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf J\_\allowbreak{}m(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf x)} --- \texttt{scalar-\allowbreak{}valued function}; candidate unconditional margins and plans to \(\mathbb R_+\); \texttt{candidate threshold loss}
+  \par\smallskip\noindent\emph{Definition.} The unconditional threshold loss induced by candidate cell masses \(r_{bt}\) and perspective plan \(x_{bw}\), defined in \(\text{def:perspective-regret-functional}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf D\_\allowbreak{}\{mj\}\allowbreak{}(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s)} --- \texttt{scalar-\allowbreak{}valued function}; candidate feasible unconditional margins to \(\mathbb R\); \texttt{candidate signed pairwise difference}
+  \par\smallskip\noindent\emph{Definition.} The signed worst-case difference between candidate threshold losses \(m\) and \(j\), defined in \(\text{def:perspective-regret-functional}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf R\_\allowbreak{}m(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s)} --- \texttt{scalar-\allowbreak{}valued function}; candidate feasible unconditional margins to \(\mathbb R_+\); \texttt{candidate regret functional}
+  \par\smallskip\noindent\emph{Definition.} The candidate shared-law regret obtained by maximizing \(\mathsf D_{mj}(\mathbf r,\mathbf s)\) over \(j\in\mathcal M\), defined in \(\text{def:perspective-regret-functional}\).
+  \item \texttt{\textbackslash{}\allowbreak{}underline r\_\allowbreak{}\{bt\}\allowbreak{}} --- \texttt{random array}; \(\mathbb R^{(H+1)^2}\); \texttt{cellwise lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} The simultaneous lower confidence endpoints for \(r_{bt}\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline r\_\allowbreak{}\{bt\}\allowbreak{}} --- \texttt{random array}; \(\mathbb R^{(H+1)^2}\); \texttt{cellwise upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} The simultaneous upper confidence endpoints for \(r_{bt}\).
+  \item \texttt{\textbackslash{}\allowbreak{}underline q\_\allowbreak{}w} --- \texttt{random vector}; \(\mathbb R^{H+1}\); \texttt{residual-\allowbreak{}margin lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} The simultaneous lower confidence endpoints for \(q_w\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline q\_\allowbreak{}w} --- \texttt{random vector}; \(\mathbb R^{H+1}\); \texttt{residual-\allowbreak{}margin upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} The simultaneous upper confidence endpoints for \(q_w\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random rectangle}; \texttt{subsets of the product simplex}; \texttt{first-\allowbreak{}stage confidence region}
+  \par\smallskip\noindent\emph{Definition.} A simultaneous \(1-\alpha\) confidence rectangle for \((r_{bt},q_w)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal P\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random polytope}; \texttt{finite-\allowbreak{}dimensional Euclidean space}; \texttt{confidence-\allowbreak{}polytope inversion domain}
+  \par\smallskip\noindent\emph{Definition.} The perspective confidence polytope coupling candidate unconditional margins \(r_{bt}\) and \(s_w\) to a capped transport array.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal V\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random compact set}; subsets of \(\mathbb R^{|\mathcal M|}\); \texttt{confidence region for the whole value set}
+  \par\smallskip\noindent\emph{Definition.} The linear image of \(\widehat{\mathcal P}_{n,\alpha}\) under the threshold-loss map.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal M\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random finite set}; \(2^{\mathcal M}\); \texttt{robust-\allowbreak{}optimizer confidence set}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The regret-\allowbreak{}envelope outer confidence set for all deterministic minimax thresholds.}
+  \item \texttt{\textbackslash{}\allowbreak{}underline R\_\allowbreak{}m\textasciicircum{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random nonnegative scalar}; \(\mathbb R_+\); \texttt{regret lower confidence envelope}
+  \par\smallskip\noindent\emph{Definition.} The lower envelope of candidate shared-law regret for threshold \(m\) over the confidence polytope.
+  \item \texttt{\textbackslash{}\allowbreak{}overline R\_\allowbreak{}m\textasciicircum{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random nonnegative scalar}; \(\mathbb R_+\); \texttt{regret upper confidence envelope}
+  \par\smallskip\noindent\emph{Definition.} The upper envelope of candidate shared-law regret for threshold \(m\) over the confidence polytope.
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak L} --- \texttt{construction handle}; \texttt{finite-\allowbreak{}horizon response-\allowbreak{}tree algorithms}; \texttt{causal-\allowbreak{}lift handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A history-\allowbreak{}by-\allowbreak{}history response-\allowbreak{}type gluing handle that preserves the sustained factual paths,\allowbreak{} their arm-\allowbreak{}specific sequential censoring kernels,\allowbreak{} and the observed pushforward before completing unobserved branches.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak I} --- \texttt{construction handle}; \texttt{semiparametric inference procedures}; \texttt{uniform-\allowbreak{}inference handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A stacked efficient-\allowbreak{}influence-\allowbreak{}function and generalized-\allowbreak{}moment-\allowbreak{}selection handle followed by regularized support-\allowbreak{}function inversion.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf E\_\allowbreak{}3} --- \texttt{identified-\allowbreak{}summary instance}; \texttt{rational cap-\allowbreak{}three margin and row-\allowbreak{}moment arrays}; \texttt{sanity-\allowbreak{}check witness}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The explicit three-\allowbreak{}threshold recommendation-\allowbreak{}reversal instance.}
+  \item \texttt{Z} --- \texttt{random variable}; \(\mathbb Z_+\); \texttt{uncapped standard residual}
+  \par\smallskip\noindent\emph{Definition.} \(Z=Y_K^0-Y_k^0\) among units with \(S_k^0=1\), the uncapped standard-arm post-landmark residual.
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}H\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm J\}\allowbreak{}} --- \texttt{model class}; sets of probability laws on \(U,R,C,O\); \texttt{Janvin raw no-\allowbreak{}carry-\allowbreak{}over subclass}
+  \par\smallskip\noindent\emph{Definition.} The subclass of \(\mathfrak M_H\) satisfying the published uncapped residual no-carry-over equality.
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal M\}\allowbreak{}} --- \texttt{simplex}; subset of \(\mathbb R^{|\mathcal M|}\); \texttt{randomized-\allowbreak{}threshold decision space}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{\mathcal M}=\{\delta\in\mathbb R_+^{|\mathcal M|}:\sum_{m\in\mathcal M}\delta_m=1\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta} --- \texttt{probability vector}; \(\Delta_{\mathcal M}\); \texttt{randomized threshold rule}
+  \par\smallskip\noindent\emph{Definition.} \(\delta=(\delta_m)_{m\in\mathcal M}\) is a distribution used to draw a threshold independently of the latent law.
+  \item \texttt{e\_\allowbreak{}j} --- \texttt{vector}; \(\mathbb R^{|\mathcal M|}\); \texttt{comparator direction}
+  \par\smallskip\noindent\emph{Definition.} The \(j\)-th standard basis vector indexed by \(\mathcal M\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R(\textbackslash{}\allowbreak{}delta)} --- \texttt{scalar}; \(\mathbb R_+\); \texttt{randomized shared-\allowbreak{}law regret}
+  \par\smallskip\noindent\emph{Definition.} The worst-case regret of randomized threshold rule \(\delta\) against the best deterministic threshold under the same value vector.
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{set}; \(2^{\Delta_{\mathcal M}}\); \texttt{randomized minimax correspondence}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta^\star=\operatorname*{argmin}_{\delta\in\Delta_{\mathcal M}}\mathcal R(\delta)\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho} --- \texttt{scalar}; \(\mathbb R\); \texttt{optimization variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The epigraph variable in the randomized minimax regret program.}
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{scalar}; \([0,1]\); \texttt{candidate perspective mass}
+  \par\smallskip\noindent\emph{Definition.} \(\tau=\sum_{b,t}r_{bt}=\sum_ws_w\), the total mass of a candidate unconditional margin pair.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal Q\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random compact polytope}; \texttt{subsets of the candidate unconditional margin space}; \texttt{randomized-\allowbreak{}optimizer margin inversion domain}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\mathcal Q}_{n,\alpha}=\operatorname{proj}_{\mathbf r,\mathbf s}\widehat{\mathcal P}_{n,\alpha}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf V\_\allowbreak{}H(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s)} --- \texttt{compact convex set-\allowbreak{}valued function}; candidate unconditional margins to subsets of \(\mathbb R^{|\mathcal M|}\); \texttt{candidate randomized-\allowbreak{}decision value set}
+  \par\smallskip\noindent\emph{Definition.} The shared-plan value set at candidate unconditional margins, defined in \(\text{def:randomized-optimizer-confidence-set}\).
+  \item \texttt{h\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathsf V\_\allowbreak{}H(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s)\}\allowbreak{}} --- \texttt{function}; \(\mathbb R^{|\mathcal M|}\to\mathbb R\); \texttt{candidate support function}
+  \par\smallskip\noindent\emph{Definition.} The support function of \(\mathsf V_H(\mathbf r,\mathbf s)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf R\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s\}\allowbreak{}(\textbackslash{}\allowbreak{}delta)} --- \texttt{scalar-\allowbreak{}valued function}; candidate feasible unconditional margins and \(\Delta_{\mathcal M}\) to \([0,H]\); \texttt{candidate randomized regret}
+  \par\smallskip\noindent\emph{Definition.} The candidate randomized shared-law regret, defined in \(\text{def:randomized-optimizer-confidence-set}\).
+  \item \texttt{\textbackslash{}\allowbreak{}underline\{\textbackslash{}\allowbreak{}mathcal R\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}(\textbackslash{}\allowbreak{}delta)} --- \texttt{random scalar-\allowbreak{}valued function}; \(\Delta_{\mathcal M}\to[0,H]\); \texttt{randomized-\allowbreak{}regret lower confidence envelope}
+  \par\smallskip\noindent\emph{Definition.} The lower envelope of candidate randomized regret over \(\widehat{\mathcal Q}_{n,\alpha}\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline\{\textbackslash{}\allowbreak{}mathcal R\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}(\textbackslash{}\allowbreak{}delta)} --- \texttt{random scalar-\allowbreak{}valued function}; \(\Delta_{\mathcal M}\to[0,H]\); \texttt{randomized-\allowbreak{}regret upper confidence envelope}
+  \par\smallskip\noindent\emph{Definition.} The upper envelope of candidate randomized regret over \(\widehat{\mathcal Q}_{n,\alpha}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}Delta\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random compact set}; subsets of \(\Delta_{\mathcal M}\); \texttt{randomized robust-\allowbreak{}optimizer confidence set}
+  \par\smallskip\noindent\emph{Definition.} The randomized-regret-envelope outer confidence set defined in \(\text{def:randomized-optimizer-confidence-set}\).
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon} --- \texttt{scalar}; \((0,1)\); \texttt{quantitative overlap constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed quantitative lower bound for assignment,\allowbreak{} landmark survival,\allowbreak{} and factual at-\allowbreak{}risk censoring continuation probabilities in the inference submodel.}
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\{\textbackslash{}\allowbreak{}ell\}\allowbreak{}\textasciicircum{}a} --- \texttt{probability kernel}; \texttt{supported factual-\allowbreak{}arm recurrent-\allowbreak{}history transitions}; \texttt{observed history transition}
+  \par\smallskip\noindent\emph{Definition.} The arm-\(a\) observed transition kernel at time \(\ell\) among subjects uncensored through \(\ell\), with the time-zero kernel interpreted as the observed initial-history law.
+  \item \texttt{F} --- \texttt{function}; bounded functions from a sustained-arm full-history space to \(\mathbb R\); \texttt{terminal functional index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic bounded terminal full-\allowbreak{}history functional used in the longitudinal score construction.}
+  \item \texttt{F\_\allowbreak{}\{bt\}\allowbreak{}\textasciicircum{}1} --- \texttt{binary random variable}; \(\{0,1\}\); \texttt{intensive terminal cell indicator}
+  \par\smallskip\noindent\emph{Definition.} \(F_{bt}^1=\mathbf 1\{S_k^1=1,B=b,T=t\}\).
+  \item \texttt{F\_\allowbreak{}w\textasciicircum{}0} --- \texttt{binary random variable}; \(\{0,1\}\); \texttt{standard residual numerator indicator}
+  \par\smallskip\noindent\emph{Definition.} \(F_w^0=\mathbf 1\{S_k^0=1,\min\{Z,H\}=w\}\).
+  \item \texttt{F\_\allowbreak{}S\textasciicircum{}0} --- \texttt{binary random variable}; \(\{0,1\}\); \texttt{standard landmark-\allowbreak{}survival denominator indicator}
+  \par\smallskip\noindent\emph{Definition.} \(F_S^0=\mathbf 1\{S_k^0=1\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\{a,\allowbreak{}F\}\allowbreak{}} --- \texttt{scalar}; \(\mathbb R\); \texttt{generic sustained-\allowbreak{}arm terminal mean}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{a,F}=\mathsf E\{F(\mathcal H_K^a)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}w} --- \texttt{subprobability mass}; \([0,1]\); \texttt{standard residual ratio numerator}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_w=\mathsf P(S_k^0=1,\min\{Z,H\}=w)\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}0} --- \texttt{scalar}; \((0,1]\); \texttt{standard landmark-\allowbreak{}survival ratio denominator}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_0=\mathsf P(S_k^0=1)\).
+  \item \texttt{g\_\allowbreak{}a} --- \texttt{scalar}; \((0,1)\); \texttt{assignment probability}
+  \par\smallskip\noindent\emph{Definition.} \(g_a=\mathsf P(R=a)\), the known randomization probability.
+  \item \texttt{g\_\allowbreak{}\textbackslash{}\allowbreak{}ell\textasciicircum{}a} --- \texttt{conditional probability function}; supported factual at-risk histories to \((0,1]\); \texttt{factual censoring continuation hazard}
+  \par\smallskip\noindent\emph{Definition.} \(g_\ell^a(h)=\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,\mathcal H_{\ell-1}^a=h)\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar G\_\allowbreak{}\textbackslash{}\allowbreak{}ell\textasciicircum{}a} --- \texttt{conditional probability product}; \((0,1]\); \texttt{cumulative censoring survival weight}
+  \par\smallskip\noindent\emph{Definition.} \(\bar G_\ell^a=\prod_{j=1}^{\ell}g_j^a(\mathcal H_{j-1}^a)\) along a factual at-risk arm-\(a\) history.
+  \item \texttt{Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}ell,\allowbreak{}F\}\allowbreak{}\textasciicircum{}a} --- \texttt{function}; supported arm-\(a\) histories through \(\ell\) to \([0,1]\) for indicator outcomes; \texttt{backward outcome regression}
+  \par\smallskip\noindent\emph{Definition.} The backward outcome regression with terminal value \(Q_{K,F}^a=F\) and \(Q_{\ell-1,F}^a(h)=\mathsf E\{Q_{\ell,F}^a(\mathcal H_\ell^a)\mid\mathcal H_{\ell-1}^a=h\}\) on alive supported histories.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}ell,\allowbreak{}F\}\allowbreak{}\textasciicircum{}a} --- \texttt{random function}; training-fold fitted history regressions clipped to \([0,1]\); \texttt{estimated backward regression}
+  \par\smallskip\noindent\emph{Definition.} The cross-fitted training-fold estimate of \(Q_{\ell,F}^a\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat g\_\allowbreak{}\textbackslash{}\allowbreak{}ell\textasciicircum{}a} --- \texttt{random function}; training-fold fitted continuation hazards clipped to \([\varepsilon/2,1]\); \texttt{estimated censoring hazard}
+  \par\smallskip\noindent\emph{Definition.} The cross-fitted training-fold estimate of \(g_\ell^a\).
+  \item \texttt{\textbackslash{}\allowbreak{}Psi\_\allowbreak{}\{a,\allowbreak{}F\}\allowbreak{}} --- \texttt{function}; observed histories to \(\mathbb R\); \texttt{longitudinal AIPW score}
+  \par\smallskip\noindent\emph{Definition.} The arm-weighted longitudinal augmented inverse-censoring score defined in \(\text{def:uniform-inference-handle}\).
+  \item \texttt{\textbackslash{}\allowbreak{}varphi\_\allowbreak{}\{a,\allowbreak{}F\}\allowbreak{}} --- \texttt{mean-\allowbreak{}zero function}; observed histories to \(\mathbb R\); \texttt{terminal-\allowbreak{}mean influence function}
+  \par\smallskip\noindent\emph{Definition.} \(\varphi_{a,F}=\Psi_{a,F}-\theta_{a,F}\).
+  \item \texttt{\textbackslash{}\allowbreak{}varphi\_\allowbreak{}\{q\_\allowbreak{}w\}\allowbreak{}} --- \texttt{mean-\allowbreak{}zero function}; observed histories to \(\mathbb R\); \texttt{residual-\allowbreak{}margin ratio influence function}
+  \par\smallskip\noindent\emph{Definition.} \(\varphi_{q_w}=(\varphi_{0,F_w^0}-q_w\varphi_{0,F_S^0})/\sigma_0\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}vartheta\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{raw\}\allowbreak{}\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{(H+1)^2+(H+1)}\); \texttt{raw margin estimator}
+  \par\smallskip\noindent\emph{Definition.} The vector of cross-fitted longitudinal estimates of \(((r_{bt}),(q_w))\) before feasibility projection.
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\textbackslash{}\allowbreak{}vartheta\_\allowbreak{}n} --- \texttt{random vector}; \texttt{Hall-\allowbreak{}feasible margin domain}; \texttt{feasible confidence center}
+  \par\smallskip\noindent\emph{Definition.} A sup-norm projection of \(\widehat\vartheta_n^{\mathrm{raw}}\) onto the compact Hall-feasible margin domain with survivor mass at least \(\varepsilon/2\).
+  \item \texttt{C\_\allowbreak{}\{K,\allowbreak{}\textbackslash{}\allowbreak{}varepsilon\}\allowbreak{}} --- \texttt{positive scalar}; \((0,\infty)\); \texttt{uniform influence envelope}
+  \par\smallskip\noindent\emph{Definition.} A deterministic envelope for every cell-mass and ratio influence coordinate under fixed \(K\) and overlap lower bound \(\varepsilon\); one valid choice follows from \(2\{2+K\varepsilon^{-(K+1)}\}/\varepsilon\).
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{QIR\}\allowbreak{}\_\allowbreak{}\{H,\allowbreak{}K,\allowbreak{}\textbackslash{}\allowbreak{}varepsilon\}\allowbreak{}} --- \texttt{predicate}; \texttt{law-\allowbreak{}-\allowbreak{}estimator triangular sequences to propositions}; \texttt{quantitative inference submodel}
+  \par\smallskip\noindent\emph{Definition.} The quantitative inference regularity predicate defined in \(\text{def:quantitative-inference-regularity}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:baseline-randomization]\label{ass:baseline-randomization}
+\(R\perp U\) under \(\mathsf P\).
+\par\smallskip\noindent\emph{Standard} (Baseline treatment randomization, \cite{JanvinRyalenSarvetStensrud2025}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(O\) equals the \(R\)-indexed path in \(U\) truncated at \(C\).
+\par\smallskip\noindent\emph{Standard} (Counterfactual consistency for recurrent-event histories; counterfactual recurrent-event setup in Sections 2--3, \cite{JanvinYoungRyalenStensrud2023}).
+\end{assumption}
+
+\begin{assumption}[ass:censoring-exchangeability]\label{ass:censoring-exchangeability}
+For every \(a\in\{0,1\}\) and \(\ell\in\{1,\ldots,K\}\), on \(\{R=a,C\ge\ell-1,D_{\ell-1}^a=0\}\), \(\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,\mathcal H_K^a)=\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,\mathcal H_{\ell-1}^a)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Factual-arm sequential coarsening at random on the at-risk history; Proposition 1 and Corollary 1, \cite{BaerStrawdermanErtefaie2023}).
+\end{assumption}
+
+\begin{assumption}[ass:assignment-positivity]\label{ass:assignment-positivity}
+\(\mathsf P(R=a)>0\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Baseline treatment positivity, \cite{JanvinRyalenSarvetStensrud2025}).
+\end{assumption}
+
+\begin{assumption}[ass:censoring-positivity]\label{ass:censoring-positivity}
+For every \(a\in\{0,1\}\) and \(\ell\in\{1,\ldots,K\}\), \(\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,\mathcal H_{\ell-1}^a)>0\) almost surely on \(\{R=a,C\ge\ell-1,D_{\ell-1}^a=0\}\).
+\par\smallskip\noindent\emph{Standard} (Factual-arm sequential censoring positivity through the analysis horizon; Corollary 1, \cite{BaerStrawdermanErtefaie2023}).
+\end{assumption}
+
+\begin{assumption}[ass:landmark-survival-positivity]\label{ass:landmark-survival-positivity}
+\(\mathsf P(S_k^a=1)>0\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Landmark survival positivity, \cite{JanvinRyalenSarvetStensrud2025}).
+\end{assumption}
+
+\begin{assumption}[ass:no-anticipation]\label{ass:no-anticipation}
+\((Y_{\ell}^{1\to0},D_{\ell}^{1\to0})=(Y_{\ell}^{1},D_{\ell}^{1})\) for every \(\ell\le k\).
+\par\smallskip\noindent\emph{Standard} (Single-world no-anticipation at a fixed intervention time, \cite{RichardsonRobins2013}).
+\end{assumption}
+
+\begin{assumption}[ass:capped-residual-transportability]\label{ass:capped-residual-transportability}
+\(\mathsf P(W=w\mid S_k^1=1)=q_w\) for every \(w\in\mathbb I_H\).
+\par\smallskip\noindent\emph{Standard} (Capped-increment specialization of the no-carry-over condition in Assumption 1, \cite{JanvinRyalenSarvetStensrud2025}).
+\end{assumption}
+
+\begin{assumption}[ass:capped-capacity]\label{ass:capped-capacity}
+\(\mathsf P(B+W\le H\mid S_k^1=1)=1\).
+\par\smallskip\noindent\emph{Novel.} This is an explicit sensitivity restriction, not a consequence of separately capping \(B\) and \(W\). It is satisfied by recurrent processes in which switching activates a nonrenewable reserve of \(H-B\) post-landmark event opportunities, for example a finite collection of vulnerable sites whose failures before \(k\) cannot recur and whose remaining sites are stabilized after switching. A clinical analysis must justify that mechanism and choose \(H\) externally; otherwise the theorem is reported only as a shape-restriction sensitivity analysis.
+\end{assumption}
+
+\begin{assumption}[ass:quantitative-inference-regularity]\label{ass:quantitative-inference-regularity}
+The quantitative-inference analysis is restricted to a triangular law--estimator sequence satisfying \(\operatorname{QIR}_{H,K,\varepsilon}(\mathsf P,\mathfrak I)\) for some fixed \(\varepsilon\in(0,1)\).
+\par\smallskip\noindent\emph{Standard} (quantitative longitudinal AIPW overlap and cross-fitting regularity (BaerStrawde, \cite{BaerStrawdermanErtefaie2023}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Capacity-\allowbreak{}sensitivity FFRCISTG class with raw paths and separately capped summaries}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_H=\{\mathsf P:R\perp U;\ O\text{ is the }R\text{-indexed path in }U\text{ observed through }C;\ \mathsf P(R=a)>0;\ \mathsf P(S_k^a=1)>0;\ (Y_{\ell}^{1\to0},D_{\ell}^{1\to0})=(Y_{\ell}^{1},D_{\ell}^{1})\text{ for }\ell\le k;\ \mathsf P(W=w\mid S_k^1=1)=q_w;\ \mathsf P(B+W\le H\mid S_k^1=1)=1;\text{ and, for every }a\in\{0,1\},\ell\in\{1,\ldots,K\},\ \mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,\mathcal H_K^a)=\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,\mathcal H_{\ell-1}^a)>0\text{ almost surely on }\{R=a,C\ge\ell-1,D_{\ell-1}^a=0\}\}\). The censoring restriction is arm specific and factual; it imposes no independence between \(C\) and unassigned counterfactual branches.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}baseline-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}censoring-\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}assignment-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}censoring-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}landmark-\allowbreak{}survival-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}no-\allowbreak{}anticipation}; \texttt{ass:\allowbreak{}capped-\allowbreak{}residual-\allowbreak{}transportability}; \texttt{ass:\allowbreak{}capped-\allowbreak{}capacity}.
+\end{definition}
+
+\begin{definition}[def:ferrers-polytope]\label{def:ferrers-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Capped Ferrers transport polytope}
+\par\smallskip\noindent\emph{Construction.} \(\Gamma_H(p,q)=\{x\in\mathbb R_+^{(H+1)\times(H+1)}:\sum_w x_{bw}=p_b,\ \sum_b x_{bw}=q_w,\ x_{bw}=0\text{ if }b+w>H\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}b}; \texttt{q\_\allowbreak{}w}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:triple-polytope]\label{def:triple-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Capped triple-\allowbreak{}coupling polytope}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal G_H(p_{BT},q)=\{\gamma\in\mathbb R_+^{(H+1)^3}:\sum_w\gamma_{btw}=p_{bt},\ \sum_{b,t}\gamma_{btw}=q_w,\ \gamma_{btw}=0\text{ if }b+w>H\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}\{bt\}\allowbreak{}}; \texttt{q\_\allowbreak{}w}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:threshold-cumulative-envelopes]\label{def:threshold-cumulative-envelopes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected-\allowbreak{}subdistribution cumulative envelopes}
+\par\smallskip\noindent\emph{Construction.} For each \(m\in\mathcal M\), set \(L_m=H-m\), \(a_m=\sum_{b=m}^{H}p_b\), \(Q_s=\sum_{w=0}^{s}q_w\), and \(A_s=\sum_{b=H-s}^{H}p_b\). For every \(s\in\{0,\ldots,L_m\}\), set \(Z_{ms}^{-}=\min\{a_m,Q_s\}\) and \(Z_{ms}^{+}=Q_s+\max_{u\in\{s,\ldots,L_m\}}(A_u-Q_u)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}b}; \texttt{q\_\allowbreak{}w}; \texttt{H}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:threshold-value-set]\label{def:threshold-value-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Shared-\allowbreak{}law threshold-\allowbreak{}value set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal V(p_{BT},q)=\{(\pi[\sum_{b<m}\mu_b+\sum_{b\ge m,w}w x_{bw}])_{m\in\mathcal M}:x\in\Gamma_H(p,q)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}\{bt\}\allowbreak{}}; \texttt{q\_\allowbreak{}w}; \texttt{\textbackslash{}\allowbreak{}pi}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:support-function]\label{def:support-function}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Threshold-\allowbreak{}value support function}
+\par\smallskip\noindent\emph{Construction.} \(h_{\mathcal V}(\lambda)=\pi[\sum_{m\in\mathcal M}\lambda_m\sum_{b<m}\mu_b+\max_{x\in\Gamma_H(p,q)}\sum_{b,w}c_b(\lambda)w x_{bw}]\), where \(c_b(\lambda)=\sum_{m\in\mathcal M}\lambda_m\mathbf 1\{b\ge m\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}lambda}; \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}b}; \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}H(p,\allowbreak{}q)}; \texttt{\textbackslash{}\allowbreak{}pi}.
+\end{definition}
+
+\begin{definition}[def:shared-law-regret]\label{def:shared-law-regret}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Shared-\allowbreak{}law pairwise differences and regret correspondence}
+\par\smallskip\noindent\emph{Construction.} \(D_{mj}=\sup_{v\in\mathcal V(p_{BT},q)}(v_m-v_j)\in\mathbb R\), \(R_m=\max_{j\in\mathcal M}D_{mj}\ge0\), and \(\mathcal M^\star=\operatorname*{argmin}_{m\in\mathcal M}R_m\). The inequality for \(R_m\) follows from the included comparator \(j=m\), for which \(D_{mm}=0\); no sign restriction is imposed on \(D_{mj}\) when \(m\ne j\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal V(p\_\allowbreak{}\{BT\}\allowbreak{},\allowbreak{}q)}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:scalar-bound-regret]\label{def:scalar-bound-regret}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Separate scalar-\allowbreak{}bound regret correspondence}
+\par\smallskip\noindent\emph{Construction.} Set \(\underline J_m=\inf_{v\in\mathcal V(p_{BT},q)}v_m\) and \(\overline J_m=\sup_{v\in\mathcal V(p_{BT},q)}v_m\). Define \(D^{\Box}_{mm}=0\), \(D^{\Box}_{mj}=\overline J_m-\underline J_j\) for \(m\ne j\), \(R_m^{\Box}=\max_{j\in\mathcal M}D^{\Box}_{mj}\), and \(\mathcal M^{\Box}=\operatorname*{argmin}_{m\in\mathcal M}R_m^{\Box}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal V(p\_\allowbreak{}\{BT\}\allowbreak{},\allowbreak{}q)}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:comparison-domain]\label{def:comparison-domain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cap-\allowbreak{}three identified-\allowbreak{}summary domain}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_3=\{(\pi,(p_b)_{b=0}^{3},(\mu_b)_{b=0}^{3},(q_w)_{w=0}^{3}):0<\pi\le1,\ (p_b)_{b=0}^{3},(q_w)_{w=0}^{3}\in\Delta(\{0,1,2,3\}),\ 0\le\mu_b\le3p_b\text{ for every }b,\ \Gamma_3(p,q)\ne\varnothing\}\), with the relative topology inherited from Euclidean space.
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}b}; \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}b}; \texttt{q\_\allowbreak{}w}; \texttt{\textbackslash{}\allowbreak{}pi}.
+\end{definition}
+
+\begin{definition}[def:response-tree-handle]\label{def:response-tree-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}law-\allowbreak{}preserving cap-\allowbreak{}fibre response-\allowbreak{}tree gluing handle}
+\par\smallskip\noindent\emph{Construction.} Given an observed-data law with an admitted sustained-arm full-data extension and \(\gamma\in\mathcal G_H(p_{BT},q)\), \(\mathfrak L\) retains the original joint law of the raw intensive and standard sustained histories. Write \(Z=Y_K^0-Y_k^0\) among standard-arm survivors. For each intensive survivor with realized \((B,T)=(b,t)\) and \(p_{bt}>0\), it first draws \(W=w\) with probability \(\gamma_{btw}/p_{bt}\). Conditional on \(W=w\), it then draws an uncapped switched residual \(\widetilde Z\) from the standard-arm conditional law of \(Z\) given \(S_k^0=1\) and \(\min\{Z,H\}=w\); a zero-probability cap fibre uses any law supported on that fibre. It copies the intensive history through \(k\), keeps the otherwise unobserved switched branch alive through \(K\), adds exactly \(\widetilde Z\) raw events immediately after \(k\), and adds none thereafter. For histories dead by \(k\), it continues the absorbing path. It fills every other unused branch by copying the common prefix to its first treatment divergence and then appending a zero-event legal history. It packages the completed prefix-consistent table as \(U\), using auxiliary draws whose conditional law given the original table does not depend on \(R\), and retains the original \((R,C)\). The sustained factual histories and their joint law with \((R,C)\) are therefore unchanged, so the observed pushforward and the original arm-specific sequential coarsening-at-random and positivity conditions are preserved. Zero-probability \((b,t)\) cells use arbitrary conditional values. The construction neither assumes nor requires independence between censoring and unassigned counterfactual branches.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}\{btw\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}mathsf P}; \texttt{Z}; \texttt{k}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:simultaneous-margin-region]\label{def:simultaneous-margin-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Simultaneous margin confidence region}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_{n,\alpha}=\{(r,q):\underline r_{bt}\le r_{bt}\le\overline r_{bt}\text{ for all }b,t,\ \underline q_w\le q_w\le\overline q_w\text{ for all }w\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{n}; \texttt{\textbackslash{}\allowbreak{}alpha}.
+\end{definition}
+
+\begin{definition}[def:confidence-polytope]\label{def:confidence-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Perspective Hall confidence polytope}
+\par\smallskip\noindent\emph{Construction.} \(\widehat{\mathcal P}_{n,\alpha}=\{(\mathbf r,\mathbf s,\mathbf x):r_{bt}\ge0,\ \underline r_{bt}\le r_{bt}\le\overline r_{bt},\ \sum_{b,t}r_{bt}\le1,\ s_w\ge0,\ \sum_ws_w=\sum_{b,t}r_{bt},\ \underline q_w\sum_{b,t}r_{bt}\le s_w\le\overline q_w\sum_{b,t}r_{bt},\ x_{bw}\ge0,\ x_{bw}=0\text{ if }b+w>H,\ \sum_wx_{bw}=\sum_t r_{bt},\ \sum_bx_{bw}=s_w\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:value-confidence-set]\label{def:value-confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Whole-\allowbreak{}value-\allowbreak{}set confidence image}
+\par\smallskip\noindent\emph{Construction.} \(\widehat{\mathcal V}_{n,\alpha}=\{(\sum_{b<m,t}t r_{bt}+\sum_{b\ge m,w}w x_{bw})_{m\in\mathcal M}:(\mathbf r,\mathbf s,\mathbf x)\in\widehat{\mathcal P}_{n,\alpha}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal P\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:perspective-regret-functional]\label{def:perspective-regret-functional}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Perspective shared-\allowbreak{}law regret functional}
+\par\smallskip\noindent\emph{Construction.} For candidate unconditional margins \((\mathbf r,\mathbf s)\), define \(\mathsf X_H(\mathbf r,\mathbf s)=\{\mathbf x\in\mathbb R_+^{(H+1)^2}:x_{bw}=0\text{ if }b+w>H,\ \sum_wx_{bw}=\sum_t r_{bt},\ \sum_bx_{bw}=s_w\}\). For \(\mathbf x\in\mathsf X_H(\mathbf r,\mathbf s)\), define \(\mathsf J_m(\mathbf r,\mathbf x)=\sum_{b<m,t}t r_{bt}+\sum_{b\ge m,w}w x_{bw}\). On margin pairs with \(\mathsf X_H(\mathbf r,\mathbf s)\ne\varnothing\), define \(\mathsf D_{mj}(\mathbf r,\mathbf s)=\max_{\mathbf x\in\mathsf X_H(\mathbf r,\mathbf s)}[\mathsf J_m(\mathbf r,\mathbf x)-\mathsf J_j(\mathbf r,\mathbf x)]\) and \(\mathsf R_m(\mathbf r,\mathbf s)=\max_{j\in\mathcal M}\mathsf D_{mj}(\mathbf r,\mathbf s)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{r\_\allowbreak{}\{bt\}\allowbreak{}}; \texttt{s\_\allowbreak{}w}; \texttt{H}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:optimizer-confidence-set]\label{def:optimizer-confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Regret-\allowbreak{}envelope optimizer confidence set}
+\par\smallskip\noindent\emph{Construction.} Set \(\underline R_m^{n,\alpha}=\min_{(\mathbf r,\mathbf s)\in\operatorname{proj}_{\mathbf r,\mathbf s}\widehat{\mathcal P}_{n,\alpha}}\mathsf R_m(\mathbf r,\mathbf s)\), \(\overline R_m^{n,\alpha}=\max_{(\mathbf r,\mathbf s)\in\operatorname{proj}_{\mathbf r,\mathbf s}\widehat{\mathcal P}_{n,\alpha}}\mathsf R_m(\mathbf r,\mathbf s)\), and \(\widehat{\mathcal M}_{n,\alpha}=\{m\in\mathcal M:\underline R_m^{n,\alpha}\le\min_{j\in\mathcal M}\overline R_j^{n,\alpha}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal P\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}mathcal M}; \texttt{\textbackslash{}\allowbreak{}mathsf R\_\allowbreak{}m(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s)}.
+\end{definition}
+
+\begin{definition}[def:uniform-inference-handle]\label{def:uniform-inference-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Censoring-\allowbreak{}adjusted cross-\allowbreak{}fitted margin and inversion procedure}
+\par\smallskip\noindent\emph{Construction.} For a bounded terminal full-history functional \(F\) in arm \(a\), put \(\theta_{a,F}=\mathsf E\{F(\mathcal H_K^a)\}\), \(g_a=\mathsf P(R=a)\), and
+\[
+ g_\ell^a(h)=\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,
+ D_{\ell-1}^a=0,\mathcal H_{\ell-1}^a=h),
+ \qquad
+ \bar G_\ell^a=\prod_{j=1}^{\ell}g_j^a(\mathcal H_{j-1}^a).
+\]
+Set \(Q_{K,F}^a=F\).  Backwards over supported alive histories, set
+\[
+ Q_{\ell-1,F}^a(h)=
+ \mathsf E\{Q_{\ell,F}^a(\mathcal H_\ell^a)
+       \mid \mathcal H_{\ell-1}^a=h\},
+\]
+and on a dead history use the deterministic absorbing completion.  Define
+\[
+ \Psi_{a,F}(O)=
+ \frac{\mathbf 1\{R=a\}}{g_a}\left[Q_{0,F}^a(\mathcal H_0^a)+
+ \sum_{\ell=1}^{K}
+ \frac{\mathbf 1\{C\ge\ell,D_{\ell-1}^a=0\}}{\bar G_\ell^a}
+ \{Q_{\ell,F}^a(\mathcal H_\ell^a)-Q_{\ell-1,F}^a(\mathcal H_{\ell-1}^a)\}\right],
+ \qquad
+ \varphi_{a,F}=\Psi_{a,F}-\theta_{a,F}.                    \tag{1}
+\]
+Use the terminal cell indicators
+\[
+ F_{bt}^1=\mathbf 1\{S_k^1=1,B=b,T=t\},\qquad
+ F_w^0=\mathbf 1\{S_k^0=1,\min\{Z,H\}=w\},\qquad
+ F_S^0=\mathbf 1\{S_k^0=1\}.                              \tag{2}
+\]
+Then \(r_{bt}=\theta_{1,F_{bt}^1}\), \(\nu_w=\theta_{0,F_w^0}\), \(\sigma_0=\theta_{0,F_S^0}\), \(q_w=\nu_w/\sigma_0\), and the ratio influence function is
+\[
+ \varphi_{q_w}=\frac{\varphi_{0,F_w^0}-q_w\varphi_{0,F_S^0}}{\sigma_0}. \tag{3}
+\]
+The procedure \(\mathfrak I\) uses a fixed number of folds.  On each validation fold it evaluates (1) with backward regressions and censoring hazards fitted only on the complementary training folds, with regressions clipped to \([0,1]\) and hazards clipped to \([\varepsilon/2,1]\), and averages the resulting scores.  For \(q_w\), it divides the cross-fitted numerator estimate by the maximum of the corresponding survival-denominator estimate and \(\varepsilon/2\).  Let \(\widehat\vartheta_n^{\mathrm{raw}}\) collect these estimates of \(((r_{bt}),(q_w))\), and let \(\widetilde\vartheta_n\) be a sup-norm projection onto the compact set of Hall-feasible margin pairs having intensive-survivor mass at least \(\varepsilon/2\).  With \(d=(H+1)^2+(H+1)\) and any valid uniform bound \(C_{K,\varepsilon}\) on the influence-function coordinates, it takes the simultaneous Bonferroni--Chebyshev rectangle centered at \(\widetilde\vartheta_n\) with coordinate half-width
+\[
+ \frac{2\{C_{K,\varepsilon}\sqrt{d/\alpha}+1\}}{\sqrt n},              \tag{4}
+\]
+clipped to \([0,1]\).  The endpoints in (4) define \(\mathcal I_{n,\alpha}\), which is then inverted through \(\widehat{\mathcal P}_{n,\alpha}\), \(\widehat{\mathcal V}_{n,\alpha}\), \(\widehat{\mathcal M}_{n,\alpha}\), and \(\widehat\Delta_{n,\alpha}\).  This definition introduces no quantitative restriction into \(\mathfrak M_H\); its positive rate guarantee is conditional on \(\operatorname{QIR}_{H,K,\varepsilon}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{H}; \texttt{K}; \texttt{n}; \texttt{\textbackslash{}\allowbreak{}alpha}; \texttt{\textbackslash{}\allowbreak{}varepsilon}.
+\end{definition}
+
+\begin{definition}[def:rational-reversal-instance]\label{def:rational-reversal-instance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}threshold rational reversal instance}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf E_3\in\Theta_3\) has \(H=3\), \(\pi=1\), \(\mathcal M=\{1,2,3\}\), \((p_0,p_1,p_2,p_3)=(2/5,3/10,1/5,1/10)\), \((q_0,q_1,q_2,q_3)=(3/10,3/10,1/5,1/5)\), and \((\mu_0,\mu_1,\mu_2,\mu_3)=(0,7/20,7/40,0)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{\textbackslash{}\allowbreak{}pi}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:janvin-raw-no-carryover-subclass]\label{def:janvin-raw-no-carryover-subclass}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Published raw no-\allowbreak{}carry-\allowbreak{}over capacity subclass}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_H^{\mathrm J}=\{\mathsf P\in\mathfrak M_H:\mathcal L_{\mathsf P}(Y_K^{1\to0}-Y_k^{1\to0}\mid S_k^1=1)=\mathcal L_{\mathsf P}(Z\mid S_k^0=1)\}\), where the equality is equality of probability laws on \(\mathbb Z_+\). Thus the subclass imposes the published uncapped residual no-carry-over equality in addition to, and not in place of, every restriction defining \(\mathfrak M_H\); in particular it retains \(B+W\le H\) almost surely among intensive survivors.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}H}; \texttt{Z}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:randomized-shared-law-regret]\label{def:randomized-shared-law-regret}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Randomized shared-\allowbreak{}law regret and minimax correspondence}
+\par\smallskip\noindent\emph{Construction.} Let \(\Delta_{\mathcal M}=\{\delta\in\mathbb R_+^{|\mathcal M|}:\sum_{m\in\mathcal M}\delta_m=1\}\). A draw \(m\sim\delta\), made independently of the latent law, incurs loss \(\sum_m\delta_m v_m\) at \(v\in\mathcal V(p_{BT},q)\). Define its shared-law worst-case regret and the randomized minimax correspondence by \(\mathcal R(\delta)=\sup_{v\in\mathcal V(p_{BT},q)}\{\sum_m\delta_m v_m-\min_{j\in\mathcal M}v_j\}\) and \(\Delta^\star=\operatorname*{argmin}_{\delta\in\Delta_{\mathcal M}}\mathcal R(\delta)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal V(p\_\allowbreak{}\{BT\}\allowbreak{},\allowbreak{}q)}; \texttt{\textbackslash{}\allowbreak{}mathcal M}.
+\end{definition}
+
+\begin{definition}[def:randomized-optimizer-confidence-set]\label{def:randomized-optimizer-confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Randomized-\allowbreak{}regret envelope confidence set}
+\par\smallskip\noindent\emph{Construction.} Put \(\widehat{\mathcal Q}_{n,\alpha}=\operatorname{proj}_{\mathbf r,\mathbf s}\widehat{\mathcal P}_{n,\alpha}\).  For \((\mathbf r,\mathbf s)\in\widehat{\mathcal Q}_{n,\alpha}\), define
+\[
+ \mathsf V_H(\mathbf r,\mathbf s)
+ =\{(\mathsf J_m(\mathbf r,\mathbf x))_{m\in\mathcal M}:
+       \mathbf x\in\mathsf X_H(\mathbf r,\mathbf s)\},
+ \qquad
+ h_{\mathsf V_H(\mathbf r,\mathbf s)}(\lambda)
+ =\max_{v\in\mathsf V_H(\mathbf r,\mathbf s)}\lambda^\top v,
+\]
+and
+\[
+ \mathsf R_{\mathbf r,\mathbf s}(\delta)
+ =\max_{j\in\mathcal M}
+   h_{\mathsf V_H(\mathbf r,\mathbf s)}(\delta-e_j),
+ \qquad \delta\in\Delta_{\mathcal M}.
+\]
+When \(\widehat{\mathcal Q}_{n,\alpha}\ne\varnothing\), set
+\[
+ \underline{\mathcal R}_{n,\alpha}(\delta)
+ =\inf_{(\mathbf r,\mathbf s)\in\widehat{\mathcal Q}_{n,\alpha}}
+      \mathsf R_{\mathbf r,\mathbf s}(\delta),
+ \qquad
+ \overline{\mathcal R}_{n,\alpha}(\delta)
+ =\sup_{(\mathbf r,\mathbf s)\in\widehat{\mathcal Q}_{n,\alpha}}
+      \mathsf R_{\mathbf r,\mathbf s}(\delta),
+\]
+and define the randomized-optimizer outer set by
+\[
+ \widehat{\Delta}_{n,\alpha}
+ =\left\{\delta\in\Delta_{\mathcal M}:
+   \underline{\mathcal R}_{n,\alpha}(\delta)
+   \le \inf_{\lambda\in\Delta_{\mathcal M}}
+          \overline{\mathcal R}_{n,\alpha}(\lambda)\right\}.
+\]
+If \(\widehat{\mathcal Q}_{n,\alpha}=\varnothing\), use the total convention \(\underline{\mathcal R}_{n,\alpha}(\delta)=0\), \(\overline{\mathcal R}_{n,\alpha}(\delta)=H\), and \(\widehat{\Delta}_{n,\alpha}=\Delta_{\mathcal M}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal P\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}mathsf X\_\allowbreak{}H(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf s)}; \texttt{\textbackslash{}\allowbreak{}mathsf J\_\allowbreak{}m(\textbackslash{}\allowbreak{}mathbf r,\allowbreak{}\textbackslash{}\allowbreak{}mathbf x)}; \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal M\}\allowbreak{}}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:quantitative-inference-regularity]\label{def:quantitative-inference-regularity}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Quantitative longitudinal inference regularity predicate}
+\par\smallskip\noindent\emph{Construction.} For fixed \(H\), \(K\), and \(\varepsilon\in(0,1)\), \(\operatorname{QIR}_{H,K,\varepsilon}(\mathsf P,\mathfrak I)\) means the following single quantitative-inference regularity predicate for a triangular law--estimator sequence.  Every law is in \(\mathfrak M_H\); \(H\) and \(K\) do not vary with \(n\); \(g_a=\mathsf P(R=a)\ge\varepsilon\) and \(\mathsf P(S_k^a=1)\ge\varepsilon\) for both arms; and every supported factual at-risk continuation probability \(g_\ell^a(\mathcal H_{\ell-1}^a)\) is at least \(\varepsilon\).  The number of cross-fitting folds is fixed and their proportions are bounded away from zero.  Every training-fold estimate \(\widehat Q_{\ell,F}^a\) is clipped to \([0,1]\), every \(\widehat g_\ell^a\) is clipped to \([\varepsilon/2,1]\), and, uniformly over the sequence and over the finite collection \(F\in\{F_{bt}^1,F_w^0,F_S^0\}\), all these fits are \(L^2(\mathsf P)\)-consistent.  Finally,
+\[
+ \sum_{a,F}\sum_{\ell=1}^{K}
+ \lVert\widehat Q_{\ell-1,F}^a-Q_{\ell-1,F}^a\rVert_2
+ \left(\sum_{j=1}^{\ell}
+ \lVert\widehat g_j^a-g_j^a\rVert_2\right)
+ =o_{\mathsf P}(n^{-1/2})                                \tag{1}
+\]
+uniformly over the sequence.  Thus the predicate states quantitative assignment, survival, and factual censoring overlap, cross-fitting and clipping, uniform nuisance consistency, and the explicit longitudinal regression--censoring product-rate condition; it makes no restriction on unsupported switched-arm censoring.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathsf P}; \texttt{\textbackslash{}\allowbreak{}mathfrak I}; \texttt{H}; \texttt{K}; \texttt{n}; \texttt{\textbackslash{}\allowbreak{}varepsilon}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:sharp-threshold-endpoints]\label{thm:sharp-threshold-endpoints}
+Assume \(\Gamma_H(p,q)\ne\varnothing\). For every \(m\in\mathcal M\), the attainable selected-column subdistributions \(z_w\) are exactly those satisfying \(z_w=0\) for \(w>L_m\), \(0\le z_w\le q_w\), \(\sum_{w=0}^{L_m}z_w=a_m\), and \(\sum_{w=0}^{s}z_w\ge A_s\) for \(0\le s\le L_m\). Their pointwise maximal and minimal cumulative arrays are respectively \(Z_{ms}^{-}\) and \(Z_{ms}^{+}\) from \(\text{def:threshold-cumulative-envelopes}\). In particular, \(Z_{m,L_m}^{-}=Z_{m,L_m}^{+}=a_m\) and \(Z_{ms}^{+}=\max\{A_s,Z_{m,s+1}^{+}-q_{s+1}\}\) for \(s<L_m\). Consequently, \(\inf_{x\in\Gamma_H(p,q)}\sum_{b\ge m,w}w x_{bw}=L_ma_m-\sum_{s=0}^{L_m-1}Z_{ms}^{-}\) and \(\sup_{x\in\Gamma_H(p,q)}\sum_{b\ge m,w}w x_{bw}=L_ma_m-\sum_{s=0}^{L_m-1}Z_{ms}^{+}\), with both endpoints attained. The sharp endpoints for \(J_m\) add \(\pi\sum_{b<m}\mu_b\) and multiply the displayed selected contribution by \(\pi\).
+\end{theorem}
+\begin{proof}
+Put \(L=L_m\) and \(a=a_m\).  We first prove the finite Ferrers transport fact used throughout.  Let \((\rho_b)_{b=0}^H\) and \((\sigma_w)_{w=0}^H\) be nonnegative arrays with the same total mass.  A nonnegative array with these margins and support \(b+w\le H\) can exist only if
+\[
+ \sum_{b=h}^H\rho_b\le \sum_{w=0}^{H-h}\sigma_w,
+ \qquad h=0,\ldots,H.                                      \tag{1}
+\]
+Indeed, every row in the left-hand tail has its neighborhood inside the column prefix on the right.  Conversely, process rows \(b=H,H-1,\ldots,0\), filling row \(b\) from the remaining mass in columns \(0,\ldots,H-b\).  Immediately before row \(b\) is filled, the previously processed rows have consumed exactly \(\sum_{r>b}\rho_r\) units from that prefix.  Its remaining mass is therefore
+\[
+ \sum_{w=0}^{H-b}\sigma_w-\sum_{r>b}\rho_r\ge \rho_b       \tag{2}
+\]
+by (1), so row \(b\) can be filled, splitting a column if necessary.  After the last row, equality of total masses forces every column residual to be zero.  Thus (1) is also sufficient, constructively, without strict Hall slack or positive cell masses.  This is the nested-neighborhood specialization of the Hall transport criterion, derived here by the descending-row algorithm.
+
+Apply necessity to any member of \(\Gamma_H(p,q)\).  With \(h=H-s\), it gives
+\[
+ A_s=\sum_{b=H-s}^Hp_b\le Q_s=\sum_{w=0}^sq_w,
+ \qquad s=0,\ldots,H.                                      \tag{3}
+\]
+Fix \(x\in\Gamma_H(p,q)\), define \(z_w=\sum_{b\ge m}x_{bw}\), and write \(Z_s=\sum_{w=0}^sz_w\).  If \(b\ge m\) and \(x_{bw}>0\), then \(w\le H-b\le H-m=L\).  Hence \(z_w=0\) for \(w>L\).  Nonnegativity and the column equations give \(0\le z_w\le q_w\), while the selected row equations give
+\[
+ Z_L=\sum_{b=m}^H\sum_wx_{bw}=\sum_{b=m}^Hp_b=a.            \tag{4}
+\]
+For \(0\le s\le L\), every row \(b\ge H-s\) is selected and can use only columns \(w\le s\), whence
+\[
+ Z_s\ge \sum_{b=H-s}^Hp_b=A_s.                             \tag{5}
+\]
+
+These conditions are sufficient.  Suppose \(z\) satisfies them.  Give rows \(b\ge m\) masses \(p_b\), rows \(b<m\) mass zero, and columns masses \(z_w\).  For \(h\ge m\), condition (1) is
+\[
+ \sum_{b=h}^Hp_b=A_{H-h}\le Z_{H-h};                       \tag{6}
+\]
+for \(h<m\), its left side is \(a\) and its right side is \(Z_L=a\).  The constructive sufficiency argument therefore produces a selected-row transport.  For the complementary rows, use row masses \(p_b\mathbf 1\{b<m\}\) and column masses \(q_w-z_w\).  The Hall inequalities are automatic for \(h\ge m\).  If \(h<m\), then \(H-h\ge L+1\), and the support and total-mass conditions on \(z\), followed by (3), give
+\[
+ \begin{aligned}
+ \sum_{b=h}^{m-1}p_b
+ &=\sum_{b=h}^Hp_b-a\\
+ &\le Q_{H-h}-a
+ =\sum_{w=0}^{H-h}(q_w-z_w).
+ \end{aligned}                                             \tag{7}
+\]
+Thus the same algorithm produces the complementary transport.  Adding the two arrays gives an element of \(\Gamma_H(p,q)\) inducing exactly \(z\).  This proves the asserted characterization.
+
+Every feasible cumulative array obeys \(Z_s\le a\) and \(Z_s\le Q_s\), hence
+\[
+ Z_s\le \min\{a,Q_s\}=Z_{ms}^{-}.                        \tag{8}
+\]
+The array \(Z_{ms}^{-}\) is feasible: (3) and \(A_s\le a\) give \(A_s\le Z_{ms}^{-}\); the increments of \(\min\{a,Q_s\}\) are nonnegative and no larger than the increments \(q_s\) of \(Q_s\); and (3) at \(s=L\) gives \(Q_L\ge A_L=a\), so \(Z_{mL}^{-}=a\).  The preceding characterization therefore makes \(Z_m^{-}\) attainable, and (8) makes it the pointwise maximal attainable cumulative array.  This argument also covers \(a=0\).
+
+For the opposite extremum, feasibility implies, whenever \(s\le u\le L\),
+\[
+ Z_u-Z_s=\sum_{w=s+1}^uz_w\le Q_u-Q_s
+ \quad\text{and}\quad Z_u\ge A_u.
+\]
+Consequently
+\[
+ Z_s\ge Q_s+A_u-Q_u,
+ \qquad
+ Z_s\ge Q_s+\max_{u=s,\ldots,L}(A_u-Q_u)=Z_{ms}^{+}.       \tag{9}
+\]
+Because \(A_L=a\), the terminal value is
+\[
+ Z_{mL}^{+}=Q_L+A_L-Q_L=a.                                \tag{10}
+\]
+Separating the term \(u=s\) from the maximum and using \(Q_{s+1}=Q_s+q_{s+1}\) yields the backward-deficit recursion
+\[
+ Z_{ms}^{+}=\max\{A_s,Z_{m,s+1}^{+}-q_{s+1}\},
+ \qquad s<L.                                               \tag{11}
+\]
+Now \(A_s\le A_{s+1}\le Z_{m,s+1}^{+}\), so (11) gives \(Z_{ms}^{+}\le Z_{m,s+1}^{+}\) and \(Z_{m,s+1}^{+}-Z_{ms}^{+}\le q_{s+1}\).  At \(s=0\), the term \(u=0\) in the maximum gives \(Z_{m0}^{+}\ge A_0\ge0\), whereas (3) gives \(A_u-Q_u\le0\) for every \(u\), and hence \(Z_{m0}^{+}\le Q_0=q_0\).  Thus every increment of \(Z_m^{+}\) lies in \([0,q_w]\); (10) gives total mass \(a\); and (11) gives \(Z_{ms}^{+}\ge A_s\).  The characterization already proved makes this array attainable.  Inequality (9) makes it the pointwise minimal attainable cumulative array.
+
+For any subdistribution supported on \(0,\ldots,L\) with total mass \(a\), finite summation by parts gives
+\[
+ \sum_{w=0}^{L}wz_w
+ =\sum_{s=0}^{L-1}\sum_{w=s+1}^{L}z_w
+ =La-\sum_{s=0}^{L-1}Z_s.                                 \tag{12}
+\]
+The maximal cumulative array \(Z_m^{-}\) therefore minimizes (12), and the minimal cumulative array \(Z_m^{+}\) maximizes it.  Both extrema are attained by the transports constructed above.
+
+Finally, the fixed \((B,T)\) margin and \(\mu_b=\sum_ttp_{bt}\) give, for every compatible plan,
+\[
+ \begin{aligned}
+ J_m
+ &=\pi\,\mathsf E[T\mathbf 1\{B<m\}+W\mathbf 1\{B\ge m\}\mid S_k^1=1]\\
+ &=\pi\left(\sum_{b<m}\mu_b+\sum_{b\ge m,w}wx_{bw}\right).               \tag{13}
+ \end{aligned}
+\]
+Every attaining \(x\) extends to a triple coupling by \(\text{lem:triple-projection-and-extension}\), including zero rows because no division is then performed, and \(\text{thm:causal-response-tree-lift}\) realizes that triple by a raw-path law with the same observed pushforward.  Therefore (12)--(13) give the stated sharp causal endpoints, not merely outer algebraic bounds.  All arguments remain valid at Hall equalities.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Dahl2008, Theorem 4, supplies the attributed feasibility support; the new closed forms expose the backward capacity deficit that unrestricted sum bounds omit and permit exact threshold comparisons without repeated linear programs. \textit{Gap.} ZhangRichardson2025 resolves discrete sharpness for unrestricted fixed-marginal sums; the support deletion \(b+w>H\) changes both feasibility and the upper endpoint through the backward deficit. \textit{Consumer.} JanvinRyalenSarvetStensrud2025's fixed-threshold switching loss becomes sharply bounded in an externally prespecified capacity-sensitivity analysis.
+
+\begin{lemma}[lem:triple-projection-and-extension]\label{lem:triple-projection-and-extension}
+The projection of \(\mathcal G_H(p_{BT},q)\) onto \((B,W)\) equals \(\Gamma_H(p,q)\). Every \(x\in\Gamma_H(p,q)\) extends to \(\gamma\in\mathcal G_H(p_{BT},q)\) by \(\gamma_{btw}=p_{bt}x_{bw}/p_b\) when \(p_b>0\), with arbitrary zero-row values when \(p_b=0\).
+\end{lemma}
+\begin{proof}
+Let \(\gamma\in\mathcal G_H(p_{BT},q)\) and define \(x_{bw}=\sum_t\gamma_{btw}\).  Nonnegativity is immediate, and the first triple-margin constraint gives
+\[
+ \sum_wx_{bw}=\sum_{t,w}\gamma_{btw}=\sum_tp_{bt}=p_b.
+\]
+The second triple-margin constraint gives
+\[
+ \sum_bx_{bw}=\sum_{b,t}\gamma_{btw}=q_w.
+\]
+If \(b+w>H\), every summand \(\gamma_{btw}\) is zero, so \(x_{bw}=0\).  Hence the projection belongs to \(\Gamma_H(p,q)\).
+
+Conversely, fix \(x\in\Gamma_H(p,q)\).  If \(p_b=0\), nonnegativity and \(p_b=\sum_tp_{bt}\) imply \(p_{bt}=0\) for every \(t\), while the row constraint for \(x\) implies \(x_{bw}=0\) for every \(w\).  Set \(\gamma_{btw}=0\) on such rows.  If \(p_b>0\), set
+\[
+ \gamma_{btw}=\frac{p_{bt}x_{bw}}{p_b}.                    \tag{1}
+\]
+The denominator is strictly positive in precisely the case where (1) is used.  Then
+\[
+ \sum_w\gamma_{btw}
+ =\frac{p_{bt}}{p_b}\sum_wx_{bw}=p_{bt},                  \tag{2}
+\]
+and
+\[
+ \sum_{b,t}\gamma_{btw}
+ =\sum_{b:p_b>0}\frac{x_{bw}}{p_b}\sum_tp_{bt}
+ =\sum_bx_{bw}=q_w.                                       \tag{3}
+\]
+Finally, \(x_{bw}=0\) when \(b+w>H\), so (1) has the required support.  Equations (1)--(3) prove that \(\gamma\in\mathcal G_H(p_{BT},q)\) and that its \((B,W)\) projection is exactly \(x\).  The displayed choice happens to make \(T\) and \(W\) conditionally independent given \(B\), but only existence of this extension is used; no such independence is imposed on general members of the triple polytope.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma shows that conditioning the switched residual on the observed intensive residual creates no hidden loss of sharpness. \textit{Gap.} Classical two-margin transport results do not verify compatibility with the identified \((B,T)\) joint law required by the recurrent-event estimand. \textit{Consumer.} The endpoint and policy calculations can optimize over the smaller Ferrers polytope without discarding information about continued intensive treatment.
+
+\begin{theorem}[thm:causal-response-tree-lift]\label{thm:causal-response-tree-lift}
+For every distribution of \(O\) that is the observed-data pushforward of at least one law in \(\mathfrak M_H\), every such sustained-arm full-data extension, and every \(\gamma\in\mathcal G_H(p_{BT},q)\), the explicit algorithm \(\mathfrak L\) produces a finite-horizon FFRCISTG law on raw nonnegative-integer count paths with triple margin \(\gamma\), the same pushforward distribution of \(O\), absorbing death, baseline randomization, and the same arm-specific sequential censoring continuation probabilities conditional on the factual at-risk histories \(\mathcal H_{\ell-1}^a\). On each constructed switched survivor branch, \(\min\{Y_K^{1\to0}-Y_k^{1\to0},H\}=W\); the uncapped switched residual may exceed \(H\), and no global restriction bounds raw counts by \(H\). Conversely, every law in \(\mathfrak M_H\) induces a member of \(\mathcal G_H(p_{BT},q)\). The construction imposes neither censoring independence from the entire response tree nor any other cross-world independence beyond baseline randomization and the listed FFRCISTG conditions.
+\end{theorem}
+\begin{proof}
+Let \(P_O\) be the stipulated observable distribution, and let \(\mathsf P_0\in\mathfrak M_H\) be the admitted sustained-arm full-data extension fixed in the statement. Write \(U_0\) for its response table and \(C_0\) for its censoring time. The finite horizon has finitely many treatment branches and time coordinates, and each raw count coordinate lies in the countable set \(\mathbb Z_+\). Thus the response-type space is countable, and the conditional probability kernels used below exist by discrete conditioning.
+
+First retain jointly and without modification the two sustained raw histories in \(U_0\). On \(\{S_k^1=1,B=b,T=t\}\), define a draw \(\widetilde W\) by
+\[
+ \mathsf P(\widetilde W=w\mid U_0)
+ =\frac{\gamma_{btw}}{p_{bt}}\quad\text{if }p_{bt}>0.     \tag{1}
+\]
+If \(p_{bt}=0\), the event being conditioned on has probability zero and the conditional law can be arbitrary. The row-margin constraint in \(\text{def:triple-polytope}\) states \(\sum_w\gamma_{btw}=p_{bt}\), so (1) is a probability mass function on every positive cell. It follows that
+\[
+ \begin{aligned}
+ &\mathsf P(B=b,T=t,\widetilde W=w\mid S_k^1=1)\\
+ &\qquad=p_{bt}\frac{\gamma_{btw}}{p_{bt}}=\gamma_{btw}
+ \end{aligned}                                           \tag{2}
+\]
+when \(p_{bt}>0\), while both sides vanish when \(p_{bt}=0\). Hence the constructed triple margin is \(\gamma\). Summing (2) over \((b,t)\) and using the column-margin constraint in \(\text{def:triple-polytope}\) gives
+\[
+ \mathsf P(\widetilde W=w\mid S_k^1=1)
+ =\sum_{b,t}\gamma_{btw}=q_w.                            \tag{3}
+\]
+
+We next implement the cap-fibre part of \(\mathfrak L\). Under the retained standard sustained history put
+\[
+ Z=Y_K^0-Y_k^0\quad\text{on }\{S_k^0=1\}.               \tag{4}
+\]
+The landmark-survival positivity condition makes the conditional law in (4) well defined. By the definition of \(q_w\),
+\[
+ q_w=\mathsf P_0\{\min(Z,H)=w\mid S_k^0=1\}.             \tag{5}
+\]
+For \(q_w>0\), let \(\kappa_w\) be the conditional law in (5) further conditioned on \(Z\); for \(q_w=0\), use any law supported on the same cap fibre. Conditional on \(\widetilde W=w\), draw \(\widetilde Z\) from \(\kappa_w\). Applying \(\text{lem:cap-fibre-mixture}\) to the conditional standard-survivor law in (5) and the mass identity (3) yields
+\[
+ \min\{\widetilde Z,H\}=\widetilde W\quad\text{almost surely}, \tag{6}
+\]
+and, for every \(z\in\mathbb Z_+\),
+\[
+ \mathsf P(\widetilde Z=z\mid S_k^1=1)
+ =\mathsf P_0(Z=z\mid S_k^0=1).                          \tag{7}
+\]
+Equation (7) is stronger than required for the corrected target: it records the uncapped residual equality used by the sharp-transfer result below.
+
+Construct the switched raw history as follows. Through time \(k\), copy the sustained intensive history exactly, as required by \(\text{ass:no-anticipation}\). If death has occurred by \(k\), continue the absorbing death state and add no later events. If the unit is alive at \(k\), keep this otherwise unobserved branch alive through \(K\), add exactly \(\widetilde Z\) raw events at time \(k+1\), and keep its count constant thereafter. The inequality \(K\ge k+1\) makes this time available; \(\widetilde Z\in\mathbb Z_+\) makes the count nondecreasing; and the raw-path model permits multiple events in one interval. The branch is therefore legal and its raw post-landmark increment is \(\widetilde Z\). By (6), its separately capped residual is
+\[
+ W=\min\{Y_K^{1\to0}-Y_k^{1\to0},H\}
+   =\min\{\widetilde Z,H\}=\widetilde W.                \tag{8}
+\]
+The support constraint \(\gamma_{btw}=0\) when \(b+w>H\), together with (2) and (8), gives
+\[
+ \mathsf P(B+W\le H\mid S_k^1=1)=1,                     \tag{9}
+\]
+which is exactly \(\text{ass:capped-capacity}\). When \(W=H\), the draw \(\widetilde Z\) may exceed \(H\); likewise the retained raw count at \(k\) may exceed \(H\). Thus (8)--(9) impose no global raw-count cap.
+
+It remains to complete a finite response tree. Index a node at time \(\ell\) by its treatment prefix through \(\ell\). Place the retained sustained histories and the switched history just constructed on their prescribed prefix nodes. These prescriptions agree on every shared prefix: the switched and intensive paths agree through \(k\) by construction, and all retained paths came from the valid table \(U_0\). Traverse every remaining prefix node in increasing time order. At each unset child, copy its parent's count and death state; append an alive, zero-event state when the parent is alive and the absorbing state when it is dead. Every node has a unique parent, so the recursion is well defined. Values at time \(\ell\) depend only on the treatment prefix through \(\ell\); hence the resulting table \(U'\) is an FFRCISTG response tree. Each branch has nondecreasing integer counts and absorbing death.
+
+To check randomization and censoring without silently imposing an NPSEM product structure, sample \((U_0,R,C_0)\) under its original law, sample the two auxiliary variables above from kernels depending on \(U_0\) but not on \(R\), and set \(C=C_0\). If \(E\) is any event in the completed response-table space, baseline randomization for \(\mathsf P_0\) gives, for \(a\in\{0,1\}\),
+\[
+ \begin{aligned}
+ \mathsf P(U'\in E,R=a)
+ &=\int \mathsf P(U'\in E\mid U_0=u)\,
+       \mathsf P_0(R=a,U_0\in du)\\
+ &=\mathsf P_0(R=a)\int \mathsf P(U'\in E\mid U_0=u)\,
+       \mathsf P_0(U_0\in du)\\
+ &=\mathsf P_0(R=a)\mathsf P(U'\in E).
+ \end{aligned}                                           \tag{10}
+\]
+Thus \(R\perp U'\), as required by \(\text{ass:baseline-randomization}\), and the positive assignment probabilities in \(\text{ass:assignment-positivity}\) are unchanged.
+
+For \(R=a\), the factual sustained branch of \(U'\) is exactly the corresponding branch of \(U_0\), and \(C=C_0\). Consequently
+\[
+ (R,C,\mathcal H_K^R)\ \text{has the same joint law under }
+ \mathsf P\text{ and }\mathsf P_0.                       \tag{11}
+\]
+By \(\text{ass:consistency}\), truncating that factual path at \(C\) produces \(O\); hence (11) proves equality of the complete observed pushforward, not merely equality of a terminal summary. For every \(a\) and \(\ell\), on the positive-probability factual at-risk event specified in the assumptions, (11) and \(\text{ass:censoring-exchangeability}\) imply
+\[
+ \begin{aligned}
+ &\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,
+                         \mathcal H_K^a)\\
+ &=\mathsf P_0(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,
+                           \mathcal H_K^a)\\
+ &=\mathsf P_0(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,
+                           \mathcal H_{\ell-1}^a)\\
+ &=\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,
+                         \mathcal H_{\ell-1}^a).
+ \end{aligned}                                           \tag{12}
+\]
+The common continuation probability in (12) is strictly positive by \(\text{ass:censoring-positivity}\). The sustained survival probabilities are also unchanged and remain positive by \(\text{ass:landmark-survival-positivity}\). Equations (3), (8), and (9) verify \(\text{ass:capped-residual-transportability}\) and \(\text{ass:capped-capacity}\); the prefix construction verifies \(\text{ass:no-anticipation}\), nondecreasing counts, and absorbing death. Thus every condition in \(\text{def:model-class}\) holds.
+
+No independence between \(C\) and the full response table was used: retaining \(C_0\) preserves whatever dependence on the original unassigned branches was present, subject only to (12). Likewise, the auxiliary conditional kernels construct one witness and are not asserted as cross-world restrictions on the class.
+
+Conversely, let \(\mathsf P\in\mathfrak M_H\). The positivity condition \(\mathsf P(S_k^1=1)>0\) permits the definition
+\[
+ \gamma_{btw}=\mathsf P(B=b,T=t,W=w\mid S_k^1=1).         \tag{13}
+\]
+Its \((B,T)\) margin is \(p_{bt}\) by definition. Its \(W\) margin is \(q_w\) by \(\text{ass:capped-residual-transportability}\). Finally, \(\text{ass:capped-capacity}\) makes (13) vanish whenever \(b+w>H\). These are exactly the nonnegativity, margin, and support constraints in \(\text{def:triple-polytope}\), so \(\gamma\in\mathcal G_H(p_{BT},q)\). This proves the converse and completes the corrected target.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Polyhedral sharpness is causal only if every extremal summary coupling can be realized by a global finite-horizon response tree without silently invoking an NPSEM cross-world product structure. \textit{Gap.} GreseleEtAl2022 studies causal-marginal gluing and RichardsonRobins2013 distinguishes FFRCISTG from NPSEM models; neither supplies an observed-law-preserving recurrent-event lift with death and censoring. \textit{Consumer.} Every endpoint and deterministic or randomized regret optimizer over the transport polytope is certified as attainable by an observed-law-preserving causal model, including within the published uncapped residual no-carry-over subclass intersected with the capacity restriction.
+
+\begin{theorem}[thm:joint-value-set-and-support]\label{thm:joint-value-set-and-support}
+The sharp identified set for the entire threshold-loss vector is exactly \(\mathcal V(p_{BT},q)\), and for every \(\lambda\in\mathbb R^{|\mathcal M|}\) its support function equals \(h_{\mathcal V}(\lambda)\) in \(\text{def:support-function}\). The same common-plan representation gives the signed pairwise derivation \(D_{mj}=\pi[\max_{x\in\Gamma_H(p,q)}\sum_{b=m}^{j-1}\sum_w w x_{bw}-\sum_{b=m}^{j-1}\mu_b]\) for \(m<j\), \(D_{mj}=\pi[\sum_{b=j}^{m-1}\mu_b-\min_{x\in\Gamma_H(p,q)}\sum_{b=j}^{m-1}\sum_w w x_{bw}]\) for \(m>j\), and \(D_{mm}=0\). Hence an off-diagonal \(D_{mj}\) may be negative, \(R_m=\max_{j\in\mathcal M}D_{mj}\ge0\), and \(\mathcal M^\star=\operatorname*{argmin}_{m\in\mathcal M}R_m\) is the complete deterministic minimax correspondence. In particular, optimizing coordinates separately generally produces a strict outer rectangle rather than the joint identified set.
+\end{theorem}
+\begin{proof}
+Fix an observable law \(P_O\) admitted by the maintained model, and let \(p_{bt}\), \(q_w\), and \(\pi>0\) be its identified margins.  Distinguish the causal identified set from its proposed observed-law representation by defining
+\[
+ \Theta_I(P_O)=\left\{(J_m(\widetilde{\mathsf P}))_{m\in\mathcal M}:
+ \widetilde{\mathsf P}\in\mathfrak M_H,
+ \ \widetilde{\mathsf P}_O=P_O\right\}.                  \tag{1}
+\]
+For any compatible law, the converse in \(\text{thm:causal-response-tree-lift}\) supplies \(\gamma\in\mathcal G_H(p_{BT},q)\).  Its projection \(x_{bw}=\sum_t\gamma_{btw}\) belongs to \(\Gamma_H(p,q)\) by \(\text{lem:triple-projection-and-extension}\).  Since the \((B,T)\) margin is fixed,
+\[
+ \begin{aligned}
+ J_m
+ &=\pi\,\mathsf E[T\mathbf 1\{B<m\}+W\mathbf 1\{B\ge m\}\mid S_k^1=1]\\
+ &=\pi\left(\sum_{b<m}\sum_ttp_{bt}+\sum_{b\ge m,w}wx_{bw}\right)\\
+ &=\pi\left(\sum_{b<m}\mu_b+\sum_{b\ge m,w}wx_{bw}\right).              \tag{2}
+ \end{aligned}
+\]
+Thus \(\Theta_I(P_O)\subseteq\mathcal V(p_{BT},q)\).  Conversely, for every \(x\in\Gamma_H(p,q)\), the extension part of \(\text{lem:triple-projection-and-extension}\) produces \(\gamma\in\mathcal G_H(p_{BT},q)\), and the forward part of \(\text{thm:causal-response-tree-lift}\) realizes that triple under a law with observed pushforward \(P_O\).  Equation (2) gives the associated point of \(\mathcal V(p_{BT},q)\).  Hence
+\[
+ \Theta_I(P_O)=\mathcal V(p_{BT},q).                       \tag{3}
+\]
+This proves joint sharpness.  Since \(\Gamma_H(p,q)\) is a nonempty compact convex polytope and (2) is affine in \(x\), the identified set is compact and convex.
+
+For any \(\lambda\in\mathbb R^{|\mathcal M|}\), finite-sum rearrangement gives
+\[
+ \begin{aligned}
+ \lambda^\top J(x)
+ &=\pi\sum_{m\in\mathcal M}\lambda_m\sum_{b<m}\mu_b
+   +\pi\sum_{b,w}wx_{bw}\sum_{m\in\mathcal M}\lambda_m\mathbf 1\{b\ge m\}\\
+ &=\pi\left[\sum_{m\in\mathcal M}\lambda_m\sum_{b<m}\mu_b
+   +\sum_{b,w}c_b(\lambda)wx_{bw}\right].                 \tag{4}
+ \end{aligned}
+\]
+Taking the maximum over \(x\in\Gamma_H(p,q)\), which is attained by compactness, is exactly \(h_{\mathcal V}(\lambda)\) in \(\text{def:support-function}\).
+
+Write \(v_b(x)=\sum_wwx_{bw}\).  If \(m<j\), cancellation outside rows \(m,\ldots,j-1\) in (2) gives
+\[
+ J_m(x)-J_j(x)=\pi\sum_{b=m}^{j-1}\{v_b(x)-\mu_b\}.       \tag{5}
+\]
+Maximizing (5) yields
+\[
+ D_{mj}=\pi\left[\max_{x\in\Gamma_H(p,q)}
+ \sum_{b=m}^{j-1}\sum_wwx_{bw}-\sum_{b=m}^{j-1}\mu_b\right].              \tag{6}
+\]
+If \(m>j\), the same cancellation gives
+\[
+ J_m(x)-J_j(x)=\pi\sum_{b=j}^{m-1}\{\mu_b-v_b(x)\},       \tag{7}
+\]
+and maximizing (7) gives the stated formula with the transport minimum; \(D_{mm}=0\).  Off-diagonal signs are unrestricted.  For a concrete negative value, take \(H=2\), \(p_1=1\), \(q_0=1\), \(p_{1,1}=1\), \(\pi=1\), and \(\mathcal M=\{1,2\}\).  The unique capacity-feasible residual is \(W=0\), so \(J_1=0\), \(J_2=1\), and \(D_{12}=-1\).
+
+For a fixed deterministic threshold \(m\), its shared-law worst-case regret is
+\[
+ \begin{aligned}
+ \sup_{v\in\mathcal V}\left\{v_m-\min_{j\in\mathcal M}v_j\right\}
+ &=\sup_{v\in\mathcal V}\max_{j\in\mathcal M}(v_m-v_j)\\
+ &=\max_{j\in\mathcal M}\sup_{v\in\mathcal V}(v_m-v_j)
+ =\max_{j\in\mathcal M}D_{mj}=R_m.                       \tag{8}
+ \end{aligned}
+\]
+The interchange is exact because \(\mathcal M\) is finite: both sides are the supremum over \(\mathcal V\times\mathcal M\).  The comparator \(j=m\) gives \(R_m\ge0\).  Minimization over the nonempty finite menu therefore yields precisely \(\mathcal M^\star=\operatorname*{argmin}_{m\in\mathcal M}R_m\), retaining every tie.
+
+Coordinate projection always gives
+\[
+ \mathcal V(p_{BT},q)\subseteq
+ \prod_{m\in\mathcal M}[\underline J_m,\overline J_m].    \tag{9}
+\]
+It can be strict.  Take \(H=3\), \(p=(2/5,3/10,1/5,1/10)\), \(q=(3/10,3/10,1/5,1/5)\), \(\pi=1\), \(\mu=(0,7/20,7/40,0)\), and \(\mathcal M=\{1,2,3\}\).  The plan with nonzero cells
+\[
+ x_{00}=1/5,\quad x_{03}=1/5,\quad x_{11}=1/10,\quad
+ x_{12}=1/5,\quad x_{21}=1/5,\quad x_{30}=1/10             \tag{10}
+\]
+is feasible and gives \(J_1=7/10\).  This is the upper endpoint: the total column first moment is \(13/10\), while row zero has mass \(2/5\) and must absorb the column-three mass \(1/5\), so its first moment is at least \(3/5\), leaving at most \(7/10\) for selected rows.  The plan with nonzero cells
+\[
+ x_{02}=1/5,\quad x_{03}=1/5,\quad x_{11}=3/10,\quad
+ x_{20}=1/5,\quad x_{30}=1/10                              \tag{11}
+\]
+is feasible and gives \(J_2=7/20\), the lower endpoint because its residual contribution is nonnegative.  If one plan generated both coordinate extrema, (2) would imply \(v_2=0\) and \(v_1+v_2=7/10\), hence \(v_1=7/10\).  But row \(b=1\) has mass \(3/10\) and capacity ceiling \(w=2\), so \(v_1\le3/5<7/10\), a contradiction.  Thus (9) is in general a strict outer rectangle rather than the joint identified set.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} All candidate thresholds are functions of one latent switched law, so the theorem identifies their joint geometry and derives signed pairwise regret and every deterministic minimax threshold from that same law. \textit{Gap.} JanvinRyalenSarvetStensrud2025 bounds one threshold and MontielOleaQiuStoye2026 analyzes joint payoff restrictions in a Gaussian decision experiment; neither identifies the common-coupling threshold-value polytope. \textit{Consumer.} A clinician choosing among several prespecified switching thresholds obtains the exact feasible loss vectors and every robust deterministic threshold, including ties, rather than combining incompatible marginal extrema.
+
+\begin{theorem}[thm:eligibility-greedy-support]\label{thm:eligibility-greedy-support}
+For every direction \(\lambda\), process columns \(w=H,H-1,\ldots,0\); when column \(w\) is reached, make rows \(b\le H-w\) eligible and allocate its remaining mass to eligible rows in decreasing \(c_b(\lambda)\), splitting only at exhausted row capacities. Whenever \(\Gamma_H(p,q)\ne\varnothing\), whose fixed-margin staircase feasibility is supported by Dahl2008, Theorem 4 after reversing the row order, the algorithm is feasible with no sign or monotonicity restriction on the induced real coefficients \(c_b(\lambda)\); it attains \(h_{\mathcal V}(\lambda)\), uses at most \(2H+1\) positive cells, and runs in \(O(H\log H)\) time with a heap.
+\end{theorem}
+\begin{proof}
+Only the transport term in \(h_{\mathcal V}(\lambda)\) must be optimized, so abbreviate \(c_b=c_b(\lambda)\).  Feasibility of \(\Gamma_H(p,q)\) implies the complementary Hall inequalities
+\[
+ \sum_{v=w}^{H}q_v\le\sum_{b=0}^{H-w}p_b,
+ \qquad w=0,\ldots,H,                                    \tag{1}
+\]
+because columns \(v\ge w\) can receive mass only from rows \(b\le H-v\le H-w\).  When the algorithm reaches column \(w\), previously processed columns contain total mass \(\sum_{v>w}q_v\) and have consumed that amount only from currently eligible rows.  By (1), the residual capacity among those rows is at least
+\[
+ \sum_{b=0}^{H-w}p_b-\sum_{v>w}q_v\ge q_w.                \tag{2}
+\]
+Thus column \(w\) can always be filled.  After the final column, equality of total row and column mass forces all row capacities to be exhausted.  This proves feasibility, including zero margins and equality in (1).  It is also a self-contained proof of the staircase-feasibility fact attributed in the statement to Dahl's reversed-row formulation; no external theorem is used as a logical premise here.
+
+We prove optimality by a finite exchange argument.  Consider the largest not-yet-fixed column \(w\), and let \(b\) be an eligible row with maximal coefficient among rows having residual capacity.  Start with an optimal residual plan.  If it does not allocate to \((b,w)\) as much as the greedy step does, then some positive mass in column \(w\) is assigned to another eligible row \(b'\), while an equal positive amount of the residual mass of row \(b\) is assigned to some column \(v<w\).  For
+\[
+ 0<\delta\le\min\{x_{b'w},x_{bv}\},
+\]
+replace \(\delta\) units in cells \((b',w),(b,v)\) by \(\delta\) units in cells \((b,w),(b',v)\).  Both new cells are allowed: \(b\le H-w\), and \(b'\le H-w\le H-v\).  Margins are unchanged.  The objective change is
+\[
+ \delta\{c_bw+c_{b'}v-c_{b'}w-c_bv\}
+ =\delta(c_b-c_{b'})(w-v)\ge0.                            \tag{3}
+\]
+Hence an optimal plan can be modified to agree with this greedy allocation.  Choose \(\delta\) to exhaust one of the two discrepant cells and repeat; finiteness of the table makes the process terminate.  Repeating for the next-highest coefficient row until column \(w\) is full, and then inducting on \(w=H,H-1,\ldots,0\), produces an optimal plan identical to the greedy plan.  The sign and ordering of the real numbers \(c_b\) never entered except through the comparison \(c_b\ge c_{b'}\), so signed and nonmonotone directions are covered.
+
+Each positive allocation exhausts a residual row capacity or the current column, and the last allocation exhausts both.  There are \(H+1\) rows and \(H+1\) columns, so at most
+\[
+ (H+1)+(H+1)-1=2H+1                                      \tag{4}
+\]
+positive cells are created.  As \(w\) decreases, exactly one new row becomes eligible.  Insert that row once into a max-heap keyed by \(c_b\), remove a row once when its capacity is exhausted, and retain a partially used top row when a column is exhausted.  Thus there are \(O(H)\) heap operations, each costing \(O(\log H)\), and \(O(H)\) allocations.  The coefficients \(c_b=\sum_m\lambda_m\mathbf 1\{b\ge m\}\) are computed by one prefix scan in \(O(H)\) time because \(|\mathcal M|\le H\).  The total time is \(O(H\log H)\).  Substitution of the resulting optimal plan into \(\text{def:support-function}\) attains \(h_{\mathcal V}(\lambda)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The attributed staircase theorem certifies the feasible domain, while the specialized exchange argument supplies a support oracle for the joint identified set and all pairwise regret calculations. \textit{Gap.} HoffmanVeinott1993 supplies greedy staircase transportation results under superadditive rewards and cumulative capacities; this statement isolates the exchange property for every signed, potentially nonmonotone threshold-support direction needed here and is not positioned as an independent algorithmic novelty claim. \textit{Consumer.} All robust threshold comparisons can be computed in time nearly linear in the cap rather than by a separate generic program for each pair.
+
+\begin{proposition}[prop:rational-recommendation-reversal]\label{prop:rational-recommendation-reversal}
+In \(\mathsf E_3\), the sharp marginal intervals are \(J_1\in[3/10,7/10]\), \(J_2\in[7/20,11/20]\), and \(J_3=21/40\). The exact shared-law regret matrix is \((D_{mj})_{m,j\in\mathcal M}=((0,3/20,7/40),(1/4,0,1/40),(9/40,7/40,0))\), so \(\mathcal M^\star=\{1\}\). The separate scalar-bound regrets are \((R_1^{\Box},R_2^{\Box},R_3^{\Box})=(7/20,1/4,9/40)\), so \(\mathcal M^{\Box}=\{3\}\).
+\end{proposition}
+\begin{proof}
+All calculations use exact rational arithmetic.  The nontrivial Hall tail-prefix comparisons are
+\[
+ \begin{array}{c|ccc}
+ h&1&2&3\\ \hline
+ \sum_{b\ge h}p_b&3/5&3/10&1/10\\
+ \sum_{w\le3-h}q_w&4/5&3/5&3/10
+ \end{array}                                                \tag{1}
+\]
+and hence \(\Gamma_3(p,q)\ne\varnothing\).
+
+For \(m=1\), \(L_1=2\), \(a_1=3/5\), and
+\[
+ (A_0,A_1,A_2)=(1/10,3/10,3/5),\qquad
+ (Q_0,Q_1,Q_2)=(3/10,3/5,4/5).
+\]
+Therefore
+\[
+ (Z_{1s}^{-})_{s=0}^2=(3/10,3/5,3/5),\qquad
+ (Z_{1s}^{+})_{s=0}^2=(1/10,2/5,3/5).                     \tag{2}
+\]
+The sharp endpoint formula and \(\mu_0=0\) give
+\[
+ J_1\in\left[2(3/5)-(3/10+3/5),
+               2(3/5)-(1/10+2/5)\right]=[3/10,7/10].     \tag{3}
+\]
+For \(m=2\), \(L_2=1\), \(a_2=3/10\),
+\[
+ (A_0,A_1)=(1/10,3/10),\qquad (Q_0,Q_1)=(3/10,3/5),
+\]
+so \(Z_{20}^{-}=3/10\) and \(Z_{20}^{+}=1/10\).  Since \(\sum_{b<2}\mu_b=7/20\),
+\[
+ J_2\in[7/20,7/20+1/5]=[7/20,11/20].                     \tag{4}
+\]
+For \(m=3\), capacity forces row three into column zero, and therefore
+\[
+ J_3=\mu_0+\mu_1+\mu_2=21/40.                            \tag{5}
+\]
+
+For the pairwise calculations, the eligibility-greedy support theorem, applied to row-shell indicator coefficients and their negatives, gives
+\[
+ \begin{array}{c|cc}
+ E&\min_{x\in\Gamma_3}\sum_{b\in E,w}wx_{bw}
+   &\max_{x\in\Gamma_3}\sum_{b\in E,w}wx_{bw}\\ \hline
+ \{1\}&1/10&1/2\\
+ \{2\}&0&1/5\\
+ \{1,2\}&3/10&7/10.
+ \end{array}                                                \tag{6}
+\]
+These values have direct capacity certificates.  Row three consumes \(1/10\) of column zero, leaving at most \(1/5\) of that column for row one; its remaining \(1/10\) mass must have \(w\ge1\), so its first moment is at least \(1/10\).  For the row-one maximum, only \(1/5\) mass exists in column two and its remaining \(1/10\) mass has \(w\le1\), giving at most \(1/2\).  Row two has mass \(1/5\) and ceiling one, giving the bounds zero and \(1/5\).  For rows one and two together, row zero must absorb column-three mass \(1/5\), so subtracting its first moment from the total column first moment \(13/10\) gives an upper bound \(7/10\); conversely row zero has mass \(2/5\) and can absorb at most columns three and two, with first moment one, giving the lower bound \(13/10-1=3/10\).  The following feasible allocations attain the six respective extremes: for row one, use \((x_{10},x_{11})=(1/5,1/10)\) for the minimum and \((x_{11},x_{12})=(1/10,1/5)\) for the maximum; for row two, use \(x_{20}=1/5\) and \(x_{21}=1/5\); for the combined shell, use \((x_{11},x_{20},x_{30})=(3/10,1/5,1/10)\) for the minimum and \((x_{11},x_{12},x_{21},x_{30})=(1/10,1/5,1/5,1/10)\) for the maximum, filling row zero with the uniquely remaining column masses.  Each listed cell obeys \(b+w\le3\).
+
+The common-plan identities now give
+\[
+ \begin{aligned}
+ D_{12}&=1/2-7/20=3/20,&
+ D_{13}&=7/10-(7/20+7/40)=7/40,\\
+ D_{21}&=7/20-1/10=1/4,&
+ D_{23}&=1/5-7/40=1/40,\\
+ D_{31}&=7/20+7/40-3/10=9/40,&
+ D_{32}&=7/40-0=7/40,
+ \end{aligned}                                             \tag{7}
+\]
+with zero diagonal.  Hence
+\[
+ (R_1,R_2,R_3)=(7/40,1/4,9/40),
+ \qquad \mathcal M^\star=\{1\}.                           \tag{8}
+\]
+Using the separate sharp intervals (3)--(5),
+\[
+ \begin{aligned}
+ R_1^{\Box}&=\max\{0,7/10-7/20,7/10-21/40\}=7/20,\\
+ R_2^{\Box}&=\max\{11/20-3/10,0,11/20-21/40\}=1/4,\\
+ R_3^{\Box}&=\max\{21/40-3/10,21/40-7/20,0\}=9/40.
+ \end{aligned}                                             \tag{9}
+\]
+The last value is uniquely smallest, so \(\mathcal M^{\Box}=\{3\}\), completing every claimed calculation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact rational witness shows that respecting the common latent law can reverse a clinical recommendation, not merely narrow intervals. \textit{Gap.} No cited switching analysis gives a finite example in which shared-law and interval-box minimax regret choose different thresholds. \textit{Consumer.} The example is an audit fixture for software and a direct warning against endpoint-by-endpoint policy choice.
+
+\begin{theorem}[thm:nondegenerate-shared-law-separation]\label{thm:nondegenerate-shared-law-separation}
+There exists \(\varepsilon>0\) such that, for every tuple \((\pi,(p_b)_{b=0}^{3},(\mu_b)_{b=0}^{3},(q_w)_{w=0}^{3})\in\Theta_3\) within \(\varepsilon\) in sup norm of \(\mathsf E_3\), every \(p_{bt}\) on \(\{0,1,2,3\}^2\) satisfying \(\sum_t p_{bt}=p_b\) and \(\sum_t t p_{bt}=\mu_b\), and menu \(\mathcal M=\{1,2,3\}\), the nontrivial Hall inequalities are strict, \(\mathcal V(p_{BT},q)\subsetneq\prod_{m\in\mathcal M}[\underline J_m,\overline J_m]\), \(D_{12}<D^{\Box}_{12}\), \(\mathcal M^\star=\{1\}\), and \(\mathcal M^{\Box}=\{3\}\). Here the shared-law quantities use the same-plan identities \(D_{mj}=\pi[\max_{x\in\Gamma_H(p,q)}\sum_{b=m}^{j-1}\sum_w w x_{bw}-\sum_{b=m}^{j-1}\mu_b]\) for \(m<j\), \(D_{mj}=\pi[\sum_{b=j}^{m-1}\mu_b-\min_{x\in\Gamma_H(p,q)}\sum_{b=j}^{m-1}\sum_w w x_{bw}]\) for \(m>j\), \(D_{mm}=0\), and \(R_m=\max_{j\in\mathcal M}D_{mj}\). Thus the shared-law regret rule is a strict joint-law tightening of applying the scalar sharp bounds of JanvinRyalenSarvetStensrud2025 threshold by threshold on a relatively open, nondegenerate family, with \(\mathsf E_3\) as one member.
+\end{theorem}
+\begin{proof}
+At \(\mathsf E_3\), the three nontrivial Hall slacks, indexed by row cutoffs \(h=1,2,3\), are
+\[
+ \left(Q_{3-h}-\sum_{b=h}^3p_b\right)_{h=1}^3
+ =(1/5,3/10,1/5).                                         \tag{1}
+\]
+They are strictly positive, and each is linear in \((p,q)\).
+
+We next establish the continuity needed for a nondegenerate neighborhood.  For a fixed coefficient vector \(c=(c_b)_{b=0}^3\), let
+\[
+ \phi_c(p,q)=\max_{x\in\Gamma_3(p,q)}\sum_{b,w}c_bwx_{bw}. \tag{2}
+\]
+Fix a deterministic order for tied coefficients in the eligibility-greedy algorithm.  Its finite sequence of updates replaces a row residual and a column residual by subtracting the allocation, which is the minimum of those two nonnegative residuals.  Therefore every allocation and the resulting objective are obtained from \((p,q)\) by finitely many additions, subtractions, and minima on each eligibility pattern.  There are finitely many patterns; at a boundary the changing allocation is zero, so the adjacent objective expressions agree.  The optimal-value identity in \(\text{thm:eligibility-greedy-support}\) therefore makes \(\phi_c\) continuous and piecewise affine on the feasible-margin domain.  Moreover,
+\[
+ \min_{x\in\Gamma_3(p,q)}\sum_{b,w}c_bwx_{bw}=-\phi_{-c}(p,q),             \tag{3}
+\]
+so the corresponding minima are continuous.  The endpoint formulas use only finite sums, minima, and maxima, hence are continuous.  By the pairwise formulas in \(\text{thm:joint-value-set-and-support}\), every \(D_{mj}\) and \(D_{mj}^{\Box}\) is a continuous function of \((\pi,p,\mu,q)\); finite maximization then makes each \(R_m\) and \(R_m^{\Box}\) continuous as well.  This argument is relative to the feasible domain \(\Theta_3\) and requires neither differentiability nor a fixed active basis.
+
+At the center point, the strict common-law-versus-box gap is
+\[
+ D_{12}^{\Box}-D_{12}=7/20-3/20=1/5.                     \tag{4}
+\]
+The shared-law regret vector and the gaps above its first coordinate are
+\[
+ (R_1,R_2,R_3)=(7/40,1/4,9/40),\qquad
+ R_2-R_1=3/40,\quad R_3-R_1=1/20.                         \tag{5}
+\]
+The box regret vector and the gaps above its third coordinate are
+\[
+ (R_1^{\Box},R_2^{\Box},R_3^{\Box})=(7/20,1/4,9/40),\qquad
+ R_1^{\Box}-R_3^{\Box}=1/8,\quad
+ R_2^{\Box}-R_3^{\Box}=1/40.                             \tag{6}
+\]
+All finitely many quantities in (1) and (4)--(6) are positive.  Continuity therefore supplies \(\varepsilon>0\) such that every point of \(\Theta_3\) within sup-norm distance \(\varepsilon\) retains all these signs.  Shrinking \(\varepsilon\), if necessary, retains \(\pi>0\).  Equations (1), (5), and (6) then imply, respectively, strict nontrivial Hall inequalities, \(\mathcal M^\star=\{1\}\), and \(\mathcal M^{\Box}=\{3\}\); equation (4) gives \(D_{12}<D_{12}^{\Box}\).
+
+For every nonempty \(V\subseteq\mathbb R^3\), equality with the product of its coordinate ranges would imply
+\[
+ \sup_{v\in V}(v_1-v_2)=\sup_{v\in V}v_1-\inf_{v\in V}v_2.               \tag{7}
+\]
+For \(V=\mathcal V(p_{BT},q)\), the left and right sides are \(D_{12}\) and \(D_{12}^{\Box}\).  Their strict inequality proves
+\[
+ \mathcal V(p_{BT},q)\subsetneq
+ \prod_{m\in\mathcal M}[\underline J_m,\overline J_m].   \tag{8}
+\]
+Finally, the value set, its support functions, and all pairwise formulas depend on \(p_{bt}\) only through \(p_b=\sum_tp_{bt}\) and \(\mu_b=\sum_ttp_{bt}\).  Hence the same \(\varepsilon\) works for every array \(p_{bt}\) with the stipulated row sums and first-moment masses.  The resulting intersection of the sup-norm ball with \(\Theta_3\) is relatively open and contains \(\mathsf E_3\), so the separation and recommendation reversal are not knife-edge phenomena.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An open family establishes that common-law decision content is not a knife-edge numerical artifact of one rational table. \textit{Gap.} JanvinRyalenSarvetStensrud2025 Proposition 1 supplies sharp scalar bounds and its decision section compares regimes using scalar-bound logic; it does not impose one latent transport law across a threshold menu, and on this family that omission strictly enlarges the payoff set and reverses the minimax threshold. \textit{Consumer.} A trial analyst can diagnose when threshold-wise sharp intervals are insufficient for robust choice even though each reported scalar endpoint is individually correct.
+
+\begin{theorem}[thm:confidence-polytope]\label{thm:confidence-polytope}
+If \(\mathcal I_{n,\alpha}\) covers \((r_{bt},q_w)\) simultaneously with probability at least \(1-\alpha\), then with the same probability \(\mathcal V(p_{BT},q)\subseteq\widehat{\mathcal V}_{n,\alpha}\) and \(\mathcal M^\star\subseteq\widehat{\mathcal M}_{n,\alpha}\). Both inclusions hold without uniqueness, strict Hall slack, or separation between policy regrets, and the sets are computable by finite-dimensional optimization over explicitly given polytopes.
+\end{theorem}
+\begin{proof}
+Let
+\[
+ \mathcal E_{n,\alpha}
+ =\{((r_{bt}),(q_w))\in\mathcal I_{n,\alpha}\}.             \tag{1}
+\]
+By the premise, \(\mathsf P(\mathcal E_{n,\alpha})\ge 1-\alpha\).  Work on this event.  Because the observable law is admitted by \(\mathfrak M_H\), the converse in \(\text{thm:causal-response-tree-lift}\) and \(\text{lem:triple-projection-and-extension}\) imply \(\Gamma_H(p,q)\ne\varnothing\).  Fix \(x\in\Gamma_H(p,q)\) and define
+\[
+ r^\circ_{bt}=\pi p_{bt},\qquad
+ s^\circ_w=\pi q_w,\qquad
+ x^\circ_{bw}=\pi x_{bw}.                                \tag{2}
+\]
+Landmark-survival positivity gives \(\pi>0\), while probability normalization gives
+\[
+ \sum_{b,t}r^\circ_{bt}=\pi\le 1.                         \tag{3}
+\]
+Membership in the event (1) gives the cellwise constraints on \(r^\circ\), and, because \(s^\circ_w=q_w\sum_{b,t}r^\circ_{bt}\),
+\[
+ \underline q_w\sum_{b,t}r^\circ_{bt}
+ \le s^\circ_w
+ \le \overline q_w\sum_{b,t}r^\circ_{bt}                 \tag{4}
+\]
+for every \(w\in\mathbb I_H\).  The row equations, column equations, and support restriction in \(\Gamma_H(p,q)\) give
+\[
+ \sum_wx^\circ_{bw}=\pi p_b=\sum_t r^\circ_{bt},\qquad
+ \sum_bx^\circ_{bw}=\pi q_w=s^\circ_w,\qquad
+ x^\circ_{bw}=0\quad\text{if }b+w>H.                    \tag{5}
+\]
+Together with nonnegativity, (2)--(5) prove
+\[
+ (\mathbf r^\circ,\mathbf s^\circ,\mathbf x^\circ)
+ \in\widehat{\mathcal P}_{n,\alpha}.                    \tag{6}
+\]
+This argument holds for every \(x\in\Gamma_H(p,q)\).  The corresponding image coordinate is
+\[
+ \begin{aligned}
+ \sum_{b<m,t}t r^\circ_{bt}+\sum_{b\ge m,w}w x^\circ_{bw}
+ &=\pi\left(\sum_{b<m,t}t p_{bt}+\sum_{b\ge m,w}w x_{bw}\right)\\
+ &=\pi\left(\sum_{b<m}\mu_b+\sum_{b\ge m,w}w x_{bw}\right).
+ \end{aligned}                                            \tag{7}
+\]
+By \(\text{thm:joint-value-set-and-support}\), as \(x\) ranges over \(\Gamma_H(p,q)\), the vector in (7) ranges over the entire sharp causal identified set.  Equations (6)--(7) therefore yield
+\[
+ \mathcal V(p_{BT},q)\subseteq\widehat{\mathcal V}_{n,\alpha}
+ \quad\text{on }\mathcal E_{n,\alpha}.                  \tag{8}
+\]
+
+For deterministic optimizer coverage, positivity of \(\pi\) makes the scaling map bijective:
+\[
+ \mathsf X_H(\mathbf r^\circ,\mathbf s^\circ)
+ =\{\pi x:x\in\Gamma_H(p,q)\}.                          \tag{9}
+\]
+Indeed, one inclusion follows from the equations in (5), and the reverse inclusion follows by dividing every candidate plan by \(\pi>0\).  Substitution into \(\mathsf J_m\) and then into its transport optimum gives, simultaneously for every \(m,j\in\mathcal M\),
+\[
+ \mathsf D_{mj}(\mathbf r^\circ,\mathbf s^\circ)=D_{mj},
+ \qquad
+ \mathsf R_m(\mathbf r^\circ,\mathbf s^\circ)=R_m.       \tag{10}
+\]
+The true margin pair belongs to the projection of the confidence polytope by (6).  Hence
+\[
+ \underline R_m^{n,\alpha}\le R_m\le\overline R_m^{n,\alpha}
+ \quad\text{for every }m\in\mathcal M.                  \tag{11}
+\]
+If \(m\in\mathcal M^\star\), then \(R_m=\min_jR_j\), and (11) gives
+\[
+ \underline R_m^{n,\alpha}
+ \le R_m
+ =\min_{j\in\mathcal M}R_j
+ \le\min_{j\in\mathcal M}\overline R_j^{n,\alpha}.     \tag{12}
+\]
+Thus \(m\in\widehat{\mathcal M}_{n,\alpha}\), proving
+\[
+ \mathcal M^\star\subseteq\widehat{\mathcal M}_{n,\alpha}
+ \quad\text{on }\mathcal E_{n,\alpha}.                  \tag{13}
+\]
+No step makes a Hall inequality or regret comparison strict, so (8) and (13) remain valid on Hall faces and retain every tied deterministic minimizer.
+
+On the event (1), (6) shows that the confidence polytope is nonempty.  It is closed and bounded: all its coordinates are nonnegative, its total row mass is at most one, and its row and column equations bound every \(s_w\) and \(x_{bw}\) by that total mass.  Hence it and its coordinate projections are compact polytopes, including candidate points of total mass zero.  The value confidence set is a linear image of this polytope.  For fixed candidate margins and each \((m,j)\), \(\mathsf D_{mj}\) is the optimum of the explicitly constrained finite transport program over \(\mathsf X_H(\mathbf r,\mathbf s)\); the regret takes a maximum over the finite menu, and its envelopes optimize this finite-dimensional value over the displayed compact projection.  Thus all reported sets and envelopes are computable finite-dimensional optimization objects.  Taking probabilities in (8) and (13) proves both inclusions with probability at least \(1-\alpha\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Set inclusion avoids differentiability of active faces and provides honest simultaneous coverage at Hall and policy ties. \textit{Gap.} JanvinRyalenSarvetStensrud2025 reports a one-sided bootstrap bound for one threshold, while ChernozhukovHongTamer2007 and Gafarov2025 do not combine censoring-adjusted margins, a random Hall polytope, and a set-valued regret optimizer. \textit{Consumer.} A capped switching analysis can use this common first-stage perspective polytope to cover every compatible value vector and deterministic robust threshold; the randomized-confidence theorem applies the same object to all mixed minimax rules.
+
+\begin{theorem}[thm:uniform-censoring-inference-limit]\label{thm:uniform-censoring-inference-limit}
+The finite-dimensional inversion has the following exact scope.  If the first-stage regions satisfy \(\liminf_{n\to\infty}\inf_{\mathsf P\in\mathfrak M_H}\mathsf P\{((r_{bt}),(q_w))\in\mathcal I_{n,\alpha}\}\ge1-\alpha\), then \(\text{thm:confidence-polytope}\) gives the same uniform asymptotic outer coverage for \(\mathcal V(p_{BT},q)\) and \(\mathcal M^\star\), including simultaneous Hall equalities and arbitrary policy ties.  However, coarsening at random, pointwise censoring positivity, and the phrase ``multiply robust nuisance estimation'' alone cannot yield nonvacuous uniformly shrinking inference.  For every \(H\ge2\) and \(0<\alpha<1/2\), any uniformly honest sequence of observed-data confidence regions for the whole value set has a sequence of laws in \(\mathfrak M_H\) along which its sup-norm diameter is at least \(H\) with limiting probability at least \(1-2\alpha\).  Already for \(H=3\) and \(\mathcal M=\{1,2,3\}\), any uniformly honest outer confidence set for \(\mathcal M^\star\) has a sequence along which it contains both thresholds \(1\) and \(3\) with limiting probability at least \(1-2\alpha\).  Thus a nonvacuous cross-fitted implementation of \(\mathfrak I\) requires quantitative conditions that exclude the displayed vanishing-information sequences and control nuisance remainders; standard sufficient conditions would include uniform effective assignment, survival, and censoring overlap together with uniform cross-fitted rate conditions, none of which is supplied by the frozen assumptions.
+\end{theorem}
+\begin{proof}
+The positive conditional assertion is set-theoretic.  For every \(\mathsf P\in\mathfrak M_H\), \(\text{thm:confidence-polytope}\) gives
+\[
+ \{((r_{bt}),(q_w))\in\mathcal I_{n,\alpha}\}
+ \subseteq
+ \{\mathcal V(p_{BT},q)\subseteq\widehat{\mathcal V}_{n,\alpha},\ 
+   \mathcal M^\star\subseteq\widehat{\mathcal M}_{n,\alpha}\}.       \tag{1}
+\]
+Taking probabilities, then the infimum over \(\mathfrak M_H\), and finally the lower limit proves the asserted uniform outer coverage.  Because (1) uses only weak inequalities and inclusion, simultaneous Hall equalities and arbitrary policy ties require no separate regularity condition.
+
+We next give an explicit two-law obstruction to uniformly shrinking whole-set inference.  Fix \(H\ge2\), put \(\epsilon_n=n^{-2}>0\), and construct two laws with \(\mathsf P(R=1)=1/2\), no death, \(S_k^0=S_k^1=1\), \(B=0\), and switched residual \(W=0\).  Under law zero set \(T=0\) almost surely; under law one set \(T=H\) almost surely.  Give the standard sustained branch raw residual zero.  Observe every subject through \(k\); independently of the response tree and assignment, set \(C=K\) with probability \(\epsilon_n\) and \(C=k\) otherwise.  The only nonunit censoring continuation probability is \(\epsilon_n>0\).  Independence gives factual-arm sequential coarsening at random, assignment is independent of the response tree, assignment and landmark survival are positive, and \(B+W=0\le H\).  The cap-fibre lift in \(\text{thm:causal-response-tree-lift}\) completes legal raw-count branches while preserving the observed pushforward.  Thus both laws lie in \(\mathfrak M_H\); no uniform overlap constant has been added.
+
+For every \(m\in\mathcal M\subseteq\{1,\ldots,H\}\), \(B<m\) and \(\pi=1\).  Hence the two sharp value sets are
+\[
+ V_0=\{(0)_{m\in\mathcal M}\},\qquad
+ V_1=\{(H)_{m\in\mathcal M}\}.                           \tag{2}
+\]
+Couple one observation under the two laws using the same assignment, censoring draw, and all histories through \(k\).  Coupled observations can differ only when \(R=1\) and \(C=K\), an event of probability \(\epsilon_n/2\).  Coordinatewise coupling of \(n\) observations and the union bound give
+\[
+ \lVert P_{0,n}^{\otimes n}-P_{1,n}^{\otimes n}\rVert_{\mathrm{TV}}
+ \le n\epsilon_n/2=(2n)^{-1}\longrightarrow0.             \tag{3}
+\]
+
+Let \(\mathcal C_n\) be any observed-data random region with uniform asymptotic whole-value-set coverage at level \(1-\alpha\).  Applied to the two triangular sequences, uniform honesty gives
+\[
+ P_{0,n}^{\otimes n}(V_0\subseteq\mathcal C_n)\ge1-\alpha-o(1),\qquad
+ P_{1,n}^{\otimes n}(V_1\subseteq\mathcal C_n)\ge1-\alpha-o(1).        \tag{4}
+\]
+Total variation in (3) transfers the second event to law zero with an \(o(1)\) loss.  A union bound under law zero then gives
+\[
+ P_{0,n}^{\otimes n}\{V_0\cup V_1\subseteq\mathcal C_n\}
+ \ge1-2\alpha-o(1).                                      \tag{5}
+\]
+On this event, \(\operatorname{diam}_{\infty}(\mathcal C_n)\ge H\) by (2), proving the whole-value-set obstruction.
+
+For the optimizer obstruction, set \(H=3\), \(\mathcal M=\{1,2,3\}\), and use the common \((p,q)\) margins of \(\mathsf E_3\).  Their nontrivial Hall slacks are \((1/5,3/10,1/5)\), so a legal capacity coupling exists with strict slack.  In law zero put \(T=0\) in every row.  Capacity forces row \(b=3\) into column zero, so \(J_3=0\) under every compatible coupling, and nonnegativity gives \(J_1,J_2\ge0\).  Therefore \(R_3=0\).  The feasible plan
+\[
+ x_{00}=\frac15,\quad x_{03}=\frac15,\quad
+ x_{11}=\frac1{10},\quad x_{12}=\frac15,\quad
+ x_{21}=\frac15,\quad x_{30}=\frac1{10}                  \tag{6}
+\]
+has the required row and column margins, satisfies \(b+w\le3\), and yields
+\((J_1,J_2,J_3)=(7/10,1/5,0)\).  Hence
+\(R_1\ge D_{13}\ge7/10\) and \(R_2\ge D_{23}\ge1/5\), proving
+\[
+ \mathcal M^\star_0=\{3\}.                               \tag{7}
+\]
+
+In law one, conditional on \(B=1\), put probabilities \(5/6\) and \(1/6\) on \(T=1\) and \(T=2\); conditional on \(B=2\), put probabilities \(1/8\) and \(7/8\) on \(T=0\) and \(T=1\); and set \(T=0\) in rows zero and three.  Multiplication by the row masses gives
+\[
+ (\mu_0,\mu_1,\mu_2,\mu_3)=(0,7/20,7/40,0),              \tag{8}
+\]
+so \(\text{prop:rational-recommendation-reversal}\) gives
+\(\mathcal M^\star_1=\{1\}\).  The common \(p\) margin permits identical pre-landmark intensive histories, and the standard sustained histories and switched margins can also be identical.  The response-tree lift supplies all unused branches.  Under the same censoring scheme the coupled observations can again differ only when \(R=1,C=K\), so (3) remains valid.
+
+Let \(\mathcal K_n\subseteq\mathcal M\) be any uniformly honest outer confidence set for \(\mathcal M^\star\).  Coverage of the two unique optimizers, total-variation transfer, and the union bound give
+\[
+ P_{0,n}^{\otimes n}\{\{1,3\}\subseteq\mathcal K_n\}
+ \ge1-2\alpha-o(1).                                      \tag{9}
+\]
+The two laws have strict Hall slack and unique optimizers; their only vanishing information is the probability \(\epsilon_n\) of observing post-landmark intensive outcomes.  Since \(\epsilon_n\) is positive for each \(n\), the sequence lies in the pointwise-overlap class \(\mathfrak M_H\), but it is excluded from every submodel imposing a fixed positive lower bound on factual censoring continuation.  This proves the claimed limitation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem isolates the information-theoretic obstruction in the unchanged pointwise-overlap model by constructing total-variation-indistinguishable laws whose value sets or unique robust thresholds remain separated. \textit{Gap.} Sequential CAR, pointwise positivity, and recurrent-event multiply robust estimation do not by themselves answer whether honest confidence regions can shrink uniformly when post-landmark observation probabilities approach zero. \textit{Consumer.} Investigators must either verify a quantitative overlap and nuisance-rate submodel before using the positive cross-fitted result or report the broader-class nonshrinkage limitation; Hall slack and unique policies do not cure vanishing information.
+
+\begin{lemma}[lem:cap-fibre-mixture]\label{lem:cap-fibre-mixture}
+Let \(Z\) be \(\mathbb Z_+\)-valued, let \(q_w=\mathsf P(\min\{Z,H\}=w)\) for \(w\in\mathbb I_H\), and let \(W\) have mass function \(q\). For \(q_w>0\), let \(\kappa_w\) be the conditional law of \(Z\) given \(\min\{Z,H\}=w\); for \(q_w=0\), let \(\kappa_w\) be any probability law supported on \(\{z\in\mathbb Z_+:\min\{z,H\}=w\}\). If \(\widetilde Z\) conditional on \(W=w\) has law \(\kappa_w\), then \(\min\{\widetilde Z,H\}=W\) almost surely and \(\widetilde Z\) has the same law as \(Z\).
+\end{lemma}
+\begin{proof}
+For each \(w\in\mathbb I_H\), the fibre \(F_w=\{z\in\mathbb Z_+:\min\{z,H\}=w\}\) is nonempty: it is \(\{w\}\) when \(w<H\), and it is \(\{H,H+1,\ldots\}\) when \(w=H\). Hence every \(\kappa_w\) in the statement exists and is supported on \(F_w\). Conditional support therefore gives
+\[
+ \mathsf P\{\min(\widetilde Z,H)=W\mid W=w\}=1
+ \quad\text{for every }w\text{ with }q_w>0.               \tag{1}
+\]
+The remaining values of \(w\) have probability zero, so (1) proves \(\min\{\widetilde Z,H\}=W\) almost surely. For any \(z\in\mathbb Z_+\), the law of total probability and \(\mathsf P(W=w)=q_w\) give
+\[
+ \begin{aligned}
+ \mathsf P(\widetilde Z=z)
+ &=\sum_{w=0}^{H}q_w\kappa_w(\{z\})\\
+ &=\sum_{w:q_w>0}\mathsf P\{\min(Z,H)=w\}
+      \mathsf P\{Z=z\mid\min(Z,H)=w\}\\
+ &=\mathsf P(Z=z).
+ \end{aligned}                                           \tag{2}
+\]
+The terms with \(q_w=0\) vanish, so their arbitrary conditional laws do not affect (2). Equality at every atom of the countable support \(\mathbb Z_+\) proves equality of laws.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This elementary mixture identity is the load-bearing bridge from a capped coupling to the published uncapped residual equality. \textit{Gap.} A capped marginal alone does not specify which uncapped values in the top fibre are used; the conditional-fibre kernel supplies an explicit law-preserving choice. \textit{Consumer.} The response-tree lift and the raw-no-carry-over sharp-transfer corollary use the identity.
+
+\begin{theorem}[thm:randomized-minimax-regret]\label{thm:randomized-minimax-regret}
+For every \(\delta\in\Delta_{\mathcal M}\), \(\mathcal R(\delta)=\max_{j\in\mathcal M}h_{\mathcal V}(\delta-e_j)\). Hence \(\Delta^\star\) is nonempty and is exactly the set of \(\delta\)-coordinates solving the explicit epigraph program \(\min_{\delta,\rho}\rho\) subject to \(\delta_m\ge0\), \(\sum_m\delta_m=1\), and \(\rho\ge h_{\mathcal V}(\delta-e_j)\) for every \(j\in\mathcal M\); each constraint is evaluated by the eligibility-greedy support algorithm. In \(\mathsf E_3\), the unique randomized minimax distribution is \((\delta_1,\delta_2,\delta_3)=(9/16,5/16,1/8)\), with \(\mathcal R(\delta)=17/160<7/40=\min_mR_m\). Moreover, on a relatively open neighborhood of \(\mathsf E_3\) in \(\Theta_3\), randomized minimax regret remains strictly smaller than the regret of every deterministic threshold.
+\end{theorem}
+\begin{proof}
+Fix \(\delta\in\Delta_{\mathcal M}\). For \(e_j\) the \(j\)-th standard basis vector, finiteness of \(\mathcal M\) permits the interchange
+\[
+ \begin{aligned}
+ \mathcal R(\delta)
+ &=\sup_{v\in\mathcal V}\left\{\sum_m\delta_mv_m-min_jv_j\right\}\\
+ &=\sup_{v\in\mathcal V}\max_{j\in\mathcal M}(\delta-e_j)^\top v\\
+ &=\max_{j\in\mathcal M}\sup_{v\in\mathcal V}(\delta-e_j)^\top v
+ =\max_{j\in\mathcal M}h_{\mathcal V}(\delta-e_j).
+ \end{aligned}                                           \tag{1}
+\]
+The third expression and the last expression are both the supremum over \(\mathcal V\times\mathcal M\). By \(\text{thm:joint-value-set-and-support}\), \(\mathcal V\) is compact. Its support function is therefore finite and continuous, since
+\[
+ |h_{\mathcal V}(\lambda)-h_{\mathcal V}(\lambda')|
+ \le \sup_{v\in\mathcal V}\|v\|_2\,\|\lambda-\lambda'\|_2. \tag{2}
+\]
+Equation (1) is a finite maximum of continuous convex functions of \(\delta\). The simplex \(\Delta_{\mathcal M}\) is nonempty and compact, so a minimizer exists. Introducing the scalar epigraph variable \(\rho\) gives exactly the variables and constraints displayed in the theorem. The support oracle in \(\text{thm:eligibility-greedy-support}\) evaluates every constraint.
+
+We now calculate the cap-three instance exactly. The following three plans have the margins in \(\mathsf E_3\), are nonnegative, and use only cells satisfying \(b+w\le3\); all unlisted entries are zero:
+\[
+ \begin{array}{c|l|c}
+ r&\text{nonzero cells of }x^{(r)}&(J_1,J_2,J_3)\\ \hline
+ 1&x_{02}=1/5, x_{03}=1/5, x_{10}=1/5, x_{11}=1/10,
+      x_{21}=1/5, x_{30}=1/10&(3/10,11/20,21/40)\\
+ 2&x_{01}=1/5, x_{03}=1/5, x_{11}=1/10, x_{12}=1/5,
+      x_{20}=1/5, x_{30}=1/10&(1/2,7/20,21/40)\\
+ 3&x_{00}=1/5, x_{03}=1/5, x_{11}=1/10, x_{12}=1/5,
+      x_{21}=1/5, x_{30}=1/10&(7/10,11/20,21/40).
+ \end{array}                                               \tag{3}
+\]
+The displayed values follow by substituting the plans and \((\mu_0,\mu_1,\mu_2,\mu_3)=(0,7/20,7/40,0)\) into the value map in \(\text{def:threshold-value-set}\).
+
+For an arbitrary \(\delta=(\delta_1,\delta_2,\delta_3)\in\Delta_{\mathcal M}\), nature may use the three plan--comparator pairs \((x^{(1)},1)\), \((x^{(2)},2)\), and \((x^{(3)},3)\). Their regrets are respectively
+\[
+ g_1(\delta)=\frac14\delta_2+\frac9{40}\delta_3,\qquad
+ g_2(\delta)=\frac3{20}\delta_1+\frac7{40}\delta_3,\qquad
+ g_3(\delta)=\frac7{40}\delta_1+\frac1{40}\delta_2.     \tag{4}
+\]
+Thus \(\mathcal R(\delta)\ge\max_r g_r(\delta)\). The positive convex combination
+\[
+ \frac38g_1(\delta)+\frac18g_2(\delta)+\frac12g_3(\delta)
+ =\frac{17}{160}(\delta_1+\delta_2+\delta_3)
+ =\frac{17}{160}                                         \tag{5}
+\]
+proves the universal lower bound \(\mathcal R(\delta)\ge17/160\).
+
+Set \(\delta^*=(9/16,5/16,1/8)\). For comparator \(j=1,2,3\), the row coefficients \((c_0,c_1,c_2,c_3)\) for the directions \(\delta^*-e_j\) are
+\[
+ (0,-7/16,-1/8,0),\qquad
+ (0,9/16,-1/8,0),\qquad
+ (0,9/16,7/8,0),                                          \tag{6}
+\]
+respectively. Processing columns from \(3\) down to \(0\) and eligible rows in decreasing order of (6) gives, respectively, the three plans in (3). The eligibility-greedy theorem proves that these plans maximize the three support directions, rather than merely furnishing lower bounds. Substitution into (4) gives
+\[
+ h_{\mathcal V}(\delta^*-e_1)
+ =h_{\mathcal V}(\delta^*-e_2)
+ =h_{\mathcal V}(\delta^*-e_3)=\frac{17}{160}.            \tag{7}
+\]
+Equations (1), (5), and (7) prove minimaxity and the stated value.
+
+If another \(\delta\) attained \(17/160\), then each \(g_r(\delta)\le17/160\). Because every weight in (5) is strictly positive and their weighted average already equals \(17/160\), all three inequalities must be equalities. Solving
+\[
+ g_1(\delta)=g_2(\delta)=g_3(\delta)=17/160,\qquad
+ \delta_1+\delta_2+\delta_3=1                            \tag{8}
+\]
+gives \((\delta_1,\delta_2,\delta_3)=(9/16,5/16,1/8)\). Hence the randomized minimizer is unique. The exact deterministic calculation in \(\text{prop:rational-recommendation-reversal}\) gives \(\min_mR_m=R_1=7/40=28/160\), so the improvement is strict.
+
+Finally, write \(\vartheta=(\pi,p,\mu,q)\) for a cap-three margin tuple. Near \(\mathsf E_3\), its three nontrivial Hall slacks are strictly positive because at the center they are \((1/5,3/10,1/5)\) and each is linear in \((p,q)\). For fixed \((\delta,j)\), the eligibility-greedy allocations use finitely many row orderings and finitely many row- or column-exhaustion patterns. Within a pattern they are obtained from \((p,q)\) by finite sums, differences, and minima, and the resulting support value is continuous in \((\vartheta,\delta)\). When coefficient orderings meet, the exchanged rows have equal coefficients, so the adjacent objective values agree. Thus the function
+\[
+ \Phi(\vartheta,\delta)=\max_jh_{\mathcal V_\vartheta}(\delta-e_j) \tag{9}
+\]
+is jointly continuous on a neighborhood of \(\mathsf E_3\) times the compact simplex. Uniform continuity then implies continuity of \(\min_\delta\Phi(\vartheta,\delta)\). The same finite-pattern argument, restricted to the three simplex vertices, proves continuity of \(\min_mR_m(\vartheta)\). At \(\mathsf E_3\) their difference is \(28/160-17/160=11/160>0\). A sufficiently small relatively open neighborhood inside \(\Theta_3\) preserves its sign, proving the last assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Randomization is a genuine decision option on a finite policy menu, and its worst-case regret is computable from the same shared-law support oracle. \textit{Gap.} The deterministic correspondence does not determine whether mixing thresholds lowers worst-case regret or how to compute the optimal mixture. \textit{Consumer.} A robust trial analysis can report all randomized minimax rules and the strict gain over deterministic thresholds in the rational reversal family.
+
+\begin{proposition}[prop:janvin-subclass-sharp-transfer]\label{prop:janvin-subclass-sharp-transfer}
+For every fixed observable distribution of \(O\) and every sustained-arm full-data extension admitted by \(\mathfrak M_H\), restriction to \(\mathfrak M_H^{\mathrm J}\) leaves the conditional identified set of \((B,T,W)\) exactly \(\mathcal G_H(p_{BT},q)\), and its \((B,W)\) projection exactly \(\Gamma_H(p,q)\). Consequently the endpoints in \(\text{thm:sharp-threshold-endpoints}\), the complete value set and support function in \(\text{thm:joint-value-set-and-support}\), and the deterministic and randomized shared-law regret and minimax correspondences are sharp without change on the published raw no-carry-over subclass intersected with \(B+W\le H\). Both inclusions hold at Hall equalities, and no raw count is bounded by \(H\).
+\end{proposition}
+\begin{proof}
+Fix the observable distribution and the stipulated sustained-arm extension. Let \(\Theta_{\gamma}^{\mathrm J}\) denote the set of conditional laws of \((B,T,W)\) among intensive survivors generated by laws in \(\mathfrak M_H^{\mathrm J}\) with that observable distribution and sustained-arm extension.
+
+For the first inclusion, \(\mathfrak M_H^{\mathrm J}\subseteq\mathfrak M_H\) by \(\text{def:janvin-raw-no-carryover-subclass}\). The converse direction of \(\text{thm:causal-response-tree-lift}\) therefore gives
+\[
+ \Theta_{\gamma}^{\mathrm J}\subseteq\mathcal G_H(p_{BT},q). \tag{1}
+\]
+This step uses landmark-survival positivity for conditioning, capped residual transportability for the \(W\) margin, and capped capacity for the support restriction, exactly as verified in that theorem.
+
+For the reverse inclusion, take any \(\gamma\in\mathcal G_H(p_{BT},q)\). The forward construction in \(\text{thm:causal-response-tree-lift}\) preserves the observable distribution and sustained-arm extension and realizes \(\gamma\). Its cap-fibre calculation applies \(\text{lem:cap-fibre-mixture}\) conditionally on the two survivor populations and gives
+\[
+ \mathcal L(Y_K^{1\to0}-Y_k^{1\to0}\mid S_k^1=1)
+ =\mathcal L(Z\mid S_k^0=1).                              \tag{2}
+\]
+Equation (2), together with membership in \(\mathfrak M_H\), is precisely membership in \(\mathfrak M_H^{\mathrm J}\). Hence
+\[
+ \mathcal G_H(p_{BT},q)\subseteq\Theta_{\gamma}^{\mathrm J}. \tag{3}
+\]
+Combining (1) and (3) proves equality. By \(\text{lem:triple-projection-and-extension}\), projecting this equality onto \((B,W)\) gives exactly \(\Gamma_H(p,q)\).
+
+Every threshold value is the affine map
+\[
+ J_m=\pi\left\{\sum_{b<m}\mu_b+
+                  \sum_{b\ge m,w}wx_{bw}\right\}.       \tag{4}
+\]
+Therefore equality of the plan set implies equality of every coordinate range and of the full vector image. The attainment argument in \(\text{thm:sharp-threshold-endpoints}\) makes the displayed endpoints sharp, while \(\text{thm:joint-value-set-and-support}\) identifies the full image, its support function, and deterministic regret from that same plan set. Finally, \(\text{thm:randomized-minimax-regret}\) expresses randomized regret entirely through the same support function, so its regret and minimax correspondence are unchanged as well. None of these arguments invokes strict Hall slack. The cap-fibre at \(w=H\) can contain arbitrarily large raw residuals, so equality of the capped plan sets introduces no global raw-count bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proves maximality relative to the published raw no-carry-over restriction: adding it does not shrink any capped coupling, endpoint, joint value, or regret set. \textit{Gap.} Without the cap-fibre construction, sharpness under the broader capped model would not imply sharpness on the published uncapped residual-equality subclass. \textit{Consumer.} The comparison with JanvinRyalenSarvetStensrud2025 can be stated as an exact sharp extension rather than only as a capped analogue.
+
+\begin{theorem}[thm:randomized-confidence-polytope]\label{thm:randomized-confidence-polytope}
+If \(\mathcal I_{n,\alpha}\) covers \((r_{bt},q_w)\) simultaneously with probability at least \(1-\alpha\), then with the same probability \(\Delta^\star\subseteq\widehat{\Delta}_{n,\alpha}\).  This inclusion retains every randomized minimizer without requiring uniqueness, strict Hall slack, or regret separation.  For candidate margins of total mass \(\tau\), \(\mathsf R_{\mathbf r,\mathbf s}\) is \(H\tau\)-Lipschitz on \(\Delta_{\mathcal M}\) in \(\ell^1\), and the two confidence envelopes are \(H\)-Lipschitz; consequently \(\widehat{\Delta}_{n,\alpha}\) is closed and is computable by finite-dimensional transport-support optimization.  Moreover, when \(H=3\) and \(\mathcal M=\{1,2,3\}\), there are two triangular law sequences in \(\mathfrak M_H\) whose \(n\)-sample observed-data laws have total variation \(o(1)\), such that the first has the unique randomized optimizer \(e_3\) and the second has the unique randomized optimizer \((9/16,5/16,1/8)\).  Therefore, for \(0<\alpha<1/2\), every uniformly honest observed-data outer confidence region for \(\Delta^\star\) has a law sequence along which it contains both points with limiting lower probability at least \(1-2\alpha\).
+\end{theorem}
+\begin{proof}
+First prove the finite-sample inclusion.  Work on the simultaneous first-stage event \(\mathcal E_{n,\alpha}\) in (1) of the proof of \(\text{thm:confidence-polytope}\), and put
+\[
+ \mathbf r^\circ=(\pi p_{bt})_{b,t},\qquad
+ \mathbf s^\circ=(\pi q_w)_w.                            \tag{1}
+\]
+That proof shows \((\mathbf r^\circ,\mathbf s^\circ)\in\widehat{\mathcal Q}_{n,\alpha}\).  Moreover, by \(\pi>0\), its scaling identity (9) and value identity (7) give
+\[
+ \mathsf V_H(\mathbf r^\circ,\mathbf s^\circ)
+ =\mathcal V(p_{BT},q).                                  \tag{2}
+\]
+Consequently \(h_{\mathsf V_H(\mathbf r^\circ,\mathbf s^\circ)}=h_{\mathcal V}\), and the support representation in \(\text{thm:randomized-minimax-regret}\) yields
+\[
+ \mathsf R_{\mathbf r^\circ,\mathbf s^\circ}(\delta)
+ =\max_{j\in\mathcal M}h_{\mathcal V}(\delta-e_j)
+ =\mathcal R(\delta)                                    \tag{3}
+\]
+for every \(\delta\in\Delta_{\mathcal M}\).  Thus the true candidate margins are one of the margin pairs over which both envelopes range, and
+\[
+ \underline{\mathcal R}_{n,\alpha}(\delta)
+ \le\mathcal R(\delta)
+ \le\overline{\mathcal R}_{n,\alpha}(\delta)             \tag{4}
+\]
+simultaneously for all \(\delta\).  If \(\delta^\star\in\Delta^\star\), then
+\[
+ \underline{\mathcal R}_{n,\alpha}(\delta^\star)
+ \le\mathcal R(\delta^\star)
+ =\inf_{\lambda\in\Delta_{\mathcal M}}\mathcal R(\lambda)
+ \le\inf_{\lambda\in\Delta_{\mathcal M}}
+      \overline{\mathcal R}_{n,\alpha}(\lambda).         \tag{5}
+\]
+The defining inequality therefore puts every \(\delta^\star\) in \(\widehat{\Delta}_{n,\alpha}\).  Since the event has probability at least \(1-\alpha\), this proves the asserted simultaneous coverage, including all ties.
+
+We next give the promised Lipschitz and computability details.  For candidate margins let
+\[
+ \tau=\sum_{b,t}r_{bt}=\sum_ws_w.
+\]
+Every \(\mathbf x\in\mathsf X_H(\mathbf r,\mathbf s)\) has total mass \(\tau\).  Since \(0\le t,w\le H\), the two row sets in the definition of \(\mathsf J_m\) are disjoint and exhaust a subset of the total row mass, whence
+\[
+ 0\le \mathsf J_m(\mathbf r,\mathbf x)\le H\tau
+ \quad(m\in\mathcal M).                                 \tag{6}
+\]
+It follows directly from the support definition that, for all \(\lambda,\lambda'\in\mathbb R^{|\mathcal M|}\),
+\[
+ \left|h_{\mathsf V_H(\mathbf r,\mathbf s)}(\lambda)
+       -h_{\mathsf V_H(\mathbf r,\mathbf s)}(\lambda')\right|
+ \le H\tau\,\|\lambda-\lambda'\|_1.                    \tag{7}
+\]
+Indeed, the left side is at most \(\sup_{v\in\mathsf V_H}|(\lambda-\lambda')^\top v|\), and (6) bounds every coordinate of \(v\) by \(H\tau\).  The elementary inequality \(|\max_j a_j-\max_j a'_j|\le\max_j|a_j-a'_j|\) and (7) now imply
+\[
+ |\mathsf R_{\mathbf r,\mathbf s}(\delta)
+   -\mathsf R_{\mathbf r,\mathbf s}(\delta')|
+ \le H\tau\,\|\delta-\delta'\|_1.                      \tag{8}
+\]
+Every pair in \(\widehat{\mathcal Q}_{n,\alpha}\) has \(0\le\tau\le1\).  Taking an infimum or a supremum of a family with the common Lipschitz constant \(H\) preserves that constant, so both envelopes are \(H\)-Lipschitz.  The simplex is compact; hence the infimum of the upper envelope over it is attained, and its weak sublevel inequality makes \(\widehat\Delta_{n,\alpha}\) closed.  Finally, \(\widehat{\mathcal Q}_{n,\alpha}\) is the projection of the explicitly constrained finite polytope, each support value is a finite transport linear program over \(\mathsf X_H\), and only finitely many comparators are maximized.  Thus the envelopes and the outer set are finite-dimensional optimization objects; no differentiability or active-face stability is used.
+
+It remains to prove the uniform obstruction.  Fix \(H=3\), \(\mathcal M=\{1,2,3\}\), and the common \((p,q)\) margins of \(\mathsf E_3\).  Their nontrivial Hall slacks are strictly positive, so \(\Gamma_3(p,q)\ne\varnothing\).  For law zero set \(T=0\) in every row.  Then \(\mu_b=0\) for all \(b\).  Capacity forces row \(b=3\) into column \(w=0\), so every compatible value vector satisfies
+\[
+ J_3=0,
+ \qquad J_1\ge0,
+ \qquad J_2\ge0.                                        \tag{9}
+\]
+Therefore \(\mathcal R(e_3)=0\).  To prove uniqueness, consider the feasible plan whose nonzero cells are
+\[
+ x_{00}=\frac15,\quad x_{03}=\frac15,\quad
+ x_{11}=\frac1{10},\quad x_{12}=\frac15,\quad
+ x_{21}=\frac15,\quad x_{30}=\frac1{10}.                 \tag{10}
+\]
+Its row and column sums are the displayed \(p\) and \(q\) margins of \(\mathsf E_3\), and every listed cell obeys \(b+w\le3\).  Under law zero it generates
+\[
+ (J_1,J_2,J_3)=\left(\frac7{10},\frac15,0\right).        \tag{11}
+\]
+For any \(\delta\in\Delta_{\mathcal M}\), comparison with threshold three at this same latent law gives
+\[
+ \mathcal R(\delta)
+ \ge \frac7{10}\delta_1+\frac15\delta_2.                \tag{12}
+\]
+The right side is positive unless \(\delta=e_3\).  Equations (9)--(12) prove that law zero has the unique randomized optimizer \(e_3\).
+
+For law one, retain the same \((p,q)\) margins.  Conditional on \(B=1\), put probabilities \(5/6\) and \(1/6\) on \(T=1\) and \(T=2\), respectively; conditional on \(B=2\), put probabilities \(1/8\) and \(7/8\) on \(T=0\) and \(T=1\); set \(T=0\) in rows zero and three.  Multiplication by the row masses gives
+\[
+ (\mu_0,\mu_1,\mu_2,\mu_3)
+ =\left(0,\frac7{20},\frac7{40},0\right),               \tag{13}
+\]
+so this is the value geometry of \(\mathsf E_3\).  The exact calculation in \(\text{thm:randomized-minimax-regret}\) proves that its unique randomized optimizer is
+\[
+ \delta^\star=\left(\frac9{16},\frac5{16},\frac18\right). \tag{14}
+\]
+
+We now realize these two summary laws as nearly indistinguishable observed-data laws.  In both, randomize baseline treatment with probability \(1/2\), use no death, set \(S_k^0=S_k^1=1\), use the same pre-landmark intensive paths realizing the common \(B\) margin, and use the same standard-arm sustained paths realizing the common \(q\) margin.  Choose any feasible capped coupling, extend it to a triple coupling by \(\text{lem:triple-projection-and-extension}\), and use the cap-fibre construction in \(\text{thm:causal-response-tree-lift}\) to complete the switched and unused branches.  The resulting raw paths are nonnegative-integer valued, death is absorbing, and the construction enforces both capped residual transportability and \(B+W\le3\).  Independently of the response tree and assignment, observe every subject through \(k\), continue observation through \(K\) with probability
+\[
+ \varepsilon_n=n^{-2}>0,                                \tag{15}
+\]
+and otherwise censor at \(k\).  Thus baseline assignment, landmark survival, and every factual at-risk censoring continuation probability are positive.  Independence in (15) gives the arm-specific censoring-exchangeability equality.  Hence both triangular sequences lie in \(\mathfrak M_H\).
+
+Couple one observation from the two sequences using the same assignment, censoring draw, pre-landmark history, and standard-arm history.  The observations can differ only if \(R=1\) and follow-up continues through \(K\), an event of probability \(\varepsilon_n/2\).  Coordinatewise coupling of \(n\) observations and the union bound therefore give
+\[
+ \left\|P_{0,n}^{\otimes n}-P_{1,n}^{\otimes n}\right\|_{\mathrm{TV}}
+ \le \frac{n\varepsilon_n}{2}
+ =\frac1{2n}\longrightarrow0.                           \tag{16}
+\]
+
+Let \(\mathcal C_n\) be any observed-data outer confidence region satisfying
+\[
+ \liminf_{n\to\infty}\inf_{\mathsf P\in\mathfrak M_H}
+ \mathsf P^{\otimes n}\{\Delta^\star(\mathsf P)\subseteq\mathcal C_n\}
+ \ge1-\alpha.                                           \tag{17}
+\]
+Applied to the two triangular sequences, (17) gives coverage of \(e_3\) under law zero and of \(\delta^\star\) under law one, each with probability at least \(1-\alpha-o(1)\).  Total variation in (16) transfers the latter event to law zero at a cost \(o(1)\).  A union bound under law zero yields
+\[
+ P_{0,n}^{\otimes n}\{e_3,\delta^\star\in\mathcal C_n\}
+ \ge1-2\alpha-o(1).                                     \tag{18}
+\]
+Taking the lower limit proves the final assertion.  The two laws have strict Hall slack and unique, separated randomized optimizers; the obstruction is solely the vanishing post-landmark observation probability permitted by pointwise censoring positivity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The same first-stage event covers every randomized minimizer by lower-versus-upper regret envelopes, while the explicit Lipschitz bound and two-point witness delimit uniform informativeness. \textit{Gap.} Neither scalar endpoint inversion nor deterministic optimizer coverage addresses the policy simplex, randomized ties, or the possibility that two unique mixed optimizers are observationally indistinguishable under vanishing censoring overlap. \textit{Consumer.} A robust capped switching analysis can report all mixed minimax rules compatible with the first-stage region and must disclose when pointwise overlap prevents that region from shrinking uniformly.
+
+\begin{lemma}[lem:observed-margin-identification]\label{lem:observed-margin-identification}
+For each arm \(a\in\{0,1\}\), let \(h_{0:K}\) be an absorbing recurrent-event history atom having positive probability under the sustained-arm law, and let \(d(h)=\min\{\ell:D_\ell(h)=1\}\), with \(d(h)=K\) if death does not occur by \(K\).  Define the observed at-risk kernels
+\[
+ \kappa_0^a(h_0)=\mathsf P(O_0=h_0\mid R=a),
+ \qquad
+ \kappa_\ell^a(h_\ell\mid h_{0:\ell-1})
+ =\mathsf P(O_\ell=h_\ell\mid R=a,C\ge\ell,
+                    O_{0:\ell-1}=h_{0:\ell-1})
+\]
+for \(1\le\ell\le d(h)\).  Under baseline randomization, consistency, factual-arm sequential coarsening at random, assignment positivity, and factual at-risk censoring positivity,
+\[
+ \mathsf P(\mathcal H_K^a=h_{0:K})
+ =\kappa_0^a(h_0)
+   \prod_{\ell=1}^{d(h)}
+       \kappa_\ell^a(h_\ell\mid h_{0:\ell-1}),
+\]
+where every factor after an earlier absorbing death is the deterministic factor one.  Thus the complete sustained-arm history law is identified atom by atom from the distribution of \(O\).  Consequently
+\[
+ r_{bt}=\mathsf P(S_k^1=1,B=b,T=t),\qquad
+ \pi=\sum_{b,t}r_{bt},\qquad p_{bt}=r_{bt}/\pi,
+\]
+and, writing \(\nu_w=\mathsf P(S_k^0=1,\min\{Z,H\}=w)\) and
+\(\sigma_0=\mathsf P(S_k^0=1)\),
+\[
+ q_w=\nu_w/\sigma_0
+\]
+are observed-law functionals.  The two divisions are valid by landmark-survival positivity.
+\end{lemma}
+\begin{proof}
+Fix \(a\) and a positive-probability absorbing atom \(h=h_{0:K}\).  For an alive prefix \(h_{0:\ell-1}\), put
+\[
+ g_\ell^a(h_{0:\ell-1})
+ =\mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,
+       D_{\ell-1}^a=0,\mathcal H_{\ell-1}^a=h_{0:\ell-1}).       \tag{1}
+\]
+Factual-arm censoring positivity makes (1) strictly positive on every prefix of the chosen atom.  Sequential coarsening at random states, without suppressing its conditioning set, that
+\[
+ \mathsf P(C\ge\ell\mid R=a,C\ge\ell-1,D_{\ell-1}^a=0,
+                  \mathcal H_K^a=h)
+ =g_\ell^a(h_{0:\ell-1}).                                  \tag{2}
+\]
+The chain rule and (2) give, for each \(j\le d(h)\),
+\[
+ \mathsf P(C\ge j\mid R=a,\mathcal H_K^a=h)
+ =\prod_{\ell=1}^{j}g_\ell^a(h_{0:\ell-1}).                \tag{3}
+\]
+Indeed, the \(\ell\)-th factor in the conditional chain rule is exactly (2).  The right side of (3), conditional on the prefix \(h_{0:j-1}\), does not depend on \(h_j,\ldots,h_K\).  Hence, for any supported alive prefix,
+\[
+ C\ge j\ \perp\!\!\!\perp\
+ (\mathcal H_j^a,\ldots,\mathcal H_K^a)
+ \mid R=a,\mathcal H_{j-1}^a.                              \tag{4}
+\]
+This conclusion has been derived from the displayed sequential restriction; no independence of censoring from the whole response tree has been added.
+
+Now use Bayes' rule at an alive prefix.  By (2), (4), and the strict positivity of (1),
+\[
+\begin{aligned}
+ &\mathsf P(\mathcal H_\ell^a=h_{0:\ell}
+      \mid R=a,C\ge\ell,\mathcal H_{\ell-1}^a=h_{0:\ell-1})\\
+ &\quad=
+ \frac{g_\ell^a(h_{0:\ell-1})
+       \mathsf P(\mathcal H_\ell^a=h_{0:\ell}
+          \mid R=a,C\ge\ell-1,
+                 \mathcal H_{\ell-1}^a=h_{0:\ell-1})}
+      {g_\ell^a(h_{0:\ell-1})}\\
+ &\quad=
+ \mathsf P(\mathcal H_\ell^a=h_{0:\ell}
+      \mid R=a,\mathcal H_{\ell-1}^a=h_{0:\ell-1}).
+\end{aligned}                                             \tag{5}
+\]
+The last equality follows from (4) with \(j=\ell-1\); for \(\ell=1\), the event \(C\ge0\) is certain.  Baseline randomization gives
+\[
+ \mathsf P(\mathcal H_K^a=h)=
+ \mathsf P(\mathcal H_K^a=h\mid R=a),                      \tag{6}
+\]
+and consistency identifies every left side of (5), on \(R=a\) and \(C\ge\ell\), with the corresponding observed transition of \(O\).  Assignment positivity and (1) ensure that each observed conditional probability is well defined.  Applying the ordinary finite chain rule to (6), substituting (5), and stopping at the first death yields
+\[
+ \mathsf P(\mathcal H_K^a=h)
+ =\kappa_0^a(h_0)
+   \prod_{\ell=1}^{d(h)}
+       \kappa_\ell^a(h_\ell\mid h_{0:\ell-1}).            \tag{7}
+\]
+Absorbing death makes every later coordinate deterministic, so no post-death censoring division is used.
+
+The finite-horizon raw history space is countable because each count coordinate is in \(\mathbb Z_+\).  Therefore (7) identifies the law of the sustained history by countable summation of its atoms.  Summing the intensive-arm atoms over the event
+\(\{S_k^1=1,B=b,T=t\}\) gives
+\[
+ r_{bt}=\mathsf P(S_k^1=1,B=b,T=t)=\pi p_{bt}.             \tag{8}
+\]
+Summing (8) over \(b,t\) gives \(\pi\), and landmark-survival positivity gives \(\pi>0\), so \(p_{bt}=r_{bt}/\pi\).  Likewise, summing standard-arm atoms gives
+\[
+ \nu_w=\mathsf P(S_k^0=1,\min\{Z,H\}=w),\qquad
+ \sigma_0=\sum_w\nu_w=\mathsf P(S_k^0=1)>0.              \tag{9}
+\]
+The definition of conditional probability then gives \(q_w=\nu_w/\sigma_0\).  Equations (7)--(9) prove every asserted identification map.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma repairs the inferential foundation by deriving, rather than citing, the finite sequential factorization for every supported absorbing sustained-history atom. \textit{Gap.} Published recurrent-event CAR results used here formulate the coarsening condition and identify particular mean or survival targets, not the complete history law needed for every capped terminal cell. \textit{Consumer.} The explicit cell and ratio influence functions use the identified transition kernels to construct all backward outcome regressions.
+
+\begin{lemma}[lem:hoffman-polyhedral-error-bound]\label{lem:hoffman-polyhedral-error-bound}
+Fix a real matrix \(A\) and norms on its domain and codomain.  There is a constant \(c_A>0\), depending only on \(A\) and the norms, such that, whenever \(\{y:Ay\le b\}\) is nonempty, every \(x\) admits \(x_0\) with \(Ax_0\le b\) and
+\[
+ \lVert x-x_0\rVert\le c_A\lVert(Ax-b)_+\rVert.
+\]
+\end{lemma}
+
+\begin{theorem}[thm:cross-fitted-margin-region]\label{thm:cross-fitted-margin-region}
+Fix \(H\), \(K\), and \(\varepsilon\in(0,1)\).  Uniformly over triangular law--estimator sequences satisfying \(\operatorname{QIR}_{H,K,\varepsilon}(\mathsf P,\mathfrak I)\), the cross-fitted longitudinal estimators in \(\text{def:uniform-inference-handle}\) obey a joint asymptotic-linear expansion for the finite vector \(((r_{bt}),(q_w))\) with influence coordinates \(\varphi_{1,F_{bt}^1}\) and \(\varphi_{q_w}\).  The displayed Bonferroni--Chebyshev rectangle \(\mathcal I_{n,\alpha}\) consequently has uniform simultaneous coverage at least \(1-\alpha\) asymptotically and sup-norm diameter \(O(n^{-1/2})\).  The same probability statement simultaneously gives
+\[
+ \mathcal V(p_{BT},q)\subseteq\widehat{\mathcal V}_{n,\alpha},\qquad
+ \mathcal M^\star\subseteq\widehat{\mathcal M}_{n,\alpha},\qquad
+ \Delta^\star\subseteq\widehat\Delta_{n,\alpha},
+\]
+without strict Hall slack, uniqueness, or exclusion of deterministic or randomized policy ties.  Uniformly on this quantitative submodel, the Hausdorff distance in sup norm between \(\widehat{\mathcal V}_{n,\alpha}\) and \(\mathcal V(p_{BT},q)\) is \(O_{\mathsf P}(n^{-1/2})\), and
+\[
+ \sup_{m\in\widehat{\mathcal M}_{n,\alpha}}
+   \{R_m-\min_jR_j\}=O_{\mathsf P}(n^{-1/2}),
+ \qquad
+ \sup_{\delta\in\widehat\Delta_{n,\alpha}}
+   \{\mathcal R(\delta)-\inf_\lambda\mathcal R(\lambda)\}
+   =O_{\mathsf P}(n^{-1/2}).
+\]
+If additionally the nonoptimal deterministic regret gap is uniformly bounded below by a positive constant, then \(\widehat{\mathcal M}_{n,\alpha}\subseteq\mathcal M^\star\) with probability tending to one.  If additionally there is a constant \(c>0\) such that
+\[
+ \mathcal R(\delta)-\inf_\lambda\mathcal R(\lambda)
+ \ge c\,\operatorname{dist}_1(\delta,\Delta^\star)
+ \quad\text{for every }\delta\in\Delta_{\mathcal M}
+\]
+uniformly over the submodel, then
+\(\sup_{\delta\in\widehat\Delta_{n,\alpha}}
+\operatorname{dist}_1(\delta,\Delta^\star)=O_{\mathsf P}(n^{-1/2})\).  Without these gap or polyhedral-sharpness conditions, only simultaneous outer coverage and regret-excess contraction are asserted, so all ties remain admissible.
+\end{theorem}
+\begin{proof}
+We prove the claims in five steps.
+
+\emph{Step 1: observed nuisances and the longitudinal score.}
+For every terminal indicator in (2) of \(\text{def:uniform-inference-handle}\), \(\text{lem:observed-margin-identification}\) identifies every supported transition of the sustained arm.  Consequently it identifies the backward regressions \(Q_{\ell,F}^a\) and censoring hazards \(g_\ell^a\).  At a dead prefix the terminal value is already determined by absorption, so the recursion uses no unsupported continuation.
+
+For the true nuisances, condition the \(\ell\)-th summand of \(\Psi_{a,F}\) first on \(R=a\), \(C\ge\ell-1\), and \(\mathcal H_{\ell-1}^a\).  Sequential coarsening at random and consistency give
+\[
+ \mathsf E\!\left[
+ \frac{\mathbf 1\{C\ge\ell,D_{\ell-1}^a=0\}}{\bar G_\ell^a}
+ \{Q_{\ell,F}^a-Q_{\ell-1,F}^a\}
+ \mathrel{\Big|} R=a,\mathcal H_{\ell-1}^a\right]=0.       \tag{1}
+\]
+The division is valid because \(\operatorname{QIR}_{H,K,\varepsilon}\) gives \(\bar G_\ell^a\ge\varepsilon^\ell\) on the at-risk support.  Baseline randomization and \(g_a\ge\varepsilon\) then imply
+\[
+ \mathsf E\{\Psi_{a,F}(O)\}=\mathsf E\{Q_{0,F}^a(\mathcal H_0^a)\}=\theta_{a,F},
+ \qquad \mathsf E(\varphi_{a,F})=0.                       \tag{2}
+\]
+Because \(0\le Q_{\ell,F}^a\le1\),
+\[
+ |\varphi_{a,F}|
+ \le 2+K\varepsilon^{-(K+1)}=:C_0.                       \tag{3}
+\]
+Moreover \(\sigma_0\ge\varepsilon\), so (3) and the ratio formula give
+\[
+ |\varphi_{q_w}|\le 2C_0/\varepsilon=:C_{K,\varepsilon}. \tag{4}
+\]
+The latter constant also bounds the cell-mass influence coordinates after increasing it if necessary.
+
+\emph{Step 2: cross-fitted asymptotic linearity.}
+Consider one validation fold and condition on its training sample.  Add and subtract the score at the true nuisances:
+\[
+ \widehat\theta_{a,F}-\theta_{a,F}
+ =(\mathbb P_n-\mathsf P)\varphi_{a,F}
+ +(\mathbb P_n-\mathsf P)\{\Psi_{a,F}(\widehat\eta)-\Psi_{a,F}(\eta)\}
+ +\mathsf P\{\Psi_{a,F}(\widehat\eta)-\Psi_{a,F}(\eta)\}. \tag{5}
+\]
+Here \(\eta\) denotes the finite collection of true regressions and hazards.  Clipping and the overlap bounds make the score Lipschitz in each nuisance with a constant depending only on \(K\) and \(\varepsilon\).  Conditional variance in the validation fold and uniform \(L^2\)-consistency therefore give
+\[
+ (\mathbb P_n-\mathsf P)\{\Psi_{a,F}(\widehat\eta)-\Psi_{a,F}(\eta)\}
+ =o_{\mathsf P}(n^{-1/2}).                                \tag{6}
+\]
+For completeness, iterated expectation in the last term of (5), followed by adding and subtracting each true backward regression, telescopes all terms that contain only a regression error or only a censoring error.  Cauchy--Schwarz leaves the explicit bound
+\[
+ \left|\mathsf P\{\Psi_{a,F}(\widehat\eta)-\Psi_{a,F}(\eta)\}\right|
+ \le C(K,\varepsilon)
+ \sum_{\ell=1}^{K}
+ \lVert\widehat Q_{\ell-1,F}^a-Q_{\ell-1,F}^a\rVert_2
+ \sum_{j=1}^{\ell}\lVert\widehat g_j^a-g_j^a\rVert_2.    \tag{7}
+\]
+To see why no first-order term is hidden in (7), the conditional mean of
+\(Q_{\ell,F}^a-Q_{\ell-1,F}^a\) is zero by the defining backward recursion, while the conditional mean of the censoring indicator divided by its true continuation probability is one by sequential coarsening at random.  Thus every surviving summand contains one error of each kind.  The product-rate clause in \(\operatorname{QIR}_{H,K,\varepsilon}\) makes (7) \(o_{\mathsf P}(n^{-1/2})\).  Averaging the fixed number of folds in (5)--(7) proves, uniformly for all terminal indicators,
+\[
+ \widehat\theta_{a,F}-\theta_{a,F}
+ =\frac1n\sum_{i=1}^n\varphi_{a,F}(O_i)+o_{\mathsf P}(n^{-1/2}). \tag{8}
+\]
+
+Apply (8) to \(\nu_w\) and \(\sigma_0\).  Since \(\sigma_0\ge\varepsilon\) and \(\widehat\sigma_0\to\sigma_0\) uniformly, the clipped denominator equals \(\widehat\sigma_0\) with probability tending to one.  The exact ratio identity
+\[
+ \frac{\widehat\nu_w}{\widehat\sigma_0}-\frac{\nu_w}{\sigma_0}
+ =\frac{(\widehat\nu_w-\nu_w)-q_w(\widehat\sigma_0-\sigma_0)}{\sigma_0}
+ -\frac{(\widehat\sigma_0-\sigma_0)
+ \{(\widehat\nu_w-\nu_w)-q_w(\widehat\sigma_0-\sigma_0)\}}
+ {\sigma_0\widehat\sigma_0}                              \tag{9}
+\]
+and (8) show that the second term is \(O_{\mathsf P}(n^{-1})\) and that the first has influence coordinate (3) of the definition.  This proves the asserted joint expansion.
+
+\emph{Step 3: the simultaneous rectangle.}
+Let \(\vartheta=((r_{bt}),(q_w))\) and \(d=(H+1)^2+(H+1)\).  For every coordinate \(s\) of the influence vector, (4) and Chebyshev's inequality give
+\[
+ \mathsf P\!\left(
+ \left|\frac1n\sum_{i=1}^n\varphi_s(O_i)\right|
+ >C_{K,\varepsilon}\sqrt{\frac d{\alpha n}}\right)
+ \le\frac\alpha d.                                      \tag{10}
+\]
+The union bound over the fixed \(d\) coordinates, (8)--(9), and uniformity of the remainders yield
+\[
+ \liminf_n\inf_{\operatorname{QIR}}
+ \mathsf P\!\left\{
+ \lVert\widehat\vartheta_n^{\mathrm{raw}}-\vartheta\rVert_\infty
+ \le\frac{C_{K,\varepsilon}\sqrt{d/\alpha}+1}{\sqrt n}
+ \right\}\ge1-\alpha.                                  \tag{11}
+\]
+The true margin vector belongs to the Hall-feasible projection domain.  If \(\widetilde\vartheta_n\) is a sup-norm projection of the raw estimate onto that domain, minimality and the triangle inequality give
+\[
+ \lVert\widetilde\vartheta_n-\vartheta\rVert_\infty
+ \le2\lVert\widehat\vartheta_n^{\mathrm{raw}}-\vartheta\rVert_\infty. \tag{12}
+\]
+Thus the half-width (4) covers every true coordinate on the event in (11).  It is deterministic of order \(n^{-1/2}\), so the rectangle has the claimed sup-norm diameter.  Projection also ensures that the downstream confidence polytope is nonempty.
+
+On the event of simultaneous margin coverage, \(\text{thm:confidence-polytope}\) gives
+\(\mathcal V\subseteq\widehat{\mathcal V}_{n,\alpha}\) and
+\(\mathcal M^\star\subseteq\widehat{\mathcal M}_{n,\alpha}\), while
+\(\text{thm:randomized-confidence-polytope}\) gives
+\(\Delta^\star\subseteq\widehat\Delta_{n,\alpha}\).  These are set inclusions based on weak inequalities, so Hall equalities and all optimizer ties are retained.
+
+\emph{Step 4: polyhedral contraction and regret excess.}
+Write equivalently \(\vartheta=(\mathbf r,q)\), put \(\tau=\sum_{b,t}r_{bt}\), and
+\(s_w=\tau q_w\).  By (12) and the width of the rectangle, every candidate
+\((\mathbf r',\mathbf s')\) in its margin projection has positive total mass for all sufficiently large \(n\).  Indeed, if \(h_n\) is the common half-width and \(d_r=(H+1)^2\), its coordinatewise lower constraints give
+\[
+ \tau'=\sum_{b,t}r'_{bt}
+ \ge\sum_{b,t}\max\{0,\widetilde r_{bt}-h_n\}
+ \ge\varepsilon/2-d_rh_n\ge\varepsilon/4.                \tag{13}
+\]
+Define \(q'_w=s'_w/\tau'\).  The perspective inequalities in
+\(\widehat{\mathcal P}_{n,\alpha}\) put every \(q'_w\) between the corresponding endpoints of \(\mathcal I_{n,\alpha}\).  Hence
+\[
+ \lVert\mathbf r'-\mathbf r\rVert_\infty
+ +\lVert\mathbf s'-\mathbf s\rVert_\infty
+ =O_{\mathsf P}(n^{-1/2})                                \tag{14}
+\]
+uniformly; the product \(s'_w=\tau' q'_w\) is Lipschitz because
+\(0\le\tau',q'_w\le1\).  Encode nonnegativity, forbidden Ferrers cells, and the row and column equations of \(\mathsf X_H\) as one fixed finite inequality matrix \(A_H\).  Apply \(\text{lem:hoffman-polyhedral-error-bound}\) first to a candidate plan with the true right side and then to a true plan with the projected-center right side.  Since both right sides are feasible, it gives a constant \(L_H<\infty\), depending only on the fixed matrix, such that the correcting plans obey
+\[
+ \lVert\mathbf x'-\mathbf x\rVert_1
+ \le L_H\{
+ \lVert\mathbf r'-\mathbf r\rVert_1+
+ \lVert\mathbf s'-\mathbf s\rVert_1\}.                  \tag{15}
+\]
+This is the only classical polyhedral sensitivity input; (13)--(14) are the note-specific perspective-margin calculation.
+
+For every threshold, the value map is linear and \(0\le t,w\le H\).  Hence (14)--(15) imply
+\[
+ |\mathsf J_m(\mathbf r',\mathbf x')-
+   \mathsf J_m(\mathbf r,\mathbf x)|
+ \le H\lVert\mathbf r'-\mathbf r\rVert_1+
+      H\lVert\mathbf x'-\mathbf x\rVert_1
+ =O_{\mathsf P}(n^{-1/2}).                               \tag{16}
+\]
+The two applications of (15) prove both directed Hausdorff bounds, so (16), uniformly over the finite menu, proves the asserted Hausdorff contraction of value sets.
+
+If two compact value sets are within \(e\) in sup-norm Hausdorff distance, then directly from the support definition
+\[
+ |h_V(\lambda)-h_{V'}(\lambda)|
+ \le e\lVert\lambda\rVert_1.                             \tag{17}
+\]
+Every deterministic pairwise direction and every randomized regret direction has \(\ell^1\)-norm at most two.  Taking finite maxima in (17) therefore shows that every candidate deterministic or randomized regret differs uniformly from its true counterpart by
+\(e_n=O_{\mathsf P}(n^{-1/2})\).  If
+\(m\in\widehat{\mathcal M}_{n,\alpha}\), the defining envelope inequality gives
+\[
+ R_m\le\underline R_m^{n,\alpha}+e_n
+ \le\min_j\overline R_j^{n,\alpha}+e_n
+ \le\min_jR_j+2e_n.                                     \tag{18}
+\]
+Likewise, if \(\delta\in\widehat\Delta_{n,\alpha}\),
+\[
+ \mathcal R(\delta)
+ \le\underline{\mathcal R}_{n,\alpha}(\delta)+e_n
+ \le\inf_\lambda\overline{\mathcal R}_{n,\alpha}(\lambda)+e_n
+ \le\inf_\lambda\mathcal R(\lambda)+2e_n.               \tag{19}
+\]
+Equations (18)--(19) are the two regret-excess conclusions.
+
+\emph{Step 5: exactly when geometric optimizer contraction follows.}
+Suppose the deterministic gap
+\[
+ \inf_{\operatorname{QIR}}
+ \min_{m\notin\mathcal M^\star}
+ \{R_m-\min_jR_j\}>0.                                   \tag{20}
+\]
+Then (18) excludes every nonoptimizer with probability tending to one, proving
+\(\widehat{\mathcal M}_{n,\alpha}\subseteq\mathcal M^\star\).  For mixtures, the stated polyhedral-sharpness inequality and (19) give
+\[
+ \sup_{\delta\in\widehat\Delta_{n,\alpha}}
+ \operatorname{dist}_1(\delta,\Delta^\star)
+ \le 2e_n/c=O_{\mathsf P}(n^{-1/2}).                      \tag{21}
+\]
+Without (20) or the sharpness inequality, (18)--(19) control loss but not distance to a possibly flat optimizer face.  The proof therefore does not convert a Hall or policy tie into an unstated separation assumption.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives a computable positive inference result on exactly the quantitative submodel that excludes the headline vanishing-information sequences, and propagates root-\(n\) margin error through the transport geometry to values and decisions. \textit{Gap.} Set-theoretic confidence inversion alone does not supply a first-stage construction, a contraction rate, or the regularity boundary under censoring; prior CAR and support-function literatures do not provide this capped recurrent-event composition. \textit{Consumer.} A trial analysis satisfying prespecified quantitative overlap and cross-fitted nuisance-rate diagnostics can report one simultaneous region for all capped values and robust deterministic or randomized decisions, while retaining every tie.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The cap \(H\) constrains only the separately capped summaries and never the primitive raw recurrent counts. Its clinical mechanism is not established for SPRINT. The response-tree lift preserves factual-arm sequential censoring without assuming censoring independence from the whole response tree. The positive inference theorem is not a consequence of the maintained class: it uses a separate quantitative predicate with uniform assignment, survival, and factual censoring overlap and explicit nuisance product rates. The conservative Bonferroni--Chebyshev rectangle establishes uniform root-\(n\) order but does not claim semiparametric efficiency or shortest width. At Hall and policy ties, outer coverage and regret-excess contraction remain valid, but optimizer-set distance need not contract without the displayed gap or polyhedral-sharpness condition. The broad-class impossibility sequences violate every fixed quantitative overlap bound and therefore do not contradict the positive submodel theorem.
+
+\section{Honest scope}
+
+The proved scope includes exact endpoints, an observed-law-preserving raw-path causal lift, sharp transfer to the published raw no-carry-over subclass intersected with the cap, the complete common-law value set, deterministic and randomized minimax regret, and confidence-polytope inversion. Complete sustained-arm history identification is now proved directly by a finite observed-kernel product, rather than attributed to a source that identifies only particular functionals. Positive root-\(n\) margin, value-set, and regret-excess contraction holds only on the explicit quantitative inference regularity submodel with fixed \(H,K\), a fixed overlap lower bound, cross-fitting, clipped uniformly consistent nuisances, and longitudinal product-rate control. All deterministic and randomized ties retain simultaneous outer coverage. Geometric optimizer contraction is claimed only under an additional uniform deterministic regret gap or randomized polyhedral-sharpness inequality. On the unchanged pointwise-overlap class, uniformly honest regions need not shrink, as witnessed by the stated two-law sequences. SPRINT remains only a conditional capped-loss consumer requiring an externally defended cap at \(k=300\) and a feasible censoring-adjusted Hall system.
+
+\begin{thebibliography}{99}
+
+  \bibitem{JanvinRyalenSarvetStensrud2025} Janvin, Matias, Pål C. Ryalen, Aaron L. Sarvet, and Mats J. Stensrud. 2025. A positivity robust strategy for comparing recurrent event treatment regimes. Biometrics 81(3), ujaf085. Assumption 1 and Proposition 1 are in Section 3.1.
+
+  \bibitem{JanvinYoungRyalenStensrud2023} Janvin, Matias, Jessica G. Young, Pål C. Ryalen, and Mats J. Stensrud. 2024. Causal inference with recurrent and competing events. Lifetime Data Analysis 30(1): 59--118. Published online 12 May 2023. DOI 10.1007/s10985-023-09594-8; source: \url{https://link.springer.com/article/10.1007/s10985-023-09594-8}. The relevant counterfactual recurrent-event material is in Sections 2--3.
+
+  \bibitem{Strassen1965} Strassen, Volker. 1965. The existence of probability measures with given marginals. Annals of Mathematical Statistics 36: 423--439.
+
+  \bibitem{Dahl2008} Dahl, Geir. 2008. Transportation matrices with staircase patterns and majorization. Linear Algebra and its Applications 429(7): 1840--1850. DOI 10.1016/j.laa.2008.05.019. Theorem 1 gives the general arbitrary-pattern \((R,S)\)-support antecedent; the fixed-margin staircase feasibility characterization and construction are in Theorem 4 and Section 3.
+
+  \bibitem{ZhangRichardson2025} Zhang, Zhehao, and Thomas S. Richardson. 2025. Bounds on the distribution of a sum of two random variables: revisiting a problem of Kolmogorov. arXiv:2405.08806.
+
+  \bibitem{HoffmanVeinott1993} Hoffman, Alan J., and Arthur F. Veinott Jr. 1993. Staircase transportation problems with superadditive rewards and cumulative capacities. Mathematical Programming 62: 199--213.
+
+  \bibitem{RichardsonRobins2013} Richardson, Thomas S., and James M. Robins. 2013. Single world intervention graphs: a primer. University of Washington CSSS Working Paper 128.
+
+  \bibitem{GreseleEtAl2022} Gresele, Luigi, Julius von Kügelgen, Jonas M. Kübler, Elke Kirschbaum, Bernhard Schölkopf, and Dominik Janzing. 2022. Causal inference through the structural causal marginal problem. Proceedings of the 39th International Conference on Machine Learning.
+
+  \bibitem{BaerStrawdermanErtefaie2023} Baer, Benjamin R., Robert L. Strawderman, and Ashkan Ertefaie. 2023. Causal inference for the expected number of recurrent events in the presence of a terminal event. arXiv:2306.16571. Source: \url{https://arxiv.org/abs/2306.16571}. Proposition 1 and Corollary 1 distinguish full and sequential coarsening at random and state the factual-arm identification specialization; Sections 4.1--4.3 develop efficiency and multiply robust estimation.
+
+  \bibitem{ChernozhukovHongTamer2007} Chernozhukov, Victor, Han Hong, and Elie Tamer. 2007. Estimation and confidence regions for parameter sets in econometric models. Econometrica 75: 1243--1284.
+
+  \bibitem{AndrewsSoares2010} Andrews, Donald W. K., and Gustavo Soares. 2010. Inference for parameters defined by moment inequalities using generalized moment selection. Econometrica 78: 119--157.
+
+  \bibitem{Gafarov2025} Gafarov, Bulat. 2025. Inference in high-dimensional set-identified affine models. Journal of Econometrics 249, 105952.
+
+  \bibitem{MontielOleaQiuStoye2026} Montiel Olea, José Luis, Chen Qiu, and Jörg Stoye. 2026. Decision theory for treatment choice problems with partial identification. Review of Economic Studies, rdag015.
+
+  \bibitem{Mao2023} Mao, Lu. 2023. Nonparametric inference of general while-alive estimands for recurrent events. Biometrics 79: 1749--1760.
+
+  \bibitem{SinkEtAl2018} Sink, Kaycee M., et al. 2018. Syncope, hypotension, and falls in the treatment of hypertension: results from the randomized clinical SPRINT study. Journal of the American Geriatrics Society 66: 679--686.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024} Duarte, Guilherme, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. 2024. An automated approach to causal inference in discrete settings. Journal of the American Statistical Association 119: 2512--2525.
+
+  \bibitem{Hoffman1952} Hoffman, Alan J. 1952. On Approximate Solutions of Systems of Linear Inequalities. Journal of Research of the National Bureau of Standards 49(4):263--265. DOI: \url{https://doi.org/10.6028/jres.049.027}.
+
+\end{thebibliography}
+
+\end{document}

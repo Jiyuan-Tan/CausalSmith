@@ -1,0 +1,978 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}causalbootstrap\_\allowbreak{}rankcone\_\allowbreak{}certificate}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Under every uniform fixed-count sample-and-assign design with positive arm counts and an optional unassigned remainder, the common-rank potential-outcome completion is universally least favourable for the scalarized covariance loss \(\operatorname{tr}\{W\operatorname{Cov}_Z(C\widehat{\bar Y})\}\) if and only if \(H=C^{\mathsf T}WC\) is a graph Laplacian.  The count-independent \(O(K^2)\) certificate has an exact \(2/N\) regret identity and a one-success counterexample for every feasible design outside the cone.  Full covariance dominance occurs only for two nonzero opposite columns of \(C\).  The two-arm result exactly recovers the finite Aronow--Green--Lee sample-then-treat law, Equation (2), and its comonotone oracle endpoint.  On the separate \(K\mid N\) balanced-kernel domain, finite cut copositivity is exact and decidable for algebraic inputs, while polynomial recognition and the minimal complete witness alphabet remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Sharp rank completion is analytic for the two-arm difference-in-means estimator, whereas generalized causal-bootstrap work uses integer programming for broad designs and estimators.  The literature does not state the exact contrast-geometry boundary at which one common-rank completion remains universally least favourable for every positive fixed-count multi-arm sample-and-assign experiment, nor the boundary for dominance of the full contrast covariance.  On the realizable nonexchangeable balanced-kernel domain, polynomial-time recognition and a minimal-alphabet certificate remain open.
+
+\paragraph{Niche.} The object is neither a generic transport solver nor another conservative covariance estimator.  It is a design-computable graph-Laplacian cone invariant to unequal positive allocation counts and an unassigned remainder, a two-opposite-columns classification for joint covariance dominance, a full finite recovery of the canonical two-arm oracle formula, and an exact cut-copositivity representation on the distinct balanced moment-polytope domain modulo common unit relabelling.
+
+\paragraph{Fill.} The project derives the uniform fixed-count covariance identity, proves the graph-Laplacian equivalence by finite rearrangement and a one-success necessity witness valid for every feasible count vector, classifies the Loewner case, and preserves two exact \(K=3,N=6\) audits.  It also proves equality of the sequential Aronow--Green--Lee design and the uniform three-cell law and derives their variance formula term by term.  For general balanced kernels with \(K\mid N\), it proves finite cut copositivity and a terminating exact algebraic algorithm while leaving polynomial complexity and the minimal complete alphabet explicit residual questions.
+
+\section{Related work}
+
+Aronow, Green, and Lee give a finite two-stage sample-then-treat variance formula and prove that its upper endpoint is attained by comonotone potential outcomes.  The two-arm proposition proves that their sequential randomization is exactly the uniform treated--control--unassigned allocation law, derives their Equation (2) from the fixed-count covariance identity term by term, and uses their Lemma 1 only for sharp comonotone attainment.  Imbens and Menzel use isotone completion for a least-favourable two-arm limiting experiment.  Zhao and Ding supply the arbitrary-contrast complete-randomization covariance framework; the present result extends the relevant identity to arbitrary positive fixed counts with an optional unassigned remainder and optimizes its unidentified cross-arm terms.  Tchen's supermodular order is consistent with the rearrangement mechanism, while the proof here gives the finite permutation argument and the graph-Laplacian necessity witness directly.  Gao, Ge, and Qian formulate general quadratic cross-world extrema as multi-marginal transport, and Brennan et al. compute generalized causal-bootstrap completions by integer programming.  On the explicitly balanced \(K\mid N\) kernel domain, the separate theorem instead gives an exact finite cut-copositivity characterization.  Laurent and Seminaroti's Robinson--Toeplitz result is a sufficient identity-optimal class for a two-matrix quadratic assignment problem, not the necessary-and-sufficient or polynomial recognition result sought here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau=C\bar Y\).
+Primary functional / estimator / diagnostic: For every \(N\geq K\) and every feasible positive fixed-count vector \(\mathbf n\), under \(Z\sim\mathbb P_{\mathbf n}^{\mathrm{sa}}\), \(\rho_W\{Y^{\uparrow}(F)\}=\sup_{Y\in\mathcal S_N(F)}\operatorname{tr}\{W\operatorname{Cov}_Z(C\widehat{\bar Y}\mid Y)\}\) for every empirical marginal collection \(F\) if and only if \(C^{\mathsf T}WC\in\mathcal R_K\)..
+\begin{itemize}
+  \item \texttt{K} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{design dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of treatment arms.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{finite set}; \(\{1,\ldots,K\}\); \texttt{arm index set}
+  \par\smallskip\noindent\emph{Definition.} Treatment-arm set \(\mathcal A=\{1,\ldots,K\}\).
+  \item \texttt{a} --- \texttt{arm index}; \(\mathcal A\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treatment-\allowbreak{}arm index.}
+  \item \texttt{b} --- \texttt{arm index}; \(\mathcal A\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second treatment-\allowbreak{}arm index.}
+  \item \texttt{N} --- \texttt{positive integer}; \(\{2,3,\ldots\}\); \texttt{finite-\allowbreak{}population size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of fixed experimental units;\allowbreak{} no divisibility restriction is imposed for the uniform fixed-\allowbreak{}count headline.}
+  \item \texttt{n} --- \texttt{positive integer}; \texttt{balanced allocation count}
+  \par\smallskip\noindent\emph{Definition.} On the balanced exhaustive subdomain with K dividing N, the common arm size is \(n=N/K\).
+  \item \texttt{i} --- \texttt{unit index}; \(\{1,\ldots,N\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic fixed unit index.}
+  \item \texttt{j} --- \texttt{unit index}; \(\{1,\ldots,N\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second fixed unit index.}
+  \item \texttt{r} --- \texttt{integer}; \(\{0,\ldots,N\}\); \texttt{cut index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Cut location in the ordered unit list.}
+  \item \texttt{m} --- \texttt{positive integer}; \(\{1,\ldots,K-1\}\); \texttt{contrast dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of reported causal contrasts.}
+  \item \texttt{h} --- \texttt{vector}; \(\mathbb R^m\); \texttt{Loewner test direction}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic scalarization direction for the contrast vector.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf 1\_\allowbreak{}K} --- \texttt{vector}; \(\mathbb R^K\); \texttt{contrast normalization}
+  \par\smallskip\noindent\emph{Definition.} Vector of \(K\) ones.
+  \item \texttt{C} --- \texttt{matrix}; \(\mathbb R^{m\times K}\); \texttt{causal target map}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Prespecified causal contrast matrix.}
+  \item \texttt{W} --- \texttt{matrix}; \(\mathbb S_+^m\); \texttt{covariance loss}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Prespecified positive-\allowbreak{}semidefinite scalarization of contrast covariance.}
+  \item \texttt{H} --- \texttt{matrix}; \(\mathbb S_+^K\); \texttt{rank-\allowbreak{}preservation certificate input}
+  \par\smallskip\noindent\emph{Definition.} Contrast Gram matrix \(H=C^{\mathsf T}WC\).
+  \item \texttt{Y} --- \texttt{array}; \(\mathbb R^{N\times K}\); \texttt{finite-\allowbreak{}population causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Fixed potential-outcome schedule \(Y=(Y_i(a))_{i\leq N,\,a\in\mathcal A}\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar Y} --- \texttt{vector}; \(\mathbb R^K\); \texttt{causal mean vector}
+  \par\smallskip\noindent\emph{Definition.} Armwise finite-population mean with coordinate \(\bar Y(a)=N^{-1}\sum_{i=1}^N Y_i(a)\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{vector}; \(\mathbb R^m\); \texttt{causal estimand}
+  \par\smallskip\noindent\emph{Definition.} Finite-population causal contrast \(\tau=C\bar Y\).
+  \item \texttt{F\_\allowbreak{}a} --- \texttt{probability measure}; \(\mathcal P(\mathbb R)\); \texttt{identified marginal information}
+  \par\smallskip\noindent\emph{Definition.} Armwise empirical marginal \(F_a=N^{-1}\sum_{i=1}^N\delta_{Y_i(a)}\).
+  \item \texttt{F} --- \texttt{tuple of probability measures}; \(\mathcal P(\mathbb R)^K\); \texttt{completion input}
+  \par\smallskip\noindent\emph{Definition.} Collection \(F=(F_a)_{a\in\mathcal A}\) of equal-weight empirical armwise marginals.
+  \item \texttt{Q\_\allowbreak{}a} --- \texttt{function}; \((0,1]\to\mathbb R\); \texttt{rank-\allowbreak{}completion coordinate}
+  \par\smallskip\noindent\emph{Definition.} Left-continuous generalized quantile function of \(F_a\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal S\_\allowbreak{}N(F)} --- \texttt{set of arrays}; \(2^{\mathbb R^{N\times K}}\); \texttt{feasible completion set}
+  \par\smallskip\noindent\emph{Definition.} All fixed \(N\)-row schedules with armwise empirical marginals \(F\).
+  \item \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}uparrow\}\allowbreak{}(F)} --- \texttt{array}; \(\mathbb R^{N\times K}\); \texttt{rank-\allowbreak{}preserving completion}
+  \par\smallskip\noindent\emph{Definition.} Common-rank schedule with \(Y_i^{\uparrow}(a)=Q_a(i/N)\).
+  \item \texttt{S(Y)} --- \texttt{matrix}; \(\mathbb S_+^K\); \texttt{cross-\allowbreak{}world covariance}
+  \par\smallskip\noindent\emph{Definition.} Finite-population covariance matrix with \(S_{ab}(Y)=(N-1)^{-1}\sum_{i=1}^N\{Y_i(a)-\bar Y(a)\}\{Y_i(b)-\bar Y(b)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}K} --- \texttt{convex cone}; \(2^{\mathbb S_+^K}\); \texttt{universal rank-\allowbreak{}preservation boundary}
+  \par\smallskip\noindent\emph{Definition.} Graph-Laplacian rank cone \(\mathcal R_K=\{G\in\mathbb S_+^K:G\mathbf 1_K=0,\ G_{ab}\leq0\text{ for all }a\neq b\}\).
+  \item \texttt{d\_\allowbreak{}r} --- \texttt{vector}; \(\{0,1\}^N\); \texttt{cut-\allowbreak{}generator handle}
+  \par\smallskip\noindent\emph{Definition.} Ordered suffix indicator with \((d_r)_i=\mathbf 1(i>r)\) for \(r\in\{0,\ldots,N\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf 1\_\allowbreak{}N} --- \texttt{vector}; \(\mathbb R^N\); \texttt{constant ordered-\allowbreak{}column component}
+  \par\smallskip\noindent\emph{Definition.} Vector of \(N\) ones.
+  \item \texttt{n\_\allowbreak{}a} --- \texttt{positive integer}; \(\{1,\ldots,N\}\); \texttt{arm-\allowbreak{}specific allocation count}
+  \par\smallskip\noindent\emph{Definition.} Chosen number of units assigned to arm \(a\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf n} --- \texttt{integer vector}; \(\{(n_a)_{a\in\mathcal A}\in\mathbb N_{>0}^K:\sum_{a\in\mathcal A}n_a\leq N\}\); \texttt{general allocation-\allowbreak{}count vector}
+  \par\smallskip\noindent\emph{Definition.} Feasible vector \(\mathbf n=(n_a)_{a\in\mathcal A}\) of positive assigned-arm counts.
+  \item \texttt{a\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm u\}\allowbreak{}} --- \texttt{assignment label}; \texttt{unassigned-\allowbreak{}unit label}
+  \par\smallskip\noindent\emph{Definition.} Distinguished unassigned label satisfying \(a_{\mathrm u}\notin\mathcal A\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm u\}\allowbreak{}} --- \texttt{finite set}; \(\mathcal A\cup\{a_{\mathrm u}\}\); \texttt{sample-\allowbreak{}and-\allowbreak{}assign label set}
+  \par\smallskip\noindent\emph{Definition.} Enlarged assignment-label set \(\mathcal A_{\mathrm u}=\mathcal A\cup\{a_{\mathrm u}\}\).
+  \item \texttt{Z} --- \texttt{random vector}; \(\mathcal A_{\mathrm u}^N\); \texttt{sole source of randomness}
+  \par\smallskip\noindent\emph{Definition.} Assignment vector \(Z=(Z_i)_{i=1}^N\); on the balanced exhaustive subdomain it takes values in \(\mathcal A^N\).
+  \item \texttt{\textbackslash{}\allowbreak{}Omega} --- \texttt{four-\allowbreak{}index tensor}; \(\mathbb R^{K\times K\times N\times N}\); \texttt{general-\allowbreak{}design kernel candidate}
+  \par\smallskip\noindent\emph{Definition.} Candidate assignment covariance tensor with coordinate \(\Omega_{abij}\) indexed by arms \(a,b\) and units \(i,j\); admissibility is defined by the exact balanced-law moment representation below.
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak S\_\allowbreak{}N} --- \texttt{finite group}; \texttt{unit and schedule relabellings}
+  \par\smallskip\noindent\emph{Definition.} Symmetric group of permutations of \(\{1,\ldots,N\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}bar Y\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^K\); \texttt{design-\allowbreak{}unbiased mean estimator}
+  \par\smallskip\noindent\emph{Definition.} Observed arm-mean vector with coordinate \(\widehat{\bar Y}(a)=n_a^{-1}\sum_{i:Z_i=a}Y_i(a)\); on the balanced subdomain \(n_a=n\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau} --- \texttt{random vector}; \(\mathbb R^m\); \texttt{design-\allowbreak{}based causal estimator}
+  \par\smallskip\noindent\emph{Definition.} Multi-contrast estimator \(\widehat\tau=C\widehat{\bar Y}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Sigma\_\allowbreak{}C(Y)} --- \texttt{matrix}; \(\mathbb S_+^m\); \texttt{unidentified covariance target}
+  \par\smallskip\noindent\emph{Definition.} Randomization covariance \(\Sigma_C(Y)=\operatorname{Cov}_Z(\widehat\tau\mid Y)\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}W(Y)} --- \texttt{real number}; \texttt{least-\allowbreak{}favourable completion criterion}
+  \par\smallskip\noindent\emph{Definition.} Scalarized randomization covariance \(\rho_W(Y)=\operatorname{tr}\{W\Sigma_C(Y)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{permutation}; \(\mathfrak S_N\); \texttt{kernel-\allowbreak{}equivalence map}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common relabelling of the experimental units.}
+  \item \texttt{\textbackslash{}\allowbreak{}sigma} --- \texttt{tuple of permutations}; \(\mathfrak S_N^K\); \texttt{completion decision}
+  \par\smallskip\noindent\emph{Definition.} Arm-specific completion permutation \(\sigma=(\sigma_a)_{a\in\mathcal A}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Omega\textasciicircum{}\{\textbackslash{}\allowbreak{}pi\}\allowbreak{}} --- \texttt{four-\allowbreak{}index tensor}; \(\mathbb R^{K\times K\times N\times N}\); \texttt{unit-\allowbreak{}relabelled kernel}
+  \par\smallskip\noindent\emph{Definition.} Relabelled tensor \((\Omega^{\pi})_{abij}=\Omega_{ab,\pi(i),\pi(j)}\).
+  \item \texttt{[\textbackslash{}\allowbreak{}Omega]\_\allowbreak{}\{\textbackslash{}\allowbreak{}cong\}\allowbreak{}} --- \texttt{equivalence class}; \texttt{label-\allowbreak{}free assignment kernel}
+  \par\smallskip\noindent\emph{Definition.} Orbit \([\Omega]_{\cong}=\{\Omega^{\pi}:\pi\in\mathfrak S_N\}\) under common unit relabelling.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}N} --- \texttt{closed convex cone}; \(2^{\mathbb R^N}\); \texttt{ordered marginal columns}
+  \par\smallskip\noindent\emph{Definition.} Monotone cone \(\mathcal M_N=\{u\in\mathbb R^N:u_1\leq\cdots\leq u_N\}\).
+  \item \texttt{x} --- \texttt{tuple of vectors}; \(\mathcal M_N^K\); \texttt{ordered completion input}
+  \par\smallskip\noindent\emph{Definition.} Ordered arm columns \(x=(x^a)_{a\in\mathcal A}\), one for each empirical marginal.
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr L\_\allowbreak{}\{H,\allowbreak{}\textbackslash{}\allowbreak{}Omega\}\allowbreak{}(x,\allowbreak{}\textbackslash{}\allowbreak{}sigma)} --- \texttt{real number}; \texttt{balanced-\allowbreak{}kernel rank objective}
+  \par\smallskip\noindent\emph{Definition.} On the K-divides-N balanced exhaustive subdomain, the kernel covariance loss obtained by assigning ordered arm column \(x^a\) through \(\sigma_a\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}(H)} --- \texttt{closed convex cone of tensors}; \(2^{\mathbb R^{K\times K\times N\times N}}\); \texttt{ambient balanced-\allowbreak{}kernel rank-\allowbreak{}preservation cone}
+  \par\smallskip\noindent\emph{Definition.} For the K-divides-N balanced exhaustive kernel problem, the universal identity-optimal cone at contrast Gram matrix \(H\).
+  \item \texttt{n\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm u\}\allowbreak{}} --- \texttt{nonnegative integer}; \(\mathbb N_0\); \texttt{unassigned remainder}
+  \par\smallskip\noindent\emph{Definition.} Unassigned count \(n_{\mathrm u}=N-\sum_{a\in\mathcal A}n_a\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Z\_\allowbreak{}\{N,\allowbreak{}\textbackslash{}\allowbreak{}mathbf n\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{sa\}\allowbreak{}\}\allowbreak{}} --- \texttt{finite set}; \(2^{\mathcal A_{\mathrm u}^N}\); \texttt{general assignment support}
+  \par\smallskip\noindent\emph{Definition.} Fixed-count sample-and-assign allocation support defined by \(\mathrm{def{:}fixed\text{-}count\text{-}sample\text{-}assign\text{-}design}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Z\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}} --- \texttt{finite set}; \(2^{\mathcal A^N}\); \texttt{support of balanced assignment laws}
+  \par\smallskip\noindent\emph{Definition.} When \(K\mid N\), the balanced exhaustive allocation space has \(n=N/K\) occurrences of every arm label and equals \(\mathcal Z_{N,n\mathbf 1_K}^{\mathrm{sa}}\).
+  \item \texttt{z} --- \texttt{allocation vector}; \(\mathcal Z_{N,K}\); \texttt{balanced assignment-\allowbreak{}law support point}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic balanced exhaustive allocation vector,\allowbreak{} defined only on the K-\allowbreak{}divides-\allowbreak{}N subdomain.}
+  \item \texttt{p} --- \texttt{probability mass function}; \(\Delta(\mathcal Z_{N,K})\); \texttt{known nonexchangeable balanced randomization law}
+  \par\smallskip\noindent\emph{Definition.} Probability mass function on the balanced exhaustive allocation space, with \(K\mid N\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak P\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bal\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}} --- \texttt{convex polytope of probability laws}; \(2^{\Delta(\mathcal Z_{N,K})}\); \texttt{feasible nonexchangeable balanced design domain}
+  \par\smallskip\noindent\emph{Definition.} For \(K\mid N\), the balanced assignment-law polytope has \(n=N/K\) units per arm, no unassigned units, and unitwise arm marginals \(1/K\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bal\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}} --- \texttt{compact convex set of tensors}; \(2^{\mathbb R^{K\times K\times N\times N}}\); \texttt{admissible balanced exhaustive kernel domain}
+  \par\smallskip\noindent\emph{Definition.} When \(K\mid N\), the image of \(\mathfrak P^{\mathrm{bal}}_{N,K}\) under the centered assignment-covariance moment map.
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak C\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bal\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}(H)} --- \texttt{set of kernel-\allowbreak{}equivalence classes}; \texttt{recognition target for nonexchangeable balanced designs}
+  \par\smallskip\noindent\emph{Definition.} When \(K\mid N\), admissible balanced rank-preserving kernel classes whose unit-relabeling orbit meets \(\mathcal C_{N,K}(H)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathbf n\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{sa\}\allowbreak{}\}\allowbreak{}} --- \texttt{probability measure}; \(\mathcal P(\mathcal A_{\mathrm u}^N)\); \texttt{fixed-\allowbreak{}count sample-\allowbreak{}and-\allowbreak{}assign design law}
+  \par\smallskip\noindent\emph{Definition.} Uniform probability law on \(\mathcal Z_{N,\mathbf n}^{\mathrm{sa}}\).
+  \item \texttt{n\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm s\}\allowbreak{}} --- \texttt{positive integer}; \(\{4,\ldots,N\}\); \texttt{two-\allowbreak{}arm comparator sample size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Total number sampled,\allowbreak{} denoted n in Aronow,\allowbreak{} Green,\allowbreak{} and Lee's binary design.}
+  \item \texttt{m\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm t\}\allowbreak{}} --- \texttt{positive integer}; \(\{2,\ldots,n_{\mathrm s}-2\}\); \texttt{two-\allowbreak{}arm comparator treated count}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Treated count,\allowbreak{} denoted m in Aronow,\allowbreak{} Green,\allowbreak{} and Lee's binary design.}
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}\{ab\}\allowbreak{}\textasciicircum{}\{(N)\}\allowbreak{}(Y)} --- \texttt{real number}; \texttt{two-\allowbreak{}arm comparator normalization}
+  \par\smallskip\noindent\emph{Definition.} Aronow--Green--Lee normalized covariance \(\sigma_{ab}^{(N)}(Y)=N^{-1}\sum_{i=1}^N\{Y_i(a)-\bar Y(a)\}\{Y_i(b)-\bar Y(b)\}\), so \(S_{ab}(Y)=N\sigma_{ab}^{(N)}(Y)/(N-1)\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:balanced-complete-randomization]\label{ass:balanced-complete-randomization}
+On the balanced exhaustive subdomain \(K\mid N\), with \(n=N/K\), \(n_a=n\) for every \(a\in\mathcal A\), and \(n_{\mathrm u}=0\), the assignment \(Z\) is uniform over \(\mathcal Z_{N,K}\).
+\par\smallskip\noindent\emph{Standard} (Balanced complete randomization, \cite{ZhaoDing2023MultiarmedAdjustment}).
+\end{assumption}
+
+\begin{assumption}[ass:causal-contrast]\label{ass:causal-contrast}
+The contrast matrix satisfies \(C\mathbf 1_K=0\).
+\par\smallskip\noindent\emph{Standard} (Zero-sum multi-arm causal contrasts, \cite{ZhaoDing2023MultiarmedAdjustment}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-fixed-count-sample-assign-randomization]\label{ass:uniform-fixed-count-sample-assign-randomization}
+The assignment obeys \(Z\sim\mathbb P_{\mathbf n}^{\mathrm{sa}}\) for the feasible count vector \(\mathbf n\) in Definition \(\mathrm{def{:}fixed\text{-}count\text{-}sample\text{-}assign\text{-}design}\).
+\par\smallskip\noindent\emph{Standard} (fixed-count sample-and-assign randomization, AronowGreenLee2014SharpVariance, \cite{AronowGreenLee2014SharpVariance}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:completion-class]\label{def:completion-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Marginally compatible finite schedules}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal S_N(F)=\{Y'\in\mathbb R^{N\times K}:N^{-1}\sum_{i=1}^N\delta_{Y'_i(a)}=F_a\text{ for every }a\in\mathcal A\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{F}; \texttt{N}; \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:common-rank-completion]\label{def:common-rank-completion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common-\allowbreak{}rank completion}
+\par\smallskip\noindent\emph{Construction.} Given \(F\), set \(Y_i^{\uparrow}(a)=Q_a(i/N)\) for every \(i\) and \(a\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{F}; \texttt{Q\_\allowbreak{}a}.
+\end{definition}
+
+\begin{definition}[def:contrast-risk]\label{def:contrast-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Scalarized contrast covariance}
+\par\smallskip\noindent\emph{Construction.} \(\rho_W(Y)=\operatorname{tr}\{W\Sigma_C(Y)\}\), where \(\Sigma_C(Y)=\operatorname{Cov}_Z(C\widehat{\bar Y}\mid Y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y}; \texttt{C}; \texttt{W}.
+\end{definition}
+
+\begin{definition}[def:rank-cone]\label{def:rank-cone}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Universal rank-\allowbreak{}preservation cone}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R_K=\{G\in\mathbb S_+^K:G\mathbf 1_K=0,\ G_{ab}\leq0\text{ for every }a\neq b\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:fixed-count-allocation-space]\label{def:fixed-count-allocation-space}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Balanced exhaustive allocation subdomain}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive subdomain \(K\mid N\), put \(n=N/K\), specialize \(n_a=n\) for every \(a\in\mathcal A\) and \(n_{\mathrm u}=0\), and define
+\[
+\mathcal Z_{N,K}=\left\{z\in\mathcal A^N:\sum_{i=1}^N\mathbf 1(z_i=a)=n\ \text{for every }a\in\mathcal A\right\}.
+\]
+Equivalently, \(\mathcal Z_{N,K}=\mathcal Z_{N,n\mathbf 1_K}^{\mathrm{sa}}\). This is the support used only by the balanced assignment-law and kernel domains.
+\par\smallskip\noindent\emph{Inputs.} \texttt{N}; \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:balanced-assignment-law-class]\label{def:balanced-assignment-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Valid balanced assignment laws}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive subdomain \(K\mid N\), with \(n=N/K\), \(n_a=n\), and \(n_{\mathrm u}=0\), define
+\[
+\mathfrak P^{\mathrm{bal}}_{N,K}=\left\{p\in\Delta(\mathcal Z_{N,K}):\sum_{z\in\mathcal Z_{N,K}}p(z)\mathbf 1(z_i=a)=K^{-1}\text{ for every }i\text{ and }a\right\}.
+\]
+Thus every law has exactly \(n\) assignments to each arm, no unassigned units, total mass one, nonnegative atom probabilities, and \(\Pr_p(Z_i=a)=1/K\), without unit- or arm-exchangeability.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal Z\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:admissible-balanced-kernel]\label{def:admissible-balanced-kernel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Admissible balanced covariance tensors}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive subdomain \(K\mid N\), with \(n=N/K\), \(n_a=n\), and \(n_{\mathrm u}=0\), define
+\[
+\mathfrak K^{\mathrm{bal}}_{N,K}=\left\{\Omega:\exists p\in\mathfrak P^{\mathrm{bal}}_{N,K},\quad \Omega_{abij}=\sum_{z\in\mathcal Z_{N,K}}p(z)\{K\mathbf 1(z_i=a)-1\}\{K\mathbf 1(z_j=b)-1\}\right\}.
+\]
+This finite moment-polytope representation is the exact feasibility constraint. Every member satisfies \(\Omega_{abij}=\Omega_{baji}\), \(\sum_a\Omega_{abij}=\sum_b\Omega_{abij}=0\), \(\sum_i\Omega_{abij}=\sum_j\Omega_{abij}=0\), \(\Omega_{aaii}=K-1\), \(\Omega_{abii}=-1\) for \(a\ne b\), \(-1\leq\Omega_{abij}\leq K-1\), and positive semidefiniteness of the \(NK\times NK\) matrix indexed by \((a,i)\). No further permutation symmetry is imposed, and these displayed consequences without the probability-simplex representation are not sufficient for feasibility.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathfrak P\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bal\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:unit-relabeling-equivalence]\label{def:unit-relabeling-equivalence}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Equivalence of balanced kernels under unit relabelling}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive kernel domain \(K\mid N\), for \(\pi\in\mathfrak S_N\), define \((\Omega^{\pi})_{abij}=\Omega_{ab,\pi(i),\pi(j)}\). Write \(\Omega\cong\Omega'\) exactly when \(\Omega'=\Omega^{\pi}\) for some \(\pi\), and set \([\Omega]_{\cong}=\{\Omega^{\pi}:\pi\in\mathfrak S_N\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}Omega}; \texttt{\textbackslash{}\allowbreak{}pi}.
+\end{definition}
+
+\begin{definition}[def:balanced-kernel-loss]\label{def:balanced-kernel-loss}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Balanced-\allowbreak{}kernel covariance loss}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive subdomain \(K\mid N\), with \(n=N/K\), \(n_a=n\), and \(n_{\mathrm u}=0\), for \(x\in\mathcal M_N^K\) and \(\sigma\in\mathfrak S_N^K\), define
+\[
+\mathscr L_{H,\Omega}(x,\sigma)=\frac{1}{N^2}\sum_{a,b\in\mathcal A}\sum_{i,j=1}^N H_{ab}\Omega_{abij}x^a_{\sigma_a(i)}x^b_{\sigma_b(j)}.
+\]
+If \(\Omega\) is induced by \(p\in\mathfrak P^{\mathrm{bal}}_{N,K}\), this equals \(\operatorname{tr}\{W\operatorname{Cov}_p(C\widehat{\bar Y}\mid Y)\}\) for the schedule with arm columns \(x^a\circ\sigma_a\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{\textbackslash{}\allowbreak{}Omega}; \texttt{x}; \texttt{\textbackslash{}\allowbreak{}sigma}.
+\end{definition}
+
+\begin{definition}[def:identity-optimal-kernel-cone]\label{def:identity-optimal-kernel-cone}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Universal identity-\allowbreak{}optimal tensor cone}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive kernel domain \(K\mid N\), define
+\[
+\mathcal C_{N,K}(H)=\left\{\Omega\in\mathbb R^{K\times K\times N\times N}:\mathscr L_{H,\Omega}(x,\mathrm{id})\geq\mathscr L_{H,\Omega}(x,\sigma)\text{ for every }x\in\mathcal M_N^K\text{ and }\sigma\in\mathfrak S_N^K\right\}.
+\]
+It is a closed convex cone because every defining comparison is homogeneous and linear in \(\Omega\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{N}; \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:admissible-rank-kernel-domain]\label{def:admissible-rank-kernel-domain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Admissible rank-\allowbreak{}preserving kernel classes}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive subdomain \(K\mid N\), with \(n=N/K\), \(n_a=n\), and \(n_{\mathrm u}=0\), define
+\[
+\mathfrak C^{\mathrm{bal}}_{N,K}(H)=\left\{[\Omega]_{\cong}:\Omega\in\mathfrak K^{\mathrm{bal}}_{N,K},\ [\Omega]_{\cong}\cap\mathcal C_{N,K}(H)\neq\varnothing\right\}.
+\]
+Recognition is posed only for an input tensor already in \(\mathfrak K^{\mathrm{bal}}_{N,K}\), equivalently with a valid inducing law \(p\in\mathfrak P^{\mathrm{bal}}_{N,K}\). This domain is distinct from arbitrary-count uniform sample-and-assign designs.
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{\textbackslash{}\allowbreak{}mathfrak K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bal\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:kernel-cut-handle]\label{def:kernel-cut-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cut-\allowbreak{}generator handle for balanced assignment kernels}
+\par\smallskip\noindent\emph{Construction.} On the balanced exhaustive kernel domain \(K\mid N\), starting from \(x^a\in\mathcal M_N\), use
+\[
+x^a=x^a_1\mathbf 1_N+\sum_{r=1}^{N-1}(x^a_{r+1}-x^a_r)d_r.
+\]
+Insert these nonnegative adjacent increments into \(\mathscr L_{H,\Omega}\), quotient by \([\Omega]_{\cong}\), and seek a finite cut-product separation certificate for membership in \(\mathfrak C^{\mathrm{bal}}_{N,K}(H)\). This handle does not range over the general sample-and-assign domain.
+\par\smallskip\noindent\emph{Inputs.} \texttt{d\_\allowbreak{}r}; \texttt{H}; \texttt{\textbackslash{}\allowbreak{}Omega}; \texttt{\textbackslash{}\allowbreak{}mathfrak K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{bal\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{N,\allowbreak{}K\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:fixed-count-sample-assign-design]\label{def:fixed-count-sample-assign-design}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniform fixed-\allowbreak{}count sample-\allowbreak{}and-\allowbreak{}assign design}
+\par\smallskip\noindent\emph{Construction.} For a feasible count vector \(\mathbf n=(n_a)_{a\in\mathcal A}\), let \(n_{\mathrm u}=N-\sum_{a\in\mathcal A}n_a\) and
+\[
+\mathcal Z_{N,\mathbf n}^{\mathrm{sa}}
+=\left\{z\in\mathcal A_{\mathrm u}^{N}:
+\sum_{i=1}^{N}\mathbf 1(z_i=a)=n_a\ \text{for every }a\in\mathcal A,
+\quad
+\sum_{i=1}^{N}\mathbf 1(z_i=a_{\mathrm u})=n_{\mathrm u}
+\right\}.
+\]
+The uniform fixed-count sample-and-assign law is
+\[
+\mathbb P_{\mathbf n}^{\mathrm{sa}}(Z=z)
+=\lvert\mathcal Z_{N,\mathbf n}^{\mathrm{sa}}\rvert^{-1}
+\mathbf 1\{z\in\mathcal Z_{N,\mathbf n}^{\mathrm{sa}}\}.
+\]
+The label \(a_{\mathrm u}\) records an unassigned unit and has no associated observed arm outcome. For each assigned arm,
+\[
+\widehat{\bar Y}(a)=\frac{1}{n_a}\sum_{i:Z_i=a}Y_i(a).
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{N}; \texttt{K}; \texttt{\textbackslash{}\allowbreak{}mathbf n}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:complete-randomization-risk]\label{lem:complete-randomization-risk}
+Under balanced complete randomization, \[\Sigma_C(Y)=C\left\{\operatorname{diag}\left(\frac{S_{aa}(Y)}{n}\right)_{a\in\mathcal A}-\frac{S(Y)}{N}\right\}C^{\mathsf T}\] and hence \[\rho_W(Y)=\sum_{a\in\mathcal A}\frac{H_{aa}S_{aa}(Y)}{n}-\frac{1}{N}\sum_{a,b\in\mathcal A}H_{ab}S_{ab}(Y).\] Therefore all completion dependence is carried by the off-diagonal cross-arm covariances.
+\end{lemma}
+\begin{proof}
+Under Assumption \(\mathrm{ass{:}balanced\text{-}complete\text{-}randomization}\), \(K\mid N\), \(n=N/K\), every arm has \(n_a=n\), and the assigned counts exhaust the population:
+\[
+\sum_{a\in\mathcal A}n_a=Kn=N,
+\qquad n_{\mathrm u}=0.
+\]
+Definition \(\mathrm{def{:}fixed\text{-}count\text{-}allocation\text{-}space}\) says that \(\mathcal Z_{N,K}\) is exactly the specialization of \(\mathcal Z_{N,\mathbf n}^{\mathrm{sa}}\) at \(\mathbf n=n\mathbf 1_K\) and \(n_{\mathrm u}=0\). The balanced law and \(\mathbb P_{\mathbf n}^{\mathrm{sa}}\) are therefore uniform on the same finite set, so the hypothesis of Lemma \(\mathrm{lem{:}fixed\text{-}count\text{-}randomization\text{-}risk}\) holds. Substitution of \(n_a=n\) in that lemma gives
+\[
+\operatorname{Cov}_Z(\widehat{\bar Y}\mid Y)
+=\operatorname{diag}\left(\frac{S_{aa}(Y)}n\right)_{a\in\mathcal A}-\frac{S(Y)}N.
+\]
+Multiplication on the left and right by \(C\) and \(C^{\mathsf T}\), respectively, yields the displayed formula for \(\Sigma_C(Y)\). The scalar formula follows from the same lemma after substituting \(n_a=n\). Finally, each diagonal \(S_{aa}(Y)\) depends only on the empirical marginal \(F_a\), so only off-diagonal cross-arm covariances vary over \(\mathcal S_N(F)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This balanced corollary preserves the exact covariance arithmetic used by the finite audits while making its specialization status explicit. \textit{Gap.} The arbitrary-count identity is carried by the new fixed-count lemma, so this node no longer presents the balanced subdomain as the headline. \textit{Consumer.} The balanced K equals 3, N equals 6 audits continue to use this exact specialization.
+
+\begin{theorem}[thm:rank-cone-iff]\label{thm:rank-cone-iff}
+Under uniform fixed-count sample-and-assign randomization, fix \(K\geq2\).  For every \(N\geq K\) and every positive count vector \(\mathbf n=(n_a)_{a\in\mathcal A}\) satisfying \(\sum_a n_a\leq N\), with \(n_{\mathrm u}=N-\sum_a n_a\), the following are equivalent:
+\begin{enumerate}
+\item for every collection \(F\) of equal-weight \(N\)-point empirical armwise marginals,
+\[
+Y^{\uparrow}(F)\in\operatorname*{arg\,max}_{Y\in\mathcal S_N(F)}\rho_W(Y);
+\]
+\item \(H=C^{\mathsf T}WC\in\mathcal R_K\).
+\end{enumerate}
+When these conditions hold, for every \(Y\in\mathcal S_N(F)\),
+\[
+\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)
+=\frac{2}{N}\sum_{a<b}(-H_{ab})
+\left[S_{ab}\{Y^{\uparrow}(F)\}-S_{ab}(Y)\right]\geq0.
+\]
+If \(H_{ab}>0\) for some distinct \(a,b\), give arms \(a\) and \(b\) the marginal \((1-N^{-1})\delta_0+N^{-1}\delta_1\) and every other arm the degenerate marginal \(\delta_0\).  Moving the unique success of arm \(b\) to a row different from the unique success of arm \(a\) gives, for every \(N\geq K\) and every feasible \(\mathbf n\), a completion \(Y\) satisfying
+\[
+\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)
+=-\frac{2H_{ab}}{N(N-1)}<0.
+\]
+Thus the graph-Laplacian condition is necessary pointwise for every feasible positive fixed-count design, including an optional unassigned remainder.
+\end{theorem}
+\begin{proof}
+Because \(W\succeq0\), for every \(x\in\mathbb R^K\),
+\[
+x^{\mathsf T}Hx=(Cx)^{\mathsf T}W(Cx)\geq0,
+\]
+so \(H\succeq0\).  Assumption \(\mathrm{ass{:}causal\text{-}contrast}\) gives \(C\mathbf 1_K=0\), whence
+\[
+H\mathbf 1_K=C^{\mathsf T}WC\mathbf 1_K=0. \tag{1}
+\]
+In view of Definition \(\mathrm{def{:}rank\text{-}cone}\), (1) shows that, for this Gram matrix, \(H\in\mathcal R_K\) is equivalent to \(H_{ab}\leq0\) for every \(a\ne b\).
+
+We first prove the finite rearrangement fact needed below.  Let \(u_1\leq\cdots\leq u_N\), let \(v_1\leq\cdots\leq v_N\), and let \(\eta\) be a permutation of \(\{1,\ldots,N\}\).  If \(p<q\) and \(\eta(p)>\eta(q)\), replacing these two matched pairs by the order-preserving pairs changes the paired sum by
+\[
+\begin{aligned}
+&u_pv_{\eta(q)}+u_qv_{\eta(p)}
+-u_pv_{\eta(p)}-u_qv_{\eta(q)}\\
+&\qquad=(u_q-u_p)\{v_{\eta(p)}-v_{\eta(q)}\}\geq0. \tag{2}
+\end{aligned}
+\]
+Repeatedly removing inversions terminates at the identity permutation, so
+\[
+\sum_{i=1}^N u_iv_i\geq\sum_{i=1}^N u_iv_{\eta(i)}. \tag{3}
+\]
+Every column of a schedule in \(\mathcal S_N(F)\) is a permutation of its nondecreasing quantile column.  For a fixed pair of arms \(a,b\), a common relabelling of rows therefore turns their pairing into the right side of (3), while their means are fixed by \(F_a,F_b\).  Subtracting \(N\bar Y(a)\bar Y(b)\) from both paired sums and dividing by \(N-1>0\) proves
+\[
+S_{ab}\{Y^{\uparrow}(F)\}\geq S_{ab}(Y)
+\quad(a<b),\qquad Y\in\mathcal S_N(F). \tag{4}
+\]
+
+Lemma \(\mathrm{lem{:}fixed\text{-}count\text{-}randomization\text{-}risk}\), which applies because every \(n_a\geq1\) and \(n_{\mathrm u}\geq0\), gives
+\[
+\rho_W(Y)=\sum_a\frac{H_{aa}S_{aa}(Y)}{n_a}
+-\frac1N\sum_{a,b}H_{ab}S_{ab}(Y). \tag{5}
+\]
+The empirical marginal \(F_a\) fixes \(S_{aa}(Y)\), so the diagonal part of (5) cancels between any two completions.  Since both \(H\) and \(S(Y)\) are symmetric,
+\[
+\begin{aligned}
+\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)
+&=-\frac1N\sum_{a\ne b}H_{ab}
+\left[S_{ab}\{Y^{\uparrow}(F)\}-S_{ab}(Y)\right]\\
+&=\frac2N\sum_{a<b}(-H_{ab})
+\left[S_{ab}\{Y^{\uparrow}(F)\}-S_{ab}(Y)\right]. \tag{6}
+\end{aligned}
+\]
+If \(H\in\mathcal R_K\), each weight \(-H_{ab}\) and each covariance difference in (6) is nonnegative by (4).  This proves common-rank optimality and the exact regret identity for every feasible count vector.  Notice explicitly that the counts occur only in the diagonal term of (5), which has canceled.
+
+Conversely, suppose \(H\notin\mathcal R_K\).  The positive-semidefinite and zero-row-sum properties established in (1) leave only the off-diagonal sign condition in the cone definition, so there are distinct arms \(a,b\) with \(H_{ab}>0\).  Since \(N\geq K\geq2\), choose two distinct rows.  In arms \(a\) and \(b\), take \(N-1\) zeros and one one; take every other arm to be identically zero.  Common ranking places the two successes in the same row.  Because both nonconstant means equal \(1/N\), its cross-covariance is
+\[
+S_{ab}\{Y^{\uparrow}(F)\}
+=\frac1{N-1}\left\{\left(1-\frac1N\right)^2
++(N-1)\frac1{N^2}\right\}=\frac1N. \tag{7}
+\]
+Construct \(Y\in\mathcal S_N(F)\) by moving only the success in arm \(b\) to a row different from the success in arm \(a\).  Then
+\[
+\begin{aligned}
+S_{ab}(Y)
+&=\frac1{N-1}\left\{-2\left(1-\frac1N\right)\frac1N
++(N-2)\frac1{N^2}\right\}\\
+&=-\frac1{N(N-1)}. \tag{8}
+\end{aligned}
+\]
+Every covariance involving a third, constant arm is zero, and all marginal variances remain fixed.  Substituting (7)--(8) into (6) yields
+\[
+\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)
+=-\frac{2H_{ab}}N\left\{\frac1N+\frac1{N(N-1)}\right\}
+=-\frac{2H_{ab}}{N(N-1)}<0. \tag{9}
+\]
+The construction does not involve \(\mathbf n\) or \(n_{\mathrm u}\), while (5) is valid for every feasible such choice.  Hence it disproves universal common-rank optimality for every positive fixed-count vector, proving necessity and the claimed pointwise equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the exact count-invariant graph-Laplacian boundary and a one-success failure certificate for every feasible positive fixed-count design. \textit{Gap.} The located two-arm and computational literature does not state this universal multi-arm boundary with unequal counts and an optional unassigned remainder. \textit{Consumer.} A causal-bootstrap implementation can certify one-sort oracle completion in \(O(K^2)\) time under any such fixed-count design.
+
+\begin{theorem}[thm:loewner-boundary]\label{thm:loewner-boundary}
+Let \(C\ne0\) satisfy \(C\mathbf 1_K=0\).  Under uniform fixed-count sample-and-assign randomization, for every \(N\geq K\) and every positive count vector \(\mathbf n\) with \(\sum_a n_a\leq N\), the dominance
+\[
+\Sigma_C\{Y^{\uparrow}(F)\}\succeq\Sigma_C(Y)
+\quad\text{for every }F\text{ and every }Y\in\mathcal S_N(F)
+\]
+holds if and only if there exist distinct locally bound arms \(a,b\in\mathcal A\) and a locally bound nonzero vector \(v\in\mathbb R^m\) such that
+\[
+C=v(e_a-e_b)^{\mathsf T}.
+\]
+Equivalently, all columns of \(C\) vanish except columns \(a\) and \(b\), which equal \(v\) and \(-v\).  If \(C\) is not of this form, there are a locally bound direction \(h\in\mathbb R^m\), distinct locally bound arms \(a,b\), and the one-success binary marginals from Theorem \(\mathrm{thm{:}rank\text{-}cone\text{-}iff}\) for which
+\[
+\operatorname{Var}_Z\!\left\{h^{\mathsf T}\widehat\tau\mid Y^{\uparrow}(F)\right\}
+-\operatorname{Var}_Z\!\left(h^{\mathsf T}\widehat\tau\mid Y\right)
+=-\frac{2(C^{\mathsf T}h)_a(C^{\mathsf T}h)_b}{N(N-1)}<0.
+\]
+Thus the classification is valid on the same arbitrary-count design class, including an optional unassigned remainder.
+\end{theorem}
+\begin{proof}
+Fix \(N\geq K\), a feasible positive count vector, \(F\), and \(Y\in\mathcal S_N(F)\), and write
+\[
+D(Y)=\Sigma_C\{Y^{\uparrow}(F)\}-\Sigma_C(Y).
+\]
+Because \(D(Y)\) is symmetric, \(D(Y)\succeq0\) if and only if \(h^{\mathsf T}D(Y)h\geq0\) for every \(h\in\mathbb R^m\).  For a fixed \(h\), put \(q=C^{\mathsf T}h\).  Then
+\[
+h^{\mathsf T}\widehat\tau=q^{\mathsf T}\widehat{\bar Y},
+\qquad
+h^{\mathsf T}\Sigma_C(Y)h
+=\operatorname{Var}_Z(q^{\mathsf T}\widehat{\bar Y}\mid Y), \tag{10}
+\]
+and the scalar contrast has Gram matrix \(qq^{\mathsf T}\).  Assumption \(\mathrm{ass{:}causal\text{-}contrast}\) gives
+\[
+q^{\mathsf T}\mathbf 1_K=h^{\mathsf T}C\mathbf 1_K=0. \tag{11}
+\]
+Applying Theorem \(\mathrm{thm{:}rank\text{-}cone\text{-}iff}\) with scalar weight one to (10), on this same fixed-count design, shows that universal Loewner dominance is equivalent to
+\[
+q_aq_b\leq0
+\quad\text{for every }a\ne b
+\quad\text{and every }q\in L:=\operatorname{range}(C^{\mathsf T}). \tag{12}
+\]
+
+We classify the subspaces \(L\subseteq\mathbf 1_K^{\perp}\) satisfying (12).  Any nonzero \(q\in L\) has at most one positive coordinate and at most one negative coordinate.  By (11) it has both signs and the two nonzero coordinates sum to zero.  Thus there are distinct indices \(a,b\) and \(t\ne0\) such that
+\[
+q=t(e_a-e_b). \tag{13}
+\]
+All nonzero vectors in \(L\) must lie on the same line of this form.  Indeed, if \(q\) and \(r\) in \(L\) belonged to lines associated with different unordered pairs, their supports would have a union of at least three coordinates.  For \(q+\lambda r\), choose a nonzero real \(\lambda\) outside the finite set of values that cancel one of those coordinates.  Then \(q+\lambda r\in L\) has at least three nonzero coordinates, contradicting (13).  Hence for one fixed pair \(\{a,b\}\),
+\[
+L\subseteq\operatorname{span}(e_a-e_b). \tag{14}
+\]
+Since \(C\ne0\), \(L\ne\{0\}\), so equality holds in (14).  Every row of \(C\) lies in this row space; consequently there is a nonzero \(v\in\mathbb R^m\) with
+\[
+C=v(e_a-e_b)^{\mathsf T}. \tag{15}
+\]
+This proves the necessity of the two-opposite-columns form with the indices and vector explicitly bound.
+
+Conversely, if (15) holds, then for every \(h\),
+\[
+C^{\mathsf T}h=(v^{\mathsf T}h)(e_a-e_b),
+\]
+whose distinct coordinate products are nonpositive.  Theorem \(\mathrm{thm{:}rank\text{-}cone\text{-}iff}\) and (10) therefore give \(h^{\mathsf T}D(Y)h\geq0\) for every \(h\), hence \(D(Y)\succeq0\).
+
+Finally, if \(C\) is not of form (15), the contrapositive of the proved subspace classification provides \(h\) and distinct \(a,b\) such that \(q_aq_b=(C^{\mathsf T}h)_a(C^{\mathsf T}h)_b>0\).  The one-success construction in (7)--(9), applied to the scalar contrast \(q^{\mathsf T}\), gives
+\[
+h^{\mathsf T}D(Y)h=-\frac{2q_aq_b}{N(N-1)}<0. \tag{16}
+\]
+Thus common ranking fails Loewner dominance in the exhibited direction for every feasible count vector.  This proves both directions and the explicit finite witness.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem proves that full covariance conservativeness is equivalent to an explicitly bound two-opposite-columns form of the contrast matrix on the same arbitrary-count class. \textit{Gap.} No located multi-arm design paper gives this universal matrix-order classification. \textit{Consumer.} Analysts learn exactly when one completed schedule supports every scalarized contrast direction and when direction-specific completion is necessary.
+
+\begin{proposition}[prop:two-arm-reduction]\label{prop:two-arm-reduction}
+Take \(K=2\), label arm \(1\) control and arm \(2\) treatment, and set \(C=(-1,1)\) and \(W=(1)\).  Let \(N\geq4\), \(4\leq n_{\mathrm s}\leq N\), \(2\leq m_{\mathrm t}\leq n_{\mathrm s}-2\), and set \(n_2=m_{\mathrm t}\), \(n_1=n_{\mathrm s}-m_{\mathrm t}\), and \(n_{\mathrm u}=N-n_{\mathrm s}\).  Sequentially drawing a simple random sample of \(n_{\mathrm s}\) units and then drawing \(m_{\mathrm t}\) treated units uniformly from that sample induces exactly the uniform three-cell law \(\mathbb P_{\mathbf n}^{\mathrm{sa}}\).  Moreover,
+\[
+\rho_W(Y)=\frac1{N-1}\left\{
+\frac{N-m_{\mathrm t}}{m_{\mathrm t}}\sigma_{22}^{(N)}(Y)
++\frac{N-(n_{\mathrm s}-m_{\mathrm t})}{n_{\mathrm s}-m_{\mathrm t}}\sigma_{11}^{(N)}(Y)
++2\sigma_{12}^{(N)}(Y)\right\}. 
+\]
+After relabelling treatment as \(1\) and control as \(0\), this is Equation (2) of Aronow, Green, and Lee term by term.  Its first two terms are fixed by the empirical marginals, and their Lemma 1 makes the comonotone covariance attained by \(Y^{\uparrow}(F)\) the sharp oracle upper endpoint.  Equivalently, \(H=\left(\begin{smallmatrix}1&-1\\-1&1\end{smallmatrix}\right)\in\mathcal R_2\), so this endpoint is the \(K=2\) specialization of Theorem \(\mathrm{thm{:}rank\text{-}cone\text{-}iff}\).  This is an exact finite-population oracle statement, not a claim about estimation of the marginal laws.
+\end{proposition}
+\begin{proof}
+Let \(S\) denote the sampled set and \(T\subseteq S\) the treated set.  Under the stated sequential design, each \(S\) of size \(n_{\mathrm s}\) has probability \(\binom N{n_{\mathrm s}}^{-1}\), and, conditionally on \(S\), each \(T\) of size \(m_{\mathrm t}\) has probability \(\binom{n_{\mathrm s}}{m_{\mathrm t}}^{-1}\).  A labelled allocation is recovered uniquely from \((S,T)\): units in \(T\) receive arm \(2\), units in \(S\setminus T\) receive arm \(1\), and units outside \(S\) receive \(a_{\mathrm u}\).  Hence every allocation with cell counts \((m_{\mathrm t},n_{\mathrm s}-m_{\mathrm t},N-n_{\mathrm s})\) has probability
+\[
+\binom N{n_{\mathrm s}}^{-1}\binom{n_{\mathrm s}}{m_{\mathrm t}}^{-1}
+=\left\{\frac{N!}{m_{\mathrm t}!(n_{\mathrm s}-m_{\mathrm t})!(N-n_{\mathrm s})!}\right\}^{-1}. \tag{17}
+\]
+The quantity in braces is exactly the cardinality of \(\mathcal Z_{N,\mathbf n}^{\mathrm{sa}}\).  Equation (17) therefore proves equality of the sequential law and \(\mathbb P_{\mathbf n}^{\mathrm{sa}}\), not merely equality of their first two moments.
+
+Direct multiplication gives
+\[
+H=C^{\mathsf T}WC=
+\begin{pmatrix}1&-1\\-1&1\end{pmatrix}. \tag{18}
+\]
+Lemma \(\mathrm{lem{:}fixed\text{-}count\text{-}randomization\text{-}risk}\), with \(n_2=m_{\mathrm t}\) and \(n_1=n_{\mathrm s}-m_{\mathrm t}\), yields
+\[
+\begin{aligned}
+\rho_W(Y)
+&=\frac{S_{22}(Y)}{m_{\mathrm t}}
++\frac{S_{11}(Y)}{n_{\mathrm s}-m_{\mathrm t}}
+-\frac1N\{S_{11}(Y)+S_{22}(Y)-2S_{12}(Y)\}\\
+&=\left(\frac1{m_{\mathrm t}}-\frac1N\right)S_{22}(Y)
++\left(\frac1{n_{\mathrm s}-m_{\mathrm t}}-\frac1N\right)S_{11}(Y)
++\frac2N S_{12}(Y). \tag{19}
+\end{aligned}
+\]
+By the definition of the Aronow--Green--Lee normalization,
+\(S_{ab}(Y)=N\sigma_{ab}^{(N)}(Y)/(N-1)\).  Substitution into each term of (19) gives
+\[
+\begin{aligned}
+\rho_W(Y)
+=\frac1{N-1}\left\{
+\frac{N-m_{\mathrm t}}{m_{\mathrm t}}\sigma_{22}^{(N)}(Y)
++\frac{N-(n_{\mathrm s}-m_{\mathrm t})}{n_{\mathrm s}-m_{\mathrm t}}\sigma_{11}^{(N)}(Y)
++2\sigma_{12}^{(N)}(Y)\right\}. \tag{20}
+\end{aligned}
+\]
+Thus the treated variance, control variance, and covariance coefficients agree respectively with Equation (2) of Aronow, Green, and Lee after their treatment/control labels \((1,0)\) are identified with our arms \((2,1)\).
+
+For fixed \(F_1,F_2\), the first two terms of (20) are fixed.  The cited Lemma \(\mathrm{lem{:}agl\text{-}oracle\text{-}variance\text{-}and\text{-}comonotone\text{-}bound}\), specifically Aronow, Green, and Lee's Lemma 1, states that the cross-covariance is sharply maximized by the comonotone coupling, which here is exactly \(Y^{\uparrow}(F)\).  Its coefficient in (20) is \(2/(N-1)>0\), so the resulting variance is the sharp oracle upper endpoint.  Independently, (18) is positive semidefinite, annihilates \(\mathbf 1_2\), and has nonpositive off-diagonal entries; hence \(H\in\mathcal R_2\) by Definition \(\mathrm{def{:}rank\text{-}cone}\), and Theorem \(\mathrm{thm{:}rank\text{-}cone\text{-}iff}\) gives the same maximizer.  No step replaces the fixed marginal laws by estimates, so the conclusion is exactly the finite oracle result claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition checks the entire finite Aronow--Green--Lee oracle setup: design law, variance formula, and comonotone sharpness. \textit{Gap.} It is an equivalence audit, not a novelty claim, and it deliberately excludes estimated-margin asymptotics. \textit{Consumer.} Two-arm implementations with sampled, treated, control, and unassigned cells become a verified special case.
+
+\begin{proposition}[prop:orthogonal-omnibus]\label{prop:orthogonal-omnibus}
+Under uniform fixed-count sample-and-assign randomization, suppose the rows of \(C\) form an orthonormal basis of \(\mathbf 1_K^{\perp}\) and \(W=I_{K-1}\).  Then
+\[
+H=C^{\mathsf T}C=I_K-K^{-1}\mathbf 1_K\mathbf 1_K^{\mathsf T},
+\qquad H_{aa}=1-K^{-1},\qquad H_{ab}=-K^{-1}\ (a\ne b),
+\]
+so \(H\in\mathcal R_K\).  Consequently, for every \(N\geq K\), every feasible positive count vector \(\mathbf n\) with optional unassigned remainder, and every empirical marginal collection \(F\), common ranks maximize
+\(\rho_{I_{K-1}}(Y)=\operatorname{tr}\{\Sigma_C(Y)\}\), the sum of the randomization variances of the complete orthonormal contrast system.  If \(K>2\), this scalar omnibus endpoint does not yield universal Loewner dominance.
+\end{proposition}
+\begin{proof}
+Because the rows of \(C\) are an orthonormal basis of \(\mathbf 1_K^{\perp}\) and \(W=I_{K-1}\), the matrix \(H=C^{\mathsf T}C\) is the orthogonal projector onto \(\mathbf 1_K^{\perp}\).  The orthogonal projector onto this subspace is uniquely
+\[
+P=I_K-\frac1K\mathbf 1_K\mathbf 1_K^{\mathsf T}, \tag{21}
+\]
+since \(P\mathbf 1_K=0\), \(Px=x\) whenever \(x^{\mathsf T}\mathbf 1_K=0\), and \(P=P^{\mathsf T}\).  Therefore
+\[
+H_{aa}=1-\frac1K,
+\qquad H_{ab}=-\frac1K\quad(a\ne b). \tag{22}
+\]
+Equations (21)--(22) show that \(H\succeq0\), \(H\mathbf 1_K=0\), and every off-diagonal entry is nonpositive.  Definition \(\mathrm{def{:}rank\text{-}cone}\) therefore gives \(H\in\mathcal R_K\).  Theorem \(\mathrm{thm{:}rank\text{-}cone\text{-}iff}\), on the arbitrary-count uniform sample-and-assign class, now proves for every feasible \(\mathbf n\) that \(Y^{\uparrow}(F)\) maximizes
+\[
+\rho_{I_{K-1}}(Y)=\operatorname{tr}\{I_{K-1}\Sigma_C(Y)\}
+=\sum_{r=1}^{K-1}\operatorname{Var}_Z(\widehat\tau_r\mid Y). \tag{23}
+\]
+If \(K>2\), then \(\operatorname{rank}(C)=K-1>1\).  A matrix with only two nonzero opposite columns has rank at most one, so \(C\) cannot have the form classified by Theorem \(\mathrm{thm{:}loewner\text{-}boundary}\).  That theorem rules out universal Loewner dominance while leaving the scalar maximum (23) intact.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The projector calculation gives a nondegenerate multi-arm scalar endpoint under every feasible count vector while exposing the failure of joint dominance for \(K>2\). \textit{Gap.} The arbitrary-contrast design literature does not optimize this sharp oracle total-variance endpoint. \textit{Consumer.} Factorial and analysis-of-variance designs obtain an analytic worst-case total-variance benchmark.
+
+\begin{openendedquestion}[oeq:general-balanced-kernel]\label{oeq:general-balanced-kernel}
+Fix \(N\), \(K\), and \(H=C^{\mathsf T}WC\), and restrict the input to a rational tensor \(\Omega\in\mathfrak K^{\mathrm{bal}}_{N,K}\), supplied either with its exact entries or by a rational law \(p\in\mathfrak P^{\mathrm{bal}}_{N,K}\) inducing those entries. Characterize the cone \(\mathcal C_{N,K}(H)\) on this feasible domain and hence the label-free set \(\mathfrak C^{\mathrm{bal}}_{N,K}(H)\): equivalently, decide whether some common unit relabelling \(\pi\in\mathfrak S_N\) makes \(\mathscr L_{H,\Omega^{\pi}}(x,\mathrm{id})\geq\mathscr L_{H,\Omega^{\pi}}(x,\sigma)\) for every \(x\in\mathcal M_N^K\) and every \(\sigma\in\mathfrak S_N^K\). Derive a recognition algorithm polynomial in \(N\), \(K\), and the rational input bit length that returns such a relabelling and a finite cut certificate on yes instances, and returns arm-specific binary ordered columns together with \(\sigma\) giving a strict exact loss improvement on no instances; if binary separation is not complete, characterize the minimal finite alphabet required for a complete separating certificate.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The residual question isolates computational structure after the feasible-domain mathematics has been characterized exactly. \textit{Gap.} Polynomial-time recognition or a faithful hardness result, together with binary completeness or a minimal-alphabet characterization, remains open. \textit{Consumer.} A solution would turn the current exact but exhaustive audit into a scalable design certificate with standardized failure witnesses.
+
+\begin{proposition}[prop:k3n6-graph-certificate]\label{prop:k3n6-graph-certificate}
+For the balanced experiment with \(K=3\), \(N=6\), \(n=2\), \(m=2\), \[C=\begin{pmatrix}1&-1&0\\0&1&-1\end{pmatrix},\qquad W=\begin{pmatrix}1&0\\0&1\end{pmatrix},\qquad H=C^{\mathsf T}WC=\begin{pmatrix}1&-1&0\\-1&2&-1\\0&-1&1\end{pmatrix}\in\mathcal R_3.\] Let every arm marginal put mass \(1/2\) on zero and \(1/2\) on one. The common-rank schedule has every column equal to \((0,0,0,1,1,1)^{\mathsf T}\), satisfies \(S_{ab}=3/10\) for all \(a,b\), and has \(\rho_W=3/5\). The feasible schedule \(Y\) with columns \((0,0,0,1,1,1)^{\mathsf T}\), \((1,1,1,0,0,0)^{\mathsf T}\), and \((0,0,0,1,1,1)^{\mathsf T}\) has \(S_{12}=S_{23}=-3/10\), \(S_{13}=3/10\), and \(\rho_W(Y)=1/5\). Thus the exact graph-Laplacian regret certificate is \[\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)=\frac{1}{3}\left\{\frac{3}{10}-\left(-\frac{3}{10}\right)+\frac{3}{10}-\left(-\frac{3}{10}\right)\right\}=\frac{2}{5}.\]
+\end{proposition}
+\begin{proof}
+The two displayed rows of \(C\) each sum to zero, as required by Assumption \(\mathrm{ass{:}causal\text{-}contrast}\), and direct multiplication gives
+\[
+H=C^{\mathsf T}C=
+\begin{pmatrix}1&-1&0\\-1&2&-1\\0&-1&1\end{pmatrix}.
+\]
+It is positive semidefinite because it is a Gram matrix, it satisfies \(H\mathbf 1_3=0\), and its off-diagonal entries are \(-1,0,-1\).  Definition \(\mathrm{def{:}rank\text{-}cone}\) therefore gives \(H\in\mathcal R_3\).
+
+Put \(q=(0,0,0,1,1,1)^{\mathsf T}\).  Its mean is \(1/2\), and hence
+\[
+\frac1{6-1}\sum_{i=1}^6(q_i-1/2)^2
+=\frac15\,6\left(\frac14\right)=\frac3{10}. \tag{24}
+\]
+Every column of \(Y^{\uparrow}(F)\) equals \(q\), so \(S_{ab}\{Y^{\uparrow}(F)\}=3/10\) for all \(a,b\).  Lemma \(\mathrm{lem{:}complete\text{-}randomization\text{-}risk}\), with \(N=6\), \(n=2\), and \(H\mathbf 1_3=0\), gives
+\[
+\rho_W\{Y^{\uparrow}(F)\}
+=\frac12(1+2+1)\frac3{10}
+-\frac16\frac3{10}\mathbf 1_3^{\mathsf T}H\mathbf 1_3
+=\frac35. \tag{25}
+\]
+
+Let \(\widetilde q=\mathbf 1_6-q\).  Since \(\widetilde q_i-1/2=-(q_i-1/2)\),
+\[
+\frac15\sum_{i=1}^6(q_i-1/2)(\widetilde q_i-1/2)=-\frac3{10}. \tag{26}
+\]
+Thus the schedule \(Y=(q,\widetilde q,q)\) has \(S_{12}=S_{23}=-3/10\), \(S_{13}=3/10\), and all three diagonal variances equal to \(3/10\).  Every column still contains three zeros and three ones, so \(Y\in\mathcal S_6(F)\).  Its covariance contraction is
+\[
+\sum_{a,b=1}^3H_{ab}S_{ab}(Y)
+=4\frac3{10}+2\left\{(-1)\left(-\frac3{10}\right)+(-1)\left(-\frac3{10}\right)\right\}
+=\frac{12}{5}. \tag{27}
+\]
+The risk identity therefore yields
+\[
+\rho_W(Y)=\frac35-\frac16\frac{12}{5}=\frac15. \tag{28}
+\]
+Finally, the exact regret formula in Theorem \(\mathrm{thm{:}rank\text{-}cone\text{-}iff}\) gives
+\[
+\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)
+=\frac13\left\{\frac3{10}-\left(-\frac3{10}\right)
++\frac3{10}-\left(-\frac3{10}\right)\right\}=\frac25, \tag{29}
+\]
+which agrees with (25)--(28) and audits the sign, normalization, and factor of two.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This finite certificate makes the sufficient graph-Laplacian mechanism and every covariance-loss arithmetic step directly auditable. \textit{Gap.} The general supermodular-order argument does not display the induced multi-contrast risk coefficients or a fully evaluated multi-arm finite-population example. \textit{Consumer.} A causal-bootstrap implementation obtains a six-unit regression test whose exact answer detects sign, normalization, and factor-of-two errors in the cone certificate.
+
+\begin{proposition}[prop:k3n6-nonlaplacian-witness]\label{prop:k3n6-nonlaplacian-witness}
+For the balanced experiment with \(K=3\), \(N=6\), \(n=2\), \(m=1\), \(C=(1,1,-2)\), and \(W=(1)\), \[H=C^{\mathsf T}WC=\begin{pmatrix}1&1&-2\\1&1&-2\\-2&-2&4\end{pmatrix}\notin\mathcal R_3\] because \(H_{12}=1>0\). Let \(F_1=F_2=\tfrac12\delta_0+\tfrac12\delta_1\) and \(F_3=\delta_0\). Common ranking uses columns \((0,0,0,1,1,1)^{\mathsf T}\), \((0,0,0,1,1,1)^{\mathsf T}\), and zero, so \(S_{11}=S_{22}=S_{12}=3/10\) and \(\rho_W\{Y^{\uparrow}(F)\}=1/10\). Reversing only the second binary column gives a feasible \(Y\) with \(S_{11}=S_{22}=3/10\), \(S_{12}=-3/10\), and \(\rho_W(Y)=3/10\). Consequently \[\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)=\frac{1}{3}(-1)\left\{\frac{3}{10}-\left(-\frac{3}{10}\right)\right\}=-\frac{1}{5},\] an exact binary certificate of strict common-rank failure.
+\end{proposition}
+\begin{proof}
+Writing \(c=(1,1,-2)^{\mathsf T}\), direct multiplication gives \(H=cc^{\mathsf T}\), namely the displayed matrix.  Thus \(H\succeq0\) and \(H\mathbf 1_3=0\), but \(H_{12}=1>0\).  Definition \(\mathrm{def{:}rank\text{-}cone}\) therefore gives \(H\notin\mathcal R_3\).
+
+Let \(q=(0,0,0,1,1,1)^{\mathsf T}\).  Equation (24) gives its finite-population variance \(3/10\).  Under the common-rank schedule \((q,q,0)\),
+\[
+S_{11}=S_{22}=S_{12}=\frac3{10},
+\]
+and all covariances involving arm \(3\) vanish.  Lemma \(\mathrm{lem{:}complete\text{-}randomization\text{-}risk}\), with \(N=6\) and \(n=2\), gives
+\[
+\rho_W\{Y^{\uparrow}(F)\}
+=\frac12\left(\frac3{10}+\frac3{10}\right)
+-\frac16\left(\frac3{10}+\frac3{10}+2\frac3{10}\right)
+=\frac1{10}. \tag{30}
+\]
+Reverse only the second column, using \(\widetilde q=\mathbf 1_6-q\).  The resulting schedule remains in \(\mathcal S_6(F)\), has \(S_{11}=S_{22}=3/10\) and \(S_{12}=-3/10\) by (26), and satisfies
+\[
+\rho_W(Y)
+=\frac3{10}-\frac16\left(\frac3{10}+\frac3{10}-2\frac3{10}\right)
+=\frac3{10}. \tag{31}
+\]
+Consequently,
+\[
+\rho_W\{Y^{\uparrow}(F)\}-\rho_W(Y)
+=\frac13(-1)\left\{\frac3{10}-\left(-\frac3{10}\right)\right\}
+=-\frac15<0. \tag{32}
+\]
+This verifies feasibility, every claimed covariance, and the exact finite loss, and it supplies the advertised non-Laplacian witness.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The witness exposes the necessity mechanism with a valid contrast Gram matrix, isolated binary margins, and exact finite-sample losses. \textit{Gap.} Classical rearrangement results imply how a signed pair behaves but do not identify this non-Laplacian causal contrast or evaluate its complete-randomization loss. \textit{Consumer.} Software checking \(H_{ab}\leq0\) can return this exact three-arm counterexample template whenever it detects a positive off-diagonal coefficient.
+
+\begin{theorem}[thm:finite-copositivity-characterization]\label{thm:finite-copositivity-characterization}
+Let \(H\in\mathbb S_+^K\) and \(\Omega\in\mathfrak K^{\mathrm{bal}}_{N,K}\).  Put \(J=\mathcal A\times\{1,\ldots,N-1\}\).  For \(\pi\in\mathfrak S_N\) and \(\sigma\in\mathfrak S_N^K\), define the symmetric \(|J|\times|J|\) matrix \(B^{\pi,\sigma}\) by
+\[
+ B^{\pi,\sigma}_{(a,r),(b,s)}
+ =\frac{H_{ab}}{N^2}\sum_{i,j=1}^N\Omega_{ab,\pi(i),\pi(j)}
+ \left[(d_r)_i(d_s)_j-(d_r)_{\sigma_a(i)}(d_s)_{\sigma_b(j)}\right].
+\]
+Then \(\Omega^\pi\in\mathcal C_{N,K}(H)\) if and only if \(B^{\pi,\sigma}\) is copositive for every \(\sigma\), meaning \(u^{\mathsf T}B^{\pi,\sigma}u\geq0\) for every \(u\in\mathbb R_+^J\).  Consequently,
+\[
+ [\Omega]_{\cong}\in\mathfrak C^{\mathrm{bal}}_{N,K}(H)
+ \quad\Longleftrightarrow\quad
+ \text{there exists }\pi\in\mathfrak S_N\text{ such that every }B^{\pi,\sigma}\text{ is copositive}.
+\]
+For any real symmetric matrix \(B\) indexed by \(J\), copositivity has the finite support characterization
+\[
+ B\text{ is copositive}
+ \quad\Longleftrightarrow\quad
+ \ker\{B[I]-\lambda I_I\}\cap\mathbb R_{++}^{I}=\varnothing
+\]
+for every nonempty \(I\subseteq J\) and every negative real eigenvalue \(\lambda<0\) of the principal matrix \(B[I]\).
+
+If, in addition, the entries of \(H\) and \(\Omega\) are supplied as exact real-algebraic numbers, in particular as rational numbers, these equivalences give a finite exact recognition algorithm.  It enumerates \(\pi\), \(\sigma\), and nonempty \(I\), isolates every negative algebraic eigenvalue of \(B^{\pi,\sigma}[I]\), and decides by exact ordered-field linear feasibility whether its eigenspace meets \(\mathbb R_{++}^{I}\).  A noncopositivity certificate consists of \((I,\lambda,v)\) with \(v\in\ker\{B^{\pi,\sigma}[I]-\lambda I_I\}\cap\mathbb R_{++}^{I}\); it yields explicit ordered columns with at most \(N\) levels and a strict loss improvement.  A certificate that a fixed \(\pi\) works consists of the finite collection of infeasibility certificates for all these negative-eigenspace tests.  Thus a yes instance returns such a \(\pi\), while a no instance returns, for every \(\pi\), a corresponding strict cut witness.  No algebraic enumeration claim is made for unrestricted real inputs, and the exhaustive algorithm is not asserted to run in polynomial time.
+\end{theorem}
+\begin{proof}
+Because \(\Omega\in\mathfrak K^{\mathrm{bal}}_{N,K}\), the balanced domain in Definition \(\mathrm{def{:}admissible\text{-}balanced\text{-}kernel}\) entails \(K\mid N\), \(n=N/K\), and the existence of \(p\in\mathfrak P^{\mathrm{bal}}_{N,K}\) such that, on writing
+\[
+ A_i^a(z)=K\mathbf 1(z_i=a)-1,
+\]
+one has
+\[
+ \Omega_{abij}=\sum_{z\in\mathcal Z_{N,K}}p(z)A_i^a(z)A_j^b(z). \tag{1}
+\]
+Every \(z\in\mathcal Z_{N,K}\) assigns exactly \(n\) units to each arm.  Hence, for every \(a\in\mathcal A\),
+\[
+ \sum_{i=1}^N A_i^a(z)=Kn-N=0. \tag{2}
+\]
+Equations (1)--(2), with finite sums interchanged, give
+\[
+ \sum_{i=1}^N\Omega_{abij}
+ =\sum_zp(z)\left\{\sum_iA_i^a(z)\right\}A_j^b(z)=0,
+ \qquad
+ \sum_{j=1}^N\Omega_{abij}=0. \tag{3}
+\]
+Moreover, commutativity of multiplication in (1) gives
+\[
+ \Omega_{abij}=\Omega_{baji}. \tag{4}
+\]
+Thus the zero-sum identities and covariance symmetry used below follow directly from the exact balanced-law representation, rather than from any additional permutation symmetry.  By Definition \(\mathrm{def{:}unit\text{-}relabeling\text{-}equivalence}\), equations (3)--(4) remain valid with \(\Omega\) replaced by \(\Omega^\pi\).
+
+Fix \(\pi\in\mathfrak S_N\) and \(\sigma\in\mathfrak S_N^K\).  The adjacent increments of an arbitrary \(x^a\in\mathcal M_N\) are
+\[
+ \alpha_{ar}=x^a_{r+1}-x^a_r\geq0,
+ \qquad 1\leq r<N,
+\]
+and the cut decomposition from Definition \(\mathrm{def{:}kernel\text{-}cut\text{-}handle}\) is the identity
+\[
+ x^a=x_1^a\mathbf 1_N+\sum_{r=1}^{N-1}\alpha_{ar}d_r. \tag{5}
+\]
+Conversely, any \(\alpha=(\alpha_{ar})_{(a,r)\in J}\in\mathbb R_+^J\), together with arbitrary constants \(x_1^a\), defines columns in \(\mathcal M_N\) through (5).  Substitute (5) in both losses in Definition \(\mathrm{def{:}balanced\text{-}kernel\text{-}loss}\).  Every term containing at least one constant column is zero by (3): if the other factor depends on \(j\), sum first over \(i\), and if it depends on \(i\), sum first over \(j\).  The remaining increment terms give exactly
+\[
+\begin{aligned}
+ &\mathscr L_{H,\Omega^\pi}(x,\mathrm{id})
+ -\mathscr L_{H,\Omega^\pi}(x,\sigma)\\
+ &\quad=\sum_{a,b\in\mathcal A}\sum_{r,s=1}^{N-1}
+ \alpha_{ar}\alpha_{bs}\frac{H_{ab}}{N^2}
+ \sum_{i,j=1}^N\Omega_{ab,\pi(i),\pi(j)}
+ \left\{(d_r)_i(d_s)_j-(d_r)_{\sigma_a(i)}(d_s)_{\sigma_b(j)}\right\}\\
+ &\quad=\alpha^{\mathsf T}B^{\pi,\sigma}\alpha. \tag{6}
+\end{aligned}
+\]
+Since \(H\) is symmetric and (4) holds, interchanging \((a,r,i)\) with \((b,s,j)\) in the defining sum shows
+\[
+ B^{\pi,\sigma}_{(a,r),(b,s)}=B^{\pi,\sigma}_{(b,s),(a,r)}, \tag{7}
+\]
+so the displayed matrix is indeed symmetric.  Because (5) realizes every vector in \(\mathbb R_+^J\), equation (6) proves
+\[
+ \mathscr L_{H,\Omega^\pi}(x,\mathrm{id})
+ \geq\mathscr L_{H,\Omega^\pi}(x,\sigma)
+ \text{ for every }x\in\mathcal M_N^K
+ \quad\Longleftrightarrow\quad
+ B^{\pi,\sigma}\text{ is copositive}. \tag{8}
+\]
+Taking the conjunction of (8) over the finite set \(\mathfrak S_N^K\), Definition \(\mathrm{def{:}identity\text{-}optimal\text{-}kernel\text{-}cone}\) yields
+\[
+ \Omega^\pi\in\mathcal C_{N,K}(H)
+ \quad\Longleftrightarrow\quad
+ B^{\pi,\sigma}\text{ is copositive for every }\sigma\in\mathfrak S_N^K. \tag{9}
+\]
+Definitions \(\mathrm{def{:}unit\text{-}relabeling\text{-}equivalence}\) and \(\mathrm{def{:}admissible\text{-}rank\text{-}kernel\text{-}domain}\) say that the orbit class is admissibly rank-preserving precisely when one of its finitely many relabellings lies in this cone.  Therefore (9), followed by the disjunction over \(\pi\in\mathfrak S_N\), proves the second displayed equivalence in the theorem.
+
+We next prove the asserted support characterization for an arbitrary real symmetric matrix \(B\) indexed by \(J\).  Suppose first that there are a nonempty \(I\subseteq J\), a \(\lambda<0\), and a \(v\in\mathbb R_{++}^I\) satisfying \(B[I]v=\lambda v\).  Extending \(v\) by zero outside \(I\) produces \(\widetilde v\in\mathbb R_+^J\) and
+\[
+ \widetilde v^{\mathsf T}B\widetilde v
+ =v^{\mathsf T}B[I]v
+ =\lambda\lVert v\rVert_2^2<0. \tag{10}
+\]
+Thus \(B\) is not copositive.
+
+Conversely, suppose that \(B\) is not copositive.  The set
+\[
+ \mathcal D=\{u\in\mathbb R_+^J:\lVert u\rVert_2=1\}
+\]
+is nonempty and compact.  Continuity of \(u\mapsto u^{\mathsf T}Bu\) therefore gives a minimizer \(u^*\in\mathcal D\).  Normalizing any nonnegative vector at which the quadratic form is negative shows that
+\[
+ \lambda:=(u^*)^{\mathsf T}Bu^*<0. \tag{11}
+\]
+Let \(I=\{q\in J:u_q^*>0\}\), which is nonempty.  For any \(w\in\mathbb R^I\) with \(w^{\mathsf T}u_I^*=0\), strict positivity of every coordinate of \(u_I^*\) ensures that both signs of \(u_I^*+tw\) remain positive for all sufficiently small \(t\).  Applying first-order minimality to the normalized curve
+\[
+ t\longmapsto\frac{u_I^*+tw}{\lVert u_I^*+tw\rVert_2}
+\]
+at \(t=0\), and using \(w^{\mathsf T}u_I^*=0\), gives
+\[
+ 0=2w^{\mathsf T}B[I]u_I^*. \tag{12}
+\]
+Equation (12) for every vector orthogonal to \(u_I^*\) implies that \(B[I]u_I^*\) is a scalar multiple of \(u_I^*\).  Taking its inner product with the unit vector \(u_I^*\), and using (11) together with the fact that coordinates outside \(I\) vanish, identifies that scalar:
+\[
+ B[I]u_I^*=\lambda u_I^*,
+ \qquad \lambda<0,
+ \qquad u_I^*\in\mathbb R_{++}^I. \tag{13}
+\]
+Equations (10) and (13) prove the finite support characterization in both directions.
+
+Finally suppose that every entry of \(H\) and \(\Omega\) is supplied as an exact real-algebraic number.  There are finitely many triples \((\pi,\sigma,I)\), because \(\mathfrak S_N\), \(\mathfrak S_N^K\), and the nonempty subsets of \(J\) are finite.  For each triple, every entry of \(B^{\pi,\sigma}[I]\) is real algebraic by its displayed finite-sum formula.  Exact algebraic-number arithmetic computes its characteristic polynomial.  Square-free factorization, a Sturm remainder sequence, and interval bisection using exact algebraic sign tests isolate all of its distinct real roots and decide which are negative; these procedures terminate because the characteristic polynomial has finite degree, each Euclidean remainder has strictly smaller degree, and each distinct algebraic root has a disjoint rational isolating interval after finitely many bisections.
+
+For each isolated negative eigenvalue \(\lambda\), homogeneity of the kernel equations gives the exact equivalence
+\[
+ \ker\{B[I]-\lambda I_I\}\cap\mathbb R_{++}^I\neq\varnothing
+ \quad\Longleftrightarrow\quad
+ \exists v:\ (B[I]-\lambda I_I)v=0,
+ \quad v_q\geq1\ \text{for every }q\in I. \tag{14}
+\]
+Indeed, a vector on the left can be multiplied by the reciprocal of its smallest coordinate, while every vector on the right is strictly positive.  The right-hand side of (14) is a finite system of linear equalities and weak inequalities over the ordered field of real algebraic numbers.  Replace each equality by two weak inequalities and eliminate variables successively: for a selected variable, every lower bound is paired with every upper bound, and bounds of only one sign impose no cross-condition.  This Fourier--Motzkin calculation uses only exact field operations and order tests and preserves feasibility in both directions at each elimination.  It terminates after finitely many variables.  Back-substitution constructs an algebraic feasible vector when one exists.  If none exists, retaining the nonnegative combinations used at each elimination yields a finite exact infeasibility certificate ending in a false constant inequality.  Thus (14) is exactly decidable.
+
+If a test in (14) is feasible, extend its \(v\) by zero to \(\alpha\in\mathbb R_+^J\) and define
+\[
+ x_i^a=\sum_{r<i}\alpha_{ar},
+ \qquad 1\leq i\leq N. \tag{15}
+\]
+Every column in (15) is ordered and has at most \(N\) levels.  Equations (6), (13), and (15) give the strict, exactly checkable loss comparison
+\[
+ \mathscr L_{H,\Omega^\pi}(x,\mathrm{id})
+ -\mathscr L_{H,\Omega^\pi}(x,\sigma)
+ =\alpha^{\mathsf T}B^{\pi,\sigma}\alpha
+ =\lambda\lVert v\rVert_2^2<0. \tag{16}
+\]
+Thus a feasible eigenspace test returns the stated strict cut witness.  If every negative-eigenspace test is infeasible for a fixed \(\pi\), the support characterization proves every \(B^{\pi,\sigma}\) copositive, and the finite collection of elimination traces certifies that \(\pi\) works.  If no \(\pi\) works, finiteness and (9) ensure that, for every \(\pi\), some \(\sigma\) and some feasible triple \((I,\lambda,v)\) produce (16).  This is the claimed exact recognition algorithm and its yes/no certificates.  Its exhaustive enumeration is finite but supplies neither a polynomial running-time bound nor any algorithm for unrestricted, non-algebraically-presented real inputs.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the computable side of the nonexchangeable extension: universal monotone-column inequalities reduce exactly to finitely many principal-eigenspace feasibility tests. \textit{Gap.} Its exhaustive algorithm does not establish polynomial complexity, and its multilevel failure witnesses do not settle binary completeness or the least complete alphabet. \textit{Consumer.} Small balanced designs with exact rational kernels can be audited exactly, with a relabelling certificate on success or explicit ordered columns and an improving permutation on failure.
+
+\begin{lemma}[lem:fixed-count-randomization-risk]\label{lem:fixed-count-randomization-risk}
+Under uniform fixed-count sample-and-assign randomization with \(n_a\geq1\) for every \(a\in\mathcal A\) and \(n_{\mathrm u}=N-\sum_{a\in\mathcal A}n_a\geq0\),
+\[
+\operatorname{Cov}_Z(\widehat{\bar Y}\mid Y)
+=\operatorname{diag}\left(\frac{S_{aa}(Y)}{n_a}\right)_{a\in\mathcal A}-\frac{S(Y)}{N}.
+\]
+Consequently,
+\[
+\Sigma_C(Y)=C\left\{\operatorname{diag}\left(\frac{S_{aa}(Y)}{n_a}\right)_{a\in\mathcal A}-\frac{S(Y)}{N}\right\}C^{\mathsf T}
+\]
+and
+\[
+\rho_W(Y)=\sum_{a\in\mathcal A}\frac{H_{aa}S_{aa}(Y)}{n_a}
+-\frac1N\sum_{a,b\in\mathcal A}H_{ab}S_{ab}(Y).
+\]
+For fixed armwise empirical marginals \(F\), the diagonal terms are constant over \(\mathcal S_N(F)\). Thus all completion dependence is carried by the off-diagonal cross-arm covariances, whose coefficients are independent of \(\mathbf n\) and \(n_{\mathrm u}\).
+\end{lemma}
+\begin{proof}
+Put \(T_{ia}=\mathbf 1(Z_i=a)\) and \(p_a=n_a/N\). Feasibility of \(\mathbf n\) gives \(n_a\geq1\), \(\sum_a n_a\leq N\), and, because \(K\geq2\), \(N\geq2\). Hence every denominator below is positive. By Assumption \(\mathrm{ass{:}uniform\text{-}fixed\text{-}count\text{-}sample\text{-}assign\text{-}randomization}\), \(Z\) is uniform on the support in Definition \(\mathrm{def{:}fixed\text{-}count\text{-}sample\text{-}assign\text{-}design}\). Counting fixed-label allocations gives
+\[
+\mathbb E_ZT_{ia}=p_a,
+\qquad
+\mathbb E_Z(T_{ia}T_{ja})=\frac{n_a(n_a-1)}{N(N-1)}\quad(i\ne j),
+\tag{1}
+\]
+and, for \(a\ne b\),
+\[
+\mathbb E_Z(T_{ia}T_{ib})=0,
+\qquad
+\mathbb E_Z(T_{ia}T_{jb})=\frac{n_an_b}{N(N-1)}\quad(i\ne j).
+\tag{2}
+\]
+Indeed, a fixed position has label \(a\) in the fraction \(n_a/N\) of the support; conditional on that event, \(n_a-1\) of the remaining \(N-1\) positions have label \(a\), and \(n_b\) have label \(b\). The same count remains valid when \(n_{\mathrm u}>0\), because \(a_{\mathrm u}\) is another fixed-count assignment label.
+
+Write \(y_i^a=Y_i(a)-\bar Y(a)\). By the definitions of \(\bar Y\) and \(S(Y)\),
+\[
+\sum_{i=1}^Ny_i^a=0,
+\qquad
+\sum_{i=1}^N(y_i^a)^2=(N-1)S_{aa}(Y),
+\qquad
+\sum_{i=1}^Ny_i^ay_i^b=(N-1)S_{ab}(Y).
+\tag{3}
+\]
+Equation (1) first gives design unbiasedness:
+\[
+\mathbb E_Z\{\widehat{\bar Y}(a)\mid Y\}
+=\frac1{n_a}\sum_{i=1}^Np_aY_i(a)=\bar Y(a).
+\tag{4}
+\]
+For \(i\ne j\), equation (1) yields
+\[
+\operatorname{Var}_Z(T_{ia})=p_a(1-p_a),
+\qquad
+\operatorname{Cov}_Z(T_{ia},T_{ja})=-\frac{p_a(1-p_a)}{N-1}.
+\tag{5}
+\]
+Since \(\sum_{i\ne j}y_i^ay_j^a=-\sum_i(y_i^a)^2\), equations (3)--(5) imply
+\[
+\begin{aligned}
+\operatorname{Var}_Z\{\widehat{\bar Y}(a)\mid Y\}
+&=\frac1{n_a^2}\left[
+p_a(1-p_a)\sum_i(y_i^a)^2
+-\frac{p_a(1-p_a)}{N-1}\sum_{i\ne j}y_i^ay_j^a
+\right]\\
+&=\frac{p_a(1-p_a)N}{n_a^2(N-1)}\sum_i(y_i^a)^2
+=\left(\frac1{n_a}-\frac1N\right)S_{aa}(Y).
+\end{aligned}
+\tag{6}
+\]
+For distinct arms, equation (2) gives
+\[
+\operatorname{Cov}_Z(T_{ia},T_{ib})=-p_ap_b,
+\qquad
+\operatorname{Cov}_Z(T_{ia},T_{jb})=\frac{p_ap_b}{N-1}\quad(i\ne j).
+\tag{7}
+\]
+Because \(\sum_{i\ne j}y_i^ay_j^b=-\sum_i y_i^ay_i^b\), equations (3), (4), and (7) give
+\[
+\begin{aligned}
+\operatorname{Cov}_Z\{\widehat{\bar Y}(a),\widehat{\bar Y}(b)\mid Y\}
+&=\frac1{n_an_b}\left[
+-p_ap_b\sum_i y_i^ay_i^b
++\frac{p_ap_b}{N-1}\sum_{i\ne j}y_i^ay_j^b
+\right]\\
+&=-\frac{p_ap_bN}{n_an_b(N-1)}\sum_i y_i^ay_i^b
+=-\frac1N S_{ab}(Y).
+\end{aligned}
+\tag{8}
+\]
+Combining (6) and (8) proves
+\[
+\operatorname{Cov}_Z(\widehat{\bar Y}\mid Y)
+=\operatorname{diag}\left(\frac{S_{aa}(Y)}{n_a}\right)_{a\in\mathcal A}-\frac{S(Y)}N.
+\tag{9}
+\]
+Since \(\widehat\tau=C\widehat{\bar Y}\), covariance equivariance gives the displayed formula for \(\Sigma_C(Y)\). Definition \(\mathrm{def{:}contrast\text{-}risk}\), cyclicity of trace, and \(H=C^{\mathsf T}WC\) then yield
+\[
+\begin{aligned}
+\rho_W(Y)
+&=\operatorname{tr}\!\left[H\left\{
+\operatorname{diag}\left(\frac{S_{aa}(Y)}{n_a}\right)_{a\in\mathcal A}-\frac{S(Y)}N
+\right\}\right]\\
+&=\sum_{a\in\mathcal A}\frac{H_{aa}S_{aa}(Y)}{n_a}
+-\frac1N\sum_{a,b\in\mathcal A}H_{ab}S_{ab}(Y).
+\end{aligned}
+\tag{10}
+\]
+Membership in \(\mathcal S_N(F)\) fixes the multiset in each arm, hence every \(S_{aa}(Y)\). Equation (10) proves the completion-dependence assertion.
+
+For the smallest exhaustive audit with an unassigned unit, take \(K=2\), \(N=3\), \(n_1=n_2=1\), and \(n_{\mathrm u}=1\). The support consists of all six placements of the labels \(1,2,a_{\mathrm u}\). Each selected arm index is uniform on \(\{1,2,3\}\), and the ordered pair of selected indices is uniform over the six distinct pairs. Therefore
+\[
+\operatorname{Var}_Z\{\widehat{\bar Y}(a)\mid Y\}
+=\frac13\sum_i(y_i^a)^2=\frac23S_{aa}(Y)
+\]
+and
+\[
+\operatorname{Cov}_Z\{\widehat{\bar Y}(1),\widehat{\bar Y}(2)\mid Y\}
+=\frac16\sum_{i\ne j}y_i^1y_j^2
+=-\frac16\sum_i y_i^1y_i^2=-\frac13S_{12}(Y),
+\]
+exactly matching (6) and (8).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identity exposes the exact unequal-count diagonal coefficients and proves that every completion-dependent coefficient is invariant to allocation counts and the unassigned remainder. \textit{Gap.} It removes unnecessary balance, exhaustion, and divisibility restrictions from the structural covariance argument. \textit{Consumer.} The generalized rank-cone, Loewner, omnibus, and two-arm recovery results use this node.
+
+\begin{lemma}[lem:agl-oracle-variance-and-comonotone-bound]\label{lem:agl-oracle-variance-and-comonotone-bound}
+In the finite two-arm sample-and-assign design of Aronow, Green, and Lee, \(N\geq4\), \(n_{\mathrm s}\) units are sampled without replacement, \(m_{\mathrm t}\geq2\) sampled units are treated, \(n_{\mathrm s}-m_{\mathrm t}\geq2\) are controls, and \(N-n_{\mathrm s}\) are unassigned. For the difference-in-means estimator, their Equation (2) is
+\[
+V_N=\frac1{N-1}\left\{
+\frac{N-m_{\mathrm t}}{m_{\mathrm t}}\sigma_{11}^{(N)}(Y)
++\frac{N-(n_{\mathrm s}-m_{\mathrm t})}{n_{\mathrm s}-m_{\mathrm t}}\sigma_{00}^{(N)}(Y)
++2\sigma_{10}^{(N)}(Y)
+\right\}.
+\]
+Given the two finite-population marginal distributions, their Lemma 1 gives sharp lower and upper bounds for \(\sigma_{10}^{(N)}(Y)\), with the upper endpoint attained by the comonotone coupling. This is an oracle finite-population statement about known marginals, distinct from their subsequent asymptotic analysis of estimated bounds.
+\end{lemma}
+
+\section{Interpretation}
+
+For a uniform fixed-count sample-and-assign experiment, a practitioner only inspects the off-diagonal signs of \(C^{\mathsf T}WC\).  Nonpositive signs certify one-sort least-favourable completion regardless of unequal positive arm counts or the number of unassigned units.  Any positive entry names two arms on which separating two unique successes strictly improves the loss by \(2H_{ab}/[N(N-1)]\).  Matrix-valued conservativeness is much rarer: it occurs exactly when \(C\) has two nonzero opposite columns.  The orthonormal omnibus system is scalar-valid for every count vector but, for \(K>2\), is not Loewner-valid.  The nonexchangeable balanced-kernel extension remains a separate \(K\mid N\) problem with an exact but exhaustive copositivity audit.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The graph-Laplacian certificate concerns a prespecified scalar covariance loss \(W\) and does not turn that endpoint into a sharp matrix-valued covariance bound.  Except for a vector-rescaled pairwise contrast, no single common-rank completion dominates every linear combination simultaneously.  The arbitrary-count result assumes a known uniform fixed-count sample-and-assign law and oracle knowledge of all armwise empirical marginals; it does not supply plug-in marginal estimation or Wald coverage.  For general nonexchangeable balanced kernels, the theorem remains restricted to \(K\mid N\) with equal exhaustive counts and uses factorial permutation and exponential support enumeration; polynomial recognition, binary completeness, and the minimal complete alphabet remain unresolved.
+
+\section{Honest scope}
+
+The arbitrary-count cone theorem follows from the fixed-count design covariance identity plus a finite rearrangement proof and a contrast-geometry necessity argument; novelty lies in the causal contrast cone, its count invariance, and the Loewner boundary, not in a new general dependence inequality.  The Aronow--Green--Lee proposition is an exact finite oracle equivalence and does not claim new marginal-estimation asymptotics.  The six-unit propositions are arithmetic audit certificates.  The general balanced-kernel result is explicitly confined to \(K\mid N\), equal exhaustive counts, and admissible covariance tensors induced by balanced assignment laws.  Its exhaustive exact algorithm applies to real-algebraic inputs; no polynomial runtime, hardness classification, binary completeness, or minimal-alphabet theorem is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AronowGreenLee2014SharpVariance} Peter M. Aronow, Donald P. Green, and Donald K. K. Lee (2014). Sharp bounds on the variance in randomized experiments. The Annals of Statistics 42(3), 850--871. arXiv:1405.6555v1. doi:10.1214/13-AOS1200.
+
+  \bibitem{BrennanEtAl2025IntegerProgramming} Jennifer Rogers Brennan, S\'{e}bastien Lahaie, Adel Javanmard, Nick Doudchenko, and Jean Pouget-Abadie (2025). Integer Programming for Generalized Causal Bootstrap Designs. Proceedings of the 42nd International Conference on Machine Learning, PMLR 267, 5508--5530.
+
+  \bibitem{GaoGeQian2025MultipleWorlds} Zijun Gao, Shu Ge, and Jian Qian (2025). Bridging Multiple Worlds: Multi-marginal Optimal Transport for Causal Partial-identification Problem. Proceedings of the 28th International Conference on Artificial Intelligence and Statistics, PMLR 258, 721--729.
+
+  \bibitem{ZhaoDing2023MultiarmedAdjustment} Anqi Zhao and Peng Ding (2023). Covariate adjustment in multi-armed, possibly factorial experiments. Journal of the Royal Statistical Society: Series B 85(1), 1--23. doi:10.1093/jrsssb/qkac003.
+
+  \bibitem{Tchen1980GivenMarginals} Andr\'{e} H. Tchen (1980). Inequalities for distributions with given marginals. The Annals of Probability 8(4), 814--827. doi:10.1214/aop/1176994668.
+
+  \bibitem{LaurentSeminaroti2015RobinsonianQAP} Monique Laurent and Matteo Seminaroti (2015). The quadratic assignment problem is easy for Robinsonian matrices with Toeplitz structure. Operations Research Letters 43(1), 103--109. doi:10.1016/j.orl.2014.12.009.
+
+  \bibitem{ImbensMenzel2021CausalBootstrap} Guido W. Imbens and Konrad Menzel (2021). A causal bootstrap. The Annals of Statistics 49(3), 1460--1488. doi:10.1214/20-AOS2009.
+
+  \bibitem{YuZhuLiu2025StratifiedCausalBootstrap} Haoyang Yu, Ke Zhu, and Hanzhong Liu (2025). Sharp variance estimator and causal bootstrap in stratified randomized experiments. Statistics in Medicine 44, e70139. doi:10.1002/sim.70139.
+
+\end{thebibliography}
+
+\end{document}

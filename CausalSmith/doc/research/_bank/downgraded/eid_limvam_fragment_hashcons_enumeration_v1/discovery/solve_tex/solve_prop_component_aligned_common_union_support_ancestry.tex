@@ -1,0 +1,118 @@
+%%% FIELD component-aligned-ancestry-proof
+Write \(\mathfrak f=(\widetilde P,\widetilde B,
+\widetilde\varepsilon,\widetilde\Gamma,\widetilde\pi)\) for an element of
+\(\mathfrak F_G^{\mathrm{CA}}(\mathcal O_G)\), and let
+\(c(\mathfrak f)=\widetilde B\) denote its coefficient family.  The fixed
+data-generating tuple belongs to \(\mathfrak M_{p,m}^{\mathrm{CA}}\) by
+\(\texttt{def:component-aligned-limvam-class}\), and it matches its own
+observed blocks.  Hence it belongs to
+\(\mathfrak F_G^{\mathrm{CA}}(\mathcal O_G)\) by
+\(\texttt{def:component-aligned-compatibility-fiber}\).  In particular, the
+fiber is nonempty.  By \(\texttt{def:identified-tuple-set}\), its coefficient
+projection is
+\[
+ \Theta_G^{\mathrm{CA}}(\mathcal O_G)
+ =\{c(\mathfrak f):
+       \mathfrak f\in\mathfrak F_G^{\mathrm{CA}}(\mathcal O_G)\}.
+ \tag{1}
+\]
+Moreover, \(\texttt{thm:component-aligned-fiber-projection-exactness}\)
+identifies this nonempty set with the set of \(T_\pi\) indexed by
+source-to-sink paths in \(\mathcal D_G^{\mathrm{live}}\).
+
+We first verify that the word ``ancestor'' in the claim refers to an ordinary
+DAG ancestry relation.  If \(T_\pi=(B_\pi^{(a)})_{a\in M}\) is one of the
+tuples in the preceding characterization, then
+\(\texttt{def:modified-cholesky}\) gives, for
+\(r=\pi(k)\),
+\[
+ B_\pi^{(a)}[r,s]\ne0
+ \quad\Longrightarrow\quad
+ s\in\{\pi(1),\ldots,\pi(k-1)\}.
+ \tag{2}
+\]
+Thus every edge \(s\to r\) of the union-support graph
+\(\mathcal U(T_\pi)\) points strictly forward in the order \(\pi\).  A
+directed cycle would therefore give a strict chain of positions ending below
+its starting position, which is impossible.  Hence
+\(\mathcal U(T_\pi)\) is a DAG, and its ordered ancestor pairs are exactly
+\(\operatorname{TC}^{+}(\mathcal U(T_\pi))\).
+
+For any \((i,j)\in V\times V\), the definition
+\(\texttt{def:common-union-support-ancestry}\), followed by (1), gives
+\[
+\begin{aligned}
+ (i,j)\in\mathcal A_G^{\mathrm{CA}}(\mathcal O_G)
+ &\Longleftrightarrow
+   (i,j)\in
+   \bigcap_{T\in\Theta_G^{\mathrm{CA}}(\mathcal O_G)}
+        \operatorname{TC}^{+}(\mathcal U(T))                                      \\
+ &\Longleftrightarrow
+   \forall T\in\Theta_G^{\mathrm{CA}}(\mathcal O_G),\quad
+   (i,j)\in\operatorname{TC}^{+}(\mathcal U(T))                                  \\
+ &\Longleftrightarrow
+   \forall\mathfrak f\in\mathfrak F_G^{\mathrm{CA}}(\mathcal O_G),\quad
+   (i,j)\in
+   \operatorname{TC}^{+}(\mathcal U(c(\mathfrak f))).
+ \tag{3}
+\end{aligned}
+\]
+The last equivalence is valid in both directions because (1) says precisely
+that \(c\) maps the fiber onto the tuple set; numerical duplicates in that
+image do not change a universal statement.  By the DAG conclusion following
+(2), the final line of (3) says exactly that \(i\) is an ancestor of \(j\) in
+the union-support DAG of every mechanism in the fiber.  This proves the
+set-theoretic assertion without identifying the causal target by definition:
+the equality follows from the independently defined mechanism projection (1).
+
+It remains to establish the computational bound.  Let the given exact-once
+stream be \(T_1,\ldots,T_n\), where the preceding nonemptiness and exactness
+give
+\[
+ n=N_{\mathrm{out}}^{\mathrm{CA}}\geq1,
+ \qquad
+ \{T_1,\ldots,T_n\}=\Theta_G^{\mathrm{CA}}(\mathcal O_G).
+ \tag{4}
+\]
+For \(T_\ell=(B_\ell^{(a)})_{a\in M}\), form the Boolean edge relation
+\[
+ E_\ell=\{(i,j)\in V^2:
+              B_\ell^{(a)}[j,i]\ne0
+              \text{ for some }a\in M\}.
+ \tag{5}
+\]
+Equation (5) requires at most \(mp^2\) exact zero comparisons and Boolean
+updates.  Compute its transitive closure in place by the recurrence
+\[
+ W_\ell^{(0)}=E_\ell,
+ \qquad
+ W_\ell^{(k)}=W_\ell^{(k-1)}\cup
+ \bigl\{(u,v):
+ (u,k)\in W_\ell^{(k-1)},\ (k,v)\in W_\ell^{(k-1)}\bigr\},
+ \quad 1\leq k\leq p.
+ \tag{6}
+\]
+The usual path-decomposition induction on the allowed intermediate vertices
+shows that \(W_\ell^{(p)}=\operatorname{TC}^{+}(\mathcal U(T_\ell))\): at
+stage \(k\), the relation contains exactly the nonempty directed paths whose
+internal vertices lie in \(\{1,\ldots,k\}\).  Recurrence (6) uses
+\(O(p^3)\) Boolean operations and one \(p\times p\) Boolean matrix.
+
+Initialize \(K_0=\{(i,j)\in V^2:i\ne j\}\), and after processing the
+\(\ell\)-th tuple set
+\[
+ K_\ell=K_{\ell-1}\cap W_\ell^{(p)}.
+ \tag{7}
+\]
+By induction on \(\ell\), (7) gives
+\(K_n=\bigcap_{\ell=1}^n
+\operatorname{TC}^{+}(\mathcal U(T_\ell))\), which equals
+\(\mathcal A_G^{\mathrm{CA}}(\mathcal O_G)\) by (3)--(4).  Each intersection
+costs \(O(p^2)\), absorbed by \(O(p^3)\) because \(p\geq2\).  Summing (5)--(7)
+over all outputs proves the additional-time bound
+\[
+ O\!\left(N_{\mathrm{out}}^{\mathrm{CA}}(mp^2+p^3)\right).
+\]
+The edge/closure matrix can be overwritten during (6), and only it and the
+accumulator \(K_\ell\) are retained between updates.  Thus, beyond the current
+streamed tuple, the working storage is \(O(p^2)\); no earlier tuple is stored.

@@ -1,0 +1,1085 @@
+{
+  "qid": "eid_blocked_colour_rational_separation_complete",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "stage": "F1",
+  "status": "completed",
+  "feasibility": "needs-new-infrastructure",
+  "lean_target_subdirectory": "CausalSmith/ExactID/EID_BlockedColourRationalSeparationComplete_Research",
+  "lean_namespace": "CausalSmith.ExactID.BlockedColourRationalSeparation",
+  "run_barrel": "CausalSmith/ExactID/EID_BlockedColourRationalSeparationComplete_Research.lean",
+  "decisions": [
+    {
+      "id": "P1",
+      "decision": "Vertex population is a generic finite type `V` with `[DecidableEq V] [Fintype V]`, and `p := Fintype.card V`. The core's `V = [p]` is realized as `Fintype.card V = p` rather than `Fin p`.",
+      "why": "`Causalean.DAG V` is stated for exactly this signature, so the whole `Graph/MarkovEquiv/` substrate (skeleton, immoralities, covered-edge reversal, edge-difference count, Verma-Pearl flagship) applies verbatim. `Fin p` would force a transport layer for zero reuse gain. Every `p`-indexed claim (integer entries in `{0,...,p}`, denominator `<= p`, height `<= Nat.clog 2 p`, the `Nat.choose (p+1) 3` bound) is stated with `p = Fintype.card V`."
+    },
+    {
+      "id": "P2",
+      "decision": "The blocked-state class is a structure over a RAW edge relation (`edge : V -> V -> Prop`, `decEdge`) plus `blocks : V -> Finset (Finset V)`, with the two core assumption atoms as its only two Prop fields; a derived projection `BlockedState.toDAG := Causalean.DAG.ofAcyclic edge acyclic` exposes it as a `Causalean.DAG`.",
+      "why": "P2 of the plan gate requires the class's `members` to be exactly `[ass:acyclic-member, ass:target-parent-partition]`. Embedding a bundled `Causalean.DAG` field would silently absorb `ass:acyclic-member` into the field's own invariant and destroy the author's atomization. Carrying the raw relation keeps both atoms as named `Prop` defs while `toDAG` recovers full substrate reuse."
+    },
+    {
+      "id": "P3",
+      "decision": "Parent partitions are encoded as `blocks : V -> Finset (Finset V)` constrained by the Prop atom `IsTargetParentPartition`, not as a bundled `Finpartition (G.parents j)`.",
+      "why": "Mathlib's `Finpartition s` is a bundled TYPE whose index `s` depends on the graph field; an assumption atom must be one named `Prop` def. The atom is written in `Finpartition.ofExistsUnique` shape (`empty not a block`, `every parent in a unique block`) so a `Finpartition` can be produced on demand by a helper."
+    },
+    {
+      "id": "P4",
+      "decision": "The static signature is a decidable-equality record of `Finset` codings (`skeleton : Finset (V x V)` as unordered-pair coding, `colliders : Finset (V x V x V)`, `families : V -> Finset (Finset V)`, `mismatch : Finset (V x V)`), with bridge lemmas `staticSignature_eq_iff` tying its first two coordinates to `Causalean.SameSkeleton` / `Causalean.SameImmoralities`.",
+      "why": "The theorems compare signatures by EQUALITY, which needs a `Finset` coding, while the reusable substrate (`markovEquiv_iff_sameSkeleton_sameImmoralities`, `exists_covered_reversed_edge`, `edgeDiffCount_flipEdge_lt`, `flipEdge_same*`) is stated for the propositional forms. The bridge lemma is the single adapter that unlocks all of it."
+    },
+    {
+      "id": "P5",
+      "decision": "`def:component-enumerator` is defined extensionally: `componentEnum C` is the `Finset` of canonical lifts `E_K` over acyclic `K` with `SameSkeleton G_C K`, `SameImmoralities G_C K` and `familyMismatchEdges C` retained as edges of `K`. The CPDAG + Meek-closure route named in the core is recorded as the algorithmic presentation of that same output set.",
+      "why": "The core's own proof of `prop:exact-component-enumeration` uses only the extensional characterization ('each emitted K has the skeleton and colliders of G, retains F(C), and has the same endpoint families'). Causalean has no CPDAG / Meek-rule module (searched; only a prose mention in `Causalean/Graph/MarkovEquiv.lean`), so building the closure algorithm would add a large orientation-rule layer that the theorem never inspects. The `at most p!` termination claim is proved through the injection into topological orders exactly as in the core proof."
+    },
+    {
+      "id": "P6",
+      "decision": "The Bonferroni critical value in `def:simultaneous-region` is a chosen `z` satisfying `(Causalean.Stat.gaussianMeasure 0 1) (Set.Iic z) >= 1 - alpha/(2*K)`, obtained from a small existence lemma, rather than an inverse-CDF function.",
+      "why": "Neither Mathlib nor Causalean exposes a standard-normal quantile function (searched: only `ProbabilityTheory.cdf`, `Causalean.Stat.CLT.GaussianTail`). Existence of such a `z` is all the coverage proof consumes, and `Causalean.Stat.Tendsto_dist.wald_coverage_Iic` is stated against a threshold `c`, not a quantile function."
+    },
+    {
+      "id": "P7",
+      "decision": "Rational bit height `hgt` uses `Nat.clog 2 (max 1 (max q.num.natAbs q.den))`; `Bp p = Nat.clog 2 p`.",
+      "why": "`Nat.clog 2` is Mathlib's ceiling base-2 logarithm on naturals and matches the core's `ceil(log_2 .)` on positive integers exactly, avoiding real logarithms and their rounding lemmas."
+    },
+    {
+      "id": "P8",
+      "decision": "The cited nodes `lem:chickering-covered-disagreement-sequence` and `lem:boege-proper-blocked-identifiability` stay frozen substrate-gates (`gate:true`, `gate_class:\"cited\"`, `lean_kind:\"assumption\"`, threaded into consumers), even though Causalean already proves most of the Chickering content.",
+      "why": "External provenance and cited carrier kind are fixed before F1; F1 may not emit a non-gate form for a `status:\"cited\"` statement. The near-complete Causalean discharge route is recorded in the node's `notes` for `bin/gate.ts --discharge`."
+    },
+    {
+      "id": "P9",
+      "decision": "`oeq:certificate-pareto-optimality` is a never-asserted descriptive `_root_.String` payload (TWO-CASE rule, case B), not a `Prop`.",
+      "why": "The frozen obligation states outright that the admissible scheme class, the certificate normalization, and which numerical objects contribute to height are undefined, so 'a universal lower-bound statement is not well typed'. A `Prop` would manufacture a truth condition the core refuses to fix."
+    }
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A finite labelled variable population \\(V\\) of size \\(p=|V|\\ge1\\), carrying finite directed acyclic graphs on \\(V\\): parent sets \\(\\operatorname{pa}_{\\mathcal K}(j)\\), undirected skeletons \\(\\operatorname{skel}\\), unshielded-collider (immorality) triples \\(\\operatorname{uc}\\), covered edges, and the arrow-disagreement count \\(\\delta\\) between two orientations of a common skeleton.",
+      "binds_symbols": [
+        "p",
+        "V",
+        "pa",
+        "Kgraph",
+        "GE",
+        "G",
+        "H",
+        "Skel",
+        "UC",
+        "ArrowGap"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "reuse",
+      "reuse": "Causalean.DAG",
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.AcyclicConstruct",
+        "Causalean.Graph.DSep.ActivePath",
+        "Causalean.Graph.MarkovEquiv",
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.MarkovEquiv.CoveredReversal",
+        "Causalean.Graph.MarkovEquiv.Decompose"
+      ],
+      "notes": "Highest-leverage reuse decision of this plan. `Causalean.DAG V` ([DecidableEq V] [Fintype V]; fields `edge`, `decEdge`, `acyclic : forall v, not Relation.TransGen edge v v`) is exactly the graph coordinate of a blocked state, and `Causalean.DAG.ofAcyclic` (Causalean/Graph/AcyclicConstruct.lean:35) materializes it from a raw relation + acyclicity witness. Confirmed available and signature-checked by reading source: `Causalean.DAG.parents` (Finset V), `Causalean.DAG.UAdj` (Causalean/Graph/DSep/ActivePath.lean:58) = skeleton adjacency, `Causalean.DAG.IsImmorality` (MarkovEquiv/Defs.lean:42) = unshielded collider, `Causalean.SameSkeleton` / `Causalean.SameImmoralities` (Defs.lean:52,55), `Causalean.MarkovEquiv` (Defs.lean:61), `Causalean.DAG.IsCoveredEdge` (CoveredReversal.lean:42), `Causalean.DAG.flipEdge` (CoveredReversal.lean:125) + `Causalean.DAG.flipRel_acyclic` (73) + `Causalean.DAG.flipEdge_edge` (130) + `Causalean.DAG.flipEdge_sameSkeleton` (136) + `Causalean.DAG.flipEdge_sameImmoralities` (156) + `Causalean.DAG.markovEquiv_flipEdge` (1726), `Causalean.edgeDiff` / `Causalean.edgeDiffCount` (Decompose.lean:59,65), `Causalean.exists_covered_reversed_edge` (Decompose.lean:91, AMP Lemma 3.2 existence), `Causalean.edgeDiffCount_flipEdge_lt` (Decompose.lean:184), `Causalean.markovEquiv_of_sameSkeleton_sameImmoralities` (Decompose.lean:237), and the flagship `Causalean.markovEquiv_iff_sameSkeleton_sameImmoralities` (Causalean/Graph/MarkovEquiv.lean:59). `ArrowGap` = `Causalean.edgeDiffCount` restricted to reversed common-skeleton edges (helper `arrowGap` = card of the reversed-pair Finset; the substrate's `edgeDiff` is the same construction shape). Surveyed and BYPASS-JUSTIFIED from the exactid reuse list: `Causalean.SCM.ID.Identifiable`, `Causalean.SCM.ID.Overlap`, `Causalean.SCM.ID.Adjustment`, `Causalean.SCM.ID.Backdoor*`, `Causalean.SCM.ID.Frontdoor*`, `Causalean.SCM.ID.GraphicalThms.*`, `Causalean.Graph.SWIG` / `SWIGGraph`, `Causalean.PO.*`, `Causalean.SCM.Do.*` -- all of these express do/PO-language identification of an interventional functional from an observational kernel, whereas every node here is a STRUCTURE-identification claim about equality of two covariance IMAGES of coloured graphs; no interventional kernel, no treatment, no overlap. Search trace: grep '^## ' ../doc/API.md (section index) then read sections 1 (Graph/DAG.lean) and 4b (Graph/MarkovEquiv/); Glob Causalean/Graph/MarkovEquiv/*.lean -> 7 files, all read or outlined; grep '(CPDAG|essentialGraph|Meek|consistent extension)' over Causalean/ -> only a prose mention in Graph/MarkovEquiv.lean, so no CPDAG module exists."
+    },
+    {
+      "id": "S2",
+      "world": "Singleton-permitting blocked edge-coloured linear Gaussian DAG models over \\(V\\). A state \\(E_0=(G_{E_0},\\Pi^{E_0})\\) pairs an acyclic graph on \\(V\\) with, for every target \\(j\\), a partition \\(\\Pi^{E_0}_j\\) of \\(\\operatorname{pa}_{G_{E_0}}(j)\\) into nonempty coefficient blocks, singletons permitted. Its parameter space is \\(\\Theta_{E_0}=\\mathbb R^{b_{E_0}}\\times(0,\\infty)^p\\) with \\(b_{E_0}=\\sum_j|\\Pi^{E_0}_j|\\): one unrestricted real coefficient per block and one positive innovation variance per vertex. The block-constant matrix \\(B_{E_0}(\\beta)\\) has \\((B_{E_0}(\\beta))_{ji}=\\beta_{jB}\\) for \\(i\\in B\\in\\Pi^{E_0}_j\\) and zero at nonparents, and the covariance map is \\(\\phi_{E_0}(\\beta,\\omega)=(I_p-B_{E_0}(\\beta))^{-1}\\operatorname{diag}(\\omega)(I_p-B_{E_0}(\\beta))^{-\\mathsf T}\\), whose full image \\(\\mathcal M(E_0)\\subseteq\\mathbb S^p_{++}\\) is the observational model. Population objects live over an arbitrary \\(\\Sigma\\in\\mathbb S^p_{++}\\): parent regressions \\(r_j(P;\\Sigma)=\\Sigma_{P,P}^{-1}\\Sigma_{P,j}\\), block-constrained regressions, determinant and cleared-regression certificates, unit-noise binary-star covariances, and legal singleton covered reversals with partition transport. No probability space, no faithfulness assumption, no restriction to nonzero coefficients.",
+      "binds_symbols": [
+        "Xi",
+        "Astate",
+        "StateClass",
+        "Estate",
+        "PiE",
+        "Ip",
+        "betaE",
+        "BE",
+        "omegaE",
+        "ThetaE",
+        "PhiE",
+        "Model",
+        "Sigma",
+        "RegCoef",
+        "C",
+        "Pi",
+        "D",
+        "Lambda",
+        "Nfam",
+        "Fset",
+        "Sig",
+        "E",
+        "J",
+        "z",
+        "Ablocks",
+        "Aunion",
+        "Bstar",
+        "SigmaStar",
+        "hgt",
+        "Bp",
+        "CertCI",
+        "CertReg",
+        "Router",
+        "W2",
+        "Rev",
+        "Rcomp",
+        "dRev",
+        "Enum",
+        "BlockInc",
+        "BlockGram",
+        "BlockScore",
+        "LE",
+        "Qpairs",
+        "gEffect",
+        "EffectSet",
+        "Exc",
+        "Hopt"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.AcyclicConstruct",
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.MarkovEquiv.CoveredReversal",
+        "Mathlib.Order.Partition.Finpartition",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.SchurComplement",
+        "Mathlib.LinearAlgebra.Matrix.Adjugate",
+        "Mathlib.Logic.Relation",
+        "Mathlib.Algebra.MvPolynomial.Funext"
+      ],
+      "notes": "The blocked (target-local edge-coloured) layer is genuinely new: no Causalean or Mathlib object carries a per-target partition of parent sets with block-constant structural coefficients. It is built ON TOP of S1 (`BlockedState.toDAG`) so the graph coordinate is never rebuilt. Search trace: grep '(coloured|colored|edgeColour|edgeColor|Finpartition)' over Causalean/ -> 2 hits, both in Stat/Nonparametric/MomentProblems (set-partition combinatorics for cumulants, unrelated to edge colouring), so no edge-colouring substrate exists; grep '(linear[- ]Gaussian|LinearGaussian|linearSEM|trek)' over Causalean/ -> Causalean/Discovery/InvariantPrediction/LinearGaussian/{Model,Regression,Completeness}.lean and Causalean/Discovery/LiNGAM/*, Causalean/Discovery/LinearDisentanglement/*. BYPASS-JUSTIFIED per module: `Causalean.Discovery.InvariantPrediction.LinearGaussian.Model` (`ObsSEM`, Model.lean:94) is a random-variable-level Gaussian SEM bundling a probability space, measurable coordinates, a.e. structural equations and `iIndepFun` noises -- a strictly heavier abstraction than this node's purely algebraic covariance IMAGE in `Set (Matrix V V R)`, and its `hEdge : dag.edge k j <-> beta j k /= 0` forbids the zero coefficients this paper's `honest_scope` explicitly admits; `Causalean.Discovery.LiNGAM.*` is non-Gaussian cumulant identification; `Causalean.Discovery.LinearDisentanglement.*` (SigmaSolutions, Rowspan, Uniqueness) is latent-factor covariance factorisation with no parent-block colouring. Mathlib side reused rather than rebuilt: `Matrix.PosDef`, `Matrix.det`, `Matrix.adjugate`, `Matrix.inv`, `Matrix.det_fromBlocks_one_11` / `Matrix.det_fromBlocks_22` and `Matrix.schur_complement_eq_22` (confirmed via leansearch 'determinant of block matrix Schur complement fromBlocks'), `Finpartition.ofExistsUnique` / `Finpartition.sup_parts` (confirmed via leansearch), `Relation.ReflTransGen`, `Nat.clog`, `Nat.choose`, `MvPolynomial.funext` (confirmed via loogle) for the real proper-algebraic-subset step. Also surveyed for the certificate arithmetic: `Causalean.Stat.Nonparametric.LocalPoly.DesignMatrixPosDef` (`designMatrix_posDef`, line 87) -- bypass-justified, it is Vandermonde/weight specific, not the generic `A^T Sigma A > 0` for a column-injective incidence `A`, which is a two-line build-inline over `Matrix.PosDef`."
+    },
+    {
+      "id": "S3",
+      "world": "Independent centred \\(p\\)-variate Gaussian sampling with known zero mean: observations \\(X^{(1)},\\ldots,X^{(n)}\\) i.i.d. \\(N_p(0,\\Sigma_0)\\) with \\(\\Sigma_0\\in\\mathcal M(C)\\), the sample covariance \\(S_n=n^{-1}\\sum_r X^{(r)}X^{(r)\\mathsf T}\\) as Gaussian sufficient statistic, a deterministic fallback on the event \\(S_n\\notin\\mathbb S^p_{++}\\), the fixed-\\(p\\) asymptotic regime \\(n\\to\\infty\\), a global information criterion over the finite state class with a fixed deterministic tie rule, and a familywise noncoverage level \\(\\alpha\\in(0,1)\\).",
+      "binds_symbols": [
+        "n",
+        "Xsample",
+        "Sigma0",
+        "Sn",
+        "BIC",
+        "Chat",
+        "alpha",
+        "Conf"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "reuse",
+      "reuse": "Causalean.Stat.IIDSample",
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Inference.VarianceEstimation",
+        "Causalean.Stat.Limit.Convergence",
+        "Causalean.Stat.CLT.AsymptoticLinearity",
+        "Causalean.Stat.Inference.DeltaMethod",
+        "Causalean.Stat.Inference.WaldVec",
+        "Causalean.PO.ID.Partial.RandomSet.Hausdorff"
+      ],
+      "notes": "The sampling model is `Causalean.Stat.IIDSample Omega X mu P` (Causalean/Stat/Sample.lean:44; fields `Z : Nat -> Omega -> X`, `meas`, plus i.i.d./law fields) instantiated at `X = EuclideanSpace R V` with `P` the centred Gaussian law of covariance `Sigma_0`; `S.sampleMean` gives `S_n` entrywise. Confirmed reusable by reading source: `Causalean.Stat.IIDSample.sampleCov_entry_tendsto_inProb` (VarianceEstimation.lean:140) delivers exactly the entrywise `S_n -> Sigma_0` in probability the BIC proof needs, `Causalean.Stat.Tendsto_inProb` / `Tendsto_dist` / `IsBigOp` / `IsLittleOp` (Stat/Limit/Convergence.lean:57,90,161,174) are the project's convergence wrappers, `Causalean.Stat.gaussianMeasure` (Stat/CLT/AsymptoticLinearity.lean:53) the real Gaussian limit wrapper, `Causalean.Stat.deltaMethod_scalar` (Stat/Inference/DeltaMethod.lean:63) the scalar delta method for each labelled effect coordinate, `Causalean.Stat.Tendsto_dist.wald_coverage_Iic` (Stat/Inference/WaldVec.lean:81) the coverage-from-portmanteau step, and `Causalean.PartialID.RandomSet.hausdorffDist` / `directedHausdorff` (Causalean/PO/ID/Partial/RandomSet/Hausdorff.lean:73,64) the set-valued metric for the Hausdorff conclusion. Search trace: grep '(BIC|bayesianInformation|Bonferroni|sampleCovariance|sampleCov|Wishart)' over Causalean/ -> Stat/Inference/VarianceEstimation.lean, PO/ID/Partial/Inference/{ImbensManski,IntervalCI}.lean (Bonferroni only as prose in the interval-endpoint context, not a reusable multiplicity lemma; no BIC and no Wishart anywhere); grep '(logDet|gaussianLogLik|logLikelihood|loglik)' over Causalean/ -> no matches, so the Gaussian log-likelihood / `log det K + tr(K^{-1} T)` discrepancy is build-inline; grep 'Hausdorff' over Causalean/ -> the RandomSet/Hausdorff.lean and CriterionSet/Consistency.lean pair (the latter's `tendsto_hausdorffDist_levelSet` is level-set specific, bypass-justified, but is the ANALOGOUS module F3 should read for the set-convergence bookkeeping pattern). Mathlib side: leansearch 'quantile of standard normal distribution' -> only `ProbabilityTheory.cdf`; no inverse-CDF, hence decision P6."
+    }
+  ],
+  "nodes": {
+    "ass:acyclic-member": {
+      "lean_kind": "assumption",
+      "lean_name": "IsAcyclicMember",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Mathlib.Logic.Relation"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption (causal-structural)",
+      "signature_sketch": "def IsAcyclicMember (edge : V -> V -> Prop) : Prop := forall v, not Relation.TransGen edge v v",
+      "notes": "Kept as a threaded/bundled modeling assumption: the author states directed acyclicity as its own `ass:` node, so it is never discharged. Written to be LITERALLY the `Causalean.DAG.acyclic` field predicate, so `Causalean.DAG.ofAcyclic edge h` (Causalean/Graph/AcyclicConstruct.lean:35) accepts the field with no bridge, and `BlockedState.toDAG` is definitional. Search trace: read `structure DAG` (Causalean/Graph/DAG.lean:57-65) -> the acyclicity condition exists only as a bundled structure FIELD, with no standalone `IsAcyclic`/`Acyclic` predicate on a relation; grep 'ofAcyclic' over Causalean/ -> Graph/AcyclicConstruct.lean only. Mathlib side: `Relation.TransGen` (Mathlib.Logic.Relation) is the irreflexivity carrier; Mathlib's `SimpleGraph.Acyclic` is undirected and inapplicable (leansearch/loogle for a directed-acyclicity predicate on `V -> V -> Prop` returns only `Relation.TransGen`/`WellFounded` shapes). Hence a one-line named `Prop` def, build-inline."
+    },
+    "ass:target-parent-partition": {
+      "lean_kind": "assumption",
+      "lean_name": "IsTargetParentPartition",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Mathlib.Order.Partition.Finpartition"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption (causal-structural) -- the singleton-permitting blocked edge-colouring restriction",
+      "signature_sketch": "def IsTargetParentPartition (edge : V -> V -> Prop) [DecidableRel edge] (blocks : V -> Finset (Finset V)) : Prop := forall j, (emptyset notin blocks j) and (forall B in blocks j, B subseteq parentsOf edge j) and (forall i in parentsOf edge j, exists! B, B in blocks j and i in B)",
+      "notes": "Kept as a threaded/bundled modeling assumption -- this IS the paper's parameter restriction (target-local blocked edge colouring with singleton blocks admitted), never a substrate fact. Written in `Finpartition.ofExistsUnique` shape (Mathlib.Order.Partition.Finpartition, confirmed via leansearch 'Finpartition of a finset parts pairwise disjoint supremum') so a helper can produce `Finpartition (E.toDAG.parents j)` on demand for counting arguments, while the atom itself stays a single named `Prop` (decision P3). Search trace: grep '(coloured|colored|edgeColour|edgeColor|Finpartition)' over Causalean/ -> only Stat/Nonparametric/MomentProblems/{Cumulant,MomentCumulantInversion}.lean (set partitions for cumulant inversion; no parent-set partition, no edge colouring), so nothing to reuse in Causalean; Mathlib side `Finpartition` is a bundled type, not a Prop, so it is reused as the SHAPE only."
+    },
+    "def:blocked-state-class": {
+      "lean_kind": "structure",
+      "lean_name": "BlockedState",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.AcyclicConstruct"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:acyclic-member",
+        "ass:target-parent-partition"
+      ],
+      "signature_sketch": "structure BlockedState (V) [DecidableEq V] [Fintype V] where edge : V -> V -> Prop; decEdge : DecidableRel edge; blocks : V -> Finset (Finset V); acyclic : IsAcyclicMember edge; partitioned : IsTargetParentPartition edge blocks",
+      "aux_defs": [
+        "BlockedState.toDAG (E) : Causalean.DAG V := Causalean.DAG.ofAcyclic E.edge E.acyclic",
+        "BlockedState.parents (E) (j) : Finset V := E.toDAG.parents j",
+        "BlockedState.blockCount (E) (j) : Nat := (E.blocks j).card",
+        "BlockedState.dim (E) : Nat := Fintype.card V + sum over j of E.blockCount j    -- d_{E_0}",
+        "instance : DecidableEq (BlockedState V)  -- needed for the Finset-valued enumerator; via Fintype/decidable edge coding",
+        "instance : Fintype (BlockedState V)      -- finiteness of the class for fixed p (global BIC argument, at most p! enumeration)"
+      ],
+      "notes": "Exactly two Prop members, matching `by_member_properties` (gate P2). `toDAG` is the reuse hinge into all of S1: every skeleton / collider / covered-edge / reversal fact is quoted through it. `Fintype (BlockedState V)` is required by `def:global-bic` (argmin over the finite class) and by `prop:exact-component-enumeration` (Finset output); it is build-inline from `Fintype (V -> V -> Bool)` and `Fintype (V -> Finset (Finset V))` with a subtype filter, small and routine. Search trace: grep '(coloured|colored|edgeColour|Finpartition)' over Causalean/ and grep '(CPDAG|essentialGraph|Meek)' over Causalean/ -> nothing that bundles a graph with parent-set colourings; `Causalean.Discovery.InvariantPrediction.LinearGaussian.ObsSEM` (Model.lean:94) is the closest bundle and is bypass-justified in S2 (probability space + nonzero-coefficient edge convention). Build-inline."
+    },
+    "def:covariance-model": {
+      "lean_kind": "def",
+      "lean_name": "covModel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.SchurComplement"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": [
+        "Estate"
+      ],
+      "signature_sketch": "def covModel (E : BlockedState V) : Set (Matrix V V R) := { Sigma | exists beta omega, (forall j, 0 < omega j) and Sigma = (1 - coefMatrix E beta)^{-1} * diagonal omega * ((1 - coefMatrix E beta)^{-1})^T }",
+      "aux_defs": [
+        "paramSpace (E) : Type := ((j : V) x (B in E.blocks j) -> R) x (V -> R)   -- Theta_E, with positivity carried in the predicate  [symbol ThetaE]",
+        "coefMatrix (E) (beta) : Matrix V V R   -- B_E(beta): entry (j,i) = beta j B when i in B in E.blocks j, else 0  [symbols BE, betaE]",
+        "covParam (E) (beta) (omega) : Matrix V V R   -- phi_E  [symbol PhiE]",
+        "identityP : Matrix V V R := 1   -- [symbol Ip]",
+        "regCoef (P : Finset V) (j : V) (Sigma) : V -> R := (Sigma.submatrix P P)^{-1} *v (Sigma.submatrix P {j})   -- r_j(P; Sigma)  [symbol RegCoef]",
+        "covModel_subset_posDef : covModel E subseteq { Sigma | Sigma.PosDef }",
+        "unitTriangular_inv_eq : (I - B)^{-1} = sum_{k<p} B^k for nilpotent block-constant B in a topological order"
+      ],
+      "notes": "Purely algebraic covariance image over `Matrix V V R`; zero and coincident block coefficients are ADMITTED (this is the paper's `honest_scope`, and is precisely what `ObsSEM.hEdge` in Causalean forbids -- see the S2 bypass justification). Nilpotence of `coefMatrix` in a topological order (from `E.toDAG.topoOrder_lt`, Causalean/Graph/DAG.lean) makes `1 - coefMatrix` invertible with the finite Neumann expansion, reused by `def:component-effect-set`. Search trace: grep '(linear[- ]Gaussian|LinearGaussian|linearSEM|trek)' over Causalean/ -> the Discovery/InvariantPrediction/LinearGaussian, LiNGAM and LinearDisentanglement trees, each bypass-justified in S2; grep '(covMatrix|covarianceMatrix|empirical covariance)' over Causalean/ -> Estimation/GaussMarkov/{Variance,BLUE}.lean and Stat/Nonparametric/LeastSquares/SmootherVariance.lean, all sample/design-level, no SEM covariance parametrisation. Mathlib side: `Matrix.PosDef`, `Matrix.nonsing_inv`, `Matrix.det_fromBlocks_*` and `Matrix.schur_complement_eq_22` confirmed present (leansearch). Build-inline."
+    },
+    "def:nonsingleton-family": {
+      "lean_kind": "def",
+      "lean_name": "nonsingletonFamily",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": [
+        "Estate"
+      ],
+      "signature_sketch": "def nonsingletonFamily (E : BlockedState V) (j : V) : Finset (Finset V) := (E.blocks j).filter (fun B => 2 <= B.card)",
+      "notes": "One-line `Finset.filter`. Search trace: grep '(coloured|colored|edgeColour|Finpartition)' over Causalean/ -> nothing on parent-block families; Mathlib side `Finset.filter` / `Finset.card` are the only primitives needed (no lemma to search for). Build-inline."
+    },
+    "def:family-mismatch-edges": {
+      "lean_kind": "def",
+      "lean_name": "familyMismatchEdges",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv.Decompose"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": [
+        "Estate"
+      ],
+      "signature_sketch": "def familyMismatchEdges (E : BlockedState V) : Finset (V x V) := Finset.univ.filter (fun q => E.edge q.1 q.2 and nonsingletonFamily E q.1 /= nonsingletonFamily E q.2)",
+      "notes": "Deliberately written in the shape of `Causalean.edgeDiff` (Causalean/Graph/MarkovEquiv/Decompose.lean:59, `Finset.univ.filter` over `V x V`) so its cardinality/membership lemmas mirror the substrate's and F3 can copy that file's `Finset.mem_filter` idiom. Search trace: grep 'edgeDiff' over Causalean/Graph/MarkovEquiv/ -> Decompose.lean:59,65,68,187 (the shape and its membership lemma); no Causalean predicate compares endpoint colour families, since no edge-colouring layer exists (grep '(edgeColour|edgeColor|coloured)' -> none). Mathlib side: `Finset.filter` only. Build-inline."
+    },
+    "def:static-signature": {
+      "lean_kind": "def",
+      "lean_name": "staticSignature",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DSep.ActivePath",
+        "Causalean.Graph.MarkovEquiv.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": [
+        "Estate"
+      ],
+      "signature_sketch": "structure StaticSignature (V) where skeleton : Finset (V x V); colliders : Finset (V x V x V); families : V -> Finset (Finset V); mismatch : Finset (V x V)   /  def staticSignature (E : BlockedState V) : StaticSignature V",
+      "aux_defs": [
+        "skeletonSet (E) : Finset (V x V) := Finset.univ.filter (fun q => E.toDAG.UAdj q.1 q.2)   -- [symbol Skel]",
+        "colliderSet (E) : Finset (V x V x V) := Finset.univ.filter (fun t => E.toDAG.IsImmorality t.1 t.2.1 t.2.2)   -- [symbol UC]",
+        "staticSignature_eq_iff : staticSignature C = staticSignature D <-> (Causalean.SameSkeleton C.toDAG D.toDAG and Causalean.SameImmoralities C.toDAG D.toDAG and (forall j, nonsingletonFamily C j = nonsingletonFamily D j) and familyMismatchEdges C = familyMismatchEdges D)"
+      ],
+      "notes": "The bridge lemma `staticSignature_eq_iff` (decision P4) is the single adapter that converts signature EQUALITY into the propositional `Causalean.SameSkeleton` / `Causalean.SameImmoralities` hypotheses demanded by `Causalean.markovEquiv_iff_sameSkeleton_sameImmoralities` (Causalean/Graph/MarkovEquiv.lean:59), `Causalean.exists_covered_reversed_edge` (Decompose.lean:91) and `Causalean.edgeDiffCount_flipEdge_lt` (Decompose.lean:184); write it FIRST, since `thm:complete-blocked-equivalence` and `prop:exact-component-enumeration` both route through it. Reused verbatim: `Causalean.DAG.UAdj` (Graph/DSep/ActivePath.lean:58) for the skeleton and `Causalean.DAG.IsImmorality` (MarkovEquiv/Defs.lean:42, with its `Decidable` instance at Defs.lean:46) for the unshielded colliders -- no new graph predicate is defined. Search trace: read Causalean/Graph/MarkovEquiv/Defs.lean in full (skeleton, immorality, same-skeleton, same-immoralities, all decidable); grep 'def UAdj' over Causalean/ -> Graph/DSep/ActivePath.lean:58. Only the 4-tuple record and the bridge lemma are new. Build-inline."
+    },
+    "def:certificate-formats": {
+      "lean_kind": "def",
+      "lean_name": "certificateValue",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.Adjugate",
+        "Mathlib.LinearAlgebra.Matrix.SchurComplement",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Certificates.lean",
+      "inputs": [
+        "J",
+        "Sigma"
+      ],
+      "signature_sketch": "inductive RejectionCertificate (J : BlockedState V) | orderedCI (u v : V) (S : List V) (huv) (nonadjacent) (precedes) (isPredecessorList) (inOrder) | blockRegression (j u v : V) (B : Finset V) (isBlock) (u_mem) (v_mem) (huv)   /   def certificateValue (J : BlockedState V) (c : RejectionCertificate J) (Sigma : Matrix V V R) : R",
+      "aux_defs": [
+        "ciCertificate (u v : V) (S : List V) (Sigma) : R := det (fun r c : Fin (S.length+1) => Sigma ((u::S).get r) ((v::S).get c))   -- prescribed common order [u,S]/[v,S], symbol CertCI",
+        "blockRegressionCertificate (J) (j u v : V) (Sigma) : R := (e u - e v)^T * (Sigma.submatrix P P).adjugate * (Sigma.submatrix P {j}) with P = J.parents j   -- L_{j;u,v}  [symbol CertReg]",
+        "RejectionCertificate proof fields bundle nonadjacency, distinctness, topological precedence, exact predecessor support, common ordering, and same-block distinctness",
+        "certificate_vanishes_on_model : Sigma in covModel J -> certificateValue J c Sigma = 0"
+      ],
+      "notes": "One `def` realizing the node, with the two frozen certificate formats as the two constructors of an auxiliary inductive (so the router can return either). The universal vanishing lemma `certificate_vanishes_on_model` is the reusable half of `thm:bounded-binary-star-separation`'s proof and is factored here. Reused: `Causalean.DAG.topoOrder` / `topoOrder_lt` / `topoOrder_injective` (Causalean/Graph/DAG.lean:92-95) supply the topological order and predecessor set with no new construction, and `Causalean.DAG.UAdj` the nonadjacency. Mathlib: `Matrix.adjugate`, `Matrix.det`, `Matrix.submatrix`, and `Matrix.det_fromBlocks_one_11` / `Matrix.schur_complement_eq_22` (confirmed via leansearch 'determinant of block matrix Schur complement fromBlocks' -> `Matrix.det_fromBlocks_11/22`, `Matrix.schur_complement_eq_22`) for the `det(Sigma_SS)(Sigma_uv - Sigma_uS Sigma_SS^{-1} Sigma_Sv)` identity. Search trace: grep '(trek|Trek)' over Causalean/ -> no trek-separation / determinant-expansion module (the SullivantTalaskaDraisma2010 machinery cited as `informed_by` is NOT in the library), so the determinant certificate is built inline over Mathlib; grep 'adjugate' patterns via leansearch confirmed Mathlib's `Matrix.adjugate` and `Matrix.adjugate_mul`. Build-inline."
+    },
+    "def:binary-star-library": {
+      "lean_kind": "def",
+      "lean_name": "binaryStarLibrary",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/StarLibrary.lean",
+      "inputs": [
+        "Estate"
+      ],
+      "signature_sketch": "def binaryStarLibrary (E : BlockedState V) : Finset (Matrix V V R) := ((activeChoices E).image (fun zA => starCovariance zA.1 (activeUnion zA.2)))",
+      "aux_defs": [
+        "activeChoices (E) : Finset (V x Finset (Finset V)) := pairs (z, A) with A subseteq E.blocks z and 1 <= A.card <= 2  [symbol Ablocks]",
+        "activeUnion (A : Finset (Finset V)) : Finset V := A.sup id   -- A_z  [symbol Aunion]",
+        "starCoefMatrix (z) (Az : Finset V) : Matrix V V R := fun j i => if j = z and i in Az then 1 else 0   -- B* = e_z 1_{A_z}^T  [symbol Bstar]",
+        "starCovariance (z) (Az) : Matrix V V R := (1 + starCoefMatrix z Az) * (1 + starCoefMatrix z Az)^T   -- Sigma*  [symbol SigmaStar]",
+        "starCovariance_entries : explicit entry formula (1 off-centre diagonal, 1 + |Az| at z, indicator off-diagonals)",
+        "starCoefMatrix_sq_eq_zero : (starCoefMatrix z Az)^2 = 0 when z notin Az",
+        "heightOf (q : Rat) : Nat := Nat.clog 2 (max 1 (max q.num.natAbs q.den))   -- [symbol hgt]",
+        "heightBound (p : Nat) : Nat := Nat.clog 2 p   -- B(p)  [symbol Bp]"
+      ],
+      "notes": "`Finset`-valued so `prop:sharp-finite-star-dictionary` can count it; the injectivity of `(z, A) |-> Sigma*` proved there gives the exact cardinality. `heightOf` uses `Nat.clog 2` (decision P7). Search trace: grep '(coloured|edgeColour|Finpartition)' and grep '(trek|Trek)' over Causalean/ -> no star/witness-library or determinant-witness substrate; Mathlib side leansearch 'ceiling base two logarithm of a natural number' territory is covered by `Nat.clog` (standard, `Mathlib.Algebra.Order.Log`), and `Finset.sup`, `Finset.image`, `Finset.card_image_of_injOn`, `Nat.choose`, `Nat.succ_sub_one` are the only other primitives. Build-inline."
+    },
+    "def:four-case-router": {
+      "lean_kind": "def",
+      "lean_name": "route",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.MarkovEquiv.Decompose",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Router.lean",
+      "inputs": [
+        "C",
+        "D",
+        "def:static-signature",
+        "def:certificate-formats",
+        "def:binary-star-library"
+      ],
+      "signature_sketch": "structure RouteOutput (V) where source : BlockedState V; rejected : BlockedState V; center : V; active : Finset (Finset V); cert : RejectionCertificate rejected   /   def IsRouteExecution (C D) (h) (R) (trace) : Prop := branch-priority operational semantics coupling trace to R   /   def executeRoute (C D) (h) : {run : RouteOutput V x List (RouterOperation V) // IsRouteExecution C D h run.1 run.2}   /   def route (C D : BlockedState V) (h : staticSignature C /= staticSignature D) : RouteOutput V",
+      "notes": "Deterministic lexicographic four-case scan (skeleton mismatch, then collider mismatch, then nonsingleton-family mismatch, then F-mismatch reversed arrow), each case returning source/rejected/centre/active blocks/certificate. One fixed vertex rank induces mixed-radix ranks for pairs and triples and characteristic-vector ranks for target-centred edge atoms. In the family branch, the lexicographic candidate is a pair `((z,B),(j,T))` with `B in Pi^E_z` and `T in Pi^J_j`; the two centres are independent, the active family is `{B}` at `z`, and the rejected regression certificate is centred at `j`. Thus the encoding includes the paper's `j != z` subcase instead of forcing one common target. `executeRoute` returns a proof-carrying execution whose `IsRouteExecution` certificate ties the branch-specific graph/rational trace to the lexicographically selected output; `route` projects that produced output. ANALOGOUS MODULE for F3: `Causalean.exists_covered_reversed_edge` (Causalean/Graph/MarkovEquiv/Decompose.lean:91-183) carries the same proof pattern -- canonical selection of a mismatching edge from a `Finset.univ.filter` witness set via `Finset.exists_min_image` / `Finset.exists_max_image` on `topoOrder`, then a case split on adjacency using `SameSkeleton`/`SameImmoralities` to force the wanted structure. Adapt that selection idiom; the gap to bridge is that our selection is lexicographic-first over a 4-level priority rather than topological-extremal, and the fourth case additionally has to pick a crossing pair `(S in N_x, T in Pi^E_y)` from the split-block argument. Decidability of every branch predicate is free: `Causalean.DAG.IsImmorality` has a `Decidable` instance (MarkovEquiv/Defs.lean:46), `SameSkeleton`/`SameImmoralities` at Defs.lean:65,69, and `Causalean.DAG.decIsAncestor`/`decEdge` cover the rest. Search trace: grep '(CPDAG|essentialGraph|Meek|consistent extension)' over Causalean/ -> no orientation-rule engine; grep 'exists_covered_reversed_edge' -> Decompose.lean:91 (the analogue above). Build-inline."
+    },
+    "def:legal-reversal": {
+      "lean_kind": "def",
+      "lean_name": "legalReversal",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv.CoveredReversal",
+        "Causalean.Graph.AcyclicConstruct"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Reversal.lean",
+      "inputs": [
+        "Estate"
+      ],
+      "signature_sketch": "def IsLegalReversal (E : BlockedState V) (i j : V) : Prop := E.toDAG.IsCoveredEdge i j and ({i} in E.blocks j) and (E.blocks j).erase {i} = E.blocks i   /   def legalReversal (E) (i j) (h : IsLegalReversal E i j) : BlockedState V",
+      "notes": "MAJOR REUSE: the core's legality clause `pa(j) = pa(i) union {i}` is exactly `Causalean.DAG.IsCoveredEdge i j` (Causalean/Graph/MarkovEquiv/CoveredReversal.lean:42-43, whose docstring states the parent-set equality explicitly), and the reversed GRAPH coordinate together with its acyclicity is exactly `Causalean.DAG.flipEdge` (CoveredReversal.lean:125) built on `Causalean.DAG.flipRel` (50) and `Causalean.DAG.flipRel_acyclic` (73) -- so `ass:acyclic-member` for the reversed state is discharged by quoting the substrate, not reproved. Additionally `Causalean.DAG.flipEdge_sameSkeleton` (136), `Causalean.DAG.flipEdge_sameImmoralities` (156), `Causalean.DAG.flipEdge_isCoveredEdge_back` (323), `Causalean.DAG.flipEdge_flipEdge_edge` (355) and `Causalean.DAG.markovEquiv_flipEdge` (1726) give signature-preservation and involutivity of the move for free; only the PARTITION TRANSPORT (`Pi'_j = Pi_i`, `Pi'_i = Pi_i union {{j}}`) and the `IsTargetParentPartition` field for the transported blocks are new. Search trace: read Causalean/Graph/MarkovEquiv/CoveredReversal.lean (declaration list + the covered-edge, flip, skeleton/immorality-preservation and back-flip lemmas) and Decompose.lean; grep '(coloured|edgeColour)' -> no coloured reversal anywhere, so the transport layer is genuinely new. Build-inline."
+    },
+    "def:reversal-component": {
+      "lean_kind": "def",
+      "lean_name": "reversalComponent",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Logic.Relation"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Reversal.lean",
+      "inputs": [
+        "Estate"
+      ],
+      "signature_sketch": "def ReversalStep (E F : BlockedState V) : Prop := exists i j, exists h : IsLegalReversal E i j, legalReversal E i j h = F   /   def reversalComponent (E : BlockedState V) : Set (BlockedState V) := { F | Relation.ReflTransGen ReversalStep E F }",
+      "aux_defs": [
+        "arrowGap (C D : BlockedState V) : Nat := (Finset.univ.filter (fun q => C.edge q.1 q.2 and D.edge q.2 q.1)).card   -- delta(C,D)  [symbol ArrowGap]",
+        "revDist (C D : BlockedState V) : Nat_infty   -- d_rev, least length of a legal-reversal chain, infinity when none  [symbol dRev]"
+      ],
+      "notes": "`Relation.ReflTransGen` (Mathlib.Logic.Relation) is the finite-sequence closure; `Relation.ReflTransGen.trans` / `.head` / `.cases_head` give symmetry-free bookkeeping, and involutivity of `legalReversal` (from `Causalean.DAG.flipEdge_isCoveredEdge_back`, CoveredReversal.lean:323) makes the component symmetric. SYNC-BACK F2: removed the sketched `/ 2` from `arrowGap`; the filter already chooses the source-oriented pair `C.edge i j ∧ D.edge j i`, so every disagreeing adjacency occurs exactly once. `arrowGap` therefore mirrors `Causalean.edgeDiffCount` (Decompose.lean:65) without division; the relation `arrowGap C D = edgeDiffCount C.toDAG D.toDAG` under `SameSkeleton` is a small bridge lemma that hands `Causalean.edgeDiffCount_flipEdge_lt` (Decompose.lean:184) straight to the path-length argument. `revDist` uses `Nat_infty` = `WithTop Nat` (`ENat`). Search trace: grep 'edgeDiff' over Causalean/Graph/MarkovEquiv/ -> Decompose.lean:59,65,184; Mathlib side `Relation.ReflTransGen`, `ENat` standard. Build-inline."
+    },
+    "def:component-enumerator": {
+      "lean_kind": "def",
+      "lean_name": "componentEnum",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Enumeration.lean",
+      "inputs": [
+        "C",
+        "def:nonsingleton-family",
+        "def:family-mismatch-edges"
+      ],
+      "signature_sketch": "def canonicalLift (C : BlockedState V) (K : Causalean.DAG V) (hskel : SameSkeleton C.toDAG K) (hcoll : SameImmoralities C.toDAG K) (hfixed : familyMismatchEdges C subseteq edgesOf K) : BlockedState V   /   def componentEnum (C : BlockedState V) : Finset (BlockedState V) := (Finset.univ.filter (fun E : BlockedState V => Causalean.SameSkeleton C.toDAG E.toDAG and Causalean.SameImmoralities C.toDAG E.toDAG and familyMismatchEdges C subseteq edgesOf E and IsCanonicalLift C E))",
+      "notes": "Extensional encoding per decision P5: the emitted set is the consistent extensions of the ordinary CPDAG oriented by `F(C)`, characterized by the invariants the core's own proof uses (same skeleton, same unshielded colliders, background arrows retained), each carrying the unique lift `Pi^K_j = N_j(C) union {{a} : a in pa_K(j) minus union N_j(C)}`. Reused: `Causalean.SameSkeleton` / `Causalean.SameImmoralities` with their `Decidable` instances (MarkovEquiv/Defs.lean:52,55,65,69) make the filter computable, and `Causalean.DAG.topoOrder_injective` (Causalean/Graph/DAG.lean:93) + `topoOrder_lt` (94) supply the injection into total orders behind the `at most p!` termination bound. Search trace: grep '(CPDAG|cpdag|essentialGraph|consistent extension|Meek)' over Causalean/ -> a single prose mention inside Causalean/Graph/MarkovEquiv.lean, no declarations, so there is NO CPDAG/Meek-closure module to reuse (this is exactly why P5 goes extensional); grep 'Zariski' and Glob of Causalean/Graph/** confirm the MarkovEquiv tree is the whole graph-equivalence substrate. Mathlib side: `Finset.filter`, `Finset.card_le_card_of_injOn`, `Fintype.card_perm`/`Nat.factorial` for the p! bound. Build-inline."
+    },
+    "def:off-model-block-ls": {
+      "lean_kind": "def",
+      "lean_name": "blockLS",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.SchurComplement"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockLeastSquares.lean",
+      "inputs": [
+        "Estate",
+        "Sigma"
+      ],
+      "signature_sketch": "def blockLS (E : BlockedState V) (Sigma : {M : Matrix V V R // M.PosDef}) : Matrix V V R",
+      "aux_defs": [
+        "blockIncidence (E) (j) : Matrix (E.parents j) (E.blocks j) R := fun i B => if (i : V) in (B : Finset V) then 1 else 0   -- A_{E j}  [symbol BlockInc]",
+        "blockGram (E) (j) (Sigma) : Matrix (E.blocks j) (E.blocks j) R := (blockIncidence E j)^T * Sigma.submatrix P P * blockIncidence E j   -- Gamma  [symbol BlockGram]",
+        "blockScore (E) (j) (Sigma) : (E.blocks j) -> R := (blockIncidence E j)^T *v Sigma.submatrix P {j}   -- h  [symbol BlockScore]",
+        "blockGram_posDef : Sigma.PosDef -> (blockGram E j Sigma).PosDef   -- via column-injectivity of the disjoint-block incidence matrix",
+        "blockLS_eq_coefMatrix_on_model : Sigma in covModel E -> blockLS E Sigma = coefMatrix E beta   -- population recovery"
+      ],
+      "notes": "Population (off-model) block-constrained least squares, defined for EVERY positive-definite `Sigma`, not only on the model -- that is what makes the effect functionals smooth and the delta method applicable. The Gram positive-definiteness step is `c /= 0 -> A c /= 0` from disjoint nonempty blocks plus `Matrix.PosDef`, three lines. Search trace: grep '(BIC|sampleCov|Wishart)' and Glob Causalean/Stat/**/*.lean -> `Causalean.Stat.Nonparametric.LeastSquares` and `Causalean.Estimation.GaussMarkov.{BLUE,Variance}` are the least-squares modules; BYPASS-JUSTIFIED: both are SAMPLE-level (design matrix of observations, BLUE/Gauss-Markov variance), while this node is a population map on a fixed covariance with a linear equality constraint encoded by a block-incidence matrix. `Causalean.Stat.Nonparametric.LocalPoly.DesignMatrixPosDef.designMatrix_posDef` (line 87) is the closest analogue and is Vandermonde-specific (bypass-justified), but it is the ANALOGOUS module for the quadratic-form-positivity idiom (`designMatrix_quadForm` at line 33 -> `posSemidef` -> `posDef` -> `isUnit_det`), which F3 should copy. Mathlib side: `Matrix.PosDef`, `Matrix.PosDef.det_pos`, `Matrix.nonsing_inv_mul`, `Matrix.submatrix` (leansearch/loogle confirmed the PosDef API; no ready-made `A^T M A` positive-definiteness lemma for injective `A` was found, so it is built inline). Build-inline."
+    },
+    "def:global-bic": {
+      "lean_kind": "def",
+      "lean_name": "blockedBIC",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/GaussianSampling.lean",
+      "inputs": [
+        "Sn",
+        "def:off-model-block-ls"
+      ],
+      "signature_sketch": "def gaussianDiscrepancy (K T : Matrix V V R) : R := Real.log K.det + (K^{-1} * T).trace   /   def blockedBIC (n : Nat) (Sn : Matrix V V R) (E : BlockedState V) : R := if Sn.PosDef then n * ((card V) * log (2*pi) + infimum over covModel E of gaussianDiscrepancy . Sn) + E.dim * Real.log n else E.dim * Real.log n",
+      "aux_defs": [
+        "sampleCovariance (n) (X : Nat -> V -> R) : Matrix V V R := (n : R)^{-1} * sum_{r<n} (col (X r)) * (col (X r))^T   -- S_n  [symbol Sn]",
+        "selectedState (n) (Sn) : BlockedState V   -- unique rank-first argmin of blockedBIC under a fixed finite ordering [symbol Chat]",
+        "blockedBIC_attained : Sn.PosDef -> the infimum over covModel E is attained at the block-constrained plug-in built from blockLS E Sn",
+        "instance : LinearOrder (BlockedState V)   -- the fixed deterministic tie rule"
+      ],
+      "notes": "`gaussianDiscrepancy` supplies the log-determinant and trace terms of `-2 n^{-1}` times the Gaussian log-likelihood; `blockedBIC` also includes the state-independent normalization `n * p * log (2*pi)` required by the frozen definition. The singular-`S_n` fallback `d_E log n` is carried literally. `selectedState` is the unique BIC minimizer of least fixed finite-state rank, so its choice is constrained by the deterministic tie rule. Search trace: grep '(BIC|bayesianInformation)' over Causalean/ -> NO hits (only `sampleCov` in Stat/Inference/VarianceEstimation.lean and `Bonferroni` prose in PO/ID/Partial/Inference/*), and grep '(logDet|gaussianLogLik|logLikelihood|loglik)' over Causalean/ -> NO hits, so neither a Gaussian log-likelihood nor an information criterion exists in the library. Reused instead: `Causalean.Stat.IIDSample` (Causalean/Stat/Sample.lean:44) and `Causalean.Stat.IIDSample.sampleCov_entry_tendsto_inProb` (Stat/Inference/VarianceEstimation.lean:140) for `S_n -> Sigma_0`; `Causalean.Stat.Tendsto_inProb` (Stat/Limit/Convergence.lean:57). Mathlib side: `Matrix.PosDef`, `Matrix.trace`, `Real.log`, `Finset.exists_min_image` for the argmin over the finite class. Build-inline."
+    },
+    "def:component-effect-set": {
+      "lean_kind": "def",
+      "lean_name": "componentEffectSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BlockLeastSquares.lean",
+      "inputs": [
+        "Estate",
+        "Sigma",
+        "Qpairs",
+        "def:off-model-block-ls"
+      ],
+      "signature_sketch": "abbrev QueryPair V := {q : V x V // q.1 /= q.2}   /   def effectVector (Q : Finset (QueryPair V)) (E : BlockedState V) (Sigma : {M : Matrix V V R // M.PosDef}) : (V x V) -> R := the canonical zero-extension off Q of q |-> ((1 - blockLS E Sigma)^{-1}) q.2 q.1   /   def componentEffectSet (Q) (E) (Sigma : {M // M.PosDef}) : Set ((V x V) -> R) := (fun E' => effectVector Q E' Sigma) '' reversalComponent E",
+      "aux_defs": [
+        "queryMenu : Finset (QueryPair V)   -- Q, ordered pairs (a,y) with a /= y enforced by the carrier [symbol Qpairs]",
+        "effectVector_eq_neumann : (1 - blockLS E Sigma)^{-1} = sum_{k<p} (blockLS E Sigma)^k  on the model (nilpotence in a topological order)"
+      ],
+      "notes": "Member-LABELLED effects: the set is the image of the component, and the labelled family `fun E' => effectVector Q E' Sigma` is retained separately so duplicate numerical values are harmless (the theorem's simultaneous-coverage claim is over labels, the Hausdorff claim over the unlabelled image). Reused: `Causalean.DAG.topoOrder_lt` (Causalean/Graph/DAG.lean:94) for nilpotence of `blockLS` on the model. Search trace: grep '(total effect|totalEffect|pathCoefficient)' idioms are covered by the `Causalean.SCM.Do.*` / `Causalean.PO.*` interventional API, surveyed and BYPASS-JUSTIFIED in S1: those express do-interventions on kernels over measurable value spaces, whereas this node is the algebraic linear-SEM path sum `((I - L)^{-1})_{ya}` of an off-model rational matrix map. Mathlib side: `Matrix.inv`, `Matrix.IsNilpotent`, `Set.image`. Build-inline."
+    },
+    "def:generic-exception": {
+      "lean_kind": "def",
+      "lean_name": "exceptionalSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Algebra.MvPolynomial.Funext",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Genericity.lean",
+      "inputs": [
+        "C",
+        "Qpairs"
+      ],
+      "signature_sketch": "def exceptionalSet (Q : Finset (QueryPair V)) (C : BlockedState V) : Set (paramSpace C) := union over D in {E | E.dim <= C.dim and covModel E /= covModel C} of (covParam C)^{-1} (covModel C intersect covModel D) union (union over nonconstant labelled coordinates of their zero-gradient locus)",
+      "aux_defs": [
+        "IsProperAlgebraic (S : Set (paramSpace C)) : Prop := exists P : MvPolynomial (paramCoord C) R, P /= 0 and S = { theta | eval theta P = 0 }",
+        "exists_notMem_of_isProperAlgebraic : IsProperAlgebraic S -> exists theta in paramSpace C, theta notin S   -- via MvPolynomial.funext"
+      ],
+      "notes": "Real-side proper algebraic subset: `E_C` is itself exactly the zero locus, inside `Theta_C`, of one nonzero real polynomial (the product of one nonzero polynomial per constituent locus). This equality-to-locus formulation is the strength asserted and consumed by `thm:generic-bic-component-recovery`; mere containment is insufficient. Search trace: grep 'Zariski' over Causalean/ -> `Causalean/Mathlib/AlgebraicGeometry/PolynomialImageDimension/{Definitions,ZariskiClosure,DenseImage,Irreducibility,CodimensionOne,...}.lean` (15 files), and grep 'Zariski' over CausalSmith/CausalSmith/ -> `CausalSmith/Substrate/AffinePolynomialImageDimension.lean` plus `EID_LingamDirectionMinOrderV1_Research/Helpers/{ZariskiLocus,Varieties,ExceptionalImageDimension}.lean`. BYPASS-JUSTIFIED with an ANALOGOUS-MODULE pointer: all of that machinery is over the algebraically closed field C (`MvPolynomial iota C`, `polynomialImageClosure` at PolynomialImageDimension/Definitions.lean:32; `isZariskiOpen_dense_of_poly_ne_zero` at EID_LingamDirectionMinOrderV1_Research/Helpers/ZariskiLocus.lean:35), whereas `Theta_C = R^{b} x (0,infinity)^p` is a real semialgebraic parameter set on which C-side density/dimension statements do not transfer. F3 should adapt the PATTERN of `EID_LingamDirectionMinOrderV1_Research/Helpers/ZariskiLocus.lean:35,140,221` (build one nonzero polynomial, read genericity off its nonvanishing locus); the gap to bridge is replacing C-Zariski density by real nonvanishing, which `MvPolynomial.funext` (Mathlib.Algebra.MvPolynomial.Funext, confirmed via loogle) supplies directly since R is an infinite integral domain. Mathlib side also confirmed: `Polynomial.zero_of_eval_zero`, `MvPolynomial.combinatorial_nullstellensatz_exists_eval_nonzero` (leansearch 'nonzero multivariate polynomial over an infinite integral domain has a point where it does not vanish'). Build-inline."
+    },
+    "def:simultaneous-region": {
+      "lean_kind": "def",
+      "lean_name": "confidenceCollection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.CLT.AsymptoticLinearity",
+        "Causalean.Stat.Inference.WaldVec",
+        "Mathlib.Probability.CDF"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/GaussianSampling.lean",
+      "inputs": [
+        "Sn",
+        "Chat",
+        "alpha",
+        "def:global-bic",
+        "def:component-effect-set"
+      ],
+      "signature_sketch": "def confidenceCollection (Q) (alpha : {a : R // 0 < a and a < 1}) (n : Nat) (Sn : Matrix V V R) : BlockedState V -> (V x V) -> Set R",
+      "aux_defs": [
+        "standardGaussianQuantile (probability : R) : R := sInf {z | probability <= gaussianCDF z}",
+        "bonferroniCritical (alpha : {a : R // 0 < a and a < 1}) (K : Nat) : R := standardGaussianQuantile (1 - alpha/(2*K))",
+        "plugInVariance (Q) (E) (Sn) (q) : R   -- delta-method variance from the Gaussian covariance limit Cov(Z_ij,Z_kl) = Sigma_ik Sigma_jl + Sigma_il Sigma_jk",
+        "IsStructurallyZero (E) (q) : Prop   -- no directed path a -> ... -> y in G_E; the interval is the exact singleton {0}"
+      ],
+      "notes": "Labels are retained (indexed by `(E, q)` with `E in reversalComponent Chat`) before duplicate numerical values are removed, exactly as the frozen definition requires; structurally zero coordinates get the exact singleton `{0}` and, on `S_n` not positive definite, every coordinate gets `Set.univ`. The alpha binder is the open-unit-interval subtype, and the critical value is the exact left standard-Gaussian quantile `sInf {z | 1-alpha/(2K) <= Phi(z)}`, not an arbitrary tail-valid threshold. Reused: `Causalean.Stat.gaussianMeasure` (Stat/CLT/AsymptoticLinearity.lean:53), `Causalean.Stat.Tendsto_dist` (Stat/Limit/Convergence.lean:90) and `Causalean.Stat.Tendsto_dist.wald_coverage_Iic` (Stat/Inference/WaldVec.lean:81). Search trace: grep 'Bonferroni' over Causalean/ -> only prose in PO/ID/Partial/Inference/{ImbensManski,IntervalCI}.lean, so the union bound over K labels is build-inline (`measure_biUnion_finset_le`); Mathlib provides the CDF but no packaged inverse, hence the explicit left-quantile definition. Build-inline."
+    },
+    "def:certificate-optimality-handle": {
+      "lean_kind": "def",
+      "lean_name": "certificateParetoHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Handles.lean",
+      "inputs": [
+        "def:certificate-formats",
+        "def:binary-star-library"
+      ],
+      "signature_sketch": "def certificateParetoHandle : _root_.String",
+      "notes": "Non-assertive descriptive payload (a direct `_root_.String` literal) recording the frozen route `H_opt`: restrict universal separator schemes to minimal crossing-partition and unequal-family reversal subinstances, translate active-block support into regression support rank, and use exact determinant divisibility together with rational-height counting to lower-bound jointly the active-block count and the largest numerical height. It carries NO selector, procedure, rate, confidence or lower-bound witness field, because the handle is a proof-strategy description whose admissible-scheme class the core leaves undefined (same reason as decision P9); the payload changes whenever the route's stated ingredients change. Search trace: grep '(trek|Trek)', grep 'Zariski' and grep '(support rank|determinant divisibility)' over Causalean/ and CausalSmith/CausalSmith/ -> no support-rank / height lower-bound substrate; Mathlib side there is no notion of certificate-scheme Pareto frontier to search for. Build-inline (no proof obligation)."
+    },
+    "lem:binary-star-regression-calculus": {
+      "lean_kind": "lemma",
+      "lean_name": "binaryStar_regression_calculus",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.SchurComplement",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/StarRegressionCalculus.lean",
+      "local_id": "t1",
+      "hyps": [],
+      "threaded_gates": [],
+      "notes": "The exact three-case regression table on a unit-noise binary star, plus `det(Sigma*_{P,P}) = d` with `d = 1 + |A_z minus Q|`. `depends_on` is the single construction `def:binary-star-library`, which is USED not assumed, so `hyps` is empty. Small and self-contained; the whole content is the arrow-bordered identity `[[I, c],[c^T, 1+|A_z|]] (-c/d, 1/d)^T = (0,1)^T` plus the Schur determinant. Reused: `Matrix.det_fromBlocks_one_11` / `Matrix.det_fromBlocks_22` and `Matrix.schur_complement_eq_22` (Mathlib.LinearAlgebra.Matrix.SchurComplement / Hermitian, confirmed via leansearch 'determinant of block matrix Schur complement fromBlocks'), `Matrix.PosDef`, `Matrix.mulVec_injective_of_isUnit`. Search trace: grep '(trek|Trek)' over Causalean/ -> no trek/minor-expansion module (SullivantTalaskaDraisma2010 and DrtonRobevaWeihs2020 are cited as `informed_by` only, and the core's own `gap` field states neither derives this table), grep '(coloured|edgeColour)' -> none; Mathlib side leansearch confirmed the Schur-complement family above and that no star/arrow-covariance regression table exists. Build-inline; F3's reference for the bordered-inverse idiom is Mathlib's `Matrix.fromBlocks_eq_of_invertible_11`."
+    },
+    "thm:bounded-binary-star-separation": {
+      "lean_kind": "theorem",
+      "lean_name": "bounded_binary_star_separation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.DAG",
+        "Mathlib.LinearAlgebra.Matrix.SchurComplement"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TBoundedBinaryStarSeparation.lean",
+      "local_id": "t2",
+      "hyps": [
+        "def:blocked-state-class"
+      ],
+      "threaded_gates": [],
+      "revision_note": "Runtime clause is encoded by IsRouteExecution, which couples the selected route output to the exact priority-branch graph/rational trace; the theorem bounds that producing trace by 8*(p+1)^5, accommodating the cross-centre edge-atom pair scan.",
+      "notes": "The paper's citation-independent necessity bridge: for `staticSignature C /= staticSignature D`, the router's output yields `Sigma* in covModel E minus covModel J`, integer entries in `{0,...,p}`, `det Sigma* = 1`, a certificate value in `{-2,-1,1,2}`, coefficient numerators in `{-1,0,1}`, reduced denominators at most `p`, height at most `Nat.clog 2 p`, and a uniform operation bound. The theorem exhibits the branch-specific trace certified by `IsRouteExecution` to produce the selected output and bounds its graph/rational-operation length directly by `8*(p+1)^5`; the quintic bound accommodates the cross-centre edge-atom pair scan, has no constants quantified after fixing V, and is not an unconstrained cost field. `hyps` is `def:blocked-state-class` (in `depends_on`), carried by the typing `C D : BlockedState V`, which covers both assumption atoms. defer_tier false and gate false: this is paper-owned proof work, hard but in scope for F2-F4 (four disjoint router cases plus the universal vanishing lemma). Reuse leaned on: `Causalean.DAG.topoOrder`/`topoOrder_lt`/`isAncestor_topoOrder_lt` (Causalean/Graph/DAG.lean:92-95) for the topological order and predecessor sets, `Causalean.DAG.UAdj` and `Causalean.DAG.IsImmorality` for the skeleton/collider cases, `Causalean.DAG.asymm`/`irrefl` for the acyclicity contradictions in the fourth case, and the factored `certificate_vanishes_on_model` plus `binaryStar_regression_calculus`. ANALOGOUS MODULE: `Causalean.exists_covered_reversed_edge` (Causalean/Graph/MarkovEquiv/Decompose.lean:91-183) is the same style of case analysis (adjacency case split driven by `SameSkeleton`/`SameImmoralities` with acyclicity contradictions from `topoOrder_lt`) -- the gap is that our fourth case must additionally produce the split block `S in N_x` and the crossing block `T in Pi^E_y`. Search trace: grep '(trek|Trek)' and grep '(coloured|edgeColour)' over Causalean/ -> no witness-construction or coloured-model separation theorem; the closest CausalSmith analogue is `CausalSmith/ExactID/EID_RobustBackshiftUniformDistance_Research` (positive-definite ambiguity witnesses for covariance models), which F3 should read for the witness-construction bookkeeping style but which shares no statement."
+    },
+    "prop:sharp-finite-star-dictionary": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_finite_star_dictionary",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TSharpFiniteStarDictionary.lean",
+      "local_id": "t3",
+      "hyps": [
+        "def:blocked-state-class"
+      ],
+      "threaded_gates": [],
+      "notes": "Three claims: the separating-dictionary disjunction (`W_2(C)` not inside `M(D)` or `W_2(D)` not inside `M(C)`), the exact count `|W_2(E)| = sum_j (b_j + choose b_j 2) = sum_j choose (b_j+1) 2`, and sharpness of `Nat.choose (p+1) 3` (attained by the transitively oriented complete DAG with all-singleton partitions), with the coarser `p^2(p-1)/2` as a consequence. Reused: `Causalean.DAG.topoOrder_injective` / `topoOrder_lt` (Causalean/Graph/DAG.lean:93,94) give the topological order behind `b_{v_k} <= k - 1` with no need to construct one (the core proof's source-deletion argument is unnecessary -- a genuine reuse saving); `Causalean.DAG.parents` and `Causalean.DAG.irrefl` for `z notin A_z`. Injectivity of `(z, A) |-> Sigma*` uses the entry formula from `def:binary-star-library`. Mathlib: `Nat.choose`, `Nat.succ_sub_one`, `Nat.choose_symm_diff`-free Pascal induction via `Nat.succ_sub_one`/`Nat.choose_succ_succ`, `Finset.sum_le_sum`, `Finset.card_image_of_injOn`, `Finset.sum_range_choose`-style identity `sum_{k<=p} choose k 2 = choose (p+1) 3` (build-inline Pascal induction; leansearch found no packaged hockey-stick identity in this form, so it is a small named helper). Search trace: grep '(coloured|edgeColour)' over Causalean/ and Glob Causalean/Graph/** -> no library counting of witness dictionaries. defer_tier false: paper-owned, largely combinatorial, comfortably in scope."
+    },
+    "thm:complete-blocked-equivalence": {
+      "lean_kind": "theorem",
+      "lean_name": "complete_blocked_equivalence",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv",
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.MarkovEquiv.CoveredReversal",
+        "Causalean.Graph.MarkovEquiv.Decompose"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TCompleteBlockedEquivalence.lean",
+      "local_id": "t4",
+      "hyps": [
+        "def:blocked-state-class"
+      ],
+      "threaded_gates": [
+        "lem:chickering-covered-disagreement-sequence"
+      ],
+      "notes": "The three-way equivalence (`covModel C = covModel D` <-> `staticSignature C = staticSignature D` <-> `D in reversalComponent C`), full-image preservation by each legal reversal (including the `b = 0` case), and `revDist C D = arrowGap C D` with a shortest path reversing each initially disagreeing arrow once. GATE-CONSUMER RULE APPLIED: the difficulty routed through the frozen cited Chickering gate does NOT defer this theorem -- it is proved CONDITIONAL on the gate, which is threaded into `hyps` (and is present in the core `depends_on`). Reuse: the reversal leg quotes `Causalean.DAG.flipEdge` + `flipEdge_sameSkeleton` (CoveredReversal.lean:125,136) + `flipEdge_sameImmoralities` (156) + `flipEdge_isCoveredEdge_back` (323) for graph-side legality/involutivity, `Causalean.edgeDiffCount_flipEdge_lt` (Decompose.lean:184) for the strictly decreasing disagreement count, and the bridge `staticSignature_eq_iff` to enter and leave the propositional world. The genuinely new content is (i) the partition lift `Pi^{(r)}_j = N_j union singletons` being a valid `IsTargetParentPartition` along the whole path, (ii) `{i} in Pi^{(r)}_j` and `Pi^{(r)}_j minus {{i}} = Pi^{(r)}_i` forced by equality of `F(C)` and `F(D)`, and (iii) the Gaussian block-constant reparametrisation `t = v + b^2 u`, `q = bu/t`, `eta_j = b eps_i + eps_j`, `eta_i = eps_i - q eta_j` at the algebraic covariance level. Search trace: read all of Causalean/Graph/MarkovEquiv/{Defs,Decompose}.lean and the declaration list of CoveredReversal.lean; grep '(coloured|edgeColour|Finpartition)' over Causalean/ -> nothing coloured, so (i)-(iii) are new. Mathlib: `Matrix.PosDef`, `Relation.ReflTransGen`, parity argument via `Nat` and `Finset.card`. defer_tier false, gate false."
+    },
+    "prop:exact-component-enumeration": {
+      "lean_kind": "theorem",
+      "lean_name": "exact_component_enumeration",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TExactComponentEnumeration.lean",
+      "local_id": "t5",
+      "hyps": [],
+      "threaded_gates": [
+        "lem:chickering-covered-disagreement-sequence"
+      ],
+      "notes": "`componentEnum C = reversalComponent C = {D | staticSignature D = staticSignature C}`, duplicate-freeness from uniqueness of the lift, termination after at most `p!` outputs, and a shortest legal path of length `arrowGap C D` to each output. `hyps` is empty because `depends_on` (`def:component-enumerator`, `thm:complete-blocked-equivalence`) contains no assumption or class id -- both are used, not assumed; the cited Chickering gate is required only TRANSITIVELY through `complete_blocked_equivalence`, so it is listed in `threaded_gates` for F2 to carry as an extra Lean hypothesis rather than in `hyps` (which must stay a subset of `depends_on`). Reused: `Causalean.DAG.topoOrder_injective` (Causalean/Graph/DAG.lean:93) and `topoOrder_lt` (94) give the injection of orientations of a fixed skeleton into total orders behind the `p!` bound; `Causalean.SameSkeleton`/`SameImmoralities` decidability (MarkovEquiv/Defs.lean:65,69) makes `componentEnum` a genuine `Finset`. Search trace: grep '(CPDAG|essentialGraph|consistent extension|Meek)' over Causalean/ -> no declarations (only a prose mention in Graph/MarkovEquiv.lean); the cited WienobstLuttermannBannachLiskiewicz2023 enumeration is `downgraded_to_informed_by` in the core and is not a dependency. Mathlib: `Finset.card_le_card_of_injOn`, `Fintype.card_perm` / `Nat.factorial`. defer_tier false."
+    },
+    "prop:ordinary-and-proper-reductions": {
+      "lean_kind": "theorem",
+      "lean_name": "ordinary_and_proper_reductions",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv",
+        "Causalean.Graph.MarkovEquiv.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TOrdinaryAndProperReductions.lean",
+      "local_id": "t6",
+      "hyps": [
+        "lem:boege-proper-blocked-identifiability"
+      ],
+      "threaded_gates": [
+        "lem:chickering-covered-disagreement-sequence",
+        "lem:boege-proper-blocked-identifiability"
+      ],
+      "notes": "The two endpoint reductions: all-singleton blocks give `nonsingletonFamily C j = emptyset`, `familyMismatchEdges C = emptyset` and a bijection from `reversalComponent C` onto the ordinary Markov-equivalence class of `G_C` (inverse = the unique all-singleton lift); all-nonsingleton nonempty blocks give `reversalComponent C = {C}`. Both cited gates are in `depends_on` and are threaded into `hyps` (the statement's last sentence identifies the two endpoints WITH the cited results, so the identification is conditional on them). Reused: `Causalean.markovEquiv_iff_sameSkeleton_sameImmoralities` (Causalean/Graph/MarkovEquiv.lean:59) is the ordinary-equivalence class characterization, so the bijection's target set needs no new definition; `Causalean.MarkovEquiv.refl/symm/trans` (MarkovEquiv/Defs.lean:73,77,81) for the class structure. Search trace: read Causalean/Graph/MarkovEquiv.lean and MarkovEquiv/Defs.lean; grep '(coloured|edgeColour)' -> nothing for the proper-blocked endpoint, which is why the Boege gate stays cited. defer_tier false: the mathematics is short given `thm:complete-blocked-equivalence`."
+    },
+    "thm:generic-bic-component-recovery": {
+      "lean_kind": "theorem",
+      "lean_name": "generic_bic_component_recovery",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Inference.VarianceEstimation",
+        "Causalean.Stat.Limit.Convergence",
+        "Mathlib.Algebra.MvPolynomial.Funext",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TGenericBicComponentRecovery.lean",
+      "local_id": "t7",
+      "hyps": [],
+      "threaded_gates": [
+        "lem:chickering-covered-disagreement-sequence"
+      ],
+      "revision_note": "The algebraicity conjunct now means equality of exceptionalSet Q C with the zero locus in paramSpace C of one nonzero real multivariate polynomial, not mere containment in such a locus.",
+      "notes": "`E_C` is a proper algebraic subset of `Theta_C`, and for `theta_C` outside it the global BIC minimizer's component satisfies `Pr{reversalComponent Chat = reversalComponent C} -> 1` as `n -> infinity` at fixed `p`; no greedy-search claim. `hyps` is empty (`depends_on` holds only definitions and `thm:complete-blocked-equivalence`); the Chickering gate is transitive, hence in `threaded_gates`. This is the heaviest paper-owned obligation in the run (smooth-manifold dimension of `covModel E`, relative closedness in `S^p_{++}` via ordered-regression polynomial equations, the `sum (lambda - log lambda - 1)` divergence with compact sublevel sets, the saturated-MLE `O_P(1)` expansion, and the exact BIC tie among component members from `d_D = d_C`), and it stays `defer_tier:false, gate:false` because it is this paper's contribution -- proof difficulty is handled downstream by F2.5-F4, never by deferral. Reuse confirmed: `Causalean.Stat.IIDSample` (Causalean/Stat/Sample.lean:44) + `Causalean.Stat.IIDSample.sampleCov_entry_tendsto_inProb` (Stat/Inference/VarianceEstimation.lean:140) give `S_n -> Sigma_0` entrywise in probability, and `Causalean.Stat.Tendsto_inProb` / `IsBigOp` / `IsLittleOp` (Stat/Limit/Convergence.lean:57,161,174) the `O_P(n^{-1/2})` bookkeeping. ANALOGOUS MODULES for F3: `Causalean.Stat.MEstimation.ExtremumConsistency` and `Causalean.Stat.MEstimation.ArgmaxStability.tendsto_argmax_of_eventually_mem_compact` (line 32) carry the compact-sublevel-set argmin-stability pattern this proof needs (adapt from a metric argmax over a compact set to an argmin over a FINITE class, where the union bound replaces the compactness step); `CausalSmith/ExactID/EID_LingamDirectionMinOrderV1_Research/Helpers/ZariskiLocus.lean:35,140,221` carries the 'one nonzero polynomial certifies genericity' pattern (gap: real rather than complex, see `def:generic-exception`). Search trace: grep '(BIC|bayesianInformation)' over Causalean/ -> no hits; grep '(logDet|gaussianLogLik|logLikelihood)' over Causalean/ -> no hits; grep 'Haughton' -> none (the cited Haughton1988 is `downgraded_to_informed_by`, not a dependency); Mathlib side leansearch for polynomial nonvanishing -> `MvPolynomial.funext`, `Polynomial.zero_of_eval_zero`."
+    },
+    "thm:simultaneous-component-effect-inference": {
+      "lean_kind": "theorem",
+      "lean_name": "simultaneous_component_effect_inference",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Inference.DeltaMethod",
+        "Causalean.Stat.Inference.WaldVec",
+        "Causalean.Stat.CLT.AsymptoticLinearity",
+        "Causalean.Stat.CLT.GaussianCharFunBridge",
+        "Causalean.Stat.Limit.Convergence",
+        "Causalean.PO.ID.Partial.RandomSet.Hausdorff"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TSimultaneousComponentEffectInference.lean",
+      "local_id": "t8",
+      "hyps": [],
+      "threaded_gates": [
+        "lem:chickering-covered-disagreement-sequence"
+      ],
+      "notes": "Hausdorff convergence in probability of `componentEffectSet Chat S_n` to `componentEffectSet C Sigma_0`, plus `liminf Pr{correct component and every labelled g_E(Sigma_0) in its labelled interval} >= 1 - alpha`, permitting duplicate effect values and a singular joint effect covariance. The query menu has carrier `Finset (QueryPair V)`, where `QueryPair V` is the subtype of ordered pairs with unequal intervention and response coordinates, exactly matching the frozen query domain, and alpha is bound through the open-unit-interval subtype. `hyps` empty (no assumption/class node in `depends_on`); Chickering is transitive, hence in `threaded_gates`. Reuse confirmed: `Causalean.Stat.deltaMethod_scalar` (Stat/Inference/DeltaMethod.lean:63), `Causalean.Stat.Tendsto_dist.wald_coverage_Iic` (Stat/Inference/WaldVec.lean:81), `Causalean.Stat.charFun_isGaussian_centered` / `charFun_isGaussian_of_cov_eq` (Stat/CLT/GaussianCharFunBridge.lean:55,70), and `Causalean.PartialID.RandomSet.hausdorffDist` / `directedHausdorff` (Causalean/PO/ID/Partial/RandomSet/Hausdorff.lean:73,64). The finite labelled family permits a direct K-fold union bound. defer_tier false: paper-owned."
+    },
+    "oeq:certificate-pareto-optimality": {
+      "lean_kind": "def",
+      "lean_name": "certificateParetoOptimalityQuestion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Handles.lean",
+      "oeq_case": "B",
+      "payload_type": "_root_.String",
+      "excluded_from_manifest": true,
+      "notes": "OPEN question, never a theorem (TWO-CASE rule, case B; see decision P9). The frozen `obligation.obstruction` states outright that the admissible scheme class, the normalization of polynomial certificates, and which numerical objects contribute to height are all undefined, so 'a universal lower-bound statement is not well typed'; case A is therefore unavailable. The payload is a direct `_root_.String` literal recording, in full, (i) that the requested route is explicitly `H_opt`, (ii) the two coordinates of the frontier, (iii) the achieved upper point `(2, ceil(log_2 p))`, (iv) the per-p test of whether either coordinate improves without worsening the other, (v) the partial one-active-block lower bound for `p >= 2`, (vi) the universal separation requirement, and (vii) the explicit nonassertion that the frontier and Pareto optimality remain undetermined. NO selector, procedure, rate, confidence or lower-bound witness field appears. No delivered theorem depends on it. Build-inline (no proof obligation)."
+    },
+    "lem:chickering-covered-disagreement-sequence": {
+      "lean_kind": "theorem",
+      "lean_name": "CausalSmith.ExactID.BlockedColourRationalSeparation.chickeringCoveredDisagreementSequence_proved",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.MarkovEquiv",
+        "Causalean.Graph.MarkovEquiv.Defs",
+        "Causalean.Graph.MarkovEquiv.CoveredReversal",
+        "Causalean.Graph.MarkovEquiv.Decompose"
+      ],
+      "defer_tier": false,
+      "target_file": "Helpers/CitedGates.lean",
+      "citation": "cite:chickering1995-transformational",
+      "source": "cite:chickering1995-transformational",
+      "excluded_from_manifest": true,
+      "signature_sketch": "def ChickeringCoveredDisagreementSequence (V) [DecidableEq V] [Fintype V] : Sort 0 := (forall G0 G1 : Causalean.DAG V, (Causalean.SameSkeleton G0 G1 and Causalean.SameImmoralities G0 G1) <-> Causalean.MarkovEquiv G0 G1) and (forall G0 G1 : Causalean.DAG V, Causalean.MarkovEquiv G0 G1 -> exists (m : Nat) (chain : ...), m = Causalean.edgeDiffCount G0 G1 and each step reverses a covered edge that disagreed, every intermediate graph is acyclic and Markov equivalent, and no disagreeing edge is reversed twice)",
+      "notes": "Frozen cited gate (`status:\"cited\"`, `source.carrier:\"logical-claim\"`), so it MUST be a named proposition threaded into every logical consumer and MUST NOT be reconstructed as sub-lemmas at F1 (decision P8). F2 emits the proposition universe with the unshadowable `Sort 0` syntax, never a `Prop` identifier. Threaded into `thm:complete-blocked-equivalence` and `prop:ordinary-and-proper-reductions` (`hyps`) and, transitively, into `prop:exact-component-enumeration`, `thm:generic-bic-component-recovery`, `thm:simultaneous-component-effect-inference` (`threaded_gates`). DISCHARGE ROUTE for a later `bin/gate.ts --discharge` (recorded, not executed here): Causalean already proves the Verma-Pearl conjunct as the flagship `Causalean.markovEquiv_iff_sameSkeleton_sameImmoralities` (Causalean/Graph/MarkovEquiv.lean:59), and the Chickering Theorem-2 conjunct is within reach of `Causalean.exists_covered_reversed_edge` (Decompose.lean:91) + `Causalean.edgeDiffCount_flipEdge_lt` (Decompose.lean:184) + `Causalean.DAG.flipEdge_sameSkeleton` / `flipEdge_sameImmoralities` / `markovEquiv_flipEdge` (CoveredReversal.lean:136,156,1726), which already give the decreasing-disagreement induction used in `markovEquiv_covered_aux` (Decompose.lean:~200-230); the residual gap is the EXACT length `m = delta(C,D)` with no edge reversed twice (the substrate gives a strictly decreasing count, hence length at most `m`, and the parity lower bound closes it). Effort medium. Search trace: Glob Causalean/Graph/MarkovEquiv/*.lean -> 7 files, read Defs.lean fully and outlined CoveredReversal.lean + Decompose.lean; grep 'Covered' via lean_local_search returned nothing (the local index is CausalSmith-scoped and is a flaky backup), so absence was NOT concluded from it -- the source files above were read directly.",
+      "citation_discharged": true
+    },
+    "lem:boege-proper-blocked-identifiability": {
+      "lean_kind": "assumption",
+      "lean_name": "BoegeProperBlockedIdentifiability",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "citation": "cite:boege-kubjas-misra-solus-2026-coloured-gaussian-dags",
+      "source": "cite:boege-kubjas-misra-solus-2026-coloured-gaussian-dags",
+      "excluded_from_manifest": true,
+      "signature_sketch": "def BoegeProperBlockedIdentifiability (V) [DecidableEq V] [Fintype V] : Sort 0 := forall C D : BlockedState V, (forall j, forall B in C.blocks j, 2 <= B.card) -> (forall j, forall B in D.blocks j, 2 <= B.card) -> covModel C = covModel D -> C = D",
+      "notes": "Frozen cited gate (`status:\"cited\"`, `source.carrier:\"logical-claim\"`): the proper-BPEC structural-identifiability implication, stated in this run's vocabulary at the target-local specialization the core invokes. Threaded into `prop:ordinary-and-proper-reductions` only (its single consumer in the core `depends_on`). NOT reconstructed as sub-lemmas: this is the comparator paper's own theorem, and the present paper's contribution is the singleton-PERMITTING regime, so the proper-blocked endpoint remains external. Note that `prop:ordinary-and-proper-reductions` proves `reversalComponent C = {C}` in the all-nonsingleton case UNCONDITIONALLY (a legal reversal needs a singleton block); the gate is required only for the statement's final clause identifying that conclusion WITH the cited theorem's structural-identifiability conclusion -- which is why it is threaded rather than dropped, and why no tautological conjunct is introduced. Effort large: a full discharge would need the comparator's ideal-theoretic BPEC argument, which has no counterpart in the library. Search trace: grep '(coloured|colored|edgeColour|edgeColor|Finpartition)' over Causalean/ -> only cumulant set-partitions in Stat/Nonparametric/MomentProblems, i.e. NO edge-coloured Gaussian DAG substrate anywhere; grep '(linear[- ]Gaussian|LinearGaussian|trek)' -> Discovery/InvariantPrediction/LinearGaussian, LiNGAM, LinearDisentanglement, none of which restricts coefficients by parent-block colour classes; Mathlib side has no Gaussian graphical-model identifiability material (leansearch on coloured/edge-coloured Gaussian DAG identifiability returns nothing relevant)."
+    }
+  },
+  "citations": [
+    {
+      "id": "cite:chickering1995-transformational",
+      "title": "A Transformational Characterization of Equivalent Bayesian Network Structures",
+      "authors": "David Maxwell Chickering",
+      "year": 1995,
+      "cite": "Chickering1995",
+      "bibliography": "David Maxwell Chickering. A Transformational Characterization of Equivalent Bayesian Network Structures. Proceedings of the Eleventh Conference on Uncertainty in Artificial Intelligence, 87--98, 1995.",
+      "locator": "Theorems 1 and 2, pages 90--91",
+      "verbatim_statement": "Theorem 1 [Verma and Pearl, 1990] Two dags are equivalent if and only if they have the same skeletons and the same v-structures. Theorem 2 Let G and G' be any pair of dags such that G is equivalent to G'. There exists a sequence of |Delta(G,G')| distinct edge reversals in G with the following properties: (1) Each edge reversed in G is a covered edge. (2) After each reversal, G is a dag and G is equivalent to G'. (3) After all reversals, G = G'.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified by main against the primary Chickering UAI 1995 PDF, printed pages 90--91; transcription normalizes OCR typography only.",
+        "at": "2026-09-08T08:09:22.968Z"
+      },
+      "carrier": "logical-claim",
+      "url": "https://maxchickering.com/publications/uai95.pdf",
+      "gate_node": "lem:chickering-covered-disagreement-sequence"
+    },
+    {
+      "id": "cite:boege-kubjas-misra-solus-2026-coloured-gaussian-dags",
+      "title": "Coloured Gaussian Directed Acyclic Graphical Models",
+      "authors": "Tobias Boege, Kaie Kubjas, Pratik Misra, and Liam Solus",
+      "year": 2026,
+      "arxiv": "2404.04024v3",
+      "cite": "BoegeKubjasMisraSolus2026",
+      "bibliography": "Tobias Boege, Kaie Kubjas, Pratik Misra, and Liam Solus. Coloured Gaussian Directed Acyclic Graphical Models. Journal of the Royal Statistical Society: Series B, 88:819--875, 2026. DOI: 10.1093/jrsssb/qkaf068; arXiv:2404.04024v3.",
+      "locator": "Theorem 19; arXiv version 3, Theorem 5.17",
+      "verbatim_statement": "Theorem 5.17. Let [G,c] be the model equivalence class of a BPEC-DAG (G,c). Then |BP intersect [G,c]| = 1; i.e., an edge-colored DAG is structurally identifiable in the set of BPEC-DAGs.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified by main against arXiv:2404.04024v3, Theorem 5.17 on manuscript page 19.",
+        "at": "2026-09-08T08:09:25.588Z"
+      },
+      "carrier": "logical-claim",
+      "doi": "10.1093/jrsssb/qkaf068",
+      "url": "https://arxiv.org/abs/2404.04024v3",
+      "gate_node": "lem:boege-proper-blocked-identifiability"
+    }
+  ],
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": [
+        "ass:acyclic-member",
+        "ass:target-parent-partition",
+        "def:blocked-state-class",
+        "def:covariance-model",
+        "def:nonsingleton-family",
+        "def:family-mismatch-edges",
+        "def:static-signature"
+      ],
+      "projected_lines": 520,
+      "notes": "Shared state class + covariance model + signature, with `BlockedState.toDAG` and the `staticSignature_eq_iff` bridge. Imported by every other module of the run."
+    },
+    {
+      "file": "Helpers/CitedGates.lean",
+      "contents": [
+        "lem:chickering-covered-disagreement-sequence",
+        "lem:boege-proper-blocked-identifiability"
+      ],
+      "projected_lines": 90,
+      "notes": "The two frozen cited gates as named propositions (`Sort 0` syntax), imported by their consumers. Convention matches `CausalSmith/Stat/STAT_ProxyEffectlawEigencollisionFrontier_Research/Helpers/CitedGates.lean`."
+    },
+    {
+      "file": "Helpers/StarLibrary.lean",
+      "contents": [
+        "def:binary-star-library"
+      ],
+      "projected_lines": 330,
+      "notes": "Star coefficient matrix, unit-noise star covariance with explicit entries, the nilpotence identity, the finite library as a `Finset`, and the rational-height maps."
+    },
+    {
+      "file": "Helpers/StarRegressionCalculus.lean",
+      "contents": [
+        "lem:binary-star-regression-calculus"
+      ],
+      "projected_lines": 420,
+      "notes": "The three-case regression table and `det(Sigma*_{P,P}) = d`. Independent proof chain over `Helpers/StarLibrary.lean`; split from it because the bordered Schur-complement algebra is a self-contained topic."
+    },
+    {
+      "file": "Helpers/Certificates.lean",
+      "contents": [
+        "def:certificate-formats"
+      ],
+      "projected_lines": 400,
+      "notes": "The two certificate formats as one inductive + evaluator, admissibility predicates, and the universal vanishing-on-model lemma (the reusable half of `thm:bounded-binary-star-separation`)."
+    },
+    {
+      "file": "Helpers/Router.lean",
+      "contents": [
+        "def:four-case-router"
+      ],
+      "projected_lines": 480,
+      "notes": "Lexicographic four-case router with decidable branch predicates. Depends on Basic, StarLibrary, Certificates."
+    },
+    {
+      "file": "Helpers/Reversal.lean",
+      "contents": [
+        "def:legal-reversal",
+        "def:reversal-component"
+      ],
+      "projected_lines": 430,
+      "notes": "Legality predicate over `Causalean.DAG.IsCoveredEdge`, the transported blocked state over `Causalean.DAG.flipEdge`, the reflexive-transitive component, `arrowGap` and `revDist`, plus the `arrowGap = edgeDiffCount` bridge."
+    },
+    {
+      "file": "Helpers/Enumeration.lean",
+      "contents": [
+        "def:component-enumerator"
+      ],
+      "projected_lines": 260,
+      "notes": "Canonical lift and the extensional enumerator `Finset` (decision P5). Depends on Basic, Reversal."
+    },
+    {
+      "file": "Helpers/BlockLeastSquares.lean",
+      "contents": [
+        "def:off-model-block-ls",
+        "def:component-effect-set"
+      ],
+      "projected_lines": 520,
+      "notes": "Block incidence / Gram / score, the off-model coefficient map with Gram positive-definiteness and on-model recovery, then the labelled effect vector and the component effect set. One subsystem: population block regression."
+    },
+    {
+      "file": "Helpers/Genericity.lean",
+      "contents": [
+        "def:generic-exception"
+      ],
+      "projected_lines": 300,
+      "notes": "Real proper-algebraic-subset predicate, the exception set, and nonemptiness of its complement via `MvPolynomial.funext`."
+    },
+    {
+      "file": "Helpers/GaussianSampling.lean",
+      "contents": [
+        "def:global-bic",
+        "def:simultaneous-region"
+      ],
+      "projected_lines": 480,
+      "notes": "Sampling world over `Causalean.Stat.IIDSample`, sample covariance, Gaussian discrepancy, the global criterion with its tie rule and singular fallback, and the labelled Bonferroni confidence collection. One subsystem: the statistical rung's definitions."
+    },
+    {
+      "file": "Handles.lean",
+      "contents": [
+        "def:certificate-optimality-handle",
+        "oeq:certificate-pareto-optimality"
+      ],
+      "projected_lines": 90,
+      "notes": "Non-assertive descriptive payloads only; no proof obligation, no consumer."
+    },
+    {
+      "file": "TBoundedBinaryStarSeparation.lean",
+      "contents": [
+        "thm:bounded-binary-star-separation"
+      ],
+      "projected_lines": 760,
+      "notes": "Four disjoint router cases plus the entry/determinant/height accounting. Largest single proof chain; split further by F2 into `TBoundedBinaryStarSeparation/{Skeleton,Collider,Family,Orientation}.lean` if it passes ~900 lines."
+    },
+    {
+      "file": "TSharpFiniteStarDictionary.lean",
+      "contents": [
+        "prop:sharp-finite-star-dictionary"
+      ],
+      "projected_lines": 420,
+      "notes": "Dictionary disjunction, exact count via injectivity, the `Nat.choose (p+1) 3` bound from the topological order, and the complete-DAG sharpness witness."
+    },
+    {
+      "file": "TCompleteBlockedEquivalence.lean",
+      "contents": [
+        "thm:complete-blocked-equivalence"
+      ],
+      "projected_lines": 700,
+      "notes": "Three-way equivalence, full-image preservation under one legal reversal, and the shortest-path length identity. Conditional on the Chickering gate."
+    },
+    {
+      "file": "TExactComponentEnumeration.lean",
+      "contents": [
+        "prop:exact-component-enumeration"
+      ],
+      "projected_lines": 330,
+      "notes": "Enumerator correctness, duplicate-freeness, the `p!` bound, and shortest paths to each output."
+    },
+    {
+      "file": "TOrdinaryAndProperReductions.lean",
+      "contents": [
+        "prop:ordinary-and-proper-reductions"
+      ],
+      "projected_lines": 300,
+      "notes": "Both endpoint reductions; conditional on both cited gates."
+    },
+    {
+      "file": "TGenericBicComponentRecovery.lean",
+      "contents": [
+        "thm:generic-bic-component-recovery"
+      ],
+      "projected_lines": 820,
+      "notes": "Properness of the exception set, model geometry (dimension, relative closedness, connectedness), the divergence bound with compact sublevel sets, the saturated-MLE expansion, and the exact component tie. F2 should split as `TGenericBicComponentRecovery/{ModelGeometry,Exception,Criterion}.lean` -- three independent topics."
+    },
+    {
+      "file": "TSimultaneousComponentEffectInference.lean",
+      "contents": [
+        "thm:simultaneous-component-effect-inference"
+      ],
+      "projected_lines": 700,
+      "notes": "Effect-functional identification from the structural equations, the Gaussian covariance limit, per-coordinate delta method, the Bonferroni union bound, and Hausdorff convergence."
+    }
+  ],
+  "manifest": [
+    {
+      "theorem_local_id": "t1",
+      "node": "lem:binary-star-regression-calculus"
+    },
+    {
+      "theorem_local_id": "t2",
+      "node": "thm:bounded-binary-star-separation"
+    },
+    {
+      "theorem_local_id": "t3",
+      "node": "prop:sharp-finite-star-dictionary"
+    },
+    {
+      "theorem_local_id": "t4",
+      "node": "thm:complete-blocked-equivalence"
+    },
+    {
+      "theorem_local_id": "t5",
+      "node": "prop:exact-component-enumeration"
+    },
+    {
+      "theorem_local_id": "t6",
+      "node": "prop:ordinary-and-proper-reductions"
+    },
+    {
+      "theorem_local_id": "t7",
+      "node": "thm:generic-bic-component-recovery"
+    },
+    {
+      "theorem_local_id": "t8",
+      "node": "thm:simultaneous-component-effect-inference"
+    }
+  ],
+  "infrastructure_needed": [
+    {
+      "id": "lem:chickering-covered-disagreement-sequence",
+      "kind": "autoid-lemma",
+      "description": "Chickering 1995 Theorems 1-2: Markov equivalence iff same skeleton and same v-structures, with a length-delta(G,G') sequence of distinct covered-edge reversals through equivalent acyclic intermediates.",
+      "effort": "medium"
+    },
+    {
+      "id": "lem:boege-proper-blocked-identifiability",
+      "kind": "autoid-lemma",
+      "description": "Boege-Kubjas-Misra-Solus 2026 Theorem 19 / 5.17: structural identifiability of proper blocked edge-coloured DAGs (every colour class of size at least two) from covariance-model equality.",
+      "effort": "large"
+    }
+  ],
+  "self_check": {
+    "P1_every_node_mapped_once": "30 core nodes = 2 assumptions + 17 definitions + 11 statements; `nodes` has exactly 30 keys, one per id, no extras.",
+    "P1_every_symbol_bound": "65 core symbols partitioned across S1 (10), S2 (47), S3 (8); no symbol bound twice, none unbound.",
+    "P2_class_members": "def:blocked-state-class is the only class node; its `members` = [ass:acyclic-member, ass:target-parent-partition] = its `by_member_properties`, in order.",
+    "P3_lean_kind_matches_core_kind": "2 assumption atoms -> assumption; the one class definition -> structure; the 16 construction definitions -> def; 7 delivered statements -> theorem/lemma (lem:binary-star-regression-calculus is the only L-block, lean_kind lemma); 2 cited logical-claim statements -> assumption with gate:true, gate_class:cited; 1 unresolved openendedquestion -> def with a non-Prop String payload.",
+    "P4_hyps_subset_depends_on": "t2 hyps [def:blocked-state-class] subset of its depends_on; t3 hyps [def:blocked-state-class] subset; t4 hyps [def:blocked-state-class, lem:chickering-...] both in depends_on; t6 hyps [lem:chickering-..., lem:boege-...] both in depends_on; t1, t5, t7, t8 have hyps [] and no assumption or class id in depends_on, so assumption coverage is vacuous. Transitively required gates are recorded in `threaded_gates`, not in `hyps`, precisely to keep hyps a subset of depends_on.",
+    "P5_reuse_decls_exist": "Every `reuse` value is a decl read in source this session: Causalean.DAG (Causalean/Graph/DAG.lean:57), Causalean.Stat.IIDSample (Causalean/Stat/Sample.lean:44). All other reused decls appear in `notes`/`modules` with file:line and were signature-checked by reading the source.",
+    "P6_modules_resolve": "Every module path corresponds to a file confirmed to exist: Causalean/Graph/{DAG,AcyclicConstruct}.lean, Causalean/Graph/DSep/ActivePath.lean, Causalean/Graph/MarkovEquiv{,/Defs,/CoveredReversal,/Decompose}.lean, Causalean/Stat/Sample.lean, Causalean/Stat/Limit/Convergence.lean, Causalean/Stat/CLT/{AsymptoticLinearity,GaussianCharFunBridge}.lean, Causalean/Stat/Inference/{VarianceEstimation,DeltaMethod,WaldVec}.lean, Causalean/PO/ID/Partial/RandomSet/Hausdorff.lean; Mathlib modules used are Mathlib.Order.Partition.Finpartition, Mathlib.LinearAlgebra.Matrix.{PosDef,SchurComplement,Adjugate}, Mathlib.Algebra.MvPolynomial.Funext, Mathlib.Logic.Relation, Mathlib.Probability.CDF, each confirmed by a leansearch/loogle hit naming the module."
+  },
+  "external_substrate_assumptions": []
+}

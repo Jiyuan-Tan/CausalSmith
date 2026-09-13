@@ -1,0 +1,1610 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}interference\_\allowbreak{}heterogeneous\_\allowbreak{}block\_\allowbreak{}confidence\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Unequal clique sizes turn full-neighborhood All Treat and All Control exposure into independent nonidentical categorical reveals. The exact centered block Horvitz--Thompson increment is at most \(w_l/(2q_l)\), giving the clipped half-width \(\sqrt{S\log(2/\alpha)}+M\log(2/\alpha)/6\). Trimming is within a factor \(5/2\) of the capped water-filling modulus and yields \(\mathcal R_\alpha\le5\min\{1,\omega_\alpha\}\). A cubic common-location lower bound proves the exact fixed-confidence consistency boundary, and a separate product-Rademacher argument gives \(\Theta_\alpha(k^{-1/2})\) for the stated two-scale family. The sole unresolved sharp-frontier step is a universal linear weighted-erasure lower bound for all measurable externally randomized intervals. The pinned \(\texttt{szonszein/interference}\) version \(0.1.0\) diagnostic reports structural graph rejection separately from package-versus-reference exposure-label mismatch and releases the corrected interval only after both checks pass.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing partial-interference confidence procedures do not characterize worst-case expected length over every measurable externally randomized interval under fixed balanced Bernoulli assignment on unequal cliques. The exact consistency boundary is settled, the capped optimizer and trimming dual are certified, and the unrestricted upper bound is explicit. The sole remaining sharp-frontier gap is to strengthen the proved cubic capped-erasure converse to a universal linear lower bound.
+
+\paragraph{Niche.} The paper treats the known assignment distribution as the sole inferential randomness and exposes three computable design scales: the quadratic rare-exposure scale \(S\), the largest centered-increment scale \(M/2\), and the capped water-filling or trimming scale. The capped scale is necessary and sufficient for fixed-confidence consistency and controls honest length from above even when a dominant rare block makes \(S\) misleading.
+
+\paragraph{Fill.} The proved contribution consists of the exact independent categorical block reduction, the observed-data block Horvitz--Thompson estimator, the clipped Bernstein interval with linear term \(M\log(2/\alpha)/6\), the bias-protected trimmed interval, the certified capped water-filling optimizer, the factor-\(5/2\) trimming dual, the factor-five unrestricted upper bound, the cubic all-procedure lower bound, and the exact consistency equivalence. A dedicated product-Rademacher anti-concentration argument also proves the fixed-confidence \(\Theta_\alpha(k^{-1/2})\) rate for the specified two-scale family. The note leaves the universal linear converse open rather than promoting the special-family lower bound to the full class.
+
+\section{Related work}
+
+TchetgenTchetgenVanderWeele2012, Section 4.3, constructs Hoeffding intervals for binary allocation-strategy effects under two-stage Type-A partial interference, and RigdonHudgens2015 constructs exact confidence sets for those binary two-stage effects. Neither treats this unequal-clique Bernoulli All Treat versus All Control minimax expected-length problem or proves the open water-filling lower frontier. AronowSamii2017 supplies the design--exposure--estimand architecture and exposure-specific inverse weighting, while UganderKarrerBackstromKleinberg2013 shows that full-neighborhood exposure probabilities may be exponentially small in degree. BasseAiroldi2018 gives a nonconcentration warning, UganderYin2023 changes the design to mitigate small exposure probabilities, and KandirosHarshawSavje2026 studies design-based mean-squared-error criteria rather than all-interval confidence length. CaiLow2004 and ArmstrongKolesar2018 motivate modulus arguments in Gaussian experiments, but do not provide the heterogeneous weighted-erasure interval-spread theorem required here. The common-location construction is used only for the proved cubic consistency lower bound, and the product-Rademacher argument is confined to the specified two-scale family.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=n^{-1}\sum_{i\in U}\{Y_i(a)-Y_i(b)\}=\sum_{l=1}^Lw_l\{\mu_l(a)-\mu_l(b)\}\).
+Primary functional / estimator / diagnostic: \(\widehat\theta(D)=\sum_{l=1}^L(w_l/q_l)\{A_l\overline Y_l^{\mathrm{obs}}(D)-C_l\overline Y_l^{\mathrm{obs}}(D)\},\quad I_{\mathrm{HT},\alpha}(D)=[-1,1]\cap[\widehat\theta(D)-h_\alpha,\widehat\theta(D)+h_\alpha]\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{finite population size}; \(\mathbb N\); \texttt{instance index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of experimental units.}
+  \item \texttt{U} --- \texttt{finite population}; \(2^{\mathbb N}\); \texttt{population}
+  \par\smallskip\noindent\emph{Definition.} Fixed population \(U=\{1,\ldots,n\}\).
+  \item \texttt{L} --- \texttt{number of blocks}; \(\{1,\ldots,n\}\); \texttt{design index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of labeled partial-\allowbreak{}interference blocks.}
+  \item \texttt{l} --- \texttt{block index}; \(\{1,\ldots,L\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic block index.}
+  \item \texttt{B} --- \texttt{labeled block partition}; \((2^U)^L\); \texttt{design input}
+  \par\smallskip\noindent\emph{Definition.} Known labeled family \(B=(B_1,\ldots,B_L)\).
+  \item \texttt{r} --- \texttt{block size vector}; \(\mathbb N^L\); \texttt{heterogeneity index}
+  \par\smallskip\noindent\emph{Definition.} Block sizes \(r_l=|B_l|\).
+  \item \texttt{w} --- \texttt{block weight vector}; \([0,1]^L\); \texttt{estimand weight}
+  \par\smallskip\noindent\emph{Definition.} Finite-population weights \(w_l=r_l/n\).
+  \item \texttt{G} --- \texttt{known interference graph}; \(2^{U\times U}\); \texttt{software input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known undirected graph supplied to the full-\allowbreak{}neighborhood exposure mapping.}
+  \item \texttt{Z} --- \texttt{assignment vector}; \(\{0,1\}^U\); \texttt{design randomness}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Random unit-\allowbreak{}level treatment vector.}
+  \item \texttt{PZ} --- \texttt{randomization law}; \(\Delta(\{0,1\}^U)\); \texttt{design law}
+  \par\smallskip\noindent\emph{Definition.} Known law of \(Z\).
+  \item \texttt{E} --- \texttt{exposure label set}; \texttt{finite sets}; \texttt{exposure space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Analyst-\allowbreak{}specified exposure codomain.}
+  \item \texttt{a} --- \texttt{all-\allowbreak{}treated exposure}; \(E\); \texttt{target label}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Target exposure attained when a unit's whole block is treated.}
+  \item \texttt{b} --- \texttt{all-\allowbreak{}control exposure}; \(E\); \texttt{target label}
+  \par\smallskip\noindent\emph{Definition.} Target exposure attained when a unit's whole block is controlled, with \(b\ne a\).
+  \item \texttt{m} --- \texttt{mixed exposure}; \(E\setminus\{a,b\}\); \texttt{exposure label}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Non-\allowbreak{}target label for a block containing both assignments.}
+  \item \texttt{e} --- \texttt{full-\allowbreak{}neighborhood exposure map}; \(e_i:\{0,1\}^U\to E\); \texttt{causal design primitive}
+  \par\smallskip\noindent\emph{Definition.} Known exposure map induced by \(B\), and the reference map against which the \(R\) interference-package output is audited.
+  \item \texttt{Y} --- \texttt{fixed exposure-\allowbreak{}indexed potential outcomes}; \(\mathbb R^{U\times E}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Array \(Y=(Y_i(d):i\in U,d\in E)\) of finite-population potential outcomes.
+  \item \texttt{Yobs} --- \texttt{observed outcome vector}; \(\mathbb R^U\); \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} Observed outcomes \(Y_i^{\mathrm{obs}}=Y_i(e_i(Z))\).
+  \item \texttt{D} --- \texttt{observed experiment}; \(\{0,1\}^U\times\mathbb R^U\); \texttt{procedure input}
+  \par\smallskip\noindent\emph{Definition.} Observed data \(D=(Z,Y^{\mathrm{obs}})\).
+  \item \texttt{mu} --- \texttt{fixed-\allowbreak{}schedule block target mean array}; \([-1/2,1/2]^{L\times\{a,b\}}\); \texttt{finite-\allowbreak{}population parameter}
+  \par\smallskip\noindent\emph{Definition.} Latent block target means constructed in \(\mathrm{def{:}block\text{-}means}\).
+  \item \texttt{ybarobs} --- \texttt{observed block mean vector}; \([-1/2,1/2]^L\); \texttt{observed estimator input}
+  \par\smallskip\noindent\emph{Definition.} Observed-data-measurable block means \(\overline Y_l^{\mathrm{obs}}(D)\) constructed in \(\mathrm{def{:}observed\text{-}block\text{-}means}\).
+  \item \texttt{A} --- \texttt{all-\allowbreak{}treated block events}; \(\{0,1\}^L\); \texttt{reveal event}
+  \par\smallskip\noindent\emph{Definition.} Indicators \(A_l=\mathbf 1\{Z_i=1\text{ for all }i\in B_l\}\), measurable from \(D\).
+  \item \texttt{C} --- \texttt{all-\allowbreak{}control block events}; \(\{0,1\}^L\); \texttt{reveal event}
+  \par\smallskip\noindent\emph{Definition.} Indicators \(C_l=\mathbf 1\{Z_i=0\text{ for all }i\in B_l\}\), measurable from \(D\).
+  \item \texttt{H} --- \texttt{mixed block events}; \(\{0,1\}^L\); \texttt{unrevealed event}
+  \par\smallskip\noindent\emph{Definition.} Indicators \(H_l=1-A_l-C_l\).
+  \item \texttt{q} --- \texttt{target reveal probability vector}; \((0,1/2]^L\); \texttt{rare-\allowbreak{}exposure parameter}
+  \par\smallskip\noindent\emph{Definition.} Known probabilities \(q_l=2^{-r_l}=P_Z(A_l=1)=P_Z(C_l=1)\).
+  \item \texttt{theta} --- \texttt{finite-\allowbreak{}population all-\allowbreak{}treated versus all-\allowbreak{}control effect}; \([-1,1]\); \texttt{causal estimand}
+  \par\smallskip\noindent\emph{Definition.} Target \(\theta=\sum_{l=1}^Lw_l\{\mu_l(a)-\mu_l(b)\}\).
+  \item \texttt{alpha} --- \texttt{miscoverage level}; \((0,1/4]\); \texttt{confidence index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Target design-\allowbreak{}based miscoverage probability.}
+  \item \texttt{x} --- \texttt{confidence logarithm}; \([\log 4,\infty)\); \texttt{confidence scale}
+  \par\smallskip\noindent\emph{Definition.} Quantity \(x_\alpha=\log(1/\alpha)\).
+  \item \texttt{S} --- \texttt{quadratic rare-\allowbreak{}exposure complexity}; \((0,\infty)\); \texttt{variance complexity}
+  \par\smallskip\noindent\emph{Definition.} Quantity \(S=\sum_{l=1}^Lw_l^2/q_l\).
+  \item \texttt{M} --- \texttt{maximum rare-\allowbreak{}exposure increment}; \((0,\infty)\); \texttt{dominance complexity}
+  \par\smallskip\noindent\emph{Definition.} Quantity \(M=\max_{1\le l\le L}w_l/q_l\).
+  \item \texttt{X} --- \texttt{observed block Horvitz-\allowbreak{}-\allowbreak{}Thompson summand vector}; \(\mathbb R^L\); \texttt{estimator summand}
+  \par\smallskip\noindent\emph{Definition.} Observed block contributions constructed in \(\mathrm{def{:}block\text{-}ht}\).
+  \item \texttt{thetahat} --- \texttt{observed block Horvitz-\allowbreak{}-\allowbreak{}Thompson estimator}; \(\mathbb R\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator \(\widehat\theta(D)\) constructed in \(\mathrm{def{:}block\text{-}ht}\).
+  \item \texttt{h} --- \texttt{Bernstein half-\allowbreak{}width}; \([0,\infty)\); \texttt{confidence radius}
+  \par\smallskip\noindent\emph{Definition.} Known half-width \(h_\alpha\) constructed in \(\mathrm{def{:}clipped\text{-}ht}\).
+  \item \texttt{IHT} --- \texttt{clipped Horvitz-\allowbreak{}-\allowbreak{}Thompson interval}; intervals in \(\mathbb R\); \texttt{attaining procedure}
+  \par\smallskip\noindent\emph{Definition.} Observed-data interval \(I_{\mathrm{HT},\alpha}(D)\) constructed in \(\mathrm{def{:}clipped\text{-}ht}\).
+  \item \texttt{R} --- \texttt{external randomizer}; \([0,1]\); \texttt{procedure randomization}
+  \par\smallskip\noindent\emph{Definition.} Auxiliary \(R\sim\operatorname{Uniform}[0,1]\) independent of the assignment and fixed schedule.
+  \item \texttt{Gamma} --- \texttt{possibly randomized interval procedure}; \(\Gamma:(D,R)\mapsto\{\text{intervals in }\mathbb R\}\); \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Measurable interval-\allowbreak{}valued decision rule.}
+  \item \texttt{mathcalM} --- \texttt{unequal-\allowbreak{}clique experiment class}; \texttt{classes of fixed finite-\allowbreak{}population experiments}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class \(\mathcal M_n(B)\) constructed in \(\mathrm{def{:}model\text{-}class}\).
+  \item \texttt{mathfrakC} --- \texttt{uniformly valid interval class}; \texttt{sets of measurable interval procedures}; \texttt{procedure class}
+  \par\smallskip\noindent\emph{Definition.} Decision class \(\mathfrak C_\alpha\) constructed in \(\mathrm{def{:}honest\text{-}intervals}\).
+  \item \texttt{risk} --- \texttt{minimax expected-\allowbreak{}length risk}; \([0,2]\); \texttt{headline criterion}
+  \par\smallskip\noindent\emph{Definition.} Risk \(\mathcal R_\alpha(w,q)\) constructed in \(\mathrm{def{:}length\text{-}risk}\).
+  \item \texttt{rho} --- \texttt{trimmed upper modulus}; \([0,\infty)\); \texttt{global upper complexity}
+  \par\smallskip\noindent\emph{Definition.} Trimmed radii \(\rho_\alpha(w,q)\) and \(\rho_0(w,q)\) constructed in \(\mathrm{def{:}trimmed\text{-}radius}\).
+  \item \texttt{delta} --- \texttt{capped perturbation vector}; \([0,1]^L\); \texttt{optimization variable}
+  \par\smallskip\noindent\emph{Definition.} Coordinate perturbation \(\delta=(\delta_1,\ldots,\delta_L)\) in the finite confidence-modulus program.
+  \item \texttt{lambda} --- \texttt{water-\allowbreak{}filling multiplier}; \([0,\infty]\); \texttt{optimization certificate}
+  \par\smallskip\noindent\emph{Definition.} Multiplier \(\lambda_\alpha\) used by the capped water-filling algorithm.
+  \item \texttt{omega} --- \texttt{dominance-\allowbreak{}aware confidence modulus}; \([0,1]\); \texttt{global lower complexity}
+  \par\smallskip\noindent\emph{Definition.} Finite capped modulus \(\omega_\alpha(w,q)\) constructed in \(\mathrm{def{:}capped\text{-}modulus}\).
+  \item \texttt{s} --- \texttt{normalized least-\allowbreak{}favorable slope vector}; \([0,\infty)^L\); \texttt{lower-\allowbreak{}bound direction}
+  \par\smallskip\noindent\emph{Definition.} Normalized direction \(s_l=w_l/(q_l\sqrt S)\).
+  \item \texttt{K} --- \texttt{erasure reveal vector}; \(\{0,1\}^L\); \texttt{lower-\allowbreak{}bound observation}
+  \par\smallskip\noindent\emph{Definition.} Independent reveal indicators \(K_l\sim\operatorname{Bernoulli}(q_l)\) in the hard subexperiment.
+  \item \texttt{V} --- \texttt{latent block sign vector}; \(\{-1/2,1/2\}^L\); \texttt{lower-\allowbreak{}bound parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Latent block-\allowbreak{}homogeneous target outcomes in the weighted-\allowbreak{}erasure subexperiment.}
+  \item \texttt{T} --- \texttt{weighted-\allowbreak{}erasure target}; \([-1/2,1/2]\); \texttt{lower-\allowbreak{}bound target}
+  \par\smallskip\noindent\emph{Definition.} Hard-subexperiment functional \(T(V)=\sum_{l=1}^Lw_lV_l\).
+  \item \texttt{t} --- \texttt{scalar prior tilt}; \(\mathbb R\); \texttt{lower-\allowbreak{}bound prior index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index of the tilted product prior on the latent signs.}
+  \item \texttt{mathcalTtilt} --- \texttt{compact admissible tilt set}; compact subsets of \(\mathbb R\); \texttt{prior parameter space}
+  \par\smallskip\noindent\emph{Definition.} Set \(\mathcal T_{\mathrm{tilt}}=[-\|s\|_\infty^{-1},\|s\|_\infty^{-1}]\). The normalization \(\sum_{l=1}^Lq_ls_l^2=1\) ensures \(\|s\|_\infty>0\), so this is a finite compact interval.
+  \item \texttt{pi} --- \texttt{tilted product prior family}; \(\Delta(\{-1/2,1/2\}^L)^{\mathcal T_{\mathrm{tilt}}}\); \texttt{lower-\allowbreak{}bound prior}
+  \par\smallskip\noindent\emph{Definition.} Prior \(\pi_t\) on \(V\) constructed in \(\mathrm{def{:}tilted\text{-}sign\text{-}prior}\).
+  \item \texttt{taupi} --- \texttt{prior-\allowbreak{}induced target mean}; \([-1/2,1/2]\); \texttt{tilt separation}
+  \par\smallskip\noindent\emph{Definition.} Functional \(\tau_t=\mathbb E_{\pi_t}[T(V)]\) constructed in \(\mathrm{def{:}tilted\text{-}sign\text{-}prior}\).
+  \item \texttt{PK} --- \texttt{product erasure law}; \(\Delta(\{0,1\}^L)\); \texttt{lower-\allowbreak{}bound observation law}
+  \par\smallskip\noindent\emph{Definition.} Law \(P_K=\bigotimes_{l=1}^L\operatorname{Bernoulli}(q_l)\).
+  \item \texttt{O} --- \texttt{weighted-\allowbreak{}erasure observation}; \((\{0,1\}\times\{-1/2,0,1/2\})^L\); \texttt{lower-\allowbreak{}bound data}
+  \par\smallskip\noindent\emph{Definition.} Observed lower-experiment vector \(O=((K_l,K_lV_l))_{l=1}^L\).
+  \item \texttt{Q} --- \texttt{tilted weighted-\allowbreak{}erasure joint law}; \texttt{families of probability laws}; \texttt{lower-\allowbreak{}bound probability law}
+  \par\smallskip\noindent\emph{Definition.} Joint law \(Q_t\) on \((V,K,R)\) constructed in \(\mathrm{def{:}weighted\text{-}erasure\text{-}law}\).
+  \item \texttt{Lambda} --- \texttt{weighted-\allowbreak{}erasure interval procedure}; \(\Lambda:(O,R)\mapsto\{\text{intervals in }\mathbb R\}\); \texttt{lower-\allowbreak{}bound decision rule}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic measurable interval-\allowbreak{}valued rule in the lower experiment.}
+  \item \texttt{v} --- \texttt{fixed latent sign realization}; \(\{-1/2,1/2\}^L\); \texttt{hard-\allowbreak{}subexperiment index}
+  \par\smallskip\noindent\emph{Definition.} Generic fixed realization \(v=(v_1,\ldots,v_L)\) of the latent block signs.
+  \item \texttt{mv} --- \texttt{block-\allowbreak{}homogeneous fixed schedule}; \(\mathbb R^{U\times E}\); \texttt{hard-\allowbreak{}subexperiment schedule}
+  \par\smallskip\noindent\emph{Definition.} Schedule \(m_v\) constructed in \(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\).
+  \item \texttt{nu} --- \texttt{conditional block-\allowbreak{}assignment kernels}; families of probability laws on \(\{0,1\}^{B_l}\); \texttt{retained assignment ancillaries}
+  \par\smallskip\noindent\emph{Definition.} Kernels \(\nu_{l,k}\) constructed in \(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\).
+  \item \texttt{beta} --- \texttt{Borel measure-\allowbreak{}preserving randomizer splitter}; \(\beta:[0,1]\to[0,1]^{L+1}\); \texttt{randomization coupling}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed Borel map whose pushforward of Lebesgue measure is product Lebesgue measure.}
+  \item \texttt{Rcoord} --- \texttt{split randomizer coordinates}; \([0,1]^{L+1}\); \texttt{coupling randomness}
+  \par\smallskip\noindent\emph{Definition.} Coordinates \(R^{\mathrm{split}}=(R_0,R_1,\ldots,R_L)=\beta(R)\).
+  \item \texttt{F} --- \texttt{conditional assignment samplers}; \(F_l:\{0,1\}\times[0,1]\to\{0,1\}^{B_l}\); \texttt{assignment reconstruction}
+  \par\smallskip\noindent\emph{Definition.} Measurable samplers \(F_l(k,u)\sim\nu_{l,k}\) for uniform \(u\).
+  \item \texttt{Zstar} --- \texttt{reconstructed assignment}; \(\{0,1\}^U\); \texttt{decision-\allowbreak{}experiment reconstruction}
+  \par\smallskip\noindent\emph{Definition.} Assignment \(Z^*\) constructed blockwise in \(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\).
+  \item \texttt{Ystar} --- \texttt{reconstructed observed outcome vector}; \(\mathbb R^U\); \texttt{decision-\allowbreak{}experiment reconstruction}
+  \par\smallskip\noindent\emph{Definition.} Vector \(Y^*\) constructed in \(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\).
+  \item \texttt{Dstar} --- \texttt{reconstructed original-\allowbreak{}experiment data}; \(\{0,1\}^U\times\mathbb R^U\); \texttt{decision-\allowbreak{}experiment reconstruction}
+  \par\smallskip\noindent\emph{Definition.} Reconstructed data \(D^*=(Z^*,Y^*)\).
+  \item \texttt{LambdaGamma} --- \texttt{interval rule induced by an original-\allowbreak{}data rule}; \(\Lambda_\Gamma:(O,R)\mapsto\{\text{intervals in }\mathbb R\}\); \texttt{interval reduction}
+  \par\smallskip\noindent\emph{Definition.} Reduced rule \(\Lambda_\Gamma\) constructed in \(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\).
+  \item \texttt{HWE} --- \texttt{weighted-\allowbreak{}erasure proof handle}; \texttt{proof constructions}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} Handle constructed in \(\mathrm{def{:}weighted\text{-}erasure\text{-}handle}\).
+  \item \texttt{HWF} --- \texttt{water-\allowbreak{}filling proof handle}; \texttt{proof constructions}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} Handle constructed in \(\mathrm{def{:}water\text{-}filling\text{-}handle}\).
+  \item \texttt{epkg} --- \texttt{versioned deterministic package-\allowbreak{}label map}; \(\mathsf E_{\mathrm{pkg}}^{0.1.0}:\{G\in\{0,1\}^{U\times U}:G=G^\top,\ G_{ii}=0\ \forall i\in U\}\times\{0,1\}^U\to\{0,1\}^{U\times\{a,b\}}\); \texttt{versioned software map}
+  \par\smallskip\noindent\emph{Definition.} The deterministic map implemented by \(\texttt{szonszein/interference}\) version \(0.1.0\), function \(\texttt{make\_exposure\_map\_full\_neighborhood}\), constructed in \(\mathrm{def{:}package\text{-}label\text{-}maps}\).
+  \item \texttt{eref} --- \texttt{independently recomputed reference-\allowbreak{}label map}; \(\mathsf E_{\mathrm{ref}}:(B,Z)\mapsto\{0,1\}^{U\times\{a,b\}}\); \texttt{software reference map}
+  \par\smallskip\noindent\emph{Definition.} Target unanimous-block label map constructed independently in \(\mathrm{def{:}package\text{-}label\text{-}maps}\).
+  \item \texttt{lpkg} --- \texttt{externally returned package labels}; \(\{0,1\}^{U\times\{a,b\}}\); \texttt{software input}
+  \par\smallskip\noindent\emph{Definition.} Matrix \(L^{\mathrm{pkg}}\) returned by the pinned package function.
+  \item \texttt{lref} --- \texttt{independently recomputed labels}; \(\{0,1\}^{U\times\{a,b\}}\); \texttt{software input}
+  \par\smallskip\noindent\emph{Definition.} Matrix \(L^{\mathrm{ref}}\) returned by an independent implementation of \(\mathsf E_{\mathrm{ref}}\).
+  \item \texttt{Phi} --- \texttt{full-\allowbreak{}neighborhood informativeness diagnostic}; \(\Phi(G,B,D,\alpha,L^{\mathrm{pkg}},L^{\mathrm{ref}})\); \texttt{consumer artifact}
+  \par\smallskip\noindent\emph{Definition.} Auditable diagnostic constructed in \(\mathrm{def{:}software\text{-}diagnostic}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:partition]\label{ass:partition}
+\(B_l\ne\varnothing,\ B_l\cap B_k=\varnothing\text{ for }l\ne k,\ \bigcup_{l=1}^LB_l=U\).
+\par\smallskip\noindent\emph{Standard} (known partial-interference partition with unequal blocks, \cite{TchetgenTchetgenVanderWeele2012}).
+\end{assumption}
+
+\begin{assumption}[ass:balanced-bernoulli]\label{ass:balanced-bernoulli}
+\(P_Z=\bigotimes_{i\in U}\operatorname{Bernoulli}(1/2)\).
+\par\smallskip\noindent\emph{Standard} (independent balanced Bernoulli randomization, \cite{AronowSamii2017}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-schedule]\label{ass:fixed-schedule}
+\(Y\text{ is nonrandom under }P_Z\).
+\par\smallskip\noindent\emph{Standard} (design-based fixed potential outcomes, \cite{AronowSamii2017}).
+\end{assumption}
+
+\begin{assumption}[ass:block-exposure]\label{ass:block-exposure}
+\(e_i(z)=a\iff z_j=1\ \forall j\in B_l,\quad e_i(z)=b\iff z_j=0\ \forall j\in B_l,\quad e_i(z)=m\text{ otherwise},\quad i\in B_l\).
+\par\smallskip\noindent\emph{Standard} (full-neighborhood exposure mapping on disjoint cliques, \cite{UganderKarrerBackstromKleinberg2013}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-outcomes]\label{ass:bounded-outcomes}
+\(-1/2\le Y_i(d)\le1/2\quad\forall i\in U,\ d\in E\).
+\par\smallskip\noindent\emph{Standard} (uniformly bounded fixed potential outcomes, centered variant, \cite{AronowSamii2017}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unequal-\allowbreak{}clique finite-\allowbreak{}population experiment class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_n(B)=\{m_n:\mathrm{ass{:}partition}(m_n)\wedge\mathrm{ass{:}balanced\text{-}bernoulli}(m_n)\wedge\mathrm{ass{:}fixed\text{-}schedule}(m_n)\wedge\mathrm{ass{:}block\text{-}exposure}(m_n)\wedge\mathrm{ass{:}bounded\text{-}outcomes}(m_n)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}partition}; \texttt{ass:\allowbreak{}balanced-\allowbreak{}bernoulli}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}schedule}; \texttt{ass:\allowbreak{}block-\allowbreak{}exposure}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcomes}.
+\end{definition}
+
+\begin{definition}[def:block-means]\label{def:block-means}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}schedule block target means}
+\par\smallskip\noindent\emph{Construction.} \(\mu_l(d)=r_l^{-1}\sum_{i\in B_l}Y_i(d),\quad d\in\{a,b\},\quad l=1,\ldots,L\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y}; \texttt{B}; \texttt{r}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:observed-block-means]\label{def:observed-block-means}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed unanimous-\allowbreak{}block statistic}
+\par\smallskip\noindent\emph{Construction.} \(\overline Y_l^{\mathrm{obs}}(D)=r_l^{-1}\sum_{i\in B_l}Y_i^{\mathrm{obs}},\quad l=1,\ldots,L\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}; \texttt{B}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:block-ht]\label{def:block-ht}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}data block-\allowbreak{}specific Horvitz-\allowbreak{}-\allowbreak{}Thompson contrast}
+\par\smallskip\noindent\emph{Construction.} \(X_l(D)=(w_l/q_l)\{A_l\overline Y_l^{\mathrm{obs}}(D)-C_l\overline Y_l^{\mathrm{obs}}(D)\},\qquad\widehat\theta(D)=\sum_{l=1}^LX_l(D)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}; \texttt{w}; \texttt{q}; \texttt{A}; \texttt{C}; \texttt{ybarobs}.
+\end{definition}
+
+\begin{definition}[def:clipped-ht]\label{def:clipped-ht}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}data clipped block-\allowbreak{}specific Bernstein interval}
+\par\smallskip\noindent\emph{Construction.} \(h_\alpha=\sqrt{S\log(2/\alpha)}+\frac{M}{6}\log(2/\alpha),\qquad I_{\mathrm{HT},\alpha}(D)=[-1,1]\cap[\widehat\theta(D)-h_\alpha,\widehat\theta(D)+h_\alpha]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}; \texttt{thetahat}; \texttt{S}; \texttt{M}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:honest-intervals]\label{def:honest-intervals}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniformly randomization-\allowbreak{}valid interval procedures}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak C_\alpha=\{\Gamma:\inf_{m\in\mathcal M_n(B)}P_{Z,R,m}\{\theta(m)\in\Gamma(D,R)\}\ge1-\alpha\}\), where \(R\) may be unused and is independent of \(Z\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gamma}; \texttt{mathcalM}; \texttt{PZ}; \texttt{R}; \texttt{theta}; \texttt{D}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:length-risk]\label{def:length-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Minimax worst-\allowbreak{}case expected interval length}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R_\alpha(w,q)=\inf_{\Gamma\in\mathfrak C_\alpha}\sup_{m\in\mathcal M_n(B)}\mathbb E_{Z,R,m}[\operatorname{len}\{\Gamma(D,R)\}]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{mathfrakC}; \texttt{mathcalM}; \texttt{D}; \texttt{R}; \texttt{w}; \texttt{q}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:trimmed-radius]\label{def:trimmed-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Trimmed inverse-\allowbreak{}probability radius}
+\par\smallskip\noindent\emph{Construction.} \(\rho_\alpha(w,q)=\inf_{J\subseteq\{1,\ldots,L\}}[\sum_{l\notin J}w_l+\sqrt{\log(2/\alpha)\sum_{l\in J}w_l^2/q_l}+\{\log(2/\alpha)/6\}\max_{l\in J}w_l/q_l]\), with the maximum over \(J=\varnothing\) equal to zero, and \(\rho_0(w,q)=\inf_J[\sum_{l\notin J}w_l+(\sum_{l\in J}w_l^2/q_l)^{1/2}]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{w}; \texttt{q}; \texttt{alpha}; \texttt{L}.
+\end{definition}
+
+\begin{definition}[def:capped-modulus]\label{def:capped-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite capped confidence modulus and water-\allowbreak{}filling certificate}
+\par\smallskip\noindent\emph{Construction.} \(\omega_\alpha(w,q)=\max\{\sum_{l=1}^Lw_l\delta_l:0\le\delta_l\le1\ \forall l,\ \sum_{l=1}^Lq_l\delta_l^2\le x_\alpha\}\). If \(x_\alpha\ge\sum_lq_l\), set \(\delta_l^*=1\) for every \(l\). Otherwise choose the unique \(\lambda_\alpha>0\) solving \(\sum_lq_l\min\{1,\lambda_\alpha w_l/q_l\}^2=x_\alpha\), and set \(\delta_l^*=\min\{1,\lambda_\alpha w_l/q_l\}\). Sorting the breakpoints \(q_l/w_l\) and solving the displayed scalar equation on each adjacent interval is the finite water-filling algorithm.
+\par\smallskip\noindent\emph{Inputs.} \texttt{w}; \texttt{q}; \texttt{alpha}; \texttt{L}.
+\end{definition}
+
+\begin{definition}[def:tilted-sign-prior]\label{def:tilted-sign-prior}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Explicit tilted product prior and induced target}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal T_{\mathrm{tilt}}=[-\|s\|_\infty^{-1},\|s\|_\infty^{-1}]\). For each \(t\in\mathcal T_{\mathrm{tilt}}\), \(\pi_t=\bigotimes_{l=1}^L\pi_{t,l}\), where \(\pi_{t,l}\{V_l=1/2\}=(1+ts_l)/2\) and \(\pi_{t,l}\{V_l=-1/2\}=(1-ts_l)/2\). Hence every coordinate probability lies in \([0,1]\), and the induced target functional is \(\tau_t=\mathbb E_{\pi_t}[T(V)]=(t/2)\sum_{l=1}^Lw_ls_l=t\sqrt S/2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{s}; \texttt{w}; \texttt{S}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:weighted-erasure-law]\label{def:weighted-erasure-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Independent weighted-\allowbreak{}erasure experiment}
+\par\smallskip\noindent\emph{Construction.} \(P_K=\bigotimes_{l=1}^L\operatorname{Bernoulli}(q_l)\), \(O=((K_l,K_lV_l))_{l=1}^L\), and \(Q_t=\pi_t\otimes P_K\otimes\operatorname{Uniform}[0,1]\) on \((V,K,R)\). Thus \(K\) is independent of \(V\), and the external randomizer \(R\) is independent of \((V,K)\), under every \(Q_t\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pi}; \texttt{PK}; \texttt{K}; \texttt{V}; \texttt{R}.
+\end{definition}
+
+\begin{definition}[def:hard-subexperiment-embedding]\label{def:hard-subexperiment-embedding}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Hard-\allowbreak{}subexperiment schedule,\allowbreak{} ancillary reconstruction,\allowbreak{} and interval reduction}
+\par\smallskip\noindent\emph{Construction.} For \(v=(v_1,\ldots,v_L)\in\{-1/2,1/2\}^L\), define \(m_v\) by \(Y_i^v(d)=v_l\) if \(i\in B_l\) and \(d=a\), and \(Y_i^v(d)=0\) if \(i\in B_l\) and \(d\ne a\). Put \(K_l=A_l\). Let \(\nu_{l,1}=\delta_{\mathbf 1_{B_l}}\) and \(\nu_{l,0}=\operatorname{Uniform}(\{0,1\}^{B_l}\setminus\{\mathbf 1_{B_l}\})\). Fix a Borel measure-preserving \(\beta:[0,1]\to[0,1]^{L+1}\), write \(\beta(R)=(R_0,R_1,\ldots,R_L)\), and choose measurable \(F_l\) such that \(F_l(k_l,R_l)\sim\nu_{l,k_l}\). Set \(Z^*_{B_l}=F_l(K_l,R_l)\), \(Y_i^*=K_lV_l\) for \(i\in B_l\), and \(D^*=(Z^*,Y^*)\). For every measurable \(\Gamma\), define \(\Lambda_\Gamma(O,R)=\Gamma(D^*(O,R_1,\ldots,R_L),R_0)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{v}; \texttt{B}; \texttt{a}; \texttt{K}; \texttt{V}; \texttt{O}; \texttt{R}; \texttt{Gamma}.
+\end{definition}
+
+\begin{definition}[def:weighted-erasure-handle]\label{def:weighted-erasure-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Heterogeneous weighted-\allowbreak{}erasure posterior-\allowbreak{}spread handle}
+\par\smallskip\noindent\emph{Construction.} Start from the explicit family \((Q_t:t\in\mathcal T_{\mathrm{tilt}})\), use the separation \(\tau_t=t\sqrt S/2\), control random weighted information and the two posterior tails of \(T(V)\) conditional on \(O\), and apply an interval-coverage averaging inequality to \(\Lambda(O,R)\) under the same joint laws.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q}; \texttt{O}; \texttt{taupi}; \texttt{T}; \texttt{Lambda}.
+\end{definition}
+
+\begin{definition}[def:water-filling-handle]\label{def:water-filling-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Capped perturbation and trimming duality handle}
+\par\smallskip\noindent\emph{Construction.} Use the explicit optimizer \(\delta_l^*=\min\{1,\lambda_\alpha w_l/q_l\}\) to build a block-homogeneous weighted-erasure testing family, prove bounded pairwise divergence from \(\sum_lq_l(\delta_l^*)^2\le x_\alpha\), and dualize its target separation against the subset-trimmed radius \(\rho_\alpha(w,q)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{delta}; \texttt{lambda}; \texttt{w}; \texttt{q}; \texttt{rho}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:package-label-maps]\label{def:package-label-maps}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pinned package and independent reference label maps}
+\par\smallskip\noindent\emph{Construction.} For the explicit domain \(\{G\in\{0,1\}^{U\times U}:G=G^\top,\ G_{ii}=0\ \forall i\in U\}\), let \(N_G[i]=\{i\}\cup\{j:G_{ij}=1\}\). The deterministic map implemented by \(\texttt{szonszein/interference}\) version \(0.1.0\), function \(\texttt{make\_exposure\_map\_full\_neighborhood}\), sends this graph domain and \(\{0,1\}^U\) into \(\{0,1\}^{U\times\{a,b\}}\), with \(\mathsf E_{\mathrm{pkg},i,a}^{0.1.0}(G,z)=\mathbf 1\{\sum_{j\in N_G[i]}z_j=|N_G[i]|\}\) and \(\mathsf E_{\mathrm{pkg},i,b}^{0.1.0}(G,z)=\mathbf 1\{\sum_{j\in N_G[i]}z_j<|N_G[i]|\}\). Independently define \(\mathsf E_{\mathrm{ref}}:(B,z)\mapsto\{0,1\}^{U\times\{a,b\}}\) by \(\mathsf E_{\mathrm{ref},i,a}(B,z)=\mathbf 1\{z_j=1\ \forall j\in B_l\}\) and \(\mathsf E_{\mathrm{ref},i,b}(B,z)=\mathbf 1\{z_j=0\ \forall j\in B_l\}\) for the unique \(l\) with \(i\in B_l\). The external and reference outputs supplied to the diagnostic are \(L^{\mathrm{pkg}}=\mathsf E_{\mathrm{pkg}}^{0.1.0}(G,Z)\) and \(L^{\mathrm{ref}}=\mathsf E_{\mathrm{ref}}(B,Z)\), respectively.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{B}; \texttt{Z}.
+\end{definition}
+
+\begin{definition}[def:software-diagnostic]\label{def:software-diagnostic}
+\par\smallskip\noindent\emph{Defined object.} Auditable full-neighborhood exposure diagnostic for \(\texttt{szonszein/interference}\) version \(0.1.0\)
+\par\smallskip\noindent\emph{Construction.} \(\Phi(G,B,D,\alpha,L^{\mathrm{pkg}},L^{\mathrm{ref}})\) takes both the externally returned output of \(\texttt{make\_exposure\_map\_full\_neighborhood}\) and the independently recomputed target labels. It first checks \(N_G[i]=B_l\) for every \(i\in B_l\). Failure of this graph check returns \(\texttt{graph-reject}\) with the first crossing neighborhood or nonclique witness; this is the branch for overlapping-neighborhood inputs. On a valid unequal-clique graph, it checks \(L^{\mathrm{pkg}}=\mathsf E_{\mathrm{pkg}}^{0.1.0}(G,Z)\), \(L^{\mathrm{ref}}=\mathsf E_{\mathrm{ref}}(B,Z)\), and then the coordinatewise equality \(L^{\mathrm{pkg}}=L^{\mathrm{ref}}\). Any failed equality returns \(\texttt{label-mismatch}\) and the first unequal coordinate. Only after all checks pass does \(\Phi\) compute \(\overline Y_l^{\mathrm{obs}}(D)\) and return \((r_l,q_l,w_l,A_l,C_l)_{l=1}^L\), \(S\), \(M\), \(\omega_\alpha\), \(\rho_\alpha\), and \(I_{\mathrm{HT},\alpha}(D)\); both rejection branches suppress the confidence output.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{B}; \texttt{D}; \texttt{alpha}; \texttt{epkg}; \texttt{eref}; \texttt{lpkg}; \texttt{lref}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:observed-block-means]\label{lem:observed-block-means}
+For every \(m\in\mathcal M_n(B)\), \(\overline Y_l^{\mathrm{obs}}(D)\) is measurable with respect to \(D\), and \(A_l=1\) implies \(\overline Y_l^{\mathrm{obs}}(D)=\mu_l(a)\), while \(C_l=1\) implies \(\overline Y_l^{\mathrm{obs}}(D)=\mu_l(b)\).
+\end{lemma}
+\begin{proof}
+Fix \(m\in\mathcal M_n(B)\) and a block \(B_l\).  By
+\(\mathrm{def{:}observed\text{-}block\text{-}means}\),
+\[
+ \overline Y_l^{\mathrm{obs}}(D)
+ =\frac1{r_l}\sum_{i\in B_l}Y_i^{\mathrm{obs}}.
+\tag{11}
+\]
+The partition is known by \(\mathrm{ass{:}partition}\), and every
+coordinate \(Y_i^{\mathrm{obs}}\) is contained in \(D\); hence the
+finite sum (11) is \(\sigma(D)\)-measurable.  If \(A_l=1\), then all
+assignments in \(B_l\) equal one.  By
+\(\mathrm{ass{:}block\text{-}exposure}\), \(e_i(Z)=a\) for every
+\(i\in B_l\), and observed-outcome consistency in the definition of
+\(Y^{\mathrm{obs}}\) gives \(Y_i^{\mathrm{obs}}=Y_i(a)\).
+Therefore, by \(\mathrm{def{:}block\text{-}means}\),
+\[
+ \overline Y_l^{\mathrm{obs}}(D)
+ =\frac1{r_l}\sum_{i\in B_l}Y_i(a)=\mu_l(a).
+\]
+The same argument with all assignments equal to zero shows that
+\(C_l=1\) implies
+\(\overline Y_l^{\mathrm{obs}}(D)=\mu_l(b)\).
+The fixed-schedule assumption ensures that the right sides are
+nonrandom under \(P_Z\), and boundedness ensures all displayed finite
+averages exist.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This measurability bridge licenses every occurrence of the fixed-schedule block target mean in the expectation calculation without placing it inside the reported statistic. \textit{Gap.} Exposure-weighted estimators are standard, but the clique reduction requires an explicit observed-data equality on each mutually exclusive unanimous event. \textit{Consumer.} The block estimator, clipped interval, and software diagnostic consume only assignment and observed outcomes.
+
+\begin{lemma}[lem:block-reduction]\label{lem:block-reduction}
+For every \(m\in\mathcal M_n(B)\), the vectors \((A_l,C_l,H_l)\) are independent across \(l\), each has categorical probabilities \((q_l,q_l,1-2q_l)\), and \(A_lC_l=0\). The observed-data construction in \(\mathrm{def{:}block\text{-}ht}\) satisfies \(\mathbb E_Z[X_l(D)]=w_l\{\mu_l(a)-\mu_l(b)\}\), \(\sum_l\operatorname{Var}_Z\{X_l(D)\}\le S/2\), and \(|X_l(D)-\mathbb E_ZX_l(D)|\le w_l/(2q_l)\le M/2\).
+\end{lemma}
+\begin{proof}
+Fix a block \(B_l\). By \(\mathrm{ass{:}balanced\text{-}bernoulli}\), each of its \(2^{r_l}\) assignment vectors has probability \(2^{-r_l}=q_l\). Exactly one vector is all treated and exactly one is all controlled. Thus
+\[
+ P_Z(A_l=1)=q_l,\qquad P_Z(C_l=1)=q_l,
+ \qquad P_Z(H_l=1)=1-2q_l,
+\tag{1}
+\]
+and \(A_lC_l=0\) on every assignment. By \(\mathrm{ass{:}partition}\), distinct triples \((A_l,C_l,H_l)\) depend on disjoint coordinates of \(Z\); their independence follows from \(\mathrm{ass{:}balanced\text{-}bernoulli}\).
+
+Put \(u_l=\mu_l(a)\) and \(v_l=\mu_l(b)\). The fixed-schedule and bounded-outcome assumptions, together with \(\mathrm{def{:}block\text{-}means}\), give
+\[
+ -\frac12\le u_l,v_l\le\frac12.
+\tag{2}
+\]
+On the all-treated and all-control events, \(\mathrm{lem{:}observed\text{-}block\text{-}means}\) identifies the observed block mean with \(u_l\) and \(v_l\), respectively. Mutual exclusion then rewrites the observed statistic, on every assignment, as
+\[
+ X_l=\frac{w_l}{q_l}(A_lu_l-C_lv_l).
+\tag{3}
+\]
+Using (1), fixedness of \((u_l,v_l)\), and \(A_lC_l=0\),
+\[
+ \mathbb E_ZX_l=w_l(u_l-v_l),
+\tag{4}
+\]
+and
+\[
+\begin{aligned}
+ \operatorname{Var}_Z(X_l)
+ &\le\mathbb E_ZX_l^2\\
+ &=\frac{w_l^2}{q_l}(u_l^2+v_l^2)\\
+ &\le\frac{w_l^2}{2q_l}.
+\end{aligned}
+\tag{5}
+\]
+The last step uses (2). Summing (5) and using the definition of \(S\) proves
+\[
+ \sum_{l=1}^L\operatorname{Var}_Z(X_l)
+ \le\frac12\sum_{l=1}^L\frac{w_l^2}{q_l}=\frac S2.
+\tag{6}
+\]
+
+It remains to compute the exact centered increment. Write \(W_l=X_l-\mathbb E_ZX_l\). Equations (3)--(4) give the following three exhaustive cases:
+\[
+ \frac{W_l}{w_l}=
+ \begin{cases}
+  (q_l^{-1}-1)u_l+v_l,&A_l=1,\\
+  -u_l-(q_l^{-1}-1)v_l,&C_l=1,\\
+  -u_l+v_l,&H_l=1.
+ \end{cases}
+\tag{7}
+\]
+Since \(r_l\ge1\), one has \(0<q_l\le1/2\). By (2), the first two rows of (7) have absolute value at most
+\[
+ \frac12(q_l^{-1}-1)+\frac12=\frac1{2q_l}.
+\tag{8}
+\]
+The third row has absolute value at most one, which is at most \(1/(2q_l)\) because \(q_l\le1/2\). Hence on every assignment
+\[
+ |X_l-\mathbb E_ZX_l|=|W_l|
+ \le\frac{w_l}{2q_l}\le\frac M2.
+\tag{9}
+\]
+This is an enumeration of All Treat, All Control, and every other assignment, rather than a triangle bound on \(|X_l|+|\mathbb E_ZX_l|\).
+
+For the smallest unequal stress test, take a singleton block and a two-unit block. Their \(2\cdot4=8\) joint assignments give categorical counts \((1,1,0)\) and \((1,1,2)\), respectively. Substitution in (7), for arbitrary \(u_l,v_l\in[-1/2,1/2]\), verifies (8)--(9) on each of the eight assignments. Thus the asserted support, mean, variance bound, and increment bound also hold exactly at this finite boundary case.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact categorical reduction preserves mutual exclusion and supplies the heterogeneous variance and increment scales for an implementable statistic. \textit{Gap.} AronowSamii2017 gives general exposure-probability Horvitz--Thompson algebra, while UganderKarrerBackstromKleinberg2013 studies full-neighborhood exposure; neither isolates this independent nonidentical weighted-erasure experiment. \textit{Consumer.} The upper interval, lower prior, and package diagnostic use the same exact block law and do not approximate dependence within blocks.
+
+\begin{theorem}[thm:finite-upper]\label{thm:finite-upper}
+For every \(0<\alpha\le1/4\) and every \(m\in\mathcal M_n(B)\), the interval \(I_{\mathrm{HT},\alpha}(D)\), which is a measurable function solely of \(D\) and known design quantities, obeys \(P_{Z,m}\{\theta\in I_{\mathrm{HT},\alpha}(D)\}\ge1-\alpha\) and \(\operatorname{len}\{I_{\mathrm{HT},\alpha}(D)\}\le2\min\{1,\sqrt{S\log(2/\alpha)}+(M/6)\log(2/\alpha)\}\).
+\end{theorem}
+\begin{proof}
+Fix \(m\in\mathcal M_n(B)\), and define
+\[
+ W_l=X_l-\mathbb E_ZX_l,\qquad z=\log(2/\alpha)>0.
+\tag{10}
+\]
+By \(\mathrm{lem{:}block\text{-}reduction}\), the variables \(W_l\) are independent and centered and obey
+\[
+ v:=\sum_{l=1}^L\mathbb E_ZW_l^2\le\frac S2,
+ \qquad |W_l|\le\frac M2.
+\tag{11}
+\]
+Apply \(\mathrm{lem{:}finite\text{-}product\text{-}exponential}\) with \(c=M/2\) and the value of \(z\) in (10). Because its threshold is nondecreasing in \(v\), (11) gives
+\[
+\begin{aligned}
+ P_Z\!\left\{\left|\sum_{l=1}^LW_l\right|>
+ \sqrt{S\log(2/\alpha)}+\frac M6\log(2/\alpha)\right\}
+ &\le2\exp\{-\log(2/\alpha)\}\\
+ &=\alpha.
+\end{aligned}
+\tag{12}
+\]
+The expectation identity in \(\mathrm{lem{:}block\text{-}reduction}\), followed by the definition of the causal estimand, yields
+\[
+ \sum_{l=1}^L\mathbb E_ZX_l
+ =\sum_{l=1}^Lw_l\{\mu_l(a)-\mu_l(b)\}=\theta.
+\tag{13}
+\]
+Since \(\widehat\theta=\sum_lX_l\) by \(\mathrm{def{:}block\text{-}ht}\), equations (12)--(13) and the corrected construction in \(\mathrm{def{:}clipped\text{-}ht}\) imply
+\[
+ P_{Z,m}\{|\widehat\theta-\theta|\le h_\alpha\}\ge1-\alpha.
+\tag{14}
+\]
+Every \(X_l\), and hence \(\widehat\theta\), is measurable from \(D\) by \(\mathrm{def{:}block\text{-}ht}\) and \(\mathrm{lem{:}observed\text{-}block\text{-}means}\). The quantities \(S\), \(M\), and \(\alpha\) are known design inputs. Moreover, bounded outcomes give \(\mu_l(a)-\mu_l(b)\in[-1,1]\), and the partition together with \(w_l=r_l/n\) gives \(\sum_lw_l=1\). Thus \(\theta\in[-1,1]\). On the event in (14), intersecting the raw interval with \([-1,1]\) cannot remove \(\theta\), proving
+\[
+ P_{Z,m}\{\theta\in I_{\mathrm{HT},\alpha}(D)\}\ge1-\alpha.
+\tag{15}
+\]
+Finally, the length of an intersection is at most the length of each intersected interval, whence, pointwise in \(D\),
+\[
+\begin{aligned}
+ \operatorname{len}\{I_{\mathrm{HT},\alpha}(D)\}
+ &\le\min\{2,2h_\alpha\}\\
+ &=2\min\!\left\{1,\sqrt{S\log(2/\alpha)}
+       +\frac M6\log(2/\alpha)\right\}.
+\end{aligned}
+\tag{16}
+\]
+This deterministic finite-sample certificate holds on every assignment, including all eight assignments in the unequal three-unit stress test of \(\mathrm{lem{:}block\text{-}reduction}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is a genuinely observed-data finite-sample interval, and the exact centered-increment enumeration sharpens its linear Bernstein term to \(M\log(2/\alpha)/6\). \textit{Gap.} TchetgenTchetgenVanderWeele2012, Section 4.3, constructs Hoeffding intervals for binary allocation-strategy effects under two-stage Type-A partial interference, and RigdonHudgens2015 constructs exact confidence sets for those binary two-stage effects; neither treats this unequal-clique Bernoulli All Treat versus All Control minimax expected-length problem or proves the open water-filling lower frontier. \textit{Consumer.} An analyst using full-neighborhood exposures obtains a computable finite-sample interval and sees exactly when a single rare block controls the Bernstein correction.
+
+\begin{lemma}[lem:hard-subexperiment-embedding]\label{lem:hard-subexperiment-embedding}
+For every \(v=(v_1,\ldots,v_L)\in\{-1/2,1/2\}^L\), the fixed block-homogeneous schedule \(m_v\) in \(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\) belongs to \(\mathcal M_n(B)\), because it is fixed and all outcomes lie in \([-1/2,1/2]\); moreover, \(\mu_l^v(a)=v_l\), \(\mu_l^v(b)=0\), and \(\theta(m_v)=\sum_{l=1}^Lw_lv_l=T(v)\). Under \(m_v\), \(K_l=A_l=\mathbf 1\{Z_{B_l}=\mathbf 1_{B_l}\}\), the \(K_l\) are independent \(\operatorname{Bernoulli}(q_l)\), \(Y_i^{\mathrm{obs}}=K_lv_l\) for \(i\in B_l\), and \(O_l=(K_l,K_lv_l)\) is measurable from \(D\). The remaining assignment information is retained exactly: \(\operatorname{Law}(Z\mid K=k)=\bigotimes_{l=1}^L\nu_{l,k_l}\), where \(\nu_{l,1}=\delta_{\mathbf 1_{B_l}}\) and \(\nu_{l,0}=\operatorname{Uniform}(\{0,1\}^{B_l}\setminus\{\mathbf 1_{B_l}\})\), so the \(K_l=0\) branch includes all-control and every mixed pattern with their original conditional probabilities. With the measure-preserving splitter \(\beta(R)=(R_0,R_1,\ldots,R_L)\), the samplers \(F_l\), and \(D^*\) of the same definition, \(\Lambda_\Gamma(O,R)=\Gamma(D^*(O,R_1,\ldots,R_L),R_0)\) is measurable in \((O,R)\) for every measurable externally randomized \(\Gamma\). For every fixed \(v\), \[\operatorname{Law}(D^*,R_0\mid V=v)=\operatorname{Law}_{Z,R_0,m_v}(D,R_0),\] and therefore \[P_{K,R}\{T(v)\in\Lambda_\Gamma(O,R)\mid V=v\}=P_{Z,R_0,m_v}\{\theta(m_v)\in\Gamma(D,R_0)\},\qquad \mathbb E_{K,R}[\operatorname{len}\{\Lambda_\Gamma(O,R)\}\mid V=v]=\mathbb E_{Z,R_0,m_v}[\operatorname{len}\{\Gamma(D,R_0)\}].\] Consequently, if \(\Gamma\in\mathfrak C_\alpha\), then \(\Lambda_\Gamma\) has coverage at least \(1-\alpha\) for every fixed \(v\), \(Q_t\{T(V)\in\Lambda_\Gamma(O,R)\}\ge1-\alpha\) for every \(t\in\mathcal T_{\mathrm{tilt}}\), and \[\sup_{m'\in\mathcal M_n(B)}\mathbb E_{Z,R,m'}[\operatorname{len}\{\Gamma(D,R)\}]\ge\sup_{v\in\{-1/2,1/2\}^L}\mathbb E_{K,R}[\operatorname{len}\{\Lambda_\Gamma(O,R)\}\mid V=v]\ge\mathbb E_{Q_t}[\operatorname{len}\{\Lambda_\Gamma(O,R)\}]\] for every admissible \(t\). Taking the supremum over admissible \(t\), applying a weighted-erasure spread result if and when it is proved, and then taking the infimum over \(\Gamma\in\mathfrak C_\alpha\) yields the minimax lower bound. Thus the bridge preserves the entire randomized decision experiment; it does not assert the weighted-erasure posterior-spread inequality.
+\end{lemma}
+\begin{proof}
+For fixed \(v\), the schedule in
+\(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\) is a
+nonrandom array, so it satisfies
+\(\mathrm{ass{:}fixed\text{-}schedule}\).  Its entries are either
+\(v_l\in\{-1/2,1/2\}\) or zero, so it satisfies
+\(\mathrm{ass{:}bounded\text{-}outcomes}\).  It uses the fixed design,
+partition, and exposure map from the model class, hence \(m_v\in
+\mathcal M_n(B)\).  Direct substitution in
+\(\mathrm{def{:}block\text{-}means}\) gives
+\[
+ \mu_l^v(a)=v_l,\qquad \mu_l^v(b)=0,
+\]
+and therefore
+\[
+ \theta(m_v)=\sum_lw_l\{\mu_l^v(a)-\mu_l^v(b)\}
+ =\sum_lw_lv_l=T(v).
+\tag{22}
+\]
+
+By the block exposure rule, an outcome in \(B_l\) equals \(v_l\)
+exactly on the all-treated pattern and equals zero on every other
+pattern.  Thus
+\[
+ K_l=A_l=\mathbf1\{Z_{B_l}=\mathbf1_{B_l}\},\qquad
+ Y_i^{\mathrm{obs}}=K_lv_l\quad(i\in B_l),
+\tag{23}
+\]
+and \(O_l=(K_l,K_lv_l)\) is measurable from \(D\).  The block
+assignments are independent.  Within a block all \(2^{r_l}\) patterns
+have equal probability, whence
+\[
+ \operatorname{Law}(Z_{B_l}\mid K_l=1)
+ =\delta_{\mathbf1_{B_l}},\qquad
+ \operatorname{Law}(Z_{B_l}\mid K_l=0)
+ =\operatorname{Uniform}
+ \bigl(\{0,1\}^{B_l}\setminus\{\mathbf1_{B_l}\}\bigr).
+\tag{24}
+\]
+This proves both the stated Bernoulli law of \(K_l\) and the product
+conditional kernel \(\bigotimes_l\nu_{l,k_l}\).  In particular, (24)
+retains the all-control assignment together with all mixed patterns;
+none is discarded as ancillary.
+
+For completeness, the randomization devices in the construction may
+be realized explicitly.  Outside the null set of dyadic rationals,
+write the binary digits of \(R\), and distribute successive digits
+cyclically among \(L+1\) coordinates.  Independent fair binary digits
+show on every dyadic cylinder that the resulting coordinates
+\((R_0,\ldots,R_L)\) have product Lebesgue law; extension from
+cylinders gives the asserted pushforward, and arbitrary values on the
+null exceptional set preserve it.  Because each \(\nu_{l,k}\) has
+finite support, \(F_l(k,\cdot)\) can be its inverse-distribution
+sampler and is measurable.
+
+Under \(Q_t\), \(K_l\) are independent Bernoulli variables with
+probabilities \(q_l\), and the split coordinates are independent
+uniforms.  Equations (24) and the definition of \(F_l\) therefore give,
+conditional on \(V=v\),
+\[
+ \operatorname{Law}(Z^*\mid K=k,V=v)
+ =\bigotimes_l\nu_{l,k_l}
+ =\operatorname{Law}_{Z,m_v}(Z\mid K=k).
+\tag{25}
+\]
+Equations (23) and (25) imply
+\[
+ \operatorname{Law}(D^*,R_0\mid V=v)
+ =\operatorname{Law}_{Z,R_0,m_v}(D,R_0).
+\tag{26}
+\]
+Composition of the measurable samplers with a measurable
+\(\Gamma\) proves measurability of \(\Lambda_\Gamma\).
+Because (22) identifies the two fixed targets and (26) identifies the
+entire randomized observations, it follows that
+\[
+\begin{aligned}
+ P_{K,R}\{T(v)\in\Lambda_\Gamma(O,R)\mid V=v\}
+ &=P_{Z,R_0,m_v}\{\theta(m_v)\in\Gamma(D,R_0)\},\\
+ \mathbb E_{K,R}[\operatorname{len}\{\Lambda_\Gamma(O,R)\}\mid V=v]
+ &=\mathbb E_{Z,R_0,m_v}[\operatorname{len}\{\Gamma(D,R_0)\}].
+\end{aligned}
+\tag{27}
+\]
+
+If \(\Gamma\in\mathfrak C_\alpha\), its pointwise honesty applied to
+each \(m_v\) makes the first line of (27) at least \(1-\alpha\).
+Integrating that inequality over \(V\sim\pi_t\), using nonnegativity
+and Tonelli's theorem, gives
+\[
+ Q_t\{T(V)\in\Lambda_\Gamma(O,R)\}\ge1-\alpha.
+\tag{28}
+\]
+Similarly, the second line of (27) and the fact that a prior average
+does not exceed a supremum give
+\[
+\begin{aligned}
+ \sup_{m'\in\mathcal M_n(B)}
+ \mathbb E_{Z,R,m'}\operatorname{len}\{\Gamma(D,R)\}
+ &\ge\sup_v\mathbb E_{K,R}
+ [\operatorname{len}\{\Lambda_\Gamma(O,R)\}\mid V=v]\\
+ &\ge\mathbb E_{Q_t}
+ \operatorname{len}\{\Lambda_\Gamma(O,R)\}.
+\end{aligned}
+\tag{29}
+\]
+This proves every asserted bridge statement.  Equations (28)--(29)
+use no posterior-spread claim; such a claim would be a separate lower
+bound in the weighted-erasure experiment.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This exact Markov-kernel embedding retains every assignment ancillary and transfers pointwise coverage and expected length for arbitrary externally randomized original-data intervals. \textit{Gap.} The weighted-erasure lower experiment is not automatically a subexperiment for arbitrary procedures unless the unrevealed assignment patterns and external randomization are reconstructed with their exact laws. \textit{Consumer.} The posterior-spread question and no-dominance minimax theorem can invoke a rigorous experiment-to-experiment reduction without assuming ancillary irrelevance.
+
+\begin{openendedquestion}[oeq:weighted-erasure-spread]\label{oeq:weighted-erasure-spread}
+Establish or refute the following assertion using \(H_{\mathrm{WE}}\). There exist universal \(c_0,c_1,c_2\in(0,1)\) such that, for every \(0<\alpha\le1/4\) and every \((w,q)\) satisfying \(\sum_{l=1}^Lq_ls_l^2=1\) and \(\|s\|_\infty\sqrt{x_\alpha}\le c_0\), the interval \([-c_2\sqrt{x_\alpha},c_2\sqrt{x_\alpha}]\) is contained in \(\mathcal T_{\mathrm{tilt}}\), and every measurable \(\Lambda(O,R)\) obeys \[\inf_{|t|\le c_2\sqrt{x_\alpha}}Q_t\{T(V)\in\Lambda(O,R)\}\ge1-\alpha\quad\Longrightarrow\quad\sup_{|t|\le c_2\sqrt{x_\alpha}}\mathbb E_{Q_t}[\operatorname{len}\{\Lambda(O,R)\}]\ge c_1\min\{1,\sqrt{Sx_\alpha}\}.\] Here \(Q_t=\pi_t\otimes P_K\otimes\operatorname{Uniform}[0,1]\): every probability and expectation integrates \(V\sim\pi_t\), \(K\sim P_K\) independently of \(V\), and the external \(R\) independently of \((V,K)\). The assertion is solely the posterior-spread inequality. The pointwise-coverage and worst-case-to-prior-average transfer for \(\Lambda_\Gamma\) is supplied by \(\mathrm{lem{:}hard\text{-}subexperiment\text{-}embedding}\), not assumed here.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The fully specified prior family and joint law make the first-class lower-bound bottleneck falsifiable for centered, uncentered, deterministic, and externally randomized intervals. \textit{Gap.} CaiLow2004 and ArmstrongKolesar2018 obtain modulus lower bounds in Gaussian experiments, while FelixGarciaSousa2025 treats one-parameter discrete families; none proves posterior spread for a weighted nonidentical erasure experiment with compact block outcomes. \textit{Consumer.} A successful lemma certifies rate optimality among all honest procedures, not only inverse-probability or nonrandomized intervals.
+
+\begin{theorem}[thm:trimmed-upper]\label{thm:trimmed-upper}
+For every \(0<\alpha\le1/4\), there exists an interval in \(\mathfrak C_\alpha\), measurable from \(D\), obtained by minimizing over \(J\), applying the observed-data block Horvitz--Thompson estimator on \(J\), and adding omitted contrast allowance \(\sum_{l\notin J}w_l\), whose length is at most \(2\min\{1,\rho_\alpha(w,q)\}\).
+\end{theorem}
+\begin{proof}
+Fix a deterministic subset \(J\subseteq\{1,\ldots,L\}\) and define
+\[
+ \widehat\theta_J=\sum_{l\in J}X_l,
+ \qquad
+ \theta_J=\sum_{l\in J}w_l\{\mu_l(a)-\mu_l(b)\},
+\]
+\[
+ S_J=\sum_{l\in J}\frac{w_l^2}{q_l},\qquad
+ M_J=\max_{l\in J}\frac{w_l}{q_l},\qquad
+ b_J=\sum_{l\notin J}w_l,
+\tag{17}
+\]
+with \(M_\varnothing=0\). For \(l\in J\), \(\mathrm{lem{:}block\text{-}reduction}\) gives independent centered variables \(W_l=X_l-\mathbb E_ZX_l\) satisfying
+\[
+ \sum_{l\in J}\mathbb E_ZW_l^2\le\frac{S_J}{2},
+ \qquad
+ |W_l|\le\frac{w_l}{2q_l}\le\frac{M_J}{2}.
+\tag{18}
+\]
+If \(J\ne\varnothing\), apply \(\mathrm{lem{:}finite\text{-}product\text{-}exponential}\) with \(v\le S_J/2\), \(c=M_J/2\), and \(y=\log(2/\alpha)>0\). If \(J=\varnothing\), the same conclusion holds deterministically because both sums are zero. In either case,
+\[
+ P_Z\!\left\{|\widehat\theta_J-\theta_J|>
+ \sqrt{S_Jy}+\frac{M_Jy}{6}\right\}\le\alpha.
+\tag{19}
+\]
+Bounded outcomes imply \(|\mu_l(a)-\mu_l(b)|\le1\), so
+\[
+ |\theta-\theta_J|
+ =\left|\sum_{l\notin J}w_l\{\mu_l(a)-\mu_l(b)\}\right|
+ \le b_J.
+\tag{20}
+\]
+Consequently the observed-data interval
+\[
+ I_J(D)=[-1,1]\cap
+ \left[\widehat\theta_J-b_J-\sqrt{S_Jy}-\frac{M_Jy}{6},
+       \widehat\theta_J+b_J+\sqrt{S_Jy}+\frac{M_Jy}{6}\right]
+\tag{21}
+\]
+has coverage at least \(1-\alpha\) by (19)--(20). Each \(X_l\) is measurable from \(D\), and \(J\), \(S_J\), \(M_J\), and \(b_J\) are fixed known-design quantities, so \(I_J\) is measurable from \(D\). Its pointwise length is at most
+\[
+ 2\min\!\left\{1,b_J+\sqrt{S_Jy}+\frac{M_Jy}{6}\right\}.
+\tag{22}
+\]
+There are finitely many subsets. Choose a minimizer of the known expression in (22), using a fixed deterministic tie rule. The selected subset is nonrandom, so (19) retains its coverage. By the corrected construction in \(\mathrm{def{:}trimmed\text{-}radius}\), the expression after the leading one in (22) is exactly \(\rho_\alpha(w,q)\). Thus the selected interval lies in \(\mathfrak C_\alpha\) and has length at most \(2\min\{1,\rho_\alpha(w,q)\}\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Trimming prevents a low-weight, astronomically rare block from making the global interval inconsistent through inverse-probability amplification. \textit{Gap.} KandirosHarshawSavje2026 removes difficult conflict-graph vertices for mean-squared error; this fixed-design procedure protects omitted causal contrast and retains finite-sample coverage. \textit{Consumer.} The interval tells practitioners when to bias-protect a negligible rare block rather than report an explosive inverse-probability radius.
+
+\begin{openendedquestion}[oeq:water-filling-frontier]\label{oeq:water-filling-frontier}
+Determine whether there is a universal constant \(c>0\) such that, for every \(0<\alpha\le1/4\) and every unequal-clique design in the model class,
+\[
+ \mathcal R_\alpha(w,q)\ge c\min\{1,\omega_\alpha(w,q)\}.
+\]
+The lower bound must hold when the infimum defining \(\mathcal R_\alpha\) ranges over every measurable interval procedure, including procedures randomized by the independent external randomizer \(R\). This universal linear lower bound is the sole residual question.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The capped optimizer, trimming dual, unrestricted upper bound, no-cap formula, and exact consistency boundary are proved; this question is retained solely for the matching all-measurable randomized-interval lower bound. \textit{Gap.} Only the universal linear relation \(\mathcal R_\alpha\gtrsim\min\{1,\omega_\alpha\}\) remains open; the optimizer, duality, upper bound, and zero-versus-nonzero boundary are no longer part of the gap. \textit{Consumer.} Closing this question would add a two-sided sharp expected-length rate without changing the already-proved consistency boundary.
+
+\begin{proposition}[prop:capped-modulus-exhibit]\label{prop:capped-modulus-exhibit}
+For the unequal six-block population with \(r=(1,1,1,3,3,3)\), \(n=12\), and \(\alpha=1/4\), the three size-three coordinates cap and the three size-one coordinates do not. Explicitly, \(\lambda_\alpha=\sqrt{24(\log4-3/8)}\), \(\omega_{1/4}=3/4+\sqrt{(\log4-3/8)/24}\approx0.9553\), and the subset retaining only size-one blocks gives \(\rho_0\le3/4+1/\sqrt{24}\approx0.9541\).
+\end{proposition}
+\begin{proof}
+By the definitions of \(w_l\) and \(q_l\), each of the three blocks of size one has
+\[
+ (w_l,q_l)=\left(\frac{1}{12},\frac{1}{2}\right),
+ \qquad \frac{w_l}{q_l}=\frac{1}{6},
+\]
+whereas each of the three blocks of size three has
+\[
+ (w_l,q_l)=\left(\frac{1}{4},\frac{1}{8}\right),
+ \qquad \frac{w_l}{q_l}=2.
+\tag{1}
+\]
+At \(\alpha=1/4\), the quadratic budget in \(\mathrm{def{:}capped\text{-}modulus}\) is \(x_\alpha=\log 4\).  Moreover,
+\[
+ \sum_{l=1}^L q_l=3\left(\frac12\right)+3\left(\frac18\right)=\frac{15}{8}>\log4,
+\]
+where \(\log4<3/2\) follows, for example, from
+\(e^{3/2}>1+3/2+(3/2)^2/2+(3/2)^3/6>4\).
+Thus this is the finite-multiplier case of
+\(\mathrm{def{:}capped\text{-}modulus}\).  By the water-filling characterization in
+\(\mathrm{lem{:}capped\text{-}trimming\text{-}duality}\), a coordinate is capped exactly when
+\(\lambda_\alpha w_l/q_l\ge 1\).  The breakpoints \(q_l/w_l\) are therefore \(1/2\) for a size-three block and \(6\) for a size-one block.
+
+Suppose that \(1/2<\lambda_\alpha<6\).  Then the budget equation in
+\(\mathrm{def{:}capped\text{-}modulus}\) becomes
+\[
+ 3\left(\frac18\right)
+ +3\left(\frac12\right)\left(\frac{\lambda_\alpha}{6}\right)^2
+ =\frac38+\frac{\lambda_\alpha^2}{24}
+ =\log4.
+\]
+Its unique positive solution is
+\[
+ \lambda_\alpha=\sqrt{24\left(\log4-\frac38\right)}.
+\tag{2}
+\]
+This solution indeed lies in the supposed interval.  To see this without relying on decimal rounding, \(k!\ge 2^{k-1}\) for every \(k\ge2\), with strict inequality for some \(k\), and hence the exponential series gives
+\[
+ e=2+\sum_{k=2}^{\infty}\frac1{k!}
+ <2+\sum_{k=2}^{\infty}2^{-(k-1)}=3<4.
+\]
+Thus \(\log4>1\), while the preceding exponential-series lower bound gives \(\log4<3/2\).  Consequently
+\[
+ 15<24\left(\log4-\frac38\right)<27,
+\]
+so in particular \(1/2<\lambda_\alpha<6\).  Thus the three size-three coordinates are capped and the three size-one coordinates are not, and uniqueness in
+\(\mathrm{lem{:}capped\text{-}trimming\text{-}duality}\) confirms that (2) is the optimizer's multiplier.
+
+Substituting this optimizer into the linear objective gives
+\[
+ \begin{aligned}
+ \omega_{1/4}(w,q)
+ &=3\left(\frac14\right)
+   +3\left(\frac1{12}\right)\frac{\lambda_\alpha}{6}\\
+ &=\frac34+\frac{\lambda_\alpha}{24}
+  =\frac34+\sqrt{\frac{\log4-3/8}{24}}
+  \approx0.9553.
+ \end{aligned}
+\tag{3}
+\]
+Finally, in the infimum defining \(\rho_0(w,q)\), choose \(J\) to be the three size-one blocks.  The omitted weight and retained quadratic term are, respectively,
+\[
+ \sum_{l\notin J}w_l=3\left(\frac14\right)=\frac34,
+ \qquad
+ \sum_{l\in J}\frac{w_l^2}{q_l}
+ =3\frac{(1/12)^2}{1/2}=\frac1{24}.
+\]
+This feasible choice in \(\mathrm{def{:}trimmed\text{-}radius}\) proves
+\[
+ \rho_0(w,q)\le \frac34+\frac1{\sqrt{24}}\approx0.9541,
+\]
+which completes every asserted calculation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The numerical exhibit exposes the cap threshold and the near-matching trimming certificate in a reproducible unequal-block instance. \textit{Gap.} An equal-block substitution has only one breakpoint and therefore cannot reproduce simultaneous capped and uncapped coordinates. \textit{Consumer.} The software diagnostic uses this instance as a unit test for sorting, multiplier solution, and trimming output.
+
+\begin{theorem}[thm:consistency-boundary]\label{thm:consistency-boundary}
+For every triangular array \((B^{(n)},w^{(n)},q^{(n)})\) and every fixed \(0<\alpha\le1/4\), \[\mathcal R_\alpha(w^{(n)},q^{(n)})\to0\quad\Longleftrightarrow\quad\omega_\alpha(w^{(n)},q^{(n)})\to0\quad\Longleftrightarrow\quad\rho_0(w^{(n)},q^{(n)})\to0.\] In particular, \(S^{(n)}\to0\) is sufficient but not necessary.
+\end{theorem}
+\begin{proof}
+Fix \(0<\alpha\le1/4\), put \(x=\log(1/\alpha)>1\), and write
+\[
+ \omega_z(w,q)=\max\left\{\sum_{l=1}^Lw_l\delta_l:
+ 0\le\delta_l\le1,\quad
+ \sum_{l=1}^Lq_l\delta_l^2\le z\right\}.
+\tag{63}
+\]
+Thus \(\omega_\alpha=\omega_x\), whereas \(\omega_1\) is the budget-one modulus. Since \(x>1\), nesting gives \(\omega_1\le\omega_x\). Conversely, if \(\delta\) is feasible at budget \(x\), then \(\delta/\sqrt{x}\in[0,1]^L\), its quadratic cost is at most one, and its objective is the original objective divided by \(\sqrt{x}\). Taking suprema proves
+\[
+ \omega_1\le\omega_\alpha\le\sqrt{x}\,\omega_1.
+\tag{64}
+\]
+By \(\mathrm{lem{:}capped\text{-}trimming\text{-}duality}\),
+\[
+ \omega_1\le\rho_0\le2\omega_1.
+\tag{65}
+\]
+Because \(x\) is fixed along the triangular array, (64)--(65) imply
+\[
+ \omega_\alpha\to0\quad\Longleftrightarrow\quad\rho_0\to0.
+\tag{66}
+\]
+The unrestricted upper theorem gives
+\[
+ \mathcal R_\alpha(w,q)\le5\min\{1,\omega_\alpha(w,q)\},
+\tag{67}
+\]
+so \(\omega_\alpha\to0\) implies \(\mathcal R_\alpha\to0\). Conversely, \(\mathrm{lem{:}capped\text{-}erasure\text{-}consistency\text{-}lower}\) gives row by row
+\[
+ \mathcal R_\alpha(w,q)\ge\frac{\omega_\alpha(w,q)^3}{136x}.
+\tag{68}
+\]
+Since \(136x\) is fixed, finite, and positive, \(\mathcal R_\alpha\to0\) forces \(\omega_\alpha\to0\). Equations (66)--(68) prove the three-way equivalence.
+
+For sufficiency of \(S^{(n)}\to0\), positivity of every \(q_l\) and Cauchy--Schwarz give, for each vector feasible at budget \(x\),
+\[
+\begin{aligned}
+ \sum_{l=1}^Lw_l\delta_l
+ &=\sum_{l=1}^L\frac{w_l}{\sqrt{q_l}}\sqrt{q_l}\delta_l\\
+ &\le\left(\sum_{l=1}^L\frac{w_l^2}{q_l}\right)^{1/2}
+       \left(\sum_{l=1}^Lq_l\delta_l^2\right)^{1/2}
+ \le\sqrt{xS}.
+\end{aligned}
+\tag{69}
+\]
+Maximizing proves \(\omega_\alpha\le\sqrt{xS}\); (67) then shows that \(S^{(n)}\to0\) is sufficient.
+
+For nonnecessity, for each integer \(k\ge1\) set \(n_k=2k\,2^k\). Partition the \(n_k\) units into one block of size \(2k\) and \(n_k-2k\) singleton blocks. These blocks are nonempty, disjoint, and exhaustive. Under balanced Bernoulli assignment, the large block has
+\[
+ w_{\mathrm{big}}=\frac{2k}{n_k}=2^{-k},
+ \qquad q_{\mathrm{big}}=2^{-2k},
+ \qquad \frac{w_{\mathrm{big}}^2}{q_{\mathrm{big}}}=1.
+\tag{70}
+\]
+Every singleton has \(w_l=1/n_k\) and \(q_l=1/2\). Therefore
+\[
+ S^{(n_k)}=1+\frac{2(n_k-2k)}{n_k^2}\longrightarrow1.
+\tag{71}
+\]
+Let \(J_k\) contain all singleton blocks and put \(y=\log(2/\alpha)\). The omitted weight is \(2^{-k}\), the retained quadratic sum is \(2(n_k-2k)/n_k^2\), and the largest retained ratio is \(2/n_k\). The corrected trimmed radius gives
+\[
+ \rho_\alpha(w^{(n_k)},q^{(n_k)})
+ \le2^{-k}+\sqrt{\frac{2y(n_k-2k)}{n_k^2}}
+       +\frac{y}{3n_k}
+ \longrightarrow0.
+\tag{72}
+\]
+The lower comparison \(\omega_\alpha\le\rho_\alpha\), followed by (67), gives \(\mathcal R_\alpha(w^{(n_k)},q^{(n_k)})\to0\), whereas (71) shows \(S^{(n_k)}\not\to0\). This explicit unequal-clique triangular array proves nonnecessity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The cubic all-procedure lower bound and trimmed upper bound prove the full fixed-confidence equivalence R\_alpha->0 iff omega\_alpha->0 iff rho\_0->0. \textit{Gap.} Only the sharp nonzero finite-confidence relation R\_alpha comparable to min{1,omega\_alpha} remains open; no direction of the zero-versus-nonzero consistency boundary is unresolved. \textit{Consumer.} Designers obtain the intrinsic consistency boundary now; resolving the linear OEQs would add sharp expected-length rates and constants, not alter consistency.
+
+\begin{proposition}[prop:unequal-two-scale-family]\label{prop:unequal-two-scale-family}
+Let \(B^{(k)}\) contain \(k\) blocks of size two and \(k\) blocks of size four, so \(n=6k\). The two strata have \((w_l,q_l)=(1/(3k),1/4)\) and \((w_l,q_l)=(2/(3k),1/16)\), respectively, and
+\[
+ S=\frac{68}{9k},\qquad M=\frac{32}{3k},\qquad
+ \frac{M\sqrt{\log(1/\alpha)}}{\sqrt S}
+ =\frac{32\sqrt{\log(1/\alpha)}}{\sqrt{68k}}.
+\]
+Thus, for every fixed \(0<\alpha\le1/4\), the no-dominance condition holds for all sufficiently large \(k\). With \(C_1\) denoting the universal constant in \(\mathrm{thm{:}no\text{-}dominance\text{-}upper}\), for every sufficiently large \(k\),
+\[
+ \frac{1}{192\sqrt{k}}
+ \le \mathcal R_\alpha(w,q)
+ \le C_1\sqrt{\frac{68\log(1/\alpha)}{9k}},
+\]
+and consequently \(\mathcal R_\alpha(w,q)=\Theta_\alpha(k^{-1/2})\). The two water-filling breakpoints \(q_l/w_l\) are \(3k/4\) and \(3k/32\). No common block size can reproduce both reveal probabilities, or both breakpoints.
+\end{proposition}
+\begin{proof}
+The population size is \(2k+4k=6k\). Hence a size-two block has
+\[
+ w_l=\frac2{6k}=\frac1{3k},\qquad q_l=2^{-2}=\frac14,
+\]
+whereas a size-four block has
+\[
+ w_l=\frac4{6k}=\frac2{3k},\qquad q_l=2^{-4}=\frac1{16}.
+\]
+The reveal probabilities follow from \(\mathrm{ass{:}balanced\text{-}bernoulli}\). Substitution into \(S\) and \(M\) gives
+\[
+\begin{aligned}
+ S
+ &=k\frac{(1/(3k))^2}{1/4}
+   +k\frac{(2/(3k))^2}{1/16}
+   =\frac4{9k}+\frac{64}{9k}
+   =\frac{68}{9k},\\
+ M
+ &=\max\left\{\frac{1/(3k)}{1/4},
+                \frac{2/(3k)}{1/16}\right\}
+   =\frac{32}{3k}.
+\end{aligned}
+\tag{58}
+\]
+Consequently
+\[
+ \frac{M\sqrt{\log(1/\alpha)}}{\sqrt S}
+ =\frac{32\sqrt{\log(1/\alpha)}}{\sqrt{68k}}
+ \longrightarrow0
+\tag{59}
+\]
+for fixed \(\alpha\). Thus \(\mathrm{thm{:}no\text{-}dominance\text{-}upper}\) applies for all sufficiently large \(k\), and (58) yields
+\[
+ \mathcal R_\alpha(w,q)
+ \le C_1\sqrt{\frac{68\log(1/\alpha)}{9k}}.
+\tag{60}
+\]
+For \(k\ge64\), \(\mathrm{lem{:}two\text{-}scale\text{-}rademacher\text{-}lower}\) gives
+\[
+ \mathcal R_\alpha(w,q)\ge\frac1{192\sqrt{k}}.
+\tag{61}
+\]
+Equations (60)--(61) prove \(\mathcal R_\alpha(w,q)=\Theta_\alpha(k^{-1/2})\). The lower bound is specialized to the repeated size-two stratum and makes no assertion about either universal weighted-erasure open question.
+
+Finally, the cap breakpoints are \(q_l/w_l\), namely
+\[
+ \frac{1/4}{1/(3k)}=\frac{3k}{4},
+ \qquad
+ \frac{1/16}{2/(3k)}=\frac{3k}{32}.
+\tag{62}
+\]
+Since \(r\mapsto2^{-r}\) is injective on the positive integers, one common block size cannot reproduce both reveal probabilities. The two distinct values in (62) likewise rule out a common breakpoint.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact design algebra, the observed-data upper interval, and product-Rademacher posterior anti-concentration on the \(k\) size-two blocks jointly give a refutable fixed-confidence \(\Theta_\alpha(k^{-1/2})\) prediction. \textit{Gap.} This family-specific lower bound uses its repeated size-two stratum and is not a proof of the universal weighted-erasure lower frontier. \textit{Consumer.} A simulation study and the package diagnostic can check both sides of the predicted \(k^{-1/2}\) confidence-length curve within the stated two-scale design.
+
+\begin{proposition}[prop:equal-block-reduction]\label{prop:equal-block-reduction}
+If \(r_l=r\) for every \(l\), then
+\[
+ L=\frac nr,\qquad q_l=2^{-r},\qquad w_l=\frac rn,
+ \qquad S=M=\frac{r2^r}{n}.
+\]
+With \(c_0,C_1\) denoting the universal constants in
+\(\mathrm{thm{:}no\text{-}dominance\text{-}upper}\), the no-dominance
+condition is equivalent to
+\[
+ \frac{r2^r\log(1/\alpha)}{n}\le c_0^2.
+\]
+Whenever this condition holds, for every \(0<\alpha\le1/4\),
+\[
+ \mathcal R_\alpha(w,q)
+ \le C_1\min\left\{1,
+       \sqrt{\frac{r2^r\log(1/\alpha)}{n}}\right\}.
+\]
+Thus the heterogeneous upper theorem recovers the familiar
+equal-block effective-count upper rate without any additional
+extreme-confidence cutoff.
+\end{proposition}
+\begin{proof}
+By \(\mathrm{ass{:}partition}\), the blocks are pairwise disjoint and their union is \(U\).  Under the hypothesis \(r_l=r\) for every \(l\), finite additivity of cardinality therefore gives
+\[
+n=|U|=\sum_{l=1}^L |B_l|=\sum_{l=1}^L r=Lr.
+\]
+Every block is nonempty by \(\mathrm{ass{:}partition}\), so \(r\ge 1\); hence division by \(r\) is valid and \(L=n/r\).  The definition of the block weights yields \(w_l=r_l/n=r/n\).  By \(\mathrm{ass{:}balanced\text{-}bernoulli}\), the assignments within a block are independent Bernoulli random variables with success probability \(1/2\).  Thus
+\[
+q_l=P_Z(Z_i=1\ \forall i\in B_l)
+=\prod_{i\in B_l}\frac12
+=2^{-|B_l|}=2^{-r};
+\]
+the same calculation applies to the all-control event.
+
+Substituting \(L=n/r\), \(w_l=r/n\), and \(q_l=2^{-r}\) into the definitions of \(S\) and \(M\) gives
+\[
+S=\sum_{l=1}^L\frac{w_l^2}{q_l}
+=\frac nr\frac{r^2}{n^2}2^r
+=\frac{r2^r}{n},
+\qquad
+M=\max_{1\le l\le L}\frac{w_l}{q_l}
+=\frac rn2^r
+=\frac{r2^r}{n}=S.
+\tag{1}
+\]
+In particular, \(S>0\).  Because \(0<\alpha\le 1/4\), one has \(\log(1/\alpha)>0\).  Consequently the no-dominance condition in \(\mathrm{thm{:}no\text{-}dominance\text{-}upper}\) is, using \(M=S\), equivalent to
+\[
+S\sqrt{\log(1/\alpha)}\le c_0\sqrt S
+\quad\Longleftrightarrow\quad
+\sqrt{S\log(1/\alpha)}\le c_0
+\quad\Longleftrightarrow\quad
+S\log(1/\alpha)\le c_0^2.
+\]
+Here the first equivalence divides by the strictly positive quantity \(\sqrt S\), and the second squares two nonnegative quantities.  Formula \((1)\) turns the last display into
+\[
+\frac{r2^r\log(1/\alpha)}{n}\le c_0^2.
+\]
+Whenever this condition holds, \(\mathrm{thm{:}no\text{-}dominance\text{-}upper}\) applies and, after one more substitution from \((1)\), gives
+\[
+\mathcal R_\alpha(w,q)
+\le C_1\min\{1,\sqrt{S\log(1/\alpha)}\}
+=C_1\min\left\{1,
+\sqrt{\frac{r2^r\log(1/\alpha)}{n}}\right\}.
+\]
+The cited theorem requires only \(0<\alpha\le1/4\) and the displayed no-dominance inequality.  Therefore this reduction introduces no additional extreme-confidence cutoff.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is solely a reduction check showing that the heterogeneous formulas contain the established equal-block effective-count calculation. \textit{Gap.} No independent novelty is claimed for the equal-block identity; the contribution begins when weights, reveal probabilities, and cap thresholds differ. \textit{Consumer.} Users with regular partitions recover the familiar \(n/(r2^r)\) effective count as a check on the general implementation.
+
+\begin{proposition}[prop:software-diagnostic]\label{prop:software-diagnostic}
+Let \(L^{\mathrm{pkg}}=\mathsf E_{\mathrm{pkg}}^{0.1.0}(G,Z)\) be the labels externally returned by \(\texttt{szonszein/interference}\) version \(0.1.0\), function \(\texttt{make\_exposure\_map\_full\_neighborhood}\), and let \(L^{\mathrm{ref}}=\mathsf E_{\mathrm{ref}}(B,Z)\) be independently recomputed. If \(G\) is the disjoint union of the unequal clique components \(B_1,\ldots,B_L\), then \[L^{\mathrm{pkg}}=L^{\mathrm{ref}}\quad\Longleftrightarrow\quad A_l+C_l=1\text{ for every }l.\] In particular, because the pinned package map labels its second column by the complement of All Treat, a mixed block produces an explicit second-column mismatch with the target All Control map. On a valid clique input, \(\Phi(G,B,D,\alpha,L^{\mathrm{pkg}},L^{\mathrm{ref}})\) returns \(\texttt{label-equal}\) and the exact \(q_l=2^{-r_l}\), observed unanimous-block statistics, \(S\), \(M\), \(\omega_\alpha\), \(\rho_\alpha\), and \(I_{\mathrm{HT},\alpha}(D)\) exactly when the displayed equality holds; otherwise it returns \(\texttt{label-mismatch}\) with a coordinate witness and no interval. If any \(N_G[i]\ne B_l\) for \(i\in B_l\), including overlapping-neighborhood or nonclique inputs, it instead returns \(\texttt{graph-reject}\) with a structural witness before performing the label equality check and produces no interval.
+\end{proposition}
+\begin{proof}
+Assume first that \(G\) is the disjoint union of the clique components
+\(B_1,\ldots,B_L\).  By the definition of a clique component,
+\(N_G[i]=B_l\) for every \(i\in B_l\), so the graph check in
+\(\mathrm{def{:}software\text{-}diagnostic}\) passes.  Fix \(i\in B_l\).
+Because assignments are binary, the package formulas in
+\(\mathrm{def{:}package\text{-}label\text{-}maps}\), together with
+\(N_G[i]=B_l\), give
+\[
+ \mathsf E^{0.1.0}_{\mathrm{pkg},i,a}(G,Z)=A_l,
+ \qquad
+ \mathsf E^{0.1.0}_{\mathrm{pkg},i,b}(G,Z)=1-A_l.
+\]
+The independently specified reference formulas give
+\[
+ \mathsf E_{\mathrm{ref},i,a}(B,Z)=A_l,
+ \qquad
+ \mathsf E_{\mathrm{ref},i,b}(B,Z)=C_l.
+\]
+Since the matrices supplied in the proposition are the outputs of these two maps, their two columns on block \(B_l\) consequently have the table
+\[
+ \begin{array}{c|cc}
+  &a&b\\ \hline
+ L^{\mathrm{pkg}}_{i,\cdot}&A_l&1-A_l\\
+ L^{\mathrm{ref}}_{i,\cdot}&A_l&C_l.
+ \end{array}
+\tag{4}
+\]
+The first columns in (4) agree identically.  The second columns agree for every unit if and only if
+\(1-A_l=C_l\) for every block, which is equivalent to
+\[
+ A_l+C_l=1\qquad\text{for every }l.
+\tag{5}
+\]
+By \(\mathrm{lem{:}block\text{-}reduction}\), \(A_lC_l=0\) and
+\(H_l=1-A_l-C_l\).  Hence (5) fails exactly when at least one block is mixed.  In a mixed block, \(A_l=C_l=0\), so (4) gives the promised explicit mismatch: the package's second-column entry is one and the target All Control entry is zero.
+
+It remains to verify the outputs and the rejection ordering.  On a valid clique graph, the first check in
+\(\mathrm{def{:}software\text{-}diagnostic}\) passes.  Because
+\(L^{\mathrm{pkg}}\) and \(L^{\mathrm{ref}}\) are, by hypothesis, the outputs of their displayed defining maps, the two map-reproduction checks pass as well.  The subsequent coordinatewise equality check passes exactly under (5), by (4).  When it passes,
+\(\mathrm{def{:}software\text{-}diagnostic}\) computes
+\(\overline Y_l^{\mathrm{obs}}(D)\) from
+\(\mathrm{def{:}observed\text{-}block\text{-}means}\).  The partition and balanced Bernoulli design give
+\[
+ P_Z(A_l=1)=P_Z(C_l=1)=\left(\frac12\right)^{r_l}=2^{-r_l}=q_l,
+\]
+and the definitions of \(w_l\), \(S\), \(M\),
+\(\mathrm{def{:}capped\text{-}modulus}\),
+\(\mathrm{def{:}trimmed\text{-}radius}\), and
+\(\mathrm{def{:}clipped\text{-}ht}\) then determine all the reported values exactly.  The validity of the reported clipped interval is supplied by
+\(\mathrm{thm{:}finite\text{-}upper}\), while
+\(\mathrm{thm{:}trimmed\text{-}upper}\) gives the stated confidence interpretation of the reported trimmed radius.  The unequal six-block numerical output is the exact calculation in
+\(\mathrm{prop{:}capped\text{-}modulus\text{-}exhibit}\).  If (5) fails, (4) identifies the first unequal coordinate sought by the diagnostic, which therefore returns
+\(\texttt{label-mismatch}\) and suppresses the interval.
+
+Finally, suppose that \(N_G[i]\ne B_l\) for some \(i\in B_l\).  Since
+\(N_G[i]\) contains \(i\), set inequality supplies either a vertex in
+\(N_G[i]\setminus B_l\), which is a crossing-neighborhood witness, or a vertex in
+\(B_l\setminus N_G[i]\), which is a missing within-block edge and hence a nonclique witness.  By the prescribed branch order in
+\(\mathrm{def{:}software\text{-}diagnostic}\), this graph check occurs before either label check.  Therefore the diagnostic returns
+\(\texttt{graph-reject}\) with that structural witness and no interval.  This proves all three mutually exclusive branches and the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition makes the software claim a reproducible equality test against a pinned implementation and separates graph-domain rejection from assignment-dependent label disagreement. \textit{Gap.} AronowEcklesSamiiZonszein2021 demonstrates the \(R\) exposure workflow, but its companion package interface does not certify that the returned two-column labels equal the target unanimous All Treat and All Control map on each realized assignment. \textit{Consumer.} A package user receives either a certified exact rare-exposure interval, a concrete package-versus-reference coordinate mismatch, or a distinct structural rejection for an overlapping or nonclique graph.
+
+\begin{lemma}[lem:finite-product-exponential]\label{lem:finite-product-exponential}
+Let \(W_1,\ldots,W_{N_0}\) be independent, centered random variables with \(|W_j|\le c\), and put \(v=\sum_j\mathbb E W_j^2\). For every \(z>0\),
+\[
+ \Pr\!\left\{\left|\sum_jW_j\right|>
+ \sqrt{2vz}+\frac{cz}{3}\right\}\le 2e^{-z}.
+\]
+\end{lemma}
+\begin{proof}
+If \(c=0\), then every \(W_j=0\) almost surely and the assertion is immediate.  Suppose \(c>0\).  For \(\lambda\ge0\) and \(u\le1\), the elementary Bennett inequality
+\[
+ e^{\lambda c u}\le
+ 1+\lambda c u+
+ \{e^{\lambda c}-1-\lambda c\}u^2
+\tag{1}
+\]
+holds when \(|u|\le1\).  Indeed, after the affine tangent at zero is subtracted, differentiation shows that
+\[
+ u\longmapsto\frac{e^{\lambda c u}-1-\lambda c u}{u^2},
+\]
+with its continuous value at zero, is maximized on \([-1,1]\) at \(u=1\).  Apply (1) with \(u=W_j/c\), use \(\mathbb EW_j=0\), and then \(1+a\le e^a\).  This gives
+\[
+ \log\mathbb E e^{\lambda W_j}
+ \le \frac{\mathbb EW_j^2}{c^2}
+       \{e^{\lambda c}-1-\lambda c\}.
+\tag{2}
+\]
+Independence and Markov's inequality therefore imply, for every \(u>0\),
+\[
+\begin{aligned}
+ \Pr\!\left\{\sum_jW_j\ge u\right\}
+ &\le\inf_{\lambda>0}
+ \exp\!\left[-\lambda u+\frac v{c^2}
+       \{e^{\lambda c}-1-\lambda c\}\right]  \\
+ &=\exp\!\left[-\frac v{c^2}
+ h\!\left(\frac{cu}{v}\right)\right],
+ \qquad h(y)=(1+y)\log(1+y)-y ,
+\end{aligned}
+\tag{3}
+\]
+where, when \(v>0\), equality follows by choosing
+\(\lambda=c^{-1}\log(1+cu/v)\).  If \(v=0\), centering and
+\(\sum_j\mathbb EW_j^2=0\) imply \(W_j=0\) almost surely for every
+\(j\), so that case is already settled.
+
+It remains to invert (3).  For \(a\ge0\), put
+\(y(a)=\sqrt{2a}+a/3\).  Writing \(b=\sqrt{2a}\), differentiation gives
+\[
+ \frac{d}{db}\{h(b+b^2/6)-b^2/2\}
+ =\left(1+\frac b3\right)\log(1+b+b^2/6)-b .
+\]
+The last expression is nonnegative because
+\[
+ \log(1+b+b^2/6)-\frac{3b}{3+b}\ge0,
+\]
+and the derivative of its left side equals
+\[
+ \frac{2(3+b)}{b^2+6b+6}-\frac9{(3+b)^2}
+ =\frac{b^2(2b+9)}
+ {(b^2+6b+6)(3+b)^2}\ge0,
+\]
+while its value at \(b=0\) is zero.  Hence \(h(y(a))\ge a\).
+Taking \(a=c^2z/v\) and
+\(u=\sqrt{2vz}+cz/3\) in (3) proves that the upper-tail probability
+is at most \(e^{-z}\).  The same calculation applies to \(-W_j\);
+the union bound proves the displayed two-sided inequality.
+\end{proof}
+
+\begin{lemma}[lem:capped-trimming-duality]\label{lem:capped-trimming-duality}
+Let \(0<\alpha\le1/4\), \(x=\log(1/\alpha)\), and \(y=\log(2/\alpha)\). The optimizer in \(\mathrm{def{:}capped\text{-}modulus}\) is the stated water-filling vector. Moreover,
+\[
+ \omega_\alpha(w,q)\le\rho_\alpha(w,q)\le\frac52\omega_\alpha(w,q),
+ \qquad
+ \omega_1(w,q)\le\rho_0(w,q)\le2\omega_1(w,q),
+\]
+where \(\omega_1\) denotes the same capped program with quadratic budget one.
+\end{lemma}
+\begin{proof}
+Because every block is nonempty, \(w_l>0\); and because \(q_l=2^{-r_l}\), also \(q_l>0\). For \(z>0\), define
+\[
+ \mathcal D_z=\left\{\delta\in[0,1]^L:
+                 \sum_{l=1}^Lq_l\delta_l^2\le z\right\}.
+\tag{23}
+\]
+This is a nonempty compact subset of \(\mathbb R^L\), and the linear objective is continuous, so a maximizer exists. If \(z\ge\sum_lq_l\), then \((1,\ldots,1)\in\mathcal D_z\); it is optimal because \(w_l>0\) and every feasible coordinate is at most one.
+
+Suppose \(0<z<\sum_lq_l\). The function
+\[
+ f(\lambda)=\sum_{l=1}^Lq_l\min\{1,\lambda w_l/q_l\}^2,
+ \qquad \lambda\ge0,
+\tag{24}
+\]
+is continuous, equals zero at zero, and is strictly increasing until all coordinates reach their caps, after which it equals \(\sum_lq_l\). Hence there is a unique \(\lambda>0\), before the terminal plateau, such that \(f(\lambda)=z\). Put
+\[
+ \delta_l^*=\min\{1,\lambda w_l/q_l\}.
+\tag{25}
+\]
+This vector belongs to \(\mathcal D_z\) and makes its quadratic constraint active.
+
+For optimality, let \(C=\{l:\delta_l^*=1\}\), let \(J=C^c\), and take any \(\delta\in\mathcal D_z\). For \(l\in J\), the identity \(w_l=q_l\delta_l^*/\lambda\) and \((\delta_l-\delta_l^*)^2\ge0\) give
+\[
+ w_l(\delta_l-\delta_l^*)
+ \le\frac{q_l}{2\lambda}\{\delta_l^2-(\delta_l^*)^2\}.
+\tag{26}
+\]
+For \(l\in C\), the cap relation gives \(w_l\ge q_l/\lambda\). Since \(\delta_l-1\le0\) and \((\delta_l-1)^2\ge0\),
+\[
+ w_l(\delta_l-1)
+ \le\frac{q_l}{\lambda}(\delta_l-1)
+ \le\frac{q_l}{2\lambda}(\delta_l^2-1).
+\tag{27}
+\]
+Summing (26)--(27), using feasibility of \(\delta\), and using the active constraint for \(\delta^*\), yields
+\[
+ \sum_{l=1}^Lw_l(\delta_l-\delta_l^*)
+ \le\frac1{2\lambda}\sum_{l=1}^Lq_l\{\delta_l^2-(\delta_l^*)^2\}
+ \le0.
+\tag{28}
+\]
+Thus (25) is the global optimizer. Equations (26)--(28) are also a first-order certificate for the capped convex feasible program.
+
+We next compare the moduli. Fix \(\delta\) feasible at budget \(x\), and fix \(J_0\subseteq\{1,\ldots,L\}\). Since \(0\le\delta_l\le1\), Cauchy--Schwarz gives
+\[
+\begin{aligned}
+ \sum_{l=1}^Lw_l\delta_l
+ &\le\sum_{l\notin J_0}w_l+
+      \sum_{l\in J_0}w_l\delta_l\\
+ &\le\sum_{l\notin J_0}w_l+
+ \left(\sum_{l\in J_0}\frac{w_l^2}{q_l}\right)^{1/2}
+ \left(\sum_{l\in J_0}q_l\delta_l^2\right)^{1/2}\\
+ &\le\sum_{l\notin J_0}w_l+
+ \sqrt{x\sum_{l\in J_0}w_l^2/q_l}.
+\end{aligned}
+\tag{29}
+\]
+The corrected construction of \(\rho_\alpha\) has square-root coefficient \(\sqrt y\), where \(y=x+\log2\ge x\), and a nonnegative linear term. Taking the supremum over \(\delta\) and then the infimum over \(J_0\) in (29) proves
+\[
+ \omega_\alpha(w,q)\le\rho_\alpha(w,q).
+\tag{30}
+\]
+If \(x\ge\sum_lq_l\), the optimizer is all-capped and \(\omega_\alpha=\sum_lw_l\). Choosing \(J_0=\varnothing\) gives \(\rho_\alpha\le\sum_lw_l=\omega_\alpha\). Now suppose \(x<\sum_lq_l\). Apply (25) at budget \(x\), retain its capped set \(C\) and uncapped set \(J\), and define
+\[
+ A=\sum_{l\in J}\frac{w_l^2}{q_l},\qquad
+ Q_C=\sum_{l\in C}q_l,\qquad
+ B=\sum_{l\in C}w_l.
+\tag{31}
+\]
+The active constraint and objective value are
+\[
+ x=Q_C+\lambda^2A,
+ \qquad
+ \omega_\alpha=B+\lambda A.
+\tag{32}
+\]
+For \(l\in C\), \(\lambda w_l/q_l\ge1\), so \(B\ge Q_C/\lambda\). For \(l\in J\), \(w_l/q_l<1/\lambda\). Consequently (32) implies
+\[
+ \omega_\alpha\ge\frac{x}{\lambda},
+ \qquad A\le\frac{x}{\lambda^2},
+ \qquad \max_{l\in J}\frac{w_l}{q_l}<\frac1\lambda.
+\tag{33}
+\]
+Because \(0<\alpha\le1/4\), \(x\ge\log4=2\log2\), and hence \(y=x+\log2\le3x/2\). Choosing \(J_0=J\) in the corrected definition, whose linear coefficient is \(y/6\), and applying (32)--(33), gives
+\[
+\begin{aligned}
+ \rho_\alpha
+ &\le B+\sqrt{yA}+\frac y6\max_{l\in J}\frac{w_l}{q_l}\\
+ &\le B+\sqrt{\frac32}\,\frac{x}{\lambda}
+       +\frac14\frac{x}{\lambda}\\
+ &\le\left(1+\sqrt{\frac32}+\frac14\right)\omega_\alpha
+ <\frac52\omega_\alpha.
+\end{aligned}
+\tag{34}
+\]
+This proves the confidence-level comparison.
+
+Finally, repeat (29) with quadratic budget one and without the linear term to obtain \(\omega_1\le\rho_0\). If \(\sum_lq_l\le1\), the budget-one optimizer is all-capped, so choosing the empty retained set gives \(\rho_0\le\sum_lw_l=\omega_1\). If \(\sum_lq_l>1\), apply (31)--(33) with \(x=1\). Choosing the uncapped set in the definition of \(\rho_0\) gives
+\[
+ \rho_0\le B+\sqrt A
+ \le B+\lambda^{-1}
+ \le2\omega_1.
+\tag{35}
+\]
+Thus \(\omega_1\le\rho_0\le2\omega_1\), completing the proof.
+\end{proof}
+
+\begin{lemma}[lem:capped-erasure-consistency-lower]\label{lem:capped-erasure-consistency-lower}
+For \(0<\alpha\le 1/4\), put \(x=\log(1/\alpha)\).  Then
+\[
+ \mathcal R_\alpha(w,q)
+ \ge
+ \frac{\omega_\alpha(w,q)^3}
+      {128x+8\omega_\alpha(w,q)^2}
+ \ge
+ \frac{\omega_\alpha(w,q)^3}{136x}.
+\]
+\end{lemma}
+\begin{proof}
+Write \(\mathsf A=\omega_\alpha(w,q)\).  The partition assumption and
+the definition \(w_l=r_l/n\) give
+\[
+ w_l>0,\qquad \sum_{l=1}^Lw_l=1.
+\tag{1}
+\]
+Also \(q_l=2^{-r_l}\in(0,1/2]\).  The feasible set in
+\(\mathrm{def{:}capped\text{-}modulus}\) is a nonempty compact subset
+of \([0,1]^L\), and its objective is continuous.  It therefore has an
+optimizer \(\delta^*\).  Since all \(w_l\) are positive and \(x>0\),
+\(\mathsf A>0\).  Define
+\[
+ H=\{l:\delta_l^*\ge \mathsf A/2\},
+ \qquad W_H=\sum_{l\in H}w_l,
+ \qquad Q_H=\sum_{l\in H}q_l.
+\]
+Feasibility of \(\delta^*\) yields
+\[
+ Q_H\frac{\mathsf A^2}{4}
+ \le \sum_{l\in H}q_l(\delta_l^*)^2
+ \le x,
+ \qquad \text{hence}\qquad
+ Q_H\le \frac{4x}{\mathsf A^2}.
+\tag{2}
+\]
+On the other hand, (1), \(0\le\delta_l^*\le1\), and the definition of
+\(H\) give
+\[
+ \mathsf A=\sum_lw_l\delta_l^*
+ \le W_H+\frac{\mathsf A}{2}\sum_{l\notin H}w_l
+ \le W_H+\frac{\mathsf A}{2},
+\]
+so
+\[
+ W_H\ge \frac{\mathsf A}{2}.
+\tag{3}
+\]
+
+We next partition \(H\) into groups of reveal mass at most \(1/2\).
+First make every coordinate with \(q_l>1/4\) a singleton group.  Then
+order all remaining coordinates arbitrarily and accumulate them until
+the running mass first reaches \(1/4\), close that group, and continue.
+Each closed group has mass in \([1/4,1/2]\), and only the final group
+formed from the remaining coordinates can have mass below \(1/4\).
+Thus every group except possibly one has mass at least \(1/4\).  If
+\(N\) is the number of groups, then
+\[
+ N\le4Q_H+1\le\frac{16x}{\mathsf A^2}+1
+\tag{4}
+\]
+by (2).  Thus some group \(G\subseteq H\), with
+\(Q_G=\sum_{l\in G}q_l\le1/2\), has weight
+\[
+ g:=\sum_{l\in G}w_l
+ \ge\frac{W_H}{N}
+ \ge\frac{\mathsf A^3}{32x+2\mathsf A^2}.
+\tag{5}
+\]
+
+Fix any measurable \(\Gamma\in\mathfrak C_\alpha\).  For each
+\(u\in[-1/2,1/2]\), construct a fixed schedule \(m_u\) by setting, for
+\(i\in B_l\),
+\[
+ Y_i^u(d)=
+ \begin{cases}
+ u,&l\in G\text{ and }d=a,\\
+ 0,&\text{otherwise}.
+ \end{cases}
+\tag{6}
+\]
+The schedule is nonrandom, respects the block-exposure map, and all
+its outcomes lie in \([-1/2,1/2]\); hence the partition, balanced
+randomization, fixed-schedule, block-exposure, and bounded-outcome
+assumptions imply \(m_u\in\mathcal M_n(B)\).  By
+\(\mathrm{def{:}block\text{-}means}\) and the definition of the causal
+target,
+\[
+ \theta(m_u)=gu.
+\tag{7}
+\]
+
+Let \(\mathsf U_0\sim\operatorname{Uniform}[-1/2,1/2]\) be independent
+of \((Z,R)\), and mix the fixed schedules in (6) over \(u=\mathsf U_0\).
+This mixing is only a proof device: honesty is applied first to every
+fixed \(m_u\).  Let
+\[
+ \mathcal E_0=\bigcap_{l\in G}\{A_l=0\}.
+\]
+Disjointness of the blocks and balanced independent assignment imply
+that the \(A_l\), \(l\in G\), are independent Bernoulli variables with
+success probabilities \(q_l\).  In particular, the union bound gives
+\[
+ p_0:=P_Z(\mathcal E_0)
+ =\prod_{l\in G}(1-q_l)
+ \ge1-\sum_{l\in G}q_l
+ \ge\frac12.
+\tag{8}
+\]
+On \(\mathcal E_0\), no block in \(G\) attains exposure \(a\), so (6)
+and the block-exposure assumption give \(Y_i^{\mathrm{obs}}=0\) for
+every unit.  Consequently the conditional law of \((D,R)\) on
+\(\mathcal E_0\) is independent of \(\mathsf U_0\); this also uses the
+declared independence of the external randomizer \(R\).
+
+Uniform honesty and (7), integrated over \(\mathsf U_0\), imply
+\[
+ P\{g\mathsf U_0\in\Gamma(D,R)\}\ge1-\alpha.
+\tag{9}
+\]
+Combining (8)--(9),
+\[
+ P\{\mathcal E_0,\ g\mathsf U_0\in\Gamma(D,R)\}
+ \ge p_0-\alpha.
+\tag{10}
+\]
+Conditionally on \((\mathcal E_0,D,R)\), the variable
+\(g\mathsf U_0\) is uniform on \([-g/2,g/2]\).  For every interval
+\(J\), including a random interval after conditioning,
+\[
+ P\{g\mathsf U_0\in J\mid J\}
+ =\frac{\operatorname{len}(J\cap[-g/2,g/2])}{g}
+ \le\frac{\operatorname{len}(J)}{g}.
+\tag{11}
+\]
+Equations (10)--(11) therefore give
+\[
+ \mathbb E\!\left[\operatorname{len}\{\Gamma(D,R)\}\right]
+ \ge g(p_0-\alpha)
+ \ge\frac g4,
+\tag{12}
+\]
+where the expectation on the left averages the fixed-schedule risks
+over \(\mathsf U_0\).  Hence the supremum of those risks over
+\(m\in\mathcal M_n(B)\) is at least the same quantity.  Taking the
+infimum over \(\Gamma\in\mathfrak C_\alpha\), then applying (5), proves
+\[
+ \mathcal R_\alpha(w,q)
+ \ge\frac{\mathsf A^3}{128x+8\mathsf A^2}.
+\tag{13}
+\]
+Finally, (1) and \(0\le\delta_l^*\le1\) imply
+\(\mathsf A\le1\), while \(x\ge\log4>1\).  Thus
+\(128x+8\mathsf A^2\le136x\), and the second inequality follows from
+(13).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A common-location prior on a greedily selected low-reveal group yields a fully finite-sample all-procedure converse strong enough to characterize consistency. \textit{Gap.} The cubic dependence on \(\omega_\alpha(w,q)\) is sufficient for the zero-versus-nonzero boundary but does not give the conjectured sharp linear confidence-length modulus. \textit{Consumer.} The consistency theorem uses this lower bound to prove that vanishing minimax expected length forces the capped modulus to vanish.
+
+\begin{theorem}[thm:no-dominance-upper]\label{thm:no-dominance-upper}
+There exist universal constants \(c_0,C_1>0\) such that, for every
+\(0<\alpha\le1/4\),
+\[
+ M\sqrt{\log(1/\alpha)}\le c_0\sqrt S
+ \quad\Longrightarrow\quad
+ \mathcal R_\alpha(w,q)
+ \le C_1\min\{1,\sqrt{S\log(1/\alpha)}\}.
+\]
+The infimum defining \(\mathcal R_\alpha\) may range over every
+measurable interval procedure randomized by \(R\).
+\end{theorem}
+\begin{proof}
+Put \(x=\log(1/\alpha)\) and \(y=\log(2/\alpha)\). Since \(0<\alpha\le1/4\), \(x\ge\log4\), and hence
+\[
+ y=x+\log2\le\frac32x.
+\tag{42}
+\]
+The corrected \(\mathrm{thm{:}finite\text{-}upper}\) supplies a deterministic observed-data interval that is honest uniformly over \(\mathcal M_n(B)\) and has pointwise length at most
+\[
+ 2\min\left\{1,\sqrt{Sy}+\frac{My}{6}\right\}.
+\tag{43}
+\]
+It is an admissible deterministic member of \(\mathfrak C_\alpha\). Although \(\mathrm{def{:}length\text{-}risk}\) also permits procedures using \(R\), its infimum is bounded above by this rule. Thus (43) bounds \(\mathcal R_\alpha(w,q)\).
+
+Take \(c_0=1\). Under \(M\sqrt{x}\le\sqrt S\), (42) gives
+\[
+\begin{aligned}
+ \sqrt{Sy}+\frac{My}{6}
+ &\le\sqrt{\frac32}\sqrt{Sx}+\frac14Mx\\
+ &\le\left(\sqrt{\frac32}+\frac14\right)\sqrt{Sx}.
+\end{aligned}
+\tag{44}
+\]
+For \(K\ge1\) and \(t\ge0\), \(\min\{1,Kt\}\le K\min\{1,t\}\). Hence (43)--(44) prove the theorem with the universal constants
+\[
+ c_0=1,
+ \qquad
+ C_1=2\left(\sqrt{\frac32}+\frac14\right).
+\tag{45}
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem records exactly the proved confidence-sensitive upper frontier under the no-dominant-block condition. \textit{Gap.} A matching lower bound of linear order in \(\min\{1,\sqrt{S\log(1/\alpha)}\}\) remains the weighted-erasure interval-spread question. \textit{Consumer.} The result supplies an honest attainable precision benchmark for heterogeneous school, village, and network partitions.
+
+\begin{lemma}[lem:two-scale-rademacher-lower]\label{lem:two-scale-rademacher-lower}
+For the family \(B^{(k)}\) containing \(k\) blocks of size two and \(k\) blocks of size four, every \(0<\alpha\le1/4\) and every integer \(k\ge64\) satisfy
+\[
+ \mathcal R_\alpha(w,q)\ge\frac{1}{192\sqrt{k}}.
+\]
+This lower bound applies to the full class of measurable honest interval procedures, including procedures externally randomized by \(R\).
+\end{lemma}
+\begin{proof}
+Fix \(0<\alpha\le1/4\), an integer \(k\ge64\), and \(\Gamma\in\mathfrak C_\alpha\). Index the \(k\) size-two blocks by \(j=1,\ldots,k\). In the hard schedules from \(\mathrm{def{:}hard\text{-}subexperiment\text{-}embedding}\), put
+\[
+ V_j=\frac{\varepsilon_j}{2},\qquad
+ P(\varepsilon_j=1)=P(\varepsilon_j=-1)=\frac12,
+ \quad j=1,\ldots,k,
+\tag{46}
+\]
+independently, and set \(V_l=1/2\) deterministically on every size-four block. This product law is used only to average the pointwise coverage and risk identities in \(\mathrm{lem{:}hard\text{-}subexperiment\text{-}embedding}\); every schedule in its support is a fixed member of \(\mathcal M_n(B^{(k)})\). For a size-two block,
+\[
+ q_j=\frac14,\qquad w_j=\frac1{3k}.
+\tag{47}
+\]
+Let \(K_j\) be its all-treated reveal indicator and define \(N=\sum_{j=1}^k(1-K_j)\). The embedding lemma gives independent \(K_j\sim\operatorname{Bernoulli}(1/4)\), independent of the signs, and hence
+\[
+ N\sim\operatorname{Binomial}(k,3/4),\qquad
+ \mathbb EN=\frac{3k}{4},\qquad
+ \operatorname{Var}(N)=\frac{3k}{16}.
+\tag{48}
+\]
+Write \(\Lambda=\Lambda_\Gamma(O,R)\) for the corresponding interval in the erasure experiment and \(L_\Lambda=\operatorname{len}(\Lambda)\). Conditional on \((O,R)\), the revealed size-two signs and the size-four contribution are fixed, whereas the \(N\) unrevealed size-two signs remain independent fair Rademacher variables. The independence of \(R\) is part of \(\mathrm{def{:}weighted\text{-}erasure\text{-}law}\). Since the embedding gives \(\theta=\sum_lw_lV_l\), the conditional target law is
+\[
+ c(O)+\frac1{6k}\sum_{s=1}^{N}\xi_s,
+\tag{49}
+\]
+where the \(\xi_s\) are conditionally independent fair Rademacher variables. Adjacent support points in (49) are separated by \(1/(3k)\).
+
+For \(S_N=\sum_{s=1}^N\xi_s\), its largest atom is \(p_N=2^{-N}\binom{N}{\lfloor N/2\rfloor}\). If \(N=2m\), factorial cancellation gives
+\[
+ p_{2m}=4^{-m}\binom{2m}{m}
+       =\prod_{s=1}^m\left(1-\frac1{2s}\right).
+\]
+Since \(\log(1-u)\le-u\) for \(0<u<1\) and \(\sum_{s=1}^m s^{-1}\ge\int_1^{m+1}t^{-1}\,dt=\log(m+1)\),
+\[
+ p_{2m}\le(m+1)^{-1/2}\le\sqrt{\frac2{2m}}.
+\tag{50}
+\]
+If \(N=2m+1\), then
+\[
+ p_{2m+1}=\frac{2m+1}{2m+2}p_{2m}
+ \le(m+1)^{-1/2}
+ \le\sqrt{\frac2{2m+1}}.
+\tag{51}
+\]
+Thus for every \(N\ge1\), \(p_N\le\sqrt{2/N}\).
+
+An interval of length \(u\) contains at most \(3ku+1\) points of a lattice with spacing \(1/(3k)\). Therefore, on \(N\ge k/2\), conditionally on \((O,R)\),
+\[
+ P\{\theta\in\Lambda\mid O,R\}
+ \le(3kL_\Lambda+1)\sqrt{\frac2N}.
+\tag{52}
+\]
+On the event
+\[
+ \mathcal A=\left\{N\ge\frac k2,\quad
+ L_\Lambda<\frac1{48\sqrt{k}}\right\},
+\]
+equation (52) and \(k\ge64\) give
+\[
+ P\{\theta\in\Lambda\mid O,R\}
+ \le\left(\frac{\sqrt{k}}{16}+1\right)\frac2{\sqrt{k}}
+ =\frac18+\frac2{\sqrt{k}}
+ \le\frac38.
+\tag{53}
+\]
+By Chebyshev's inequality and (48),
+\[
+ P\left(N<\frac k2\right)
+ \le\frac{3k/16}{(k/4)^2}
+ =\frac3k\le\frac3{64}.
+\tag{54}
+\]
+Pointwise honesty of \(\Gamma\), averaged over (46), and the coverage identity in the embedding lemma imply
+\[
+ P\{\theta\in\Lambda\}\ge1-\alpha\ge\frac34.
+\tag{55}
+\]
+On \(\mathcal A\), conditional coverage is at most \(3/8\), and outside it is at most one. Since \(\mathcal A^c\) is contained in the union of \(\{N<k/2\}\) and \(\{L_\Lambda\ge1/(48\sqrt{k})\}\), equations (53)--(55) give
+\[
+ P\left(L_\Lambda\ge\frac1{48\sqrt{k}}\right)
+ \ge\frac38-\frac3{64}=\frac{21}{64}\ge\frac14.
+\tag{56}
+\]
+Therefore
+\[
+ \mathbb E L_\Lambda
+ \ge\frac1{48\sqrt{k}}
+ P\left(L_\Lambda\ge\frac1{48\sqrt{k}}\right)
+ \ge\frac1{192\sqrt{k}}.
+\tag{57}
+\]
+The expected-length identity and supremum inequality in the embedding lemma show that the worst fixed-schedule risk of the original \(\Gamma\) is at least the prior average in (57). Since \(\Gamma\) was arbitrary, taking the infimum in \(\mathrm{def{:}length\text{-}risk}\) proves the result. Conditioning throughout on the declared independent \(R\) covers every externally randomized measurable interval.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A product-Rademacher prior on the size-two stratum supplies a fully finite-sample lower bound for the concrete heterogeneous triangular array. \textit{Gap.} The argument is deliberately specialized to this two-scale family and does not settle either universal linear lower-bound open question. \textit{Consumer.} Together with the no-dominance upper bound, this lemma certifies the fixed-confidence order of minimax expected length in the two-scale example.
+
+\begin{theorem}[thm:capped-modulus-upper]\label{thm:capped-modulus-upper}
+For every \(0<\alpha\le1/4\),
+\[
+ \mathcal R_\alpha(w,q)\le5\min\{1,\omega_\alpha(w,q)\}.
+\]
+The bound is attained by a deterministic observed-data interval and therefore remains valid when the competing class permits randomization by the independent external randomizer \(R\). In addition, if \(x_\alpha<\sum_{l=1}^Lq_l\) and no coordinate of the water-filling optimizer is capped, meaning \(\lambda_\alpha w_l/q_l<1\) for every \(l\), then
+\[
+ \omega_\alpha(w,q)=\sqrt{Sx_\alpha}=\sqrt{S\log(1/\alpha)}.
+\]
+\end{theorem}
+\begin{proof}
+Fix \(0<\alpha\le1/4\). By \(\mathrm{thm{:}trimmed\text{-}upper}\), there is a deterministic interval in \(\mathfrak C_\alpha\) whose pointwise length, under every fixed schedule in \(\mathcal M_n(B)\), is at most
+\[
+ 2\min\{1,\rho_\alpha(w,q)\}.
+\tag{36}
+\]
+Because the infimum in \(\mathrm{def{:}length\text{-}risk}\) ranges over a class containing this rule, taking the expectation, the supremum over schedules, and then the infimum over procedures gives
+\[
+ \mathcal R_\alpha(w,q)\le2\min\{1,\rho_\alpha(w,q)\}.
+\tag{37}
+\]
+By \(\mathrm{lem{:}capped\text{-}trimming\text{-}duality}\), \(\rho_\alpha(w,q)\le(5/2)\omega_\alpha(w,q)\). For \(u\ge0\) and \(K\ge1\), \(\min\{1,Ku\}\le K\min\{1,u\}\), by considering \(u\le1\) and \(u>1\). Therefore
+\[
+ \mathcal R_\alpha(w,q)\le5\min\{1,\omega_\alpha(w,q)\}.
+\tag{38}
+\]
+The witness is deterministic, so allowing competitors to use the independent \(R\) does not affect this upper bound.
+
+For the no-cap identity, put \(x=x_\alpha\). Under \(x<\sum_lq_l\), the optimizer certificate gives
+\[
+ \delta_l^*=\min\{1,\lambda_\alpha w_l/q_l\},
+ \qquad
+ \sum_lq_l(\delta_l^*)^2=x.
+\tag{39}
+\]
+If no cap binds, \(\delta_l^*=\lambda_\alpha w_l/q_l\) for every \(l\). Positivity of \(q_l\), \(w_l\), and \(S=\sum_lw_l^2/q_l\) permits division, and (39) becomes
+\[
+ x=\lambda_\alpha^2S,
+ \qquad
+ \lambda_\alpha=\sqrt{x/S}.
+\tag{40}
+\]
+Substitution into the objective gives
+\[
+ \omega_\alpha(w,q)
+ =\lambda_\alpha\sum_l\frac{w_l^2}{q_l}
+ =\lambda_\alpha S
+ =\sqrt{Sx}
+ =\sqrt{S\log(1/\alpha)}.
+\tag{41}
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The deterministic trimmed interval and strengthened trimming dual give the explicit unrestricted factor-five upper bound, while the active uncapped constraint gives the exact quadratic formula. \textit{Gap.} The matching universal linear lower bound for all measurable externally randomized intervals remains open. \textit{Consumer.} The residual water-filling question can now be stated solely as a lower-bound problem.
+
+\section{Interpretation}
+
+The computable quantity \(\rho_0(w,q)\), equivalently the unit-budget capped modulus \(\omega_1(w,q)\), is the intrinsic consistency diagnostic. A rare block may keep \(S\) bounded away from zero while carrying so little causal weight that trimming it still permits vanishing honest length. At nonzero finite confidence, the corrected trimmed interval has risk at most five times the capped modulus, while the general converse is presently cubic. The sharper \(k^{-1/2}\) lower rate is proved only for the explicit two-scale family and does not settle the universal linear frontier.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The common-location no-reveal construction yields \(\mathcal R_\alpha\gtrsim\omega_\alpha^3/\log(1/\alpha)\), which is sufficient for the fixed-confidence consistency equivalence but can be much smaller than \(\omega_\alpha\). The unrestricted sharp lower bound and the no-dominance sharp lower half remain open forms of the same universal linear weighted-erasure interval-spread problem. A resolution must control compact-support boundaries, random weighted reveal information, conditional target fluctuation, and external interval randomization; neither the exact embedding, the cubic argument, nor the family-specific product-Rademacher lemma supplies that universal step.
+
+\section{Honest scope}
+
+The proved results concern fixed outcomes in \([-1/2,1/2]\), known unequal disjoint clique blocks, and independent unit-level \(\operatorname{Bernoulli}(1/2)\) assignment. The estimator and upper intervals are measurable from \(D\) and known design quantities. The capped optimizer, factor-\(5/2\) trimming comparison, factor-five unrestricted upper bound, exact consistency boundary, and cubic lower bound cover arbitrary independent external interval randomization. The fixed-confidence \(\Theta_\alpha(k^{-1/2})\) statement is confined to the specified two-scale family; it is not a universal posterior-spread theorem. The equal-block and general no-dominance results retain only their proved upper conclusions. Overlapping or nonclique neighborhoods are rejected before the software diagnostic reports an interval.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AronowSamii2017} Peter M. Aronow and Cyrus Samii (2017), Estimating Average Causal Effects Under General Interference, with Application to a Social Network Experiment, The Annals of Applied Statistics 11, 1912--1947.
+
+  \bibitem{UganderKarrerBackstromKleinberg2013} Johan Ugander, Brian Karrer, Lars Backstrom, and Jon Kleinberg (2013), Graph Cluster Randomization: Network Exposure to Multiple Universes, Proceedings of the 19th ACM SIGKDD Conference, 329--337.
+
+  \bibitem{TchetgenTchetgenVanderWeele2012} Eric J. Tchetgen Tchetgen and Tyler J. VanderWeele (2012), On Causal Inference in the Presence of Interference, Statistical Methods in Medical Research 21, 55--75.
+
+  \bibitem{RigdonHudgens2015} Joseph Rigdon and Michael G. Hudgens (2015), Exact Confidence Intervals in the Presence of Interference, Statistics \& Probability Letters 105, 130--135.
+
+  \bibitem{BasseAiroldi2018} Guillaume W. Basse and Edoardo M. Airoldi (2018), Limitations of Design-Based Causal Inference and A/B Testing Under Arbitrary and Network Interference, Sociological Methodology 48, 136--151.
+
+  \bibitem{UganderYin2023} Johan Ugander and Hao Yin (2023), Randomized Graph Cluster Randomization, Journal of Causal Inference 11.
+
+  \bibitem{KandirosPipisDaskalakisHarshaw2024} Vardis Kandiros, Charilaos Pipis, Constantinos Daskalakis, and Christopher Harshaw (2024), Experimental Design for Causal Inference Under Network Interference, arXiv:2411.10908.
+
+  \bibitem{KandirosHarshawSavje2026} Vardis Kandiros, Christopher Harshaw, and Fredrik Savje (2026), A Design-Based Minimax Theory for Network Experiments, arXiv:2608.04909.
+
+  \bibitem{CaiLow2004} T. Tony Cai and Mark G. Low (2004), An Adaptation Theory for Nonparametric Confidence Intervals, The Annals of Statistics 32, 1805--1840.
+
+  \bibitem{ArmstrongKolesar2018} Timothy B. Armstrong and Michal Kolesar (2018), Optimal Inference in a Class of Regression Models, Econometrica 86, 655--683.
+
+  \bibitem{SandovalEtAl2026} Ricardo J. Sandoval, Sivaraman Balakrishnan, Avi Feller, Michael I. Jordan, and Ian Waudby-Smith (2026), On Nonasymptotic Confidence Intervals for Treatment Effects in Randomized Experiments, arXiv:2601.11744.
+
+  \bibitem{HarshawMiddletonSavje2021} Christopher Harshaw, Joel A. Middleton, and Fredrik Savje (2021), Optimized Variance Estimation Under Interference and Complex Experimental Designs, arXiv:2112.01709.
+
+  \bibitem{AronowEcklesSamiiZonszein2021} Peter M. Aronow, Dean Eckles, Cyrus Samii, and Stephanie Zonszein (2021), Spillover Effects in Experimental Data, in Advances in Experimental Political Science.
+
+  \bibitem{InterferencePackage010} Stephanie Zonszein and contributors (2022), \(\texttt{szonszein/interference}\) version \(0.1.0\), Design-Based Estimation of Spillover Effects, including function \(\texttt{make\_exposure\_map\_full\_neighborhood}\), public \(R\) package source and documentation.
+
+  \bibitem{FelixGarciaSousa2025} Carlos Henrique Trigo Nasser Felix, Nancy Lopes Garcia, and Alex Rodrigo dos Santos Sousa (2025), A Fuzzy Approach for Randomized Confidence Intervals, arXiv:2512.23866.
+
+\end{thebibliography}
+
+\end{document}

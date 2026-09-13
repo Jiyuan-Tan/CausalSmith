@@ -1,0 +1,2333 @@
+{
+  "qid": "pid_recurrent_capacity_transport_regret",
+  "specialization": "v1",
+  "cluster": "partialid",
+  "symbols": [
+    {
+      "name": "H",
+      "type": "integer",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "An externally prespecified sensitivity cap applied only to the derived summaries \\(B\\) and \\(W\\); a clinical interpretation additionally requires a setting-specific mechanism for the joint restriction \\(B+W\\le H\\).",
+      "role": "capacity-sensitivity parameter",
+      "refs": []
+    },
+    {
+      "name": "k",
+      "type": "integer",
+      "space": "\\(\\{1,\\ldots,K-1\\}\\)",
+      "def": "The fixed treatment-switch time.",
+      "role": "landmark",
+      "refs": []
+    },
+    {
+      "name": "K",
+      "type": "integer",
+      "space": "\\(\\{k+1,k+2,\\ldots\\}\\)",
+      "def": "The terminal analysis time.",
+      "role": "horizon",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "\\mathbb I_H",
+      "type": "finite set",
+      "space": "\\(2^{\\mathbb Z}\\)",
+      "def": "\\(\\mathbb I_H=\\{0,1,\\ldots,H\\}\\).",
+      "role": "capped-summary support",
+      "refs": [
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathcal M",
+      "type": "finite set",
+      "space": "\\(2^{\\{1,\\ldots,H\\}}\\)",
+      "def": "A nonempty finite menu of event-count thresholds.",
+      "role": "policy menu",
+      "refs": [
+        "H"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "index",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The sustained-treatment arm index, with \\(1\\) intensive and \\(0\\) standard.",
+      "role": "arm index",
+      "refs": []
+    },
+    {
+      "name": "\\ell",
+      "type": "index",
+      "space": "\\(\\{0,1,\\ldots,K\\}\\)",
+      "def": "The discrete follow-up time index.",
+      "role": "time index",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "\\bar a",
+      "type": "treatment history",
+      "space": "\\(\\{0,1\\}^{K}\\)",
+      "def": "A treatment history through time \\(K\\); the sustained and single-switch histories are the branches used by the target regimes.",
+      "role": "intervention path",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "finite-horizon response tree",
+      "space": "countable FFRCISTG response-type space over a finite treatment horizon",
+      "def": "\\(U=\\{(Y_{\\ell}^{\\bar a},D_{\\ell}^{\\bar a}):\\ell\\le K,\\bar a\\in\\{0,1\\}^{K}\\}\\), where every raw count \\(Y_{\\ell}^{\\bar a}\\in\\mathbb Z_+\\) is nondecreasing and death \\(D_{\\ell}^{\\bar a}=1\\) is absorbing with no later raw count increment. The horizon and branch set are finite, but raw count coordinates are not capped by \\(H\\).",
+      "role": "primitive counterfactual object",
+      "refs": [
+        "\\ell",
+        "K",
+        "\\bar a"
+      ]
+    },
+    {
+      "name": "\\mathcal H_{\\ell}^a",
+      "type": "random history vector",
+      "space": "finite factual-arm recurrent-event history space",
+      "def": "\\(\\mathcal H_{\\ell}^a=(Y_{0:\\ell}^a,D_{0:\\ell}^a)\\), the sustained-arm \\(a\\) recurrent-count and death history through \\(\\ell\\); \\(\\mathcal H_K^a\\) denotes the corresponding full factual-arm path.",
+      "role": "factual at-risk censoring history",
+      "refs": [
+        "U",
+        "a",
+        "\\ell",
+        "K"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The randomized baseline treatment assignment.",
+      "role": "assignment",
+      "refs": []
+    },
+    {
+      "name": "C",
+      "type": "random variable",
+      "space": "\\(\\{0,1,\\ldots,K,\\infty\\}\\)",
+      "def": "The right-censoring time.",
+      "role": "coarsening variable",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "random element",
+      "space": "observed recurrent-event history space",
+      "def": "The assigned response-tree path observed up to \\(C\\), including recurrent counts and death.",
+      "role": "observed data",
+      "refs": [
+        "U",
+        "R",
+        "C"
+      ]
+    },
+    {
+      "name": "\\mathsf P",
+      "type": "probability law",
+      "space": "probability measures on \\((U,R,C,O)\\)",
+      "def": "The joint law of the response tree, assignment, censoring, and observed history.",
+      "role": "data-generating law",
+      "refs": [
+        "U",
+        "R",
+        "C",
+        "O"
+      ]
+    },
+    {
+      "name": "\\mathfrak M_H",
+      "type": "model class",
+      "space": "sets of probability laws on \\((U,R,C,O)\\)",
+      "def": "The raw-path recurrent-event FFRCISTG class with separately capped summaries in \\(\\text{def:model-class}\\).",
+      "role": "maintained causal model",
+      "refs": [
+        "H",
+        "\\mathsf P"
+      ]
+    },
+    {
+      "name": "S_k^a",
+      "type": "binary random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "\\(S_k^a=1-D_k^a\\), the survival indicator at the switch time under sustained arm \\(a\\).",
+      "role": "landmark survival",
+      "refs": [
+        "U",
+        "k",
+        "a"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "random variable",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "\\(B=\\min\\{Y_k^1,H\\}\\) among units with \\(S_k^1=1\\), obtained by capping the raw intensive-arm burden accumulated by \\(k\\).",
+      "role": "baseline burden",
+      "refs": [
+        "U",
+        "k",
+        "S_k^a",
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "random variable",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "\\(T=\\min\\{Y_K^1-Y_k^1,H\\}\\) among units with \\(S_k^1=1\\), obtained by separately capping the raw post-landmark increment under continued intensive treatment.",
+      "role": "continued-treatment residual",
+      "refs": [
+        "U",
+        "K",
+        "k",
+        "S_k^a",
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "random variable",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "\\(W=\\min\\{Y_K^{1\\to0}-Y_k^{1\\to0},H\\}\\) among units with \\(S_k^1=1\\), obtained by separately capping the raw post-landmark increment after switching from intensive to standard treatment at \\(k\\).",
+      "role": "switched residual",
+      "refs": [
+        "U",
+        "K",
+        "k",
+        "S_k^a",
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "\\pi",
+      "type": "scalar",
+      "space": "\\((0,1]\\)",
+      "def": "\\(\\pi=\\mathsf P(S_k^1=1)\\).",
+      "role": "intensive-arm landmark survival probability",
+      "refs": [
+        "\\mathsf P",
+        "S_k^a"
+      ]
+    },
+    {
+      "name": "b",
+      "type": "index",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "A baseline-burden support point.",
+      "role": "row index",
+      "refs": [
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "index",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "A continued-residual support point.",
+      "role": "residual index",
+      "refs": [
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "w",
+      "type": "index",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "A switched-residual support point.",
+      "role": "column index",
+      "refs": [
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "index",
+      "space": "\\(\\mathcal M\\)",
+      "def": "A candidate threshold.",
+      "role": "policy index",
+      "refs": [
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "index",
+      "space": "\\(\\mathcal M\\)",
+      "def": "A comparator threshold.",
+      "role": "policy-comparison index",
+      "refs": [
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "index",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "A Hall-prefix boundary index.",
+      "role": "feasibility index",
+      "refs": [
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "index",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "A cumulative-distribution index.",
+      "role": "CDF index",
+      "refs": [
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "u",
+      "type": "index",
+      "space": "\\(\\mathbb I_H\\)",
+      "def": "A backward-deficit maximization index.",
+      "role": "deficit index",
+      "refs": [
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "p_{bt}",
+      "type": "probability mass function",
+      "space": "simplex on \\(\\mathbb I_H^2\\)",
+      "def": "\\(p_{bt}=\\mathsf P(B=b,T=t\\mid S_k^1=1)\\).",
+      "role": "identified intensive-survivor joint margin",
+      "refs": [
+        "\\mathsf P",
+        "B",
+        "b",
+        "T",
+        "t",
+        "S_k^a",
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "p_b",
+      "type": "probability mass function",
+      "space": "simplex on \\(\\mathbb I_H\\)",
+      "def": "\\(p_b=\\sum_{t\\in\\mathbb I_H}p_{bt}\\).",
+      "role": "identified baseline margin",
+      "refs": [
+        "p_{bt}",
+        "t",
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "q_w",
+      "type": "probability mass function",
+      "space": "simplex on \\(\\mathbb I_H\\)",
+      "def": "\\(q_w=\\mathsf P(\\min\\{Y_K^0-Y_k^0,H\\}=w\\mid S_k^0=1)\\).",
+      "role": "identified standard-survivor residual margin",
+      "refs": [
+        "\\mathsf P",
+        "U",
+        "K",
+        "k",
+        "w",
+        "S_k^a",
+        "\\mathbb I_H"
+      ]
+    },
+    {
+      "name": "\\mu_b",
+      "type": "nonnegative vector",
+      "space": "\\(\\mathbb R_+^{H+1}\\)",
+      "def": "\\(\\mu_b=\\sum_{t\\in\\mathbb I_H}t p_{bt}\\).",
+      "role": "continued-residual first-moment mass",
+      "refs": [
+        "p_{bt}",
+        "t",
+        "\\mathbb I_H",
+        "H"
+      ]
+    },
+    {
+      "name": "L_m",
+      "type": "integer",
+      "space": "\\(\\{0,1,\\ldots,H-1\\}\\)",
+      "def": "\\(L_m=H-m\\), the largest residual value eligible for a row with \\(b\\ge m\\).",
+      "role": "selected-row residual ceiling",
+      "refs": [
+        "H",
+        "m"
+      ]
+    },
+    {
+      "name": "a_m",
+      "type": "scalar",
+      "space": "\\([0,1]\\)",
+      "def": "\\(a_m=\\sum_{b=m}^{H}p_b\\), the total mass in rows selected by threshold \\(m\\).",
+      "role": "selected-row mass",
+      "refs": [
+        "m",
+        "H",
+        "p_b",
+        "b"
+      ]
+    },
+    {
+      "name": "Q_s",
+      "type": "scalar",
+      "space": "\\([0,1]\\)",
+      "def": "\\(Q_s=\\sum_{w=0}^{s}q_w\\), the residual-margin prefix mass.",
+      "role": "column-prefix mass",
+      "refs": [
+        "s",
+        "q_w",
+        "w"
+      ]
+    },
+    {
+      "name": "A_s",
+      "type": "scalar",
+      "space": "\\([0,1]\\)",
+      "def": "\\(A_s=\\sum_{b=H-s}^{H}p_b\\), the mass of rows whose eligible columns lie in \\(\\{0,\\ldots,s\\}\\).",
+      "role": "forced selected-prefix mass",
+      "refs": [
+        "s",
+        "H",
+        "p_b",
+        "b"
+      ]
+    },
+    {
+      "name": "Z_{ms}^{-}",
+      "type": "scalar",
+      "space": "\\([0,1]\\)",
+      "def": "\\(Z_{ms}^{-}=\\min\\{a_m,Q_s\\}\\) for \\(0\\le s\\le L_m\\).",
+      "role": "maximal selected sub-CDF",
+      "refs": [
+        "a_m",
+        "Q_s",
+        "s",
+        "L_m"
+      ]
+    },
+    {
+      "name": "Z_{ms}^{+}",
+      "type": "scalar",
+      "space": "\\([0,1]\\)",
+      "def": "\\(Z_{ms}^{+}=Q_s+\\max_{u\\in\\{s,\\ldots,L_m\\}}(A_u-Q_u)\\) for \\(0\\le s\\le L_m\\); the maximization includes the terminal index \\(u=L_m\\).",
+      "role": "minimal selected sub-CDF",
+      "refs": [
+        "Q_s",
+        "s",
+        "u",
+        "L_m",
+        "A_s"
+      ]
+    },
+    {
+      "name": "x_{bw}",
+      "type": "nonnegative array",
+      "space": "\\(\\mathbb R_+^{(H+1)\\times(H+1)}\\)",
+      "def": "A candidate coupling mass \\(x_{bw}=\\mathsf P(B=b,W=w\\mid S_k^1=1)\\).",
+      "role": "transport plan",
+      "refs": [
+        "H",
+        "\\mathsf P",
+        "B",
+        "b",
+        "W",
+        "w",
+        "S_k^a"
+      ]
+    },
+    {
+      "name": "z_w",
+      "type": "subprobability mass",
+      "space": "\\(\\mathbb R_+^{H+1}\\)",
+      "def": "\\(z_w=\\sum_{b\\ge m}x_{bw}\\), the column subdistribution assigned to rows selected by threshold \\(m\\).",
+      "role": "selected-column subdistribution",
+      "refs": [
+        "H",
+        "w",
+        "b",
+        "m",
+        "x_{bw}"
+      ]
+    },
+    {
+      "name": "\\Gamma_H(p,q)",
+      "type": "polytope",
+      "space": "subset of \\(\\mathbb R_+^{(H+1)\\times(H+1)}\\)",
+      "def": "The fixed-margin transport plans supported on \\(b+w\\le H\\).",
+      "role": "capped coupling class",
+      "refs": [
+        "H",
+        "x_{bw}",
+        "p_b",
+        "q_w",
+        "b",
+        "w"
+      ]
+    },
+    {
+      "name": "\\gamma_{btw}",
+      "type": "nonnegative array",
+      "space": "\\(\\mathbb R_+^{(H+1)^3}\\)",
+      "def": "A candidate joint mass for \\((B,T,W)\\) among intensive survivors.",
+      "role": "triple coupling",
+      "refs": [
+        "H",
+        "B",
+        "T",
+        "W"
+      ]
+    },
+    {
+      "name": "\\mathcal G_H(p_{BT},q)",
+      "type": "polytope",
+      "space": "subset of \\(\\mathbb R_+^{(H+1)^3}\\)",
+      "def": "The triple couplings with \\((B,T)\\) margin \\(p_{bt}\\), \\(W\\) margin \\(q_w\\), and support \\(b+w\\le H\\).",
+      "role": "full latent summary class",
+      "refs": [
+        "H",
+        "\\gamma_{btw}",
+        "p_{bt}",
+        "q_w",
+        "b",
+        "w"
+      ]
+    },
+    {
+      "name": "J_m",
+      "type": "scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "\\(J_m=\\pi\\,\\mathsf E[T\\mathbf 1\\{B<m\\}+W\\mathbf 1\\{B\\ge m\\}\\mid S_k^1=1]\\).",
+      "role": "threshold-policy capped loss",
+      "refs": [
+        "m",
+        "\\pi",
+        "\\mathsf P",
+        "T",
+        "B",
+        "W",
+        "S_k^a"
+      ]
+    },
+    {
+      "name": "\\mathcal V(p_{BT},q)",
+      "type": "compact convex set",
+      "space": "\\(\\mathbb R^{|\\mathcal M|}\\)",
+      "def": "The set of all threshold-loss vectors generated by one shared plan in \\(\\Gamma_H(p,q)\\).",
+      "role": "joint identified set",
+      "refs": [
+        "p_{bt}",
+        "q_w",
+        "\\mathcal M",
+        "\\Gamma_H(p,q)"
+      ]
+    },
+    {
+      "name": "\\lambda",
+      "type": "vector",
+      "space": "\\(\\mathbb R^{|\\mathcal M|}\\)",
+      "def": "A support-function direction for the joint value set.",
+      "role": "dual direction",
+      "refs": [
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "c_b(\\lambda)",
+      "type": "scalar array",
+      "space": "\\(\\mathbb R^{H+1}\\)",
+      "def": "\\(c_b(\\lambda)=\\sum_{m\\in\\mathcal M}\\lambda_m\\mathbf 1\\{b\\ge m\\}\\).",
+      "role": "row reward coefficient",
+      "refs": [
+        "H",
+        "b",
+        "\\lambda",
+        "m",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "h_{\\mathcal V}",
+      "type": "function",
+      "space": "\\(\\mathbb R^{|\\mathcal M|}\\to\\mathbb R\\)",
+      "def": "\\(h_{\\mathcal V}(\\lambda)=\\sup_{v\\in\\mathcal V(p_{BT},q)}\\lambda^\\top v\\).",
+      "role": "support function",
+      "refs": [
+        "\\lambda",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "D_{mj}",
+      "type": "scalar",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(D_{mj}=\\sup_{v\\in\\mathcal V(p_{BT},q)}(v_m-v_j)\\).",
+      "role": "signed pairwise shared-law worst-case loss difference",
+      "refs": [
+        "m",
+        "j",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w"
+      ]
+    },
+    {
+      "name": "R_m",
+      "type": "nonnegative scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "\\(R_m=\\max_{j\\in\\mathcal M}D_{mj}\\).",
+      "role": "worst-case regret",
+      "refs": [
+        "m",
+        "j",
+        "\\mathcal M",
+        "D_{mj}"
+      ]
+    },
+    {
+      "name": "\\mathcal M^\\star",
+      "type": "finite set",
+      "space": "\\(2^{\\mathcal M}\\)",
+      "def": "\\(\\mathcal M^\\star=\\operatorname*{argmin}_{m\\in\\mathcal M}R_m\\).",
+      "role": "deterministic minimax-threshold correspondence",
+      "refs": [
+        "\\mathcal M",
+        "m",
+        "R_m"
+      ]
+    },
+    {
+      "name": "\\underline J_m",
+      "type": "scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "\\(\\underline J_m=\\inf_{v\\in\\mathcal V(p_{BT},q)}v_m\\), the sharp scalar lower endpoint for threshold \\(m\\).",
+      "role": "coordinatewise lower endpoint",
+      "refs": [
+        "m",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w"
+      ]
+    },
+    {
+      "name": "\\overline J_m",
+      "type": "scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "\\(\\overline J_m=\\sup_{v\\in\\mathcal V(p_{BT},q)}v_m\\), the sharp scalar upper endpoint for threshold \\(m\\).",
+      "role": "coordinatewise upper endpoint",
+      "refs": [
+        "m",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w"
+      ]
+    },
+    {
+      "name": "D^{\\Box}_{mj}",
+      "type": "scalar",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(D^{\\Box}_{mm}=0\\) and \\(D^{\\Box}_{mj}=\\overline J_m-\\underline J_j\\) for \\(m\\ne j\\).",
+      "role": "separate-interval pairwise regret",
+      "refs": [
+        "m",
+        "j",
+        "\\underline J_m",
+        "\\overline J_m"
+      ]
+    },
+    {
+      "name": "R_m^{\\Box}",
+      "type": "nonnegative scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "\\(R_m^{\\Box}=\\max_{j\\in\\mathcal M}D^{\\Box}_{mj}\\).",
+      "role": "separate-interval worst-case regret",
+      "refs": [
+        "m",
+        "j",
+        "\\mathcal M",
+        "D^{\\Box}_{mj}"
+      ]
+    },
+    {
+      "name": "\\mathcal M^{\\Box}",
+      "type": "finite set",
+      "space": "\\(2^{\\mathcal M}\\)",
+      "def": "\\(\\mathcal M^{\\Box}=\\operatorname*{argmin}_{m\\in\\mathcal M}R_m^{\\Box}\\).",
+      "role": "separate-interval minimax-threshold correspondence",
+      "refs": [
+        "\\mathcal M",
+        "m",
+        "R_m^{\\Box}"
+      ]
+    },
+    {
+      "name": "\\Theta_3",
+      "type": "identified-summary parameter set",
+      "space": "subset of a finite-dimensional Euclidean space",
+      "def": "\\(\\Theta_3\\) is the cap-three domain of tuples \\((\\pi,(p_b)_{b=0}^{3},(\\mu_b)_{b=0}^{3},(q_w)_{w=0}^{3})\\) specified in \\(\\text{def:comparison-domain}\\), equipped with its relative topology.",
+      "role": "nondegenerate comparison domain",
+      "refs": [
+        "\\pi",
+        "p_b",
+        "\\mu_b",
+        "q_w",
+        "\\Gamma_H(p,q)"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The randomized-trial sample size.",
+      "role": "sample-size index",
+      "refs": []
+    },
+    {
+      "name": "\\alpha",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "The nominal error probability.",
+      "role": "confidence level",
+      "refs": []
+    },
+    {
+      "name": "r_{bt}",
+      "type": "subprobability mass",
+      "space": "\\(\\mathbb R_+^{(H+1)^2}\\)",
+      "def": "\\(r_{bt}=\\pi p_{bt}\\).",
+      "role": "unconditional intensive-survivor cell mass",
+      "refs": [
+        "\\pi",
+        "p_{bt}",
+        "H"
+      ]
+    },
+    {
+      "name": "s_w",
+      "type": "subprobability mass",
+      "space": "\\(\\mathbb R_+^{H+1}\\)",
+      "def": "\\(s_w=\\pi q_w\\), the unconditional switched-residual column mass among intensive-arm landmark survivors.",
+      "role": "perspective column margin",
+      "refs": [
+        "\\pi",
+        "q_w",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathbf r",
+      "type": "array",
+      "space": "\\(\\mathbb R_+^{(H+1)^2}\\)",
+      "def": "\\(\\mathbf r=(r_{bt})_{b,t\\in\\mathbb I_H}\\).",
+      "role": "candidate unconditional cell-mass array",
+      "refs": [
+        "r_{bt}",
+        "b",
+        "t",
+        "\\mathbb I_H",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathbf s",
+      "type": "array",
+      "space": "\\(\\mathbb R_+^{H+1}\\)",
+      "def": "\\(\\mathbf s=(s_w)_{w\\in\\mathbb I_H}\\).",
+      "role": "candidate unconditional column-margin array",
+      "refs": [
+        "s_w",
+        "w",
+        "\\mathbb I_H",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathbf x",
+      "type": "array",
+      "space": "\\(\\mathbb R_+^{(H+1)^2}\\)",
+      "def": "\\(\\mathbf x=(x_{bw})_{b,w\\in\\mathbb I_H}\\).",
+      "role": "candidate unconditional transport array",
+      "refs": [
+        "x_{bw}",
+        "b",
+        "w",
+        "\\mathbb I_H",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathsf X_H(\\mathbf r,\\mathbf s)",
+      "type": "polytope-valued function",
+      "space": "candidate unconditional margins to subsets of \\(\\mathbb R_+^{(H+1)^2}\\)",
+      "def": "The perspective Ferrers plans with row masses \\(\\sum_t r_{bt}\\) and column masses \\(s_w\\), defined in \\(\\text{def:perspective-regret-functional}\\).",
+      "role": "candidate shared-law coupling set",
+      "refs": [
+        "H",
+        "r_{bt}",
+        "s_w",
+        "t",
+        "b",
+        "w"
+      ]
+    },
+    {
+      "name": "\\mathsf J_m(\\mathbf r,\\mathbf x)",
+      "type": "scalar-valued function",
+      "space": "candidate unconditional margins and plans to \\(\\mathbb R_+\\)",
+      "def": "The unconditional threshold loss induced by candidate cell masses \\(r_{bt}\\) and perspective plan \\(x_{bw}\\), defined in \\(\\text{def:perspective-regret-functional}\\).",
+      "role": "candidate threshold loss",
+      "refs": [
+        "m",
+        "r_{bt}",
+        "x_{bw}"
+      ]
+    },
+    {
+      "name": "\\mathsf D_{mj}(\\mathbf r,\\mathbf s)",
+      "type": "scalar-valued function",
+      "space": "candidate feasible unconditional margins to \\(\\mathbb R\\)",
+      "def": "The signed worst-case difference between candidate threshold losses \\(m\\) and \\(j\\), defined in \\(\\text{def:perspective-regret-functional}\\).",
+      "role": "candidate signed pairwise difference",
+      "refs": [
+        "m",
+        "j",
+        "\\mathsf J_m(\\mathbf r,\\mathbf x)",
+        "\\mathsf X_H(\\mathbf r,\\mathbf s)"
+      ]
+    },
+    {
+      "name": "\\mathsf R_m(\\mathbf r,\\mathbf s)",
+      "type": "scalar-valued function",
+      "space": "candidate feasible unconditional margins to \\(\\mathbb R_+\\)",
+      "def": "The candidate shared-law regret obtained by maximizing \\(\\mathsf D_{mj}(\\mathbf r,\\mathbf s)\\) over \\(j\\in\\mathcal M\\), defined in \\(\\text{def:perspective-regret-functional}\\).",
+      "role": "candidate regret functional",
+      "refs": [
+        "m",
+        "j",
+        "\\mathsf D_{mj}(\\mathbf r,\\mathbf s)",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "\\underline r_{bt}",
+      "type": "random array",
+      "space": "\\(\\mathbb R^{(H+1)^2}\\)",
+      "def": "The simultaneous lower confidence endpoints for \\(r_{bt}\\).",
+      "role": "cellwise lower endpoint",
+      "refs": [
+        "r_{bt}",
+        "H"
+      ]
+    },
+    {
+      "name": "\\overline r_{bt}",
+      "type": "random array",
+      "space": "\\(\\mathbb R^{(H+1)^2}\\)",
+      "def": "The simultaneous upper confidence endpoints for \\(r_{bt}\\).",
+      "role": "cellwise upper endpoint",
+      "refs": [
+        "r_{bt}",
+        "H"
+      ]
+    },
+    {
+      "name": "\\underline q_w",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^{H+1}\\)",
+      "def": "The simultaneous lower confidence endpoints for \\(q_w\\).",
+      "role": "residual-margin lower endpoint",
+      "refs": [
+        "q_w",
+        "H"
+      ]
+    },
+    {
+      "name": "\\overline q_w",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^{H+1}\\)",
+      "def": "The simultaneous upper confidence endpoints for \\(q_w\\).",
+      "role": "residual-margin upper endpoint",
+      "refs": [
+        "q_w",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathcal I_{n,\\alpha}",
+      "type": "random rectangle",
+      "space": "subsets of the product simplex",
+      "def": "A simultaneous \\(1-\\alpha\\) confidence rectangle for \\((r_{bt},q_w)\\).",
+      "role": "first-stage confidence region",
+      "refs": [
+        "n",
+        "\\alpha",
+        "r_{bt}",
+        "q_w"
+      ]
+    },
+    {
+      "name": "\\widehat{\\mathcal P}_{n,\\alpha}",
+      "type": "random polytope",
+      "space": "finite-dimensional Euclidean space",
+      "def": "The perspective confidence polytope coupling candidate unconditional margins \\(r_{bt}\\) and \\(s_w\\) to a capped transport array.",
+      "role": "confidence-polytope inversion domain",
+      "refs": [
+        "n",
+        "\\alpha",
+        "r_{bt}",
+        "s_w",
+        "H"
+      ]
+    },
+    {
+      "name": "\\widehat{\\mathcal V}_{n,\\alpha}",
+      "type": "random compact set",
+      "space": "subsets of \\(\\mathbb R^{|\\mathcal M|}\\)",
+      "def": "The linear image of \\(\\widehat{\\mathcal P}_{n,\\alpha}\\) under the threshold-loss map.",
+      "role": "confidence region for the whole value set",
+      "refs": [
+        "n",
+        "\\alpha",
+        "\\widehat{\\mathcal P}_{n,\\alpha}",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "\\widehat{\\mathcal M}_{n,\\alpha}",
+      "type": "random finite set",
+      "space": "\\(2^{\\mathcal M}\\)",
+      "def": "The regret-envelope outer confidence set for all deterministic minimax thresholds.",
+      "role": "robust-optimizer confidence set",
+      "refs": [
+        "n",
+        "\\alpha",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "name": "\\underline R_m^{n,\\alpha}",
+      "type": "random nonnegative scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "The lower envelope of candidate shared-law regret for threshold \\(m\\) over the confidence polytope.",
+      "role": "regret lower confidence envelope",
+      "refs": [
+        "\\mathsf R_m(\\mathbf r,\\mathbf s)",
+        "m",
+        "n",
+        "\\alpha",
+        "\\widehat{\\mathcal P}_{n,\\alpha}"
+      ]
+    },
+    {
+      "name": "\\overline R_m^{n,\\alpha}",
+      "type": "random nonnegative scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "The upper envelope of candidate shared-law regret for threshold \\(m\\) over the confidence polytope.",
+      "role": "regret upper confidence envelope",
+      "refs": [
+        "\\mathsf R_m(\\mathbf r,\\mathbf s)",
+        "m",
+        "n",
+        "\\alpha",
+        "\\widehat{\\mathcal P}_{n,\\alpha}"
+      ]
+    },
+    {
+      "name": "\\mathfrak L",
+      "type": "construction handle",
+      "space": "finite-horizon response-tree algorithms",
+      "def": "A history-by-history response-type gluing handle that preserves the sustained factual paths, their arm-specific sequential censoring kernels, and the observed pushforward before completing unobserved branches.",
+      "role": "causal-lift handle",
+      "refs": [
+        "U",
+        "O",
+        "C",
+        "\\mathcal H_{\\ell}^a"
+      ]
+    },
+    {
+      "name": "\\mathfrak I",
+      "type": "construction handle",
+      "space": "semiparametric inference procedures",
+      "def": "A stacked efficient-influence-function and generalized-moment-selection handle followed by regularized support-function inversion.",
+      "role": "uniform-inference handle",
+      "refs": [
+        "O",
+        "\\widehat{\\mathcal P}_{n,\\alpha}",
+        "h_{\\mathcal V}"
+      ]
+    },
+    {
+      "name": "\\mathsf E_3",
+      "type": "identified-summary instance",
+      "space": "rational cap-three margin and row-moment arrays",
+      "def": "The explicit three-threshold recommendation-reversal instance.",
+      "role": "sanity-check witness",
+      "refs": [
+        "H",
+        "\\mathcal M"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:baseline-randomization",
+      "kind": "causal-structural",
+      "condition": "\\(R\\perp U\\) under \\(\\mathsf P\\).",
+      "free_symbols": [
+        "R",
+        "U",
+        "\\mathsf P"
+      ],
+      "standard": {
+        "name": "Baseline treatment randomization",
+        "cite": "JanvinRyalenSarvetStensrud2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:causal-response-tree-lift"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal-structural",
+      "condition": "\\(O\\) equals the \\(R\\)-indexed path in \\(U\\) truncated at \\(C\\).",
+      "free_symbols": [
+        "O",
+        "R",
+        "U",
+        "C"
+      ],
+      "standard": {
+        "name": "Counterfactual consistency for recurrent-event histories; counterfactual recurrent-event setup in Sections 2--3",
+        "cite": "JanvinYoungRyalenStensrud2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:causal-response-tree-lift"
+      ]
+    },
+    {
+      "id": "ass:censoring-exchangeability",
+      "kind": "causal-structural",
+      "condition": "For every \\(a\\in\\{0,1\\}\\) and \\(\\ell\\in\\{1,\\ldots,K\\}\\), on \\(\\{R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0\\}\\), \\(\\mathsf P(C\\ge\\ell\\mid R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0,\\mathcal H_K^a)=\\mathsf P(C\\ge\\ell\\mid R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0,\\mathcal H_{\\ell-1}^a)\\) almost surely.",
+      "free_symbols": [
+        "C",
+        "R",
+        "\\mathsf P",
+        "a",
+        "\\ell",
+        "K",
+        "U",
+        "\\mathcal H_{\\ell}^a"
+      ],
+      "standard": {
+        "name": "Factual-arm sequential coarsening at random on the at-risk history; Proposition 1 and Corollary 1",
+        "cite": "BaerStrawdermanErtefaie2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:causal-response-tree-lift",
+        "thm:confidence-polytope"
+      ]
+    },
+    {
+      "id": "ass:assignment-positivity",
+      "kind": "support",
+      "condition": "\\(\\mathsf P(R=a)>0\\) for each \\(a\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "\\mathsf P",
+        "R",
+        "a"
+      ],
+      "standard": {
+        "name": "Baseline treatment positivity",
+        "cite": "JanvinRyalenSarvetStensrud2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:confidence-polytope"
+      ]
+    },
+    {
+      "id": "ass:censoring-positivity",
+      "kind": "support",
+      "condition": "For every \\(a\\in\\{0,1\\}\\) and \\(\\ell\\in\\{1,\\ldots,K\\}\\), \\(\\mathsf P(C\\ge\\ell\\mid R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0,\\mathcal H_{\\ell-1}^a)>0\\) almost surely on \\(\\{R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0\\}\\).",
+      "free_symbols": [
+        "\\mathsf P",
+        "C",
+        "K",
+        "R",
+        "a",
+        "\\ell",
+        "U",
+        "\\mathcal H_{\\ell}^a"
+      ],
+      "standard": {
+        "name": "Factual-arm sequential censoring positivity through the analysis horizon; Corollary 1",
+        "cite": "BaerStrawdermanErtefaie2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:causal-response-tree-lift",
+        "thm:confidence-polytope"
+      ]
+    },
+    {
+      "id": "ass:landmark-survival-positivity",
+      "kind": "support",
+      "condition": "\\(\\mathsf P(S_k^a=1)>0\\) for each \\(a\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "\\mathsf P",
+        "S_k^a",
+        "a"
+      ],
+      "standard": {
+        "name": "Landmark survival positivity",
+        "cite": "JanvinRyalenSarvetStensrud2025"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:no-anticipation",
+      "kind": "causal-structural",
+      "condition": "\\((Y_{\\ell}^{1\\to0},D_{\\ell}^{1\\to0})=(Y_{\\ell}^{1},D_{\\ell}^{1})\\) for every \\(\\ell\\le k\\).",
+      "free_symbols": [
+        "U",
+        "\\ell",
+        "k"
+      ],
+      "standard": {
+        "name": "Single-world no-anticipation at a fixed intervention time",
+        "cite": "RichardsonRobins2013"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:causal-response-tree-lift"
+      ]
+    },
+    {
+      "id": "ass:capped-residual-transportability",
+      "kind": "causal-structural",
+      "condition": "\\(\\mathsf P(W=w\\mid S_k^1=1)=q_w\\) for every \\(w\\in\\mathbb I_H\\).",
+      "free_symbols": [
+        "\\mathsf P",
+        "W",
+        "w",
+        "S_k^a",
+        "q_w",
+        "\\mathbb I_H"
+      ],
+      "standard": {
+        "name": "Capped-increment specialization of the no-carry-over condition in Assumption 1",
+        "cite": "JanvinRyalenSarvetStensrud2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:causal-response-tree-lift"
+      ]
+    },
+    {
+      "id": "ass:capped-capacity",
+      "kind": "sensitivity",
+      "condition": "\\(\\mathsf P(B+W\\le H\\mid S_k^1=1)=1\\).",
+      "free_symbols": [
+        "\\mathsf P",
+        "B",
+        "W",
+        "H",
+        "S_k^a"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This is an explicit sensitivity restriction, not a consequence of separately capping \\(B\\) and \\(W\\). It is satisfied by recurrent processes in which switching activates a nonrenewable reserve of \\(H-B\\) post-landmark event opportunities, for example a finite collection of vulnerable sites whose failures before \\(k\\) cannot recur and whose remaining sites are stabilized after switching. A clinical analysis must justify that mechanism and choose \\(H\\) externally; otherwise the theorem is reported only as a shape-restriction sensitivity analysis."
+      },
+      "used_by": [
+        "def:model-class",
+        "def:ferrers-polytope",
+        "thm:causal-response-tree-lift"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "Capacity-sensitivity FFRCISTG class with raw paths and separately capped summaries",
+      "construction": "\\(\\mathfrak M_H=\\{\\mathsf P:R\\perp U;\\ O\\text{ is the }R\\text{-indexed path in }U\\text{ observed through }C;\\ \\mathsf P(R=a)>0;\\ \\mathsf P(S_k^a=1)>0;\\ (Y_{\\ell}^{1\\to0},D_{\\ell}^{1\\to0})=(Y_{\\ell}^{1},D_{\\ell}^{1})\\text{ for }\\ell\\le k;\\ \\mathsf P(W=w\\mid S_k^1=1)=q_w;\\ \\mathsf P(B+W\\le H\\mid S_k^1=1)=1;\\text{ and, for every }a\\in\\{0,1\\},\\ell\\in\\{1,\\ldots,K\\},\\ \\mathsf P(C\\ge\\ell\\mid R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0,\\mathcal H_K^a)=\\mathsf P(C\\ge\\ell\\mid R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0,\\mathcal H_{\\ell-1}^a)>0\\text{ almost surely on }\\{R=a,C\\ge\\ell-1,D_{\\ell-1}^a=0\\}\\}\\). The censoring restriction is arm specific and factual; it imposes no independence between \\(C\\) and unassigned counterfactual branches.",
+      "free_symbols": [
+        "\\mathfrak M_H",
+        "H",
+        "K",
+        "k",
+        "\\ell",
+        "a",
+        "U",
+        "R",
+        "C",
+        "O",
+        "\\mathsf P",
+        "\\mathcal H_{\\ell}^a",
+        "S_k^a",
+        "B",
+        "W",
+        "w",
+        "q_w"
+      ],
+      "by_member_properties": [
+        "ass:baseline-randomization",
+        "ass:consistency",
+        "ass:censoring-exchangeability",
+        "ass:assignment-positivity",
+        "ass:censoring-positivity",
+        "ass:landmark-survival-positivity",
+        "ass:no-anticipation",
+        "ass:capped-residual-transportability",
+        "ass:capped-capacity"
+      ]
+    },
+    {
+      "id": "def:ferrers-polytope",
+      "name": "Capped Ferrers transport polytope",
+      "construction": "\\(\\Gamma_H(p,q)=\\{x\\in\\mathbb R_+^{(H+1)\\times(H+1)}:\\sum_w x_{bw}=p_b,\\ \\sum_b x_{bw}=q_w,\\ x_{bw}=0\\text{ if }b+w>H\\}\\).",
+      "free_symbols": [
+        "\\Gamma_H(p,q)",
+        "H",
+        "x_{bw}",
+        "p_b",
+        "q_w",
+        "b",
+        "w"
+      ],
+      "inputs": [
+        "p_b",
+        "q_w",
+        "H"
+      ]
+    },
+    {
+      "id": "def:triple-polytope",
+      "name": "Capped triple-coupling polytope",
+      "construction": "\\(\\mathcal G_H(p_{BT},q)=\\{\\gamma\\in\\mathbb R_+^{(H+1)^3}:\\sum_w\\gamma_{btw}=p_{bt},\\ \\sum_{b,t}\\gamma_{btw}=q_w,\\ \\gamma_{btw}=0\\text{ if }b+w>H\\}\\).",
+      "free_symbols": [
+        "\\mathcal G_H(p_{BT},q)",
+        "H",
+        "\\gamma_{btw}",
+        "p_{bt}",
+        "q_w",
+        "b",
+        "t",
+        "w"
+      ],
+      "inputs": [
+        "p_{bt}",
+        "q_w",
+        "H"
+      ]
+    },
+    {
+      "id": "def:threshold-cumulative-envelopes",
+      "name": "Selected-subdistribution cumulative envelopes",
+      "construction": "For each \\(m\\in\\mathcal M\\), set \\(L_m=H-m\\), \\(a_m=\\sum_{b=m}^{H}p_b\\), \\(Q_s=\\sum_{w=0}^{s}q_w\\), and \\(A_s=\\sum_{b=H-s}^{H}p_b\\). For every \\(s\\in\\{0,\\ldots,L_m\\}\\), set \\(Z_{ms}^{-}=\\min\\{a_m,Q_s\\}\\) and \\(Z_{ms}^{+}=Q_s+\\max_{u\\in\\{s,\\ldots,L_m\\}}(A_u-Q_u)\\).",
+      "free_symbols": [
+        "m",
+        "\\mathcal M",
+        "L_m",
+        "H",
+        "a_m",
+        "b",
+        "p_b",
+        "Q_s",
+        "s",
+        "w",
+        "q_w",
+        "A_s",
+        "Z_{ms}^{-}",
+        "Z_{ms}^{+}",
+        "u"
+      ],
+      "inputs": [
+        "p_b",
+        "q_w",
+        "H",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "id": "def:threshold-value-set",
+      "name": "Shared-law threshold-value set",
+      "construction": "\\(\\mathcal V(p_{BT},q)=\\{(\\pi[\\sum_{b<m}\\mu_b+\\sum_{b\\ge m,w}w x_{bw}])_{m\\in\\mathcal M}:x\\in\\Gamma_H(p,q)\\}\\).",
+      "free_symbols": [
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "\\pi",
+        "b",
+        "m",
+        "\\mu_b",
+        "w",
+        "x_{bw}",
+        "\\mathcal M",
+        "\\Gamma_H(p,q)"
+      ],
+      "inputs": [
+        "p_{bt}",
+        "q_w",
+        "\\pi",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "id": "def:support-function",
+      "name": "Threshold-value support function",
+      "construction": "\\(h_{\\mathcal V}(\\lambda)=\\pi[\\sum_{m\\in\\mathcal M}\\lambda_m\\sum_{b<m}\\mu_b+\\max_{x\\in\\Gamma_H(p,q)}\\sum_{b,w}c_b(\\lambda)w x_{bw}]\\), where \\(c_b(\\lambda)=\\sum_{m\\in\\mathcal M}\\lambda_m\\mathbf 1\\{b\\ge m\\}\\).",
+      "free_symbols": [
+        "b",
+        "\\lambda",
+        "c_b(\\lambda)",
+        "m",
+        "\\mathcal M",
+        "\\mu_b",
+        "h_{\\mathcal V}",
+        "\\pi",
+        "x_{bw}",
+        "\\Gamma_H(p,q)",
+        "p_b",
+        "q_w",
+        "w"
+      ],
+      "inputs": [
+        "\\lambda",
+        "\\mu_b",
+        "\\Gamma_H(p,q)",
+        "\\pi"
+      ]
+    },
+    {
+      "id": "def:shared-law-regret",
+      "name": "Shared-law pairwise differences and regret correspondence",
+      "construction": "\\(D_{mj}=\\sup_{v\\in\\mathcal V(p_{BT},q)}(v_m-v_j)\\in\\mathbb R\\), \\(R_m=\\max_{j\\in\\mathcal M}D_{mj}\\ge0\\), and \\(\\mathcal M^\\star=\\operatorname*{argmin}_{m\\in\\mathcal M}R_m\\). The inequality for \\(R_m\\) follows from the included comparator \\(j=m\\), for which \\(D_{mm}=0\\); no sign restriction is imposed on \\(D_{mj}\\) when \\(m\\ne j\\).",
+      "free_symbols": [
+        "D_{mj}",
+        "m",
+        "j",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "R_m",
+        "\\mathcal M",
+        "\\mathcal M^\\star"
+      ],
+      "inputs": [
+        "\\mathcal V(p_{BT},q)",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "id": "def:scalar-bound-regret",
+      "name": "Separate scalar-bound regret correspondence",
+      "construction": "Set \\(\\underline J_m=\\inf_{v\\in\\mathcal V(p_{BT},q)}v_m\\) and \\(\\overline J_m=\\sup_{v\\in\\mathcal V(p_{BT},q)}v_m\\). Define \\(D^{\\Box}_{mm}=0\\), \\(D^{\\Box}_{mj}=\\overline J_m-\\underline J_j\\) for \\(m\\ne j\\), \\(R_m^{\\Box}=\\max_{j\\in\\mathcal M}D^{\\Box}_{mj}\\), and \\(\\mathcal M^{\\Box}=\\operatorname*{argmin}_{m\\in\\mathcal M}R_m^{\\Box}\\).",
+      "free_symbols": [
+        "\\underline J_m",
+        "\\overline J_m",
+        "m",
+        "j",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "D^{\\Box}_{mj}",
+        "R_m^{\\Box}",
+        "\\mathcal M",
+        "\\mathcal M^{\\Box}"
+      ],
+      "inputs": [
+        "\\mathcal V(p_{BT},q)",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "id": "def:comparison-domain",
+      "name": "Cap-three identified-summary domain",
+      "construction": "\\(\\Theta_3=\\{(\\pi,(p_b)_{b=0}^{3},(\\mu_b)_{b=0}^{3},(q_w)_{w=0}^{3}):0<\\pi\\le1,\\ (p_b)_{b=0}^{3},(q_w)_{w=0}^{3}\\in\\Delta(\\{0,1,2,3\\}),\\ 0\\le\\mu_b\\le3p_b\\text{ for every }b,\\ \\Gamma_3(p,q)\\ne\\varnothing\\}\\), with the relative topology inherited from Euclidean space.",
+      "free_symbols": [
+        "\\Theta_3",
+        "\\pi",
+        "p_b",
+        "\\mu_b",
+        "b",
+        "q_w",
+        "\\Gamma_H(p,q)"
+      ],
+      "inputs": [
+        "p_b",
+        "\\mu_b",
+        "q_w",
+        "\\pi"
+      ]
+    },
+    {
+      "id": "def:response-tree-handle",
+      "name": "Observed-law-preserving response-tree gluing handle",
+      "construction": "Given an observed-data law with an admitted sustained-arm full-data extension and \\(\\gamma\\in\\mathcal G_H(p_{BT},q)\\), \\(\\mathfrak L\\) retains the original joint law of the raw intensive and standard sustained histories. For each intensive survivor with realized \\((B,T)=(b,t)\\) and \\(p_{bt}>0\\), it draws \\(W=w\\) with probability \\(\\gamma_{btw}/p_{bt}\\), copies the intensive history through \\(k\\), keeps the otherwise unobserved switched branch alive through \\(K\\), and adds exactly \\(w\\) raw events immediately after \\(k\\). For histories dead by \\(k\\), it continues the absorbing path. It fills every other unused branch by copying the common prefix to its first treatment divergence and then appending zero-event legal histories, packages the table as \\(U\\), and draws \\(R\\) independently of that table. Conditional on \\(R=a\\), censoring is then drawn from the original sequential continuation kernel as a function of \\(C\\ge\\ell-1\\), \\(D_{\\ell-1}^a=0\\), and \\(\\mathcal H_{\\ell-1}^a\\). Because the sustained histories and this factual-arm kernel are unchanged, the construction preserves the observed pushforward and the factual-arm sequential coarsening-at-random and positivity conditions without imposing any restriction between censoring and unassigned counterfactual branches. Zero-probability \\((b,t)\\) cells use arbitrary conditional values.",
+      "free_symbols": [
+        "\\mathfrak L",
+        "\\mathsf P",
+        "U",
+        "R",
+        "C",
+        "\\ell",
+        "a",
+        "\\mathcal H_{\\ell}^a",
+        "H",
+        "K",
+        "k",
+        "W",
+        "B",
+        "T",
+        "b",
+        "t",
+        "w",
+        "\\gamma_{btw}",
+        "\\mathcal G_H(p_{BT},q)",
+        "p_{bt}"
+      ],
+      "inputs": [
+        "\\gamma_{btw}",
+        "\\mathsf P",
+        "k",
+        "H"
+      ]
+    },
+    {
+      "id": "def:simultaneous-margin-region",
+      "name": "Simultaneous margin confidence region",
+      "construction": "\\(\\mathcal I_{n,\\alpha}=\\{(r,q):\\underline r_{bt}\\le r_{bt}\\le\\overline r_{bt}\\text{ for all }b,t,\\ \\underline q_w\\le q_w\\le\\overline q_w\\text{ for all }w\\}\\).",
+      "free_symbols": [
+        "\\mathcal I_{n,\\alpha}",
+        "n",
+        "\\alpha",
+        "r_{bt}",
+        "q_w",
+        "\\underline r_{bt}",
+        "\\overline r_{bt}",
+        "\\underline q_w",
+        "\\overline q_w",
+        "b",
+        "t",
+        "w"
+      ],
+      "inputs": [
+        "O",
+        "n",
+        "\\alpha"
+      ]
+    },
+    {
+      "id": "def:confidence-polytope",
+      "name": "Perspective Hall confidence polytope",
+      "construction": "\\(\\widehat{\\mathcal P}_{n,\\alpha}=\\{(\\mathbf r,\\mathbf s,\\mathbf x):r_{bt}\\ge0,\\ \\underline r_{bt}\\le r_{bt}\\le\\overline r_{bt},\\ \\sum_{b,t}r_{bt}\\le1,\\ s_w\\ge0,\\ \\sum_ws_w=\\sum_{b,t}r_{bt},\\ \\underline q_w\\sum_{b,t}r_{bt}\\le s_w\\le\\overline q_w\\sum_{b,t}r_{bt},\\ x_{bw}\\ge0,\\ x_{bw}=0\\text{ if }b+w>H,\\ \\sum_wx_{bw}=\\sum_t r_{bt},\\ \\sum_bx_{bw}=s_w\\}\\).",
+      "free_symbols": [
+        "\\widehat{\\mathcal P}_{n,\\alpha}",
+        "\\mathbf r",
+        "\\mathbf s",
+        "\\mathbf x",
+        "n",
+        "\\alpha",
+        "r_{bt}",
+        "s_w",
+        "x_{bw}",
+        "\\underline r_{bt}",
+        "\\overline r_{bt}",
+        "\\underline q_w",
+        "\\overline q_w",
+        "b",
+        "w",
+        "H",
+        "t"
+      ],
+      "inputs": [
+        "\\mathcal I_{n,\\alpha}",
+        "H"
+      ]
+    },
+    {
+      "id": "def:value-confidence-set",
+      "name": "Whole-value-set confidence image",
+      "construction": "\\(\\widehat{\\mathcal V}_{n,\\alpha}=\\{(\\sum_{b<m,t}t r_{bt}+\\sum_{b\\ge m,w}w x_{bw})_{m\\in\\mathcal M}:(\\mathbf r,\\mathbf s,\\mathbf x)\\in\\widehat{\\mathcal P}_{n,\\alpha}\\}\\).",
+      "free_symbols": [
+        "\\widehat{\\mathcal V}_{n,\\alpha}",
+        "\\mathbf r",
+        "\\mathbf s",
+        "\\mathbf x",
+        "n",
+        "\\alpha",
+        "b",
+        "m",
+        "t",
+        "r_{bt}",
+        "w",
+        "x_{bw}",
+        "\\mathcal M",
+        "\\widehat{\\mathcal P}_{n,\\alpha}"
+      ],
+      "inputs": [
+        "\\widehat{\\mathcal P}_{n,\\alpha}",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "id": "def:perspective-regret-functional",
+      "name": "Perspective shared-law regret functional",
+      "construction": "For candidate unconditional margins \\((\\mathbf r,\\mathbf s)\\), define \\(\\mathsf X_H(\\mathbf r,\\mathbf s)=\\{\\mathbf x\\in\\mathbb R_+^{(H+1)^2}:x_{bw}=0\\text{ if }b+w>H,\\ \\sum_wx_{bw}=\\sum_t r_{bt},\\ \\sum_bx_{bw}=s_w\\}\\). For \\(\\mathbf x\\in\\mathsf X_H(\\mathbf r,\\mathbf s)\\), define \\(\\mathsf J_m(\\mathbf r,\\mathbf x)=\\sum_{b<m,t}t r_{bt}+\\sum_{b\\ge m,w}w x_{bw}\\). On margin pairs with \\(\\mathsf X_H(\\mathbf r,\\mathbf s)\\ne\\varnothing\\), define \\(\\mathsf D_{mj}(\\mathbf r,\\mathbf s)=\\max_{\\mathbf x\\in\\mathsf X_H(\\mathbf r,\\mathbf s)}[\\mathsf J_m(\\mathbf r,\\mathbf x)-\\mathsf J_j(\\mathbf r,\\mathbf x)]\\) and \\(\\mathsf R_m(\\mathbf r,\\mathbf s)=\\max_{j\\in\\mathcal M}\\mathsf D_{mj}(\\mathbf r,\\mathbf s)\\).",
+      "free_symbols": [
+        "r_{bt}",
+        "s_w",
+        "\\mathbf r",
+        "\\mathbf s",
+        "\\mathbf x",
+        "\\mathsf X_H(\\mathbf r,\\mathbf s)",
+        "H",
+        "x_{bw}",
+        "b",
+        "w",
+        "t",
+        "\\mathsf J_m(\\mathbf r,\\mathbf x)",
+        "m",
+        "\\mathsf D_{mj}(\\mathbf r,\\mathbf s)",
+        "j",
+        "\\mathsf R_m(\\mathbf r,\\mathbf s)",
+        "\\mathcal M"
+      ],
+      "inputs": [
+        "r_{bt}",
+        "s_w",
+        "H",
+        "\\mathcal M"
+      ]
+    },
+    {
+      "id": "def:optimizer-confidence-set",
+      "name": "Regret-envelope optimizer confidence set",
+      "construction": "Set \\(\\underline R_m^{n,\\alpha}=\\min_{(\\mathbf r,\\mathbf s)\\in\\operatorname{proj}_{\\mathbf r,\\mathbf s}\\widehat{\\mathcal P}_{n,\\alpha}}\\mathsf R_m(\\mathbf r,\\mathbf s)\\), \\(\\overline R_m^{n,\\alpha}=\\max_{(\\mathbf r,\\mathbf s)\\in\\operatorname{proj}_{\\mathbf r,\\mathbf s}\\widehat{\\mathcal P}_{n,\\alpha}}\\mathsf R_m(\\mathbf r,\\mathbf s)\\), and \\(\\widehat{\\mathcal M}_{n,\\alpha}=\\{m\\in\\mathcal M:\\underline R_m^{n,\\alpha}\\le\\min_{j\\in\\mathcal M}\\overline R_j^{n,\\alpha}\\}\\).",
+      "free_symbols": [
+        "\\mathsf R_m(\\mathbf r,\\mathbf s)",
+        "\\mathbf r",
+        "\\mathbf s",
+        "m",
+        "r_{bt}",
+        "s_w",
+        "\\widehat{\\mathcal P}_{n,\\alpha}",
+        "n",
+        "\\alpha",
+        "\\underline R_m^{n,\\alpha}",
+        "\\overline R_m^{n,\\alpha}",
+        "j",
+        "\\widehat{\\mathcal M}_{n,\\alpha}",
+        "\\mathcal M"
+      ],
+      "inputs": [
+        "\\widehat{\\mathcal P}_{n,\\alpha}",
+        "\\mathcal M",
+        "\\mathsf R_m(\\mathbf r,\\mathbf s)"
+      ]
+    },
+    {
+      "id": "def:uniform-inference-handle",
+      "name": "Censoring-adjusted uniform-inference handle",
+      "construction": "\\(\\mathfrak I\\) stacks censoring-adjusted efficient influence functions for the finite vector \\((r_{bt},q_w)\\), selects near-binding Hall moments by generalized moment selection, and inverts regularized support-function statistics jointly over the finite threshold directions and their pairwise differences.",
+      "free_symbols": [
+        "\\mathfrak I",
+        "r_{bt}",
+        "q_w",
+        "h_{\\mathcal V}",
+        "\\mathcal M"
+      ],
+      "inputs": [
+        "O",
+        "H",
+        "\\mathcal M",
+        "n",
+        "\\alpha"
+      ]
+    },
+    {
+      "id": "def:rational-reversal-instance",
+      "name": "Three-threshold rational reversal instance",
+      "construction": "\\(\\mathsf E_3\\in\\Theta_3\\) has \\(H=3\\), \\(\\pi=1\\), \\(\\mathcal M=\\{1,2,3\\}\\), \\((p_0,p_1,p_2,p_3)=(2/5,3/10,1/5,1/10)\\), \\((q_0,q_1,q_2,q_3)=(3/10,3/10,1/5,1/5)\\), and \\((\\mu_0,\\mu_1,\\mu_2,\\mu_3)=(0,7/20,7/40,0)\\).",
+      "free_symbols": [
+        "\\mathsf E_3",
+        "H",
+        "\\pi",
+        "\\mathcal M",
+        "p_b",
+        "q_w",
+        "\\mu_b",
+        "\\Theta_3"
+      ],
+      "inputs": [
+        "H",
+        "\\pi",
+        "\\mathcal M"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:sharp-threshold-endpoints",
+      "kind": "theorem",
+      "statement": "Assume \\(\\Gamma_H(p,q)\\ne\\varnothing\\). For every \\(m\\in\\mathcal M\\), the attainable selected-column subdistributions \\(z_w\\) are exactly those satisfying \\(z_w=0\\) for \\(w>L_m\\), \\(0\\le z_w\\le q_w\\), \\(\\sum_{w=0}^{L_m}z_w=a_m\\), and \\(\\sum_{w=0}^{s}z_w\\ge A_s\\) for \\(0\\le s\\le L_m\\). Their pointwise maximal and minimal cumulative arrays are respectively \\(Z_{ms}^{-}\\) and \\(Z_{ms}^{+}\\) from \\(\\text{def:threshold-cumulative-envelopes}\\). In particular, \\(Z_{m,L_m}^{-}=Z_{m,L_m}^{+}=a_m\\) and \\(Z_{ms}^{+}=\\max\\{A_s,Z_{m,s+1}^{+}-q_{s+1}\\}\\) for \\(s<L_m\\). Consequently, \\(\\inf_{x\\in\\Gamma_H(p,q)}\\sum_{b\\ge m,w}w x_{bw}=L_ma_m-\\sum_{s=0}^{L_m-1}Z_{ms}^{-}\\) and \\(\\sup_{x\\in\\Gamma_H(p,q)}\\sum_{b\\ge m,w}w x_{bw}=L_ma_m-\\sum_{s=0}^{L_m-1}Z_{ms}^{+}\\), with both endpoints attained. The sharp endpoints for \\(J_m\\) add \\(\\pi\\sum_{b<m}\\mu_b\\) and multiply the displayed selected contribution by \\(\\pi\\).",
+      "free_symbols": [
+        "m",
+        "\\mathcal M",
+        "H",
+        "L_m",
+        "a_m",
+        "p_b",
+        "b",
+        "q_w",
+        "w",
+        "z_w",
+        "s",
+        "A_s",
+        "Z_{ms}^{-}",
+        "Z_{ms}^{+}",
+        "x_{bw}",
+        "\\Gamma_H(p,q)",
+        "J_m",
+        "\\pi",
+        "\\mu_b"
+      ],
+      "depends_on": [
+        "def:ferrers-polytope",
+        "def:threshold-cumulative-envelopes"
+      ],
+      "status": "to-prove",
+      "justification": "Dahl2008, Theorem 4, supplies the attributed feasibility support; the new closed forms expose the backward capacity deficit that unrestricted sum bounds omit and permit exact threshold comparisons without repeated linear programs.",
+      "gap": "ZhangRichardson2025 resolves discrete sharpness for unrestricted fixed-marginal sums; the support deletion \\(b+w>H\\) changes both feasibility and the upper endpoint through the backward deficit.",
+      "consumer": "JanvinRyalenSarvetStensrud2025's fixed-threshold switching loss becomes sharply bounded in an externally prespecified capacity-sensitivity analysis."
+    },
+    {
+      "id": "lem:triple-projection-and-extension",
+      "kind": "lemma",
+      "statement": "The projection of \\(\\mathcal G_H(p_{BT},q)\\) onto \\((B,W)\\) equals \\(\\Gamma_H(p,q)\\). Every \\(x\\in\\Gamma_H(p,q)\\) extends to \\(\\gamma\\in\\mathcal G_H(p_{BT},q)\\) by \\(\\gamma_{btw}=p_{bt}x_{bw}/p_b\\) when \\(p_b>0\\), with arbitrary zero-row values when \\(p_b=0\\).",
+      "free_symbols": [
+        "\\mathcal G_H(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "B",
+        "W",
+        "\\Gamma_H(p,q)",
+        "p_b",
+        "x_{bw}",
+        "\\gamma_{btw}",
+        "b",
+        "t",
+        "w"
+      ],
+      "depends_on": [
+        "def:ferrers-polytope",
+        "def:triple-polytope"
+      ],
+      "status": "to-prove",
+      "justification": "The lemma shows that conditioning the switched residual on the observed intensive residual creates no hidden loss of sharpness.",
+      "gap": "Classical two-margin transport results do not verify compatibility with the identified \\((B,T)\\) joint law required by the recurrent-event estimand.",
+      "consumer": "The endpoint and policy calculations can optimize over the smaller Ferrers polytope without discarding information about continued intensive treatment."
+    },
+    {
+      "id": "thm:causal-response-tree-lift",
+      "kind": "theorem",
+      "statement": "For every distribution of \\(O\\) that is the observed-data pushforward of at least one law in \\(\\mathfrak M_H\\), every such sustained-arm full-data extension, and every \\(\\gamma\\in\\mathcal G_H(p_{BT},q)\\), the explicit algorithm \\(\\mathfrak L\\) produces a finite-horizon FFRCISTG law on raw nonnegative-integer count paths with triple margin \\(\\gamma\\), the same pushforward distribution of \\(O\\), absorbing death, baseline randomization, and the same arm-specific sequential censoring continuation probabilities conditional on the factual at-risk histories \\(\\mathcal H_{\\ell-1}^a\\). On each constructed switched survivor branch the raw post-\\(k\\) increment is exactly \\(W\\); no global restriction bounds raw counts by \\(H\\). Conversely, every law in \\(\\mathfrak M_H\\) induces a member of \\(\\mathcal G_H(p_{BT},q)\\). The construction imposes neither censoring independence from the entire response tree nor any other cross-world independence beyond baseline randomization and the listed FFRCISTG conditions.",
+      "free_symbols": [
+        "\\mathsf P",
+        "H",
+        "\\gamma_{btw}",
+        "\\mathcal G_H(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "\\mathfrak L",
+        "O",
+        "U",
+        "a",
+        "\\ell",
+        "\\mathcal H_{\\ell}^a"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:triple-polytope",
+        "def:response-tree-handle",
+        "lem:triple-projection-and-extension"
+      ],
+      "status": "to-prove",
+      "justification": "Polyhedral sharpness is causal only if every extremal summary coupling can be realized by a global finite-horizon response tree without silently invoking an NPSEM cross-world product structure.",
+      "gap": "GreseleEtAl2022 studies causal-marginal gluing and RichardsonRobins2013 distinguishes FFRCISTG from NPSEM models; neither supplies an observed-law-preserving recurrent-event lift with death and censoring.",
+      "consumer": "Every endpoint and regret optimizer over the transport polytope is certified as attainable by a causal model rather than only by an abstract coupling."
+    },
+    {
+      "id": "thm:joint-value-set-and-support",
+      "kind": "theorem",
+      "statement": "The sharp identified set for the entire threshold-loss vector is exactly \\(\\mathcal V(p_{BT},q)\\), and for every \\(\\lambda\\in\\mathbb R^{|\\mathcal M|}\\) its support function equals \\(h_{\\mathcal V}(\\lambda)\\) in \\(\\text{def:support-function}\\). The same common-plan representation gives the signed pairwise derivation \\(D_{mj}=\\pi[\\max_{x\\in\\Gamma_H(p,q)}\\sum_{b=m}^{j-1}\\sum_w w x_{bw}-\\sum_{b=m}^{j-1}\\mu_b]\\) for \\(m<j\\), \\(D_{mj}=\\pi[\\sum_{b=j}^{m-1}\\mu_b-\\min_{x\\in\\Gamma_H(p,q)}\\sum_{b=j}^{m-1}\\sum_w w x_{bw}]\\) for \\(m>j\\), and \\(D_{mm}=0\\). Hence an off-diagonal \\(D_{mj}\\) may be negative, \\(R_m=\\max_{j\\in\\mathcal M}D_{mj}\\ge0\\), and \\(\\mathcal M^\\star=\\operatorname*{argmin}_{m\\in\\mathcal M}R_m\\) is the complete deterministic minimax correspondence. In particular, optimizing coordinates separately generally produces a strict outer rectangle rather than the joint identified set.",
+      "free_symbols": [
+        "J_m",
+        "m",
+        "j",
+        "\\mathcal M",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "\\lambda",
+        "h_{\\mathcal V}",
+        "D_{mj}",
+        "\\pi",
+        "x_{bw}",
+        "\\Gamma_H(p,q)",
+        "H",
+        "b",
+        "w",
+        "\\mu_b",
+        "R_m",
+        "\\mathcal M^\\star"
+      ],
+      "depends_on": [
+        "def:threshold-value-set",
+        "def:support-function",
+        "def:shared-law-regret",
+        "thm:causal-response-tree-lift"
+      ],
+      "status": "to-prove",
+      "justification": "All candidate thresholds are functions of one latent switched law, so the theorem identifies their joint geometry and derives signed pairwise regret and every deterministic minimax threshold from that same law.",
+      "gap": "JanvinRyalenSarvetStensrud2025 bounds one threshold and MontielOleaQiuStoye2026 analyzes joint payoff restrictions in a Gaussian decision experiment; neither identifies the common-coupling threshold-value polytope.",
+      "consumer": "A clinician choosing among several prespecified switching thresholds obtains the exact feasible loss vectors and every robust deterministic threshold, including ties, rather than combining incompatible marginal extrema."
+    },
+    {
+      "id": "thm:eligibility-greedy-support",
+      "kind": "theorem",
+      "statement": "For every direction \\(\\lambda\\), process columns \\(w=H,H-1,\\ldots,0\\); when column \\(w\\) is reached, make rows \\(b\\le H-w\\) eligible and allocate its remaining mass to eligible rows in decreasing \\(c_b(\\lambda)\\), splitting only at exhausted row capacities. Whenever \\(\\Gamma_H(p,q)\\ne\\varnothing\\), whose fixed-margin staircase feasibility is supported by Dahl2008, Theorem 4 after reversing the row order, the algorithm is feasible with no sign or monotonicity restriction on the induced real coefficients \\(c_b(\\lambda)\\); it attains \\(h_{\\mathcal V}(\\lambda)\\), uses at most \\(2H+1\\) positive cells, and runs in \\(O(H\\log H)\\) time with a heap.",
+      "free_symbols": [
+        "\\lambda",
+        "w",
+        "H",
+        "b",
+        "c_b(\\lambda)",
+        "h_{\\mathcal V}",
+        "\\Gamma_H(p,q)"
+      ],
+      "depends_on": [
+        "def:ferrers-polytope",
+        "def:support-function"
+      ],
+      "status": "to-prove",
+      "justification": "The attributed staircase theorem certifies the feasible domain, while the specialized exchange argument supplies a support oracle for the joint identified set and all pairwise regret calculations.",
+      "gap": "HoffmanVeinott1993 supplies greedy staircase transportation results under superadditive rewards and cumulative capacities; this statement isolates the exchange property for every signed, potentially nonmonotone threshold-support direction needed here and is not positioned as an independent algorithmic novelty claim.",
+      "consumer": "All robust threshold comparisons can be computed in time nearly linear in the cap rather than by a separate generic program for each pair."
+    },
+    {
+      "id": "prop:rational-recommendation-reversal",
+      "kind": "proposition",
+      "statement": "In \\(\\mathsf E_3\\), the sharp marginal intervals are \\(J_1\\in[3/10,7/10]\\), \\(J_2\\in[7/20,11/20]\\), and \\(J_3=21/40\\). The exact shared-law regret matrix is \\((D_{mj})_{m,j\\in\\mathcal M}=((0,3/20,7/40),(1/4,0,1/40),(9/40,7/40,0))\\), so \\(\\mathcal M^\\star=\\{1\\}\\). The separate scalar-bound regrets are \\((R_1^{\\Box},R_2^{\\Box},R_3^{\\Box})=(7/20,1/4,9/40)\\), so \\(\\mathcal M^{\\Box}=\\{3\\}\\).",
+      "free_symbols": [
+        "\\mathsf E_3",
+        "J_m",
+        "D_{mj}",
+        "\\mathcal M^\\star",
+        "R_m^{\\Box}",
+        "\\mathcal M^{\\Box}"
+      ],
+      "depends_on": [
+        "def:rational-reversal-instance",
+        "def:scalar-bound-regret",
+        "thm:sharp-threshold-endpoints",
+        "thm:joint-value-set-and-support",
+        "thm:eligibility-greedy-support"
+      ],
+      "status": "to-prove",
+      "justification": "The exact rational witness shows that respecting the common latent law can reverse a clinical recommendation, not merely narrow intervals.",
+      "gap": "No cited switching analysis gives a finite example in which shared-law and interval-box minimax regret choose different thresholds.",
+      "consumer": "The example is an audit fixture for software and a direct warning against endpoint-by-endpoint policy choice."
+    },
+    {
+      "id": "thm:nondegenerate-shared-law-separation",
+      "kind": "theorem",
+      "statement": "There exists \\(\\varepsilon>0\\) such that, for every tuple \\((\\pi,(p_b)_{b=0}^{3},(\\mu_b)_{b=0}^{3},(q_w)_{w=0}^{3})\\in\\Theta_3\\) within \\(\\varepsilon\\) in sup norm of \\(\\mathsf E_3\\), every \\(p_{bt}\\) on \\(\\{0,1,2,3\\}^2\\) satisfying \\(\\sum_t p_{bt}=p_b\\) and \\(\\sum_t t p_{bt}=\\mu_b\\), and menu \\(\\mathcal M=\\{1,2,3\\}\\), the nontrivial Hall inequalities are strict, \\(\\mathcal V(p_{BT},q)\\subsetneq\\prod_{m\\in\\mathcal M}[\\underline J_m,\\overline J_m]\\), \\(D_{12}<D^{\\Box}_{12}\\), \\(\\mathcal M^\\star=\\{1\\}\\), and \\(\\mathcal M^{\\Box}=\\{3\\}\\). Here the shared-law quantities use the same-plan identities \\(D_{mj}=\\pi[\\max_{x\\in\\Gamma_H(p,q)}\\sum_{b=m}^{j-1}\\sum_w w x_{bw}-\\sum_{b=m}^{j-1}\\mu_b]\\) for \\(m<j\\), \\(D_{mj}=\\pi[\\sum_{b=j}^{m-1}\\mu_b-\\min_{x\\in\\Gamma_H(p,q)}\\sum_{b=j}^{m-1}\\sum_w w x_{bw}]\\) for \\(m>j\\), \\(D_{mm}=0\\), and \\(R_m=\\max_{j\\in\\mathcal M}D_{mj}\\). Thus the shared-law regret rule is a strict joint-law tightening of applying the scalar sharp bounds of JanvinRyalenSarvetStensrud2025 threshold by threshold on a relatively open, nondegenerate family, with \\(\\mathsf E_3\\) as one member.",
+      "free_symbols": [
+        "\\pi",
+        "p_b",
+        "\\mu_b",
+        "q_w",
+        "\\Theta_3",
+        "\\mathsf E_3",
+        "\\mathcal M",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "b",
+        "t",
+        "m",
+        "j",
+        "w",
+        "x_{bw}",
+        "\\Gamma_H(p,q)",
+        "H",
+        "\\underline J_m",
+        "\\overline J_m",
+        "D_{mj}",
+        "D^{\\Box}_{mj}",
+        "R_m",
+        "\\mathcal M^\\star",
+        "\\mathcal M^{\\Box}"
+      ],
+      "depends_on": [
+        "def:comparison-domain",
+        "def:scalar-bound-regret",
+        "def:shared-law-regret",
+        "def:ferrers-polytope",
+        "thm:joint-value-set-and-support",
+        "thm:eligibility-greedy-support",
+        "prop:rational-recommendation-reversal"
+      ],
+      "status": "to-prove",
+      "justification": "An open family establishes that common-law decision content is not a knife-edge numerical artifact of one rational table.",
+      "gap": "JanvinRyalenSarvetStensrud2025 Proposition 1 supplies sharp scalar bounds and its decision section compares regimes using scalar-bound logic; it does not impose one latent transport law across a threshold menu, and on this family that omission strictly enlarges the payoff set and reverses the minimax threshold.",
+      "consumer": "A trial analyst can diagnose when threshold-wise sharp intervals are insufficient for robust choice even though each reported scalar endpoint is individually correct."
+    },
+    {
+      "id": "thm:confidence-polytope",
+      "kind": "theorem",
+      "statement": "If \\(\\mathcal I_{n,\\alpha}\\) covers \\((r_{bt},q_w)\\) simultaneously with probability at least \\(1-\\alpha\\), then with the same probability \\(\\mathcal V(p_{BT},q)\\subseteq\\widehat{\\mathcal V}_{n,\\alpha}\\) and \\(\\mathcal M^\\star\\subseteq\\widehat{\\mathcal M}_{n,\\alpha}\\). Both inclusions hold without uniqueness, strict Hall slack, or separation between policy regrets, and the sets are computable by finite-dimensional optimization over explicitly given polytopes.",
+      "free_symbols": [
+        "\\mathcal I_{n,\\alpha}",
+        "r_{bt}",
+        "q_w",
+        "n",
+        "\\alpha",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "\\widehat{\\mathcal V}_{n,\\alpha}",
+        "\\mathcal M^\\star",
+        "\\widehat{\\mathcal M}_{n,\\alpha}"
+      ],
+      "depends_on": [
+        "def:simultaneous-margin-region",
+        "def:confidence-polytope",
+        "def:value-confidence-set",
+        "def:perspective-regret-functional",
+        "def:optimizer-confidence-set",
+        "thm:joint-value-set-and-support"
+      ],
+      "status": "to-prove",
+      "justification": "Set inclusion avoids differentiability of active faces and provides honest simultaneous coverage at Hall and policy ties.",
+      "gap": "JanvinRyalenSarvetStensrud2025 reports a one-sided bootstrap bound for one threshold, while ChernozhukovHongTamer2007 and Gafarov2025 do not combine censoring-adjusted margins, a random Hall polytope, and a set-valued regret optimizer.",
+      "consumer": "A capped switching analysis can report one confidence object covering every compatible value vector and every robust threshold."
+    },
+    {
+      "id": "oeq:uniform-censoring-inference",
+      "kind": "openendedquestion",
+      "statement": "Can the handle \\(\\mathfrak I\\) be developed into a cross-fitted procedure that gives uniform asymptotic \\(1-\\alpha\\) coverage of \\(\\mathcal V(p_{BT},q)\\) and outer coverage of \\(\\mathcal M^\\star\\) under coarsening at random and multiply robust nuisance estimation, uniformly over simultaneous Hall equalities and arbitrary policy ties?",
+      "free_symbols": [
+        "\\mathfrak I",
+        "n",
+        "\\alpha",
+        "\\mathcal V(p_{BT},q)",
+        "p_{bt}",
+        "q_w",
+        "\\mathcal M^\\star"
+      ],
+      "depends_on": [
+        "def:uniform-inference-handle",
+        "thm:confidence-polytope"
+      ],
+      "status": "to-prove",
+      "justification": "The finite-dimensional inversion theorem isolates the remaining nonregular semiparametric step instead of concealing it behind an assumed Gaussian limit.",
+      "gap": "BaerStrawdermanErtefaie2023 supplies coarsening-at-random identification, an efficiency bound, and multiply robust estimation for the expected number of recurrent events in the presence of a terminal event; AndrewsSoares2010 handles unknown binding inequalities, and Gafarov2025 treats polygonal support functions. Their joint use for the entire threshold-value and optimizer correspondences is unsettled.",
+      "consumer": "The answer would permit efficient use of incompletely observed recurrent-event trials while retaining coverage at scientifically important cap-feasibility boundaries."
+    }
+  ],
+  "sampling_model": {
+    "design": "Two-arm baseline randomized trial with fixed switch time \\(k\\), terminal horizon \\(K\\), and no observed cross-arm switching.",
+    "units": "Independent trial participants with fixed finite recurrent-event and death histories under the superpopulation law \\(\\mathsf P\\).",
+    "treatment": "Baseline assignment \\(R\\in\\{0,1\\}\\); candidate regimes retain intensive treatment before \\(k\\) and switch survivors with \\(B\\ge m\\) to standard treatment.",
+    "overlap": "Positive baseline assignment and positive arm-specific censoring continuation on every positive-probability factual at-risk history through \\(K\\); no positivity is required for the unsupported post-landmark switch.",
+    "nuisance_estimation": "The finite vectors \\((r_{bt},q_w)\\) are identified under factual-arm sequential coarsening at random and estimated with censoring adjustment; the open inference question asks for uniformly valid efficient scores and cross-fitting at Hall and policy ties."
+  },
+  "estimand_functional": "\\(\\mathcal V(p_{BT},q)=\\{(\\pi[\\sum_{b<m}\\mu_b+\\sum_{b\\ge m,w}w x_{bw}])_{m\\in\\mathcal M}:x\\in\\Gamma_H(p,q)\\}\\)",
+  "target_estimand": "\\(\\mathbf J=(J_m)_{m\\in\\mathcal M}\\)",
+  "bibliography": [
+    {
+      "key": "JanvinRyalenSarvetStensrud2025",
+      "citation": "Janvin, Matias, Pål C. Ryalen, Aaron L. Sarvet, and Mats J. Stensrud. 2025. A positivity robust strategy for comparing recurrent event treatment regimes. Biometrics 81(3), ujaf085. Assumption 1 and Proposition 1 are in Section 3.1."
+    },
+    {
+      "key": "JanvinYoungRyalenStensrud2023",
+      "citation": "Janvin, Matias, Jessica G. Young, Pål C. Ryalen, and Mats J. Stensrud. 2024. Causal inference with recurrent and competing events. Lifetime Data Analysis 30(1): 59--118. Published online 12 May 2023. DOI 10.1007/s10985-023-09594-8; source: \\url{https://link.springer.com/article/10.1007/s10985-023-09594-8}. The relevant counterfactual recurrent-event material is in Sections 2--3."
+    },
+    {
+      "key": "Strassen1965",
+      "citation": "Strassen, Volker. 1965. The existence of probability measures with given marginals. Annals of Mathematical Statistics 36: 423--439."
+    },
+    {
+      "key": "Dahl2008",
+      "citation": "Dahl, Geir. 2008. Transportation matrices with staircase patterns and majorization. Linear Algebra and its Applications 429(7): 1840--1850. DOI 10.1016/j.laa.2008.05.019. Theorem 1 gives the general arbitrary-pattern \\((R,S)\\)-support antecedent; the fixed-margin staircase feasibility characterization and construction are in Theorem 4 and Section 3."
+    },
+    {
+      "key": "ZhangRichardson2025",
+      "citation": "Zhang, Zhehao, and Thomas S. Richardson. 2025. Bounds on the distribution of a sum of two random variables: revisiting a problem of Kolmogorov. arXiv:2405.08806."
+    },
+    {
+      "key": "HoffmanVeinott1993",
+      "citation": "Hoffman, Alan J., and Arthur F. Veinott Jr. 1993. Staircase transportation problems with superadditive rewards and cumulative capacities. Mathematical Programming 62: 199--213."
+    },
+    {
+      "key": "RichardsonRobins2013",
+      "citation": "Richardson, Thomas S., and James M. Robins. 2013. Single world intervention graphs: a primer. University of Washington CSSS Working Paper 128."
+    },
+    {
+      "key": "GreseleEtAl2022",
+      "citation": "Gresele, Luigi, Julius von Kügelgen, Jonas M. Kübler, Elke Kirschbaum, Bernhard Schölkopf, and Dominik Janzing. 2022. Causal inference through the structural causal marginal problem. Proceedings of the 39th International Conference on Machine Learning."
+    },
+    {
+      "key": "BaerStrawdermanErtefaie2023",
+      "citation": "Baer, Benjamin R., Robert L. Strawderman, and Ashkan Ertefaie. 2023. Causal inference for the expected number of recurrent events in the presence of a terminal event. arXiv:2306.16571. Source: \\url{https://arxiv.org/abs/2306.16571}. Proposition 1 and Corollary 1 distinguish full and sequential coarsening at random and state the factual-arm identification specialization; Sections 4.1--4.3 develop efficiency and multiply robust estimation."
+    },
+    {
+      "key": "ChernozhukovHongTamer2007",
+      "citation": "Chernozhukov, Victor, Han Hong, and Elie Tamer. 2007. Estimation and confidence regions for parameter sets in econometric models. Econometrica 75: 1243--1284."
+    },
+    {
+      "key": "AndrewsSoares2010",
+      "citation": "Andrews, Donald W. K., and Gustavo Soares. 2010. Inference for parameters defined by moment inequalities using generalized moment selection. Econometrica 78: 119--157."
+    },
+    {
+      "key": "Gafarov2025",
+      "citation": "Gafarov, Bulat. 2025. Inference in high-dimensional set-identified affine models. Journal of Econometrics 249, 105952."
+    },
+    {
+      "key": "MontielOleaQiuStoye2026",
+      "citation": "Montiel Olea, José Luis, Chen Qiu, and Jörg Stoye. 2026. Decision theory for treatment choice problems with partial identification. Review of Economic Studies, rdag015."
+    },
+    {
+      "key": "Mao2023",
+      "citation": "Mao, Lu. 2023. Nonparametric inference of general while-alive estimands for recurrent events. Biometrics 79: 1749--1760."
+    },
+    {
+      "key": "SinkEtAl2018",
+      "citation": "Sink, Kaycee M., et al. 2018. Syncope, hypotension, and falls in the treatment of hypertension: results from the randomized clinical SPRINT study. Journal of the American Geriatrics Society 66: 679--686."
+    },
+    {
+      "key": "DuarteFinkelsteinKnoxMummoloShpitser2024",
+      "citation": "Duarte, Guilherme, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. 2024. An automated approach to causal inference in discrete settings. Journal of the American Statistical Association 119: 2512--2525."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "JanvinRyalenSarvetStensrud2025",
+      "comparator_claim": "The paper identifies relevant marginal residual-count laws under no carry-over and gives pointwise bounds for an unsupported one-time switch.",
+      "matched_by": "Theorem 5",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "ZhangRichardson2025",
+      "comparator_claim": "The paper characterizes atom-sensitive sharp bounds for the distribution of an unrestricted sum with fixed marginals.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Dahl2008",
+      "comparator_claim": "Theorem 4 characterizes nonempty fixed-margin staircase transportation classes by critical-position inequalities, and Section 3 gives constructions; Theorem 1 is the general arbitrary-pattern \\((R,S)\\)-support antecedent.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HoffmanVeinott1993",
+      "comparator_claim": "The paper gives greedy optimization results for staircase transportation problems with structured rewards.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "MontielOleaQiuStoye2026",
+      "comparator_claim": "The paper shows that the joint geometry of partially identified treatment payoffs governs minimax-regret rules and their randomization.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GreseleEtAl2022",
+      "comparator_claim": "The paper formulates compatibility of causal marginal models with a single global structural causal model.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovHongTamer2007",
+      "comparator_claim": "The paper obtains confidence regions for identified sets by inverting criterion functions under moment equalities and inequalities.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Gafarov2025",
+      "comparator_claim": "The paper develops regularized support-function inference for polygonal affine identified sets with changing active faces.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A randomized recurrent-event trial identifies separately capped baseline and residual marginals for a hypothetical switch while leaving their dependence unknown; the primitive recurrent-event paths remain raw and unbounded. The externally prespecified sensitivity restriction \\(B+W\\le H\\) turns that ambiguity into a Ferrers transport problem and is not implied by individual capping. Dahl2008, Theorem 4, supplies the reindexed antidiagonal feasibility criterion. The novel kernel derives atom-correct capped endpoints, proves that every feasible triple coupling has an observed-law-preserving raw-path FFRCISTG realization under factual-arm sequential censoring, identifies the complete common-coupling threshold-value image, and computes exact minimax regret from signed pairwise differences. On a relatively open cap-three family, the shared-law payoff set strictly tightens threshold-wise scalar bounds and reverses their minimax choice. A perspective confidence-polytope inversion covers the whole value set and every minimax threshold at Hall and policy ties; efficient inference under sequential coarsening remains the first-class open question.",
+  "project_justification": {
+    "gap": "The closest recurrent-event switching analysis supplies a no-carry-over condition and scalar sharp bounds one threshold at a time. Dahl2008, Theorem 4, separately settles staircase fixed-margin feasibility. Neither line identifies atom-correct capped threshold endpoints, verifies that every compatible summary coupling lifts to an observed-law-preserving recurrent-event response tree under factual-arm censoring, preserves one latent law across a threshold menu, or derives the resulting strict minimax-regret separation and optimizer coverage.",
+    "niche": "An externally prespecified joint-capacity sensitivity restriction on two separately capped summaries creates nested antidiagonal support without globally bounding the underlying recurrent-event paths. The attributed staircase feasibility result in Dahl2008, Theorem 4, then becomes an input to a causal sharpness and joint-decision problem rather than the source of novelty.",
+    "fill": "The formal kernel combines the reindexed feasibility certificate from Dahl2008, Theorem 4, with an explicit raw-path causal lift, atom-correct closed-form endpoints, a common-coupling value polytope, exact shared-law regret with signed pairwise differences, a strict open-family comparison with scalar-bound decisions, a specialized support oracle, and simultaneous confidence-set inversion."
+  },
+  "related_work": "JanvinRyalenSarvetStensrud2025 Assumption 1 supplies the no-carry-over template specialized here to separately capped post-landmark increments; its Proposition 1 and decision section supply threshold-wise scalar sharp bounds and regime logic. Combining that capped specialization with an independently prespecified joint-capacity sensitivity restriction creates the setting for the new backward-deficit endpoints, observed-law-preserving lift, common-coupling payoff image, and strict open-family regret separation. Strassen1965 gives the general support-constrained coupling principle. More directly, Dahl2008, Theorem 4 and Section 3, already characterize fixed-margin staircase feasibility and constructions; Theorem 1 is the general arbitrary-pattern \\((R,S)\\)-support antecedent. After reversing the row order, the antidiagonal Hall criterion in this core is exactly the published Theorem 4 specialization and is not claimed as new. ZhangRichardson2025 explains why weak and strict distribution events require separate care for discrete sums and informs the atom-correct endpoint analysis. HoffmanVeinott1993 informs the staircase greedy argument under superadditive rewards; the support oracle here is a specialized exchange result for threshold-induced row coefficients of arbitrary sign and is not presented as freestanding algorithmic novelty. RichardsonRobins2013 provides the FFRCISTG semantics, and GreseleEtAl2022 frames the local-to-global causal-marginal obstruction addressed by the raw-path response-tree lift. MontielOleaQiuStoye2026 shows why joint payoff geometry matters for regret, whereas the present payoff set is generated by one capped transport law rather than a Gaussian reduced-form experiment. ChernozhukovHongTamer2007, AndrewsSoares2010, and Gafarov2025 inform confidence inversion at binding inequalities and changing faces. BaerStrawdermanErtefaie2023, Proposition 1 and Corollary 1, distinguishes full from sequential coarsening at random and supports identification from factual-arm at-risk histories; its efficiency-bound and multiply robust estimation results inform the open semiparametric inference question.",
+  "technical_internal_limitation": "The primitive counts are raw, nonnegative-integer-valued, and not globally bounded by \\(H\\). The condition \\(B+W\\le H\\) constrains one switched counterfactual branch after separately capping its prefix burden and residual increment; it is a substantive shape restriction, not a loss normalization and not a consequence of the response-tree universe. A finite-reserve mechanism gives a concrete compatible class, but no such mechanism has been established for SPRINT. Dahl's feasibility criterion can reject a proposed sensitivity cap statistically, but it cannot establish clinical credibility. The response-tree theorem preserves only the original arm-specific sequential censoring law on factual at-risk histories; independence between censoring and the entire cross-world response tree is neither assumed nor produced. Assigning independent errors to all branches would strengthen FFRCISTG to an NPSEM model and would not establish the stated claim. Two executable diagnostics remain part of the audit rather than proposed results. The endpoint boundary test sets \\(H=3\\), \\(m=1\\), \\(p_1=1\\), and \\(q_2=1\\); the unique plan \\(x_{1,2}=1\\) gives \\(Z_{m,L_m}^{+}=a_m=1\\) and the upper endpoint \\(2\\). The signed-regret test sets \\(H=2\\), \\(\\pi=1\\), \\(\\mathcal M=\\{1,2\\}\\), \\(p_1=1\\), \\(q_0=1\\), and \\(\\mu_1=1\\); the unique plan gives \\(D_{12}=-1\\) and \\(R_1=0\\), so implementations must not clip off-diagonal pairwise differences before maximizing over comparators.",
+  "honest_scope": "The atom-correct endpoint consequences, raw-path causal lift under factual-arm sequential censoring, common-law value and regret characterization, nondegenerate regret separation, rational witness, and confidence inversion are to be proved. The antidiagonal Hall criterion is used solely as the reindexed feasibility support supplied by Dahl2008, Theorem 4, rather than proposed as a transportation theorem. The endpoint boundary and signed-regret calculations in the technical diagnostic are executable tests, not theorem contributions. Uniform semiparametric inference under sequential coarsening at random is deliberately open. When the joint-capacity restriction is removed and \\(\\mathcal M=\\{m\\}\\), the endpoint problem reverts to unrestricted fixed-marginal bounds of the kind used by JanvinRyalenSarvetStensrud2025 and clarified by ZhangRichardson2025; this unrestricted reduction is contextual rather than a claim that the displayed capped formula remains unchanged after deleting its support. SPRINT is only a conditional capped-loss consumer: a mechanism and cap must be justified externally and prespecified at \\(k=300\\); the application is rejected if no credible joint-capacity interpretation exists or the censoring-adjusted Hall confidence system is infeasible.",
+  "seeds": [
+    "Shared-law capped threshold geometry and minimax regret",
+    "Observed-law-preserving finite-history FFRCISTG lift",
+    "Tie-robust whole-set confidence-polytope inversion"
+  ],
+  "seed_details": [
+    {
+      "rank": 1,
+      "seed": "Shared-law capped threshold geometry and minimax regret",
+      "anchor_bibkey": "JanvinRyalenSarvetStensrud2025",
+      "anchor_read": "Introduction; Assumption 1; Proposition 1 and its trimming construction; Sections 3.2 and 5.",
+      "motif": "M6+M10+M16",
+      "target_tier": "field",
+      "kernel": "Under an externally prespecified joint-capacity sensitivity restriction on separately capped baseline and switched increments, use the reindexed staircase feasibility certificate in Dahl2008, Theorem 4, to derive atom-correct fixed-threshold endpoints, the complete common-coupling value set, and deterministic minimax regret over that set.",
+      "first_changed_proof_step": "Dahl2008, Theorem 4, supplies feasibility after reversing the row order; the first new step beyond Janvin's threshold-wise unrestricted Fréchet trimming is the atom-correct extremal analysis on the substantively imposed antidiagonal support \\(b+w\\le H\\), with raw recurrent-event paths left unbounded.",
+      "destination_search": "Searches combining recurrent-event switching, Ferrers transport, common-coupling value vectors, and minimax regret found no occupied target-method pair.",
+      "red_team": "Immediate from JanvinRyalenSarvetStensrud2025 plus a generic transportation linear program.",
+      "rebuttal": "Staircase feasibility is attributed to Dahl2008, Theorem 4, but it does not supply the atom-correct backward-deficit endpoint, the causal lift, or the relatively open family on which one shared transport image selects a different threshold from separate scalar programs.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "anti_pattern_check": "The representation is paired with an exact decision functional and inference rung; it is not a bare linear-program reformulation.",
+      "disposition": "selected"
+    },
+    {
+      "rank": 2,
+      "seed": "Observed-law-preserving finite-history FFRCISTG lift",
+      "anchor_bibkey": "RichardsonRobins2013",
+      "anchor_read": "Primer sections defining SWIG and FFRCISTG models and the comparison with NPSEM independent-error restrictions.",
+      "motif": "M6",
+      "target_tier": "field",
+      "kernel": "Prove that every feasible coupling of the separately capped summaries \\((B,T,W)\\), and only such a coupling, admits a global raw-count finite response-tree realization preserving the observed law.",
+      "first_changed_proof_step": "A marginal coupling is not treated as a causal witness; it is extended history by history to raw nonnegative-integer count paths while preserving the sustained factual paths, their arm-specific sequential censoring kernels, the observed pushforward, and only the listed single-world independences.",
+      "destination_search": "Searches on recurrent-event response trees, FFRCISTG marginal gluing, absorbing death, and observed-law preservation found only general causal-marginal compatibility work.",
+      "red_team": "Immediate from the functional representation lemma for discrete counterfactuals.",
+      "rebuttal": "An independent-error representation or censoring independent of the full response tree would add forbidden cross-world restrictions; the claim requires a surjective lift that preserves temporal order, absorption, the factual-arm sequential censoring law, and precisely the weaker FFRCISTG independences.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "anti_pattern_check": "The theorem supplies both directions and an independence audit rather than assuming class membership of a constructed witness.",
+      "disposition": "retained and integrated"
+    },
+    {
+      "rank": 3,
+      "seed": "Tie-robust whole-set confidence-polytope inversion",
+      "anchor_bibkey": "JanvinRyalenSarvetStensrud2025",
+      "anchor_read": "Estimation proposition, SPRINT bootstrap analysis, and Discussion limitations concerning one-sided endpoint inference.",
+      "motif": "M10+M8",
+      "target_tier": "field",
+      "kernel": "Invert simultaneous margin regions through a perspective Hall polytope to cover the complete value set and all minimax thresholds without strict complementarity or unique policy choice.",
+      "first_changed_proof_step": "The one-endpoint bootstrap is replaced by simultaneous inclusion of the primitive marginal vector before transport optimization and set-valued regret mapping.",
+      "destination_search": "Searches combining recurrent-event censoring, Hall moment inequalities, support-function inference, and optimizer ties found the separate ingredients but no complete procedure.",
+      "red_team": "Immediate from ChernozhukovHongTamer2007 set inversion.",
+      "rebuttal": "The perspective transformation, random transport feasibility, and outer coverage of an argmin correspondence at simultaneous Hall and policy ties are not delivered by generic parameter-set coverage.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "anti_pattern_check": "The finite-sample inclusion theorem is separated from the genuinely open efficient coarsening-at-random limit theory.",
+      "disposition": "retained and integrated"
+    },
+    {
+      "rank": 4,
+      "seed": "Mixed threshold rules over a shared capped transport law",
+      "anchor_bibkey": "MontielOleaQiuStoye2026",
+      "anchor_read": "Introduction; minimax-regret characterization; least-randomizing rule theorem; conclusion.",
+      "motif": "M16",
+      "target_tier": "field",
+      "kernel": "Characterize when randomizing over thresholds strictly lowers worst-case regret and give necessary and sufficient conditions for a pure saddle action.",
+      "first_changed_proof_step": "Replace the Gaussian interval experiment by a bilinear game whose Nature action is one Ferrers coupling shared by every threshold payoff.",
+      "destination_search": "No paper was found on mixed recurrent-event threshold choice over a constrained transport image.",
+      "red_team": "Immediate from finite zero-sum game duality.",
+      "rebuttal": "Game duality gives existence, but the publishable content would require transport-geometric pure-action conditions and a clinically interpretable randomization frontier.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 3
+      },
+      "anti_pattern_check": "The object is policy regret, so M16 is used rather than a generic partial-identification label.",
+      "disposition": "deferred because it dilutes the deterministic-threshold kernel"
+    },
+    {
+      "rank": 5,
+      "seed": "Two-landmark stagewise capacity transport",
+      "anchor_bibkey": "JanvinRyalenSarvetStensrud2025",
+      "anchor_read": "Introduction and one-switch identification proof, with the single-landmark restriction treated as the proof boundary.",
+      "motif": "M6+M10",
+      "target_tier": "flagship",
+      "kernel": "Find necessary and sufficient hypergraph-flow inequalities and sharp joint values for two unsupported switch times.",
+      "first_changed_proof_step": "The two-margin Hall argument no longer iterates because pairwise stage couplings need not glue to one longitudinal multi-marginal law.",
+      "destination_search": "Searches combining multistage unsupported switching with multi-marginal capacity transport found supported dynamic-regime methods and general coupling theory but no exact causal characterization.",
+      "red_team": "A routine induction of the one-stage Hall construction settles the result.",
+      "rebuttal": "Pairwise feasibility is not sufficient for global gluing, but no tractable complete inequality family was verified in the present scan.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "anti_pattern_check": "The ambition is supported by a true multi-marginal obstruction, but feasibility is too uncertain for this version.",
+      "disposition": "deferred"
+    },
+    {
+      "rank": 6,
+      "seed": "Clinically weighted multitype capped burden",
+      "anchor_bibkey": "Mao2023",
+      "anchor_read": "Introduction; weighted while-alive loss definition; identification and inference construction; Discussion.",
+      "motif": "M10+M16",
+      "target_tier": "field",
+      "kernel": "Characterize feasible couplings and robust thresholds for severity-weighted event types under a shared cap.",
+      "first_changed_proof_step": "Severity weights destroy nested Ferrers neighborhoods, replacing prefix Hall checks and monotone greedy allocation by a nonnested support graph.",
+      "destination_search": "Searches on weighted multitype recurrent-event switching with constrained coupling found no sharp joint policy result.",
+      "red_team": "This is only the scalar-count problem after rescaling event types.",
+      "rebuttal": "Distinct integer weights create a nonnested support relation and can change computational complexity, but the clinically chosen weight class is not yet sufficiently pinned down.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "anti_pattern_check": "The seed would need either a closed-form weight class or a proved complexity boundary; neither is assumed here.",
+      "disposition": "deferred"
+    },
+    {
+      "rank": 7,
+      "seed": "External-cap sensitivity frontier",
+      "anchor_bibkey": "SinkEtAl2018",
+      "anchor_read": "Adverse-event definitions, treatment-specific associations, and conclusion separating syncope, hypotension, and falls.",
+      "motif": "M3+M10",
+      "target_tier": "subfield",
+      "kernel": "Define the smallest cap enlargement at which Hall feasibility appears or the minimax threshold changes, conditional on an externally specified loss scale.",
+      "first_changed_proof_step": "The cap becomes a sensitivity index and every Hall slack and regret support value must be tracked across the nested sequence of feasible support graphs.",
+      "destination_search": "No clinical publication was found that supplies a defensible cumulative SPRINT adverse-event cap, so an empirical critical-cap result cannot yet be anchored independently of outcomes.",
+      "red_team": "The critical cap is a mechanical grid search over \\(H\\).",
+      "rebuttal": "A theorem could expose piecewise transport geometry, but without an external clinical scale the critical value risks becoming outcome-chosen and scientifically circular.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "anti_pattern_check": "The cap is not selected to make the desired policy win; external prespecification is mandatory.",
+      "disposition": "dropped as a standalone kernel"
+    },
+    {
+      "rank": 8,
+      "seed": "Sharp capped sum distribution beyond threshold losses",
+      "anchor_bibkey": "ZhangRichardson2025",
+      "anchor_read": "Introduction; definitions of achievability and uniform sharpness; discrete attainment theorem and copula proof; conclusion.",
+      "motif": "M6+M10",
+      "target_tier": "subfield",
+      "kernel": "Characterize the full sharp CDF envelope of \\(B+W\\) under antidiagonal support and fixed discrete marginals.",
+      "first_changed_proof_step": "The unrestricted copula rearrangement must be replaced by a support-respecting construction whose backward deficits distinguish weak from strict CDF events.",
+      "destination_search": "The search located staircase transportation and unrestricted discrete-sum bounds, but no paper stating the exact capped CDF envelope.",
+      "red_team": "Dahl2008 plus ZhangRichardson2025 makes the formula immediate.",
+      "rebuttal": "The endpoint formula still requires an atom-correct extremal construction, but as a standalone contribution it has less consumer value than the joint decision kernel.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 3
+      },
+      "anti_pattern_check": "The closed form is preferred over an LP description, but it is retained only as a theorem inside the broader shared-law proposal.",
+      "disposition": "integrated into rank 1"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "Shared-law capped threshold geometry and minimax regret",
+      "anchor": "JanvinRyalenSarvetStensrud2025",
+      "anchor_key_parts_read": "Introduction, no-carry-over assumption, sharp-bound proposition and proof construction, value and regret section, SPRINT analysis, and Discussion.",
+      "adjacent_threads": [
+        "ZhangRichardson2025: discrete sum-bound achievability and the distinction between weak and strict CDF events.",
+        "Dahl2008, Theorem 4, and Strassen1965: constrained-support coupling feasibility and staircase critical inequalities.",
+        "HoffmanVeinott1993: staircase transportation optimization with structured rewards.",
+        "MontielOleaQiuStoye2026: minimax regret under jointly restricted partially identified payoffs."
+      ],
+      "settled": "Unrestricted one-threshold bounds, general constrained-coupling existence, and broad staircase algorithms are settled.",
+      "unoccupied_pair": "No located source combines the attributed Dahl staircase certificate for separately capped recurrent-event summaries with atom-correct backward-deficit endpoints, an observed-law-preserving causal lift, a common-coupling threshold-value image, and a nondegenerate strict separation from scalar-bound minimax regret.",
+      "closest_subsumption_check": "Dahl2008, Theorem 4, subsumes the reindexed Hall feasibility criterion, and HoffmanVeinott1993 informs optimization; neither subsumes the causal lift, atom-correct endpoint consequences, common-coupling value image, or regret separation.",
+      "writing_exemplar_used": "JanvinRyalenSarvetStensrud2025",
+      "method_exemplars_used": [
+        "Strassen1965",
+        "ZhangRichardson2025",
+        "HoffmanVeinott1993",
+        "MontielOleaQiuStoye2026"
+      ]
+    },
+    {
+      "candidate": "Observed-law-preserving finite-history FFRCISTG lift",
+      "anchor": "RichardsonRobins2013",
+      "anchor_key_parts_read": "SWIG construction, FFRCISTG model semantics, and the comparison with NPSEM independent errors.",
+      "adjacent_threads": [
+        "GreseleEtAl2022: structural causal marginal compatibility and global gluing.",
+        "DuarteFinkelsteinKnoxMummoloShpitser2024: finite discrete response-function enumeration.",
+        "JanvinYoungRyalenStensrud2023: longitudinal recurrent-event and competing-event counterfactual definitions."
+      ],
+      "settled": "Finite response-function encodings and general local-to-global compatibility formulations are settled.",
+      "unoccupied_pair": "No located source constructs a surjective raw-count FFRCISTG lift for a capped-summary recurrent-event triple coupling while preserving factual histories, absorbing death, the observed law, and the original arm-specific sequential censoring kernels without cross-world censoring independence.",
+      "closest_subsumption_check": "Generic response-function enumeration does not establish the exact observed-law-preserving lift or rule out unintended cross-world independences.",
+      "writing_exemplar_used": "GreseleEtAl2022",
+      "method_exemplars_used": [
+        "RichardsonRobins2013",
+        "GreseleEtAl2022",
+        "DuarteFinkelsteinKnoxMummoloShpitser2024"
+      ]
+    },
+    {
+      "candidate": "Tie-robust whole-set confidence-polytope inversion",
+      "anchor": "JanvinRyalenSarvetStensrud2025",
+      "anchor_key_parts_read": "Estimator proposition, one-sided bootstrap analysis, and Discussion of inferential limitations.",
+      "adjacent_threads": [
+        "ChernozhukovHongTamer2007: confidence-region inversion for moment-defined identified sets.",
+        "AndrewsSoares2010: generalized moment selection with an unknown binding set.",
+        "Gafarov2025: regularized support-function inference for polygonal affine sets.",
+        "BaerStrawdermanErtefaie2023: coarsening-at-random identification, an efficiency bound, and multiply robust estimation for the expected number of recurrent events in the presence of a terminal event."
+      ],
+      "settled": "Generic moment-inequality inversion, polygonal support inference, and censoring-adjusted recurrent-event scores are separately available.",
+      "unoccupied_pair": "No located source propagates censoring uncertainty through a Hall-defined shared value polytope and then covers the complete set-valued minimax correspondence at simultaneous ties.",
+      "closest_subsumption_check": "Generic identified-set coverage does not by itself yield the perspective transport construction or outer coverage of every regret minimizer.",
+      "writing_exemplar_used": "ChernozhukovHongTamer2007",
+      "method_exemplars_used": [
+        "AndrewsSoares2010",
+        "Gafarov2025",
+        "BaerStrawdermanErtefaie2023"
+      ]
+    }
+  ],
+  "novelty_justification": "The closest causal comparator, JanvinRyalenSarvetStensrud2025, provides the no-carry-over template specialized here to capped increments, identifies survivor-specific marginals, and supplies scalar sharp bounds for an unsupported switch. Dahl2008, Theorem 4, already supplies the fixed-margin staircase feasibility theorem that becomes the antidiagonal Hall criterion after reversing the row order; Theorem 1 is only the general arbitrary-pattern \\((R,S)\\)-support antecedent. The antidiagonal criterion is supporting prior art, not a novelty claim. The contribution begins with the consequences of combining this attributed feasibility input with an independently prespecified joint-capacity sensitivity restriction on the separately capped \\(B\\) and \\(W\\), without globally bounding raw potential-outcome paths: an atom-correct backward-deficit endpoint, an observed-law-preserving raw-path FFRCISTG lift that retains factual-arm sequential censoring without cross-world censoring independence, and one transport law governing every threshold simultaneously. A theorem on a relatively open cap-three family strictly separates this common-law payoff set and minimax threshold from the Cartesian product of the comparator's threshold-wise scalar bounds; the rational table is one member rather than the entire comparison. HoffmanVeinott1993 informs the specialized greedy support step and is not used as a freestanding novelty target. The scientific interpretation of the joint capacity is conditional on an external finite-reserve mechanism; absent that mechanism, the contribution is a sensitivity analysis. The inference theorem covers a set and its full optimizer correspondence, while efficient sequential-coarsening inference is stated honestly as open.",
+  "_pre_d0_cursor": {
+    "cursor_version": 1,
+    "topic": "Study a two-arm randomized recurrent-event trial with absorbing death and right censoring, fixed switch time k, clinical cap H>=2, and a finite event-count threshold menu M. Retain the Janvin C2-C6 causal conditions but DEFINE capped no-carry-over as the replacement for raw C7: for intensive survivors, baseline capped burden B and switched residual W have identified marginals and obey B+W<=H. Characterize the resulting Ferrers transport polytope by exact Hall inequalities and a constructive coupling. Derive sharp fixed-threshold endpoints including the backward-deficit upper CDF; prove every compatible triple coupling has an observed-law-preserving finite-history causal response-tree lift; identify the complete joint threshold-value set; compute support functions, pairwise worst-case regret, and minimax thresholds with the eligibility-greedy O(H log H) algorithm; and give censoring-adjusted simultaneous confidence-polytope inversion covering the whole value set and all robust optimizers at Hall and policy ties. Include a concrete H=3 rational example where shared-law regret selects threshold 1 but separate marginal intervals select threshold 3. Treat SPRINT's published k=300 adverse-event switching analysis as a capped-loss consumer only if a clinically defensible cap can be prespecified. PRESOLVE EVIDENCE REQUIRING VERIFICATION: Exact endpoint proofs, a full-history response-tree construction, and an eligibility-greedy support algorithm were derived. Exact rational checks passed 2,500 endpoint comparisons and 2,100 greedy-versus-LP comparisons, both gated witnesses, and the recommendation-reversal regret matrix. UNRESOLVED BOTTLENECK: Establish a clinically defensible cumulative cap H for which capped-increment no-carry-over is substantively credible in SPRINT, and independently formalize the finite-history causal lift and dual Lipschitz details. EARLY KILL TEST: For externally justified caps at k=300, compute censoring-adjusted Hall slacks and confidence-polytope feasibility, then compare shared-law regret with fixed m=1 and interval-box decisions; reject the SPRINT application if no defensible cap is credible or the model is statistically incompatible. STRONGEST-FORM DRAFT (unverified, gaps listed inside): <repo-root>/internal/presolve_drafts/pid_recurrent_capacity_transport_regret.md",
+    "novelty_target": "field",
+    "qid": "pid_recurrent_capacity_transport_regret",
+    "specialization": "v1",
+    "angle": 0,
+    "version": 7,
+    "mode": "revise"
+  },
+  "message": "Applied the v7 root repair. Removed the standalone Hall theorem, demoted both sanity propositions to diagnostics, absorbed signed regret and minimax derivations into the retained joint-value and separation theorems, and synchronized dependencies and comparator numbering. Schema, proposal gate, LaTeX serialization, and PDF compilation passed.",
+  "literature_checklist": [
+    {
+      "author": "Janvin, Ryalen, Sarvet, and Stensrud",
+      "year": 2025,
+      "venue": "Biometrics",
+      "bibkey": "JanvinRyalenSarvetStensrud2025",
+      "one_line": "Assumption 1 motivates capped-increment transportability; Proposition 1 supplies the scalar-bound comparator strictly tightened by the common-law family theorem.",
+      "relevant_to": "thm:nondegenerate-shared-law-separation"
+    },
+    {
+      "author": "Zhang and Richardson",
+      "year": 2025,
+      "venue": "arXiv",
+      "bibkey": "ZhangRichardson2025",
+      "one_line": "Discrete fixed-marginal sum bounds require atom-sensitive distinctions between weak and strict events.",
+      "relevant_to": "thm:sharp-threshold-endpoints"
+    },
+    {
+      "author": "Dahl",
+      "year": 2008,
+      "venue": "Linear Algebra and its Applications",
+      "bibkey": "Dahl2008",
+      "one_line": "Theorem 4 and Section 3 characterize fixed-margin staircase feasibility and constructions; Theorem 1 is the general arbitrary-pattern support antecedent.",
+      "relevant_to": "thm:sharp-threshold-endpoints"
+    },
+    {
+      "author": "Hoffman and Veinott",
+      "year": 1993,
+      "venue": "Mathematical Programming",
+      "bibkey": "HoffmanVeinott1993",
+      "one_line": "Structured staircase transportation objectives admit greedy optimization.",
+      "relevant_to": "thm:eligibility-greedy-support"
+    },
+    {
+      "author": "Richardson and Robins",
+      "year": 2013,
+      "venue": "CSSS Working Paper",
+      "bibkey": "RichardsonRobins2013",
+      "one_line": "FFRCISTG models encode single-world restrictions without full NPSEM cross-world independence.",
+      "relevant_to": "thm:causal-response-tree-lift"
+    },
+    {
+      "author": "Janvin, Young, Ryalen, and Stensrud",
+      "year": 2024,
+      "venue": "Lifetime Data Analysis",
+      "bibkey": "JanvinYoungRyalenStensrud2023",
+      "one_line": "Sections 2–3 give the counterfactual recurrent-event framework used for consistency and raw finite-history response trees.",
+      "relevant_to": "thm:causal-response-tree-lift"
+    },
+    {
+      "author": "Montiel Olea, Qiu, and Stoye",
+      "year": 2026,
+      "venue": "Review of Economic Studies",
+      "bibkey": "MontielOleaQiuStoye2026",
+      "one_line": "Joint restrictions on partially identified payoffs determine minimax-regret treatment choice.",
+      "relevant_to": "thm:joint-value-set-and-support"
+    },
+    {
+      "author": "Chernozhukov, Hong, and Tamer",
+      "year": 2007,
+      "venue": "Econometrica",
+      "bibkey": "ChernozhukovHongTamer2007",
+      "one_line": "Criterion inversion yields confidence regions for moment-defined identified sets.",
+      "relevant_to": "thm:confidence-polytope"
+    },
+    {
+      "author": "Gafarov",
+      "year": 2025,
+      "venue": "Journal of Econometrics",
+      "bibkey": "Gafarov2025",
+      "one_line": "Regularization supports uniform inference for support functions of polygonal affine sets.",
+      "relevant_to": "oeq:uniform-censoring-inference"
+    },
+    {
+      "author": "Baer, Strawderman, and Ertefaie",
+      "year": 2023,
+      "venue": "arXiv",
+      "bibkey": "BaerStrawdermanErtefaie2023",
+      "one_line": "Proposition 1 and Corollary 1 support the factual-arm censoring conditions; the efficiency and multiply robust results inform the open inference question.",
+      "relevant_to": "thm:causal-response-tree-lift"
+    }
+  ]
+}

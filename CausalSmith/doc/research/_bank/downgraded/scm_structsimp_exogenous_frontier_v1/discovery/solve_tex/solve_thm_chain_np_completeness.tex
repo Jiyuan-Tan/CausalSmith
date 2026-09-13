@@ -1,0 +1,86 @@
+%%% FIELD proof-chain-np-completeness
+We first prove membership in \(\mathrm{NP}\), using only the explicit-input hypotheses and hence, in fact, for every singleton query in \(\mathfrak M_{\mathrm{exp}}\).  A certificate consists of a retained edge set \(E(H)\subseteq E(G)\), an alternate assignment \(w\in R(U\cup V)\), and, for each \(Z\in V\setminus\{X\}\), an index for a full parent row \(\rho_Z\in R(\operatorname{Pa}_G(Z))\).  The verifier checks
+\[
+ w_U=a_U,\qquad w_X\ne a_X,\qquad w_Y\ne a_Y,                                      \tag{1}
+\]
+and checks that \(\rho_Z\) agrees with \(w\) on every retained parent of \(Z\) and that
+\[
+ w_Z\in A_Z(\rho_Z)\qquad (Z\in V\setminus\{X\}).                                  \tag{2}
+\]
+Thus the row \(\rho_Z\) witnesses the required membership of \(w_Z\) in the projected table at the alternate retained-parent assignment.  The verifier also checks, for every \(Z\in V\),
+\[
+ Q_Z^{\operatorname{Pa}_H(Z)}(a_{\operatorname{Pa}_H(Z)})=\{a_Z\}.                  \tag{3}
+\]
+To check (3), it scans every explicitly listed row \(r\) whose retained coordinates equal their actual values, replaces the one full actual row by \(\{a_Z\}\), and rejects exactly when an allowed nonactual output occurs.  Finally, for every deleted edge \(p\to Z\), a graph search checks that there is no nonempty retained directed path from \(p\) to \(Z\).  By \(\mathrm{def:legal\mbox{-}retained\mbox{-}graph}\), this last test is equivalent to \(H\in\mathcal H(G)\).  By \(\mathrm{lem:canonical\mbox{-}replay}\), (2)--(3) and graphical legality are equivalent to a legal full-setting Beckers structural simplification in which the intervention \(X\leftarrow w_X\) has the complete alternate solution \(w\).  Conditions (1) therefore make the certificate accepting exactly when it witnesses the singleton causal query.  Actuality holds by the supplied actual solution, and minimality is automatic because the singleton candidate has no nonempty proper subcandidate.
+
+Every guessed object is a list of indices into the explicit input.  The scans above take polynomially many operations in \(L\), and reachability can be checked once for each of at most \(L\) deleted edges.  For a budgeted instance the verifier additionally sums the costs of the deleted edges and compares the sum with the budget.  There are at most \(L\) summands, and elementary integer numerator--denominator arithmetic has bit length polynomial in \(B+L\).  Hence both the unbudgeted and budgeted problems are in \(\mathrm{NP}\).
+
+For hardness, reduce from the problem in \(\mathrm{lem:three\mbox{-}sat\mbox{-}np\mbox{-}complete}\).  Delete repeated occurrences of a literal within a clause and discard every tautological clause.  These operations preserve satisfiability and leave at most three distinct literals in each remaining clause.  If an empty clause occurs, map to the construction below applied to the fixed unsatisfiable formula \((z)\wedge(\neg z)\); if no clause remains, map to the construction applied to the fixed satisfiable formula \((z)\).  We may therefore assume henceforth that the input \(\varphi=\bigwedge_{j=1}^m K_j\) has \(m\ge1\), variables \(z_1,\ldots,z_n\), and between one and three distinct, noncomplementary literals in every clause.
+
+For every \(z_i\), create two binary exogenous roots \(T_i\) and \(F_i\).  Create binary endogenous variables in the chain
+\[
+ X\longrightarrow S_1\longrightarrow\cdots\longrightarrow S_n
+ \longrightarrow C_1\longrightarrow\cdots\longrightarrow C_m=Y.                  \tag{4}
+\]
+All actual values are zero, and the structural table of \(X\) is constantly zero.  If \(p\) denotes the chain predecessor of \(S_i\), add the two root edges \(T_i\to S_i\) and \(F_i\to S_i\), and define the deterministic table
+\[
+ S_i(p,T_i,F_i)=
+ \begin{cases}
+ T_i\wedge F_i,&p=0,\\
+ T_i\mathbin\oplus F_i,&p=1.
+ \end{cases}                                                                       \tag{5}
+\]
+For a positive occurrence of \(z_i\) use the root \(T_i\), and for a negative occurrence use the root \(F_i\).  If the resulting distinct literal roots of \(K_j\) are \(\ell_{j1},\ldots,\ell_{jk_j}\), add their edges to \(C_j\) and set
+\[
+ C_j(p,\ell_{j1},\ldots,\ell_{jk_j})
+ =p\wedge\bigl(\ell_{j1}\vee\cdots\vee\ell_{jk_j}\bigr).                       \tag{6}
+\]
+Equations (5)--(6) are total deterministic binary tables.  The all-zero assignment is a solution: (5) gives zero when all its arguments are zero, and (6) gives zero when \(p=0\).  The full graph is acyclic because every root edge enters a later vertex of (4), and its endogenous induced graph is exactly (4).  A selector has total indegree three and a clause has total indegree \(1+k_j\le4\).  Every displayed parent is genuine: in (5), fixing \((T_i,F_i)=(1,0)\) makes the output vary with \(p\), while fixing \(p=1\) and the other root at zero makes the output vary with either root; in (6), fixing one literal root at one makes the output vary with \(p\), and fixing \(p=1\) and all other literal roots at zero makes the output vary with the selected literal root.  Each table has at most \(2^4=16\) rows, and there are at most three literal incidences per clause, so the graph and all tables are constructed in time polynomial in \(|\varphi|\).  The constructed instance therefore belongs to \(\mathfrak M_{\mathrm{chain}}\).
+
+We next establish the invariant forced by any accepting witness.  Let \(H\) and \(w\) be such a witness.  Since the domains and actual values are binary, (1) gives \(w_X=w_Y=1\), while every exogenous root remains at zero.  If a nonintervened endogenous variable \(Z\) has \(w_Z=1\), then at least one retained parent of \(Z\) has value one.  Indeed, if every retained parent had its actual value zero, alternate membership would put \(w_Z\) in the left side of (3), which is \(\{0\}\), a contradiction.  Starting at \(Y\) and iterating this implication backwards, the value-one parent cannot be exogenous.  Each vertex of (4) other than \(X\) has exactly one endogenous parent, so that parent and its incident chain edge must respectively have value one and be retained.  Induction back to \(X\) proves
+\[
+ w_{S_i}=w_{C_j}=1\quad\text{for all \(i,j\)},
+ \qquad E((4))\subseteq E(H).                                                       \tag{7}
+\]
+
+Consider the two root edges entering \(S_i\).  If both were retained, their alternate values would be \((T_i,F_i)=(0,0)\); together with the retained predecessor value one from (7), equation (5) would force \(w_{S_i}=0\), contradicting (7).  If both were deleted, then in the actual retained-parent row the predecessor is zero and the deleted coordinates may be completed by \((T_i,F_i)=(1,1)\).  This is not the full actual row, so actualization leaves (5) unchanged there, and (5) outputs one.  Consequently the projection in (3) would contain one, again a contradiction.  Hence exactly one of
+\[
+ T_i\to S_i,qquad F_i\to S_i                                                       \tag{8}
+\]
+is deleted.  Call its tail the selected root.  Define a Boolean assignment \(\alpha\) by
+\[
+ \alpha(z_i)=\mathrm{true}\quad\Longleftrightarrow\quad T_i\to S_i\text{ is deleted}. \tag{9}
+\]
+Equivalently, \(T_i\) is selected when \(z_i\) is true and \(F_i\) is selected when \(z_i\) is false.
+
+Suppose first that \(\varphi\) has a satisfying assignment \(\alpha\).  Select roots according to (9), delete every outgoing edge of every selected root, and retain every other edge; call the resulting graph \(H_\alpha\).  Each deleted edge has a selected root as its tail, and that root has no retained outgoing edge.  Thus no deleted edge has a retained directed bypass, and \(H_\alpha\in\mathcal H(G)\) by \(\mathrm{def:legal\mbox{-}retained\mbox{-}graph}\).  At a selector, precisely one root coordinate is deleted and the other is retained at zero.  With the retained predecessor at its actual value zero, (5) is then zero for both completions of the deleted coordinate.  Hence (3) holds at every selector.  At a clause, the retained chain predecessor has actual value zero, so (6) is zero for every completion of all deleted literal coordinates; (3) holds there as well.  No edge enters \(X\), so its actualized empty-parent row is \(\{0\}\).  Therefore (3) holds at every endogenous vertex.
+
+Intervene with \(X\leftarrow1\), fix all exogenous roots at zero, and assign value one to every vertex after \(X\) on (4).  At \(S_i\), choose the full support row having predecessor one, selected root coordinate one, and unselected root coordinate zero.  Equation (5) outputs one, and this row agrees with every retained parent.  Since \(\alpha\) satisfies \(K_j\), some literal of \(K_j\) has its selected root as parent.  Its incoming edge to \(C_j\) was deleted; set that coordinate to one, set every retained root coordinate to its exogenous value zero, and use predecessor one.  Equation (6) then outputs one.  These rows verify (2).  Thus \(\mathrm{lem:canonical\mbox{-}replay}\) yields a Beckers witness changing \(Y\) from zero to one, so \(X=0\) is a cause of \(Y=0\).
+
+Conversely, suppose the constructed instance has a Beckers witness.  Recover \(\alpha\) from (8)--(9).  Fix a clause \(C_j\).  By (7), its retained chain predecessor has value one and \(w_{C_j}=1\).  A supporting row for its projected-table membership must therefore make at least one literal-root coordinate equal to one, by (6).  Let \(r\) be such a root.  Since the alternate exogenous value of \(r\) is zero, the edge \(r\to C_j\) must be deleted; otherwise a support row agreeing with retained-parent values would have that coordinate zero.  If \(r\) were unselected, its edge \(r\to S_i\) would be retained by (8), where \(i\) is the variable represented by \(r\).  Equation (7) retains the entire chain segment from \(S_i\) through \(S_n,C_1,\ldots,C_j\).  Hence
+\[
+ r\to S_i\to S_{i+1}\to\cdots\to S_n\to C_1\to\cdots\to C_j                    \tag{10}
+\]
+would be a retained directed path from the tail to the head of the deleted edge \(r\to C_j\), contradicting \(H\in\mathcal H(G)\).  Therefore \(r\) is selected.  If \(r=T_i\), the corresponding positive literal is true under (9); if \(r=F_i\), the corresponding negative literal is true.  Thus every clause contains a true literal, and \(\alpha\) satisfies \(\varphi\).
+
+We have constructed a polynomial many-one reduction satisfying
+\[
+ \varphi\text{ is satisfiable}
+ \quad\Longleftrightarrow\quad
+ X=0\text{ is a Beckers actual cause of }Y=0.                                      \tag{11}
+\]
+Together with \(\mathrm{lem:three\mbox{-}sat\mbox{-}np\mbox{-}complete}\), (11) proves \(\mathrm{NP}\)-hardness, and the verifier above proves \(\mathrm{NP}\)-completeness.  Setting \(c(e)=0\) for every edge and setting the budget to zero satisfies the nonnegative rational cost restriction and makes the budget constraint equivalent to mere witness existence, so the same reduction proves the stated budgeted hardness.
+
+As the smallest boundary check, the one-clause formula \((z)\) selects \(T\), deletes \(T\to S\) and \(T\to C\), and has the all-one endogenous alternate solution.  For \((z)\wedge(\neg z)\), (8) selects exactly one of \(T,F\); making the clause for the other literal equal to one would delete that unselected root's clause edge while retaining its path through \(S\), violating (10).  Thus the construction accepts the former and rejects the latter, in agreement with (11).  The proof concerns decision certificates only and makes no claim that unrestricted witnesses are counted parsimoniously.
+%%% FIELD statement-endogenous-causal-tree-transfer
+On the broader class of instances \(I\in\mathfrak M_{\mathrm{exp}}\) for which the endogenous induced graph \(G[V]\) is a directed causal tree containing a directed path from \(X\) to \(Y\), deciding whether the singleton event \(X=a_X\) is a Beckers actual cause of the singleton event \(Y=a_Y\) is \(\mathrm{NP}\)-complete.  In particular, \(\mathfrak M_{\mathrm{chain}}\) is a subclass of this endogenous causal-tree graph shape, the graph restriction studied by Eiter and Lukasiewicz~\cite{EiterLukasiewicz2006Tractable}.  This is a transfer of graph-shape complexity for Beckers structural-simplification semantics; it does not identify that causal predicate with any Halpern--Pearl predicate studied on the same graph shape.
+%%% FIELD proof-endogenous-causal-tree-transfer
+By \(\mathrm{def:chain\mbox{-}class}\) and \(\mathrm{ass:endogenous\mbox{-}chain}\), every instance in \(\mathfrak M_{\mathrm{chain}}\) has \(G[V]\) equal to one directed chain from \(X\) to \(Y\).  The underlying undirected graph of a chain is a tree, and its displayed orientation supplies a directed path from \(X\) to \(Y\).  Hence
+\[
+ \mathfrak M_{\mathrm{chain}}
+ \subseteq
+ \{I\in\mathfrak M_{\mathrm{exp}}:G[V]\text{ is a directed causal tree containing a directed \(X\)-to-\(Y\) path}\}. \tag{12}
+\]
+The restriction theorem \(\mathrm{thm:chain\mbox{-}np\mbox{-}completeness}\) and (12) imply \(\mathrm{NP}\)-hardness on the class on the right: the identical instances and the identical Beckers yes/no predicate are used, so no semantic translation is involved.
+
+For membership, use the retained-graph, alternate-assignment, and support-row certificate from the first part of the proof of \(\mathrm{thm:chain\mbox{-}np\mbox{-}completeness}\).  That verification uses only explicit finite tables, the actual-row tests, the reachability test in \(\mathrm{def:legal\mbox{-}retained\mbox{-}graph}\), and the equivalence in \(\mathrm{lem:canonical\mbox{-}replay}\); it does not use determinism, binarity, bounded indegree, or the chain restriction.  All of those inputs and tests are available for every member of \(\mathfrak M_{\mathrm{exp}}\), so the broader causal-tree restriction is in \(\mathrm{NP}\).  Combining membership with the transferred hardness proves \(\mathrm{NP}\)-completeness.  The reference to the endogenous causal-tree shape is therefore purely graph-theoretic, while the verified witness relation remains Beckers structural simplification throughout.

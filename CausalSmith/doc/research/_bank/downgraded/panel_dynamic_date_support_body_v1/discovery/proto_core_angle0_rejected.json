@@ -1,0 +1,3265 @@
+{
+  "qid": "panel_dynamic_date_support_body",
+  "specialization": "v1",
+  "cluster": "panel",
+  "symbols": [
+    {
+      "name": "T",
+      "type": "integer",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "Number of calendar periods.",
+      "role": "Panel horizon"
+    },
+    {
+      "name": "p",
+      "type": "integer",
+      "space": "\\(\\{0,\\ldots,T-1\\}\\)",
+      "def": "Maximum causal carryover lag.",
+      "role": "Memory length",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "integer",
+      "space": "\\(\\{1,\\ldots,T\\}\\)",
+      "def": "\\(d=p+1\\).",
+      "role": "Number of regression coefficients",
+      "refs": [
+        "p",
+        "T"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "integer",
+      "space": "\\(\\{1,2,\\ldots\\}\\)",
+      "def": "Number of independently sampled panel units.",
+      "role": "Sample size"
+    },
+    {
+      "name": "t",
+      "type": "index",
+      "space": "\\(\\{1,\\ldots,T\\}\\)",
+      "def": "Calendar-period index.",
+      "role": "Index",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "ell",
+      "type": "index",
+      "space": "\\(\\{0,\\ldots,p\\}\\)",
+      "def": "Causal-lag index.",
+      "role": "Index",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "index",
+      "space": "\\(\\{0,\\ldots,p\\}\\)",
+      "def": "Regression-coefficient index.",
+      "role": "Index",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "S",
+      "type": "nonempty finite ordered subset",
+      "space": "\\(2^{\\{s\\in\\{0,1\\}^{T}:s_u\\le s_{u+1}\\text{ for }u<T\\}}\\setminus\\{\\varnothing\\}\\)",
+      "def": "\\(S\\) is an arbitrary nonempty finite subset of the absorbing-path universe, equipped with its total order by adoption date.",
+      "role": "Treatment-path support",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "k",
+      "type": "integer",
+      "space": "\\(\\{1,\\ldots,T+1\\}\\)",
+      "def": "\\(k=|S|\\).",
+      "role": "Support size",
+      "refs": [
+        "S",
+        "T"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "index",
+      "space": "\\(S\\)",
+      "def": "Supported absorbing treatment path.",
+      "role": "Path index",
+      "refs": [
+        "S"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "index",
+      "space": "\\(\\{1,\\ldots,k\\}\\)",
+      "def": "First ordered path index.",
+      "role": "Pair index",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "b",
+      "type": "index",
+      "space": "\\(\\{1,\\ldots,k\\}\\)",
+      "def": "Second ordered path index.",
+      "role": "Pair index",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "epsilon",
+      "type": "positive rational scalar",
+      "space": "\\((0,1/k]\\cap\\mathbb Q\\)",
+      "def": "Declared lower bound on each reshaped path probability.",
+      "role": "Probability floor",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "cpi",
+      "type": "positive scalar",
+      "space": "\\((0,1]\\)",
+      "def": "Uniform lower bound \\(c_{\\pi}\\) for the observed generalized path propensity.",
+      "role": "Observed-law overlap constant"
+    },
+    {
+      "name": "clipThreshold",
+      "type": "known positive scalar",
+      "space": "\\((0,c_{\\pi})\\)",
+      "def": "Fixed known clipping threshold \\(\\underline{c}_{\\pi}\\) satisfying \\(0<\\underline{c}_{\\pi}<c_{\\pi}\\).",
+      "role": "Operational propensity floor",
+      "refs": [
+        "cpi"
+      ]
+    },
+    {
+      "name": "deltaMoment",
+      "type": "positive scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Moment slack \\(\\delta\\) above order \\(2\\).",
+      "role": "Lyapunov exponent"
+    },
+    {
+      "name": "alphaLevel",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "Nominal error probability \\(\\alpha\\).",
+      "role": "Confidence level"
+    },
+    {
+      "name": "binput",
+      "type": "integer",
+      "space": "\\(\\{1,2,\\ldots\\}\\)",
+      "def": "Total binary encoding length of the finite rational membership input.",
+      "role": "Algorithmic input size"
+    },
+    {
+      "name": "Deltaepsilon",
+      "type": "compact simplex",
+      "space": "\\(\\mathbb R^{k}\\)",
+      "def": "\\(\\Delta_{\\epsilon}(S)=\\{\\Pi\\in\\mathbb R^{k}:\\Pi_a\\ge\\epsilon,\\ \\sum_{a=1}^{k}\\Pi_a=1\\}\\).",
+      "role": "Positive reshaping-law class",
+      "refs": [
+        "epsilon",
+        "S",
+        "k",
+        "a"
+      ]
+    },
+    {
+      "name": "Pi",
+      "type": "probability vector",
+      "space": "\\(\\Delta_{\\epsilon}(S)\\)",
+      "def": "Reshaping law on the ordered support.",
+      "role": "Design-law decision variable",
+      "refs": [
+        "Deltaepsilon",
+        "S",
+        "epsilon"
+      ]
+    },
+    {
+      "name": "Ds",
+      "type": "matrix",
+      "space": "\\(\\{0,1\\}^{T\\times d}\\)",
+      "def": "\\((D_s)_{t,j}=s_{t-j}\\), with \\(s_u=0\\) for \\(u\\le0\\).",
+      "role": "Shifted finite-memory path matrix",
+      "refs": [
+        "s",
+        "t",
+        "j",
+        "T",
+        "d"
+      ]
+    },
+    {
+      "name": "JT",
+      "type": "matrix",
+      "space": "\\(\\mathbb Q^{T\\times T}\\)",
+      "def": "\\(J_T=I_T-T^{-1}\\mathbf 1_T\\mathbf 1_T^{\\mathsf T}\\).",
+      "role": "Calendar demeaning operator",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "MPi",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{T\\times d}\\)",
+      "def": "\\(M(\\Pi)=\\sum_{s\\in S}\\Pi_sD_s\\).",
+      "role": "Mean shifted-path matrix",
+      "refs": [
+        "Pi",
+        "S",
+        "s",
+        "Ds",
+        "T",
+        "d"
+      ]
+    },
+    {
+      "name": "RsPi",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{T\\times d}\\)",
+      "def": "\\(R_s(\\Pi)=J_T\\{D_s-M(\\Pi)\\}\\).",
+      "role": "Two-way residualized regressor matrix",
+      "refs": [
+        "s",
+        "Pi",
+        "JT",
+        "Ds",
+        "MPi",
+        "T",
+        "d"
+      ]
+    },
+    {
+      "name": "GPi",
+      "type": "symmetric matrix",
+      "space": "\\(\\mathbb R^{d\\times d}\\)",
+      "def": "\\(G(\\Pi)=T^{-1}\\sum_{s\\in S}\\Pi_sR_s(\\Pi)^{\\mathsf T}R_s(\\Pi)\\).",
+      "role": "Population residual Gram matrix",
+      "refs": [
+        "Pi",
+        "T",
+        "S",
+        "s",
+        "RsPi",
+        "d"
+      ]
+    },
+    {
+      "name": "htellPi",
+      "type": "vector",
+      "space": "\\(\\mathbb R^{d}\\)",
+      "def": "\\(h_{t,\\ell}(\\Pi)=T^{-1}\\sum_{s\\in S}\\Pi_sR_s(\\Pi)_{t,:}^{\\mathsf T}s_{t-\\ell}\\).",
+      "role": "Calendar-lag loading numerator",
+      "refs": [
+        "t",
+        "ell",
+        "Pi",
+        "T",
+        "S",
+        "s",
+        "RsPi",
+        "d"
+      ]
+    },
+    {
+      "name": "LPi",
+      "type": "tensor",
+      "space": "\\(\\mathbb R^{d\\times T\\times d}\\)",
+      "def": "\\(L(\\Pi)_{:,t,\\ell}=G(\\Pi)^{-1}h_{t,\\ell}(\\Pi)\\) whenever \\(G(\\Pi)\\succ0\\).",
+      "role": "Coefficient-by-calendar-by-causal-lag loading tensor",
+      "refs": [
+        "Pi",
+        "GPi",
+        "htellPi",
+        "t",
+        "ell",
+        "d",
+        "T"
+      ]
+    },
+    {
+      "name": "omega",
+      "type": "tensor",
+      "space": "\\(\\mathbb Q_{+}^{d\\times T}\\)",
+      "def": "Declared calendar weights \\(\\omega_{j,t}\\).",
+      "role": "Requested diagonal target weights",
+      "refs": [
+        "d",
+        "T",
+        "j",
+        "t"
+      ]
+    },
+    {
+      "name": "Q",
+      "type": "tensor",
+      "space": "\\(\\mathbb Q^{d\\times T\\times d}\\)",
+      "def": "\\(Q_{j,t,\\ell}=\\mathbf 1\\{j=\\ell\\}\\omega_{j,t}\\).",
+      "role": "Normalized diagonal target tensor",
+      "refs": [
+        "j",
+        "t",
+        "ell",
+        "omega",
+        "d",
+        "T"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "random element",
+      "space": "\\(\\mathcal X\\)",
+      "def": "Observed pretreatment covariates.",
+      "role": "Conditioning variables"
+    },
+    {
+      "name": "W",
+      "type": "random vector",
+      "space": "\\(S\\)",
+      "def": "Observed absorbing treatment path.",
+      "role": "Treatment assignment",
+      "refs": [
+        "S"
+      ]
+    },
+    {
+      "name": "Yts",
+      "type": "potential outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(Y_t(s)\\), the period-\\(t\\) potential outcome under supported path \\(s\\).",
+      "role": "Potential outcome",
+      "refs": [
+        "t",
+        "s"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^{T}\\)",
+      "def": "Observed outcome path \\(Y=(Y_1,\\ldots,Y_T)^{\\mathsf T}\\).",
+      "role": "Observed outcomes",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "probability law",
+      "space": "Laws of \\(\\{X,W,Y,\\{Y_t(s):t\\le T,s\\in S\\}\\}\\)",
+      "def": "Superpopulation law for one panel unit and its supported potential outcomes.",
+      "role": "Data-generating law",
+      "refs": [
+        "X",
+        "W",
+        "Y",
+        "Yts",
+        "t",
+        "T",
+        "s",
+        "S"
+      ]
+    },
+    {
+      "name": "O_i",
+      "type": "random element",
+      "space": "\\(\\mathcal X\\times S\\times\\mathbb R^T\\)",
+      "def": "\\(O_i=(X_i,W_i,Y_i)\\), the observed panel for unit \\(i\\).",
+      "role": "Observed sampling unit",
+      "refs": [
+        "X",
+        "S",
+        "T",
+        "n"
+      ]
+    },
+    {
+      "name": "pis",
+      "type": "function",
+      "sig": "\\(\\mathcal X\\to(0,1]\\)",
+      "def": "\\(\\pi_s(x)=P(W=s\\mid X=x)\\).",
+      "role": "Generalized path propensity",
+      "refs": [
+        "s",
+        "X",
+        "P",
+        "W"
+      ]
+    },
+    {
+      "name": "mus",
+      "type": "function",
+      "sig": "\\(\\mathcal X\\to\\mathbb R^T\\)",
+      "def": "\\(\\mu_s(x)=E_P[Y\\mid W=s,X=x]\\).",
+      "role": "Full conditional path-outcome mean",
+      "refs": [
+        "s",
+        "X",
+        "P",
+        "Y",
+        "W",
+        "T"
+      ]
+    },
+    {
+      "name": "mt",
+      "type": "function",
+      "sig": "\\(\\mathcal X\\to\\mathbb R\\)",
+      "def": "\\(m_t(x)\\), the unrestricted baseline conditional mean at calendar date \\(t\\).",
+      "role": "Baseline outcome mean",
+      "refs": [
+        "t",
+        "X"
+      ]
+    },
+    {
+      "name": "tautellX",
+      "type": "function",
+      "sig": "\\(\\mathcal X\\to\\mathbb R\\)",
+      "def": "\\(\\tau_{t,\\ell}(x)\\), the calendar-\\(t\\), lag-\\(\\ell\\) conditional causal effect.",
+      "role": "Heterogeneous dynamic effect",
+      "refs": [
+        "t",
+        "ell",
+        "X"
+      ]
+    },
+    {
+      "name": "tautell",
+      "type": "scalar array",
+      "space": "\\(\\mathbb R^{T\\times d}\\)",
+      "def": "\\(\\tau_{t,\\ell}=E_P[\\tau_{t,\\ell}(X)]\\).",
+      "role": "Population calendar-lag causal effects",
+      "refs": [
+        "tautellX",
+        "P",
+        "X",
+        "T",
+        "d",
+        "t",
+        "ell"
+      ]
+    },
+    {
+      "name": "varthetaQ",
+      "type": "vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\((\\vartheta_Q)_j=\\sum_{t=1}^{T}\\omega_{j,t}\\tau_{t,j}\\).",
+      "role": "Requested normalized dynamic DATE",
+      "refs": [
+        "Q",
+        "omega",
+        "tautell",
+        "j",
+        "t",
+        "T",
+        "d"
+      ]
+    },
+    {
+      "name": "AsPi",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{d\\times T}\\)",
+      "def": "\\(A_s(\\Pi)=T^{-1}G(\\Pi)^{-1}R_s(\\Pi)^{\\mathsf T}\\).",
+      "role": "Path-specific coefficient operator",
+      "refs": [
+        "s",
+        "Pi",
+        "T",
+        "GPi",
+        "RsPi",
+        "d"
+      ]
+    },
+    {
+      "name": "thetaPi",
+      "type": "vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\theta_{\\Pi}=\\sum_{s\\in S}\\Pi_sA_s(\\Pi)E_P[\\mu_s(X)]\\).",
+      "role": "Identified reshaped regression coefficient",
+      "refs": [
+        "Pi",
+        "S",
+        "s",
+        "AsPi",
+        "P",
+        "mus",
+        "X",
+        "d"
+      ]
+    },
+    {
+      "name": "Eab",
+      "type": "matrix",
+      "space": "\\(\\{-1,0,1\\}^{T\\times d}\\)",
+      "def": "\\(E_{ab}=D_{s_a}-D_{s_b}\\) for \\(1\\le a<b\\le k\\).",
+      "role": "Ordered shifted-interval contrast",
+      "refs": [
+        "a",
+        "b",
+        "k",
+        "S",
+        "Ds",
+        "T",
+        "d"
+      ]
+    },
+    {
+      "name": "Bab",
+      "type": "symmetric matrix",
+      "space": "\\(\\mathbb Q^{d\\times d}\\)",
+      "def": "\\(B_{ab}=T^{-1}E_{ab}^{\\mathsf T}J_TE_{ab}\\).",
+      "role": "Pair Gram atom",
+      "refs": [
+        "a",
+        "b",
+        "T",
+        "Eab",
+        "JT",
+        "d"
+      ]
+    },
+    {
+      "name": "babtell",
+      "type": "vector",
+      "space": "\\(\\mathbb Q^d\\)",
+      "def": "\\(b_{ab,t,\\ell}=T^{-1}(J_TE_{ab})_{t,:}^{\\mathsf T}(E_{ab})_{t,\\ell}\\).",
+      "role": "Pair loading-numerator atom",
+      "refs": [
+        "a",
+        "b",
+        "t",
+        "ell",
+        "T",
+        "Eab",
+        "JT",
+        "d"
+      ]
+    },
+    {
+      "name": "qab",
+      "type": "positive scalar array",
+      "space": "\\(\\mathbb R_{++}^{k(k-1)/2}\\)",
+      "def": "\\(q_{ab}=\\Pi_a\\Pi_b\\) for \\(a<b\\).",
+      "role": "Compatible pair-mass lift",
+      "refs": [
+        "a",
+        "b",
+        "Pi",
+        "k"
+      ]
+    },
+    {
+      "name": "Vk",
+      "type": "positive algebraic variety",
+      "space": "\\(\\mathbb R_{++}^{k(k-1)/2}\\)",
+      "def": "\\(\\mathcal V_k^+=\\{q>0:q_{ab}q_{cd}=q_{ac}q_{bd}=q_{ad}q_{bc}\\text{ for every }a<b<c<d\\}\\).",
+      "role": "Positive pair-product variety",
+      "refs": [
+        "qab",
+        "k",
+        "a",
+        "b"
+      ]
+    },
+    {
+      "name": "HS",
+      "type": "symmetric matrix",
+      "space": "\\(\\mathbb Q^{d\\times d}\\)",
+      "def": "\\(H_S=\\sum_{1\\le a<b\\le k}B_{ab}\\).",
+      "role": "Support-only rank matrix",
+      "refs": [
+        "S",
+        "a",
+        "b",
+        "k",
+        "Bab",
+        "d"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "tensor",
+      "space": "\\(\\mathbb R^{d\\times T\\times d}\\)",
+      "def": "Candidate loading tensor.",
+      "role": "Membership input",
+      "refs": [
+        "d",
+        "T"
+      ]
+    },
+    {
+      "name": "CSZ",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{Td^2\\times k(k-1)/2}\\)",
+      "def": "The \\((a,b)\\)-column of \\(C_S(Z)\\) stacks \\(b_{ab,t,\\ell}-B_{ab}Z_{:,t,\\ell}\\) over \\((t,\\ell)\\).",
+      "role": "Target-dependent pair-mass kernel matrix",
+      "refs": [
+        "S",
+        "Z",
+        "a",
+        "b",
+        "babtell",
+        "Bab",
+        "t",
+        "ell",
+        "T",
+        "d",
+        "k"
+      ]
+    },
+    {
+      "name": "Dbody",
+      "type": "compact semialgebraic set",
+      "space": "\\(\\mathbb R^{d\\times T\\times d}\\)",
+      "def": "\\(\\mathcal D_{S,p,\\epsilon}=\\{L(\\Pi):\\Pi\\in\\Delta_{\\epsilon}(S),\\ G(\\Pi)\\succ0\\}\\).",
+      "role": "Dynamic DATE support body",
+      "refs": [
+        "S",
+        "p",
+        "epsilon",
+        "LPi",
+        "Pi",
+        "Deltaepsilon",
+        "GPi",
+        "d",
+        "T"
+      ]
+    },
+    {
+      "name": "ajtell",
+      "type": "positive rational tensor",
+      "space": "\\(\\mathbb Q_{++}^{d\\times T\\times d}\\)",
+      "def": "Declared coordinate loss weights \\(a_{j,t,\\ell}\\).",
+      "role": "Projection metric",
+      "refs": [
+        "j",
+        "t",
+        "ell",
+        "d",
+        "T"
+      ]
+    },
+    {
+      "name": "fQ",
+      "type": "function",
+      "sig": "\\(\\{\\Pi\\in\\Delta_{\\epsilon}(S):G(\\Pi)\\succ0\\}\\to\\mathbb R_+\\)",
+      "def": "For \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\) with \\(G(\\Pi)\\succ0\\), \\(f_Q(\\Pi)=\\sum_{j,t,\\ell}a_{j,t,\\ell}\\{L(\\Pi)_{j,t,\\ell}-Q_{j,t,\\ell}\\}^2\\).",
+      "role": "Weighted loading discrepancy",
+      "refs": [
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "Pi",
+        "j",
+        "t",
+        "ell",
+        "ajtell",
+        "LPi",
+        "Q",
+        "GPi"
+      ]
+    },
+    {
+      "name": "Pistar",
+      "type": "probability vector",
+      "space": "\\(\\{\\Pi\\in\\Delta_{\\epsilon}(S):G(\\Pi)\\succ0\\}\\)",
+      "def": "When \\(H_S\\succ0\\), the lexicographically first element of \\(\\operatorname*{argmin}_{\\Pi\\in\\Delta_{\\epsilon}(S):G(\\Pi)\\succ0}f_Q(\\Pi)\\).",
+      "role": "Certified closest reshaping law",
+      "refs": [
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "Pi",
+        "fQ",
+        "GPi",
+        "HS"
+      ]
+    },
+    {
+      "name": "Beffect",
+      "type": "nonnegative rational scalar",
+      "space": "\\(\\mathbb Q_+\\)",
+      "def": "Declared bound on every calendar-lag causal effect.",
+      "role": "Contamination radius"
+    },
+    {
+      "name": "GammaB",
+      "type": "compact class",
+      "space": "\\(\\mathbb R^{T\\times d}\\)",
+      "def": "\\(\\Gamma_B=\\{\\gamma\\in\\mathbb R^{T\\times d}:|\\gamma_{t,\\ell}|\\le B\\text{ for all }(t,\\ell)\\}\\).",
+      "role": "Bounded dynamic-effect class",
+      "refs": [
+        "Beffect",
+        "T",
+        "d",
+        "t",
+        "ell"
+      ]
+    },
+    {
+      "name": "CB",
+      "type": "nonnegative scalar",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "\\(\\mathcal C_B(Z,Q)=\\sup_{\\gamma\\in\\Gamma_B}\\sum_{j,t,\\ell}|(Z-Q)_{j,t,\\ell}\\gamma_{t,\\ell}|\\).",
+      "role": "Termwise worst-case contamination",
+      "refs": [
+        "GammaB",
+        "Q",
+        "Z",
+        "j",
+        "t",
+        "ell"
+      ]
+    },
+    {
+      "name": "Kfold",
+      "type": "integer",
+      "space": "\\(\\{2,\\ldots,n\\}\\)",
+      "def": "Fixed number \\(K\\) of cross-fitting folds.",
+      "role": "Cross-fitting fold count",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "v",
+      "type": "index",
+      "space": "\\(\\{1,\\ldots,K\\}\\)",
+      "def": "Cross-fitting fold index.",
+      "role": "Fold index",
+      "refs": [
+        "Kfold"
+      ]
+    },
+    {
+      "name": "Iv",
+      "type": "index set",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "\\(I_v\\) is validation fold \\(v\\), where \\(I_1,\\ldots,I_K\\) form a partition with \\(\\min_v|I_v|\\asymp n\\).",
+      "role": "Validation indices",
+      "refs": [
+        "v",
+        "Kfold",
+        "n"
+      ]
+    },
+    {
+      "name": "Fminusv",
+      "type": "sigma field",
+      "def": "\\(\\mathcal F_{-v}=\\sigma(O_i:i\\notin I_v)\\), the training-fold sigma field.",
+      "role": "Training information",
+      "refs": [
+        "v",
+        "O_i",
+        "Iv"
+      ]
+    },
+    {
+      "name": "normPiFold",
+      "type": "conditional norm",
+      "def": "For a training-measurable scalar path-function \\(g=(g_s:s\\in S)\\), \\(\\|g\\|_{\\pi,2,v}=\\{\\sum_{s\\in S}E_P[g_s(X)^2\\mid\\mathcal F_{-v}]\\}^{1/2}\\), where the expectation is over an independent validation draw conditional on \\(\\mathcal F_{-v}\\).",
+      "role": "Fold-conditional propensity norm",
+      "refs": [
+        "s",
+        "S",
+        "P",
+        "X",
+        "Fminusv",
+        "v"
+      ]
+    },
+    {
+      "name": "normMuFold",
+      "type": "conditional norm",
+      "def": "For a training-measurable vector path-function \\(g=(g_s:s\\in S)\\), \\(\\|g\\|_{\\mu,2,v}=\\{\\sum_{s\\in S}E_P[\\|g_s(X)\\|_2^2\\mid\\mathcal F_{-v}]\\}^{1/2}\\).",
+      "role": "Fold-conditional outcome-regression norm",
+      "refs": [
+        "s",
+        "S",
+        "P",
+        "X",
+        "Fminusv",
+        "v"
+      ]
+    },
+    {
+      "name": "normScoreFold",
+      "type": "conditional norm",
+      "def": "For a training-measurable score \\(u\\), \\(\\|u\\|_{\\psi,2,v}=\\{E_P[\\|u(O_i)\\|_2^2\\mid\\mathcal F_{-v}]\\}^{1/2}\\).",
+      "role": "Fold-conditional score norm",
+      "refs": [
+        "P",
+        "O_i",
+        "Fminusv",
+        "v"
+      ]
+    },
+    {
+      "name": "normDriftFold",
+      "type": "conditional norm",
+      "def": "For a training-measurable augmented path family \\(e=(e_s:s\\in S)\\) with \\(e_s=(\\kappa_s,h_s)\\), where \\(\\kappa_s\\) is a vector or matrix and \\(h_s\\) is a function with the same codomain, \\(\\|e\\|_{\\eta,2,v}=\\{\\sum_{s\\in S}\\|\\kappa_s\\|_{\\mathrm F}^2+\\sum_{s\\in S}E_P[\\|h_s(X)\\|_{\\mathrm F}^2\\mid\\mathcal F_{-v}]\\}^{1/2}\\). Here \\(\\|\\cdot\\|_{\\mathrm F}\\) denotes Euclidean norm for vectors and Frobenius norm for matrices.",
+      "role": "Fold-conditional drift-nuisance norm",
+      "refs": [
+        "P",
+        "X",
+        "s",
+        "S",
+        "Fminusv",
+        "v"
+      ]
+    },
+    {
+      "name": "rpiN",
+      "type": "deterministic positive sequence",
+      "def": "\\(r_{\\pi,n}\\to0\\).",
+      "role": "Propensity convergence rate",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "rmuN",
+      "type": "deterministic positive sequence",
+      "def": "\\(r_{\\mu,n}\\to0\\).",
+      "role": "Outcome-regression convergence rate",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "rbarpiN",
+      "type": "deterministic positive sequence",
+      "def": "\\(r_{\\bar\\pi,n}\\to0\\).",
+      "role": "Misspecified propensity-limit convergence rate",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "rbarmuN",
+      "type": "deterministic positive sequence",
+      "def": "\\(r_{\\bar\\mu,n}\\to0\\).",
+      "role": "Misspecified outcome-limit convergence rate",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "retapiN",
+      "type": "deterministic positive sequence",
+      "def": "\\(r_{\\eta_\\pi,n}\\to0\\).",
+      "role": "Propensity-branch drift rate",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "retamuN",
+      "type": "deterministic positive sequence",
+      "def": "\\(r_{\\eta_\\mu,n}\\to0\\).",
+      "role": "Outcome-branch drift rate",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "pitildes",
+      "type": "estimated function",
+      "sig": "\\(\\mathcal X\\to\\mathbb R\\)",
+      "def": "Raw fold-trained generalized propensity coordinate \\(\\widetilde\\pi_s^{(-v)}(x)\\), measurable with respect to \\(\\mathcal F_{-v}\\); the raw vector need not be normalized or bounded away from zero.",
+      "role": "Raw assignment nuisance learner",
+      "refs": [
+        "s",
+        "X",
+        "pis",
+        "v",
+        "Fminusv"
+      ]
+    },
+    {
+      "name": "pihats",
+      "type": "estimated probability-vector function",
+      "sig": "\\(\\mathcal X\\to\\{q\\in\\mathbb R^k:q_s\\ge\\underline{c}_{\\pi}\\text{ for every }s\\in S,\\ \\sum_{s\\in S}q_s=1\\}\\)",
+      "def": "For each fold and covariate value, \\(\\widehat\\pi^{(-v)}(x)=\\operatorname*{argmin}_{q\\in\\mathbb R^k:\\,q_s\\ge\\underline{c}_{\\pi}\\ \\forall s\\in S,\\,\\sum_{s\\in S}q_s=1}\\sum_{s\\in S}\\{q_s-\\widetilde\\pi_s^{(-v)}(x)\\}^2\\), the Euclidean projection of the raw fold-trained vector onto the complete path-probability simplex with floor \\(\\underline{c}_{\\pi}\\).",
+      "role": "Projected assignment nuisance learner",
+      "refs": [
+        "pitildes",
+        "clipThreshold",
+        "s",
+        "S",
+        "k",
+        "X",
+        "v",
+        "Fminusv"
+      ]
+    },
+    {
+      "name": "muhats",
+      "type": "estimated function",
+      "sig": "\\(\\mathcal X\\to\\mathbb R^T\\)",
+      "def": "Cross-fitted estimator \\(\\widehat\\mu_s^{(-v)}(x)\\) of the full conditional path-outcome mean, measurable with respect to \\(\\mathcal F_{-v}\\).",
+      "role": "Outcome nuisance learner",
+      "refs": [
+        "s",
+        "X",
+        "T",
+        "mus",
+        "v",
+        "Fminusv"
+      ]
+    },
+    {
+      "name": "psihat",
+      "type": "vector-valued score",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "For \\(i\\in I_v\\), \\(\\widehat\\psi_v(O_i;\\Pi)=\\sum_{s\\in S}\\Pi_sA_s(\\Pi)\\widehat\\mu_s^{(-v)}(X_i)+\\Pi_{W_i}\\{\\widehat\\pi_{W_i}^{(-v)}(X_i)\\}^{-1}A_{W_i}(\\Pi)\\{Y_i-\\widehat\\mu_{W_i}^{(-v)}(X_i)\\}\\).",
+      "role": "Full-path augmented score",
+      "refs": [
+        "O_i",
+        "Pi",
+        "S",
+        "s",
+        "AsPi",
+        "muhats",
+        "X",
+        "W",
+        "pihats",
+        "Y",
+        "d",
+        "Iv",
+        "v"
+      ]
+    },
+    {
+      "name": "psi0",
+      "type": "vector-valued score",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\psi_0(O_i;\\Pi)=\\sum_{s\\in S}\\Pi_sA_s(\\Pi)\\mu_s(X_i)+\\Pi_{W_i}\\pi_{W_i}(X_i)^{-1}A_{W_i}(\\Pi)\\{Y_i-\\mu_{W_i}(X_i)\\}\\).",
+      "role": "Influence-function score",
+      "refs": [
+        "psihat",
+        "O_i",
+        "Pi",
+        "d",
+        "S",
+        "s",
+        "AsPi",
+        "mus",
+        "X",
+        "W",
+        "pis",
+        "Y"
+      ]
+    },
+    {
+      "name": "thetahat",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\widehat\\theta_{\\Pi}=n^{-1}\\sum_{v=1}^{K}\\sum_{i\\in I_v}\\widehat\\psi_v(O_i;\\Pi)\\).",
+      "role": "Cross-fitted dynamic DATE estimator",
+      "refs": [
+        "Pi",
+        "n",
+        "O_i",
+        "psihat",
+        "d",
+        "v",
+        "Kfold",
+        "Iv"
+      ]
+    },
+    {
+      "name": "VPi",
+      "type": "symmetric matrix",
+      "space": "\\(\\mathbb R^{d\\times d}\\)",
+      "def": "\\(V_{\\Pi}=\\operatorname{Var}_P\\{\\psi_0(O;\\Pi)\\}\\).",
+      "role": "Asymptotic covariance",
+      "refs": [
+        "Pi",
+        "P",
+        "psi0",
+        "d"
+      ]
+    },
+    {
+      "name": "VhatPi",
+      "type": "symmetric random matrix",
+      "space": "\\(\\mathbb R^{d\\times d}\\)",
+      "def": "\\(\\widehat V_{\\Pi}=n^{-1}\\sum_{v=1}^{K}\\sum_{i\\in I_v}\\{\\widehat\\psi_v(O_i;\\Pi)-\\widehat\\theta_{\\Pi}\\}\\{\\widehat\\psi_v(O_i;\\Pi)-\\widehat\\theta_{\\Pi}\\}^{\\mathsf T}\\).",
+      "role": "Cross-fitted covariance estimator",
+      "refs": [
+        "Pi",
+        "n",
+        "v",
+        "Kfold",
+        "Iv",
+        "O_i",
+        "psihat",
+        "thetahat",
+        "d"
+      ]
+    },
+    {
+      "name": "barpis",
+      "type": "function",
+      "sig": "\\(\\mathcal X\\to\\{q\\in\\mathbb R^k:q_s\\ge\\underline{c}_{\\pi}\\text{ for every }s\\in S,\\ \\sum_{s\\in S}q_s=1\\}\\)",
+      "def": "\\(\\bar\\pi(x)=(\\bar\\pi_s(x):s\\in S)\\), a fixed possibly misspecified limit of the projected generalized-propensity learner.",
+      "role": "Propensity nuisance limit",
+      "refs": [
+        "s",
+        "S",
+        "k",
+        "X",
+        "clipThreshold",
+        "pihats"
+      ]
+    },
+    {
+      "name": "barmus",
+      "type": "function",
+      "sig": "\\(\\mathcal X\\to\\mathbb R^T\\)",
+      "def": "\\(\\bar\\mu_s(x)\\), a fixed possibly misspecified full path-outcome mean limit.",
+      "role": "Outcome nuisance limit",
+      "refs": [
+        "s",
+        "X",
+        "T"
+      ]
+    },
+    {
+      "name": "scoreDrift",
+      "type": "fold-conditional vector function",
+      "sig": "\\(\\{1,\\ldots,K\\}\\times\\mathcal X\\times\\prod_{s\\in S}(0,1]^{\\mathcal X}\\times\\prod_{s\\in S}(\\mathbb R^T)^{\\mathcal X}\\times\\Delta_{\\epsilon}(S)\\to\\mathbb R^d\\)",
+      "def": "For fold \\(v\\), training-measurable candidates \\(\\widetilde\\pi=(\\widetilde\\pi_s:s\\in S)\\) and \\(\\widetilde\\mu=(\\widetilde\\mu_s:s\\in S)\\), and fixed \\(\\Pi\\), define the displayed score-drift integrand \\(d_v(x;\\widetilde\\pi,\\widetilde\\mu,\\Pi)=\\sum_{s\\in S}\\Pi_sA_s(\\Pi)\\{\\pi_s(x)/\\widetilde\\pi_s(x)-1\\}\\{\\mu_s(x)-\\widetilde\\mu_s(x)\\}\\). Conditional on \\(\\mathcal F_{-v}\\), \\(E_P[d_v(X;\\widetilde\\pi,\\widetilde\\mu,\\Pi)\\mid\\mathcal F_{-v}]\\) is the bias of the corresponding full-path score relative to \\(\\theta_{\\Pi}\\).",
+      "role": "Exact fold-conditional score drift",
+      "refs": [
+        "X",
+        "S",
+        "s",
+        "Pi",
+        "Deltaepsilon",
+        "AsPi",
+        "pis",
+        "mus",
+        "Fminusv",
+        "v",
+        "Kfold",
+        "P",
+        "thetaPi",
+        "d"
+      ]
+    },
+    {
+      "name": "etapi",
+      "type": "fold-indexed augmented path family",
+      "sig": "\\(\\{1,\\ldots,K\\}\\times S\\times\\mathcal X\\times\\Delta_{\\epsilon}(S)\\times\\prod_{s\\in S}(\\mathbb R^T)^{\\mathcal X}\\to\\mathbb R^d\\times\\mathbb R^d\\)",
+      "def": "For fixed \\(\\Pi\\) and outcome-limit family \\(\\bar\\mu\\), let \\(\\rho_{\\pi,s,v}(x;\\Pi,\\bar\\mu)=-\\Pi_s\\pi_s(x)^{-1}A_s(\\Pi)\\{\\mu_s(x)-\\bar\\mu_s(x)\\}\\), the exact pathwise Riesz coefficient of the Gateaux derivative of \\(d_v(x;\\widetilde\\pi,\\bar\\mu,\\Pi)\\) at \\(\\widetilde\\pi=\\pi\\). Set \\(\\kappa_{\\pi,s,v}(\\Pi,\\bar\\mu)=E_P[\\rho_{\\pi,s,v}(X;\\Pi,\\bar\\mu)\\mid\\mathcal F_{-v}]\\) and \\(\\eta^0_{\\pi,s,v}(x;\\Pi,\\bar\\mu)=\\rho_{\\pi,s,v}(x;\\Pi,\\bar\\mu)-\\kappa_{\\pi,s,v}(\\Pi,\\bar\\mu)\\). The exact augmented drift target is \\(\\eta_{\\pi,s,v}(x;\\Pi,\\bar\\mu)=(\\kappa_{\\pi,s,v}(\\Pi,\\bar\\mu),\\eta^0_{\\pi,s,v}(x;\\Pi,\\bar\\mu))\\), where \\(E_P[\\eta^0_{\\pi,s,v}(X;\\Pi,\\bar\\mu)\\mid\\mathcal F_{-v}]=0\\).",
+      "role": "Exact propensity-branch intercept and centered drift projection",
+      "refs": [
+        "scoreDrift",
+        "S",
+        "s",
+        "X",
+        "d",
+        "Pi",
+        "Deltaepsilon",
+        "AsPi",
+        "pis",
+        "barmus",
+        "mus",
+        "P",
+        "Fminusv",
+        "v",
+        "Kfold"
+      ]
+    },
+    {
+      "name": "etamu",
+      "type": "fold-indexed augmented path family",
+      "sig": "\\(\\{1,\\ldots,K\\}\\times S\\times\\mathcal X\\times\\Delta_{\\epsilon}(S)\\times\\prod_{s\\in S}(0,1]^{\\mathcal X}\\to\\mathbb R^{d\\times T}\\times\\mathbb R^{d\\times T}\\)",
+      "def": "For fixed \\(\\Pi\\) and clipped propensity-limit family \\(\\bar\\pi\\), let \\(\\rho_{\\mu,s,v}(x;\\Pi,\\bar\\pi)=-\\Pi_s\\{\\pi_s(x)/\\bar\\pi_s(x)-1\\}A_s(\\Pi)\\), the exact pathwise Riesz coefficient of the Gateaux derivative of \\(d_v(x;\\bar\\pi,\\widetilde\\mu,\\Pi)\\) at \\(\\widetilde\\mu=\\mu\\). Set \\(\\kappa_{\\mu,s,v}(\\Pi,\\bar\\pi)=E_P[\\rho_{\\mu,s,v}(X;\\Pi,\\bar\\pi)\\mid\\mathcal F_{-v}]\\) and \\(\\eta^0_{\\mu,s,v}(x;\\Pi,\\bar\\pi)=\\rho_{\\mu,s,v}(x;\\Pi,\\bar\\pi)-\\kappa_{\\mu,s,v}(\\Pi,\\bar\\pi)\\). The exact augmented drift target is \\(\\eta_{\\mu,s,v}(x;\\Pi,\\bar\\pi)=(\\kappa_{\\mu,s,v}(\\Pi,\\bar\\pi),\\eta^0_{\\mu,s,v}(x;\\Pi,\\bar\\pi))\\), where \\(E_P[\\eta^0_{\\mu,s,v}(X;\\Pi,\\bar\\pi)\\mid\\mathcal F_{-v}]=0\\).",
+      "role": "Exact outcome-branch intercept and centered drift projection",
+      "refs": [
+        "scoreDrift",
+        "S",
+        "s",
+        "X",
+        "d",
+        "T",
+        "Pi",
+        "Deltaepsilon",
+        "AsPi",
+        "barpis",
+        "pis",
+        "mus",
+        "P",
+        "Fminusv",
+        "v",
+        "Kfold"
+      ]
+    },
+    {
+      "name": "etapihat",
+      "type": "estimated function",
+      "sig": "\\(\\{1,\\ldots,K\\}\\times S\\times\\mathcal X\\times\\Delta_{\\epsilon}(S)\\to\\mathbb R^d\\times\\mathbb R^d\\)",
+      "def": "A training-measurable cross-fitted estimator \\(\\widehat\\eta_{\\pi,s}^{(-v)}(x;\\Pi)=(\\widehat\\kappa_{\\pi,s}^{(-v)}(\\Pi),\\widehat\\eta_{\\pi,s}^{0,(-v)}(x;\\Pi))\\) of the exact augmented target \\(\\eta_{\\pi,s,v}(x;\\Pi,\\bar\\mu)\\).",
+      "role": "Propensity-branch drift learner",
+      "refs": [
+        "X",
+        "S",
+        "s",
+        "Pi",
+        "Deltaepsilon",
+        "d",
+        "v",
+        "Kfold",
+        "etapi",
+        "Fminusv"
+      ]
+    },
+    {
+      "name": "etamuhat",
+      "type": "estimated function",
+      "sig": "\\(\\{1,\\ldots,K\\}\\times S\\times\\mathcal X\\times\\Delta_{\\epsilon}(S)\\to\\mathbb R^{d\\times T}\\times\\mathbb R^{d\\times T}\\)",
+      "def": "A training-measurable cross-fitted estimator \\(\\widehat\\eta_{\\mu,s}^{(-v)}(x;\\Pi)=(\\widehat\\kappa_{\\mu,s}^{(-v)}(\\Pi),\\widehat\\eta_{\\mu,s}^{0,(-v)}(x;\\Pi))\\) of the exact augmented target \\(\\eta_{\\mu,s,v}(x;\\Pi,\\bar\\pi)\\).",
+      "role": "Outcome-branch drift learner",
+      "refs": [
+        "X",
+        "S",
+        "s",
+        "Pi",
+        "Deltaepsilon",
+        "d",
+        "T",
+        "v",
+        "Kfold",
+        "etamu",
+        "Fminusv"
+      ]
+    },
+    {
+      "name": "RpiBranch",
+      "type": "procedure class",
+      "def": "\\(\\mathcal R_{\\pi}\\), the propensity-correct branchwise nuisance-rate class.",
+      "role": "Propensity-correct inference branch"
+    },
+    {
+      "name": "RmuBranch",
+      "type": "procedure class",
+      "def": "\\(\\mathcal R_{\\mu}\\), the outcome-correct branchwise nuisance-rate class.",
+      "role": "Outcome-correct inference branch"
+    },
+    {
+      "name": "thetaTilde",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\widetilde\\theta_{\\Pi}\\), a drift-targeted cross-fitted estimator indexed by \\(\\Pi\\).",
+      "role": "Union-regular estimator",
+      "refs": [
+        "Pi",
+        "d"
+      ]
+    },
+    {
+      "name": "phiPi",
+      "type": "vector-valued function",
+      "sig": "\\(\\mathcal X\\times S\\times\\mathbb R^T\\to\\mathbb R^d\\)",
+      "def": "\\(\\phi_{\\pi}(O_i;\\Pi)\\), a mean-zero influence function on the propensity-correct branch.",
+      "role": "Propensity-branch influence function",
+      "refs": [
+        "X",
+        "S",
+        "T",
+        "d",
+        "O_i",
+        "Pi"
+      ]
+    },
+    {
+      "name": "phiMu",
+      "type": "vector-valued function",
+      "sig": "\\(\\mathcal X\\times S\\times\\mathbb R^T\\to\\mathbb R^d\\)",
+      "def": "\\(\\phi_{\\mu}(O_i;\\Pi)\\), a mean-zero influence function on the outcome-correct branch.",
+      "role": "Outcome-branch influence function",
+      "refs": [
+        "X",
+        "S",
+        "T",
+        "d",
+        "O_i",
+        "Pi"
+      ]
+    },
+    {
+      "name": "Vbranch",
+      "type": "symmetric matrix family",
+      "space": "\\(\\mathbb R^{d\\times d}\\)",
+      "def": "For \\(c\\in\\{\\pi,\\mu\\}\\), \\(V_c=E_P[\\phi_c(O_i;\\Pi)\\phi_c(O_i;\\Pi)^{\\mathsf T}]\\).",
+      "role": "Branchwise asymptotic covariance",
+      "refs": [
+        "d",
+        "P",
+        "phiPi",
+        "phiMu",
+        "O_i",
+        "Pi"
+      ]
+    },
+    {
+      "name": "VhatBranch",
+      "type": "symmetric random matrix family",
+      "space": "\\(\\mathbb R^{d\\times d}\\)",
+      "def": "For \\(c\\in\\{\\pi,\\mu\\}\\), \\(\\widehat V_c\\) is the empirical covariance learner associated with branch influence function \\(\\phi_c\\).",
+      "role": "Branchwise covariance learner",
+      "refs": [
+        "d",
+        "phiPi",
+        "phiMu"
+      ]
+    },
+    {
+      "name": "Mdate",
+      "type": "model class",
+      "space": "Probability laws",
+      "def": "Laws satisfying the declared causal and sampling conditions.",
+      "role": "Dynamic panel model",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "Amem",
+      "type": "algorithmic handle",
+      "def": "Ordered endpoint-ratio propagation on the shifted-interval Green equations, branching on vanishing minors and checking positive pair-product compatibility and floor ratios, with target object an exact membership witness or a finite nonmembership certificate for \\(Z\\in\\mathcal D_{S,p,\\epsilon}\\).",
+      "role": "Structural membership route",
+      "refs": [
+        "Eab",
+        "CSZ",
+        "qab",
+        "epsilon",
+        "Z",
+        "Dbody",
+        "S",
+        "p"
+      ]
+    },
+    {
+      "name": "Aproj",
+      "type": "algorithmic handle",
+      "def": "When \\(H_S\\succ0\\), exact optimization over the ordered compatibility strata returned by \\(\\mathsf A_{\\mathrm{mem}}\\), with target object \\(\\Pi^\\star\\), its global optimality certificate, and \\(\\mathcal C_B(L(\\Pi^\\star),Q)\\).",
+      "role": "Certified projection route",
+      "refs": [
+        "Amem",
+        "Pistar",
+        "CB",
+        "LPi",
+        "Q",
+        "HS"
+      ]
+    },
+    {
+      "name": "Adrift",
+      "type": "estimation handle",
+      "def": "Orthogonalize the full-path score's first-order drift separately on \\(\\mathcal R_{\\pi}\\) and \\(\\mathcal R_{\\mu}\\) by cross-fitting \\(\\eta_{\\pi}\\) and \\(\\eta_{\\mu}\\); the target objects are \\(\\widetilde\\theta_{\\Pi}\\), \\(\\phi_{\\pi}\\), \\(\\phi_{\\mu}\\), and consistent branchwise covariance learners.",
+      "role": "Union-inference route",
+      "refs": [
+        "psihat",
+        "thetaPi",
+        "Pi",
+        "RpiBranch",
+        "RmuBranch",
+        "etapi",
+        "etamu",
+        "thetaTilde",
+        "phiPi",
+        "phiMu",
+        "VhatBranch"
+      ]
+    },
+    {
+      "name": "lambdaSel",
+      "type": "nonnegative rational scalar",
+      "space": "\\(\\mathbb Q_+\\)",
+      "def": "Declared tradeoff coefficient \\(\\lambda_{\\mathrm{sel}}\\) for adaptive variance--loading selection.",
+      "role": "Selection tradeoff"
+    },
+    {
+      "name": "Rsel",
+      "type": "function",
+      "sig": "\\(\\{\\Pi\\in\\Delta_{\\epsilon}(S):G(\\Pi)\\succ0\\}\\to\\mathbb R_+\\)",
+      "def": "\\(\\mathcal R_{\\mathrm{sel}}(\\Pi;P)=\\operatorname{tr}(V_{\\Pi})+\\lambda_{\\mathrm{sel}}f_Q(\\Pi)\\).",
+      "role": "Population adaptive-law criterion",
+      "refs": [
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "GPi",
+        "P",
+        "VPi",
+        "lambdaSel",
+        "fQ"
+      ]
+    },
+    {
+      "name": "Pi0Sel",
+      "type": "probability vector",
+      "space": "\\(\\{\\Pi\\in\\Delta_{\\epsilon}(S):G(\\Pi)\\succ0\\}\\)",
+      "def": "When \\(H_S\\succ0\\), \\(\\Pi_{0,\\mathrm{sel}}=\\operatorname*{lexmin}\\operatorname*{argmin}_{\\Pi\\in\\Delta_{\\epsilon}(S)}\\mathcal R_{\\mathrm{sel}}(\\Pi;P)\\).",
+      "role": "Population adaptive loading law",
+      "refs": [
+        "HS",
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "Rsel",
+        "P",
+        "GPi"
+      ]
+    },
+    {
+      "name": "PihatSel",
+      "type": "fold-indexed random probability vector",
+      "space": "\\(\\Delta_{\\epsilon}(S)\\)",
+      "def": "\\(\\widehat\\Pi_{\\mathrm{sel}}^{(-v)}\\) is the training-fold empirical minimizer of the declared variance--loading criterion.",
+      "role": "Generated reshaping law",
+      "refs": [
+        "Pi0Sel",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "v",
+        "Fminusv"
+      ]
+    },
+    {
+      "name": "thetaHatSel",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\widehat\\theta_{\\mathrm{sel}}\\), a cross-fitted estimator of \\(\\theta_{\\Pi_{0,\\mathrm{sel}}}\\) that accounts for generation of the reshaping law.",
+      "role": "Generated-law estimator",
+      "refs": [
+        "Pi0Sel",
+        "thetaPi",
+        "d"
+      ]
+    },
+    {
+      "name": "phiSel",
+      "type": "vector-valued function",
+      "sig": "\\(\\mathcal X\\times S\\times\\mathbb R^T\\to\\mathbb R^d\\)",
+      "def": "\\(\\phi_{\\mathrm{sel}}(O_i)\\), the mean-zero influence function derived by \\(\\mathrm{oeq:generated\\text{-}law\\text{-}inference}\\) at a regular selection point.",
+      "role": "Generated-law influence function",
+      "refs": [
+        "X",
+        "S",
+        "T",
+        "d",
+        "O_i"
+      ]
+    },
+    {
+      "name": "VSel",
+      "type": "symmetric matrix",
+      "space": "\\(\\mathbb R^{d\\times d}\\)",
+      "def": "\\(V_{\\mathrm{sel}}=E_P[\\phi_{\\mathrm{sel}}(O_i)\\phi_{\\mathrm{sel}}(O_i)^{\\mathsf T}]\\).",
+      "role": "Generated-law asymptotic covariance",
+      "refs": [
+        "d",
+        "P",
+        "phiSel",
+        "O_i"
+      ]
+    },
+    {
+      "name": "VhatSel",
+      "type": "symmetric random matrix",
+      "space": "\\(\\mathbb R^{d\\times d}\\)",
+      "def": "\\(\\widehat V_{\\mathrm{sel}}\\), a covariance estimator derived with the generated-law influence function.",
+      "role": "Generated-law covariance learner",
+      "refs": [
+        "d",
+        "phiSel"
+      ]
+    },
+    {
+      "name": "Agen",
+      "type": "estimation handle",
+      "def": "Differentiate the interior argmin map for \\(\\mathcal R_{\\mathrm{sel}}\\) and compose its influence function with the smooth map \\(\\Pi\\mapsto\\theta_{\\Pi}\\); at boundary optima or ties, use the directional derivative of the argmin and projection maps with derivative-aware resampling. The target objects are \\(\\widehat\\theta_{\\mathrm{sel}}\\), \\(\\phi_{\\mathrm{sel}}\\), and valid regular or directionally regular confidence sets.",
+      "role": "Generated-law inference route",
+      "refs": [
+        "Rsel",
+        "Pi",
+        "thetaPi",
+        "thetaHatSel",
+        "phiSel"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-units",
+      "kind": "sampling",
+      "condition": "\\(O_1,\\ldots,O_n\\) are independent and identically distributed under \\(P\\).",
+      "free_symbols": [
+        "O_i",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent superpopulation sampling of panel units",
+        "cite": "ArkhangelskyImbensLeiLuo2024"
+      },
+      "used_by": [
+        "def:dynamic-date-model",
+        "prop:fixed-law-aipw-score-control",
+        "prop:fixed-law-aipw-inference-corollary",
+        "oeq:union-regular-inference",
+        "oeq:generated-law-inference"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal",
+      "condition": "\\(Y_t=Y_t(W)\\) almost surely for every \\(t\\in\\{1,\\ldots,T\\}\\).",
+      "free_symbols": [
+        "Y",
+        "Yts",
+        "W",
+        "t",
+        "T"
+      ],
+      "standard": {
+        "name": "Consistency on supported treatment paths",
+        "cite": "BojinovRambachanShephard2021"
+      },
+      "used_by": [
+        "def:dynamic-date-model",
+        "thm:calendar-lag-loading-representation",
+        "prop:fixed-law-aipw-inference-corollary"
+      ]
+    },
+    {
+      "id": "ass:pathwise-mean-random-assignment",
+      "kind": "identification",
+      "condition": "\\(E_P[Y_t(s)\\mid W=s,X]=E_P[Y_t(s)\\mid X]\\) almost surely for every \\(s\\in S\\) and \\(t\\in\\{1,\\ldots,T\\}\\).",
+      "free_symbols": [
+        "P",
+        "Yts",
+        "W",
+        "X",
+        "s",
+        "S",
+        "t",
+        "T"
+      ],
+      "standard": {
+        "name": "Conditional mean random assignment for treatment paths",
+        "cite": "ArkhangelskyImbensLeiLuo2024"
+      },
+      "used_by": [
+        "def:dynamic-date-model",
+        "thm:calendar-lag-loading-representation",
+        "prop:fixed-law-aipw-inference-corollary"
+      ]
+    },
+    {
+      "id": "ass:finite-memory-additive-mean",
+      "kind": "outcome-model",
+      "condition": "\\(E_P[Y_t(s)\\mid X]=m_t(X)+\\sum_{\\ell=0}^{p}\\tau_{t,\\ell}(X)s_{t-\\ell}\\) almost surely for every \\(s\\in S\\) and \\(t\\in\\{1,\\ldots,T\\}\\).",
+      "free_symbols": [
+        "P",
+        "Yts",
+        "X",
+        "mt",
+        "tautellX",
+        "s",
+        "S",
+        "t",
+        "T",
+        "ell",
+        "p"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Calendar-varying finite-memory additivity is credible for municipal state-of-emergency panels such as the OpenTable application: current restrictions and a short lag of recent restrictions can affect restaurant activity additively, while reopening, seasonality, and adaptation allow those current and lag effects to differ across calendar dates."
+      },
+      "used_by": [
+        "def:dynamic-date-model",
+        "thm:calendar-lag-loading-representation",
+        "prop:homogeneous-dynamic-reduction"
+      ]
+    },
+    {
+      "id": "ass:path-overlap",
+      "kind": "overlap",
+      "condition": "There exists \\(c_{\\pi}>0\\) such that \\(\\pi_s(X)\\ge c_{\\pi}\\) almost surely for every \\(s\\in S\\).",
+      "free_symbols": [
+        "pis",
+        "X",
+        "s",
+        "S",
+        "cpi"
+      ],
+      "standard": {
+        "name": "Uniform generalized-propensity overlap",
+        "cite": "ArkhangelskyImbensLeiLuo2024"
+      },
+      "used_by": [
+        "def:dynamic-date-model",
+        "lem:propensity-simplex-projection",
+        "prop:fixed-law-aipw-score-control",
+        "prop:fixed-law-aipw-inference-corollary",
+        "oeq:union-regular-inference",
+        "oeq:generated-law-inference"
+      ]
+    },
+    {
+      "id": "ass:outcome-moment",
+      "kind": "moment",
+      "condition": "For some \\(\\delta>0\\), \\(E_P[\\|Y\\|_2^{2+\\delta}]<\\infty\\).",
+      "free_symbols": [
+        "P",
+        "Y",
+        "deltaMoment"
+      ],
+      "standard": {
+        "name": "Lyapunov moment condition",
+        "cite": "NeweyRobins2018"
+      },
+      "used_by": [
+        "def:dynamic-date-model",
+        "prop:fixed-law-aipw-score-control",
+        "prop:fixed-law-aipw-inference-corollary",
+        "oeq:union-regular-inference",
+        "oeq:generated-law-inference"
+      ]
+    },
+    {
+      "id": "ass:target-nonnegative",
+      "kind": "target",
+      "condition": "\\(\\omega_{j,t}\\ge0\\) for every \\(j\\in\\{0,\\ldots,p\\}\\) and \\(t\\in\\{1,\\ldots,T\\}\\).",
+      "free_symbols": [
+        "omega",
+        "j",
+        "t",
+        "T",
+        "p"
+      ],
+      "standard": {
+        "name": "Nonnegative DATE weighting convention",
+        "cite": "ArkhangelskyImbensLeiLuo2024"
+      },
+      "used_by": [
+        "def:diagonal-target",
+        "thm:certified-projection-contamination"
+      ]
+    },
+    {
+      "id": "ass:target-supported-dates",
+      "kind": "target",
+      "condition": "\\(\\omega_{j,t}=0\\) for every \\(t\\le j\\).",
+      "free_symbols": [
+        "omega",
+        "j",
+        "t"
+      ],
+      "standard": {
+        "name": "Available-calendar support for lag weighting",
+        "cite": "ArkhangelskyImbensLeiLuo2024"
+      },
+      "used_by": [
+        "def:diagonal-target",
+        "thm:certified-projection-contamination"
+      ]
+    },
+    {
+      "id": "ass:target-normalization",
+      "kind": "target",
+      "condition": "\\(\\sum_{t=1}^{T}\\omega_{j,t}=1\\) for every \\(j\\in\\{0,\\ldots,p\\}\\).",
+      "free_symbols": [
+        "omega",
+        "j",
+        "t",
+        "T",
+        "p"
+      ],
+      "standard": {
+        "name": "Normalized DATE weighting convention",
+        "cite": "ArkhangelskyImbensLeiLuo2024"
+      },
+      "used_by": [
+        "def:diagonal-target",
+        "thm:certified-projection-contamination"
+      ]
+    },
+    {
+      "id": "ass:raw-propensity-l2-rate",
+      "kind": "inference",
+      "condition": "\\(\\max_{1\\le v\\le K}\\|\\widetilde\\pi^{(-v)}-\\pi\\|_{\\pi,2,v}=O_P(r_{\\pi,n})\\).",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "pitildes",
+        "pis",
+        "normPiFold",
+        "rpiN",
+        "P"
+      ],
+      "standard": {
+        "name": "Cross-fitted raw nuisance convergence in fold-conditional \\(L_2(P)\\)",
+        "cite": "NeweyRobins2018"
+      },
+      "used_by": [
+        "lem:propensity-simplex-projection",
+        "prop:fixed-law-aipw-score-control",
+        "prop:fixed-law-aipw-inference-corollary",
+        "def:propensity-correct-rate-class",
+        "oeq:union-regular-inference",
+        "oeq:generated-law-inference"
+      ]
+    },
+    {
+      "id": "ass:outcome-l2-rate",
+      "kind": "inference",
+      "condition": "\\(\\max_{1\\le v\\le K}\\|\\widehat\\mu^{(-v)}-\\mu\\|_{\\mu,2,v}=O_P(r_{\\mu,n})\\).",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "muhats",
+        "mus",
+        "normMuFold",
+        "rmuN",
+        "P"
+      ],
+      "standard": {
+        "name": "Cross-fitted nuisance convergence in fold-conditional \\(L_2(P)\\)",
+        "cite": "NeweyRobins2018"
+      },
+      "used_by": [
+        "prop:fixed-law-aipw-score-control",
+        "prop:fixed-law-aipw-inference-corollary",
+        "def:outcome-correct-rate-class",
+        "oeq:union-regular-inference",
+        "oeq:generated-law-inference"
+      ]
+    },
+    {
+      "id": "ass:nuisance-product-rate",
+      "kind": "inference",
+      "condition": "\\(r_{\\pi,n}r_{\\mu,n}=o(n^{-1/2})\\).",
+      "free_symbols": [
+        "rpiN",
+        "rmuN",
+        "n"
+      ],
+      "standard": {
+        "name": "Cross-fitted doubly robust product-rate condition",
+        "cite": "NeweyRobins2018"
+      },
+      "used_by": [
+        "prop:fixed-law-aipw-inference-corollary",
+        "oeq:generated-law-inference"
+      ]
+    },
+    {
+      "id": "ass:fitted-outcome-moment",
+      "kind": "inference",
+      "condition": "\\(\\max_{1\\le v\\le K}\\sum_{s\\in S}E_P[\\|\\widehat\\mu_s^{(-v)}(X)\\|_2^{2+\\delta}\\mid\\mathcal F_{-v}]=O_P(1)\\).",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "s",
+        "S",
+        "P",
+        "muhats",
+        "X",
+        "deltaMoment",
+        "Fminusv"
+      ],
+      "standard": {
+        "name": "Uniform fold-conditional fitted-regression moment bound",
+        "cite": "NeweyRobins2018"
+      },
+      "used_by": [
+        "prop:fixed-law-aipw-score-control",
+        "prop:fixed-law-aipw-inference-corollary",
+        "oeq:union-regular-inference",
+        "oeq:generated-law-inference"
+      ]
+    },
+    {
+      "id": "ass:pi-branch-other-limit-rate",
+      "kind": "branchwise-inference",
+      "condition": "\\(\\max_{1\\le v\\le K}\\|\\widehat\\mu^{(-v)}-\\bar\\mu\\|_{\\mu,2,v}=O_P(r_{\\bar\\mu,n})\\).",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "muhats",
+        "barmus",
+        "normMuFold",
+        "rbarmuN",
+        "P"
+      ],
+      "standard": {
+        "name": "Fixed nuisance-limit convergence on the propensity-correct branch",
+        "cite": "DukesVansteelandtWhitney2024"
+      },
+      "used_by": [
+        "def:propensity-correct-rate-class",
+        "oeq:union-regular-inference"
+      ]
+    },
+    {
+      "id": "ass:pi-branch-drift-rate",
+      "kind": "branchwise-inference",
+      "condition": "For fixed \\(\\Pi\\), \\(\\max_{1\\le v\\le K}\\|\\widehat\\eta_{\\pi}^{(-v)}(\\cdot;\\Pi)-\\eta_{\\pi,v}(\\cdot;\\Pi,\\bar\\mu)\\|_{\\eta,2,v}=O_P(r_{\\eta_\\pi,n})\\).",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "etapihat",
+        "etapi",
+        "Pi",
+        "barmus",
+        "normDriftFold",
+        "retapiN",
+        "P",
+        "n",
+        "pis",
+        "mus",
+        "X",
+        "cpi"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This proposal-specific drift-learning condition is attainable, for example, when the pretreatment covariate vector has fixed dimension and compact support and the true path propensity, true full path-outcome mean, and fixed outcome-limit functions have Hölder order equal to that dimension. Uniform overlap then preserves this smoothness in the exact propensity-branch drift target, and cross-fitted series or local-polynomial plug-in regression has fold-conditional \\(L_2(P)\\) rate \\(O_P(n^{-1/3})\\), up to logarithmic factors. A low-dimensional set of pretreatment market and policy covariates makes this regime empirically plausible in the OpenTable state-of-emergency panel."
+      },
+      "used_by": [
+        "def:propensity-correct-rate-class",
+        "oeq:union-regular-inference"
+      ]
+    },
+    {
+      "id": "ass:pi-branch-product-rate",
+      "kind": "branchwise-inference",
+      "condition": "\\(r_{\\pi,n}(r_{\\bar\\mu,n}+r_{\\eta_\\pi,n})=o(n^{-1/2})\\).",
+      "free_symbols": [
+        "rpiN",
+        "rbarmuN",
+        "retapiN",
+        "n",
+        "P",
+        "pis",
+        "barmus",
+        "etapihat"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This proposal-specific product condition is met, for example, when the correct path propensity, the fixed outcome-limit regression, and the propensity-branch drift learner each attain fold-conditional \\(L_2(P)\\) error of order \\(n^{-1/3}\\), yielding a remainder of order \\(n^{-2/3}\\). These rates arise when the primitive path propensity and full path-outcome regressions have fixed-dimensional Hölder order equal to the covariate dimension, or when their approximately sparse generalized linear representations have sparsity times logarithmic dictionary size of order at most \\(n^{1/3}\\); a parsimonious market-policy covariate dictionary is credible for the motivating panel."
+      },
+      "used_by": [
+        "def:propensity-correct-rate-class",
+        "oeq:union-regular-inference"
+      ]
+    },
+    {
+      "id": "ass:mu-branch-other-limit-rate",
+      "kind": "branchwise-inference",
+      "condition": "\\(\\max_{1\\le v\\le K}\\|\\widehat\\pi^{(-v)}-\\bar\\pi\\|_{\\pi,2,v}=O_P(r_{\\bar\\pi,n})\\).",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "pihats",
+        "barpis",
+        "normPiFold",
+        "rbarpiN",
+        "P"
+      ],
+      "standard": {
+        "name": "Fixed nuisance-limit convergence on the outcome-correct branch",
+        "cite": "DukesVansteelandtWhitney2024"
+      },
+      "used_by": [
+        "def:outcome-correct-rate-class",
+        "oeq:union-regular-inference"
+      ]
+    },
+    {
+      "id": "ass:mu-branch-drift-rate",
+      "kind": "branchwise-inference",
+      "condition": "For fixed \\(\\Pi\\), \\(\\max_{1\\le v\\le K}\\|\\widehat\\eta_{\\mu}^{(-v)}(\\cdot;\\Pi)-\\eta_{\\mu,v}(\\cdot;\\Pi,\\bar\\pi)\\|_{\\eta,2,v}=O_P(r_{\\eta_\\mu,n})\\).",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "etamuhat",
+        "etamu",
+        "Pi",
+        "barpis",
+        "normDriftFold",
+        "retamuN",
+        "P",
+        "n",
+        "pis",
+        "X",
+        "cpi"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This proposal-specific drift-learning condition is attainable, for example, when the pretreatment covariate vector has fixed dimension and compact support and the true and fixed-limit path propensity functions have Hölder order equal to that dimension. Their clipped ratio then has the same smoothness in the exact outcome-branch drift target, and cross-fitted series or local-polynomial plug-in regression has fold-conditional \\(L_2(P)\\) rate \\(O_P(n^{-1/3})\\), up to logarithmic factors. Smooth adoption-hazard discrepancies over a low-dimensional set of pretreatment market and policy covariates are empirically plausible in the OpenTable application."
+      },
+      "used_by": [
+        "def:outcome-correct-rate-class",
+        "oeq:union-regular-inference"
+      ]
+    },
+    {
+      "id": "ass:mu-branch-product-rate",
+      "kind": "branchwise-inference",
+      "condition": "\\(r_{\\mu,n}(r_{\\bar\\pi,n}+r_{\\eta_\\mu,n})=o(n^{-1/2})\\).",
+      "free_symbols": [
+        "rmuN",
+        "rbarpiN",
+        "retamuN",
+        "n",
+        "P",
+        "mus",
+        "barpis",
+        "etamuhat"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This proposal-specific product condition is met, for example, when the correct full path-outcome mean, the fixed propensity-limit regression, and the outcome-branch drift learner each attain fold-conditional \\(L_2(P)\\) error of order \\(n^{-1/3}\\), yielding a remainder of order \\(n^{-2/3}\\). These rates arise when the primitive path propensity and full path-outcome regressions have fixed-dimensional Hölder order equal to the covariate dimension, or when their approximately sparse generalized linear representations have sparsity times logarithmic dictionary size of order at most \\(n^{1/3}\\); short-panel outcome and adoption models with a moderate policy-covariate dictionary fit this regime."
+      },
+      "used_by": [
+        "def:outcome-correct-rate-class",
+        "oeq:union-regular-inference"
+      ]
+    },
+    {
+      "id": "ass:score-covariance",
+      "kind": "inference",
+      "condition": "\\(V_{\\Pi}\\succ0\\).",
+      "free_symbols": [
+        "VPi",
+        "Pi"
+      ],
+      "standard": {
+        "name": "Nonsingular influence-function covariance",
+        "cite": "NeweyRobins2018"
+      },
+      "used_by": [
+        "prop:fixed-law-aipw-inference-corollary"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:dynamic-date-model",
+      "name": "Calendar-varying finite-memory DATE model",
+      "construction": "\\(\\mathcal M_{T,p,S}=\\{P:\\text{assumptions }\\mathrm{ass:iid\\text{-}units},\\mathrm{ass:consistency},\\mathrm{ass:pathwise\\text{-}mean\\text{-}random\\text{-}assignment},\\mathrm{ass:finite\\text{-}memory\\text{-}additive\\text{-}mean},\\mathrm{ass:path\\text{-}overlap},\\mathrm{ass:outcome\\text{-}moment}\\text{ hold for every }n,t,\\ell,s\\}\\).",
+      "free_symbols": [
+        "Mdate",
+        "T",
+        "p",
+        "S",
+        "P",
+        "n",
+        "t",
+        "ell",
+        "s"
+      ],
+      "by_member_properties": [
+        "ass:iid-units",
+        "ass:consistency",
+        "ass:pathwise-mean-random-assignment",
+        "ass:finite-memory-additive-mean",
+        "ass:path-overlap",
+        "ass:outcome-moment"
+      ]
+    },
+    {
+      "id": "def:positive-reshaping-simplex",
+      "name": "Positive reshaping simplex",
+      "construction": "\\(\\Delta_{\\epsilon}(S)=\\{\\Pi\\in\\mathbb R^k:\\Pi_a\\ge\\epsilon\\text{ for every }a\\in\\{1,\\ldots,k\\},\\ \\sum_{a=1}^{k}\\Pi_a=1\\}\\).",
+      "free_symbols": [
+        "Deltaepsilon",
+        "epsilon",
+        "S",
+        "Pi",
+        "k",
+        "a"
+      ],
+      "inputs": [
+        "S",
+        "epsilon"
+      ]
+    },
+    {
+      "id": "def:fwl-loading-map",
+      "name": "Dynamic FWL loading map",
+      "construction": "For \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\) with \\(G(\\Pi)\\succ0\\), set \\(M(\\Pi)=\\sum_s\\Pi_sD_s\\), \\(R_s(\\Pi)=J_T\\{D_s-M(\\Pi)\\}\\), \\(G(\\Pi)=T^{-1}\\sum_s\\Pi_sR_s(\\Pi)^{\\mathsf T}R_s(\\Pi)\\), \\(h_{t,\\ell}(\\Pi)=T^{-1}\\sum_s\\Pi_sR_s(\\Pi)_{t,:}^{\\mathsf T}s_{t-\\ell}\\), and \\(L(\\Pi)_{:,t,\\ell}=G(\\Pi)^{-1}h_{t,\\ell}(\\Pi)\\).",
+      "free_symbols": [
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "GPi",
+        "MPi",
+        "Ds",
+        "s",
+        "RsPi",
+        "JT",
+        "T",
+        "htellPi",
+        "t",
+        "ell",
+        "LPi"
+      ],
+      "inputs": [
+        "T",
+        "p",
+        "S",
+        "Pi"
+      ]
+    },
+    {
+      "id": "def:diagonal-target",
+      "name": "Normalized diagonal target tensor",
+      "construction": "\\(Q_{j,t,\\ell}=\\mathbf 1\\{j=\\ell\\}\\omega_{j,t}\\), where \\(\\omega\\) is nonnegative, supported on \\(t>j\\), and normalized to sum to one for each \\(j\\).",
+      "free_symbols": [
+        "Q",
+        "j",
+        "t",
+        "ell",
+        "omega"
+      ],
+      "inputs": [
+        "omega"
+      ]
+    },
+    {
+      "id": "def:pair-mass-lift",
+      "name": "Ordered compatible pair-mass lift",
+      "construction": "For \\(1\\le a<b\\le k\\), set \\(q_{ab}=\\Pi_a\\Pi_b\\), \\(E_{ab}=D_{s_a}-D_{s_b}\\), \\(B_{ab}=T^{-1}E_{ab}^{\\mathsf T}J_TE_{ab}\\), and \\(b_{ab,t,\\ell}=T^{-1}(J_TE_{ab})_{t,:}^{\\mathsf T}(E_{ab})_{t,\\ell}\\).",
+      "free_symbols": [
+        "a",
+        "b",
+        "k",
+        "qab",
+        "Pi",
+        "Eab",
+        "Ds",
+        "Bab",
+        "T",
+        "JT",
+        "babtell",
+        "t",
+        "ell"
+      ],
+      "inputs": [
+        "S",
+        "Pi"
+      ]
+    },
+    {
+      "id": "def:pair-compatibility",
+      "name": "Positive pair-product compatibility",
+      "construction": "\\(\\mathcal V_k^+=\\{q\\in\\mathbb R_{++}^{k(k-1)/2}:q_{ab}q_{cd}=q_{ac}q_{bd}=q_{ad}q_{bc}\\text{ for every }a<b<c<d\\}\\).",
+      "free_symbols": [
+        "Vk",
+        "qab",
+        "k",
+        "a",
+        "b"
+      ],
+      "inputs": [
+        "k"
+      ]
+    },
+    {
+      "id": "def:loading-kernel",
+      "name": "Target-dependent pair-mass kernel",
+      "construction": "\\(C_S(Z)q=0\\), where the \\((a,b)\\)-column of \\(C_S(Z)\\) stacks \\(b_{ab,t,\\ell}-B_{ab}Z_{:,t,\\ell}\\) over every \\((t,\\ell)\\).",
+      "free_symbols": [
+        "CSZ",
+        "S",
+        "Z",
+        "qab",
+        "a",
+        "b",
+        "babtell",
+        "t",
+        "ell",
+        "Bab"
+      ],
+      "inputs": [
+        "S",
+        "Z"
+      ]
+    },
+    {
+      "id": "def:dynamic-date-body",
+      "name": "Dynamic DATE support body",
+      "construction": "\\(\\mathcal D_{S,p,\\epsilon}=\\{L(\\Pi):\\Pi\\in\\Delta_{\\epsilon}(S),\\ G(\\Pi)\\succ0\\}\\).",
+      "free_symbols": [
+        "Dbody",
+        "S",
+        "p",
+        "epsilon",
+        "LPi",
+        "Pi",
+        "Deltaepsilon",
+        "GPi"
+      ],
+      "inputs": [
+        "T",
+        "p",
+        "S",
+        "epsilon"
+      ]
+    },
+    {
+      "id": "def:ordered-completion-handle",
+      "name": "Ordered positive-fiber completion handle",
+      "construction": "Use ordered endpoint-ratio propagation on the shifted-interval Green equations, branch only at recorded vanishing minors, and certify each branch by positive pair-product identities and the probability-floor ratios; the target object is an exact witness or finite nonmembership certificate for \\(Z\\in\\mathcal D_{S,p,\\epsilon}\\).",
+      "free_symbols": [
+        "Amem",
+        "Eab",
+        "CSZ",
+        "qab",
+        "epsilon",
+        "Z",
+        "Dbody",
+        "S",
+        "p"
+      ],
+      "inputs": [
+        "T",
+        "p",
+        "S",
+        "epsilon",
+        "Z"
+      ]
+    },
+    {
+      "id": "def:closest-loading",
+      "name": "Closest attainable loading",
+      "construction": "When \\(H_S\\succ0\\), \\(\\Pi^\\star=\\operatorname*{lexmin}\\operatorname*{argmin}_{\\Pi\\in\\Delta_{\\epsilon}(S):G(\\Pi)\\succ0}f_Q(\\Pi)\\), with \\(f_Q(\\Pi)=\\sum_{j,t,\\ell}a_{j,t,\\ell}\\{L(\\Pi)_{j,t,\\ell}-Q_{j,t,\\ell}\\}^2\\).",
+      "free_symbols": [
+        "Pistar",
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "fQ",
+        "Q",
+        "j",
+        "t",
+        "ell",
+        "ajtell",
+        "LPi",
+        "GPi",
+        "HS"
+      ],
+      "inputs": [
+        "Dbody",
+        "Q",
+        "ajtell",
+        "HS"
+      ]
+    },
+    {
+      "id": "def:bounded-effect-class",
+      "name": "Bounded calendar-lag effect class",
+      "construction": "\\(\\Gamma_B=\\{\\gamma\\in\\mathbb R^{T\\times d}:|\\gamma_{t,\\ell}|\\le B\\text{ for every }t\\in\\{1,\\ldots,T\\},\\ell\\in\\{0,\\ldots,p\\}\\}\\).",
+      "free_symbols": [
+        "GammaB",
+        "Beffect",
+        "T",
+        "d",
+        "t",
+        "ell",
+        "p"
+      ],
+      "inputs": [
+        "Beffect",
+        "T",
+        "p"
+      ]
+    },
+    {
+      "id": "def:certified-projection-handle",
+      "name": "Certified closest-loading handle",
+      "construction": "When \\(H_S\\succ0\\), optimize \\(f_Q\\) exactly over every ordered compatibility stratum returned by \\(\\mathsf A_{\\mathrm{mem}}\\), compare all attained critical values and boundary values, and return \\(\\Pi^\\star\\) with a global optimality certificate and \\(\\mathcal C_B(L(\\Pi^\\star),Q)\\).",
+      "free_symbols": [
+        "Aproj",
+        "fQ",
+        "Amem",
+        "Pistar",
+        "CB",
+        "LPi",
+        "Q",
+        "HS"
+      ],
+      "inputs": [
+        "Amem",
+        "fQ",
+        "GammaB",
+        "HS"
+      ]
+    },
+    {
+      "id": "def:contamination-envelope",
+      "name": "Termwise contamination envelope",
+      "construction": "\\(\\mathcal C_B(Z,Q)=\\sup_{\\gamma\\in\\Gamma_B}\\sum_{j,t,\\ell}|(Z-Q)_{j,t,\\ell}\\gamma_{t,\\ell}|\\).",
+      "free_symbols": [
+        "CB",
+        "Z",
+        "Q",
+        "GammaB",
+        "j",
+        "t",
+        "ell"
+      ],
+      "inputs": [
+        "GammaB",
+        "Q"
+      ]
+    },
+    {
+      "id": "def:fold-conditional-norms",
+      "name": "Fold-conditional nuisance and score norms",
+      "construction": "For a validation draw independent of \\(\\mathcal F_{-v}\\), set \\(\\|g\\|_{\\pi,2,v}^2=\\sum_{s\\in S}E_P[g_s(X)^2\\mid\\mathcal F_{-v}]\\), \\(\\|h\\|_{\\mu,2,v}^2=\\sum_{s\\in S}E_P[\\|h_s(X)\\|_2^2\\mid\\mathcal F_{-v}]\\), and \\(\\|u\\|_{\\psi,2,v}^2=E_P[\\|u(O_i)\\|_2^2\\mid\\mathcal F_{-v}]\\). For an augmented drift family \\(e_s=(\\kappa_s,h_s)\\), set \\(\\|e\\|_{\\eta,2,v}^2=\\sum_{s\\in S}\\|\\kappa_s\\|_{\\mathrm F}^2+\\sum_{s\\in S}E_P[\\|h_s(X)\\|_{\\mathrm F}^2\\mid\\mathcal F_{-v}]\\), using Euclidean norm for vectors and Frobenius norm for matrices.",
+      "free_symbols": [
+        "Fminusv",
+        "v",
+        "normPiFold",
+        "s",
+        "S",
+        "P",
+        "X",
+        "normMuFold",
+        "normScoreFold",
+        "O_i",
+        "normDriftFold"
+      ],
+      "inputs": [
+        "P",
+        "S",
+        "Fminusv"
+      ]
+    },
+    {
+      "id": "def:projected-path-propensity",
+      "name": "Simplex-projected path-propensity learner",
+      "construction": "For each fold \\(v\\) and covariate value \\(x\\), project the raw vector onto the complete path-probability simplex with the fixed known floor: \\(\\widehat\\pi^{(-v)}(x)=\\operatorname*{argmin}_{q\\in\\mathbb R^k}\\sum_{s\\in S}\\{q_s-\\widetilde\\pi_s^{(-v)}(x)\\}^2\\) subject to \\(q_s\\ge\\underline{c}_{\\pi}\\) for every \\(s\\in S\\) and \\(\\sum_{s\\in S}q_s=1\\).",
+      "free_symbols": [
+        "v",
+        "X",
+        "pitildes",
+        "pihats",
+        "k",
+        "s",
+        "S",
+        "clipThreshold"
+      ],
+      "inputs": [
+        "pitildes",
+        "clipThreshold",
+        "S"
+      ]
+    },
+    {
+      "id": "def:full-path-score",
+      "name": "Full-path augmented cross-fitted score",
+      "construction": "For \\(i\\in I_v\\), set \\(\\widehat\\psi_v(O_i;\\Pi)=\\sum_{s\\in S}\\Pi_sA_s(\\Pi)\\widehat\\mu_s^{(-v)}(X_i)+\\Pi_{W_i}\\{\\widehat\\pi_{W_i}^{(-v)}(X_i)\\}^{-1}A_{W_i}(\\Pi)\\{Y_i-\\widehat\\mu_{W_i}^{(-v)}(X_i)\\}\\) and \\(\\widehat\\theta_{\\Pi}=n^{-1}\\sum_{v=1}^{K}\\sum_{i\\in I_v}\\widehat\\psi_v(O_i;\\Pi)\\).",
+      "free_symbols": [
+        "psihat",
+        "O_i",
+        "Pi",
+        "S",
+        "s",
+        "AsPi",
+        "muhats",
+        "X",
+        "W",
+        "pihats",
+        "Y",
+        "thetahat",
+        "n",
+        "v",
+        "Iv",
+        "Kfold"
+      ],
+      "inputs": [
+        "Pi",
+        "pihats",
+        "muhats"
+      ]
+    },
+    {
+      "id": "def:branch-drift-projections",
+      "name": "Exact branchwise fold-conditional drift projections",
+      "construction": "For fixed \\(\\Pi\\), fold \\(v\\), path \\(s\\), and validation covariate \\(x\\), the propensity-branch raw Riesz coefficient is \\(\\rho_{\\pi,s,v}(x;\\Pi,\\bar\\mu)=-\\Pi_s\\pi_s(x)^{-1}A_s(\\Pi)\\{\\mu_s(x)-\\bar\\mu_s(x)\\}\\in\\mathbb R^d\\), and the outcome-branch raw Riesz coefficient is \\(\\rho_{\\mu,s,v}(x;\\Pi,\\bar\\pi)=-\\Pi_s\\{\\pi_s(x)/\\bar\\pi_s(x)-1\\}A_s(\\Pi)\\in\\mathbb R^{d\\times T}\\). These are, respectively, the pathwise Gateaux-derivative coefficients of \\(d_v(x;\\widetilde\\pi,\\bar\\mu,\\Pi)\\) at \\(\\widetilde\\pi=\\pi\\) and of \\(d_v(x;\\bar\\pi,\\widetilde\\mu,\\Pi)\\) at \\(\\widetilde\\mu=\\mu\\). For \\(c\\in\\{\\pi,\\mu\\}\\), set \\(\\kappa_{c,s,v}=E_P[\\rho_{c,s,v}(X)\\mid\\mathcal F_{-v}]\\), \\(\\eta^0_{c,s,v}(x)=\\rho_{c,s,v}(x)-\\kappa_{c,s,v}\\), and define the exact augmented target \\(\\eta_{c,s,v}(x)=(\\kappa_{c,s,v},\\eta^0_{c,s,v}(x))\\). The conditional expectation is under an independent validation draw given \\(\\mathcal F_{-v}\\), and \\(E_P[\\eta^0_{c,s,v}(X)\\mid\\mathcal F_{-v}]=0\\).",
+      "free_symbols": [
+        "Pi",
+        "scoreDrift",
+        "v",
+        "s",
+        "X",
+        "pis",
+        "AsPi",
+        "mus",
+        "barmus",
+        "barpis",
+        "d",
+        "T",
+        "etapi",
+        "etamu",
+        "P",
+        "Fminusv"
+      ],
+      "inputs": [
+        "Pi",
+        "pis",
+        "mus",
+        "barpis",
+        "barmus",
+        "Fminusv"
+      ]
+    },
+    {
+      "id": "def:propensity-correct-rate-class",
+      "name": "Propensity-correct branchwise nuisance-rate class",
+      "construction": "\\(\\mathcal R_{\\pi}=\\{(\\widetilde\\pi,\\widehat\\pi,\\widehat\\mu,\\widehat\\eta_{\\pi}):\\mathrm{ass:raw\\text{-}propensity\\text{-}l2\\text{-}rate},\\mathrm{ass:fitted\\text{-}outcome\\text{-}moment},\\mathrm{ass:pi\\text{-}branch\\text{-}other\\text{-}limit\\text{-}rate},\\mathrm{ass:pi\\text{-}branch\\text{-}drift\\text{-}rate},\\mathrm{ass:pi\\text{-}branch\\text{-}product\\text{-}rate}\\text{ hold for every }n,v,s\\}\\).",
+      "free_symbols": [
+        "RpiBranch",
+        "pitildes",
+        "pihats",
+        "muhats",
+        "etapihat",
+        "n",
+        "v",
+        "s"
+      ],
+      "by_member_properties": [
+        "ass:fitted-outcome-moment",
+        "ass:raw-propensity-l2-rate",
+        "ass:pi-branch-other-limit-rate",
+        "ass:pi-branch-drift-rate",
+        "ass:pi-branch-product-rate"
+      ]
+    },
+    {
+      "id": "def:outcome-correct-rate-class",
+      "name": "Outcome-correct branchwise nuisance-rate class",
+      "construction": "\\(\\mathcal R_{\\mu}=\\{(\\widetilde\\pi,\\widehat\\pi,\\widehat\\mu,\\widehat\\eta_{\\mu}):\\mathrm{ass:fitted\\text{-}outcome\\text{-}moment},\\mathrm{ass:outcome\\text{-}l2\\text{-}rate},\\mathrm{ass:mu\\text{-}branch\\text{-}other\\text{-}limit\\text{-}rate},\\mathrm{ass:mu\\text{-}branch\\text{-}drift\\text{-}rate},\\mathrm{ass:mu\\text{-}branch\\text{-}product\\text{-}rate}\\text{ hold for every }n,v,s\\}\\).",
+      "free_symbols": [
+        "RmuBranch",
+        "pitildes",
+        "pihats",
+        "muhats",
+        "etamuhat",
+        "n",
+        "v",
+        "s"
+      ],
+      "by_member_properties": [
+        "ass:fitted-outcome-moment",
+        "ass:outcome-l2-rate",
+        "ass:mu-branch-other-limit-rate",
+        "ass:mu-branch-drift-rate",
+        "ass:mu-branch-product-rate"
+      ]
+    },
+    {
+      "id": "def:union-drift-handle",
+      "name": "One-correct-branch drift-targeting handle",
+      "construction": "Start from the exact integrand \\(d_v(x;\\widetilde\\pi,\\widetilde\\mu,\\Pi)\\). On \\(\\mathcal R_{\\pi}\\), prove that the displayed \\(\\rho_{\\pi,s,v}\\) are its pathwise Riesz coefficients at \\((\\pi,\\bar\\mu)\\), estimate their centered projections \\(\\eta_{\\pi,s,v}\\) and removed conditional means out of fold, and subtract the resulting first-order propensity drift. On \\(\\mathcal R_{\\mu}\\), perform the analogous construction with \\(\\rho_{\\mu,s,v}\\) and \\(\\eta_{\\mu,s,v}\\) at \\((\\bar\\pi,\\mu)\\). The target objects are one \\(\\widetilde\\theta_{\\Pi}\\), mean-zero branch influence functions \\(\\phi_{\\pi}\\) and \\(\\phi_{\\mu}\\), and consistent branch-adaptive covariance learners.",
+      "free_symbols": [
+        "Adrift",
+        "psihat",
+        "scoreDrift",
+        "thetaPi",
+        "Pi",
+        "pis",
+        "mus",
+        "s",
+        "RpiBranch",
+        "RmuBranch",
+        "etapi",
+        "etamu",
+        "etapihat",
+        "etamuhat",
+        "Fminusv",
+        "thetaTilde",
+        "phiPi",
+        "phiMu",
+        "VhatBranch"
+      ],
+      "inputs": [
+        "psihat",
+        "pis",
+        "mus",
+        "RpiBranch",
+        "RmuBranch"
+      ]
+    },
+    {
+      "id": "def:generated-law-inference-handle",
+      "name": "Generated-law inference handle",
+      "construction": "Use \\(\\mathcal R_{\\mathrm{sel}}(\\Pi;P)=\\operatorname{tr}(V_{\\Pi})+\\lambda_{\\mathrm{sel}}f_Q(\\Pi)\\) as the population criterion. At a unique interior optimum, derive the empirical argmin influence function from the criterion gradient and Hessian and compose it with the derivative of \\(\\Pi\\mapsto\\theta_{\\Pi}\\). At boundary optima or ties, derive the directional derivative of the argmin and loading maps and use derivative-aware resampling. The target objects are a cross-fitted generated law, \\(\\widehat\\theta_{\\mathrm{sel}}\\), its regular influence function when one exists, and a valid confidence set on every declared stratum.",
+      "free_symbols": [
+        "Agen",
+        "Rsel",
+        "Pi",
+        "P",
+        "VPi",
+        "lambdaSel",
+        "fQ",
+        "thetaPi",
+        "PihatSel",
+        "thetaHatSel",
+        "phiSel"
+      ],
+      "inputs": [
+        "Rsel",
+        "PihatSel",
+        "Pi0Sel",
+        "psihat"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:pair-mass-green-reduction",
+      "kind": "lemma",
+      "statement": "For every \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\), \\(G(\\Pi)=\\sum_{a<b}q_{ab}B_{ab}\\) and \\(h_{t,\\ell}(\\Pi)=\\sum_{a<b}q_{ab}b_{ab,t,\\ell}\\). Moreover, \\(\\ker G(\\Pi)=\\bigcap_{a<b}\\ker(J_TE_{ab})\\), so \\(G(\\Pi)\\succ0\\) for one positive law if and only if \\(H_S\\succ0\\), in which case \\(G(\\Pi)\\succeq\\epsilon^2H_S\\) for every \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\).",
+      "free_symbols": [
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "GPi",
+        "a",
+        "b",
+        "qab",
+        "Bab",
+        "htellPi",
+        "t",
+        "ell",
+        "babtell",
+        "JT",
+        "Eab",
+        "HS"
+      ],
+      "depends_on": [
+        "def:positive-reshaping-simplex",
+        "def:fwl-loading-map",
+        "def:pair-mass-lift"
+      ],
+      "status": "to-prove",
+      "justification": "The lemma converts the nonlinear FWL map into a linear map of pair masses and makes Gram nonsingularity a support-only property.",
+      "gap": "Arkhangelsky, Imbens, Lei, and Luo formulate the DATE equation directly in path probabilities; they do not give the ordered pair-mass covariance reduction for the calendar-lag tensor.",
+      "consumer": "The membership procedure can reject rank-deficient OpenTable adoption supports before fitting propensities or optimizing reshaping laws."
+    },
+    {
+      "id": "thm:calendar-lag-loading-representation",
+      "kind": "theorem",
+      "statement": "For every \\(P\\in\\mathcal M_{T,p,S}\\) and \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\) with \\(H_S\\succ0\\), the population reshaped unit/time fixed-effect coefficient satisfies \\(\\theta_{\\Pi}=\\sum_{t=1}^{T}\\sum_{\\ell=0}^{p}L(\\Pi)_{:,t,\\ell}\\tau_{t,\\ell}\\). The tensor obeys \\(\\sum_{t=1}^{T}L(\\Pi)_{j,t,\\ell}=\\mathbf 1\\{j=\\ell\\}\\) for every \\(j,\\ell\\in\\{0,\\ldots,p\\}\\), and this representation is invariant to alternative finite-memory coefficient arrays that agree on every supported conditional path mean.",
+      "free_symbols": [
+        "P",
+        "Mdate",
+        "T",
+        "p",
+        "S",
+        "Pi",
+        "Deltaepsilon",
+        "epsilon",
+        "HS",
+        "thetaPi",
+        "t",
+        "j",
+        "ell",
+        "LPi",
+        "tautell"
+      ],
+      "depends_on": [
+        "ass:consistency",
+        "ass:pathwise-mean-random-assignment",
+        "ass:finite-memory-additive-mean",
+        "def:dynamic-date-model",
+        "def:fwl-loading-map",
+        "lem:pair-mass-green-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "This theorem names the actual causal estimand of each reshaped dynamic coefficient before asking which target tensors are attainable.",
+      "gap": "Sun and Abraham decompose cohort-relative-time event-study coefficients, while Arkhangelsky, Imbens, Lei, and Luo impose calendar-homogeneous dynamic effects; neither gives the joint calendar-by-causal-lag map under law reshaping.",
+      "consumer": "The public \\(\\mathrm{ripw}\\) workflow can report current and lag contamination weights by calendar date rather than presenting each coefficient as a homogeneous dynamic effect."
+    },
+    {
+      "id": "thm:one-kernel-stratum-inverse",
+      "kind": "theorem",
+      "statement": "Suppose \\(H_S\\succ0\\), \\(k\\ge3\\), and \\(\\dim\\ker C_S(Z)=1\\). Alternating maximal minors of any full-row-rank submatrix of \\(C_S(Z)\\) give a null vector \\(q(Z)\\). Then \\(Z\\in\\mathcal D_{S,p,\\epsilon}\\) if and only if one orientation of \\(q(Z)\\) is strictly positive, satisfies every pair-product compatibility identity, and its recovered normalized probabilities satisfy \\(\\Pi_a\\ge\\epsilon\\). On every such chart the attaining law is unique and is a rational function of \\(Z\\); exhausting the finitely many charts terminates using exact arithmetic.",
+      "free_symbols": [
+        "HS",
+        "S",
+        "k",
+        "CSZ",
+        "Z",
+        "qab",
+        "Dbody",
+        "p",
+        "epsilon",
+        "Pi",
+        "a"
+      ],
+      "depends_on": [
+        "def:pair-compatibility",
+        "def:loading-kernel",
+        "def:dynamic-date-body",
+        "lem:pair-mass-green-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem supplies a complete non-generic inverse on a large, exactly checkable stratum and fixes the scale lost in pair masses.",
+      "gap": "Toric factorization gives compatibility equations, and the DATE paper gives selected closed forms, but neither combines cofactor recovery, the probability floor, and a target-specific loading kernel.",
+      "consumer": "Implementations obtain exact rational certificates on all one-dimensional fibers rather than relying on convergence of a local nonlinear solver."
+    },
+    {
+      "id": "prop:seven-path-kill-test",
+      "kind": "proposition",
+      "statement": "Let \\(T=6\\), \\(p=1\\), let \\(S\\) contain all seven absorbing paths ordered by adoption date, and set \\(\\Pi_a=a/28\\) for \\(a=1,\\ldots,7\\). For \\(Z=L(\\Pi)\\), \\(\\dim\\ker C_S(Z)=3\\), yet the positive pair-product-compatible part of that kernel is the single ray \\(q_{ab}\\propto ab\\). Hence for every \\(\\epsilon\\le1/28\\), the unique normalized attaining law is \\(\\Pi=(1,2,3,4,5,6,7)/28\\).",
+      "free_symbols": [
+        "T",
+        "p",
+        "S",
+        "Pi",
+        "a",
+        "Z",
+        "LPi",
+        "CSZ",
+        "qab",
+        "b",
+        "epsilon"
+      ],
+      "depends_on": [
+        "def:fwl-loading-map",
+        "def:pair-mass-lift",
+        "def:pair-compatibility",
+        "def:loading-kernel"
+      ],
+      "status": "to-prove",
+      "justification": "This exact fiber is the mandatory destructive test for any proposed all-support completion rule.",
+      "gap": "Neither the DATE examples nor generic toric factorization results exhibit a dynamic loading fiber where a multidimensional linear kernel has a unique positive compatible law.",
+      "consumer": "A regression-weight certification package can use this instance as a unit test that catches algorithms admitting incompatible positive pair vectors."
+    },
+    {
+      "id": "oeq:complete-ordered-loading-body",
+      "kind": "openendedquestion",
+      "statement": "Construct and prove correct \\(\\mathsf A_{\\mathrm{mem}}\\) for every finitely represented \\(T,p,S,\\epsilon,Z\\) of binary encoding length \\(b_{\\mathrm{in}}\\): after the support-rank test, it must terminate with an explicit elementary bit-operation bound in \\(b_{\\mathrm{in}}\\) and return exactly one of \\(\\mathrm{(i)}\\) a positive real-algebraic law \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\) with \\(L(\\Pi)=Z\\), or \\(\\mathrm{(ii)}\\) a finite ordered-minor, sign, pair-product, or floor-ratio certificate proving \\(Z\\notin\\mathcal D_{S,p,\\epsilon}\\). The proof must classify every positive intersection \\(\\ker C_S(Z)\\cap\\mathcal V_k^+\\) by ordered shifted-interval endpoint propagation, including all vanishing-minor strata, and may use generic real quantifier elimination only to check subordinate terminal degeneracies rather than as the boundary characterization.",
+      "free_symbols": [
+        "Amem",
+        "T",
+        "p",
+        "S",
+        "epsilon",
+        "Z",
+        "binput",
+        "Pi",
+        "Deltaepsilon",
+        "LPi",
+        "Dbody",
+        "CSZ",
+        "qab",
+        "Vk",
+        "k"
+      ],
+      "depends_on": [
+        "def:pair-compatibility",
+        "def:loading-kernel",
+        "def:dynamic-date-body",
+        "def:ordered-completion-handle",
+        "lem:pair-mass-green-reduction",
+        "thm:one-kernel-stratum-inverse",
+        "prop:seven-path-kill-test"
+      ],
+      "status": "to-prove",
+      "justification": "This is the theorem-level kernel: it turns dynamic DATE feasibility from local search into a complete structural image theorem and exact decision procedure.",
+      "gap": "Arkhangelsky, Imbens, Lei, and Luo leave calendar-varying dynamic DATE analysis beyond scope; their published Supplemental Appendix C.5, equation (C.23) and the paragraph immediately following it, state that the DATE objective is nonconvex, BFGS is not guaranteed to find the global minimum, and the procedure should be viewed as an attempt to find a solution rather than a trustable solver. It therefore does not supply an exact membership or nonmembership certificate. Geiger, Meek, and Sturmfels characterize the ambient toric variety but not its ordered loading-kernel intersections.",
+      "consumer": "The OpenTable state-of-emergency analysis can certify whether separately normalized current and lag targets are support-attainable before reporting a reshaped regression."
+    },
+    {
+      "id": "thm:certified-projection-contamination",
+      "kind": "theorem",
+      "statement": "If \\(H_S\\succ0\\), then \\(G(\\Pi)\\succ0\\) throughout \\(\\Delta_{\\epsilon}(S)\\), and \\(\\mathsf A_{\\mathrm{proj}}\\) terminates on rational \\(T,p,S,\\epsilon,Q,a_{j,t,\\ell}\\). It returns the real-algebraic law \\(\\Pi^\\star\\), the tensor \\(L(\\Pi^\\star)\\), and a checkable certificate that \\(f_Q(\\Pi^\\star)=\\min_{\\Pi\\in\\Delta_{\\epsilon}(S):G(\\Pi)\\succ0}f_Q(\\Pi)\\). If \\(Q\\notin\\mathcal D_{S,p,\\epsilon}\\), the certificate has strictly positive loss. For every candidate tensor \\(Z\\), the declared termwise envelope satisfies \\(\\mathcal C_B(Z,Q)=B\\sum_{j,t,\\ell}|Z_{j,t,\\ell}-Q_{j,t,\\ell}|\\), with an attaining \\(\\gamma\\in\\Gamma_B\\); consequently the output reports the exact worst-case termwise contamination of its closest loading.",
+      "free_symbols": [
+        "HS",
+        "S",
+        "Aproj",
+        "T",
+        "p",
+        "epsilon",
+        "Q",
+        "Z",
+        "ajtell",
+        "Pistar",
+        "LPi",
+        "GPi",
+        "fQ",
+        "Pi",
+        "Deltaepsilon",
+        "Dbody",
+        "CB",
+        "Beffect",
+        "j",
+        "t",
+        "ell",
+        "GammaB"
+      ],
+      "depends_on": [
+        "ass:target-nonnegative",
+        "ass:target-supported-dates",
+        "ass:target-normalization",
+        "def:dynamic-date-body",
+        "def:closest-loading",
+        "def:bounded-effect-class",
+        "def:certified-projection-handle",
+        "def:contamination-envelope",
+        "def:ordered-completion-handle",
+        "lem:pair-mass-green-reduction",
+        "oeq:complete-ordered-loading-body"
+      ],
+      "status": "to-prove",
+      "justification": "An infeasible causal target needs a globally certified fallback whose remaining interpretation error is stated in causal-effect units.",
+      "gap": "The DATE paper searches for exact feasibility and dispersed solutions but gives no certified globally closest loading; Sun and Abraham diagnose realized contamination without optimizing the path law.",
+      "consumer": "When OpenTable's adoption support cannot deliver diagonal current and lag targets, analysts receive the closest honest coefficient interpretation and an attained bounded-effect contamination audit."
+    },
+    {
+      "id": "lem:propensity-simplex-projection",
+      "kind": "lemma",
+      "statement": "Under \\(\\pi_s(X)\\ge c_{\\pi}\\) for every \\(s\\in S\\) and the fixed known threshold \\(0<\\underline{c}_{\\pi}<c_{\\pi}\\), the feasible simplex in \\(\\mathrm{def:projected\\text{-}path\\text{-}propensity}\\) is nonempty and contains \\(\\pi(x)\\) for \\(P\\)-almost every realized \\(X=x\\). For every fold \\(v\\) and every \\(x\\), its projected learner obeys \\(\\sum_{s\\in S}\\widehat\\pi_s^{(-v)}(x)=1\\) and \\(\\widehat\\pi_s^{(-v)}(x)\\ge\\underline{c}_{\\pi}\\) for every \\(s\\in S\\). Euclidean projection is nonexpansive relative to \\(\\pi(x)\\) for \\(P\\)-almost every realized \\(X=x\\), so \\(\\|\\widehat\\pi^{(-v)}-\\pi\\|_{\\pi,2,v}\\le\\|\\widetilde\\pi^{(-v)}-\\pi\\|_{\\pi,2,v}\\); hence \\(\\max_v\\|\\widehat\\pi^{(-v)}-\\pi\\|_{\\pi,2,v}=O_P(r_{\\pi,n})\\) under \\(\\mathrm{ass:raw\\text{-}propensity\\text{-}l2\\text{-}rate}\\).",
+      "free_symbols": [
+        "pis",
+        "X",
+        "cpi",
+        "clipThreshold",
+        "s",
+        "S",
+        "v",
+        "Kfold",
+        "pihats",
+        "pitildes",
+        "normPiFold",
+        "rpiN",
+        "P"
+      ],
+      "depends_on": [
+        "ass:path-overlap",
+        "ass:raw-propensity-l2-rate",
+        "def:fold-conditional-norms",
+        "def:projected-path-propensity"
+      ],
+      "status": "to-prove",
+      "justification": "The operational projection supplies a normalized all-path denominator floor without adding a fitted-overlap assumption and preserves the raw learner's fold-conditional rate.",
+      "gap": "No novelty is claimed: this is the standard nonexpansiveness property of Euclidean projection onto a closed convex set, recorded to make the full-path AIPW learner operationally well posed.",
+      "consumer": "The public \\(\\mathrm{ripw}\\) implementation can accept arbitrary fold-trained probability scores and deterministically return valid path probabilities with denominators bounded below by \\(\\underline{c}_{\\pi}\\)."
+    },
+    {
+      "id": "prop:fixed-law-aipw-score-control",
+      "kind": "proposition",
+      "statement": "As an imported finite-label AIPW corollary of Newey and Robins, fix finite \\(S\\) and deterministic \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\) with \\(H_S\\succ0\\). Under independent sampling, the simplex-projected propensity construction, the outcome moment condition, the fitted-outcome moment bound, and the two fold-conditional nuisance rates, \\(\\max_{1\\le v\\le K}\\|\\widehat\\psi_v(\\cdot;\\Pi)-\\psi_0(\\cdot;\\Pi)\\|_{\\psi,2,v}=o_P(1)\\). Consequently, \\(\\widehat V_{\\Pi}-V_{\\Pi}=o_P(1)\\) in Frobenius norm.",
+      "free_symbols": [
+        "v",
+        "Kfold",
+        "psihat",
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "HS",
+        "psi0",
+        "normScoreFold",
+        "rpiN",
+        "rmuN",
+        "pitildes",
+        "pihats",
+        "clipThreshold",
+        "P",
+        "VhatPi",
+        "VPi"
+      ],
+      "depends_on": [
+        "ass:iid-units",
+        "ass:path-overlap",
+        "ass:outcome-moment",
+        "ass:raw-propensity-l2-rate",
+        "ass:outcome-l2-rate",
+        "ass:fitted-outcome-moment",
+        "def:positive-reshaping-simplex",
+        "def:fold-conditional-norms",
+        "def:projected-path-propensity",
+        "def:full-path-score",
+        "lem:pair-mass-green-reduction",
+        "lem:propensity-simplex-projection"
+      ],
+      "status": "to-prove",
+      "justification": "This imported finite-label corollary records the score and covariance control needed to instantiate standard cross-fitted AIPW inference; it is not a novelty-bearing result.",
+      "gap": "No proposal-specific novelty is claimed: for fixed finite \\(S\\) and deterministic \\(\\Pi\\), this is the vector-valued finite-label specialization of the general cross-fitting remainder control in Newey and Robins.",
+      "consumer": "Implementers obtain a checkable fixed-law diagnostic without mistaking routine AIPW score control for a contribution of the loading-body paper."
+    },
+    {
+      "id": "prop:fixed-law-aipw-inference-corollary",
+      "kind": "proposition",
+      "statement": "As an imported cross-fitted AIPW corollary of Newey and Robins for fixed finite labels, fix deterministic \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\) with \\(H_S\\succ0\\). For each fold, the conditional score bias is \\(E_P[\\widehat\\psi_v(O_i;\\Pi)\\mid\\mathcal F_{-v}]-\\theta_{\\Pi}=\\sum_{s\\in S}\\Pi_sA_s(\\Pi)E_P[(\\pi_s/\\widehat\\pi_s^{(-v)}-1)(\\mu_s-\\widehat\\mu_s^{(-v)})\\mid\\mathcal F_{-v}]\\), and hence vanishes when either fitted nuisance equals its truth. If \\(\\max_v\\|\\widetilde\\pi^{(-v)}-\\pi\\|_{\\pi,2,v}=O_P(r_{\\pi,n})=o_P(1)\\), \\(\\max_v\\|\\widehat\\mu^{(-v)}-\\mu\\|_{\\mu,2,v}=O_P(r_{\\mu,n})=o_P(1)\\), and \\(r_{\\pi,n}r_{\\mu,n}=o(n^{-1/2})\\), then the projection lemma gives both \\(\\widehat\\pi_s^{(-v)}\\ge\\underline{c}_{\\pi}\\) and the same \\(O_P(r_{\\pi,n})\\) rate for \\(\\widehat\\pi\\). Under the declared \\(2+\\delta\\) moment conditions, \\(\\sqrt n(\\widehat\\theta_{\\Pi}-\\theta_{\\Pi})=n^{-1/2}\\sum_{i=1}^{n}\\{\\psi_0(O_i;\\Pi)-\\theta_{\\Pi}\\}+o_P(1)\\Rightarrow N_d(0,V_{\\Pi})\\), \\(\\widehat V_{\\Pi}\\to_PV_{\\Pi}\\), and \\(P\\{n(\\widehat\\theta_{\\Pi}-\\theta_{\\Pi})^{\\mathsf T}\\widehat V_{\\Pi}^{-1}(\\widehat\\theta_{\\Pi}-\\theta_{\\Pi})\\le\\chi^2_{d,1-\\alpha}\\}\\to1-\\alpha\\).",
+      "free_symbols": [
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "HS",
+        "pitildes",
+        "pihats",
+        "pis",
+        "muhats",
+        "mus",
+        "n",
+        "thetahat",
+        "thetaPi",
+        "O_i",
+        "psi0",
+        "VPi",
+        "VhatPi",
+        "d",
+        "alphaLevel",
+        "v",
+        "Kfold",
+        "normPiFold",
+        "normMuFold",
+        "rpiN",
+        "rmuN",
+        "Fminusv",
+        "AsPi",
+        "deltaMoment",
+        "clipThreshold"
+      ],
+      "depends_on": [
+        "ass:iid-units",
+        "ass:consistency",
+        "ass:pathwise-mean-random-assignment",
+        "ass:path-overlap",
+        "ass:outcome-moment",
+        "ass:raw-propensity-l2-rate",
+        "ass:outcome-l2-rate",
+        "ass:nuisance-product-rate",
+        "ass:fitted-outcome-moment",
+        "ass:score-covariance",
+        "def:dynamic-date-model",
+        "def:fold-conditional-norms",
+        "def:projected-path-propensity",
+        "def:full-path-score",
+        "lem:pair-mass-green-reduction",
+        "lem:propensity-simplex-projection",
+        "prop:fixed-law-aipw-score-control",
+        "thm:calendar-lag-loading-representation"
+      ],
+      "status": "to-prove",
+      "justification": "For fixed finite \\(S\\) and deterministic \\(\\Pi\\), the displayed full-path score is an ordinary finite-label AIPW score, so its product-rate limit law should be recorded as an imported verification corollary rather than a paper contribution.",
+      "gap": "No proposal-specific novelty is claimed: Newey and Robins supply the general cross-fit product-remainder argument, and fixing finite \\(S\\) and deterministic \\(\\Pi\\) reduces the displayed vector score to that framework.",
+      "consumer": "The public \\(\\mathrm{ripw}\\) workflow can use standard joint Wald inference for a law fixed before outcome analysis, while directing new theory toward generated laws and the one-correct-nuisance union."
+    },
+    {
+      "id": "oeq:generated-law-inference",
+      "kind": "openendedquestion",
+      "statement": "Suppose \\(H_S\\succ0\\), the propensity learner is the declared simplex projection of the raw fold-trained learner, both full-path nuisances obey the declared moment, consistency, and product-rate conditions, and \\(\\Pi_{0,\\mathrm{sel}}\\) minimizes \\(\\mathcal R_{\\mathrm{sel}}(\\Pi;P)=\\operatorname{tr}(V_{\\Pi})+\\lambda_{\\mathrm{sel}}f_Q(\\Pi)\\). Using \\(\\mathsf A_{\\mathrm{gen}}\\), construct foldwise training-sample analogues \\(\\widehat\\Pi_{\\mathrm{sel}}^{(-v)}\\) and one estimator \\(\\widehat\\theta_{\\mathrm{sel}}\\) of \\(\\theta_{\\Pi_{0,\\mathrm{sel}}}\\) that does not condition on the generated law as fixed. On every stratum where the population minimizer is unique and interior, the criterion has a nonsingular tangent-space Hessian, and \\(V_{\\mathrm{sel}}\\succ0\\), derive the selection-law influence function from the empirical criterion and establish \\(\\sqrt n(\\widehat\\theta_{\\mathrm{sel}}-\\theta_{\\Pi_{0,\\mathrm{sel}}})=n^{-1/2}\\sum_{i=1}^n\\phi_{\\mathrm{sel}}(O_i)+o_P(1)\\Rightarrow N_d(0,V_{\\mathrm{sel}})\\), \\(\\widehat V_{\\mathrm{sel}}\\to_PV_{\\mathrm{sel}}\\), and Wald coverage \\(1-\\alpha\\). At a boundary optimum or a tie, derive the directional limit of the combined argmin and loading functional and construct a derivative-aware confidence set with asymptotic coverage at least \\(1-\\alpha\\). The deterministic-law corollary must be recovered when the selection-law derivative is zero.",
+      "free_symbols": [
+        "HS",
+        "S",
+        "pis",
+        "pitildes",
+        "pihats",
+        "clipThreshold",
+        "mus",
+        "Pi0Sel",
+        "Rsel",
+        "Pi",
+        "P",
+        "VPi",
+        "lambdaSel",
+        "fQ",
+        "Agen",
+        "PihatSel",
+        "v",
+        "thetaHatSel",
+        "thetaPi",
+        "n",
+        "phiSel",
+        "O_i",
+        "d",
+        "VSel",
+        "VhatSel",
+        "alphaLevel"
+      ],
+      "depends_on": [
+        "ass:iid-units",
+        "ass:path-overlap",
+        "ass:outcome-moment",
+        "ass:raw-propensity-l2-rate",
+        "ass:outcome-l2-rate",
+        "ass:nuisance-product-rate",
+        "ass:fitted-outcome-moment",
+        "def:fwl-loading-map",
+        "def:closest-loading",
+        "def:projected-path-propensity",
+        "def:full-path-score",
+        "def:generated-law-inference-handle",
+        "lem:pair-mass-green-reduction",
+        "lem:propensity-simplex-projection",
+        "prop:fixed-law-aipw-inference-corollary"
+      ],
+      "status": "to-prove",
+      "justification": "A loading law selected from estimated variance or outcome information is a generated regressor, so treating it as the deterministic index in the imported AIPW corollary omits first-order selection uncertainty and boundary nonregularity.",
+      "gap": "Newey and Robins cover fixed target functionals, while Fang and Santos cover generic directionally differentiable maps; neither derives inference for the DATE variance--loading argmin composed with the ordered positive loading map.",
+      "consumer": "The public \\(\\mathrm{ripw}\\) workflow can choose an interpretable low-variance reshaping law from the data and report uncertainty that includes the selection step."
+    },
+    {
+      "id": "oeq:union-regular-inference",
+      "kind": "openendedquestion",
+      "statement": "Fix deterministic \\(\\Pi\\in\\Delta_{\\epsilon}(S)\\) with \\(H_S\\succ0\\), and use the simplex-projected propensity learner in every score denominator. Using \\(\\mathsf A_{\\mathrm{drift}}\\), first prove that \\(\\rho_{\\pi,s,v}\\) and \\(\\rho_{\\mu,s,v}\\) in the definitions of \\(\\eta_{\\pi,s,v}\\) and \\(\\eta_{\\mu,s,v}\\) are the exact fold-conditional Riesz coefficients of the displayed score drift \\(d_v\\), including the stated conditional-mean centering and retained intercepts; constructing cross-fitted estimators of these exact targets is part of the question. Then construct one \\(\\widetilde\\theta_{\\Pi}\\) and a branch-adaptive covariance learner on \\(\\mathcal R_{\\pi}\\cup\\mathcal R_{\\mu}\\). On \\(\\mathcal R_{\\pi}\\), require \\(\\max_v\\|\\widetilde\\pi^{(-v)}-\\pi\\|_{\\pi,2,v}=O_P(r_{\\pi,n})\\), with the same rate for \\(\\widehat\\pi\\) supplied by the projection lemma, \\(\\max_v\\|\\widehat\\mu^{(-v)}-\\bar\\mu\\|_{\\mu,2,v}=O_P(r_{\\bar\\mu,n})\\), and \\(\\max_v\\|\\widehat\\eta_{\\pi}^{(-v)}(\\cdot;\\Pi)-\\eta_{\\pi,v}(\\cdot;\\Pi,\\bar\\mu)\\|_{\\eta,2,v}=O_P(r_{\\eta_\\pi,n})\\), with each sequence \\(o(1)\\) and \\(r_{\\pi,n}(r_{\\bar\\mu,n}+r_{\\eta_\\pi,n})=o(n^{-1/2})\\). On \\(\\mathcal R_{\\mu}\\), require \\(\\max_v\\|\\widehat\\mu^{(-v)}-\\mu\\|_{\\mu,2,v}=O_P(r_{\\mu,n})\\), \\(\\max_v\\|\\widehat\\pi^{(-v)}-\\bar\\pi\\|_{\\pi,2,v}=O_P(r_{\\bar\\pi,n})\\), and \\(\\max_v\\|\\widehat\\eta_{\\mu}^{(-v)}(\\cdot;\\Pi)-\\eta_{\\mu,v}(\\cdot;\\Pi,\\bar\\pi)\\|_{\\eta,2,v}=O_P(r_{\\eta_\\mu,n})\\), with each sequence \\(o(1)\\) and \\(r_{\\mu,n}(r_{\\bar\\pi,n}+r_{\\eta_\\mu,n})=o(n^{-1/2})\\). For each \\(c\\in\\{\\pi,\\mu\\}\\) with \\(V_c\\succ0\\), establish \\(\\sqrt n(\\widetilde\\theta_{\\Pi}-\\theta_{\\Pi})=n^{-1/2}\\sum_{i=1}^{n}\\phi_c(O_i;\\Pi)+o_P(1)\\Rightarrow N_d(0,V_c)\\), \\(\\widehat V_c\\to_PV_c\\), and \\(P\\{n(\\widetilde\\theta_{\\Pi}-\\theta_{\\Pi})^{\\mathsf T}\\widehat V_c^{-1}(\\widetilde\\theta_{\\Pi}-\\theta_{\\Pi})\\le\\chi^2_{d,1-\\alpha}\\}\\to1-\\alpha\\); derive \\(\\phi_{\\pi}\\), \\(\\phi_{\\mu}\\), and their common value on \\(\\mathcal R_{\\pi}\\cap\\mathcal R_{\\mu}\\).",
+      "free_symbols": [
+        "Adrift",
+        "scoreDrift",
+        "thetaPi",
+        "Pi",
+        "Deltaepsilon",
+        "S",
+        "epsilon",
+        "HS",
+        "pis",
+        "pitildes",
+        "pihats",
+        "clipThreshold",
+        "mus",
+        "RpiBranch",
+        "RmuBranch",
+        "barpis",
+        "barmus",
+        "rpiN",
+        "rmuN",
+        "rbarpiN",
+        "rbarmuN",
+        "etapihat",
+        "etamuhat",
+        "etapi",
+        "etamu",
+        "normPiFold",
+        "normMuFold",
+        "normDriftFold",
+        "v",
+        "Kfold",
+        "retapiN",
+        "retamuN",
+        "thetaTilde",
+        "phiPi",
+        "phiMu",
+        "Vbranch",
+        "VhatBranch",
+        "O_i",
+        "n",
+        "d",
+        "alphaLevel"
+      ],
+      "depends_on": [
+        "ass:iid-units",
+        "ass:path-overlap",
+        "ass:outcome-moment",
+        "ass:fitted-outcome-moment",
+        "def:fold-conditional-norms",
+        "def:projected-path-propensity",
+        "def:full-path-score",
+        "def:branch-drift-projections",
+        "def:propensity-correct-rate-class",
+        "def:outcome-correct-rate-class",
+        "def:union-drift-handle",
+        "lem:propensity-simplex-projection",
+        "prop:fixed-law-aipw-inference-corollary"
+      ],
+      "status": "to-prove",
+      "justification": "Double-robust consistency does not itself provide regular one-correct-branch inference, so the unresolved drift must be exposed rather than hidden inside a product-rate assumption.",
+      "gap": "Dukes, Vansteelandt, and Whitney diagnose nonregular drift under one nuisance misspecification in semiparametric regression, while the DATE paper does not derive the full-path dynamic drift or a correcting score.",
+      "consumer": "OpenTable analysts using a credible adoption hazard model but a flexible misspecified outcome learner, or the reverse, obtain an explicit route to valid dynamic DATE uncertainty rather than a consistency-only guarantee."
+    },
+    {
+      "id": "prop:homogeneous-dynamic-reduction",
+      "kind": "proposition",
+      "statement": "As an already-known verification corollary, if \\(\\tau_{t,\\ell}(X)=\\tau_{1,\\ell}(X)\\) for every calendar date \\(t\\), then \\(\\theta_{\\Pi,\\ell}=E_P[\\tau_{1,\\ell}(X)]\\) for every \\(\\ell\\in\\{0,\\ldots,p\\}\\) and every admissible \\(\\Pi\\). This is the homogeneous dynamic RIPW conclusion of Arkhangelsky, Imbens, Lei, and Luo, Theorem 4.1, and serves only as a sanity check on the forward tensor.",
+      "free_symbols": [
+        "tautellX",
+        "t",
+        "ell",
+        "X",
+        "thetaPi",
+        "P",
+        "p",
+        "Pi"
+      ],
+      "depends_on": [
+        "ass:finite-memory-additive-mean",
+        "thm:calendar-lag-loading-representation"
+      ],
+      "status": "to-prove",
+      "justification": "This already-known reduction is retained solely to verify that the forward tensor preserves the anchor's homogeneous-dynamic case; it is not a novelty-bearing contribution.",
+      "gap": "No novelty is claimed for this corollary: Arkhangelsky, Imbens, Lei, and Luo, Theorem 4.1, already proves the homogeneous dynamic RIPW conclusion.",
+      "consumer": "Existing dynamic \\(\\mathrm{ripw}\\) users can verify that the new implementation reproduces the published target when calendar heterogeneity is disabled."
+    }
+  ],
+  "sampling_model": {
+    "design": "The units \\(O_i=(X_i,W_i,Y_i)\\) are independently sampled from \\(P\\); the treatment path \\(W_i\\) lies in the fixed absorbing support \\(S\\), and \\(\\Pi\\) is an analyst-chosen positive reshaping law rather than the observed assignment law.",
+    "units": "Each unit contributes a fixed-length panel \\(Y_i\\in\\mathbb R^T\\), a supported path \\(W_i\\in S\\), and pretreatment covariates \\(X_i\\).",
+    "treatment": "Treatment is binary and absorbing, with finite carryover memory \\(p\\); causal mean effects may vary jointly over calendar time and lag.",
+    "overlap": "The observed generalized propensity obeys \\(\\pi_s(X)\\ge c_{\\pi}>0\\) for every \\(s\\in S\\), the fixed known operational threshold satisfies \\(0<\\underline{c}_{\\pi}<c_{\\pi}\\), and the reshaping law obeys \\(\\Pi_s\\ge\\epsilon\\).",
+    "nuisance_estimation": "The raw generalized path-propensity learner \\(\\widetilde\\pi^{(-v)}\\) and the full conditional path-outcome learner \\(\\widehat\\mu^{(-v)}\\) are trained on each fold complement. Before score evaluation, the entire raw path-probability vector is projected pointwise onto \\(\\{q:q_s\\ge\\underline{c}_{\\pi},\\sum_{s\\in S}q_s=1\\}\\), yielding the normalized learner \\(\\widehat\\pi^{(-v)}\\) and denominator bound \\(\\underline{c}_{\\pi}\\). Nonexpansiveness of this projection retains the raw fold-conditional \\(L_2(P)\\) rate. For fixed finite \\(S\\) and deterministic \\(\\Pi\\), the projected propensity rate, outcome rate, product condition \\(r_{\\pi,n}r_{\\mu,n}=o(n^{-1/2})\\), and declared \\(2+\\delta\\) moments invoke an imported Newey--Robins AIPW corollary. Generated-law inference instead estimates \\(\\Pi_{0,\\mathrm{sel}}\\) foldwise and must account for the argmin step. One-correct-nuisance regularity is isolated in \\(\\mathcal R_{\\pi}\\cup\\mathcal R_{\\mu}\\), with exact augmented Riesz drift targets \\(\\eta_{\\pi,s,v}(x;\\Pi,\\bar\\mu)\\) and \\(\\eta_{\\mu,s,v}(x;\\Pi,\\bar\\pi)\\), each containing its conditional-mean intercept and centered projection."
+  },
+  "estimand_functional": "\\(Q\\in\\mathcal D_{S,p,\\epsilon}\\Longleftrightarrow\\exists\\Pi\\in\\Delta_{\\epsilon}(S):L(\\Pi)=Q;\\quad\\theta_{\\Pi}=\\sum_{t,\\ell}L(\\Pi)_{:,t,\\ell}\\tau_{t,\\ell}.\\)",
+  "target_estimand": "\\((\\vartheta_Q)_j=\\sum_{t=1}^{T}\\omega_{j,t}\\tau_{t,j},\\quad j=0,\\ldots,p\\).",
+  "bibliography": [
+    {
+      "key": "ArkhangelskyImbensLeiLuo2024",
+      "citation": "Arkhangelsky, Dmitry, Guido W. Imbens, Lihua Lei, and Xiaoman Luo. 2024. ``Design-Robust Two-Way Fixed Effects Regression for Panel Data.'' Quantitative Economics 15: 999--1034, with published Supplemental Material, especially Appendix C.5, equation (C.23). arXiv:2107.13737."
+    },
+    {
+      "key": "SunAbraham2021",
+      "citation": "Sun, Liyang, and Sarah Abraham. 2021. ``Estimating Dynamic Treatment Effects in Event Studies with Heterogeneous Treatment Effects.'' Journal of Econometrics 225: 175--199. arXiv:1804.05785."
+    },
+    {
+      "key": "AtheyImbens2022",
+      "citation": "Athey, Susan, and Guido W. Imbens. 2022. ``Design-Based Analysis in Difference-in-Differences Settings with Staggered Adoption.'' Journal of Econometrics 226: 62--79."
+    },
+    {
+      "key": "BojinovRambachanShephard2021",
+      "citation": "Bojinov, Iavor, Ashesh Rambachan, and Neil Shephard. 2021. ``Panel Experiments and Dynamic Causal Effects: A Finite Population Perspective.'' Quantitative Economics 12: 1171--1196."
+    },
+    {
+      "key": "GeigerMeekSturmfels2006",
+      "citation": "Geiger, Dan, Christopher Meek, and Bernd Sturmfels. 2006. ``On the Toric Algebra of Graphical Models.'' The Annals of Statistics 34: 1463--1492. arXiv:math/0608054."
+    },
+    {
+      "key": "BorusyakJaravelSpiess2024",
+      "citation": "Borusyak, Kirill, Xavier Jaravel, and Jann Spiess. 2024. ``Revisiting Event-Study Designs: Robust and Efficient Estimation.'' Review of Economic Studies 91: 3253--3285. arXiv:2108.12419."
+    },
+    {
+      "key": "CallawaySantAnna2021",
+      "citation": "Callaway, Brantly, and Pedro H. C. Sant'Anna. 2021. ``Difference-in-Differences with Multiple Time Periods.'' Journal of Econometrics 225: 200--230."
+    },
+    {
+      "key": "RambachanRoth2023",
+      "citation": "Rambachan, Ashesh, and Jonathan Roth. 2023. ``A More Credible Approach to Parallel Trends.'' Review of Economic Studies 90: 2555--2591."
+    },
+    {
+      "key": "FangSantos2019DirectionalInference",
+      "citation": "Fang, Zheng, and Andres Santos. 2019. ``Inference on Directionally Differentiable Functions.'' Review of Economic Studies 86: 377--412."
+    },
+    {
+      "key": "NeweyRobins2018",
+      "citation": "Newey, Whitney K., and James R. Robins. 2018. ``Cross-Fitting and Fast Remainder Rates for Semiparametric Estimation.'' arXiv:1801.09138."
+    },
+    {
+      "key": "DukesVansteelandtWhitney2024",
+      "citation": "Dukes, Oliver, Stijn Vansteelandt, and David Whitney. 2024. ``On Doubly Robust Inference for Double Machine Learning in Semiparametric Regression.'' Journal of Machine Learning Research 25."
+    },
+    {
+      "key": "Wright2026",
+      "citation": "Wright, Craig S. 2026. ``Design-Robust Event-Study Estimation under Staggered Adoption: Diagnostics, Sensitivity, and Orthogonalisation.'' arXiv:2601.18801."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ArkhangelskyImbensLeiLuo2024",
+      "comparator_claim": "Theorem 4.1 identifies homogeneous finite-memory dynamic effects, and the following paragraph states that calendar-varying dynamic effects make the reshaping law important and place the corresponding DATE equation beyond the paper's scope.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "ArkhangelskyImbensLeiLuo2024",
+      "comparator_claim": "Published Supplemental Appendix C.5, equation (C.23) and its following paragraph, formulate the DATE objective, initialize BFGS at the uniform law with additional random starts, and state that the nonconvex search is not guaranteed to find the global minimum and is an attempt to find a solution rather than a trustable solver.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "SunAbraham2021",
+      "comparator_claim": "Propositions 1--2 express each event-study coefficient as own-period and contaminating cross-period cohort-effect weights under staggered adoption.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AtheyImbens2022",
+      "comparator_claim": "The paper shows that conventional DiD under random adoption dates is unbiased for a particular weighted average causal effect and gives conservative design-based variance inference.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GeigerMeekSturmfels2006",
+      "comparator_claim": "Theorems 3.1--3.4 characterize positive monomial factorization by support feasibility and vanishing binomials in a toric ideal.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BorusyakJaravelSpiess2024",
+      "comparator_claim": "Theorems 1--2 derive the efficient linear estimator for a prespecified event-study effect average and its imputation representation under unrestricted heterogeneity.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "NeweyRobins2018",
+      "comparator_claim": "The paper derives cross-fitted estimators and fast product-form remainders for semiparametric average linear functionals.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "FangSantos2019DirectionalInference",
+      "comparator_claim": "The paper derives inference methods for directionally differentiable functionals when ordinary bootstrap validity can fail.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DukesVansteelandtWhitney2024",
+      "comparator_claim": "The paper shows that doubly robust estimators may fail to be regular when only one nuisance parameter is consistently estimated.",
+      "matched_by": "Open-ended Question 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Wright2026",
+      "comparator_claim": "The public preprint develops event-study design diagnostics, sensitivity analysis, and orthogonal scores under staggered adoption.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    }
+  ],
+  "tldr": "Calendar-varying carryover turns a reshaped event-study regression into a tensor-valued inverse problem: a requested diagonal current-and-lag target is attainable only when the FWL loading kernel contains positive pair masses that arise from one probability vector and satisfy the declared floor. The sole field-level kernel characterizes this ordered positive image for every finite absorbing support, gives an exact membership witness or nonmembership certificate, and converts infeasibility into a certified closest loading with an attained bounded-effect contamination envelope. Fixed deterministic-law product-rate inference is recorded only as an imported finite-label AIPW corollary of Newey and Robins; proposal-specific inference remains open only for generated or adaptively selected loading laws and for the drift-corrected one-correct-nuisance union.",
+  "project_justification": {
+    "gap": "The closest DATE paper proves a homogeneous-dynamic result, explicitly places calendar-varying dynamic effects beyond scope, and in published Supplemental Appendix C.5, equation (C.23) and the following paragraph, treats BFGS with uniform and additional random starts as an attempt to solve a nonconvex DATE objective because finding the global minimum is not guaranteed. Event-study decomposition papers reveal contamination but do not characterize which tensors positive assignment-law reshaping can generate.",
+    "niche": "Absorbing paths impose an order: differences of shifted path matrices are interval indicators, so their covariance has a Green-kernel representation. The resulting linear loading kernel must be intersected with a positive pair-product variety and probability-floor ratios, a finite geometry absent from both existing DATE analysis and generic event-study weights.",
+    "fill": "The focal open theorem gives the complete ordered support body and a terminating exact certificate algorithm across every rank stratum. Supporting results derive the causal loading tensor, solve one-dimensional fibers, enforce the seven-path compatibility kill test, and return a globally certified closest loading and contamination value. Fixed deterministic-law full-path inference is an imported Newey--Robins AIPW corollary; only generated-law inference and branchwise drift-corrected union inference are proposal-specific secondary open questions."
+  },
+  "related_work": "Arkhangelsky, Imbens, Lei, and Luo provide the writing and identification template: assignment-law reshaping repairs TWFE interpretation, but their Theorem 4.1 assumes dynamic effects are homogeneous across calendar time and the paper states that the time-varying DATE equation is beyond scope. Their published Supplemental Appendix C.5, equation (C.23) and the paragraph immediately following it, write the DATE objective as a nonconvex program, initialize BFGS at the uniform law and then try additional random initial values, and state that BFGS is not guaranteed to find the global minimum and should be viewed as an attempt to find a solution rather than a trustable solver. The present kernel strictly targets the omitted calendar-varying image problem and supplies exact membership and nonmembership certificates. Sun and Abraham motivate the coefficient-by-cell decomposition through their own-period and cross-period event-study weights; their results inform the forward tensor but are not claimed to be tightened. Athey and Imbens show that randomized adoption dates identify one particular weighted effect, rather than the inverse image of all targets attainable by changing the adoption law. Bojinov, Rambachan, and Shephard supply the finite-memory causal language under dynamic panel assignment. Geiger, Meek, and Sturmfels supply the toric factorization move used to distinguish compatible pair masses from arbitrary positive kernel vectors. Borusyak, Jaravel, and Spiess supply the prespecified-weight imputation benchmark after an attainable loading has been selected. Newey and Robins supply the general cross-fit AIPW product-remainder argument, so the fixed finite-label deterministic-law score control and Wald limit are imported corollaries rather than contributions. Fang and Santos inform the secondary open question on generated-law boundary inference. Dukes, Vansteelandt, and Whitney motivate the distinct secondary open question on one-correct-nuisance regularity. Rambachan and Roth inform the decision to report an explicit worst-case object when exact interpretation fails, without making their parallel-trends bound a theorem-level target.",
+  "technical_internal_limitation": "The exact general boundary theorem is not supplied by the lifted existential condition \\(C_S(Z)q=0\\) plus pair-product equations, by generic cylindrical algebraic decomposition, or by the solved one-dimensional and seven-path fibers. A linear separator need not exist because \\(\\mathcal D_{S,p,\\epsilon}\\) can be nonconvex. The declared contamination is the termwise envelope \\(B\\sum|L-Q|\\), not the norm of the summed coefficient bias, and the loading closest in the weighted Frobenius loss need not minimize that different envelope.",
+  "honest_scope": "The sole field-level kernel is the ordered completion theorem on every higher-dimensional compatibility fiber and every vanishing-minor stratum. The forward loading representation, support-rank identity, one-dimensional cofactor inverse, exact seven-path benchmark, compact projection existence, and contamination support function are supporting claims. The homogeneous dynamic reduction is an already-known verification corollary of Arkhangelsky, Imbens, Lei, and Luo, Theorem 4.1, and is not a contribution. For fixed finite \\(S\\) and deterministic \\(\\Pi\\), score convergence and product-rate Wald inference are imported finite-label AIPW corollaries of Newey and Robins and carry no novelty claim. Every score denominator uses the explicit simplex projection of the raw fold-trained propensity vector at the known threshold \\(\\underline{c}_{\\pi}<c_{\\pi}\\); normalization and the fitted lower bound follow from that construction, while retention of the raw fold-conditional \\(L_2(P)\\) rate follows from the elementary projection lemma rather than from Newey and Robins. Proposal-specific inference is confined to two secondary open questions. The generated-law question accounts for first-order uncertainty when \\(\\Pi\\) minimizes the estimated variance--loading criterion and for directional nonregularity at boundary optima or ties. The union question fixes each branch drift target as the fold-conditional Riesz intercept and centered projection \\(\\eta_{\\pi,s,v}(x;\\Pi,\\bar\\mu)\\) or \\(\\eta_{\\mu,s,v}(x;\\Pi,\\bar\\pi)\\), while deriving and estimating those targets, deriving branch influence functions, and establishing asymptotic linearity and coverage on \\(\\mathcal R_{\\pi}\\cup\\mathcal R_{\\mu}\\) remain open. The four branchwise drift and product-rate conditions are proposal-specific sufficient regimes rather than conditions attributed to Dukes, Vansteelandt, and Whitney. Letting the floor vanish remains outside this specialization.",
+  "seeds": [
+    "seed:ordered-positive-loading-body",
+    "seed:calendar-lag-fwl-tensor",
+    "seed:certified-nearest-loading",
+    "seed:union-robust-dynamic-inference",
+    "seed:support-rank-matroid",
+    "seed:vanishing-floor-boundary",
+    "seed:compatible-fiber-uniqueness",
+    "seed:variance-contamination-reshaping",
+    "seed:ripw-imputation-equivalence"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:ordered-positive-loading-body",
+      "anchor_bibkey": "ArkhangelskyImbensLeiLuo2024",
+      "anchor_location": "Section 4, the paragraph immediately after Theorem 4.1, and Appendix C.5, especially equation (C.23)",
+      "opportunity": "Characterize, for every finite absorbing-path support and positive probability floor, the exact image of calendar-by-causal-lag DATE loadings and decide rational target membership with an attainable-law or nonmembership certificate.",
+      "motif": "M1+M6",
+      "target_tier": "field",
+      "first_changed_proof_step": "Retain calendar time in the Frisch--Waugh--Lovell loading numerator, replace path probabilities by ordered pair masses, and then intersect the loading kernel with the positive pair-product variety and floor ratios rather than accepting the linear kernel as the image.",
+      "destination_pair_search": "Searches for calendar-varying DATE equations, absorbing-path loading images, pair-mass compatibility, and exact positive-law membership found no published theorem or public preprint occupying this target--method pair.",
+      "red_team": "A cynical referee may call the result immediate from the DATE quadratic system and generic real-algebraic elimination.",
+      "rebuttal": "Published Supplemental Appendix C.5, equation (C.23) and its following paragraph, state that the objective is nonconvex, BFGS is not guaranteed to find the global minimum, and the method is an attempt to find a DATE solution rather than a trustable solver; generic elimination neither exposes the ordered boundary nor prevents incompatible positive kernel vectors from being accepted, and the seven-path fiber shows that this compatibility step is substantive.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "decision": "selected"
+    },
+    {
+      "id": "seed:calendar-lag-fwl-tensor",
+      "anchor_bibkey": "SunAbraham2021",
+      "anchor_location": "Propositions 1--2, their auxiliary-regression weight construction, and Section 6",
+      "opportunity": "Derive the coefficient-by-calendar-by-causal-lag loading tensor for finite-memory TWFE under a positive reshaping law, including exact normalization and cross-lag contamination identities.",
+      "motif": "M1",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace cohort-by-relative-time indicators in the auxiliary regressions by the shifted finite-memory path matrix and retain calendar date rather than summing it out.",
+      "destination_pair_search": "The search found cohort-event-time decompositions and homogeneous dynamic RIPW, but no reshaped calendar-by-lag tensor under an arbitrary absorbing support.",
+      "red_team": "A referee may view this as a mechanical reindexing of Sun--Abraham weights.",
+      "rebuttal": "The path-law Gram inverse couples all causal lags and dates and is nonlinear in the reshaping law; the tensor is valuable mainly as the forward map needed by the selected inverse-image theorem.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "decision": "folded-into-selected-seed"
+    },
+    {
+      "id": "seed:certified-nearest-loading",
+      "anchor_bibkey": "ArkhangelskyImbensLeiLuo2024",
+      "anchor_location": "Appendix C.5, the discussion following equation (C.23)",
+      "opportunity": "When a requested dynamic target is outside the loading body, return a globally closest attainable tensor, an exact optimality certificate, and the attained worst-case contamination over a bounded calendar-lag effect class.",
+      "motif": "M3+M8",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace multistart local minimization of the DATE residual by exact optimization over the ordered compatibility strata and evaluate the support function of the bounded effect class at the residual loading.",
+      "destination_pair_search": "The search found numerical DATE feasibility and sensitivity bounds for parallel-trend violations, but no global projection onto a positive reshaping-law loading body.",
+      "red_team": "A referee may say compactness plus exhaustive gridding already provides the answer.",
+      "rebuttal": "Gridding certifies only an approximation and cannot decide zero distance; the proposed exact certificate depends on the new structural boundary and gives a checkable global optimum on a nonconvex image.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "decision": "survived-step-1"
+    },
+    {
+      "id": "seed:union-robust-dynamic-inference",
+      "anchor_bibkey": "ArkhangelskyImbensLeiLuo2024",
+      "anchor_location": "Theorem 3.4, Algorithm 1, Section 4, and the paragraph following Theorem 4.1",
+      "opportunity": "Construct a full-path augmented cross-fitted estimator of the normalized dynamic loading functional with valid inference on either one-correct-nuisance branch.",
+      "motif": "M1+M8",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Start from the ordinary fixed-law full-path AIPW score and remove its exact first-order misspecification drift separately on the propensity-correct and outcome-mean-correct branches using the displayed fold-conditional Riesz targets.",
+      "destination_pair_search": "The search found static RIPW robustness, group-time doubly robust DiD, longitudinal full-history scores, and general fixed-target cross-fit AIPW theory, but no branchwise drift-corrected influence-function result for the dynamic DATE functional.",
+      "red_team": "A referee may regard the score as ordinary augmented inverse probability weighting.",
+      "rebuttal": "Consistency is algebraic, but regular inference with an estimated correct nuisance and a misspecified counterpart has a first-order drift; Dukes--Vansteelandt--Whitney show why ordinary product-rate arguments do not settle the union model.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "decision": "retained-as-open-ended-question"
+    },
+    {
+      "id": "seed:support-rank-matroid",
+      "anchor_bibkey": "BojinovRambachanShephard2021",
+      "anchor_location": "Sections 3--4 on finite-memory causal effects and the TWFE discussion in Section 5",
+      "opportunity": "Give a support-only necessary-and-sufficient rank classification for which causal-lag coefficient systems are estimable under every positive absorbing-path law.",
+      "motif": "M6+M7",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Replace assignment-specific covariance rank checks by the common nullspace of all centered shifted-interval contrasts indexed by path pairs.",
+      "destination_pair_search": "No retrieved panel experiment or staggered-DiD paper gives the support matroid for finite-memory TWFE Gram nonsingularity.",
+      "red_team": "The result may be dismissed as the elementary fact that a positive sum of positive semidefinite matrices has the intersection of their kernels.",
+      "rebuttal": "That identity is correct and useful, but by itself it is a supporting lemma rather than a paper-level kernel; it is therefore folded into the selected seed.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "decision": "folded-into-selected-seed"
+    },
+    {
+      "id": "seed:vanishing-floor-boundary",
+      "anchor_bibkey": "AtheyImbens2022",
+      "anchor_location": "The design-based estimand characterization in Sections 3--4 and the concluding discussion",
+      "opportunity": "Describe the stratified limit of the dynamic loading body as the probability floor tends to zero and identify which boundary faces correspond to loss of lag rank, loading blow-up, or finite limiting tensors.",
+      "motif": "M6+M7",
+      "target_tier": "field",
+      "first_changed_proof_step": "Let adoption-date cell masses approach the design boundary and analyze the ordered Green inverse on each support deletion rather than fixing a strictly positive design.",
+      "destination_pair_search": "The retrieved design-based staggered-adoption results characterize one realized weighted effect but not the Hausdorff or stratified limit of all reshaped dynamic effects.",
+      "red_team": "A referee may call this merely taking the closure of a semialgebraic image.",
+      "rebuttal": "The closure alone does not distinguish removable Gram singularities from divergent loadings, but the topic fixes a positive floor, so this direction is deferred rather than allowed to broaden the kernel.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "decision": "not-selected-after-step-1"
+    },
+    {
+      "id": "seed:compatible-fiber-uniqueness",
+      "anchor_bibkey": "GeigerMeekSturmfels2006",
+      "anchor_location": "Theorems 3.1--3.4 and Section 4.7",
+      "opportunity": "Classify when a multidimensional linear loading kernel meets the positive pair-product toric variety in one ray, finitely many rays, or a positive-dimensional fiber.",
+      "motif": "M6",
+      "target_tier": "field",
+      "first_changed_proof_step": "Specialize toric factorization equations to edge products of one probability vector and exploit the total order of absorbing adoption dates to propagate adjacent ratios through the loading kernel.",
+      "destination_pair_search": "Toric factorization theorems characterize monomial images abstractly; the search found no ordered-interval loading kernel whose positive intersection is classified uniformly over supports.",
+      "red_team": "A referee may say the pair-product variety is just the rank-one symmetric matrix variety with known quadratic minors.",
+      "rebuttal": "The equations defining compatibility are known, but the hard object is their intersection with a target-dependent linear kernel and floor inequalities; the seven-path example has a three-dimensional linear kernel yet a unique compatible positive ray.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "decision": "survived-step-1"
+    },
+    {
+      "id": "seed:variance-contamination-reshaping",
+      "anchor_bibkey": "ArkhangelskyImbensLeiLuo2024",
+      "anchor_location": "Section 2.3 on choosing among DATE solutions and Appendix C.5 on dispersed reshaping laws",
+      "opportunity": "Choose a feasible reshaping law on the exact loading body to minimize a Pareto criterion combining score variance and worst-case off-target contamination, with a global certificate.",
+      "motif": "none",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace maximum-minimum probability as the tie-breaker by a support-body optimization whose objectives are the influence-function variance and the bounded-effect support function.",
+      "destination_pair_search": "The search found efficiency-optimal imputation weights and dispersed DATE laws, but not a certified variance--interpretability frontier over reshaping distributions.",
+      "red_team": "A referee may view the criterion as an arbitrary tuning exercise.",
+      "rebuttal": "A minimax contamination constraint supplies an economic interpretation, but the frontier depends on the selected image theorem and is better treated as follow-on work.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "decision": "not-selected-after-step-1"
+    },
+    {
+      "id": "seed:ripw-imputation-equivalence",
+      "anchor_bibkey": "BorusyakJaravelSpiess2024",
+      "anchor_location": "Theorems 1--2 and Proposition 6 on efficient imputation and representation of linear unbiased estimators",
+      "opportunity": "Characterize when an attainable dynamic RIPW coefficient and a prespecified imputation average have the same influence function, and derive the support boundary where equivalence fails.",
+      "motif": "M2+M8",
+      "target_tier": "field",
+      "first_changed_proof_step": "Express both estimators as linear functionals of calendar-lag cell effects and compare their weights before analyzing variance.",
+      "destination_pair_search": "No retrieved paper gives an observed-support frontier for equality of these two dynamic targets.",
+      "red_team": "A referee may note that equality is tautological once the two weight arrays are set equal.",
+      "rebuttal": "A nontrivial seed would need an observable primitive frontier rather than equality of declared targets; the scan did not reveal enough structure to derive one, so the candidate is dropped.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 2,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "decision": "dropped-after-red-team"
+    }
+  ],
+  "literature_map": {
+    "selected_seed": "seed:ordered-positive-loading-body",
+    "anchor_read": "Arkhangelsky, Imbens, Lei, and Luo move in their Introduction from the design dependence of TWFE to assignment-law reshaping. Their Theorem 4.1 proves recovery of finite-memory dynamic effects only when those effects are homogeneous across calendar time. The paragraph immediately after that theorem states that the reshaping distribution matters again for calendar-varying effects and places the corresponding DATE equation beyond the paper's scope. Direct inspection of the published Quantitative Economics supplement locates the numerical comparison in Supplemental Appendix C.5, 'A general solver via nonlinear programming,' equation (C.23) and the paragraph immediately following it: the objective is nonconvex, BFGS starts at the uniform law with additional random starts, it is not guaranteed to find the global minimum, and the authors describe it as an attempt to find a solution rather than a trustable solver.",
+    "adjacent_threads": [
+      "Sun and Abraham's Propositions 1--2 decompose each event-study coefficient into own-relative-period and contaminating cross-period weights. Their construction establishes the causal meaning of a loading tensor but neither changes the treatment-path law nor inverts the resulting weight map.",
+      "Athey and Imbens analyze random adoption dates and show that conventional DiD is unbiased for a particular weighted finite-population effect. Their design-based result does not characterize all weights attainable by varying the adoption-date law.",
+      "Bojinov, Rambachan, and Shephard define finite-memory dynamic causal effects under panel randomization and derive unbiased estimation and limit theory. Their assignment design is given rather than selected to attain a requested TWFE calendar-lag tensor.",
+      "Geiger, Meek, and Sturmfels prove that positive monomial factorization can be checked by toric binomials and support feasibility. This validates pair-product compatibility as a necessary algebraic layer but does not classify its intersection with the ordered shifted-interval loading kernel.",
+      "Borusyak, Jaravel, and Spiess characterize efficient imputation for prespecified averages of heterogeneous event-study effects. Their estimand weights are chosen directly rather than obtained as the inverse image of a positive reshaping law.",
+      "Newey and Robins provide the general cross-fit doubly robust remainder expansion from which fixed finite-label deterministic-law inference follows as an imported corollary. Fang and Santos motivate derivative-aware inference for a generated loading law at nonsmooth selection points, while Dukes, Vansteelandt, and Whitney show that one-correct-nuisance consistency need not imply regular inference."
+    ],
+    "target_method_occupancy": "No retrieved published article or public preprint gives an arbitrary-support, calendar-varying dynamic DATE loading body, an ordered pair-mass boundary theorem, or a terminating exact membership and nonmembership procedure. A 2026 event-study preprint by Wright develops design diagnostics, sensitivity, and orthogonalization, but its public abstract and searchable text do not supply positive path-law image geometry.",
+    "exemplars_used": {
+      "writing": "ArkhangelskyImbensLeiLuo2024, Introduction, Section 4, and Conclusion",
+      "methods": [
+        "ArkhangelskyImbensLeiLuo2024, population DATE equation and Appendix C.5",
+        "SunAbraham2021, Propositions 1--2 and their auxiliary-regression proof",
+        "GeigerMeekSturmfels2006, Theorems 3.1--3.4 on positive toric factorization",
+        "BorusyakJaravelSpiess2024, Theorems 1--2 on imputation and efficient linear estimation",
+        "NeweyRobins2018, cross-fit product-remainder construction"
+      ]
+    },
+    "candidate_dispositions": "The forward tensor and support-rank seeds are necessary lemmas but too close to established FWL arguments to stand alone. Exact projection survives as a downstream result because it becomes nonroutine only after the structural boundary is known. Fixed finite-label deterministic-law AIPW inference is imported from Newey and Robins. Generated-law inference and the one-correct-nuisance union remain separate secondary open questions, while the ordered loading body is the sole field-level kernel. The vanishing-floor direction broadens the fixed-floor kernel, and the RIPW--imputation equivalence seed failed its red-team test."
+  },
+  "literature_checklist": [
+    {
+      "author": "Arkhangelsky, Imbens, Lei, and Luo",
+      "year": 2024,
+      "venue": "Quantitative Economics",
+      "bibkey": "ArkhangelskyImbensLeiLuo2024",
+      "one_line": "Theorem 4.1 treats calendar-homogeneous finite-memory dynamics, while the paper explicitly leaves the calendar-varying DATE equation beyond scope.",
+      "relevant_to": "oeq:complete-ordered-loading-body"
+    },
+    {
+      "author": "Sun and Abraham",
+      "year": 2021,
+      "venue": "Journal of Econometrics",
+      "bibkey": "SunAbraham2021",
+      "one_line": "Propositions 1--2 decompose dynamic TWFE coefficients into own-relative-period and contaminating cross-period cohort-effect weights.",
+      "relevant_to": "thm:calendar-lag-loading-representation"
+    },
+    {
+      "author": "Athey and Imbens",
+      "year": 2022,
+      "venue": "Journal of Econometrics",
+      "bibkey": "AtheyImbens2022",
+      "one_line": "Random adoption dates make conventional DiD unbiased for one particular design-weighted finite-population causal effect.",
+      "relevant_to": "oeq:complete-ordered-loading-body"
+    },
+    {
+      "author": "Bojinov, Rambachan, and Shephard",
+      "year": 2021,
+      "venue": "Quantitative Economics",
+      "bibkey": "BojinovRambachanShephard2021",
+      "one_line": "Finite-memory dynamic effects under panel randomization admit unbiased nonparametric estimation and design-based limit theory.",
+      "relevant_to": "thm:calendar-lag-loading-representation"
+    },
+    {
+      "author": "Geiger, Meek, and Sturmfels",
+      "year": 2006,
+      "venue": "The Annals of Statistics",
+      "bibkey": "GeigerMeekSturmfels2006",
+      "one_line": "Positive monomial factorization is characterized by support feasibility and a finite toric ideal basis.",
+      "relevant_to": "thm:one-kernel-stratum-inverse"
+    },
+    {
+      "author": "Borusyak, Jaravel, and Spiess",
+      "year": 2024,
+      "venue": "Review of Economic Studies",
+      "bibkey": "BorusyakJaravelSpiess2024",
+      "one_line": "Efficient estimation of a prespecified heterogeneous event-study average has an imputation representation and valid short-panel inference.",
+      "relevant_to": "prop:fixed-law-aipw-inference-corollary"
+    },
+    {
+      "author": "Newey and Robins",
+      "year": 2018,
+      "venue": "arXiv",
+      "bibkey": "NeweyRobins2018",
+      "one_line": "Cross-fitting yields the general product-form remainder and fixed-target limit theory imported for the finite-label deterministic-law AIPW corollaries.",
+      "relevant_to": "prop:fixed-law-aipw-inference-corollary"
+    },
+    {
+      "author": "Dukes, Vansteelandt, and Whitney",
+      "year": 2024,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "DukesVansteelandtWhitney2024",
+      "one_line": "One-correct-nuisance double robustness can coexist with nonregular inference because a first-order drift remains.",
+      "relevant_to": "oeq:union-regular-inference"
+    },
+    {
+      "author": "Rambachan and Roth",
+      "year": 2023,
+      "venue": "Review of Economic Studies",
+      "bibkey": "RambachanRoth2023",
+      "one_line": "A failed exact identifying restriction can be replaced by a transparent worst-case sensitivity object over a declared violation class.",
+      "relevant_to": "thm:certified-projection-contamination"
+    },
+    {
+      "author": "Fang and Santos",
+      "year": 2019,
+      "venue": "Review of Economic Studies",
+      "bibkey": "FangSantos2019DirectionalInference",
+      "one_line": "Directionally differentiable maps require derivative-aware asymptotic and resampling methods at nonsmooth boundaries.",
+      "relevant_to": "oeq:generated-law-inference"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":[\"ArkhangelskyImbensLeiLuo2024\",\"SunAbraham2021\"],\"strict_delta\":\"Relative to Arkhangelsky, Imbens, Lei, and Luo, the focal result removes calendar-time homogeneity and replaces the nonconvex BFGS attempt documented in published Supplemental Appendix C.5, equation (C.23) and its following paragraph, by the complete positive image of the coefficient-by-calendar-by-lag map and an exact membership witness or nonmembership certificate for every finitely represented absorbing support. Relative to Sun and Abraham, it makes the assignment law a decision variable and characterizes exactly which uncontaminated or partially contaminated calendar-lag tensors TWFE can be made to target.\",\"why_not_relabeling\":\"The new object is the ordered positive loading body. Its boundary is not the nullspace of the FWL equations: pair masses must lie on a positive toric variety and obey ratio-floor inequalities. The exact six-period seven-path fiber has a three-dimensional linear kernel but only one compatible positive ray, ruling out a linear-algebra restatement.\",\"open_content\":\"The sole field-level kernel is the support-uniform ordered completion of every higher-dimensional positive compatible fiber without using generic quantifier elimination as the explanation of the boundary. Generated-law and branchwise union inference are secondary open questions; fixed deterministic-law AIPW inference is imported.\"}"
+}

@@ -1,0 +1,2292 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}ate\_\allowbreak{}overlap\_\allowbreak{}decay}
+
+\noindent\textit{Specialization:} v2\par
+
+\paragraph{TL;DR.} For fixed one-sided dyadic-shell constants satisfying both \(\texttt{ass:lower-shell-richness}\) and \(\texttt{ass:upper-shell-richness}\), the absolute-risk, root-MSE, fixed-probability for each fixed \(\delta\in(0,\delta_0]\), and honest expected-length for each fixed \(\alpha\in(0,1/4)\) frontiers all equal the four-channel rate \(\rho_n\) up to constants.  The clipped estimator, five-block median, and interval upper bounds hold on the broader uniform one-sided-shell class with those two richness conditions deleted.  An exported all-\(N\) inequality gives \(E_P|\widehat\tau_{\lambda,N}-\tau(P)|\leq C_{\mathrm{FT}}U_N(\lambda)\), the explicit oracle comparison gives \(U_n(\lambda_n^\star)\leq C_{\mathrm{opt}}\rho_n\), and \(C_\star=C_{\mathrm{FT}}C_{\mathrm{opt}}\) yields the computable interval multiplier \(K_\alpha=C_\star\max\{\sqrt{10}(10/\alpha)^{1/3},\alpha^{-1}\}\).  Adaptation to unknown shell and nuisance certificates remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} JinSyrgkanis2024StructureAgnosticDR supplies WATE lower-bound templates in its estimator-bounded source class, whereas BonviniKennedyDukesBalakrishnan2024StructureAgnosticATE supplies a lower-rate statement for one mean functional in a different uniformly overlapped structure-agnostic source class. Neither published class is nested with the present dyadic-shell public-function experiment, so neither citation supports class inclusion or a transferred minimax theorem. The accepted-bank runs \texttt{stat\_discrete\_ate\_minimax\_loggap\_polynomial\_upper\_match} and \texttt{stat\_discrete\_ate\_heterogeneity\_frontier\_v1} also study the full-population binary ATE, but under fixed two-sided overlap and finite discrete covariate occupancy. With \(d\) denoting the number of covariate cells, the former establishes the binary-outcome rare-cell MSE frontier \(n^{-1}+d^2/[n^2\log^2 n]\); the latter gives a radius-indexed MSE bracket for real outcomes under bounded conditional means and approximate cell-effect homogeneity. Their obstructions are unknown discrete cell occupancy and cell-effect heterogeneity, whereas the present experiment has an infinite standard-Borel covariate support, dyadic propensity decay, deterministic public nuisance functions, and only global \(L^2(P_X)\) certificates. These law and information classes are non-nested, and neither accepted-bank result transfers a converse, rate, or honest-length theorem to the present class. Weak-overlap papers give trimming rules, irregular limits, or sufficient Wald conditions rather than this finite-sample four-risk frontier with an evaluable honest interval.
+
+\paragraph{Niche.} The public-function model isolates the statistical price of knowing only global prediction-error guarantees when treated observations vanish at a boundary.  Its all-\(N\), all-threshold bound keeps the public certificates indexed by the original experiment, so the same inequality controls the full sample and every median block.  Upper estimation and coverage require only the uniform one-sided-shell law; the matching converse requires both explicit reservoir-richness inequalities.
+
+\paragraph{Fill.} The paper supplies the clipped estimator, five-block median, and a bias-aware interval with the closed-form constants \(C_{\mathrm{FT}}\), \(C_{\mathrm{opt}}\), \(C_\star\), and \(K_\alpha\).  On the broader shell class these objects attain the four-channel upper rate.  On the reservoir-rich subclass, the established signal-only four-channel construction supplies matching absolute-risk, root-MSE, fixed-probability, and honest mean-length lower bounds.
+
+\section{Related work}
+
+JinSyrgkanis2024StructureAgnosticDR, Theorem 1 and Remark 2, gives squared quantile-minimax WATE lower bounds in its estimator-bounded source class. BonviniKennedyDukesBalakrishnan2024StructureAgnosticATE, Section 2, gives the lower-rate form \(n^{-1/2}+\varepsilon_n\delta_n\) for one mean functional in a different uniformly overlapped structure-agnostic source class; the attested statement supplies neither a control-arm extension nor a joint two-arm ATE equivalence. Neither published class is nested with this note's dyadic-shell public-function experiment. Accordingly, the fast-tail calculation in \texttt{prop:regular-benchmark-reduction} is only an algebraic, source-scoped sanity comparison and proves no class inclusion, transferred lower bound, or transferred minimax equivalence. Dorn2025WeakOverlapTStatistics, MaSantAnnaSasakiUra2026DRWeakOverlap, MaWang2020RobustIPW, and HeilerKazak2021ExtremePropensity study Gaussian or non-Gaussian inference, trimming, or threshold selection rather than this matched public-function minimax frontier. KennedyBalakrishnanRobinsWasserman2024MinimaxCATE supplies a fuzzy-hypothesis template for a different estimand and smoothness class; KhanTamer2010Irregular explains the tail-driven inverse-weight obstruction; Rothe2017RobustCI studies limited-overlap coverage under finite-cell or auxiliary structure. The accepted-bank runs \texttt{stat\_discrete\_ate\_minimax\_loggap\_polynomial\_upper\_match} and \texttt{stat\_discrete\_ate\_heterogeneity\_frontier\_v1} also concern the full-population binary ATE under fixed two-sided overlap and finite discrete covariate occupancy. With \(d\) denoting the number of covariate cells, the former establishes the binary-outcome rare-cell MSE frontier \(n^{-1}+d^2/[n^2\log^2 n]\), while the latter gives a radius-indexed MSE bracket for real outcomes under bounded conditional means and approximate cell-effect homogeneity. Their respective obstructions are unknown discrete cell occupancy and cell-effect heterogeneity. By contrast, this note permits an infinite standard-Borel covariate support, imposes dyadic propensity decay, supplies deterministic public nuisance functions, and assumes only global \(L^2(P_X)\) certificates. The resulting law and information classes are non-nested, so neither accepted-bank binary-ATE result transfers a converse, rate, or honest-length theorem here. The accepted policy-regret and continuous-exposure clamp papers likewise concern non-nested targets and law classes.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau(P)=E_P[g_1(X)-g_0(X)]\).
+Primary functional / estimator / diagnostic: \((\widehat\tau_{\lambda_n^{\star}},\rho_n):\ \widehat\tau_{\lambda_n^{\star}}=n^{-1}\sum_{i=1}^n\psi_{\lambda_n^{\star}}(O_i),\quad \rho_n=Q_{\kappa}(n,r_{1n})+r_{1n}n^{-\kappa/[2(\kappa+1)]}+r_{1n}r_{en}^{\kappa/(\kappa+2)}+r_{0n}r_{en}\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of observed units.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{covariate space}; \texttt{standard Borel spaces}; \texttt{sample space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The measurable support of the covariate.}
+  \item \texttt{Y\_\allowbreak{}0} --- \texttt{control potential outcome}; \(\mathbb R\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The potential outcome under control.}
+  \item \texttt{Y\_\allowbreak{}1} --- \texttt{treated potential outcome}; \(\mathbb R\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The potential outcome under treatment.}
+  \item \texttt{X} --- \texttt{covariate}; \(\mathcal X\); \texttt{observed component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed pretreatment covariate.}
+  \item \texttt{D} --- \texttt{treatment}; \(\{0,1\}\); \texttt{observed component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed binary treatment indicator.}
+  \item \texttt{Y} --- \texttt{outcome}; \(\mathbb R\); \texttt{observed component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed outcome.}
+  \item \texttt{O} --- \texttt{observed unit}; \(\mathbb R\times\{0,1\}\times\mathcal X\); \texttt{data unit}
+  \par\smallskip\noindent\emph{Definition.} The vector \(O=(Y,D,X)\).
+  \item \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}} --- \texttt{sample}; \((\mathbb R\times\{0,1\}\times\mathcal X)^n\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} The sample \(O^{(n)}=(O_1,\ldots,O_n)\).
+  \item \texttt{P} --- \texttt{law}; probability laws of \((Y_0,Y_1,D,X)\); \texttt{model}
+  \par\smallskip\noindent\emph{Definition.} A causal law inducing the observed law of \(O\).
+  \item \texttt{P\_\allowbreak{}X} --- \texttt{marginal law}; probability laws on \(\mathcal X\); \texttt{design measure}
+  \par\smallskip\noindent\emph{Definition.} The \(X\)-marginal of \(P\).
+  \item \texttt{e} --- \texttt{propensity score}; \(\mathcal X\to(0,1)\); \texttt{true nuisance}
+  \par\smallskip\noindent\emph{Definition.} The function \(e(x)=P(D=1\mid X=x)\).
+  \item \texttt{g\_\allowbreak{}0} --- \texttt{control regression}; \(\mathcal X\to\mathbb R\); \texttt{true nuisance}
+  \par\smallskip\noindent\emph{Definition.} The function \(g_0(x)=E_P[Y\mid D=0,X=x]\).
+  \item \texttt{g\_\allowbreak{}1} --- \texttt{treated regression}; \(\mathcal X\to\mathbb R\); \texttt{true nuisance}
+  \par\smallskip\noindent\emph{Definition.} The function \(g_1(x)=E_P[Y\mid D=1,X=x]\).
+  \item \texttt{m\_\allowbreak{}0} --- \texttt{public control function}; \(\mathcal X\to\mathbb R\); \texttt{public input}
+  \par\smallskip\noindent\emph{Definition.} A deterministic function supplied with the experiment as a global approximation to \(g_0\).
+  \item \texttt{m\_\allowbreak{}1} --- \texttt{public treated function}; \(\mathcal X\to\mathbb R\); \texttt{public input}
+  \par\smallskip\noindent\emph{Definition.} A deterministic function supplied with the experiment as a global approximation to \(g_1\).
+  \item \texttt{p} --- \texttt{public propensity function}; \(\mathcal X\to\mathbb R\); \texttt{public input}
+  \par\smallskip\noindent\emph{Definition.} A deterministic function supplied with the experiment as a global approximation to \(e\).
+  \item \texttt{M} --- \texttt{treatment-\allowbreak{}effect signal moment envelope}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} The fixed uniform second-moment bound for the conditional treatment-effect signal \(g_1-g_0\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{average treatment effect}; \(\mathbb R\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} The identified causal target \(\tau(P)=E_P[g_1(X)-g_0(X)]\), which is finite under \(E_P[(g_1(X)-g_0(X))^2]\le M\) and equals \(E_P[Y_1-Y_0]\) under consistency and conditional ignorability.
+  \item \texttt{\textbackslash{}\allowbreak{}kappa} --- \texttt{overlap-\allowbreak{}tail exponent}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The exponent governing left-\allowbreak{}boundary dyadic-\allowbreak{}shell mass.}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}0} --- \texttt{tail cap}; \((0,1)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed largest scale on which the shell law is imposed.}
+  \item \texttt{c\_\allowbreak{}-\allowbreak{}} --- \texttt{lower shell constant}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The class-\allowbreak{}wide lower multiplier for every dyadic shell.}
+  \item \texttt{c\_\allowbreak{}+\allowbreak{}} --- \texttt{upper shell constant}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The class-\allowbreak{}wide upper multiplier for every dyadic shell.}
+  \item \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}-\allowbreak{}} --- \texttt{regular-\allowbreak{}overlap margin}; \((0,1)\); \texttt{comparator-\allowbreak{}class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed positive lower bound for the propensity in the bounded-\allowbreak{}overlap comparator experiment.}
+  \item \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}+\allowbreak{}} --- \texttt{right-\allowbreak{}overlap margin}; \((0,1)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed distance of the true propensity from one.}
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}0\textasciicircum{}2} --- \texttt{control variance envelope}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The conditional residual-\allowbreak{}variance bound in the control arm.}
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}1\textasciicircum{}2} --- \texttt{treated variance envelope}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The conditional residual-\allowbreak{}variance bound in the treated arm.}
+  \item \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}} --- \texttt{control approximation radius}; \([0,\infty)\); \texttt{nuisance radius}
+  \par\smallskip\noindent\emph{Definition.} The supplied global \(L^2(P_X)\) radius for \(m_0\).
+  \item \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}} --- \texttt{treated approximation radius}; \([0,\infty)\); \texttt{nuisance radius}
+  \par\smallskip\noindent\emph{Definition.} The supplied global \(L^2(P_X)\) radius for \(m_1\).
+  \item \texttt{r\_\allowbreak{}\{en\}\allowbreak{}} --- \texttt{propensity approximation radius}; \([0,\infty)\); \texttt{nuisance radius}
+  \par\smallskip\noindent\emph{Definition.} The supplied global \(L^2(P_X)\) radius for \(p\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar r} --- \texttt{approximation-\allowbreak{}radius cap}; \([1,\infty)\); \texttt{experiment constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed class-\allowbreak{}wide upper bound for each supplied nuisance radius.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n} --- \texttt{public-\allowbreak{}function weak-\allowbreak{}overlap class}; \texttt{sets of law-\allowbreak{}-\allowbreak{}function quadruples}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} The class of \((P,m_0,m_1,p)\) at sample size \(n\) defined by the corresponding definition.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{reg\}\allowbreak{}\}\allowbreak{}} --- \texttt{bounded-\allowbreak{}overlap public-\allowbreak{}function class}; \texttt{sets of law-\allowbreak{}-\allowbreak{}function quadruples}; \texttt{comparator model class}
+  \par\smallskip\noindent\emph{Definition.} The comparator class of \((P,m_0,m_1,p)\) with the same public-function information and bounded approximation radii, but with two-sided uniform overlap in place of dyadic left shells.
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{clipping threshold}; \((0,\lambda_0]\); \texttt{tuning parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A lower threshold for the treated inverse weight.}
+  \item \texttt{p\textasciicircum{}\{\textbackslash{}\allowbreak{}circ\}\allowbreak{}} --- \texttt{right-\allowbreak{}stabilized public propensity}; \(\mathcal X\to[0,1-\eta_+/2]\); \texttt{estimator ingredient}
+  \par\smallskip\noindent\emph{Definition.} The projection \(p^{\circ}(x)=\min\{1-\eta_+/2,\max\{0,p(x)\}\}\).
+  \item \texttt{q\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}} --- \texttt{clipped public propensity}; \(\mathcal X\to(0,1)\); \texttt{estimator ingredient}
+  \par\smallskip\noindent\emph{Definition.} The denominator \(q_{\lambda}(x)=p^{\circ}(x)\vee\lambda\).
+  \item \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}} --- \texttt{clipped doubly robust score}; \(O\mapsto\mathbb R\); \texttt{estimating score}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The score defined by the corresponding definition.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}} --- \texttt{clipped ATE estimator}; statistics measurable in \(O^{(n)}\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} The sample average of \(\psi_{\lambda}\).
+  \item \texttt{b\_\allowbreak{}\{o,\allowbreak{}n\}\allowbreak{}} --- \texttt{empty-\allowbreak{}shell scale}; \((0,1]\); \texttt{threshold component}
+  \par\smallskip\noindent\emph{Definition.} The scale \(b_{o,n}=n^{-1/(\kappa+1)}\).
+  \item \texttt{b\_\allowbreak{}\{e,\allowbreak{}n\}\allowbreak{}} --- \texttt{propensity-\allowbreak{}error scale}; \([0,1]\); \texttt{threshold component}
+  \par\smallskip\noindent\emph{Definition.} The scale \(b_{e,n}=r_{en}^{2/(\kappa+2)}\).
+  \item \texttt{b\_\allowbreak{}\{g,\allowbreak{}n\}\allowbreak{}} --- \texttt{treated-\allowbreak{}regression scale}; \((0,\infty]\); \texttt{threshold component}
+  \par\smallskip\noindent\emph{Definition.} The scale \(b_{g,n}=(n r_{1n}^2)^{-1}\), interpreted as \(+\infty\) when \(r_{1n}=0\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{oracle clipping threshold}; \((0,\lambda_0]\); \texttt{oracle tuning}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The capped maximum of the active threshold components defined by the corresponding definition.}
+  \item \texttt{Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}} --- \texttt{tail-\allowbreak{}noise rate}; \(\mathbb N\times[0,\infty)\to[0,\infty)\); \texttt{frontier component}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The piecewise outcome-\allowbreak{}noise functional defined by the corresponding definition.}
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n} --- \texttt{sharp ATE rate}; \([0,\infty)\); \texttt{focal rate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The four-\allowbreak{}channel frontier defined by the corresponding definition.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{med\}\allowbreak{}\}\allowbreak{}} --- \texttt{median-\allowbreak{}amplified estimator}; statistics measurable in \(O^{(n)}\); \texttt{root-\allowbreak{}MSE estimator}
+  \par\smallskip\noindent\emph{Definition.} For \(n\ge5\), the median of five nonempty independent-block clipped estimators; for \(1\le n<5\), the full-sample clipped estimator.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal T\_\allowbreak{}n} --- \texttt{admissible estimator class}; \texttt{sets of real-\allowbreak{}valued statistical rules}; \texttt{decision class}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The class of rules measurable in the observed sample and allowed to use the supplied public functions and certified radii.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}n\textasciicircum{}\{(1)\}\allowbreak{}} --- \texttt{minimax absolute risk}; \([0,\infty]\); \texttt{risk}
+  \par\smallskip\noindent\emph{Definition.} The minimax absolute-error risk over \(\mathcal M_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}n\textasciicircum{}\{(2)\}\allowbreak{}} --- \texttt{minimax root-\allowbreak{}MSE}; \([0,\infty]\); \texttt{risk}
+  \par\smallskip\noindent\emph{Definition.} The minimax root-mean-squared risk over \(\mathcal M_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta} --- \texttt{fixed error probability}; \((0,1/4)\); \texttt{risk level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed probability level for minimax deviation risk.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}delta\}\allowbreak{}\textasciicircum{}\{(\textbackslash{}\allowbreak{}mathrm\{prob\}\allowbreak{})\}\allowbreak{}} --- \texttt{minimax fixed-\allowbreak{}probability radius}; \([0,\infty]\); \texttt{risk}
+  \par\smallskip\noindent\emph{Definition.} The smallest uniform \(\delta\)-error radius over all ATE estimators.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}n} --- \texttt{admissible interval-\allowbreak{}rule class}; \texttt{sets of interval-\allowbreak{}valued statistical rules}; \texttt{inference decision class}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The class of random-\allowbreak{}interval rules measurable in the observed sample and allowed to use the supplied public functions and certified radii.}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{confidence error level}; \((0,1/4)\); \texttt{confidence level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed noncoverage probability.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{bias-\allowbreak{}aware confidence interval}; random intervals in \(\mathbb R\); \texttt{inference procedure}
+  \par\smallskip\noindent\emph{Definition.} The oracle interval centered at \(\widehat\tau_{\mathrm{med}}\) defined by the corresponding definition.
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak L\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{minimax honest expected length}; \([0,\infty]\); \texttt{inference risk}
+  \par\smallskip\noindent\emph{Definition.} The shortest worst-case expected length among uniformly honest \((1-\alpha)\)-level intervals.
+  \item \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}} --- \texttt{polynomial frontier exponent}; \((0,1/2]\); \texttt{phase parameter}
+  \par\smallskip\noindent\emph{Definition.} The exponent of \(\rho_n\) when the three radii are polynomial in \(n\).
+  \item \texttt{a\_\allowbreak{}0} --- \texttt{control-\allowbreak{}radius exponent}; \([0,\infty)\); \texttt{phase parameter}
+  \par\smallskip\noindent\emph{Definition.} The exponent in \(r_{0n}=n^{-a_0}\).
+  \item \texttt{a\_\allowbreak{}1} --- \texttt{treated-\allowbreak{}radius exponent}; \([0,\infty)\); \texttt{phase parameter}
+  \par\smallskip\noindent\emph{Definition.} The exponent in \(r_{1n}=n^{-a_1}\).
+  \item \texttt{a\_\allowbreak{}e} --- \texttt{propensity-\allowbreak{}radius exponent}; \([0,\infty)\); \texttt{phase parameter}
+  \par\smallskip\noindent\emph{Definition.} The exponent in \(r_{en}=n^{-a_e}\).
+  \item \texttt{B} --- \texttt{regular-\allowbreak{}overlap exponent}; \((0,1/2]\); \texttt{phase benchmark}
+  \par\smallskip\noindent\emph{Definition.} The benchmark \(B=\min\{1/2,a_1+a_e,a_0+a_e\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\{\textbackslash{}\allowbreak{}dagger\}\allowbreak{}} --- \texttt{overlap deterioration threshold}; \([0,\infty]\); \texttt{phase frontier}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The critical exponent defined by the corresponding definition.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{lb\}\allowbreak{}\}\allowbreak{}} --- \texttt{lower-\allowbreak{}bound construction handle}; \texttt{proof constructions}; \texttt{construction handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The four-\allowbreak{}channel shell localization algorithm defined by the corresponding definition.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{adapt\}\allowbreak{}\}\allowbreak{}} --- \texttt{adaptation handle}; \texttt{estimator-\allowbreak{}design strategies}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The dyadic comparison and validation strategy defined by the corresponding definition.}
+  \item \texttt{N} --- \texttt{averaging-\allowbreak{}sample size}; \(\mathbb N\); \texttt{auxiliary sample-\allowbreak{}size index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of i.i.d. observations averaged by a finite-\allowbreak{}threshold or block estimator.}
+  \item \texttt{v\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}} --- \texttt{inverse-\allowbreak{}weight tail envelope}; \((0,\lambda_0]\to[1,\infty)\); \texttt{finite-\allowbreak{}threshold variance scale}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The piecewise function defined in \textbackslash{}\allowbreak{}texttt\{def:\allowbreak{}finite-\allowbreak{}threshold-\allowbreak{}envelope\}\allowbreak{}.}
+  \item \texttt{\textbackslash{}\allowbreak{}overline c\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}} --- \texttt{summed shell constant}; \((0,\infty)\); \texttt{tail-\allowbreak{}calculus constant}
+  \par\smallskip\noindent\emph{Definition.} The constant \(\overline c_{\kappa}=c_+/(1-2^{-\kappa})\).
+  \item \texttt{H\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}} --- \texttt{inverse-\allowbreak{}weight moment constant}; \((0,\infty)\); \texttt{tail-\allowbreak{}calculus constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The piecewise algebraic constant defined in \textbackslash{}\allowbreak{}texttt\{def:\allowbreak{}finite-\allowbreak{}threshold-\allowbreak{}envelope\}\allowbreak{}.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda,\allowbreak{}N\}\allowbreak{}} --- \texttt{finite-\allowbreak{}threshold clipped ATE estimator}; real-valued statistics on \(N\) observed units; \texttt{block estimator}
+  \par\smallskip\noindent\emph{Definition.} The average of \(\psi_\lambda\) over \(N\) i.i.d. observations, with public certificates still indexed by \(n\).
+  \item \texttt{U\_\allowbreak{}N} --- \texttt{finite-\allowbreak{}threshold error envelope}; \((0,\lambda_0]\to[0,\infty)\); \texttt{upper-\allowbreak{}bound envelope}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The six-\allowbreak{}term function defined in \textbackslash{}\allowbreak{}texttt\{def:\allowbreak{}finite-\allowbreak{}threshold-\allowbreak{}envelope\}\allowbreak{}.}
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{FT\}\allowbreak{}\}\allowbreak{}} --- \texttt{finite-\allowbreak{}threshold score constant}; \((0,\infty)\); \texttt{calibration constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The explicit sum of moment,\allowbreak{} radius,\allowbreak{} tail,\allowbreak{} and right-\allowbreak{}overlap constants in \textbackslash{}\allowbreak{}texttt\{def:\allowbreak{}finite-\allowbreak{}threshold-\allowbreak{}envelope\}\allowbreak{}.}
+  \item \texttt{v\_\allowbreak{}0} --- \texttt{tail-\allowbreak{}envelope cap value}; \([1,\infty)\); \texttt{cap constant}
+  \par\smallskip\noindent\emph{Definition.} The value \(v_0=v_{\kappa}(\lambda_0)\).
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{oe\}\allowbreak{}\}\allowbreak{}} --- \texttt{outcome-\allowbreak{}or-\allowbreak{}propensity cap constant}; \((0,\infty)\); \texttt{optimization constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The algebraic cap constant defined in \textbackslash{}\allowbreak{}texttt\{def:\allowbreak{}finite-\allowbreak{}threshold-\allowbreak{}envelope\}\allowbreak{}.}
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm g\}\allowbreak{}} --- \texttt{treated-\allowbreak{}regression cap constant}; \((0,\infty)\); \texttt{optimization constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The algebraic cap constant defined in \textbackslash{}\allowbreak{}texttt\{def:\allowbreak{}finite-\allowbreak{}threshold-\allowbreak{}envelope\}\allowbreak{}.}
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{opt\}\allowbreak{}\}\allowbreak{}} --- \texttt{oracle optimization constant}; \((0,\infty)\); \texttt{optimization constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The piecewise algebraic constant defined in \textbackslash{}\allowbreak{}texttt\{def:\allowbreak{}finite-\allowbreak{}threshold-\allowbreak{}envelope\}\allowbreak{}.}
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{explicit sharp-\allowbreak{}upper constant}; \((0,\infty)\); \texttt{upper-\allowbreak{}bound and inference calibration}
+  \par\smallskip\noindent\emph{Definition.} The product \(C_{\star}=C_{\mathrm{FT}}C_{\mathrm{opt}}\).
+  \item \texttt{K\_\allowbreak{}\{\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{confidence-\allowbreak{}radius multiplier}; \((0,\infty)\); \texttt{interval calibration}
+  \par\smallskip\noindent\emph{Definition.} The multiplier \(K_{\alpha}=C_{\star}\max\{\sqrt{10}(10/\alpha)^{1/3},\alpha^{-1}\}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid]\label{ass:iid}
+The coordinates of \(O^{(n)}\) are independent and identically distributed under the observed marginal induced by \(P\).
+\par\smallskip\noindent\emph{Standard} (i.i.d. sampling, \cite{ChernozhukovEtAl2018DML}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=D Y_1+(1-D)Y_0\) holds \(P\)-almost surely.
+\par\smallskip\noindent\emph{Standard} (consistency, \cite{HiranoImbensRidder2003EfficientATE}).
+\end{assumption}
+
+\begin{assumption}[ass:ignorability]\label{ass:ignorability}
+\((Y_0,Y_1)\mathrel{\perp\!\!\!\perp}D\mid X\) under \(P\).
+\par\smallskip\noindent\emph{Standard} (conditional ignorability, \cite{HiranoImbensRidder2003EfficientATE}).
+\end{assumption}
+
+\begin{assumption}[ass:positivity]\label{ass:positivity}
+\(P\{e(X)>0\}=1\).
+\par\smallskip\noindent\emph{Standard} (almost-sure positivity, \cite{KhanTamer2010Irregular}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-shell]\label{ass:uniform-shell}
+\(c_-u^{\kappa}\le P\{u/2<e(X)\le u\}\le c_+u^{\kappa}\) for every \(u\in(0,\lambda_0]\), with \(c_-\) and \(c_+\) fixed uniformly over the class and over \(n\).
+\par\smallskip\noindent\emph{Novel.} The condition is satisfied by Beta-type propensity tails whose density is comparable to \(u^{\kappa-1}\), including rare-eligibility designs with a regularly varying participation margin.
+\end{assumption}
+
+\begin{assumption}[ass:right-overlap]\label{ass:right-overlap}
+\(e(X)\le 1-\eta_+\) holds \(P\)-almost surely.
+\par\smallskip\noindent\emph{Standard} (one-sided overlap, \cite{Dorn2025WeakOverlapTStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:treated-residual-variance]\label{ass:treated-residual-variance}
+\(E_P[(Y-g_1(X))^2\mid D=1,X]\le\sigma_1^2\) holds \(P\)-almost surely.
+\par\smallskip\noindent\emph{Standard} (uniform treated residual second moment, \cite{Dorn2025WeakOverlapTStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:control-residual-variance]\label{ass:control-residual-variance}
+\(E_P[(Y-g_0(X))^2\mid D=0,X]\le\sigma_0^2\) holds \(P\)-almost surely.
+\par\smallskip\noindent\emph{Standard} (uniform control residual second moment, \cite{Dorn2025WeakOverlapTStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-treatment-effect-signal]\label{ass:bounded-treatment-effect-signal}
+\(E_P[(g_1(X)-g_0(X))^2]\le M\).
+\par\smallskip\noindent\emph{Standard} (bounded conditional treatment-effect second moment, \cite{ChernozhukovEtAl2018DML}).
+\end{assumption}
+
+\begin{assumption}[ass:public-g0-radius]\label{ass:public-g0-radius}
+\(\lVert m_0-g_0\rVert_{L^2(P_X)}\le r_{0n}\).
+\par\smallskip\noindent\emph{Standard} (structure-agnostic outcome-regression certificate, \cite{JinSyrgkanis2024StructureAgnosticDR}).
+\end{assumption}
+
+\begin{assumption}[ass:public-g1-radius]\label{ass:public-g1-radius}
+\(\lVert m_1-g_1\rVert_{L^2(P_X)}\le r_{1n}\).
+\par\smallskip\noindent\emph{Standard} (structure-agnostic outcome-regression certificate, \cite{JinSyrgkanis2024StructureAgnosticDR}).
+\end{assumption}
+
+\begin{assumption}[ass:public-e-radius]\label{ass:public-e-radius}
+\(\lVert p-e\rVert_{L^2(P_X)}\le r_{en}\).
+\par\smallskip\noindent\emph{Standard} (structure-agnostic propensity certificate, \cite{BonviniKennedyDukesBalakrishnan2024StructureAgnosticATE}).
+\end{assumption}
+
+\begin{assumption}[ass:lower-shell-richness]\label{ass:lower-shell-richness}
+\(c_-\le (1-2^{-\kappa})/(4\lambda_0^{\kappa})\).
+\par\smallskip\noindent\emph{Novel.} The inequality holds for mixtures with two equal regularly varying tail reservoirs and a nonvanishing interior stratum, a concrete design class in which rare treatment arises in more than one covariate subgroup.
+\end{assumption}
+
+\begin{assumption}[ass:upper-shell-richness]\label{ass:upper-shell-richness}
+\(c_+\ge 2^{\kappa-1}/\lambda_0^{\kappa}\).
+\par\smallskip\noindent\emph{Novel.} The inequality is satisfied by the same two-reservoir Beta-type mixtures after normalization and permits fixed interior mass without making the tail law degenerate.
+\end{assumption}
+
+\begin{assumption}[ass:uniform-overlap-comparator]\label{ass:uniform-overlap-comparator}
+\(\eta_-\le e(X)\le1-\eta_+\) holds \(P\)-almost surely.
+\par\smallskip\noindent\emph{Standard} (two-sided uniform overlap, \cite{JinSyrgkanis2024StructureAgnosticDR}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:public-weak-overlap-class]\label{def:public-weak-overlap-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \[
+\mathcal M_n(\kappa,r_{0n},r_{1n},r_{en};c_-,c_+,\lambda_0,\eta_+,\sigma_0^2,\sigma_1^2,M,\bar r)
+=\Bigl\{(P,m_0,m_1,p):(r_{0n},r_{1n},r_{en})\in[0,\bar r]^3
+\text{ and, at sample size }n,\ \texttt{ass:iid},\ \texttt{ass:consistency},
+\ \texttt{ass:ignorability},\ \texttt{ass:positivity},\ \texttt{ass:uniform-shell},
+\ \texttt{ass:right-overlap},\ \texttt{ass:treated-residual-variance},
+\ \texttt{ass:control-residual-variance},\ \texttt{ass:bounded-treatment-effect-signal},
+\ \texttt{ass:public-g0-radius},\ \texttt{ass:public-g1-radius},
+\ \texttt{ass:public-e-radius},\ \texttt{ass:lower-shell-richness},
+\text{ and }\texttt{ass:upper-shell-richness}\text{ hold}\Bigr\}.
+\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iid}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}ignorability}; \texttt{ass:\allowbreak{}positivity}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}shell}; \texttt{ass:\allowbreak{}right-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}treated-\allowbreak{}residual-\allowbreak{}variance}; \texttt{ass:\allowbreak{}control-\allowbreak{}residual-\allowbreak{}variance}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}treatment-\allowbreak{}effect-\allowbreak{}signal}; \texttt{ass:\allowbreak{}public-\allowbreak{}g0-\allowbreak{}radius}; \texttt{ass:\allowbreak{}public-\allowbreak{}g1-\allowbreak{}radius}; \texttt{ass:\allowbreak{}public-\allowbreak{}e-\allowbreak{}radius}; \texttt{ass:\allowbreak{}lower-\allowbreak{}shell-\allowbreak{}richness}; \texttt{ass:\allowbreak{}upper-\allowbreak{}shell-\allowbreak{}richness}.
+\end{definition}
+
+\begin{definition}[def:regular-overlap-class]\label{def:regular-overlap-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{reg\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \[
+\mathcal M_n^{\mathrm{reg}}(r_{0n},r_{1n},r_{en};\eta_-,\eta_+,\sigma_0^2,\sigma_1^2,M,\bar r)
+=\Bigl\{(P,m_0,m_1,p):(r_{0n},r_{1n},r_{en})\in[0,\bar r]^3,
+\ \eta_-+\eta_+<1,\text{ and, at sample size }n,\ \texttt{ass:iid},
+\ \texttt{ass:consistency},\ \texttt{ass:ignorability},
+\ \texttt{ass:uniform-overlap-comparator},\ \texttt{ass:treated-residual-variance},
+\ \texttt{ass:control-residual-variance},\ \texttt{ass:bounded-treatment-effect-signal},
+\ \texttt{ass:public-g0-radius},\ \texttt{ass:public-g1-radius},
+\text{ and }\texttt{ass:public-e-radius}\text{ hold}\Bigr\}.
+\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iid}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}ignorability}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}overlap-\allowbreak{}comparator}; \texttt{ass:\allowbreak{}treated-\allowbreak{}residual-\allowbreak{}variance}; \texttt{ass:\allowbreak{}control-\allowbreak{}residual-\allowbreak{}variance}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}treatment-\allowbreak{}effect-\allowbreak{}signal}; \texttt{ass:\allowbreak{}public-\allowbreak{}g0-\allowbreak{}radius}; \texttt{ass:\allowbreak{}public-\allowbreak{}g1-\allowbreak{}radius}; \texttt{ass:\allowbreak{}public-\allowbreak{}e-\allowbreak{}radius}.
+\end{definition}
+
+\begin{definition}[def:clipped-score]\label{def:clipped-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \(p^{\circ}(x)=\min\{1-\eta_+/2,\max\{0,p(x)\}\}\), \(q_{\lambda}(x)=p^{\circ}(x)\vee\lambda\), and \(\psi_{\lambda}(O)=m_1(X)-m_0(X)+D\{Y-m_1(X)\}/q_{\lambda}(X)-(1-D)\{Y-m_0(X)\}/\{1-p^{\circ}(X)\}\), with \(\widehat\tau_{\lambda}=n^{-1}\sum_{i=1}^n\psi_{\lambda}(O_i)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}}; \texttt{m\_\allowbreak{}0}; \texttt{m\_\allowbreak{}1}; \texttt{p}; \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}+\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}lambda}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:oracle-threshold]\label{def:oracle-threshold}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Let \(b_{o,n}=n^{-1/(\kappa+1)}\), \(b_{e,n}=r_{en}^{2/(\kappa+2)}\), and \(b_{g,n}=(n r_{1n}^2)^{-1}\). Define \(\lambda_n^{\star}=\min\{\lambda_0,\max(b_{o,n},b_{e,n},b_{g,n})\}\) when \(0<\kappa\le1\), and \(\lambda_n^{\star}=\min\{\lambda_0,\max(b_{o,n},b_{e,n})\}\) when \(\kappa>1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{\textbackslash{}\allowbreak{}kappa}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:tail-noise-rate]\label{def:tail-noise-rate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \(Q_{\kappa}(n,r)=n^{-1/2}\vee n^{-\kappa/2}r^{1-\kappa}\) for \(0<\kappa<1\); \(Q_1(n,r)=n^{-1/2}\sqrt{1+\log_+(nr^2)}\); and \(Q_{\kappa}(n,r)=n^{-1/2}\) for \(\kappa>1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{\textbackslash{}\allowbreak{}kappa}.
+\end{definition}
+
+\begin{definition}[def:sharp-rate]\label{def:sharp-rate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \(\rho_n=Q_{\kappa}(n,r_{1n})+r_{1n}n^{-\kappa/[2(\kappa+1)]}+r_{1n}r_{en}^{\kappa/(\kappa+2)}+r_{0n}r_{en}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{\textbackslash{}\allowbreak{}kappa}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:estimator-class]\label{def:estimator-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal T\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal T_n=\{T:T(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})\in\mathbb R,\ O^{(n)}\mapsto T(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})\text{ is measurable for every supplied }(m_0,m_1,p)\text{ and every }(r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}}; \texttt{m\_\allowbreak{}0}; \texttt{m\_\allowbreak{}1}; \texttt{p}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}bar r}.
+\end{definition}
+
+\begin{definition}[def:absolute-risk]\label{def:absolute-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}n\textasciicircum{}\{(1)\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), \(\mathfrak R_n^{(1)}=\inf_{T\in\mathcal T_n}\sup_{(P,m_0,m_1,p)\in\mathcal M_n}E_P|T(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})-\tau(P)|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{\textbackslash{}\allowbreak{}mathcal T\_\allowbreak{}n}; \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}}; \texttt{m\_\allowbreak{}0}; \texttt{m\_\allowbreak{}1}; \texttt{p}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}bar r}.
+\end{definition}
+
+\begin{definition}[def:root-mse-risk]\label{def:root-mse-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}n\textasciicircum{}\{(2)\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), define
+\[
+\mathfrak R_n^{(2)}
+=\inf_{T\in\mathcal T_n}
+\left[
+\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+E_P\!\left\{\left(T(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})-\tau(P)\right)^2\right\}
+\right]^{1/2}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{\textbackslash{}\allowbreak{}mathcal T\_\allowbreak{}n}; \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}}; \texttt{m\_\allowbreak{}0}; \texttt{m\_\allowbreak{}1}; \texttt{p}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}bar r}.
+\end{definition}
+
+\begin{definition}[def:probability-risk]\label{def:probability-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}delta\}\allowbreak{}\textasciicircum{}\{(\textbackslash{}\allowbreak{}mathrm\{prob\}\allowbreak{})\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), \(\mathfrak R_{n,\delta}^{(\mathrm{prob})}=\inf_{T\in\mathcal T_n}\inf\{u\ge0:\sup_{(P,m_0,m_1,p)\in\mathcal M_n}P(|T(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})-\tau(P)|>u)\le\delta\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{\textbackslash{}\allowbreak{}delta}; \texttt{\textbackslash{}\allowbreak{}mathcal T\_\allowbreak{}n}; \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}}; \texttt{m\_\allowbreak{}0}; \texttt{m\_\allowbreak{}1}; \texttt{p}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}bar r}.
+\end{definition}
+
+\begin{definition}[def:median-estimator]\label{def:median-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{med\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} If \(n\ge5\), partition \(O^{(n)}\) into five nonempty independent blocks whose sizes differ by at most one, compute \(\widehat\tau_{\lambda_n^{\star}}^{(j)}\) from def:clipped-score on block \(j\) using the same public functions and the full-sample threshold, and set \(\widehat\tau_{\mathrm{med}}=\operatorname{median}_{1\le j\le5}\widehat\tau_{\lambda_n^{\star}}^{(j)}\). If \(1\le n<5\), set \(\widehat\tau_{\mathrm{med}}=\widehat\tau_{\lambda_n^{\star}}\) computed on the full sample.
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}}; \texttt{m\_\allowbreak{}0}; \texttt{m\_\allowbreak{}1}; \texttt{p}; \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:interval-rule-class]\label{def:interval-rule-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_n=\{C:C(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})\subseteq\mathbb R\text{ is an interval and }O^{(n)}\mapsto C(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})\text{ is measurable for every supplied }(m_0,m_1,p)\text{ and every }(r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\textasciicircum{}\{(n)\}\allowbreak{}}; \texttt{m\_\allowbreak{}0}; \texttt{m\_\allowbreak{}1}; \texttt{p}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}bar r}.
+\end{definition}
+
+\begin{definition}[def:bias-aware-interval]\label{def:bias-aware-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), use the explicit constant
+\(C_\star\) from \texttt{def:finite-threshold-envelope}, set
+\[
+K_\alpha=C_\star\max\left\{
+\sqrt{10}(10/\alpha)^{1/3},\alpha^{-1}\right\},
+\qquad
+\mathcal C_{n,\alpha}
+=\left[\widehat\tau_{\mathrm{med}}-K_\alpha\rho_n,
+\widehat\tau_{\mathrm{med}}+K_\alpha\rho_n\right],
+\]
+and define
+\[
+\mathfrak L_{n,\alpha}
+=\inf_{C_n\in\mathcal I_n:\,
+\inf_{(P,m_0,m_1,p)\in\mathcal M_n}P\{\tau(P)\in C_n\}\geq1-\alpha}
+\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+E_P[\operatorname{length}(C_n)].
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{med\}\allowbreak{}\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}alpha}; \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}n}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}bar r}.
+\end{definition}
+
+\begin{definition}[def:phase-exponent]\label{def:phase-exponent}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Under \(r_{0n}=n^{-a_0}\), \(r_{1n}=n^{-a_1}\), and \(r_{en}=n^{-a_e}\), define \(\beta_{\kappa}=\min\{1/2,\,\kappa/2+(1-\kappa)a_1\;\mathbf 1\{0<\kappa<1\}\text{ with this entry omitted for }\kappa\ge1,\,a_1+\kappa/[2(\kappa+1)],\,a_1+\kappa a_e/(\kappa+2),\,a_0+a_e\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a\_\allowbreak{}0}; \texttt{a\_\allowbreak{}1}; \texttt{a\_\allowbreak{}e}; \texttt{\textbackslash{}\allowbreak{}kappa}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:deterioration-threshold]\label{def:deterioration-threshold}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\{\textbackslash{}\allowbreak{}dagger\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Let \(B=\min\{1/2,a_1+a_e,a_0+a_e\}\). If \(B\le a_1\), set \(\kappa_{\dagger}=0\). If \(x=B-a_1>0\), set \(\kappa_{\dagger}=\max\{x/(1/2-a_1),2x/(1-2x),2x/(a_e-x)\}\), interpreting a nonpositive denominator as \(+\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a\_\allowbreak{}0}; \texttt{a\_\allowbreak{}1}; \texttt{a\_\allowbreak{}e}.
+\end{definition}
+
+\begin{definition}[def:lower-bound-handle]\label{def:lower-bound-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{lb\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Choose \(L=1-\eta_+\), \(a=\min\{L,\lambda_0\}\),
+\(q_\ell=a2^{-\ell}\), \(\ell\geq0\), an integer \(J\geq3\),
+\(\zeta=7/10\), \(\gamma=21/40\), and \(s_0=\zeta q_J\).  Put
+background mass \(b_0=c_-\lambda_0^\kappa\) at propensity \(q_0\) and,
+for \(\ell\geq1\), mass \(b_\ell=c_-q_{\ell-1}^\kappa\) at propensity
+\(q_\ell\).  Let \(B_{\mathrm{bg}}=\sum_{\ell\geq0}b_\ell\).  Choose
+\[
+0<A<\min\left\{
+{c_+-2^\kappa c_-\over2^{\kappa+1}},
+{1-B_{\mathrm{bg}}\over2s_0^\kappa},
+{c_+\{(2\gamma)^\kappa-1\}
+ \over2^{\kappa+1}(1-2^{-\kappa})\zeta^\kappa}
+\right\},
+\]
+and set
+\[
+t_j=s_02^{-j},\quad\quad
+w_j=A(1-2^{-\kappa})t_j^\kappa,\quad\quad j\geq0.
+\]
+For every finite \(N\), use mutually distinct signal points \(x_{j,k}\),
+balancing companions \(\widetilde x_{j,k}\), background points, and completion
+points, where \(j\geq0\) and \(1\leq k\leq N\).  Give each signal point and
+its companion mass \(w_j/N\), and give both public baseline propensity
+\(e_0=t_j\).  Define the two reservoirs
+\[
+S_N=\bigcup_{j\geq0}\{x_{j,k}:1\leq k\leq N\},\quad\quad
+C_N=\bigcup_{j\geq0}\{\widetilde x_{j,k}:1\leq k\leq N\}.
+\]
+Reserve their combined mass \(R_{J+j}=2w_j\) from the virtual endpoint
+\(q_{J+j}\), and put \(R_\ell=0\) otherwise.  Define
+\[
+d_\ell=c_+q_\ell^\kappa-b_\ell-R_\ell,\quad\quad
+H=1-B_{\mathrm{bg}}-2As_0^\kappa,\quad\quad
+D_{\mathrm{cap}}=\sum_{\ell\geq0}d_\ell,\quad\quad
+\pi_\ell={H\over D_{\mathrm{cap}}}d_\ell,
+\]
+and put completion mass \(\pi_\ell\) at its distinct point of propensity
+\(q_\ell\).  In unchanged families both members of every active pair have
+propensity \(t_j\).  In a treated fuzzy cell, with
+\(a_{\theta,k}=\theta\delta Z_k\), use propensities
+\(t_j/(1+a_{\theta,k})\) and \(t_j/(1-a_{\theta,k})\) on the signal and
+companion points, respectively, and perturb the treated regression only on the
+signal point.  In a control fuzzy cell, with \(a_{\theta,k}=\theta tZ_k\), use
+propensities \((t_j+a_{\theta,k})/(1+a_{\theta,k})\) and
+\((t_j-a_{\theta,k})/(1-a_{\theta,k})\), respectively, and perturb the control
+regression only on the signal point.  Thus each fixed-sign pair has a
+sign-invariant propensity multiset.
+
+All localization sets are signal-only.  Write
+\[
+A_s^S=S_N\cap\{e_0\leq s\},\quad\quad
+B_s^S=S_N\cap\{s<e_0\leq2s\},
+\]
+and define its companion set by
+\(C_s^S=\{\widetilde x_{j,k}:x_{j,k}\in B_s^S\}\).  For a fixed
+\(j_c\geq1\), put \(s_c=t_{j_c+1}\) and
+\[
+B_c^S=S_N\cap\{s_c<e_0\leq2s_c\}
+=\{x_{j_c,k}:1\leq k\leq N\},\quad\quad
+C_c^S=\{\widetilde x_{j_c,k}:1\leq k\leq N\}.
+\]
+Background and completion atoms whose propensities lie in the same numerical
+bands are not in \(S_N\), remain unperturbed, and never enter a regression
+localization.  On this completed support build the four subexperiments in
+\(\mathcal M_n\): shell-localized treated Gaussian mean shifts for
+\(Q_\kappa\); an untreated-observation coupling at scale
+\(n^{-1/(\kappa+1)}\); a treated signed-cell fuzzy mixture on the unique signal
+level \(B_s^S\), with \(s\asymp r_{en}^{2/(\kappa+2)}\); and a control
+signed-cell fuzzy mixture on \(B_c^S\), whose signal mass is
+\(P_X(B_c^S)=w_{j_c}\).  In the control family set
+\(g_0=h_0Z_k\), \(h_0=c_A r_{0n}/\sqrt{P_X(B_c^S)}\), \(m_0=0\), \(p=e_0\),
+and
+\[
+1-e_{\theta,Z}={1-e_0\over1+\theta tZ_k},\quad\quad
+t=c_A\min\left\{{r_{en}\over\sqrt{P_X(B_c^S)}},{1\over4}\right\}
+\]
+on signal cells, using the opposite tilt on their companions.  Keep the public
+functions fixed within each subexperiment, take \(N\) large enough to make
+pair-index collisions and prior-target fluctuations negligible, and combine
+the four component separations into \(\rho_n\) by the maximum-to-sum comparison.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n}; \texttt{n}; \texttt{\textbackslash{}\allowbreak{}kappa}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{M}; \texttt{c\_\allowbreak{}-\allowbreak{}}; \texttt{c\_\allowbreak{}+\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}0}; \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}+\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:adaptation-handle]\label{def:adaptation-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{adapt\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Use a dyadic family of \(\widehat\tau_{\lambda}\), sample-split empirical shell counts, and held-out prediction-risk certificates in a Lepski or aggregation comparison to derive a data-driven threshold and the smallest uniform oracle-inequality penalty relative to \(\rho_n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:finite-threshold-envelope]\label{def:finite-threshold-envelope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{U\_\allowbreak{}N}
+\par\smallskip\noindent\emph{Construction.} For \(0<\lambda\leq\lambda_0\) and an i.i.d. observed-law sample
+\(O_1,\ldots,O_N\), define
+\[
+\widehat\tau_{\lambda,N}=\frac1N\sum_{i=1}^N\psi_\lambda(O_i)
+\]
+using the public functions and the \(n\)-indexed certificates
+\((r_{0n},r_{1n},r_{en})\).  Thus \(N\) is only the number of observations
+averaged.  Set
+\[
+v_\kappa(\lambda)=
+\begin{cases}
+\lambda^{-(1-\kappa)/2},&0<\kappa<1,\\
+\sqrt{1+\log(\lambda_0/\lambda)},&\kappa=1,\\
+1,&\kappa>1,
+\end{cases}
+\qquad
+\overline c_\kappa=\frac{c_+}{1-2^{-\kappa}},
+\]
+and
+\[
+H_\kappa=
+\begin{cases}
+\lambda_0^{-1}+\overline c_\kappa/(1-\kappa),&0<\kappa<1,\\
+\lambda_0^{-1}+\overline c_1,&\kappa=1,\\
+\lambda_0^{-1}+\overline c_\kappa\lambda_0^{\kappa-1}/(\kappa-1),&\kappa>1.
+\end{cases}
+\]
+Define the finite-threshold envelope
+\[
+\begin{split}
+U_N(\lambda)={}&
+\frac{v_\kappa(\lambda)}{\sqrt N}
++\frac{r_{1n}}{\sqrt{N\lambda}}
++\frac{r_{en}}{\sqrt N\,\lambda^{3/2}}
++r_{1n}\lambda^{\kappa/2}
++\frac{r_{1n}r_{en}}{\lambda}
++r_{0n}r_{en}
+\end{split}
+\]
+and the explicit score constant
+\[
+\begin{split}
+C_{\mathrm{FT}}={}&1+\sqrt M+\sqrt{\sigma_1^2H_\kappa}
++\sqrt{\frac{\sigma_0^2}{\eta_+}}
++\frac{\bar r}{\sqrt{\eta_+}}
++\frac{2\bar r\sqrt{\sigma_0^2}}{\eta_+^{3/2}}\\
+&+\sqrt2+\sqrt{\sigma_1^2}+\sqrt{\overline c_\kappa}
++\frac2{\eta_+}.
+\end{split}
+\]
+For later oracle calibration, put \(v_0=v_\kappa(\lambda_0)\) and define
+\[
+C_{\mathrm{oe}}
+=v_0+\bar r\lambda_0^{-1/2}+\bar r\lambda_0^{-3/2}
++2+\lambda_0^{-1}\bar r^{2/(\kappa+2)},
+\]
+\[
+C_{\mathrm g}
+=v_0+\lambda_0^{-1}+2\bar r\lambda_0^{-3/2}
++\lambda_0^{-(1-\kappa)/2}+1,
+\]
+\[
+C_{\mathrm{opt}}=
+\begin{cases}
+4+C_{\mathrm{oe}}+C_{\mathrm g},&0<\kappa\leq1,\\
+4+C_{\mathrm{oe}},&\kappa>1,
+\end{cases}
+\qquad
+C_\star=C_{\mathrm{FT}}C_{\mathrm{opt}}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{N}; \texttt{n}; \texttt{\textbackslash{}\allowbreak{}lambda}; \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}0}; \texttt{\textbackslash{}\allowbreak{}kappa}; \texttt{c\_\allowbreak{}+\allowbreak{}}; \texttt{r\_\allowbreak{}\{0n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{1n\}\allowbreak{}}; \texttt{r\_\allowbreak{}\{en\}\allowbreak{}}; \texttt{M}; \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}0\textasciicircum{}2}; \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}1\textasciicircum{}2}; \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}+\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}bar r}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:uniform-shell-calculus]\label{lem:uniform-shell-calculus}
+There are constants depending only on \((c_-,c_+,\kappa,\lambda_0)\) such that, uniformly over \(\mathcal M_n\) and \(0<\lambda\le\lambda_0\), \(P\{e(X)\le\lambda\}\asymp\lambda^{\kappa}\) and \(E_P[(e(X)\vee\lambda)^{-1}]\asymp v_{\kappa}(\lambda)^2\), where \(v_{\kappa}(\lambda)=\lambda^{-(1-\kappa)/2}\) for \(0<\kappa<1\), \(v_1(\lambda)=\sqrt{1+\log(\lambda_0/\lambda)}\), and \(v_{\kappa}(\lambda)=1\) for \(\kappa>1\).
+\end{lemma}
+\begin{proof}
+Fix \((P,m_0,m_1,p)\in\mathcal M_n\) and \(0<\lambda\leq\lambda_0\).  By \(\texttt{def:public-weak-overlap-class}\), the law \(P\) satisfies \(\texttt{ass:positivity}\) and \(\texttt{ass:uniform-shell}\).  Positivity and disjointness give
+\[
+ \{e(X)\leq\lambda\}
+ =\mathop{\dot\bigcup}_{j=0}^{\infty}
+ \{2^{-j-1}\lambda<e(X)\leq 2^{-j}\lambda\}
+ \quad P\text{-almost surely}.
+\]
+Consequently, the upper shell inequality and countable additivity imply
+\[
+ P\{e(X)\leq\lambda\}
+ \leq c_+\lambda^\kappa\sum_{j=0}^{\infty}2^{-j\kappa}
+ =\frac{c_+}{1-2^{-\kappa}}\lambda^\kappa.
+\]
+The shell with upper endpoint \(\lambda\) and the lower shell inequality give
+\[
+ P\{e(X)\leq\lambda\}
+ \geq P\{\lambda/2<e(X)\leq\lambda\}
+ \geq c_-\lambda^\kappa.
+\]
+Thus \(P\{e(X)\leq\lambda\}\asymp\lambda^\kappa\), uniformly in the chosen class member and in \(\lambda\).
+
+It remains to control
+\[
+ H_\lambda:=E_P\!\left[(e(X)\vee\lambda)^{-1}\right].
+\]
+Write \(C_F=c_+/(1-2^{-\kappa})\).  The preceding tail bounds first show
+\[
+ c_-\lambda^{\kappa-1}
+ \leq \lambda^{-1}P\{e(X)\leq\lambda\}
+ \leq C_F\lambda^{\kappa-1}.
+\]
+For a uniform upper bound on the remaining part, set
+\[
+ J=\left\lfloor\log_2(\lambda_0/\lambda)\right\rfloor.
+\]
+Then \(J\geq0\), \(2^J\lambda\leq\lambda_0<2^{J+1}\lambda\), and the events
+\[
+ \{e(X)\leq\lambda\},\qquad
+ A_j:=\{2^j\lambda<e(X)\leq2^{j+1}\lambda\}
+ \quad(0\leq j<J),
+\]
+together with \(A_{\mathrm{top}}:=\{2^J\lambda<e(X)\leq\lambda_0\}\) and \(A_+:=\{e(X)>\lambda_0\}\), form a partition up to null sets.  For every \(0\leq j<J\), the upper endpoint \(2^{j+1}\lambda\) is at most \(\lambda_0\), so the upper shell inequality yields
+\[
+ E_P\!\left[\frac{\mathbf 1_{A_j}}{e(X)}\right]
+ \leq \frac{P(A_j)}{2^j\lambda}
+ \leq c_+2^\kappa\lambda^{\kappa-1}2^{j(\kappa-1)}.
+\]
+Moreover, the already proved tail upper bound and \(2^J\lambda>\lambda_0/2\) give
+\[
+ E_P\!\left[\frac{\mathbf 1_{A_{\mathrm{top}}}}{e(X)}\right]
+ \leq \frac{P\{e(X)\leq\lambda_0\}}{2^J\lambda}
+ \leq 2C_F\lambda_0^{\kappa-1},
+\]
+where the inequality is also valid when \(A_{\mathrm{top}}\) is empty.  On \(A_+\), one has \(e(X)^{-1}<\lambda_0^{-1}\).  Combining these bounds with the contribution below \(\lambda\) proves
+\[
+ H_\lambda
+ \leq C\left{1+\lambda^{\kappa-1}
+ \left(1+\sum_{j=0}^{J-1}2^{j(\kappa-1)}\right)\right},
+\]
+where an empty sum is zero and \(C\) depends only on \((c_+,\kappa,\lambda_0)\).
+
+Suppose first that \(0<\kappa<1\).  The geometric sum in the last display is bounded by \((1-2^{\kappa-1})^{-1}\).  Since \(0<\lambda<1\), \(\lambda^{\kappa-1}\geq1\), and hence
+\[
+ H_\lambda\leq C\lambda^{\kappa-1}.
+\]
+The contribution from \(\{e(X)\leq\lambda\}\) in the earlier lower bound gives \(H_\lambda\geq c_-\lambda^{\kappa-1}\).  Therefore \(H_\lambda\asymp\lambda^{\kappa-1}=v_\kappa(\lambda)^2\).
+
+Suppose next that \(\kappa=1\).  The upper bound becomes \(H_\lambda\leq C(J+1)\).  For each \(0\leq j<J\), the lower shell inequality gives
+\[
+ E_P\!\left[\frac{\mathbf 1_{A_j}}{e(X)}\right]
+ \geq \frac{P(A_j)}{2^{j+1}\lambda}
+ \geq c_-.
+\]
+Together with the below-threshold contribution, which is at least \(c_-\), this yields \(H_\lambda\geq c_-(J+1)\).  Because
+\[
+ J\leq\log_2(\lambda_0/\lambda)<J+1,
+\]
+the quantity \(J+1\) is comparable, by absolute constants, to \(1+\log(\lambda_0/\lambda)\).  Hence
+\[
+ H_\lambda\asymp 1+\log(\lambda_0/\lambda)=v_1(\lambda)^2.
+\]
+
+Finally, suppose that \(\kappa>1\).  The finite geometric sum satisfies
+\[
+ \lambda^{\kappa-1}\sum_{j=0}^{J-1}2^{j(\kappa-1)}
+ \leq \frac{(2^J\lambda)^{\kappa-1}}{2^{\kappa-1}-1}
+ \leq \frac{\lambda_0^{\kappa-1}}{2^{\kappa-1}-1},
+\]
+so the displayed upper bound for \(H_\lambda\) is a constant.  Since the declared range of the propensity score and \(\lambda_0<1\) imply \(0<e(X)\vee\lambda\leq1\) almost surely, \(H_\lambda\geq1\).  Thus \(H_\lambda\asymp1=v_\kappa(\lambda)^2\).
+
+All lower and upper constants obtained above depend only on \((c_-,c_+,\kappa,\lambda_0)\), and not on \(P\), \(n\), or \(\lambda\).  This proves both asserted uniform equivalences.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This converts the primitive dyadic law into the two uniform tail functionals used on both sides of the frontier. \textit{Gap.} KhanTamer2010Irregular gives tail-rate intuition but not this class-uniform dyadic-shell equivalence. \textit{Consumer.} The clipped-score upper bound and every shell-localized lower family use these uniform comparisons.
+
+\begin{theorem}[thm:clipped-absolute-upper]\label{thm:clipped-absolute-upper}
+For every admissible radius triple \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), let \(\widetilde{\mathcal M}_n\) denote the broader class obtained from \texttt{def:public-weak-overlap-class} by retaining all of its member conditions and deleting exactly \texttt{ass:lower-shell-richness} and \texttt{ass:upper-shell-richness}.  The rule \(\widehat\tau_{\lambda_n^{\star}}\) from \texttt{def:clipped-score} and \texttt{def:oracle-threshold} belongs to \(\mathcal T_n\).  There is a constant \(C<\infty\), depending only on the retained fixed class constants, including \(M\) and \(\bar r\), such that
+\[
+\sup_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+E_P\!\left|\widehat\tau_{\lambda_n^{\star}}-\tau(P)\right|
+\leq C\rho_n.
+\]
+For every fixed \(\delta\in(0,1/4)\), the same estimator satisfies
+\[
+\sup_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+P\!\left\{\left|\widehat\tau_{\lambda_n^{\star}}-\tau(P)\right|
+>C\rho_n/\delta\right\}\leq\delta.
+\]
+Since \(\mathcal M_n\subseteq\widetilde{\mathcal M}_n\), both risk conclusions remain valid with \(\widetilde{\mathcal M}_n\) replaced by the reservoir-rich class \(\mathcal M_n\).
+\end{theorem}
+\begin{proof}
+Let \(\widetilde{\mathcal M}_n\) be the broader class in the statement.
+The causal target is the frozen identified functional
+\(\tau(P)=E_P[g_1(X)-g_0(X)]\); the statistic below is a sample map and is not
+a definition of that target.  Its ATE interpretation follows from
+\texttt{ass:consistency} and \texttt{ass:ignorability}.
+
+Apply \texttt{lem:finite-threshold-clipped-bound} with \(N=n\).  For every
+\(0<\lambda\leq\lambda_0\),
+\[
+\sup_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+E_P|\widehat\tau_{\lambda,n}-\tau(P)|
+\leq C_{\mathrm{FT}}U_n(\lambda).                                  \tag{14}
+\]
+It remains only to evaluate the explicit envelope at the frozen oracle
+threshold.  Put
+\[
+b_o=n^{-1/(\kappa+1)},\qquad
+b_e=r_{en}^{2/(\kappa+2)},\qquad
+b_g=(nr_{1n}^2)^{-1},
+\]
+with \(b_g=+\infty\) when \(r_{1n}=0\), and let \(L\) be the active maximum
+in \texttt{def:oracle-threshold}.  Also abbreviate
+\[
+S_o=r_{1n}n^{-\kappa/[2(\kappa+1)]},\qquad
+S_e=r_{1n}r_{en}^{\kappa/(\kappa+2)},\qquad
+S_0=r_{0n}r_{en}.
+\]
+Then \(\rho_n=Q_\kappa(n,r_{1n})+S_o+S_e+S_0\).
+
+Suppose first that \(L<\lambda_0\), so
+\(\lambda_n^\star=L\).  Since \(L\geq b_o\),
+\[
+\frac{r_{1n}}{\sqrt{nL}}
+\leq r_{1n}L^{\kappa/2}.                                           \tag{15}
+\]
+Since \(L\geq b_e\), with the assertion trivial when \(r_{en}=0\),
+\[
+\frac{r_{en}}{\sqrt nL^{3/2}}
+\leq\frac{L^{(\kappa-1)/2}}{\sqrt n}
+\leq Q_\kappa(n,r_{1n}),
+\qquad
+\frac{r_{1n}r_{en}}L\leq S_e.                                     \tag{16}
+\]
+For the second inequality in the first part of (16), if \(0<\kappa<1\),
+use \(L\geq b_g\) to obtain
+\(n^{-1/2}L^{-(1-\kappa)/2}
+\leq n^{-\kappa/2}r_{1n}^{1-\kappa}\); if \(\kappa\geq1\), use
+\(L<\lambda_0<1\).  The same comparison with \(b_g\) gives
+\[
+\frac{v_\kappa(L)}{\sqrt n}\leq Q_\kappa(n,r_{1n})                 \tag{17}
+\]
+for \(0<\kappa\leq1\).  At \(\kappa=1\), indeed,
+\(\log(\lambda_0/L)\leq\log_+(nr_{1n}^2)\).  For \(\kappa>1\),
+(17) is equality because both sides equal \(n^{-1/2}\).
+
+Taking the positive \(\kappa/2\)-power of the active maximum and bounding a
+maximum by a sum yields
+\[
+r_{1n}L^{\kappa/2}
+\leq S_o+S_e+Q_\kappa(n,r_{1n}).                                    \tag{18}
+\]
+When \(0<\kappa<1\), the contribution of \(b_g\) in (18) is exactly
+\(n^{-\kappa/2}r_{1n}^{1-\kappa}\); when \(\kappa=1\), it is
+\(n^{-1/2}\); and when \(\kappa>1\), \(b_g\) is not active.  Combining
+(15)--(18) term by term in \(U_n(L)\) gives the explicit non-cap bound
+\[
+U_n(L)\leq4Q_\kappa(n,r_{1n})+2S_o+3S_e+S_0
+\leq4\rho_n.                                                       \tag{19}
+\]
+
+Now suppose the cap binds, so \(L\geq\lambda_0\) and
+\(\lambda_n^\star=\lambda_0\).  At least one active component is at least
+\(\lambda_0\).  If \(b_o\geq\lambda_0\), then the fourth term of
+\(U_n(\lambda_0)\) is at most \(S_o\).  If
+\(b_e\geq\lambda_0\), that term is at most \(S_e\).  In either case,
+using \(Q_\kappa(n,r_{1n})\geq n^{-1/2}\), both radius caps, and
+\[
+\frac{r_{1n}r_{en}}{\lambda_0}
+\leq\lambda_0^{-1}\bar r^{2/(\kappa+2)}S_e,
+\]
+we obtain directly from the six terms of \(U_n\)
+\[
+U_n(\lambda_0)\leq C_{\mathrm{oe}}\rho_n.                           \tag{20}
+\]
+If \(0<\kappa\leq1\) and \(b_g\geq\lambda_0\), then
+\(r_{1n}\leq(n\lambda_0)^{-1/2}\), including the case \(r_{1n}=0\).
+Consequently
+\[
+\begin{gathered}
+\frac{r_{1n}}{\sqrt{n\lambda_0}}
+\leq\lambda_0^{-1}n^{-1/2},\qquad
+r_{1n}\lambda_0^{\kappa/2}
+\leq\lambda_0^{-(1-\kappa)/2}n^{-1/2},\\
+\frac{r_{1n}r_{en}}{\lambda_0}
+\leq\bar r\lambda_0^{-3/2}n^{-1/2}.
+\end{gathered}
+\]
+Together with the first and third stochastic terms and \(S_0\), these
+inequalities give
+\[
+U_n(\lambda_0)\leq C_{\mathrm g}\rho_n.                            \tag{21}
+\]
+The cases (20)--(21) exhaust the active maximum.  Equations (19)--(21) and the
+definition of \(C_{\mathrm{opt}}\) prove the fully explicit optimization
+inequality
+\[
+U_n(\lambda_n^\star)\leq C_{\mathrm{opt}}\rho_n.                    \tag{22}
+\]
+
+Taking \(\lambda=\lambda_n^\star\) in (14), using (22), and recalling
+\(C_\star=C_{\mathrm{FT}}C_{\mathrm{opt}}\), gives
+\[
+\sup_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+E_P|\widehat\tau_{\lambda_n^\star}-\tau(P)|
+\leq C_\star\rho_n.                                               \tag{23}
+\]
+Thus the unnamed constant \(C\) in the theorem statement may be taken to be
+the computable algebraic constant \(C_\star\) from
+\texttt{def:finite-threshold-envelope}.  The statistic is measurable in the
+observed sample, public functions, and certified radii, so
+\texttt{def:estimator-class} gives
+\(\widehat\tau_{\lambda_n^\star}\in\mathcal T_n\).
+
+For \(W=|\widehat\tau_{\lambda_n^\star}-\tau(P)|\), Markov's inequality and
+(23) yield, for every fixed \(\delta\in(0,1/4)\),
+\[
+P\{W>C_\star\rho_n/\delta\}
+\leq\frac{\delta E_PW}{C_\star\rho_n}\leq\delta.                   \tag{24}
+\]
+Finally, \(\mathcal M_n\subseteq\widetilde{\mathcal M}_n\) because the former
+adds exactly the two richness conditions and changes no retained member
+condition.  Restricting the suprema in (23)--(24) proves both conclusions on
+\(\mathcal M_n\).  Neither richness condition was used for the upper bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exported finite-threshold lemma proves a uniform all-block inequality with explicit \(C_{\mathrm{FT}}\), and the theorem's cap analysis supplies explicit \(C_{\mathrm{opt}}\), so \(C_\star\) is a computable upper-risk witness on the broader shell class. \textit{Gap.} Existing weak-overlap asymptotic results do not provide this finite-risk public-function envelope with one constant valid for every averaging size and threshold. \textit{Consumer.} The full-sample estimator, five-block median, and confidence interval can now use the same declared and evaluable constant chain.
+
+\begin{lemma}[lem:median-risk-upgrade]\label{lem:median-risk-upgrade}
+The corrected median rule \(\widehat\tau_{\mathrm{med}}\) belongs to \(\mathcal T_n\). If \(n\ge5\) and each of its five independent-block copies of \(\widehat\tau_{\lambda_n^{\star}}\) has mean absolute error at most \(K\rho_n\), then \(P\{|\widehat\tau_{\mathrm{med}}-\tau(P)|>u\}\le\min\{1,10(K\rho_n/u)^3\}\) and \(\left\{E_P\!\left[(\widehat\tau_{\mathrm{med}}-\tau(P))^2\right]\right\}^{1/2}\le\sqrt{21}\,K\rho_n\).
+\end{lemma}
+\begin{proof}
+If \(n\geq 5\), the five blocks in \texttt{def:median-estimator} are nonempty and are generated by disjoint coordinate sets.  By \texttt{ass:iid}, their sample vectors are independent.  Each block statistic is measurable in its block sample and in the deterministic public inputs by \texttt{def:clipped-score}; moreover, the median of five real numbers is a Borel function of those numbers.  If \(1\leq n<5\), \texttt{def:median-estimator} instead uses the measurable full-sample clipped statistic.  Thus \texttt{def:estimator-class} gives
+\[
+\widehat\tau_{\mathrm{med}}\in\mathcal T_n
+\]
+in both cases.
+
+Suppose now that \(n\geq5\), and, for \(1\leq j\leq5\), put
+\[
+Z_j=\widehat\tau_{\lambda_n^{\star}}^{(j)}-\tau(P),
+\qquad a=K\rho_n.
+\]
+The premise is \(E_P|Z_j|\leq a\) for every \(j\).  For every \(u>0\), Markov's inequality, in its elementary form
+\[
+E_P|Z_j|\geq uP\{|Z_j|>u\},
+\]
+therefore gives \(P\{|Z_j|>u\}\leq a/u\).  If
+\(\left|\widehat\tau_{\mathrm{med}}-\tau(P)\right|>u\), at least three of the five values lie at distance greater than \(u\) from \(\tau(P)\).  Indeed, if at least three values belonged to the closed interval \([\tau(P)-u,\tau(P)+u]\), their median would belong to that interval.  Hence, using block independence and taking the union over the \({5\choose3}=10\) triples,
+\[
+\begin{split}
+P\!\left\{\left|\widehat\tau_{\mathrm{med}}-\tau(P)\right|>u\right\}
+&\leq \sum_{1\leq j_1<j_2<j_3\leq5}
+P\!\left(\bigcap_{r=1}^3\{|Z_{j_r}|>u\}\right)\\
+&\leq 10(a/u)^3.
+\end{split}
+\]
+Combining this inequality with the trivial probability bound by one proves
+\[
+P\!\left\{\left|\widehat\tau_{\mathrm{med}}-\tau(P)\right|>u\right\}
+\leq\min\{1,10(K\rho_n/u)^3\}.
+\]
+
+Let \(W=|\widehat\tau_{\mathrm{med}}-\tau(P)|\).  If \(a=0\), the premise implies \(Z_j=0\) almost surely for every \(j\), so both conclusions are immediate.  Suppose \(a>0\).  Tonelli's theorem applied to the nonnegative identity \(W^2=\int_0^W2u\,du\), followed by the preceding tail bound, gives
+\[
+\begin{split}
+E_P\!\left[W^2\right]
+&=\int_0^\infty 2uP(W>u)\,du\\
+&\leq\int_0^a2u\,du+
+\int_a^\infty20a^3u^{-2}\,du
+=21a^2.
+\end{split}
+\]
+The right-hand side is finite, so the equality and all integrations are valid also as extended nonnegative integrals.  Taking square roots and substituting \(a=K\rho_n\) yields
+\[
+\left\{E_P\!\left[(\widehat\tau_{\mathrm{med}}-\tau(P))^2\right]\right\}^{1/2}
+\leq\sqrt{21}\,K\rho_n,
+\]
+as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The amplification converts a first-moment upper bound into the root-MSE half of the sharp theorem without an unassumed fourth moment. \textit{Gap.} JinSyrgkanis2024StructureAgnosticDR does not isolate this finite-block root-MSE upgrade for a weak-overlap public-function rate. \textit{Consumer.} The minimax root-MSE theorem can use the same clipped construction under only the stated second-moment envelope.
+
+\begin{theorem}[thm:four-channel-converse]\label{thm:four-channel-converse}
+For every admissible radius triple \( (r_{0n},r_{1n},r_{en})\in[0,\bar r]^3 \) for which \(\mathcal M_n\) is nonempty, the handle \(\mathfrak H_{\mathrm{lb}}\) yields constants \(c>0\) and \(\delta_0\in(0,1/4)\), uniform in \(n\), such that every rule \(T\in\mathcal T_n\), including every rule using \(O^{(n)}\), \(m_0\), \(m_1\), \(p\), and the certified radii, obeys \(\sup_{(P,m_0,m_1,p)\in\mathcal M_n}P\{|T(O^{(n)},m_0,m_1,p,r_{0n},r_{1n},r_{en})-\tau(P)|\ge c\rho_n\}\ge\delta_0\). Consequently \(\mathfrak R_n^{(1)}\ge c\delta_0\rho_n\) and \(\mathfrak R_n^{(2)}\ge c\sqrt{\delta_0}\rho_n\). Every fixed-sign law used by the fuzzy mixtures, rather than merely the mixtures themselves, belongs to \(\mathcal M_n\). Each of the four subexperiment families satisfies \(E_P[(g_1(X)-g_0(X))^2]\le M\) by regression-amplitude calibration within the applicable nuisance radius or a sufficiently small fixed constant.
+\end{theorem}
+\begin{proof}
+Write \(L=1-\eta_+\).  Nonemptiness of \(\mathcal M_n\),
+\texttt{ass:uniform-shell} at \(u=\lambda_0\), and
+\texttt{ass:right-overlap} imply
+\[
+L>{\lambda_0\over2}.                                      \tag{21}
+\]
+Indeed, if \(L\leq\lambda_0/2\), the shell
+\(\{\lambda_0/2<e(X)\leq\lambda_0\}\) is empty, contrary to its lower bound
+\(c_-\lambda_0^\kappa>0\).  Positivity and the lower shell bound also imply
+that \(\mathcal X\) is infinite: finitely many positive propensity values have
+a positive minimum, leaving all sufficiently small shells empty.  Every
+infinite standard Borel space contains a countably infinite set of distinct
+points, and its singletons are measurable.  Thus the countable atomic support
+specified by \(\mathfrak H_{\mathrm{lb}}\) is measurable.
+
+Set \(a=\min\{L,\lambda_0\}\) and \(q_\ell=a2^{-\ell}\).  By (21),
+\(\lambda_0/2<a\leq\lambda_0\).  Put background mass
+\(b_0=c_-\lambda_0^\kappa\) at \(q_0\), and for \(\ell\geq1\) put
+\[
+b_\ell=c_-q_{\ell-1}^\kappa=2^\kappa c_-q_\ell^\kappa.     \tag{22}
+\]
+For \(0<u<a\), there is a unique \(\ell\geq1\) with
+\(q_\ell\leq u<q_{\ell-1}\), and exactly \(q_\ell\) is in \((u/2,u]\).
+Hence
+\[
+c_-u^\kappa<b_\ell\leq2^\kappa c_-u^\kappa.               \tag{23}
+\]
+At a dyadic endpoint the adjacent-index convention gives the same weak
+inequalities.  For \(a\leq u\leq\lambda_0\), the point \(q_0=a\) is in the
+shell because \(u<2a\), and
+\[
+c_-u^\kappa\leq b_0=c_-\lambda_0^\kappa
+<2^\kappa c_-a^\kappa.                                    \tag{24}
+\]
+Thus the background supplies every lower shell bound and has upper coefficient
+\(2^\kappa c_-\).  Its total mass is
+\[
+B_{\mathrm{bg}}
+=c_-\lambda_0^\kappa+{c_-a^\kappa\over1-2^{-\kappa}}
+\leq {1-2^{-\kappa}\over4}+{1\over4}< {1\over2},           \tag{25}
+\]
+by \texttt{ass:lower-shell-richness}.
+
+Let \(\Delta_c=c_+-2^\kappa c_-\).  The two richness inequalities imply
+\(\Delta_c>0\).  Fix \(J\geq3\), \(\zeta=7/10\),
+\(s_0=\zeta q_J\), \(\gamma=21/40\), and choose \(A\) below the three positive
+caps in \texttt{def:lower-bound-handle}.  Put
+\[
+t_j=s_02^{-j},\quad\quad w_j=A(1-2^{-\kappa})t_j^\kappa.
+\]
+For each finite \(N\), give every signal point \(x_{j,k}\) and companion
+\(\widetilde x_{j,k}\) mass \(w_j/N\).  The signal mass and companion mass are
+separately
+\[
+\sum_{j\geq0}w_j
+=A(1-2^{-\kappa})s_0^\kappa\sum_{j\geq0}2^{-j\kappa}
+=As_0^\kappa.                                            \tag{26}
+\]
+Reserve their combined mass by \(R_{J+j}=2w_j\).  With
+\(d_\ell=c_+q_\ell^\kappa-b_\ell-R_\ell\), one has
+\(d_\ell\geq0\): this is immediate below level \(J\), including \(\ell=0\)
+from the richness bounds, and for \(\ell\geq J\) it follows from
+\[
+b_\ell+R_\ell
+=\{2^\kappa c_-+2A(1-2^{-\kappa})\zeta^\kappa\}q_\ell^\kappa
+\leq c_+q_\ell^\kappa.                                    \tag{27}
+\]
+
+Let \(S=c_+a^\kappa/(1-2^{-\kappa})\).  We claim \(S\geq1\).  If
+\(a=L\leq\lambda_0\), take a member of the nonempty class.  Positivity and
+right overlap make the disjoint shells
+\(\{q_{\ell+1}<e(X)\leq q_\ell\}\), \(\ell\geq0\), a partition up to null
+sets, so their upper shell bounds imply
+\[
+1\leq\sum_{\ell\geq0}c_+q_\ell^\kappa=S.                 \tag{28}
+\]
+If \(a=\lambda_0<L\), \texttt{ass:upper-shell-richness} gives
+\[
+S\geq{2^{\kappa-1}\over1-2^{-\kappa}}\geq1.               \tag{29}
+\]
+Consequently,
+\[
+D_{\mathrm{cap}}:=\sum_{\ell\geq0}d_\ell
+=S-B_{\mathrm{bg}}-2As_0^\kappa
+\geq1-B_{\mathrm{bg}}-2As_0^\kappa=:H>0.                 \tag{30}
+\]
+Put \(\pi_\ell=Hd_\ell/D_{\mathrm{cap}}\) at a distinct completion point of
+propensity \(q_\ell\).  Then \(0\leq\pi_\ell\leq d_\ell\),
+\(\sum_\ell\pi_\ell=H\), and the exact total-mass identity is
+\[
+\sum_{\ell\geq0}b_\ell+2\sum_{j\geq0}w_j+
+\sum_{\ell\geq0}\pi_\ell
+=B_{\mathrm{bg}}+2As_0^\kappa+H=1.                       \tag{31}
+\]
+
+For the shell upper bound, first put the active reserved mass back at its
+virtual endpoint.  Its total endpoint mass is
+\[
+M_\ell=b_\ell+\pi_\ell+R_\ell\leq c_+q_\ell^\kappa.       \tag{32}
+\]
+The actual law relocates \(R_\ell\) into \([\gamma q_\ell,q_\ell)\).  This
+contains unchanged active propensities because \(t_j=\zeta q_{J+j}\), treated
+fuzzy ratios in \([4/5,4/3]\), and control fuzzy ratios in \([3/4,5/4]\), since
+\[
+{4\over5}\zeta>{21\over40},\quad {4\over3}\zeta<1,
+\quad\quad {3\over4}\zeta={21\over40},\quad {5\over4}\zeta<1. \tag{33}
+\]
+The signal point receives one tilt and its companion the opposite tilt, so the
+unordered pair of relocated propensities is independent of the fixed sign and
+of \(\theta\).
+
+Fix \(0<u<a\) and the unique \(\ell\geq1\) with
+\(q_\ell\leq u<q_{\ell-1}\).  Relocation from \(q_\ell\) adds no more than
+the mass removed there; all lower endpoints remain at or below \(u/2\).  Only
+relocation from \(q_{\ell-1}\) can add further mass, and only when
+\(u\geq2\gamma q_\ell\).  Thus
+\[
+P\{u/2<e(X)\leq u\}
+\leq M_\ell+R_{\ell-1}\mathbf 1\{u\geq2\gamma q_\ell\}.   \tag{34}
+\]
+When the indicator is one, the third cap on \(A\) gives
+\[
+R_{\ell-1}
+\leq2^{\kappa+1}A(1-2^{-\kappa})\zeta^\kappa q_\ell^\kappa
+\leq c_+\{(2\gamma)^\kappa-1\}q_\ell^\kappa
+\leq c_+(u^\kappa-q_\ell^\kappa).                         \tag{35}
+\]
+Equations (32)--(35) prove the upper cap.  When \(a\leq u\leq\lambda_0\),
+all active propensities are below \(q_J<a/2\), and the endpoint capacity at
+\(q_0=a\) gives the same cap.  Because background atoms are never relocated,
+(23)--(24) give the lower cap for every fixed-sign law.  Hence
+\[
+c_-u^\kappa\leq P\{u/2<e(X)\leq u\}\leq c_+u^\kappa,
+\quad\quad0<u\leq\lambda_0.                                  \tag{36}
+\]
+
+We now isolate the signal reservoir
+\(S_N=\bigcup_{j\geq0}\{x_{j,k}:1\leq k\leq N\}\); the companion reservoir
+is \(C_N=\bigcup_{j\geq0}\{\widetilde x_{j,k}:1\leq k\leq N\}\).
+For \(0<v\leq s_0\), let \(j(v)=\min\{j:t_j\leq v\}\).  Then
+\(v/2<t_{j(v)}\leq v\), and exact geometric summation gives
+\[
+P_X(S_N\cap\{e_0\leq v\})
+=\sum_{j\geq j(v)}w_j=A t_{j(v)}^\kappa,
+\quad A2^{-\kappa}v^\kappa<P_X(S_N\cap\{e_0\leq v\})\leq Av^\kappa, \tag{37}
+\]
+and
+\[
+E_P[e_0\mathbf 1\{X\in S_N,e_0\leq v\}]
+={A(1-2^{-\kappa})\over1-2^{-(\kappa+1)}}
+t_{j(v)}^{\kappa+1}\asymp v^{\kappa+1}.                    \tag{38}
+\]
+For every \(0<s\leq s_0/2\), the half-open interval \((s,2s]\) contains
+exactly one active dyadic level.  If \(s=t_j\), that level is
+\(t_{j-1}=2s\); otherwise the unique \(j\) with
+\(t_j<2s<t_{j-1}\) has \(t_j\in(s,2s)\).  Therefore
+\[
+B_s^S:=S_N\cap\{s<e_0\leq2s\}=\{x_{j,k}:1\leq k\leq N\},
+\quad m:=P_X(B_s^S)=w_j\asymp s^\kappa,                    \tag{39}
+\]
+and its separately defined companion set
+\(C_s^S=\{\widetilde x_{j,k}:1\leq k\leq N\}\) also has mass \(m\).
+In particular, for fixed \(j_c\geq1\) and \(s_c=t_{j_c+1}\),
+\[
+B_c^S:=S_N\cap\{s_c<e_0\leq2s_c\}
+=\{x_{j_c,k}:1\leq k\leq N\},\quad
+m_*:=P_X(B_c^S)=w_{j_c}>0.                              \tag{40}
+\]
+The companion set \(C_c^S\) has the same mass.  Background and completion
+atoms, including those at \(q_{J+j_c+1}\) in the numerical band in (40), are
+outside \(S_N\), remain unperturbed, and are absent from (37)--(40).
+
+We use the following elementary testing reduction.  If sample laws \(Q_+\) and
+\(Q_-\) have targets separated by at least \(2d\), the two events of estimation
+within \(d\) of the respective targets are disjoint.  The variational
+definition of total variation gives
+\[
+Q_+\{|T-\tau_+|\geq d\}+Q_-\{|T-\tau_-|\geq d\}
+\geq1-\operatorname{TV}(Q_+,Q_-).                         \tag{41}
+\]
+For prior mixtures, if their sample total variation is at most \(\Gamma\), and
+each prior target is within \(d/4\) of centers separated by \(2d\) except with
+prior probability \(\varepsilon\), testing the nearer center gives error at
+least \((1-\Gamma-2\varepsilon)/2\) for one mixture.  Since mixture
+probability is an average of fixed-law probabilities, a fixed law in its
+support inherits the bound.
+
+For every family, generate \(D\mid X\sim\operatorname{Bernoulli}(e(X))\),
+generate \((Y_0,Y_1)\) conditionally independently of \(D\) given \(X\), set
+\(Y=DY_1+(1-D)Y_0\), and take \(O_1,\ldots,O_n\) independently.  This verifies
+\texttt{ass:ignorability}, \texttt{ass:consistency}, and \texttt{ass:iid}.
+For Gaussian treated mean-shift families use centered treated residual noise
+with a fixed variance \(0<\sigma^2\leq\sigma_1^2\); use zero residual noise in
+all other arms and families.  Choose a fixed \(c_A>0\), depending only on class
+constants, so small that \(c_A\bar r\leq\sqrt M/4\), every displayed nuisance
+radius inequality below holds, and \(c_A\leq\min\{1/4,s_c\}\).  Every
+treatment-effect signal then has squared \(L^2(P_X)\) norm at most \(M\), and
+the two residual-variance assumptions hold.  No separate moment bound on
+\(g_0\), \(g_1\), or \(Y\) is used.  Equations (32)--(36) give positivity and
+the shell law; (33) and \(q_J<L\) give right overlap.
+
+For the parametric obstruction, split the top background mass \(b_0\) between
+two distinct points of the same propensity.  Give them fixed treatment effects
+\(+c_A\) and \(-c_A\), set public nuisances equal to the true nuisances, and
+under \(\theta\in\{-1,1\}\) assign their masses
+\(b_0/2+\theta\epsilon_n\) and \(b_0/2-\theta\epsilon_n\), where
+\(\epsilon_n=c_pn^{-1/2}\) and \(0<c_p<b_0/4\).  All propensity shells are
+unchanged.  The one-observation categorical divergence is
+\[
+2\epsilon_n\log{b_0/2+\epsilon_n\over b_0/2-\epsilon_n}
+\leq{16\epsilon_n^2\over b_0},                            \tag{42}
+\]
+so product divergence is at most \(16c_p^2/b_0\).  If \(f=dQ_+/dQ_-\), the
+pointwise inequality \(f\log f-f+1\geq(\sqrt f-1)^2\), integration, and
+Cauchy--Schwarz give
+\(\operatorname{TV}(Q_+,Q_-)^2\leq\operatorname{KL}(Q_+,Q_-)\).
+Decreasing \(c_p\) makes product total variation at most \(1/4\).  The targets
+differ by \(4c_Ac_pn^{-1/2}\), so (41) proves the root-\(n\) obstruction.
+
+For \(0<\kappa<1\) and \(r_{1n}>0\), first suppose
+\(s=(nr_{1n}^2)^{-1}\leq s_0\).  On the signal-only tail
+\(A_s^S=S_N\cap\{e_0\leq s\}\), put \(m_s=P_X(A_s^S)\asymp s^\kappa\) and
+\[
+m_1=0,\quad p=e_0,\quad
+g_{1,\pm}=\pm h\mathbf 1_{A_s^S},\quad
+h={c_A r_{1n}\over\sqrt{m_s}},\quad\quad g_0=m_0=0.             \tag{43}
+\]
+Then \(\|m_1-g_{1,\pm}\|_2=c_A r_{1n}\leq r_{1n}\) and the signal moment is
+\(c_A^2r_{1n}^2\leq M\).  By (38),
+\(E[e_0\mathbf 1_{A_s^S}]\leq Csm_s\), and direct Gaussian integration gives
+\[
+\operatorname{KL}(P_+^n,P_-^n)
+={2nh^2\over\sigma^2}E[e_0\mathbf 1_{A_s^S}]
+\leq Cc_A^2,                                               \tag{44}
+\]
+whereas
+\[
+|\tau(P_+)-\tau(P_-)|=2hm_s
+\asymp n^{-\kappa/2}r_{1n}^{1-\kappa}.                    \tag{45}
+\]
+If \(s>s_0\), this scale is a class-constant multiple of at most
+\(n^{-1/2}\), already covered by (42).  If \(r_{1n}=0\), only the parametric
+part of \(Q_\kappa\) remains.
+
+At \(\kappa=1\), first assume \(r_{1n}>0\) and set
+\(s=(nr_{1n}^2)^{-1}\).  If \(s\leq s_0\), define
+\[
+J_s=\max\{j:t_j\geq s\},\quad K_s=J_s+1,\quad
+a_s={c_A\over\sqrt{nK_s}},\quad
+f={a_s\over e_0}\mathbf 1\{X\in S_N,\ s\leq e_0\leq s_0\}. \tag{46}
+\]
+Here \(w_j=(A/2)t_j\).  Exact finite sums give
+\[
+\|f\|_2^2={Aa_s^2(2^{K_s}-1)\over2s_0}\asymp{a_s^2\over s},
+\quad E[e_0f^2]={A\over2}a_s^2K_s,
+\quad E[f]={A\over2}a_sK_s.                               \tag{47}
+\]
+Because \(s_02^{-J_s}\geq s>s_02^{-(J_s+1)}\), the first comparison is exact
+up to fixed constants.  With \(g_{1,\pm}=\pm f\), (47) and
+\(s^{-1}=nr_{1n}^2\) imply \(\|f\|_2\leq r_{1n}\) after calibrating \(c_A\),
+and
+\[
+\operatorname{KL}(P_+^n,P_-^n)
+={2n\over\sigma^2}E[e_0f^2]\leq Cc_A^2,
+\quad
+2E[f]\asymp n^{-1/2}\sqrt{1+\log_+(nr_{1n}^2)}.            \tag{48}
+\]
+If \(s>s_0\), the logarithm is bounded and (42) applies.  If \(r_{1n}=0\),
+we do not define \(s\) and again use (42).  When \(\kappa>1\),
+\(Q_\kappa(n,r_{1n})=n^{-1/2}\).  This proves the full \(Q_\kappa\) channel.
+
+For the empty-treated-shell channel, choose a fixed small \(c_s\leq s_0\) and
+put \(s=c_sn^{-1/(\kappa+1)}\).  Use (43) on
+\(A_s^S=S_N\cap\{e_0\leq s\}\).  Couple the two samples identically unless an
+observation lies in \(A_s^S\) and is treated.  Equations (37)--(38) and a union
+bound give
+\[
+\operatorname{TV}(P_+^n,P_-^n)
+\leq nP\{X\in A_s^S,D=1\}
+\leq Cns^{\kappa+1}=Cc_s^{\kappa+1}.                       \tag{49}
+\]
+Choose \(c_s\) so this is at most \(1/4\).  Because the regression norm uses
+only the signal mass \(m_s\), target separation is
+\[
+2hm_s\asymp r_{1n}n^{-\kappa/[2(\kappa+1)]}.               \tag{50}
+\]
+The component is zero when \(r_{1n}=0\).
+
+For the treated nuisance product, suppose \(r_{en}>0\).  Choose a fixed
+\(c_s>0\), depending only on \(\bar r\) and class constants, so that
+\[
+s=c_sr_{en}^{2/(\kappa+2)}\leq s_0/2                      \tag{51}
+\]
+and the radius inequality below holds.  Equation (39) supplies a unique signal
+level \(B_s^S\) of signal mass \(m\asymp s^\kappa\), together with a separate
+companion set of mass \(m\).  Let \(\delta=1/4\), draw independent signs with
+\[
+\Pr_\theta(Z_k=z)={1+\theta\delta z\over2},                 \tag{52}
+\]
+put \(g_1=hZ_k\), \(h=c_A r_{1n}/\sqrt m\), only on the signal cells, and put
+all regressions equal to zero on companions.  On a signal--companion pair set
+\[
+e^S_{\theta,Z}={e_0\over1+\theta\delta Z_k},\quad\quad
+e^C_{\theta,Z}={e_0\over1-\theta\delta Z_k},\quad\quad p=e_0.   \tag{53}
+\]
+The regression error and signal moment use the signal mass only:
+\[
+\|m_1-g_1\|_2=h\sqrt m=c_A r_{1n}\leq r_{1n},
+\quad\quad E[(g_1-g_0)^2]=h^2m=c_A^2r_{1n}^2\leq M.             \tag{54}
+\]
+Each propensity error is at most \(e_0/3\leq2s/3\), but its norm uses the
+combined pair mass \(2m\).  Hence
+\[
+\|p-e_{\theta,Z}\|_2
+\leq {2s\over3}\sqrt{2m}
+\leq Cc_s^{(\kappa+2)/2}r_{en}\leq r_{en}.                 \tag{55}
+\]
+The propensity ratios lie in \([4/5,4/3]\), so (33)--(36) verify positivity,
+right overlap, and every shell for each fixed sign.
+
+On a signal row, including its treated outcome with mean \(hz\),
+\[
+\Pr_\theta(Z_k=z)e^S_{\theta,z}
+={1+\theta\delta z\over2}{e_0\over1+\theta\delta z}
+={e_0\over2};                                             \tag{56}
+\]
+the two untreated weights sum to \(1-e_0\).  On a companion, the distribution
+of \(\theta\delta Z_k\) under (52) is independent of \(\theta\), so its entire
+one-row mixture is independent of \(\theta\).  Thus sample mixtures differ only
+if two observations hit the same pair index.  Since pair index \(k\) has
+combined mass \(2m/N\),
+\[
+\operatorname{TV}(\overline P_+^n,\overline P_-^n)
+\leq{2n(n-1)m^2\over N}.                                  \tag{57}
+\]
+Only signal cells contribute to the target:
+\[
+\tau(P_{\theta,Z})={hm\over N}\sum_{k=1}^NZ_k,\quad
+E_\theta\tau=\theta\delta hm,\quad
+\operatorname{Var}_\theta(\tau)\leq{h^2m^2\over N}.       \tag{58}
+\]
+Choose finite \(N\) larger than fixed multiples of \(n^2\) and
+\(\delta^{-2}\).  Then (57) and the elementary second-moment bound for a
+\(\delta hm/4\) target deviation are each at most \(1/16\).  The prior testing
+reduction yields an obstruction of order
+\[
+hm\asymp r_{1n}s^{\kappa/2}
+\asymp r_{1n}r_{en}^{\kappa/(\kappa+2)}.                   \tag{59}
+\]
+If \(r_{en}=0\) or \(r_{1n}=0\), this component is zero.
+
+For the control product use the fixed signal band \(B_c^S\), its separately
+defined companion set \(C_c^S\), and write \(e_0=t_{j_c}=2s_c\).  Put
+\[
+g_0=h_0Z_k,\quad h_0={c_A r_{0n}\over\sqrt{m_*}},\quad m_0=0,
+\quad
+\xi=c_A\min\left\{{r_{en}\over\sqrt{m_*}},{1\over4}\right\}           \tag{60}
+\]
+only on signal cells, and set all regressions to zero on companions.  Draw
+\(Z_k\) with \(\Pr_\theta(Z_k=z)=(1+\theta\xi z)/2\).  With
+\(a_{\theta,k}=\theta\xi Z_k\), set
+\[
+e^S_{\theta,Z}={e_0+a_{\theta,k}\over1+a_{\theta,k}},\quad\quad
+e^C_{\theta,Z}={e_0-a_{\theta,k}\over1-a_{\theta,k}},\quad\quad p=e_0.       \tag{61}
+\]
+Because \(c_A\leq s_c\), \(|a_{\theta,k}|\leq s_c/4=e_0/8\).  Direct
+algebra shows
+\[
+{e^S_{\theta,Z}\over e_0}
+=1+{a_{\theta,k}(1-e_0)\over e_0(1+a_{\theta,k})},          \tag{62}
+\]
+and the companion has the opposite sign.  Both ratios lie in
+\([3/4,5/4]\), so fixed-sign support and shells follow from (33)--(36).  The
+regression norm and signal moment use \(m_*\), while the propensity norm uses
+the combined pair mass \(2m_*\):
+\[
+\|m_0-g_0\|_2=h_0\sqrt{m_*}=c_A r_{0n}\leq r_{0n},
+\quad E[(g_1-g_0)^2]=h_0^2m_*=c_A^2r_{0n}^2\leq M,          \tag{63}
+\]
+and
+\[
+\|p-e_{\theta,Z}\|_2
+\leq{\xi\sqrt{2m_*}\over1-\xi}\leq r_{en}.               \tag{64}
+\]
+For (64), use the first branch of (60) when
+\(r_{en}\leq\sqrt{m_*}/4\), and in the other branch use
+\(r_{en}>\sqrt{m_*}/4\), decreasing \(c_A\) once for both.
+
+The signal control row cancels exactly:
+\[
+\Pr_\theta(Z_k=z)(1-e^S_{\theta,z})
+={1+\theta\xi z\over2}{1-e_0\over1+\theta\xi z}
+={1-e_0\over2}.                                           \tag{65}
+\]
+This includes its outcome \(h_0z\); the summed treated row has probability
+\(e_0\) and outcome zero.  The companion mixture is independent of \(\theta\)
+because the distribution of \(\theta\xi Z_k\) is.  The collision bound uses
+combined pair mass and equals \(2n(n-1)m_*^2/N\).  Only signal cells contribute
+to the target:
+\[
+\tau(P_{\theta,Z})=-{h_0m_*\over N}\sum_{k=1}^NZ_k,\quad
+E_\theta\tau=-\theta\xi h_0m_*,\quad
+\operatorname{Var}_\theta(\tau)\leq{h_0^2m_*^2\over N}.    \tag{66}
+\]
+Taking \(N\) larger than fixed multiples of \(n^2\) and \(\xi^{-2}\) when
+\(\xi>0\), the fuzzy reduction yields half-separation
+\[
+d_0=\xi h_0m_*
+=c_A^2r_{0n}\min\{r_{en},\sqrt{m_*}/4\}.                  \tag{67}
+\]
+In the first branch this is \(c_A^2r_{0n}r_{en}\).  In the second,
+\(r_{en}>\sqrt{m_*}/4\) and \(r_{en}\leq\bar r\), so
+\[
+d_0={c_A^2\sqrt{m_*}\over4}r_{0n}
+\geq{c_A^2\sqrt{m_*}\over4\bar r}r_{0n}r_{en}.            \tag{68}
+\]
+If \(\xi=0\), the desired component is zero.
+
+We have constructed fixed laws in \(\mathcal M_n\), with identical public
+functions within each subexperiment, yielding constant testing error at
+\[
+Q_\kappa(n,r_{1n}),\quad\quad
+r_{1n}n^{-\kappa/[2(\kappa+1)]},\quad\quad
+r_{1n}r_{en}^{\kappa/(\kappa+2)},\quad\quad r_{0n}r_{en}.       \tag{69}
+\]
+All regression and target moments in this list were calibrated from the signal
+mass only; propensity errors and collision probabilities used the combined
+signal--companion mass.  The maximum of the four nonnegative quantities is at
+least one quarter of their sum \(\rho_n\).  Decreasing a class-constant
+separation and taking the minimum of the positive testing probabilities gives
+constants \(c>0\) and \(\delta_0\in(0,1/4)\), independent of \(n\) and the
+admissible radii, such that every \(T\in\mathcal T_n\) obeys
+\[
+\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+P\{|T-\tau(P)|\geq c\rho_n\}\geq\delta_0.                 \tag{70}
+\]
+On this event absolute loss is at least \(c\rho_n\), and squared loss is at
+least \(c^2\rho_n^2\).  Consequently, for every \(T\in\mathcal T_n\),
+\[
+\sup_{\mathcal M_n}E_P|T-\tau(P)|
+\geq c\rho_n\sup_{\mathcal M_n}
+P\{|T-\tau(P)|\geq c\rho_n\}
+\geq c\delta_0\rho_n,
+\]
+and, with the square explicitly inside the expectation,
+\[
+\sup_{\mathcal M_n}E_P\!\left[(T-\tau(P))^2\right]
+\geq c^2\rho_n^2\sup_{\mathcal M_n}
+P\{|T-\tau(P)|\geq c\rho_n\}
+\geq c^2\delta_0\rho_n^2.
+\]
+Taking the infima in \texttt{def:absolute-risk} and the corrected
+\texttt{def:root-mse-risk}, and taking the square root for the latter, yields
+\[
+\mathfrak R_n^{(1)}\geq c\delta_0\rho_n,
+\quad\quad
+\mathfrak R_n^{(2)}\geq c\sqrt{\delta_0}\rho_n.
+\]
+This proves the deviation and both loss lower bounds, complete probability
+normalization, and fixed-sign membership without a global observed-outcome
+moment assumption.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This complete shell-matching converse certifies all four obstructions against the full public-information decision class. Explicit completion masses and signal--balancing companions verify every fixed-sign law, including the tight-capacity boundary and the exact \(\kappa=1\) logarithm. \textit{Gap.} JinSyrgkanis2024StructureAgnosticDR and KennedyBalakrishnanRobinsWasserman2024MinimaxCATE provide fuzzy-hypothesis templates, but not the completed shell-preserving relocation, empty-treatment, and fixed-band control channels for this ATE experiment. \textit{Consumer.} The lower bound certifies that no estimator using the sample and the same public predictions can remove any of the four rate components; the sharp-risk and honest-interval theorems consume this fixed-sign-valid converse.
+
+\begin{theorem}[thm:sharp-four-risk-frontier]\label{thm:sharp-four-risk-frontier}
+Uniformly over the bounded radius regime \( (r_{0n},r_{1n},r_{en})\in[0,\bar r]^3 \) for which \(\mathcal M_n\) is nonempty and over the fixed reservoir-rich shell constants, with every minimax infimum taken over \(T\in\mathcal T_n\) measurable in the observed sample and allowed to use \(m_0\), \(m_1\), \(p\), and the certified radii, \(\mathfrak R_n^{(1)}\asymp\rho_n\), \(\mathfrak R_n^{(2)}\asymp\rho_n\), and \(\mathfrak R_{n,\delta}^{(\mathrm{prob})}\asymp\rho_n\) for every fixed \(\delta\in(0,\delta_0]\). Thus the same \(\rho_n\) is the sharp frontier for absolute risk, root mean-squared risk, and fixed-probability error.
+\end{theorem}
+\begin{proof}
+All upper and lower bounds use the frozen law--function class
+\(\mathcal M_n\) and decision class \(\mathcal T_n\).  By
+\texttt{thm:clipped-absolute-upper}, with its explicit witness
+\(C_\star\),
+\[
+\mathfrak R_n^{(1)}
+\leq\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+E_P|\widehat\tau_{\lambda_n^\star}-\tau(P)|
+\leq C_\star\rho_n.                                               \tag{25}
+\]
+
+For the root-MSE upper bound, suppose first that \(n\geq5\), and let \(N_j\)
+be the size of block \(j\) in \texttt{def:median-estimator}.  Since the five
+block sizes differ by at most one,
+\[
+N_j\geq\lfloor n/5\rfloor\geq n/10.                               \tag{26}
+\]
+The last inequality follows directly for \(5\leq n\leq9\), while for
+\(n\geq10\) it follows from
+\(\lfloor n/5\rfloor\geq n/5-1\geq n/10\).  In the explicit envelope
+\(U_N(\lambda)\), exactly the first three terms depend on \(N\), and each is
+proportional to \(N^{-1/2}\); the last three are deterministic biases.
+Therefore (26), \texttt{lem:finite-threshold-clipped-bound}, and \texttt{lem:oracle-envelope-optimization} give, for every block,
+\[
+\begin{split}
+E_P|\widehat\tau_{\lambda_n^\star,N_j}-\tau(P)|
+&\leq C_{\mathrm{FT}}U_{N_j}(\lambda_n^\star)\\
+&\leq\sqrt{10}\,C_{\mathrm{FT}}U_n(\lambda_n^\star)\\
+&\leq\sqrt{10}\,C_\star\rho_n.
+\end{split} \tag{27}
+\]
+Here only the averaging size changes to \(N_j\); the public functions,
+certificates, threshold, and rate remain indexed by the original \(n\).
+The blocks are independent by \texttt{ass:iid}.  Apply the already established
+\texttt{lem:median-risk-upgrade} with
+\(K=\sqrt{10}C_\star\) to obtain
+\[
+\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+\left\{E_P[(\widehat\tau_{\mathrm{med}}-\tau(P))^2]\right\}^{1/2}
+\leq\sqrt{210}\,C_\star\rho_n.                                   \tag{28}
+\]
+
+For \(1\leq n<5\), the median rule is the full-sample clipped rule.  Put
+\[
+\lambda_{\min}=\min\{\lambda_0,4^{-1/(\kappa+1)}\}>0.
+\]
+Since \(b_o\geq4^{-1/(\kappa+1)}\), the oracle threshold satisfies
+\(\lambda_n^\star\geq\lambda_{\min}\), while
+\(1-p^\circ\geq\eta_+/2\).  With
+\(\Delta=g_1-g_0\), \(h_a=m_a-g_a\), and
+\(\varepsilon_a=Y-g_a(X)\) on \(\{D=a\}\), direct substitution gives
+\[
+\psi_{\lambda_n^\star}
+=\Delta+h_1-h_0
++\frac{D(\varepsilon_1-h_1)}{q_{\lambda_n^\star}}
+-\frac{(1-D)(\varepsilon_0-h_0)}{1-p^\circ}.                       \tag{29}
+\]
+The signal moment, the two public regression certificates, the two conditional
+residual-variance bounds, and Minkowski's inequality imply
+\[
+\|\psi_{\lambda_n^\star}-\tau(P)\|_{P,2}\leq C_{\mathrm{sm}},      \tag{30}
+\]
+where the following displayed finite constant suffices:
+\[
+C_{\mathrm{sm}}
+=2\sqrt M+2\bar r
++\lambda_{\min}^{-1}\sqrt{2(\sigma_1^2+\bar r^2)}
++\frac2{\eta_+}\sqrt{2(\sigma_0^2+\bar r^2)}.
+\]
+Indeed, \(|\tau(P)|\leq\sqrt M\), and the two weighted residual-regression
+terms in (29) have \(L^2(P)\) norms bounded by the last two summands before
+centering.  Pointwise convexity of the square now gives
+\[
+E_P\!\left[\left(\frac1n\sum_{i=1}^n
+\{\psi_{\lambda_n^\star}(O_i)-\tau(P)\}\right)^2\right]
+\leq\frac1n\sum_{i=1}^n
+E_P[(\psi_{\lambda_n^\star}(O_i)-\tau(P))^2]
+\leq C_{\mathrm{sm}}^2.                                           \tag{31}
+\]
+Because \(\rho_n\geq n^{-1/2}\geq1/2\) for \(n<5\), (31) is at most
+\((2C_{\mathrm{sm}}\rho_n)^2\).  Combining (28)--(31), membership of the
+median rule from \texttt{lem:median-risk-upgrade}, and the square-inside-the-
+expectation definition \texttt{def:root-mse-risk}, proves
+\[
+\mathfrak R_n^{(2)}\leq C_2\rho_n                                  \tag{32}
+\]
+for all \(n\geq1\), with \(C_2\) depending only on the fixed class constants.
+
+For fixed \(\delta\in(0,1/4)\), (24) makes
+\(C_\star\rho_n/\delta\) feasible in
+\texttt{def:probability-risk}; hence
+\[
+\mathfrak R_{n,\delta}^{(\mathrm{prob})}
+\leq(C_\star/\delta)\rho_n.                                       \tag{33}
+\]
+
+For the converse, let \(c>0\) and \(\delta_*>0\) be the uniform constants in
+\texttt{thm:four-channel-converse}, and set
+\(\delta_0=\min\{\delta_*/2,1/8\}\).  That theorem directly gives
+\[
+\mathfrak R_n^{(1)}\geq c_1\rho_n,
+\qquad
+\mathfrak R_n^{(2)}\geq c_2\rho_n                                 \tag{34}
+\]
+for positive fixed constants.  Moreover, for every \(T\in\mathcal T_n\),
+\[
+\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+P\{|T-\tau(P)|\geq c\rho_n\}
+\geq\delta_*\geq2\delta_0.                                       \tag{35}
+\]
+If \(0<\delta\leq\delta_0\) and \(u<c\rho_n\), the event in (35) is
+contained in \(\{|T-\tau(P)|>u\}\), whose supremum probability is therefore
+strictly larger than \(\delta\).  Such a radius is infeasible in
+\texttt{def:probability-risk}; taking the two infima gives
+\[
+\mathfrak R_{n,\delta}^{(\mathrm{prob})}\geq c\rho_n.               \tag{36}
+\]
+Equations (25), (32)--(34), and (36) prove all three equivalences.  The upper
+construction, including the blockwise use of (27), remains valid on the
+broader uniform one-sided-shell class.  The matching lower bounds use the
+reservoir-rich class and both richness assumptions through
+\texttt{thm:four-channel-converse}.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Each block has size at least \(n/10\), so the declared all-\(N\) inequality yields mean absolute error at most \(\sqrt{10}C_\star\rho_n\); median amplification then closes the root-MSE upper bound against the established four-channel converse. \textit{Gap.} The repaired proof no longer relies on a finite-threshold inequality hidden inside another theorem's proof. The two accepted-bank binary-ATE frontiers concern fixed-overlap discrete-occupancy classes without this public global-\(L^2(P_X)\), dyadic weak-overlap experiment; neither class inclusion nor lower-bound transfer is asserted. \textit{Consumer.} The theorem provides an auditable oracle benchmark for all three estimation loss criteria.
+
+\begin{theorem}[thm:honest-interval-frontier]\label{thm:honest-interval-frontier}
+For every admissible radius triple \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), let \(\widetilde{\mathcal M}_n\) denote the broader class obtained from \texttt{def:public-weak-overlap-class} by retaining all of its member conditions and deleting exactly \texttt{ass:lower-shell-richness} and \texttt{ass:upper-shell-richness}.  For every fixed \(\alpha\in(0,1/4)\), a choice of \(K_\alpha\) depending only on \(\alpha\), \(\bar r\), and the retained fixed class constants makes \(\mathcal C_{n,\alpha}\in\mathcal I_n\) uniformly honest on this broader class:
+\[
+\inf_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+P\{\tau(P)\in\mathcal C_{n,\alpha}\}\geq1-\alpha,
+\qquad
+\sup_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+E_P[\operatorname{length}(\mathcal C_{n,\alpha})]
+\leq C_\alpha\rho_n.
+\]
+Conversely, when the reservoir-rich class \(\mathcal M_n\) is nonempty, every \(C_n\in\mathcal I_n\) that is uniformly honest over \(\mathcal M_n\), including every rule using the public functions and certified radii, satisfies
+\[
+\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+E_P[\operatorname{length}(C_n)]\geq c_\alpha\rho_n.
+\]
+Consequently \(\mathfrak L_{n,\alpha}\asymp\rho_n\) on the reservoir-rich class.  No matching lower bound or length equivalence is asserted here for \(\widetilde{\mathcal M}_n\setminus\mathcal M_n\).
+\end{theorem}
+\begin{proof}
+Let \(\widetilde{\mathcal M}_n\) be the broader class in the statement.  We
+first prove coverage there using the explicit interval calibration in the
+corrected \texttt{def:bias-aware-interval}.
+
+Suppose \(n\geq5\), and let \(N_j\) be a block size.  Because the five block sizes differ by at most one, \(N_j\geq\lfloor n/5\rfloor\geq n/10\): the second inequality is immediate for \(5\leq n\leq9\), and for \(n\geq10\) it follows from \(\lfloor n/5\rfloor\geq n/5-1\geq n/10\).  Only the first three terms of \(U_N(\lambda)\) scale with \(N^{-1/2}\), while the last three are unchanged biases.  Hence the declared lemmas \texttt{lem:finite-threshold-clipped-bound} and \texttt{lem:oracle-envelope-optimization} give \[\begin{split}
+E_P|\widehat\tau_{\lambda_n^\star,N_j}-\tau(P)|
+&\leq C_{\mathrm{FT}}U_{N_j}(\lambda_n^\star)\\
+&\leq\sqrt{10}\,C_{\mathrm{FT}}U_n(\lambda_n^\star)\\
+&\leq\sqrt{10}\,C_\star\rho_n.
+\end{split} \tag{37}
+\]
+The five block estimators are independent by \texttt{ass:iid}.  Applying
+\texttt{lem:median-risk-upgrade} with
+\(K=\sqrt{10}C_\star\) yields, for every \(u>0\),
+\[
+\sup_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+P\{|\widehat\tau_{\mathrm{med}}-\tau(P)|>u\}
+\leq\min\!\left\{1,10\left(\frac{\sqrt{10}C_\star\rho_n}{u}\right)^3\right\}.
+                                                                        \tag{38}
+\]
+For \(1\leq n<5\), the median rule is the full-sample clipped rule, and the explicit mean bound in \texttt{thm:clipped-absolute-upper} plus Markov gives
+\[
+\sup_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+P\{|\widehat\tau_{\mathrm{med}}-\tau(P)|>u\}
+\leq C_\star\rho_n/u.                                             \tag{39}
+\]
+
+The corrected definition sets
+\[
+K_\alpha=C_\star\max\!\left\{
+\sqrt{10}(10/\alpha)^{1/3},\alpha^{-1}\right\}.
+\]
+Taking \(u=K_\alpha\rho_n\) in (38) makes its second argument at most
+\(\alpha\), and taking the same \(u\) in (39) also gives a bound by
+\(\alpha\).  Therefore, for every \(n\geq1\),
+\[
+\inf_{(P,m_0,m_1,p)\in\widetilde{\mathcal M}_n}
+P\{\tau(P)\in\mathcal C_{n,\alpha}\}\geq1-\alpha.                 \tag{40}
+\]
+The center is measurable in the sample, and the radius is an explicit function
+of the supplied radii and fixed class constants.  Thus
+\(\mathcal C_{n,\alpha}\in\mathcal I_n\), and its deterministic length is
+\[
+\operatorname{length}(\mathcal C_{n,\alpha})
+=2K_\alpha\rho_n.                                                  \tag{41}
+\]
+Equations (40)--(41) prove the upper coverage and expected-length conclusions
+on the broader class without either richness condition.
+
+We now restrict to the nonempty reservoir-rich class \(\mathcal M_n\).  The
+four component experiments certified in the proof of
+\texttt{thm:four-channel-converse} are two-point or fuzzy two-prior
+experiments generated by \(\mathfrak H_{\mathrm{lb}}\), and every fixed-sign
+law belongs to \(\mathcal M_n\).  For a two-point component, let its targets
+be separated by \(2d\) and let the total variation distance between its two
+sample laws be at most \(\Gamma\).  Honesty at both laws and total-variation
+transfer imply, under the first law,
+\[
+P_0\{\tau(P_0)\in C_n\}\geq1-\alpha,
+\qquad
+P_0\{\tau(P_1)\in C_n\}\geq1-\alpha-\Gamma.
+\]
+An interval containing both targets has length at least \(2d\), so the union
+bound gives
+\[
+P_0\{\operatorname{length}(C_n)\geq2d\}
+\geq1-2\alpha-\Gamma.                                              \tag{42}
+\]
+
+For a fuzzy component, let its two sample mixtures have total variation at
+most \(\Gamma\), and let their prior target centers be separated by \(2d\).
+The finite cell count in \(\mathfrak H_{\mathrm{lb}}\) can be chosen so that,
+under either prior, the fixed-sign target is within \(d/4\) of its center
+except on a set of prior probability at most \(\varepsilon\).  Averaging
+fixed-law honesty under each prior, transferring one event between mixtures,
+and intersecting the two events show that under the first mixture the interval
+meets both \(d/4\)-neighborhoods with probability at least
+\(1-2\alpha-\Gamma-2\varepsilon\).  Their distance is at least \(3d/2\);
+hence
+\[
+\overline P_-
+\{\operatorname{length}(C_n)\geq3d/2\}
+\geq1-2\alpha-\Gamma-2\varepsilon.                                 \tag{43}
+\]
+The established converse construction chooses the two-point amplitudes with
+\(\Gamma\leq1/4\), and in each fuzzy experiment enlarges its finite cell count
+until \(\Gamma+2\varepsilon\leq1/4\), without changing target separation or
+fixed-sign membership.  Since \(\alpha<1/4\), the right sides of (42)--(43)
+are bounded below by a positive constant depending only on \(\alpha\).  A
+mixture expectation is an average of fixed-law expectations, so (43) implies
+that at least one fixed-sign member has expected interval length bounded below
+by a positive constant times \(d\).
+
+The four target separations in \texttt{thm:four-channel-converse} dominate,
+up to fixed positive constants, the four summands of \(\rho_n\).  If their
+scales are \(d_1,\ldots,d_4\), then
+\[
+\max_{1\leq j\leq4}d_j
+\geq\frac14\sum_{j=1}^4d_j
+\geq c\rho_n.                                                       \tag{44}
+\]
+Selecting the largest component in (44) and applying (42) or (43) proves that
+every interval rule honest over \(\mathcal M_n\) satisfies
+\[
+\sup_{(P,m_0,m_1,p)\in\mathcal M_n}
+E_P[\operatorname{length}(C_n)]\geq c_\alpha\rho_n.                 \tag{45}
+\]
+Taking the infimum over honest rules and combining (45) with (41), restricted
+through \(\mathcal M_n\subseteq\widetilde{\mathcal M}_n\), gives
+\(\mathfrak L_{n,\alpha}\asymp\rho_n\).  Only the lower bound and equivalence
+use the two richness assumptions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit multiplier \(K_\alpha=C_\star\max\{\sqrt{10}(10/\alpha)^{1/3},\alpha^{-1}\}\) covers both the five-block tail and the \(n<5\) Markov fallback on the broader shell class. \textit{Gap.} Prior calibration was existential; the corrected procedure is directly evaluable from declared inputs. \textit{Consumer.} Applied users can compute the bias-aware radius, while the matching expected-length claim remains explicitly limited to the reservoir-rich class.
+
+\begin{proposition}[prop:polynomial-phase-diagram]\label{prop:polynomial-phase-diagram}
+If \(r_{0n}=n^{-a_0}\), \(r_{1n}=n^{-a_1}\), and \(r_{en}=n^{-a_e}\) with \(a_0,a_1,a_e\ge0\), then the bounded-radius regime holds for \(\bar r\ge1\), and \(\rho_n=n^{-\beta_{\kappa}}\) up to the boundary logarithm specified below. If \(B\le a_1\), weak overlap causes no polynomial deterioration. If \(B>a_1\), then \(\beta_{\kappa}<B\) holds exactly when \(0<\kappa<\kappa_{\dagger}\). At \(\kappa=1\), the additional factor is \(\sqrt{1+\log_+(n r_{1n}^2)}\), and it changes the leading root-\(n\) rate only when \(a_1<1/2\). The empty-shell exponent \(a_1+\kappa/[2(\kappa+1)]\) tends to \(a_1+1/2\), so its surviving fast-tail term never worsens the benchmark \(B\).
+\end{proposition}
+\begin{proof}
+By the polynomial-radius specialization in the statement and the symbol declarations, \(n\in\mathbb N\) and \(a_0,a_1,a_e\geq 0\).  Hence
+\[
+0<r_{jn}=n^{-a_j}\leq 1\leq \bar r,
+\qquad j\in\{0,1,e\},
+\]
+so the three radius bounds required by the bounded-radius regime hold.
+
+We first extract the polynomial order of every summand in \(\rho_n\).  Define, only within this proof,
+\[
+t_\kappa:=\frac{\kappa}{2}+(1-\kappa)a_1,
+\qquad
+u_\kappa:=a_1+\frac{\kappa}{2(\kappa+1)},
+\qquad
+w_\kappa:=a_1+\frac{\kappa a_e}{\kappa+2},
+\qquad
+c:=a_0+a_e.
+\]
+The definition of \(Q_\kappa\) and the equality \(r_{1n}=n^{-a_1}\) give, when \(0<\kappa<1\),
+\[
+Q_\kappa(n,r_{1n})
+=n^{-1/2}\vee n^{-\kappa/2}(n^{-a_1})^{1-\kappa}
+=n^{-1/2}\vee n^{-t_\kappa}.
+\]
+The remaining three terms in the definition of \(\rho_n\) satisfy
+\[
+r_{1n}n^{-\kappa/[2(\kappa+1)]}=n^{-u_\kappa},
+\qquad
+r_{1n}r_{en}^{\kappa/(\kappa+2)}=n^{-w_\kappa},
+\qquad
+r_{0n}r_{en}=n^{-c}.
+\]
+For \(n\geq1\), the largest of finitely many powers \(n^{-s}\) is the power having the smallest exponent.  Therefore Definition \(\mathrm{def{:}phase\mbox{-}exponent}\) gives, for \(0<\kappa<1\),
+\[
+\beta_\kappa=\min\{1/2,t_\kappa,u_\kappa,w_\kappa,c\}.
+\]
+For \(\kappa>1\), Definition \(\mathrm{def{:}tail\mbox{-}noise\mbox{-}rate}\) gives \(Q_\kappa(n,r_{1n})=n^{-1/2}\), and hence
+\[
+\beta_\kappa=\min\{1/2,u_\kappa,w_\kappa,c\}.
+\]
+In either case, the summand whose exponent equals \(\beta_\kappa\) supplies the lower bound, while each of the four summands in Definition \(\mathrm{def{:}sharp\mbox{-}rate}\) is at most \(n^{-\beta_\kappa}\).  Thus
+\[
+n^{-\beta_\kappa}\leq \rho_n\leq 4n^{-\beta_\kappa},
+\qquad \kappa\neq1.
+\]
+
+At \(\kappa=1\), put
+\[
+L_n:=\sqrt{1+\log_+(nr_{1n}^2)}.
+\]
+Then \(Q_1(n,r_{1n})=n^{-1/2}L_n\), \(L_n\geq1\), and
+\[
+\beta_1=\min\{1/2,a_1+1/4,a_1+a_e/3,c\}.
+\]
+The same comparison, now using \(L_n\geq1\), yields
+\[
+n^{-\beta_1}\leq \rho_n\leq4L_n n^{-\beta_1}.
+\]
+This proves the asserted polynomial order, including the stated possible boundary logarithm.
+
+It remains to characterize strict deterioration relative to \(B\).  First suppose \(B\leq a_1\).  For \(0<\kappa<1\),
+\[
+t_\kappa=(1-\kappa)a_1+\kappa/2\geq B,
+\]
+because both \(a_1\) and \(1/2\) are at least \(B\).  For every \(\kappa>0\),
+\[
+u_\kappa\geq a_1\geq B,
+\qquad
+w_\kappa\geq a_1\geq B.
+\]
+Also \(1/2\geq B\) and \(c=a_0+a_e\geq B\) by the definition
+\(B=\min\{1/2,a_1+a_e,a_0+a_e\}\).  Thus every entry defining \(\beta_\kappa\) is at least \(B\).  Conversely, if the minimum defining \(B\) is attained by \(1/2\) or by \(c\), that same entry occurs in \(\beta_\kappa\).  In the remaining case \(B=a_1+a_e\); the inequalities \(B\leq a_1\) and \(a_e\geq0\) then force \(a_e=0\) and \(B=a_1=w_\kappa\).  Hence
+\[
+\beta_\kappa=B
+\]
+whenever \(B\leq a_1\), proving that there is no polynomial deterioration in this case.
+
+Now suppose \(B>a_1\), and set \(x:=B-a_1>0\) as in Definition \(\mathrm{def{:}deterioration\mbox{-}threshold}\).  Since \(B\leq1/2\) and \(B\leq a_1+a_e\),
+\[
+0<x\leq 1/2-a_1,
+\qquad
+0<x\leq a_e.
+\]
+In particular, \(a_1<1/2\), the first denominator below is positive, and \(a_e-x\geq0\).  Define the three extended-real cutoffs
+\[
+A_1:=\frac{x}{1/2-a_1},
+\qquad
+A_2:=\frac{2x}{1-2x},
+\qquad
+A_3:=\frac{2x}{a_e-x},
+\]
+with a zero denominator interpreted as \(+\infty\), exactly as in Definition \(\mathrm{def{:}deterioration\mbox{-}threshold}\).  Notice that \(A_1\leq1\).
+
+The tail-noise exponent is present only for \(0<\kappa<1\), and direct subtraction gives
+\[
+t_\kappa<B
+\quad\Longleftrightarrow\quad
+\kappa(1/2-a_1)<x
+\quad\Longleftrightarrow\quad
+\kappa<A_1.
+\]
+Because \(A_1\leq1\), the condition \(0<\kappa<A_1\) automatically lies in the range where this entry is present.  For the empty-shell exponent, if \(x<1/2\), multiplication by the positive number \(2(\kappa+1)\) gives
+\[
+u_\kappa<B
+\quad\Longleftrightarrow\quad
+\frac{\kappa}{2(\kappa+1)}<x
+\quad\Longleftrightarrow\quad
+\kappa(1-2x)<2x
+\quad\Longleftrightarrow\quad
+\kappa<A_2.
+\]
+If \(x=1/2\), the strict inequality \(\kappa/[2(\kappa+1)]<x\) holds for every finite \(\kappa>0\), and the convention \(A_2=+\infty\) gives the same equivalence.  Finally, if \(a_e>x\),
+\[
+w_\kappa<B
+\quad\Longleftrightarrow\quad
+\frac{\kappa a_e}{\kappa+2}<x
+\quad\Longleftrightarrow\quad
+\kappa(a_e-x)<2x
+\quad\Longleftrightarrow\quad
+\kappa<A_3.
+\]
+If \(a_e=x\), then \(\kappa a_e/(\kappa+2)<a_e=x\) for every finite \(\kappa>0\), again agreeing with \(A_3=+\infty\).
+
+The two entries \(1/2\) and \(c\) are at least \(B\) by definition.  Consequently, the preceding three displays exhaust all ways in which an entry of \(\beta_\kappa\) can be strictly smaller than \(B\).  Taking their union,
+\[
+\begin{aligned}
+\beta_\kappa<B
+&\quad\Longleftrightarrow\quad
+(\kappa<A_1)\ \text{or}\ (\kappa<A_2)\ \text{or}\ (\kappa<A_3)\\
+&\quad\Longleftrightarrow\quad
+0<\kappa<\max\{A_1,A_2,A_3\}
+\quad\Longleftrightarrow\quad
+0<\kappa<\kappa_\dagger,
+\end{aligned}
+\]
+where the last equivalence is Definition \(\mathrm{def{:}deterioration\mbox{-}threshold}\).  The strict inequalities also show that a finite boundary \(\kappa=\kappa_\dagger\) is not part of the deterioration region.
+
+For completeness, the logarithmic qualification at \(\kappa=1\) is exact.  Since \(r_{1n}=n^{-a_1}\),
+\[
+L_n=\sqrt{1+\log_+(n^{1-2a_1})}.
+\]
+If \(a_1\geq1/2\), then \(n^{1-2a_1}\leq1\) and \(L_n=1\).  If \(a_1<1/2\), then \(L_n\) is of order \(\sqrt{\log n}\).  When \(\beta_1<1/2\), writing \(d:=1/2-\beta_1>0\) shows
+\[
+\frac{n^{-1/2}L_n}{n^{-\beta_1}}=n^{-d}L_n\longrightarrow0;
+\]
+indeed, after setting \(s=\log n\), the bound \(e^{ds}\geq (ds)^2/2\) proves the limit.  Hence the logarithm does not change the leading rate in that case.  When \(\beta_1=1/2\), all three non-noise terms are at most \(n^{-1/2}\), so
+\[
+n^{-1/2}L_n\leq\rho_n\leq4n^{-1/2}L_n.
+\]
+Thus the boundary factor changes a leading root-\(n\) rate exactly when \(a_1<1/2\) and \(\beta_1=1/2\), which in particular proves the necessary condition stated in the proposition.
+
+Finally,
+\[
+\frac{d}{d\kappa}u_\kappa=\frac{1}{2(\kappa+1)^2}>0,
+\qquad
+\lim_{\kappa\to\infty}u_\kappa=a_1+1/2\geq1/2\geq B.
+\]
+Therefore the empty-shell channel has no surviving deterioration in the fast-tail limit; any deterioration at finite \(\kappa\) is already exactly accounted for by the cutoff \(A_2\) above.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The critical exponent turns the rate formula into a falsifiable regime map for when weak overlap truly changes attainable accuracy. \textit{Gap.} KhanTamer2010Irregular has tail-dependent rates but not this joint nuisance phase boundary with the empty-treated-shell exponent \(a_1+\kappa/[2(\kappa+1)]\). \textit{Consumer.} A researcher can diagnose from estimated learning-rate exponents whether overlap or ordinary nuisance interaction is the binding statistical bottleneck.
+
+\begin{proposition}[prop:regular-benchmark-reduction]\label{prop:regular-benchmark-reduction}
+For every fixed \(\kappa>0\), \(\mathcal M_n\cap\mathcal M_n^{\mathrm{reg}}=\varnothing\): the uniform-shell condition places positive mass below every positive propensity threshold, whereas the uniform-overlap comparator imposes \(e(X)\ge\eta_-\) almost surely. For fixed \(n\) and \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\),
+\[
+\lim_{\kappa\to\infty}\rho_n=(1+r_{1n})n^{-1/2}+r_{1n}r_{en}+r_{0n}r_{en}\asymp n^{-1/2}+r_{1n}r_{en}+r_{0n}r_{en},
+\]
+uniformly under \(r_{1n}\le\bar r\). Writing the final rate form as \(C_n=n^{-1/2}+r_{0n}r_{en}+r_{1n}r_{en}\), the constant-weight Jin--Syrgkanis lower-bound template after its stated interpretive radius substitutions is \(J_n=n^{-1/2}+\max\{r_{0n},r_{1n}\}r_{en}\), and \(J_n\le C_n\le2J_n\). Separately, the Bonvini--Kennedy--Dukes--Balakrishnan one-functional template becomes only the treated-side form \(L_{1,n}=n^{-1/2}+r_{1n}r_{en}\le C_n\) under the purely interpretive substitution \(\varepsilon_n=r_{1n}\), \(\delta_n=r_{en}\); it supplies no control-side term. These are only algebraic source-class sanity comparisons: they prove neither a minimax equivalence for \(\mathcal M_n^{\mathrm{reg}}\) nor any class-inclusion transfer.
+\end{proposition}
+\begin{proof}
+Fix \(\kappa>0\).  Suppose, toward a contradiction, that
+\((P,m_0,m_1,p)\in\mathcal M_n\cap\mathcal M_n^{\mathrm{reg}}\), and define
+\[
+u_\star=\frac12\min\{\lambda_0,\eta_-\}.
+\]
+The declared ranges \(\lambda_0\in(0,1)\) and \(\eta_-\in(0,1)\) imply
+\(0<u_\star\le\lambda_0\) and \(u_\star<\eta_-\).  Membership in
+\(\mathcal M_n\), by \texttt{def:public-weak-overlap-class}, entails
+\texttt{ass:uniform-shell}.  Its lower shell inequality, applied at
+\(u=u_\star\), gives
+\[
+P\!\left\{\frac{u_\star}{2}<e(X)\le u_\star\right\}
+\ge c_-u_\star^\kappa>0,
+\]
+where strict positivity follows from \(c_->0\), \(u_\star>0\), and
+\(\kappa>0\).  Membership in \(\mathcal M_n^{\mathrm{reg}}\), by
+\texttt{def:regular-overlap-class}, entails
+\texttt{ass:uniform-overlap-comparator}, and therefore
+\[
+P\{e(X)\ge\eta_-\}=1.
+\]
+Since \(u_\star<\eta_-\), however,
+\[
+\left\{\frac{u_\star}{2}<e(X)\le u_\star\right\}
+\subseteq\{e(X)<\eta_-\},
+\]
+so the same shell has probability zero.  This contradiction proves
+\[
+\mathcal M_n\cap\mathcal M_n^{\mathrm{reg}}=\varnothing.
+\]
+
+Now fix \(n\in\mathbb N\) and
+\((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\).  In particular, \(n\ge1\) and
+the three radii are nonnegative.  For every \(\kappa>1\),
+\texttt{def:tail-noise-rate} yields
+\[
+Q_\kappa(n,r_{1n})=n^{-1/2}.
+\]
+Furthermore,
+\[
+\frac{\kappa}{2(\kappa+1)}\longrightarrow\frac12,
+\qquad
+\frac{\kappa}{\kappa+2}\longrightarrow1
+\qquad\text{as }\kappa\to\infty.
+\]
+Because \(n\ge1\), continuity of \(a\mapsto n^{-a}\) gives
+\[
+r_{1n}n^{-\kappa/[2(\kappa+1)]}
+\longrightarrow r_{1n}n^{-1/2}.
+\]
+If \(r_{en}>0\), continuity of \(a\mapsto r_{en}^{a}\) gives
+\(r_{en}^{\kappa/(\kappa+2)}\to r_{en}\).  If \(r_{en}=0\), then
+\(r_{en}^{\kappa/(\kappa+2)}=0=r_{en}\), since
+\(\kappa/(\kappa+2)>0\).  Hence in either case
+\[
+r_{1n}r_{en}^{\kappa/(\kappa+2)}
+\longrightarrow r_{1n}r_{en}.
+\]
+The term \(r_{0n}r_{en}\) is independent of \(\kappa\).  Substituting these
+limits into the finite sum in \texttt{def:sharp-rate} proves
+\[
+\lim_{\kappa\to\infty}\rho_n
+=(1+r_{1n})n^{-1/2}+r_{1n}r_{en}+r_{0n}r_{en}.
+\]
+
+For the asserted uniform comparison, set
+\[
+A_n=r_{1n}r_{en}+r_{0n}r_{en}\ge0,
+\qquad
+B_n=n^{-1/2}+A_n>0.
+\]
+Since \(0\le r_{1n}\le\bar r\),
+\[
+B_n
+\le (1+r_{1n})n^{-1/2}+A_n
+\le (1+\bar r)n^{-1/2}+A_n
+\le (1+\bar r)B_n.
+\]
+The comparison constants \(1\) and \(1+\bar r\) are independent of \(n\)
+and of all three radii.  Consequently
+\[
+(1+r_{1n})n^{-1/2}+r_{1n}r_{en}+r_{0n}r_{en}
+\asymp n^{-1/2}+r_{1n}r_{en}+r_{0n}r_{en}
+\]
+uniformly over the declared radius range, and in particular uniformly under
+\(r_{1n}\le\bar r\).
+
+It remains to prove the two algebraic source-class comparisons.  Define
+\[
+C_n=n^{-1/2}+r_{0n}r_{en}+r_{1n}r_{en}.
+\]
+By \texttt{lem:jin-syrgkanis-regular-benchmark}, the constant-weight
+square-root lower-bound template after the stated interpretive substitutions is
+\[
+J_n=n^{-1/2}+\max\{r_{0n},r_{1n}\}r_{en}.
+\]
+Nonnegativity of \(r_{0n}\), \(r_{1n}\), and \(r_{en}\) implies
+\[
+\max\{r_{0n},r_{1n}\}r_{en}
+\le (r_{0n}+r_{1n})r_{en}
+\le 2\max\{r_{0n},r_{1n}\}r_{en}.
+\]
+After adding \(n^{-1/2}\) to the first inequality, and using
+\(n^{-1/2}\le2n^{-1/2}\) with the second, we obtain
+\[
+J_n\le C_n\le2J_n.
+\]
+
+Finally, \texttt{lem:bonvini-et-al-regular-benchmark} supplies only its
+one-functional lower-rate template.  Under the stated treated-side
+interpretive substitutions \(\varepsilon_n=r_{1n}\) and
+\(\delta_n=r_{en}\), this becomes
+\[
+L_{1,n}=n^{-1/2}+r_{1n}r_{en}.
+\]
+Since \(r_{0n}r_{en}\ge0\),
+\[
+L_{1,n}\le C_n.
+\]
+No control-side term or sum of two armwise risks has been inferred from that
+cited result.  The two cited lemmas retain their distinct source classes and
+lower-bound risk conventions; neither asserts a matching upper bound or a joint
+two-arm minimax theorem for \(\mathcal M_n^{\mathrm{reg}}\).  Together with the
+proved disjointness of \(\mathcal M_n\) and
+\(\mathcal M_n^{\mathrm{reg}}\), these calculations are therefore only
+algebraic source-class sanity comparisons.  They establish neither minimax
+equivalence for \(\mathcal M_n^{\mathrm{reg}}\) nor any class-inclusion
+transfer.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition proves strict separation of the shell and comparator classes and computes the exact fast-tail limit; its literature comparison is deliberately limited to algebraic lower-bound form. \textit{Gap.} JinSyrgkanis2024StructureAgnosticDR, Theorem 1 and Remark 2, gives WATE lower bounds in its estimator-bounded source class, while BonviniKennedyDukesBalakrishnan2024StructureAgnosticATE, Section 2, gives a one-functional lower rate in its pure structure-agnostic class. Neither citation proves a joint two-arm minimax equivalence for \(\mathcal M_n^{\mathrm{reg}}\). \textit{Consumer.} Readers can verify class disjointness and the fast-tail algebraic sanity check without treating either cited lower-bound template as a transferred comparator theorem.
+
+\begin{openendedquestion}[oeq:adaptive-frontier]\label{oeq:adaptive-frontier}
+Using \(\mathfrak H_{\mathrm{adapt}}\), determine the smallest deterministic penalty sequence \(\ell_n\ge1\) for which a fully data-driven estimator and confidence interval, not given \(\kappa\), \(c_-\), \(c_+\), \(r_{0n}\), \(r_{1n}\), or \(r_{en}\), attain uniform risk and honest expected length at most \(C\ell_n\rho_n\) over compact ranges of these indices; prove a matching adaptation lower bound for \(\ell_n\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The oracle theorem exposes but does not resolve the practical cost of learning which of the four obstructions is active. \textit{Gap.} Available data-driven trimming results optimize different asymptotic criteria; the frozen class supplies no observable certificate for all unknown global approximation radii. \textit{Consumer.} The answer determines whether the oracle clipping and interval benchmarks can be implemented from validation data without an avoidable logarithmic loss.
+
+\begin{lemma}[lem:jin-syrgkanis-regular-benchmark]\label{lem:jin-syrgkanis-regular-benchmark}
+Let \(\gamma\in(1/2,1)\), let \(w\) be a fixed weight, and let \(e_n,e_n',f_n\ge0\) denote the source paper's squared nuisance-radius parameters.  In the estimator-bounded WATE class \(\mathcal G_{e_n,e_n',f_n}\) of JinSyrgkanis2024StructureAgnosticDR, Theorem 1 states that the squared \(\gamma\)-quantile minimax risk satisfies
+\[
+\mathfrak M_{n,\gamma}^{\mathrm{WATE}}(\mathcal G_{e_n,e_n',f_n})
+=\Omega\!\left(
+\max\{e_n,e_n'\}f_n\lVert w\rVert_{P_X,\infty}^{2}
++\frac{\lVert w\rVert_{P_X,2}^{2}}{n}
+\right),
+\]
+where \(P_X\) is the source class's covariate law.  For \(w\equiv1\), the purely interpretive substitutions \(e_n=r_{0n}^{2}\), \(e_n'=r_{1n}^{2}\), and \(f_n=r_{en}^{2}\) turn the square root of this lower-bound scale into
+\[
+n^{-1/2}+\max\{r_{0n},r_{1n}\}r_{en}
+\]
+up to universal constant factors.  Under the weakened estimator-bounded condition in Remark 2, including when the baseline response is known, the corresponding treated-side square-root lower-bound form is \(n^{-1/2}+r_{1n}r_{en}\).  These are lower bounds in the source paper's estimator-bounded WATE class; the citation does not assert a matching upper bound or a minimax equivalence for \(\mathcal M_n^{\mathrm{reg}}\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This cited leaf records the source paper's estimator-bounded WATE lower-bound template and its treated-side known-baseline variant. \textit{Gap.} The source theorem uses its own WATE class and quantile-risk convention; no translation establishes a matching upper bound or minimax equivalence for \(\mathcal M_n^{\mathrm{reg}}\). \textit{Consumer.} It supplies only a lower-bound algebraic form for the sanity comparison in the regular-benchmark proposition.
+
+\begin{lemma}[lem:bonvini-et-al-regular-benchmark]\label{lem:bonvini-et-al-regular-benchmark}
+In the pure structure-agnostic class \(\mathcal P(\varepsilon_n,\delta_n)\) of BonviniKennedyDukesBalakrishnan2024StructureAgnosticATE, defined for two arbitrary nuisance estimates whose \(L^2\) errors are at most \(\varepsilon_n\) and \(\delta_n\), Section 2 states for its single mean functional \(\psi\) that no estimator has convergence rate faster than
+\[
+n^{-1/2}+\varepsilon_n\delta_n.
+\]
+This cited statement is confined to that single functional and the source class \(\mathcal P(\varepsilon_n,\delta_n)\). It does not by itself establish a control-arm analogue, a joint two-arm full-ATE minimax equivalence, a two-product lower bound for one common ATE experiment, or a matching upper bound for \(\mathcal M_n^{\mathrm{reg}}\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This cited leaf records exactly the source paper's lower-rate statement for one mean functional in its pure structure-agnostic class. \textit{Gap.} The attested passage does not establish a control-arm analogue, a joint two-arm ATE result, or a matching upper bound for \(\mathcal M_n^{\mathrm{reg}}\). \textit{Consumer.} It supplies only a one-functional treated-side algebraic template for the regular-benchmark proposition.
+
+\begin{lemma}[lem:finite-threshold-clipped-bound]\label{lem:finite-threshold-clipped-bound}
+For every admissible radius triple
+\((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), let
+\(\widetilde{\mathcal M}_n\) be the class obtained from
+\texttt{def:public-weak-overlap-class} by deleting exactly
+\texttt{ass:lower-shell-richness} and
+\texttt{ass:upper-shell-richness}.  For every
+\((P,m_0,m_1,p)\in\widetilde{\mathcal M}_n\), every integer \(N\geq1\),
+every i.i.d. observed-law sample \(O_1,\ldots,O_N\), and every
+\(0<\lambda\leq\lambda_0\), the block estimator and envelope from
+\texttt{def:finite-threshold-envelope} satisfy the exact finite-threshold
+inequality
+\[
+E_P\left|\widehat\tau_{\lambda,N}-\tau(P)\right|
+\leq C_{\mathrm{FT}}U_N(\lambda).
+\]
+The public functions and all three approximation certificates in this display
+remain indexed by \(n\); no membership assertion about any
+sample-size-\(N\) model class is made.  Neither richness condition is used.
+\end{lemma}
+\begin{proof}
+Fix a member of \(\widetilde{\mathcal M}_n\), an integer \(N\geq1\), and
+\(0<\lambda\leq\lambda_0\).  All expectations below are under its observed
+marginal.  First derive the two shell bounds required by the score calculation.
+Write \(F(t)=P\{e(X)\leq t\}\).  By \texttt{ass:positivity}, the dyadic
+shells \((2^{-j-1}t,2^{-j}t]\), \(j\geq0\), partition
+\(\{0<e(X)\leq t\}\) up to a null set.  Therefore
+\texttt{ass:uniform-shell} gives, for \(0<t\leq\lambda_0\),
+\[
+F(t)
+\leq c_+t^\kappa\sum_{j=0}^\infty2^{-j\kappa}
+=\overline c_\kappa t^\kappa.                                      \tag{1}
+\]
+Layer cake applied to the bounded nonnegative variable
+\((e(X)\vee\lambda)^{-1}\), followed by the change of variables
+\(s=t^{-1}\), gives
+\[
+E_P[(e(X)\vee\lambda)^{-1}]
+=1+\int_\lambda^1\frac{P\{e(X)<t\}}{t^2}\,dt.                     \tag{2}
+\]
+On \([\lambda,\lambda_0]\) use (1), and on
+\([\lambda_0,1]\) use the probability bound by one.  Evaluating the
+resulting elementary integral separately for \(0<\kappa<1\), \(\kappa=1\),
+and \(\kappa>1\) yields, with the constants defined in
+\texttt{def:finite-threshold-envelope},
+\[
+E_P[(e(X)\vee\lambda)^{-1}]
+\leq H_\kappa v_\kappa(\lambda)^2.                                  \tag{3}
+\]
+For example, when \(0<\kappa<1\), the right side before the final comparison
+is at most
+\(\lambda_0^{-1}+\overline c_\kappa\lambda^{\kappa-1}/(1-\kappa)\),
+and \(v_\kappa(\lambda)^2=\lambda^{\kappa-1}\geq1\).  When
+\(\kappa=1\), it is at most
+\(\lambda_0^{-1}+\overline c_1\log(\lambda_0/\lambda)\).  When
+\(\kappa>1\), it is at most
+\(\lambda_0^{-1}+\overline c_\kappa\lambda_0^{\kappa-1}/(\kappa-1)\).
+This proves (3) without either richness assumption.
+
+Put
+\[
+\Delta=g_1-g_0,\qquad h_a=m_a-g_a,
+\qquad \varepsilon_a=Y-g_a(X)\quad\hbox{on }\{D=a\},
+\qquad e_\lambda=e\vee\lambda.
+\]
+The definitions of \(g_a\) give
+\(E_P(\varepsilon_a\mid D=a,X)=0\).  Since
+\texttt{ass:right-overlap} places \(e(X)\) in
+\([0,1-\eta_+]\), projection onto \([0,1-\eta_+/2]\) and the map
+\(z\mapsto z\vee\lambda\) are contractions at \(e(X)\).  Hence
+\[
+|p^\circ-e|\leq|p-e|,
+\qquad |q_\lambda-e_\lambda|\leq|p-e|,
+\qquad 1-p^\circ\geq\eta_+/2.                                      \tag{4}
+\]
+All denominators below are positive by \(\lambda>0\),
+\texttt{ass:positivity}, and \texttt{ass:right-overlap}.
+
+Substitution in \texttt{def:clipped-score}, followed by adding and subtracting
+the true clipped treated denominator and the true control denominator, gives
+the pointwise identity
+\[
+\psi_\lambda-\tau(P)=A+B_1+B_0+C_1+C_0+R_1+R_0,                    \tag{5}
+\]
+where
+\[
+\begin{aligned}
+A&=\Delta-\tau(P)+\frac{D\varepsilon_1}{e_\lambda}
+-\frac{(1-D)\varepsilon_0}{1-e},\\
+B_1&=h_1\left(1-\frac D{e_\lambda}\right),
+&B_0&=-h_0\left(1-\frac{1-D}{1-e}\right),\\
+C_1&=D\varepsilon_1\left(\frac1{q_\lambda}-\frac1{e_\lambda}\right),
+&C_0&=-(1-D)\varepsilon_0
+\left(\frac1{1-p^\circ}-\frac1{1-e}\right),\\
+R_1&=Dh_1\left(\frac1{e_\lambda}-\frac1{q_\lambda}\right),
+&R_0&=(1-D)h_0
+\left(\frac1{1-p^\circ}-\frac1{1-e}\right).
+\end{aligned}                                                       \tag{6}
+\]
+Conditional mean zero of the residuals shows
+\(E_PA=E_PB_0=E_PC_1=E_PC_0=0\).  The only clipping mean is
+\[
+E_PB_1
+=E_P\!\left[h_1(X)\left\{1-\frac{e(X)}{e_\lambda(X)}\right\}\right].
+\]
+By Cauchy--Schwarz, \texttt{ass:public-g1-radius}, and (1),
+\[
+|E_PB_1|
+\leq r_{1n}F(\lambda)^{1/2}
+\leq\sqrt{\overline c_\kappa}\,r_{1n}\lambda^{\kappa/2}.          \tag{7}
+\]
+
+We next give every second-moment calculation used for the centered empirical
+terms.  By Minkowski, \texttt{ass:bounded-treatment-effect-signal}, the two
+conditional residual-variance assumptions, \texttt{ass:right-overlap}, and
+(3),
+\[
+\begin{split}
+\|A\|_{P,2}
+&\leq\sqrt M
++\sqrt{\sigma_1^2E_P[e_\lambda^{-1}]}
++\sqrt{\sigma_0^2/\eta_+}\\
+&\leq
+\left(\sqrt M+\sqrt{\sigma_1^2H_\kappa}
++\sqrt{\sigma_0^2/\eta_+}\right)v_\kappa(\lambda),
+\end{split} \tag{8}
+\]
+where \(v_\kappa(\lambda)\geq1\).  Conditional on \(X\),
+\[
+E_P\!\left[\left.h_1^2\left(1-\frac D{e_\lambda}\right)^2
+\right|X\right]
+\leq h_1^2(1+\lambda^{-1}),
+\]
+and
+\[
+E_P\!\left[\left.h_0^2\left(1-\frac{1-D}{1-e}\right)^2
+\right|X\right]
+=h_0^2\frac e{1-e}\leq h_0^2\eta_+^{-1}.
+\]
+The public regression certificates and \(\lambda\leq\lambda_0<1\) thus imply
+\[
+\|B_1\|_{P,2}\leq\sqrt2\,r_{1n}\lambda^{-1/2},
+\qquad
+\|B_0\|_{P,2}\leq r_{0n}\eta_+^{-1/2}.                            \tag{9}
+\]
+Using (4), \(e\leq e_\lambda\), the public propensity certificate, and the
+conditional residual-variance bounds gives
+\[
+\begin{split}
+E_PC_1^2
+&\leq\sigma_1^2E_P\!\left[
+\frac{e(p-e)^2}{q_\lambda^2e_\lambda^2}\right]
+\leq\sigma_1^2r_{en}^2\lambda^{-3},\\
+E_PC_0^2
+&\leq\sigma_0^2E_P\!\left[
+\frac{(p^\circ-e)^2}{(1-p^\circ)^2(1-e)}\right]
+\leq4\sigma_0^2r_{en}^2\eta_+^{-3}.
+\end{split} \tag{10}
+\]
+Finally, conditioning on \(X\), using (4), and applying Cauchy--Schwarz to the
+two certified \(L^2(P_X)\) errors yields the first-moment remainder bounds
+\[
+E_P|R_1|\leq\frac{r_{1n}r_{en}}\lambda,
+\qquad
+E_P|R_0|\leq\frac2{\eta_+}r_{0n}r_{en}.                             \tag{11}
+\]
+
+For every mean-zero square-integrable random variable \(Z\), independence of
+the \(N\) observations and Cauchy--Schwarz give
+\[
+E_P\left|\frac1N\sum_{i=1}^NZ_i\right|
+\leq\left\{E_P\left[\left(\frac1N\sum_{i=1}^NZ_i\right)^2\right]\right\}^{1/2}
+=\frac{\|Z\|_{P,2}}{\sqrt N}.                                     \tag{12}
+\]
+Apply (12) to \(A,B_0,C_1,C_0\) and to \(B_1-E_PB_1\), use
+\(\|B_1-E_PB_1\|_{P,2}\leq\|B_1\|_{P,2}\), retain (7), and use
+\(E_P|N^{-1}\sum_iR_{a,i}|\leq E_P|R_a|\).  Since
+\(r_{0n},r_{en}\leq\bar r\) and \(v_\kappa(\lambda)\geq1\),
+(8)--(12) give
+\[
+\begin{split}
+E_P|\widehat\tau_{\lambda,N}-\tau(P)|
+\leq{}&K_v\frac{v_\kappa(\lambda)}{\sqrt N}
++\sqrt2\frac{r_{1n}}{\sqrt{N\lambda}}
++\sqrt{\sigma_1^2}\frac{r_{en}}{\sqrt N\lambda^{3/2}}\\
+&+\sqrt{\overline c_\kappa}r_{1n}\lambda^{\kappa/2}
++\frac{r_{1n}r_{en}}\lambda
++\frac2{\eta_+}r_{0n}r_{en},
+\end{split} \tag{13}
+\]
+where
+\[
+K_v=\sqrt M+\sqrt{\sigma_1^2H_\kappa}
++\sqrt{\sigma_0^2/\eta_+}
++\bar r\eta_+^{-1/2}
++2\bar r\sqrt{\sigma_0^2}\eta_+^{-3/2}.
+\]
+By its displayed algebraic definition, \(C_{\mathrm{FT}}\) is at least each
+of \(K_v,\sqrt2,\sqrt{\sigma_1^2},
+\sqrt{\overline c_\kappa},1,2/\eta_+\).  Comparing (13) term by term with
+\(U_N(\lambda)\) proves
+\[
+E_P|\widehat\tau_{\lambda,N}-\tau(P)|
+\leq C_{\mathrm{FT}}U_N(\lambda),
+\]
+as claimed.  Every condition used above is retained in
+\(\widetilde{\mathcal M}_n\), and neither richness inequality entered any
+step.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It exports the all-block, all-threshold inequality needed by median amplification and honest coverage, with an evaluable constant and without either converse-side richness condition. \textit{Gap.} The previous proof used this inequality internally but did not expose it as a load-bearing node, leaving block sizes unsupported. \textit{Consumer.} The clipped upper theorem uses it at the full sample size, while the sharp-risk and interval theorems use it at each median block size.
+
+\begin{lemma}[lem:oracle-envelope-optimization]\label{lem:oracle-envelope-optimization}
+For every admissible radius triple \((r_{0n},r_{1n},r_{en})\in[0,\bar r]^3\), the oracle threshold and explicit envelope satisfy
+\[
+U_n(\lambda_n^\star)\leq C_{\mathrm{opt}}\rho_n.
+\]
+The inequality is deterministic and includes every cap-binding case.
+\end{lemma}
+\begin{proof}
+Put
+\[
+b_o=n^{-1/(\kappa+1)},\qquad
+b_e=r_{en}^{2/(\kappa+2)},\qquad
+b_g=(nr_{1n}^2)^{-1},
+\]
+with \(b_g=+\infty\) when \(r_{1n}=0\), and let \(L\) be the active maximum in \texttt{def:oracle-threshold}.  Write
+\[
+S_o=r_{1n}n^{-\kappa/[2(\kappa+1)]},\qquad
+S_e=r_{1n}r_{en}^{\kappa/(\kappa+2)},\qquad
+S_0=r_{0n}r_{en}.
+\]
+By \texttt{def:sharp-rate},
+\[
+\rho_n=Q_\kappa(n,r_{1n})+S_o+S_e+S_0. \tag{1}
+\]
+
+First suppose \(L<\lambda_0\), so \(\lambda_n^\star=L\).  Since \(L\geq b_o\),
+\[
+\frac{r_{1n}}{\sqrt{nL}}\leq r_{1n}L^{\kappa/2}. \tag{2}
+\]
+Since \(L\geq b_e\), with both conclusions trivial if \(r_{en}=0\),
+\[
+\frac{r_{en}}{\sqrt nL^{3/2}}
+\leq\frac{L^{(\kappa-1)/2}}{\sqrt n}
+\leq Q_\kappa(n,r_{1n}),\qquad
+\frac{r_{1n}r_{en}}L\leq S_e. \tag{3}
+\]
+For \(0<\kappa<1\), the second inequality in the first part of (3) follows from \(L\geq b_g\):
+\[
+n^{-1/2}L^{-(1-\kappa)/2}
+\leq n^{-\kappa/2}r_{1n}^{1-\kappa}.
+\]
+For \(\kappa\geq1\), it follows from \(L<\lambda_0<1\) and the parametric term in \(Q_\kappa\).  The same comparison with \(b_g\) gives
+\[
+\frac{v_\kappa(L)}{\sqrt n}\leq Q_\kappa(n,r_{1n}) \tag{4}
+\]
+for \(0<\kappa\leq1\): at \(\kappa=1\),
+\(\log(\lambda_0/L)\leq\log_+(nr_{1n}^2)\).  For \(\kappa>1\), (4) is equality.  Finally, taking the positive \(\kappa/2\)-power of the active maximum and bounding the maximum by the sum gives
+\[
+r_{1n}L^{\kappa/2}
+\leq S_o+S_e+Q_\kappa(n,r_{1n}). \tag{5}
+\]
+Indeed, the \(b_g\) contribution is
+\(n^{-\kappa/2}r_{1n}^{1-\kappa}\) for \(0<\kappa<1\) and \(n^{-1/2}\) for \(\kappa=1\); \(b_g\) is inactive for \(\kappa>1\).  Substitution of (2)--(5) into the six terms of \(U_n\) yields
+\[
+U_n(L)\leq4Q_\kappa(n,r_{1n})+2S_o+3S_e+S_0
+\leq4\rho_n. \tag{6}
+\]
+
+Now suppose \(L\geq\lambda_0\), so \(\lambda_n^\star=\lambda_0\).  At least one active component is at least \(\lambda_0\).  If \(b_o\geq\lambda_0\), then \(r_{1n}\lambda_0^{\kappa/2}\leq S_o\).  If \(b_e\geq\lambda_0\), then \(r_{1n}\lambda_0^{\kappa/2}\leq S_e\).  In either case, \(Q_\kappa(n,r_{1n})\geq n^{-1/2}\), the radius caps, and
+\[
+\frac{r_{1n}r_{en}}{\lambda_0}
+\leq\lambda_0^{-1}\bar r^{2/(\kappa+2)}S_e
+\]
+give, term by term,
+\[
+U_n(\lambda_0)\leq C_{\mathrm{oe}}\rho_n. \tag{7}
+\]
+If \(0<\kappa\leq1\) and \(b_g\geq\lambda_0\), then
+\(r_{1n}\leq(n\lambda_0)^{-1/2}\), also when \(r_{1n}=0\).  Hence
+\[
+\frac{r_{1n}}{\sqrt{n\lambda_0}}\leq\lambda_0^{-1}n^{-1/2},\quad
+r_{1n}\lambda_0^{\kappa/2}\leq
+\lambda_0^{-(1-\kappa)/2}n^{-1/2},\quad
+\frac{r_{1n}r_{en}}{\lambda_0}\leq
+\bar r\lambda_0^{-3/2}n^{-1/2}.
+\]
+Together with
+\(v_\kappa(\lambda_0)n^{-1/2}\),
+\(r_{en}n^{-1/2}\lambda_0^{-3/2}\), and \(S_0\), the displayed definition of \(C_{\mathrm g}\) gives
+\[
+U_n(\lambda_0)\leq C_{\mathrm g}\rho_n. \tag{8}
+\]
+The cases (7)--(8) exhaust the active maximum.  By the piecewise definition
+\(C_{\mathrm{opt}}=4+C_{\mathrm{oe}}+C_{\mathrm g}\) for \(0<\kappa\leq1\) and \(C_{\mathrm{opt}}=4+C_{\mathrm{oe}}\) for \(\kappa>1\), equations (6)--(8) prove the claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It makes the threshold and cap case analysis a declared algebraic input for both full-sample and blockwise upper bounds. \textit{Gap.} Without this node, downstream block proofs would again import an unexported inequality from another theorem's proof. \textit{Consumer.} The sharp-risk and honest-interval theorems combine it with the finite-threshold lemma to obtain the displayed block constant.
+
+\section{Interpretation}
+
+The regular-benchmark reduction is only an algebraic check: as \(\kappa\to\infty\), the treated side has the same parametric-plus-product form as the verified published lower-bound templates after their explicit radius identifications. Bonvini's attested one-functional statement is used only for the treated-side mapping \(\varepsilon_n=r_{1n}\), \(\delta_n=r_{en}\); no control-arm term is attributed to that source. The shell class and the regular comparator class are disjoint, so the calculation establishes neither minimax equivalence nor inclusion transfer. The accepted-bank runs \texttt{stat\_discrete\_ate\_minimax\_loggap\_polynomial\_upper\_match} and \texttt{stat\_discrete\_ate\_heterogeneity\_frontier\_v1} study the same full-population binary ATE only within fixed-overlap finite-discrete-occupancy experiments. The first isolates unknown rare-cell occupancy for binary outcomes, and the second isolates approximate cell-effect heterogeneity for real outcomes with bounded conditional means. Those experiments and this infinite-support, dyadic weak-overlap, public-global-\(L^2(P_X)\) experiment are non-nested; no lower bound, rate, or honest-length conclusion is transferred between them. The accepted policy-regret and continuous-exposure clamp frontiers answer non-nested causal decision problems under non-nested law classes.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The converse uses reservoir-rich fixed shell constants satisfying \(\texttt{ass:lower-shell-richness}\) and \(\texttt{ass:upper-shell-richness}\). Its probability law is complete: the displayed background mass is less than one half, active signal and balancing masses total \(2As_0^\kappa\), explicit completion masses sum to the remaining mass, and all three pieces sum exactly to one. Every active mass is relocated from a virtual dyadic endpoint into a fixed interior fraction of its shell; the relocation cap proves the upper shell inequality even when nonemptiness leaves no unused global capacity. Treated fuzzy propensities have ratios in \([4/5,4/3]\), control fuzzy propensities in \([3/4,5/4]\), and opposite-tilt companions make each fixed-sign propensity multiset invariant. At \(\kappa=1\), the proof uses exact dyadic sums for \(\lVert f\rVert_2^2\), \(E[e_0f^2]\), and \(E[f]\), not density or integral heuristics. The upper bound needs no reservoir richness, so shell classes outside the stated richness regime may have different converse geometry.
+
+\section{Honest scope}
+
+The theorem concerns supplied public functions, bounded certified radii, fixed shell constants, and \(E_P[(g_1(X)-g_0(X))^2]\leq M\); it imposes no pointwise potential-outcome envelope and makes no Wald or Gaussian-limit claim.  The confidence interval is bias-aware and is evaluable when the oracle certificates and fixed class constants are supplied: its multiplier is the displayed algebraic \(K_\alpha\).  The upper interval needs no reservoir richness, whereas matching length optimality uses both richness assumptions.  Adaptation to unknown shell constants, tail exponent, and nuisance radii, bounded-outcome variants, shell constants outside the richness regime, and exact studentized validity remain open.
+
+\begin{thebibliography}{99}
+
+  \bibitem{JinSyrgkanis2024StructureAgnosticDR} Jin, J., and V. Syrgkanis (2025). Structure-agnostic optimality of doubly robust learning for treatment effect estimation. Proceedings of Machine Learning Research, Conference on Learning Theory; arXiv:2402.14264.
+
+  \bibitem{BonviniKennedyDukesBalakrishnan2024StructureAgnosticATE} Bonvini, M., E. H. Kennedy, O. Dukes, and S. Balakrishnan (2024). Doubly-robust inference and optimality in structure-agnostic models with smoothness. arXiv:2405.08525.
+
+  \bibitem{Dorn2025WeakOverlapTStatistics} Dorn, J. (2025). How much weak overlap can doubly robust \(t\)-statistics handle? arXiv:2504.13273.
+
+  \bibitem{MaWang2020RobustIPW} Ma, X., and J. Wang (2020). Robust inference using inverse probability weighting. Journal of the American Statistical Association, 115, 1851--1860.
+
+  \bibitem{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE} Kennedy, E. H., S. Balakrishnan, J. M. Robins, and L. Wasserman (2024). Minimax rates for heterogeneous causal effect estimation. Annals of Statistics, 52, 793--816; arXiv:2203.00837.
+
+  \bibitem{KhanTamer2010Irregular} Khan, S., and E. Tamer (2010). Irregular identification, support conditions, and inverse weight estimation. Econometrica, 78, 2021--2042.
+
+  \bibitem{Rothe2017RobustCI} Rothe, C. (2017). Robust confidence intervals for average treatment effects under limited overlap. Econometrica, 85, 645--660.
+
+  \bibitem{ChernozhukovEtAl2018DML} Chernozhukov, V., D. Chetverikov, M. Demirer, E. Duflo, C. Hansen, W. Newey, and J. Robins (2018). Double/debiased machine learning for treatment and structural parameters. The Econometrics Journal, 21, C1--C68.
+
+  \bibitem{HiranoImbensRidder2003EfficientATE} Hirano, K., G. W. Imbens, and G. Ridder (2003). Efficient estimation of average treatment effects using the estimated propensity score. Econometrica, 71, 1161--1189.
+
+  \bibitem{JinSyrgkanis2025GeneralLinearFunctionalLowerBounds} Jin, J., and V. Syrgkanis (2025). Sharp structure-agnostic lower bounds for general linear functional estimation. arXiv:2512.17341.
+
+  \bibitem{AtheyWager2021PolicyLearning} Athey, S., and S. Wager (2021). Policy learning with observational data. Econometrica, 89, 133--161.
+
+  \bibitem{MaSantAnnaSasakiUra2026DRWeakOverlap} Ma, Y., P. H. C. Sant’Anna, Y. Sasaki, and T. Ura (2026). Doubly robust estimators with weak overlap. arXiv:2304.08974, April 18, 2026.
+
+  \bibitem{HeilerKazak2021ExtremePropensity} Heiler, P., and Kazak, E. (2021). Valid inference for treatment effect parameters under irregular identification and many extreme propensity scores. Journal of Econometrics 222(2), 1083–1108. DOI: 10.1016/j.jeconom.2020.03.025.
+
+\end{thebibliography}
+
+\end{document}

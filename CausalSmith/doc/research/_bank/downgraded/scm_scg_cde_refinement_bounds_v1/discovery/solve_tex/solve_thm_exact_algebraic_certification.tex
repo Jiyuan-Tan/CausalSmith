@@ -1,0 +1,162 @@
+%%% FIELD bpr-claim-change
+Let \(s,D,\tau,k\) be positive integers.  For a rational polynomial system with at most \(s\) predicates, degree at most \(D\), input-coefficient bit length at most \(\tau\), and one block of \(k\) quantified variables, a verified well-behaved one-block real-quantifier-elimination execution decides feasibility and computes a projection with one free variable using \((sD)^{O(k)}\) exact scalar arithmetic and sign operations.  Its projection and sign-cell sample-point encodings have algebraic degree \(D^{O(k)}\); every integer coefficient in the output or the attested well-behaved intermediate execution, and every rational isolating datum in the output, has bit length \(\tau(sD)^{O(k)}\).  Every nonempty sign cell admits an exact real-algebraic sample-point encoding within these degree and height bounds.
+%%% FIELD bpr-statement-replace
+Let \(s,D,\tau,k\) be positive integers.  For a rational polynomial system with at most \(s\) predicates, degree at most \(D\), input-coefficient bit length at most \(\tau\), and one block of \(k\) quantified variables, a verified well-behaved one-block real-quantifier-elimination execution decides feasibility and computes a projection with one free variable using \((sD)^{O(k)}\) exact scalar arithmetic and sign operations.  Its projection and sign-cell sample-point encodings have algebraic degree \(D^{O(k)}\); every integer coefficient in the output or the attested well-behaved intermediate execution, and every rational isolating datum in the output, has bit length \(\tau(sD)^{O(k)}\).  Every nonempty sign cell admits an exact real-algebraic sample-point encoding within these degree and height bounds.
+%%% FIELD bit-lift-statement
+Let \(A_{\mathrm{op}},\ell,\Delta\ge 2\).  Consider a verified exact computation with at most \(A_{\mathrm{op}}\) integer or rational additions, subtractions, multiplications, sign tests, comparisons, and exact divisions.  Encode each rational in reduced signed-binary form, each real algebraic number by a square-free integer polynomial together with a rational isolating interval, and each algebraic sample point by such a primitive-element encoding and rational univariate coordinate polynomials.  Suppose every intermediate integer coefficient and every reduced numerator and denominator has bit length at most \(\ell\), the algebraic encodings and polynomial predicates used in decoding have degree at most \(\Delta\) and coefficient and isolating-data bit length at most \(\ell\), and the total number of encoded coefficient slots in the execution, its replay trace, and its sample-point output is at most \(A_{\mathrm{op}}\ell^{c_0}\) for an absolute constant \(c_0\), with trace addresses also of length at most \(\ell\).  Then the execution and exact replay, square-free factorization, Sturm--subresultant real-root isolation, algebraic sign determination and comparison, sample-point decoding, and endpoint comparison require
+\[
+A_{\mathrm{op}}\ell^{O(1)}+(\Delta\ell)^{O(1)}
+\]
+bit operations.  The resulting algebraic encodings have degree \(\Delta^{O(1)}\) and coefficient and isolating-data bit length \(\ell\Delta^{O(1)}\).  Consequently, for positive integers \(B,s,D,k\), the substitutions
+\[
+A_{\mathrm{op}}=(sD)^{O(k)},\qquad
+\ell=B(sD)^{O(k)},\qquad
+\Delta=D^{O(k)}
+\]
+imply a bit-operation bound \(B^{O(1)}(sD)^{O(k)}\), output degree \(D^{O(k)}\), and output bit length \(B(sD)^{O(k)}\).
+%%% FIELD bit-lift-proof
+Write the binary length of a nonzero integer \(a\) as \(1+\lceil\log_2(|a|+1)\rceil\), including one sign bit, and encode zero by one bit.  A rational number is stored as a pair \((a,b)\) with \(b>0\), \(\gcd(|a|,b)=1\), and represents \(a/b\).  Thus the hypothesis says that each stored scalar in the main computation uses \(O(\ell)\) bits.  Addition and multiplication of two \(m\)-bit integers can be carried out by the grade-school algorithms in \(O(m^2)\) bit operations.  Long division has the same polynomial cost.  The Euclidean algorithm makes at most \(O(m)\) long-division steps because each two steps reduce the larger operand by at least a factor of two, so greatest common divisors and exact divisibility checks cost \(m^{O(1)}\) bit operations.  Therefore reduced rational addition,
+\[
+\frac ab+\frac cd=\frac{ad+bc}{bd},
+\]
+reduced rational multiplication, exact rational division, comparison by the sign of \(ad-bc\), and normalization by a greatest common divisor each cost \(\ell^{O(1)}\) under the stated intermediate-length bound.  The same argument applies coefficientwise to polynomial additions, products, sign tests, and exact divisions.
+
+Represent the replay trace as an ordered list of opcodes, operand addresses, branch signs, and produced reduced scalars.  An address and every stored scalar use \(O(\ell)\) bits by hypothesis.  If \(C\le A_{\mathrm{op}}\ell^{c_0}\) is the total number of coefficient slots, reading, verifying, and writing all trace items costs
+\[
+O(C)\ell^{O(1)}=A_{\mathrm{op}}\ell^{O(1)}.
+\tag{14}
+\]
+This charges the size of the replay certificate itself: no coefficient can be output or replayed without one of the \(C\) slot visits.  It also charges the primitive-element and rational-univariate-representation coordinate lists used for a sample point.  The main execution has at most \(A_{\mathrm{op}}\) scalar operations, each of cost \(\ell^{O(1)}\), and hence obeys the same bound (14).
+
+It remains to account for univariate algebraic postprocessing.  Let
+\[
+h(t)=a_mt^m+\cdots+a_0\in\mathbb Z[t],
+\qquad m\le\Delta,
+\qquad \max_i\operatorname{bitlen}(a_i)\le\ell.
+\tag{15}
+\]
+Compute the primitive part of \(h\), the subresultant sequence of \(h\) and \(h'\), and \(g=\gcd(h,h')\); then \(h/g\) is square-free.  Indeed, polynomial pseudo-division replaces a pair \((u,v)\) by \((v,r)\) with \(r=c u-qv\) and nonzero integer \(c\), so the common roots are unchanged at every nonzero remainder; the last nonzero primitive remainder is therefore the greatest common divisor up to sign.  A root remains multiple in \(h/g\) exactly if its multiplicity in \(h\) exceeds its multiplicity in \(h'\) by more than one, which is impossible because differentiation lowers each positive multiplicity by exactly one.  Every subresultant coefficient is a determinant of a matrix of order at most \(2m\) whose entries are coefficients of \(h\) or \(h'\).  Expanding the determinant and using \(|a_i|<2^\ell\) gives
+\[
+\operatorname{bitlen}(\text{subresultant coefficient})
+\le O\bigl(m(\ell+\log m)\bigr).
+\tag{16}
+\]
+The same bound, enlarged by a polynomial factor in \(m\), applies to the exact quotients and primitive parts because the subresultant algorithm uses coefficientwise integer operations and exact divisions.  There are polynomially many coefficients and operations in \(m\).  The integer algorithms already analyzed therefore perform square-free factorization in \((\Delta\ell)^{O(1)}\) bit operations and produce coefficient lengths \(\ell\Delta^{O(1)}\).
+
+For root isolation, suppose \(|z|>1+\max_{i<m}|a_i/a_m|\).  Dividing by \(|z|^m\) and summing the resulting geometric series shows \(|a_mz^m|>\sum_{i<m}|a_i z^i|\), so \(h(z)\ne0\).  Hence every complex root satisfies the Cauchy estimate
+\[
+|t|\le 1+\max_{i<m}|a_i/a_m|<2^{\ell+1}.
+\tag{17}
+\]
+If \(h\) is square-free, its discriminant is a nonzero integer.  Writing it as the leading-coefficient power times the product of squared pairwise root differences, using that its absolute value is at least one, and bounding every factor other than a chosen separation by (17), yields
+\[
+\min_{\alpha\ne\beta:\ h(\alpha)=h(\beta)=0}|\alpha-\beta|
+\ge 2^{-O(m^2(\ell+\log m))}.
+\tag{18}
+\]
+After zero remainders are removed and signs are normalized, the signed subresultant remainders \(S_0=h,S_1=h',S_2,\ldots\) satisfy \(S_{i-1}=Q_iS_i-c_iS_{i+1}\) with \(c_i>0\).  Let \(V(x)\) be the number of sign variations after zero values are omitted.  Away from roots of the sequence, continuity makes \(V\) locally constant.  At a root of an interior \(S_i\), the displayed recurrence makes its two neighboring signs opposite, so deleting, inserting, or changing the middle sign leaves \(V\) unchanged.  At a simple root \(\alpha\) of \(S_0=h\), \(S_1(\alpha)=h'(\alpha)\ne0\), and the first-order expansion \(h(x)=h'(\alpha)(x-\alpha)+o(|x-\alpha|)\) shows that the first sign variation drops by exactly one as \(x\) crosses \(\alpha\) from left to right.  Therefore \(V(a)-V(b)\) equals the number of real roots in \((a,b)\) whenever the rational endpoints are not roots.  Starting with (17), dyadic bisection to the precision in (18) consequently produces disjoint rational isolating intervals after \((\Delta\ell)^{O(1)}\) sign evaluations.  Equations (16)--(18), rational clearing of denominators, and the integer-operation accounting above show that all these evaluations together use \((\Delta\ell)^{O(1)}\) bit operations and that interval endpoints have bit length \(\ell\Delta^{O(1)}\).
+
+A real algebraic number is now represented exactly by a pair \((h,I)\), where \(h\) is square-free and \(I\) is a rational interval containing exactly one real root \(\alpha\) of \(h\).  For another integer polynomial \(b\), first compute \(c=\gcd(h,b)\).  Isolating the roots of \(c\) decides whether its unique root in \(I\) is \(\alpha\), which is exactly the case \(b(\alpha)=0\).  Otherwise isolate all roots of the square-free part of \(hb\) and refine \(I\) to an interval containing \(\alpha\) but no root of \(b\).  Continuity makes the sign of \(b\) constant on this interval, so evaluation at any rational interior point gives \(\operatorname{sign}b(\alpha)\).  To compare roots encoded by \((h,I)\) and \((\widetilde h,\widetilde I)\), isolate the real roots of the square-free part of \(h\widetilde h\); the common-factor test handles equality and the common ordered isolating intervals handle strict order.  These are again subresultant, greatest-common-divisor, rational evaluation, and isolation computations on degrees at most \(2\Delta\), so they cost \((\Delta\ell)^{O(1)}\) and satisfy the bounds following (18).
+
+Finally, encode a real-algebraic sample point as
+\[
+\bigl(h,I;g_0,g_1,\ldots,g_m\bigr),
+\qquad
+x_i=\frac{g_i(\alpha)}{g_0(\alpha)},
+\qquad g_0(\alpha)\ne0,
+\tag{19}
+\]
+where \((h,I)\) encodes \(\alpha\) and the \(g_i\) are integer polynomials of degree below \(\deg h\).  Substituting (19) into a polynomial predicate and multiplying by a sufficiently large even power of \(g_0(\alpha)\) produces an integer polynomial \(b(\alpha)\) with the same equality status and, for an inequality, the same sign.  Its coefficient slots are charged to (14), while its degree and coefficient lengths grow only polynomially in the displayed degree and height bounds.  The sign procedure just proved therefore checks the nonzero denominator, simplex inequalities, and every polynomial equality or inequality at (19).  Decoding means retaining these exact coordinates together with the finite branch's structural tables; it does not expand an algebraic number into an infinite approximation.  Its coordinatewise work and output length were already charged in (14), and any normalization or comparison uses the polynomial postprocessing bound.  Combining (14)--(19) proves
+\[
+A_{\mathrm{op}}\ell^{O(1)}+(\Delta\ell)^{O(1)}.
+\]
+The determinant bounds show simultaneously that degrees become at most \(\Delta^{O(1)}\) and bit lengths at most \(\ell\Delta^{O(1)}\).
+
+For the final substitution, take positive integers \(B,s,D,k\) as in the last clause of the statement.  Then \(D^{O(k)}\le(sD)^{O(k)}\), and multiplication or taking a fixed power of \((sD)^{O(k)}\) only changes the hidden absolute constant in its exponent.  Hence
+\[
+(sD)^{O(k)}\bigl(B(sD)^{O(k)}\bigr)^{O(1)}
++\bigl(D^{O(k)}B(sD)^{O(k)}\bigr)^{O(1)}
+=B^{O(1)}(sD)^{O(k)}.
+\]
+Likewise \((D^{O(k)})^{O(1)}=D^{O(k)}\) and \(B(sD)^{O(k)}(D^{O(k)})^{O(1)}=B(sD)^{O(k)}\).  This proves all three asserted consequences.
+%%% FIELD exact-statement-replace
+For every rational \(p\) of coefficient height \(B\), \(\mathsf{Cert}\) terminates. If \(\mathfrak F(\mathcal S,L,H,p)=\varnothing\), it returns the exact refinement-enumeration ledger and, for every \(G\in\mathfrak G_{H,L}(\mathcal S)\) and every \(r\in\mathcal R_G\), a replayable real-algebraic elimination trace or rational Positivstellensatz identity proving \(\{\lambda\in\prod_a\Delta(\mathcal K_{G,r,a}):P_G(\lambda)=p\}=\varnothing\); these branch certificates jointly certify the empty fiber. If the fiber is nonempty, it returns for each endpoint a square-free integer isolating polynomial, a rational isolating interval, and an algebraic-weight endpoint-attaining SCM. In either branch its bit-operation count is \(R_{\Sigma}B^{O(1)}(s_{\max}D_{\max})^{O(k_{\max})}\). In the nonempty branch the endpoint algebraic degree is \(D_{\max}^{O(k_{\max})}\), and every output coefficient has bit length \(B(s_{\max}D_{\max})^{O(k_{\max})}\). The compiler derives \(R_{\Sigma},k_{\max},s_{\max},D_{\max}\) from \(d,H,L,E_{\mathcal S}^{\to},E_{\mathcal S}^{\leftrightarrow}\) and the raw branch catalogues. Thus, unlike the numerical \(\varepsilon\)-sharp output of Duarte et al., the algorithm either exactly rejects an incompatible observed law branch by branch or certifies exact attained endpoints and decodes checkable SCM witnesses.
+%%% FIELD exact-proof
+Fix \(G\in\mathfrak G_{H,L}(\mathcal S)\) and \(r\in\mathcal R_G\).  By \(\text{def:raw-polynomial-compiler}\), the branch feasibility set is
+\[
+S_{G,r}(p)=\left\{\lambda:\
+\lambda_a(u)\ge0,\quad
+\sum_{u\in\mathcal K_{G,r,a}}\lambda_a(u)=1\ \text{for every }a,\quad
+P_G(\lambda)(w)=p(w)\ \text{for every }w\in\{0,1\}^{\mathcal W_H}
+\right\}.
+\tag{20}
+\]
+The simplex constraints make every coordinate lie in \([0,1]\).  The definitions of \(k_G,s_G,D_G\) give at most \(k_G\) scalar variables, at most \(s_G\) polynomial predicates, and degree at most \(D_G\).  Write each rational cell as \(p(w)=a_w/b_w\), where \(b_w>0\), \(\gcd(|a_w|,b_w)=1\), and both integers have bit length at most \(B\).  Replace its cell equation by
+\[
+b_wP_G(\lambda)(w)-a_w=0.
+\tag{21}
+\]
+The structural recursion in the compiler sums monomials in independent latent weights with integer coefficients obtained from zero--one deterministic response indicators.  If a branch has \(k_G\) scalar weight coordinates, the number of latent-state tuples, and hence the absolute value of any such collected coefficient, is at most exponential in \(k_G\).  Moreover a dense encoding of one degree-\(D_G\) polynomial in \(k_G\) variables has at most
+\[
+\binom{k_G+D_G}{k_G}\le(D_G+1)^{k_G}
+\tag{22}
+\]
+coefficient slots.  Since \(s_G\) includes all \(2^N\) observed-cell constraints and \(N\ge2\), we have \(s_GD_G\ge2\).  Equations (21)--(22) show that the integer input system has coefficient bit length
+\[
+\tau_{G,r}\le B(s_GD_G)^{O(k_G)}
+\tag{23}
+\]
+and at most \((s_GD_G)^{O(k_G)}\) encoded input coefficients.  This bound also charges the finite deterministic recursion used to compile those coefficients: the recursion visits at most the latent tuples and observed assignments represented in (22) and in the \(s_G\) predicates.
+
+Apply \(\text{lem:one-block-real-algebraic-elimination}\) to the existential sentence defined by (20)--(21).  The cited result directly supplies a terminating, verified, well-behaved execution deciding feasibility with
+\[
+A_{G,r}=(s_GD_G)^{O(k_G)}
+\tag{24}
+\]
+scalar arithmetic and sign operations.  Comparisons are sign tests of differences, and any exact divisions occurring in the verified execution are counted among its scalar arithmetic operations.  The cited result also directly supplies its intermediate coefficient-height control.  Combining (23) with that control gives
+\[
+\ell_{G,r}=B(s_GD_G)^{O(k_G)}
+\tag{25}
+\]
+as a common bit-length bound for every intermediate integer coefficient and rational numerator or denominator.  A straight-line replay trace stores one result and a constant number of operand references per scalar operation.  Together with (22), its coefficient-slot count is \(A_{G,r}\) up to a polynomial factor absorbed in (25), and \(\ell_{G,r}\) also dominates the address length \(O(\log A_{G,r})\).  The decoding predicates have degree at most \(D_G\le D_G^{O(k_G)}\), and (23)--(25) bound their coefficient lengths.  Thus the hypotheses of \(\text{lem:well-behaved-arithmetic-to-bit-lift}\) hold.  That paper-owned lemma, rather than the cited elimination theorem, converts (24)--(25) into
+\[
+B^{O(1)}(s_GD_G)^{O(k_G)}
+\tag{26}
+\]
+bit operations for execution and exact replay.  When (20) is infeasible, the verified elimination output is false and the replayable sign-invariant trace proves that fact.  This is the first certificate alternative allowed by \(\text{def:exact-certifier}\); no Positivstellensatz identity is required.
+
+Suppose next that (20) is feasible.  Introduce one free variable \(t\) and the equation
+\[
+t-q_G(\lambda)=0.
+\tag{27}
+\]
+Eliminating the block \(\lambda\) gives an exact quantifier-free description of
+\[
+Q_{G,r}(p)=\{t\in\mathbb R:\exists\lambda\in S_{G,r}(p),\ t=q_G(\lambda)\}.
+\tag{28}
+\]
+This projection and an exact sample-point encoding for each nonempty sign cell are direct consequences of \(\text{lem:one-block-real-algebraic-elimination}\).  Adding (27) changes the four branch-size parameters only by absolute constants.  The cited degree and height bounds are therefore
+\[
+\Delta_{G,r}=D_G^{O(k_G)},
+\qquad
+\ell_{G,r}=B(s_GD_G)^{O(k_G)}.
+\tag{29}
+\]
+
+By the branchwise attainment used in \(\text{thm:sharp-refinement-envelope}\), (28) has a least and a greatest element.  Because a binary causal contrast lies in \([-1,1]\), both are finite.  Let \(t_*\) be either endpoint.  If \(t_*\in(-1,1)\) were not a zero of any nonzero univariate polynomial in the quantifier-free projection, every polynomial sign would be constant in a neighborhood of \(t_*\).  The truth value of the projection formula would then be constant there, contradicting that \(t_*\) is a boundary point of (28).  Hence \(t_*\) is a root of an output polynomial; if \(t_*\in\{-1,1\}\), use instead \(t-t_*\).  The square-free factor containing \(t_*\) and a rational isolating interval are obtained by the square-free and Sturm--subresultant procedures proved in \(\text{lem:well-behaved-arithmetic-to-bit-lift}\).  The same lemma gives exact sign determination for the projection formula and comparison of its finitely many algebraic boundary candidates, so it selects the true least and greatest elements.  Applying the cited sample-point conclusion to the nonempty endpoint fiber defined by (20), (27), and the isolating data returns an exact algebraic \(\lambda^*\) with \(q_G(\lambda^*)=t_*\).  Decoding and checking that rational-univariate sample representation, and comparing endpoints from different branches, are the paper-owned postprocessing steps covered by the bit-lift lemma.
+
+Substituting (24) and (29) into that lemma yields the per-branch bit cost (26), endpoint degree \(D_G^{O(k_G)}\), and coefficient and isolating-data bit length \(B(s_GD_G)^{O(k_G)}\).  By \(\text{lem:finite-refinements}\), the refinement enumeration is finite, and by construction every \(\mathcal R_G\) is finite.  Thus the exact number of processed pairs is
+\[
+R_{\Sigma}=\sum_{G\in\mathfrak G_{H,L}(\mathcal S)}|\mathcal R_G|.
+\tag{30}
+\]
+Summing (26) over (30), and using the definitions of \(k_{\max},s_{\max},D_{\max}\), gives
+\[
+R_{\Sigma}B^{O(1)}(s_{\max}D_{\max})^{O(k_{\max})}.
+\tag{31}
+\]
+The algebraic comparison work is included because it has the per-item polynomial bound established by the bit-lift lemma.
+
+It remains to identify the certificates with the causal fiber.  By \(\text{thm:sharp-refinement-envelope}\), every compatible SCM has a raw canonical point with the same \((p,q)\) image, and every feasible raw point reconstructs a semi-Markovian SCM satisfying \(\text{ass:independent-edge-latents}\).  Consequently \(\mathfrak F(\mathcal S,L,H,p)=\varnothing\) if and only if every set (20) is empty.  In that case the finite ledger (30), together with the replay trace for every branch, proves empty-fiber incompatibility.  If the fiber is nonempty, the least and greatest algebraic candidates over the feasible branches equal \(\underline q(p)\) and \(\overline q(p)\) by that same theorem.  Its reconstruction conclusion decodes each selected \(\lambda^*\) into independent finite latent weights and deterministic structural tables, producing endpoint-attaining SCMs.
+
+Finally, \(\text{ass:positive-bounded-directed-lags}\) and \(\text{def:refinement-class}\) enumerate directed candidates from \(d,H,L,E_{\mathcal S}^{\to}\), while \(\mathcal B_H(\mathcal S)\) enumerates bidirected candidates from \(H,E_{\mathcal S}^{\leftrightarrow}\).  The finite raw-table compiler then counts every branch, scalar coordinate, predicate, and degree.  Hence \(R_{\Sigma},k_{\max},s_{\max},D_{\max}\) are derived quantities, not oracle inputs.  All termination, empty-fiber, nonempty-fiber, reconstruction, degree, height, and bit-operation claims follow.

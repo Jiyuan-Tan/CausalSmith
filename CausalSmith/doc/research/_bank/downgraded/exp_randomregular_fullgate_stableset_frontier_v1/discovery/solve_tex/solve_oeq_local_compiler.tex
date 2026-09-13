@@ -1,0 +1,78 @@
+%%% FIELD finite-evaluator-proof
+Fix a finite revealed simple regular graph \(G\).  A single proposal draws a uniform \(k\)-subset \(A\), computes \(F_G(A)\) by exploring graph distance at most two from each vertex of \(A\), and tests whether \(|F_G(A)|\ge k\).  Each depth-two exploration examines at most \(1+d+d(d-1)\) incidences.  Thus one proposal uses a number of elementary operations polynomial in \(n\) and \(d\).  There are at most \(n^3\) proposals.  If one is accepted, a uniform \(k\)-subset \(C\subseteq F_G(A)\), the coin \(\omega\), and at most \(n\) remaining fair assignment coins are drawn; if none is accepted, only the fair global coin is drawn.  These are all finite uniform draws from explicitly listed finite sets.  Therefore \(\mathsf D_G^{\mathrm{cap}}\) can be sampled exactly in randomized time polynomial in \(n\) and \(d\), by \(\text{def:reservoir-capsule}\).
+
+For the finite audit, let \(\Omega_G\) be the latent sample space whose atoms record the ordered list of no more than \(n^3\) reservoir proposals, the first accepted proposal and the subsequent \(C\) when acceptance occurs, \(\omega\), and all assignment coins used by the construction.  The set \(\Omega_G\) is finite.  For each \(\eta\in\Omega_G\), the construction gives an explicit rational mass \(p_G(\eta)\), and the maps
+\[
+ \eta\longmapsto Z^{\mathrm{cap}}(\eta),
+ \qquad
+ \eta\longmapsto X_u(\eta)
+\]
+are deterministic.  Hence, for every \(u\), finite summation gives
+\[
+ \pi_u=\sum_{\eta\in\Omega_G}p_G(\eta)X_u(\eta). \tag{1}
+\]
+Every summand in (1) is a nonnegative rational number, so exact rational arithmetic both computes \(\pi_u\) and decides whether it is zero.  Repeating (1) for the \(2n\) exposure vertices therefore detects whether \(\min_u\pi_u>0\).
+
+Assume for the remainder of the evaluation argument that \(\pi_u>0\) for all \(u\).  For \(u,v\in\mathcal U\), the same enumeration computes
+\[
+ q_{uv}:=\Pr(X_u=X_v=1\mid G)
+ =\sum_{\eta\in\Omega_G}p_G(\eta)X_u(\eta)X_v(\eta). \tag{2}
+\]
+The denominators in \(q_{uv}/(\pi_u\pi_v)\) are now nonzero.  Substitution of (1)--(2) into \(\text{def:normalized-kernel}\) computes every entry of \(\Gamma_G\) exactly.
+
+For an accepted atom, \(\text{prop:capsule-realization}\) says that every endpoint outcome multiplied by a nonzero focal indicator in \(\widetilde\tau_G\) is revealed by \((Z^{\mathrm{cap}},y(Z^{\mathrm{cap}}))\).  On a fallback atom every focal indicator is zero.  Thus \(\text{def:raw-estimator}\), together with the already computed positive inclusion probabilities, evaluates \(\widetilde\tau_G(\eta)\) exactly on every latent atom using only the atom's focal metadata and the outcomes observed under its assignment.
+
+Fix an assignment \(z\) having positive probability and define its finite fiber
+\[
+ \Omega_G(z)=\{\eta\in\Omega_G:Z^{\mathrm{cap}}(\eta)=z\}.
+\]
+Because the potential-outcome schedule is fixed, \(y(Z^{\mathrm{cap}})\) is a deterministic function of \(Z^{\mathrm{cap}}\).  Consequently conditioning on \((G,Z^{\mathrm{cap}},y(Z^{\mathrm{cap}}))=(G,z,y(z))\) selects the same latent fiber as conditioning on \((G,Z^{\mathrm{cap}})=(G,z)\).  Its denominator
+\[
+ P_G(z):=\sum_{\eta\in\Omega_G(z)}p_G(\eta)
+\]
+is positive.  The conditional expectation in \(\text{def:observed-estimator}\) is therefore the explicit finite ratio
+\[
+ \widehat\tau_G(G,z,y(z))
+ =\frac{\displaystyle
+       \sum_{\eta\in\Omega_G(z)}p_G(\eta)\widetilde\tau_G(\eta)}
+      {\displaystyle P_G(z)}. \tag{3}
+\]
+Equation (3) computes both the conditional weights \(p_G(\eta)/P_G(z)\) and the value of \(\widehat\tau_G\).  The realization proposition ensures that every outcome needed in its numerator is a coordinate of \(y(z)\); internal focal metadata are summed out.  Since there are finitely many positive-probability observed-data atoms, (3) also proves measurability.  This enumeration claim is exact but is not a polynomial-time claim.
+
+The positivity qualification is necessary even in the smallest admissible population.  Take \(n=4\), \(d=3\), and \(G=K_4\).  Then \(k=1\), while every vertex is within distance two of every singleton \(A\), so \(F_G(A)=\varnothing\).  All \(n^3\) proposals fail, the fallback is used, and \(X_u=0\) for every \(u\).  Therefore \(\pi_u=0\) for every \(u\), which (1) detects, whereas the divisions defining \(\Gamma_G\), \(\widetilde\tau_G\), and \(\widehat\tau_G\) under their displayed positive-inclusion formulas are unavailable.  Thus the design law is total for every finite \(G\), but exact kernel and estimator evaluation has precisely the stated positive-inclusion domain.
+
+%%% FIELD compiler-partial-result
+For every fixed finite \(G\), finite enumeration computes all inclusion probabilities and detects zero inclusion; when \(p:=\min_u\pi_u>0\), it computes \(\Gamma_G\), \(\widetilde\tau_G\), and \(\widehat\tau_G\) exactly.  There is also a pointwise simulation audit.  Fix an integer \(m\ge1\), draw \(m\) independent copies from \(\mathsf D_G^{\mathrm{cap}}\), and define \(q_{uv}:=\mathbb E[X_uX_v\mid G]\), \(\widehat\pi_u=m^{-1}\sum_{s=1}^mX_u^{(s)}\), and \(\widehat q_{uv}=m^{-1}\sum_{s=1}^mX_u^{(s)}X_v^{(s)}\).  All probabilities in this paragraph are conditional on the fixed \(G\).  Independence and the fact that a Bernoulli variance is at most \(1/4\) give \(\mathbb E[(\widehat\pi_u-\pi_u)^2\mid G]\le1/(4m)\), and the same bound holds for \(\widehat q_{uv}-q_{uv}\).  On the event \(|W|>\varepsilon\), one has \(W^2>\varepsilon^2\), so \(\varepsilon^2\Pr(|W|>\varepsilon\mid G)\le\mathbb E[W^2\mid G]\).  Applying this elementary inequality and then summing the event probabilities over \(2n\) indices or \(4n^2\) ordered pairs gives
+\[
+ \Pr\!\left(\max_u|\widehat\pi_u-\pi_u|>\varepsilon\right)
+ \le \frac{n}{2m\varepsilon^2},
+ \qquad
+ \Pr\!\left(\max_{u,v}|\widehat q_{uv}-q_{uv}|>\varepsilon\right)
+ \le \frac{n^2}{m\varepsilon^2}. \tag{4}
+\]
+If \(\varepsilon\le p/2\), then every \(\widehat\pi_u\ge p/2\).  On this event define
+\[
+ \widehat\Gamma_{uv}
+ :=s_as_b\left\{\frac{\widehat q_{uv}}
+ {\widehat\pi_u\widehat\pi_v}-1\right\},
+ \qquad u=(i,a),\quad v=(j,b).
+\]
+Since \(0\le q_{uv}\le1\), direct subtraction of the two normalized ratios gives
+\[
+ \left|\frac{\widehat q_{uv}}{\widehat\pi_u\widehat\pi_v}
+       -\frac{q_{uv}}{\pi_u\pi_v}\right|
+ \le \frac{4\varepsilon}{p^2}
+ +\frac{|\pi_u\pi_v-\widehat\pi_u\widehat\pi_v|}
+ {\widehat\pi_u\widehat\pi_v\pi_u\pi_v}
+ \le \frac{4\varepsilon}{p^2}+\frac{8\varepsilon}{p^4}.
+\]
+Substitution in the normalized-kernel formula and the bound of an operator norm by the largest absolute row sum now yield
+\[
+ \max_{u,v}|\widehat\Gamma_{uv}-\Gamma_{uv}|
+ \le \frac{4\varepsilon}{p^2}+\frac{8\varepsilon}{p^4}
+ \le \frac{12\varepsilon}{p^4},
+ \qquad
+ \|\widehat\Gamma-\Gamma_G\|_{\mathrm{op}}
+ \le \frac{24n\varepsilon}{p^4}. \tag{5}
+\]
+Thus pointwise covariance-action approximation is explicit, but its sample guarantee depends on an a priori lower bound for \(p\), which the unresolved capsule-kernel question does not provide.  Moreover, rejection-based simulation of the conditional ratio defining \(\widehat\tau_G\) depends on the probability of the realized assignment fiber, for which no inverse-polynomial lower bound is available.  Finally, an additive entrywise estimate is not by itself the requested uniform risk certificate: over the endpoint \(L^2\) ball, an \(o(r(n,d))\) risk error requires operator-norm error \(o(nr(n,d))\).  Hence (4)--(5) give a computable fixed-instance audit but not the requested uniform polynomial-time compiler.

@@ -1,0 +1,217 @@
+{
+  "units": [
+    {
+      "unit": "thm:fully-observed-frontier",
+      "targets": [
+        "lem:support-oracle",
+        "thm:fully-observed-frontier",
+        "oeq:latent-lifting",
+        "prop:classical-reduction",
+        "oeq:kill-instance-audit"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:support-oracle",
+            "proof_tex": "Fix the finite alphabets belonging to the response skeleton, including a finite alphabet \\(\\Lambda_u\\) for each \\(u\\in U\\).  A primitive support pattern consists of a nonempty set \\(A_u\\subseteq\\Lambda_u\\) for each root and, for every observed conditional-table row \\((i,a)\\), a nonempty set \\(A_i(a)\\subseteq\\Omega_i\\).  By \\(\\mathrm{ass:functional-nodes}\\), the latter set is required to be a singleton when \\(i\\in W\\).  There are finitely many such patterns.\n\nFor a pattern \\(A\\), define its possible-world relation by\n\\[\n R_A=\\left\\{(u,v):u_r\\in A_r\\text{ for every }r\\in U,\n \\quad v_i\\in A_i\\!\\left((u,v)_{\\operatorname{pa}_G(i)}\\right)\n \\text{ for every }i\\in V\\right\\},\n\\]\nand let \\(S_A\\) be its projection onto the observed coordinates.  In any model having precisely these primitive supports, the causal Bayesian-network factorization and \\(\\mathrm{ass:independent-roots}\\) give\n\\[\n P_M(u,v)=\\prod_{r\\in U}P_M(u_r)\n             \\prod_{i\\in V}P_M\\!\\left(v_i\\mid\n             (u,v)_{\\operatorname{pa}_G(i)}\\right).\n\\]\nEvery factor is nonnegative, and the product is positive exactly when \\((u,v)\\in R_A\\).  Consequently\n\\[\n P_M(V=v)>0\n \\quad\\Longleftrightarrow\\quad\n \\sum_{u}P_M(u,v)>0\n \\quad\\Longleftrightarrow\\quad\n \\text{there is }u\\text{ with }(u,v)\\in R_A\n \\quad\\Longleftrightarrow\\quad v\\in S_A.\n\\]\nMore generally, for every observed cylinder event \\(E\\),\n\\[\n P_M(E)>0\\quad\\Longleftrightarrow\\quad S_A\\cap E\\ne\\varnothing,\n \\qquad\n P_M(E)=0\\quad\\Longleftrightarrow\\quad S_A\\cap E=\\varnothing.\n\\]\nThus the truth of every literal in \\(\\Pi\\), and of every proposed support consequence, is determined by a finite relation calculation.  Enumerating the finitely many primitive support patterns decides whether at least one pattern satisfies \\(\\Pi\\); an asserted support consequence is decided by checking it on every pattern satisfying \\(\\Pi\\).  This proves the decision assertion using \\(\\mathrm{ass:support-literals}\\) and \\(\\mathrm{def:exact-support}\\).\n\nIt remains to show that a combinatorially feasible pattern is probabilistically realizable without losing root independence.  Put\n\\[\n P_M(u_r=c)=\\frac{1}{|A_r|}\\mathbf 1\\{c\\in A_r\\},\n \\qquad\n P_M(i=b\\mid\\operatorname{pa}_G(i)=a)\n =\\frac{1}{|A_i(a)|}\\mathbf 1\\{b\\in A_i(a)\\}.\n\\]\nThese are normalized rational probability vectors.  Their root part is a product by construction, every row at \\(W\\) is a point mass, and the preceding positivity equivalence shows that the resulting exact observed support is \\(S_A\\).  Hence every literal selected by the finite relation calculation is satisfied, and each nonzero primitive probability is stored separately as the reduced fraction obtained from \\(1/|A_r|\\) or \\(1/|A_i(a)|\\), whose denominator is at most the cardinality of its selected support.  No common denominator is used.  This proves the claimed rational realization for every feasible single-model support stratum."
+          },
+          {
+            "id": "thm:fully-observed-frontier",
+            "proof_tex": "Assume \\(U=\\varnothing\\), put \\(n=|V|\\), and put \\(m=\\max_{i\\in V}|\\Omega_i|\\).  Since \\(V\\) and every \\(\\Omega_i\\) are nonempty, \\(n\\geq 1\\) and \\(m\\geq 1\\).  Identification below means that, for any \\(M_1,M_2\\in\\mathfrak M(G,\\Omega,W,\\Pi)\\), equality \\(P_{M_1}(V)=P_{M_2}(V)\\) implies \\(q(M_1)=q(M_2)\\); this keeps the causal target distinct from the observable functional to be constructed.\n\nFix an exact support \\(S\\) realized by a member of the model class.  For a row \\(o=(i,a)\\), define\n\\[\n A_o=A_i^S(a)=\\{b\\in\\Omega_i:\\text{there is }v\\in S\n       \\text{ with }v_{\\operatorname{pa}_G(i)}=a, v_i=b\\}.\n\\]\nCall \\(o\\) reached when \\(A_o\\ne\\varnothing\\).  If \\(M\\) has exact support \\(S\\), then for every reached row\n\\[\n P_M(i=b\\mid\\operatorname{pa}_G(i)=a)\n =\\frac{P_M(i=b,\\operatorname{pa}_G(i)=a)}\n        {P_M(\\operatorname{pa}_G(i)=a)},\n \\tag{1}\n\\]\nand the denominator is positive because the definition of reachability supplies a state in \\(S\\) having that parent assignment.  Hence the observed law uniquely determines every reached row, and its positive entries are exactly the values in \\(A_o\\).  By \\(\\mathrm{ass:functional-nodes}\\), \\(|A_o|=1\\) for a reached row of a vertex in \\(W\\).  An unreached row has zero probability of being invoked observationally and therefore does not affect the observed law.\n\nFor completeness, the last assertion can be checked without a positivity assumption.  Define\n\\[\n J(S)=\\{v:\\ A_i^S(v_{\\operatorname{pa}_G(i)})=\\varnothing\n       \\text{ or }v_i\\in A_i^S(v_{\\operatorname{pa}_G(i)})\n       \\text{ for every }i\\in V\\}.\n\\]\nThe DAG factorization implies \\(S=J(S)\\).  Indeed, \\(S\\subseteq J(S)\\) is immediate.  Conversely, take \\(v\\in J(S)\\) and expose vertices in a topological order.  The root rows are reached because \\(S\\ne\\varnothing\\).  Inductively, the previously exposed positive row entries give a positive-probability prefix; some state of \\(S\\) extends that prefix, so the current parent row is reached.  Membership in \\(J(S)\\) then makes the current row entry positive.  At the end the product factorization gives \\(P_M(V=v)>0\\), hence \\(v\\in S\\).  It follows as well that any two tables which agree on all reached rows induce exactly the same observed law: a state in \\(S\\) uses only their common reached entries, whereas a state outside \\(S=J(S)\\) has a zero reached-row entry in both tables.  This also proves that arbitrary normalized fills of unreached rows preserve exact support.  The finite support oracle \\(\\mathrm{lem:support-oracle}\\) makes the enumeration of the realizable supports and these reachability tests decidable.\n\nSuppose first that a realized \\(S\\) has a completion obstruction.  Let \\(t_1,t_2\\) be its two deterministic complete tables.  They use the same selected output \\(b_o\\in A_o\\) at every reached row \\(o\\), obey all deterministic restrictions at \\(W\\), and their interventional event indicators\n\\[\n e_j=\\mathbf 1\\{Y_x(t_j)=y\\},\\qquad j\\in\\{1,2\\},\n\\]\nare unequal.  Set \\(\\varepsilon=(8n)^{-1}\\).  In both models replace the selected point mass at every reached row \\(o\\) by\n\\[\n \\theta_o(b)=(1-\\varepsilon)\\mathbf 1\\{b=b_o\\}\n       +\\frac{\\varepsilon}{|A_o|}\\mathbf 1\\{b\\in A_o\\},\n \\tag{2}\n\\]\nand at every unreached row retain the corresponding deterministic row of \\(t_j\\).  Formula (2) is a normalized vector with positive support exactly \\(A_o\\).  At a reached row in \\(W\\), \\(|A_o|=1\\), so it remains a point mass; all unreached rows in \\(W\\) are point masses by the definition of a completion.  Thus both constructed models satisfy \\(\\mathrm{ass:functional-nodes}\\).  The preceding support argument shows that they have exact support \\(S\\) and exactly the same observed law.  Since \\(S\\) was realized in the model class, its event incidences satisfy every literal in \\(\\Pi\\); therefore both models satisfy \\(\\mathrm{ass:support-literals}\\) and belong to \\(\\mathfrak M(G,\\Omega,W,\\Pi)\\).\n\nCouple the interventional execution of model \\(j\\) with the deterministic execution of \\(t_j\\).  At an encountered reached row, (2) differs from its selected baseline output with conditional probability at most \\(\\varepsilon\\); at an encountered unreached row it never differs.  There are at most \\(n\\) evaluated vertices.  The union bound, valid also for these adaptively encountered rows, gives\n\\[\n |q(M_j)-e_j|\\leq\n P(\\text{some evaluated output differs from the baseline})\n \\leq n\\varepsilon=\\frac18.\n\\]\nAs \\(|e_1-e_2|=1\\), the triangle inequality yields\n\\[\n |q(M_1)-q(M_2)|\\geq 1-\\frac18-\\frac18=\\frac34>0.\n \\tag{3}\n\\]\nThus an obstruction contradicts identification and supplies the required compatible pair.\n\nThe arithmetic assertion follows directly from (2).  If \\(k=|A_o|\\), a nonselected allowed value has probability \\(1/(8nk)\\), and the selected value has probability \\((8nk-k+1)/(8nk)\\); forbidden values and deterministic rows have probabilities zero or one.  After separate reduction, every denominator is at most \\(8nk\\leq 8nm\\).  With \\(D=8nm\\), each numerator and denominator in a reduced pair is at most \\(D\\), so their total binary length is at most\n\\[\n 2\\lceil\\log_2 D\\rceil+2.\n\\]\nAll induced observational and interventional cells are finite exact sums of products of these primitive fractions.  This proves every certificate assertion in the nonidentification direction, without imposing a common denominator.\n\nConversely, suppose that no realized exact support admits a completion obstruction.  Fix \\(M\\in\\mathfrak M(G,\\Omega,W,\\Pi)\\), write \\(P=P_M(V)\\), and let \\(S=\\operatorname{supp}_V(M)\\).  Represent every conditional table of \\(M\\) by independently drawing one output for each of its rows according to that row's probability vector, producing a random deterministic complete table \\(T\\).  For a single acyclic interventional execution, each vertex invokes one row, and independence of the row draws gives\n\\[\n P(Y_x(T)=y)=\n \\sum_{v:\\,v_X=x,\\ v_Y=y}\n       \\prod_{i\\notin X}P_M(v_i\\mid v_{\\operatorname{pa}_G(i)})\n =q(M),\n \\tag{4}\n\\]\nwhere the last equality is the defining truncated factorization of \\(P_{M,x}\\).  Rows in \\(W\\) are deterministic by assumption.\n\nCondition on all draws at reached rows.  Every conditioned reached-row table has positive output only in its corresponding \\(A_o\\).  Absence of an obstruction says that the indicator \\(\\mathbf 1\\{Y_x(T)=y\\}\\) is then constant over all deterministic choices at the unreached rows.  Consequently its conditional expectation is independent of every unreached stochastic row.  If \\(M'\\) has the same observed law \\(P\\), equation (1) says that it has the same reached rows; averaging the same conditional constants in (4) therefore gives \\(q(M')=q(M)\\).  This proves identification.\n\nIt remains to exhibit the observable map rather than define the target to be identified.  For each realizable support \\(S\\), choose once and for all a deterministic fill \\(h_S^0(i,a)\\in\\Omega_i\\) at every unreached row, choosing a point mass as required at vertices in \\(W\\).  On the branch \\(\\operatorname{supp}(P)=S\\), set\n\\[\n \\kappa_{i,S}(b\\mid a;P)=\n \\begin{cases}\n \\displaystyle\\frac{P(i=b,\\operatorname{pa}_G(i)=a)}\n {P(\\operatorname{pa}_G(i)=a)},&A_i^S(a)\\ne\\varnothing,\\\\[1.2ex]\n \\mathbf 1\\{b=h_S^0(i,a)\\},&A_i^S(a)=\\varnothing,\n \\end{cases}\n\\]\nand define the explicit guarded functional\n\\[\n F_S(P)=\\sum_{v:\\,v_X=x,\\ v_Y=y}\n             \\prod_{i\\notin X}\\kappa_{i,S}\n             (v_i\\mid v_{\\operatorname{pa}_G(i)};P).\n \\tag{5}\n\\]\nEvery division in (5) has a positive denominator by the support guard and the reachability argument preceding (1).  For an unrealizable support branch set \\(F_S=0\\), which uses no division.  There are only finitely many subsets of the finite observed product alphabet, so these branches form a support-valid guarded formula in the sense of \\(\\mathrm{def:guarded-formula}\\).  Applying the random-table argument to the fixed fill \\(h_S^0\\), and using the proved invariance over unreached completions, gives\n\\[\n q(M)=F_{\\operatorname{supp}_V(M)}(P_M(V)).\n\\]\nThus (5) is an observed-law identifying functional; it was derived from the causal truncated factorization rather than introduced as the definition of \\(q\\).  Together with the separating construction, this proves both directions of the stated equivalence and all claimed support and rational-encoding properties."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [],
+        "open_obligations": [
+          {
+            "node_id": "oeq:latent-lifting",
+            "what_is_open": "Constructing a finite causal partial-trace grammar whose every residual failure lifts source by source to an exact-support pair of independent-root models, and proving the converse guarded-formula reconstruction together with explicit bounds \\(H(L)\\), \\(B_{\\mathrm{rat}}(L)\\), search states, checking time, and certificate length.",
+            "obstruction": "After latent marginalization, equality of two observed laws is a polynomial constraint on two products of root simplices. The frozen support oracle establishes rational realization separately on each support stratum, but it does not preserve equality between the two marginalized laws. Neither the trace-grammar handle nor the latent-source-architecture definition supplies production rules or an extension lemma, and replacing the independent roots by one joint source would change the stated model class.",
+            "attempted": "I reduced each fixed deterministic latent skeleton to its multilinear observed and interventional polynomials and tried to transplant the fully observed common-reached-row perturbation. That argument stops because a common observed law does not determine common primitive root or response-row coordinates, so independently rationalizing or uniformizing the two sides can destroy observational equality. Generic real elimination would not supply the required causal grammar or rational witnesses and is excluded by the target.",
+            "partial_result": "The proved support oracle supplies rational points in each single-model support stratum, but the latent two-model requirement additionally imposes equations\n\\[\n \\sum_{u:f(u)=v}\\prod_{r\\in U}\\lambda_r(u_r)\n =\\sum_{u:g(u)=v}\\prod_{r\\in U}\\mu_r(u_r)\n \\quad\\text{for every }v,\n\\]\ntogether with a strict inequality between the corresponding interventional polynomials.  Uniformizing the primitive supports on the two sides does not preserve these equalities.  The fully observed theorem closes exactly the special case \\(U=\\varnothing\\), where equality of observed laws identifies every reached row and allows common-row perturbation.  No analogous source-by-source perturbation or rational-density result for the displayed product-simplex fiber follows from the frozen assumptions."
+          },
+          {
+            "node_id": "prop:classical-reduction",
+            "what_is_open": "Showing that the as-yet unspecified productions of \\(\\operatorname{FID\\text{-}S}\\) specialize exactly to ordinary \\(\\operatorname{ID}\\), including the corrected query-specific hedge on every failure trace.",
+            "obstruction": "The proposition depends on \\(\\mathrm{oeq:latent-lifting}\\). The frozen definitions describe only a construction handle and do not define the grammar's transitions, terminal failure traces, or expression compiler. Equality with ordinary \\(\\operatorname{ID}\\) therefore has no rule-level object to prove against.",
+            "attempted": "I checked whether strict positivity and \\(W=\\varnothing\\) alone turn the frozen handles into the ordinary ancestral and district recursion. They do not specify which recursive state is retained or which query-specific hedge is emitted, so deriving the proposition would silently assume the missing crux.",
+            "partial_result": "On causally sufficient inputs, the proved completion criterion is a finite support-sensitive formula-or-countermodel procedure.  On latent strictly positive inputs, however, \\(\\mathrm{def:trace-grammar-handle}\\) and \\(\\mathrm{def:fids-handle}\\) are construction handles rather than a specified production system.  Therefore there is not yet a defined failure trace from which to derive a corrected query-specific hedge, nor a defined successful expression to compare equation by equation with ordinary \\(\\operatorname{ID}\\)."
+          },
+          {
+            "node_id": "oeq:kill-instance-audit",
+            "what_is_open": "Executing the requested exact comparison for every terminal classification of a concrete candidate grammar on the \\(4096\\)-skeleton independent-root instance.",
+            "obstruction": "No candidate grammar, production list, formula classification, or local obstruction classification is defined in the frozen core. The finite skeleton list by itself does not determine the continuum of equal-observed-law fibers over independent root masses.",
+            "attempted": "I reduced a fixed skeleton pair to exact polynomial equalities in the two pairs of Bernoulli root masses and the target inequality. This gives a bounded audit protocol once candidate productions exist, but there is presently no candidate output to accept or reject and a finite rational grid would not certify the required fibers.",
+            "partial_result": "The audit domain is finite at the level of its \\(4096\\) deterministic skeletons and its finitely many support bitsets and queries.  For a fixed pair of skeletons, however, equality of the observed laws is a system of polynomial equations in the two independent Bernoulli root-mass pairs, not a comparison of skeleton support sets alone.  An exact audit can therefore enumerate the stated discrete cases and then decide, for every proposed terminal production, whether its polynomial fiber contains a compatible equal-law pair with unequal target.  No candidate production system is present in the frozen core, so no formula or obstruction classifications exist to compare in this round."
+          }
+        ]
+      }
+    },
+    {
+      "unit": "prop:first-strict-separation",
+      "targets": [
+        "prop:first-strict-separation"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "prop:first-strict-separation",
+            "proof_tex": "Fix \\(M\\in\\mathfrak M(G,\\Omega,W,\\Pi)\\) on \\(\\mathcal B_0\\).  Write the causal-Bayesian-network kernels as\n\\[\n \\alpha_h=P_M(H=h),\\qquad\n a_h(a)=P_M(A=a\\mid H=h),\\qquad\n d_a(d)=P_M(D=d\\mid A=a),\n\\]\nand\n\\[\n r_{h,a,d}(b)=P_M(B=b\\mid H=h,A=a,D=d).\n\\]\nThe graph in the definition of \\(\\mathcal B_0\\) and the causal-Bayesian-network factorization in the definition of \\(\\mathfrak M(G,\\Omega,W,\\Pi)\\) give\n\\[\n P_M(h,a,d,b)=\\alpha_h a_h(a)d_a(d)r_{h,a,d}(b).\n\\]\nThe functional-node assumption additionally says that each row \\(d_a(\\cdot)\\) is a point mass.  The first equality below does not need that extra restriction, but the explicit models constructed below satisfy it.\n\nBy the support-literal assumption and the literal in the definition of \\(\\mathcal B_0\\),\n\\[\n 0=P_M(A=1)=\\sum_{h\\in\\{0,1\\}}\\alpha_h a_h(1).\n\\]\nEvery summand is nonnegative.  Hence \\(\\alpha_h a_h(1)=0\\) for every \\(h\\), and, whenever \\(\\alpha_h>0\\), binary row normalization gives \\(a_h(0)=1\\).  Rows with \\(\\alpha_h=0\\) contribute zero to all following sums.  The truncated factorization under \\(\\operatorname{do}(A=0)\\) therefore yields, for each \\(b\\in\\{0,1\\}\\),\n\\[\n\\begin{aligned}\n P_{M,A=0}(B=b)\n &=\\sum_{h,d}\\alpha_h d_0(d)r_{h,0,d}(b)\\\\\n &=\\sum_{h,d}\\alpha_h a_h(0)d_0(d)r_{h,0,d}(b)\\\\\n &=\\sum_{h,a,d}\\alpha_h a_h(a)d_a(d)r_{h,a,d}(b)\\\\\n &=P_M(B=b).\n\\end{aligned}\n\\]\nThe second equality uses the preceding consequence of \\(P_M(A=1)=0\\); the third uses \\(\\alpha_h a_h(1)=0\\); and the last uses the observational factorization.  Thus the displayed observed-law map\n\\[\n F_0(P_M(V)):=P_M(B=b)\n\\]\nis a support-valid identifying formula for \\(P_{M,A=0}(B=b)\\).  It involves no division, so it requires no positivity beyond the declared literal.\n\nThe support literal is load-bearing for this formula.  Indeed, keep the same graph, let \\(H\\sim\\operatorname{Bernoulli}(1/2)\\), and set \\(A=H\\), \\(D=A\\), and \\(B=A\\).  This model still has an independent latent root and still obeys the functional declaration for \\(D\\), but it violates \\(P(A=1)=0\\).  In this model\n\\[\n P_M(B=1)=\\tfrac12\n \\qquad\\text{while}\\qquad\n P_{M,A=0}(B=1)=0.\n\\]\nThus the displayed observed-law formula is not a graph-only adjustment identity; it follows specifically from the declared structural-zero face.\n\nFor nonidentification at \\(A=1\\), define two complete models \\(M_j\\), indexed by \\(j\\in\\{0,1\\}\\).  In both models let\n\\[\n P_{M_j}(H=0)=P_{M_j}(H=1)=\\tfrac12,\\qquad\n P_{M_j}(A=0\\mid H=h)=1,\n\\]\nand set \\(D=A\\).  Complete the kernel of \\(B\\) by the deterministic function\n\\[\n f_j(h,a,d)=\n \\begin{cases}\n h,&(a,d)=(0,0),\\\\\n j,&(a,d)=(1,1),\\\\\n 0,&(a,d)\\in\\{(0,1),(1,0)\\},\n \\end{cases}\n \\qquad B=f_j(H,A,D).\n\\]\nThis specifies every parent row, including both observationally unreachable rows.  Each \\(M_j\\) is a finite model on the graph \\(G\\); its only exogenous root is \\(H\\), so the independent-root assumption holds; \\(D=A\\) obeys the functional-node assumption for \\(W=\\{D\\}\\); and \\(A=0\\) almost surely obeys the support-literal assumption.  Direct substitution gives, for both \\(j\\),\n\\[\n P_{M_j}(A=a,D=d,B=b)\n =\\tfrac12\\mathbf 1\\{(a,d,b)=(0,0,0)\\}\n  +\\tfrac12\\mathbf 1\\{(a,d,b)=(0,0,1)\\}.\n\\]\nConsequently the two models have the same observed law and the same exact observed support\n\\[\n \\{(0,0,0),(0,0,1)\\}.\n\\]\nUnder \\(\\operatorname{do}(A=1)\\), the functional row for \\(D\\) gives \\(D=1\\), and hence the exposed row of \\(B\\) gives \\(B=j\\).  Therefore\n\\[\n P_{M_0,A=1}(B=1)=0,\n \\qquad\n P_{M_1,A=1}(B=1)=1.\n\\]\nThus no map of the observed law can identify \\(P_{A=1}(B=1)\\) on \\(\\mathfrak M(G,\\Omega,W,\\Pi)\\): such a map would take the same input on \\(M_0\\) and \\(M_1\\) but would have to return both zero and one.  The certificate preserves the structural zeros exactly, all primitive probabilities belong to \\(\\{0,\\tfrac12,1\\}\\), their reduced denominators are at most \\(2\\), and the target gap is \\(1\\).\n\nIt remains to verify the comparison clauses.  In the cited Chen--Darwiche Theorem 15, \\(D\\) is an observed functional variable, is neither the treatment \\(A\\) nor the outcome \\(B\\), has the observed parent \\(A\\), and does not occur in the comparator positivity family \\(C_V\\), so it meets the stated parent and separability conditions.  Functional elimination removes \\(D\\) and replaces the path \\(A\\to D\\to B\\) by an \\(A\\to B\\) arrow, which is already present.  The resulting latent projection has \\(A\\to B\\) together with the common latent parent \\(H\\to A,H\\to B\\), namely the bow.  Marginalizing \\(D\\) in the two models above retains their common observed law on \\((A,B)\\) and their unequal \\(A=1\\) interventional targets, so this residual bow is unidentified; Theorem 15 does not resolve it.\n\nThe cited Chen--Darwiche Theorem 18 instead assumes\n\\[\n C_V=\\{P(X)>0:X\\text{ is a treatment variable}\\}.\n\\]\nFor the binary treatment \\(A\\), this includes \\(P(A=1)>0\\), whereas every model on the declared face satisfies \\(P(A=1)=0\\).  Its premise is therefore false on \\(\\mathcal B_0\\).  Finally, the cited 2026 Theorems 1 and 2 are one-way soundness results conditional on their respective formula-returning algorithms, within the paper's standing strictly positive observational regime.  The common law displayed above has only two positive cells among the eight cells of \\(\\Omega_A\\times\\Omega_D\\times\\Omega_B\\).  In particular, \\(1\\in\\Omega_A\\) remains an admissible intervention state even though every observational cell with \\(A=1\\) has probability zero.  Hence \\(\\mathcal B_0\\) is outside that strict-positivity input regime.\n\nWe have therefore exhibited both outputs required from a support-aware trichotomy on this one input: the explicit formula \\(P(B=b)\\) for the supported intervention \\(A=0\\), and a common-exact-support rational two-model certificate for the unsupported intervention \\(A=1\\).  The preceding premise checks show that this separation occurs on a regime not covered by the cited comparator results."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:chen-darwiche-theorem-15",
+            "kind": "lemma",
+            "statement": "Chen--Darwiche Theorem 15 states that, for an \\(F\\)-identifiability tuple \\(\\langle G,V,C_V,W\\rangle\\), functionally eliminating any set of observed functional variables that are neither treatments nor outcomes, are separable from \\(C_V\\), and have observed parents preserves \\(F\\)-identifiability of the causal effect of \\(X\\) on \\(Y\\).",
+            "free_symbols": [
+              "G",
+              "V",
+              "CV",
+              "W",
+              "X",
+              "Y"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "ChenDarwiche2024",
+              "locator": "Theorem 15, page 9",
+              "carrier": "logical-claim",
+              "url": "https://arxiv.org/abs/2403.04919",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Scope checked against Theorem 15 in the cited source."
+              }
+            }
+          },
+          {
+            "id": "lem:chen-darwiche-theorem-18",
+            "kind": "lemma",
+            "statement": "Chen--Darwiche Theorem 18 states that, when \\(C_V=\\{P(X)>0:X\\text{ is a treatment variable}\\}\\), \\(F\\)-identifiability of the causal effect of \\(X\\) on \\(Y\\) is equivalent to identifiability after iteratively treating as observed each functional variable whose parents have already been treated as observed.",
+            "free_symbols": [
+              "G",
+              "V",
+              "CV",
+              "W",
+              "X",
+              "Y"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "ChenDarwiche2024",
+              "locator": "Theorem 18, page 10",
+              "carrier": "logical-claim",
+              "url": "https://arxiv.org/abs/2403.04919",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Scope and positivity family checked against Theorem 18 in the cited source."
+              }
+            }
+          },
+          {
+            "id": "lem:chen-darwiche-2026-theorem-1-scope",
+            "kind": "lemma",
+            "statement": "Under the paper's standing assumption that the observational law \\(P(V)\\) is strictly positive, Chen--Darwiche Theorem 1 states that the state-specific causal effect \\(P_x(y)\\) is identifiable under the supplied context-specific independence constraints if Algorithm 1 returns a formula for estimating \\(P_x(y)\\).",
+            "free_symbols": [
+              "Pobs",
+              "Pint",
+              "V",
+              "x",
+              "y"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "ChenDarwiche2026",
+              "locator": "Standing positivity note 1 and Theorem 1",
+              "carrier": "logical-claim",
+              "url": "https://proceedings.mlr.press/v337/chen26c.html",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Standing premise and soundness direction checked against note 1 and Theorem 1 in the cited source."
+              }
+            }
+          },
+          {
+            "id": "lem:chen-darwiche-2026-theorem-2-scope",
+            "kind": "lemma",
+            "statement": "Under the paper's standing assumption that the observational law \\(P(V)\\) is strictly positive, Chen--Darwiche Theorem 2 states that the state-specific causal effect \\(P_x(y)\\) is identifiable under the supplied context-specific independence and state constraints if Algorithm 2 returns a formula for estimating \\(P_x(y)\\).",
+            "free_symbols": [
+              "Pobs",
+              "Pint",
+              "V",
+              "x",
+              "y"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "ChenDarwiche2026",
+              "locator": "Standing positivity note 1 and Theorem 2",
+              "carrier": "logical-claim",
+              "url": "https://proceedings.mlr.press/v337/chen26c.html",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Standing premise and soundness direction checked against note 1 and Theorem 2 in the cited source."
+              }
+            }
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "prop:first-strict-separation",
+            "proposed": {
+              "id": "prop:first-strict-separation",
+              "kind": "proposition",
+              "statement": "On \\(\\mathcal B_0\\), \\(P_{A=0}(B=b)=P(B=b)\\) for every compatible model, whereas \\(P_{A=1}(B=1)\\) is not identified. For the latter claim, take \\(H\\sim\\operatorname{Bernoulli}(1/2)\\), set \\(A=0\\), let the functional node satisfy \\(D=A\\), and set \\(B=H\\) on the reached row \\((A,D)=(0,0)\\) in both models; on the intervention-exposed row \\((A,D)=(1,1)\\), set \\(B=0\\) in the first model and \\(B=1\\) in the second. The models have the identical exact-support observed law \\(P(A=0,D=0,B=b)=1/2\\) and respective targets zero and one. Ordinary ID fails for the latent bow remaining after accounting for the directed paths. Chen--Darwiche Theorem 15 functional-variable elimination, under its stated separability and parent conditions, leaves that unidentified bow, while Theorem 18 is inapplicable because its treatment-marginal positivity set \\(C_V=\\{\\Pr(X)>0:X\\text{ is a treatment variable}\\}\\) includes \\(\\Pr(A=1)>0\\), which the declared support contradicts. Chen--Darwiche's 2026 Theorems 1--2 prove soundness only for formula-returning algorithms under context-specific independences and state-alphabet constraints with a strictly positive observational law; \\(\\mathcal B_0\\) instead retains \\(1\\in\\Omega_A\\) as a valid intervention state while declaring \\(P(A=1)=0\\), so it is outside their input regime. Thus this exact functional-support pattern is strictly resolved by the proposed support trichotomy on a residual regime not covered by those comparators.",
+              "free_symbols": [
+                "StrictPattern",
+                "ModelClass",
+                "G",
+                "Omega",
+                "W",
+                "Pi",
+                "U",
+                "V",
+                "q",
+                "Pobs",
+                "CV"
+              ],
+              "depends_on": [
+                "ass:independent-roots",
+                "ass:functional-nodes",
+                "ass:support-literals",
+                "def:model-class",
+                "def:first-strict-pattern",
+                "lem:chen-darwiche-theorem-15",
+                "lem:chen-darwiche-theorem-18",
+                "lem:chen-darwiche-2026-theorem-1-scope",
+                "lem:chen-darwiche-2026-theorem-2-scope"
+              ],
+              "status": "to-prove",
+              "justification": "The pattern exposes, on the smallest latent bow, both the supported state-specific formula branch and an exact-support rational NONID branch.",
+              "gap": "Ordinary ID gives only bow failure. Chen--Darwiche Theorem 15 elimination of \\(D\\), under its separability and parent conditions, leaves the bow, and Theorem 18 assumes \\(C_V=\\{\\Pr(X)>0:X\\text{ is a treatment variable}\\}\\); neither theorem separates the supported and unsupported intervention values on this declared structural-zero face. Chen--Darwiche's 2026 Theorems 1--2 are sound identification results for CSI and state-alphabet constraints under strict observational positivity, not a completeness or exact-support countermodel result for a valid treatment state assigned zero observational mass.",
+              "consumer": "The pattern is a unit test requiring a support-aware implementation to return \\(P(B=b)\\) for \\(A=0\\) and an exact two-model certificate for \\(A=1\\)."
+            },
+            "reason": "Adds theorem-level cited dependencies for every comparator-scope clause used by the proof.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": []
+      }
+    }
+  ]
+}

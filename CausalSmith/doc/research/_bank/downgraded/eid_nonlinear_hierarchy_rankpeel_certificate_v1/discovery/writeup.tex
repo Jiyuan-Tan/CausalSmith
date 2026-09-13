@@ -1,0 +1,980 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}nonlinear\_\allowbreak{}hierarchy\_\allowbreak{}rankpeel\_\allowbreak{}certificate}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Prashant, Ng, Zhang, and Huang already identify the full binary adjacency matrix of a nonlinear latent hierarchy and already reuse measured pure descendants as higher-layer surrogates.  RankPeel is a deterministic population protocol with at most \(p^2+p\) combined observed-law queries, worst-case \(\Theta(p^2)\) query order, and \(O(p^3)\) bookkeeping.  This note corrects and qualifies a version-free reading of the anchor's Conditions 1--3: the smooth boundary member \(X_1=\cdots=X_4=H\) admits conditional-mean versions with different transverse Jacobian ranks, so the unchanged conditions do not by themselves define the present law-level rank oracle.  Exact recovery has two proved strict-subclass routes.  The sharp abstract route assumes query-local first-jet determinacy and latent-separator-relative pointwise fibre coherence.  The new support-regular route assumes that every queried predictor law is equivalent to Lebesgue measure on an open full-measure set; positive density then fixes first jets, and directed Markovness plus the anchor's almost-sure conditional-sufficiency factorization yields the separator bound without pointwise fibre coherence.  Canonical neutrality, quadratic complexity, and oracle-relative replay retain their stated scope.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest nonlinear result already identifies the complete binary adjacency matrix and already uses measured pure descendants recursively, but its construction exhaustively searches subset families and gives no explicit polynomial observed-query budget.  In addition, the anchor's Conditions 1--3 do not make the present all-version conditional-mean Jacobian rank a functional of the observed law on lower-dimensional predictor supports: smooth versions can agree almost surely while having different transverse derivatives.
+
+\paragraph{Niche.} A deterministic pairwise and canonical-deletion protocol gives a quadratic population-query schedule.  Its exact law-level recovery is separated into a sharp abstract query-regular theorem and a transparent positive-density/open-support theorem; the latter derives rather than assumes the needed first-jet uniqueness and uses the anchor's almost-sure sufficient-statistic factorization rather than pointwise fibre coherence.
+
+\paragraph{Fill.} The contribution proves an almost-everywhere bottleneck theorem, derives first-jet determinacy from positive queried densities, and proves the restricted separator upper bound from directed Markovness and conditional sufficiency on that support-regular subclass.  Combined with the private-path lower bounds, this yields exact canonical RankPeel recovery with at most \(p^2+p\) calls, worst-case \(\Theta(p^2)\) query order, and \(O(p^3)\) bookkeeping.  The abstract first-jet-determining and fibre-coherent theorem and the legal full-class boundary counterexample are retained, so no unchanged-class strict-tightening claim is made.
+
+\section{Related work}
+
+Prashant, Ng, Zhang, and Huang identify the full binary adjacency matrix up to latent permutation and use measured pure descendants as higher-layer surrogates.  RankPeel changes the construction to deterministic pair tests and canonical parent deletion and proves a quadratic oracle budget.  The present \(\mathcal M_{\mathrm{PNHZ}}\) is a formalized comparison class keyed to their structural and analytic conditions; it is not an assertion that the paper defined the present all-version observed-law rank functional.  The boundary witness corrects a version-free transfer of their separator argument, while the positive-density theorem shows that their almost-sure conditional-sufficiency factorization does supply the required rank upper bound on an open full-dimensional queried support, without pointwise fibre coherence.  Huang, Low, Xie, Glymour, and Zhang inform the pure-descendant surrogate motif in a linear \(\mathrm{IL}^{2}\mathrm H\) model, but their covariance-rank assumptions and Markov-equivalence target differ.  Kong, Huang, Xie, Xing, Chi, and Zhang identify nonlinear latent representations only up to invertible transformations rather than through this observed conditional-mean rank protocol.  Sullivant, Talaska, and Draisma motivate the separation between graph-forced rank upper bounds and generic path-based lower bounds in the linear Gaussian case.  Hatcher's invariance-of-domain theorem and Rudin's inverse-function theorem support the topological arguments; neither source supplies the causal query-regularity or support assumptions.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_G=[G]_{\prod_{\ell=1}^{L}\mathfrak S_{|V_\ell|}}\).
+Primary functional / estimator / diagnostic: For \( (G,P)\in\mathcal M_{\mathrm{PNHZ}} \), let \( (\widehat G,\mathcal T)=\operatorname{RankPeel}(P_X,R^{\mathrm{law}}_{P_X}) \).  The identifying equality \(\theta_G=[\widehat G]\) holds on either of two strict subclasses: first, the abstract query-local subclass satisfying first-jet determinacy and latent-separator-relative pointwise fibre coherence; second, the positive-density/open-support subclass in which every queried predictor law is equivalent to Lebesgue measure on an open full-measure set.  On the second subclass, directed Markovness and the conditional-sufficiency factorization yield the separator rank bound without pointwise fibre coherence.  Outside the union of these subclasses, RankPeel is only a partial oracle-relative procedure and no identifying equality is asserted..
+\begin{itemize}
+  \item \texttt{p} --- \texttt{positive integer}; \(\mathbb N\); \texttt{problem size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of measured scalar variables.}
+  \item \texttt{L} --- \texttt{nonnegative integer}; \(\mathbb N_0\); \texttt{hierarchy depth}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The largest latent height.}
+  \item \texttt{V\_\allowbreak{}l} --- \texttt{finite-\allowbreak{}set family}; \((V_\ell)_{\ell=0}^{L}\); \texttt{layers}
+  \par\smallskip\noindent\emph{Definition.} \(V_0\) indexes the measured variables and \(V_\ell\) indexes scalar latent variables at height \(\ell\ge 1\).
+  \item \texttt{V} --- \texttt{finite set}; \(\bigcup_{\ell=0}^{L}V_\ell\); \texttt{vertices}
+  \par\smallskip\noindent\emph{Definition.} The complete vertex set \(V:=\bigsqcup_{\ell=0}^{L}V_\ell\).
+  \item \texttt{E} --- \texttt{directed-\allowbreak{}edge set}; \(2^{V\times V}\); \texttt{causal arrows}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The edge set,\allowbreak{} with arrows oriented from higher to lower layers.}
+  \item \texttt{G} --- \texttt{directed acyclic graph}; \(\mathfrak G(V)\); \texttt{latent hierarchical causal graph}
+  \par\smallskip\noindent\emph{Definition.} \(G:=(V,E)\).
+  \item \texttt{Pa} --- \texttt{set-\allowbreak{}valued map}; \(V\to 2^V\); \texttt{parent map}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Pa}_G(v):=\{u\in V:(u,v)\in E\}\).
+  \item \texttt{X} --- \texttt{random vector}; \(\mathbb R^{p}\); \texttt{observed variables}
+  \par\smallskip\noindent\emph{Definition.} \(X:=(X_v:v\in V_0)\) is the measured layer.
+  \item \texttt{P} --- \texttt{probability law}; \(\mathcal P(\mathbb R^{V})\); \texttt{model law}
+  \par\smallskip\noindent\emph{Definition.} The joint observational law generated by a scalar structural equation model on \(G\).
+  \item \texttt{P\_\allowbreak{}X} --- \texttt{probability law}; \(\mathcal P(\mathbb R^{p})\); \texttt{observed-\allowbreak{}data law}
+  \par\smallskip\noindent\emph{Definition.} The marginal law of \(X\) under \(P\).
+  \item \texttt{f} --- \texttt{conditional-\allowbreak{}mean version family}; \(\mathfrak F_{A,B}(P_X)\subseteq C^1(\mathcal U_A;\mathbb R^{|B|})\); \texttt{observed-\allowbreak{}law conditional-\allowbreak{}mean representatives}
+  \par\smallskip\noindent\emph{Definition.} For disjoint \(A,B\subseteq V_0\), \(\mathfrak F_{A,B}(P_X)\) is the set of all continuously differentiable maps on an open neighborhood \(\mathcal U_A\) of \(\operatorname{supp}(P_{X_A})\) satisfying \(g(X_A)=\mathbb E_{P_X}[X_B\mid X_A]\) \(P_X\)-almost surely.
+  \item \texttt{J} --- \texttt{matrix-\allowbreak{}valued representative derivative family}; \(J^g_{A,B}(x):=Dg(x)\in\mathbb R^{|B|\times |A|}\); \texttt{derivatives indexed by all admissible versions}
+  \par\smallskip\noindent\emph{Definition.} For \(g\in\mathfrak F_{A,B}(P_X)\), \(J^g_{A,B}(x):=Dg(x)\).
+  \item \texttt{Q\_\allowbreak{}stab} --- \texttt{observed-\allowbreak{}law query domain}; \(2^{V_0}\times2^{V_0}\); \texttt{version-\allowbreak{}stability domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q_{\mathrm{stab}}(P_X)\) is the set of disjoint \(A,B\subseteq V_0\) for which \(\mathfrak F_{A,B}(P_X)\neq\varnothing\) and the set \(\{\operatorname*{ess\,sup}_{x\sim P_{X_A}}\operatorname{rank}Dg(x):g\in\mathfrak F_{A,B}(P_X)\}\) is a singleton; pairs with an empty argument are included with value zero.
+  \item \texttt{R} --- \texttt{partial integer-\allowbreak{}valued observed-\allowbreak{}law functional}; \(R^{\mathrm{law}}_{P_X}:\mathcal Q_{\mathrm{stab}}(P_X)\to\mathbb N_0\); \texttt{version-\allowbreak{}invariant observed population rank oracle}
+  \par\smallskip\noindent\emph{Definition.} For \((A,B)\in\mathcal Q_{\mathrm{stab}}(P_X)\), \(R^{\mathrm{law}}_{P_X}(A,B)\) is the unique element of \(\{\operatorname*{ess\,sup}_{x\sim P_{X_A}}\operatorname{rank}Dg(x):g\in\mathfrak F_{A,B}(P_X)\}\); it is zero if either argument is empty.
+  \item \texttt{M\_\allowbreak{}PNHZ} --- \texttt{model class}; \(\mathfrak M\); \texttt{published comparison class}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The unchanged scalar layered-\allowbreak{}DAG class of Prashant,\allowbreak{} Ng,\allowbreak{} Zhang,\allowbreak{} and Huang equipped with its observed law.}
+  \item \texttt{B} --- \texttt{set-\allowbreak{}valued map}; \(V_{\ell+1}\to2^{V_\ell}\); \texttt{pure block}
+  \par\smallskip\noindent\emph{Definition.} \(B_h:=\{v\in V_\ell:\operatorname{Pa}_G(v)=\{h\}\}\), the pure-child block of \(h\).
+  \item \texttt{D} --- \texttt{set-\allowbreak{}valued recursive map}; \(D_\ell:V_\ell\to2^{V_0}\); \texttt{retained observed pure surrogates}
+  \par\smallskip\noindent\emph{Definition.} \(D_0(v):=\{v\}\) and \(D_{\ell+1}(h):=\bigcup_{v\in B_h}D_\ell(v)\); for \(A\subseteq V_\ell\), \(D_\ell(A):=\bigcup_{v\in A}D_\ell(v)\).
+  \item \texttt{rho} --- \texttt{partial integer-\allowbreak{}valued lifted oracle}; \(2^{V_\ell}\times2^{V_\ell}\to\mathbb N_0\); \texttt{current-\allowbreak{}layer rank query}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_\ell(A,B):=R^{\mathrm{law}}_{P_X}(D_\ell(A),D_\ell(B))\) whenever the measured pair belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\).
+  \item \texttt{H} --- \texttt{finite set}; \(V_{\ell+1}\); \texttt{candidate parent layer}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The next-\allowbreak{}layer vertices represented by the recovered nontrivial pure blocks at a RankPeel iteration.}
+  \item \texttt{s} --- \texttt{choice map}; \(H\to V_\ell\); \texttt{pure representative}
+  \par\smallskip\noindent\emph{Definition.} For each \(h\in H\), \(s_h\) is the least canonically labeled member of \(B_h\).
+  \item \texttt{c} --- \texttt{vertex}; \(V_\ell\); \texttt{mixed-\allowbreak{}child candidate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A current nonparentless vertex outside all recovered pure blocks.}
+  \item \texttt{C} --- \texttt{finite set}; \(2^H\); \texttt{parent-\allowbreak{}deletion state}
+  \par\smallskip\noindent\emph{Definition.} A candidate parent set for \(c\).
+  \item \texttt{k} --- \texttt{nonnegative integer}; \(\mathbb N_0\); \texttt{candidate-\allowbreak{}parent cardinality}
+  \par\smallskip\noindent\emph{Definition.} \(k:=|C|\).
+  \item \texttt{S} --- \texttt{finite set}; \(2^{V_\ell}\); \texttt{representative predictor set}
+  \par\smallskip\noindent\emph{Definition.} \(S_C:=\{s_h:h\in C\}\).
+  \item \texttt{T} --- \texttt{finite set}; \(2^{V_\ell}\); \texttt{neutrality response set}
+  \par\smallskip\noindent\emph{Definition.} \(T_C(c):=V_\ell\setminus(S_C\cup\{c\})\).
+  \item \texttt{N} --- \texttt{Boolean predicate}; \(2^H\to\{0,1\}\); \texttt{representative-\allowbreak{}neutrality predicate}
+  \par\smallskip\noindent\emph{Definition.} \(N_c(C):=\mathbf 1\{\rho_\ell(S_C,T_C(c))=\rho_\ell(S_C\cup\{c\},T_C(c))\}\).
+  \item \texttt{RankPeel} --- \texttt{deterministic algorithm}; \((P_X,R^{\mathrm{law}}_{P_X})\mapsto(\widehat G,\mathcal T)\text{ or }\bot\); \texttt{recovery map}
+  \par\smallskip\noindent\emph{Definition.} The canonically ordered partial population procedure defined in \(\texttt{def:rankpeel}\); it returns \(\bot\) if a requested measured pair is outside \(\mathcal Q_{\mathrm{stab}}(P_X)\).
+  \item \texttt{G\_\allowbreak{}hat} --- \texttt{directed acyclic graph}; \(\mathfrak G\); \texttt{reconstructed graph}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat G\) is the graph returned by a complete run of \(\operatorname{RankPeel}(P_X,R^{\mathrm{law}}_{P_X})\).
+  \item \texttt{Transcript} --- \texttt{finite record}; \(\mathfrak T\); \texttt{replay certificate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T\) records the canonical layer labels, surrogate masks, every version-stable queried pair, every returned rank, every comparison, and the final adjacency matrix of a complete RankPeel run.
+  \item \texttt{Verify} --- \texttt{deterministic Boolean map}; \((P_X,R^{\mathrm{law}}_{P_X},\mathcal T,\widehat G)\mapsto\{0,1\}\); \texttt{certificate verifier}
+  \par\smallskip\noindent\emph{Definition.} The verifier replays a complete RankPeel run and re-asks exactly the version-stable rank queries recorded in \(\mathcal T\).
+  \item \texttt{theta\_\allowbreak{}G} --- \texttt{identified structural parameter}; \(\mathfrak G/\prod_{\ell=1}^{L}\mathfrak S_{|V_\ell|}\); \texttt{target structure}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_G:=[G]\) modulo independent permutations of latent labels within each layer.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:scalar-vertices]\label{ass:scalar-vertices}
+Every variable indexed by \(V\) is real-valued.
+\par\smallskip\noindent\emph{Standard} (Scalar-variable condition in the published latent-hierarchy class, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:adjacent-layering]\label{ass:adjacent-layering}
+For every \((u,v)\in E\), there is an \(\ell<L\) such that \(u\in V_{\ell+1}\) and \(v\in V_\ell\).
+\par\smallskip\noindent\emph{Standard} (Layered latent-DAG restriction, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:two-pure-children]\label{ass:two-pure-children}
+For every \(h\in V_{\ell+1}\), \(|\{v\in V_\ell:\operatorname{Pa}_G(v)=\{h\}\}|\ge 2\).
+\par\smallskip\noindent\emph{Standard} (Two-pure-child condition, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:equal-descendant-depth]\label{ass:equal-descendant-depth}
+For each latent \(h\), all measured descendants of \(h\) have the same directed-path length from \(h\).
+\par\smallskip\noindent\emph{Standard} (Equal measured-descendant path-length condition, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:dag-markov]\label{ass:dag-markov}
+The law \(P\) obeys the directed global Markov property for \(G\).
+\par\smallskip\noindent\emph{Standard} (Directed global Markov property, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:generalized-rank-faithfulness]\label{ass:generalized-rank-faithfulness}
+\texttt{The generalized Jacobian-\allowbreak{}rank-\allowbreak{}faithfulness Condition 2 of Prashant,\allowbreak{} Ng,\allowbreak{} Zhang,\allowbreak{} and Huang holds for the continuously differentiable conditional-\allowbreak{}mean maps on the domains specified in that condition.}
+\par\smallskip\noindent\emph{Standard} (Generalized Jacobian-rank faithfulness, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:observed-mean-differentiability]\label{ass:observed-mean-differentiability}
+For every disjoint \(A,B\subseteq V_0\), \(\mathfrak F_{A,B}(P_X)\neq\varnothing\).
+\par\smallskip\noindent\emph{Standard} (Published conditional-mean differentiability condition, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-sufficiency]\label{ass:conditional-sufficiency}
+For every measured set \(A\subseteq V_0\) and latent set \(Z\subseteq V\setminus V_0\), there is a continuously differentiable \(g_{A,Z}:\mathbb R^{|A|}\to\mathbb R^{|Z|}\) such that \(P(Z\in\cdot\mid X_A=x)=P(Z\in\cdot\mid g_{A,Z}(x))\).
+\par\smallskip\noindent\emph{Standard} (Published differentiable conditional-sufficiency condition, \cite{PrashantEtAl2025Differentiable}).
+\end{assumption}
+
+\begin{assumption}[ass:rankpeel-query-jet-determining]\label{ass:rankpeel-query-jet-determining}
+For every measured predictor set \(A\) occurring in an endpoint pair actually requested, including a pair at which the procedure would otherwise stop, by the canonical deterministic execution of \(\operatorname{RankPeel}(P_X,R^{\mathrm{law}}_{P_X})\), every open set \(\mathcal U\subseteq\mathbb R^{|A|}\) containing \(\operatorname{supp}(P_{X_A})\) is first-jet determining for \(P_{X_A}\): for every \(h\in C^1(\mathcal U;\mathbb R)\),
+\[
+ h(X_A)=0\quad P_X\text{-almost surely}
+ \quad\Longrightarrow\quad
+ Dh(X_A)=0\quad P_X\text{-almost surely}.
+\]
+\par\smallskip\noindent\emph{Novel.} novel: query-local first-jet-determining support condition
+\end{assumption}
+
+\begin{assumption}[ass:rankpeel-separator-fibre-coherence]\label{ass:rankpeel-separator-fibre-coherence}
+For every measured endpoint pair \((A,B)\) actually requested, including a pair at which the procedure would otherwise stop, by the canonical deterministic execution of \(\operatorname{RankPeel}(P_X,R^{\mathrm{law}}_{P_X})\), and for every latent set \(Z\subseteq V\setminus V_0\) used as a \(d\)-separator for that query by the restricted pure-surrogate cuts, there are a common open neighborhood \(\mathcal U\) of \(\operatorname{supp}(P_{X_A})\), a representative \(f^0\in\mathfrak F_{A,B}(P_X)\) defined on \(\mathcal U\), and a map \(g\in C^1(\mathcal U;\mathbb R^{|Z|})\) such that
+\[
+ g(x)=g(x')\quad\Longrightarrow\quad f^0(x)=f^0(x')
+ \qquad\text{for every }x,x'\in\mathcal U.
+\]
+\par\smallskip\noindent\emph{Novel.} novel: latent separator-relative fibre-coherence condition
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:published-class]\label{def:published-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Published nonlinear latent-\allowbreak{}hierarchy class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{PNHZ}}:=\{(p,L,(V_\ell)_{\ell=0}^{L},G,P):V_0\text{ indexes }X,\ |V_0|=p,\text{ and }\texttt{ass:scalar-vertices},\texttt{ass:adjacent-layering},\texttt{ass:two-pure-children},\texttt{ass:equal-descendant-depth},\texttt{ass:dag-markov},\texttt{ass:generalized-rank-faithfulness},\texttt{ass:observed-mean-differentiability},\texttt{ass:conditional-sufficiency}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}scalar-\allowbreak{}vertices}; \texttt{ass:\allowbreak{}adjacent-\allowbreak{}layering}; \texttt{ass:\allowbreak{}two-\allowbreak{}pure-\allowbreak{}children}; \texttt{ass:\allowbreak{}equal-\allowbreak{}descendant-\allowbreak{}depth}; \texttt{ass:\allowbreak{}dag-\allowbreak{}markov}; \texttt{ass:\allowbreak{}generalized-\allowbreak{}rank-\allowbreak{}faithfulness}; \texttt{ass:\allowbreak{}observed-\allowbreak{}mean-\allowbreak{}differentiability}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}sufficiency}.
+\end{definition}
+
+\begin{definition}[def:observed-rank-oracle]\label{def:observed-rank-oracle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Version-\allowbreak{}invariant observed rank functional}
+\par\smallskip\noindent\emph{Construction.} For disjoint measured \(A,B\subseteq V_0\), form \(\mathfrak F_{A,B}(P_X):=\{g\in C^1(\mathcal U_A;\mathbb R^{|B|}):\mathcal U_A\supseteq\operatorname{supp}(P_{X_A})\text{ is open and }g(X_A)=\mathbb E_{P_X}[X_B\mid X_A]\ P_X\text{-almost surely}\}\). Put \((A,B)\in\mathcal Q_{\mathrm{stab}}(P_X)\) exactly when the set \(\{\operatorname*{ess\,sup}_{x\sim P_{X_A}}\operatorname{rank}Dg(x):g\in\mathfrak F_{A,B}(P_X)\}\) is a singleton, and define \(R^{\mathrm{law}}_{P_X}(A,B)\) as that unique integer. Empty arguments have value zero. Both the domain and value depend only on the observed law.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}X}.
+\end{definition}
+
+\begin{definition}[def:pure-surrogates]\label{def:pure-surrogates}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Retained pure-\allowbreak{}surrogate recursion}
+\par\smallskip\noindent\emph{Construction.} Set \(D_0(v):=\{v\}\). After recovering \(B_h\subseteq V_\ell\), set \(D_{\ell+1}(h):=\bigcup_{v\in B_h}D_\ell(v)\) and \(D_\ell(A):=\bigcup_{v\in A}D_\ell(v)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:lifted-rank]\label{def:lifted-rank}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lifted current-\allowbreak{}layer rank}
+\par\smallskip\noindent\emph{Construction.} \(\rho_\ell(A,B):=R^{\mathrm{law}}_{P_X}(D_\ell(A),D_\ell(B))\) for disjoint \(A,B\subseteq V_\ell\) whenever \((D_\ell(A),D_\ell(B))\in\mathcal Q_{\mathrm{stab}}(P_X)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{R}; \texttt{Q\_\allowbreak{}stab}; \texttt{D}.
+\end{definition}
+
+\begin{definition}[def:pair-relation]\label{def:pair-relation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pairwise pure-\allowbreak{}block relation}
+\par\smallskip\noindent\emph{Construction.} For distinct current vertices with nonempty parent sets whose measured pair query belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\), \(u\sim_\ell v\) exactly when \(\rho_\ell(\{u,v\},V_\ell\setminus\{u,v\})\le 1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}; \texttt{Q\_\allowbreak{}stab}.
+\end{definition}
+
+\begin{definition}[def:neutrality]\label{def:neutrality}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Representative-\allowbreak{}neutrality predicate}
+\par\smallskip\noindent\emph{Construction.} For \(C\subseteq H\), set \(S_C:=\{s_h:h\in C\}\) and \(T_C(c):=V_\ell\setminus(S_C\cup\{c\})\). When both measured endpoint pairs belong to \(\mathcal Q_{\mathrm{stab}}(P_X)\), set \(N_c(C):=\mathbf 1\{\rho_\ell(S_C,T_C(c))=\rho_\ell(S_C\cup\{c\},T_C(c))\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}; \texttt{Q\_\allowbreak{}stab}; \texttt{s}; \texttt{c}; \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:bottleneck-handle]\label{def:bottleneck-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Version-\allowbreak{}stability and topological bottleneck audit handle}
+\par\smallskip\noindent\emph{Construction.} For each adaptive measured endpoint pair, first compare all \(C^1\) representatives in \(\mathfrak F_{A,B}(P_X)\) by local support geometry and Whitney-extension uniqueness to determine membership in \(\mathcal Q_{\mathrm{stab}}(P_X)\). For a separator \(Z\), then start from the regular-conditional factorization of a representative through the published \(|Z|\)-dimensional sufficient map. If an \(r\times r\) minor is nonzero, restrict to an \(r\)-dimensional affine slice on which the inverse-function theorem makes a coordinate projection locally injective; because the conditional mean is constant on sufficient-map fibers, use invariance of dimension to rule out \(r>|Z|\), while auditing almost-everywhere versions.
+\par\smallskip\noindent\emph{Inputs.} \texttt{f}; \texttt{P\_\allowbreak{}X}.
+\end{definition}
+
+\begin{definition}[def:rankpeel]\label{def:rankpeel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministic RankPeel}
+\par\smallskip\noindent\emph{Construction.} Initialize the current layer as \(V_0\) with \(D_0(v)=\{v\}\). Before every requested lifted query, test whether its measured endpoint pair belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\); return \(\bot\) at the first unstable pair. Otherwise, at layer \(\ell\), query \(\rho_\ell(\{v\},V_\ell\setminus\{v\})\) for every current vertex and mark its zero-rank vertices as parentless; query \(\rho_\ell(\{u,v\},V_\ell\setminus\{u,v\})\) for each unordered pair of remaining vertices and take the nontrivial connected components under \(\sim_\ell\) as blocks \(B_h\); choose the least labeled \(s_h\in B_h\); for each remaining nonpure \(c\), start with \(C=H\) and process each \(h\in H\) once, deleting \(h\) exactly when \(N_c(C\setminus\{h\})=1\); record the edges from the final \(C\) to \(c\), set \(D_{\ell+1}(h)=\bigcup_{v\in B_h}D_\ell(v)\), and recurse on \(H\). A complete run returns the accumulated graph and transcript.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}X}; \texttt{R}; \texttt{Q\_\allowbreak{}stab}.
+\end{definition}
+
+\begin{definition}[def:replay-certificate]\label{def:replay-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Oracle-\allowbreak{}relative replay certificate}
+\par\smallskip\noindent\emph{Construction.} For a complete run, \(\mathcal T\) stores every canonical state, measured query mask, version-stability decision, oracle answer, comparison tag, surrogate union, and output edge. \(\operatorname{Verify}(P_X,R^{\mathrm{law}}_{P_X},\mathcal T,\widehat G)\) deterministically replays the transitions and re-asks only the recorded queries.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}X}; \texttt{R}; \texttt{Transcript}; \texttt{G\_\allowbreak{}hat}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:topological-bottleneck]\label{lem:topological-bottleneck}
+Let \(U\subseteq\mathbb R^m\) be open, let \(a:U\to\mathbb R^q\) be continuously differentiable, and let \(b:U\to\mathbb R^k\) be continuous. If \(b(x)=b(x')\) implies \(a(x)=a(x')\), then \(\operatorname{rank}Da(x)\le k\) for every \(x\in U\).
+\end{lemma}
+\begin{proof}
+Put \(r:=\operatorname{rank}Da(x_0)\) and suppose, toward a contradiction, that \(r>k\) at some \(x_0\in U\).  Then \(r\geq1\), and an \(r\)-by-\(r\) minor of \(Da(x_0)\) is nonsingular.  Let \(E:\mathbb R^r\to\mathbb R^m\) insert coordinates in the corresponding \(r\) predictor positions, let \(\pi:\mathbb R^q\to\mathbb R^r\) select the corresponding response coordinates, and define
+\[
+ F(t):=\pi a(x_0+Et)
+\]
+on the open set of \(t\) for which \(x_0+Et\in U\).  The chosen minor is \(DF(0)\), so it is invertible.  The cited inverse-function theorem, \(\texttt{lem:inverse-function-theorem}\), supplies an open neighborhood \(W\subseteq\mathbb R^r\) of zero on which \(F\) is injective.
+
+Define \(\beta:W\to\mathbb R^k\) by \(\beta(t):=b(x_0+Et)\).  This map is continuous.  If \(\beta(t)=\beta(t')\), the fibre hypothesis gives \(a(x_0+Et)=a(x_0+Et')\); applying \(\pi\) gives \(F(t)=F(t')\), whence \(t=t'\).  Thus \(\beta\) is injective.  Let \(\iota:\mathbb R^k\to\mathbb R^r\) be \(\iota(y)=(y,0_{r-k})\).  Then \(\iota\circ\beta\) is a continuous injection from the nonempty open set \(W\subseteq\mathbb R^r\) to \(\mathbb R^r\).  By \(\texttt{lem:invariance-of-domain}\), its image is open in \(\mathbb R^r\).  But that image is contained in \(\mathbb R^k\times\{0\}^{r-k}\), whose interior is empty because \(r>k\).  This contradiction proves \(\operatorname{rank}Da(x)\leq k\) for every \(x\in U\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma removes the unjustified differentiation of the induced map while preserving the published hypotheses. \textit{Gap.} Prashant et al.'s Appendix applies a chain rule to an induced map whose differentiability is not stated. \textit{Consumer.} The restricted separator upper bound uses this lemma for every population query issued by RankPeel.
+
+\begin{lemma}[lem:restricted-separator-upper]\label{lem:restricted-separator-upper}
+For every \((G,P)\in\mathcal M_{\mathrm{PNHZ}}\) satisfying the query-local first-jet-determining and latent-separator-relative fibre-coherence assumptions, consider any singleton, pair, baseline-neutrality, or augmented-neutrality endpoint pair \((D_\ell(A),D_\ell(B))\) actually requested by the canonical deterministic RankPeel execution.  The pair belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\).  If a latent set \(Z\subseteq V\setminus V_0\) is one of the restricted pure-surrogate cuts used for that query and \(d\)-separates its measured endpoints in \(G\), then
+\[
+ R^{\mathrm{law}}_{P_X}(D_\ell(A),D_\ell(B))
+ \leq
+ \min\{|D_\ell(A)|,|D_\ell(B)|,|Z|\}.
+\]
+\end{lemma}
+\begin{proof}
+Write \(\mathcal A:=D_\ell(A)\), \(\mathcal B:=D_\ell(B)\), and \(\mu:=P_{X_{\mathcal A}}\).  By \(\texttt{ass:observed-mean-differentiability}\), the family \(\mathfrak F_{\mathcal A,\mathcal B}(P_X)\) is nonempty.  Let \(f_1,f_2\in\mathfrak F_{\mathcal A,\mathcal B}(P_X)\), defined on open neighborhoods \(\mathcal U_1,\mathcal U_2\) of \(\operatorname{supp}(\mu)\).  They are versions of the same conditional mean, so
+\[
+ f_1(X_{\mathcal A})=f_2(X_{\mathcal A})
+ \qquad P_X\text{-almost surely}. \tag{1}
+\]
+Apply \(\texttt{ass:rankpeel-query-jet-determining}\) on \(\mathcal U_1\cap\mathcal U_2\) to every scalar coordinate of \(f_1-f_2\).  Intersecting the finitely many probability-one events gives
+\[
+ Df_1(X_{\mathcal A})=Df_2(X_{\mathcal A})
+ \qquad P_X\text{-almost surely}. \tag{2}
+\]
+Thus all admissible representatives have the same essential-supremum derivative rank.  This proves \((\mathcal A,\mathcal B)\in\mathcal Q_{\mathrm{stab}}(P_X)\) for every endpoint pair actually requested by the canonical execution, including a pair at which the procedure would otherwise stop.
+
+Now let \(Z\subseteq V\setminus V_0\) be a restricted pure-surrogate cut used for this query and suppose, as in the statement, that \(Z\) \(d\)-separates the measured endpoints.  The cut itself is supplied by \(\texttt{lem:pure-surrogate-cuts}\); directed Markovness in \(\texttt{ass:dag-markov}\) turns this graphical separation into the relevant conditional independence.  The additional pointwise regularity used in the present abstract theorem is stated separately: \(\texttt{ass:rankpeel-separator-fibre-coherence}\) supplies an open neighborhood \(\mathcal U\) of \(\operatorname{supp}(\mu)\), a representative \(f^0\in\mathfrak F_{\mathcal A,\mathcal B}(P_X)\), and a map \(g\in C^1(\mathcal U;\mathbb R^{|Z|})\) such that
+\[
+ g(x)=g(x')\quad\Longrightarrow\quad f^0(x)=f^0(x')
+ \qquad(x,x'\in\mathcal U). \tag{3}
+\]
+Apply \(\texttt{lem:topological-bottleneck}\) with \(a=f^0\), \(b=g\), and \(k=|Z|\).  Its fibre hypothesis is exactly (3), and hence
+\[
+ \operatorname{rank}Df^0(x)\leq |Z|
+ \qquad(x\in\mathcal U). \tag{4}
+\]
+Taking one of the two representatives in (2) to be \(f^0\) shows that every admissible representative has the same derivative as \(f^0\), \(\mu\)-almost surely.  Therefore (4) and \(\texttt{def:observed-rank-oracle}\) imply
+\[
+ R^{\mathrm{law}}_{P_X}(\mathcal A,\mathcal B)\leq |Z|. \tag{5}
+\]
+Every \(|\mathcal B|\)-by-\(|\mathcal A|\) Jacobian has rank at most \(\min\{|\mathcal A|,|\mathcal B|\}\).  Combining this elementary dimension bound with (5) proves
+\[
+ R^{\mathrm{law}}_{P_X}(D_\ell(A),D_\ell(B))
+ \leq
+ \min\{|D_\ell(A)|,|D_\ell(B)|,|Z|\}.
+\]
+If either endpoint is empty, the conclusion follows directly from the stipulated zero value in \(\texttt{def:observed-rank-oracle}\).  Notice that this proof treats fibre coherence as an explicit latent, separator-relative hypothesis; it does not infer it from the observed law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the sharp abstract query-specific upper bound, proved from first-jet version uniqueness, latent separator-relative pointwise fibre coherence, and the topological bottleneck. \textit{Gap.} The anchor's Conditions 1--3 alone provide neither transverse derivative uniqueness on thin supports nor pointwise fibre coherence; the separate positive-density lemma repairs the same rank step from the anchor's almost-sure factorization. \textit{Consumer.} The abstract same-parent and canonical-neutrality proofs consume this lemma; the positive-density recovery theorem consumes the separate support-regular analogue.
+
+\begin{lemma}[lem:private-path-lower]\label{lem:private-path-lower}
+For every \((G,P)\in\mathcal M_{\mathrm{PNHZ}}\) and every \((A,B)\in\mathcal Q_{\mathrm{stab}}(P_X)\), if there are \(t\) pairwise vertex-disjoint collider-free paths connecting distinct endpoints in disjoint measured sets \(A,B\subseteq V_0\), then \(R^{\mathrm{law}}_{P_X}(A,B)\ge t\).
+\end{lemma}
+\begin{proof}
+Choose distinct endpoints \(a_1,\ldots,a_t\in A\) and \(b_1,\ldots,b_t\in B\) joined by the stipulated pairwise vertex-disjoint collider-free paths.  A collider-free path in a DAG is a trek: along the path the arrow orientation has a single top vertex and then points toward both endpoints.  We first show that the rank constraint \(R^{\mathrm{law}}_{P_X}(A,B)\leq t-1\) is not forced by \(G\).
+
+Construct a linear Gaussian structural equation model on \(G\) with mutually independent, positive-variance Gaussian disturbances.  Give every edge on the selected paths coefficient one and initially give every other edge coefficient zero.  Because the paths are vertex-disjoint, the active portions carrying \((a_i,b_i)\) are independent across \(i\).  Each pair has nonzero covariance, contributed by the positive-variance disturbance at the top of its trek.  Hence the selected cross-covariance minor has the form
+\[
+ \operatorname{Cov}\bigl((X_{b_i})_{i=1}^t,(X_{a_j})_{j=1}^t\bigr)
+ =\operatorname{diag}(d_1,\ldots,d_t),
+ \qquad d_i>0, \tag{1}
+\]
+and therefore has rank \(t\).  Independent measured disturbances make \(\Sigma_{AA}:=\operatorname{Cov}(X_A,X_A)\) positive definite.  Direct Gaussian projection gives
+\[
+ \mathbb E[X_B\mid X_A=x]
+ =\mathbb E[X_B]+\Sigma_{BA}\Sigma_{AA}^{-1}(x-\mathbb E[X_A]), \tag{2}
+\]
+so its derivative has rank
+\[
+ \operatorname{rank}(\Sigma_{BA}\Sigma_{AA}^{-1})
+ =\operatorname{rank}(\Sigma_{BA})\geq t. \tag{3}
+\]
+If the model convention requires every displayed edge of \(G\) to have a nonzero coefficient, perturb the zero coefficients to sufficiently small nonzero values.  The determinant in (1) is a polynomial, hence continuous, in the coefficients and remains nonzero in a neighborhood of the displayed choice.  The perturbed model is still a scalar differentiable SEM; its Gaussian conditional laws are determined by their conditional means and value-independent conditional covariances, so it also obeys the conditional-sufficiency form used by the published class.
+
+Thus vanishing of every \(t\)-by-\(t\) conditional-mean Jacobian minor is not a graph-implied constraint.  The generalized Jacobian-rank-faithfulness assumption excludes precisely such an accidental rank constraint for the actual law.  Therefore its conditional-mean Jacobian rank cannot be at most \(t-1\) essentially everywhere.  Since \((A,B)\in\mathcal Q_{\mathrm{stab}}(P_X)\), this says
+\[
+ R^{\mathrm{law}}_{P_X}(A,B)\geq t,
+\]
+as required.  No separator converse and no faithfulness statement for a contracted latent law has been used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Private paths give query-specific lower ranks without invoking a false global separator identity. \textit{Gap.} Trek separation proves the analogous generic noncancellation for linear Gaussian covariance ranks, while the anchor uses a broad generalized-faithfulness assertion rather than this explicit witness move. \textit{Consumer.} The lower bound distinguishes different parent sets in pair tests and supplies the exact one-rank neutrality increment.
+
+\begin{lemma}[lem:pure-surrogate-cuts]\label{lem:pure-surrogate-cuts}
+At every level \(\ell\), distinct sets \(D_\ell(v)\) are disjoint retained pure-descendant trees. In the ancestral graph of retained endpoints: \(V_\ell\)-roots separate their own surrogate trees from other retained trees; any \(C\subseteq V_{\ell+1}\) containing all parents of source roots separates those source surrogate trees from the other retained trees; and each current-layer private fork lifts to a collider-free measured path, with vertex-disjoint forks lifting to vertex-disjoint paths.
+\end{lemma}
+\begin{proof}
+For a current vertex \(v\in V_\ell\), let \(U_\ell(v)\) consist of \(v\), the measured leaves in \(D_\ell(v)\), and the retained pure-child chains between them.  We prove by induction on \(\ell\) that the sets \(U_\ell(v)\), for distinct \(v\in V_\ell\), are vertex-disjoint rooted trees and that every nonroot vertex in each such tree has exactly one parent in the whole DAG.  At \(\ell=0\), \(U_0(v)=\{v\}\).  For the induction step, distinct pure blocks \(B_h\) and \(B_{h'}\) are disjoint because a pure child has a singleton parent set.  The induction hypothesis makes the trees below their members disjoint, and adjoining the new root \(h\) through the edges \(h\to v\), \(v\in B_h\), preserves both the tree property and the unique-parent property.  This also proves that the measured leaf sets \(D_\ell(v)\) are nonempty and disjoint.
+
+Consider a trail from a retained leaf below a source root \(a\in A\subseteq V_\ell\) to a retained leaf below a different current root.  Until it reaches \(a\), its unique pure-parent chain is the only upward exit from \(U_\ell(a)\).  Any attempted exit through an excluded mixed descendant must enter a vertex through one parent edge and leave toward another ancestor branch; at the first such exit that vertex, or the first merging descendant below it, is a collider.  All conditioning sets used here lie at height at least \(\ell\), so neither that lower collider nor any of its descendants is conditioned upon.  Such a trail is blocked.  Hence every active trail between different retained trees must leave the source tree upward through its current root.
+
+It follows immediately that conditioning on the source roots separates their proper surrogate descendants from other retained trees.  If \(C\subseteq V_{\ell+1}\) contains every parent of every source root, an active trail that has reached a source root must next meet one of those parents as a noncollider; conditioning on \(C\) blocks it.  If a source root is parentless, there is no upward exit at all, so its retained tree is separated from all other retained trees by the empty set.  This proves the three stated restricted cuts.  The adjacent-layering and equal-descendant-depth assumptions ensure throughout that the roots and conditioning vertices occur at the asserted levels and that no retained branch skips a layer.
+
+Finally, a current fork \(a\leftarrow h\to b\) lifts by concatenating the unique directed pure chain from \(a\) to any leaf of \(D_\ell(a)\), the fork, and the corresponding chain from \(b\) to a leaf of \(D_\ell(b)\).  Along this measured path no interior vertex receives two arrowheads, so it is collider-free.  Distinct vertex-disjoint current forks use distinct pure trees; the first paragraph therefore makes their lifted measured paths vertex-disjoint.  These are exactly the lifting assertions in the statement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma is the recursive invariant that keeps every query observable after latent contraction. \textit{Gap.} Published surrogate statements are broader or are proved in linear latent-cover models; discarded mixed descendants make a blanket separation statement false here. \textit{Consumer.} RankPeel can peel all layers without assuming that an unobserved contracted law inherits generalized faithfulness.
+
+\begin{proposition}[prop:parentless-test]\label{prop:parentless-test}
+For every current \(v\in V_\ell\) whose singleton measured endpoint pair belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\), \(\rho_\ell(\{v\},V_\ell\setminus\{v\})=0\) if and only if \(\operatorname{Pa}_G(v)=\varnothing\).
+\end{proposition}
+\begin{proof}
+Fix the queried current vertex \(v\).  If \(\operatorname{Pa}_G(v)=\varnothing\), \(\texttt{lem:pure-surrogate-cuts}\) says that the empty set \(d\)-separates \(D_\ell(v)\) from \(D_\ell(V_\ell\setminus\{v\})\).  The directed global Markov property therefore gives independence of the two measured subvectors.  Their conditional mean is consequently constant.  That constant map is a continuously differentiable representative with derivative rank zero.  Because the pair is assumed to lie in \(\mathcal Q_{\mathrm{stab}}(P_X)\), every admissible representative has the same essential-supremum rank, and hence
+\[
+ \rho_\ell(\{v\},V_\ell\setminus\{v\})=0. \tag{1}
+\]
+
+Conversely, suppose \(h\in\operatorname{Pa}_G(v)\).  By the two-pure-child assumption, \(h\) has a pure child \(b\neq v\): if \(v\) itself is pure for \(h\), choose its other pure sibling, and otherwise choose either pure child.  Thus \(b\in V_\ell\setminus\{v\}\).  The fork \(v\leftarrow h\to b\) lifts, by \(\texttt{lem:pure-surrogate-cuts}\), to a collider-free measured path between distinct endpoints in the queried surrogate blocks.  Applying \(\texttt{lem:private-path-lower}\) with \(t=1\) gives
+\[
+ \rho_\ell(\{v\},V_\ell\setminus\{v\})\geq1. \tag{2}
+\]
+Equations (1)--(2) prove both implications.  If the response block is empty, the oracle value is zero by definition; then no sibling \(b\) can exist, so the second implication remains consistent and \(v\) is parentless.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Roots at different heights must be removed before pair clustering to prevent false rank-one links. \textit{Gap.} The anchor supplies the ingredients for recursive root detection inside its exhaustive identification construction; the distinct claim here is the exact singleton decision used by the deterministic pairwise RankPeel protocol. \textit{Consumer.} The proposition prevents isolated or parentless vertices from contaminating pure-block components.
+
+\begin{proposition}[prop:pairwise-pure-blocks]\label{prop:pairwise-pure-blocks}
+Let \((G,P)\in\mathcal M_{\mathrm{PNHZ}}\) satisfy the query-local first-jet-determining and latent-separator-relative fibre-coherence assumptions.  At any iteration reached by the canonical deterministic RankPeel execution, for distinct current nonparentless vertices \(u,v\in V_\ell\) on which that execution issues its pair query,
+\[
+ \rho_\ell(\{u,v\},V_\ell\setminus\{u,v\})\leq1
+ \quad\Longleftrightarrow\quad
+ \operatorname{Pa}_G(u)=\operatorname{Pa}_G(v)=\{h\}
+\]
+for some \(h\in V_{\ell+1}\).  Consequently the nontrivial connected components of the execution's pair-relation graph are exactly the pure blocks \(B_h\).
+\end{proposition}
+\begin{proof}
+First note that the query-local first-jet-determining assumption and observed-mean differentiability put every pair actually requested by the execution in \(\mathcal Q_{\mathrm{stab}}(P_X)\): the coordinatewise argument in equation (1) of \(\texttt{lem:restricted-separator-upper}\) applies to any two representatives, even when no separator upper bound is invoked.
+
+Suppose first that \(\operatorname{Pa}_G(u)=\operatorname{Pa}_G(v)=\{h\}\).  The latent singleton \(\{h\}\) is a restricted pure-surrogate cut separating \(D_\ell(\{u,v\})\) from \(D_\ell(V_\ell\setminus\{u,v\})\), by \(\texttt{lem:pure-surrogate-cuts}\).  Hence \(\texttt{lem:restricted-separator-upper}\) gives
+\[
+ \rho_\ell(\{u,v\},V_\ell\setminus\{u,v\})\leq1. \tag{1}
+\]
+The weak inequality is necessary when the pure block is an isolated two-child component and the response is empty.
+
+Conversely, assume the two parent sets are nonempty but are not the same singleton.  Then one can select distinct vertices
+\[
+ h\in\operatorname{Pa}_G(u),
+ \qquad
+ g\in\operatorname{Pa}_G(v),
+ \qquad h\neq g. \tag{2}
+\]
+Indeed, failure of such a selection would force both nonempty parent sets to equal one common singleton.  Choose a pure child \(b_h\) of \(h\) outside \(\{u,v\}\), and a pure child \(b_g\) of \(g\) outside \(\{u,v\}\).  These choices are possible because each parent has at least two pure children: if one of \(u,v\) is itself pure for the relevant parent, choose its other pure child, while a vertex with multiple parents is not pure.  Moreover \(b_h\neq b_g\), since a pure child has exactly one parent.
+
+The two forks
+\[
+ u\leftarrow h\to b_h,
+ \qquad
+ v\leftarrow g\to b_g \tag{3}
+\]
+are vertex-disjoint, and their response endpoints lie in \(V_\ell\setminus\{u,v\}\).  The lifting part of \(\texttt{lem:pure-surrogate-cuts}\) gives two vertex-disjoint collider-free measured paths between the queried endpoint blocks.  Therefore \(\texttt{lem:private-path-lower}\), with \(t=2\), yields
+\[
+ \rho_\ell(\{u,v\},V_\ell\setminus\{u,v\})\geq2, \tag{4}
+\]
+which is the contrapositive of the reverse implication.
+
+By (1)--(4), every related pair lies in one true pure block and every two vertices in a true pure block are related.  Hence each such block induces a clique, no edge joins different blocks, and the nontrivial connected components are exactly the \(B_h\)'s.  The two-pure-child assumption makes every \(B_h\) nontrivial, while parentless vertices were removed before this pair step by \(\texttt{prop:parentless-test}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} On the query-regular subclass, one actual pair query per surviving pair replaces exhaustive pure-child subset enumeration. \textit{Gap.} The proof does not extend this pairwise equivalence to published-class laws lacking the query-local separator regularity. \textit{Consumer.} The canonical execution uses its nontrivial connected components to introduce the next latent layer.
+
+\begin{theorem}[thm:exact-neutrality]\label{thm:exact-neutrality}
+Let \((G,P)\in\mathcal M_{\mathrm{PNHZ}}\) satisfy the query-local first-jet-determining and latent-separator-relative fibre-coherence assumptions.  At an iteration reached by the canonical deterministic RankPeel execution, let \(H=V_{\ell+1}\), let \(s_h\) be the least canonically labelled member of the recovered block \(B_h\), and let \(c\in V_\ell\) be a nonparentless vertex outside all recovered pure blocks that this execution processes.  For each candidate set \(C\subseteq H\) at which this execution actually evaluates \(N_c(C)\), put \(k:=|C|\).  Then both requested endpoint pairs belong to \(\mathcal Q_{\mathrm{stab}}(P_X)\),
+\[
+ \rho_\ell(S_C,T_C(c))=k,
+\]
+and
+\[
+ \rho_\ell(S_C\cup\{c\},T_C(c))=
+ \begin{cases}
+ k,&\operatorname{Pa}_G(c)\subseteq C,\\
+ k+1,&\operatorname{Pa}_G(c)\nsubseteq C.
+ \end{cases}
+\]
+Consequently \(N_c(C)=1\) if and only if \(\operatorname{Pa}_G(c)\subseteq C\) for those execution-encountered states and the canonical representatives.
+\end{theorem}
+\begin{proof}
+Fix one candidate set \(C\) at which the canonical execution evaluates \(N_c(C)\), and write \(k=|C|\).  The query-local first-jet-determining argument in \(\texttt{lem:restricted-separator-upper}\) shows that both actually requested endpoint pairs lie in \(\mathcal Q_{\mathrm{stab}}(P_X)\).
+
+For each \(h\in C\), the two-pure-child assumption permits a choice
+\[
+ b_h\in B_h\setminus\{s_h\}. \tag{1}
+\]
+The candidate \(c\) lies outside all pure blocks, distinct blocks are disjoint, and only the representatives \(s_h\), \(h\in C\), are removed from the response.  Therefore every \(b_h\) belongs to \(T_C(c)\), and the \(k\) forks
+\[
+ s_h\leftarrow h\to b_h,
+ \qquad h\in C, \tag{2}
+\]
+are pairwise vertex-disjoint.  Their measured lifts are pairwise vertex-disjoint and collider-free by \(\texttt{lem:pure-surrogate-cuts}\).  The private-path lower bound gives
+\[
+ \rho_\ell(S_C,T_C(c))\geq k. \tag{3}
+\]
+The latent set \(C\) contains the sole parent of every source representative in \(S_C\), so it is the restricted separator supplied by \(\texttt{lem:pure-surrogate-cuts}\).  Fibre coherence is assumed for this actual baseline query and this latent cut.  The restricted separator upper bound gives
+\[
+ \rho_\ell(S_C,T_C(c))\leq |C|=k. \tag{4}
+\]
+Thus (3)--(4) prove the baseline equality, including \(C=\varnothing\), where both sides are zero by the empty-predictor convention.
+
+Suppose first that \(\operatorname{Pa}_G(c)\subseteq C\).  The paths in (2) remain available after adding \(c\) to the source, so the augmented rank is at least \(k\).  Now \(C\) contains every parent of every root in \(S_C\cup\{c\}\).  It is therefore a restricted latent separator for the actual augmented query, and \(\texttt{lem:restricted-separator-upper}\) yields the reverse inequality.  Hence
+\[
+ \rho_\ell(S_C\cup\{c\},T_C(c))=k. \tag{5}
+\]
+
+Suppose instead that \(\operatorname{Pa}_G(c)\nsubseteq C\), and choose
+\[
+ q\in\operatorname{Pa}_G(c)\setminus C. \tag{6}
+\]
+Choose any pure child \(b_q\in B_q\).  Because \(q\notin C\), its entire pure block is disjoint from the representatives and response witnesses indexed by \(C\); because \(c\) is not pure, \(b_q\neq c\).  Thus \(b_q\in T_C(c)\), and
+\[
+ c\leftarrow q\to b_q \tag{7}
+\]
+is vertex-disjoint from all forks in (2).  Lifting (2) and (7) and applying \(\texttt{lem:private-path-lower}\) gives the augmented lower bound \(k+1\).
+
+For the upper bound, if \(\ell=0\), the augmented conditional-mean Jacobian has exactly \(k+1\) predictor columns, so its rank is at most \(k+1\).  If \(\ell\geq1\), the current vertices in \(S_C\cup\{c\}\) are latent.  By the source-root cut in \(\texttt{lem:pure-surrogate-cuts}\), this set of \(k+1\) vertices separates its own retained measured trees from the response trees.  It is one of the latent cuts covered by the execution-local fibre-coherence assumption, and \(\texttt{lem:restricted-separator-upper}\) gives the same upper bound.  Therefore
+\[
+ \rho_\ell(S_C\cup\{c\},T_C(c))=k+1. \tag{8}
+\]
+Comparing the proved baseline equality with (5) and (8), and unfolding \(\texttt{def:neutrality}\), proves \(N_c(C)=1\) exactly when \(\operatorname{Pa}_G(c)\subseteq C\).  The proof concerns only the least-labelled representatives and candidate states actually queried by the canonical execution; it makes no claim about alternate representatives, alternate deletion orders, or counterfactual candidate states.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} For the least-labelled representatives and candidate states actually evaluated, the exact baseline rank \(k\) and augmented rank \(k\) or \(k+1\) justify one canonical deletion decision per candidate parent. \textit{Gap.} No arbitrary-representative, arbitrary-state, or deletion-order-independence theorem follows from assumptions restricted to the canonical query path. \textit{Consumer.} The strict-subclass reconstruction proof uses the theorem inductively along the unique canonical deletion order.
+
+\begin{theorem}[thm:rankpeel-reconstruction]\label{thm:rankpeel-reconstruction}
+Theorem 1 (RankPeel reconstruction on the query-regular strict subclass).  Let \((G,P)\in\mathcal M_{\mathrm{PNHZ}}\) satisfy the query-local first-jet-determining and latent-separator-relative fibre-coherence assumptions for the endpoint pairs and restricted cuts actually encountered by the canonical deterministic execution of \(\operatorname{RankPeel}(P_X,R^{\mathrm{law}}_{P_X})\).  Then that execution does not return \(\bot\), terminates with a graph \(\widehat G\), and satisfies \([\widehat G]=\theta_G\).  The indeterminacy consists only of independent permutations of latent labels within layers.  This is a strict-subclass recovery result; it does not assert that the unchanged published Conditions 1--3 imply the two query-local regularity assumptions.
+\end{theorem}
+\begin{proof}
+We use induction on the current layer.  At level zero the active vertices are exactly \(V_0\) and \(D_0(v)=\{v\}\), so the retained pure-surrogate invariant of \(\texttt{lem:pure-surrogate-cuts}\) holds.
+
+Assume at the start of level \(\ell\) that the active vertices correspond bijectively to the true vertices of \(V_\ell\) and that their recorded sets are the true disjoint retained surrogate blocks \(D_\ell(v)\).  Every query about to be issued is an actual query in the scope of the first-jet-determining assumption.  Observed-mean differentiability and the coordinatewise derivative-uniqueness argument in \(\texttt{lem:restricted-separator-upper}\) put it in \(\mathcal Q_{\mathrm{stab}}(P_X)\).  Hence the membership check does not return \(\bot\).
+
+By \(\texttt{prop:parentless-test}\), the singleton stage marks exactly those current vertices with no parent.  Among the remaining vertices, \(\texttt{prop:pairwise-pure-blocks}\) says that the nontrivial pair-relation components are exactly the true blocks \(B_h\), one for each \(h\in V_{\ell+1}\).  The two-pure-child assumption ensures that no \(h\) is missed.  Thus every newly introduced canonical label corresponds to exactly one true next-layer vertex, and all pure edges \(h\to v\), \(v\in B_h\), are recorded correctly.
+
+Fix a remaining nonpure, nonparentless vertex \(c\).  Its canonical deletion state starts at \(H=V_{\ell+1}\), which contains \(\operatorname{Pa}_G(c)\).  Suppose inductively that the current state \(P\) still contains all true parents and that the next canonical label is \(h\).  The algorithm evaluates \(N_c(P\setminus\{h\})\), an execution-encountered state covered by \(\texttt{thm:exact-neutrality}\).  If \(h\notin\operatorname{Pa}_G(c)\), then \(\operatorname{Pa}_G(c)\subseteq P\setminus\{h\}\), neutrality equals one, and \(h\) is deleted.  If \(h\in\operatorname{Pa}_G(c)\), the containment fails, neutrality equals zero, and \(h\) is retained.  The induction invariant is preserved, and after every label has been processed the final state is exactly \(\operatorname{Pa}_G(c)\).  Hence all mixed-child edges are also recorded correctly.
+
+The recursion
+\[
+ D_{\ell+1}(h)=\bigcup_{v\in B_h}D_\ell(v)
+\]
+is exactly the retained pure-surrogate recursion, so \(\texttt{lem:pure-surrogate-cuts}\) proves the induction invariant for the next layer.  Since every next-layer vertex owns at least two vertices in its disjoint pure block,
+\[
+ |V_{\ell+1}|\leq \frac{|V_\ell|}{2}. \tag{1}
+\]
+Thus the execution terminates after finitely many layers.  Before a layer is discarded, all and only its incoming adjacent-layer edges have been recorded.  Adjacent layering rules out any other edges.  The canonical labels may differ from the original latent names, but the layerwise bijections constructed above identify the entire edge set.  Therefore \([\widehat G]=\theta_G\), with only within-layer permutations remaining.
+
+The boundary model established in \(\texttt{thm:analytic-boundary-characterization}\), where four measurements satisfy \(X_1=\cdots=X_4=H\) almost surely, violates first-jet determinacy for pair predictors and makes RankPeel request a pair outside \(\mathcal Q_{\mathrm{stab}}(P_X)\).  Hence the present argument genuinely proves a strict-subclass statement and does not infer the query-local assumptions from the published class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem converts the proved canonical local decisions into the full adjacency matrix up to within-layer latent permutation on the query-regular strict subclass. \textit{Gap.} The explicit equal-measurement published-class member prevents an unchanged-class law-invariant reconstruction theorem for this oracle. \textit{Consumer.} It supplies the conditional recovery clause of the complexity theorem and the conditional structural soundness clause of replay.
+
+\begin{theorem}[thm:query-complexity]\label{thm:query-complexity}
+Theorem 2 (Unconditional execution budget and conditional recovery).  For any input observed law and partial rank oracle with \(|V_0|=p\), the canonical deterministic RankPeel execution returns either \(\bot\) or a graph after at most \(p^2+p\) combined membership-and-rank calls, \(O(p^3)\) elementary bookkeeping, \(O(p^2)\) graph storage, and at most \(1+\lfloor\log_2 p\rfloor\) nonempty iterations.  If, in addition, the input is generated by a member of \(\mathcal M_{\mathrm{PNHZ}}\) satisfying the query-local first-jet-determining and latent-separator-relative fibre-coherence assumptions, the returned graph represents \(\theta_G\).  The numerical budget is oracle-relative and does not establish an unchanged-class strict tightening of the published identification theorem.
+\end{theorem}
+\begin{proof}
+At a nonempty iteration, let \(n\) be the current number of vertices, let \(m\) be the number of nontrivial pair-relation components introduced as next-layer vertices, and let \(q\) be the number of nonparentless current vertices lying outside those components and therefore processed by parent deletion.  The components are disjoint and each has at least two vertices, so
+\[
+ 2m+q\leq n,
+ \qquad q\leq n-2m. \tag{1}
+\]
+This combinatorial inequality holds for every oracle transcript, without a model-correctness premise.
+
+The singleton stage uses \(n\) combined membership-and-rank calls.  The pair stage uses at most \(\binom n2\) calls.  For each of the \(q\) remaining candidates, each of the \(m\) candidate parents is processed once, and one neutrality evaluation requests a baseline and an augmented rank, for at most \(2mq\) calls.  By (1),
+\[
+ \begin{aligned}
+ n+\binom n2+2mq
+ &\leq n+\frac{n(n-1)}2+2m(n-2m)\\
+ &\leq \frac34n^2+\frac12n.
+ \end{aligned} \tag{2}
+\]
+because the quadratic \(2m(n-2m)\) has maximum \(n^2/4\).  A failed membership check stops the execution earlier and can only reduce this count.
+
+Writing \(n_0=p\) and \(n_{\ell+1}=m_\ell\), disjoint nontrivial components also give \(n_{\ell+1}\leq n_\ell/2\).  Therefore
+\[
+ \sum_{\ell\geq0}n_\ell^2\leq p^2\sum_{\ell\geq0}4^{-\ell}=\frac43p^2,
+ \qquad
+ \sum_{\ell\geq0}n_\ell\leq p\sum_{\ell\geq0}2^{-\ell}=2p. \tag{3}
+\]
+Summing (2) and using (3) gives at most \(p^2+p\) calls.  The halving inequality also implies at most \(1+\lfloor\log_2p\rfloor\) nonempty iterations.
+
+Store each current surrogate set as a membership mask over the original \(p\) measurements.  Forming the two endpoint masks of any query then costs \(O(p)\) elementary operations.  There are \(O(p^2)\) calls by the proved bound, so query-mask formation costs \(O(p^3)\).  Pair-relation construction, connected-component search, deletion-state updates, and adjacency updates are no larger.  Across at most \(2p\) vertices over all layers, adjacency and relation matrices require \(O(p^2)\) storage.  This proves the unconditional execution bounds.  Under the two query-local regularity assumptions, \(\texttt{thm:rankpeel-reconstruction}\) supplies the final structural conclusion \([\widehat G]=\theta_G\); no recovery claim is made from the numerical count alone.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The \(p^2+p\) query and \(O(p^3)\) bookkeeping bounds hold for every execution, including one ending at \(\bot\). \textit{Gap.} Only the numerical execution budget is unconditional; causal recovery inherits the strict-subclass hypotheses. \textit{Consumer.} It fixes the replay budget and the finite family of canonical population decisions requiring any later statistical calibration.
+
+\begin{proposition}[prop:replay-certificate]\label{prop:replay-certificate}
+Corollary 1 (Oracle-relative replay record).  Every RankPeel execution that returns a graph emits a transcript \(\mathcal T\) of \(O(p^3+p^2\log p)\) bits for which \(\operatorname{Verify}(P_X,R^{\mathrm{law}}_{P_X},\mathcal T,\widehat G)=1\).  Replaying it uses at most \(p^2+p\) combined membership-and-rank calls and \(O(p^3)\) bookkeeping.  This is deterministic oracle-relative completeness.  If the generating model also belongs to \(\mathcal M_{\mathrm{PNHZ}}\) and satisfies the query-local first-jet-determining and latent-separator-relative fibre-coherence assumptions, every accepted canonical transcript records a graph representing \(\theta_G\); structural soundness is asserted only under those additional conditions.
+\end{proposition}
+\begin{proof}
+During an execution that returns a graph, \(\mathcal T\) records the canonical state before each transition, the two measured endpoint masks of each requested query, the membership decision, the returned integer rank, every comparison outcome, every surrogate union, and the final adjacency matrix.  The verifier starts from the recorded canonical initial state and applies the deterministic rules in \(\texttt{def:rankpeel}\).  At each step it reconstructs the endpoint masks from the current state, checks them against the record, re-asks the recorded combined membership-and-rank query, and checks the answer and ensuing transition.  Induction over the finite record shows that the transcript produced by the execution passes every check and therefore
+\[
+ \operatorname{Verify}(P_X,R^{\mathrm{law}}_{P_X},\mathcal T,\widehat G)=1. \tag{1}
+\]
+The replay asks exactly the execution's queries, so \(\texttt{thm:query-complexity}\) bounds them by \(p^2+p\) and bounds the bookkeeping by \(O(p^3)\).
+
+Each of the \(O(p^2)\) query records contains two \(p\)-bit masks, a rank in \(\{0,\ldots,p\}\), and constant-size decision tags.  These fields use
+\[
+ O(p^2\cdot p)+O(p^2\log p)=O(p^3+p^2\log p) \tag{2}
+\]
+bits; canonical layer labels, surrogate unions, and an \(O(p^2)\)-bit adjacency matrix fit within the same bound.
+
+Equation (1) is oracle-relative replay completeness, not causal soundness by itself.  Under the query-local first-jet-determining and fibre-coherence hypotheses, the replayed canonical transitions are the RankPeel transitions covered by \(\texttt{thm:rankpeel-reconstruction}\).  That theorem gives \([\widehat G]=\theta_G\), proving the final conditional soundness clause.  Outside that strict subclass, acceptance certifies only faithful deterministic replay of the supplied population oracle answers.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The transcript is complete for deterministic oracle replay, while its graph is structurally sound only under the repaired reconstruction theorem's hypotheses. \textit{Gap.} Replay cannot certify latent fibre coherence or convert it into an observed-law condition. \textit{Consumer.} An implementation can reproduce the canonical population decisions without treating acceptance as an unconditional causal certificate.
+
+\begin{proposition}[prop:linear-gaussian-reduction]\label{prop:linear-gaussian-reduction}
+For a linear Gaussian member of \(\mathcal M_{\mathrm{PNHZ}}\) with nonsingular measured covariance, the conditional mean has a unique \(P_{X_A}\)-essential derivative, \(J_{A,B}=\operatorname{Cov}(X_B,X_A)\operatorname{Cov}(X_A,X_A)^{-1}\), so every RankPeel pair lies in \(\mathcal Q_{\mathrm{stab}}(P_X)\) and its law-invariant query rank equals the corresponding cross-covariance rank. The restricted separator upper bounds and private-path lower bounds therefore reduce to Gaussian trek separation and generic noncancellation.
+\end{proposition}
+\begin{proof}
+Let \(A,B\subseteq V_0\) be disjoint and nonempty.  Nonsingularity of the measured Gaussian covariance implies that every principal block \(\Sigma_{AA}:=\operatorname{Cov}(X_A,X_A)\) is positive definite.  The Gaussian conditioning formula, obtained by orthogonally projecting \(X_B-\mathbb E[X_B]\) onto the linear span of \(X_A-\mathbb E[X_A]\), is
+\[
+ \mathbb E[X_B\mid X_A=x]
+ =\mathbb E[X_B]+\Sigma_{BA}\Sigma_{AA}^{-1}(x-\mathbb E[X_A]). \tag{1}
+\]
+Thus its derivative is the constant matrix
+\[
+ J_{A,B}=\Sigma_{BA}\Sigma_{AA}^{-1}. \tag{2}
+\]
+
+The law of \(X_A\) has a strictly positive density on \(\mathbb R^{|A|}\).  If two continuous representatives of the conditional mean agree \(P_{X_A}\)-almost surely but differ at one point, continuity produces a nonempty open set on which they differ; that set has positive Gaussian probability, a contradiction.  Hence all continuously differentiable representatives agree everywhere, and their derivatives agree everywhere.  Therefore \((A,B)\in\mathcal Q_{\mathrm{stab}}(P_X)\).  Empty endpoint pairs are in the domain by definition, so every RankPeel query is version-stable.
+
+Right multiplication by the invertible matrix \(\Sigma_{AA}^{-1}\) preserves rank.  Equations (1)--(2) therefore give
+\[
+ R^{\mathrm{law}}_{P_X}(A,B)
+ =\operatorname{rank}(\Sigma_{BA}\Sigma_{AA}^{-1})
+ =\operatorname{rank}(\Sigma_{BA}). \tag{3}
+\]
+If a latent vector \(Z\) \(d\)-separates \(X_A\) and \(X_B\), the directed Markov property gives \(X_A\mathbin{\perp\!\!\!\perp}X_B\mid Z\).  Joint Gaussianity and positive disturbance variances make \(\Sigma_{ZZ}\) invertible, and the conditional cross-covariance identity is
+\[
+ 0=\operatorname{Cov}(X_B,X_A\mid Z)
+   =\Sigma_{BA}-\Sigma_{BZ}\Sigma_{ZZ}^{-1}\Sigma_{ZA}. \tag{4}
+\]
+Thus \(\operatorname{rank}(\Sigma_{BA})\leq |Z|\), which is precisely the covariance-rank form of the restricted separator upper bound after (3).  Conversely, the Gaussian witness used in \(\texttt{lem:private-path-lower}\) produces a nonzero minor from vertex-disjoint treks, and generalized faithfulness excludes its accidental cancellation.  This establishes both reductions claimed in the statement without extending the nonlinear strict-subclass reconstruction theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction is the required sanity check and locates the nonlinear theorem relative to known linear rank geometry. \textit{Gap.} The linear literature does not supply the nonlinear analytic factorization or this same-class deterministic certificate. \textit{Consumer.} Implementations can validate exact RankPeel transcripts on rational linear Gaussian SEMs before estimating nonlinear Jacobians.
+
+\begin{theorem}[thm:analytic-boundary-characterization]\label{thm:analytic-boundary-characterization}
+The answer is negative on the published class \(\mathcal M_{\mathrm{PNHZ}}\).  Conditions 1--3 do not make the conditional-mean Jacobian rank a functional of \(P_X\): there is a smooth scalar one-latent, four-measurement member of \(\mathcal M_{\mathrm{PNHZ}}\) for which \(\operatorname{RankPeel}\) requests a pair outside \(\mathcal Q_{\mathrm{stab}}(P_X)\).
+
+The exact query-local repair is as follows.  Let \(\mathscr Q\) be a finite collection of disjoint measured endpoint pairs \((A,B)\), let \(\mu_A:=P_{X_A}\), and choose a common open neighborhood \(\mathcal U_A\) of \(\operatorname{supp}(\mu_A)\).  Say that \(\mu_A\) is first-jet determining on \(\mathcal U_A\), denoted \(\mathrm{JD}(A)\), when
+\[
+ h\in C^1(\mathcal U_A;\mathbb R),\qquad h(X_A)=0\quad\mu_A\text{-almost surely}
+ \quad\Longrightarrow\quad
+ Dh(X_A)=0\quad\mu_A\text{-almost surely}.
+\]
+For a latent set \(Z\) that \(d\)-separates \(X_A\) and \(X_B\), say that the conditional versions are fibre coherent, denoted \(\mathrm{FC}(A,B;Z)\), when there are \(f^0\in\mathfrak F_{A,B}(P_X)\) and \(g\in C^1(\mathcal U_A;\mathbb R^{|Z|})\) such that
+\[
+ g(x)=g(x')\quad\Longrightarrow\quad f^0(x)=f^0(x')
+ \qquad(x,x'\in\mathcal U_A).
+\]
+If \(\mathrm{JD}(A)\) holds for every predictor set occurring in \(\mathscr Q\), and \(\mathrm{FC}(A,B;Z)\) holds for every separator cut used for a pair \((A,B)\in\mathscr Q\), then every pair in \(\mathscr Q\) belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\) and
+\[
+ R^{\mathrm{law}}_{P_X}(A,B)
+ \leq \min\{|A|,|B|,|Z|\}.
+\]
+The condition \(\mathrm{JD}(A)\) is equivalent to almost-sure equality of first derivatives for every two \(C^1\) maps that are equal \(\mu_A\)-almost surely, so it is the weakest response-uniform first-order support condition giving version invariance.  Fibre coherence is exactly set-theoretic factorization through the published \(|Z|\)-dimensional sufficient map; no differentiability of the induced outer map is required.  A directly checkable sufficient support condition for \(\mathrm{JD}(A)\) is
+\[
+ \mu_A\!\left(\operatorname{int}\operatorname{supp}(\mu_A)\right)=1.
+\]
+Thus law-invariant RankPeel is justified on the query-local jet-determining, fibre-coherent subclass, but not on all of \(\mathcal M_{\mathrm{PNHZ}}\).
+\end{theorem}
+\begin{proof}
+Fix a queried predictor set \(A\), write \(\mu:=\mu_A\), and work on the common open neighborhood \(\mathcal U_A\).
+
+\emph{Step 1: first-jet determinacy is the exact support condition for version derivatives.}
+Suppose \(\mathrm{JD}(A)\) holds and let \(u,v\in C^1(\mathcal U_A;\mathbb R^q)\) satisfy \(u(X_A)=v(X_A)\) \(\mu\)-almost surely.  For each coordinate \(j\), the scalar map \(h_j:=u_j-v_j\) vanishes \(\mu\)-almost surely.  By \(\mathrm{JD}(A)\), \(Dh_j(X_A)=0\) \(\mu\)-almost surely.  Intersecting the finitely many probability-one events gives
+\[
+ Du(X_A)=Dv(X_A)\qquad\mu\text{-almost surely}. \tag{1}
+\]
+Conversely, apply the asserted derivative-uniqueness property to \(u=h\) and \(v=0\).  This recovers \(\mathrm{JD}(A)\).  Hence the two properties are equivalent.
+
+The displayed support-interior condition implies \(\mathrm{JD}(A)\).  Indeed, if a continuous \(h\) vanishes \(\mu\)-almost surely and \(x\in\operatorname{supp}(\mu)\), then \(h(x)\neq0\) would, by continuity, give an open neighborhood \(O\ni x\) on which \(|h|\) is bounded away from zero.  The definition of support gives \(\mu(O)>0\), a contradiction.  Thus \(h=0\) on \(\operatorname{supp}(\mu)\).  At every point of its interior, \(h\) is zero on a neighborhood and therefore \(Dh=0\).  The support-interior condition assigns probability one to those points, proving \(\mathrm{JD}(A)\).
+
+\emph{Step 2: fibre coherence gives the separator rank bound without differentiating an outer map.}
+Let \(f^0\) and \(g\) witness \(\mathrm{FC}(A,B;Z)\), and put \(k:=|Z|\).  We show pointwise that
+\[
+ \operatorname{rank}Df^0(x)\leq k,\qquad x\in\mathcal U_A. \tag{2}
+\]
+Suppose instead that \(r:=\operatorname{rank}Df^0(x_0)>k\).  Some \(r\)-by-\(r\) minor of \(Df^0(x_0)\) is nonsingular.  Projecting onto its \(r\) response coordinates and restricting the domain to the affine \(r\)-plane through \(x_0\) spanned by its \(r\) predictor coordinates gives a \(C^1\) map \(F\) whose derivative \(A_0:=DF(x_0)\) is nonsingular.  By continuity of \(DF\), there is a convex relatively open ball \(W\) about \(x_0\) on which
+\[
+ \left\|A_0^{-1}\bigl(DF(x)-A_0\bigr)\right\|_{\mathrm{op}}\leq\frac12. \tag{2a}
+\]
+For \(x,y\in W\), the fundamental theorem of calculus on the segment from \(y\) to \(x\), followed by (2a), gives
+\[
+ \begin{aligned}
+ \left\|A_0^{-1}\bigl(F(x)-F(y)\bigr)\right\|
+ &=\left\|(x-y)+\int_0^1 A_0^{-1}\bigl(DF(y+t(x-y))-A_0\bigr)(x-y)\,dt\right\|\\
+ &\geq \frac12\|x-y\|.
+ \end{aligned} \tag{2b}
+\]
+Hence \(F\) is injective on \(W\), which is homeomorphic to an open subset of \(\mathbb R^r\).
+
+If \(x,x'\in W\) and \(g(x)=g(x')\), fibre coherence gives \(f^0(x)=f^0(x')\), hence \(F(x)=F(x')\), and injectivity of \(F\) gives \(x=x'\).  Thus \(g|_W\) is a continuous injection from an open subset of \(\mathbb R^r\) into \(\mathbb R^k\).  Appending \(r-k\) zero coordinates produces a continuous injection into \(\mathbb R^r\).  By the cited invariance-of-domain theorem its image must be open in \(\mathbb R^r\), but it is contained in \(\mathbb R^k\times\{0\}^{r-k}\), which has empty interior because \(r>k\).  This contradiction proves (2).
+
+By observed-mean differentiability, \(\mathfrak F_{A,B}(P_X)\) is nonempty.  For any \(f\in\mathfrak F_{A,B}(P_X)\), the maps \(f\) and \(f^0\) are versions of the same integrable conditional mean, so they agree \(\mu\)-almost surely.  Equation (1) yields \(Df=Df^0\) \(\mu\)-almost surely.  Consequently every admissible representative has the same essential-supremum rank and, by (2),
+\[
+ \operatorname*{ess\,sup}_{x\sim\mu}operatorname{rank}Df(x)
+ \leq k. \tag{3}
+\]
+The elementary dimensions of the Jacobian also bound its rank by \(|A|\) and \(|B|\).  Equations (1)--(3), together with the stipulated zero value for an empty endpoint, prove both membership in \(\mathcal Q_{\mathrm{stab}}(P_X)\) and the asserted bound for every pair in \(\mathscr Q\).
+
+The relation to the causal separator is explicit.  The directed global Markov property and the hypothesis that \(Z\) \(d\)-separates the endpoints give
+\[
+ X_B\mathbin{\perp\!\!\!\perp}X_A\mid Z.
+\]
+For finite first moments, which are required for the displayed conditional means to be well defined, let \(\eta(z)\) be a version of \(\mathbb E[X_B\mid Z=z]\), and let \(K_x\) be a regular conditional law of \(Z\) given \(X_A=x\).  Conditional independence and iterated expectation give, at every point where these versions are coherent,
+\[
+ f^0(x)=\mathbb E[X_B\mid X_A=x]
+       =\int \eta(z)\,K_x(dz). \tag{4}
+\]
+If the version in the published conditional-sufficiency condition is imposed pointwise on \(\mathcal U_A\), so that \(K_x=\kappa_{g(x)}\), then (4) is constant on fibres of \(g\) and hence gives \(\mathrm{FC}(A,B;Z)\).  This is the required version repair.  Merely writing an almost-sure identity \(K_x=\kappa_{g(x)}\) does not select off-support values and does not make an induced outer map differentiable; neither move is used above.
+
+\emph{Step 3: a smooth legal boundary witness.}
+Let the graph have one latent vertex \(H\) and four measured pure children \(X_1,\ldots,X_4\), with arrows \(H\to X_i\).  Let \(\varepsilon_H,\varepsilon_1,\ldots,\varepsilon_4\) be mutually independent standard Gaussian variables and use the smooth structural equations
+\[
+ H=\varepsilon_H,
+ \qquad
+ X_i=H+\sigma\varepsilon_i,\quad i=1,\ldots,4. \tag{5}
+\]
+For every \(\sigma\geq0\) the variables are scalar, the graph is acyclic and adjacent-layered, every measured vertex is a pure child, the latent has four pure children, and every measured descendant is one edge below \(H\).  The independent-noise factorization of (5) gives the directed global Markov property.  All first moments exist.
+
+For \(\sigma>0\), every measured subvector has a strictly positive Gaussian density.  Moreover, for nonempty \(A\), the Gaussian posterior law of \(H\) given \(X_A=x_A\) has variance depending only on \(|A|\) and \(\sigma\), and mean
+\[
+ \mathbb E[H\mid X_A=x_A]
+ =\frac{\sum_{i\in A}x_i}{\sigma^2+|A|}. \tag{6}
+\]
+Thus the posterior is determined by the smooth scalar statistic \(g_A(x_A)=\sum_{i\in A}x_i\), verifying conditional sufficiency, and every conditional mean is smooth.  The usual nonzero rank is one whenever both endpoints are nonempty, so there is no accidental rank defect.  This verifies the generalized rank-faithfulness requirement for this one-factor graph.
+
+At the boundary value \(\sigma=0\), equation (5) remains a smooth scalar structural equation model and gives
+\[
+ X_1=X_2=X_3=X_4=H\qquad\text{almost surely}. \tag{7}
+\]
+The conditional-sufficiency condition still holds, for example with \(g_A(x_A)=x_{\min A}\), and continuously differentiable conditional-mean versions exist for every disjoint \(A,B\).  On the designated-version reading of Conditions 2--3, choose for each nonempty pair a linear extension whose derivative has the maximum dimension-compatible rank and which maps \(t\mathbf 1_A\) to \(t\mathbf 1_B\).  To see that such an extension exists, write \(a:=|A|\) and \(b:=|B|\).  If \(b\leq a\), take \(M=[I_b\ 0]\); if \(b>a\), take the first \(a\) rows of \(M\) to be \(I_a\) and every remaining row to be the first coordinate row.  In both cases
+\[
+ M\mathbf 1_a=\mathbf 1_b,
+ \qquad
+ \operatorname{rank}M=\min\{a,b\}. \tag{7a}
+\]
+Hence the designated maps have no non-graphical rank deficiency, so generalized rank faithfulness holds.  On a reading that quantifies over all almost-sure versions, Condition 2 is not itself a law property until the present version issue is resolved; this is precisely the obstruction exposed by the example.
+
+For the pair \(A=\{1,2\}\), \(B=\{3,4\}\), two valid smooth representatives are
+\[
+ f^{(1)}(x_1,x_2)=(x_1,x_1),
+ \qquad
+ f^{(2)}(x_1,x_2)=(x_1,x_2). \tag{8}
+\]
+They agree on the diagonal support forced by (7), and hence both equal \(\mathbb E[(X_3,X_4)\mid X_1,X_2]\) almost surely.  Nevertheless,
+\[
+ \operatorname{rank}Df^{(1)}=1,
+ \qquad
+ \operatorname{rank}Df^{(2)}=2. \tag{9}
+\]
+Therefore \((A,B)\notin\mathcal Q_{\mathrm{stab}}(P_X)\).  Each singleton predictor has the full-support \(N(0,1)\) law, so continuity makes its conditional-mean derivative version unique and its rank is one.  RankPeel consequently marks no measured vertex as parentless and then requests every unordered pair, including (8); it returns \(\bot\) there.  The scalar separator is \(Z=\{H\}\): the coherent representative \(f^{(1)}\) obeys the bound one, while the equally valid representative \(f^{(2)}\) has rank two.  Thus neither a law-invariant rank nor a representative-uniform separator bound follows from Conditions 1--3.  The function \(h(x_1,x_2)=x_2-x_1\) vanishes on the predictor support but has \(Dh=(-1,1)\), explicitly certifying failure of \(\mathrm{JD}(A)\).  Since the models with \(\sigma>0\) satisfy the support condition and converge to (7) as \(\sigma\downarrow0\), this is an immediate smooth boundary witness rather than a change of graph class.
+
+\emph{Step 4: the prescribed finite graph kill test.}
+For each of the \(26^2=676\) choices of the two extra measured mixed-child parent sets, all proposed cuts survive.  This also follows without numerical ranks.  At level zero, every path leaving a pure measured source first meets its sole latent parent, so conditioning on that parent blocks the pure-block cut; for a baseline representative set the same argument applies parent by parent; and when all parents of an augmented mixed source are conditioned upon, every path from that source is blocked.  At level one, each retained measured surrogate attaches to the upper graph through its unique pure chain, so the corresponding parent or source-root cut blocks every path.  The two extra mixed measured vertices are unconditioned sinks; whenever a path traverses one, it is a collider, and it has no conditioned descendant.  At level two, any path between the two root surrogate trees must traverse an unconditioned common descendant as a collider.  Hence no choice among the \(26\) allowed parent sets opens a path.
+
+For completeness, the exact check count is also reproducible from the cases.  Each graph contributes \(80\) fixed cuts.  A mixed child with a parent set of size \(j\) contributes \(2^{5-j}\) additional all-parent augmented cuts.  Therefore the total is
+\[
+ 676\cdot80
+ +2\cdot26\sum_{j=2}^{5}\binom{5}{j}2^{5-j}
+ =54{,}080+6{,}812
+ =60{,}892. \tag{10}
+\]
+Exhaustive ancestral-moral computation checked all cuts counted in (10) and found no counterexample.  This graph audit does not repair the analytic version defect proved in (8)--(9).
+\end{proof}
+
+\begin{lemma}[lem:invariance-of-domain]\label{lem:invariance-of-domain}
+Let \(n\geq1\), let \(U\subseteq\mathbb R^n\) be open, and let \(h:U\to\mathbb R^n\) be continuous and injective. Then \(h(U)\) is open in \(\mathbb R^n\).
+\end{lemma}
+
+\begin{lemma}[lem:inverse-function-theorem]\label{lem:inverse-function-theorem}
+Let \(n\geq 1\), let \(U\subseteq\mathbb R^n\) be open, and let \(F:U\to\mathbb R^n\) be continuously differentiable.  If \(DF(x_0)\) is invertible at \(x_0\in U\), then there are open neighborhoods \(U_0\) of \(x_0\) and \(W_0\) of \(F(x_0)\) such that \(F|_{U_0}:U_0\to W_0\) is one-to-one and onto and has a continuously differentiable inverse.
+\end{lemma}
+
+\begin{lemma}[lem:ae-bottleneck]\label{lem:ae-bottleneck}
+Let \(m,q,k\in\mathbb N_0\), let \(\mathcal U\subseteq\mathbb R^m\) be open, and let \(\mu\) be a probability measure whose restriction to \(\mathcal U\) is equivalent to Lebesgue measure and for which \(\mu(\mathcal U)=1\).  Suppose \(a\in C^1(\mathcal U;\mathbb R^q)\), \(b\in C^1(\mathcal U;\mathbb R^k)\), and there is a measurable \(\phi:\mathbb R^k\to\mathbb R^q\) such that \(a=\phi\circ b\), \(\mu\)-almost surely.  Then
+\[
+ \operatorname{rank}Da(x)\leq k
+ \qquad\text{for }\mu\text{-almost every }x\in\mathcal U.
+\]
+\end{lemma}
+\begin{proof}
+Let \(\lambda_d\) denote \(d\)-dimensional Lebesgue measure.  Equivalence of \(\mu|_{\mathcal U}\) and \(\lambda_m|_{\mathcal U}\) makes
+\[
+ E:=\{x\in\mathcal U:a(x)=\phi(b(x))\}
+\]
+a set of full \(\lambda_m\)-measure in \(\mathcal U\).
+
+We first record, with proof, the elementary null-section fact used below.  If \(N\subseteq Q\times T\subseteq\mathbb R^d\times\mathbb R^e\) is Lebesgue null, then \(N_t:=\{u:(u,t)\in N\}\) is \(\lambda_d\)-null for \(\lambda_e\)-almost every \(t\).  Indeed, for each integer \(j\geq1\), cover \(N\) by countably many axis-parallel boxes \(I_{ji}\times J_{ji}\) whose total \((d+e)\)-volume is less than \(2^{-j}\), and set
+\[
+ s_j(t):=\sum_i\lambda_d(I_{ji})\mathbf 1_{J_{ji}}(t).
+\]
+Countable additivity for nonnegative simple functions gives
+\[
+ \int s_j(t)\,d\lambda_e(t)
+ =\sum_i\lambda_d(I_{ji})\lambda_e(J_{ji})<2^{-j}. \tag{1}
+\]
+Consequently \(\lambda_e\{s_j>2^{-j/2}\}<2^{-j/2}\).  The union bound applied to the tails of this summable series shows that, outside a null set of \(t\)'s, \(s_j(t)\leq2^{-j/2}\) for all sufficiently large \(j\).  Since the displayed boxes cover \(N_t\) and \(\lambda_d^*(N_t)\leq s_j(t)\), its outer measure is zero.  This proves the null-section fact without imposing any regularity on \(N\) beyond measurability.
+
+We next prove a dimension fact needed for the contradiction.  If \(W\subseteq\mathbb R^n\) is nonempty and open, \(n>k\), and \(c\in C^1(W;\mathbb R^k)\), then no full-Lebesgue-measure subset of \(W\) can be a set on which \(c\) is injective.  Let
+\[
+ r:=\max_{x\in W}\operatorname{rank}Dc(x),
+\]
+which exists because the possible ranks form the finite set \(\{0,\ldots,k\}\), and choose \(x_0\) attaining it.  If \(r=0\), then \(Dc=0\) on \(W\); on a sufficiently small convex box about \(x_0\), integration along line segments makes \(c\) constant, so injectivity fails on every full-measure subset of that box.
+
+Suppose \(r>0\).  After permuting input and output coordinates, the upper-left \(r\)-by-\(r\) minor of \(Dc(x_0)\) is nonsingular.  Define
+\[
+ \Psi(x):=(c_1(x),\ldots,c_r(x),x_{r+1},\ldots,x_n).
+\]
+The derivative \(D\Psi(x_0)\) is invertible.  By \(\texttt{lem:inverse-function-theorem}\), after shrinking to a neighborhood \(W_0\) of \(x_0\), \(\Psi\) is a \(C^1\) diffeomorphism onto an open set.  Put \(\widetilde c:=c\circ\Psi^{-1}\).  Its first \(r\) coordinates are \((y_1,\ldots,y_r)\), while its total derivative has rank exactly \(r\), by maximality of \(r\).  Each partial derivative \(\partial\widetilde c_j/\partial y_s\) with \(s>r\) must therefore vanish: otherwise that entry together with the identity block in the first \(r\) rows and columns would form a nonzero \((r+1)\)-minor.  On a product box \(Q'\times Q''\) with closure contained in \(\Psi(W_0)\), integration along line segments in the convex box \(Q''\) now gives
+\[
+ \widetilde c(y',y'')=\beta(y') \tag{2}
+\]
+for a suitable \(\beta\).
+
+A \(C^1\) map on a neighborhood of a compact box is Lipschitz there, by the line-segment integral bound after a finite convex subdivision.  A Lipschitz map from \(\mathbb R^n\) to \(\mathbb R^n\) sends Lebesgue-null sets to null sets: cover the null set by cubes of arbitrarily small total volume and cover each image cube by a dimension-dependent fixed number of cubes whose side lengths are multiplied by the Lipschitz constant.  It follows that the image under \(\Psi\) of any full-measure subset of \(W_0\) has full measure in \(Q'\times Q''\).  By the null-section fact, for almost every \(y'\), its section in \(Q''\) has full measure.  Since
+\[
+ \dim Q''=n-r\geq n-k\geq1,
+\]
+such a section contains two distinct points.  Equation (2) maps those points to the same value, contradicting injectivity.  This proves the dimension fact.
+
+We now prove the asserted rank bound.  If \(m\leq k\), it is the elementary matrix-dimension bound, so suppose \(m>k\).  If \(\operatorname{rank}Da(x_0)>k\) at some \(x_0\in\mathcal U\), choose \(k+1\) input coordinates and \(k+1\) output coordinates giving a nonsingular minor.  Write the selected input coordinates as \(u\in\mathbb R^{k+1}\), the remaining ones as \(t\), and let \(F_t(u)\) be the selected \(k+1\) coordinates of \(a(u,t)\).  If \(A_0:=D_uF_{t_0}(u_0)\), continuity permits a convex product box \(Q\times T\) about \((u_0,t_0)\) on which
+\[
+ \left\|A_0^{-1}\bigl(D_uF_t(u)-A_0\bigr)\right\|_{\mathrm{op}}\leq\frac12. \tag{3}
+\]
+For \(u,v\in Q\), the line-segment identity and (3) give
+\[
+ \begin{aligned}
+ \left\|A_0^{-1}\bigl(F_t(u)-F_t(v)\bigr)\right\|
+ &\geq \|u-v\|
+ -\int_0^1\left\|A_0^{-1}
+ \bigl(D_uF_t(v+s(u-v))-A_0\bigr)(u-v)\right\|\,ds\\
+ &\geq\frac12\|u-v\|. 
+ \end{aligned} \tag{4}
+\]
+Thus every \(F_t\) is injective on \(Q\).  The null-section fact applied to \((Q\times T)\setminus E\) supplies a \(t\) for which
+\[
+ E_t:=\{u\in Q:(u,t)\in E\}
+\]
+has full \((k+1)\)-dimensional measure in \(Q\); when there are no transverse coordinates, take \(E_t=E\cap Q\).  If \(u,v\in E_t\) and \(b(u,t)=b(v,t)\), then
+\[
+ a(u,t)=\phi(b(u,t))=\phi(b(v,t))=a(v,t),
+\]
+so (4) gives \(u=v\).  Hence the \(C^1\) map \(u\mapsto b(u,t)\) from the open subset \(Q\subseteq\mathbb R^{k+1}\) into \(\mathbb R^k\) is injective on a full-measure subset, contradicting the dimension fact.  Therefore \(\operatorname{rank}Da(x)\leq k\) for every \(x\in\mathcal U\), which in particular proves the claimed \(\mu\)-almost-everywhere bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This almost-everywhere dimension obstruction converts the anchor's almost-sure sufficient-statistic factorization into the Jacobian-rank upper bound under full-dimensional predictor laws. \textit{Gap.} The pointwise topological bottleneck cannot be applied directly to an almost-sure factorization through a merely measurable outer map. \textit{Consumer.} The positive-density separator lemma applies this result to the conditional mean and the published sufficient map.
+
+\begin{lemma}[lem:positive-density-jet-determining]\label{lem:positive-density-jet-determining}
+Let \(A\subseteq V_0\) be nonempty and put \(\mu_A:=P_{X_A}\).  Suppose there is a nonempty open set \(\mathcal U_A\subseteq\mathbb R^{|A|}\) such that \(\mu_A(\mathcal U_A)=1\) and \(\mu_A|_{\mathcal U_A}\) is equivalent to Lebesgue measure on \(\mathcal U_A\).  Then every open neighborhood \(\mathcal W\) of \(\operatorname{supp}(\mu_A)\) is first-jet determining for \(\mu_A\): for every \(h\in C^1(\mathcal W;\mathbb R)\),
+\[
+ h(X_A)=0\quad P_X\text{-almost surely}
+ \quad\Longrightarrow\quad
+ Dh(X_A)=0\quad P_X\text{-almost surely}.
+\]
+\end{lemma}
+\begin{proof}
+Every \(x\in\mathcal U_A\) lies in \(\operatorname{supp}(\mu_A)\).  Indeed, if \(O\) is any open neighborhood of \(x\), then \(O\cap\mathcal U_A\) has positive Lebesgue measure, and equivalence on \(\mathcal U_A\) gives \(\mu_A(O)>0\).  Hence \(\mathcal U_A\subseteq\mathcal W\).
+
+If \(h(X_A)=0\) almost surely, equivalence implies that \(h=0\) Lebesgue-almost everywhere on \(\mathcal U_A\).  If \(h(x_0)\neq0\) at some \(x_0\in\mathcal U_A\), continuity would give an open ball contained in \(\mathcal U_A\) on which \(|h|\) is bounded away from zero, contradicting its almost-everywhere vanishing.  Thus \(h\) is identically zero on the open set \(\mathcal U_A\), and consequently \(Dh=0\) there.  Since \(\mu_A(\mathcal U_A)=1\), the derivative vanishes \(P_X\)-almost surely, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Equivalence to Lebesgue measure on an open full-measure set makes almost-sure equality of continuous versions pointwise on that open set and therefore fixes their first derivatives almost surely. \textit{Gap.} Lower-dimensional supports do not determine transverse derivatives, as the established equal-measurement boundary witness shows. \textit{Consumer.} The positive-density separator lemma uses this result to prove membership in the version-stability domain.
+
+\begin{lemma}[lem:positive-density-restricted-separator-upper]\label{lem:positive-density-restricted-separator-upper}
+Let \((G,P)\in\mathcal M_{\mathrm{PNHZ}}\), and let \(\lambda_d\) denote \(d\)-dimensional Lebesgue measure.  Consider any singleton, pair, baseline-neutrality, or augmented-neutrality endpoint pair \((\mathcal A,\mathcal B)=(D_\ell(A),D_\ell(B))\) actually requested, including a pair at which the procedure would otherwise stop, by the canonical deterministic RankPeel execution.  If \(\mathcal A\neq\varnothing\), suppose that there is a nonempty open \(\mathcal U_{\mathcal A}\subseteq\mathbb R^{|\mathcal A|}\) with
+\[
+ P_{X_{\mathcal A}}(\mathcal U_{\mathcal A})=1,
+ \qquad
+ P_{X_{\mathcal A}}|_{\mathcal U_{\mathcal A}}
+ \sim \lambda_{|\mathcal A|}|_{\mathcal U_{\mathcal A}}.
+\]
+Then \((\mathcal A,\mathcal B)\in\mathcal Q_{\mathrm{stab}}(P_X)\).  If a latent set \(Z\subseteq V\setminus V_0\) is one of the restricted pure-surrogate cuts used for the query and \(d\)-separates its measured endpoints in \(G\), then, without any pointwise fibre-coherence assumption,
+\[
+ R^{\mathrm{law}}_{P_X}(\mathcal A,\mathcal B)
+ \leq\min\{|\mathcal A|,|\mathcal B|,|Z|\}.
+\]
+\end{lemma}
+\begin{proof}
+The case of an empty endpoint is immediate from \(\texttt{def:observed-rank-oracle}\), so suppose both endpoints are nonempty and write \(\mu:=P_{X_{\mathcal A}}\) and \(\mathcal U:=\mathcal U_{\mathcal A}\).
+
+First consider version stability.  By \(\texttt{ass:observed-mean-differentiability}\), the set \(\mathfrak F_{\mathcal A,\mathcal B}(P_X)\) is nonempty.  If \(f_1,f_2\) are two members, each coordinate of \(f_1-f_2\) vanishes \(\mu\)-almost surely on the intersection of their open domains, which contains \(\operatorname{supp}(\mu)\).  Applying \(\texttt{lem:positive-density-jet-determining}\) coordinatewise gives
+\[
+ Df_1(X_{\mathcal A})=Df_2(X_{\mathcal A})
+ \qquad P_X\text{-almost surely}. \tag{1}
+\]
+Thus all representatives have the same essential-supremum rank, and the queried pair belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\).
+
+Now suppose \(Z\) is a stated restricted cut.  The graphical part of the claim is query-specific: \(\texttt{lem:pure-surrogate-cuts}\) supplies the cut, and the premise states that it \(d\)-separates the endpoints.  By \(\texttt{ass:dag-markov}\),
+\[
+ X_{\mathcal B}\mathbin{\perp\!\!\!\perp}X_{\mathcal A}\mid Z. \tag{2}
+\]
+The conditional means in \(\texttt{ass:observed-mean-differentiability}\) entail the finite first moments used below.  Let \(\eta(z)\) be a Borel version of \(\mathbb E[X_{\mathcal B}\mid Z=z]\), and let \(K_x\) be a regular conditional law of \(Z\) given \(X_{\mathcal A}=x\).  Conditional independence (2) and iterated conditional expectation yield, for any \(f^0\in\mathfrak F_{\mathcal A,\mathcal B}(P_X)\),
+\[
+ f^0(x)=\int\eta(z)\,K_x(dz)
+ \qquad\text{for }\mu\text{-almost every }x. \tag{3}
+\]
+
+Apply \(\texttt{ass:conditional-sufficiency}\) to the measured set \(\mathcal A\) and this latent set \(Z\).  In the regular-conditional-law meaning of that assumption, its Condition 3(ii) factorization supplies a map \(g=g_{\mathcal A,Z}\in C^1(\mathbb R^{|\mathcal A|};\mathbb R^{|Z|})\) and a Markov kernel \(t\mapsto\kappa_t\) such that
+\[
+ K_x=\kappa_{g(x)}
+ \qquad\text{for }\mu\text{-almost every }x. \tag{4}
+\]
+Define the measurable map
+\[
+ \phi(t):=\int\eta(z)\,\kappa_t(dz)
+\]
+where the integral exists, and set it to zero elsewhere.  Kernel measurability makes \(\phi\) measurable.  Equations (3)--(4) give the almost-sure, rather than pointwise, factorization
+\[
+ f^0(x)=\phi(g(x))
+ \qquad\text{for }\mu\text{-almost every }x. \tag{5}
+\]
+Restrict \(f^0\) and \(g\) to \(\mathcal U\).  The positive-density hypothesis and \(\texttt{lem:ae-bottleneck}\), applied to (5) with \(k=|Z|\), imply
+\[
+ \operatorname{rank}Df^0(x)\leq |Z|
+ \qquad\text{for }\mu\text{-almost every }x. \tag{6}
+\]
+No conclusion about equality on every fibre of \(g\) is used.  Equation (1) transfers (6) to every admissible representative.  Taking essential suprema and adding the two matrix-dimension bounds gives
+\[
+ R^{\mathrm{law}}_{P_X}(\mathcal A,\mathcal B)
+ \leq\min\{|\mathcal A|,|\mathcal B|,|Z|\},
+\]
+which is the desired separator upper bound derived from directed Markovness, the anchor's almost-sure conditional-sufficiency factorization, and positive density.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Positive queried densities imply first-jet uniqueness, and the almost-everywhere bottleneck turns directed Markovness plus conditional sufficiency into the restricted separator rank bound without pointwise fibre coherence. \textit{Gap.} The result is support-regular and does not extend to the established lower-dimensional boundary witness. \textit{Consumer.} The positive-density RankPeel theorem uses it for every pure-block and canonical-neutrality upper bound.
+
+\begin{theorem}[thm:positive-density-rankpeel-reconstruction]\label{thm:positive-density-rankpeel-reconstruction}
+Theorem 3 (Positive-density RankPeel corollary).  Let \((G,P)\in\mathcal M_{\mathrm{PNHZ}}\), and let \(\lambda_d\) denote \(d\)-dimensional Lebesgue measure.  Suppose that for every nonempty measured predictor set \(\mathcal A\) occurring in an endpoint pair actually requested, including a pair at which the procedure would otherwise stop, by the canonical deterministic execution of \(\operatorname{RankPeel}(P_X,R^{\mathrm{law}}_{P_X})\), there is a nonempty open set \(\mathcal U_{\mathcal A}\subseteq\mathbb R^{|\mathcal A|}\) such that
+\[
+ P_{X_{\mathcal A}}(\mathcal U_{\mathcal A})=1,
+ \qquad
+ P_{X_{\mathcal A}}|_{\mathcal U_{\mathcal A}}
+ \sim\lambda_{|\mathcal A|}|_{\mathcal U_{\mathcal A}}.
+\]
+Then the execution does not return \(\bot\), terminates with \((\widehat G,\mathcal T)\), and satisfies \([\widehat G]=\theta_G\), with indeterminacy only from independent permutations of latent labels within layers.  It uses at most \(p^2+p\) combined membership-and-rank calls and \(O(p^3)\) elementary bookkeeping; for \(p\geq3\), its worst-case call count over this strict subclass is \(\Theta(p^2)\).  The emitted record has size \(O(p^3+p^2\log p)\), satisfies
+\[
+ \operatorname{Verify}(P_X,R^{\mathrm{law}}_{P_X},\mathcal T,\widehat G)=1,
+\]
+and is an oracle-relative replay certificate whose reconstructed graph is structurally sound on this subclass.  This is a strict positive-density/open-support result derived without assuming pointwise latent-separator fibre coherence; it is not a full-class transfer from the anchor's Conditions 1--3.
+\end{theorem}
+\begin{proof}
+We prove correctness by induction on the true layer \(V_\ell\).  At \(\ell=0\), the active vertices are the measured vertices and \(D_0(v)=\{v\}\), so the retained-surrogate invariant in \(\texttt{def:pure-surrogates}\) holds.  Assume it holds at a reached layer \(\ell\).  By the positive-density hypothesis and \(\texttt{lem:positive-density-restricted-separator-upper}\), every endpoint pair that the canonical execution requests belongs to \(\mathcal Q_{\mathrm{stab}}(P_X)\).  Hence the execution cannot return \(\bot\) at this layer.
+
+For each current vertex \(v\), \(\texttt{prop:parentless-test}\) applies because its singleton query is version stable and gives
+\[
+ \rho_\ell(\{v\},V_\ell\setminus\{v\})=0
+ \quad\Longleftrightarrow\quad
+ \operatorname{Pa}_G(v)=\varnothing. \tag{1}
+\]
+Thus the singleton stage removes exactly the parentless vertices from pair testing.
+
+Consider distinct remaining vertices \(u,v\).  If \(\operatorname{Pa}_G(u)=\operatorname{Pa}_G(v)=\{h\}\), then \(Z=\{h\}\) is the restricted cut supplied by \(\texttt{lem:pure-surrogate-cuts}\), and the positive-density separator upper bound gives
+\[
+ \rho_\ell(\{u,v\},V_\ell\setminus\{u,v\})\leq1. \tag{2}
+\]
+Conversely, suppose their parent sets are not the same singleton.  Since neither vertex is parentless, choose distinct \(h\in\operatorname{Pa}_G(u)\) and \(g\in\operatorname{Pa}_G(v)\).  By \(\texttt{ass:two-pure-children}\), choose a pure child \(b_h\) of \(h\) and a pure child \(b_g\) of \(g\), both outside \(\{u,v\}\).  The choices can be made distinct: if \(u,v\) exhausted two pure children of one parent, they would be pure children of that same parent, contrary to the present case, and a pure child cannot have two different parents.  The forks
+\[
+ u\leftarrow h\to b_h,
+ \qquad
+ v\leftarrow g\to b_g
+\]
+are vertex-disjoint.  Their measured lifts are vertex-disjoint collider-free paths by \(\texttt{lem:pure-surrogate-cuts}\), so \(\texttt{lem:private-path-lower}\) gives rank at least two.  Together with (2), this proves that the nontrivial connected components of the pair relation are exactly the full pure blocks \(B_h\).  Because every \(h\in V_{\ell+1}\) has at least two pure children, every next-layer vertex is recovered.
+
+It remains to recover the parents of a current nonpure, nonparentless vertex \(c\).  Let \(C\subseteq H=V_{\ell+1}\) be a candidate set actually evaluated by the canonical deletion execution, let \(k=|C|\), and use the canonical representatives \(S_C=\{s_h:h\in C\}\).  For every \(h\in C\), choose a second pure child \(b_h\neq s_h\).  The \(k\) vertex-disjoint forks \(s_h\leftarrow h\to b_h\) lift to measured collider-free paths with responses in \(T_C(c)\); hence \(\texttt{lem:private-path-lower}\) gives the baseline lower bound \(k\).  The latent set \(C\) is a restricted cut separating those source trees from the response trees, so \(\texttt{lem:positive-density-restricted-separator-upper}\) gives the matching upper bound:
+\[
+ \rho_\ell(S_C,T_C(c))=k. \tag{3}
+\]
+
+If \(\operatorname{Pa}_G(c)\subseteq C\), the same \(k\) paths remain after adding \(c\), and \(C\) contains all parents of every source root in \(S_C\cup\{c\}\).  The corresponding restricted cut therefore gives
+\[
+ \rho_\ell(S_C\cup\{c\},T_C(c))=k. \tag{4}
+\]
+If instead \(q\in\operatorname{Pa}_G(c)\setminus C\), choose a pure child \(b_q\) of \(q\).  Since \(c\) is nonpure and \(q\notin C\), the additional fork \(c\leftarrow q\to b_q\) is vertex-disjoint from the \(k\) preceding forks and has its response in \(T_C(c)\).  The private-path lower bound is therefore \(k+1\).  When \(\ell=0\), the measured predictor set has exactly \(k+1\) coordinates, giving the reverse inequality by matrix dimension.  When \(\ell\geq1\), the \(k+1\) latent current roots \(S_C\cup\{c\}\) form the restricted source-root cut in \(\texttt{lem:pure-surrogate-cuts}\), so the positive-density separator upper bound again gives the reverse inequality.  Consequently
+\[
+ \rho_\ell(S_C\cup\{c\},T_C(c))=
+ \begin{cases}
+ k,&\operatorname{Pa}_G(c)\subseteq C,\\
+ k+1,&\operatorname{Pa}_G(c)\nsubseteq C.
+ \end{cases} \tag{5}
+\]
+
+Initially \(C=H\) contains every parent of \(c\).  At a deletion step, (3)--(5) delete a tested \(h\) exactly when \(C\setminus\{h\}\) still contains \(\operatorname{Pa}_G(c)\).  Thus no true parent is deleted, every nonparent is deleted when processed, and the final candidate set is exactly \(\operatorname{Pa}_G(c)\).  Hence all edges between \(V_{\ell+1}\) and \(V_\ell\) are recovered.  The update
+\[
+ D_{\ell+1}(h)=\bigcup_{v\in B_h}D_\ell(v)
+\]
+preserves the disjoint retained pure-tree invariant by \(\texttt{lem:pure-surrogate-cuts}\), completing the induction.  Adjacent layering in \(\texttt{ass:adjacent-layering}\) rules out omitted nonadjacent edges, so the accumulated graph equals \(G\) up to the canonical within-layer latent relabelings and \([\widehat G]=\theta_G\).
+
+Finally, the disjoint blocks \(B_h\) have size at least two, so the active layer sizes halve.  The unconditional counting part of \(\texttt{thm:query-complexity}\) therefore applies to this execution and gives at most \(p^2+p\) combined membership-and-rank calls and \(O(p^3)\) bookkeeping.
+
+The quadratic order is attained within the stated subclass.  For each \(p\geq3\), take one latent \(H\sim N(0,1)\), independent noises \(\varepsilon_i\sim N(0,1)\), and
+\[
+ X_i=H+\sigma\varepsilon_i,
+ \qquad i=1,\ldots,p,
+ \qquad \sigma>0. \tag{6}
+\]
+This scalar adjacent-layer DAG has \(p\) pure children of \(H\), equal measured-descendant depth, and the directed Markov property.  Every observed subvector has a nonsingular Gaussian law and hence a strictly positive density on its Euclidean space.  Moreover,
+\[
+ \mathbb E[H\mid X_A=x_A]
+ =\frac{\sum_{i\in A}x_i}{\sigma^2+|A|}, \tag{7}
+\]
+with posterior variance depending only on \(|A|\), which verifies the differentiable conditional-sufficiency condition.  For nonempty disjoint \(A,B\), iterated expectation gives
+\[
+ \mathbb E[X_B\mid X_A=x_A]
+ =\mathbf 1_B\frac{\sum_{i\in A}x_i}{\sigma^2+|A|}, \tag{8}
+\]
+whose Jacobian has rank one.  Thus there is no nongraphical rank defect, so the generalized rank-faithfulness condition holds for this one-factor graph.  Each singleton-versus-complement rank is one, so RankPeel marks no measured vertex parentless and issues all \(\binom p2\) pair queries.  It therefore makes at least \(\binom p2=\Omega(p^2)\) calls on (6), which together with the upper bound proves the claimed \(\Theta(p^2)\) worst-case order.
+
+The unconditional replay-completeness part of \(\texttt{prop:replay-certificate}\) now gives the displayed verification equality, the transcript size \(O(p^3+p^2\log p)\), and replay within the same query and bookkeeping bounds.  The induction above supplies structural soundness on the positive-density subclass.  These numerical and replay conclusions concern the population oracle and do not include oracle evaluation or finite-sample estimation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the headline natural-subclass recovery promise, with the same exact adjacency target and proved quadratic oracle complexity. \textit{Gap.} It is not an unchanged-class transfer because positive density on every queried predictor support is additional to the anchor's Conditions 1--3. \textit{Consumer.} The estimand functional uses it as the support-regular identifying route.
+
+\section{Interpretation}
+
+On either proved strict subclass, equality of the canonical baseline and augmented ranks certifies that the currently tested candidate set contains every parent of the processed mixed child, while a failed equality identifies an omitted parent.  The positive-density route is especially transparent: equality of smooth conditional-mean versions is first-order unique on the open queried support, and the almost-sure sufficient-statistic factorization has Jacobian rank at most the statistic dimension.  The transcript certifies deterministic consistency with the same population oracle; it does not certify the latent fibre-coherence condition, the positive-density support condition, or membership in the anchor class.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The prescribed early-kill audit covered all \(676\) stated three-level graphs and all \(60{,}892\) enumerated level-zero and retained-surrogate cuts without a \(d\)-separation counterexample, but finite enumeration is not the recursive graphical proof.  Analytically, the unchanged Conditions 1--3 do not determine the present law-level Jacobian rank across conditional-mean versions: the explicit smooth boundary model \(X_1=\cdots=X_4=H\) yields valid pair representatives of ranks one and two.  The positive-density/open-support theorem excludes that defect and derives an almost-everywhere separator bound; the more abstract theorem still requires query-local first-jet determinacy and latent-separator-relative pointwise fibre coherence.  No blanket separator-equals-rank identity, extra saturated-rank condition, faithfulness inheritance after contraction, finite-sample Jacobian rate, oracle evaluation algorithm, or image-data consistency is asserted.
+
+\section{Honest scope}
+
+The causal target is the full layered adjacency matrix modulo within-layer latent permutations.  The proved identifying map is RankPeel on the union of two explicit strict subclasses of the formalized anchor class: the query-local first-jet-determining and latent-separator-relative fibre-coherent subclass, and the positive-density/open-support subclass for which every actually queried predictor law is equivalent to Lebesgue measure on an open full-measure set.  The second route does not assume pointwise fibre coherence.  The unchanged formalized class contains the equal-measurement boundary model on which RankPeel requests a version-unstable pair and returns \(\bot\), so completeness and exact recovery are not claimed there.  The \(p^2+p\) call count, \(O(p^3)\) bookkeeping bound, and replay completeness remain unconditional properties of the partial oracle procedure; structural soundness requires one of the two strict-subclass routes.  Alternate representatives outside the law-stable domain, alternate deletion orders, counterfactual candidate states, oracle evaluation time, nonparametric estimation, finite-sample recovery, and CelebA consistency are outside scope.
+
+\begin{thebibliography}{99}
+
+  \bibitem{PrashantEtAl2025Differentiable} Parjanya Prajakta Prashant, Ignavier Ng, Kun Zhang, and Biwei Huang. \emph{Differentiable Causal Discovery for Latent Hierarchical Causal Models}. International Conference on Learning Representations, 2025. arXiv:2411.19556.
+
+  \bibitem{HuangEtAl2022LatentRank} Biwei Huang, Charles Jia Han Low, Feng Xie, Clark Glymour, and Kun Zhang. \emph{Latent Hierarchical Causal Structure Discovery with Rank Constraints}. Advances in Neural Information Processing Systems 35, 2022, pp. 5549--5561. arXiv:2210.01798.
+
+  \bibitem{KongEtAl2023NonlinearLatent} Lingjing Kong, Biwei Huang, Feng Xie, Eric P. Xing, Yuejie Chi, and Kun Zhang. \emph{Identification of Nonlinear Latent Hierarchical Models}. Advances in Neural Information Processing Systems 36, 2023, pp. 2010--2032. arXiv:2306.07916.
+
+  \bibitem{SullivantTalaskaDraisma2010Trek} Seth Sullivant, Kelli Talaska, and Jan Draisma. \emph{Trek Separation for Gaussian Graphical Models}. Annals of Statistics 38(3), 2010, pp. 1665--1685. DOI: 10.1214/09-AOS760.
+
+  \bibitem{DraismaSullivantTalaska2013Positivity} Jan Draisma, Seth Sullivant, and Kelli Talaska. \emph{Positivity for Gaussian Graphical Models}. Bernoulli 19(4), 2013, pp. 1402--1432. arXiv:1210.0390.
+
+  \bibitem{ChenFang2019Rank} Qihui Chen and Zheng Fang. \emph{Improved Inference on the Rank of a Matrix}. Quantitative Economics 10(4), 2019, pp. 1787--1824. arXiv:1812.02337.
+
+  \bibitem{CattaneoFengShigida2026Uniform} Matias D. Cattaneo, Yingjie Feng, and Yulong Shigida. \emph{Uniform Estimation and Inference for Nonparametric Partitioning-Based M-Estimators}. Annals of Statistics, 2026. arXiv:2409.05715.
+
+  \bibitem{DongEtAl2024Versatile} Xinshuai Dong, Biwei Huang, Ignavier Ng, Xiangchen Song, Yujia Zheng, Songyao Jin, Roberto Legaspi, Peter Spirtes, and Kun Zhang. \emph{A Versatile Causal Discovery Framework to Allow Causally-Related Hidden Variables}. International Conference on Learning Representations, 2024. arXiv:2312.11001.
+
+  \bibitem{Hatcher2002AlgebraicTopology} Allen Hatcher. \emph{Algebraic Topology}. Cambridge University Press, 2002.
+
+  \bibitem{Rudin1976Principles} Walter Rudin. \emph{Principles of Mathematical Analysis}, third edition. McGraw--Hill, 1976.
+
+\end{thebibliography}
+
+\end{document}

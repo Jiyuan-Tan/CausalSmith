@@ -1,0 +1,1592 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}ipcw\_\allowbreak{}spectral\_\allowbreak{}ssc\_\allowbreak{}inference}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For fixed donor count, pre grid, post grid, and exact rank of the fixed donor-pre matrix, the required positive rank-\(r\) separation follows from \(\sigma_r(M)>0=\sigma_{r+1}(M)\); no additional singular-gap assumption is imposed. Covariate-adjusted cross-fitted AIPCW cell estimates have a joint root-\(K\) expansion conditional on explicit bounded-variation and relative-variation restrictions for the selected event learner. A clipped empirical hazard learner satisfies those restrictions with \(a_K=K^{-1/2}\) on a fixed finite-stratum submodel, but this certificate is not a generic learner result and does not verify the TCL application. Exact post-transport, without a global target-pre row-space assumption, identifies the untreated potential curve with the observed-law spectral representation. The full three-block spectral derivative yields a possibly singular joint Gaussian law; positive coordinate variances suffice for the simultaneous band and a positive grid-RMST variance suffices for scalar studentization. A full-data causal construction, preserving all six observed margins, proves that unadjusted Kaplan--Meier/PCR has fixed bias on a relatively open subclass. Weak-gap and selected-rank inference remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Han and Shah (2025, Theorems 1--2 and Appendix E) already state event-time/censoring conditional independence given treatment and covariates, but their spectral workflow uses marginal cellwise Kaplan--Meier curves and does not give a covariate-adjusted joint influence law. With heterogeneous covariates, conditional independence need not imply marginal independence, so those cell inputs can converge to distorted curves before PCR transport. Westling et al. (2024, published Theorem 3 (arXiv Theorem 4)) provide asymptotic-linearity theory for a directly estimated treatment-specific curve, not for a learned three-block spectral counterfactual.
+
+\paragraph{Niche.} With \(N_0,T_0,J,r\) fixed and \(K\to\infty\), covariate-standardized cell curves form a finite-dimensional semiparametric first stage. Exact rank of the fixed donor-pre matrix itself gives \(\sigma_r(M)>0=\sigma_{r+1}(M)\), so the counterfactual is a smooth local spectral functional without a separate singular-gap assumption. The bridge requires the exact Stieltjes remainder under a disclosed learner-path variation restriction, a concrete submodel on which that restriction is attainable, and all three terms of the pseudoinverse derivative.
+
+\paragraph{Fill.} The project proves the conditional-learner AIPCW cell expansion, a finite-stratum clipped-hazard attainability certificate, the joint transported Gaussian law with possibly singular covariance, a Gaussian-multiplier band under positive coordinate variances, and a studentized grid-RMST interval under positive variance for the declared scalar contrast. It also constructs a full-data potential-outcome witness, with unchanged observed margins and verified exact transport, that places unadjusted Kaplan--Meier/PCR bias on a relatively open causal subclass. Weak-gap inference remains open.
+
+\section{Related work}
+
+Han and Shah (2025, Theorems 1--2 and Appendix E) supply the fixed-grid latent-factor survival panel, unit and time spans, PCR transport, and the 925-patient, 10-country TCL application. They assume event-time/censoring conditional independence given treatment and covariates, but use marginal cellwise Kaplan--Meier inputs and do not derive a covariate-adjusted transported influence law. Proposition~\ref{prop:han-shah-fixed-grid-embedding} gives their algebraic span bridge, while the joint limit itself needs exact post-transport but no global target-pre row-space assumption. Proposition~\ref{prop:km-pcr-cancellation} now supplies a full-data potential-outcome witness: its latent untreated target-post time verifies transport while its treated factual time preserves the observed target-post margin, and continuous attachment yields a relatively open causal biased subclass. Westling, Luedtke, Gilbert, and Carone (2024, published Theorem 3 (arXiv Theorem 4) and Sections 5.2--5.3) supply direct-curve cross-fitted augmented survival inference. The relative-survival variation restriction here is an additional primitive sufficient condition not imposed by Westling et al., who instead assume the exact Stieltjes-remainder rate. Proposition~\ref{prop:finite-stratum-hazard-certificate} proves that restriction for a fixed finite-stratum clipped empirical hazard learner, not for generic learners. Agarwal, Shah, and Shen (2025, Theorem 2 and Corollary 2) study minimum-norm PCR and row-space prediction without censoring-aware asymptotics. Golub and Pereyra (1973, equation (4.12)) provide the constant-rank pseudoinverse differential. Curth, Poon, Nori, and Gonz\'alez (2024, Sections 3--4) analyze survival synthetic-control bias but not this three-block PCR pseudo-limit or its full-data causal open subclass. Fan and Liao (2022) study growing-panel factor models, and Choi, Kwon, and Liao (2026) study robustness to rank misspecification. These are neighboring problems; weak-gap and selected-rank inference for the unregularized fixed-donor target remains an acknowledged open frontier of this note.
+
+\section{Setup}
+
+Target (estimand / structural parameter): Writing \(S^0_{\mathrm{target,post}}\) for the target unit's untreated potential post-period survival row, the causal target is \((S^0_{\mathrm{target,post}},\tau_R)=(S^0_{\mathrm{target,post}},q^\top\{s_1-S^0_{\mathrm{target,post}}\})\). Under exact post-transport, it is identified by the observed-law map \((\theta,\tau_R)=(yM_r^+B,q^\top\{s_1-yM_r^+B\})\)..
+Primary functional / estimator / diagnostic: The observed-law estimation functional is \((\widehat\theta,\widehat\tau_R)=(\widehat y(\widehat M)_r^+\widehat B,q^\top\{\widehat s_1-\widehat y(\widehat M)_r^+\widehat B\})\), with root-\(K\) influence \((\Phi_{\theta},\Phi_\tau)\); exact post-transport supplies its causal interpretation..
+\begin{itemize}
+  \item \texttt{K} --- \texttt{within-\allowbreak{}cell sample size}; \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The common number of independent individuals in each panel cell and the sole asymptotic index.}
+  \item \texttt{N\_\allowbreak{}0} --- \texttt{donor count}; \(\mathbb N\); \texttt{panel dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed number of untreated donor units.}
+  \item \texttt{T\_\allowbreak{}0} --- \texttt{pre-\allowbreak{}period grid size}; \(\mathbb N\); \texttt{panel dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed number of pre-\allowbreak{}period survival coordinates.}
+  \item \texttt{J} --- \texttt{post-\allowbreak{}period grid size}; \(\mathbb N\); \texttt{target dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed number of post-\allowbreak{}period survival coordinates.}
+  \item \texttt{r} --- \texttt{working rank}; \(\{1,\ldots,\min(N_0,T_0)\}\); \texttt{spectral dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed rank retained by spectral survival control.}
+  \item \texttt{L} --- \texttt{cross-\allowbreak{}fitting fold count}; \(\{2,3,\ldots\}\); \texttt{estimation constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed number of approximately equal cross-\allowbreak{}fitting folds.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C} --- \texttt{panel-\allowbreak{}cell index set}; \texttt{finite sets}; \texttt{sampling index}
+  \par\smallskip\noindent\emph{Definition.} The fixed set containing the target-pre cell, \(N_0\) donor-pre cells, \(N_0\) donor-post cells, and the target factual-post cell.
+  \item \texttt{c} --- \texttt{cell index}; \(\mathcal C\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic panel cell.}
+  \item \texttt{d\_\allowbreak{}c} --- \texttt{cell grid size}; \(\{T_0,J\}\); \texttt{coordinate count}
+  \par\smallskip\noindent\emph{Definition.} The number of survival coordinates in cell \(c\), equal to \(T_0\) in a pre cell and \(J\) in a post cell.
+  \item \texttt{\textbackslash{}\allowbreak{}ell} --- \texttt{grid-\allowbreak{}coordinate index}; \(\{1,\ldots,d_c\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} A generic coordinate in the grid for cell \(c\).
+  \item \texttt{t\_\allowbreak{}\{c\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{evaluation time}; \texttt{nonnegative real numbers on the fixed cell horizon}; \texttt{grid point}
+  \par\smallskip\noindent\emph{Definition.} The fixed evaluation time for coordinate \(\ell\) in cell \(c\).
+  \item \texttt{j} --- \texttt{post-\allowbreak{}grid coordinate index}; \(\{1,\ldots,J\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic coordinate on the fixed post-\allowbreak{}treatment grid.}
+  \item \texttt{i} --- \texttt{individual index}; \(\{1,\ldots,K\}\); \texttt{sampling index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The individual index within each cell.}
+  \item \texttt{f} --- \texttt{fold index}; \(\{1,\ldots,L\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The cross-\allowbreak{}fitting fold index.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal V\_\allowbreak{}\{cf\}\allowbreak{}} --- \texttt{validation-\allowbreak{}index set}; subsets of \(\{1,\ldots,K\}\); \texttt{cross-\allowbreak{}fitting split}
+  \par\smallskip\noindent\emph{Definition.} The validation indices in fold \(f\) of cell \(c\).
+  \item \texttt{X\_\allowbreak{}\{ci\}\allowbreak{}} --- \texttt{baseline covariate}; \texttt{a cell-\allowbreak{}specific measurable covariate space}; \texttt{censoring adjustment}
+  \par\smallskip\noindent\emph{Definition.} The observed baseline covariate for individual \(i\) in cell \(c\).
+  \item \texttt{T\_\allowbreak{}\{ci\}\allowbreak{}} --- \texttt{event time}; \([0,\infty]\); \texttt{latent outcome}
+  \par\smallskip\noindent\emph{Definition.} The event time for individual \(i\) in cell \(c\).
+  \item \texttt{C\_\allowbreak{}\{ci\}\allowbreak{}} --- \texttt{right-\allowbreak{}censoring time}; \([0,\infty]\); \texttt{coarsening variable}
+  \par\smallskip\noindent\emph{Definition.} The censoring time for individual \(i\) in cell \(c\).
+  \item \texttt{U\_\allowbreak{}\{ci\}\allowbreak{}} --- \texttt{observed follow-\allowbreak{}up time}; \([0,\infty]\); \texttt{observed outcome}
+  \par\smallskip\noindent\emph{Definition.} \(U_{ci}=\min(T_{ci},C_{ci})\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}\{ci\}\allowbreak{}} --- \texttt{event indicator}; \(\{0,1\}\); \texttt{tie convention}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{ci}=\mathbf 1\{T_{ci}\le C_{ci}\}\), so an event is recorded before censoring when times tie.
+  \item \texttt{O\_\allowbreak{}\{ci\}\allowbreak{}} --- \texttt{observed data unit}; the product of the cell covariate space, \([0,\infty]\), and \(\{0,1\}\); \texttt{sample}
+  \par\smallskip\noindent\emph{Definition.} \(O_{ci}=(X_{ci},U_{ci},\Delta_{ci})\).
+  \item \texttt{P\_\allowbreak{}c} --- \texttt{cell law}; \texttt{probability laws on the ideal and observed cell data}; \texttt{data-\allowbreak{}generating law}
+  \par\smallskip\noindent\emph{Definition.} The law in cell \(c\).
+  \item \texttt{Q\_\allowbreak{}c} --- \texttt{conditional event-\allowbreak{}survival function}; \texttt{right-\allowbreak{}continuous survival functions}; \texttt{event nuisance}
+  \par\smallskip\noindent\emph{Definition.} The conditional survival function of the event time in cell \(c\).
+  \item \texttt{G\_\allowbreak{}c} --- \texttt{conditional censor-\allowbreak{}survival function}; \texttt{left-\allowbreak{}continuous survival functions}; \texttt{censor nuisance}
+  \par\smallskip\noindent\emph{Definition.} The left-continuous conditional censoring survival function in cell \(c\).
+  \item \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}c} --- \texttt{conditional event cumulative hazard}; \texttt{finite cadlag cumulative-\allowbreak{}hazard measures on the fixed cell horizon}; \texttt{event nuisance}
+  \par\smallskip\noindent\emph{Definition.} The product-integral cumulative hazard corresponding to \(Q_c\).
+  \item \texttt{S\_\allowbreak{}c} --- \texttt{marginal cell survival function}; \texttt{right-\allowbreak{}continuous survival functions}; \texttt{cell estimand}
+  \par\smallskip\noindent\emph{Definition.} The covariate-standardized event survival function in cell \(c\).
+  \item \texttt{s\_\allowbreak{}c} --- \texttt{cell survival vector}; \([0,1]^{d_c}\); \texttt{cell estimand vector}
+  \par\smallskip\noindent\emph{Definition.} \(s_c=(S_c(t_{c1}),\ldots,S_c(t_{cd_c}))^\top\).
+  \item \texttt{a\_\allowbreak{}K} --- \texttt{event-\allowbreak{}nuisance rate}; \([0,\infty)\); \texttt{nuisance rate}
+  \par\smallskip\noindent\emph{Definition.} A deterministic rate bounding the foldwise \(L_2(P_c)\) error of the survival-ratio functional \(Q_c(t\mid X)/Q_c(u\mid X)\) on the fixed grids.
+  \item \texttt{b\_\allowbreak{}K} --- \texttt{censor-\allowbreak{}nuisance rate}; \([0,\infty)\); \texttt{nuisance rate}
+  \par\smallskip\noindent\emph{Definition.} A deterministic rate bounding the foldwise \(L_2(P_c)\) supremum error of \(1/G_c\) on the fixed horizon.
+  \item \texttt{g} --- \texttt{censoring-\allowbreak{}positivity constant}; \((0,1]\); \texttt{support constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A common lower bound for conditional censor survival on every required horizon.}
+  \item \texttt{\textbackslash{}\allowbreak{}nu} --- \texttt{moment slack}; \((0,\infty)\); \texttt{moment constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The exponent beyond two in the common influence-\allowbreak{}function moment bound.}
+  \item \texttt{v} --- \texttt{variance constant}; \((0,\infty)\); \texttt{inference regularity}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A lower bound on the smallest eigenvalue of the joint transported covariance.}
+  \item \texttt{q} --- \texttt{grid-\allowbreak{}integration weights}; \((0,\infty)^J\); \texttt{RMST functional}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed nonzero vector of prespecified grid-\allowbreak{}RMST quadrature weights.}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{error probability}; \((0,1)\); \texttt{confidence level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The nominal familywise error probability.}
+  \item \texttt{y} --- \texttt{target-\allowbreak{}pre survival row}; \([0,1]^{1\times T_0}\); \texttt{spectral input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The target unit's untreated pre-\allowbreak{}period cell-\allowbreak{}survival coordinates.}
+  \item \texttt{M} --- \texttt{donor-\allowbreak{}pre survival matrix}; \([0,1]^{N_0\times T_0}\); \texttt{spectral input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The matrix whose rows are the untreated donor pre-\allowbreak{}period cell-\allowbreak{}survival vectors.}
+  \item \texttt{B} --- \texttt{donor-\allowbreak{}post survival matrix}; \([0,1]^{N_0\times J}\); \texttt{spectral input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The matrix whose rows are the untreated donor post-\allowbreak{}period cell-\allowbreak{}survival vectors.}
+  \item \texttt{s\_\allowbreak{}1} --- \texttt{target factual-\allowbreak{}post survival row}; \([0,1]^{1\times J}\); \texttt{effect input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The factual treated post-\allowbreak{}period survival coordinates for the target unit.}
+  \item \texttt{P} --- rank-\(r\) Moore--Penrose inverse; \(\mathbb R^{T_0\times N_0}\); \texttt{spectral operator}
+  \par\smallskip\noindent\emph{Definition.} \(P=M_r^+\), the Moore--Penrose inverse of the rank-\(r\) truncation of \(M\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal F} --- \texttt{spectral transport map}; maps from a target row, donor-pre matrix, and donor-post matrix to \(\mathbb R^{1\times J}\); \texttt{smooth target map}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F(y,M,B)=yM_r^+B\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal L\_\allowbreak{}M} --- \texttt{pseudoinverse differential}; linear maps from \(\mathbb R^{N_0\times T_0}\) to \(\mathbb R^{T_0\times N_0}\); \texttt{spectral derivative}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal L_M(H)=-PHP+PP^\top H^\top(I-MP)+(I-PM)H^\top P^\top P\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta} --- \texttt{untreated counterfactual survival row}; \([0,1]^{1\times J}\); \texttt{primary causal estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=yPB\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta} --- \texttt{joint curve parameter}; \(\mathbb R^{2J}\); \texttt{joint inference target}
+  \par\smallskip\noindent\emph{Definition.} \(\eta=(\theta^\top,s_1^\top)^\top\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}R} --- \texttt{grid-\allowbreak{}RMST treatment effect}; \(\mathbb R\); \texttt{scalar causal estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_R=q^\top(s_1-\theta)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat Q\_\allowbreak{}\{c,\allowbreak{}-\allowbreak{}f\}\allowbreak{}} --- \texttt{cross-\allowbreak{}fitted event-\allowbreak{}survival learner}; \texttt{estimated conditional survival functions}; \texttt{estimation input}
+  \par\smallskip\noindent\emph{Definition.} A learner of \(Q_c\) trained outside validation fold \(\mathcal V_{cf}\), selected from the estimability condition.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat G\_\allowbreak{}\{c,\allowbreak{}-\allowbreak{}f\}\allowbreak{}} --- \texttt{cross-\allowbreak{}fitted censor-\allowbreak{}survival learner}; \texttt{estimated left-\allowbreak{}continuous conditional survival functions}; \texttt{estimation input}
+  \par\smallskip\noindent\emph{Definition.} A learner of \(G_c\) trained outside validation fold \(\mathcal V_{cf}\), selected from the estimability condition.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}\{c,\allowbreak{}-\allowbreak{}f\}\allowbreak{}} --- \texttt{cross-\allowbreak{}fitted cumulative-\allowbreak{}hazard learner}; \texttt{estimated cumulative-\allowbreak{}hazard measures}; \texttt{estimation input}
+  \par\smallskip\noindent\emph{Definition.} The product-integral cumulative hazard corresponding to \(\widehat Q_{c,-f}\).
+  \item \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}\{c\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{uncentered augmented-\allowbreak{}IPCW score}; \texttt{measurable real functions of one observed cell unit}; \texttt{orthogonal score}
+  \par\smallskip\noindent\emph{Definition.} The Westling-type survival score at \(t_{c\ell}\) with no treatment-propensity factor.
+  \item \texttt{\textbackslash{}\allowbreak{}phi\_\allowbreak{}c} --- \texttt{centered cell influence vector}; \(L_2^0(P_c)^{d_c}\); \texttt{cell influence function}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_c(O_{ci})=(\psi_{c1}(O_{ci})-S_c(t_{c1}),\ldots,\psi_{cd_c}(O_{ci})-S_c(t_{cd_c}))^\top\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat s\_\allowbreak{}c} --- \texttt{cross-\allowbreak{}fitted augmented-\allowbreak{}IPCW cell vector}; \(\mathbb R^{d_c}\); \texttt{cell estimator}
+  \par\smallskip\noindent\emph{Definition.} The validation-sample average of the scores using \(\widehat Q_{c,-f}\), \(\widehat G_{c,-f}\), and \(\widehat\Lambda_{c,-f}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat y} --- \texttt{estimated target-\allowbreak{}pre row}; \(\mathbb R^{1\times T_0}\); \texttt{estimated spectral input}
+  \par\smallskip\noindent\emph{Definition.} The target-pre block extracted from the stacked \(\widehat s_c\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat M} --- \texttt{estimated donor-\allowbreak{}pre matrix}; \(\mathbb R^{N_0\times T_0}\); \texttt{estimated spectral input}
+  \par\smallskip\noindent\emph{Definition.} The donor-pre block extracted from the stacked \(\widehat s_c\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat B} --- \texttt{estimated donor-\allowbreak{}post matrix}; \(\mathbb R^{N_0\times J}\); \texttt{estimated spectral input}
+  \par\smallskip\noindent\emph{Definition.} The donor-post block extracted from the stacked \(\widehat s_c\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat s\_\allowbreak{}1} --- \texttt{estimated factual-\allowbreak{}post row}; \(\mathbb R^{1\times J}\); \texttt{estimated effect input}
+  \par\smallskip\noindent\emph{Definition.} The target factual-post block extracted from the stacked \(\widehat s_c\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta} --- \texttt{spectral SSC estimator}; \(\mathbb R^{1\times J}\); \texttt{primary estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta=\widehat y(\widehat M)_r^+\widehat B\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}R} --- \texttt{grid-\allowbreak{}RMST effect estimator}; \(\mathbb R\); \texttt{scalar estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau_R=q^\top(\widehat s_1-\widehat\theta)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}i} --- \texttt{stacked cell influence vector}; \texttt{a fixed-\allowbreak{}dimensional Euclidean product space}; \texttt{joint first-\allowbreak{}stage influence}
+  \par\smallskip\noindent\emph{Definition.} The stack of \(\phi_c(O_{ci})\) over \(c\in\mathcal C\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{y,\allowbreak{}i\}\allowbreak{}} --- \texttt{target-\allowbreak{}pre influence row}; \(\mathbb R^{1\times T_0}\); \texttt{spectral input influence}
+  \par\smallskip\noindent\emph{Definition.} The target-pre block of \(\Phi_i\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{M,\allowbreak{}i\}\allowbreak{}} --- \texttt{donor-\allowbreak{}pre influence matrix}; \(\mathbb R^{N_0\times T_0}\); \texttt{spectral input influence}
+  \par\smallskip\noindent\emph{Definition.} The donor-pre block of \(\Phi_i\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{B,\allowbreak{}i\}\allowbreak{}} --- \texttt{donor-\allowbreak{}post influence matrix}; \(\mathbb R^{N_0\times J}\); \texttt{spectral input influence}
+  \par\smallskip\noindent\emph{Definition.} The donor-post block of \(\Phi_i\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{1,\allowbreak{}i\}\allowbreak{}} --- \texttt{factual-\allowbreak{}post influence row}; \(\mathbb R^{1\times J}\); \texttt{effect influence}
+  \par\smallskip\noindent\emph{Definition.} The target factual-post block of \(\Phi_i\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{\textbackslash{}\allowbreak{}theta,\allowbreak{}i\}\allowbreak{}} --- \texttt{transported counterfactual influence row}; \(\mathbb R^{1\times J}\); \texttt{counterfactual influence}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi_{\theta,i}=\Phi_{y,i}PB+y\mathcal L_M(\Phi_{M,i})B+yP\Phi_{B,i}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{\textbackslash{}\allowbreak{}eta,\allowbreak{}i\}\allowbreak{}} --- \texttt{joint transported influence vector}; \(\mathbb R^{2J}\); \texttt{joint influence}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi_{\eta,i}=(\Phi_{\theta,i}^\top,\Phi_{1,i}^\top)^\top\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{\textbackslash{}\allowbreak{}tau,\allowbreak{}i\}\allowbreak{}} --- \texttt{grid-\allowbreak{}RMST influence value}; \(\mathbb R\); \texttt{scalar influence}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi_{\tau,i}=q^\top(\Phi_{1,i}-\Phi_{\theta,i})\).
+  \item \texttt{\textbackslash{}\allowbreak{}Omega\_\allowbreak{}\textbackslash{}\allowbreak{}eta} --- \texttt{joint asymptotic covariance}; positive semidefinite \(2J\times2J\) matrices; \texttt{limit covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_\eta=E[\Phi_{\eta,i}\Phi_{\eta,i}^\top]\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{\textbackslash{}\allowbreak{}theta,\allowbreak{}i\}\allowbreak{}} --- \texttt{estimated counterfactual influence row}; \(\mathbb R^{1\times J}\); \texttt{band input}
+  \par\smallskip\noindent\emph{Definition.} The plug-in version of \(\Phi_{\theta,i}\) using fold-specific nuisances and estimated spectral blocks.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{1,\allowbreak{}i\}\allowbreak{}} --- \texttt{estimated factual-\allowbreak{}post influence row}; \(\mathbb R^{1\times J}\); \texttt{RMST input}
+  \par\smallskip\noindent\emph{Definition.} The plug-in version of \(\Phi_{1,i}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{\textbackslash{}\allowbreak{}eta,\allowbreak{}i\}\allowbreak{}} --- \texttt{estimated joint influence vector}; \(\mathbb R^{2J}\); \texttt{variance input}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Phi_{\eta,i}=(\widehat\Phi_{\theta,i}^{\top},\widehat\Phi_{1,i}^{\top})^{\top}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Omega\_\allowbreak{}\textbackslash{}\allowbreak{}eta} --- \texttt{estimated joint covariance}; positive semidefinite \(2J\times2J\) matrices; \texttt{covariance estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Omega_\eta=K^{-1}\sum_{i=1}^K\widehat\Phi_{\eta,i}\widehat\Phi_{\eta,i}^\top\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}sigma\_\allowbreak{}j} --- \texttt{estimated counterfactual standard deviation}; \([0,\infty)\); \texttt{studentization}
+  \par\smallskip\noindent\emph{Definition.} The square root of the \(j\)-th counterfactual diagonal entry of \(\widehat\Omega_\eta\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat V\_\allowbreak{}R} --- \texttt{estimated grid-\allowbreak{}RMST asymptotic variance}; \([0,\infty)\); \texttt{studentization}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat V_R=K^{-1}\sum_{i=1}^K\{q^\top(\widehat\Phi_{1,i}-\widehat\Phi_{\theta,i})\}^2\).
+  \item \texttt{\textbackslash{}\allowbreak{}xi\_\allowbreak{}i} --- \texttt{Gaussian multiplier}; \(\mathcal N(0,1)\); \texttt{band calibration}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Independent standard-\allowbreak{}normal multipliers conditionally independent of the sample.}
+  \item \texttt{c\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{conditional multiplier critical value}; \([0,\infty)\); \texttt{band critical value}
+  \par\smallskip\noindent\emph{Definition.} The conditional \((1-\alpha)\)-quantile of the maximum studentized counterfactual-coordinate multiplier statistic.
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde S\_\allowbreak{}c} --- \texttt{marginal Kaplan-\allowbreak{}-\allowbreak{}Meier probability limit}; \texttt{right-\allowbreak{}continuous survival functions}; \texttt{naive pseudo-\allowbreak{}target}
+  \par\smallskip\noindent\emph{Definition.} The product integral formed from the marginal observed event subdistribution and risk probability in cell \(c\), without conditioning on \(X_{ci}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde y} --- \texttt{naive target-\allowbreak{}pre row}; \(\mathbb R^{1\times T_0}\); \texttt{naive spectral input}
+  \par\smallskip\noindent\emph{Definition.} The target-pre row obtained by replacing every \(S_c\) with \(\widetilde S_c\).
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde M} --- \texttt{naive donor-\allowbreak{}pre matrix}; \(\mathbb R^{N_0\times T_0}\); \texttt{naive spectral input}
+  \par\smallskip\noindent\emph{Definition.} The donor-pre matrix obtained by replacing every \(S_c\) with \(\widetilde S_c\).
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde B} --- \texttt{naive donor-\allowbreak{}post matrix}; \(\mathbb R^{N_0\times J}\); \texttt{naive spectral input}
+  \par\smallskip\noindent\emph{Definition.} The donor-post matrix obtained by replacing every \(S_c\) with \(\widetilde S_c\).
+  \item \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{KM\}\allowbreak{}\}\allowbreak{}} --- \texttt{naive counterfactual bias row}; \(\mathbb R^{1\times J}\); \texttt{naive probability-\allowbreak{}limit discrepancy}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_{\mathrm{KM}}=\widetilde y(\widetilde M)_r^+\widetilde B-yM_r^+B\).
+  \item \texttt{P\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{rational informative-\allowbreak{}censoring law}; \texttt{a product of six discrete cell laws}; \texttt{witness}
+  \par\smallskip\noindent\emph{Definition.} The fully specified two-time, six-cell rational witness used to certify nonzero \(\beta_{\mathrm{KM}}\).
+  \item \texttt{M\_\allowbreak{}K} --- \texttt{triangular donor-\allowbreak{}pre matrix}; \(\mathbb R^{N_0\times T_0}\); \texttt{weak-\allowbreak{}gap input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A donor-\allowbreak{}pre matrix sequence whose rank boundary may approach the sampling-\allowbreak{}noise scale.}
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}K} --- \texttt{local singular gap}; \([0,\infty)\); \texttt{open regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_K=\sigma_r(M_K)-\sigma_{r+1}(M_K)\) for a triangular donor-pre sequence.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat r} --- \texttt{data-\allowbreak{}selected working rank}; \(\{1,\ldots,\min(N_0,T_0)\}\); \texttt{open rank-\allowbreak{}selection object}
+  \par\smallskip\noindent\emph{Definition.} The number of singular values of \(\widehat M\) exceeding an observable noise threshold calibrated from the orthogonal cell-score experiment.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{gap\}\allowbreak{}\}\allowbreak{}} --- \texttt{weak-\allowbreak{}gap analysis handle}; \texttt{local-\allowbreak{}experiment and regularization arguments}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} A handle that follows a rank-\(r\) path whose smallest nonzero singular value collides with zero while larger singular values remain separated, calibrates singular-value thresholding from the orthogonal cell-score experiment, compares the selected-rank plug-in with Tikhonov stabilization targeted at the unregularized transported curve, and uses two contiguous paths through the colliding singular direction for impossibility.
+  \item \texttt{R\_\allowbreak{}\{cf\}\allowbreak{}} --- \texttt{foldwise relative event-\allowbreak{}survival error path}; \texttt{real-\allowbreak{}valued paths on the fixed cell horizon}; \texttt{Stieltjes remainder integrator}
+  \par\smallskip\noindent\emph{Definition.} For \(c\in\mathcal C\) and fold \(f\), define \[R_{cf}(u\mid x)=\frac{Q_c(u\mid x)}{\widehat Q_{c,-f}(u\mid x)}-1,\] using the existing convention \(0/0=1\).
+  \item \texttt{V\_\allowbreak{}\{cf\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{foldwise relative-\allowbreak{}survival total variation}; \texttt{extended nonnegative real-\allowbreak{}valued functions of the covariate}; \texttt{event-\allowbreak{}learner pathwise variation envelope}
+  \par\smallskip\noindent\emph{Definition.} For \(c\in\mathcal C\), fold \(f\), and \(1\le\ell\le d_c\), define the extended path variation directly by \[V_{cf\ell}(x)=\sup_{0=u_0<\cdots<u_m=t_{c\ell}}\sum_{j=1}^m |R_{cf}(u_j\mid x)-R_{cf}(u_{j-1}\mid x)|\in[0,+\infty].\] Under Assumption~\ref{ass:relative-survival-bv}, this equals \(|dR_{cf}(\mathord\cdot\mid x)|((0,t_{c\ell}])\).
+  \item \texttt{T\textasciicircum{}\{0\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{post\}\allowbreak{},\allowbreak{}i\}\allowbreak{}} --- \texttt{target-\allowbreak{}post untreated potential event time}; \([0,\infty]\); \texttt{causal witness potential outcome}
+  \par\smallskip\noindent\emph{Definition.} Under \(P^\star\), the target unit's post-period event time under no treatment for individual \(i\).
+  \item \texttt{T\textasciicircum{}\{1\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{post\}\allowbreak{},\allowbreak{}i\}\allowbreak{}} --- \texttt{target-\allowbreak{}post treated potential event time}; \([0,\infty]\); \texttt{causal witness factual potential outcome}
+  \par\smallskip\noindent\emph{Definition.} Under \(P^\star\), the target unit's post-period event time under treatment for individual \(i\); consistency sets the observed target-post \(T_{ci}\) equal to this potential time.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-panel]\label{ass:fixed-panel}
+The integers \(N_0,T_0,J,r,L\) do not depend on \(K\).
+\par\smallskip\noindent\emph{Standard} (fixed-panel large-within-cell asymptotics, \cite{HanShah2025SSC}).
+\end{assumption}
+
+\begin{assumption}[ass:cell-iid]\label{ass:cell-iid}
+For every \(c\in\mathcal C\), \(O_{c1},\ldots,O_{cK}\) has law \(P_c^{\otimes K}\).
+\par\smallskip\noindent\emph{Standard} (independent sampling within a survival cell, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:cross-cell-independence]\label{ass:cross-cell-independence}
+The sample vectors \((O_{c1},\ldots,O_{cK})\) are independent across \(c\in\mathcal C\).
+\par\smallskip\noindent\emph{Standard} (independent panel-cell samples, \cite{HanShah2025SSC}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-censoring]\label{ass:conditional-censoring}
+For every \(c\in\mathcal C\), \(T_{ci}\mathbin{\perp\!\!\!\perp}C_{ci}\mid X_{ci}\) under \(P_c\).
+\par\smallskip\noindent\emph{Standard} (conditional independent right censoring, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:censor-positivity]\label{ass:censor-positivity}
+For every \(c\in\mathcal C\), \(\inf_{x}\inf_{0\le t\le\max_\ell t_{c\ell}}G_c(t\mid x)\ge g\).
+\par\smallskip\noindent\emph{Standard} (uniform censoring positivity on the target horizon, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:influence-moment]\label{ass:influence-moment}
+The centered true scores satisfy \(\sup_{c\in\mathcal C}E_{P_c}\|\phi_c(O_{ci})\|_2^{2+\nu}<\infty\).
+\par\smallskip\noindent\emph{Standard} (uniform Lyapunov moment condition for a fixed-dimensional triangular array, \cite{ChernozhukovEtAl2018DML}).
+\end{assumption}
+
+\begin{assumption}[ass:event-estimability]\label{ass:event-estimability}
+For every \(c\in\mathcal C\), the primitive function \(Q_c\) admits foldwise training-sample estimators whose survival-ratio error in the metric of Westling et al., condition (B1c), is \(O_P(a_K)\), uniformly over the fixed coordinates.
+\par\smallskip\noindent\emph{Standard} (cross-fitted event-survival ratio consistency, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:censor-estimability]\label{ass:censor-estimability}
+For every \(c\in\mathcal C\), the primitive function \(G_c\) admits foldwise training-sample estimators whose inverse-survival error in the metric of Westling et al., condition (B1b), is \(O_P(b_K)\), uniformly over the fixed horizon.
+\par\smallskip\noindent\emph{Standard} (cross-fitted inverse-censor-survival consistency, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:event-rate-vanishes]\label{ass:event-rate-vanishes}
+The event-nuisance rate satisfies \(a_K\to0\).
+\par\smallskip\noindent\emph{Standard} (cross-fitted event-survival consistency rate, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:censor-rate-vanishes]\label{ass:censor-rate-vanishes}
+The censor-nuisance rate satisfies \(b_K\to0\).
+\par\smallskip\noindent\emph{Standard} (cross-fitted censor-survival consistency rate, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:nuisance-product-rate]\label{ass:nuisance-product-rate}
+The nuisance rates satisfy \(a_Kb_K=o(K^{-1/2})\).
+\par\smallskip\noindent\emph{Standard} (cross-fitted doubly robust product-rate condition, \cite{WestlingLuedtkeGilbertCarone2024}).
+\end{assumption}
+
+\begin{assumption}[ass:exact-rank]\label{ass:exact-rank}
+The donor-pre matrix satisfies \(\operatorname{rank}(M)=r\).
+\par\smallskip\noindent\emph{Standard} (exact low-rank donor panel, \cite{HanShah2025SSC}).
+\end{assumption}
+
+\begin{assumption}[ass:post-transport]\label{ass:post-transport}
+The target unit's untreated post-period survival row equals \(yM_r^+B\).
+\par\smallskip\noindent\emph{Standard} (exact donor-weight transport across periods, \cite{HanShah2025SSC}).
+\end{assumption}
+
+\begin{assumption}[ass:event-origin-support]\label{ass:event-origin-support}
+For every \(c\in\mathcal C\), \(P_c(T_{ci}>0\mid X_{ci})=1\) almost surely.
+\par\smallskip\noindent\emph{Novel.} standard: the usual survival-analysis support convention that follow-up begins before any event can occur
+\end{assumption}
+
+\begin{assumption}[ass:learner-origin-normalization]\label{ass:learner-origin-normalization}
+For every \(c\in\mathcal C\) and fold \(f\), the event-survival learner satisfies \(\widehat Q_{c,-f}(0\mid X_{ci})=1\) almost surely.
+\par\smallskip\noindent\emph{Novel.} standard: normalization of a fitted survival curve at the start of follow-up
+\end{assumption}
+
+\begin{assumption}[ass:relative-survival-bv]\label{ass:relative-survival-bv}
+For every \(K\), \(c\in\mathcal C\), and \(1\le f\le L\), conditional on the training sample outside \(\mathcal V_{cf}\), the path \(u\mapsto R_{cf}(u\mid X_{ci})\) is of bounded variation on \([0,\max_{1\le\ell\le d_c}t_{c\ell}]\) for \(P_c\)-almost every \(X_{ci}\), almost surely over the training sample.
+\par\smallskip\noindent\emph{Novel.} novel
+\end{assumption}
+
+\begin{assumption}[ass:relative-survival-variation-rate]\label{ass:relative-survival-variation-rate}
+For the selected foldwise event-survival learners, the foldwise relative-survival variations satisfy
+\[
+ \max_{c\in\mathcal C}\max_{1\le f\le L}\max_{1\le\ell\le d_c}
+ \left\|V_{cf\ell}(X_{ci})\right\|_{L_2(P_c)}=O_P(a_K).
+\]
+\par\smallskip\noindent\emph{Novel.} This is an additional primitive learner restriction; it is not imposed by Westling et al.'s generic nuisance metrics.
+\end{assumption}
+
+\begin{assumption}[ass:counterfactual-coordinate-variance]\label{ass:counterfactual-coordinate-variance}
+The counterfactual coordinate variances satisfy \(\min_{1\le j\le J}\operatorname{Var}(\Phi_{\theta,i,j})\ge v\).
+\par\smallskip\noindent\emph{Standard} (positive marginal variances for fixed-dimensional simultaneous inference, Cherno, \cite{ChernozhukovChetverikovKato2013}).
+\end{assumption}
+
+\begin{assumption}[ass:grid-rmst-variance]\label{ass:grid-rmst-variance}
+The grid-RMST influence variance satisfies \(\operatorname{Var}\{q^\top(\Phi_{1,i}-\Phi_{\theta,i})\}\ge v\).
+\par\smallskip\noindent\emph{Standard} (positive asymptotic variance for scalar studentization, ChernozhukovEtAl2018DML, \cite{ChernozhukovEtAl2018DML}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:aipcw-score]\label{def:aipcw-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}\{c\textbackslash{}\allowbreak{}ell\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \(o=(x,u,\delta)\), define \[\psi_{c\ell}(o;Q_c,G_c)=Q_c(t_{c\ell}\mid x)\left[1-\left\{\frac{\mathbf 1(u\le t_{c\ell},\delta=1)}{Q_c(u\mid x)G_c(u\mid x)}-\int_{(0,t_{c\ell}\wedge u]}\frac{\Lambda_c(ds\mid x)}{Q_c(s\mid x)G_c(s\mid x)}\right\}\right].\] Here \(Q_c\) is right-continuous, \(G_c\) is left-continuous, \(\Delta_{ci}=\mathbf 1\{T_{ci}\le C_{ci}\}\), and the product-integral convention is \(0/0=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q\_\allowbreak{}c}; \texttt{G\_\allowbreak{}c}; \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}c}; \texttt{t\_\allowbreak{}\{c\textbackslash{}\allowbreak{}ell\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:cell-estimator]\label{def:cell-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat s\_\allowbreak{}c}
+\par\smallskip\noindent\emph{Construction.} For each coordinate \(\ell\), set \[\widehat s_{c\ell}=K^{-1}\sum_{f=1}^L\sum_{i\in\mathcal V_{cf}}\psi_{c\ell}\!\left(O_{ci};\widehat Q_{c,-f},\widehat G_{c,-f}\right),\qquad \widehat s_c=(\widehat s_{c1},\ldots,\widehat s_{cd_c})^\top,\] with \(\widehat\Lambda_{c,-f}\) used inside the score as the product-integral hazard corresponding to \(\widehat Q_{c,-f}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}aipcw-\allowbreak{}score}; \texttt{\textbackslash{}\allowbreak{}widehat Q\_\allowbreak{}\{c,\allowbreak{}-\allowbreak{}f\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat G\_\allowbreak{}\{c,\allowbreak{}-\allowbreak{}f\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}\{c,\allowbreak{}-\allowbreak{}f\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:full-spectral-map]\label{def:full-spectral-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta}
+\par\smallskip\noindent\emph{Construction.} Extract \(\widehat y,\widehat M,\widehat B,\widehat s_1\) from the stacked \((\widehat s_c)_{c\in\mathcal C}\), and set \[\widehat\theta=\widehat y(\widehat M)_r^+\widehat B,\qquad \widehat\tau_R=q^\top(\widehat s_1-\widehat\theta).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cell-\allowbreak{}estimator}; \texttt{r}; \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:full-differential]\label{def:full-differential}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal L\_\allowbreak{}M}
+\par\smallskip\noindent\emph{Construction.} For \(P=M_r^+\), define \[\mathcal L_M(H)=-PHP+PP^\top H^\top(I-MP)+(I-PM)H^\top P^\top P\] and \[D\mathcal F_{(y,M,B)}[h_y,H,h_B]=h_yPB+y\mathcal L_M(H)B+yPh_B\] for \(\mathcal F(y,M,B)=yM_r^+B\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{M}; \texttt{r}; \texttt{y}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:transported-influence]\label{def:transported-influence}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{\textbackslash{}\allowbreak{}eta,\allowbreak{}i\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Partition \(\Phi_i\) into the target-pre, donor-pre, donor-post, and factual-post blocks and define \[\Phi_{\theta,i}=\Phi_{y,i}PB+y\mathcal L_M(\Phi_{M,i})B+yP\Phi_{B,i},\quad \Phi_{\eta,i}=(\Phi_{\theta,i}^\top,\Phi_{1,i}^\top)^\top,\quad \Phi_{\tau,i}=q^\top(\Phi_{1,i}-\Phi_{\theta,i}).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}i}; \texttt{def:\allowbreak{}full-\allowbreak{}differential}; \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:multiplier-band]\label{def:multiplier-band}
+\par\smallskip\noindent\emph{Defined object.} \texttt{c\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}\textasciicircum{}\textbackslash{}\allowbreak{}star}
+\par\smallskip\noindent\emph{Construction.} Let \(\widehat\sigma_j^2\) be the \(j\)-th counterfactual diagonal entry of \(\widehat\Omega_\eta\). Define \(c_{1-\alpha}^\star\) as the conditional \((1-\alpha)\)-quantile of \[\max_{1\le j\le J}\left|K^{-1/2}\sum_{i=1}^K\xi_i\widehat\Phi_{\theta,i,j}/\widehat\sigma_j\right|,\] and define the band by \(\widehat\theta_j\pm c_{1-\alpha}^\star\widehat\sigma_j/\sqrt K\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Omega\_\allowbreak{}\textbackslash{}\allowbreak{}eta}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Phi\_\allowbreak{}\{\textbackslash{}\allowbreak{}theta,\allowbreak{}i\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}xi\_\allowbreak{}i}; \texttt{\textbackslash{}\allowbreak{}alpha}.
+\end{definition}
+
+\begin{definition}[def:km-pcr-bias-map]\label{def:km-pcr-bias-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{KM\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For each cell, define the marginal Kaplan--Meier limit directly by \[\widetilde S_c(t)=\prod_{u\le t}\left\{1-\frac{P_c(U_{ci}=u,\Delta_{ci}=1)}{P_c(U_{ci}\ge u)}\right\}\] in discrete time, with the corresponding product integral in general. Extract \(\widetilde y,\widetilde M,\widetilde B\) from these pseudo-limit curves and set \[\beta_{\mathrm{KM}}=\widetilde y(\widetilde M)_r^+\widetilde B-yM_r^+B.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}c}; \texttt{y}; \texttt{M}; \texttt{B}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:rational-witness]\label{def:rational-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{P\textasciicircum{}\textbackslash{}\allowbreak{}star}
+\par\smallskip\noindent\emph{Construction.} Take \(N_0=T_0=J=r=2\) and
+\[
+M=\begin{pmatrix}4/5&3/5\\3/5&3/10\end{pmatrix},\qquad
+y=(7/10,9/20),\qquad
+B=\begin{pmatrix}7/10&2/5\\1/2&1/5\end{pmatrix},\qquad
+s_1=(7/10,2/5).
+\]
+The target-pre pair \(y\), the two donor-pre rows of \(M\), and the two donor-post rows of \(B\) are the five observed untreated event-survival pairs.  In each of those five cells, interpret the observed event time \(T_{ci}\) as the untreated potential event time.  In the target factual-post cell, write \(T^{1}_{\mathrm{post},i}\) for the treated potential event time, impose consistency \(T_{ci}=T^{1}_{\mathrm{post},i}\), and give \(T^{1}_{\mathrm{post},i}\) the observed marginal survival pair \(s_1\).  Put
+\[
+\theta^0:=yM^{-1}B=(3/5,3/10)
+\]
+and introduce an untreated target-post potential event time \(T^{0}_{\mathrm{post},i}\).
+
+In every cell let \(X_{ci}\sim\operatorname{Bernoulli}(1/2)\).  For each of the five non-target-post cells with displayed pair \((a,b)\), and for \(T^{1}_{\mathrm{post},i}\) with \((a,b)=s_1\), put \(\epsilon_x=2x-1\) and assign, conditional on \(X_{ci}=x\),
+\[
+\begin{aligned}
+P_c(T=t_{c1}\mid X_{ci}=x)&=1-a-\epsilon_x/20,\\
+P_c(T=t_{c2}\mid X_{ci}=x)&=a-b+\epsilon_x/40,\\
+P_c(T=\infty\mid X_{ci}=x)&=b+\epsilon_x/40,
+\end{aligned}
+\]
+where \(T\) denotes the relevant observed event time in a non-target-post cell and denotes \(T^{1}_{\mathrm{post},i}\) in the target factual-post cell.  Assign \(T^{0}_{\mathrm{post},i}\) by the same three-atom formula with \((a,b)=\theta^0\).
+
+Set \((\gamma_{10},\gamma_{20})=(4/5,1/2)\) and \((\gamma_{11},\gamma_{21})=(3/5,2/5)\), and in every cell assign
+\[
+\begin{aligned}
+P_c(C_{ci}=t_{c1}\mid X_{ci}=x)&=1-\gamma_{1x},\\
+P_c(C_{ci}=t_{c2}\mid X_{ci}=x)&=\gamma_{1x}-\gamma_{2x},\\
+P_c(C_{ci}=\infty\mid X_{ci}=x)&=\gamma_{2x}.
+\end{aligned}
+\]
+Thus
+\[
+\bigl(P_c(C_{ci}>t_{c1}\mid X_{ci}=x),
+P_c(C_{ci}>t_{c2}\mid X_{ci}=x)\bigr)
+=(\gamma_{1x},\gamma_{2x}).
+\]
+Conditional on \(X_{ci}\), draw the observed untreated event time and \(C_{ci}\) independently in each of the five non-target-post cells.  In the target factual-post cell, draw \(T^{0}_{\mathrm{post},i}\), \(T^{1}_{\mathrm{post},i}\), and \(C_{ci}\) mutually independently conditional on \(X_{ci}\).  In every observed cell set \(U_{ci}=\min(T_{ci},C_{ci})\) and \(\Delta_{ci}=\mathbf 1\{T_{ci}\le C_{ci}\}\).  Take \(P^\star\) to be the product across the six cells of these full-data laws, including both target-post potential event times.
+\par\smallskip\noindent\emph{Inputs.} \texttt{N\_\allowbreak{}0}; \texttt{T\_\allowbreak{}0}; \texttt{J}; \texttt{r}; \texttt{\textbackslash{}\allowbreak{}mathcal C}.
+\end{definition}
+
+\begin{definition}[def:weak-gap-handle]\label{def:weak-gap-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{gap\}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Along sequences for which \(\sigma_r(M_K)\downarrow0\), \(\sigma_{r+1}(M_K)=0\), and all larger nonzero singular values remain separated, use the local experiment generated by the orthogonal cell influences \(\phi_c\). Calibrate \(\widehat r\) by singular-value thresholding at the observable cell-score noise scale. Compare the selected-rank plug-in with a Tikhonov inverse calibrated at the same scale while retaining \(y(M_K)_r^+B\) as the target and covering its regularization bias. For impossibility, compare two contiguous observed-data paths that differ in the colliding singular direction and separate the transported target.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}phi\_\allowbreak{}c}; \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}K}; \texttt{M\_\allowbreak{}K}; \texttt{\textbackslash{}\allowbreak{}widehat r}; \texttt{r}; \texttt{y}; \texttt{B}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:joint-cell-expansion]\label{lem:joint-cell-expansion}
+For every fixed cell and all its fixed coordinates jointly, the estimator in Definition~\ref{def:cell-estimator} satisfies \[\sqrt K(\widehat s_c-s_c)=K^{-1/2}\sum_{i=1}^K\phi_c(O_{ci})+o_P(1).\] The conditional second-order remainder is \(O_P(a_Kb_K)+o_P(K^{-1/2})\), no first-order event- or censor-nuisance term remains, and the foldwise plug-in influence vectors are \(L_2(P_c)\)-consistent. Stacking over the finite set \(\mathcal C\) gives the same expansion for \((\widehat y,\widehat M,\widehat B,\widehat s_1)\) with influence \(\Phi_i\).
+\end{lemma}
+\begin{proof}
+Fix \(c\in\mathcal C\), \(1\le\ell\le d_c\), and \(1\le f\le L\). Write \(t=t_{c\ell}\), \(Q=Q_c\), \(G=G_c\), \(\bar Q=\widehat Q_{c,-f}\), and \(\bar G=\widehat G_{c,-f}\), and condition on the sigma-field \(\mathcal T_{cf}\) generated by the observations used to train \(\bar Q\) and \(\bar G\). The validation observations are independent of \(\mathcal T_{cf}\) and have law \(P_c\) by Assumption~\ref{ass:cell-iid}. The inverse-survival metric in Assumption~\ref{ass:censor-estimability} makes \(1/\bar G\) finite on the required horizon with probability tending to one. All quotient formulas use the convention in Definition~\ref{def:aipcw-score}.
+
+For one validation observation define
+\[
+ N(u)=\mathbf 1\{U\le u,\Delta=1\},
+ \qquad
+ Y(u)=\mathbf 1\{U\ge u\}.
+\]
+Assumption~\ref{ass:conditional-censoring}, the tie convention \(\Delta=\mathbf 1\{T\le C\}\), and the left-continuous definition \(G(u\mid X)=P(C\ge u\mid X)\) imply
+\[
+ E\{dN(u)\mid X\}=Q(u-\mid X)G(u\mid X)\Lambda(du\mid X),
+ \qquad
+ E\{Y(u)\mid X\}=Q(u-\mid X)G(u\mid X).
+\]
+Assumption~\ref{ass:event-origin-support} excludes an event atom at zero. Taking the conditional expectation in Definition~\ref{def:aipcw-score} and interchanging expectation with each finite nonnegative hazard integral gives
+\[
+ E\{\psi_t(O;\bar Q,\bar G)\mid X,\mathcal T_{cf}\}
+ =\bar Q(t\mid X)\left[1+\int_{(0,t]}
+ \frac{Q(u-\mid X)G(u\mid X)}{\bar Q(u\mid X)\bar G(u\mid X)}
+ (\bar\Lambda-\Lambda)(du\mid X)\right].
+\]
+Here and below an integral against \(\bar\Lambda-\Lambda\) is the difference of the two finite Stieltjes integrals.
+
+Put \(R(u\mid X)=Q(u\mid X)/\bar Q(u\mid X)-1\). The product-integral quotient rule gives
+\[
+ dR(u\mid X)=\frac{Q(u-\mid X)}{\bar Q(u\mid X)}
+ (\bar\Lambda-\Lambda)(du\mid X).
+\]
+Indeed, at a jump time, the identities
+\(Q(u)=Q(u-)\{1-\Delta\Lambda(u)\}\) and
+\(\bar Q(u)=\bar Q(u-)\{1-\Delta\bar\Lambda(u)\}\) give
+\[
+ \Delta(Q/\bar Q)(u)=\frac{Q(u-)}{\bar Q(u)}
+ \{\Delta\bar\Lambda(u)-\Delta\Lambda(u)\},
+\]
+and the continuous part is the ordinary quotient rule. Assumptions~\ref{ass:event-origin-support} and~\ref{ass:learner-origin-normalization} give \(R(0\mid X)=0\), so integration yields
+\[
+ Q(t\mid X)=\bar Q(t\mid X)\left[1+\int_{(0,t]}
+ \frac{Q(u-\mid X)}{\bar Q(u\mid X)}
+ (\bar\Lambda-\Lambda)(du\mid X)\right].
+\]
+Subtracting this identity from the conditional score mean proves the exact remainder
+\[
+ \mathfrak R_{cf\ell}(X)
+ :=E\{\psi_t(O;\bar Q,\bar G)\mid X,\mathcal T_{cf}\}-Q(t\mid X)
+ =\bar Q(t\mid X)\int_{(0,t]}
+ \left\{\frac{G(u\mid X)}{\bar G(u\mid X)}-1\right\}
+ dR(u\mid X).
+\]
+It vanishes when either fitted nuisance is its truth, so no first-order event- or censor-nuisance term remains.
+
+Let
+\[
+ A_{cf\ell}(X)=\sup_{0\le u\le t}
+ \left|\frac1{\bar G(u\mid X)}-\frac1{G(u\mid X)}\right|.
+\]
+Since \(0\le\bar Q(t\mid X)\le1\), \(0\le G(u\mid X)\le1\), and Assumption~\ref{ass:relative-survival-bv} makes \(dR\) a finite signed measure, the preceding identity and the definition of \(V_{cf\ell}\) imply
+\[
+ |\mathfrak R_{cf\ell}(X)|\le A_{cf\ell}(X)V_{cf\ell}(X).
+\]
+Assumption~\ref{ass:censor-estimability} gives \(\|A_{cf\ell}\|_{L_2(P_c)}=O_P(b_K)\), while Assumption~\ref{ass:relative-survival-variation-rate} gives \(\|V_{cf\ell}\|_{L_2(P_c)}=O_P(a_K)\). Conditional Cauchy--Schwarz and Assumption~\ref{ass:nuisance-product-rate} therefore give, jointly over the fixed indices,
+\[
+ \left|P_c\{\psi_t(\bar Q,\bar G)-\psi_t(Q,G)\}\right|
+ \le\|A_{cf\ell}\|_{L_2(P_c)}\|V_{cf\ell}\|_{L_2(P_c)}
+ =O_P(a_Kb_K)=o_P(K^{-1/2}).
+\]
+This use of the relative-variation rate is explicit and conditional on the selected learner; it is not derived from generic nuisance consistency.
+
+We next control the cross-fitted empirical term and the fitted influence function. Define
+\[
+ r_t(u\mid X)=\frac{Q(t\mid X)}{Q(u\mid X)},
+ \qquad
+ \bar r_t(u\mid X)=\frac{\bar Q(t\mid X)}{\bar Q(u\mid X)},
+ \qquad 0\le u\le t.
+\]
+Both are nondecreasing in \(u\), take values in \([0,1]\), and satisfy
+\(d\bar r_t(u\mid X)=\bar r_t(u\mid X)\bar\Lambda(du\mid X)\). With \(w=t\wedge U\), the score can therefore be written
+\[
+ \psi_t(O;\bar Q,\bar G)
+ =\bar Q(t\mid X)
+ -\mathbf 1\{U\le t,\Delta=1\}\frac{\bar r_t(U\mid X)}{\bar G(U\mid X)}
+ +\int_{(0,w]}\frac1{\bar G(u\mid X)}\,d\bar r_t(u\mid X).
+\]
+Set
+\[
+ D_{Q,cf\ell}(X)=\sup_{0\le u\le t}
+ |\bar r_t(u\mid X)-r_t(u\mid X)|.
+\]
+Assumption~\ref{ass:event-estimability} gives \(\|D_{Q,cf\ell}\|_{L_2(P_c)}=O_P(a_K)\). Assumption~\ref{ass:censor-positivity} gives \(1/G\le g^{-1}\); since \(G\) is nonincreasing, \(1/G\) is nondecreasing and has variation at most \(g^{-1}-1\) on the horizon. Split the integral difference as
+\[
+ \int_{(0,w]}\left(\frac1{\bar G}-\frac1G\right)d\bar r_t
+ +\int_{(0,w]}\frac1G\,d(\bar r_t-r_t).
+\]
+The first term is bounded by \(A_{cf\ell}(X)\), because \(\bar r_t\) has variation at most one. Stieltjes integration by parts bounds the second by its two endpoint terms plus
+\(D_{Q,cf\ell}(X)\operatorname{TV}(1/G)\). The baseline and event terms in the score difference satisfy the same type of bound. Thus, for a finite constant \(C_g\),
+\[
+ \|\psi_t(\bar Q,\bar G)-\psi_t(Q,G)\|_{L_2(P_c)}
+ \le C_g\{\|D_{Q,cf\ell}\|_{L_2(P_c)}+\|A_{cf\ell}\|_{L_2(P_c)}\}
+ =O_P(a_K+b_K)=o_P(1),
+\]
+where the last equality uses Assumptions~\ref{ass:event-rate-vanishes} and~\ref{ass:censor-rate-vanishes}.
+
+Let \(n_{cf}=|\mathcal V_{cf}|\), let \(\mathbb P_{cf}\) be the validation empirical measure for a nonempty fold, and set \(\widehat\psi_{cf\ell}=\psi_t(\mathord\cdot;\bar Q,\bar G)\) and \(\psi_{c\ell}=\psi_t(\mathord\cdot;Q,G)\). Empty folds contribute zero. Setting \((\bar Q,\bar G)=(Q,G)\) in the exact mean identity shows \(P_c\psi_{c\ell}=S_c(t)\). Since the folds partition \(\{1,\ldots,K\}\), Definition~\ref{def:cell-estimator} gives
+\[
+\begin{aligned}
+ \widehat s_{c\ell}-S_c(t)
+ &=K^{-1}\sum_{i=1}^K\phi_{c\ell}(O_{ci})\\
+ &\quad+\sum_{f=1}^L\frac{n_{cf}}K
+ (\mathbb P_{cf}-P_c)(\widehat\psi_{cf\ell}-\psi_{c\ell})\\
+ &\quad+\sum_{f=1}^L\frac{n_{cf}}K
+ P_c(\widehat\psi_{cf\ell}-\psi_{c\ell}).
+\end{aligned}
+\]
+Conditional on \(\mathcal T_{cf}\), the standard deviation of the \(f\)-th weighted empirical term is at most
+\[
+ \frac{\sqrt{n_{cf}}}{K}
+ \|\widehat\psi_{cf\ell}-\psi_{c\ell}\|_{L_2(P_c)}
+ \le K^{-1/2}o_P(1).
+\]
+Conditional Chebyshev and fixed \(L\) make their sum \(o_P(K^{-1/2})\). The bias sum is \(O_P(a_Kb_K)=o_P(K^{-1/2})\), because its weights sum to one. Consequently
+\[
+ \sqrt K\{\widehat s_{c\ell}-S_c(t)\}
+ =K^{-1/2}\sum_{i=1}^K\phi_{c\ell}(O_{ci})+o_P(1).
+\]
+
+Assumption~\ref{ass:fixed-panel} makes the numbers of cells, folds, and coordinates fixed, so a finite union bound makes the expansion joint. Assumption~\ref{ass:cross-cell-independence} permits stacking the cell influences with a common within-cell index \(i\), giving the asserted expansion for \((\widehat y,\widehat M,\widehat B,\widehat s_1)\) with influence \(\Phi_i\).
+
+For an observation in fold \(f\), define
+\[
+ \widehat\phi_{c\ell,i}=\widehat\psi_{cf\ell}(O_{ci})-\widehat s_{c\ell}.
+\]
+The expansion gives \(|\widehat s_{c\ell}-S_c(t)|=o_P(1)\), and the fitted-score bound gives
+\[
+ \|\widehat\phi_{c\ell}-\phi_{c\ell}\|_{L_2(P_c)}
+ \le\|\widehat\psi_{cf\ell}-\psi_{c\ell}\|_{L_2(P_c)}
+ +|\widehat s_{c\ell}-S_c(t)|=o_P(1).
+\]
+Assumption~\ref{ass:influence-moment} ensures the required second moments. A finite union bound proves joint foldwise \(L_2(P_c)\)-consistency of the plug-in influence vectors and completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the load-bearing orthogonality result: the exact Stieltjes identity removes first-order nuisance terms only after the disclosed relative-variation learner rate controls the second-order remainder. \textit{Gap.} The theorem remains conditional on bounded variation and \(\max_{c,f,\ell}\|V_{cf\ell}(X)\|_2=O_P(a_K)\); generic product rates do not imply them. Proposition~\ref{prop:finite-stratum-hazard-certificate} supplies one concrete finite-stratum learner class on which they are attainable. \textit{Consumer.} The lemma supplies censoring-robust cell inputs for every country and treatment-line block in Han and Shah's 925-patient TCL panel.
+
+\begin{lemma}[lem:full-spectral-differential]\label{lem:full-spectral-differential}
+On a neighborhood in which the rank-\(r\) singular subspace is separated, \(\mathcal F(y,M,B)=yM_r^+B\) is Fr\'echet differentiable and \[D\mathcal F_{(y,M,B)}[h_y,H,h_B]=h_yPB+y\{-PHP+PP^\top H^\top(I-MP)+(I-PM)H^\top P^\top P\}B+yPh_B.\] In particular, the derivative contains perturbations from all three learned blocks and both orthogonal-projector correction terms.
+\end{lemma}
+\begin{proof}
+Let \(M=U\Sigma V^\top\) be a compact singular-value decomposition, where \(U\in\mathbb R^{N_0\times r}\) and \(V\in\mathbb R^{T_0\times r}\) have orthonormal columns and \(\Sigma=\operatorname{diag}(\sigma_1,\ldots,\sigma_r)\).  Assumption~\ref{ass:exact-rank} gives \(\sigma_r>0\) and \(\sigma_{r+1}=0\).  Put \(\kappa_0=\sigma_r/2>0\).  Therefore, whenever \(\|H\|_{\mathrm{op}}<\kappa_0/3\), the first \(r\) singular values remain separated from the rest: the variational characterization of singular values gives \(|\sigma_k(M+H)-\sigma_k(M)|\le\|H\|_{\mathrm{op}}\).  Hence the rank-\(r\) spectral projectors and the rank-\(r\) truncation are differentiable on this neighborhood.
+
+Choose orthogonal complements \(U_\perp,V_\perp\) and write
+\[
+ U^\top H V=H_{11},\quad U^\top H V_\perp=H_{12},\quad
+ U_\perp^\top H V=H_{21},\quad U_\perp^\top H V_\perp=H_{22}.
+\]
+Differentiating the equations defining the two separated singular subspaces shows that the tangent perturbation of the rank-\(r\) truncation retains the first three blocks and removes the normal block:
+\[
+ D(M\mapsto M_r)_M[H]
+ =UH_{11}V^\top+UH_{12}V_\perp^\top+U_\perp H_{21}V^\top.
+\]
+This equation can also be checked directly: multiplying on the left and right by the four pairs of projectors \((UU^\top,I-UU^\top)\) and \((VV^\top,I-VV^\top)\) gives respectively \(H_{11},H_{12},H_{21},0\), which are exactly the first-order blocks selected by the separated spectral projector.
+
+Since \(P=M^+=V\Sigma^{-1}U^\top\), inversion of the perturbed nonzero singular block and differentiation of the two singular subspaces give
+\[
+ D(M_r^+)_M[H]
+ =-V\Sigma^{-1}H_{11}\Sigma^{-1}U^\top
+ +V\Sigma^{-2}H_{21}^\top U_\perp^\top
+ +V_\perp H_{12}^\top\Sigma^{-2}U^\top.
+\]
+Every term is linear in \(H\).  Now \(MP=UU^\top\), \(PM=VV^\top\), \(PP^\top=V\Sigma^{-2}V^\top\), and \(P^\top P=U\Sigma^{-2}U^\top\).  Substitution into the preceding display gives, term by term,
+\[
+ D(M_r^+)_M[H]
+ =-PHP+PP^\top H^\top(I-MP)+(I-PM)H^\top P^\top P
+ =\mathcal L_M(H).
+\]
+The discarded block \(H_{22}\) contributes zero, so this formula holds for arbitrary ambient perturbations, not merely tangent perturbations of fixed-rank matrices.  Finally, ordinary addition and multiplication of finite matrices are bilinear, whence the product rule applied to \(\mathcal F(y,M,B)=yM_r^+B\) yields
+\[
+ D\mathcal F_{(y,M,B)}[h_y,H,h_B]
+ =h_yPB+y\mathcal L_M(H)B+yPh_B.
+\]
+This is a Fr\'echet derivative because the spectral projectors, inversion of the nonzero \(r\times r\) block, and matrix multiplication all have remainders that are quadratic uniformly on a smaller gap neighborhood.  The displayed formula includes the perturbations of all three learned blocks and both projector corrections, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This formula fixes the covariance accounting that is lost when estimated donor weights are treated as fixed. \textit{Gap.} Golub and Pereyra (1973, equation (4.12)) differentiate a constant-rank pseudoinverse; the present lemma specializes the full formula to the three-block SSC functional rather than claiming a new matrix-calculus theorem. \textit{Consumer.} The Jacobian lets an analyst compute how each pre- and post-period cell contributes to uncertainty in every counterfactual survival coordinate.
+
+\begin{theorem}[thm:joint-spectral-limit]\label{thm:joint-spectral-limit}
+Under exact post-transport identification and exact rank of the fixed donor-pre matrix,
+\[
+ \sqrt K\begin{pmatrix}\widehat\theta-\theta\\ \widehat s_1-s_1\end{pmatrix}
+ =K^{-1/2}\sum_{i=1}^K\Phi_{\eta,i}+o_P(1)
+ \rightsquigarrow\mathcal N_{2J}(0,\Omega_\eta),
+\]
+where the Gaussian law may be singular. The influence vectors are those in Definition~\ref{def:transported-influence}; their plug-in estimates obey
+\(K^{-1}\sum_{i=1}^K\|\widehat\Phi_{\eta,i}-\Phi_{\eta,i}\|_2^2=o_P(1)\), and \(\widehat\Omega_\eta\to_P\Omega_\eta\). This limit law applies under covariate-dependent censoring satisfying conditional independence and does not replace \(\theta\) by a marginal Kaplan--Meier pseudo-target.
+\end{theorem}
+\begin{proof}
+Let \(Z=(y,M,B,s_1)\), where the matrix blocks are vectorized in a fixed order, and let \(\widehat Z=(\widehat y,\widehat M,\widehat B,\widehat s_1)\). By Assumption~\ref{ass:fixed-panel}, \(Z\) lies in a Euclidean space of fixed dimension. Lemma~\ref{lem:joint-cell-expansion} gives the stacked expansion
+\[
+ \widehat Z-Z=K^{-1}\sum_{i=1}^K\Phi_i+r_K,
+ \qquad \sqrt K\,\|r_K\|_2\to_P0.
+\]
+The definition of each centered cell influence vector gives \(E\Phi_i=0\). Assumptions~\ref{ass:cell-iid} and~\ref{ass:cross-cell-independence} imply that the stacked vectors \(\Phi_1,\ldots,\Phi_K\) are independent and identically distributed: within a fixed \(i\), their cell blocks are independent, and across distinct \(i\) all constituent observations are independent. Because the number and dimensions of the blocks are fixed, Assumption~\ref{ass:influence-moment} implies
+\[
+ E\|\Phi_i\|_2^{2+\nu}<\infty.
+\]
+Consequently
+\[
+ E\left\|K^{-1/2}\sum_{i=1}^K\Phi_i\right\|_2^2
+ =E\|\Phi_i\|_2^2<\infty,
+\]
+where the cross terms vanish by independence and centering. Markov's inequality and the displayed expansion therefore yield
+\[
+ \|\widehat Z-Z\|_2=O_P(K^{-1/2}),
+ \qquad
+ \|\widehat M-M\|_{\mathrm{op}}=O_P(K^{-1/2}).
+\]
+
+We next verify that no separate singular-gap assumption is needed. Assumption~\ref{ass:exact-rank} and \(r\ge1\) imply
+\[
+ \sigma_r(M)>0,
+ \qquad
+ \sigma_{r+1}(M)=0,
+\]
+where the second equality uses the convention \(\sigma_{r+1}(M)=0\) if \(r=\min(N_0,T_0)\). Since \(M\) is the fixed population donor-pre matrix and \(K\) is the sole asymptotic index, \(\kappa:=\sigma_r(M)/3\) is a fixed positive number. The variational characterization of singular values gives, for every conformable \(A\),
+\[
+ |\sigma_j(A)-\sigma_j(M)|\le \|A-M\|_{\mathrm{op}}.
+\]
+Thus, whenever \(\|A-M\|_{\mathrm{op}}<\kappa\),
+\[
+ \sigma_r(A)>2\kappa,
+ \qquad
+ \sigma_{r+1}(A)<\kappa,
+\]
+so the leading rank-\(r\) singular subspace is separated on this neighborhood. The preceding stochastic bound shows that \(\widehat M\) belongs to this neighborhood with probability tending to one.
+
+Assumption~\ref{ass:exact-rank} also gives \(M_r=M\) and \(P=M^+\), with
+\[
+ \|P\|_{\mathrm{op}}=\sigma_r(M)^{-1}<\infty.
+\]
+On the separated neighborhood just derived, Lemma~\ref{lem:full-spectral-differential} establishes Fr\'echet differentiability of \(\mathcal F(y,M,B)=yM_r^+B\), with the derivative recorded in Definition~\ref{def:full-differential}. Hence there is a remainder \(\rho_K\) such that
+\[
+ \frac{\|\rho_K\|_2}{\|\widehat Z-Z\|_2}\to_P0
+\]
+and, by Definition~\ref{def:full-spectral-map},
+\[
+\begin{aligned}
+ \widehat\theta-\theta
+ &=(\widehat y-y)PB
+   +y\mathcal L_M(\widehat M-M)B
+   +yP(\widehat B-B)+\rho_K\\
+ &=(\widehat y-y)PB
+   +y\{-P(\widehat M-M)P
+      +PP^\top(\widehat M-M)^\top(I-MP)\\
+ &\hspace{4.9cm}
+      +(I-PM)(\widehat M-M)^\top P^\top P\}B
+   +yP(\widehat B-B)+\rho_K.
+\end{aligned}
+\]
+Since \(\|\widehat Z-Z\|_2=O_P(K^{-1/2})\), the defining property of \(\rho_K\) gives \(\rho_K=o_P(K^{-1/2})\). Substituting the target-pre, donor-pre, and donor-post blocks of Lemma~\ref{lem:joint-cell-expansion} into the first display above gives
+\[
+\begin{aligned}
+ \widehat\theta-\theta
+ &=K^{-1}\sum_{i=1}^K
+ \{\Phi_{y,i}PB+y\mathcal L_M(\Phi_{M,i})B+yP\Phi_{B,i}\}
+ +o_P(K^{-1/2})\\
+ &=K^{-1}\sum_{i=1}^K\Phi_{\theta,i}+o_P(K^{-1/2}),
+\end{aligned}
+\]
+where the final equality is Definition~\ref{def:transported-influence}. The factual-post block of Lemma~\ref{lem:joint-cell-expansion} is
+\[
+ \widehat s_1-s_1
+ =K^{-1}\sum_{i=1}^K\Phi_{1,i}+o_P(K^{-1/2}).
+\]
+Stacking the last two equations and again invoking Definition~\ref{def:transported-influence} proves
+\[
+ \sqrt K
+ \begin{pmatrix}
+  \widehat\theta-\theta\\
+  \widehat s_1-s_1
+ \end{pmatrix}
+ =K^{-1/2}\sum_{i=1}^K\Phi_{\eta,i}+o_P(1).
+\]
+This calculation explicitly retains perturbations from \(\widehat y\), \(\widehat M\), and \(\widehat B\), including both projector-correction terms in \(\mathcal L_M\).
+
+The map from \(\Phi_i\) to \(\Phi_{\eta,i}\) in Definition~\ref{def:transported-influence} is linear and fixed. Its coefficients are finite because \(y\) and \(B\) are finite-dimensional survival arrays, \(P\) is bounded, and the displayed formula for \(\mathcal L_M\) is a bounded linear map. Therefore
+\[
+ E\Phi_{\eta,i}=0,
+ \qquad
+ E\|\Phi_{\eta,i}\|_2^{2+\nu}<\infty,
+ \qquad
+ E(\Phi_{\eta,i}\Phi_{\eta,i}^\top)=\Omega_\eta.
+\]
+For completeness, the Gaussian limit can be obtained without nonsingularity. Fix \(a\in\mathbb R^{2J}\), let
+\[
+ W_i=a^\top\Phi_{\eta,i},
+ \qquad
+ \omega_a^2=a^\top\Omega_\eta a,
+ \qquad
+ \delta=\min(\nu,1)>0.
+\]
+The preceding moment bound implies \(E|W_i|^{2+\delta}<\infty\), while \(EW_i=0\) and \(EW_i^2=\omega_a^2\). Taylor expansion on \(|x|\le1\), together with the boundedness of the left side on \(|x|>1\) after division by \(|x|^{2+\delta}\), supplies a finite constant \(C_\delta\) satisfying
+\[
+ \left|e^{\mathrm i x}-1-\mathrm i x+\frac{x^2}{2}\right|
+ \le C_\delta |x|^{2+\delta}
+ \quad\text{for every }x\in\mathbb R.
+\]
+It follows that
+\[
+ E e^{\mathrm iW_i/\sqrt K}
+ =1-\frac{\omega_a^2}{2K}+o(K^{-1}).
+\]
+Independence then gives
+\[
+ E\exp\!\left\{\mathrm i a^\top K^{-1/2}
+                   \sum_{i=1}^K\Phi_{\eta,i}\right\}
+ =\left(1-\frac{\omega_a^2}{2K}+o(K^{-1})\right)^K
+ \longrightarrow e^{-\omega_a^2/2}.
+\]
+The right side is the characteristic function of the scalar projection of \(\mathcal N_{2J}(0,\Omega_\eta)\). Since this holds for every \(a\), the characteristic-function criterion for weak convergence yields
+\[
+ K^{-1/2}\sum_{i=1}^K\Phi_{\eta,i}
+ \rightsquigarrow \mathcal N_{2J}(0,\Omega_\eta).
+\]
+If \(a^\top\Omega_\eta a=0\), the corresponding limit projection is the point mass at zero; hence the argument permits singular \(\Omega_\eta\). Combining this limit with the asymptotic linear representation proves the asserted joint convergence.
+
+It remains to establish the two plug-in conclusions. For a matrix \(A\) in the separated neighborhood, let \(\Pi_R(A)\) be the orthogonal projector onto its leading \(r\) right singular subspace and put \(A_r=A\Pi_R(A)\). The gap derived above makes \(\Pi_R(A)\) unique. To see continuity at \(M\), take any sequence \(A_m\to M\). The set of rank-\(r\) orthogonal projectors is compact. Every convergent subsequence of \(\Pi_R(A_m)\) maximizes
+\[
+ Q\longmapsto \operatorname{tr}(QM^\top M)
+\]
+over that set, by continuity and the variational characterization. Because \(\sigma_r(M)>\sigma_{r+1}(M)\), this maximizer is uniquely \(\Pi_R(M)\). Thus every convergent subsequence has the same limit, and
+\[
+ \Pi_R(A)\to\Pi_R(M)
+ \quad\text{as }A\to M.
+\]
+Moreover,
+\[
+ A_r^+=\{A_r^\top A_r+I-\Pi_R(A)\}^{-1}A_r^\top.
+\]
+Indeed, on the range of \(\Pi_R(A)\) the matrix in braces has eigenvalues \(\sigma_1(A)^2,\ldots,\sigma_r(A)^2\), while on its orthogonal complement it is the identity. These eigenvalues are bounded away from zero in the neighborhood. Continuity of multiplication and inversion therefore gives
+\[
+ (\widehat M)_r^+\to_PP.
+\]
+Substitution in the explicit polynomial formula in Definition~\ref{def:full-differential}, together with \(\widehat M\to_PM\), yields convergence of the corresponding differential maps,
+\[
+ \|\widehat{\mathcal L}_{\widehat M}-\mathcal L_M\|_{\mathrm{op}}\to_P0.
+\]
+
+Let \(\widehat\Phi_i\) denote the stack of the fold-specific plug-in cell influence vectors. The final assertion of Lemma~\ref{lem:joint-cell-expansion} states foldwise \(L_2(P_c)\)-consistency. Conditional on each training sample, the validation observations are independent of the fitted nuisance functions. Hence conditional Markov inequalities, followed by a union bound over the fixed numbers of cells, folds, and coordinates, give
+\[
+ K^{-1}\sum_{i=1}^K\|\widehat\Phi_i-\Phi_i\|_2^2=o_P(1).
+\]
+Let \(\mathsf A\) be the fixed linear map that sends \(\Phi_i\) to \(\Phi_{\eta,i}\), and let \(\widehat{\mathsf A}\) be its plug-in analogue. Consistency of \(\widehat y,\widehat M,\widehat B\), the last two spectral convergences, and Definition~\ref{def:transported-influence} imply
+\[
+ \|\widehat{\mathsf A}-\mathsf A\|_{\mathrm{op}}=o_P(1),
+ \qquad
+ \|\widehat{\mathsf A}\|_{\mathrm{op}}=O_P(1).
+\]
+The weak law and \(E\|\Phi_i\|_2^2<\infty\) give \(K^{-1}\sum_i\|\Phi_i\|_2^2=O_P(1)\). Therefore
+\[
+\begin{aligned}
+ K^{-1}\sum_{i=1}^K
+ \|\widehat\Phi_{\eta,i}-\Phi_{\eta,i}\|_2^2
+ &\le
+ 2\|\widehat{\mathsf A}\|_{\mathrm{op}}^2
+ K^{-1}\sum_{i=1}^K\|\widehat\Phi_i-\Phi_i\|_2^2\\
+ &\quad+
+ 2\|\widehat{\mathsf A}-\mathsf A\|_{\mathrm{op}}^2
+ K^{-1}\sum_{i=1}^K\|\Phi_i\|_2^2
+ =o_P(1).
+\end{aligned}
+\]
+
+Write \(D_i=\widehat\Phi_{\eta,i}-\Phi_{\eta,i}\). Expanding the difference of outer products and applying Cauchy--Schwarz gives
+\[
+\begin{aligned}
+ &\left\|\widehat\Omega_\eta-
+ K^{-1}\sum_{i=1}^K\Phi_{\eta,i}\Phi_{\eta,i}^\top\right\|_{\mathrm{op}}\\
+ &\quad\le
+ \left(K^{-1}\sum_{i=1}^K\|D_i\|_2^2\right)^{1/2}
+ \left\{
+  \left(K^{-1}\sum_{i=1}^K\|\widehat\Phi_{\eta,i}\|_2^2\right)^{1/2}
+  +
+  \left(K^{-1}\sum_{i=1}^K\|\Phi_{\eta,i}\|_2^2\right)^{1/2}
+ \right\}
+ =o_P(1).
+\end{aligned}
+\]
+Every coordinate product of \(\Phi_{\eta,i}\) is integrable by Cauchy--Schwarz. The scalar weak law applied entrywise, with fixed dimension \(2J\), consequently gives
+\[
+ K^{-1}\sum_{i=1}^K\Phi_{\eta,i}\Phi_{\eta,i}^\top
+ \to_P\Omega_\eta.
+\]
+The last two displays prove \(\widehat\Omega_\eta\to_P\Omega_\eta\), without positive definiteness.
+
+Finally, the probability limit furnished by Lemma~\ref{lem:joint-cell-expansion} is the observed-law cell functional
+\[
+ S_c(t)=E_{P_c}\{Q_c(t\mid X_{ci})\},
+\]
+whose identification under covariate-dependent censoring uses Assumptions~\ref{ass:conditional-censoring} and~\ref{ass:censor-positivity}; it is not a marginal Kaplan--Meier pseudo-target. The symbol \(\theta=yM_r^+B\) names an observed-law spectral functional. Assumption~\ref{ass:post-transport}, rather than that definition or any row-space condition on \(y\), equates this functional to the target unit's untreated potential post-period survival row. The row \(s_1\) is the factual treated post-period survival row. This proves the claimed causal interpretation and completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem supplies a full three-block root-\(K\) law with consistently estimated covariance, permits a singular Gaussian limit, uses exact post-transport rather than target-pre row membership for causal identification, and derives local spectral separation from fixed-matrix exact rank rather than imposing a redundant singular-gap assumption. \textit{Gap.} Han and Shah (2025, Theorems 1--2 and Appendix E) analyze marginal cellwise Kaplan--Meier/PCR inputs; Westling et al. (2024, published Theorem 3 (arXiv Theorem 4)) analyze a directly estimated covariate-adjusted survival curve. Neither gives the full three-block influence vector or its possibly singular joint covariance law. \textit{Consumer.} The theorem could provide TCL standard errors only if its within-cell sampling, cross-cell independence, learner, fixed-matrix exact-rank, exact post-transport, and application-specific variance conditions are verified; no separate singular-gap condition is needed in this fixed-matrix regime.
+
+\begin{theorem}[thm:band-and-rmst]\label{thm:band-and-rmst}
+The Gaussian-multiplier band in Definition~\ref{def:multiplier-band} has simultaneous fixed-grid coverage \[\Pr\!\left\{\theta_j\in\left[\widehat\theta_j\pm c_{1-\alpha}^\star\widehat\sigma_j/\sqrt K\right]\ \text{for every }1\le j\le J\right\}\to1-\alpha.\] Moreover, with \(\widehat V_R=K^{-1}\sum_{i=1}^K\{q^\top(\widehat\Phi_{1,i}-\widehat\Phi_{\theta,i})\}^2\), \[\frac{\sqrt K(\widehat\tau_R-\tau_R)}{\sqrt{\widehat V_R}}\rightsquigarrow\mathcal N(0,1),\] so the usual two-sided studentized interval has asymptotic coverage \(1-\alpha\).
+\end{theorem}
+\begin{proof}
+Let \(\Omega_\theta\) and \(\widehat\Omega_\theta\) be the counterfactual \(J\times J\) principal blocks of \(\Omega_\eta\) and \(\widehat\Omega_\eta\), respectively.  Theorem~\ref{thm:joint-spectral-limit} gives
+\[
+ \sqrt K(\widehat\theta-\theta)
+ =K^{-1/2}\sum_{i=1}^K\Phi_{\theta,i}+o_P(1),
+ \qquad
+ \widehat\Omega_\theta\longrightarrow_P\Omega_\theta.
+\]
+For \(1\le j\le J\), set
+\[
+ \sigma_j^2=(\Omega_\theta)_{jj}
+ =\operatorname{Var}(\Phi_{\theta,i,j}).
+\]
+Assumption~\ref{ass:counterfactual-coordinate-variance} implies
+\[
+ \min_{1\le j\le J}\sigma_j^2\ge v>0.
+\]
+Because \(J\) is fixed by Assumption~\ref{ass:fixed-panel}, entrywise covariance consistency and continuity of the square root at every \(\sigma_j^2>0\) yield
+\[
+ \max_{1\le j\le J}|\widehat\sigma_j-\sigma_j|\longrightarrow_P0.
+\]
+Consequently, all denominators in Definition~\ref{def:multiplier-band} are positive with probability tending to one.  Define the band arbitrarily on the complementary event; this does not affect its limiting coverage.
+
+On the event of positive denominators, let
+\[
+ \widehat R_K
+ =\operatorname{diag}(\widehat\Omega_\theta)^{-1/2}
+   \widehat\Omega_\theta
+   \operatorname{diag}(\widehat\Omega_\theta)^{-1/2},
+ \qquad
+ R
+ =\operatorname{diag}(\Omega_\theta)^{-1/2}
+   \Omega_\theta
+   \operatorname{diag}(\Omega_\theta)^{-1/2}.
+\]
+The preceding convergence gives \(\widehat R_K\to_P R\).  Both matrices are positive semidefinite and have unit diagonal; neither is required to be invertible.  Conditional on the observed sample,
+\[
+ Z_K^*=K^{-1/2}\sum_{i=1}^K\xi_i
+ \left(
+   \frac{\widehat\Phi_{\theta,i,1}}{\widehat\sigma_1},
+   \ldots,
+   \frac{\widehat\Phi_{\theta,i,J}}{\widehat\sigma_J}
+ \right)^\top
+ \sim\mathcal N_J(0,\widehat R_K),
+\]
+because the multipliers are conditionally independent standard normal variables and
+\(K^{-1}\sum_i\widehat\Phi_{\theta,i}\widehat\Phi_{\theta,i}^{\top}=\widehat\Omega_\theta\).  Thus \(c_{1-\alpha}^\star\) is the conditional \((1-\alpha)\)-quantile of \(H_K^*=\max_j|Z_{K,j}^*|\).
+
+Let \(Z\sim\mathcal N_J(0,R)\), put \(H=\max_j|Z_j|\), and write \(F_H\) for the distribution function of \(H\).  Since \(R_{jj}=1\), every \(Z_j\) is a standard normal random variable.  For every \(t\ge0\),
+\[
+ \{H=t\}\subseteq\bigcup_{j=1}^J\{|Z_j|=t\},
+\]
+so \(\Pr(H=t)=0\); hence \(F_H\) is continuous.  It is also strictly increasing on \([0,\infty)\).  Indeed, let \(\mathcal S=\operatorname{range}(R)\), which is nonzero because \(R\) has unit diagonal.  Given \(0\le x_1<x_2\), scale any nonzero element of \(\mathcal S\) to obtain \(z_0\in\mathcal S\) with
+\(x_1<\|z_0\|_\infty<x_2\).  Therefore
+\[
+ \{z\in\mathcal S:x_1<\|z\|_\infty<x_2\}
+\]
+is a nonempty relatively open subset of \(\mathcal S\).  The Gaussian law \(\mathcal N_J(0,R)\), restricted to its support \(\mathcal S\), has a strictly positive density with respect to Lebesgue measure on \(\mathcal S\), since its covariance is positive definite on \(\mathcal S\).  The displayed shell consequently has positive probability.  Because \(0<\alpha<1\), the equation
+\[
+ F_H(c_{1-\alpha})=1-\alpha
+\]
+therefore defines a unique finite \(c_{1-\alpha}\).
+
+We next verify conditional quantile convergence without requiring nonsingularity of \(R\).  The positive-semidefinite square-root map is continuous in fixed dimension.  Along any subsequence on which \(\widehat R_K\to R\) in probability, choose a further subsequence on which this convergence holds almost surely, and couple the conditional Gaussian vector as \(\widehat R_K^{1/2}\varepsilon\), where \(\varepsilon\sim\mathcal N_J(0,I_J)\) is independent of the sample.  Then
+\[
+ \max_j| (\widehat R_K^{1/2}\varepsilon)_j|
+ \longrightarrow
+ \max_j|(R^{1/2}\varepsilon)_j|
+ \quad\text{almost surely}.
+\]
+At every \(t\), the boundary event for the limiting maximum has probability zero by the preceding atomlessness argument.  Hence the conditional distribution function of \(H_K^*\) converges in probability to \(F_H\) at every \(t\).  To pass from distribution functions to quantiles, fix \(\epsilon>0\).  Strict increase and continuity give
+\[
+ F_H(c_{1-\alpha}-\epsilon)<1-\alpha
+ <F_H(c_{1-\alpha}+\epsilon),
+\]
+where the left inequality is automatic if \(c_{1-\alpha}-\epsilon<0\).  Convergence at these two points traps the conditional \((1-\alpha)\)-quantile between them with probability tending to one.  Thus
+\[
+ c_{1-\alpha}^\star\longrightarrow_Pc_{1-\alpha}.
+\]
+
+On the sampling side, the first display, covariance consistency, and the positivity of all \(\sigma_j\) give
+\[
+ T_K:=\max_{1\le j\le J}
+ \left|\frac{\sqrt K(\widehat\theta_j-\theta_j)}{\widehat\sigma_j}\right|
+ \rightsquigarrow H.
+\]
+For completeness, this follows by applying the continuous map
+\((z,d)\mapsto\max_j|z_j/d_j|\) on the set \(\min_jd_j>0\) to the joint convergence of \(\sqrt K(\widehat\theta-\theta)\) and \((\widehat\sigma_1,\ldots,\widehat\sigma_J)\).  Since \(c_{1-\alpha}^\star\to_Pc_{1-\alpha}\) and \(F_H\) is continuous at \(c_{1-\alpha}\), for every \(\epsilon>0\), with probability tending to one,
+\[
+ \{T_K\le c_{1-\alpha}-\epsilon\}
+ \subseteq\{T_K\le c_{1-\alpha}^\star\}
+ \subseteq\{T_K\le c_{1-\alpha}+\epsilon\}.
+\]
+Taking limits and then letting \(\epsilon\downarrow0\) proves
+\[
+ \Pr(T_K\le c_{1-\alpha}^\star)\longrightarrow1-\alpha.
+\]
+On the event of positive \(\widehat\sigma_j\), the event in the last display is exactly
+\[
+ \left\{\theta_j\in
+ \left[\widehat\theta_j-\frac{c_{1-\alpha}^\star\widehat\sigma_j}{\sqrt K},
+       \widehat\theta_j+\frac{c_{1-\alpha}^\star\widehat\sigma_j}{\sqrt K}\right]
+ \text{ for every }1\le j\le J\right\}.
+\]
+This proves the asserted simultaneous coverage.
+
+It remains to prove the scalar claim.  By Definition~\ref{def:full-spectral-map}, the definition \(\tau_R=q^\top(s_1-\theta)\), and Theorem~\ref{thm:joint-spectral-limit},
+\[
+\begin{aligned}
+ \sqrt K(\widehat\tau_R-\tau_R)
+ &=q^\top\sqrt K\{(\widehat s_1-s_1)-(\widehat\theta-\theta)\}\\
+ &=K^{-1/2}\sum_{i=1}^Kq^\top(\Phi_{1,i}-\Phi_{\theta,i})+o_P(1)\\
+ &=K^{-1/2}\sum_{i=1}^K\Phi_{\tau,i}+o_P(1).
+\end{aligned}
+\]
+Assumption~\ref{ass:grid-rmst-variance} gives
+\[
+ V_R:=\operatorname{Var}(\Phi_{\tau,i})
+ =\operatorname{Var}\{q^\top(\Phi_{1,i}-\Phi_{\theta,i})\}
+ \ge v>0.
+\]
+The cell influences are centered by definition, so \(E\Phi_{\tau,i}=0\).  Assumptions~\ref{ass:fixed-panel} and~\ref{ass:influence-moment}, together with the deterministic finite-dimensional linear transport in Definition~\ref{def:transported-influence}, imply \(E\Phi_{\tau,i}^2<\infty\).  Assumptions~\ref{ass:cell-iid} and~\ref{ass:cross-cell-independence} make the stacked vectors independent and identically distributed across \(i\).  It follows that
+\[
+ K^{-1}\sum_{i=1}^K\Phi_{\tau,i}^2\longrightarrow_P
+ E\Phi_{\tau,i}^2=V_R.
+\]
+
+Define the plug-in scalar influence and its error by
+\[
+ \widehat\Phi_{\tau,i}
+ =q^\top(\widehat\Phi_{1,i}-\widehat\Phi_{\theta,i}),
+ \qquad
+ \delta_i=\widehat\Phi_{\tau,i}-\Phi_{\tau,i}.
+\]
+The empirical \(L_2\)-consistency in Theorem~\ref{thm:joint-spectral-limit} and the fact that \(q\) and \(J\) are fixed imply
+\[
+ K^{-1}\sum_{i=1}^K\delta_i^2
+ \le 2\|q\|_2^2 K^{-1}\sum_{i=1}^K
+ \|\widehat\Phi_{\eta,i}-\Phi_{\eta,i}\|_2^2
+ =o_P(1).
+\]
+Using \(\widehat\Phi_{\tau,i}=\Phi_{\tau,i}+\delta_i\) and Cauchy--Schwarz,
+\[
+\begin{aligned}
+ \left|K^{-1}\sum_{i=1}^K
+   (\widehat\Phi_{\tau,i}^2-\Phi_{\tau,i}^2)\right|
+ &\le 2\left(K^{-1}\sum_{i=1}^K\delta_i^2\right)^{1/2}
+          \left(K^{-1}\sum_{i=1}^K\Phi_{\tau,i}^2\right)^{1/2}
+       +K^{-1}\sum_{i=1}^K\delta_i^2\\
+ &=o_P(1).
+\end{aligned}
+\]
+The definition of \(\widehat V_R\) is precisely
+\(\widehat V_R=K^{-1}\sum_i\widehat\Phi_{\tau,i}^2\).  The last three displays therefore prove
+\[
+ \widehat V_R\longrightarrow_PV_R>0.
+\]
+The scalar projection of the Gaussian limit in Theorem~\ref{thm:joint-spectral-limit} is \(\mathcal N(0,V_R)\); division by the consistent positive standard error gives
+\[
+ \frac{\sqrt K(\widehat\tau_R-\tau_R)}{\sqrt{\widehat V_R}}
+ \rightsquigarrow\mathcal N(0,1).
+\]
+If \(z_{1-\alpha/2}\) is the \((1-\alpha/2)\)-quantile of \(\mathcal N(0,1)\), continuity of that distribution yields limiting coverage \(1-\alpha\) for
+\[
+ \left[
+ \widehat\tau_R-z_{1-\alpha/2}\sqrt{\widehat V_R/K},
+ \widehat\tau_R+z_{1-\alpha/2}\sqrt{\widehat V_R/K}
+ \right].
+\]
+
+Finally, Assumption~\ref{ass:post-transport} is the identifying restriction: it equates \(\theta=yM_r^+B\) with the target unit's untreated potential post-period survival row.  Hence the first confidence set covers that causal counterfactual curve, and \(\tau_R=q^\top(s_1-\theta)\) is the declared causal grid-RMST contrast.  The argument concerns only the fixed \(J\)-point quadrature functional and makes no claim about a continuous-time RMST integral.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fixed-grid band needs only positive counterfactual marginal variances, while grid-RMST studentization needs only positive variance in the declared scalar direction; neither requires full joint covariance rank. \textit{Gap.} Westling et al. (2024, Sections 5.2--5.3) calibrate bands and RMST for directly estimated survival curves; no cited work calibrates the transported spectral counterfactual with estimated donor weights and possibly singular cross-coordinate covariance. \textit{Consumer.} TCL investigators can report a familywise-valid untreated survival trajectory and a single treatment-effect interval on the prespecified follow-up grid if the theorem's sampling, learner, transport, and variance conditions are verified.
+
+\begin{proposition}[prop:km-pcr-cancellation]\label{prop:km-pcr-cancellation}
+Whenever \(\widetilde M\) has separated rank \(r\), unadjusted cellwise Kaplan--Meier followed by rank-\(r\) PCR converges to \(\widetilde y(\widetilde M)_r^+\widetilde B\). On the finite discrete submodel with fixed supports and positive risk denominators, the map from cell-atom probabilities to \(\widetilde y(\widetilde M)_r^+\widetilde B-yM_r^+B\) is continuous wherever the true and naive singular gaps are positive. Consequently, the laws for which the unadjusted probability limit differs from \(\theta\) form a relatively open subset of the conditional-censoring, positivity, exact-rank, exact-transport submodel. For every pair \((a,b)\) in the six-cell construction \(P^\star\), the displayed event and censor atom masses are strictly positive. Under the event-wins-ties convention, the two marginal at-risk denominators are \(P_c(U_{ci}\ge t_{c1})=1\) and \(P_c(U_{ci}\ge t_{c2})=(140a-1)/200\ge69/200\), while \(G_c\) is at least \(2/5\) on the required horizon. Hence \(P^\star\) belongs to the full six-cell conditional-censoring, positivity, exact-rank, exact-transport submodel. Its marginal Kaplan--Meier limit for a cell with true pair \((a,b)\) is
+\[
+\left(a,\frac{a(280b-1)}{280a-2}\right),
+\]
+and therefore
+\[
+\widetilde y=(7/10,175/388),\qquad
+\widetilde M=\begin{pmatrix}4/5&334/555\\3/5&3/10\end{pmatrix},\qquad
+\widetilde B=\begin{pmatrix}7/10&777/1940\\1/2&55/276\end{pmatrix}.
+\]
+The target factual-post cell has the same displayed marginal pair as the first donor-post cell, so its marginal Kaplan--Meier limit is \((7/10,777/1940)\); this sixth curve does not enter the counterfactual PCR map. Since \(\det(M)=-3/25\), \(yM^{-1}=(1/2,1/2)\), and \(\theta=(3/5,3/10)\), direct substitution gives
+\[
+\widetilde y\widetilde M^{-1}\widetilde B
+=\left(27937/46560,186964603/623252160\right)
+=\left(3/5+1/46560,3/10-2209/124650432\right),
+\]
+so \(\beta_{\mathrm{KM}}=(1/46560,-2209/124650432)\ne(0,0)\).
+\end{proposition}
+\begin{proof}
+We first separate the observed-law probability limit from its causal interpretation. Fix a cell \(c\) on the finite discrete submodel, let \(u\) range over its fixed event-time support, and define
+\[
+\widehat d_{cK}(u)=\frac1K\sum_{i=1}^K
+ \mathbf 1\{U_{ci}=u,\Delta_{ci}=1\},\qquad
+\widehat R_{cK}(u)=\frac1K\sum_{i=1}^K
+ \mathbf 1\{U_{ci}\ge u\}.
+\]
+Write \(d_c(u)=P_c(U_{ci}=u,\Delta_{ci}=1)\) and \(R_c(u)=P_c(U_{ci}\ge u)\). The within-cell i.i.d. condition \(\mathrm{ass{:}cell\mbox{-}iid}\) implies
+\[
+E_{P_c}\!\left[\{\widehat d_{cK}(u)-d_c(u)\}^2\right]\le\frac1{4K},
+\qquad
+E_{P_c}\!\left[\{\widehat R_{cK}(u)-R_c(u)\}^2\right]\le\frac1{4K}.
+\]
+Indeed, each centered summand is independent, has mean zero, and has variance at most \(1/4\), so all cross terms vanish. For any random variable \(Z\), the pointwise inequality \(\varepsilon^2\mathbf 1\{|Z|>\varepsilon\}\le Z^2\) gives
+\[
+P(|Z|>\varepsilon)\le \varepsilon^{-2}E[Z^2].
+\]
+Applying this inequality to the two centered empirical means proves convergence in probability at every support point. The support, the cells, and the retained coordinates are finite, the last fact following from \(\mathrm{ass{:}fixed\mbox{-}panel}\); summing the finitely many exceptional-event probabilities gives joint convergence.
+
+Suppose \(R_c(u)>0\) at every support point used through a retained coordinate. With probability tending to one, \(\widehat R_{cK}(u)\ge R_c(u)/2\), and on this event
+\[
+\left|\frac{\widehat d_{cK}(u)}{\widehat R_{cK}(u)}-
+          \frac{d_c(u)}{R_c(u)}\right|
+\le
+\frac{2|\widehat d_{cK}(u)-d_c(u)|}{R_c(u)}
++\frac{2d_c(u)|\widehat R_{cK}(u)-R_c(u)|}{R_c(u)^2}.
+\]
+The right-hand side converges to zero in probability. A finite product is continuous, hence
+\[
+\widehat S^{\mathrm{KM}}_{cK}(t_{c\ell})
+=\prod_{u\le t_{c\ell}}
+ \left\{1-\frac{\widehat d_{cK}(u)}{\widehat R_{cK}(u)}\right\}
+\xrightarrow{p}
+\prod_{u\le t_{c\ell}}
+ \left\{1-\frac{d_c(u)}{R_c(u)}\right\}
+=\widetilde S_c(t_{c\ell}),
+\]
+where the last equality is \(\mathrm{def{:}km\mbox{-}pcr\mbox{-}bias\mbox{-}map}\). Thus all extracted blocks converge jointly:
+\[
+(\widehat y^{\mathrm{KM}},\widehat M^{\mathrm{KM}},\widehat B^{\mathrm{KM}})
+\xrightarrow{p}(\widetilde y,\widetilde M,\widetilde B).
+\]
+For a general product-integral law, the first assertion has the same conclusion on the domain where the cellwise Kaplan--Meier probability limits named by \(\widetilde S_c\) exist at the retained coordinates; the rest of the argument is finite-dimensional.
+
+We now prove the required spectral continuity. Let \(A_n\to A\) in operator norm and suppose
+\[
+\sigma_r(A)>\sigma_{r+1}(A),
+\]
+where a missing singular value is zero. To verify the singular-value bound used below without importing an additional result, let \(v_1,\ldots,v_m\) be right singular vectors of \(A\), padded through the dimension of the domain. For every subspace \(E\) of codimension \(k-1\), dimension counting makes \(E\) intersect \(\operatorname{span}(v_1,\ldots,v_k)\) nontrivially, while choosing \(E=\operatorname{span}(v_k,ldots,v_m)\) attains equality. Consequently,
+\[
+\sigma_k(A)=\min_{\operatorname{codim}(E)=k-1}
+ \max_{x\in E,\,\|x\|_2=1}\|Ax\|_2.
+\]
+For every fixed admissible \(E\), the triangle inequality gives
+\[
+\left|\max_{x\in E,\,\|x\|_2=1}\|A_nx\|_2-
+\max_{x\in E,\,\|x\|_2=1}\|Ax\|_2\right|
+\le \|A_n-A\|_{\mathrm{op}}.
+\]
+Taking the minimum and interchanging \(A_n\) and \(A\) yields
+\[
+|\sigma_k(A_n)-\sigma_k(A)|\le\|A_n-A\|_{\mathrm{op}}.
+\]
+
+Let \(\Pi_n\) be the orthogonal projector onto the leading \(r\)-dimensional right singular subspace of \(A_n\). The set of rank-\(r\) orthogonal projectors in this fixed dimension is closed and bounded, hence compact. Every convergent subsequence of \((\Pi_n)\) has a limit maximizing
+\[
+Q\longmapsto\operatorname{tr}(QA^\top A)
+\]
+over rank-\(r\) orthogonal projectors, because \(\Pi_n\) maximizes the corresponding criterion with \(A_n^\top A_n\), and both the matrix and trace maps are continuous. To see uniqueness, expand in a right-singular basis:
+\[
+\operatorname{tr}(QA^\top A)=\sum_k\sigma_k(A)^2v_k^\top Qv_k,
+\qquad 0\le v_k^\top Qv_k\le1,
+\qquad \sum_kv_k^\top Qv_k=r.
+\]
+The strict inequality \(\sigma_r(A)^2>\sigma_{r+1}(A)^2\) forces every maximizer to put unit mass on the first \(r\) coordinates and zero mass on the others, so its range is the unique leading singular subspace. Thus every such limit is the leading projector \(\Pi\) of \(A\). Compactness then implies \(\Pi_n\to\Pi\), and therefore
+\[
+(A_n)_r=A_n\Pi_n\longrightarrow A\Pi=A_r.
+\]
+The strict gap implies \(\sigma_r(A)>0\). On the range of \(\Pi_n\), the operator \((A_n)_r^\top(A_n)_r\) has eigenvalues \(\sigma_1(A_n)^2,\ldots,\sigma_r(A_n)^2\); on its orthogonal complement, \(I-\Pi_n\) is the identity. Hence, for all sufficiently large \(n\),
+\[
+H_n:=(A_n)_r^\top(A_n)_r+I-\Pi_n
+\]
+is invertible, and direct multiplication in a singular-value decomposition gives
+\[
+(A_n)_r^+=H_n^{-1}(A_n)_r^\top.
+\]
+Since \(H_n\to A_r^\top A_r+I-\Pi=:H\), whose eigenvalues on the two orthogonal subspaces are respectively \(\sigma_1(A)^2,\ldots,\sigma_r(A)^2\) and one, \(H\) is invertible. The identity
+\[
+H_n^{-1}-H^{-1}=H_n^{-1}(H-H_n)H^{-1}
+\]
+then proves \(H_n^{-1}\to H^{-1}\), and consequently \((A_n)_r^+\to A_r^+\). Applying this result at \(A=\widetilde M\) and multiplying the three convergent blocks proves
+\[
+\widehat y^{\mathrm{KM}}(\widehat M^{\mathrm{KM}})_r^+
+\widehat B^{\mathrm{KM}}
+\xrightarrow{p}
+\widetilde y(\widetilde M)_r^+\widetilde B.
+\]
+This is an observed-law projection limit. No causal conclusion has yet been used.
+
+We next establish continuity in the full-data causal model. On fixed finite supports, parameterize each full-data cell by its finitely many joint atom probabilities, subject to the stated consistency and conditional-independence equalities. In a non-target-post cell, the conditional-independence parameterization may equivalently be written as covariate masses times conditional event-time masses times conditional censor-time masses. On the mutually conditionally independent target-post slice used below, it is covariate masses times conditional masses for \(T^{0}_{\mathrm{post},i}\), \(T^{1}_{\mathrm{post},i}\), and \(C_{ci}\). Marginalization from full-data atoms to the six observed cell laws is linear and therefore continuous. Each true survival coordinate is a finite sum of the appropriate event or potential-event atoms. Each marginal Kaplan--Meier coordinate is a finite product of ratios of affine functions of the observed atoms and is therefore continuous wherever its risk denominators are positive.
+
+Let \(\mathcal S\) be the fixed-support full-data submodel satisfying consistency, \(\mathrm{ass{:}conditional\mbox{-}censoring}\), \(\mathrm{ass{:}censor\mbox{-}positivity}\), \(\mathrm{ass{:}exact\mbox{-}rank}\), and \(\mathrm{ass{:}post\mbox{-}transport}\), equipped with the relative Euclidean topology under these causal equalities. Let \(\mathcal D\subseteq\mathcal S\) be the set on which all required marginal risk denominators are positive and the true and naive rank-\(r\) singular gaps are positive. Strict positivity and a strict singular gap are open conditions. The spectral argument above shows that both pseudoinverse maps are continuous on \(\mathcal D\). Therefore
+\[
+p\longmapsto\beta_{\mathrm{KM}}(p)
+=\widetilde y(p)(\widetilde M(p))_r^+\widetilde B(p)
+-y(p)(M(p))_r^+B(p)
+\]
+is continuous on \(\mathcal D\), by \(\mathrm{def{:}km\mbox{-}pcr\mbox{-}bias\mbox{-}map}\). It follows that
+\[
+\mathcal U:=\{p\in\mathcal D:\|\beta_{\mathrm{KM}}(p)\|_2>0\}
+\]
+is relatively open in \(\mathcal S\). Under exact post-transport, the untreated target-post potential survival row equals \(yM_r^+B=\theta\). Thus, on \(\mathcal U\), the observed-law Kaplan--Meier/PCR limit differs from the causal target by exactly \(\beta_{\mathrm{KM}}\); the causal equality comes from \(\mathrm{ass{:}post\mbox{-}transport}\), not from the definition of the naive functional.
+
+We now verify that the corrected full-data construction \(P^\star\) lies in \(\mathcal U\). Its six observed survival pairs are
+\[
+(a,b)\in
+\left\{(7/10,9/20),(4/5,3/5),(3/5,3/10),
+(7/10,2/5),(1/2,1/5),(7/10,2/5)\right\}.
+\]
+The untreated target-post pair \((3/5,3/10)\) is already one of the pairs in this displayed set. Consequently, for every observed event time and also for \(T^{0}_{\mathrm{post},i}\), the three conditional event atom masses in \(\mathrm{def{:}rational\mbox{-}witness}\) satisfy, for both \(x\in\{0,1\}\),
+\[
+1-a-\frac{\epsilon_x}{20}\ge\frac3{20},\qquad
+a-b+\frac{\epsilon_x}{40}\ge\frac7{40},\qquad
+b+\frac{\epsilon_x}{40}\ge\frac7{40}.
+\]
+Their sum is one. For \(x=0\), the censor atom vector is
+\[
+(1-\gamma_{10},\gamma_{10}-\gamma_{20},\gamma_{20})
+=(1/5,3/10,1/2),
+\]
+and for \(x=1\) it is
+\[
+(1-\gamma_{11},\gamma_{11}-\gamma_{21},\gamma_{21})
+=(2/5,1/5,2/5).
+\]
+Thus all full-data conditional atom masses displayed in the construction are strictly positive. In each of the five non-target-post cells, the observed event time is its untreated potential event time and is independent of censoring given \(X_{ci}\). In the target factual-post cell, consistency gives \(T_{ci}=T^{1}_{\mathrm{post},i}\), while mutual conditional independence of \(T^{0}_{\mathrm{post},i}\), \(T^{1}_{\mathrm{post},i}\), and \(C_{ci}\) gives \(T_{ci}\mathbin{\perp\!\!\!\perp}C_{ci}\mid X_{ci}\). Hence \(\mathrm{ass{:}conditional\mbox{-}censoring}\) holds and adding \(T^{0}_{\mathrm{post},i}\) changes none of the six observed margins.
+
+For any event time generated by the three-atom formula,
+\[
+P(T>t_{c1}\mid X_{ci}=x)=a+\frac{\epsilon_x}{20},
+\qquad
+P(T>t_{c2}\mid X_{ci}=x)=b+\frac{\epsilon_x}{40}.
+\]
+Since \(P(X_{ci}=0)=P(X_{ci}=1)=1/2\), averaging cancels \(\epsilon_x\) and gives the marginal pair \((a,b)\). Applied to \(T^{1}_{\mathrm{post},i}\), this proves that the factual observed target-post row remains \(s_1=(7/10,2/5)\). Applied to \(T^{0}_{\mathrm{post},i}\), it proves from the constructed full-data law that the untreated target-post survival row is
+\[
+S^0_{\mathrm{target,post}}=(3/5,3/10)=\theta^0.
+\]
+This is a property of the constructed potential-outcome distribution, not a definition of the causal target.
+
+The censor construction gives \(P_c(C_{ci}\ge t_{c1}\mid X_{ci}=x)=1\) and \(P_c(C_{ci}\ge t_{c2}\mid X_{ci}=x)=\gamma_{1x}\ge3/5\). In particular, throughout the required horizon,
+\[
+G_c(t\mid x)=P_c(C_{ci}\ge t\mid X_{ci}=x)
+\ge P_c(C_{ci}=\infty\mid X_{ci}=x)
+=\gamma_{2x}\ge2/5,
+\]
+so \(\mathrm{ass{:}censor\mbox{-}positivity}\) holds with \(g=2/5\).
+
+It remains to verify exact causal transport rather than merely assign it. Direct calculation gives
+\[
+\det(M)=\frac45\frac3{10}-\frac35\frac35=-\frac3{25}\ne0,
+\qquad
+yM^{-1}=(1/2,1/2),
+\]
+and hence
+\[
+yM^{-1}B=(1/2,1/2)
+\begin{pmatrix}7/10&2/5\\1/2&1/5\end{pmatrix}
+=(3/5,3/10)=S^0_{\mathrm{target,post}}.
+\]
+Thus \(\operatorname{rank}(M)=r=2\), so \(M_r^+=M^{-1}\), and the last display proves \(\mathrm{ass{:}post\mbox{-}transport}\) for the constructed untreated potential law. It also verifies the factor and span embedding equation by equation: take
+\[
+V=I_2,\qquad U_0=M,\qquad U_1=B,\qquad
+A=M^{-1}B,\qquad v_n^\top=yM^{-1},\qquad w^\top=v_n^\top.
+\]
+Then
+\[
+VU_0=M,\qquad v_n^\top U_0=y,
+\qquad VU_1=B,\qquad U_0A=U_1,
+\qquad v_n^\top=w^\top V,
+\]
+and therefore
+\[
+v_n^\top U_1=yM^{-1}B=S^0_{\mathrm{target,post}}.
+\]
+In particular, the target-pre row-space property is derived here from invertibility of \(M\); no global target-pre-span assumption is used.
+
+We next calculate the marginal Kaplan--Meier functional, which depends only on the unchanged observed laws. Under the event-wins-ties convention, at the first time
+\[
+R_c(t_{c1})=P_c(U_{ci}\ge t_{c1})=1,
+\qquad
+d_c(t_{c1})=P_c(U_{ci}=t_{c1},\Delta_{ci}=1)=1-a.
+\]
+At the second time, conditional independence and the two covariate strata give
+\[
+\begin{aligned}
+R_c(t_{c2})
+&=\frac12\left\{(a-1/20)\frac45+(a+1/20)\frac35\right\}\\
+&=\frac{140a-1}{200},
+\end{aligned}
+\]
+and
+\[
+\begin{aligned}
+d_c(t_{c2})
+&=\frac12\left\{(a-b-1/40)\frac45
+ +(a-b+1/40)\frac35\right\}\\
+&=\frac{280(a-b)-1}{400}.
+\end{aligned}
+\]
+The smallest observed value of \(a\) is \(1/2\), so
+\[
+R_c(t_{c2})\ge\frac{140(1/2)-1}{200}=\frac{69}{200}>0.
+\]
+The two product-limit factors therefore yield
+\[
+\begin{aligned}
+\widetilde S_c(t_{c1})&=a,\\
+\widetilde S_c(t_{c2})
+&=a\left\{1-\frac{[280(a-b)-1]/400}{(140a-1)/200}\right\}\\
+&=a\left\{1-\frac{280(a-b)-1}{280a-2}\right\}
+=\frac{a(280b-1)}{280a-2}.
+\end{aligned}
+\]
+Substitution gives
+\[
+\widetilde y=(7/10,175/388),\qquad
+\widetilde M=\begin{pmatrix}4/5&334/555\\3/5&3/10\end{pmatrix},\qquad
+\widetilde B=\begin{pmatrix}7/10&777/1940\\1/2&55/276\end{pmatrix}.
+\]
+The factual-post pair is the repeated pair \((7/10,2/5)\), so its observed marginal Kaplan--Meier limit remains \((7/10,777/1940)\); it does not enter the counterfactual PCR map.
+
+For the naive donor-pre matrix,
+\[
+\det(\widetilde M)
+=\frac45\frac3{10}-\frac35\frac{334}{555}
+=-\frac{112}{925}\ne0.
+\]
+Thus its rank-two gap is positive and \((\widetilde M)_2^+=\widetilde M^{-1}\). Exact elimination gives
+\[
+\widetilde y\widetilde M^{-1}
+=\left(\frac{777}{1552},\frac{581}{1164}\right),
+\]
+and multiplication by \(\widetilde B\) gives
+\[
+\begin{aligned}
+\widetilde y\widetilde M^{-1}\widetilde B
+&=\left(
+\frac{777}{1552}\frac7{10}+\frac{581}{1164}\frac12,
+\frac{777}{1552}\frac{777}{1940}
+ +\frac{581}{1164}\frac{55}{276}
+\right)\\
+&=\left(\frac{27937}{46560},
+\frac{186964603}{623252160}\right)\\
+&=\left(\frac35+\frac1{46560},
+\frac3{10}-\frac{2209}{124650432}\right).
+\end{aligned}
+\]
+Because the constructed untreated target-post row equals \(\theta=yM^{-1}B=(3/5,3/10)\), Definition \(\mathrm{def{:}km\mbox{-}pcr\mbox{-}bias\mbox{-}map}\) now gives the causal discrepancy
+\[
+\beta_{\mathrm{KM}}(P^\star)
+=\left(\frac1{46560},-\frac{2209}{124650432}\right)\ne(0,0).
+\]
+
+Finally, we verify that the full-data causal witness is locally nonisolated. Parameterize the six observed conditional-independence laws near \(P^\star\) by their finite conditional atom probabilities while retaining \(P_c(X_{ci}=0)=P_c(X_{ci}=1)=1/2\), and call the resulting observed parameter \(p\). The maps \(p\mapsto y(p)\), \(p\mapsto M(p)\), and \(p\mapsto B(p)\) are linear. Since \(\det M(P^\star)\ne0\), matrix inversion is continuous on a neighborhood, and
+\[
+\theta^0(p):=y(p)M(p)^{-1}B(p)
+\]
+is continuous there. At \(P^\star\), its coordinates are \((3/5,3/10)\). Shrinking the neighborhood if necessary preserves
+\[
+1>\theta^0_1(p)>\theta^0_2(p)>0,
+\]
+and also the stronger inequalities
+\[
+1-\theta^0_1(p)>1/20,
+\qquad
+\theta^0_1(p)-\theta^0_2(p)>1/40,
+\qquad
+\theta^0_2(p)>1/40.
+\]
+For each such \(p\), attach \(T^{0}_{\mathrm{post},i}(p)\) by the same three-atom formula as in \(\mathrm{def{:}rational\mbox{-}witness}\), with \((a,b)=\theta^0(p)\), and draw it conditionally independently of the unchanged observed target-post variables. The stronger inequalities make all three attached atom masses positive, their sum is one, and averaging over the two equally likely covariate strata proves that their marginal survival pair is \(\theta^0(p)\). Marginalizing out the attached potential time recovers exactly the original six observed laws, so this attachment preserves every observed margin and conditional censoring. The attachment is continuous in \(p\), and marginalization is a continuous inverse on its image.
+
+For every attached law, set
+\[
+V(p)=I_2,\quad U_0(p)=M(p),\quad U_1(p)=B(p),\quad
+A(p)=M(p)^{-1}B(p),\quad v_n(p)^\top=y(p)M(p)^{-1},
+\]
+and take \(w(p)^\top=v_n(p)^\top\). The same displayed matrix identities prove both factor-span conditions and exact post-transport throughout this attached relative neighborhood. Strict atom positivity, censoring positivity, positive risk denominators, invertibility of \(M(p)\) and \(\widetilde M(p)\), and \(\|\beta_{\mathrm{KM}}(p)\|_2>0\) all persist after one further shrink because each holds strictly at \(P^\star\) and each defining map is continuous. Thus every law in this attached neighborhood lies in \(\mathcal U\), and the attachment also shows that the factor-span subclass is not an isolated witness. Since \(\mathcal U\) was proved relatively open in \(\mathcal S\) and contains \(P^\star\), it is the required open causal biased subclass. On every fixed law in it, \(\beta_{\mathrm{KM}}(p)\) is nonzero and independent of \(K\), so the unadjusted Kaplan--Meier/PCR bias is fixed rather than vanishing. This completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition propagates cellwise Kaplan--Meier distortion through the exact three-block PCR map and proves fixed bias on a relatively open full-data causal subclass. \textit{Gap.} Curth et al. (2024) show survival-control distributional bias and Westling et al. (2024) explain Kaplan--Meier inconsistency, but neither derives the three-block PCR probability limit or constructs a relatively open full-data causal subclass with a nonzero discrepancy. \textit{Consumer.} The result tells users of Han and Shah's workflow when covariate-adjusted censoring is required for consistency rather than serving only as a variance refinement.
+
+\begin{openendedquestion}[oeq:weak-gap-rank-frontier]\label{oeq:weak-gap-rank-frontier}
+Using the handle \(\mathcal H_{\mathrm{gap}}\), characterize the maximal collection of rank-\(r\) sequences with \(\Delta_K\downarrow0\) for which noise-calibrated singular-value thresholding with selected rank \(\widehat r\), or Tikhonov stabilization with explicit bias accounting, yields a fully observable uniformly honest band for the unregularized target \(y(M_K)_r^+B\). Establish attainability without fixing a phase exponent in advance, or prove by contiguous two-path alternatives through the colliding singular direction that uniform inference is impossible on the remaining sequences.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Rank selection and weak factors are unavoidable in practice, and the fixed-gap theorem does not reveal where regular inference actually ends. \textit{Gap.} Fan and Liao study growing-panel factor models, and Choi, Kwon, and Liao study robustness to rank misspecification. The fixed-donor weak-gap frontier for an unregularized nonlinear pseudoinverse under a uniform orthogonal survival-score experiment remains open and depends on weak loadings as well as the singular gap. \textit{Consumer.} A solution would tell TCL analysts whether an elbow- or cross-validation-selected rank supports honest curve inference or requires a weak-identification warning.
+
+\begin{proposition}[prop:han-shah-fixed-grid-embedding]\label{prop:han-shah-fixed-grid-embedding}
+On the fixed pre- and post-treatment grids, suppose the latent-factor restrictions used by Han and Shah~\cite{HanShah2025SSC}, Theorems~1--2 and Appendix~E, can be written
+\[
+ M=VU_0,\qquad y=v_n^\top U_0,\qquad B=VU_1,
+\]
+where \(V\in\mathbb R^{N_0\times d}\), \(U_0\in\mathbb R^{d\times T_0}\), \(U_1\in\mathbb R^{d\times J}\), and \(v_n\in\mathbb R^d\).  Write their unit-factor-span condition as \(v_n^\top=w^\top V\) for some \(w\in\mathbb R^{N_0}\), and their post/pre time-factor-span condition as \(U_1=U_0A\) for some \(A\in\mathbb R^{T_0\times J}\).  If \(\operatorname{rank}(M)=r\), then
+\[
+ y\in\operatorname{row}(M),\qquad
+ yM_r^+B=yA=v_n^\top U_1.
+\]
+Thus the observed-law spectral functional equals the latent untreated target-post grid on this fixed-grid subclass.  Moreover, the rational law \(P^\star\) in Definition~\ref{def:rational-witness} satisfies these factor/span restrictions by taking \(d=2\), \(V=I_2\), \(U_0=M\), \(U_1=B\), \(A=M^{-1}B\), and \(v_n^\top=yM^{-1}\); for that law the common value is \(\theta=(3/5,3/10)\).
+\end{proposition}
+\begin{proof}
+All products below are well typed by the dimensions in the proposition.  From the target-row factorization and the unit-factor-span premise,
+\[
+y=v_n^\top U_0=w^\top VU_0=w^\top M.
+\]
+Thus \(y\) is a linear combination of the rows of \(M\), so \(y\in\operatorname{row}(M)\).
+
+Assumption~\ref{ass:exact-rank} gives \(\operatorname{rank}(M)=r\).  Hence rank-\(r\) truncation leaves the matrix unchanged, \(M_r=M\), and therefore \(M_r^+=M^+\).  The Moore--Penrose identity \(MM^+M=M\), together with \(y=w^\top M\), implies
+\[
+yM^+M=w^\top MM^+M=w^\top M=y.
+\]
+The post/pre time-factor-span premise separately gives
+\[
+B=VU_1=VU_0A=MA.
+\]
+Consequently,
+\[
+\begin{aligned}
+yM_r^+B
+&=yM^+B\\
+&=yM^+MA\\
+&=yA\\
+&=v_n^\top U_0A\\
+&=v_n^\top U_1.
+\end{aligned}
+\]
+The last row is the latent untreated target-post survival row under the factor representation assumed in the proposition.  Thus its equality to the observed-law spectral functional is derived from the two span premises and exact rank, rather than imposed as a definition of the causal target.
+
+We next verify every witness claim from Definition~\ref{def:rational-witness}.  Its displayed donor-pre matrix satisfies
+\[
+\det(M)=\frac45\frac3{10}-\frac35\frac35
+=\frac6{25}-\frac9{25}
+=-\frac3{25}\ne0.
+\]
+Therefore \(M\) is invertible, \(\operatorname{rank}(M)=2=r\), and \(M_r^+=M^{-1}\).  Moreover,
+\[
+\left(\frac12,\frac12\right)M
+=\left(
+\frac12\left(\frac45+\frac35\right),
+\frac12\left(\frac35+\frac3{10}\right)
+\right)
+=\left(\frac7{10},\frac9{20}\right)
+=y.
+\]
+Right multiplication by \(M^{-1}\) yields
+\[
+yM^{-1}=\left(\frac12,\frac12\right).
+\]
+Set
+\[
+d=2,\qquad V=I_2,\qquad U_0=M,\qquad U_1=B,
+\qquad A=M^{-1}B,\qquad v_n^\top=yM^{-1}.
+\]
+Then
+\[
+VU_0=M,\qquad v_n^\top U_0=yM^{-1}M=y,
+\qquad VU_1=B,\qquad U_0A=MM^{-1}B=B=U_1.
+\]
+Taking \(w=v_n\), which is well typed because \(d=N_0=2\), also gives
+\[
+w^\top V=v_n^\top I_2=v_n^\top.
+\]
+Thus both factor equations and both span premises in the proposition hold for the witness.  Its spectral value is
+\[
+\begin{aligned}
+yM_r^+B
+&=yM^{-1}B\\
+&=\left(\frac12,\frac12\right)
+\begin{pmatrix}7/10&2/5\\1/2&1/5\end{pmatrix}\\
+&=\left(
+\frac12\left(\frac7{10}+\frac12\right),
+\frac12\left(\frac25+\frac15\right)
+\right)\\
+&=\left(\frac35,\frac3{10}\right)=:\theta^0.
+\end{aligned}
+\]
+
+It remains to check that this row is genuinely the witness's untreated potential target-post survival row.  The finitely supported laws in Definition~\ref{def:rational-witness} are valid probability laws: every displayed survival pair \((a,b)\), including \(\theta^0\), obeys
+\[
+\frac15\le b<a\le\frac45,
+\qquad a-b\ge\frac15.
+\]
+For \(\epsilon_x\in\{-1,1\}\), the three event-time atom probabilities are therefore bounded below respectively by \(3/20\), \(7/40\), and \(7/40\), and their sum is
+\[
+1-a-\frac{\epsilon_x}{20}
++a-b+\frac{\epsilon_x}{40}
++b+\frac{\epsilon_x}{40}=1.
+\]
+At the temporally ordered two-point grid of the construction, the conditional survival probabilities of the target untreated potential time, for which \((a,b)=(3/5,3/10)\), are
+\[
+\begin{aligned}
+P^\star\!\left(T^0_{\mathrm{post},i}>t_{c1}\mid X_{ci}=x\right)
+&=\left(a-b+\frac{\epsilon_x}{40}\right)
++\left(b+\frac{\epsilon_x}{40}\right)
+=a+\frac{\epsilon_x}{20},\\
+P^\star\!\left(T^0_{\mathrm{post},i}>t_{c2}\mid X_{ci}=x\right)
+&=b+\frac{\epsilon_x}{40}.
+\end{aligned}
+\]
+Because \(P^\star(X_{ci}=0)=P^\star(X_{ci}=1)=1/2\) and \(\epsilon_0+\epsilon_1=0\), the law of total probability gives
+\[
+\left(
+P^\star(T^0_{\mathrm{post},i}>t_{c1}),
+P^\star(T^0_{\mathrm{post},i}>t_{c2})
+\right)
+=(a,b)
+=\left(\frac35,\frac3{10}\right)
+=\theta^0.
+\]
+Thus the target's latent untreated post-period row is \(v_n^\top U_1=yM^{-1}B=\theta^0\).
+
+For completeness, the full-data augmentation does not alter any observed margin.  In each of the five non-target-post cells, the observed event time is the stipulated untreated potential event time.  In the target factual-post cell, consistency sets the observed time equal to \(T^1_{\mathrm{post},i}\), whose marginal survival row is \(s_1\); the newly attached \(T^0_{\mathrm{post},i}\) does not enter \(U_{ci}=\min(T_{ci},C_{ci})\) or \(\Delta_{ci}=\mathbf 1\{T_{ci}\le C_{ci}\}\).  Mutual conditional independence of \(T^0_{\mathrm{post},i}\), \(T^1_{\mathrm{post},i}\), and \(C_{ci}\) given \(X_{ci}\) implies in particular conditional independent censoring for the factual observed time.  The censor-time atom probabilities are all at least \(1/5\), since they are \(1-\gamma_{1x}\), \(\gamma_{1x}-\gamma_{2x}\), and \(\gamma_{2x}\) for the two displayed pairs \((\gamma_{1x},\gamma_{2x})=(4/5,1/2)\) and \((3/5,2/5)\).  Hence censoring positivity holds on the fixed two-point horizon.  This also shows directly that the causal embedding is compatible with the witness's unchanged six observed laws.
+
+No limiting argument is used in this proposition: \(N_0\), \(T_0\), \(J\), and \(r\) are fixed, and all inversions are justified above by either Assumption~\ref{ass:exact-rank} in the general argument or the nonzero determinant in the witness argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition embeds Han and Shah's fixed-grid latent-factor conditions into the row-space and exact-transport restrictions used by the spectral theorem, rather than merely asserting that the two setups coincide. \textit{Gap.} Han and Shah (2025, Theorems 1--2 and Appendix E) provide the factor and PCR architecture; the proposition records the exact matrix bridge to the row-donor orientation used here and verifies that the rational Kaplan--Meier/PCR witness remains inside that structural subclass. \textit{Consumer.} The bridge supplies the fixed-grid targeting map for the untreated United States post-treatment curve when the stated Han--Shah spans hold. In the 925-patient, 10-country TCL application, inference based on that map could be used only if this note's within-cell i.i.d., cross-cell independence, censoring, covariance, and learner conditions are separately verified; the algebraic bridge does not establish them.
+
+\begin{proposition}[prop:finite-stratum-hazard-certificate]\label{prop:finite-stratum-hazard-certificate}
+Suppose that, in every cell, the supports of \(X_{ci}\) and of event times through the fixed horizon \(\max_\ell t_{c\ell}\) are finite and do not depend on \(K\). Suppose there are fixed positive constants such that, uniformly over cells, covariate strata, and event-support times on the horizon, the probability \(P_c\{X_{ci}=x,U_{ci}\ge u\}\) is bounded below, the conditional event hazard
+\[
+ h_c(u\mid x)=P_c(T_{ci}=u\mid T_{ci}\ge u,X_{ci}=x)
+\]
+is bounded away from one, and every training complement of \(\mathcal V_{cf}\) has at least a fixed positive multiple of \(K\) observations. On that training sample, let \(N_{cfxu}\) count \(\{X_{ci}=x,U_{ci}=u,\Delta_{ci}=1\}\), let \(Y_{cfxu}\) count \(\{X_{ci}=x,U_{ci}\ge u\}\), estimate \(h_c(u\mid x)\) by the ratio \(N_{cfxu}/(Y_{cfxu}\vee1)\) clipped to an interval \([0,1-\varepsilon/2]\) containing every true hazard, and form \(\widehat Q_{c,-f}\) by the finite product integral of these hazards, normalized to one at time zero. Then, uniformly over the fixed cells, folds, strata, and times,
+\[
+ \left|\widehat h_{c,-f}(u\mid x)-h_c(u\mid x)\right|=O_P(K^{-1/2}),
+ \qquad
+ \operatorname{TV}\!\left[\log\!\left\{Q_c/\widehat Q_{c,-f}\right\}\right]=O_P(K^{-1/2}),
+\]
+the event-survival ratio error is \(O_P(K^{-1/2})\), the path \(R_{cf}\) is of bounded variation, and
+\[
+ \max_{c,f,\ell}\left\|V_{cf\ell}(X_{ci})\right\|_{L_2(P_c)}=O_P(K^{-1/2}).
+\]
+Thus this finite-stratum learner satisfies the event-side conditions with \(a_K=K^{-1/2}\). Every censor-survival learner satisfying Assumption~\ref{ass:censor-estimability} with \(b_K=o(1)\) then satisfies \(a_Kb_K=o(K^{-1/2})\). This is an attainability certificate for the stated finite-stratum submodel, not a claim about generic learners or the TCL application.
+\end{proposition}
+\begin{proof}
+Fix a cell \(c\), a fold \(f\), a covariate support point \(x\), and an event-support time \(u\) on the required horizon. Write \(I_{cf}=\{1,\ldots,K\}\setminus\mathcal V_{cf}\) and \(n_{cf}=|I_{cf}|\). By hypothesis, \(n_{cf}\ge \rho K\) for a fixed \(\rho>0\). Define the training-sample proportions
+\[
+ \widehat A_{cfxu}=\frac1{n_{cf}}\sum_{i\in I_{cf}}
+ \mathbf 1\{X_{ci}=x,U_{ci}=u,\Delta_{ci}=1\},
+ \qquad
+ \widehat D_{cfxu}=\frac1{n_{cf}}\sum_{i\in I_{cf}}
+ \mathbf 1\{X_{ci}=x,U_{ci}\ge u\}.
+\]
+Assumption~\ref{ass:cell-iid} makes both averages means of independent Bernoulli variables. Hence their variances are at most \((4n_{cf})^{-1}\le(4\rho K)^{-1}\). Chebyshev's inequality gives
+\[
+ \widehat A_{cfxu}-A_{cxu}=O_P(K^{-1/2}),
+ \qquad
+ \widehat D_{cfxu}-D_{cxu}=O_P(K^{-1/2}),
+\]
+where \(A_{cxu}=P_c(X_{ci}=x,U_{ci}=u,\Delta_{ci}=1)\) and \(D_{cxu}=P_c(X_{ci}=x,U_{ci}\ge u)\). The number of cells, folds, strata, and event-support times is fixed by the proposition and Assumption~\ref{ass:fixed-panel}; a finite union bound makes both rates uniform over all these indices.
+
+The tie convention \(\Delta_{ci}=\mathbf 1\{T_{ci}\le C_{ci}\}\) implies
+\[
+ \{U_{ci}=u,\Delta_{ci}=1\}=\{T_{ci}=u,C_{ci}\ge u\},
+ \qquad
+ \{U_{ci}\ge u\}=\{T_{ci}\ge u,C_{ci}\ge u\}.
+\]
+Assumption~\ref{ass:conditional-censoring} therefore gives, whenever \(P_c(X_{ci}=x)>0\),
+\[
+ \frac{A_{cxu}}{D_{cxu}}
+ =\frac{P_c(T_{ci}=u\mid X_{ci}=x)P_c(C_{ci}\ge u\mid X_{ci}=x)}
+ {P_c(T_{ci}\ge u\mid X_{ci}=x)P_c(C_{ci}\ge u\mid X_{ci}=x)}
+ =h_c(u\mid x).
+\]
+The assumed at-risk lower bound gives \(D_{cxu}\ge d_0>0\). On an event whose probability tends to one uniformly, \(\widehat D_{cfxu}\ge d_0/2\), so elementary ratio algebra yields
+\[
+ \left|\frac{\widehat A_{cfxu}}{\widehat D_{cfxu}}-\frac{A_{cxu}}{D_{cxu}}\right|
+ \le \frac{2}{d_0}|\widehat A_{cfxu}-A_{cxu}|
+ +\frac{2A_{cxu}}{d_0^2}|\widehat D_{cfxu}-D_{cxu}|
+ =O_P(K^{-1/2}).
+\]
+Replacing a zero empirical denominator by one affects only the complement of this event. Projection onto a closed interval is one-Lipschitz. Because \(h_c(u\mid x)\le1-\varepsilon\) lies in \([0,1-\varepsilon/2]\), clipping preserves the rate and proves
+\[
+ \max_{c,f,x,u}|\widehat h_{c,-f}(u\mid x)-h_c(u\mid x)|=O_P(K^{-1/2}).
+\]
+
+List the at most \(m_0<\infty\) event-support points on a cell horizon in increasing order. Assumption~\ref{ass:event-origin-support} and the finite product-integral construction give
+\[
+ Q_c(t\mid x)=\prod_{u\le t}\{1-h_c(u\mid x)\},
+ \qquad
+ \widehat Q_{c,-f}(t\mid x)=\prod_{u\le t}\{1-\widehat h_{c,-f}(u\mid x)\}.
+\]
+Both products equal one at zero. The derivative of \(z\mapsto\log(1-z)\) has absolute value at most \(2/\varepsilon\) on \([0,1-\varepsilon/2]\). Therefore, for the step path
+\(L_{cf}(t\mid x)=\log\{Q_c(t\mid x)/\widehat Q_{c,-f}(t\mid x)\}\),
+\[
+ \operatorname{TV}\{L_{cf}(\mathord\cdot\mid x);[0,\max_\ell t_{c\ell}]\}
+ \le \frac{2}{\varepsilon}\sum_u
+ |\widehat h_{c,-f}(u\mid x)-h_c(u\mid x)|
+ =O_P(K^{-1/2})
+\]
+uniformly over \(c,f,x\). In particular, \(\sup_t|L_{cf}(t\mid x)|=O_P(K^{-1/2})\). Since \(R_{cf}=\exp(L_{cf})-1\), composition with the exponential function gives, on the event \(\sup_t|L_{cf}(t\mid x)|\le1\),
+\[
+ \operatorname{TV}\{R_{cf}(\mathord\cdot\mid x)\}
+ \le e\,\operatorname{TV}\{L_{cf}(\mathord\cdot\mid x)\}
+ =O_P(K^{-1/2}).
+\]
+The event has probability tending to one uniformly. This proves bounded variation and its rate.
+
+The hazard separation and finiteness of the support also give the deterministic lower bounds
+\[
+ \inf_{c,x,t}Q_c(t\mid x)\ge\varepsilon^{m_0}>0,
+ \qquad
+ \inf_{c,f,x,t}\widehat Q_{c,-f}(t\mid x)\ge(\varepsilon/2)^{m_0}>0.
+\]
+Finite products and division on this compact positive set are Lipschitz functions of the finite hazard vector. Thus, uniformly for the survival ratios in the event-learner metric,
+\[
+ \sup_{0\le u\le t\le\max_\ell t_{c\ell}}
+ \left|\frac{\widehat Q_{c,-f}(t\mid x)}{\widehat Q_{c,-f}(u\mid x)}
+ -\frac{Q_c(t\mid x)}{Q_c(u\mid x)}\right|=O_P(K^{-1/2}).
+\]
+Because each covariate support is finite,
+\[
+ \|V_{cf\ell}(X_{ci})\|_{L_2(P_c)}
+ \le\max_x\operatorname{TV}\{R_{cf}(\mathord\cdot\mid x);[0,t_{c\ell}]\}
+ =O_P(K^{-1/2}),
+\]
+jointly over the fixed indices. Hence the learner meets the event-ratio and relative-variation conditions with \(a_K=K^{-1/2}\). If a censor learner satisfies Assumption~\ref{ass:censor-estimability} with \(b_K=o(1)\), then
+\[
+ a_Kb_K=K^{-1/2}b_K=o(K^{-1/2}).
+\]
+No assertion in this proof extends the finite-support calculation to an arbitrary event learner or verifies its premises for the TCL data.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition proves that the disclosed relative-survival variation restriction is attainable for a concrete clipped empirical hazard learner on a fixed finite-stratum submodel. \textit{Gap.} The certificate does not infer pathwise variation from generic machine-learning consistency. It obtains the rate from a finite collection of counting-process hazard ratios and a finite product integral. \textit{Consumer.} The certificate makes the learner restriction checkable on a finite-stratum submodel but does not claim that its fixed-support premises hold in the TCL application.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The positive theory is fixed-dimensional and conditional on an event learner whose relative-survival path has the stated bounded variation and \(L_2\) variation rate. Ordinary supremum or \(L_2\) consistency does not imply that property. The finite-stratum hazard certificate establishes attainability only for fixed covariate and event-time supports with uniformly positive at-risk probabilities, event hazards bounded away from one, and proportional training samples; it does not verify the restriction for generic learners or for the TCL data. For the fixed matrix \(M\), exact rank already supplies the positive local rank-\(r\) separation used in differentiation, so there is no standalone singular-gap restriction. This argument is not uniform over triangular arrays with \(\sigma_r(M_K)\to0\). The joint Gaussian covariance may be singular, but the band excludes zero counterfactual coordinate variances and the grid-RMST interval excludes zero variance in its scalar direction. The theory does not cover growing grids or panels, selected rank, approximate post-transport, or continuous-time RMST.
+
+\section{Honest scope}
+
+The joint cell expansion is a conditional-learner theorem under within-cell i.i.d. sampling, cross-cell independence for stacking, conditional independent censoring, censor positivity, fixed-fold nuisance consistency and product rate, origin normalization, and explicit bounded-variation and relative-variation restrictions. A concrete clipped empirical hazard learner discharges the event-side restrictions with root-\(K\) rate only on the stated fixed finite-stratum submodel; this does not establish generic learner attainability or verify the 925-patient TCL application. The spectral limit additionally requires fixed panel dimensions, exact rank of the fixed donor-pre matrix, and exact post-transport, which is its sole global causal-identification equality. Exact rank implies the fixed positive separation \(\sigma_r(M)>0=\sigma_{r+1}(M)\), so no separate singular-gap assumption is required; the result is not uniform for a sequence of matrices with a closing gap. No global target-pre row-space assumption is imposed: the Han--Shah embedding derives row membership from its own factor-span hypotheses, and the full-data rational witness derives it from invertibility. The witness explicitly separates treated and untreated target-post potential times, imposes consistency, preserves all six observed margins, and proves a relatively open causal subclass with fixed Kaplan--Meier/PCR bias. The joint covariance may be singular. The simultaneous band requires positive counterfactual marginal variances, and the studentized grid-RMST interval separately requires positive variance of \(q^\top(\Phi_1-\Phi_\theta)\). Applying either conclusion to TCL requires independent verification of all sampling, learner, transport, and relevant variance conditions. Nothing here covers growing dimensions, selected rank, approximate transport, or continuous-time RMST. Weak-gap inference remains the acknowledged follow-on question because its frontier also depends on weak loadings and a uniform triangular experiment, not only on \(\sigma_r(M_K)\).
+
+\begin{thebibliography}{99}
+
+  \bibitem{HanShah2025SSC} Han, J. X., and Shah, D. (2025). Synthetic Survival Control: Extending Synthetic Controls for ``When-If'' Decision. arXiv:2511.14133.
+
+  \bibitem{WestlingLuedtkeGilbertCarone2024} Westling, T., Luedtke, A., Gilbert, P. B., and Carone, M. (2024). Inference for treatment-specific survival curves using machine learning. Journal of the American Statistical Association, 119, 1541--1553. arXiv:2106.06602.
+
+  \bibitem{AgarwalShahShen2025PCR} Agarwal, A., Shah, D., and Shen, D. (2025). On model identification and out-of-sample prediction of principal component regression: Applications to synthetic controls. Journal of Machine Learning Research. arXiv:2010.14449.
+
+  \bibitem{GolubPereyra1973} Golub, G. H., and Pereyra, V. (1973). The differentiation of pseudo-inverses and nonlinear least squares problems whose variables separate. SIAM Journal on Numerical Analysis, 10, 413--432. doi:10.1137/0710036.
+
+  \bibitem{ChernozhukovChetverikovKato2013} Chernozhukov, V., Chetverikov, D., and Kato, K. (2013). Gaussian approximations and multiplier bootstrap for maxima of sums of high-dimensional random vectors. Annals of Statistics, 41, 2786--2819. arXiv:1212.6906.
+
+  \bibitem{ChernozhukovEtAl2018DML} Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. Econometrics Journal, 21, C1--C68. arXiv:1608.00060.
+
+  \bibitem{CurthPoonNoriGonzalez2024} Curth, A., Poon, H., Nori, A. V., and Gonz\'alez, J. (2024). Cautionary tales on synthetic controls in survival analyses. Proceedings of the Third Conference on Causal Learning and Reasoning, PMLR 236, 143--159. arXiv:2312.00501.
+
+  \bibitem{ChoiKwonLiao2026RankRobust} Choi, J., Kwon, H., and Liao, Y. (2026). Inference for low-rank models without estimating the rank. Journal of the American Statistical Association. arXiv:2311.16440.
+
+  \bibitem{FanLiao2022Diversified} Fan, J., and Liao, Y. (2022). Learning latent factors from diversified projections and its applications to over-estimated and weak factors. Journal of the American Statistical Association, 117, 909--924. arXiv:1908.01252. doi:10.1080/01621459.2020.1831927.
+
+  \bibitem{Gunsilius2023DSC} Gunsilius, F. F. (2023). Distributional synthetic controls. Econometrica, 91, 1105--1117. arXiv:2001.06118.
+
+  \bibitem{OkanoKurisu2026FSC} Okano, R., and Kurisu, D. (2026). Functional synthetic control methods. arXiv:2601.07539.
+
+  \bibitem{LokYangSharkeyHughes2018} Lok, J. J., Yang, S., Sharkey, B., and Hughes, M. D. (2018). Estimation of the cumulative incidence function under multiple dependent and independent censoring mechanisms. Lifetime Data Analysis, 24, 203--223.
+
+  \bibitem{ChernozhukovWuthrichZhu2021} Chernozhukov, V., Wuthrich, K., and Zhu, Y. (2021). An exact and robust conformal inference method for counterfactual and synthetic controls. Journal of the American Statistical Association, 116, 1849--1864. arXiv:1712.09089.
+
+\end{thebibliography}
+
+\end{document}

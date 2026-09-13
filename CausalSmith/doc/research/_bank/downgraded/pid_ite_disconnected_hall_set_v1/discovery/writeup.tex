@@ -1,0 +1,1281 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}ite\_\allowbreak{}disconnected\_\allowbreak{}hall\_\allowbreak{}set}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Randomization identifies the two ordinal potential-outcome marginals but not their coupling. The note characterizes every shortest coupling-robust individual-effect set as a high-mass difference set, gives an exact boundary-safe ternary disconnectedness frontier, and proves a sharp missed elbow in the price of interval reporting: the worst multiplicative price is \((2L-1)/3\) when target coverage exceeds one half and \(L/2\) when target coverage is at most one half. The interval benchmark is the shortest completion of the anchor's marginal-robust validity criterion; comparison is direct on the anchor's stated coverage-level domain and extends the same functional through its omitted neighborhood and the elbow. Exact min-cut computation and simultaneous multinomial confidence-polytopes provide finite-sample certification and uniform selector recovery away from explicit tie surfaces.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest ITE papers give sharp distributional bounds and discuss marginal-robust interval reports, but no located result formulates and solves the general ordinal shortest-interval oracle, solves the outer cardinality optimization over arbitrary effect sets, or identifies the coverage-level elbow in their sharp comparison. Hall theory certifies a fixed support but does not solve either selection problem.
+
+\paragraph{Niche.} Ordinal outcomes create integer difference geometry in which disconnected sets can be dramatically shorter than the shortest interval induced by the same every-compatible-coupling validity requirement, with the maximal penalty changing exactly when target coverage crosses one half.
+
+\paragraph{Fill.} The difference-set normal form, explicit interval-validity bridge, complete ternary frontier, sharp two-regime general-support interval price with matching equality systems, and confidence-polytope inversion jointly deliver identification, geometry, computation, and honest reporting.
+
+\section{Related work}
+
+Zhang and Richardson (2025), Sections 3 and Appendix D, discuss coupling-robust prediction intervals and the ordinal case, while Section 5 supplies sharp bounds for a single individual-effect probability mass. They do not formulate or optimize the general ordinal shortest-interval oracle. The present note minimizes cardinality, equivalently integer endpoint length, over intervals satisfying their marginal-robust validity requirement and then compares that induced benchmark with arbitrary effect sets. This is a direct comparison on their stated coverage-level domain; on their omitted neighborhood of one-half, including \(\alpha=1/2\), it is an extension of the same validity functional. Fan and Park (2010) are the direct sharp distribution-of-ITE comparator: they derive Makarov-type distribution-function bounds and inference, whereas the present target selects a shortest common-coupling set of effect values and characterizes when that set is disconnected. Koperberg (2024) supplies finite Strassen--Hall deficiency for a fixed relation and is used only as identification machinery. Lu, Ding, and Dasgupta (2018) derive sharp scalar ordinal benefit bounds through cumulative transportation arguments; the present target is a common-coupling multi-diagonal set. Gao, Shan, Srinivas, and Vijayaraghavan (2025) motivate measuring the price of geometric restrictions, but their structured conformal sets are evaluated under an observed outcome law rather than an adversarial potential-outcome coupling. Malloy, Tripathy, and Nowak (2021) motivate simplex confidence-region inversion, Huang, Fang, Hanley, and Rosenblum (2019) address nonregular scalar ordinal-bound inference, and Fang and Santos (2019) explain why active-set ties require directional methods. Duarte and coauthors (2024) motivate exhaustive discrete computation but do not replace the symbolic frontier. Goldman and coauthors (2020) supply the seven-category randomized endpoint for the concrete application.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(S^\star=\min_{\prec}\{S\subseteq E:\inf_{\gamma\in\Gamma(\mu_1,\mu_0)}\Pr_{\gamma}(Y(1)-Y(0)\in S)\geq1-\alpha\}\).
+Primary functional / estimator / diagnostic: \(S^\star=\min_{\prec}\{A-B:(A,B)\in\mathcal F_{\tau},\ |A-B|=\min_{(A',B')\in\mathcal F_{\tau}}|A'-B'|\}\).
+\begin{itemize}
+  \item \texttt{L} --- \texttt{integer}; \(\mathbb Z_{+}\); \texttt{number of ordered outcome categories}
+  \item \texttt{X} --- \texttt{finite set}; \(\{0,\ldots,L-1\}\); \texttt{ordinal outcome support}
+  \item \texttt{E} --- \texttt{finite set}; \(\{-L+1,\ldots,L-1\}\); \texttt{individual-\allowbreak{}effect support}
+  \item \texttt{DeltaL} --- \texttt{probability simplex}; \(\{u\in\mathbb R_{+}^{L}:\sum_{j=0}^{L-1}u_j=1\}\); \texttt{space of ordinal marginal laws}
+  \item \texttt{Y0} --- \texttt{random variable}; \(X\); \texttt{control potential outcome}
+  \item \texttt{Y1} --- \texttt{random variable}; \(X\); \texttt{treated potential outcome}
+  \item \texttt{Z} --- \texttt{random variable}; \(\{0,1\}\); \texttt{randomized treatment assignment}
+  \item \texttt{mu0} --- \texttt{probability vector}; \(\Delta_L\); \texttt{identified control marginal}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{0,j}=\Pr(Y(0)=j)\)
+  \item \texttt{mu1} --- \texttt{probability vector}; \(\Delta_L\); \texttt{identified treated marginal}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{1,i}=\Pr(Y(1)=i)\)
+  \item \texttt{mu} --- \texttt{ordered pair}; \(\Delta_L^2\); \texttt{identified marginal pair}
+  \par\smallskip\noindent\emph{Definition.} \(\mu=(\mu_0,\mu_1)\)
+  \item \texttt{gamma} --- \texttt{nonnegative matrix}; \(\mathbb R_{+}^{L\times L}\); \texttt{candidate coupling table}
+  \item \texttt{Gamma} --- \texttt{set-\allowbreak{}valued map}; \(\Delta_L\times\Delta_L\to2^{\mathbb R_{+}^{L\times L}}\); \texttt{fixed-\allowbreak{}marginal coupling polytope}
+  \item \texttt{alpha} --- \texttt{scalar}; \texttt{miscoverage level}
+  \item \texttt{c} --- \texttt{scalar}; \((0,1)\); \texttt{coverage threshold}
+  \par\smallskip\noindent\emph{Definition.} \(c=1-\alpha\)
+  \item \texttt{tau} --- \texttt{scalar}; \((1,2)\); \texttt{rectangle mass threshold}
+  \par\smallskip\noindent\emph{Definition.} \(\tau=2-\alpha=1+c\)
+  \item \texttt{S} --- \texttt{set}; \(2^E\); \texttt{candidate effect set}
+  \item \texttt{A} --- \texttt{set}; \(2^X\); \texttt{treated-\allowbreak{}outcome subset}
+  \item \texttt{B} --- \texttt{set}; \(2^X\); \texttt{control-\allowbreak{}outcome subset}
+  \item \texttt{Diff} --- \texttt{set-\allowbreak{}valued operation}; \(2^X\times2^X\to2^E\); \texttt{difference-\allowbreak{}set map}
+  \item \texttt{Ncomp} --- \texttt{set-\allowbreak{}valued map}; \(2^E\times2^X\to2^X\); \texttt{neighborhood under the complement of the allowed-\allowbreak{}effect relation}
+  \item \texttt{h} --- \texttt{functional}; \(\Delta_L\times\Delta_L\times2^E\to[0,1]\); \texttt{worst-\allowbreak{}coupling coverage}
+  \item \texttt{V} --- \texttt{set family}; \(2^{2^E}\); \texttt{valid effect sets}
+  \item \texttt{kstar} --- \texttt{integer}; \(\{1,\ldots,2L-1\}\); \texttt{minimum valid cardinality}
+  \item \texttt{Kstar} --- \texttt{set family}; \(2^{2^E}\); \texttt{all cardinality-\allowbreak{}minimal valid sets}
+  \item \texttt{span} --- \texttt{functional}; \((2^E\setminus\{\varnothing\})\to\mathbb Z_{+}\); \texttt{effect-\allowbreak{}set span}
+  \item \texttt{code} --- \texttt{functional}; \(2^E\to\mathbb Z_{+}\); \texttt{binary tie-\allowbreak{}breaking code}
+  \item \texttt{prec} --- \texttt{total order}; \(2^E\); \texttt{cardinality-\allowbreak{}-\allowbreak{}span-\allowbreak{}-\allowbreak{}code order}
+  \item \texttt{Sstar} --- \texttt{set}; \(2^E\); \texttt{deterministic shortest valid set}
+  \item \texttt{Int} --- \texttt{set family}; \(2^{2^E}\); \texttt{nonempty consecutive effect intervals}
+  \item \texttt{Istar} --- \texttt{integer}; \(\{1,\ldots,2L-1\}\); \texttt{minimum valid interval cardinality}
+  \item \texttt{Ftau} --- \texttt{set family}; \(2^X\times2^X\); \texttt{threshold-\allowbreak{}feasible marginal rectangles}
+  \item \texttt{Q0} --- \texttt{function}; \(\{1,\ldots,L\}\to[0,1]\); \texttt{control interval concentration profile}
+  \item \texttt{Q1} --- \texttt{function}; \(\{1,\ldots,L\}\to[0,1]\); \texttt{treated interval concentration profile}
+  \item \texttt{Bk} --- \texttt{function}; \(\{1,\ldots,2L-1\}\to[0,2]\); best interval-rectangle mass at budget \(k\)
+  \item \texttt{Rk} --- \texttt{function}; \(\{1,\ldots,2L-1\}\to[0,2]\); best arbitrary difference-set rectangle mass at budget \(k\)
+  \item \texttt{m0} --- \texttt{scalar}; \([0,1]\); \texttt{largest control marginal mass}
+  \item \texttt{m1} --- \texttt{scalar}; \([0,1]\); \texttt{largest treated marginal mass}
+  \item \texttt{b2} --- \texttt{scalar}; \([0,1]\); \texttt{best two-\allowbreak{}point interval coverage}
+  \item \texttt{d2} --- \texttt{scalar}; \([0,1]\); \texttt{best disconnected two-\allowbreak{}point coverage}
+  \item \texttt{b3} --- \texttt{scalar}; \([0,1]\); \texttt{best three-\allowbreak{}point interval coverage}
+  \item \texttt{beta} --- \texttt{scalar}; \((0,1)\); \texttt{sampling-\allowbreak{}error probability}
+  \item \texttt{n0} --- \texttt{positive integer}; \texttt{control-\allowbreak{}arm sample size}
+  \item \texttt{n1} --- \texttt{positive integer}; \texttt{treated-\allowbreak{}arm sample size}
+  \item \texttt{rho} --- \texttt{scalar}; \((0,1)\); \texttt{limiting control-\allowbreak{}arm fraction}
+  \item \texttt{hatmu0} --- \texttt{random probability vector}; \(\Delta_L\); \texttt{empirical control marginal}
+  \item \texttt{hatmu1} --- \texttt{random probability vector}; \(\Delta_L\); \texttt{empirical treated marginal}
+  \item \texttt{r0} --- \texttt{positive scalar}; \texttt{control confidence radius}
+  \item \texttt{r1} --- \texttt{positive scalar}; \texttt{treated confidence radius}
+  \item \texttt{C0} --- \texttt{random polytope}; \(2^{\Delta_L}\); \texttt{control marginal confidence polytope}
+  \item \texttt{C1} --- \texttt{random polytope}; \(2^{\Delta_L}\); \texttt{treated marginal confidence polytope}
+  \item \texttt{ell} --- \texttt{random functional}; \(2^E\to[0,1]\); \texttt{confidence-\allowbreak{}robust lower coverage}
+  \item \texttt{Hhat} --- \texttt{random set family}; \(2^{2^E}\); \texttt{simultaneously certified effect sets}
+  \item \texttt{Shat} --- \texttt{random set}; \(2^E\); \texttt{first certified set}
+  \item \texttt{eta} --- \texttt{positive scalar}; \texttt{selection-\allowbreak{}separation margin}
+  \item \texttt{Meta} --- \texttt{class of marginal pairs}; \(\Delta_L^2\); \texttt{fixed-\allowbreak{}margin selection class}
+  \item \texttt{nmin} --- \texttt{positive integer}; \texttt{smaller arm size}
+  \par\smallskip\noindent\emph{Definition.} \(n_{\min}=\min\{n_0,n_1\}\)
+  \item \texttt{Alg} --- \texttt{finite algorithm}; \texttt{min-\allowbreak{}cut plus outer difference-\allowbreak{}set optimization}
+  \item \texttt{Handle} --- \texttt{proof program}; \texttt{inverse additive-\allowbreak{}combinatorial Hall handle}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:ordinal-support]\label{ass:ordinal-support}
+\(L\geq3\)
+\par\smallskip\noindent\emph{Standard} (Finite ordinal outcome support, \cite{ZhangRichardson2025}).
+\end{assumption}
+
+\begin{assumption}[ass:coverage-level]\label{ass:coverage-level}
+\(0<\alpha<1\)
+\par\smallskip\noindent\emph{Novel.} This record declares the present note's full nondegenerate domain \(0<\alpha<1\), including the elbow and the neighborhood of one-half omitted by the comparator's stated coverage-level restriction; it is not attributed to that comparator.
+\end{assumption}
+
+\begin{assumption}[ass:randomization]\label{ass:randomization}
+\(Z\perp\!\!\!\perp(Y(0),Y(1))\)
+\par\smallskip\noindent\emph{Standard} (Random treatment assignment, \cite{ZhangRichardson2025}).
+\end{assumption}
+
+\begin{assumption}[ass:assignment-overlap]\label{ass:assignment-overlap}
+\(0<\Pr(Z=1)<1\)
+\par\smallskip\noindent\emph{Standard} (Two-arm assignment positivity, \cite{ZhangRichardson2025}).
+\end{assumption}
+
+\begin{assumption}[ass:arm-sampling]\label{ass:arm-sampling}
+\(\mathcal L(Y_{0,1},\ldots,Y_{0,n_0},Y_{1,1},\ldots,Y_{1,n_1})=\mu_0^{\otimes n_0}\otimes\mu_1^{\otimes n_1}\)
+\par\smallskip\noindent\emph{Standard} (Independent multinomial arm sampling, \cite{MalloyTripathyNowak2021}).
+\end{assumption}
+
+\begin{assumption}[ass:allocation-limit]\label{ass:allocation-limit}
+\(n_0+n_1\to\infty\) and \(n_0/(n_0+n_1)\to\rho\in(0,1)\)
+\par\smallskip\noindent\emph{Standard} (Stable two-arm allocation, \cite{HuangFangHanleyRosenblum2019}).
+\end{assumption}
+
+\begin{assumption}[ass:selected-validity-gap]\label{ass:selected-validity-gap}
+\(h_{\mu}(S^\star)\geq c+\eta\)
+\par\smallskip\noindent\emph{Novel.} For fixed \(L\), failure of the existence of some positive selected-set validity margin occurs only when the nominal threshold coincides with one of the finitely many piecewise-affine Hall coverage values, a set contained in finitely many affine surfaces. For a fixed prescribed \(\eta>0\), however, the excluded region contains positive-width neighborhoods of those surfaces.
+\end{assumption}
+
+\begin{assumption}[ass:predecessor-invalidity-gap]\label{ass:predecessor-invalidity-gap}
+\(\sup_{T\prec S^\star}h_{\mu}(T)\leq c-\eta\)
+\par\smallskip\noindent\emph{Novel.} For every fixed marginal pair, minimality of \(S^\star\) implies \(h_{\mu}(T)<c\) for every \(T\prec S^\star\); since \(2^E\) is finite, some positive common predecessor gap therefore exists automatically. For a fixed prescribed \(\eta>0\), the condition excludes points whose minimum predecessor slack is below \(\eta\), generally positive-width neighborhoods of predecessor feasibility surfaces; it remains directly checkable from the identified marginals.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:coupling-polytope]\label{def:coupling-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}marginal coupling polytope}
+\par\smallskip\noindent\emph{Construction.} \(\Gamma(\mu_1,\mu_0)=\{\gamma\in\mathbb R_{+}^{L\times L}:\sum_j\gamma_{ij}=\mu_{1,i}\ \forall i,\ \sum_i\gamma_{ij}=\mu_{0,j}\ \forall j\}\)
+\end{definition}
+
+\begin{definition}[def:difference-set]\label{def:difference-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Outcome-\allowbreak{}subset difference}
+\par\smallskip\noindent\emph{Construction.} \(A-B=\{i-j:i\in A,\ j\in B\}\subseteq E\)
+\end{definition}
+
+\begin{definition}[def:complement-neighborhood]\label{def:complement-neighborhood}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complement-\allowbreak{}relation neighborhood}
+\par\smallskip\noindent\emph{Construction.} \(N_{S^{\mathsf c}}(A)=\{j\in X:\exists i\in A\text{ with }i-j\notin S\}\)
+\end{definition}
+
+\begin{definition}[def:worst-coverage]\label{def:worst-coverage}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Worst-\allowbreak{}coupling coverage}
+\par\smallskip\noindent\emph{Construction.} \(h_{\mu}(S)=\min_{\gamma\in\Gamma(\mu_1,\mu_0)}\sum_{i-j\in S}\gamma_{ij}\)
+\end{definition}
+
+\begin{definition}[def:valid-family]\label{def:valid-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Valid effect-\allowbreak{}set family}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal V_{\mu,c}=\{S\subseteq E:h_{\mu}(S)\geq c\}\)
+\end{definition}
+
+\begin{definition}[def:shortest-family]\label{def:shortest-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Shortest valid sets}
+\par\smallskip\noindent\emph{Construction.} \(k^*=\min_{S\in\mathcal V_{\mu,c}}|S|,\qquad\mathcal K^*=\{S\in\mathcal V_{\mu,c}:|S|=k^*\}\)
+\end{definition}
+
+\begin{definition}[def:deterministic-selector]\label{def:deterministic-selector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cardinality-\allowbreak{}-\allowbreak{}span-\allowbreak{}-\allowbreak{}code selector}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{span}(S)=\max S-\min S,\quad\operatorname{code}(S)=\sum_{e\in S}2^{e+L-1},\quad S^\star=\min_{\prec}\mathcal V_{\mu,c}\), where \(\prec\) orders \((|S|,\operatorname{span}(S),\operatorname{code}(S))\) lexicographically.
+\end{definition}
+
+\begin{definition}[def:interval-optimum]\label{def:interval-optimum}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Shortest interval induced by robust validity}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_L=\{\{a,a+1,\ldots,b\}\subseteq E:a\leq b\},\qquad I^*=\min\{|I|:I\in\mathcal I_L,\ h_{\mu}(I)\geq c\}\)
+\end{definition}
+
+\begin{definition}[def:feasible-rectangles]\label{def:feasible-rectangles}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Threshold-\allowbreak{}feasible rectangles}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal F_{\tau}=\{(A,B):\varnothing\neq A,B\subseteq X,\ \mu_1(A)+\mu_0(B)\geq\tau\}\)
+\end{definition}
+
+\begin{definition}[def:concentration-profiles]\label{def:concentration-profiles}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Marginal interval concentration profiles}
+\par\smallskip\noindent\emph{Construction.} \(Q_d(w)=\max_{0\leq a\leq L-w}\sum_{j=a}^{a+w-1}\mu_{d,j}\), for \(d\in\{0,1\}\) and \(1\leq w\leq L\).
+\end{definition}
+
+\begin{definition}[def:frontier-profiles]\label{def:frontier-profiles}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Arbitrary and interval rectangle profiles}
+\par\smallskip\noindent\emph{Construction.} \(B_k=\max_{1\leq a,b\leq L,\ a+b\leq k+1}\{Q_1(a)+Q_0(b)\},\qquad R_k=\max_{\varnothing\neq A,B\subseteq X,\ |A-B|\leq k}\{\mu_1(A)+\mu_0(B)\}\)
+\end{definition}
+
+\begin{definition}[def:ternary-thresholds]\label{def:ternary-thresholds}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Ternary disconnectedness thresholds}
+\par\smallskip\noindent\emph{Construction.} For \(L=3\), \(m_d=\max_{0\leq j\leq2}\mu_{d,j}\), \(b_2=\max\{m_1-\min(\mu_{0,0},\mu_{0,2}),\ m_0-\min(\mu_{1,0},\mu_{1,2}),0\}\), \(d_2=\max\{m_1-\mu_{0,1},\ m_0-\mu_{1,1},0\}\), and \(b_3=\max\{m_1,m_0,1-\min(\mu_{1,0},\mu_{1,2})-\min(\mu_{0,0},\mu_{0,2})\}\).
+\end{definition}
+
+\begin{definition}[def:confidence-polytopes]\label{def:confidence-polytopes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Simultaneous multinomial confidence polytopes}
+\par\smallskip\noindent\emph{Construction.} \(r_d=\sqrt{\log(4L/\beta)/(2n_d)}\) and \(C_d=\{\nu\in\Delta_L:|\nu_j-\widehat\mu_{d,j}|\leq r_d\ \forall j\}\), for \(d\in\{0,1\}\).
+\end{definition}
+
+\begin{definition}[def:certified-family]\label{def:certified-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Confidence-\allowbreak{}robust certified family}
+\par\smallskip\noindent\emph{Construction.} \(\ell(S)=\min_{\nu_1\in C_1,\nu_0\in C_0}h_{(\nu_0,\nu_1)}(S),\qquad\widehat{\mathcal H}=\{S\subseteq E:\ell(S)\geq c\},\qquad\widehat S=\min_{\prec}\widehat{\mathcal H}\)
+\end{definition}
+
+\begin{definition}[def:selection-class]\label{def:selection-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Separated fixed-\allowbreak{}margin class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{L,\eta}=\{(\mu_0,\mu_1)\in\Delta_L^2:h_{\mu}(S^\star)\geq c+\eta\ \text{ and }\ \sup_{T\prec S^\star}h_{\mu}(T)\leq c-\eta\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}selected-\allowbreak{}validity-\allowbreak{}gap}; \texttt{ass:\allowbreak{}predecessor-\allowbreak{}invalidity-\allowbreak{}gap}.
+\end{definition}
+
+\begin{definition}[def:exact-algorithm]\label{def:exact-algorithm}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Min-\allowbreak{}cut and finite outer optimization}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{Alg}\) evaluates \(h_{\mu}(S)\) by one source--row--column--sink minimum cut for each \(S\subseteq E\), and evaluates the outer optimum by enumerating \((A,B)\in\mathcal F_{\tau}\), deduplicating \(A-B\), and ordering the retained sets by \(\prec\).
+\end{definition}
+
+\begin{definition}[def:equality-handle]\label{def:equality-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Inverse Hall equality handle}
+\par\smallskip\noindent\emph{Construction.} Use inverse equality analysis for \(|A-B|\geq|A|+|B|-1\) jointly with the active threshold-feasible Hall rectangles to characterize the marginal laws attaining the interval-price frontier.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:hall-coverage]\label{lem:hall-coverage}
+For every \(S\subseteq E\), \[h_{\mu}(S)=\max_{A\subseteq X}\{\mu_1(A)-\mu_0(N_{S^{\mathsf c}}(A))\}=\max\!\left\{0,\max_{\substack{\varnothing\neq A,B\subseteq X\\A-B\subseteq S}}\bigl(\mu_1(A)+\mu_0(B)-1\bigr)\right\}.\] Both maxima and the minimum defining \(h_{\mu}(S)\) are attained, including when marginal cells are zero.
+\end{lemma}
+\begin{proof}
+By \(\text{ass:ordinal-support}\), \(L\geq 3\), so the declared support \(X=\{0,\ldots,L-1\}\) is finite and nonempty.  Put \(p(i)=\mu_{1,i}\) and \(q(j)=\mu_{0,j}\).  Since \(\mu_1,\mu_0\in\Delta_L\), \(p\) and \(q\) are probability measures on \(X\).  For the fixed set \(S\subseteq E\), define the outside relation
+\[
+R_S=\{(i,j)\in X\times X:i-j\notin S\}.
+\]
+For every \(A\subseteq X\), the neighborhood of \(A\) under \(R_S\) is
+\[
+N_{R_S}(A)=\{j\in X:\exists i\in A\text{ such that }i-j\notin S\}
+=N_{S^{\mathsf c}}(A),
+\]
+where the last equality is \(\text{def:complement-neighborhood}\).
+
+First, the optimization in \(\text{def:worst-coverage}\) is well posed at boundary marginal laws.  Indeed, the product table \(\gamma^{\otimes}_{ij}=p(i)q(j)\) is nonnegative and satisfies
+\[
+\sum_{j\in X}\gamma^{\otimes}_{ij}=p(i)\sum_{j\in X}q(j)=p(i),
+\qquad
+\sum_{i\in X}\gamma^{\otimes}_{ij}=q(j)\sum_{i\in X}p(i)=q(j).
+\]
+Thus \(\gamma^{\otimes}\in\Gamma(\mu_1,\mu_0)\) by \(\text{def:coupling-polytope}\), even when some coordinates of either marginal are zero.  In particular, the feasible coupling set is nonempty.  Attainment of the stated minimum will follow below from the coupling furnished by \(\text{lem:finite-strassen-deficiency}\), so no positivity or interiority condition is needed.
+
+Define the finite Hall deficiency
+\[
+\delta_S=\max_{A\subseteq X}\bigl\{p(A)-q(N_{S^{\mathsf c}}(A))\bigr\}.
+\]
+The maximum is attained because \(2^X\) is finite.  Its term at \(A=\varnothing\) is zero, while every term is at most \(p(A)\leq1\); consequently
+\[
+0\leq\delta_S\leq1.
+\]
+For an arbitrary \(\gamma\in\Gamma(\mu_1,\mu_0)\), let
+\[
+e_S(\gamma)=\sum_{\substack{i,j\in X\\i-j\in S}}\gamma_{ij}.
+\]
+The sets \(R_S\) and \(\{(i,j):i-j\in S\}\) partition \(X\times X\), and every coupling has total mass one.  Therefore
+\[
+\gamma(R_S)=1-e_S(\gamma).
+\]
+Apply the necessity direction of \(\text{lem:finite-strassen-deficiency}\) to the finite sets \(U=V=X\), relation \(R_S\), marginals \(p,q\), and the nonnegative number \(\varepsilon=e_S(\gamma)\).  It yields, for every \(A\subseteq X\),
+\[
+p(A)\leq q(N_{R_S}(A))+e_S(\gamma)
+=q(N_{S^{\mathsf c}}(A))+e_S(\gamma).
+\]
+Taking the maximum over \(A\) gives
+\[
+\delta_S\leq e_S(\gamma).
+\]
+Since this holds for every feasible coupling, \(\delta_S\leq h_\mu(S)\) by \(\text{def:worst-coverage}\).
+
+Conversely, the definition of \(\delta_S\) gives the simultaneous inequalities
+\[
+p(A)\leq q(N_{R_S}(A))+\delta_S
+\qquad\text{for every }A\subseteq X.
+\]
+Because \(\delta_S\geq0\), the sufficiency direction of \(\text{lem:finite-strassen-deficiency}\), with \(\varepsilon=\delta_S\), supplies a coupling \(\widetilde\gamma\in\Gamma(\mu_1,\mu_0)\) satisfying
+\[
+\widetilde\gamma(R_S)\geq1-\delta_S.
+\]
+Taking complementary mass gives
+\[
+e_S(\widetilde\gamma)=1-\widetilde\gamma(R_S)\leq\delta_S.
+\]
+Thus \(h_\mu(S)\leq e_S(\widetilde\gamma)\leq\delta_S\).  Combining this with the preceding lower bound proves
+\[
+h_\mu(S)=\delta_S
+=\max_{A\subseteq X}\{\mu_1(A)-\mu_0(N_{S^{\mathsf c}}(A))\},
+\]
+and also shows directly that \(\widetilde\gamma\) attains the minimum.
+
+It remains to convert the Hall deficiency into the rectangle representation.  To make the boundary case unambiguous, read the rightmost displayed maximum in the statement as the maximum of the finite nonempty set
+\[
+\mathcal T_S=\{0\}\cup
+\{p(A)+q(B)-1:\varnothing\neq A,B\subseteq X,\ A-B\subseteq S\}.
+\]
+This agrees with the displayed nested notation whenever a nonempty feasible rectangle exists and remains defined when none exists.  For each \(A\subseteq X\), set
+\[
+B_A=X\setminus N_{S^{\mathsf c}}(A).
+\]
+If \(i\in A\) and \(j\in B_A\), the definition of \(B_A\) says that no element of \(A\), in particular \(i\), has \(i-j\notin S\).  Hence \(i-j\in S\), and \(\text{def:difference-set}\) gives
+\[
+A-B_A\subseteq S.
+\]
+Since \(B_A\) is the complement of \(N_{S^{\mathsf c}}(A)\) in \(X\) and \(q(X)=1\),
+\[
+p(A)-q(N_{S^{\mathsf c}}(A))
+=p(A)+q(B_A)-1.
+\]
+Choose \(A^\star\subseteq X\) attaining \(\delta_S\).  If \(\delta_S>0\), then \(A^\star\neq\varnothing\), because the deficiency at the empty set is zero.  Also \(B_{A^\star}\neq\varnothing\), because otherwise
+\[
+p(A^\star)+q(B_{A^\star})-1=p(A^\star)-1\leq0,
+\]
+contrary to \(\delta_S>0\).  Therefore, when \(\delta_S>0\), the value \(\delta_S\) is one of the rectangle values in \(\mathcal T_S\).  When \(\delta_S=0\), it is the explicit element zero.  In either case,
+\[
+\delta_S\leq\max\mathcal T_S.
+\]
+
+For the reverse inequality, take nonempty \(A,B\subseteq X\) with \(A-B\subseteq S\).  If \(j\in B\), then \(i-j\in S\) for every \(i\in A\), by \(\text{def:difference-set}\).  Thus \(j\notin N_{S^{\mathsf c}}(A)\), whence \(B\subseteq B_A\).  Nonnegativity of the probability measure \(q\) now gives
+\[
+\begin{aligned}
+p(A)+q(B)-1
+&\leq p(A)+q(B_A)-1\\
+&=p(A)-q(N_{S^{\mathsf c}}(A))\\
+&\leq\delta_S.
+\end{aligned}
+\]
+The remaining member zero of \(\mathcal T_S\) is also at most \(\delta_S\).  Hence \(\max\mathcal T_S\leq\delta_S\), and consequently
+\[
+h_\mu(S)
+=\max_{A\subseteq X}\{\mu_1(A)-\mu_0(N_{S^{\mathsf c}}(A))\}
+=\max\!\left\{0,
+\max_{\substack{\varnothing\neq A,B\subseteq X\\A-B\subseteq S}}
+\bigl(\mu_1(A)+\mu_0(B)-1\bigr)\right\}.
+\]
+The Hall maximum and the maximum over \(\mathcal T_S\) are maxima of finite nonempty sets and therefore are attained.  When their common value is positive, the construction above supplies an attaining nonempty rectangle; when it is zero and no such rectangle exists, the explicit zero supplies the maximizer.  The coupling \(\widetilde\gamma\) constructed above attains the coupling minimum.  This proves every assertion without imposing positivity of any marginal cell.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The identity converts robust coverage into finite Hall certificates with the correct complement orientation. \textit{Gap.} Koperberg2024 proves finite Strassen deficiency for a fixed relation; this specialization is supporting machinery and is not claimed as the headline novelty. \textit{Consumer.} The all-minimizer theorem and the confidence epigraph use the displayed Hall deficiencies as their certificates.
+
+\begin{theorem}[thm:all-minimizers]\label{thm:all-minimizers}
+For every marginal pair, \[S\in\mathcal V_{\mu,c}\iff\exists(A,B)\in\mathcal F_{\tau}\text{ such that }A-B\subseteq S.\] Consequently, \[k^*=\min_{(A,B)\in\mathcal F_{\tau}}|A-B|,\qquad\mathcal K^*=\{A-B:(A,B)\in\mathcal F_{\tau},\ |A-B|=k^*\},\] where repeated difference sets are deduplicated. The inclusion-minimal valid sets are exactly the inclusion-minimal distinct members of \(\{A-B:(A,B)\in\mathcal F_{\tau}\}\), without positivity, strict Hall slack, or uniqueness assumptions.
+\end{theorem}
+\begin{proof}
+By \(\text{ass:coverage-level}\), \(c=1-\alpha>0\) and \(\tau=1+c=2-\alpha<2\).  The pair \((X,X)\) belongs to \(\mathcal F_{\tau}\), so the feasible-rectangle family is nonempty.  By \(\text{lem:hall-coverage}\), for every \(S\subseteq E\),
+\[
+\begin{aligned}
+S\in\mathcal V_{\mu,c}
+&\iff h_{\mu}(S)\geq c\\
+&\iff \exists\,\varnothing\neq A,B\subseteq X:
+A-B\subseteq S\ \text{ and }\ \mu_1(A)+\mu_0(B)-1\geq c\\
+&\iff \exists\,(A,B)\in\mathcal F_{\tau}:A-B\subseteq S.
+\end{aligned}
+\]
+The positive threshold \(c\) is used in the second equivalence to exclude the separate zero term in the Hall maximum.
+
+Let
+\[
+r=\min_{(A,B)\in\mathcal F_{\tau}}|A-B|,
+\]
+which exists because the domain is a nonempty finite set.  Every feasible difference set \(A-B\) is valid by the displayed equivalence, so \(k^*\leq r\).  Conversely, if \(S\) is valid, the same equivalence gives a feasible difference set \(A-B\subseteq S\), whence \(r\leq|A-B|\leq|S|\).  Minimizing over valid \(S\) gives \(r\leq k^*\), and therefore
+\[
+k^*=r.
+\]
+If \(S\in\mathcal K^*\), choose a feasible \((A,B)\) with \(A-B\subseteq S\).  Then
+\[
+k^*\leq|A-B|\leq|S|=k^*,
+\]
+so \(A-B=S\).  Conversely, every feasible \(A-B\) of cardinality \(k^*\) is valid and belongs to \(\mathcal K^*\).  This proves the displayed characterization after identical subsets are deduplicated.
+
+For inclusion minimality, suppose first that \(S\) is inclusion-minimal in \(\mathcal V_{\mu,c}\).  It contains a feasible difference set \(D=A-B\), which is itself valid; hence minimality forces \(S=D\).  Moreover, no distinct feasible difference set can be a proper subset of \(D\), since that subset would be valid.  Conversely, let \(D=A-B\) be an inclusion-minimal distinct feasible difference set.  If a proper subset \(T\subsetneq D\) were valid, then \(T\) would contain a feasible difference set \(D'\subseteq T\subsetneq D\), contradicting the choice of \(D\).  Thus \(D\) is inclusion-minimal valid.  All steps are finite and weak inequalities are retained, so zero cells, exact threshold equality, and nonunique certificates cause no exception.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This boundary-safe normal form replaces optimization over arbitrary unions of effect diagonals by high-mass marginal rectangles. \textit{Gap.} ZhangRichardson2025 treats intervals and single effect values, while Koperberg2024 fixes the allowed relation; neither characterizes every optimizer of the outer set problem. \textit{Consumer.} It reduces the seven-category remdesivir analysis to at most \((2^7-1)^2=16{,}129\) marginal rectangle candidates.
+
+\begin{theorem}[thm:general-frontier]\label{thm:general-frontier}
+For every \(1\leq k\leq2L-1\), a valid effect set of cardinality at most \(k\) exists if and only if \(R_k\geq\tau\), and a valid interval of cardinality at most \(k\) exists if and only if \(B_k\geq\tau\). Therefore, \[k^*<I^*\iff\exists k\in\{1,\ldots,2L-1\}:B_k<\tau\leq R_k.\] This condition is also equivalent to every member of \(\mathcal K^*\), and hence \(S^\star\), being disconnected.
+\end{theorem}
+\begin{proof}
+By \texttt{ass:ordinal-support}, \(L\geq 3\), so \(X\) and \(E\) are finite.  By \texttt{ass:coverage-level} and the definitions of \(c\) and \(\tau\),
+\[
+0<c<1,\qquad \tau=1+c.
+\tag{G1}
+\]
+Fix \(k\in\{1,\ldots,2L-1\}\).  The rectangle normal form in \texttt{thm:all-minimizers} gives, for every \(S\subseteq E\),
+\[
+S\in\mathcal V_{\mu,c}
+\quad\Longleftrightarrow\quad
+\text{there is }(A,B)\in\mathcal F_\tau\text{ with }A-B\subseteq S.
+\tag{G2}
+\]
+Suppose first that a valid \(S\) satisfies \(|S|\leq k\).  Choose \((A,B)\) from the right-hand side of \((\mathrm{G2})\).  Then \(|A-B|\leq |S|\leq k\), while \texttt{def:feasible-rectangles} gives
+\[
+\mu_1(A)+\mu_0(B)\geq\tau.
+\tag{G3}
+\]
+Conversely, if nonempty \(A,B\subseteq X\) obey \(|A-B|\leq k\) and \((\mathrm{G3})\), then \((A,B)\in\mathcal F_\tau\), and \((\mathrm{G2})\), applied with \(S=A-B\), makes \(A-B\) a valid set of cardinality at most \(k\).  The feasible family in the definition of \(R_k\) is finite and nonempty, since it contains every singleton--singleton pair.  Thus its maximum is attained, and \texttt{def:frontier-profiles} yields
+\[
+\bigl[\exists S\in\mathcal V_{\mu,c}:|S|\leq k\bigr]
+\quad\Longleftrightarrow\quad R_k\geq\tau.
+\tag{G4}
+\]
+
+We next prove the interval assertion by an integer-hull argument.  Suppose \(B_k\geq\tau\).  All maxima in \texttt{def:concentration-profiles} and \texttt{def:frontier-profiles} range over finite nonempty sets.  Hence there are \(a,b\in\{1,\ldots,L\}\) with \(a+b\leq k+1\), a consecutive \(A_0\subseteq X\) of size \(a\), and a consecutive \(B_0\subseteq X\) of size \(b\), such that
+\[
+\mu_1(A_0)+\mu_0(B_0)=Q_1(a)+Q_0(b)=B_k\geq\tau.
+\tag{G5}
+\]
+Direct subtraction of two integer intervals gives
+\[
+A_0-B_0
+=\{\min A_0-\max B_0,\ldots,\max A_0-\min B_0\},
+\tag{G6}
+\]
+and therefore
+\[
+|A_0-B_0|=a+b-1\leq k.
+\tag{G7}
+\]
+By \((\mathrm{G5})\) and \texttt{def:feasible-rectangles}, \((A_0,B_0)\in\mathcal F_\tau\).  Equations \((\mathrm{G2})\)--\((\mathrm{G7})\) show that \(A_0-B_0\) is a valid effect interval of cardinality at most \(k\).
+
+Conversely, suppose that \(I\in\mathcal I_L\) is valid and \(|I|\leq k\).  By \((\mathrm{G2})\), choose \((A,B)\in\mathcal F_\tau\) with \(A-B\subseteq I\).  The sets \(A\) and \(B\) are nonempty by \texttt{def:feasible-rectangles}, so their consecutive hulls
+\[
+\overline A=\{\min A,\min A+1,\ldots,\max A\},
+\qquad
+\overline B=\{\min B,\min B+1,\ldots,\max B\}
+\tag{G8}
+\]
+are well defined.  Both endpoint differences \(\min A-\max B\) and \(\max A-\min B\) belong to \(A-B\), hence to \(I\).  Since \(I\) is consecutive, it contains every integer between them.  Thus
+\[
+\overline A-\overline B
+=\{\min A-\max B,\ldots,\max A-\min B\}
+\subseteq I.
+\tag{G9}
+\]
+Put \(a=|\overline A|\) and \(b=|\overline B|\).  From \((\mathrm{G9})\),
+\[
+a+b-1=|\overline A-\overline B|\leq |I|\leq k.
+\tag{G10}
+\]
+All coordinates of \(\mu_1\) and \(\mu_0\) are nonnegative because these vectors lie in \(\Delta_L\).  Since \(A\subseteq\overline A\), \(B\subseteq\overline B\), and \((A,B)\in\mathcal F_\tau\), \texttt{def:concentration-profiles} gives
+\[
+Q_1(a)+Q_0(b)
+\geq \mu_1(\overline A)+\mu_0(\overline B)
+\geq \mu_1(A)+\mu_0(B)
+\geq\tau.
+\tag{G11}
+\]
+The pair \((a,b)\) is feasible in the maximum defining \(B_k\) by \((\mathrm{G10})\), so \((\mathrm{G11})\) implies \(B_k\geq\tau\).  We have proved
+\[
+\bigl[\exists I\in\mathcal I_L:h_\mu(I)\geq c,\ |I|\leq k\bigr]
+\quad\Longleftrightarrow\quad B_k\geq\tau.
+\tag{G12}
+\]
+
+The full effect support \(E\) is valid: every \(\gamma\in\Gamma(\mu_1,\mu_0)\) has total mass one by \texttt{def:coupling-polytope}, so \texttt{def:worst-coverage} gives \(h_\mu(E)=1\geq c\) by \((\mathrm{G1})\).  Consequently the minima in \texttt{def:shortest-family} and \texttt{def:interval-optimum} exist.  From \((\mathrm{G4})\) and \((\mathrm{G12})\),
+\[
+k^*=\min\{k:R_k\geq\tau\},
+\qquad
+I^*=\min\{k:B_k\geq\tau\}.
+\tag{G13}
+\]
+If \(B_k<\tau\leq R_k\), then \((\mathrm{G13})\) implies \(k^*\leq k<I^*\).  Conversely, if \(k^*<I^*\), then \((\mathrm{G13})\), evaluated at \(k=k^*\), gives \(B_{k^*}<\tau\leq R_{k^*}\).  Hence
+\[
+k^*<I^*
+\quad\Longleftrightarrow\quad
+\exists k\in\{1,\ldots,2L-1\}:B_k<\tau\leq R_k.
+\tag{G14}
+\]
+
+Under nearest-neighbor adjacency on the integer set \(E\), a nonempty subset is connected if and only if it is a consecutive interval.  If \(k^*<I^*\), no member of \(\mathcal K^*\) can be an interval, because such a member would be a valid interval of cardinality \(k^*<I^*\).  Thus every member of \(\mathcal K^*\) is disconnected.  Conversely, if every member of \(\mathcal K^*\) is disconnected but \(k^*=I^*\), an interval attaining the finite minimum \(I^*\) would be a member of \(\mathcal K^*\), a contradiction.  Therefore
+\[
+k^*<I^*
+\quad\Longleftrightarrow\quad
+\text{every member of }\mathcal K^*\text{ is disconnected}.
+\tag{G15}
+\]
+
+It remains to verify both directions of the assertion about the deterministic selector.  The lexicographic order in \texttt{def:deterministic-selector} compares cardinality first, so \(S^\star\in\mathcal K^*\).  Thus the right-hand side of \((\mathrm{G15})\) implies that \(S^\star\) is disconnected.  For the converse, suppose \(S^\star\) is disconnected and some \(J\in\mathcal K^*\) is an interval.  Both sets have \(k^*\) points.  An interval with \(k^*\) integer points has
+\[
+\operatorname{span}(J)=k^*-1,
+\tag{G16}
+\]
+whereas a disconnected \(k^*\)-point integer set omits at least one integer strictly between its endpoints and hence has
+\[
+\operatorname{span}(S^\star)+1\geq k^*+1,
+\qquad
+\operatorname{span}(S^\star)\geq k^*.
+\tag{G17}
+\]
+Equations \((\mathrm{G16})\)--\((\mathrm{G17})\) say that \(J\prec S^\star\): cardinality ties, and \(J\) has strictly smaller span, so the binary code is never consulted.  This contradicts \(S^\star=\min_\prec\mathcal V_{\mu,c}\) in \texttt{def:deterministic-selector}.  Therefore no member of \(\mathcal K^*\) is an interval.  Combining this fact with \((\mathrm{G14})\)--\((\mathrm{G15})\) proves all claimed equivalences, including the selector equivalence at boundary marginal laws.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The profiles give an exact finite inequality frontier separating connected and disconnected robust optima, and the selector equivalence follows from its span tie-break. \textit{Gap.} Published ordinal bounds treat scalar threshold events or discuss intervals; they do not compare sparse difference rectangles with the general shortest interval induced by the same marginal-robust validity requirement. \textit{Consumer.} An analyst can diagnose whether interval reporting necessarily wastes effect categories before solving the complete outer problem.
+
+\begin{theorem}[thm:ternary-frontier]\label{thm:ternary-frontier}
+Let \(L=3\). The deterministic selector \(S^\star\) is disconnected, equivalently every member of \(\mathcal K^*\) is disconnected, if and only if exactly one of \[d_2\geq c>b_2\qquad\text{or}\qquad1-\mu_{1,1}-\mu_{0,1}\geq c>b_3\] holds. In the first case \(k^*=2\) and \(\mathcal K^*\) is the deduplicated union of \[\bigl\{\{i-2,i\}:\mu_{1,i}+\mu_{0,0}+\mu_{0,2}-1\geq c,\ i\in X\bigr\}\] and \[\bigl\{\{-j,2-j\}:\mu_{0,j}+\mu_{1,0}+\mu_{1,2}-1\geq c,\ j\in X\bigr\}.\] In the second case \(k^*=3\) and \(\mathcal K^*=\{\{-2,0,2\}\}\). The strict and weak inequalities shown cover zero cells, exact coverage equalities, cardinality ties, span ties, and code ties.
+\end{theorem}
+\begin{proof}
+Assume \(L=3\), as in the statement, and write
+\[
+p_i=\mu_{1,i},\qquad q_j=\mu_{0,j},\qquad
+m_1=\max_{0\leq i\leq2}p_i,qquad m_0=\max_{0\leq j\leq2}q_j.
+\tag{T1}
+\]
+For every \(C\subseteq X\), use the shorthand \(p(C)=\sum_{i\in C}p_i\) and \(q(C)=\sum_{j\in C}q_j\).  The simplex restriction on \(\mu_1,\mu_0\) makes all \(p_i,q_j\) nonnegative and gives \(\sum_i p_i=\sum_jq_j=1\).  We first enumerate all possible difference-set supports; this is the finite-support combinatorial step.
+
+Let \(A=\{a_1<\cdots<a_r\}\) and write \(-B=\{u_1<\cdots<u_s\}\).  The chain
+\[
+a_1+u_1<\cdots<a_r+u_1<a_r+u_2<\cdots<a_r+u_s
+\tag{T2}
+\]
+consists of \(r+s-1\) distinct members of \(A-B=A+(-B)\).  Consequently,
+\[
+|A-B|\geq |A|+|B|-1.
+\tag{T3}
+\]
+In particular, if \(|A-B|\leq2\), the only factor-size patterns are \((1,1)\), \((1,2)\), and \((2,1)\).  Each two-point subset of \(X=\{0,1,2\}\) is either adjacent or equal to \(\{0,2\}\).
+
+For an adjacent control factor, its mass is either \(1-q_0\) or \(1-q_2\).  Hence the largest Hall excess \(p(A)+q(B)-1\) among singleton--adjacent rectangles is
+\[
+m_1-\min(q_0,q_2).
+\tag{T4}
+\]
+Symmetrically, the largest excess among adjacent--singleton rectangles is
+\[
+m_0-\min(p_0,p_2).
+\tag{T5}
+\]
+The largest singleton--singleton excess is \(m_1+m_0-1\).  It is dominated by \((\mathrm{T4})\) because \(\min(q_0,q_2)\leq1-m_0\), and it is also dominated by \((\mathrm{T5})\) because \(\min(p_0,p_2)\leq1-m_1\).  Applying the rectangle formula \texttt{lem:hall-coverage} and the definition \texttt{def:ternary-thresholds}, we therefore obtain
+\[
+\max_{\substack{I\in\mathcal I_3\\ |I|\leq2}}h_\mu(I)
+=\max\{m_1-\min(q_0,q_2),\ m_0-\min(p_0,p_2),\ 0\}
+=b_2.
+\tag{T6}
+\]
+
+The gapped two-point factor rectangles are precisely
+\[
+\{i\}\times\{0,2\}
+\quad\text{and}\quad
+\{0,2\}\times\{j\},
+\qquad i,j\in X.
+\tag{T7}
+\]
+Their respective difference sets and Hall excesses are
+\[
+\{i\}-\{0,2\}=\{i-2,i\},
+\qquad p_i+q_0+q_2-1=p_i-q_1,
+\tag{T8}
+\]
+and
+\[
+\{0,2\}-\{j\}=\{-j,2-j\},
+\qquad p_0+p_2+q_j-1=q_j-p_1.
+\tag{T9}
+\]
+Thus the largest excess furnished by a gapped factor is
+\[
+\max\{m_1-q_1,\ m_0-p_1,\ 0\}=d_2.
+\tag{T10}
+\]
+Equations \((\mathrm{T3})\)--\((\mathrm{T10})\) exhaust every rectangle whose difference set is contained in a two-point effect set.  Notice that a singleton rectangle may also lie in a disconnected pair; when \(c>b_2\), equation \((\mathrm{T6})\) makes every such singleton certificate strictly smaller than \(c\), so only \((\mathrm{T7})\) can certify a disconnected pair at level \(c\).
+
+We next classify difference sets of cardinality three or more.  By \((\mathrm{T3})\), a new three-point support can only have factor sizes \((1,3)\), \((3,1)\), or \((2,2)\).  The first two supports are consecutive intervals.  In the \((2,2)\) case, write the positive gaps of the two factors as \(g_A,g_B\in\{1,2\}\).  Of the four formal differences, the two interior ones coincide exactly when \(g_A=g_B\).  If \(g_A=g_B=1\), the resulting three points are consecutive.  If \(g_A=g_B=2\), both factors must be \(\{0,2\}\), and the resulting support is the sole disconnected three-point difference set
+\[
+T=\{0,2\}-\{0,2\}=\{-2,0,2\}.
+\tag{T11}
+\]
+If \(g_A\neq g_B\), the four differences are distinct and, since \(\{g_A,g_B\}=\{1,2\}\), they are four consecutive integers.  If one factor is all of \(X\) and the other has two points, an adjacent two-point factor gives four consecutive differences and the factor \(\{0,2\}\) gives all five differences.  If both factors equal \(X\), the difference set is all of \(E\).  Together with the singleton-factor cases, this proves that every four- or five-point difference set is an interval and that \(T\) is the only disconnected three-point difference set.  The enumeration used only \(X=\{0,1,2\}\), not positivity of any cell.
+
+For \(d\in\{0,1\}\), \texttt{def:concentration-profiles} gives
+\[
+Q_d(1)=m_d,qquad
+Q_d(2)=1-\min(\mu_{d,0},\mu_{d,2}),
+\qquad Q_d(3)=1.
+\tag{T12}
+\]
+For \(k=3\), the undominated size pairs in \texttt{def:frontier-profiles} are \((1,3)\), \((3,1)\), and \((2,2)\); the remaining pairs have no larger profile value because each \(Q_d\) is nondecreasing in its width.  Hence \texttt{def:ternary-thresholds} and \((\mathrm{T12})\) give
+\[
+B_3-1
+=\max\{m_1,m_0,1-\min(p_0,p_2)-\min(q_0,q_2)\}
+=b_3.
+\tag{T13}
+\]
+By the interval equivalence in \texttt{thm:general-frontier} and \(\tau=1+c\), equation \((\mathrm{T13})\) says
+\[
+\text{an interval of cardinality at most three is valid}
+\quad\Longleftrightarrow\quad b_3\geq c.
+\tag{T14}
+\]
+Also, directly from \texttt{def:ternary-thresholds},
+\[
+d_2\leq\max(m_1,m_0)\leq b_3.
+\tag{T15}
+\]
+
+It remains to evaluate the exceptional support \(T\).  A rectangle \(A\times B\) has \(A-B\subseteq T\) exactly when all its row and column indices have the same parity.  Since \(X=\{0,1,2\}\), every nonempty such rectangle lies either in \(\{0,2\}\times\{0,2\}\) or in \(\{1\}\times\{1\}\).  Nonnegativity of the marginal cells means that the largest excess in the even block is attained by the whole even block, while the odd block has only one nonempty rectangle.  Therefore \texttt{lem:hall-coverage} yields
+\[
+h_\mu(T)
+=\max\{0,\ (p_0+p_2)+(q_0+q_2)-1,\ p_1+q_1-1\}
+=\max\{0,\ 1-p_1-q_1,\ p_1+q_1-1\}.
+\tag{T16}
+\]
+If \(c>b_3\), then \((\mathrm{T13})\) gives \(p_1\leq m_1<c\) and \(q_1\leq m_0<c\).  Since \(c<1\) by \texttt{ass:coverage-level},
+\[
+p_1+q_1-1<2c-1<c.
+\tag{T17}
+\]
+Thus, in the regime \(c>b_3\), equations \((\mathrm{T16})\)--\((\mathrm{T17})\) show
+\[
+h_\mu(T)\geq c
+\quad\Longleftrightarrow\quad 1-p_1-q_1\geq c.
+\tag{T18}
+\]
+
+We now prove sufficiency of the two displayed regimes.  Suppose first that
+\[
+d_2\geq c>b_2.
+\tag{T19}
+\]
+By \((\mathrm{T8})\)--\((\mathrm{T10})\), a gapped two-point difference set has a rectangle excess at least \(c\), so it is valid by \texttt{lem:hall-coverage}.  Equation \((\mathrm{T6})\) and \(c>b_2\) exclude every valid interval of cardinality at most two, including every singleton.  Therefore \(k^*=2\), and every member of \(\mathcal K^*\) is disconnected.  The exact all-minimizer identity in \texttt{thm:all-minimizers}, together with the exhaustive patterns \((\mathrm{T7})\)--\((\mathrm{T10})\), gives
+\[
+\mathcal K^*
+=\bigl\{\{i-2,i\}:p_i+q_0+q_2-1\geq c,\ i\in X\bigr\}
+\mathbin{\cup}
+\bigl\{\{-j,2-j\}:q_j+p_0+p_2-1\geq c,\ j\in X\bigr\},
+\tag{T20}
+\]
+where the union is a family of sets and hence automatically deduplicates repeated supports.
+
+Suppose instead that
+\[
+1-p_1-q_1\geq c>b_3.
+\tag{T21}
+\]
+Equations \((\mathrm{T16})\)--\((\mathrm{T18})\) make \(T\) valid.  Equation \((\mathrm{T14})\) excludes every valid interval of size at most three, and \((\mathrm{T15})\) gives \(d_2<c\), excluding the only remaining two-point certificates after \((\mathrm{T6})\).  Hence no set of cardinality at most two is valid, \(k^*=3\), and the support enumeration forces
+\[
+\mathcal K^*=\{T\}=\bigl\{\{-2,0,2\}\bigr\}.
+\tag{T22}
+\]
+
+For necessity, assume every member of \(\mathcal K^*\) is disconnected.  The full set \(E\) is valid, as shown from \texttt{def:coupling-polytope} and \texttt{def:worst-coverage} in the proof of \texttt{thm:general-frontier}, so \(1\leq k^*\leq5\).  A one-point set is connected.  Moreover, \texttt{thm:all-minimizers} says that every member of \(\mathcal K^*\) is a difference set, and the support enumeration above says that every four- or five-point difference set is connected.  Thus \(k^*\in\{2,3\}\).
+
+If \(k^*=2\), some feasible rectangle generates a disconnected two-point member of \(\mathcal K^*\).  The classification \((\mathrm{T7})\)--\((\mathrm{T10})\) then gives \(d_2\geq c\).  No interval of cardinality at most two can be valid, since it would also belong to \(\mathcal K^*\); by \((\mathrm{T6})\), this is equivalent to \(c>b_2\).  Hence \((\mathrm{T19})\) holds.
+
+If \(k^*=3\), the only possible disconnected difference set is \(T\), by \((\mathrm{T11})\), so \(\mathcal K^*=\{T\}\).  No interval of cardinality at most three is valid, since it would be another member of \(\mathcal K^*\); equation \((\mathrm{T14})\) therefore gives \(c>b_3\).  The validity of \(T\), followed by \((\mathrm{T18})\), gives \(1-p_1-q_1\geq c\).  Thus \((\mathrm{T21})\) holds.
+
+The two regimes are mutually exclusive: the first requires \(d_2\geq c\), whereas the second and \((\mathrm{T15})\) imply \(d_2\leq b_3<c\).  Finally, \texttt{thm:general-frontier} proves that every member of \(\mathcal K^*\) is disconnected if and only if the span-tie-broken selector \(S^\star\) is disconnected.  All feasibility tests above use weak inequalities \(\geq\), and every exclusion uses the logically complementary strict inequality \(>\).  Since the rectangle normal form in \texttt{thm:all-minimizers} permits zero atoms and does not require uniqueness, the classification includes zero cells, exact threshold equalities, repeated difference sets, and all span and code ties.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Ternary outcomes are the first setting with genuine holes, and the theorem supplies the complete boundary-safe phase diagram. \textit{Gap.} ZhangRichardson2025 rules out the binary disconnected candidate, and LuDingDasgupta2018 bounds scalar ordinal events; neither gives this ternary selector partition. \textit{Consumer.} The result provides a transparent diagnostic for three-category clinical or educational endpoints and a proof template for larger supports.
+
+\begin{theorem}[thm:sharp-interval-price]\label{thm:sharp-interval-price}
+For every \(L\geq3\), every \((\mu_0,\mu_1)\in\Delta_L^2\), and every \(0<\alpha<1\),
+\[
+\frac{I^*}{k^*}\leq
+\begin{cases}
+\dfrac{2L-1}{3},&0<\alpha<\dfrac12,\\[3pt]
+\dfrac L2,&\dfrac12\leq\alpha<1,
+\end{cases}
+\qquad
+I^*-k^*\leq2L-4.
+\]
+Both regime-specific multiplicative constants are sharp.  If \(0<\alpha<1/2\), then for every
+\[
+0<\varepsilon<\min\{\alpha/2,1-2\alpha\},
+\]
+the strictly positive symmetric marginals having mass \((1-\varepsilon)/2\) at each endpoint and mass \(\varepsilon/(L-2)\) at each interior category satisfy \(k^*=3\) and \(I^*=2L-1\); hence they also attain the additive constant \(2L-4\).  If \(\alpha=1/2\), the symmetric law placing mass \(1/2\) at each endpoint and zero elsewhere satisfies \(k^*=2\) and \(I^*=L\).  If \(1/2<\alpha<1\), the same conclusion holds for every strictly positive symmetric perturbation with endpoint masses \((1-\varepsilon)/2\), equal interior masses \(\varepsilon/(L-2)\), and \(0<\varepsilon<(2\alpha-1)/3\).  On the coverage-level domain stated by Zhang and Richardson (2025), these constants directly compare the shortest arbitrary-set oracle with the shortest-interval completion of their marginal-robust validity criterion.  On the omitted neighborhood of one-half, including \(\alpha=1/2\), they instead describe this note's extension of that same validity functional.
+\end{theorem}
+\begin{proof}
+Put \(p=\mu_1\), \(q=\mu_0\), and \(c=1-\alpha\), so \(\tau=1+c\).  By \texttt{lem:interval-validity-bridge}, \(I^*\) is exactly the minimum cardinality of an interval satisfying the same every-compatible-coupling validity criterion as the arbitrary sets defining \(k^*\).
+
+We first establish an integer sumset inequality.  Write \(A=\{a_1<\cdots<a_r\}\) and \(-B=\{b_1<\cdots<b_s\}\) for nonempty subsets of the integers.  The chain
+\[
+a_1+b_1<\cdots<a_r+b_1<a_r+b_2<\cdots<a_r+b_s
+\]
+consists of \(r+s-1\) distinct points of \(A-B\).  Therefore
+\[
+|A-B|\geq |A|+|B|-1.
+\tag{1}
+\]
+This argument includes singleton factors and imposes no positivity condition on the marginal masses.
+
+We next prove three deterministic bounds.  If \(k^*=1\), a shortest valid set is a singleton, hence an interval.  Since intervals are a subclass of all effect sets,
+\[
+k^*=1\quad\Longrightarrow\quad I^*=1.
+\tag{2}
+\]
+If \(k^*=2\), \texttt{thm:all-minimizers} supplies \((A,B)\in\mathcal F_{\tau}\) with \(|A-B|=2\).  Equation \((1)\) gives \(|A|+|B|\leq3\).  The factors cannot both be singletons because then \(|A-B|=1\), so their cardinalities are \((1,2)\) or \((2,1)\).  As \(A,B\subseteq X=\{0,\ldots,L-1\}\), this implies
+\[
+\operatorname{span}(A-B)\leq L-1.
+\]
+The consecutive hull of \(A-B\) therefore contains at most \(L\) effects.  It contains the threshold-feasible difference set \(A-B\), so \texttt{thm:all-minimizers} makes it valid.  Hence
+\[
+k^*=2\quad\Longrightarrow\quad I^*\leq L.
+\tag{3}
+\]
+If \(k^*\geq3\), the product table \(\gamma_{ij}=p_iq_j\) shows that \(\Gamma(p,q)\) is nonempty.  Every coupling in this polytope assigns total probability one to the full effect support \(E\).  By \texttt{def:worst-coverage}, \(h_{\mu}(E)=1\geq c\), and thus
+\[
+k^*\geq3\quad\Longrightarrow\quad I^*\leq |E|=2L-1.
+\tag{4}
+\]
+Equations \((2)\)--\((4)\) imply
+\[
+\frac{I^*}{k^*}\leq
+\begin{cases}
+1,&k^*=1,\\
+L/2,&k^*=2,\\
+(2L-1)/3,&k^*\geq3,
+\end{cases}
+\qquad
+I^*-k^*\leq
+\begin{cases}
+0,&k^*=1,\\
+L-2,&k^*=2,\\
+2L-4,&k^*\geq3.
+\end{cases}
+\tag{5}
+\]
+The support assumption \(L\geq3\) gives
+\[
+\frac L2\leq\frac{2L-1}{3},
+\qquad
+L-2\leq2L-4.
+\]
+Thus \((5)\) proves the high-coverage multiplicative bound and the additive bound for every \(0<\alpha<1\).
+
+Now suppose \(1/2\leq\alpha<1\), equivalently \(0<c\leq1/2\).  Partition \(X\) into two nonempty consecutive blocks \(B_1,B_2\), each having at most \(\lceil L/2\rceil\) points.  Since \(q(B_1)+q(B_2)=1\), one block, denoted by \(B\), satisfies
+\[
+q(B)\geq\frac12\geq c.
+\tag{6}
+\]
+Take \(A=X\).  Then
+\[
+p(A)+q(B)=1+q(B)\geq1+c=\tau,
+\]
+so \((X,B)\in\mathcal F_{\tau}\).  If \(B=\{r,r+1,\ldots,r+b-1\}\), direct interval subtraction gives
+\[
+X-B=\{-(r+b-1),\ldots,L-1-r\},
+\qquad
+|X-B|=L+b-1.
+\]
+This is a valid interval by \texttt{thm:all-minimizers}; consequently
+\[
+I^*\leq L+\lceil L/2\rceil-1.
+\tag{7}
+\]
+When \(k^*\geq3\),
+\[
+2\lceil L/2\rceil-2
+=\begin{cases}
+L-2,&L\text{ even},\\
+L-1,&L\text{ odd},
+\end{cases}
+<L,
+\]
+and \((7)\) yields
+\[
+\frac{I^*}{k^*}
+\leq\frac{L+\lceil L/2\rceil-1}{3}
+<\frac L2.
+\tag{8}
+\]
+For \(k^*=1\), equation \((2)\) gives \(I^*/k^*=1<L/2\), while for \(k^*=2\), equation \((3)\) gives \(I^*/k^*\leq L/2\).  This proves the low-coverage branch.
+
+We next prove sharpness when \(0<\alpha<1/2\).  Choose
+\[
+0<\varepsilon<\min\{\alpha/2,1-2\alpha\},
+\qquad
+M=\frac{1-\varepsilon}{2},
+\qquad
+e=\frac{\varepsilon}{L-2},
+\]
+and take \(p=q\), assigning mass \(M\) to each endpoint and mass \(e\) to every interior category.  Positivity is immediate, and normalization follows from \(2M+(L-2)e=1\).  For \(A=B=\{0,L-1\}\),
+\[
+A-B=\{-L+1,0,L-1\},
+\qquad
+p(A)+q(B)=2-2\varepsilon>2-\alpha=\tau,
+\tag{9}
+\]
+where the strict inequality uses \(2\varepsilon<\alpha\).  Thus the displayed three-effect set is valid by \texttt{thm:all-minimizers}.
+
+Let \(S\subseteq E\) have at most two points.  It omits at least one of \(-L+1,0,L-1\).  If \(0\notin S\), the diagonal coupling \(\gamma_{ij}=p_i\mathbf 1\{i=j\}\) gives zero probability to \(S\).  If \(-L+1\notin S\), put mass \(M\) on the cell \((0,L-1)\), define
+\[
+r_i=p_i-M\mathbf 1\{i=0\},
+\qquad
+s_j=q_j-M\mathbf 1\{j=L-1\},
+\]
+and assign the remaining cells the table \(r_is_j/(1-M)\).  The residual vectors are nonnegative and each has total mass \(1-M>0\), so the resulting table belongs to \(\Gamma(p,q)\).  Its selected corner, of mass \(M\), has effect \(-L+1\notin S\), and hence its coverage of \(S\) is at most \(1-M\).  The same construction with the corner \((L-1,0)\) applies when \(L-1\notin S\).  In every case,
+\[
+h_{\mu}(S)\leq1-M=\frac{1+\varepsilon}{2}<1-\alpha=c,
+\tag{10}
+\]
+where the last inequality is equivalent to \(\varepsilon<1-2\alpha\).  No set with at most two points is valid, so \((9)\) gives \(k^*=3\).
+
+Every proper consecutive subset of \(E\) omits at least one of the two extreme effects.  The corresponding corner coupling just constructed again bounds its worst coverage by \((1+\varepsilon)/2<c\).  Since \(E\) itself is valid, \(I^*=2L-1\).  Therefore
+\[
+\frac{I^*}{k^*}=\frac{2L-1}{3},
+\qquad
+I^*-k^*=2L-4.
+\tag{11}
+\]
+
+At \(\alpha=1/2\), let \(p=q\) put mass \(1/2\) at each endpoint and zero elsewhere.  The rectangle \(A=\{0\}\), \(B=\{0,L-1\}\) has mass sum \(3/2=\tau\) and difference set \(\{-L+1,0\}\), so \(k^*\leq2\).  By \((1)\), a rectangle having a singleton difference set has singleton factors.  Their mass sum is at most one, strictly below \(\tau=3/2\), so \texttt{thm:all-minimizers} gives \(k^*=2\).  For every \(1\leq w<L\), a consecutive outcome block contains at most one endpoint and hence
+\[
+Q_0(w)=Q_1(w)=\frac12.
+\]
+The constraint \(a+b\leq L\) defining \(B_{L-1}\) forces \(a,b<L\), and therefore \(B_{L-1}=1<\tau\).  By \texttt{thm:general-frontier}, no valid effect interval has fewer than \(L\) points.  The consecutive hull \(\{-L+1,\ldots,0\}\) of the valid two-point difference set has \(L\) points and remains valid by \texttt{thm:all-minimizers}.  Hence \(I^*=L\).
+
+Finally, let \(1/2<\alpha<1\) and choose \(0<\varepsilon<(2\alpha-1)/3\).  Again set \(M=(1-\varepsilon)/2\), \(e=\varepsilon/(L-2)\), and give both marginals endpoint mass \(M\) and interior mass \(e\).  The restriction gives \(\varepsilon<1/3\), hence \(M>e\).  With \(A=\{0\}\) and \(B=\{0,L-1\}\),
+\[
+p(A)+q(B)=3M=\frac{3(1-\varepsilon)}2>2-\alpha=\tau,
+\]
+so a valid two-point difference set exists.  A singleton difference set again requires singleton factors by \((1)\), and the mass sum of such factors is at most \(2M=1-\varepsilon<1<\tau\).  Thus \(k^*=2\).
+
+For \(1\leq w<L\), a consecutive block contains at most one endpoint, and \(M>e\) makes an endpoint block optimal.  Therefore
+\[
+Q_0(w)=Q_1(w)=M+(w-1)e.
+\]
+If \(a+b\leq L\), then \(a,b<L\) and
+\[
+Q_1(a)+Q_0(b)
+\leq2M+(L-2)e=1.
+\]
+Equality is obtained when \(a+b=L\), so \(B_{L-1}=1<\tau\).  The interval part of \texttt{thm:general-frontier} excludes valid intervals shorter than \(L\), while the hull of the valid two-point difference set supplies one of length \(L\).  Hence \(I^*=L\) and \(I^*/k^*=L/2\).
+
+The bridge lemma proves that every use of \(I^*\) above is the shortest-interval completion of the marginal-robust validity criterion.  Thus the comparison is direct wherever Zhang and Richardson state that criterion under their coverage-level restriction; the cases in their omitted neighborhood of one-half, including the elbow, are an extension of the same functional.  This establishes the corrected scope sentences without changing any sharp constant or construction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem quantifies the exact penalty from requiring connected reporting, where the interval benchmark is induced by the marginal-robust validity criterion, and proves its elbow at one-half target coverage. \textit{Gap.} Zhang and Richardson (2025), Sections 3 and Appendix D, discuss coupling-robust intervals and the ordinal case, while Section 5 supplies sharp single-effect probability-mass bounds; they do not formulate or optimize the general ordinal shortest-interval oracle. Gao, Shan, Srinivas, and Vijayaraghavan (2025) compare structured sets under an observed response law. Neither source derives this adversarial-coupling phase transition. \textit{Consumer.} For the seven-category remdesivir endpoint, the sharp worst-case ratio is \(13/3\) above one-half target coverage and \(7/2\) at or below one-half target coverage; the constants describe the oracle class, not the observed trial law.
+
+\begin{proposition}[prop:exact-computation]\label{prop:exact-computation}
+The algorithm \(\mathsf{Alg}\) returns \(h_{\mu}(S)\), every member of \(\mathcal K^*\), and \(S^\star\) exactly. A fixed \(S\) requires a minimum cut on a network with \(2L+2\) vertices and \(L^2+2L\) capacitated arcs. The finite outer step examines at most \((2^L-1)^2\) nonempty pairs and at most \(2^{2L-1}\) effect sets; for \(L=7\), these counts are \(16{,}129\) and \(8{,}192\), respectively.
+\end{proposition}
+\begin{proof}
+Fix \(S\subseteq E\), put \(p=\mu_1\) and \(q=\mu_0\), and construct a directed network with source \(s\), row vertices \(r_i\), column vertices \(c_j\), and sink \(t\).  Give \(s\to r_i\) capacity \(p_i\), give \(c_j\to t\) capacity \(q_j\), and include all \(L^2\) arcs \(r_i\to c_j\), with capacity \(2\) when \(i-j\notin S\) and capacity zero otherwise.  The network has \(2L+2\) vertices and exactly \(L^2+2L\) capacitated arcs.
+
+The cut placing only \(s\) on the source side has capacity one.  Therefore no minimum cut crosses a row--column arc of capacity two.  If \(A\subseteq X\) is the set of source-side rows and \(C\subseteq X\) the set of source-side columns, a cut not crossing such an arc must satisfy
+\[
+N_{S^{\mathsf c}}(A)\subseteq C.
+\]
+For fixed \(A\), nonnegativity of \(q\) makes the smallest such cut take \(C=N_{S^{\mathsf c}}(A)\), and its capacity is
+\[
+\sum_{i\notin A}p_i+\sum_{j\in N_{S^{\mathsf c}}(A)}q_j
+=1-p(A)+q(N_{S^{\mathsf c}}(A)).
+\]
+Hence the minimum-cut value \(\kappa_S\) satisfies, by \(\text{lem:hall-coverage}\),
+\[
+\kappa_S
+=1-\max_{A\subseteq X}\{p(A)-q(N_{S^{\mathsf c}}(A))\}
+=1-h_{\mu}(S).
+\]
+Thus \(\mathsf{Alg}\) returns \(h_{\mu}(S)=1-\kappa_S\) exactly.  This cut calculation remains valid with zero capacities and tied cuts.
+
+There are \(2^L-1\) nonempty subsets of \(X\), so enumerating \(\mathcal F_{\tau}\) examines at most
+\[
+(2^L-1)^2
+\]
+pairs.  For each retained pair, the finite set \(A-B\) is computed, identical difference sets are deduplicated, and \(\text{thm:all-minimizers}\) proves that the retained sets of smallest cardinality are exactly \(\mathcal K^*\).  Applying the lexicographic order \(\prec\) then returns \(S^\star\).  Alternatively, direct enumeration has exactly \(2^{|E|}=2^{2L-1}\) candidate effect sets.  At \(L=7\), the two counts are
+\[
+(2^7-1)^2=127^2=16{,}129,
+\qquad
+2^{13}=8{,}192.
+\]
+All optimizations are finite; the word ``exact'' refers to exact comparison of the supplied marginal masses, not to a polynomial-time claim in \(L\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem-level geometry is paired with an auditable exact computation for the motivating support size. \textit{Gap.} DuarteFinkelsteinKnoxMummoloShpitser2024 gives generic polynomial programs, whereas this proposition exposes the problem-specific min-cut certificate and finite outer search. \textit{Consumer.} It makes the seven-category trial calculation reproducible without optimizing over latent joint tables separately for every candidate certificate.
+
+\begin{theorem}[thm:simultaneous-certification]\label{thm:simultaneous-certification}
+For every \(n_0,n_1\geq1\) and \(0<\beta<1\), \[\inf_{\mu_0,\mu_1\in\Delta_L}\Pr\{\mu_0\in C_0,\ \mu_1\in C_1\}\geq1-\beta.\] Moreover, \(\ell(S)\) equals the finite linear program minimizing \(\sum_{i-j\in S}\gamma_{ij}\) over nonnegative \(\gamma\) whose row marginal lies in \(C_1\) and column marginal lies in \(C_0\). Hence \[\inf_{\mu_0,\mu_1\in\Delta_L}\Pr\{h_{\mu}(S)\geq c\text{ for every }S\in\widehat{\mathcal H}\}\geq1-\beta,\] even when the reported subfamily is selected from \(\widehat{\mathcal H}\).
+\end{theorem}
+\begin{proof}
+First record the partial-identification map.  Let the observed outcome be \(Y=ZY(1)+(1-Z)Y(0)\), and let \(P\) be the law of \((Y,Z)\) on \(X\times\{0,1\}\), a \(2L\)-cell probability law of dimension \(2L-1\).  By \(\text{ass:randomization}\) and \(\text{ass:assignment-overlap}\),
+\[
+P(Y=j\mid Z=d)=\Pr(Y(d)=j)=\mu_{d,j},
+\qquad d\in\{0,1\},\ j\in X.
+\]
+Thus the two marginal vectors are identified.  The unobserved parameter is the \(L\times L\) joint-probability table \(\gamma\) of \((Y(1),Y(0))\).  With no cross-world restriction, its identified set is exactly
+\[
+\Theta_I(P)=\Gamma(\mu_1,\mu_0).
+\]
+Indeed, every compatible latent law has these margins, and conversely any table in \(\Gamma(\mu_1,\mu_0)\), combined with an independent treatment draw having the observed assignment probability, induces the same \(P\).  For fixed \(S\), the causal coverage is the linear functional \(\theta_S(\gamma)=\sum_{i-j\in S}\gamma_{ij}\); its identified set is a compact interval because \(\Gamma\) is compact and convex, and \(h_{\mu}(S)\) is its sharp lower endpoint, not the causal coverage under an arbitrarily chosen coupling.
+
+We next derive the concentration inequality used here.  If \(W\) is Bernoulli with mean \(u\in[0,1]\), define
+\[
+f_u(\lambda)=\log(1-u+ue^\lambda)-u\lambda.
+\]
+Writing \(v=ue^\lambda/(1-u+ue^\lambda)\), direct differentiation gives
+\[
+f_u(0)=f_u'(0)=0,
+\qquad
+f_u''(\lambda)=v(1-v)\leq\frac14.
+\]
+Taylor's formula with integral remainder therefore yields \(f_u(\lambda)\leq\lambda^2/8\) for every real \(\lambda\), including the boundary cases \(u=0,1\).  For independent Bernoulli variables \(W_1,\ldots,W_n\) of mean \(u\), exponential Markov inequality and independence give, for \(t>0\) and \(\lambda>0\),
+\[
+\Pr\!\left\{\sum_{r=1}^n(W_r-u)\geq nt\right\}
+\leq\exp\{-\lambda nt+n\lambda^2/8\}.
+\]
+Choosing \(\lambda=4t\), and applying the same argument to \(1-W_r\), gives
+\[
+\Pr\{|\overline W-u|>t\}\leq2e^{-2nt^2}. \tag{1}
+\]
+
+Under \(\text{ass:arm-sampling}\), each coordinate of \(\widehat\mu_d\) is an average of \(n_d\) independent Bernoulli indicators with mean \(\mu_{d,j}\).  At
+\[
+r_d=\sqrt{\frac{\log(4L/\beta)}{2n_d}},
+\]
+equation \((1)\) gives
+\[
+\Pr\{|\widehat\mu_{d,j}-\mu_{d,j}|>r_d\}
+\leq2e^{-2n_dr_d^2}=\frac{\beta}{2L}.
+\]
+A union bound over both arms and all \(L\) coordinates proves, uniformly over the two simplices,
+\[
+\Pr\{\mu_0\in C_0,\ \mu_1\in C_1\}\geq1-\beta. \tag{2}
+\]
+The empirical vector belongs to \(C_d\), so each confidence polytope is nonempty; it is also a compact polytope.
+
+For the optimization identity, let \(\mathcal G_S\) be the set of nonnegative tables \(\gamma\) whose row marginal \(r(\gamma)\) lies in \(C_1\) and whose column marginal \(s(\gamma)\) lies in \(C_0\).  Every \(\gamma\in\mathcal G_S\) belongs to \(\Gamma(r(\gamma),s(\gamma))\).  Conversely, for every \((\nu_1,\nu_0)\in C_1\times C_0\), every member of \(\Gamma(\nu_1,\nu_0)\) lies in \(\mathcal G_S\), and this coupling polytope is nonempty because it contains \(\nu_{1,i}\nu_{0,j}\).  Hence, without interchanging a minimum and a maximum,
+\[
+\begin{aligned}
+\ell(S)
+&=\min_{\nu_1\in C_1,\nu_0\in C_0}
+\min_{\gamma\in\Gamma(\nu_1,\nu_0)}
+\sum_{i-j\in S}\gamma_{ij}\\
+&=\min_{\gamma\in\mathcal G_S}\sum_{i-j\in S}\gamma_{ij}.
+\end{aligned} \tag{3}
+\]
+The final problem has linear objective and linear nonnegativity, marginal, simplex, and confidence-box constraints, and is therefore the asserted finite linear program.  Compactness gives attainment.
+
+On the event in \((2)\), the true pair belongs to \(C_1\times C_0\), so equation \((3)\) gives simultaneously for every one of the finitely many \(S\subseteq E\),
+\[
+\ell(S)\leq h_{\mu}(S).
+\]
+Therefore \(S\in\widehat{\mathcal H}\) implies \(h_{\mu}(S)\geq\ell(S)\geq c\).  The implication holds for the entire random family on one common event, so choosing any data-dependent subfamily introduces no further multiplicity term.  Combining with \((2)\) proves the final uniform probability bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A single simultaneous marginal event certifies all post-selected robust prediction sets without an additional multiplicity penalty. \textit{Gap.} MalloyTripathyNowak2021 covers multinomial parameters and HuangFangHanleyRosenblum2019 treats a scalar ordinal bound; neither certifies a selected family of common-coupling effect sets. \textit{Consumer.} Every reported set in a reanalysis of the Goldman trial receives an honest finite-sample certificate.
+
+\begin{theorem}[thm:uniform-selection]\label{thm:uniform-selection}
+Fix \(\eta>0\). Uniformly over \((\mu_0,\mu_1)\in\mathcal M_{L,\eta}\), if both confidence radii do not exceed \(\eta/(4L)\), then \[\Pr(\widehat S\neq S^\star)\leq4L\exp\!\left\{-\frac{n_{\min}\eta^2}{8L^2}\right\}.\] Under stable allocation with \(n_0+n_1\to\infty\), this bound converges to zero. The conclusion requires no unique Hall cut or separation among active rectangles.
+\end{theorem}
+\begin{proof}
+We first establish a uniform modulus.  For any two marginal pairs \((p,q)\) and \((p',q')\), \(\text{lem:hall-coverage}\) and the elementary inequality \(|\max_a x_a-\max_a y_a|\leq\max_a|x_a-y_a|\) give, uniformly in \(S\),
+\[
+|h_{(q,p)}(S)-h_{(q',p')}(S)|
+\leq \sup_{A\subseteq X}|p(A)-p'(A)|
++\sup_{C\subseteq X}|q(C)-q'(C)|.
+\]
+For probability vectors, the supremum over subsets is total variation, equal to one half of the \(\ell_1\) distance.  Consequently
+\[
+|h_{(q,p)}(S)-h_{(q',p')}(S)|
+\leq\frac L2\bigl(\|p-p'\|_\infty+\|q-q'\|_\infty\bigr). \tag{1}
+\]
+
+Set \(t=\eta/(4L)\), and let \(\mathcal E_n\) be the event that both empirical marginal vectors are within \(t\) of their truths in sup norm.  For completeness, the needed tail bound follows directly as follows.  For a Bernoulli variable of mean \(u\),
+\[
+\log\mathbb E e^{\lambda(W-u)}
+=\log(1-u+ue^\lambda)-u\lambda\leq\lambda^2/8,
+\]
+because the second derivative of the middle expression is \(v(1-v)\leq1/4\) and its value and first derivative vanish at zero.  Independence, exponential Markov inequality, and optimization at \(\lambda=4t\) give
+\[
+\Pr\{|\widehat\mu_{d,j}-\mu_{d,j}|>t\}\leq2e^{-2n_dt^2}.
+\]
+The union bound therefore yields
+\[
+\Pr(\mathcal E_n^{\mathsf c})
+\leq4L e^{-2n_{\min}t^2}
+=4L\exp\!\left\{-\frac{n_{\min}\eta^2}{8L^2}\right\}. \tag{2}
+\]
+
+Assume now that \(r_0,r_1\leq t\), as in the theorem, and work on \(\mathcal E_n\).  If \(\nu_d\in C_d\), the triangle inequality and the definition of \(C_d\) give
+\[
+\|\nu_d-\mu_d\|_\infty
+\leq\|\nu_d-\widehat\mu_d\|_\infty
++\|\widehat\mu_d-\mu_d\|_\infty
+\leq2t=\frac{\eta}{2L}. \tag{3}
+\]
+Combining \((1)\) and \((3)\), every pair in \(C_1\times C_0\) satisfies
+\[
+|h_{(\nu_0,\nu_1)}(S)-h_{\mu}(S)|\leq\frac\eta2
+\quad\text{for every }S\subseteq E.
+\]
+Taking the minimum over the confidence polytopes preserves the two-sided band:
+\[
+|\ell(S)-h_{\mu}(S)|\leq\frac\eta2
+\quad\text{simultaneously for every }S\subseteq E. \tag{4}
+\]
+Here nonemptiness is guaranteed because \(\widehat\mu_d\in C_d\).
+
+For \(\mu\in\mathcal M_{L,\eta}\), \(\text{ass:selected-validity-gap}\) and \((4)\) imply
+\[
+\ell(S^\star)\geq h_{\mu}(S^\star)-\eta/2\geq c+\eta/2>c,
+\]
+so \(S^\star\) is certified.  For every \(T\prec S^\star\), \(\text{ass:predecessor-invalidity-gap}\) and \((4)\) imply
+\[
+\ell(T)\leq h_{\mu}(T)+\eta/2\leq c-\eta/2<c,
+\]
+so no predecessor is certified.  The lexicographic definition of \(\widehat S\) then gives \(\widehat S=S^\star\) throughout \(\mathcal E_n\).  Equation \((2)\) proves the stated probability bound uniformly over the class.  No active-cut uniqueness was used.
+
+Finally, using both clauses of the limit in \(\text{ass:allocation-limit}\), write \(N=n_0+n_1\to\infty\).  Since \(n_0/N\to\rho\in(0,1)\), both \(n_0\) and \(n_1\), hence \(n_{\min}\), diverge.  The right side of \((2)\) therefore tends to zero.  The fixed positive margin \(\eta\) is essential only for selector recovery; no such margin was used for finite-sample certification.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result separates honest coverage at boundaries from exact selector recovery on a transparent regular class. \textit{Gap.} FangSantos2019 analyzes directionally differentiable functionals and HuangFangHanleyRosenblum2019 a scalar optimizer; this theorem controls a discontinuous lexicographic set selector. \textit{Consumer.} Repeated randomized studies with a fixed ordinal endpoint recover the same population reporting set whenever the identified margins stay off feasibility boundaries.
+
+\begin{theorem}[thm:equality-regimes-characterized]\label{thm:equality-regimes-characterized}
+Fix \(L\geq3\), \((\mu_0,\mu_1)\in\Delta_L^2\), and \(0<\alpha<1\).  If \(0<\alpha<1/2\), the following five conditions are equivalent:
+\[
+\frac{I^*}{k^*}=\frac{2L-1}{3};
+\]
+\[
+I^*-k^*=2L-4;
+\]
+\[
+k^*=3\quad\text{and}\quad I^*=2L-1;
+\]
+\[
+R_2<\tau\leq R_3\quad\text{and}\quad B_{2L-2}<\tau;
+\]
+and
+\[
+R_2<\tau\leq R_3
+\quad\text{and}\quad
+\min\{\mu_{1,0},\mu_{1,L-1},\mu_{0,0},\mu_{0,L-1}\}>\alpha.
+\]
+If \(1/2\leq\alpha<1\), the following three conditions are equivalent:
+\[
+\frac{I^*}{k^*}=\frac L2;
+\]
+\[
+k^*=2\quad\text{and}\quad I^*=L;
+\]
+and
+\[
+R_1<\tau\leq R_2\quad\text{and}\quad B_{L-1}<\tau.
+\]
+The high-coverage equality system \(k^*=3\), \(I^*=2L-1\) has strictly positive nonsymmetric marginal solutions exactly when \(0<\alpha<1/2\).  The low-coverage equality system is attained at \(\alpha=1/2\) by the symmetric two-endpoint half--half law and, for every \(1/2<\alpha<1\), by strictly positive symmetric perturbations of that law.
+\end{theorem}
+\begin{proof}
+Write \(c=1-\alpha\) and \(\tau=1+c\).  By \texttt{lem:interval-validity-bridge}, \(I^*\) throughout this proof is precisely the shortest-interval completion of the every-compatible-coupling validity criterion.  We use the following consequences proved in \texttt{thm:sharp-interval-price}:
+\[
+k^*=1\Longrightarrow I^*=1,
+\qquad
+k^*=2\Longrightarrow I^*\leq L,
+\qquad
+k^*\geq3\Longrightarrow I^*\leq2L-1.
+\tag{1}
+\]
+
+First suppose \(0<\alpha<1/2\).  If \(k^*=1\), then \(I^*/k^*=1\) and \(I^*-k^*=0\).  If \(k^*=2\), equation \((1)\) and \(L\geq3\) give
+\[
+\frac{I^*}{k^*}\leq\frac L2<\frac{2L-1}{3},
+\qquad
+I^*-k^*\leq L-2<2L-4.
+\tag{2}
+\]
+If \(k^*\geq3\), then
+\[
+\frac{I^*}{k^*}\leq\frac{2L-1}{k^*}\leq\frac{2L-1}{3},
+\qquad
+I^*-k^*\leq2L-1-k^*\leq2L-4.
+\tag{3}
+\]
+Equality in either chain in \((3)\) holds if and only if \(k^*=3\) and \(I^*=2L-1\).  Equation \((2)\) excludes equality when \(k^*\leq2\).  This proves equivalence of the first three high-coverage conditions.
+
+By \texttt{thm:general-frontier}, the minimum arbitrary-set cardinality is three exactly when
+\[
+k^*=3
+\quad\Longleftrightarrow\quad
+R_2<\tau\leq R_3.
+\tag{4}
+\]
+The full effect interval \(E\) is valid because every compatible coupling assigns it probability one.  The interval part of the same theorem therefore gives
+\[
+I^*=2L-1
+\quad\Longleftrightarrow\quad
+B_{2L-2}<\tau.
+\tag{5}
+\]
+To write \((5)\) in marginal coordinates, note that every \(Q_d(w)\) is nondecreasing in \(w\): any interval of width \(w<L\) can be enlarged by one adjacent point within \(X\), and all marginal masses are nonnegative.  Under \(1\leq a,b\leq L\) and \(a+b\leq2L-1\), every pair \((a,b)\) is coordinatewise dominated by either \((L,L-1)\) or \((L-1,L)\).  Moreover,
+\[
+Q_d(L)=1,
+\qquad
+Q_d(L-1)
+=\max\{1-\mu_{d,0},1-\mu_{d,L-1}\}
+=1-\min\{\mu_{d,0},\mu_{d,L-1}\}.
+\]
+Thus \texttt{def:frontier-profiles} gives
+\[
+\begin{aligned}
+B_{2L-2}
+&=\max\{1+Q_0(L-1),Q_1(L-1)+1\}\\
+&=2-\min\{\mu_{1,0},\mu_{1,L-1},\mu_{0,0},\mu_{0,L-1}\}.
+\end{aligned}
+\tag{6}
+\]
+Since \(\tau=2-\alpha\), equations \((4)\)--\((6)\) prove equivalence of all five high-coverage conditions.  The strict inequality in the endpoint condition corresponds exactly to \(B_{2L-2}<\tau\), so zero cells and threshold equalities are included without an implicit positivity assumption.
+
+Now suppose \(1/2\leq\alpha<1\).  The block construction in \texttt{thm:sharp-interval-price} proves the sharper implication
+\[
+k^*\geq3
+\quad\Longrightarrow\quad
+\frac{I^*}{k^*}
+\leq\frac{L+\lceil L/2\rceil-1}{3}
+<\frac L2.
+\tag{7}
+\]
+When \(k^*=1\), equation \((1)\) gives \(I^*/k^*=1<L/2\).  Hence \(I^*/k^*=L/2\) can hold only when \(k^*=2\); in that case equation \((1)\) shows that equality holds exactly when \(I^*=L\).  The converse is immediate, proving equivalence of the first two low-coverage conditions.
+
+The arbitrary-set frontier gives
+\[
+k^*=2
+\quad\Longleftrightarrow\quad
+R_1<\tau\leq R_2.
+\tag{8}
+\]
+Conditional on \(k^*=2\), equation \((1)\) gives \(I^*\leq L\).  The interval frontier then yields
+\[
+I^*=L
+\quad\Longleftrightarrow\quad
+B_{L-1}<\tau:
+\tag{9}
+\]
+the strict inequality excludes every valid interval having at most \(L-1\) points, while \(I^*\leq L\) supplies one having at most \(L\) points.  Equations \((8)\)--\((9)\) establish the three-way low-coverage equivalence.  All profile quantities are maxima over finite families, so these conditions are computable and remain valid at zero cells and exact threshold equalities.
+
+It remains to establish the existence assertions.  For the high-coverage equality system, necessity follows from \((6)\): \(I^*=2L-1\) forces all four endpoint masses to exceed \(\alpha\).  In either arm the two endpoint masses sum to at most one, whence
+\[
+2\alpha<1.
+\tag{10}
+\]
+Thus a solution is impossible unless \(0<\alpha<1/2\), even before imposing positivity or nonsymmetry.
+
+Conversely, fix \(0<\alpha<1/2\) and choose
+\[
+0<\varepsilon<\min\{\alpha/4,(1-2\alpha)/4\},
+\qquad
+M=\frac{1-\varepsilon}{2},
+\qquad
+0<\delta<M-\alpha.
+\]
+Define \(q=\mu_0\) and \(p=\mu_1\) by
+\[
+q_0=q_{L-1}=M,
+\qquad
+p_0=M+\delta,
+\qquad
+p_{L-1}=M-\delta,
+\]
+and, for \(1\leq i\leq L-2\), by
+\[
+p_i=q_i=\frac{\varepsilon}{L-2}.
+\]
+The vectors are normalized because their coordinates sum to \(2M+\varepsilon=1\), and all coordinates are strictly positive.  Also \(p\neq q\), so the marginal pair is nonsymmetric.  The bound on \(\delta\) gives \(M-\delta>\alpha\), and the bound on \(\varepsilon\) gives \(M>\alpha\); hence all four endpoint masses exceed \(\alpha\).  Equation \((6)\) yields \(B_{2L-2}<\tau\).  With \(A=B=\{0,L-1\}\),
+\[
+p(A)+q(B)=2(1-\varepsilon)>2-\alpha=\tau,
+\]
+because \(2\varepsilon<\alpha\).  Since \(|A-B|=3\), this proves \(R_3\geq\tau\).
+
+For every pair entering \(R_2\), the integer sumset inequality from \texttt{thm:sharp-interval-price} gives
+\[
+|A-B|\leq2
+\quad\Longrightarrow\quad
+|A|+|B|\leq3.
+\tag{11}
+\]
+The two largest atoms of each marginal are its endpoints: indeed,
+\[
+M-\delta>\alpha>\frac{\varepsilon}{L-2}.
+\]
+Thus a rectangle satisfying \((11)\) has mass sum no larger than
+\[
+(M+\delta)+(1-\varepsilon)
+<(2M-\alpha)+(1-\varepsilon)
+=2-2\varepsilon-\alpha
+<2-\alpha=\tau.
+\tag{12}
+\]
+It follows that \(R_2<\tau\).  The high-coverage equivalence already proved now gives \(k^*=3\) and \(I^*=2L-1\), establishing strictly positive nonsymmetric solutions for every \(0<\alpha<1/2\).  Together with necessity \((10)\), this proves the ``exactly when'' assertion.
+
+At \(\alpha=1/2\), the symmetric two-endpoint half--half law was verified in \texttt{thm:sharp-interval-price} to have \(k^*=2\) and \(I^*=L\).  For every \(1/2<\alpha<1\), that theorem likewise verifies the stated strictly positive symmetric perturbations and the same equalities.  These are precisely the remaining attainment claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite profile inequalities identify exactly when either branch of the sharp interval-price frontier induced by the marginal-robust validity criterion is attained, including zero cells and threshold equality. \textit{Gap.} A sharp factor without its equality regime would not reveal whether the coverage elbow is structural or merely an artifact of examples; the profile characterization resolves that distinction without attributing the general shortest-interval optimization to the comparator. \textit{Consumer.} The conditions can be evaluated from the identified arm marginals through \(R_1,R_2,R_3,B_{L-1}\), and \(B_{2L-2}\), while preserving the distinction between an oracle extremum and a claim about the remdesivir data.
+
+\begin{lemma}[lem:finite-strassen-deficiency]\label{lem:finite-strassen-deficiency}
+Let \(U\) and \(V\) be finite sets, let \(R\subseteq U\times V\), and let \(p\) and \(q\) be probability measures on \(U\) and \(V\).  For every \(\varepsilon\geq0\), there is a coupling \(\gamma\) of \(p\) and \(q\) satisfying \(\gamma(R)\geq1-\varepsilon\) if and only if
+\[
+p(C)\leq q(N_R(C))+\varepsilon
+\quad\text{for every }C\subseteq U,
+\]
+where \(N_R(C)=\{v\in V:\exists u\in C\text{ such that }(u,v)\in R\}\).  This equivalence permits zero atoms and arbitrary real-valued probability masses.
+\end{lemma}
+
+\begin{lemma}[lem:interval-validity-bridge]\label{lem:interval-validity-bridge}
+For every \(I\in\mathcal I_L\), call a joint law of \((Y(1),Y(0))\in X^2\) compatible with \((\mu_1,\mu_0)\) when its two marginals are \(\mu_1\) and \(\mu_0\).  Then
+\[
+\begin{split}
+&\Pr\{Y(1)-Y(0)\in I\}\geq 1-\alpha
+   \quad\text{for every compatible joint law}\\
+&\quad\Longleftrightarrow\quad
+\inf_{\gamma\in\Gamma(\mu_1,\mu_0)}
+\Pr_{\gamma}\{Y(1)-Y(0)\in I\}\geq1-\alpha\\
+&\quad\Longleftrightarrow\quad h_{\mu}(I)\geq c.
+\end{split}
+\]
+Moreover, if \(a,b\in E\), \(a\leq b\), and \(I=\{e\in E:a\leq e\leq b\}\), then \(|I|=b-a+1\).  Hence minimizing interval endpoint length \(b-a\) is equivalent to minimizing interval cardinality, and \(I^*\) is exactly the shortest-interval completion of the displayed marginal-robust validity criterion.
+\end{lemma}
+\begin{proof}
+Because \(X\) is finite, every compatible joint law is represented uniquely by the table
+\[
+\gamma_{ij}=\Pr\{Y(1)=i,Y(0)=j\},\qquad i,j\in X.
+\]
+Its nonnegativity and marginal identities are exactly the constraints in \(\Gamma(\mu_1,\mu_0)\) from \texttt{def:coupling-polytope}.  Conversely, every table in that polytope defines a compatible joint law.  The polytope is nonempty because the product table \(\gamma_{ij}=\mu_{1,i}\mu_{0,j}\) belongs to it.  For every \(\gamma\in\Gamma(\mu_1,\mu_0)\),
+\[
+\Pr_{\gamma}\{Y(1)-Y(0)\in I\}
+=\sum_{i-j\in I}\gamma_{ij}.
+\]
+Therefore requiring the probability inequality for every compatible law is equivalent to requiring its infimum over \(\Gamma(\mu_1,\mu_0)\) to be at least \(1-\alpha\).  The attainment assertion in \texttt{lem:hall-coverage} identifies this infimum with the minimum in \texttt{def:worst-coverage}, namely \(h_{\mu}(I)\).  Since \(c=1-\alpha\), the first displayed equivalence follows, including at zero marginal cells.
+
+For the last assertion, \(E=\{-L+1,\ldots,L-1\}\) contains every integer between any two of its elements.  Thus the integers in \(I=\{e\in E:a\leq e\leq b\}\) are precisely
+\[
+a,a+1,\ldots,b,
+\]
+and their number is \(b-a+1\).  The objectives \(b-a\) and \(|I|\) differ by the constant one on every nonempty interval.  They therefore have the same minimizers.  Combining this fact with \texttt{def:interval-optimum} proves the claimed shortest-oracle interpretation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The bridge proves that the interval benchmark is the shortest completion of the marginal-robust validity criterion and that cardinality matches integer endpoint length. \textit{Gap.} The comparator discusses coupling-robust intervals but does not formulate or optimize the general ordinal shortest-interval oracle induced by its criterion. \textit{Consumer.} The sharp interval-price and equality-regime theorems use this bridge to delimit the direct-comparison domain and the coverage-level extension.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The identity \(\min_{\nu\in C}\max_A d_A(\nu)=\max_A\min_{\nu\in C}d_A(\nu)\) is false in general. For \(S=E\setminus\{0\}\), a ternary confidence segment can give values \(7/260\) and \(0\), respectively. The certification program therefore keeps the order \(\min_{\nu}\max_A\) or uses the equivalent joint transportation linear program; it never chooses one Hall cut uniformly over the confidence region.
+
+\section{Honest scope}
+
+The Hall identity is established prior machinery specialized to this problem. The contribution is the optimizer-wide difference-set geometry, the shortest-interval completion of the marginal-robust validity criterion, the exhaustive ternary frontier, and the proved sharp interval-price phase transition with computable equality regimes. Comparison with Zhang and Richardson (2025) is direct only on their stated coverage-level domain; conclusions in the omitted neighborhood of one-half and at \(\alpha=1/2\) extend the same functional. The extremal marginal laws certify worst-case constants and are not asserted to equal the empirical law in the remdesivir trial. The confidence result is finite-sample honest but makes no efficiency claim. Selector recovery is asserted only on \(\mathcal M_{L,\eta}\); exact recovery on tie surfaces is not claimed, and a fixed prescribed \(\eta\) excludes positive-width neighborhoods even though failure of existence of some positive margin is confined to finitely many affine surfaces. When \(L=2\), the reduction agrees with Zhang and Richardson's result that the sole disconnected candidate cannot be shortest, providing the binary sanity check.
+
+\begin{thebibliography}{99}
+
+  \bibitem{ZhangRichardson2025} Zhang, Z., and Richardson, T. S. (2025). Individual Treatment Effect: Prediction Intervals and Sharp Bounds. arXiv:2506.07469v1.
+
+  \bibitem{Koperberg2024} Koperberg, T. (2024). Couplings and Matchings: Combinatorial Notes on Strassen's Theorem. Statistics \& Probability Letters 209, 110089.
+
+  \bibitem{LuDingDasgupta2018} Lu, J., Ding, P., and Dasgupta, T. (2018). Treatment Effects on Ordinal Outcomes: Causal Estimands and Sharp Bounds. Journal of Educational and Behavioral Statistics 43, 540--567.
+
+  \bibitem{HuangFangHanleyRosenblum2019} Huang, E. J., Fang, E. X., Hanley, D. F., and Rosenblum, M. (2019). Constructing a Confidence Interval for the Fraction Who Benefit From Treatment, Using Randomized Trial Data. Biometrics 75, 1228--1239.
+
+  \bibitem{MalloyTripathyNowak2021} Malloy, M. L., Tripathy, A., and Nowak, R. D. (2021). Optimal Confidence Regions for the Multinomial Parameter. arXiv:2002.01044.
+
+  \bibitem{FangSantos2019} Fang, Z., and Santos, A. (2019). Inference on Directionally Differentiable Functions. Review of Economic Studies 86, 377--412.
+
+  \bibitem{GaoShanSrinivasVijayaraghavan2025} Gao, C., Shan, L., Srinivas, V., and Vijayaraghavan, A. (2025). Volume Optimality in Conformal Prediction with Structured Prediction Sets. Proceedings of the 42nd International Conference on Machine Learning.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024} Duarte, G., Finkelstein, N., Knox, D., Mummolo, J., and Shpitser, I. (2024). An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association 119, 1778--1793.
+
+  \bibitem{FanPark2010} Fan, Y., and Park, S. S. (2010). Sharp Bounds on the Distribution of Treatment Effects and Their Statistical Inference. Econometric Theory 26, 931--951.
+
+  \bibitem{GoldmanEtAl2020} Goldman, J. D., and coauthors (2020). Remdesivir for 5 or 10 Days in Patients with Severe Covid-19. New England Journal of Medicine 383, 1827--1837.
+
+\end{thebibliography}
+
+\end{document}

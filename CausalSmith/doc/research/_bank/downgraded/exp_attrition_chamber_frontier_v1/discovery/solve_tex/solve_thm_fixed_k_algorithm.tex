@@ -1,0 +1,189 @@
+%%% FIELD proof-fixed-k-algorithm
+Let the observed coordinates induce the ordered nonempty equality blocks
+\(B_1\prec\cdots\prec B_g\).  Process the \(k\) missing labels in a fixed
+label order, as prescribed by \(\mathsf{ChamberMax}\) in
+Definition \(\text{def:block-insertion-algorithm}\).  If the current ordered
+partition has \(h\) blocks, the next missing label either forms a singleton
+in one of the \(h+1\) gaps or joins one of the \(h\) existing blocks.  Thus
+there are exactly \(2h+1\) branches at that node.
+
+These branches enumerate the compatible weak orders without omission or
+duplication.  Indeed, start with any compatible final weak order and delete
+the processed missing labels in reverse order.  At a deletion step, if the
+label shares its block with a label that has not yet been deleted, then its
+unique predecessor is obtained by deleting it from that block and the forward
+operation was attachment.  Otherwise it is a singleton, its unique predecessor
+is obtained by deleting that singleton block, and the forward operation was
+insertion into the resulting unique gap.  Reversing all deletions yields the
+observed ordered blocks.  This gives a two-sided inverse to the insertion path.
+After \(j\) labels have been inserted there are at most \(g+j\) blocks, so the
+number \(C(g,k)\) of leaves satisfies
+\[
+ C(g,k)\le \prod_{j=0}^{k-1}\{2(g+j)+1\}
+ \le (2n+1)^k.
+\]
+Here the empty product is one when \(k=0\), and the last inequality uses
+\(g+j\le n\).
+
+Fix a leaf and scan its ordered blocks.  By the midrank formula in
+Definition \(\text{def:midrank-tail}\), if a block has size \(d\) and exactly
+\(c\) labels precede it, every member of that block has midrank
+\[
+ r=c+\frac{d+1}{2},
+ \qquad q:=2r=2c+d+1\in\{2,\ldots,2n\}.
+\]
+Consequently, after one \(O(n)\) scan has assigned every doubled rank
+\(q_i=2r_i\), each explicitly listed row \(z\in\Omega\) is evaluated by the
+integer sum
+\[
+ 2T(z,b)=\sum_{i\in I}z_iq_i.
+\]
+Comparing this sum with \(2T(a,b)\) and accumulating the corresponding
+\(w_z\) costs \(O(nL)\) arithmetic operations at the leaf.  By
+Theorem \(\text{thm:weak-order-attainment}\), the tail is constant on each
+enumerated cell and its maximum over these leaves is exactly
+\(P_\delta(a)\).  Retaining a maximizing ordered partition therefore supplies
+the asserted optimizing weak-order certificate.
+
+It remains to account for exact bit complexity.  By
+Assumption \(\text{ass:known-fixed-count-design}\), the \(L\) rows are finite
+and explicitly available.  Sorting the rational observed coordinates and all
+subsequent comparisons have cost polynomial in \(\ell\).  By
+Assumption \(\text{ass:rational-positive-weights}\), all tail masses are exact
+rational sums.  Placing their denominators over their product gives a common
+denominator whose binary length is at most the sum of the input denominator
+lengths, hence \(O(\ell)\); the accumulated numerator also has polynomial
+binary length.  The doubled rank sums have \(O(\log n)\) bits.  Thus the total
+number of bit operations, including sorting, is
+\[
+ O\!\left((2n+1)^k nL\,\operatorname{poly}(\ell)\right).
+\]
+For fixed \(k\) this bound is polynomial in the explicit input size.  Because
+the exponent of \(n\) in the displayed guarantee depends on \(k\), it is an
+\(\mathrm{XP}\) guarantee and does not itself give an \(\mathrm{FPT}\)
+guarantee.
+
+For the sharper \(k=1\) bound, write \(u\) for the missing label and traverse
+the \(2g+1\) positions consisting of the bottom gap and, for each observed
+block from bottom to top, its equality face followed by the gap above it.  For
+each \(z\in\Omega\), define
+\[
+ d_i(z)=z_i-a_i,
+ \qquad D_z= T(z,b)-T(a,b)=\sum_{i\in I}d_i(z)r_i(b).
+\]
+Consider an observed block \(B\) of size \(t\).  On moving \(u\) from the gap
+immediately below \(B\) to the equality face of \(B\), the rank of \(u\)
+increases by \(t/2\), while the rank of every member of \(B\) decreases by
+\(1/2\).  Therefore
+\[
+ D_z(\text{face})-D_z(\text{lower gap})
+ =\frac{t\,d_u(z)-\sum_{i\in B}d_i(z)}{2}.
+\]
+The same rank changes, and hence the same increment, occur from that equality
+face to the gap immediately above \(B\).  For every row \(z\), all block sums
+\(\sum_{i\in B_j}d_i(z)\), together with the value of \(D_z\) at the bottom
+gap, are computed in \(O(n)\) operations.  Across all rows this initialization
+costs \(O(nL)\).  Each of the \(2g\) half-steps updates all \(D_z\) and sums
+the weights with \(D_z\ge0\) in \(O(L\operatorname{poly}(\ell))\) bit
+operations.  Since \(g\le n\), the complete equality-inclusive sweep costs
+\(O(nL\operatorname{poly}(\ell))\) after sorting and examines every one of the
+\(2g+1\) compatible positions.
+
+%%% FIELD statement-cre-midrank-fixed-k
+Suppose \(\Omega=\mathcal Z_m\) and
+\(w_z=\binom{n}{m}^{-1}\) for every \(z\in\mathcal Z_m\), with the completely
+randomized design supplied by the succinct encoding of length
+\(\ell_{\mathrm{CRE}}\).  Then the ordinary-midrank completion maximum
+\(P_\delta(a)\) is computable in
+\[
+ \left[\prod_{j=0}^{k-1}\{2(g+j)+1\}\right]
+ \operatorname{poly}(n,\ell_{\mathrm{CRE}})
+\]
+bit operations without listing the \(\binom{n}{m}\) assignments.  Hence exact
+maximization is polynomial for every fixed \(k\), including \(k=1\), over
+completely randomized designs with an arbitrary fixed treatment-indexed
+observation schedule \(O\), while retaining ordinary midranks and equality
+faces.
+
+%%% FIELD proof-cre-midrank-fixed-k
+Begin with the \(g\) observed equality blocks and insert the \(k\) missing
+labels in a fixed order according to
+Definition \(\text{def:block-insertion-algorithm}\).  With \(h\) current
+blocks, the next label has \(h+1\) singleton-gap choices and \(h\) attachment
+choices.  Reverse deletion of the last inserted label is unique: delete it
+from a shared block if another undeleted label remains there, and otherwise
+delete its singleton block.  Thus the leaves are in bijection with all
+compatible complete weak orders.  After \(j\) insertions there are at most
+\(g+j\) blocks, so their number is at most
+\[
+ C(g,k):=\prod_{j=0}^{k-1}\{2(g+j)+1\}.
+\]
+Attachment branches are precisely the equality faces, so none are discarded.
+
+Fix one leaf.  A block of size \(d\) preceded by \(c\) labels gives each of its
+members the ordinary doubled midrank
+\[
+ q_i:=2r_i=2c+d+1,
+ \qquad 2\le q_i\le2n.
+\]
+Form the bivariate integer polynomial
+\[
+ F(u,x)=\prod_{i=1}^n(1+u x^{q_i})
+       =\sum_{t=0}^n\sum_s C_{t,s}u^t x^s.
+\]
+Expanding the product proves, term by term, that
+\[
+ C_{t,s}
+ =\#\left\{J\subseteq I:|J|=t,
+                    \ \sum_{i\in J}q_i=s\right\}.
+\]
+Under the completely randomized design, assignment rows are in bijection with
+the \(m\)-subsets \(J=\{i:z_i=1\}\), each with probability
+\(\binom{n}{m}^{-1}\).  Writing \(Q_a=2T(a,b)=\sum_i a_iq_i\), Definition
+\(\text{def:midrank-tail}\) therefore gives the exact leaf tail
+\[
+ p(a,b)=\binom{n}{m}^{-1}\sum_{s\ge Q_a}C_{m,s}.
+\]
+The declared range \(1\le m\le n-1\) implies \(\binom{n}{m}>0\), so this
+division is well defined.
+This identity is valid with ties because the \(q_i\) are the doubled ordinary
+midranks of the equality blocks at the current leaf.
+
+The coefficients need not be obtained by symbolic multiplication.  Let
+\(C^{(i)}_{t,s}\) be the coefficient after the first \(i\) factors.  Initialize
+\(C^{(0)}_{0,0}=1\), set all other initial and out-of-range entries to zero,
+and use the recurrence
+\[
+ C^{(i)}_{t,s}
+ =C^{(i-1)}_{t,s}+C^{(i-1)}_{t-1,s-q_i}.
+\]
+Because \(0\le t\le m\), \(2\le q_i\le2n\), and an \(m\)-subset has sum at
+most \(2mn\le2n^2\), this table has polynomially many entries and is filled
+with polynomially many integer additions.  Each coefficient is at most
+\(2^n\), so it has at most \(n+1\) bits; \(\binom{n}{m}\), the threshold
+\(Q_a\), and the numerator tail sum likewise have polynomial bit length.
+Hence one leaf tail is evaluated in
+\(\operatorname{poly}(n,\ell_{\mathrm{CRE}})\) bit operations, without
+constructing any assignment row.
+
+The midrank vector and all tail indicators depend only on the leaf's weak
+order by Definitions \(\text{def:midrank-tail}\) and
+\(\text{def:weak-order-complex}\).  Every legal completion induces one of the
+enumerated leaves, and every enumerated leaf is realizable: assign an attached
+missing label in an observed block that block's fixed value; for each finite
+run of missing-only blocks between two observed blocks choose distinct real
+values strictly between the two fixed values; and choose distinct values below
+or above the observed range for the two possible extreme runs.  Assign every
+label in a missing-only equality block its block's chosen value.  Therefore the
+supremum in
+Definition \(\text{def:robust-pvalue}\) is the maximum of the computed leaf
+tails.  Multiplying the per-leaf cost by \(C(g,k)\) gives
+\[
+ \left[\prod_{j=0}^{k-1}\{2(g+j)+1\}\right]
+ \operatorname{poly}(n,\ell_{\mathrm{CRE}}).
+\]
+For each fixed \(k\), the product is bounded by \((2n+1)^k\), so this is
+polynomial in the succinct completely randomized-design input.  The argument
+uses only that the treatment-indexed schedule \(O\) is fixed, as stated in
+Assumption \(\text{ass:fixed-observation-schedule}\); it imposes no further
+restriction on which outcomes are missing.

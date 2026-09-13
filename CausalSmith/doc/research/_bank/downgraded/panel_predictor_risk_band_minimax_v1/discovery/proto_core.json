@@ -1,0 +1,2658 @@
+{
+  "qid": "panel_predictor_risk_band_minimax",
+  "specialization": "v1",
+  "cluster": "panel",
+  "symbols": [
+    {
+      "name": "alpha",
+      "type": "real number",
+      "space": "\\((0,1)\\)",
+      "role": "miscoverage probability"
+    },
+    {
+      "name": "Phi",
+      "type": "standard normal distribution function",
+      "sig": "\\(\\Phi\\)",
+      "def": "\\(\\Phi(z)=\\Pr\\{N(0,1)\\le z\\}\\)"
+    },
+    {
+      "name": "zquant",
+      "type": "standard normal quantile",
+      "sig": "\\(z_{1-\\alpha}\\)",
+      "def": "\\(z_{1-\\alpha}=\\Phi^{-1}(1-\\alpha)\\)",
+      "refs": [
+        "Phi",
+        "alpha"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of pre-treatment periods"
+    },
+    {
+      "name": "Tpost",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of observed donor-only post-treatment periods"
+    },
+    {
+      "name": "lambda",
+      "type": "positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "role": "limit of \\(T_1/n\\)"
+    },
+    {
+      "name": "J",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of donors"
+    },
+    {
+      "name": "K",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of predictors"
+    },
+    {
+      "name": "L",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of known pre-treatment blocks"
+    },
+    {
+      "name": "r",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "known factor rank"
+    },
+    {
+      "name": "nl",
+      "type": "vector of positive integers",
+      "space": "\\(\\mathbb N_{+}^{L}\\)",
+      "def": "\\(n_\\ell\\) is the length of pre-treatment block \\(\\ell\\), with \\(\\sum_{\\ell=1}^{L}n_\\ell=n\\)",
+      "refs": [
+        "L",
+        "n"
+      ]
+    },
+    {
+      "name": "p",
+      "type": "vector of positive block proportions",
+      "space": "\\(\\Delta_L^{\\circ}\\)",
+      "role": "limits of the pre-block sampling fractions",
+      "refs": [
+        "L"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "role": "fixed ridge curvature"
+    },
+    {
+      "name": "clow",
+      "type": "positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "role": "uniform lower regularity constant"
+    },
+    {
+      "name": "Chigh",
+      "type": "positive real number",
+      "space": "\\((1,\\infty)\\)",
+      "role": "uniform upper regularity constant"
+    },
+    {
+      "name": "Fpre",
+      "type": "pre-factor matrix",
+      "space": "\\(\\mathbb R^{L\\times r}\\)",
+      "refs": [
+        "L",
+        "r"
+      ]
+    },
+    {
+      "name": "UD",
+      "type": "donor-loading matrix",
+      "space": "\\(\\mathbb R^{r\\times J}\\)",
+      "refs": [
+        "r",
+        "J"
+      ]
+    },
+    {
+      "name": "mu0",
+      "type": "target loading vector",
+      "space": "\\(\\mathbb R^r\\)",
+      "refs": [
+        "r"
+      ]
+    },
+    {
+      "name": "fpost",
+      "type": "post-regime factor vector",
+      "space": "\\(\\mathbb R^r\\)",
+      "refs": [
+        "r"
+      ]
+    },
+    {
+      "name": "epsilont",
+      "type": "stationary error vector",
+      "space": "\\(\\mathbb R^{J+1}\\)",
+      "def": "\\(\\varepsilon_t=(\\varepsilon_{0t},\\varepsilon_{1t},\\ldots,\\varepsilon_{Jt})^{\\prime}\\)",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "Yit0",
+      "type": "untreated potential outcome",
+      "space": "\\(\\mathbb R\\)",
+      "sig": "\\(Y_{it}(0)\\)",
+      "role": "fixed-regime panel outcome before treatment and donor outcome after treatment"
+    },
+    {
+      "name": "Sigma",
+      "type": "positive-definite covariance matrix",
+      "space": "\\(\\mathbb S_{++}^{J+1}\\)",
+      "def": "\\(\\Sigma=\\operatorname{Var}(\\varepsilon_t)\\)",
+      "refs": [
+        "J",
+        "epsilont"
+      ]
+    },
+    {
+      "name": "phit",
+      "type": "joint first- and second-moment score",
+      "def": "\\(\\phi_t=(\\varepsilon_t^{\\prime},\\operatorname{vech}(\\varepsilon_t\\varepsilon_t^{\\prime}-\\Sigma)^{\\prime})^{\\prime}\\)",
+      "refs": [
+        "epsilont",
+        "Sigma"
+      ]
+    },
+    {
+      "name": "Omega",
+      "type": "long-run covariance matrix",
+      "def": "\\(\\Omega=\\sum_{k\\in\\mathbb Z}\\operatorname{Cov}(\\phi_0,\\phi_k)\\)",
+      "refs": [
+        "phit"
+      ]
+    },
+    {
+      "name": "Qepsilon",
+      "type": "stationary error-process law",
+      "space": "\\(\\mathcal Q_{\\varepsilon}\\)",
+      "def": "\\(\\mathsf Q_{\\varepsilon}=\\mathcal L((\\varepsilon_t)_{t\\in\\mathbb Z})\\)",
+      "refs": [
+        "epsilont"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "donor pre-block mean matrix",
+      "space": "\\(\\mathbb R^{L\\times J}\\)",
+      "def": "\\(A=F_{\\mathrm{pre}}U_D\\)",
+      "refs": [
+        "L",
+        "J",
+        "Fpre",
+        "UD"
+      ]
+    },
+    {
+      "name": "a0",
+      "type": "target pre-block mean vector",
+      "space": "\\(\\mathbb R^L\\)",
+      "def": "\\(a_0=F_{\\mathrm{pre}}\\mu_0\\)",
+      "refs": [
+        "L",
+        "Fpre",
+        "mu0"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "donor post-regime mean vector",
+      "space": "\\(\\mathbb R^J\\)",
+      "def": "\\(d^{\\prime}=f_{\\mathrm{post}}^{\\prime}U_D\\)",
+      "refs": [
+        "J",
+        "fpost",
+        "UD"
+      ]
+    },
+    {
+      "name": "c0",
+      "type": "target untreated post-regime mean",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(c_0=d^{\\prime}A^{+}a_0\\)",
+      "role": "observable row-span completion",
+      "refs": [
+        "d",
+        "A",
+        "a0"
+      ]
+    },
+    {
+      "name": "S",
+      "type": "known predictor aggregation matrix",
+      "space": "\\(\\mathbb R^{K\\times L}\\)",
+      "role": "each date in block \\(\\ell\\) receives coefficient \\(S_{k\\ell}/n_\\ell\\) in predictor \\(k\\)",
+      "refs": [
+        "K",
+        "L"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "donor predictor matrix",
+      "space": "\\(\\mathbb R^{K\\times J}\\)",
+      "def": "\\(X=SA\\)",
+      "refs": [
+        "K",
+        "J",
+        "S",
+        "A"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "target predictor vector",
+      "space": "\\(\\mathbb R^K\\)",
+      "def": "\\(x=Sa_0\\)",
+      "refs": [
+        "K",
+        "S",
+        "a0"
+      ]
+    },
+    {
+      "name": "DeltaJ",
+      "type": "donor simplex",
+      "def": "\\(\\Delta_J=\\{w\\in\\mathbb R^J:w\\ge0,\\mathbf 1^{\\prime}w=1\\}\\)",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "DeltaK",
+      "type": "predictor simplex",
+      "def": "\\(\\Delta_K=\\{v\\in\\mathbb R^K:v\\ge0,\\mathbf 1^{\\prime}v=1\\}\\)",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "v",
+      "type": "predictor-weight query",
+      "space": "\\(\\Delta_K\\)",
+      "refs": [
+        "DeltaK"
+      ]
+    },
+    {
+      "name": "Bsupport",
+      "type": "nonempty donor-support index set",
+      "space": "\\(2^{\\{1,\\ldots,J\\}}\\setminus\\{\\varnothing\\}\\)",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "Hmap",
+      "type": "population KKT Hessian map",
+      "def": "\\(H(v)=2\\{X^{\\prime}\\operatorname{diag}(v)X+\\rho I_J\\}\\)",
+      "refs": [
+        "v",
+        "X",
+        "rho",
+        "J"
+      ]
+    },
+    {
+      "name": "fmap",
+      "type": "population KKT linear-term map",
+      "def": "\\(f(v)=2X^{\\prime}\\operatorname{diag}(v)x\\)",
+      "refs": [
+        "v",
+        "X",
+        "x"
+      ]
+    },
+    {
+      "name": "etaB",
+      "type": "support-wise equality multiplier",
+      "def": "\\(\\eta_B=(\\mathbf 1^{\\prime}H_{BB}^{-1}f_B-1)/(\\mathbf 1^{\\prime}H_{BB}^{-1}\\mathbf 1)\\)",
+      "refs": [
+        "Bsupport",
+        "Hmap",
+        "fmap"
+      ]
+    },
+    {
+      "name": "wB",
+      "type": "support-wise donor-weight formula",
+      "def": "\\((w_B)_B=H_{BB}^{-1}(f_B-\\eta_B\\mathbf 1)\\) and \\((w_B)_{B^c}=0\\)",
+      "refs": [
+        "Bsupport",
+        "Hmap",
+        "fmap",
+        "etaB"
+      ]
+    },
+    {
+      "name": "sBc",
+      "type": "support-wise inactive-coordinate slack",
+      "def": "\\(s_{B^c}=H_{B^cB}(w_B)_B-f_{B^c}+\\eta_B\\mathbf 1\\)",
+      "refs": [
+        "Bsupport",
+        "Hmap",
+        "fmap",
+        "etaB",
+        "wB"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "observed-data law",
+      "role": "law of the target-plus-donor pre panel and donor-only post panel"
+    },
+    {
+      "name": "ModelClass",
+      "type": "triangular-array panel-law class",
+      "sig": "\\(\\mathcal M_n\\)",
+      "ref": "def:model-class",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "wP",
+      "type": "population donor-weight map",
+      "sig": "\\(w_P:\\Delta_K\\to\\Delta_J\\)",
+      "def": "\\(w_P(v)=\\arg\\min_{w\\in\\Delta_J}\\{(x-Xw)^{\\prime}\\operatorname{diag}(v)(x-Xw)+\\rho\\lVert w\\rVert_2^2\\}\\)",
+      "refs": [
+        "P",
+        "DeltaK",
+        "DeltaJ",
+        "v",
+        "x",
+        "X",
+        "rho"
+      ]
+    },
+    {
+      "name": "RP",
+      "type": "population prediction-risk function",
+      "sig": "\\(R_P:\\Delta_K\\to\\mathbb R_{+}\\)",
+      "def": "\\(R_P(v)=(c_0-d^{\\prime}w_P(v))^2+(1,-w_P(v)^{\\prime})\\Sigma(1,-w_P(v)^{\\prime})^{\\prime}\\)",
+      "refs": [
+        "P",
+        "DeltaK",
+        "c0",
+        "d",
+        "wP",
+        "Sigma"
+      ]
+    },
+    {
+      "name": "GP",
+      "type": "counterfactual prediction-risk graph",
+      "def": "\\(G_P=\\{(v,R_P(v)):v\\in\\Delta_K\\}\\)",
+      "refs": [
+        "P",
+        "RP",
+        "DeltaK"
+      ]
+    },
+    {
+      "name": "theta",
+      "type": "identified signal-and-noise parameter",
+      "def": "\\(\\theta=(A,a_0,d,\\Sigma,\\mathsf Q_{\\varepsilon})\\)",
+      "refs": [
+        "A",
+        "a0",
+        "d",
+        "Sigma",
+        "Qepsilon"
+      ]
+    },
+    {
+      "name": "ThetaN",
+      "type": "global admissible parameter space",
+      "sig": "\\(\\Theta_n\\)",
+      "ref": "def:global-parameter-space",
+      "refs": [
+        "theta",
+        "n"
+      ]
+    },
+    {
+      "name": "Ptheta",
+      "type": "observed-panel law induced by a global parameter",
+      "sig": "\\(P_{\\theta}=\\mathsf P_n(\\theta)\\)",
+      "ref": "def:global-law-map",
+      "refs": [
+        "theta",
+        "ThetaN"
+      ]
+    },
+    {
+      "name": "ThetaGaussian",
+      "type": "finite-dimensional iid Gaussian local parameter manifold",
+      "sig": "\\(\\Theta_n^{\\mathrm G}\\)",
+      "ref": "def:local-gaussian-parameter-space",
+      "refs": [
+        "ThetaN",
+        "n"
+      ]
+    },
+    {
+      "name": "theta0",
+      "type": "interior local center",
+      "space": "\\(\\operatorname{relint}(\\Theta_n^{\\mathrm G})\\)",
+      "refs": [
+        "ThetaGaussian",
+        "theta"
+      ]
+    },
+    {
+      "name": "A0",
+      "type": "centered donor pre-block mean matrix",
+      "space": "\\(\\mathbb R^{L\\times J}\\)",
+      "def": "\\(A_0=A(\\theta_0)\\)",
+      "refs": [
+        "A",
+        "theta0",
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "a00",
+      "type": "centered target pre-block mean vector",
+      "space": "\\(\\mathbb R^L\\)",
+      "def": "\\(a_{0,0}=a_0(\\theta_0)\\)",
+      "refs": [
+        "a0",
+        "theta0",
+        "L"
+      ]
+    },
+    {
+      "name": "d0",
+      "type": "centered donor post-regime mean vector",
+      "space": "\\(\\mathbb R^J\\)",
+      "def": "\\(d_0=d(\\theta_0)\\)",
+      "refs": [
+        "d",
+        "theta0",
+        "J"
+      ]
+    },
+    {
+      "name": "c00",
+      "type": "centered target untreated post-regime mean",
+      "space": "\\(\\mathbb R\\)",
+      "sig": "\\(c_{0,0}\\)",
+      "def": "\\(c_{0,0}=d_0^{\\prime}A_0^+a_{0,0}\\)",
+      "refs": [
+        "d0",
+        "A0",
+        "a00"
+      ]
+    },
+    {
+      "name": "X0",
+      "type": "centered donor predictor matrix",
+      "space": "\\(\\mathbb R^{K\\times J}\\)",
+      "def": "\\(X_0=SA_0\\)",
+      "refs": [
+        "S",
+        "A0",
+        "K",
+        "J"
+      ]
+    },
+    {
+      "name": "x0",
+      "type": "centered target predictor vector",
+      "space": "\\(\\mathbb R^K\\)",
+      "def": "\\(x_0=Sa_{0,0}\\)",
+      "refs": [
+        "S",
+        "a00",
+        "K"
+      ]
+    },
+    {
+      "name": "qdim",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "dimension of an identifiable local chart"
+    },
+    {
+      "name": "xi",
+      "type": "smooth identifiable local chart",
+      "sig": "\\(\\xi:\\Theta_n^{\\mathrm G}\\to\\mathbb R^q\\)",
+      "def": "\\(\\xi(\\theta_0)=0\\)",
+      "refs": [
+        "ThetaGaussian",
+        "theta0",
+        "qdim"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "role": "radius of the compact local parameter set"
+    },
+    {
+      "name": "Mwidth",
+      "type": "positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "sig": "\\(M_{\\mathrm{wid}}\\)",
+      "role": "threshold in the uniform stochastic diameter statement"
+    },
+    {
+      "name": "Lzero",
+      "type": "positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "role": "radius of the local predictor-query set"
+    },
+    {
+      "name": "u",
+      "type": "local parameter direction",
+      "space": "\\(\\mathbb R^q\\)",
+      "refs": [
+        "qdim"
+      ]
+    },
+    {
+      "name": "Ulocal",
+      "type": "compact local parameter set",
+      "def": "\\(\\mathcal U=\\{u\\in\\mathbb R^q:\\lVert u\\rVert_2\\le M\\}\\)",
+      "refs": [
+        "u",
+        "qdim",
+        "M"
+      ]
+    },
+    {
+      "name": "v0",
+      "type": "local predictor center",
+      "space": "\\(\\Delta_K\\)",
+      "refs": [
+        "DeltaK"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "local predictor direction",
+      "space": "\\(\\mathbb R^K\\)",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "Dlocal",
+      "type": "compact tangent query set",
+      "def": "\\(\\mathcal D=\\{t\\in\\mathbb R^K:\\mathbf 1^{\\prime}t=0,\\ t_k\\ge0\\text{ if }(v_0)_k=0,\\ \\lVert t\\rVert_2\\le L_0\\}\\)",
+      "refs": [
+        "t",
+        "K",
+        "v0",
+        "Lzero"
+      ]
+    },
+    {
+      "name": "thetan",
+      "type": "local parameter path",
+      "def": "\\(\\theta_n(u)\\in\\Theta_n^{\\mathrm G}\\) is the local path satisfying \\(\\xi(\\theta_n(u))=u/\\sqrt n\\)",
+      "refs": [
+        "ThetaGaussian",
+        "xi",
+        "u",
+        "n"
+      ]
+    },
+    {
+      "name": "vn",
+      "type": "local predictor-query path",
+      "def": "\\(v_n(t)=v_0+t/\\sqrt n\\)",
+      "refs": [
+        "v0",
+        "t",
+        "n"
+      ]
+    },
+    {
+      "name": "w0",
+      "type": "donor weight at the local center",
+      "def": "\\(w_0=w_{P_{\\theta_0}}(v_0)\\)",
+      "refs": [
+        "wP",
+        "Ptheta",
+        "theta0",
+        "v0"
+      ]
+    },
+    {
+      "name": "H0",
+      "type": "positive-definite KKT Hessian",
+      "def": "\\(H_0=2\\{X_0^{\\prime}\\operatorname{diag}(v_0)X_0+\\rho I_J\\}\\)",
+      "refs": [
+        "X0",
+        "v0",
+        "rho",
+        "J"
+      ]
+    },
+    {
+      "name": "f0",
+      "type": "KKT linear term",
+      "def": "\\(f_0=2X_0^{\\prime}\\operatorname{diag}(v_0)x_0\\)",
+      "refs": [
+        "X0",
+        "x0",
+        "v0"
+      ]
+    },
+    {
+      "name": "eta0",
+      "type": "equality multiplier at the local center",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\eta_0=-(H_0w_0-f_0)_j\\) for any \\(j\\) with \\(w_{0j}>0\\)",
+      "refs": [
+        "H0",
+        "w0",
+        "f0"
+      ]
+    },
+    {
+      "name": "s0",
+      "type": "nonnegative KKT slack vector",
+      "space": "\\(\\mathbb R_{+}^{J}\\)",
+      "def": "\\(s_0=H_0w_0-f_0+\\eta_0\\mathbf 1\\)",
+      "refs": [
+        "J",
+        "H0",
+        "w0",
+        "f0",
+        "eta0"
+      ]
+    },
+    {
+      "name": "Czero",
+      "type": "critical cone",
+      "def": "\\(\\mathcal C_0=\\{h:\\mathbf 1^{\\prime}h=0;\\ h_j=0\\text{ if }w_{0j}=0<s_{0j};\\ h_j\\ge0\\text{ if }w_{0j}=s_{0j}=0\\}\\)",
+      "refs": [
+        "w0",
+        "s0"
+      ]
+    },
+    {
+      "name": "dotH",
+      "type": "chart-and-query derivative of the KKT Hessian",
+      "sig": "\\(\\dot H:\\mathcal U\\times\\mathcal D\\to\\mathbb S^J\\)",
+      "def": "\\(\\dot H(u,t)=D_\\theta H_{\\theta_0}(v_0)[u]+2X_0^{\\prime}\\operatorname{diag}(t)X_0\\)",
+      "refs": [
+        "Ulocal",
+        "Dlocal",
+        "J",
+        "Hmap",
+        "theta0",
+        "v0",
+        "u",
+        "t",
+        "X0"
+      ]
+    },
+    {
+      "name": "dotf",
+      "type": "chart-and-query derivative of the KKT linear term",
+      "sig": "\\(\\dot f:\\mathcal U\\times\\mathcal D\\to\\mathbb R^J\\)",
+      "def": "\\(\\dot f(u,t)=D_\\theta f_{\\theta_0}(v_0)[u]+2X_0^{\\prime}\\operatorname{diag}(t)x_0\\)",
+      "refs": [
+        "Ulocal",
+        "Dlocal",
+        "J",
+        "fmap",
+        "theta0",
+        "v0",
+        "u",
+        "t",
+        "X0",
+        "x0"
+      ]
+    },
+    {
+      "name": "Qmap",
+      "type": "linear shifted-KKT score map",
+      "sig": "\\(Q:\\mathcal U\\times\\mathcal D\\to\\mathbb R^J\\)",
+      "def": "\\(Q(u,t)=\\dot H(u,t)w_0-\\dot f(u,t)\\)",
+      "refs": [
+        "Ulocal",
+        "Dlocal",
+        "J",
+        "w0",
+        "dotH",
+        "dotf"
+      ]
+    },
+    {
+      "name": "hmap",
+      "type": "critical-cone weight derivative",
+      "def": "\\(h(u,t)=\\arg\\min_{h\\in\\mathcal C_0}\\{\\tfrac12h^{\\prime}H_0h+Q(u,t)^{\\prime}h\\}\\)",
+      "refs": [
+        "u",
+        "t",
+        "Czero",
+        "H0",
+        "Qmap"
+      ]
+    },
+    {
+      "name": "b0",
+      "type": "centered post-mean prediction bias",
+      "def": "\\(b_0=c_{0,0}-d_0^{\\prime}w_0\\)",
+      "refs": [
+        "c00",
+        "d0",
+        "w0"
+      ]
+    },
+    {
+      "name": "e0",
+      "type": "centered prediction-error loading vector",
+      "def": "\\(e_0=(1,-w_0^{\\prime})^{\\prime}\\)",
+      "refs": [
+        "w0"
+      ]
+    },
+    {
+      "name": "dotc",
+      "type": "chart derivative of the completed target post mean",
+      "def": "\\(\\dot c(u)=D_\\theta[d(\\theta)^{\\prime}A(\\theta)^+a_0(\\theta)]_{\\theta=\\theta_0}[u]\\), where \\(d(\\theta_0)^{\\prime}A(\\theta_0)^+a_0(\\theta_0)=c_{0,0}\\); equivalently, \\(\\dot c(u)=D_\\theta d_{\\theta_0}[u]^{\\prime}A_0^+a_{0,0}+d_0^{\\prime}A_0^+\\{D_\\theta a_{0,\\theta_0}[u]-D_\\theta A_{\\theta_0}[u]A_0^+a_{0,0}\\}\\) along the fixed-rank compatible chart.",
+      "refs": [
+        "u",
+        "theta",
+        "theta0",
+        "d",
+        "A",
+        "a0",
+        "d0",
+        "A0",
+        "a00",
+        "c00"
+      ]
+    },
+    {
+      "name": "alocal",
+      "type": "direct local risk derivative",
+      "def": "\\(a(u)=2b_0\\{\\dot c(u)-D_\\theta d_{\\theta_0}[u]^{\\prime}w_0\\}+e_0^{\\prime}D_\\theta\\Sigma_{\\theta_0}[u]e_0\\)",
+      "refs": [
+        "u",
+        "b0",
+        "dotc",
+        "theta",
+        "theta0",
+        "d",
+        "w0",
+        "e0",
+        "Sigma"
+      ]
+    },
+    {
+      "name": "gvec",
+      "type": "risk gradient with respect to donor weights",
+      "def": "\\(g=-2b_0d_0-2\\Sigma_{D0}+2\\Sigma_{DD}w_0\\)",
+      "refs": [
+        "b0",
+        "d0",
+        "Sigma",
+        "w0"
+      ]
+    },
+    {
+      "name": "Psi",
+      "type": "local counterfactual-risk curve",
+      "sig": "\\(\\Psi_{\\theta_0}:\\mathcal U\\times\\mathcal D\\to\\mathbb R\\)",
+      "def": "\\(\\Psi_{\\theta_0}(u,t)=a(u)+g^{\\prime}h(u,t)=\\lim_{n\\to\\infty}\\sqrt n\\{R_{P_{\\theta_n(u)}}(v_n(t))-R_{P_{\\theta_0}}(v_0)\\}\\)",
+      "refs": [
+        "theta0",
+        "Ulocal",
+        "Dlocal",
+        "n",
+        "RP",
+        "thetan",
+        "vn",
+        "v0",
+        "alocal",
+        "gvec",
+        "hmap"
+      ]
+    },
+    {
+      "name": "Info",
+      "type": "Fisher information matrix",
+      "space": "\\(\\mathbb S_{++}^{q}\\)",
+      "sig": "\\(I(\\theta_0)\\)",
+      "def": "For chart directions \\(u,u^{\\prime}\\), \\(I(\\theta_0)[u,u^{\\prime}]=\\sum_{\\ell=1}^{L}p_\\ell Dm_\\ell[u]^{\\prime}\\Sigma^{-1}Dm_\\ell[u^{\\prime}]+\\lambda Dd[u]^{\\prime}\\Sigma_{DD}^{-1}Dd[u^{\\prime}]+\\tfrac12\\operatorname{tr}\\{\\Sigma^{-1}D\\Sigma[u]\\Sigma^{-1}D\\Sigma[u^{\\prime}]\\}+\\tfrac{\\lambda}{2}\\operatorname{tr}\\{\\Sigma_{DD}^{-1}D\\Sigma_{DD}[u]\\Sigma_{DD}^{-1}D\\Sigma_{DD}[u^{\\prime}]\\}\\), where \\(m_\\ell=(a_{0\\ell},A_{\\ell\\cdot})^{\\prime}\\) and every derivative is taken through the chart \\(\\xi\\) at \\(\\theta_0\\)",
+      "role": "information per \\(n\\) observations in the actually observed Gaussian panel",
+      "refs": [
+        "qdim",
+        "theta0",
+        "u",
+        "p",
+        "L",
+        "a0",
+        "A",
+        "Sigma",
+        "lambda",
+        "d",
+        "xi"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "Gaussian-shift observation",
+      "def": "\\(Z\\sim N(u,I(\\theta_0)^{-1})\\)",
+      "refs": [
+        "u",
+        "Info",
+        "theta0"
+      ]
+    },
+    {
+      "name": "BandClass",
+      "type": "class of randomized measurable interval-section bands",
+      "sig": "\\(\\mathfrak C_{1-\\alpha}\\)",
+      "ref": "def:local-band-class",
+      "refs": [
+        "alpha"
+      ]
+    },
+    {
+      "name": "Lalpha",
+      "type": "local minimax expected maximum band width",
+      "sig": "\\(L_\\alpha(\\theta_0,v_0;M,L_0)\\)",
+      "ref": "def:local-decision-value",
+      "refs": [
+        "alpha",
+        "theta0",
+        "v0",
+        "M",
+        "Lzero"
+      ]
+    },
+    {
+      "name": "Yt",
+      "type": "observed pre-period target-plus-donor outcome vector",
+      "space": "\\(\\mathbb R^{J+1}\\)",
+      "def": "\\(Y_t=(Y_{0t},Y_{1t},\\ldots,Y_{Jt})^{\\prime}\\) before treatment",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "Ybarl",
+      "type": "observed pre-block sample mean",
+      "def": "\\(\\overline Y_\\ell=n_\\ell^{-1}\\sum_{t\\in\\ell}Y_t\\)",
+      "refs": [
+        "nl",
+        "Yt"
+      ]
+    },
+    {
+      "name": "phihat",
+      "type": "observable residual moment score",
+      "def": "\\(\\widehat\\phi_t=((Y_t-\\overline Y_{\\ell(t)})^{\\prime},\\operatorname{vech}((Y_t-\\overline Y_{\\ell(t)})(Y_t-\\overline Y_{\\ell(t)})^{\\prime}-\\widehat\\Sigma)^{\\prime})^{\\prime}\\)",
+      "refs": [
+        "Yt",
+        "Ybarl",
+        "Sigma"
+      ]
+    },
+    {
+      "name": "zdim",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "dimension of the identified raw moment vector"
+    },
+    {
+      "name": "zmap",
+      "type": "identified raw moment map",
+      "sig": "\\(z:\\Theta_n\\to\\mathbb R^{q_z}\\)",
+      "def": "\\(z(\\theta)\\) stacks \\((A,a_0,d,\\operatorname{vech}(\\Sigma))\\)",
+      "refs": [
+        "ThetaN",
+        "theta",
+        "zdim",
+        "A",
+        "a0",
+        "d",
+        "Sigma"
+      ]
+    },
+    {
+      "name": "Vmap",
+      "type": "joint asymptotic covariance map",
+      "sig": "\\(V(P)\\in\\mathbb S_{++}^{q_z}\\)",
+      "def": "\\(V(P)=\\operatorname{Var}_P\\{\\lim_{n\\to\\infty}\\sqrt n(\\widehat z-z(\\theta))\\}\\), with pre-block mean blocks \\(\\Omega_{\\varepsilon\\varepsilon}/p_\\ell\\), covariance-moment block \\(\\Omega_{qq}\\), their same-block cross terms inherited from \\(\\Omega_\\phi\\), and post-donor mean block \\(\\Sigma_{DD}/\\lambda\\)",
+      "refs": [
+        "P",
+        "zdim",
+        "n",
+        "zmap",
+        "theta",
+        "Omega",
+        "p",
+        "Sigma",
+        "lambda"
+      ]
+    },
+    {
+      "name": "zhat",
+      "type": "observable joint block-moment estimator",
+      "space": "\\(\\mathbb R^{q_z}\\)",
+      "role": "block means, donor post mean, and pre-block-demeaned covariance",
+      "refs": [
+        "zdim"
+      ]
+    },
+    {
+      "name": "Vhat",
+      "type": "observable HAC covariance estimator",
+      "space": "\\(\\mathbb S_{++}^{q_z}\\)",
+      "role": "covariance estimator for the joint block-moment expansion",
+      "refs": [
+        "zdim"
+      ]
+    },
+    {
+      "name": "En",
+      "type": "joint moment confidence region",
+      "ref": "def:global-moment-region",
+      "refs": [
+        "ThetaN",
+        "n"
+      ]
+    },
+    {
+      "name": "Cn",
+      "type": "global simultaneous risk band",
+      "sig": "\\(C_n(v)\\)",
+      "ref": "def:global-risk-band",
+      "refs": [
+        "n",
+        "v"
+      ]
+    },
+    {
+      "name": "CtildeN",
+      "type": "generic observed-panel interval-band sequence",
+      "sig": "\\(\\widetilde C_n(v)\\)",
+      "role": "generic procedure quantified over in the compact-local minimax theorem",
+      "refs": [
+        "n",
+        "v"
+      ]
+    },
+    {
+      "name": "PanelBandClass",
+      "type": "compact-locally honest observed-panel band-sequence class",
+      "sig": "\\(\\mathfrak H^{\\mathrm{panel}}_{1-\\alpha}(\\theta_0,v_0;M,L_0)\\)",
+      "ref": "def:local-panel-honesty-class",
+      "refs": [
+        "alpha",
+        "theta0",
+        "v0",
+        "M",
+        "Lzero"
+      ]
+    },
+    {
+      "name": "varepsilonopt",
+      "type": "positive approximation tolerance",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "dPsi",
+      "type": "curve pseudometric",
+      "def": "\\(d_{\\Psi}(u,u')=\\sup_{t\\in\\mathcal D}|\\Psi_{\\theta_0}(u,t)-\\Psi_{\\theta_0}(u',t)|\\)",
+      "refs": [
+        "u",
+        "Dlocal",
+        "Psi",
+        "theta0"
+      ]
+    },
+    {
+      "name": "Dstar",
+      "type": "diameter of the local curve family",
+      "def": "\\(D_{\\star}=\\sup_{u,u'\\in\\mathcal U}d_{\\Psi}(u,u')\\)",
+      "refs": [
+        "Ulocal",
+        "dPsi"
+      ]
+    },
+    {
+      "name": "delta",
+      "type": "positive parameter-mesh radius",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "Nnet",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{+}\\)",
+      "role": "number of parameter-net points"
+    },
+    {
+      "name": "UN",
+      "type": "finite parameter net",
+      "def": "\\(\\mathcal U_N=\\{u_1,\\ldots,u_N\\}\\) is a \\(\\delta\\)-net of \\(\\mathcal U\\)",
+      "refs": [
+        "delta",
+        "Nnet",
+        "Ulocal"
+      ]
+    },
+    {
+      "name": "hmesh",
+      "type": "positive observation-mesh diameter",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "Rbox",
+      "type": "positive observation truncation radius",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "Oh",
+      "type": "finite observation-cell partition",
+      "def": "\\(\\mathcal O_h\\) partitions \\([-R,R]^q\\) into cells of diameter at most \\(h\\), with one additional Gaussian tail cell",
+      "refs": [
+        "Rbox",
+        "qdim",
+        "hmesh"
+      ]
+    },
+    {
+      "name": "pio",
+      "type": "Gaussian cell probability array",
+      "def": "\\(p_{io}=\\Pr_{u_i}\\{Z\\in o\\}\\) for \\(u_i\\in\\mathcal U_N\\) and \\(o\\in\\mathcal O_h\\)",
+      "refs": [
+        "Z",
+        "UN",
+        "Oh"
+      ]
+    },
+    {
+      "name": "cA",
+      "type": "acceptance-subset diameter cost",
+      "def": "\\(c_A=\\max_{i,j\\in A}d_{\\Psi}(u_i,u_j)\\), with \\(c_A=0\\) when \\(|A|<2\\)",
+      "refs": [
+        "dPsi",
+        "UN"
+      ]
+    },
+    {
+      "name": "VNh",
+      "type": "finite randomized decision-program value",
+      "sig": "\\(V_{N,h}(q)\\)",
+      "ref": "def:finite-decision-program",
+      "refs": [
+        "UN",
+        "hmesh"
+      ]
+    },
+    {
+      "name": "mhalf",
+      "type": "positive scalar subexperiment radius",
+      "space": "\\((0,M]\\)",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "ascale",
+      "type": "positive scalar hinge-path coordinate",
+      "space": "\\((0,\\infty)\\)",
+      "sig": "\\(a\\)",
+      "def": "In the hinge subexperiment, \\(a\\) multiplies the first pre-factor row and has center \\(a=1\\).",
+      "refs": [
+        "Fpre"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:fixed-dimensions",
+      "kind": "regularity",
+      "condition": "The integers \\(J,K,L,r\\) are fixed, \\(L\\ge r\\), and \\(1\\le r\\le\\min\\{L,J\\}\\).",
+      "free_symbols": [
+        "J",
+        "K",
+        "L",
+        "r"
+      ],
+      "standard": {
+        "name": "fixed-dimensional synthetic-control factor asymptotics",
+        "cite": "Fry2024MomentsSC"
+      },
+      "used_by": [
+        "def:model-class",
+        "prop:kkt-stratification",
+        "thm:certified-gaussian-value"
+      ]
+    },
+    {
+      "id": "ass:sampling-fractions",
+      "kind": "regularity",
+      "condition": "The known blocks are contiguous, \\(n_\\ell/n\\to p_\\ell\\in[c_{\\mathrm{lo}},1]\\) for every \\(\\ell\\), and \\(T_1/n\\to\\lambda\\in[c_{\\mathrm{lo}},C_{\\mathrm{hi}}]\\).",
+      "free_symbols": [
+        "nl",
+        "n",
+        "p",
+        "L",
+        "Tpost",
+        "lambda",
+        "clow",
+        "Chigh"
+      ],
+      "standard": {
+        "name": "proportional long-panel sampling",
+        "cite": "Fry2024MomentsSC"
+      },
+      "used_by": [
+        "lem:joint-moment-expansion",
+        "oeq:panel-experiment-transfer"
+      ]
+    },
+    {
+      "id": "ass:block-factor-means",
+      "kind": "causal-structural",
+      "condition": "For a pre-treatment date in block \\(\\ell\\), the untreated mean vector is \\((a_{0\\ell},A_{\\ell\\cdot})=(f_\\ell^{\\prime}\\mu_0,f_\\ell^{\\prime}U_D)\\); in the stable post regime, the untreated target and donor means are \\((f_{\\mathrm{post}}^{\\prime}\\mu_0,d^{\\prime})\\).",
+      "free_symbols": [
+        "Yit0",
+        "Fpre",
+        "UD",
+        "mu0",
+        "fpost",
+        "A",
+        "a0",
+        "d"
+      ],
+      "standard": {
+        "name": "fixed-rank linear factor model with regime-constant means",
+        "cite": "VivesiBastida2022PredictorSelection"
+      },
+      "used_by": [
+        "lem:row-span-completion",
+        "lem:joint-moment-expansion"
+      ]
+    },
+    {
+      "id": "ass:bounded-signals",
+      "kind": "support",
+      "condition": "The entries of \\(F_{\\mathrm{pre}},U_D,\\mu_0,f_{\\mathrm{post}}\\) and the operator norm of \\(S\\) are bounded by \\(C_{\\mathrm{hi}}\\).",
+      "free_symbols": [
+        "Fpre",
+        "UD",
+        "mu0",
+        "fpost",
+        "S",
+        "Chigh"
+      ],
+      "standard": {
+        "name": "uniformly bounded fixed-factor panel",
+        "cite": "Fry2024MomentsSC"
+      },
+      "used_by": [
+        "thm:global-risk-band",
+        "lem:local-risk-map"
+      ]
+    },
+    {
+      "id": "ass:rank-spectrum",
+      "kind": "rank",
+      "condition": "The matrix \\(A\\) has rank \\(r\\), and each of its \\(r\\) nonzero singular values belongs to \\([c_{\\mathrm{lo}},C_{\\mathrm{hi}}]\\).",
+      "free_symbols": [
+        "A",
+        "r",
+        "clow",
+        "Chigh"
+      ],
+      "standard": {
+        "name": "fixed-rank spectral separation",
+        "cite": "ChoiKwonLiao2024SyntheticControls"
+      },
+      "used_by": [
+        "lem:row-span-completion",
+        "thm:global-risk-band",
+        "oeq:panel-experiment-transfer"
+      ]
+    },
+    {
+      "id": "ass:stationary-errors",
+      "kind": "empirical-process",
+      "condition": "The process \\((\\varepsilon_t)_{t\\in\\mathbb Z}\\) is strictly stationary and satisfies \\(\\mathbb E[\\varepsilon_t]=0\\).",
+      "free_symbols": [
+        "epsilont"
+      ],
+      "standard": {
+        "name": "mean-zero strict stationarity",
+        "cite": "Fry2024MomentsSC"
+      },
+      "used_by": [
+        "lem:joint-moment-expansion",
+        "thm:global-risk-band"
+      ]
+    },
+    {
+      "id": "ass:subgaussian-errors",
+      "kind": "support",
+      "condition": "The vector sub-Gaussian norm satisfies \\(\\lVert\\varepsilon_t\\rVert_{\\psi_2}\\le C_{\\mathrm{hi}}\\).",
+      "free_symbols": [
+        "epsilont",
+        "Chigh"
+      ],
+      "standard": {
+        "name": "uniform sub-Gaussian tails",
+        "cite": "CattaneoFengTitiunik2021PredictionIntervals"
+      },
+      "used_by": [
+        "lem:joint-moment-expansion",
+        "thm:global-risk-band"
+      ]
+    },
+    {
+      "id": "ass:covariance-spectrum",
+      "kind": "regularity",
+      "condition": "Every eigenvalue of \\(\\Sigma\\) belongs to \\([c_{\\mathrm{lo}},C_{\\mathrm{hi}}]\\).",
+      "free_symbols": [
+        "Sigma",
+        "clow",
+        "Chigh"
+      ],
+      "standard": {
+        "name": "uniform covariance nondegeneracy",
+        "cite": "CanenSong2026SimplexWeight"
+      },
+      "used_by": [
+        "lem:joint-moment-expansion",
+        "thm:certified-gaussian-value",
+        "oeq:panel-experiment-transfer"
+      ]
+    },
+    {
+      "id": "ass:geometric-mixing",
+      "kind": "empirical-process",
+      "condition": "The absolute-regularity coefficients satisfy \\(\\beta(k)\\le C_{\\mathrm{hi}}\\exp(-c_{\\mathrm{lo}}k)\\) for every \\(k\\ge0\\).",
+      "free_symbols": [
+        "epsilont",
+        "clow",
+        "Chigh"
+      ],
+      "standard": {
+        "name": "geometric beta mixing",
+        "cite": "CattaneoFengTitiunik2021PredictionIntervals"
+      },
+      "used_by": [
+        "lem:joint-moment-expansion",
+        "thm:global-risk-band"
+      ]
+    },
+    {
+      "id": "ass:long-run-spectrum",
+      "kind": "regularity",
+      "condition": "Every eigenvalue of \\(\\Omega\\) belongs to \\([c_{\\mathrm{lo}},C_{\\mathrm{hi}}]\\).",
+      "free_symbols": [
+        "Omega",
+        "clow",
+        "Chigh"
+      ],
+      "standard": {
+        "name": "uniform long-run covariance nondegeneracy",
+        "cite": "Fry2024MomentsSC"
+      },
+      "used_by": [
+        "lem:joint-moment-expansion",
+        "thm:global-risk-band"
+      ]
+    },
+    {
+      "id": "ass:diffuse-predictors",
+      "kind": "regularity",
+      "condition": "For predictor \\(k\\), every original date in block \\(\\ell\\) enters with the known coefficient \\(S_{k\\ell}/n_\\ell\\).",
+      "free_symbols": [
+        "S",
+        "nl",
+        "K",
+        "L"
+      ],
+      "standard": {
+        "name": "block-average predictor construction",
+        "cite": "VivesiBastida2022PredictorSelection"
+      },
+      "used_by": [
+        "lem:joint-moment-expansion",
+        "thm:global-risk-band"
+      ]
+    },
+    {
+      "id": "ass:local-chart",
+      "kind": "regularity",
+      "condition": "The map \\(\\xi\\) is twice continuously differentiable and locally one-to-one on the finite-dimensional rank-\\(r\\) Gaussian signal-and-noise manifold \\(\\Theta_n^{\\mathrm G}\\) at \\(\\theta_0\\).",
+      "free_symbols": [
+        "xi",
+        "theta0",
+        "r",
+        "theta",
+        "ThetaGaussian"
+      ],
+      "standard": {
+        "name": "smooth identifiable LAN chart",
+        "cite": "LeCamYang2000"
+      },
+      "used_by": [
+        "lem:local-risk-map",
+        "oeq:panel-experiment-transfer",
+        "thm:local-panel-minimax"
+      ]
+    },
+    {
+      "id": "ass:local-gaussian-submodel",
+      "kind": "empirical-process",
+      "condition": "On the local submodel, pre-period errors and donor-only post-period errors are independent and identically distributed Gaussian vectors with the covariance submatrices induced by \\(\\Sigma\\).",
+      "free_symbols": [
+        "epsilont",
+        "Sigma"
+      ],
+      "standard": {
+        "name": "finite-dimensional Gaussian local experiment",
+        "cite": "ArmstrongKolesar2018OptimalInference"
+      },
+      "used_by": [
+        "thm:certified-gaussian-value",
+        "oeq:panel-experiment-transfer",
+        "thm:local-panel-minimax"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "Block-stable fixed-rank panel class",
+      "construction": "\\(\\mathcal M_n=\\{P_n:P_n\\text{ obeys every member property listed in }\\texttt{by-member-properties}\\}\\), with the triangular-array index \\(n\\), all dimensions, and all fixed constants governed by those displayed properties.",
+      "free_symbols": [
+        "ModelClass",
+        "P",
+        "n",
+        "J",
+        "K",
+        "L",
+        "r",
+        "nl",
+        "p",
+        "Tpost",
+        "lambda",
+        "rho",
+        "clow",
+        "Chigh",
+        "Fpre",
+        "UD",
+        "mu0",
+        "fpost",
+        "epsilont",
+        "Sigma",
+        "Omega",
+        "A",
+        "a0",
+        "d",
+        "S"
+      ],
+      "by_member_properties": [
+        "ass:fixed-dimensions",
+        "ass:sampling-fractions",
+        "ass:block-factor-means",
+        "ass:bounded-signals",
+        "ass:rank-spectrum",
+        "ass:stationary-errors",
+        "ass:subgaussian-errors",
+        "ass:covariance-spectrum",
+        "ass:geometric-mixing",
+        "ass:long-run-spectrum",
+        "ass:diffuse-predictors"
+      ]
+    },
+    {
+      "id": "def:global-parameter-space",
+      "name": "Global admissible signal-and-error parameter space",
+      "construction": "\\(\\Theta_n=\\{\\theta=(A,a_0,d,\\Sigma,\\mathsf Q_{\\varepsilon}):\\operatorname{rank}(A)=r,\\ c_{\\mathrm{lo}}\\le\\sigma_r(A)\\le\\sigma_1(A)\\le C_{\\mathrm{hi}},\\ \\lambda_{\\min}(\\Sigma)\\ge c_{\\mathrm{lo}},\\ \\lambda_{\\max}(\\Sigma)\\le C_{\\mathrm{hi}},\\text{ there exist bounded }(F_{\\mathrm{pre}},U_D,\\mu_0,f_{\\mathrm{post}})\\text{ satisfying }A=F_{\\mathrm{pre}}U_D,\\ a_0=F_{\\mathrm{pre}}\\mu_0,\\ d^{\\prime}=f_{\\mathrm{post}}^{\\prime}U_D,\\text{ and }\\theta\\text{ satisfies every condition indexed in }\\texttt{by-member-properties}\\}\\), at triangular-array index \\(n\\). The rank equality forces \\(F_{\\mathrm{pre}}\\) and \\(U_D\\) to have rank \\(r\\), so \\(a_0\\in\\operatorname{col}(A)\\) and \\(d\\in\\operatorname{row}(A)\\) are consequences rather than separate restrictions. The error-law coordinate \\(\\mathsf Q_{\\varepsilon}\\) carries the stationary dependence, tail, mixing, and long-run covariance features; \\(J,K,L,r,\\{n_\\ell\\},T_1,S,\\rho,c_{\\mathrm{lo}},C_{\\mathrm{hi}}\\) are fixed design coordinates governed by the same listed properties.",
+      "free_symbols": [
+        "ThetaN",
+        "theta",
+        "n",
+        "A",
+        "a0",
+        "d",
+        "Sigma",
+        "Qepsilon",
+        "r",
+        "clow",
+        "Chigh",
+        "Fpre",
+        "UD",
+        "mu0",
+        "fpost",
+        "J",
+        "K",
+        "L",
+        "nl",
+        "Tpost",
+        "S",
+        "rho",
+        "lambda",
+        "Omega"
+      ],
+      "by_member_properties": [
+        "ass:fixed-dimensions",
+        "ass:sampling-fractions",
+        "ass:block-factor-means",
+        "ass:bounded-signals",
+        "ass:rank-spectrum",
+        "ass:stationary-errors",
+        "ass:subgaussian-errors",
+        "ass:covariance-spectrum",
+        "ass:geometric-mixing",
+        "ass:long-run-spectrum",
+        "ass:diffuse-predictors"
+      ]
+    },
+    {
+      "id": "def:global-law-map",
+      "name": "Observed-panel law map",
+      "construction": "For \\(\\theta\\in\\Theta_n\\), define \\(\\mathsf P_n(\\theta)=P_\\theta\\) as the pushforward of \\(\\mathsf Q_{\\varepsilon}\\) under \\(Y_t=(a_{0\\ell},A_{\\ell\\cdot})^{\\prime}+\\varepsilon_t\\) for every pre-treatment \\(t\\) in block \\(\\ell\\), and \\(Y_{D,t}=d+\\varepsilon_{D,t}\\) for the \\(T_1\\) observed donor-only post-treatment dates, with the target post coordinate projected out. Equip \\(\\Theta_n\\) with the product Borel sigma-field generated by Euclidean signal coordinates and finite-dimensional cylinder probabilities of \\(\\mathsf Q_{\\varepsilon}\\), and equip panel laws with the evaluation sigma-field.",
+      "free_symbols": [
+        "Ptheta",
+        "theta",
+        "ThetaN",
+        "n",
+        "Qepsilon",
+        "Yt",
+        "a0",
+        "A",
+        "epsilont",
+        "d",
+        "Tpost",
+        "nl",
+        "L",
+        "J"
+      ],
+      "inputs": [
+        "theta",
+        "n",
+        "nl",
+        "Tpost"
+      ]
+    },
+    {
+      "id": "def:local-gaussian-parameter-space",
+      "name": "Gaussian local parameter manifold",
+      "construction": "\\(\\Theta_n^{\\mathrm G}=\\{\\theta\\in\\Theta_n:\\mathsf Q_{\\varepsilon}\\text{ is the law of independent }N(0,\\Sigma)\\text{ vectors over all pre dates and induces independent }N(0,\\Sigma_{DD})\\text{ donor vectors over all observed post dates}\\}\\), with the rank and spectral constraints inherited from \\(\\Theta_n\\).",
+      "free_symbols": [
+        "ThetaGaussian",
+        "theta",
+        "ThetaN",
+        "n",
+        "Qepsilon",
+        "epsilont",
+        "Sigma"
+      ],
+      "by_member_properties": [
+        "ass:local-gaussian-submodel"
+      ]
+    },
+    {
+      "id": "def:weight-map",
+      "name": "Ridge synthetic-control weight map",
+      "construction": "\\(w_P(v)=\\arg\\min_{w\\in\\Delta_J}\\{(x-Xw)^{\\prime}\\operatorname{diag}(v)(x-Xw)+\\rho\\lVert w\\rVert_2^2\\}\\).",
+      "free_symbols": [
+        "wP",
+        "P",
+        "v",
+        "DeltaJ",
+        "x",
+        "X",
+        "rho"
+      ],
+      "inputs": [
+        "P",
+        "v",
+        "rho"
+      ]
+    },
+    {
+      "id": "def:risk-graph",
+      "name": "Observable counterfactual prediction-risk graph",
+      "construction": "\\(R_P(v)=(d^{\\prime}A^+a_0-d^{\\prime}w_P(v))^2+(1,-w_P(v)^{\\prime})\\Sigma(1,-w_P(v)^{\\prime})^{\\prime}\\) and \\(G_P=\\{(v,R_P(v)):v\\in\\Delta_K\\}\\).",
+      "free_symbols": [
+        "RP",
+        "GP",
+        "P",
+        "v",
+        "d",
+        "A",
+        "a0",
+        "wP",
+        "Sigma",
+        "DeltaK"
+      ],
+      "inputs": [
+        "P"
+      ]
+    },
+    {
+      "id": "def:global-moments",
+      "name": "Same-panel block-moment vector and covariance estimate",
+      "construction": "\\(\\widehat z\\) stacks the \\(L\\) target-plus-donor block means, the donor-only post mean, and \\(n^{-1}\\sum_{\\ell=1}^{L}\\sum_{t\\in\\ell}(Y_t-\\overline Y_\\ell)(Y_t-\\overline Y_\\ell)^{\\prime}\\); \\(\\widehat V\\) is the corresponding block/HAC covariance estimator formed from \\(\\widehat\\phi_t\\) with logarithmic bandwidth and explicit deletion of the finitely many block-boundary lag pairs.",
+      "free_symbols": [
+        "zhat",
+        "Vhat",
+        "L",
+        "n",
+        "Yt",
+        "Ybarl",
+        "phihat"
+      ],
+      "inputs": [
+        "Yt",
+        "nl",
+        "Tpost"
+      ]
+    },
+    {
+      "id": "def:global-moment-region",
+      "name": "Rank-respecting joint moment confidence region",
+      "construction": "\\(E_n=\\{\\theta\\in\\Theta_n:n(\\widehat z-z(\\theta))^{\\prime}\\widehat V^{-1}(\\widehat z-z(\\theta))\\le\\chi^2_{q_z,1-\\alpha}\\}\\), using a fixed positive-definite regularization of \\(\\widehat V\\) on its vanishing-probability failure event. Thus every element of \\(E_n\\) indexes an admissible observed-panel law through \\(\\theta\\mapsto P_\\theta\\).",
+      "free_symbols": [
+        "En",
+        "theta",
+        "ThetaN",
+        "Ptheta",
+        "n",
+        "zhat",
+        "zmap",
+        "zdim",
+        "Vhat",
+        "alpha"
+      ],
+      "inputs": [
+        "zhat",
+        "Vhat",
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:global-risk-band",
+      "name": "Global risk-projection band",
+      "construction": "\\(C_n(v)=[\\inf_{\\theta\\in E_n}R_{P_\\theta}(v),\\sup_{\\theta\\in E_n}R_{P_\\theta}(v)]\\); if \\(E_n=\\varnothing\\), return \\(\\mathbb R\\).",
+      "free_symbols": [
+        "Cn",
+        "v",
+        "En",
+        "RP",
+        "Ptheta",
+        "theta"
+      ],
+      "inputs": [
+        "En",
+        "v"
+      ]
+    },
+    {
+      "id": "def:local-risk-map",
+      "name": "Shifted-critical-cone local risk map",
+      "construction": "At the local center set \\(c_{0,0}=d_0^{\\prime}A_0^+a_{0,0}\\) and \\(b_0=c_{0,0}-d_0^{\\prime}w_0\\). Compute \\(\\dot c(u)\\) by differentiating the completion along \\(\\theta_n(u)\\) at \\(\\theta_0\\), compute \\(h(u,t)=\\arg\\min_{h\\in\\mathcal C_0}\\{\\tfrac12h^{\\prime}H_0h+Q(u,t)^{\\prime}h\\}\\), and set \\(\\Psi_{\\theta_0}(u,t)=a(u)+g^{\\prime}h(u,t)\\).",
+      "free_symbols": [
+        "hmap",
+        "u",
+        "t",
+        "Czero",
+        "H0",
+        "Qmap",
+        "Psi",
+        "theta0",
+        "dotc",
+        "alocal",
+        "gvec",
+        "b0",
+        "e0",
+        "c00",
+        "d0",
+        "A0",
+        "a00",
+        "w0",
+        "Sigma",
+        "thetan"
+      ],
+      "inputs": [
+        "theta0",
+        "xi",
+        "v0",
+        "u",
+        "t"
+      ]
+    },
+    {
+      "id": "def:local-band-class",
+      "name": "Honest Gaussian risk-curve bands",
+      "construction": "\\(\\mathfrak C_{1-\\alpha}=\\{C:C(Z,t)\\text{ is a randomized measurable interval for every }t\\in\\mathcal D,\\ \\inf_{u\\in\\mathcal U}\\Pr_u[\\Psi_{\\theta_0}(u,t)\\in C(Z,t)\\ \\forall t\\in\\mathcal D]\\ge1-\\alpha\\}\\).",
+      "free_symbols": [
+        "BandClass",
+        "alpha",
+        "Z",
+        "t",
+        "Dlocal",
+        "u",
+        "Ulocal",
+        "Psi",
+        "theta0"
+      ],
+      "inputs": [
+        "alpha",
+        "Psi",
+        "Z",
+        "Ulocal",
+        "Dlocal"
+      ]
+    },
+    {
+      "id": "def:local-panel-honesty-class",
+      "name": "Compact-locally honest observed-panel band sequences",
+      "construction": "\\(\\mathfrak H^{\\mathrm{panel}}_{1-\\alpha}(\\theta_0,v_0;M,L_0)=\\{\\{\\widetilde C_n\\}_{n\\ge1}:\\widetilde C_n(v)\\text{ is a randomized measurable interval based only on the observed Gaussian panel, and }\\liminf_{n\\to\\infty}\\inf_{u\\in\\mathcal U}\\Pr_{P_{\\theta_n(u)}}[R_{P_{\\theta_n(u)}}(v_n(t))\\in\\widetilde C_n(v_n(t))\\ \\forall t\\in\\mathcal D]\\ge1-\\alpha\\}\\).",
+      "free_symbols": [
+        "PanelBandClass",
+        "alpha",
+        "theta0",
+        "v0",
+        "M",
+        "Lzero",
+        "CtildeN",
+        "n",
+        "v",
+        "u",
+        "Ulocal",
+        "Ptheta",
+        "thetan",
+        "RP",
+        "vn",
+        "t",
+        "Dlocal"
+      ],
+      "inputs": [
+        "alpha",
+        "theta0",
+        "v0",
+        "M",
+        "Lzero",
+        "thetan",
+        "vn"
+      ]
+    },
+    {
+      "id": "def:local-decision-value",
+      "name": "Local minimax simultaneous-band length",
+      "construction": "\\(L_\\alpha(\\theta_0,v_0;M,L_0)=\\inf_{C\\in\\mathfrak C_{1-\\alpha}}\\sup_{u\\in\\mathcal U}\\mathbb E_u[\\sup_{t\\in\\mathcal D}\\operatorname{diam}C(Z,t)]\\).",
+      "free_symbols": [
+        "Lalpha",
+        "alpha",
+        "theta0",
+        "v0",
+        "M",
+        "Lzero",
+        "BandClass",
+        "u",
+        "Ulocal",
+        "t",
+        "Dlocal",
+        "Z"
+      ],
+      "inputs": [
+        "theta0",
+        "v0",
+        "M",
+        "Lzero",
+        "alpha",
+        "Info",
+        "Psi"
+      ]
+    },
+    {
+      "id": "def:finite-decision-program",
+      "name": "Certified finite acceptance-subset program",
+      "construction": "For a coverage level \\(q\\in[0,1]\\), the \\(\\delta\\)-net \\(\\mathcal U_N\\), cells \\(o\\in\\mathcal O_h\\), probabilities \\(p_{io}\\), and subset costs \\(c_A\\), define \\(V_{N,h}(q)\\) as the linear-program minimum of \\(\\zeta\\) over \\(x_{oA}\\ge0\\): \\(\\sum_Ax_{oA}=1\\), \\(\\sum_op_{io}\\sum_{A\\ni i}x_{oA}\\ge q\\), and \\(\\sum_op_{io}\\sum_Ac_Ax_{oA}\\le\\zeta\\) for every \\(i\\). Its dual maximizes \\(q\\sum_i\\ell_i+\\sum_o\\eta_o\\) over \\(\\pi_i,\\ell_i\\ge0\\), \\(\\sum_i\\pi_i=1\\), and unrestricted \\(\\eta_o\\), subject to \\(\\eta_o\\le c_A\\sum_i\\pi_ip_{io}-\\sum_{i\\in A}\\ell_ip_{io}\\) for every \\((o,A)\\).",
+      "free_symbols": [
+        "VNh",
+        "delta",
+        "UN",
+        "Oh",
+        "pio",
+        "cA"
+      ],
+      "inputs": [
+        "UN",
+        "Oh",
+        "pio",
+        "cA"
+      ]
+    },
+    {
+      "id": "def:panel-transfer-handle",
+      "name": "Gaussian--Wishart deficiency-transfer handle",
+      "construction": "Start from the exact Gaussian sufficient statistics consisting of the \\(L\\) independent block means, the donor-only post mean, and the pre and post residual scatter matrices; center them in the chart \\(\\xi\\), separate parameter-free ancillary rotations, and construct parameter-independent randomization kernels whose uniform total-variation deficiencies vanish on \\(\\mathcal U\\).",
+      "free_symbols": [
+        "L",
+        "xi",
+        "Ulocal",
+        "Sigma",
+        "Info",
+        "Z",
+        "theta0"
+      ],
+      "inputs": [
+        "theta0",
+        "xi",
+        "Ulocal"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:global-parameterization",
+      "kind": "lemma",
+      "statement": "The map \\(\\mathsf P_n:\\Theta_n\\to\\mathcal M_n\\), \\(\\theta\\mapsto P_\\theta\\), is measurable. Every \\(\\theta\\in\\Theta_n\\) induces \\(P_\\theta\\in\\mathcal M_n\\), every \\(P\\in\\mathcal M_n\\) has at least one representing \\(\\theta\\in\\Theta_n\\), and all representing parameters agree on \\(z(\\theta)\\), \\(w_{P_\\theta}\\), and \\(R_{P_\\theta}\\).",
+      "free_symbols": [
+        "Ptheta",
+        "ThetaN",
+        "ModelClass",
+        "n",
+        "theta",
+        "P",
+        "zmap",
+        "wP",
+        "RP"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:global-parameter-space",
+        "def:global-law-map"
+      ],
+      "status": "to-prove",
+      "justification": "This lemma makes the global confidence region and its risk projection range over one coherent admissible parameterization of observed-panel laws.",
+      "gap": "The synthetic-control moment literature states law classes and identified coordinates separately; the risk-graph projection requires an explicit measurable bridge between them.",
+      "consumer": "The global band can be implemented over rank-respecting parameter coordinates without silently projecting over objects that fail to define observed-panel laws."
+    },
+    {
+      "id": "lem:row-span-completion",
+      "kind": "lemma",
+      "statement": "For every \\(P\\in\\mathcal M_n\\), the target untreated post-regime mean is identified from observed-law means by \\(c_0=d^{\\prime}A^+a_0\\); this value is invariant across all solutions of \\(A\\gamma=a_0\\) and across factor rotations.",
+      "free_symbols": [
+        "P",
+        "ModelClass",
+        "n",
+        "c0",
+        "d",
+        "A",
+        "a0"
+      ],
+      "depends_on": [
+        "ass:block-factor-means",
+        "ass:rank-spectrum",
+        "def:model-class"
+      ],
+      "status": "to-prove",
+      "justification": "This lemma makes prediction risk an observed-law functional even though the treated target's post-treatment counterfactual is missing.",
+      "gap": "Fry2024MomentsSC derives moment-based synthetic-control limits; the displayed row-span completion for this block-stable risk target is the necessary identifying move rather than a corrected treatment-effect formula.",
+      "consumer": "A synthetic-control analyst can evaluate population counterfactual risk without using treated target outcomes after intervention."
+    },
+    {
+      "id": "prop:kkt-stratification",
+      "kind": "proposition",
+      "statement": "The map \\(v\\mapsto w_P(v)\\) admits a complete finite semialgebraic stratification indexed by \\(B\\) and strict-slack sign patterns. On support \\(B\\), the formulas \\((w_B)_B=H_{BB}^{-1}(f_B-\\eta_B\\mathbf 1)\\), \\((w_B)_{B^c}=0\\), and \\(s_{B^c}=H_{B^cB}(w_B)_B-f_{B^c}+\\eta_B\\mathbf 1\\) are valid exactly when \\((w_B)_B>0\\) and \\(s_{B^c}\\ge0\\). Consequently, \\(G_P\\) is an observable semialgebraic graph.",
+      "free_symbols": [
+        "v",
+        "wP",
+        "P",
+        "Bsupport",
+        "Hmap",
+        "fmap",
+        "etaB",
+        "wB",
+        "sBc",
+        "GP",
+        "rho",
+        "DeltaK",
+        "J"
+      ],
+      "depends_on": [
+        "ass:fixed-dimensions",
+        "def:weight-map",
+        "def:risk-graph"
+      ],
+      "status": "to-prove",
+      "justification": "The finite face atlas is the computational substrate for both the global graph and the local optimal-band problem.",
+      "gap": "CanenSong2026SimplexWeight and HsiehShiShum2022MathProgramming encode one fixed constrained optimizer; neither stratifies a continuum of predictor-indexed population objectives and its risk graph.",
+      "consumer": "Implementations can enumerate exactly which donor face supports each proposed predictor weighting before reporting risk uncertainty."
+    },
+    {
+      "id": "lem:joint-moment-expansion",
+      "kind": "lemma",
+      "statement": "Uniformly over \\(P\\in\\mathcal M_n\\), the estimator \\(\\widehat z\\) has a joint root-\\(n\\) asymptotic linear expansion driven by weighted contiguous-block sums of \\(\\phi_t\\), including the covariance between mean and second-moment estimation; the block/HAC estimator \\(\\widehat V\\) is uniformly consistent for the resulting nonsingular covariance \\(V(P)\\).",
+      "free_symbols": [
+        "P",
+        "ModelClass",
+        "n",
+        "zhat",
+        "zmap",
+        "phit",
+        "Vhat",
+        "Vmap",
+        "Omega",
+        "nl",
+        "p",
+        "Tpost",
+        "lambda"
+      ],
+      "depends_on": [
+        "ass:sampling-fractions",
+        "ass:block-factor-means",
+        "ass:stationary-errors",
+        "ass:subgaussian-errors",
+        "ass:covariance-spectrum",
+        "ass:geometric-mixing",
+        "ass:long-run-spectrum",
+        "ass:diffuse-predictors",
+        "def:model-class",
+        "def:global-moments"
+      ],
+      "status": "to-prove",
+      "justification": "Same-panel inference must propagate pre-weight estimation and covariance estimation jointly; fixed-weight post error variance is not the estimator variance.",
+      "gap": "Fry2024MomentsSC supplies fixed-donor mixing limits, while CattaneoFengTitiunik2021PredictionIntervals separates fitted-weight and future-outcome errors; the required joint block-mean and residual-covariance expansion for population MSE is not given there.",
+      "consumer": "The expansion supports feasible uncertainty quantification without sample splitting or target post-treatment counterfactuals."
+    },
+    {
+      "id": "thm:global-risk-band",
+      "kind": "theorem",
+      "statement": "The band \\(C_n\\) is measurable and satisfies \\(\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal M_n}\\Pr_P\\{R_P(v)\\in C_n(v)\\text{ for every }v\\in\\Delta_K\\}\\ge1-\\alpha\\), together with the explicit uniform stochastic diameter bound \\(\\lim_{M_{\\mathrm{wid}}\\to\\infty}\\limsup_{n\\to\\infty}\\sup_{P\\in\\mathcal M_n}\\Pr_P\\{\\sup_{v\\in\\Delta_K}\\sqrt n\\,\\operatorname{diam}C_n(v)>M_{\\mathrm{wid}}\\}=0\\). Hence every measurable same-panel selector \\(\\widehat v\\in\\Delta_K\\) obeys \\(\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal M_n}\\Pr_P\\{R_P(\\widehat v)\\in C_n(\\widehat v)\\}\\ge1-\\alpha\\), including sequences within \\(O(n^{-1/2})\\) of any donor-face change.",
+      "free_symbols": [
+        "Cn",
+        "n",
+        "P",
+        "ModelClass",
+        "RP",
+        "v",
+        "DeltaK",
+        "alpha",
+        "Mwidth"
+      ],
+      "depends_on": [
+        "lem:global-parameterization",
+        "ass:bounded-signals",
+        "ass:rank-spectrum",
+        "def:global-moment-region",
+        "def:global-risk-band",
+        "lem:row-span-completion",
+        "prop:kkt-stratification",
+        "lem:joint-moment-expansion"
+      ],
+      "status": "to-prove",
+      "justification": "This is the first same-panel certificate for the entire population prediction-risk graph and automatically protects unsplit predictor tuning.",
+      "gap": "VivesiBastida2022PredictorSelection and PouliotXieLiu2026DegreesFreedom tune predictors without an honest full-risk-graph band; CanenSong2026SimplexWeight covers a fixed objective rather than a continuum whose donor face moves.",
+      "consumer": "An implementation of the displayed fixed-ridge quadratic simplex estimator can compare predictor weights and retain a valid risk certificate after selecting one on the same pre panel; the theorem does not certify the different objectives implemented by Synth or SparseSC."
+    },
+    {
+      "id": "lem:local-risk-map",
+      "kind": "lemma",
+      "statement": "Uniformly on \\(\\mathcal U\\times\\mathcal D\\), \\(w_{P_{\\theta_n(u)}}(v_n(t))=w_0+n^{-1/2}h(u,t)+O(n^{-1})\\) and \\(\\sqrt n\\{R_{P_{\\theta_n(u)}}(v_n(t))-R_{P_{\\theta_0}}(v_0)\\}=\\Psi_{\\theta_0}(u,t)+o(1)\\). The map \\(\\Psi_{\\theta_0}\\) is continuous piecewise affine on finitely many polyhedral critical-cone cells and retains mean-completion, donor-mean, covariance-risk, and donor-weight derivatives.",
+      "free_symbols": [
+        "Ulocal",
+        "Dlocal",
+        "wP",
+        "thetan",
+        "vn",
+        "w0",
+        "n",
+        "hmap",
+        "u",
+        "t",
+        "RP",
+        "theta0",
+        "v0",
+        "Psi"
+      ],
+      "depends_on": [
+        "ass:bounded-signals",
+        "ass:rank-spectrum",
+        "ass:local-chart",
+        "def:weight-map",
+        "def:risk-graph",
+        "def:local-risk-map",
+        "prop:kkt-stratification"
+      ],
+      "status": "to-prove",
+      "justification": "The shifted critical-cone expansion is the correct local graph when moment noise and predictor queries move active faces at the same root-\\(n\\) scale.",
+      "gap": "Geyer1994ConstrainedM and FangSantos2019Directional analyze a fixed constraint map; this result must keep the root-\\(n\\) movement of the query and the KKT slack jointly and uniformly over a compact direction set.",
+      "consumer": "The local curve is the input needed to calibrate face-aware simultaneous bands rather than a pointwise fixed-cone approximation."
+    },
+    {
+      "id": "prop:curve-decision-reduction",
+      "kind": "proposition",
+      "statement": "For the family \\(u\\mapsto\\Psi_{\\theta_0}(u,\\cdot)\\), every admissible interval band can be replaced without larger loss or smaller coverage by the pointwise envelope of the parameter curves it accepts. Its maximum width equals the \\(d_{\\Psi}\\)-diameter of that acceptance set. For each pair \\((u,u')\\), \\(d_{\\Psi}(u,u')\\) is the maximum of finitely many second-order-cone programs obtained by intersecting the two critical-cone cell systems with \\(\\mathcal D\\).",
+      "free_symbols": [
+        "u",
+        "Psi",
+        "theta0",
+        "BandClass",
+        "dPsi",
+        "Dlocal"
+      ],
+      "depends_on": [
+        "def:local-band-class",
+        "lem:local-risk-map"
+      ],
+      "status": "to-prove",
+      "justification": "This reduction replaces an infinite-dimensional band action by a confidence-set decision under a computable geometry-specific diameter loss.",
+      "gap": "FreybergerRai2018UniformBands, Definition 1, restricts bands to those induced by a nonrandom-shape set and rules out randomly selecting among valid bands. Its Section 2.3 leads with weighted area; Theorem 2 is conditional on a generic objective, while the paper supplies low-level sufficient conditions and a worked approximation specifically for weighted area. The separate unresolved target here is the externally randomized max-curve-diameter decision problem over all measurable interval-section bands. EvansHansenStark2005MinimaxConfidence instead uses additive set measure rather than curve diameter.",
+      "consumer": "A numerical solver can compute exact pairwise curve distances with primal and dual conic certificates."
+    },
+    {
+      "id": "thm:certified-gaussian-value",
+      "kind": "theorem",
+      "statement": "Let \\(q=1-\\alpha\\). For every parameter mesh \\(\\delta\\), observation mesh \\(h\\), and truncation radius \\(R\\), the primal and dual finite programs defining \\(V_{N,h}\\), with interval-certified Gaussian cell probabilities and conic curve distances, provide explicit computable lower and upper bounds on \\(L_\\alpha(\\theta_0,v_0;M,L_0)\\). If \\(\\delta\\to0\\), \\(R\\to\\infty\\), \\(hR\\to0\\), and numerical enclosure errors vanish, the certified gap converges to zero. The resulting envelope rules are asymptotically minimax in the Gaussian shift experiment over all externally randomized measurable interval-section bands; the comparison class is not restricted to bands induced by a nonrandom-shape set.",
+      "free_symbols": [
+        "alpha",
+        "delta",
+        "hmesh",
+        "Rbox",
+        "VNh",
+        "Lalpha",
+        "theta0",
+        "v0",
+        "M",
+        "Lzero",
+        "BandClass"
+      ],
+      "depends_on": [
+        "ass:fixed-dimensions",
+        "ass:covariance-spectrum",
+        "ass:local-gaussian-submodel",
+        "def:local-decision-value",
+        "def:finite-decision-program",
+        "prop:curve-decision-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem determines the hard local decision value by converging certified finite programs rather than restating its defining infimum.",
+      "gap": "SchaferStark2009OptimalRegions approximates minimum expected measure using test inversion, and ArmstrongKolesar2018OptimalInference solves scalar convex Gaussian functionals; neither covers nonadditive maximum curve width for unrestricted randomized bands on a piecewise-affine KKT graph.",
+      "consumer": "Researchers receive auditable lower and upper certificates for the unavoidable simultaneous risk-band cost at a chosen predictor and panel configuration."
+    },
+    {
+      "id": "oeq:panel-experiment-transfer",
+      "kind": "openendedquestion",
+      "statement": "Can one construct parameter-independent Markov kernels between the exact Gaussian block-mean and residual-scatter experiment generated by the observed panel and \\(Z\\sim N(u,I(\\theta_0)^{-1})\\) whose deficiencies vanish uniformly for \\(u\\in\\mathcal U\\), while simultaneously transporting the bounded curve-diameter loss, repairing vanishing coverage deficits, and preserving \\(\\sup_{u\\in\\mathcal U,t\\in\\mathcal D}|\\sqrt n\\{R_{P_{\\theta_n(u)}}(v_n(t))-R_{P_{\\theta_0}}(v_0)\\}-\\Psi_{\\theta_0}(u,t)|\\to0\\)?",
+      "free_symbols": [
+        "Z",
+        "u",
+        "Info",
+        "theta0",
+        "Ulocal",
+        "dPsi",
+        "Psi",
+        "t",
+        "n",
+        "Dlocal",
+        "RP",
+        "thetan",
+        "vn",
+        "v0"
+      ],
+      "depends_on": [
+        "ass:sampling-fractions",
+        "ass:rank-spectrum",
+        "ass:covariance-spectrum",
+        "ass:local-chart",
+        "ass:local-gaussian-submodel",
+        "def:panel-transfer-handle",
+        "lem:local-risk-map",
+        "thm:certified-gaussian-value"
+      ],
+      "status": "to-prove",
+      "justification": "This is the genuine unresolved step: LAN weak convergence alone does not transfer simultaneous coverage and worst-case expected maximum width for arbitrary randomized bands.",
+      "gap": "LeCamYang2000 gives experiment-comparison tools, but no located result supplies this compact-local Gaussian--Wishart transfer for a moving-KKT curve target and a discontinuous coverage constraint.",
+      "consumer": "Closing the transfer makes the computed Gaussian benchmark a sharp statement about procedures using the actual partially observed panel."
+    },
+    {
+      "id": "thm:local-panel-minimax",
+      "kind": "theorem",
+      "statement": "For every \\(\\varepsilon_{\\mathrm{opt}}>0\\), there exists a sequence \\(\\{\\widetilde C_n^{(\\varepsilon_{\\mathrm{opt}})}\\}\\in\\mathfrak H^{\\mathrm{panel}}_{1-\\alpha}(\\theta_0,v_0;M,L_0)\\) such that \\(\\limsup_{n\\to\\infty}\\sup_{u\\in\\mathcal U}\\mathbb E_{P_{\\theta_n(u)}}[\\sup_{t\\in\\mathcal D}\\sqrt n\\,\\operatorname{diam}\\widetilde C_n^{(\\varepsilon_{\\mathrm{opt}})}(v_n(t))]\\le L_\\alpha(\\theta_0,v_0;M,L_0)+\\varepsilon_{\\mathrm{opt}}\\). Conversely, for every generic sequence \\(\\{\\widetilde C_n\\}\\in\\mathfrak H^{\\mathrm{panel}}_{1-\\alpha}(\\theta_0,v_0;M,L_0)\\), \\(\\liminf_{n\\to\\infty}\\sup_{u\\in\\mathcal U}\\mathbb E_{P_{\\theta_n(u)}}[\\sup_{t\\in\\mathcal D}\\sqrt n\\,\\operatorname{diam}\\widetilde C_n(v_n(t))]\\ge L_\\alpha(\\theta_0,v_0;M,L_0)\\). There exists a diagonal sequence in this honesty class for which the limit equals \\(L_\\alpha(\\theta_0,v_0;M,L_0)\\), and its rules inherit the certified finite upper and lower decision bounds. These quantifiers do not refer to the global projection band \\(C_n\\), for which no global minimax claim is made.",
+      "free_symbols": [
+        "varepsilonopt",
+        "CtildeN",
+        "PanelBandClass",
+        "n",
+        "v",
+        "vn",
+        "u",
+        "Ulocal",
+        "Ptheta",
+        "thetan",
+        "t",
+        "Dlocal",
+        "RP",
+        "theta0",
+        "v0",
+        "alpha",
+        "Lalpha",
+        "M",
+        "Lzero",
+        "Cn"
+      ],
+      "depends_on": [
+        "ass:local-chart",
+        "ass:local-gaussian-submodel",
+        "def:local-decision-value",
+        "def:local-panel-honesty-class",
+        "lem:global-parameterization",
+        "lem:local-risk-map",
+        "thm:certified-gaussian-value",
+        "oeq:panel-experiment-transfer"
+      ],
+      "status": "to-prove",
+      "justification": "This matching lower bound and attainment theorem is the field-level payoff: it quantifies the exact risk-certificate cost through moving donor constraints.",
+      "gap": "CanenSong2026SimplexWeight proves uniform validity for a fixed optimizer. FreybergerRai2018UniformBands, Definition 1, restricts attention to bands induced by a nonrandom-shape set and rules out random selection among valid bands; Section 2.3 leads with weighted area, and its generic-objective Theorem 2 is accompanied by low-level sufficient conditions and a worked approximation specifically for weighted area. Independently of those results, the unresolved target is the unrestricted externally randomized local max-curve-diameter value and its sharp transfer to a synthetic-control panel.",
+      "consumer": "Software implementing the displayed fixed-ridge quadratic simplex estimator can report how much simultaneous risk uncertainty is information-theoretically unavoidable near the chosen donor-face geometry."
+    },
+    {
+      "id": "prop:face-cost-comparison",
+      "kind": "proposition",
+      "statement": "Under the single criterion \\(L_\\alpha\\), if the critical cone \\(\\mathcal C_0\\) is a linear space, then \\(\\Psi_{\\theta_0}(u,t)=a_{\\star}^{\\prime}u+b_{\\star}^{\\prime}t\\) and the risk-graph decision reduces exactly to scalar Gaussian confidence-interval inference for \\(a_{\\star}^{\\prime}u\\). At a boundary face the same certified program applies, and the difference from a separated face may be positive, zero, or negative after the information and derivatives change; no compulsory positive kink penalty is asserted.",
+      "free_symbols": [
+        "Lalpha",
+        "Czero",
+        "Psi",
+        "theta0",
+        "u",
+        "t",
+        "Info"
+      ],
+      "depends_on": [
+        "def:local-decision-value",
+        "lem:local-risk-map",
+        "thm:certified-gaussian-value"
+      ],
+      "status": "to-prove",
+      "justification": "A common decision criterion gives an honest separated-face benchmark and rules out a spurious universal boundary surcharge.",
+      "gap": "Generic constrained-estimator theory distinguishes tangent cones but does not compare optimal simultaneous curve-band costs under the observed-panel information.",
+      "consumer": "Practitioners can tell whether a donor-face transition actually raises the certified cost in their local configuration rather than applying a blanket penalty."
+    },
+    {
+      "id": "prop:hinge-sanity-check",
+      "kind": "proposition",
+      "statement": "Consider the one-dimensional iid Gaussian subexperiment with \\(r=2,J=3,K=L=2\\), \\(p_1=p_2=1/2\\), \\(T_1/n\\to\\lambda=1\\), \\(S=I_2\\), and \\(\\rho=1/20\\). Fix \\(U_D=[(0,0),(1,0),(0,1)]\\), \\(\\mu_0=(3/2,3/2)^{\\prime}\\), \\(f_{\\mathrm{post}}=(1,0)^{\\prime}\\), \\(\\Sigma=\\operatorname{diag}(1,1,4,1)\\) in target--donor order, and independent Gaussian errors across every pre and post date. Let the scalar \\(a>0\\) multiply the first pre-factor row, so \\(F_{\\mathrm{pre}}(a)=\\operatorname{diag}(a,1)\\), and take the scalar chart \\(\\xi(\\theta)=a-1\\). The center \\(a=1\\) has \\(F_{\\mathrm{pre},0}=I_2\\), \\(A_0=\\begin{pmatrix}0&1&0\\\\0&0&1\\end{pmatrix}\\), \\(a_{0,0}=(3/2,3/2)^{\\prime}\\), \\(d_0=(0,1,0)^{\\prime}\\), \\(c_{0,0}=d_0^{\\prime}A_0^+a_{0,0}=3/2\\), \\(X_0=A_0\\), and \\(x_0=a_{0,0}\\). The path \\(a_n(u)=1+u/\\sqrt n\\) varies only this first pre-factor row; \\(U_D,\\mu_0,f_{\\mathrm{post}},S,\\rho,\\Sigma,p,\\lambda\\), the Gaussian error law, and every other nuisance coordinate are fixed. Along this path \\(d_n(u)^{\\prime}A_n(u)^+a_{0,n}(u)=3/2\\), so \\(\\dot c(u)=0\\). Hence \\(A_n(u)=\\begin{pmatrix}0&1+u/\\sqrt n&0\\\\0&0&1\\end{pmatrix}\\), \\(a_{0,n}(u)=(3(1+u/\\sqrt n)/2,3/2)^{\\prime}\\), and \\(d_n(u)=d_0\\), so the post sample carries no information about \\(u\\). At the center, with \\(v=(s,1-s)\\), \\(w_{P_{\\theta_0}}(v)=(0,z,1-z)\\), \\(z=\\operatorname{clip}((40s-9)/22,0,1)\\), \\(b_0=c_{0,0}-d_0^{\\prime}w_0=1/2\\) at \\(s_0=31/40\\), and \\(R_{P_{\\theta_0}}(v)=17/4-5z+6z^2\\). Query \\(v_n(t)=(s_0+t/\\sqrt n,1-s_0-t/\\sqrt n)\\) for \\(|t|\\le L_0/\\sqrt2\\). The affected first-block mean derivative in target--donor order is \\(D m_1=(3/2,0,1,0)^{\\prime}\\), while every other mean and covariance derivative is zero. Therefore the information per \\(n\\) observations is exactly \\(I=p_1D m_1^{\\prime}\\Sigma^{-1}D m_1=\\tfrac12\\{9/4+1/4\\}=5/4\\). The upper KKT boundary has derivative \\(-31/80\\) in \\(a\\), while the unclipped second-donor weight has derivatives \\(20/11\\) in \\(s\\) and \\(31/44\\) in \\(a\\); since the centered risk derivative satisfies \\(R_{P_{\\theta_0}}^{\\prime}(1)=7\\), the local curve is \\(\\Psi_{\\theta_0}(u,t)=7\\min\\{(20/11)t+(31/44)u,0\\}\\). For \\(0<\\alpha<1/2\\) and \\(0<m=m_{\\mathrm{half}}\\le\\min\\{M,80L_0/(31\\sqrt2)\\}\\), the query set contains a point at which both curves for \\(u\\in\\{-m,m\\}\\) are unsaturated, and the exact binary minimax width is \\((217m/22)\\max\\{\\Phi(z_{1-\\alpha}-2m\\sqrt{5/4})-\\alpha,0\\}\\). The decision rule is on its unsaturated positive branch exactly when additionally \\(m<z_{1-\\alpha}/\\sqrt{5/4}\\); on that interval the maximum operator may be deleted.",
+      "free_symbols": [
+        "r",
+        "J",
+        "K",
+        "L",
+        "p",
+        "Tpost",
+        "n",
+        "lambda",
+        "S",
+        "rho",
+        "UD",
+        "mu0",
+        "fpost",
+        "Sigma",
+        "epsilont",
+        "ascale",
+        "xi",
+        "theta",
+        "thetan",
+        "u",
+        "Fpre",
+        "A",
+        "a0",
+        "d",
+        "A0",
+        "a00",
+        "d0",
+        "c00",
+        "X0",
+        "x0",
+        "v",
+        "v0",
+        "t",
+        "vn",
+        "wP",
+        "RP",
+        "Info",
+        "Psi",
+        "alpha",
+        "Phi",
+        "zquant",
+        "Lzero",
+        "M",
+        "mhalf"
+      ],
+      "depends_on": [
+        "def:weight-map",
+        "def:risk-graph",
+        "def:local-risk-map",
+        "def:local-decision-value",
+        "thm:certified-gaussian-value"
+      ],
+      "status": "to-prove",
+      "justification": "The explicit hinge verifies that the local graph is nonconstant at a moving boundary and that zero extra simultaneous-graph cost remains possible.",
+      "gap": "No cited synthetic-control result solves this bounded Gaussian confidence decision; the calculation is a falsifiable sanity reduction, not the full multidimensional theorem.",
+      "consumer": "The smallest nontrivial implementation test has a closed-form benchmark against which the certified program can be checked."
+    }
+  ],
+  "sampling_model": {
+    "design": "One target and \\(J\\) fixed donors are observed for \\(n\\) pre-treatment dates partitioned into \\(L\\) known proportional blocks; only the \\(J\\) untreated donors enter the \\(T_1\\) stable post-regime sample used for risk estimation.",
+    "units": "The cross section is fixed. Pre-block and post-regime means obey the rank-\\(r\\) factor representation; \\(\\operatorname{rank}(A)=r\\) then implies \\(a_0\\in\\operatorname{col}(A)\\) and \\(d\\in\\operatorname{row}(A)\\).",
+    "treatment": "The target may be treated in the post period, but its post outcomes are excluded from the observed-data experiment for \\(R_P\\).",
+    "overlap": "No treatment-overlap condition is needed; identification is the row-span completion induced by the stable common-loading model.",
+    "nuisance_estimation": "Estimate block means and donor post means by averages, \\(\\Sigma\\) by pre-block-demeaned residual second moments, and their joint long-run covariance by block/HAC scores. The local optimality theorem uses the exact information in Gaussian block means and pre/post scatter statistics."
+  },
+  "estimand_functional": "\\(R_P(v)=(d^{\\prime}A^+a_0-d^{\\prime}w_P(v))^2+(1,-w_P(v)^{\\prime})\\Sigma(1,-w_P(v)^{\\prime})^{\\prime}\\)",
+  "target_estimand": "\\(G_P=\\{(v,R_P(v)):v\\in\\Delta_K\\}\\)",
+  "bibliography": [
+    {
+      "key": "VivesiBastida2022PredictorSelection",
+      "citation": "Jaume Vives-i-Bastida. \\emph{Predictor Selection for Synthetic Controls}. arXiv:2203.11576, revised 2023."
+    },
+    {
+      "key": "ZhangWangZhang2022AsymptoticSC",
+      "citation": "Xiaomeng Zhang, Wendun Wang, and Xinyu Zhang. \\emph{Asymptotic Theory for Synthetic Control Methods}. arXiv:2211.12095, 2022."
+    },
+    {
+      "key": "CanenSong2026SimplexWeight",
+      "citation": "Nathan Canen and Kyungchul Song. \\emph{Simple Inference on a Simplex-Valued Weight}. arXiv:2501.15692v2, January 2026."
+    },
+    {
+      "key": "CattaneoFengTitiunik2021PredictionIntervals",
+      "citation": "Matias D. Cattaneo, Yingjie Feng, and Rocio Titiunik. Prediction Intervals for Synthetic Control Methods. \\emph{Journal of the American Statistical Association}, 116, 2021."
+    },
+    {
+      "key": "Fry2024MomentsSC",
+      "citation": "Joseph P. Fry. A Method of Moments Approach to Asymptotically Unbiased Synthetic Controls. Working paper, 2024."
+    },
+    {
+      "key": "Fry2026OrthogonalizedSC",
+      "citation": "Joseph P. Fry. \\emph{Orthogonalized Synthetic Controls}. arXiv:2507.00307, version dated June 2026."
+    },
+    {
+      "key": "PouliotXieLiu2026DegreesFreedom",
+      "citation": "Guillaume A. Pouliot, Zhen Xie, and Ziyi Liu. \\emph{Degrees of Freedom and Information Criteria for the Synthetic Control Method}. arXiv:2207.02943v2, March 2026."
+    },
+    {
+      "key": "FangSantos2019Directional",
+      "citation": "Zheng Fang and Andres Santos. Inference on Directionally Differentiable Functions. \\emph{Review of Economic Studies}, 86, 2019."
+    },
+    {
+      "key": "Geyer1994ConstrainedM",
+      "citation": "Charles J. Geyer. On the Asymptotics of Constrained M-Estimation. \\emph{Annals of Statistics}, 22, 1994."
+    },
+    {
+      "key": "HsiehShiShum2022MathProgramming",
+      "citation": "Yu-Wei Hsieh, Xiaoxia Shi, and Matthew Shum. Inference on Estimators Defined by Mathematical Programming. \\emph{Journal of Econometrics}, 226, 2022."
+    },
+    {
+      "key": "EvansHansenStark2005MinimaxConfidence",
+      "citation": "Steven N. Evans, Bendek B. Hansen, and Philip B. Stark. Minimax Expected Measure Confidence Sets for Restricted Location Parameters. \\emph{Bernoulli}, 11, 2005."
+    },
+    {
+      "key": "SchaferStark2009OptimalRegions",
+      "citation": "Chad M. Schafer and Philip B. Stark. Constructing Confidence Regions of Optimal Expected Size. \\emph{Journal of the American Statistical Association}, 104, 2009."
+    },
+    {
+      "key": "ArmstrongKolesar2018OptimalInference",
+      "citation": "Timothy B. Armstrong and Michal Kolesar. Optimal Inference in a Class of Regression Models. \\emph{Econometrica}, 86, 2018."
+    },
+    {
+      "key": "FreybergerRai2018UniformBands",
+      "citation": "Joachim Freyberger and Yoshiyasu Rai. Uniform Confidence Bands: Characterization and Optimality. \\emph{Journal of Econometrics}, 204, 2018."
+    },
+    {
+      "key": "ArmstrongKolesar2018BandwidthSnooping",
+      "citation": "Timothy B. Armstrong and Michal Kolesar. A Simple Adjustment for Bandwidth Snooping. \\emph{Review of Economic Studies}, 85, 2018."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2014Bands",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato. Anti-Concentration and Honest, Adaptive Confidence Bands. \\emph{Annals of Statistics}, 42, 2014."
+    },
+    {
+      "key": "ChoiKwonLiao2024SyntheticControls",
+      "citation": "Jungbin Choi, Soonwoo Kwon, and Yuan Liao. Inference for Low-Rank Models. arXiv:2307.16370, revised 2024."
+    },
+    {
+      "key": "LeCamYang2000",
+      "citation": "Lucien Le Cam and Grace Lo Yang. \\emph{Asymptotics in Statistics: Some Basic Concepts}. Springer, second edition, 2000."
+    },
+    {
+      "key": "ImaizumiKato2020FunctionalBands",
+      "citation": "Masaaki Imaizumi and Kengo Kato. A Simple Method to Construct Confidence Bands in Functional Linear Regression. \\emph{Statistica Sinica}, 30, 2020."
+    },
+    {
+      "key": "MartinezVivesiBastida2026Preliminary",
+      "citation": "Martinez and Jaume Vives-i-Bastida. Preliminary work on synthetic-control predictor choice. Non-archival work in progress, March 2026."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "VivesiBastida2022PredictorSelection",
+      "comparator_claim": "Theorems 1--2 establish sparse predictor selection consistency and a faster predictor-match mean-squared-error rate, without inference for population prediction risk along the tuning path.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CanenSong2026SimplexWeight",
+      "comparator_claim": "Theorem 3.1 gives uniformly valid joint inference for a simplex optimizer and its functional at one fixed population objective through polyhedral-cone projection.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CattaneoFengTitiunik2021PredictionIntervals",
+      "comparator_claim": "Theorems 1--2 and Theorem A give probability-guaranteed prediction intervals for a future synthetic-control counterfactual after propagating estimated-weight and post-regime errors.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "FreybergerRai2018UniformBands",
+      "comparator_claim": "Definition 1 restricts bands to those induced by a nonrandom-shape set and rules out randomly selecting among valid bands; Section 2.3 leads with weighted area; Theorem 2 is conditional on a generic objective, with low-level sufficient conditions and a worked approximation supplied specifically for weighted area.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "EvansHansenStark2005MinimaxConfidence",
+      "comparator_claim": "Theorem 1 and Corollary 1 give Bayes--minimax duality for confidence sets under expected additive measure, and Theorem 2 solves a bounded one-dimensional shift family.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SchaferStark2009OptimalRegions",
+      "comparator_claim": "Theorem 2 proves convergence of a Monte Carlo approximation to a finite-prior minimax expected-measure confidence procedure.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2018OptimalInference",
+      "comparator_claim": "Theorem 3.1 and its corollaries derive finite-sample optimal confidence intervals and sharp efficiency bounds for scalar linear functionals over convex Gaussian regression classes.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "FangSantos2019Directional",
+      "comparator_claim": "Theorems 3.1--3.2 characterize ordinary-bootstrap failure and validate derivative-aware resampling for a fixed directionally differentiable functional.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "PouliotXieLiu2026DegreesFreedom",
+      "comparator_claim": "Propositions 3.1--3.6 provide active-set degrees of freedom and information criteria for selecting synthetic-control penalties or predictor-weighting matrices.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Predictor weighting changes both the donor face and the future counterfactual performance of a synthetic control, yet current methods either tune one weight vector or report inference for one fixed constrained optimizer. This proposal identifies the entire population prediction-MSE graph from a block-stable fixed-rank panel, constructs an honest root-\\(n\\) same-panel band over the full predictor simplex, and solves the compact-local Gaussian decision problem for minimum worst-case expected maximum width by finite KKT-cell, conic-distance, and primal--dual linear programs with certified vanishing error. The central open step is an experiment-level Gaussian--Wishart transfer strong enough to preserve simultaneous coverage and expected maximum width for unrestricted randomized bands.",
+  "project_justification": {
+    "gap": "VivesiBastida2022PredictorSelection and PouliotXieLiu2026DegreesFreedom make predictor selection operational but do not attach an honest population-risk certificate to every candidate weighting. CanenSong2026SimplexWeight treats one fixed simplex objective. FreybergerRai2018UniformBands restricts attention to bands induced by a nonrandom-shape set and develops low-level sufficient conditions and a worked approximation for weighted area; other minimum-size confidence-set results treat scalar linear targets or additive set-measure losses. None addresses an unrestricted externally randomized max-curve-diameter decision for a piecewise-affine risk curve whose KKT face moves with the local query.",
+    "niche": "The missing object is the observable graph \\(G_P\\) together with the exact compact-local price, measured by worst-case expected maximum interval width, of covering that graph when predictor and moment perturbations move donor faces on the same root-\\(n\\) scale.",
+    "fill": "The project combines row-span completion, a joint block-mean and covariance expansion, exact shifted-QP inversion, critical-cone curve geometry, certified finite primal and dual decision programs, and a matching local asymptotic lower-bound and attainment transfer from the actual observed Gaussian panel."
+  },
+  "related_work": "VivesiBastida2022PredictorSelection is the writing exemplar: its Introduction frames predictor weights as determinants of performance and interpretability, and Theorems 1--2 settle sparse support recovery and predictor-match rates rather than risk inference. CanenSong2026SimplexWeight, Section 2.5 and Theorem 3.1, is the closest constrained-inference method exemplar; its adaptive cone projection is used as the fixed-objective benchmark, while the present target couples a continuum of objectives and locally shifting slack. CattaneoFengTitiunik2021PredictionIntervals, Lemmas 1--2 and Theorems 1--2, supplies the uncertainty-decomposition discipline, but its target is a future counterfactual outcome rather than unconditional population MSE. FangSantos2019Directional, Theorems 3.1--3.2, explains why an ordinary bootstrap at a fixed nonsmooth map is unreliable; the local map here additionally changes with the predictor query. EvansHansenStark2005MinimaxConfidence, Theorem 1 and Corollary 1, and SchaferStark2009OptimalRegions, Sections 2--4, provide the Bayes--minimax and finite-program architecture for additive expected size. ArmstrongKolesar2018OptimalInference, Theorem 3.1, is the decision-theoretic writing exemplar for turning honesty into a computable efficiency benchmark, but its functional is scalar and linear. FreybergerRai2018UniformBands, Definition 1, restricts its band class to bands induced by a nonrandom-shape set and rules out randomly selecting among valid bands. Its Section 2.3 leads with weighted area. Theorem 2 is conditional on a generic objective, but the paper supplies low-level sufficient conditions and a worked approximation specifically for weighted area. The present departure is stated independently: externally randomized measurable band actions, simultaneous maximum KKT-curve-diameter loss, and an observed-panel local minimax transfer. No strict numerical separation from Freyberger--Rai is asserted. PouliotXieLiu2026DegreesFreedom, Propositions 3.1--3.6, gives active-set information criteria for tuning; it informs the motivation for same-panel selection but does not implement the fixed-ridge objective studied here. The proposed certificate is for the displayed fixed-ridge quadratic simplex estimator and does not directly certify the different objectives implemented by Synth or SparseSC. Exact-pair searches through September 2026 found no published all-predictor population-MSE band or unrestricted randomized minimax-width solution for a moving-KKT synthetic-control risk graph. The March 2026 Martinez--Vives-i-Bastida preliminary work is adjacent research on synthetic-control predictor choice, but it is non-archival and is not used as a theorem-level comparator; the present target is the full population-risk graph and its unrestricted expected-maximum-width decision value.",
+  "technical_internal_limitation": "The presolve derivations of the KKT atlas, the critical-cone risk map, and the finite acceptance-subset primal and dual have checkable algebra and an exactly solved binary hinge benchmark, but they are not treated as established. The proof must still close the uniform mixing CLT and HAC step, multiple-weak-face uniform remainder, measurable-band regularization, interval-certified computation, and especially the compact-local Gaussian--Wishart experiment transfer. Floating-point agreement at the hinge is diagnostic only. The global projection band is a validity construction only and is not asserted to be globally minimax; local optimality quantifies over the separate generic class \\(\\mathfrak H^{\\mathrm{panel}}_{1-\\alpha}\\).",
+  "honest_scope": "The global mixing-class band and the locally optimal Gaussian-neighborhood bands may be different procedures. Rank, donor count, predictor count, and block count are fixed; the rank is known and spectrally separated; the ridge is fixed positive; block means and the post regime are stable. The target is the displayed fixed-ridge quadratic simplex estimator, which is distinct from the objectives currently implemented by Synth and SparseSC; direct guarantees for those packages are not claimed. Unknown rank, growing dimensions, arbitrary singleton-date predictors, post-factor drift, shrinking ridge, and optimal inference for a corrected causal treatment effect are excluded. The linear-critical-cone reduction recovers ordinary scalar Gaussian interval inference on separated faces, and the explicit hinge shows that a moving boundary need not impose a positive extra width cost. The global parameter region is indexed by \\(\\Theta_n\\) and the measurable observed-law map \\(\\theta\\mapsto P_\\theta\\). Global minimaxity of \\(C_n\\) is not claimed; the local minimax comparison ranges over generic compact-locally honest sequences \\(\\widetilde C_n\\). The March 2026 Martinez--Vives-i-Bastida preliminary work is treated only as adjacent non-archival research, not as an established theorem comparator.",
+  "seeds": [
+    "global-moving-face-risk-band",
+    "certified-local-minimax-width",
+    "post-tuning-envelope-selector",
+    "sparse-double-active-path",
+    "unrestricted-diameter-confidence-decision",
+    "face-adaptive-versus-separated-frontier",
+    "orthogonalized-risk-decomposition",
+    "conformal-risk-graph-inversion",
+    "growing-dimension-spectral-risk-band"
+  ],
+  "seed_details": [
+    {
+      "rank": 1,
+      "id": "certified-local-minimax-width",
+      "anchor": "EvansHansenStark2005MinimaxConfidence",
+      "anchor_opened": "Introduction; Section 3.2; Theorem 1 and Corollary 1; bounded-location Theorem 2; proof construction in Section 4.1; concluding implications. The method exemplars SchaferStark2009OptimalRegions, ArmstrongKolesar2018OptimalInference, and FreybergerRai2018UniformBands were opened at their main constructions and conclusions.",
+      "question": "What is \\(L_\\alpha(\\theta_0,v_0;M,L_0)\\) for the finite piecewise-affine KKT risk curve, and can certified finite programs attain it in both the Gaussian shift and actual panel experiments?",
+      "first_changed_proof_step": "Replace the additive set-measure identity by a distribution over whole acceptance subsets with loss equal to their \\(d_{\\Psi}\\)-diameter, then prove density of the finite rules in the unrestricted randomized band class.",
+      "destination_search": "Searches for minimax expected maximum width, Gaussian piecewise-affine confidence bands, moving active sets, and synthetic-control risk graphs located Freyberger--Rai, Schafer--Stark, Armstrong--Kolesar, and functional-PCA width simulations, but no theorem with this target, loss, and comparison class.",
+      "motif": "M5+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "red_team": "Immediate from EvansHansenStark2005MinimaxConfidence or SchaferStark2009OptimalRegions because both already optimize expected confidence-set size numerically.",
+      "rebuttal": "Their loss is additive measure, so marginal inclusion probabilities determine risk; maximum curve diameter is nonadditive and requires decisions over whole acceptance subsets, KKT-cell distances, and a new experiment transfer.",
+      "anti_pattern_check": "The value is characterized by converging certified primal and dual programs and matched panel attainment, not left as an infimum or a generic projection.",
+      "disposition": "selected"
+    },
+    {
+      "rank": 2,
+      "id": "global-moving-face-risk-band",
+      "anchor": "CanenSong2026SimplexWeight",
+      "anchor_opened": "Introduction; synthetic-control examples in Section 2; Section 2.5; Lemma 3.1; Assumption 3.2; Theorem 3.1 and its cone-projection proof; Conclusion. VivesiBastida2022PredictorSelection and CattaneoFengTitiunik2021PredictionIntervals were opened at their introductions, main theorems, proof constructions, and conclusions.",
+      "question": "Can one obtain a same-panel root-\\(n\\) band for \\(R_P(v)\\) uniformly over all \\(v\\in\\Delta_K\\) when local perturbations move donor faces?",
+      "first_changed_proof_step": "Replace fixed-objective cone projection by a uniform shifted-QP or exact moment-region inversion indexed by \\(v\\), retaining estimated pre means, post means, and covariance jointly.",
+      "destination_search": "Exact searches combining synthetic control, predictor weights, population prediction MSE, and simultaneous confidence bands found predictor-selection, fixed-optimizer inference, and future-outcome prediction intervals but no full risk-graph band.",
+      "motif": "M5+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "red_team": "Immediate by projecting a confidence region for all moments through the quadratic program.",
+      "rebuttal": "Projection supplies a conservative benchmark, but proving uniform root-\\(n\\) diameter and correct same-panel covariance through rank completion and every root-\\(n\\) face transition remains substantive; it also does not solve the selected seed's optimal-width decision.",
+      "anti_pattern_check": "The seed is retained as K1 and infrastructure, not misrepresented as the field-level hard theorem by itself.",
+      "disposition": "selected-supporting-kernel"
+    },
+    {
+      "rank": 3,
+      "id": "post-tuning-envelope-selector",
+      "anchor": "PouliotXieLiu2026DegreesFreedom",
+      "anchor_opened": "Introduction; risk identity in equations (14)--(21); Propositions 3.1--3.6; selection discussion; Conclusion. ArmstrongKolesar2018BandwidthSnooping, ChernozhukovChetverikovKato2014Bands, and FangSantos2019Directional were checked as adjacent inference threads.",
+      "question": "Can a selector minimizing an upper risk envelope have honest same-panel coverage and a local oracle-regret law across donor-face changes?",
+      "first_changed_proof_step": "Establish joint epigraphical convergence of the kinked risk upper envelope and its argmin under local KKT slack, rather than apply a smooth argmin theorem to the selected tuning point.",
+      "destination_search": "The destination search found information-criterion tuning and smooth bandwidth-snooping adjustments, but no post-selection population-MSE certificate with a moving simplex face.",
+      "motif": "M5+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "red_team": "Simultaneous coverage already implies coverage at the selected \\(\\widehat v\\), so the selector theorem is immediate.",
+      "rebuttal": "Post-selection coverage is immediate from K1, but the local oracle-regret distribution across moving faces is not; because that extra theorem is secondary to the exact width decision, the seed is absorbed as a corollary and extension rather than the core.",
+      "anti_pattern_check": "The immediate coverage inheritance is not counted as a separate headline contribution.",
+      "disposition": "survived-literature-scan-absorbed"
+    },
+    {
+      "rank": 4,
+      "id": "unrestricted-diameter-confidence-decision",
+      "anchor": "EvansHansenStark2005MinimaxConfidence",
+      "anchor_opened": "Introduction; Section 3 decision formulation; Theorem 1 and Corollary 1; Section 4 proof; Conclusion. SchaferStark2009OptimalRegions Sections 2--4 and 7 were opened.",
+      "question": "For a general compact Lipschitz family of curves in a Gaussian shift, can unrestricted randomized simultaneous-band minimax diameter be computed by finite acceptance-subset programs?",
+      "first_changed_proof_step": "Replace the Ghosh--Pratt additive-measure decomposition by finite whole-set actions and establish observation-cell and parameter-net deficiency bounds.",
+      "destination_search": "Generic optimal confidence-region searches found additive expected-size procedures, convex-modulus scalar intervals, and bands induced by nonrandom-shape sets, but no general nonadditive diameter theorem for externally randomized rules.",
+      "motif": "M11(b)",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 3
+      },
+      "red_team": "This is a generic discretization lemma with no causal-panel content.",
+      "rebuttal": "The objection holds as a standalone econometrics proposal; the generic theorem is retained only when instantiated with KKT-cell SOCP distances and the observed-panel transfer.",
+      "anti_pattern_check": "Not selected independently; its value comes from the moving-face risk geometry and panel attainment.",
+      "disposition": "absorbed-into-selected"
+    },
+    {
+      "rank": 5,
+      "id": "face-adaptive-versus-separated-frontier",
+      "anchor": "CanenSong2026SimplexWeight",
+      "anchor_opened": "Introduction; Section 2.5; Lemma 3.1; Assumption 3.2; Theorem 3.1 and proof construction; Conclusion. FreybergerRai2018UniformBands, FangSantos2019Directional, and Geyer1994ConstrainedM were opened as destination methods.",
+      "question": "Under a common expected-maximum-width criterion, when does a weak KKT face change the optimal cost relative to a separated face?",
+      "first_changed_proof_step": "Hold the decision criterion fixed and derive both curve families and their information before comparing values; do not identify a kink mechanically with a positive surcharge.",
+      "destination_search": "No source located a signed or zero-capable cost comparison for active-face and separated-face simultaneous bands under the same Gaussian experiment.",
+      "motif": "M2+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 4
+      },
+      "red_team": "Boundary bands must be wider because nondifferentiability adds uncertainty.",
+      "rebuttal": "The explicit hinge reduces to scalar bounded-normal inference and can have exactly zero extra simultaneous-graph cost, so only the solved common decision value can determine the comparison.",
+      "anti_pattern_check": "No compulsory positive kink penalty or hand-picked witness is promoted as a universal theorem.",
+      "disposition": "absorbed-as-comparison"
+    },
+    {
+      "rank": 6,
+      "id": "sparse-double-active-path",
+      "anchor": "VivesiBastida2022PredictorSelection",
+      "anchor_opened": "Introduction; sparse bilevel construction; Theorem 1; Lemma 1; Theorem 2 and proofs; Proposition 99 application; Conclusion. PouliotXieLiu2026DegreesFreedom and CanenSong2026SimplexWeight were opened as destination methods.",
+      "question": "Can one band population risk over a sparse penalty path when predictor support and donor face switch jointly at root-\\(n\\) distance?",
+      "first_changed_proof_step": "Replace the donor-support atlas by a product stratification of predictor-support signs and donor complementarity, with two independently weak inequalities.",
+      "destination_search": "Searches for sparse predictor selection, donor active sets, penalty-path risk, and confidence bands found selection consistency and active-set degrees of freedom but no simultaneous population-risk surface band.",
+      "motif": "M5+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "red_team": "A routine composition of lasso-path and simplex KKT theory.",
+      "rebuttal": "Jointly weak predictor and donor complementarity creates a product-cone process and an additional selection layer; however, feasibility is too low before the one-system decision transfer is solved.",
+      "anti_pattern_check": "Deferred rather than padded into the core because it materially broadens the model and proof geometry.",
+      "disposition": "not-selected"
+    },
+    {
+      "rank": 7,
+      "id": "orthogonalized-risk-decomposition",
+      "anchor": "CanenSong2026SimplexWeight",
+      "anchor_opened": "Fixed-objective functional inference in Section 2.5 and Theorem 3.1; Fry2026OrthogonalizedSC was opened at Lemma 2.1, Proposition 4.1, the proof construction, Introduction, and Conclusion.",
+      "question": "Can one orthogonalize the prediction-risk graph against constrained-weight estimation and recover a smooth Gaussian band?",
+      "first_changed_proof_step": "Differentiate the unconditional MSE with respect to the population weight and test whether an estimable correction removes its critical-cone term uniformly in \\(v\\).",
+      "destination_search": "Fry2026OrthogonalizedSC removes constrained-nuisance effects for a corrected causal effect, while the current target is uncorrected prediction MSE; no graph-wide risk orthogonalization was located.",
+      "motif": "M1+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "red_team": "Fry2026OrthogonalizedSC already removes the constrained-weight derivative.",
+      "rebuttal": "Its correction changes the causal estimand and score; orthogonalizing prediction MSE would either change the target or require unknown future target residuals, so the objection exposes a target mismatch rather than an available solution.",
+      "anti_pattern_check": "Dropped because an orthogonal correction risks replacing the focal uncorrected risk rather than estimating it.",
+      "disposition": "dropped"
+    },
+    {
+      "rank": 8,
+      "id": "conformal-risk-graph-inversion",
+      "anchor": "CattaneoFengTitiunik2021PredictionIntervals",
+      "anchor_opened": "Introduction; Lemmas 1--2; Theorems 1--2 and A; dependence construction; empirical application; Conclusion. Symmetry-based synthetic-control inference was searched as the destination method.",
+      "question": "Can block-conformal inversion give finite-sample simultaneous coverage for \\(R_P(v)\\) over \\(v\\in\\Delta_K\\)?",
+      "first_changed_proof_step": "Find a symmetry orbit that preserves both the continuum of fitted weights and the population second-moment target, rather than only a future outcome or sharp-null residual path.",
+      "destination_search": "Prediction-interval and conformal synthetic-control papers cover future counterfactual outcomes or treatment paths; none supplies finite-sample inference for a population MSE functional with estimated covariance.",
+      "motif": "M17+M5",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 1,
+        "consumer_value": 4
+      },
+      "red_team": "The model has mixing rather than finite exchangeability, and population MSE is not a missing outcome in a permutation orbit.",
+      "rebuttal": "The objection holds under the stated class; adding exact block exchangeability would be a new stronger assumption and still would not identify covariance risk without additional repetitions.",
+      "anti_pattern_check": "The M17 lane is documented and dropped instead of relabeling an asymptotic Wald band as conformal.",
+      "disposition": "dropped"
+    },
+    {
+      "rank": 9,
+      "id": "growing-dimension-spectral-risk-band",
+      "anchor": "ZhangWangZhang2022AsymptoticSC",
+      "anchor_opened": "Introduction; Theorems 1--5 and their risk-optimality discussion; proof architecture; Conclusion. ChoiKwonLiao2024SyntheticControls was checked for the low-rank destination regime.",
+      "question": "Can nuclear-norm completion yield a uniform predictor-risk band when donor and factor dimensions grow?",
+      "first_changed_proof_step": "Replace smooth fixed-rank completion by high-dimensional spectral regularization and control its sup-query interaction with the simplex optimizer.",
+      "destination_search": "Low-rank synthetic-control inference exists when the cross section grows, but the present brief explicitly fixes dimensions and known rank; no in-scope destination remains.",
+      "motif": "M5+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 3,
+        "feasibility": 1,
+        "consumer_value": 4
+      },
+      "red_team": "This violates the model contract by introducing growing dimensions and unknown spectral regularization.",
+      "rebuttal": "The objection holds, so the seed is rejected rather than weakening the stated fixed-dimensional local decision problem.",
+      "anti_pattern_check": "Dropped as out of scope despite a natural M5 shape.",
+      "disposition": "dropped"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "certified-local-minimax-width",
+      "threads": [
+        "EvansHansenStark2005MinimaxConfidence, Theorem 1 and Corollary 1: Bayes--minimax duality and likelihood-ratio test inversion for additive expected set measure; Theorem 2: an explicit bounded shift-family solution.",
+        "SchaferStark2009OptimalRegions, Sections 2--4 and Theorem 2: Monte Carlo approximation of finite-prior minimum expected-size regions, with convergence in simulation size.",
+        "ArmstrongKolesar2018OptimalInference, Theorem 3.1 and Corollaries 3.1--3.2: modulus-based finite-sample optimal scalar intervals over convex Gaussian regression classes.",
+        "FreybergerRai2018UniformBands, Definition 1: bands induced by a nonrandom-shape set, excluding random selection among valid bands; Section 2.3 leads with weighted area; Theorem 2 is generic-objective conditional, with low-level sufficient conditions and a worked approximation specifically for weighted area."
+      ],
+      "settled": "Optimal additive-measure confidence sets and scalar convex-class intervals are settled; for uniform bands induced by a nonrandom-shape set, characterization and weighted-area sufficient conditions and approximation are available.",
+      "unoccupied_pair": "No opened source determines worst-case expected maximum interval width for an unrestricted randomized band on a compact piecewise-affine Gaussian KKT curve or transfers that value to a partially observed panel.",
+      "method_adapted": "Bayes--minimax duality is adapted to whole acceptance-subset actions; finite prior and observation discretization is retained, while KKT-cell SOCP distances and explicit mesh, tail, coverage, and numerical-enclosure errors replace additive-measure Monte Carlo risk.",
+      "writing_exemplar_used": "ArmstrongKolesar2018OptimalInference"
+    },
+    {
+      "candidate": "global-moving-face-risk-band",
+      "threads": [
+        "CanenSong2026SimplexWeight, Section 2.5, Lemma 3.1, and Theorem 3.1: adaptive polyhedral-cone projection gives uniform joint inference for one simplex optimizer and its functional.",
+        "VivesiBastida2022PredictorSelection, Theorems 1--2: predictor support recovery and predictor-match MSE rates establish why the tuning dimension matters but give no risk uncertainty.",
+        "CattaneoFengTitiunik2021PredictionIntervals, Lemmas 1--2 and Theorems 1--2: fitted-weight and future-shock uncertainty are propagated for a future counterfactual outcome, including dependent-data extensions.",
+        "FangSantos2019Directional, Theorems 3.1--3.2: the ordinary bootstrap fails at a non-fully-differentiable map and derivative-aware resampling is valid for a fixed map."
+      ],
+      "settled": "Fixed-objective simplex inference, sparse predictor selection, and future-outcome prediction intervals are available.",
+      "unoccupied_pair": "The full population prediction-MSE graph under same-panel mean and covariance estimation, uniformly through root-\\(n\\) donor-face changes, is unoccupied in the opened literature.",
+      "method_adapted": "The KKT residual and cone logic is coupled over the predictor simplex, while the prediction-interval uncertainty decomposition is rewritten for an unconditional second-moment functional and a joint block/HAC score.",
+      "writing_exemplar_used": "VivesiBastida2022PredictorSelection"
+    },
+    {
+      "candidate": "post-tuning-envelope-selector",
+      "threads": [
+        "PouliotXieLiu2026DegreesFreedom, risk equations (14)--(21) and Propositions 3.1--3.6: active-set degrees of freedom yield full-sample information criteria for selecting penalties and predictor weights.",
+        "ArmstrongKolesar2018BandwidthSnooping: continuum search invalidates pointwise intervals and a supremum adjustment protects data-dependent bandwidth reporting in a smooth indexed process.",
+        "ChernozhukovChetverikovKato2014Bands: Gaussian approximation and anti-concentration calibrate honest adaptive bands once a suitable process approximation is available.",
+        "FangSantos2019Directional: an estimated directional derivative replaces the inconsistent ordinary bootstrap at a fixed kinked functional."
+      ],
+      "settled": "Full-sample information-criterion tuning and smooth continuum-snooping corrections are settled.",
+      "unoccupied_pair": "No opened paper gives an unsplit selected-risk certificate plus a local oracle-regret law when the selector's objective and donor active face kink jointly.",
+      "method_adapted": "The global band immediately certifies the selected point; a later extension would combine its local critical-cone epigraph with argmin continuous-mapping and directional-resampling methods.",
+      "writing_exemplar_used": "PouliotXieLiu2026DegreesFreedom"
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Nathan Canen and Kyungchul Song",
+      "year": 2026,
+      "venue": "arXiv working paper",
+      "bibkey": "CanenSong2026SimplexWeight",
+      "one_line": "Section 2.5 and Theorem 3.1 give adaptive cone-projection inference for one simplex optimizer and functional, not a continuum of moving objectives.",
+      "relevant_to": "thm:global-risk-band"
+    },
+    {
+      "author": "Jaume Vives-i-Bastida",
+      "year": 2022,
+      "venue": "arXiv working paper",
+      "bibkey": "VivesiBastida2022PredictorSelection",
+      "one_line": "Theorems 1--2 establish sparse predictor selection and predictor-match MSE rates, leaving population-risk inference over predictor weights open.",
+      "relevant_to": "thm:global-risk-band"
+    },
+    {
+      "author": "Matias D. Cattaneo, Yingjie Feng, and Rocio Titiunik",
+      "year": 2021,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "CattaneoFengTitiunik2021PredictionIntervals",
+      "one_line": "Theorems 1--2 propagate weight-estimation and future-error uncertainty for outcome prediction rather than unconditional population MSE.",
+      "relevant_to": "lem:joint-moment-expansion"
+    },
+    {
+      "author": "Zheng Fang and Andres Santos",
+      "year": 2019,
+      "venue": "Review of Economic Studies",
+      "bibkey": "FangSantos2019Directional",
+      "one_line": "Theorems 3.1--3.2 diagnose ordinary-bootstrap failure and validate derivative-aware resampling for fixed directionally differentiable maps.",
+      "relevant_to": "lem:local-risk-map"
+    },
+    {
+      "author": "Steven N. Evans, Bendek B. Hansen, and Philip B. Stark",
+      "year": 2005,
+      "venue": "Bernoulli",
+      "bibkey": "EvansHansenStark2005MinimaxConfidence",
+      "one_line": "Theorem 1 and Corollary 1 establish Bayes--minimax duality for additive expected-measure confidence sets; Theorem 2 solves a bounded shift family.",
+      "relevant_to": "thm:certified-gaussian-value"
+    },
+    {
+      "author": "Chad M. Schafer and Philip B. Stark",
+      "year": 2009,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "SchaferStark2009OptimalRegions",
+      "one_line": "Theorem 2 proves convergence of a Monte Carlo approximation to a finite-prior minimum expected-measure procedure.",
+      "relevant_to": "thm:certified-gaussian-value"
+    },
+    {
+      "author": "Timothy B. Armstrong and Michal Kolesar",
+      "year": 2018,
+      "venue": "Econometrica",
+      "bibkey": "ArmstrongKolesar2018OptimalInference",
+      "one_line": "Theorem 3.1 derives optimal scalar Gaussian confidence intervals and sharp efficiency bounds from convex-class modulus geometry.",
+      "relevant_to": "thm:certified-gaussian-value"
+    },
+    {
+      "author": "Joachim Freyberger and Yoshiyasu Rai",
+      "year": 2018,
+      "venue": "Journal of Econometrics",
+      "bibkey": "FreybergerRai2018UniformBands",
+      "one_line": "Definition 1 restricts bands to those induced by a nonrandom-shape set and excludes random selection among valid bands; Section 2.3 leads with weighted area, and the paper's low-level sufficient conditions and worked approximation are specifically for weighted area.",
+      "relevant_to": "prop:curve-decision-reduction"
+    },
+    {
+      "author": "Guillaume A. Pouliot, Zhen Xie, and Ziyi Liu",
+      "year": 2026,
+      "venue": "arXiv working paper",
+      "bibkey": "PouliotXieLiu2026DegreesFreedom",
+      "one_line": "Propositions 3.1--3.6 turn active-set degrees of freedom into information criteria for selecting synthetic-control penalties and predictor weights.",
+      "relevant_to": "thm:global-risk-band"
+    },
+    {
+      "author": "Joseph P. Fry",
+      "year": 2026,
+      "venue": "arXiv working paper",
+      "bibkey": "Fry2026OrthogonalizedSC",
+      "one_line": "Lemma 2.1 and Proposition 4.1 orthogonalize constrained-weight effects for a corrected causal estimand, whereas prediction MSE retains those derivatives.",
+      "relevant_to": "lem:local-risk-map"
+    }
+  ],
+  "novelty_justification": "The closest constrained-inference result is CanenSong2026SimplexWeight, Theorem 3.1, which covers a weight and functional at one fixed population objective. FreybergerRai2018UniformBands, Definition 1, restricts attention to bands induced by a nonrandom-shape set and rules out randomly selecting among valid bands; Section 2.3 leads with weighted area, and although Theorem 2 is conditional on a generic objective, the paper provides low-level sufficient conditions and a worked approximation specifically for weighted area. The present departure is independent and narrower than any claim of numerical dominance: it asks for minimax worst-case expected maximum KKT-curve diameter over unrestricted externally randomized measurable interval-section rules and for transfer of that value to the observed panel. EvansHansenStark2005MinimaxConfidence and SchaferStark2009OptimalRegions optimize additive expected set measure, for which marginal inclusion probabilities suffice, whereas the present loss is the nonadditive maximum width of a curve envelope. The first changed proof step is therefore not a routine directional delta method: it is the reduction to whole acceptance-subset decisions under the KKT-curve pseudometric, followed by certified finite primal and dual programs and a compact-local Gaussian--Wishart transfer for unrestricted bands. The synthetic-control component is also not a relabeling of a treatment-effect interval. The estimand is unconditional counterfactual prediction MSE for the displayed fixed-ridge objective, whose derivative necessarily retains row-span completion, covariance estimation, and population-weight movement. Exact-pair searches through September 2026 found no paper subsuming this combined kernel."
+}

@@ -1,0 +1,56 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "thm:certified-computation",
+    "kind": "theorem",
+    "statement": "For fixed \\(d\\), rational empirical input, rational \\(0<\\epsilon<1\\), and \\(N=Km\\), \\(\\mathsf{CertMOT}_\\epsilon\\) returns \\(\\underline L_\\epsilon\\le L(\\widehat{\\mathbf P})\\le\\overline L_\\epsilon\\) with \\(\\overline L_\\epsilon-\\underline L_\\epsilon\\le\\epsilon\\), together with primal and dual witnesses, in time polynomial in the input bit length, \\(N\\), and \\((K/\\epsilon)^d\\).",
+    "free_symbols": [
+      "d",
+      "epsilon",
+      "CertMOT",
+      "L",
+      "Phat",
+      "N",
+      "K",
+      "Llower",
+      "Lupper",
+      "m"
+    ],
+    "depends_on": [
+      "ass:unit-ball-support",
+      "ass:balanced-array",
+      "def:certified-mot",
+      "lem:finite-lp-optimization"
+    ],
+    "justification": "A statistical rate is operational only if numerical error is separated from sampling error by an auditable certificate.",
+    "gap": "Generic discrete MOT has \\(m^K\\) columns and generic pairwise MOT is hard; existing entropic solvers certify regularized or approximate objectives without this fixed-\\(d\\) squared-sum bracket.",
+    "consumer": "The empirical lower endpoint and its confidence correction can report a numerical error budget rather than silently absorbing Sinkhorn bias.",
+    "proof_tex": "The rationality restriction on \\(\\epsilon\\) makes the asserted bit-complexity well typed. Choose a rational coordinate mesh \\(h\\le\\epsilon/(32\\sqrt d)\\), and round every empirical atom \\(x\\) to a rational grid point \\(q(x)\\) with\n\\[\n\\|q(x)-x\\|_2\\le\\delta:=\\sqrt d\\,h\\le\\epsilon/32.\n\\]\nFor a tuple \\(x=(x_1,\\ldots,x_K)\\), put \\(a=K^{-1}\\sum_kx_k\\) and \\(a_q=K^{-1}\\sum_kq(x_k)\\). Then \\(\\|a-a_q\\|_2\\le\\delta\\), \\(\\|a\\|_2\\le1\\), and \\(\\|a_q\\|_2\\le1+\\delta\\), so\n\\[\n|c_K(x)-c_K(q(x))|\n=|\\|a\\|_2^2-\\|a_q\\|_2^2|\n\\le(2+\\delta)\\delta=:\\eta<\\epsilon/8. \\tag{25}\n\\]\nMerge equal grid points within each arm and write their rational masses as \\(\\widehat p_{kj}\\). The gridded dual is\n\\[\n\\begin{aligned}\n\\text{maximize }&\\sum_{k,j}\\widehat p_{kj}u_{kj}\\\\\n\\text{subject to }&\\sum_{k=1}^Ku_{k j_k}\\le\nK^{-2}\\left\\|\\sum_{k=1}^Kq_{k j_k}\\right\\|_2^2\n\\quad\\text{for every }(j_1,\\ldots,j_K). \\tag{26}\n\\end{aligned}\n\\]\nGiven \\(u\\), separation in (26) amounts to minimizing reduced cost. At layer \\(k\\), dynamic programming stores, for every attainable partial grid sum \\(s\\),\n\\[\nD_k(s)=\\min_{j_1,\\ldots,j_k:\\ \\sum_{\\ell\\le k}q_{\\ell j_\\ell}=s}\n\\left(-\\sum_{\\ell\\le k}u_{\\ell j_\\ell}\\right).\n\\]\nThe recursion \\(D_k(s+q_{kj})=\\min\\{D_k(s+q_{kj}),D_{k-1}(s)-u_{kj}\\}\\) is exact. At the final layer it minimizes \\(D_K(s)+K^{-2}\\|s\\|_2^2\\), thereby either returning a violated column or certifying feasibility.\n\nEach coordinate of a partial sum lies in an interval of length \\(O(K)\\) and is an integer multiple of \\(h\\). Hence the number of states is\n\\[\nO_d((K/h)^d)=O_d((K/\\epsilon)^d), \\tag{27}\n\\]\nand all \\(K\\) layers require \\(O(N)\\) transitions per state because \\(N=Km\\), by Assumption~\\texttt{ass:balanced-array}. The numbers in the recursion have polynomial encoding length.\n\nFor completeness, the dual feasible region admits a polynomial bounding normalization. Replacing each potential by its finite \\(c\\)-transform does not decrease a feasible dual objective, and bounds its oscillation by the oscillation of \\(c_K\\), which is \\(O(1)\\) on the slightly enlarged grid ball. Gauge shifts with total shift zero set one reference value to zero in the first \\(K-1\\) margins. The constraint at the reference tuple bounds the remaining reference value above, and comparison with the feasible zero dual and the \\(O(1)\\) oscillation bounds it below by \\(-O(K)\\). Thus an optimal dual lies in a rational box of radius \\(O(K)\\).\n\nLemma~\\texttt{lem:finite-lp-optimization}, applied with the separation oracle above and the bounding box, computes equal gridded primal and dual values \\(L_g\\), together with witnesses, in time polynomial in the input bit length, \\(N\\), and (27). Lift the gridded primal through each finite quantization fiber, splitting mass according to the empirical conditional proportions. This preserves every original empirical marginal. Conversely, pushing any original coupling through \\(q\\) gives a feasible gridded coupling. Equation (25) consequently implies\n\\[\nL_g-\\eta\\le L(\\widehat{\\mathbf P})\\le L_g+\\eta. \\tag{28}\n\\]\nThe lifted primal certifies the upper inequality. If \\(u\\) is the gridded dual witness, then composing \\(u_{kj}\\) with \\(q\\) and subtracting \\(\\eta\\) from one coordinate potential makes the dual constraint feasible for the original atoms by (25); its objective is \\(L_g-\\eta\\), certifying the lower inequality. Return\n\\[\n\\underline L_\\epsilon=L_g-\\eta,\\qquad\n\\overline L_\\epsilon=L_g+\\eta.\n\\]\nBy (25), their gap \\(2\\eta<\\epsilon\\). All transformations use rational arithmetic, so the two witnesses and the bracket are auditable finite certificates.",
+    "proof_basis": {
+      "ass:balanced-array": "587cbed5c04bfe0ba2e8ca09d4bd421aaaad5f8e05233387b72e652be4d3d204",
+      "ass:unit-ball-support": "f72eeba335d7c5b9fbae78a2319238ac8a4b58a9b872cdc5d92741b4878138e8",
+      "def:certified-mot": "2e00a2fe48bf15dfd5188754d76200cb2d2fab4c9d55ef3776cc628a12f33743",
+      "lem:finite-lp-optimization": "21f3ee316e32fb4fc60b0f482859acbd37c52fbba7153d6b179db2e56b3a8ee4",
+      "sym:Bd": "a8042c6cd6fdd9da3816c8642a27162070a7a12205276c9f72fec68ba2584464",
+      "sym:CertMOT": "284bb34d4f882768993381f99c2a14576543ab5797feb832015a9d478cb12f57",
+      "sym:Gamma": "85984d8e90fcb591f9c7256bdb89cf3c5c242e91c9d740e7d78a2bf880e0233b",
+      "sym:IK": "3cedce81dd96d96955d3ec2da0f1cbc00ec3815f59040fec3ca0b853d3724809",
+      "sym:K": "4783182d4a885cb4ed90c06162e7ab567e4d5780d8392b97077b4c482a8497ab",
+      "sym:L": "d16558f3f50a2bb59584d24175809f76d6108d1e1528b2fe274dbc93d22545f5",
+      "sym:Llower": "a8cd4ab8f24f0ba56fc5565f279cadfabf6a4b18d062635a91b5524553b99652",
+      "sym:Lupper": "8d362d088b7388f28cc0d98e671ecead943473362bbc70ebca1bb7004677865c",
+      "sym:N": "dcb29d2d4777ba945e997131063afcef94889b3c3a5465560c2ee49c8309928a",
+      "sym:Phat": "bb7bb84d0163b420b3ff8342b9e7e74cdbde6244393b300bcaf510035992a909",
+      "sym:Phatk": "5529e87d0a5ae73ab3025f4e1f71991d53088bd0243d7f4a2a013fa173ca483e",
+      "sym:Pk": "3db7e473f204704915ff32985836a51a84500d5833f55e3d53075754d797da61",
+      "sym:Pvec": "6cd5aedd376266b072e886d7fb38c3c95afc2fd44f17957ff4091acc67a2ee64",
+      "sym:Xki": "a87434f7b3b2e41cb93785c9c83c5270b783786f3782b55c8252b38d8d66c41e",
+      "sym:cK": "8c9e203e5571f3eb7d6ae747355b22a188c4ffd7f51c479452285199923cdccf",
+      "sym:d": "933128e031fc38359c62cfa2fde35e52836f7ee35cc1de011d8c30d673339571",
+      "sym:epsilon": "5f55caf86b7caa7eeddb7ac0741ebe2200a1ee31f8958f2bfee864f74cef8584",
+      "sym:m": "c1e59a345367f79bf9bcf10a1853ee2ec14614e693f820cc0da0c8794b2d5006",
+      "sym:zk": "c76fe02da2ca2bb7cd50e9f259cf3f9036fc6736e9cd26202995db6dbeff94e1",
+      "thm:certified-computation": "efef0ca978aae3561fe40e3c27249ba4ca24458c02580dd60a2cfce81f2e9db8"
+    }
+  }
+}

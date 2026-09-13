@@ -1,0 +1,1711 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}ani\_\allowbreak{}annealed\_\allowbreak{}hac\_\allowbreak{}exactness}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Two conditionally independent assignment waves on one no-carryover schedule identify the Palm population covariance through observable cross-wave IPW products. A joint assignment--innovation cylinder version, common to every assignment outside one null set, explicitly induces every finite exposure, outcome, propensity, and score coordinate on the buffered interior. Explicit radius-one Rademacher witnesses use the Borel cylinders \(\Psi^{\Delta}(u,x)=(x_0,(u_0-u_{-1})x_0)\) and \(\Psi^+(u,x)=(x_0,u_0x_0)\) with the single null set empty; they show that zero long-run variance can coexist with heterogeneous local scores and that the positive-variance alternative is nonempty. These primitives give order-\(n^{-1}\) centering bias and root-\(n\) finite-sample concentration, size and power, and an exactly unbiased lag-separated statistic. A verified four-cell local schedule has common support at the level of the complete buffered graph--assignment--exposure--outcome record and proves a matching full-observation minimax lower bound. Thus, for distinct focal labels, both the full-observation and score-vector separation radii are \(\Theta(n^{-1/2})\) for fixed \(r,B,\varepsilon,\alpha,\beta\), \(p=1/2\), and \(\alpha+\beta<1\).
+
+\section{Project justification}
+
+\paragraph{Gap.} Janson2015 classifies the zero-long-run-variance boundary for finite block factors, while one-wave interference papers study effect or estimator-variance inference. Viviano2020 develops a two-wave network design in which a pilot estimates variance and the second wave optimizes participation and treatment; these results do not supply a repeated-randomization test of the Palm population-covariance boundary or a full-observation minimax converse for it.
+
+\paragraph{Niche.} Conditional replication removes assignment noise from cross-wave IPW products. The joint assignment--innovation cylinder condition supplies one version simultaneously over all assignment cells, and the buffered restriction uses that same map to induce the finite exposure, outcome, and propensity coordinates. This common local rule yields stationarity and deterministic primitive influence, while four local assignment cells leave unobserved schedule coordinates after two waves and give common support to the induced observed-data laws needed for a full-record information bound.
+
+\paragraph{Fill.} The project proves the cross-wave identity, order-\(n^{-1}\) centering control, root-\(n\) concentration, finite-sample size and power, and an exactly unbiased lag-separated statistic under the corrected common local versions. The explicit radius-one cylinders \(\Psi^{\Delta}(u,x)=(x_0,(u_0-u_{-1})x_0)\) and \(\Psi^+(u,x)=(x_0,u_0x_0)\), both valid with the empty exceptional set, certify a heterogeneous zero-variance boundary point and a positive-variance point in the same local class. For distinct focal exposure labels, the project also constructs a causal-realizable four-cell submodel with \(\operatorname{KL}\le2N_nt^2\) for the complete declared record and linearly changing \(\Omega_{\mathrm{pop}}\), yielding matching \(\Theta(n^{-1/2})\) minimax rates for the full observation and its score-vector subexperiment.
+
+\section{Related work}
+
+Janson2015 supplies the finite-block coboundary result used to interpret the zero boundary, but no two-wave statistic or testing experiment. Leung2022ANI supplies one-wave exposure-IPW and approximate-neighborhood-interference analysis; no ANI or graph-HAC transfer is used here. AronowSamii2017 supplies exposure mappings and known design propensities. Viviano2020 is the closest design comparator: it uses a first-wave pilot to estimate variance and optimizes second-wave participation and treatment for average treatment and spillover effects. The present work does not claim that two-wave network designs are new; it uses conditionally independent replications with common joint local versions to identify and test a Palm covariance boundary and proves a full-observation common-support minimax converse. LiWager2022 and FanLengWu2025 target causal-effect estimation and estimator variance under graphon models. Tsybakov2009 supplies the classical Pinsker and two-point testing inequalities used after the new four-cell likelihood calculation.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Omega_{\mathrm{pop}}=\sum_{k=-2r}^{2r}\operatorname{Cov}_P\{\mathbb E_P(Z_0^{(1)}\mid\mathcal F_U),\mathbb E_P(Z_k^{(1)}\mid\mathcal F_U)\}\).
+Primary functional / estimator / diagnostic: \(\Omega_{\mathrm{pop}}=\sum_{k=-2r}^{2r}\{\mathbb E_P[Z_0^{(1)}Z_k^{(2)}]-\tau_{\mathrm P}^2\}\), with the mean-centered test \(\phi_{n,\alpha}=\mathbf 1\{\widehat\Omega_n^{12}>t_n(\alpha)\}\); the lag-\((2r+1)\) statistic satisfies \(\mathbb E_P[\widehat\Omega_n^{\mathrm u}]=\Omega_{\mathrm{pop}}\).  In the canonical full-observable experiment, whose vector contains the observed graph, both assignments, both exposures, both realized outcomes, and the known propensity coordinates, \(s_{n,\alpha,\beta}^{\mathrm{obs}}=\Theta(n^{-1/2})\); the score-vector radius \(s_{n,\alpha,\beta}^{\mathrm{score}}=\Theta(n^{-1/2})\) is a corollary.  Both rates hold for distinct focal labels \(e_1\ne e_0\), fixed \(r,B,\varepsilon,\alpha,\beta\), \(p=1/2\), and \(\alpha+\beta<1\)..
+\begin{itemize}
+  \item \(P\) --- \texttt{Probability law}; \texttt{Laws on the innovation field,\allowbreak{} graph,\allowbreak{} two assignment waves,\allowbreak{} exposures,\allowbreak{} and common potential-\allowbreak{}outcome schedule}; \texttt{Primitive model law}
+  \item \(r\) --- \texttt{Positive integer}; \(\mathbb N\); \texttt{Common locality radius}
+  \item \(n\) --- \texttt{Positive integer}; \(\mathbb N\); \texttt{Finite-\allowbreak{}volume length}
+  \item \(B\) --- \texttt{Positive real constant}; \((0,\infty)\); \texttt{Common potential-\allowbreak{}outcome envelope}
+  \item \(p\) --- \texttt{Treatment probability}; \((0,1)\); \texttt{Known Bernoulli design probability}
+  \item \(\varepsilon\) --- \texttt{Positive overlap constant}; \((0,1/2)\); \texttt{Common exposure-\allowbreak{}positivity bound}
+  \item \(\alpha\) --- \texttt{Nominal size}; \((0,1)\); \texttt{Type-\allowbreak{}I error bound}
+  \item \(\beta\) --- \texttt{Nominal type-\allowbreak{}II error bound}; \((0,1)\); \texttt{Power guarantee parameter}
+  \item \(\delta\) --- \texttt{Tail probability}; \((0,1)\); \texttt{Generic concentration level}
+  \item \(\mathcal U\) --- Borel subset of \(\mathbb R\); \texttt{State space for one environmental innovation}
+  \item \(U\) --- \texttt{Two-\allowbreak{}sided innovation field}; \(\mathcal U^{\mathbb Z}\); \texttt{Primitive random environment}
+  \item \(\mathcal G\) --- Space of undirected graphs on \(\mathbb Z\); \texttt{Graph codomain}
+  \item \(\theta\) --- \texttt{Left-\allowbreak{}shift actions on environments,\allowbreak{} assignments,\allowbreak{} and graphs}; For \(k\in\mathbb Z\), \(\theta^k\) acts on \(\mathcal U^{\mathbb Z}\), \(\{0,1\}^{\mathbb Z}\), and \(\mathcal G\).; \texttt{Translation operator with a common left-\allowbreak{}shift orientation}
+  \par\smallskip\noindent\emph{Definition.} For every \(k,j\in\mathbb Z\), \((\theta^ku)_j=u_{j+k}\) and \((\theta^kd)_j=d_{j+k}\); for every graph \(H\in\mathcal G\), \(\{i,j\}\in\theta^kH\) if and only if \(\{i+k,j+k\}\in H\).
+  \item \(G\) --- \texttt{Graph-\allowbreak{}valued innovation functional}; \(\mathcal G\); \texttt{Infinite-\allowbreak{}volume exposure graph}
+  \par\smallskip\noindent\emph{Definition.} \(G=G(U)\)
+  \item \(D^{(1)}\) --- \texttt{Binary assignment field}; \(\{0,1\}^{\mathbb Z}\); \texttt{First randomization wave}
+  \item \(D^{(2)}\) --- \texttt{Binary assignment field}; \(\{0,1\}^{\mathbb Z}\); \texttt{Second randomization wave}
+  \item \(\mathcal E\) --- \texttt{Finite set}; \texttt{Exposure-\allowbreak{}label space}
+  \item \(e_1\) --- \texttt{Exposure label}; \(\mathcal E\); \texttt{Active exposure}
+  \item \(e_0\) --- \texttt{Exposure label}; \(\mathcal E\); \texttt{Reference exposure}
+  \item \(E_i\) --- Exposure mapping at site \(i\); \(E_i:\{0,1\}^{\mathbb Z}\times\mathcal G\to\mathcal E\); \texttt{Common exposure map for both waves}
+  \par\smallskip\noindent\emph{Definition.} \(E_i(d,G)\)
+  \item \(Y_i\) --- Potential-outcome functional at site \(i\); \(Y_i:\{0,1\}^{\mathbb Z}\times\mathcal U^{\mathbb Z}\times\mathcal G\to\mathbb R\); \texttt{Common no-\allowbreak{}carryover potential-\allowbreak{}outcome schedule for both waves}
+  \par\smallskip\noindent\emph{Definition.} \(Y_i(d;U,G)\)
+  \item \(\mathcal F_U\) --- \texttt{Environment sigma-\allowbreak{}field}; \texttt{Conditioning field}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_U=\sigma(U)\)
+  \item \(\pi_i(a)\) --- \texttt{Conditional exposure probability}; \(\pi_i(a)=P\{E_i(D^{(w)},G)=a\mid\mathcal F_U\}\); \texttt{Known design propensity}
+  \par\smallskip\noindent\emph{Definition.} The value is common to \(w\in\{1,2\}\) because the two waves use the same Bernoulli design.
+  \item \(Z_i^{(1)}\) --- \texttt{First-\allowbreak{}wave exposure-\allowbreak{}IPW score}; \(L^2(P)\); \texttt{First observable score replicate}
+  \par\smallskip\noindent\emph{Definition.} \(Z_i^{(1)}=Y_i(D^{(1)};U,G)\{\mathbf 1(E_i(D^{(1)},G)=e_1)/\pi_i(e_1)-\mathbf 1(E_i(D^{(1)},G)=e_0)/\pi_i(e_0)\}\)
+  \item \(Z_i^{(2)}\) --- \texttt{Second-\allowbreak{}wave exposure-\allowbreak{}IPW score}; \(L^2(P)\); \texttt{Second observable score replicate}
+  \par\smallskip\noindent\emph{Definition.} \(Z_i^{(2)}=Y_i(D^{(2)};U,G)\{\mathbf 1(E_i(D^{(2)},G)=e_1)/\pi_i(e_1)-\mathbf 1(E_i(D^{(2)},G)=e_0)/\pi_i(e_0)\}\)
+  \item \(K\) --- \texttt{Positive real constant}; \texttt{Uniform IPW-\allowbreak{}score envelope}
+  \par\smallskip\noindent\emph{Definition.} \(K=B/\varepsilon\)
+  \item \(m_i\) --- \texttt{Conditional exposure-\allowbreak{}effect score}; \(L^2(P)\); \texttt{Latent Palm population contribution}
+  \par\smallskip\noindent\emph{Definition.} \(m_i=\mathbb E_P[Z_i^{(1)}\mid\mathcal F_U]=\mathbb E_P[Z_i^{(2)}\mid\mathcal F_U]\)
+  \item \(\tau_{\mathrm P}\) --- \texttt{Scalar causal estimand}; \texttt{Palm exposure effect}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_{\mathrm P}=\mathbb E_P[m_0]\)
+  \item \(h_i\) --- \texttt{Centered population score}; \(L^2(P)\); \texttt{Graph-\allowbreak{}population fluctuation}
+  \par\smallskip\noindent\emph{Definition.} \(h_i=m_i-\tau_{\mathrm P}\)
+  \item \(\xi_i^{(1)}\) --- \texttt{First-\allowbreak{}wave assignment-\allowbreak{}centered score}; \(L^2(P)\); \texttt{First-\allowbreak{}wave design fluctuation}
+  \par\smallskip\noindent\emph{Definition.} \(\xi_i^{(1)}=Z_i^{(1)}-m_i\)
+  \item \(\xi_i^{(2)}\) --- \texttt{Second-\allowbreak{}wave assignment-\allowbreak{}centered score}; \(L^2(P)\); \texttt{Second-\allowbreak{}wave design fluctuation}
+  \par\smallskip\noindent\emph{Definition.} \(\xi_i^{(2)}=Z_i^{(2)}-m_i\)
+  \item \(\gamma_h(k)\) --- \texttt{Population-\allowbreak{}score autocovariance}; \texttt{Lag covariance of the Palm score}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_h(k)=\mathbb E_P[h_0h_k]\)
+  \item \(\Omega_{\mathrm{pop}}\) --- \texttt{Real-\allowbreak{}valued functional}; \texttt{Palm population long-\allowbreak{}run variance}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_{\mathrm{pop}}=\sum_{k=-2r}^{2r}\gamma_h(k)\)
+  \item \(\Lambda_n\) --- \texttt{Finite F\textbackslash{}\allowbreak{}o lner interval}; \texttt{Observed finite volume}
+  \par\smallskip\noindent\emph{Definition.} \(\Lambda_n=\{1,\ldots,n\}\subset\mathbb Z\)
+  \item \(I_n\) --- \texttt{Buffered analysis interval}; \texttt{Units retained after boundary deletion}
+  \par\smallskip\noindent\emph{Definition.} \(I_n=\{r+1,\ldots,n-r\}\)
+  \item \(N_n\) --- \texttt{Positive integer}; \texttt{Effective sample size}
+  \par\smallskip\noindent\emph{Definition.} \(N_n=|I_n|=n-2r\)
+  \item \(Z_{n,i}^{(1)}\) --- \texttt{Finite-\allowbreak{}volume first-\allowbreak{}wave IPW score}; \texttt{Observed first-\allowbreak{}wave score}
+  \par\smallskip\noindent\emph{Definition.} The first-wave score computed after restricting the common infinite construction to \(\Lambda_n\).
+  \item \(Z_{n,i}^{(2)}\) --- \texttt{Finite-\allowbreak{}volume second-\allowbreak{}wave IPW score}; \texttt{Observed second-\allowbreak{}wave score}
+  \par\smallskip\noindent\emph{Definition.} The second-wave score computed after restricting the common infinite construction to \(\Lambda_n\).
+  \item \(J_{n,k}\) --- \texttt{Lag-\allowbreak{}pair index set}; Available ordered pairs at lag \(k\)
+  \par\smallskip\noindent\emph{Definition.} \(J_{n,k}=\{i\in I_n:i+k\in I_n\}\)
+  \item \(N_{n,k}\) --- \texttt{Positive integer}; \texttt{Lag-\allowbreak{}specific pair count}
+  \par\smallskip\noindent\emph{Definition.} \(N_{n,k}=|J_{n,k}|=N_n-|k|\)
+  \item \(\widehat\tau_n^{(1)}\) --- \texttt{First-\allowbreak{}wave exposure-\allowbreak{}IPW mean}; \texttt{First nuisance estimate of the Palm mean}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau_n^{(1)}=N_n^{-1}\sum_{i\in I_n}Z_{n,i}^{(1)}\)
+  \item \(\widehat\tau_n^{(2)}\) --- \texttt{Second-\allowbreak{}wave exposure-\allowbreak{}IPW mean}; \texttt{Second nuisance estimate of the Palm mean}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau_n^{(2)}=N_n^{-1}\sum_{i\in I_n}Z_{n,i}^{(2)}\)
+  \item \(\widehat\Omega_n^{12}\) --- \texttt{Two-\allowbreak{}wave population-\allowbreak{}variance statistic}; \texttt{Observable cross-\allowbreak{}wave diagnostic statistic}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Omega_n^{12}=\sum_{k=-2r}^{2r}\{N_{n,k}^{-1}\sum_{i\in J_{n,k}}Z_{n,i}^{(1)}Z_{n,i+k}^{(2)}-\widehat\tau_n^{(1)}\widehat\tau_n^{(2)}\}\)
+  \item \(b_n\) --- \texttt{Deterministic bias allowance}; \texttt{Uniform sample-\allowbreak{}centering bias bound}
+  \par\smallskip\noindent\emph{Definition.} \(b_n=4(4r+1)^2K^2/N_n\)
+  \item \(q_n(\delta)\) --- \texttt{Deterministic deviation allowance}; \texttt{Bounded-\allowbreak{}differences radius}
+  \par\smallskip\noindent\emph{Definition.} \(q_n(\delta)=\{\sqrt{48n}(2r+1)(4r+1)K^2/(n-4r)\}\sqrt{\log(2/\delta)}\)
+  \item \(t_n(\delta)\) --- \texttt{Deterministic testing threshold}; \texttt{One-\allowbreak{}sided rejection threshold}
+  \par\smallskip\noindent\emph{Definition.} \(t_n(\delta)=b_n+q_n(\delta)\)
+  \item \(\phi_{n,\alpha}\) --- \texttt{Binary test}; Level-\(\alpha\) two-wave test of zero population variance
+  \par\smallskip\noindent\emph{Definition.} \(\phi_{n,\alpha}=\mathbf 1\{\widehat\Omega_n^{12}>t_n(\alpha)\}\)
+  \item \(\rho_n(\alpha,\beta)\) --- \texttt{Positive separation radius}; \texttt{Uniformly attainable alternative size}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n(\alpha,\beta)=2b_n+q_n(\alpha)+q_n(\beta)\)
+  \item \(s_n\) --- \texttt{Nonnegative separation sequence}; \([0,\infty)\); \texttt{Candidate minimax testing radius}
+  \item \(g\) --- \texttt{Measurable transfer function}; \(g:\mathcal U^{2r}\to\mathbb R\); \texttt{Janson finite-\allowbreak{}block transfer map}
+  \item \(g_i\) --- \texttt{Finite-\allowbreak{}block transfer process}; \(L^2(P,\mathcal F_U)\); \texttt{Janson coboundary transfer}
+  \par\smallskip\noindent\emph{Definition.} \(g_i=g(U_{i-r+1},\ldots,U_{i+r})\)
+  \item \(g^\star\) --- Independent copy of \(g_0\); \(L^2(P)\); \texttt{Independent endpoint limit}
+  \item \(P^{\Delta}\) --- \texttt{Constructed law}; \texttt{Heterogeneous zero-\allowbreak{}variance witness}
+  \item \(P^{+}\) --- \texttt{Constructed law}; \texttt{Positive-\allowbreak{}variance witness}
+  \item \(\mathcal M_{2,\mathrm{loc}}\) --- \texttt{Class of probability laws}; \texttt{Two-\allowbreak{}wave finite-\allowbreak{}range Palm exposure model}
+  \item \(q_n^{\mathrm u}(\delta)\) --- \texttt{Deterministic deviation allowance}; \((0,\infty)\); \texttt{Bounded-\allowbreak{}differences radius for the exactly unbiased statistic}
+  \par\smallskip\noindent\emph{Definition.} \(q_n^{\mathrm u}(\delta)=\{\sqrt{48n}(2r+1)(4r+1)K^2/(n-4r-1)\}\sqrt{\log(2/\delta)}\)
+  \item \(W_n\) --- \texttt{Canonical observed score vector}; \(\mathbb R^{2N_n}\); \texttt{Law-\allowbreak{}independent observation map for the score-\allowbreak{}vector minimax experiment}
+  \par\smallskip\noindent\emph{Definition.} \(W_n=((Z_{n,i}^{(1)},Z_{n,i}^{(2)}))_{i\in I_n}\)
+  \item \(\Psi_n\) --- \texttt{Class of randomized score-\allowbreak{}vector tests}; Borel maps from \(\mathbb R^{2N_n}\) to \([0,1]\); \texttt{Common admissible test class for minimax risk}
+  \par\smallskip\noindent\emph{Definition.} \(\Psi_n=\{\psi_n:\mathbb R^{2N_n}\to[0,1]:\psi_n\text{ is Borel measurable}\}\)
+  \item \(s_{n,\alpha,\beta}^{\mathrm{score}}\) --- \texttt{Score-\allowbreak{}vector minimax separation radius}; \([0,\infty)\); Smallest population-variance separation attainable at type-I level \(\alpha\) and type-II level \(\beta\) in the canonical score experiment
+  \item \(\widehat\Omega_n^{\mathrm u}\) --- \texttt{Exactly unbiased two-\allowbreak{}wave population-\allowbreak{}variance statistic}; \(\mathbb R\); \texttt{Lag-\allowbreak{}separated cross-\allowbreak{}wave estimator without sample-\allowbreak{}centering bias}
+  \item \(O_n^{\mathrm{obs}}\) --- \texttt{Canonical full-\allowbreak{}observation vector}; \(\mathbb R^{n^2+2n+2N_n|\mathcal E|+4N_n}\); \texttt{Law-\allowbreak{}independent finite-\allowbreak{}dimensional encoding of the observed graph,\allowbreak{} assignments,\allowbreak{} exposures,\allowbreak{} outcomes,\allowbreak{} and known propensities}
+  \item \(\Phi_n^{\mathrm{obs}}\) --- \texttt{Class of randomized full-\allowbreak{}observation tests}; Borel maps from the Euclidean space of \(O_n^{\mathrm{obs}}\) to \([0,1]\); \texttt{Common admissible test class for the full-\allowbreak{}observable minimax risk}
+  \item \(s_{n,\alpha,\beta}^{\mathrm{obs}}\) --- \texttt{Full-\allowbreak{}observation minimax separation radius}; \([0,\infty)\); \texttt{Smallest Palm population-\allowbreak{}variance separation attainable from the complete declared finite observation}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-innovations]\label{ass:iid-innovations}
+The coordinates \(U_i\), \(i\in\mathbb Z\), are independent and identically distributed under \(P\).
+\par\smallskip\noindent\emph{Standard} (Bernoulli-shift innovation condition, \cite{ElMachkouriVolnyWu2013}).
+\end{assumption}
+
+\begin{assumption}[ass:graph-equivariance]\label{ass:graph-equivariance}
+The graph rule is translation equivariant: \(G(\theta^kU)=\theta^kG(U)\) for every \(k\in\mathbb Z\).
+\par\smallskip\noindent\emph{Standard} (Translation-equivariant local graph rule, \cite{BaryshnikovYukich2005}).
+\end{assumption}
+
+\begin{assumption}[ass:graph-edge-range]\label{ass:graph-edge-range}
+Every neighbor of \(i\) in \(G\) belongs to \(\{i-r,\ldots,i+r\}\).
+\par\smallskip\noindent\emph{Standard} (Bounded-range sparse graph specialization, \cite{BaryshnikovYukich2005}).
+\end{assumption}
+
+\begin{assumption}[ass:exposure-equivariance]\label{ass:exposure-equivariance}
+The exposure maps satisfy \(E_{i+k}(d,G)=E_i(\theta^kd,\theta^kG)\) for every \(i,k\in\mathbb Z\) and assignment \(d\).
+\par\smallskip\noindent\emph{Standard} (Shift-equivariant exposure mapping, \cite{AronowSamii2017}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-equivariance]\label{ass:outcome-equivariance}
+The common potential-outcome schedule satisfies \(Y_{i+k}(d;U,G)=Y_i(\theta^kd;\theta^kU,\theta^kG)\) for every \(i,k\in\mathbb Z\) and assignment \(d\).
+\par\smallskip\noindent\emph{Standard} (Stationary local potential-outcome schedule, \cite{ElMachkouriVolnyWu2013}).
+\end{assumption}
+
+\begin{assumption}[ass:score-locality]\label{ass:score-locality}
+There exist Borel maps
+\[
+ \Psi_i:\mathcal U^{\{-r,\ldots,r\}}\times
+ \{0,1\}^{\{-r,\ldots,r\}}\longrightarrow\mathcal E\times\mathbb R,
+ \qquad i\in\mathbb Z,
+\]
+and a Borel set \(\mathcal N\subseteq\mathcal U^{\mathbb Z}\) with \(P\{U\in\mathcal N\}=0\), where \(\mathcal N\) is independent of the assignment argument, such that for every \(u\notin\mathcal N\), every \(i\in\mathbb Z\), and every \(d\in\{0,1\}^{\mathbb Z}\),
+\[
+ \bigl(E_i(d,G(u)),Y_i(d;u,G(u))\bigr)
+ =\Psi_i\bigl((u_{i+s})_{s=-r}^{r},(d_{i+s})_{s=-r}^{r}\bigr).
+\]
+\par\smallskip\noindent\emph{Standard} (Exact bounded-neighborhood interference with common cylinder versions, \cite{AronowSamii2017}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-envelope]\label{ass:outcome-envelope}
+The common envelope \(|Y_i(d;U,G)|\le B\) holds \(P\)-almost surely for every \(i\in\mathbb Z\) and assignment \(d\).
+\par\smallskip\noindent\emph{Standard} (Uniformly bounded potential outcomes, \cite{Leung2022ANI}).
+\end{assumption}
+
+\begin{assumption}[ass:wavewise-bernoulli]\label{ass:wavewise-bernoulli}
+Conditional on \(\mathcal F_U\), the coordinates of each \(D^{(w)}\), \(w\in\{1,2\}\), are independent \(\operatorname{Bernoulli}(p)\) draws under \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent Bernoulli randomization within wave, \cite{Leung2022ANI}).
+\end{assumption}
+
+\begin{assumption}[ass:cross-wave-independence]\label{ass:cross-wave-independence}
+The assignment fields \(D^{(1)}\) and \(D^{(2)}\) are conditionally independent given \(\mathcal F_U\) under \(P\).
+\par\smallskip\noindent\emph{Novel.} Large online populations can be rerandomized after a prespecified washout interval while retaining the same network, eligibility frame, exposure map, and potential-outcome schedule; the condition formalizes that repeated-experiment design.
+\end{assumption}
+
+\begin{assumption}[ass:exposure-positivity]\label{ass:exposure-positivity}
+The exposure propensities obey \(\min\{\pi_i(e_1),\pi_i(e_0)\}\ge\varepsilon\) \(P\)-almost surely for every \(i\in\mathbb Z\).
+\par\smallskip\noindent\emph{Standard} (Exposure positivity, \cite{AronowSamii2017}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:two-wave-local-class]\label{def:two-wave-local-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}wave finite-\allowbreak{}range Palm exposure class}
+\par\smallskip\noindent\emph{Construction.} The class \(\mathcal M_{2,\mathrm{loc}}\) consists of the laws \(P\) such that: the coordinates \((U_i)_{i\in\mathbb Z}\) are iid; the graph satisfies
+\[
+ G(\theta^kU)=\theta^kG(U),
+ \qquad N_G(i)\subseteq\{i-r,\ldots,i+r\};
+\]
+the exposure and outcome rules satisfy, for every \(i,k\in\mathbb Z\) and every assignment \(d\),
+\[
+ E_{i+k}(d,G)=E_i(\theta^kd,\theta^kG),
+ \qquad
+ Y_{i+k}(d;U,G)=Y_i(\theta^kd;\theta^kU,\theta^kG);
+\]
+there exist Borel maps
+\[
+ \Psi_i:\mathcal U^{\{-r,\ldots,r\}}\times
+ \{0,1\}^{\{-r,\ldots,r\}}\longrightarrow\mathcal E\times\mathbb R,
+ \qquad i\in\mathbb Z,
+\]
+and a single Borel set \(\mathcal N\subseteq\mathcal U^{\mathbb Z}\), with \(P\{U\in\mathcal N\}=0\) and independent of the assignment argument, such that for every \(u\notin\mathcal N\), every \(i\in\mathbb Z\), and every binary assignment \(d\),
+\[
+ \bigl(E_i(d,G(u)),Y_i(d;u,G(u))\bigr)
+ =\Psi_i\bigl((u_{i+s})_{s=-r}^{r},(d_{i+s})_{s=-r}^{r}\bigr);
+\]
+the envelope \(|Y_i(d;U,G)|\le B\) holds almost surely for every \(i\) and \(d\); conditional on \(\mathcal F_U\), the coordinates of each \(D^{(w)}\), \(w\in\{1,2\}\), are iid \(\operatorname{Bernoulli}(p)\), and \(D^{(1)}\) and \(D^{(2)}\) are conditionally independent; and
+\[
+ \min_{a\in\{e_1,e_0\}}\pi_i(a)\ge\varepsilon
+ \quad\text{almost surely for every }i\in\mathbb Z.
+\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iid-\allowbreak{}innovations}; \texttt{ass:\allowbreak{}graph-\allowbreak{}equivariance}; \texttt{ass:\allowbreak{}graph-\allowbreak{}edge-\allowbreak{}range}; \texttt{ass:\allowbreak{}exposure-\allowbreak{}equivariance}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}equivariance}; \texttt{ass:\allowbreak{}score-\allowbreak{}locality}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}wavewise-\allowbreak{}bernoulli}; \texttt{ass:\allowbreak{}cross-\allowbreak{}wave-\allowbreak{}independence}; \texttt{ass:\allowbreak{}exposure-\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:score-decomposition]\label{def:score-decomposition}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Wavewise design-\allowbreak{}-\allowbreak{}population score decomposition}
+\par\smallskip\noindent\emph{Construction.} For \(w\in\{1,2\}\), \(Z_i^{(w)}-\tau_{\mathrm P}=\xi_i^{(w)}+h_i\), where \(m_i=\mathbb E_P[Z_i^{(w)}\mid\mathcal F_U]\), \(\xi_i^{(w)}=Z_i^{(w)}-m_i\), and \(h_i=m_i-\tau_{\mathrm P}\).
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(Z_i^{(1)}\); \(Z_i^{(2)}\); \(\mathcal F_U\).
+\end{definition}
+
+\begin{definition}[def:buffered-restriction]\label{def:buffered-restriction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Buffered F\textbackslash{}\allowbreak{}o lner restriction}
+\par\smallskip\noindent\emph{Construction.} For each \(n>4r\), let \(\Lambda_n=\{1,\ldots,n\}\) and \(I_n=\{r+1,\ldots,n-r\}\).  Couple the finite record to the common infinite construction by retaining the same coordinates of \(U\), \(G(U)\), \(D^{(1)}\), and \(D^{(2)}\) on \(\Lambda_n\).  For \(i\in I_n\), write the joint cylinder map supplied by the locality condition as \(\Psi_i=(\Psi_i^E,\Psi_i^Y)\), put
+\[
+ u_i=(U_{i+s})_{s=-r}^{r},
+ \qquad
+ x_i^{(w)}=(D_{i+s}^{(w)})_{s=-r}^{r},
+\]
+and define the finite exposure and realized-outcome coordinates entering the retained score to be, respectively,
+\[
+ \Psi_i^E(u_i,x_i^{(w)})
+ \quad\text{and}\quad
+ \Psi_i^Y(u_i,x_i^{(w)}).
+\]
+For a label \(a\in\{e_1,e_0\}\), define its finite known propensity by the induced product-Bernoulli cylinder probability
+\[
+ q_{n,i}(a)
+ =\sum_{x\in\{0,1\}^{\{-r,\ldots,r\}}}
+ \mathbf 1\{\Psi_i^E(u_i,x)=a\}
+ p^{\sum_sx_s}(1-p)^{2r+1-\sum_sx_s}. \tag{1}
+\]
+Then define, for \(w\in\{1,2\}\),
+\[
+ Z_{n,i}^{(w)}
+ =\Psi_i^Y(u_i,x_i^{(w)})
+ \left\{
+  \frac{\mathbf 1\{\Psi_i^E(u_i,x_i^{(w)})=e_1\}}{q_{n,i}(e_1)}
+  -\frac{\mathbf 1\{\Psi_i^E(u_i,x_i^{(w)})=e_0\}}{q_{n,i}(e_0)}
+ \right\}. \tag{2}
+\]
+The class positivity condition makes both denominators in (2) at least \(\varepsilon\) almost surely.  Thus the finite exposure, outcome, propensity, and score coordinates are explicitly the restrictions induced by the same assignment-independent cylinder versions as the infinite construction; the discarded boundary is \(\Lambda_n\setminus I_n\).
+\par\smallskip\noindent\emph{Inputs.} \(U\); \(G\); \(D^{(1)}\); \(D^{(2)}\); \(E_i\); \(Y_i\); \(p\); \(e_1\); \(e_0\).
+\end{definition}
+
+\begin{definition}[def:two-wave-statistic]\label{def:two-wave-statistic}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable two-\allowbreak{}wave population-\allowbreak{}variance statistic}
+\par\smallskip\noindent\emph{Construction.} Compute \(\widehat\tau_n^{(w)}=N_n^{-1}\sum_{i\in I_n}Z_{n,i}^{(w)}\) for \(w\in\{1,2\}\), then set \(\widehat\Omega_n^{12}=\sum_{k=-2r}^{2r}\{N_{n,k}^{-1}\sum_{i\in J_{n,k}}Z_{n,i}^{(1)}Z_{n,i+k}^{(2)}-\widehat\tau_n^{(1)}\widehat\tau_n^{(2)}\}\). The only nuisance quantities are the two displayed wave means; \(p\) and \(\pi_i(a)\) are known from the randomization.
+\par\smallskip\noindent\emph{Inputs.} \(Z_{n,i}^{(1)}\); \(Z_{n,i}^{(2)}\); \(I_n\).
+\end{definition}
+
+\begin{definition}[def:diagnostic-test]\label{def:diagnostic-test}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}sample two-\allowbreak{}wave boundary test}
+\par\smallskip\noindent\emph{Construction.} For \(n>4r\), compute \(b_n=4(4r+1)^2K^2/N_n\), \(q_n(\delta)=\{\sqrt{48n}(2r+1)(4r+1)K^2/(n-4r)\}\sqrt{\log(2/\delta)}\), and reject \(H_0:\Omega_{\mathrm{pop}}=0\) when \(\phi_{n,\alpha}=\mathbf 1\{\widehat\Omega_n^{12}>b_n+q_n(\alpha)\}=1\).
+\par\smallskip\noindent\emph{Inputs.} \(\widehat\Omega_n^{12}\); \(r\); \(K\); \(\alpha\).
+\end{definition}
+
+\begin{definition}[def:boundary-witnesses]\label{def:boundary-witnesses}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Zero and positive population-\allowbreak{}variance witnesses}
+\par\smallskip\noindent\emph{Construction.} Let \(U_i\) be independent Rademacher variables, let \(G\) be the deterministic nearest-neighbor line, take \(E_i(d,G)=d_i\), \(e_1=1\), \(e_0=0\), and define \(P^{\Delta}\) by \(Y_i(d;U,G)=(U_i-U_{i-1})d_i\) and \(P^{+}\) by \(Y_i(d;U,G)=U_id_i\), with the two assignment waves drawn independently at probability \(p\).
+\par\smallskip\noindent\emph{Inputs.} \(p\).
+\end{definition}
+
+\begin{definition}[def:minimax-handle]\label{def:minimax-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Canonical full-\allowbreak{}observable experiment and score subexperiment}
+\par\smallskip\noindent\emph{Construction.} For \(n>4r\), encode the complete buffered experimental record as the single Euclidean vector
+\[
+ O_n^{\mathrm{obs}}
+ =\Bigl(
+   (\mathbf 1\{\{i,j\}\in G\})_{(i,j)\in\Lambda_n^2},
+   (D_i^{(w)})_{i\in\Lambda_n,\,w\in\{1,2\}},
+   (\mathbf 1\{E_i(D^{(w)},G)=e\})_{i\in I_n,\,w\in\{1,2\},\,e\in\mathcal E},
+\]
+\[
+   (Y_i(D^{(w)};U,G))_{i\in I_n,\,w\in\{1,2\}},
+   (\pi_i(e_0),\pi_i(e_1))_{i\in I_n}
+ \Bigr)
+ \in\mathbb R^{n^2+2n+2N_n|\mathcal E|+4N_n}.
+\]
+The final propensity coordinates are known design quantities.  Thus the score vector
+\[
+ W_n=\bigl((Z_{n,i}^{(1)},Z_{n,i}^{(2)})\bigr)_{i\in I_n}
+ \in\mathbb R^{2N_n}
+\]
+is a Borel function of \(O_n^{\mathrm{obs}}\), by the displayed exposure-IPW formula and exposure positivity.  Let
+\[
+ \Phi_n^{\mathrm{obs}}
+ =\{\varphi_n:\mathbb R^{n^2+2n+2N_n|\mathcal E|+4N_n}\to[0,1]:
+ \varphi_n\text{ is Borel measurable}\},
+\]
+and define
+\[
+ s_{n,\alpha,\beta}^{\mathrm{obs}}
+ :=\inf\Bigl\{s\ge0:\ \exists\varphi_n\in\Phi_n^{\mathrm{obs}}\text{ such that }
+ \mathbb E_P[\varphi_n(O_n^{\mathrm{obs}})]\le\alpha
+ \text{ for every }P\in\mathcal M_{2,\mathrm{loc}}\text{ with }\Omega_{\mathrm{pop}}=0,
+\]
+\[
+ \hspace{45mm}
+ \mathbb E_P[1-\varphi_n(O_n^{\mathrm{obs}})]\le\beta
+ \text{ for every }P\in\mathcal M_{2,\mathrm{loc}}\text{ with }\Omega_{\mathrm{pop}}\ge s\Bigr\}.
+\]
+The score subexperiment retains
+\[
+ \Psi_n=\{\psi_n:\mathbb R^{2N_n}\to[0,1]:\psi_n\text{ is Borel measurable}\}
+\]
+and
+\[
+ s_{n,\alpha,\beta}^{\mathrm{score}}
+ :=\inf\Bigl\{s\ge0:\ \exists\psi_n\in\Psi_n\text{ such that }
+ \mathbb E_P[\psi_n(W_n)]\le\alpha
+ \text{ for every }P\in\mathcal M_{2,\mathrm{loc}}\text{ with }\Omega_{\mathrm{pop}}=0,
+\]
+\[
+ \hspace{45mm}
+ \mathbb E_P[1-\psi_n(W_n)]\le\beta
+ \text{ for every }P\in\mathcal M_{2,\mathrm{loc}}\text{ with }\Omega_{\mathrm{pop}}\ge s\Bigr\}.
+\]
+Both experiments use common, law-independent Borel maps.  The complete buffered record contains the graph and assignments on \(\Lambda_n\), and exposures, outcomes, and propensities on \(I_n\); it does not reveal the innovations or unobserved assignment-cell outcomes. Common support below refers to the induced laws of this observed record, not to the latent four-cell schedules.
+\par\smallskip\noindent\emph{Inputs.} \(G\); \(D^{(1)}\); \(D^{(2)}\); \(E_i\); \(Y_i\); \(\pi_i(a)\); \(Z_{n,i}^{(1)}\); \(Z_{n,i}^{(2)}\); \(I_n\); \(\mathcal M_{2,\mathrm{loc}}\); \(\Omega_{\mathrm{pop}}\); \(\alpha\); \(\beta\).
+\end{definition}
+
+\begin{definition}[def:exact-unbiased-two-wave-statistic]\label{def:exact-unbiased-two-wave-statistic}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lag-\allowbreak{}separated exactly unbiased two-\allowbreak{}wave statistic}
+\par\smallskip\noindent\emph{Construction.} For \(n>4r+1\), put \(\ell=2r+1\) and define
+\[
+ \widehat\Omega_n^{\mathrm u}
+ =\sum_{k=-2r}^{2r}
+ \frac1{N_{n,k}}\sum_{i\in J_{n,k}}
+ Z_{n,i}^{(1)}Z_{n,i+k}^{(2)}
+ -(4r+1)\frac1{N_{n,\ell}}\sum_{i\in J_{n,\ell}}
+ Z_{n,i}^{(1)}Z_{n,i+\ell}^{(2)}.
+\]
+Also define the deterministic deviation allowance
+\[
+ q_n^{\mathrm u}(\delta)
+ =\frac{\sqrt{48n}(2r+1)(4r+1)K^2}{n-4r-1}
+ \sqrt{\log(2/\delta)},
+ \qquad 0<\delta<1.
+\]
+\par\smallskip\noindent\emph{Inputs.} \(Z_{n,i}^{(1)}\); \(Z_{n,i}^{(2)}\); \(I_n\); \(r\); \(K\); \(\delta\).
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:buffered-coupling]\label{prop:buffered-coupling}
+For every \(P\in\mathcal M_{2,\mathrm{loc}}\), \(n>4r\), \(i\in I_n\), and \(w\in\{1,2\}\), the restriction coupling satisfies \(Z_{n,i}^{(w)}=Z_i^{(w)}\) almost surely, and \(|\Lambda_n\setminus I_n|/|\Lambda_n|=2r/n\to0\).
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal M_{2,\mathrm{loc}}\), \(n>4r\), \(i\in I_n\), and \(w\in\{1,2\}\).  Put \(A_i=\{i-r,\ldots,i+r\}\).  The definitions of \(I_n\) and \(\Lambda_n\) give
+\[
+ A_i\subseteq\Lambda_n. \tag{1}
+\]
+Write the joint cylinder map supplied by the locality condition as \(\Psi_i=(\Psi_i^E,\Psi_i^Y)\).  Outside its one assignment-independent null event, simultaneously for every binary assignment \(d\),
+\[
+ \begin{aligned}
+ E_i(d,G(U))
+ &=\Psi_i^E\bigl((U_{i+s})_{s=-r}^{r},(d_{i+s})_{s=-r}^{r}\bigr),\\
+ Y_i(d;U,G(U))
+ &=\Psi_i^Y\bigl((U_{i+s})_{s=-r}^{r},(d_{i+s})_{s=-r}^{r}\bigr).
+ \end{aligned} \tag{2}
+\]
+The assignment-independent exceptional event permits (2) to be evaluated at either realized wave without choosing a wave-dependent conditional version.
+
+Under the restriction coupling, the finite and infinite constructions use identical innovation and assignment coordinates on \(A_i\), by (1).  The revised buffered-restriction definition declares the finite exposure and realized-outcome coordinates to be exactly the restrictions induced by the same two components of \(\Psi_i\).  Thus (2) proves equality of the finite and infinite exposure and outcome coordinates at \(i\).
+
+It remains to verify equality of the propensity denominators, which does not follow merely from equality at the realized assignment.  Conditional on \(\mathcal F_U\), the local assignment vector has product \(\operatorname{Bernoulli}(p)\) law.  Hence, for \(a\in\{e_1,e_0\}\), both the finite propensity specified in the revised restriction definition and the infinite propensity \(\pi_i(a)\) equal
+\[
+ \sum_{x\in\{0,1\}^{\{-r,\ldots,r\}}}
+ \mathbf 1\!\left\{
+  \Psi_i^E\bigl((U_{i+s})_{s=-r}^{r},x\bigr)=a
+ \right\}
+ p^{\sum_sx_s}(1-p)^{2r+1-\sum_sx_s}. \tag{3}
+\]
+Exposure positivity makes each denominator in (3) at least \(\varepsilon>0\) almost surely.  Substitution of the equal exposure, outcome, and propensity coordinates into the two exposure-IPW formulas therefore gives
+\[
+ Z_{n,i}^{(w)}=Z_i^{(w)}
+ \qquad P\text{-almost surely}. \tag{4}
+\]
+
+Finally, because \(n>4r\), the interval \(I_n=\{r+1,\ldots,n-r\}\) is nonempty and \(\Lambda_n\setminus I_n\) consists of exactly the \(r\) sites at each endpoint.  Therefore, for fixed \(r\),
+\[
+ \frac{|\Lambda_n\setminus I_n|}{|\Lambda_n|}
+ =\frac{2r}{n}\longrightarrow0.
+\]
+Together with (4), this proves the proposition against the revised definition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact interior coupling is derived from one assignment-independent local cylinder version, and the finite exposure, outcome, and propensity coordinates are now explicitly induced by that same version. \textit{Gap.} BaryshnikovYukich2005 studies stabilizing finite-volume scores, while this proposition records exact boundary deletion for two repeated exposure experiments under a common local version. \textit{Consumer.} An experimenter can implement the diagnostic after dropping a prespecified fixed-width endpoint buffer and computing all retained coordinates from the declared local rule.
+
+\begin{lemma}[lem:exact-score-split]\label{lem:exact-score-split}
+For every \(P\in\mathcal M_{2,\mathrm{loc}}\), \(Z_i^{(w)}-\tau_{\mathrm P}=\xi_i^{(w)}+h_i\) and \(\mathbb E_P[\xi_i^{(w)}h_j]=0\) for all \(i,j\in\mathbb Z\) and \(w\in\{1,2\}\). In addition, \(|Z_i^{(w)}|\le K\) almost surely.
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M_{2,\mathrm{loc}}\), \(i,j\in\mathbb Z\), and \(w\in\{1,2\}\).  We first establish the envelope needed for every conditional-expectation step.  If \(e_1\ne e_0\), at most one of the two exposure indicators in the definition of \(Z_i^{(w)}\) is one.  The outcome-envelope and exposure-positivity conditions therefore give
+\[
+ |Z_i^{(w)}|
+ \le
+ \frac{|Y_i(D^{(w)};U,G)|}
+      {\min\{\pi_i(e_1),\pi_i(e_0)\}}
+ \le \frac B\varepsilon=K
+ \qquad P\text{-almost surely}. \tag{1}
+\]
+If \(e_1=e_0\), the two terms in the score bracket cancel identically, so (1) again holds.  Conditional Jensen's inequality applied to the definition of \(m_i\) gives \(|m_i|\le K\) almost surely.  Also \(|\tau_{\mathrm P}|=|\mathbb E_Pm_0|\le K\); hence \(|\xi_i^{(w)}|\le2K\) and \(|h_j|\le2K\).  Thus all variables and products below are integrable, and in fact square-integrable.
+
+The score-decomposition definitions now give the pointwise algebraic identity
+\[
+ \xi_i^{(w)}+h_i
+ =(Z_i^{(w)}-m_i)+(m_i-\tau_{\mathrm P})
+ =Z_i^{(w)}-\tau_{\mathrm P}. \tag{2}
+\]
+Moreover, the defining conditional expectation for \(m_i\) implies
+\[
+ \mathbb E_P[\xi_i^{(w)}\mid\mathcal F_U]
+ =\mathbb E_P[Z_i^{(w)}-m_i\mid\mathcal F_U]=0
+ \qquad P\text{-almost surely}. \tag{3}
+\]
+Because \(h_j=m_j-\tau_{\mathrm P}\) is \(\mathcal F_U\)-measurable, the pull-out and tower properties of conditional expectation, justified by the bounds above, yield
+\[
+ \mathbb E_P[\xi_i^{(w)}h_j]
+ =\mathbb E_P\!\left[
+   h_j\mathbb E_P(\xi_i^{(w)}\mid\mathcal F_U)
+ \right]
+ =0. \tag{4}
+\]
+Equations (1), (2), and (4) prove every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The decomposition retains the assignment--environment split and supplies the common envelope required for both concentration statistics. \textit{Gap.} AbadieAtheyImbensWooldridge2020 separates sampling and design uncertainty without repeated local exposure-IPW scores; Leung2022ANI works conditionally on one realized finite population. \textit{Consumer.} The split identifies which cross-wave products eliminate assignment noise and which envelope controls finite-sample error.
+
+\begin{lemma}[lem:cross-wave-identification]\label{lem:cross-wave-identification}
+For every \(P\in\mathcal M_{2,\mathrm{loc}}\) and \(i,j\in\mathbb Z\), \(\mathbb E_P[Z_i^{(1)}Z_j^{(2)}\mid\mathcal F_U]=m_im_j\) almost surely. Therefore \(\Omega_{\mathrm{pop}}=\sum_{k=-2r}^{2r}\{\mathbb E_P[Z_0^{(1)}Z_k^{(2)}]-\tau_{\mathrm P}^2\}\).
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M_{2,\mathrm{loc}}\) and \(i,j\in\mathbb Z\).  The exact score-split lemma gives \(|Z_i^{(w)}|\le K\), so all products and conditional expectations below are integrable.  Outside the single assignment-independent null set in the joint cylinder-locality condition, \(Z_i^{(w)}\), conditional on \(\mathcal F_U\), is a measurable function only of the assignment field \(D^{(w)}\): the graph, the common no-carryover outcome schedule, the exposure map, and the known propensities are then fixed.  Conditional independence of the two assignment waves therefore implies conditional independence of \(Z_i^{(1)}\) and \(Z_j^{(2)}\), irrespective of overlap between their within-wave neighborhoods.  Since the two waves have the same conditional Bernoulli design, the definition of \(m_i\) gives
+\[
+ \mathbb E_P[Z_i^{(1)}Z_j^{(2)}\mid\mathcal F_U]
+ =\mathbb E_P[Z_i^{(1)}\mid\mathcal F_U]
+  \mathbb E_P[Z_j^{(2)}\mid\mathcal F_U]
+ =m_im_j
+ \qquad P\text{-almost surely}. \tag{1}
+\]
+
+We next justify the stationarity used to identify the displayed target.  The graph, exposure, and outcome equivariance conditions, with the declared left-shift orientation, imply that shifting site and arguments together carries the score at site \(i\) to the score at site \(i+k\).  Integrating its local assignment coordinates against the same product \(\operatorname{Bernoulli}(p)\) law therefore gives
+\[
+ m_{i+k}(U)=m_i(\theta^kU)
+ \qquad P\text{-almost surely}. \tag{2}
+\]
+The iid innovation condition makes the law of \(U\) invariant under every \(\theta^k\).  Hence \((m_i)_{i\in\mathbb Z}\) is stationary, so
+\[
+ \mathbb E_Pm_i=\mathbb E_Pm_0=\tau_{\mathrm P},
+ \qquad
+ \mathbb E_Ph_i=0. \tag{3}
+\]
+Taking expectations in (1), setting \(i=0\) and \(j=k\), and using \(m_i=\tau_{\mathrm P}+h_i\) and (3), we obtain
+\[
+ \mathbb E_P[Z_0^{(1)}Z_k^{(2)}]-\tau_{\mathrm P}^2
+ =\mathbb E_P[m_0m_k]-\tau_{\mathrm P}^2
+ =\mathbb E_P[h_0h_k]
+ =\gamma_h(k). \tag{4}
+\]
+The causal target was defined independently as \(\Omega_{\mathrm{pop}}=\sum_{k=-2r}^{2r}\gamma_h(k)\).  Summing (4) over that fixed support gives
+\[
+ \Omega_{\mathrm{pop}}
+ =\sum_{k=-2r}^{2r}
+ \left\{\mathbb E_P[Z_0^{(1)}Z_k^{(2)}]-\tau_{\mathrm P}^2\right\}.
+\]
+Thus the observed-law cross-wave moment is proved to equal the pre-existing causal functional; the equality is not imposed by definition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Conditional replication converts the latent population covariance into an observable cross-wave moment without estimating \(m_i\). \textit{Gap.} AronowSamii2017 identifies exposure means within one randomization, while this lemma identifies the population covariance component by two conditionally independent waves. \textit{Consumer.} The identity lets a platform estimate graph-to-graph exposure-effect variation using only recorded assignments, exposures, outcomes, and known propensities.
+
+\begin{proposition}[prop:janson-boundary-corollary]\label{prop:janson-boundary-corollary}
+For every \(P\in\mathcal M_{2,\mathrm{loc}}\), the process \(h_i\) is a centered \((2r+1)\)-block factor and \(\Omega_{\mathrm{pop}}\ge0\). The equality \(\Omega_{\mathrm{pop}}=0\) holds if and only if a square-integrable \(2r\)-block factor \(g_i\) satisfies \(h_i=g_i-g_{i-1}\) almost surely; in that case \(N_n^{-1}\sum_{i\in I_n}h_i=(g_{n-r}-g_r)/N_n\), and \(\sum_{i\in I_n}h_i\Rightarrow g^\star-g_0\).
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal M_{2,\mathrm{loc}}\).  We first verify the finite-block premise of the cited coboundary theorem from the corrected joint cylinder condition.  At the origin, write the class-supplied cylinder map as \(\Psi_0=(\Psi_0^E,\Psi_0^Y)\).  For a local innovation block \(u=(u_s)_{s=-r}^r\) and \(a\in\{e_1,e_0\}\), put
+\[
+ q_a(u)=
+ \sum_{x\in\{0,1\}^{\{-r,\ldots,r\}}}
+ \mathbf 1\{\Psi_0^E(u,x)=a\}
+ p^{\sum_sx_s}(1-p)^{2r+1-\sum_sx_s}. \tag{1}
+\]
+The wavewise Bernoulli condition identifies (1) with the conditional exposure propensity at the origin; exposure positivity makes both denominators at least \(\varepsilon\) almost surely.  Integrating the exposure-IPW formula over the same finite product law shows that \(m_0\), and hence \(h_0=m_0-\tau_{\mathrm P}\), is a Borel function of \((U_{-r},\ldots,U_r)\).  Equivariance gives the same translated Borel function at every site.  Consequently
+\[
+ h_i=f(U_{i-r},\ldots,U_{i+r}) \tag{2}
+\]
+for one Borel \(f\).  The exact score-split envelope implies square integrability, and the definition of \(\tau_{\mathrm P}\), together with stationarity established from iid innovations and equivariance, gives \(\mathbb E_Ph_i=0\).  Thus \((h_i)\) is a centered square-integrable \((2r+1)\)-block factor.  In particular, the innovation blocks in (2) are disjoint when \(|i-j|>2r\), so iid innovations imply
+\[
+ \gamma_h(k)=0\qquad(|k|>2r). \tag{3}
+\]
+
+For every integer \(M>2r\), stationarity and (3) give the exact covariance expansion
+\[
+ \frac1M\operatorname{Var}_P\!\left(\sum_{i=1}^Mh_i\right)
+ =\gamma_h(0)+2\sum_{k=1}^{2r}
+ \left(1-\frac{k}{M}\right)\gamma_h(k). \tag{4}
+\]
+Letting \(M\to\infty\) in this finite sum and using \(\gamma_h(-k)=\gamma_h(k)\) yields
+\[
+ \lim_{M\to\infty}\frac1M
+ \operatorname{Var}_P\!\left(\sum_{i=1}^Mh_i\right)
+ =\sum_{k=-2r}^{2r}\gamma_h(k)
+ =\Omega_{\mathrm{pop}}. \tag{5}
+\]
+Every quantity on the left of (5) is nonnegative, proving \(\Omega_{\mathrm{pop}}\ge0\).
+
+Apply the cited Janson block-factor coboundary lemma to \(X_j=h_{j+r}\), which by (2) is a block factor of \((U_j,\ldots,U_{j+2r})\) of length \(2r+1\).  Its square-integrability and centering were proved above, and (5) identifies its limiting normalized variance with \(\Omega_{\mathrm{pop}}\).  The cited result therefore gives \(\Omega_{\mathrm{pop}}=0\) if and only if there is a square-integrable \(2r\)-block factor
+\[
+ g_i=g(U_{i-r+1},\ldots,U_{i+r})
+ \quad\text{such that}\quad
+ h_i=g_i-g_{i-1}
+ \qquad P\text{-almost surely}. \tag{6}
+\]
+Under (6), telescoping over the buffered interval is exact:
+\[
+ \sum_{i\in I_n}h_i
+ =\sum_{i=r+1}^{n-r}(g_i-g_{i-1})
+ =g_{n-r}-g_r,
+ \qquad
+ \frac1{N_n}\sum_{i\in I_n}h_i
+ =\frac{g_{n-r}-g_r}{N_n}. \tag{7}
+\]
+For \(n>4r\), \(g_r\) depends on \((U_1,\ldots,U_{2r})\), whereas \(g_{n-r}\) depends on \((U_{n-2r+1},\ldots,U_n)\).  These blocks are disjoint.  Iid innovations make the endpoints independent, and stationarity gives each the law of \(g_0\).  Hence the first quantity in (7) has, for every such \(n\), the law of \(g^\star-g_0\), where \(g^\star\) is an independent copy of \(g_0\).  In particular,
+\[
+ \sum_{i\in I_n}h_i\Rightarrow g^\star-g_0.
+\]
+This proves the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This specialization interprets the diagnostic null as the published finite-block coboundary boundary rather than as causal homogeneity. \textit{Gap.} Janson2015, Theorems 1--2 and Corollary 1 establish the finite-dependent coboundary and endpoint laws; this proposition verifies their hypotheses for the declared local score. \textit{Consumer.} A researcher who fails to reject can report the correct boundary interpretation without claiming that unit-level exposure effects are constant.
+
+\begin{theorem}[thm:uniform-two-wave-concentration]\label{thm:uniform-two-wave-concentration}
+For every \(n>4r\) and \(\delta\in(0,1)\), \(\sup_{P\in\mathcal M_{2,\mathrm{loc}}}P\{|\widehat\Omega_n^{12}-\Omega_{\mathrm{pop}}|>t_n(\delta)\}\le\delta\), where \(t_n(\delta)=4(4r+1)^2K^2/N_n+\{\sqrt{48n}(2r+1)(4r+1)K^2/(n-4r)\}\sqrt{\log(2/\delta)}\).
+\end{theorem}
+\begin{proof}
+Fix \(n>4r\), \(\delta\in(0,1)\), and \(P\in\mathcal M_{2,\mathrm{loc}}\).  We first derive the common local score rule required by \texttt{thm:folner-fixed-footprint-two-wave-concentration}.  Put
+\[
+ A=\{-r,\ldots,r\},
+ \qquad |A|=2r+1,
+\]
+and write the site-zero cylinder map supplied by \texttt{ass:score-locality} as \(\Psi_0=(\Psi_0^E,\Psi_0^Y)\).  For \(a\in\{e_1,e_0\}\), define
+\[
+ \bar\pi_a(u_A)
+ =\sum_{x\in\{0,1\}^{A}}
+   \mathbf 1\{\Psi_0^E(u_A,x)=a\}
+   p^{\sum_{s\in A}x_s}(1-p)^{|A|-\sum_{s\in A}x_s}. \tag{1}
+\]
+This is a Borel function because the sum is finite.  By \texttt{ass:wavewise-bernoulli}, (1) is the conditional probability of exposure \(a\) at the origin when the local environment is \(u_A\).
+
+Define the raw Borel map
+\[
+ \widetilde z(u_A,x)=
+ \Psi_0^Y(u_A,x)
+ \left\{
+  \frac{\mathbf 1\{\Psi_0^E(u_A,x)=e_1\}}{\bar\pi_{e_1}(u_A)}
+  -\frac{\mathbf 1\{\Psi_0^E(u_A,x)=e_0\}}{\bar\pi_{e_0}(u_A)}
+ \right\} \tag{2}
+\]
+when both denominators in (2) are positive, and set \(\widetilde z(u_A,x)=0\) otherwise.  Thus no division by zero occurs.  With \(K=B/\varepsilon\), let
+\[
+ T_K(y)=\max\{-K,\min\{y,K\}\},
+ \qquad z=T_K\circ\widetilde z. \tag{3}
+\]
+The map \(z:\mathcal U^A\times\{0,1\}^A\to[-K,K]\) is Borel and is defined on the entire stated domain, including environment blocks lying in null sets.
+
+We next prove that this one map represents every site and both waves.  Let \(\mathcal N\) be the assignment-independent null set in \texttt{ass:score-locality}.  The iid law in \texttt{ass:iid-innovations} is invariant under each left shift \(\theta^i\), so
+\[
+ \mathcal N_\infty=\bigcup_{i\in\mathbb Z}\theta^{-i}\mathcal N
+ \quad\text{satisfies}\quad
+ P\{U\in\mathcal N_\infty\}=0. \tag{4}
+\]
+Indeed, every set in the countable union has probability zero.  If \(U\notin\mathcal N_\infty\), then \(\theta^iU\notin\mathcal N\) for every \(i\).  Apply the site-zero cylinder equality to \((\theta^iU,\theta^id)\).  By \texttt{ass:graph-equivariance},
+\[
+ G(\theta^iU)=\theta^iG(U), \tag{5}
+\]
+and the orientations in \texttt{ass:exposure-equivariance} and \texttt{ass:outcome-equivariance} give
+\[
+ \bigl(E_i(d,G(U)),Y_i(d;U,G(U))\bigr)
+ =\Psi_0\bigl((U_{i+s})_{s\in A},(d_{i+s})_{s\in A}\bigr) \tag{6}
+\]
+for every \(i\in\mathbb Z\) and every assignment \(d\).  Applying the conditional product-Bernoulli law of \texttt{ass:wavewise-bernoulli} to (6) yields
+\[
+ \pi_i(a)=\bar\pi_a\bigl((U_{i+s})_{s\in A}\bigr)
+ \quad\text{almost surely},
+ \qquad a\in\{e_1,e_0\}. \tag{7}
+\]
+The exposure-positivity assumption makes both quantities in (7) at least \(\varepsilon>0\) almost surely, so (2), evaluated at the realized local coordinates, is exactly \(Z_i^{(w)}\).  By \texttt{lem:exact-score-split}, \(|Z_i^{(w)}|\le K\) almost surely.  Hence the clipping in (3) leaves the realized value unchanged, and, simultaneously for \(w\in\{1,2\}\),
+\[
+ Z_i^{(w)}
+ =z\bigl((U_{i+s})_{s\in A},(D_{i+s}^{(w)})_{s\in A}\bigr)
+ \quad\text{almost surely for every }i\in\mathbb Z. \tag{8}
+\]
+Thus (1)--(8) derive the site- and wave-independent bounded score map required by the fixed-footprint theorem; it is not an additional hypothesis.
+
+Apply \texttt{thm:folner-fixed-footprint-two-wave-concentration} to the additive group \(\Gamma=\mathbb Z\), footprint \(A\), and covariance-support set
+\[
+ C=AA^{-1}=A-A=\{-2r,\ldots,2r\}. \tag{9}
+\]
+The iid innovation premise follows from \texttt{ass:iid-innovations}; the equivariance premises follow from \texttt{ass:graph-equivariance}, \texttt{ass:exposure-equivariance}, and \texttt{ass:outcome-equivariance}; the two conditional product designs and their conditional independence follow from \texttt{ass:wavewise-bernoulli} and \texttt{ass:cross-wave-independence}; positivity is \texttt{ass:exposure-positivity}; and the required bounded common cylinder representation is (8).  For \(\Lambda=\Lambda_n\), the theorem's interior and lag-pair sets equal \(I_n\) and \(J_{n,k}\), respectively.  Therefore
+\[
+ |C|=4r+1,
+ \qquad N=N_n=n-2r,
+ \qquad
+ \nu=\min_{|k|\le 2r}|J_{n,k}|=n-4r>0. \tag{10}
+\]
+The strict positivity in (10) is exactly where \(n>4r\) is used.  By \texttt{prop:buffered-coupling}, the restricted scores in that theorem equal \(Z_{n,i}^{(w)}\) almost surely.  By \texttt{lem:cross-wave-identification}, its covariance functional is
+\[
+ \sum_{k=-2r}^{2r}
+ \left\{\mathbb E_P[Z_0^{(1)}Z_k^{(2)}]-\tau_{\mathrm P}^2\right\}
+ =\Omega_{\mathrm{pop}}. \tag{11}
+\]
+Its statistic is consequently the statistic \(\widehat\Omega_n^{12}\) from \texttt{def:two-wave-statistic}.
+
+Substitution of (10) into the finite-sample bias bound of the fixed-footprint theorem gives
+\[
+ \frac{4|C|^2K^2}{N}
+ =\frac{4(4r+1)^2K^2}{N_n}
+ =b_n. \tag{12}
+\]
+Substitution into its bounded-differences radius gives
+\[
+ \frac{\sqrt{48|\Lambda_n|}\,|A|\,|C|K^2}{\nu}
+ \sqrt{\log(2/\delta)}
+ =\frac{\sqrt{48n}(2r+1)(4r+1)K^2}{n-4r}
+ \sqrt{\log(2/\delta)}
+ =q_n(\delta). \tag{13}
+\]
+Equations (11)--(13) and the conclusion of \texttt{thm:folner-fixed-footprint-two-wave-concentration} therefore imply
+\[
+ P\!\left\{
+  \left|\widehat\Omega_n^{12}-\Omega_{\mathrm{pop}}\right|
+  >b_n+q_n(\delta)
+ \right\}\le\delta. \tag{14}
+\]
+The right side of (14), and the two allowances in (12)--(13), are independent of the particular \(P\in\mathcal M_{2,\mathrm{loc}}\): they use only the common class constants \(r\), \(B\), and \(\varepsilon\), through \(K=B/\varepsilon\).  Taking the supremum over \(P\in\mathcal M_{2,\mathrm{loc}}\) in (14), and using \(t_n(\delta)=b_n+q_n(\delta)\) from \texttt{def:diagnostic-test}, proves the claimed uniform inequality.
+
+For the required smallest-volume stress test, take \(r=1\), \(n=5\), the deterministic line graph, \(p=1/2\), \(E_i(d,G)=e_1\) when \(d_i=1\) and \(E_i(d,G)=e_0\) when \(d_i=0\), and \(Y_i(d;U,G)=Bd_i\).  Then \(I_n=\{2,3,4\}\), \(N_n=3\),
+\[
+ Z_i^{(w)}=2BD_i^{(w)},
+ \qquad m_i=B,
+ \qquad \Omega_{\mathrm{pop}}=0. \tag{15}
+\]
+For each of the \(2^{10}\) two-wave assignments on \(\Lambda_n\), every lag-product average and every product of wave means belongs to \([0,4B^2]\).  There are five lags, so the triangle inequality gives
+\[
+ |\widehat\Omega_n^{12}|\le 20B^2. \tag{16}
+\]
+Because the class fixes \(\varepsilon<1/2\), one has \(K=B/\varepsilon>2B\), and hence
+\[
+ b_n=\frac{100K^2}{3}>\frac{400B^2}{3}>20B^2. \tag{17}
+\]
+Thus no assignment rejects in this smallest admissible instance.  Moreover, conditional independence of the two waves gives, for every lag, \(\mathbb E_P[Z_i^{(1)}Z_j^{(2)}]=B^2\) and \(\mathbb E_P[\widehat\tau_n^{(1)}\widehat\tau_n^{(2)}]=B^2\), so \(\mathbb E_P[\widehat\Omega_n^{12}]=0\), confirming the absence of bias in this instance.  At the opposite boundary, the denominator \(n-4r\) in (13) tends to zero as \(n\downarrow4r\); the theorem accordingly requires \(n>4r\) and makes no Gaussian or growing-range claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corrected cylinder condition and shift equivariance derive the single bounded local score map used by the explicit uniform deviation inequality. \textit{Gap.} Janson2015 classifies zero long-run variance but supplies no test from randomized causal scores; FanLengWu2025 estimates an asymptotic estimator variance under a low-rank graphon model and does not give this two-wave finite-sample bound. \textit{Consumer.} Repeated experiments obtain a prespecified, regression-free error bar for the population component even at the degenerate coboundary boundary.
+
+\begin{theorem}[thm:two-wave-size-and-separation]\label{thm:two-wave-size-and-separation}
+For every \(n>4r\), the test \(\phi_{n,\alpha}\) satisfies \(\sup_{P\in\mathcal M_{2,\mathrm{loc}}:\Omega_{\mathrm{pop}}=0}P(\phi_{n,\alpha}=1)\le\alpha\). For every \(\beta\in(0,1)\), it also satisfies \(\inf_{P\in\mathcal M_{2,\mathrm{loc}}:\Omega_{\mathrm{pop}}\ge\rho_n(\alpha,\beta)}P(\phi_{n,\alpha}=1)\ge1-\beta\), where \(\rho_n(\alpha,\beta)=2b_n+q_n(\alpha)+q_n(\beta)=O(n^{-1/2})\) for fixed \(r,B,\varepsilon,\alpha,\beta\).
+\end{theorem}
+\begin{proof}
+Let \(F_n=\widehat\Omega_n^{12}\).  The Janson-boundary proposition gives \(\Omega_{\mathrm{pop}}\ge0\), so the displayed null is the boundary of the one-sided alternative.  If \(P\in\mathcal M_{2,\mathrm{loc}}\) and \(\Omega_{\mathrm{pop}}=0\), rejection implies
+\[
+ |F_n-\Omega_{\mathrm{pop}}|=|F_n|
+ >b_n+q_n(\alpha)=t_n(\alpha). \tag{1}
+\]
+The uniform two-wave concentration theorem at \(\delta=\alpha\) therefore yields
+\[
+ P(\phi_{n,\alpha}=1)\le\alpha. \tag{2}
+\]
+Taking the supremum of (2) over the null class proves the size assertion.
+
+Now suppose
+\[
+ \Omega_{\mathrm{pop}}\ge\rho_n(\alpha,\beta)
+ =2b_n+q_n(\alpha)+q_n(\beta). \tag{3}
+\]
+On nonrejection, \(F_n\le b_n+q_n(\alpha)\), and (3) gives
+\[
+ \Omega_{\mathrm{pop}}-F_n
+ \ge b_n+q_n(\beta). \tag{4}
+\]
+For every \(\beta'\in(\beta,1)\), the function \(\delta\mapsto q_n(\delta)\) is strictly decreasing because \(\delta\mapsto\log(2/\delta)\) is strictly decreasing.  Thus (4) implies
+\[
+ |F_n-\Omega_{\mathrm{pop}}|>b_n+q_n(\beta').
+\]
+The concentration theorem at \(\delta=\beta'\) proves \(P(\phi_{n,\alpha}=0)\le\beta'\).  Taking the infimum over \(\beta'>\beta\), equivalently letting \(\beta'\downarrow\beta\), gives
+\[
+ P(\phi_{n,\alpha}=1)\ge1-\beta. \tag{5}
+\]
+The argument is uniform over every law satisfying (3), so taking the stated infimum proves the power assertion.
+
+Finally, with \(r,B,\varepsilon,\alpha,\beta\) fixed, \(K=B/\varepsilon\) is fixed and \(N_n=n-2r\).  Hence
+\[
+ b_n=O(n^{-1}),
+ \qquad
+ q_n(\delta)
+ =\frac{\sqrt{48n}(2r+1)(4r+1)K^2}{n-4r}
+  \sqrt{\log(2/\delta)}
+ =O(n^{-1/2}) \tag{6}
+\]
+for each fixed \(\delta\in(0,1)\).  Substitution of (6) into (3) yields \(\rho_n(\alpha,\beta)=O(n^{-1/2})\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem turns the uniform concentration map into a nonasymptotic level guarantee and an explicit root-sample-size power separation, including the non-strict boundary \(\Omega_{\mathrm{pop}}\ge\rho_n(\alpha,\beta)\). \textit{Gap.} Leung2022ANI gives one-assignment network-HAC inference, and FanLengWu2025 gives graphon-based variance inference; neither tests a Palm exposure-score covariance by repeated assignments. \textit{Consumer.} A platform with two washout-separated waves can test whether the Palm population component is detectably positive.
+
+\begin{proposition}[prop:nonhomogeneous-witnesses]\label{prop:nonhomogeneous-witnesses}
+If \(B\ge2\) and \(\varepsilon\le\min\{p,1-p\}\), then \(P^{\Delta},P^{+}\in\mathcal M_{2,\mathrm{loc}}\) with \(r=1\). Under \(P^{\Delta}\), \(h_i=U_i-U_{i-1}\) and \(\Omega_{\mathrm{pop}}=0\); under \(P^{+}\), \(h_i=U_i\) and \(\Omega_{\mathrm{pop}}=1\).
+\end{proposition}
+\begin{proof}
+Set \(r=1\) and consider the two laws in Definition \(\mathrm{def{:}boundary\text{-}witnesses}\).  Take \(\mathcal U=\{-1,1\}\) with its Borel sigma-field and \(\mathcal E=\{0,1\}\).  Under either law, the variables \((U_i)_{i\in\mathbb Z}\) are independent Rademacher variables, so
+\[
+ \mathbb E_{P^{\circ}}[U_i]=0,
+ \qquad
+ \mathbb E_{P^{\circ}}[U_i^2]=1,
+ \qquad
+ \mathbb E_{P^{\circ}}[U_iU_j]=0\quad(i\ne j),
+ \qquad \circ\in\{\Delta,+\}.
+\]
+Thus the iid-innovation requirement in Definition \(\mathrm{def{:}two\text{-}wave\text{-}local\text{-}class}\) holds for both laws.
+
+We next verify every remaining membership condition in that definition.  Let \(G\) be the deterministic line graph, so \(\{i,j\}\in G\) exactly when \(|i-j|=1\).  From the definition of the left shift,
+\[
+ \{i,j\}\in\theta^kG
+ \quad\Longleftrightarrow\quad
+ \{i+k,j+k\}\in G
+ \quad\Longleftrightarrow\quad
+ |i-j|=1
+ \quad\Longleftrightarrow\quad
+ \{i,j\}\in G.
+\]
+Consequently \(G(\theta^kU)=G=\theta^kG(U)\), and
+\[
+ N_G(i)=\{i-1,i+1\}\subseteq\{i-1,i,i+1\}.
+\]
+This verifies graph equivariance and range one.  Because \((\theta^kd)_i=d_{i+k}\), the exposure rule obeys
+\[
+ E_i(\theta^kd,\theta^kG)=(\theta^kd)_i=d_{i+k}=E_{i+k}(d,G),
+\]
+which is exposure equivariance with the stipulated shift orientation.
+
+For blocks \(u=(u_{-1},u_0,u_1)\in\mathcal U^{\{-1,0,1\}}\) and \(x=(x_{-1},x_0,x_1)\in\{0,1\}^{\{-1,0,1\}}\), define the Borel maps
+\[
+ \Psi^{\Delta}(u,x)=\bigl(x_0,(u_0-u_{-1})x_0\bigr),
+ \qquad
+ \Psi^{+}(u,x)=\bigl(x_0,u_0x_0\bigr).
+\]
+For the law \(P^{\circ}\), choose \(\Psi_i=\Psi^{\circ}\) for every \(i\), and choose the single exceptional set \(\mathcal N=\varnothing\).  The set \(\mathcal N\) is Borel, is independent of the assignment argument, and has probability zero.  For every environment \(u\), assignment \(d\), and site \(i\), the two formulas give, respectively,
+\[
+ \Psi^{\Delta}\bigl((u_{i+s})_{s=-1}^{1},(d_{i+s})_{s=-1}^{1}\bigr)
+ =\bigl(d_i,(u_i-u_{i-1})d_i\bigr)
+ =\bigl(E_i(d,G(u)),Y_i(d;u,G(u))\bigr)
+\]
+and
+\[
+ \Psi^{+}\bigl((u_{i+s})_{s=-1}^{1},(d_{i+s})_{s=-1}^{1}\bigr)
+ =\bigl(d_i,u_id_i\bigr)
+ =\bigl(E_i(d,G(u)),Y_i(d;u,G(u))\bigr).
+\]
+Hence the required common joint assignment--innovation cylinder version holds simultaneously for all assignments, with no exceptional environment.
+
+For completeness, these same formulas verify outcome equivariance directly.  Under \(P^{\Delta}\),
+\[
+\begin{aligned}
+ Y_i(\theta^kd;\theta^kU,\theta^kG)
+ &=\bigl((\theta^kU)_i-(\theta^kU)_{i-1}\bigr)(\theta^kd)_i\\
+ &=(U_{i+k}-U_{i+k-1})d_{i+k}
+ =Y_{i+k}(d;U,G),
+\end{aligned}
+\]
+and under \(P^+\),
+\[
+ Y_i(\theta^kd;\theta^kU,\theta^kG)
+ = (\theta^kU)_i(\theta^kd)_i
+ = U_{i+k}d_{i+k}
+ =Y_{i+k}(d;U,G).
+\]
+Because \(u_j\in\{-1,1\}\) and \(d_i\in\{0,1\}\),
+\[
+ |(u_i-u_{i-1})d_i|\le2,
+ \qquad
+ |u_id_i|\le1.
+\]
+The premise \(B\ge2\) therefore supplies the common outcome envelope.
+
+By Definition \(\mathrm{def{:}boundary\text{-}witnesses}\), conditional on \(\mathcal F_U\), each assignment wave has independent \(\operatorname{Bernoulli}(p)\) coordinates, and the two waves are conditionally independent.  Since \(E_i(d,G)=d_i\), \(e_1=1\), and \(e_0=0\), for either wave \(w\),
+\[
+ \pi_i(e_1)=P^{\circ}(D_i^{(w)}=1\mid\mathcal F_U)=p,
+ \qquad
+ \pi_i(e_0)=P^{\circ}(D_i^{(w)}=0\mid\mathcal F_U)=1-p.
+\]
+The declared design restriction \(0<p<1\) makes both probabilities positive, and the premise \(\varepsilon\le\min\{p,1-p\}\) verifies exposure positivity.  All conditions in Definition \(\mathrm{def{:}two\text{-}wave\text{-}local\text{-}class}\) have now been checked, so
+\[
+ P^{\Delta},P^+\in\mathcal M_{2,\mathrm{loc}}
+ \qquad\text{with }r=1.
+\]
+
+It remains to calculate the two population long-run variances.  Put
+\[
+ X_i^{\Delta}=U_i-U_{i-1},
+ \qquad
+ X_i^+=U_i,
+\]
+and write \(X_i^{\circ}\) for the corresponding quantity under \(P^{\circ}\).  The potential outcome is \(Y_i(d;U,G)=X_i^{\circ}d_i\).  Using the exposure-IPW score definition, \((D_i^{(w)})^2=D_i^{(w)}\), and \(D_i^{(w)}(1-D_i^{(w)})=0\), we obtain
+\[
+\begin{aligned}
+ Z_i^{(w)}
+ &=X_i^{\circ}D_i^{(w)}
+ \left\{
+   \frac{D_i^{(w)}}p-
+   \frac{1-D_i^{(w)}}{1-p}
+ \right\}\\
+ &=X_i^{\circ}\frac{D_i^{(w)}}p.
+\end{aligned}
+\]
+Here \(X_i^{\circ}\) is \(\mathcal F_U\)-measurable, and the Bernoulli design gives \(\mathbb E_{P^{\circ}}[D_i^{(w)}\mid\mathcal F_U]=p\).  Since \(p>0\), the definition of \(m_i\) therefore yields
+\[
+ m_i=\mathbb E_{P^{\circ}}[Z_i^{(w)}\mid\mathcal F_U]
+ =X_i^{\circ}\frac{\mathbb E_{P^{\circ}}[D_i^{(w)}\mid\mathcal F_U]}p
+ =X_i^{\circ}.
+\]
+The Rademacher moment identities imply \(\mathbb E_{P^{\circ}}[X_i^{\circ}]=0\).  Thus, by the definitions of \(\tau_{\mathrm P}\) and \(h_i\),
+\[
+ \tau_{\mathrm P}=\mathbb E_{P^{\circ}}[m_0]=0,
+ \qquad
+ h_i=m_i-\tau_{\mathrm P}=X_i^{\circ}.
+\]
+
+Under \(P^{\Delta}\), this proves \(h_i=U_i-U_{i-1}\).  Expanding the products and applying the displayed Rademacher moments gives all covariances entering \(\Omega_{\mathrm{pop}}\):
+\[
+\begin{aligned}
+ \gamma_h(0)
+ &=\mathbb E_{P^{\Delta}}[(U_0-U_{-1})^2]=2,\\
+ \gamma_h(1)
+ &=\mathbb E_{P^{\Delta}}[(U_0-U_{-1})(U_1-U_0)]=-1,\\
+ \gamma_h(-1)
+ &=\mathbb E_{P^{\Delta}}[(U_0-U_{-1})(U_{-1}-U_{-2})]=-1,\\
+ \gamma_h(2)&=\gamma_h(-2)=0.
+\end{aligned}
+\]
+Because \(r=1\), the definition of \(\Omega_{\mathrm{pop}}\) now gives
+\[
+ \Omega_{\mathrm{pop}}
+ =\sum_{k=-2}^{2}\gamma_h(k)
+ =0-1+2-1+0
+ =0.
+\]
+This null is nonhomogeneous because \(\mathbb E_{P^{\Delta}}[h_i^2]=2>0\).
+
+Under \(P^+\), we have \(h_i=U_i\).  Independence and centering imply
+\[
+ \gamma_h(0)=\mathbb E_{P^+}[U_0^2]=1,
+ \qquad
+ \gamma_h(k)=\mathbb E_{P^+}[U_0U_k]=0\quad(k\ne0).
+\]
+Summing the prescribed lags from \(-2\) through \(2\) yields \(\Omega_{\mathrm{pop}}=1\), completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The paired laws explicitly satisfy the joint assignment--innovation cylinder premise with the single null set empty, verifying that the null contains heterogeneous conditional scores and that the positive-variance alternative is nonempty under one common envelope. \textit{Gap.} LiWager2022 discusses assignment-dominated limits in a dense graphon setting; these exact radius-one line examples instead exhibit covariance cancellation and positive Palm variation inside the diagnostic's corrected common-cylinder class. \textit{Consumer.} The two fully specified local laws provide finite-range simulation benchmarks for null rejection frequencies and power calculations, with their Palm population variances equal to zero and one exactly.
+
+\begin{lemma}[lem:janson-block-factor-coboundary]\label{lem:janson-block-factor-coboundary}
+Let \(\ell\ge1\), let \((\eta_i)_{i\in\mathbb Z}\) be iid real random variables, and let \(X_i=f(\eta_i,\ldots,\eta_{i+\ell-1})\) be a square-integrable block factor. If \(S_N=\sum_{i=1}^N X_i\) and \(\sigma^2=\lim_{N\to\infty}N^{-1}\operatorname{Var}(S_N)\), then \(\sigma^2=0\) if and only if there is a measurable \(g\) for which \(Y_i=g(\eta_{i+1},\ldots,\eta_{i+\ell-1})\) is square-integrable and \(X_i-\mathbb E X_i=Y_i-Y_{i-1}\) almost surely.
+\end{lemma}
+
+\begin{lemma}[lem:pinsker-kl-to-tv]\label{lem:pinsker-kl-to-tv}
+Let \(\mu\) and \(\nu\) be probability measures on the same measurable
+space, with \(\mu\) absolutely continuous with respect to \(\nu\).  Writing
+\(\operatorname{KL}(\mu\Vert\nu)\) for relative entropy and
+\(\operatorname{TV}(\mu,\nu)=\sup_A|\mu(A)-\nu(A)|\), one has
+\[
+ \operatorname{TV}(\mu,\nu)
+ \le \sqrt{\frac12\operatorname{KL}(\mu\Vert\nu)}.
+\]
+\end{lemma}
+
+\begin{lemma}[lem:le-cam-two-point-testing]\label{lem:le-cam-two-point-testing}
+For probability measures \(\mu\) and \(\nu\) on the same measurable space
+and every binary test \(\varphi\),
+\[
+ \mathbb E_\mu\varphi+\mathbb E_\nu(1-\varphi)
+ \ge 1-\operatorname{TV}(\mu,\nu).
+\]
+\end{lemma}
+
+\begin{lemma}[lem:mcdiarmid-bounded-differences]\label{lem:mcdiarmid-bounded-differences}
+Let \(X_1,\ldots,X_M\) be independent random variables and suppose that
+changing only coordinate \(j\) changes the real-valued function
+\(f(X_1,\ldots,X_M)\) by less than \(c_j\).  Then, for every \(t>0\),
+\[
+ \Pr\{|f-\mathbb Ef|>t\}
+ < 2\exp\left\{-\frac{2t^2}{\sum_{j=1}^M c_j^2}\right\}.
+\]
+\end{lemma}
+
+\begin{theorem}[thm:score-vector-minimax-rate]\label{thm:score-vector-minimax-rate}
+In the canonical score-vector experiment, suppose \(e_1\ne e_0\), \(p=1/2\), and \(\alpha+\beta<1\).  For every fixed \(a\) satisfying \(0<a\le2B\) and every integer \(n>4r+1\),
+\[
+ \frac{a^2(1-\alpha-\beta)}{\sqrt{2N_n}}
+ \le s_{n,\alpha,\beta}^{\mathrm{score}}
+ \le \rho_n(\alpha,\beta).
+\]
+Consequently, for fixed \(r,B,\varepsilon,\alpha,\beta\) with \(\alpha+\beta<1\) and \(p=1/2\),
+\[
+ s_{n,\alpha,\beta}^{\mathrm{score}}=\Theta(n^{-1/2}).
+\]
+The upper bound is witnessed by the unchanged sample-mean-centered test \(\phi_{n,\alpha}\).  The exactly unbiased statistic \(\widehat\Omega_n^{\mathrm u}\) additionally gives a common score-vector test with level at most \(\alpha\), power at least \(1-\beta\) at separation \(q_n^{\mathrm u}(\alpha)+q_n^{\mathrm u}(\beta)=O(n^{-1/2})\), and no sample-centering bias term.  The score-vector lower bound is a corollary of the stronger lower bound for common Borel tests of \(O_n^{\mathrm{obs}}\).
+\end{theorem}
+\begin{proof}
+Because exposure positivity keeps the observed propensity coordinates away from zero on every law in \(\mathcal M_{2,\mathrm{loc}}\), the exposure-IPW formula defines the score vector from the full record.  More explicitly, extend reciprocal division to all Euclidean inputs by assigning an arbitrary value, say zero, when a displayed denominator is zero.  The resulting coordinatewise formula is Borel measurable and law independent, and it agrees on the model support with a map \(T_n\) satisfying
+\[
+ W_n=T_n(O_n^{\mathrm{obs}})
+ \quad P\text{-almost surely for every }P\in\mathcal M_{2,\mathrm{loc}}. \tag{1}
+\]
+Therefore every score-vector test \(\psi_n\in\Psi_n\) induces the full-observation test \(\psi_n\circ T_n\in\Phi_n^{\mathrm{obs}}\), with exactly the same rejection probability under every model law.  Hence every separation feasible in the score experiment is feasible in the full-observation experiment.  Comparing the feasible sets in the two definitions gives
+\[
+ s_{n,\alpha,\beta}^{\mathrm{obs}}
+ \le s_{n,\alpha,\beta}^{\mathrm{score}}. \tag{2}
+\]
+Under \(e_1\ne e_0\), \(p=1/2\), \(\alpha+\beta<1\), \(0<a\le2B\), and \(n>4r+1\), the already-established full-observable minimax theorem and (2) imply
+\[
+ s_{n,\alpha,\beta}^{\mathrm{score}}
+ \ge s_{n,\alpha,\beta}^{\mathrm{obs}}
+ \ge \frac{a^2(1-\alpha-\beta)}{\sqrt{2N_n}}. \tag{3}
+\]
+
+For the other direction, the statistic \(\widehat\Omega_n^{12}\), its threshold, and therefore \(\phi_{n,\alpha}\) are finite sums, products, and an indicator applied to the coordinates of \(W_n\).  Thus \(\phi_{n,\alpha}\) is a common Borel member of \(\Psi_n\).  The full-observable minimax theorem, through its cited size-and-separation result, certifies for this same test
+\[
+ \sup_{P\in\mathcal M_{2,\mathrm{loc}}:\,\Omega_{\mathrm{pop}}=0}
+ \mathbb E_P[\phi_{n,\alpha}]\le\alpha,
+ \qquad
+ \sup_{P\in\mathcal M_{2,\mathrm{loc}}:\,\Omega_{\mathrm{pop}}\ge\rho_n(\alpha,\beta)}
+ \mathbb E_P[1-\phi_{n,\alpha}]\le\beta. \tag{4}
+\]
+Thus \(\rho_n(\alpha,\beta)\) is feasible in the definition of the score radius, and
+\[
+ s_{n,\alpha,\beta}^{\mathrm{score}}
+ \le\rho_n(\alpha,\beta). \tag{5}
+\]
+Equations (3) and (5) prove the two asserted finite-sample inequalities.
+
+The exactly unbiased lagged-statistic proposition proved above supplies a second common Borel score-vector test,
+\[
+ \mathbf 1\{\widehat\Omega_n^{\mathrm u}>q_n^{\mathrm u}(\alpha)\}. \tag{6}
+\]
+Its size is at most \(\alpha\), and its type-II error is at most \(\beta\) uniformly over
+\[
+ \Omega_{\mathrm{pop}}
+ \ge q_n^{\mathrm u}(\alpha)+q_n^{\mathrm u}(\beta). \tag{7}
+\]
+Its expectation is exactly \(\Omega_{\mathrm{pop}}\), so this operational alternative contains no sample-centering bias term.
+
+It remains to compare orders.  Fix any \(a\in(0,2B]\).  Since \(N_n=n-2r\le n\) and \(1-\alpha-\beta>0\), (3) gives the positive lower bound
+\[
+ s_{n,\alpha,\beta}^{\mathrm{score}}
+ \ge \frac{a^2(1-\alpha-\beta)}{\sqrt{2}}\,n^{-1/2}. \tag{8}
+\]
+For fixed \(r,B,\varepsilon,\alpha,\beta\), one has \(K=B/\varepsilon\),
+\[
+ b_n=\frac{4(4r+1)^2K^2}{n-2r}=O(n^{-1}), \tag{9}
+\]
+and, for each fixed \(\delta\in(0,1)\),
+\[
+ q_n(\delta)
+ =\frac{\sqrt{48n}(2r+1)(4r+1)K^2}{n-4r}
+   \sqrt{\log(2/\delta)}
+ =O(n^{-1/2}). \tag{10}
+\]
+Therefore
+\[
+ \rho_n(\alpha,\beta)
+ =2b_n+q_n(\alpha)+q_n(\beta)
+ =O(n^{-1/2}). \tag{11}
+\]
+Combining (5), (8), and (11) proves
+\[
+ s_{n,\alpha,\beta}^{\mathrm{score}}=\Theta(n^{-1/2}). \tag{12}
+\]
+The formula defining \(q_n^{\mathrm u}\) likewise shows that the separation in (7) is \(O(n^{-1/2})\), completing every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The score-vector result follows by the Borel reduction from the full record and retains both the mean-centered and exactly unbiased operational tests. \textit{Gap.} A score-only likelihood calculation would not control procedures that inspect raw outcomes; the full-record four-cell comparison closes that gap before restriction to scores. \textit{Consumer.} Implementations retaining only the two IPW score arrays inherit the same sharp root-sample-size separation rate.
+
+\begin{proposition}[prop:exact-unbiased-lagged-statistic]\label{prop:exact-unbiased-lagged-statistic}
+For every \(P\in\mathcal M_{2,\mathrm{loc}}\), \(n>4r+1\), and \(\delta\in(0,1)\),
+\[
+ \mathbb E_P[\widehat\Omega_n^{\mathrm u}]=\Omega_{\mathrm{pop}},
+ \qquad
+ P\!\left\{\left|\widehat\Omega_n^{\mathrm u}-\Omega_{\mathrm{pop}}\right|>
+ q_n^{\mathrm u}(\delta)\right\}\le\delta.
+\]
+Consequently the common score-vector test
+\(\mathbf 1\{\widehat\Omega_n^{\mathrm u}>q_n^{\mathrm u}(\alpha)\}\)
+has level at most \(\alpha\) on \(\Omega_{\mathrm{pop}}=0\), and has power at least
+\(1-\beta\) whenever
+\(\Omega_{\mathrm{pop}}\ge q_n^{\mathrm u}(\alpha)+q_n^{\mathrm u}(\beta)\).
+For fixed \(r,B,\varepsilon,\alpha,\beta\), this separation is \(O(n^{-1/2})\) and contains no sample-centering bias allowance.
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal M_{2,\mathrm{loc}}\), \(n>4r+1\), and put
+\[
+ L=4r+1,\qquad a_r=2r+1,\qquad \ell=2r+1,
+ \qquad M=N_{n,\ell}=n-4r-1>0. \tag{1}
+\]
+The buffered-coupling proposition and cross-wave-identification lemma imply, for every \(|k|\le 2r\) and every \(i\in J_{n,k}\),
+\[
+ \mathbb E_P[Z_{n,i}^{(1)}Z_{n,i+k}^{(2)}]
+ =\mathbb E_P[m_i m_{i+k}]. \tag{2}
+\]
+The class equivariance conditions and iid innovations make \((m_i)_{i\in\mathbb Z}\) stationary.  Moreover, the Janson-boundary proposition gives \(m_i=\tau_{\mathrm P}+h_i\), where \(h_i\) is centered and is measurable with respect to \(\sigma(U_{i-r},\ldots,U_{i+r})\).  Consequently, stationarity and the definition of \(\gamma_h(k)\) turn (2) into
+\[
+ \mathbb E_P[Z_{n,i}^{(1)}Z_{n,i+k}^{(2)}]
+ =\tau_{\mathrm P}^{,2}+\gamma_h(k). \tag{3}
+\]
+At lag \(\ell=2r+1\), the innovation blocks \(\{i-r,\ldots,i+r\}\) and \(\{i+r+1,\ldots,i+3r+1\}\) are disjoint.  The iid-innovation condition therefore makes \(h_i\) and \(h_{i+\ell}\) independent.  Since both are centered,
+\[
+ \gamma_h(\ell)=\mathbb E_P[h_i h_{i+\ell}]=0. \tag{4}
+\]
+Thus (3), also valid at lag \(\ell\), yields
+\[
+ \mathbb E_P\!\left[
+  \frac{1}{N_{n,k}}\sum_{i\in J_{n,k}}
+  Z_{n,i}^{(1)}Z_{n,i+k}^{(2)}
+ \right]
+ =\tau_{\mathrm P}^{,2}+\gamma_h(k),
+ \qquad |k|\le 2r, \tag{5}
+\]
+and
+\[
+ \mathbb E_P\!\left[
+  \frac{1}{N_{n,\ell}}\sum_{i\in J_{n,\ell}}
+  Z_{n,i}^{(1)}Z_{n,i+\ell}^{(2)}
+ \right]
+ =\tau_{\mathrm P}^{,2}. \tag{6}
+\]
+There are exactly \(L\) integers in \([-2r,2r]\).  Subtracting \(L\) times (6) from the sum of (5) over these lags proves
+\[
+ \mathbb E_P[\widehat\Omega_n^{\mathrm u}]
+ =\sum_{k=-2r}^{2r}\gamma_h(k)
+ =\Omega_{\mathrm{pop}}. \tag{7}
+\]
+
+We next construct the pointwise-bounded version needed for bounded differences.  For a local innovation block \(u=(u_s)_{s=-r}^r\), let
+\[
+ q_i(u;a)=\sum_{x\in\{0,1\}^{\{-r,\ldots,r\}}}
+ \mathbf 1\{\Psi_i^E(u,x)=a\}
+ p^{\sum_s x_s}(1-p)^{2r+1-\sum_s x_s},
+ \qquad a\in\{e_1,e_0\}. \tag{8}
+\]
+Define the guarded raw local score by first setting it to zero at every bad denominator:
+\[
+ R_i^0(u,x)=
+ \begin{cases}
+ \displaystyle
+ \Psi_i^Y(u,x)\left\{
+  \frac{\mathbf 1\{\Psi_i^E(u,x)=e_1\}}{q_i(u;e_1)}
+  -\frac{\mathbf 1\{\Psi_i^E(u,x)=e_0\}}{q_i(u;e_0)}
+ \right\},
+ &\min_{a\in\{e_1,e_0\}}q_i(u;a)\ge\varepsilon,\\[3mm]
+ 0,&\min_{a\in\{e_1,e_0\}}q_i(u;a)<\varepsilon.
+ \end{cases} \tag{9}
+\]
+Now clip the entire guarded raw score, not merely its denominators.  Namely, with
+\[
+ T_K(y)=\max\{-K,\min\{K,y\}\},
+ \qquad \widetilde z_i(u,x)=T_K(R_i^0(u,x)), \tag{10}
+\]
+one has \(|\widetilde z_i(u,x)|\le K\) for every \((u,x)\), including innovation blocks lying in outcome-envelope null sets.  The finite sum in (8), the Borel cylinder maps, the piecewise definition (9), and continuity of \(T_K\) show that \(\widetilde z_i\) is Borel measurable.
+
+For \(i\in I_n\) and \(w\in\{1,2\}\), evaluate (10) at
+\[
+ u=(U_{i+s})_{s=-r}^r,
+ \qquad x=(D_{i+s}^{(w)})_{s=-r}^r,
+\]
+and denote the result by \(\widetilde Z_{n,i}^{(w)}\).  Exposure positivity makes the first branch of (9) apply almost surely.  On that branch the raw expression is the finite score from the buffered-restriction definition; the exact-score-split lemma gives \(|Z_{n,i}^{(w)}|\le K\) almost surely, using the buffered coupling.  Hence clipping acts as the identity almost surely.  Taking the intersection over the finitely many \(i\in I_n\) and the two waves gives
+\[
+ \widetilde Z_{n,i}^{(w)}=Z_{n,i}^{(w)}
+ \quad\text{simultaneously for all }i\in I_n, w\in\{1,2\},
+ \quad P\text{-almost surely}. \tag{11}
+\]
+Let \(\widetilde\Omega_n^{\mathrm u}\) be the formula defining \(\widehat\Omega_n^{\mathrm u}\) with every \(Z_{n,i}^{(w)}\) replaced by \(\widetilde Z_{n,i}^{(w)}\).  Equation (11) yields
+\[
+ \widetilde\Omega_n^{\mathrm u}=\widehat\Omega_n^{\mathrm u}
+ \quad P\text{-almost surely}. \tag{12}
+\]
+
+The wavewise Bernoulli condition has a conditional law that is the constant product \(\operatorname{Bernoulli}(p)\) law, and the cross-wave-independence condition makes the two such product laws conditionally independent given \(\mathcal F_U\).  Therefore, for finite cylinder events \(A,B,C\),
+\[
+ P\{U\in A,D^{(1)}\in B,D^{(2)}\in C\}
+ =P\{U\in A\}P\{D^{(1)}\in B\}P\{D^{(2)}\in C\}. \tag{13}
+\]
+Together with iid innovations, (13) proves that the \(3n\) coordinates
+\[
+ U_1,\ldots,U_n,
+ \quad D_1^{(1)},\ldots,D_n^{(1)},
+ \quad D_1^{(2)},\ldots,D_n^{(2)} \tag{14}
+\]
+are mutually independent.  By joint-cylinder locality and the buffered restriction, every \(\widetilde Z_{n,i}^{(w)}\) depends only on the radius-\(r\) coordinates about \(i\).  Thus one environmental coordinate in (14) can affect at most \(2a_r\) products at a fixed lag: at most \(a_r\) through the wave-one factor and at most \(a_r\) through the wave-two factor.  One assignment coordinate can affect only its own wave and hence at most \(a_r\) products at a fixed lag.  Since both factors lie in \([-K,K]\), changing either or both changes a product by at most \(2K^2\).
+
+For \(|k|\le2r\),
+\[
+ N_{n,k}=n-2r-|k|\ge n-4r>M. \tag{15}
+\]
+Consequently, changing one environmental coordinate changes the sum of the \(L\) short-lag averages by at most \(4a_rLK^2/(n-4r)\), and changes the lag-\(\ell\) average after multiplication by \(L\) by at most \(4a_rLK^2/M\).  Its total oscillation is therefore at most
+\[
+ 4a_rLK^2\left\{\frac{1}{n-4r}+\frac{1}{M}\right\}
+ \le \frac{8a_rLK^2}{M}. \tag{16}
+\]
+The corresponding count for one assignment coordinate is half as large, so its total oscillation is at most
+\[
+ 2a_rLK^2\left\{\frac{1}{n-4r}+\frac{1}{M}\right\}
+ \le \frac{4a_rLK^2}{M}. \tag{17}
+\]
+Set \(c=a_rLK^2/M\).  Summing the squared oscillation bounds over the \(n\) environmental coordinates and \(2n\) assignment coordinates gives
+\[
+ n(8c)^2+2n(4c)^2=96nc^2. \tag{18}
+\]
+Apply the cited McDiarmid bounded-differences lemma to the Borel function \(\widetilde\Omega_n^{\mathrm u}\) of the independent coordinates (14).  If the lemma's oscillation bounds are required to be strict, use arbitrarily enlarged bounds in (16)--(17) and then let the enlargement decrease to zero.  For every \(t>0\),
+\[
+ P\!\left\{
+  \left|\widetilde\Omega_n^{\mathrm u}
+  -\mathbb E_P\widetilde\Omega_n^{\mathrm u}\right|>t
+ \right\}
+ \le 2\exp\!\left\{-\frac{t^2}{48nc^2}\right\}. \tag{19}
+\]
+Taking
+\[
+ t=\sqrt{48n}\,c\sqrt{\log(2/\delta)}
+ =\frac{\sqrt{48n}(2r+1)(4r+1)K^2}{n-4r-1}
+   \sqrt{\log(2/\delta)}
+ =q_n^{\mathrm u}(\delta) \tag{20}
+\]
+in (19), then using (7) and (12), proves
+\[
+ P\!\left\{
+  \left|\widehat\Omega_n^{\mathrm u}-\Omega_{\mathrm{pop}}\right|
+  >q_n^{\mathrm u}(\delta)
+ \right\}\le\delta. \tag{21}
+\]
+
+When \(\Omega_{\mathrm{pop}}=0\), rejection by
+\(\mathbf 1\{\widehat\Omega_n^{\mathrm u}>q_n^{\mathrm u}(\alpha)\}\)
+implies the event in (21) with \(\delta=\alpha\), proving size at most \(\alpha\).  If
+\[
+ \Omega_{\mathrm{pop}}
+ \ge q_n^{\mathrm u}(\alpha)+q_n^{\mathrm u}(\beta), \tag{22}
+\]
+then nonrejection implies
+\(\Omega_{\mathrm{pop}}-\widehat\Omega_n^{\mathrm u}\ge q_n^{\mathrm u}(\beta)\).
+For every \(\beta'\in(\beta,1)\), strict monotonicity of \(q_n^{\mathrm u}(\cdot)\) makes this a deviation strictly larger than \(q_n^{\mathrm u}(\beta')\).  Equation (21) bounds the nonrejection probability by \(\beta'\); letting \(\beta'\downarrow\beta\) proves power at least \(1-\beta\).  Finally, with \(r,B,\varepsilon,\alpha,\beta\) fixed, \(K=B/\varepsilon\) is fixed and (20) is \(O(n^{-1/2})\).  Equation (7) proves that no sample-centering bias allowance occurs.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A cross-wave product at lag \(2r+1\) estimates \(\tau_{\mathrm P}^2\) exactly, so subtracting it removes sample-centering bias without estimating another nuisance. \textit{Gap.} The sample-mean-centered statistic has a uniform \(O(n^{-1})\) bias allowance; this proposition gives an exact finite-sample expectation identity and a directly usable bias-free threshold. \textit{Consumer.} Practitioners with two independent waves can use the displayed statistic as a robustness diagnostic alongside the mean-centered headline test.
+
+\begin{theorem}[thm:full-observable-minimax-rate]\label{thm:full-observable-minimax-rate}
+In the canonical full-observable experiment, suppose \(e_1\ne e_0\), \(p=1/2\), and \(\alpha+\beta<1\).  For every fixed \(a\) satisfying \(0<a\le2B\) and every integer \(n>4r+1\),
+\[
+ \frac{a^2(1-\alpha-\beta)}{\sqrt{2N_n}}
+ \le s_{n,\alpha,\beta}^{\mathrm{obs}}
+ \le \rho_n(\alpha,\beta).
+\]
+Consequently, for fixed \(r,B,\varepsilon,\alpha,\beta\) with \(\alpha+\beta<1\) and \(p=1/2\),
+\[
+ s_{n,\alpha,\beta}^{\mathrm{obs}}=\Theta(n^{-1/2}).
+\]
+The upper bound is witnessed by the unchanged sample-mean-centered test \(\phi_{n,\alpha}\), viewed as a Borel function of \(O_n^{\mathrm{obs}}\).  The lower bound ranges over every common Borel randomized test of the vector containing the observed graph, assignments, exposures, realized outcomes, and known propensity coordinates.
+\end{theorem}
+\begin{proof}
+We first prove the upper bound.  Exposure positivity makes every score coordinate a Borel function of one realized outcome, its exposure indicators, and its two known positive propensity coordinates.  Hence the canonical full-observation definition supplies a law-independent Borel map \(T_n\) such that
+\[
+ W_n=T_n(O_n^{\mathrm{obs}}). \tag{1}
+\]
+The statistic \(\widehat\Omega_n^{12}\), and therefore \(\phi_{n,\alpha}\), is consequently a common Borel function of \(O_n^{\mathrm{obs}}\).  The two-wave size-and-separation theorem gives, uniformly over \(P\in\mathcal M_{2,\mathrm{loc}}\),
+\[
+ \mathbb E_P[\phi_{n,\alpha}]\le\alpha
+ \quad\text{when }\Omega_{\mathrm{pop}}=0,
+ \qquad
+ \mathbb E_P[1-\phi_{n,\alpha}]\le\beta
+ \quad\text{when }\Omega_{\mathrm{pop}}\ge\rho_n(\alpha,\beta). \tag{2}
+\]
+Thus \(\phi_{n,\alpha}\) is feasible in the optimization defining the full-observation radius at separation \(\rho_n(\alpha,\beta)\), and
+\[
+ s_{n,\alpha,\beta}^{\mathrm{obs}}
+ \le\rho_n(\alpha,\beta). \tag{3}
+\]
+
+For the converse, fix \(a\in(0,2B]\) and put \(b=a/2\), so \(0<b\le B\).  We construct and verify a submodel of the corrected joint-cylinder class.  Take iid \(U_i\sim\operatorname{Uniform}[0,1]\), the deterministic nearest-neighbor line graph, and two independent waves of iid \(\operatorname{Bernoulli}(1/2)\) assignments.  Since \(e_1\ne e_0\), define
+\[
+ E_i(d,G)=
+ \begin{cases}
+  e_1,&d_i=1,\\
+  e_0,&d_i=0,
+ \end{cases}
+ \qquad
+ C_i(d)=(d_i,d_{i+1})
+ \in\mathcal C:=\{00,01,10,11\}. \tag{4}
+\]
+For \(v=(v_{00},v_{01},v_{10},v_{11})\in\{-b,b\}^4\), let
+\[
+ \mathcal H_0
+ =\{v:v_{10}+v_{11}-v_{00}-v_{01}=0\}. \tag{5}
+\]
+The set in (5) has six elements.  Let \(Q_0\) be uniform on \(\mathcal H_0\), set
+\[
+ v^+=(-b,-b,b,b),
+ \qquad v^-=-v^+,
+ \qquad Q_1=\frac12(\delta_{v^+}+\delta_{v^-}),
+\]
+and define
+\[
+ Q_t=(1-t)Q_0+tQ_1,
+ \qquad 0\le t<1. \tag{6}
+\]
+Enumerate the finite support of \(Q_t\), partition \([0,1]\) into consecutive half-open intervals having the corresponding \(Q_t\)-masses, and let the Borel map \(F_t:[0,1]\to\{-b,b\}^4\) take the associated support value on each interval.  Then \((F_t)_\#\operatorname{Uniform}[0,1]=Q_t\).  Put \(V_i=F_t(U_i)\) and use the same no-carryover schedule in both waves:
+\[
+ Y_i(d;U,G)=V_{i,C_i(d)}. \tag{7}
+\]
+
+We verify every class condition, including the corrected joint assignment--innovation cylinder premise.  The line graph is shift equivariant and has edge range one, which is at most \(r\) because \(r\ge1\).  Direct substitution into (4) and (7), using the declared left shift, gives for every \(i,k,d\),
+\[
+ E_{i+k}(d,G)=E_i(\theta^kd,\theta^kG),
+ \qquad
+ Y_{i+k}(d;U,G)=Y_i(\theta^kd;\theta^kU,\theta^kG). \tag{8}
+\]
+More strongly, with the exceptional set empty, the single Borel map
+\[
+ \Psi_t((u_s)_{s=-r}^{r},(x_s)_{s=-r}^{r})
+ =
+ \begin{cases}
+  \bigl(e_1,[F_t(u_0)]_{(x_0,x_1)}\bigr),&x_0=1,\\
+  \bigl(e_0,[F_t(u_0)]_{(x_0,x_1)}\bigr),&x_0=0
+ \end{cases} \tag{9}
+\]
+represents the exposure--outcome pair at every site after translation of the displayed local coordinates.  The coordinate \(x_1\) is available because \(r\ge1\).  Thus (9) verifies, simultaneously for every assignment and both waves, precisely the required \(\Psi_i\)-cylinder condition.  Also
+\[
+ |Y_i(d;U,G)|=b\le B,
+ \qquad
+ \pi_i(e_1)=\pi_i(e_0)=\frac12>\varepsilon. \tag{10}
+\]
+The iid innovations, Bernoulli waves, and cross-wave independence were built into the construction.  Equations (8)--(10) and the graph checks therefore prove membership in \(\mathcal M_{2,\mathrm{loc}}\).  Denote the resulting law by \(P_t\).
+
+Given \(V_i=v\), the four cells in (4) are equiprobable.  The exposure-IPW definition and \(p=1/2\) give
+\[
+ \begin{aligned}
+ m_i
+ &=\mathbb E_{P_t}\!\left[
+  Y_i(D^{(w)};U,G)
+  \left\{
+   \frac{\mathbf 1\{D_i^{(w)}=1\}}{1/2}
+   -\frac{\mathbf 1\{D_i^{(w)}=0\}}{1/2}
+  \right\}
+  \middle|\mathcal F_U
+ \right]\\
+ &=\frac{v_{10}+v_{11}-v_{00}-v_{01}}2.
+ \end{aligned} \tag{11}
+\]
+Thus \(m_i=0\) for every schedule in \(\mathcal H_0\), while \(m_i=a\) at \(v^+\) and \(m_i=-a\) at \(v^-\).  Both \(Q_0\) and \(Q_1\), hence \(Q_t\), are invariant under \(v\mapsto-v\), so \(\tau_{\mathrm P}=\mathbb E_{P_t}m_i=0\).  Since the \(V_i\) are iid, \((h_i)=(m_i)\) is iid and centered.  Therefore
+\[
+ \gamma_h(0)=a^2t,
+ \qquad
+ \gamma_h(k)=0\quad(k\ne0),
+ \qquad
+ \Omega_{\mathrm{pop}}(P_t)=a^2t. \tag{12}
+\]
+In particular, \(P_0\) is a null law.  Equation (11) derives (12) from the conditional causal exposure-effect score rather than defining the causal target through an observed-law functional.
+
+We next bound the information in the complete declared observation.  Conditional on both assignment arrays, site \(i\) reveals the ordered coordinate pair \((V_{i,c},V_{i,c'})\), where \(c=C_i(D^{(1)})\) and \(c'=C_i(D^{(2)})\).  Let \(R_j^{c,c'}\) be its law under \(Q_j\), \(j\in\{0,1\}\), and order the possible displayed values as \((b,b),(b,-b),(-b,b),(-b,-b)\).  Exact enumeration of the six elements of \(\mathcal H_0\) and the two elements \(v^+,v^-\) gives
+\[
+\begin{array}{c|c|c}
+\text{ordered cell pair}&R_0^{c,c'}&R_1^{c,c'}\\ \hline
+c=c'&(1/2,0,0,1/2)&(1/2,0,0,1/2)\\
+c\ne c'\text{ within one exposure group}
+ &(1/6,1/3,1/3,1/6)&(1/2,0,0,1/2)\\
+c,c'\text{ in opposite exposure groups}
+ &(1/3,1/6,1/6,1/3)&(0,1/2,1/2,0).
+\end{array} \tag{13}
+\]
+These three cases cover all sixteen ordered pairs in \(\mathcal C^2\), furnishing the exact finite-cell stress test.  In every row, every atom charged by \(R_1^{c,c'}\) has positive \(R_0^{c,c'}\)-mass.  Hence the induced observed two-wave outcome laws have common support, although the latent four-cell schedule laws need not.
+
+Let \(R_t^{c,c'}=(1-t)R_0^{c,c'}+tR_1^{c,c'}\).  Direct substitution in (13) yields
+\[
+ \sum_{x:R_0^{c,c'}(x)>0}
+ \frac{\{R_1^{c,c'}(x)-R_0^{c,c'}(x)\}^2}
+      {R_0^{c,c'}(x)}
+ =\begin{cases}
+   0,&c=c',\\
+   2,&c\ne c'.
+  \end{cases} \tag{14}
+\]
+For probability masses \(R\ll S\), the elementary inequality \(\log u\le u-1\) gives
+\[
+ \operatorname{KL}(R\Vert S)
+ =\sum_xR(x)\log\frac{R(x)}{S(x)}
+ \le\sum_x\frac{(R(x)-S(x))^2}{S(x)}. \tag{15}
+\]
+Applying (15) to \(R_t^{c,c'}\) and \(R_0^{c,c'}\), and then using (14), proves
+\[
+ \operatorname{KL}(R_t^{c,c'}\Vert R_0^{c,c'})\le2t^2. \tag{16}
+\]
+
+Conditional on the full assignments, the selected outcome pairs are independent over \(i\in I_n\), because pair \(i\) uses only \(V_i\).  The graph and assignment laws coincide under \(P_t\) and \(P_0\), while all exposures and propensity coordinates are common deterministic functions of those assignments.  The revised restriction definition also ensures that these finite coordinates are induced by the same cylinder maps used in the membership check.  Conditional on the assignments, the outcome likelihood ratio is therefore the product of the \(N_n\) sitewise likelihood ratios.  Taking its logarithm and conditional expectation, then averaging over the common assignment law, gives directly
+\[
+ \begin{aligned}
+ &\operatorname{KL}\!\left(
+   \mathcal L_{P_t}(O_n^{\mathrm{obs}})
+   \middle\Vert
+   \mathcal L_{P_0}(O_n^{\mathrm{obs}})
+  \right)\\
+ &\quad=
+ \mathbb E_D\sum_{i\in I_n}
+ \operatorname{KL}\!\left(
+  R_t^{C_i(D^{(1)}),C_i(D^{(2)})}
+  \middle\Vert
+  R_0^{C_i(D^{(1)}),C_i(D^{(2)})}
+ \right)
+ \le2N_nt^2.
+ \end{aligned} \tag{17}
+\]
+Thus (17) controls the complete declared record, not only its score-vector image.
+
+Put \(\eta=1-\alpha-\beta>0\) and
+\[
+ t_0=\frac{\eta}{\sqrt{2N_n}}. \tag{18}
+\]
+Since \(0<\eta<1\) and \(N_n\ge1\), one has \(0<t_0<1\), so \(P_{t_0}\) belongs to the submodel.  The cited Pinsker lemma and (17) imply
+\[
+ \operatorname{TV}\!\left(
+  \mathcal L_{P_{t_0}}(O_n^{\mathrm{obs}}),
+  \mathcal L_{P_0}(O_n^{\mathrm{obs}})
+ \right)
+ \le\sqrt{N_nt_0^2}
+ =\frac{\eta}{\sqrt2}. \tag{19}
+\]
+Let \(\varphi_n\in\Phi_n^{\mathrm{obs}}\) have type-I error at most \(\alpha\) under every null law.  To apply the cited binary Le Cam lemma to this randomized test, adjoin under both laws the same independent \(A\sim\operatorname{Uniform}[0,1]\) and reject exactly when \(A\le\varphi_n(O_n^{\mathrm{obs}})\).  If \(\mu,\nu\) are the two laws of \(O_n^{\mathrm{obs}}\) and \(\lambda\) is the uniform law, then sectioning any measurable \(H\) gives
+\[
+ |(\mu\times\lambda)(H)-(\nu\times\lambda)(H)|
+ \le\int|\mu(H_u)-\nu(H_u)|\,d\lambda(u)
+ \le\operatorname{TV}(\mu,\nu).
+\]
+The reverse inequality follows by taking \(H=C\times[0,1]\) and then the supremum over \(C\).  Thus product with the common uniform variable preserves total variation.  The Le Cam lemma and (19) now yield
+\[
+ \mathbb E_{P_{t_0}}[1-\varphi_n(O_n^{\mathrm{obs}})]
+ \ge1-\alpha-\frac{\eta}{\sqrt2}
+ =\beta+\eta\left(1-\frac1{\sqrt2}\right)
+ >\beta. \tag{20}
+\]
+By (12) and (18),
+\[
+ \Omega_{\mathrm{pop}}(P_{t_0})
+ =\frac{a^2(1-\alpha-\beta)}{\sqrt{2N_n}}. \tag{21}
+\]
+For every proposed separation not exceeding (21), the alternative class contains \(P_{t_0}\), whereas (20) rules out the required type-II guarantee for every test satisfying the uniform null guarantee.  The definition of the minimax radius therefore implies
+\[
+ s_{n,\alpha,\beta}^{\mathrm{obs}}
+ \ge\frac{a^2(1-\alpha-\beta)}{\sqrt{2N_n}}. \tag{22}
+\]
+Combining (3) and (22) proves the displayed finite-sample bounds.  Finally, choose any fixed \(a\in(0,2B]\), for example \(a=B\).  Since \(N_n=n-2r\) and \(1-\alpha-\beta>0\), (22) is bounded below by a positive constant times \(n^{-1/2}\).  The two-wave size-and-separation theorem gives \(\rho_n(\alpha,\beta)=O(n^{-1/2})\), so (3) supplies the matching upper order.  Hence
+\[
+ s_{n,\alpha,\beta}^{\mathrm{obs}}=\Theta(n^{-1/2}).
+\]
+Distinct focal labels are necessary for this witness: if \(e_1=e_0\), the two terms in every exposure-IPW score cancel identically.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A causal-realizable four-cell schedule satisfies the corrected \(\Psi_i\)-cylinder condition with an empty exceptional set and gives a common-support likelihood bound for every Borel test of the complete declared record. \textit{Gap.} Viviano2020 optimizes a second-wave design after a pilot; it does not prove a full-observation information lower bound for testing the Palm covariance boundary. \textit{Consumer.} A designer can use the finite-sample upper threshold knowing that no common Borel test of the declared full observation improves its separation order uniformly over the class.
+
+\begin{theorem}[thm:folner-fixed-footprint-two-wave-concentration]\label{thm:folner-fixed-footprint-two-wave-concentration}
+Let \(\Gamma\) be a countable finitely generated group with identity \(e\), equipped with a finite symmetric generating set and hence with its bounded-degree vertex-transitive Cayley graph.  Fix a finite set \(A\subset\Gamma\) with \(e\in A\), and declare the finite covariance-support set \(C=AA^{-1}\), with \(a=|A|\) and \(q=|C|\).  Let \(\Lambda\subset\Gamma\) be finite, put
+\[
+ I=\{v\in\Lambda:vA\subseteq\Lambda\},\qquad
+ J_g=\{v\in I:vg\in I\},\qquad
+ N=|I|,\qquad \nu=\min_{g\in C}|J_g|,
+\]
+and suppose \(N>0\) and \(\nu>0\).  Let \((U_v)_{v\in\Gamma}\) be iid with values in a Borel space \(\mathcal U\).  For \(t\in\Gamma\), use the left actions \((t\cdot u)_v=u_{t^{-1}v}\) and \((t\cdot d)_v=d_{t^{-1}v}\).  Conditional on \(\sigma(U)\), let \(D^{(1)}\) and \(D^{(2)}\) be independent, with the coordinates within each wave iid \(\operatorname{Bernoulli}(p_0)\) for a fixed \(p_0\in(0,1)\).
+
+Fix two exposure labels \(c_1,c_0\), a common no-carryover exposure map, and a common no-carryover potential-outcome schedule.  Require both maps to be \(\Gamma\)-equivariant: for all \(t,v\in\Gamma\), environments \(u\), and assignments \(d\),
+\[
+ E_{tv}(t\cdot d;t\cdot u)=E_v(d;u),
+ \qquad
+ Y_{tv}(t\cdot d;t\cdot u)=Y_v(d;u).
+\]
+For the known positive propensities
+\[
+ \pi_v(c)=\Pr\{E_v(D^{(w)};U)=c\mid\sigma(U)\}>0,
+\]
+define the exposure-IPW scores explicitly by
+\[
+ Z_v^{(w)}=Y_v(D^{(w)};U)
+ \left\{\frac{\mathbf 1(E_v(D^{(w)};U)=c_1)}{\pi_v(c_1)}
+ -\frac{\mathbf 1(E_v(D^{(w)};U)=c_0)}{\pi_v(c_0)}\right\}.
+\]
+Suppose there is one Borel map
+\[
+ z:\mathcal U^A\times\{0,1\}^A\longrightarrow[-K_0,K_0],
+\]
+independent of \(v\) and \(w\), such that, simultaneously for every \(v\in\Gamma\) and \(w\in\{1,2\}\),
+\[
+ Z_v^{(w)}
+ =z\bigl((U_{vx})_{x\in A},(D_{vx}^{(w)})_{x\in A}\bigr)
+ \qquad\text{almost surely},
+\]
+where \(K_0<\infty\).  Define
+\[
+ m_v=\mathbb E[Z_v^{(w)}\mid\sigma(U)],\quad
+ \tau=\mathbb E[m_e],\quad h_v=m_v-\tau,\quad
+ \gamma(g)=\mathbb E[h_eh_g],\quad
+ \Omega=\sum_{g\in C}\gamma(g),
+\]
+and, under the common restriction coupling, define
+\[
+ \overline Z^{(w)}=\frac1N\sum_{v\in I}Z_v^{(w)},\qquad
+ \widehat\Omega
+ =\sum_{g\in C}\left\{
+   \frac1{|J_g|}\sum_{v\in J_g}Z_v^{(1)}Z_{vg}^{(2)}
+   -\overline Z^{(1)}\overline Z^{(2)}\right\}.
+\]
+Then, for every \(g\in C\),
+\[
+ \mathbb E[Z_v^{(1)}Z_{vg}^{(2)}\mid\sigma(U)]=m_vm_{vg},
+\]
+and
+\[
+ \mathbb E[\widehat\Omega]
+ =\Omega-q\operatorname{Var}\!\left(N^{-1}\sum_{v\in I}m_v\right),
+ \qquad
+ 0\le \Omega-\mathbb E[\widehat\Omega]
+ \le \frac{4q^2K_0^2}{N}. \tag{1}
+\]
+For every \(\delta\in(0,1)\),
+\[
+ \Pr\!\left\{
+  |\widehat\Omega-\Omega|>
+  \frac{4q^2K_0^2}{N}
+  +\frac{\sqrt{48|\Lambda|}\,a qK_0^2}{\nu}
+    \sqrt{\log(2/\delta)}
+ \right\}\le\delta. \tag{2}
+\]
+If \((\Lambda_j)\) is a right F\o lner sequence, meaning \(|\Lambda_j\mathbin\triangle\Lambda_jg|/|\Lambda_j|\to0\) for every fixed \(g\in\Gamma\), and \(A\), hence \(C\), is fixed, then \(N_j/|\Lambda_j|\to1\), \(\nu_j/|\Lambda_j|\to1\), the bias in (1) is \(O(|\Lambda_j|^{-1})\), and the deviation radius in (2) is \(O(\sqrt{\log(2/\delta)/|\Lambda_j|})\).  Thus the fixed-cutoff Palm population-variance diagnostic has root-volume concentration on every such amenable Cayley graph; no growing bandwidth or random graph distance is used.
+\end{theorem}
+\begin{proof}
+Let \(\mu_{p_0,A}\) be the product \(\operatorname{Bernoulli}(p_0)\) law on \(\{0,1\}^A\), and define
+\[
+ \bar z(u_A)
+ :=\sum_{d_A\in\{0,1\}^A}
+ z(u_A,d_A)\mu_{p_0,A}(\{d_A\}). \tag{3}
+\]
+This is a Borel function and \(|\bar z|\le K_0\), because \(A\) is finite, \(z\) is Borel, and \(|z|\le K_0\).  The conditional law of \((D_{vx}^{(w)})_{x\in A}\) given \(\sigma(U)\) is \(\mu_{p_0,A}\) and does not depend on \(U\).  Therefore the common local-score representation and the defining property of conditional expectation give, simultaneously for both waves,
+\[
+ m_v
+ =\mathbb E[Z_v^{(w)}\mid\sigma(U)]
+ =\bar z((U_{vx})_{x\in A}),
+ \qquad |m_v|\le K_0. \tag{4}
+\]
+Thus the conditional mean is well defined independently of \(w\).  Moreover, for every \(t\in\Gamma\), the iid innovation assumption and the bijection \(y\mapsto ty\) imply
+\[
+ \bigl((U_{tvx})_{x\in A}\bigr)_{v\in\Gamma}
+ \ \stackrel{d}{=}\ 
+ \bigl((U_{vx})_{x\in A}\bigr)_{v\in\Gamma}.
+\]
+Because the same function \(\bar z\) occurs at every site, (4) proves that \((m_v)_{v\in\Gamma}\) is stationary under left translation.  In particular,
+\[
+ \mathbb E[m_v]=\mathbb E[m_e]=\tau
+ \qquad(v\in\Gamma). \tag{5}
+\]
+
+We also record the finite-coordinate independence that will be used in the concentration argument.  If \(f_0,f_1,f_2\) are bounded Borel functions of finitely many coordinates of \(U,D^{(1)},D^{(2)}\), respectively, conditional independence of the waves and their fixed product conditional laws give
+\[
+ \begin{aligned}
+ &\mathbb E[f_0(U)f_1(D^{(1)})f_2(D^{(2)})]\\
+ &\quad=\mathbb E\!\left[
+ f_0(U)\mathbb E[f_1(D^{(1)})\mid\sigma(U)]
+          \mathbb E[f_2(D^{(2)})\mid\sigma(U)]\right]\\
+ &\quad=\mathbb E[f_0(U)]
+       \left(\int f_1\,d\mu_{p_0}\right)
+       \left(\int f_2\,d\mu_{p_0}\right),
+ \end{aligned} \tag{6}
+\]
+where each integral is with respect to the appropriate finite-dimensional Bernoulli product marginal.  Hence every finite collection of innovation coordinates, first-wave assignment coordinates, and second-wave assignment coordinates used below is mutually independent, with independence also holding within each of the three collections.
+
+The footprint determines the covariance support.  If \(vA\cap vgA\ne\varnothing\), then \(vx=vgy\) for some \(x,y\in A\), and cancellation in the group gives \(g=xy^{-1}\in AA^{-1}=C\).  Consequently, when \(g\notin C\), the two innovation blocks in (4) are disjoint.  The iid innovation assumption, (4), and (5) then yield
+\[
+ \mathbb E[h_vh_{vg}]
+ =\mathbb E[(m_v-\tau)(m_{vg}-\tau)]=0
+ \qquad(g\notin C). \tag{7}
+\]
+Thus the finite set \(C\) is indeed a covariance-support set.  Notice also that \(e\in C\) and \(C^{-1}=C\), directly from \(e\in A\) and \(C=AA^{-1}\).
+
+Conditional on \(\sigma(U)\), \(Z_u^{(1)}\) is a bounded function of the first assignment field and \(Z_v^{(2)}\) is a bounded function of the second assignment field.  Conditional wave independence and (4) therefore imply, for arbitrary \(u,v\in\Gamma\),
+\[
+ \begin{aligned}
+ \mathbb E[Z_u^{(1)}Z_v^{(2)}\mid\sigma(U)]
+ &=\mathbb E[Z_u^{(1)}\mid\sigma(U)]
+   \mathbb E[Z_v^{(2)}\mid\sigma(U)]\\
+ &=m_um_v.
+ \end{aligned} \tag{8}
+\]
+Taking \(u=v\) and then replacing the second site by \(vg\) proves the theorem's first displayed identity, including overlapping footprints.
+
+For \(g\in C\) and \(v\in J_g\), equations (5), (8), and left stationarity give
+\[
+ \begin{aligned}
+ \mathbb E[Z_v^{(1)}Z_{vg}^{(2)}]
+ &=\mathbb E[m_vm_{vg}]\\
+ &=\tau^2+\mathbb E[h_vh_{vg}]\\
+ &=\tau^2+\mathbb E[h_eh_g]
+ =\tau^2+\gamma(g).
+ \end{aligned} \tag{9}
+\]
+Since \(|J_g|>0\) by \(\nu>0\), averaging (9) gives
+\[
+ \mathbb E\!\left[
+ |J_g|^{-1}\sum_{v\in J_g}Z_v^{(1)}Z_{vg}^{(2)}
+ \right]=\tau^2+\gamma(g). \tag{10}
+\]
+Set \(\overline m=N^{-1}\sum_{v\in I}m_v\).  Applying (8) term by term and then using (5) yields
+\[
+ \begin{aligned}
+ \mathbb E[\overline Z^{(1)}\overline Z^{(2)}]
+ &=\mathbb E[\overline m^2]\\
+ &=(\mathbb E\overline m)^2+\operatorname{Var}(\overline m)\\
+ &=\tau^2+\operatorname{Var}(\overline m).
+ \end{aligned} \tag{11}
+\]
+This is the corrected square \(\overline m^2\).  Subtracting \(q=|C|\) copies of (11) from the sum of (10) over \(g\in C\) gives the exact identity
+\[
+ \mathbb E[\widehat\Omega]
+ =\sum_{g\in C}\gamma(g)-q\operatorname{Var}(\overline m)
+ =\Omega-q\operatorname{Var}(\overline m). \tag{12}
+\]
+
+It remains to bound the centering term.  Equations (4)--(5) imply \(|h_v|\le2K_0\).  For each fixed \(u\), (7) shows that \(\mathbb E[h_uh_v]\) can be nonzero only if \(u^{-1}v\in C\), so there are at most \(q\) such sites \(v\).  Since \(|\mathbb E[h_uh_v]|\le4K_0^2\),
+\[
+ \begin{aligned}
+ 0\le\operatorname{Var}(\overline m)
+ &=\frac1{N^2}\sum_{u,v\in I}\mathbb E[h_uh_v]\\
+ &\le\frac1{N^2}\sum_{u\in I}
+       \sum_{\substack{v\in I:\ u^{-1}v\in C}}
+       |\mathbb E[h_uh_v]|\\
+ &\le\frac{Nq\,4K_0^2}{N^2}
+ =\frac{4qK_0^2}{N}. 
+ \end{aligned} \tag{13}
+\]
+Combining (12)--(13) proves
+\[
+ 0\le\Omega-\mathbb E[\widehat\Omega]
+ =q\operatorname{Var}(\overline m)
+ \le\frac{4q^2K_0^2}{N},
+\]
+which is (1).
+
+We next derive (2) from the frozen bounded-differences lemma.  Write
+\[
+ T:=\sum_{g\in C}|J_g|^{-1}\sum_{v\in J_g}
+ Z_v^{(1)}Z_{vg}^{(2)},
+ \qquad
+ R:=q\overline Z^{(1)}\overline Z^{(2)},
+ \qquad
+ c:=\frac{aqK_0^2}{\nu}, \tag{14}
+\]
+so \(\widehat\Omega=T-R\).  Fix \(y\in\Lambda\).  The coordinate \(U_y\) belongs to at most \(a\) footprints \(vA\), because for a fixed \(x\in A\), the equation \(y=vx\) has the unique solution \(v=yx^{-1}\).  At a fixed \(g\), changing only \(U_y\) therefore changes at most \(2a\) summands of \(T\), allowing for either endpoint.  Each product belongs to \([-K_0^2,K_0^2]\), so
+\[
+ |\Delta_yT|
+ \le\sum_{g\in C}\frac{2a(2K_0^2)}{|J_g|}
+ \le\frac{4aqK_0^2}{\nu}=4c. \tag{15}
+\]
+The same change modifies at most \(a\) scores in each wave.  Each wave mean thus changes by at most \(2aK_0/N\), and both its old and new values belong to \([-K_0,K_0]\).  Using \(x'y'-xy=(x'-x)y'+x(y'-y)\) and \(\nu\le N\), because \(J_g\subseteq I\), gives
+\[
+ |\Delta_yR|
+ \le q\left(\frac{2aK_0}{N}K_0
+             +K_0\frac{2aK_0}{N}\right)
+ =\frac{4aqK_0^2}{N}
+ \le4c. \tag{16}
+\]
+Thus the oscillation of \(\widehat\Omega\) under a change of one environment coordinate is at most \(8c\).
+
+A coordinate \(D_y^{(w)}\) belongs to at most \(a\) scores in its wave.  At every fixed \(g\), changing it can affect at most \(a\) products, because it can occur at only the wave-\(w\) endpoint.  The same calculations now give
+\[
+ |\Delta_yT|\le2c,
+ \qquad
+ |\Delta_yR|\le2c,
+ \qquad
+ |\Delta_y\widehat\Omega|\le4c. \tag{17}
+\]
+Every retained score uses only coordinates in \(vA\subseteq\Lambda\), by the definition of \(I\).  For every product, both \(v\) and \(vg\) lie in \(I\), by the definition of \(J_g\).  Hence \(\widehat\Omega\) is a Borel function of no more than \(|\Lambda|\) innovation coordinates and \(|\Lambda|\) coordinates from each assignment wave.  These finite coordinates are independent by (6).  From (15)--(17), the sum of squared oscillation bounds is at most
+\[
+ |\Lambda|(8c)^2+2|\Lambda|(4c)^2
+ =96|\Lambda|c^2. \tag{18}
+\]
+Apply the frozen McDiarmid bounded-differences lemma, with every displayed oscillation bound first multiplied by \(1+\eta\) and then with \(\eta\downarrow0\) to meet that lemma's strict-inequality convention.  For every \(t>0\),
+\[
+ \Pr\{ |\widehat\Omega-\mathbb E\widehat\Omega|>t\}
+ \le2\exp\!\left\{-\frac{t^2}{48|\Lambda|c^2}\right\}. \tag{19}
+\]
+For \(0<\delta<1\), choose
+\[
+ t=\sqrt{48|\Lambda|}\,c\sqrt{\log(2/\delta)}. \tag{20}
+\]
+Then the right-hand side of (19) is \(\delta\).  On the complementary event, (1), the triangle inequality, (14), and (20) imply
+\[
+ |\widehat\Omega-\Omega|
+ \le \frac{4q^2K_0^2}{N}
+ +\frac{\sqrt{48|\Lambda|}\,aqK_0^2}{\nu}
+   \sqrt{\log(2/\delta)}.
+\]
+This is precisely (2).
+
+Finally, let \((\Lambda_j)\) be a right F\o lner sequence.  Since \(e\in A\),
+\[
+ I_j=\Lambda_j\cap\bigcap_{x\in A}\Lambda_jx^{-1}.
+\]
+The union bound and the right F\o lner property, applied to each fixed \(x^{-1}\), give
+\[
+ \frac{|\Lambda_j\setminus I_j|}{|\Lambda_j|}
+ \le\sum_{x\in A}
+ \frac{|\Lambda_j\mathbin\triangle\Lambda_jx^{-1}|}{|\Lambda_j|}
+ \longrightarrow0. \tag{21}
+\]
+Therefore \(N_j/|\Lambda_j|\to1\).  For fixed \(g\in C\), translation preserves cardinality, and the triangle inequality for symmetric differences gives
+\[
+ |I_j\mathbin\triangle I_jg^{-1}|
+ \le2|\Lambda_j\setminus I_j|
+   +|\Lambda_j\mathbin\triangle\Lambda_jg^{-1}|. \tag{22}
+\]
+The right-hand side is \(o(|\Lambda_j|)\) by (21) and the right F\o lner property.  Since
+\[
+ J_{j,g}=I_j\cap I_jg^{-1},
+ \qquad
+ |J_{j,g}|=|I_j|-\frac12|I_j\mathbin\triangle I_jg^{-1}|,
+\]
+we obtain \(|J_{j,g}|/|\Lambda_j|\to1\).  The set \(C\) is fixed and finite, so the convergence is uniform over \(g\in C\), and consequently \(\nu_j/|\Lambda_j|\to1\).  Substitution into (1)--(2), with fixed \(A\), \(a\), and \(q\), gives the claimed \(O(|\Lambda_j|^{-1})\) bias and \(O(\sqrt{\log(2/\delta)/|\Lambda_j|})\) deviation radius.
+
+For the exact smallest-instance stress test, take \(A=\{e\}\) and \(\Lambda=\{e\}\).  Then \(C=I=J_e=\{e\}\) and \(a=q=N=\nu=1\).  For every realization of both assignments,
+\[
+ \widehat\Omega
+ =Z_e^{(1)}Z_e^{(2)}
+  -Z_e^{(1)}Z_e^{(2)}=0,
+\]
+whereas \(\Omega=\gamma(e)=\operatorname{Var}(m_e)\); hence (12) becomes the exact equality \(0=\Omega-\operatorname{Var}(m_e)\).  Thus the expectation identity survives exhaustive assignment enumeration in the smallest volume.  At the asymptotic boundary, the proof uses fixed \(A\) and \(\nu_j/|\Lambda_j|\to1\); a growing footprint or collapsing pair interior is outside the theorem and need not retain the root-volume radius.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem derives cross-wave identification, the finite-volume centering bias, and root-volume concentration from one common bounded local score rule, rather than assuming stationarity or a limit law. \textit{Gap.} Existing interference results do not provide this fixed-footprint repeated-randomization Palm covariance diagnostic on deterministic F\o lner interiors. \textit{Consumer.} The integer-line theorem is the specialization with \(A=\{-r,\ldots,r\}\); other finitely generated amenable Cayley graphs use the same explicit estimator and constants after replacing interval interiors by footprint interiors.
+
+\section{Interpretation}
+
+The null \(\Omega_{\mathrm{pop}}=0\) is a covariance-cancellation boundary, not a claim that conditional exposure effects are homogeneous. The explicit law \(P^{\Delta}\) has \(h_i=U_i-U_{i-1}\), variance \(2\) at each site, lag-one covariances \(-1\), and long-run sum zero; \(P^+\) has \(h_i=U_i\) and long-run variance one. Both laws satisfy the corrected left-shift orientation and the joint radius-one cylinder condition with one empty exceptional set. On the line, the joint cylinder condition makes the conditional score a finite block factor, so Janson's result represents the null score as a finite-block coboundary. Rejection certifies positive Palm population variation; failure to reject only places that variation within the stated finite-sample threshold.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The design requires two conditionally independent assignment waves applied to one no-carryover schedule and one common joint assignment--innovation cylinder version. The full-observation converse includes the observed finite graph, assignments, exposures, realized outcomes, and known propensities, but not the innovations or unobserved assignment-cell outcomes. The graph extension requires a single bounded local score map shared by all sites and waves, a fixed footprint, and deterministic covariance-support sets on F\o lner interiors. No growing bandwidth, random shortest-path cutoff, approximate-neighborhood-interference transfer, endogenous graph-distance HAC, annealed CLT or Wald theorem, or BondEtAl2012 reanalysis is claimed.
+
+\section{Honest scope}
+
+The target is \(\Omega_{\mathrm{pop}}\), the long-run covariance sum of local conditional exposure-effect scores under the Palm law. The interval results and their finitely generated amenable Cayley-graph extension use a fixed deterministic local cutoff, bounded outcomes, overlap, two conditionally independent waves, common assignment--innovation cylinder versions, bounded primitive influence, and bounded score dependence. The finite interval record is coupled by explicitly inducing its exposure, outcome, propensity, and score coordinates from those same local maps. For distinct focal labels, minimax sharpness holds for the explicitly encoded finite observed-data vector at \(p=1/2\) and \(\alpha+\beta<1\); the score-vector theorem is a corollary. The note claims neither novelty of two-wave designs nor validity for observations revealing innovations or unobserved potential outcomes.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Janson2015} Svante Janson. On degenerate sums of \(m\)-dependent variables. Journal of Applied Probability, 52(4):1146--1155, 2015. Theorems 1--2 and Corollary 1, pp. 1147--1148.
+
+  \bibitem{AronowSamii2017} Peter M. Aronow and Cyrus Samii. Estimating average causal effects under general interference, with application to a social network experiment. Annals of Applied Statistics, 11(4):1912--1947, 2017.
+
+  \bibitem{Leung2022ANI} Michael P. Leung. Causal inference under approximate neighborhood interference. Econometrica, 90(1):267--293, 2022.
+
+  \bibitem{AbadieAtheyImbensWooldridge2020} Alberto Abadie, Susan Athey, Guido W. Imbens, and Jeffrey M. Wooldridge. Sampling-based versus design-based uncertainty in regression analysis. Econometrica, 88(1):265--296, 2020.
+
+  \bibitem{ElMachkouriVolnyWu2013} Mohamed El Machkouri, Dalibor Voln\'y, and Wei Biao Wu. A central limit theorem for stationary random fields. Stochastic Processes and their Applications, 123(1):1--14, 2013.
+
+  \bibitem{BaryshnikovYukich2005} Yu. Baryshnikov and J. E. Yukich. Gaussian limits for random measures in geometric probability. Annals of Applied Probability, 15(1A):213--253, 2005.
+
+  \bibitem{LiWager2022} Shuangning Li and Stefan Wager. Random graph asymptotics for treatment effect estimation under network interference. Annals of Statistics, 50(4):2334--2358, 2022.
+
+  \bibitem{FanLengWu2025} Xinyuan Fan, Chenlei Leng, and Weichi Wu. Causal inference under interference: Regression adjustment and optimality. arXiv:2502.06008, 2025.
+
+  \bibitem{BondEtAl2012} Robert M. Bond, Christopher J. Fariss, Jason J. Jones, Adam D. I. Kramer, Cameron Marlow, Jaime E. Settle, and James H. Fowler. A 61-million-person experiment in social influence and political mobilization. Nature, 489:295--298, 2012.
+
+  \bibitem{Tsybakov2009} Alexandre B. Tsybakov. Introduction to Nonparametric Estimation. Springer Series in Statistics, Springer, New York, 2009. Lemma 2.5(i), p. 88. DOI 10.1007/978-0-387-79052-7.
+
+  \bibitem{McDiarmid1989} Colin McDiarmid. On the method of bounded differences. In Surveys in Combinatorics, 1989, London Mathematical Society Lecture Note Series 141, pp. 148--188. Cambridge University Press, 1989. Lemma 1.2. DOI 10.1017/CBO9781107359949.008.
+
+  \bibitem{Viviano2020} Davide Viviano. Experimental Design under Network Interference. arXiv:2003.08421v6, June 2026.
+
+\end{thebibliography}
+
+\end{document}

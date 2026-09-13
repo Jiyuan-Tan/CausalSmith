@@ -1,0 +1,942 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}manyarm\_\allowbreak{}optimal\_\allowbreak{}value\_\allowbreak{}joint\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A growing treatment menu turns each sparse patient group into a high-dimensional nonsmooth maximum with random denominators. The headline kernel is the explicit all-regime minimax MSE \(r_\star(n,d,K)\), with a total statistically computable estimator on the full unknown-mass class under menu-scaled lower overlap alone and a matching same-class converse. The mathematical hinge is a dimension-uniform certificate that makes maximum-approximation bias, exact factorial-lift covariance, and normalized moment-prior mixture geometry share one evaluated scale, while exposing the finite coefficient count \(M_{2K,L}=\binom{2K+L}{L}\) and the estimator's combinatorial evaluation cost. Supporting claims cover the one-group and \(K\ge d^2\) rates and a new binary-to-many-arm hardness transfer; the accepted \(K=2\) frontier is used only as a cited boundary condition. The open content is the exact transition for \(2<K<d^2\) and the resulting necessary-and-sufficient consistency boundary.
+
+\section{Project justification}
+
+\paragraph{Gap.} The literature separates fixed-dimensional nonregular inference, restricted-class policy regret, one-group maximum-mean upper bounds, and scalar approximation-theoretic minimax estimation; none gives the joint finite-sample risk when sparse categorical groups and treatments grow together under unknown observational logging and only a menu-scaled lower propensity bound.
+
+\paragraph{Niche.} The categorical experiment has exact Poisson factorial and likelihood-mixture identities, but its \(K\)-way tie fan, arbitrary group occupancy, and potentially unbalanced logging require a dimension-uniform primal--dual certificate with an explicit finite representation.
+
+\paragraph{Fill.} The project evaluates that certificate, splices it to the supporting one-group and many-arm results, the new binary-grouping transfer, and the cited \(K=2\) boundary, then turns the closed-form envelope into a total computable estimator, an all-estimator lower bound, and exact consistency and parametric-MSE conditions.
+
+\section{Related work}
+
+LuedtkeVanderLaan2016 supplies the standard identification and nonregularity boundary: its pathwise-differentiability theorem and online estimator explain why exact ties defeat ordinary first-order inference, but identification is not an originality target here and the paper does not address growing-dimensional minimax MSE. WhitehouseAusternSyrgkanis2025 is an informed-by comparison rather than a theorem target. Its static theorem assumes independent evaluation data; a \(\delta\)-polynomial density for every suboptimality gap, allowing an atom at zero; \(\beta_n=\omega(n^{1/[2(1+\delta)]})\); \(\lVert\widehat Q_n-Q^\star\rVert_2=o_P(n^{-1/4}\beta_n^{-1/2})\); a product nuisance error of \(o_P(n^{-1/2})\); \(L^2\) consistency; uniform boundedness; and positive influence variance for the normal limit. The unrestricted finite-sample class here assumes none of the density or nuisance-rate conditions and permits both dimensions to grow. NguyenBarrettJun2025HAVER is the closest estimator comparator: its lower-confidence pivot and head averaging control passive one-group MSE, but random patient-group counts, unknown masses, causal logging, and a global converse are absent. JiaoVenkatHanWeissman2015 supplies the nonsmooth--smooth split, factorial-moment lift, clipping, and fuzzy-hypothesis architecture. WuYang2016 supplies the stronger requirement that approximation and moment-matched priors be governed by the same extremal quantity, including an evaluated consistency threshold. CaiLow2011 supplies the moment-prior and chi-square template for a kinked functional. Spalek2008 is the obstruction comparator: its explicit dual polynomial shows that a uniform maximum surrogate cannot hide \(K\) in its degree. LuedtkeVanderLaan2018 studies maxima with a possibly growing index set under asymptotic remainder conditions, not sparse-table all-regime risk. ZhouAtheyWager2023 concerns learned-policy regret over restricted classes and motivates lower overlap, but it is a consumer-facing neighbor rather than a theorem-level target.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(V^\star(P)=E_P[Y(\pi^\star(X))]=\sum_{x=1}^dp_x\max_{a\in[K]}\mu_{ax}\).
+Primary functional / estimator / diagnostic: \(\widehat V_\star\text{ total computable with }\sup_{P\in\mathcal M_{d,K}}E_{P^n}[(\widehat V_\star-V^\star(P))^2]\asymp R(n,d,K)\asymp r_\star(n,d,K)\).
+\begin{itemize}
+  \item \(n\) --- \texttt{sample size}; \(\{1,2,\ldots\}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of observed units.}
+  \item \(d\) --- \texttt{patient-\allowbreak{}group count}; \(\{1,2,\ldots\}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of categorical patient groups.}
+  \item \(K\) --- \texttt{treatment count}; \(\{2,3,\ldots\}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of available treatments.}
+  \item \([d]\) --- \texttt{patient-\allowbreak{}group alphabet}; \texttt{finite sets}; \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \([d]=\{1,\ldots,d\}\).
+  \item \([K]\) --- \texttt{treatment alphabet}; \texttt{finite sets}; \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \([K]=\{1,\ldots,K\}\).
+  \item \(i\) --- \texttt{unit index}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic observed-\allowbreak{}unit index.}
+  \item \(x\) --- \texttt{patient-\allowbreak{}group index}; \([d]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic patient-\allowbreak{}group index.}
+  \item \(a\) --- \texttt{treatment index}; \([K]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treatment index.}
+  \item \(b\) --- \texttt{binary treatment-\allowbreak{}block index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic index for one of the two treatment blocks in the binary embedding.}
+  \item \(y\) --- \texttt{outcome coordinate}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic binary outcome coordinate.}
+  \item \(X\) --- \texttt{observed patient group}; \([d]\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed categorical patient group.}
+  \item \(A\) --- \texttt{observed treatment}; \([K]\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed treatment assignment.}
+  \item \(Y\) --- \texttt{observed outcome}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed binary outcome.}
+  \item \(Y(a)\) --- \texttt{potential outcome}; \(\{0,1\}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome under treatment \(a\).
+  \item \(O_i\) --- \texttt{observed unit}; \([d]\times[K]\times\{0,1\}\); \texttt{sample}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(X_i,A_i,Y_i)\).
+  \item \(P\) --- \texttt{full-\allowbreak{}data law}; laws of \(X,A,Y,Y(1),\ldots,Y(K)\); \texttt{model}
+  \par\smallskip\noindent\emph{Definition.} Law whose observed margin generates each \(O_i\).
+  \item \(p_x\) --- \texttt{patient-\allowbreak{}group mass}; \([0,1]\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(p_x=P(X=x)\).
+  \item \(e_{ax}\) --- \texttt{logging propensity}; \([0,1]\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(e_{ax}=P(A=a\mid X=x)\) when \(p_x>0\), with an arbitrary simplex-valued convention when \(p_x=0\).
+  \item \(\mu_{ax}\) --- \texttt{conditional outcome mean}; \([0,1]\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{ax}=E_P[Y\mid A=a,X=x]\) when \(p_xe_{ax}>0\), with value zero on null observed cells.
+  \item \(q_{xay}\) --- \texttt{observed patient-\allowbreak{}group-\allowbreak{}-\allowbreak{}treatment-\allowbreak{}-\allowbreak{}outcome mass}; \([0,1]\); \texttt{observed-\allowbreak{}law coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(q_{xay}=P(X=x,A=a,Y=y)\).
+  \item \(q\) --- \texttt{local observed-\allowbreak{}cell mass vector}; \(\mathbb R_+^{2K}\); \texttt{upper-\allowbreak{}bound local parameter}
+  \par\smallskip\noindent\emph{Definition.} For a fixed patient group, \(q=(q_{a0},q_{a1}:a\in[K])\).
+  \item \(s(q)\) --- \texttt{local patient-\allowbreak{}group mass}; \([0,\infty)\); \texttt{ratio-\allowbreak{}max primitive}
+  \par\smallskip\noindent\emph{Definition.} \(s(q)=\sum_{a\in[K]}\sum_{y\in\{0,1\}}q_{ay}\).
+  \item \(s_a(q)\) --- \texttt{local treatment mass}; \([0,\infty)\); \texttt{ratio-\allowbreak{}max denominator}
+  \par\smallskip\noindent\emph{Definition.} \(s_a(q)=q_{a0}+q_{a1}\).
+  \item \(F_K(q)\) --- \texttt{extended local optimal-\allowbreak{}value contribution}; \([0,\infty)\); \texttt{full observational approximation target}
+  \par\smallskip\noindent\emph{Definition.} Object constructed in \(\mathrm{def{:}ratio\text{-}max\text{-}extension}\).
+  \item \(m_x\) --- \texttt{best conditional mean}; \([0,1]\); \texttt{nonsmooth cell functional}
+  \par\smallskip\noindent\emph{Definition.} \(m_x=\max_{a\in[K]}\mu_{ax}\).
+  \item \(V^\star(P)\) --- \texttt{unrestricted optimal-\allowbreak{}treatment value}; \([0,1]\); \texttt{target}
+  \par\smallskip\noindent\emph{Definition.} Causal estimand constructed in \(\mathrm{def{:}optimal\text{-}value}\).
+  \item \(\mathcal M_{d,K}\) --- \texttt{causal law class}; \texttt{classes of full-\allowbreak{}data laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}law\text{-}class}\).
+  \item \(\widehat V\) --- \texttt{generic estimator}; \(([d]\times[K]\times\{0,1\})^n\to\mathbb R\); \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} Generic measurable estimator of \(V^\star(P)\).
+  \item \(R(n,d,K)\) --- \texttt{minimax mean-\allowbreak{}squared error}; \([0,1]\); \texttt{focal frontier}
+  \par\smallskip\noindent\emph{Definition.} Risk constructed in \(\mathrm{def{:}minimax\text{-}risk}\).
+  \item \(N_x\) --- \texttt{patient-\allowbreak{}group count}; \(\{0,\ldots,n\}\); \texttt{statistic}
+  \par\smallskip\noindent\emph{Definition.} \(N_x=\sum_{i=1}^n\mathbf 1\{X_i=x\}\).
+  \item \(N_{xa}\) --- \texttt{patient-\allowbreak{}group-\allowbreak{}-\allowbreak{}treatment count}; \(\{0,\ldots,n\}\); \texttt{statistic}
+  \par\smallskip\noindent\emph{Definition.} \(N_{xa}=\sum_{i=1}^n\mathbf 1\{X_i=x,A_i=a\}\).
+  \item \(S_{xa}\) --- \texttt{patient-\allowbreak{}group-\allowbreak{}-\allowbreak{}treatment success count}; \(\{0,\ldots,n\}\); \texttt{statistic}
+  \par\smallskip\noindent\emph{Definition.} \(S_{xa}=\sum_{i=1}^nY_i\mathbf 1\{X_i=x,A_i=a\}\).
+  \item \(\overline Y_{xa}\) --- \texttt{total cell-\allowbreak{}mean statistic}; \([0,1]\); \texttt{statistic}
+  \par\smallskip\noindent\emph{Definition.} \(\overline Y_{xa}=S_{xa}/N_{xa}\) if \(N_{xa}>0\), and \(\overline Y_{xa}=0\) if \(N_{xa}=0\).
+  \item \(\widehat V_{\mathrm{ER}}\) --- \texttt{empirical-\allowbreak{}regression maximum estimator}; \([0,1]\); \texttt{upper-\allowbreak{}bound estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator constructed in \(\mathrm{def{:}empirical\text{-}maximum}\).
+  \item \(b(d,K)\) --- \texttt{centered-\allowbreak{}winner lower scale}; \((0,\infty)\); \texttt{proved-\allowbreak{}region lower scale}
+  \par\smallskip\noindent\emph{Definition.} \(b(d,K)=dK\log(1+\sqrt{K/d})\).
+  \item \(u(d,K)\) --- \texttt{empirical-\allowbreak{}maximum upper scale}; \((0,\infty)\); \texttt{proved-\allowbreak{}region upper scale}
+  \par\smallskip\noindent\emph{Definition.} \(u(d,K)=dK\log(eK)\).
+  \item \(\lambda\) --- \texttt{local per-\allowbreak{}arm Poisson intensity}; \((0,\infty)\); \texttt{approximation regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Local expected count for one treatment arm in one patient group.}
+  \item \(\theta\) --- \texttt{centered arm-\allowbreak{}mean vector}; \([-1/4,1/4]^K\); \texttt{approximation argument}
+  \par\smallskip\noindent\emph{Definition.} Local coordinates with \(\mu_a=1/2+\theta_a\).
+  \item \(L\) --- \texttt{total polynomial degree}; \(\{0,1,\ldots\}\); \texttt{tuning index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Degree of a local symmetric polynomial surrogate.}
+  \item \(h\) --- \texttt{univariate moment order}; \(\{0,1,\ldots,L\}\); \texttt{analytic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic order of a one-\allowbreak{}arm centered-\allowbreak{}moment statistic.}
+  \item \(t\) --- \texttt{second univariate moment order}; \(\{0,1,\ldots,L\}\); \texttt{analytic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second generic order in an exact factorial second-\allowbreak{}moment identity.}
+  \item \(\alpha\) --- \texttt{multi-\allowbreak{}index}; \(\mathbb N_0^K\); \texttt{analytic index}
+  \par\smallskip\noindent\emph{Definition.} Multi-index with \(\lvert\alpha\rvert=\sum_{a=1}^K\alpha_a\), \(\alpha!=\prod_{a=1}^K\alpha_a!\), and \(D^\alpha=\prod_{a=1}^K\partial_a^{\alpha_a}\).
+  \item \(\beta\) --- \texttt{second multi-\allowbreak{}index}; \(\mathbb N_0^K\); \texttt{analytic index}
+  \par\smallskip\noindent\emph{Definition.} Second generic multi-index used with \(\alpha\) in covariance sums.
+  \item \(\mathcal A_{K,L}\) --- \texttt{finite multi-\allowbreak{}index set}; \texttt{finite subsets of the nonnegative integer lattice}; \texttt{finite coefficient index}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_{K,L}=\{\alpha\in\mathbb N_0^K:\lvert\alpha\rvert\le L\}\).
+  \item \(M_{K,L}\) --- \texttt{monomial count}; \(\mathbb N\); \texttt{evaluation-\allowbreak{}size parameter}
+  \par\smallskip\noindent\emph{Definition.} \(M_{K,L}=\lvert\mathcal A_{K,L}\rvert=\binom{K+L}{L}\).
+  \item \(c_\alpha\) --- \texttt{polynomial coefficient}; \(\mathbb R\); \texttt{finite representation}
+  \par\smallskip\noindent\emph{Definition.} Coefficient indexed by \(\alpha\in\mathcal A_{K,L}\).
+  \item \(P_L\) --- \texttt{local symmetric polynomial}; real permutation-symmetric polynomials on \(\mathbb R^K\) of total degree at most \(L\); \texttt{primal certificate}
+  \par\smallskip\noindent\emph{Definition.} Generic polynomial surrogate for \(\max_{a\in[K]}\theta_a\).
+  \item \(N_{a0}\) --- \texttt{balanced Poisson failure count}; \(\mathbb N_0\); \texttt{local comparison experiment}
+  \par\smallskip\noindent\emph{Definition.} Count with mean \(\lambda(1/2-\theta_a)\), independent over \(a\).
+  \item \(N_{a1}\) --- \texttt{balanced Poisson success count}; \(\mathbb N_0\); \texttt{local comparison experiment}
+  \par\smallskip\noindent\emph{Definition.} Count with mean \(\lambda(1/2+\theta_a)\), independent of \(N_{a0}\) and independently distributed over \(a\).
+  \item \(H_h\) --- \texttt{unbiased centered-\allowbreak{}moment statistic}; \(\mathbb R\); \texttt{factorial lift primitive}
+  \par\smallskip\noindent\emph{Definition.} \(H_h=h![z^h](1+2z)^{N_{a1}}(1-2z)^{N_{a0}}/(4\lambda)^h\) for one arm.
+  \item \(U_{P_L}\) --- \texttt{unbiased polynomial lift}; \(\mathbb R\); \texttt{primal estimator}
+  \par\smallskip\noindent\emph{Definition.} Lift constructed in \(\mathrm{def{:}polynomial\text{-}lift}\).
+  \item \(m\) --- \texttt{local Poisson exposure}; \((0,\infty)\); \texttt{upper-\allowbreak{}bound comparison parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Poisson exposure multiplying each local observed-\allowbreak{}cell mass.}
+  \item \(j\) --- \texttt{local observed-\allowbreak{}category index}; \(\{1,\ldots,2K\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index for one treatment-\allowbreak{}-\allowbreak{}outcome coordinate of a local mass vector.}
+  \item \(z\) --- \texttt{local pilot-\allowbreak{}center vector}; \(\mathbb R^{2K}\); \texttt{localization input}
+  \par\smallskip\noindent\emph{Definition.} Pilot center for the localized observed-cell mass vector \(q\).
+  \item \(z_j\) --- \texttt{local pilot center}; \(\mathbb R\); \texttt{localization input}
+  \par\smallskip\noindent\emph{Definition.} Coordinate \(j\) of the pilot-center vector \(z\).
+  \item \(N_j\) --- \texttt{local Poisson category count}; \(\mathbb N_0\); \texttt{upper-\allowbreak{}bound comparison experiment}
+  \par\smallskip\noindent\emph{Definition.} \(N_j\sim\operatorname{Pois}(m q_j)\), independently over \(j\).
+  \item \(G_h\) --- \texttt{centered factorial-\allowbreak{}moment statistic}; \(\mathbb R\); \texttt{full-\allowbreak{}class factorial primitive}
+  \par\smallskip\noindent\emph{Definition.} Statistic constructed in \(\mathrm{def{:}observed\text{-}cell\text{-}factorial\text{-}lift}\).
+  \item \(Q_L\) --- \texttt{localized observed-\allowbreak{}cell polynomial}; Real polynomials on \(\mathbb R^{2K}\) of total degree at most \(L\).; \texttt{full-\allowbreak{}class primal certificate}
+  \par\smallskip\noindent\emph{Definition.} Finite polynomial surrogate for \(F_K(q)\) on a localized box.
+  \item \(\gamma_\alpha\) --- \texttt{observed-\allowbreak{}cell polynomial coefficient}; \(\mathbb R\); \texttt{finite representation}
+  \par\smallskip\noindent\emph{Definition.} Coefficient of \((q-z)^\alpha\) in \(Q_L\), indexed by \(\alpha\in\mathcal A_{2K,L}\).
+  \item \(U_{Q_L}\) --- \texttt{localized observed-\allowbreak{}cell polynomial lift}; \(\mathbb R\); \texttt{full-\allowbreak{}class primal estimator}
+  \par\smallskip\noindent\emph{Definition.} Lift constructed in \(\mathrm{def{:}observed\text{-}cell\text{-}factorial\text{-}lift}\).
+  \item \(\mathcal E_K(P_L)\) --- \texttt{uniform maximum-\allowbreak{}approximation error}; \([0,\infty)\); \texttt{primal bias}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_K(P_L)=\sup_{\theta\in[-1/4,1/4]^K}|P_L(\theta)-\max_{a\in[K]}\theta_a|\).
+  \item \(\mathcal W_{K,\lambda}(P_L)\) --- \texttt{factorial covariance cost}; \([0,\infty]\); \texttt{primal variance}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal W_{K,\lambda}(P_L)=\sup_{\theta\in[-1/4,1/4]^K}\sum_{\alpha\ne0}(4\lambda)^{-|\alpha|}(D^\alpha P_L(\theta))^2/\alpha!\).
+  \item \(\nu_0\) --- \texttt{null local prior}; probability measures on \([-1/4,1/4]^K\); \texttt{dual certificate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{First normalized prior for a fuzzy-\allowbreak{}hypothesis pair.}
+  \item \(\nu_1\) --- \texttt{alternative local prior}; probability measures on \([-1/4,1/4]^K\); \texttt{dual certificate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second normalized prior for a fuzzy-\allowbreak{}hypothesis pair.}
+  \item \(P_\theta\) --- \texttt{balanced local Poisson law}; \texttt{probability laws on the paired success and failure counts}; \texttt{local experiment}
+  \par\smallskip\noindent\emph{Definition.} Law under which \(N_{a0}\) and \(N_{a1}\) have their declared independent Poisson distributions at local parameter \(\theta\).
+  \item \(P_0\) --- \texttt{balanced local null law}; \texttt{probability laws on the paired success and failure counts}; \texttt{mixture reference}
+  \par\smallskip\noindent\emph{Definition.} \(P_0=P_\theta\) at \(\theta=0\).
+  \item \(P_{\nu_j}\) --- \texttt{balanced local mixture law}; \texttt{probability laws on the paired success and failure counts}; \texttt{dual mixture}
+  \par\smallskip\noindent\emph{Definition.} \(P_{\nu_j}=\int P_\theta\,d\nu_j(\theta)\) for \(j\in\{0,1\}\).
+  \item \(\Delta_{\max}(\nu_0,\nu_1)\) --- \texttt{maximum-\allowbreak{}functional prior separation}; \([-1/2,1/2]\); \texttt{dual target separation}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{\max}(\nu_0,\nu_1)=\int\max_a\theta_a\,d(\nu_1-\nu_0)(\theta)\).
+  \item \(\mathfrak D_{K,\lambda}(\nu_0,\nu_1)\) --- \texttt{exact weighted mixed-\allowbreak{}moment distance}; \([0,\infty]\); \texttt{dual mixture distance}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak D_{K,\lambda}(\nu_0,\nu_1)=\sum_{\alpha}(4\lambda)^{|\alpha|}\alpha!^{-1}[\int\theta^\alpha d(\nu_1-\nu_0)(\theta)]^2\).
+  \item \(\mathfrak J(d,K,\lambda,L)\) --- \texttt{dimension-\allowbreak{}uniform primal-\allowbreak{}-\allowbreak{}dual certificate}; \texttt{mathematical certificates}; \texttt{open focal object}
+  \par\smallskip\noindent\emph{Definition.} Certificate handle constructed in \(\mathrm{def{:}joint\text{-}certificate\text{-}handle}\).
+  \item \(r_\star(n,d,K)\) --- \texttt{sharp all-\allowbreak{}regime risk scale}; \([0,1]\); \texttt{headline open object}
+  \par\smallskip\noindent\emph{Definition.} Explicit closed-form scale to be derived by \(\mathrm{oeq{:}joint\text{-}frontier}\).
+  \item \(\widehat V_\star\) --- \texttt{attaining total estimator}; measurable maps from the observed sample to \([0,1]\); \texttt{headline open object}
+  \par\smallskip\noindent\emph{Definition.} Estimator to be constructed by \(\mathrm{oeq{:}joint\text{-}frontier}\) from the certificate handle.
+  \item \(d_n\) --- \texttt{patient-\allowbreak{}group-\allowbreak{}count sequence}; \(\mathbb N\); \texttt{asymptotic regime}
+  \par\smallskip\noindent\emph{Definition.} Arbitrary patient-group-count sequence indexed by \(n\).
+  \item \(K_n\) --- \texttt{treatment-\allowbreak{}count sequence}; \(\{2,3,\ldots\}\); \texttt{asymptotic regime}
+  \par\smallskip\noindent\emph{Definition.} Arbitrary treatment-count sequence indexed by \(n\).
+  \item \(B\) --- \texttt{binary treatment}; \(\{0,1\}\); \texttt{reduction input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Treatment in the embedded binary observational experiment.}
+  \item \(\pi_x\) --- \texttt{binary logging propensity}; \([1/3,2/3]\); \texttt{reduction input}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_x=P(B=1\mid X=x)\) in the embedded binary experiment.
+  \item \(g_b\) --- \texttt{treatment-\allowbreak{}block size}; \(\mathbb N\); \texttt{reduction parameter}
+  \par\smallskip\noindent\emph{Definition.} \(g_0=\lfloor K/2\rfloor\) and \(g_1=\lceil K/2\rceil\).
+  \item \(\mathsf G_K\) --- \texttt{binary-\allowbreak{}to-\allowbreak{}many-\allowbreak{}arm randomization kernel}; \texttt{Markov kernels from binary observations to many-\allowbreak{}arm observations}; \texttt{boundary-\allowbreak{}transfer construction}
+  \par\smallskip\noindent\emph{Definition.} Kernel constructed in \(\mathrm{def{:}binary\text{-}grouping\text{-}channel}\).
+  \item \(P_{\mathrm{wit}}\) --- \texttt{unequal-\allowbreak{}logging switching-\allowbreak{}winner law}; full-data laws for \(d=2\) and \(K=3\); \texttt{sanity witness}
+  \par\smallskip\noindent\emph{Definition.} Law constructed in \(\mathrm{def{:}unequal\text{-}logging\text{-}witness}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent and identically distributed with common observed-data margin induced by \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent and identically distributed sampling, \cite{LuedtkeVanderLaan2016}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=Y(A)\) almost surely under \(P\).
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{LuedtkeVanderLaan2016}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-exchangeability]\label{ass:conditional-exchangeability}
+\((Y(1),\ldots,Y(K))\perp A\mid X\) under \(P\).
+\par\smallskip\noindent\emph{Standard} (Conditional exchangeability for multiple treatments, \cite{LuedtkeVanderLaan2016}).
+\end{assumption}
+
+\begin{assumption}[ass:menu-scaled-overlap]\label{ass:menu-scaled-overlap}
+\(e_{ax}\ge1/(2K)\) for every \(x\in[d]\) with \(p_x>0\) and every \(a\in[K]\).
+\par\smallskip\noindent\emph{Standard} (Menu-scaled lower overlap, \cite{ZhouAtheyWager2023}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:law-class]\label{def:law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Causal law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{d,K}=\{P: Y=Y(A)\ P\text{-a.s.},\ (Y(1),\ldots,Y(K))\perp A\mid X,\ e_{ax}\ge1/(2K)\text{ for all }x\text{ with }p_x>0\text{ and all }a\in[K]\}\), for every \(d\ge1\) and \(K\ge2\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}menu-\allowbreak{}scaled-\allowbreak{}overlap}.
+\end{definition}
+
+\begin{definition}[def:optimal-value]\label{def:optimal-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unrestricted optimal-\allowbreak{}treatment value}
+\par\smallskip\noindent\emph{Construction.} \(V^\star(P)=\sup_{\pi:[d]\to[K]}E_P[Y(\pi(X))]=\sum_{x=1}^dp_xm_x=\sum_{x=1}^dp_x\max_{a\in[K]}\mu_{ax}\).
+\par\smallskip\noindent\emph{Inputs.} \(P\).
+\end{definition}
+
+\begin{definition}[def:minimax-risk]\label{def:minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Joint minimax MSE}
+\par\smallskip\noindent\emph{Construction.} \(R(n,d,K)=\inf_{\widehat V}\sup_{P\in\mathcal M_{d,K}}E_{P^n}[(\widehat V-V^\star(P))^2]\), where the infimum ranges over all measurable estimators based on \(O_1,\ldots,O_n\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(d\); \(K\); \(\mathcal M_{d,K}\).
+\end{definition}
+
+\begin{definition}[def:empirical-maximum]\label{def:empirical-maximum}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total empirical cell-\allowbreak{}weighted maximum}
+\par\smallskip\noindent\emph{Construction.} \(\widehat V_{\mathrm{ER}}=\sum_{x=1}^d(N_x/n)\max_{a\in[K]}\overline Y_{xa}\), with the declared zero convention for every empty arm and hence for every unobserved group.
+\par\smallskip\noindent\emph{Inputs.} \(N_x\); \(N_{xa}\); \(S_{xa}\).
+\end{definition}
+
+\begin{definition}[def:ratio-max-extension]\label{def:ratio-max-extension}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lower-\allowbreak{}overlap ratio-\allowbreak{}max extension}
+\par\smallskip\noindent\emph{Construction.} For \(q\ne0\), set \(F_K(q)=\max_{a\in[K]}s(q)q_{a1}/\max\{s_a(q),s(q)/(2K)\}\), and set \(F_K(0)=0\).
+\par\smallskip\noindent\emph{Inputs.} \(q\); \(K\).
+\end{definition}
+
+\begin{definition}[def:polynomial-lift]\label{def:polynomial-lift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Balanced-\allowbreak{}Poisson unbiased polynomial lift}
+\par\smallskip\noindent\emph{Construction.} Write the finite monomial representation as \(P_L(\theta)=\sum_{\alpha\in\mathcal A_{K,L}}c_\alpha\theta^\alpha\) and set \(U_{P_L}=\sum_{\alpha\in\mathcal A_{K,L}}c_\alpha\prod_{a=1}^K H_{\alpha_a}(N_{a0},N_{a1};\lambda)\). Compute \(H_0,\ldots,H_L\) for each arm by the finite convolution \([z^h](1+2z)^{N_{a1}}(1-2z)^{N_{a0}}=\sum_{r=0}^h\binom{N_{a1}}r\binom{N_{a0}}{h-r}2^r(-2)^{h-r}\). Given the coefficient table, dense exact evaluation uses at most \(C_0\{K L^2+L M_{K,L}\}\) arithmetic operations and \(C_0\{K L+M_{K,L}\}\) stored scalars for an absolute implementation constant \(C_0\).
+\par\smallskip\noindent\emph{Inputs.} \(P_L\); \(H_h\).
+\end{definition}
+
+\begin{definition}[def:observed-cell-factorial-lift]\label{def:observed-cell-factorial-lift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite observed-\allowbreak{}cell factorial lift}
+\par\smallskip\noindent\emph{Construction.} For independent \(N_j\sim\operatorname{Pois}(m q_j)\), define \(G_h(N_j;z_j,m)=\sum_{r=0}^h\binom hr(-z_j)^{h-r}(N_j)_r/m^r\). If \(Q_L(q-z)=\sum_{\alpha\in\mathcal A_{2K,L}}\gamma_\alpha(q-z)^\alpha\), set \(U_{Q_L}=\sum_{\alpha\in\mathcal A_{2K,L}}\gamma_\alpha\prod_{j=1}^{2K}G_{\alpha_j}(N_j;z_j,m)\). Given the coefficient table, recursively computing the falling factorials and evaluating the dense sum uses at most \(C_2\{K L^2+L M_{2K,L}\}\) arithmetic operations and \(C_2\{K L+M_{2K,L}\}\) stored scalars.
+\par\smallskip\noindent\emph{Inputs.} \(N_j\); \(z\); \(m\); \(Q_L\).
+\end{definition}
+
+\begin{definition}[def:joint-certificate-handle]\label{def:joint-certificate-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Dimension-\allowbreak{}uniform joint certificate handle}
+\par\smallskip\noindent\emph{Construction.} Construct \(\mathfrak J(d,K,\lambda,L)\) by evaluating a localized polynomial \(Q_L\) for the full lower-overlap ratio maximum \(F_K(q)\) together with the exact second-moment cost of \(U_{Q_L}\). On the balanced comparison slice, reduce this object to the primal pair \(\mathcal E_K(P_L)^2+d^{-1}\mathcal W_{K,\lambda}(P_L)\) over \((c_\alpha:\alpha\in\mathcal A_{K,L})\), and match it to the dual pair \(\Delta_{\max}(\nu_0,\nu_1)^2\) and \(\mathfrak D_{K,\lambda}(\nu_0,\nu_1)\) over normalized moment-matched priors. Use exact semialgebraic decision on compact rational localization boxes to certify the primal continuous-domain inequalities, localize \(\lambda\) to empirical patient-group occupancy, and splice the cited \(K=2\), one-group, and saturation boundaries.
+\par\smallskip\noindent\emph{Inputs.} \(d\); \(K\); \(\lambda\); \(L\).
+\end{definition}
+
+\begin{definition}[def:frontier-rate]\label{def:frontier-rate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Derived sharp frontier scale}
+\par\smallskip\noindent\emph{Construction.} \(r_\star(n,d,K)\) is the explicit dimension-uniform, piecewise-closed rate representative derived by \(\mathrm{oeq{:}joint\text{-}frontier}\), including its logarithmic, transition, and saturation branches.
+\par\smallskip\noindent\emph{Inputs.} \(\mathfrak J(d,K,\lambda,L)\).
+\end{definition}
+
+\begin{definition}[def:frontier-estimator-handle]\label{def:frontier-estimator-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Attaining-\allowbreak{}estimator handle}
+\par\smallskip\noindent\emph{Construction.} Construct \(\widehat V_\star\) by sample splitting for localization, a smooth-region bias correction, and on each nonsmooth patient group the finite observed-cell lift \(U_{Q_L}\) with coefficient table indexed by \(\mathcal A_{2K,L}\) and certified by \(\mathfrak J(d,K,\lambda,L)\); combine the group contributions with empirical weights and clip to \([0,1]\). Once the tables are generated, dense evaluation on the sample uses at most \(C_1[n+d\{K L^2+L M_{2K,L}\}]\) arithmetic operations and \(C_1d\{K L+M_{2K,L}\}\) stored scalars. Exact semialgebraic generation of the finite primal coefficient tables and this evaluation give total statistical computability; because \(M_{2K,L}=\binom{2K+L}{L}\), no polynomial-time claim in \((n,d,K)\) is made.
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(\mathfrak J(d,K,\lambda,L)\); \(U_{Q_L}\).
+\end{definition}
+
+\begin{definition}[def:binary-grouping-channel]\label{def:binary-grouping-channel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Binary-\allowbreak{}to-\allowbreak{}many-\allowbreak{}arm grouping channel}
+\par\smallskip\noindent\emph{Construction.} Partition \([K]\) into fixed blocks \(G_0,G_1\) of sizes \(g_0=\lfloor K/2\rfloor\) and \(g_1=\lceil K/2\rceil\). Given a binary observation \((X,B,Y)\), \(\mathsf G_K\) draws \(A\) uniformly from \(G_B\), independently of \(Y\) conditional on \((X,B)\), and outputs \((X,A,Y)\); every arm in \(G_b\) inherits the conditional outcome mean of binary treatment \(b\), and a full-data completion draws arm potential outcomes with those inherited means independently of \(A\) conditional on \(X\).
+\par\smallskip\noindent\emph{Inputs.} \(K\); \(X\); \(B\); \(Y\).
+\end{definition}
+
+\begin{definition}[def:unequal-logging-witness]\label{def:unequal-logging-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unequal-\allowbreak{}logging switching-\allowbreak{}winner witness}
+\par\smallskip\noindent\emph{Construction.} For \(d=2\) and \(K=3\), let \(p_1=p_2=1/2\), \((e_{11},e_{21},e_{31})=(1/2,1/3,1/6)\), \((e_{12},e_{22},e_{32})=(1/6,1/3,1/2)\), \((\mu_{11},\mu_{21},\mu_{31})=(9/10,1/2,1/5)\), and \((\mu_{12},\mu_{22},\mu_{32})=(1/4,3/5,41/50)\); conditionally on \(X\), draw the Bernoulli potential outcomes independently with these means, draw \(A\) independently from the displayed propensity vector, and set \(Y=Y(A)\).
+\par\smallskip\noindent\emph{Inputs.} \(d\); \(K\).
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:poisson-lift-identity]\label{lem:poisson-lift-identity}
+In the balanced Poisson comparison experiment, \(E_\theta[U_{P_L}]=P_L(\theta)\) and \(\operatorname{Var}_\theta(U_{P_L})=\sum_{\alpha\ne0}(4\lambda)^{-|\alpha|}(D^\alpha P_L(\theta))^2/\alpha!\) for every \(P_L\) and every \(\theta\in[-1/4,1/4]^K\).
+\end{lemma}
+\begin{proof}
+Fix an arm \(a\).  Introduce the exponential generating function
+\[
+ \mathcal H_a(u):=\sum_{h\geq 0}H_h\frac{u^h}{h!}
+ =\left(1+\frac{u}{2\lambda}\right)^{N_{a1}}
+  \left(1-\frac{u}{2\lambda}\right)^{N_{a0}}.
+\]
+The equality is coefficientwise exactly the construction in \(\mathrm{def{:}polynomial\text{-}lift}\).  The two Poisson means in the balanced experiment are \(\lambda(1/2+\theta_a)\) and \(\lambda(1/2-\theta_a)\).  Hence the Poisson probability generating function gives, in a neighborhood of zero,
+\[
+ E_\theta[\mathcal H_a(u)]
+ =\exp\!\left\{\lambda(1/2+\theta_a)\frac{u}{2\lambda}
+                 -\lambda(1/2-\theta_a)\frac{u}{2\lambda}\right\}
+ =e^{\theta_a u}.
+\]
+Coefficient comparison yields \(E_\theta[H_h]=\theta_a^h\).  The same calculation with two indeterminates gives
+\[
+ E_\theta[\mathcal H_a(u)\mathcal H_a(v)]
+ =\exp\!\left\{\theta_a(u+v)+\frac{uv}{4\lambda}\right\}.
+\]
+All coefficient extractions and expectations may be interchanged because only finitely many coefficients are needed and Poisson variables have moments of every order.  Therefore
+\[
+ E_\theta[H_hH_t]
+ =\sum_{\ell=0}^{\min\{h,t\}}
+   \binom h\ell\binom t\ell\ell!(4\lambda)^{-\ell}
+   \theta_a^{h+t-2\ell}.
+\]
+
+For a multi-index \(\gamma\), write \(H_\gamma=\prod_{a=1}^K H_{\gamma_a}\).  Independence across arms and the preceding identity imply
+\[
+ E_\theta[H_\gamma H_\delta]
+ =\sum_{\alpha\leq\gamma\wedge\delta}
+ (4\lambda)^{-|\alpha|}\alpha!
+ \binom\gamma\alpha\binom\delta\alpha
+ \theta^{\gamma+\delta-2\alpha}.
+\]
+Using the finite representation \(P_L(\theta)=\sum_\gamma c_\gamma\theta^\gamma\), the first-moment identity gives
+\[
+ E_\theta[U_{P_L}]=\sum_\gamma c_\gamma\theta^\gamma=P_L(\theta).
+\]
+Moreover,
+\[
+ D^\alpha P_L(\theta)
+ =\sum_{\gamma\geq\alpha}c_\gamma\,\alpha!\binom\gamma\alpha
+   \theta^{\gamma-\alpha}.
+\]
+Substitution into the preceding second-moment formula and regrouping the finite sums gives
+\[
+ E_\theta[U_{P_L}^2]
+ =\sum_{\alpha\in\mathbb N_0^K}
+   \frac{(4\lambda)^{-|\alpha|}}{\alpha!}
+   \{D^\alpha P_L(\theta)\}^2.
+\]
+The term \(\alpha=0\) is \(P_L(\theta)^2\).  Subtracting the squared expectation proves the stated variance identity.  Derivatives of order above \(L\) vanish, so the displayed sum is finite.  The coefficient table has \(M_{K,L}\) entries and the lift is the finite executable map specified in \(\mathrm{def{:}polynomial\text{-}lift}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The derivative-weighted identity exposes every treatment-menu covariance term, while the finite coefficient representation makes the corresponding statistic executable. \textit{Gap.} JiaoVenkatHanWeissman2015 uses factorial moments coordinatewise; this identity is the multivariate covariance accounting needed for the \(K\)-ary maximum. \textit{Consumer.} The open joint certificate can reject approximants with acceptable uniform error but explosive lifted variance.
+
+\begin{lemma}[lem:mixture-kernel-identity]\label{lem:mixture-kernel-identity}
+For the balanced Poisson laws \(P_\theta\), \(P_0\), and \(P_{\nu_j}\), \(\lVert dP_{\nu_1}/dP_0-dP_{\nu_0}/dP_0\rVert_{L^2(P_0)}^2=\mathfrak D_{K,\lambda}(\nu_0,\nu_1)\); in particular, matching every mixed moment through total degree \(L\) deletes exactly the terms with \(1\le\lvert\alpha\rvert\le L\), without deleting the weighted higher-order tail.
+\end{lemma}
+\begin{proof}
+For \(\theta\in[-1/4,1/4]^K\), all Poisson means are positive.  Relative to \(P_0\), cancellation of the Poisson exponential factors gives the likelihood ratio
+\[
+ \Lambda_\theta:=\frac{dP_\theta}{dP_0}
+ =\prod_{a=1}^K(1+2\theta_a)^{N_{a1}}(1-2\theta_a)^{N_{a0}}.
+\]
+For \(\theta,\eta\in[-1/4,1/4]^K\), the Poisson probability generating function and independence over arms give
+\[
+ E_0[\Lambda_\theta\Lambda_\eta]
+ =\prod_{a=1}^K
+   \exp\!\left\{\frac\lambda2\bigl((1+2\theta_a)(1+2\eta_a)-1\bigr)
+                   +\frac\lambda2\bigl((1-2\theta_a)(1-2\eta_a)-1\bigr)\right\}
+ =e^{4\lambda\theta\cdot\eta}.
+\]
+Let \(\Delta=\nu_1-\nu_0\).  Normalization of the two priors gives \(\Delta([-1/4,1/4]^K)=0\).  By mixture linearity,
+\[
+ \frac{dP_{\nu_1}}{dP_0}-\frac{dP_{\nu_0}}{dP_0}
+ =\int \Lambda_\theta\,d\Delta(\theta).
+\]
+The kernel \(e^{4\lambda\theta\cdot\eta}\) is bounded on the compact product cube.  Thus Fubini's theorem applies to the two finite signed measures, and
+\[
+ \left\|\frac{dP_{\nu_1}}{dP_0}-\frac{dP_{\nu_0}}{dP_0}\right\|_{L^2(P_0)}^2
+ =\iint e^{4\lambda\theta\cdot\eta}\,d\Delta(\theta)d\Delta(\eta).
+\]
+The exponential series is absolutely and uniformly convergent on that product cube.  Its multi-index expansion therefore may be integrated term by term:
+\[
+ e^{4\lambda\theta\cdot\eta}
+ =\sum_{\alpha\in\mathbb N_0^K}
+   \frac{(4\lambda)^{|\alpha|}}{\alpha!}\theta^\alpha\eta^\alpha.
+\]
+Consequently the last double integral equals
+\[
+ \sum_{\alpha\in\mathbb N_0^K}
+ \frac{(4\lambda)^{|\alpha|}}{\alpha!}
+ \left\{\int\theta^\alpha\,d(\nu_1-\nu_0)(\theta)\right\}^2
+ =\mathfrak D_{K,\lambda}(\nu_0,\nu_1).
+\]
+The term of degree zero is already zero by normalization.  If all mixed moments through total degree \(L\) agree, precisely the terms with \(1\leq|\alpha|\leq L\) vanish.  No condition has been imposed on moments of larger total degree, so their nonnegative weighted tail remains exactly as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The identity makes mixture indistinguishability use the same weighted multi-index geometry as the estimator variance. \textit{Gap.} WuYang2016 and CaiLow2011 use scalar moment matching; neither source supplies this \(K\)-variate exponential kernel with normalized priors for the ratio-max experiment. \textit{Consumer.} A matching converse can be certified without hiding treatment-menu dependence in a generic total-variation bound.
+
+\begin{lemma}[lem:ratio-max-extension]\label{lem:ratio-max-extension}
+For a patient group with local vector \(q=(q_{xa0},q_{xa1}:a\in[K])\), menu-scaled lower overlap implies \(F_K(q)=p_xm_x\). On the entire nonnegative orthant, \(F_K\) is degree-one homogeneous, satisfies \(0\le F_K(q)\le s(q)\), and is \((1+2K)\)-Lipschitz in \(\ell_1\). None of these conclusions uses an upper bound on \(e_{ax}\).
+\end{lemma}
+\begin{proof}
+Fix a patient group \(x\), and put \(q_{ay}=q_{xay}\).  By the definitions of the observed cell probabilities,
+\[
+ s(q)=p_x,\quad s_a(q)=p_xe_{ax},\quad q_{a1}=p_xe_{ax}\mu_{ax}.
+\]
+If \(p_x=0\), then \(q=0\), and both \(F_K(q)\) and \(p_xm_x\) are zero.  If \(p_x>0\), \(\mathrm{ass{:}menu\text{-}scaled\text{-}overlap}\) gives \(s_a(q)\geq s(q)/(2K)\).  Hence the denominator in \(\mathrm{def{:}ratio\text{-}max\text{-}extension}\) is \(s_a(q)\), and
+\[
+ F_K(q)=\max_{a\in[K]}\frac{p_x\,p_xe_{ax}\mu_{ax}}{p_xe_{ax}}
+       =p_x\max_{a\in[K]}\mu_{ax}=p_xm_x.
+\]
+Every division here is legitimate because \(p_xe_{ax}>0\).  This proves agreement with the identified contribution on every positive-mass cell.
+
+For the extension properties, write
+\[
+ f_a(q)=\frac{s(q)q_{a1}}{\max\{s_a(q),s(q)/(2K)\}},
+ \quad F_K(q)=\max_a f_a(q)
+\]
+for \(q\neq0\).  Positive homogeneity of numerator and denominator gives \(f_a(cq)=cf_a(q)\) for \(c\geq0\), including \(c=0\) by the declared convention.  Since \(q_{a1}\leq s_a(q)\leq\max\{s_a(q),s(q)/(2K)\}\),
+\[
+ 0\leq f_a(q)\leq s(q),
+\]
+and the same bounds hold for their maximum.
+
+It remains to prove the global Lipschitz statement.  On the half-space \(s_a(q)\leq s(q)/(2K)\), one has \(f_a(q)=2Kq_{a1}\), whose gradient has \(\ell_\infty\)-norm \(2K\).  On the other half-space, put \(z=q_{a1}\) and \(t=s_a(q)>0\).  Then \(f_a(q)=s(q)z/t\), with \(z/t\leq1\) and \(s(q)/t\leq2K\).  A coordinate outside arm \(a\) has derivative \(z/t\); the success coordinate has derivative
+\[
+ \frac zt+\frac{s(q)}t\left(1-\frac zt\right),
+\]
+and the failure coordinate has derivative
+\[
+ \frac zt-\frac{s(q)}t\frac zt.
+\]
+Each absolute derivative is at most \(1+2K\).  The two formulas for \(f_a\) agree on their common boundary.  A line segment in the nonnegative orthant crosses that linear boundary at most once unless it lies in it; integrating the directional derivative on the resulting subsegments gives
+\[
+ |f_a(q)-f_a(q')|\leq(1+2K)\|q-q'\|_1
+\]
+whenever neither endpoint is the origin.  If one endpoint is the origin, the same inequality follows from \(f_a(q)\leq s(q)=\|q\|_1\).  Finally,
+\[
+ |F_K(q)-F_K(q')|
+ \leq\max_a|f_a(q)-f_a(q')|
+ \leq(1+2K)\|q-q'\|_1.
+\]
+Only the lower-overlap inequality was used in the agreement step; all extension properties hold on the whole nonnegative orthant.  No upper bound on \(e_{ax}\) enters.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The extension is the full observational target seen by polynomial localization and proves that the upper logging cap is mathematically unnecessary. \textit{Gap.} Scalar factorial constructions do not address the conditional ratio at unknown patient-group and treatment masses; this lemma supplies the exact lower-overlap extension used by the joint certificate. \textit{Consumer.} The full-class estimator can localize on observed cell masses without estimating propensities or imposing an upper balance condition.
+
+\begin{lemma}[lem:observed-cell-lift-identity]\label{lem:observed-cell-lift-identity}
+For independent \(N_j\sim\operatorname{Pois}(m q_j)\), \(E_q[G_h]=(q_j-z_j)^h\) and \[E_q[G_hG_t]=\sum_{\ell=0}^{\min\{h,t\}}\binom h\ell\binom t\ell\ell!\,(q_j/m)^\ell(q_j-z_j)^{h+t-2\ell}.\] Consequently \(E_q[U_{Q_L}]=Q_L(q-z)\), and \(\operatorname{Var}_q(U_{Q_L})\) is the finite double sum over \(\alpha,\beta\in\mathcal A_{2K,L}\) obtained by multiplying the displayed coordinate second moments and subtracting \(Q_L(q-z)^2\).
+\end{lemma}
+\begin{proof}
+For one coordinate \(j\), form the exponential generating function
+\[
+ \mathcal G_j(u):=\sum_{h\geq0}G_h(N_j;z_j,m)\frac{u^h}{h!}
+ =e^{-z_ju}\left(1+\frac um\right)^{N_j}.
+\]
+The equality follows by multiplying the series for \(e^{-z_ju}\) and the falling-factorial expansion of \((1+u/m)^{N_j}\), and is coefficientwise the definition in \(\mathrm{def{:}observed\text{-}cell\text{-}factorial\text{-}lift}\).  Since \(N_j\sim\operatorname{Pois}(mq_j)\),
+\[
+ E_q[\mathcal G_j(u)]=e^{-z_ju}e^{q_ju}=e^{(q_j-z_j)u}.
+\]
+Thus \(E_q[G_h]=(q_j-z_j)^h\).  Likewise,
+\[
+ \begin{aligned}
+ E_q[\mathcal G_j(u)\mathcal G_j(v)]
+ &=e^{-z_j(u+v)}
+   \exp\!\left(mq_j\left[\left(1+\frac um\right)
+                                 \left(1+\frac vm\right)-1\right]\right)\\
+ &=\exp\!\left((q_j-z_j)(u+v)+\frac{q_j}{m}uv\right).
+ \end{aligned}
+\]
+Coefficient comparison gives exactly
+\[
+ E_q[G_hG_t]
+ =\sum_{\ell=0}^{\min\{h,t\}}
+   \binom h\ell\binom t\ell\ell!\,(q_j/m)^\ell
+   (q_j-z_j)^{h+t-2\ell}.
+\]
+The required interchanges are finite coefficient calculations, and all Poisson factorial moments are finite.
+
+For \(G_\alpha=\prod_{j=1}^{2K}G_{\alpha_j}(N_j;z_j,m)\), independence across the \(2K\) coordinates gives
+\[
+ E_q[G_\alpha]=(q-z)^\alpha
+\]
+and
+\[
+ E_q[G_\alpha G_\beta]
+ =\prod_{j=1}^{2K}\left[
+   \sum_{\ell=0}^{\min\{\alpha_j,\beta_j\}}
+   \binom{\alpha_j}\ell\binom{\beta_j}\ell\ell!
+   (q_j/m)^\ell(q_j-z_j)^{\alpha_j+\beta_j-2\ell}
+ \right].
+\]
+Using the finite coefficient table in the definition therefore yields
+\[
+ E_q[U_{Q_L}]=\sum_\alpha\gamma_\alpha(q-z)^\alpha=Q_L(q-z),
+\]
+and the fully explicit finite variance
+\[
+ \begin{aligned}
+ \operatorname{Var}_q(U_{Q_L})
+ =\sum_{\alpha,\beta\in\mathcal A_{2K,L}}\gamma_\alpha\gamma_\beta
+ \Bigg\{&\prod_{j=1}^{2K}\left[
+   \sum_{\ell=0}^{\min\{\alpha_j,\beta_j\}}
+   \binom{\alpha_j}\ell\binom{\beta_j}\ell\ell!
+   (q_j/m)^\ell(q_j-z_j)^{\alpha_j+\beta_j-2\ell}
+ \right]\\
+ &-(q-z)^{\alpha+\beta}\Bigg\}.
+ \end{aligned}
+\]
+This is the asserted finite double sum and includes every cross-monomial covariance.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identity gives the complete finite covariance calculation for the actual unknown-mass, unknown-logging upper-bound coordinates. \textit{Gap.} JiaoVenkatHanWeissman2015 supplies coordinatewise factorial lifts for additive functionals; the joint ratio maximum requires the full mixed double sum across \(2K\) coordinates. \textit{Consumer.} The certificate can audit the exact variance of every finite candidate table before using it in the full-class estimator.
+
+\begin{lemma}[lem:or-obstruction]\label{lem:or-obstruction}
+On the Boolean restriction \(\theta_a\in\{-1/4,1/4\}\), an approximation to \(\max_{a\in[K]}\theta_a\) with uniform error at most \(1/56\) induces a \(1/14\)-approximation to signed \(\operatorname{OR}_K\); consequently its total degree is at least \(\sqrt K\).
+\end{lemma}
+\begin{proof}
+Let \(p\) be a real polynomial on \(\mathbb R^K\) satisfying
+\[
+ \sup_{\theta\in\{-1/4,1/4\}^K}
+ \left|p(\theta)-\max_{a\in[K]}\theta_a\right|\leq\frac1{56}.
+\]
+Use the signed Boolean convention in which the OR function is \(+1\) only at the all-\(+1\) input and is \(-1\) otherwise.  For \(x\in\{\pm1\}^K\), define the proof-intermediate polynomial
+\[
+ r(x)=-4p(-x/4).
+\]
+If every coordinate of \(x\) is \(+1\), then \(\max_a(-x_a/4)=-1/4\); otherwise at least one coordinate equals \(-1\), and that maximum is \(+1/4\).  Therefore
+\[
+ -4\max_a(-x_a/4)=\operatorname{OR}_K(x)
+\]
+under the stated signed convention, and hence
+\[
+ \sup_{x\in\{\pm1\}^K}|r(x)-\operatorname{OR}_K(x)|\leq4/56=1/14.
+\]
+Affine substitution and scalar multiplication do not increase total degree, so \(\deg r\leq\deg p\).  The cited lemma \(\mathrm{lem{:}spalek\text{-}or\text{-}approximate\text{-}degree}\) says that such an approximant has degree at least \(\sqrt K\).  Thus \(\deg p\geq\sqrt K\), proving both conclusions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the analytic early-kill test against a nominally dimension-free low-degree maximum certificate. \textit{Gap.} Spalek2008 proves the OR approximate-degree bound; the present reduction turns it into a non-representability constraint on the local statistical surrogate, while making no unsupported leap from degree to minimax risk. \textit{Consumer.} Every proposed certificate for the intermediate regime must either pay the square-root degree or exploit localization that avoids uniform Boolean approximation.
+
+\begin{lemma}[lem:empirical-upper]\label{lem:empirical-upper}
+There is an absolute constant \(C<\infty\) such that for every \(n,d,K\), \(\sup_{P\in\mathcal M_{d,K}}E_{P^n}[(\widehat V_{\mathrm{ER}}-V^\star(P))^2]\le C\min\{1,u(d,K)/n\}\), uniformly over unknown \(p_x\), unknown \(e_{ax}\) satisfying only \(e_{ax}\ge1/(2K)\), null cells, exact ties, and boundary means.
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M_{d,K}\).  For a group with \(N_x=k>0\), define
+\[
+ Z_x=\max_{a\in[K]}|\overline Y_{xa}-\mu_{ax}|.
+\]
+Conditional on \(N_x=k\), the arm count \(H=N_{xa}\) is \(\operatorname{Bin}(k,e_{ax})\).  The elementary exponential-moment calculation for this binomial variable gives
+\[
+ P(H<ke_{ax}/2\mid N_x=k)\leq e^{-ke_{ax}/8}.
+\]
+Indeed, Markov's inequality applied to \(e^{-(\log2)H}\), followed by \(1+u\leq e^u\), gives exponent
+\(ke_{ax}\{(\log2)/2-1/2\}\leq-ke_{ax}/8\).
+
+Given \(H=h>0\), the observed outcomes in that arm are independent Bernoulli variables of mean \(\mu_{ax}\).  For a Bernoulli variable \(W\) of mean \(\mu\), direct differentiation of
+\(e^{-s\mu}(1-\mu+\mu e^s)\) gives
+\(E[e^{s(W-\mu)}]\leq e^{s^2/8}\).  Markov's inequality, optimization over \(s\), and the same argument for \(-s\) therefore give
+\[
+ P(|\overline Y_{xa}-\mu_{ax}|>t\mid N_x=k,H=h)
+ \leq2e^{-2ht^2}.
+\]
+For \(0<t\leq1\), splitting according to \(H<ke_{ax}/2\) yields
+\[
+ \begin{aligned}
+ P(|\overline Y_{xa}-\mu_{ax}|>t\mid N_x=k)
+ &\leq e^{-ke_{ax}/8}+2e^{-ke_{ax}t^2}\\
+ &\leq3e^{-ke_{ax}t^2/8}.
+ \end{aligned}
+\]
+This also covers the declared value at \(H=0\), because that event belongs to \(\{H<ke_{ax}/2\}\).  By the union bound and \(e_{ax}\geq1/(2K)\),
+\[
+ P(Z_x>t\mid N_x=k)
+ \leq\min\left\{1,3K\exp\!\left(-\frac{kt^2}{16K}\right)\right\}.
+\]
+Since \(0\leq Z_x\leq1\), integration of this tail with \(s=t^2\) gives
+\[
+ \begin{aligned}
+ E[Z_x^2\mid N_x=k]
+ &=\int_0^1P(Z_x>\sqrt s\mid N_x=k)\,ds\\
+ &\leq C_0\min\left\{1,\frac{K\log(eK)}k\right\}
+ \end{aligned}
+\]
+for an absolute \(C_0\).  To see the last inequality directly, split the integral at
+\(16K\log(3K)/k\) when this number is below one; the remaining exponential integral is at most \(16K/k\).
+
+By \(\mathrm{def{:}optimal\text{-}value}\) and \(\mathrm{def{:}empirical\text{-}maximum}\), decompose
+\[
+ \widehat V_{\mathrm{ER}}-V^\star(P)=E_1+E_2,
+\]
+where
+\[
+ E_1=\sum_{x=1}^d\frac{N_x}{n}
+ \left(\max_a\overline Y_{xa}-m_x\right),
+ \quad
+ E_2=\sum_{x=1}^d\left(\frac{N_x}{n}-p_x\right)m_x.
+\]
+The maximum map is one-Lipschitz in the sup norm, so the absolute value of the parenthesized term in \(E_1\) is at most \(Z_x\).  Since the nonnegative weights \(N_x/n\) sum to one, Jensen's inequality and the conditional bound above give
+\[
+ \begin{aligned}
+ E_P[E_1^2]
+ &\leq\sum_{x=1}^d E_P\left[\frac{N_x}{n}Z_x^2\right]\\
+ &\leq\frac{C_0}{n}\sum_{x=1}^d K\log(eK)
+ =\frac{C_0dK\log(eK)}n.
+\end{aligned}
+\]
+The zero-count groups contribute zero, so no conditioning at \(k=0\) or division by zero occurs.  Under \(\mathrm{ass{:}iid\text{-}sampling}\),
+\[
+ E_2=\frac1n\sum_{i=1}^n\{m_{X_i}-E_P[m_X]\}.
+\]
+Because \(0\leq m_X\leq1\), its variance is at most \(1/(4n)\).  Thus \((E_1+E_2)^2\leq2E_1^2+2E_2^2\) implies
+\[
+ E_{P^n}[(\widehat V_{\mathrm{ER}}-V^\star(P))^2]
+ \leq C_1\frac{dK\log(eK)}n.
+\]
+Both the estimator and target lie in \([0,1]\), so their squared difference is also at most one.  Combining the two bounds, taking the supremum over \(P\), and recalling \(u(d,K)=dK\log(eK)\) proves the result with an absolute constant.  The proof used neither \(p_x>0\) for every group nor an upper bound, known value, or estimator of \(e_{ax}\); ties and boundary means were never excluded.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proves a full-class baseline with absolute constants, no oracle knowledge of masses or logging probabilities, and no upper balance restriction on logging. \textit{Gap.} NguyenBarrettJun2025HAVER conditions on externally supplied arm counts; the result here controls random causal cell occupancy and aggregation over arbitrary group masses. \textit{Consumer.} The estimator gives an immediately implementable attainable-value error guarantee for multi-arm causal forests and related treatment-targeting systems.
+
+\begin{lemma}[lem:centered-winner-lower]\label{lem:centered-winner-lower}
+There is an absolute constant \(c>0\) such that for every \(n,d,K\), \(R(n,d,K)\ge c\min\{1,b(d,K)/n\}\); the lower experiment has \(p_x=1/d\), \(e_{ax}=1/K\), and centered random winners that preserve the arm-averaged conditional outcome mean in every patient group.
+\end{lemma}
+\begin{proof}
+It suffices by \(\mathrm{def{:}minimax\text{-}risk}\) to construct a legal finite subexperiment.  Put \(p_x=1/d\) and \(e_{ax}=1/K\).  Under a proof-intermediate null law \(Q_0\), let every conditional outcome mean equal \(1/2\).  For each winner vector \(\mathbf j=(j_1,\ldots,j_d)\in[K]^d\) and \(0<\delta\leq1/4\), define an alternative law \(Q_{\mathbf j}\) by
+\[
+ \mu^{\mathbf j}_{ax}=\frac12+\eta_{\mathbf j,x,a},\quad
+ \eta_{\mathbf j,x,a}=
+ \begin{cases}
+ \delta,&a=j_x,\\
+ -\delta/(K-1),&a\neq j_x.
+ \end{cases}
+\]
+These means belong to \([0,1]\), and their average over arms is exactly \(1/2\) in every group.  A full-data completion is obtained by drawing the potential outcomes conditionally on \(X=x\) as Bernoulli variables with these means, drawing \(A\) uniformly and independently of all potential outcomes conditional on \(X\), and setting \(Y=Y(A)\); give \(Q_0\) the same completion with all means equal to \(1/2\).  Every resulting law satisfies consistency, conditional exchangeability, and the overlap equality \(e_{ax}=1/K\geq1/(2K)\), so it belongs to \(\mathcal M_{d,K}\).  By \(\mathrm{def{:}optimal\text{-}value}\),
+\[
+ V^\star(Q_0)=\frac12,\quad V^\star(Q_{\mathbf j})=\frac12+\delta
+\]
+for every \(\mathbf j\).
+
+For one observation, the likelihood ratio of \(Q_{\mathbf j}\) relative to \(Q_0\) at \((x,a,y)\) is
+\[
+ \Lambda_{\mathbf j}(x,a,y)=1+2(2y-1)\eta_{\mathbf j,x,a}.
+\]
+If \(h(\mathbf j,\mathbf l)=|\{x:j_x=l_x\}|\), direct summation over the \(2dK\) categories gives
+\[
+ \begin{aligned}
+ E_{Q_0}[\Lambda_{\mathbf j}\Lambda_{\mathbf l}]
+ &=1+\frac4{dK}\sum_{x=1}^d\sum_{a=1}^K
+      \eta_{\mathbf j,x,a}\eta_{\mathbf l,x,a}\\
+ &=1+\frac{4\delta^2\{K h(\mathbf j,\mathbf l)-d\}}
+               {d(K-1)^2}.
+ \end{aligned}
+\]
+Indeed, the inner product in a coincident-winner group is \(\delta^2K/(K-1)\), while in a different-winner group it is \(-\delta^2K/(K-1)^2\).  Let
+\[
+ Q_{\mathrm{mix}}=K^{-d}\sum_{\mathbf j\in[K]^d}Q_{\mathbf j}^{\,n}.
+\]
+For probability laws \(Q\ll P\), write
+\(\chi^2(Q,P)=E_P[(dQ/dP-1)^2]\).
+Independence of the observations and averaging two independent uniform winner vectors imply the exact identity
+\[
+ 1+\chi^2(Q_{\mathrm{mix}},Q_0^n)
+ =E\left[\left(1+\frac{4\delta^2(KH-d)}{d(K-1)^2}\right)^n\right],
+ \quad H\sim\operatorname{Bin}(d,1/K).
+\]
+The base is positive because its minimum is \(1-4\delta^2/(K-1)^2>0\).  Define
+\[
+ u=\frac{4n\delta^2K}{d(K-1)^2}.
+\]
+Using \(1+z\leq e^z\), followed by the binomial moment generating function and \(\log(1+r)\leq r\), yields
+\[
+ \begin{aligned}
+ \log\{1+\chi^2(Q_{\mathrm{mix}},Q_0^n)\}
+ &\leq d\log\left[e^{-u/K}\left\{1+\frac{e^u-1}{K}\right\}\right]\\
+ &\leq\frac dK(e^u-1-u).
+ \end{aligned}
+\]
+
+Put \(w=K/d\), \(v=\log(1+\sqrt w)\), \(c_0=1/64\), and choose
+\[
+ \delta^2=c_0\min\left\{1,\frac{d(K-1)^2v}{nK}\right\}.
+\]
+Then \(\delta\leq1/8\) and, in both the saturated and unsaturated cases, \(0\leq u\leq4c_0v\).  For \(\psi(t)=e^t-1-t\), convexity and \(\psi(0)=0\) give \(\psi(4c_0v)\leq4c_0\psi(v)\).  Moreover,
+\[
+ \psi(v)=\sqrt w-\log(1+\sqrt w)
+ =\int_0^{\sqrt w}\frac{t}{1+t}\,dt\leq\frac w2.
+\]
+It follows that
+\[
+ \log\{1+\chi^2(Q_{\mathrm{mix}},Q_0^n)\}\leq2c_0.
+\]
+Consequently, by Cauchy--Schwarz,
+\[
+ \operatorname{TV}(Q_{\mathrm{mix}},Q_0^n)
+ \leq\frac12\sqrt{\chi^2(Q_{\mathrm{mix}},Q_0^n)}
+ \leq\frac12\sqrt{e^{2c_0}-1}=: \eta<\frac14.
+\]
+Here
+\(\operatorname{TV}(Q,P)=\frac12\int|dQ-dP|\); the last strict inequality follows, for example, from
+\(e^{1/32}\leq(1-1/32)^{-1}=32/31\).
+
+For any estimator, threshold it at \(1/2+\delta/2\).  On a null testing error its squared estimation loss is at least \(\delta^2/4\), and the same is true on an alternative testing error.  The sum of the null error probability and the mixture-averaged alternative error probability is at least \(1-\eta\), by the defining variational inequality for total variation.  Hence the supremum risk over the constructed laws is at least
+\[
+ \frac{\delta^2}{8}(1-\eta).
+\]
+Finally,
+\[
+ \frac{(K-1)^2}{K^2}\geq\frac14,
+ \quad
+ \delta^2\geq\frac{c_0}{4}
+ \min\left\{1,\frac{dK\log(1+\sqrt{K/d})}{n}\right\}.
+\]
+Taking the infimum over all estimators proves the asserted lower bound with an absolute constant.  The construction permits exact ties under the null and uses only a known-uniform subexperiment of the same full class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Centering removes the marginal outcome shift that weakens uncentered random-winner mixtures, and the uniform subexperiment remains legal under lower overlap alone. \textit{Gap.} CaiLow2011 and WuYang2016 give moment-mixture templates for other nonsmooth functionals; this exact winner-collision geometry is specific to grouped treatment maxima. \textit{Consumer.} The lower envelope rules out any analysis that obtains a falsely dimension-free or binary-like rate for expanding treatment menus.
+
+\begin{theorem}[thm:manyarm-region]\label{thm:manyarm-region}
+For absolute constants \(0<c<C<\infty\), if \(K\ge d^2\) then \(c\min\{1,dK\log(eK)/n\}\le R(n,d,K)\le C\min\{1,dK\log(eK)/n\}\).
+\end{theorem}
+\begin{proof}
+The upper inequality follows directly from \(\mathrm{lem{:}empirical\text{-}upper}\).  For the lower inequality, \(\mathrm{lem{:}centered\text{-}winner\text{-}lower}\) gives the scale
+\[
+ dK\log(1+\sqrt{K/d}).
+\]
+If \(K\geq d^2\), then \(d\leq\sqrt K\), so \(\sqrt{K/d}\geq K^{1/4}\) and
+\[
+ \log(1+\sqrt{K/d})\geq\frac14\log K.
+\]
+Since \(K\geq2\), one has \(1+\log K\leq(1+1/\log2)\log K<\frac52\log K\).  Therefore
+\[
+ \log(1+\sqrt{K/d})\geq\frac1{10}\log(eK).
+\]
+For \(0<\rho\leq1\), \(\min\{1,\rho z\}\geq\rho\min\{1,z\}\).  Applying this with \(\rho=1/10\) converts the centered-winner lower bound to the claimed lower rate.  Both constants remain absolute.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the first genuinely joint solved region and a non-negotiable splice for the full frontier. \textit{Gap.} No named published result gives minimax MSE for grouped causal optimal value in a jointly growing \(d,K\) region. \textit{Consumer.} Menu-expansion studies can read off the sample size required once the number of treatments dominates the square of patient-group count.
+
+\begin{theorem}[thm:one-group-benchmark]\label{thm:one-group-benchmark}
+For absolute constants \(0<c<C<\infty\), \(c\min\{1,K\log(eK)/n\}\le R(n,1,K)\le C\min\{1,K\log(eK)/n\}\) for every \(n\ge1\) and \(K\ge2\); this adds the global bounded-Bernoulli all-estimator converse absent from the instance-dependent upper-bound theory of Nguyen, Barrett, and Jun, while leaving their easy-instance guarantees intact.
+\end{theorem}
+\begin{proof}
+Set \(d=1\) in \(\mathrm{lem{:}empirical\text{-}upper}\) and \(\mathrm{lem{:}centered\text{-}winner\text{-}lower}\).  The resulting upper scale is \(K\log(eK)\), while the lower scale is \(K\log(1+\sqrt K)\).  For \(K\geq2\),
+\[
+ \log(1+\sqrt K)\geq\frac12\log K
+ \quad\text{and}\quad
+ \log(eK)=1+\log K<\frac52\log K.
+\]
+Thus \(\log(1+\sqrt K)\geq\frac15\log(eK)\).  The elementary relation \(\min\{1,\rho z\}\geq\rho\min\{1,z\}\) for \(0<\rho\leq1\) proves the two-sided benchmark with absolute constants.  The bibliographic scope assertion in the final clause is exactly the delivery distinction recorded in \(\mathrm{lem{:}haver\text{-}upper\text{-}bound\text{-}scope}\): that work provides estimator-specific MSE upper bounds, whereas the lower inequality just proved quantifies over all estimators on the bounded-Bernoulli class.  Its easy-instance upper guarantees are not altered by this converse.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The passive one-group slice fixes the unavoidable \(\log K\) factor and prevents importing adaptive best-arm sample complexity. \textit{Gap.} NguyenBarrettJun2025HAVER proves sharp instance-dependent MSE upper bounds but no matching global minimax lower bound over bounded Bernoulli means. \textit{Consumer.} Maximum-mean estimation in Q-learning and Monte Carlo tree search gains a finite-sample worst-case benchmark for passive data.
+
+\begin{lemma}[lem:binary-grouping-transfer]\label{lem:binary-grouping-transfer}
+For every \(K\ge2\), the channel \(\mathsf G_K\), together with its declared causal completion, maps each binary observed-data law with \(\pi_x\in[1/3,2/3]\) into \(\mathcal M_{d,K}\), preserves the unrestricted optimal value, and appends only a parameter-free within-block treatment label. Therefore there is an absolute constant \(c>0\) such that \(R(n,d,K)\ge c\min\{1,d/[n\log(ed)]\}\) for every \(n,d,K\).
+\end{lemma}
+\begin{proof}
+Start with a binary observed-data law, write \(p_x=P(X=x)\), \(\pi_x=P(B=1\mid X=x)\in[1/3,2/3]\), and let \(\mu_{bx}=E[Y\mid B=b,X=x]\).  Under \(\mathsf G_K\), an arm \(a\in G_b\) has propensity
+\[
+ e_{ax}=\frac{P(B=b\mid X=x)}{g_b}.
+\]
+Both binary block probabilities are at least \(1/3\), and \(g_b\leq\lceil K/2\rceil\).  For every \(K\geq2\),
+\[
+ 3\lceil K/2\rceil\leq2K,
+\]
+where the odd case uses \(K\geq3\).  Hence \(e_{ax}\geq1/(2K)\) for every arm on every positive-mass group.  The declared completion in \(\mathrm{def{:}binary\text{-}grouping\text{-}channel}\) draws arm potential outcomes with mean \(\mu_{bx}\) for \(a\in G_b\), independently of \(A\) conditional on \(X\), and sets \(Y=Y(A)\).  It therefore satisfies conditional exchangeability and consistency, as well as the overlap condition, and belongs to \(\mathcal M_{d,K}\).
+
+Every arm in \(G_b\) has conditional outcome mean \(\mu_{bx}\).  Thus \(\mathrm{def{:}optimal\text{-}value}\) gives
+\[
+ V^\star(\mathsf G_KP)
+ =\sum_xp_x\max_{a\in[K]}\mu_{ax}
+ =\sum_xp_x\max_{b\in\{0,1\}}\mu_{bx},
+\]
+which is the unrestricted binary optimal value.  Conditional on \((X,B,Y)\), the additional arm label is uniform on the fixed block \(G_B\); its law is parameter-free.
+
+Write \(O_i^{(2)}=(X_i,B_i,Y_i)\) for the \(i\)-th binary observation.  Let \(T_K\) be any estimator in the many-arm experiment.  Projection onto \([0,1]\) cannot increase squared loss because the target is in \([0,1]\), so we may first clip \(T_K\) and thereby make it bounded.  Apply the channel independently to each binary observation and then Rao--Blackwellize over its auxiliary uniform labels:
+\[
+ T_2(O_1^{(2)},\ldots,O_n^{(2)})
+ =E[T_K(\mathsf G_KO_1^{(2)},\ldots,\mathsf G_KO_n^{(2)})
+       \mid O_1^{(2)},\ldots,O_n^{(2)}].
+\]
+Conditional Jensen's inequality and value preservation show that the risk of \(T_2\) at every binary law is no larger than the risk of \(T_K\) at its image law.  Taking the binary supremum and then the infimum over \(T_K\) shows that \(R(n,d,K)\) is at least the binary minimax risk.  The accepted result \texttt{stat\_discrete\_optimal\_value\_minimax\_matched/thm:matched-minimax-frontier} gives, for binary propensities in \([1/3,2/3]\), an absolute lower bound
+\[
+ c\min\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+This proves the claimed transfer with a constant independent of \(K\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The parameter-free arm splitting transfers the binary hardness uniformly to every treatment-menu size and is needed for the necessity of bounded patient-group complexity. \textit{Gap.} The accepted binary frontier stops at two treatments; this Blackwell reduction is a new many-arm transfer with constants independent of \(K\) and remains valid without an upper logging cap. \textit{Consumer.} The joint frontier must dominate the binary sparse-group boundary in every menu regime, ruling out formulas that lose the \(d/\log(ed)\) obstruction.
+
+\begin{theorem}[thm:parametric-criterion]\label{thm:parametric-criterion}
+For arbitrary sequences \((d_n,K_n)\) as \(n\to\infty\), \(R(n,d_n,K_n)=O(n^{-1})\) if and only if both \(d_n\) and \(K_n\) are bounded.
+\end{theorem}
+\begin{proof}
+Suppose first that \(d_n\leq D\) and \(K_n\leq K_0\) for all sufficiently large \(n\), where \(D\) and \(K_0\) are finite.  By \(\mathrm{lem{:}empirical\text{-}upper}\),
+\[
+ R(n,d_n,K_n)
+ \leq C\frac{d_nK_n\log(eK_n)}n
+ \leq\frac{CDK_0\log(eK_0)}n.
+\]
+Thus the risk is \(O(n^{-1})\).
+
+For the converse, first note directly from \(\mathrm{def{:}law\text{-}class}\) and \(\mathrm{def{:}minimax\text{-}risk}\) that
+\[
+ R(n,d,K)\geq R(n,1,K).
+\]
+Indeed, embed any one-group law by assigning mass one to group \(1\) and mass zero to all other groups; the resulting data experiment is isomorphic to the one-group experiment, and all added cells are null.  If \((K_n)\) is unbounded, choose a subsequence along which \(K_n\to\infty\).  The preceding embedding and \(\mathrm{thm{:}one\text{-}group\text{-}benchmark}\) give along that subsequence
+\[
+ nR(n,d_n,K_n)\geq c\min\{n,K_n\log(eK_n)\}\longrightarrow\infty.
+\]
+Hence \(R(n,d_n,K_n)\) cannot be \(O(n^{-1})\).
+
+If \((d_n)\) is unbounded, choose a subsequence along which \(d_n\to\infty\).  By \(\mathrm{lem{:}binary\text{-}grouping\text{-}transfer}\),
+\[
+ nR(n,d_n,K_n)
+ \geq c\min\left\{n,\frac{d_n}{\log(ed_n)}\right\}
+ \longrightarrow\infty,
+\]
+because both entries of the minimum diverge on that subsequence.  Thus parametric MSE also fails whenever \((d_n)\) is unbounded.  An integer sequence is bounded exactly when it has no subsequence tending to infinity, so the two arguments establish necessity without any monotonicity assumption.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives a complete and dimension-uniform answer for when parametric MSE is possible even before the intermediate consistency frontier is closed. \textit{Gap.} LuedtkeVanderLaan2016 studies fixed-complexity regularity. The static theorem in WhitehouseAusternSyrgkanis2025 assumes a \(\delta\)-polynomial density for each suboptimality gap, \(\beta_n=\omega(n^{1/[2(1+\delta)]})\), specified \(L^2\) nuisance rates, uniform boundedness, and positive limiting variance; neither paper gives the necessary-and-sufficient unrestricted \((d_n,K_n)\) minimax criterion. \textit{Consumer.} Practitioners can distinguish benign fixed-menu asymptotics from regimes where expanding personalization complexity necessarily destroys parametric accuracy.
+
+\begin{proposition}[prop:unequal-logging-witness]\label{prop:unequal-logging-witness}
+The constructed law \(P_{\mathrm{wit}}\) belongs to \(\mathcal M_{2,3}\), has unequal propensities, has maximizing arm \(a=1\) at \(x=1\) and maximizing arm \(a=3\) at \(x=2\), and satisfies \(V^\star(P_{\mathrm{wit}})=43/50\).
+\end{proposition}
+\begin{proof}
+By \(\mathrm{def{:}unequal\text{-}logging\text{-}witness}\), \(d=2\), \(K=3\), and \(p_1=p_2=1/2\).  Thus both groups have positive mass and the displayed conditional treatment probabilities are
+\[
+(e_{11},e_{21},e_{31})=(1/2,1/3,1/6),
+\qquad
+(e_{12},e_{22},e_{32})=(1/6,1/3,1/2).
+\]
+Each vector has sum
+\[
+\frac12+\frac13+\frac16=1,
+\]
+so each is a probability vector.  Moreover, every displayed entry is at least
+\[
+\frac16=\frac{1}{2K}.
+\]
+Consequently the menu-scaled overlap condition in \(\mathrm{def{:}law\text{-}class}\) holds on every positive-mass group.  (In fact every entry is also at most \(1/2<2/3=2/K\).)  The two propensity vectors are unequal within each group, and they also differ across the two groups; hence the logging propensities are unequal.
+
+The same construction draws \(A\), conditionally on \(X\), independently of the entire vector \((Y(1),Y(2),Y(3))\).  Therefore
+\[
+(Y(1),Y(2),Y(3))\mathrel{\perp}A\mid X,
+\]
+which is the conditional-exchangeability condition appearing in \(\mathrm{def{:}law\text{-}class}\).  It then sets \(Y=Y(A)\), so the consistency condition in that definition holds almost surely.  Together with the verified overlap condition, these facts give
+\[
+P_{\mathrm{wit}}\in\mathcal M_{2,3}.
+\]
+
+For the first group, the conditional means specified by the construction obey
+\[
+\mu_{11}=\frac9{10}>\mu_{21}=\frac12>\mu_{31}=\frac15.
+\]
+Thus the unique maximizing arm at \(x=1\) is \(a=1\), and \(m_1=9/10\) by the definition of \(m_x\).  For the second group,
+\[
+\mu_{32}=\frac{41}{50}>\mu_{22}=\frac35>\mu_{12}=\frac14.
+\]
+Thus the unique maximizing arm at \(x=2\) is \(a=3\), and \(m_2=41/50\).  Finally, the identifying formula in \(\mathrm{def{:}optimal\text{-}value}\) yields
+\[
+\begin{aligned}
+V^\star(P_{\mathrm{wit}})
+  &=\sum_{x=1}^{2}p_xm_x \\
+  &=\frac12\left(\frac9{10}\right)
+    +\frac12\left(\frac{41}{50}\right) \\
+  &=\frac{45}{100}+\frac{41}{100}
+   =\frac{86}{100}
+   =\frac{43}{50}.
+\end{aligned}
+\]
+This proves every asserted property.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit law catches accidental assumptions of uniform logging or a common maximizing treatment across groups. \textit{Gap.} This is an internal specification witness rather than a novelty claim; it tests the exact scope omitted by one-group and fixed-policy analyses. \textit{Consumer.} Formalization and estimator definitions receive a concrete regression test with switching winners and legal unequal treatment probabilities.
+
+\begin{openendedquestion}[oeq:dimension-uniform-certificate]\label{oeq:dimension-uniform-certificate}
+Can one construct and evaluate \(\mathfrak J(d,K,\lambda,L)\) with absolute constants so that the full observed-cell polynomial \(Q_L\) approximates \(F_K(q)\) with controlled exact factorial covariance, while its balanced-slice reduction matches normalized dual-prior separation and weighted mixture distance uniformly in \(K\), respects the \(\sqrt K\) Boolean obstruction, and remains stable after localization over arbitrary patient-group masses and propensities satisfying only \(e_{ax}\ge1/(2K)\)? The construction must output finite coefficient tables and a terminating exact certificate routine.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the genuinely open mathematical content: uniform approximation error alone is insufficient unless the same object controls estimator variance and lower-mixture distinguishability. \textit{Gap.} JiaoVenkatHanWeissman2015, WuYang2016, and CaiLow2011 provide scalar templates, while Spalek2008 supplies only the Boolean degree obstruction; none closes their multivariate statistical combination. \textit{Consumer.} A solution closes the presently unmatched region \(2<K<d^2\) and supplies an auditable finite statistic for other sparse maxima over growing coordinate sets.
+
+\begin{openendedquestion}[oeq:joint-frontier]\label{oeq:joint-frontier}
+Derive an explicit closed-form \(r_\star(n,d,K)\), including every logarithmic, transition, and saturation branch, construct the total statistically computable estimator \(\widehat V_\star\) with the finite representation and evaluation bound in \(\mathrm{def{:}frontier\text{-}estimator\text{-}handle}\), and prove with absolute constants \(0<c<C<\infty\) that \(c r_\star(n,d,K)\le R(n,d,K)\le\sup_{P\in\mathcal M_{d,K}}E_{P^n}[(\widehat V_\star-V^\star(P))^2]\le C r_\star(n,d,K)\) for every \(n,d,K\); use the evaluated rate to characterize exactly when \(R(n,d_n,K_n)\to0\) for arbitrary dimension sequences.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The evaluated joint frontier, together with an auditable finite estimator rather than an unevaluated optimization, is the theorem-level kernel promised by the topic. \textit{Gap.} No published comparator supplies both sides of this full-class jointly growing \(d,K\) risk. The accepted \(K=2\) result is only a cited boundary condition; the new work begins with the many-arm grouping transfer and the \(K\)-uniform certificate. \textit{Consumer.} The result becomes the unrestricted attainable-value benchmark against which multi-arm causal forests and observational treatment-targeting methods can report the statistical price of expanding menus.
+
+\begin{lemma}[lem:spalek-or-approximate-degree]\label{lem:spalek-or-approximate-degree}
+For every integer \(K\geq2\), every real polynomial that uniformly approximates the signed Boolean OR function on \(\{\pm1\}^K\) with error at most \(1/14\) has total degree at least \(\sqrt K\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the published approximate-degree lower bound used by the Boolean-slice reduction. \textit{Gap.} The source supplies the Boolean degree obstruction, not the statistical reduction or a minimax theorem. \textit{Consumer.} The proof of \(\mathrm{lem{:}or\text{-}obstruction}\) converts maximum approximation into the source's signed-OR convention.
+
+\begin{lemma}[lem:haver-upper-bound-scope]\label{lem:haver-upper-bound-scope}
+\texttt{Nguyen,\allowbreak{} Barrett,\allowbreak{} and Jun deliver estimator-\allowbreak{}specific mean-\allowbreak{}squared-\allowbreak{}error upper bounds for the largest empirical mean and HAVER,\allowbreak{} including instance-\allowbreak{}dependent guarantees;\allowbreak{} they do not state a global all-\allowbreak{}estimator minimax lower bound over bounded Bernoulli arm laws.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This records only the comparator's delivery boundary needed by the one-group theorem's final literature clause. \textit{Gap.} It does not serve as a mathematical premise for the new lower bound. \textit{Consumer.} The comparative clause of \(\mathrm{thm{:}one\text{-}group\text{-}benchmark}\).
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The early Boolean check for \(K=64\) gives numerical best errors approximately \(0.784421\), \(0.500867\), and \(0.412390\) at degrees \(4\), \(7\), and \(8\), respectively. These floating-point linear programs are reconnaissance only. The rigorous content is the OR obstruction in \(\mathrm{lem{:}or\text{-}obstruction}\) and the exact lifted-variance identity in \(\mathrm{lem{:}poisson\text{-}lift\text{-}identity}\). A degree-\(L\) local lift has \(M_{2K,L}=\binom{2K+L}{L}\) coefficients in the full observed-cell representation, so the displayed evaluation routine is finite but may be exponential in \(K\) or \(L\). No polynomial-time theorem is claimed, and a proposed solution that suppresses this dependence fails the kernel.
+
+\section{Honest scope}
+
+The full joint rate \(r_\star(n,d,K)\), the attaining estimator \(\widehat V_\star\), and the exact consistency boundary are open objects isolated in \(\mathrm{oeq{:}joint\text{-}frontier}\). The proof obligations retained in the core are the lower-overlap full-class empirical upper bound, the centered-winner lower envelope, the matched region \(K\ge d^2\), the one-group benchmark, and the binary-to-many-arm transfer. The accepted \(K=2\) frontier and standard causal identification are cited boundary conditions, not originality or solve targets. Total statistical computability is required through a finite coefficient table, exact certificate generation, and the displayed dense evaluation bound; polynomial-time computation is not claimed. The paper does not claim inference for a learned policy, a budget curve, sharp leading constants, or honest confidence intervals. The \(d=2,K=3\) witness verifies that unequal logging and switching maximizing arms remain inside the enlarged lower-overlap-only class.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LuedtkeVanderLaan2016} Luedtke, A. R. and M. J. van der Laan (2016). Statistical Inference for the Mean Outcome under a Possibly Non-Unique Optimal Treatment Strategy. Annals of Statistics 44(2):713--742. doi:10.1214/15-AOS1384; arXiv:1603.07573.
+
+  \bibitem{LuedtkeVanderLaan2018} Luedtke, A. R. and M. J. van der Laan (2018). Parametric-Rate Inference for One-Sided Differentiable Parameters. Journal of the American Statistical Association 113(522):780--788. doi:10.1080/01621459.2017.1285777; arXiv:1605.07657.
+
+  \bibitem{NguyenBarrettJun2025HAVER} Nguyen, T. N., J. Barrett, and K.-S. Jun (2025). HAVER: Instance-Dependent Error Bounds for Maximum Mean Estimation and Applications to Q-Learning and Monte Carlo Tree Search. Proceedings of AISTATS, PMLR 258; arXiv:2411.00405.
+
+  \bibitem{JiaoVenkatHanWeissman2015} Jiao, J., K. Venkat, Y. Han, and T. Weissman (2015). Minimax Estimation of Functionals of Discrete Distributions. IEEE Transactions on Information Theory 61(5):2835--2885. doi:10.1109/TIT.2015.2412945; arXiv:1406.6956.
+
+  \bibitem{WuYang2016} Wu, Y. and P. Yang (2016). Minimax Rates of Entropy Estimation on Large Alphabets via Best Polynomial Approximation. IEEE Transactions on Information Theory 62(6):3702--3720. doi:10.1109/TIT.2016.2548468; arXiv:1407.0381.
+
+  \bibitem{CaiLow2011} Cai, T. T. and M. G. Low (2011). Testing Composite Hypotheses, Hermite Polynomials and Optimal Estimation of a Nonsmooth Functional. Annals of Statistics 39(2):1012--1041. doi:10.1214/10-AOS849; arXiv:1105.3039.
+
+  \bibitem{Spalek2008} Spalek, R. (2008). A Dual Polynomial for OR. arXiv:0803.4516.
+
+  \bibitem{WhitehouseAusternSyrgkanis2025} Whitehouse, J., M. Austern, and V. Syrgkanis (2025). Inference on Optimal Policy Values and Other Irregular Functionals via Smoothing. arXiv:2507.11780v1. The current arXiv v2, posted in 2026, adds Q. Chen as a coauthor and retitles the manuscript Inference on Optimal Policy Values and Other Irregular Functionals via Softmax Smoothing.
+
+  \bibitem{ZhouAtheyWager2023} Zhou, Z., S. Athey, and S. Wager (2023). Offline Multi-Action Policy Learning: Generalization and Optimization. Operations Research 71(1):148--183. doi:10.1287/opre.2022.2271; arXiv:1810.04778.
+
+  \bibitem{WangAgarwalDudik2017} Wang, Y.-X., A. Agarwal, and M. Dudik (2017). Optimal and Adaptive Off-Policy Evaluation in Contextual Bandits. Proceedings of ICML, PMLR 70:3589--3597; arXiv:1612.01205.
+
+  \bibitem{KallusSaitoUehara2021} Kallus, N., Y. Saito, and M. Uehara (2021). Optimal Off-Policy Evaluation from Multiple Logging Policies. Proceedings of ICML, PMLR 139:5247--5256; arXiv:2010.11002.
+
+  \bibitem{AudibertTsybakov2007} Audibert, J.-Y. and A. B. Tsybakov (2007). Fast Learning Rates for Plug-In Classifiers. Annals of Statistics 35(2):608--633. doi:10.1214/009053606000001217.
+
+  \bibitem{CaiLow2004Confidence} Cai, T. T. and M. G. Low (2004). An Adaptation Theory for Nonparametric Confidence Intervals. Annals of Statistics 32(5):1805--1840. doi:10.1214/009053604000000049.
+
+  \bibitem{HiranoPorter2012} Hirano, K. and J. R. Porter (2012). Impossibility Results for Nondifferentiable Functionals. Econometrica 80(4):1769--1790. doi:10.3982/ECTA8681.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,1408 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}extreme\_\allowbreak{}policy\_\allowbreak{}tail\_\allowbreak{}mixture\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Capacity-constrained treatment choice at a beyond-sample loss quantile is governed by the inverse of a selected heterogeneous survival mixture. The coordinatewise benchmark is minimax-sharp throughout the familywise phase \(A_{n,m,\tau}\ge[\log(2m)]^{1-\varkappa}\), including saturation. It is also sharp, at order \(\ell\), in the strict sub-familywise region where \(A_{n,m,\tau}[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}]\ge\ell\); every \(N<1\) case satisfying the sub-familywise inequality lies there. Only the unsaturated strict sub-familywise region retains a selected-mixture regret gap. The simultaneous-inference width converse and exact shrinking criterion remain a separate open question.
+
+\section{Project justification}
+
+\paragraph{Gap.} Published fixed-level quantile-policy methods do not address extrapolated Hall tails. One-tail Hall theory supplies the translated coordinatewise benchmark, which is proved unavoidable both in the familywise phase and on the saturated strict sub-familywise subset, but neither it nor regular policy-learning theory supplies the capacity-aware oracle inequality needed in the remaining unsaturated region.
+
+\paragraph{Niche.} For each fixed even cell count, randomization identifies every policy mixture and capacity optimization is computable by sorting. Heterogeneous indices, local ties, empty observed cells, and growing mixture mass remain in the model; the paired-splice argument handles unrestricted reallocation and, together with the new saturation corollary, isolates the unsaturated strict sub-familywise region where selected-mixture averaging could improve on familywise estimation.
+
+\paragraph{Fill.} The note proves the generic full-class regret sandwich, the exact two-cell frontier, a multiscale paired-splice lower envelope, and the matched coordinatewise frontier in two regions: the familywise phase and the saturated strict sub-familywise phase. It proves that every \(N<1\) sub-familywise case belongs to the latter and that every vanishing-regret sequence remains asymptotically separated from the regular additive-policy benchmark. The only remaining regret problem is the exact upper frontier in the unsaturated strict sub-familywise region; confidence-width optimality remains separate.
+
+\section{Related work}
+
+CarpentierKim2015 is one-tail statistical substrate, not a capacity-policy theorem. Each conditional tail in this note is a compact translated slice of its one-tail Hall class after the parameter conversion \(\beta_{\mathrm{CK}}=\beta/\alpha\), while the full randomized causal experiment couples \(2m\) such tails through a stricter product construction. The present paired-splice converse and coordinatewise upper bound prove equivalence to the translated coordinatewise benchmark in the familywise phase and, by saturation, on a strict sub-familywise subset; in the remaining unsaturated region, CarpentierKim2015 supplies no selected-mixture oracle inequality. A paired-splice converse transfers upward only to an explicitly defined superclass containing every constructed full-data law; an upper bound must be rechecked on that superclass and does not transfer from the splice. AtheyWager2021 and KitagawaTetenov2018 concern regular additive welfare, and the proved implication \(\mathcal R/\mathcal B_{\mathrm{AW}}\to\infty\) on every vanishing-regret sequence shows that their \(\sqrt{m/n}\)-type scale is not the extreme-tail frontier. WangZhouSongSherwood2018 and XiaZhangKong2026 occupy fixed-level quantile-policy identification or learning. OsamaZachariahStoica2020 supplies the non-nested marginal upper-cost-quantile consumer objective; it is neither a class-inclusion statement nor a rate engine for this Hall experiment. Its support-based conformal limit motivates the extrapolation question but does not establish the answer. Predetermined heterogeneous-tail pooling, scalar tail intervals, and fixed-pair extreme-treatment inference likewise do not resolve selection among capacity-constrained mixtures.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(V^*_{P,\tau}=\min_{\pi\in\Pi_m}Q_{1-\tau}\{L(\pi(X))\}\).
+Primary functional / estimator / diagnostic: \(V_{P,\tau}(\pi)=\inf\{y\ge1:m^{-1}\sum_{x=1}^mS_{x,\pi(x)}(y)\le\tau\},\quad \mathcal R(n,m,\tau)=\inf_{\widehat\pi}\sup_P \mathbb E_{P,n}\log\{V_{P,\tau}(\widehat\pi)/V^*_{P,\tau}\}\).
+\begin{itemize}
+  \item \(\beta\) --- \texttt{known second-\allowbreak{}order tail exponent}; \((0,\infty)\); \texttt{regularity parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed exponent controlling the Hall remainder.}
+  \item \(D\) --- \texttt{known Hall-\allowbreak{}envelope radius}; \((0,1/4]\); \texttt{regularity parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed uniform radius of the second-\allowbreak{}order tail envelope.}
+  \item \(n\) --- \texttt{sample size}; \(\{2,3,\ldots\}\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independent randomized records.}
+  \item \(m\) --- \texttt{number of covariate cells}; \(2\mathbb N\); \texttt{complexity parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Even number of equally likely covariate cells.}
+  \item \(\tau\) --- \texttt{tail probability}; \((0,1/(8n)]\); \texttt{extremeness parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Exceedance probability defining the target extreme quantile.}
+  \item \(\gamma_0\) --- \texttt{simultaneous noncoverage level}; \(\{0.05\}\); \texttt{confidence level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nominal familywise noncoverage probability.}
+  \item \(\mathcal X_m\) --- \texttt{covariate-\allowbreak{}cell space}; \texttt{finite sets}; \texttt{covariate space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X_m:=\{1,\ldots,m\}\).
+  \item \(X\) --- \texttt{cell-\allowbreak{}valued covariate}; \(\mathcal X_m\); \texttt{observed covariate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed pretreatment cell label.}
+  \item \(A\) --- \texttt{binary treatment}; \(\{0,1\}\); \texttt{treatment}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed randomized treatment assignment.}
+  \item \(L(0)\) --- \texttt{control potential loss}; \([1,\infty)\); \texttt{potential outcome}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential loss under control.}
+  \item \(L(1)\) --- \texttt{treated potential loss}; \([1,\infty)\); \texttt{potential outcome}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential loss under treatment.}
+  \item \(L\) --- \texttt{observed loss}; \([1,\infty)\); \texttt{observed outcome}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed realized loss recorded in the randomized experiment.}
+  \item \(P\) --- \texttt{one-\allowbreak{}record full-\allowbreak{}data law for a fixed cell count}; probability laws on \(\mathcal X_m\times\{0,1\}\times[1,\infty)^3\); \texttt{data-\allowbreak{}generating law}
+  \par\smallskip\noindent\emph{Definition.} For one fixed even \(m\), the joint law of \(X,A,L(0),L(1),L\).
+  \item \(P_m^{\mathrm{Par}}\) --- \texttt{explicit Pareto full-\allowbreak{}data law}; probability laws on \(\mathcal X_m\times\{0,1\}\times[1,\infty)^3\); \texttt{nonemptiness witness}
+  \par\smallskip\noindent\emph{Definition.} For fixed even \(m\), \(X\) is uniform on \(\mathcal X_m\), \(A\) is conditionally independent Bernoulli\((1/2)\), \(L(0)\) and \(L(1)\) are conditionally independent with survival \(y^{-2}\) for \(y\ge1\), and \(L=L(A)\).
+  \item \(\mathsf O_n\) --- \texttt{observed sample}; \((\mathcal X_m\times\{0,1\}\times[1,\infty))^n\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf O_n:=((X_i,A_i,L_i))_{i=1}^n\).
+  \item \(\mathbb P_{P,n}\) --- observed \(n\)-sample experiment; probability laws on \((\mathcal X_m\times\{0,1\}\times[1,\infty))^n\); \texttt{sampling experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P_{P,n}:=\{P\circ(X,A,L)^{-1}\}^{\otimes n}\), the \(n\)-fold product of the observed marginal of the fixed-\(m\) one-record law \(P\).
+  \item \(\mathbb E_{P,n}\) --- \texttt{expectation in the observed experiment}; \texttt{risk expectation}
+  \par\smallskip\noindent\emph{Definition.} Expectation under \(\mathbb P_{P,n}\) and any independent auxiliary randomization used by a learner.
+  \item \(S_{xa}\) --- \texttt{conditional survival function}; \(S_{xa}(y):=P\{L(a)>y\mid X=x\}\); \texttt{primitive tail functional}
+  \par\smallskip\noindent\emph{Definition.} Conditional potential-loss survival in cell \(x\) and arm \(a\).
+  \item \(\alpha_{xa}\) --- \texttt{cell-\allowbreak{}arm Pareto exponent}; \([1,4]\); \texttt{tail-\allowbreak{}index parameter}
+  \par\smallskip\noindent\emph{Definition.} Leading power exponent of \(S_{xa}\).
+  \item \(c_{xa}\) --- \texttt{cell-\allowbreak{}arm tail scale}; \([1/2,1]\); \texttt{tail-\allowbreak{}scale parameter}
+  \par\smallskip\noindent\emph{Definition.} Leading scale coefficient of \(S_{xa}\).
+  \item \(r_{xa}\) --- \texttt{cell-\allowbreak{}arm Hall remainder}; \(r_{xa}:[1,\infty)\to\mathbb R\); \texttt{tail remainder}
+  \par\smallskip\noindent\emph{Definition.} \(r_{xa}(y):=S_{xa}(y)/(c_{xa}y^{-\alpha_{xa}})-1\).
+  \item \(\mathcal H_{\beta,D}(m)\) --- \texttt{heterogeneous randomized Hall experiment class}; \texttt{sets of probability laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}hall\text{-}class}\).
+  \item \(\Pi_m\) --- \texttt{capacity-\allowbreak{}constrained policy class}; subsets of \(\{0,1\}^{\mathcal X_m}\); \texttt{decision class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}policy\text{-}class}\).
+  \item \(\pi\) --- \texttt{deterministic treatment policy}; \(\Pi_m\); \texttt{policy}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A feasible map from covariate cells to treatments.}
+  \item \(\pi_0\) --- \texttt{all-\allowbreak{}control policy}; \(\Pi_m\); \texttt{total fallback policy}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_0(x):=0\) for every \(x\in\mathcal X_m\).
+  \item \(S_P^{\pi}\) --- \texttt{policy-\allowbreak{}mixture survival function}; \(S_P^{\pi}:[1,\infty)\to[0,1]\); \texttt{identified policy distribution}
+  \par\smallskip\noindent\emph{Definition.} \(S_P^{\pi}(y):=m^{-1}\sum_{x=1}^m S_{x,\pi(x)}(y)\).
+  \item \(Q_q\) --- \texttt{generalized quantile operator}; \(Q_q(Y):=\inf\{y:F_Y(y)\ge q\}\); \texttt{quantile operator}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Left-\allowbreak{}continuous generalized inverse of a distribution function.}
+  \item \(V_{P,\tau}(\pi)\) --- \texttt{policy extreme-\allowbreak{}loss value}; \([1,\infty)\); \texttt{causal policy value}
+  \par\smallskip\noindent\emph{Definition.} \(V_{P,\tau}(\pi):=Q_{1-\tau}\{L(\pi(X))\}\).
+  \item \(V^*_{P,\tau}\) --- \texttt{oracle capacity-\allowbreak{}constrained value}; \([1,\infty)\); \texttt{oracle benchmark}
+  \par\smallskip\noindent\emph{Definition.} \(V^*_{P,\tau}:=\min_{\pi\in\Pi_m}V_{P,\tau}(\pi)\).
+  \item \(\mathfrak A_{n,m}\) --- \texttt{class of measurable randomized learners}; Markov kernels from the observed sample space to \(\Pi_m\); \texttt{decision procedures}
+  \par\smallskip\noindent\emph{Definition.} All measurable procedures that may randomize after observing \(\mathsf O_n\).
+  \item \(\widehat\pi\) --- \texttt{learned policy}; \(\mathfrak A_{n,m}\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} A measurable possibly randomized function of \(\mathsf O_n\) taking values in \(\Pi_m\).
+  \item \(\ell\) --- \texttt{extrapolation depth}; \((0,\infty)\); \texttt{derived regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\ell:=\log(1/\tau)\).
+  \item \(N\) --- \texttt{average observations per covariate cell}; \((0,\infty)\); \texttt{effective sample size}
+  \par\smallskip\noindent\emph{Definition.} \(N:=n/m\).
+  \item \(d_{\beta,D}\) --- \texttt{paired-\allowbreak{}splice amplitude constant}; \((0,1)\); \texttt{lower-\allowbreak{}bound calibration}
+  \par\smallskip\noindent\emph{Definition.} \(d_{\beta,D}:=\min\{D/8,\beta,1\}/16\).
+  \item \(T^{\mathrm{lb}}_{n,m}\) --- \texttt{paired-\allowbreak{}splice threshold}; \([1,\infty)\); \texttt{lower-\allowbreak{}bound threshold}
+  \par\smallskip\noindent\emph{Definition.} \(T^{\mathrm{lb}}_{n,m}:=\max\{1,N^{1/(2\beta+4)}\}\).
+  \item \(\delta_{n,m}\) --- \texttt{paired-\allowbreak{}splice tail-\allowbreak{}index perturbation}; \((0,1)\); \texttt{lower-\allowbreak{}bound separation}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_{n,m}:=d_{\beta,D}(T^{\mathrm{lb}}_{n,m})^{-\beta}\).
+  \item \(S^{(0)}_{n,m}\) --- \texttt{baseline Pareto survival}; \(S^{(0)}_{n,m}:[1,\infty)\to[0,1]\); \texttt{lower-\allowbreak{}bound baseline}
+  \par\smallskip\noindent\emph{Definition.} \(S^{(0)}_{n,m}(y):=(3/4)y^{-4}\).
+  \item \(S^{(1)}_{n,m}\) --- \texttt{spliced heavier survival}; \(S^{(1)}_{n,m}:[1,\infty)\to[0,1]\); \texttt{lower-\allowbreak{}bound alternative}
+  \par\smallskip\noindent\emph{Definition.} \(S^{(1)}_{n,m}(y):=S^{(0)}_{n,m}(y)\) for \(1\le y\le T^{\mathrm{lb}}_{n,m}\), and \(S^{(1)}_{n,m}(y):=(3/4)(T^{\mathrm{lb}}_{n,m})^{-\delta_{n,m}}y^{-(4-\delta_{n,m})}\) for \(y>T^{\mathrm{lb}}_{n,m}\).
+  \item \(\Omega_m\) --- \texttt{paired-\allowbreak{}cell hypercube}; \texttt{finite sign vectors}; \texttt{lower-\allowbreak{}bound index set}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_m:=\{-1,+1\}^{m/2}\).
+  \item \(\omega\) --- \texttt{paired-\allowbreak{}cell sign vector}; \(\Omega_m\); \texttt{lower-\allowbreak{}bound index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{An index of the paired-\allowbreak{}splice experiment.}
+  \item \(P^{\mathrm{lb}}_{\omega}\) --- \texttt{paired-\allowbreak{}splice full-\allowbreak{}data law}; probability laws on \(\mathcal X_m\times\{0,1\}\times[1,\infty)^3\); \texttt{inference lower-\allowbreak{}bound family}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The law constructed by the paired-\allowbreak{}cell Assouad-\allowbreak{}-\allowbreak{}Fano confidence-\allowbreak{}width handle.}
+  \item \(\pi^{\mathrm{lb}}_{\omega}\) --- \texttt{sign-\allowbreak{}indexed capacity policy}; \(\Pi_m\); \texttt{policy-\allowbreak{}mixture separator}
+  \par\smallskip\noindent\emph{Definition.} The policy that treats cell \(2j-1\) when \(\omega_j=+1\) and cell \(2j\) when \(\omega_j=-1\), for every \(j\le m/2\).
+  \item \(\varkappa\) --- \texttt{Hall testing exponent}; \((0,1/2)\); \texttt{derived rate exponent}
+  \par\smallskip\noindent\emph{Definition.} \(\varkappa:=\beta/(2\beta+4)\).
+  \item \(C_{\beta}\) --- \texttt{uniform Hall-\allowbreak{}core inversion constant}; \((0,\infty)\); \texttt{deterministic approximation constant}
+  \par\smallskip\noindent\emph{Definition.} A finite constant depending only on \(\beta\).
+  \item \(c_{\beta,D}\) --- \texttt{minimax lower-\allowbreak{}bound constant}; \((0,\infty)\); \texttt{rate constant}
+  \par\smallskip\noindent\emph{Definition.} A positive constant depending only on \(\beta\) and \(D\).
+  \item \(C_{\beta,D}\) --- \texttt{minimax upper-\allowbreak{}bound constant}; \((0,\infty)\); \texttt{rate constant}
+  \par\smallskip\noindent\emph{Definition.} A finite constant depending only on \(\beta\) and \(D\).
+  \item \(s\) --- \texttt{number of heavy components in the two-\allowbreak{}group Pareto core}; \(\{1,\ldots,m\}\); \texttt{local-\allowbreak{}dominance regime index}
+  \item \(a\) --- \texttt{heavy-\allowbreak{}component Pareto exponent in the two-\allowbreak{}group core}; \([1,4)\); \texttt{local-\allowbreak{}dominance regime index}
+  \item \(f\) --- \texttt{heavy-\allowbreak{}component population fraction}; \((0,1]\); \texttt{local-\allowbreak{}dominance regime index}
+  \par\smallskip\noindent\emph{Definition.} \(f:=s/m\).
+  \item \(\lambda\) --- \texttt{local-\allowbreak{}dominance index}; \((0,\infty)\); \texttt{sparse-\allowbreak{}to-\allowbreak{}collective transition parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda:=f\tau^{-(1-a/4)}\).
+  \item \(\bar t\) --- \texttt{log quantile of the two-\allowbreak{}group Pareto core}; \(\mathbb R\); \texttt{local-\allowbreak{}dominance inverse}
+  \item \(u\) --- \texttt{centered two-\allowbreak{}group log quantile}; \(\mathbb R\); \texttt{local-\allowbreak{}dominance displacement}
+  \par\smallskip\noindent\emph{Definition.} \(u:=\bar t-\ell/4\).
+  \item \(\lambda_0\) --- \texttt{finite positive local-\allowbreak{}dominance limit}; \((0,\infty)\); \texttt{boundary-\allowbreak{}regime index}
+  \item \(\mathcal R(n,m,\tau)\) --- \texttt{minimax expected logarithmic policy regret}; \([0,\infty)\); \texttt{headline risk}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R(n,m,\tau):=\inf_{\widehat\pi\in\mathfrak A_{n,m}}\sup_{P\in\mathcal H_{\beta,D}(m)}\mathbb E_{P,n}[\log\{V_{P,\tau}(\widehat\pi)/V^*_{P,\tau}\}]\).
+  \item \(\mathcal B_{\mathrm{CK}}(n,m,\tau)\) --- \texttt{coordinatewise Hall plug-\allowbreak{}in benchmark}; \([0,\infty)\); \texttt{regret comparator}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_{\mathrm{CK}}(n,m,\tau):=\ell\min\{1,[m\log(2m)/n]^{\varkappa}\}\), the familywise coordinatewise known-envelope benchmark obtained from the tail-event bias--variance method of Carpentier and Kim (2015) after translating their relative second-order parameter to the present absolute remainder exponent.
+  \item \(\mathcal B_{\mathrm{AW}}(n,m)\) --- \texttt{regular-\allowbreak{}policy complexity benchmark}; \([0,1]\); \texttt{regret comparator}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_{\mathrm{AW}}(n,m):=\min\{1,\sqrt{m/n}\}\), the cell-policy complexity scale corresponding to the regular additive-welfare benchmark of Athey and Wager (2021).
+  \item \(M_P^{\pi}\) --- \texttt{Pareto-\allowbreak{}core policy survival on log scale}; \(M_P^{\pi}:\mathbb R\to(0,\infty)\); \texttt{tail-\allowbreak{}mixture core}
+  \par\smallskip\noindent\emph{Definition.} \(M_P^{\pi}(t):=m^{-1}\sum_{x=1}^m c_{x,\pi(x)}\exp\{-\alpha_{x,\pi(x)}t\}\).
+  \item \(\bar t_P^{\pi}\) --- \texttt{Pareto-\allowbreak{}core log quantile}; \(\mathbb R\); \texttt{core inverse}
+  \par\smallskip\noindent\emph{Definition.} Unique solution of \(M_P^{\pi}(\bar t_P^{\pi})=\tau\).
+  \item \(\Delta_x(y)\) --- \texttt{cellwise survival contrast}; \([-1,1]\); \texttt{sorting score}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_x(y):=S_{x1}(y)-S_{x0}(y)\).
+  \item \(B_P(y)\) --- \texttt{lexicographically selected capacity set}; \(\{B\subseteq\mathcal X_m:|B|\le m/2\}\); \texttt{pointwise capacity optimizer}
+  \par\smallskip\noindent\emph{Definition.} \(B_P(y):=\operatorname{lexmin}\arg\min_{B\subseteq\mathcal X_m,\,|B|\le m/2}\sum_{x\in B}\Delta_x(y)\).
+  \item \(K_{xa}(z)\) --- \texttt{cell-\allowbreak{}arm exceedance count}; \(\{0,\ldots,n\}\); \texttt{raw tail statistic}
+  \par\smallskip\noindent\emph{Definition.} \(K_{xa}(z):=\sum_{i=1}^n\mathbf 1\{X_i=x,A_i=a,L_i>z\}\).
+  \item \(b_{\beta,D}\) --- \texttt{fixed learner fallback constant}; \([1,\infty)\); \texttt{small-\allowbreak{}cell threshold}
+  \par\smallskip\noindent\emph{Definition.} \(b_{\beta,D}:=2^{20}(1+\beta+\beta^{-1})^2(1-D)^{-2}\).
+  \item \(T_{n,m}\) --- \texttt{learner Hall threshold}; \([1,\infty)\); \texttt{tail-\allowbreak{}estimation threshold}
+  \par\smallskip\noindent\emph{Definition.} \(T_{n,m}:=\{N/\log(2m)\}^{1/(2\beta+4)}\) on \(N\ge b_{\beta,D}\log(2m)\), and \(T_{n,m}:=1\) otherwise.
+  \item \(\operatorname{clip}_{[u,v]}\) --- \texttt{closed-\allowbreak{}interval clipping operator}; \(\operatorname{clip}_{[u,v]}(z):=\min\{v,\max\{u,z\}\}\); \texttt{total parameter projection}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Metric projection of a real number onto a closed interval.}
+  \item \(\widehat S_{xa}(z)\) --- \texttt{pseudocount cell-\allowbreak{}arm survival estimate}; \((0,1]\); \texttt{total raw-\allowbreak{}tail estimate}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat S_{xa}(z):=\min\{1,(2m/n)[K_{xa}(z)+1]\}\).
+  \item \(\widehat\alpha_{xa}\) --- \texttt{clipped two-\allowbreak{}threshold tail-\allowbreak{}index estimate}; \([1,4]\); \texttt{learner tail-\allowbreak{}index estimate}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\alpha_{xa}:=\operatorname{clip}_{[1,4]}\{\log\widehat S_{xa}(T_{n,m})-\log\widehat S_{xa}(eT_{n,m})\}\).
+  \item \(\widehat c_{xa}\) --- \texttt{clipped tail-\allowbreak{}scale estimate}; \([1/2,1]\); \texttt{learner tail-\allowbreak{}scale estimate}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat c_{xa}:=\exp[\operatorname{clip}_{[-\log2,0]}\{\log\widehat S_{xa}(T_{n,m})+\widehat\alpha_{xa}\log T_{n,m}\}]\).
+  \item \(\widehat M^{\pi}(t)\) --- \texttt{estimated policy Pareto-\allowbreak{}core survival}; \(\widehat M^{\pi}:\mathbb R\to(0,\infty)\); \texttt{estimated policy tail mixture}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat M^{\pi}(t):=m^{-1}\sum_{x=1}^m\widehat c_{x,\pi(x)}\exp\{-\widehat\alpha_{x,\pi(x)}t\}\).
+  \item \(\widehat t^{\pi}\) --- \texttt{estimated policy core log quantile}; \(\mathbb R\); \texttt{estimated inverse tail mixture}
+  \par\smallskip\noindent\emph{Definition.} The unique solution of \(\widehat M^{\pi}(\widehat t^{\pi})=\tau\).
+  \item \(T^{\mathrm{ci}}_{n,m}\) --- \texttt{confidence-\allowbreak{}system Hall threshold}; \([1,\infty)\); \texttt{inference threshold}
+  \par\smallskip\noindent\emph{Definition.} \(T^{\mathrm{ci}}_{n,m}:=\{N/\log(40m)\}^{1/(2\beta+4)}\) on \(N\ge b_{\beta,D}\log(40m)\), and \(T^{\mathrm{ci}}_{n,m}:=1\) otherwise.
+  \item \(\operatorname{CP}_{\rho}(k;n)\) --- \texttt{two-\allowbreak{}sided exact binomial confidence interval}; \texttt{closed subintervals of ([0,\allowbreak{}1])}; \texttt{exact count inversion}
+  \par\smallskip\noindent\emph{Definition.} The lower endpoint is \(0\) for \(k=0\), otherwise the solution \(p\) of \(P\{\operatorname{Bin}(n,p)\ge k\}=\rho/2\); the upper endpoint is \(1\) for \(k=n\), otherwise the solution \(p\) of \(P\{\operatorname{Bin}(n,p)\le k\}=\rho/2\).
+  \item \(J_{xa}(z)\) --- \texttt{simultaneous cell-\allowbreak{}arm survival interval}; nonempty closed subintervals of \([0,1]\); \texttt{bias-\allowbreak{}free survival confidence input with singleton off-\allowbreak{}coverage totalization}
+  \par\smallskip\noindent\emph{Definition.} For \(z\in\{T^{\mathrm{ci}}_{n,m},eT^{\mathrm{ci}}_{n,m}\}\), set \(J_{xa}(z)=[0,1]\cap 2m\operatorname{CP}_{\gamma_0/(4m)}\{K_{xa}(z);n\}\) when this intersection is nonempty, and set \(J_{xa}(z)=\{0\}\) otherwise.
+  \item \(\underline S_{xa}(z)\) --- \texttt{lower simultaneous survival endpoint}; \([0,1]\); \texttt{lower survival confidence bound}
+  \par\smallskip\noindent\emph{Definition.} The lower endpoint of \(J_{xa}(z)\).
+  \item \(\overline S_{xa}(z)\) --- \texttt{upper simultaneous survival endpoint}; \([0,1]\); \texttt{upper survival confidence bound}
+  \par\smallskip\noindent\emph{Definition.} The upper endpoint of \(J_{xa}(z)\).
+  \item \(\Theta_{xa}\) --- \texttt{cell-\allowbreak{}arm Hall-\allowbreak{}core confidence region}; subsets of \( [1,4]\times[-\log2,0] \); \texttt{bias-\allowbreak{}aware parameter region with zero-\allowbreak{}width off-\allowbreak{}coverage totalization}
+  \par\smallskip\noindent\emph{Definition.} Let \(\Theta^\circ_{xa}\) be the set of \((\alpha,v)\in[1,4]\times[-\log2,0]\) satisfying \(\log\underline S_{xa}(z)-\log(1+Dz^{-\beta})\le v-\alpha\log z\le\log\overline S_{xa}(z)-\log(1-Dz^{-\beta})\) at both \(z=T^{\mathrm{ci}}_{n,m}\) and \(z=eT^{\mathrm{ci}}_{n,m}\), with \(\log0=-\infty\). Set \(\Theta_{xa}=\Theta^\circ_{xa}\) when the raw region is nonempty, and set \(\Theta_{xa}=\{(1,-\log2)\}\) otherwise.
+  \item \(\varepsilon_{\tau}\) --- \texttt{Hall-\allowbreak{}core inversion allowance}; \((0,\infty)\); \texttt{confidence bias allowance}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_{\tau}:=C_{\beta}D\tau^{\beta/4}\).
+  \item \(G_{\tau}\) --- \texttt{global Hall log-\allowbreak{}quantile interval}; \texttt{closed intervals in (mathbb R)}; \texttt{total inference fallback}
+  \par\smallskip\noindent\emph{Definition.} \(G_{\tau}:=[\{\ell+\log((1-D)/2)\}/4,\,\ell+\log(1+D)]\).
+  \item \(\underline t_{\pi}\) --- \texttt{lower feasible core log quantile}; \(\mathbb R\); \texttt{lower core endpoint}
+  \par\smallskip\noindent\emph{Definition.} The minimum, over \((\widetilde\alpha_x,\widetilde v_x)\in\Theta_{x,\pi(x)}\) for all \(x\), of the unique root of \(m^{-1}\sum_x\exp(\widetilde v_x-\widetilde\alpha_xt)=\tau\).
+  \item \(\overline t_{\pi}\) --- \texttt{upper feasible core log quantile}; \(\mathbb R\); \texttt{upper core endpoint}
+  \par\smallskip\noindent\emph{Definition.} The maximum over the same product region used for \(\underline t_{\pi}\) of the unique root of \(m^{-1}\sum_x\exp(\widetilde v_x-\widetilde\alpha_xt)=\tau\).
+  \item \(\widehat\pi_{\mathrm{tail}}\) --- \texttt{total capacity-\allowbreak{}constrained tail learner}; \(\mathfrak A_{n,m}\); \texttt{attaining procedure}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\pi_{\mathrm{tail}}:=\pi_0\) on \(N<b_{\beta,D}\log(2m)\); otherwise it is the lexicographically first minimizer of \(\widehat t^{\pi}\) over \(\pi\in\Pi_m\).
+  \item \(I_{\pi}\) --- \texttt{confidence interval for a log policy value}; closed intervals in \(\mathbb R\); \texttt{inference output with zero-\allowbreak{}width off-\allowbreak{}coverage totalization}
+  \par\smallskip\noindent\emph{Definition.} On \(N<b_{\beta,D}\log(40m)\), set \(I_{\pi}=G_{\tau}\). Otherwise put \(J^*_{\pi}=[\underline t_{\pi}-\varepsilon_{\tau},\overline t_{\pi}+\varepsilon_{\tau}]\). If \(J^*_{\pi}\cap G_{\tau}\) is nonempty, set \(I_{\pi}=J^*_{\pi}\cap G_{\tau}\); otherwise set \(I_{\pi}\) to the singleton containing the metric projection of the midpoint of \(J^*_{\pi}\) onto \(G_{\tau}\).
+  \item \(W_{n,m,\tau}\) --- \texttt{maximal simultaneous log-\allowbreak{}width}; \([0,\infty)\); \texttt{inference frontier target}
+  \par\smallskip\noindent\emph{Definition.} \(W_{n,m,\tau}:=\max_{\pi\in\Pi_m}\operatorname{length}(I_{\pi})\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(\mathsf O_n\sim\mathbb P_{P,n}\).
+\par\smallskip\noindent\emph{Standard} (Independent superpopulation sampling, \cite{AtheyWager2021}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-cells]\label{ass:uniform-cells}
+\(P(X=x)=1/m\) for every \(x\in\mathcal X_m\).
+\par\smallskip\noindent\emph{Standard} (Known finite-stratum probabilities, \cite{KitagawaTetenov2018}).
+\end{assumption}
+
+\begin{assumption}[ass:treatment-probability]\label{ass:treatment-probability}
+\(P(A=1\mid X)=1/2\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Known randomized treatment probability, \cite{AtheyWager2021}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-randomization]\label{ass:conditional-randomization}
+\(A\perp(L(0),L(1))\mid X\).
+\par\smallskip\noindent\emph{Standard} (Conditional randomized treatment assignment, \cite{AtheyWager2021}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(L=L(A)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{AtheyWager2021}).
+\end{assumption}
+
+\begin{assumption}[ass:hall-envelope]\label{ass:hall-envelope}
+\(\sup_{x\in\mathcal X_m,\,a\in\{0,1\},\,y\ge1}y^{\beta}|r_{xa}(y)|\le D\).
+\par\smallskip\noindent\emph{Standard} (Uniform second-order Pareto envelope with absolute remainder exponent, \cite{Hall1982}).
+\end{assumption}
+
+\begin{assumption}[ass:index-range]\label{ass:index-range}
+\(1\le\alpha_{xa}\le4\) for every \(x\in\mathcal X_m\) and \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Compact tail-index parameter space, \cite{CarpentierKim2015}).
+\end{assumption}
+
+\begin{assumption}[ass:scale-range]\label{ass:scale-range}
+\(1/2\le c_{xa}\le1\) for every \(x\in\mathcal X_m\) and \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Compact Pareto-scale normalization, \cite{CarpentierKim2015}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:hall-class]\label{def:hall-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal H_{\beta,D}(m)\)
+\par\smallskip\noindent\emph{Construction.} For each fixed even \(m\ge2\), \(\mathcal H_{\beta,D}(m):=\{P:\;\mathrm{ass{:}uniform\text{-}cells},\mathrm{ass{:}treatment\text{-}probability},\mathrm{ass{:}conditional\text{-}randomization},\mathrm{ass{:}consistency},\mathrm{ass{:}hall\text{-}envelope},\mathrm{ass{:}index\text{-}range},\mathrm{ass{:}scale\text{-}range}\text{ hold for this }m\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}uniform-\allowbreak{}cells}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}probability}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}hall-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}index-\allowbreak{}range}; \texttt{ass:\allowbreak{}scale-\allowbreak{}range}.
+\end{definition}
+
+\begin{definition}[def:sample-experiment]\label{def:sample-experiment}
+\par\smallskip\noindent\emph{Defined object.} \(\mathbb P_{P,n}\)
+\par\smallskip\noindent\emph{Construction.} For a fixed even \(m\), a law \(P\in\mathcal H_{\beta,D}(m)\), and \(n\ge2\), \(\mathbb P_{P,n}:=\{P\circ(X,A,L)^{-1}\}^{\otimes n}\), and \(\mathsf O_n\) is drawn from this product experiment.
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(n\); \(m\).
+\end{definition}
+
+\begin{definition}[def:pareto-member]\label{def:pareto-member}
+\par\smallskip\noindent\emph{Defined object.} \(P_m^{\mathrm{Par}}\)
+\par\smallskip\noindent\emph{Construction.} For fixed even \(m\), draw \(X\) uniformly on \(\mathcal X_m\), draw \(A\sim\operatorname{Bernoulli}(1/2)\) independently conditional on \(X\), draw \(L(0)\) and \(L(1)\) conditionally independently with \(P_m^{\mathrm{Par}}\{L(a)>y\mid X=x\}=y^{-2}\) for every \(x,a\) and \(y\ge1\), and set \(L=L(A)\). Thus \(c_{xa}=1\), \(\alpha_{xa}=2\), and \(r_{xa}=0\).
+\par\smallskip\noindent\emph{Inputs.} \(m\).
+\end{definition}
+
+\begin{definition}[def:policy-class]\label{def:policy-class}
+\par\smallskip\noindent\emph{Defined object.} \(\Pi_m\)
+\par\smallskip\noindent\emph{Construction.} \(\Pi_m:=\{\pi:\mathcal X_m\to\{0,1\}:\sum_{x=1}^m\pi(x)\le m/2\}\).
+\par\smallskip\noindent\emph{Inputs.} \(m\); \(\mathcal X_m\).
+\end{definition}
+
+\begin{definition}[def:capacity-selector]\label{def:capacity-selector}
+\par\smallskip\noindent\emph{Defined object.} \(B_P(y)\)
+\par\smallskip\noindent\emph{Construction.} \(B_P(y):=\operatorname{lexmin}\arg\min\{\sum_{x\in B}\Delta_x(y):B\subseteq\mathcal X_m,\ |B|\le m/2\}\). Equivalently, \(B_P(y)\) contains up to \(m/2\) strictly negative contrasts, ordered from smallest upward, with lexicographic resolution of equal contrasts.
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(\Delta_x(y)\); \(m\).
+\end{definition}
+
+\begin{definition}[def:policy-value]\label{def:policy-value}
+\par\smallskip\noindent\emph{Defined object.} \(V_{P,\tau}(\pi)\)
+\par\smallskip\noindent\emph{Construction.} \(V_{P,\tau}(\pi):=\inf\{y\ge1:S_P^{\pi}(y)\le\tau\}=Q_{1-\tau}\{L(\pi(X))\}\).
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(\tau\); \(\pi\).
+\end{definition}
+
+\begin{definition}[def:minimax-regret]\label{def:minimax-regret}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal R(n,m,\tau)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R(n,m,\tau):=\inf_{\widehat\pi\in\mathfrak A_{n,m}}\sup_{P\in\mathcal H_{\beta,D}(m)}\mathbb E_{P,n}[\log\{V_{P,\tau}(\widehat\pi)/V^*_{P,\tau}\}]\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(m\); \(\tau\); \(\mathfrak A_{n,m}\); \(\mathcal H_{\beta,D}(m)\).
+\end{definition}
+
+\begin{definition}[def:coordinatewise-hall-baseline]\label{def:coordinatewise-hall-baseline}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal B_{\mathrm{CK}}(n,m,\tau)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal B_{\mathrm{CK}}(n,m,\tau):=\ell\min\{1,[m\log(2m)/n]^{\varkappa}\}\). It is the coordinatewise known-envelope Hall plug-in benchmark obtained by familywise calibration over \(2m\) cell arms before mixture inversion. Carpentier and Kim (2015) write their absolute tail remainder as order \(y^{-\alpha(1+\beta_{\mathrm{CK}})}\); the present relative envelope implies absolute order \(y^{-(\alpha+\beta)}\), so \(\beta_{\mathrm{CK}}=\beta/\alpha\) and their exponent \(\beta_{\mathrm{CK}}/(2\beta_{\mathrm{CK}}+1)\) becomes \(\beta/(2\beta+\alpha)\), whose uniform worst case on \(\alpha\in[1,4]\) is \(\varkappa=\beta/(2\beta+4)\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(m\); \(\tau\).
+\end{definition}
+
+\begin{definition}[def:regular-policy-baseline]\label{def:regular-policy-baseline}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal B_{\mathrm{AW}}(n,m)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal B_{\mathrm{AW}}(n,m):=\min\{1,\sqrt{m/n}\}\), the regular additive-policy complexity benchmark corresponding to a cell-policy class of dimension \(m\) in Athey and Wager (2021).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(m\).
+\end{definition}
+
+\begin{definition}[def:frontier-handle]\label{def:frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{paired-\allowbreak{}splice soft-\allowbreak{}loss frontier handle}
+\par\smallskip\noindent\emph{Construction.} Tensorize two-arm Hall splices across paired cells at an arbitrary admissible amplitude, retain the exact logarithmic mixture loss, condition on the pair sample counts, factor the product posterior, and compare every feasible zero-, one-, or two-cell capacity allocation with one posterior-MAP action per pair by concavity. A binomial lower-tail calculation followed by amplitude optimization gives the multiscale same-class lower envelope. Put \(A_{n,m,\tau}:=\ell\min\{1,N^{-\varkappa}\}\) and \(L_m:=\log(2m)\). Comparing that envelope with the separate coordinatewise sorting-and-inversion upper witness closes the familywise phase \(A_{n,m,\tau}\ge L_m^{1-\varkappa}\), including saturation. In the strict sub-familywise phase, the envelope and the generic upper bound also give \(\mathcal R(n,m,\tau)\asymp_{\beta,D}\ell\asymp\mathcal B_{\mathrm{CK}}(n,m,\tau)\) whenever \(A_{n,m,\tau}[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}]\ge\ell\); this includes every \(N<1\) case satisfying the sub-familywise inequality. The only unresolved region is therefore
+\[
+A_{n,m,\tau}<L_m^{1-\varkappa},
+\qquad
+A_{n,m,\tau}\left[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}\right]<\ell.
+\]
+There the construction supplies the lower rate \(A_{n,m,\tau}[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}]\), while the known coordinatewise upper witness supplies \(\min\{\ell,A_{n,m,\tau}L_m^{\varkappa}\}\); no localized selected-mixture upper witness or harder same-class lower configuration is built into this handle.
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(S_{xa}\); \(\Pi_m\); \(\tau\).
+\end{definition}
+
+\begin{definition}[def:clip-operator]\label{def:clip-operator}
+\par\smallskip\noindent\emph{Defined object.} \(\operatorname{clip}_{[u,v]}\)
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{clip}_{[u,v]}(z):=\min\{v,\max\{u,z\}\}\).
+\end{definition}
+
+\begin{definition}[def:clopper-pearson]\label{def:clopper-pearson}
+\par\smallskip\noindent\emph{Defined object.} \(\operatorname{CP}_{\rho}(k;n)\)
+\par\smallskip\noindent\emph{Construction.} For \(0<\rho<1\), its lower endpoint is \(0\) when \(k=0\) and otherwise is the unique \(p\in(0,1)\) satisfying \(P\{\operatorname{Bin}(n,p)\ge k\}=\rho/2\); its upper endpoint is \(1\) when \(k=n\) and otherwise is the unique \(p\in(0,1)\) satisfying \(P\{\operatorname{Bin}(n,p)\le k\}=\rho/2\).
+\par\smallskip\noindent\emph{Inputs.} \(n\).
+\end{definition}
+
+\begin{definition}[def:tail-learner-handle]\label{def:tail-learner-handle}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat\pi_{\mathrm{tail}}\)
+\par\smallskip\noindent\emph{Construction.} Set \(\widehat\pi_{\mathrm{tail}}=\pi_0\) if \(N<b_{\beta,D}\log(2m)\). Otherwise set \(T_{n,m}=\{N/\log(2m)\}^{1/(2\beta+4)}\), compute \(\widehat S_{xa}(z)=\min\{1,(2m/n)[K_{xa}(z)+1]\}\) at \(z=T_{n,m},eT_{n,m}\), then compute \(\widehat\alpha_{xa}=\operatorname{clip}_{[1,4]}\{\log\widehat S_{xa}(T_{n,m})-\log\widehat S_{xa}(eT_{n,m})\}\) and \(\widehat c_{xa}=\exp[\operatorname{clip}_{[-\log2,0]}\{\log\widehat S_{xa}(T_{n,m})+\widehat\alpha_{xa}\log T_{n,m}\}]\). For each \(\pi\in\Pi_m\), solve \(\widehat M^{\pi}(t)=\tau\) for \(\widehat t^{\pi}\), and return the lexicographically first element of \(\arg\min_{\pi\in\Pi_m}\widehat t^{\pi}\). Finite enumeration makes the construction total; sorting the estimated contrasts at each scalar bisection step is an equivalent implementation.
+\par\smallskip\noindent\emph{Inputs.} \(\mathsf O_n\); \(\beta\); \(D\); \(n\); \(m\); \(\tau\).
+\end{definition}
+
+\begin{definition}[def:simultaneous-interval-handle]\label{def:simultaneous-interval-handle}
+\par\smallskip\noindent\emph{Defined object.} \((I_{\pi}:\pi\in\Pi_m)\)
+\par\smallskip\noindent\emph{Construction.} If \(N<b_{\beta,D}\log(40m)\), set \(I_{\pi}=G_{\tau}\) for every \(\pi\in\Pi_m\). Otherwise use \(T^{\mathrm{ci}}_{n,m}=\{N/\log(40m)\}^{1/(2\beta+4)}\). At \(z=T^{\mathrm{ci}}_{n,m},eT^{\mathrm{ci}}_{n,m}\), set \(J_{xa}(z)=[0,1]\cap 2m\operatorname{CP}_{\gamma_0/(4m)}\{K_{xa}(z);n\}\) when this intersection is nonempty, and set \(J_{xa}(z)=\{0\}\) otherwise. Let the raw region be the intersection of \([1,4]\times[-\log2,0]\) with the two induced Hall strips displayed in the symbol definition of \(\Theta_{xa}\). If this raw region is nonempty, set \(\Theta_{xa}\) equal to it; if it is empty, set \(\Theta_{xa}:=\{(1,-\log2)\}\). For every \(\pi\in\Pi_m\), minimize and maximize the unique root of \(m^{-1}\sum_x\exp(\widetilde v_x-\widetilde\alpha_xt)=\tau\) over \((\widetilde\alpha_x,\widetilde v_x)\in\Theta_{x,\pi(x)}\), obtaining \(\underline t_{\pi}\) and \(\overline t_{\pi}\), and put \(J^*_{\pi}:=[\underline t_{\pi}-\varepsilon_{\tau},\overline t_{\pi}+\varepsilon_{\tau}]\). If \(J^*_{\pi}\cap G_{\tau}\neq\varnothing\), set \(I_{\pi}:=J^*_{\pi}\cap G_{\tau}\). If the intersection is empty, set \(I_{\pi}\) equal to the singleton containing the metric projection of the midpoint of \(J^*_{\pi}\) onto \(G_{\tau}\). All set comparisons and lexicographic tie resolutions are exact; Clopper--Pearson endpoints and the scalar roots may equivalently be computed to arbitrary prescribed accuracy by monotone bisection, and the finite policy class may be enumerated.
+\par\smallskip\noindent\emph{Inputs.} \(\mathsf O_n\); \(\gamma_0\); \(\beta\); \(D\); \(n\); \(m\); \(\tau\).
+\end{definition}
+
+\begin{definition}[def:paired-splice-inference-handle]\label{def:paired-splice-inference-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{paired-\allowbreak{}cell Assouad-\allowbreak{}-\allowbreak{}Fano confidence-\allowbreak{}width handle}
+\par\smallskip\noindent\emph{Construction.} Let \(T=T^{\mathrm{lb}}_{n,m}\), \(\delta=\delta_{n,m}\), \(S^{(0)}_{n,m}(y)=(3/4)y^{-4}\), and set \(S^{(1)}_{n,m}(y)=S^{(0)}_{n,m}(y)\) for \(y\le T\) and \(S^{(1)}_{n,m}(y)=(3/4)T^{-\delta}y^{-(4-\delta)}\) for \(y>T\). For each \(\omega\in\Omega_m\), construct \(P^{\mathrm{lb}}_{\omega}\) with the randomized \(X,A\) law of \(\mathrm{def{:}hall\text{-}class}\), all control survivals equal to \(S^{(0)}_{n,m}\), and, in pair \(j\), treatment survival \(S^{(1)}_{n,m}\) in cell \(2j-1\) when \(\omega_j=+1\) and in cell \(2j\) when \(\omega_j=-1\), with the other treatment survival equal to \(S^{(0)}_{n,m}\). Conditional on \(X\), take the two potential losses independent and set \(L=L(A)\). Pair \(P^{\mathrm{lb}}_{\omega}\) with \(\pi^{\mathrm{lb}}_{\omega}\), which treats exactly the sign-selected cell in every pair. Neighboring signs therefore change one \(m^{-1}\)-weighted component of the fixed policy mixture while leaving all observations below \(T\) identically distributed.
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(m\); \(\beta\); \(D\).
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:pareto-member]\label{lem:pareto-member}
+For every fixed even \(m\ge2\), the explicit law \(P_m^{\mathrm{Par}}\) belongs to \(\mathcal H_{\beta,D}(m)\). Consequently, the fixed-\(m\) Hall class is nonempty and the minimax supremum is not vacuous.
+\end{lemma}
+\begin{proof}
+Fix an even \(m\geq 2\).  By \(\mathrm{def{:}pareto\text{-}member}\), \(X\) is uniform on \(\mathcal X_m\), so \(\mathrm{ass{:}uniform\text{-}cells}\) holds.  The conditional law of \(A\) is Bernoulli\((1/2)\) and is independent of the potential losses given \(X\), so \(\mathrm{ass{:}treatment\text{-}probability}\) and \(\mathrm{ass{:}conditional\text{-}randomization}\) hold.  The equality \(L=L(A)\) gives \(\mathrm{ass{:}consistency}\).  For every \(x,a\), the choices \(c_{xa}=1\) and \(\alpha_{xa}=2\) lie in the intervals required by \(\mathrm{ass{:}scale\text{-}range}\) and \(\mathrm{ass{:}index\text{-}range}\).  Moreover,
+\[
+r_{xa}(y)=\frac{y^{-2}}{1\cdot y^{-2}}-1=0
+\qquad (y\geq 1),
+\]
+so \(\sup_{x,a,y}y^\beta|r_{xa}(y)|=0\leq D\), which is \(\mathrm{ass{:}hall\text{-}envelope}\).  All member properties in \(\mathrm{def{:}hall\text{-}class}\) therefore hold, and hence \(P_m^{\mathrm{Par}}\in\mathcal H_{\beta,D}(m)\).  Thus the class is nonempty for every fixed admissible \(m\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit exact-Pareto law certifies coherence of every fixed-cell experiment before minimax analysis begins. \textit{Gap.} This is a model-validity lemma rather than a novelty claim; it rules out vacuity caused by cross-\(m\) quantification. \textit{Consumer.} The regret and confidence-width suprema range over a demonstrably nonempty class for each admissible cell count.
+
+\begin{proposition}[prop:capacity-sorting]\label{prop:capacity-sorting}
+For every \(P\in\mathcal H_{\beta,D}(m)\) and \(y\ge1\), \[\min_{\pi\in\Pi_m}S_P^{\pi}(y)=\frac1m\left\{\sum_{x=1}^mS_{x0}(y)+\sum_{x\in B_P(y)}\Delta_x(y)\right\}.\] Thus the entire control-plus-selected-contrast sum, including every selected negative contrast, is normalized by \(m^{-1}\). As an arithmetic corollary, when \(m=2\), this becomes \(\{S_{10}(y)+S_{20}(y)+\min(0,\Delta_1(y),\Delta_2(y))\}/2\); if \(\Delta_1(y)\le0\) and \(\Delta_2(y)=0\), it equals \(\{S_{11}(y)+S_{20}(y)\}/2\).
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal H_{\beta,D}(m)\), \(y\geq1\), and \(\pi\in\Pi_m\).  Put \(B_\pi:=\{x:\pi(x)=1\}\).  By \(\mathrm{def{:}policy\text{-}class}\), \(|B_\pi|\leq m/2\), and the definition of \(S_P^\pi\), followed by the definition of \(\Delta_x\), gives
+\[
+S_P^\pi(y)
+=\frac1m\sum_{x=1}^m S_{x,\pi(x)}(y)
+=\frac1m\left\{\sum_{x=1}^mS_{x0}(y)+\sum_{x\in B_\pi}\bigl(S_{x1}(y)-S_{x0}(y)\bigr)\right\}
+=\frac1m\left\{\sum_{x=1}^mS_{x0}(y)+\sum_{x\in B_\pi}\Delta_x(y)\right\}.
+\]
+Conversely, every \(B\subseteq\mathcal X_m\) with \(|B|\leq m/2\) is \(B_\pi\) for the feasible policy \(\pi=\mathbf 1_B\).  The control sum is independent of \(B\), and the finite minimization of the contrast sum is attained by \(B_P(y)\) under \(\mathrm{def{:}capacity\text{-}selector}\).  This proves
+\[
+\min_{\pi\in\Pi_m}S_P^\pi(y)
+=\frac1m\left\{\sum_{x=1}^mS_{x0}(y)+\sum_{x\in B_P(y)}\Delta_x(y)\right\}.
+\]
+The exchange argument is explicit: a positive contrast is never selected, and, among negative contrasts, replacing a selected larger contrast by an unselected smaller one cannot increase the objective.  Hence one selects at most \(m/2\) of the most negative contrasts, with the stipulated lexicographic tie rule.
+
+If \(m=2\), the feasible sets are \(\varnothing,\{1\},\{2\}\), so their minimum contribution is \(\min\{0,\Delta_1(y),\Delta_2(y)\}\), divided together with the control sum by \(2\).  If \(\Delta_1(y)\leq0\) and \(\Delta_2(y)=0\), then the numerator is
+\[
+S_{10}(y)+S_{20}(y)+\Delta_1(y)=S_{11}(y)+S_{20}(y),
+\]
+which proves both arithmetic corollaries.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corrected common normalization is the exact finite-dimensional reduction; its two-cell corollary checks the smallest nontrivial capacity problem without creating a separate solve target. \textit{Gap.} XiaZhangKong2026 uses successive classification for fixed quantile regimes; the pointwise top-capacity representation here must remain valid under generalized inversion and changing tail dominance. \textit{Consumer.} It supplies a polynomial-time sorting and scalar-inversion implementation for the tail-cost workflow of OsamaZachariahStoica2020.
+
+\begin{proposition}[prop:finite-capacity-inversion]\label{prop:finite-capacity-inversion}
+For every \(P\in\mathcal H_{\beta,D}(m)\), \[V^*_{P,\tau}=\inf\{y\ge1:\min_{\pi\in\Pi_m}S_P^{\pi}(y)\le\tau\}.\] The equality follows because \(\Pi_m\) is finite. The pointwise minimum is nonincreasing and right-continuous, so at its first crossing the policy associated with the lexicographically selected set \(B_P(V^*_{P,\tau})\) has quantile \(V^*_{P,\tau}\) and is an oracle policy.
+\end{proposition}
+\begin{proof}
+For \(\pi\in\Pi_m\), define \(q_\pi:=\inf\{y\geq1:S_P^\pi(y)\leq\tau\}\).  By \(\mathrm{def{:}policy\text{-}value}\), \(q_\pi=V_{P,\tau}(\pi)\).  Set \(g(y):=\min_{\pi\in\Pi_m}S_P^\pi(y)\).  Since \(\Pi_m\) is finite by \(\mathrm{def{:}policy\text{-}class}\),
+\[
+\{y\geq1:g(y)\leq\tau\}
+=\bigcup_{\pi\in\Pi_m}\{y\geq1:S_P^\pi(y)\leq\tau\}.
+\]
+Taking infima of this finite union gives
+\[
+\inf\{y\geq1:g(y)\leq\tau\}
+=\min_{\pi\in\Pi_m}q_\pi
+=V^*_{P,\tau}.
+\]
+The sets are nonempty because \(S_P^\pi(y)\to0\) as \(y\to\infty\), a consequence of \(\mathrm{ass{:}hall\text{-}envelope}\), \(\mathrm{ass{:}scale\text{-}range}\), and \(\mathrm{ass{:}index\text{-}range}\).
+
+Each \(S_P^\pi\) is nonincreasing and right-continuous because it is a finite average of genuine right-continuous survival functions.  Their finite pointwise minimum \(g\) has the same two properties.  If
+\[
+y_*:=\inf\{y\geq1:g(y)\leq\tau\},
+\]
+then a sequence from the sublevel set can be chosen to decrease to \(y_*\); right continuity gives \(g(y_*)\leq\tau\).  By \(\mathrm{prop{:}capacity\text{-}sorting}\), the policy \(\pi_*:=\mathbf 1_{B_P(y_*)}\) satisfies \(S_P^{\pi_*}(y_*)=g(y_*)\leq\tau\).  Consequently \(V_{P,\tau}(\pi_*)\leq y_*\).  The already proved equality \(y_*=\min_\pi V_{P,\tau}(\pi)\) gives the reverse inequality, hence \(V_{P,\tau}(\pi_*)=y_*=V^*_{P,\tau}\).  This argument uses the generalized inverse directly and therefore permits atoms, plateaus, and ties.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separates the finite-policy inversion argument from the sorting algebra and makes the oracle construction well posed at atoms and ties. \textit{Gap.} Fixed-level quantile-regime reductions do not by themselves state this finite-class commutation for an atom-permitting extreme survival mixture. \textit{Consumer.} The learner and confidence system can optimize pointwise mixtures and then invert without silently changing the target oracle quantile.
+
+\begin{lemma}[lem:uniform-hall-core-inversion]\label{lem:uniform-hall-core-inversion}
+There is a finite constant \(C_{\beta}\), depending only on \(\beta\), such that uniformly over \(m\ge2\), \(P\in\mathcal H_{\beta,D}(m)\), and \(\pi\in\Pi_m\), \(\lvert\log V_{P,\tau}(\pi)-\bar t_P^{\pi}\rvert\le C_{\beta}D\tau^{\beta/4}\). The conclusion holds for right-continuous survivals with atoms and for arbitrarily small \(\tau\).
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal H_{\beta,D}(m)\) and \(\pi\in\Pi_m\), and abbreviate \(M(t):=M_P^\pi(t)\) and \(S(t):=S_P^\pi(e^t)\) for \(t\geq0\).  The Hall-envelope assumption applied term by term gives
+\[
+\bigl(1-De^{-\beta t}\bigr)M(t)\leq S(t)\leq
+\bigl(1+De^{-\beta t}\bigr)M(t).                                      \tag{1}
+\]
+The scale and index ranges imply that \(M\) is positive, continuous, and strictly decreasing, with
+\[
+-\frac{d}{dt}\log M(t)
+=\frac{\sum_x\alpha_{x,\pi(x)}c_{x,\pi(x)}e^{-\alpha_{x,\pi(x)}t}}
+{\sum_xc_{x,\pi(x)}e^{-\alpha_{x,\pi(x)}t}}
+\in[1,4].                                                               \tag{2}
+\]
+Thus the core equation \(M(\bar t_P^\pi)=\tau\) has a unique solution.  Since
+\[
+\tfrac12 e^{-4t}\leq M(t)\leq e^{-t}\qquad(t\geq0),
+\]
+its solution obeys
+\[
+\frac{\ell-\log2}{4}\leq\bar t_P^\pi\leq\ell.                         \tag{3}
+\]
+In particular, \(\tau\leq1/(8n)\), \(n\geq2\), and (3) imply \(\bar t_P^\pi\geq(\log8)/4\).
+
+Let \(t_P^\pi:=\log V_{P,\tau}(\pi)\).  At \(y=1\), (1) and the parameter ranges give \(S(0)\geq(1-D)/2>\tau\), so \(t_P^\pi>0\).  Right continuity gives \(S(t_P^\pi)\leq\tau\), whereas the definition of the generalized inverse gives \(S(t)>\tau\) for every \(0\leq t<t_P^\pi\).  Applying (1) at \(t_P^\pi\), and applying its upper inequality for \(t<t_P^\pi\) before taking \(t\uparrow t_P^\pi\), yields
+\[
+\frac{\tau}{1+De^{-\beta t_P^\pi}}
+\leq M(t_P^\pi)
+\leq\frac{\tau}{1-De^{-\beta t_P^\pi}}.                                \tag{4}
+\]
+Equations (2) and (4), first using \(De^{-\beta t_P^\pi}\leq D\), show
+\[
+|t_P^\pi-\bar t_P^\pi|\leq -\log(1-D)=:h_D.                             \tag{5}
+\]
+Here \(h_D\leq\log(4/3)\).  Consequently
+\[
+De^{-\beta t_P^\pi}
+\leq D e^{\beta h_D}e^{-\beta\bar t_P^\pi}
+\leq D(4/3)^\beta 2^{\beta/4}\tau^{\beta/4},                           \tag{6}
+\]
+where the last inequality is (3).  Using (6) in (4), using \(-\log(1-z)\leq z/(1-z)\leq4z/3\) for \(0\leq z\leq1/4\), and invoking (2) once more gives
+\[
+|t_P^\pi-\bar t_P^\pi|
+\leq \frac43(4/3)^\beta2^{\beta/4}D\tau^{\beta/4}.
+\]
+Thus the assertion holds, for example, with \(C_\beta=\frac43(4/3)^\beta2^{\beta/4}\).  The constants and all inequalities are independent of \(m,P,\pi\).  The only properties of \(S\) used at the crossing were monotonicity and right continuity, so atoms and arbitrarily small admissible \(\tau\) are covered.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives a nonsingular deterministic bridge from heterogeneous survival mixtures to log-sum-exp cores without a density lower bound. \textit{Gap.} CarpentierKim2015 controls a single second-order Pareto tail coefficient, while EinmahlHe2023 studies predetermined average tails; neither supplies policy-uniform generalized-quantile inversion over changing heterogeneous mixtures. \textit{Consumer.} Every regret and confidence-width calculation can be carried out on the smooth Pareto core and transferred back to the original atom-permitting class.
+
+\begin{proposition}[prop:local-dominance-map]\label{prop:local-dominance-map}
+Consider a Pareto core with \(s\) of the \(m\) selected components having exponent \(a<4\), the remaining components exponent \(4\), and all scales equal to one. With \(f=s/m\), \(\lambda=f\tau^{-(1-a/4)}\), and \(\bar t=\ell/4+u\), the quantile equation is \(\lambda e^{-au}+(1-f)e^{-4u}=1\). Uniformly along triangular sequences, \(\lambda\to0\) yields collective exponent-four dominance, \(\lambda\to\lambda_0\in(0,\infty)\) yields the unique local-mixture root, and \(\lambda\to\infty\) yields \(\bar t=(\ell+\log f)/a+o(1)\).
+\end{proposition}
+\begin{proof}
+The asserted core has survival at log threshold \(t\)
+\[
+M(t)=f e^{-at}+(1-f)e^{-4t}.
+\]
+Substituting \(t=\ell/4+u\), dividing \(M(t)=\tau=e^{-\ell}\) by \(\tau\), and using the definition of \(\lambda\), gives exactly
+\[
+\lambda e^{-au}+(1-f)e^{-4u}=1.                                         \tag{1}
+\]
+The left side is continuous and strictly decreasing from \(+\infty\) to \(0\), so (1) has a unique root.
+
+Along an admissible triangular sequence, \(\tau\to0\).  If \(\lambda\to0\), then \(0<f\leq\lambda\to0\), because \(a<4\) and \(\tau\leq1\).  The left side of (1) at \(u=0\) is \(1+\lambda-f\geq1\), hence \(u\geq0\).  Its logarithmic slope has magnitude at least \(a\geq1\); therefore
+\[
+0\leq u\leq a^{-1}\log(1+\lambda)\longrightarrow0.
+\]
+This is collective exponent-four dominance.
+
+Fix \(a<4\).  If \(\lambda\to\lambda_0\in(0,\infty)\), then \(f=\lambda\tau^{1-a/4}\to0\).  On every compact set the left side of (1) converges uniformly to \(\lambda_0e^{-au}+e^{-4u}\).  Strict monotonicity and bracketing of the roots therefore imply convergence to the unique solution of
+\[
+\lambda_0e^{-au}+e^{-4u}=1.
+\]
+
+Finally suppose \(\lambda\to\infty\), and put \(t_h:=(\ell+\log f)/a\), so that \(fe^{-at_h}=\tau\).  At this heavy-only root the light-to-target ratio is
+\[
+\frac{(1-f)e^{-4t_h}}{\tau}
+=(1-f)f^{-4/a}\tau^{4/a-1}
+=(1-f)\lambda^{-4/a}\longrightarrow0.                                  \tag{2}
+\]
+The true root is at least \(t_h\).  Direct differentiation of this two-group core shows that the magnitude of its log slope is a convex combination of \(a\) and \(4\), hence is at least \(a\).  Its excess over \(t_h\) is therefore at most \(a^{-1}\log\{1+(1-f)\lambda^{-4/a}\}=o(1)\).  Hence \(\bar t=(\ell+\log f)/a+o(1)\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This names the population transition that any uniform learner and lower bound must track. \textit{Gap.} PanovMorozova2021 derives impurity phases for maxima and EinmahlHe2023 derives inference for predetermined heterogeneous averages; this map concerns selected policy-mixture quantiles with shrinking cell mass and local tail-index gaps. \textit{Consumer.} It determines when a capacity allocator should pool many cells and when a sparse set of heavier cells controls the deployment risk.
+
+\begin{theorem}[thm:generic-regret-sandwich]\label{thm:generic-regret-sandwich}
+There are constants \(0<c_{\beta,D}\le C_{\beta,D}<\infty\) such that for all admissible \(n,m,\tau\), \[c_{\beta,D}\ell\min\{1,(m/n)^{\varkappa}\}\le\mathcal R(n,m,\tau)\le C_{\beta,D}\ell\min\{1,[m\log(2m)/n]^{\varkappa}\}.\] The explicit total learner \(\widehat\pi_{\mathrm{tail}}\) attains the upper bound, including its all-control branch for sparse or empty cell-arm samples, and the lower bound ranges over the same \(\mathcal H_{\beta,D}(m)\) against every learner in \(\mathfrak A_{n,m}\). Equivalently, its upper rate is \(C_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau)\). Moreover, along any admissible sequence with \(m/n\to0\) and \(\ell(m/n)^{\varkappa}\to0\), \(\mathcal R(n,m,\tau)/\mathcal B_{\mathrm{AW}}(n,m)\to\infty\); the regular additive-policy complexity scale does not represent extreme-tail regret even where the latter vanishes.
+\end{theorem}
+\begin{proof}
+Write \(L_m:=\log(2m)\), \(N=n/m\), \(\kappa:=\beta/(2\beta+4)\), and
+\[
+\eta:=\left(\frac{L_m}{N}\right)^\kappa.
+\]
+We first prove the upper bound for the explicit map in \(\mathrm{def{:}tail\text{-}learner\text{-}handle}\).
+
+For every policy, the Hall, index, and scale assumptions give, for \(y\geq1\),
+\[
+\frac{1-D}{2}y^{-4}\leq S_P^\pi(y)\leq(1+D)y^{-1}.
+\]
+Generalized inversion therefore yields the deterministic global bounds
+\[
+\frac{\ell+\log((1-D)/2)}4
+\leq\log V_{P,\tau}(\pi)
+\leq\ell+\log(1+D).                                                       \tag{1}
+\]
+Since \(\ell\geq\log16\), the regret of any two feasible policies is at most \(C_D\ell\).  If \(N<b_{\beta,D}L_m\), the learner returns \(\pi_0\).  In this branch either \(\eta\geq1\), or \(b_{\beta,D}^{-\kappa}\leq\eta<1\); in both cases (1), with a constant depending only on \(\beta,D\), gives
+\[
+\mathbb E_{P,n}\log\frac{V_{P,\tau}(\widehat\pi_{\mathrm{tail}})}{V^*_{P,\tau}}
+\leq C_{\beta,D}\ell\min\{1,\eta\}.                                   \tag{2}
+\]
+
+It remains to treat \(N\geq b_{\beta,D}L_m\), where \(T=T_{n,m}=(N/L_m)^{1/(2\beta+4)}\) and \(T^{-\beta}=\eta<1\).  For \(z\in\{T,eT\}\), let \(\mu_{xa}(z):=\mathbb E K_{xa}(z)=NS_{xa}(z)/2\), using the uniform-cell and treatment-probability assumptions together with conditional randomization and consistency.  The parameter ranges and Hall envelope imply
+\[
+\mu_{xa}(z)\geq \mu_0:=\frac{1-D}{4e^4}NT^{-4}
+=\frac{1-D}{4e^4}L_m\eta^{-2}.                                          \tag{3}
+\]
+No independence among the different counts is needed below.
+
+For completeness, the needed count inequality follows directly from the binomial moment generating function.  If \(K\sim\operatorname{Bin}(n,p)\) and \(\mu=np\), then
+\[
+\mathbb E e^{s(K-\mu)}
+=\{1+p(e^s-1)\}^n e^{-s\mu}
+\leq\exp\{\mu(e^s-1-s)\}.
+\]
+Optimizing Markov's inequality and using the elementary bounds for \(e^s-1-s\) gives
+\[
+\Pr\{|K-\mu|>u\mu\}\leq2e^{-\mu u^2/3},\qquad 0<u\leq1.               \tag{4}
+\]
+Fix a sufficiently small constant \(\eta_*=\eta_*(\beta,D)>0\).  When \(\eta\leq\eta_*\), a union bound over the \(4m\) counts, (3), and integration of (4) imply
+\[
+\mathbb E\max_{x,a,z}
+\left|\log\widehat S_{xa}(z)-\log S_{xa}(z)\right|
+\leq C_{\beta,D}\eta.                                                    \tag{5}
+\]
+Here are the details covering the pseudocount and empty cells in this small-\(\eta\) regime.  On
+\(\max|K/\mu-1|\leq u\leq1/2\), the unclipped ratio of \(\widehat S\) to \(S\) is \((K+1)/\mu\), and clipping at one cannot increase its log-distance from \(S\leq1\).  Hence that log-distance is at most \(2(u+1/\mu_0)\).  From (3), the union-bound transition value is \(u_0=C_D\eta\), and \(1/\mu_0\leq C_D\eta^2/L_m\).  Integration from \(u_0\) to \(1/2\) is \(O_D(\eta)\).  On the complement, the pseudocount gives \(\widehat S\geq2/N\), while the true lower bound in (3) gives a deterministic log-distance \(O_D(1+\log N)\); (4) bounds the probability by \(8m\exp(-c_D L_m\eta^{-2})\).  For \(\eta\leq\eta_*\), this last expectation is \(O_{\beta,D}(\eta)\).  This proves (5), including zero counts, throughout the regime in which it is used.
+
+Write \(v_{xa}:=\log c_{xa}\).  The Hall equation at the two thresholds gives
+\[
+\log S_{xa}(z)=v_{xa}-\alpha_{xa}\log z+\log\{1+r_{xa}(z)\},
+\qquad
+|\log\{1+r_{xa}(z)\}|\leq\frac{D}{1-D}T^{-\beta}\leq\tfrac43D\eta.     \tag{6}
+\]
+Metric projection onto an interval is nonexpansive and the true parameters lie in the clipping intervals.  When \(\eta\leq\eta_*\), combining (5)--(6) with the definitions of \(\widehat\alpha_{xa}\) and \(\widehat c_{xa}\) yields the bounds below.  When \(\eta>\eta_*\), the same bounds follow directly from clipping: \(|\widehat\alpha_{xa}-\alpha_{xa}|\leq3\leq3\eta/\eta_*\) and \(|\log\widehat c_{xa}-\log c_{xa}|\leq\log2\leq(\log2)\eta/\eta_*\).  Therefore, in both regimes,
+\[
+\mathbb E\max_{x,a}|\widehat\alpha_{xa}-\alpha_{xa}|
+\leq C_{\beta,D}\eta,
+\qquad
+\mathbb E\max_{x,a}|\log\widehat c_{xa}-\log c_{xa}|
+\leq C_{\beta,D}(1+\log T)\eta.                                         \tag{7}
+\]
+
+Every true and estimated core root lies in \([ (\ell-\log2)/4,\ell]\), by the same coefficient and index calculation used in (3) of \(\mathrm{lem{:}uniform\text{-}hall\text{-}core\text{-}inversion}\).  Put
+\[
+E_n:=\max_{x,a}|\log\widehat c_{xa}-\log c_{xa}|
++\ell\max_{x,a}|\widehat\alpha_{xa}-\alpha_{xa}|.
+\]
+For \(0\leq t\leq\ell\), each estimated core summand is between \(e^{-E_n}\) and \(e^{E_n}\) times its true counterpart.  Evaluate this comparison at \(t=\widehat t^\pi\), which lies in that interval: because \(\widehat M^\pi(\widehat t^\pi)=\tau\), one obtains \(e^{-E_n}\tau\leq M_P^\pi(\widehat t^\pi)\leq e^{E_n}\tau\).  Since every true core log slope lies in \([1,4]\), comparison with \(M_P^\pi(\bar t_P^\pi)=\tau\) gives
+\[
+\sup_{\pi\in\Pi_m}|\widehat t^\pi-\bar t_P^\pi|\leq E_n.              \tag{8}
+\]
+Because \(\log T\leq\ell\), (7) implies \(\mathbb E E_n\leq C_{\beta,D}\ell\eta\).
+
+Let \(\pi^*\) minimize the true value.  The empirical minimization defining \(\widehat\pi_{\mathrm{tail}}\), (8), and \(\mathrm{lem{:}uniform\text{-}hall\text{-}core\text{-}inversion}\) give, sample by sample,
+\[
+\log V_{P,\tau}(\widehat\pi_{\mathrm{tail}})-\log V_{P,\tau}(\pi^*)
+\leq2E_n+2C_\beta D\tau^{\beta/4}.                                      \tag{9}
+\]
+Since \(\tau\leq(8n)^{-1}\), \(m\geq2\), and \(\beta/4\geq\kappa\), one has \(\tau^{\beta/4}\leq C_\beta n^{-\kappa}\leq C_\beta\eta\).  Taking expectations in (9), and combining with (2), proves
+\[
+\sup_{P\in\mathcal H_{\beta,D}(m)}
+\mathbb E_{P,n}\log\frac{V_{P,\tau}(\widehat\pi_{\mathrm{tail}})}{V^*_{P,\tau}}
+\leq C_{\beta,D}\ell\min\left\{1,\left(\frac{m\log(2m)}n\right)^\kappa\right\}. \tag{10}
+\]
+Finite enumeration of \(\Pi_m\), positive continuous estimated cores, deterministic lexicographic tie breaking, and scalar monotone inversion show that this is one measurable total data-driven learner, not a law-dependent oracle.  Thus (10) is a valid upper bound inside the minimax infimum.
+
+We next prove the lower bound by a same-class experiment.  Put \(c_0=3/4\).  Choose a fixed \(d_0=d_0(\beta,D)>0\) small enough that
+\[
+d_0\leq\min\{1/8,\beta/2,e\beta D/2,e\beta\log(3/2)\}                  \tag{11}
+\]
+and that the total-variation bound below is at most \(1/2\).  Set
+\[
+T_0:=\max\{1,N^{1/(2\beta+4)}\},\qquad
+\delta:=d_0T_0^{-\beta}.
+\]
+Let \(S_0(y)=c_0y^{-4}\).  Let \(S_1=S_0\) on \([1,T_0]\), and, for \(y>T_0\), let
+\[
+S_1(y)=c_0T_0^{-\delta}y^{-(4-\delta)}.                                  \tag{12}
+\]
+Both are genuine survival functions with an atom of mass \(1-c_0\) at one.  For \(S_1\), take \(\alpha=4-\delta\), \(c=c_0T_0^{-\delta}\).  Conditions (11) and
+\[
+\delta\log T_0\leq d_0/(e\beta)\leq\log(3/2)
+\]
+give \(1/2\leq c\leq3/4\) and \(1\leq\alpha\leq4\).  Above \(T_0\) its Hall remainder is zero.  For \(1\leq y\leq T_0\), writing \(z=y/T_0\) and using \(e^u-1\leq ue^u\),
+\[
+y^\beta\left|\frac{S_1(y)}{cy^{-\alpha}}-1\right|
+=T_0^\beta z^\beta(z^{-\delta}-1)
+\leq\frac{T_0^\beta\delta}{e(\beta-\delta)}
+\leq D.                                                                 \tag{13}
+\]
+Thus (12), as well as \(S_0\), obeys exactly the frozen Hall class.
+
+Partition the cells into \(k=m/2\) pairs.  For \(\omega\in\{-1,+1\}^k\), put survival \(S_1\) on the control arm of the sign-selected cell in each pair and put \(S_0\) on every other cell arm.  Draw the two potential losses independently conditional on \(X\), use the frozen randomized treatment law, and set \(L=L(A)\).  Equations (11)--(13) and the four causal/design assumptions prove that every resulting full-data law \(P_\omega\) belongs to \(\mathcal H_{\beta,D}(m)\).
+
+The two tail laws agree below \(T_0\) and have common exceedance probability \(q_0=c_0T_0^{-4}\).  Conditional on exceeding \(T_0\), \(\log(L/T_0)\) is exponential with rate \(4\) under \(S_0\) and rate \(4-\delta\) under \(S_1\).  Direct integration gives
+\[
+\begin{split}
+\mathrm{KL}(S_1,S_0)&=q_0\left\{\log\frac{4-\delta}{4}+\frac4{4-\delta}-1\right\},\\
+\mathrm{KL}(S_0,S_1)&=q_0\left\{\log\frac4{4-\delta}+\frac{4-\delta}{4}-1\right\}.
+\end{split}                                                              \tag{14}
+\]
+To verify the quadratic bound without an external approximation theorem, put \(x=\delta/4\leq1/32\).  The derivatives of \(\log(1-x)+x/(1-x)\) and \(-\log(1-x)-x\) are respectively \(x/(1-x)^2\) and \(x/(1-x)\); integrating from zero bounds each expression by \(2x^2\).  Hence the sum in (14) is at most \(Cq_0\delta^2\).  Neighboring sign vectors change two control-arm conditional laws, each observed with probability \(1/(2m)\).  Additivity of product likelihood ratios therefore gives
+\[
+\mathrm{KL}(\mathbb P_{P_\omega,n},\mathbb P_{P_{\omega^{(j)}},n})
+\leq C N T_0^{-4}\delta^2
+=C d_0^2 N T_0^{-(2\beta+4)}
+\leq C d_0^2.                                                            \tag{15}
+\]
+By decreasing \(d_0\), (15) and the elementary inequality \(\operatorname{TV}^2\leq\mathrm{KL}/2\), itself obtained from \((u-1)^2/(u+1)\leq(u-1)\log u/2\) and Cauchy--Schwarz, make every neighboring total variation at most \(1/2\).
+
+For a realized treated set \(B\), let \(H_\omega\) be the number of sign-selected heavy controls not in \(B\).  The true heavy set has size \(k\), and \(|B|\leq k\), so the number of false positives is at most \(H_\omega\).  Project \(B\) to a sign estimate by selecting the uniquely treated cell in a pair when there is one and breaking the other cases deterministically.  Its bitwise Hamming loss is no larger than \(|B\mathbin\triangle B_\omega|\leq2H_\omega\).  Under the uniform prior on signs, the two-point testing inequality applied conditionally on all other bits and (15) gives error at least \((1-\operatorname{TV})/2\geq1/4\) per bit.  Summing over \(k\) bits gives
+\[
+2^{-k}\sum_\omega\mathbb E_{P_\omega,n}H_\omega\geq k/8=m/16.         \tag{16}
+\]
+This argument applies to Markov-kernel learners because adjoining independent learner randomization cannot increase total variation.
+
+Treating every heavy-control cell is feasible and produces the pure \(S_0\) mixture, so it is oracle optimal.  Its log quantile is \(t_0=(\ell+\log c_0)/4\).  Put \(b=t_0-\log T_0\).  From \(\ell\geq\log(8n)\), \(N\leq n\), and \(n\geq2\),
+\[
+b\geq q_\beta\ell,
+\qquad
+q_\beta:=\min\left\{\frac\beta{4(\beta+2)},\frac{\log6}{4\log16}\right\}>0. \tag{17}
+\]
+Indeed, for \(N\geq1\) subtract at most \((\ell-\log8)/(2\beta+4)\) from \((\ell+\log c_0)/4\); the resulting affine function has positive limiting slope and is at least \(\log6/4\) at \(\ell=\log16\).  For \(N<1\), \(T_0=1\) makes (17) immediate after reducing \(q_\beta\).
+
+If a policy misses \(H=H_\omega\) heavy controls, its survival is \((H/m)S_1+(1-H/m)S_0\).  Writing its log quantile as \(t_0+h\), equations (12) and (17) give the exact crossing identity
+\[
+4h=\log\left[1+\frac Hm\left\{e^{\delta(b+h)}-1\right\}\right].          \tag{18}
+\]
+Weighted arithmetic--geometric mean applied inside the logarithm gives
+\[
+h\geq\frac{H}{4m}\delta(b+h)\geq\frac{H}{4m}\delta b.                  \tag{19}
+\]
+Combining (16), (17), and (19), and recalling
+\[
+\delta=d_0\min\{1,N^{-\kappa}\}
+=d_0\min\{1,(m/n)^\kappa\},
+\]
+shows that every measurable randomized learner has, for some same-class \(P_\omega\), expected regret at least
+\[
+c_{\beta,D}\ell\min\{1,(m/n)^\kappa\}.                                 \tag{20}
+\]
+Taking the infimum over learners proves the lower half of the sandwich.  Equation (10) proves the upper half and, by \(\mathrm{def{:}coordinatewise\text{-}hall\text{-}baseline}\), equals \(C_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau)\).
+
+Finally, suppose \(m/n\to0\) and \(\ell(m/n)^\kappa\to0\).  Then \(\mathcal B_{\mathrm{AW}}(n,m)=\sqrt{m/n}\) eventually, and (20) gives
+\[
+\frac{\mathcal R(n,m,\tau)}{\mathcal B_{\mathrm{AW}}(n,m)}
+\geq c_{\beta,D}\ell(m/n)^{\kappa-1/2}\longrightarrow\infty,
+\]
+because \(\kappa<1/2\), \(m/n\to0\), and \(\ell\geq\log(8n)\to\infty\).  This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The sandwich certifies a nontrivial full-class rate spine while exposing the exact logarithmic gap the headline question must close. \textit{Gap.} The probability display in Theorem 3 of CarpentierKim2015 gives its adaptive single-tail upper rate, while Theorem 4 gives the adaptive lower bound and unavoidable log-log factor; neither result treats capacity-selected mixtures. The theorem identifies the coordinatewise known-envelope consequence after the separate absolute-exponent translation and proves that the regular mean-policy rate of AtheyWager2021 is asymptotically nonrepresentative for the moving extreme-quantile loss. \textit{Consumer.} It gives safety-critical policy users a conservative sample-size rule even before the exact selection factor is resolved.
+
+\begin{theorem}[thm:two-cell-frontier]\label{thm:two-cell-frontier}
+When \(m=2\), \(\mathcal R(n,2,\tau)\asymp_{\beta,D}\ell n^{-\varkappa}\) uniformly for \(n\ge2\) and \(0<\tau\le1/(8n)\). Consequently, along every two-cell sequence, \(\mathcal R(n,2,\tau_n)\to0\) if and only if \(\log(1/\tau_n)=o(n^{\varkappa})\).
+\end{theorem}
+\begin{proof}
+Set \(m=2\) in \(\mathrm{thm{:}generic\text{-}regret\text{-}sandwich}\).  Since \(2\), \(\log4\), and their positive powers are constants, its lower and upper bounds become
+\[
+c_{\beta,D}\ell n^{-\varkappa}
+\leq\mathcal R(n,2,\tau)
+\leq C_{\beta,D}\ell n^{-\varkappa},
+\]
+after changing constants to cover the finitely bounded factors \(\min\{1,(2/n)^\varkappa\}\) and \(\min\{1,(2\log4/n)^\varkappa\}\) for \(n\geq2\).  This is the asserted uniform equivalence.  Along a two-cell sequence with \(n\to\infty\), the two positive constant bounds imply
+\[
+\mathcal R(n,2,\tau_n)\to0
+\quad\Longleftrightarrow\quad
+\ell_n n^{-\varkappa}\to0
+\quad\Longleftrightarrow\quad
+\log(1/\tau_n)=o(n^\varkappa).
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exactly matched two-cell case is a falsifiable boundary condition for every proposed many-cell frontier. \textit{Gap.} GuggenbergerMehtaPavlov2026 finds finite-sample fixed-quantile minimax degeneracy for bounded outcomes; Hall extrapolation produces a nondegenerate moving-tail rate even with only two cells. \textit{Consumer.} It tells an experiment with one capacity-constrained pair exactly how fast the deployment quantile may move beyond the sample while policy learning remains possible.
+
+\begin{openendedquestion}[oeq:sharp-regret-frontier]\label{oeq:sharp-regret-frontier}
+Put \(A_{n,m,\tau}:=\ell\min\{1,N^{-\varkappa}\}\) and \(L_m:=\log(2m)\). Restrict the unresolved regret problem to the unsaturated strict sub-familywise region
+\[
+A_{n,m,\tau}<L_m^{1-\varkappa},
+\qquad
+A_{n,m,\tau}\left[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}\right]<\ell.
+\]
+No case with \(N<1\) lies in this region. The proved bounds there are
+\[
+c_{\beta,D}A_{n,m,\tau}
+\left[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}\right]
+\le\mathcal R(n,m,\tau)
+\le C_{\beta,D}\min\{\ell,A_{n,m,\tau}L_m^{\varkappa}\}
+=C_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau).
+\]
+Determine \(\mathcal R(n,m,\tau)\) up to constants depending only on \(\beta,D\) within this remaining region. In particular, construct one computable capacity-aware learner over the full heterogeneous class \(\mathcal H_{\beta,D}(m)\) that attains the lower expression, including sparse-dominance, collective-contribution, and local-to-tied mixtures, or prove that another same-class configuration raises the lower bound. Determine whether \(A_{n,m,\tau}\to0\), which is necessary for vanishing regret, is sufficient, or whether the stronger currently sufficient condition \(A_{n,m,\tau}L_m^{\varkappa}\to0\) is necessary. Equivalently, identify the maximal subregimes of this unsaturated phase on which capacity averaging yields \(\mathcal R(n,m,\tau)=o\{\mathcal B_{\mathrm{CK}}(n,m,\tau)\}\). The existing coordinatewise learner \(\widehat\pi_{\mathrm{tail}}\) remains only the upper witness; no nonzero policy-selection price is assumed.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The familywise phase, the saturated strict sub-familywise phase, and the all-vanishing-regime regular-policy comparison are settled; the remaining headline contribution is exactly the localized selected-mixture frontier in the unsaturated strict sub-familywise region. \textit{Gap.} CarpentierKim2015 supplies translated one-tail familywise machinery but no randomized capacity-selected mixture oracle inequality in the remaining unsaturated region, and AtheyWager2021 supplies no moving extreme-mixture rate. \textit{Consumer.} Resolving the remaining unsaturated gap would tell users of the non-nested upper-cost-quantile objective in OsamaZachariahStoica2020 exactly when capacity averaging permits reliable Hall extrapolation beyond both certified obstruction regions.
+
+\begin{theorem}[thm:simultaneous-honest-upper-system]\label{thm:simultaneous-honest-upper-system}
+The explicit confidence system in \(\mathrm{def{:}simultaneous\text{-}interval\text{-}handle}\) is total and computable and, for every admissible \(n,m,\tau\), satisfies \[\inf_{P\in\mathcal H_{\beta,D}(m)}\mathbb P_{P,n}\{\log V_{P,\tau}(\pi)\in I_{\pi}\text{ for every }\pi\in\Pi_m\}\ge1-\gamma_0.\] Uniformly over the class and along arbitrary admissible joint sequences, \[W_{n,m,\tau}=O_{\mathbb P_{P,n}}\!\left(\ell\min\{1,[m\log(40m)/n]^{\varkappa}\}+D\tau^{\beta/4}\right).\] Hence this exhibited system has \(W_{n,m,\tau}\to0\) in probability whenever \(\ell[m\log(40m)/n]^{\varkappa}\to0\). On the same simultaneous event, every data-dependent \(\widehat\pi\in\mathfrak A_{n,m}\), including \(\widehat\pi_{\mathrm{tail}}\), satisfies \(\log V_{P,\tau}(\widehat\pi)\in I_{\widehat\pi}\); selected-policy coverage is therefore a corollary of the simultaneous theorem and requires no sample splitting.
+\end{theorem}
+\begin{proof}
+We prove the claim for the corrected construction proposed together with this proof.  Fix admissible \(n,m,\tau\) and \(P\in\mathcal H_{\beta,D}(m)\).  Write \(T=T^{\mathrm{ci}}_{n,m}\), \(\rho=\gamma _0/(4m)\), and, for the moment, fix \(x,a\) and one of the two thresholds \(z\in\{T,eT\}\).
+
+\emph{Totality and computability.}  The binomial upper and lower tails are continuous and strictly monotone in their success probability away from the two boundary cases in \(\mathrm{def{:}clopper\text{-}pearson}\); consequently every Clopper--Pearson endpoint is uniquely defined and can be obtained by scalar bisection.  The correction makes \(J_{xa}(z)\) a nonempty closed interval even when the preliminary intersection with \([0,1]\) is empty.  After constraints containing \(\log0=-\infty\) are interpreted as stated in the definition, the raw set defining \(\Theta_{xa}\) is an intersection of a compact rectangle with finitely many closed half-spaces.  It is therefore compact when nonempty, and its replacement is a compact singleton otherwise.
+
+For any \((\widetilde\alpha_x,\widetilde v_x)_{x=1}^m\) in a product of these regions, the function
+\[
+ t\longmapsto \frac1m\sum_{x=1}^m
+       \exp(\widetilde v_x-\widetilde\alpha_xt)
+\]
+is continuous and strictly decreasing from \(+\infty\) to \(0\), because \(1\leq\widetilde\alpha_x\leq4\).  It consequently has exactly one root at level \(\tau>0\).  The root is continuous in the finitely many parameters: indeed the comparison argument in the width proof below bounds a change of the root by the largest change of a component log survival.  Compactness therefore gives the stated minimum and maximum.  The class \(\Pi_m\) is finite by \(\mathrm{def{:}policy\text{-}class}\), and \(\mathrm{prop{:}finite\text{-}capacity\text{-}inversion}\) supplies the finite policy-level inversion.  Thus finite enumeration, finite-dimensional linear optimization at each trial value of \(t\), and scalar bisection compute every endpoint.  The projection branch is also defined because \(G_\tau\) is a nonempty compact interval.  Hence the confidence system is total and computable.
+
+\emph{Exact simultaneous coverage.}  By \(\mathrm{ass{:}uniform\text{-}cells}\), \(\mathrm{ass{:}treatment\text{-}probability}\), \(\mathrm{ass{:}conditional\text{-}randomization}\), and \(\mathrm{ass{:}consistency}\),
+\[
+ \begin{aligned}
+ p_{xa}(z)
+ &:=P\{X=x,A=a,L>z\}\\
+ &=P(X=x)P(A=a\mid X=x)
+   P\{L(a)>z\mid X=x,A=a\}\\
+ &=\frac{S_{xa}(z)}{2m}.
+ \end{aligned}
+\]
+The product sampling law in \(\mathrm{def{:}sample\text{-}experiment}\) therefore gives
+\[
+ K_{xa}(z)\sim\operatorname{Bin}\{n,p_{xa}(z)\}.
+\]
+For completeness, let \([q_-(k),q_+(k)]=\operatorname{CP}_{\rho}(k;n)\).  Monotonicity of the binomial upper tail in its success probability shows that
+\[
+ \{p_{xa}(z)<q_-(K_{xa}(z))\}
+ \subseteq
+ \left\{P_{p_{xa}(z)}\{\operatorname{Bin}(n,p_{xa}(z))\geq K_{xa}(z)\}<\rho/2\right\}.
+\]
+The possible values of \(K_{xa}(z)\) on the right form an upper tail, whose probability is at most \(\rho/2\).  The analogous argument with the lower binomial tail gives
+\[
+ P\{p_{xa}(z)>q_+(K_{xa}(z))\}\leq\rho/2.
+\]
+Thus
+\[
+ P\{p_{xa}(z)\in\operatorname{CP}_{\rho}(K_{xa}(z);n)\}\geq1-\rho.
+\]
+No independence among the \(4m\) counts is needed.  A union bound over \(2m\) cell--arm pairs and two thresholds yields an event \(\mathcal E\) satisfying
+\[
+ \inf_{P\in\mathcal H_{\beta,D}(m)}P(\mathcal E)
+ \geq 1-4m\rho=1-\gamma _0,
+\]
+on which \(S_{xa}(z)\in J_{xa}(z)\) for every indexed \(x,a,z\).  Indeed \(p_{xa}(z)\leq1/(2m)\), so on \(\mathcal E\) the preliminary intersection defining \(J_{xa}(z)\) is nonempty and contains \(2mp_{xa}(z)=S_{xa}(z)\).
+
+Put \(v_{xa}=\log c_{xa}\).  By \(\mathrm{ass{:}scale\text{-}range}\), \(v_{xa}\in[-\log2,0]\), and by \(\mathrm{ass{:}index\text{-}range}\), \(\alpha_{xa}\in[1,4]\).  The Hall identity and \(\mathrm{ass{:}hall\text{-}envelope}\) give, at each of the two thresholds,
+\[
+ S_{xa}(z)=\exp(v_{xa}-\alpha_{xa}\log z)\{1+r_{xa}(z)\},
+ \qquad -Dz^{-\beta}\leq r_{xa}(z)\leq Dz^{-\beta}.
+\]
+Because \(Dz^{-\beta}\leq D\leq1/4\), both divisors below are positive.  On \(\mathcal E\), division by \(1+r_{xa}(z)\) gives
+\[
+ \frac{\underline S_{xa}(z)}{1+Dz^{-\beta}}
+ \leq \exp(v_{xa}-\alpha_{xa}\log z)
+ \leq \frac{\overline S_{xa}(z)}{1-Dz^{-\beta}}.
+\]
+Taking logarithms, with the stipulated convention at a zero lower endpoint, proves \((\alpha_{xa},v_{xa})\in\Theta_{xa}\).  Hence for every \(\pi\in\Pi_m\), the true Pareto-core root obeys
+\[
+ \underline t_\pi\leq\bar t_P^\pi\leq\overline t_\pi.
+\]
+The already established \(\mathrm{lem{:}uniform\text{-}hall\text{-}core\text{-}inversion}\) and the definition of \(\varepsilon_\tau\) then imply
+\[
+ \log V_{P,\tau}(\pi)
+ \in[\underline t_\pi-\varepsilon_\tau,
+      \overline t_\pi+\varepsilon_\tau]
+ =J^*_{\pi}.
+\]
+
+It remains to verify that intersection with \(G_\tau\) cannot remove the target.  For every \(y\geq1\), the support, index, scale, and Hall conditions imply
+\[
+ \frac{1-D}{2}y^{-4}
+ \leq S_P^\pi(y)
+ \leq (1+D)y^{-1}.
+\]
+Let
+\[
+ y_-:=\left\{\frac{1-D}{2\tau}\right\}^{1/4},
+ \qquad y_+:=\frac{1+D}{\tau}.
+\]
+The restriction \(\tau\leq1/(8n)\) with \(n\geq2\) ensures \(y_->1\).  For every \(y<y_-\), the first displayed bound is strictly larger than \(\tau\), whereas the second gives \(S_P^\pi(y_+)\leq\tau\).  The generalized-inverse definition in \(\mathrm{def{:}policy\text{-}value}\), which is valid also at jumps and plateaus, therefore gives
+\[
+ y_-\leq V_{P,\tau}(\pi)\leq y_+,
+\]
+or equivalently \(\log V_{P,\tau}(\pi)\in G_\tau\).  On \(\mathcal E\), the ordinary intersection branch in the definition of \(I_\pi\) is consequently nonempty and contains \(\log V_{P,\tau}(\pi)\) for every \(\pi\).  We have proved
+\[
+ \inf_{P\in\mathcal H_{\beta,D}(m)}
+ \mathbb P_{P,n}\!\left\{\log V_{P,\tau}(\pi)\in I_\pi
+ \text{ for every }\pi\in\Pi_m\right\}
+ \geq1-\gamma_0.
+\]
+
+\emph{Uniform stochastic width.}  Set
+\[
+ h:=\log(40m),\qquad q:=\frac hN=\frac{m\log(40m)}n,
+ \qquad \eta:=q^{\varkappa}.
+\]
+We first derive the endpoint inequalities needed below directly from the binomial tail equations.  For \(r=k/n\), let
+\[
+ d(r\Vert u):=r\log\frac ru+(1-r)\log\frac{1-r}{1-u}
+\]
+denote Bernoulli relative entropy.  Exponential Markov inequality applied to
+\[
+ E_u e^{tB}=(1-u+ue^t)^n
+\]
+and optimized over \(t>0\), or over \(t<0\), gives respectively
+\[
+ P_u(B\geq nr)\leq e^{-nd(r\Vert u)}\quad(u<r),
+ \qquad
+ P_u(B\leq nr)\leq e^{-nd(r\Vert u)}\quad(u>r).
+\]
+Writing \(\lambda:=\log(2/\rho)=\log(8m/\gamma_0)\), the lower-endpoint equality implies \(d(r\Vert q_-(k))\leq\lambda/n\) whenever \(q_-(k)<r\), and the upper-endpoint equality implies \(d(r\Vert q_+(k))\leq\lambda/n\) whenever \(q_+(k)>r\).  The nontrivial endpoint in each boundary case is included.  Differentiating relative entropy in its second argument gives
+\[
+ d(r\Vert u)=
+ \begin{cases}
+ \displaystyle\int_u^r\frac{r-s}{s(1-s)}\,ds,&u<r,\\[6pt]
+ \displaystyle\int_r^u\frac{s-r}{s(1-s)}\,ds,&u>r.
+ \end{cases}
+\]
+Since \(s(1-s)\leq s\leq\max(r,u)\) on the corresponding interval,
+\[
+ d(r\Vert u)\geq\frac{(r-u)^2}{2\max(r,u)}.
+\]
+Solving the resulting quadratic inequalities gives
+\[
+ r-q_-(k)\leq\sqrt{\frac{2r\lambda}{n}}
+ \quad\text{when }q_-(k)<r,
+ \qquad
+ q_+(k)-r\leq C\left\{\sqrt{\frac{r\lambda}{n}}+\frac\lambda n\right\}
+ \quad\text{when }q_+(k)>r.
+ \tag{1}
+\]
+
+We next localize the observed proportions uniformly.  The same exponential-moment calculation, using
+\[
+ E_p e^{t(K-np)}
+ \leq\exp\{np(e^t-1-t)\},
+\]
+and its negative-\(t\) counterpart, gives for every \(u>0\)
+\[
+ P\!\left(\left|\frac Kn-p\right|>
+       \sqrt{\frac{2pu}{n}}+\frac{2u}{3n}\right)
+ \leq2e^{-u}.
+ \tag{2}
+\]
+This follows by exponential Markov inequality and the elementary bound
+\(e^t-1-t\leq t^2/\{2(1-t/3)\}\) for \(0<t<3\); applying the same calculation to \(-t\) proves the lower-tail part.
+
+Fix \(0<\epsilon<1\) and take \(u=\log(8m/\epsilon)\) in (2).  A union bound makes (2) simultaneous for the \(4m\) counts with probability at least \(1-\epsilon\).  Suppose first that \(N\geq b_{\beta,D}h\), so that \(T=q^{-1/(2\beta+4)}\).  At either \(z=T\) or \(z=eT\), the Hall, scale, and index restrictions give
+\[
+ S_{xa}(z)\geq\frac{1-D}{2e^4}T^{-4},
+ \qquad np_{xa}(z)=\frac N2S_{xa}(z)
+ \geq\frac{1-D}{4e^4}NT^{-4}.
+ \tag{3}
+\]
+Because \(m\geq2\) and \(\gamma_0=0.05\), both \(u/h\) and \(\lambda/h\) are bounded by constants depending at most on \(\epsilon\), while
+\[
+ \frac{h}{NT^{-4}}=qT^4
+ =q^{2\beta/(2\beta+4)}=\eta^2,
+ \qquad T^{-\beta}=q^{\beta/(2\beta+4)}=\eta.
+ \tag{4}
+\]
+Equations (2)--(4) show that, on the probability-\(1-\epsilon\) event and whenever \(\eta\) is smaller than a sufficiently small constant depending on \(\epsilon,\beta,D\),
+\[
+ \frac12p_{xa}(z)\leq\frac{K_{xa}(z)}n\leq\frac32p_{xa}(z)
+ \quad\text{for every }x,a,z.
+ \tag{5}
+\]
+For the lower endpoint, either \(q_-(k)\geq r\), in which case (5) already supplies the required lower bound, or \(q_-(k)<r\), in which case (1) supplies it.  For the upper endpoint, either \(q_+(k)\leq r\), in which case (5) supplies the required upper bound, or \(q_+(k)>r\), in which case (1) supplies it.  Thus (1) and (3)--(5) yield, for every nonempty preliminary scaled intersection,
+\[
+ S_{xa}(z)(1-C_\epsilon\eta)
+ \leq\underline S_{xa}(z)
+ \leq\overline S_{xa}(z)
+ \leq S_{xa}(z)(1+C_\epsilon\eta).
+ \tag{6}
+\]
+For the stipulated smallness of \(\eta\), the lower endpoint in (6) is positive.  If the preliminary intersection is empty, the corrected \(J_{xa}(z)=\{0\}\) forces the corresponding raw Hall region to be empty through its upper strip, and hence \(\Theta_{xa}\) is a singleton.  Such a cell has parameter diameter zero.
+
+Consider a nonsingleton \(\Theta_{xa}\) and two of its points \((\alpha,v)\) and \((\alpha',v')\).  At threshold \(z\), the common Hall strip containing both linear forms has width
+\[
+ w_z:=\log\frac{\overline S_{xa}(z)}{\underline S_{xa}(z)}
+      +\log\frac{1+Dz^{-\beta}}{1-Dz^{-\beta}}.
+\]
+By (4), (6), \(D\leq1/4\), and
+\(\log\{(1+s)/(1-s)\}\leq2s/(1-s)\) for \(0\leq s<1\),
+\[
+ w_T+w_{eT}\leq C_\epsilon\eta.
+ \tag{7}
+\]
+Since \(\log(eT)-\log T=1\), subtracting the two strip inequalities gives
+\[
+ |\alpha-\alpha'|\leq w_T+w_{eT},
+ \qquad
+ |v-v'|\leq w_T+\log T\,(w_T+w_{eT}).
+ \tag{8}
+\]
+The same bounds hold trivially for a singleton region.
+
+For any feasible choice of parameters from these regions, its core root \(t\) lies in
+\[
+ \frac{\ell-\log2}{4}\leq t\leq\ell.
+ \tag{9}
+\]
+Indeed, at the root the scale and index restrictions give
+\(\tfrac12e^{-4t}\leq\tau\leq e^{-t}\).  Moreover
+\(\log T\leq\log n\leq\ell\), using \(N\leq n\) and \(\tau\leq1/(8n)\).  If two parameter choices for the same policy produce cores \(M_1,M_2\), the log-sum-exp inequality and (7)--(9) give, throughout the root range,
+\[
+ |\log M_1(t)-\log M_2(t)|
+ \leq\max_x\left|(v_x-v'_x)-(\alpha_x-\alpha'_x)t\right|
+ \leq C_\epsilon\ell\eta.
+ \tag{10}
+\]
+For \(t_2>t_1\), every admissible core satisfies
+\[
+ M(t_2)\leq e^{-(t_2-t_1)}M(t_1),
+\]
+because every index is at least one.  Applying this inequality to the two roots and then using (10) proves that their distance is at most \(C_\epsilon\ell\eta\).  Taking extrema over the product regions therefore yields, simultaneously for all policies,
+\[
+ \overline t_\pi-\underline t_\pi\leq C_\epsilon\ell\eta.
+ \tag{11}
+\]
+Intersection with \(G_\tau\) cannot increase length, and the empty-intersection branch has length zero.  Equations (11) and \(\varepsilon_\tau=C_\beta D\tau^{\beta/4}\) consequently give
+\[
+ W_{n,m,\tau}
+ \leq C_\epsilon\ell\eta+2C_\beta D\tau^{\beta/4}
+ \tag{12}
+\]
+on the event of probability at least \(1-\epsilon\), in the localized nonfallback regime.
+
+The remaining regimes follow from a deterministic bound.  Every reported interval is a subinterval or a singleton of \(G_\tau\), so, since \(\ell\geq\log16\),
+\[
+ W_{n,m,\tau}\leq\operatorname{length}(G_\tau)
+ =\frac34\ell+\log(1+D)-\frac14\log\frac{1-D}{2}
+ \leq C_D\ell.
+ \tag{13}
+\]
+If \(N<b_{\beta,D}h\), then
+\[
+ \min(1,\eta)\geq b_{\beta,D}^{-\varkappa},
+\]
+so (13) has the asserted order.  If \(N\geq b_{\beta,D}h\) but \(\eta\) is not below the localization constant used above, (13) is again at most a constant, depending on \(\epsilon,\beta,D\), times \(\ell\eta\).  Since \(\epsilon>0\) was arbitrary, (12)--(13) prove, uniformly over \(P\in\mathcal H_{\beta,D}(m)\) and along every admissible joint sequence,
+\[
+ W_{n,m,\tau}
+ =O_{\mathbb P_{P,n}}\!\left(
+ \ell\min\left\{1,\left[\frac{m\log(40m)}n\right]^{\varkappa}\right\}
+ +D\tau^{\beta/4}\right).
+\]
+If \(n\to\infty\) and \(\ell[m\log(40m)/n]^{\varkappa}\to0\), then the minimum equals its second argument eventually, while \(D\tau^{\beta/4}\leq D(8n)^{-\beta/4}\to0\).  The displayed stochastic bound thus gives \(W_{n,m,\tau}\to0\) in probability.
+
+Finally, on \(\mathcal E\) the inclusion holds for every element of \(\Pi_m\) simultaneously.  Conditional on any observed sample and any auxiliary randomization, every \(\widehat\pi\in\mathfrak A_{n,m}\) takes a value in \(\Pi_m\).  Substituting that realized value into the simultaneous inclusion gives
+\[
+ \log V_{P,\tau}(\widehat\pi)\in I_{\widehat\pi}.
+\]
+This applies in particular to \(\widehat\pi_{\mathrm{tail}}\) and proves selected-policy coverage without sample splitting.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Bias-aware simultaneous survival regions yield selection-proof coverage without assuming Gaussian regularity at a changing extreme quantile. \textit{Gap.} SasakiWang2024 covers one tail under worst-case bias and HuangLiPeng2025 covers a fixed collection of extreme treatment contrasts; neither indexes all capacity-feasible selected policy mixtures with heterogeneous local tail-index ties. \textit{Consumer.} Every policy selected from the randomized sample, including the attaining tail learner, receives the displayed honest rare-loss certificate without sample splitting.
+
+\begin{openendedquestion}[oeq:sharp-inference-frontier]\label{oeq:sharp-inference-frontier}
+Among all total simultaneous confidence systems with uniform coverage at least \(1-\gamma_0\) over \(\mathcal H_{\beta,D}(m)\), determine the minimax order of maximal log-width, prove a matching confidence-length lower bound, and characterize exactly the joint sequences for which an honest \(W_{n,m,\tau}\to0\) in probability exists. The derivation must decide whether the optimal width has the same sparse-versus-collective transition or selection factor as \(\mathcal R(n,m,\tau)\), rather than imposing that equality. For the converse, use the explicit family \((P^{\mathrm{lb}}_{\omega}:\omega\in\Omega_m)\) in the paired-cell Assouad--Fano confidence-width handle: prove that every member lies in the same fixed-\(m\) Hall class, bound the divergence between neighboring observed product experiments by an absolute constant, compute the separation between the corresponding \(m^{-1}\)-weighted policy-mixture log quantiles, and apply Assouad's lemma or Fano's inequality plus confidence-set testing duality to lower-bound maximal width.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The explicit paired-splice hypercube makes the honest-width converse a concrete testing problem over policy mixtures, separate from expected regret. \textit{Gap.} SasakiWang2024 establishes a scalar worst-case bias floor, while ChernozhukovLeeRosenSun2025 uses Gaussian maxima for regular policy values; the growing heterogeneous tail-mixture width frontier is not covered by either argument. \textit{Consumer.} The result tells the OsamaZachariahStoica2020 workflow when an extreme-loss certificate can become informative uniformly over every feasible policy.
+
+\begin{proposition}[prop:multiscale-paired-splice-lower-envelope]\label{prop:multiscale-paired-splice-lower-envelope}
+There is a constant \(c_{\beta,D}>0\), depending only on \(\beta,D\), such that for every admissible \(n,m,\tau\),
+\[
+\mathcal R(n,m,\tau)\ge c_{\beta,D}\min\!\left\{\ell,\;
+\ell\min\{1,N^{-\varkappa}\}
+\left[1+\min\!\left\{
+\left(\ell\min\{1,N^{-\varkappa}\}\right)^{\varkappa/(1-\varkappa)},
+[\log(2m)]^{\varkappa}
+\right\}\right]\right\}.                                      \tag{21}
+\]
+The bound is witnessed by an explicit product prior on paired Hall splices, all of whose full-data laws belong to \(\mathcal H_{\beta,D}(m)\), and it holds against every measurable randomized learner in \(\mathfrak A_{n,m}\).  It retains the exact logarithmic mixture loss after arbitrary capacity reallocation and strengthens the constant-information lower bound in the nonvanishing intermediate and familywise-testing regimes.
+\end{proposition}
+\begin{proof}
+Put \(p:=1/\varkappa=2+4/\beta\), \(L_m:=\log(2m)\),
+\[
+q_N:=\min\{1,N^{-\varkappa}\},\; A:=\ell q_N,
+\; U:=L_m^{\varkappa}.
+\]
+These are proof-local abbreviations.  We first establish a distributional lower bound at an arbitrary splice amplitude, and then optimize it.
+
+Fix \(c_0=3/4\).  Choose \(d=d_{\beta,D}>0\) so small that
+\[
+d\leq\min\{1/8,\beta/2,e\beta D/2,e\beta\log(3/2)\}.             \tag{22}
+\]
+For \(T\geq1\), set \(\delta=dT^{-\beta}\) and define
+\[
+S_0(y)=c_0y^{-4},\;
+S_\delta(y)=
+\begin{cases}
+c_0y^{-4},&1\leq y\leq T,\\
+c_0T^{-\delta}y^{-(4-\delta)},&y>T.
+\end{cases}                                                       \tag{23}
+\]
+Both functions are nonincreasing and right-continuous, tend to zero, and have an atom of mass \(1-c_0\) at one, so they are genuine survivals supported on \([1,\infty)\).  For \(S_\delta\), take \(\alpha=4-\delta\) and \(c=c_0T^{-\delta}\).  Since
+\[
+\delta\log T=dT^{-\beta}\log T\leq\frac d{e\beta}\leq\log(3/2),
+\]
+condition (22) gives \(1/2\leq c\leq3/4\) and \(1\leq\alpha\leq4\).  Above \(T\) the Hall remainder is zero.  If \(1\leq y\leq T\), put \(z=y/T\).  The inequality \(e^u-1\leq ue^u\), followed by
+\(\sup_{0<z\leq1}z^a\log(1/z)=1/(ea)\), gives
+\[
+\begin{split}
+y^\beta\left|\frac{S_\delta(y)}{c y^{-(4-\delta)}}-1\right|
+&=T^\beta z^\beta(z^{-\delta}-1)\\
+&\leq T^\beta\delta z^{\beta-\delta}\log(1/z)
+\leq\frac{d}{e(\beta-\delta)}\leq D.                            \tag{24}
+\end{split}
+\]
+Thus both tails satisfy the support, index, scale, and Hall-envelope conditions of \(\mathrm{def{:}hall\text{-}class}\).
+
+The tails in (23) agree through \(T\) and have common exceedance probability \(c_0T^{-4}\).  Conditional on exceeding \(T\), \(\log(L/T)\) is exponential with rate \(4\) under \(S_0\) and rate \(4-\delta\) under \(S_\delta\).  Direct integration therefore yields
+\[
+\begin{split}
+\operatorname{KL}(S_\delta,S_0)
+&=c_0T^{-4}\left\{\log\frac{4-\delta}{4}
++\frac4{4-\delta}-1\right\},\\
+\operatorname{KL}(S_0,S_\delta)
+&=c_0T^{-4}\left\{\log\frac4{4-\delta}
++\frac{4-\delta}{4}-1\right\}.
+\end{split}                                                         \tag{25}
+\]
+Writing \(x=\delta/4\leq1/32\), the derivatives of
+\(\log(1-x)+x/(1-x)\) and \(-\log(1-x)-x\) are respectively
+\(x/(1-x)^2\) and \(x/(1-x)\).  Integration from zero proves from (25) that both directed divergences are at most
+\[
+C T^{-4}\delta^2,                                                   \tag{26}
+\]
+where \(C\) is numerical.
+
+Let \(J=m/2\) and partition the cells into \(J\) pairs.  Give
+\(\omega=(\omega_1,\ldots,\omega_J)\in\{-1,+1\}^J\) the uniform product prior.  In pair \(j\), put \(S_\delta\) on the control arm of the cell selected by \(\omega_j\), and put \(S_0\) on every other control or treatment arm.  Draw the two potential losses independently conditional on \(X\), use the treatment probability in \(\mathrm{ass{:}treatment\text{-}probability}\), and set \(L=L(A)\) as in \(\mathrm{ass{:}consistency}\).  Equations (22)--(24), together with the frozen uniform-cell and randomization assumptions, prove that every resulting law \(P_{\omega,\delta}\) lies in \(\mathcal H_{\beta,D}(m)\).  The chosen conditional independence of the potential losses is permitted because the class leaves their within-person coupling unrestricted.
+
+For a feasible treated set, let \(H\) be the number of sign-selected heavy controls left untreated.  Treating all \(J\) heavy-control cells is feasible and produces the pure \(S_0\) mixture.  Every policy with \(H\) misses has mixture survival
+\[
+\frac HmS_\delta(y)+\left(1-\frac Hm\right)S_0(y).                \tag{27}
+\]
+The pure \(S_0\) log quantile is \(t_0=(\ell+\log c_0)/4\).  Suppose
+\(b:=t_0-\log T\geq0\), and write the log regret in (27) as \(h\).  Substitution of \(y=\exp(t_0+h)>T\) into (23) and (27) gives the exact identity
+\[
+4h=\log\left[1+\frac Hm\left\{e^{\delta(b+h)}-1\right\}\right]. \tag{28}
+\]
+In particular, since \(h\geq0\),
+\[
+h\geq\frac14 g_z(H),\qquad
+g_z(u):=\log\left[1+\frac um(e^z-1)\right],\; z:=\delta b.     \tag{29}
+\]
+For fixed \(z\geq0\), \(g_z\) is increasing and concave on \([0,m]\), and \(g_z(0)=0\).
+
+We next show why unrestricted capacity reallocation cannot defeat (29).  Let \(K_j\) be the number of the \(n\) records whose cell lies in pair \(j\).  The vector \((K_1,\ldots,K_J)\) is independent of \(\omega\), and its entries sum to \(n=2NJ\).  Consequently at least \(J/2\) indices satisfy \(K_j\leq4N\).  Conditional on the count vector, the data blocks from distinct pairs are independent, and the product prior makes the posterior coordinates \(\omega_j\) independent.
+
+Consider first a fixed realized data set.  In each pair a feasible action treats zero, one, or two cells.  Write \(r_j\) for the smaller posterior probability of its two signs, so a one-cell posterior-MAP action has conditional miss distribution \(\operatorname{Bernoulli}(r_j)\), with \(r_j\leq1/2\).  A non-MAP one-cell action can only increase this Bernoulli parameter.  The capacity constraint implies that the number of two-cell actions is no larger than the number of zero-cell actions.  Pair one action of each type.  Their combined missed count is identically one.  Replacing them by one posterior-MAP treatment in each pair gives independent variables \(B_1,B_2\) with means at most \(1/2\).  For every fixed missed count \(R\) in the other pairs, Jensen's inequality and monotonicity give
+\[
+\mathbb E\{g_z(R+B_1+B_2)\mid\mathsf O_n\}
+\leq g_z(R+r_1+r_2)\leq g_z(R+1).                                 \tag{30}
+\]
+Changing every remaining zero-cell action to a one-cell MAP action also cannot increase the conditional loss and respects capacity, because all paired two-cell actions have already been removed.  Iterating (30) proves that, among all feasible possibly randomized allocations, one posterior-MAP action in every pair minimizes the conditional expectation of the lower-envelope loss \(g_z(H)\).  Randomization cannot improve on the minimum of the deterministic conditional risks.
+
+It remains to lower-bound the MAP error probabilities.  Given \(K_j=k\), the two sign experiments in pair \(j\) are product experiments with \(k\) observations.  By (26), their directed Kullback--Leibler divergences are bounded by
+\[
+CkT^{-4}\delta^2.                                                   \tag{31}
+\]
+Here the factor from the two cell labels and the control probability is at most one and is absorbed into \(C\).  We record an elementary testing inequality.  For two dominated laws \(Q_0,Q_1\), let
+\(\rho=\int\sqrt{dQ_0dQ_1}\).  Cauchy--Schwarz gives
+\(\operatorname{TV}(Q_0,Q_1)\leq\sqrt{1-\rho^2}\), while Jensen's inequality under \(Q_0\) gives
+\(\rho\geq\exp\{-\operatorname{KL}(Q_0,Q_1)/2\}\).  Hence the equal-prior Bayes error obeys
+\[
+e(Q_0,Q_1)=\frac{1-\operatorname{TV}(Q_0,Q_1)}2
+\geq\frac{\rho^2}{4}
+\geq\frac14e^{-\operatorname{KL}(Q_0,Q_1)}.                       \tag{32}
+\]
+Combining (31)--(32), every pair with \(K_j\leq4N\) has its conditional-on-count Bayes error at least
+\[
+q:=\frac14\exp\{-C_1NT^{-4}\delta^2\}.                            \tag{33}
+\]
+After integrating the mutually independent pair data conditional on the count vector, the MAP error indicators are independent Bernoulli variables.  On the at least \(J/2\) low-count pairs their success probabilities are at least \(q\).  Thus their sum stochastically dominates a binomial variable \(Z\sim\operatorname{Bin}(r,q)\) with \(r\geq m/4\).  Equations (29)--(30) consequently imply, for every learner,
+\[
+2^{-J}\sum_{\omega}\mathbb E_{P_{\omega,\delta},n}h
+\geq c\,\mathbb E g_z(Z).                                          \tag{34}
+\]
+This is the required distributional replacement for a mean-only Assouad step.
+
+For clarity, the binomial expectation in (34) has an explicit two-regime lower bound.  If \(rq\geq1/4\), Paley--Zygmund and
+\(\mathbb EZ^2\leq(rq)^2+rq\) give a numerical positive lower bound on
+\(P\{Z\geq rq/2\}\).  If \(rq<1/4\), then
+\(P(Z=1)=rq(1-q)^{r-1}\geq c rq\), because \(q\leq1/4\).  Adjusting constants over the overlap yields
+\[
+\mathbb E g_z(Z)\geq c\begin{cases}
+\log\{1+q(e^z-1)\},&mq\geq c_2,\\
+mq\log\{1+m^{-1}(e^z-1)\},&mq<c_2.
+\end{cases}                                                         \tag{35}
+\]
+Thus (34)--(35) control the distribution of missed heavy cells from constant testing information through and beyond order \(\log m\), without assuming independent multinomial cell counts and without restricting the learner's capacity reallocation.
+
+We now optimize a range that is sufficient for (21).  If \(N\geq1\), write
+\[
+T=(q_Nt)^{-1/\beta},\; \delta=dq_Nt,\;
+1\leq t\leq q_N^{-1}.                                                \tag{36}
+\]
+Since \(Nq_N^p=1\), (33) becomes
+\[
+q\geq\tfrac14e^{-C_3t^p}.                                           \tag{37}
+\]
+Moreover, \(\log T\leq\log N/(2\beta+4)\).  The assumption
+\(\tau\leq1/(8n)\), hence \(\ell\geq\log(8n)\), gives exactly as in the endpoint calculation for the fixed-amplitude splice
+\[
+b=\frac{\ell+\log(3/4)}4-\log T\geq c_\beta\ell.                  \tag{38}
+\]
+The affine difference has positive slope \(\beta/[4(\beta+2)]\), and its minimum over \(n\geq2\) is positive after reducing \(c_\beta\).  Therefore \(z\geq c_{\beta,D}At\).
+
+Let
+\[
+s:=\min\{A^{\varkappa/(1-\varkappa)},U\}.                          \tag{39}
+\]
+First suppose \(q_N\max\{1,s\}\) is bounded above by a sufficiently small numerical constant.  If \(s\leq1\), take \(t=1\).  Equations (35), (37), and (38) give a lower bound \(cA\).  If \(s>1\), take \(t=\varepsilon s\), enlarging it to one if necessary, where \(\varepsilon=\varepsilon(\beta,D)>0\) is sufficiently small.  When
+\(s=A^{\varkappa/(1-\varkappa)}\),
+\[
+t^p\asymp A^{1/(1-\varkappa)}\asymp At;
+\]
+when \(s=U\), the inequality \(A\geq L_m^{1-\varkappa}\) gives
+\(t^p\asymp L_m\leq CAt\).  Taking \(\varepsilon\) small uses \(p>1\) to ensure simultaneously that
+\(C_3t^p\leq z/2\) and \(C_3t^p\leq L_m/2\).  Hence \(mq\geq c\), the first line of (35) applies, and
+\[
+\log\{1+q(e^z-1)\}\geq cAt.
+\]
+Together with the \(s\leq1\) case, this proves
+\[
+\mathcal R(n,m,\tau)\geq cA(1+s)                                  \tag{40}
+\]
+whenever the right side is smaller than a fixed multiple of \(\ell\).
+
+In the complementary saturation case choose \(T=1\) and \(\delta=d\).  If \(N<1\), (33) has constant testing information and (35) immediately gives \(c\ell\).  If \(N\geq1\), saturation in (39) implies \(q_NU\geq c\): this is immediate when \(s=U\), while when \(s=A^{\varkappa/(1-\varkappa)}\leq U\) it follows from \(q_Ns\geq c\).  Consequently \(N\leq C L_m\).  Since now \(m\leq n\), the tail restriction gives \(L_m\leq\ell\).  By reducing the fixed \(d\) in (22), the testing exponent in (33) is at most a fixed fraction of \(d\ell\), whereas (38) with \(T=1\) gives \(z\geq c d\ell\).  The dense line of (35) then gives
+\[
+\mathcal R(n,m,\tau)\geq c\ell.                                   \tag{41}
+\]
+Combining (39)--(41), and substituting the definitions of \(A,q_N,U\), is precisely (21).  Every lower-bound instance was verified in (22)--(24) to belong to the same \(\mathcal H_{\beta,D}(m)\), and the posterior comparison (30) covered every Markov-kernel learner in \(\mathfrak A_{n,m}\).  This completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition replaces the invalid mean-only route with a distributional capacity-reallocation lower bound and exposes three explicit lower phases. \textit{Gap.} No cited comparator supplies this paired-product posterior exchange or the exact logarithmic mixture-loss optimization. \textit{Consumer.} It fixes the quantitative target that a future full-class capacity-aware learner must attain.
+
+\begin{theorem}[thm:familywise-regret-phase]\label{thm:familywise-regret-phase}
+Put \(A_{n,m,\tau}:=\ell\min\{1,N^{-\varkappa}\}\) and \(L_m:=\log(2m)\). There are constants \(0<c_{\beta,D}\leq C_{\beta,D}<\infty\), depending only on \(\beta,D\), with the following properties for every admissible \(n,m,\tau\). If
+\[
+A_{n,m,\tau}\geq L_m^{1-\varkappa},                                       \tag{42}
+\]
+then
+\[
+c_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau)
+\leq \mathcal R(n,m,\tau)
+\leq C_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau).                       \tag{43}
+\]
+The upper inequality is attained by the computable total learner \(\widehat\pi_{\mathrm{tail}}\), and the lower inequality holds over the same \(\mathcal H_{\beta,D}(m)\) against every learner in \(\mathfrak A_{n,m}\). Thus (42) is the familywise-testing phase in which the coordinatewise rate is unavoidable, including when the risk saturates at order \(\ell\).
+
+If instead \(A_{n,m,\tau}<L_m^{1-\varkappa}\), then the established bounds localize to
+\[
+c_{\beta,D}\min\!\left\{\ell,
+A_{n,m,\tau}\left[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}\right]\right\}
+\leq \mathcal R(n,m,\tau)
+\leq C_{\beta,D}\min\{\ell,A_{n,m,\tau}L_m^{\varkappa}\}.               \tag{44}
+\]
+Consequently, along admissible sequences with \(n\to\infty\), the condition \(A_{n,m,\tau}L_m^{\varkappa}\to0\) is sufficient for \(\mathcal R(n,m,\tau)\to0\), whereas \(\mathcal R(n,m,\tau)\to0\) implies \(A_{n,m,\tau}\to0\) and hence eventual membership in the strict sub-familywise phase. No sequence visiting (42) infinitely often has vanishing regret. Moreover, every sequence on which \(\mathcal R(n,m,\tau)\to0\) satisfies
+\[
+\frac{\mathcal R(n,m,\tau)}{\mathcal B_{\mathrm{AW}}(n,m)}\longrightarrow\infty. \tag{45}
+\]
+\end{theorem}
+\begin{proof}
+Write
+\[
+q_N:=\min\{1,N^{-\varkappa}\},\quad
+A:=\ell q_N,\quad L:=\log(2m).
+\]
+These are proof-local abbreviations. By the definition \(N=n/m\),
+\[
+\left\{\frac{m\log(2m)}n\right\}^{\varkappa}
+=\left(\frac LN\right)^{\varkappa}.                                    \tag{46}
+\]
+Since \(m\geq2\), \(L\geq\log4>1\). We claim that the definition in \(\mathrm{def{:}coordinatewise\text{-}hall\text{-}baseline}\) obeys the exact identity
+\[
+\mathcal B_{\mathrm{CK}}(n,m,\tau)=\min\{\ell,AL^{\varkappa}\}.          \tag{47}
+\]
+Indeed, if \(N\geq1\), then \(q_N=N^{-\varkappa}\), and (46) gives (47). If \(N<1\), then \(q_N=1\), \(L/N>1\), and \(L^{\varkappa}>1\). Hence both
+\(\ell\min\{1,(L/N)^{\varkappa}\}\) and \(\min\{\ell,AL^{\varkappa}\}\) equal \(\ell\). This proves (47) in all cases.
+
+The definition \(\varkappa=\beta/(2\beta+4)\), together with \(\beta>0\), gives \(0<\varkappa<1\), so \(\varkappa/(1-\varkappa)>0\). Suppose first that \(A\geq L^{1-\varkappa}\). Raising this inequality to the positive power \(\varkappa/(1-\varkappa)\) gives
+\[
+A^{\varkappa/(1-\varkappa)}\geq
+\left(L^{1-\varkappa}\right)^{\varkappa/(1-\varkappa)}=L^{\varkappa}.   \tag{48}
+\]
+Thus the inner minimum in \(\mathrm{prop{:}multiscale\text{-}paired\text{-}splice\text{-}lower\text{-}envelope}\) is exactly \(L^{\varkappa}\). That proposition and monotonicity of \(u\mapsto\min\{\ell,u\}\) imply
+\[
+\begin{split}
+\mathcal R(n,m,\tau)
+&\geq c_{\beta,D}\min\{\ell,A(1+L^{\varkappa})\}\\
+&\geq c_{\beta,D}\min\{\ell,AL^{\varkappa}\}
+=c_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau),                       \tag{49}
+\end{split}
+\]
+where the last equality is (47). The upper half of \(\mathrm{thm{:}generic\text{-}regret\text{-}sandwich}\), again using (47), gives
+\[
+\mathcal R(n,m,\tau)
+\leq C_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau).                    \tag{50}
+\]
+The same theorem identifies \(\widehat\pi_{\mathrm{tail}}\) as the measurable data-driven witness for (50), while \(\mathrm{prop{:}multiscale\text{-}paired\text{-}splice\text{-}lower\text{-}envelope}\) states that (49) uses laws in the same Hall class and ranges against every measurable randomized learner. This proves (43), including the case in which either minimum in (49)--(50) equals \(\ell\).
+
+The familywise phase cannot have vanishing regret. In fact, (42) gives
+\[
+AL^{\varkappa}\geq L^{1-\varkappa}L^{\varkappa}=L.                     \tag{51}
+\]
+The restrictions \(m\geq2\), \(n\geq2\), and \(\tau\leq1/(8n)\) give respectively \(L\geq\log4\) and \(\ell=\log(1/\tau)\geq\log(8n)\geq\log16\). Equations (47), (49), and (51) therefore yield
+\[
+\mathcal R(n,m,\tau)\geq c_{\beta,D}\log4                              \tag{52}
+\]
+whenever (42) holds. Thus a sequence satisfying (42) infinitely often cannot have regret tending to zero.
+
+Now suppose \(A<L^{1-\varkappa}\). The same positive-power calculation as in (48), with a strict inequality, gives
+\[
+A^{\varkappa/(1-\varkappa)}<L^{\varkappa}.                              \tag{53}
+\]
+Substitution of (53) into \(\mathrm{prop{:}multiscale\text{-}paired\text{-}splice\text{-}lower\text{-}envelope}\) proves the lower inequality in (44); equations (47) and (50) prove its upper inequality. In particular, if \(AL^{\varkappa}\to0\), (44) implies \(\mathcal R(n,m,\tau)\to0\).
+
+Conversely, the multiscale lower envelope is at least
+\[
+c_{\beta,D}\min\{\ell,A\},                                            \tag{54}
+\]
+because its bracketed factor is at least one. Along every admissible sequence with \(n\to\infty\), the tail restriction gives \(\ell\geq\log(8n)\to\infty\). If \(\mathcal R(n,m,\tau)\to0\), (54) consequently forces \(A\to0\). Since \(L^{1-\varkappa}\geq(\log4)^{1-\varkappa}>1\), this also forces the strict inequality (53) eventually.
+
+Finally, \(A=\ell q_N\to0\) and \(\ell\to\infty\) imply \(q_N\to0\). By the definition of \(q_N\), this entails \(N\to\infty\), and hence eventually
+\[
+\frac mn=N^{-1}\longrightarrow0,\quad
+\ell\left(\frac mn\right)^{\varkappa}=\ell N^{-\varkappa}=A\longrightarrow0. \tag{55}
+\]
+The final assertion of \(\mathrm{thm{:}generic\text{-}regret\text{-}sandwich}\), applied using (55), is exactly (45). This completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem closes the entire familywise-testing phase, identifies the exact elbow including saturation, and confines the remaining many-cell regret problem to the strict sub-familywise phase. \textit{Gap.} CarpentierKim2015 motivates the translated coordinatewise one-tail benchmark but does not prove its minimax necessity for a randomized capacity-selected mixture; the paired-splice lower envelope supplies that missing converse exactly at and above the elbow. \textit{Consumer.} For the non-nested upper-cost-quantile objective of OsamaZachariahStoica2020, the theorem certifies that familywise tail learning is unavoidable in this Hall model and that policy learning is not statistically justified there in a vanishing-regret sense.
+
+\begin{theorem}[thm:saturated-subfamilywise-regret-phase]\label{thm:saturated-subfamilywise-regret-phase}
+Fix \(\beta>0\) and \(D\in(0,1/4]\). Put
+\[
+A_{n,m,\tau}:=\ell\min\{1,N^{-\varkappa}\},
+\qquad L_m:=\log(2m).
+\]
+There are constants \(0<c_{\beta,D}\le C_{\beta,D}<\infty\), depending only on \(\beta,D\), such that for every \(n\ge2\), every even \(m\ge2\), and every \(0<\tau\le1/(8n)\) satisfying
+\[
+A_{n,m,\tau}<L_m^{1-\varkappa},
+\qquad
+A_{n,m,\tau}\left(1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}\right)\ge\ell,
+\]
+one has
+\[
+c_{\beta,D}\ell
+\le \mathcal R(n,m,\tau)
+\le C_{\beta,D}\ell.
+\]
+Moreover,
+\[
+\frac12\ell\le \mathcal B_{\mathrm{CK}}(n,m,\tau)\le\ell,
+\]
+so \(\mathcal R(n,m,\tau)\asymp_{\beta,D}\ell\asymp\mathcal B_{\mathrm{CK}}(n,m,\tau)\) throughout this saturated sub-familywise phase. Every case with \(N<1\) that satisfies the first, sub-familywise, inequality automatically satisfies the second inequality and hence lies in this phase.
+\end{theorem}
+\begin{proof}
+Because \(\beta>0\), the definition \(\varkappa=\beta/(2\beta+4)\) gives
+\[
+0<\varkappa<\frac12,
+\qquad
+p:=\frac{\varkappa}{1-\varkappa}>0.
+\]
+Admissibility gives \(\tau<1\), hence \(\ell=\log(1/\tau)>0\), and \(m\ge2\) gives \(L_m=\log(2m)>1\). Since the map \(z\mapsto z^p\) is strictly increasing on \((0,\infty)\), the first displayed hypothesis implies
+\[
+A_{n,m,\tau}^{p}
+<\left(L_m^{1-\varkappa}\right)^p
+=L_m^{\varkappa}.
+\]
+Consequently,
+\[
+\min\left\{A_{n,m,\tau}^{\varkappa/(1-\varkappa)},L_m^{\varkappa}\right\}
+=A_{n,m,\tau}^{\varkappa/(1-\varkappa)}.
+\]
+Applying \(\mathrm{prop{:}multiscale\text{-}paired\text{-}splice\text{-}lower\text{-}envelope}\) and then the second displayed hypothesis therefore yields, equation by equation,
+\[
+\begin{aligned}
+\mathcal R(n,m,\tau)
+&\ge c_{\beta,D}\min\!\left\{\ell,
+A_{n,m,\tau}\left[1+
+\min\!\left\{A_{n,m,\tau}^{\varkappa/(1-\varkappa)},L_m^{\varkappa}\right\}\right]\right\}\\
+&=c_{\beta,D}\min\!\left\{\ell,
+A_{n,m,\tau}\left[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}\right]\right\}\\
+&=c_{\beta,D}\ell.
+\end{aligned}
+\]
+On the other hand, \(\mathrm{thm{:}generic\text{-}regret\text{-}sandwich}\) gives
+\[
+\mathcal R(n,m,\tau)
+\le C_{\beta,D}\ell
+\min\left\{1,\left(\frac{mL_m}{n}\right)^{\varkappa}\right\}
+=C_{\beta,D}\mathcal B_{\mathrm{CK}}(n,m,\tau)
+\le C_{\beta,D}\ell,
+\]
+where the middle equality is the construction in \(\mathrm{def{:}coordinatewise\text{-}hall\text{-}baseline}\).
+
+For completeness, that construction and \(N=n/m\) imply the useful identity
+\[
+\mathcal B_{\mathrm{CK}}(n,m,\tau)
+=\min\{\ell,A_{n,m,\tau}L_m^{\varkappa}\}.
+\]
+Indeed, if \(N\ge1\), then \(A_{n,m,\tau}=\ell N^{-\varkappa}\), whereas if \(N<1\), both sides equal \(\ell\) because \(L_m>1\). The two regime hypotheses further give
+\[
+\ell
+\le A_{n,m,\tau}\left(1+A_{n,m,\tau}^{p}\right)
+<A_{n,m,\tau}(1+L_m^{\varkappa})
+\le2A_{n,m,\tau}L_m^{\varkappa},
+\]
+where the last inequality uses \(L_m^{\varkappa}>1\). Hence
+\[
+\frac12\ell
+\le\min\{\ell,A_{n,m,\tau}L_m^{\varkappa}\}
+=\mathcal B_{\mathrm{CK}}(n,m,\tau)
+\le\ell.
+\]
+This proves both comparisons.
+
+Finally, if \(N<1\), then \(N^{-\varkappa}>1\), and therefore
+\[
+A_{n,m,\tau}=\ell,
+\qquad
+A_{n,m,\tau}(1+A_{n,m,\tau}^{p})
+=\ell(1+\ell^p)\ge\ell.
+\]
+Thus the saturation inequality is automatic whenever \(N<1\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This corollary removes a previously unresolved subset by observing that the accepted lower envelope has already reached its maximal logarithmic scale there, while the generic upper bound can never exceed that scale. \textit{Gap.} It does not provide the localized selected-mixture oracle inequality required when the lower envelope is still below \(\ell\). \textit{Consumer.} It certifies that capacity averaging cannot yield vanishing regret in this saturated sub-familywise region, including every sub-familywise case with fewer than one expected observation per cell.
+
+\section{Interpretation}
+
+The phase map now has two certified regions. At or above the familywise elbow \(A_{n,m,\tau}=[\log(2m)]^{1-\varkappa}\), rare cellwise errors make coordinatewise calibration minimax-unavoidable. Below the elbow, if the multiscale selected-mixture term \(A_{n,m,\tau}[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}]\) reaches \(\ell\), the logarithmic regret saturates and the coordinatewise benchmark is again sharp; this automatically covers every \(N<1\) case that is sub-familywise. Only when both inequalities are strict can capacity averaging possibly improve the coordinatewise rate.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The distributional lower-side obstruction is resolved. Comparison with the coordinatewise upper theorem closes the familywise phase, and direct use of the lower envelope closes the saturated strict sub-familywise phase at \(\mathcal R\asymp_{\beta,D}\ell\asymp\mathcal B_{\mathrm{CK}}\). The residual regret step is confined to \(A_{n,m,\tau}<L_m^{1-\varkappa}\) and \(A_{n,m,\tau}[1+A_{n,m,\tau}^{\varkappa/(1-\varkappa)}]<\ell\): no proved learner controls data-dependent selected tail weights at the lower rate without reverting to the coordinatewise maximum. Thus \(A_{n,m,\tau}\to0\) is proved necessary and \(A_{n,m,\tau}L_m^{\varkappa}\to0\) sufficient for vanishing regret, but equality of these criteria remains open only inside that last region. The confidence-width converse and exact shrinking condition remain separately open.
+
+\section{Honest scope}
+
+Established claims are the fixed-cell Hall model and identification setup, sorting and inversion, Hall-core approximation, the local-dominance map, the generic coordinatewise regret sandwich, the exact two-cell rate, the simultaneous confidence upper system, the multiscale paired-splice lower envelope, the matched familywise regret frontier, and the saturated strict sub-familywise frontier. The lower envelope is not described as the exact frontier in the remaining unsaturated region. The exact unsaturated capacity-aware upper rate and the sharp confidence-width frontier remain open. No common tail index, fixed gap, density, nonempty realized cell sample, nuisance-rate assumption, or selection penalty is imposed. A paired-splice converse may be exported only to a superclass explicitly containing its full-data laws; the corresponding upper bound requires a separate proof.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Hall1982} Peter Hall (1982), On some simple estimates of an exponent of regular variation, Journal of the Royal Statistical Society, Series B, DOI: 10.1111/j.2517-6161.1982.tb01183.x.
+
+  \bibitem{HallWelsh1985} Peter Hall and A. H. Welsh (1985), Adaptive estimates of parameters of regular variation, Annals of Statistics, DOI: 10.1214/aos/1176346596.
+
+  \bibitem{CarpentierKim2015} Alexandra Carpentier and Arlene K. H. Kim (2015), Adaptive and minimax optimal estimation of the tail coefficient, Statistica Sinica 25, 1133--1144, arXiv:1309.2585.
+
+  \bibitem{BoucheronThomas2015} St\'ephane Boucheron and Maud Thomas (2015), Tail index estimation, concentration and adaptivity, Electronic Journal of Statistics 9, arXiv:1503.05077.
+
+  \bibitem{KitagawaTetenov2018} Toru Kitagawa and Aleksey Tetenov (2018), Who should be treated? Empirical welfare maximization methods for treatment choice, Econometrica 86, DOI: 10.3982/ECTA13288.
+
+  \bibitem{WangZhouSongSherwood2018} Lan Wang, Yu Zhou, Rui Song, and Ben Sherwood (2018), Quantile-optimal treatment regimes, Journal of the American Statistical Association, DOI: 10.1080/01621459.2017.1330204.
+
+  \bibitem{OsamaZachariahStoica2020} Muhammad Osama, Dave Zachariah, and Peter Stoica (2020), Learning robust decision policies from observational data, Advances in Neural Information Processing Systems 33, arXiv:2006.02355.
+
+  \bibitem{AtheyWager2021} Susan Athey and Stefan Wager (2021), Policy learning with observational data, Econometrica 89, 133--161, arXiv:1702.02896.
+
+  \bibitem{PanovMorozova2021} Vladimir Panov and Ekaterina Morozova (2021), Extreme value analysis for mixture models with heavy-tailed impurity, Mathematics 9, 2208, arXiv:2103.07689.
+
+  \bibitem{EinmahlHe2023} John H. J. Einmahl and Yi He (2023), Extreme value inference for heterogeneous power law data, Annals of Statistics 51, 1331--1356, DOI: 10.1214/23-AOS2294.
+
+  \bibitem{DaouiaPadoanStupfler2024} Abdelaati Daouia, Simone A. Padoan, and Gilles Stupfler (2024), Optimal pooling and distributed inference for the tail index and extreme quantiles, Bernoulli, arXiv:2111.03173.
+
+  \bibitem{SasakiWang2024} Yuya Sasaki and Yulong Wang (2024), On uniform confidence intervals for the tail index and the extreme quantile, Journal of Econometrics, article 105865, arXiv:2210.05074.
+
+  \bibitem{AndrewsKitagawaMcCloskey2024} Isaiah Andrews, Toru Kitagawa, and Adam McCloskey (2024), Inference on winners, Quarterly Journal of Economics, DOI: 10.1093/qje/qjad043.
+
+  \bibitem{HuangLiPeng2025} Wei Huang, Shuo Li, and Liuhua Peng (2025), Extreme treatment effects: Estimation and inference, Journal of Business and Economic Statistics, arXiv:2209.00246.
+
+  \bibitem{ChernozhukovLeeRosenSun2025} Victor Chernozhukov, Sokbae Lee, Adam M. Rosen, and Liyang Sun (2025), Risk-aware policy learning with confidence, CeMMAP working paper, arXiv:2502.10653.
+
+  \bibitem{GuggenbergerMehtaPavlov2026} Patrik Guggenberger, Nihal Mehta, and Nikita Pavlov (2026), Minimax regret treatment rules with finite samples when a quantile is the object of interest, arXiv:2601.03428.
+
+  \bibitem{XiaZhangKong2026} Junwen Xia, Jingxiao Zhang, and Dehan Kong (2026), Successive classification learning for estimating quantile optimal treatment regimes, arXiv:2507.11255.
+
+  \bibitem{WangCaiWangShiTang2026} Xiaorui Wang, Juan-Juan Cai, Huixia Judy Wang, Jian Qing Shi, and Yanlin Tang (2026), Causal inference for heterogeneous extreme quantiles with heavy-tailed outcomes, arXiv:2609.03933.
+
+\end{thebibliography}
+
+\end{document}

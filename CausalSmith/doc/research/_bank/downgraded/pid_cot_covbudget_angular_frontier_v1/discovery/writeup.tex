@@ -1,0 +1,1239 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}cot\_\allowbreak{}covbudget\_\allowbreak{}angular\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For a randomized Gaussian experiment, the observed-law functional \(B(S)\) is the sharp conditional-optimal-transport lower endpoint for the causal estimand \(\tau_2\), not the estimand itself. Its increment is a squared chordal distance between upper-hemisphere lifts of residualized arm-score vectors. Writing \(K=M/m\) and \(R=V/s\), the exact fixed-budget submodularity-ratio frontier is \(\rho_k(K,R)=1\) when \(k=1\) or \(R=1\), and \(\rho_k(K,R)=k/\{1+(k-1)KR\}\) when \(k\ge2\) and \(R>1\). Hence population forward greedy attains the exact certified factor \(1-\{1-\rho_k(K,R)/k\}^k\), with the corresponding empirical additive-error guarantee. Unequal-scale Gaussian families attain the frontier in the limit, and the optimal dimension-free limit is \(1/(KR)\) for \(R>1\). Generic greedy analysis and sample-split post-selection inference are credited prior machinery; the new contribution is the sharp Gaussian budget frontier. Independent evaluation gives Wald inference on the separated parameter image and a conservative raw-moment projection interval over the whole compact image, including equality laws.
+
+\section{Project justification}
+
+\paragraph{Gap.} Conditional optimal transport supplies sharp covariate-assisted causal bounds, but existing work treats the conditioning set as fixed. Generic weak-submodularity results provide greedy recurrences without determining the exact approximation ratio of the unequal-scale two-arm Gaussian endpoint. In particular, neither the fixed-set Gaussian formulas nor one-response regression theory yields the piecewise fixed-budget frontier \(\rho_k(K,R)\).
+
+\paragraph{Niche.} The Gaussian endpoint has a residual-score geometry that is absent from one-response regression: singleton and joint gains are chordal distances observed through a sparse Schur-complement frame.
+
+\paragraph{Fill.} The project derives the residual angular identity, proves the exact frontier \(\rho_k(K,R)=1\) for \(k=1\) or \(R=1\) and \(\rho_k(K,R)=k/\{1+(k-1)KR\}\) for \(k\ge2\), \(R>1\), and constructs fully randomized unequal-scale Gaussian laws approaching it. Substitution into the standard recurrence gives the exact certified greedy factor \(1-\{1-\rho_k(K,R)/k\}^k\); the optimal budget- and dimension-uniform limit is \(1/(KR)\) when \(R>1\). The project also specializes credited independent-sample Wald inference to the separated image and supplies conservative moment-projection inference on the full compact image.
+
+\section{Related work}
+
+Lin, Gao, Blanchet, and Glynn (2025) motivate covariate-assisted conditional transport, prove interpolation toward the conditional bound, give Gaussian benchmarks, and identify variable selection as future work. Here \(\mathcal M_{\mathrm{Lin}}\) denotes their underlying common-pretreatment-marginal information model; it is distinct from the compact-support and regularity class imposed by particular theorems in that paper. The present sparse-margin Gaussian class is a proper subclass of that underlying information model. Accordingly, its approximation lower bound does not transfer to every law in the broader information model, and its adverse Gaussian converse does not transfer to the compact-support theorem class without a separate truncation or approximation argument. Lin et al. (2026) establish sharp fixed-information bounds and adapted-Wasserstein estimation, and their smooth-density work gives rates and a fixed-target quadratic central limit theorem. Das and Kempe (2011) introduce the submodularity ratio and sparse-spectral control for regression; Bian et al. (2017) and Elenberg et al. (2018) provide generic greedy and restricted-curvature machinery. Those works supply credited optimization machinery, whereas the exact two-arm frontier here is model-specific. Ji, Lei, and Spector (2023) supply generic selection-valid inference among covariate and model choices, so sample splitting and post-selection validity are not novelty claims. Gelbrich (1990) and Fang and Zhu (2020) describe covariance-transport geometry beyond Gaussian laws, without automatically preserving the conditional sparse-selection calculation. Imbens and Manski (2004) and Stoye (2021) motivate honest inference at partial-identification boundaries; the whole-image projection interval follows that conservative principle without a claim of length optimality.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_2=\mathbb E_P[(Y_1-Y_0)^2]\).
+Primary functional / estimator / diagnostic: \(B(S)=(\mu_1-\mu_0)^2+(c_{1,S}-c_{0,S})^{\mathsf T}\Sigma_{SS}^{-1}(c_{1,S}-c_{0,S})+(\sqrt{r_1(S)}-\sqrt{r_0(S)})^2\).
+\begin{itemize}
+  \item \texttt{p} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of available pretreatment covariates.}
+  \item \texttt{k} --- \texttt{integer}; \(\{1,\ldots,\lfloor p/2\rfloor\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Covariate budget.}
+  \item \texttt{I2} --- \texttt{finite index set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_2=\{0,1\}\), the treatment-arm index set.
+  \item \texttt{a} --- \texttt{arm index}; \(\mathcal I_2\)
+  \item \texttt{A} --- \texttt{random variable}; \(\{0,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Treatment assignment.}
+  \item \texttt{X} --- \texttt{random vector}; \(\mathbb R^p\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Pretreatment covariate vector.}
+  \item \texttt{Y0} --- \texttt{random variable}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Control potential outcome.}
+  \item \texttt{Y1} --- \texttt{random variable}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Treated potential outcome.}
+  \item \texttt{Y} --- \texttt{random variable}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(Y=A Y_1+(1-A)Y_0\).
+  \item \texttt{O} --- \texttt{random vector}
+  \par\smallskip\noindent\emph{Definition.} \(O=(A,X,Y)\), the observed datum.
+  \item \texttt{P} --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} Law of \((A,X,Y_0,Y_1)\).
+  \item \texttt{pi} --- \texttt{scalar}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\pi=P(A=1)\).
+  \item \texttt{pi0} --- \texttt{constant}; \((0,1/2)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known treatment-\allowbreak{}overlap margin.}
+  \item \texttt{muX} --- \texttt{vector}; \(\mathbb R^p\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_X=\mathbb E_P[X]\).
+  \item \texttt{mu0} --- \texttt{scalar}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_0=\mathbb E_P[Y_0]\).
+  \item \texttt{mu1} --- \texttt{scalar}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_1=\mathbb E_P[Y_1]\).
+  \item \texttt{Sigma} --- \texttt{positive-\allowbreak{}definite matrix}; \(\mathbb S_{++}^p\)
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma=\operatorname{Var}_P(X)\).
+  \item \texttt{c0} --- \texttt{vector}; \(\mathbb R^p\)
+  \par\smallskip\noindent\emph{Definition.} \(c_0=\operatorname{Cov}_P(X,Y_0)\).
+  \item \texttt{c1} --- \texttt{vector}; \(\mathbb R^p\)
+  \par\smallskip\noindent\emph{Definition.} \(c_1=\operatorname{Cov}_P(X,Y_1)\).
+  \item \texttt{v0} --- \texttt{positive scalar}
+  \par\smallskip\noindent\emph{Definition.} \(v_0=\operatorname{Var}_P(Y_0)\).
+  \item \texttt{v1} --- \texttt{positive scalar}
+  \par\smallskip\noindent\emph{Definition.} \(v_1=\operatorname{Var}_P(Y_1)\).
+  \item \texttt{S} --- \texttt{index set}; \(2^{\{1,\ldots,p\}}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A retained covariate set.}
+  \item \texttt{L} --- \texttt{index set}; \(2^{\{1,\ldots,p\}}\)
+  \par\smallskip\noindent\emph{Definition.} A conditioning set with \(|L|\le k\).
+  \item \texttt{T} --- \texttt{index set}; \(2^{\{1,\ldots,p\}}\)
+  \par\smallskip\noindent\emph{Definition.} A nonempty increment set disjoint from \(L\), with \(|T|\le k\).
+  \item \texttt{r0} --- \texttt{set-\allowbreak{}indexed scalar}
+  \par\smallskip\noindent\emph{Definition.} \(r_0(S)=v_0-c_{0,S}^{\mathsf T}\Sigma_{SS}^{-1}c_{0,S}\), with \(r_0(\varnothing)=v_0\).
+  \item \texttt{r1} --- \texttt{set-\allowbreak{}indexed scalar}
+  \par\smallskip\noindent\emph{Definition.} \(r_1(S)=v_1-c_{1,S}^{\mathsf T}\Sigma_{SS}^{-1}c_{1,S}\), with \(r_1(\varnothing)=v_1\).
+  \item \texttt{m} --- \texttt{positive constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Lower sparse-\allowbreak{}covariance eigenvalue margin.}
+  \item \texttt{M} --- \texttt{positive constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper sparse-\allowbreak{}covariance eigenvalue margin.}
+  \item \texttt{s} --- \texttt{positive constant}
+  \par\smallskip\noindent\emph{Definition.} Uniform conditional residual-variance floor, denoted \(\sigma_{\min}^2\) in the motivating question.
+  \item \texttt{V} --- \texttt{positive constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Outcome-\allowbreak{}variance ceiling.}
+  \item \texttt{K} --- \texttt{scalar}; \([1,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(K=M/m\).
+  \item \texttt{R} --- \texttt{scalar}; \([1,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(R=V/s\).
+  \item \texttt{Tcal} --- \texttt{set of admissible dimension-\allowbreak{}and-\allowbreak{}margin tuples}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak T=\{(p,k,m,M,s,V):p\in\mathbb N,\ p\ge2,\ 1\le k\le\lfloor p/2\rfloor,\ 0<m\le M,\ 0<s\le V\}\).
+  \item \texttt{Mlin} --- \texttt{class of probability laws representing the underlying conditional-\allowbreak{}optimal-\allowbreak{}transport information model}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm{Lin}}\) denotes the underlying information model of Lin et al. (2025), in which the observed laws \(\mathcal L(X,Y_0)\) and \(\mathcal L(X,Y_1)\) share the pretreatment-covariate marginal. It does not denote the compact-support and regularity class used by particular theorems in that paper.
+  \item \texttt{Mpk} --- \texttt{class of probability laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{p,k}(m,M,s,V)\), the explicitly defined randomized Gaussian sparse-margin class for each \(p,k,m,M,s,V\) in \(\mathfrak T\).
+  \item \texttt{G} --- \texttt{positive constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known envelope for the coordinates of the Gaussian mean vector used only for uniform inference.}
+  \item \texttt{Madm} --- \texttt{class of probability laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M^{\mathrm{adm}}_{p,k}(m,M,s,V;\pi_0,G)\), the inference subclass of \(\mathcal M_{p,k}(m,M,s,V)\) with treatment overlap, bounded means, and \(\Sigma\succeq mI_p\).
+  \item \texttt{tau2} --- \texttt{causal estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_2=\mathbb E_P[(Y_1-Y_0)^2]\).
+  \item \texttt{B} --- \texttt{set function}; \(2^{\{1,\ldots,p\}}\to\mathbb R_+\)
+  \par\smallskip\noindent\emph{Definition.} The sharp lower endpoint for \(\tau_2\) after retaining \(X_S\).
+  \item \texttt{F} --- \texttt{set function}; \(2^{\{1,\ldots,p\}}\to\mathbb R_+\)
+  \par\smallskip\noindent\emph{Definition.} \(F(S)=B(S)-B(\varnothing)\).
+  \item \texttt{Delta} --- \texttt{set-\allowbreak{}pair functional}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta(L,T)=F(L\cup T)-F(L)\).
+  \item \texttt{gamma\_\allowbreak{}k} --- \texttt{scalar functional}; \((0,1]\)
+  \par\smallskip\noindent\emph{Definition.} Budget-\(k\) submodularity ratio of \(F\), with zero denominators omitted and value one if all denominators vanish.
+  \item \texttt{Gamma} --- \texttt{scalar}; \((0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma=(m/M)(s/V)=1/(KR)\).
+  \item \texttt{H} --- \texttt{positive-\allowbreak{}definite matrix}
+  \par\smallskip\noindent\emph{Definition.} \(H=\Sigma_{TT}-\Sigma_{TL}\Sigma_{LL}^{-1}\Sigma_{LT}\).
+  \item \texttt{d0} --- \texttt{vector}
+  \par\smallskip\noindent\emph{Definition.} \(d_0=c_{0,T}-\Sigma_{TL}\Sigma_{LL}^{-1}c_{0,L}\).
+  \item \texttt{d1} --- \texttt{vector}
+  \par\smallskip\noindent\emph{Definition.} \(d_1=c_{1,T}-\Sigma_{TL}\Sigma_{LL}^{-1}c_{1,L}\).
+  \item \texttt{u0} --- \texttt{vector}
+  \par\smallskip\noindent\emph{Definition.} \(u_0=H^{-1/2}d_0/\sqrt{r_0(L)}\).
+  \item \texttt{u1} --- \texttt{vector}
+  \par\smallskip\noindent\emph{Definition.} \(u_1=H^{-1/2}d_1/\sqrt{r_1(L)}\).
+  \item \texttt{z} --- \texttt{hemisphere lift}; \(\{u:\|u\|_2\le1\}\to\mathbb R^{|T|+1}\)
+  \par\smallskip\noindent\emph{Definition.} \(z(u)=(u^{\mathsf T},\sqrt{1-\|u\|_2^2})^{\mathsf T}\).
+  \item \texttt{g} --- \texttt{angular loss}
+  \par\smallskip\noindent\emph{Definition.} \(g(u,v)=1-u^{\mathsf T}v-\sqrt{(1-\|u\|_2^2)(1-\|v\|_2^2)}=\|z(u)-z(v)\|_2^2/2\).
+  \item \texttt{OPT} --- \texttt{scalar functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mathrm{OPT}=\max_{|S|\le k}F(S)\).
+  \item \texttt{Sg} --- \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} Population forward-greedy set after \(k\) steps.
+  \item \texttt{epsilon} --- \texttt{nonnegative scalar}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform endpoint-\allowbreak{}estimation tolerance.}
+  \item \texttt{Bhat} --- \texttt{random set function}
+  \par\smallskip\noindent\emph{Definition.} Moment plug-in estimator of \(B\).
+  \item \texttt{Shat} --- \texttt{random index set}
+  \par\smallskip\noindent\emph{Definition.} Empirical forward-greedy set built from \(\widehat B\).
+  \item \texttt{eta} --- \texttt{positive scalar}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Approximation tolerance for the extremal construction.}
+  \item \texttt{h} --- \texttt{positive scalar}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Unequal-\allowbreak{}scale perturbation in the extremal Gaussian family.}
+  \item \texttt{eps0} --- \texttt{random variable}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Control-\allowbreak{}arm residual noise in the extremal family.}
+  \item \texttt{eps1} --- \texttt{random variable}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Treatment-\allowbreak{}arm residual noise in the extremal family.}
+  \item \texttt{Ph} --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} The joint probability law of \(A,X,Y_0,Y_1\) in the fully specified \(p=2k\) unequal-scale Gaussian construction indexed by \(h\).
+  \item \texttt{Acal} --- \texttt{finite family of index sets}; \(\{S:|S|\le k\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed candidate family from which selection is made.}
+  \item \texttt{D1} --- \texttt{random sample}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Selection half-\allowbreak{}sample.}
+  \item \texttt{D2} --- \texttt{random sample}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Evaluation half-\allowbreak{}sample.}
+  \item \texttt{n1} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Size of \(D_1\).
+  \item \texttt{n2} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Size of \(D_2\).
+  \item \texttt{dtheta} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(d_p=p(p+1)/2+3p+5\), the dimension of the Gaussian observed-data moment parameter.
+  \item \texttt{theta} --- \texttt{finite-\allowbreak{}dimensional moment map}; \(\mathbb R^{d_p}\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta(P)=(\mu_X,\mu_0,\mu_1,\operatorname{vech}(\Sigma),c_0,c_1,v_0,v_1,\pi)\).
+  \item \texttt{Theta} --- \texttt{finite-\allowbreak{}dimensional parameter image}; \(\mathbb R^{d_p}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Theta=\{\theta(P):P\in\mathcal M^{\mathrm{adm}}_{p,k}(m,M,s,V;\pi_0,G)\}\).
+  \item \texttt{vartheta} --- \texttt{generic moment parameter}; \(\Theta\)
+  \item \texttt{Ptheta} --- \texttt{observed-\allowbreak{}data probability law}
+  \par\smallskip\noindent\emph{Definition.} \(P_{\vartheta}\) is the unique randomized Gaussian law of \(O\) whose moment parameter is \(\vartheta\in\Theta\).
+  \item \texttt{btheta} --- \texttt{set-\allowbreak{}indexed parameter functional}; \(\Theta\to\mathbb R_+\)
+  \par\smallskip\noindent\emph{Definition.} \(b_S(\vartheta)\) is the closed-form Gaussian endpoint obtained by evaluating the formula for \(B(S)\) at \(\vartheta\).
+  \item \texttt{xS} --- \texttt{set-\allowbreak{}indexed random vector}
+  \par\smallskip\noindent\emph{Definition.} \(x_S=X_S-\mu_{X,S}\).
+  \item \texttt{e0} --- \texttt{random variable}
+  \par\smallskip\noindent\emph{Definition.} \(e_0=Y_0-\mu_0\).
+  \item \texttt{e1} --- \texttt{random variable}
+  \par\smallskip\noindent\emph{Definition.} \(e_1=Y_1-\mu_1\).
+  \item \texttt{beta0} --- \texttt{set-\allowbreak{}indexed vector}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_0(S)=\Sigma_{SS}^{-1}c_{0,S}\).
+  \item \texttt{beta1} --- \texttt{set-\allowbreak{}indexed vector}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_1(S)=\Sigma_{SS}^{-1}c_{1,S}\).
+  \item \texttt{tS} --- \texttt{set-\allowbreak{}indexed positive scalar}
+  \par\smallskip\noindent\emph{Definition.} \(t_S=\sqrt{r_1(S)/r_0(S)}\).
+  \item \texttt{wS} --- \texttt{set-\allowbreak{}indexed vector}
+  \par\smallskip\noindent\emph{Definition.} \(w_S=\sqrt{t_S}\,\beta_0(S)-\beta_1(S)/\sqrt{t_S}\).
+  \item \texttt{I0} --- \texttt{random indicator}
+  \par\smallskip\noindent\emph{Definition.} \(I_0=\mathbf 1\{A=0\}\).
+  \item \texttt{I1} --- \texttt{random indicator}
+  \par\smallskip\noindent\emph{Definition.} \(I_1=\mathbf 1\{A=1\}\).
+  \item \texttt{psiS} --- \texttt{influence function}; \(\mathcal O\times\Theta\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\psi_S(O;\vartheta)\), the influence function of \(b_S(\vartheta)\) under the Gaussian moment map.
+  \item \texttt{nuS} --- \texttt{nonnegative parameter functional}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_S^2(\vartheta)=\mathbb E_{P_{\vartheta}}[\psi_S(O;\vartheta)^2]\).
+  \item \texttt{nuStar} --- \texttt{positive constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed positive influence-\allowbreak{}standard-\allowbreak{}deviation separation for ordinary Wald inference.}
+  \item \texttt{ThetaPlus} --- \texttt{Wald-\allowbreak{}separated finite-\allowbreak{}dimensional parameter subclass}; \(2^{\Theta}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_+(\nu_*)=\{\vartheta\in\Theta:\min_{S\in\mathcal A}\nu_S(\vartheta)\ge\nu_*\}\) for fixed \(\nu_*>0\).
+  \item \texttt{alpha} --- \texttt{scalar}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Miscoverage level.}
+  \item \texttt{IS} --- \texttt{random interval}
+  \par\smallskip\noindent\emph{Definition.} Studentized Wald interval for \(B(S)\).
+  \item \texttt{Z} --- \texttt{finite random vector}; \(\mathbb R^{d_p}\)
+  \par\smallskip\noindent\emph{Definition.} \(Z(O)=(A,X^{\mathsf T},\operatorname{vech}(XX^{\mathsf T})^{\mathsf T},I_0Y,I_1Y,(I_0XY)^{\mathsf T},(I_1XY)^{\mathsf T},I_0Y^2,I_1Y^2)^{\mathsf T}\).
+  \item \texttt{q} --- \texttt{finite vector}
+  \par\smallskip\noindent\emph{Definition.} \(q(P)=\mathbb E_P[Z(O)]\).
+  \item \texttt{Qmap} --- \texttt{raw-\allowbreak{}moment parameterization map}; \(\Theta\to\mathbb R^{d_p}\)
+  \par\smallskip\noindent\emph{Definition.} \(Q(\vartheta)=\mathbb E_{P_{\vartheta}}[Z(O)]\).
+  \item \texttt{Omega} --- \texttt{raw-\allowbreak{}moment covariance map}; \(\Theta\to\mathbb S_+^{d_p}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Omega(\vartheta)=\operatorname{Var}_{P_{\vartheta}}\{Z(O)\}\).
+  \item \texttt{C} --- \texttt{random confidence region}
+  \par\smallskip\noindent\emph{Definition.} Bonferroni raw-moment confidence region represented as a random closed subset of \(\Theta\).
+  \item \texttt{JS} --- \texttt{random interval}
+  \par\smallskip\noindent\emph{Definition.} Projection of \(C\subseteq\Theta\) through \(b_S\).
+  \item \texttt{rho\_\allowbreak{}k} --- \texttt{scalar functional}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_k(K,R)=\inf\{\gamma_k(F):p\in\mathbb N,\ m,M,s,V>0,\ (p,k,m,M,s,V)\in\mathfrak T,\ M/m=K,\ V/s=R,\ P\in\mathcal M_{p,k}(m,M,s,V)\}\).
+  \item \texttt{Hfix} --- \texttt{proof handle}
+  \par\smallskip\noindent\emph{Definition.} Feasible-frame reduction for the fixed-\(k\) frontier.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:randomized-assignment]\label{ass:randomized-assignment}
+\(A\perp (X,Y_0,Y_1)\).
+\par\smallskip\noindent\emph{Standard} (Randomized binary assignment, \cite{lin2025tightening}).
+\end{assumption}
+
+\begin{assumption}[ass:treatment-overlap]\label{ass:treatment-overlap}
+\(\pi\in[\pi_0,1-\pi_0]\).
+\par\smallskip\noindent\emph{Standard} (Uniform treatment overlap, \cite{ji2023modelagnostic}).
+\end{assumption}
+
+\begin{assumption}[ass:mean-envelope]\label{ass:mean-envelope}
+\(\max\{\|\mu_X\|_\infty,|\mu_0|,|\mu_1|\}\le G\).
+\par\smallskip\noindent\emph{Standard} (Compact mean-parameter envelope, \cite{vandervaart1998asymptotic}).
+\end{assumption}
+
+\begin{assumption}[ass:global-inference-spectrum]\label{ass:global-inference-spectrum}
+\(\Sigma\succeq mI_p\).
+\par\smallskip\noindent\emph{Standard} (Uniform nonsingularity of the finite-dimensional covariance parameter, \cite{vandervaart1998asymptotic}).
+\end{assumption}
+
+\begin{assumption}[ass:joint-gaussian-arms]\label{ass:joint-gaussian-arms}
+\((X,Y_a)\) is jointly Gaussian for every \(a\in\mathcal I_2\).
+\par\smallskip\noindent\emph{Standard} (Joint Gaussian arm model, \cite{lin2025tightening}).
+\end{assumption}
+
+\begin{assumption}[ass:sparse-spectrum]\label{ass:sparse-spectrum}
+For every \(U\subseteq\{1,\ldots,p\}\) with \(|U|\le2k\), \(mI_{|U|}\preceq\Sigma_{UU}\preceq MI_{|U|}\).
+\par\smallskip\noindent\emph{Standard} (Two-budget sparse eigenvalue condition, \cite{das2011submodular}).
+\end{assumption}
+
+\begin{assumption}[ass:residual-floor]\label{ass:residual-floor}
+For every \(S\subseteq\{1,\ldots,p\}\) with \(|S|\le2k\), \(\min\{r_0(S),r_1(S)\}\ge s\).
+\par\smallskip\noindent\emph{Novel.} This conditional-noise margin is satisfied by Gaussian linear outcome models whose arm-specific independent noise variances are at least \(s\); it permits heterogeneous observed scales and does not specify any subset gain or approximation ratio.
+\end{assumption}
+
+\begin{assumption}[ass:variance-ceiling]\label{ass:variance-ceiling}
+\(\max\{v_0,v_1\}\le V\).
+\par\smallskip\noindent\emph{Standard} (Uniform second-moment envelope, \cite{lin2026smooth}).
+\end{assumption}
+
+\begin{assumption}[ass:independent-split]\label{ass:independent-split}
+For every \(\vartheta\in\Theta\), \(\mathcal L_{P_{\vartheta}}(D_1,D_2)=P_{\vartheta}^{n_1}\otimes P_{\vartheta}^{n_2}\).
+\par\smallskip\noindent\emph{Standard} (Honest sample splitting, \cite{ji2023modelagnostic}).
+\end{assumption}
+
+\begin{assumption}[ass:wald-nondegeneracy]\label{ass:wald-nondegeneracy}
+\(\min_{S\in\mathcal A}\nu_S(\vartheta)\ge\nu_*>0\).
+\par\smallskip\noindent\emph{Standard} (Candidate-uniform influence-variance nondegeneracy at a moment parameter, \cite{vandervaart1998asymptotic}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:admissible-tuples]\label{def:admissible-tuples}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Admissible dimension-\allowbreak{}and-\allowbreak{}margin tuples}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak T=\{(p,k,m,M,s,V)\in\mathbb N^2\times(0,\infty)^4:p\ge2,\ 1\le k\le\lfloor p/2\rfloor,\ m\le M,\ s\le V\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{k}; \texttt{m}; \texttt{M}; \texttt{s}; \texttt{V}.
+\end{definition}
+
+\begin{definition}[def:gaussian-margin-class]\label{def:gaussian-margin-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Randomized Gaussian sparse-\allowbreak{}margin class}
+\par\smallskip\noindent\emph{Construction.} For each \((p,k,m,M,s,V)\in\mathfrak T\), \(\mathcal M_{p,k}(m,M,s,V)=\{P\text{ on }\{0,1\}\times\mathbb R^p\times\mathbb R^2:0<\pi<1,\ A\perp(X,Y_0,Y_1),\ (X,Y_a)\text{ is jointly Gaussian for every }a\in\mathcal I_2,\ \Sigma\in\mathbb S_{++}^p,\ mI_{|U|}\preceq\Sigma_{UU}\preceq MI_{|U|}\text{ for every }U\subseteq\{1,\ldots,p\}\text{ with }|U|\le2k,\ \min\{r_0(S),r_1(S)\}\ge s\text{ for every }S\subseteq\{1,\ldots,p\}\text{ with }|S|\le2k,\ \max\{v_0,v_1\}\le V\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}randomized-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}joint-\allowbreak{}gaussian-\allowbreak{}arms}; \texttt{ass:\allowbreak{}sparse-\allowbreak{}spectrum}; \texttt{ass:\allowbreak{}residual-\allowbreak{}floor}; \texttt{ass:\allowbreak{}variance-\allowbreak{}ceiling}.
+\end{definition}
+
+\begin{definition}[def:admissible-inference-class]\label{def:admissible-inference-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Admissible Gaussian inference class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M^{\mathrm{adm}}_{p,k}(m,M,s,V;\pi_0,G)=\{P\in\mathcal M_{p,k}(m,M,s,V):\pi\in[\pi_0,1-\pi_0],\ \max\{\|\mu_X\|_\infty,|\mu_0|,|\mu_1|\}\le G,\ \Sigma\succeq mI_p\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}treatment-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}mean-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}global-\allowbreak{}inference-\allowbreak{}spectrum}.
+\end{definition}
+
+\begin{definition}[def:parameter-image]\label{def:parameter-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Gaussian moment image}
+\par\smallskip\noindent\emph{Construction.} \(\Theta=\{\theta(P):P\in\mathcal M^{\mathrm{adm}}_{p,k}(m,M,s,V;\pi_0,G)\}\subset\mathbb R^{d_p}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Madm}; \texttt{theta}.
+\end{definition}
+
+\begin{definition}[def:conditional-endpoint]\label{def:conditional-endpoint}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Information-\allowbreak{}specific sharp lower endpoint}
+\par\smallskip\noindent\emph{Construction.} \(B(S)=\mathbb E_P\!\left[W_2^2\{\mathcal L_P(Y_0\mid X_S),\mathcal L_P(Y_1\mid X_S)\}\right]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:gain]\label{def:gain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional-\allowbreak{}transport information gain}
+\par\smallskip\noindent\emph{Construction.} \(F(S)=B(S)-B(\varnothing)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:submodularity-ratio]\label{def:submodularity-ratio}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Budgeted submodularity ratio}
+\par\smallskip\noindent\emph{Construction.} \(\gamma_k(F)=\min\!\left\{1,\inf_{\substack{L\cap T=\varnothing,\ |L|\le k,\ 1\le|T|\le k\\ \Delta(L,T)>0}}\frac{\sum_{j\in T}\Delta(L,\{j\})}{\Delta(L,T)}\right\}\), with value one when the infimum set is empty.
+\par\smallskip\noindent\emph{Inputs.} \texttt{F}; \texttt{k}.
+\end{definition}
+
+\begin{definition}[def:angular-objects]\label{def:angular-objects}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Residual-\allowbreak{}score lifts}
+\par\smallskip\noindent\emph{Construction.} For disjoint \(L,T\), compute \(H\), \(d_0\), \(d_1\), \(u_0\), and \(u_1\) by their symbol-table formulas and lift each score by \(z(u)=(u^{\mathsf T},\sqrt{1-\|u\|_2^2})^{\mathsf T}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Sigma}; \texttt{c0}; \texttt{c1}; \texttt{r0}; \texttt{r1}; \texttt{L}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:greedy]\label{def:greedy}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Population forward greedy}
+\par\smallskip\noindent\emph{Construction.} Set \(S_0=\varnothing\) and recursively choose \(j_i\in\arg\max_{j\notin S_{i-1}}\{F(S_{i-1}\cup\{j\})-F(S_{i-1})\}\), then set \(S_g=S_k\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{F}; \texttt{k}.
+\end{definition}
+
+\begin{definition}[def:empirical-greedy]\label{def:empirical-greedy}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Empirical forward greedy}
+\par\smallskip\noindent\emph{Construction.} Apply \(\text{def:greedy}\) with \(\widehat F(S)=\widehat B(S)-\widehat B(\varnothing)\) and deterministic tie breaking to obtain \(\widehat S\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Bhat}; \texttt{k}.
+\end{definition}
+
+\begin{definition}[def:extremal-family]\label{def:extremal-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fully randomized unequal-\allowbreak{}scale radial family}
+\par\smallskip\noindent\emph{Construction.} For \(p=2k\), draw \(X\sim\mathcal N(0,\Sigma)\) with \(\Sigma=\operatorname{diag}\{KI_k-(K-1)\mathbf 1_k\mathbf 1_k^{\mathsf T}/k,I_k\}\). Independently draw \(\varepsilon_0,\varepsilon_1\stackrel{\mathrm{iid}}{\sim}\mathcal N(0,1)\) and \(A\sim\operatorname{Bernoulli}(1/2)\). For \(0<h<R-1\), set \(Y_0=\sqrt{R-1}\,\mathbf 1_k^{\mathsf T}X_{1:k}/\sqrt{k}+\varepsilon_0\), \(Y_1=\sqrt{R-h-1}\,\mathbf 1_k^{\mathsf T}X_{1:k}/\sqrt{k}+\varepsilon_1\), and \(Y=AY_1+(1-A)Y_0\). Define \(P_h\) as the resulting joint law of \(A,X,Y_0,Y_1\), whose observed datum is \(O=(A,X,Y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{k}; \texttt{K}; \texttt{R}; \texttt{h}.
+\end{definition}
+
+\begin{definition}[def:moment-parameterization]\label{def:moment-parameterization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed Gaussian moment and covariance maps}
+\par\smallskip\noindent\emph{Construction.} For \(\vartheta\in\Theta\), set \(b_S(\vartheta)=(\mu_1-\mu_0)^2+(c_{1,S}-c_{0,S})^{\mathsf T}\Sigma_{SS}^{-1}(c_{1,S}-c_{0,S})+(\sqrt{r_1(S)}-\sqrt{r_0(S)})^2\), \(Q(\vartheta)=\mathbb E_{P_{\vartheta}}[Z(O)]\), and \(\Omega(\vartheta)=\operatorname{Var}_{P_{\vartheta}}\{Z(O)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Theta}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:moment-endpoint-estimator]\label{def:moment-endpoint-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Evaluation-\allowbreak{}sample Gaussian endpoint estimator}
+\par\smallskip\noindent\emph{Construction.} Estimate \(\theta(P_{\vartheta})\) on \(D_2\) by arm-specific sample means, variances, and outcome-covariances together with the pooled covariate covariance, and set \(\widehat B(S)=b_S(\widehat\vartheta)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{D2}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:endpoint-influence]\label{def:endpoint-influence}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Gaussian endpoint influence function}
+\par\smallskip\noindent\emph{Construction.} For \(\vartheta\in\Theta\), \(\psi_S(O;\vartheta)=2(\mu_1-\mu_0)\{I_1e_1/\pi-I_0e_0/(1-\pi)\}+(1-t_S)I_0(e_0^2-v_0)/(1-\pi)+(1-t_S^{-1})I_1(e_1^2-v_1)/\pi+2\sqrt{t_S}\,w_S^{\mathsf T}I_0(x_Se_0-c_{0,S})/(1-\pi)-2w_S^{\mathsf T}I_1(x_Se_1-c_{1,S})/(\sqrt{t_S}\pi)-w_S^{\mathsf T}(x_Sx_S^{\mathsf T}-\Sigma_{SS})w_S\), where every component is evaluated at \(\vartheta\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{O}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:wald-separated-image]\label{def:wald-separated-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Wald-\allowbreak{}separated Gaussian moment image}
+\par\smallskip\noindent\emph{Construction.} For fixed \(\nu_*>0\), \(\Theta_+(\nu_*)=\{\vartheta\in\Theta:\min_{S\in\mathcal A}\nu_S(\vartheta)\ge\nu_*\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}wald-\allowbreak{}nondegeneracy}.
+\end{definition}
+
+\begin{definition}[def:wald-interval]\label{def:wald-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected endpoint Wald interval}
+\par\smallskip\noindent\emph{Construction.} \(I_S=[\widehat B(S)-z_{1-\alpha/2}\widehat\nu_S/\sqrt{n_2},\widehat B(S)+z_{1-\alpha/2}\widehat\nu_S/\sqrt{n_2}]\), where \(\widehat\nu_S^2\) is the sample variance of the plug-in influence function \(\psi_S\) on \(D_2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Bhat}; \texttt{psiS}; \texttt{D2}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:projection-interval]\label{def:projection-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Whole-\allowbreak{}class moment-\allowbreak{}projection interval}
+\par\smallskip\noindent\emph{Construction.} Let \(\widehat q\) and \(\widehat\omega_j^2\) be the sample mean and coordinate variances of \(Z\) on \(D_2\), and set \(C=\{\vartheta\in\Theta:|Q_j(\vartheta)-\widehat q_j|\le z_{1-\alpha/(2d_p)}\widehat\omega_j/\sqrt{n_2}\text{ for }j=1,\ldots,d_p\}\). If \(C\ne\varnothing\), set \(J_S=[\inf_{\vartheta\in C}b_S(\vartheta),\sup_{\vartheta\in C}b_S(\vartheta)]\); if \(C=\varnothing\), set \(J_S=[\min_{\vartheta\in\Theta}b_S(\vartheta),\max_{\vartheta\in\Theta}b_S(\vartheta)]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{D2}; \texttt{Z}; \texttt{alpha}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:fixed-budget-frontier]\label{def:fixed-budget-frontier}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact fixed-\allowbreak{}budget Gaussian frontier (infimum definition)}
+\par\smallskip\noindent\emph{Construction.} \(\rho_k(K,R)=\inf\{\gamma_k(F):p\in\mathbb N,\ m,M,s,V>0,\ (p,k,m,M,s,V)\in\mathfrak T,\ M/m=K,\ V/s=R,\ P\in\mathcal M_{p,k}(m,M,s,V)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{k}; \texttt{K}; \texttt{R}.
+\end{definition}
+
+\begin{definition}[def:fixed-budget-handle]\label{def:fixed-budget-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Feasible-\allowbreak{}frame handle for the exact fixed-\allowbreak{}budget frontier}
+\par\smallskip\noindent\emph{Construction.} To evaluate \(\rho_k(K,R)\), reduce each positive-denominator pair \((L,T)\) to its Schur complement \(H\) and the two hemisphere lifts \(z(u_0),z(u_1)\).  Parameterize those lifts by their normalized spherical midpoint and unit tangent.  Bound the exact singleton chordal losses through the diagonally normalized matrix obtained from \(H^{1/2}QH^{1/2}\), where \(Q\) is the midpoint rank-one contraction, and retain the endpoint vertical-coordinate constraint induced by \(R\).  Optimize over \(1\le |T|\le k\) without replacing the exact angular loss \(g\) by a global Lipschitz envelope; use the separate zero-information elbow when \(R=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{k}; \texttt{K}; \texttt{R}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:class-inclusion]\label{prop:class-inclusion}
+For every \((p,k,m,M,s,V)\in\mathfrak T\), \(\mathcal M_{p,k}(m,M,s,V)\subsetneq\mathcal M_{\mathrm{Lin}}\), where \(\mathcal M_{\mathrm{Lin}}\) is the underlying conditional-optimal-transport information model, not the compact-support theorem class used for particular results of Lin et al. (2025). This containment does not by itself transfer the Gaussian approximation lower bound to all of \(\mathcal M_{\mathrm{Lin}}\). A converse witnessed by laws in \(\mathcal M_{p,k}(m,M,s,V)\) transfers by class monotonicity only to superclasses containing those witness laws; no transfer to Lin et al.'s compact-support theorem class is asserted without a separate truncation or approximation argument.
+\end{proposition}
+\begin{proof}
+Fix \((p,k,m,M,s,V)\in\mathfrak T\) and
+\(P\in\mathcal M_{p,k}(m,M,s,V)\).  By Definition
+\(\mathrm{def{:}gaussian\text{-}margin\text{-}class}\),
+\(0<\pi=P(A=1)<1\).  Hence \(P(A=a)>0\) for both
+\(a\in\mathcal I_2=\{0,1\}\), and the conditional observed-arm law
+\[
+Q_a:=\mathcal L_P(X,Y\mid A=a)
+\]
+is well defined.  Let \(C\subseteq\mathbb R^p\) and
+\(D\subseteq\mathbb R\) be Borel sets.  The defining consistency equation
+\(Y=AY_1+(1-A)Y_0\) implies \(Y=Y_a\) on \(\{A=a\}\), so
+\[
+Q_a(C\times D)
+=P(X\in C,Y_a\in D\mid A=a).
+\]
+Assumption \(\mathrm{ass{:}randomized\text{-}assignment}\) states
+\(A\perp(X,Y_0,Y_1)\).  Measurable projection therefore gives
+\(A\perp(X,Y_a)\); because \(P(A=a)>0\),
+\[
+P(X\in C,Y_a\in D\mid A=a)
+=P(X\in C,Y_a\in D).
+\]
+Taking \(D=\mathbb R\) yields
+\[
+Q_0(C\times\mathbb R)
+=P(X\in C)
+=Q_1(C\times\mathbb R).
+\]
+Thus the two observable arm laws share their pretreatment-covariate
+marginal.  By the definition of \(\mathcal M_{\mathrm{Lin}}\) as the
+underlying conditional-optimal-transport information model with a common
+pretreatment-covariate marginal, \(P\in\mathcal M_{\mathrm{Lin}}\).
+Since \(P\) was arbitrary,
+\[
+\mathcal M_{p,k}(m,M,s,V)\subseteq\mathcal M_{\mathrm{Lin}}.
+\]
+
+We prove that the containment is strict by constructing a law in the
+set difference.  Let \(P^\star\) be the law under which
+\(A\sim\operatorname{Bernoulli}(1/2)\), the coordinates of \(X\) are
+independent with
+\[
+P^\star(X_j=-1)=P^\star(X_j=1)=\frac12,
+\qquad j=1,\ldots,p,
+\]
+and \(Y_0,Y_1\) are independent \(N(0,1)\) variables, with
+\(A,X,Y_0,Y_1\) mutually independent.  This is a well-defined probability
+law on \(\{0,1\}\times\mathbb R^p\times\mathbb R^2\).  Mutual independence,
+the consistency equation, and the calculation above give
+\[
+\mathcal L_{P^\star}(X,Y\mid A=a)
+=\mathcal L_{P^\star}(X,Y_a),
+\qquad a\in\mathcal I_2.
+\]
+Both laws on the right have the same product-Rademacher \(X\)-marginal.
+Consequently \(P^\star\in\mathcal M_{\mathrm{Lin}}\).
+
+On the other hand, \((X,Y_a)\) is not jointly Gaussian for either arm.
+Indeed, if it were jointly Gaussian, then its coordinate projection
+\(X_1\) would be Gaussian.  The displayed construction gives
+\(\operatorname{Var}_{P^\star}(X_1)=1\), so this Gaussian marginal would
+be nondegenerate.  If its mean and variance were \(\mu\in\mathbb R\) and
+\(\sigma^2>0\), its density would be
+\[
+x\longmapsto
+\frac{1}{\sqrt{2\pi\sigma^2}}
+\exp\!\left\{-\frac{(x-\mu)^2}{2\sigma^2}\right\},
+\]
+so it would assign probability zero to every singleton, whereas
+\(P^\star(X_1=1)=1/2\).  This is a contradiction.  Thus
+Assumption \(\mathrm{ass{:}joint\text{-}gaussian\text{-}arms}\), which is
+a membership condition in Definition
+\(\mathrm{def{:}gaussian\text{-}margin\text{-}class}\), fails under
+\(P^\star\).  It follows that
+\[
+P^\star\in
+\mathcal M_{\mathrm{Lin}}\setminus
+\mathcal M_{p,k}(m,M,s,V),
+\]
+and therefore
+\[
+\mathcal M_{p,k}(m,M,s,V)\subsetneq\mathcal M_{\mathrm{Lin}}.
+\]
+
+It remains to justify the two scope qualifications.  The first follows
+from the direction of the containment: a statement quantified over every
+law in \(\mathcal M_{p,k}(m,M,s,V)\) places no restriction on a law in
+\(\mathcal M_{\mathrm{Lin}}\setminus\mathcal M_{p,k}(m,M,s,V)\).
+Thus the containment alone cannot extend a Gaussian approximation lower
+bound from the smaller class to all of \(\mathcal M_{\mathrm{Lin}}\).
+
+For the converse direction, let \(\mathcal W\) be any family of adverse
+Gaussian witness laws, let \(\mathcal C\) be any class satisfying
+\(\mathcal W\subseteq\mathcal C\), let \(\mathscr D\ne\varnothing\) be a
+decision class, and let \(\mathcal R(d,P)\) be an extended-real risk.
+For every \(d\in\mathscr D\), monotonicity of a supremum under enlargement
+of its index set gives
+\[
+\sup_{P\in\mathcal C}\mathcal R(d,P)
+\ge
+\sup_{P\in\mathcal W}\mathcal R(d,P).
+\]
+Taking the infimum over the same \(d\in\mathscr D\) on both sides preserves
+the inequality:
+\[
+\inf_{d\in\mathscr D}\sup_{P\in\mathcal C}\mathcal R(d,P)
+\ge
+\inf_{d\in\mathscr D}\sup_{P\in\mathcal W}\mathcal R(d,P).
+\]
+Hence an adverse-family converse transfers by class monotonicity precisely
+to any superclass known to contain its witnesses.  The definition of the
+underlying information model and the containment proved above supply no
+inclusion of those Gaussian witnesses in the distinct compact-support
+theorem class used for particular results of Lin et al. (2025).  Therefore
+no such transfer to that theorem class follows absent a separate
+truncation or approximation argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition locates the Gaussian planning class inside Lin et al.'s underlying common-pretreatment-marginal conditional-optimal-transport information model while keeping that model distinct from the compact-support assumptions of particular theorems. \textit{Gap.} A Gaussian frontier theorem needs an explicit model map: inclusion in the broader information model does not extend the Gaussian lower bound to that whole model, and it does not place the adverse Gaussian family inside Lin et al.'s compact-support theorem class. \textit{Consumer.} Readers can see exactly which conclusions are Gaussian-class results, which statements use only the underlying common-marginal information structure, and why transfer of the converse requires actual containment of the witness laws.
+
+\begin{proposition}[prop:gaussian-endpoint]\label{prop:gaussian-endpoint}
+For every \((p,k,m,M,s,V)\in\mathfrak T\), every \(P\in\mathcal M_{p,k}(m,M,s,V)\), and every \(|S|\le2k\), the sharp information-specific lower endpoint is \[B(S)=(\mu_1-\mu_0)^2+(c_{1,S}-c_{0,S})^{\mathsf T}\Sigma_{SS}^{-1}(c_{1,S}-c_{0,S})+(\sqrt{r_1(S)}-\sqrt{r_0(S)})^2.\] It is attained by coupling the two conditional Gaussian residuals through one common standard normal.
+\end{proposition}
+\begin{proof}
+Fix an admissible tuple and \(P\in\mathcal M_{p,k}(m,M,s,V)\), and fix \(S\) with \(|S|\leq 2k\).  The sparse-spectrum assumption gives \(\Sigma_{SS}\succeq mI\), so \(Q_S:=\Sigma_{SS}^{-1}\) exists.  By joint Gaussianity,
+\[
+ \mathcal L_P(Y_a\mid X_S)
+ =\mathcal N\!\left(\mu_a+c_{a,S}^{\mathsf T}Q_S(X_S-\mu_{X,S}),\ r_a(S)\right),
+ \qquad a\in\{0,1\}.
+\]
+The residual-floor assumption makes both conditional variances positive.  Randomized assignment identifies each marginal law \(\mathcal L_P(X_S,Y_a)\) from the arm-\(a\) observed law; it does not identify the conditional coupling of \(Y_0\) and \(Y_1\).
+
+Put \(m_a(x)=\mu_a+c_{a,S}^{\mathsf T}Q_S(x-\mu_{X,S})\).  For any coupling of the two displayed conditional laws, conditional Cauchy--Schwarz gives
+\[
+ \mathbb E\{(Y_1-Y_0)^2\mid X_S=x\}
+ \geq \{m_1(x)-m_0(x)\}^2+
+ \{\sqrt{r_1(S)}-\sqrt{r_0(S)}\}^2.
+\]
+Indeed, after centering, the cross moment is at most
+\(\sqrt{r_0(S)r_1(S)}\).  Equality is attained by taking a standard normal \(Z_*\), independent of \(X_S\), and setting
+\[
+ Y_a=m_a(X_S)+\sqrt{r_a(S)}Z_*,\qquad a\in\{0,1\}.
+\]
+This construction preserves both identified retained marginals.  Thus, if \(\Theta_I^S(P)\) denotes the values of \(\tau_2\) generated by all couplings preserving those two marginals, every \(\tau_2\in\Theta_I^S(P)\) satisfies \(\tau_2\geq B(S)\), and the displayed common-residual coupling attains equality.  Hence \(B(S)\) is the sharp lower endpoint; it is not being equated by definition with the causal target.
+
+It remains to integrate the conditional-mean term.  Since
+\(\operatorname{Var}(X_S)=\Sigma_{SS}\),
+\[
+ \mathbb E\{m_1(X_S)-m_0(X_S)\}^2
+ = (\mu_1-\mu_0)^2
+ +(c_{1,S}-c_{0,S})^{\mathsf T}Q_S(c_{1,S}-c_{0,S}).
+\]
+Adding the attained residual contribution proves the asserted formula.  Expanding its last square and using
+\(r_a(S)=v_a-c_{a,S}^{\mathsf T}Q_Sc_{a,S}\) also gives the identity
+\[
+ B(S)=(\mu_1-\mu_0)^2+v_0+v_1
+ -2c_{0,S}^{\mathsf T}Q_Sc_{1,S}
+ -2\sqrt{r_0(S)r_1(S)},
+\]
+which will be used below.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition makes the causal partial-identification endpoint explicit and supplies the algebraic object whose information increments can be compared. \textit{Gap.} Lin et al. (2025), Example 3.8 and Lemma 5.1, give Gaussian conditional-transport formulas in special models; the present formula covers arbitrary retained coordinate sets and records direct information-specific attainment. \textit{Consumer.} A trial planner can evaluate the sharp lower bound on mean squared individual effects from arm-specific first and second moments for any candidate baseline panel.
+
+\begin{lemma}[lem:angular-identity]\label{lem:angular-identity}
+For disjoint \(L,T\) with \(|L|\le k\), \(1\le|T|\le k\), and \(|L\cup T|\le2k\), \[\Delta(L,T)=2\sqrt{r_0(L)r_1(L)}\,g(u_0,u_1)=\sqrt{r_0(L)r_1(L)}\,\|z(u_0)-z(u_1)\|_2^2.\] Moreover \(mI\preceq H\preceq MI\), \(H^{1/2}\operatorname{diag}(H)^{-1}H^{1/2}\succeq(m/M)I\), and \(\|u_a\|_2^2\le1-s/V\) for both arms.
+\end{lemma}
+\begin{proof}
+Write \(r_a=r_a(L)\). Assumption \(\mathrm{ass{:}sparse\text{-}spectrum}\) gives \(\Sigma_{LL}\succ0\) and \(H\succ0\), while Assumption \(\mathrm{ass{:}residual\text{-}floor}\) gives \(r_a\ge s>0\). Thus all inverse square roots in Definition \(\mathrm{def{:}angular\text{-}objects}\) are well defined. The block inverse formula gives, for \(a\in\mathcal I_2\),
+\[
+ r_a(L\cup T)=r_a-d_a^{\mathsf T}H^{-1}d_a
+ =r_a\{1-\|u_a\|_2^2\}.
+\]
+The corresponding bilinear identity is
+\[
+ c_{0,L\cup T}^{\mathsf T}\Sigma_{L\cup T,L\cup T}^{-1}c_{1,L\cup T}
+ -c_{0,L}^{\mathsf T}\Sigma_{LL}^{-1}c_{1,L}
+ =d_0^{\mathsf T}H^{-1}d_1.
+\]
+Indeed, apply the preceding quadratic Schur-complement identity to \(c_0+c_1\) and \(c_0-c_1\), subtract the two equalities, and divide by four.
+
+Expanding the formula in Proposition \(\mathrm{prop{:}gaussian\text{-}endpoint}\) gives the equivalent expression
+\[
+ B(S)=(\mu_1-\mu_0)^2+v_0+v_1
+ -2c_{0,S}^{\mathsf T}\Sigma_{SS}^{-1}c_{1,S}
+ -2\sqrt{r_0(S)r_1(S)}.
+\]
+The two Schur identities therefore imply
+\[
+\begin{aligned}
+ \Delta(L,T)
+ &=2\sqrt{r_0r_1}-2d_0^{\mathsf T}H^{-1}d_1
+   -2\sqrt{r_0(L\cup T)r_1(L\cup T)}\\
+ &=2\sqrt{r_0r_1}\left\{1-u_0^{\mathsf T}u_1
+ -\sqrt{(1-\|u_0\|_2^2)(1-\|u_1\|_2^2)}\right\}\\
+ &=2\sqrt{r_0r_1}\,g(u_0,u_1).
+\end{aligned}
+\]
+Each \(z(u_a)\) has unit Euclidean norm and \(z(u_0)^{\mathsf T}z(u_1)=1-g(u_0,u_1)\). Hence
+\[
+ \Delta(L,T)=\sqrt{r_0r_1}\,\|z(u_0)-z(u_1)\|_2^2.
+\]
+
+It remains to prove the three side conditions. For every \(x\in\mathbb R^{|T|}\), the Schur-complement variational identity is
+\[
+ x^{\mathsf T}Hx
+ =\min_{y\in\mathbb R^{|L|}}
+ (y^{\mathsf T},x^{\mathsf T})
+ \Sigma_{L\cup T,L\cup T}(y^{\mathsf T},x^{\mathsf T})^{\mathsf T}.
+\]
+Assumption \(\mathrm{ass{:}sparse\text{-}spectrum}\) bounds the right-hand side below by \(m\|x\|_2^2\); taking \(y=0\) and applying the same assumption to \(T\) bounds it above by \(M\|x\|_2^2\). Thus \(mI\preceq H\preceq MI\). If \(D=\operatorname{diag}(H)\), then \(D\preceq MI\), so
+\[
+ H^{1/2}D^{-1}H^{1/2}\succeq M^{-1}H\succeq(m/M)I.
+\]
+Finally, positive semidefiniteness of the covariance matrix of \((X_L,Y_a)\) gives \(r_a(L)\le v_a\), and Assumption \(\mathrm{ass{:}variance\text{-}ceiling}\) gives \(v_a\le V\). The residual update and Assumption \(\mathrm{ass{:}residual\text{-}floor}\) at \(L\cup T\) yield
+\[
+ 1-\|u_a\|_2^2
+ =\frac{r_a(L\cup T)}{r_a(L)}
+ \ge\frac{s}{V}.
+\]
+This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The chordal identity isolates the exact two-arm geometry and the frame inequality retains coordinate meaning after residualization. \textit{Gap.} Neither the fixed-set Gaussian formulas of Lin et al. nor the regression spectral proof of Das and Kempe derives this coupled upper-hemisphere information identity. \textit{Consumer.} The identity turns a causal-bound selection problem into a geometric frame comparison that can be reused for certificates and diagnostics.
+
+\begin{theorem}[thm:dimension-free-frontier]\label{thm:dimension-free-frontier}
+For every \((p,k,m,M,s,V)\in\mathfrak T\) and every \(P\in\mathcal M_{p,k}(m,M,s,V)\), \(F\) is normalized, nonnegative, and monotone, and \[\gamma_k(F)\ge\Gamma=\frac{m}{M}\frac{s}{V}=\frac{1}{KR}.\] The bound is independent of \(p\) and \(k\).
+\end{theorem}
+\begin{proof}
+Normalization is immediate from Definition \(\mathrm{def{:}gain}\): \(F(\varnothing)=0\). We first establish monotonicity for all subsets, including those larger than the sparse-margin range. Fix \(L\subseteq S\subseteq\{1,\ldots,p\}\), set \(T=S\setminus L\), and form the corresponding Schur complement \(H\), residual cross-covariances \(d_a\), and vectors \(q_a=H^{-1/2}d_a\). Positive definiteness of \(\Sigma\) gives \(H\succ0\). Gaussian conditioning under Assumption \(\mathrm{ass{:}joint\text{-}gaussian\text{-}arms}\) and the block inverse formula give
+\[
+ r_a(S)=r_a(L)-\|q_a\|_2^2\ge0.
+\]
+For any principal subvector \(X_U\), Assumption \(\mathrm{ass{:}joint\text{-}gaussian\text{-}arms}\) gives conditional arm means \(\mu_a+c_{a,U}^{\mathsf T}\Sigma_{UU}^{-1}(X_U-\mathbb E_P[X_U])\) and conditional variances \(r_a(U)\). For any coupling of two scalar Gaussian residuals, Cauchy--Schwarz bounds their covariance by the product of their standard deviations, and a common standard normal attains that product. Integrating the squared conditional-mean difference therefore gives the formula in Proposition \(\mathrm{prop{:}gaussian\text{-}endpoint}\) for this arbitrary \(U\). Expanding its two square terms and using the bilinear block identity now gives
+\[
+ B(S)-B(L)=2\left\{\sqrt{r_0(L)r_1(L)}
+ -q_0^{\mathsf T}q_1-\sqrt{r_0(S)r_1(S)}\right\}. \tag{14}
+\]
+The vectors
+\[
+ \bigl(q_a^{\mathsf T},\sqrt{r_a(S)}\bigr)^{\mathsf T}
+\]
+have norms \(\sqrt{r_a(L)}\). Cauchy--Schwarz therefore makes the expression in braces in (14) nonnegative. Thus \(B\), and hence \(F\), is monotone. Together with normalization, this also gives \(F(S)\ge0\).
+
+For the submodularity ratio, fix an eligible pair with positive denominator and put \(n=|T|\). Lemma \(\mathrm{lem{:}finite\text{-}angular\text{-}frame}\) gives
+\[
+ \frac{\sum_{j\in T}\Delta(L,\{j\})}{\Delta(L,T)}
+ \ge\frac{n}{1+(n-1)KR}.
+\]
+For \(x=KR\ge1\), the sequence \(n/\{1+(n-1)x\}\) is nonincreasing in \(n\), because
+\[
+ \frac{n}{1+(n-1)x}-\frac{n+1}{1+nx}
+ =\frac{x-1}{\{1+(n-1)x\}(1+nx)}\ge0.
+\]
+As \(n\le k\), every eligible ratio is at least
+\[
+ \frac{k}{1+(k-1)KR}\ge\frac1{KR}=\Gamma,
+\]
+where the last inequality follows after cross-multiplication from \(KR\ge1\). If there is no positive denominator, Definition \(\mathrm{def{:}submodularity\text{-}ratio}\) assigns \(\gamma_k(F)=1\); otherwise taking the infimum and then the cap at one preserves the same lower bound. Hence \(\gamma_k(F)\ge\Gamma\). The displayed \(\Gamma\) depends on neither \(p\) nor \(k\), proving the stated dimension-free conclusion. The preceding argument also proves the stronger finite-budget certificate used below.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the central achievability theorem: sparse covariance conditioning and residual signal-to-noise margins alone certify a nonvanishing approximation ratio. \textit{Gap.} Lin et al. leave variable selection open, while Das and Kempe control a one-response regression objective; neither supplies the extra residual-scale factor or the causal transport comparison. \textit{Consumer.} Investigators facing a hard baseline-measurement budget obtain an ex ante certificate for forward selection without dependence on the number of available covariates.
+
+\begin{theorem}[thm:sharpness-family]\label{thm:sharpness-family}
+For every integer \(k\ge2\), every \(K\ge1\), every \(R>1\), and every \(\eta>0\), some sufficiently small \(h\in(0,R-1)\) makes the fully specified law \(P_h\), with \(A\sim\operatorname{Bernoulli}(1/2)\) independent of the Gaussian potential-outcome system and \(Y=AY_1+(1-A)Y_0\), a member of \(\mathcal M_{2k,k}(1,K,1,R)\). Its arm variances and its conditional scales on every proper active subset are unequal, and \[\gamma_k(F;P_h)\le\frac{k}{1+(k-1)KR}+\eta.\] Consequently, both \(K\) and \(R\) are necessary factors, and \(1/(KR)\) is the largest lower certificate depending only on \((K,R)\) that holds uniformly over dimensions and budgets.
+\end{theorem}
+\begin{proof}
+Fix \(k\ge2\), \(K\ge1\), \(R>1\), and \(\eta>0\). In Definition \(\mathrm{def{:}extremal\text{-}family}\), write \(e=\mathbf1_k/\sqrt{k}\) and
+\[
+ \Sigma_{\mathrm{act}}=KI_k-(K-1)ee^{\mathsf T}.
+\]
+This matrix has eigenvalue one along \(e\) and eigenvalue \(K\) on \(e^\perp\). After adjoining the \(k\) independent dummy coordinates, the full covariance has spectrum in \([1,K]\). Every principal submatrix consequently has all eigenvalues in \([1,K]\), by its Rayleigh quotients, so Assumption \(\mathrm{ass{:}sparse\text{-}spectrum}\) holds with \(m=1\) and \(M=K\).
+
+Let \(Z_*=e^{\mathsf T}X_{1:k}\). Since \(\Sigma_{\mathrm{act}}e=e\), \(\operatorname{Var}(Z_*)=1\). Independence of the arm noises gives, for every coordinate set \(S\),
+\[
+ r_0(S)=1+(R-1)\operatorname{Var}(Z_*\mid X_S),
+ \qquad
+ r_1(S)=1+(R-h-1)\operatorname{Var}(Z_*\mid X_S).
+\]
+Thus both residuals are at least one. Also \(v_0=R\) and \(v_1=R-h\in(1,R)\). Randomized assignment and joint Gaussianity hold by construction. Hence
+\[
+ P_h\in\mathcal M_{2k,k}(1,K,1,R)
+\]
+for every \(h\in(0,R-1)\). The arm variances are unequal. If \(S\) is a proper subset of the active coordinates, positive definiteness of \(\Sigma_{\mathrm{act}}\) and the nonzero coefficient of every omitted active coordinate imply \(\operatorname{Var}(Z_*\mid X_S)>0\). Therefore
+\[
+ r_0(S)-r_1(S)=h\operatorname{Var}(Z_*\mid X_S)>0,
+\]
+so the conditional scales are unequal on every proper active subset.
+
+Take \(L=\varnothing\) and \(T=\{1,\ldots,k\}\), and define
+\[
+ a=\sqrt{1-1/R},\qquad
+ b_h=\sqrt{1-1/(R-h)},\qquad
+ t=\frac1{1+(k-1)K}.
+\]
+The joint scores are \(u_0=ae\) and \(u_1=b_he\). Furthermore,
+\[
+ (\Sigma_{\mathrm{act}})_{jj}=\frac{1+(k-1)K}{k},
+ \qquad \Sigma_{\mathrm{act}}^{1/2}e=e,
+\]
+so the normalized coordinate frame satisfies \(w_j^{\mathsf T}e=\sqrt t\). By Lemma \(\mathrm{lem{:}angular\text{-}identity}\), the eligible positive-denominator ratio for this pair is exactly
+\[
+ Q_h=\frac{k\,g_1(\sqrt t\,a,\sqrt t\,b_h)}{g_1(a,b_h)},
+ \qquad
+ g_1(x,y)=\frac12\left[(x-y)^2+\left\{\sqrt{1-x^2}-\sqrt{1-y^2}\right\}^2\right]. \tag{15}
+\]
+Because \(b_h\ne a\), the denominator is positive. Direct differentiation of \(x\mapsto(x,\sqrt{1-x^2})\) gives, for \(|x|<1\),
+\[
+ \lim_{y\to x}\frac{g_1(x,y)}{(x-y)^2}=\frac1{2(1-x^2)}.
+\]
+As \(h\downarrow0\), \(b_h\to a\), and hence
+\[
+ \lim_{h\downarrow0}Q_h
+ =k\frac{t(1-a^2)}{1-ta^2}
+ =\frac{k}{1+(k-1)KR}. \tag{16}
+\]
+Continuity supplies a sufficiently small \(h\in(0,R-1)\) for which
+\[
+ Q_h\le\frac{k}{1+(k-1)KR}+\eta.
+\]
+Since \(\gamma_k\) is the infimum over eligible pairs, \(\gamma_k(F;P_h)\le Q_h\), proving the displayed upper bound.
+
+Holding \(R>1\) fixed and allowing \(K\) to grow makes (16) of order \(K^{-1}\); holding \(K\) fixed and allowing \(R\) to grow makes it of order \(R^{-1}\). Thus neither factor can be removed. If \(c(K,R)\) is any certificate valid uniformly over dimensions and budgets, applying it to this family and sending \(h\downarrow0\) gives
+\[
+ c(K,R)\le\frac{k}{1+(k-1)KR}.
+\]
+Sending \(k\to\infty\) gives \(c(K,R)\le1/(KR)\). Theorem \(\mathrm{thm{:}dimension\text{-}free\text{-}frontier}\) gives the reverse inequality, so \(1/(KR)\) is the largest dimension-free certificate for \(R>1\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The realizable unequal-scale family certifies that neither condition factor is a proof artifact and closes the dimension-free minimax comparison. \textit{Gap.} Bian et al. construct abstract tight set functions, but do not show that such bad geometry is realizable by a legal Gaussian causal conditional-transport model. \textit{Consumer.} Method developers learn exactly which covariance and residual margins must improve to obtain a stronger dimension-free selection guarantee.
+
+\begin{proposition}[prop:parameter-image-regularity]\label{prop:parameter-image-regularity}
+Fix \((p,k,m,M,s,V)\in\mathfrak T\), \(\pi_0\in(0,1/2)\), and \(G<\infty\). The image \(\Theta=\{\theta(P):P\in\mathcal M^{\mathrm{adm}}_{p,k}(m,M,s,V;\pi_0,G)\}\) is compact. For each fixed \(\nu_*>0\), the Wald-separated image \(\Theta_+(\nu_*)\) is a compact subset of \(\Theta\). The raw-moment map \(Q:\Theta\to Q(\Theta)\) is continuous and one-to-one with continuous inverse, every \(b_S\) with \(S\in\mathcal A\) is continuously differentiable on a neighborhood of \(\Theta\), and \(\Omega:\Theta\to\mathbb S_+^{d_p}\) is continuous with \(\inf_{\vartheta\in\Theta}\min_{1\le j\le d_p}\Omega_{jj}(\vartheta)>0\).
+\end{proposition}
+\begin{proof}
+Fix the displayed constants and \(p,k\).  We first prove compactness of the parameter image.  The mean-envelope assumption bounds \(\mu_X,\mu_0,\mu_1\).  The singleton sparse-spectrum bounds give \(m\leq\Sigma_{jj}\leq M\), while positive semidefiniteness gives \(|\Sigma_{j\ell}|\leq\sqrt{\Sigma_{jj}\Sigma_{\ell\ell}}\leq M\).  The residual floor at the empty set and the variance ceiling give \(s\leq v_a\leq V\).  Finally, covariance Cauchy--Schwarz gives
+\(|c_{a,j}|^2\leq\Sigma_{jj}v_a\leq MV\), and treatment overlap puts \(\pi\) in a compact subinterval of \((0,1)\).  Thus \(\Theta\) is bounded.
+
+It is also closed.  Every defining spectral, residual, variance, mean, and overlap inequality is continuous in the finite-dimensional moments because all required covariance inverses have eigenvalues at least \(m\).  A convergent parameter sequence therefore preserves all inequalities.  Its limiting arm covariance blocks are positive semidefinite; one can realize the limiting jointly Gaussian arm marginals by regressing each \(Y_a\) on \(X\) and adding a possibly degenerate Gaussian residual, and then draw \(A\) independently with the limiting overlap probability.  This realizes the limiting parameter within the admissible class.  Hence \(\Theta\) is closed and bounded in finite-dimensional Euclidean space and is compact.
+
+The influence variance \(\nu_S^2(\vartheta)\) is continuous: the coefficients in the displayed influence function are continuous because \(\Sigma_{SS}\succeq mI\), \(r_a(S)\geq s\), and \(\pi\in[\pi_0,1-\pi_0]\), while Gaussian moments are polynomial functions of means and covariance entries.  Since \(\mathcal A\) is finite,
+\(\vartheta\mapsto\min_{S\in\mathcal A}\nu_S(\vartheta)\) is continuous.  The Wald-separated image is its closed upper-level set inside compact \(\Theta\), hence is compact.
+
+We next exhibit the inverse of the raw-moment map.  From \(Q(\vartheta)\), recover
+\[
+ \pi=\mathbb E[A],\quad
+ \mu_X=\mathbb E[X],\quad
+ \Sigma=\mathbb E[XX^{\mathsf T}]-\mu_X\mu_X^{\mathsf T}.
+\]
+Writing \(\pi_1=\pi\) and \(\pi_0'=1-\pi\), recover, for \(a\in\{0,1\}\),
+\[
+ \mu_a=\frac{\mathbb E[I_aY]}{\pi_a},\qquad
+ c_a=\frac{\mathbb E[I_aXY]}{\pi_a}-\mu_X\mu_a,
+ \qquad
+ v_a=\frac{\mathbb E[I_aY^2]}{\pi_a}-\mu_a^2.
+\]
+These formulas prove injectivity.  Both \(Q\) and this inverse are continuous because the overlap denominators are bounded below by \(\pi_0\).
+
+For each \(S\in\mathcal A\), the formula defining \(b_S\) is continuously differentiable on an open neighborhood of \(\Theta\): compactness and the uniform margins permit a common neighborhood on which \(\pi\), the eigenvalues of \(\Sigma_{SS}\), and both residual variances remain bounded away from zero.  The inverse map and square root are continuously differentiable there.
+
+Finally, Gaussian fourth-moment formulas make \(\Omega(\vartheta)\) continuous.  Each coordinate of \(Z\) has strictly positive variance at every \(\vartheta\in\Theta\).  For \(A\) this follows from overlap; for \(X_j\) and \(X_jX_\ell\) it follows from the nondegenerate Gaussian law of \(X\); and for the arm-weighted coordinates it follows from positive arm probability together with \(v_a\geq s\) and the positive conditional variance \(r_a(\{j\})\geq s\), which make the relevant Gaussian polynomial nonconstant.  Continuity and compactness therefore imply
+\[
+ \inf_{\vartheta\in\Theta}\min_{1\leq j\leq d_p}\Omega_{jj}(\vartheta)>0.
+\]
+All conclusions follow.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition puts compactness, endpoint smoothness, and raw-moment covariance regularity in the finite-dimensional parameter space on which both inference procedures operate. \textit{Gap.} These are standard finite-dimensional Gaussian moment facts used to specialize generic sample-split and projection inference; they are not part of the angular-frontier novelty claim. \textit{Consumer.} The two inference theorems obtain a type-correct common domain and well-defined uniformity quantifiers.
+
+\begin{proposition}[prop:endpoint-degeneracy]\label{prop:endpoint-degeneracy}
+For every \(\vartheta\in\Theta\) and \(S\in\mathcal A\), \(\nu_S^2(\vartheta)=0\) if and only if \(b_S(\vartheta)=0\), equivalently \(\mu_0=\mu_1\), \(\Sigma_{SS}^{-1}c_{0,S}=\Sigma_{SS}^{-1}c_{1,S}\), and \(r_0(S)=r_1(S)\). Hence every equality parameter is excluded from \(\Theta_+(\nu_*)\) for every fixed \(\nu_*>0\).
+\end{proposition}
+\begin{proof}
+Fix \(S\in\mathcal A\) and abbreviate
+\(\Delta_\mu=\mu_1-\mu_0\), \(\beta_a=\Sigma_{SS}^{-1}c_{a,S}\),
+\(t=\sqrt{r_1(S)/r_0(S)}\), and
+\(w=\sqrt t\,\beta_0-\beta_1/\sqrt t\).  The endpoint formula in
+\(\texttt{prop:gaussian-endpoint}\) is a sum of three nonnegative quantities, and \(\Sigma_{SS}\succ0\).  Consequently
+\[
+ b_S(\vartheta)=0
+ \quad\Longleftrightarrow\quad
+ \Delta_\mu=0,\quad \beta_0=\beta_1,\quad r_0(S)=r_1(S).
+\]
+Under these three equalities, \(t=1\) and \(w=0\), so every term in the defined influence function vanishes and \(\nu_S^2(\vartheta)=0\).
+
+Conversely, suppose \(\nu_S^2(\vartheta)=0\).  The influence function is centered, hence it equals zero almost surely.  Conditional on either treatment arm, \((x_S,e_a)\) has a strictly positive Gaussian density on \(\mathbb R^{|S|+1}\), because the sparse-spectrum and residual-floor assumptions give \(\Sigma_{SS}\succ0\) and \(r_a(S)>0\).  The arm-specific expression for the influence function is a polynomial of degree at most two in \((x_S,e_a)\).  A polynomial vanishing almost surely under a positive density vanishes identically.
+
+In arm zero, the coefficient of \(e_0^2\) is \((1-t)/(1-\pi)\); overlap therefore forces \(t=1\).  With \(t=1\), the coefficient vector of \(x_Se_0\) is \(2w/(1-\pi)\), so \(w=0\), and then the coefficient of \(e_0\) is \(-2\Delta_\mu/(1-\pi)\), so \(\Delta_\mu=0\).  The relations \(t=1\) and \(w=0\) are respectively \(r_0(S)=r_1(S)\) and \(\beta_0=\beta_1\).  This proves the equivalence.  By the definition of \(\Theta_+(\nu_*)\), any parameter with \(b_S=0\) for a selectable \(S\) has minimum selectable influence standard deviation zero and is excluded for every \(\nu_*>0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The equivalence isolates the quadratic equality boundary and makes the domains of ordinary Wald and projection inference disjoint where first-order studentization fails. \textit{Gap.} Lin et al. identify equality as a degeneracy point for a fixed quadratic transport target; this proposition records the exact Gaussian selected-endpoint criterion needed to route inference, without claiming a new generic selection principle. \textit{Consumer.} Analysts can determine from the moment parameter whether to use separated Wald inference or the whole-image projection interval.
+
+\begin{theorem}[thm:split-wald]\label{thm:split-wald}
+Fix \(\nu_*>0\) with \(\Theta_+(\nu_*)\ne\varnothing\). For any \(D_1\)-measurable \(\widehat S\in\mathcal A\), \[\sqrt{n_2}\{\widehat B(\widehat S)-b_{\widehat S}(\vartheta)\}=n_2^{-1/2}\sum_{i\in D_2}\psi_{\widehat S}(O_i;\vartheta)+o_{P_{\vartheta}}(1)\] uniformly over \(\vartheta\in\Theta_+(\nu_*)\), and \[\sup_{\vartheta\in\Theta_+(\nu_*)}\operatorname*{ess\,sup}_{D_1}\left|P_{\vartheta}\{b_{\widehat S}(\vartheta)\in I_{\widehat S}\mid D_1\}-(1-\alpha)\right|\to0.\]
+\end{theorem}
+\begin{proof}
+Fix \(\nu_*>0\) and work uniformly over \(\vartheta\in\Theta_+(\nu_*)\) and the finite family \(S\in\mathcal A\).  Differentiating the alternative endpoint expression from \(\texttt{prop:gaussian-endpoint}\), with
+\(t_S=\sqrt{r_1(S)/r_0(S)}\) and
+\(w_S=\sqrt{t_S}\beta_0(S)-\beta_1(S)/\sqrt{t_S}\), gives
+\[
+\begin{gathered}
+ \partial_{\mu_1}b_S=2(\mu_1-\mu_0),\qquad
+ \partial_{\mu_0}b_S=-2(\mu_1-\mu_0),\\
+ \partial_{v_0}b_S=1-t_S,\qquad
+ \partial_{v_1}b_S=1-t_S^{-1},\\
+ \partial_{c_0}b_S=2\sqrt{t_S}\,w_S,\qquad
+ \partial_{c_1}b_S=-2w_S/\sqrt{t_S},\qquad
+ \partial_{\Sigma}b_S=-w_Sw_S^{\mathsf T}.
+\end{gathered}
+\]
+The final identity follows by expanding
+\(-w_Sw_S^{\mathsf T}\) and collecting the differentials of the two residual variances and the cross term.  The influence functions of the arm means, variances, and cross-covariances are obtained from their ratio-of-raw-moment formulas, while the pooled covariance influence function is
+\(x_Sx_S^{\mathsf T}-\Sigma_{SS}\).  Substitution into the displayed differential gives exactly the function \(\psi_S\) in \(\texttt{def:endpoint-influence}\).
+
+By \(\texttt{prop:parameter-image-regularity}\), the raw-moment-to-endpoint map has uniformly bounded second derivatives on a common neighborhood of \(\Theta\).  The evaluation estimator is a smooth function of the sample mean of the finite vector \(Z\).  Uniformly bounded Gaussian moments and treatment overlap imply, by coordinatewise second-moment bounds, that the sample raw moments differ from their expectations by \(O_{P_\vartheta}(n_2^{-1/2})\), uniformly in \(\vartheta\).  Taylor's formula therefore yields
+\[
+ \sqrt{n_2}\{\widehat B(S)-b_S(\vartheta)\}
+ =n_2^{-1/2}\sum_{i\in D_2}\psi_S(O_i;\vartheta)+o_{P_\vartheta}(1)
+\]
+uniformly over \(\vartheta\) and \(S\in\mathcal A\).
+
+We justify the uniform normal approximation explicitly.  For any sequence
+\((\vartheta_n,S_n)\) in the displayed domain, let
+\(W_{n,i}=\psi_{S_n}(O_i;\vartheta_n)/\nu_{S_n}(\vartheta_n)\).  These variables are row-wise independent, centered, and standardized.  Gaussian polynomial moments, compactness, and the lower bound \(\nu_{S_n}\geq\nu_*\) give
+\(\sup_n\mathbb E|W_{n,1}|^3<\infty\).  Hence, for each \(\delta>0\),
+\[
+ \mathbb E\!\left[W_{n,1}^2\mathbf1\{|W_{n,1}|>\delta\sqrt{n_2}\}\right]
+ \leq\frac{\mathbb E|W_{n,1}|^3}{\delta\sqrt{n_2}}\longrightarrow0.
+\]
+The cited Lindeberg--Feller theorem \(\texttt{lem:lindeberg-feller-standardized}\) gives convergence of every such standardized row sum to \(\mathcal N(0,1)\).  The sequential characterization of a uniform limit then makes this convergence uniform over \(\Theta_+(\nu_*)\) and the finite candidate family.
+
+The plug-in influence coefficients converge uniformly by continuity and raw-moment consistency.  Expanding the empirical second moment of the plug-in influence function, and applying Chebyshev's inequality using uniformly bounded fourth moments, gives
+\(\widehat\nu_S^2/\nu_S^2\to1\) in probability uniformly.  Combining this ratio consistency with the preceding normal approximation by a two-sided probability sandwich proves uniform studentization and hence uniform fixed-\(S\) Wald coverage \(1-\alpha+o(1)\).
+
+By the independent-split assumption, conditional on \(D_1\), the random \(\widehat S\) is a fixed member of \(\mathcal A\) and \(D_2\) retains law \(P_\vartheta^{n_2}\).  Thus the absolute conditional coverage error is bounded by the maximum of the fixed-\(S\) errors.  Taking the essential supremum over \(D_1\) and then the supremum over \(\vartheta\) proves the asserted conditional coverage statement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives exact conditional post-selection coverage uniformly on the explicitly separated moment subclass where every candidate endpoint has nonzero first-order variance. \textit{Gap.} Ji--Lei--Spector already provide generic selection-valid inference, and Lin et al. provide a fixed-target quadratic-COT central limit theorem; this Gaussian specialization supplies the endpoint influence map and its exact degeneracy criterion, not a new generic selection principle. \textit{Consumer.} Analysts can report uncertainty for the held-out endpoint selected by any first-sample budget rule on \(\Theta_+(\nu_*)\).
+
+\begin{theorem}[thm:whole-class-projection]\label{thm:whole-class-projection}
+For every \(D_1\)-measurable \(\widehat S\in\mathcal A\), the moment-projection interval obeys \[\liminf_{n_2\to\infty}\inf_{\vartheta\in\Theta}\operatorname*{ess\,inf}_{D_1}P_{\vartheta}\{b_{\widehat S}(\vartheta)\in J_{\widehat S}\mid D_1\}\ge1-\alpha.\] This whole-image claim includes every equality parameter \(\vartheta\in\Theta\) satisfying \(b_{\widehat S}(\vartheta)=0\), for which \(\nu_{\widehat S}^2(\vartheta)=0\) and ordinary Wald inference is unavailable.
+\end{theorem}
+\begin{proof}
+Fix a coordinate \(j\) of \(Z\), and write
+\(\omega_j^2(\vartheta)=\Omega_{jj}(\vartheta)\).  The regularity proposition gives a uniform positive lower bound for \(\omega_j^2\); compact Gaussian moment bounds give a uniform bound on the third and fourth centered moments of \(Z_j\).  Along any parameter sequence \(\vartheta_n\in\Theta\), the standardized row variables satisfy the Lindeberg condition by the same third-moment truncation bound used in \(\texttt{thm:split-wald}\).  The cited Lindeberg--Feller theorem \(\texttt{lem:lindeberg-feller-standardized}\) therefore gives a standard-normal limit, uniformly over \(\Theta\) by the sequential characterization.  Chebyshev's inequality and the uniform fourth-moment bound give uniform consistency of the coordinate sample variance.  A probability sandwich then yields
+\[
+ \inf_{\vartheta\in\Theta}
+ P_\vartheta\!\left(
+ |\widehat q_j-Q_j(\vartheta)|
+ \leq z_{1-\alpha/(2d_p)}\widehat\omega_j/\sqrt{n_2}
+ \right)\geq1-\alpha/d_p-o(1).
+\]
+There are finitely many coordinates, so the union bound implies
+\[
+ \inf_{\vartheta\in\Theta}P_\vartheta\{\vartheta\in C\}
+ \geq1-\alpha-o(1).
+\]
+
+On the event \(\vartheta\in C\), the set \(C\) is nonempty and, simultaneously for every \(S\in\mathcal A\),
+\[
+ \inf_{\xi\in C}b_S(\xi)\leq b_S(\vartheta)
+ \leq\sup_{\xi\in C}b_S(\xi).
+\]
+If \(C\) is empty, the definition returns the full known range and therefore cannot reduce coverage.  Compactness of \(\Theta\), closedness of \(C\), and continuity of \(b_S\) ensure that all displayed extrema are well defined; the inequalities themselves require only infima and suprema.
+
+Under the independent-split assumption, conditioning on \(D_1\) fixes \(\widehat S\in\mathcal A\) without changing the evaluation-sample law.  The simultaneous event \(\vartheta\in C\) then implies
+\(b_{\widehat S}(\vartheta)\in J_{\widehat S}\).  Taking the essential infimum over \(D_1\), the infimum over \(\vartheta\), and the lower limit in \(n_2\) proves coverage at least \(1-\alpha\).  No division by \(\nu_S\) occurs.  In particular, by \(\texttt{prop:endpoint-degeneracy}\), the argument includes every equality parameter where \(b_{\widehat S}=0\) and \(\nu_{\widehat S}=0\), exactly the boundary at which ordinary Wald studentization is unavailable.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Projection restores honest coverage exactly on the equality boundary where first-order studentization degenerates. \textit{Gap.} Imbens--Manski and Stoye address collapsing estimated bounds under regular Gaussian endpoint limits; the proposed interval instead projects primitive Gaussian moments and remains valid when the selected endpoint has zero first derivative. \textit{Consumer.} Empirical users obtain a conservative fallback that covers the selected causal lower endpoint over the entire compact moment image \(\Theta\).
+
+\begin{lemma}[lem:lindeberg-feller-standardized]\label{lem:lindeberg-feller-standardized}
+\texttt{For a row-\allowbreak{}wise independent triangular array of centered random variables whose row variances sum to one,\allowbreak{} the Lindeberg condition implies convergence in distribution of the row sums to the standard normal law.}
+\end{lemma}
+
+\begin{theorem}[thm:exact-fixed-budget-frontier]\label{thm:exact-fixed-budget-frontier}
+For every integer \(k\ge1\) and every \(K,R\ge1\), the exact fixed-budget frontier is
+\[
+ \rho_k(K,R)=
+ \begin{cases}
+ 1, & k=1\text{ or }R=1,\\[2mm]
+ \displaystyle\frac{k}{1+(k-1)KR}, & k\ge2\text{ and }R>1.
+\end{cases}
+\]
+More precisely, for every \((p,k,m,M,s,V)\in\mathfrak T\) satisfying \(M/m=K\) and \(V/s=R\), and every \(P\in\mathcal M_{p,k}(m,M,s,V)\),
+\[
+ \gamma_k(F)\ge
+ \begin{cases}
+ 1, & k=1\text{ or }R=1,\\[2mm]
+ \displaystyle\frac{k}{1+(k-1)KR}, & k\ge2\text{ and }R>1.
+ \end{cases}
+\]
+In the nondegenerate regime the unequal-scale family approaches the lower bound.  Consequently
+\[
+ \inf_{k\ge1}\rho_k(K,R)=\frac1{KR}\quad(R>1),
+\]
+whereas \(\rho_k(K,1)=1\) for every \(k\).
+\end{theorem}
+\begin{proof}
+We implement the finite-chord reduction in Definition \(\mathrm{def{:}fixed\text{-}budget\text{-}handle}\).  First suppose \(R>1\).  Fix a tuple in Definition \(\mathrm{def{:}fixed\text{-}budget\text{-}frontier}\), a law \(P\in\mathcal M_{p,k}(m,M,s,V)\), and an eligible pair \((L,T)\) with positive denominator.  Put \(n=|T|\).  Lemma \(\mathrm{lem{:}finite\text{-}angular\text{-}frame}\) gives
+\[
+ \frac{\sum_{j\in T}\Delta(L,\{j\})}{\Delta(L,T)}
+ \ge\frac{n}{1+(n-1)KR}.
+\]
+As shown in the proof of Theorem \(\mathrm{thm{:}dimension\text{-}free\text{-}frontier}\), the right-hand side is nonincreasing in \(n\) when \(KR\ge1\).  Because \(n\le k\), every positive-denominator ratio is at least
+\[
+ \frac{k}{1+(k-1)KR}. \tag{17}
+\]
+If no positive denominator exists, \(\gamma_k(F)=1\) by Definition \(\mathrm{def{:}submodularity\text{-}ratio}\), which also satisfies (17).  Taking the infimum over tuples and laws yields
+\[
+ \rho_k(K,R)\ge\frac{k}{1+(k-1)KR}. \tag{18}
+\]
+For \(k\ge2\), Theorem \(\mathrm{thm{:}sharpness\text{-}family}\) supplies, for every \(\eta>0\), a law in \(\mathcal M_{2k,k}(1,K,1,R)\) with
+\[
+ \gamma_k(F)\le\frac{k}{1+(k-1)KR}+\eta.
+\]
+Since this law is one of those over which \(\rho_k(K,R)\) takes its infimum, and \(\eta\downarrow0\) is arbitrary, the reverse inequality to (18) follows.  This proves the rational formula for \(k\ge2\), \(R>1\).
+
+If \(k=1\), every eligible increment set is a singleton.  Each positive-denominator ratio in Definition \(\mathrm{def{:}submodularity\text{-}ratio}\) is therefore exactly one, and its empty-infimum convention is also one.  Hence \(\gamma_1(F)=1\) for every law and \(\rho_1(K,R)=1\).
+
+It remains to treat \(R=1\).  Then \(V=s\).  For any law in an admissible class, Assumptions \(\mathrm{ass{:}residual\text{-}floor}\) and \(\mathrm{ass{:}variance\text{-}ceiling}\), applied at the empty set, give
+\[
+ s\le v_a=r_a(\varnothing)\le V=s,
+\]
+so \(v_a=s\) for both arms.  For every coordinate \(j\), positive definiteness of \(\Sigma\) and the residual floor give
+\[
+ s\le r_a(\{j\})=s-\frac{c_{a,j}^2}{\Sigma_{jj}}\le s.
+\]
+Thus \(c_{a,j}=0\) for every \(a,j\), and hence \(c_0=c_1=0\).  Proposition \(\mathrm{prop{:}gaussian\text{-}endpoint}\) now implies, for every set used in the definition of \(\gamma_k\),
+\[
+ B(S)=(\mu_1-\mu_0)^2.
+\]
+All increments vanish, so \(\gamma_k(F)=1\) by convention.  The relevant classes are nonempty: one may take \(p=2k\), \(m=s=1\), \(M=K\), \(V=1\), \(\Sigma=I_p\), independent \(N(0,1)\) potential outcomes, and independent Bernoulli assignment.  Therefore the infimum is exactly one.
+
+Finally, for \(R>1\), the rational formula and elementary division by \(k\) give
+\[
+ \lim_{k\to\infty}\rho_k(K,R)
+ =\lim_{k\to\infty}\frac{1}{k^{-1}+(1-k^{-1})KR}
+ =\frac1{KR}.
+\]
+The sequence is nonincreasing, while its \(k=1\) value is one, so its infimum equals this limit.  The \(R=1\) conclusion was proved above.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact finite-budget certificate is the operational frontier for small baseline-measurement budgets and strictly improves the dimension-free constant away from the large-budget limit. \textit{Gap.} The prior separate frame and hemisphere inequalities were simultaneously sharp only asymptotically; the spherical midpoint--tangent reduction proves the exact finite-chord comparison and closes that gap. \textit{Consumer.} A trial planner can insert the best possible class-uniform budget-specific ratio, including the one-covariate and zero-information elbows, into the forward-selection guarantee.
+
+\begin{lemma}[lem:normalized-frame-sharp]\label{lem:normalized-frame-sharp}
+Let \(n\ge2\) be an integer and \(\kappa\ge1\).  If \(G\in\mathbb S_{++}^n\) satisfies \(\lambda_{\max}(G)/\lambda_{\min}(G)\le\kappa\), and \(D=\operatorname{diag}(G)\), then
+\[
+ D^{-1/2}GD^{-1/2}\succeq \frac{n}{1+(n-1)\kappa}I_n.
+\]
+Equivalently, \(D\preceq\{1+(n-1)\kappa\}G/n\).  The constant is attained when \(G\) has eigenvalue \(\lambda_{\min}(G)\) in the direction \(\mathbf 1_n\) and eigenvalue \(\lambda_{\max}(G)\) on its orthogonal complement.
+\end{lemma}
+\begin{proof}
+The assertion is immediate when \(\kappa=1\), because then \(G\) is a positive scalar multiple of \(I_n\).  Suppose \(\kappa>1\).  Multiplication of \(G\) by a positive scalar does not change its diagonal normalization, so take \(\lambda_{\min}(G)=1\).  Since \(I_n\preceq G\preceq\kappa I_n\), there is a symmetric contraction \(E\), meaning \(0\preceq E\preceq I_n\), such that
+\[
+ G=I_n+(\kappa-1)E.
+\]
+Put
+\[
+ c=\frac{1+(n-1)\kappa}{n}
+ =1+\frac{n-1}{n}(\kappa-1).
+\]
+We first prove the elementary pinching inequality
+\[
+ \operatorname{diag}(E)-E\preceq\frac{n-1}{n}I_n. \tag{1}
+\]
+Fix a unit vector \(x\in\mathbb R^n\) and set
+\(A_x=\operatorname{diag}(x_1^2,\ldots,x_n^2)-xx^{\mathsf T}\).  Then
+\[
+ x^{\mathsf T}\{\operatorname{diag}(E)-E\}x
+ =\operatorname{tr}(EA_x).
+\]
+The matrix \(A_x\) has trace zero and, because it is a positive semidefinite diagonal matrix minus one rank-one positive semidefinite matrix, it has at most one negative eigenvalue.  Let \(c_0=(n-1)/n\).  For any \(y\in\mathbb R^n\), weighted Cauchy--Schwarz gives
+\[
+ (x^{\mathsf T}y)^2
+ \le
+ \left\{\sum_{i=1}^n\frac{x_i^2}{x_i^2+c_0}\right\}
+ \left\{\sum_{i=1}^n(x_i^2+c_0)y_i^2\right\}.
+\]
+The function \(t\mapsto t/(t+c_0)\) is concave on \([0,\infty)\).  Since \(\sum_i x_i^2=1\), Jensen's inequality yields
+\[
+ \sum_{i=1}^n\frac{x_i^2}{x_i^2+c_0}
+ \le n\frac{1/n}{1/n+c_0}=1.
+\]
+Consequently \(A_x\succeq-c_0I_n\).  Its positive eigenvalues sum to the absolute value of its only possible negative eigenvalue, and hence their sum is at most \(c_0\).  In an orthonormal eigenbasis of \(A_x\), every diagonal entry of \(E\) lies in \([0,1]\).  Therefore
+\[
+ \operatorname{tr}(EA_x)\le\sum_{\lambda_i(A_x)>0}\lambda_i(A_x)\le c_0,
+\]
+which proves (1).
+
+Now \(cE\succeq E\), so (1) gives
+\[
+\begin{aligned}
+ cG-D
+ &=(\kappa-1)\left\{\frac{n-1}{n}I_n+cE-\operatorname{diag}(E)\right\}\\
+ &\succeq(\kappa-1)\left\{\frac{n-1}{n}I_n+E-\operatorname{diag}(E)\right\}\succeq0.
+\end{aligned}
+\]
+Thus \(D\preceq cG\), and congruence by \(D^{-1/2}\) gives the displayed lower bound.  For the stated equality example, after scaling \(\lambda_{\min}(G)=1\), take
+\[
+ G=\kappa I_n-(\kappa-1)\frac{\mathbf 1_n\mathbf 1_n^{\mathsf T}}{n}.
+\]
+Its diagonal entries equal \(\{1+(n-1)\kappa\}/n\), and its normalized eigenvalue in the \(\mathbf 1_n\) direction is exactly \(n/\{1+(n-1)\kappa\}\).
+\end{proof}
+
+\begin{lemma}[lem:finite-angular-frame]\label{lem:finite-angular-frame}
+For every \((p,k,m,M,s,V)\in\mathfrak T\), every \(P\in\mathcal M_{p,k}(m,M,s,V)\), and every disjoint pair \(L,T\) satisfying \(|L|\le k\), \(1\le |T|\le k\), \(|L\cup T|\le2k\), and \(\Delta(L,T)>0\), if \(n=|T|\), then
+\[
+ \frac{\sum_{j\in T}\Delta(L,\{j\})}{\Delta(L,T)}
+ \ge \frac{n}{1+(n-1)KR}.
+\]
+For \(n=1\) equality holds.  For \(n\ge2\) the bound is a finite-chord inequality; it does not arise by separately applying a lower Euclidean chord bound to the singleton losses and a global hemisphere Lipschitz bound to the joint loss.
+\end{lemma}
+\begin{proof}
+Fix an eligible \((L,T)\), put \(n=|T|\), and write \(r_a=r_a(L)\).  If \(n=1\), the numerator is the denominator, so the ratio is one.  Hence assume \(n\ge2\).  Let \(D=\operatorname{diag}(H)\) and, for \(j\in T\), define
+\[
+ w_j=\frac{H^{1/2}e_j}{\sqrt{H_{jj}}}.
+\]
+Then \(\|w_j\|_2=1\).  Moreover, Definition \(\mathrm{def{:}angular\text{-}objects}\) gives
+\[
+ w_j^{\mathsf T}u_a
+ =\frac{d_{a,j}}{\sqrt{H_{jj}}\sqrt{r_a}}, \tag{2}
+\]
+which is the normalized score obtained when the increment set is the singleton \(\{j\}\).  Lemma \(\mathrm{lem{:}angular\text{-}identity}\), applied once to \(T\) and once to every singleton, therefore gives
+\[
+ \frac{\sum_{j\in T}\Delta(L,\{j\})}{\Delta(L,T)}
+ =\frac{\sum_{j\in T}g(w_j^{\mathsf T}u_0,w_j^{\mathsf T}u_1)}{g(u_0,u_1)}. \tag{3}
+\]
+
+Set \(q=s/V=1/R\).  The same lemma shows that the last coordinate of each lift \(Z_a=z(u_a)\) is at least \(\sqrt q\).  Since the denominator in (3) is positive, \(Z_0\ne Z_1\).  Both are unit vectors with positive last coordinate, so their angle \(\theta\) lies in \((0,\pi)\).  Write
+\[
+ C=\cos(\theta/2),\qquad S=\sin(\theta/2),
+\]
+and introduce the spherical midpoint and its unit tangent
+\[
+ \bar Z=\frac{Z_0+Z_1}{2C}=(x^{\mathsf T},\alpha)^{\mathsf T},
+ \qquad
+ E=\frac{Z_0-Z_1}{2S}=(\xi^{\mathsf T},\beta)^{\mathsf T}.
+\]
+Then \(\|\bar Z\|_2=\|E\|_2=1\), \(\bar Z^{\mathsf T}E=0\), and
+\[
+ \|x\|_2^2+\alpha^2=1,\qquad
+ \|\xi\|_2^2+\beta^2=1,\qquad
+ x^{\mathsf T}\xi=-\alpha\beta. \tag{4}
+\]
+The last coordinates of \(Z_0=C\bar Z+SE\) and \(Z_1=C\bar Z-SE\) are both at least \(\sqrt q\).  Since \(\alpha>0\), this is equivalent to
+\[
+ C\alpha-S|\beta|\ge\sqrt q. \tag{5}
+\]
+
+For a fixed \(j\), put \(y_j=w_j^{\mathsf T}x\) and \(d_j=w_j^{\mathsf T}\xi\).  Then
+\[
+ w_j^{\mathsf T}u_0=Cy_j+Sd_j,\qquad
+ w_j^{\mathsf T}u_1=Cy_j-Sd_j.
+\]
+These two numbers belong to \((-1,1)\), because the singleton residual floor is positive.  Let their arcsines be \(\phi_{0j},\phi_{1j}\in(-\pi/2,\pi/2)\).  The identities
+\[
+\begin{aligned}
+ 2Sd_j
+ &=2\cos\!\left(\frac{\phi_{0j}+\phi_{1j}}2\right)
+      \sin\!\left(\frac{\phi_{0j}-\phi_{1j}}2\right),\\
+ Cy_j
+ &=\sin\!\left(\frac{\phi_{0j}+\phi_{1j}}2\right)
+      \cos\!\left(\frac{\phi_{0j}-\phi_{1j}}2\right)
+\end{aligned}
+\]
+and \(g(a,b)=1-\cos\{\arcsin(a)-\arcsin(b)\}\) yield
+\[
+ g(w_j^{\mathsf T}u_0,w_j^{\mathsf T}u_1)
+ =\frac{2S^2d_j^2}{\cos^2\{(\phi_{0j}+\phi_{1j})/2\}}
+ \ge\frac{2S^2d_j^2}{1-C^2y_j^2}. \tag{6}
+\]
+The equality is also valid when \(d_j=0\), by continuity.  Since
+\(g(u_0,u_1)=1-Z_0^{\mathsf T}Z_1=2S^2\), equations (3) and (6) imply
+\[
+ \frac{\sum_{j\in T}\Delta(L,\{j\})}{\Delta(L,T)}
+ \ge \xi^{\mathsf T}\mathcal A\xi,\qquad
+ \mathcal A=\sum_{j\in T}
+ \frac{w_jw_j^{\mathsf T}}{1-C^2(w_j^{\mathsf T}x)^2}. \tag{7}
+\]
+
+Define \(Q=I-C^2xx^{\mathsf T}\) and
+\[
+ q_*=\lambda_{\min}(Q)=1-C^2\|x\|_2^2=S^2+C^2\alpha^2. \tag{8}
+\]
+Thus the denominator in (7) is \(w_j^{\mathsf T}Qw_j\).  Consider
+\(G_*=H^{1/2}QH^{1/2}\).  Lemma \(\mathrm{lem{:}angular\text{-}identity}\) gives \(mI\preceq H\preceq MI\), while \(q_*I\preceq Q\preceq I\); hence
+\[
+ mq_*I\preceq G_*\preceq MI,\qquad
+ \frac{\lambda_{\max}(G_*)}{\lambda_{\min}(G_*)}\le\frac{K}{q_*}. \tag{9}
+\]
+Let \(D_* =\operatorname{diag}(G_*)\).  The columns of
+\(Q^{1/2}H^{1/2}D_*^{-1/2}\) are exactly
+\[
+ \frac{Q^{1/2}w_j}{\sqrt{w_j^{\mathsf T}Qw_j}},\qquad j\in T.
+\]
+Consequently \(Q^{1/2}\mathcal A Q^{1/2}\) and
+\(D_*^{-1/2}G_*D_*^{-1/2}\) are respectively the frame operator and Gram matrix of the same invertible square matrix, so they have the same eigenvalues.  Applying Lemma \(\mathrm{lem{:}normalized\text{-}frame\text{-}sharp}\) to (9) gives
+\[
+ Q^{1/2}\mathcal A Q^{1/2}
+ \succeq\frac{nq_*}{q_*+(n-1)K}I,
+\]
+or
+\[
+ \mathcal A\succeq\frac{nq_*}{q_*+(n-1)K}Q^{-1}. \tag{10}
+\]
+
+Put \(A_*=C^2\alpha^2\), \(B_*=S^2\), and \(C_*=(n-1)K\).  From (4), (8), and the Sherman--Morrison formula,
+\[
+ q_*=A_*+B_*,
+ \qquad
+ \xi^{\mathsf T}Q^{-1}\xi
+ =1-\beta^2+\frac{A_*\beta^2}{A_*+B_*}
+ =\frac{A_*+B_*(1-\beta^2)}{A_*+B_*}. \tag{11}
+\]
+Combining (7), (10), and (11) yields
+\[
+ \frac{\sum_{j\in T}\Delta(L,\{j\})}{\Delta(L,T)}
+ \ge n\frac{A_*+B_*(1-\beta^2)}{A_*+B_*+C_*}. \tag{12}
+\]
+Condition (5) implies
+\[
+ A_*\ge(\sqrt q+\sqrt{B_*}|\beta|)^2\ge q+B_*\beta^2. \tag{13}
+\]
+The difference obtained by cross-multiplying the fraction in (12) and \(q/(q+C_*)\) is
+\[
+ C_*(A_*-q)+C_*B_*(1-\beta^2)-qB_*\beta^2.
+\]
+Using (13), this is at least
+\[
+ B_*(C_*-q\beta^2)\ge0,
+\]
+because \(C_*=(n-1)K\ge1\), \(0<q\le1\), and \(0\le\beta^2\le1\).  Therefore (12) is at least
+\[
+ n\frac{q}{q+(n-1)K}=\frac{n}{1+(n-1)KR},
+\]
+which proves the claim.
+\end{proof}
+
+\begin{theorem}[thm:fixed-budget-greedy-guarantee]\label{thm:fixed-budget-greedy-guarantee}
+For every \((p,k,m,M,s,V)\in\mathfrak T\) and every \(P\in\mathcal M_{p,k}(m,M,s,V)\), let \(\rho_k(K,R)\) be the exact frontier at \(K=M/m\) and \(R=V/s\).  Population forward greedy satisfies
+\[
+ F(S_g)\ge\left\{1-\left(1-\frac{\rho_k(K,R)}{k}\right)^k\right\}\mathrm{OPT}
+ \ge\{1-e^{-\rho_k(K,R)}\}\mathrm{OPT}.
+\]
+On the event \(\max_{|S|\le k}|\widehat B(S)-B(S)|\le\epsilon\), empirical forward greedy satisfies
+\[
+ F(\widehat S)\ge
+ \left\{1-\left(1-\frac{\rho_k(K,R)}{k}\right)^k\right\}\mathrm{OPT}-4k\epsilon.
+\]
+Thus, for \(k\ge2\) and \(R>1\), the factor uses \(\rho_k(K,R)=k/\{1+(k-1)KR\}\); for \(k=1\) or \(R=1\), it uses \(\rho_k(K,R)=1\).
+\end{theorem}
+\begin{proof}
+Let \(S^*\in\arg\max_{|S|\le k}F(S)\), which exists because the ground set is finite, and abbreviate \(\rho=\rho_k(K,R)\).  Let \(S_i\) be the population greedy set after \(i\) steps and put \(G_i=\mathrm{OPT}-F(S_i)\).  If \(G_i\le0\), monotonicity makes every desired lower bound immediate.  Otherwise, let \(T_i=S^*\setminus S_i\).  If \(T_i\) were empty, monotonicity would give \(F(S_i)\ge F(S^*)\), contrary to \(G_i>0\).  Theorem \(\mathrm{thm{:}exact\text{-}fixed\text{-}budget\text{-}frontier}\), Definition \(\mathrm{def{:}submodularity\text{-}ratio}\), and monotonicity therefore give
+\[
+\begin{aligned}
+ \sum_{j\in T_i}\{F(S_i\cup\{j\})-F(S_i)\}
+ &\ge \rho\{F(S_i\cup S^*)-F(S_i)\}\\
+ &\ge \rho\{\mathrm{OPT}-F(S_i)\}=\rho G_i.
+\end{aligned}
+\]
+There are at most \(k\) summands, so the greedy marginal is at least \(\rho G_i/k\).  Hence
+\[
+ G_{i+1}\le(1-\rho/k)G_i.
+\]
+Since \(F(\varnothing)=0\), iteration for \(i=0,\ldots,k-1\) yields
+\[
+ F(S_g)\ge\left\{1-\left(1-\frac\rho k\right)^k\right\}\mathrm{OPT}.
+\]
+The inequality \(1-x\le e^{-x}\), applied with \(x=\rho/k\in[0,1]\), proves the second population bound.  This recurrence is the standard submodularity-ratio greedy argument; the model-specific input is the exact value of \(\rho\).
+
+Now work on the stated uniform-error event and let \(\widehat S_i\) be the empirical greedy path.  For every candidate \(j\notin\widehat S_i\), both \(\widehat S_i\) and \(\widehat S_i\cup\{j\}\) have size at most \(k\), and
+\[
+ \left|\{\widehat F(\widehat S_i\cup\{j\})-\widehat F(\widehat S_i)\}
+ -\{F(\widehat S_i\cup\{j\})-F(\widehat S_i)\}\right|\le2\epsilon.
+\]
+Maximizing the estimated marginal can therefore lose at most \(4\epsilon\) relative to the largest true marginal.  Repeating the preceding ratio argument gives
+\[
+ \mathrm{OPT}-F(\widehat S_{i+1})
+ \le\left(1-\frac\rho k\right)
+ \{\mathrm{OPT}-F(\widehat S_i)\}+4\epsilon.
+\]
+After \(k\) iterations,
+\[
+\begin{aligned}
+ F(\widehat S)
+ &\ge\left\{1-\left(1-\frac\rho k\right)^k\right\}\mathrm{OPT}
+ -4\epsilon\sum_{i=0}^{k-1}(1-\rho/k)^i\\
+ &\ge\left\{1-\left(1-\frac\rho k\right)^k\right\}\mathrm{OPT}-4k\epsilon.
+\end{aligned}
+\]
+This proves the empirical claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem inserts the exact finite-budget frontier into the standard population and empirical greedy recurrences. \textit{Gap.} Generic weak-submodularity machinery supplies the recurrence, but not the Gaussian conditional-transport value of the ratio used by that recurrence. \textit{Consumer.} A budget-constrained analyst obtains the strongest class-uniform guarantee supported by the exact frontier rather than its large-budget limit.
+
+\section{Interpretation}
+
+The exact frontier separates three regimes. With one selected covariate, every admissible positive-denominator ratio is a singleton ratio, so \(\rho_1(K,R)=1\). When \(R=1\), the residual floor and variance ceiling force all covariate-outcome scores to vanish, so the endpoint gain is identically zero and the ratio convention again gives one. For \(k\ge2\) and \(R>1\), \(\rho_k(K,R)=k/\{1+(k-1)KR\}\), which decreases to \(1/(KR)\) as the budget grows. The exact population greedy certificate is therefore \(1-\{1-\rho_k(K,R)/k\}^k\), while \(1-e^{-\rho_k(K,R)}\) is a simpler lower envelope. These are guarantees for tightening the observed-law endpoint \(B(S)\); they do not identify \(\tau_2\) beyond the maintained conditional-transport restrictions. Independent evaluation separates optimization from inference: ordinary Wald inference applies away from endpoint equality, and moment projection remains conservative on the whole compact parameter image.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The unequal-scale sharpness family has a positive but vanishing endpoint contrast as \(h\downarrow0\). This is sufficient to attain the submodularity-ratio frontier, but it does not exhibit a worst-case greedy-value ratio at fixed signal amplitude. More generally, exact sharpness of \(\rho_k(K,R)\) and the induced certified factor does not prove that the greedy-value factor itself is attained by a law in the class. Ordinary Wald inference is asserted only on the separated image \(\Theta_+(\nu_*)\); equality laws have zero endpoint contrast and degenerate first-order endpoint variance and are handled by conservative whole-image moment projection. Computing or certifying the best sparse margins may itself be combinatorial, so \(m,M,s,V\) are treated as certified inputs. No transfer of the Gaussian converse to the compact-support theorem class of Lin et al. is claimed without a separate approximation argument.
+
+\section{Honest scope}
+
+The exact fixed-budget frontier is proved over the explicitly quantified randomized Gaussian sparse-margin classes: \(\rho_k(K,R)=1\) for \(k=1\) or \(R=1\), and \(\rho_k(K,R)=k/\{1+(k-1)KR\}\) for \(k\ge2\), \(R>1\). Its exact induced greedy certificate is \(1-\{1-\rho_k(K,R)/k\}^k\), obtained from credited generic weak-submodularity machinery. For \(R>1\), the optimal certificate uniform over dimensions and budgets is the limit \(1/(KR)\). The extremal construction specifies the Gaussian covariate law, independent arm noises, independent \(\operatorname{Bernoulli}(1/2)\) assignment, potential outcomes, and observed outcome, but approaches the frontier with vanishing signal and does not establish attainment of the worst-case greedy-value ratio at fixed signal. The Gaussian class lies properly inside Lin et al.'s underlying common-marginal conditional-optimal-transport information model; it is not asserted to lie inside their separate compact-support theorem class, so no Gaussian converse is transferred there without truncation or approximation. Sample-split Wald coverage on \(\Theta_+(\nu_*)\) and conservative projection coverage on all of \(\Theta\), including equality laws, are finite-dimensional inference specializations rather than novelty claims. No locally shortest equality-boundary interval is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{lin2025tightening} Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn (2025), ``Tightening Causal Bounds via Covariate-Aware Optimal Transport,'' Proceedings of the 42nd International Conference on Machine Learning, arXiv:2502.01164.
+
+  \bibitem{das2011submodular} Abhimanyu Das and David Kempe (2011), ``Submodular Meets Spectral: Greedy Algorithms for Subset Selection, Sparse Approximation and Dictionary Selection,'' Proceedings of the 28th International Conference on Machine Learning, arXiv:1102.3975.
+
+  \bibitem{bian2017guarantees} Andrew An Bian, Joachim M. Buhmann, Andreas Krause, and Sebastian Tschiatschek (2017), ``Guarantees for Greedy Maximization of Non-submodular Functions with Applications,'' Proceedings of the 34th International Conference on Machine Learning, arXiv:1703.02100.
+
+  \bibitem{elenberg2018restricted} Ethan R. Elenberg, Rajiv Khanna, Alexandros G. Dimakis, and Sahand Negahban (2018), ``Restricted Strong Convexity Implies Weak Submodularity,'' Annals of Statistics 46(6B), 3539--3568.
+
+  \bibitem{ji2023modelagnostic} Wenlong Ji, Lihua Lei, and Asher Spector (2023), ``Model-Agnostic Covariate-Assisted Inference on Partially Identified Causal Effects,'' arXiv:2310.08115, current revision inspected in 2026.
+
+  \bibitem{lin2026causal} Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn (2026), ``Causal Partial Identification with Conditional Optimal Transport,'' Proceedings of AISTATS, arXiv:2506.00257.
+
+  \bibitem{lin2026smooth} Sirui Lin, Zijun Gao, Jose Blanchet, and Peter Glynn (2026), ``Statistical Inference in Causal Partial Identification with Smooth Densities,'' arXiv:2602.20681.
+
+  \bibitem{gelbrich1990formula} Matthias Gelbrich (1990), ``On a Formula for the \(L^2\) Wasserstein Metric between Measures on Euclidean and Hilbert Spaces,'' Mathematische Nachrichten 147, 185--203.
+
+  \bibitem{fangzhu2020elliptical} Song Fang and Quanyan Zhu (2020), “Independent Elliptical Distributions Minimize Their \(\mathcal W_2\) Wasserstein Distance from Independent Elliptical Distributions with the Same Density Generator,” arXiv:2012.03809.
+
+  \bibitem{imbensmanski2004ci} Guido W. Imbens and Charles F. Manski (2004), ``Confidence Intervals for Partially Identified Parameters,'' Econometrica 72(6), 1845--1857.
+
+  \bibitem{stoye2021neverempty} Jörg Stoye (2021), ``A Simple, Short, but Never-Empty Confidence Interval for Partially Identified Parameters,'' CeMMAP Working Paper CWP23/21, arXiv:2010.10484.
+
+  \bibitem{vandervaart1998asymptotic} A. W. van der Vaart (1998), Asymptotic Statistics, Cambridge University Press.
+
+\end{thebibliography}
+
+\end{document}

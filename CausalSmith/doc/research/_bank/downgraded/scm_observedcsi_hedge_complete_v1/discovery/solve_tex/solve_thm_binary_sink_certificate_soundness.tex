@@ -1,0 +1,194 @@
+%%% FIELD corrected-kernel-construction
+Run rational reduced-row-echelon elimination on \(A_{\eta,t,F}^{\mathsf T}\lambda=b_{\eta,t,F}\). If the system is consistent, return \(\mathsf{REJECT}\). If it is inconsistent, compute the fundamental rational null vectors of \(A_{\eta,t,F}u=0\), in increasing order of their free-column indices, and select the first vector \(z\) for which \(b_{\eta,t,F}^{\mathsf T}z\ne0\). Multiply \(z\) by the least positive integer that clears all its denominators, and change its sign when necessary so that its inner product with \(b_{\eta,t,F}\) is positive. The resulting integer, hence rational, vector is \(h_{t,F}\).
+%%% FIELD proof-canonical-row-quotient
+Fix \(i\in V\), and let \(\mathcal P_i=\prod_{j\in\operatorname{pa}_G(i)}\mathcal X_j\) be the finite set of complete parent assignments of \(i\). By \(\texttt{def:row-quotient}\), two elements of \(\mathcal P_i\) are adjacent precisely when one of the whole-row constraints in \(\mathcal C\) requires their conditional probability vectors to be equal, and \(\mathcal R_i\) is the set of connected components of this undirected equality graph.
+
+Suppose first that \(\theta\in\Theta(G)\) satisfies every constraint in \(\mathcal C\). If \(a,a'\in\mathcal P_i\) lie in one class of \(\mathcal R_i\), there is a finite path \(a=a_0,a_1,\ldots,a_m=a'\) in the equality graph. Assumption \(\texttt{ass:whole-row-csi}\) gives
+\[
+ \theta_i(\,cdot\mid a_{\ell-1})=\theta_i(\,\cdot\mid a_\ell),
+ \qquad \ell=1,\ldots,m.
+\]
+Transitivity of equality therefore yields \(\theta_i(\,\cdot\mid a)=\theta_i(\,\cdot\mid a')\). Thus the row vector is constant on each quotient class.
+
+Conversely, suppose every child table is constant on every class of \(\mathcal R_i\). The endpoints of each generating equality from \(\mathcal C\) are adjacent in the equality graph and hence belong to the same class. Their complete conditional vectors are equal, so that generating CSI equality holds. This argument applies to every generator and every child; hence all of \(\mathcal C\) holds.
+
+The two descriptions consequently select exactly the same subset of \(\Theta(G)\). In particular, imposing the generators or instead indexing a single normalized row vector by each class of \(\mathcal R_i\) gives the same class \(\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\) from \(\texttt{def:observed-csi-model-class}\). For a fixed table in this common set, neither replacement changes any primitive conditional probability. The finite latent-sum formula defining every coordinate of \(P_\theta(V)\), and the truncated finite latent-sum formula defining \(q(\theta)=P_{\theta,\mathbf x}(\mathbf y)\), are therefore termwise unchanged. This proves preservation of the model class, the observed-law map, and the causal query.
+%%% FIELD proof-success-soundness
+Fix \(\theta\in\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\). For a complete observed assignment \(v\), semi-Markovian factorization and the mutually independent latent roots give
+\[
+ P_\theta(V=v)
+ =\sum_{u\in\prod_{a\in U}\mathcal X_a}
+   \left\{\prod_{a\in U}\theta_a(u_a)\right\}
+   \left\{\prod_{i\in V}\theta_i(v_i\mid v_{\operatorname{pa}_G(i)\cap V},u_{\operatorname{pa}_G(i)\cap U})\right\}.
+\]
+Under the intervention \(\operatorname{do}(X=\mathbf x)\), the truncated factorization consequently gives
+\[
+ q(\theta)
+ =\sum_{w\in\prod_{i\in W}\mathcal X_i}
+   \sum_{u\in\prod_{a\in U}\mathcal X_a}
+   \left\{\prod_{a\in U}\theta_a(u_a)\right\}
+   \left\{\prod_{i\in V\setminus X}
+     \theta_i(v_i\mid v_{\operatorname{pa}_G(i)\cap V},u_{\operatorname{pa}_G(i)\cap U})\right\},
+\]
+where \(v_X=\mathbf x\), \(v_Y=\mathbf y\), and \(v_W=w\). This equation distinguishes the causal target from every expression subsequently computed from the observed law.
+
+By \(\texttt{def:activation-partition}\), the nonempty cells \(k\in\mathcal K\) partition the displayed finite set of assignments \(w\). Hence the outer sum is the disjoint sum of its restrictions to those cells. Consider one such restriction and an authorized trace \(t\). Every deletion in \(t\) is backed, by \(\texttt{def:authorized-trace}\), by a whole-row equality whose substituted activation predicate is constantly true on \(k\). Assumption \(\texttt{ass:observed-activation}\) ensures that the truth of this predicate is determined by the fixed observed assignment \((\mathbf x,\mathbf y,w)\) and cannot vary with the latent summation variable \(u\). The row equality characterized by \(\texttt{thm:canonical-row-quotient}\) therefore makes the affected conditional vector identical before and after the authorized deletion, pointwise in every summand. Induction over the finite entries of \(t\) proves that the original cell contraction equals its contraction in \(H_{k,t}\).
+
+We next verify the SUCCESS syntax semantically. At a leaf of the syntax tree, an indexed observed cell has the value given by the first display. Marginalization is equality after interchanging finite sums. Conditioning divides a joint contraction by its marginal normalizer. District restriction is obtained by expanding the latent sums in \(\texttt{def:context-q-factor}\): mutual independence of the latent roots permits products of root masses, the two-child restriction assigns every root shared by retained observed vertices to their unique bidirected component, and finite distributivity regroups the same monomials into the district factors. Leaf removal sums a childless variable's normalized conditional row,
+\[
+ sum_{a\in\mathcal X_i}\theta_i(a\mid\operatorname{pa}_G(i))=1,
+\]
+and therefore leaves the contraction unchanged. Finally, a trace substitution is valid by the pointwise row-equality argument in the preceding paragraph. Structural induction on the finite tree in \(\texttt{def:success-derivation}\) now shows that its terminal array equals every coordinate of the claimed \(Q[D]_{k,t}\), rather than merely defining an observed-law regression object.
+
+The premise of the theorem says that these recovered factors cover every relevant district and that their finite products and context sums assemble \(E\). Expanding that assembly, applying finite distributivity, and reversing the district regrouping gives exactly the truncated-factorization sum for \(q(\theta)\) above. Thus
+\[
+ E(P_\theta(V))=q(\theta).
+\]
+
+It remains to justify every division. By \(\texttt{ass:strict-cpt-positivity}\), each monomial in the first display is strictly positive, and every latent state space and every conditioning event retained by the syntax is nonempty. Thus every observed cell and every nonempty marginal used as a conditioning normalizer is a finite sum of strictly positive terms and is strictly positive. The same argument applies to a context \(Q\)-factor: it is a nonempty finite sum of products of positive primitive coordinates. Leaf removal and CSI substitution preserve these values. Consequently every denominator judgment recorded by a SUCCESS derivation is true on the entire model class. Since \(\theta\) was arbitrary, the equality and all positivity assertions hold for every \(\theta\in\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\), and the assembled expression belongs to \(\mathscr E(P_{\mathrm{obs}})\) by \(\texttt{def:arithmetic-expression}\).
+%%% FIELD proof-fixed-sink-affine-map
+Write \(a\in\{0,1\}\) for the value of \(Y_\star\) in an observed cell \(v\). Once the other primitive tables have been fixed at \(\eta\), the finite factorization of that cell can be written
+\[
+ F_{\eta}(p)_v
+ =\sum_{u} w_v(u;\eta)
+ \left[a\,p_{j(v,u)}+(1-a)\{1-p_{j(v,u)}\}\right].
+\]
+Here \(j(v,u)\in\{1,\ldots,r\}\) is the class in \(\mathcal R_{Y_\star}\) of the complete parent assignment of \(Y_\star\), and \(w_v(u;\eta)\) is the product of all root masses and all observed conditional factors other than the factor for \(Y_\star\). This factor does not contain \(p\): assumption \(\texttt{ass:slice-outcome-sink}\) ensures that the row of \(Y_\star\) cannot occur as an argument of a descendant's conditional factor. Assumptions \(\texttt{ass:binary-slice-variables}\) and \(\texttt{ass:singleton-slice-outcome}\) ensure that the bracket is respectively \(p_j\) or \(1-p_j\), and that no second outcome factor can introduce a product of two coordinates of \(p\).
+
+Therefore there are coefficients \(\bar A_{vj}\) such that
+\[
+ F_\eta(p)_v=F_\eta(0)_v+\sum_{j=1}^r\bar A_{vj}p_j.
+\]
+All weights \(w_v(u;\eta)\) are finite products of rational coordinates of \(\eta\), by \(\texttt{ass:rational-fixed-nuisance}\); hence every \(\bar A_{vj}\) and every intercept is rational. Although \(0\) and \(e_j\) lie on the boundary of the positive cube, the preceding display is a polynomial identity and gives an unambiguous algebraic extension there. It follows that
+\[
+ F_\eta(e_j)_v-F_\eta(0)_v=\bar A_{vj}.
+\]
+The definition of \(A_{\eta,t,F}\) retains this coefficient for \(j\in J_{t,F}\) and sets it to zero otherwise. Hence, for every \(u\) supported on \(J_{t,F}\),
+\[
+ F_\eta(p+u)-F_\eta(p)=\bar A u=A_{\eta,t,F}u,
+\]
+provided \(p,p+u\in(0,1)^r\).
+
+The same argument applied to the truncated factorization of the interventional event gives rational coefficients \(\bar b_j\) with
+\[
+ h_\eta(p)=h_\eta(0)+\sum_{j=1}^r\bar b_jp_j.
+\]
+Indeed, intervention deletes the factors for \(X\) but neither duplicates the sink factor nor changes its affine dependence on its one selected quotient row. The finite-difference definition gives \((b_{\eta,t,F})_j=\bar b_j\) on \(J_{t,F}\) and zero off that set. Consequently
+\[
+ h_\eta(p+u)-h_\eta(p)=b_{\eta,t,F}^{\mathsf T}u
+\]
+for the same supported perturbations. The two displayed affine expansions also give \(c_\eta=F_\eta(0)\) and \(d_\eta=h_\eta(0)\), completing all asserted rationality, support, boundary, and increment claims.
+%%% FIELD proof-forest-to-kernel-lift
+Abbreviate \(A=A_{\eta,t,F}\), \(b=b_{\eta,t,F}\), and \(J=J_{t,F}\). Both \(A\) and \(b\) are rational by \(\texttt{thm:fixed-sink-affine-map}\). The statement \(b^{\mathsf T}\in\operatorname{row}(A)\) is equivalent, by the definition of row space, to existence of \(\lambda\) satisfying
+\[
+ A^{\mathsf T}\lambda=b.
+\]
+Rational reduced-row-echelon elimination terminates because the matrix is finite, and all of its operations preserve rationality.
+
+If the system is consistent, back substitution returns a rational \(\lambda\), so \(b^{\mathsf T}=\lambda^{\mathsf T}A\). In particular, every \(u\in\ker(A)\) obeys \(b^{\mathsf T}u=\lambda^{\mathsf T}Au=0\). Thus no perturbation supported by the displayed forest can preserve the observed contraction while changing the query contraction, which is exactly the stated structural rejection.
+
+Suppose instead that the system is inconsistent. Row reduction of \(Au=0\) produces a rational fundamental nullspace basis \(z_1,\ldots,z_s\), one vector for each free column. At least one basis vector satisfies \(b^{\mathsf T}z_\ell\ne0\). To prove this assertion without importing an additional theorem, assume the contrary. Then \(b\) annihilates every fundamental vector and hence every \(u\in\ker(A)\). In reduced-row-echelon coordinates, the equations \(b^{\mathsf T}z_\ell=0\) say exactly that each free coordinate of \(b\) is the linear combination of its pivot coordinates prescribed by the corresponding pivot row. Thus \(b^{\mathsf T}\) is a linear combination of the nonzero rows of the reduced matrix. Elementary row operations preserve row space, so \(b^{\mathsf T}\in\operatorname{row}(A)\), contradicting inconsistency of \(A^{\mathsf T}\lambda=b\).
+
+Under the corrected construction in \(\texttt{def:canonical-forest-kernel}\), let \(z_\ell\) be the first fundamental vector with nonzero contrast. Multiplying by the least common positive denominator gives a nonzero integer vector \(z\) with \(Az=0\) and \(b^{\mathsf T}z\ne0\); changing its sign when needed gives \(b^{\mathsf T}z>0\). Columns outside \(J\) are zero in both \(A\) and \(b\), by \(\texttt{def:fixed-sink-linearization}\). Such a column is free, but its fundamental vector has zero contrast and is skipped. Every pivot column and the selected contrast-bearing free column lie in \(J\), so the selected vector is supported on \(J\). The corrected constructor therefore returns \(h_{t,F}=z\) with
+\[
+ A_{\eta,t,F}h_{t,F}=0,
+ \qquad
+ b_{\eta,t,F}^{\mathsf T}h_{t,F}>0.
+\]
+Consistency and inconsistency are mutually exclusive and exhaustive, proving the exact alternative.
+%%% FIELD proof-binary-sink-certificate-soundness
+Assume \(\mathsf{Verify}_{\mathrm{sink}}(\Gamma_{\mathrm{sink}})=1\), and abbreviate the recomputed vector \(h_{t,F}\) by \(h\). Acceptance of the rational row-space check, together with \(\texttt{lem:forest-to-kernel-lift}\), gives
+\[
+ A_{\eta,t,F}h=0,
+ \qquad
+ b_{\eta,t,F}^{\mathsf T}h>0,
+ \qquad
+ \operatorname{supp}(h)\subseteq J_{t,F}.
+\]
+The verifier also checks \(p_0\in(0,1)^r\), \(\varepsilon>0\), and, for every \(j\) with \(h_j\ne0\),
+\[
+ \varepsilon |h_j|<\min\{p_{0j},1-p_{0j}\}.
+\]
+It follows coordinatewise that \(0<p_{0j}\pm\varepsilon h_j<1\); when \(h_j=0\), this is the already checked inequality \(0<p_{0j}<1\). Hence
+\[
+ p^+=p_0+\varepsilon h\in(0,1)^r,
+ \qquad
+ p^-=p_0-\varepsilon h\in(0,1)^r.
+\]
+
+For either sign, assign \(P(Y_\star=1\mid\text{row class }j)=p_j^\pm\) and its binary complement \(1-p_j^\pm\), and retain the single nuisance table \(\eta\) for every other primitive coordinate. Each row is normalized and strictly positive. The verifier has checked normalization, positivity, and quotient sharing of \(\eta\); indexing \(p^\pm\) by \(\mathcal R_{Y_\star}\) supplies quotient sharing for the remaining rows. The graph and latent-root factorization are unchanged, so the exogenous distribution remains the product of its normalized root marginals. By \(\texttt{thm:canonical-row-quotient}\), both decoded tables satisfy every whole-row equality in \(\mathcal C\). They are therefore two globally defined elements \(\theta^+,\theta^-\in\mathfrak M_{\mathrm{ocsi}}(G,\mathcal C)\), not separately fitted context models.
+
+The affine increment formula from the fixed-sink contraction, applied at \(p_0\) to the supported increments \(\pm\varepsilon h\), yields
+\[
+ F_\eta(p^+)-F_\eta(p^-)
+ =2\varepsilon A_{\eta,t,F}h=0.
+\]
+Thus all observed cells agree: \(P_{\theta^+}(V)=P_{\theta^-}(V)\). For the causal target, the corresponding calculation gives
+\[
+ q(\theta^+)-q(\theta^-)
+ =h_\eta(p^+)-h_\eta(p^-)
+ =2\varepsilon b_{\eta,t,F}^{\mathsf T}h>0.
+\]
+The strict inequality uses both \(\varepsilon>0\) and the sign normalization of the canonical kernel. We have therefore constructed two members of the declared model class with the same observed law and different values of the fixed interventional query. By the definition of point identification, \(q\) is not identified in this slice.
+%%% FIELD proof-adversarial-trace-boundaries
+For \(\mathsf E_5\), put \(a_u=P(X=0\mid U=u)\), so \((a_0,a_1)=(3/4,1/4)\). When \(x=0\), the CSI makes \(P(Z=z\mid X=0,T=t)=1/2\) for both \(t\); hence
+\[
+ P(X=0,Z=z)=\sum_{u,t}\frac14 a_u\frac12=\frac14.
+\]
+When \(x=1,z=0\), independence of \(U,T\) gives
+\[
+ P(X=1,Z=0)
+ =\frac14\left\{\frac14+\frac34\right\}
+          \left\{\frac34+\frac14\right\}
+ =\frac14,
+\]
+and complementation gives \(P(X=1,Z=1)=1/4\). Thus \((X,Z)\) is uniform in both displayed models. In \(\rho^+_5\), every outcome row is \(1/2\), so every \((x,z,y)\) cell is \(1/8\).
+
+Only the four \(Z=0\) probabilities for \(Y=1\) change in \(\rho^-_5\). Relative to \(\rho^+_5\), their changes, ordered by \((U,T)=(0,0),(0,1),(1,0),(1,1)\), are
+\[
+ \Delta=\frac1{100}(3,3,7,-25).
+\]
+For \((X,Z)=(0,0)\), the latent weights are proportional to \((3,3,1,1)\), and
+\[
+ (3,3,1,1)\Delta^{\mathsf T}
+ =\frac{9+9+7-25}{100}=0.
+\]
+For \((X,Z)=(1,0)\), they are proportional to \((3,1,9,3)\), and
+\[
+ (3,1,9,3)\Delta^{\mathsf T}
+ =\frac{9+3+63-75}{100}=0.
+\]
+The \(Z=1\) rows do not change. Therefore every \(Y=1\) observed cell agrees between the models, and normalization gives agreement of every \(Y=0\) cell. All eight common cells equal \(1/8\).
+
+Under \(\operatorname{do}(X=0)\), \(U,T\) remain independent and fair and \(Z\) is fair conditionally on \(T\). Consequently
+\[
+ P_{X=0}^{\rho^-_5}(Y=1)-P_{X=0}^{\rho^+_5}(Y=1)
+ =\sum_{u,t}\frac14\frac12\Delta_{ut}
+ =\frac18\frac{3+3+7-25}{100}
+ =-\frac3{200}.
+\]
+Thus the two query values are \(97/200\) and \(1/2\), with gap \(3/200\). Every listed probability and complement is strictly between zero and one, and the shared \(X=0\) rows of \(Z\) verify the CSI.
+
+After deleting the active edge \(T\to Z\), latent projection has directed edges \(X\to Z\to Y\) and only the bidirected edge \(X\leftrightarrow Y\). Any bidirected-connected forest containing both a treatment vertex and \(Y\) can then use only \(\{X,Y\}\), since \(Z\) has no bidirected incident edge. In that subgraph there is no directed edge from \(X\) to \(Y\), so both vertices are childless. Its root set is \(\{X,Y\}\), whereas every nested forest avoiding \(X\) has a different root set. Hence no rooted C-forest pair satisfying \(\texttt{def:rooted-forest-obstruction}\) exists in the pruned graph.
+
+For the empty trace in the original projection, take \(F=\{Y\}\) and \(F'=\{X,Z,Y\}\). The bidirected edges \(X\leftrightarrow Y\) and \(Z\leftrightarrow Y\) make \(F'\) one district, the directed forest edges \(X\to Z\to Y\) give every vertex at most one directed child, and both forests have childless set \(\{Y\}\). Moreover \(F\cap X=\varnothing\), \(F'\cap X\ne\varnothing\), and \(Y\in\operatorname{An}_{G\setminus X}(Y)\). The vector \(\Delta\), extended by zeros on the \(Z=1\) outcome-row classes, is supported on the rows exposed by this forest. The two zero inner products above are precisely the observed contraction equations \(A_{\eta,t,F}\Delta=0\), while the intervention calculation is \(b_{\eta,t,F}^{\mathsf T}\Delta=-3/200\ne0\). This proves the asserted empty-trace kernel obstruction.
+
+For \(\mathsf E_{\mathrm{bow}}\), root independence and the \(A=0\) CSI imply \(P(U=u\mid A=0,X=x)=1/2\). Hence
+\[
+ P_{X=0}(Y=1)=\frac12\left(\frac15+\frac35\right)=\frac25,
+ \qquad
+ P_{X=1}(Y=1)=\frac12\left(\frac25+\frac45\right)=\frac35.
+\]
+Also \(P(A=0,X=x)=1/4\), so direct multiplication by the appropriate outcome mixture gives
+\[
+ P_{X=x}(Y=1)=4P(A=0,X=x,Y=1),\qquad x\in\{0,1\}.
+\]
+This agrees with the displayed cells \(1/10\) and \(3/20\). More explicitly, if the four outcome coordinates are ordered as \((p_{00},p_{01},p_{10},p_{11})\), the query coefficient vectors are
+\[
+ b_0^{\mathsf T}=(1/2,1/2,0,0),
+ \qquad
+ b_1^{\mathsf T}=(0,0,1/2,1/2).
+\]
+The rows of the full observed-cell coefficient matrix corresponding to \((A,X,Y)=(0,0,1)\) and \((0,1,1)\) are respectively \(b_0^{\mathsf T}/4\) and \(b_1^{\mathsf T}/4\). Thus both query vectors belong to the row space of the full matrix. The row-space branch of \(\texttt{lem:forest-to-kernel-lift}\) therefore forces \(\mathsf{Verify}_{\mathrm{sink}}\) to reject the local \(A=1\) bow forest before constructing any countermodel.
+%%% FIELD open-partial-result
+The exact row quotient, sound SUCCESS assembly, the fixed-nuisance binary-sink affine reduction, its corrected row-space/nullspace alternative, and the positive two-model certificate are proved in this solve. The five-node example proves that maximal active deletion is incomplete, while the bow example proves that a local forest can be annihilated by a shared observed reference context. Thus any future global proof must retain partial traces and solve a jointly shared-row contraction problem whose separating direction changes the full query.

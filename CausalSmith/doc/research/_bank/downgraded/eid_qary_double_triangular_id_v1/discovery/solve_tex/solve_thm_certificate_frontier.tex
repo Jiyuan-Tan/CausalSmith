@@ -1,0 +1,424 @@
+%%% FIELD def-local-minors
+For \(j\in\{1,\ldots,J\}\), let \(\mathcal X_j=\{0,\ldots,m_j-1\}\), where \(m_j\ge q\).  For each selected row define
+\[
+ L_{a,k,u}(x,r)
+ =P\!\left(X_{s(a,k)}=x\mid
+ H_{\rho_a(1:k-1)}=u,H_{\rho_a(k)}=r\right),
+\]
+for \(x\in\mathcal X_{s(a,k)}\) and \(r\in\mathcal Q\), and set
+\[
+ c_{a,k,u}=\det\!\left(L_{a,k,u}^{\mathsf T}L_{a,k,u}\right)
+ =\sum_{\substack{R\subseteq\mathcal X_{s(a,k)}\\|R|=q}}
+   \det\!\left(L_{a,k,u}[R,:]\right)^2.
+\]
+When \(m_{s(a,k)}=q\), write \(B_{a,k,u}=L_{a,k,u}\) and \(d_{a,k,u}=\det(B_{a,k,u})\), so \(c_{a,k,u}=d_{a,k,u}^2\).
+
+%%% FIELD def-certificate
+Define
+\[
+ \Delta_a=\prod_{k=1}^K\prod_{u\in\mathcal Q^{k-1}}
+ c_{a,k,u}^{q^{K-k}},
+ \qquad
+ \Delta_{\mathrm{DT}}=\Delta_1\Delta_2.
+\]
+Thus \(\Delta_{\mathrm{DT}}\neq0\) is the rectangular full-column-rank Gram certificate.  In the equal-alphabet case \(m_j=q\), it is the square of the determinant-product certificate.
+
+%%% FIELD def-positive-domain
+\(\Theta_{\Gamma,\Lambda}^{+}\) is the set of arrays of latent conditional-table entries on \(\mathcal Q\) and measurement conditional-table entries on \(\mathcal X_j\), for the fixed graphs \(\Lambda,\Gamma\), that obey all simplex constraints, the Markov factorization, and strict positivity of every table entry.
+
+%%% FIELD def-diagonal-family
+Set the latent coordinates independent and uniform.  For a selected row \(j=s(a,k)\), let
+\[
+ A_{a,k}=\operatorname{pa}_{\Gamma}(j)
+ \cap\{\rho_a(1),\ldots,\rho_a(k-1)\}.
+\]
+Let \(E_j\in\mathbb R^{m_j\times q}\) be the coordinate embedding \(E_j(x,r)=\mathbf1\{x=r\}\) for \(x\in\mathcal X_j\) and \(r\in\mathcal Q\).  For every \(v\in\mathcal Q^{A_{a,k}}\), choose a strictly positive probability vector \(b_{a,k,v}\) on \(\mathcal X_j\) and \(\eta_{a,k,v}>0\), sufficiently small that all entries below are positive, and set
+\[
+ P(X_j=x\mid H_{\operatorname{pa}_{\Gamma}(j)}=h)
+ =b_{a,k,h_{A_{a,k}}}(x)
+ +\eta_{a,k,h_{A_{a,k}}}
+   \left(E_jQ_q\right)(x,h_{\rho_a(k)}).
+\]
+Equivalently,
+\[
+ L_{a,k,u}=b_{a,k,u_{A_{a,k}}}\mathbf1^{\mathsf T}
+ +\eta_{a,k,u_{A_{a,k}}}E_jQ_q.
+\]
+Both \(b\) and \(\eta\) are constant when only nonparent coordinates of \(u\) change.  Assign arbitrary strictly positive graph-compatible tables to unselected observed rows.
+
+%%% FIELD def-model-class
+\(\mathcal M_{\mathrm{DT}}^{(q)}(K,J)\) is the class of graph--law pairs \((G,P)\) satisfying the measurement-graph, Markov, faithfulness, positive-latent-support, measurement-nondegeneracy, categorical double-triangular, third-view-coverage, and subset conditions for fixed \(q,K,J\), where \(H_k\in\mathcal Q\), \(X_j\in\mathcal X_j=\{0,\ldots,m_j-1\}\), and every \(m_j\ge q\).
+
+%%% FIELD def-comparison-domain
+\(\mathcal C_K(P_X)\) is the set of tuples \((G',P',\Gamma',\Lambda',\pi',p')\) such that \(H'\in\mathcal Q^K\), \(X\in\mathcal X=\prod_{j=1}^J\mathcal X_j\); \(G'\) is a DAG with only latent-to-latent and latent-to-observed edges; \(P'\) factorizes over \(G'\); \(P'(H'=h)>0\) for every \(h\); \(P'\) is faithful to \(G'\); distinct configurations of \(H'_{\operatorname{pa}_{\Gamma'}(j)}\) induce distinct laws of \(X_j\) for every \(j\); no two latent observed-child sets contain one another; and
+\[
+ \sum_{h\in\mathcal Q^K}P'(X=x,H'=h)=P_X(x)
+ \quad\text{for every }x\in\mathcal X.
+\]
+Neither double triangularity, the certificate, third-view coverage, nor knowledge of \(S_1,S_2\) is imposed on an alternative realization, and measurement-table cells are allowed to be zero.
+
+%%% FIELD def-algorithm-handle
+Start from \(\mathsf H_q\): enumerate candidate disjoint \(K\)-row views and all \(q^K\)-by-\(q^K\) row minors of their observable unfoldings; prune by exact ranks and rectangular local Gram-certificate patterns; recover an unstructured \(q^K\)-label mixture by exact three-view simultaneous diagonalization; apply \(\mathcal E(P_X)\) while finitely enumerating product-coordinate partitions of the labels; and reconstruct \(\pi\), nonnegative normalized measurement tables, measurement adjacencies, and latent conditional independences.  Retain strict positivity only for the latent weights.  Order recursive branches by the number of unclassified observed rows and then the number of unresolved component pairs, using this lexicographic pair as the decreasing termination measure.
+
+%%% FIELD stmt-local-factorization
+For each \(a\in\{1,2\}\), let \(L_{a,k,u}\in\mathbb R^{m_{s(a,k)}\times q}\) be the rectangular local tables and let \(M_a\in\mathbb R^{n_a\times q^K}\), where \(n_a=\prod_{k=1}^Km_{s(a,k)}\).  Then
+\[
+ c_{a,k,u}=\det(L_{a,k,u}^{\mathsf T}L_{a,k,u})
+ =\sum_{\substack{R\subseteq\mathcal X_{s(a,k)}\\|R|=q}}
+ \det(L_{a,k,u}[R,:])^2,
+\]
+and \(\Delta_a\neq0\) implies \(\operatorname{rank}(M_a)=q^K\).  If every selected alphabet has size \(q\), then \(B_{a,k,u}=L_{a,k,u}\) and the sharper identity
+\[
+ \det(M_a)=\varepsilon_{q,K}
+ \prod_{k=1}^K\prod_{u\in\mathcal Q^{k-1}}
+ \det(B_{a,k,u})^{q^{K-k}}
+ =\varepsilon_{q,K}\prod_{k,u}d_{a,k,u}^{q^{K-k}}
+\]
+holds; in that case \(\Delta_a=\det(M_a)^2\).
+
+%%% FIELD proof-local-factorization
+Fix \(a\in\{1,2\}\), suppress \(a\), and relabel the latent coordinates in the order \(\rho_a\).  Put \(X_k=X_{s(a,k)}\), \(H_k=H_{\rho_a(k)}\), and \(r_k=m_{s(a,k)}\).  Assumption~\textnormal{ass:double-triangular} says that the latent parents of \(X_k\) are contained in \(H_{1:k}\), and Assumption~\textnormal{ass:markov} gives conditional independence of the observed vertices given \(H\).  Therefore, for \(1\le m\le K\),
+\[
+ P(X_{1:m}=x_{1:m}\mid H=h)
+ =\prod_{k=1}^m
+ P(X_k=x_k\mid H_{1:k}=h_{1:k})
+ =\prod_{k=1}^mL_{k,h_{1:k-1}}(x_k,h_k).
+\tag{1}
+\]
+The right side does not depend on \(h_{m+1:K}\).
+
+We first verify the Gram formula without importing a rank theorem.  For any \(L\in\mathbb R^{r\times q}\), expand \(\det(AB)\) by the Leibniz formula with \(A=L^{\mathsf T}\) and \(B=L\).  Grouping the expanded terms by the \(q\) intermediate row indices, every tuple with a repeated index cancels because the determinant is alternating.  Each remaining \(q\)-element set \(R\) contributes
+\[
+ \det(L^{\mathsf T}[:,R])\det(L[R,:])
+ =\det(L[R,:])^2.
+\]
+Consequently
+\[
+ \det(L^{\mathsf T}L)=
+ \sum_{\substack{R\subseteq\{1,\ldots,r\}\\|R|=q}}
+ \det(L[R,:])^2.
+\tag{2}
+\]
+Moreover, for every \(v\in\mathbb R^q\),
+\[
+ v^{\mathsf T}L^{\mathsf T}Lv=\|Lv\|_2^2.
+\]
+Thus \(L^{\mathsf T}L\) is nonsingular exactly when \(\ker L=\{0\}\), and hence \(c_{k,u}\neq0\) exactly when \(L_{k,u}\) has column rank \(q\).  In particular \(c_{k,u}\ge0\).
+
+Let \(M^{(m)}\) be the \(\prod_{k=1}^mr_k\)-by-\(q^m\) matrix whose \((x_{1:m},h_{1:m})\) entry is the product in (1).  In the induced lexicographic orders, insertion of the intermediate pair \((h_{1:m-1},x_m)\) gives
+\[
+ M^{(m)}=(M^{(m-1)}\otimes I_{r_m})
+ \operatorname{blockdiag}_{u\in\mathcal Q^{m-1}}L_{m,u},
+ \qquad M^{(1)}=L_{1,\varnothing},
+\tag{3}
+\]
+up to the fixed row convention.  Indeed, the \((x_{1:m},h_{1:m})\) entry of the right side is
+\[
+ \sum_{u,y}M^{(m-1)}(x_{1:m-1},u)
+ \mathbf1\{u=h_{1:m-1}\}\mathbf1\{x_m=y\}
+ L_{m,u}(y,h_m),
+\]
+which is (1).
+
+Suppose every \(c_{k,u}\neq0\).  By (2), every block \(L_{m,u}\) has trivial kernel, so the block-diagonal factor in (3) has trivial kernel.  Inductively \(M^{(m-1)}\) has trivial kernel; hence \(M^{(m-1)}\otimes I_{r_m}\) also has trivial kernel, since a vector split into \(r_m\) coordinate slices is killed only when every slice is in \(\ker M^{(m-1)}\).  The composition in (3) is therefore injective.  At \(m=K\), this proves
+\[
+ \Delta_a\neq0
+ \quad\Longrightarrow\quad
+ \operatorname{rank}(M_a)=q^K,
+\]
+because every exponent in the defining finite product is positive.
+
+Now assume \(r_k=q\) for every selected row.  All matrices in (3) are square.  Determinant multiplicativity, the block-diagonal determinant formula, and direct diagonalization of \(C\otimes I_q\) after triangularizing \(C\) give
+\[
+ \det(M^{(m)})=\epsilon_m\det(M^{(m-1)})^q
+ \prod_{u\in\mathcal Q^{m-1}}\det(B_{m,u}),
+\tag{4}
+\]
+where \(\epsilon_m\in\{-1,1\}\) records only the fixed row ordering.  Iterating (4), a determinant introduced at level \(k\) is raised to the \(q\)-th power at each later level, and hence
+\[
+ \det(M_a)=\varepsilon_{q,K}
+ \prod_{k=1}^K\prod_{u\in\mathcal Q^{k-1}}
+ d_{a,k,u}^{q^{K-k}}.
+\]
+Since \(c_{a,k,u}=d_{a,k,u}^2\) in this square case, squaring the last display gives \(\Delta_a=\det(M_a)^2\).  All products are finite, and no division or limiting step has been used.
+
+%%% FIELD stmt-rectangular-counterexample
+For either fixed view label \(a\in\{1,2\}\), when \(q=3\) and \(K=2\) there are strictly positive column-stochastic local tables with \(m_{s(a,1)}=3\) and \(m_{s(a,2)}=9\) such that the first table has pairwise distinct columns and \(c_{a,1,\varnothing}=0\), while the resulting triangular-view matrix \(M_a\) has column rank \(3^2=9\).  Hence, when observed alphabets may exceed \(q\), full column rank of a triangular view does not imply nonvanishing of every local Gram certificate.
+
+%%% FIELD proof-rectangular-counterexample
+Let
+\[
+ b=\begin{pmatrix}1/3\\1/3\\1/3\end{pmatrix},
+ \qquad
+ v=\begin{pmatrix}\delta\\-\delta\\0\end{pmatrix},
+ \qquad
+ L_{1,\varnothing}=\begin{pmatrix}b-v&b&b+v\end{pmatrix},
+ \qquad 0<\delta<1/3.
+\]
+Its columns are strictly positive probability vectors and are pairwise distinct, but the first plus the third equals twice the second.  Thus \(\operatorname{rank}(L_{1,\varnothing})=2\) and, by the Gram identity in Theorem~\textnormal{thm:local-factorization}, \(c_{1,\varnothing}=0\).
+
+Index the nine coordinates of \(\mathbb R^9\) by \((u,r)\in\mathcal Q^2\), and choose \(0<\epsilon<1\).  Set
+\[
+ V=(1-\epsilon)I_9+\frac{\epsilon}{9}\mathbf1\mathbf1^{\mathsf T}.
+\]
+Every entry of \(V\) is positive, every column sums to one, and \(V\) is invertible: its eigenvalue on \(\operatorname{span}(\mathbf1)\) is \(1\), while its eigenvalue on the zero-sum subspace is \(1-\epsilon\).  For predecessor state \(u\in\mathcal Q\), let \(L_{2,u}\) consist of the three columns of \(V\) indexed by \((u,r)\), \(r\in\mathcal Q\).  Each \(L_{2,u}\) has column rank three because it is a subfamily of the columns of the invertible matrix \(V\).
+
+The nine columns of the resulting triangular-view matrix are
+\[
+ \ell_u\otimes V[:,(u,r)],
+ \qquad (u,r)\in\mathcal Q^2,
+\]
+where \(\ell_u\) is column \(u\) of \(L_{1,\varnothing}\).  Applying the invertible row transformation \(I_3\otimes V^{-1}\) sends these columns to
+\[
+ \ell_u\otimes e_{(u,r)}.
+\]
+These nine vectors are linearly independent because their second tensor factors are distinct coordinate vectors and every \(\ell_u\neq0\).  Hence \(\operatorname{rank}(M_a)=9\) despite \(c_{1,\varnothing}=0\).  The graph with first item parent \(H_1\) and second item parents \(H_1,H_2\) is triangular in the order \((H_1,H_2)\), so the construction is a valid triangular-view witness.  It also shows that strict positivity and ordinary column separation do not restore the failed converse.
+
+%%% FIELD stmt-certificate-frontier
+For heterogeneous finite observed alphabets \(m_j\ge q\), \(\Delta_{\mathrm{DT}}\neq0\) implies \(\operatorname{rank}(M_1)=\operatorname{rank}(M_2)=q^K\).  If every selected alphabet has size \(q\), the implication is an equivalence, and a vanishing local determinant \(d_{a,k,u}\) forces view \(a\) to be rank deficient.  For \(q=3\), a strictly positive square local table can have pairwise distinct conditional columns and zero determinant.  With a larger later observed alphabet, a view can instead have full column rank while an earlier \(c_{a,k,u}\) vanishes, so the heterogeneous converse is false.
+
+%%% FIELD proof-certificate-frontier
+By Definition~\textnormal{def:certificate}, \(\Delta_{\mathrm{DT}}\neq0\) is equivalent to \(c_{a,k,u}\neq0\) for both \(a\in\{1,2\}\) and every \(k,u\), because all exponents \(q^{K-k}\) are positive integers.  The rectangular implication in Theorem~\textnormal{thm:local-factorization} therefore yields
+\[
+ \Delta_{\mathrm{DT}}\neq0
+ \quad\Longrightarrow\quad
+ \operatorname{rank}(M_1)=\operatorname{rank}(M_2)=q^K.
+\tag{5}
+\]
+
+If every selected \(m_j=q\), Theorem~\textnormal{thm:local-factorization} gives \(\Delta_a=\det(M_a)^2\).  A square \(q^K\)-by-\(q^K\) matrix has rank \(q^K\) exactly when its determinant is nonzero: if the determinant is nonzero its columns have no nontrivial linear relation, and if the columns are independent the associated linear map is bijective and its determinant cannot vanish.  Hence in the equal-alphabet case
+\[
+ \Delta_{\mathrm{DT}}\neq0
+ \quad\Longleftrightarrow\quad
+ \operatorname{rank}(M_1)=\operatorname{rank}(M_2)=q^K.
+\tag{6}
+\]
+If \(d_{a,k,u}=0\), the determinant product for that view vanishes, so (6) makes view \(a\) rank deficient.
+
+The separation condition is weaker than the square certificate already at \(q=3\).  Let
+\[
+ b=\begin{pmatrix}1/3\\1/3\\1/3\end{pmatrix},
+ \qquad
+ v=\begin{pmatrix}\delta\\-\delta\\0\end{pmatrix},
+ \qquad
+ B=\begin{pmatrix}b-v&b&b+v\end{pmatrix},
+ \qquad 0<\delta<1/3.
+\]
+The columns are pairwise distinct strictly positive probability vectors, but the first plus the third is twice the second.  Thus \(d=\det(B)=0\) and \(c=d^2=0\).
+
+Finally, Proposition~\textnormal{prop:rectangular-local-necessity-fails} supplies strictly positive \(q=3\) local tables with one vanishing \(c_{a,k,u}\) and a full-column-rank global view.  That explicit witness disproves the requested heterogeneous converse, while (5) and (6) establish the maximal valid frontier.
+
+%%% FIELD stmt-certificate-genericity
+For every fixed categorical double-triangular graph \(\Gamma\), latent DAG \(\Lambda\), and observed alphabet vector with \(m_j\ge q\), \(\Delta_{\mathrm{DT}}\) is a rational function on \(\Theta_{\Gamma,\Lambda}^{+}\) with strictly positive denominators and a nonzero polynomial numerator \(N_{\mathrm{DT}}\).  In the positive perturbation family, every \(c_{a,k,u}>0\); more precisely, for the first \(q\) observed states and \(\beta_{a,k,u}=\sum_{x=0}^{q-1}b_{a,k,u}(x)>0\),
+\[
+ \det(L_{a,k,u}[0{:}q-1,:])
+ =\beta_{a,k,u}\eta_{a,k,u}^{q-1}.
+\]
+When \(m_{s(a,k)}=q\), this reduces to \(d_{a,k,u}=\eta_{a,k,u}^{q-1}\) and \(c_{a,k,u}=\eta_{a,k,u}^{2(q-1)}\).  Consequently the nonvanishing locus of \(\Delta_{\mathrm{DT}}\) is nonempty, relatively open and dense, and its complement has Lebesgue measure zero in the affine product of simplex interiors.
+
+%%% FIELD proof-certificate-genericity
+Use free coordinates for the latent and measurement conditional probability tables in \(\Theta_{\Gamma,\Lambda}^{+}\).  Assumption~\textnormal{ass:markov} makes every joint cell probability a polynomial in these coordinates.  Every local-table entry is
+\[
+ L_{a,k,u}(x,r)
+ =\frac{P(X_{s(a,k)}=x,
+ H_{\rho_a(1:k)}=(u,r))}
+ {P(H_{\rho_a(1:k)}=(u,r))}.
+\tag{7}
+\]
+The numerator and denominator are polynomial after marginalization.  The denominator is strictly positive throughout \(\Theta_{\Gamma,\Lambda}^{+}\), because every latent conditional-table entry is positive, so every complete latent configuration, and therefore every displayed marginal event, has positive mass.  The Gram determinant and the finite products in Definition~\textnormal{def:certificate} therefore make \(\Delta_{\mathrm{DT}}\) rational with a strictly positive common denominator.  Let \(N_{\mathrm{DT}}\) be the numerator after clearing it.
+
+We show that this numerator is not the zero polynomial by evaluating the corrected positive family.  For \(j=s(a,k)\), the construction gives
+\[
+ L=b\mathbf1^{\mathsf T}+\eta E_jQ_q.
+\]
+Every column sums to one because \(\mathbf1^{\mathsf T}b=1\) and \(\mathbf1^{\mathsf T}E_jQ_q=\mathbf1^{\mathsf T}Q_q=0\).  All entries are positive when \(\eta>0\) is sufficiently small, since \(b\) has finitely many strictly positive entries.  Dependence on \(u\) occurs only through the earlier parents, so the table is graph-compatible.  Independent uniform latent coordinates and conditional sampling from these tables give a point of \(\Theta_{\Gamma,\Lambda}^{+}\).
+
+Restrict \(L\) to the first \(q\) observed states.  The resulting square matrix is
+\[
+ D=b_{0:q-1}\mathbf1^{\mathsf T}+\eta Q_q.
+\]
+On the zero-sum subspace \(V_0=\{z:\mathbf1^{\mathsf T}z=0\}\), \(Dz=\eta z\).  Also
+\[
+ \mathbf1^{\mathsf T}D
+ =\left(\sum_{x=0}^{q-1}b(x)\right)\mathbf1^{\mathsf T}
+ =\beta\mathbf1^{\mathsf T},
+\]
+so the induced map on the one-dimensional quotient \(\mathbb R^q/V_0\) has eigenvalue \(\beta>0\).  Choosing a basis adapted to \(V_0\) yields
+\[
+ \det(D)=\beta\eta^{q-1}>0.
+\tag{8}
+\]
+The Gram expansion proved in Theorem~\textnormal{thm:local-factorization} now gives
+\[
+ c_{a,k,u}
+ =\sum_{|R|=q}\det(L_{a,k,u}[R,:])^2
+ \ge \beta_{a,k,u}^2\eta_{a,k,u}^{2(q-1)}>0.
+\tag{9}
+\]
+Thus \(\Delta_{\mathrm{DT}}>0\) at this interior point, and its positive denominator implies that \(N_{\mathrm{DT}}\) is not identically zero.  If \(m_j=q\), then \(\beta=1\), \(L=B\), (8) gives \(d=\eta^{q-1}\), and \(c=d^2=\eta^{2(q-1)}\).
+
+It remains to justify the topology and measure assertions.  A nonzero univariate polynomial has finitely many roots.  Induct on the number of affine coordinates: write a nonzero polynomial as a polynomial in its last coordinate with coefficient polynomials in the preceding coordinates.  Outside the zero set of one nonzero coefficient, the last-coordinate section has finitely many roots.  Fubini's theorem and the induction hypothesis then give measure zero for the full zero set.  The same section argument shows that a polynomial vanishing on a nonempty relatively open box must have every coefficient vanish there and hence be the zero polynomial; thus a nonzero polynomial zero set has empty relative interior.  Applying these facts to \(N_{\mathrm{DT}}\) proves density and full relative measure of its complement.  Relative openness follows from continuity of the rational function where the denominator is positive, and nonemptiness follows from (9).
+
+%%% FIELD stmt-finite-state-lower-bound
+For every \((G,P)\in\mathcal M_{\mathrm{cert}}^{(q)}(K,J)\) with heterogeneous finite observed alphabets \(m_j\ge q\), \(\operatorname{rank}(T_{12})=q^K\).  If the same \(P_X\) has any finite latent measurement representation with a joint latent variable \(Z\) having \(R=|\operatorname{supp}(Z)|\) positive-mass states and with the observed coordinates conditionally independent given \(Z\), then \(R\ge q^K\).
+
+%%% FIELD proof-finite-state-lower-bound
+Put \(r=q^K\).  Membership in the certified class and Assumption~\textnormal{ass:certificate} give \(\Delta_{\mathrm{DT}}\neq0\).  Theorem~\textnormal{thm:certificate-frontier} therefore makes each rectangular matrix \(M_a\) have column rank \(r\).  Hence there are left inverses \(L_a^{\dagger}\) satisfying \(L_a^{\dagger}M_a=I_r\).  Assumption~\textnormal{ass:positive-support} makes \(D=\operatorname{diag}(\pi)\) invertible.  Using the observed factorization \(T_{12}=M_1DM_2^{\mathsf T}\),
+\[
+ L_1^{\dagger}T_{12}(L_2^{\dagger})^{\mathsf T}=D.
+\]
+Therefore \(\operatorname{rank}(T_{12})\ge\operatorname{rank}(D)=r\), while the displayed factorization gives \(\operatorname{rank}(T_{12})\le r\).  Thus
+\[
+ \operatorname{rank}(T_{12})=q^K.
+\tag{10}
+\]
+
+Now let \(Z\) be the joint latent variable in an arbitrary finite latent measurement representation of the same observed law, after discarding any zero-mass states, and write \(R=|\operatorname{supp}(Z)|\).  Conditional independence of the observed coordinates given \(Z\) gives
+\[
+ T_{12}=\widetilde M_1\operatorname{diag}(\widetilde\pi)
+ \widetilde M_2^{\mathsf T},
+ \qquad
+ \widetilde M_a\in\mathbb R^{n_a\times R}.
+\]
+The image of this product is contained in the image of \(\widetilde M_1\), whose dimension is at most \(R\).  Combining this fact with (10) yields \(q^K\le R\), as claimed.  No triangularity, alphabet restriction, positivity of measurement cells, or coordinate-product structure was imposed on the competing representation.
+
+%%% FIELD stmt-latent-dimension
+For every \((G,P)\in\mathcal M_{\mathrm{cert}}^{(q)}(K,J)\), \(\operatorname{rank}(T_{12})=q^K\), and consequently \(K_{\min}(P_X)=K\) even when a competing realization with fewer \(q\)-state coordinates is not double triangular.
+
+%%% FIELD proof-latent-dimension
+Lemma~\textnormal{lem:finite-latent-state-lower-bound} gives \(\operatorname{rank}(T_{12})=q^K\) and proves the stronger fact that every finite latent measurement representation has at least \(q^K\) positive-mass joint latent states.  In particular, consider a competing measurement model with \(L\) latent coordinates, each having \(q\) states.  Its joint latent vector has at most \(q^L\) positive-mass states.  The lemma therefore gives
+\[
+ q^K\le |\operatorname{supp}(H')|\le q^L.
+\]
+Since \(q\ge3>1\), \(L\ge K\).  The original certified realization itself has \(K\) such coordinates, so the defining minimum satisfies \(K_{\min}(P_X)\le K\); the preceding inequality gives the reverse bound.  Hence
+\[
+ K_{\min}(P_X)=K.
+\]
+The target \(K\) is thereby proved equal to the observed-law functional \(K_{\min}(P_X)\); the equality is not being imposed by definition.
+
+%%% FIELD stmt-fixed-k-identification
+For every \((G,P)\in\mathcal M_{\mathrm{cert}}^{(q)}(K,J)\) with \(m_j\ge q\), the observed law \(P_X\) determines, by exact three-view uniqueness using observable nonsingular \(q^K\)-by-\(q^K\) row minors, an unstructured \(q^K\)-label set \(\mathscr L(P_X)\) and all component conditional columns up to one permutation.  The component-equality pattern \(\mathcal E(P_X)\) then uniquely aligns those labels with \(K\) \(q\)-state coordinates through \(\varphi_{\mathrm{coord}}\), modulo \(\mathfrak G\), and latent conditional independences determine \([\Lambda]_{\mathrm{MEC}}\).  Consequently \(P_X\) uniquely determines \(\mathcal R(P_X)=[\Gamma,\pi,p,[\Lambda]_{\mathrm{MEC}}]_{\sim}\), and every realization in \(\mathcal C_K(P_X)\) belongs to this same equivalence class.
+
+%%% FIELD proof-fixed-k-identification
+Put \(r=q^K\), \(n_a=\prod_{j\in S_a}m_j\), and regard the observed law on the three disjoint views as a three-way tensor.  For \(z\in\prod_{j\in S_3}\mathcal X_j\), let \(T_z\in\mathbb R^{n_1\times n_2}\) be the slice at \(X_{S_3}=z\), and let
+\[
+ m_3(z\mid h)=P(X_{S_3}=z\mid H=h).
+\]
+The Markov measurement factorization gives
+\[
+ T_z=M_1\operatorname{diag}
+ \bigl(\pi_hm_3(z\mid h):h\in\mathcal Q^K\bigr)M_2^{\mathsf T},
+ \qquad
+ T_{12}=\sum_zT_z=M_1\operatorname{diag}(\pi)M_2^{\mathsf T}.
+\tag{11}
+\]
+Theorem~\textnormal{thm:certificate-frontier} makes both \(M_a\) have column rank \(r\).  Hence each contains an invertible \(r\)-by-\(r\) row submatrix.  Choose row-index sets \(I_a\) of size \(r\), put \(A_a=M_a[I_a,:]\), and define
+\[
+ \overline T=T_{12}[I_1,I_2],
+ \qquad
+ \overline T_z=T_z[I_1,I_2].
+\]
+Assumption~\textnormal{ass:positive-support} makes \(D=\operatorname{diag}(\pi)\) invertible, so \(\overline T=A_1DA_2^{\mathsf T}\) is invertible and
+\[
+ C_z:=\overline T_z\overline T^{-1}
+ =A_1\operatorname{diag}(m_3(z\mid h))A_1^{-1}.
+\tag{12}
+\]
+
+The third-view component columns are pairwise distinct.  If \(h\neq h'\), choose \(k\) with \(h_k\neq h'_k\).  Assumption~\textnormal{ass:third-view-coverage} supplies \(j\in S_3\) with \(H_k\to X_j\).  The two parent configurations at \(j\) differ, so Assumption~\textnormal{ass:measurement-nondegeneracy} makes the conditional marginals of \(X_j\) distinct.  Therefore the joint columns \(m_3(\cdot\mid h)\) and \(m_3(\cdot\mid h')\) are distinct.
+
+There is a real vector \(t=(t_z)_z\) for which all values
+\[
+ \lambda_h=\sum_zt_zm_3(z\mid h)
+\]
+are distinct: the forbidden vectors lie in the finite union of proper hyperplanes \(t\cdot(m_3(\cdot\mid h)-m_3(\cdot\mid h'))=0\).  Thus the observable matrix \(C(t)=\sum_zt_zC_z\) has simple real spectrum.  Equation (12) shows that an eigenvector matrix has the form
+\[
+ V=A_1S
+\tag{13}
+\]
+after one common permutation, where \(S\) is an invertible diagonal scaling matrix.
+
+Unlike the equal-alphabet argument, the selected rows of a probability column need not sum to one, so scaling cannot be removed by normalizing the eigenvectors in (13).  Instead use the full observable table.  Define
+\[
+ U=V^{-1}T_{12}[I_1,:]
+ =S^{-1}D M_2^{\mathsf T},
+ \qquad
+ \alpha_h=\sum_{x_2}U(h,x_2)=S_{hh}^{-1}\pi_h.
+\]
+Every \(\alpha_h\neq0\), and row normalization recovers
+\[
+ M_2^{\mathsf T}(h,:)=\frac{U(h,:)}{\alpha_h}.
+\tag{14}
+\]
+Let the now known \(A_2=M_2[I_2,:]\) be substituted into
+\[
+ F=T_{12}[:,I_2](A_2^{\mathsf T})^{-1}=M_1D.
+\]
+Because every column of \(M_1\) is a conditional probability mass function and \(\pi_h>0\),
+\[
+ \pi_h=\sum_{x_1}F(x_1,h),
+ \qquad
+ M_1=F D^{-1}.
+\tag{15}
+\]
+Finally, (12)--(13) give
+\[
+ m_3(z\mid h)=\bigl(V^{-1}C_zV\bigr)_{hh}.
+\tag{16}
+\]
+Equations (14)--(16) recover the weights and all three full view columns up to the one permutation.  Marginalization recovers the conditional column of every observed coordinate.  This is exact uniqueness on the certified class; no generic qualifier is used.
+
+The already established Theorem~\textnormal{thm:coordinate-alignment} applies to these anonymous labels and recovered columns.  It turns them into the unique \(K\)-coordinate product modulo \(\mathfrak G\), recovers \(\Gamma,\pi,p\), and uses faithfulness together with Lemma~\textnormal{lem:dag-markov-equivalence-characterization} to recover \([\Lambda]_{\mathrm{MEC}}\).  Therefore \(P_X\) determines \(\mathcal R(P_X)\).
+
+For the comparison claim, take any element of \(\mathcal C_K(P_X)\).  It gives another \(r\)-component product decomposition of (11) with every weight positive.  Since \(\overline T\) is invertible, both of its restricted alternative factor matrices are invertible.  Repeating (12) for the alternative shows that its first restricted factor diagonalizes the same observable family \(C_z\).  The simple-spectrum matrix \(C(t)\) forces its eigenvectors to equal those in (13), up to scaling and the same kind of label permutation.  Formulas (14)--(16), which use only observable arrays and probability normalization, then force the same weights and all component columns.  The alternative's measurement nondegeneracy and subset condition feed the same equality-pattern lattice in Theorem~\textnormal{thm:coordinate-alignment}, giving the same coordinate factors and \(\Gamma\) modulo \(\mathfrak G\); its faithfulness gives the same latent Markov-equivalence class.  Hence every member of \(\mathcal C_K(P_X)\) lies in the single claimed quotient class.
+
+%%% FIELD stmt-finite-algorithm
+There is a finite exact-real-arithmetic algorithm \(A_q\), obtained by making every enumeration and query in \(\mathsf H_q\) explicit, which halts for every probability mass function \(P_X\).  On every \(P_X\) generated by \(\mathcal M_{\mathrm{cert}}^{(q)}(K,J)\), it recovers \(K\), retains only exact realizations of \(P_X\), represents every member of \(\mathcal C_K(P_X)\), and returns exactly \(\mathcal R(P_X)\).  Its recursive classification stage terminates under the lexicographic measure consisting of the number of unclassified observed rows followed by the number of unresolved component pairs.
+
+%%% FIELD proof-finite-algorithm
+All operations below occur in the exact-real-arithmetic model; equality, sign, rank, polynomial coefficients, roots of simple real spectra, and finite conditional-independence identities are therefore queried without numerical tolerance.
+
+First recover the latent dimension.  For each integer \(L\ge1\) with \(2L+1\le J\), enumerate the finitely many ordered pairs of disjoint \(L\)-coordinate sets \(R_1,R_2\).  Their joint table has \(\prod_{j\in R_1}m_j\) rows and \(\prod_{j\in R_2}m_j\) columns, each at least \(q^L\).  Enumerate all \(q^L\)-by-\(q^L\) row-and-column minors and test their determinants.  Let \(\widehat K\) be the largest \(L\) for which some such minor is nonsingular, and return a failure symbol if none exists.  On a certified input, Theorem~\textnormal{thm:latent-dimension} gives rank \(q^K\) for the true pair, so a nonsingular \(q^K\)-by-\(q^K\) minor exists.  For \(L>K\), every two-group table factors through the true \(q^K\) latent configurations and has rank at most \(q^K<q^L\).  Therefore \(\widehat K=K\).
+
+Set \(r=q^{\widehat K}\).  Enumerate every ordered pair of disjoint \(\widehat K\)-coordinate views, every pair \(I_1,I_2\) of \(r\) joint-response configurations, and use the nonempty complement as the third view.  Retain a branch only when \(\overline T=T_{12}[I_1,I_2]\) is nonsingular.  For each third-view response \(z\), form \(\overline T_z\) and \(C_z=\overline T_z\overline T^{-1}\).  Let
+\[
+ g(t)=\operatorname{disc}\!\left(\sum_zt_zC_z\right).
+\]
+This is an observable polynomial of finite degree.  Compute its coefficients exactly and discard the branch if it is identically zero.  Otherwise, if \(d\) bounds its degree in each coordinate, the grid \(\{0,\ldots,d\}^{|\mathcal X_{S_3}|}\) contains a point where \(g\neq0\).  Indeed, induction on the number of variables, using that a nonzero univariate polynomial of degree at most \(d\) cannot vanish at \(d+1\) distinct points, proves this grid assertion.  Exhaustive evaluation therefore finds such a \(t\) in finitely many steps.
+
+Diagonalize \(C(t)=\sum_zt_zC_z\).  Discard branches without a simple real spectrum.  For every ordering of its \(r\) eigenvectors form \(V\), and apply the scale-safe formulas from Theorem~\textnormal{thm:fixed-k-identification}:
+\[
+ U=V^{-1}T_{12}[I_1,:],
+ \qquad
+ \alpha_h=\sum_{x_2}U(h,x_2),
+ \qquad
+ M_2^{\mathsf T}(h,:)=U(h,:)/\alpha_h,
+\tag{17}
+\]
+rejecting if an \(\alpha_h\) vanishes.  Put \(A_2=M_2[I_2,:]\), reject if it is singular, and set
+\[
+ F=T_{12}[:,I_2](A_2^{\mathsf T})^{-1},
+ \qquad
+ \pi_h=\sum_{x_1}F(x_1,h),
+ \qquad
+ M_1[:,h]=F[:,h]/\pi_h,
+\tag{18}
+\]
+rejecting if a \(\pi_h\) vanishes.  Recover \(m_3(z\mid h)=(V^{-1}C_zV)_{hh}\).  Keep the branch only if \(\pi_h>0\) for every \(h\), all three recovered component arrays are real, nonnegative, and normalized, and their mixture reproduces every cell of \(P_X\) exactly.  Measurement cells are not required to be strictly positive.  The proof of Theorem~\textnormal{thm:fixed-k-identification} shows that a certified branch passes: its component columns are distinct, so \(g\) is nonzero, and (17)--(18) recover the exact decomposition even when some measurement cells vanish.
+
+Marginalize the recovered joint-view columns to obtain every component-conditional distribution of every \(X_j\), and verify that the product of the individual columns reproduces each joint-view column.  On the finite label set, enumerate every ordered \(K\)-tuple of equivalence relations having \(q\) classes whose common class map is a bijection onto the product of the \(K\) class sets.  This explicitly enumerates all coordinate alignments, including those suggested by \(\mathcal E(P_X)\).  For every alignment enumerate the finite set of binary matrices \(\Gamma\in\{0,1\}^{J\times K}\).  Retain \(\Gamma\) precisely when, for each \(j\), the recovered column of \(X_j\) is constant over labels having the same parent configuration and distinct parent configurations give distinct distributions.  The resulting entries \(p_j(x\mid h_{\operatorname{pa}_\Gamma(j)})\) are enumerated candidate measurement tables; require only that they are nonnegative and normalized.  Check the subset condition and record every rectangular \(c_{a,k,u}\) and every observable nonsingular row minor as a certificate trace.
+
+For each retained \((\Gamma,\pi,p)\), enumerate the finite set of DAGs \(\Lambda\) on the \(K\) recovered coordinates.  Retain \(\Lambda\) only if \(\pi\) factorizes over it.  Construct
+\[
+ P(H=h,X=x)=\pi_h\prod_{j=1}^J
+ p_j(x_j\mid h_{\operatorname{pa}_{\Gamma}(j)}).
+\]
+Use division-free discrete conditional-independence identities, such as \(P(v,w,c)P(c)=P(v,c)P(w,c)\), so zero-probability observed cells cause no undefined conditioning operation.  Enumerate all such identities for this finite complete-data law and all d-separation statements of \(G=(\Lambda,\Gamma)\); retain the graph exactly when the two lists agree.  Finally check the measurement graph, measurement nondegeneracy, the subset condition, and the exact marginal identity with \(P_X\).  These are exactly the defining requirements of \(\mathcal C_K(P_X)\), so every retained object is a member: this proves soundness without silently imposing positive measurement cells, double triangularity, the certificate, or third-view coverage on alternatives.
+
+Conversely, any member of \(\mathcal C_K(P_X)\) supplies an \(r\)-term product decomposition of the same tensor with positive weights.  The observable nonsingular minor and simple-spectrum argument of Theorem~\textnormal{thm:fixed-k-identification} force its anonymous component decomposition to be the recovered one up to label permutation.  Its product-coordinate partition, \(\Gamma\), nonnegative normalized tables, and latent DAG all occur in the respective finite exhaustive enumerations, and its defining equalities pass every check.  Thus it is represented.  Theorem~\textnormal{thm:fixed-k-identification} makes all retained realizations members of the single quotient \(\mathcal R(P_X)\), which \(A_q\) returns.
+
+Every outer enumeration is finite: there are finitely many coordinate subsets, response-configuration minors, label permutations, equivalence relations, binary measurement graphs, and latent DAGs.  The grid search is finite by its degree bound.  For the recursive presentation in \(\mathsf H_q\), assign each branch
+\[
+ \mu=(u,v)\in\mathbb N^2,
+\]
+where \(u\) is the number of unclassified observed rows and \(v\) the number of component pairs unresolved by the queried equality relations.  A row-classification transition decreases \(u\); after \(u=0\), a pair-resolution transition decreases \(v\); pruning terminates the branch.  Lexicographic order on \(\mathbb N^2\) is well founded, so no recursive branch is infinite.  This proves termination on every input and the asserted certified-class behavior.

@@ -1,0 +1,106 @@
+%%% FIELD bound-construction
+For \(s=(n,m,c,K,R,o,\ell,J)\), set
+\[
+ T=\sum_{j=0}^{m}\frac{m!}{(m-j)!},\qquad
+ D=2^n3^m,\qquad
+ F_0=3^{2n}4^{2m},
+\]
+\[
+ N=J\,2^{cK+R}TDF_0,\qquad L=o(N+1),
+\]
+\[
+ E=\bigl(o+8(L+1)^2\bigr)^{L+1},\qquad
+ M=2^{L+1}\bigl(\ell+\lceil\log_2(L+2)\rceil\bigr),
+\]
+and
+\[
+ B(s)=(N+1)(E+1)(o+R+1)^3(M+1).
+\]
+The factors encode, respectively, the explicitly expanded input records, activation truth tables and quotient-class masks, nonrepeating trace states, factor states, nested forest bitmasks, expression directed acyclic graphs of at most \(L\) nodes, exact row-space computation, and numerator and denominator bit growth.
+
+%%% FIELD proof-main
+Write \(d=o+R+1\), and use the corrected encoding-load component \(J\) and the quantities in \(\texttt{def:complexity-bound}\).  All state spaces are finite and nonempty, so \(K\geq 1\) and \(o\geq 1\).  Moreover, the presence of the distinguished outcome implies \(n\geq 1\).  In particular,
+\[
+ N\geq J,
+ \qquad
+ L=o(N+1)\geq N+1,
+ \qquad
+ R\leq 2^R\leq N.
+\]
+Consequently
+\[
+ d=o+R+1\leq o+N+1\leq o(N+1)+1=L+1. \tag{1}
+\]
+We shall repeatedly use the elementary inequalities \(2^a\geq a+1\) for \(a\in\mathbb N\) and \(2^{b+1}\geq b+1\) for \(b\in\mathbb N\); both follow by induction.  The definitions of \(E\) and \(M\), together with (1), give
+\[
+ E\geq 8(L+1)^2\geq 8d^2,
+ \qquad
+ E\geq 2^{L+1}\geq N^2,
+ \qquad
+ M+1\geq L+1. \tag{2}
+\]
+For the middle inequality, \(2^{L+1}\geq 2^{N+2}\geq N^2\), where the last inequality is again an induction.
+
+We first count structural codes.  After substituting \(\mathbf x\) and \(\mathbf y\), the activation table has exactly \(cK\) Boolean entries.  A branch-local quotient support decoration has one Boolean entry for each of the \(R\) canonical quotient classes.  Thus these two fields admit at most \(2^{cK+R}\) codes.  A trace of length \(j\) contains \(j\) distinct edges in order, hence has
+\[
+ m(m-1)\cdots(m-j+1)=\frac{m!}{(m-j)!}
+\]
+codes.  Summing over \(0\leq j\leq m\) gives exactly \(T\); the term \(j=0\) is the empty trace, so no exceptional decoration is needed for it.
+
+A factor state is overencoded by a Boolean mark on each of the \(n\) vertices and one of three marks on each of the \(m\) edges, giving at most \(D=2^n3^m\) codes.  A nested forest pair is, in particular, a pair of vertex subsets and a pair of edge subsets.  It therefore has at most
+\[
+ 2^{2n}2^{2m}\leq 3^{2n}4^{2m}=F_0
+\]
+bitmask codes.  Conditions such as nesting, one-district connectivity, roots, and childlessness only discard codes.  Multiplication of these independent overcounts shows that the number of structural branch codes is at most
+\[
+ 2^{cK+R}TDF_0\leq N. \tag{3}
+\]
+The initial activation partition is constructed by grouping the \(K\) columns having equal \(c\)-bit activation signatures.  The quotient is constructed by scanning the expanded parent-assignment and row-equality incidence records counted by \(J\).  Pairwise grouping and connected-component labeling use at most a quadratic number of comparisons in these records.  Since \(N\geq J\) and \(N\geq 2^{cK+R}\geq cK+R+1\), their symbols and operations are at most \((N+1)^2\).  Each code in (3) has at most \(N+1\) fields, because \(N\) dominates \(J,n,m,cK\), and \(R\).  Hence all structural codes together use at most \(N(N+1)\) symbols.  By (2), each of these quantities is at most \((N+1)(E+1)d^3(M+1)=B(s)\).
+
+We next count the capped SUCCESS expressions specified by \(\texttt{def:procedure}\).  Put every directed acyclic graph with at most \(L\) nodes into \(L+1\) slots by appending a dummy terminal slot.  At a slot there are \(o\) observed-cell leaf labels.  Every nonleaf SUCCESS operation, including its positivity or provenance tag, is represented by one of eight fixed tags and two predecessor indices in \(\{0,\ldots,L\}\); unary operations repeat an index, and finite sums are binarized.  Thus the number of slot labels is at most
+\[
+ o+8(L+1)^2,
+\]
+and, on dropping the acyclicity and well-typedness restrictions, the number of words is at most \(E\).  Invalid words are rejected and cannot increase the count.  Over all structural branches there are therefore at most \(NE\) candidate expression graphs and at most \(NE(L+1)\) expression symbols or arithmetic nodes.  From (2),
+\[
+ NE(L+1)
+ \leq (N+1)(E+1)d^3(M+1)
+ =B(s). \tag{4}
+\]
+Notice that this counts only the deliberately capped SUCCESS syntax.  It neither asserts that every identified query has such a syntax nor invokes the unresolved global dichotomy.
+
+It remains to bound an exact binary-sink row-space check.  If \(r=|\mathcal R_{Y_{\star}}|\), then \(r\leq R\), so the matrix \(A_{\eta,t,F}\), the vector \(b_{\eta,t,F}\), and their augmented systems have dimensions bounded by \(d\).  A structural contraction at one evaluation point traverses no more than the \(J\) explicitly expanded latent configurations and primitive table records, and each monomial contains at most \(n\leq N\) factors.  There are at most \((o+1)(r+1)\leq d^2\) observed-or-query values at the required baseline and coordinate evaluations.  Thus recomputation uses at most \(d^2J(n+1)\leq d^2N(N+1)\) rational operations.  Exact elimination uses at most \(d\) pivot stages, each updating at most \(d^2\) entries with at most four rational operations, and hence at most \(4d^3\) further operations.  Across at most \(N\) structural branches, the total is bounded by
+\[
+ N\{d^2N(N+1)+4d^3\}\leq B(s), \tag{5}
+\]
+where (2) supplies \(E+1\geq N^2\) and \(M+1\geq 4\).
+
+For completeness, we verify that exact arithmetic does not invalidate the serialization bound.  Give a reduced rational the maximum of the binary lengths of its numerator and positive denominator.  Every primitive input rational has length at most \(\ell\).  A contraction is a sum of at most \(J\) monomials, each involving at most \(n\) primitive rationals.  Taking the product of all primitive denominators as a common denominator and then adding the scaled numerators shows directly that every entry of \(A_{\eta,t,F}\) and \(b_{\eta,t,F}\) has length at most
+\[
+ 4J(n+1)\bigl(\ell+\lceil\log_2(J+2)\rceil\bigr). \tag{6}
+\]
+This uses only the rules that a product adds binary lengths and a sum of \(a\) integers adds at most \(\lceil\log_2 a\rceil\) bits beyond the largest summand.  Since \(n\geq1\), the factors \(D\) and \(F_0\) give \(N\geq18J\).  Hence the right side of (6) is at most \(M\); indeed \(L\geq N+1\), and \(2^{N+2}\) dominates \(4J(n+1)\), while the logarithmic factor in \(M\) dominates the logarithmic factor in (6).
+
+The row-space test can be carried out fraction-free.  Clear the denominators in its at most \(d^2\) rational entries.  If their lengths are bounded by \(M\), each resulting integer entry has length at most \((d^2+1)M\).  At a pivot, update an entry by
+\[
+ a^{(k+1)}_{ij}
+ =\frac{a^{(k)}_{kk}a^{(k)}_{ij}-a^{(k)}_{ik}a^{(k)}_{kj}}
+ {a^{(k-1)}_{k-1,k-1}}.
+\]
+Expanding the two bordered determinants along their last row verifies inductively that the division is exact and that every retained entry is a minor of the cleared matrix.  A \(k\)-minor is a sum of \(k!\) products of \(k\) entries.  Its binary length is therefore at most
+\[
+ k(d^2+1)M+\lceil\log_2(k!)\rceil+1
+ \leq 4d^3(M+1). \tag{7}
+\]
+Thus reduced-row-echelon coordinates, obtained as ratios of such minors, satisfy the same bound up to one extra factor of \(d\) when their denominators are cleared to form the canonical integer kernel direction.  Choose the canonical baseline \(p_{0j}=1/2\) and, if \(H=\max_j|h_{t,F,j}|\), choose
+\[
+ \varepsilon=\frac{1}{4(1+H)}.
+\]
+Then \(\varepsilon>0\), and for every nonzero coordinate,
+\[
+ \varepsilon<\frac{1}{2|h_{t,F,j}|}
+ =\frac{\min\{p_{0j},1-p_{0j}\}}{|h_{t,F,j}|},
+\]
+so the verifier's positivity division is valid.  Equations (6)--(7), the at most \(J\) nuisance records, and the structural prefix show that the entire rational certificate has at most \(8(N+1)d^4(M+1)\) bits and symbols.  By (2), \(E+1\geq8d^2\), so this quantity is at most \(B(s)\).  The expression serialization bound follows already from (4).
+
+Combining (3)--(7) proves separately that the branch count, the symbol count, the number of rational arithmetic operations, and the encoding length of every returned capped expression or binary-sink certificate are each at most \(B(s)\).  The argument is purely a finite normal-form count and therefore establishes exactly the final caveat in the statement: it supplies no completeness conclusion for the unresolved general multi-block dichotomy.

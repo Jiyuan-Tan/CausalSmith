@@ -1,0 +1,647 @@
+{
+  "units": [
+    {
+      "unit": "thm:binary-strict-gain",
+      "targets": [
+        "lem:singular-operator",
+        "prop:covariance-learnability",
+        "lem:loading-perturbation",
+        "thm:crossfit-attainment",
+        "prop:equality-frontier",
+        "thm:gap-inference",
+        "thm:binary-strict-gain",
+        "thm:known-reductions",
+        "prop:complete-normal-finite-support-rates"
+      ],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:singular-operator",
+            "proof_tex": "Because \\(A\\) has full column rank and the columns of \\(N\\) are an orthonormal basis of \\(\\ker(A')\\), every feasible vector has a unique representation \\(b=b^0+Nz\\).  For fixed \\(x\\), suppress \\(x\\) and write\n\\[\n(b^0+Nz)'\\Gamma(b^0+Nz)\n=(b^0)'\\Gamma b^0+2z'g+z'Hz,\n\\qquad g=N'\\Gamma b^0.\n\\tag{3}\n\\]\nIf \\(v\\in\\ker H\\), positive semidefiniteness gives\n\\[\n0=v'Hv=(Nv)'\\Gamma(Nv)=\\|\\Gamma^{1/2}Nv\\|^2.\n\\]\nThus \\(\\Gamma Nv=0\\) and \\(v'g=(Nv)'\\Gamma b^0=0\\).  Since \\(H\\) is a finite-dimensional symmetric matrix, \\((\\ker H)^\\perp=\\operatorname{range}H\\), so \\(g\\in\\operatorname{range}H\\).  The normal equation \\(Hz=-g\\) is solvable, and its unique solution in \\(\\operatorname{range}H\\) is \\(z^\\star=-H^\\dagger g\\).  Substitution in (3) proves\n\\[\nb^\\star=b^0-NH^\\dagger N'\\Gamma b^0,\n\\qquad A'b^\\star=\\omega,\n\\qquad N'\\Gamma b^\\star=g-HH^\\dagger g=0.\n\\tag{4}\n\\]\nUnder fixed rank and the separated positive spectrum, \\(H^\\dagger\\) is obtained by applying the Borel function \\(z\\mapsto z^{-1}\\mathbf 1\\{z\\ge\\kappa\\}\\) to the measurable symmetric matrix \\(H\\); hence (4) is measurable.  Two minimizers differ by \\(Nv\\) with \\(v\\in\\ker H\\).  The preceding argument shows that this is exactly an element of \\(\\ker\\Gamma\\cap\\ker A'\\), proving the uniqueness assertion.\n\nIf \\(\\Gamma\\) is positive definite, the Lagrange equations are \\(\\Gamma b=A\\lambda\\) and \\(A'b=\\omega\\).  Full column rank of \\(A\\) makes \\(A'\\Gamma^{-1}A\\) positive definite.  Solving the two equations gives\n\\[\nb=\\Gamma^{-1}A(A'\\Gamma^{-1}A)^{-1}\\omega,\n\\]\nas claimed."
+          },
+          {
+            "id": "prop:covariance-learnability",
+            "proof_tex": "There are finitely many support points, folds, score coordinates, and retained cells.  The lower support-mass bound and retained-cell overlap imply that every relevant training-cell count is of order \\(n\\) in probability.  Each coordinate of the corrected score is a finite sum of outcome residuals multiplied by propensity ratios bounded in terms of \\(\\varepsilon\\), plus its denominator correction.  Fixed \\(T\\), the conditional fourth-moment envelope, and Jensen's inequality therefore give\n\\[\n\\sup_x E_P[\\|\\Psi_P(O)\\|^4\\mid X=x]<\\infty.\n\\tag{5}\n\\]\nConsequently each coordinate of \\(\\Psi_P\\Psi_P'\\) has finite conditional variance.  Chebyshev's inequality for each cell average and a union bound over the fixed collection show that the oracle conditional first and second moments, and hence the oracle conditional covariance, have error \\(O_P(n^{-1/2})\\) simultaneously over support points and folds.\n\nOn the clipped overlap region, the maps entering Definition \\(\\ref{def:pairwise-score}\\) are finite sums and products, and every reciprocal propensity has derivative bounded by a constant depending only on \\(\\varepsilon\\).  Add and subtract the oracle propensity and regression in every coordinate.  The mean-value inequality followed by H\\\"older's inequality gives\n\\[\n\\max_\\ell\\|\\widehat\\Gamma^{-\\ell}-\\Gamma\\|_{P_X,4,\\mathrm{op}}\n\\le O_P(n^{-1/2})+C\\{r_{p,n}+r_{m,n}\\}.\n\\tag{6}\n\\]\nAll vector and matrix norms are equivalent here because both the support and the score dimension are fixed.  This proves the first assertion and also proves the claim about estimating the finitely many required conditional expectations by cell averages.\n\nWith parametric cell first stages, (6) gives \\(r_{\\Gamma,n}=O(n^{-1/2})\\).  If \\(\\tau_n=n^{-a}\\), then\n\\[\n\\frac{r_{\\Gamma,n}}{\\tau_n}=O(n^{-1/2+a})\\to0,\n\\qquad r_{b,n}=O(n^{-1/2+a}).\n\\]\nThe loading-perturbation lemma then gives rank recovery.  Finally,\n\\[\nr_{b,n}^2+r_{\\Gamma,n}^2\n=O(n^{-1+2a}+n^{-1})=o(n^{-1/2})\n\\]\nfor \\(0<a<1/4\\).  For continuously distributed \\(X\\), a conditional covariance learner regresses products of scores.  The displayed fourth-moment premise gives only a conditional second moment for those products and supplies neither a smoothness class nor the higher-tail control needed for an \\(L_4(P_X)\\) nonparametric rate.  Thus no continuous-covariate rate follows from the stated premises, exactly as the proposition records."
+          },
+          {
+            "id": "lem:loading-perturbation",
+            "proof_tex": "Put \\(E_\\ell(x)=\\|\\widehat\\Gamma^{-\\ell}(x)-\\Gamma(x)\\|_{\\mathrm{op}}\\).  Since \\(N'N=I\\), the variational characterization of ordered eigenvalues gives\n\\[\n\\max_j|\\lambda_j\\{N'\\widehat\\Gamma^{-\\ell}(x)N\\}-\\lambda_j\\{H(x)\\}|\n\\le E_\\ell(x).\n\\tag{7}\n\\]\nFor all large \\(n\\), \\(\\tau_n<\\kappa/2\\).  A false positive from the zero cluster then requires \\(E_\\ell(x)>\\tau_n\\), and a false negative from the positive cluster requires \\(E_\\ell(x)\\ge\\kappa-\\tau_n>\\tau_n\\).  Markov's inequality and the \\(L_4(P_X)\\) covariance rate therefore give, uniformly over the fixed number of folds,\n\\[\nP_X\\{\\widehat r^{-\\ell}(X)\\ne r_0\\}\n\\le \\tau_n^{-4}\\|\\widehat\\Gamma^{-\\ell}-\\Gamma\\|_{P_X,4,\\mathrm{op}}^4\n=O_P\\{(r_{\\Gamma,n}/\\tau_n)^4\\}.\n\\tag{8}\n\\]\n\nBy Lemma \\(\\ref{lem:singular-operator}\\), \\(g=N'\\Gamma b^0\\) belongs to \\(\\operatorname{range}H\\).  Set \\(z^0=H^\\dagger g\\), so \\(Hz^0=g\\), and set \\(\\widehat g=N'\\widehat\\Gamma b^0\\).  The spectral gap and the conditional envelope bound \\(\\|z^0\\|\\) uniformly.  Let \\(\\widehat P_\\tau=\\widehat H_\\tau^\\dagger\\widehat H\\).  The exact identity\n\\[\n\\widehat H_\\tau^\\dagger\\widehat g\n=\\widehat P_\\tau z^0\n+\\widehat H_\\tau^\\dagger\\{(H-\\widehat H)z^0+(\\widehat g-g)\\}\n\\tag{9}\n\\]\nshows the claimed stability.  Indeed, the retained inverse has norm at most \\(\\tau_n^{-1}\\), while \\(\\|\\widehat H-H\\|_{\\mathrm{op}}+\\|\\widehat g-g\\|\\le C E_\\ell\\).  If \\(E_\\ell\\le\\tau_n\\), then (7), the gap \\(\\kappa\\), and the eigenvector equations imply\n\\(\\|\\widehat P_\\tau-P_H\\|_{\\mathrm{op}}\\le 2E_\\ell/(\\kappa-E_\\ell)\\), where \\(P_H\\) projects onto \\(\\operatorname{range}H\\).  This inequality follows by projecting \\(\\widehat H\\widehat v=\\widehat\\lambda\\widehat v\\) onto \\(\\ker H\\) and, symmetrically, projecting \\(Hv=\\lambda v\\) onto the retained null space.  If \\(E_\\ell>\\tau_n\\), the trivial projector bound \\(2\\le2E_\\ell/\\tau_n\\) applies.  Since \\(P_Hz^0=z^0\\), (9) yields for every \\(x\\)\n\\[\n\\|\\widehat b^{-\\ell}(x)-b^\\star(x)\\|\n\\le C\\,E_\\ell(x)/\\tau_n.\n\\tag{10}\n\\]\nTaking \\(L_4(P_X)\\), and then \\(L_2(P_X)\\), norms proves the stated \\(O_P(r_{\\Gamma,n}/\\tau_n)\\) bounds.  Threshold separation makes them \\(o_P(1)\\).  On the correctly selected range, the retained eigenvalues are at least \\(\\kappa/2\\); using this bound in (9) and the preceding projector calculation removes \\(\\tau_n^{-1}\\) and gives the sharper \\(O_P(r_{\\Gamma,n})\\) local rate."
+          },
+          {
+            "id": "thm:crossfit-attainment",
+            "proof_tex": "Write \\(\\eta=(p,m)\\), \\(\\alpha_P(X)=K_P(X)^\\dagger r_P(X)\\), and\n\\[\n\\mu_P(O)=\\sum_{k\\in\\mathcal K}\\omega_kR_{k,c_0(k),P}(O).\n\\]\nConditional on a training complement, the validation observations are independent of all foldwise estimates by the cross-fitting assumption.  In each inverse-propensity residual term, add and subtract the true regression.  To display the resulting calculation, let \\(M_{a,s,k}=\\sum_{u=g}^t m_{a,s,u}\\), let \\(\\widehat M_{a,s,k}\\) be its estimated counterpart, and let \\(B_{k,c}\\) denote the bracketed numerator in Definition \\(\\ref{def:pairwise-score}\\).  Conditional expectation and the definition of \\(q_{k,c}\\) give the exact identity\n\\[\n\\begin{split}\nE_P[\\widehat B_{k,c}-B_{k,c}\\mid X]\n={}&\\left(\\frac{\\widehat p_{g,1}p_{g,0}}{\\widehat p_{g,0}}-p_{g,1}\\right)\n(\\widehat M_{g,0,k}-M_{g,0,k})\\\\\n&+\\left(\\frac{\\widehat p_{g,1}p_{c,1}}{\\widehat p_{c,1}}-p_{g,1}\\right)\n(\\widehat M_{c,1,k}-M_{c,1,k})\\\\\n&+\\left(p_{g,1}-\\frac{\\widehat p_{g,1}p_{c,0}}{\\widehat p_{c,0}}\\right)\n(\\widehat M_{c,0,k}-M_{c,0,k}).\n\\end{split}\n\\]\nEvery parenthesized coefficient on the right is Lipschitz in \\(\\widehat p-p\\) on the overlap set.  Because the number of cells and periods is fixed, H\\\"older's inequality gives\n\\[\n|P\\{\\mu(O;\\widehat\\eta)-\\mu(O;\\eta)\\}|\n\\le C\\|\\widehat p-p\\|_{P_X,4}\\|\\widehat m-m\\|_{P_X,4}\n=O_P(n^{-1}).\n\\tag{15}\n\\]\nHere the last equality uses the stipulated cell-average first stages.  The empirical target-share denominator is treated separately below.\n\nFor the correction signal, Lemma \\(\\ref{lem:orthogonal-normal-signal}\\) and the observable restrictions give\n\\[\n\\|E_P[\\widehat S^{-\\ell}\\mid X,\\mathcal D_{-\\ell}]\\|_{P_X,2}=O_P(n^{-1}),\n\\qquad\nS^{\\mathrm{per}}(O;\\eta)=Z_P^{\\mathrm{per}}(O).\n\\tag{16}\n\\]\nProposition \\(\\ref{prop:complete-normal-finite-support-rates}\\) gives\n\\[\n\\max_\\ell\\|\\widehat\\alpha^{-\\ell}-\\alpha_P\\|_{P_X,4}\n=O_P(n^{-1/2+a})=o_P(1).\n\\tag{17}\n\\]\nThe moment bound (11), nuisance consistency, and (17) imply\n\\[\n\\|\\widehat\\alpha^{-\\ell}(X)'\\widehat S^{-\\ell}\n-\\alpha_P(X)'Z_P^{\\mathrm{per}}\\|_{P,2}=o_P(1).\n\\tag{18}\n\\]\nEquations (16)--(17) make the conditional mean of the left term in (18) \\(O_P(n^{-1})\\).  Conditional Chebyshev inequality applied fold by fold to (15) and (18), followed by summation over the fixed number of folds, therefore gives\n\\[\n\\widehat\\tau_{\\mathrm{eff}}-\\tau_\\omega(P)\n=(\\mathbb P_n-P)\\{\\mu_P-\\alpha_P(X)'Z_P^{\\mathrm{per}}\\}\n+o_P(n^{-1/2}),\n\\tag{19}\n\\]\napart from the target-share denominator contribution.\n\nFor \\(k=(g,t)\\), overlap implies \\(\\pi_{g,1}\\ge\\varepsilon\\), and the empirical share obeys\n\\[\n\\widehat\\pi_{g,1}^{-1}-\\pi_{g,1}^{-1}\n=-\\pi_{g,1}^{-2}(\\widehat\\pi_{g,1}-\\pi_{g,1})+O_P(n^{-1}).\n\\tag{20}\n\\]\nThe mean numerator of every reference coordinate in target block \\(k\\) is \\(\\pi_{g,1}\\theta_k(P)\\).  Multiplying (20) by that numerator and by \\(\\omega_k\\) shows that the denominator contribution to (19) is\n\\[\n-\\sum_{k=(g,t)\\in\\mathcal K}\\omega_k\\frac{\\theta_k(P)}{\\pi_{g,1}}\n(\\mathbb P_n-P)\\mathbf 1\\{G=g,S=1\\}+o_P(n^{-1/2}).\n\\tag{21}\n\\]\nBy Definition \\(\\ref{def:pairwise-score}\\), combining (19) and (21) changes \\(\\mu_P-E_P\\mu_P\\) exactly into \\(\\psi_P^0\\).  Definition \\(\\ref{def:complete-normal-projection}\\) then yields\n\\[\n\\sqrt n\\{\\widehat\\tau_{\\mathrm{eff}}-\\tau_\\omega(P)\\}\n=\\frac1{\\sqrt n}\\sum_{i=1}^n\n\\{\\psi_P^0(O_i)-\\alpha_P(X_i)'Z_P^{\\mathrm{per}}(O_i)\\}+o_P(1)\n=\\frac1{\\sqrt n}\\sum_{i=1}^n\\phi_{\\mathrm{can},P}(O_i)+o_P(1).\n\\tag{22}\n\\]\nThe summands in (22) are mean zero, have variance \\(V_{\\mathrm{can}}>0\\), and have finite second moment by (11).  Lemma \\(\\ref{lem:iid-central-limit}\\) gives the asserted Gaussian limit.\n\nThe estimated influence value in Definition \\(\\ref{def:crossfit-estimator}\\) contains both the denominator correction in (21) and the orthogonal complete-normal correction.  Root-\\(n\\) consistency of the preliminary ratios and shares, (18), and the conditional weak law give\n\\[\n\\widehat V_{\\mathrm{eff}}\\longrightarrow_P E_P[\\phi_{\\mathrm{can},P}^2]=V_{\\mathrm{can}}.\n\\]\nDivision by its positive probability limit preserves the standard-normal limit in (22), and the definition of \\(z_{1-\\alpha/2}\\) gives limiting coverage \\(1-\\alpha\\).  Finally, Theorem \\(\\ref{thm:complete-normal-canonical-gradient}\\) identifies \\(\\phi_{\\mathrm{can},P}\\) as the canonical gradient, so the attained variance is the full pointwise semiparametric bound."
+          },
+          {
+            "id": "prop:equality-frontier",
+            "proof_tex": "Fix either declared constant comparator and write \\(b=b^{\\mathrm{cmp}}\\).  Both \\(b\\) and \\(b^\\star(X)\\) satisfy \\(A'b=\\omega\\).  Every coordinate of \\(\\Psi\\) in target block \\(k\\) has conditional mean \\(h_k(X)\\), so both aggregate scores have conditional mean \\(\\omega'h(X)\\).  Put \\(d=b-b^\\star=Nz\\).  Lemma \\(\\ref{lem:singular-operator}\\) gives \\(N'\\Gamma b^\\star=0\\), and hence, pointwise,\n\\[\nb'\\Gamma b-b^{\\star\\prime}\\Gamma b^\\star\n=2d'\\Gamma b^\\star+d'\\Gamma d=d'\\Gamma d=z'Hz.\n\\tag{23}\n\\]\nThe conditional variance formula and integration prove the first displayed identity in the proposition.  Adding the identity \\(V_{\\mathrm{agg}}-V_{\\mathrm{can}}=\\Delta_{\\mathrm{normal}}\\) from Theorem \\(\\ref{thm:complete-normal-canonical-gradient}\\) proves the full-loss formula.\n\nMoreover,\n\\[\nN'\\Gamma b=N'\\Gamma(b-b^\\star)=Hz.\n\\tag{24}\n\\]\nIf (24) is zero, then (23) is zero.  Conversely, if the expected quantity in (23) is zero, nonnegativity gives \\(z'H(X)z=0\\) almost surely.  Positive semidefiniteness then gives \\(H(X)z=0\\), so (24) vanishes.  This proves the aggregate equality characterization, including singular cases.\n\nIt remains to characterize full equality.  The difference \\(b'\\Psi-\\psi_P^0\\) is a measurable clean-comparison contrast and hence belongs to \\(\\mathcal C_P\\subseteq\\mathcal T_P^\\perp\\) by Theorem \\(\\ref{thm:observable-equivalence}\\).  Therefore \\(b'\\Psi\\) is another ambient gradient of the same target, and its projection onto \\(\\mathcal T_P\\) is the unique canonical gradient.  The complete-normal tangent theorem says that\n\\[\n\\mathcal T_P^\\perp\n=\\overline{\\{a(X)'Z_P^{\\mathrm{per}}:a\\text{ measurable}\\}}.\n\\]\nThus \\(b'\\Psi\\in\\mathcal T_P\\) if and only if it is orthogonal to every such multiple.  Conditional expectation shows that this is equivalent to\n\\[\nE_P[Z_P^{\\mathrm{per}}b'\\Psi\\mid X]=0\n\\quad P_X\\text{-almost surely}.\n\\tag{25}\n\\]\nAn ambient gradient has variance equal to the canonical bound if and only if its orthogonal normal component is zero, so (25) is also equivalent to full efficiency.  By Definition \\(\\ref{def:projection-diagnostic}\\), (24) and (25) are exactly the two reported population residuals."
+          },
+          {
+            "id": "thm:binary-strict-gain",
+            "proof_tex": "The construction gives \\(p_{a,s}(x)=1/6\\) for every retained \\(a\\in\\{2,3,\\infty\\}\\), \\(s\\in\\{0,1\\}\\), and \\(x\\in\\{-1,1\\}\\), and hence \\(\\pi_{2,1}=1/6\\).  Outcomes are bounded because \\(|Z_t^{\\mathrm w}|\\le1/8\\) and \\(|\\delta|<1/8\\).  Consistency holds by construction.  The treatment term vanishes when \\(s=0\\), proving no ineligible effect, and before adoption, proving no anticipation.  The distribution of \\((U^{\\mathrm w},V^{\\mathrm w})\\) depends on \\((G,X)\\) but not on \\(S\\), so the eligibility gap of every untreated increment is zero within every cohort.  This proves every conditional parallel-gap restriction and therefore \\(Q^{\\mathrm{bin}}_{r,\\delta}\\in\\mathcal M\\).\n\nThe conditional means satisfy \\(m_{2,s,2}=s\\delta\\) and \\(m_{3,s,3}=s\\delta\\), with every other retained one-step treatment term zero.  Since both residual signs have conditional mean zero, all three conditional DDD contrasts and both targets equal \\(\\delta\\).  The target-cell term \\(q-\\theta\\) in the corrected score is therefore zero.  Put \\(a=3/4\\).  Direct substitution in Definition \\(\\ref{def:pairwise-score}\\) gives\n\\[\n\\begin{array}{c|ccc}\n(G,S)&\\Psi_{(2,2),3}&\\Psi_{(2,2),\\infty}&\\Psi_{(2,3),\\infty}\\\\ \\hline\n(2,1)&aU^{\\mathrm w}&aU^{\\mathrm w}&aV^{\\mathrm w}\\\\\n(2,0)&-aU^{\\mathrm w}&-aU^{\\mathrm w}&-aV^{\\mathrm w}\\\\\n(3,1)&-aU^{\\mathrm w}&0&0\\\\\n(3,0)&aU^{\\mathrm w}&0&0\\\\\n(\\infty,1)&0&-aU^{\\mathrm w}&-aV^{\\mathrm w}\\\\\n(\\infty,0)&0&aU^{\\mathrm w}&aV^{\\mathrm w}.\n\\end{array}\n\\tag{26}\n\\]\nEvery row has conditional probability \\(1/6\\), and\n\\[\nE[U^{\\mathrm w}V^{\\mathrm w}\\mid X=x,G=2]\n=E[U^{\\mathrm w}V^{\\mathrm w}\\mid X=x,G=3]=0,\n\\qquad\nE[U^{\\mathrm w}V^{\\mathrm w}\\mid X=x,G=\\infty]=xr.\n\\]\nMultiplying the entries in (26) row by row proves\n\\[\n\\Gamma(x)=\\frac{3}{16}\n\\begin{pmatrix}2&1&0\\\\1&2&xr\\\\0&xr&2\\end{pmatrix}.\n\\tag{27}\n\\]\n\nFeasibility is \\(b_1+b_2=\\omega_1\\) and \\(b_3=\\omega_2\\), so write\n\\[\nb(q)=(\\omega_1/2+q,\\ \\omega_1/2-q,\\ \\omega_2)'.\n\\]\nEquation (27) gives\n\\[\n\\frac{d}{dq}\\{b(q)'\\Gamma(x)b(q)\\}\n=\\frac{3}{16}(4q-2xr\\omega_2),\n\\qquad\n\\frac{d^2}{dq^2}\\{b(q)'\\Gamma(x)b(q)\\}=\\frac34>0.\n\\]\nThus \\(q^\\star(x)=xr\\omega_2/2\\), proving the formula for \\(b^\\star\\).  Also\n\\[\n\\det\\!\\left(\n\\begin{pmatrix}2&1&0\\\\1&2&xr\\\\0&xr&2\\end{pmatrix}-\\lambda I\\right)\n=(2-\\lambda)\\{(2-\\lambda)^2-(1+r^2)\\}.\n\\]\nThe stated eigenvalues follow.  Since \\(r^2<7/9\\), the smallest is strictly larger than \\((3/16)(2-4/3)=1/8\\).\n\nBecause \\(E[X]=0\\), the unconditional \\((2,3)\\) covariance in (27) is zero.  Both the joint constant problem and the first OVS block are uniquely minimized at \\(q=0\\); the third coordinate is fixed.  Hence both named constant loadings are \\((\\omega_1/2,\\omega_1/2,\\omega_2)'\\).  Their displacement from \\(b^\\star(X)\\) is \\((-Xr\\omega_2/2,Xr\\omega_2/2,0)'\\), and direct evaluation gives the aggregate loss\n\\[\nE_P[(b^{\\mathrm{cmp}}-b^\\star)'\\Gamma(b^{\\mathrm{cmp}}-b^\\star)]\n=\\frac{3}{16}\\,2\\left(\\frac{r\\omega_2}{2}\\right)^2\n=\\frac{3r^2\\omega_2^2}{32}.\n\\tag{28}\n\\]\nFor an arbitrary deterministic feasible \\(b(q)\\), the conditional quadratic is a quadratic in \\(q\\) with second derivative \\(3/4\\) and minimizer \\(Xr\\omega_2/2\\).  Therefore its excess over the conditional minimum is \\(3\\{q-Xr\\omega_2/2\\}^2/8\\).  Since \\(E[X]=0\\) and \\(X^2=1\\), integration gives\n\\[\nE_P[(b(q)-b^\\star)'\\Gamma(b(q)-b^\\star)]\n=\\frac{3q^2}{8}+\\frac{3r^2\\omega_2^2}{32},\n\\tag{29}\n\\]\nwhich is strictly positive for every constant \\(q\\) because \\(r\\omega_2\\ne0\\).\n\nFinally, the only nonzero observable restriction row in this architecture is the period-two equality between cohorts \\(3\\) and \\(\\infty\\).  Thus \\(Z_P^{\\mathrm{per}}\\) has one coordinate, \\(Z_{2;3,\\infty}\\).  The kernel of \\(A'\\) is spanned by \\((1,-1,0)'\\), and (26), or direct subtraction of the raw scores, gives\n\\[\nR_{(2,2),3}-R_{(2,2),\\infty}=-Z_{2;3,\\infty}.\n\\tag{30}\n\\]\nEquation (30) and the nonzero scalar convention for \\(N\\) prove \\(\\mathcal C_P=\\mathcal T_P^\\perp\\) by Theorem \\(\\ref{thm:complete-normal-canonical-gradient}\\).  Hence \\(\\Delta_{\\mathrm{normal}}=0\\), and Proposition \\(\\ref{prop:equality-frontier}\\) turns (28)--(29) into full-bound losses.  Substitution of \\(r=\\omega_2=1/2\\) gives \\(3/512\\)."
+          },
+          {
+            "id": "thm:known-reductions",
+            "proof_tex": "If every \\(\\mathcal J_k\\) is a singleton, then \\(M=K_0\\), and after the fixed target ordering the incidence matrix \\(A\\) is the identity.  Therefore \\(\\ker(A')=\\{0\\}\\), \\(N\\) has no columns under the declared convention, and \\(A'b=\\omega\\) has one solution.  The conditional and constant loading problems consequently coincide.\n\nIf \\(X\\) is degenerate, \\(\\Gamma(X)=\\Gamma\\) almost surely.  More explicitly, the conditional-mean identity \\(E_P[\\Psi\\mid X]=Ah(X)\\) and total covariance give\n\\[\n\\Omega=E_P[\\Gamma(X)]+\\operatorname{Var}_P\\{Ah(X)\\}=\\Gamma,\n\\]\nwhere the last variance vanishes because \\(X\\) is degenerate.  Thus the conditional and constant quadratic programs have the same objective.  Write every feasible loading as \\(b=b^0+Nz\\).  Since \\(b^0\\in\\operatorname{col}A\\) and \\(Nz\\in\\ker A'\\), these terms are Euclidean-orthogonal.  Lemma \\(\\ref{lem:singular-operator}\\) selects the solution \\(z=-H^\\dagger N'\\Gamma b^0\\) in \\(\\operatorname{range}H\\), which is the minimum-Euclidean-norm solution of the normal equations.  This is exactly the Moore--Penrose convention defining \\(b^{\\mathrm{const}}\\).\n\nThe final sentence is a scope statement rather than an identification claim: Theorem \\(\\ref{thm:complete-normal-canonical-gradient}\\) shows that a score loading is canonical only after projection against the full period-specific normal space.  Hence no external just-identified influence function is equated to the present one without a theorem-level source and matching tangent restrictions."
+          },
+          {
+            "id": "prop:complete-normal-finite-support-rates",
+            "proof_tex": "There are finitely many support points, cells, periods, normal coordinates, target coordinates, and folds.  The lower support-mass and overlap conditions make every training count used by a conditional cell average of order \\(n\\) in probability.  Every coordinate of \\(Z_P^{\\mathrm{per}}\\) is a finite sum of outcome residuals multiplied by inverse propensities bounded by \\(\\varepsilon^{-1}\\); the same is true of \\(\\psi_P^0\\), apart from bounded conditional means and the target-share correction.  Fixed \\(T\\), the conditional fourth-moment envelope, and Jensen's inequality imply, at this fixed law,\n\\[\n\\sup_{x:P_X(x)>0}E_P[\\|Z_P^{\\mathrm{per}}\\|^4+|\\psi_P^0|^4\\mid X=x]<\\infty.\n\\tag{11}\n\\]\nThus every coordinate of \\(Z_P^{\\mathrm{per}}Z_P^{\\mathrm{per}\\prime}\\) and \\(Z_P^{\\mathrm{per}}\\psi_P^0\\) has finite conditional variance.  Chebyshev's inequality and a union bound give root-\\(n\\) accuracy for all oracle training-cell averages.\n\nThe cell-average estimates of \\(p\\), \\(m\\), \\(\\pi\\), and the preliminary ratios are jointly \\(O_P(n^{-1/2})\\).  Identity (1) in Lemma \\(\\ref{lem:orthogonal-normal-signal}\\) shows, in particular, that replacing \\(Z\\) by the orthogonal signal \\(\\widehat S\\) creates no first-order regression-centering drift: its conditional mean error is \\(O_P(n^{-1})\\).  The finite-dimensional mean-value inequality and H\\\"older's inequality applied to the second moments and cross-moments then give\n\\[\n\\max_\\ell\\|\\widehat K^{-\\ell}-K_P\\|_{P_X,4,\\mathrm{op}}\n+\\max_\\ell\\|\\widehat r^{-\\ell}-r_P\\|_{P_X,4}\n=O_P(n^{-1/2}).\n\\tag{12}\n\\]\n\nAt a support point \\(x\\), let \\(\\kappa_P(x)\\) be the smallest positive eigenvalue of \\(K_P(x)\\), with value \\(+\\infty\\) at rank zero.  Finiteness of the support implies\n\\[\n\\underline\\kappa_P=\\min_{x:P_X(x)>0}\\kappa_P(x)>0.\n\\tag{13}\n\\]\nThis is a pointwise consequence, not a uniform model restriction.  The eigenvalue variational inequality used in (7) and (12) show that, once \\(\\tau_n<\\underline\\kappa_P/2\\), a rank error requires \\(\\|\\widehat K^{-\\ell}(x)-K_P(x)\\|_{\\mathrm{op}}>\\tau_n\\).  Fourth-power Markov inequality and \\(n^{-1/2}/\\tau_n\\to0\\) therefore prove rank recovery uniformly over the finite support and folds.\n\nOn the recovery event, all retained eigenvalues exceed \\(\\underline\\kappa_P/2\\).  Repeating identity (9) with \\((K_P,r_P)\\) in place of \\((H,g)\\) yields\n\\[\n\\|\\{\\widehat K^{-\\ell}_\\tau\\}^{\\dagger}\\widehat r^{-\\ell}-K_P^\\dagger r_P\\|_{P_X,4}\n=O_P(n^{-1/2}).\n\\tag{14}\n\\]\nUsing only \\(\\|\\{\\widehat K^{-\\ell}_\\tau\\}^\\dagger\\|_{\\mathrm{op}}\\le\\tau_n^{-1}\\) gives the unconditional conservative bound \\(O_P(n^{-1/2}/\\tau_n)\\).  With \\(\\tau_n=n^{-a}\\), this is \\(O_P(n^{-1/2+a})\\), and\n\\[\nn^{-1+2a}=o(n^{-1/2})\\quad(0<a<1/4),\n\\qquad\nn^{-1/2+a}n^{-1/2}=o(n^{-1/2})\\quad(0<a<1/2).\n\\]\nThe declared range \\(0<a<1/4\\) proves all remaining assertions."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:orthogonal-normal-signal",
+            "kind": "lemma",
+            "statement": "For every period-specific row \\(e\\), every candidate nuisance \\(\\widetilde\\eta=(\\widetilde p,\\widetilde m)\\) with retained propensities clipped below by \\(\\varepsilon/2\\), and the signal in Definition \\(\\ref{def:orthogonal-complete-normal-signal}\\), the conditional drift is exactly a sum of propensity--regression products. Consequently its Gateaux derivative with respect to either nuisance at the truth is zero. Under the observable period-specific equalities, \\(g_e(X)=0\\) and \\(S_e(O;\\eta)=Z^{\\mathrm{per}}_{e,P}(O)\\) almost surely. Moreover, \\[\\|E_P[S^{\\mathrm{per}}(O;\\widetilde\\eta)\\mid X]-g(X)\\|_{P_X,2}\\le C_\\varepsilon\\|\\widetilde p-p\\|_{P_X,4}\\|\\widetilde m-m\\|_{P_X,4}.\\]",
+            "free_symbols": [
+              "P",
+              "calEper",
+              "Sper",
+              "gper",
+              "X",
+              "Zper",
+              "p",
+              "m"
+            ],
+            "depends_on": [
+              "def:orthogonal-complete-normal-signal",
+              "thm:observable-equivalence",
+              "ass:cell-overlap"
+            ],
+            "proof_tex": "Fix \\(e=(u,c,c')\\), and attach signs \\(\\sigma_{c,1}=1\\), \\(\\sigma_{c,0}=-1\\), \\(\\sigma_{c',1}=-1\\), and \\(\\sigma_{c',0}=1\\).  Conditional on \\(X\\), the definitions of \\(p\\) and \\(m\\) give\n\\[\nE_P\\!\\left[\\frac{\\mathbf 1_{a,s}}{\\widetilde p_{a,s}(X)}\n\\{\\Delta Y_u-\\widetilde m_{a,s,u}(X)\\}\\mid X\\right]\n=\\frac{p_{a,s}(X)}{\\widetilde p_{a,s}(X)}\n\\{m_{a,s,u}(X)-\\widetilde m_{a,s,u}(X)\\}.\n\\]\nSumming with the four signs and adding the candidate restriction level yields\n\\[\nE_P[S_e(O;\\widetilde\\eta)\\mid X]-g_e(X)\n=\\sum_{(a,s)}\\sigma_{a,s}\n\\{\\widetilde m_{a,s,u}(X)-m_{a,s,u}(X)\\}\n\\frac{\\widetilde p_{a,s}(X)-p_{a,s}(X)}{\\widetilde p_{a,s}(X)}.\n\\tag{1}\n\\]\nThis is an exact algebraic identity.  Its directional derivative at \\(\\widetilde\\eta=\\eta\\) is zero because every summand on the right of (1) is a product of the two nuisance errors.  If the candidate propensities are clipped below \\(\\varepsilon/2\\), Cauchy--Schwarz and the finite number of coordinates give\n\\[\n\\|E_P[S^{\\mathrm{per}}(O;\\widetilde\\eta)\\mid X]-g(X)\\|_{P_X,2}\n\\le C_\\varepsilon\n\\|\\widetilde p-p\\|_{P_X,4}\\|\\widetilde m-m\\|_{P_X,4}.\n\\tag{2}\n\\]\nAt the truth, Definition \\(\\ref{def:orthogonal-complete-normal-signal}\\) gives \\(S_e(O;\\eta)=g_e(X)+Z_{e,P}^{\\mathrm{per}}(O)\\).  The observable equalities in Theorem \\(\\ref{thm:observable-equivalence}\\) give \\(g_e(X)=0\\) almost surely for every row in \\(\\mathcal E_{\\mathrm{per}}\\).  Therefore \\(S^{\\mathrm{per}}(O;\\eta)=Z_P^{\\mathrm{per}}(O)\\) almost surely, completing the proof.",
+            "status": "proved",
+            "justification": "The complete-normal correction must remain orthogonal after regression centering is estimated.",
+            "gap": "A raw plug-in residual contrast has first-order regression-centering drift; adding the estimated restriction level cancels it algebraically.",
+            "consumer": "The finite-support canonical estimator and its complete-normal moment-rate proposition use this product-bias identity."
+          },
+          {
+            "id": "thm:frozen-aggregate-sieve-failure",
+            "kind": "theorem",
+            "statement": "Consider the obsolete projection rule that subtracts only the closed span of measurable multiples of \\(N'R_P\\) from each centered dictionary coordinate.  There is a bounded finite-support interior law with \\(T=4\\), \\(\\mathcal K=\\{(2,3)\\}\\), \\(\\mathcal J_{(2,3)}=\\{4,\\infty\\}\\), and degenerate \\(X\\), together with a bounded centered coordinate \\(v\\), for which that rule returns a nonzero element of \\(\\mathcal T_P^\\perp\\), rather than an element of \\(\\mathcal T_P\\).  Hence projection against the aggregate clean-comparison contrast alone is not a valid tangent-score sieve in the period-specific model.",
+            "free_symbols": [
+              "P",
+              "T",
+              "calK",
+              "calJ",
+              "X",
+              "N",
+              "R",
+              "Tang"
+            ],
+            "depends_on": [
+              "def:pairwise-score",
+              "def:contrast-closure",
+              "thm:observable-equivalence"
+            ],
+            "proof_tex": "Construct the law as follows.  Let \\(X\\) be degenerate and let \\((G,S)\\) be uniform on \\(\\{2,4,\\infty\\}\\times\\{0,1\\}\\).  Conditional on every cell, draw independent Rademacher variables \\(U\\) and \\(V\\), independent also of \\(S\\), and take the period-two and period-three untreated outcome residuals to be \\(U/8\\) and \\(V/8\\), with all conditional means zero; add any fixed treatment effect only in the target eligible cell after adoption.  All outcomes are bounded, every retained cell has positive probability, and all finite-support atoms have positive mass.  Because the residual law does not depend on eligibility, both period-specific comparison equalities hold, so this is an interior law relative to the equality model.\n\nLet \\(Z_2=Z_{2;4,\\infty}\\) and \\(Z_3=Z_{3;4,\\infty}\\).  Theorem \\(\\ref{thm:observable-equivalence}\\) gives \\(Z_2,Z_3\\in\\mathcal T_P^\\perp\\).  Independence and equal scaling give\n\\[\nE_P[Z_2Z_3]=0,\n\\qquad E_P[Z_2^2]=E_P[Z_3^2]>0.\n\\tag{31}\n\\]\nThere are two pairwise coordinates, one for comparison cohort \\(4\\) and one for \\(\\infty\\), and their cumulative difference is a nonzero scalar multiple of \\(Z_2+Z_3\\).  Hence the obsolete aggregate normal \\(N'R_P\\) spans \\(Z_2+Z_3\\).  Choose \\(v=Z_2-Z_3\\).  Equation (31) gives\n\\[\nE_P[v(N'R_P)]=0,\n\\]\nso the obsolete projection rule subtracts zero and returns \\(v\\).  Yet \\(v\\ne0\\) by (31), and \\(v\\in\\mathcal T_P^\\perp\\).  Since a closed subspace intersects its orthogonal complement only at zero, \\(v\\notin\\mathcal T_P\\).  This proves the asserted failure without invoking the corrected complete-normal gap definition.",
+            "status": "proved",
+            "justification": "The directive requires the rejected aggregate-normal sieve to remain available as a precise counterexample, separate from the corrected gap construction.",
+            "gap": "Aggregate cumulative restrictions do not span all period-specific tangent normals when a target covers several periods.",
+            "consumer": "This theorem prevents future implementations from projecting gap-inference dictionaries only against \\(N'R_P\\)."
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "thm:crossfit-attainment",
+            "proposed": "Suppose that \\(P\\) is a fixed interior law covered by Theorem \\(\\ref{thm:complete-normal-canonical-gradient}\\), that \\(X\\) has fixed finite support with every support mass bounded below, and that all propensity, regression, \\(K_P\\), and \\(r_P\\) first stages in Definition \\(\\ref{def:crossfit-estimator}\\) are the corresponding training-cell averages.  Under the stated independent sampling, overlap, conditional fourth-moment, fixed-fold cross-fitting, threshold, and positive-bound conditions, take \\(\\tau_n=n^{-a}\\) for \\(0<a<1/4\\).  Then\n\\[\n\\sqrt n\\{\\widehat\\tau_{\\mathrm{eff}}-\\tau_\\omega(P)\\}\n=\\frac1{\\sqrt n}\\sum_{i=1}^n\\phi_{\\mathrm{can},P}(O_i)+o_P(1)\n\\ \\Rightarrow\\ N(0,V_{\\mathrm{can}}),\n\\]\n\\[\n\\widehat V_{\\mathrm{eff}}\\longrightarrow_P V_{\\mathrm{can}},\n\\qquad\nP\\{\\tau_\\omega(P)\\in\\mathrm{CI}_{1-\\alpha}\\}\\longrightarrow1-\\alpha.\n\\]\nThus the corrected complete-normal estimator attains the pointwise semiparametric efficiency bound on this fixed-finite-support regime.  No general-covariate or rank-uniform attainment claim is made.",
+            "reason": "The frozen estimator targets only the aggregate score-family projection. The corrected complete-normal estimator attains the full bound under the narrower fixed-finite-support cell-average regime, where the required \\(K_P\\) and \\(r_P\\) rates are proved.",
+            "direction": "narrow"
+          },
+          {
+            "id": "prop:equality-frontier",
+            "proposed": "For either \\(b^{\\mathrm{cmp}}\\in\\{b^{\\mathrm{OVS}},b^{\\mathrm{const}}\\}\\),\n\\[\n\\operatorname{Var}_P\\{b^{\\mathrm{cmp}\\prime}\\Psi_P(O)\\}-V_{\\mathrm{agg}}\n=E_P[(b^{\\mathrm{cmp}}-b^\\star(X))'\\Gamma_P(X)(b^{\\mathrm{cmp}}-b^\\star(X))],\n\\]\nwhereas its loss relative to the full semiparametric bound is\n\\[\n\\Delta(b^{\\mathrm{cmp}})\n=E_P[(b^{\\mathrm{cmp}}-b^\\star(X))'\\Gamma_P(X)(b^{\\mathrm{cmp}}-b^\\star(X))]\n+\\Delta_{\\mathrm{normal}}(P).\n\\]\nEquality with the aggregate score-family optimum holds if and only if\n\\[\nN'\\Gamma_P(X)b^{\\mathrm{cmp}}=0\n\\qquad P_X\\text{-almost surely}.\n\\]\nEquality with the full semiparametric bound holds if and only if\n\\[\nE_P[Z_P^{\\mathrm{per}}(O)\\{b^{\\mathrm{cmp}\\prime}\\Psi_P(O)\\}\\mid X]=0\n\\qquad P_X\\text{-almost surely}.\n\\]\nThus the aggregate KKT residual and the complete-normal residual answer two different equality questions.",
+            "reason": "The current claim identifies \\(\\Delta(b)\\), which is defined relative to the full bound, with only the aggregate quadratic loss. The corrected claim separates that loss from \\(\\Delta_{\\mathrm{normal}}\\) and gives the distinct full-normal equality equation.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:binary-strict-gain",
+            "proposed": "For every \\(0<r<\\sqrt7/3\\), \\(0<|\\delta|<1/8\\), and \\(\\omega=(\\omega_1,\\omega_2)'\\) with \\(\\omega_2\\ne0\\), the law \\(Q^{\\mathrm{bin}}_{r,\\delta}\\) belongs to \\(\\mathcal M\\).  In score order \\(((2,2),3),((2,2),\\infty),((2,3),\\infty)\\),\n\\[\n\\Gamma(x)=\\frac{3}{16}\n\\begin{pmatrix}2&1&0\\\\1&2&xr\\\\0&xr&2\\end{pmatrix},\n\\qquad\nb^\\star(x)=\n\\begin{pmatrix}\\omega_1/2+xr\\omega_2/2\\\\\n\\omega_1/2-xr\\omega_2/2\\\\\n\\omega_2\\end{pmatrix}.\n\\]\nThe conditional eigenvalues are \\(3/8\\) and \\(3\\{2\\pm\\sqrt{1+r^2}\\}/16\\), so the smallest exceeds \\(1/8\\).  Both constant comparators equal \\((\\omega_1/2,\\omega_1/2,\\omega_2)'\\), and\n\\[\n\\Delta(b^{\\mathrm{OVS}})=\\Delta(b^{\\mathrm{const}})\n=\\frac{3r^2\\omega_2^2}{32}>0.\n\\]\nEvery deterministic feasible loading has the form \\(b(q)=(\\omega_1/2+q,\\omega_1/2-q,\\omega_2)'\\) and satisfies\n\\[\n\\Delta\\{b(q)\\}=\\frac{3q^2}{8}+\\frac{3r^2\\omega_2^2}{32},\n\\]\nso the conditionally weighted score strictly improves upon every constant loading.\nFor this architecture, \\(\\mathcal C_P=\\mathcal T_P^\\perp\\); hence the displayed loss is relative to the full semiparametric bound, not merely the aggregate score-family optimum.  At \\(r=\\omega_2=1/2\\), the exact full-bound gain is \\(3/512\\).",
+            "reason": "The numerical gain is a full-bound comparison only after certifying that the witness has exactly one period-specific normal and that it is proportional to \\(N'R_P\\). The proposed statement makes this necessary scope explicit.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [
+          {
+            "id": "def:crossfit-estimator",
+            "proposed": "For each training complement of \\(I_\\ell\\), estimate the retained propensities and one-step regressions by \\(\\widehat p^{-\\ell}\\) and \\(\\widehat m^{-\\ell}\\), and construct\n\\[\n\\widehat S_i^{-\\ell}=S^{\\mathrm{per}}(O_i;\\widehat\\eta^{-\\ell}),\n\\qquad \\widehat\\eta^{-\\ell}=(\\widehat p^{-\\ell},\\widehat m^{-\\ell}).\n\\]\nUsing training-sample cell averages, form the symmetrized conditional moments\n\\[\n\\widehat K^{-\\ell}(x)=\n\\widehat E_{-\\ell}[\\widehat S^{-\\ell}\\widehat S^{-\\ell\\prime}\\mid X=x],\n\\qquad\n\\widehat r^{-\\ell}(x)=\n\\widehat E_{-\\ell}[\\widehat S^{-\\ell}\\widehat\\psi^{0,-\\ell}\\mid X=x],\n\\]\nwhere\n\\[\n\\widehat\\psi^{0,-\\ell}\n=\\sum_{k=(g,t)\\in\\mathcal K}\\omega_k\n\\left\\{\\widehat R_{k,c_0(k)}^{-\\ell}\n-\\widehat\\theta_k^{-\\ell}\\frac{\\mathbf 1_{g,1}}{\\widehat\\pi_{g,1}^{-\\ell}}\\right\\},\n\\]\nand the preliminary ratios \\(\\widehat\\theta_k^{-\\ell}\\) and shares \\(\\widehat\\pi_{g,1}^{-\\ell}\\) are computed on the training complement.  Threshold the eigenvalues of \\(\\widehat K^{-\\ell}(x)\\) at \\(\\tau_n\\), form the Moore--Penrose inverse of the retained part \\(\\widehat K^{-\\ell}_\\tau(x)\\), and set\n\\[\n\\widehat\\alpha^{-\\ell}(x)=\n\\{\\widehat K^{-\\ell}_\\tau(x)\\}^{\\dagger}\\widehat r^{-\\ell}(x).\n\\]\nFor \\(i\\in I_\\ell\\), evaluate the cross-fitted raw ratio pseudo-outcomes \\(\\widehat R_i\\) and the signal \\(\\widehat S_i^{-\\ell}\\), and return\n\\[\n\\widehat\\tau_{\\mathrm{eff}}\n=\\frac1n\\sum_{\\ell=1}^L\\sum_{i\\in I_\\ell}\n\\left\\{\n\\sum_{k\\in\\mathcal K}\\omega_k\\widehat R_{i,k,c_0(k)}\n-\\widehat\\alpha^{-\\ell}(X_i)'\\widehat S_i^{-\\ell}\n\\right\\}.\n\\]\nLet \\(\\widehat\\theta_k=n^{-1}\\sum_{\\ell}\\sum_{i\\in I_\\ell}\\widehat R_{i,k,c_0(k)}\\) and \\(\\widehat\\pi_{g,1}=n^{-1}\\sum_i\\mathbf 1\\{G_i=g,S_i=1\\}\\).  For \\(i\\in I_\\ell\\), define\n\\[\n\\widehat\\phi_i=\n\\sum_{k=(g,t)\\in\\mathcal K}\\omega_k\n\\left\\{\\widehat R_{i,k,c_0(k)}\n-\\widehat\\theta_k\\frac{\\mathbf 1\\{G_i=g,S_i=1\\}}{\\widehat\\pi_{g,1}}\\right\\}\n-\\widehat\\alpha^{-\\ell}(X_i)'\\widehat S_i^{-\\ell},\n\\]\n\\[\n\\widehat V_{\\mathrm{eff}}\n=\\frac1n\\sum_{i=1}^n(\\widehat\\phi_i-\\overline{\\widehat\\phi})^2,\n\\qquad\n\\overline{\\widehat\\phi}=\\frac1n\\sum_{i=1}^n\\widehat\\phi_i,\n\\]\nand report the already declared Wald interval \\(\\mathrm{CI}_{1-\\alpha}\\).",
+            "reason": "Subtracting a plug-in multiple of the raw residual normal leaves first-order regression-centering drift and the aggregate loading does not attain the full bound. The corrected map subtracts the thresholded complete-normal coefficient times the orthogonal one-step signal.",
+            "direction": "correct"
+          }
+        ],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "symbol-add",
+            "name": "dper",
+            "proposed": {
+              "name": "dper",
+              "type": "conditional cohort--period eligibility-gap family",
+              "space": "\\(L_2(P_X)^{\\mathcal G\\times\\{2,\\ldots,T\\}}\\)",
+              "sig": "\\(d_{a,u}(x)\\)",
+              "def": "\\(d_{a,u}(x)=m_{a,1,u}(x)-m_{a,0,u}(x)\\).",
+              "role": "observable period-specific restriction primitive",
+              "refs": [
+                "P",
+                "X",
+                "calG",
+                "T",
+                "m"
+              ]
+            },
+            "reason": "The orthogonal complete-normal signal requires the conditional restriction level to be named.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "gper",
+            "proposed": {
+              "name": "gper",
+              "type": "conditional period-specific restriction-level vector",
+              "space": "\\(L_2(P_X)^{|\\mathcal E_{\\mathrm{per}}|}\\)",
+              "sig": "\\(g_e(x)\\)",
+              "def": "For \\(e=(u,c,c')\\in\\mathcal E_{\\mathrm{per}}\\), \\(g_e(x)=d_{c,u}(x)-d_{c',u}(x)\\).",
+              "role": "orthogonal-signal centering term",
+              "refs": [
+                "P",
+                "X",
+                "calEper",
+                "dper"
+              ]
+            },
+            "reason": "The model restriction must enter the one-step signal as an explicit observable level.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "Sper",
+            "proposed": {
+              "name": "Sper",
+              "type": "complete period-specific orthogonal signal vector",
+              "space": "\\(L_2(P)^{|\\mathcal E_{\\mathrm{per}}|}\\)",
+              "sig": "\\(S^{\\mathrm{per}}(O;\\widetilde\\eta)\\)",
+              "def": "\\(S_e(O;\\widetilde\\eta)=\\widetilde d_{c,u}(X)-\\widetilde d_{c',u}(X)+Z_e(O;\\widetilde\\eta)\\) for \\(e=(u,c,c')\\).",
+              "role": "Neyman-orthogonal complete-normal correction signal",
+              "refs": [
+                "P",
+                "O",
+                "X",
+                "calEper",
+                "dper",
+                "Zper"
+              ]
+            },
+            "reason": "This is the correction that removes first-order regression-centering error.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "Shatper",
+            "proposed": {
+              "name": "Shatper",
+              "type": "off-fold complete-normal orthogonal signal",
+              "space": "\\(L_2(P)^{|\\mathcal E_{\\mathrm{per}}|}\\)",
+              "sig": "\\(\\widehat S^{-\\ell}(O)\\)",
+              "def": "\\(\\widehat S^{-\\ell}(O)=S^{\\mathrm{per}}(O;\\widehat p^{-\\ell},\\widehat m^{-\\ell})\\).",
+              "role": "validation-fold normal correction",
+              "refs": [
+                "P",
+                "O",
+                "folds",
+                "Sper",
+                "phat",
+                "mhat"
+              ]
+            },
+            "reason": "The repaired estimator evaluates the orthogonal signal off fold.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "Khatper",
+            "proposed": {
+              "name": "Khatper",
+              "type": "off-fold complete-normal second-moment estimator",
+              "space": "\\(L_4(P_X)^{|\\mathcal E_{\\mathrm{per}}|\\times|\\mathcal E_{\\mathrm{per}}|}\\)",
+              "sig": "\\(\\widehat K^{-\\ell}(x)\\)",
+              "def": "\\(\\widehat K^{-\\ell}(x)\\) is the symmetrized training-cell average of \\(\\widehat S^{-\\ell}\\widehat S^{-\\ell\\prime}\\) conditional on \\(X=x\\).",
+              "role": "learned complete-normal geometry",
+              "refs": [
+                "P",
+                "X",
+                "calEper",
+                "folds",
+                "Shatper"
+              ]
+            },
+            "reason": "The full projection rate must refer to an explicit learned operator.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "rhatper",
+            "proposed": {
+              "name": "rhatper",
+              "type": "off-fold complete-normal cross-moment estimator",
+              "space": "\\(L_4(P_X)^{|\\mathcal E_{\\mathrm{per}}|}\\)",
+              "sig": "\\(\\widehat r^{-\\ell}(x)\\)",
+              "def": "\\(\\widehat r^{-\\ell}(x)\\) is the training-cell average of \\(\\widehat S^{-\\ell}\\widehat\\psi^{0,-\\ell}\\) conditional on \\(X=x\\).",
+              "role": "learned complete-normal projection right-hand side",
+              "refs": [
+                "P",
+                "X",
+                "calEper",
+                "folds",
+                "Shatper",
+                "psiref"
+              ]
+            },
+            "reason": "The full projection rate must refer to an explicit learned cross-moment.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-add",
+            "name": "alphahatper",
+            "proposed": {
+              "name": "alphahatper",
+              "type": "off-fold complete-normal projection coefficient",
+              "space": "\\(L_4(P_X)^{|\\mathcal E_{\\mathrm{per}}|}\\)",
+              "sig": "\\(\\widehat\\alpha^{-\\ell}(x)\\)",
+              "def": "\\(\\widehat\\alpha^{-\\ell}(x)=\\{\\widehat K^{-\\ell}_\\tau(x)\\}^{\\dagger}\\widehat r^{-\\ell}(x)\\).",
+              "role": "learned canonical-gradient correction coefficient",
+              "refs": [
+                "P",
+                "X",
+                "calEper",
+                "folds",
+                "Khatper",
+                "rhatper",
+                "taun"
+              ]
+            },
+            "reason": "The corrected estimator needs the learned full-normal coefficient rather than the aggregate loading.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-add",
+            "id": "def:orthogonal-complete-normal-signal",
+            "proposed": {
+              "id": "def:orthogonal-complete-normal-signal",
+              "name": "Orthogonal complete-normal restriction signal",
+              "construction": "For a retained cohort \\(a\\) and period \\(u\\), set\n\\[\nd_{a,u}(x)=m_{a,1,u}(x)-m_{a,0,u}(x).\n\\]\nFor \\(e=(u,c,c')\\in\\mathcal E_{\\mathrm{per}}\\), define the conditional restriction level\n\\[\ng_e(x)=d_{c,u}(x)-d_{c',u}(x).\n\\]\nFor a candidate nuisance \\(\\widetilde\\eta=(\\widetilde p,\\widetilde m)\\) whose retained propensity coordinates are positive, let\n\\[\nZ_e(O;\\widetilde\\eta)=\n\\frac{\\mathbf 1_{c,1}}{\\widetilde p_{c,1}(X)}\\{\\Delta Y_u-\\widetilde m_{c,1,u}(X)\\}\n-\\frac{\\mathbf 1_{c,0}}{\\widetilde p_{c,0}(X)}\\{\\Delta Y_u-\\widetilde m_{c,0,u}(X)\\}\n-\\frac{\\mathbf 1_{c',1}}{\\widetilde p_{c',1}(X)}\\{\\Delta Y_u-\\widetilde m_{c',1,u}(X)\\}\n+\\frac{\\mathbf 1_{c',0}}{\\widetilde p_{c',0}(X)}\\{\\Delta Y_u-\\widetilde m_{c',0,u}(X)\\},\n\\]\nand\n\\[\nS_e(O;\\widetilde\\eta)=\n\\widetilde d_{c,u}(X)-\\widetilde d_{c',u}(X)+Z_e(O;\\widetilde\\eta),\n\\qquad\n\\widetilde d_{a,u}=\\widetilde m_{a,1,u}-\\widetilde m_{a,0,u}.\n\\]\nStack these coordinates in \\(\\mathcal E_{\\mathrm{per}}\\)-order as \\(S^{\\mathrm{per}}(O;\\widetilde\\eta)\\), using the zero-dimensional convention when \\(\\mathcal E_{\\mathrm{per}}\\) is empty.",
+              "free_symbols": [
+                "P",
+                "O",
+                "X",
+                "calEper",
+                "calG",
+                "T",
+                "dper",
+                "gper",
+                "Sper",
+                "Icell",
+                "DeltaY",
+                "p",
+                "m"
+              ],
+              "inputs": [
+                "P",
+                "calEper",
+                "p",
+                "m"
+              ]
+            },
+            "reason": "The period-specific restriction level and its augmented residual signal must be defined before the estimator can use them.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-replace",
+            "id": "def:crossfit-estimator",
+            "proposed": {
+              "id": "def:crossfit-estimator",
+              "name": "Complete-normal efficient cross-fitted estimator",
+              "construction": "For each training complement of \\(I_\\ell\\), estimate the retained propensities and one-step regressions by \\(\\widehat p^{-\\ell}\\) and \\(\\widehat m^{-\\ell}\\), and construct\n\\[\n\\widehat S_i^{-\\ell}=S^{\\mathrm{per}}(O_i;\\widehat\\eta^{-\\ell}),\n\\qquad \\widehat\\eta^{-\\ell}=(\\widehat p^{-\\ell},\\widehat m^{-\\ell}).\n\\]\nUsing training-sample cell averages, form the symmetrized conditional moments\n\\[\n\\widehat K^{-\\ell}(x)=\n\\widehat E_{-\\ell}[\\widehat S^{-\\ell}\\widehat S^{-\\ell\\prime}\\mid X=x],\n\\qquad\n\\widehat r^{-\\ell}(x)=\n\\widehat E_{-\\ell}[\\widehat S^{-\\ell}\\widehat\\psi^{0,-\\ell}\\mid X=x],\n\\]\nwhere\n\\[\n\\widehat\\psi^{0,-\\ell}\n=\\sum_{k=(g,t)\\in\\mathcal K}\\omega_k\n\\left\\{\\widehat R_{k,c_0(k)}^{-\\ell}\n-\\widehat\\theta_k^{-\\ell}\\frac{\\mathbf 1_{g,1}}{\\widehat\\pi_{g,1}^{-\\ell}}\\right\\},\n\\]\nand the preliminary ratios \\(\\widehat\\theta_k^{-\\ell}\\) and shares \\(\\widehat\\pi_{g,1}^{-\\ell}\\) are computed on the training complement.  Threshold the eigenvalues of \\(\\widehat K^{-\\ell}(x)\\) at \\(\\tau_n\\), form the Moore--Penrose inverse of the retained part \\(\\widehat K^{-\\ell}_\\tau(x)\\), and set\n\\[\n\\widehat\\alpha^{-\\ell}(x)=\n\\{\\widehat K^{-\\ell}_\\tau(x)\\}^{\\dagger}\\widehat r^{-\\ell}(x).\n\\]\nFor \\(i\\in I_\\ell\\), evaluate the cross-fitted raw ratio pseudo-outcomes \\(\\widehat R_i\\) and the signal \\(\\widehat S_i^{-\\ell}\\), and return\n\\[\n\\widehat\\tau_{\\mathrm{eff}}\n=\\frac1n\\sum_{\\ell=1}^L\\sum_{i\\in I_\\ell}\n\\left\\{\n\\sum_{k\\in\\mathcal K}\\omega_k\\widehat R_{i,k,c_0(k)}\n-\\widehat\\alpha^{-\\ell}(X_i)'\\widehat S_i^{-\\ell}\n\\right\\}.\n\\]\nLet \\(\\widehat\\theta_k=n^{-1}\\sum_{\\ell}\\sum_{i\\in I_\\ell}\\widehat R_{i,k,c_0(k)}\\) and \\(\\widehat\\pi_{g,1}=n^{-1}\\sum_i\\mathbf 1\\{G_i=g,S_i=1\\}\\).  For \\(i\\in I_\\ell\\), define\n\\[\n\\widehat\\phi_i=\n\\sum_{k=(g,t)\\in\\mathcal K}\\omega_k\n\\left\\{\\widehat R_{i,k,c_0(k)}\n-\\widehat\\theta_k\\frac{\\mathbf 1\\{G_i=g,S_i=1\\}}{\\widehat\\pi_{g,1}}\\right\\}\n-\\widehat\\alpha^{-\\ell}(X_i)'\\widehat S_i^{-\\ell},\n\\]\n\\[\n\\widehat V_{\\mathrm{eff}}\n=\\frac1n\\sum_{i=1}^n(\\widehat\\phi_i-\\overline{\\widehat\\phi})^2,\n\\qquad\n\\overline{\\widehat\\phi}=\\frac1n\\sum_{i=1}^n\\widehat\\phi_i,\n\\]\nand report the already declared Wald interval \\(\\mathrm{CI}_{1-\\alpha}\\).",
+              "free_symbols": [
+                "On",
+                "folds",
+                "phat",
+                "mhat",
+                "Shatper",
+                "Khatper",
+                "rhatper",
+                "alphahatper",
+                "taun",
+                "Rhat",
+                "omega",
+                "calK",
+                "c0",
+                "Psi",
+                "theta",
+                "pi",
+                "G",
+                "S",
+                "X",
+                "n",
+                "tauhat",
+                "Vhat",
+                "CI",
+                "alpha"
+              ],
+              "inputs": [
+                "On",
+                "folds",
+                "phat",
+                "mhat",
+                "taun"
+              ]
+            },
+            "reason": "The definition's formula, name, symbol closure, and inputs must all move atomically to the orthogonal complete-normal estimator.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-replace",
+            "name": "tauhat",
+            "proposed": {
+              "name": "tauhat",
+              "type": "scalar estimator",
+              "space": "\\(\\mathbb R\\)",
+              "def": "\\(\\widehat\\tau_{\\mathrm{eff}}=n^{-1}\\sum_{\\ell=1}^L\\sum_{i\\in I_\\ell}\\{\\sum_{k\\in\\mathcal K}\\omega_k\\widehat R_{i,k,c_0(k)}-\\widehat\\alpha^{-\\ell}(X_i)'\\widehat S_i^{-\\ell}\\}\\).",
+              "role": "complete-normal efficient cross-fitted estimator",
+              "refs": [
+                "n",
+                "folds",
+                "calK",
+                "omega",
+                "c0",
+                "Rhat",
+                "X",
+                "alphahatper",
+                "Shatper"
+              ]
+            },
+            "reason": "The estimator symbol must name the corrected full-normal map rather than the aggregate loading average.",
+            "direction": "correct"
+          },
+          {
+            "kind": "symbol-replace",
+            "name": "Vhat",
+            "proposed": {
+              "name": "Vhat",
+              "type": "nonnegative variance estimator",
+              "space": "\\([0,\\infty)\\)",
+              "def": "With \\(\\widehat\\phi_i=\\sum_{k=(g,t)\\in\\mathcal K}\\omega_k\\{\\widehat R_{i,k,c_0(k)}-\\widehat\\theta_k\\mathbf 1\\{G_i=g,S_i=1\\}/\\widehat\\pi_{g,1}\\}-\\widehat\\alpha^{-\\ell}(X_i)'\\widehat S_i^{-\\ell}\\) for \\(i\\in I_\\ell\\), \\(\\widehat V_{\\mathrm{eff}}=n^{-1}\\sum_i(\\widehat\\phi_i-\\overline{\\widehat\\phi})^2\\).",
+              "role": "complete-normal canonical-gradient variance estimator",
+              "refs": [
+                "n",
+                "folds",
+                "calK",
+                "omega",
+                "c0",
+                "Rhat",
+                "G",
+                "S",
+                "pi",
+                "X",
+                "alphahatper",
+                "Shatper"
+              ]
+            },
+            "reason": "Variance estimation must include both the target-share correction and the learned complete-normal correction.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:crossfit-attainment",
+            "proposed": {
+              "id": "thm:crossfit-attainment",
+              "kind": "theorem",
+              "statement": "Suppose that \\(P\\) is a fixed interior law covered by Theorem \\(\\ref{thm:complete-normal-canonical-gradient}\\), that \\(X\\) has fixed finite support with every support mass bounded below, and that all propensity, regression, \\(K_P\\), and \\(r_P\\) first stages in Definition \\(\\ref{def:crossfit-estimator}\\) are the corresponding training-cell averages.  Under the stated independent sampling, overlap, conditional fourth-moment, fixed-fold cross-fitting, threshold, and positive-bound conditions, take \\(\\tau_n=n^{-a}\\) for \\(0<a<1/4\\).  Then\n\\[\n\\sqrt n\\{\\widehat\\tau_{\\mathrm{eff}}-\\tau_\\omega(P)\\}\n=\\frac1{\\sqrt n}\\sum_{i=1}^n\\phi_{\\mathrm{can},P}(O_i)+o_P(1)\n\\ \\Rightarrow\\ N(0,V_{\\mathrm{can}}),\n\\]\n\\[\n\\widehat V_{\\mathrm{eff}}\\longrightarrow_P V_{\\mathrm{can}},\n\\qquad\nP\\{\\tau_\\omega(P)\\in\\mathrm{CI}_{1-\\alpha}\\}\\longrightarrow1-\\alpha.\n\\]\nThus the corrected complete-normal estimator attains the pointwise semiparametric efficiency bound on this fixed-finite-support regime.  No general-covariate or rank-uniform attainment claim is made.",
+              "free_symbols": [
+                "P",
+                "X",
+                "n",
+                "tauhat",
+                "tauomega",
+                "phican",
+                "O",
+                "Vhat",
+                "Vcan",
+                "CI",
+                "alpha",
+                "taun"
+              ],
+              "depends_on": [
+                "def:crossfit-estimator",
+                "def:orthogonal-complete-normal-signal",
+                "def:pairwise-score",
+                "def:complete-normal-projection",
+                "lem:orthogonal-normal-signal",
+                "prop:complete-normal-finite-support-rates",
+                "thm:complete-normal-canonical-gradient",
+                "lem:iid-central-limit",
+                "ass:iid-fixed-panel",
+                "ass:cell-overlap",
+                "ass:fourth-moment",
+                "ass:conditional-fourth-envelope",
+                "ass:crossfit-independence",
+                "ass:rank-threshold-vanishing",
+                "ass:positive-bound"
+              ],
+              "status": "to-prove",
+              "justification": "Canonicality has operational value only when the full period-specific normal correction can be learned without a first-order penalty.",
+              "gap": "Generic DML results do not establish the orthogonal restriction-signal correction or learned singular complete-normal projection for all-cohort panel DDD.",
+              "consumer": "This is the statistical contract for an optional efficient backend in the CRAN package \\(\\texttt{triplediff}\\) when covariates have fixed finite support."
+            },
+            "reason": "The statement and dependency graph must match the corrected estimator and its finite-support proof.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "prop:complete-normal-finite-support-rates",
+            "proposed": {
+              "id": "prop:complete-normal-finite-support-rates",
+              "kind": "proposition",
+              "statement": "Suppose \\(X\\) has fixed finite support and every support mass is bounded below.  Use training-cell averages for all conditional moments in Definition \\(\\ref{def:crossfit-estimator}\\), and suppose the propensity and regression first stages are parametric cell averages.  Under retained-cell overlap, the conditional fourth-moment envelope, fixed-fold cross-fitting, \\(\\tau_n\\downarrow0\\), and \\(n^{-1/2}/\\tau_n\\to0\\), uniformly over the fixed number of folds,\n\\[\n\\|\\widehat K^{-\\ell}-K_P\\|_{P_X,4,\\mathrm{op}}\n+\\|\\widehat r^{-\\ell}-r_P\\|_{P_X,4}=O_P(n^{-1/2}).\n\\]\nFor each support point, thresholding recovers \\(\\operatorname{rank}K_P(x)\\) with probability tending to one.  On the recovered ranges,\n\\[\n\\|\\{\\widehat K^{-\\ell}_\\tau\\}^{\\dagger}\\widehat r^{-\\ell}\n-K_P^\\dagger r_P\\|_{P_X,4}=O_P(n^{-1/2}),\n\\]\nwhile the unconditional conservative threshold bound is \\(O_P(n^{-1/2}/\\tau_n)\\).  Consequently, with \\(\\tau_n=n^{-a}\\), \\(0<a<1/4\\), the complete-normal learned-projection rate is \\(O_P(n^{-1/2+a})\\), its square is \\(o(n^{-1/2})\\), and its product with root-\\(n\\) propensity and regression rates is \\(o(n^{-1/2})\\).",
+              "free_symbols": [
+                "X",
+                "P",
+                "folds",
+                "Khatper",
+                "Kper",
+                "rhatper",
+                "rper",
+                "taun",
+                "n"
+              ],
+              "depends_on": [
+                "def:complete-normal-projection",
+                "def:orthogonal-complete-normal-signal",
+                "def:crossfit-estimator",
+                "lem:orthogonal-normal-signal",
+                "ass:iid-fixed-panel",
+                "ass:cell-overlap",
+                "ass:conditional-fourth-envelope",
+                "ass:crossfit-independence",
+                "ass:rank-threshold-vanishing"
+              ],
+              "status": "to-prove",
+              "justification": "This proposition derives the complete-normal covariance, cross-moment, rank-selection, and learned-projection rates from observable cell averages.",
+              "gap": "The earlier aggregate covariance result did not justify learning the full period-specific normal projection.",
+              "consumer": "The repaired cross-fitted estimator invokes these rates in the fixed-finite-support regime."
+            },
+            "reason": "The proof now relies on the explicit orthogonal restriction signal, so its dependency and free-symbol metadata must be updated.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "prop:equality-frontier",
+            "proposed": {
+              "id": "prop:equality-frontier",
+              "kind": "proposition",
+              "statement": "For either \\(b^{\\mathrm{cmp}}\\in\\{b^{\\mathrm{OVS}},b^{\\mathrm{const}}\\}\\),\n\\[\n\\operatorname{Var}_P\\{b^{\\mathrm{cmp}\\prime}\\Psi_P(O)\\}-V_{\\mathrm{agg}}\n=E_P[(b^{\\mathrm{cmp}}-b^\\star(X))'\\Gamma_P(X)(b^{\\mathrm{cmp}}-b^\\star(X))],\n\\]\nwhereas its loss relative to the full semiparametric bound is\n\\[\n\\Delta(b^{\\mathrm{cmp}})\n=E_P[(b^{\\mathrm{cmp}}-b^\\star(X))'\\Gamma_P(X)(b^{\\mathrm{cmp}}-b^\\star(X))]\n+\\Delta_{\\mathrm{normal}}(P).\n\\]\nEquality with the aggregate score-family optimum holds if and only if\n\\[\nN'\\Gamma_P(X)b^{\\mathrm{cmp}}=0\n\\qquad P_X\\text{-almost surely}.\n\\]\nEquality with the full semiparametric bound holds if and only if\n\\[\nE_P[Z_P^{\\mathrm{per}}(O)\\{b^{\\mathrm{cmp}\\prime}\\Psi_P(O)\\}\\mid X]=0\n\\qquad P_X\\text{-almost surely}.\n\\]\nThus the aggregate KKT residual and the complete-normal residual answer two different equality questions.",
+              "free_symbols": [
+                "P",
+                "bcmp",
+                "bOVS",
+                "bconst",
+                "Psi",
+                "O",
+                "Vagg",
+                "Vcan",
+                "Deltafun",
+                "Deltanormal",
+                "bstar",
+                "X",
+                "Gamma",
+                "N",
+                "Zper"
+              ],
+              "depends_on": [
+                "def:projection-diagnostic",
+                "def:contrast-closure",
+                "lem:singular-operator",
+                "thm:observable-equivalence",
+                "thm:complete-normal-canonical-gradient"
+              ],
+              "status": "to-prove",
+              "justification": "The two conditional equations separately diagnose aggregate optimality and equality with the full information bound.",
+              "gap": "The existing statement conflates aggregate conditional-loading loss with the additional period-specific normal loss.",
+              "consumer": "The optional backend can report both residuals without mislabeling score-family optimality as semiparametric efficiency."
+            },
+            "reason": "The formal statement and its dependencies must expose both variance-loss components and the complete-normal equation.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:binary-strict-gain",
+            "proposed": {
+              "id": "thm:binary-strict-gain",
+              "kind": "theorem",
+              "statement": "For every \\(0<r<\\sqrt7/3\\), \\(0<|\\delta|<1/8\\), and \\(\\omega=(\\omega_1,\\omega_2)'\\) with \\(\\omega_2\\ne0\\), the law \\(Q^{\\mathrm{bin}}_{r,\\delta}\\) belongs to \\(\\mathcal M\\).  In score order \\(((2,2),3),((2,2),\\infty),((2,3),\\infty)\\),\n\\[\n\\Gamma(x)=\\frac{3}{16}\n\\begin{pmatrix}2&1&0\\\\1&2&xr\\\\0&xr&2\\end{pmatrix},\n\\qquad\nb^\\star(x)=\n\\begin{pmatrix}\\omega_1/2+xr\\omega_2/2\\\\\n\\omega_1/2-xr\\omega_2/2\\\\\n\\omega_2\\end{pmatrix}.\n\\]\nThe conditional eigenvalues are \\(3/8\\) and \\(3\\{2\\pm\\sqrt{1+r^2}\\}/16\\), so the smallest exceeds \\(1/8\\).  Both constant comparators equal \\((\\omega_1/2,\\omega_1/2,\\omega_2)'\\), and\n\\[\n\\Delta(b^{\\mathrm{OVS}})=\\Delta(b^{\\mathrm{const}})\n=\\frac{3r^2\\omega_2^2}{32}>0.\n\\]\nEvery deterministic feasible loading has the form \\(b(q)=(\\omega_1/2+q,\\omega_1/2-q,\\omega_2)'\\) and satisfies\n\\[\n\\Delta\\{b(q)\\}=\\frac{3q^2}{8}+\\frac{3r^2\\omega_2^2}{32},\n\\]\nso the conditionally weighted score strictly improves upon every constant loading.\nFor this architecture, \\(\\mathcal C_P=\\mathcal T_P^\\perp\\); hence the displayed loss is relative to the full semiparametric bound, not merely the aggregate score-family optimum.  At \\(r=\\omega_2=1/2\\), the exact full-bound gain is \\(3/512\\).",
+              "free_symbols": [
+                "r",
+                "delta",
+                "omega",
+                "Qbin",
+                "calM",
+                "P",
+                "X",
+                "Gamma",
+                "bstar",
+                "bOVS",
+                "bconst",
+                "Deltafun",
+                "Cclosure",
+                "Tang"
+              ],
+              "depends_on": [
+                "def:binary-witness",
+                "def:target-model",
+                "def:pairwise-score",
+                "lem:singular-operator",
+                "prop:equality-frontier",
+                "thm:observable-equivalence",
+                "thm:complete-normal-canonical-gradient"
+              ],
+              "status": "to-prove",
+              "justification": "The bounded open family certifies a structural full-bound gain and supplies a symbolic implementation test.",
+              "gap": "The full-bound interpretation requires an explicit proof that aggregate and period-specific normal closures coincide in this architecture.",
+              "consumer": "The family is a reproducible unit test for the covariance, loading, and full-efficiency calculations."
+            },
+            "reason": "The dependency and claim must explicitly carry the closure-equality certificate required for the full-bound comparison.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [
+          {
+            "node_id": "thm:gap-inference",
+            "what_is_open": "A pointwise asymptotic linear expansion for the corrected complete-normal one-step estimator of \\(\\Delta_{\\mathrm{cmp}}\\), including the derivative of the comparator Moore--Penrose map and the estimated growing-dimensional Riesz representer.",
+            "obstruction": "The frozen premises provide population tangent projection and fixed-support rates for \\(K_P^\\dagger r_P\\), but they do not provide an explicit closed derivative for every term of \\(\\Delta_{\\mathrm{cmp}}\\) or a rate controlling the product of derivative-estimation error, growing sieve dimension, Gram inversion, and complete-normal first stages. Assuming that remainder is negligible would assume the crux.",
+            "attempted": "The population dictionary was projected against the complete period-specific normal vector, which repairs tangent membership, and the finite-support generalized-inverse rates were derived. The former aggregate-only sieve counterexample was isolated under a new theorem. Expanding the corrected gap map still leaves unboundedly many estimated derivative coordinates and comparator KKT derivatives without a declared joint rate envelope.",
+            "partial_result": "The complete-normal projection lemma proves that every population dictionary coordinate obtained by projecting against \\(Z_P^{\\mathrm{per}}\\) lies in \\(\\mathcal T_P\\), and Proposition \\(\\ref{prop:complete-normal-finite-support-rates}\\) supplies pointwise finite-support rates for \\(K_P^\\dagger r_P\\).  The obsolete aggregate-normal sieve is separately refuted by Theorem \\(\\ref{thm:frozen-aggregate-sieve-failure}\\).  What remains is the derivative and estimated growing-dimensional Riesz-map expansion for \\(\\Delta_{\\mathrm{cmp}}\\); no positive Wald claim is made."
+          }
+        ],
+        "prose_updates": {
+          "tldr": "The target is a fixed aggregate of staggered-DDD group--time effects under the target-indexed period-specific restrictions of Ortiz-Villavicencio and Sant'Anna. A finite residual basis \\(Z_P^{\\mathrm{per}}\\) exhausts the observed tangent normal, and its Moore--Penrose projection gives the full canonical gradient. Conditional loading by \\(b^\\star(X)\\) remains the optimum inside the smaller aggregate pairwise-score family. In the fixed-finite-support regime, a repaired cross-fitted estimator subtracts \\(\\widehat\\alpha(X)'\\widehat S^{\\mathrm{per}}\\), where the augmented restriction signal has only propensity--regression product drift, and attains the full pointwise bound with a valid Wald interval. The OVS and joint constant loadings have separate aggregate and full equality equations. A bounded binary family yields the exact full-bound gain \\(3/512\\); positive inference for the estimated efficiency-gap functional remains open because its growing Riesz-map remainder has not been proved.",
+          "project_justification": {
+            "gap": "Ortiz-Villavicencio and Sant'Anna establish identification, pairwise-score limit theory, and constant componentwise weighting, but do not exhaust the observed tangent space of the overidentified period-specific DDD model or analyze a learned full-normal correction. Existing staggered-DiD efficiency results do not supply the coupled eligibility-gap tangent normal.",
+            "niche": "Eligibility and staggered adoption impose simultaneous conditional restrictions period by period. Cumulative clean-comparison contrasts can span only part of their normal space, so the information bound and an attaining estimator require a complete residual basis and an orthogonal plug-in signal for its estimated centering.",
+            "fill": "The note proves observable tangent exhaustion, derives the singular complete-normal canonical projection, and separates it from conditional generalized least squares within the pairwise-score family. It constructs an explicit orthogonal restriction signal and proves pointwise attainment with cell-average learners for fixed finite covariate support. It also gives exact aggregate and full equality diagnostics and a bounded \\(3/512\\) witness. Gap-functional Wald inference is not claimed until its full derivative and growing Riesz remainder are controlled."
+          },
+          "sampling_model": {
+            "nuisance_estimation": "For the proved attainment regime, \\(X\\) has fixed finite support with masses bounded below. Fixed-fold training-cell averages estimate retained propensities, one-step regressions, the augmented period-specific signals \\(S_e=g_e+Z_e\\), and the conditional moments \\(K_P(X)\\) and \\(r_P(X)\\). Thresholding with \\(\\tau_n=n^{-a}\\), \\(0<a<1/4\\), estimates the complete-normal coefficient. The shared-cell covariance \\(\\Gamma_P(X)\\) and \\(b^\\star(X)\\) are learned separately for comparator diagnostics; no continuous-covariate attainment claim is made from fourth moments alone."
+          },
+          "related_work": "Ortiz-Villavicencio and Sant'Anna provide the identifying architecture, pairwise-score limit theory, and constant componentwise benchmark. The present result differs by exhausting all target-indexed period-specific DDD normals and by learning their correction through an augmented restriction signal. Chen, Sant'Anna, and Xie give related conditional efficiency results for staggered DiD, but their model does not imply the DDD full-data extension or eligibility-gap tangent calculation. Newey informs generalized-inverse conditional-moment geometry; the range inclusion, quotient projection, and learned fixed-support remainder are proved here. Generic DML theory supplies the cross-fitting template but not the all-cohort shared-cell and complete-normal calculations. The bounded binary construction is a full-bound comparison because its sole period-specific normal is exactly the aggregate clean-comparison contrast.",
+          "interpretation": "There are two precision frontiers. The first minimizes variance among feasible conditional loadings of cumulative pairwise scores and is attained by \\(b^\\star(X)'\\Psi_P\\). The second projects an ambient target gradient against every period-specific restriction normal and yields \\(\\phi_{\\mathrm{can},P}\\). A comparator reaches the first frontier when \\(N'\\Gamma_P(X)b^{\\mathrm{cmp}}=0\\); it reaches the full bound only when \\(E_P[Z_P^{\\mathrm{per}}b^{\\mathrm{cmp}\\prime}\\Psi_P\\mid X]=0\\). The fixed-support estimator reaches the second frontier by subtracting a learned multiple of the orthogonal signal \\(S_e=g_e+Z_e\\), not a raw plug-in residual.",
+          "technical_internal_limitation": "Population canonicality is pointwise at an interior law and permits singular or redundant complete-normal coordinates. Statistical attainment is proved only for fixed finite covariate support, where cell averages give root-\\(n\\) conditional-moment rates and a fixed-law positive spectral separation follows from finite support. Uniform inference across rank-changing laws and general continuous-covariate attainment are not claimed. The corrected efficiency-gap construction has valid population tangent coordinates, but its full derivative and estimated growing-dimensional Riesz-map remainder remain unproved, so no positive gap Wald theorem is asserted.",
+          "honest_scope": "The note covers a fixed finite horizon and target set at interior laws satisfying all observable period-specific conditional DDD equalities and admitting an OVS full-data extension. The canonical gradient and bound are population results. Their cross-fitted attainment and pointwise Wald inference are proved for fixed finite-support covariates with support masses bounded below, cell-average first stages, and \\(\\tau_n=n^{-a}\\), \\(0<a<1/4\\). The \\(b^\\star(X)\\), OVS, and joint constant loadings are called fully efficient only when the complete-normal equation holds. The \\(3/512\\) witness satisfies that closure condition. Efficiency-gap pointwise inference and rank-uniform inference remain open.",
+          "statement_notes": [
+            {
+              "id": "thm:crossfit-attainment",
+              "justification": "The orthogonal complete-normal correction turns the population bound into an attainable pointwise procedure in the fixed-support regime.",
+              "gap": "The proof is specific to cell-average first stages and does not establish general-covariate or rank-uniform inference.",
+              "consumer": "An optional \\(\\texttt{triplediff}\\) backend can implement this branch when covariates are discrete with fixed support."
+            },
+            {
+              "id": "prop:equality-frontier",
+              "justification": "Two observable conditional residuals now distinguish pairwise-score optimality from equality with the full information bound.",
+              "gap": "The aggregate KKT equation alone cannot certify full semiparametric efficiency when period-specific normals are omitted.",
+              "consumer": "Software can report both diagnostics rather than labeling every conditional-loading optimum efficient."
+            },
+            {
+              "id": "thm:gap-inference",
+              "justification": "A positive gap theorem would quantify uncertainty in the full optimized loss.",
+              "gap": "The complete derivative and growing-dimensional estimated Riesz-map remainder are not yet proved; the old aggregate-sieve failure is retained separately.",
+              "consumer": "No gap Wald statistic should be exposed by the backend until this obligation closes."
+            },
+            {
+              "id": "thm:binary-strict-gain",
+              "justification": "The witness gives a bounded open family with an exact full-bound gain.",
+              "gap": "Its full interpretation depends on the proved equality of aggregate and complete normal closures in this three-score architecture.",
+              "consumer": "The \\(3/512\\) case is a deterministic regression test for covariance and loading code."
+            },
+            {
+              "id": "prop:complete-normal-finite-support-rates",
+              "justification": "The proposition supplies every learned complete-normal rate used by the attainment proof.",
+              "gap": "It does not imply nonparametric \\(L_4(P_X)\\) rates for continuously distributed covariates from fourth moments alone.",
+              "consumer": "It fixes the supported first-stage and threshold regime for the optional backend."
+            },
+            {
+              "id": "prop:covariance-learnability",
+              "justification": "The proposition gives a checkable root-\\(n\\) shared-cell covariance rate for fixed finite covariate support.",
+              "gap": "No continuous-covariate \\(L_4(P_X)\\) covariance rate follows without additional smoothness and tail conditions.",
+              "consumer": "The finite-support implementation can learn \\(\\Gamma_P(X)\\) for aggregate-loading and comparator diagnostics by cell frequencies."
+            },
+            {
+              "id": "thm:frozen-aggregate-sieve-failure",
+              "justification": "The rejected aggregate-only tangent projection is preserved as a precise bounded counterexample.",
+              "gap": "Cumulative normals do not generally exhaust period-specific restrictions.",
+              "consumer": "Future gap-inference implementations must project against \\(Z_P^{\\mathrm{per}}\\), not only \\(N'R_P\\)."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

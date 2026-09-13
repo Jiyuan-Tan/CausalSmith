@@ -1,0 +1,108 @@
+%%% FIELD rank-one-functional-construction
+For a restricted instance \(J=I|_C\in\mathfrak M_{\mathrm{exp}}\) whose underlying undirected full graph is connected and has cycle rank one, let \(K\) be its unique simple cycle.  If there is an edge \(e^\star\in E(K)\) for which \(K\setminus\{e^\star\}\) is a directed path from the tail of \(e^\star\) to its head, use that edge; if no such edge exists, write \(e^\star=\bot\).  Put \(U_C=U\cap C\) and \(V_C=V\cap C\).  For \(w\in R(C)\) and rows \(\rho_Z\in R(\operatorname{Pa}_{G[C]}(Z))\), \(Z\in V_C\setminus\{X\}\), define
+\[
+ D^0(w,\rho)=\{p\to Z\in E(G[C]):Z\ne X,\ \rho_{Z,p}\ne w_p\}.
+\]
+The repair choice is \(f=\bot\) whenever \(e^\star=\bot\) or \(D^0(w,\rho)\) satisfies
+\[
+ e^\star\notin D^0(w,\rho)
+ \quad\text{or}\quad
+ D^0(w,\rho)\cap\bigl(E(K)\setminus\{e^\star\}\bigr)\ne\varnothing;
+\]
+otherwise \(f\) ranges over \(E(K)\setminus\{e^\star\}\).  Let \(D_f=D^0(w,\rho)\) for \(f=\bot\), and let \(D_f=D^0(w,\rho)\cup\{f\}\) otherwise.  For \(Z\in V_C\), put
+\[
+ S_Z(D_f)=\{p\in\operatorname{Pa}_{G[C]}(Z):p\to Z\notin D_f\}.
+\]
+Then \(\operatorname{MS}_1(J)\) is the minimum of \(\sum_{e\in D_f}c(e)\) over \((w,\rho,f)\) satisfying
+\[
+ \begin{gathered}
+ w_{U_C}=a_{U_C},\qquad w_X\ne a_X,\qquad w_Y\ne a_Y,\\
+ w_Z\in A_Z(\rho_Z)\quad(Z\in V_C\setminus\{X\}),\\
+ S_Z(D_f)\cap\Delta\ne\varnothing
+ \quad\bigl(Z\in V_C,\ \Delta\in\mathcal B_Z\bigr).
+ \end{gathered}
+\]
+The empty minimum is \(+\infty\).  Thus the variables, objective, support constraints, actual-row hitting constraints, and exceptional-edge legality repair are all part of the definition.
+
+%%% FIELD unicycle-handle-construction
+Given an explicit instance, compute the weak components of the underlying undirected full graph and let \(C_X\) and \(C_Y\) contain \(X\) and \(Y\).  If \(C_X\ne C_Y\), \(\operatorname{UnicycleHandle}\) returns the weak-component separating cut.  If \(C_X=C_Y=C\) and \(C\) has cycle rank zero, it first computes directed reachability from \(X\) in \(G[C]\): when \(Y\) is unreachable it returns that directed-reachability cut and value \(+\infty\), and only when \(Y\) is reachable does it invoke the value-path compiler on the unique directed path.  If the common component has cycle rank one, it cuts the unique factor-graph cycle at a boundary variable and carries the exceptional-edge mode---shortcut retained, complementary arc already broken, or one specified repair edge---jointly with the local nonactual-value state.  Every other weak component is retained at its actual assignment.
+
+%%% FIELD relevant-frontier-statement
+For every \(I=(M,a,X,Y,c,L,B)\in\mathfrak M_{\mathrm{exp}}\), let \(C_X\) and \(C_Y\) be the weak components of \(X\) and \(Y\) in the underlying undirected full graph.  Suppose either \(C_X\ne C_Y\), or \(C_X=C_Y=C\) and \(C\) has cycle rank at most one; no restriction is imposed on the other weak components.  Then \(\operatorname{UnicycleHandle}\) is a sound-and-complete polynomial-size certificate calculus and an exact polynomial-time algorithm, with the following explicit branches.
+
+If \(C_X\ne C_Y\), then \(X=a_X\) is not a Beckers actual cause of \(Y=a_Y\), \(C^\star(I)=+\infty\), and the weak-component partition is a separating cut.  If \(C_X=C_Y=C\), the exact global minimum equals the minimum for \(I|_C\), and all other components may be retained at actuality.  When \(C\) has cycle rank zero and \(X\not\leadsto_{G[C]}Y\), the answer is again negative,
+\[
+ C^\star(I)=+\infty,
+\]
+and the set of vertices directed-reachable from \(X\) is a separating cut.  Only when \(X\leadsto_{G[C]}Y\) does the unique directed path \(P_0=X\to\cdots\to P_m=Y\) enter the functional, in which case
+\[
+ C^\star(I)
+ =\min_{\substack{s_i\in R(P_i)\setminus\{a_{P_i}\}\\0\le i\le m}}
+   \sum_{i=1}^{m} C_i(s_{i-1},s_i).
+\]
+The value-path compiler and verifier use \(O(L)\) arithmetic and indexed-address operations.  When \(C\) has cycle rank one,
+\[
+ C^\star(I)=\operatorname{MS}_1(I|_C),
+\]
+and the exceptional-edge min-sum algorithm uses \(O(L^7)\) arithmetic and indexed-address operations.  In every branch, \(X=a_X\) is a Beckers actual cause of \(Y=a_Y\) if and only if \(C^\star(I)<+\infty\); every finite rational has \(O(B+\log(L+1))\) bits, and the algorithm returns a positive witness with an exact optimum certificate or a polynomial-size separating cut.
+
+%%% FIELD relevant-frontier-proof
+The quantity \(C^\star(I)\) is defined independently of the algorithm as the minimum deletion cost among canonical Beckers witnesses, with the empty minimum equal to \(+\infty\).  Because the signature and edge set are finite and every edge cost is a finite nonnegative rational, a witness exists if and only if this minimum is finite.  Consequently
+\[
+ \mathbf 1\{X=a_X\text{ is a Beckers actual cause of }Y=a_Y\}
+ =\mathbf 1\{C^\star(I)<+\infty\}.                                      \tag{1}
+\]
+This relates the causal query to the optimization functional; it does not define the causal query by the functional.
+
+Let \(C_X\) and \(C_Y\) be as in the statement.  If \(C_X\ne C_Y\), \(\texttt{lem:component-restriction-normalization}\) says directly that no Beckers witness exists.  Equation (1) therefore gives
+\[
+ C^\star(I)=+\infty.                                                       \tag{2}
+\]
+By the definition of a weak component, no edge of the underlying undirected graph joins \(C_X\) to its complement.  Hence the partition \((C_X,(U\cup V)\setminus C_X)\), with \(X\in C_X\) and \(Y\notin C_X\), is an explicitly checkable separating cut.  This proves the first branch.
+
+Now suppose \(C_X=C_Y=C\), and write \(I_C=I|_C\).  No vertex of \(C\) has a parent outside \(C\), since such an edge would join the two vertices in the same weak component.  Thus restricting the domains and tables to \(C\) preserves acyclicity, exogenous-root status, totality of every local table, the actual-solution equations, distinctness of \(X,Y\), nonnegative rational costs, and explicit encoding.  Therefore \(I_C\in\mathfrak M_{\mathrm{exp}}\), with input sizes \(L_C\le L\) and \(B_C\le B\).  The component-normalization lemma gives both existence equivalence and the exact equality
+\[
+ C^\star(I)=C^\star(I_C).                                                  \tag{3}
+\]
+It also gives the promised extension: retain every edge outside \(C\) and assign every vertex outside \(C\) its actual value.  Nonnegativity of the costs is already one of that lemma's hypotheses, so (3) includes the cost claim rather than merely the decision claim.
+
+Assume first that \(C\) has cycle rank zero.  Its underlying undirected graph is connected by the definition of \(C\), and a connected graph of cycle rank zero is a tree: if an undirected cycle existed, deleting one edge of that cycle would preserve connectedness and contradict \(|E|=|C|-1\); conversely a connected acyclic graph has \(|E|=|C|-1\) by induction after removing a leaf.  Hence the full graph of \(I_C\) is a polyforest, so \(I_C\in\mathfrak M_{\mathrm{forest}}\).
+
+Suppose \(X\not\leadsto_{G[C]}Y\).  Applying \(\texttt{thm:value-path-optimum}\) to \(I_C\) proves that no Beckers witness exists on \(C\).  Let
+\[
+ S=\{q\in C:X\leadsto_{G[C]}q\}\cup\{X\}.                               \tag{4}
+\]
+Then \(X\in S\), \(Y\notin S\), and there is no directed edge \(p\to q\) with \(p\in S\) and \(q\in C\setminus S\): such an edge would append to a directed path witnessing \(p\in S\) and would put \(q\) in \(S\).  Thus (4) is the claimed directed-reachability separating cut.  Combining the negative conclusion with (1) and (3) proves
+\[
+ C^\star(I)=C^\star(I_C)=+\infty.                                         \tag{5}
+\]
+This is the subcase that must be decided before any value-path object is formed.
+
+Suppose instead that \(X\leadsto_{G[C]}Y\).  Since the underlying graph is a tree, there is only one undirected \(X\)-to-\(Y\) path; the directed path is therefore unique and may be written \(P_0=X\to\cdots\to P_m=Y\).  The exact-optimum part of \(\texttt{thm:value-path-optimum}\), followed by (3), gives
+\[
+ \begin{aligned}
+ C^\star(I)
+ &=C^\star(I_C)\\
+ &=\min_{\substack{s_i\in R(P_i)\setminus\{a_{P_i}\}\\0\le i\le m}}
+   \sum_{i=1}^{m}C_i(s_{i-1},s_i).                         \tag{6}
+ \end{aligned}
+\]
+The same theorem proves that finiteness of (6) is equivalent to a value-path certificate and hence, by (1), to the causal query.  Applying \(\texttt{thm:compiler-verifier-equivalence}\) to \(I_C\) yields the positive, exact-optimum, or layerwise separating certificate, uses \(O(L_C)\subseteq O(L)\) arithmetic and indexed-address operations, and gives the stated bit bound.  A positive certificate is extended globally by the construction following (3).  A negative certificate remains globally separating because the component lemma rules out every global witness whenever it rules out a witness on \(C\).
+
+Finally suppose that \(C\) has cycle rank one.  The restricted instance \(I_C\) meets every premise of \(\texttt{lem:connected-unicycle-min-sum}\).  The normalized tuples in that lemma are exactly the feasible tuples in \(\mathrm{def:rank\mbox{-}one\mbox{-}min\mbox{-}sum\mbox{-}functional}\): if their row-difference set is legal, the repair variable is \(\bot\); if it is illegal, the unique exceptional edge is deleted while its complementary directed arc is intact, and the repair variable chooses one edge on that arc.  The retained-parent hitting constraints are identical to those in the definition, and the support-row constraints are identical as well.  Therefore the normalization direction of the lemma gives
+\[
+ \operatorname{MS}_1(I_C)\le C^\star(I_C),                                 \tag{7}
+\]
+whereas its converse maps every feasible tuple defining \(\operatorname{MS}_1(I_C)\) to a Beckers witness of exactly the displayed deletion cost and gives
+\[
+ C^\star(I_C)\le\operatorname{MS}_1(I_C).                                  \tag{8}
+\]
+Equations (3), (7), and (8) prove the explicit identifying equality
+\[
+ C^\star(I)=\operatorname{MS}_1(I_C).                                       \tag{9}
+\]
+The same lemma partitions the legality alternatives into at most \(2|E(K)|-1\) min-sum programs, evaluates them in \(O(L_C^7)\subseteq O(L^7)\) arithmetic and indexed-address operations, bounds every finite rational by \(O(B_C+\log(L_C+1))\subseteq O(B+\log(L+1))\) bits, and returns either a witness with exact optimum data or infeasibility tables forming a separating cut.  Extension or separation for the global instance again follows from (3).
+
+Computing weak components, cycle rank, and the reachable set (4) requires one scan of the explicitly indexed vertices and edges, hence \(O(L)\) address operations.  The forest branch is therefore linear-arithmetic, and the rank-one branch dominates the uniform bound by \(O(L^7)\).  All recorded assignments, support rows, predecessor choices, message tables, and cuts occur in the explicit finite tables considered by the cited compiler or min-sum lemma, so their lengths are polynomial in \(L+B\).  This proves soundness, completeness, exact optimality, and all certificate and complexity claims.
+
+Two smallest exact checks isolate the repaired split.  In the deterministic binary tree \(Z\to X\), \(Z\to Y\), with actual world zero and equations \(X=Z\), \(Y=Z\), intervention \(X\leftarrow1\) leaves \(Y=0\).  Here the set (4) is \(\{X\}\), so (5) correctly returns \(+\infty\).  In the deterministic binary chain \(X\to Y\), with actual world zero and equation \(Y=X\), intervention \(X\leftarrow1\) gives \(Y=1\); the unique transition has \(C_1(1,1)=0\), so (6) returns zero.  Thus the no-directed-path and directed-path branches differ already on the smallest connected forests and cannot be merged.

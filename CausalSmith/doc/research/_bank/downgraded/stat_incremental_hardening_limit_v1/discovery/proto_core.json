@@ -1,0 +1,2067 @@
+{
+  "qid": "stat_incremental_hardening_limit",
+  "specialization": "v1",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "sample size \\(n\\in\\mathbb{N}\\)",
+      "role": "triangular-array index"
+    },
+    {
+      "name": "B",
+      "type": "constant \\(B\\in[1,\\infty)\\)",
+      "role": "outcome envelope, normalized to contain the binary support \\(\\{0,1\\}\\)"
+    },
+    {
+      "name": "O",
+      "type": "observation \\(O=(X,A,Y)\\)",
+      "role": "observed data"
+    },
+    {
+      "name": "P",
+      "type": "probability law \\(P\\) on the space of \\(O\\)",
+      "role": "observed-data law",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "PRV",
+      "type": "class \\(\\mathcal P_{\\mathrm{RV}}\\) of observed-data laws",
+      "role": "second-order marked weak-overlap model",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "covariate \\(X\\in\\mathcal X\\)",
+      "role": "baseline covariate"
+    },
+    {
+      "name": "A",
+      "type": "treatment \\(A\\in\\{0,1\\}\\)",
+      "role": "binary exposure"
+    },
+    {
+      "name": "Y",
+      "type": "outcome \\(Y\\in[-B,B]\\)",
+      "role": "observed response",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "Y0",
+      "type": "potential outcome \\(Y(0)\\in[-B,B]\\)",
+      "role": "control potential outcome",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "Y1",
+      "type": "potential outcome \\(Y(1)\\in[-B,B]\\)",
+      "role": "treated potential outcome",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "e",
+      "type": "measurable map \\(e:\\mathcal X\\to(0,1]\\)",
+      "def": "\\(e(x)=P(A=1\\mid X=x)\\)",
+      "role": "propensity score",
+      "refs": [
+        "P",
+        "A",
+        "X"
+      ]
+    },
+    {
+      "name": "mu0",
+      "type": "measurable map \\(\\mu_0:\\mathcal X\\to[-B,B]\\)",
+      "def": "\\(\\mu_0(x)=E_P(Y\\mid A=0,X=x)\\)",
+      "role": "control regression",
+      "refs": [
+        "P",
+        "Y",
+        "A",
+        "X",
+        "B"
+      ]
+    },
+    {
+      "name": "mu1",
+      "type": "measurable map \\(\\mu_1:\\mathcal X\\to[-B,B]\\)",
+      "def": "\\(\\mu_1(x)=E_P(Y\\mid A=1,X=x)\\)",
+      "role": "treated regression",
+      "refs": [
+        "P",
+        "Y",
+        "A",
+        "X",
+        "B"
+      ]
+    },
+    {
+      "name": "tau",
+      "type": "measurable map \\(\\tau:\\mathcal X\\to[-2B,2B]\\)",
+      "def": "\\(\\tau(x)=\\mu_1(x)-\\mu_0(x)\\)",
+      "role": "conditional treatment contrast",
+      "refs": [
+        "mu0",
+        "mu1",
+        "B"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "treated residual mark \\(R\\in[-2B,2B]\\)",
+      "def": "\\(R=Y-\\mu_1(X)\\) on \\(\\{A=1\\}\\)",
+      "role": "boundary residual",
+      "refs": [
+        "Y",
+        "mu1",
+        "X",
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "kappa",
+      "type": "tail exponent \\(\\kappa\\in(0,1)\\)",
+      "role": "weak-overlap index"
+    },
+    {
+      "name": "kappamin",
+      "type": "constant \\(\\kappa_-\\in(0,1)\\)",
+      "role": "lower tail-index bound"
+    },
+    {
+      "name": "kappamax",
+      "type": "constant \\(\\kappa_+\\in(0,1)\\) with \\(\\kappa_-\\leq\\kappa_+\\)",
+      "role": "upper tail-index bound",
+      "refs": [
+        "kappamin"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "second-order exponent \\(\\rho\\in(0,\\infty)\\)",
+      "role": "tail remainder index"
+    },
+    {
+      "name": "rhomin",
+      "type": "constant \\(\\rho_-\\in(0,1]\\)",
+      "role": "lower second-order bound"
+    },
+    {
+      "name": "rhomax",
+      "type": "constant \\(\\rho_+\\in[1,\\infty)\\) with \\(\\rho_-\\leq\\rho_+\\)",
+      "role": "upper second-order bound",
+      "refs": [
+        "rhomin"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "tail constant \\(c\\in(0,\\infty)\\)",
+      "role": "lower-propensity tail scale"
+    },
+    {
+      "name": "cmin",
+      "type": "constant \\(c_-\\in(0,\\infty)\\)",
+      "role": "lower tail-scale bound"
+    },
+    {
+      "name": "cmax",
+      "type": "constant \\(c_+\\in[c_-,\\infty)\\)",
+      "role": "upper tail-scale bound",
+      "refs": [
+        "cmin"
+      ]
+    },
+    {
+      "name": "Ctail",
+      "type": "constant \\(C_{\\mathrm{tail}}\\in(0,\\infty)\\)",
+      "role": "second-order tail envelope"
+    },
+    {
+      "name": "Cmark",
+      "type": "constant \\(C_{\\mathrm{mark}}\\in(0,\\infty)\\)",
+      "role": "boundary-mark envelope"
+    },
+    {
+      "name": "t0",
+      "type": "constant \\(t_0\\in(0,1)\\)",
+      "role": "tail neighborhood"
+    },
+    {
+      "name": "tmin",
+      "type": "constant \\(\\underline t\\in(0,1)\\)",
+      "role": "common tail-neighborhood lower bound"
+    },
+    {
+      "name": "dBL",
+      "type": "metric \\(d_{\\mathrm{BL}}\\) on probability laws over bounded Euclidean spaces",
+      "role": "bounded-Lipschitz distance"
+    },
+    {
+      "name": "H",
+      "type": "probability law \\(H\\) on \\([-2B,2B]^2\\)",
+      "role": "treated boundary law of \\((R,\\tau(X))\\)",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "vstar",
+      "type": "constant \\(v_*\\in(0,\\infty)\\)",
+      "role": "residual separation"
+    },
+    {
+      "name": "alpha",
+      "type": "stable index \\(\\alpha\\in(1,2)\\)",
+      "def": "\\(\\alpha=1+\\kappa\\)",
+      "role": "limit-law index",
+      "refs": [
+        "kappa"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "function \\(T:(0,1]\\to[0,1]\\)",
+      "def": "\\(T(t)=E_P[e(X)\\mathbf 1\\{e(X)\\leq t\\}]\\)",
+      "role": "truncated propensity moment",
+      "refs": [
+        "P",
+        "e",
+        "X"
+      ]
+    },
+    {
+      "name": "Ktail",
+      "type": "constant \\(K\\in(0,\\infty)\\)",
+      "def": "\\(K=c\\kappa/(1+\\kappa)\\)",
+      "role": "truncated-tail constant",
+      "refs": [
+        "c",
+        "kappa"
+      ]
+    },
+    {
+      "name": "delta",
+      "type": "deterministic sequence \\((\\delta_n)_{n\\geq1}\\subset(0,\\infty)\\)",
+      "role": "hardening odds multiplier",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "deltafixed",
+      "type": "constant \\(\\delta_0\\in(0,\\infty)\\)",
+      "role": "fixed-multiplier reduction"
+    },
+    {
+      "name": "Ddelta",
+      "type": "map \\(D_{\\delta_n}:\\mathcal X\\to(0,\\infty)\\)",
+      "def": "\\(D_{\\delta_n}(x)=1+(\\delta_n-1)e(x)\\)",
+      "role": "incremental denominator",
+      "refs": [
+        "delta",
+        "e",
+        "X"
+      ]
+    },
+    {
+      "name": "qdelta",
+      "type": "map \\(q_{\\delta_n}:\\mathcal X\\to[0,1]\\)",
+      "def": "\\(q_{\\delta_n}(x)=\\delta_n e(x)/D_{\\delta_n}(x)\\)",
+      "role": "interventional propensity",
+      "refs": [
+        "delta",
+        "e",
+        "Ddelta",
+        "X"
+      ]
+    },
+    {
+      "name": "mdelta",
+      "type": "map \\(m_{\\delta_n}:\\mathcal X\\to[-B,B]\\)",
+      "def": "\\(m_{\\delta_n}(x)=\\mu_0(x)+\\delta_n e(x)\\tau(x)/D_{\\delta_n}(x)\\)",
+      "role": "conditional incremental mean",
+      "refs": [
+        "mu0",
+        "delta",
+        "e",
+        "tau",
+        "Ddelta",
+        "X",
+        "B"
+      ]
+    },
+    {
+      "name": "psi",
+      "type": "scalar \\(\\psi_{\\delta_n}(P)\\in[-B,B]\\)",
+      "def": "\\(\\psi_{\\delta_n}(P)=E_P[m_{\\delta_n}(X)]\\)",
+      "role": "moving causal estimand",
+      "refs": [
+        "P",
+        "mdelta",
+        "X",
+        "B"
+      ]
+    },
+    {
+      "name": "phi",
+      "type": "mean-zero score \\(\\phi_{\\delta_n}:\\mathcal O\\to\\mathbb R\\)",
+      "def": "\\(\\phi_{\\delta_n}(O)=A\\delta_n\\{Y-\\mu_1(X)\\}/D_{\\delta_n}(X)+(1-A)\\{Y-\\mu_0(X)\\}/D_{\\delta_n}(X)+\\delta_n\\tau(X)\\{A-e(X)\\}/D_{\\delta_n}(X)^2+m_{\\delta_n}(X)-\\psi_{\\delta_n}(P)\\)",
+      "role": "oracle efficient score",
+      "refs": [
+        "O",
+        "A",
+        "delta",
+        "Y",
+        "mu1",
+        "X",
+        "Ddelta",
+        "mu0",
+        "tau",
+        "e",
+        "mdelta",
+        "psi",
+        "P"
+      ]
+    },
+    {
+      "name": "sigma",
+      "type": "positive sequence \\((\\sigma_n)_{n\\geq1}\\)",
+      "def": "\\(\\sigma_n^2=E_P[\\phi_{\\delta_n}(O)^2]\\)",
+      "role": "Gaussian normalization",
+      "refs": [
+        "n",
+        "P",
+        "phi",
+        "O"
+      ]
+    },
+    {
+      "name": "an",
+      "type": "positive sequence \\((a_n)_{n\\geq1}\\)",
+      "def": "\\(a_n=(nK)^{1/\\alpha}\\), equivalently any generalized-inverse scale satisfying \\(nT(1/a_n)\\to1\\)",
+      "role": "rare-treatment normalizer",
+      "refs": [
+        "n",
+        "Ktail",
+        "alpha",
+        "T"
+      ]
+    },
+    {
+      "name": "h",
+      "type": "positive sequence \\((h_n)_{n\\geq1}\\)",
+      "def": "\\(h_n=\\delta_n/a_n\\)",
+      "role": "hardening coordinate",
+      "refs": [
+        "n",
+        "delta",
+        "an"
+      ]
+    },
+    {
+      "name": "hlimit",
+      "type": "constant \\(h_0\\in(0,\\infty)\\)",
+      "role": "finite-positive critical coordinate"
+    },
+    {
+      "name": "Lambda",
+      "type": "measure \\(\\Lambda\\) on \\((0,\\infty)\\times[-2B,2B]^2\\)",
+      "def": "\\(\\Lambda(ds,dr,du)=\\alpha s^{\\kappa}\\,ds\\,H(dr,du)\\)",
+      "role": "boundary Poisson intensity",
+      "refs": [
+        "alpha",
+        "kappa",
+        "H",
+        "B"
+      ]
+    },
+    {
+      "name": "gh",
+      "type": "jump map \\(g_{h_0}:(0,\\infty)\\times[-2B,2B]^2\\to\\mathbb R\\)",
+      "def": "\\(g_{h_0}(s,r,u)=h_0r/(1+h_0s)+h_0u/(1+h_0s)^2\\)",
+      "role": "critical two-component jump",
+      "refs": [
+        "hlimit",
+        "B"
+      ]
+    },
+    {
+      "name": "Lcritical",
+      "type": "centered infinitely-divisible variable \\(L_{\\kappa,H,h_0}\\)",
+      "def": "\\(\\log E\\exp(itL_{\\kappa,H,h_0})=\\int\\{\\exp(itg_{h_0})-1-itg_{h_0}\\}\\,d\\Lambda\\)",
+      "role": "critical limit",
+      "refs": [
+        "kappa",
+        "H",
+        "hlimit",
+        "gh",
+        "Lambda"
+      ]
+    },
+    {
+      "name": "Lstable",
+      "type": "centered \\(\\alpha\\)-stable variable \\(S_{\\alpha,H}\\)",
+      "def": "its Lévy measure is the pushforward of \\(\\Lambda\\) by \\((s,r,u)\\mapsto r/s\\)",
+      "role": "hard endpoint limit",
+      "refs": [
+        "alpha",
+        "H",
+        "Lambda"
+      ]
+    },
+    {
+      "name": "etaHat",
+      "type": "cross-fitted nuisance collection \\(\\widehat\\eta=(\\widehat e,\\widehat\\mu_0,\\widehat\\mu_1)\\)",
+      "role": "feasible nuisance estimates",
+      "refs": [
+        "e",
+        "mu0",
+        "mu1"
+      ]
+    },
+    {
+      "name": "psiHat",
+      "type": "scalar estimator \\(\\widehat\\psi_{\\delta_n}\\)",
+      "role": "cross-fitted one-step estimator",
+      "refs": [
+        "psi",
+        "delta",
+        "n"
+      ]
+    },
+    {
+      "name": "psiOracleHat",
+      "type": "scalar oracle estimator \\(\\widetilde\\psi_{\\delta_n}\\)",
+      "role": "oracle one-step estimator",
+      "refs": [
+        "psi",
+        "phi",
+        "O",
+        "n"
+      ]
+    },
+    {
+      "name": "varphiHat",
+      "type": "cross-fitted uncentered score evaluations \\(\\widehat\\varphi_{\\delta_n,i}\\)",
+      "role": "held-out fitted score values",
+      "refs": [
+        "O",
+        "etaHat",
+        "delta",
+        "n"
+      ]
+    },
+    {
+      "name": "sigmaHat",
+      "type": "nonnegative estimator \\(\\widehat\\sigma_n\\)",
+      "role": "empirical standard deviation of the cross-fitted uncentered score",
+      "refs": [
+        "sigma",
+        "varphiHat",
+        "psiHat",
+        "n"
+      ]
+    },
+    {
+      "name": "beta",
+      "type": "constant \\(\\beta\\in(0,1/(1+\\kappa_+))\\)",
+      "role": "tail-threshold exponent",
+      "refs": [
+        "kappamax"
+      ]
+    },
+    {
+      "name": "tn",
+      "type": "deterministic threshold \\(t_n=n^{-\\beta}\\) with \\(0<\\beta<1/(1+\\kappa_+)\\)",
+      "role": "tail calibration threshold",
+      "refs": [
+        "n",
+        "beta",
+        "kappamax"
+      ]
+    },
+    {
+      "name": "That",
+      "type": "empirical map \\(\\widehat T(t)\\)",
+      "def": "\\(\\widehat T(t)=n^{-1}\\sum_{i=1}^n A_i\\mathbf 1\\{\\widehat e_i\\leq t\\}\\)",
+      "role": "cross-fitted tail count",
+      "refs": [
+        "n",
+        "A",
+        "etaHat"
+      ]
+    },
+    {
+      "name": "alphaHat",
+      "type": "estimator \\(\\widehat\\alpha\\in(1,2)\\)",
+      "role": "tail-index estimate",
+      "refs": [
+        "alpha"
+      ]
+    },
+    {
+      "name": "KHat",
+      "type": "estimator \\(\\widehat K\\in(0,\\infty)\\)",
+      "role": "tail-scale estimate",
+      "refs": [
+        "Ktail"
+      ]
+    },
+    {
+      "name": "anHat",
+      "type": "estimator \\(\\widehat a_n\\in(0,\\infty)\\)",
+      "role": "estimated rare-treatment normalizer",
+      "refs": [
+        "an",
+        "n"
+      ]
+    },
+    {
+      "name": "HHat",
+      "type": "empirical probability law \\(\\widehat H\\) on \\([-2B,2B]^2\\)",
+      "role": "estimated joint boundary mark",
+      "refs": [
+        "H",
+        "B"
+      ]
+    },
+    {
+      "name": "hHat",
+      "type": "estimator \\(\\widehat h_n=\\delta_n/\\widehat a_n\\)",
+      "role": "estimated hardening coordinate",
+      "refs": [
+        "delta",
+        "anHat",
+        "n"
+      ]
+    },
+    {
+      "name": "gamma",
+      "type": "confidence error \\(\\gamma\\in(0,1)\\)",
+      "role": "nominal error level"
+    },
+    {
+      "name": "zquant",
+      "type": "function \\(z_u=\\Phi^{-1}(u)\\)",
+      "role": "standard-normal quantile"
+    },
+    {
+      "name": "qfun",
+      "type": "quantile functional \\(q_{\\kappa,H,h_0}(u)\\)",
+      "def": "the left-continuous \\(u\\)-quantile of \\(L_{\\kappa,H,h_0}\\), with the stable endpoint interpreted as \\(S_{\\alpha,H}\\)",
+      "role": "limit-law quantile",
+      "refs": [
+        "kappa",
+        "H",
+        "hlimit",
+        "Lcritical",
+        "Lstable",
+        "alpha"
+      ]
+    },
+    {
+      "name": "invError",
+      "type": "deterministic sequence \\((\\epsilon_n^{\\mathrm{inv}})_{n\\geq1}\\) with \\(\\epsilon_n^{\\mathrm{inv}}\\to0\\)",
+      "role": "certified inversion tolerance",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "CIg",
+      "type": "random interval \\(C_n^{\\mathrm G}(\\gamma)\\)",
+      "role": "Gaussian branch interval",
+      "refs": [
+        "n",
+        "gamma"
+      ]
+    },
+    {
+      "name": "CIc",
+      "type": "random interval \\(C_n^{\\mathrm C}(\\gamma)\\)",
+      "role": "critical branch interval",
+      "refs": [
+        "n",
+        "gamma"
+      ]
+    },
+    {
+      "name": "CIs",
+      "type": "random interval \\(C_n^{\\mathrm S}(\\gamma)\\)",
+      "role": "stable branch interval",
+      "refs": [
+        "n",
+        "gamma"
+      ]
+    },
+    {
+      "name": "fX",
+      "type": "density \\(f_X\\) on \\([0,1]\\)",
+      "role": "primitive covariate density",
+      "refs": [
+        "X"
+      ]
+    },
+    {
+      "name": "ell",
+      "type": "function \\(\\ell\\in C^2([0,1])\\)",
+      "role": "boundary density factor"
+    },
+    {
+      "name": "gprop",
+      "type": "function \\(g\\in C^2([0,1])\\)",
+      "role": "boundary propensity factor"
+    },
+    {
+      "name": "epsilon",
+      "type": "constant \\(\\varepsilon\\in(0,1/2)\\)",
+      "role": "primitive-class separation"
+    },
+    {
+      "name": "Mtwo",
+      "type": "constant \\(M_2\\in(0,\\infty)\\)",
+      "role": "common \\(C^2\\) radius"
+    },
+    {
+      "name": "PCtwo",
+      "type": "class \\(\\mathcal P_{C^2}\\) of laws",
+      "role": "primitive feasible subclass",
+      "refs": [
+        "P"
+      ]
+    },
+    {
+      "name": "bn",
+      "type": "bandwidth \\(b_n\\asymp(\\log n/n)^{1/(5+\\kappa_+)}\\)",
+      "role": "boundary local-linear bandwidth",
+      "refs": [
+        "n",
+        "kappamax"
+      ]
+    },
+    {
+      "name": "binCenter",
+      "type": "bin center \\(x_j\\in[0,1]\\)",
+      "role": "local-linear expansion point"
+    },
+    {
+      "name": "basis",
+      "type": "local basis \\(B_i=(1,(X_i-x_j)/b_n)^{\\mathsf T}\\)",
+      "role": "binwise local-linear basis",
+      "refs": [
+        "X",
+        "binCenter",
+        "bn"
+      ]
+    },
+    {
+      "name": "localCoef",
+      "type": "binwise coefficient \\(\\widehat\\theta_{g,j}\\in\\mathbb R^2\\)",
+      "role": "weighted local-linear propensity coefficient"
+    },
+    {
+      "name": "rn",
+      "type": "rate \\(r_n=(\\log n/n)^{2/(5+\\kappa_+)}\\)",
+      "role": "local-linear sup-norm rate",
+      "refs": [
+        "n",
+        "kappamax"
+      ]
+    },
+    {
+      "name": "etaSep",
+      "type": "positive sequence \\((\\eta_n)_{n\\geq1}\\) with \\(\\eta_n\\to0\\)",
+      "role": "Gaussian-branch separation",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "MSep",
+      "type": "positive sequence \\((M_n)_{n\\geq1}\\) with \\(M_n\\to\\infty\\)",
+      "role": "stable-branch separation",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "hLower",
+      "type": "constant \\(h_-\\in(0,\\infty)\\)",
+      "role": "critical compact lower endpoint"
+    },
+    {
+      "name": "hUpper",
+      "type": "constant \\(h_+\\in(h_-,\\infty)\\)",
+      "role": "critical compact upper endpoint",
+      "refs": [
+        "hLower"
+      ]
+    },
+    {
+      "name": "uLocal",
+      "type": "local parameter \\(u\\in\\mathbb R\\)",
+      "role": "ambient triangular-path coordinate"
+    },
+    {
+      "name": "Plocal",
+      "type": "triangular family \\((P_{n,u})\\) dominated by \\(P\\)",
+      "role": "ambient local experiment",
+      "refs": [
+        "P",
+        "n",
+        "uLocal"
+      ]
+    },
+    {
+      "name": "qHat",
+      "type": "plug-in quantile \\(\\widehat q_n(u)\\)",
+      "role": "numerically inverted marked-law quantile",
+      "refs": [
+        "n"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid",
+      "kind": "sampling",
+      "condition": "\\(O_1,\\ldots,O_n\\stackrel{\\mathrm{iid}}{\\sim}P\\).",
+      "free_symbols": [
+        "O",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent identical sampling",
+        "cite": "Kennedy2019Incremental"
+      },
+      "used_by": [
+        "def:rv-class",
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal",
+      "condition": "\\(Y=AY(1)+(1-A)Y(0)\\) almost surely.",
+      "free_symbols": [
+        "Y",
+        "A",
+        "Y1",
+        "Y0"
+      ],
+      "standard": {
+        "name": "Consistency",
+        "cite": "Kennedy2019Incremental"
+      },
+      "used_by": [
+        "def:rv-class",
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:exchangeability",
+      "kind": "causal",
+      "condition": "\\(A\\perp\\!\\!\\!\\perp\\{Y(0),Y(1)\\}\\mid X\\).",
+      "free_symbols": [
+        "A",
+        "Y0",
+        "Y1",
+        "X"
+      ],
+      "standard": {
+        "name": "Conditional exchangeability",
+        "cite": "Kennedy2019Incremental"
+      },
+      "used_by": [
+        "def:rv-class",
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:bounded-potential-outcomes",
+      "kind": "moment",
+      "condition": "\\(\\max\\{|Y(0)|,|Y(1)|\\}\\leq B\\) almost surely.",
+      "free_symbols": [
+        "Y0",
+        "Y1",
+        "B"
+      ],
+      "standard": {
+        "name": "Uniformly bounded outcomes",
+        "cite": "NaimiEtAl2021TimeFixed"
+      },
+      "used_by": [
+        "def:rv-class",
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:positive-treated-support",
+      "kind": "support",
+      "condition": "\\(P\\{e(X)>0\\}=1\\).",
+      "free_symbols": [
+        "P",
+        "e",
+        "X"
+      ],
+      "standard": {
+        "name": "One-sided weak positivity",
+        "cite": "HeilerKazak2021Irregular"
+      },
+      "used_by": [
+        "def:rv-class",
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:compact-tail-index",
+      "kind": "regularity",
+      "condition": "\\(\\kappa\\in[\\kappa_-,\\kappa_+]\\subset(0,1)\\).",
+      "free_symbols": [
+        "kappa",
+        "kappamin",
+        "kappamax"
+      ],
+      "standard": {
+        "name": "Interior regular-variation index",
+        "cite": "MaWang2020RobustIPW"
+      },
+      "used_by": [
+        "def:rv-class",
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:compact-tail-scale",
+      "kind": "regularity",
+      "condition": "\\(c\\in[c_-,c_+]\\).",
+      "free_symbols": [
+        "c",
+        "cmin",
+        "cmax"
+      ],
+      "standard": {
+        "name": "Uniform regular-variation scale separation",
+        "cite": "deHaanFerreira2006"
+      },
+      "used_by": [
+        "def:rv-class"
+      ]
+    },
+    {
+      "id": "ass:compact-second-order-index",
+      "kind": "regularity",
+      "condition": "\\(\\rho\\in[\\rho_-,\\rho_+]\\).",
+      "free_symbols": [
+        "rho",
+        "rhomin",
+        "rhomax"
+      ],
+      "standard": {
+        "name": "Uniform second-order index separation",
+        "cite": "deHaanFerreira2006"
+      },
+      "used_by": [
+        "def:rv-class"
+      ]
+    },
+    {
+      "id": "ass:common-tail-neighborhood",
+      "kind": "regularity",
+      "condition": "\\(t_0\\geq\\underline t\\).",
+      "free_symbols": [
+        "t0",
+        "tmin"
+      ],
+      "standard": {
+        "name": "Common regular-variation neighborhood",
+        "cite": "deHaanFerreira2006"
+      },
+      "used_by": [
+        "def:rv-class"
+      ]
+    },
+    {
+      "id": "ass:second-order-lower-tail",
+      "kind": "tail",
+      "condition": "\\(\\left|P\\{e(X)\\leq t\\}/(ct^{\\kappa})-1\\right|\\leq C_{\\mathrm{tail}}t^{\\rho}\\) for every \\(0<t\\leq t_0\\).",
+      "free_symbols": [
+        "P",
+        "e",
+        "X",
+        "c",
+        "kappa",
+        "Ctail",
+        "rho",
+        "t0"
+      ],
+      "standard": {
+        "name": "Second-order regular variation at zero",
+        "cite": "deHaanFerreira2006"
+      },
+      "used_by": [
+        "def:rv-class"
+      ]
+    },
+    {
+      "id": "ass:joint-boundary-mark",
+      "kind": "tail",
+      "condition": "\\(d_{\\mathrm{BL}}\\!\\left(\\mathcal L_P\\{(R,\\tau(X))\\mid A=1,e(X)\\leq t\\},H\\right)\\leq C_{\\mathrm{mark}}t^{\\rho}\\) for every \\(0<t\\leq t_0\\).",
+      "free_symbols": [
+        "dBL",
+        "P",
+        "R",
+        "tau",
+        "X",
+        "A",
+        "e",
+        "H",
+        "Cmark",
+        "rho",
+        "t0"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Joint convergence is realistic when the outcome regressions and treated residual law vary continuously at a smooth propensity boundary. The explicit \\(C^2\\) Bernoulli subclass below satisfies it with a deterministic boundary law and order \\(t\\) error."
+      },
+      "used_by": [
+        "def:rv-class"
+      ]
+    },
+    {
+      "id": "ass:residual-separation",
+      "kind": "nondegeneracy",
+      "condition": "\\(E_H(R^2)\\geq v_*\\).",
+      "free_symbols": [
+        "H",
+        "R",
+        "vstar"
+      ],
+      "standard": {
+        "name": "Boundary outcome nondegeneracy, residual form",
+        "cite": "MaWang2020RobustIPW"
+      },
+      "used_by": [
+        "def:rv-class"
+      ]
+    },
+    {
+      "id": "ass:hardening",
+      "kind": "sequence",
+      "condition": "\\(\\delta_n\\to\\infty\\).",
+      "free_symbols": [
+        "delta",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Diverging odds multipliers formalize increasingly forceful encouragement policies and the approach from support-respecting IPSI toward near-universal treatment; this sequence is the scientific intervention regime rather than a proof device."
+      },
+      "used_by": [
+        "thm:oracle-hardening-frontier"
+      ]
+    },
+    {
+      "id": "ass:c2-density-form",
+      "kind": "primitive",
+      "condition": "\\(f_X(x)=x^{\\kappa-1}\\ell(x)\\) for \\(x\\in(0,1]\\).",
+      "free_symbols": [
+        "fX",
+        "X",
+        "kappa",
+        "ell"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Polynomial boundary density is a concrete covariate model generating the stipulated weak-overlap tail; it includes beta-type densities and smooth perturbations used in applied propensity diagnostics."
+      },
+      "used_by": [
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:c2-propensity-factor",
+      "kind": "primitive",
+      "condition": "\\(e(x)=xg(x)\\) for \\(x\\in[0,1]\\).",
+      "free_symbols": [
+        "e",
+        "gprop"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "A linearly vanishing propensity arises in threshold-crossing assignment models after a smooth boundary coordinate transformation and allows direct estimation of relative, rather than merely absolute, propensity error."
+      },
+      "used_by": [
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:c2-smoothness",
+      "kind": "smoothness",
+      "condition": "\\(\\max\\{\\|\\ell\\|_{C^2},\\|g\\|_{C^2},\\|\\mu_0\\|_{C^2},\\|\\mu_1\\|_{C^2}\\}\\leq M_2\\).",
+      "free_symbols": [
+        "ell",
+        "gprop",
+        "mu0",
+        "mu1",
+        "Mtwo"
+      ],
+      "standard": {
+        "name": "Common second-order Hölder ball",
+        "cite": "HiranoImbensRidder2003"
+      },
+      "used_by": [
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:c2-lower-bounds",
+      "kind": "support",
+      "condition": "\\(\\inf_{x\\in[0,1]}\\min\\{\\ell(x),g(x),\\mu_0(x),1-\\mu_0(x),\\mu_1(x),1-\\mu_1(x)\\}\\geq\\varepsilon\\).",
+      "free_symbols": [
+        "ell",
+        "gprop",
+        "mu0",
+        "mu1",
+        "epsilon"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The restriction admits beta-like covariate densities, a broad open ball of smooth propensity factors, and nondegenerate Bernoulli regressions; it excludes only outcome and design degeneracy at the boundary."
+      },
+      "used_by": [
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:c2-upper-propensity",
+      "kind": "support",
+      "condition": "\\(\\sup_{x\\in[0,1]}xg(x)\\leq1-\\varepsilon\\).",
+      "free_symbols": [
+        "gprop",
+        "epsilon"
+      ],
+      "standard": {
+        "name": "Control-arm separation",
+        "cite": "ChernozhukovEtAl2018DML"
+      },
+      "used_by": [
+        "def:c2-class"
+      ]
+    },
+    {
+      "id": "ass:c2-bernoulli-outcomes",
+      "kind": "primitive",
+      "condition": "\\(\\mathcal L_P(Y\\mid A=a,X=x)=\\operatorname{Bernoulli}[(1-a)\\mu_0(x)+a\\mu_1(x)]\\) for \\(a\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "P",
+        "Y",
+        "A",
+        "X",
+        "mu0",
+        "mu1"
+      ],
+      "standard": {
+        "name": "Binary conditional outcome model",
+        "cite": "NaimiEtAl2021TimeFixed"
+      },
+      "used_by": [
+        "def:c2-class"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:rv-class",
+      "name": "Second-order marked weak-overlap class",
+      "construction": "\\(\\mathcal P_{\\mathrm{RV}}=\\{P:(O_i)_{i=1}^n\\text{ obey independent identical sampling, causal consistency, conditional exchangeability, bounded outcomes, one-sided support, }\\kappa\\in[\\kappa_-,\\kappa_+],\\text{ the second-order lower-tail inequality, joint boundary-mark convergence, and residual separation}\\}\\) for every triangular index \\(n\\geq1\\).",
+      "free_symbols": [
+        "PRV",
+        "P",
+        "O",
+        "n",
+        "kappa",
+        "kappamin",
+        "kappamax"
+      ],
+      "by_member_properties": [
+        "ass:iid",
+        "ass:consistency",
+        "ass:exchangeability",
+        "ass:bounded-potential-outcomes",
+        "ass:positive-treated-support",
+        "ass:compact-tail-index",
+        "ass:compact-tail-scale",
+        "ass:compact-second-order-index",
+        "ass:common-tail-neighborhood",
+        "ass:second-order-lower-tail",
+        "ass:joint-boundary-mark",
+        "ass:residual-separation"
+      ]
+    },
+    {
+      "id": "def:c2-class",
+      "name": "Primitive \\(C^2\\) boundary class",
+      "construction": "\\(\\mathcal P_{C^2}=\\{P:B\\geq1,\\ X\\in[0,1],\\ f_X(x)=x^{\\kappa-1}\\ell(x),\\ \\int_0^1x^{\\kappa-1}\\ell(x)dx=1,\\ e(x)=xg(x),\\ \\ell,g,\\mu_0,\\mu_1\\text{ obey the displayed }C^2\\text{ and separation conditions, }\\mathcal L_P(Y\\mid A=a,X=x)=\\operatorname{Bernoulli}[(1-a)\\mu_0(x)+a\\mu_1(x)]\\text{ on support }\\{0,1\\}\\subset[-B,B]\\text{ for }a\\in\\{0,1\\},\\text{ and the displayed sampling and causal conditions hold}\\}\\) for every \\(n\\geq1\\).",
+      "free_symbols": [
+        "PCtwo",
+        "P",
+        "X",
+        "fX",
+        "kappa",
+        "ell",
+        "e",
+        "gprop",
+        "mu0",
+        "mu1",
+        "Y",
+        "A",
+        "B",
+        "n"
+      ],
+      "by_member_properties": [
+        "ass:iid",
+        "ass:consistency",
+        "ass:exchangeability",
+        "ass:bounded-potential-outcomes",
+        "ass:positive-treated-support",
+        "ass:compact-tail-index",
+        "ass:c2-density-form",
+        "ass:c2-propensity-factor",
+        "ass:c2-smoothness",
+        "ass:c2-lower-bounds",
+        "ass:c2-upper-propensity",
+        "ass:c2-bernoulli-outcomes"
+      ]
+    },
+    {
+      "id": "def:incremental-intervention",
+      "name": "Hardening incremental intervention and mean",
+      "construction": "\\(q_{\\delta_n}(x)=\\delta_ne(x)/\\{1+(\\delta_n-1)e(x)\\}\\) and \\(\\psi_{\\delta_n}(P)=E_P[\\mu_0(X)+q_{\\delta_n}(X)\\{\\mu_1(X)-\\mu_0(X)\\}]\\).",
+      "free_symbols": [
+        "qdelta",
+        "delta",
+        "e",
+        "X",
+        "psi",
+        "P",
+        "mu0",
+        "mu1"
+      ],
+      "inputs": [
+        "P",
+        "delta"
+      ]
+    },
+    {
+      "id": "def:oracle-score",
+      "name": "Oracle hardening score",
+      "construction": "\\(\\phi_{\\delta_n}=A\\delta_n(Y-\\mu_1)/D_{\\delta_n}+(1-A)(Y-\\mu_0)/D_{\\delta_n}+\\delta_n\\tau(A-e)/D_{\\delta_n}^2+m_{\\delta_n}-\\psi_{\\delta_n}\\), with every function evaluated at \\(X\\).",
+      "free_symbols": [
+        "phi",
+        "A",
+        "delta",
+        "Y",
+        "mu1",
+        "Ddelta",
+        "mu0",
+        "tau",
+        "e",
+        "mdelta",
+        "psi",
+        "X"
+      ],
+      "inputs": [
+        "P",
+        "delta"
+      ]
+    },
+    {
+      "id": "def:oracle-one-step",
+      "name": "Oracle one-step estimator",
+      "construction": "\\(\\widetilde\\psi_{\\delta_n}=\\psi_{\\delta_n}(P)+n^{-1}\\sum_{i=1}^n\\phi_{\\delta_n}(O_i)\\).",
+      "free_symbols": [
+        "psiOracleHat",
+        "psi",
+        "delta",
+        "P",
+        "n",
+        "phi",
+        "O"
+      ],
+      "inputs": [
+        "P",
+        "delta",
+        "n"
+      ]
+    },
+    {
+      "id": "def:hardening-normalizer",
+      "name": "Equivalent-power hardening normalizer",
+      "construction": "\\(T(t)=E_P[e(X)\\mathbf1\\{e(X)\\leq t\\}],\\ K=c\\kappa/(1+\\kappa),\\ a_n=(nK)^{1/(1+\\kappa)}\\), and \\(h_n=\\delta_n/a_n\\); an asymptotically equivalent generalized inverse satisfying \\(nT(1/a_n)\\to1\\) is admissible.",
+      "free_symbols": [
+        "T",
+        "P",
+        "e",
+        "X",
+        "Ktail",
+        "c",
+        "kappa",
+        "an",
+        "n",
+        "h",
+        "delta"
+      ],
+      "inputs": [
+        "P",
+        "delta",
+        "n"
+      ]
+    },
+    {
+      "id": "def:critical-law",
+      "name": "Compensated critical marked law",
+      "construction": "For \\(h_0\\in(0,\\infty)\\), \\(L_{\\kappa,H,h_0}\\) is defined by \\(\\log E\\exp(itL_{\\kappa,H,h_0})=\\int[\\exp\\{it g_{h_0}(s,r,u)\\}-1-it g_{h_0}(s,r,u)]\\alpha s^\\kappa ds\\,H(dr,du)\\), where \\(g_{h_0}(s,r,u)=h_0r/(1+h_0s)+h_0u/(1+h_0s)^2\\).",
+      "free_symbols": [
+        "Lcritical",
+        "kappa",
+        "H",
+        "hlimit",
+        "gh",
+        "alpha"
+      ],
+      "inputs": [
+        "kappa",
+        "H"
+      ]
+    },
+    {
+      "id": "def:stable-law",
+      "name": "Residual stable endpoint",
+      "construction": "\\(S_{\\alpha,H}\\) is the centered infinitely-divisible law obtained by pushing \\(\\alpha s^\\kappa ds\\,H(dr,du)\\) through \\((s,r,u)\\mapsto r/s\\); equivalently its positive and negative Lévy tails are \\(x^{-\\alpha}E_H[(R_+)^\\alpha]\\) and \\(x^{-\\alpha}E_H[(R_-)^\\alpha]\\).",
+      "free_symbols": [
+        "Lstable",
+        "alpha",
+        "H",
+        "kappa",
+        "R"
+      ],
+      "inputs": [
+        "kappa",
+        "H"
+      ]
+    },
+    {
+      "id": "def:local-linear-one-step",
+      "name": "Cross-fitted boundary local-linear one-step estimator",
+      "construction": "Partition \\([0,1]\\) into bins of width \\(b_n\\asymp(\\log n/n)^{1/(5+\\kappa_+)}\\). On each training fold, estimate \\(g\\) from \\(\\sum X_iB_iB_i^{\\mathsf T}\\widehat\\theta=\\sum B_iA_i\\), estimate \\(\\mu_1\\) and \\(\\mu_0\\) by treatment-weighted local linear least squares, clip to the primitive bounds, and set \\(\\widehat e(x)=x\\widehat g(x)\\). For held-out unit \\(i\\), write \\(\\widehat D_i=1+(\\delta_n-1)\\widehat e_i\\) and define the uncentered fitted score \\(\\widehat\\varphi_{\\delta_n,i}=A_i\\delta_n\\{Y_i-\\widehat\\mu_{1,i}\\}/\\widehat D_i+(1-A_i)\\{Y_i-\\widehat\\mu_{0,i}\\}/\\widehat D_i+\\delta_n(\\widehat\\mu_{1,i}-\\widehat\\mu_{0,i})(A_i-\\widehat e_i)/\\widehat D_i^2+\\widehat\\mu_{0,i}+\\delta_n\\widehat e_i(\\widehat\\mu_{1,i}-\\widehat\\mu_{0,i})/\\widehat D_i\\), where every fitted value comes from the training fold excluding \\(i\\). Set \\(\\widehat\\psi_{\\delta_n}=n^{-1}\\sum_{i=1}^n\\widehat\\varphi_{\\delta_n,i}\\).",
+      "free_symbols": [
+        "n",
+        "kappamax",
+        "bn",
+        "binCenter",
+        "basis",
+        "localCoef",
+        "X",
+        "A",
+        "gprop",
+        "mu1",
+        "mu0",
+        "epsilon",
+        "etaHat",
+        "e",
+        "phi",
+        "delta",
+        "varphiHat",
+        "psiHat"
+      ],
+      "inputs": [
+        "O",
+        "delta",
+        "n"
+      ]
+    },
+    {
+      "id": "def:crossfit-score-variance",
+      "name": "Cross-fitted empirical score variance",
+      "construction": "\\(\\widehat\\sigma_n^2=n^{-1}\\sum_{i=1}^n\\{\\widehat\\varphi_{\\delta_n,i}-\\widehat\\psi_{\\delta_n}\\}^2\\), with \\(\\widehat\\varphi_{\\delta_n,i}\\) evaluated using the nuisance fits trained off the fold containing unit \\(i\\).",
+      "free_symbols": [
+        "sigmaHat",
+        "n",
+        "varphiHat",
+        "delta",
+        "psiHat",
+        "etaHat",
+        "O"
+      ],
+      "inputs": [
+        "varphiHat",
+        "psiHat",
+        "n"
+      ]
+    },
+    {
+      "id": "def:empirical-tail-mark-calibration",
+      "name": "Empirical tail and joint-mark calibration",
+      "construction": "With \\(t_n=n^{-\\beta}\\), define \\(\\widehat T(t)=n^{-1}\\sum_iA_i\\mathbf1\\{\\widehat e_i\\leq t\\}\\), \\(\\widehat\\alpha=\\log\\{\\widehat T(2t_n)/\\widehat T(t_n)\\}/\\log2\\), \\(\\widehat K=\\widehat T(t_n)/t_n^{\\widehat\\alpha}\\), \\(\\widehat a_n=(n\\widehat K)^{1/\\widehat\\alpha}\\), and \\(\\widehat H\\) as the empirical law of \\((Y_i-\\widehat\\mu_1(X_i),\\widehat\\mu_1(X_i)-\\widehat\\mu_0(X_i))\\) among \\(A_i=1\\) and \\(\\widehat e_i\\leq t_n\\).",
+      "free_symbols": [
+        "tn",
+        "beta",
+        "n",
+        "That",
+        "A",
+        "etaHat",
+        "alphaHat",
+        "KHat",
+        "anHat",
+        "HHat",
+        "Y",
+        "X",
+        "mu1",
+        "mu0"
+      ],
+      "inputs": [
+        "O",
+        "etaHat",
+        "tn"
+      ]
+    },
+    {
+      "id": "def:branchwise-intervals",
+      "name": "Separated-regime confidence intervals",
+      "construction": "Let \\(\\widehat q\\) be obtained by deterministic one-dimensional Fourier inversion of the plug-in Lévy exponent with certified total numerical error \\(\\epsilon_n^{\\mathrm{inv}}\\to0\\). Set \\(C_n^{\\mathrm G}(\\gamma)=[\\widehat\\psi_{\\delta_n}\\pm z_{1-\\gamma/2}\\widehat\\sigma_n/\\sqrt n]\\), \\(C_n^{\\mathrm C}(\\gamma)=[\\widehat\\psi_{\\delta_n}-(\\widehat a_n/n)\\widehat q(1-\\gamma/2),\\widehat\\psi_{\\delta_n}-(\\widehat a_n/n)\\widehat q(\\gamma/2)]\\), and define \\(C_n^{\\mathrm S}(\\gamma)\\) by the same formula using the plug-in stable endpoint exponent.",
+      "free_symbols": [
+        "CIg",
+        "gamma",
+        "zquant",
+        "qHat",
+        "psiHat",
+        "delta",
+        "sigmaHat",
+        "n",
+        "CIc",
+        "anHat",
+        "qfun",
+        "CIs",
+        "invError"
+      ],
+      "inputs": [
+        "psiHat",
+        "sigmaHat",
+        "alphaHat",
+        "HHat",
+        "anHat",
+        "hHat",
+        "gamma"
+      ]
+    },
+    {
+      "id": "def:adaptation-handle",
+      "name": "Transition-experiment and ordered-modulus handle",
+      "construction": "Start from the estimated hardening coordinate \\(\\widehat h_n\\) and the fitted characteristic exponent, derive the joint local experiment when \\(h_n\\) approaches either branch boundary at the normalizer-estimation resolution, and compute the ordered modulus between adjacent tail and boundary-mark classes to choose a single calibrated acceptance region.",
+      "free_symbols": [
+        "hHat",
+        "h",
+        "n",
+        "alphaHat",
+        "HHat"
+      ],
+      "inputs": [
+        "That",
+        "alphaHat",
+        "HHat",
+        "hHat"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:oracle-hardening-frontier",
+      "kind": "theorem",
+      "statement": "Uniformly over \\(P\\in\\mathcal P_{\\mathrm{RV}}\\): if \\(h_n\\to0\\), then \\(\\sum_{i=1}^n\\phi_{\\delta_n}(O_i)/(\\sqrt n\\sigma_n)\\Rightarrow N(0,1)\\); if \\(h_n\\to h_0\\in(0,\\infty)\\), then \\(a_n^{-1}\\sum_{i=1}^n\\phi_{\\delta_n}(O_i)\\Rightarrow L_{\\kappa,H,h_0}\\); and if \\(h_n\\to\\infty\\), then \\(a_n^{-1}\\sum_{i=1}^n\\phi_{\\delta_n}(O_i)\\Rightarrow S_{\\alpha,H}\\). Uniformity is branchwise over compact parameter sets separated from the two transition boundaries. This is a strict multiplier-domain extension of Kennedy's fixed-compact Gaussian result because it includes diverging \\(\\delta_n\\) and two non-Gaussian branches.",
+      "free_symbols": [
+        "PRV",
+        "P",
+        "h",
+        "hlimit",
+        "n",
+        "phi",
+        "delta",
+        "O",
+        "sigma",
+        "an",
+        "Lcritical",
+        "kappa",
+        "H",
+        "Lstable",
+        "alpha"
+      ],
+      "depends_on": [
+        "ass:hardening",
+        "def:rv-class",
+        "def:oracle-score",
+        "def:hardening-normalizer",
+        "def:critical-law",
+        "def:stable-law"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem locates the exact stochastic frontier at which a positivity-robust incremental mean acquires weak-overlap non-Gaussian uncertainty.",
+      "gap": "Kennedy2019Incremental stops at fixed compact multipliers, while MaWang2020RobustIPW varies trimming for a fixed target and therefore has neither the moving centering nor the IPSI contrast mark.",
+      "consumer": "It determines when the Gaussian approximation in \\(\\mathtt{npcausal::ipsi}\\) must be replaced as analysts extend odds shifts beyond a bounded range."
+    },
+    {
+      "id": "prop:contrast-extinction",
+      "kind": "proposition",
+      "statement": "For every \\(h_0\\in(0,\\infty)\\), the absolute \\(\\Lambda\\)-mass of the propensity-path component is \\(\\int |h_0u/(1+h_0s)^2|\\,d\\Lambda=\\alpha\\operatorname{Beta}(1+\\kappa,1-\\kappa)E_H|u|\\,h_0^{-\\kappa}\\). Hence this component is absent at a finite critical coordinate if and only if \\(u=0\\) \\(H\\)-almost surely; if \\(E_H|u|>0\\), it remains strictly positive for every finite \\(h_0\\) and vanishes only at the stable endpoint \\(h_0\\to\\infty\\). Moreover \\(\\int|g_{h_0}(s,r,u)-r/s|\\,d\\Lambda=O(h_0^{-\\kappa})\\).",
+      "free_symbols": [
+        "hlimit",
+        "H",
+        "gh",
+        "Lambda",
+        "kappa",
+        "alpha"
+      ],
+      "depends_on": [
+        "def:critical-law",
+        "def:stable-law",
+        "thm:oracle-hardening-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "This prevents invalid residual-only critical calibration and identifies precisely when the extra causal-policy mark can be ignored.",
+      "gap": "Neither Kennedy2019Incremental nor the scalar boundary laws in MaWang2020RobustIPW characterize equality of these marked Lévy pushforwards.",
+      "consumer": "Software can use the criterion to decide whether a simpler stable-mark approximation is legitimate at a finite hardening coordinate."
+    },
+    {
+      "id": "prop:c2-inclusion",
+      "kind": "proposition",
+      "statement": "Under the declared primitive envelope \\(B\\geq1\\), the conditional Bernoulli support \\(\\{0,1\\}\\) lies in \\([-B,B]\\). There exist common \\(c_-\\), \\(c_+\\), \\(\\underline t\\), \\(C_{\\mathrm{tail}}\\), \\(C_{\\mathrm{mark}}\\), and \\(v_*\\), depending only on the primitive class constants, such that every \\(P\\in\\mathcal P_{C^2}\\) belongs to \\(\\mathcal P_{\\mathrm{RV}}\\), with \\(c=\\ell(0)/\\{\\kappa g(0)^\\kappa\\}\\), second-order exponent \\(\\rho=1\\), and \\(H\\) equal to the boundary law of the Bernoulli treated residual paired with \\(\\mu_1(0)-\\mu_0(0)\\).",
+      "free_symbols": [
+        "P",
+        "PCtwo",
+        "PRV",
+        "c",
+        "cmin",
+        "cmax",
+        "tmin",
+        "Ctail",
+        "Cmark",
+        "ell",
+        "kappa",
+        "gprop",
+        "rho",
+        "H",
+        "mu1",
+        "mu0",
+        "vstar",
+        "epsilon",
+        "B"
+      ],
+      "depends_on": [
+        "def:c2-class",
+        "def:rv-class"
+      ],
+      "status": "to-prove",
+      "justification": "The inclusion proves that the explicit feasible model is nonempty and genuinely instantiates the marked regular-variation class rather than assuming membership.",
+      "gap": "The published weak-overlap papers impose tail conditions directly; they do not derive the required joint IPSI boundary mark from a primitive nonparametric covariate model.",
+      "consumer": "The proposition makes the early learner and calibration tests executable on a transparent beta-type design with binary outcomes."
+    },
+    {
+      "id": "thm:crossfit-oracle-equivalence",
+      "kind": "theorem",
+      "statement": "Uniformly over \\(P\\in\\mathcal P_{C^2}\\), the local-linear construction satisfies \\(\\|\\widehat e/e-1\\|_\\infty+\\|\\widehat\\mu_0-\\mu_0\\|_\\infty+\\|\\widehat\\mu_1-\\mu_1\\|_\\infty=O_P(r_n)\\), with \\(r_n=(\\log n/n)^{2/(5+\\kappa_+)}\\), and its centered fitted score differs from the centered oracle score by \\(o_P(\\sigma_n/\\sqrt n)\\) when \\(h_n\\to0\\) and by \\(o_P(a_n/n)\\) when \\(h_n\\) is bounded away from zero, including \\(h_n\\to\\infty\\). On every separated Gaussian sequence \\(h_n\\leq\\eta_n\\to0\\), the explicit empirical score variance satisfies \\(\\widehat\\sigma_n/\\sigma_n\\to_P1\\). Consequently \\(\\widehat\\psi_{\\delta_n}\\) inherits every branch of Theorem 1 without an assumed final remainder.",
+      "free_symbols": [
+        "P",
+        "PCtwo",
+        "etaHat",
+        "e",
+        "mu0",
+        "mu1",
+        "rn",
+        "n",
+        "kappamax",
+        "sigma",
+        "sigmaHat",
+        "etaSep",
+        "h",
+        "an",
+        "psiHat",
+        "delta"
+      ],
+      "depends_on": [
+        "def:c2-class",
+        "prop:c2-inclusion",
+        "def:local-linear-one-step",
+        "def:crossfit-score-variance",
+        "def:oracle-score",
+        "def:hardening-normalizer",
+        "thm:oracle-hardening-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The result turns the point-process law into a feasible nonparametric estimator and supplies the early kill test for the proposal.",
+      "gap": "Ordinary DML controls fixed finite-variance scores in unweighted \\(L_2\\) norms; HiranoImbensRidder2003 and MaWang2020RobustIPW use regular or parametric first steps rather than relative-error boundary learning.",
+      "consumer": "It gives a checkable learner implementation for the binary nuMoM2b outcome and a reference path for extending \\(\\mathtt{npcausal::ipsi}\\)."
+    },
+    {
+      "id": "thm:feasible-separated-coverage",
+      "kind": "theorem",
+      "statement": "Choose \\(t_n=n^{-\\beta}\\) so that \\(nT(t_n)\\to\\infty\\) and \\(\\log n\\{r_n+t_n^\\rho+[nT(t_n)]^{-1/2}\\}\\to0\\). Uniformly over \\(P\\in\\mathcal P_{C^2}\\), the empirical calibration obeys \\(\\widehat a_n/a_n\\to_P1\\) and \\(d_{\\mathrm{BL}}(\\widehat H,H)\\to_P0\\). If \\(h_n\\leq\\eta_n\\to0\\), then the cross-fitted empirical variance obeys \\(\\widehat\\sigma_n/\\sigma_n\\to_P1\\) and \\(P\\{\\psi_{\\delta_n}\\in C_n^{\\mathrm G}(\\gamma)\\}=1-\\gamma+o(1)\\); if \\(h_n\\in[h_-,h_+]\\subset(0,\\infty)\\), then \\(P\\{\\psi_{\\delta_n}\\in C_n^{\\mathrm C}(\\gamma)\\}=1-\\gamma+o(1)\\); and if \\(h_n\\geq M_n\\to\\infty\\), then \\(P\\{\\psi_{\\delta_n}\\in C_n^{\\mathrm S}(\\gamma)\\}=1-\\gamma+o(1)\\). Each remainder is uniform within its stated separated branch and includes score replacement, variance estimation in the Gaussian branch, tail and mark estimation, normalizer error, anti-concentration, and certified inversion error. The critical branch strictly extends Kennedy's multiplier-bootstrap coverage beyond a fixed compact multiplier set.",
+      "free_symbols": [
+        "tn",
+        "beta",
+        "n",
+        "T",
+        "rn",
+        "rho",
+        "P",
+        "PCtwo",
+        "anHat",
+        "an",
+        "HHat",
+        "H",
+        "dBL",
+        "h",
+        "etaSep",
+        "hLower",
+        "hUpper",
+        "MSep",
+        "psi",
+        "delta",
+        "CIg",
+        "sigmaHat",
+        "sigma",
+        "CIc",
+        "CIs",
+        "gamma",
+        "invError"
+      ],
+      "depends_on": [
+        "def:c2-class",
+        "def:empirical-tail-mark-calibration",
+        "def:crossfit-score-variance",
+        "def:branchwise-intervals",
+        "prop:contrast-extinction",
+        "thm:crossfit-oracle-equivalence"
+      ],
+      "status": "to-prove",
+      "justification": "This is the publishable inferential kernel: a non-Gaussian hardening limit is operational only when its unknown asymmetric quantiles can be estimated with honest coverage.",
+      "gap": "Kennedy2019Incremental covers fixed-index Gaussian processes; HeilerKazak2021Irregular and MaWang2020RobustIPW calibrate fixed causal targets without a two-component estimated boundary mark or moving-target normalizer.",
+      "consumer": "The result supplies regime-valid uncertainty for harder odds shifts in the Naimi et al. vegetable--preeclampsia analysis while leaving its reported bounded-range conclusions untouched."
+    },
+    {
+      "id": "thm:ambient-gaussian-efficiency",
+      "kind": "theorem",
+      "statement": "Fix \\(P\\in\\mathcal P_{\\mathrm{RV}}\\) and a sequence with \\(h_n\\to0\\). Along the dominated local paths \\(dP_{n,u}/dP=1+u\\phi_{\\delta_n}/(\\sqrt n\\sigma_n)\\), uniformly for \\(u\\) in compact sets, the log-likelihood ratio is \\(u\\sum_{i=1}^n\\phi_{\\delta_n}(O_i)/(\\sqrt n\\sigma_n)-u^2/2+o_P(1)\\) and \\(\\sqrt n\\{\\psi_{\\delta_n}(P_{n,u})-\\psi_{\\delta_n}(P)\\}/\\sigma_n=u+o(1)\\). Oracle pointwise bound over \\(\\mathcal P_{\\mathrm{RV}}\\): every estimator regular in this ambient triangular experiment has a convolution factor \\(N(0,1)\\), and the oracle one-step estimator \\(\\widetilde\\psi_{\\delta_n}\\) attains the bound. Feasible attainment on \\(\\mathcal P_{C^2}\\): if in addition \\(P\\in\\mathcal P_{C^2}\\), then the cross-fitted estimator \\(\\widehat\\psi_{\\delta_n}\\) is regular in the same pointwise experiment and attains the bound.",
+      "free_symbols": [
+        "PRV",
+        "P",
+        "Plocal",
+        "uLocal",
+        "h",
+        "n",
+        "phi",
+        "O",
+        "delta",
+        "sigma",
+        "psi",
+        "psiOracleHat",
+        "PCtwo",
+        "psiHat"
+      ],
+      "depends_on": [
+        "def:rv-class",
+        "def:oracle-score",
+        "def:oracle-one-step",
+        "def:hardening-normalizer",
+        "thm:crossfit-oracle-equivalence"
+      ],
+      "status": "to-prove",
+      "justification": "A moving functional requires its own local experiment; the result certifies that the Gaussian normalization is an efficiency frontier rather than a convenient CLT scale.",
+      "gap": "Kennedy2019Incremental gives a fixed-functional efficiency bound, and KhanTamer2010Irregular diagnoses inverse-weight irregularity without a drifting IPSI tangent experiment.",
+      "consumer": "It provides the benchmark against which alternative regular estimators for moderate but increasing odds shifts can be compared."
+    },
+    {
+      "id": "prop:fixed-multiplier-reduction",
+      "kind": "proposition",
+      "statement": "If \\(\\delta_n\\equiv\\delta_0\\in(0,\\infty)\\) and \\(E_P[\\phi_{\\delta_0}(O)^2]\\in(0,\\infty)\\), then the target and score reduce to Kennedy's point-treatment incremental mean and efficient influence function, and the Gaussian interval reduces to the pointwise version of Kennedy's fixed-compact multiplier procedure.",
+      "free_symbols": [
+        "delta",
+        "deltafixed",
+        "P",
+        "phi",
+        "O",
+        "psi",
+        "CIg"
+      ],
+      "depends_on": [
+        "def:incremental-intervention",
+        "def:oracle-score",
+        "def:branchwise-intervals"
+      ],
+      "status": "to-prove",
+      "justification": "The reduction is the required sanity check and prevents the hardening theory from changing the established estimand at ordinary multipliers.",
+      "gap": "This is a compatibility corollary rather than a novelty claim; it pins the new notation to Kennedy2019Incremental exactly.",
+      "consumer": "Existing bounded-multiplier analyses retain their familiar pointwise Gaussian interpretation."
+    },
+    {
+      "id": "oeq:transition-adaptation",
+      "kind": "openendedquestion",
+      "statement": "Can a single data-driven confidence set based on the transition-experiment and ordered-modulus handle cover \\(\\psi_{\\delta_n}\\) uniformly over local sequences approaching both hardening boundaries, with oracle-order expected length on each separated branch; or must every honest procedure pay a logarithmic length factor determined by simultaneous uncertainty in \\(\\kappa\\), \\(\\rho\\), and \\(H\\)?",
+      "free_symbols": [
+        "psi",
+        "delta",
+        "n",
+        "kappa",
+        "rho",
+        "H"
+      ],
+      "depends_on": [
+        "def:adaptation-handle",
+        "thm:feasible-separated-coverage"
+      ],
+      "status": "to-prove",
+      "justification": "Separated-regime validity does not answer what an analyst should do when the estimated normalizer places the multiplier near a transition.",
+      "gap": "HeilerKazak2021Irregular adapts between regular and stable laws for a fixed target, whereas this problem has two transitions, a moving target, and an intermediate marked family.",
+      "consumer": "A resolution would permit one automatic hardening diagnostic and interval in software without user-supplied regime labels."
+    }
+  ],
+  "sampling_model": {
+    "design": "Independent identical superpopulation sampling under \\(P\\in\\mathcal P_{\\mathrm{RV}}\\), with feasible results on \\(\\mathcal P_{C^2}\\).",
+    "units": "Observed units \\(O_i=(X_i,A_i,Y_i)\\), \\(i=1,\\ldots,n\\).",
+    "treatment": "Binary observational treatment with \\(P(A=1\\mid X)=e(X)\\) and a deterministic incremental odds multiplier \\(\\delta_n\\to\\infty\\).",
+    "overlap": "One-sided weak support with \\(P\\{e(X)\\leq t\\}=ct^\\kappa\\{1+O(t^\\rho)\\}\\), where \\(0<\\kappa_-\\leq\\kappa\\leq\\kappa_+<1\\).",
+    "nuisance_estimation": "Fixed-fold cross-fitted boundary local-linear estimates of \\(g\\), \\(\\mu_0\\), and \\(\\mu_1\\), an empirical variance of the held-out fitted uncentered scores, and empirical tail and joint-mark calibration."
+  },
+  "estimand_functional": "\\(\\widehat\\psi_{\\delta_n}=n^{-1}\\sum_{i=1}^n\\widehat\\varphi_{\\delta_n,-k(i)}(O_i)\\), with branch scale \\(\\sqrt n/\\widehat\\sigma_n\\) or \\(n/\\widehat a_n\\) according to \\(\\widehat h_n=\\delta_n/\\widehat a_n\\)",
+  "target_estimand": "\\(\\psi_{\\delta_n}(P)=E_P[\\mu_0(X)+\\delta_ne(X)\\{\\mu_1(X)-\\mu_0(X)\\}/\\{1+(\\delta_n-1)e(X)\\}]\\)",
+  "bibliography": [
+    {
+      "key": "Kennedy2019Incremental",
+      "citation": "Kennedy, E. H. (2019). Nonparametric causal effects based on incremental propensity score interventions. Journal of the American Statistical Association 114, 645--656. \\(\\mathrm{doi}:10.1080/01621459.2017.1422737\\)."
+    },
+    {
+      "key": "MaWang2020RobustIPW",
+      "citation": "Ma, X. and Wang, J. (2020). Robust inference using inverse probability weighting. Journal of the American Statistical Association. arXiv:1810.11397."
+    },
+    {
+      "key": "HeilerKazak2021Irregular",
+      "citation": "Heiler, P. and Kazak, E. (2021). Valid inference for treatment effect parameters under irregular identification and many extreme propensity scores. Journal of Econometrics 222, 1083--1108. \\(\\mathrm{doi}:10.1016/j.jeconom.2020.03.025\\)."
+    },
+    {
+      "key": "ChernozhukovEtAl2018DML",
+      "citation": "Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. The Econometrics Journal 21, C1--C68. arXiv:1608.00060."
+    },
+    {
+      "key": "HiranoImbensRidder2003",
+      "citation": "Hirano, K., Imbens, G. W., and Ridder, G. (2003). Efficient estimation of average treatment effects using the estimated propensity score. Econometrica 71, 1161--1189. \\(\\mathrm{doi}:10.1111/1468-0262.00442\\)."
+    },
+    {
+      "key": "KhanTamer2010Irregular",
+      "citation": "Khan, S. and Tamer, E. (2010). Irregular identification, support conditions, and inverse weight estimation. Econometrica 78, 2021--2042. \\(\\mathrm{doi}:10.3982/ECTA7372\\)."
+    },
+    {
+      "key": "NaimiEtAl2021TimeFixed",
+      "citation": "Naimi, A. I., Rudolph, J. E., Kennedy, E. H., Cartus, A., Kirkpatrick, S. I., Haas, D. M., Simhan, H., and Bodnar, L. M. (2021). Incremental propensity score effects for time-fixed exposures. Epidemiology 32, 202--208. \\(\\mathrm{doi}:10.1097/EDE.0000000000001315\\)."
+    },
+    {
+      "key": "BonviniEtAl2021Review",
+      "citation": "Bonvini, M., McClean, A., Branson, Z., and Kennedy, E. H. (2021). Incremental causal effects: an introduction and review. arXiv:2110.10532."
+    },
+    {
+      "key": "MaSantAnnaSasakiUra2023WeakOverlap",
+      "citation": "Ma, Y., Sant'Anna, P. H. C., Sasaki, Y., and Ura, T. (2023). Doubly robust estimators with weak overlap. arXiv:2304.08974."
+    },
+    {
+      "key": "HillChaudhuri2025HeavyTail",
+      "citation": "Hill, J. B. and Chaudhuri, S. (2025). Heavy tail robust estimation and inference for average treatment effects. Econometric Reviews. arXiv:2412.08458."
+    },
+    {
+      "key": "SchindlShenKennedy2026Continuous",
+      "citation": "Schindl, K., Shen, S., and Kennedy, E. H. (2026). Incremental effects for continuous exposures. arXiv:2409.11967, version 3."
+    },
+    {
+      "key": "deHaanFerreira2006",
+      "citation": "de Haan, L. and Ferreira, A. (2006). Extreme Value Theory: An Introduction. Springer."
+    },
+    {
+      "key": "CaiLow2004Adaptation",
+      "citation": "Cai, T. T. and Low, M. G. (2004). An adaptation theory for nonparametric confidence intervals. Annals of Statistics 32, 1805--1840. \\(\\mathrm{doi}:10.1214/009053604000000049\\)."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "Kennedy2019Incremental",
+      "comparator_claim": "The estimator converges in distribution to a Gaussian process on a bounded multiplier set.",
+      "matched_by": "Theorem 3",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "MaWang2020RobustIPW",
+      "comparator_claim": "Under moderate trimming the asymptotic distribution is infinitely divisible.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HeilerKazak2021Irregular",
+      "comparator_claim": "Treatment effect parameter estimates converge in distribution to alpha-stable random variables.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovEtAl2018DML",
+      "comparator_claim": "The DML estimators are approximately linear and centered Gaussian.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SchindlShenKennedy2026Continuous",
+      "comparator_claim": "The best possible root mean squared error scales with an effective sample size of \\(n/\\delta\\).",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HillChaudhuri2025HeavyTail",
+      "comparator_claim": "Tail trimming with estimated bias produces asymptotically normal inference under limited overlap.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Binary incremental propensity interventions avoid a fixed positivity condition only while their odds multiplier remains moderate. On a second-order regularly varying lower-propensity class, the cross-fitted incremental-mean score instead has a hardening frontier indexed by \\(h_n=\\delta_n/a_n\\): a Gaussian law below the frontier, a compensated marked infinitely-divisible law at it, and a residual stable law above it. The critical jump retains both the treated outcome residual and the propensity-path treatment contrast. The project derives these laws, proves oracle replacement and relative consistency of an explicit cross-fitted score-variance estimator on a nonparametric \\(C^2\\) class, estimates the tail normalizer and joint boundary marks, certifies numerical Lévy inversion, and establishes branchwise uniform coverage. The Gaussian branch carries an oracle ambient pointwise convolution bound over \\(\\mathcal P_{\\mathrm{RV}}\\), with feasible attainment asserted only on \\(\\mathcal P_{C^2}\\).",
+  "project_justification": {
+    "gap": "Published IPSI inference holds over fixed compact multiplier sets, while published weak-overlap stable and infinitely-divisible results concern fixed inverse-weight targets or externally trimmed scores. Neither literature handles a moving binary incremental target whose score itself changes at the rare-treatment scale.",
+    "niche": "The missing object is a feasible marked-law calibration theorem: the finite-positive branch depends jointly on a residual mark and a policy-path contrast, and both its normalizer and its asymmetric quantiles must be estimated near an unknown propensity boundary.",
+    "fill": "The paper constructs the three-regime law, a concrete cross-fitted boundary learner, an explicit empirical variance of held-out fitted scores, empirical tail and joint-mark estimates, and confidence intervals whose uniform coverage includes nuisance and variance replacement, logarithmic normalizer sensitivity, anti-concentration, and deterministic inversion error."
+  },
+  "related_work": "Kennedy2019Incremental supplies the exact incremental estimand, its propensity-dependent efficient influence function, and Gaussian-process inference on bounded multiplier sets; Theorem 3 strictly enlarges that coverage domain to diverging multipliers in separated regimes, while Theorem 4 gives the distinct ambient pointwise efficiency statement. MaWang2020RobustIPW supplies the regular-variation and compensation template for trimmed fixed-target inverse weighting, but its scalar boundary mark cannot represent the IPSI propensity-path contrast. HeilerKazak2021Irregular establishes stable causal-score limits and warns that the ordinary bootstrap fails, informing the direct non-Gaussian calibration in Theorem 3. ChernozhukovEtAl2018DML provides the foldwise orthogonal expansion rebuilt in tail-weighted and truncated norms in Theorem 2. HiranoImbensRidder2003 motivates the concrete growing-local-basis propensity fit, while the boundary information calculation targets relative error. SchindlShenKennedy2026Continuous shows that unbounded tilts matter for continuous exposures, but its effective-sample-size and edge-dose analysis has a different localization mechanism. NaimiEtAl2021TimeFixed provides the writing and application exemplar: its nuMoM2b analysis uses odds multipliers from \\(0.20\\) to \\(5.0\\), and Theorem 3 governs extensions toward increasingly forceful odds shifts rather than revising that bounded-range analysis.",
+  "technical_internal_limitation": "The branchwise theorem deliberately excludes automatic classification on local sequences at the two transition boundaries. The critical Lévy inversion must carry deterministic quadrature, frequency-truncation, spatial-tail, and aliasing certificates; numerical grid stability alone is not counted as proof. Theorem 4 is pointwise in the full dominated observed-law experiment: its oracle convolution bound applies over \\(\\mathcal P_{\\mathrm{RV}}\\), its feasible-attainment clause applies only at base laws in \\(\\mathcal P_{C^2}\\), and neither clause is a minimax claim within the smaller \\(C^2\\) tail class.",
+  "honest_scope": "The oracle jump map, score-bias algebra, hard-endpoint reduction, local-linear rate route, empirical score-variance route, and smoothing inequality are verified presolve evidence, not established results. The main open proof is Theorem 3: uniform plug-in quantile coverage after score and variance replacement, random tail-shell estimation, logarithmically sensitive normalizer calibration, joint-mark estimation, and certified inversion. Theorem 4 gives an oracle pointwise ambient convolution bound over \\(\\mathcal P_{\\mathrm{RV}}\\); feasible attainment is limited to \\(\\mathcal P_{C^2}\\). The fully adaptive transition problem remains Open-ended Question 1. Fixed multipliers reduce to Kennedy's result, and neither endpoint \\(\\kappa=0\\) nor \\(\\kappa=1\\), unbounded outcomes, longitudinal treatment, or simultaneous bands over an unbounded multiplier curve are claimed.",
+  "seeds": [
+    "seed:feasible-marked-quantiles",
+    "seed:oracle-three-regime-law",
+    "seed:contrast-extinction-frontier",
+    "seed:ambient-triangular-efficiency",
+    "seed:tail-weighted-learner-frontier",
+    "seed:transition-adaptive-intervals",
+    "seed:retuned-resampling-frontier",
+    "seed:hardening-policy-regret",
+    "seed:symmetry-inversion"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:feasible-marked-quantiles",
+      "title": "Feasible marked-Lévy quantiles for hardening binary incremental means",
+      "anchor": "Kennedy2019Incremental, Theorems 3--4 and Appendix Sections 8.4--8.5; MaWang2020RobustIPW, Theorem 1 and Section 3.3; HeilerKazak2021Irregular, accepted-manuscript sections on stable limits and adaptive inference",
+      "proof_boundary": "Kennedy's multiplier coupling uses a Lipschitz score class on a fixed compact multiplier set. The first changed step is the bounded-envelope empirical-process approximation: when \\(\\delta_n\\) diverges, its replacement is tail-weighted score coupling plus estimation of an asymmetric marked Lévy exponent.",
+      "destination_search": "Exact searches for binary incremental propensity interventions combined with diverging multipliers, regular variation, stable limits, or marked-Lévy inversion returned fixed-index IPSI, fixed-target IPW, and continuous-exposure tilts, but no binary hardening coverage theorem.",
+      "motif": "M11(c)+M8",
+      "target_tier": "field",
+      "rank": 1,
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 24
+      },
+      "red_team": "A cynical referee will call this Ma and Wang's regime-robust IPW inference with Kennedy's score substituted.",
+      "rebuttal": "The critical jump is not the fixed-target IPW mark: it jointly contains the treated residual and the derivative of a propensity-dependent moving intervention, while feasible calibration must estimate that joint boundary mark and a logarithmically sensitive normalizer.",
+      "decision": "survives and selected"
+    },
+    {
+      "id": "seed:oracle-three-regime-law",
+      "title": "Gaussian, marked infinitely-divisible, and stable limits along the binary IPSI hardening scale",
+      "anchor": "Kennedy2019Incremental, Corollary 1 and Theorem 2; MaWang2020RobustIPW, Lemma 1 and Theorem 1",
+      "proof_boundary": "Kennedy's point-treatment score is finite-variance for each fixed multiplier, while Ma and Wang vary an external trimming threshold for a fixed target. The first changed step is triangular marked-point-process convergence for a score whose target and propensity derivative both move with \\(\\delta_n\\).",
+      "destination_search": "The binary IPSI plus regular-variation search found no paper deriving a finite-positive hardening law with a two-coordinate boundary mark.",
+      "motif": "M11(c)",
+      "target_tier": "field",
+      "rank": 2,
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4,
+        "total": 23
+      },
+      "red_team": "The three regimes are immediate from standard point-process theory and Ma and Wang's Theorem 1.",
+      "rebuttal": "Standard machinery does not determine the changing IPSI jump map, its compensation, or the contrast term that remains first order at finite positive \\(h\\).",
+      "decision": "survives and incorporated"
+    },
+    {
+      "id": "seed:contrast-extinction-frontier",
+      "title": "Necessary and sufficient disappearance of the propensity-path contrast mark",
+      "anchor": "Kennedy2019Incremental, Lemma 4 and Theorem 2",
+      "proof_boundary": "Kennedy's chain-rule calculation creates the propensity-path score term. The first changed step is to push that term through the lower-propensity point process and characterize exactly when its Lévy measure contribution is zero.",
+      "destination_search": "Searches for propensity-path marks or contrast extinction in incremental-effect stable laws returned no matching result.",
+      "motif": "M6+M11(c)",
+      "target_tier": "subfield",
+      "rank": 4,
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 5,
+        "feasibility": 5,
+        "consumer_value": 3,
+        "total": 22
+      },
+      "red_team": "The contrast disappears by inspection after sending \\(h\\) to infinity.",
+      "rebuttal": "Endpoint disappearance is easy, but necessity at every finite positive \\(h\\) is a statement about equality of Lévy measures and rules out residual-only critical calibration except under boundary contrast degeneracy.",
+      "decision": "survives and incorporated"
+    },
+    {
+      "id": "seed:ambient-triangular-efficiency",
+      "title": "Pointwise convolution bound for the drifting IPSI functional in the Gaussian branch",
+      "anchor": "Kennedy2019Incremental, Theorem 2; KhanTamer2010Irregular, treatment-effect support example",
+      "proof_boundary": "Substitution of \\(\\delta_n\\) into a fixed-functional efficiency bound is invalid. The first changed step is to verify quadratic-mean differentiability and the moving target derivative on a least-favorable triangular path.",
+      "destination_search": "Searches for triangular LAN or convolution bounds for diverging binary incremental odds multipliers found continuous-treatment tilt bounds but no binary weak-overlap experiment.",
+      "motif": "M11(b)",
+      "target_tier": "field",
+      "rank": 6,
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 3,
+        "total": 20
+      },
+      "red_team": "Kennedy's efficient influence function already gives the bound after replacing \\(\\delta\\) by \\(\\delta_n\\).",
+      "rebuttal": "A drifting derivative and diverging score variance require an explicit triangular likelihood expansion; fixed-parameter pathwise differentiability alone does not imply a convolution theorem.",
+      "decision": "survives and incorporated"
+    },
+    {
+      "id": "seed:tail-weighted-learner-frontier",
+      "title": "Necessary and sufficient tail-band learner conditions for oracle replacement",
+      "anchor": "ChernozhukovEtAl2018DML, Theorem 3.1 and Appendix A.12; Kennedy2019Incremental, Theorem 3 and Appendix 8.4",
+      "proof_boundary": "DML conditions control ordinary \\(L_2(P)\\) products and Kennedy uses a bounded multiplier set. The first changed step is foldwise conditioning in the moving singular norm generated near \\(e(X)\\asymp a_n^{-1}\\).",
+      "destination_search": "Searches for cross-fitted IPSI under regular variation found fixed-index DML and parametric estimated-weight stable theory, but not a nonparametric relative-error learner theorem across all hardening regimes.",
+      "motif": "M11(a)+M7",
+      "target_tier": "field",
+      "rank": 3,
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "red_team": "This is an ordinary DML product-rate proof with weighted norms.",
+      "rebuttal": "The hard branch has no finite second moment and requires truncated-tail replacement rather than an \\(L_2\\) argument; a converse learner frontier is not supplied by DML.",
+      "decision": "survives as a secondary candidate; the sufficient concrete \\(C^2\\) route is incorporated and the converse is deferred"
+    },
+    {
+      "id": "seed:transition-adaptive-intervals",
+      "title": "Honest adaptation across both hardening transitions and unknown tail smoothness",
+      "anchor": "HeilerKazak2021Irregular, accepted-manuscript sections on adaptive inference and implementation; MaWang2020RobustIPW, Section 3.3",
+      "proof_boundary": "Existing adaptation holds a causal target fixed. The first changed step is regime classification when \\(h_n=\\delta_n/a_n\\) itself uses an estimated tail inverse and has nonvanishing error on local transition sequences.",
+      "destination_search": "No located procedure adapts simultaneously to a drifting binary IPSI score, an intermediate marked law, and second-order tail uncertainty.",
+      "motif": "M11(c)+M3",
+      "target_tier": "flagship",
+      "rank": 5,
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 21
+      },
+      "red_team": "One can pretest \\(h_n\\) and select among the three branchwise intervals.",
+      "rebuttal": "Local sequences near either boundary make pretest error first order; honest adaptation requires a new transition experiment or an ordered-modulus lower bound.",
+      "decision": "survives only as the first-class open-ended question"
+    },
+    {
+      "id": "seed:retuned-resampling-frontier",
+      "title": "Equivalence frontier for retuned \\(m\\)-out-of-\\(n\\) hardening resampling",
+      "anchor": "HeilerKazak2021Irregular, accepted-manuscript adaptive-resampling section; MaWang2020RobustIPW, Algorithm 2",
+      "proof_boundary": "Resampling at the original multiplier changes the critical coordinate. The first changed step is to transport the moving target and set \\(\\delta_m=\\delta_n(m/n)^{1/\\alpha}\\) while controlling tail-index error times \\(\\lvert\\log(m/n)\\rvert\\).",
+      "destination_search": "Searches found adaptive \\(m\\)-out-of-\\(n\\) inference for fixed treatment effects, but not resampling that preserves a moving incremental target's critical coordinate.",
+      "motif": "M2+M11(c)",
+      "target_tier": "field",
+      "rank": 7,
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 19
+      },
+      "red_team": "Retuning the multiplier is a one-line scaling correction to Heiler and Kazak.",
+      "rebuttal": "The resample must also re-center a different causal target and preserve a two-component marked law under estimated \\(\\alpha\\); these are first-order operations at the critical scale.",
+      "decision": "survives but is not selected because direct Lévy calibration has cleaner feasibility"
+    },
+    {
+      "id": "seed:hardening-policy-regret",
+      "title": "Weak-overlap regret for choosing an incremental odds multiplier",
+      "anchor": "Kennedy2019Incremental, Discussion, especially the displayed optimal incremental regime",
+      "proof_boundary": "The destination would replace estimation of a fixed \\(\\delta\\) by empirical maximization over a growing multiplier class. The first changed step is uniform value control over \\(\\delta\\leq\\Delta_n\\).",
+      "destination_search": "The search found a public positivity-free policy-learning manuscript that already studies incremental propensity-score policy classes, while the scalar multiplier problem risks an endpoint optimum without an added welfare cost.",
+      "motif": "M16+M11",
+      "target_tier": "field",
+      "rank": 8,
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 2,
+        "feasibility": 3,
+        "consumer_value": 3,
+        "total": 14
+      },
+      "red_team": "Without a substantively justified intervention cost, welfare is often monotone in the scalar multiplier and the policy problem is vacuous; related positivity-free policy learning is already public.",
+      "rebuttal": "No non-artificial cost or nondegenerate scalar decision frontier was found in the topic substrate.",
+      "decision": "dropped after the objection held"
+    },
+    {
+      "id": "seed:symmetry-inversion",
+      "title": "Permutation inversion for hardening incremental means",
+      "anchor": "HeilerKazak2021Irregular, Section 4 on resampling failure and repair",
+      "proof_boundary": "An M17 route would require an exact or approximately valid orbit for the causal score. The first changed step is constructing that orbit under observational exchangeability.",
+      "destination_search": "No assignment group, placebo panel, or block-exchangeable residual structure is supplied by the iid observational model.",
+      "motif": "M17",
+      "target_tier": "subfield",
+      "rank": 9,
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 1,
+        "consumer_value": 2,
+        "total": 11
+      },
+      "red_team": "Conditional exchangeability identifies the target but does not create the finite-sample symmetry needed for conformal or permutation validity.",
+      "rebuttal": "The objection holds without adding a randomized design or an artificial residual-symmetry model.",
+      "decision": "dropped after the obstruction held"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "seed:feasible-marked-quantiles",
+      "threads": [
+        "Kennedy2019Incremental proves an efficient score, cross-fitted weak convergence, and multiplier-bootstrap coverage only on a fixed compact multiplier set; Appendix 8.4 relies on a Lipschitz envelope bounded through the lower endpoint of that set.",
+        "MaWang2020RobustIPW uses regular variation, bias correction, and subsampling for a fixed IPW target across trimming regimes; its Theorem 1 supplies the nearest infinitely-divisible construction but not a propensity-dependent moving target or joint boundary mark.",
+        "HeilerKazak2021Irregular obtains stable IPW and doubly robust limits and an adaptive \\(m\\)-out-of-\\(n\\) bootstrap; its first steps are parametric and its law has no finite-positive hardening mark.",
+        "HillChaudhuri2025HeavyTail trims the realized feasible IPW score and bias-corrects it toward Gaussianity; it neither estimates a marked Lévy law nor studies IPSI."
+      ],
+      "subsumption_check": "No thread supplies uniform plug-in quantiles for the binary moving incremental mean. The nearest 2026 diverging-tilt paper, SchindlShenKennedy2026Continuous, treats continuous exposures and minimax rates rather than the binary weak-overlap marked phase transition."
+    },
+    {
+      "candidate": "seed:oracle-three-regime-law",
+      "threads": [
+        "Kennedy2019Incremental, Corollary 1 identifies the same point-treatment mean and Theorem 2 derives the propensity-path component of its efficient influence function.",
+        "MaWang2020RobustIPW, Lemma 1 pushes a conditional boundary law through an inverse weight and Theorem 1 derives Gaussian and infinitely-divisible trimming regimes.",
+        "BonviniEtAl2021Review surveys binary incremental effects, estimation, and positivity advantages without diverging-multiplier asymptotics.",
+        "SchindlShenKennedy2026Continuous permits an unbounded exponential tilt for a continuous exposure and derives an effective sample size, but its boundary localization and score are not the rare-treated binary mechanism."
+      ],
+      "subsumption_check": "The exact binary target--method pair remains unoccupied. In particular, no located source has the jump \\(h r/(1+hs)+h u/(1+hs)^2\\) or proves that only its second component disappears as \\(h\\to\\infty\\)."
+    },
+    {
+      "candidate": "seed:tail-weighted-learner-frontier",
+      "threads": [
+        "ChernozhukovEtAl2018DML proves centered Gaussian linearization from orthogonality and cross-fitting under ordinary moment and product-rate conditions; Appendix A.12 conditions on folds and then applies Lindeberg--Feller.",
+        "Kennedy2019Incremental derives the exact IPSI score remainder on a fixed multiplier domain.",
+        "HiranoImbensRidder2003 proves efficiency for inverse weighting with a fitted growing-series propensity under regular overlap.",
+        "MaSantAnnaSasakiUra2023WeakOverlap combines trimming with bias correction for a fixed target rather than replacing a moving, untrimmed IPSI score."
+      ],
+      "subsumption_check": "These results do not prove relative propensity error down to \\(e(X)\\asymp a_n^{-1}\\), the truncated-tail replacement needed when the score lacks a second moment, or empirical boundary-mark consistency with generated propensity coordinates."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Kennedy",
+      "year": 2019,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "Kennedy2019Incremental",
+      "one_line": "Corollary 1 identifies the point-treatment incremental mean; Theorems 2--4 give its efficient score and Gaussian inference on fixed compact multiplier sets.",
+      "relevant_to": "thm:oracle-hardening-frontier"
+    },
+    {
+      "author": "Ma and Wang",
+      "year": 2020,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "MaWang2020RobustIPW",
+      "one_line": "Theorem 1 derives Gaussian and infinitely-divisible limits as a trimming threshold moves relative to a regular-variation normalizer.",
+      "relevant_to": "thm:oracle-hardening-frontier"
+    },
+    {
+      "author": "Heiler and Kazak",
+      "year": 2021,
+      "venue": "Journal of Econometrics",
+      "bibkey": "HeilerKazak2021Irregular",
+      "one_line": "The accepted-manuscript sections on stable limits and adaptive inference give non-Gaussian treatment-effect limits and motivate regime-aware irregular inference.",
+      "relevant_to": "thm:feasible-separated-coverage"
+    },
+    {
+      "author": "Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, and Robins",
+      "year": 2018,
+      "venue": "The Econometrics Journal",
+      "bibkey": "ChernozhukovEtAl2018DML",
+      "one_line": "Theorem 3.1 and Appendix A.12 provide the fold-conditioning and orthogonal linearization template used for nuisance replacement.",
+      "relevant_to": "thm:crossfit-oracle-equivalence"
+    },
+    {
+      "author": "Hirano, Imbens, and Ridder",
+      "year": 2003,
+      "venue": "Econometrica",
+      "bibkey": "HiranoImbensRidder2003",
+      "one_line": "Growing-series propensity estimation can attain the semiparametric efficiency bound for regular average treatment-effect weighting.",
+      "relevant_to": "thm:crossfit-oracle-equivalence"
+    },
+    {
+      "author": "Khan and Tamer",
+      "year": 2010,
+      "venue": "Econometrica",
+      "bibkey": "KhanTamer2010Irregular",
+      "one_line": "Thin support links identification to nonregular inverse-weight estimation and slower rates.",
+      "relevant_to": "thm:ambient-gaussian-efficiency"
+    },
+    {
+      "author": "Schindl, Shen, and Kennedy",
+      "year": 2026,
+      "venue": "arXiv preprint",
+      "bibkey": "SchindlShenKennedy2026Continuous",
+      "one_line": "Unbounded exponential tilts for continuous exposures yield tilt-dependent efficiency and minimax rates.",
+      "relevant_to": "thm:oracle-hardening-frontier"
+    },
+    {
+      "author": "Naimi, Rudolph, Kennedy, Cartus, Kirkpatrick, Haas, Simhan, and Bodnar",
+      "year": 2021,
+      "venue": "Epidemiology",
+      "bibkey": "NaimiEtAl2021TimeFixed",
+      "one_line": "The nuMoM2b analysis reports IPSI estimates over odds multipliers from \\(0.20\\) to \\(5.0\\) in a visibly positivity-challenged application.",
+      "relevant_to": "thm:feasible-separated-coverage"
+    },
+    {
+      "author": "Bonvini, McClean, Branson, and Kennedy",
+      "year": 2021,
+      "venue": "arXiv review",
+      "bibkey": "BonviniEtAl2021Review",
+      "one_line": "The review covers fixed-multiplier incremental effects, positivity, estimation, and efficiency without a hardening limit theory.",
+      "relevant_to": "prop:fixed-multiplier-reduction"
+    },
+    {
+      "author": "Hill and Chaudhuri",
+      "year": 2025,
+      "venue": "Econometric Reviews",
+      "bibkey": "HillChaudhuri2025HeavyTail",
+      "one_line": "Adaptive trimming of realized inverse-weight scores restores Gaussian ATE inference after tail-bias correction.",
+      "relevant_to": "oeq:transition-adaptation"
+    }
+  ],
+  "novelty_justification": "The closest target-side result is Kennedy2019Incremental: its Theorems 3--4 give Gaussian-process and multiplier-bootstrap inference for \\(\\delta\\) in a fixed compact subset of \\((0,\\infty)\\). The closest probability-side result is MaWang2020RobustIPW: its Theorem 1 varies trimming for a fixed inverse-weight target. The proposed kernel changes both sides simultaneously. The causal target \\(\\psi_{\\delta_n}\\) moves, the efficient score contains the propensity-path contrast inherited from Kennedy's Lemma 4, and the critical Lévy measure is the pushforward of a joint treated boundary mark rather than the scalar fixed-target mark in Ma and Wang. No located paper proves feasible, uniform quantile coverage after nonparametric score replacement, generalized-inverse tail calibration, joint-mark estimation, and certified inversion. The continuous-exposure tilt theory of Schindl, Shen, and Kennedy confirms that unbounded tilts can alter rates, but it does not subsume the binary rare-treatment point process or its stable endpoint."
+}

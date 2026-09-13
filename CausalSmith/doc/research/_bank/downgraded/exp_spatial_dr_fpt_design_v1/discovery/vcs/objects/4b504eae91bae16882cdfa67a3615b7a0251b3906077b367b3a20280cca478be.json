@@ -1,0 +1,70 @@
+{
+  "node_type": "meta",
+  "body": {
+    "qid": "exp_spatial_dr_fpt_design",
+    "specialization": "v1",
+    "cluster": "experimentation",
+    "target_estimand": "\\(\\mathcal C^\\star\\in\\arg\\min_{\\mathcal C\\in\\mathfrak C_K(G)}V(\\mathcal C;\\Sigma)\\)",
+    "estimand_functional": "\\(V(\\mathcal C;\\Sigma)=N_{\\exp}^{-1}\\sum_{i,i'\\in U}2^{m_{ii'}(\\mathcal C)+1}\\Sigma_{ii'}\\mathbf 1\\{m_{ii'}(\\mathcal C)>0\\}\\)",
+    "sampling_model": {
+      "design": "The optimization input is \\((G,K,\\Sigma,N_{\\exp})\\).  The algorithm optimizes over unlabeled nonempty \\(G\\)-connected \\(K\\)-partitions, then orders the recovered blocks by least vertex to report a labeled minimizer of \\(V\\).  This is an additional connectedness restriction relative to Zhu et al.'s arbitrary disjoint partition class.",
+      "units": "The \\(R\\) graph vertices are fixed.",
+      "treatment": "No assignment law is imposed by the optimization theorems; the coefficient \\(2^{m+1}\\mathbf 1\\{m>0\\}\\) is frozen as part of the algebraic input criterion.",
+      "overlap": "No overlap condition is imposed by the optimization theorems.",
+      "nuisance_estimation": "The rational pilot matrix \\(\\widehat\\Sigma\\) is fixed before optimization, and the deterministic regret theorem compares it with \\(\\Sigma\\)."
+    },
+    "comparator_promise_table": [
+      {
+        "comparator_bibkey": "ZhuEtAl2025",
+        "comparator_claim": "Appendix B.1 proves Theorem 1's residual decomposition and Section 3.2 optimizes a surrogate over arbitrary disjoint cluster partitions; it does not give an exact optimizer for the second-order criterion on the additional \\(G\\)-connected subclass.",
+        "matched_by": "Theorems 2 and 3",
+        "match_kind": "strict_tightening"
+      },
+      {
+        "comparator_bibkey": "CaselGiannopoulouNiklanovits2026",
+        "comparator_claim": "Their dynamic program constructs connected parts of prescribed sizes on bounded-treewidth graphs.",
+        "matched_by": "Theorem 2",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "BodlaenderCyganKratschNederlof2015",
+        "comparator_claim": "Their rank-based method compresses partition states for standard weighted connectivity problems.",
+        "matched_by": "Theorem 5",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "VivianoEtAl2023",
+        "comparator_claim": "Their worst-case cluster design is a penalized min-cut computed through semidefinite optimization.",
+        "matched_by": "Theorem 1",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "Viviano2026ExperimentalDesign",
+        "comparator_claim": "Their pilot-based network design has oracle-regret guarantees for another variance criterion.",
+        "matched_by": "Theorem 4",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "ThiyageswaranEtAl2026",
+        "comparator_claim": "Their robust design optimizes over assignment covariance matrices by semidefinite programming and randomized rounding.",
+        "matched_by": "Theorem 1",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "Leung2022",
+        "comparator_claim": "Their spatial cluster construction is rate-optimal under decaying interference and supports asymptotic inference.",
+        "matched_by": "Theorem 2",
+        "match_kind": "downgraded_to_informed_by"
+      }
+    ],
+    "tldr": "Appendix B.1 of Zhu et al. supplies the imported fair-coin multiplier in the exact rational criterion \\(V\\).  This paper gives an exact general MILP and, on the covariance-scope interaction graph, a sound-complete dynamic program that quotients global cluster names, returns exact rational tables and reconstructing backpointers, and admits rank compression with runtime \\(2^{O(w\\log\\min\\{K,w+1\\}+w)}\\operatorname{poly}(|V(\\mathcal T)|,R,K,L_{\\mathrm{bits}})\\).  The optimizer is for the additional \\(G\\)-connected subclass, not Zhu et al.'s unrestricted arbitrary-partition optimum.  Exact four-cycle risks \\(33.04<38.72\\) show a surrogate reversal, and ordered-entry pilot error yields the stated deterministic regret control.",
+    "project_justification": {
+      "gap": "Zhu et al. allow arbitrary disjoint cluster partitions and explain why their graph-cut optimization omits the second-order residual-covariance term.  They do not give an exact optimizer for that term on the additional \\(G\\)-connected subclass.  Generic connected-partition dynamic programs likewise do not provide the covariance-scope localization, completed-cluster invariant, exact rational arithmetic, symmetry quotient, or matching reconstruction certificate needed here.",
+      "niche": "The target is the honest \\(G\\)-connected subclass of Zhu et al.'s broader design class.  When the covariance-scope interaction graph has width \\(w\\), global cluster names can be quotiented and each active connectivity family can be rank-compressed, leaving exponential dependence \\(2^{O(w\\log\\min\\{K,w+1\\}+w)}\\) and only polynomial dependence on \\(K\\) outside the exponent.",
+      "fill": "The MILP exactly optimizes every finite rational connected-subclass instance.  The treewidth algorithm proves node-by-node soundness and completeness, rejects incompatible completed clusters at joins, reconstructs a deterministically labeled optimum, and exposes exact charges, rows, pivots, and backpointers as a checkable certificate.  The four-cycle witness and deterministic perturbation theorem establish why exact optimization matters and how ordered-entry pilot error propagates."
+    },
+    "related_work": "Appendix B.1 of Zhu et al. proves their Theorem 1 residual decomposition; its fair-coin specialization supplies the multiplier \\(2^{m_{ii'}(\\mathcal C)+1}\\mathbf 1\\{m_{ii'}(\\mathcal C)>0\\}\\) used in \\(V\\).  Their published design class allows arbitrary disjoint cluster partitions, whereas the exact optimizer here deliberately ranges only over nonempty \\(G\\)-connected blocks, a strict restriction whenever disconnected candidate blocks exist; no claim is made that optimizing this subclass solves their unrestricted optimum.  Section 3.2 explains and justifies omitting the second-order term from its graph-cut surrogate.  On the four-cycle, the omitted antipodal \\(2\\)-\\(2\\) split has surrogate value \\(6/5>29/50\\), so the adjacent balanced splits remain the unrestricted surrogate minimizers, while the connected singleton--triple design has exact risk \\(826/25=33.04<968/25=38.72\\); the reversal therefore persists in the unrestricted two-cluster comparison.  Zhu et al.'s covariance-decay assumption is distinct from entrywise nonnegativity, which is used only for their relevant proposition and this witness, not for either exact optimizer.  Casel, Giannopoulou, and Niklanovits provide generic connected-partition dynamic-programming precedent, but not these nonlinear scope charges or the completed-cluster certificate.  Bodlaender, Cygan, Kratsch, and Nederlof motivate the partition-matrix technique; here the cut factorization is derived for unlabeled active blocks and combined with the scalar completed-cluster join rule.  Viviano and coauthors optimize a worst-case penalized cut criterion, Thiyageswaran and coauthors use semidefinite relaxation and rounding for an assignment-covariance objective, and Viviano's two-wave design gives a pilot-regret analogue for another criterion.  Leung supplies a spatial cluster-randomization inference benchmark after design choice.  Holtz and coauthors' Airbnb pricing meta-experiment illustrates why interference bias and power make an auditable covariance-aware clustering decision operationally useful.",
+    "technical_internal_limitation": "The parameter is the treewidth of the covariance-scope interaction graph \\(F\\), not of the geographic graph \\(G\\).  Dense pilot covariance can clique-complete large exposure-scope unions and force \\(w\\) to be of order \\(R\\); quotienting names removes exponential \\(K\\)-dependence but cannot cure that loss of practical width, so the exact MILP remains the fallback.",
+    "honest_scope": "The fair-coin multiplier is imported from Zhu et al.'s Appendix B.1 and is not a theorem contribution.  Zhu et al.'s class permits arbitrary disjoint partitions; the optimizer proved here is only for the additional nonempty \\(G\\)-connected subclass and does not certify their unrestricted optimum.  The MILP, dynamic-program soundness and completeness, quotient-state and rank bounds, reconstruction certificate, and perturbation bounds concern the fixed rational objective \\(V\\) and require no potential-outcome model, assignment law, positive semidefiniteness, entrywise nonnegativity, or positive trace.  The four-cycle separation separately verifies positive definiteness and entrywise nonnegativity.  Join and forget soundness, rank preservation, and the matching rational backpointer certificate are proved, not left as open steps.  Dense covariance support may still make the interaction width impractical, and no probabilistic bridge from pilot data to \\(\\Sigma\\) is claimed."
+  }
+}

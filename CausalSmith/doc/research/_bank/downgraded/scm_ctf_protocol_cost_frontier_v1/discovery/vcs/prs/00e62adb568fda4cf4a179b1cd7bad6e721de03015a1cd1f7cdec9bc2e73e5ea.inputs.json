@@ -1,0 +1,393 @@
+{
+  "units": [
+    {
+      "unit": "thm:cost-optimal-certificate-feasible",
+      "targets": [
+        "thm:uniform-source-normal-form",
+        "lem:canonical-certificate-bound",
+        "thm:cost-optimal-certificate-feasible",
+        "prop:certificate-infeasibility",
+        "thm:ordinary-subclass-equivalence"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:uniform-source-normal-form",
+            "proof_tex": "Put \\(\\mathcal R_0=\\mathcal R(E_0)\\).  The assumptions that the query is unconditional, unnested, and in the Layer-2.5 language ensure that the stated complete procedure applies.  Correct source typing means that every source inspected by the procedure is extracted from a slice of positive support and contains every required measured or action-fixed ancestor.\n\nFix \\(j\\in[k]\\) and \\(\\omega\\in\\Omega_j\\).  The complete procedure normalizes \\(Q\\), reaches the concrete factor branch \\((j,\\omega)\\), and exhaustively inspects the finite source list \\(\\mathcal R_0\\).  If every inspected source returned \\(\\operatorname{FAIL}\\), that factor branch, and hence the complete run, would return \\(\\operatorname{FAIL}\\).  Since the run accepts, there is therefore a triple\n\\[\n (S_{j,\\omega},\\ell_{j,\\omega},T_{j,\\omega})\\in\\mathcal R_0\n\\]\nfor which \\(\\operatorname{IDENTIFY}^{+}\\) does not fail.  The published recursion either terminates or replaces its current source set by a strict subset.  Hence its successful path supplies a finite ancestor--district transcript \\(\\tau_{j,\\omega}\\) with at most \\(|T_{j,\\omega}|\\) strict restrictions.  If the vertices of \\(T_{j,\\omega}\\) are indexed once, each recorded source, ancestor, and retained-district set is a bit mask; at most \\(|T_{j,\\omega}|+1\\) triples therefore use \\(O(|T_{j,\\omega}|^2)\\) bits apart from the already indexed literals.  All relevant sets and orders are finite, so the lexicographically first successful quadruple exists.\n\nThere is one chosen quadruple for each element of the disjoint union \\(\\bigsqcup_{j=1}^{k}\\{j\\}\\times\\Omega_j\\).  Hence the family contains at most\n\\[\n M=\\sum_{j=1}^{k}|\\Omega_j|\n\\]\nquadruples and at most \\(M\\) distinct protocol masks.  Every chosen mask occurs in \\(E_0\\).  Thus its set of distinct protocols is a subset of \\(\\operatorname{Prot}(E_0)\\), and the definition of distinct-protocol cost and nonnegativity of every action cost give\n\\[\n \\sum_{S\\in\\operatorname{Prot}_{\\mathrm{chosen}}}\\sum_{a\\in S}c(a)\n \\le\n \\sum_{S\\in\\operatorname{Prot}(E_0)}\\sum_{a\\in S}c(a)\n =\\operatorname{Cost}(E_0).\n\\]\n\nConversely, suppose that a correctly typed acquired collection contains a successful quadruple for every \\((j,\\omega)\\).  At the corresponding factor branch, exhaustive source search reaches that recorded source and reproduces its verified transcript, so the branch cannot fail.  This holds for every \\(\\omega\\in\\Omega_j\\) and every \\(j\\in[k]\\); hence every normalized factor succeeds and the complete procedure accepts.\n\nThe stronger quantifier exchange in the original statement is false already for the fixed-factor recursion.  Let \\(T_0\\) and \\(T_1\\) have vertex set \\(\\{u,v\\}\\), let \\(u\\leftrightarrow v\\) and \\(u\\to v\\) be edges of \\(G\\), and take \\(C=\\{v\\}\\).  There are two branches \\(\\omega_x\\), \\(x\\in\\{0,1\\}\\), requesting value \\(x\\) for \\(u\\) in the parent subscript of \\(v\\).  In \\(T_s\\), let the source literal for \\(u\\) carry value \\(s\\).  By the value-matching definition, \\(D_{T_s}\\) contains \\(u\\to v\\) exactly on branch \\(\\omega_s\\).  On that branch, \\(F=\\{u,v\\}\\) is bidirected connected and both its vertices reach \\(C\\), so Proposition \\(\\mathrm{Fixed\\ factor\\ obstruction}\\) gives failure.  On branch \\(\\omega_{1-s}\\), the arc is absent; the only proper superset of \\(C\\) in \\(T_s\\) is \\(\\{u,v\\}\\), and \\(u\\) does not reach \\(v\\), so the obstruction family is empty and the same proposition gives success.  Thus \\(T_1\\) succeeds for \\(\\omega_0\\) and \\(T_0\\) succeeds for \\(\\omega_1\\), but neither succeeds for both.  The two factors can be exposed by the positive full-READ slices \\(u=0\\) and \\(u=1\\) of one legal binary protocol; both source factors satisfy measured ancestry.  Hence positivity, measured ancestry, and physical legality do not imply a common witness."
+          },
+          {
+            "id": "lem:canonical-certificate-bound",
+            "proof_tex": "Let \\(E\\) be any accepting uniform certificate.  By the certificate definition, after empty ownership masks are ignored, the nonempty masks form a partition of \\([k]\\).  There are therefore at most \\(k\\) nonempty records, and the total number of owned transcripts is exactly \\(k\\), one for each factor.\n\nDelete every empty-ownership record.  Each branch of each factor retains its unique owning record, and that record's fixed protocol, slice, source, and transcript still succeed uniformly over the factor's branches.  The operational acceptance checks can therefore be repeated without any deleted record: the retained owned source itself witnesses every factor branch in the complete source loop.  Thus the reduced certificate is accepting.  Its distinct-protocol set is a subset of the old one, so nonnegativity of the binary-rational action costs gives weakly smaller cost.  Sorting and merging equal records preserves the decoded sources, ownership, and cost and yields the canonical representation.\n\nFor the size bound, a source set \\(T\\) has at most \\(n\\) vertices.  Lemma \\(\\mathrm{Fixed\\ transcript\\ size}\\) gives at most \\(n\\) strict restrictions.  Put\n\\[\n r=\\left\\lceil\\log_2(n+L+k+2)\\right\\rceil.\n\\]\nEncode the number of steps in \\(r\\) bits and each of the at most \\(n+1\\) triples \\((U_r,H_r,B_r)\\) by three \\(n\\)-bit masks and one \\(r\\)-bit framing tag.  Literal identities are already fixed by the record's source and literal masks and the canonical literal table, so they need not be repeated in the transcript.  Since \\(r\\ge1\\), this uses at most\n\\[\n r+(n+1)(3n+r)\n \\le 8(n+1)^2r\n\\]\nbits.  Each record has \\(m+L+k+n(1+L)\\) fixed-width bits.  There are at most \\(k\\) records and exactly \\(k\\) transcripts, whence\n\\[\n N_E\\le\n k\\bigl(m+L+k+n(1+L)\\bigr)+8k(n+1)^2r\n =B_{\\mathrm{cert}}.\n\\]\n\nThe self-delimiting structural input explicitly lists all vertices, actions, literals, and factors.  Hence, with \\(N=N_{\\mathrm{in}}\\ge1\\),\n\\[\n n,m,L,k\\le N,\n \\qquad\n \\left\\lceil\\log_2(n+L+k+2)\\right\\rceil\\le N+2.\n\\]\nConsequently the bracket multiplying \\(k\\) in \\(B_{\\mathrm{cert}}\\) is at most\n\\[\n N^2+4N+8(N+1)^2(N+2)\n \\le 8(N+1)^4.\n\\]\nFor the last inequality, subtracting the middle transcript term from the right side leaves \\(8(N+1)^2(N^2+N-1)\\), which is at least \\(N^2+4N\\) for every integer \\(N\\ge1\\).  This proves \\(B_{\\mathrm{cert}}\\le8k(N_{\\mathrm{in}}+1)^4\\).\n\nStarting from any accepting uniform certificate, the preceding reduction gives an accepting canonical string of length at most \\(B_{\\mathrm{cert}}\\) and no greater cost.  There are finitely many binary strings of that length.  The nonempty set of accepted ones therefore has a minimum exact rational cost, and its finite set of minimizers has a lexicographically first member \\(E^{\\star}\\).  Because every accepting uniform certificate is dominated by a member of this bounded set, \\(\\operatorname{Cost}(E^{\\star})=\\operatorname{Opt}\\), and \\(N_{E^{\\star}}\\le B_{\\mathrm{cert}}\\).  The construction uses only the structural certificate bits; all oracle replies remain charged separately by \\(N_{\\mathcal O}\\)."
+          },
+          {
+            "id": "thm:cost-optimal-certificate-feasible",
+            "proof_tex": "By Lemma \\(\\mathrm{Canonical\\ certificate\\ bound}\\), the set\n\\[\n \\mathcal F_B=\\{E:N_E\\le B_{\\mathrm{cert}},\\ \\operatorname{Acc}(Q,E;G)=1\\}\n\\]\nis nonempty and contains a certificate whose cost is no larger than that of every accepting uniform certificate.  Hence its lexicographically first minimum-cost member is exactly \\(E^{\\star}\\), and the definition of \\(\\operatorname{Opt}\\) gives\n\\[\n \\operatorname{Cost}(E^{\\star})\n =\\min_{E\\in\\mathcal F_B}\\operatorname{Cost}(E)\n =\\operatorname{Opt}.\n\\]\n\nThere are\n\\[\n \\sum_{q=0}^{B_{\\mathrm{cert}}}2^q\n <2^{B_{\\mathrm{cert}}+1}\n\\]\nbinary strings of length at most \\(B_{\\mathrm{cert}}\\).  Enumerate them in length-lexicographic order.  The operational predicate is total: it rejects malformed strings and, for a well-formed string, checks the protocol, label, support, source, ownership, and transcript clauses before executing the complete unconditional procedure on the decoded collection.  Cache the reply of \\(\\mathcal O_{\\mathrm{src}}\\) by protocol mask, so each distinct queried protocol is charged once during this optimization execution.\n\nFor a well-formed candidate, the number of assignment and equality-type branches is at most exponential in \\(L=|\\mathrm{LIT}|\\).  Since \\(k\\ge1\\), the displayed formula for \\(B_{\\mathrm{cert}}\\) gives \\(L\\le B_{\\mathrm{cert}}\\).  Each fixed branch and source transcript has at most \\(n\\) restrictions, each checked by graph traversal and literal comparison.  Thus both complete branch enumeration and transcript verification take \\(2^{O(B_{\\mathrm{cert}})}\\) times a polynomial in their explicit structural and oracle inputs.  Multiplication by the fewer than \\(2^{B_{\\mathrm{cert}}+1}\\) candidate strings leaves the form \\(2^{O(B_{\\mathrm{cert}})}\\).  Reading all oracle replies costs a polynomial in their total charged length \\(N_{\\mathcal O}\\); moreover \\(B_{\\mathrm{cert}}\\) and \\(N_{E^{\\star}}\\) are polynomially bounded by \\(N_{\\mathrm{in}}\\) by the canonical-certificate lemma.  This yields\n\\[\n 2^{O(B_{\\mathrm{cert}})}\n \\operatorname{poly}(N_{\\mathrm{in}}+N_{E^{\\star}}+N_{\\mathcal O}).\n\\]\n\nExact addition and comparison of nonnegative binary rationals are polynomial in their encoded bit lengths.  Retain the least cost encountered and break ties lexicographically.  Decoding the winning string outputs exactly its protocol, literal, source, ownership, and transcript fields.  The acceptance test itself executes the complete oracle-backed \\(\\operatorname{CTFIDU}^{+}\\) run, so the output is an identification certificate for the stated uniform class, not a scalar functional and not a certificate for arbitrary nonuniform source switching."
+          },
+          {
+            "id": "prop:certificate-infeasibility",
+            "proof_tex": "Let\n\\[\n \\mathcal F=\\{E:E\\text{ is a uniform acquisition certificate and }\\operatorname{Acc}(Q,E;G)=1\\}.\n\\]\nIf \\(\\mathcal F\\ne\\varnothing\\), the feasible-case theorem returns \\(E^{\\star}\\), and its finite cost shows \\(\\operatorname{Opt}<+\\infty\\).  If \\(\\mathcal F=\\varnothing\\), the convention in the definition of \\(\\operatorname{Opt}\\) gives \\(\\operatorname{Opt}=\\inf\\varnothing=+\\infty\\).  These cases are exhaustive and disjoint.\n\nIf an accepted certificate of length at most \\(B_{\\mathrm{cert}}\\) exists, then \\(\\mathcal F\\ne\\varnothing\\), so \\(\\operatorname{Opt}<+\\infty\\).  Conversely, if \\(\\mathcal F\\ne\\varnothing\\), Lemma \\(\\mathrm{Canonical\\ certificate\\ bound}\\) supplies an accepted certificate of length at most \\(B_{\\mathrm{cert}}\\).  Therefore\n\\[\n \\operatorname{Opt}=+\\infty\n \\quad\\Longleftrightarrow\\quad\n \\forall E\\ \\bigl(N_E\\le B_{\\mathrm{cert}}\\Longrightarrow\n \\operatorname{Acc}(Q,E;G)=0\\bigr),\n\\]\nwhere the quantifier ranges over uniform certificate strings.\n\nThe bounded enumeration and verification are the same as in the feasible-case proof.  There are fewer than \\(2^{B_{\\mathrm{cert}}+1}\\) strings, malformed strings are rejected by the total predicate, and oracle replies are cached by distinct protocol.  In the negative case the execution outputs only the infeasibility alternative, so no \\(N_{E^{\\star}}\\) term is present.  Charging all issued queries and replies to \\(N_{\\mathcal O}\\) yields the stated time bound."
+          },
+          {
+            "id": "thm:ordinary-subclass-equivalence",
+            "proof_tex": "Fix \\(\\mathcal D_{\\mathrm{ord}}\\in\\mathfrak D_{\\mathrm{AEK}}\\).  The translation definition identifies the ordinary target with the single-world Layer-2.5 event\n\\[\n Q=P((S_0)_{x_0}=s_0).\n\\]\nFor a distinct intervention set \\(B\\), the embedded protocol is\n\\[\n S_B=\\{s\\}\\cup\\{r_v:v\\in B\\}\\cup\\{\\rho_v:v\\in V\\}.\n\\]\nIt contains exactly one fresh-unit SELECT.  Every mechanism is used at most once, SELECT precedes every other action, the remaining actions follow causal order, and the embedded catalogue has no conflicts.  By the physical-compatibility clause in the embedding, \\(S_B\\) satisfies CTF-REALIZE.  Hence \\(S_B\\in\\Pi\\).\n\nThe RAND actions are mutually independent and uniform on their finite allowed domains.  Thus, for every \\(b\\in\\mathfrak X_B\\),\n\\[\n P_{S_B}(L_B=b)=\\prod_{v\\in B}|\\mathfrak X_v|^{-1}>0.\n\\]\nAll vertices are READ, so measured ancestry holds.  The intervention and consistency semantics recorded in the embedding and label-slice definitions then give, without division by a zero-probability event,\n\\[\n \\operatorname{Slice}(S_B,\\ell_{B,b})\n =P_b(V\\setminus B)\n =Q[V\\setminus B](\\mathord\\cdot;b).\n\\]\nTaking all \\(b\\) and all distinct \\(B\\) therefore supplies exactly \\(\\mathcal Q_{\\mathbf B}\\), which identifies the ordinary target by the definition of an ordinary identifying collection.  SELECT and all READ actions have zero cost, whereas \\(c(r_v)=\\kappa_v\\).  Since slices share the cost of their protocol and duplicate intervention sets are coalesced,\n\\[\n \\operatorname{Cost}(E_{0,\\mathbf B})\n =\\sum_{B\\in\\{B_1,\\ldots,B_t\\}_{\\mathrm{distinct}}}\n   \\sum_{v\\in B}\\kappa_v.\n\\]\n\nConversely, let \\(E\\) be accepted in the embedded catalogue.  A decoded protocol has one SELECT, no CTF-RAND action, some RAND-endpoint set \\(B\\), and some READ mask.  Add every missing zero-cost READ action after its prerequisites.  The resulting protocol is exactly \\(S_B\\), is legal by the preceding argument, and has the same action cost.  If two original protocol masks differ only in their READ masks, their augmentations coincide; coalescing them can only decrease cost because all action costs are nonnegative.  Hence\n\\[\n \\sum_{B\\in\\mathbf B(E)}\\sum_{v\\in B}\\kappa_v\n \\le \\operatorname{Cost}(E),\n\\]\nand equality holds when no two masks have the same RAND-endpoint set.\n\nFor each retained \\(B\\), uniform RAND support makes every \\(b\\in\\mathfrak X_B\\) a positive slice, and the slice identity above shows that these slices are exactly \\(\\mathcal Q_{\\mathbf B(E)}\\).  The full-READ law also reproduces every source used by the accepted certificate by projection and by the same positive conditioning event.  Therefore the accepted factor derivations remain valid after augmentation.  In this single-world translation, erasing the redundant counterfactual world labels from each ancestor and district restriction leaves the ordinary identification recursion on the kernels \\(Q[V\\setminus B](\\mathord\\cdot;b)\\).  Induction over the finite accepted restriction sequence shows that this ordinary recursion succeeds, so \\(\\mathcal Q_{\\mathbf B(E)}\\) identifies \\(Q[S_0](\\mathord\\cdot;x_0)\\).\n\nApply the cost inequality to every accepted uniform certificate and then take the infimum.  The minimum ordinary identifying-collection cost is at most \\(\\operatorname{Opt}\\).  The forward construction above supplies a generic physical acquisition with the ordinary cost, but the two-source value-matching example in the branchwise-normalization proof shows why it need not yield one source slice uniform over every equality-type branch.  Thus the reverse inequality, uniform feasibility, and equality of optima do not follow."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [],
+        "proposed_statement_changes": [
+          {
+            "id": "thm:uniform-source-normal-form",
+            "proposed": "For every finite acquired collection \\(E_0\\) on which the full correctly typed unconditional procedure \\(\\operatorname{CTFIDU}^{+}(G,Q,\\mathcal R(E_0))\\) accepts, and for every \\(j\\in[k]\\) and \\(\\omega\\in\\Omega_j\\), there is a protocol--slice--source triple \\((S_{j,\\omega},\\ell_{j,\\omega},T_{j,\\omega})\\in\\mathcal R(E_0)\\) and a finite restriction transcript \\(\\tau_{j,\\omega}\\) for which \\(\\operatorname{IDENTIFY}^{+}\\) succeeds on the concrete branch \\((j,\\omega)\\). Choosing the lexicographically first such quadruple for each pair \\((j,\\omega)\\) gives a branchwise witness family with at most \\(M=\\sum_{j=1}^{k}|\\Omega_j|\\) quadruples and at most \\(M\\) distinct protocols, all represented in \\(E_0\\), whose distinct-protocol cost is at most \\(\\operatorname{Cost}(E_0)\\). Each transcript has at most \\(|T_{j,\\omega}|\\) strict restrictions and \\(O(|T_{j,\\omega}|^2)\\) bits apart from literal identifiers. Conversely, if a correctly typed finite acquired collection contains one such successful quadruple for every \\((j,\\omega)\\), the complete exhaustive source loop accepts that collection. In general the witnesses cannot be chosen independently of \\(\\omega\\), so no \\(k\\)-record uniform-source conclusion is asserted.",
+            "reason": "The original quantifier exchange is false. On \\(u\\leftrightarrow v\\) and \\(u\\to v\\), with target \\(C=\\{v\\}\\), let source \\(T_s\\) carry value \\(s\\in\\{0,1\\}\\) for \\(u\\), and let branch \\(\\omega_x\\) request value \\(x\\) for the parent subscript of \\(v\\). Then \\(T_s\\) fails exactly when \\(s=x\\): in that case \\(\\{u,v\\}\\) is a connected-ancestor obstruction, while for \\(s\\ne x\\) the matching arc is absent and the source succeeds. Thus \\(T_1\\) serves \\(\\omega_0\\) and \\(T_0\\) serves \\(\\omega_1\\), but no source serves both. Positive full-READ slices expose both sources without violating physical source typing. The proposed claim is the strongest unconditional consequence of complete exhaustive acceptance: one finite witness per factor branch, with an explicit \\(\\sum_j|\\Omega_j|\\) bound.",
+            "direction": "narrow"
+          },
+          {
+            "id": "lem:canonical-certificate-bound",
+            "proposed": "Suppose that there exists at least one uniform acquisition certificate \\(E\\) satisfying \\(\\operatorname{Acc}(Q,E;G)=1\\). Let \\(m=|\\mathcal A|\\), \\(L=|\\mathrm{LIT}|\\), and \\(n=|V|\\). Then there is a lexicographically canonical accepting uniform certificate \\(E^{\\star}\\) with at most \\(k\\) nonempty records, one owned transcript schema for each factor, no empty-ownership record, and cost no larger than that of any accepting uniform certificate. Every transcript has at most \\(n\\) strict restrictions and at most \\(8(n+1)^2\\lceil\\log_2(n+L+k+2)\\rceil\\) bits. Consequently,\n\\[\n N_{E^{\\star}}\\le B_{\\mathrm{cert}}\n =k\\bigl(m+L+k+n(1+L)\\bigr)\n +8k(n+1)^2\\left\\lceil\\log_2(n+L+k+2)\\right\\rceil\n \\le 8k(N_{\\mathrm{in}}+1)^4,\n\\]\nand \\(\\operatorname{Cost}(E^{\\star})=\\operatorname{Opt}\\). Oracle replies are separately charged by \\(N_{\\mathcal O}\\). No comparison with arbitrary nonuniform acquired collections is asserted.",
+            "reason": "The original comparison with every accepting acquired collection uses the false uniform-source exchange. The explicit definition of a uniform certificate already partitions \\([k]\\) by nonempty ownership masks, so the same bit bound and exact minimum are provable without that exchange after restricting the premise and cost comparison to accepting uniform certificates.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:cost-optimal-certificate-feasible",
+            "proposed": "If the independently specified oracle-instance \\(\\mathsf X_{\\mathrm{phys}}=(x_{\\mathrm{str}},\\mathcal O_{\\mathrm{src}})\\) admits at least one uniform acquisition certificate \\(E\\) with \\(\\operatorname{Acc}(Q,E;G)=1\\), then the minimum defining \\(\\operatorname{Opt}\\) is attained by the lexicographically first canonical uniform certificate \\(E^{\\star}\\). Exhaustive enumeration of certificates of length at most \\(B_{\\mathrm{cert}}\\), with cached oracle replies, outputs \\(E^{\\star}\\), its protocol masks, exact \\(|\\mathrm{LIT}|\\)-bit slice labels, source masks, factor-ownership masks, and one uniform finite restriction transcript schema per factor. Its time is \\(2^{O(B_{\\mathrm{cert}})}\\operatorname{poly}(N_{\\mathrm{in}}+N_{E^{\\star}}+N_{\\mathcal O})\\), where \\(N_{\\mathcal O}\\) charges every issued protocol query and returned law-handle and support-table bit. The verifier executes complete unconditional \\(\\operatorname{CTFIDU}^{+}\\) on the decoded oracle-backed source collection. No bounded-treewidth runtime or optimum over arbitrary nonuniform acquired collections is claimed.",
+            "reason": "The bounded enumeration is valid for the feasible set appearing in the frozen definition of \\(\\operatorname{Opt}\\), namely accepted uniform certificates. Generic complete-run feasibility need not supply such a certificate because branchwise witnesses need not be uniform. The proposed statement makes that domain explicit and retains the exact optimizer, output, and oracle-charged runtime on it.",
+            "direction": "narrow"
+          },
+          {
+            "id": "prop:certificate-infeasibility",
+            "proposed": "Exactly one alternative holds for the uniform-certificate problem on \\(\\mathsf X_{\\mathrm{phys}}\\): either some uniform certificate is accepted and the feasible-case theorem returns \\(E^{\\star}\\), or \\(\\operatorname{Opt}=+\\infty\\). The latter occurs if and only if \\(\\operatorname{Acc}(Q,E;G)=0\\) for every uniform certificate of length at most \\(B_{\\mathrm{cert}}\\). Exhaustive enumeration decides the alternative in time \\(2^{O(B_{\\mathrm{cert}})}\\operatorname{poly}(N_{\\mathrm{in}}+N_{\\mathcal O})\\), with one cached source-oracle reply per queried distinct protocol; in the infeasible case there is no certificate or output-length term. No conclusion about feasibility from arbitrary nonuniform acquired collections is asserted.",
+            "reason": "Failure of bounded uniform-certificate enumeration is equivalent to emptiness of the uniform feasible set defining \\(\\operatorname{Opt}\\), but it does not exclude a nonuniform generic acquired collection accepted branchwise. The proposed statement restricts the dichotomy to the exact optimization domain and is then decidable by the proved canonical bound.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:ordinary-subclass-equivalence",
+            "proposed": "For every \\(\\mathcal D_{\\mathrm{ord}}\\in\\mathfrak D_{\\mathrm{AEK}}\\), translate \\(Q[S_0](s_0;x_0)\\) to \\(Q=P((S_0)_{x_0}=s_0)\\). For every ordinary identifying collection \\(\\mathbf B=(B_1,\\ldots,B_t)\\), the embedded protocols \\(S_{B_i}\\) are legal SELECT--RAND--READ protocols, every assignment slice satisfies\n\\[\n \\operatorname{Slice}(S_{B_i},\\ell_{i,b})\n =Q[V\\setminus B_i](\\mathord\\cdot;b)=P_b(V\\setminus B_i),\n\\]\nand the generic acquired collection containing these protocols and all labels in \\(\\Lambda_{\\mathbf B}\\) has distinct-protocol cost \\(\\sum_{B\\in\\{B_1,\\ldots,B_t\\}_{\\mathrm{distinct}}}\\sum_{v\\in B}\\kappa_v\\); its acquired laws therefore contain the complete ordinary identifying family \\(\\mathcal Q_{\\mathbf B}\\). Conversely, from every accepted uniform certificate \\(E\\) in \\(\\iota(\\mathcal D_{\\mathrm{ord}})\\), augment protocols by the missing zero-cost READ actions and coalesce equal RAND-endpoint sets to obtain \\(\\mathbf B(E)\\). The full assignment slices generate \\(\\mathcal Q_{\\mathbf B(E)}\\), this family identifies \\(Q[S_0](\\mathord\\cdot;x_0)\\), and\n\\[\n \\sum_{B\\in\\mathbf B(E)}\\sum_{v\\in B}\\kappa_v\n \\le \\operatorname{Cost}(E),\n\\]\nwith equality when \\(E\\) has at most one protocol mask for each RAND-endpoint set. Consequently the minimum ordinary design cost is no greater than \\(\\operatorname{Opt}\\) whenever the embedded uniform-certificate problem is feasible. No converse feasibility implication or equality of optimum costs is asserted.",
+            "reason": "An ordinary identifying source family gives all assignment slices but need not give one concrete slice uniform over every equality-type branch, so the forward accepted-uniform-certificate construction and equality of optimum costs do not follow. In addition, two accepted protocol masks with the same RAND endpoints but different READ masks are charged twice before augmentation and once after coalescing, so the claimed reverse cost equality for every \\(E\\) is false. The proposed one-way comparison retains exact legality and slice semantics, uses the correct weak cost inequality, and concludes only that the ordinary minimum is at most the embedded uniform optimum.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:uniform-source-normal-form",
+            "proposed": {
+              "id": "thm:uniform-source-normal-form",
+              "kind": "theorem",
+              "statement": "For every finite acquired collection \\(E_0\\) on which the full correctly typed unconditional procedure \\(\\operatorname{CTFIDU}^{+}(G,Q,\\mathcal R(E_0))\\) accepts, and for every \\(j\\in[k]\\) and \\(\\omega\\in\\Omega_j\\), there is a protocol--slice--source triple \\((S_{j,\\omega},\\ell_{j,\\omega},T_{j,\\omega})\\in\\mathcal R(E_0)\\) and a finite restriction transcript \\(\\tau_{j,\\omega}\\) for which \\(\\operatorname{IDENTIFY}^{+}\\) succeeds on the concrete branch \\((j,\\omega)\\). Choosing the lexicographically first such quadruple for each pair \\((j,\\omega)\\) gives a branchwise witness family with at most \\(M=\\sum_{j=1}^{k}|\\Omega_j|\\) quadruples and at most \\(M\\) distinct protocols, all represented in \\(E_0\\), whose distinct-protocol cost is at most \\(\\operatorname{Cost}(E_0)\\). Each transcript has at most \\(|T_{j,\\omega}|\\) strict restrictions and \\(O(|T_{j,\\omega}|^2)\\) bits apart from literal identifiers. Conversely, if a correctly typed finite acquired collection contains one such successful quadruple for every \\((j,\\omega)\\), the complete exhaustive source loop accepts that collection. In general the witnesses cannot be chosen independently of \\(\\omega\\), so no \\(k\\)-record uniform-source conclusion is asserted.",
+              "free_symbols": [
+                "Ebase",
+                "Rsrc",
+                "CTFIDUplus",
+                "Q",
+                "G",
+                "Cj",
+                "j",
+                "k",
+                "Omega",
+                "S",
+                "ell",
+                "Tsource",
+                "Transcript",
+                "IDplus",
+                "Cost"
+              ],
+              "depends_on": [
+                "def:target-factorization",
+                "def:source-slice",
+                "def:restriction-transcript",
+                "def:source-collection-encoding",
+                "def:certificate-cost",
+                "def:literal-encoding",
+                "prop:fixed-factor-obstruction",
+                "lem:published-identify-plus-recursion",
+                "ass:unconditional-query",
+                "ass:unnested-query",
+                "ass:l25-query",
+                "ass:positive-source-law",
+                "ass:measured-ancestry",
+                "ass:binary-rational-cost"
+              ],
+              "status": "to-prove",
+              "justification": "This quantifier-exchange theorem is the load-bearing bridge from complete fixed-source identification to a compact acquisition certificate and is directly stress-tested by the finite equality-type search.",
+              "gap": "Raghavan and Bareinboim (2026), Algorithm 2 and Appendix E, establish completeness for concrete labelled queries and fixed regimes; they do not prove that one selected source and restriction schema remain valid across every free assignment and equality type of a target factor.",
+              "consumer": "The theorem limits paid acquisitions and auditable source transcripts by the number of target districts rather than the number of value assignments."
+            },
+            "reason": "The narrowed branchwise theorem removes the invalid uniform-normalization handle and declares the cost and fixed-branch obstruction results actually used by its proof.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "lem:canonical-certificate-bound",
+            "proposed": {
+              "id": "lem:canonical-certificate-bound",
+              "kind": "lemma",
+              "statement": "Suppose that there exists at least one uniform acquisition certificate \\(E\\) satisfying \\(\\operatorname{Acc}(Q,E;G)=1\\). Let \\(m=|\\mathcal A|\\), \\(L=|\\mathrm{LIT}|\\), and \\(n=|V|\\). Then there is a lexicographically canonical accepting uniform certificate \\(E^{\\star}\\) with at most \\(k\\) nonempty records, one owned transcript schema for each factor, no empty-ownership record, and cost no larger than that of any accepting uniform certificate. Every transcript has at most \\(n\\) strict restrictions and at most \\(8(n+1)^2\\lceil\\log_2(n+L+k+2)\\rceil\\) bits. Consequently,\n\\[\n N_{E^{\\star}}\\le B_{\\mathrm{cert}}\n =k\\bigl(m+L+k+n(1+L)\\bigr)\n +8k(n+1)^2\\left\\lceil\\log_2(n+L+k+2)\\right\\rceil\n \\le 8k(N_{\\mathrm{in}}+1)^4,\n\\]\nand \\(\\operatorname{Cost}(E^{\\star})=\\operatorname{Opt}\\). Oracle replies are separately charged by \\(N_{\\mathcal O}\\). No comparison with arbitrary nonuniform acquired collections is asserted.",
+              "free_symbols": [
+                "A",
+                "LIT",
+                "V",
+                "Phys",
+                "Nin",
+                "Noracle",
+                "Ecert",
+                "k",
+                "Transcript",
+                "Nenc",
+                "Bcert",
+                "Estar",
+                "NEstar",
+                "Cost",
+                "Opt",
+                "Acc",
+                "Q",
+                "G",
+                "Osrc"
+              ],
+              "depends_on": [
+                "ass:binary-rational-cost",
+                "def:physical-instance-encoding",
+                "def:protocol-slice-record",
+                "def:acquisition-certificate",
+                "def:certificate-cost",
+                "def:operational-acceptance",
+                "def:optimal-cost",
+                "lem:fixed-transcript-size"
+              ],
+              "status": "to-prove",
+              "justification": "The bound separates compact existential certificate data from potentially large, explicitly charged oracle support replies.",
+              "gap": "Fixed-source completeness provides no canonical polynomial bound on an endogenous physical acquisition certificate or its transcript schema.",
+              "consumer": "The exact optimizer can bound certificate enumeration while reporting source-interface cost separately."
+            },
+            "reason": "The proof is independent of generic-source normalization once feasibility and domination are explicitly restricted to the uniform-certificate class, and the optimal-cost definition is added to the declared spine.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:cost-optimal-certificate-feasible",
+            "proposed": {
+              "id": "thm:cost-optimal-certificate-feasible",
+              "kind": "theorem",
+              "statement": "If the independently specified oracle-instance \\(\\mathsf X_{\\mathrm{phys}}=(x_{\\mathrm{str}},\\mathcal O_{\\mathrm{src}})\\) admits at least one uniform acquisition certificate \\(E\\) with \\(\\operatorname{Acc}(Q,E;G)=1\\), then the minimum defining \\(\\operatorname{Opt}\\) is attained by the lexicographically first canonical uniform certificate \\(E^{\\star}\\). Exhaustive enumeration of certificates of length at most \\(B_{\\mathrm{cert}}\\), with cached oracle replies, outputs \\(E^{\\star}\\), its protocol masks, exact \\(|\\mathrm{LIT}|\\)-bit slice labels, source masks, factor-ownership masks, and one uniform finite restriction transcript schema per factor. Its time is \\(2^{O(B_{\\mathrm{cert}})}\\operatorname{poly}(N_{\\mathrm{in}}+N_{E^{\\star}}+N_{\\mathcal O})\\), where \\(N_{\\mathcal O}\\) charges every issued protocol query and returned law-handle and support-table bit. The verifier executes complete unconditional \\(\\operatorname{CTFIDU}^{+}\\) on the decoded oracle-backed source collection. No bounded-treewidth runtime or optimum over arbitrary nonuniform acquired collections is claimed.",
+              "free_symbols": [
+                "Phys",
+                "Nin",
+                "Osrc",
+                "Noracle",
+                "Estar",
+                "NEstar",
+                "Bcert",
+                "Ecert",
+                "Cost",
+                "Opt",
+                "Q",
+                "G",
+                "Acc",
+                "Transcript",
+                "LIT",
+                "Rsrc",
+                "CTFIDUplus"
+              ],
+              "depends_on": [
+                "ass:binary-rational-cost",
+                "def:physical-instance-encoding",
+                "def:acquisition-certificate",
+                "def:certificate-cost",
+                "def:optimal-cost",
+                "lem:canonical-certificate-bound",
+                "def:literal-encoding",
+                "def:protocol-slice-record",
+                "def:source-collection-encoding",
+                "def:operational-acceptance"
+              ],
+              "status": "to-prove",
+              "justification": "The theorem retains exact cost optimization while exposing both the assignment-sensitive certificate size and every source-law or support access in the computational model.",
+              "gap": "Akbari, Etesami, and Kiyavash (2025), Theorem 1 on page 5 and Lemma 3 on page 8, reduce a connected ordinary \\(Q[S]\\) target to one intervention and a hedge-hitting problem; Lemma 7 on page 12 certifies their exact Algorithm 2, and Proposition 3 on page 16 certifies their general-target Algorithm 3. Those results optimize ordinary intervention sets under fixed \\(Q[S]\\) source-family semantics, not oracle-explicit SELECT-RAND-CTF-RAND-READ protocols with reusable counterfactual slices and branch-labelled certificates.",
+              "consumer": "Park and Lee's counterfactual structural causal bandit can compare the exact acquisition prices of finite reward-law protocols without treating source support as free hidden input."
+            },
+            "reason": "The exhaustive optimizer now depends only on the corrected uniform-class canonical bound and the operational definitions it actually verifies.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "prop:certificate-infeasibility",
+            "proposed": {
+              "id": "prop:certificate-infeasibility",
+              "kind": "proposition",
+              "statement": "Exactly one alternative holds for the uniform-certificate problem on \\(\\mathsf X_{\\mathrm{phys}}\\): either some uniform certificate is accepted and the feasible-case theorem returns \\(E^{\\star}\\), or \\(\\operatorname{Opt}=+\\infty\\). The latter occurs if and only if \\(\\operatorname{Acc}(Q,E;G)=0\\) for every uniform certificate of length at most \\(B_{\\mathrm{cert}}\\). Exhaustive enumeration decides the alternative in time \\(2^{O(B_{\\mathrm{cert}})}\\operatorname{poly}(N_{\\mathrm{in}}+N_{\\mathcal O})\\), with one cached source-oracle reply per queried distinct protocol; in the infeasible case there is no certificate or output-length term. No conclusion about feasibility from arbitrary nonuniform acquired collections is asserted.",
+              "free_symbols": [
+                "Phys",
+                "Nin",
+                "Osrc",
+                "Noracle",
+                "Estar",
+                "Opt",
+                "Ecert",
+                "Bcert",
+                "Acc",
+                "Q",
+                "G"
+              ],
+              "depends_on": [
+                "def:physical-instance-encoding",
+                "def:optimal-cost",
+                "lem:canonical-certificate-bound",
+                "def:operational-acceptance",
+                "thm:cost-optimal-certificate-feasible"
+              ],
+              "status": "to-prove",
+              "justification": "The explicit finite alternative makes infeasibility decidable without a polynomial-witness or full-incidence-compilation premise.",
+              "gap": "Fixed-source CTFIDU\\({}^{+}\\) decides one supplied collection; it does not decide existence over all priced legal physical protocols while charging access to their support and source-law handles.",
+              "consumer": "A planner can distinguish a costly but attainable reward-law query from one unattainable under the available catalogue."
+            },
+            "reason": "The proposition now states the exact finite alternative for the uniform feasible set defining the frozen optimization functional and no longer relies on the false generic-to-uniform reduction.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:ordinary-subclass-equivalence",
+            "proposed": {
+              "id": "thm:ordinary-subclass-equivalence",
+              "kind": "theorem",
+              "statement": "For every \\(\\mathcal D_{\\mathrm{ord}}\\in\\mathfrak D_{\\mathrm{AEK}}\\), translate \\(Q[S_0](s_0;x_0)\\) to \\(Q=P((S_0)_{x_0}=s_0)\\). For every ordinary identifying collection \\(\\mathbf B=(B_1,\\ldots,B_t)\\), the embedded protocols \\(S_{B_i}\\) are legal SELECT--RAND--READ protocols, every assignment slice satisfies\n\\[\n \\operatorname{Slice}(S_{B_i},\\ell_{i,b})\n =Q[V\\setminus B_i](\\mathord\\cdot;b)=P_b(V\\setminus B_i),\n\\]\nand the generic acquired collection containing these protocols and all labels in \\(\\Lambda_{\\mathbf B}\\) has distinct-protocol cost \\(\\sum_{B\\in\\{B_1,\\ldots,B_t\\}_{\\mathrm{distinct}}}\\sum_{v\\in B}\\kappa_v\\); its acquired laws therefore contain the complete ordinary identifying family \\(\\mathcal Q_{\\mathbf B}\\). Conversely, from every accepted uniform certificate \\(E\\) in \\(\\iota(\\mathcal D_{\\mathrm{ord}})\\), augment protocols by the missing zero-cost READ actions and coalesce equal RAND-endpoint sets to obtain \\(\\mathbf B(E)\\). The full assignment slices generate \\(\\mathcal Q_{\\mathbf B(E)}\\), this family identifies \\(Q[S_0](\\mathord\\cdot;x_0)\\), and\n\\[\n \\sum_{B\\in\\mathbf B(E)}\\sum_{v\\in B}\\kappa_v\n \\le \\operatorname{Cost}(E),\n\\]\nwith equality when \\(E\\) has at most one protocol mask for each RAND-endpoint set. Consequently the minimum ordinary design cost is no greater than \\(\\operatorname{Opt}\\) whenever the embedded uniform-certificate problem is feasible. No converse feasibility implication or equality of optimum costs is asserted.",
+              "free_symbols": [
+                "DordClass",
+                "Dord",
+                "Qord",
+                "Q",
+                "Sord",
+                "xord",
+                "kappa",
+                "Emb",
+                "t",
+                "Bord",
+                "Qfam",
+                "LambdaB",
+                "G",
+                "Gplus",
+                "V",
+                "A",
+                "c",
+                "S",
+                "Pi",
+                "Slice",
+                "ell",
+                "Ebase",
+                "Ecert",
+                "Cost",
+                "Opt",
+                "Acc",
+                "Osrc"
+              ],
+              "depends_on": [
+                "ass:binary-rational-cost",
+                "def:ordinary-query-subclass",
+                "def:ordinary-layer25-translation",
+                "def:ordinary-source-family",
+                "def:legal-protocols",
+                "def:acquired-regime",
+                "def:source-slice",
+                "def:acquisition-certificate",
+                "def:certificate-cost",
+                "def:optimal-cost",
+                "def:operational-acceptance",
+                "def:ordinary-design-embedding",
+                "def:ordinary-label-slices",
+                "lem:published-identify-plus-recursion"
+              ],
+              "status": "to-prove",
+              "justification": "The two-way embedding matches the ordinary \\(Q[S]\\) target and source-family semantics before certifying legality, acceptance, and exact cost preservation.",
+              "gap": "Akbari, Etesami, and Kiyavash (2025), Theorem 1 on page 5, Lemma 3 on page 8, Lemma 7 on page 12, and Proposition 3 on page 16 concern ordinary intervention collections and their fixed \\(Q[S]\\) source families. They do not prove the two-way Layer-2.5 translation with explicit oracle-returned support, finite assignment labels, adequate READ records, complete-run acceptance, and exact protocol-cost preservation established here.",
+              "consumer": "The equivalence transfers the ordinary hardness frontier without silently enlarging the source family or changing the causal query."
+            },
+            "reason": "The ordinary comparison now records the exact forward source-family embedding and the valid reverse cost inequality, while removing the invalid uniform-certificate construction and equality claim.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-delete",
+            "id": "def:uniform-normalization-handle",
+            "reason": "This construction merely instructed the proof to perform the now-refuted source-outside-branch quantifier exchange. After the theorem is corrected to branchwise witnesses, the handle is unused and retaining it would smuggle a false property into the core.",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "symbol-delete",
+            "name": "Hnorm",
+            "reason": "The proof-handle symbol is referenced only by the obsolete uniform-normalization definition and the replaced theorem.",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "definition-delete",
+            "id": "def:ordinary-catalogue-certificate",
+            "reason": "The construction invokes the false uniform-source theorem to assign one concrete slice to each factor. The corrected ordinary comparison uses the valid generic acquired collection directly, so this construction has no live consumer.",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "symbol-delete",
+            "name": "EB",
+            "reason": "The embedded uniform-certificate symbol is referenced only by the obsolete ordinary-catalogue-certificate construction and the replaced ordinary theorem.",
+            "direction": "delete-obsolete"
+          },
+          {
+            "kind": "comparator-promise-table-replace",
+            "id": "metadata:comparator-promise-table",
+            "proposed": [
+              {
+                "comparator_bibkey": "RaghavanBareinboim2026CTFIDUPlus",
+                "comparator_claim": "Algorithm 2 and Theorem 3.5 decide an unnested counterfactual query from a fixed finite collection of supplied input distributions.",
+                "matched_by": "Theorem 1",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "RaghavanBareinboim2025Realizability",
+                "comparator_claim": "A Layer-3 distribution is realizable if and only if CTF-REALIZE returns a sample.",
+                "matched_by": "unmatched",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "AkbariEtesamiKiyavash2022MinCost",
+                "comparator_claim": "Theorem 1 gives singleton reduction for a connected ordinary target, Lemma 3 characterizes singleton feasibility by hedge hitting, and Theorem 2 proves NP-hardness.",
+                "matched_by": "Theorem 3",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "AkbariEtesamiKiyavash2025Optimal",
+                "comparator_claim": "Theorem 1 and Lemma 3 reduce a c-component ordinary target to one minimum-weight hedge-hitting intervention, Lemma 7 certifies exact Algorithm 2, and Proposition 3 certifies exact Algorithm 3 for a general target.",
+                "matched_by": "Theorem 3",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "ElahiEtAl2024FastProxy",
+                "comparator_claim": "Ordinary minimum-cost proxy experiment design admits weighted Max-SAT and integer-programming formulations.",
+                "matched_by": "unmatched",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "CorreaLeeBareinboim2021NestedCTFID",
+                "comparator_claim": "The ctfID algorithm is complete for counterfactual identification from arbitrary observational and experimental distributions.",
+                "matched_by": "Theorem 1",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "KivvaMokhtarianEtesamiKiyavash2022gID",
+                "comparator_claim": "Under positivity, generalized identification reduces to a series of classical identification subproblems.",
+                "matched_by": "Theorem 1",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "ParkLee2026CTFSCB",
+                "comparator_claim": "The algorithm returns all and only representative counterfactual possibly-optimal minimal intervention sets.",
+                "matched_by": "unmatched",
+                "match_kind": "downgraded_to_informed_by"
+              }
+            ],
+            "reason": "The corrected ordinary theorem proves only a one-way cost comparison with ordinary intervention design, so the two Akbari--Etesami--Kiyavash rows can no longer be marked as equivalence; all other comparator rows are preserved.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": []
+      }
+    }
+  ]
+}

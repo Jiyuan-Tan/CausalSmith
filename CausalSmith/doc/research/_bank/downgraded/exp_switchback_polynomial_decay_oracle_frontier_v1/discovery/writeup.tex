@@ -1,0 +1,857 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}switchback\_\allowbreak{}polynomial\_\allowbreak{}decay\_\allowbreak{}oracle\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The constructive side is now an exact finite-horizon radius-aware certificate: optimize the audited Markov truncated Horvitz--Thompson bound over integer windows and cap it by the zero estimator's \(4B^2\) risk.  The certified window is constant when \(C/B\) is below the \(T^{-1/2}\) elbow, has scale \(\{(C/B)^2T\}^{1/(2\beta+1)}\) in the intermediate regime, and saturates at the horizon when \(C/B\) reaches order \(T^\beta\).  The policy-uniform converse remains open: the common-null calculations do not yet prove even the proposed \(1/\log(\mathrm eL)\) multiscale certificate, so the displayed matched frontier is explicitly conditional.  The \(C=0\) boundary retains the ordinary parametric frontier.
+
+\section{Project justification}
+
+\paragraph{Gap.} Finite-order regular-design optimization, geometric-mixing analyses, and recent sequential rerandomization do not supply a policy-uniform common-null information certificate for fixed-array polynomial memory.  The optimized Markov construction gives a radius-aware all-horizon upper certificate, but no proved deterministic occupancy--information inequality currently rules out a better outcome-adaptive policy, even with the candidate dyadic logarithmic loss.
+
+\paragraph{Niche.} Known beta removes adaptation to the decay index from scope and makes the candidate oracle tradeoff explicit: for the constructive nonadaptive design, exposure variance grows with the homogeneous-history window while deterministic carryover bias decays polynomially; whether outcome-adaptive assignment can beat this tradeoff is exactly the open sequential multiscale-certificate question.
+
+\paragraph{Fill.} The proved contribution in the present core is the optimized radius-aware Markov certificate, including the trivial bounded-parameter cap and the low-, intermediate-, and high-memory elbows.  The common-null horizon-eight calculation isolates the prospective converse mechanism, while the general all-policy multiscale certificate and both its logarithmic and no-log forms remain open rather than being promoted as results.
+
+\section{Related work}
+
+Bojinov, Simchi-Levi, and Zhao analyze exact-\(m\), regular switchback designs and optimize Horvitz--Thompson risk; their result informs the constructive architecture here but is not an all-policy or arbitrary-estimator converse.  Hu and Wager study geometrically mixing Markov dynamics, whose stochastic contraction does not imply the fixed-array polynomial-memory certificate sought here.  Jia, Kallus, and Yu provide a truncated-exposure estimation template under rapid mixing and graph clustering, again informing the upper audit rather than the open converse.  Duchi and Ruan's constrained-risk inequality can be used only after close adaptive trajectory laws have been constructed and supplies no switchback occupancy inequality.  Zeng and coauthors study sequential rerandomization under no or first-order carryover.  Xiong, Chin, and Taylor inform the operational window interpretation.  Lin and Ding and Liu and Zhong address separate inference problems.  None of these comparisons is used to claim that the open all-policy multiscale certificate has been proved.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_T(Y)=T^{-1}\sum_{t=1}^T\{Y_t(\mathbf 1_{1:t})-Y_t(\mathbf 0_{1:t})\}\).
+Primary functional / estimator / diagnostic: \(R_T^{(2)}(\beta;B,C)=\inf_{\pi\in\mathcal D_T}\inf_{\widehat\theta}\sup_{Y\in\mathcal P_{T,\beta}(B,C)}\mathbb E_{\pi,Y}[(\widehat\theta-\theta_T(Y))^2]\).
+\begin{itemize}
+  \item \texttt{T} --- \texttt{integer}; \(\mathbb N\); \texttt{Finite-\allowbreak{}population index.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The experiment horizon.}
+  \item \texttt{B} --- \texttt{scalar}; \((0,\infty)\); \texttt{Model radius.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The uniform outcome bound.}
+  \item \texttt{C} --- \texttt{scalar}; \([0,\infty)\); \texttt{Memory radius.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The polynomial historical-\allowbreak{}envelope radius.}
+  \item \texttt{\textbackslash{}\allowbreak{}beta} --- \texttt{scalar}; \((0,\infty)\); \texttt{Oracle smoothness index.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The known polynomial memory-\allowbreak{}decay index.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{set}; \(\{0,1\}\); \texttt{Assignment support.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The binary treatment alphabet.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}t} --- \texttt{set}; \(\mathcal A^t\); \texttt{Potential-\allowbreak{}outcome domain.}
+  \par\smallskip\noindent\emph{Definition.} The set of binary treatment histories through period \(t\).
+  \item \texttt{Y} --- \texttt{fixed array}; \(Y_t:\mathcal H_t\to[-B,B]\) for \(t=1,\ldots,T\); \texttt{Adversarial object.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The non-\allowbreak{}anticipating finite-\allowbreak{}population potential-\allowbreak{}outcome array.}
+  \item \texttt{W} --- \texttt{random vector}; \(\mathcal A^T\); \texttt{Only source of randomness.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The realized assignment path.}
+  \item \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{random vector}; \([-B,B]^T\); \texttt{Observed data.}
+  \par\smallskip\noindent\emph{Definition.} The observed outcomes satisfying \(Y_t^{\mathrm{obs}}=Y_t(W_{1:t})\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal F\_\allowbreak{}t} --- \texttt{sigma-\allowbreak{}field}; \texttt{Adaptive-\allowbreak{}design filtration.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_t=\sigma(W_{1:t},Y_{1:t}^{\mathrm{obs}})\), with \(\mathcal F_0\) trivial.
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{probability kernel}; \(\pi_t(\cdot\mid\mathcal F_{t-1})\in\mathcal P(\mathcal A)\); \texttt{Design decision.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A known,\allowbreak{} possibly deterministic and outcome-\allowbreak{}adaptive,\allowbreak{} sequential assignment rule.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}T} --- \texttt{set}; \texttt{Design comparison class.}
+  \par\smallskip\noindent\emph{Definition.} The class of all sequential assignment kernels \(\pi\) through horizon \(T\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta} --- \texttt{estimator}; \(\widehat\theta=\widehat\theta(W,Y^{\mathrm{obs}})\in\mathbb R\); \texttt{Analysis decision.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{An arbitrary observed-\allowbreak{}data-\allowbreak{}measurable estimator.}
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}T} --- \texttt{functional}; \(Y\mapsto T^{-1}\sum_{t=1}^T\{Y_t(\mathbf 1_{1:t})-Y_t(\mathbf 0_{1:t})\}\); \texttt{Causal estimand.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The all-\allowbreak{}treated-\allowbreak{}versus-\allowbreak{}all-\allowbreak{}control finite-\allowbreak{}population GATE.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}\{T,\allowbreak{}\textbackslash{}\allowbreak{}beta\}\allowbreak{}(B,\allowbreak{}C)} --- \texttt{set}; \texttt{Adversarial model class.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The bounded pointwise polynomial historical-\allowbreak{}envelope class.}
+  \item \texttt{R\_\allowbreak{}T\textasciicircum{}\{(2)\}\allowbreak{}(\textbackslash{}\allowbreak{}beta;\allowbreak{}B,\allowbreak{}C)} --- \texttt{scalar functional}; \([0,\infty)\); \texttt{Oracle frontier.}
+  \par\smallskip\noindent\emph{Definition.} The minimax design-based mean squared error for \(\theta_T\).
+  \item \texttt{b} --- \texttt{integer}; \(\{1,\ldots,T\}\); \texttt{Design scale.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A homogeneous-\allowbreak{}history exposure length.}
+  \item \texttt{L} --- \texttt{integer}; \(\{1,\ldots,T\}\); \texttt{Lower-\allowbreak{}bound scale.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A block length used in the lower-\allowbreak{}bound experiment.}
+  \item \texttt{\textbackslash{}\allowbreak{}pi\textasciicircum{}\{(b)\}\allowbreak{}} --- \texttt{probability kernel}; \texttt{Rate-\allowbreak{}attaining design.}
+  \par\smallskip\noindent\emph{Definition.} The stationary symmetric Markov switchback that changes arm with probability \(1/(b+1)\).
+  \item \texttt{k\_\allowbreak{}t} --- \texttt{integer}; \texttt{Available exposure length.}
+  \par\smallskip\noindent\emph{Definition.} \(k_t=\min\{b,t-1\}\).
+  \item \texttt{H\_\allowbreak{}\{t,\allowbreak{}b,\allowbreak{}a\}\allowbreak{}} --- \texttt{indicator}; \texttt{Homogeneous-\allowbreak{}history exposure.}
+  \par\smallskip\noindent\emph{Definition.} \(H_{t,b,a}=\mathbf 1\{W_{t-k_t:t}=\mathbf a_{k_t+1}\}\) for \(a\in\mathcal A\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}\{t,\allowbreak{}b,\allowbreak{}a\}\allowbreak{}} --- \texttt{scalar}; \((0,1]\); \texttt{Known exposure probability.}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_{t,b,a}=\Pr_{\pi^{(b)}}(H_{t,b,a}=1)=2^{-1}\{b/(b+1)\}^{k_t}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta\_\allowbreak{}b} --- \texttt{estimator}; \texttt{Rate-\allowbreak{}attaining estimator.}
+  \par\smallskip\noindent\emph{Definition.} The truncated homogeneous-history Horvitz--Thompson estimator at scale \(b\).
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\textbackslash{}\allowbreak{}theta\_\allowbreak{}b} --- \texttt{random variable}; \texttt{Upper-\allowbreak{}bound comparison process.}
+  \par\smallskip\noindent\emph{Definition.} The auxiliary estimator obtained from \(\widehat\theta_b\) by replacing each exposed observed outcome with the corresponding sustained-arm endpoint.
+  \item \texttt{L\_\allowbreak{}T} --- \texttt{integer}; \texttt{Radius-\allowbreak{}free lower-\allowbreak{}bound scale in the conditional fixed-\allowbreak{}radius frontier.}
+  \par\smallskip\noindent\emph{Definition.} \(L_T=\max\{1,\lfloor T^{1/(2\beta+1)}\rfloor\}\).
+  \item \texttt{b\_\allowbreak{}T} --- \texttt{integer}; \texttt{Radius-\allowbreak{}free fallback window for the uniform-\allowbreak{}rate corollary.}
+  \par\smallskip\noindent\emph{Definition.} \(b_T=\lceil T^{1/(2\beta+1)}\rceil\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B\_\allowbreak{}T} --- \texttt{set}; \texttt{Dyadic lower-\allowbreak{}bound scales.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_T=\{2^j:j\in\mathbb Z_{\ge0},\ 2^j\le L_T\}\cup\{L_T\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak Q\_\allowbreak{}\{T,\allowbreak{}L\}\allowbreak{}} --- \texttt{finite family of priors}; \texttt{Lower-\allowbreak{}bound handle.}
+  \par\smallskip\noindent\emph{Definition.} A common-null family of fixed-before-assignment block and band-perturbation priors at scales not exceeding \(L\).
+  \item \texttt{Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}pi,\allowbreak{}L\}\allowbreak{}} --- \texttt{prior}; \texttt{Policy-\allowbreak{}specific least-\allowbreak{}favorable prior.}
+  \par\smallskip\noindent\emph{Definition.} A member of \(\mathfrak Q_{T,L}\) selected as a function of the known policy \(\pi\) before assignment.
+  \item \texttt{c\_\allowbreak{}1} --- \texttt{scalar}; \([0,\infty)\); \texttt{Worked-\allowbreak{}example band height.}
+  \par\smallskip\noindent\emph{Definition.} \(c_1=C2^{-(1+\beta)}\), the lag-one envelope coefficient.
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}8} --- \texttt{scalar}; \((0,B/4]\); \texttt{Worked-\allowbreak{}example block amplitude.}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_8=B/8\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}8} --- \texttt{scalar}; \((0,1/2]\); \texttt{Worked-\allowbreak{}example band multiplier.}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_8=\min\{1/2,B/[4(c_1+B)]\}\).
+  \item \texttt{U\textasciicircum{}\{(8)\}\allowbreak{}} --- \texttt{random array}; \(U^{(8)}=(U_{t,a})_{1\le t\le8,\ a\in\mathcal A}\); \texttt{Common-\allowbreak{}null latent array.}
+  \par\smallskip\noindent\emph{Definition.} Independent coordinates with distribution \(\operatorname{Unif}[-B/2,B/2]\), drawn before assignment.
+  \item \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}q} --- \texttt{map}; \(\psi_q:[-B/2,B/2]\to[-B,B]\); \texttt{Endpoint-\allowbreak{}preserving transport.}
+  \par\smallskip\noindent\emph{Definition.} \(\psi_q(u)=u+q(1-4u^2/B^2)\) for \(\lvert q\rvert\le B/4\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}\{8,\allowbreak{}0\}\allowbreak{}} --- \texttt{partition}; \texttt{Aligned length-\allowbreak{}two blocks.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_{8,0}=\{\{1,2\},\{3,4\},\{5,6\},\{7,8\}\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}\{8,\allowbreak{}1\}\allowbreak{}} --- \texttt{partition}; \texttt{One-\allowbreak{}period-\allowbreak{}shifted length-\allowbreak{}two blocks.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_{8,1}=\{\{1\},\{2,3\},\{4,5\},\{6,7\},\{8\}\}\).
+  \item \texttt{Q\_\allowbreak{}0\textasciicircum{}\{(8)\}\allowbreak{}} --- \texttt{prior}; \texttt{Worked-\allowbreak{}example common null.}
+  \par\smallskip\noindent\emph{Definition.} The law under which the fixed array satisfies \(Y_t(z_{1:t})=U_{t,z_t}\) for \(1\le t\le8\).
+  \item \texttt{\textbackslash{}\allowbreak{}xi\_\allowbreak{}\{I,\allowbreak{}a\}\allowbreak{}\textasciicircum{}\{(r)\}\allowbreak{}} --- \texttt{random sign array}; \(\{-1,1\}\); \texttt{Worked-\allowbreak{}example block perturbations.}
+  \par\smallskip\noindent\emph{Definition.} Independent Rademacher signs indexed by \(r\in\{0,1\}\), \(I\in\mathcal I_{8,r}\), and \(a\in\mathcal A\), drawn before assignment.
+  \item \texttt{Q\_\allowbreak{}\{8,\allowbreak{}r\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{blk\}\allowbreak{}\}\allowbreak{}} --- \texttt{prior}; \texttt{Worked-\allowbreak{}example shifted block prior.}
+  \par\smallskip\noindent\emph{Definition.} For \(r\in\{0,1\}\), the law under which \(Y_t(z_{1:t})=\psi_{\delta_8\xi_{I,z_t}^{(r)}}(U_{t,z_t})\) for the unique \(I\in\mathcal I_{8,r}\) containing \(t\).
+  \item \texttt{h\_\allowbreak{}\{t,\allowbreak{}a\}\allowbreak{}\textasciicircum{}\{(8)\}\allowbreak{}} --- \texttt{functional}; \texttt{Worked-\allowbreak{}example lag-\allowbreak{}one positive-\allowbreak{}part band score.}
+  \par\smallskip\noindent\emph{Definition.} \(h_{1,a}^{(8)}(z)=0\) and \(h_{t,a}^{(8)}(z)=\mathbf 1\{z_t=a\}[c_1-2c_1\mathbf 1\{z_{t-1}\ne a\}]_+\) for \(2\le t\le8\).
+  \item \texttt{s\_\allowbreak{}a} --- \texttt{scalar}; \(\{-1,1\}\); \texttt{Arm sign for a common positive GATE displacement.}
+  \par\smallskip\noindent\emph{Definition.} \(s_1=1\) and \(s_0=-1\).
+  \item \texttt{Q\_\allowbreak{}\{8,\allowbreak{}a\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{band\}\allowbreak{}\}\allowbreak{}} --- \texttt{prior}; \texttt{Worked-\allowbreak{}example arm-\allowbreak{}specific band prior.}
+  \par\smallskip\noindent\emph{Definition.} For \(a\in\mathcal A\), the law under which \(Y_t(z_{1:t})=\psi_{s_a\eta_8h_{t,a}^{(8)}(z)}(U_{t,z_t})\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Q\_\allowbreak{}8} --- \texttt{finite family of priors}; \texttt{Worked-\allowbreak{}example common-\allowbreak{}null family.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q_8=\{Q_0^{(8)},Q_{8,0}^{\mathrm{blk}},Q_{8,1}^{\mathrm{blk}},Q_{8,0}^{\mathrm{band}},Q_{8,1}^{\mathrm{band}}\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf Q} --- \texttt{prior}; \(\mathcal Q_8\); \texttt{Likelihood-\allowbreak{}factorization index.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic member of the worked finite family.}
+  \item \texttt{\textbackslash{}\allowbreak{}pi\textasciicircum{}\textbackslash{}\allowbreak{}dagger} --- \texttt{probability kernel}; \texttt{Worked-\allowbreak{}example adaptive assignment.}
+  \par\smallskip\noindent\emph{Definition.} The horizon-eight adaptive policy with \(W_1\sim\operatorname{Bernoulli}(1/2)\) and \(\Pr(W_t=1\mid\mathcal F_{t-1})=3/4\) if \(Y_{t-1}^{\mathrm{obs}}\ge0\), and \(1/4\) otherwise.
+  \item \texttt{p\_\allowbreak{}t\textasciicircum{}\textbackslash{}\allowbreak{}dagger} --- \texttt{random scalar}; \(\{1/4,3/4\}\); \texttt{Worked-\allowbreak{}example adaptive treatment probability.}
+  \par\smallskip\noindent\emph{Definition.} \(p_t^\dagger=3/4\) if \(Y_{t-1}^{\mathrm{obs}}\ge0\), and \(p_t^\dagger=1/4\) otherwise, for \(2\le t\le8\).
+  \item \texttt{g\_\allowbreak{}\{\textbackslash{}\allowbreak{}pi\textasciicircum{}\textbackslash{}\allowbreak{}dagger\}\allowbreak{}} --- \texttt{mass function}; \texttt{Adaptive assignment likelihood factor.}
+  \par\smallskip\noindent\emph{Definition.} \(g_{\pi^\dagger}(w,y)=2^{-1}\prod_{t=2}^8p_t^\dagger(y)^{w_t}\{1-p_t^\dagger(y)\}^{1-w_t}\).
+  \item \texttt{q\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathsf Q\}\allowbreak{}} --- \texttt{conditional density}; \texttt{Outcome likelihood factor.}
+  \par\smallskip\noindent\emph{Definition.} \(q_{\mathsf Q}(y\mid w)\) is the observed-outcome density induced by prior \(\mathsf Q\) conditional on the assignment path \(w\), after its latent variables are integrated out.
+  \item \texttt{P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathsf Q,\allowbreak{}\textbackslash{}\allowbreak{}pi\textasciicircum{}\textbackslash{}\allowbreak{}dagger\}\allowbreak{}} --- \texttt{probability law}; \texttt{Worked-\allowbreak{}example trajectory law.}
+  \par\smallskip\noindent\emph{Definition.} The observed-data law generated by prior \(\mathsf Q\) and adaptive policy \(\pi^\dagger\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\textbackslash{}\allowbreak{}beta} --- \texttt{scalar}; \((0,\infty)\); \texttt{Lower-\allowbreak{}bound certificate.}
+  \par\smallskip\noindent\emph{Definition.} Derived by \(\mathrm{oeq{:}sequential\mbox{-}multiscale\mbox{-}certificate}\): an explicit policy-uniform Bayes-risk constant.
+  \item \texttt{T\_\allowbreak{}\textbackslash{}\allowbreak{}beta} --- \texttt{integer}; \(\mathbb N\); \texttt{Lower-\allowbreak{}bound threshold.}
+  \par\smallskip\noindent\emph{Definition.} Derived by \(\mathrm{oeq{:}sequential\mbox{-}multiscale\mbox{-}certificate}\): an explicit finite-horizon threshold.
+  \item \texttt{d} --- \texttt{scalar}; \((0,\infty)\); \texttt{Operational unit conversion.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The clock-\allowbreak{}time duration represented by one experimental period.}
+  \item \texttt{K\_\allowbreak{}+\allowbreak{}(B,\allowbreak{}C,\allowbreak{}\textbackslash{}\allowbreak{}beta)} --- \texttt{scalar}; \((0,\infty)\); \texttt{Explicit upper constant.}
+  \par\smallskip\noindent\emph{Definition.} \(K_+(B,C,\beta)=\{B\sqrt{(8\mathrm e-4)(1+2^{-1/(2\beta+1)})}+2\mathrm e C/\beta\}^2\).
+  \item \texttt{b\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{integer}; \(\{1,\ldots,T\}\); \texttt{Radius-\allowbreak{}aware certified design scale.}
+  \par\smallskip\noindent\emph{Definition.} The smallest integer window minimizing the audited Markov upper certificate in \(\mathrm{def{:}oracle\mbox{-}scale}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:bounded-potential-outcomes]\label{ass:bounded-potential-outcomes}
+\(\lvert Y_t(z_{1:t})\rvert\le B\) for every \(t\in\{1,\ldots,T\}\) and every \(z_{1:t}\in\mathcal H_t\).
+\par\smallskip\noindent\emph{Standard} (Bounded finite-population potential outcomes, \cite{bojinov2023design}).
+\end{assumption}
+
+\begin{assumption}[ass:polynomial-historical-envelope]\label{ass:polynomial-historical-envelope}
+For every \(t\in\{1,\ldots,T\}\) and every \(z_{1:t},z'_{1:t}\in\mathcal H_t\) with \(z_t=z'_t\), \[\lvert Y_t(z_{1:t})-Y_t(z'_{1:t})\rvert\le\sum_{\ell=1}^{t-1}C(1+\ell)^{-(1+\beta)}\mathbf 1\{z_{t-\ell}\ne z'_{t-\ell}\}.\]
+\par\smallskip\noindent\emph{Novel.} The condition represents persistent but decaying queue, inventory, congestion, and marketplace-state effects without requiring a stochastic state equation. Additive distributed-lag systems with coefficients bounded by \(C(1+\ell)^{-(1+\beta)}\), and nonlinear Lipschitz recursions with the same coordinate sensitivities, satisfy it.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:polynomial-envelope-class]\label{def:polynomial-envelope-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal P_{T,\beta}(B,C)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{T,\beta}(B,C)=\{Y: \lvert Y_t(z_{1:t})\rvert\le B\text{ for every }1\le t\le T\text{ and }z_{1:t}\in\mathcal H_t,\text{ and the condition in }\mathrm{ass{:}polynomial\mbox{-}historical\mbox{-}envelope}\text{ holds for every }1\le t\le T\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}bounded-\allowbreak{}potential-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}polynomial-\allowbreak{}historical-\allowbreak{}envelope}.
+\end{definition}
+
+\begin{definition}[def:sequential-policy-class]\label{def:sequential-policy-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal D_T\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal D_T=\{\pi=(\pi_t)_{t=1}^T:\pi_t(\cdot\mid\mathcal F_{t-1})\text{ is a known probability kernel on }\mathcal A\}\)\), including deterministic kernels and kernels depending on past observed outcomes.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{\textbackslash{}\allowbreak{}mathcal F\_\allowbreak{}t}; \texttt{\textbackslash{}\allowbreak{}mathcal A}.
+\end{definition}
+
+\begin{definition}[def:gate]\label{def:gate}
+\par\smallskip\noindent\emph{Defined object.} \(\theta_T\)
+\par\smallskip\noindent\emph{Construction.} \(\theta_T(Y)=T^{-1}\sum_{t=1}^T\{Y_t(\mathbf 1_{1:t})-Y_t(\mathbf 0_{1:t})\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:minimax-mse]\label{def:minimax-mse}
+\par\smallskip\noindent\emph{Defined object.} \(R_T^{(2)}(\beta;B,C)\)
+\par\smallskip\noindent\emph{Construction.} \(R_T^{(2)}(\beta;B,C)=\inf_{\pi\in\mathcal D_T}\inf_{\widehat\theta}\sup_{Y\in\mathcal P_{T,\beta}(B,C)}\mathbb E_{\pi,Y}[(\widehat\theta-\theta_T(Y))^2]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}T}; \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}\{T,\allowbreak{}\textbackslash{}\allowbreak{}beta\}\allowbreak{}(B,\allowbreak{}C)}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta}; \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}T}.
+\end{definition}
+
+\begin{definition}[def:markov-switchback]\label{def:markov-switchback}
+\par\smallskip\noindent\emph{Defined object.} \(\pi^{(b)}\)
+\par\smallskip\noindent\emph{Construction.} Draw \(W_1\sim\operatorname{Bernoulli}(1/2)\); for \(t\ge2\), set \(W_t=1-W_{t-1}\) with probability \(1/(b+1)\) and \(W_t=W_{t-1}\) otherwise, independently of outcomes conditional on \(W_{t-1}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:truncated-ht]\label{def:truncated-ht}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat\theta_b\)
+\par\smallskip\noindent\emph{Construction.} \(\widehat\theta_b=T^{-1}\sum_{t=1}^T\{H_{t,b,1}Y_t^{\mathrm{obs}}/\nu_{t,b,1}-H_{t,b,0}Y_t^{\mathrm{obs}}/\nu_{t,b,0}\}\), where \(k_t=\min\{b,t-1\}\), \(H_{t,b,a}=\mathbf 1\{W_{t-k_t:t}=\mathbf a_{k_t+1}\}\), and \(\nu_{t,b,a}=2^{-1}\{b/(b+1)\}^{k_t}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{W}; \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}}; \texttt{T}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:homogeneous-auxiliary]\label{def:homogeneous-auxiliary}
+\par\smallskip\noindent\emph{Defined object.} \(\widetilde\theta_b\)
+\par\smallskip\noindent\emph{Construction.} \(\widetilde\theta_b=T^{-1}\sum_{t=1}^T\{H_{t,b,1}Y_t(\mathbf 1_{1:t})/\nu_{t,b,1}-H_{t,b,0}Y_t(\mathbf 0_{1:t})/\nu_{t,b,0}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y}; \texttt{W}; \texttt{T}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:oracle-scale]\label{def:oracle-scale}
+\par\smallskip\noindent\emph{Defined object.} \(L_T,\mathcal B_T,b_\star\)
+\par\smallskip\noindent\emph{Construction.} Retain
+\[
+ L_T=\max\{1,\lfloor T^{1/(2\beta+1)}\rfloor\},
+ \qquad
+ \mathcal B_T=\{2^j:j\in\mathbb Z_{\ge0},\ 2^j\le L_T\}\cup\{L_T\}.
+\]
+In addition, define the radius-aware certified window by
+\[
+ b_\star
+ =\min\operatorname*{arg\,min}_{b\in\{1,\ldots,T\}}
+ \left\{
+ B\sqrt{\frac{(8\mathrm e-4)b}{T}}
+ +\frac{2\mathrm e C}{\beta}(b+1)^{-\beta}
+ \right\},
+\]
+where the outer minimum breaks ties toward the smallest integer.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{\textbackslash{}\allowbreak{}beta}; \texttt{B}; \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:worked-common-null-family]\label{def:worked-common-null-family}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal Q_8\)
+\par\smallskip\noindent\emph{Construction.} At horizon \(8\), draw \(U_{t,a}\stackrel{\mathrm{iid}}{\sim}\operatorname{Unif}[-B/2,B/2]\) before assignment. The null \(Q_0^{(8)}\) sets \(Y_t(z_{1:t})=U_{t,z_t}\). For each offset \(r\in\{0,1\}\), draw independent \(\xi_{I,a}^{(r)}\in\{-1,1\}\); the prior \(Q_{8,r}^{\mathrm{blk}}\) sets \(Y_t(z_{1:t})=\psi_{\delta_8\xi_{I,z_t}^{(r)}}(U_{t,z_t})\) on the unique block \(I\in\mathcal I_{8,r}\) containing \(t\). For each arm \(a\in\mathcal A\), set \(h_{1,a}^{(8)}=0\) and \(h_{t,a}^{(8)}(z)=\mathbf 1\{z_t=a\}[c_1-2c_1\mathbf 1\{z_{t-1}\ne a\}]_+\); the prior \(Q_{8,a}^{\mathrm{band}}\) sets \(Y_t(z_{1:t})=\psi_{s_a\eta_8h_{t,a}^{(8)}(z)}(U_{t,z_t})\). The worked family is \(\mathcal Q_8=\{Q_0^{(8)},Q_{8,0}^{\mathrm{blk}},Q_{8,1}^{\mathrm{blk}},Q_{8,0}^{\mathrm{band}},Q_{8,1}^{\mathrm{band}}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{C}; \texttt{\textbackslash{}\allowbreak{}beta}.
+\end{definition}
+
+\begin{definition}[def:worked-adaptive-policy]\label{def:worked-adaptive-policy}
+\par\smallskip\noindent\emph{Defined object.} \(\pi^\dagger\)
+\par\smallskip\noindent\emph{Construction.} Set \(W_1\sim\operatorname{Bernoulli}(1/2)\). For \(2\le t\le8\), assign treatment with probability \(p_t^\dagger=3/4\) when \(Y_{t-1}^{\mathrm{obs}}\ge0\) and \(p_t^\dagger=1/4\) otherwise. Its pathwise assignment factor is \(g_{\pi^\dagger}(w,y)=2^{-1}\prod_{t=2}^8p_t^\dagger(y)^{w_t}\{1-p_t^\dagger(y)\}^{1-w_t}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:worked-trajectory-laws]\label{def:worked-trajectory-laws}
+\par\smallskip\noindent\emph{Defined object.} \(P_{\mathsf Q,\pi^\dagger}\)
+\par\smallskip\noindent\emph{Construction.} For each \(\mathsf Q\in\mathcal Q_8\), integrate the fixed-before-assignment latent variables in \(\mathsf Q\) to obtain the conditional observed-outcome density \(q_{\mathsf Q}(y\mid w)\), and define \(P_{\mathsf Q,\pi^\dagger}(w,y)=g_{\pi^\dagger}(w,y)q_{\mathsf Q}(y\mid w)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal Q\_\allowbreak{}8}; \texttt{\textbackslash{}\allowbreak{}pi\textasciicircum{}\textbackslash{}\allowbreak{}dagger}.
+\end{definition}
+
+\begin{definition}[def:multiscale-prior-handle]\label{def:multiscale-prior-handle}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak Q_{T,L}\)
+\par\smallskip\noindent\emph{Construction.} Handle: generalize the explicit common-null architecture in \(\mathcal Q_8\) by randomizing block offsets at length \(L\) and adding arm-specific positive-part band transports at every \(b\in\mathcal B_T\) with \(b\le L\); then derive a single occupancy--information inequality under the common-null path law. Every prior is fixed before assignment, and no member is selected from the realized path.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{B}; \texttt{C}; \texttt{\textbackslash{}\allowbreak{}beta}; \texttt{\textbackslash{}\allowbreak{}mathcal B\_\allowbreak{}T}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:markov-upper-audit]\label{lem:markov-upper-audit}
+For every \(b\in\{1,\ldots,T\}\), the Markov design satisfies \(\nu_{t,b,a}>1/(2\mathrm e)\). The auxiliary statistic is unbiased, \(\mathbb E_{\pi^{(b)}}[\widetilde\theta_b]=\theta_T(Y)\), and obeys \(\operatorname{Var}_{\pi^{(b)}}(\widetilde\theta_b)\le(8\mathrm e-4)B^2b/T\). Uniformly over \(Y\in\mathcal P_{T,\beta}(B,C)\), the pathwise replacement error satisfies \[\lvert\widehat\theta_b-\widetilde\theta_b\rvert\le(2\mathrm e C/\beta)(b+1)^{-\beta}.\] Consequently, \[\sup_{Y\in\mathcal P_{T,\beta}(B,C)}\mathbb E_{\pi^{(b)},Y}[(\widehat\theta_b-\theta_T(Y))^2]\le\left\{B\sqrt{(8\mathrm e-4)b/T}+\frac{2\mathrm e C}{\beta}(b+1)^{-\beta}\right\}^2.\]
+\end{lemma}
+\begin{proof}
+Put \(p=b/(b+1)\), \(\rho=2p-1=(b-1)/(b+1)\), and \(r_t=t-k_t=\max\{1,t-b\}\).  For \(a\in\{0,1\}\), write \(\epsilon_1=1\), \(\epsilon_0=-1\), and \(y_{t,a}=Y_t(\mathbf a_{1:t})\).  The initial state of \(\pi^{(b)}\) is uniform, and the switch indicators at the subsequent transitions are independent with no-switch probability \(p\).  Hence, by the definition of \(H_{t,b,a}\),
+\[
+ \Pr_{\pi^{(b)}}(H_{t,b,a}=1)=\frac12p^{k_t}=\nu_{t,b,a}.
+\]
+Since \(k_t\le b\),
+\[
+ \nu_{t,b,a}\ge \frac12p^b
+ =\frac12(1+1/b)^{-b}>\frac1{2\mathrm e};
+\]
+the strict final inequality follows from \(b\log(1+1/b)<1\).
+
+Define
+\[
+ X_t=\sum_{a=0}^1\epsilon_a\frac{H_{t,b,a}y_{t,a}}{\nu_{t,b,a}},
+ \qquad \tau_t=y_{t,1}-y_{t,0}.
+\]
+The exposure-probability identity gives \(\mathbb E_{\pi^{(b)}}X_t=\tau_t\).  Therefore, using the definitions of \(\widetilde\theta_b\) and \(\theta_T\),
+\[
+ \mathbb E_{\pi^{(b)}}\widetilde\theta_b
+ =\frac1T\sum_{t=1}^T\tau_t=\theta_T(Y).
+\]
+
+We next derive the variance bound.  The two-state transition matrix has \(m\)-step probabilities
+\[
+ P^m(a,c)=\frac12\{1+\epsilon_a\epsilon_c\rho^m\},
+\]
+as follows directly by diagonalizing its eigenvalues \(1\) and \(\rho\).  Also, the disjointness of \(H_{t,b,0}\) and \(H_{t,b,1}\), the support bound \(\lvert y_{t,a}\rvert\le B\) from \(\mathrm{ass{:}bounded\mbox{-}potential\mbox{-}outcomes}\), and \(\nu_{t,b,a}=p^{k_t}/2\) give
+\[
+ \operatorname{Var}(X_t)\le \mathbb E X_t^2
+ =2p^{-k_t}(y_{t,1}^2+y_{t,0}^2)
+ \le4B^2p^{-k_t}.
+\]
+Fix \(s<t\), put \(d=t-s\), and first suppose \(r_t\le s\), equivalently \(1\le d\le k_t\).  The two exposure intervals overlap.  Exposures to different arms have zero joint probability, while for the same arm their union has \(k_s+d\) transitions.  Thus
+\[
+ \frac{\Pr(H_{s,b,a}=H_{t,b,a}=1)}{\nu_{s,b,a}\nu_{t,b,a}}
+ =2p^{d-k_t}.
+\]
+Writing \(A=2p^{d-k_t}\ge2\), direct expansion yields
+\[
+ \operatorname{Cov}(X_s,X_t)
+ =(A-1)(y_{s,1}y_{t,1}+y_{s,0}y_{t,0})
+   +y_{s,1}y_{t,0}+y_{s,0}y_{t,1}
+ \le 2AB^2=4B^2p^{d-k_t}.
+\]
+If instead \(r_t>s\), put \(m=r_t-s\ge1\).  The Markov property and the displayed formula for \(P^m\) give
+\[
+ \frac{\Pr(H_{s,b,a}=H_{t,b,c}=1)}{\nu_{s,b,a}\nu_{t,b,c}}
+ =2P^m(a,c)=1+\epsilon_a\epsilon_c\rho^m.
+\]
+Consequently,
+\[
+ \operatorname{Cov}(X_s,X_t)
+ =\rho^m(y_{s,1}+y_{s,0})(y_{t,1}+y_{t,0})
+ \le4B^2\rho^m.
+\]
+Summing the diagonal, overlapping, and disjoint pairs, and using \(k_t\le b\), gives
+\[
+\begin{aligned}
+ \operatorname{Var}\!\left(\sum_{t=1}^T X_t\right)
+ &\le TB^2\left\{4p^{-b}
+       +8\sum_{j=0}^{b-1}p^{-j}
+       +8\sum_{m=1}^{\infty}\rho^m\right\}\\
+ &=TB^2\{(8b+4)p^{-b}-4b-4\}.
+\end{aligned}
+\]
+Here \(\sum_{j=0}^{b-1}p^{-j}=b(p^{-b}-1)\) and \(\sum_{m\ge1}\rho^m=(b-1)/2\), with the latter sum equal to zero when \(b=1\).
+
+For completeness, the constant in the claim follows from an elementary sharpened exponential bound.  Indeed,
+\[
+ 1-b\log(1+1/b)
+ =b\int_0^{1/b}\frac{u}{1+u}\,du
+ \ge\frac1{2(b+1)}=:u_b.
+\]
+Thus \(p^{-b}\le \mathrm e\exp(-u_b)\).  Since \(1-exp(-u)\ge u-u^2/2\) for \(u\ge0\),
+\[
+ \mathrm e-p^{-b}\ge
+ \frac{\mathrm e(4b+3)}{8(b+1)^2}
+ \ge\frac{\mathrm e-1}{2b+1}.
+\]
+The last inequality is equivalent to
+\(8b^2+(16-6\mathrm e)b+8-5\mathrm e\ge0\).  The exponential series and \(n!\ge24\cdot4^{n-4}\) for \(n\ge4\) give
+\[
+ \mathrm e=\sum_{n=0}^{\infty}\frac1{n!}
+ \le\frac83+\frac1{24}\sum_{j=0}^{\infty}4^{-j}
+ =\frac{49}{18}<\frac{11}{4}.
+\]
+It follows that the quadratic is positive at \(b=1\), where it equals \(32-11\mathrm e\), and its derivative \(16b+16-6\mathrm e\) is positive for \(b\ge1\).  Therefore
+\[
+ p^{-b}\le\frac{2\mathrm e b+1}{2b+1},
+ \qquad
+ (8b+4)p^{-b}-4b-4\le(8\mathrm e-4)b.
+\]
+After division by \(T^2\), this proves
+\[
+ \operatorname{Var}_{\pi^{(b)}}(\widetilde\theta_b)
+ \le(8\mathrm e-4)B^2\frac bT.
+\]
+
+It remains to compare the observed and auxiliary statistics.  On \(H_{t,b,a}=1\), either \(k_t=t-1\), in which case the observed history is exactly \(\mathbf a_{1:t}\), or any discrepancy from \(\mathbf a_{1:t}\) occurs only at lags \(\ell>b\).  The condition in \(\mathrm{ass{:}polynomial\mbox{-}historical\mbox{-}envelope}\) and the integral comparison for the decreasing function \(x\mapsto x^{-(1+\beta)}\) imply
+\[
+ \left|Y_t^{\mathrm{obs}}-y_{t,a}\right|
+ \le C\sum_{\ell=b+1}^{\infty}(1+\ell)^{-(1+\beta)}
+ \le C\int_{b+1}^{\infty}x^{-(1+\beta)}\,dx
+ =\frac C\beta(b+1)^{-\beta}.
+\]
+At each \(t\), at most one arm exposure occurs, and the already proved positivity bound gives \(\nu_{t,b,a}^{-1}<2\mathrm e\).  The definitions of the two statistics therefore give, pathwise,
+\[
+ \left|\widehat\theta_b-\widetilde\theta_b\right|
+ \le\frac1T\sum_{t=1}^T\sum_{a=0}^1
+ \frac{H_{t,b,a}}{\nu_{t,b,a}}
+ \left|Y_t^{\mathrm{obs}}-y_{t,a}\right|
+ \le\frac{2\mathrm e C}{\beta}(b+1)^{-\beta}.
+\]
+Finally, put \(A=\widetilde\theta_b-\theta_T(Y)\) and \(D=\widehat\theta_b-\widetilde\theta_b\).  Nonnegativity of \(\mathbb E(uA-vD)^2\) for all real \(u,v\) implies \(|\mathbb E(AD)|\le(\mathbb EA^2\mathbb ED^2)^{1/2}\), and therefore
+\[
+ \mathbb E(A+D)^2
+ \le\left\{(\mathbb EA^2)^{1/2}+(\mathbb ED^2)^{1/2}\right\}^2.
+\]
+Unbiasedness makes \(\mathbb EA^2=\operatorname{Var}(\widetilde\theta_b)\), while the pathwise bound controls \(\mathbb ED^2\).  Substitution proves the asserted uniform mean-squared-error inequality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This audit turns the parent's auxiliary variance calculation and the deterministic replacement inequality into a correct observed-estimator MSE bound. \textit{Gap.} Bojinov, Simchi-Levi, and Zhao analyze exact finite carryover; Jia, Kallus, and Yu use rapid mixing. Neither displays this deterministic polynomial-tail replacement bound for the sustained-policy GATE. \textit{Consumer.} An experimenter with known \(\beta\) obtains a fully specified assignment rule and estimator with an explicit finite-horizon certificate.
+
+\begin{lemma}[lem:worked-common-null-cancellation]\label{lem:worked-common-null-cancellation}
+At \(T=8\), every prior \(\mathsf Q\in\mathcal Q_8\) is fixed before assignment and satisfies \(\mathsf Q(\mathcal P_{8,\beta}(B,C))=1\). Under the outcome-adaptive policy \(\pi^\dagger\), \[P_{\mathsf Q,\pi^\dagger}(w,y)=\left[\frac12\prod_{t=2}^8p_t^\dagger(y)^{w_t}\{1-p_t^\dagger(y)\}^{1-w_t}\right]q_{\mathsf Q}(y\mid w),\] and hence, \(P_{Q_0^{(8)},\pi^\dagger}\)-almost surely, \[\frac{dP_{\mathsf Q,\pi^\dagger}}{dP_{Q_0^{(8)},\pi^\dagger}}(w,y)=\frac{q_{\mathsf Q}(y\mid w)}{q_{Q_0^{(8)}}(y\mid w)}.\] Thus the adaptive assignment factor cancels exactly. Along either alternating path, \(h_{t,a}^{(8)}(w)=0\) for every realized arm and \(t\ge2\), whereas each arm-specific band prior moves the prior mean of \(\theta_8\) above the null mean by exactly \(7\eta_8c_1/12\). Along either constant path, the four opposite-arm signs under \(Q_{8,0}^{\mathrm{blk}}\) never enter the likelihood, and their contribution alone gives posterior Bayes variance at least \(\delta_8^2/9\).
+\end{lemma}
+\begin{proof}
+Let \(\phi(u)=1-4u^2/B^2\).  For \(u\in[-B/2,B/2]\), \(0\le\phi(u)\le1\), and \(\psi_q(u)=u+q\phi(u)\).  If \(\lvert q\rvert\le B/4\), then
+\[
+ \frac{d}{du}\psi_q(u)=1-\frac{8qu}{B^2}\ge0,
+ \qquad
+ \psi_q(-B/2)=-B/2,
+ \qquad
+ \psi_q(B/2)=B/2.
+\]
+Thus \(\psi_q\) maps \([-B/2,B/2]\) into itself, which is contained in \([-B,B]\).
+
+All latent variables in \(\mathrm{def{:}worked\mbox{-}common\mbox{-}null\mbox{-}family}\) are drawn before the sequential assignment begins.  Under \(Q_0^{(8)}\) and either block prior, a potential outcome depends on a history only through its current arm; hence the historical difference in \(\mathrm{ass{:}polynomial\mbox{-}historical\mbox{-}envelope}\) is zero.  For a band prior, \(0\le h_{t,a}^{(8)}\le c_1\), and
+\[
+ \eta_8c_1\le \frac{Bc_1}{4(c_1+B)}<\frac B4.
+\]
+If two histories have the same current arm, then the corresponding band scores are equal unless their lag-one coordinates differ, and in all cases
+\[
+ |h_{t,a}^{(8)}(z)-h_{t,a}^{(8)}(z')|
+ \le c_1\mathbf 1\{z_{t-1}\ne z'_{t-1}\}.
+\]
+Because \(|\psi_q(u)-\psi_{q'}(u)|=|q-q'|\phi(u)\le|q-q'|\), the band prior consequently satisfies
+\[
+ |Y_t(z)-Y_t(z')|
+ \le\eta_8c_1\mathbf 1\{z_{t-1}\ne z'_{t-1}\}
+ \le C2^{-(1+\beta)}\mathbf 1\{z_{t-1}\ne z'_{t-1}\},
+\]
+which is bounded by the full sum in \(\mathrm{ass{:}polynomial\mbox{-}historical\mbox{-}envelope}\).  The transport range proved above gives the bounded-outcome condition.  Hence every member \(\mathsf Q\in\mathcal Q_8\) is fixed before assignment and is supported on \(\mathcal P_{8,\beta}(B,C)\).
+
+For a fixed assignment path \(w\), integrating the prior latents gives the structural outcome density \(q_{\mathsf Q}(y\mid w)\).  By sequential multiplication of the conditional assignment probabilities in \(\mathrm{def{:}worked\mbox{-}adaptive\mbox{-}policy}\), the joint density is
+\[
+ P_{\mathsf Q,\pi^\dagger}(w,y)
+ =\left[\frac12\prod_{t=2}^8p_t^\dagger(y)^{w_t}
+ \{1-p_t^\dagger(y)\}^{1-w_t}\right]q_{\mathsf Q}(y\mid w).
+\]
+The bracket is common to all priors.  Its factors lie in \(\{1/4,3/4\}\), and the monotone transports above have the same interval support as the null.  Thus the alternative trajectory laws are absolutely continuous with respect to the null trajectory law, and division of the two joint densities proves
+\[
+ \frac{dP_{\mathsf Q,\pi^\dagger}}
+ {dP_{Q_0^{(8)},\pi^\dagger}}(w,y)
+ =\frac{q_{\mathsf Q}(y\mid w)}{q_{Q_0^{(8)}}(y\mid w)}
+\]
+on the asserted null-almost-sure set.  This establishes exact cancellation of the adaptive assignment factor.
+
+On an alternating path, if \(w_t=a\), then \(w_{t-1}\ne a\), so
+\([c_1-2c_1]_+=0\); if \(w_t\ne a\), the leading indicator in \(h_{t,a}^{(8)}\) is zero.  Hence every realized band score is zero.  On the other hand, if the history is sustained at arm \(a\), then \(h_{1,a}^{(8)}=0\) and \(h_{t,a}^{(8)}=c_1\) for \(2\le t\le8\).  Since \(U\sim\operatorname{Unif}[-B/2,B/2]\) has \(\mathbb EU=0\), \(\mathbb EU^2=B^2/12\), and therefore \(\mathbb E\phi(U)=2/3\), the endpoint of the perturbed arm has mean \((2/3)s_a\eta_8c_1\) in each of periods \(2,\ldots,8\).  For \(a=1\) this enters \(\theta_8\) with a plus sign; for \(a=0\), both \(s_0=-1\) and the minus sign in \(\theta_8\) reverse.  In either case,
+\[
+ \mathbb E_{Q_{8,a}^{\mathrm{band}}}\theta_8
+ -\mathbb E_{Q_0^{(8)}}\theta_8
+ =\frac18\,7\,\frac23\eta_8c_1
+ =\frac{7\eta_8c_1}{12}.
+\]
+
+Finally, condition on either constant path \(w_t=a\) and its observed outcomes under \(Q_{8,0}^{\mathrm{blk}}\).  Neither the structural likelihood nor the common adaptive assignment factor contains the four opposite-arm signs \(\xi_{I,1-a}^{(0)}\), so those signs retain their independent Rademacher posterior law.  Condition further on all latent variables other than these four signs.  The sign-dependent contribution of a block \(I\in\mathcal I_{8,0}\) to \(\theta_8\), up to an irrelevant overall sign, is
+\[
+ \frac{\delta_8}{8}\xi_{I,1-a}^{(0)}
+ \sum_{t\in I}\phi(U_{t,1-a}).
+\]
+Conditional independence of the four signs, followed by the conditional-variance identity, gives a posterior-variance contribution of at least
+\[
+ \frac{\delta_8^2}{64}
+ \sum_{I\in\mathcal I_{8,0}}
+ \mathbb E\!\left[\left\{\sum_{t\in I}
+ \phi(U_{t,1-a})\right\}^2\right]
+ \ge \frac{\delta_8^2}{64}\,4
+ \left\{2\mathbb E\phi(U)\right\}^2
+ =\frac{\delta_8^2}{9},
+\]
+because \(\mathbb EV^2\ge(\mathbb EV)^2\) for every square-integrable \(V\), by nonnegativity of \(\operatorname{Var}(V)\).  This is the asserted posterior Bayes-variance lower bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This finite-horizon diagnostic makes support, separation, posterior uncertainty, and adaptive likelihood cancellation independently checkable before the general multiscale argument is attempted. \textit{Gap.} This is a falsifiable worked instance of the lower-bound handle, not a novelty claim and not the policy-uniform occupancy certificate. \textit{Consumer.} The Stage 0 proof can test every algebraic component of the common-null construction at \(T=8\) before confronting the all-horizon multiscale inequality.
+
+\begin{openendedquestion}[oeq:sequential-multiscale-certificate]\label{oeq:sequential-multiscale-certificate}
+Determine whether there are explicit constants \(\kappa_\beta>0\) and \(T_\beta<\infty\) such that, for every \(T\ge T_\beta\), every \(1\le L\le T/4\), and every \(\pi\in\mathcal D_T\), one can select before assignment a prior \(Q_{\pi,L}\in\mathfrak Q_{T,L}\) satisfying \(Q_{\pi,L}(\mathcal P_{T,\beta}(B,C))=1\) and \[\inf_{\widehat\theta}\mathbb E_{Q_{\pi,L},\pi}[(\widehat\theta-\theta_T(Y))^2]\ge\frac{\kappa_\beta}{\log(\mathrm eL)}\min\left\{\frac{B^2L}{T},\ B^2\wedge C^2L^{-2\beta}\right\}.\] The certificate must be obtained on a common null so that the sequential assignment-kernel factors cancel under outcome adaptation. Determine separately whether the factor \(1/\log(\mathrm eL)\) can be removed.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This remains the sole prospective root converse: it must prevent every outcome-adaptive cadence from routing around both hidden counterfactual blocks and low-information arm-specific tail bumps. \textit{Gap.} The strengthened radius target is \(B^2\wedge C^2L^{-2\beta}\).  A dyadic decomposition suggests at most a \(1/\log(\mathrm eL)\) loss, but the pathwise summed occupancy--information inequality needed to justify that loss is unproved. \textit{Consumer.} A proved logarithmic certificate would yield an unconditional two-sided bracket with a logarithmic gap; removing the logarithm would then be a distinct open refinement.
+
+\begin{theorem}[thm:polynomial-oracle-frontier]\label{thm:polynomial-oracle-frontier}
+Suppose \(C>0\) and the sequential multiscale certificate holds without a dyadic loss, with \(T_\beta\) large enough that \(L_T\le T/4\). Then, for every \(T\ge T_\beta\), \[\frac{\kappa_\beta}{2}\min\{B^2,(B\wedge C)^2\}T^{-2\beta/(2\beta+1)}\le R_T^{(2)}(\beta;B,C)\le K_+(B,C,\beta)T^{-2\beta/(2\beta+1)}.\] Thus \(R_T^{(2)}(\beta;B,C)=\Theta_{B,C,\beta}(T^{-2\beta/(2\beta+1)})\) over all sequential policies and all estimators.
+\end{theorem}
+\begin{proof}
+Assume the no-loss sequential multiscale certificate stipulated in the theorem.  Put \(D=B\wedge C\), \(p=1/(2\beta+1)\), and \(x=T^p\).  The assumed threshold gives \(L_T\le T/4\), so the certificate applies at \(L=L_T\).  For each fixed \(\pi\in\mathcal D_T\), it selects before assignment a prior \(Q_{\pi,L_T}\) supported on \(\mathcal P_{T,\beta}(B,C)\).  Hence every observed-data estimator satisfies
+\[
+ \sup_{Y\in\mathcal P_{T,\beta}(B,C)}
+ \mathbb E_{\pi,Y}\!\left[(\widehat\theta-\theta_T(Y))^2\right]
+ \ge
+ \mathbb E_{Q_{\pi,L_T},\pi}\!\left[(\widehat\theta-\theta_T(Y))^2\right].
+\]
+Taking the infimum over estimators and applying the assumed certificate yields
+\[
+ \inf_{\widehat\theta}\sup_Y
+ \mathbb E_{\pi,Y}\!\left[(\widehat\theta-\theta_T(Y))^2\right]
+ \ge
+ \kappa_\beta\min\left\{\frac{B^2L_T}{T},D^2L_T^{-2\beta}\right\}.
+\]
+For every \(x\ge1\), \(\max\{1,\lfloor x\rfloor\}\ge x/2\) and \(\max\{1,\lfloor x\rfloor\}\le x\).  Consequently,
+\[
+ \frac{L_T}{T}\ge\frac12T^{-2\beta/(2\beta+1)},
+ \qquad
+ L_T^{-2\beta}\ge T^{-2\beta/(2\beta+1)}.
+\]
+Therefore
+\[
+ \min\left\{\frac{B^2L_T}{T},D^2L_T^{-2\beta}\right\}
+ \ge\frac12\min\{B^2,D^2\}T^{-2\beta/(2\beta+1)}.
+\]
+The bound holds for every sequential policy, so the two infima in \(\mathrm{def{:}minimax\mbox{-}mse}\) give the claimed lower inequality.  The upper inequality is the radius-free corollary of \(\mathrm{thm{:}radius\mbox{-}aware\mbox{-}oracle\mbox{-}upper}\).  Positivity of \(B\), \(C\), and \(\kappa_\beta\), together with finiteness of \(K_+(B,C,\beta)\), gives the stated conditional \(\Theta_{B,C,\beta}\) conclusion.  This proof is conditional on the no-loss certificate; it does not establish that certificate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem records the mathematical implication of a no-loss sequential multiscale certificate together with the proved upper bound. \textit{Gap.} Its lower premise is open, so the matched all-policy frontier is conditional and is not part of the proved headline. \textit{Consumer.} If the multiscale certificate is later closed, this theorem converts it directly into the fixed-radius asymptotic frontier.
+
+\begin{theorem}[thm:no-carryover-boundary]\label{thm:no-carryover-boundary}
+At \(C=0\), for every \(T\ge1\), \[\frac{B^2}{T}\le R_T^{(2)}(\beta;B,0)\le\frac{4B^2}{T}.\] The upper bound is attained by independent fair assignments and the periodwise Horvitz--Thompson estimator. The lower bound follows from a prior of independent arm-specific Rademacher endpoints fixed before assignment and is valid for every outcome-adaptive policy. Hence \(R_T^{(2)}(\beta;B,0)=\Theta_B(T^{-1})\).
+\end{theorem}
+\begin{proof}
+Put \(C=0\).  By \(\mathrm{ass{:}polynomial\mbox{-}historical\mbox{-}envelope}\), whenever two histories \(z_{1:t}\) and \(z'_{1:t}\) have the same terminal treatment, their outcomes satisfy
+\[
+ \lvert Y_t(z_{1:t})-Y_t(z'_{1:t})\rvert\le 0.
+\]
+Consequently, for each \(t\) and \(a\in\{0,1\}\), there is a well-defined number \(y_{t,a}\) such that \(Y_t(z_{1:t})=y_{t,a}\) for every history ending in \(a\).  By \(\mathrm{ass{:}bounded\mbox{-}potential\mbox{-}outcomes}\), \(\lvert y_{t,a}\rvert\le B\).  The definition \(\mathrm{def{:}gate}\) therefore gives
+\[
+ \theta_T(Y)=\frac1T\sum_{t=1}^T(y_{t,1}-y_{t,0}).
+\]
+
+For the upper bound, choose the member of \(\mathcal D_T\) satisfying \(\pi_t(1\mid\mathcal F_{t-1})=\pi_t(0\mid\mathcal F_{t-1})=1/2\) at every \(t\).  Its joint assignment law is uniform on \(\{0,1\}^T\), so \(W_1,\ldots,W_T\) are independent Bernoulli variables with success probability \(1/2\).  Consider the periodwise Horvitz--Thompson estimator
+\[
+ \widehat\theta_{\rm HT}
+ =\frac1T\sum_{t=1}^T
+ \left\{\frac{W_tY_t^{\rm obs}}{1/2}
+ -\frac{(1-W_t)Y_t^{\rm obs}}{1/2}\right\}
+ =\frac1T\sum_{t=1}^T X_t,
+ \qquad
+ X_t=2W_ty_{t,1}-2(1-W_t)y_{t,0}.
+\]
+The observation identity defining \(Y^{\rm obs}\) and the no-carryover representation above justify the second equality.  Direct calculation gives
+\[
+ \mathbb E[X_t]=y_{t,1}-y_{t,0},
+ \qquad
+ \mathbb E[X_t^2]=2(y_{t,1}^2+y_{t,0}^2)\le 4B^2.
+\]
+Thus \(\widehat\theta_{\rm HT}\) is unbiased for \(\theta_T(Y)\).  Independence of the assignments makes the \(X_t\)'s independent, and hence
+\[
+ \mathbb E_{\pi,Y}\!\left[(\widehat\theta_{\rm HT}-\theta_T(Y))^2\right]
+ =\frac1{T^2}\sum_{t=1}^T\operatorname{Var}(X_t)
+ \le\frac1{T^2}\sum_{t=1}^T\mathbb E[X_t^2]
+ \le\frac{4B^2}{T}.
+\]
+Taking the supremum over \(Y\in\mathcal P_{T,\beta}(B,0)\) and then using the two infima in \(\mathrm{def{:}minimax\mbox{-}mse}\) proves
+\[
+ R_T^{(2)}(\beta;B,0)\le \frac{4B^2}{T}.
+\]
+
+For the lower bound, fix an arbitrary sequential policy \(\pi\in\mathcal D_T\) and an arbitrary observed-data-measurable estimator \(\widehat\theta\).  Before assignment, draw mutually independent variables \(V_{t,a}\), \(1\le t\le T\), \(a\in\{0,1\}\), with
+\[
+ \mathbb P(V_{t,a}=B)=\mathbb P(V_{t,a}=-B)=\frac12,
+\]
+and, for every realized array \(v\), define the fixed potential outcomes
+\[
+ Y_t^v(z_{1:t})=v_{t,z_t}.
+\]
+Each such array obeys the boundedness assumption and has zero difference between histories with the same terminal treatment, so \(Y^v\in\mathcal P_{T,\beta}(B,0)\) by \(\mathrm{def{:}polynomial\mbox{-}envelope\mbox{-}class}\).  This is therefore a finite prior supported entirely on the adversarial class, and it is sampled before the adaptive assignment process begins.
+
+Write \(D=(W,Y^{\rm obs})\) for the complete observed data.  For any \(v\in\{-B,B\}^{2T}\) and \(w\in\{0,1\}^T\), the joint mass, with the assignment kernels evaluated at the displayed observed past, is
+\[
+ \mathbb P(V=v,W=w)
+ =2^{-2T}\prod_{t=1}^T
+ \pi_t\!\left(w_t\mid
+ w_{1:t-1},v_{1,w_1},\ldots,v_{t-1,w_{t-1}}\right).
+\]
+The product contains no coordinate \(v_{t,1-w_t}\).  Hence, conditional on every data value having positive probability, the unobserved coordinates
+\[
+ M_t:=V_{t,1-W_t},\qquad t=1,\ldots,T,
+\]
+remain mutually independent, each taking \(-B\) and \(B\) with equal conditional probability.  This factorization is valid even when some assignment probabilities are zero and even when the kernels depend on past outcomes: zero-probability data values require no conditional distribution, while on every positive-probability value the kernel product is constant as a function of all the missing coordinates.
+
+By \(\mathrm{def{:}gate}\), the target under this prior decomposes as
+\[
+ \theta_T(Y^V)
+ =\frac1T\sum_{t=1}^T(2W_t-1)Y_t^{\rm obs}
+ +\frac1T\sum_{t=1}^T(1-2W_t)M_t.
+\]
+The first sum is \(D\)-measurable.  The conditional independence and centered Rademacher laws of the \(M_t\)'s therefore imply, exactly and for every positive-probability data value,
+\[
+ \mathbb E[\theta_T(Y^V)\mid D]
+ =\frac1T\sum_{t=1}^T(2W_t-1)Y_t^{\rm obs},
+ \qquad
+ \operatorname{Var}(\theta_T(Y^V)\mid D)
+ =\frac1{T^2}\sum_{t=1}^T B^2
+ =\frac{B^2}{T}.
+\]
+For any \(D\)-measurable \(\widehat\theta\), expanding around the conditional mean yields the conditional squared-error identity
+\[
+ \mathbb E\!\left[(\widehat\theta-\theta_T(Y^V))^2\mid D\right]
+ =\left(\widehat\theta-\mathbb E[\theta_T(Y^V)\mid D]\right)^2
+ +\operatorname{Var}(\theta_T(Y^V)\mid D)
+ \ge \frac{B^2}{T}.
+\]
+After averaging over \(D\), the left side is the average, over the finite prior, of the design risks at the fixed arrays \(Y^v\).  A supremum is at least this average, so
+\[
+ \sup_{Y\in\mathcal P_{T,\beta}(B,0)}
+ \mathbb E_{\pi,Y}[(\widehat\theta-\theta_T(Y))^2]
+ \ge \frac{B^2}{T}.
+\]
+Because \(\pi\) and \(\widehat\theta\) were arbitrary, the infima in \(\mathrm{def{:}minimax\mbox{-}mse}\) preserve this lower bound.  Combining the two bounds gives, for every \(T\ge1\),
+\[
+ \frac{B^2}{T}\le R_T^{(2)}(\beta;B,0)\le\frac{4B^2}{T},
+\]
+and therefore \(R_T^{(2)}(\beta;B,0)=\Theta_B(T^{-1})\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This inherited supporting boundary is the required standard-case reduction and prevents the positive-tail rate from being extrapolated to a degenerate class. \textit{Gap.} The no-memory reduction is already represented in the banked predecessor and finite-order switchback theory; it is retained solely as an audited boundary check. \textit{Consumer.} Practitioners receive a clear diagnostic boundary: if historical sensitivity is absent, ordinary periodwise randomization recovers the parametric MSE rate.
+
+\begin{theorem}[thm:radius-aware-oracle-upper]\label{thm:radius-aware-oracle-upper}
+For every \(T\ge2\), \(C\ge0\), and known \(\beta>0\), the radius-aware certified window \(b_\star\) satisfies
+\[
+ R_T^{(2)}(\beta;B,C)
+ \le
+ \min\!\left\{
+ 4B^2,
+ \min_{1\le b\le T}
+ \left[
+ B\sqrt{\frac{(8\mathrm e-4)b}{T}}
+ +\frac{2\mathrm e C}{\beta}(b+1)^{-\beta}
+ \right]^2
+ \right\}.
+\]
+Writing
+\[
+ x=\left\{
+ \frac{(2\mathrm e C/\beta)^2T}{(8\mathrm e-4)B^2}
+ \right\}^{1/(2\beta+1)},
+ \qquad z=1\vee(x\wedge T),
+\]
+one has the explicit scale comparison
+\[
+ \frac12(1+\sqrt2)^{-1/\beta}z
+ \le b_\star\le(1+\sqrt2)^2z.
+\]
+Consequently,
+\[
+ b_\star\asymp_\beta
+ 1\vee\left(
+ \left\{(C/B)^2T\right\}^{1/(2\beta+1)}\wedge T
+ \right).
+\]
+The corresponding finite-horizon elbow bounds are as follows.  If \(x\le1\), then
+\[
+ R_T^{(2)}(\beta;B,C)
+ \le
+ \min\left\{4B^2,(8\mathrm e-4)(1+2^{-\beta})^2\frac{B^2}{T}\right\}.
+\]
+If \(1\le x\le T\), then
+\[
+ R_T^{(2)}(\beta;B,C)
+ \le
+ \min\left\{4B^2,
+ K_{\mathrm{mid},\beta}
+ B^{4\beta/(2\beta+1)}C^{2/(2\beta+1)}
+ T^{-2\beta/(2\beta+1)}
+ \right\},
+\]
+where
+\[
+ K_{\mathrm{mid},\beta}
+ =(1+\sqrt2)^2(8\mathrm e-4)^{2\beta/(2\beta+1)}
+ (2\mathrm e/\beta)^{2/(2\beta+1)}.
+\]
+If \(x\ge T\), then
+\[
+ R_T^{(2)}(\beta;B,C)
+ \le
+ \min\left\{4B^2,
+ \left[B\sqrt{8\mathrm e-4}
+ +\frac{2\mathrm e C}{\beta}(T+1)^{-\beta}\right]^2
+ \right\}.
+\]
+Finally, the radius-free corollary
+\[
+ R_T^{(2)}(\beta;B,C)
+ \le K_+(B,C,\beta)T^{-2\beta/(2\beta+1)}
+\]
+continues to hold.
+\end{theorem}
+\begin{proof}
+Put \(A=\sqrt{8\mathrm e-4}\), \(D=2\mathrm e/\beta\), \(a=AB/\sqrt T\), \(c=DC\), and
+\[
+ f(b)=a\sqrt b+c(b+1)^{-\beta},
+ \qquad b\in\{1,\ldots,T\}.
+\]
+The constants satisfy \(a>0\) because \(B>0\) and \(T<\infty\), while \(c\ge0\).  By \(\mathrm{lem{:}markov\mbox{-}upper\mbox{-}audit}\), for each admissible integer \(b\), the design \(\pi^{(b)}\) and the observed-data estimator \(\widehat\theta_b\) have worst-case mean squared error at most \(f(b)^2\).  The definition of \(R_T^{(2)}(\beta;B,C)\) therefore gives
+\[
+ R_T^{(2)}(\beta;B,C)\le\min_{1\le b\le T}f(b)^2=f(b_\star)^2,
+\]
+where the last equality is the definition of \(b_\star\).  This establishes the optimized Markov certificate, rather than merely evaluating it at one radius-free window.
+
+For the second certificate, the bounded-potential-outcome assumption and the definition of the GATE give, for every \(Y\in\mathcal P_{T,\beta}(B,C)\),
+\[
+ \begin{aligned}
+ |\theta_T(Y)|
+ &\le \frac1T\sum_{t=1}^T
+ \left\{|Y_t(\mathbf1_{1:t})|+|Y_t(\mathbf0_{1:t})|\right\}\\
+ &\le 2B.
+ \end{aligned}
+\]
+Thus the observed-data-measurable estimator that is identically zero has squared error at most \(4B^2\), under any sequential design.  Taking the infima in \(\mathrm{def{:}minimax\mbox{-}mse}\) and combining the two certificates proves the first display.
+
+We next prove the scale assertion.  If \(c>0\), the displayed \(x\) obeys
+\[
+ x=(c/a)^{1/(\beta+1/2)},
+ \qquad c=a x^{\beta+1/2}.
+\]
+If \(c=0\), set \(x=0\), consistently with its displayed definition.  Write \(M=1+\sqrt2\).
+
+First suppose \(x\le1\).  Optimality of \(b_\star\), nonnegativity of the bias term, and evaluation at \(b=1\) imply
+\[
+ a\sqrt{b_\star}\le f(b_\star)\le f(1)
+ =a+c2^{-\beta}\le a(1+2^{-\beta}).
+\]
+Consequently \(1\le b_\star\le(1+2^{-\beta})^2\le M^2\).  Because now \(z=1\), this implies the desired two-sided comparison.
+
+Next suppose \(1<x<T\), and take \(m=\min\{T,\lceil x\rceil\}\).  Then \(m\le x+1\le2x\) and \(m+1\ge x\), so
+\[
+ f(m)
+ \le a\sqrt{2x}+cx^{-\beta}
+ =M a\sqrt x.
+\]
+It follows from \(a\sqrt{b_\star}\le f(b_\star)\le f(m)\) that
+\[
+ b_\star\le M^2x.
+\]
+Likewise, using the nonnegative bias summand and \(c=ax^{\beta+1/2}\),
+\[
+ c(b_\star+1)^{-\beta}\le M a\sqrt x
+ \quad\Longrightarrow\quad
+ b_\star+1\ge M^{-1/\beta}x.
+\]
+Since also \(b_\star\ge1\), the last inequality implies
+\[
+ b_\star\ge\frac12M^{-1/\beta}x:
+\]
+indeed, when \(M^{-1/\beta}x\le2\) this follows from \(b_\star\ge1\), and otherwise it follows from \(b_\star\ge M^{-1/\beta}x-1\).  Here \(z=x\), proving the comparison in the intermediate regime.
+
+Finally suppose \(x\ge T\).  Optimality and evaluation at \(b=T\) yield
+\[
+ c(b_\star+1)^{-\beta}
+ \le f(b_\star)\le f(T)
+ \le a\sqrt T+cT^{-\beta}.
+\]
+For \(u=x/T\ge1\), the right side equals \(a\sqrt T\{1+u^{\beta+1/2}\}\).  Therefore
+\[
+ (b_\star+1)^\beta
+ \ge T^\beta\frac{u^{\beta+1/2}}{1+u^{\beta+1/2}}
+ \ge\frac{T^\beta}{2}.
+\]
+Because \(M>2\), the same two-case argument used above gives
+\[
+ b_\star\ge\frac12M^{-1/\beta}T.
+\]
+The upper bound \(b_\star\le T\le M^2T\) is automatic, and now \(z=T\).  The three cases prove the explicit comparison.  Since \(x\) differs from \(\{(C/B)^2T\}^{1/(2\beta+1)}\) only by a positive factor depending on \(\beta\), the asserted \(\asymp_\beta\) relation follows.
+
+The low-memory risk bound follows by choosing \(b=1\).  When \(x\le1\), the identity \(c=ax^{\beta+1/2}\) gives \(c\le a\), and hence
+\[
+ f(1)^2=(a+c2^{-\beta})^2
+ \le a^2(1+2^{-\beta})^2
+ =(8\mathrm e-4)(1+2^{-\beta})^2\frac{B^2}{T}.
+\]
+For \(1\le x\le T\), the preceding choice \(m=\min\{T,\lceil x\rceil\}\) still satisfies \(f(m)\le M a\sqrt x\).  Direct substitution gives
+\[
+ \begin{aligned}
+ M^2a^2x
+ &=M^2(8\mathrm e-4)^{2\beta/(2\beta+1)}
+ (2\mathrm e/\beta)^{2/(2\beta+1)}\\
+ &\qquad\times
+ B^{4\beta/(2\beta+1)}C^{2/(2\beta+1)}
+ T^{-2\beta/(2\beta+1)},
+ \end{aligned}
+\]
+which is the intermediate bound.  In the high-memory regime, evaluation at \(b=T\) gives the second entry in the stated minimum, and the already proved zero-estimator argument gives its first entry.
+
+It remains to verify the radius-free corollary.  Put \(p=1/(2\beta+1)\) and \(b_0=\lceil T^p\rceil\).  Since \(T\ge2\),
+\[
+ b_0\le T^p+1\le T^p(1+2^{-p}),
+ \qquad
+ (b_0+1)^{-\beta}\le T^{-\beta p}.
+\]
+Applying the optimized certificate at the admissible integer \(b_0\) gives
+\[
+ \begin{aligned}
+ R_T^{(2)}(\beta;B,C)
+ &\le
+ \left\{
+ B\sqrt{(8\mathrm e-4)(1+2^{-p})}
+ +\frac{2\mathrm e C}{\beta}
+ \right\}^2T^{-2\beta p}\\
+ &=K_+(B,C,\beta)T^{-2\beta/(2\beta+1)},
+ \end{aligned}
+\]
+as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This audited constructive theorem minimizes the existing Markov certificate over all integer windows, adds the bounded-parameter cap, and exposes the dependence on the memory-to-outcome radius ratio. \textit{Gap.} It is an upper certificate for one nonadaptive design and estimator, not a proof that no sequential policy can improve it. \textit{Consumer.} Experiment owners can enumerate the finite certificate before launch and translate its minimizer into a clock-time window.
+
+\begin{proposition}[prop:radius-aware-operational-window]\label{prop:radius-aware-operational-window}
+For the Markov switchback, the least certificate-minimizing integer \(b_\star\) is the pre-registrable radius-aware window.  Define
+\[
+ x=\left\{
+ \frac{(2\mathrm e C/\beta)^2T}{(8\mathrm e-4)B^2}
+ \right\}^{1/(2\beta+1)}.
+\]
+The low-memory regime \(x\le1\) has \(b_\star=O_\beta(1)\) and certified mean squared error \(O_\beta(B^2/T)\).  In the intermediate regime \(1<x<T\),
+\[
+ b_\star\asymp_\beta\{(C/B)^2T\}^{1/(2\beta+1)},
+\]
+and the squared exposure-standard-deviation term \(B^2b_\star/T\) and squared replacement term \(C^2(b_\star+1)^{-2\beta}\) have the same order up to constants depending only on \(\beta\).  In the high-memory regime \(x\ge T\), \(b_\star\asymp_\beta T\), while the separate zero-estimator certificate caps the minimax risk at \(4B^2\).  If one experimental period represents \(d\) units of clock time, the operational assignment window is \(db_\star\); at a mature time the retained homogeneous-history exposure comprises \(b_\star+1\) consecutive periods.  These are known-\(\beta\) oracle prescriptions and do not assert adaptation to an unknown decay index.
+\end{proposition}
+\begin{proof}
+The exact certificate and the scale comparison are proved in \(\mathrm{thm{:}radius\mbox{-}aware\mbox{-}oracle\mbox{-}upper}\).  When \(x\le1\), that comparison gives \(b_\star\le(1+\sqrt2)^2\), and the theorem gives the displayed parametric-order upper certificate.  When \(1<x<T\), it gives \(b_\star\asymp_\beta x\).  The identity
+\[
+ \frac{2\mathrm e C}{\beta}
+ =\frac{B\sqrt{8\mathrm e-4}}{\sqrt T}x^{\beta+1/2}
+\]
+then shows, after squaring, that
+\[
+ \frac{B^2b_\star}{T}
+ \asymp_\beta C^2(b_\star+1)^{-2\beta}.
+\]
+When \(x\ge T\), the same theorem gives \(b_\star\asymp_\beta T\) and the independent bound \(R_T^{(2)}(\beta;B,C)\le4B^2\).
+
+By \(\mathrm{def{:}markov\mbox{-}switchback}\), one period is one transition opportunity, so \(b_\star\) periods correspond to \(db_\star\) clock-time units.  By \(\mathrm{def{:}truncated\mbox{-}ht}\), at every mature time \(t>b_\star\), the event \(H_{t,b_\star,a}=1\) retains the assignments at \(t-b_\star,\ldots,t\), which are \(b_\star+1\) consecutive periods.  For \(t\le b_\star\), the initial-boundary convention \(k_t=\min\{b_\star,t-1\}\) retains exactly the available history.  The construction uses the known value of \(\beta\) in selecting \(b_\star\), so no unknown-index adaptation statement follows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supporting proposition translates the exact certificate minimizer into deployment units and separates the three radius regimes. \textit{Gap.} It is a known-\(\beta\) upper-bound prescription and makes neither an adaptation claim nor an information-theoretic necessity claim. \textit{Consumer.} Statsig-style and marketplace switchbacks can pre-register the certified window after specifying the outcome and memory radii.
+
+\section{Interpretation}
+
+For a pre-registered experiment with known \(B\), \(C\), and \(\beta\), the constructive recommendation is to minimize the displayed finite list of \(T\) audited certificates.  In the intermediate regime this means a clock-time window proportional to \(d\{(C/B)^2T\}^{1/(2\beta+1)}\); weak memory calls for a constant window, while sufficiently strong memory drives the Markov certificate to a horizon-scale window and leaves the universal \(4B^2\) cap as the safer guarantee.  Because the sequential converse is open, these prescriptions are certified upper-bound choices, not yet information-theoretically necessary windows.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The general-horizon prior family is still only a construction handle.  Fixed-scale posterior variance and adaptive assignment-factor cancellation are available, and the constant-path and strict-alternation endpoints are controlled, but arbitrary concatenations of run lengths require a new deterministic inequality coupling random-offset block occupancy to arm-specific positive-part band information.  A dyadic pigeonhole argument would lose \(1/\log(\mathrm eL)\) if a summed diagnostic lower bound were available; that summed bound has not been proved.  The path \(0000111001110101\) at \(T=16\), \(L=4\) already defeats the naive unit-threshold single-scale dichotomy.  Thus neither a logarithmic lower frontier nor its no-log refinement is currently a theorem.
+
+\section{Honest scope}
+
+The optimized Markov upper certificate, its explicit finite-horizon constants, its \(4B^2\) cap, and its radius-aware operational elbows are proved.  The all-policy common-null converse, including the proposed \(1/\log(\mathrm eL)\) version with radius term \(B^2\wedge C^2L^{-2\beta}\), remains open; the no-log frontier theorem is only a conditional implication.  The no-carryover boundary is retained separately.  No unknown-\(\beta\) adaptation, confidence interval, policy-optimality certificate, or sharp leading constant is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{bojinov2023design} Bojinov, I., Simchi-Levi, D., and Zhao, J. (2023). Design and analysis of switchback experiments. \emph{Management Science}, 69(7), 3759--3777.
+
+  \bibitem{bassedingtoulis2023habituation} Basse, G., Ding, Y., and Toulis, P. (2023). Minimax designs for causal effects in temporal experiments with treatment habituation. \emph{Biometrika}, 110(1), 155--168.
+
+  \bibitem{huwager2022geometric} Hu, Y., and Wager, S. (2022, revised 2026). Switchback experiments under geometric mixing. arXiv:2209.00197.
+
+  \bibitem{jia2023clustered} Jia, S., Kallus, N., and Yu, C. L. (2023). Clustered switchback experiments: near-optimal rates under spatiotemporal interference. arXiv:2312.15574.
+
+  \bibitem{duchiruan2021constrained} Duchi, J. C., and Ruan, F. (2021). A constrained risk inequality for general losses. \emph{Proceedings of the 24th International Conference on Artificial Intelligence and Statistics}, PMLR 130:802--810.
+
+  \bibitem{xiongchin2024datadriven} Xiong, R., Chin, A., and Taylor, S. J. (2024). Data-driven switchback experiments: theoretical tradeoffs and empirical Bayes designs. arXiv:2406.06768.
+
+  \bibitem{glynn2020adaptive} Glynn, P. W., Johari, R., and Rasouli, M. (2020). Adaptive experimental design with temporal interference: a maximum likelihood approach. \emph{Advances in Neural Information Processing Systems}, 33.
+
+  \bibitem{zeng2026sequential} Zeng, Z., Adjaho, C., Bucarey, A., Qin, C., Zhang, R., Hoban, P., Johari, R., and Wager, S. (2026). Sequential rerandomization for switchback experiments. arXiv:2604.02489.
+
+  \bibitem{linding2025unifying} Lin, Z., and Ding, P. (2025). Unifying regression-based and design-based causal inference in time-series experiments. arXiv:2510.22864.
+
+  \bibitem{liuzhong2026randomization} Liu, J., and Zhong, L. (2026). Randomization tests in switchback experiments. arXiv:2602.23257.
+
+\end{thebibliography}
+
+\end{document}

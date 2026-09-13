@@ -1,0 +1,1551 @@
+{
+  "qid": "exp_platform_ncc_drift_minimax_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "B",
+      "type": "integer",
+      "space": "\\(\\{3,4,\\ldots\\}\\)",
+      "role": "number of ordered enrollment blocks"
+    },
+    {
+      "name": "M",
+      "type": "positive real",
+      "space": "\\((0,\\infty)\\)",
+      "role": "known outcome bound"
+    },
+    {
+      "name": "Gamma",
+      "type": "nonnegative real",
+      "space": "\\([0,2M(B-1)]\\)",
+      "role": "calendar-drift total-variation budget",
+      "refs": [
+        "M",
+        "B"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "real",
+      "space": "\\((0,1/2)\\)",
+      "role": "miscoverage level"
+    },
+    {
+      "name": "c_lower",
+      "type": "positive real",
+      "sig": "\\(c_{\\alpha}^{\\mathrm{lb}}>0\\)",
+      "role": "universal lower-comparison constant to be established",
+      "refs": [
+        "alpha"
+      ]
+    },
+    {
+      "name": "C_upper",
+      "type": "positive real",
+      "sig": "\\(C_{\\alpha}^{\\mathrm{ub}}<\\infty\\)",
+      "role": "universal upper-comparison constant to be established",
+      "refs": [
+        "alpha"
+      ]
+    },
+    {
+      "name": "p_min",
+      "type": "positive real",
+      "space": "\\((0,1]\\)",
+      "role": "available-arm propensity floor"
+    },
+    {
+      "name": "Bset",
+      "type": "finite ordered set",
+      "def": "\\(\\mathcal B=\\{1,\\ldots,B\\}\\)",
+      "role": "block index set",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "n_b",
+      "type": "positive-integer vector",
+      "sig": "\\((n_b)_{b\\in\\mathcal B}\\in\\mathbb N_{+}^{B}\\)",
+      "role": "fixed block sizes",
+      "refs": [
+        "Bset",
+        "B"
+      ]
+    },
+    {
+      "name": "Tset",
+      "type": "finite lexicographically ordered set",
+      "def": "\\(\\mathcal T=\\{(b,i):b\\in\\mathcal B,\\ 1\\le i\\le n_b\\}\\)",
+      "role": "enrollment positions",
+      "refs": [
+        "Bset",
+        "n_b"
+      ]
+    },
+    {
+      "name": "Zspace",
+      "type": "finite set",
+      "def": "\\(\\mathcal Z\\)",
+      "role": "platform-arm labels"
+    },
+    {
+      "name": "z_0",
+      "type": "arm label",
+      "space": "\\(\\mathcal Z\\)",
+      "role": "shared control arm",
+      "refs": [
+        "Zspace"
+      ]
+    },
+    {
+      "name": "z_1",
+      "type": "arm label",
+      "space": "\\(\\mathcal Z\\setminus\\{z_0\\}\\)",
+      "role": "focal late-entering arm",
+      "refs": [
+        "Zspace",
+        "z_0"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "nonempty proper interval of blocks",
+      "space": "\\(\\{\\ell,\\ldots,r\\}\\subsetneq\\mathcal B\\)",
+      "role": "focal-arm availability window",
+      "refs": [
+        "Bset"
+      ]
+    },
+    {
+      "name": "A_b",
+      "type": "nonempty arm-availability set",
+      "sig": "\\(A_b\\subseteq\\mathcal Z\\) for \\(b\\in\\mathcal B\\)",
+      "role": "arms available in block \\(b\\)",
+      "refs": [
+        "Bset",
+        "Zspace"
+      ]
+    },
+    {
+      "name": "H_bi",
+      "type": "observed pre-assignment history",
+      "def": "\\(H_{bi}\\) is the sigma-field available immediately before enrollment position \\((b,i)\\)",
+      "role": "adaptive-randomization filtration",
+      "refs": [
+        "Tset"
+      ]
+    },
+    {
+      "name": "p_bi",
+      "type": "known predictable probability vector",
+      "sig": "\\(p_{bi}(z\\mid H_{bi})\\in[0,1]\\) for \\(z\\in\\mathcal Z\\)",
+      "role": "history-adaptive assignment propensity",
+      "refs": [
+        "Tset",
+        "Zspace",
+        "H_bi"
+      ]
+    },
+    {
+      "name": "D_design",
+      "type": "known adaptive randomization design",
+      "def": "\\(\\mathcal D=(p_{bi})_{(b,i)\\in\\mathcal T}\\)",
+      "role": "assignment law generating the only randomness",
+      "refs": [
+        "p_bi",
+        "Tset"
+      ]
+    },
+    {
+      "name": "p_floor_bi",
+      "type": "known compatible-history propensity floor",
+      "def": "\\(p_{bi}^{-}(z)=\\inf_h p_{bi}(z\\mid h)\\)",
+      "refs": [
+        "p_bi",
+        "Zspace"
+      ]
+    },
+    {
+      "name": "Y_bi",
+      "type": "fixed potential-outcome schedule",
+      "sig": "\\(Y_{bi}:\\mathcal Z\\to\\mathbb R\\) for \\((b,i)\\in\\mathcal T\\)",
+      "role": "nonrandom finite-population potential outcomes",
+      "refs": [
+        "Zspace",
+        "Tset"
+      ]
+    },
+    {
+      "name": "Z_bi",
+      "type": "random arm assignment",
+      "space": "\\(\\mathcal Z\\)",
+      "refs": [
+        "Zspace",
+        "Tset"
+      ]
+    },
+    {
+      "name": "Yobs_bi",
+      "type": "observed outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(Y^{\\mathrm{obs}}_{bi}=Y_{bi}(Z_{bi})\\)",
+      "refs": [
+        "Y_bi",
+        "Z_bi"
+      ]
+    },
+    {
+      "name": "q_b",
+      "type": "fixed probability vector on the window",
+      "space": "\\(\\Delta(W)\\)",
+      "sig": "\\(q_b>0\\) for \\(b\\in W\\) and \\(\\sum_{b\\in W}q_b=1\\)",
+      "role": "target block weights",
+      "refs": [
+        "W"
+      ]
+    },
+    {
+      "name": "u_b",
+      "type": "probability vector on all blocks",
+      "def": "\\(u_b=q_b\\mathbf 1\\{b\\in W\\}\\)",
+      "role": "concurrent-control weights",
+      "refs": [
+        "q_b",
+        "W",
+        "Bset"
+      ]
+    },
+    {
+      "name": "mu_b",
+      "type": "fixed real vector",
+      "def": "\\(\\mu_b=n_b^{-1}\\sum_{i=1}^{n_b}Y_{bi}(z_0)\\)",
+      "role": "control block means",
+      "refs": [
+        "n_b",
+        "Y_bi",
+        "z_0",
+        "Bset"
+      ]
+    },
+    {
+      "name": "tau_W",
+      "type": "finite-population causal contrast",
+      "def": "\\(\\tau_W=\\sum_{b\\in W}q_b n_b^{-1}\\sum_{i=1}^{n_b}\\{Y_{bi}(z_1)-Y_{bi}(z_0)\\}\\)",
+      "role": "window-weighted focal-arm effect",
+      "refs": [
+        "W",
+        "q_b",
+        "n_b",
+        "Y_bi",
+        "z_1",
+        "z_0"
+      ]
+    },
+    {
+      "name": "m_bi",
+      "type": "predictable bounded regression array",
+      "sig": "\\(m_{bi}(z)\\in[-M,M]\\) is \\(H_{bi}\\)-measurable",
+      "role": "arbitrary previsible outcome prediction",
+      "refs": [
+        "M",
+        "H_bi",
+        "Zspace",
+        "Tset"
+      ]
+    },
+    {
+      "name": "phi_bi",
+      "type": "observable AIPW score",
+      "def": "\\(\\phi_{bi}(z)=m_{bi}(z)+\\mathbf 1\\{Z_{bi}=z\\}\\{Y^{\\mathrm{obs}}_{bi}-m_{bi}(z)\\}/p_{bi}(z\\mid H_{bi})\\) whenever \\(z\\in A_b\\)",
+      "refs": [
+        "m_bi",
+        "Z_bi",
+        "Yobs_bi",
+        "p_bi",
+        "H_bi",
+        "A_b"
+      ]
+    },
+    {
+      "name": "v_b",
+      "type": "borrowing-weight vector",
+      "space": "\\(\\Delta(\\mathcal B)\\)",
+      "sig": "\\(v=(v_1,\\ldots,v_B)\\)",
+      "role": "control weights chosen by the convex program",
+      "refs": [
+        "Bset",
+        "B"
+      ]
+    },
+    {
+      "name": "hat_tau_v",
+      "type": "observable estimator",
+      "def": "\\(\\widehat\\tau(v)=\\sum_{b\\in W}q_b n_b^{-1}\\sum_i\\phi_{bi}(z_1)-\\sum_{b\\in\\mathcal B}v_b n_b^{-1}\\sum_i\\phi_{bi}(z_0)\\)",
+      "role": "predictable-AIPW NCC estimator",
+      "refs": [
+        "v_b",
+        "W",
+        "q_b",
+        "n_b",
+        "phi_bi",
+        "z_1",
+        "Bset",
+        "z_0"
+      ]
+    },
+    {
+      "name": "xi_bi",
+      "type": "design-based martingale increment array",
+      "sig": "\\(\\xi_{bi}(v)\\) for \\((b,i)\\in\\mathcal T\\)",
+      "role": "centered assignment contribution defined by the AIPW decomposition",
+      "refs": [
+        "v_b",
+        "Tset"
+      ]
+    },
+    {
+      "name": "d_b",
+      "type": "zero-sum block-weight discrepancy",
+      "def": "\\(d_b(v)=v_b-u_b\\)",
+      "refs": [
+        "v_b",
+        "u_b"
+      ]
+    },
+    {
+      "name": "D_j",
+      "type": "cumulative discrepancy",
+      "def": "\\(D_j(v)=\\sum_{b=1}^{j}d_b(v)\\) for \\(1\\le j<B\\)",
+      "refs": [
+        "d_b",
+        "B"
+      ]
+    },
+    {
+      "name": "Bias_Gamma",
+      "type": "nonnegative convex functional",
+      "def": "\\(\\mathsf B_\\Gamma(v)=\\max\\{|\\sum_b d_b(v)m_b|:m\\in[-M,M]^B,\\ \\sum_{j=1}^{B-1}|m_{j+1}-m_j|\\le\\Gamma\\}\\)",
+      "role": "sharp worst-case drift bias",
+      "refs": [
+        "Gamma",
+        "d_b",
+        "M",
+        "B"
+      ]
+    },
+    {
+      "name": "V_D",
+      "type": "nonnegative convex quadratic functional",
+      "def": "\\(\\mathsf V_{\\mathcal D}(v)=8M^2\\sum_{b,i}\\{u_b^2(n_b^2p_{bi}^{-}(z_1))^{-1}+v_b^2(n_b^2p_{bi}^{-}(z_0))^{-1}\\}\\), with the first summand zero off \\(W\\) and \\(p_{bi}^{-}(z)=\\inf_h p_{bi}(z\\mid h)\\)",
+      "role": "worst-path predictable-variation envelope",
+      "refs": [
+        "M",
+        "u_b",
+        "n_b",
+        "p_floor_bi",
+        "z_1",
+        "v_b",
+        "z_0",
+        "W",
+        "D_design"
+      ]
+    },
+    {
+      "name": "K_D",
+      "type": "nonnegative convex functional",
+      "def": "\\(\\mathsf K_{\\mathcal D}(v)=2M\\max_{b,i}\\{u_b\\kappa(p_{bi}^{-}(z_1))/n_b+v_b\\kappa(p_{bi}^{-}(z_0))/n_b\\}\\), where \\(\\kappa(1)=0\\) and \\(\\kappa(p)=\\max\\{1,(1-p)/p\\}\\) for \\(p<1\\)",
+      "role": "worst-path martingale-increment envelope",
+      "refs": [
+        "M",
+        "u_b",
+        "p_floor_bi",
+        "z_1",
+        "n_b",
+        "v_b",
+        "z_0",
+        "D_design"
+      ]
+    },
+    {
+      "name": "Psi_alpha",
+      "type": "convex radius functional",
+      "def": "\\(\\Psi_\\alpha(v)=\\mathsf B_\\Gamma(v)+\\sqrt{2\\mathsf V_{\\mathcal D}(v)\\log(2/\\alpha)}+\\mathsf K_{\\mathcal D}(v)\\log(2/\\alpha)/3\\)",
+      "role": "bias--martingale half-length objective",
+      "refs": [
+        "alpha",
+        "Bias_Gamma",
+        "V_D",
+        "K_D",
+        "v_b"
+      ]
+    },
+    {
+      "name": "v_star",
+      "type": "borrowing-weight optimizer",
+      "def": "\\(v^\\star\\in\\operatorname*{argmin}_{v\\in\\Delta(\\mathcal B)}\\Psi_\\alpha(v)\\)",
+      "role": "finite-convex-program borrowing rule",
+      "refs": [
+        "Bset",
+        "Psi_alpha"
+      ]
+    },
+    {
+      "name": "R_star",
+      "type": "nonnegative real",
+      "def": "\\(\\mathfrak R_\\alpha^\\star=\\min\\{2M,\\Psi_\\alpha(v^\\star)\\}\\)",
+      "role": "clipped conic borrowing frontier",
+      "refs": [
+        "M",
+        "Psi_alpha",
+        "v_star"
+      ]
+    },
+    {
+      "name": "I_star",
+      "type": "random closed interval",
+      "def": "\\(I^\\star=[\\widehat\\tau(v^\\star)-\\Psi_\\alpha(v^\\star),\\widehat\\tau(v^\\star)+\\Psi_\\alpha(v^\\star)]\\cap[-2M,2M]\\) if \\(\\Psi_\\alpha(v^\\star)<2M\\), and \\(I^\\star=[-2M,2M]\\) otherwise",
+      "role": "bias-aware randomization interval",
+      "refs": [
+        "hat_tau_v",
+        "v_star",
+        "Psi_alpha",
+        "M"
+      ]
+    },
+    {
+      "name": "Yclass",
+      "type": "class of fixed potential-outcome schedules",
+      "sig": "\\(\\mathcal Y_{M,\\Gamma}\\)",
+      "role": "bounded-outcome schedules satisfying the control-drift budget",
+      "refs": [
+        "M",
+        "Gamma"
+      ]
+    },
+    {
+      "name": "C_alpha",
+      "type": "class of random intervals",
+      "def": "\\(\\mathcal C_\\alpha=\\{I: \\inf_{Y\\in\\mathcal Y_{M,\\Gamma}}\\Pr_{\\mathcal D,Y}(\\tau_W\\in I)\\ge1-\\alpha\\}\\)",
+      "role": "all uniformly honest randomization intervals",
+      "refs": [
+        "alpha",
+        "Yclass",
+        "D_design",
+        "tau_W"
+      ]
+    },
+    {
+      "name": "L_star",
+      "type": "nonnegative real",
+      "def": "\\(\\mathfrak L_\\alpha^\\star=\\inf_{I\\in\\mathcal C_\\alpha}\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E_{\\mathcal D,Y}[\\operatorname{len}(I)]\\)",
+      "role": "minimax worst-case expected interval length",
+      "refs": [
+        "C_alpha",
+        "alpha",
+        "Yclass",
+        "D_design"
+      ]
+    },
+    {
+      "name": "T_u",
+      "type": "closed convex cone",
+      "def": "\\(T_u=\\{h\\in\\mathbb R^B:\\sum_bh_b=0,\\ h_b\\ge0\\text{ whenever }u_b=0\\}\\)",
+      "role": "simplex tangent cone at concurrent-only weights",
+      "refs": [
+        "B",
+        "u_b"
+      ]
+    },
+    {
+      "name": "Gamma_cc",
+      "type": "nonnegative real",
+      "def": "\\(\\Gamma_{\\mathrm{cc}}=\\inf\\{\\gamma\\in[0,2M(B-1)]:0\\in\\partial\\Psi_{\\alpha,\\gamma}(u)+N_{\\Delta(\\mathcal B)}(u)\\}\\)",
+      "role": "optimizer-certified no-borrowing threshold",
+      "refs": [
+        "M",
+        "B",
+        "Psi_alpha",
+        "alpha",
+        "u_b",
+        "Bset"
+      ]
+    },
+    {
+      "name": "Gamma_vac",
+      "type": "nonnegative real",
+      "def": "\\(\\Gamma_{\\mathrm{vac}}=2M(B-1)\\)",
+      "role": "vacuous drift budget for bounded block means",
+      "refs": [
+        "M",
+        "B"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:sutva",
+      "kind": "causal-structural",
+      "condition": "Each \\(Y_{bi}(z)\\) depends only on the assignment \\(z\\) of enrollment position \\((b,i)\\).",
+      "free_symbols": [
+        "Y_bi",
+        "Zspace",
+        "Tset"
+      ],
+      "standard": {
+        "name": "finite-population no-interference condition",
+        "cite": "LiZhao2026"
+      },
+      "used_by": [
+        "lem:aipw-martingale",
+        "thm:honest-upper-frontier",
+        "thm:minimax-frontier"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal-structural",
+      "condition": "The observed outcome satisfies \\(Y^{\\mathrm{obs}}_{bi}=Y_{bi}(Z_{bi})\\) for every \\((b,i)\\in\\mathcal T\\).",
+      "free_symbols": [
+        "Yobs_bi",
+        "Y_bi",
+        "Z_bi",
+        "Tset"
+      ],
+      "standard": {
+        "name": "potential-outcome consistency",
+        "cite": "SantacatterinaEtAl2025"
+      },
+      "used_by": [
+        "lem:aipw-martingale",
+        "thm:honest-upper-frontier"
+      ]
+    },
+    {
+      "id": "ass:sequential-randomization",
+      "kind": "design",
+      "condition": "The design obeys \\(\\Pr(Z_{bi}=z\\mid H_{bi})=p_{bi}(z\\mid H_{bi})\\) for every \\((b,i)\\in\\mathcal T\\) and \\(z\\in\\mathcal Z\\).",
+      "free_symbols": [
+        "Z_bi",
+        "H_bi",
+        "p_bi",
+        "Tset",
+        "Zspace"
+      ],
+      "standard": {
+        "name": "known history-adaptive randomization",
+        "cite": "LiZhao2026"
+      },
+      "used_by": [
+        "lem:aipw-martingale",
+        "thm:honest-upper-frontier",
+        "oeq:adaptive-all-interval-converse",
+        "thm:minimax-frontier"
+      ]
+    },
+    {
+      "id": "ass:availability-window",
+      "kind": "design",
+      "condition": "The availability sets satisfy \\(z_0\\in A_b\\) and \\(z_1\\in A_b\\Longleftrightarrow b\\in W\\) for every \\(b\\in\\mathcal B\\).",
+      "free_symbols": [
+        "z_0",
+        "A_b",
+        "z_1",
+        "W",
+        "Bset"
+      ],
+      "standard": {
+        "name": "staggered platform-arm availability",
+        "cite": "BofillRoigEtAl2022"
+      },
+      "used_by": [
+        "lem:aipw-martingale",
+        "thm:honest-upper-frontier",
+        "oeq:adaptive-all-interval-converse",
+        "thm:minimax-frontier",
+        "prop:strict-improvement-iff"
+      ]
+    },
+    {
+      "id": "ass:availability-support",
+      "kind": "support",
+      "condition": "The propensity support satisfies \\(p_{bi}(z\\mid h)>0\\Longleftrightarrow z\\in A_b\\) for every history \\(h\\) compatible with the design.",
+      "free_symbols": [
+        "p_bi",
+        "A_b"
+      ],
+      "standard": {
+        "name": "availability-restricted positivity",
+        "cite": "SantacatterinaEtAl2025"
+      },
+      "used_by": [
+        "lem:aipw-martingale",
+        "thm:honest-upper-frontier",
+        "oeq:adaptive-all-interval-converse",
+        "thm:minimax-frontier"
+      ]
+    },
+    {
+      "id": "ass:propensity-floor",
+      "kind": "support",
+      "condition": "Available-arm propensities satisfy \\(p_{bi}(z\\mid h)\\ge p_{\\min}\\) for every \\(z\\in A_b\\) and every compatible history \\(h\\).",
+      "free_symbols": [
+        "p_bi",
+        "p_min",
+        "A_b"
+      ],
+      "standard": {
+        "name": "uniform adaptive-design positivity",
+        "cite": "LiZhao2026"
+      },
+      "used_by": [
+        "lem:aipw-martingale",
+        "thm:honest-upper-frontier",
+        "oeq:adaptive-all-interval-converse",
+        "thm:minimax-frontier"
+      ]
+    },
+    {
+      "id": "ass:bounded-outcomes",
+      "kind": "support",
+      "condition": "The fixed schedule satisfies \\(Y_{bi}(z)\\in[-M,M]\\) for every \\((b,i)\\in\\mathcal T\\) and \\(z\\in A_b\\).",
+      "free_symbols": [
+        "Y_bi",
+        "M",
+        "Tset",
+        "A_b"
+      ],
+      "standard": {
+        "name": "bounded finite-population outcomes",
+        "cite": "AronowLopatto2026"
+      },
+      "used_by": [
+        "def:schedule-class",
+        "lem:aipw-martingale",
+        "lem:tv-support-dual",
+        "thm:honest-upper-frontier",
+        "oeq:adaptive-all-interval-converse",
+        "thm:minimax-frontier",
+        "prop:boundary-regimes",
+        "prop:three-block-kill-test"
+      ]
+    },
+    {
+      "id": "ass:control-tv",
+      "kind": "shape-restriction",
+      "condition": "The fixed control means satisfy \\(\\sum_{b=1}^{B-1}|\\mu_{b+1}-\\mu_b|\\le\\Gamma\\).",
+      "free_symbols": [
+        "mu_b",
+        "B",
+        "Gamma"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "An aggregate calendar-drift budget is interpretable for trials with a small number of prespecified calendar blocks: one standard-of-care change of size at most \\(\\Gamma\\), or several smaller changes with the same total movement, satisfies the condition without imposing a parametric trend or equality across treatment arms."
+      },
+      "used_by": [
+        "def:schedule-class",
+        "lem:tv-support-dual",
+        "thm:honest-upper-frontier",
+        "oeq:adaptive-all-interval-converse",
+        "thm:minimax-frontier",
+        "prop:strict-improvement-iff",
+        "prop:boundary-regimes",
+        "prop:three-block-kill-test"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:schedule-class",
+      "name": "bounded-TV fixed schedules",
+      "construction": "\\(\\mathcal Y_{M,\\Gamma}=\\{(Y_{bi}(z))_{(b,i)\\in\\mathcal T,z\\in A_b}: |Y_{bi}(z)|\\le M\\text{ and }\\sum_{b=1}^{B-1}|\\mu_{b+1}-\\mu_b|\\le\\Gamma\\}\\)",
+      "free_symbols": [
+        "Y_bi",
+        "Tset",
+        "A_b",
+        "M",
+        "B",
+        "mu_b",
+        "Gamma"
+      ],
+      "by_member_properties": [
+        "ass:bounded-outcomes",
+        "ass:control-tv"
+      ]
+    },
+    {
+      "id": "def:target",
+      "name": "window-weighted finite-population effect",
+      "construction": "\\(\\tau_W=\\sum_{b\\in W}q_b n_b^{-1}\\sum_{i=1}^{n_b}\\{Y_{bi}(z_1)-Y_{bi}(z_0)\\}\\)",
+      "free_symbols": [
+        "tau_W",
+        "W",
+        "q_b",
+        "n_b",
+        "Y_bi",
+        "z_1",
+        "z_0"
+      ]
+    },
+    {
+      "id": "def:concurrent-weights",
+      "name": "concurrent-only control weights",
+      "construction": "\\(u_b=q_b\\mathbf 1\\{b\\in W\\}\\) for \\(b\\in\\mathcal B\\)",
+      "free_symbols": [
+        "u_b",
+        "q_b",
+        "W",
+        "Bset"
+      ]
+    },
+    {
+      "id": "def:aipw-score",
+      "name": "predictable AIPW score",
+      "construction": "For each available arm, \\(\\phi_{bi}(z)=m_{bi}(z)+\\mathbf 1\\{Z_{bi}=z\\}\\{Y^{\\mathrm{obs}}_{bi}-m_{bi}(z)\\}/p_{bi}(z\\mid H_{bi})\\).",
+      "free_symbols": [
+        "phi_bi",
+        "m_bi",
+        "Z_bi",
+        "Yobs_bi",
+        "p_bi",
+        "H_bi"
+      ],
+      "inputs": [
+        "ass:consistency",
+        "ass:sequential-randomization",
+        "ass:availability-support"
+      ]
+    },
+    {
+      "id": "def:borrowing-estimator",
+      "name": "blockwise borrowing estimator",
+      "construction": "\\(\\widehat\\tau(v)=\\sum_{b\\in W}q_b n_b^{-1}\\sum_i\\phi_{bi}(z_1)-\\sum_{b\\in\\mathcal B}v_b n_b^{-1}\\sum_i\\phi_{bi}(z_0)\\) for \\(v\\in\\Delta(\\mathcal B)\\)",
+      "free_symbols": [
+        "hat_tau_v",
+        "v_b",
+        "W",
+        "q_b",
+        "n_b",
+        "phi_bi",
+        "z_1",
+        "Bset",
+        "z_0"
+      ],
+      "inputs": [
+        "def:aipw-score",
+        "def:concurrent-weights"
+      ]
+    },
+    {
+      "id": "def:drift-support",
+      "name": "sharp drift-bias support function",
+      "construction": "\\(\\mathsf B_\\Gamma(v)=\\max\\{|\\sum_{b=1}^B(v_b-u_b)m_b|:m\\in[-M,M]^B,\\ \\sum_{j=1}^{B-1}|m_{j+1}-m_j|\\le\\Gamma\\}\\)",
+      "free_symbols": [
+        "Bias_Gamma",
+        "Gamma",
+        "v_b",
+        "u_b",
+        "M",
+        "B"
+      ],
+      "inputs": [
+        "def:concurrent-weights"
+      ]
+    },
+    {
+      "id": "def:martingale-scales",
+      "name": "design variation and increment scales",
+      "construction": "Compute \\(\\mathsf V_{\\mathcal D}(v)\\) and \\(\\mathsf K_{\\mathcal D}(v)\\) from the displayed finite sums and maxima of squared AIPW coefficients, the known compatible-history propensity floors \\(p_{bi}^{-}(z)\\), and the bound \\(M\\).",
+      "free_symbols": [
+        "V_D",
+        "K_D",
+        "v_b",
+        "p_floor_bi",
+        "M",
+        "D_design"
+      ],
+      "inputs": [
+        "def:aipw-score",
+        "def:borrowing-estimator"
+      ]
+    },
+    {
+      "id": "def:conic-frontier",
+      "name": "finite conic borrowing frontier",
+      "construction": "Solve \\(v^\\star\\in\\operatorname*{argmin}_{v\\ge0,\\sum_bv_b=1}\\{\\mathsf B_\\Gamma(v)+\\sqrt{2\\mathsf V_{\\mathcal D}(v)\\log(2/\\alpha)}+\\mathsf K_{\\mathcal D}(v)\\log(2/\\alpha)/3\\}\\) and set \\(\\mathfrak R_\\alpha^\\star=\\min\\{2M,\\Psi_\\alpha(v^\\star)\\}\\).",
+      "free_symbols": [
+        "v_star",
+        "v_b",
+        "Bias_Gamma",
+        "Gamma",
+        "V_D",
+        "alpha",
+        "K_D",
+        "R_star",
+        "M",
+        "Psi_alpha"
+      ],
+      "inputs": [
+        "def:drift-support",
+        "def:martingale-scales"
+      ]
+    },
+    {
+      "id": "def:bias-aware-interval",
+      "name": "clipped bias-aware interval",
+      "construction": "Set \\(I^\\star=[\\widehat\\tau(v^\\star)-\\Psi_\\alpha(v^\\star),\\widehat\\tau(v^\\star)+\\Psi_\\alpha(v^\\star)]\\cap[-2M,2M]\\) when \\(\\Psi_\\alpha(v^\\star)<2M\\), and set \\(I^\\star=[-2M,2M]\\) when \\(\\Psi_\\alpha(v^\\star)\\ge2M\\).",
+      "free_symbols": [
+        "I_star",
+        "hat_tau_v",
+        "v_star",
+        "Psi_alpha",
+        "M"
+      ],
+      "inputs": [
+        "def:borrowing-estimator",
+        "def:conic-frontier"
+      ]
+    },
+    {
+      "id": "def:honest-minimax-length",
+      "name": "uniformly honest minimax expected length",
+      "construction": "\\(\\mathcal C_\\alpha=\\{I:\\inf_{Y\\in\\mathcal Y_{M,\\Gamma}}\\Pr_{\\mathcal D,Y}(\\tau_W\\in I)\\ge1-\\alpha\\}\\) and \\(\\mathfrak L_\\alpha^\\star=\\inf_{I\\in\\mathcal C_\\alpha}\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E_{\\mathcal D,Y}[\\operatorname{len}(I)]\\)",
+      "free_symbols": [
+        "C_alpha",
+        "alpha",
+        "Yclass",
+        "D_design",
+        "tau_W",
+        "L_star"
+      ],
+      "inputs": [
+        "def:schedule-class",
+        "def:target"
+      ]
+    },
+    {
+      "id": "def:strict-gain-certificate",
+      "name": "optimizer strict-gain certificate",
+      "construction": "Use the simplex tangent cone \\(T_u\\), the subdifferential \\(\\partial\\Psi_{\\alpha,\\Gamma}(u)\\), and the normal cone \\(N_{\\Delta(\\mathcal B)}(u)\\) to certify whether the concurrent vector \\(u\\) solves the conic program; \\(\\Gamma_{\\mathrm{cc}}\\) is the first drift budget at which the KKT inclusion holds.",
+      "free_symbols": [
+        "T_u",
+        "u_b",
+        "Psi_alpha",
+        "alpha",
+        "Gamma",
+        "Bset",
+        "Gamma_cc"
+      ],
+      "inputs": [
+        "def:conic-frontier",
+        "def:concurrent-weights"
+      ]
+    },
+    {
+      "id": "def:fuzzy-prior-handle",
+      "name": "adaptive-path fuzzy-prior handle",
+      "construction": "Starting from the optimizer \\(v^\\star\\) and its cumulative discrepancies \\(D_j(v^\\star)\\), randomize signs and locations of bounded control-mean increments, couple focal-arm schedules on the window, and compare the two induced mixtures through the chain rule for the observed adaptive-assignment likelihood.",
+      "free_symbols": [
+        "v_star",
+        "D_j",
+        "Y_bi",
+        "W"
+      ],
+      "inputs": [
+        "def:schedule-class",
+        "def:conic-frontier"
+      ]
+    },
+    {
+      "id": "def:three-block-lp",
+      "name": "three-block exact interval program",
+      "construction": "For \\(B=3\\), \\(n_b\\in\\{1,2\\}\\), and \\(Y_{bi}(z)\\in\\{-M,0,M\\}\\), enumerate every TV-admissible fixed schedule, every assignment history under \\(p_{bi}\\), and every interval with endpoints in the finite set of attainable values of \\(\\tau_W\\); minimize a scalar worst-case expected length subject to one linear coverage constraint per schedule.",
+      "free_symbols": [
+        "B",
+        "n_b",
+        "Y_bi",
+        "M",
+        "p_bi",
+        "tau_W"
+      ],
+      "inputs": [
+        "def:schedule-class",
+        "def:honest-minimax-length"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:aipw-martingale",
+      "kind": "lemma",
+      "statement": "For every deterministic \\(v\\in\\Delta(\\mathcal B)\\), \\(\\widehat\\tau(v)-\\tau_W=\\sum_{(b,i)\\in\\mathcal T}\\xi_{bi}(v)-\\sum_{b=1}^B d_b(v)\\mu_b\\), where \\(\\{\\xi_{bi}(v),H_{bi}\\}\\) is a design-based martingale-difference array satisfying \\(\\sum_{b,i}\\mathbb E(\\xi_{bi}(v)^2\\mid H_{bi})\\le\\mathsf V_{\\mathcal D}(v)\\) and \\( |\\xi_{bi}(v)|\\le\\mathsf K_{\\mathcal D}(v)\\) almost surely.",
+      "free_symbols": [
+        "v_b",
+        "Bset",
+        "hat_tau_v",
+        "tau_W",
+        "Tset",
+        "H_bi",
+        "xi_bi",
+        "B",
+        "d_b",
+        "mu_b",
+        "V_D",
+        "K_D"
+      ],
+      "depends_on": [
+        "ass:sutva",
+        "ass:consistency",
+        "ass:sequential-randomization",
+        "ass:availability-window",
+        "ass:availability-support",
+        "ass:propensity-floor",
+        "ass:bounded-outcomes",
+        "def:target",
+        "def:aipw-score",
+        "def:borrowing-estimator",
+        "def:martingale-scales"
+      ],
+      "status": "to-prove",
+      "justification": "This decomposition separates the only allowed randomness, assignment, from the deterministic calendar-drift bias.",
+      "gap": "LiZhao2026, equation (3) and Theorem 4, center AIPW at a full-support finite-population contrast; the present decomposition permits focal-arm support zeros off \\(W\\) and exposes the resulting NCC drift term.",
+      "consumer": "It supplies the auditable estimating equation needed to add the borrowing rule to the NCC R package."
+    },
+    {
+      "id": "lem:tv-support-dual",
+      "kind": "lemma",
+      "statement": "For every \\(v\\in\\Delta(\\mathcal B)\\), summation by parts gives \\(\\sum_bd_b(v)m_b=-\\sum_{j=1}^{B-1}D_j(v)(m_{j+1}-m_j)\\). Consequently, \\(\\mathsf B_\\Gamma(v)\\) equals the value of the finite linear program over increments \\(\\delta_j=m_{j+1}-m_j\\) with \\(\\sum_j|\\delta_j|\\le\\Gamma\\) and \\(-M\\le c+\\sum_{k< b}\\delta_k\\le M\\); an endpoint optimizer yields an extremal fixed control schedule. In particular, \\(\\mathsf B_\\Gamma(v)=\\Gamma\\max_{j<B}|D_j(v)|\\) when \\(0\\le\\Gamma\\le2M\\), and \\(\\mathsf B_{\\Gamma_{\\mathrm{vac}}}(v)=M\\sum_b|d_b(v)|\\).",
+      "free_symbols": [
+        "v_b",
+        "Bset",
+        "d_b",
+        "D_j",
+        "B",
+        "Bias_Gamma",
+        "Gamma",
+        "M",
+        "Gamma_vac"
+      ],
+      "depends_on": [
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:concurrent-weights",
+        "def:drift-support"
+      ],
+      "status": "to-prove",
+      "justification": "The cumulative-discrepancy map turns calendar robustness into a computable sharp bias penalty rather than a qualitative sensitivity warning.",
+      "gap": "ArmstrongKolesar2018 optimizes worst-case bias over convex regression classes, while BofillRoigEtAl2022 reports model-dependent trend bias; neither gives this ordered-block finite-population support function.",
+      "consumer": "ACTT analysts can translate a clinically chosen drift budget into an exact bias allowance for any proposed NCC weight vector."
+    },
+    {
+      "id": "thm:honest-upper-frontier",
+      "kind": "theorem",
+      "statement": "The finite conic program defining \\(v^\\star\\) is representable by a linear-plus-second-order-cone program, has an optimizer, and the interval \\(I^\\star\\) satisfies \\(\\inf_{Y\\in\\mathcal Y_{M,\\Gamma}}\\Pr_{\\mathcal D,Y}(\\tau_W\\in I^\\star)\\ge1-\\alpha\\). Its worst-case expected length is at most \\(2\\mathfrak R_\\alpha^\\star\\), including branches with zero realized variation and branches on which clipping at \\([-2M,2M]\\) is active.",
+      "free_symbols": [
+        "v_star",
+        "I_star",
+        "M",
+        "Gamma",
+        "Yclass",
+        "D_design",
+        "tau_W",
+        "alpha",
+        "R_star"
+      ],
+      "depends_on": [
+        "ass:sutva",
+        "ass:consistency",
+        "ass:sequential-randomization",
+        "ass:availability-window",
+        "ass:availability-support",
+        "ass:propensity-floor",
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:schedule-class",
+        "def:conic-frontier",
+        "def:bias-aware-interval",
+        "lem:aipw-martingale",
+        "lem:tv-support-dual"
+      ],
+      "status": "to-prove",
+      "justification": "This is the constructive half of the borrowing frontier and gives finite-sample design-based coverage under the known adaptive randomization.",
+      "gap": "LiZhao2026 proves asymptotic Wald coverage for centered adaptive AIPW, and SawadaNomuraShinozaki2026 controls an estimated external-control bias cap in a model-based superpopulation analysis; neither supplies a uniform randomization interval over fixed TV-bounded schedules.",
+      "consumer": "The theorem provides a drop-in sensitivity-analysis engine for the NCC package and a prespecifiable ACTT-style primary interval."
+    },
+    {
+      "id": "oeq:adaptive-all-interval-converse",
+      "kind": "openendedquestion",
+      "statement": "Can the adaptive-path fuzzy-prior handle be completed so that, for every known history-adaptive design satisfying the stated support conditions, two mixtures are supported almost surely on \\(\\mathcal Y_{M,\\Gamma}\\), their induced observed-data laws have total variation bounded away from one, and their \\(\\tau_W\\)-separation is at least \\(c_{\\alpha}^{\\mathrm{lb}}\\mathfrak R_\\alpha^\\star\\), where \\(c_{\\alpha}^{\\mathrm{lb}}>0\\) depends only on \\(\\alpha\\)?",
+      "free_symbols": [
+        "M",
+        "Gamma",
+        "Yclass",
+        "D_design",
+        "tau_W",
+        "alpha",
+        "R_star",
+        "c_lower"
+      ],
+      "depends_on": [
+        "ass:sequential-randomization",
+        "ass:availability-window",
+        "ass:availability-support",
+        "ass:propensity-floor",
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:schedule-class",
+        "def:conic-frontier",
+        "def:fuzzy-prior-handle"
+      ],
+      "status": "to-prove",
+      "justification": "This is the genuinely open step needed to rule out nonlinear and variable-length intervals, not merely other weighted estimators.",
+      "gap": "CaiLow2004 obtains all-interval expected-length lower bounds from Gaussian mixture moduli, and ArmstrongKolesar2018 uses Gaussian convex-class geometry; adaptive randomization makes the observed likelihood a schedule-dependent sequential product and prevents direct importation.",
+      "consumer": "A positive resolution certifies that no alternative NCC interval can uniformly beat the implementable conic rule by more than a universal factor."
+    },
+    {
+      "id": "thm:minimax-frontier",
+      "kind": "theorem",
+      "statement": "There exist constants \\(0<c_{\\alpha}^{\\mathrm{lb}}\\le C_{\\alpha}^{\\mathrm{ub}}<\\infty\\), depending only on \\(\\alpha\\), such that for every admissible ordered platform design, \\(c_{\\alpha}^{\\mathrm{lb}}\\mathfrak R_\\alpha^\\star\\le\\mathfrak L_\\alpha^\\star\\le C_{\\alpha}^{\\mathrm{ub}}\\mathfrak R_\\alpha^\\star\\). The lower inequality ranges over all possibly randomized, data-dependent, variable-length intervals in \\(\\mathcal C_\\alpha\\), not only AIPW-centered or affine intervals.",
+      "free_symbols": [
+        "alpha",
+        "c_lower",
+        "C_upper",
+        "R_star",
+        "L_star",
+        "C_alpha"
+      ],
+      "depends_on": [
+        "ass:sutva",
+        "ass:sequential-randomization",
+        "ass:availability-window",
+        "ass:availability-support",
+        "ass:propensity-floor",
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:schedule-class",
+        "def:conic-frontier",
+        "def:honest-minimax-length",
+        "thm:honest-upper-frontier",
+        "lem:tv-support-dual"
+      ],
+      "status": "to-prove",
+      "justification": "The sandwich is the theorem-level kernel: it gives operational meaning to the optimized bias--variation radius as the information frontier.",
+      "gap": "CaiLow2004 and ArmstrongKolesar2018 establish related modulus conclusions in Gaussian experiments; no published result gives an all-interval lower bound for an availability-constrained adaptive randomization law over fixed schedules.",
+      "consumer": "Trial designers obtain a certificate that a chosen sensitivity budget buys nearly the shortest possible uniformly honest interval."
+    },
+    {
+      "id": "prop:strict-improvement-iff",
+      "kind": "proposition",
+      "statement": "Outside the diameter-saturated case, NCC borrowing strictly shortens the certified interval relative to concurrent-only inference if and only if \\(u\\notin\\operatorname*{argmin}_{v\\in\\Delta(\\mathcal B)}\\Psi_\\alpha(v)\\), equivalently \\(0\\notin\\partial\\Psi_\\alpha(u)+N_{\\Delta(\\mathcal B)}(u)\\), equivalently there exists \\(h\\in T_u\\) with negative one-sided directional derivative \\(\\Psi_\\alpha'(u;h)<0\\). The same finite program computes \\(\\Gamma_{\\mathrm{cc}}\\), and strict improvement holds exactly for budgets below that threshold whenever the stochastic scale is strictly convex on the active face.",
+      "free_symbols": [
+        "u_b",
+        "v_b",
+        "Bset",
+        "Psi_alpha",
+        "alpha",
+        "T_u",
+        "Gamma_cc"
+      ],
+      "depends_on": [
+        "ass:availability-window",
+        "ass:control-tv",
+        "def:concurrent-weights",
+        "def:conic-frontier",
+        "def:strict-gain-certificate",
+        "lem:tv-support-dual"
+      ],
+      "status": "to-prove",
+      "justification": "A necessary-and-sufficient KKT certificate replaces informal claims that more controls must improve precision.",
+      "gap": "BofillRoigEtAl2022 gives a two-period variance reduction under a common-trend regression model, while SantacatterinaEtAl2025 finds no first-order robust gain with deterministic availability; neither characterizes gain under a quantitative drift class.",
+      "consumer": "Software can report a reproducible yes-or-no borrowing decision and its critical drift budget before unblinding."
+    },
+    {
+      "id": "prop:boundary-regimes",
+      "kind": "proposition",
+      "statement": "At \\(\\Gamma=0\\), all admissible control block means are equal and \\(\\mathsf B_0(v)=0\\) for every \\(v\\in\\Delta(\\mathcal B)\\), so \\(v^\\star\\) minimizes the stochastic radius over all blocks; when that radius is strictly convex and every control propensity is below one, each block receives positive weight. At \\(\\Gamma\\ge\\Gamma_{\\mathrm{cc}}\\), the concurrent vector \\(u\\) is optimal. At the vacuous budget \\(\\Gamma_{\\mathrm{vac}}\\), nonconcurrent outcomes cannot reduce \\(\\mathfrak L_\\alpha^\\star\\) below the concurrent-only minimax value. Substituting \\(v=u\\) reduces \\(I^\\star\\) to the standard concurrent finite-population AIPW interval with the same known design.",
+      "free_symbols": [
+        "Gamma",
+        "mu_b",
+        "Bias_Gamma",
+        "v_b",
+        "Bset",
+        "v_star",
+        "Gamma_cc",
+        "u_b",
+        "Gamma_vac",
+        "L_star",
+        "I_star"
+      ],
+      "depends_on": [
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:concurrent-weights",
+        "def:conic-frontier",
+        "def:honest-minimax-length",
+        "def:strict-gain-certificate",
+        "lem:tv-support-dual",
+        "prop:strict-improvement-iff"
+      ],
+      "status": "to-prove",
+      "justification": "The two endpoints prevent the optimizer from laundering either unrestricted pooling or automatic rejection of valid borrowing.",
+      "gap": "Published NCC comparisons report no-drift and misspecified-trend operating characteristics, but do not prove exact design-based endpoint reductions for all honest intervals.",
+      "consumer": "The endpoints provide validation cases for the NCC implementation and for ACTT sensitivity plots."
+    },
+    {
+      "id": "prop:three-block-kill-test",
+      "kind": "proposition",
+      "statement": "The enumerated three-block interval construction is an exact finite linear program for the discretized experiment. For one unit per block, binary treatment assignment in the focal block, \\(\\alpha=0.1\\), and outcomes in \\(\\{-M,0,M\\}\\), its normalized minimax expected lengths at \\(\\Gamma/M=0,1,2,4\\) are respectively \\(0.7,1.2,1.7,1.7\\), while the concurrent-only value is \\(1.7\\); hence the exact experiment borrows only in the nonvacuous region and reaches concurrent-only equality by \\(\\Gamma=2M\\).",
+      "free_symbols": [
+        "B",
+        "alpha",
+        "M",
+        "Gamma"
+      ],
+      "depends_on": [
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:three-block-lp"
+      ],
+      "status": "to-prove",
+      "justification": "The smallest exact decision problem is an early falsification check on both the borrowing phase change and the all-interval comparison.",
+      "gap": "The NCC literature uses simulation for small platform designs; it does not solve the uniformly honest variable-length interval decision problem exactly.",
+      "consumer": "The enumeration becomes a regression test for the convex optimizer and its concurrent-only threshold."
+    }
+  ],
+  "sampling_model": {
+    "design": "Known history-predictable randomization \\(p_{bi}(z\\mid H_{bi})\\) on ordered enrollment positions.",
+    "units": "The potential-outcome schedule and block membership are fixed; assignment is the only randomness.",
+    "treatment": "The shared control is available in every block, while the focal arm has positive propensity exactly on the proper block window \\(W\\).",
+    "overlap": "Every available arm has compatible-history propensity at least \\(p_{\\min}>0\\); structural zeros off the availability set are allowed.",
+    "nuisance_estimation": "Outcome regressions \\(m_{bi}(z)\\) are bounded and predictable; validity does not require consistency of these regressions."
+  },
+  "estimand_functional": "\\(v^\\star\\in\\arg\\min_{v\\in\\Delta(\\mathcal B)}\\Psi_\\alpha(v),\\quad I^\\star=\\begin{cases}[\\widehat\\tau(v^\\star)-\\Psi_\\alpha(v^\\star),\\widehat\\tau(v^\\star)+\\Psi_\\alpha(v^\\star)]\\cap[-2M,2M],&\\Psi_\\alpha(v^\\star)<2M,\\\\{}[-2M,2M],&\\Psi_\\alpha(v^\\star)\\ge2M.\\end{cases}\\)",
+  "target_estimand": "\\(\\tau_W=\\sum_{b\\in W}q_b n_b^{-1}\\sum_{i=1}^{n_b}[Y_{bi}(z_1)-Y_{bi}(z_0)]\\)",
+  "bibliography": [
+    {
+      "key": "BofillRoigEtAl2022",
+      "citation": "Marta Bofill Roig and coauthors. On Model-Based Time Trend Adjustments in Platform Trials with Non-Concurrent Controls. \\emph{BMC Medical Research Methodology}, 22:228, 2022. arXiv:2112.06574."
+    },
+    {
+      "key": "SantacatterinaEtAl2025",
+      "citation": "Michele Santacatterina, Federico Macchiavelli Giron, Xinyi Zhang, and Ivan Diaz. Identification and Estimation of Causal Effects Using Non-Concurrent Controls in Platform Trials. \\emph{Statistics in Medicine}, 2025. DOI:10.1002/sim.70017. arXiv:2404.19118."
+    },
+    {
+      "key": "LiZhao2026",
+      "citation": "Xinran Li and Anqi Zhao. Design-Based Theory for Causal Inference from Adaptive Experiments. arXiv:2602.21998, 2026."
+    },
+    {
+      "key": "ArmstrongKolesar2018",
+      "citation": "Timothy B. Armstrong and Michal Kolesar. Optimal Inference in a Class of Regression Models. \\emph{Econometrica}, 86(2):655--683, 2018. arXiv:1511.06028."
+    },
+    {
+      "key": "CaiLow2004",
+      "citation": "T. Tony Cai and Mark G. Low. An Adaptation Theory for Nonparametric Confidence Intervals. \\emph{Annals of Statistics}, 32(5):1805--1840, 2004. arXiv:math/0503662."
+    },
+    {
+      "key": "SawadaNomuraShinozaki2026",
+      "citation": "Kota Sawada, Shogo Nomura, and Tomohiro Shinozaki. Dynamic Borrowing With a Bias-Tolerance Cap in Augmented Randomized Controlled Trials. \\emph{Statistics in Medicine}, 45(6--7):e70473, 2026."
+    },
+    {
+      "key": "KrotkaPoschBofillRoig2026",
+      "citation": "Pavla Krotka, Martin Posch, and Marta Bofill Roig. On the Inclusion of Non-Concurrent Controls in Platform Trials with an Interim Analysis. \\emph{Statistics in Medicine}, 2026. arXiv:2509.08795."
+    },
+    {
+      "key": "CookMishlerRamdas2024",
+      "citation": "Thomas Cook, Alan Mishler, and Aaditya Ramdas. Semiparametric Efficient Inference in Adaptive Experiments. \\emph{Proceedings of the Third Conference on Causal Learning and Reasoning}, 2024. arXiv:2311.18274."
+    },
+    {
+      "key": "HamBojinovLindonTingley2026",
+      "citation": "Dae Woong Ham, Iavor Bojinov, Michael Lindon, and Martin Tingley. Design-Based Confidence Sequences: A General Approach to Risk Mitigation in Panel Experiments. 2026 version of arXiv:2210.08639."
+    },
+    {
+      "key": "KrotkaEtAl2023",
+      "citation": "Pavla Krotka, Katharina Hees, Peter Jacko, Dominic Magirr, Martin Posch, and Marta Bofill Roig. NCC: An R-Package for Analysis and Simulation of Platform Trials with Non-Concurrent Controls. \\emph{SoftwareX}, 2023. arXiv:2302.12634."
+    },
+    {
+      "key": "BonnettPotterDodd2025",
+      "citation": "Tyler Bonnett, Gail E. Potter, and Lori E. Dodd. Examining the Bias--Efficiency Tradeoff from Incorporation of Nonconcurrent Controls in Platform Trials: A Simulation Study Example from the Adaptive COVID-19 Treatment Trial. \\emph{Clinical Trials}, 2025. DOI:10.1177/17407745251313928."
+    },
+    {
+      "key": "AronowLopatto2026",
+      "citation": "P. M. Aronow and Patrick Lopatto. Minimax Unbiased Estimation for Finite Populations with Bounded Outcomes. arXiv:2605.20572, 2026."
+    },
+    {
+      "key": "SudijonoDobribanTchetgen2026",
+      "citation": "Timothy Sudijono, Edgar Dobriban, and Eric Tchetgen Tchetgen. Sharp Minimax Theory for Randomized Experiments. arXiv:2608.13822, 2026."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "BofillRoigEtAl2022",
+      "comparator_claim": "Equation (3) writes the two-period regression estimator as a concurrent-control mean plus a weighted nonconcurrent trend adjustment, and Section 3.1.2 gives unbiasedness under equal additive arm trends.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SantacatterinaEtAl2025",
+      "comparator_claim": "Theorem 3 gives the efficient influence function for the concurrent average treatment effect, and Section 6 finds no first-order doubly robust NCC efficiency gain when availability is deterministic in entry time.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiZhao2026",
+      "comparator_claim": "Theorem 4 proves design-unbiasedness and a martingale central limit theorem for finite-population AIPW under adaptive randomization with positive propensity for every analyzed treatment.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2018",
+      "comparator_claim": "Theorems 3.1--3.2 optimize honest confidence intervals through convex-class modulus and worst-case bias geometry in a Gaussian regression experiment.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CaiLow2004",
+      "comparator_claim": "Theorem 1 lower-bounds the expected length of every honest interval by a between-class Gaussian modulus and constructs constant-factor adaptive intervals over convex classes.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SawadaNomuraShinozaki2026",
+      "comparator_claim": "The paper selects data-adaptive external-control weights to keep estimated expected bias below a prespecified cap and reports bootstrap Wald inference under model-based assumptions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A late platform arm has randomized concurrent controls but only nonrandom temporal comparability with earlier controls. The proposal makes that comparability quantitative through a total-variation budget on fixed control block means. A cumulative-discrepancy linear program gives the exact worst-case borrowing bias, a finite conic program balances this bias against predictable AIPW martingale variation, and a clipped interval is uniformly design-honest. The theorem-level target is a universal-constant equivalence between this computable radius and the minimax expected length over all honest randomization intervals. The genuine open step is an adaptive-path fuzzy-prior lower construction. A KKT certificate determines exactly when borrowing improves on concurrent-only inference, with full borrowing at zero drift and no informational gain once the drift class is vacuous.",
+  "project_justification": {
+    "gap": "BofillRoigEtAl2022 and KrotkaPoschBofillRoig2026 quantify bias and power for particular regression adjustments, while SantacatterinaEtAl2025 gives a superpopulation efficiency analysis of the concurrent estimand. None characterizes the best uniformly honest design-based interval when fixed calendar drift is bounded rather than modeled away.",
+    "niche": "Ordered control block means form a low-dimensional convex nuisance class whose exact support function can be coupled to the martingale geometry of known adaptive randomization. This creates a design-specific borrowing frontier that is neither a common-trend model nor unrestricted concurrent-only analysis.",
+    "fill": "The project derives the sharp cumulative-sum bias dual, constructs an implementable bias-aware AIPW interval, seeks a matching all-interval randomization lower bound, and gives an optimizer-level necessary-and-sufficient gain certificate with exact endpoint reductions."
+  },
+  "related_work": "BofillRoigEtAl2022 is the writing exemplar: its Introduction, equation (1), weighted representation in equations (3), and Conclusions move from staggered entry to efficiency and then to failure under temporal heterogeneity. The present target retains that motivation but replaces equal additive trends with a bounded fixed-schedule drift class. SantacatterinaEtAl2025, Theorems 1 and 3 and Section 6, clarifies the concurrent estimand and shows why deterministic availability alone does not create a first-order robust NCC gain; the TV restriction is additional cross-block information and the proposed interval pays explicitly for it. LiZhao2026, equation (3), Theorems 4--5, and Lemma S8 supply the finite-population predictable-AIPW martingale construction; the first changed step is the deterministic NCC bias term caused by structural focal-arm propensity zeros. ArmstrongKolesar2018, Sections 3.2--3.4 and the proof of Theorem 3.1, supplies the bias--variance optimization template, while CaiLow2004, Theorem 1 and its mixture proof, supplies the all-interval expected-length logic. Their Gaussian likelihood calculations do not survive arbitrary history-adaptive assignment. SawadaNomuraShinozaki2026 chooses external-control weights under an estimated bias cap, but its estimand, confounding model, bootstrap interval, and guarantee differ from a fixed-population randomization minimax theorem. AronowLopatto2026 and SudijonoDobribanTchetgen2026 establish recent bounded finite-population minimax benchmarks without staggered availability or TV borrowing. The exact target--method search through September 2026 located no design-based NCC minimax interval frontier.",
+  "technical_internal_limitation": "The all-interval lower bound is not treated as established. The required mixtures must remain inside the TV ball almost surely and must control the sequential observed-law likelihood ratio without conditioning on low-propensity histories. The prescribed one-unit three-block enumeration was run with randomized interval actions and endpoint grid \\(\\{-2M,-M,0,M,2M\\}\\): at \\(\\alpha=0.1\\), the full-information minimax lengths were \\(0.7M,1.2M,1.7M,1.7M\\) for \\(\\Gamma/M=0,1,2,4\\), versus \\(1.7M\\) for concurrent-only observation. This supports the phase direction and the no-gain boundary, but the coarse Freedman radius is diameter-saturated in that tiny experiment, so the enumeration does not verify the proposed universal constant or identify its sharp value.",
+  "honest_scope": "The upper coverage theorem and drift dual are constructive targets. The universal-constant converse is the central open mathematical risk. The propensity-floor version is intentionally design-uniform and may be conservative for rare low-propensity histories; the lower proof must either match that worst-path dependence or force a reformulation in terms of an average design modulus. No claim is made that \\(\\Gamma\\) is identifiable from the trial data. When \\(v=u\\), the estimator uses only concurrent outcomes and reduces to the standard finite-population AIPW contrast. When \\(\\Gamma=0\\), all control block means agree and full control borrowing is valid. When \\(\\Gamma=\\Gamma_{\\mathrm{vac}}\\), the TV condition is vacuous for bounded means and nonconcurrent outcomes carry no information about the window control mean.",
+  "seeds": [
+    "known-gamma-minimax-borrowing-frontier",
+    "unknown-gamma-adaptation-penalty",
+    "anytime-drift-aware-confidence-sequence",
+    "three-block-exact-interval-lp",
+    "critical-gamma-strict-gain-frontier",
+    "joint-multiarm-simultaneous-frontier",
+    "robust-platform-allocation-design",
+    "interim-stopping-predictable-borrowing"
+  ],
+  "seed_details": [
+    {
+      "rank": 1,
+      "id": "known-gamma-minimax-borrowing-frontier",
+      "anchor": "BofillRoigEtAl2022",
+      "anchor_opened": "Introduction and Conclusions; equations (1) and (3); Sections 3.1.1--3.1.2; supplementary-proof discussion of the weighted estimator and block randomization.",
+      "question": "What is the minimax expected length of every uniformly honest randomization interval for the concurrent-window effect when fixed control block means have TV budget \\(\\Gamma\\)?",
+      "first_changed_proof_step": "Replace the common-trend regression identity by the exact support function of block-weight discrepancies, then add that deterministic bias to the adaptive AIPW martingale before constructing the interval.",
+      "destination_search": "Searches combining platform NCC, bounded drift or total variation, design-based randomization, and minimax expected length found model-based drift adjustment, external-control bias caps, and general finite-population minimax papers, but no occupied target--method pair.",
+      "motif": "M14+M7",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "red_team": "Immediate from ArmstrongKolesar2018 because TV schedules form a convex class and their modulus already yields optimal honest intervals.",
+      "rebuttal": "Their observation law is Gaussian with fixed linear operator; arbitrary adaptive randomization produces a schedule-dependent sequential kernel, so both the all-interval lower mixture and the small-propensity branch must be rebuilt.",
+      "anti_pattern_check": "The result ranges over a uniform fixed-schedule class and all interval procedures; the lower construction, not a single witness, is exposed as the open object.",
+      "disposition": "selected"
+    },
+    {
+      "rank": 2,
+      "id": "unknown-gamma-adaptation-penalty",
+      "anchor": "CaiLow2004",
+      "anchor_opened": "Introduction; equations (3)--(5); Proposition 1; Theorem 1 and its likelihood-ratio proof; Sections 2.2--3 on nested convex classes; final mixture lower-bound construction.",
+      "question": "Can one interval be honest over the largest TV ball and attain, for every smaller \\(\\Gamma\\), the known-budget oracle expected length, or what between-class penalty is unavoidable?",
+      "first_changed_proof_step": "Compute an ordered modulus between adaptive randomization laws generated by two nested fixed-schedule TV balls rather than between Gaussian shifts.",
+      "destination_search": "CaiLow2004 and ArmstrongKolesar2018 settle Gaussian adaptation, while the ACTT and NCC searches found sensitivity analyses but no randomization-law between-class modulus for calendar drift.",
+      "motif": "M3+M14",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "red_team": "A routine application of Cai--Low to the nested TV balls.",
+      "rebuttal": "The Gaussian norm in their between-class modulus has no direct analogue under response-adaptive assignment, and the budget is not estimable from off-window outcomes without controlling the sequential likelihood.",
+      "anti_pattern_check": "The seed asks for an oracle inequality or an explicit impossibility penalty, not plug-in tuning of \\(\\Gamma\\).",
+      "disposition": "survived-literature-scan"
+    },
+    {
+      "rank": 3,
+      "id": "anytime-drift-aware-confidence-sequence",
+      "anchor": "KrotkaPoschBofillRoig2026",
+      "anchor_opened": "Introduction; equations (1)--(5); analytical bias derivation in Section 3 and Appendix A; mean-adjusted construction in Section 4; Discussion.",
+      "question": "Can predictable NCC weights be combined with a time-indexed TV support function to give an anytime-valid design-based confidence sequence and a stopping-time width lower bound?",
+      "first_changed_proof_step": "Subtract a pathwise cumulative drift envelope inside the exponential-supermartingale construction before applying Ville's inequality.",
+      "destination_search": "CookMishlerRamdas2024 and HamBojinovLindonTingley2026 give adaptive AIPW or design-based confidence sequences centered at their targets; no opened source adds structural availability zeros and adversarial calendar drift.",
+      "motif": "M14",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "red_team": "CookMishlerRamdas2024 already gives nonasymptotic adaptive-AIPW confidence sequences.",
+      "rebuttal": "Their score is conditionally centered; predictable off-window borrowing creates a nonzero adversarial drift that must be paid at every stopping time and changes the lower-bound experiment.",
+      "anti_pattern_check": "The confidence sequence is derived from a martingale with a new bias compensator, not assumed from a fixed-time CLT.",
+      "disposition": "survived-literature-scan"
+    },
+    {
+      "rank": 4,
+      "id": "three-block-exact-interval-lp",
+      "anchor": "CaiLow2004",
+      "anchor_opened": "Proposition 1 and Theorem 1, including the inversion of two-point tests and the all-interval expected-length bound.",
+      "question": "What is the exact minimax expected length in the one- and two-unit three-block experiments when schedules and interval actions are finite?",
+      "first_changed_proof_step": "Replace the Gaussian sufficient-statistic reduction by the exact ordered assignment-history kernel and impose a linear coverage constraint for every admissible schedule.",
+      "destination_search": "The bounded finite-population minimax papers optimize estimation risk, not uniformly honest variable-length intervals with staggered availability.",
+      "motif": "M7",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "red_team": "A finite enumeration is computational verification rather than a research theorem.",
+      "rebuttal": "The exact LP and its dual least-favorable schedules are mathematically useful, but the objection limits this seed to a diagnostic and supporting proposition rather than the paper's kernel.",
+      "anti_pattern_check": "Not promoted as a flagship kernel; it is retained as the mandated falsification device.",
+      "disposition": "absorbed-as-kill-test"
+    },
+    {
+      "rank": 5,
+      "id": "critical-gamma-strict-gain-frontier",
+      "anchor": "BofillRoigEtAl2022",
+      "anchor_opened": "Sections 3.1.1--3.1.2 and Conclusions, especially the weight \\(\\varrho\\) and the qualitative bias--variance recommendation.",
+      "question": "What is the exact critical drift budget \\(\\Gamma_{\\mathrm{cc}}\\) at which the optimal honest rule stops using NCC, and which KKT inequalities characterize it?",
+      "first_changed_proof_step": "Differentiate the TV support function along the simplex tangent cone and combine it with the conic variation subgradient.",
+      "destination_search": "SawadaNomuraShinozaki2026 tunes weights to a bias-tolerance cap, but no source gives a necessary-and-sufficient optimizer threshold for design-based platform borrowing.",
+      "motif": "M3+M6",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "red_team": "The threshold is merely the point where a tuning parameter is set to zero.",
+      "rebuttal": "The weight is the optimizer of a nonsmooth cumulative-drift support function plus adaptive-design variation, so the iff threshold requires a primal--dual certificate and yields design-specific comparative statics.",
+      "anti_pattern_check": "The critical scalar and both directions of the improvement condition are explicit.",
+      "disposition": "absorbed-into-selected"
+    },
+    {
+      "rank": 6,
+      "id": "joint-multiarm-simultaneous-frontier",
+      "anchor": "BofillRoigEtAl2022",
+      "anchor_opened": "Introduction, two-arm weighted construction, and Conclusions; the destination search opened GreenstreetEtAl2024's preplanned FWER design and KrotkaPoschBofillRoig2026's multiplicity discussion.",
+      "question": "For several overlapping late-arm windows, which shared-control weights minimize maximum armwise length under simultaneous design-based coverage?",
+      "first_changed_proof_step": "Replace the scalar cumulative support function by the support function of the vector of armwise discrepancy paths and retain cross-arm martingale covariance.",
+      "destination_search": "GreenstreetEtAl2024 controls FWER with concurrent controls, while published NCC studies optimize comparisons separately; no joint conic minimax region was located.",
+      "motif": "M14+M7",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "red_team": "Apply the scalar interval arm by arm with Bonferroni correction.",
+      "rebuttal": "Separate weights discard the shared-control covariance and can be jointly inadmissible; a matching lower region and covariance-aware optimizer are not consequences of Bonferroni.",
+      "anti_pattern_check": "The joint region and vector support function are named focal objects, but feasibility is lower than for the scalar frontier.",
+      "disposition": "not-selected"
+    },
+    {
+      "rank": 7,
+      "id": "robust-platform-allocation-design",
+      "anchor": "BofillRoigEtAl2022",
+      "anchor_opened": "Introduction, block-randomization discussion in Section 3.1.2, and Conclusions; the destination search opened work on optimal allocation strategies in platform trials.",
+      "question": "Which blockwise randomization probabilities minimize the worst-case honest interval length after optimally choosing NCC weights under a fixed enrollment budget?",
+      "first_changed_proof_step": "Promote the propensity vector from a known input to a decision variable and derive a saddle certificate for allocation, borrowing weights, and drift witness.",
+      "destination_search": "Existing optimal platform-allocation work uses model-based variances and common trends; the bounded-drift design-based saddle problem was not located.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "red_team": "Neyman allocation applied to the concurrent window is already optimal.",
+      "rebuttal": "Once off-window controls alter the robust bias--variance saddle, allocation affects both the attainable borrowing weights and the adversarial drift direction; the certificate is not the classical variance-only rule.",
+      "anti_pattern_check": "The design itself and a saddle certificate are the focal objects, satisfying M13 rather than restating fixed-design inference.",
+      "disposition": "not-selected"
+    },
+    {
+      "rank": 8,
+      "id": "interim-stopping-predictable-borrowing",
+      "anchor": "KrotkaPoschBofillRoig2026",
+      "anchor_opened": "Introduction; equations (1)--(5); Appendix A bias calculation; mean-adjusted estimator; Discussion and its stated multiarm extension gap.",
+      "question": "Can NCC weights chosen before each block remain exactly design-honest after earlier-arm stopping decisions, without modeling equal additive trends?",
+      "first_changed_proof_step": "Require each block weight to be previsible and bound its realized cumulative discrepancy path before the stopping-dependent martingale is inverted.",
+      "destination_search": "The anchor corrects a two-arm Gaussian regression bias, and selective randomization inference handles adaptive decisions without NCC drift; their intersection remains unoccupied.",
+      "motif": "M14",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "red_team": "KrotkaPoschBofillRoig2026 already subtracts the stopping-induced bias.",
+      "rebuttal": "Their correction is tied to a two-period Gaussian regression and equal additive trends; a predictable fixed-schedule construction would cover arbitrary known adaptive propensities and bounded drift.",
+      "anti_pattern_check": "The assignment filtration and previsibility are explicit, so the seed does not assume a post-selection CLT.",
+      "disposition": "not-selected"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "known-gamma-minimax-borrowing-frontier",
+      "threads": [
+        "BofillRoigEtAl2022, equations (1) and (3) and Sections 3.1.1--3.1.2: model-based NCC weights reduce variance under equal additive trends but can bias inference under heterogeneous trends.",
+        "SantacatterinaEtAl2025, Theorems 1 and 3 and Section 6: the concurrent estimand is identified, and deterministic availability gives no first-order DR gain absent extra cross-time structure.",
+        "LiZhao2026, equation (3), Theorems 4--5, and Lemma S8: predictable finite-population AIPW yields martingale inference under adaptive randomization, without an NCC drift class.",
+        "ArmstrongKolesar2018, Sections 3.2--3.4, and CaiLow2004, Theorem 1: convex bias--variance optimization and all-interval expected-length lower bounds are available only for Gaussian observation experiments.",
+        "SawadaNomuraShinozaki2026, Sections 3.2--3.3: a model-based dynamic external-control weight is tuned to an estimated expected-bias cap, not to a uniform fixed-schedule randomization guarantee."
+      ],
+      "settled": "The concurrent causal target, adaptive AIPW centering under full analyzed-arm support, and Gaussian convex-class interval geometry are settled separately.",
+      "unoccupied_pair": "No opened paper gives a universal-constant all-interval minimax theorem for fixed bounded schedules with staggered availability, known history-adaptive propensities, and a TV budget on control block means.",
+      "method_adapted": "Li--Zhao's predictable AIPW martingale is combined with Armstrong--Kolesar's worst-case-bias optimizer and Cai--Low's mixture lower-bound logic; the new proof object is the adaptive-path TV-admissible fuzzy prior.",
+      "writing_exemplar_used": "BofillRoigEtAl2022"
+    },
+    {
+      "candidate": "unknown-gamma-adaptation-penalty",
+      "threads": [
+        "CaiLow2004 develops ordered and between-class moduli for honest adaptation over nested convex classes.",
+        "ArmstrongKolesar2018 shows why data-dependent smoothness tuning cannot materially shorten uniformly honest Gaussian intervals.",
+        "BonnettPotterDodd2025 calibrates the practical NCC bias--efficiency tradeoff to ACTT but does not provide a class-uniform adaptation theorem.",
+        "SawadaNomuraShinozaki2026 data-adaptively tunes external borrowing to an expected-bias cap under a superpopulation model."
+      ],
+      "settled": "Known-class Gaussian adaptation theory and applied drift sensitivity curves are available.",
+      "unoccupied_pair": "The between-class modulus across nested fixed-schedule TV balls under adaptive randomization has not been characterized.",
+      "method_adapted": "Replace Gaussian distance by an observed adaptive-randomization mixture distance while retaining Cai--Low's ordered-modulus benchmark.",
+      "writing_exemplar_used": "BonnettPotterDodd2025"
+    },
+    {
+      "candidate": "anytime-drift-aware-confidence-sequence",
+      "threads": [
+        "KrotkaPoschBofillRoig2026 derives stopping-induced NCC regression bias and a two-period mean adjustment.",
+        "CookMishlerRamdas2024 derives fixed-time efficiency and nonasymptotic confidence sequences for centered adaptive AIPW scores.",
+        "HamBojinovLindonTingley2026 constructs design-based confidence sequences for fixed finite-population causal estimands.",
+        "LiZhao2026 provides the nonexchangeable finite-population AIPW filtration needed for block-adaptive platform assignments."
+      ],
+      "settled": "Anytime validity for centered causal scores and model-based correction of one stopping-induced NCC bias are available separately.",
+      "unoccupied_pair": "No source provides a time-uniform TV-bias compensator, online borrowing optimizer, and stopping-time lower width frontier for NCC platform trials.",
+      "method_adapted": "Insert the cumulative TV support function into the exponential-supermartingale before applying time-uniform concentration.",
+      "writing_exemplar_used": "KrotkaPoschBofillRoig2026"
+    }
+  ],
+  "novelty_justification": "The closest causal comparator is SantacatterinaEtAl2025, Theorem 3 and Section 6. It correctly targets the concurrent effect and shows that deterministic availability alone does not improve the first-order efficient influence function when all calendar-time conditioning is unrestricted. The proposed TV budget is not a stand-in for their estimand: it adds quantitative cross-block information about the fixed control schedule, and every unit of that information is charged through the exact support function \\(\\mathsf B_\\Gamma\\). The closest design-based comparator is LiZhao2026, equation (3) and Theorem 4, whose martingale is centered because every treatment in its contrast has positive propensity at every analyzed position; the focal platform arm here has structural zeros off \\(W\\), so borrowing creates a deterministic drift term absent from their theorem. ArmstrongKolesar2018 and CaiLow2004 motivate the optimizer and expected-length converse, but their likelihood geometry is Gaussian. The strict advance is a computable design-based NCC radius together with an all-procedure lower bound under an adaptive assignment kernel. SawadaNomuraShinozaki2026 is the nearest 2026 borrowing paper, yet its data-adaptive estimated-bias cap and bootstrap Wald analysis do not establish uniform coverage over fixed TV-bounded schedules or minimax expected length. No closer paper found in the September 2026 target--method search subsumes the kernel.",
+  "_pre_d0_cursor": {
+    "cursor_version": 1,
+    "topic": "Sharp design-based borrowing frontier for nonconcurrent platform controls under bounded calendar drift. Fix ordered enrollment blocks with bounded fixed potential outcomes, a shared control, a focal arm available only on a proper block window, and known history-predictable propensities that are positive exactly on available arms. Target the window-weighted finite-population arm-versus-control contrast under a total-variation budget Gamma on fixed control block means. Characterize up to universal constants the minimax worst-case expected length among all uniformly honest randomization intervals; construct a finite-convex-program predictable-AIPW borrowing rule and bias-aware martingale interval attaining it; prove a matching all-interval randomization lower bound; and give an optimizer-based necessary-and-sufficient condition for strict improvement over concurrent-only inference, including Gamma=0 full borrowing and the vacuous-drift concurrent-only regime. Consumer: the NCC R package and Bofill Roig et al.'s ACTT calibration. PRESOLVE EVIDENCE REQUIRING VERIFICATION: The presolve derived the exact cumulative-sum dual for the worst-case drift bias: for normalized block weights, summation by parts reduces the total-variation support function to a finite linear program in cumulative weight discrepancies, with an explicit extremal drift witness. Combining this bias with predictable bounded-martingale variation yields a finite SOCP-type upper frontier. In the three-block symmetric witness, borrowing weight x has bias x Gamma and randomization standard deviation 2M(1-x)/sqrt(n), displaying the expected borrowing phase change. Boundary checks covered Gamma=0, vacuous drift, small concurrent samples, small propensities, deterministic external controls, and parameter-diameter saturation; no literature collision was found. UNRESOLVED BOTTLENECK: Construct fuzzy priors on fixed schedules that obey the TV constraint almost surely and control the sequential observed-data likelihood ratio, thereby matching the optimized clipped bias-martingale radius uniformly for arbitrary history-adaptive propensities. EARLY KILL TEST: For three blocks with one- or two-unit block sizes and outcomes on {-M,0,M}, enumerate every assignment path and solve the exact uniformly honest variable-length-interval LP. Stop or pivot if its minimax length is not within a uniform constant of the proposed convex frontier, or if it borrows where the claimed concurrent-only modulus equality holds.",
+    "novelty_target": "field",
+    "qid": "exp_platform_ncc_drift_minimax_frontier",
+    "specialization": "v1",
+    "angle": 0,
+    "version": 1,
+    "mode": "cold-start"
+  },
+  "message": "Authored and verified the v1 typed proposal core. The proposal gate, symbol-topology audit, dependency audit, and handoff-field checks all pass.",
+  "literature_checklist": [
+    {
+      "author": "Marta Bofill Roig et al.",
+      "year": 2022,
+      "venue": "BMC Medical Research Methodology",
+      "bibkey": "BofillRoigEtAl2022",
+      "one_line": "Equations (1) and (3), Sections 3.1.1--3.1.2, and the Conclusions establish the model-based NCC construction and its equal-trend validity boundary.",
+      "relevant_to": "lem:tv-support-dual"
+    },
+    {
+      "author": "Michele Santacatterina, Federico Macchiavelli Giron, Xinyi Zhang, and Ivan Diaz",
+      "year": 2025,
+      "venue": "Statistics in Medicine",
+      "bibkey": "SantacatterinaEtAl2025",
+      "one_line": "Theorems 1 and 3 identify the concurrent effect and its efficient influence function; Section 6 gives the deterministic-availability no-gain result.",
+      "relevant_to": "prop:strict-improvement-iff"
+    },
+    {
+      "author": "Xinran Li and Anqi Zhao",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "LiZhao2026",
+      "one_line": "Equation (3), Theorems 4--5, and Lemma S8 provide the predictable finite-population AIPW martingale template.",
+      "relevant_to": "lem:aipw-martingale"
+    },
+    {
+      "author": "Timothy B. Armstrong and Michal Kolesar",
+      "year": 2018,
+      "venue": "Econometrica",
+      "bibkey": "ArmstrongKolesar2018",
+      "one_line": "Sections 3.2--3.4 and Theorems 3.1--3.2 optimize Gaussian honest intervals using worst-case bias and convex-modulus geometry.",
+      "relevant_to": "thm:minimax-frontier"
+    },
+    {
+      "author": "T. Tony Cai and Mark G. Low",
+      "year": 2004,
+      "venue": "Annals of Statistics",
+      "bibkey": "CaiLow2004",
+      "one_line": "Theorem 1 and its mixture proof lower-bound the expected length of every honest Gaussian interval using a between-class modulus.",
+      "relevant_to": "oeq:adaptive-all-interval-converse"
+    },
+    {
+      "author": "Kota Sawada, Shogo Nomura, and Tomohiro Shinozaki",
+      "year": 2026,
+      "venue": "Statistics in Medicine",
+      "bibkey": "SawadaNomuraShinozaki2026",
+      "one_line": "Sections 3.2--3.3 construct dynamic external-control weights under a prespecified estimated-bias tolerance cap.",
+      "relevant_to": "thm:honest-upper-frontier"
+    },
+    {
+      "author": "Pavla Krotka, Martin Posch, and Marta Bofill Roig",
+      "year": 2026,
+      "venue": "Statistics in Medicine",
+      "bibkey": "KrotkaPoschBofillRoig2026",
+      "one_line": "Equations (3)--(5), Appendix A, and the Discussion derive stopping-induced bias in NCC regression adjustment.",
+      "relevant_to": "oeq:adaptive-all-interval-converse"
+    },
+    {
+      "author": "Thomas Cook, Alan Mishler, and Aaditya Ramdas",
+      "year": 2024,
+      "venue": "Conference on Causal Learning and Reasoning",
+      "bibkey": "CookMishlerRamdas2024",
+      "one_line": "The paper develops efficient adaptive AIPW inference and nonasymptotic confidence sequences for centered sequential scores.",
+      "relevant_to": "thm:honest-upper-frontier"
+    },
+    {
+      "author": "P. M. Aronow and Patrick Lopatto",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "AronowLopatto2026",
+      "one_line": "The paper gives minimax unbiased estimation for bounded finite-population schedules without staggered availability or interval-length loss.",
+      "relevant_to": "thm:minimax-frontier"
+    },
+    {
+      "author": "Timothy Sudijono, Edgar Dobriban, and Eric Tchetgen Tchetgen",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "SudijonoDobribanTchetgen2026",
+      "one_line": "The paper derives finite-population randomized-experiment minimax estimation risk but not honest NCC interval length under drift.",
+      "relevant_to": "thm:minimax-frontier"
+    }
+  ]
+}

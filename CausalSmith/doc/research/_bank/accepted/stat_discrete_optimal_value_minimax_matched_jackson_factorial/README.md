@@ -34,6 +34,8 @@ token_usage:
   pipeline_claude_tokens: 38346853
   total_tokens_consumed: null
 banked_on: "2026-09-07"
+paper_score: 7.2
+paper_score_rationale: "The paper delivers a significant matched minimax characterization with a carefully specified estimator, but central verification claims and artifact metadata require correction before publication."
 ---
 
 # stat_discrete_optimal_value_minimax_matched / jackson_factorial — Accepted

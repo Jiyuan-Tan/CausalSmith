@@ -1,0 +1,62 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "prop:incidence-reliability-implementation",
+    "kind": "proposition",
+    "statement": "As an implementation corollary of Proposition~\\ref{prop:reliability-implementation-corollary} and standard exact literal-weighted CNF model counting on incidence decompositions, given \\(\\mathcal O_{XY}\\), an exact-arithmetic input \\(p\\in(\\mathbb Q\\cap[0,1])^{E^{?}}\\), and \\(\\mathcal T\\), one can compute \\(R_{XY}(p)\\) and every coordinate of \\(\\nabla R_{XY}(p)\\) exactly in \\(2^{O(\\tau)}\\operatorname{poly}(|\\mathcal O_{XY}|+|E^{?}|+|\\mathcal T|+B)\\) bit operations, where \\(B\\) is the total input bit length of \\(p\\). A standard project--join bag state records assignments of incident uncertain-edge vertices and one witnessed-zero flag for each obstruction clause; derivatives use the conditioned evaluations \\(p_e=1\\) and \\(p_e=0\\), so the guarantee includes boundary coordinates.",
+    "free_symbols": [
+      "O",
+      "p",
+      "Tdec",
+      "R",
+      "GradR",
+      "tau",
+      "EUnc"
+    ],
+    "depends_on": [
+      "ass:product-edge-law",
+      "ass:supplied-incidence-decomposition",
+      "def:reliability",
+      "prop:reliability-implementation-corollary",
+      "lem:incidence-sat-counting"
+    ],
+    "justification": "The proposition records a standard exact weighted-model-counting implementation of the newly compiled obstruction hypergraph and charges the supplied decomposition and rational bit lengths.",
+    "gap": "Samer and Szeider supply the incidence-treewidth counting recurrence, and Dudek et al. supply literal-weighted project--join dynamic programming; this proposition claims no new generic dynamic program and only instantiates those methods after causal obstruction compilation.",
+    "consumer": "edgeID can evaluate identification reliability and graph-refinement sensitivities whenever the emitted support hypergraph has small incidence treewidth.",
+    "proof_tex": "Form the negative monotone CNF\n\\[\n \\Phi_{\\mathcal O}=\\bigwedge_{h\\in\\mathcal O_{XY}}\n \\left(\\bigvee_{e\\in h}\\neg z_e\\right). \\tag{1}\n\\]\nBy Proposition~\\ref{prop:reliability-implementation-corollary}, an assignment \\(z\\) satisfies (1) exactly when its present-edge set is an identifying realization.  Give literals the weights \\(w(z_e=1)=p_e\\) and \\(w(z_e=0)=1-p_e\\).  Hence the literal-weighted model count of (1) equals \\(R_{XY}(p)\\).  Lemma~\\ref{lem:incidence-sat-counting} supplies the standard incidence-decomposition architecture; we spell out the weighted specialization to establish the exact-arithmetic and derivative claims.\n\nNormalize the supplied certificate \\(\\mathcal T\\) to a rooted nice incidence decomposition, with introduce-vertex, introduce-incidence, forget-vertex, and join nodes.  This introduces only a polynomial number of bags and does not increase width.  At a bag \\(B_t\\), a state is a pair \\((\\alpha,s)\\): \\(\\alpha\\) assigns \\(0\\) or \\(1\\) to every uncertain-edge vertex in \\(B_t\\), and \\(s_h\\in\\{0,1\\}\\) for every obstruction vertex \\(h\\in B_t\\).  The flag \\(s_h=1\\) means that an already introduced incidence \\((e,h)\\) has \\(\\alpha_e=0\\), so clause \\(h\\) has already obtained a true literal.  The table value is the total weight of assignments to forgotten edge vertices that realize the state and satisfy every forgotten clause.\n\nThe empty leaf has value one.  Introducing an edge vertex extends \\(\\alpha\\) with both values and introduces no weight.  Introducing a clause vertex sets its flag to zero.  Introducing an incidence \\((e,h)\\) replaces \\(s_h\\) by \\(s_h\\vee\\mathbf 1\\{\\alpha_e=0\\}\\).  When forgetting \\(e\\), the two child entries are combined as\n\\[\n T_t(\\alpha,s)=(1-p_e)T_{t'}(\\alpha\\cup\\{e\\mapsto0\\},s)\n                  +p_eT_{t'}(\\alpha\\cup\\{e\\mapsto1\\},s). \\tag{2}\n\\]\nForgetting a clause discards the states with flag zero and then removes its flag.  At a join, child assignments on bag edge vertices must agree, and clause flags combine by coordinatewise disjunction; the parent entry is the sum of the products over all pairs of child flag vectors with the prescribed disjunction.  The running-intersection property ensures that forgotten edge sets in the two children are disjoint and that every incidence is introduced exactly once.  Induction on the decomposition tree therefore proves the table invariant.  At the empty root the sole entry is precisely the weighted count of (1).  An empty obstruction gives an empty clause, whose flag can never become one, and hence correctly produces value zero.\n\nA bag has at most \\(\\tau+1\\) vertices, so it has at most \\(2^{\\tau+1}\\) states.  Even the direct enumeration of compatible flag pairs at a join costs \\(2^{O(\\tau)}\\); every other transition has the same or smaller cost.  Thus one evaluation uses\n\\[\n 2^{O(\\tau)}\\operatorname{poly}(|\\mathcal O_{XY}|+|E^{?}|+|\\mathcal T|)\n\\]\nrational operations.\n\nFor bit complexity, write \\(p_e=a_e/d_e\\) in lowest terms.  By the table invariant, each entry is a nonnegative sum over a disjoint family of assignments of forgotten variables and is at most one.  Its denominator divides the product of the corresponding \\(d_e\\)'s.  Therefore reduced numerators and denominators have \\(O(B+|E^{?}|+\\tau)\\) bits, and additions, multiplications, and reductions in all transitions cost a polynomial in the displayed input length.  The evaluation consequently takes\n\\[\n 2^{O(\\tau)}\\operatorname{poly}(|\\mathcal O_{XY}|+|E^{?}|+|\\mathcal T|+B)\n\\]\nbit operations.\n\nFor each \\(e\\), run the same recurrence twice with \\(p_e=1\\) and \\(p_e=0\\).  Equation~(3) in Proposition~\\ref{prop:reliability-implementation-corollary} gives\n\\[\n \\frac{\\partial R_{XY}}{\\partial p_e}\n =R_{XY}(p_e=1,p_{-e})-R_{XY}(p_e=0,p_{-e}).\n\\]\nThe factor of \\(2|E^{?}|\\) is polynomial, the width and decomposition are unchanged, and fixed weights zero and one add no bit cost.  This computes all coordinates exactly, including when any input coordinate is on the boundary.",
+    "proof_basis": {
+      "ass:ordinary-admg-semantics": "d9c400968df26d012c8ffd15d2441307d7fc6e408dda84232885459f3185881c",
+      "ass:product-edge-law": "ccd866452c9e8f3a450d2b0ec75c95abbab7b634d147ce3a2409e5d9fceba515",
+      "ass:supplied-incidence-decomposition": "59d9ede42e612690971e85253092bbea7cd427368f791ec8b7a03822ce493d0e",
+      "def:failure-predicate": "901087c1ff90c670518af7569a123e0fdd795d21b9f5f53d54f44c2a0466284f",
+      "def:independence-polynomial": "41b7be5e1c83d53d590cfa4787c6ad4906be954b82c3f8f68d97531c8a4b6c74",
+      "def:obstruction-hypergraph": "f350c78051f24bb43283db801868dc0150280145d11bc942c7b52a2e32de64d0",
+      "def:realization": "a377729161e6bc29f0493abead43ed3d32fb8a72b575a5b71b4fc7e0c6f785f2",
+      "def:reliability": "c2f0d02a15b54e369edc70fd8043fa9420b715de0ffeeb4d3063047472bb588c",
+      "lem:failure-upward": "9509e4044ddd9a779e746a021448852b4a4aa7fbab8abb4b0322b8816b38d28a",
+      "lem:incidence-sat-counting": "1a5d2c7ac0d95fb66c5829823d1cab870111a9a92e7890acf33bb9183b319782",
+      "lem:original-query-hedge-characterization": "cc1e4a62aa6b37e5593f3ed503aa605bc5ea96ea3eb357b3b73a3a890f742a1c",
+      "prop:incidence-reliability-implementation": "c7566b6161be4e1cb484c44cb954383e7b384499574a691190f831c6bf38b447",
+      "prop:reliability-implementation-corollary": "bad37c3953f39bb9f55aa238b59761be923a012f5a67756640df964a398a37dc",
+      "sym:EDet": "0f46be60bb1e6778f88ad9b7010523e51f1d9659857f3ea648045be6fb1c926b",
+      "sym:EUnc": "946f9caac75d9405947d12c3a6a8b0d0cb942ec96245a18d078084d07fd6b023",
+      "sym:Fail": "70d8f2a98d506453b4e8106636a3b5b05d1920adb9cb962d895ccba423d189ca",
+      "sym:GS": "22adbaa79651e0eeca8e484886983b0d28b6c47ee47954c07fd577165c2e951b",
+      "sym:GradR": "334a9cd756f3b3f6948f80edf0ea4763c091c578a2e4f280dff127c3ac214c76",
+      "sym:ID": "f4cbdacc0edd14dc4b7263f9397276e0d80f9c2f390b0084bb64b30e6cb7d1a0",
+      "sym:IO": "6eb1d5ff353db943c946e767385225b0d0454ad262c233be5af806a927e2acfd",
+      "sym:O": "34c2cdcd17fbc984da13a1af7fc5e16675d47ec9f58740ba4111c8310f21e00e",
+      "sym:Q": "41c62c2b2bb93e3902d47932a2f0f67f330af98dacf10371b2684aa0989f7638",
+      "sym:R": "4d375745066722e13228a5ff8f5ff4a3753621cca8401d0806d498b2e2c70838",
+      "sym:Tdec": "aa356d5404e405056724633b3efc6dc99bc23b22873fbd547242900eac558194",
+      "sym:V": "5848dc3b8ac6ce4e8dd8bd779e7da24e1211c92a3c6df452f849bb4634039e90",
+      "sym:X": "e6af1ba7cd2f18886d0136333cb5b0d3409f90dc06a0cbfb43d67954dd5c2749",
+      "sym:Y": "54d5f5b34ccf50415357ddb7d9f6f8d82a6897ff82a64ed4c7eeb94930d18438",
+      "sym:Z": "da432ffbe495950145175f21a26557c23c2c8c16b33d7c1db6d6b1532204ffbf",
+      "sym:lambda": "a905238747279a68ac7a59a46ca177752d2199ab9855c9fb47522c94e49fc578",
+      "sym:order": "a73e9a440ebe28deacdb79e3206b982ec67c7a615e048fcfc9a00e1096434d74",
+      "sym:p": "ebc71c660a54bb87b99fbdedbd601a22b4d5cfb083d36d7bf76c3619568a25c6",
+      "sym:tau": "981552d1d90373ce1cf07a306e4c2a011d3cf8882b2818d1011b8438e60e7ff7"
+    }
+  }
+}

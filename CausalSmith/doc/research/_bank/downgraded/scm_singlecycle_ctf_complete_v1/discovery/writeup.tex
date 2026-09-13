@@ -1,0 +1,1062 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}singlecycle\_\allowbreak{}ctf\_\allowbreak{}complete}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Finite-alphabet simple SCMs make feedback counterfactuals well defined, but the cyclic formula-or-countermodel completeness step remains open.  \(\mathsf{SC\mbox{-}CTFID}\) is a deterministic cycle-label- and source-incidence-preserving recursion on explicit legal response tables.  The proved operational theorem gives termination, exact evaluation statuses, valid rational formulas whenever a verified circuit is emitted, and valid same-alphabet same-source-incidence countermodels whenever a certificate is emitted and accepted.  The unresolved converse has exactly two parts: rational descent on every legal positive source fiber and nonvanishing transmission of every local separator through all recursive boundary interfaces.  Returned regular circuits nevertheless compile to proved multinomial influence functions and threshold-valid simultaneous Gaussian regions, with exact symbolic constants and first-order degenerate coordinates reported separately.
+
+\section{Project justification}
+
+\paragraph{Gap.} CorreaLeeBareinboim2021 proves complete conditional counterfactual identification for recursive SCMs, while BongersForrePetersMooij2021 supplies cyclic simple-SCM semantics and ForreMooij2020 proves sound cyclic interventional identification.  None proves source-aware rational descent and universal same-class countermodel transmission for cyclic Layer-3 queries.
+
+\paragraph{Niche.} One induced chordless cycle per consolidated district permits nontrivial feedback and sparse confounding while admitting exact legality enumeration, preserved cycle labels, and finite source-polynomial elimination.
+
+\paragraph{Fill.} SC-CTFID combines conditional counterfactual cancellation with an ordered cyclic recursion, explicit source-aware real and Groebner elimination, exact certificate replay, and boundary-interface bookkeeping.  The current result proves termination and the soundness of every verified positive or negative output, isolates the two missing implications needed for completeness, and supplies automatic fixed-dimensional inference for every returned regular circuit.
+
+\section{Related work}
+
+CorreaLeeBareinboim2021, Theorems 5--6, supplies the complete acyclic CTFID base and conditional cancellation.  BongersForrePetersMooij2021 supplies simple-SCM solvability and intervention semantics, while ForreMooij2020 gives sound cyclic interventional identification but not Layer-3 completeness.  ZhangTianBareinboim2022 informs finite response parametrization, and NavascuesWolfe2020 together with WolfeSpekkensFritz2019 shows why independent latent sources impose compatibility restrictions beyond unrestricted legal response-table mixtures.  LeeSpekkens2017 demonstrates exact algebraic recovery only in selected small structures.  Those results support the verified terminal operations but do not establish the two still-open steps here: one rational representative on every positive sparse-source image and universal source-preserving boundary transmission.  LiLuedtke2023 informs the multi-regime influence-function calculation, while Tikka2023 identifies cfid as the direct software consumer.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(q=P(A\cap B)/P(B)\).
+Primary functional / estimator / diagnostic: For a fixed explicit input \(I\), write \(\mathfrak M(I)=\{\mathcal M_\theta:\theta\in\Theta_{\mathcal L}\}\).  For every \(\theta\in\Theta_{\mathcal L}\) with \(K(\theta)>0\), the causal target is \(q(\mathcal M_\theta)=H(\theta)/K(\theta)\).  If a verified rational circuit \(C\) is returned, then \(C(\Phi(\theta))=H(\theta)/K(\theta)\); uniform instance-relative identification need not imply that such a \(C\) exists.  On the obstruction instance, the unique identified value is the nonnegative root \(q=\sqrt{ab/c}\) of \(cq^2=ab\) on \(c>0\)..
+\begin{itemize}
+  \item \texttt{V} --- \texttt{finite totally ordered vertex set}; \texttt{Observed-\allowbreak{}variable index set and branch order.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The labeled endogenous variables;\allowbreak{} the total order fixes every deterministic tie break.}
+  \item \texttt{X} --- \texttt{finite alphabet family}; \((\mathcal X_v:v\in V)\) with \(1<|\mathcal X_v|<\infty\); \texttt{State spaces and enumeration order.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed same-\allowbreak{}model endogenous alphabets,\allowbreak{} each with a fixed total order.}
+  \item \texttt{G} --- \texttt{labeled directed mixed graph}; \(\operatorname{DMG}(V)\); \texttt{Causal graph.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The permitted directed edges and bidirected latent-\allowbreak{}source incidences.}
+  \item \texttt{S} --- \texttt{finite totally ordered latent-\allowbreak{}source set}; \texttt{Source labels and enumeration order.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The mutually independent primitive exogenous sources.}
+  \item \texttt{inc} --- \texttt{source-\allowbreak{}incidence map}; \(\operatorname{inc}:S\to2^V\); \texttt{Sparse latent-\allowbreak{}source specification.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The declared endogenous children of every primitive source.}
+  \item \texttt{calM} --- \texttt{semi-\allowbreak{}Markovian structural causal model}; \texttt{Generic data-\allowbreak{}generating model.}
+  \par\smallskip\noindent\emph{Definition.} A model with equations \(X_v=f_v(X_{\operatorname{pa}_G(v)},U_{\operatorname{inc}(v)})\) and product source law \(P_U=\bigotimes_{s\in S}P_s\).
+  \item \texttt{Msc} --- \texttt{model class}; \texttt{Maintained model class.}
+  \par\smallskip\noindent\emph{Definition.} The single-cycle sparse-source simple-SCM class defined in \(\text{def:model-class}\).
+  \item \texttt{R} --- \texttt{finite totally ordered intervention menu}; \(\mathcal R=\{r_1,\ldots,r_J\}\); \texttt{Available complete regimes.}
+  \par\smallskip\noindent\emph{Definition.} Each \(r=(Z,z)\) denotes \(\operatorname{do}(Z=z)\), including \(Z=\varnothing\) for observational data.
+  \item \texttt{J} --- \texttt{positive integer}; \texttt{Menu size.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of supplied regimes.}
+  \item \texttt{p} --- \texttt{symbolic or exact numerical regime-\allowbreak{}probability vector}; \(\mathcal P=\prod_{r=(Z,z)\in\mathcal R}\Delta(\mathcal X_{V\setminus Z})\); \texttt{Observed coordinates and evaluation input.}
+  \par\smallskip\noindent\emph{Definition.} Its coordinates are \(p_{r,x}=P_{\mathcal M}(X_{V\setminus Z}=x\mid\operatorname{do}(Z=z))\); in the algorithm they are indeterminates, and in evaluation they are an exact supplied vector.
+  \item \texttt{A} --- \texttt{unnested counterfactual event}; \texttt{Numerator event.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A finite conjunction of assignments to perfect-\allowbreak{}intervention potential outcomes.}
+  \item \texttt{B} --- \texttt{unnested counterfactual event}; \texttt{Conditioning event.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A finite conjunction of assignments to perfect-\allowbreak{}intervention potential outcomes.}
+  \item \texttt{q} --- \texttt{partial conditional counterfactual functional}; \(q:\mathfrak M_{sc}\rightharpoonup[0,1]\); \texttt{Causal target.}
+  \par\smallskip\noindent\emph{Definition.} \(q(\mathcal M)=P_{\mathcal M}(A\cap B)/P_{\mathcal M}(B)\) when \(P_{\mathcal M}(B)>0\), and is undefined otherwise.
+  \item \texttt{T} --- \texttt{finite deterministic response-\allowbreak{}profile set}; \texttt{Explicit terminal representation.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T=\prod_{v\in V}\{t_v:\mathcal X_{\operatorname{pa}_G(v)}\to\mathcal X_v\}\), with exogenous arguments represented by the explicit source-state tables.
+  \item \texttt{L} --- \texttt{legal response-\allowbreak{}profile subset}; \(\mathcal L\subseteq\mathcal T\); \texttt{Cycle-\allowbreak{}legality domain.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Profiles passing the intervention-\allowbreak{}wise unique-\allowbreak{}solution test at every boundary assignment.}
+  \item \texttt{Omega} --- \texttt{finite family of source-\allowbreak{}state alphabets and decoding tables}; \texttt{Cardinality-\allowbreak{} and source-\allowbreak{}aware terminal input.}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega=(\Omega_s,g_s:s\in S)\), where the explicitly listed state \(u_s\in\Omega_s\) supplies the response-table entries at the children \(\operatorname{inc}(s)\), and the combined decoder maps \(u\in\prod_s\Omega_s\) to a profile in \(\mathcal T\).
+  \item \texttt{Theta} --- \texttt{finite product of source simplices}; \texttt{Source-\allowbreak{}realizable response parameter.}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta=\prod_{s\in S}\Delta(\Omega_s)\); a point \(\theta=(\lambda_{s,u})\) assigns independent masses to the separately labeled source states.
+  \item \texttt{Phi} --- \texttt{rational-\allowbreak{}coefficient polynomial menu map}; \(\Phi:\Theta\to\mathcal P\); \texttt{Observed-\allowbreak{}coordinate map.}
+  \par\smallskip\noindent\emph{Definition.} Each coordinate of \(\Phi(\theta)\) is obtained by enumerating \(u\in\prod_s\Omega_s\), multiplying \(\prod_s\lambda_{s,u_s}\), solving its decoded legal table under the regime, and summing the matching cells.
+  \item \texttt{H} --- \texttt{rational-\allowbreak{}coefficient counterfactual numerator polynomial}; \(H:\Theta\to[0,1]\); \texttt{Target numerator.}
+  \par\smallskip\noindent\emph{Definition.} \(H(\theta)=P_\theta(A\cap B)\), computed from the same explicitly decoded source tuples.
+  \item \texttt{K} --- \texttt{rational-\allowbreak{}coefficient counterfactual denominator polynomial}; \(K:\Theta\to[0,1]\); \texttt{Target denominator.}
+  \par\smallskip\noindent\emph{Definition.} \(K(\theta)=P_\theta(B)\), computed from the same explicitly decoded source tuples.
+  \item \texttt{Pimg} --- \texttt{feasible menu image}; \(\mathcal P_{\mathrm{feas}}\subseteq\mathcal P\); \texttt{Feasibility domain.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P_{\mathrm{feas}}=\Phi(\Theta_{\mathcal L})\), where \(\Theta_{\mathcal L}\) contains exactly the source masses whose positive-mass decoded tuples are legal.
+  \item \texttt{F0} --- \texttt{full source-\allowbreak{}realizable fiber}; \(\mathcal F_0(p)\subseteq\Theta\); \texttt{Fiber including zero-\allowbreak{}denominator models.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_0(p)=\{\theta\in\Theta_{\mathcal L}:\Phi(\theta)=p\}\).
+  \item \texttt{F} --- \texttt{positive-\allowbreak{}denominator source-\allowbreak{}realizable fiber}; \(\mathcal F_+(p)\subseteq\Theta\); \texttt{Identification fiber.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_+(p)=\{\theta\in\mathcal F_0(p):K(\theta)>0\}\).
+  \item \texttt{C} --- \texttt{rational arithmetic circuit}; \texttt{Uniform positive identification output.}
+  \par\smallskip\noindent\emph{Definition.} A finite straight-line circuit \(C=N/D\) over rational constants and symbolic coordinates of \(p\), using addition, subtraction, multiplication, and division, with a universally verified nonzero divisor on \(\mathcal P_{\mathrm{feas}}\) wherever \(\mathcal F_+(p)\neq\varnothing\).
+  \item \texttt{Gamma} --- \texttt{finite exact nonidentification certificate}; \texttt{Negative identification output.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A record containing a reached terminal,\allowbreak{} its original-\allowbreak{}cycle label,\allowbreak{} the exact source incidence and source tables,\allowbreak{} two rational or real-\allowbreak{}algebraic source-\allowbreak{}mass vectors,\allowbreak{} their common menu vector,\allowbreak{} matched boundary-\allowbreak{}interface rows,\allowbreak{} a strict target cross-\allowbreak{}product,\allowbreak{} decoded global models,\allowbreak{} and the recursion trace.}
+  \item \texttt{Mminus} --- \texttt{finite-\allowbreak{}source model}; \(\mathfrak M_{sc}\); \texttt{Nonidentification witness.}
+  \par\smallskip\noindent\emph{Definition.} The first same-alphabet simple-SCM witness decoded from \(\Gamma\).
+  \item \texttt{Mplus} --- \texttt{finite-\allowbreak{}source model}; \(\mathfrak M_{sc}\); \texttt{Nonidentification witness.}
+  \par\smallskip\noindent\emph{Definition.} The second same-alphabet simple-SCM witness decoded from \(\Gamma\).
+  \item \texttt{I} --- \texttt{explicit ordered SC-\allowbreak{}CTFID instance}; \texttt{Complete symbolic algorithm input.}
+  \par\smallskip\noindent\emph{Definition.} \(I=(V,\mathcal X,G,S,\operatorname{inc},\mathcal R,A,B,\mathcal T,\mathcal L,\Omega,\Phi,H,K)\), with every finite table and polynomial stored explicitly over the rationals and checked against the structural decoder before recursion.
+  \item \texttt{Xi} --- \texttt{finite recursion state}; \texttt{Operational state of SC-\allowbreak{}CTFID.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A stack of ordered subproblems,\allowbreak{} each carrying world-\allowbreak{}variable occurrences,\allowbreak{} original-\allowbreak{}SCC labels,\allowbreak{} active event rows,\allowbreak{} available regime kernels,\allowbreak{} actual source labels and incidence,\allowbreak{} a consolidated-\allowbreak{}district partition,\allowbreak{} a complete boundary primitive-\allowbreak{}event interface,\allowbreak{} explicit legal source tables,\allowbreak{} a phase counter,\allowbreak{} and an output-\allowbreak{}expression stack.}
+  \item \texttt{O} --- \texttt{finite rational-\allowbreak{}descent obstruction}; \texttt{Internal exhaustive-\allowbreak{}terminal diagnostic.}
+  \par\smallskip\noindent\emph{Definition.} An exact comprehensive-elimination component on which the two-copy separator formula is false but no verified element of \(\mathbb Q(p)\) represents \(H/K\).
+  \item \texttt{Alg} --- \texttt{deterministic symbolic identification algorithm}; \(\mathsf{SC\mbox{-}CTFID}:I\to C\sqcup(\Gamma,\mathcal M^-,\mathcal M^+)\sqcup O\sqcup\{\mathsf{invalid}\}\); \texttt{Focal algorithm.}
+  \par\smallskip\noindent\emph{Definition.} The executable ordered transition system in \(\text{def:algorithm-handle}\); it emits one symbolic output uniformly over the full positive feasible menu image rather than taking one numerical \(p\) as an identification input.
+  \item \texttt{Eval} --- \texttt{exact circuit evaluator with domain statuses}; \(\operatorname{Eval}:(C,p)\mapsto\mathbb R\sqcup\{\mathsf{infeasible},\mathsf{undefined\mbox{-}zero\mbox{-}denominator}\}\); \texttt{Numerical input semantics.}
+  \par\smallskip\noindent\emph{Definition.} The evaluator first tests membership in \(\mathcal P_{\mathrm{feas}}\), then nonemptiness of \(\mathcal F_+(p)\), and evaluates \(C(p)\) only after both tests pass.
+  \item \texttt{Nin} --- \texttt{positive integer}; \texttt{Explicit input-\allowbreak{}size measure.}
+  \par\smallskip\noindent\emph{Definition.} The bit length of \(I\), including all legal response rows, source-state decoders, rational polynomial maps, regime-cell maps, query rows, and total orders.
+  \item \texttt{Nout} --- \texttt{positive integer}; \texttt{Output-\allowbreak{}size measure.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The bit length of the emitted circuit,\allowbreak{} exact certificate,\allowbreak{} obstruction,\allowbreak{} or invalid-\allowbreak{}input diagnostic.}
+  \item \texttt{Wtrace} --- \texttt{explicit nonbinary terminal trace}; \texttt{Worked execution and regression artifact.}
+  \par\smallskip\noindent\emph{Definition.} The \((2,2,3)\) source-path three-cycle trace defined in \(\text{def:nonbinary-worked-trace}\).
+  \item \texttt{n} --- \texttt{positive integer}; \texttt{Inference index.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Total sample size across supplied regimes.}
+  \item \texttt{nr} --- \texttt{regime sample-\allowbreak{}size vector}; \(\mathbb N^J\); \texttt{Sampling allocation.}
+  \par\smallskip\noindent\emph{Definition.} \(n_r\) is the sample size in regime \(r\), with \(\sum_r n_r=n\).
+  \item \texttt{rho} --- \texttt{positive regime-\allowbreak{}fraction vector}; \((0,1]^J\); \texttt{Asymptotic sampling proportions.}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_r=\lim_{n\to\infty}n_r/n\).
+  \item \texttt{phat} --- \texttt{empirical regime probability vector}; \texttt{Plug-\allowbreak{}in input.}
+  \par\smallskip\noindent\emph{Definition.} The concatenated empirical multinomial proportions \(\widehat p=(\widehat p_r:r\in\mathcal R)\).
+  \item \texttt{Qvec} --- \texttt{finite vector of identified query outputs}; \(\mathbb R^d\); \texttt{Simultaneous inference target.}
+  \par\smallskip\noindent\emph{Definition.} \(Q=(C_1(p),\ldots,C_d(p))\) for a fixed finite collection of circuits returned by \(\mathsf{SC\mbox{-}CTFID}\).
+  \item \texttt{JQ} --- \texttt{Jacobian matrix}; \texttt{Circuit derivative.}
+  \par\smallskip\noindent\emph{Definition.} \(J_Q(p)=\partial Q/\partial p^{\mathsf T}\), computed by reverse-mode differentiation of the returned circuits.
+  \item \texttt{IF} --- \texttt{regime-\allowbreak{}indexed influence function}; \texttt{Asymptotic linear representation.}
+  \par\smallskip\noindent\emph{Definition.} For a draw in regime \(r\) with cell indicator \(e_x\), \(\varphi_r(x)=\rho_r^{-1}J_{Q,r}(p)(e_x-p_r)\).
+  \item \texttt{Sigma} --- \texttt{positive semidefinite covariance matrix}; \texttt{Joint limit covariance.}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma_Q=J_Q(p)\operatorname{blockdiag}_{r\in\mathcal R}\{\rho_r^{-1}(\operatorname{diag}(p_r)-p_rp_r^{\mathsf T})\}J_Q(p)^{\mathsf T}\).
+  \item \texttt{CR} --- \texttt{simultaneous confidence region}; \texttt{Inferential output.}
+  \par\smallskip\noindent\emph{Definition.} The rank-aware Gaussian max-statistic region in \(\text{def:simultaneous-region}\).
+  \item \texttt{MI} --- \texttt{instance-\allowbreak{}relative finite-\allowbreak{}source model family}; \(\mathfrak M(I)=\{\mathcal M_\theta:\theta\in\Theta_{\mathcal L}\}\subseteq\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\); \texttt{Same-\allowbreak{}explicit-\allowbreak{}instance quantifier for identification and countermodel claims.}
+  \par\smallskip\noindent\emph{Definition.} The family obtained by holding fixed every source alphabet and structural decoder table encoded by \(I\) and varying only the independent labeled-source masses over the legal parameter set.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:chordless-cycle-scc]\label{ass:chordless-cycle-scc}
+Every nontrivial directed SCC of \(G\) is an induced chordless directed cycle.
+\par\smallskip\noindent\emph{Novel.} Ring equilibria, reciprocal dyads, and feedback chains closed by one return edge have this structure, while the absence of chords makes legality finitely testable without linearity.
+\end{assumption}
+
+\begin{assumption}[ass:one-cycle-per-district]\label{ass:one-cycle-per-district}
+\texttt{Every equivalence class generated by directed-\allowbreak{}SCC membership and bidirected adjacency contains at most one nontrivial directed SCC.}
+\par\smallskip\noindent\emph{Novel.} Separate equilibrium modules often communicate through observed boundary variables while latent dependence remains local to one module; the condition permits arbitrary cycle length and sparse confounding within that module.
+\end{assumption}
+
+\begin{assumption}[ass:sparse-source-incidence]\label{ass:sparse-source-incidence}
+\(1\le |\operatorname{inc}(s)|\le2\) for every \(s\in S\).
+\par\smallskip\noindent\emph{Standard} (Semi-Markovian pairwise latent-source incidence with private sources allowed, \cite{BongersForrePetersMooij2021}).
+\end{assumption}
+
+\begin{assumption}[ass:source-independence]\label{ass:source-independence}
+\(P_U=\bigotimes_{s\in S}P_s\).
+\par\smallskip\noindent\emph{Standard} (Independent primitive exogenous sources, \cite{BongersForrePetersMooij2021}).
+\end{assumption}
+
+\begin{assumption}[ass:subset-unique-solvability]\label{ass:subset-unique-solvability}
+For every \(W\subseteq V\) and assignment to \(V\setminus W\), the retained equations on \(W\) have a unique solution outside one common source-null set.
+\par\smallskip\noindent\emph{Standard} (Simple-SCM unique solvability with a finite-alphabet common-null-set formulation, \cite{BongersForrePetersMooij2021}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-query-denominator]\label{ass:positive-query-denominator}
+\(P_{\mathcal M}(B)>0\).
+\par\smallskip\noindent\emph{Standard} (Positive conditioning-event denominator for conditional counterfactual identification, \cite{CorreaLeeBareinboim2021}).
+\end{assumption}
+
+\begin{assumption}[ass:independent-regime-sampling]\label{ass:independent-regime-sampling}
+Within each \(r\in\mathcal R\), observations are i.i.d. multinomial with probability \(p_r\), and samples are independent across regimes.
+\par\smallskip\noindent\emph{Standard} (Independent multi-source multinomial sampling, \cite{LiLuedtke2023}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-regime-fractions]\label{ass:positive-regime-fractions}
+\(\min_{r\in\mathcal R}\rho_r>0\).
+\par\smallskip\noindent\emph{Standard} (Positive limiting source fractions, \cite{LiLuedtke2023}).
+\end{assumption}
+
+\begin{assumption}[ass:circuit-margin]\label{ass:circuit-margin}
+\(\min_{1\le j\le d}|D_j(p)|\ge\varepsilon\) for some \(\varepsilon>0\), where \(D_j\) ranges over every divisor in \(C_1,\ldots,C_d\).
+\par\smallskip\noindent\emph{Standard} (Positive denominator margin for smooth ratio functionals, \cite{LiLuedtke2023}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\)
+\par\smallskip\noindent\emph{Construction.} \(\{\mathcal M:\mathcal M\text{ has alphabets }\mathcal X,\text{ graph bounded by }G,\text{ exact source labels and incidence }\operatorname{inc},\text{ and satisfies }\text{ass:chordless-cycle-scc},\text{ ass:one-cycle-per-district},\text{ ass:sparse-source-incidence},\text{ ass:source-independence},\text{ and ass:subset-unique-solvability}\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}chordless-\allowbreak{}cycle-\allowbreak{}scc}; \texttt{ass:\allowbreak{}one-\allowbreak{}cycle-\allowbreak{}per-\allowbreak{}district}; \texttt{ass:\allowbreak{}sparse-\allowbreak{}source-\allowbreak{}incidence}; \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}subset-\allowbreak{}unique-\allowbreak{}solvability}.
+\end{definition}
+
+\begin{definition}[def:legal-profiles]\label{def:legal-profiles}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal L(G,\mathcal X)\)
+\par\smallskip\noindent\emph{Construction.} \(\{t\in\mathcal T:\text{for every }W\subseteq V\text{ and every boundary assignment }x_{V\setminus W},\text{ the equations induced by }t\text{ on }W\text{ have exactly one solution}\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}subset-\allowbreak{}unique-\allowbreak{}solvability}.
+\end{definition}
+
+\begin{definition}[def:source-fiber]\label{def:source-fiber}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal F_0(p),\mathcal F_+(p)\)
+\par\smallskip\noindent\emph{Construction.} \(\Theta_{\mathcal L}=\{\theta\in\prod_{s\in S}\Delta(\Omega_s):\prod_s\lambda_{s,u_s}>0\Rightarrow g(u)\in\mathcal L\}\), \(\mathcal F_0(p)=\{\theta\in\Theta_{\mathcal L}:\Phi(\theta)=p\}\), and \(\mathcal F_+(p)=\{\theta\in\mathcal F_0(p):K(\theta)>0\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}positive-\allowbreak{}query-\allowbreak{}denominator}.
+\end{definition}
+
+\begin{definition}[def:source-terminal-elimination]\label{def:source-terminal-elimination}
+\par\smallskip\noindent\emph{Defined object.} Exact source-aware terminal subroutine \(\mathsf{SATerm}\)
+\par\smallskip\noindent\emph{Construction.} Input is the reached terminal's ordered original-cycle label, boundary rows, \(S,\operatorname{inc},\Omega,\mathcal L,\Phi,H,K\). First enumerate source tuples lexicographically and form the exact polynomials \(\pi_t(\theta)=\sum_{u:g(u)=t}\prod_s\lambda_{s,u_s}\), retaining one simplex block per named source. Use real quantifier elimination on two disjoint copies \(\theta^-,\theta^+\) to decide the formula \(\Phi(\theta^-)=\Phi(\theta^+), K(\theta^-)K(\theta^+)>0, H(\theta^-)K(\theta^+)-H(\theta^+)K(\theta^-)\ne0\), together with legality and every boundary-interface equality. If satisfiable, select the lexicographically first cylindrical algebraic sample cell and emit its minimal polynomials, isolating rational intervals, signs, decoded source tables, and cross-product as \(\Gamma\). If unsatisfiable, compute the lexicographically ordered comprehensive Groebner decomposition of the legal source ideal over \(\mathbb Q[p]\); on every positive component, perform exact function-field membership for \(H/K\), combine equal representatives, and verify the candidate \(C=N/D\) by quantifier elimination of \(K>0\) and \(D(\Phi)H-N(\Phi)K\ne0\) or \(D(\Phi)=0\). Emit \(C\) exactly when both formulas are unsatisfiable. If the separator formula is unsatisfiable but membership or cross-component agreement fails, emit the exact component record \(O\). No unrestricted response-profile simplex, district-level latent consolidation, or row-span substitution occurs.
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{inc}; \texttt{Omega}; \texttt{L}; \texttt{Phi}; \texttt{H}; \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:algorithm-handle]\label{def:algorithm-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Executable cycle-\allowbreak{}label-\allowbreak{}preserving SC-\allowbreak{}CTFID specification}
+\par\smallskip\noindent\emph{Construction.} Input is exactly \(I=(V,\mathcal X,G,S,\operatorname{inc},\mathcal R,A,B,\mathcal T,\mathcal L,\Omega,\Phi,H,K)\); \(p\) is not a numerical input, because the output is one symbolic circuit valid uniformly on the full positive feasible image. Validate, in this order, alphabet and index types, graph and source arities, table dimensions, legality bits by direct unique-solution enumeration, and equality of the supplied \(\Phi,H,K\) tables to decoder recomputation; the first failure returns \(\mathsf{invalid}\). Initialize \(\Xi\) with the unnested numerator and denominator worlds, each occurrence labeled by its original SCC, all source labels unmerged, and one root subproblem. Repeatedly pop the lexicographically least stack item and take the first applicable transition: (1) delete a contradictory event row or a duplicate assignment and perform CTFID conditional-factor cancellation; (2) restrict to the ordered source-menu ancestors of the active event; (3) split the ordered consolidated-district partition and push its children in reverse lexicographic order so the least child is processed first; (4) extract the least available regime factor whose intervention set contains the required complement; (5) if the active graph is acyclic, call CTFID with the inherited order and record its formula or acyclic certificate; (6) otherwise isolate the least original-cycle-labeled terminal, materialize its complete boundary primitive-event interface, and call \(\mathsf{SATerm}\); (7) compose returned expressions or glue a returned source-table certificate through the stored interfaces. The state measure is the multiset, under the Dershowitz--Manna extension of lexicographic order, of \(m(\xi)=(w(\xi),d(\xi),a(\xi),e(\xi),h(\xi))\) over pending items: unresolved world occurrences, unresolved consolidated districts, unavailable required regime factors, unmaterialized legal source tuples, and remaining phase rank. Each transition removes one item and inserts only items with a strictly smaller tuple; terminal CAD and Groebner tasks carry their standard finite projection-pair or leading-monomial work list as \(h\), consuming its least element at each internal transition. Branches and monomial orders are lexicographic in the fixed orders on \(V,\mathcal X,S,\mathcal R\). Final outputs are only a verified \(C\), a verified \((\Gamma,\mathcal M^-,\mathcal M^+)\), \(O\), or \(\mathsf{invalid}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{I}; \texttt{V}; \texttt{X}; \texttt{G}; \texttt{S}; \texttt{inc}; \texttt{R}; \texttt{A}; \texttt{B}; \texttt{T}; \texttt{L}; \texttt{Omega}; \texttt{Phi}; \texttt{H}; \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:negative-certificate]\label{def:negative-certificate}
+\par\smallskip\noindent\emph{Defined object.} \(\Gamma\)
+\par\smallskip\noindent\emph{Construction.} \(\Gamma=(\tau,\ell,S_\ell,\operatorname{inc}_\ell,\Omega_\ell,\theta^-,\theta^+,p^*,I_{\partial},\Delta_q,\mathcal M^-,\mathcal M^+)\), where \(\tau\) is the complete deterministic recursion trace, \(\ell\) is the preserved original-cycle label, each algebraic coordinate of \(\theta^\pm\) has a minimal polynomial and isolating rational interval, \(p^*=\Phi(\theta^-)=\Phi(\theta^+)\), \(I_{\partial}\) lists all matched boundary primitive-event probabilities, and \(\Delta_q=H(\theta^-)K(\theta^+)-H(\theta^+)K(\theta^-)\ne0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{S}; \texttt{inc}; \texttt{R}; \texttt{A}; \texttt{B}; \texttt{Omega}; \texttt{L}; \texttt{Theta}.
+\end{definition}
+
+\begin{definition}[def:certificate-verifier]\label{def:certificate-verifier}
+\par\smallskip\noindent\emph{Defined object.} Exact verifier \(\mathsf{Verify}\)
+\par\smallskip\noindent\emph{Construction.} Replay \(\tau\) using the fixed branch order; recompute every legality bit by exhaustive intervention and boundary assignment; check every algebraic coordinate by Sturm isolation and every simplex sign exactly; recompute the product-source probabilities without merging source blocks; verify \(\Phi(\theta^-)=\Phi(\theta^+)=p^*\), every row in \(I_{\partial}\), \(K(\theta^-)K(\theta^+)>0\), and the exact sign of \(\Delta_q\); decode both models and recheck their alphabets, source incidence, equations, and subset unique solvability. Accept if and only if every check succeeds.
+\par\smallskip\noindent\emph{Inputs.} \texttt{I}; \texttt{Gamma}.
+\end{definition}
+
+\begin{definition}[def:evaluation-semantics]\label{def:evaluation-semantics}
+\par\smallskip\noindent\emph{Defined object.} \(\operatorname{Eval}(C,p)\)
+\par\smallskip\noindent\emph{Construction.} Return \(\mathsf{infeasible}\) if exact real quantifier elimination finds \(\mathcal F_0(p)=\varnothing\); return \(\mathsf{undefined\mbox{-}zero\mbox{-}denominator}\) if \(\mathcal F_0(p)\ne\varnothing\) and \(\mathcal F_+(p)=\varnothing\); otherwise verify the circuit divisor at \(p\) and return \(C(p)\). Models in \(\mathcal F_0(p)\setminus\mathcal F_+(p)\) have no conditional target and do not enter the identification quantifier.
+\par\smallskip\noindent\emph{Inputs.} \texttt{C}; \texttt{p}.
+\end{definition}
+
+\begin{definition}[def:nonbinary-worked-trace]\label{def:nonbinary-worked-trace}
+\par\smallskip\noindent\emph{Defined object.} Complete \((2,2,3)\) source-table trace
+\par\smallskip\noindent\emph{Construction.} Take the ordered cycle \(1\to2\to3\to1\), \(\mathcal X_1=\mathcal X_2=\{0,1\}\), \(\mathcal X_3=\{0,1,2\}\), and sources \(s_{12},s_{23},e_2\) with incidences \(\{1,2\},\{2,3\},\{2\}\).  Let \(\mathcal I\), \(\mathcal J\), and \(\mathcal K\) be respectively the eight maps \(i:\mathcal X_3\to\mathcal X_1\), four maps \(j:\mathcal X_1\to\mathcal X_2\), and nine maps \(k:\mathcal X_2\to\mathcal X_3\), all ordered lexicographically.  Set \(\Omega_{s_{12}}=\mathcal I\), \(\Omega_{s_{23}}=\mathcal K\), and \(\Omega_{e_2}=\mathcal J^{\mathcal I\times\mathcal K}\).  For \(\eta\in\Omega_{e_2}\), the decoder sends \((i,k,\eta)\) to \((i,\eta(i,k),k)\).  With independent source masses \(a_i,c_k,d_\eta\), the induced response-profile probabilities are \(\pi_{ijk}=a_ic_k\sum_{\eta:\eta(i,k)=j}d_\eta\).  The legality checker retains exactly the 240 triples for which \(k\circ j\circ i\) has one fixed point and rejects 48.  The boundary rows are \(u_a=\sum_i a_i\mathbf1\{i(a)=1\}\) and \(v_b=\sum_k c_k\mathbf1\{k(b)=2\}\).  Supply clamp regimes \(\operatorname{do}(X_3=a)\) for \(a=0,1,2\) and \(\operatorname{do}(X_2=b)\) for \(b=0,1\).  For each \(A_{ab}=\{X_1(X_3=a)=1,X_3(X_2=b)=2\}\), \(a,b\in\{0,1\}\), with \(B\) the sure event, the ordered recursion takes transitions (1), (2), (3), and (6), and \(\mathsf{SATerm}\) returns \(C_{ab}(p)=u_av_b\).  Its exact record is \(\mathsf{VALID\mbox{-}INPUT}\), \(\mathsf{LEGAL}=240/288\), \(\mathsf{SOURCES}=(8,9,4^{72})\), \(\mathsf{SEPARATOR\mbox{-}QE}=\mathsf{UNSAT}\), \(\mathsf{REMAINDER}=0\), \(\mathsf{DIVISOR}=1\), \(\mathsf{INTERFACE}=\mathsf{MATCH}\), and \(\mathsf{OUTPUT}=u_av_b\).  Thus the trace uses one genuine private-source simplex and never replaces the source-factorized law by an unrestricted simplex on the 240 legal rows.
+\par\smallskip\noindent\emph{Inputs.} \texttt{V}; \texttt{X}; \texttt{G}; \texttt{S}; \texttt{inc}; \texttt{R}; \texttt{T}; \texttt{L}; \texttt{Omega}.
+\end{definition}
+
+\begin{definition}[def:plugin-estimator]\label{def:plugin-estimator}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat Q\)
+\par\smallskip\noindent\emph{Construction.} \(\widehat Q=(C_1(\widehat p),\ldots,C_d(\widehat p))\), with exact constant coordinates tagged before studentization.
+\par\smallskip\noindent\emph{Inputs.} \texttt{C}; \texttt{phat}.
+\end{definition}
+
+\begin{definition}[def:simultaneous-region]\label{def:simultaneous-region}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal C_{1-\alpha}\)
+\par\smallskip\noindent\emph{Construction.} Let \(I_{\mathrm{const}}\) be the coordinates whose circuits simplify symbolically to constants.  Put \(\delta_n=n^{-1/2}+\max_{r\in\mathcal R}|n_r/n-\rho_r|\), and fix a deterministic \(\kappa_n>0\) such that \(\kappa_n\to0\) and \(\delta_n/\kappa_n\to0\).  Let \(\widehat\Sigma_Q\) be the covariance formula with \(p\) and \(\rho_r\) replaced by \(\widehat p\) and \(n_r/n\), and set \(\widehat I_+=\{j\notin I_{\mathrm{const}}:\widehat\Sigma_{Q,jj}>\kappa_n\}\).  Conditional on \(\widehat I_+\ne\varnothing\), let \(c_{1-\alpha}\) be the \((1-\alpha)\)-quantile of \(\max_{j\in\widehat I_+}|Z_j|/\sqrt{\widehat\Sigma_{Q,jj}}\) for \(Z\sim N(0,\widehat\Sigma_{Q,\widehat I_+,\widehat I_+})\), and report \(\widehat Q_j\pm c_{1-\alpha}\sqrt{\widehat\Sigma_{Q,jj}/n}\) simultaneously for \(j\in\widehat I_+\).  Report every \(j\in I_{\mathrm{const}}\) as its exact symbolic equality and every remaining excluded coordinate as first-order degenerate without a Wald interval.  If \(\widehat I_+=\varnothing\), no Gaussian region is formed.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Qvec}; \texttt{Sigma}; \texttt{C}; \texttt{n}; \texttt{nr}; \texttt{rho}; \texttt{p}; \texttt{phat}; \texttt{R}.
+\end{definition}
+
+\begin{definition}[def:instance-relative-model-family]\label{def:instance-relative-model-family}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M(I)\)
+\par\smallskip\noindent\emph{Construction.} \[
+ \mathfrak M(I):=\{\mathcal M_\theta:\theta\in\Theta_{\mathcal L}\}.
+\]
+Here \(I\) fixes the endogenous alphabets, the permitted graph, every labeled source alphabet \(\Omega_s\), the incidence map, and every structural decoding table.  For \(\theta=(\lambda_{s,u})\in\Theta_{\mathcal L}\), the model \(\mathcal M_\theta\) uses those fixed objects and gives the labeled sources the independent law \(\bigotimes_{s\in S}(\lambda_{s,u})_{u\in\Omega_s}\).  Thus only the source masses vary inside \(\mathfrak M(I)\); neither the source alphabets nor the decoder varies.  Every member is required to pass the legality test encoded by \(\Theta_{\mathcal L}\), and hence \(\mathfrak M(I)\subseteq\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\) for a well-typed instance.
+\par\smallskip\noindent\emph{Inputs.} \texttt{I}; \texttt{Theta}; \texttt{L}; \texttt{S}; \texttt{Omega}; \texttt{inc}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:intervention-closure]\label{prop:intervention-closure}
+\texttt{Perfect intervention and induced-\allowbreak{}subsystem restriction preserve the property that every nontrivial directed SCC is an induced chordless cycle and every consolidated district contains at most one original cycle;\allowbreak{} every surviving cyclic SCC retains a unique original-\allowbreak{}cycle label.}
+\end{proposition}
+\begin{proof}
+Let \(G'\) be obtained from \(G\) by a perfect intervention or by retaining an induced subsystem.  Both operations delete vertices or directed edges and delete, but never add, bidirected incidences.  Every directed cycle in \(G'\) is therefore a directed cycle in \(G\), and hence is contained in one strongly connected component of \(G\).  By \(\text{ass:chordless-cycle-scc}\), that original component is an induced chordless directed cycle.  Deleting no vertex and no cycle edge preserves that cycle; deleting any vertex or cycle edge leaves a disjoint union of directed paths.  Consequently every nontrivial strongly connected component of \(G'\) is an intact original cycle and remains induced and chordless.
+
+Let \(\sim_G\) be the equivalence relation generated by directed-SCC membership and bidirected adjacency, and define \(\sim_{G'}\) analogously.  Since the two operations add neither an SCC connection nor a bidirected edge, \(v\sim_{G'}w\) implies \(v\sim_Gw\).  Thus every consolidated district of \(G'\) lies inside a consolidated district of \(G\).  The latter contains at most one original cycle by \(\text{ass:one-cycle-per-district}\), so the former does too.  Label every surviving cyclic SCC by the unique original SCC containing it.  The containment just proved gives existence, and two different original labels cannot occur in one surviving SCC, giving uniqueness.  This proves all three assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The recursion needs a graph invariant that prevents parallel-world merging from joining two feedback modules. \textit{Gap.} BongersForrePetersMooij2021, Definition 8.1 and Proposition 8.2, prove closure of simple SCMs under interventions and twinning but do not track original-cycle labels. \textit{Consumer.} A symbolic implementation can reject an unsafe merge before it corrupts source incidence or cycle identity.
+
+\begin{theorem}[thm:cycle-legality]\label{thm:cycle-legality}
+Fix a chordless directed cycle \(v_1\to\cdots\to v_m\to v_1\), a boundary assignment, and a deterministic response profile \(t\). The cycle equations have a unique solution if and only if \(t_{v_m}\circ\cdots\circ t_{v_1}\) has exactly one fixed point; every proper intervention breaks the cycle into uniquely solvable directed paths. For binary unary tables, legality is equivalent to at least one cycle map being constant, and the number of legal profiles is \(4^m-2^m\).
+\end{theorem}
+\begin{proof}
+Fix the boundary assignment and suppress it from the notation.  Write
+\[
+ f_i:\mathcal X_{v_{i-1}}\longrightarrow\mathcal X_{v_i},\qquad i=1,\ldots,m,
+\]
+where \(v_0=v_m\), and put \(F=f_m\circ\cdots\circ f_1:\mathcal X_{v_m}\to\mathcal X_{v_m}\).  If \(x=(x_{v_1},\ldots,x_{v_m})\) solves the cycle equations, successive substitution gives \(x_{v_m}=F(x_{v_m})\).  Conversely, if \(z=F(z)\), setting
+\[
+ x_{v_1}=f_1(z),\quad x_{v_2}=f_2f_1(z),\quad\ldots,\quad x_{v_m}=f_m\cdots f_1(z)=z
+\]
+gives a solution.  These two constructions are inverse: after \(x_{v_m}\) is fixed, every other coordinate is forced.  Hence the number of solutions equals the number of fixed points of \(F\), proving the first equivalence.
+
+If a nonempty proper intervention clamps at least one cycle vertex, deletion of the incoming edge at the first clamped vertex breaks the retained cycle into directed paths.  Each path has a fixed initial boundary value and is solved uniquely by forward substitution.  This proves the intervention assertion.  Requiring the fixed-point test at every external boundary assignment is exactly the membership test in \(\mathcal L\) from \(\text{def:legal-profiles}\), and \(\text{ass:subset-unique-solvability}\) supplies the corresponding almost-sure structural requirement.
+
+Now suppose every cycle alphabet is binary.  A unary Boolean map is either one of the two constant maps, the identity, or negation.  If all \(f_i\) are nonconstant, their composition is identity or negation, which has respectively two or zero fixed points.  If at least one \(f_i\) is constant, the composition \(F\) is constant and has exactly its constant value as its unique fixed point.  Thus legality is equivalent to the occurrence of a constant map.  There are \(4^m\) profiles in total and exactly \(2^m\) profiles using only identity and negation, so
+\[
+ |\mathcal L|=4^m-2^m.
+\]
+For the smallest feedback instance \(m=2\), this gives twelve legal profiles.  The profile in which both maps are identity violates \(\text{ass:subset-unique-solvability}\) and has two equilibria, confirming that the unique-solvability premise is load-bearing.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A cardinality-aware terminal must enumerate exactly the response tables compatible with unique feedback equilibria. \textit{Gap.} BongersForrePetersMooij2021 supplies solvability semantics but not the exact finite fixed-point criterion or binary count for chordless-cycle tables. \textit{Consumer.} SC-CTFID obtains a finite legality oracle, and the binary regression suite obtains its exact support size.
+
+\begin{theorem}[thm:finite-source-compression]\label{thm:finite-source-compression}
+Every \(\mathcal M\in\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\) has a finite-source model \(\widetilde{\mathcal M}\in\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\) with the same complete response-profile law and all observational, interventional, and counterfactual distributions, using at most \(|\mathcal T|\) states for each primitive source.
+\end{theorem}
+\begin{proof}
+Put \(d=|\mathcal T|\) and enumerate \(\mathcal T=\{t^1,\ldots,t^d\}\).  The common-null-set clause in \(\text{ass:subset-unique-solvability}\), together with finiteness of the subsets and boundaries, gives a product-source full-measure set on which every realized response profile lies in \(\mathcal L\).  Fix a source \(s\), temporarily holding all other source laws fixed, and define for a good value \(u_s\)
+\[
+ z_s(u_s)=\bigl(P(T=t^1\mid U_s=u_s),\ldots,P(T=t^d\mid U_s=u_s)\bigr)\in\Delta_d.
+\]
+Independence in \(\text{ass:source-independence}\) makes this the integral over the unchanged product law of the other sources.  Its barycenter is the current response-profile law \(\mu=E\{z_s(U_s)\}\).
+
+We record the finite-dimensional reduction directly.  Let \(E\) be the actual image of a full-measure good set under a bounded random vector, and let \(\overline C\) be the closed convex hull of \(E\).  Approximation by finite-valued random vectors shows that the barycenter \(\mu\) lies in \(\overline C\).  If \(\mu\) is in the relative interior of \(\overline C\), then \(\operatorname{relint}(\overline C)=\operatorname{relint}(\operatorname{conv}E)\) gives \(\mu\in\operatorname{conv}E\).  Otherwise a supporting affine functional \(\ell\) satisfies \(\ell(z)\le\ell(\mu)\) almost surely.  Equality of expectations forces \(\ell(z)=\ell(\mu)\) almost surely.  Restricting to that still-full-measure subset reduces the affine dimension, so induction gives \(\mu\in\operatorname{conv}E\) in all cases.  Choose a finite convex representation of \(\mu\) by actual points of \(E\).  In affine dimension \(k\), a dependence among more than \(k+1\) representing points permits changing their coefficients until one becomes zero while preserving both their sum and their barycenter.  Iteration leaves at most \(k+1\) points.  Here \(k\le d-1\), so there are good values \(u_s^1,\ldots,u_s^{k_s}\), \(k_s\le d\), and weights \(w_{s,j}\ge0\), \(\sum_jw_{s,j}=1\), such that
+\[
+ \mu=\sum_{j=1}^{k_s}w_{s,j}z_s(u_s^j).
+\]
+
+Replace \(U_s\) by the finite variable taking \(u_s^j\) with mass \(w_{s,j}\), and retain the original structural functions at those source values.  The last display proves that the complete law of \(T\) is unchanged.  Only the law of source \(s\) was changed, so the source remains independent of all other labeled sources and its incidence remains \(\operatorname{inc}(s)\).  Repeat this operation source by source.  At every step the full response-profile law is preserved.  In the final finite product law, an illegal decoded tuple with positive product mass would give positive probability to an element of \(\mathcal T\setminus\mathcal L\), contradicting preservation of the original legal response-profile law.  Thus every positive-mass tuple is legal, and the resulting model satisfies \(\text{def:model-class}\).
+
+For a legal deterministic response profile, the solution under every perfect intervention is unique, so every finite collection of unnested counterfactuals is a deterministic function of that same profile.  Equality of the complete response-profile laws therefore implies equality of all observational, interventional, and counterfactual distributions.  Each source has at most \(d=|\mathcal T|\) states, as claimed.  No sources were consolidated, so \(\text{ass:sparse-source-incidence}\) is preserved.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Same-alphabet finite countermodels require source-by-source compression without consolidating independent sources. \textit{Gap.} ZhangTianBareinboim2022, Theorem 2.4, gives a finite canonical reduction for acyclic SCMs; this claim retains cyclic legality and the original source factorization. \textit{Consumer.} The negative branch can return inspectable finite models rather than an abstract nonidentification assertion.
+
+\begin{theorem}[thm:latent-path-realizability]\label{thm:latent-path-realizability}
+For the three-cycle \(X_1=t_1(X_3,U_{12})\), \(X_2=t_2(X_1,U_{12},U_{23},E_2)\), and \(X_3=t_3(X_2,U_{23})\), with independent \(U_{12},U_{23},E_2\), a response-table law \(P(T_1,T_2,T_3)\) is realizable if and only if it is supported on \(\mathcal L\) and \(T_1\perp T_3\). For alphabets \((2,2,3)\), the four cells in \(\text{def:nonbinary-worked-trace}\) therefore equal products of identified clamp-regime marginals although their event rows lie outside the unrestricted legal-profile row span.
+\end{theorem}
+\begin{proof}
+For necessity, the complete table \(T_1\) is measurable with respect to \(U_{12}\), whereas \(T_3\) is measurable with respect to \(U_{23}\).  Hence \(T_1\perp T_3\) by \(\text{ass:source-independence}\).  The realized triple belongs to \(\mathcal L\) almost surely by \(\text{ass:subset-unique-solvability}\) and \(\text{def:legal-profiles}\).
+
+Conversely, let \(P(t_1,t_2,t_3)\) be supported on \(\mathcal L\) and satisfy \(T_1\perp T_3\).  Let \(U_{12}\) have the marginal law of \(T_1\), let \(U_{23}\) have the marginal law of \(T_3\), and take them independently.  For every pair \((i,k)\) of endpoint tables having positive marginal product, put
+\[
+ b_{j\mid ik}=P(T_2=j\mid T_1=i,T_3=k).
+\]
+For zero-probability pairs choose any distribution supported on a middle table that makes the triple legal; a constant middle table always does so.  Let \(\mathcal I,\mathcal J,\mathcal K\) denote the finite endpoint, middle, and endpoint table sets.  Construct a private source
+\[
+ E_2=(J_{ik}:(i,k)\in\mathcal I\times\mathcal K)\in
+ \mathcal J^{\mathcal I\times\mathcal K}
+\]
+independently of \((U_{12},U_{23})\), with independent coordinates satisfying \(P(J_{ik}=j)=b_{j\mid ik}\).  Node \(2\) reads the coordinate \(J_{U_{12},U_{23}}\).  Consequently
+\[
+ P(T_1=i,T_2=j,T_3=k)=P(T_1=i)P(T_3=k)b_{j\mid ik}=P(i,j,k).
+\]
+Every positive source tuple selects, at its realized \((i,k)\), a middle table with positive \(b_{j\mid ik}\), so its decoded profile is in \(\mathcal L\).  The fixed-point criterion in \(\text{thm:cycle-legality}\) then gives unique solvability for the whole cycle, and every proper intervention leaves directed paths.  The constructed SCM is therefore simple and has exactly the stipulated three independent source blocks and incidences.  This proves sufficiency.
+
+In the corrected \((2,2,3)\) trace, write an endpoint table at node \(1\) as \(i:\{0,1,2\}\to\{0,1\}\) and one at node \(3\) as \(k:\{0,1\}\to\{0,1,2\}\).  Then
+\[
+ X_1(X_3=a)=i(a),\qquad X_3(X_2=b)=k(b).
+\]
+The two variables are functions of independent endpoint sources, so for \(a,b\in\{0,1\}\)
+\[
+ P\{i(a)=1,k(b)=2\}=P\{i(a)=1\}P\{k(b)=2\}=u_av_b.
+\]
+The two factors are cells of the supplied clamp laws, hence the product is identified.
+
+It remains to verify the asserted failure of the unrestricted legal-profile row-span test for the actual five-regime menu.  Fix \(a,b\in\{0,1\}\).  Define \(i_0(z)=0\), \(i_a(z)=\mathbf 1\{z=a\}\), and \(j_0(x)=0\).  Define \(k_c,k_2:\{0,1\}\to\{0,1,2\}\) by
+\[
+ k_c(x)=(1-a)\mathbf 1\{x=b\},\qquad k_2(x)=2\mathbf 1\{x=b\}.
+\]
+Consider the signed row vector
+\[
+ v=e_{(i_0,j_0,k_c)}+e_{(i_a,j_0,k_2)}-e_{(i_0,j_0,k_2)}-e_{(i_a,j_0,k_c)}.
+\]
+All four profiles are legal because \(j_0\) is constant, so the cycle composition is constant.  Under \(\operatorname{do}(X_3=c)\), the two nonclamped outcomes are \((i(c),0)\); the positive and negative pairs in \(v\) each contain one \(i_0\) and one \(i_a\).  Under \(\operatorname{do}(X_2=d)\), the outcome is \((i(k(d)),k(d))\).  If \(d\ne b\), both endpoint maps give \(k(d)=0\) and the two signed pairs again match.  If \(d=b\), their node-\(3\) values are the same multiset \(\{1-a,2\}\), while \(i_a(1-a)=i_a(2)=0\); thus the complete outcome multisets again match.  Hence every complete cell row of all three \(X_3\)-clamps and both \(X_2\)-clamps annihilates \(v\).  The query row \(h_{ab}=\mathbf 1\{i(a)=1,k(b)=2\}\), however, satisfies \(h_{ab}v=1\).  Therefore \(h_{ab}\) is outside the unrestricted legal-profile row span.  This construction works for all four pairs \((a,b)\), proving the final assertion.  The mixture assigning mass one half to the all-zero and all-one constant profiles is legal but makes \(T_1\) and \(T_3\) dependent, so source independence is load-bearing.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This exact terminal shows that source compatibility changes identification rather than merely validating witnesses. \textit{Gap.} NavascuesWolfe2020 gives an asymptotically complete compatibility hierarchy, while WolfeSpekkensFritz2019 derives polynomial constraints; neither gives this finite legal-cycle equivalence and counterfactual product functional. \textit{Consumer.} The mixed-alphabet trace prevents cfid from returning false failure under an unrestricted row-space terminal.
+
+\begin{proposition}[prop:nonbinary-trace]\label{prop:nonbinary-trace}
+The deterministic execution \(Wtrace\) is accepted by the input checker, enumerates exactly 240 legal rows among the 288 \((2,2,3)\) response profiles, preserves the three source blocks and original cycle label, and returns the four circuits \(C_{ab}(p)=P(X_1=1\mid\operatorname{do}(X_3=a))P(X_3=2\mid\operatorname{do}(X_2=b))\) for \(a,b\in\{0,1\}\); the exact checker reports an unsatisfiable separator formula, zero universal remainder, unit divisor, and a matched boundary interface.
+\end{proposition}
+\begin{proof}
+There are eight maps \(i:\mathcal X_3\to\mathcal X_1\), four maps \(j:\mathcal X_1\to\mathcal X_2\), and nine maps \(k:\mathcal X_2\to\mathcal X_3\), hence \(288\) triples.  If \(j\) is constant, of which there are two choices, then \(k\circ j\circ i\) is constant and has one fixed point.  This gives \(2\cdot8\cdot9=144\) legal triples.  If \(j\) is nonconstant, composition by \(j\) bijects the eight choices of \(i\) with all maps \(h:\mathcal X_3\to\mathcal X_2\).  For a constant \(k\), all eight \(h\)'s are legal, contributing \(3\cdot8=24\) per nonconstant \(j\).  For an ordered pair \(k(0)\ne k(1)\), the only possible fixed points are \(k(0)\) and \(k(1)\).  Exactly one is fixed precisely when
+\[
+ \bigl[h(k(0))=0\bigr]\mathbin{\mathsf{xor}}\bigl[h(k(1))=1\bigr].
+\]
+The two displayed values of \(h\) must then be equal; there are two choices for that common value and two choices at the third argument, hence four legal \(h\)'s for each of the six nonconstant \(k\)'s.  Thus each nonconstant \(j\) contributes \(24+6\cdot4=48\), and
+\[
+ 144+2\cdot48=240.
+\]
+This independently proves the legality count used by the checker.
+
+For the corrected decoder, \(|\Omega_{s_{12}}|=8\), \(|\Omega_{s_{23}}|=9\), and \(|\Omega_{e_2}|=4^{8\cdot9}=4^{72}\).  A state \(\eta\in\Omega_{e_2}\) is a function assigning a middle table to every pair \((i,k)\), and the decoder uses \(j=\eta(i,k)\).  For independent masses \(a_i,c_k,d_\eta\), its response-profile law is
+\[
+ \pi_{ijk}=a_ic_k\sum_{\eta:\eta(i,k)=j}d_\eta.
+\]
+The legality bit for each positive tuple is exactly the fixed-point test already proved, so the explicit type, dimension, decoder, and legality checks accept.
+
+For the event \(A_{ab}\), summation over the private source gives
+\[
+ H_{ab}=\sum_{i,k,\eta}a_ic_kd_\eta\mathbf 1\{i(a)=1\}\mathbf 1\{k(b)=2\}
+ =\left(\sum_i a_i\mathbf 1\{i(a)=1\}\right)
+  \left(\sum_k c_k\mathbf 1\{k(b)=2\}\right)=u_av_b,
+\]
+and \(K=1\).  Thus two source parameters with the same supplied menu vector have the same \(u_a\) and \(v_b\), so the two-copy separator formula is unsatisfiable.  The displayed polynomial identity makes the universal remainder exactly zero; its rational representative has divisor one.  The complete boundary rows are the same clamp-law rows used to define \(u_a\) and \(v_b\), so the interface check matches.  With the sure conditioning event removed by transition (1), ancestor restriction by (2), the ordered one-district decomposition by (3), and the remaining original-cycle-labeled problem sent to (6), the deterministic trace returns the four circuits \(C_{ab}=u_av_b\).  The original cycle label and all three source blocks remain present throughout.  This proves every item in the checker record without invoking an unrestricted simplex over the 240 rows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A fully typed nonbinary trace makes the source-table terminal and its checker output falsifiable before the general proof is attempted. \textit{Gap.} No cited cyclic identification algorithm publishes an executable source-factorized trace whose positive result lies outside unrestricted response-row span. \textit{Consumer.} This is the canonical mixed-alphabet integration test for the cfid implementation and certificate checker.
+
+\begin{lemma}[lem:boundary-interface-gluing]\label{lem:boundary-interface-gluing}
+Let two legal replacements of one source-isolated terminal agree on every complete single-world primitive-equation event indexed by every boundary assignment in the supplied menu. Holding exterior mechanisms and sources fixed makes the global models agree on every coordinate of \(p\); if the certificate carries a transmitting boundary assignment with nonzero target cross-product, their global conditional targets differ.
+\end{lemma}
+\begin{proof}
+Let \(S_\ell\subseteq S\) be the sources of the replaced terminal.  Source isolation means that no source in \(S_\ell\) enters an exterior primitive equation and no source in \(S\setminus S_\ell\) enters a replaced primitive equation.  Fix a supplied regime \(r=(Z,z)\) and a complete nonclamped cell \(x\).  By \(\text{ass:subset-unique-solvability}\), outside the common null set the event that the regime solution equals \(x\) is exactly the intersection of the primitive-equation events
+\[
+ E_{v,r,x}=\{f_v(x_{\operatorname{pa}(v)},U_{\operatorname{inc}(v)})=x_v\},\qquad v\notin Z.
+\]
+Partition this finite intersection into the events involving \(S_\ell\) and those involving its complement.  Conditional boundary values are fixed by \((r,x)\).  By \(\text{ass:source-independence}\),
+\[
+ P_{\mathcal M^\pm}(X_{V\setminus Z}=x\mid\operatorname{do}(Z=z))
+ =P_{\mathcal M^\pm}(E_{\ell,r,x})P(E_{\mathrm{ext},r,x}).
+\]
+The exterior factor is literally the same in the two models, and the terminal factors agree by the complete boundary-interface hypothesis.  Hence every coordinate \(p_{r,x}\) agrees.  The local replacements are legal at every retained SCC and boundary; processing the SCC condensation in topological order therefore yields one solution for every intervention, so the glued models remain in \(\mathfrak M_{sc}\) by \(\text{def:model-class}\) and \(\text{prop:intervention-closure}\).
+
+For the target, expand the finitely many partial multiworld events into disjoint complete assignments.  The same primitive-event factorization applies term by term.  A transmitting assignment recorded in \(\Gamma\) is one whose unchanged exterior factor is nonzero and for which the resulting exact global cross-product is
+\[
+ \Delta_q=H(\theta^-)K(\theta^+)-H(\theta^+)K(\theta^-)\ne0.
+\]
+The certificate also verifies \(K(\theta^-)K(\theta^+)>0\).  Division is therefore permitted, and
+\[
+ \frac{H(\theta^-)}{K(\theta^-)}-\frac{H(\theta^+)}{K(\theta^+)}
+ =\frac{\Delta_q}{K(\theta^-)K(\theta^+)}\ne0.
+\]
+Thus the global conditional targets differ.
+
+As an exact transmission stress test, take the twelve legal types of a binary two-cycle, put mass \(1/12\) on each, and add \(v/24\), where \(v\) is positive on \(((0,0),(0,0))\) and \(((1,1),(0,0))\), negative on \(((0,1),(0,0))\) and \(((1,0),(0,0))\), and zero elsewhere.  For each input, the positive and negative pairs have the same multiset of outputs, so all observational and single-clamp laws agree; every new mass is positive.  The event that the first response table is constantly zero has probabilities \(1/3\) and \(1/3+1/24=3/8\).  Attach a fresh fair source \(E\) and a downstream binary cycle satisfying
+\[
+ E=0:\quad T=W\mathbin{\mathsf{xor}}R,\ W=0;qquad
+ E=1:\quad T=R,\ W=T.
+\]
+For either source state and every intervention, forward substitution gives a unique solution; naturally \(T=R\).  Conditional on \(R\), the downstream kernel is identical in the two models, so the already matched upstream complete laws imply equality under all \(3^4=81\) interventions.  The downstream counterfactual event \(\{T_{\operatorname{do}(S=0)}=0,T_{\operatorname{do}(S=1)}=0\}\) equals the upstream event and therefore takes the two values \(1/3\) and \(3/8\).  This verifies noncancellation in the smallest two-district transmitter used here.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A local separator proves completeness only if agreement and target separation survive recursive attachment. \textit{Gap.} LeeCorreaBareinboim2020 glues acyclic witnesses, and RichardsonEvansRobinsShpitser2023 composes acyclic fixing kernels; neither preserves cyclic legality and granular source incidence through this interface. \textit{Consumer.} The checker can validate a local negative terminal and downstream transmission independently of the search.
+
+\begin{theorem}[thm:sc-ctfid-completeness]\label{thm:sc-ctfid-completeness}
+There exists a well-typed explicit instance \(I\) with \(V=\{W,Y\}\), \(\mathcal X_W=\{0,1,2\}\), \(\mathcal X_Y=\{0,1\}\), permitted directed edges \(W\to Y\to W\), no bidirected edge, and three independent binary private sources incident only to \(Y\), having the following properties relative to the instance family \(\mathfrak M(I)=\{\mathcal M_\theta:\theta\in\Theta_{\mathcal L}\}\).  For source success probabilities \((x,y,z)\), the supplied complete-law coordinates contain \(a=xy\), \(b=xz\), and \(c=yz\); for \(A=\{Y_{\operatorname{do}(W=0)}=1\}\) and \(B=\{Y_{\operatorname{do}(W=2)}=1\}\), one has \(H=xyz\), \(K=yz=c\), and, whenever \(K>0\),
+\[
+ q=\frac{H}{K}=x=\sqrt{\frac{ab}{c}}.
+\]
+Thus the ratio is constant on every \(\mathcal F_+(p)\) for \(p\in\mathcal P_{\mathrm{feas}}\) with \(\mathcal F_+(p)\neq\varnothing\), but no rational arithmetic circuit \(C\) in the supplied regime probabilities represents it on that full positive feasible image.  Consequently no total sound procedure on the declared explicit source-decoder input class can be complete if its only positive output is such a rational circuit and its only negative output is a pair of positive-denominator models in the same \(\mathfrak M(I)\) that agree on all supplied laws and disagree on the query: on this \(I\), neither output is possible.  The procedure \(\mathsf{SC\mbox{-}CTFID}(I)\) terminates and returns \(O\), so a third outcome such as \(O\), or an enlargement of the positive expression language, is unavoidable for a total sound procedure.  This is an instance-relative restricted-submodel conclusion: it does not assert identification over all of \(\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\) and does not refute acyclic CTFID completeness.  The permitted edge \(Y\to W\) is inactive in the witness, so cyclic feedback is not load-bearing for the obstruction.
+\end{theorem}
+\begin{proof}
+Let \(V=\{W,Y\}\), ordered as in the input, and set
+\[
+ \mathcal X_W=\{0,1,2\},\qquad \mathcal X_Y=\{0,1\}.
+\]
+Let the permitted directed graph \(G\) have exactly the edges \(W\to Y\) and \(Y\to W\), and let it have no bidirected edge.  Its only nontrivial directed strongly connected component is therefore the induced chordless two-cycle \(W\to Y\to W\), which verifies assumption \texttt{ass:chordless-cycle-scc}.  The equivalence relation generated by directed-SCC membership and bidirected adjacency has one class, and that class contains exactly this one original cycle, verifying assumption \texttt{ass:one-cycle-per-district}.
+
+Take \(S=\{s_1,s_2,s_3\}\), let \(\Omega_{s_i}=\{0,1\}\), write the corresponding source states as \(U_i\), and put
+\[
+ \operatorname{inc}(s_i)=\{Y\},\qquad i=1,2,3.
+\]
+This is exact private-source incidence and satisfies \(1\leq |\operatorname{inc}(s_i)|\leq2\), as required by assumption \texttt{ass:sparse-source-incidence}.  Give the sources the product law in assumption \texttt{ass:source-independence}, and write
+\[
+ x=P(U_1=1),\qquad y=P(U_2=1),\qquad z=P(U_3=1).
+\]
+Define the fixed decoder by the structural equations
+\[
+ W=0,
+ \qquad
+ Y=
+ \begin{cases}
+ U_1U_2,&W=0,\\
+ U_1U_3,&W=1,\\
+ U_2U_3,&W=2,
+ \end{cases}
+\]
+where multiplication is Boolean conjunction.  The graph is an upper bound on functional dependence in \texttt{def:model-class}; hence the equation for \(W\) may ignore the permitted parent \(Y\).
+
+We verify assumption \texttt{ass:subset-unique-solvability} pointwise in the source tuple, so the common exceptional set is empty.  If both endogenous equations are retained, the first forces \(W=0\), after which the second forces \(Y=U_1U_2\).  If only the equation for \(W\) is retained, it uniquely gives \(W=0\) for either boundary value of \(Y\).  If only the equation for \(Y\) is retained, each boundary value \(W\in\{0,1,2\}\) selects exactly one displayed Boolean value.  If neither equation is retained, there is no endogenous coordinate to solve.  These are all subsets of \(V\).  Therefore every decoded deterministic response profile passes \texttt{def:legal-profiles}, and
+\[
+ \Theta_{\mathcal L}=[0,1]^3.
+\]
+Together with the preceding graph and incidence checks, this proves that every \(\mathcal M_\theta\in\mathfrak M(I)\) belongs to \(\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\).  Take \(\mathcal T\) to be the explicitly enumerated deterministic response-table set, take \(\mathcal L\) to be exactly the subset passing the exhaustive legality check just verified, and define \(\Phi,H,K\) by direct source-tuple enumeration from this decoder.  All response tables have entries in \(\{0,1\}\), and the resulting probability polynomials have integer coefficients.  Thus every finite table is explicit over the rationals and the resulting decoder input \(I\) is well typed.
+
+Supply the three complete regimes
+\[
+ \mathcal R=\bigl\{(\varnothing,\varnothing),\ (\{W\},1),\ (\{W\},2)\bigr\}
+\]
+and abbreviate
+\[
+ a=xy,\qquad b=xz,\qquad c=yz.
+\]
+Under the observational regime, \(W=0\) surely and source independence gives
+\[
+ P(W=0,Y=1)=P(U_1=1,U_2=1)=xy=a,
+ \qquad P(W=0,Y=0)=1-a,
+\]
+while all cells with \(W\neq0\) have probability zero.  Under the other two regimes,
+\[
+ P(Y=1\mid\operatorname{do}(W=1))=P(U_1=1,U_3=1)=xz=b,
+\]
+and
+\[
+ P(Y=1\mid\operatorname{do}(W=2))=P(U_2=1,U_3=1)=yz=c,
+\]
+with complementary cells \(1-b\) and \(1-c\).  Hence the full menu vector \(p=\Phi(\theta)\) consists only of \(0,1,a,1-a,b,1-b,c,1-c\), and \(a,b,c\) themselves are supplied coordinates.
+
+Take the unnested events
+\[
+ A=\{Y_{\operatorname{do}(W=0)}=1\},
+ \qquad
+ B=\{Y_{\operatorname{do}(W=2)}=1\}.
+\]
+The decoder gives
+\[
+ A=\{U_1=1,U_2=1\},
+ \qquad
+ B=\{U_2=1,U_3=1\}.
+\]
+Using source independence once more,
+\[
+ H(x,y,z)=P(A\cap B)=xyz,
+ \qquad
+ K(x,y,z)=P(B)=yz=c.
+\]
+On the domain specified by assumption \texttt{ass:positive-query-denominator}, \(K=c>0\), so division by \(K\) is valid and
+\[
+ q(\mathcal M_\theta)=\frac{H(\theta)}{K(\theta)}=x. \tag{1}
+\]
+
+We next establish uniform identification relative to the fixed instance family.  Let \(\theta=(x,y,z)\) and \(\theta'=(x',y',z')\) lie in the same fiber \(\mathcal F_+(p)\) of \texttt{def:source-fiber}.  Equality of their supplied laws yields
+\[
+ xy=x'y'=a,\qquad xz=x'z'=b,\qquad yz=y'z'=c,
+\]
+and membership in the positive fiber yields \(c>0\).  Therefore
+\[
+ x^2=\frac{(xy)(xz)}{yz}=\frac{ab}{c}
+     =\frac{(x'y')(x'z')}{y'z'}=(x')^2. \tag{2}
+\]
+Both \(x\) and \(x'\) are probabilities and hence are nonnegative.  Equation (2) implies \(x=x'\).  By (1), the two conditional targets are equal.  Equivalently, since \(H=xK\), \(H'=x'K'\), and \(K=K'=c\),
+\[
+ H(\theta)K(\theta')=xc^2=x'c^2=H(\theta')K(\theta). \tag{3}
+\]
+This proves the advertised fiber constancy for every feasible \(p\) whose positive fiber is nonempty.  Notice that \(x=0\) is allowed; the only division in (2) is by the expressly positive quantity \(c\).  On the strictly positive subimage, (2) and nonnegativity select the positive algebraic branch
+\[
+ q=x=\sqrt{\frac{ab}{c}}, \tag{4}
+\]
+with the nonnegative value \(0\) at points where \(x=0\).
+
+Source independence is load-bearing.  To check this on the smallest displayed alphabet, first take the three sources to be independent fair bits.  Then \(a=b=c=1/4\), \(H=1/8\), \(K=1/4\), and \(q=1/2\).  Now leave the graph, alphabets, decoder, regimes, and subset-solvability property unchanged, but replace the product source law by the uniform law on
+\[
+ \{000,011,101,110\}.
+\]
+Each pairwise conjunction still has probability \(1/4\), so all three complete supplied laws, including their complementary cells, remain unchanged.  However the triple conjunction has probability zero, while \(K=P(U_2=1,U_3=1)=1/4>0\), and hence \(q=0\).  This second law violates assumption \texttt{ass:source-independence}; it shows directly that (4) and fiber constancy fail when that assumption is removed.
+
+We now prove that no rational arithmetic circuit in the supplied probabilities represents this value on the full positive feasible image.  Suppose, to the contrary, that such a circuit \(C\) exists.  Substituting the displayed menu cells into its finitely many rational operations and recursively clearing its intermediate denominators produces polynomials \(P,Q\in\mathbb Q[a,b,c]\) such that
+\[
+ C(p)=R(a,b,c):=\frac{P(a,b,c)}{Q(a,b,c)}.
+\]
+The nonvanishing requirement in the definition of \(C\) ensures that this representation can be chosen with \(Q(xy,xz,yz)\neq0\) at every \((x,y,z)\in(0,1)^3\).  Correctness of the circuit and (1) would give
+\[
+ P(xy,xz,yz)-xQ(xy,xz,yz)=0
+ \qquad\text{for every }(x,y,z)\in(0,1)^3. \tag{5}
+\]
+The left side of (5) is a polynomial in \(\mathbb Q[x,y,z]\).  A polynomial that vanishes on an open box is identically zero: for one variable this follows because a nonzero univariate polynomial has only finitely many roots; fixing two coordinates in the box and applying that fact to the remaining coordinate, then repeating for the other coordinates, proves the three-variable assertion.  Thus (5) is an identity in \(\mathbb Q(x,y,z)\), and so
+\[
+ R(xy,xz,yz)=x \tag{6}
+\]
+as a rational-function identity.
+
+For completeness, the substitution homomorphism
+\[
+ \iota:\mathbb Q(a,b,c)\longrightarrow\mathbb Q(x,y,z),
+ \qquad (a,b,c)\longmapsto(xy,xz,yz),
+\]
+is injective.  Indeed, the monomial \(a^ib^jc^k\) maps to \(x^{i+j}y^{i+k}z^{j+k}\), and the original exponents are recovered from an image exponent triple \((r,s,t)\) by
+\[
+ i=\frac{r+s-t}{2},\qquad
+ j=\frac{r+t-s}{2},\qquad
+ k=\frac{s+t-r}{2}.
+\]
+Distinct monomials therefore have distinct images, proving injectivity first on polynomial rings and then on their fraction fields.  Consider the field automorphism
+\[
+ \sigma:\mathbb Q(x,y,z)\longrightarrow\mathbb Q(x,y,z),
+ \qquad \sigma(x,y,z)=(-x,-y,-z).
+\]
+It fixes \(xy,xz,yz\), so it fixes the image of \(\iota\) pointwise.  The left side of (6) is in that fixed image, whereas \(\sigma(x)=-x\).  Applying \(\sigma\) to (6) would imply both \(R(xy,xz,yz)=x\) and \(R(xy,xz,yz)=-x\), which is impossible in the characteristic-zero field \(\mathbb Q(x,y,z)\).  This contradiction proves the claimed nonrationality.
+
+There can also be no genuine negative output for this same explicit instance.  Such an output would consist of \(\mathcal M_{\theta^-},\mathcal M_{\theta^+}\in\mathfrak M(I)\) with \(K(\theta^-)K(\theta^+)>0\), equal supplied menu vectors, and unequal target ratios.  Equal menu vectors place \(\theta^-\) and \(\theta^+\) in a common positive fiber, and (3) forces their ratios to be equal, a contradiction.  Therefore, on this input, a sound positive output in the prescribed rational language does not exist and a sound negative same-instance countermodel output does not exist.  Any procedure defined on every legal explicit input and restricted to those two sound output types must fail on this \(I\); equivalently, no such total sound formula-or-countermodel procedure is complete.  A total sound procedure must either admit a third outcome or enlarge its positive expression language, for example to describe the branch in (4).
+
+Finally, apply the already-established \texttt{thm:sc-ctfid-output-soundness}.  It gives termination of \(\mathsf{SC\mbox{-}CTFID}(I)\).  The input checks above exclude \(\mathsf{invalid}\).  A returned verified circuit would contradict nonrationality, and a returned verifier-accepted negative certificate would, by output soundness, give the impossible same-instance pair just excluded.  The exhaustive final-output clause of \texttt{def:algorithm-handle} leaves only \(O\).  Hence \(\mathsf{SC\mbox{-}CTFID}(I)\) returns \(O\).
+
+All identification and nonidentification quantifiers in this argument range over \(\mathfrak M(I)\), whose source alphabets and decoder are fixed.  Although \(\mathfrak M(I)\subseteq\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\), constancy on fibers of a subclass does not imply constancy after mechanisms outside that subclass are added.  Thus no graph-wide identification conclusion transfers upward.  Moreover, the equation \(W=0\) ignores the permitted edge \(Y\to W\); deleting that inactive dependence does not change any calculation.  Cyclic feedback is therefore not load-bearing, and the result makes no assertion against acyclic CTFID completeness on its own unrestricted model class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the desired cyclic formula-or-verifiable-same-class-countermodel theorem, but it remains open at rational descent and universal boundary transmission; the closed termination and output-validity claims are stated separately. \textit{Gap.} Acyclic CTFID completeness does not imply that a positive-real sparse-source fiber-constant ratio descends to one rational circuit, nor that every local cyclic separator survives arbitrary stored exterior interfaces. \textit{Consumer.} cfid obtains safe formula and certificate feedback from the proved output-soundness theorem, while unconditional formula-or-certificate completeness awaits the two isolated obligations.
+
+\begin{theorem}[thm:explicit-complexity]\label{thm:explicit-complexity}
+On explicit input \(I\), every structural transition strictly decreases the multiset measure in \(\text{def:algorithm-handle}\), and every terminal transition consumes a finite ordered CAD, Gr\"obner, or verification worklist.  Hence \(\mathsf{SC\mbox{-}CTFID}\), \(\mathsf{SATerm}\), and \(\mathsf{Verify}\) terminate.  Once an \(N_{out}\)-bit result has been computed, emitting it takes \(O(N_{out})\) bit operations.  No uniform double-exponential bit-operation or working-space bound is asserted without a fixed algebraic-elimination implementation and a bound on the complete recursion-state expansion; no efficiency claim is made for succinct graph input.
+\end{theorem}
+\begin{proof}
+Order \(\mathbb N^5\) lexicographically in the component order fixed by \(\text{def:algorithm-handle}\), and assign the ordinal rank
+\[
+ r(w,d,a,e,h)=\omega^4w+\omega^3d+\omega^2a+\omega e+h.
+\]
+For a finite multiset \(M\) of pending items, let \(R(M)\) be the natural sum of \(\omega^{r(m)}\) over \(m\in M\).  If one item is removed and only finitely many strictly lower tuples are inserted, then \(R(M)\) strictly decreases.  There is no infinite descending ordinal sequence, so the structural recursion terminates.  The terminal routines described in \(\text{def:source-terminal-elimination}\) and \(\text{def:certificate-verifier}\) operate on explicitly finite polynomial, projection, critical-pair, sign-cell, and trace lists and consume one ordered task per internal transition; their stipulated worklists therefore terminate as well.  This proves termination of all three procedures.  Copying an explicitly stored output of \(N_{out}\) bits to the output stream uses at most a constant number of bit operations per bit, hence \(O(N_{out})\).
+
+The stronger bound in the original statement is not a consequence of these premises.  A well-founded decrease proves finiteness but supplies no numerical derivation-length bound, and the phrases ``real quantifier elimination'' and ``comprehensive Gr\"obner decomposition'' do not select an implementation or an encoding whose bit costs can be charged.  Thus the narrowed statement is the strongest complexity conclusion established by the frozen construction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An executable symbolic procedure needs transition-level termination and complexity that charges for exact real elimination. \textit{Gap.} CorreaLeeBareinboim2021 gives graphical acyclic recursion, whereas the cyclic source-aware terminal requires explicit response tables, CAD, and comprehensive Groebner accounting. \textit{Consumer.} Package authors can bound exact terminal work, certificate checking, and response expansion separately.
+
+\begin{theorem}[thm:acyclic-reduction]\label{thm:acyclic-reduction}
+If \(G\) is acyclic, every active graph reached by transitions (1)--(4) of \(\mathsf{SC\mbox{-}CTFID}\) is acyclic.  Consequently cyclic-terminal transitions (6)--(7), \(\mathsf{SATerm}\), and the obstruction \(O\) are unreachable.  Every remaining terminal subproblem is passed by transition (5), with the inherited fixed order, to CTFID, and the returned expressions or acyclic certificates are composed only by transitions (1)--(4).  Literal equality with the output of a separately implemented CTFID is not asserted without a common formal transition system and expression normal form.
+\end{theorem}
+\begin{proof}
+Transitions (1)--(4) delete event rows, restrict to ancestors, split a partition, or extract an available regime factor.  On the directed graph they only delete vertices or edges and take induced subgraphs.  A directed cycle in any resulting graph would therefore already be a directed cycle in \(G\), contradicting acyclicity.  Thus every pending active graph is acyclic.  The guard for transition (6), which requires an original-cycle-labeled terminal, is never satisfied; transition (7) can only glue an output of (6), so it is also unreachable.  Since \(O\) is emitted only by \(\mathsf{SATerm}\), \(O\) is unreachable as well.  The first applicable terminal rule is consequently (5), which by \(\text{def:algorithm-handle}\) invokes CTFID with the inherited order.  All later operations are the sums, products, cancellations, and ordered compositions already performed by transitions (1)--(4).  This proves the stated operational reduction.  The frozen core contains no formal transition system or canonical expression normal form for a separate CTFID implementation, so literal output equality cannot be deduced and is not claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The standard acyclic special case prevents a competing semantics on familiar inputs. \textit{Gap.} CorreaLeeBareinboim2021 settles the acyclic case; the strict reduction claim is that every added source-aware cyclic transition is vacuous and the outputs coincide exactly. \textit{Consumer.} Existing cfid users retain backward-compatible outputs when no directed feedback is present.
+
+\begin{theorem}[thm:circuit-inference]\label{thm:circuit-inference}
+Fix \(0<\alpha<1\) and a finite vector \(Q=(C_1(p),\ldots,C_d(p))\) returned by \(\mathsf{SC\mbox{-}CTFID}\).  Then \(\sqrt n(\widehat Q-Q)=n^{-1/2}\sum_{r,i}\varphi_r(X_{ri})+o_P(1)\) and converges to \(N(0,\Sigma_Q)\), possibly singular, and the plug-in covariance is consistent.  Let \(I_0=\{j:\Sigma_{Q,jj}>0\}\).  Under the thresholded definition of \(\mathcal C_{1-\alpha}\), \(P(\widehat I_+=I_0)\to1\); if \(I_0\ne\varnothing\), the Gaussian max-statistic region has limiting simultaneous coverage \(1-\alpha\) on \(I_0\).  Symbolically constant coordinates are exact equalities, and every other coordinate with zero first-order variance is reported as degenerate rather than studentized.
+\end{theorem}
+\begin{proof}
+By \(\text{thm:sc-ctfid-output-soundness}\), each returned \(C_j\) used in \(Q\) is a rational function of the supplied regime probabilities on its verified domain.  For regime \(r\), let \(m_r\) be its finite number of cells and regard \(p_r,\widehat p_r\in\mathbb R^{m_r}\).  Concatenate these finite blocks in the fixed order on \(\mathcal R\).
+
+By \(\text{ass:circuit-margin}\), each of the finitely many circuit divisors has absolute value at least \(\varepsilon\) at \(p\).  Continuity gives an open neighborhood \(U\) of \(p\) on which all divisors have absolute value at least \(\varepsilon/2\).  Hence every \(C_j\) is twice continuously differentiable on \(U\).  After replacing \(U\) by a bounded neighborhood of \(p\) whose closure lies in the preceding neighborhood, the finitely many first and second derivatives are bounded on \(U\).
+
+Put
+\[
+ a_n=\max_{r\in\mathcal R}\left|\frac{n_r}{n}-\rho_r\right|,
+ \qquad \delta_n=n^{-1/2}+a_n.
+\]
+The definition of \(\rho_r\) gives \(a_n\to0\).  By \(\text{ass:positive-regime-fractions}\), there is \(c>0\) such that \(n_r/n\ge c\) for every regime and all sufficiently large \(n\).  Under \(\text{ass:independent-regime-sampling}\),
+\[
+ \mathbb E\lVert\widehat p-p\rVert^2
+ =\sum_{r\in\mathcal R}\frac{1-\lVert p_r\rVert^2}{n_r}
+ \le\sum_{r\in\mathcal R}\frac1{n_r}
+ =O(n^{-1}).
+\]
+Consequently \(\widehat p-p=O_P(n^{-1/2})\) and \(P(\widehat p\in U)\to1\).  Taylor expansion on this event, with the bounded Hessians just established, gives
+\[
+ \sqrt n(\widehat Q-Q)
+ =\sum_{r\in\mathcal R}J_{Q,r}(p)\sqrt n(\widehat p_r-p_r)+R_n,
+ \qquad
+ \lVert R_n\rVert
+ =O_P\!\left(\sqrt n\lVert\widehat p-p\rVert^2\right)
+ =o_P(1).
+\]
+For every fixed regime,
+\[
+ \sqrt n(\widehat p_r-p_r)
+ =\frac{n}{n_r}\frac1{\sqrt n}
+   \sum_{i=1}^{n_r}(e_{X_{ri}}-p_r).
+\]
+The sum divided by \(\sqrt n\) is \(O_P(1)\), while \(n/n_r\to\rho_r^{-1}\).  Since the menu is finite, substitution in the Taylor expansion yields
+\[
+ \sqrt n(\widehat Q-Q)
+ =\frac1{\sqrt n}\sum_{r\in\mathcal R}\sum_{i=1}^{n_r}
+   \rho_r^{-1}J_{Q,r}(p)(e_{X_{ri}}-p_r)+o_P(1)
+ =\frac1{\sqrt n}\sum_{r,i}\varphi_r(X_{ri})+o_P(1).
+\]
+
+We next establish the joint limit, allowing singular covariance.  For an arbitrary \(t\in\mathbb R^d\), set
+\[
+ Y_{ri}=t^{\mathsf T}\rho_r^{-1}J_{Q,r}(p)(e_{X_{ri}}-p_r).
+\]
+The variables \(Y_{ri}\) are independent and centered.  Finiteness of the menu and all alphabets makes them uniformly bounded.  Uniform third-order expansion at the origin therefore gives
+\[
+ \mathbb E\exp\{\mathrm iY_{ri}/\sqrt n\}
+ =1-\frac{\mathbb E(Y_{ri}^2)}{2n}+O(n^{-3/2}).
+\]
+Summing logarithms over \(\sum_r n_r=n\), and using \(n_r/n\to\rho_r\), gives
+\[
+ \log\mathbb E\exp\!\left\{
+   \frac{\mathrm i}{\sqrt n}\sum_{r,i}Y_{ri}\right\}
+ \longrightarrow-\frac12t^{\mathsf T}\Sigma_Qt,
+\]
+because
+\[
+ \frac1n\sum_{r,i}\mathbb E(Y_{ri}^2)
+ \longrightarrow
+ t^{\mathsf T}J_Q(p)
+ \operatorname{blockdiag}_{r\in\mathcal R}
+ \left\{\rho_r^{-1}
+ \bigl(\operatorname{diag}(p_r)-p_rp_r^{\mathsf T}\bigr)\right\}
+ J_Q(p)^{\mathsf T}t
+ =t^{\mathsf T}\Sigma_Qt.
+\]
+Thus the joint characteristic functions converge pointwise to \(\exp(-t^{\mathsf T}\Sigma_Qt/2)\).  This function is the characteristic function of the centered Gaussian measure supported on the range of \(\Sigma_Q\), including when \(\Sigma_Q\) is singular.  To see directly that this characteristic-function convergence implies weak convergence here, convolve each law with an independent \(N(0,\eta^2I_d)\).  Its characteristic function is integrable, so Fourier inversion and dominated convergence give convergence of the convolved distributions for every \(\eta>0\).  The convolution errors are uniformly tight and vanish as \(\eta\downarrow0\); hence the unconvolved laws converge as well.  Combining this with the already proved \(o_P(1)\) remainder gives
+\[
+ \sqrt n(\widehat Q-Q)\ \rightsquigarrow\ N(0,\Sigma_Q).
+\]
+
+We now verify covariance estimation at the rate required by the threshold.  Bounded second derivatives on \(U\) imply
+\[
+ \lVert J_Q(\widehat p)-J_Q(p)\rVert=O_P(n^{-1/2}).
+\]
+The map \(u\mapsto\operatorname{diag}(u)-uu^{\mathsf T}\) is Lipschitz on each finite-dimensional probability simplex.  Moreover, eventual lower bounds on \(n_r/n\) and \(\rho_r\) give one finite constant \(C_0\) for which
+\[
+ \left|\frac n{n_r}-\frac1{\rho_r}\right|
+ \le C_0\left|\frac{n_r}{n}-\rho_r\right|
+\]
+for all regimes and all sufficiently large \(n\).  Expanding the finitely many matrix products in the plug-in covariance formula consequently yields
+\[
+ \lVert\widehat\Sigma_Q-\Sigma_Q\rVert
+ =O_P(n^{-1/2}+a_n)=O_P(\delta_n).
+\]
+The conditions in \(\text{def:simultaneous-region}\) are \(\kappa_n\to0\) and \(\delta_n/\kappa_n\to0\).  Multiplying the tight random quantity \(\lVert\widehat\Sigma_Q-\Sigma_Q\rVert/\delta_n\) by the deterministic quantity \(\delta_n/\kappa_n\) proves
+\[
+ \lVert\widehat\Sigma_Q-\Sigma_Q\rVert=o_P(\kappa_n),
+\]
+and in particular proves ordinary plug-in covariance consistency.
+
+Let \(I_0=\{j:\Sigma_{Q,jj}>0\}\).  A symbolically constant circuit has zero derivative, so \(I_{\mathrm{const}}\cap I_0=\varnothing\).  If \(j\in I_0\), covariance consistency and \(\kappa_n\to0\) give
+\[
+ P\{\widehat\Sigma_{Q,jj}>\kappa_n\}\longrightarrow1.
+\]
+If \(j\notin I_0\), positive semidefiniteness gives \(\widehat\Sigma_{Q,jj}\ge0\), and the rate above gives
+\[
+ P\{\widehat\Sigma_{Q,jj}>\kappa_n\}
+ \le P\{\lVert\widehat\Sigma_Q-\Sigma_Q\rVert>\kappa_n\}
+ \longrightarrow0.
+\]
+A finite union bound over \(j=1,\ldots,d\), together with the definition that removes \(I_{\mathrm{const}}\), proves
+\[
+ P(\widehat I_+=I_0)\longrightarrow1.
+\]
+
+Assume \(I_0\ne\varnothing\).  On \(\{\widehat I_+=I_0\}\), covariance consistency implies convergence of the selected covariance matrix and of each of its strictly positive diagonal entries.  Let \(G\sim N(0,I_d)\), and on one auxiliary probability space put
+\[
+ Z=\Sigma_{Q,I_0,I_0}^{1/2}G,
+ \qquad
+ \widehat Z=\widehat\Sigma_{Q,I_0,I_0}^{1/2}G.
+\]
+Continuity of the positive-semidefinite square root in fixed dimension gives \(\widehat Z\to Z\) in probability.  Hence the conditional plug-in distribution of
+\[
+ \widehat T=
+ \max_{j\in I_0}\frac{|\widehat Z_j|}
+ {\sqrt{\widehat\Sigma_{Q,jj}}}
+\]
+converges to the distribution of
+\[
+ T=\max_{j\in I_0}\frac{|Z_j|}{\sqrt{\Sigma_{Q,jj}}}.
+\]
+For completeness, this limiting distribution has no atoms.  On the linear support \(E\) of \(Z\), its Gaussian density with respect to Lebesgue measure on \(E\) is positive, and
+\[
+ z\longmapsto\max_{j\in I_0}
+ \frac{|z_j|}{\sqrt{\Sigma_{Q,jj}}}
+\]
+is a norm on \(E\).  The boundary of each ball of this norm has Lebesgue measure zero in \(E\), while every nonempty open annulus has positive Gaussian measure.  Its distribution function is therefore continuous and strictly increasing on its nontrivial range.  It follows that the plug-in \((1-\alpha)\)-quantile \(c_{1-\alpha}\) converges in probability to the population \((1-\alpha)\)-quantile.
+
+The joint Gaussian limit above, consistency of the positive diagonal standardizers, quantile convergence, and \(P(\widehat I_+=I_0)\to1\) now give
+\[
+ P\!\left\{
+ |\widehat Q_j-Q_j|
+ \le c_{1-\alpha}\sqrt{\widehat\Sigma_{Q,jj}/n}
+ \text{ for every }j\in I_0
+ \right\}\longrightarrow1-\alpha.
+\]
+If a circuit simplifies symbolically to a constant, its plug-in value equals that constant wherever it is evaluated, so the reported equality is exact.  Every nonconstant coordinate with \(\Sigma_{Q,jj}=0\) has zero first-order Gaussian fluctuation and, by the proved selection result, is excluded with probability tending to one; reporting it as first-order degenerate rather than studentizing by a vanishing variance is therefore valid.  If \(I_0=\varnothing\), the definition forms no Gaussian region.  This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} For every returned regular circuit, automatic differentiation now yields a proved multi-regime influence function, singular covariance limit, consistent covariance estimate, and valid thresholded simultaneous region. \textit{Gap.} The proof supplies the previously implicit threshold requirement by deriving \(O_P(\delta_n)=o_P(\kappa_n)\) matrix error from multinomial sampling and the circuit margin. \textit{Consumer.} cfid can report estimates, influence functions, joint covariance, simultaneous intervals for positive-variance coordinates, exact symbolic cells, and separate first-order-degeneracy statuses.
+
+\begin{lemma}[lem:acyclic-ctfid-soundness]\label{lem:acyclic-ctfid-soundness}
+In the recursive finite-SCM setting with an acyclic causal diagram, an unnested counterfactual probability is identifiable from a specified collection of observational and experimental distributions if and only if \(\mathsf{ctfID}\) returns an expression for it.
+\end{lemma}
+
+\begin{theorem}[thm:sc-ctfid-output-soundness]\label{thm:sc-ctfid-output-soundness}
+For every well-typed explicit instance \(I\), the procedures \(\mathsf{SC\mbox{-}CTFID}(I)\), \(\mathsf{SATerm}\), and \(\mathsf{Verify}\) terminate.  If \(\mathsf{SC\mbox{-}CTFID}(I)\) returns a verified circuit \(C=N/D\), then for every \(p\in\mathcal P_{\mathrm{feas}}\) with \(\mathcal F_+(p)\ne\varnothing\) and every \(\theta\in\mathcal F_+(p)\), one has \(D(p)\ne0\) and
+\[
+C(p)=\frac{N(p)}{D(p)}=\frac{H(\theta)}{K(\theta)}.
+\]
+Moreover, \(\operatorname{Eval}\) returns \(\mathsf{infeasible}\) when \(\mathcal F_0(p)=\varnothing\), and returns \(\mathsf{undefined\mbox{-}zero\mbox{-}denominator}\) when \(\mathcal F_0(p)\ne\varnothing\) but \(\mathcal F_+(p)=\varnothing\).  If the algorithm returns a verifier-accepted \((\Gamma,\mathcal M^-,\mathcal M^+)\), then \(\mathcal M^-\) and \(\mathcal M^+\) are decoded using the source alphabets and structural response tables fixed by the same explicit instance \(I\); in particular they belong to \(\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X)\), agree on every complete law in \(\mathcal R\), have positive query denominators, and have unequal values of \(q\).  These conclusions neither rule out the obstruction output \(O\) nor assert that a circuit is returned whenever the ratio is constant on every positive source-realizable fiber.
+\end{theorem}
+\begin{proof}
+Termination follows from \(\text{thm:explicit-complexity}\).  Indeed, every outer transition of \(\mathsf{SC\mbox{-}CTFID}\) strictly decreases the multiset measure specified in \(\text{def:algorithm-handle}\), while every call to \(\mathsf{SATerm}\) and \(\mathsf{Verify}\) consumes a finite ordered algebraic or verification worklist.  Thus none of the three procedures has an infinite execution on a well-typed explicit input.
+
+We prove circuit soundness by induction along the finite recursion trace.  Fix \(\theta\in\Theta_{\mathcal L}\).  For a recursion item \(\xi\), let \(E_\xi\) denote its active finite conjunction of primitive-equation events, including its displayed boundary assignment, and let
+\[
+ P_\theta(E_\xi)
+ =\sum_{u\in\prod_{s\in S}\Omega_s}
+   {\bf 1}\{g(u)\text{ solves to an outcome in }E_\xi\}
+   \prod_{s\in S}\lambda_{s,u_s}.
+\]
+The sum is well defined because the source alphabets are finite.  The decoder has a unique solution on every positive-mass tuple by membership in \(\Theta_{\mathcal L}\), \(\text{def:source-fiber}\), and \(\text{ass:subset-unique-solvability}\).  The displayed polynomial equals the relevant SCM probability because the primitive source law is the product law in \(\text{ass:source-independence}\).
+
+Maintain the invariant that the expression stored at \(\xi\) equals \(P_\theta(E_\xi)\) whenever all conditioning factors already canceled on the path to \(\xi\) are positive.  It holds at initialization: the decoder definitions of \(\Phi\), \(H\), and \(K\) are precisely the preceding finite sums for, respectively, regime cells, \(A\cap B\), and \(B\).  Each structural transition in \(\text{def:algorithm-handle}\) preserves it.  A contradictory row has empty event and hence probability zero.  Deleting a duplicate assignment does not change a conjunction.  Eliminating a finite variable replaces its event by the disjoint union over that variable's states, so finite additivity gives the prescribed sum.  Ancestor restriction removes only coordinates already marginalized from the primitive event.  In a consolidated-district split, no primitive source has children in two distinct blocks: otherwise its two children would be bidirected-adjacent and the blocks would be in the same consolidated district.  Hence the relevant source sets are disjoint, and the product law factors the probability into the product used by the transition.  Regime extraction replaces a complete regime cell by the matching coordinate of \(\Phi(\theta)\), which is equal by definition.  Finally, if conditional-factor cancellation removes a common nonnegative probability factor \(F\) from a numerator \(FN\) and denominator \(FD\), positivity of the denominator gives \(FD>0\), and therefore \(F>0\) and \(D>0\); division by \(F\) is consequently legitimate.  Finite sums, products, and substitutions preserve the invariant.
+
+There are two terminal bases.  At an acyclic terminal, the sound direction of \(\text{lem:acyclic-ctfid-soundness}\) says that the returned \(\mathsf{ctfID}\) expression equals its active counterfactual probability.  At a cyclic terminal, suppose \(\mathsf{SATerm}\) proposes \(N/D\).  By \(\text{def:source-terminal-elimination}\), this expression is returned only after exact real quantifier elimination has certified the unsatisfiability, on the complete legal positive domain, of each formula
+\[
+ K(\vartheta)>0,qquad
+ D(\Phi(\vartheta))H(\vartheta)-N(\Phi(\vartheta))K(\vartheta)\ne0
+\]
+and
+\[
+ K(\vartheta)>0,qquad D(\Phi(\vartheta))=0.
+\]
+Therefore every legal \(\vartheta\) with \(K(\vartheta)>0\) satisfies
+\[
+ D(\Phi(\vartheta))\ne0,qquad
+ D(\Phi(\vartheta))H(\vartheta)
+ =N(\Phi(\vartheta))K(\vartheta).
+\]
+Every division introduced earlier is by a positive canceled factor, and every division introduced at a cyclic terminal has the verified nonzero divisor above.  Backward induction along the recursion trace, using the invariant, consequently proves both equality of the composed expression with the global ratio and nonvanishing of every division gate on the global positive legal domain.  Clearing the finitely many circuit division gates gives the returned representation \(C=N/D\), with \(D\) nonzero there.
+
+Now let \(p\in\mathcal P_{\mathrm{feas}}\) satisfy \(\mathcal F_+(p)\ne\varnothing\), and let \(\theta\in\mathcal F_+(p)\).  By \(\text{def:source-fiber}\),
+\[
+ \Phi(\theta)=p,qquad K(\theta)>0.
+\]
+The preceding induction, followed by substitution, gives
+\[
+ D(p)\ne0,qquad
+ D(p)H(\theta)=N(p)K(\theta).
+\]
+Division by \(D(p)K(\theta)\ne0\) yields
+\[
+ C(p)=\frac{N(p)}{D(p)}=\frac{H(\theta)}{K(\theta)}.
+\]
+This proves only the asserted positive-output implication; it does not infer rational descent from fiber constancy and therefore does not exclude \(O\).
+
+The two evaluation claims follow directly from the ordered exhaustive tests in \(\text{def:evaluation-semantics}\).  The first branch returns \(\mathsf{infeasible}\) exactly after certifying \(\mathcal F_0(p)=\varnothing\).  Conditional on \(\mathcal F_0(p)\ne\varnothing\), the second returns \(\mathsf{undefined\mbox{-}zero\mbox{-}denominator}\) exactly after certifying \(\mathcal F_+(p)=\varnothing\).  No circuit is evaluated on either branch.
+
+It remains to prove negative-output soundness.  Suppose \(\mathsf{Verify}\) accepts \((\Gamma,\mathcal M^-,\mathcal M^+)\).  By the exhaustive checks in \(\text{def:certificate-verifier}\), all algebraic source masses have the certified simplex signs, the separately named source blocks are not merged, every positive-mass decoded tuple is legal, and subset unique solvability is rechecked.  The verifier also checks the fixed alphabets, graph containment, source labels, and exact incidence.  Together with \(\text{def:model-class}\), \(\text{ass:source-independence}\), and \(\text{ass:subset-unique-solvability}\), these facts imply
+\[
+ \mathcal M^-,\mathcal M^+
+ \in\mathfrak M_{sc}(G,\operatorname{inc},\mathcal X).
+\]
+The exact certificate checks further give
+\[
+ \Phi(\theta^-)=\Phi(\theta^+)=p^*,qquad
+ K(\theta^-)K(\theta^+)>0,
+\]
+\[
+ \Delta_q
+ =H(\theta^-)K(\theta^+)-H(\theta^+)K(\theta^-)
+ \ne0,
+\]
+as well as equality of every boundary-interface row stored in \(I_{\partial}\).  Equality of \(\Phi\) gives equality of every supplied complete regime cell at the reached terminal.  The verifier replays the finite trace from \(\text{def:negative-certificate}\).  At each stored interface, \(\text{lem:boundary-interface-gluing}\) applies because its complete single-world primitive-equation rows agree; holding the exterior mechanisms and sources fixed therefore preserves all supplied regime-cell equalities.  Iterating this implication through the trace proves
+\[
+ P_{\mathcal M^-}(X_{V\setminus Z}=x\mid\operatorname{do}(Z=z))
+ =P_{\mathcal M^+}(X_{V\setminus Z}=x\mid\operatorname{do}(Z=z))
+\]
+for every \((Z,z)\in\mathcal R\) and every cell \(x\).
+
+Because \(K\) is a probability, \(K(\theta^-)K(\theta^+)>0\) implies that both factors are strictly positive.  Thus both conditional targets are defined, as required by \(\text{ass:positive-query-denominator}\), and
+\[
+ q(\mathcal M^-)-q(\mathcal M^+)
+ =\frac{H(\theta^-)}{K(\theta^-)}
+  -\frac{H(\theta^+)}{K(\theta^+)}
+ =\frac{\Delta_q}{K(\theta^-)K(\theta^+)}\ne0.
+\]
+This proves verifier-accepted certificate soundness.  The argument uses the transmitting boundary row carried by an accepted certificate; it makes no claim that every local separator admits such a row.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem records the closed operational guarantees without mislabeling them as the unresolved formula-or-countermodel completeness direction. \textit{Gap.} The acyclic base has a complete published algorithm, but cyclic source-factorized terminals require separate verification of legality, source labels, boundary rows, and exact algebraic outputs. \textit{Consumer.} The package may safely evaluate every returned circuit and replay every returned negative certificate even before the terminal completeness question is settled.
+
+\begin{theorem}[thm:rational-terminal-descent-fails]\label{thm:rational-terminal-descent-fails}
+For a well-typed explicit input \(I\), write
+\[
+ \mathfrak M(I):=\{\mathcal M_\theta:\theta\in\Theta_{\mathcal L}\}
+\]
+for the instance-relative family obtained by holding fixed the displayed finite source alphabets, source decoder, structural tables, graph bound, source labels, and source incidence in \(I\), and varying only the independent source masses \(\theta\).  There exists a well-typed instance \(I_\star\) with \(V=\{W,Y\}\), \(\mathcal X_W=\{0,1,2\}\), \(\mathcal X_Y=\{0,1\}\), permitted graph \(W\to Y\to W\), and three independent private binary sources \(s_1,s_2,s_3\), each incident only to \(Y\), having the following properties.  If \(x,y,z\) are the three source probabilities, the supplied complete observational and intervention laws contain the coordinates
+\[
+ a=xy,\qquad b=xz,\qquad c=yz,
+\]
+and, for
+\[
+ A=\{Y_{\operatorname{do}(W=0)}=1\},\qquad
+ B=\{Y_{\operatorname{do}(W=2)}=1\},
+\]
+one has
+\[
+ H=xyz,\qquad K=yz=c,
+ \qquad q=\frac{H}{K}=x=\sqrt{\frac{ab}{c}}
+ \quad\text{on }\{c>0\}.
+\]
+Thus \(q\) is uniformly identified relative to \(\mathfrak M(I_\star)\), and its graph is the positive semialgebraic branch
+\[
+ c t^2=ab,\qquad t\geq0,
+\]
+but no rational arithmetic circuit in the supplied regime probabilities represents \(q\) on the full positive feasible image.  On the corresponding explicit legal terminal, the two-copy separator is unsatisfiable and rational function-field membership fails, so \(\mathsf{SATerm}\) emits \(O\).  More generally, no total sound procedure on the declared explicit source-decoder input class can be complete if every positive output must be a rational arithmetic circuit and every negative output must be two genuine positive-denominator countermodels from the same family \(\mathfrak M(I)\).  A third outcome, such as \(O\), is unavoidable.  This settles rational terminal descent negatively; it does not settle universal nonvanishing transmission of a locally separating pair through every recursive boundary interface.
+\end{theorem}
+\begin{proof}
+For clarity, the family in the statement is instance-relative.  Given a fixed explicit input \(I\), each \(\theta\in\Theta_{\mathcal L}\) supplies masses to the source states listed in \(I\), and \(\mathcal M_\theta\) is the SCM obtained from the fixed decoder and those masses.  Thus
+\[
+ \mathfrak M(I)=\{\mathcal M_\theta:\theta\in\Theta_{\mathcal L}\}
+\]
+does not range over alternative response decoders or alternative source alphabets compatible merely with the graph bound \(G\).
+
+We construct \(I_\star\).  Let \(V=\{W,Y\}\), ordered as written, with
+\[
+ \mathcal X_W=\{0,1,2\},\qquad \mathcal X_Y=\{0,1\}.
+\]
+Let \(G\) contain the two permitted directed edges \(W\to Y\) and \(Y\to W\), and no bidirected edge.  Its sole nontrivial directed strongly connected component is the induced chordless two-cycle, and the equivalence relation generated by directed-SCC membership and bidirected adjacency has one class containing exactly that cycle.  Hence \(\text{ass:chordless-cycle-scc}\) and \(\text{ass:one-cycle-per-district}\) hold.
+
+Take three sources \(S=\{s_1,s_2,s_3\}\), each with alphabet \(\{0,1\}\), and set
+\[
+ \operatorname{inc}(s_i)=\{Y\},\qquad i\in\{1,2,3\}.
+\]
+Write their states as \(U_1,U_2,U_3\), give them the product distribution required by \(\text{ass:source-independence}\), and put
+\[
+ x=P(U_1=1),\qquad y=P(U_2=1),\qquad z=P(U_3=1).
+\]
+Every source has one child, so \(1\leq |\operatorname{inc}(s_i)|\leq2\), verifying \(\text{ass:sparse-source-incidence}\).  Define the fixed structural decoder by
+\[
+ W=0,
+ \qquad
+ Y=
+ \begin{cases}
+ U_1U_2,&W=0,\\
+ U_1U_3,&W=1,\\
+ U_2U_3,&W=2.
+ \end{cases}
+ \tag{1}
+\]
+Here multiplication is ordinary multiplication of binary variables.  Each source affects the displayed table of \(Y\), so the declared private-source incidence is retained.  The graph is only an upper bound in \(\text{def:model-class}\); accordingly, the equation for \(W\) may ignore its permitted parent \(Y\).  This inactivity will also show that feedback is not load-bearing for the obstruction.
+
+We check subset unique solvability rather than inferring it from the graph.  Fix a source tuple.  If both endogenous equations are retained, the first gives the unique value \(W=0\), after which the first branch of (1) gives a unique value of \(Y\).  If only the \(W\)-equation is retained, it again has the unique solution \(W=0\), for either boundary value of \(Y\).  If only the \(Y\)-equation is retained, each of the three possible boundary values of \(W\) selects exactly one branch of (1).  If neither equation is retained, the retained system has the unique empty assignment.  These are all subsets of \(V\).  Thus \(\text{ass:subset-unique-solvability}\) holds with empty exceptional set.  By \(\text{def:legal-profiles}\), every one of the eight decoded source tuples is legal, and therefore
+\[
+ \Theta_{\mathcal L}=[0,1]^3.
+\]
+All alphabets, source tables, response tables, and probability polynomials are finite and have integer entries, so the resulting \(I_\star\) is a well-typed explicit legal input.
+
+Supply the three complete regimes
+\[
+ \mathcal R=\bigl\{(\varnothing,\varnothing),
+ (\{W\},1),(\{W\},2)\bigr\}.
+\]
+Under observation, \(W=0\) surely and (1) gives
+\[
+ P(W=0,Y=1)=xy=:a,
+ \qquad P(W=0,Y=0)=1-a,
+\]
+with every cell having \(W\neq0\) equal to zero.  Under the two interventions,
+\[
+ P(Y=1\mid\operatorname{do}(W=1))=xz=:b,
+ \qquad
+ P(Y=1\mid\operatorname{do}(W=2))=yz=:c,
+\]
+and the complementary cells are \(1-b\) and \(1-c\).  Hence every coordinate of \(p=\Phi(x,y,z)\) lies in \(\mathbb Q[a,b,c]\), while \(a,b,c\) themselves occur among the supplied complete-law coordinates.
+
+For the unnested events in the statement, (1) gives
+\[
+ A=\{U_1U_2=1\},\qquad B=\{U_2U_3=1\}.
+\]
+Their intersection is \(\{U_1=U_2=U_3=1\}\).  Source independence therefore yields, directly from the causal SCM rather than by definition of an observed functional,
+\[
+ H(x,y,z)=P(A\cap B)=xyz,
+ \qquad
+ K(x,y,z)=P(B)=yz=c.
+ \tag{2}
+\]
+On the positive-denominator domain \(K=c>0\), division in the definition of \(q\) is valid, and (2) gives \(q=x\).
+
+We next prove instance-relative uniform identification.  Let \(\theta=(x,y,z)\) and \(\theta'=(x',y',z')\) lie in one fiber \(\mathcal F_+(p)\).  Equality of the complete supplied laws implies equality of their three displayed coordinates:
+\[
+ xy=x'y'=a,\qquad xz=x'z'=b,
+ \qquad yz=y'z'=c.
+\]
+The definition of \(\mathcal F_+(p)\) and (2) give \(c>0\).  Therefore
+\[
+ x^2=\frac{(xy)(xz)}{yz}=\frac{ab}{c}
+ =\frac{(x'y')(x'z')}{y'z'}=(x')^2.
+ \tag{3}
+\]
+Both \(x\) and \(x'\) are probabilities and hence nonnegative, so (3) implies \(x=x'\).  Using (2),
+\[
+ H(\theta)K(\theta')=x c^2=x'c^2
+ =H(\theta')K(\theta).
+\]
+Thus the conditional target is constant on every positive source-realizable fiber.  The same calculation identifies it explicitly as the unique \(t\geq0\) satisfying
+\[
+ c t^2=ab,
+\]
+namely \(t=\sqrt{ab/c}\).  The boundary case \(x=0\) is included: then \(a=b=0\), while the only division in (3) remains legitimate because \(c>0\).
+
+We prove that this identified map is not rational.  Suppose that a rational arithmetic circuit \(C\) in all coordinates of \(p\) represents \(q\) on the full positive feasible image.  Substitute the complete-law coordinates computed above into the circuit.  Since each such coordinate belongs to \(\mathbb Q[a,b,c]\), flattening the finite circuit gives a rational function \(R(a,b,c)\in\mathbb Q(a,b,c)\).  The circuit's verified divisor condition makes the substitution defined at every point arising from \((x,y,z)\in(0,1)^3\).  Hence
+\[
+ R(xy,xz,yz)=x
+ \qquad\text{for every }(x,y,z)\in(0,1)^3.
+ \tag{4}
+\]
+Write the flattened circuit as \(R=P/Q\), where \(P,Q\in\mathbb Q[a,b,c]\) and the substituted circuit denominator is nonzero on this open cube.  Cross-multiplication in (4) gives
+\[
+ P(xy,xz,yz)-xQ(xy,xz,yz)=0
+\]
+throughout that cube.  A polynomial over \(\mathbb Q\) vanishing on an open box is the zero polynomial: for one variable this follows because a nonzero polynomial has only finitely many roots, and induction applies after fixing the remaining coordinates in open intervals.  Thus (4) is an identity in \(\mathbb Q(x,y,z)\).
+
+The substitution homomorphism
+\[
+ \mathbb Q[a,b,c]\longrightarrow\mathbb Q[x,y,z],
+ \qquad (a,b,c)\longmapsto(xy,xz,yz),
+\]
+is injective.  Indeed, the monomial \(a^i b^j c^k\) maps to the monomial having exponent vector
+\[
+ (i+j,i+k,j+k),
+\]
+and one recovers
+\[
+ i=\frac{(i+j)+(i+k)-(j+k)}2,
+ \quad
+ j=\frac{(i+j)+(j+k)-(i+k)}2,
+ \quad
+ k=\frac{(i+k)+(j+k)-(i+j)}2.
+\]
+Distinct source monomials therefore have distinct images.  The map extends to an embedding \(\mathbb Q(a,b,c)\hookrightarrow\mathbb Q(x,y,z)\).
+
+Now apply the field automorphism
+\[
+ \sigma:\mathbb Q(x,y,z)\longrightarrow\mathbb Q(x,y,z),
+ \qquad \sigma(x,y,z)=(-x,-y,-z).
+\]
+It fixes \(xy,xz,yz\), hence it fixes the embedded copy of \(\mathbb Q(a,b,c)\) pointwise.  Identity (4) would put \(x\) in that fixed subfield.  Applying \(\sigma\) would then give both \(\sigma(x)=x\) and \(\sigma(x)=-x\), an impossibility for the nonzero indeterminate \(x\) over a field of characteristic zero.  This contradiction proves that no rational arithmetic circuit \(C\) represents the uniformly identified target.
+
+The displayed finite decoder, legal set, empty exterior interface, and polynomials \(\Phi,H,K\) form an explicit source-aware terminal input.  The two-copy separator tested by \(\mathsf{SATerm}\) is unsatisfiable there, because the fiber calculation proves that any two legal positive-denominator points with the same \(\Phi\)-value have zero target cross-product.  On the other hand, the preceding automorphism argument proves that function-field membership in \(\mathbb Q(p)\) fails on its positive component.  By \(\text{def:source-terminal-elimination}\), this is exactly the branch on which \(\mathsf{SATerm}\) emits an obstruction record \(O\).  Thus the claim that \(O\) is impossible at every legal source-factorized terminal is false.
+
+Finally let \(\mathcal A\) be any purported total sound procedure on the same explicit input class whose only admissible outputs are a rational identifying circuit or a genuine pair of same-instance positive-denominator countermodels.  Run \(\mathcal A\) on \(I_\star\).  A positive output contradicts nonrationality, while a negative output contradicts fiber constancy.  Thus \(\mathcal A\) has no sound admissible output on \(I_\star\), contradicting totality and completeness.  This argument depends only on the required output semantics, not on the transition rules of SC-CTFID.
+
+The quantifiers in this conclusion are essential.  They range over \(\mathfrak M(I_\star)\), whose decoder is fixed, not over every mechanism merely bounded by \(G\).  Identification on this restricted family does not imply identification on the larger graph-compatible SCM class.  Nor does the construction refute published acyclic CTFID completeness, which concerns a different model class and input semantics.  Indeed the permitted edge \(Y\to W\) is inactive in (1), so the same algebraic obstruction survives after deleting it: cyclic feedback is not load-bearing in this witness.  Finally, although the single value here has a quantifier-free semialgebraic graph, no general completeness theorem for semialgebraic, algebraic-circuit, piecewise-branch, or Thom-root outputs has been proved.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The algebraic witness proves that instance-relative uniform identification is strictly broader than rational-circuit representability and forces a third algorithmic outcome. \textit{Gap.} Published acyclic CTFID completeness does not address rational output-language completeness on a fixed explicit source decoder, while algebraic causal-compatibility work does not supply this same-instance conditional-counterfactual obstruction. \textit{Consumer.} The cfid package can report a certified algebraic obstruction instead of returning either a false rational formula or a spurious same-instance countermodel.
+
+\begin{openendedquestion}[oeq:universal-boundary-transmission]\label{oeq:universal-boundary-transmission}
+Consider a terminal reached by the deterministic recursion with two legal source-mass points \(\theta^-\) and \(\theta^+\) from the same explicit source-decoder instance, satisfying every stored boundary primitive-event equality,
+\[
+ \Phi(\theta^-)=\Phi(\theta^+),\qquad
+ K(\theta^-)K(\theta^+)>0,
+\]
+and having nonzero local cross-product
+\[
+ \Delta=H(\theta^-)K(\theta^+)-H(\theta^+)K(\theta^-)\ne0.
+\]
+Must there always exist exterior source masses using only the fixed exterior source alphabets and decoder of that same explicit instance, together with a boundary assignment of positive transmitting weight, such that recursive gluing yields two global same-alphabet, same-source-incidence models agreeing on every supplied law but having unequal conditional targets?  If not, characterize the stored interfaces for which transmission is possible and give a finite source-preserving certificate that every legal exterior attachment annihilates the local contrast.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} After rational descent fails, universal nonvanishing transmission is the sole remaining recursion-specific completeness question for negative terminal certificates. \textit{Gap.} The established boundary-interface lemma is conditional on a transmitting assignment; neither cyclic gluing results nor source-compatibility algorithms prove that such an assignment always exists. \textit{Consumer.} A resolution would tell cfid whether every local same-source separator can be promoted to a global countermodel or whether it needs an additional finite interface-obstruction output.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The explicit response and source tables may already be exponentially larger than the graph, and no succinct-input efficiency claim is made.  More importantly, completeness is not yet proved: the obstruction \(O\) has not been excluded on every legal sparse-source positive fiber, and a locally nonzero separator has not been shown to retain a nonzero target contrast through every exterior interface.  The inference theorem is fixed-dimensional and pointwise on positive-margin strata; nonsymbolic zero first-order variance coordinates are deliberately reported without a Wald interval.
+
+\section{Honest scope}
+
+The established claims are exact cycle legality, source-preserving finite compression in the frozen core, selected source-realizability calculations, intervention closure, conditional boundary gluing when a transmitting assignment is supplied, termination, one-way circuit soundness, verifier soundness of accepted negative certificates, exact evaluation statuses, and regular multinomial circuit inference.  Computational enumeration remains evidence rather than a general proof.  The headline formula-or-same-class-countermodel equivalence remains open until rational descent is proved for every legal positive source fiber and every satisfiable local separator is shown to possess a nonvanishing recursive transmission.  A legal terminal producing a genuinely algebraic nonrational identified value, or a local separator annihilated by every exterior interface, would refute the current completeness contract.
+
+\begin{thebibliography}{99}
+
+  \bibitem{CorreaLeeBareinboim2021} Correa, J. D., Lee, S., and Bareinboim, E. (2021). Nested counterfactual identification from arbitrary surrogate experiments. Advances in Neural Information Processing Systems 34. Sections 1, 3--4, Algorithms 1--2, Theorems 5--6, and Section 6. arXiv:2107.03190v2.
+
+  \bibitem{BongersForrePetersMooij2021} Bongers, S., Forré, P., Peters, J., and Mooij, J. M. (2021). Foundations of structural causal models with cycles and latent variables. Annals of Statistics 49, 2885--2915. Definition 8.1, Proposition 8.2, Corollary 8.3, and Section 10. doi:10.1214/21-AOS2064.
+
+  \bibitem{ForreMooij2020} Forré, P. and Mooij, J. M. (2020). Causal calculus in the presence of cycles, latent confounders and selection bias. Proceedings of UAI, PMLR 115, 71--80. Proposition 9.8, Theorem 9.10, Remark 9.11, and Section 10.
+
+  \bibitem{ZhangTianBareinboim2022} Zhang, J., Tian, J., and Bareinboim, E. (2022). Partial counterfactual identification from observational and experimental data. Proceedings of ICML, PMLR 162, 26548--26558. Theorem 2.4, Section 3, and Appendix E. arXiv:2110.05690.
+
+  \bibitem{NavascuesWolfe2020} Navascués, M. and Wolfe, E. (2020). The inflation technique completely solves the causal compatibility problem. Journal of Causal Inference 8, 70--91. Main convergence theorem and conclusion. doi:10.1515/jci-2018-0008.
+
+  \bibitem{WolfeSpekkensFritz2019} Wolfe, E., Spekkens, R. W., and Fritz, T. (2019). The inflation technique for causal inference with latent variables. Journal of Causal Inference 7. Sections 2--4. arXiv:1609.00672.
+
+  \bibitem{LeeSpekkens2017} Lee, C. M. and Spekkens, R. W. (2017). Causal inference via algebraic geometry: feasibility tests for functional causal structures with two binary observed variables. Journal of Causal Inference 5. arXiv:1506.03880.
+
+  \bibitem{ShpitserPearl2008} Shpitser, I. and Pearl, J. (2008). Complete identification methods for the causal hierarchy. Journal of Machine Learning Research 9, 1941--1979. ID-star and IDC-star algorithms and completeness constructions.
+
+  \bibitem{LeeCorreaBareinboim2020} Lee, S., Correa, J. D., and Bareinboim, E. (2020). General identifiability with arbitrary surrogate experiments. Proceedings of AAAI 34, 5102--5109. Thicket and hedgelet completeness construction. doi:10.1609/aaai.v34i09.7119.
+
+  \bibitem{RichardsonEvansRobinsShpitser2023} Richardson, T. S., Evans, R. J., Robins, J. M., and Shpitser, I. (2023). Nested Markov properties for acyclic directed mixed graphs. Annals of Statistics 51, 334--361. Fixing kernels and identifiable causal effects. doi:10.1214/22-AOS2253.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024} Duarte, G., Finkelstein, N., Knox, D., Mummolo, J., and Shpitser, I. (2024). An automated approach to causal inference in discrete settings. Journal of the American Statistical Association 119, 1424--1435. arXiv:2109.13471.
+
+  \bibitem{LiLuedtke2023} Li, S. and Luedtke, A. (2023). Efficient estimation under data fusion. Biometrika 110, 1041--1054. Theorem 2, Corollary 1, and Appendix F. arXiv:2111.14945.
+
+  \bibitem{Tikka2023} Tikka, S. (2023). cfid: An R package for counterfactual identification. The R Journal 15, 330--343. Sections 2--4. doi:10.32614/RJ-2023-053.
+
+\end{thebibliography}
+
+\end{document}

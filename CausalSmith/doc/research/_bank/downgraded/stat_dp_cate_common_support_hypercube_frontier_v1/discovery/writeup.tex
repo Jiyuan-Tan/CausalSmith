@@ -1,0 +1,2437 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}dp\_\allowbreak{}cate\_\allowbreak{}common\_\allowbreak{}support\_\allowbreak{}hypercube\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The raw private higher-order estimator retains its uniform finite-sample remainder bound because clipping occurs only after estimation.  Clipping the released center to \([-1,1]\) cannot increase its error from the bounded causal CATE and makes the reported higher-order set a nonempty random interval on every transcript.  On the uniform-design attainable class \(\mathcal P_{\mathrm{att}}\), this interval achieves \(1\wedge r_{\mathrm{up}}\), while the fixed-dimensional direct-regression interval proved on \(\mathcal P_{\mathrm{full}}\) remains valid after restriction.  A public selector gives the attainable upper \(C\min\{1\wedge r_{\mathrm{up}},1\wedge[n^{-\beta/(2\beta+d)}\vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}]\}\); the uniform-design witness from the ordinary lower bound belongs to the attainable class and gives the stated two-sided nonsharp bracket.  On the unchanged full class, only the ordinary \(\gamma\)-smooth lower and \(\beta\)-smooth direct-regression upper are certified, and the sharp private frontier remains the sole open statement.
+
+\section{Project justification}
+
+\paragraph{Gap.} The accepted companion bank entry for central-DP Hölder CATE already proves the corresponding full-class point-risk ordinary lower bound, direct local-polynomial upper bound, and ordinary two-point barrier.  What remained was a finite-sample honest-confidence-interval and mean-length theory, including simultaneous control of higher-order nuisance bias, sampling fluctuation, privacy noise, and transcript-wise validity of the reported random interval.
+
+\paragraph{Niche.} A bias-aware fixed-length construction on the uniform-design KBRW-attainable positive-density submodel permits honest nonregular causal inference.  The full-class point-risk endpoints from the accepted companion result serve as supporting inheritance; the present niche is their coverage-facing lift together with a fully private higher-order attainable construction.
+
+\paragraph{Fill.} The paper privatizes every pilot and localized linear and quadratic moment in the attainable higher-order learner, proves a raw-estimator remainder bound for every finite basis rank \(k\ge k_{\mathrm{poly}}\), with no upper cap relative to effective sample size, using the Gine--Latala--Zinn canonical U-statistic inequality and de la Pena--Montgomery-Smith undecoupling, and clips the released center so the reported interval is nonempty on every transcript.  This gives uniform finite-sample coverage and phase-sensitive mean length at most \(C(1\wedge r_{\mathrm{up}})\) on \(\mathcal P_{\mathrm{att}}\).  A public deterministic selector chooses between that interval and the restricted direct-regression interval without privacy composition.  The ordinary full-class lower and direct-regression upper exponents are inherited support from the accepted companion point-risk analysis and are lifted here to an honest mean-length bracket; they are not marketed as new endpoints.  The higher-order upper is not transferred to \(\mathcal P_{\mathrm{full}}\), whose nuisance-adaptive and private-Gram confidence frontier remains open.
+
+\section{Related work}
+
+The accepted companion bank entry for central-DP H\"older CATE already establishes the corresponding full-class point-risk ordinary lower and direct local-polynomial upper rates and proves the ordinary causal two-point barrier.  The present paper treats those full-class exponents as supporting inheritance, not as new endpoints.  Its distinct contribution is the finite-sample honest-interval and mean-length lift, the fully private higher-order construction on \(\mathcal P_{\mathrm{att}}\), a remainder bound for every finite basis rank \(k\ge k_{\mathrm{poly}}\) with no upper cap relative to effective sample size, a clipped release that is a nonempty interval on every transcript, and a public selector between the two attainable upper constructions.  Gine, Latala, and Zinn (2000), Corollary 3.4, together with de la Pena and Montgomery-Smith (1995), Theorem 1, supplies the published canonical U-statistic moment and undecoupling substrate for the concentration proof.  Kennedy, Balakrishnan, Robins, and Wasserman (2024) derive the privacy-free pointwise CATE benchmark and motivate the higher-order local-polynomial architecture; here the higher-order identities and private interval result is certified on the concrete uniform-design attainable construction.  Robins, Li, Tchetgen Tchetgen, and van der Vaart (2008) provide the higher-order influence-function perspective, while Armstrong and Kolesar (2020) motivate honest fixed-length intervals with explicit worst-case bias.  Lee, Okui, and Whang (2017) study nonprivate doubly robust CATE bands in a lower-dimensional heterogeneity problem.  Schroder, Melnychuk, and Feuerriegel (2025) study private orthogonal CATE learning, Schroder, Hartenstein, and Feuerriegel (2025) treat private intervals for the regular population ATE, and Shoham, Shenfeld, Velner-Harris, and Ligett (2026) give an asymptotic private-resampling conversion.  Niu et al. (2022) supply a differentially private heterogeneous-effect meta-learner and composition analysis, but no theorem there gives a finite-sample uniformly honest pointwise H\"older CATE interval, transcript-wise nonemptiness, or this expected-length phase and bracket.  Cai, Chakraborty, and Vuursteen (2024) supply a nearby pointwise nonparametric-regression privacy benchmark in a heterogeneous distributed experiment, whose one-server specialization supplies a central-private pointwise-regression comparison, but not causal nuisance cancellation, this single-curator replacement-private honest CATE interval, or its attainable-class selector and bracket.  Thus neither comparator supplies the theorem-level guarantees proved here.  The exact nuisance-adaptive and private-Gram frontier on the unchanged full class remains the stated open question.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_Q^{\mathrm c}(x_0)=\mathbb E_Q[Y(1)-Y(0)\mid X=x_0]\).
+Primary functional / estimator / diagnostic: \(\bar\tau_{\mathrm{DP}}(x_0;h,k)=\operatorname{clip}_{[-1,1]}\{\widehat\tau_{\mathrm{DP}}(x_0;h,k)\}\), and \(C_n(h,k)=[\bar\tau_{\mathrm{DP}}(x_0;h,k)\pm\{B(h,k)+S(h,k,\eta)+G(h,k,\eta,\epsilon_n,\delta_n)\}]\cap[-1,1]\)..
+\begin{itemize}
+  \item \texttt{d} --- \(d\) is the covariate dimension; \(\mathbb N_{\ge 1}\)
+  \item \texttt{calX} --- \(\mathcal X\) is the covariate domain
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=[0,1]^d\)
+  \item \texttt{n} --- \(n\) is the sample size; \(\mathbb N_{\ge 12}\)
+  \item \texttt{r0} --- \(r_0\) is the fixed radius of the anchor neighborhood; \((0,1/4]\)
+  \item \texttt{x0} --- \(x_0\) is the interior evaluation point; \([r_0,1-r_0]^d\)
+  \item \texttt{flow} --- \(\underline f\) is the local density lower bound; \((0,1]\)
+  \item \texttt{fup} --- \(\overline f\) is the global density upper bound; \([1,\infty)\)
+  \item \texttt{kappa} --- \(\kappa\) is the overlap constant; \((0,1/2)\)
+  \item \texttt{alpha} --- \(\alpha\) is the propensity-score Hölder exponent; \((0,\infty)\)
+  \item \texttt{beta} --- \(\beta\) is the control-regression Hölder exponent; \((0,\infty)\)
+  \item \texttt{gamma} --- \(\gamma\) is the CATE Hölder exponent; \((\beta,\infty)\)
+  \item \texttt{q} --- \(q\) is the nuisance-interaction smoothness
+  \par\smallskip\noindent\emph{Definition.} \(q=\alpha+\beta\)
+  \item \texttt{s} --- \(s\) is the average nuisance smoothness
+  \par\smallskip\noindent\emph{Definition.} \(s=q/2\)
+  \item \texttt{Lpi} --- \(L_\pi\) is the propensity Hölder radius; \((0,\infty)\)
+  \item \texttt{Lmu} --- \(L_\mu\) is the control-regression Hölder radius; \((0,\infty)\)
+  \item \texttt{Ltau} --- \(L_\tau\) is the CATE Hölder radius; \((0,\infty)\)
+  \item \texttt{eta} --- \(\eta\) is the noncoverage level; \((0,1/4)\)
+  \item \texttt{epsilon} --- \(\epsilon_n\) is the replacement-privacy parameter; \((0,1]\)
+  \item \texttt{delta} --- \(\delta_n\) is the approximate-privacy parameter; \((0,1/2)\)
+  \item \texttt{c0} --- \(c_0\) is a universal small-leakage constant; \((0,1/8]\)
+  \item \texttt{Holder} --- \(\mathcal H^u(L;\mathcal X)\) is the isotropic Hölder ball of exponent \(u\) and radius \(L\) on \(\mathcal X\); \((u,L,\mathcal X)\mapsto\mathcal H^u(L;\mathcal X)\)
+  \item \texttt{X} --- \(X\) is the covariate coordinate; \(\mathcal X\)
+  \item \texttt{A} --- \(A\) is the binary treatment coordinate; \(\{0,1\}\)
+  \item \texttt{Y0} --- \(Y(0)\) is the control potential outcome; \(\mathbb R\)
+  \item \texttt{Y1} --- \(Y(1)\) is the treated potential outcome; \(\mathbb R\)
+  \item \texttt{Y} --- \(Y\) is the observed outcome; \(\mathbb R\)
+  \item \texttt{O} --- \(O\) is one observed record
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,A,Y)\)
+  \item \texttt{Qfull} --- \(Q\) is a full-data law of \((X,A,Y,Y(0),Y(1))\)
+  \item \texttt{P} --- \(P_Q\) is the observed law induced by \(Q\)
+  \par\smallskip\noindent\emph{Definition.} \(P_Q=Q\circ O^{-1}\)
+  \item \texttt{f} --- \(f_Q\) is the Lebesgue density of \(X\) under \(P_Q\); \(\mathcal X\to[0,\infty)\)
+  \item \texttt{pi} --- \(\pi_Q\) is the propensity score; \(\mathcal X\to(0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\pi_Q(x)=P_Q(A=1\mid X=x)\)
+  \item \texttt{mu0} --- \(\mu_{0,Q}\) is the continuous control-regression version; \(\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{0,Q}(x)=\mathbb E_{P_Q}[Y\mid A=0,X=x]\)
+  \item \texttt{mu1} --- \(\mu_{1,Q}\) is the continuous treated-regression version; \(\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{1,Q}(x)=\mathbb E_{P_Q}[Y\mid A=1,X=x]\)
+  \item \texttt{tau} --- \(\tau_Q\) is the observed conditional contrast; \(\mathcal X\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau_Q(x)=\mu_{1,Q}(x)-\mu_{0,Q}(x)\)
+  \item \texttt{tauCausal} --- \(\tau_Q^{\mathrm c}\) is the continuous causal CATE version; \(\mathcal X\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau_Q^{\mathrm c}(x)=\mathbb E_Q[Y(1)-Y(0)\mid X=x]\)
+  \item \texttt{Dn} --- \(D_n\) is the observed sample
+  \par\smallskip\noindent\emph{Definition.} \(D_n=(O_1,\ldots,O_n)\sim P_Q^n\)
+  \item \texttt{m} --- \(m\) is the minimum block size in a deterministic three-way split of \(D_n\)
+  \par\smallskip\noindent\emph{Definition.} \(m=\lfloor n/3\rfloor\)
+  \item \texttt{Dpi} --- \(D_\pi\) is the propensity-pilot block; \(O^m\)
+  \item \texttt{Dmu} --- \(D_\mu\) is the control-regression-pilot block; \(O^m\)
+  \item \texttt{Dstar} --- \(D_*\) is the higher-order local-moment block; \(O^m\)
+  \item \texttt{h} --- \(h\) is the localization bandwidth; \((0,r_0]\)
+  \item \texttt{k} --- \(k\) is the dimension of the localized higher-order basis; \(\mathbb N_{\ge 1}\)
+  \item \texttt{Jpi} --- \(J_\pi\) is the propensity pilot spline dimension; \(\mathbb N_{\ge 1}\)
+  \item \texttt{Jmu} --- \(J_\mu\) is the control-regression pilot spline dimension; \(\mathbb N_{\ge 1}\)
+  \item \texttt{pgamma} --- \(p_\gamma\) is the fixed local-polynomial dimension
+  \par\smallskip\noindent\emph{Definition.} \(p_\gamma={d+\lfloor\gamma\rfloor\choose\lfloor\gamma\rfloor}\)
+  \item \texttt{rho} --- \(\rho_h\) is the fixed-dimensional tensor Legendre local-polynomial basis of order \(\lfloor\gamma\rfloor\); \(\mathcal X\to\mathbb R^{p_\gamma}\)
+  \item \texttt{Mpriv} --- \(\mathsf M_{h,k,J_\pi,J_\mu}^{\mathrm{DP}}\) is the private higher-order local learner; \(D_n\rightsquigarrow\mathbb R\)
+  \item \texttt{Qhat} --- \(\widehat Q_{\mathrm{DP}}\) is the spectrally stabilized private localized moment matrix; \(\mathbb R^{p_\gamma\times p_\gamma}\)
+  \item \texttt{Rhat} --- \(\widehat R_{\mathrm{DP}}\) is the private localized outcome-moment vector; \(\mathbb R^{p_\gamma}\)
+  \item \texttt{thetahat} --- \(\widehat\tau_{\mathrm{DP}}(x_0;h,k)\) is the output of the private higher-order local learner; \(\mathbb R\)
+  \item \texttt{CB} --- \(C_B\) is the bias-envelope constant derived in \(\mathrm{lem{:}uniform\text{-}remainder}\); \((0,\infty)\)
+  \item \texttt{CS} --- \(C_S\) is the sampling-envelope constant derived in \(\mathrm{lem{:}uniform\text{-}remainder}\); \((0,\infty)\)
+  \item \texttt{CG} --- \(C_G\) is the privacy-envelope constant derived in \(\mathrm{lem{:}uniform\text{-}remainder}\); \((0,\infty)\)
+  \item \texttt{Benv} --- \(B(h,k)\) is the deterministic higher-order bias envelope; \([0,\infty)\)
+  \item \texttt{Senv} --- \(S(h,k,\eta)\) is the sampling-fluctuation envelope; \([0,\infty)\)
+  \item \texttt{Genv} --- \(G(h,k,\eta,\epsilon_n,\delta_n)\) is the Gaussian privacy-noise envelope; \([0,\infty)\)
+  \item \texttt{Rrad} --- \(R_n(h,k)\) is the total confidence radius
+  \par\smallskip\noindent\emph{Definition.} \(R_n(h,k)=B(h,k)+S(h,k,\eta)+G(h,k,\eta,\epsilon_n,\delta_n)\)
+  \item \texttt{CI} --- \(C_n(h,k)\) is the released pointwise CATE confidence interval; \(\{[a,b]:a\le b\}\)
+  \item \texttt{Npriv} --- \(N_{\mathrm{priv}}\) is the effective privacy sample size
+  \par\smallskip\noindent\emph{Definition.} \(N_{\mathrm{priv}}=n\epsilon_n/\sqrt{\log(1/\delta_n)\log(1/\eta)}\)
+  \item \texttt{rNP} --- \(r_{\mathrm{np}}\) is the KBRW privacy-free pointwise rate
+  \item \texttt{rReg} --- \(r_{\mathrm{reg}}\) is the ordinary private-regression term
+  \item \texttt{rHO} --- \(r_{\mathrm{ho}}\) is the global-sensitivity higher-order release term
+  \item \texttt{rUp} --- \(r_{\mathrm{up}}\) is the justified attainable-submodel interval-length rate
+  \item \texttt{FullClass} --- \(\mathcal P_{\mathrm{full}}\) is the full positive-density Hölder causal law class
+  \item \texttt{AttClass} --- \(\mathcal P_{\mathrm{att}}\) is the uniform-design KBRW-attainable submodel
+  \item \texttt{Rstar} --- \(R_*\) is the fixed coordinatewise polynomial degree used by the higher-order multiresolution basis
+  \par\smallskip\noindent\emph{Definition.} \(R_*=\lfloor\gamma\rfloor+\lceil\max\{\alpha,\beta\}\rceil\)
+  \item \texttt{kpoly} --- \(k_{\mathrm{poly}}\) is the dimension of the initial complete polynomial scaling space
+  \par\smallskip\noindent\emph{Definition.} \(k_{\mathrm{poly}}=(R_*+1)^d\)
+  \item \texttt{b} --- \(b_{h,k}\) is the vector of the first \(k\) functions of a resolution-ordered orthonormal tensor-product piecewise-polynomial multiresolution basis on \(C_h=x_0+[-h/2,h/2]^d\).  At dyadic resolution \(j\ge0\), the complete scaling space \(V_j\) consists of functions that are tensor polynomials of coordinatewise degree at most \(R_*\) on each dyadic cell, with no intercell continuity constraint.  An orthonormal basis of \(V_0\) is ordered first, followed at each resolution by localized orthonormal bases of \(V_{j+1}\ominus V_j\).  Thus \(\dim V_0=k_{\mathrm{poly}}\); every prefix with \(k\ge k_{\mathrm{poly}}\) contains a last complete \(V_j\), whose cell width is comparable, by constants depending only on \(d\) and \(R_*\), to \(\ell_{h,k}=hk^{-1/d}\).  The basis is extended by zero off \(C_h\), satisfies \(\sup_{x\in C_h}\lVert b_{h,k}(x)\rVert_2\le C\sqrt{k}h^{-d/2}\), and its prefix projector kernels satisfy \(\sup_{k\ge1}\sup_{x\in C_h}\int_{C_h}|b_{h,k}(x)^{\mathsf T}b_{h,k}(z)|\,dz\le C\).; \(\mathcal X\to\mathbb R^k\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=A Y(1)+(1-A)Y(0)\), \(Q\)-almost surely.
+\par\smallskip\noindent\emph{Standard} (potential-outcome consistency, \cite{RosenbaumRubin1983}).
+\end{assumption}
+
+\begin{assumption}[ass:ignorability]\label{ass:ignorability}
+\((Y(0),Y(1))\mathbin{\perp\!\!\!\perp} A\mid X\) under \(Q\).
+\par\smallskip\noindent\emph{Standard} (conditional ignorability, \cite{RosenbaumRubin1983}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-outcomes]\label{ass:bounded-outcomes}
+\(Q\{0\le Y(a)\le 1\}=1\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (bounded common-support outcomes, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:overlap]\label{ass:overlap}
+\(\kappa\le\pi_Q(x)\le 1-\kappa\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (uniform binary-treatment overlap, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:global-density-upper]\label{ass:global-density-upper}
+\(f_Q(x)\le\overline f\) for Lebesgue-almost every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (bounded random-design density, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:local-density-lower]\label{ass:local-density-lower}
+\(f_Q(x)\ge\underline f\) for Lebesgue-almost every \(x\in x_0+[-r_0,r_0]^d\).
+\par\smallskip\noindent\emph{Standard} (positive local random-design density, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-design]\label{ass:uniform-design}
+\(f_Q(x)=1\) for Lebesgue-almost every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (known uniform random design, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:propensity-holder]\label{ass:propensity-holder}
+\(\pi_Q\in\mathcal H^\alpha(L_\pi;\mathcal X)\).
+\par\smallskip\noindent\emph{Standard} (isotropic Hölder propensity smoothness, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:control-holder]\label{ass:control-holder}
+\(\mu_{0,Q}\in\mathcal H^\beta(L_\mu;\mathcal X)\).
+\par\smallskip\noindent\emph{Standard} (isotropic Hölder control-regression smoothness, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:cate-holder]\label{ass:cate-holder}
+\(\tau_Q\in\mathcal H^\gamma(L_\tau;\mathcal X)\).
+\par\smallskip\noindent\emph{Standard} (isotropic Hölder CATE smoothness, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:full-law-class]\label{def:full-law-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal P_{\mathrm{full}}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\mathrm{full}}=\{Q:\text{Assumptions }\mathrm{ass{:}consistency},\mathrm{ass{:}ignorability},\mathrm{ass{:}bounded\text{-}outcomes},\mathrm{ass{:}overlap},\mathrm{ass{:}global\text{-}density\text{-}upper},\mathrm{ass{:}local\text{-}density\text{-}lower},\mathrm{ass{:}propensity\text{-}holder},\mathrm{ass{:}control\text{-}holder},\mathrm{ass{:}cate\text{-}holder}\text{ hold for }(d,x_0,r_0,\alpha,\beta,\gamma)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}ignorability}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}global-\allowbreak{}density-\allowbreak{}upper}; \texttt{ass:\allowbreak{}local-\allowbreak{}density-\allowbreak{}lower}; \texttt{ass:\allowbreak{}propensity-\allowbreak{}holder}; \texttt{ass:\allowbreak{}control-\allowbreak{}holder}; \texttt{ass:\allowbreak{}cate-\allowbreak{}holder}.
+\end{definition}
+
+\begin{definition}[def:attainable-law-class]\label{def:attainable-law-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal P_{\mathrm{att}}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\mathrm{att}}=\{Q:\text{Assumptions }\mathrm{ass{:}consistency},\mathrm{ass{:}ignorability},\mathrm{ass{:}bounded\text{-}outcomes},\mathrm{ass{:}overlap},\mathrm{ass{:}uniform\text{-}design},\mathrm{ass{:}propensity\text{-}holder},\mathrm{ass{:}control\text{-}holder},\mathrm{ass{:}cate\text{-}holder}\text{ hold for }(d,x_0,r_0,\alpha,\beta,\gamma)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}ignorability}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}design}; \texttt{ass:\allowbreak{}propensity-\allowbreak{}holder}; \texttt{ass:\allowbreak{}control-\allowbreak{}holder}; \texttt{ass:\allowbreak{}cate-\allowbreak{}holder}.
+\end{definition}
+
+\begin{definition}[def:private-higher-order-learner]\label{def:private-higher-order-learner}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf M_{h,k,J_\pi,J_\mu}^{\mathrm{DP}}\)
+\par\smallskip\noindent\emph{Construction.} Use the first \(3m\) observations and split them deterministically into \(D_\pi,D_\mu,D_*\), each of size \(m\); discard the remaining at most two observations.  Put \(\mathcal O_0=\mathcal X\times\{0,1\}\times[0,1]\), and, for \(R>0\), define radial clipping by
+\[
+ \operatorname{clip}_R(v)=v\min\{1,R/\lVert v\rVert_2\},
+ \qquad \operatorname{clip}_R(0)=0.
+\]
+Fix deterministic tensor-spline bases \(\phi_{\pi,J_\pi}\) and \(\phi_{\mu,J_\mu}\) of orders strictly larger than \(\alpha\) and \(\beta\), respectively.  Let \(\operatorname{svec}\) denote the isometric vectorization of a symmetric matrix, and let
+\[
+ z_{\pi}(x,a,y)=\operatorname{svec}\{\phi_{\pi,J_\pi}(x)\phi_{\pi,J_\pi}(x)^{\mathsf T}\}
+       \mathbin\oplus \phi_{\pi,J_\pi}(x)a,
+\]
+\[
+ z_{\mu}(x,a,y)=\operatorname{svec}\{(1-a)\phi_{\mu,J_\mu}(x)\phi_{\mu,J_\mu}(x)^{\mathsf T}\}
+       \mathbin\oplus \phi_{\mu,J_\mu}(x)(1-a)y.
+\]
+For \(u\in\{\pi,\mu\}\), define the replacement sensitivity
+\[
+ \Delta_u=\sup_{o,o'\in\mathcal O_0}m^{-1}\lVert z_u(o)-z_u(o')\rVert_2,
+ \qquad
+ \epsilon_n^\circ=\min\{\epsilon_n,1/2\},
+ \qquad
+ c_{\delta_n}=\sqrt{2\log(1.25/\delta_n)}+1,
+\]
+and release from the corresponding pilot block
+\[
+ \widetilde z_u=m^{-1}\sum_{i=1}^m z_u(O_i)
+       +c_{\delta_n}\Delta_u(\epsilon_n^\circ)^{-1}Z_u,
+ \qquad Z_u\sim N(0,I),
+\]
+with the three Gaussian vectors used below mutually independent and independent of \(D_n\).  Reconstruct the symmetric Gram matrix and moment vector from \(\widetilde z_u\), spectrally floor the Gram matrix at \(m^{-1}\), solve its normal equation, and call the resulting spline function \(\widetilde u\).  In \(L^2(\mathcal X)\), project \(\widetilde\pi\) onto the closed convex set
+\[
+ \mathcal C_\pi=\mathcal H^\alpha(L_\pi;\mathcal X)\cap\{v:\kappa\le v\le1-\kappa\}
+\]
+and project \(\widetilde\mu\) onto
+\[
+ \mathcal C_\mu=\mathcal H^\beta(L_\mu;\mathcal X)\cap\{v:0\le v\le1\}.
+\]
+Write the resulting deterministic measurable projections as \(\bar\pi\) and \(\bar\mu\).  If \(\mathcal C_\pi\) is empty, set \(\bar\pi\equiv1/2\), and if \(\mathcal C_\mu\) is empty, set \(\bar\mu\equiv0\).  For every \(Q\in\mathcal P_{\mathrm{att}}\) the relevant sets are nonempty because they contain the corresponding true nuisances.
+
+For the main block, let
+\[
+ C_h=x_0+[-h/2,h/2]^d,
+ \qquad K_h(x)=h^{-d}{\bf1}_{C_h}(x).
+\]
+Use the resolution-ordered orthonormal piecewise-polynomial multiresolution basis \(b_{h,k}\) from its corrected declaration.  Its canonical normalization, and that of \(\rho_h\), are fixed so that, for constants depending only on \((d,\alpha,\beta,\gamma)\),
+\[
+ \sup_{x\in C_h}\lVert\rho_h(x)\rVert_2\le c_\rho,
+ \qquad
+ \sup_{x\in C_h}\lVert b_{h,k}(x)\rVert_2\le c_b k^{1/2}h^{-d/2}.
+\]
+Writing \(P_{h,k}(x,z)=b_{h,k}(x)^{\mathsf T}b_{h,k}(z)\), the same fixed normalization satisfies
+\[
+ \sup_{k\ge1}\sup_{x\in C_h}\int_{C_h}|P_{h,k}(x,z)|\,dz\le c_P,
+\]
+and \(b_{h,k}=0\) off \(C_h\).  The learner remains defined for every finite integer \(k\ge1\); the fixed cutoff used for polynomial approximation is imposed only by the statistical results below.
+
+For \(o=(x,a,y)\) and \(o'=(x',a',y')\), put
+\[
+ L_Q(o)=K_h(x)\rho_h(x)\rho_h(x)^{\mathsf T}a\{a-\bar\pi(x)\},
+\]
+\[
+ L_R(o)=K_h(x)\rho_h(x)\{a-\bar\pi(x)\}\{y-\bar\mu(x)\},
+\]
+\[
+ H_Q^0(o,o')=K_h(x)\rho_h(x)\{a-\bar\pi(x)\}
+ b_{h,k}(x)^{\mathsf T}b_{h,k}(x')a'\rho_h(x')^{\mathsf T},
+\]
+\[
+ H_R^0(o,o')=K_h(x)\rho_h(x)\{a-\bar\pi(x)\}
+ b_{h,k}(x)^{\mathsf T}b_{h,k}(x')\{y'-\bar\mu(x')\},
+\]
+and set \(H_Q=H_Q^0\) and \(H_R=H_R^0\).  The ordered \(U\)-statistic below automatically includes both record orientations.  Define the concatenated kernels
+\[
+ L(o)=\operatorname{vec}\{L_Q(o)\}\mathbin\oplus L_R(o),
+ \qquad
+ H(o,o')=\operatorname{vec}\{H_Q(o,o')\}\mathbin\oplus H_R(o,o'),
+\]
+and their deterministic clipping radii
+\[
+ \mathcal V_\pi=\{p:\kappa\le p\le1-\kappa\},
+ \qquad \mathcal V_\mu=\{u:0\le u\le1\},
+\]
+\[
+ \Lambda_L=\sup_{\substack{o\in\mathcal O_0\\(p,u)\in\mathcal V_\pi\times\mathcal V_\mu}}
+       \lVert L_{p,u}(o)\rVert_2,
+ \qquad
+ \Lambda_H=\sup_{\substack{o,o'\in\mathcal O_0\\(p,u)\in\mathcal V_\pi\times\mathcal V_\mu}}
+       \lVert H_{p,u}(o,o')\rVert_2.
+\]
+Conditional on \((\bar\pi,\bar\mu)\), form
+\[
+ T_*={1\over m}\sum_{i=1}^m\operatorname{clip}_{\Lambda_L}\{L(O_i)\}
+ -{1\over m(m-1)}\sum_{i\ne j}\operatorname{clip}_{\Lambda_H}\{H(O_i,O_j)\},
+\]
+set
+\[
+ \overline\Delta_*={2\Lambda_L+4\Lambda_H\over m},
+ \qquad
+ \widetilde T_*=T_*+c_{\delta_n}\overline\Delta_*(\epsilon_n^\circ)^{-1}Z_*,
+ \qquad Z_*\sim N(0,I),
+\]
+and reconstruct \((\widetilde Q,\widetilde R)\) from \(\widetilde T_*\).  Set
+\[
+ \widehat Q_{\mathrm{DP}}
+ =U\operatorname{diag}\!\left(\max\left\{s_j,
+ {\kappa(1-\kappa)\over4}\right\}\right)V^{\mathsf T}
+ \quad\text{when}\quad
+ \widetilde Q=U\operatorname{diag}(s_j)V^{\mathsf T}
+\]
+is a singular-value decomposition.  Let \(\widehat R_{\mathrm{DP}}=\widetilde R\), and return
+\[
+ \widehat\tau_{\mathrm{DP}}(x_0;h,k)
+ =\rho_h(x_0)^{\mathsf T}\widehat Q_{\mathrm{DP}}^{-1}\widehat R_{\mathrm{DP}}.
+\]
+Each block release uses \((\epsilon_n,\delta_n)\); all normal-equation solving, metric projection, singular-value flooring, inversion, evaluation, and interval formation are post-processing.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dn}; \texttt{h}; \texttt{k}; \texttt{Jpi}; \texttt{Jmu}; \texttt{epsilon}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:bias-envelope]\label{def:bias-envelope}
+\par\smallskip\noindent\emph{Defined object.} \(B(h,k)\)
+\par\smallskip\noindent\emph{Construction.} \(B(h,k)=C_B\{h^\gamma+(h/k^{1/d})^q+h^\gamma(h/k^{1/d})^\alpha\}\), where \(C_B\) depends only on the displayed class radii, overlap, and dimension.
+\par\smallskip\noindent\emph{Inputs.} \texttt{h}; \texttt{k}.
+\end{definition}
+
+\begin{definition}[def:sampling-envelope]\label{def:sampling-envelope}
+\par\smallskip\noindent\emph{Defined object.} \(S(h,k,\eta)\)
+\par\smallskip\noindent\emph{Construction.} Let \(x_\eta=\log(8/\eta)\) and \(M_h=mh^d\).  The corrected sampling envelope is
+\[
+ S(h,k,\eta)=C_S\left\{
+ \sqrt{\frac{x_\eta}{M_h}\left(1+\frac{k}{M_h}\right)}
+ +\frac{x_\eta}{M_h}
+ +\frac{\sqrt{k}\,x_\eta^{3/2}}{M_h^{3/2}}
+ +\frac{kx_\eta^2}{M_h^2}
+ \right\}.
+\]
+Here \(C_S\) depends only on the displayed class radii, overlap, dimension, and fixed basis normalizations.
+\par\smallskip\noindent\emph{Inputs.} \texttt{h}; \texttt{k}; \texttt{eta}.
+\end{definition}
+
+\begin{definition}[def:privacy-envelope]\label{def:privacy-envelope}
+\par\smallskip\noindent\emph{Defined object.} \(G(h,k,\eta,\epsilon_n,\delta_n)\)
+\par\smallskip\noindent\emph{Construction.} \(G(h,k,\eta,\epsilon_n,\delta_n)=C_G\frac{\sqrt{\log(1/\delta_n)\log(8/\eta)}}{m\epsilon_n}\{h^{-d}+k h^{-2d}\}\), the Gaussian quantile obtained from the joint sensitivity of the clipped linear and order-two moment vector after spectral stabilization.
+\par\smallskip\noindent\emph{Inputs.} \texttt{h}; \texttt{k}; \texttt{eta}; \texttt{epsilon}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:private-confidence-interval]\label{def:private-confidence-interval}
+\par\smallskip\noindent\emph{Defined object.} \(C_n(h,k)\)
+\par\smallskip\noindent\emph{Construction.} Let \(\bar\tau_{\mathrm{DP}}(x_0;h,k)=\operatorname{clip}_{[-1,1]}\{\widehat\tau_{\mathrm{DP}}(x_0;h,k)\}=\max\{-1,\min\{1,\widehat\tau_{\mathrm{DP}}(x_0;h,k)\}\}\).  Define \(C_n(h,k)=[\bar\tau_{\mathrm{DP}}(x_0;h,k)-R_n(h,k),\bar\tau_{\mathrm{DP}}(x_0;h,k)+R_n(h,k)]\cap[-1,1]\), where \(R_n(h,k)=B(h,k)+S(h,k,\eta)+G(h,k,\eta,\epsilon_n,\delta_n)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{thetahat}; \texttt{Benv}; \texttt{Senv}; \texttt{Genv}.
+\end{definition}
+
+\begin{definition}[def:phase-rate]\label{def:phase-rate}
+\par\smallskip\noindent\emph{Defined object.} \(r_{\mathrm{up}}\)
+\par\smallskip\noindent\emph{Construction.} \(r_{\mathrm{np}}=n^{-1/(1+d/(2\gamma)+d/(4s))}\) if \(s<\frac{d/4}{1+d/(2\gamma)}\), and \(r_{\mathrm{np}}=n^{-1/(2+d/\gamma)}\) otherwise.  Put \(\bar q=\min\{q,\gamma\}\), \(r_{\mathrm{reg}}=N_{\mathrm{priv}}^{-\gamma/(\gamma+d)}\), \(r_{\mathrm{ho}}=N_{\mathrm{priv}}^{-\bar q\gamma/\{(d+\bar q)\gamma+\bar q d\}}\), and \(r_{\mathrm{up}}=r_{\mathrm{np}}\vee r_{\mathrm{reg}}\vee r_{\mathrm{ho}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{epsilon}; \texttt{delta}; \texttt{eta}; \texttt{alpha}; \texttt{beta}; \texttt{gamma}; \texttt{d}.
+\end{definition}
+
+\begin{definition}[def:full-frontier-handle]\label{def:full-frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{the positive-\allowbreak{}density confidence-\allowbreak{}modulus handle}
+\par\smallskip\noindent\emph{Construction.} Start from two certified endpoints on \(\mathcal P_{\mathrm{full}}\): the ordinary positive-density H\"older-bump lower bound and the all-observation, fixed-dimensional private direct-regression upper bound for the pointwise CATE \(\tau_Q\).  To determine the sharp replacement-private confidence modulus, test whether a paired-cell coupling, a propose-test-release stabilization, or a disjoint-pair-block stabilization can improve one of these endpoints while preserving uniform bias control.  Treat both the global-sensitivity term of \(\mathsf M_{h,k,J_\pi,J_\mu}^{\mathrm{DP}}\) on its attainable submodel and the full-class direct-regression upper as benchmarks, not as asserted full-class optima.
+\par\smallskip\noindent\emph{Inputs.} \texttt{FullClass}; \texttt{Mpriv}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:pointwise-identification]\label{lem:pointwise-identification}
+For every \(Q\in\mathcal P_{\mathrm{full}}\), the Hölder versions are unique on the positive anchor neighborhood and \(\tau_Q^{\mathrm c}(x_0)=\tau_Q(x_0)=\mu_{1,Q}(x_0)-\mu_{0,Q}(x_0)\).
+\end{lemma}
+\begin{proof}
+Fix \(Q\in\mathcal P_{\mathrm{full}}\).  By consistency, on the event \(A=a\) one has \(Y=Y(a)\), and by conditional ignorability,
+\[
+ \mathbb E_Q\{Y(a)\mid A=a,X\}=\mathbb E_Q\{Y(a)\mid X\}
+ \qquad Q\text{-almost surely},\qquad a\in\{0,1\}.
+\]
+Overlap makes both treatment strata nonnull conditionally on \(X=x\).  Consequently, for \(Q_X\)-almost every \(x\),
+\[
+ \mu_{a,Q}(x)=\mathbb E_Q\{Y(a)\mid X=x\},
+ \qquad
+ \tau_Q(x)=\mathbb E_Q\{Y(1)-Y(0)\mid X=x\}.
+\]
+The functions \(\mu_{0,Q}\) and \(\tau_Q\) are continuous by the two stated H\"older assumptions, and hence \(\mu_{1,Q}=\mu_{0,Q}+\tau_Q\) is continuous.  The right-hand side in the second display therefore has the continuous version \(\tau_Q\).
+
+It remains to justify evaluation at a point.  If two continuous versions \(g_1,g_2\) on \(x_0+[-r_0,r_0]^d\) agree \(Q_X\)-almost everywhere but differ at some point \(x\), continuity supplies a relatively open ball \(U\) on which \(|g_1-g_2|>0\).  This set has positive Lebesgue measure.  The local density lower bound then gives
+\[
+ Q_X(U)=\int_U f_Q(u)\,du\ge \underline f\,\operatorname{Leb}(U)>0,
+\]
+contradicting almost-everywhere equality.  Thus the continuous versions are unique throughout the anchor neighborhood.  Evaluating the preceding equality at \(x_0\) proves
+\[
+ \tau_Q^{\mathrm c}(x_0)=\tau_Q(x_0)
+ =\mu_{1,Q}(x_0)-\mu_{0,Q}(x_0).
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The target must be a point-identified causal contrast rather than an arbitrary version of an almost-everywhere conditional mean. \textit{Gap.} KennedyBalakrishnanRobinsWasserman2024 uses the observed CATE regression; this lemma records the causal-version equality at the anchor under the present full-data model. \textit{Consumer.} Applied users can interpret coverage of \(C_n(h,k)\) as coverage of the causal CATE at the prespecified covariate profile \(x_0\).
+
+\begin{proposition}[prop:attainable-inclusion]\label{prop:attainable-inclusion}
+The concrete attainable model satisfies \(\mathcal P_{\mathrm{att}}\subset\mathcal P_{\mathrm{full}}\).
+\end{proposition}
+\begin{proof}
+Let \(Q\in\mathcal P_{\mathrm{att}}\).  By Definition
+\(\mathrm{def{:}attainable\text{-}law\text{-}class}\), \(Q\) satisfies
+consistency, ignorability, bounded outcomes, overlap, propensity H\"older
+smoothness, control-regression H\"older smoothness, and CATE H\"older
+smoothness, which are all the nondensity member conditions in Definition
+\(\mathrm{def{:}full\text{-}law\text{-}class}\).  It remains only to verify
+the two density conditions in the latter definition.  Assumption
+\(\mathrm{ass{:}uniform\text{-}design}\) gives
+\[
+ f_Q(x)=1
+ \quad\text{for Lebesgue-almost every }x\in\mathcal X.
+\tag{1}
+\]
+The declared ranges \(0<\underline f\le1\) and
+\(1\le\overline f<\infty\), together with (1), imply
+\[
+ f_Q(x)\le\overline f
+ \quad\text{for Lebesgue-almost every }x\in\mathcal X
+\tag{2}
+\]
+and
+\[
+ f_Q(x)\ge\underline f
+ \quad\text{for Lebesgue-almost every }
+ x\in x_0+[-r_0,r_0]^d.
+\tag{3}
+\]
+Thus \(Q\) also satisfies the global density upper bound and the anchor
+local density lower bound.  Every member condition in Definition
+\(\mathrm{def{:}full\text{-}law\text{-}class}\) now holds, so
+\(Q\in\mathcal P_{\mathrm{full}}\).  Since \(Q\) was arbitrary,
+\(\mathcal P_{\mathrm{att}}\subset\mathcal P_{\mathrm{full}}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This inclusion separates the uniform-design attainable construction from claims over the full positive-density class. \textit{Gap.} The proposition establishes class inclusion only; the separate population-algebra lemma uses uniform design and the normalized bases to derive the construction-specific Gram identities. \textit{Consumer.} The inclusion identifies exactly which proved full-class results may be invoked for laws in the attainable submodel without transferring the attainable upper bound in the reverse direction.
+
+\begin{lemma}[lem:private-release-and-sensitivity]\label{lem:private-release-and-sensitivity}
+For replacement-adjacent samples, the explicitly calibrated \(\mathsf M_{h,k,J_\pi,J_\mu}^{\mathrm{DP}}\) and \(C_n(h,k)\) are \((\epsilon_n,\delta_n)\)-differentially private.  The accountant is adaptive parallel composition across \(D_\pi,D_\mu,D_*\), one joint Gaussian mechanism within each block, and post-processing thereafter.  There is a constant \(C_\Delta\), depending only on \((d,\kappa,\alpha,\beta,\gamma)\) and the fixed basis normalizations, such that, conditional on the projected pilots, the main joint moment statistic has replacement \(\ell_2\)-sensitivity at most
+\[
+ {C_\Delta\over m}\{h^{-d}+k h^{-2d}\},
+\]
+uniformly over \(\mathcal P_{\mathrm{att}}\).
+\end{lemma}
+\begin{proof}
+Fix \(n\ge 12\), \(0<h\le r_0\), a finite integer \(k\ge1\), and positive integers \(J_\pi,J_\mu\).  Then \(m=\lfloor n/3\rfloor\ge4\), so the ordered quadratic average in Definition \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) is well defined.  By Assumptions \(\mathrm{ass{:}consistency}\) and \(\mathrm{ass{:}bounded\text{-}outcomes}\), every observed record under any \(Q\in\mathcal P_{\mathrm{att}}\) lies almost surely in the privacy domain
+\[
+ \mathcal O_0=[0,1]^d\times\{0,1\}\times[0,1].
+\]
+The privacy calculation below is deterministic on \(\mathcal O_0^n\) and therefore does not otherwise depend on \(Q\).
+
+First condition on arbitrary realized projected pilots \((\bar\pi,\bar\mu)\).  If a projection set in Definition \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) is nonempty, membership of the projection in that set gives the relevant range restriction; if it is empty, the prescribed fallback gives the same restriction.  Hence, using \(0<\kappa<1/2\),
+\[
+ \kappa\le \bar\pi(x)\le1-\kappa,
+ \qquad 0\le\bar\mu(x)\le1
+ \quad (x\in\mathcal X).
+\tag{1}
+\]
+For \(o=(x,a,y)\in\mathcal O_0\), all scalar factors in the kernels involving \(a\), \(a-\bar\pi(x)\), or \(y-\bar\mu(x)\) consequently have absolute value at most one.  The basis bounds and \(K_h\le h^{-d}\) from the same definition therefore imply
+\[
+ \|\operatorname{vec}L_Q(o)\|_2\le c_\rho^2h^{-d},
+ \qquad
+ \|L_R(o)\|_2\le c_\rho h^{-d}.
+\]
+Thus, with \(c_L=(c_\rho^4+c_\rho^2)^{1/2}\),
+\[
+ \|L(o)\|_2\le c_Lh^{-d}.
+\tag{2}
+\]
+Moreover, Cauchy--Schwarz and the support and normalization of \(b_{h,k}\) give
+\[
+ |b_{h,k}(x)^{\mathsf T}b_{h,k}(x')|
+ \le c_b^2kh^{-d}
+\]
+when both arguments are in \(C_h\), while the left side is zero if either argument is outside \(C_h\).  It follows that
+\[
+ \|\operatorname{vec}H_Q(o,o')\|_2
+ \le c_b^2c_\rho^2kh^{-2d},
+ \qquad
+ \|H_R(o,o')\|_2
+ \le c_b^2c_\rho kh^{-2d}.
+\]
+With \(c_H=c_b^2(c_\rho^4+c_\rho^2)^{1/2}\), the deterministic clipping radii consequently satisfy
+\[
+ \Lambda_L\le c_Lh^{-d},
+ \qquad
+ \Lambda_H\le c_Hkh^{-2d}.
+\tag{3}
+\]
+Equations (1)--(3) hold uniformly over all pilot realizations and all \(Q\in\mathcal P_{\mathrm{att}}\).
+
+Let two main-block samples differ by replacement at index \(r\).  The clipped linear average changes by at most \(2\Lambda_L/m\).  Exactly \(2(m-1)\) ordered pairs, namely \((r,j)\) and \((j,r)\) for \(j\ne r\), can change in the quadratic average.  Each changed clipped vector differs from its old value by at most \(2\Lambda_H\).  The triangle inequality therefore yields
+\[
+ \begin{aligned}
+ \|T_*(D_*)-T_*(D_*')\|_2
+ &\le {2\Lambda_L\over m}
+   +{2(m-1)\,2\Lambda_H\over m(m-1)}\\
+ &= {2\Lambda_L+4\Lambda_H\over m}\\
+ &\le {C_\Delta\over m}\{h^{-d}+kh^{-2d}\},
+ \end{aligned}
+\tag{4}
+\]
+where \(C_\Delta=\max\{2c_L,4c_H\}\).  This proves the asserted conditional sensitivity bound, with the stated dependence of its constant.
+
+For each \(u\in\{\pi,\mu\}\), replacement of one record in its pilot block changes the unnoised sufficient-statistic average by
+\[
+ \left\|m^{-1}\sum_{i=1}^m z_u(O_i)
+       -m^{-1}\sum_{i=1}^m z_u(O_i')\right\|_2
+ =m^{-1}\|z_u(o)-z_u(o')\|_2\le\Delta_u.
+\tag{5}
+\]
+The supremum defining \(\Delta_u\) is finite because each fixed finite-dimensional spline coordinate is bounded on the compact cube and \((a,y)\in\{0,1\}\times[0,1]\).  Equation (4) similarly shows that \(\overline\Delta_*=(2\Lambda_L+4\Lambda_H)/m\) is a valid replacement sensitivity conditional on the pilots.
+
+The symbol domains give \(0<\epsilon_n\le1\) and \(0<\delta_n<1/2\).  Hence
+\[
+ 0<\epsilon_n^\circ=\min\{\epsilon_n,1/2\}<1,
+ \qquad
+ c_{\delta_n}>\sqrt{2\log(1.25/\delta_n)}.
+\]
+Applying Lemma \(\mathrm{lem{:}gaussian\text{-}mechanism\text{-}replacement}\) to (5) proves that each pilot release is \((\epsilon_n^\circ,\delta_n)\)-differentially private on its own block.  Conditional on every fixed pilot realization, the same lemma applied to (4) proves that the main release is \((\epsilon_n^\circ,\delta_n)\)-differentially private on \(D_*\).
+
+We verify the adaptive parallel accountant directly.  Let \(Z_\pi^{\mathrm{rel}},Z_\mu^{\mathrm{rel}}\) be the pilot releases, let \(W^{\mathrm{rel}}\) be the main release, and put \(\mathcal T=(Z_\pi^{\mathrm{rel}},Z_\mu^{\mathrm{rel}},W^{\mathrm{rel}})\).  If adjacent full samples differ in \(D_*\), the joint pilot law \(\nu\) is common.  For a transcript event \(E\), let \(E_z\) be its section at pilot value \(z\), and let \(K_D(z,\cdot)\) be the conditional main-release law.  Conditional privacy and integration against \(\nu\) give
+\[
+ \begin{aligned}
+ \Pr_D(\mathcal T\in E)
+ &=\int K_D(z,E_z)\,d\nu(z)\\
+ &\le e^{\epsilon_n^\circ}\int K_{D'}(z,E_z)\,d\nu(z)+\delta_n\\
+ &=e^{\epsilon_n^\circ}\Pr_{D'}(\mathcal T\in E)+\delta_n.
+ \end{aligned}
+\tag{6}
+\]
+If the replacement lies in \(D_\pi\), condition on the unchanged blocks.  Once \(Z_\pi^{\mathrm{rel}}=z\) is fixed, all later randomized operations define the same Markov kernel \(K(z,\cdot)\) under the two adjacent inputs.  For \(g(z)=K(z,E)\in[0,1]\), the layer-cake identity and pilot privacy imply
+\[
+ \begin{aligned}
+ \int g\,d\mathsf P_D
+ &=\int_0^1\mathsf P_D\{g>t\}\,dt\\
+ &\le\int_0^1\{e^{\epsilon_n^\circ}\mathsf P_{D'}\{g>t\}+\delta_n\}\,dt\\
+ &=e^{\epsilon_n^\circ}\int g\,d\mathsf P_{D'}+\delta_n.
+ \end{aligned}
+\tag{7}
+\]
+This is the privacy inequality for the full transcript.  The argument for a replacement in \(D_\mu\) is identical, and a replacement among the at most two discarded observations leaves the transcript unchanged.  Equations (6)--(7) cover all cases, proving that \(\mathcal T\) is replacement \((\epsilon_n^\circ,\delta_n)\)-differentially private.  Since \(\epsilon_n^\circ\le\epsilon_n\), it is also replacement \((\epsilon_n,\delta_n)\)-differentially private.
+
+All pilot reconstruction, metric projection, spectral flooring, inversion, and evaluation operations in Definition \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) are measurable post-processing of \(\mathcal T\).  In the corrected Definition \(\mathrm{def{:}private\text{-}confidence\text{-}interval}\), the map
+\[
+ \widehat\tau_{\mathrm{DP}}(x_0;h,k)
+ \longmapsto
+ \bar\tau_{\mathrm{DP}}(x_0;h,k)
+ =\max\{-1,\min\{1,\widehat\tau_{\mathrm{DP}}(x_0;h,k)\}\}
+\]
+is deterministic post-processing, as are formation of the interval with deterministic radius \(R_n(h,k)\) and intersection with \([-1,1]\).  Applying the transcript privacy inequality to inverse images of output events proves that both \(\mathsf M_{h,k,J_\pi,J_\mu}^{\mathrm{DP}}\) and the corrected \(C_n(h,k)\) are replacement \((\epsilon_n,\delta_n)\)-differentially private.  Thus clipping the released center changes neither the accountant nor the sensitivity bound (4).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Every pilot and every higher-order moment is protected under one explicit replacement-privacy accountant, and clipping the released center is certified post-processing. \textit{Gap.} SchroederMelnychukFeuerriegel2025 privatizes ordinary orthogonal CATE learners; it does not bound the sensitivity of a localized quadratic correction with shrinking bandwidth and growing basis dimension. \textit{Consumer.} Privacy officers can audit the release ledger, including center clipping and interval formation, without treating nuisance fits or the quadratic correction as unprotected preprocessing.
+
+\begin{theorem}[thm:phase-sensitive-expected-length]\label{thm:phase-sensitive-expected-length}
+There are constants \(n_0\in\mathbb N\) and \(C_L<\infty\), depending only on the fixed class constants and \(\eta\), such that the following holds for every \(n\ge n_0\). Choose \((h,k)\) by deterministic minimization of
+\[
+ B(h,k)+S(h,k,\eta)+G(h,k,\eta,\epsilon_n,\delta_n)
+\]
+over \(0<h\le r_0\), integers \(k\ge k_{\mathrm{poly}}\), and \(m h^d\ge C_S^2\log(8/\eta)\), with no upper restriction relating \(k\) to \(m h^d\). For any deterministic pilot spline dimensions \(J_\pi,J_\mu\ge1\),
+\[
+ \sup_{Q\in\mathcal P_{\mathrm{att}}}
+ \mathbb E_Q[\operatorname{length}\{C_n(h,k)\}]
+ \le C_L\{1\wedge r_{\mathrm{up}}\}.
+\]
+Here \(r_{\mathrm{up}}=r_{\mathrm{np}}\vee r_{\mathrm{reg}}\vee r_{\mathrm{ho}}\) is the untruncated rate in Definition \(\mathrm{def{:}phase\text{-}rate}\), with \(\bar q=\min\{q,\gamma\}\); the achieved length bound is saturated by the displayed factor \(1\wedge r_{\mathrm{up}}\). Thus the length of this global-sensitivity construction is governed by the privacy-free term, the ordinary private-regression term, and a higher-order term which equals the \(q\)-branch for \(q<\gamma\) and the private-Gram branch \(N_{\mathrm{priv}}^{-\gamma/(\gamma+2d)}\) for \(q\ge\gamma\). No matching full-class lower claim or full-class frontier claim is made.
+\end{theorem}
+\begin{proof}
+Put
+\[
+ x=\log(8/\eta),\quad M=mh^d,\quad \ell=hk^{-1/d},
+\]
+and define
+\[
+ r_o=n^{-1/(2+d/\gamma)},
+ \quad
+ r_2=n^{-1/\{1+d/(2\gamma)+d/(2q)\}}.
+\tag{1}
+\]
+The declared domains imply \(d\ge1\), \(q=\alpha+\beta>0\), \(\gamma>0\), and \(x>0\).  They also imply \(0<\epsilon_n\le1\), \(0<\delta_n<1/2\), and \(0<\eta<1/4\), so \(N_{\mathrm{priv}}\) is positive and finite and every division below is legitimate.  Since \(n\ge12\) and \(m=\lfloor n/3\rfloor\),
+\[
+ {n\over4}\le m\le {n\over3}.
+\tag{2}
+\]
+Because \(s=q/2\), the low-smoothness condition in Definition \(\mathrm{def{:}phase\text{-}rate}\) is
+\[
+ q<{d\over2\{1+d/(2\gamma)\}}.
+\tag{3}
+\]
+Direct algebra gives
+\[
+ 1+{d\over2\gamma}+{d\over2q}>2+{d\over\gamma}
+ \quad\Longleftrightarrow\quad
+ q<{d\over2\{1+d/(2\gamma)\}},
+\tag{4}
+\]
+and the two denominators are equal on the boundary.  Hence the piecewise definition of \(r_{\mathrm{np}}\) is equivalently
+\[
+ r_{\mathrm{np}}=r_o\vee r_2.
+\tag{5}
+\]
+Set
+\[
+ R=r_{\mathrm{np}}\vee r_{\mathrm{reg}}\vee r_{\mathrm{ho}}
+   =r_{\mathrm{up}},
+ \quad
+ t=1\wedge R.
+\tag{6}
+\]
+Fix a constant \(t_0\) satisfying
+\[
+ 0<t_0<1\wedge r_0^\gamma.
+\tag{7}
+\]
+
+We first establish, independently of the value of \(t\), that the deterministic minimizer in the statement exists.  Choose \(n_0\ge12\) large enough that, for every \(n\ge n_0\),
+\[
+ mr_0^d\ge C_S^2x
+ \quad\text{and}\quad
+ {1\over4}n^{2\gamma/(2\gamma+d)}\ge C_S^2x.
+\tag{8}
+\]
+Such an \(n_0\) exists because \(m=\lfloor n/3\rfloor\) and both left-hand sides diverge with \(n\).  For every \(n\ge n_0\), the bandwidth set is therefore the nonempty compact interval
+\[
+ I_n=\left[\left\{{C_S^2x\over m}\right\}^{1/d},r_0\right],
+\tag{9}
+\]
+and \((r_0,k_{\mathrm{poly}})\) is feasible, whether or not \(t<t_0\).  Write
+\[
+ F_n(h,k)=B(h,k)+S(h,k,\eta)
+       +G(h,k,\eta,\epsilon_n,\delta_n)
+\]
+and \(V_n=F_n(r_0,k_{\mathrm{poly}})<\infty\).  The final term of Definition \(\mathrm{def{:}sampling\text{-}envelope}\), together with \(h\le r_0\), yields
+\[
+ F_n(h,k)
+ \ge {C_Sx^2\over m^2h^{2d}}k
+ \ge {C_Sx^2\over m^2r_0^{2d}}k
+ =:c_nk,
+ \quad c_n>0.
+\tag{10}
+\]
+Thus no integer \(k>V_n/c_n\) can minimize \(F_n\).  The remaining candidate integers \(k\ge k_{\mathrm{poly}}\) form a finite nonempty set, and for each such \(k\), continuity of \(F_n(\,\cdot\,,k)\) on the closed bounded interval \(I_n\) gives a minimizing bandwidth.  Minimization over the finite set of candidate integers gives a global minimizer.  Choosing the smallest minimizing \(k\), and then the smallest minimizing \(h\), is a deterministic tie-breaking rule.  Denote the resulting minimizer by \((\widehat h,\widehat k)\).
+
+It remains to bound its objective.  Suppose first that \(t<t_0\).  Then \(t<1\), so (6) gives \(t=R\) and hence
+\[
+ t\ge r_o,\quad t\ge r_2,
+ \quad t\ge r_{\mathrm{reg}},\quad t\ge r_{\mathrm{ho}}.
+\tag{11}
+\]
+For any feasible \((h,k)\), put
+\[
+ a=M^{-1/2},\quad b={\sqrt{k}\over M}.
+\]
+Since \(k\ge1\), \(0<\ell\le h\le r_0\le1/4\).  Definitions \(\mathrm{def{:}bias\text{-}envelope}\) and \(\mathrm{def{:}sampling\text{-}envelope}\) therefore imply
+\[
+ B(h,k)\le C\{h^\gamma+\ell^q\},
+\tag{12}
+\]
+because \(h^\gamma\ell^\alpha\le h^\gamma\), and
+\[
+ S(h,k,\eta)=C_S\left\{
+ \sqrt{x(a^2+b^2)}+xa^2+x^{3/2}ab+x^2b^2
+ \right\}.
+\tag{13}
+\]
+Furthermore, the definition of \(N_{\mathrm{priv}}\) and (2) give
+\[
+ {\sqrt{\log(1/\delta_n)\log(8/\eta)}\over m\epsilon_n}
+ ={n\over m}\sqrt{{\log(8/\eta)\over\log(1/\eta)}}
+ N_{\mathrm{priv}}^{-1}
+ \le C N_{\mathrm{priv}}^{-1}.
+\]
+Consequently Definition \(\mathrm{def{:}privacy\text{-}envelope}\) gives
+\[
+ G(h,k,\eta,\epsilon_n,\delta_n)
+ \le C N_{\mathrm{priv}}^{-1}\{h^{-d}+kh^{-2d}\}
+ =C N_{\mathrm{priv}}^{-1}\{h^{-d}+h^{-d}\ell^{-d}\}.
+\tag{14}
+\]
+Here and below \(C\) denotes a finite constant depending only on the fixed class constants and \(\eta\), and it may change from line to line.
+
+Consider first \(q<\gamma\).  Define the comparison tuning
+\[
+ h=t^{1/\gamma},\quad \ell_0=t^{1/q},
+ \quad K=(h/\ell_0)^d,\quad
+ k=\max\{k_{\mathrm{poly}},\lceil K\rceil\}.
+\tag{15}
+\]
+By (7), \(h<r_0\).  Since \(0<t<1\) and \(q<\gamma\), \(K\ge1\), whence
+\[
+ K\le k\le \max\{2,k_{\mathrm{poly}}\}K,
+ \quad
+ \max\{2,k_{\mathrm{poly}}\}^{-1/d}\ell_0
+ \le \ell\le\ell_0.
+\tag{16}
+\]
+In particular, (12), (15), and (16) show that \(B(h,k)\le Ct\).  Equations (1), (2), and (11) imply
+\[
+ a=m^{-1/2}t^{-d/(2\gamma)}
+ \le2n^{-1/2}t^{-d/(2\gamma)}
+ \le2t,
+\tag{17}
+\]
+because the last inequality is equivalent to \(t\ge r_o\).  Similarly, (2), (15), and (16) give
+\[
+ b\le Cn^{-1}t^{-d/(2\gamma)-d/(2q)}\le Ct,
+\tag{18}
+\]
+where the last inequality is equivalent to \(t\ge r_2\).  Since \(t\le1\), substituting (17)--(18) into (13) yields \(S(h,k,\eta)\le Ct\).
+
+On this branch \(\bar q=q\), so Definition \(\mathrm{def{:}phase\text{-}rate}\) gives
+\[
+ r_{\mathrm{reg}}=N_{\mathrm{priv}}^{-1/(1+d/\gamma)},
+ \quad
+ r_{\mathrm{ho}}=N_{\mathrm{priv}}^{-1/(1+d/\gamma+d/q)}.
+\tag{19}
+\]
+Thus the last two inequalities in (11) imply, respectively,
+\[
+ N_{\mathrm{priv}}^{-1}t^{-d/\gamma}\le t,
+ \quad
+ N_{\mathrm{priv}}^{-1}t^{-d/\gamma-d/q}\le t.
+\tag{20}
+\]
+Using (14)--(16) in (20) shows that \(G(h,k,\eta,\epsilon_n,\delta_n)\le Ct\).  The comparison tuning (15) is feasible: indeed, (1), (2), and \(t\ge r_o\) give
+\[
+ mh^d=mt^{d/\gamma}
+ \ge {1\over4}n^{2\gamma/(2\gamma+d)}
+ \ge C_S^2x,
+\tag{21}
+\]
+where the last inequality follows from the choice (8) of \(n_0\).  We have proved on the \(q<\gamma\) branch that
+\[
+ F_n(h,k)\le Ct.
+\tag{22}
+\]
+No step imposed an upper bound on \(k\), so this calculation remains valid when \(k>M\).
+
+Now consider \(q\ge\gamma\), still under \(t<t_0\).  Choose the comparison tuning
+\[
+ h=t^{1/\gamma},\quad k=k_{\mathrm{poly}},
+ \quad \ell=hk_{\mathrm{poly}}^{-1/d}.
+\tag{23}
+\]
+Again \(h<r_0\) by (7), and feasibility follows from the same calculation (21).  The integer \(k_{\mathrm{poly}}=(R_*+1)^d\) depends only on the fixed smoothness and dimension parameters.  Hence \(\ell\) is comparable to \(h\); since \(q\ge\gamma\), \(h<1\), and \(\alpha>0\), (12) gives \(B(h,k_{\mathrm{poly}})\le Ct\).  Equation (17) remains valid, while
+\[
+ b={\sqrt{k_{\mathrm{poly}}}\over M}
+   =\sqrt{k_{\mathrm{poly}}}\,a^2\le Ct^2.
+\tag{24}
+\]
+Substitution into (13) gives \(S(h,k_{\mathrm{poly}},\eta)\le Ct\).  Here \(\bar q=\gamma\), and hence
+\[
+ r_{\mathrm{ho}}
+ =N_{\mathrm{priv}}^{-1/(1+2d/\gamma)}
+ =N_{\mathrm{priv}}^{-\gamma/(\gamma+2d)}.
+\tag{25}
+\]
+The inequality \(t\ge r_{\mathrm{ho}}\) is equivalent to
+\[
+ N_{\mathrm{priv}}^{-1}t^{-2d/\gamma}\le t.
+\tag{26}
+\]
+At (23), each term on the right-hand side of (14) is at most a fixed multiple of the left-hand side of (26), because \(0<t<1\) and \(k_{\mathrm{poly}}\) is fixed.  Therefore \(G(h,k_{\mathrm{poly}},\eta,\epsilon_n,\delta_n)\le Ct\), and (22) holds on this branch too.  Equations (19)--(20) identify the \(q\)-branch when \(q<\gamma\), while (25)--(26) identify the private-Gram branch when \(q\ge\gamma\).
+
+By the minimizing property of \((\widehat h,\widehat k)\), (22) implies
+\[
+ F_n(\widehat h,\widehat k)\le Ct
+ \quad\text{whenever }t<t_0.
+\tag{27}
+\]
+Definition \(\mathrm{def{:}private\text{-}confidence\text{-}interval}\) clips its center into \([-1,1]\), and all three envelopes are nonnegative.  The clipped center itself therefore belongs to the intersection defining the interval, so the interval is nonempty on every transcript.  Its length obeys the deterministic bound
+\[
+ \operatorname{length}\{C_n(\widehat h,\widehat k)\}
+ \le 2F_n(\widehat h,\widehat k)\wedge2.
+\tag{28}
+\]
+If \(t<t_0\), equations (27)--(28) bound this length by \(2Ct\).  If \(t\ge t_0\), equation (28) instead gives
+\[
+ \operatorname{length}\{C_n(\widehat h,\widehat k)\}
+ \le2\le {2\over t_0}t.
+\tag{29}
+\]
+The bounds (28)--(29) hold transcript by transcript, uniformly over \(Q\in\mathcal P_{\mathrm{att}}\), and for every deterministic pair of pilot dimensions \(J_\pi,J_\mu\ge1\).  Taking expectation, then the supremum over \(Q\), and recalling from (6) that \(t=1\wedge r_{\mathrm{up}}\), proves the asserted inequality after enlarging the fixed constant to \(C_L\).  The construction uses the fixed lower cutoff \(k\ge k_{\mathrm{poly}}\), imposes no upper relation between \(k\) and \(mh^d\), and makes no claim about a matching full-class frontier.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} On \(\mathcal P_{\mathrm{att}}\), the result gives an auditable privacy phase diagram for the saturated achieved length \(1\wedge(r_{\mathrm{np}}\vee r_{\mathrm{reg}}\vee r_{\mathrm{ho}})\); clipping the center preserves the deterministic bound \(2R_n\wedge2\) and every tuning calculation. \textit{Gap.} NiuEtAl2022 gives a private heterogeneous-effect meta-learner and composition analysis but no finite-sample uniformly honest pointwise H\"older CATE expected-length phase.  CaiChakrabortyVuursteen2024 gives a nearby pointwise nonparametric-regression privacy benchmark in a heterogeneous distributed experiment, including a central-private comparison, but not causal nuisance cancellation, this single-curator replacement-private interval, or its attainable-class phase and bracket. \textit{Consumer.} Study designers working in the attainable uniform-design model can select bandwidth, higher-order dimension, and privacy budget to meet a prespecified interval-width requirement with a release that is always an interval.
+
+\begin{proposition}[prop:privacy-free-reduction]\label{prop:privacy-free-reduction}
+Fix \(\eta\in(0,1/4)\) while \(n\to\infty\).  With the Gaussian release noises set to zero and the privacy constraint removed, for all sufficiently large \(n\),
+\[
+ \inf_{\substack{0<h\le r_0,\ k\in\mathbb N,\ k\ge k_{\mathrm{poly}}\\
+                  m h^d\ge C_S^2\log(8/\eta)}}
+ \{B(h,k)+S(h,k,\eta)\}
+ \asymp r_{\mathrm{np}}.
+\]
+No restriction \(k\le m h^d\), or any other upper rank condition relative to \(m h^d\), is imposed.
+\end{proposition}
+\begin{proof}
+Fix \(\eta\in(0,1/4)\) and all structural quantities other than \(n\).  Constants implicit in \(\lesssim\), \(\gtrsim\), and \(\asymp\) may depend on those fixed quantities, including the fixed integer \(k_{\mathrm{poly}}\), but not on \(n\).  By the declared symbol domains and \(q=\alpha+\beta\), the quantities \(C_B,C_S,\alpha,q,\gamma\) are strictly positive.  The directed symbol definitions give
+\[
+ R_*=\lfloor\gamma\rfloor+\lceil\max\{\alpha,\beta\}\rceil\in\mathbb N_{\ge1},
+ \qquad
+ k_{\mathrm{poly}}=(R_*+1)^d\in\mathbb N_{\ge1}.
+ \tag{1}
+\]
+Put
+\[
+ x=\log(8/\eta)>0,
+ \qquad
+ \mathcal D_n=\left\{(h,k):0<h\le r_0,\ k\in\mathbb N,\ k\ge k_{\mathrm{poly}},\ m h^d\ge C_S^2x\right\}.
+ \tag{2}
+\]
+For \((h,k)\in\mathcal D_n\), define the proof intermediates
+\[
+ \ell=h k^{-1/d},\qquad M=m h^d,\qquad
+ u=M^{-1/2},\qquad v=\frac{\sqrt{k}}{M}.
+ \tag{3}
+\]
+They are strictly positive: \(n\ge12\) gives \(m=\lfloor n/3\rfloor\ge1\), while \(h>0\) and (1) gives \(k\ge1\).  Since \(k=(h/\ell)^d\),
+\[
+ u=m^{-1/2}h^{-d/2},
+ \qquad
+ v=m^{-1}h^{-d/2}\ell^{-d/2}.
+ \tag{4}
+\]
+The definitions \(\mathrm{def{:}bias\text{-}envelope}\) and \(\mathrm{def{:}sampling\text{-}envelope}\) give the exact identities
+\[
+ B(h,k)=C_B\{h^\gamma+\ell^q+h^\gamma\ell^\alpha\}
+ \tag{5}
+\]
+and
+\[
+ S(h,k,\eta)=C_S\left\{
+ \sqrt{x(u^2+v^2)}+x u^2+x^{3/2}uv+x^2v^2
+ \right\}.
+ \tag{6}
+\]
+Indeed, \(M^{-1}+kM^{-2}=u^2+v^2\), \(\sqrt{k}M^{-3/2}=uv\), and \(kM^{-2}=v^2\).  Every summand in (5)--(6) is nonnegative, and \(\sqrt{u^2+v^2}\ge(u+v)/\sqrt2\).  Hence there is a constant \(c>0\), independent of \(n,h,k\), such that
+\[
+ B(h,k)+S(h,k,\eta)
+ \ge c\{h^\gamma+\ell^q+u+v\}.
+ \tag{7}
+\]
+
+For the lower bound, define
+\[
+ r_1=n^{-1/(2+d/\gamma)},
+ \qquad
+ r_2=n^{-1/\{1+d/(2\gamma)+d/(2q)\}},
+ \qquad
+ A_* = \frac d{2\gamma}+\frac d{2q}.
+ \tag{8}
+\]
+For every positive \(h\), either \(h^\gamma\ge r_1\), or \(h^\gamma<r_1\).  In the second case, (4) and \(m\le n\) imply
+\[
+ u=m^{-1/2}h^{-d/2}
+ \ge n^{-1/2}h^{-d/2}
+ >n^{-1/2}r_1^{-d/(2\gamma)}=r_1,
+ \tag{9}
+\]
+where the last equality is the definition of \(r_1\).  Thus (7) implies \(B(h,k)+S(h,k,\eta)\gtrsim r_1\).  Likewise, if \(h^\gamma\ge r_2\) or \(\ell^q\ge r_2\), then (7) bounds the objective below by a constant multiple of \(r_2\).  If both inequalities fail, (4), \(m\le n\), and (8) give
+\[
+ v=m^{-1}h^{-d/2}\ell^{-d/2}
+ \ge n^{-1}h^{-d/2}\ell^{-d/2}
+ >n^{-1}r_2^{-A_*}=r_2.
+ \tag{10}
+\]
+Consequently,
+\[
+ \inf_{(h,k)\in\mathcal D_n}\{B(h,k)+S(h,k,\eta)\}
+ \gtrsim r_1\vee r_2.
+ \tag{11}
+\]
+This argument in fact holds for every \(k\ge1\), so restricting the domain to \(k\ge k_{\mathrm{poly}}\) does not alter the lower bound; in particular, it uses no upper rank condition.
+
+We next identify the right side of (11).  Since \(s=q/2\), the low-smoothness condition in \(\mathrm{def{:}phase\text{-}rate}\) is equivalent to
+\[
+ q<\frac{d}{2\{1+d/(2\gamma)\}}.
+ \tag{12}
+\]
+For \(n>1\), comparison of the positive denominators in (8) yields
+\[
+ r_2>r_1
+ \quad\Longleftrightarrow\quad
+ 1+\frac d{2\gamma}+\frac d{2q}>2+\frac d\gamma
+ \quad\Longleftrightarrow\quad
+ q<\frac{d}{2\{1+d/(2\gamma)\}}.
+ \tag{13}
+\]
+At equality, \(r_1=r_2\).  Equations (12)--(13) and \(\mathrm{def{:}phase\text{-}rate}\) therefore imply
+\[
+ r_{\mathrm{np}}=r_1\vee r_2.
+ \tag{14}
+\]
+
+For the matching upper bound, put \(T=r_1\vee r_2=r_{\mathrm{np}}\).  Both exponents in (8) are positive, so \(T\to0\).  The defining equalities
+\[
+ r_1^{1+d/(2\gamma)}=n^{-1/2},
+ \qquad
+ r_2^{1+A_*}=n^{-1}
+\]
+and \(T\ge r_1\vee r_2\) imply, because the displayed powers are positive,
+\[
+ n^{-1/2}T^{-d/(2\gamma)}\le T,
+ \qquad
+ n^{-1}T^{-A_*}\le T.
+ \tag{15}
+\]
+Also \(m=\lfloor n/3\rfloor\ge n/4\) for \(n\ge12\).
+
+Suppose first that \(q\ge\gamma\).  Choose
+\[
+ h=T^{1/\gamma},\qquad k=k_{\mathrm{poly}},\qquad
+ \ell=k_{\mathrm{poly}}^{-1/d}T^{1/\gamma}.
+ \tag{16}
+\]
+This rank is admissible by (1), and eventually \(0<h\le r_0\).  Moreover,
+\[
+ M=m h^d
+ \ge\frac n4 T^{d/\gamma}
+ \ge\frac n4 r_1^{d/\gamma}
+ =\frac14 n^{2\gamma/(2\gamma+d)}\longrightarrow\infty.
+ \tag{17}
+\]
+Thus (16) lies in \(\mathcal D_n\) for all sufficiently large \(n\).  Since eventually \(T\le1\), (5), \(q\ge\gamma\), and \(\alpha>0\) show
+\[
+ B(h,k_{\mathrm{poly}})
+ =C_B\left\{T+k_{\mathrm{poly}}^{-q/d}T^{q/\gamma}
+ +k_{\mathrm{poly}}^{-\alpha/d}T^{1+\alpha/\gamma}\right\}
+ \lesssim T.
+ \tag{18}
+\]
+By (3), (15), and \(m\ge n/4\),
+\[
+ u\le2n^{-1/2}T^{-d/(2\gamma)}\le2T,
+ \qquad
+ v=\sqrt{k_{\mathrm{poly}}}\,u^2\le4\sqrt{k_{\mathrm{poly}}}\,T^2.
+ \tag{19}
+\]
+Because \(x\) and \(k_{\mathrm{poly}}\) are fixed and \(T\le1\), substituting (19) into (6) gives \(S(h,k_{\mathrm{poly}},\eta)\lesssim T\).
+
+Suppose now that \(0<q<\gamma\).  Define
+\[
+ h=T^{1/\gamma},\qquad \ell_0=T^{1/q},\qquad
+ K=(h/\ell_0)^d=T^{d(1/\gamma-1/q)},
+ \qquad
+ k=\max\{k_{\mathrm{poly}},\lceil K\rceil\}.
+ \tag{20}
+\]
+Because \(T\le1\) and \(1/\gamma-1/q<0\), one has \(K\ge1\).  Hence, with the fixed constant \(C_0=\max\{2,k_{\mathrm{poly}}\}\),
+\[
+ K\le k\le C_0K.
+ \tag{21}
+\]
+Indeed, \(\lceil K\rceil\le2K\) for \(K\ge1\), while \(k_{\mathrm{poly}}\le k_{\mathrm{poly}}K\).  The resulting \(\ell=h k^{-1/d}\) therefore satisfies
+\[
+ C_0^{-1/d}\ell_0\le\ell\le\ell_0.
+ \tag{22}
+\]
+The bandwidth and effective-sample conditions follow from (17), and (20) is a finite integer satisfying \(k\ge k_{\mathrm{poly}}\); hence this pair also belongs to \(\mathcal D_n\) for all sufficiently large \(n\).  Equations (5), (20)--(22), and \(\alpha>0\) yield
+\[
+ B(h,k)
+ \le C_B\{T+T+T^{1+\alpha/q}\}
+ \lesssim T.
+ \tag{23}
+\]
+Furthermore, (4), (15), (22), and \(m\ge n/4\) give
+\[
+ u\le2n^{-1/2}T^{-d/(2\gamma)}\le2T
+ \tag{24}
+\]
+and
+\[
+ v=m^{-1}h^{-d/2}\ell^{-d/2}
+ \le4C_0^{1/2}n^{-1}T^{-d/(2\gamma)}T^{-d/(2q)}
+ =4C_0^{1/2}n^{-1}T^{-A_*}\le4C_0^{1/2}T.
+ \tag{25}
+\]
+Substitution of (24)--(25) into (6), using fixed \(x,C_0\) and \(T\le1\), gives \(S(h,k,\eta)\lesssim T\).
+
+In each regime, we have exhibited a member of \(\mathcal D_n\) whose objective is at most a constant multiple of \(T\).  Combining this upper bound with (11) and (14) proves
+\[
+ \inf_{\substack{0<h\le r_0,\ k\in\mathbb N,\ k\ge k_{\mathrm{poly}}\\
+                  m h^d\ge C_S^2\log(8/\eta)}}
+ \{B(h,k)+S(h,k,\eta)\}
+ \asymp r_{\mathrm{np}}.
+\]
+Both upper-bound ranks are finite, and no step imposes \(k\le m h^d\) or any equivalent upper rank condition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The construction must collapse to the established privacy-free higher-order CATE rate in the standard special case. \textit{Gap.} KennedyBalakrishnanRobinsWasserman2024 establishes this rate for point estimation; this proposition verifies that the bias-aware interval radius preserves it on the attainable submodel. \textit{Consumer.} Analysts can recover the nonprivate pointwise benchmark continuously as confidentiality constraints are removed.
+
+\begin{theorem}[thm:full-class-ordinary-lower]\label{thm:full-class-ordinary-lower}
+Assume \(L_\pi\ge\kappa\).  Let \(\widetilde C_n\) be any replacement \((\epsilon_n,\delta_n)\)-differentially private interval satisfying
+\[
+ \inf_{Q\in\mathcal P_{\mathrm{full}}}
+ \Pr_Q\{\tau_Q^{\mathrm c}(x_0)\in\widetilde C_n\}\ge1-\eta.
+\]
+If \(\delta_n\le c_0/n\), then
+\[
+ \sup_{Q\in\mathcal P_{\mathrm{full}}}
+ \mathbb E_Q[\operatorname{length}(\widetilde C_n)]
+ \ge c\left[n^{-\gamma/(2\gamma+d)}
+ \vee\left\{1\wedge(n\epsilon_n)^{-\gamma/(\gamma+d)}\right\}\right].
+\]
+The constant \(c>0\) depends only on the fixed class constants and \(\eta\).  The lower bound uses a randomized-treatment, uniform-design, strictly positive regression submodel with \(A\mid X\sim\operatorname{Bernoulli}(\kappa)\), and contains no \(q<\gamma\) paired-cell branch.
+\end{theorem}
+\begin{proof}
+Let \(\mathsf K\) be the Markov kernel mapping the observed sample to the released interval \(\widetilde C_n\).  We construct two pairs of laws with one common null law and convert indistinguishability of each pair into a lower bound for interval length.
+
+Define
+\[
+ b(t)=
+ \begin{cases}
+  \exp\{-1/(1-t^2)\},& |t|<1,\\
+  0,& |t|\ge1,
+ \end{cases}
+ \qquad
+ \varphi(z)=b(0)^{-d}\prod_{j=1}^d b(z_j).
+\]
+Repeated differentiation on \((-1,1)\), and \(s^{-M}e^{-1/s}\to0\) as \(s\downarrow0\) for every finite \(M\), show that \(b\), hence \(\varphi\), is \(C^\infty\).  Also \(\varphi\ge0\), \(\varphi(0)=1\), and \(\operatorname{supp}(\varphi)\subset[-1,1]^d\).
+
+Put \(p_* = \min\{1/4,L_\mu/2\}>0\).  Let \(\ell=\lfloor\gamma\rfloor\) and \(\sigma=\gamma-\ell\).  There is a finite \(C_\varphi\), depending only on \((\varphi,\gamma,d)\), such that for every multi-index \(u\) with \(|u|\le\ell\),
+\[
+ \left\|D^u\{h^\gamma\varphi((\,\cdot-x_0)/h)\}\right\|_\infty
+ =h^{\gamma-|u|}\|D^u\varphi\|_\infty
+ \le \|D^u\varphi\|_\infty,
+\]
+where \(0<h\le r_0\le1/4\).  If \(0<\sigma<1\) and \(|u|=\ell\), then
+\[
+ \left[D^u\{h^\gamma\varphi((\,\cdot-x_0)/h)\}\right]_{\sigma}
+ =h^{\gamma-\ell-\sigma}[D^u\varphi]_{\sigma}
+ =[D^u\varphi]_{\sigma}.
+\]
+For \(\sigma=0\), the preceding derivative bounds give the integer-order H\"older bound.  Choose a fixed \(a_*>0\) so small that
+\[
+ a_*C_\varphi\le L_\tau,
+ \qquad a_*\|\varphi\|_\infty\le p_*/2,
+\]
+and define
+\[
+ g_h(x)=a_*h^\gamma\varphi((x-x_0)/h).
+\]
+Because \(x_0\in[r_0,1-r_0]^d\) and \(h\le r_0\), the support of \(g_h\) lies in \(\mathcal X\).  Thus
+\[
+ g_h\in\mathcal H^\gamma(L_\tau;\mathcal X),
+ \qquad 0\le g_h\le p_*/2.
+\tag{1}
+\]
+
+Define full-data laws \(Q_0\) and \(Q_h\) as follows.  Under both laws, \(X\) is uniform on \(\mathcal X\), and conditional on \(X=x\), \(A\) is Bernoulli with success probability \(\kappa\) and is independent of \((Y(0),Y(1))\).  Under \(Q_0\), conditional on \(X=x\), the potential outcomes are independent Bernoulli variables with common mean \(p_*\).  Under \(Q_h\), they are conditionally independent Bernoulli variables satisfying
+\[
+ \mathbb E_{Q_h}[Y(0)\mid X=x]=p_* ,
+ \qquad
+ \mathbb E_{Q_h}[Y(1)\mid X=x]=p_*+g_h(x).
+\tag{2}
+\]
+Finally set \(Y=AY(1)+(1-A)Y(0)\).
+
+We verify membership in the frozen class.  The last display and construction give Assumptions \(\mathrm{ass{:}consistency}\) and \(\mathrm{ass{:}ignorability}\).  Both potential outcomes have the common support \(\{0,1\}\), giving \(\mathrm{ass{:}bounded\text{-}outcomes}\), and all their success probabilities are strictly between zero and one because
+\[
+ 0<p_*\le p_*+g_h(x)\le3p_*/2\le3/8<1.
+\tag{3}
+\]
+The constant propensity \(\pi_Q\equiv\kappa\) obeys \(\kappa\le\pi_Q\le1-\kappa\), because \(0<\kappa<1/2\).  Its isotropic H\"older norm is \(\kappa\), so \(L_\pi\ge\kappa\) gives \(\mathrm{ass{:}propensity\text{-}holder}\).  The density is one, hence \(\mathrm{ass{:}global\text{-}density\text{-}upper}\) and \(\mathrm{ass{:}local\text{-}density\text{-}lower}\) follow from \(\overline f\ge1\) and \(\underline f\le1\).  The control regression is the constant \(p_*\), whose H\"older norm is at most \(L_\mu/2\).  The observed contrasts are zero under \(Q_0\) and \(g_h\) under \(Q_h\), so (1) gives \(\mathrm{ass{:}cate\text{-}holder}\).  Definition \(\mathrm{def{:}full\text{-}law\text{-}class}\) therefore yields
+\[
+ Q_0,Q_h\in\mathcal P_{\mathrm{full}}.
+\tag{4}
+\]
+Lemma \(\mathrm{lem{:}pointwise\text{-}identification}\) gives the causal target values
+\[
+ \theta_0=\tau_{Q_0}^{\mathrm c}(x_0)=0,
+ \qquad
+ \theta_h=\tau_{Q_h}^{\mathrm c}(x_0)=g_h(x_0)=a_*h^\gamma,
+\]
+and hence
+\[
+ \Delta_h=|\theta_h-\theta_0|=a_*h^\gamma.
+\tag{5}
+\]
+
+Let \(P_0\) and \(P_h\) be the induced one-record observed laws.  Relative to Lebesgue measure in \(x\) and counting measure in \((a,y)\),
+\[
+ p_0(x,a,y)=\kappa^a(1-\kappa)^{1-a}p_*^y(1-p_*)^{1-y}.
+\]
+Only the treated stratum changes.  Summing over \(y\in\{0,1\}\) gives the exact identities
+\[
+ \begin{aligned}
+ \chi^2(P_h\|P_0)
+ &=\kappa\int_{\mathcal X}
+   \left\{\frac{g_h(x)^2}{p_*}+\frac{g_h(x)^2}{1-p_*}\right\}\,dx\\
+ &=\kappa\int_{\mathcal X}\frac{g_h(x)^2}{p_*(1-p_*)}\,dx
+ =C_\chi h^{2\gamma+d},
+ \end{aligned}
+\tag{6}
+\]
+where
+\[
+ C_\chi=\frac{\kappa a_*^2}{p_*(1-p_*)}
+ \int_{[-1,1]^d}\varphi(z)^2\,dz<\infty,
+\]
+and
+\[
+ \|P_h-P_0\|_{\mathrm{TV}}
+ =\kappa\int_{\mathcal X}g_h(x)\,dx
+ =C_vh^{\gamma+d},
+ \qquad
+ C_v=\kappa a_*\int_{[-1,1]^d}\varphi(z)\,dz<\infty.
+\tag{7}
+\]
+The changes of variables are exact because the bump support is contained in \(\mathcal X\).
+
+For the privacy-free scale, product factorization gives
+\[
+ 1+\chi^2(P_h^n\|P_0^n)
+ =\{1+\chi^2(P_h\|P_0)\}^n.
+\tag{8}
+\]
+Indeed, for \(L_h=dP_h/dP_0\), independence factors the second moment of \(\prod_{i=1}^nL_h(O_i)\).  Cauchy--Schwarz gives
+\[
+ \|P_h^n-P_0^n\|_{\mathrm{TV}}
+ \le\frac12\sqrt{\chi^2(P_h^n\|P_0^n)}.
+\tag{9}
+\]
+Choose \(c_1\le r_0\) so that \(\exp\{C_\chi c_1^{2\gamma+d}\}-1\le1/16\), and put \(h_1=c_1n^{-1/(2\gamma+d)}\).  From (6)--(9) and \((1+u)^n\le e^{nu}\),
+\[
+ \|P_{h_1}^n-P_0^n\|_{\mathrm{TV}}\le1/8.
+\]
+Every Markov kernel contracts total variation, since for each output event \(B\), the function \(z\mapsto\mathsf K(z,B)\) takes values in \([0,1]\).  Consequently
+\[
+ \|P_{h_1}^n\mathsf K-P_0^n\mathsf K\|_{\mathrm{TV}}\le1/8.
+\tag{10}
+\]
+
+For the privacy scale, put \(w_n=1\wedge(n\epsilon_n)^{-1}\).  Choose \(a_0>0\) with \(a_0(e-1+c_0)\le1/8\), choose \(c_2\le r_0\) with \(C_vc_2^{\gamma+d}\le a_0\), and set \(h_2=c_2w_n^{1/(\gamma+d)}\).  Equation (7) gives
+\[
+ \|P_{h_2}-P_0\|_{\mathrm{TV}}\le a_0w_n.
+\tag{11}
+\]
+Since \(0<\epsilon_n\le1\), convexity of the exponential gives \(e^{\epsilon_n}-1\le(e-1)\epsilon_n\).  Also \(nw_n\epsilon_n\le1\), while \(\delta_n\le c_0/n\) and \(w_n\le1\) give \(nw_n\delta_n\le c_0\).  Lemma \(\mathrm{lem{:}dp\text{-}hamming\text{-}transport}\) and (11) therefore imply
+\[
+ \begin{aligned}
+ \|P_{h_2}^n\mathsf K-P_0^n\mathsf K\|_{\mathrm{TV}}
+ &\le n\|P_{h_2}-P_0\|_{\mathrm{TV}}
+       (e^{\epsilon_n}-1+\delta_n)\\
+ &\le a_0(e-1+c_0)\le1/8.
+ \end{aligned}
+\tag{12}
+\]
+
+For either \(h\in\{h_1,h_2\}\), let \(\nu_0=P_0^n\mathsf K\), \(\nu_h=P_h^n\mathsf K\), \(E_0=\{\theta_0\in\widetilde C_n\}\), and \(E_h=\{\theta_h\in\widetilde C_n\}\).  Membership (4), honesty, and \(\|\nu_h-\nu_0\|_{\mathrm{TV}}\le1/8\) give
+\[
+ \begin{aligned}
+ \nu_0(E_0\cap E_h)
+ &\ge \nu_0(E_0)+\nu_0(E_h)-1\\
+ &\ge(1-\eta)+(1-\eta-1/8)-1
+ =1-2\eta-1/8>3/8,
+ \end{aligned}
+\tag{13}
+\]
+where \(\eta<1/4\) is used in the last inequality.  On this event the interval contains both target values, so (5) and (13) yield
+\[
+ \mathbb E_{Q_0}[\operatorname{length}(\widetilde C_n)]
+ \ge\frac38a_*h^\gamma.
+\tag{14}
+\]
+Taking \(h=h_1\) and \(h=h_2\) in (14), and using the same null law in both comparisons, gives
+\[
+ \mathbb E_{Q_0}[\operatorname{length}(\widetilde C_n)]
+ \ge c\left[n^{-\gamma/(2\gamma+d)}
+ \vee\{1\wedge(n\epsilon_n)^{-\gamma/(\gamma+d)}\}\right]
+\]
+with \(c=(3a_*/8)\min\{c_1^\gamma,c_2^\gamma\}>0\).  Finally (4) permits taking the supremum over \(\mathcal P_{\mathrm{full}}\).  This construction uses only a \(\gamma\)-smooth contrast bump, so it neither assumes nor establishes a \(q<\gamma\) paired-cell branch.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem supplies the ordinary \(\gamma\)-smooth lower endpoint on the full class and now requires only the constant-propensity compatibility \(L_\pi\ge\kappa\). \textit{Gap.} The two-law witness proves no \(q<\gamma\) paired-cell term, so it remains a lower benchmark rather than the full frontier. \textit{Consumer.} Reviewers and privacy-budget committees can compare any full-class private interval against a causal lower bound that uses strictly positive common-support outcomes.
+
+\begin{openendedquestion}[oeq:sharp-full-class-length-frontier]\label{oeq:sharp-full-class-length-frontier}
+What is the exact minimax expected-length frontier for replacement-private, uniformly honest intervals for \(\tau_Q^{\mathrm c}(x_0)\) over \(\mathcal P_{\mathrm{full}}\)? In particular, can the positive-density confidence-modulus handle reduce the higher-order release sensitivity while retaining the uniform bias guarantee, or can it certify that an additional nuisance-driven privacy term is unavoidable?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The remaining gap is between the ordinary \(\gamma\)-smooth lower endpoint and the new \(\beta\)-smooth direct-regression upper endpoint on the same full class; the higher-order achieved phase remains confined to \(\mathcal P_{\mathrm{att}}\). \textit{Gap.} No proved coupling or stabilized higher-order full-class release decides whether the optimal privacy branch is governed by \(\gamma\), \(q\), or a private Gram. \textit{Consumer.} A resolution would determine which privacy budget is sufficient for pointwise heterogeneous-treatment-effect inference under unknown bounded design density.
+
+\begin{lemma}[lem:dp-hamming-transport]\label{lem:dp-hamming-transport}
+Let \(\mathsf K\) be any replacement \((\epsilon_n,\delta_n)\)-differentially private Markov kernel from samples of size \(n\) in a standard Borel record space to an arbitrary output space.  If \(\Lambda_0\) and \(\Lambda_1\) are any two laws on the sample space and \(H(z,z')\) is Hamming distance, then their output laws \(\nu_j=\Lambda_j\mathsf K\) satisfy
+\[
+ \|\nu_0-\nu_1\|_{\mathrm{TV}}
+ \le \min\!\left\{1,\bigl(e^{\epsilon_n}-1+\delta_n\bigr)
+ \inf_{\Gamma\in\Pi(\Lambda_0,\Lambda_1)}\mathbb E_\Gamma H(Z,Z')\right\}.
+\]
+In particular, for one-record laws \(R_0,R_1\),
+\[
+ \|R_0^n\mathsf K-R_1^n\mathsf K\|_{\mathrm{TV}}
+ \le \min\{1,n\|R_0-R_1\|_{\mathrm{TV}}(e^{\epsilon_n}-1+\delta_n)\}.
+\]
+\end{lemma}
+\begin{proof}
+Put \(c_{\mathrm{DP}}=e^{\epsilon_n}-1+\delta_n\).  If \(z,z'\) are replacement adjacent and \(E\) is an output event, differential privacy in both directions gives
+\[
+ \mathsf K_z(E)-\mathsf K_{z'}(E)
+ \le (e^{\epsilon_n}-1)\mathsf K_{z'}(E)+\delta_n
+ \le c_{\mathrm{DP}},
+\]
+and the same inequality with \(z,z'\) interchanged.  Hence
+\(\|\mathsf K_z-\mathsf K_{z'}\|_{\mathrm{TV}}\le c_{\mathrm{DP}}\).
+Joining arbitrary \(z,z'\) by a path that replaces precisely their \(H(z,z')\) unequal coordinates and using the triangle inequality yields
+\[
+ \|\mathsf K_z-\mathsf K_{z'}\|_{\mathrm{TV}}
+ \le c_{\mathrm{DP}}H(z,z').
+\]
+For any coupling \(\Gamma\in\Pi(\Lambda_0,\Lambda_1)\) and any output event \(E\),
+\[
+ |\nu_0(E)-\nu_1(E)|
+ \le\int |\mathsf K_z(E)-\mathsf K_{z'}(E)|\,d\Gamma(z,z')
+ \le c_{\mathrm{DP}}\mathbb E_\Gamma H(Z,Z').
+\]
+Taking the supremum over \(E\), then the infimum over \(\Gamma\), and finally using the trivial upper bound one proves the first display.  For product laws, couple the coordinates independently using the common-part coupling of \(R_0\) and \(R_1\).  Its mismatch probability is \(\|R_0-R_1\|_{\mathrm{TV}}\), so its expected Hamming distance is \(n\|R_0-R_1\|_{\mathrm{TV}}\), which proves the second display.
+\end{proof}
+
+\begin{lemma}[lem:gaussian-mechanism-replacement]\label{lem:gaussian-mechanism-replacement}
+Let \(T\) be a deterministic statistic with values in a finite-dimensional Euclidean space, and let \(\overline\Delta_2\ge\sup_{D\sim D'}\lVert T(D)-T(D')\rVert_2\).  If \(0<\epsilon_n<1\), \(0<\delta_n<1/2\), \(Z\sim N(0,I)\), and \(c_{\delta_n}>\sqrt{2\log(1.25/\delta_n)}\), then
+\[
+ T(D)+c_{\delta_n}\overline\Delta_2\epsilon_n^{-1}Z
+\]
+is replacement \((\epsilon_n,\delta_n)\)-differentially private.
+\end{lemma}
+
+\begin{lemma}[lem:localized-spline-population-algebra]\label{lem:localized-spline-population-algebra}
+Fix \(Q\in\mathcal P_{\mathrm{att}}\), condition on any projected pilot pair \((\bar\pi,\bar\mu)\) produced by \(\mathsf M_{h,k,J_\pi,J_\mu}^{\mathrm{DP}}\), and let \(k\ge k_{\mathrm{poly}}\) be any finite integer.  Let \(\Pi_{h,k}\) denote componentwise Lebesgue \(L^2(C_h)\)-projection onto the span of \(b_{h,k}\).  There is a coefficient vector \(\vartheta_\tau\in\mathbb R^{p_\gamma}\) such that, with
+\[
+ g=\pi_Q-\bar\pi,\qquad r=\mu_{0,Q}-\bar\mu,
+ \qquad t=\tau_Q-\rho_h^{\mathsf T}\vartheta_\tau,
+\]
+one has \(\rho_h(x_0)^{\mathsf T}\vartheta_\tau=\tau_Q(x_0)\), \(\lVert\vartheta_\tau\rVert_2\le C\), and \(\lVert t\rVert_{L^\infty(C_h)}\le Ch^\gamma\).  If \((Q^\circ,R^\circ)=\mathbb E_Q[(T_{*,Q},T_{*,R})\mid\bar\pi,\bar\mu]\) and
+\[
+ Q^0=\int_{C_h}K_h(x)\rho_h(x)\rho_h(x)^{\mathsf T}
+       \pi_Q(x)\{1-\pi_Q(x)\}\,dx,
+\]
+then
+\[
+ R^\circ-Q^\circ\vartheta_\tau
+ =\int_{C_h}K_h\rho_h\pi_Q(1-\pi_Q)t\,dx
+ +\int_{C_h}(I-\Pi_{h,k})(K_h\rho_h g)
+                 (I-\Pi_{h,k})(r+\pi_Qt)\,dx,
+\]
+and
+\[
+ Q^\circ-Q^0
+ =\int_{C_h}(I-\Pi_{h,k})(K_h\rho_h g)
+                 (I-\Pi_{h,k})(\pi_Q\rho_h^{\mathsf T})\,dx.
+\]
+Consequently, with \(\ell_{h,k}=h/k^{1/d}\),
+\[
+ \lVert R^\circ-Q^\circ\vartheta_\tau\rVert_2
+ \le C\{h^\gamma+\ell_{h,k}^{\alpha+\beta}
+                  +h^\gamma\ell_{h,k}^\alpha\},
+ \qquad
+ \lVert Q^\circ-Q^0\rVert_{\mathrm{op}}
+ \le C\ell_{h,k}^{2\alpha}.
+\]
+Moreover, \(\lambda_{\min}(Q^0)\ge\kappa(1-\kappa)\) and \(\lVert R^\circ\rVert_2\le C\).  Every constant in this lemma depends only on \((d,\kappa,\alpha,\beta,\gamma,L_\pi,L_\mu,L_\tau)\) and the fixed basis normalizations, not on the pilot dimensions or their realized Gaussian noises.
+\end{lemma}
+\begin{proof}
+Because \(Q\in\mathcal P_{\mathrm{att}}\), Assumptions \(\mathrm{ass{:}propensity\text{-}holder}\), \(\mathrm{ass{:}control\text{-}holder}\), and \(\mathrm{ass{:}cate\text{-}holder}\) hold.  The metric projections in \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) therefore give
+\[
+ \bar\pi\in\mathcal H^\alpha(L_\pi;\mathcal X),\quad
+ \kappa\le\bar\pi\le1-\kappa,
+ \qquad
+ \bar\mu\in\mathcal H^\beta(L_\mu;\mathcal X),\quad
+ 0\le\bar\mu\le1.
+\tag{1}
+\]
+Thus \(g=\pi_Q-\bar\pi\in\mathcal H^\alpha(2L_\pi;\mathcal X)\) and \(r=\mu_{0,Q}-\bar\mu\in\mathcal H^\beta(2L_\mu;\mathcal X)\).  These conclusions are deterministic after conditioning on the pilots.
+
+Let \(P_\tau\) be the Taylor polynomial of order \(\lfloor\gamma\rfloor\) of the H\"older version of \(\tau_Q\) at \(x_0\), expressed in the tensor Legendre coordinates \(\rho_h\), and denote its coefficient vector by \(\vartheta_\tau\).  The defining Taylor-remainder property of \(\mathcal H^\gamma(L_\tau;\mathcal X)\), together with \(C_h\subset\mathcal X\), yields
+\[
+ P_\tau(x_0)=\tau_Q(x_0),\quad
+ \sup_{x\in C_h}|\tau_Q(x)-P_\tau(x)|\le C L_\tau h^\gamma.
+\tag{2}
+\]
+Assumption \(\mathrm{ass{:}bounded\text{-}outcomes}\) gives \(|\tau_Q|\le1\).  Norm equivalence in the fixed finite-dimensional polynomial space and (2) then give \(\lVert\vartheta_\tau\rVert_2\le C\).  Put \(t=\tau_Q-P_\tau\); (2) proves every assertion about \(\vartheta_\tau\) and \(t\).
+
+We next compute the conditional population score.  Consistency and the definitions of \(\mu_{0,Q}\) and \(\tau_Q\) imply
+\[
+ \mathbb E_Q[Y\mid A,X=x]=\mu_{0,Q}(x)+A\tau_Q(x).
+\tag{3}
+\]
+Using \(A^2=A\), the definition of \(g,r,t\), and \(P_\tau=\rho_h^{\mathsf T}\vartheta_\tau\), direct expansion of (3) gives
+\[
+ \mathbb E_Q\!\left[(A-\bar\pi)
+       \{Y-\bar\mu-A\rho_h^{\mathsf T}\vartheta_\tau\}\mid X=x\right]
+ =\pi_Q(1-\bar\pi)t+gr.
+\]
+Since \(\pi_Q(1-\bar\pi)=\pi_Q(1-\pi_Q)+\pi_Qg\), the right-hand side is
+\[
+ \pi_Q(1-\pi_Q)t+g(r+\pi_Qt).
+\tag{4}
+\]
+The clipping maps in \(T_*\) are identities on the realized kernels: by (1), the pair \((\bar\pi,\bar\mu)\) lies in the ranges over which \(\Lambda_L\) and \(\Lambda_H\) are defined.  Independence of the two records in the order-two term and orthonormality of \(b_{h,k}\) show that its population contribution to the last product in (4) equals
+\[
+ \int_{C_h}\Pi_{h,k}(K_h\rho_hg)\,
+                  \Pi_{h,k}(r+\pi_Qt)\,dx.
+\tag{5}
+\]
+For square-integrable scalar or componentwise vector functions \(u,v\), self-adjointness and idempotence of the orthogonal projection give
+\[
+ \int uv-\int(\Pi_{h,k}u)(\Pi_{h,k}v)
+ =\int\{(I-\Pi_{h,k})u\}\{(I-\Pi_{h,k})v\}.
+\tag{6}
+\]
+Substituting \(u=K_h\rho_hg\) and \(v=r+\pi_Qt\) in (6), and combining (4)--(5), proves the first population identity.  Applying the same calculation to the matrix score, using again \(\pi_Q(1-\bar\pi)=\pi_Q(1-\pi_Q)+\pi_Qg\), proves the identity for \(Q^\circ-Q^0\).
+
+It remains to prove the approximation bounds at the corrected cutoff.  Let \(V_j\) be the last complete scaling space contained in the prefix span of \(b_{h,k}\).  Such a space exists because \(k\ge k_{\mathrm{poly}}=\dim(V_0)\).  By the corrected declaration of \(b_{h,k}\), the dyadic cell width \(w_j\) of \(V_j\) satisfies
+\[
+ c_1\ell_{h,k}\le w_j\le c_2\ell_{h,k},
+ \qquad \ell_{h,k}=hk^{-1/d},
+\tag{7}
+\]
+where \(c_1,c_2>0\) depend only on \((d,R_*)\).  If \(v\in\mathcal H^u(L;C_h)\), with \(u\in\{\alpha,\beta\}\), approximate \(v\) on each cell by its Taylor polynomial of order \(\lfloor u\rfloor\).  The H\"older remainder and (7) bound the pointwise error by \(CL\ell_{h,k}^u\).  This piecewise polynomial lies in \(V_j\), because its coordinatewise degree is at most
+\[
+ \lfloor u\rfloor\le\lceil\max\{\alpha,\beta\}\rceil\le R_*.
+\]
+The best-approximation property of \(\Pi_{h,k}\), followed by integration over the cube of volume \(h^d\), therefore gives
+\[
+ \lVert(I-\Pi_{h,k})v\rVert_{L^2(C_h)}
+ \le CLh^{d/2}\ell_{h,k}^u.
+\tag{8}
+\]
+For \(K_h\rho_hv\), multiply the cellwise Taylor polynomial by each component of \(\rho_h\).  Each product has coordinatewise degree at most
+\[
+ \lfloor\gamma\rfloor+\lfloor u\rfloor
+ \le\lfloor\gamma\rfloor+\lceil\max\{\alpha,\beta\}\rceil=R_*,
+\]
+so it too belongs to \(V_j\).  Since \(K_h=h^{-d}\) on \(C_h\) and \(\rho_h\) is uniformly bounded under its canonical fixed-dimensional normalization, the same best-approximation argument yields
+\[
+ \lVert(I-\Pi_{h,k})(K_h\rho_hv)\rVert_{L^2(C_h)}
+ \le CLh^{-d/2}\ell_{h,k}^u.
+\tag{9}
+\]
+This is exactly where the fixed lower cutoff is used; no assertion is made that a prefix with \(k<k_{\mathrm{poly}}\) reproduces these products.
+
+Apply (9) to \(g\), apply (8) to \(r\), and use Cauchy--Schwarz componentwise.  The first residual product is bounded by
+\[
+ \left\lVert\int (I-\Pi_{h,k})(K_h\rho_hg)
+                  (I-\Pi_{h,k})r\,dx\right\rVert_2
+ \le C\ell_{h,k}^{\alpha+\beta}.
+\tag{10}
+\]
+For the term containing \(t\), projection contraction, \(0\le\pi_Q\le1\), and (2) give
+\[
+ \lVert(I-\Pi_{h,k})(\pi_Qt)\rVert_2
+ \le\lVert\pi_Qt\rVert_2\le Ch^{d/2+\gamma}.
+\]
+Together with (9) for \(g\), this proves
+\[
+ \left\lVert\int (I-\Pi_{h,k})(K_h\rho_hg)
+                  (I-\Pi_{h,k})(\pi_Qt)\,dx\right\rVert_2
+ \le Ch^\gamma\ell_{h,k}^\alpha.
+\tag{11}
+\]
+Finally, approximate each component of \(\pi_Q\rho_h\) by \(\rho_h\) times the cell Taylor polynomial of \(\pi_Q\).  The same degree calculation used for (9), now without the factor \(K_h\), gives
+\[
+ \lVert(I-\Pi_{h,k})(\pi_Q\rho_h)\rVert_2
+ \le Ch^{d/2}\ell_{h,k}^\alpha.
+\]
+Cauchy--Schwarz with (9) proves
+\[
+ \left\lVert\int (I-\Pi_{h,k})(K_h\rho_hg)
+                  (I-\Pi_{h,k})(\pi_Q\rho_h^{\mathsf T})\,dx
+ \right\rVert_{\mathrm{op}}
+ \le C\ell_{h,k}^{2\alpha}.
+\tag{12}
+\]
+The first integral in the score identity is at most \(Ch^\gamma\), because \(\int_{C_h}K_h=1\), \(\rho_h\) is uniformly bounded, \(0\le\pi_Q(1-\pi_Q)\le1/4\), and (2) holds.  Equations (10)--(12) prove both asserted remainder bounds.
+
+The canonical tensor Legendre normalization gives
+\[
+ \int_{C_h}K_h(x)\rho_h(x)\rho_h(x)^{\mathsf T}\,dx=I_{p_\gamma}.
+\]
+Assumption \(\mathrm{ass{:}overlap}\) and \(0<\kappa<1/2\) therefore imply, for every \(v\in\mathbb R^{p_\gamma}\),
+\[
+ v^{\mathsf T}Q^0v
+ \ge\kappa(1-\kappa)\int K_h(v^{\mathsf T}\rho_h)^2
+ =\kappa(1-\kappa)\lVert v\rVert_2^2.
+\]
+Thus \(\lambda_{\min}(Q^0)\ge\kappa(1-\kappa)>0\).  The identity \(R^\circ=Q^\circ\vartheta_\tau+(R^\circ-Q^\circ\vartheta_\tau)\), the bounds just proved, \(\lVert Q^\circ-Q^0\rVert_{\mathrm{op}}\le C\ell_{h,k}^{2\alpha}\), \(\lVert\vartheta_\tau\rVert_2\le C\), and \(0<\ell_{h,k}\le h\le r_0\le1/4\) give \(\lVert R^\circ\rVert_2\le C\).  Every constant used depends only on the fixed quantities listed in the statement and is uniform in the pilot dimensions and realized pilot noise.
+\end{proof}
+
+\begin{lemma}[lem:localized-score-concentration-unrestricted-rank]\label{lem:localized-score-concentration-unrestricted-rank}
+Fix \(Q\in\mathcal P_{\mathrm{att}}\), condition on the projected pilots, put \(x_\eta=\log(8/\eta)\) and \(M_h=mh^d\), and let \(T_*^\circ=\mathbb E_Q(T_*\mid\bar\pi,\bar\mu)\).  There are constants \(C_0,C_1<\infty\), depending only on \((d,\kappa,\alpha,\beta,\gamma,L_\pi,L_\mu)\) and the fixed basis normalizations, such that, for every finite integer \(k\ge1\), whenever \(M_h\ge C_0x_\eta\),
+\[
+ \Pr_Q\!\left[
+ \lVert T_*-T_*^\circ\rVert_2>C_1\left\{
+ \sqrt{\frac{x_\eta}{M_h}\left(1+\frac{k}{M_h}\right)}
+ +\frac{x_\eta}{M_h}
+ +\frac{\sqrt{k}\,x_\eta^{3/2}}{M_h^{3/2}}
+ +\frac{kx_\eta^2}{M_h^2}
+ \right\}\,\middle|\,\bar\pi,\bar\mu\right]
+ \le\eta/2.
+\]
+The bound is uniform in the realized pilots and in \(J_\pi,J_\mu\), and it imposes no rank condition relating \(k\) to \(M_h\).
+\end{lemma}
+\begin{proof}
+Let \(\mathcal G=\sigma(\bar\pi,\bar\mu)\).  The deterministic split and independent Gaussian releases in \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) imply that, conditionally on \(\mathcal G\), the records \(O_1,\ldots,O_m\) in \(D_*\) remain independent with common law \(P_Q\).  Fix a realization of \(\mathcal G\).  The projected pilots are then deterministic measurable functions satisfying
+\[
+ \kappa\leq \bar\pi\leq1-\kappa,
+ \qquad 0\leq\bar\mu\leq1.
+\tag{1}
+\]
+The linear and quadratic kernels are bounded and measurable.  Because their clipping radii are suprema over ranges containing (1),
+\[
+ \operatorname{clip}_{\Lambda_L}\{L(o)\}=L(o),
+ \qquad
+ \operatorname{clip}_{\Lambda_H}\{H(o,o')\}=H(o,o')
+\tag{2}
+\]
+for every \(o,o'\in\mathcal O_0\).
+
+Write \(r_{\mathrm{out}}=p_\gamma^2+p_\gamma\), the fixed number of scalar output coordinates, and fix one coordinate \(j\).  Assumption \(\mathrm{ass{:}bounded\text{-}outcomes}\), (1), and the fixed-dimensional bound on \(\rho_h\) give
+\[
+ |L_j(O)|\leq C h^{-d}{\bf1}_{C_h}(X).
+\tag{3}
+\]
+Assumption \(\mathrm{ass{:}uniform\text{-}design}\) gives \(P_Q(X\in C_h)=h^d\), and hence
+\[
+ \mathbb E_Q L_j(O)^2\leq C h^{-d}.
+\tag{4}
+\]
+If \(Z\) is centered, \(|Z|\le a\), and \(0\le t<3/a\), expansion of the exponential series, \(r!\ge2\,3^{r-2}\) for \(r\ge2\), and \(\mathbb E|Z|^r\le a^{r-2}\mathbb EZ^2\) yield
+\[
+ \mathbb E e^{tZ}
+ \le\exp\!\left\{\frac{t^2\mathbb EZ^2}{2(1-ta/3)}\right\}.
+\tag{5}
+\]
+Multiplying (5) over independent centered summands, applying the same bound to \(-Z\), optimizing in \(t\), and integrating the resulting Bernstein tail gives, for every \(p\ge2\),
+\[
+ \left\|\frac1m\sum_{i=1}^m
+       \{L_j(O_i)-\mathbb E_Q L_j(O_i)\}\right\|_{L^p}
+ \leq C\left\{\sqrt{\frac p{M_h}}+\frac p{M_h}\right\},
+ \qquad M_h=mh^d.
+\tag{6}
+\]
+
+For the quadratic statistic put
+\[
+ P_{h,k}(x,z)=b_{h,k}(x)^{\mathsf T}b_{h,k}(z).
+\]
+We verify the projector facts for the corrected piecewise-polynomial multiresolution basis without imposing the polynomial-reproduction cutoff.  A resolution-ordered prefix consists of a complete scaling space \(V_j\) and a subset of a localized orthonormal basis of \(V_{j+1}\ominus V_j\), with the convention that a prefix inside the initial block is merely a subset of the fixed-dimensional basis of \(V_0\).  For fixed \(x\), the complete scaling projector has contributions only from the dyadic cell containing \(x\); after rescaling that cell to the unit cube, its rank and polynomial degree depend only on \((d,R_*)\), so the product of the \(L^\infty\)- and \(L^1\)-norms of its kernel is uniformly bounded.  At an incomplete last level, only the detail functions associated with the unique parent cell containing \(x\) can contribute.  Their number is bounded solely by \((d,R_*)\), and finite-dimensional norm equivalence on the rescaled parent cell bounds each product of an \(L^\infty\)- and an \(L^1\)-norm.  The same finite-dimensional argument covers incomplete prefixes of \(V_0\).  Therefore
+\[
+ \sup_{k\ge1}\sup_{x\in C_h}
+ \int_{C_h}|P_{h,k}(x,z)|\,dz\leq C.
+\tag{7}
+\]
+This proves the normalized projector-kernel property declared in \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) for every finite \(k\ge1\).  Orthonormality and the pointwise basis bound in that definition also give
+\[
+ \iint_{C_h^2}P_{h,k}(x,z)^2\,dx\,dz=k,
+ \qquad
+ \sup_{x\in C_h}\int_{C_h}P_{h,k}(x,z)^2\,dz
+ =\sup_{x\in C_h}\|b_{h,k}(x)\|_2^2
+ \leq Ckh^{-d}.
+\tag{8}
+\]
+
+Let \(H_j\) be coordinate \(j\) of \(H\), and symmetrize it by
+\[
+ G_j(o,o')=\frac12\{H_j(o,o')+H_j(o',o)\}.
+\]
+The ordered-pair sum is unchanged:
+\[
+ \sum_{i\ne \ell}H_j(O_i,O_\ell)
+ =\sum_{i\ne \ell}G_j(O_i,O_\ell)
+ =2\sum_{i<\ell}G_j(O_i,O_\ell).
+\tag{9}
+\]
+For independent \(O,O'\sim P_Q\), define
+\[
+ \theta_j=\mathbb E_QG_j(O,O'),
+ \quad g_{1,j}(o)=\mathbb E_Q\{G_j(o,O')\}-\theta_j,
+ \quad h_j(o,o')=G_j(o,o')-\theta_j-g_{1,j}(o)-g_{1,j}(o').
+\tag{10}
+\]
+Then \(h_j\) is symmetric and completely degenerate:
+\[
+ \mathbb E_Q\{h_j(o,O')\}=0,
+ \qquad
+ \mathbb E_Q\{h_j(O,o')\}=0.
+\tag{11}
+\]
+The Hoeffding identity is
+\[
+ \sum_{i\ne\ell}\{H_j(O_i,O_\ell)-\mathbb E_QH_j(O,O')\}
+ =2(m-1)\sum_{i=1}^m g_{1,j}(O_i)
+  +\sum_{i\ne\ell}h_j(O_i,O_\ell).
+\tag{12}
+\]
+
+For either a matrix or vector coordinate, the kernel formula has the factorization
+\[
+ H_j(o,o')=h^{-d}{\bf1}_{C_h}(x)u_j(o)
+             P_{h,k}(x,x')v_j(o'),
+ \qquad |u_j(o)|+|v_j(o')|\leq C,
+\tag{13}
+\]
+where the constant follows from bounded outcomes, (1), and the bound on \(\rho_h\).  Equations (7) and (13) imply
+\[
+ |\mathbb E_Q\{G_j(o,O')\}|\le Ch^{-d}{\bf1}_{C_h}(x),
+ \qquad |\theta_j|\le C.
+\tag{14}
+\]
+Consequently \(|g_{1,j}|\le Ch^{-d}\) and \(\mathbb E_Qg_{1,j}(O)^2\le Ch^{-d}\).  Thus (6) also controls \(m^{-1}\sum_i g_{1,j}(O_i)\), uniformly in the realized pilots.
+
+Equations (8) and (13) give
+\[
+ \mathbb E_QG_j(O,O')^2\le Ckh^{-2d},
+ \qquad
+ \sup_o\mathbb E_Q\{G_j(o,O')^2+G_j(O',o)^2\}
+ \le Ckh^{-3d},
+\tag{15}
+\]
+and the pointwise basis bound gives \(\|G_j\|_\infty\le Ckh^{-2d}\).  If \(T_{H_j}\) is the integral operator on \(L^2(P_Q)\) with kernel \(H_j\), conditional Cauchy--Schwarz in the non-covariate coordinates, followed by the \(L^2(C_h)\)-contraction of the orthogonal projector with kernel \(P_{h,k}\), gives
+\[
+ \|T_{H_j}w\|_{L^2(P_Q)}\le Ch^{-d}\|w\|_{L^2(P_Q)}.
+\tag{16}
+\]
+Since the transposed kernel induces \(T_{H_j}^*\), (16) also gives \(\|T_{G_j}\|_{\mathrm{op}}\le Ch^{-d}\).
+
+Let \(\Pi_0\) be orthogonal projection onto constants in \(L^2(P_Q)\).  Equation (10) gives \(T_{h_j}=(I-\Pi_0)T_{G_j}(I-\Pi_0)\), so
+\[
+ \|T_{h_j}\|_{\mathrm{op}}\le Ch^{-d}.
+\tag{17}
+\]
+The canonical projection is an orthogonal projection in \(L^2(P_Q\otimes P_Q)\), and hence
+\[
+ \mathbb E_Qh_j(O,O')^2\le Ckh^{-2d}.
+\tag{18}
+\]
+Jensen's inequality applied to (10), together with (15), yields, uniformly in either fixed argument,
+\[
+ \mathbb E_Qh_j(o,O')^2+\mathbb E_Qh_j(O,o')^2\le Ckh^{-3d},
+\tag{19}
+\]
+and conditional expectation as an \(L^\infty\)-contraction gives
+\[
+ \|h_j\|_\infty\le4\|G_j\|_\infty\le Ckh^{-2d}.
+\tag{20}
+\]
+Define
+\[
+ \begin{aligned}
+ A&=\|h_j\|_\infty,\\
+ B^2&=m\left\{\left\|\mathbb E_Q[h_j(O,O')^2\mid O]\right\|_\infty
+               +\left\|\mathbb E_Q[h_j(O,O')^2\mid O']\right\|_\infty\right\},\\
+ \mathfrak C^2&=m(m-1)\mathbb E_Qh_j(O,O')^2,\\
+ D&=m\|T_{h_j}\|_{L^2(P_Q)\to L^2(P_Q)}.
+ \end{aligned}
+\]
+Equations (17)--(20) imply
+\[
+ A\le Ckh^{-2d},\quad B^2\le Cmkh^{-3d},\quad
+ \mathfrak C^2\le Cm^2kh^{-2d},\quad D\le Cmh^{-d}.
+\tag{21}
+\]
+
+To apply the cited order-two inequality with its exact normalization, let \((O_i^{(1)})_{i=1}^m\) and \((O_i^{(2)})_{i=1}^m\) be independent copies of the main-block sample, and define
+\[
+ S_{\mathrm{full}}^{\mathrm{dec}}
+ =\sum_{i,\ell=1}^m h_j(O_i^{(1)},O_\ell^{(2)}),
+ \quad
+ S_{\mathrm{diag}}^{\mathrm{dec}}
+ =\sum_{i=1}^m h_j(O_i^{(1)},O_i^{(2)}),
+ \quad
+ S_{\ne}^{\mathrm{dec}}
+ =S_{\mathrm{full}}^{\mathrm{dec}}-S_{\mathrm{diag}}^{\mathrm{dec}}.
+\]
+For the full decoupled sum, the variance parameter in \(\mathrm{lem{:}gine\text{-}latala\text{-}zinn\text{-}order\text{-}two\text{-}moment}\) is
+\[
+ C_{\mathrm{full}}^2=m^2\mathbb E_Qh_j(O,O')^2
+ \le {m\over m-1}\mathfrak C^2\le {4\over3}\mathfrak C^2,
+\]
+because \(m\ge4\).  The other three parameters are exactly \(A,B,D\) above.  The diagonal summands are independent and centered by complete degeneracy.  Applying the Bernstein calculation (5) to their sum gives, for \(p\ge2\),
+\[
+ \|S_{\mathrm{diag}}^{\mathrm{dec}}\|_{L^p}
+ \le C\left\{\sqrt{mp\,\mathbb E_Qh_j(O,O')^2}+pA\right\}
+ \le C\{\mathfrak C\sqrt p+Ap^2\}.
+\]
+The triangle inequality and the cited moment lemma therefore give
+\[
+ \|S_{\ne}^{\mathrm{dec}}\|_{L^p}
+ \le C\{\mathfrak C\sqrt p+Dp+Bp^{3/2}+Ap^2\}.
+\]
+Now apply \(\mathrm{lem{:}de\text{-}la\text{-}pena\text{-}montgomery\text{-}smith\text{-}undecoupling}\) to the family \({\bf1}\{i\ne\ell\}h_j\).  If \(S_{\ne}=\sum_{i\ne\ell}h_j(O_i,O_\ell)\), its upper tail comparison and the layer-cake identity give
+\[
+ \begin{aligned}
+ \mathbb E_Q|S_{\ne}|^p
+ &=p\int_0^\infty u^{p-1}\Pr_Q(|S_{\ne}|\ge u)\,du\\
+ &\le Kp\int_0^\infty u^{p-1}
+       \Pr_Q(K|S_{\ne}^{\mathrm{dec}}|\ge u)\,du
+ =K^{p+1}\mathbb E_Q|S_{\ne}^{\mathrm{dec}}|^p.
+ \end{aligned}
+\]
+Thus the coupled and decoupled \(L^p\)-norms differ by at most a universal multiplier.  Substituting (21) yields, for every \(p\ge2\),
+\[
+ \left\|\sum_{i\ne\ell}h_j(O_i,O_\ell)\right\|_{L^p}
+ \le C\left\{m\sqrt{kp}\,h^{-d}+mp h^{-d}
+ +\sqrt{mk h^{-3d}}\,p^{3/2}+kh^{-2d}p^2\right\}.
+\tag{22}
+\]
+The two cited lemmas impose no relation between \(k\) and \(m\), and every quantity in (21) is finite for every finite \(k\).
+
+Since \(n\ge12\), \(m=\lfloor n/3\rfloor\ge4\), so \(m(m-1)\ge m^2/2\).  Divide (22) by \(m(m-1)\), combine it with (6) and the first-order term in (12), and use
+\[
+ \sqrt{\frac p{M_h}}+\frac{\sqrt{kp}}{M_h}
+ \le\sqrt2\sqrt{\frac p{M_h}\left(1+\frac{k}{M_h}\right)}.
+\]
+Coordinatewise, this gives
+\[
+ \|(T_*-T_*^\circ)_j\|_{L^p}
+ \le C\left\{
+ \sqrt{\frac p{M_h}\left(1+\frac{k}{M_h}\right)}
+ +\frac p{M_h}
+ +\frac{\sqrt{k}\,p^{3/2}}{M_h^{3/2}}
+ +\frac{kp^2}{M_h^2}\right\}.
+\tag{23}
+\]
+Because \(x_\eta=\log(8/\eta)>2\), choose a fixed \(c_{\mathrm{out}}>0\), depending only on \(r_{\mathrm{out}}\), such that \(r_{\mathrm{out}}e^{-c_{\mathrm{out}}x_\eta}\le\eta/2\), and put \(p=c_{\mathrm{out}}x_\eta\).  Markov's inequality gives \(\Pr\{|Z|>e\|Z\|_{L^p}\mid\mathcal G\}\le e^{-p}\).  A union bound over the fixed output coordinates and \(\|v\|_2\le\sqrt{r_{\mathrm{out}}}\max_j|v_j|\) turn (23) into the displayed probability inequality after enlarging \(C_1\).  The proof actually holds for every \(M_h>0\), so any fixed \(C_0>0\) may be chosen.  All constants are uniform in the realized pilots and in \(J_\pi,J_\mu\), and the argument applies to every finite integer \(k\ge1\).
+\end{proof}
+
+\begin{lemma}[lem:uniform-remainder-unrestricted-rank]\label{lem:uniform-remainder-unrestricted-rank}
+There are constants \(C_B,C_S,C_G\), depending only on \((d,\kappa,\alpha,\beta,\gamma,L_\pi,L_\mu,L_\tau)\) and the fixed basis normalizations, such that for every \(Q\in\mathcal P_{\mathrm{att}}\), every \(0<h\le r_0\), and every finite integer \(k\ge k_{\mathrm{poly}}\) with \(m h^d\ge C_S^2\log(8/\eta)\), the projected private pilots satisfy the same H\"older-radius and range restrictions as the primitive nuisances and
+\[
+ \Pr_Q\!\left\{\left|\widehat\tau_{\mathrm{DP}}(x_0;h,k)-\tau_Q(x_0)\right|>
+ B(h,k)+S(h,k,\eta)+G(h,k,\eta,\epsilon_n,\delta_n)\right\}\le\eta.
+\]
+The three displayed summands respectively bound localization plus higher-order nuisance bias, sampling fluctuation of the linear and degenerate terms, and all propagated Gaussian release noise.  No upper rank condition relating \(k\) to \(m h^d\) is required.
+\end{lemma}
+\begin{proof}
+Fix \(Q\in\mathcal P_{\mathrm{att}}\), \(0<h\le r_0\), a finite integer \(k\ge k_{\mathrm{poly}}\), and deterministic pilot dimensions \(J_\pi,J_\mu\ge1\), and condition on the two pilot releases.  The true nuisances belong to the nonempty closed convex sets \(\mathcal C_\pi\) and \(\mathcal C_\mu\) by Assumptions \(\mathrm{ass{:}overlap}\), \(\mathrm{ass{:}propensity\text{-}holder}\), \(\mathrm{ass{:}bounded\text{-}outcomes}\), and \(\mathrm{ass{:}control\text{-}holder}\).  Definition \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) therefore places \(\bar\pi\) and \(\bar\mu\) in those sets.  In particular, their ranges and H\"older radii satisfy the hypotheses used below, uniformly in their realized Gaussian noises.
+
+Put \(\ell=hk^{-1/d}\).  Since \(k\ge k_{\mathrm{poly}}\), Lemma \(\mathrm{lem{:}localized\text{-}spline\text{-}population\text{-}algebra}\) supplies \(\vartheta_\tau\in\mathbb R^{p_\gamma}\) such that
+\[
+ \rho_h(x_0)^{\mathsf T}\vartheta_\tau=\tau_Q(x_0),
+ \qquad \|\vartheta_\tau\|_2\le C,
+\tag{1}
+\]
+and, writing \((Q^\circ,R^\circ)=\mathbb E_Q[(T_{*,Q},T_{*,R})\mid\bar\pi,\bar\mu]\),
+\[
+ \|R^\circ-Q^\circ\vartheta_\tau\|_2\le Cb_0,
+ \qquad
+ \|Q^\circ-Q^0\|_{\mathrm{op}}\le C\ell^{2\alpha},
+\tag{2}
+\]
+where
+\[
+ b_0=h^\gamma+\ell^{\alpha+\beta}+h^\gamma\ell^\alpha,
+ \quad \lambda_{\min}(Q^0)\ge\lambda_0:=\kappa(1-\kappa)>0,
+ \quad \|R^\circ\|_2\le C.
+\tag{3}
+\]
+The strict positivity of \(\lambda_0\) follows from \(0<\kappa<1/2\).  Also \(0<\ell\le h\le r_0\), since \(k\ge k_{\mathrm{poly}}\ge1\).
+
+Let
+\[
+ x_\eta=\log(8/\eta),\qquad M_h=mh^d,
+\]
+and define
+\[
+ a_0=
+ \sqrt{\frac{x_\eta}{M_h}\left(1+\frac{k}{M_h}\right)}
+ +\frac{x_\eta}{M_h}
+ +\frac{\sqrt{k}\,x_\eta^{3/2}}{M_h^{3/2}}
+ +\frac{kx_\eta^2}{M_h^2},
+\tag{4}
+\]
+\[
+ g_0=\frac{\sqrt{\log(1/\delta_n)x_\eta}}{m\epsilon_n}
+       \{h^{-d}+kh^{-2d}\}.
+\tag{5}
+\]
+Choose \(C_S\ge\sqrt{C_0}\), where \(C_0\) is the constant in \(\mathrm{lem{:}localized\text{-}score\text{-}concentration\text{-}unrestricted\text{-}rank}\).  The hypothesis \(M_h\ge C_S^2x_\eta\) permits application of that lemma.  It is valid for every finite \(k\ge1\), and hence for the present \(k\), so conditionally on the pilots there is an event \(E_S\) satisfying
+\[
+ \Pr_Q(E_S\mid\bar\pi,\bar\mu)\ge1-\eta/2,
+ \qquad \|T_*-T_*^\circ\|_2\le Ca_0
+ \quad\text{on }E_S.
+\tag{6}
+\]
+No comparison between \(k\) and \(M_h\) is used.
+
+The Gaussian vector in the main-block release has fixed dimension \(D_*=p_\gamma^2+p_\gamma\).  For a scalar \(Z\sim N(0,1)\), completing the square gives \(\mathbb Ee^{tZ}=e^{t^2/2}\), and Markov's inequality applied to \(Z\) and \(-Z\) gives \(\Pr(|Z|>u)\le2e^{-u^2/2}\).  A coordinate union bound therefore yields
+\[
+ \Pr\{\|Z_*\|_2>C\sqrt{x_\eta}\}\le\eta/2.
+\tag{7}
+\]
+The declared ranges \(0<\delta_n<1/2\) and \(0<\epsilon_n\le1\) imply
+\[
+ c_{\delta_n}\le C\sqrt{\log(1/\delta_n)},
+ \qquad (\epsilon_n^\circ)^{-1}\le2\epsilon_n^{-1}.
+\tag{8}
+\]
+Lemma \(\mathrm{lem{:}private\text{-}release\text{-}and\text{-}sensitivity}\), (7)--(8), and the Gaussian scale in the learner definition give a conditionally measurable event \(E_G\) such that
+\[
+ \Pr_Q(E_G\mid\bar\pi,\bar\mu)\ge1-\eta/2,
+ \qquad \|\widetilde T_*-T_*\|_2\le Cg_0
+ \quad\text{on }E_G.
+\tag{9}
+\]
+On \(E=E_S\cap E_G\), the union bound gives conditional probability at least \(1-\eta\), and componentwise reconstruction of \((\widetilde Q,\widetilde R)\) gives
+\[
+ \|\widetilde Q-Q^\circ\|_{\mathrm{op}}
+ +\|\widetilde R-R^\circ\|_2
+ \le e_0:=C(a_0+g_0).
+\tag{10}
+\]
+
+First suppose that
+\[
+ C\ell^{2\alpha}+e_0\le\lambda_0/2,
+\tag{11}
+\]
+where \(C\) is enlarged to dominate the constant in (2).  For every unit vector \(v\), (2), (3), and (10) imply
+\[
+ \|\widetilde Qv\|_2
+ \ge\|Q^0v\|_2-\|(Q^\circ-Q^0)v\|_2
+                    -\|(\widetilde Q-Q^\circ)v\|_2
+ \ge\lambda_0/2.
+\tag{12}
+\]
+Thus \(\sigma_{\min}(\widetilde Q)\ge\lambda_0/2\).  The singular-value floor at \(\lambda_0/4\) is inactive, and
+\(\|\widetilde Q^{-1}\|_{\mathrm{op}}\le2/\lambda_0\).  Inserting and subtracting \(R^\circ\), \(Q^\circ\vartheta_\tau\), and \(\widetilde Q\vartheta_\tau\), and using (1)--(3) and (10), gives
+\[
+ \begin{aligned}
+ |\widehat\tau_{\mathrm{DP}}(x_0;h,k)-\tau_Q(x_0)|
+ &\le \|\rho_h(x_0)\|_2\|\widetilde Q^{-1}\|_{\mathrm{op}}
+       \|\widetilde R-\widetilde Q\vartheta_\tau\|_2\\
+ &\le C(b_0+a_0+g_0).
+ \end{aligned}
+\tag{13}
+\]
+
+If (11) fails, then either \(C\ell^{2\alpha}>\lambda_0/4\) or \(e_0>\lambda_0/4\).  In the first case, because \(\alpha>0\) and \(\beta>0\),
+\[
+ \ell^{\alpha+\beta}
+ =(\ell^{2\alpha})^{(\alpha+\beta)/(2\alpha)}\ge c_1>0;
+\]
+in the second case, \(a_0+g_0\ge c_2>0\).  Hence in either case
+\[
+ b_0+a_0+g_0\ge c_*>0.
+\tag{14}
+\]
+The singular-value floor always ensures \(\|\widehat Q_{\mathrm{DP}}^{-1}\|_{\mathrm{op}}\le4/\lambda_0\).  Equations (3) and (10) give \(\|\widetilde R\|_2\le C+e_0\), while bounded outcomes give \(|\tau_Q(x_0)|\le1\).  Therefore on \(E\),
+\[
+ \begin{aligned}
+ |\widehat\tau_{\mathrm{DP}}(x_0;h,k)-\tau_Q(x_0)|
+ &\le \|\rho_h(x_0)\|_2
+       \|\widehat Q_{\mathrm{DP}}^{-1}\|_{\mathrm{op}}
+       \|\widetilde R\|_2+|\tau_Q(x_0)|\\
+ &\le C(1+a_0+g_0)
+ \le C'(b_0+a_0+g_0),
+ \end{aligned}
+\tag{15}
+\]
+where (14) proves the last inequality.
+
+Choose \(C_B,C_S,C_G\) at least as large as the constants in (13) and (15), while retaining \(C_S\ge\sqrt{C_0}\).  Definitions \(\mathrm{def{:}bias\text{-}envelope}\), \(\mathrm{def{:}sampling\text{-}envelope}\), and \(\mathrm{def{:}privacy\text{-}envelope}\) identify their values with constant multiples of \(b_0,a_0,g_0\), respectively.  Thus the asserted raw-estimator error inequality holds on \(E\).  Its conditional failure probability is at most \(\eta\), uniformly over the realized pilots and every finite \(k\ge k_{\mathrm{poly}}\); integrating over both pilot blocks proves the unconditional assertion.  Center clipping occurs only later in \(\mathrm{def{:}private\text{-}confidence\text{-}interval}\) and does not enter this raw-estimator bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The uniform raw-estimator envelope controls localization bias, higher-order nuisance bias, sampling fluctuation, and Gaussian release noise before any center clipping; downstream projection leaves this proof unchanged. \textit{Gap.} KennedyBalakrishnanRobinsWasserman2024 gives an expected-error decomposition without privacy or coverage; ArmstrongKolesar2020 treats worst-case smoothing bias without causal higher-order nuisance bias. \textit{Consumer.} The bound gives investigators a finite-sample radius that remains valid when low nuisance smoothness makes first-order CATE intervals undercover.
+
+\begin{theorem}[thm:honest-private-pointwise-interval-unrestricted-rank]\label{thm:honest-private-pointwise-interval-unrestricted-rank}
+For every \(0<h\le r_0\), every finite integer \(k\ge k_{\mathrm{poly}}\) satisfying \(m h^d\ge C_S^2\log(8/\eta)\), and every \(J_\pi,J_\mu\ge1\), the released set \(C_n(h,k)\) is replacement \((\epsilon_n,\delta_n)\)-differentially private and satisfies
+\[
+ \inf_{Q\in\mathcal P_{\mathrm{att}}}
+ \Pr_Q\{\tau_Q^{\mathrm c}(x_0)\in C_n(h,k)\}\ge1-\eta.
+\]
+Coverage probability integrates the sampling law, all pilot and moment Gaussian noises, and the deterministic sample split.  No upper rank condition relating \(k\) to \(m h^d\) is required.
+\end{theorem}
+\begin{proof}
+Fix \(0<h\le r_0\), a finite integer \(k\ge k_{\mathrm{poly}}\) satisfying \(mh^d\ge C_S^2\log(8/\eta)\), and integers \(J_\pi,J_\mu\ge1\).  Lemma \(\mathrm{lem{:}private\text{-}release\text{-}and\text{-}sensitivity}\), applied to Definitions \(\mathrm{def{:}private\text{-}higher\text{-}order\text{-}learner}\) and \(\mathrm{def{:}private\text{-}confidence\text{-}interval}\), proves that \(C_n(h,k)\) is replacement \((\epsilon_n,\delta_n)\)-differentially private.  Clipping the released center and intersecting with \([-1,1]\) are post-processing.
+
+For \(Q\in\mathcal P_{\mathrm{att}}\), set
+\[
+ R=R_n(h,k)=B(h,k)+S(h,k,\eta)
+      +G(h,k,\eta,\epsilon_n,\delta_n)
+\]
+and define
+\[
+ E_Q=\left\{
+ |\widehat\tau_{\mathrm{DP}}(x_0;h,k)-\tau_Q(x_0)|\le R
+ \right\}.
+\tag{1}
+\]
+All three summands in \(R\) are nonnegative by their definitions.  The cutoff \(k\ge k_{\mathrm{poly}}\) and effective-sample condition permit application of Lemma \(\mathrm{lem{:}uniform\text{-}remainder\text{-}unrestricted\text{-}rank}\), which gives
+\[
+ \Pr_Q(E_Q)\ge1-\eta.
+\tag{2}
+\]
+Proposition \(\mathrm{prop{:}attainable\text{-}inclusion}\) gives \(Q\in\mathcal P_{\mathrm{full}}\), and Lemma \(\mathrm{lem{:}pointwise\text{-}identification}\) therefore gives
+\[
+ \theta_Q:=\tau_Q^{\mathrm c}(x_0)=\tau_Q(x_0).
+\tag{3}
+\]
+Assumption \(\mathrm{ass{:}bounded\text{-}outcomes}\) implies \(-1\le Y(1)-Y(0)\le1\) almost surely.  Monotonicity of conditional expectation preserves these bounds, so
+\[
+ \theta_Q\in[-1,1].
+\tag{4}
+\]
+
+Let \(\Pi(t)=\max\{-1,\min\{1,t\}\}\).  For every \(\theta\in[-1,1]\),
+\[
+ |\Pi(t)-\theta|\le|t-\theta|.
+\tag{5}
+\]
+Indeed, equality holds for \(t\in[-1,1]\); if \(t>1\), then \(0\le1-\theta\le t-\theta\); and if \(t<-1\), then \(0\le\theta+1\le\theta-t\).  Definition \(\mathrm{def{:}private\text{-}confidence\text{-}interval}\) sets \(\bar\tau_{\mathrm{DP}}=\Pi(\widehat\tau_{\mathrm{DP}})\).  Combining (1), (3)--(5), on \(E_Q\) one has
+\[
+ |\bar\tau_{\mathrm{DP}}(x_0;h,k)-\theta_Q|
+ \le|\widehat\tau_{\mathrm{DP}}(x_0;h,k)-\theta_Q|
+ \le R.
+\tag{6}
+\]
+Thus \(\theta_Q\) belongs to both \([\bar\tau_{\mathrm{DP}}-R,\bar\tau_{\mathrm{DP}}+R]\) and \([-1,1]\), proving
+\[
+ E_Q\subseteq\{\theta_Q\in C_n(h,k)\}.
+\tag{7}
+\]
+On every transcript, including outside \(E_Q\), one has \(\bar\tau_{\mathrm{DP}}\in[-1,1]\) and \(R\ge0\).  Hence the center belongs to both closed intervals whose intersection defines \(C_n(h,k)\), so the released set is always a nonempty closed interval.
+
+Taking probabilities in (7), using (2), and then taking the infimum over \(Q\in\mathcal P_{\mathrm{att}}\) proves the displayed coverage bound.  The probability in (2) integrates all three sample blocks and all pilot and moment Gaussian releases by the remainder lemma.  The proof imposes only the fixed lower cutoff \(k\ge k_{\mathrm{poly}}\); it introduces no upper condition relating \(k\) to \(mh^d\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The headline converts the fully privatized higher-order CATE learner into an honest, transcript-wise nonempty pointwise causal interval: projection onto \([-1,1]\) cannot increase error from the bounded target. \textit{Gap.} NiuEtAl2022 supplies a differentially private heterogeneous-effect meta-learner and composition analysis, but not a finite-sample uniformly honest pointwise H\"older CATE interval, transcript-wise nonemptiness, or an expected-length guarantee; SchroederHartensteinFeuerriegel2025 treats an interval for the regular population ATE rather than this target. \textit{Consumer.} A hospital can release a nonempty confidence interval for the treatment effect at a prespecified anchor point while protecting every record.
+
+\begin{theorem}[thm:full-class-direct-regression-upper]\label{thm:full-class-direct-regression-upper}
+Let \(p=p_\gamma\), let \(C_h=x_0+[-h/2,h/2]^d\), and let \(K_h(x)=h^{-d}{\bf1}_{C_h}(x)\).  Use the standard \(K_h\)-orthonormal normalization of the fixed tensor Legendre basis \(\rho_h\), so that
+\[
+ \int_{C_h}K_h(x)\rho_h(x)\rho_h(x)^{\mathsf T}\,dx=I_p,
+ \qquad
+ \sup_{x\in C_h}\|\rho_h(x)\|_2\le c_\rho,
+\]
+where \(c_\rho<\infty\) depends only on \((d,\gamma)\).  Let \(\operatorname{svec}\) be the isometric vectorization of a symmetric matrix.  For \(o=(x,a,y)\in\mathcal X\times\{0,1\}\times[0,1]\), define
+\[
+ \begin{aligned}
+ z_h(o)={}&\operatorname{svec}\{K_h(x){\bf1}(a=0)\rho_h(x)\rho_h(x)^{\mathsf T}\}
+ \mathbin\oplus
+ \operatorname{svec}\{K_h(x){\bf1}(a=1)\rho_h(x)\rho_h(x)^{\mathsf T}\}\\
+ &\mathbin\oplus K_h(x){\bf1}(a=0)\rho_h(x)y
+ \mathbin\oplus K_h(x){\bf1}(a=1)\rho_h(x)y.
+ \end{aligned}
+\]
+Put \(D=2\{p(p+1)/2+p\}\), \(c_z=(c_\rho^4+c_\rho^2)^{1/2}\),
+\[
+ \epsilon_n^\circ=\min\{\epsilon_n,1/2\},
+ \qquad c_{\delta_n}=\sqrt{2\log(1.25/\delta_n)}+1,
+ \qquad \overline\Delta_h=\frac{2c_z}{nh^d},
+\]
+and, using all \(n\) observations, make the single joint release
+\[
+ \widetilde T_h=\frac1n\sum_{i=1}^nz_h(O_i)
+ +c_{\delta_n}\overline\Delta_h(\epsilon_n^\circ)^{-1}Z,
+ \qquad Z\sim N(0,I_D),
+\tag{15}
+\]
+where \(Z\) is independent of \(D_n\).
+Reconstruct from \(\widetilde T_h\) the symmetric matrices \(\widetilde G_{a,h}\) and vectors \(\widetilde r_{a,h}\), \(a\in\{0,1\}\).  Set \(\lambda_0=\kappa\underline f\), and if
+\(\widetilde G_{a,h}=U_a\operatorname{diag}(\widetilde\lambda_{a,j})U_a^{\mathsf T}\), define
+\[
+ \widehat G_{a,h}=U_a\operatorname{diag}\{\max(\widetilde\lambda_{a,j},\lambda_0/2)\}U_a^{\mathsf T}.
+\]
+Let
+\[
+ \check\tau_h=\rho_h(x_0)^{\mathsf T}
+ \{\widehat G_{1,h}^{-1}\widetilde r_{1,h}
+   -\widehat G_{0,h}^{-1}\widetilde r_{0,h}\},
+ \qquad
+ \bar\tau_h=\max\{-1,\min(1,\check\tau_h)\}.
+\]
+For \(x_\eta=\log(4D/\eta)\), define the deterministic error scale
+\[
+ E_n(h)=\sqrt D\,c_z\left\{
+ \sqrt{\frac{2\overline f x_\eta}{nh^d}}+
+ \frac{4x_\eta}{3nh^d}\right\}
+ +\frac{2c_zc_{\delta_n}\sqrt{2Dx_\eta}}
+ {n\epsilon_n^\circ h^d}.
+\tag{16}
+\]
+Let \(C_{\mathrm{app}}<\infty\) be the uniform local-polynomial approximation constant for the two arm regressions derived in the proof, put
+\[
+ C_\theta=\frac{\overline f c_\rho}{\lambda_0},
+ \qquad
+ C_b=\frac{2c_\rho^2\overline f C_{\mathrm{app}}}{\lambda_0},
+ \qquad
+ C_v=\frac{4c_\rho(1+C_\theta)}{\lambda_0},
+\]
+and define
+\[
+ R_n^{\mathrm{dir}}(h)=
+ \begin{cases}
+ C_bh^\beta+C_vE_n(h),&E_n(h)\le\lambda_0/2,\\
+ 2,&E_n(h)>\lambda_0/2,
+ \end{cases}
+ \qquad
+ C_n^{\mathrm{dir}}(h)=
+ [\bar\tau_h-R_n^{\mathrm{dir}}(h),\bar\tau_h+R_n^{\mathrm{dir}}(h)]\cap[-1,1].
+\tag{17}
+\]
+Then \(C_n^{\mathrm{dir}}(h)\) is replacement \((\epsilon_n,\delta_n)\)-differentially private and, for every \(0<h\le r_0\),
+\[
+ \inf_{Q\in\mathcal P_{\mathrm{full}}}
+ \Pr_Q\{\tau_Q^{\mathrm c}(x_0)\in C_n^{\mathrm{dir}}(h)\}\ge1-\eta.
+\tag{18}
+\]
+Moreover, there are \(n_0\in\mathbb N\) and \(C_L<\infty\), depending only on the fixed class constants and \(\eta\), such that for every \(n\ge n_0\), if
+\[
+ t_n=1\wedge\left\{n^{-\beta/(2\beta+d)}
+ \vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}\right\},
+ \qquad h_n=r_0t_n^{1/\beta},
+\]
+then \(nh_n^d\ge x_\eta\) and
+\[
+ \sup_{Q\in\mathcal P_{\mathrm{full}}}
+ \mathbb E_Q[\operatorname{length}\{C_n^{\mathrm{dir}}(h_n)\}]
+ \le C_L\left[1\wedge\left\{n^{-\beta/(2\beta+d)}
+ \vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}\right\}\right].
+\tag{19}
+\]
+The construction uses no nuisance pilot, density estimate, growing higher-order basis, or KBRW high-dimensional Gram.
+\end{theorem}
+\begin{proof}
+Fix \(Q\in\mathcal P_{\mathrm{full}}\).  Assumptions \(\mathrm{ass{:}bounded\text{-}outcomes}\) and \(\mathrm{ass{:}consistency}\) imply \(0\le Y\le1\), so every observed record belongs to the domain used in (15).  Since \(\operatorname{svec}\) is isometric and exactly one treatment arm is active in a record,
+\[
+ \|z_h(o)\|_2
+ \le h^{-d}\{\|\rho_h(x)\rho_h(x)^{\mathsf T}\|_F^2
+                  +y^2\|\rho_h(x)\|_2^2\}^{1/2}
+ \le c_zh^{-d}.
+\tag{20}
+\]
+Thus replacement of one record changes \(n^{-1}\sum_i z_h(O_i)\) by at most \(2c_z/(nh^d)=\overline\Delta_h\).  Lemma \(\mathrm{lem{:}gaussian\text{-}mechanism\text{-}replacement}\), applied with \(\epsilon_n^\circ<1\), proves that (15) is \((\epsilon_n^\circ,\delta_n)\)-differentially private.  Since \(\epsilon_n^\circ\le\epsilon_n\), it is also \((\epsilon_n,\delta_n)\)-differentially private.  Spectral flooring, inversion, subtraction, clipping, and interval formation are post-processing, proving the privacy assertion.
+
+We next condition the population problems.  Write
+\[
+ p_1(x)=\pi_Q(x),\qquad p_0(x)=1-\pi_Q(x),
+\]
+and define
+\[
+ G_{a,h}=\mathbb E_Q[K_h(X){\bf1}(A=a)\rho_h(X)\rho_h(X)^{\mathsf T}],
+ \qquad
+ r_{a,h}=\mathbb E_Q[K_h(X){\bf1}(A=a)\rho_h(X)Y].
+\]
+Because \(h\le r_0\), \(C_h\subset x_0+[-r_0,r_0]^d\).  Assumptions \(\mathrm{ass{:}overlap}\), \(\mathrm{ass{:}local\text{-}density\text{-}lower}\), and \(\mathrm{ass{:}global\text{-}density\text{-}upper}\), together with the basis normalization, give for every \(v\in\mathbb R^p\),
+\[
+ \begin{aligned}
+ v^{\mathsf T}G_{a,h}v
+ &=\int_{C_h}K_h(x)f_Q(x)p_a(x)
+       \{v^{\mathsf T}\rho_h(x)\}^2\,dx\\
+ &\ge\kappa\underline f\int_{C_h}K_h(x)
+       \{v^{\mathsf T}\rho_h(x)\}^2\,dx
+ =\lambda_0\|v\|_2^2,
+ \end{aligned}
+\tag{21}
+\]
+and similarly \(v^{\mathsf T}G_{a,h}v\le\overline f\|v\|_2^2\).  Hence both arm-specific Grams have full rank, with
+\[
+ \lambda_0I_p\preceq G_{a,h}\preceq\overline f I_p.
+\tag{22}
+\]
+
+We now establish the bias.  By definition, \(\tau_Q=\mu_{1,Q}-\mu_{0,Q}\), so \(\mu_{1,Q}=\mu_{0,Q}+\tau_Q\).  On the compact cube, the defining derivative and H\"older-seminorm inequalities for \(\mathcal H^\gamma(L_\tau;\mathcal X)\), with \(\gamma>\beta\), imply a \(\beta\)-H\"older bound for \(\tau_Q\) whose constant depends only on \((d,\beta,\gamma,L_\tau)\).  Assumptions \(\mathrm{ass{:}control\text{-}holder}\) and \(\mathrm{ass{:}cate\text{-}holder}\) therefore put both \(\mu_{0,Q}\) and \(\mu_{1,Q}\) in fixed \(\beta\)-H\"older balls.  Taylor expansion through order \(\lfloor\beta\rfloor\), with the defining H\"older remainder when \(\beta\) is noninteger and the corresponding integer-order remainder convention when it is integer, produces polynomials \(P_{a,h}\) of degree at most \(\lfloor\beta\rfloor\le\lfloor\gamma\rfloor\) such that
+\[
+ P_{a,h}(x_0)=\mu_{a,Q}(x_0),
+ \qquad
+ \sup_{x\in C_h}|\mu_{a,Q}(x)-P_{a,h}(x)|
+ \le C_{\mathrm{app}}h^\beta,
+\tag{23}
+\]
+uniformly in \(Q\) and \(a\).  This derivation defines the finite constant \(C_{\mathrm{app}}\) used in (17).  Because \(\rho_h\) spans all polynomials of degree at most \(\lfloor\gamma\rfloor\), write \(P_{a,h}=\rho_h^{\mathsf T}\vartheta_{a,h}^\circ\).  Let \(\vartheta_{a,h}=G_{a,h}^{-1}r_{a,h}\).  Conditional expectation of \(Y\) within arm \(a\), (21), and (23) yield
+\[
+ \begin{aligned}
+ \|\vartheta_{a,h}-\vartheta_{a,h}^\circ\|_2
+ &\le\lambda_0^{-1}
+ \left\|\int_{C_h}K_hf_Qp_a\rho_h(\mu_{a,Q}-P_{a,h})\,dx\right\|_2\\
+ &\le \frac{\overline f c_\rho C_{\mathrm{app}}}{\lambda_0}h^\beta.
+ \end{aligned}
+\tag{24}
+\]
+Consequently,
+\[
+ \left|\rho_h(x_0)^{\mathsf T}
+ \{\vartheta_{1,h}-\vartheta_{0,h}\}-\tau_Q(x_0)\right|
+ \le C_bh^\beta.
+\tag{25}
+\]
+Also \(\|r_{a,h}\|_2\le\overline f c_\rho\), using \(0\le Y\le1\), and hence
+\[
+ \|\vartheta_{a,h}\|_2\le C_\theta.
+\tag{26}
+\]
+
+For completeness, we derive the finite-sample event used below.  Each coordinate \(W\) of \(z_h(O)-\mathbb E_Qz_h(O)\) satisfies
+\[
+ |W|\le2c_zh^{-d},
+ \qquad
+ \mathbb E_QW^2\le c_z^2\overline f h^{-d},
+\tag{27}
+\]
+because \(P_Q(X\in C_h)\le\overline f h^d\).  If a centered variable obeys \(|W|\le B\), expansion of its exponential gives, for \(0<t<3/B\),
+\[
+ \begin{aligned}
+ \mathbb E e^{tW}
+ &\le1+\frac{\mathbb EW^2}{B^2}\{e^{tB}-1-tB\}\\
+ &\le\exp\left\{\frac{t^2\mathbb EW^2}{2(1-tB/3)}\right\}.
+ \end{aligned}
+\tag{28}
+\]
+Here the last inequality follows term by term from \(k!\ge2\,3^{k-2}\) for \(k\ge2\), followed by \(1+u\le e^u\).  Chernoff's argument applied to (28) and to \(-W\) shows that an average of \(n\) such variables differs from its mean by at most
+\[
+ \sqrt{\frac{2\mathbb EW^2x}{n}}+\frac{2Bx}{3n}
+\tag{29}
+\]
+with failure probability at most \(2e^{-x}\).  Taking \(x=x_\eta=\log(4D/\eta)\), using (27), and applying the union bound over the \(D\) coordinates bounds the Euclidean norm of the sampling error by the first term in (16), with failure probability at most \(\eta/2\).
+
+For a standard normal coordinate, direct completion of the square gives \(\mathbb Ee^{tZ_j}=e^{t^2/2}\); Chernoff's argument and a union bound give
+\[
+ \Pr\{\|Z\|_2>\sqrt{2Dx_\eta}\}\le2De^{-x_\eta}\le\eta/2.
+\tag{30}
+\]
+Combining (29)--(30) shows that, with probability at least \(1-\eta\), simultaneously for \(a=0,1\),
+\[
+ \|\widetilde G_{a,h}-G_{a,h}\|_{\mathrm{op}}
+ \le E_n(h),
+ \qquad
+ \|\widetilde r_{a,h}-r_{a,h}\|_2\le E_n(h).
+\tag{31}
+\]
+The operator norm bound follows from the Frobenius norm and the isometry of \(\operatorname{svec}\).
+
+Suppose first that the deterministic stable condition \(E_n(h)\le\lambda_0/2\) holds.  On event (31), Weyl's elementary variational inequality, obtained by taking infima of \(v^{\mathsf T}\widetilde G_{a,h}v\) over unit vectors and using (22), gives \(\lambda_{\min}(\widetilde G_{a,h})\ge\lambda_0/2\).  Thus spectral flooring is inactive and \(\|\widehat G_{a,h}^{-1}\|_{\mathrm{op}}\le2/\lambda_0\).  The exact normal-equation identity
+\[
+ \widehat G_{a,h}^{-1}\widetilde r_{a,h}-\vartheta_{a,h}
+ =\widehat G_{a,h}^{-1}
+ \{(\widetilde r_{a,h}-r_{a,h})
+   -(\widetilde G_{a,h}-G_{a,h})\vartheta_{a,h}\}
+\]
+and (26)--(31) imply
+\[
+ \|\widehat G_{a,h}^{-1}\widetilde r_{a,h}-\vartheta_{a,h}\|_2
+ \le \frac{2(1+C_\theta)}{\lambda_0}E_n(h).
+\tag{32}
+\]
+Equations (25) and (32) give
+\[
+ |\check\tau_h-\tau_Q(x_0)|\le C_bh^\beta+C_vE_n(h).
+\tag{33}
+\]
+Projection onto \([-1,1]\) cannot increase distance from \(\tau_Q(x_0)\in[-1,1]\), so (33) also holds with \(\bar\tau_h\) in place of \(\check\tau_h\).  Lemma \(\mathrm{lem{:}pointwise\text{-}identification}\) identifies \(\tau_Q(x_0)\) with the causal target \(\tau_Q^{\mathrm c}(x_0)\).  Hence (17) covers the causal target on event (31).  If instead \(E_n(h)>\lambda_0/2\), then \(R_n^{\mathrm{dir}}(h)=2\) and, because \(\bar\tau_h\in[-1,1]\), (17) equals \([-1,1]\) and covers surely.  This stable/large-error split proves (18) uniformly over \(\mathcal P_{\mathrm{full}}\).
+
+It remains to optimize.  Since \(D\) is fixed, \(0<\epsilon_n\le1\), \(0<\delta_n<1/2\), and \(0<\eta<1/4\), (16) implies, for a fixed class constant \(C\),
+\[
+ E_n(h)\le C\left\{
+ \sqrt{\frac{\log(1/\eta)}{nh^d}}
+ +\frac{\log(1/\eta)}{nh^d}
+ +\frac{\sqrt{\log(1/\delta_n)\log(1/\eta)}}
+ {n\epsilon_nh^d}\right\}.
+\tag{34}
+\]
+Write \(a_n=n^{-\beta/(2\beta+d)}\), \(b_n=N_{\mathrm{priv}}^{-\beta/(\beta+d)}\), and \(t_n=1\wedge(a_n\vee b_n)\).  With \(h_n=r_0t_n^{1/\beta}\), suppose first that \(t_n<1\).  Then \(t_n=a_n\vee b_n\), and \(t_n\ge a_n\) gives
+\[
+ (nh_n^d)^{-1/2}\le C t_n,
+ \qquad (nh_n^d)^{-1}\le Ct_n,
+\tag{35}
+\]
+while \(t_n\ge b_n\) gives
+\[
+ (N_{\mathrm{priv}}h_n^d)^{-1}\le Ct_n.
+\tag{36}
+\]
+Moreover, whether \(t_n<1\) or \(t_n=1\), the inequality \(t_n\ge a_n\) gives \(nh_n^d\ge r_0^dn^{2\beta/(2\beta+d)}\), so \(nh_n^d\ge x_\eta\) for all \(n\ge n_0\).  When \(t_n<1\), equations (34)--(36) and \(h_n^\beta=r_0^\beta t_n\) yield
+\[
+ h_n^\beta+E_n(h_n)\le Ct_n.
+\tag{37}
+\]
+If \(t_n<1\) is below a sufficiently small fixed threshold, (37) activates the stable branch and the interval length is at most \(2(C_bh_n^\beta+C_vE_n(h_n))\le Ct_n\).  If that threshold is at most \(t_n<1\), intersection with \([-1,1]\) gives length at most two, which is at most \(Ct_n\) after enlarging the fixed constant.  Finally, if \(t_n=1\), the same deterministic length bound two is exactly \(2t_n\), without any claim that the untruncated privacy error is bounded.  This proves (19).  Every step used the same full class; in particular, no uniform-design or nuisance-pilot hypothesis was introduced.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem supplies a fully private, finite-sample honest upper bound on the unchanged full positive-density class by using only fixed-dimensional local regressions. \textit{Gap.} The higher-order construction is proved only on the attainable uniform-design submodel; this direct construction gives a nonsharp but valid full-class endpoint without importing those design identities. \textit{Consumer.} An investigator can release a pointwise CATE interval under unknown bounded design density with a certified mean-length rate, while treating the sharper nuisance-adaptive frontier as unresolved.
+
+\begin{proposition}[prop:full-class-nonsharp-length-bracket]\label{prop:full-class-nonsharp-length-bracket}
+Let \(\mathfrak C_n\) be the collection of all replacement \((\epsilon_n,\delta_n)\)-differentially private random intervals \(C\) satisfying
+\[
+ \inf_{Q\in\mathcal P_{\mathrm{full}}}
+ \Pr_Q\{\tau_Q^{\mathrm c}(x_0)\in C\}\ge1-\eta,
+\]
+and define
+\[
+ \mathcal L_n^*(\mathcal P_{\mathrm{full}})
+ =\inf_{C\in\mathfrak C_n}\sup_{Q\in\mathcal P_{\mathrm{full}}}
+ \mathbb E_Q[\operatorname{length}(C)].
+\]
+If \(L_\pi\ge\kappa\), \(\delta_n\le c_0/n\), and \(n\) is sufficiently large, then
+\[
+ \begin{aligned}
+ &c\left[n^{-\gamma/(2\gamma+d)}
+ \vee\{1\wedge(n\epsilon_n)^{-\gamma/(\gamma+d)}\}\right]\\
+ &\qquad\le \mathcal L_n^*(\mathcal P_{\mathrm{full}})\\
+ &\qquad\le C\left[1\wedge\left\{n^{-\beta/(2\beta+d)}
+ \vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}\right\}\right].
+ \end{aligned}
+\]
+The constants depend only on the fixed class constants and \(\eta\).  This is a nonsharp full-class bracket: it does not decide whether the optimal upper exponent is governed by \(\gamma\), by \(q=\alpha+\beta\), or by a private higher-order Gram term.
+\end{proposition}
+\begin{proof}
+Define the two deterministic rate expressions
+\[
+ a_n=
+ n^{-\gamma/(2\gamma+d)}
+ \vee\left\{1\wedge(n\epsilon_n)^{-\gamma/(\gamma+d)}\right\}
+\]
+and
+\[
+ b_n=
+ 1\wedge\left\{
+ n^{-\beta/(2\beta+d)}
+ \vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}
+ \right\}.
+\]
+Suppose that \(L_\pi\ge\kappa\), \(\delta_n\le c_0/n\), and \(n\) is at least the threshold in the full-class direct-regression upper theorem.
+
+First fix an arbitrary \(C\in\mathfrak C_n\).  By the definition of \(\mathfrak C_n\), this \(C\) is a replacement \((\epsilon_n,\delta_n)\)-differentially private random interval and satisfies
+\[
+ \inf_{Q\in\mathcal P_{\mathrm{full}}}
+ \Pr_Q\!\left\{\tau_Q^{\mathrm c}(x_0)\in C\right\}
+ \ge 1-\eta.
+\]
+Thus all hypotheses of the full-class ordinary lower theorem hold, and that theorem gives, with a constant \(c>0\) independent of \(C\), \(Q\), and \(n\),
+\[
+ \sup_{Q\in\mathcal P_{\mathrm{full}}}
+ \mathbb E_Q[\operatorname{length}(C)]
+ \ge c a_n.
+\]
+Because the inequality holds for every \(C\in\mathfrak C_n\), taking the infimum over this same class yields
+\[
+ \mathcal L_n^*(\mathcal P_{\mathrm{full}})
+ =\inf_{C\in\mathfrak C_n}
+   \sup_{Q\in\mathcal P_{\mathrm{full}}}
+   \mathbb E_Q[\operatorname{length}(C)]
+ \ge c a_n.
+\tag{20}
+\]
+
+For the opposite direction, let \(h_n=r_0t_n^{1/\beta}\), with \(t_n=b_n\), and take the explicit interval \(C_n^{\mathrm{dir}}(h_n)\) constructed by the full-class direct-regression upper theorem.  That theorem proves both replacement \((\epsilon_n,\delta_n)\)-differential privacy and
+\[
+ \inf_{Q\in\mathcal P_{\mathrm{full}}}
+ \Pr_Q\!\left\{\tau_Q^{\mathrm c}(x_0)
+       \in C_n^{\mathrm{dir}}(h_n)\right\}
+ \ge 1-\eta.
+\]
+Consequently \(C_n^{\mathrm{dir}}(h_n)\in\mathfrak C_n\), which in particular proves that the optimization class is nonempty.  The mean-length conclusion of the same theorem gives
+\[
+ \sup_{Q\in\mathcal P_{\mathrm{full}}}
+ \mathbb E_Q\!\left[
+   \operatorname{length}\{C_n^{\mathrm{dir}}(h_n)\}
+ \right]
+ \le C_L b_n.
+\]
+Evaluating the infimum at this single admissible interval therefore gives
+\[
+ \mathcal L_n^*(\mathcal P_{\mathrm{full}})
+ \le C_L b_n.
+\tag{21}
+\]
+Combining (20) and (21), and writing \(C=C_L\), proves the displayed bracket.  Both endpoint theorems quantify over the identical class \(\mathcal P_{\mathrm{full}}\), use the identical causal target \(\tau_Q^{\mathrm c}(x_0)\), and optimize the identical mean interval length; hence no class substitution or identification-by-definition occurs.  The proposition merely assembles these inherited endpoints and does not assert that their generally different \(\gamma\)- and \(\beta\)-governed exponents match.  The two endpoint exponents used in this bracket are inherited from the accepted companion bank entry's point-risk analysis; the result proved here is their honest interval-length lift, and it does not close the open full-class frontier.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition records the strongest currently certified two-sided full-class result rather than leaving the upper endpoint at the trivial length two. \textit{Gap.} The lower endpoint uses the smoother contrast, while the direct upper endpoint uses the rougher arm-regression smoothness, so the exact private modulus is not identified. \textit{Consumer.} The bracket gives reviewers and privacy-budget committees a valid range for the optimal mean interval length on one unchanged law class.
+
+\begin{proposition}[prop:attainable-nonsharp-length-bracket]\label{prop:attainable-nonsharp-length-bracket}
+Let \(\mathfrak C_n^{\mathrm{att}}\) be the collection of all replacement
+\((\epsilon_n,\delta_n)\)-differentially private random intervals \(C\)
+satisfying
+\[
+ \inf_{Q\in\mathcal P_{\mathrm{att}}}
+ \Pr_Q\{\tau_Q^{\mathrm c}(x_0)\in C\}\ge1-\eta,
+\]
+and define
+\[
+ \mathcal L_n^*(\mathcal P_{\mathrm{att}})
+ =\inf_{C\in\mathfrak C_n^{\mathrm{att}}}
+   \sup_{Q\in\mathcal P_{\mathrm{att}}}
+   \mathbb E_Q[\operatorname{length}(C)].
+\]
+If \(L_\pi\ge\kappa\) and \(\delta_n\le c_0/n\), then there are
+constants \(c,C>0\) and \(n_0\in\mathbb N\), depending only on the fixed
+class constants and \(\eta\), such that, for every \(n\ge n_0\),
+\[
+ \begin{aligned}
+ c\left[n^{-\gamma/(2\gamma+d)}
+ \vee\left\{1\wedge(n\epsilon_n)^{-\gamma/(\gamma+d)}\right\}\right]
+ &\le \mathcal L_n^*(\mathcal P_{\mathrm{att}})\\
+ &\le C\min\left\{
+ 1\wedge r_{\mathrm{up}},
+ 1\wedge\left[n^{-\beta/(2\beta+d)}
+       \vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}\right]
+ \right\}.
+ \end{aligned}
+\tag{1}
+\]
+The minimum in (1) can be a strict polynomial improvement over the
+higher-order interval alone.  In particular, if \(q\ge\gamma\),
+\(\beta<\gamma<2\beta\), and
+\(N_{\mathrm{priv}}=n^{c_{\mathrm p}}\), where
+\[
+ 0<c_{\mathrm p}<
+ \min\left\{\frac{\gamma+2d}{2\gamma+d},
+             \frac{\beta+d}{2\beta+d}\right\},
+\tag{2}
+\]
+then, for all sufficiently large \(n\), the two entries of the upper
+minimum are respectively
+\[
+ n^{-c_{\mathrm p}\gamma/(\gamma+2d)}
+ \quad\text{and}\quad
+ n^{-c_{\mathrm p}\beta/(\beta+d)},
+\]
+and their ratio, second over first, converges polynomially to zero.  This
+is the best certified bracket here for the attainable class; it makes no
+claim that the full-class open frontier is sharp.
+\end{proposition}
+\begin{proof}
+We first transfer the explicit two-law construction underlying \(\mathrm{thm{:}full\text{-}class\text{-}ordinary\text{-}lower}\) to the attainable class.  In the notation of that established proof, let
+\[
+ p_* =\min\{1/4,L_\mu/2\}>0,
+ \qquad
+ g_h(x)=a_*h^\gamma\varphi((x-x_0)/h),
+\tag{1}
+\]
+where \(\varphi\) is its nonnegative smooth bump supported on \([-1,1]^d\), \(\varphi(0)=1\), and \(a_*>0\) is chosen so that, for every \(0<h\le r_0\),
+\[
+ g_h\in\mathcal H^\gamma(L_\tau;\mathcal X),
+ \qquad 0\le g_h\le p_*/2,
+ \qquad g_h(x_0)=a_*h^\gamma.
+\tag{2}
+\]
+Let \(Q_0,Q_h\) be the same two full-data laws.  Under both, \(X\) is uniform on \(\mathcal X\), \(A\mid X\sim\operatorname{Bernoulli}(\kappa)\), and \(A\) is conditionally independent of \((Y(0),Y(1))\) given \(X\).  Under \(Q_0\), the potential outcomes are conditionally independent Bernoulli variables with common mean \(p_*\).  Under \(Q_h\), they are conditionally independent Bernoulli variables with
+\[
+ \mathbb E_{Q_h}[Y(0)\mid X=x]=p_*,
+ \qquad
+ \mathbb E_{Q_h}[Y(1)\mid X=x]=p_*+g_h(x).
+\tag{3}
+\]
+In both laws set \(Y=AY(1)+(1-A)Y(0)\).
+
+We check Definition \(\mathrm{def{:}attainable\text{-}law\text{-}class}\).  The last display gives consistency, and the stipulated conditional independence gives ignorability.  Both potential outcomes have common support \(\{0,1\}\), while (2) gives
+\[
+ 0<p_*\le p_*+g_h(x)\le3p_*/2\le3/8<1,
+\]
+so bounded outcomes hold.  Since \(0<\kappa<1/2\), the constant propensity \(\pi_Q\equiv\kappa\) satisfies overlap; its H\"older norm is at most \(L_\pi\) under the premise \(L_\pi\ge\kappa\).  The control regression is the constant \(p_*\), whose H\"older norm is at most \(L_\mu/2\).  The contrast is zero under \(Q_0\) and is \(g_h\) under \(Q_h\), so (2) supplies CATE smoothness.  Finally, the design density equals one.  Hence
+\[
+ Q_0,Q_h\in\mathcal P_{\mathrm{att}}.
+\tag{4}
+\]
+
+Let \(P_0,P_h\) be the corresponding observed one-record laws.  The divergence calculations in the established proof of \(\mathrm{thm{:}full\text{-}class\text{-}ordinary\text{-}lower}\), whose bump is supported inside \(\mathcal X\) because \(x_0\in[r_0,1-r_0]^d\) and \(h\le r_0\), give constants \(C_\chi,C_v>0\) such that
+\[
+ \chi^2(P_h\|P_0)=C_\chi h^{2\gamma+d},
+ \qquad
+ \|P_h-P_0\|_{\mathrm{TV}}=C_vh^{\gamma+d}.
+\tag{5}
+\]
+Lemma \(\mathrm{lem{:}pointwise\text{-}identification}\) gives
+\[
+ |\tau_{Q_h}^{\mathrm c}(x_0)-\tau_{Q_0}^{\mathrm c}(x_0)|
+ =a_*h^\gamma.
+\tag{6}
+\]
+The product-divergence and private Hamming-transport steps of that theorem, including \(\mathrm{lem{:}dp\text{-}hamming\text{-}transport}\), use \(0<\epsilon_n\le1\) and \(\delta_n\le c_0/n\) to choose constants \(c_1,c_2\in(0,r_0]\) for which
+\[
+ h_1=c_1n^{-1/(2\gamma+d)},
+ \qquad
+ h_2=c_2\{1\wedge(n\epsilon_n)^{-1}\}^{1/(\gamma+d)}
+\tag{7}
+\]
+and, for every replacement-private release kernel \(\mathsf K\),
+\[
+ \|P_{h_j}^n\mathsf K-P_0^n\mathsf K\|_{\mathrm{TV}}\le1/8,
+ \qquad j\in\{1,2\}.
+\tag{8}
+\]
+
+Take any \(C\in\mathfrak C_n^{\mathrm{att}}\), with release kernel \(\mathsf K\), and fix either \(h=h_1\) or \(h=h_2\).  Write \(\theta_0=\tau_{Q_0}^{\mathrm c}(x_0)\), \(\theta_h=\tau_{Q_h}^{\mathrm c}(x_0)\), \(\nu_0=P_0^n\mathsf K\), and \(\nu_h=P_h^n\mathsf K\).  Membership (4), honesty, and (8) imply
+\[
+ \nu_0\{\theta_0\in C\}\ge1-\eta,
+ \qquad
+ \nu_0\{\theta_h\in C\}\ge1-\eta-1/8.
+\]
+The union bound and \(0<\eta<1/4\) yield
+\[
+ \nu_0\{\theta_0\in C,\theta_h\in C\}
+ \ge1-2\eta-1/8>3/8.
+\tag{9}
+\]
+On this event the interval contains both targets, so (6) gives length at least \(a_*h^\gamma\).  Therefore
+\[
+ \mathbb E_{Q_0}[\operatorname{length}(C)]\ge(3a_*/8)h^\gamma.
+\tag{10}
+\]
+Apply (10) at both bandwidths in (7).  Because the null law is the same, take the maximum, then the supremum over \(Q\in\mathcal P_{\mathrm{att}}\), and finally the infimum over \(C\in\mathfrak C_n^{\mathrm{att}}\), obtaining
+\[
+ \mathcal L_n^*(\mathcal P_{\mathrm{att}})
+ \ge c\left[n^{-\gamma/(2\gamma+d)}
+ \vee\left\{1\wedge(n\epsilon_n)^{-\gamma/(\gamma+d)}\right\}\right].
+\tag{11}
+\]
+
+For the upper bound put
+\[
+ a_n=1\wedge r_{\mathrm{up}},
+ \qquad
+ b_n=1\wedge\left[n^{-\beta/(2\beta+d)}
+          \vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}\right].
+\tag{12}
+\]
+Choose the deterministic minimizer from \(\mathrm{thm{:}phase\text{-}sensitive\text{-}expected\text{-}length}\); by its corrected domain, its basis rank satisfies \(k\ge k_{\mathrm{poly}}\), with no upper rank cap.  Choose any fixed deterministic pilot dimensions.  Definition \(\mathrm{def{:}private\text{-}confidence\text{-}interval}\) makes the resulting higher-order release \(C_n^{\mathrm{HO}}\) nonempty on every transcript.  Lemma \(\mathrm{lem{:}private\text{-}release\text{-}and\text{-}sensitivity}\) and Theorem \(\mathrm{thm{:}honest\text{-}private\text{-}pointwise\text{-}interval\text{-}unrestricted\text{-}rank}\) give \(C_n^{\mathrm{HO}}\in\mathfrak C_n^{\mathrm{att}}\), and the phase theorem gives
+\[
+ \sup_{Q\in\mathcal P_{\mathrm{att}}}
+ \mathbb E_Q[\operatorname{length}(C_n^{\mathrm{HO}})]
+ \le C_{\mathrm{HO}}a_n.
+\tag{13}
+\]
+The direct interval \(C_n^{\mathrm{dir}}(h_n)\) from \(\mathrm{thm{:}full\text{-}class\text{-}direct\text{-}regression\text{-}upper}\) is replacement private, nonempty, and honest on \(\mathcal P_{\mathrm{full}}\).  Proposition \(\mathrm{prop{:}attainable\text{-}inclusion}\) restricts those properties to \(\mathcal P_{\mathrm{att}}\), and
+\[
+ \sup_{Q\in\mathcal P_{\mathrm{att}}}
+ \mathbb E_Q[\operatorname{length}\{C_n^{\mathrm{dir}}(h_n)\}]
+ \le C_{\mathrm{dir}}b_n.
+\tag{14}
+\]
+Define a public deterministic selector that executes and releases \(C_n^{\mathrm{HO}}\) if \(a_n\le b_n\), and otherwise executes and releases \(C_n^{\mathrm{dir}}(h_n)\).  The choice depends only on public parameters and executes exactly one mechanism, so there is no privacy composition.  Equations (13)--(14) imply
+\[
+ \mathcal L_n^*(\mathcal P_{\mathrm{att}})
+ \le\max\{C_{\mathrm{HO}},C_{\mathrm{dir}}\}\min\{a_n,b_n\}.
+\tag{15}
+\]
+
+For the strict-improvement regime, suppose \(q\ge\gamma\), \(\beta<\gamma<2\beta\), and \(N_{\mathrm{priv}}=n^{c_{\mathrm p}}\), with \(c_{\mathrm p}\) satisfying the displayed restrictions in the proposition.  Since \(s=q/2\ge\gamma/2\) and
+\[
+ \frac{\gamma}{2}>
+ \frac{d/4}{1+d/(2\gamma)},
+\]
+Definition \(\mathrm{def{:}phase\text{-}rate}\) gives
+\[
+ r_{\mathrm{np}}=n^{-\gamma/(2\gamma+d)},
+ \quad r_{\mathrm{reg}}=n^{-c_{\mathrm p}\gamma/(\gamma+d)},
+ \quad r_{\mathrm{ho}}=n^{-c_{\mathrm p}\gamma/(\gamma+2d)}.
+\tag{16}
+\]
+The inequality \(c_{\mathrm p}< (\gamma+2d)/(2\gamma+d)\) makes \(r_{\mathrm{ho}}\) dominate \(r_{\mathrm{np}}\) eventually, and \(r_{\mathrm{ho}}\) always dominates \(r_{\mathrm{reg}}\).  Saturation is eventually inactive, so
+\[
+ a_n=n^{-c_{\mathrm p}\gamma/(\gamma+2d)}.
+\tag{17}
+\]
+Similarly, \(c_{\mathrm p}< (\beta+d)/(2\beta+d)\) makes the privacy term dominate the sampling term in \(b_n\), and hence
+\[
+ b_n=n^{-c_{\mathrm p}\beta/(\beta+d)}.
+\tag{18}
+\]
+Finally, \(\gamma<2\beta\) is equivalent to \(\beta/(\beta+d)>\gamma/(\gamma+2d)\).  Thus
+\[
+ \frac{b_n}{a_n}
+ =n^{-c_{\mathrm p}\{\beta/(\beta+d)-\gamma/(\gamma+2d)\}}
+ \longrightarrow0.
+\]
+This proves the strict polynomial improvement.  Every comparison is on \(\mathcal P_{\mathrm{att}}\), and the corrected higher-order candidate uses \(k\ge k_{\mathrm{poly}}\); nothing closes or alters the separate full-class frontier.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition records the strongest certified two-sided mean-length result on \(\mathcal P_{\mathrm{att}}\) by combining the transcript-wise nonempty higher-order interval with the restricted full-class direct interval. \textit{Gap.} Neither NiuEtAl2022 nor CaiChakrabortyVuursteen2024 proves a same-class honest expected-length bracket or a public selector between valid private pointwise CATE intervals.  The ordinary \(\gamma\)-smooth lower endpoint here still does not determine whether either attainable upper branch is sharp, and it does not close the full-class frontier. \textit{Consumer.} A study designer can use a public rate comparison to select the narrower of two private honest nonempty pointwise CATE intervals without paying privacy composition.
+
+\begin{lemma}[lem:gine-latala-zinn-order-two-moment]\label{lem:gine-latala-zinn-order-two-moment}
+Let \(N\geq1\), let \((Z_i^{(1)})_{i=1}^N\) and \((Z_i^{(2)})_{i=1}^N\) be mutually independent random variables with common law \(\nu\), and let \(g\) be a bounded measurable real kernel satisfying
+\[
+ \int g(z,z')\,d\nu(z')=0
+ \quad\text{and}\quad
+ \int g(z,z')\,d\nu(z)=0.
+\]
+For the decoupled sum \(S^{\mathrm{dec}}=\sum_{i,j=1}^N g(Z_i^{(1)},Z_j^{(2)})\), define
+\[
+ \begin{aligned}
+ A&=\|g\|_\infty,\\
+ B^2&=N\left\{\left\|\int g(\,\cdot,z')^2\,d\nu(z')\right\|_{L^\infty(\nu)}
+              +\left\|\int g(z,\,\cdot)^2\,d\nu(z)\right\|_{L^\infty(\nu)}\right\},\\
+ C^2&=N^2\iint g(z,z')^2\,d\nu(z)d\nu(z'),\\
+ D&=N\|T_g\|_{L^2(\nu)\to L^2(\nu)},
+ \qquad (T_gu)(z)=\int g(z,z')u(z')\,d\nu(z').
+ \end{aligned}
+\]
+There is a universal constant \(K<\infty\) such that, for every \(p\geq2\),
+\[
+ \|S^{\mathrm{dec}}\|_{L^p}
+ \leq K\{C\sqrt p+Dp+Bp^{3/2}+Ap^2\}.
+\]
+\end{lemma}
+
+\begin{lemma}[lem:de-la-pena-montgomery-smith-undecoupling]\label{lem:de-la-pena-montgomery-smith-undecoupling}
+Let \(N\geq2\), let \(Z_1,\ldots,Z_N\) be independent random variables, and let \((Z_i^{(1)})_{i=1}^N\) and \((Z_i^{(2)})_{i=1}^N\) be independent copies.  For measurable real kernels \(g_{ij}\), there is a universal constant \(K<\infty\) such that, for every \(t>0\),
+\[
+ \Pr\!\left(\left|\sum_{i\ne j}g_{ij}(Z_i,Z_j)\right|\geq t\right)
+ \leq K\Pr\!\left(K\left|\sum_{i\ne j}g_{ij}(Z_i^{(1)},Z_j^{(2)})\right|\geq t\right).
+\]
+If the kernels obey the permutation symmetry in the cited theorem, the reverse tail comparison also holds.
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The higher-order privacy term comes from the global sensitivity \(m^{-1}(h^{-d}+kh^{-2d})\) of the clipped quadratic-moment release and is proved only as an attainable-submodel upper cost.  Center clipping is downstream and does not reduce this sensitivity or alter the raw-estimator remainder.  The separate full-class direct-regression release has sensitivity \(O((nh^d)^{-1})\) but incurs armwise bias \(O(h^\beta)\), so it does not determine whether the smoother \(\gamma\)-contrast, the nuisance interaction \(q\), or a stabilized private Gram controls the sharp frontier.  The invalid paired-microcell transport step is not revived.
+
+\section{Honest scope}
+
+Settled results are replacement privacy and uniform finite-sample coverage of the explicit clipped-center higher-order interval on \(\mathcal P_{\mathrm{att}}\), including the unchanged raw-estimator remainder, nonemptiness on every transcript, and validity for every finite basis rank \(k\ge k_{\mathrm{poly}}\), with no upper cap relative to effective sample size, together with achieved length upper \(1\wedge r_{\mathrm{up}}\).  The independent privacy and concentration results remain valid for every finite \(k\ge1\).  The attainable-class nonsharp minimax bracket takes the better of the higher-order interval and the restricted direct-regression interval; its lower witness has uniform design and satisfies every attainable assumption.  The attainable higher-order upper is not transferred to \(\mathcal P_{\mathrm{full}}\).  On the full class, the ordinary lower and fixed-dimensional direct-regression upper give \(c[n^{-\gamma/(2\gamma+d)}\vee\{1\wedge(n\epsilon_n)^{-\gamma/(\gamma+d)}\}]\le\mathcal L_n^*(\mathcal P_{\mathrm{full}})\le C[1\wedge\{n^{-\beta/(2\beta+d)}\vee N_{\mathrm{priv}}^{-\beta/(\beta+d)}\}]\) under \(L_\pi\ge\kappa\), \(\delta_n\le c_0/n\), and sufficiently large \(n\).  Whether either bracket is tight, including whether a \(q\)-driven or private-Gram branch is unavoidable, remains unresolved.  After the present re-certification, \(\mathrm{oeq{:}sharp\text{-}full\text{-}class\text{-}length\text{-}frontier}\) is the only open statement.
+
+\begin{thebibliography}{99}
+
+  \bibitem{RosenbaumRubin1983} Paul R. Rosenbaum and Donald B. Rubin. The central role of the propensity score in observational studies for causal effects. \emph{Biometrika}, 70(1):41--55, 1983.
+
+  \bibitem{KennedyBalakrishnanRobinsWasserman2024} Edward H. Kennedy, Sivaraman Balakrishnan, James M. Robins, and Larry Wasserman. Minimax rates for heterogeneous causal effect estimation. \emph{Annals of Statistics}, 52(2):793--816, 2024.
+
+  \bibitem{RobinsLiTchetgenVanDerVaart2008} James Robins, Lingling Li, Eric Tchetgen Tchetgen, and Aad van der Vaart. Higher order influence functions and minimax estimation of nonlinear functionals. In \emph{Probability and Statistics: Essays in Honor of David A. Freedman}, pages 335--421, 2008.
+
+  \bibitem{ArmstrongKolesar2020} Timothy B. Armstrong and Michal Kolesár. Simple and honest confidence intervals in nonparametric regression. \emph{Quantitative Economics}, 11(1):1--39, 2020.
+
+  \bibitem{LeeOkuiWhang2017} Sokbae Lee, Ryo Okui, and Yoon-Jae Whang. Doubly robust uniform confidence band for the conditional average treatment effect function. \emph{Journal of Applied Econometrics}, 32(7):1207--1225, 2017.
+
+  \bibitem{SchroederMelnychukFeuerriegel2025} Maresa Schröder, Valentyn Melnychuk, and Stefan Feuerriegel. Differentially private learners for heterogeneous treatment effects. \emph{International Conference on Learning Representations}, 2025.
+
+  \bibitem{SchroederHartensteinFeuerriegel2025} Maresa Schröder, Justin Hartenstein, and Stefan Feuerriegel. PrivATE: Differentially private confidence intervals for average treatment effects. arXiv:2505.21641, revised 2025.
+
+  \bibitem{ShohamEtAl2026} Tomer Shoham, Moshe Shenfeld, Noa Velner-Harris, and Katrina Ligett. Differentially private nonparametric confidence intervals under minimal distributional assumptions. arXiv:2511.01303, revised 2026.
+
+  \bibitem{DworkRoth2014} Cynthia Dwork and Aaron Roth. \emph{The Algorithmic Foundations of Differential Privacy}. Foundations and Trends in Theoretical Computer Science, 2014.
+
+  \bibitem{GineLatalaZinn2000} Evarist Gin\'e, Rafa{\l} Lata{\l}a, and Joel Zinn. Exponential and moment inequalities for U-statistics. In \emph{High Dimensional Probability II}, Progress in Probability 47, pages 13--38, Birkh\"auser, Boston, 2000. doi:10.1007/978-1-4612-1358-1\_2.
+
+  \bibitem{DeLaPenaMontgomerySmith1995} Victor H. de la Pe\~na and Stephen J. Montgomery-Smith. Decoupling inequalities for the tail probabilities of multivariate U-statistics. \emph{Annals of Probability}, 23(2):806--816, 1995. doi:10.1214/aop/1176988291.
+
+  \bibitem{NiuEtAl2022} Niu, F., Nori, H., Quistorff, B., Caruana, R., Ngwe, D., and Kannan, A. (2022). Differentially private estimation of heterogeneous causal effects. \emph{Conference on Causal Learning and Reasoning}. arXiv:2202.11043.
+
+  \bibitem{CaiChakrabortyVuursteen2024} Cai, T. T., Chakraborty, A., and Vuursteen, L. (2024). Optimal federated learning for nonparametric regression with heterogeneous distributed differential privacy constraints. arXiv:2406.06755.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,2878 @@
+{
+  "qid": "exp_causalmp_homog_cfse",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "target_estimand": "\\(\\theta_T=(m_t^{(1)}-m_t^{(0)})_{t=1}^T\\)",
+  "estimand_functional": "\\(\\sqrt N(\\widehat\\theta_T-\\theta_T)=N^{-1/2}\\sum_{i=1}^N\\psi_{\\theta,T}(\\xi_i)+o_{\\mathbb P}(1)\\Rightarrow D\\Psi_T[\\mathcal A_T\\mathbb Z_T^{\\mathrm{full}}]\\sim\\mathcal N(0,\\Omega_\\theta)\\)",
+  "sampling_model": {
+    "design": "Independent Bernoulli assignments with known \\(p_t\\in[\\eta,1-\\eta]\\).",
+    "units": "For each \\(Q\\in\\mathcal Q_T\\), independent and identically distributed primitive rows with law \\(P_{\\xi,Q}\\) and one latent dense Gaussian interaction matrix induce the finite-array law \\(P_{N,Q}\\) over a fixed horizon.",
+    "treatment": "Randomized independently across units and dates and entering \\(g_{\\beta_0}\\).",
+    "overlap": "The fixed constant \\(\\eta>0\\) bounds all assignment probabilities.",
+    "nuisance_estimation": "Estimate \\(\\beta_0\\) from mean moments, \\(\\sigma^2\\) and \\(\\tau^2\\) from the energy regression, the full \\(K\\) from fitted messages, and the initial law by its empirical distribution. Uniform claims range only over admissible compact \\(\\mathcal K\\) with the common constants in \\(\\text{def:compact-regular-family}\\)."
+  },
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ShiraniBayati2024CausalMP",
+      "comparator_claim": "The published article's Theorems 1--2 in Section 3 establish first-order state evolution and consistency, while Section 2.5 describes confidence-interval analysis as heuristic.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BayatiMontanari2011DenseGraphs",
+      "comparator_claim": "Theorem 1 establishes fixed-iteration AMP state evolution using adaptive Gaussian conditioning.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "RushVenkataramanan2018FiniteSampleAMP",
+      "comparator_claim": "Theorem 1 gives exponential finite-sample concentration of pseudo-Lipschitz AMP observables.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BaoHanXu2025LeaveOneOutAMP",
+      "comparator_claim": "The article gives nonasymptotic leave-one-out representations and state-evolution control for AMP iterates.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "QiuSunZhou2024DerivedOutcomes",
+      "comparator_claim": "The article develops simultaneous causal inference for multiple derived outcomes in a hierarchical setting.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovChetverikovKato2013GaussianMax",
+      "comparator_claim": "The paper establishes Gaussian and conditional multiplier approximations for maxima of sums of independent random vectors.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "WangZhongFan2024AMPUniversality",
+      "comparator_claim": "The paper establishes first-order AMP universality through tensor-network arguments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BayatiLuoOvermanShiraniXiong2024HigherOrder",
+      "comparator_claim": "The NeurIPS 2024 paper learns state-evolution update functions from mean, variance, treatment, and nonlinear higher-order features and reports empirical interval or error-bar behavior, but does not prove an analytic root-\\(N\\) joint covariance, feasible influence covariance, or simultaneous coverage law.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A fixed-horizon randomized experiment under homogeneous Causal-MP has a root-\\(N\\) fluctuation state evolution even though one unobserved Gaussian interaction matrix is reused at every date. An exact finite-\\(N\\) bridge conditions on the full observed past and uses empirical Gram projections to couple the reused-matrix fields to the auxiliary Gaussian-residual recursion. The theorem is uniform over an explicitly typed compact family \\(\\mathcal K\\subset\\mathcal Q_T\\) under named common moment, identification, rank, overlap, Gram, and Schur-residual margins. A single joint Gaussian experiment combines the differentiated mean, energy, Gram, and score moments with the initial-row empirical process. Its structural loading gives a direct asymptotic-linear representation for the all-treated-minus-none-treated path, and observable row contributions estimate the same covariance used by simultaneous Gaussian-max bands.",
+  "project_justification": {
+    "gap": "Causal-MP supplies first-order state evolution, consistent total-treatment-effect estimation, and heuristic intervals, but no root-\\(N\\) law for empirical means, second moments, or scores under reuse of one latent matrix.",
+    "niche": "Order-\\(N^{-1/2}\\) common-disorder terms are discarded by first-order laws and cannot be recovered by treating panel rows as independent.",
+    "fill": "Establish the finite-\\(N\\) conditional bridge with empirical Gram coefficients, construct the ordered auxiliary recursion and its ordinary derivative on the all-active interior, prove the expansion uniformly on compact \\(\\mathcal K\\subset\\mathcal Q_T\\), derive one joint moment--initial-law Gaussian experiment, map it through the structural and counterfactual derivatives, and calibrate an observable simultaneous path band from plug-in estimates of the same row influence."
+  },
+  "related_work": "Shirani and Bayati (2024, published Section 3, Theorems 1--2) establish first-order state evolution and consistency; their published Section 2.5 labels confidence-interval analysis heuristic. Bayati, Luo, Overman, Shirani, and Xiong (2024, Sections 2--4 and Algorithm 1) learn higher-order state-evolution update functions from observed mean, variance, treatment, and nonlinear features and discuss empirical intervals or replicated error bars, but they do not prove the proposed analytic root-\\(N\\) joint covariance, feasible influence covariance, or simultaneous coverage law. Bayati and Montanari (2011) supply adaptive Gaussian conditioning for AMP with an Onsager correction; the relevant distinction is the exact finite-\\(N\\) full-past bridge with empirical Gram coefficients for a reused nonsymmetric matrix and no Onsager correction. Rush and Venkataramanan (2018) establish finite-sample concentration, and Bao, Han, and Xu (2025) establish leave-one-out representations; these papers inform the projection and remainder arguments without claiming the aggregate causal fluctuation law. Qiu, Sun, and Zhou (2024) study multiple derived causal outcomes, while Chernozhukov, Chetverikov, and Kato (2013) supply Gaussian-max calibration after asymptotic linearity. Wang, Zhong, and Fan (2024) and Gueddari, Hachem, and Najim (2025) concern broader first-order AMP laws rather than centered Causal-MP covariance.",
+  "technical_internal_limitation": "The target is the deterministic population-limit path, not a realized finite-network counterfactual path. The theory is fixed-\\(T\\), Gaussian-interaction, and confined to compact regular families \\(\\mathcal K\\subset\\mathcal Q_T\\) with the named common envelope, chart, identification, rank, overlap, Gram, and Schur-residual constants in \\(\\text{def:compact-regular-family}\\). Rank-changing laws and exact zero-pivot laws are excluded boundary cases; no continuity or differentiability is claimed there. In \\(\\text{def:rank-boundary-perturbation}\\), \\(U_{i1}^{(\\delta)}=U_{i0}+\\delta V_i\\) gives residual energy \\(\\delta^2\\) and field \\(H_{i0}+|\\delta|Z_{i1}^{\\circ}\\), so the two-sided derivative fails at the redundant-message boundary. Weak energy designs, variance boundaries, fixed positive ridge, model selection, and growing horizons require separate limits.",
+  "honest_scope": "The finite-\\(N\\) Gaussian bridge uses the conditioning fields \\(\\mathscr F_{N,t}\\) and empirical coefficients \\(K^N,\\lambda_t^N,\\rho_t^N\\); the open content is the uniformly root-\\(N\\) row-averaged linearization on each admissible compact \\(\\mathcal K\\subset\\mathcal Q_T\\), where \\(Q\\) induces both \\(P_{\\xi,Q}\\) and \\(P_{N,Q}\\). The topology \\(\\mathcal T_{\\mathcal E}\\) combines envelope-weighted weak convergence of primitive-row laws with Euclidean convergence of finite-dimensional parameters. The common constants \\(\\delta_{\\mathrm{mom}},B_{\\mathcal E},\\varepsilon_{\\mathcal B},\\varepsilon_{\\mathrm{id}},c_{\\mathrm{id}},\\underline j,\\underline x,\\eta,\\underline\\kappa,\\underline\\rho\\) control moments, chart distance, identification, the two rank conditions, overlap, Gram blocks, and Schur residuals. The empirical law remains in the same all-active open neighborhood uniformly, and derivatives use the ordinary ambient empirical-process tangent space. Rank-changing and exact zero-pivot laws remain outside the theorem. The single experiment \\(\\mathbb Z_T^{\\mathrm{full}}\\) contains the complete moment vector and initial-row empirical process; the path influence is \\(D\\Psi_T[\\zeta_T(\\xi)]\\), so \\(\\Omega_\\theta\\) and \\(\\widehat\\Omega_\\theta\\) refer to the same row-level object. The counterfactual first transition integrates under \\(P_{0X}\\), and Gaussian integration begins only after the dense interaction creates the Gaussian state. In the affine \\(T=3\\) reduction, the checked table gives \\(q=(1/2,85/64,159/128)\\), \\(K_{01}=7/32\\), \\(\\det(X_v^{\\top}X_v)=10191/8192\\), consecutive mean covariance \\(19/16\\), reuse component \\(7/32\\), and causal path \\((1,3/2,7/4)\\). At \\(T=1\\), the influence recursion reduces to the ordinary empirical initial-row fluctuation plus the Gaussian structural residual.",
+  "symbols": [
+    {
+      "name": "N",
+      "type": "positive integer",
+      "role": "population size"
+    },
+    {
+      "name": "T",
+      "type": "integer",
+      "space": "\\(\\{3,4,\\ldots\\}\\)",
+      "role": "fixed horizon"
+    },
+    {
+      "name": "d",
+      "type": "positive integer",
+      "role": "dimension of the structural parameter"
+    },
+    {
+      "name": "i",
+      "type": "unit index",
+      "space": "\\(\\{1,\\ldots,N\\}\\)",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "unit index",
+      "space": "\\(\\{1,\\ldots,N\\}\\)",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "time index",
+      "space": "\\(\\{0,\\ldots,T-1\\}\\)",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "time index",
+      "space": "\\(\\{0,\\ldots,T-1\\}\\)",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "time index",
+      "space": "\\(\\{0,\\ldots,T-1\\}\\)",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "counterfactual treatment level",
+      "space": "\\(\\{0,1\\}\\)"
+    },
+    {
+      "name": "k",
+      "type": "parameter index",
+      "space": "\\(\\{1,\\ldots,d\\}\\)",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "probability law",
+      "role": "generic row law used as an argument of the empirical recursion"
+    },
+    {
+      "name": "h",
+      "type": "finite signed measure",
+      "role": "direction for differentiation of a row-law functional"
+    },
+    {
+      "name": "P_N",
+      "type": "probability law",
+      "role": "law of the size-\\(N\\) observed array",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "\\mathcal B",
+      "type": "compact parameter chart",
+      "space": "\\(\\mathbb R^d\\)",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "\\beta_0",
+      "type": "structural parameter",
+      "space": "\\(\\operatorname{int}(\\mathcal B)\\)",
+      "refs": [
+        "\\mathcal B"
+      ]
+    },
+    {
+      "name": "g_\\beta",
+      "type": "message family",
+      "sig": "\\(\\mathbb R\\times\\{0,1\\}\\times\\mathcal X\\to\\mathbb R\\)",
+      "refs": [
+        "\\mathcal B"
+      ]
+    },
+    {
+      "name": "p_t",
+      "type": "known assignment probability",
+      "space": "\\((0,1)\\)",
+      "refs": [
+        "t"
+      ]
+    },
+    {
+      "name": "\\eta",
+      "type": "overlap constant",
+      "space": "\\((0,1/2)\\)"
+    },
+    {
+      "name": "\\underline\\kappa",
+      "type": "Gram spectral-margin constant",
+      "space": "\\((0,\\infty)\\)",
+      "role": "uniform lower bound for retained Gram eigenvalues"
+    },
+    {
+      "name": "\\underline\\rho",
+      "type": "all-pivot residual-energy margin",
+      "space": "\\((0,\\infty)\\)",
+      "role": "uniform lower bound for every residual pivot at which a square-root derivative is evaluated"
+    },
+    {
+      "name": "\\alpha",
+      "type": "significance level",
+      "space": "\\((0,1)\\)"
+    },
+    {
+      "name": "P_{0X}",
+      "type": "probability law",
+      "role": "joint law of the initial outcome and covariate"
+    },
+    {
+      "name": "P_X",
+      "type": "probability law",
+      "def": "the \\(X\\)-marginal of \\(P_{0X}\\)",
+      "refs": [
+        "P_{0X}"
+      ]
+    },
+    {
+      "name": "Y_{i0}",
+      "type": "initial outcome",
+      "space": "\\(\\mathbb R\\)",
+      "refs": [
+        "i",
+        "P_{0X}"
+      ]
+    },
+    {
+      "name": "X_i",
+      "type": "covariate",
+      "space": "\\(\\mathcal X\\)",
+      "refs": [
+        "i",
+        "P_{0X}"
+      ]
+    },
+    {
+      "name": "G_{ij}",
+      "type": "interaction shock",
+      "space": "\\(\\mathbb R\\)",
+      "role": "entry of the one latent matrix reused at every date",
+      "refs": [
+        "i",
+        "N"
+      ]
+    },
+    {
+      "name": "\\sigma^2",
+      "type": "interaction variance",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "\\tau^2",
+      "type": "innovation variance",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "W_{i,t+1}",
+      "type": "treatment",
+      "space": "\\(\\{0,1\\}\\)",
+      "refs": [
+        "i",
+        "t",
+        "p_t"
+      ]
+    },
+    {
+      "name": "\\epsilon_{it}",
+      "type": "outcome innovation",
+      "space": "\\(\\mathbb R\\)",
+      "refs": [
+        "i",
+        "t",
+        "\\tau^2"
+      ]
+    },
+    {
+      "name": "Z_{it}^{\\circ}",
+      "type": "auxiliary conditioning innovation",
+      "space": "\\(\\mathbb R\\)",
+      "def": "independent \\(\\mathcal N(0,1)\\) variables independent of the initial rows, assignments, and outcome innovations",
+      "refs": [
+        "i",
+        "t"
+      ]
+    },
+    {
+      "name": "\\xi_i",
+      "type": "primitive row",
+      "def": "\\(\\xi_i=(Y_{i0},X_i,W_{i,1:T},\\epsilon_{i,0:T-1},Z_{i,0:T-1}^{\\circ})\\)",
+      "refs": [
+        "i",
+        "T",
+        "Y_{i0}",
+        "X_i",
+        "W_{i,t+1}",
+        "\\epsilon_{it}",
+        "Z_{it}^{\\circ}"
+      ]
+    },
+    {
+      "name": "P_\\xi",
+      "type": "probability law",
+      "def": "the product law of \\(\\xi_i\\)",
+      "refs": [
+        "\\xi_i"
+      ]
+    },
+    {
+      "name": "\\widetilde\\xi",
+      "type": "integration row",
+      "def": "an independent row with law \\(P_\\xi\\)",
+      "refs": [
+        "P_\\xi"
+      ]
+    },
+    {
+      "name": "\\mathbb P_N",
+      "type": "empirical primitive-row law",
+      "def": "\\(\\mathbb P_N=N^{-1}\\sum_{i=1}^N\\delta_{\\xi_i}\\)",
+      "refs": [
+        "N",
+        "i",
+        "\\xi_i",
+        "P_\\xi"
+      ]
+    },
+    {
+      "name": "Y_{it}",
+      "type": "outcome",
+      "space": "\\(\\mathbb R\\)",
+      "refs": [
+        "i",
+        "t",
+        "Y_{i0}"
+      ]
+    },
+    {
+      "name": "U_{it}",
+      "type": "message",
+      "def": "\\(U_{it}=g_{\\beta_0}(Y_{it},W_{i,t+1},X_i)\\)",
+      "refs": [
+        "g_\\beta",
+        "\\beta_0",
+        "Y_{it}",
+        "W_{i,t+1}",
+        "X_i",
+        "i",
+        "t"
+      ]
+    },
+    {
+      "name": "Y_{i,t+1}",
+      "type": "observed next-period outcome",
+      "def": "\\(Y_{i,t+1}=N^{-1}\\sum_{j=1}^NU_{jt}+\\sqrt{\\sigma^2}N^{-1/2}\\sum_{j=1}^NG_{ij}U_{jt}+\\epsilon_{it}\\)",
+      "refs": [
+        "N",
+        "i",
+        "t",
+        "U_{it}",
+        "G_{ij}",
+        "\\sigma^2",
+        "\\epsilon_{it}"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "message Gram matrix",
+      "space": "\\(\\mathbb R^{T\\times T}\\)",
+      "def": "\\(K_{rs}=\\mathbb E[U_{ir}U_{is}]\\)",
+      "refs": [
+        "T",
+        "r",
+        "s",
+        "U_{it}"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "message-energy vector",
+      "space": "\\(\\mathbb R^T\\)",
+      "def": "\\(q_t=K_{tt}\\)",
+      "refs": [
+        "T",
+        "t",
+        "K"
+      ]
+    },
+    {
+      "name": "C",
+      "type": "structural residual covariance",
+      "space": "\\(\\mathbb S_+^T\\)",
+      "def": "\\(C=\\sigma^2K+\\tau^2I_T\\)",
+      "refs": [
+        "T",
+        "K",
+        "\\sigma^2",
+        "\\tau^2"
+      ]
+    },
+    {
+      "name": "D_t",
+      "type": "full past-message index set",
+      "def": "\\(D_t=\\{0,\\ldots,t-1\\}\\), with \\(D_0=\\varnothing\\)",
+      "refs": [
+        "t"
+      ]
+    },
+    {
+      "name": "D_t^{\\star}",
+      "type": "fixed full-rank conditioning index set",
+      "def": "\\(D_t^{\\star}=D_t=\\{0,\\ldots,t-1\\}\\)",
+      "refs": [
+        "t",
+        "T",
+        "D_t"
+      ]
+    },
+    {
+      "name": "\\lambda_t",
+      "type": "Gaussian projection coefficient",
+      "def": "\\(\\lambda_t=K_{D_t^{\\star}D_t^{\\star}}^{-1}K_{D_t^{\\star},t}\\), with the empty vector at \\(t=0\\)",
+      "refs": [
+        "t",
+        "K",
+        "D_t^{\\star}"
+      ]
+    },
+    {
+      "name": "\\rho_t",
+      "type": "residual message energy",
+      "def": "\\(\\rho_t=K_{tt}-K_{t,D_t^{\\star}}K_{D_t^{\\star}D_t^{\\star}}^{-1}K_{D_t^{\\star},t}\\), with \\(\\rho_0=K_{00}\\)",
+      "refs": [
+        "t",
+        "K",
+        "D_t^{\\star}"
+      ]
+    },
+    {
+      "name": "\\mathcal U_{\\mathrm{rr}}",
+      "type": "all-active full-rank row-law interior",
+      "def": "the open row-law class in \\(\\text{def:rank-regular-domain}\\) on which every full past-message Gram block has margin \\(\\underline\\kappa\\) and every Schur residual has margin \\(\\underline\\rho\\)",
+      "refs": [
+        "P",
+        "T",
+        "K",
+        "D_t^{\\star}",
+        "\\underline\\kappa",
+        "\\underline\\rho",
+        "\\rho_t"
+      ]
+    },
+    {
+      "name": "H_{it}",
+      "type": "conditioned interaction field",
+      "def": "With \\(D_0^{\\star}=\\varnothing\\), \\(H_{i,D_0^{\\star}}=0\\), and \\(\\lambda_0=0\\), set \\(H_{it}=\\lambda_t^{\\top}H_{i,D_t^{\\star}}+\\sqrt{\\rho_t}Z_{it}^{\\circ}\\) for every \\(0\\le t<T\\).",
+      "refs": [
+        "i",
+        "t",
+        "K",
+        "Z_{it}^{\\circ}",
+        "\\lambda_t",
+        "D_t^{\\star}",
+        "\\rho_t",
+        "T"
+      ]
+    },
+    {
+      "name": "\\mathbf U_t",
+      "type": "finite-population message vector",
+      "space": "\\(\\mathbb R^N\\)",
+      "def": "\\(\\mathbf U_t=(U_{1t},\\ldots,U_{Nt})^{\\top}\\)",
+      "refs": [
+        "N",
+        "t",
+        "U_{it}"
+      ]
+    },
+    {
+      "name": "H_{it}^{G,N}",
+      "type": "observed reused-matrix field",
+      "def": "\\(H_{it}^{G,N}=N^{-1/2}\\sum_{j=1}^NG_{ij}U_{jt}\\)",
+      "refs": [
+        "N",
+        "i",
+        "j",
+        "t",
+        "G_{ij}",
+        "U_{it}"
+      ]
+    },
+    {
+      "name": "K^{N}",
+      "type": "empirical message Gram matrix",
+      "space": "\\(\\mathbb S_+^T\\)",
+      "def": "\\(K_{rs}^{N}=N^{-1}\\mathbf U_r^{\\top}\\mathbf U_s=N^{-1}\\sum_{i=1}^NU_{ir}U_{is}\\)",
+      "refs": [
+        "N",
+        "T",
+        "i",
+        "r",
+        "s",
+        "\\mathbf U_t",
+        "U_{it}"
+      ]
+    },
+    {
+      "name": "\\lambda_t^{N}",
+      "type": "empirical Gaussian projection coefficient",
+      "def": "\\(\\lambda_t^{N}=(K_{D_t^{\\star}D_t^{\\star}}^{N})^{-1}K_{D_t^{\\star},t}^{N}\\), with the empty vector at \\(t=0\\)",
+      "refs": [
+        "t",
+        "K^{N}",
+        "D_t^{\\star}"
+      ]
+    },
+    {
+      "name": "\\rho_t^{N}",
+      "type": "empirical residual message energy",
+      "def": "\\(\\rho_t^{N}=K_{tt}^{N}-K_{t,D_t^{\\star}}^{N}(K_{D_t^{\\star}D_t^{\\star}}^{N})^{-1}K_{D_t^{\\star},t}^{N}\\), with \\(\\rho_0^{N}=K_{00}^{N}\\)",
+      "refs": [
+        "t",
+        "K^{N}",
+        "D_t^{\\star}"
+      ]
+    },
+    {
+      "name": "\\mathscr F_{N,t}",
+      "type": "conditioning sigma-field",
+      "def": "\\(\\mathscr F_{N,t}=\\sigma\\{(Y_{i0},X_i,W_{i,1:T},\\epsilon_{i,0:T-1})_{i=1}^N,(\\mathbf U_s)_{0\\le s\\le t},(H_{is}^{G,N})_{1\\le i\\le N,0\\le s<t}\\}\\)",
+      "refs": [
+        "N",
+        "T",
+        "i",
+        "t",
+        "s",
+        "Y_{i0}",
+        "X_i",
+        "W_{i,t+1}",
+        "\\epsilon_{it}",
+        "\\mathbf U_t",
+        "H_{it}^{G,N}"
+      ]
+    },
+    {
+      "name": "\\mathcal A_{N,t}^{\\mathrm{act}}",
+      "type": "finite-sample all-active event",
+      "def": "the \\(\\mathscr F_{N,t}\\)-measurable event on which \\(\\lambda_t^{N}\\) is defined and \\(\\rho_t^{N}>0\\), with the inverse condition omitted at \\(t=0\\)",
+      "refs": [
+        "N",
+        "t",
+        "\\mathscr F_{N,t}",
+        "\\lambda_t^{N}",
+        "\\rho_t^{N}"
+      ]
+    },
+    {
+      "name": "H_{it}^{\\circ,N}",
+      "type": "auxiliary empirical projection field",
+      "def": "recursively, \\(H_{it}^{\\circ,N}=(\\lambda_t^{N})^{\\top}H_{i,D_t^{\\star}}^{\\circ,N}+\\sqrt{\\rho_t^{N}}Z_{it}^{\\circ}\\), starting from the empty past at \\(t=0\\)",
+      "refs": [
+        "N",
+        "i",
+        "t",
+        "D_t^{\\star}",
+        "\\lambda_t^{N}",
+        "\\rho_t^{N}",
+        "Z_{it}^{\\circ}"
+      ]
+    },
+    {
+      "name": "A_{t,N}^{G}",
+      "type": "root-population-average reused-matrix fluctuation",
+      "def": "\\(A_{t,N}^{G}=N^{-1}\\sum_{i=1}^N\\sum_{j=1}^NG_{ij}U_{jt}=\\sqrt N\\,N^{-1}\\sum_{i=1}^NH_{it}^{G,N}\\)",
+      "refs": [
+        "N",
+        "i",
+        "j",
+        "t",
+        "G_{ij}",
+        "U_{it}",
+        "H_{it}^{G,N}"
+      ]
+    },
+    {
+      "name": "\\Delta_{t+1,N}^{Y}",
+      "type": "root-population outcome-mean fluctuation",
+      "def": "\\(\\Delta_{t+1,N}^{Y}=\\sqrt N\\{N^{-1}\\sum_{i=1}^NY_{i,t+1}-\\mathbb E[Y_{i,t+1}]\\}\\)",
+      "refs": [
+        "N",
+        "i",
+        "t",
+        "Y_{i,t+1}"
+      ]
+    },
+    {
+      "name": "\\delta",
+      "type": "rank-boundary perturbation scalar",
+      "space": "\\(\\mathbb R\\)"
+    },
+    {
+      "name": "V_i",
+      "type": "standardized auxiliary message direction",
+      "space": "\\(L_2(P_\\xi)\\)",
+      "refs": [
+        "i",
+        "P_\\xi"
+      ]
+    },
+    {
+      "name": "U_{i1}^{(\\delta)}",
+      "type": "redundant-message perturbation",
+      "def": "\\(U_{i1}^{(\\delta)}=U_{i0}+\\delta V_i\\)",
+      "refs": [
+        "i",
+        "U_{it}",
+        "\\delta",
+        "V_i"
+      ]
+    },
+    {
+      "name": "\\mathfrak R_T(P)",
+      "type": "empirical recursion map",
+      "def": "for \\(P\\in\\mathcal U_{\\mathrm{rr}}\\), start at \\(Y_0,X,W,\\epsilon,Z^{\\circ}\\); recursively set \\(U_t=g_{\\beta_0}(Y_t,W_{t+1},X)\\), \\(K_{rs}(P)=P[U_rU_s]\\), use the full past set \\(D_t^{\\star}=\\{0,\\ldots,t-1\\}\\), form \\(\\lambda_t(P)\\) and \\(\\rho_t(P)\\), set \\(H_t=\\lambda_t(P)^{\\top}H_{D_t^{\\star}}+\\sqrt{\\rho_t(P)}Z_t^{\\circ}\\), and \\(Y_{t+1}=P[U_t]+\\sqrt{\\sigma^2}H_t+\\epsilon_t\\)",
+      "refs": [
+        "P",
+        "t",
+        "r",
+        "s",
+        "D_t^{\\star}",
+        "H_{it}",
+        "K",
+        "P_\\xi",
+        "T",
+        "U_{it}",
+        "W_{i,t+1}",
+        "X_i",
+        "Y_{i0}",
+        "Z_{it}^{\\circ}",
+        "\\beta_0",
+        "\\epsilon_{it}",
+        "\\lambda_t",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "\\rho_t",
+        "\\sigma^2",
+        "g_\\beta"
+      ]
+    },
+    {
+      "name": "\\phi_T(\\xi;P)",
+      "type": "ordered row feature vector",
+      "def": "under \\(\\mathfrak R_T(P)\\), \\(\\phi_T(\\xi;P)=(Y_{1:T},U_{0:T-1},((Y_{t+1}-P[Y_{t+1}])^2)_{t=0}^{T-1},(U_rU_s)_{0\\le r\\le s<T},(\\partial_\\beta g_{\\beta_0}(Y_t,W_{t+1},X))_{t=0}^{T-1},(2U_t\\partial_\\beta g_{\\beta_0}(Y_t,W_{t+1},X))_{t=0}^{T-1})\\)",
+      "refs": [
+        "T",
+        "\\xi_i",
+        "P_\\xi",
+        "\\mathfrak R_T(P)",
+        "Y_{it}",
+        "U_{it}",
+        "t",
+        "r",
+        "s",
+        "g_\\beta",
+        "\\beta_0",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\mathfrak M_T(P)",
+      "type": "moment functional",
+      "def": "\\(\\mathfrak M_T(P)=P[\\phi_T(\\xi;P)]\\)",
+      "refs": [
+        "T",
+        "P_\\xi",
+        "\\phi_T(\\xi;P)"
+      ]
+    },
+    {
+      "name": "M_N",
+      "type": "empirical moment vector",
+      "def": "on \\(\\{\\mathbb P_N\\in\\mathcal U_{\\mathrm{rr}}\\}\\), \\(M_N=\\mathfrak M_T(\\mathbb P_N)\\) from the full-rank recursion, ordered as outcome means, message means, centered outcome variances, upper-triangular message Gram products, mean-score Jacobians, and variance-score Jacobians; set \\(M_N=0\\) on the complementary event",
+      "refs": [
+        "N",
+        "T",
+        "\\mathfrak M_T(P)",
+        "\\mathbb P_N",
+        "\\mathcal U_{\\mathrm{rr}}"
+      ]
+    },
+    {
+      "name": "M_T",
+      "type": "deterministic moment limit",
+      "def": "\\(M_T=\\mathfrak M_T(P_\\xi)\\)",
+      "refs": [
+        "T",
+        "\\mathfrak M_T(P)",
+        "P_\\xi"
+      ]
+    },
+    {
+      "name": "\\dot{\\mathfrak R}_T[h]",
+      "type": "directional derivative recursion",
+      "def": "for \\(P\\in\\mathcal U_{\\mathrm{rr}}\\) and any ambient empirical-process direction \\(h\\) with \\(h[1]=0\\), the recursion obtained from \\(\\mathfrak R_T(P)\\) by the ordinary product and chain rules on \\(D_t^{\\star}=\\{0,\\ldots,t-1\\}\\), with \\(\\dot\\mu_t[h]=h[U_t]+P[\\dot U_t[h]]\\), \\(\\dot K_{rs}[h]=h[U_rU_s]+P[\\dot U_r[h]U_s+U_r\\dot U_s[h]]\\), \\(\\dot\\lambda_t[h]=K_{D_t^{\\star}D_t^{\\star}}^{-1}\\{\\dot K_{D_t^{\\star},t}[h]-\\dot K_{D_t^{\\star}D_t^{\\star}}[h]\\lambda_t\\}\\), \\(\\dot\\rho_t[h]=\\dot K_{tt}[h]-2\\dot K_{t,D_t^{\\star}}[h]\\lambda_t+\\lambda_t^{\\top}\\dot K_{D_t^{\\star}D_t^{\\star}}[h]\\lambda_t\\), and \\(\\dot H_t[h]=\\dot\\lambda_t[h]^{\\top}H_{D_t^{\\star}}+\\lambda_t^{\\top}\\dot H_{D_t^{\\star}}[h]+\\dot\\rho_t[h]Z_t^{\\circ}/(2\\sqrt{\\rho_t})\\). Finally, \\(\\dot Y_{t+1}[h]=\\dot\\mu_t[h]+\\sqrt{\\sigma^2}\\dot H_t[h]\\).",
+      "refs": [
+        "P",
+        "t",
+        "r",
+        "s",
+        "D_t^{\\star}",
+        "H_{it}",
+        "K",
+        "T",
+        "U_{it}",
+        "Y_{i,t+1}",
+        "Z_{it}^{\\circ}",
+        "\\lambda_t",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "\\mathfrak R_T(P)",
+        "\\rho_t",
+        "\\sigma^2",
+        "h"
+      ]
+    },
+    {
+      "name": "\\dot\\phi_T(\\xi;P)[h]",
+      "type": "directional derivative of the ordered feature vector",
+      "def": "the coordinatewise product-rule derivative of the displayed vector \\(\\phi_T(\\xi;P)\\), with every outcome and message derivative supplied by \\(\\dot{\\mathfrak R}_T[h]\\)",
+      "refs": [
+        "T",
+        "\\xi_i",
+        "P",
+        "h",
+        "\\phi_T(\\xi;P)",
+        "\\dot{\\mathfrak R}_T[h]"
+      ]
+    },
+    {
+      "name": "I_T(\\xi)",
+      "type": "moment influence vector",
+      "def": "\\(I_T(\\xi)=\\phi_T(\\xi;P_\\xi)-M_T+P_\\xi[\\dot\\phi_T(\\widetilde\\xi;P_\\xi)[\\delta_\\xi-P_\\xi]]\\)",
+      "refs": [
+        "T",
+        "\\xi_i",
+        "\\widetilde\\xi",
+        "\\phi_T(\\xi;P)",
+        "P_\\xi",
+        "M_T",
+        "\\dot\\phi_T(\\xi;P)[h]"
+      ]
+    },
+    {
+      "name": "\\Gamma_T",
+      "type": "fluctuation state-evolution covariance",
+      "space": "\\(\\mathbb S_+^{\\dim(M_T)}\\)",
+      "def": "\\(\\Gamma_T=P_\\xi[I_T(\\xi)I_T(\\xi)^{\\top}]\\)",
+      "refs": [
+        "T",
+        "M_T",
+        "P_\\xi",
+        "I_T(\\xi)"
+      ]
+    },
+    {
+      "name": "\\mathcal F_{0X,T}",
+      "type": "finite initial-row test-function class",
+      "def": "a fixed finite collection of square-integrable functions of \\(Y_0,X\\) containing the initial-row coordinate integrands and every propagated first-derivative integrand required by the \\(T\\)-step counterfactual path",
+      "refs": [
+        "T",
+        "Y_{i0}",
+        "X_i",
+        "P_{0X}"
+      ]
+    },
+    {
+      "name": "\\mathbb Z_T^{\\mathrm{full}}",
+      "type": "joint CFSE Gaussian experiment",
+      "def": "\\(\\mathbb Z_T^{\\mathrm{full}}(b,f)\\) is the centered Gaussian process indexed by \\(b\\in\\mathbb R^{\\dim(M_T)}\\) and \\(f\\in\\mathcal F_{0X,T}\\), with \\[\\operatorname{Cov}\\{\\mathbb Z_T^{\\mathrm{full}}(b,f),\\mathbb Z_T^{\\mathrm{full}}(c,g)\\}=P_\\xi[(b^{\\top}I_T(\\xi)+f(Y_0,X)-P_{0X}f)(c^{\\top}I_T(\\xi)+g(Y_0,X)-P_{0X}g)].\\] Thus the displayed covariance specifies the moment block, initial empirical-process block, and every cross-block covariance through the same CFSE influence recursion.",
+      "refs": [
+        "T",
+        "M_T",
+        "\\mathcal F_{0X,T}",
+        "P_\\xi",
+        "I_T(\\xi)",
+        "P_{0X}",
+        "Y_{i0}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "Z_M",
+      "type": "Gaussian moment block",
+      "space": "\\(\\mathbb R^{\\dim(M_T)}\\)",
+      "def": "the centered Gaussian vector characterized by \\(b^{\\top}Z_M=\\mathbb Z_T^{\\mathrm{full}}(b,0)\\)",
+      "refs": [
+        "M_T",
+        "\\mathbb Z_T^{\\mathrm{full}}"
+      ]
+    },
+    {
+      "name": "\\mathbb G_{0X}",
+      "type": "initial-row empirical-process block",
+      "space": "\\(\\ell^\\infty(\\mathcal F_{0X,T})\\)",
+      "def": "\\(\\mathbb G_{0X}f=\\mathbb Z_T^{\\mathrm{full}}(0,f)\\) for \\(f\\in\\mathcal F_{0X,T}\\)",
+      "refs": [
+        "\\mathcal F_{0X,T}",
+        "\\mathbb Z_T^{\\mathrm{full}}"
+      ]
+    },
+    {
+      "name": "S_m",
+      "type": "mean-residual coordinate map",
+      "def": "the fixed linear map from the ordered moment coordinates in \\(M_T\\) that subtracts message means from next-outcome means",
+      "refs": [
+        "T",
+        "M_T"
+      ]
+    },
+    {
+      "name": "S_v",
+      "type": "variance-residual coordinate map",
+      "def": "the fixed linear map from the ordered moment coordinates in \\(M_T\\) that subtracts \\(\\sigma^2\\) times the message-energy coordinates from the centered next-outcome-variance coordinates",
+      "refs": [
+        "T",
+        "M_T",
+        "\\sigma^2"
+      ]
+    },
+    {
+      "name": "Z_m",
+      "type": "Gaussian mean-residual block",
+      "space": "\\(\\mathbb R^T\\)",
+      "def": "\\(Z_m=S_mZ_M\\)",
+      "refs": [
+        "T",
+        "S_m",
+        "Z_M"
+      ]
+    },
+    {
+      "name": "Z_v",
+      "type": "Gaussian variance-residual block",
+      "space": "\\(\\mathbb R^T\\)",
+      "def": "\\(Z_v=S_vZ_M\\)",
+      "refs": [
+        "T",
+        "S_v",
+        "Z_M"
+      ]
+    },
+    {
+      "name": "Z_{mv}",
+      "type": "joint Gaussian residual limit",
+      "def": "\\(Z_{mv}=(Z_m^{\\top},Z_v^{\\top})^{\\top}\\sim\\mathcal N(0,\\operatorname{blockdiag}\\{C,2(C\\circ C)\\})\\), as the residual projection of \\(\\mathbb Z_T^{\\mathrm{full}}\\)",
+      "refs": [
+        "Z_m",
+        "Z_v",
+        "C",
+        "\\mathbb Z_T^{\\mathrm{full}}"
+      ]
+    },
+    {
+      "name": "J",
+      "type": "mean-moment Jacobian",
+      "def": "\\(J_{tk}=\\mathbb E[\\partial_{\\beta_k}g_{\\beta_0}(Y_{it},W_{i,t+1},X_i)]\\)",
+      "refs": [
+        "T",
+        "d",
+        "t",
+        "g_\\beta",
+        "\\beta_0",
+        "Y_{it}",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "X_v",
+      "type": "variance-design matrix",
+      "def": "the \\(T\\)-by-two matrix with row \\((q_t,1)\\)",
+      "refs": [
+        "T",
+        "t",
+        "q"
+      ]
+    },
+    {
+      "name": "W_m",
+      "type": "mean-moment weight",
+      "space": "\\(\\mathbb S_{++}^T\\)",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "W_v",
+      "type": "variance-moment weight",
+      "space": "\\(\\mathbb S_{++}^T\\)",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "mean influence loading",
+      "def": "\\(L=(J^{\\top}W_mJ)^{-1}J^{\\top}W_m\\)",
+      "refs": [
+        "J",
+        "W_m"
+      ]
+    },
+    {
+      "name": "A_v",
+      "type": "variance influence loading",
+      "def": "\\(A_v=(X_v^{\\top}W_vX_v)^{-1}X_v^{\\top}W_v\\)",
+      "refs": [
+        "X_v",
+        "W_v"
+      ]
+    },
+    {
+      "name": "Q_\\beta",
+      "type": "variance-score Jacobian",
+      "def": "row \\(t\\) equals \\(\\mathbb E[2U_{it}\\partial_\\beta g_{\\beta_0}(Y_{it},W_{i,t+1},X_i)^{\\top}]\\)",
+      "refs": [
+        "t",
+        "U_{it}",
+        "g_\\beta",
+        "\\beta_0",
+        "Y_{it}",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\beta",
+      "type": "candidate structural parameter",
+      "space": "\\(\\mathcal B\\)",
+      "refs": [
+        "\\mathcal B"
+      ]
+    },
+    {
+      "name": "r_N",
+      "type": "mean residual map",
+      "def": "\\(r_{N,t}(\\beta)=N^{-1}\\sum_{i=1}^N\\{Y_{i,t+1}-g_\\beta(Y_{it},W_{i,t+1},X_i)\\}\\)",
+      "refs": [
+        "N",
+        "T",
+        "\\beta",
+        "i",
+        "t",
+        "Y_{it}",
+        "Y_{i,t+1}",
+        "g_\\beta",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\widehat\\beta",
+      "type": "estimator",
+      "def": "the minimizer on \\(\\mathcal B\\) of \\(r_N(\\beta)^{\\top}W_mr_N(\\beta)\\)",
+      "refs": [
+        "\\mathcal B",
+        "\\beta",
+        "r_N",
+        "W_m"
+      ]
+    },
+    {
+      "name": "\\widehat q",
+      "type": "fitted message-energy vector",
+      "def": "\\(\\widehat q_t=N^{-1}\\sum_{i=1}^Ng_{\\widehat\\beta}(Y_{it},W_{i,t+1},X_i)^2\\)",
+      "refs": [
+        "N",
+        "T",
+        "i",
+        "t",
+        "Y_{it}",
+        "g_\\beta",
+        "\\widehat\\beta",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\widehat v",
+      "type": "observed outcome-variance vector",
+      "def": "\\(\\widehat v_{t+1}=N^{-1}\\sum_{i=1}^N(Y_{i,t+1}-N^{-1}\\sum_{j=1}^NY_{j,t+1})^2\\)",
+      "refs": [
+        "N",
+        "T",
+        "i",
+        "t",
+        "Y_{i,t+1}"
+      ]
+    },
+    {
+      "name": "\\widehat X_v",
+      "type": "observable variance-design matrix",
+      "def": "the \\(T\\)-by-two matrix with row \\((\\widehat q_t,1)\\)",
+      "refs": [
+        "T",
+        "t",
+        "\\widehat q"
+      ]
+    },
+    {
+      "name": "\\widehat\\sigma^2",
+      "type": "estimator",
+      "def": "the first coordinate of \\((\\widehat X_v^{\\top}W_v\\widehat X_v)^{-1}\\widehat X_v^{\\top}W_v\\widehat v\\)",
+      "refs": [
+        "\\widehat X_v",
+        "W_v",
+        "\\widehat v"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau^2",
+      "type": "estimator",
+      "def": "the second coordinate of \\((\\widehat X_v^{\\top}W_v\\widehat X_v)^{-1}\\widehat X_v^{\\top}W_v\\widehat v\\)",
+      "refs": [
+        "\\widehat X_v",
+        "W_v",
+        "\\widehat v"
+      ]
+    },
+    {
+      "name": "\\widehat K",
+      "type": "Gram estimator",
+      "def": "\\(\\widehat K_{rs}=N^{-1}\\sum_{i=1}^Ng_{\\widehat\\beta}(Y_{ir},W_{i,r+1},X_i)g_{\\widehat\\beta}(Y_{is},W_{i,s+1},X_i)\\)",
+      "refs": [
+        "N",
+        "T",
+        "r",
+        "s",
+        "g_\\beta",
+        "\\widehat\\beta",
+        "Y_{it}",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\widehat P_{0X}",
+      "type": "empirical initial-row law",
+      "def": "\\(\\widehat P_{0X}=N^{-1}\\sum_{i=1}^N\\delta_{(Y_{i0},X_i)}\\)",
+      "refs": [
+        "N",
+        "i",
+        "Y_{i0}",
+        "X_i",
+        "P_{0X}"
+      ]
+    },
+    {
+      "name": "\\widehat C",
+      "type": "observable residual covariance",
+      "space": "\\(\\mathbb S_+^T\\)",
+      "def": "\\(\\widehat C=\\widehat\\sigma^2\\widehat K+\\widehat\\tau^2I_T\\)",
+      "refs": [
+        "T",
+        "\\widehat\\sigma^2",
+        "\\widehat K",
+        "\\widehat\\tau^2"
+      ]
+    },
+    {
+      "name": "\\widehat e_i",
+      "type": "observable residual vector",
+      "def": "\\(\\widehat e_{i,t}=Y_{i,t+1}-N^{-1}\\sum_{j=1}^Ng_{\\widehat\\beta}(Y_{jt},W_{j,t+1},X_j)\\) for \\(0\\le t<T\\)",
+      "refs": [
+        "N",
+        "T",
+        "i",
+        "j",
+        "t",
+        "Y_{i,t+1}",
+        "g_\\beta",
+        "\\widehat\\beta",
+        "Y_{it}",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\widehat J",
+      "type": "observable mean-moment Jacobian",
+      "def": "\\(\\widehat J_{tk}=N^{-1}\\sum_{i=1}^N\\partial_{\\beta_k}g_{\\widehat\\beta}(Y_{it},W_{i,t+1},X_i)\\)",
+      "refs": [
+        "N",
+        "T",
+        "d",
+        "i",
+        "t",
+        "k",
+        "g_\\beta",
+        "\\widehat\\beta",
+        "Y_{it}",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\widehat Q_\\beta",
+      "type": "observable variance-score Jacobian",
+      "def": "\\((\\widehat Q_\\beta)_{t\\cdot}=N^{-1}\\sum_{i=1}^N2g_{\\widehat\\beta}(Y_{it},W_{i,t+1},X_i)\\partial_\\beta g_{\\widehat\\beta}(Y_{it},W_{i,t+1},X_i)^{\\top}\\)",
+      "refs": [
+        "N",
+        "T",
+        "i",
+        "t",
+        "g_\\beta",
+        "\\widehat\\beta",
+        "Y_{it}",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\widehat L",
+      "type": "observable mean influence loading",
+      "def": "\\(\\widehat L=(\\widehat J^{\\top}W_m\\widehat J)^{-1}\\widehat J^{\\top}W_m\\)",
+      "refs": [
+        "\\widehat J",
+        "W_m"
+      ]
+    },
+    {
+      "name": "\\widehat A_v",
+      "type": "observable variance influence loading",
+      "def": "\\(\\widehat A_v=(\\widehat X_v^{\\top}W_v\\widehat X_v)^{-1}\\widehat X_v^{\\top}W_v\\)",
+      "refs": [
+        "\\widehat X_v",
+        "W_v"
+      ]
+    },
+    {
+      "name": "\\widehat\\zeta_i",
+      "type": "observable structural-and-initial-law influence direction",
+      "def": "write \\(\\bar e=N^{-1}\\sum_j\\widehat e_j\\), \\(\\widehat z_{m,i}=\\widehat e_i-\\bar e\\), and \\(\\widehat z_{v,i}=\\widehat e_i\\circ\\widehat e_i-N^{-1}\\sum_j\\widehat e_j\\circ\\widehat e_j\\); then \\(\\widehat\\zeta_i=(\\widehat L\\widehat z_{m,i},\\widehat A_v\\{\\widehat z_{v,i}-\\widehat\\sigma^2\\widehat Q_\\beta\\widehat L\\widehat z_{m,i}\\},\\delta_{(Y_{i0},X_i)}-\\widehat P_{0X})\\)",
+      "refs": [
+        "N",
+        "i",
+        "j",
+        "\\widehat e_i",
+        "\\widehat L",
+        "\\widehat A_v",
+        "\\widehat\\sigma^2",
+        "\\widehat Q_\\beta",
+        "Y_{i0}",
+        "X_i",
+        "\\widehat P_{0X}"
+      ]
+    },
+    {
+      "name": "m_t^{(a)}",
+      "type": "counterfactual mean state",
+      "space": "\\(\\mathbb R\\)",
+      "refs": [
+        "t",
+        "a"
+      ]
+    },
+    {
+      "name": "v_t^{(a)}",
+      "type": "counterfactual variance state",
+      "space": "\\([0,\\infty)\\)",
+      "refs": [
+        "t",
+        "a"
+      ]
+    },
+    {
+      "name": "\\mu_t^{(a)}",
+      "type": "counterfactual message mean",
+      "space": "\\(\\mathbb R\\)",
+      "refs": [
+        "t",
+        "a"
+      ]
+    },
+    {
+      "name": "\\kappa_t^{(a)}",
+      "type": "counterfactual message energy",
+      "space": "\\([0,\\infty)\\)",
+      "refs": [
+        "t",
+        "a"
+      ]
+    },
+    {
+      "name": "\\Psi_T",
+      "type": "counterfactual path functional",
+      "def": "set \\(\\mu_0^{(a)}=\\mathbb E_{P_{0X}}[g_{\\beta_0}(Y_0,a,X)]\\), \\(\\kappa_0^{(a)}=\\mathbb E_{P_{0X}}[g_{\\beta_0}(Y_0,a,X)^2]\\), \\(m_1^{(a)}=\\mu_0^{(a)}\\), and \\(v_1^{(a)}=\\sigma^2\\kappa_0^{(a)}+\\tau^2\\); for \\(1\\le t<T\\), set \\(\\mu_t^{(a)}=\\mathbb E_{X\\sim P_X,Z\\sim\\mathcal N(0,1)}[g_{\\beta_0}(m_t^{(a)}+\\sqrt{v_t^{(a)}}Z,a,X)]\\), \\(\\kappa_t^{(a)}=\\mathbb E_{X,Z}[g_{\\beta_0}(m_t^{(a)}+\\sqrt{v_t^{(a)}}Z,a,X)^2]\\), \\(m_{t+1}^{(a)}=\\mu_t^{(a)}\\), and \\(v_{t+1}^{(a)}=\\sigma^2\\kappa_t^{(a)}+\\tau^2\\)",
+      "refs": [
+        "T",
+        "t",
+        "a",
+        "P_{0X}",
+        "P_X",
+        "g_\\beta",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "m_t^{(a)}",
+        "v_t^{(a)}",
+        "\\mu_t^{(a)}",
+        "\\kappa_t^{(a)}"
+      ]
+    },
+    {
+      "name": "\\theta_T",
+      "type": "causal path",
+      "space": "\\(\\mathbb R^T\\)",
+      "def": "\\(\\theta_T=\\Psi_T(\\beta_0,\\sigma^2,\\tau^2,P_{0X})=(m_t^{(1)}-m_t^{(0)})_{t=1}^T\\)",
+      "refs": [
+        "T",
+        "\\Psi_T",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "P_{0X}",
+        "m_t^{(a)}"
+      ]
+    },
+    {
+      "name": "\\widehat\\theta_T",
+      "type": "path estimator",
+      "def": "\\(\\widehat\\theta_T=\\Psi_T(\\widehat\\beta,\\widehat\\sigma^2,\\widehat\\tau^2,\\widehat P_{0X})\\)",
+      "refs": [
+        "T",
+        "\\Psi_T",
+        "\\widehat\\beta",
+        "\\widehat\\sigma^2",
+        "\\widehat\\tau^2",
+        "\\widehat P_{0X}"
+      ]
+    },
+    {
+      "name": "\\mathcal A_T",
+      "type": "joint structural-and-initial-law loading",
+      "def": "\\(\\mathcal A_T\\mathbb Z_T^{\\mathrm{full}}=(LZ_m,A_v\\{Z_v-\\sigma^2Q_\\beta LZ_m\\},\\mathbb G_{0X})\\)",
+      "refs": [
+        "T",
+        "\\mathbb Z_T^{\\mathrm{full}}",
+        "L",
+        "Z_m",
+        "A_v",
+        "Z_v",
+        "\\sigma^2",
+        "Q_\\beta",
+        "\\mathbb G_{0X}"
+      ]
+    },
+    {
+      "name": "\\zeta_T(\\xi)",
+      "type": "row-level structural-and-initial-law influence direction",
+      "def": "\\(\\zeta_T(\\xi)=(LS_mI_T(\\xi),A_v\\{S_vI_T(\\xi)-\\sigma^2Q_\\beta LS_mI_T(\\xi)\\},\\delta_{(Y_0,X)}-P_{0X})\\)",
+      "refs": [
+        "T",
+        "L",
+        "S_m",
+        "I_T(\\xi)",
+        "A_v",
+        "S_v",
+        "\\sigma^2",
+        "Q_\\beta",
+        "P_{0X}",
+        "Y_{i0}",
+        "X_i"
+      ]
+    },
+    {
+      "name": "\\psi_{\\theta,T}",
+      "type": "counterfactual-path influence vector",
+      "def": "\\(\\psi_{\\theta,T}(\\xi)=D\\Psi_T(\\beta_0,\\sigma^2,\\tau^2,P_{0X})[\\zeta_T(\\xi)]\\)",
+      "refs": [
+        "T",
+        "\\Psi_T",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "P_{0X}",
+        "\\zeta_T(\\xi)"
+      ]
+    },
+    {
+      "name": "\\Omega_\\theta",
+      "type": "path covariance",
+      "space": "\\(\\mathbb S_+^T\\)",
+      "def": "\\(\\Omega_\\theta=P_\\xi[\\psi_{\\theta,T}(\\xi)\\psi_{\\theta,T}(\\xi)^{\\top}]\\)",
+      "refs": [
+        "T",
+        "P_\\xi",
+        "\\psi_{\\theta,T}",
+        "\\xi_i"
+      ]
+    },
+    {
+      "name": "\\widehat\\psi_{\\theta,T,i}",
+      "type": "estimated path influence vector",
+      "def": "\\(\\widehat\\psi_{\\theta,T,i}=D\\Psi_T(\\widehat\\beta,\\widehat\\sigma^2,\\widehat\\tau^2,\\widehat P_{0X})[\\widehat\\zeta_i]\\), where the derivative is evaluated by forward differentiation of every displayed scalar update in \\(\\Psi_T\\)",
+      "refs": [
+        "T",
+        "i",
+        "\\Psi_T",
+        "\\widehat\\beta",
+        "\\widehat\\sigma^2",
+        "\\widehat\\tau^2",
+        "\\widehat P_{0X}",
+        "\\widehat\\zeta_i"
+      ]
+    },
+    {
+      "name": "\\widehat\\Omega_\\theta",
+      "type": "observable covariance estimator",
+      "space": "\\(\\mathbb S_+^T\\)",
+      "def": "\\(\\widehat\\Omega_\\theta=N^{-1}\\sum_{i=1}^N\\widehat\\psi_{\\theta,T,i}\\widehat\\psi_{\\theta,T,i}^{\\top}\\)",
+      "refs": [
+        "N",
+        "T",
+        "i",
+        "\\widehat\\psi_{\\theta,T,i}"
+      ]
+    },
+    {
+      "name": "Z^\\theta",
+      "type": "conditional Gaussian path vector",
+      "space": "\\(\\mathbb R^T\\)",
+      "def": "\\(Z^\\theta\\mid\\text{data}\\sim\\mathcal N(0,\\widehat\\Omega_\\theta)\\)",
+      "refs": [
+        "T",
+        "\\widehat\\Omega_\\theta"
+      ]
+    },
+    {
+      "name": "c_{1-\\alpha}",
+      "type": "unstudentized Gaussian-max critical value",
+      "def": "the conditional \\(1-\\alpha\\) quantile of \\(\\max_{1\\le t\\le T}|Z_t^\\theta|\\)",
+      "refs": [
+        "\\alpha",
+        "Z^\\theta",
+        "t",
+        "T"
+      ]
+    },
+    {
+      "name": "\\mathcal C_N",
+      "type": "simultaneous band",
+      "def": "\\(\\mathcal C_{N,t}=[\\widehat\\theta_{T,t}-c_{1-\\alpha}/\\sqrt N,\\widehat\\theta_{T,t}+c_{1-\\alpha}/\\sqrt N]\\) for every \\(1\\le t\\le T\\)",
+      "refs": [
+        "N",
+        "T",
+        "t",
+        "\\widehat\\theta_T",
+        "c_{1-\\alpha}"
+      ]
+    },
+    {
+      "name": "Q",
+      "type": "regular model index",
+      "role": "index collecting a primitive-row law and the finite-dimensional homogeneous Causal-MP parameters for the fixed horizon",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "P_{0X,Q}",
+      "type": "initial-row law induced by a model index",
+      "role": "the initial-outcome and covariate component of Q",
+      "refs": [
+        "Q",
+        "P_{0X}"
+      ]
+    },
+    {
+      "name": "\\vartheta_Q",
+      "type": "finite-dimensional parameter coordinate",
+      "def": "\\(\\vartheta_Q=(\\beta_{0,Q},\\sigma_Q^2,\\tau_Q^2,p_{0:T-1,Q})\\)",
+      "refs": [
+        "Q",
+        "T"
+      ]
+    },
+    {
+      "name": "\\beta_{0,Q}",
+      "type": "structural parameter at model index Q",
+      "space": "\\(\\operatorname{int}(\\mathcal B)\\)",
+      "refs": [
+        "Q",
+        "\\mathcal B",
+        "\\vartheta_Q"
+      ]
+    },
+    {
+      "name": "\\sigma_Q^2",
+      "type": "interaction variance at model index Q",
+      "space": "\\((0,\\infty)\\)",
+      "refs": [
+        "Q",
+        "\\vartheta_Q"
+      ]
+    },
+    {
+      "name": "\\tau_Q^2",
+      "type": "innovation variance at model index Q",
+      "space": "\\((0,\\infty)\\)",
+      "refs": [
+        "Q",
+        "\\vartheta_Q"
+      ]
+    },
+    {
+      "name": "p_{t,Q}",
+      "type": "assignment probability at model index Q",
+      "space": "\\((0,1)\\)",
+      "refs": [
+        "Q",
+        "t",
+        "\\vartheta_Q"
+      ]
+    },
+    {
+      "name": "P_{\\xi,Q}",
+      "type": "primitive-row law induced by Q",
+      "def": "the product law of \\(\\xi_i\\) obtained from \\(P_{0X,Q}\\), the Bernoulli probabilities \\(p_{0:T-1,Q}\\), Gaussian innovations with variance \\(\\tau_Q^2\\), and the auxiliary standard Gaussian coordinates",
+      "refs": [
+        "Q",
+        "\\xi_i",
+        "P_{0X,Q}",
+        "p_{t,Q}",
+        "T",
+        "\\tau_Q^2"
+      ]
+    },
+    {
+      "name": "P_{N,Q}",
+      "type": "finite-array law induced by Q",
+      "def": "the law of the size-\\(N\\) observed array obtained by drawing primitive rows from \\(P_{\\xi,Q}\\), one independent Gaussian interaction matrix, and applying the homogeneous structural recursion with \\((\\beta_{0,Q},\\sigma_Q^2)\\)",
+      "refs": [
+        "Q",
+        "N",
+        "P_{\\xi,Q}",
+        "G_{ij}",
+        "\\beta_{0,Q}",
+        "\\sigma_Q^2",
+        "Y_{i,t+1}"
+      ]
+    },
+    {
+      "name": "\\mathbb P_{N,Q}",
+      "type": "empirical primitive-row law under Q",
+      "def": "\\(\\mathbb P_{N,Q}=N^{-1}\\sum_{i=1}^N\\delta_{\\xi_i}\\) when the array is distributed according to \\(P_{N,Q}\\)",
+      "refs": [
+        "Q",
+        "N",
+        "i",
+        "\\xi_i",
+        "P_{N,Q}"
+      ]
+    },
+    {
+      "name": "[\\cdot]_Q",
+      "type": "model-evaluation operator",
+      "def": "\\([A]_Q\\) denotes the displayed generic object \\(A\\) after replacing \\((P_{0X},P_\\xi,\\beta_0,\\sigma^2,\\tau^2,p_t,\\mathbb P_N)\\) by \\((P_{0X,Q},P_{\\xi,Q},\\beta_{0,Q},\\sigma_Q^2,\\tau_Q^2,p_{t,Q},\\mathbb P_{N,Q})\\)",
+      "refs": [
+        "Q",
+        "P_{0X}",
+        "P_\\xi",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "p_t",
+        "\\mathbb P_N",
+        "P_{0X,Q}",
+        "P_{\\xi,Q}",
+        "\\beta_{0,Q}",
+        "\\sigma_Q^2",
+        "\\tau_Q^2",
+        "p_{t,Q}",
+        "\\mathbb P_{N,Q}"
+      ]
+    },
+    {
+      "name": "\\varepsilon",
+      "type": "positive tolerance",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "f",
+      "type": "bounded continuous primitive-row test function",
+      "role": "generic generator of the weak component of the envelope-weighted topology"
+    },
+    {
+      "name": "\\delta_{\\mathrm{mom}}",
+      "type": "moment slack",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "\\mathcal E_T",
+      "type": "common measurable envelope",
+      "space": "\\([1,\\infty)\\)",
+      "role": "dominates all displayed row features, test functions, and message derivatives through order three",
+      "refs": [
+        "T",
+        "\\xi_i"
+      ]
+    },
+    {
+      "name": "B_{\\mathcal E}",
+      "type": "common envelope-moment bound",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "\\varepsilon_{\\mathcal B}",
+      "type": "common chart-interior margin",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "\\varepsilon_{\\mathrm{id}}",
+      "type": "common identification radius",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "c_{\\mathrm{id}}",
+      "type": "common identification-separation constant",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "\\underline j",
+      "type": "common mean-Jacobian singular-value bound",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "\\underline x",
+      "type": "common variance-design singular-value bound",
+      "space": "\\((0,\\infty)\\)"
+    },
+    {
+      "name": "\\mathfrak r_Q(\\beta)",
+      "type": "population mean-residual map at Q",
+      "def": "\\(\\mathfrak r_Q(\\beta)=([\\mathbb E\\{Y_{t+1}-g_\\beta(Y_t,W_{t+1},X)\\}]_{t=0}^{T-1})_Q\\)",
+      "refs": [
+        "Q",
+        "\\beta",
+        "T",
+        "t",
+        "Y_{i,t+1}",
+        "Y_{it}",
+        "g_\\beta",
+        "W_{i,t+1}",
+        "X_i",
+        "[\\cdot]_Q"
+      ]
+    },
+    {
+      "name": "\\mathcal T_{\\mathcal E}",
+      "type": "envelope-weighted weak product topology",
+      "def": "the product of the Euclidean topology on \\(\\vartheta_Q\\) and the initial topology on primitive-row laws generated by \\(P\\mapsto P[f]\\) for every bounded continuous test function and by \\(P\\mapsto P[\\mathcal E_T^{2+\\delta_{\\mathrm{mom}}}]\\)",
+      "refs": [
+        "Q",
+        "\\vartheta_Q",
+        "P",
+        "f",
+        "\\mathcal E_T",
+        "\\delta_{\\mathrm{mom}}"
+      ]
+    },
+    {
+      "name": "\\mathcal Q_T",
+      "type": "regular model-index family",
+      "role": "the typed all-active homogeneous Causal-MP family defined in \\(\\text{def:model-class}\\)",
+      "refs": [
+        "T",
+        "Q",
+        "P_{\\xi,Q}",
+        "P_{N,Q}",
+        "\\mathcal T_{\\mathcal E}"
+      ]
+    },
+    {
+      "name": "\\mathcal K",
+      "type": "admissible compact regular subfamily",
+      "space": "\\(\\mathcal K\\subset\\mathcal Q_T\\)",
+      "role": "a compact family carrying the named common constants in \\(\\text{def:compact-regular-family}\\)",
+      "refs": [
+        "\\mathcal Q_T"
+      ]
+    },
+    {
+      "name": "d_{\\mathrm{BL}}",
+      "type": "bounded-Lipschitz distance",
+      "role": "metric for uniform weak convergence of the fixed-dimensional and finite-index Gaussian laws"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:fixed-horizon",
+      "kind": "asymptotic regime",
+      "condition": "\\(T\\) is fixed as \\(N\\to\\infty\\).",
+      "free_symbols": [
+        "T",
+        "N"
+      ],
+      "standard": {
+        "name": "Fixed-iteration state-evolution regime",
+        "cite": "BayatiMontanari2011DenseGraphs"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:finite-n-gaussian-bridge"
+      ]
+    },
+    {
+      "id": "ass:gaussian-interactions",
+      "kind": "interaction law",
+      "condition": "The entries \\(G_{ij}\\) are independent \\(\\mathcal N(0,1)\\) variables, and the same matrix is reused for every \\(t\\).",
+      "free_symbols": [
+        "G_{ij}",
+        "t"
+      ],
+      "standard": {
+        "name": "Gaussian dense interactions with time reuse",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:finite-n-gaussian-bridge"
+      ]
+    },
+    {
+      "id": "ass:bernoulli-design",
+      "kind": "assignment design",
+      "condition": "The variables \\(W_{i,t+1}\\) are independent Bernoulli variables with known probabilities satisfying \\(\\eta\\le p_t\\le1-\\eta\\).",
+      "free_symbols": [
+        "W_{i,t+1}",
+        "p_t",
+        "\\eta",
+        "i",
+        "t"
+      ],
+      "standard": {
+        "name": "Known Bernoulli design with overlap",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:gaussian-innovations",
+      "kind": "innovation law",
+      "condition": "The variables \\(\\epsilon_{it}\\) are independent \\(\\mathcal N(0,\\tau^2)\\) variables.",
+      "free_symbols": [
+        "\\epsilon_{it}",
+        "\\tau^2",
+        "i",
+        "t"
+      ],
+      "standard": {
+        "name": "Gaussian outcome innovations",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:model-class",
+        "prop:residual-cancellation"
+      ]
+    },
+    {
+      "id": "ass:primitive-independence",
+      "kind": "independence",
+      "condition": "The arrays \\(G\\), \\(W\\), \\(\\epsilon\\), and the initial rows \\((Y_{i0},X_i)\\) are mutually independent.",
+      "free_symbols": [
+        "G_{ij}",
+        "W_{i,t+1}",
+        "\\epsilon_{it}",
+        "Y_{i0}",
+        "X_i"
+      ],
+      "standard": {
+        "name": "Primitive independence",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:finite-n-gaussian-bridge",
+        "prop:residual-cancellation"
+      ]
+    },
+    {
+      "id": "ass:initial-iid",
+      "kind": "sampling law",
+      "condition": "The rows \\((Y_{i0},X_i)\\) are independent and identically distributed with law \\(P_{0X}\\).",
+      "free_symbols": [
+        "Y_{i0}",
+        "X_i",
+        "P_{0X}",
+        "i"
+      ],
+      "standard": {
+        "name": "Independent and identically distributed initial rows",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:empirical-interior"
+      ]
+    },
+    {
+      "id": "ass:initial-moments",
+      "kind": "moment condition",
+      "condition": "The law \\(P_{0X}\\) has every finite moment required by the derivative envelopes.",
+      "free_symbols": [
+        "P_{0X}",
+        "g_\\beta"
+      ],
+      "standard": {
+        "name": "Polynomial-envelope moment condition",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:empirical-interior"
+      ]
+    },
+    {
+      "id": "ass:smooth-messages",
+      "kind": "smoothness",
+      "condition": "Near \\(\\beta_0\\), the map \\(g_\\beta\\) is three times continuously differentiable in its continuous arguments and parameter, with derivatives dominated by integrable polynomial envelopes under the fixed-\\(T\\) law.",
+      "free_symbols": [
+        "g_\\beta",
+        "\\beta_0",
+        "T"
+      ],
+      "standard": {
+        "name": "Smooth polynomial-envelope state-evolution condition",
+        "cite": "RushVenkataramanan2018FiniteSampleAMP"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:empirical-interior"
+      ]
+    },
+    {
+      "id": "ass:identified-branch",
+      "kind": "identification",
+      "condition": "On \\(\\mathcal B\\), the population mean-moment criterion has the unique zero \\(\\beta_0\\).",
+      "free_symbols": [
+        "\\mathcal B",
+        "\\beta_0",
+        "g_\\beta",
+        "Y_{i,t+1}",
+        "W_{i,t+1}",
+        "X_i"
+      ],
+      "standard": {
+        "name": "Identified minimum-distance branch",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:mean-rank",
+      "kind": "rank",
+      "condition": "The Jacobian \\(J\\) has full column rank.",
+      "free_symbols": [
+        "J"
+      ],
+      "standard": {
+        "name": "Full-rank minimum-distance Jacobian",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:variance-excitation",
+      "kind": "rank",
+      "condition": "The matrix \\(X_v\\) has rank two.",
+      "free_symbols": [
+        "X_v"
+      ],
+      "standard": {
+        "name": "Distinct message-energy design",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:path-smoothness",
+      "kind": "regularity",
+      "condition": "The finite recursion \\(\\Psi_T\\) is Hadamard differentiable at \\((\\beta_0,\\sigma^2,\\tau^2,P_{0X})\\) tangentially to the initial-row empirical-process directions.",
+      "free_symbols": [
+        "\\Psi_T",
+        "T",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "P_{0X}"
+      ],
+      "standard": {
+        "name": "Functional delta-method differentiability",
+        "cite": "VanDerVaartWellner1996WeakConvergence"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:retained-gram-margin",
+      "kind": "spectral-margin member property",
+      "condition": "For every \\(1\\le t<T\\), \\(\\lambda_{\\min}\\{K_{D_t^{\\star}D_t^{\\star}}(P)\\}>\\underline\\kappa\\).",
+      "free_symbols": [
+        "t",
+        "T",
+        "P",
+        "K",
+        "D_t^{\\star}",
+        "\\underline\\kappa"
+      ],
+      "standard": {
+        "name": "Uniform nonsingularity of finite Gram blocks",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:rank-regular-domain"
+      ]
+    },
+    {
+      "id": "ass:active-residual-margin",
+      "kind": "residual-energy member property",
+      "condition": "For every \\(0\\le t<T\\), \\(\\rho_t(P)>\\underline\\rho\\).",
+      "free_symbols": [
+        "t",
+        "T",
+        "P",
+        "\\rho_t",
+        "\\underline\\rho"
+      ],
+      "standard": {
+        "name": "Uniform interior-pivot condition",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:rank-regular-domain"
+      ]
+    },
+    {
+      "id": "ass:rank-regular-law",
+      "kind": "local regularity",
+      "condition": "The primitive row law satisfies \\(P_\\xi\\in\\mathcal U_{\\mathrm{rr}}\\).",
+      "free_symbols": [
+        "P_\\xi",
+        "\\mathcal U_{\\mathrm{rr}}"
+      ],
+      "standard": {
+        "name": "Interior regular-point restriction",
+        "cite": "VanDerVaartWellner1996WeakConvergence"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:family-compactness",
+      "kind": "uniform-family topology",
+      "condition": "The set \\(\\mathcal K\\) is compact in \\(\\mathcal T_{\\mathcal E}\\).",
+      "free_symbols": [
+        "\\mathcal K",
+        "\\mathcal T_{\\mathcal E}"
+      ],
+      "standard": {
+        "name": "Compact uniformity set in a weighted weak topology",
+        "cite": "VanDerVaartWellner1996WeakConvergence"
+      },
+      "used_by": [
+        "def:compact-regular-family"
+      ]
+    },
+    {
+      "id": "ass:uniform-envelope",
+      "kind": "uniform envelope domination",
+      "condition": "For every \\(Q\\in\\mathcal K\\), one common \\(\\mathcal E_T\\) dominates in absolute value every coordinate of \\([\\phi_T(\\xi;P_\\xi)]_Q\\), \\([I_T(\\xi)]_Q\\), \\([\\zeta_T(\\xi)]_Q\\), and \\([\\psi_{\\theta,T}(\\xi)]_Q\\), every test function in \\(\\mathcal F_{0X,T}\\), and every message derivative through total order three appearing in \\(\\mathfrak R_T\\), \\(\\dot{\\mathfrak R}_T\\), \\(\\Psi_T\\), or \\(D\\Psi_T\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "\\mathcal E_T",
+        "T",
+        "\\phi_T(\\xi;P)",
+        "P_\\xi",
+        "[\\cdot]_Q",
+        "I_T(\\xi)",
+        "\\zeta_T(\\xi)",
+        "\\psi_{\\theta,T}",
+        "\\mathcal F_{0X,T}",
+        "\\mathfrak R_T(P)",
+        "\\dot{\\mathfrak R}_T[h]",
+        "\\Psi_T",
+        "P_{\\xi,Q}"
+      ],
+      "standard": {
+        "name": "Uniform integrable-envelope condition",
+        "cite": "VanDerVaartWellner1996WeakConvergence"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "lem:empirical-interior",
+        "prop:residual-cancellation",
+        "thm:adaptive-linearization",
+        "thm:joint-cfse",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-envelope-moment",
+      "kind": "uniform envelope moment",
+      "condition": "\\(\\sup_{Q\\in\\mathcal K}P_{\\xi,Q}[\\mathcal E_T^{2+\\delta_{\\mathrm{mom}}}]\\le B_{\\mathcal E}\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "P_{\\xi,Q}",
+        "\\mathcal E_T",
+        "\\delta_{\\mathrm{mom}}",
+        "B_{\\mathcal E}"
+      ],
+      "standard": {
+        "name": "Uniform integrable-envelope moment condition",
+        "cite": "VanDerVaartWellner1996WeakConvergence"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "lem:empirical-interior",
+        "prop:residual-cancellation",
+        "thm:adaptive-linearization",
+        "thm:joint-cfse",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-chart-interior",
+      "kind": "uniform parameter interior",
+      "condition": "\\(\\inf_{Q\\in\\mathcal K}\\operatorname{dist}(\\beta_{0,Q},\\partial\\mathcal B)\\ge\\varepsilon_{\\mathcal B}\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "\\beta_{0,Q}",
+        "\\mathcal B",
+        "\\varepsilon_{\\mathcal B}"
+      ],
+      "standard": {
+        "name": "Uniform interiority of a finite-dimensional parameter",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "thm:adaptive-linearization",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-identification",
+      "kind": "uniform identification separation",
+      "condition": "\\(\\inf_{Q\\in\\mathcal K}\\inf_{\\beta\\in\\mathcal B:\\|\\beta-\\beta_{0,Q}\\|\\ge\\varepsilon_{\\mathrm{id}}}\\|\\mathfrak r_Q(\\beta)\\|\\ge c_{\\mathrm{id}}\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "\\mathcal B",
+        "\\beta",
+        "\\beta_{0,Q}",
+        "\\varepsilon_{\\mathrm{id}}",
+        "\\mathfrak r_Q(\\beta)",
+        "c_{\\mathrm{id}}"
+      ],
+      "standard": {
+        "name": "Uniformly separated minimum-distance zero",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-mean-rank",
+      "kind": "uniform rank",
+      "condition": "\\(\\inf_{Q\\in\\mathcal K}s_{\\min}([J]_Q)\\ge\\underline j\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "J",
+        "[\\cdot]_Q",
+        "\\underline j"
+      ],
+      "standard": {
+        "name": "Uniform minimum-distance Jacobian rank",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-variance-rank",
+      "kind": "uniform rank",
+      "condition": "\\(\\inf_{Q\\in\\mathcal K}s_{\\min}([X_v]_Q)\\ge\\underline x\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "X_v",
+        "[\\cdot]_Q",
+        "\\underline x"
+      ],
+      "standard": {
+        "name": "Uniform variance-design excitation",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-overlap",
+      "kind": "uniform assignment overlap",
+      "condition": "\\(\\inf_{Q\\in\\mathcal K}\\min_{0\\le t<T}\\min\\{p_{t,Q},1-p_{t,Q}\\}\\ge\\eta\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "t",
+        "T",
+        "p_{t,Q}",
+        "\\eta"
+      ],
+      "standard": {
+        "name": "Uniform Bernoulli-design overlap",
+        "cite": "ShiraniBayati2024CausalMP"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "thm:adaptive-linearization",
+        "thm:joint-cfse",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-gram-margin",
+      "kind": "uniform Gram margin",
+      "condition": "\\(\\inf_{Q\\in\\mathcal K}\\min_{1\\le t<T}\\lambda_{\\min}([K_{D_t^{\\star}D_t^{\\star}}]_Q)\\ge2\\underline\\kappa\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "t",
+        "T",
+        "K",
+        "D_t^{\\star}",
+        "[\\cdot]_Q",
+        "\\underline\\kappa"
+      ],
+      "standard": {
+        "name": "Uniform nonsingularity of finite Gram blocks",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "lem:empirical-interior",
+        "thm:adaptive-linearization",
+        "thm:joint-cfse",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    },
+    {
+      "id": "ass:uniform-residual-margin",
+      "kind": "uniform Schur-residual margin",
+      "condition": "\\(\\inf_{Q\\in\\mathcal K}\\min_{0\\le t<T}[\\rho_t]_Q\\ge2\\underline\\rho\\).",
+      "free_symbols": [
+        "Q",
+        "\\mathcal K",
+        "t",
+        "T",
+        "\\rho_t",
+        "[\\cdot]_Q",
+        "\\underline\\rho"
+      ],
+      "standard": {
+        "name": "Uniform interior-pivot separation",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:compact-regular-family",
+        "lem:empirical-interior",
+        "thm:adaptive-linearization",
+        "thm:joint-cfse",
+        "thm:parameter-law",
+        "thm:path-bands"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:rank-regular-domain",
+      "name": "All-active full-rank row-law interior \\(\\mathcal U_{\\mathrm{rr}}\\)",
+      "construction": "\\(\\mathcal U_{\\mathrm{rr}}=\\{P:\\lambda_{\\min}\\{K_{D_t^{\\star}D_t^{\\star}}(P)\\}>\\underline\\kappa\\text{ for every }1\\le t<T,\\text{ and }\\rho_t(P)>\\underline\\rho\\text{ for every }0\\le t<T\\}\\), where \\(D_t^{\\star}=\\{0,\\ldots,t-1\\}\\).",
+      "free_symbols": [
+        "P",
+        "t",
+        "T",
+        "D_t^{\\star}",
+        "K",
+        "\\underline\\kappa",
+        "\\rho_t",
+        "\\underline\\rho",
+        "\\mathcal U_{\\mathrm{rr}}"
+      ],
+      "by_member_properties": [
+        "ass:retained-gram-margin",
+        "ass:active-residual-margin"
+      ]
+    },
+    {
+      "id": "def:regular-index-topology",
+      "name": "Envelope-weighted weak model-index topology \\(\\mathcal T_{\\mathcal E}\\)",
+      "construction": "On primitive-row laws, take the initial topology generated by the maps \\(P\\mapsto P[f]\\) for every bounded continuous test function and the moment map \\(P\\mapsto P[\\mathcal E_T^{2+\\delta_{\\mathrm{mom}}}]\\). Thus convergence is ordinary weak convergence plus convergence of the common envelope moment. Equip \\(\\vartheta_Q=(\\beta_{0,Q},\\sigma_Q^2,\\tau_Q^2,p_{0:T-1,Q})\\) with its Euclidean topology. Their product is \\(\\mathcal T_{\\mathcal E}\\).",
+      "free_symbols": [
+        "P",
+        "f",
+        "\\mathcal E_T",
+        "T",
+        "\\delta_{\\mathrm{mom}}",
+        "\\vartheta_Q",
+        "\\beta_{0,Q}",
+        "\\sigma_Q^2",
+        "\\tau_Q^2",
+        "p_{t,Q}",
+        "Q",
+        "\\mathcal T_{\\mathcal E}"
+      ],
+      "inputs": [
+        "P_{\\xi,Q}",
+        "\\vartheta_Q",
+        "\\mathcal E_T",
+        "\\delta_{\\mathrm{mom}}"
+      ]
+    },
+    {
+      "id": "def:model-class",
+      "name": "Typed regular model-index family \\(\\mathcal Q_T\\)",
+      "construction": "\\(\\mathcal Q_T=\\{Q=(P_{0X,Q},\\vartheta_Q):Q\\text{ induces }P_{\\xi,Q}\\text{ and }(P_{N,Q})_{N\\ge1},\\text{ and the induced generic objects satisfy }\\text{ass:fixed-horizon},\\text{ass:gaussian-interactions},\\text{ass:bernoulli-design},\\text{ass:gaussian-innovations},\\text{ass:primitive-independence},\\text{ass:initial-iid},\\text{ass:initial-moments},\\text{ass:smooth-messages},\\text{ass:identified-branch},\\text{ass:mean-rank},\\text{ass:variance-excitation},\\text{ass:path-smoothness},\\text{ and }P_{\\xi,Q}\\in\\mathcal U_{\\mathrm{rr}}\\}\\). Each \\(Q\\) therefore determines both a primitive-row law and a finite-\\(N\\) array law, rather than identifying a row law with an array-law sequence.",
+      "free_symbols": [
+        "\\mathcal Q_T",
+        "Q",
+        "P_{0X,Q}",
+        "\\vartheta_Q",
+        "P_{\\xi,Q}",
+        "P_{N,Q}",
+        "N",
+        "T",
+        "\\mathcal U_{\\mathrm{rr}}"
+      ],
+      "by_member_properties": [
+        "ass:fixed-horizon",
+        "ass:gaussian-interactions",
+        "ass:bernoulli-design",
+        "ass:gaussian-innovations",
+        "ass:primitive-independence",
+        "ass:initial-iid",
+        "ass:initial-moments",
+        "ass:smooth-messages",
+        "ass:identified-branch",
+        "ass:mean-rank",
+        "ass:variance-excitation",
+        "ass:path-smoothness",
+        "ass:rank-regular-law"
+      ]
+    },
+    {
+      "id": "def:compact-regular-family",
+      "name": "Admissible compact regular family \\(\\mathcal K\\)",
+      "construction": "\\(\\mathcal K\\) is any subset of \\(\\mathcal Q_T\\) satisfying \\(\\text{ass:family-compactness}\\), \\(\\text{ass:uniform-envelope}\\), \\(\\text{ass:uniform-envelope-moment}\\), \\(\\text{ass:uniform-chart-interior}\\), \\(\\text{ass:uniform-identification}\\), \\(\\text{ass:uniform-mean-rank}\\), \\(\\text{ass:uniform-variance-rank}\\), \\(\\text{ass:uniform-overlap}\\), \\(\\text{ass:uniform-gram-margin}\\), and \\(\\text{ass:uniform-residual-margin}\\), with the same named constants \\(\\delta_{\\mathrm{mom}},B_{\\mathcal E},\\varepsilon_{\\mathcal B},\\varepsilon_{\\mathrm{id}},c_{\\mathrm{id}},\\underline j,\\underline x,\\eta,\\underline\\kappa,\\underline\\rho\\) for every \\(Q\\in\\mathcal K\\).",
+      "free_symbols": [
+        "\\mathcal K",
+        "\\mathcal Q_T",
+        "\\delta_{\\mathrm{mom}}",
+        "B_{\\mathcal E}",
+        "\\varepsilon_{\\mathcal B}",
+        "\\varepsilon_{\\mathrm{id}}",
+        "c_{\\mathrm{id}}",
+        "\\underline j",
+        "\\underline x",
+        "\\eta",
+        "\\underline\\kappa",
+        "\\underline\\rho",
+        "Q"
+      ],
+      "by_member_properties": [
+        "ass:family-compactness",
+        "ass:uniform-envelope",
+        "ass:uniform-envelope-moment",
+        "ass:uniform-chart-interior",
+        "ass:uniform-identification",
+        "ass:uniform-mean-rank",
+        "ass:uniform-variance-rank",
+        "ass:uniform-overlap",
+        "ass:uniform-gram-margin",
+        "ass:uniform-residual-margin"
+      ]
+    },
+    {
+      "id": "def:conditioning-recursion",
+      "name": "All-active Gaussian conditioning recursion",
+      "construction": "For \\(P\\in\\mathcal U_{\\mathrm{rr}}\\), use \\(D_t^{\\star}=\\{0,\\ldots,t-1\\}\\), compute \\(\\lambda_t(P)\\) and \\(\\rho_t(P)\\), and generate \\(H_{it}=\\lambda_t(P)^{\\top}H_{i,D_t^{\\star}}+\\sqrt{\\rho_t(P)}Z_{it}^{\\circ}\\) for every \\(0\\le t<T\\). The strict inequalities defining \\(\\mathcal U_{\\mathrm{rr}}\\) make every inverse and square-root derivative ordinary on an open neighborhood. Iterating these operations gives \\(\\mathfrak R_T(P)\\).",
+      "free_symbols": [
+        "D_t^{\\star}",
+        "H_{it}",
+        "K",
+        "P",
+        "T",
+        "Z_{it}^{\\circ}",
+        "\\lambda_t",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "\\mathfrak R_T(P)",
+        "\\rho_t",
+        "\\underline\\rho",
+        "t"
+      ],
+      "inputs": [
+        "K",
+        "P_\\xi",
+        "g_\\beta",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2"
+      ]
+    },
+    {
+      "id": "def:finite-n-bridge-recursion",
+      "name": "Finite-\\(N\\) all-active Gaussian bridge recursion",
+      "construction": "At date \\(t\\), condition on \\(\\mathscr F_{N,t}\\), compute the observable empirical coefficients \\(\\lambda_t^{N}=(K_{D_t^{\\star}D_t^{\\star}}^{N})^{-1}K_{D_t^{\\star},t}^{N}\\) and \\(\\rho_t^{N}=K_{tt}^{N}-K_{t,D_t^{\\star}}^{N}(K_{D_t^{\\star}D_t^{\\star}}^{N})^{-1}K_{D_t^{\\star},t}^{N}\\), and form \\(H_{it}^{\\circ,N}=(\\lambda_t^{N})^{\\top}H_{i,D_t^{\\star}}^{\\circ,N}+\\sqrt{\\rho_t^{N}}Z_{it}^{\\circ}\\). Iterate sequentially while \\(\\mathcal A_{N,t}^{\\mathrm{act}}\\) holds, recomputing messages and empirical Gram coefficients from the generated past after each update, and stop at the first exit from the all-active domain.",
+      "free_symbols": [
+        "N",
+        "T",
+        "i",
+        "t",
+        "\\mathscr F_{N,t}",
+        "K^{N}",
+        "D_t^{\\star}",
+        "\\lambda_t^{N}",
+        "\\rho_t^{N}",
+        "H_{it}^{\\circ,N}",
+        "Z_{it}^{\\circ}",
+        "\\mathcal A_{N,t}^{\\mathrm{act}}",
+        "U_{it}"
+      ],
+      "inputs": [
+        "Y_{i0}",
+        "X_i",
+        "W_{i,t+1}",
+        "\\epsilon_{it}",
+        "g_\\beta",
+        "\\beta_0"
+      ]
+    },
+    {
+      "id": "def:moment-vector",
+      "name": "Ordered empirical moment vector",
+      "construction": "On \\(\\{\\mathbb P_N\\in\\mathcal U_{\\mathrm{rr}}\\}\\), compute the all-active full-rank recursion \\(\\mathfrak R_T(\\mathbb P_N)\\), evaluate \\(\\phi_T(\\xi;\\mathbb P_N)\\), and set \\(M_N=\\mathbb P_N[\\phi_T(\\xi;\\mathbb P_N)]\\); set \\(M_N=0\\) otherwise. Set \\(M_T=P_\\xi[\\phi_T(\\xi;P_\\xi)]\\).",
+      "free_symbols": [
+        "T",
+        "\\mathfrak R_T(P)",
+        "\\mathbb P_N",
+        "\\phi_T(\\xi;P)",
+        "M_N",
+        "M_T",
+        "P_\\xi",
+        "\\mathcal U_{\\mathrm{rr}}"
+      ],
+      "inputs": [
+        "\\mathbb P_N",
+        "\\mathfrak R_T(P)",
+        "\\phi_T(\\xi;P)"
+      ]
+    },
+    {
+      "id": "def:linearization-handle",
+      "name": "All-active projection differentiation handle",
+      "construction": "For an admissible compact family \\(\\mathcal K\\), evaluate each \\(Q\\)-specific recursion on \\(\\mathcal U_{\\mathrm{rr}}\\), differentiate the full-past projection and every positive square-root residual along an arbitrary ambient empirical-process direction \\(h\\) satisfying \\(h[1]=0\\), and apply \\([\\dot{\\mathfrak R}_T[h]]_Q\\) coordinatewise to \\(\\phi_T\\). The handle is a uniform von Mises expansion using the common envelope bound \\((\\delta_{\\mathrm{mom}},B_{\\mathcal E})\\), chart and identification margins \\((\\varepsilon_{\\mathcal B},\\varepsilon_{\\mathrm{id}},c_{\\mathrm{id}})\\), rank bounds \\((\\underline j,\\underline x)\\), overlap \\(\\eta\\), and interior margins \\((\\underline\\kappa,\\underline\\rho)\\) to control every row-averaged second-order remainder.",
+      "free_symbols": [
+        "\\mathcal K",
+        "Q",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "D_t^{\\star}",
+        "T",
+        "h",
+        "\\dot{\\mathfrak R}_T[h]",
+        "[\\cdot]_Q",
+        "\\phi_T(\\xi;P)",
+        "\\delta_{\\mathrm{mom}}",
+        "B_{\\mathcal E}",
+        "\\varepsilon_{\\mathcal B}",
+        "\\varepsilon_{\\mathrm{id}}",
+        "c_{\\mathrm{id}}",
+        "\\underline j",
+        "\\underline x",
+        "\\eta",
+        "\\underline\\kappa",
+        "\\underline\\rho"
+      ],
+      "inputs": [
+        "\\mathfrak R_T(P)",
+        "\\phi_T(\\xi;P)"
+      ]
+    },
+    {
+      "id": "def:cfse",
+      "name": "Homogeneous fluctuation state evolution",
+      "construction": "For each primitive row \\(\\xi\\), evaluate \\(\\dot{\\mathfrak R}_T[\\delta_\\xi-P_\\xi]\\) by ordinary differentiation on the open all-active domain \\(\\mathcal U_{\\mathrm{rr}}\\), then evaluate \\(I_T(\\xi)=\\phi_T(\\xi;P_\\xi)-M_T+P_\\xi[\\dot\\phi_T(\\widetilde\\xi;P_\\xi)[\\delta_\\xi-P_\\xi]]\\) and set \\(\\Gamma_T=P_\\xi[I_T(\\xi)I_T(\\xi)^{\\top}]\\). Augment this moment influence with \\(f(Y_0,X)-P_{0X}f\\), for \\(f\\in\\mathcal F_{0X,T}\\), to obtain the single Gaussian experiment \\(\\mathbb Z_T^{\\mathrm{full}}\\); its displayed covariance formula supplies all moment, initial empirical-process, and cross-block covariances. For \\(Q\\in\\mathcal K\\), brackets \\([\\cdot]_Q\\) evaluate this same recursion and covariance at the model index; no separately sampled Gaussian or initial-law object is introduced.",
+      "free_symbols": [
+        "I_T(\\xi)",
+        "M_T",
+        "P_\\xi",
+        "T",
+        "\\Gamma_T",
+        "\\dot\\phi_T(\\xi;P)[h]",
+        "\\dot{\\mathfrak R}_T[h]",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "\\phi_T(\\xi;P)",
+        "\\widetilde\\xi",
+        "\\xi_i",
+        "P_{0X}",
+        "\\mathcal F_{0X,T}",
+        "\\mathbb Z_T^{\\mathrm{full}}",
+        "Y_{i0}",
+        "X_i",
+        "Q",
+        "\\mathcal K",
+        "[\\cdot]_Q"
+      ],
+      "inputs": [
+        "P_\\xi",
+        "g_\\beta",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "p_t"
+      ]
+    },
+    {
+      "id": "def:estimators",
+      "name": "Observable structural estimator",
+      "construction": "Compute \\(\\widehat\\beta\\) from \\(r_N\\), compute \\(\\widehat q\\) and \\(\\widehat X_v\\), set \\((\\widehat\\sigma^2,\\widehat\\tau^2)^{\\top}=(\\widehat X_v^{\\top}W_v\\widehat X_v)^{-1}\\widehat X_v^{\\top}W_v\\widehat v\\), and compute \\(\\widehat K\\).",
+      "free_symbols": [
+        "r_N",
+        "\\widehat\\beta",
+        "\\widehat q",
+        "\\widehat X_v",
+        "W_v",
+        "\\widehat\\sigma^2",
+        "\\widehat\\tau^2",
+        "\\widehat v",
+        "\\widehat K"
+      ],
+      "inputs": [
+        "Y_{i,t+1}",
+        "W_{i,t+1}",
+        "X_i"
+      ]
+    },
+    {
+      "id": "def:counterfactual-path",
+      "name": "Full-initial-law counterfactual path",
+      "construction": "Use the displayed \\(\\Psi_T\\): integrate the first message and its square under the joint law \\(P_{0X}\\), then, only after the first dense interaction, integrate each later message under \\(P_X\\) and an independent Gaussian state with recursively updated mean and variance; take \\(\\theta_T=(m_t^{(1)}-m_t^{(0)})_{t=1}^T\\).",
+      "free_symbols": [
+        "\\Psi_T",
+        "T",
+        "P_{0X}",
+        "P_X",
+        "g_\\beta",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "\\theta_T",
+        "m_t^{(a)}",
+        "a"
+      ],
+      "inputs": [
+        "P_{0X}",
+        "g_\\beta",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2"
+      ]
+    },
+    {
+      "id": "def:path-band",
+      "name": "Feasible unstudentized Gaussian-max path band",
+      "construction": "Compute \\(\\widehat\\zeta_i\\) as the observable plug-in counterpart of the population row influence \\(\\zeta_T(\\xi_i)\\), apply the same forward derivative \\(D\\Psi_T\\) to obtain \\(\\widehat\\psi_{\\theta,T,i}\\), and set \\(\\widehat\\Omega_\\theta=N^{-1}\\sum_i\\widehat\\psi_{\\theta,T,i}\\widehat\\psi_{\\theta,T,i}^{\\top}\\), targeting exactly \\(\\Omega_\\theta=P_\\xi[\\psi_{\\theta,T}(\\xi)\\psi_{\\theta,T}(\\xi)^{\\top}]\\). Draw \\(Z^\\theta\\mid\\text{data}\\sim\\mathcal N(0,\\widehat\\Omega_\\theta)\\), take the conditional \\(1-\\alpha\\) quantile of \\(\\max_{1\\le t\\le T}|Z_t^\\theta|\\), and report \\(\\mathcal C_N\\) without estimating an active set or dividing by a variance.",
+      "free_symbols": [
+        "N",
+        "T",
+        "i",
+        "t",
+        "\\alpha",
+        "\\widehat\\zeta_i",
+        "\\zeta_T(\\xi)",
+        "\\xi_i",
+        "\\Psi_T",
+        "\\widehat\\psi_{\\theta,T,i}",
+        "\\widehat\\Omega_\\theta",
+        "\\Omega_\\theta",
+        "P_\\xi",
+        "\\psi_{\\theta,T}",
+        "Z^\\theta",
+        "c_{1-\\alpha}",
+        "\\mathcal C_N"
+      ],
+      "inputs": [
+        "\\widehat\\beta",
+        "\\widehat\\sigma^2",
+        "\\widehat\\tau^2",
+        "\\widehat P_{0X}",
+        "\\widehat K"
+      ]
+    },
+    {
+      "id": "def:affine-witness",
+      "name": "Affine \\(T=3\\) witness",
+      "construction": "Set \\(T=3\\), \\(g(y,w)=y/2+w\\), \\((p_0,p_1,p_2)=(1/4,3/4,1/4)\\), \\(Y_{i0}\\sim\\mathcal N(0,1)\\), and \\(\\sigma^2=\\tau^2=1\\).",
+      "free_symbols": [
+        "T",
+        "g_\\beta",
+        "p_t",
+        "Y_{i0}",
+        "\\sigma^2",
+        "\\tau^2"
+      ]
+    },
+    {
+      "id": "def:rank-boundary-perturbation",
+      "name": "Redundant-message rank-boundary diagnostic",
+      "construction": "Take \\(K_{00}>0\\) and choose \\(V_i\\in L_2(P_\\xi)\\) with \\(P_\\xi[U_{i0}V_i]=0\\) and \\(P_\\xi[V_i^2]=1\\). Set \\(U_{i1}^{(\\delta)}=U_{i0}+\\delta V_i\\). Projection on \\(U_{i0}\\) gives coefficient one, residual energy \\(\\rho_1=\\delta^2\\), and conditioned field \\(H_{i1}=H_{i0}+|\\delta|Z_{i1}^{\\circ}\\).",
+      "free_symbols": [
+        "K",
+        "P_\\xi",
+        "U_{it}",
+        "V_i",
+        "i",
+        "\\delta",
+        "U_{i1}^{(\\delta)}",
+        "\\lambda_t",
+        "\\rho_t",
+        "H_{it}",
+        "Z_{it}^{\\circ}"
+      ],
+      "inputs": [
+        "U_{it}",
+        "V_i",
+        "\\delta"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:finite-n-gaussian-bridge",
+      "kind": "lemma",
+      "statement": "Fix \\(N\\), \\(T\\), and \\(0\\le t<T\\). On \\(\\mathcal A_{N,t}^{\\mathrm{act}}\\), Gaussian row conditioning gives the exact regular conditional law \\[\\mathcal L\\!\\left((H_{it}^{G,N})_{i=1}^N\\mid\\mathscr F_{N,t}\\right)=\\mathcal L\\!\\left(\\left((\\lambda_t^{N})^{\\top}H_{i,D_t^{\\star}}^{G,N}+\\sqrt{\\rho_t^{N}}Z_{it}^{\\circ}\\right)_{i=1}^N\\mid\\mathscr F_{N,t}\\right).\\] Conditionally on \\(\\mathscr F_{N,t}\\), the \\(Z_{it}^{\\circ}\\) are independent standard Gaussians, \\(\\lambda_t^{N}=(K_{D_t^{\\star}D_t^{\\star}}^{N})^{-1}K_{D_t^{\\star},t}^{N}\\), and \\(\\rho_t^{N}=K_{tt}^{N}-K_{t,D_t^{\\star}}^{N}(K_{D_t^{\\star}D_t^{\\star}}^{N})^{-1}K_{D_t^{\\star},t}^{N}\\). Iterating these kernels through \\(t=0,\\ldots,T-1\\), stopping at the first exit from the all-active domain, yields conditional equality in law between the stopped observed reused-\\(G\\) field--outcome--message path and the stopped auxiliary path in \\(\\text{def:finite-n-bridge-recursion}\\). On the event of no exit, the equality holds jointly for the complete paths and every displayed measurable statistic, including \\(M_N\\), \\(r_N\\), \\(\\widehat v\\), message Gram products, and mean- and variance-score moments.",
+      "free_symbols": [
+        "N",
+        "i",
+        "t",
+        "T",
+        "D_t^{\\star}",
+        "G_{ij}",
+        "H_{it}^{G,N}",
+        "H_{it}^{\\circ,N}",
+        "U_{it}",
+        "K^{N}",
+        "\\lambda_t^{N}",
+        "\\rho_t^{N}",
+        "\\mathscr F_{N,t}",
+        "\\mathcal A_{N,t}^{\\mathrm{act}}",
+        "Z_{it}^{\\circ}",
+        "M_N",
+        "r_N",
+        "\\widehat v"
+      ],
+      "depends_on": [
+        "ass:fixed-horizon",
+        "ass:gaussian-interactions",
+        "ass:primitive-independence",
+        "def:model-class",
+        "def:finite-n-bridge-recursion"
+      ],
+      "justification": "This fixed-sample bridge is the exact probabilistic link from the observed reused matrix to the auxiliary recursion differentiated in the CFSE.",
+      "gap": "Bayati and Montanari provide adaptive Gaussian conditioning for AMP with an Onsager correction, whereas this finite-\\(N\\), full-past equality in law with empirical Gram coefficients is not stated for the non-Onsager Causal-MP recursion.",
+      "consumer": "The public CausalMP implementation can use the recursion as an exact conditional simulator and covariance-engine primitive.",
+      "proof_tex": "Put \\(U_{<t}=(\\mathbf U_0,\\ldots,\\mathbf U_{t-1})\\).  On \\(\\mathcal A_{N,t}^{\\mathrm{act}}\\), this matrix and \\(\\mathbf U_t\\) are \\(\\mathscr F_{N,t}\\)-measurable and \\(U_{<t}^{\\top}U_{<t}/N=K^N_{D_t^{\\star}D_t^{\\star}}\\) is invertible.  For row \\(i\\), write \\(G_i=(G_{i1},\\ldots,G_{iN})^{\\top}\\).  Conditional on the primitives and the previously revealed products, the only restrictions on \\(G_i\\) are\n\\[\n N^{-1/2}U_{<t}^{\\top}G_i=H^{G,N}_{i,D_t^{\\star}}.\n\\]\nIndeed, by the structural recursion, every message through date \\(t\\) is a measurable function of the primitives and the fields before date \\(t\\); hence conditioning additionally on the message columns introduces no further restriction.  Orthogonally decompose\n\\[\n \\mathbf U_t=U_{<t}\\lambda_t^N+v_t^N,\n \\qquad U_{<t}^{\\top}v_t^N=0.\n\\]\nThe normal equations and the definitions in the statement give\n\\[\n \\lambda_t^N=(K^N_{D_t^{\\star}D_t^{\\star}})^{-1}K^N_{D_t^{\\star},t},\n \\qquad N^{-1}\\|v_t^N\\|^2=\\rho_t^N>0.\n\\]\nThe standard normal density is invariant under orthogonal transformations.  Completing the square in coordinates along \\(\\operatorname{span}(U_{<t})\\) and its orthogonal complement therefore shows directly that, conditional on the displayed linear restrictions, the orthogonal component of \\(G_i\\) remains standard Gaussian and is independent of its fixed projected component.  Consequently\n\\[\n \\begin{aligned}\n H_{it}^{G,N}\n &=N^{-1/2}G_i^{\\top}U_{<t}\\lambda_t^N+N^{-1/2}G_i^{\\top}v_t^N\\\\\n &=(\\lambda_t^N)^{\\top}H^{G,N}_{i,D_t^{\\star}}+\\sqrt{\\rho_t^N}\\,Z_{it}^{\\circ}\n \\end{aligned}\n\\]\nin regular conditional law.  The rows of \\(G\\) are independent by \\(\\text{ass:gaussian-interactions}\\), so the last coordinates are conditionally independent over \\(i\\).  By \\(\\text{ass:primitive-independence}\\), they are also independent of the conditioned primitives.  At \\(t=0\\) the same calculation uses the empty projection and gives \\(H_{i0}^{G,N}=\\sqrt{K_{00}^N}Z_{i0}^{\\circ}\\).\n\nIt remains to justify the joint, adaptive assertion.  Suppose the two stopped paths have the same joint law through date \\(t-1\\).  Their current messages and hence \\(K^N\\), \\(\\lambda_t^N\\), \\(\\rho_t^N\\), and the active-event indicator are the same measurable functions of that history.  The conditional kernel just computed is therefore the kernel used in \\(\\text{def:finite-n-bridge-recursion}\\).  Integrating the common past law against this common kernel proves equality through date \\(t\\).  Induction over the fixed set \\(t=0,\\ldots,T-1\\), permitted by \\(\\text{ass:fixed-horizon}\\), proves equality of the stopped paths.  On no exit, every statistic listed in the claim is a measurable function of the complete path, so equality in law is preserved under each such map.",
+      "status": "proved"
+    },
+    {
+      "id": "lem:empirical-interior",
+      "kind": "lemma",
+      "statement": "For every admissible compact family \\(\\mathcal K\\), \\(\\sup_{Q\\in\\mathcal K}P_{N,Q}\\{\\mathbb P_{N,Q}\\notin\\mathcal U_{\\mathrm{rr}}\\}\\to0\\). Consequently, uniformly over \\(Q\\in\\mathcal K\\), the empirical moment vector is computed by the same all-active full-rank recursion with probability tending to one; every \\(K_{D_t^{\\star}D_t^{\\star}}^{N}\\) has smallest eigenvalue exceeding \\(\\underline\\kappa\\), and every \\(\\rho_t^{N}\\) exceeds \\(\\underline\\rho\\).",
+      "free_symbols": [
+        "\\mathcal K",
+        "Q",
+        "P_{N,Q}",
+        "\\mathbb P_{N,Q}",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "N",
+        "M_N",
+        "K^{N}",
+        "D_t^{\\star}",
+        "\\rho_t^{N}",
+        "\\underline\\kappa",
+        "\\underline\\rho",
+        "t"
+      ],
+      "depends_on": [
+        "ass:initial-iid",
+        "ass:initial-moments",
+        "ass:smooth-messages",
+        "def:rank-regular-domain",
+        "def:moment-vector",
+        "def:model-class",
+        "def:compact-regular-family",
+        "ass:uniform-envelope",
+        "ass:uniform-envelope-moment",
+        "ass:uniform-gram-margin",
+        "ass:uniform-residual-margin"
+      ],
+      "justification": "This interior-stability result makes the observable empirical statistic use the same full-rank recursion as its population limit.",
+      "gap": "Standard laws of large numbers do not by themselves record stability of every recursively generated Gram inverse and Schur residual in this adaptive reused-matrix system.",
+      "consumer": "The covariance implementation may run the ordinary full-rank derivative recursion without data-dependent deletion on events whose probability tends to one.",
+      "proof_tex": "Fix an admissible \\(\\mathcal K\\).  In the auxiliary representation, all coordinates at date zero are functions of independent primitive rows.  We prove by induction on \\(t\\) that every empirical mean and Gram entry generated through date \\(t\\) converges to its population counterpart uniformly over \\(Q\\in\\mathcal K\\).  At the initial step, Chebyshev's inequality and \\(\\text{ass:uniform-envelope-moment}\\) give, for each of the finitely many required integrands \\(f_Q\\),\n\\[\n \\sup_{Q\\in\\mathcal K}P_{N,Q}\\!left(\\left|\\mathbb P_{N,Q}f_Q-P_{\\xi,Q}f_Q\\right|>u\\right)\n \\le {\\sup_QP_{\\xi,Q}f_Q^2\\over Nu^2}\\longrightarrow0.\n\\]\nSuppose the assertion holds through date \\(t-1\\).  The inverse identity\n\\[\n A^{-1}-B^{-1}=A^{-1}(B-A)B^{-1}\n\\]\nshows that inversion is uniformly continuous when the two smallest eigenvalues are at least \\(\\underline\\kappa\\).  Likewise, for \\(x,y\\ge\\underline\\rho\\),\n\\[\n |\\sqrt x-\\sqrt y|={|x-y|\\over \\sqrt x+\\sqrt y}\n \\le { |x-y|\\over2\\sqrt{\\underline\\rho}}.\n\\]\nThus the empirical projection coefficients and residual energies converge uniformly.  The smooth-message condition and the common envelope then give convergence of the newly generated messages in empirical \\(L^2\\), and Cauchy--Schwarz gives convergence of all new Gram products.  Applying the preceding Chebyshev bound to the finitely many population-row integrands completes the induction.\n\nThe population margins in \\(\\text{ass:uniform-gram-margin}\\) and \\(\\text{ass:uniform-residual-margin}\\) are \\(2\\underline\\kappa\\) and \\(2\\underline\\rho\\).  Since \\(T\\) is fixed, the union bound over all retained blocks and pivots and the just-proved uniform convergence imply\n\\[\n \\sup_{Q\\in\\mathcal K}P_{N,Q}\\!left(min_{1\\le t<T}\\lambda_{\\min}(K^N_{D_t^{\\star}D_t^{\\star}})\\le\\underline\\kappa\n \\text{ or }\\min_{0\\le t<T}\\rho_t^N\\le\\underline\\rho\\right)\\longrightarrow0.\n\\]\nThis event is precisely the possible failure of membership in the open set \\(\\mathcal U_{\\mathrm{rr}}\\) for the recursively generated empirical row law.  Finally, \\(\\text{def:moment-vector}\\) agrees with the all-active expression on this event, proving every assertion.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:joint-cfse",
+      "kind": "theorem",
+      "statement": "For every admissible compact family \\(\\mathcal K\\), \\(\\sup_{Q\\in\\mathcal K}P_{N,Q}\\{\\mathbb P_{N,Q}\\notin\\mathcal U_{\\mathrm{rr}}\\}\\to0\\), and \\[\\sup_{Q\\in\\mathcal K}d_{\\mathrm{BL}}\\!\\left(\\mathcal L_{P_{N,Q}}\\!\\left(\\sqrt N\\{[M_N]_Q-[M_T]_Q\\},\\sqrt N\\{[\\widehat P_{0X}]_Q-P_{0X,Q}\\}\\right),\\mathcal L\\{[\\mathbb Z_T^{\\mathrm{full}}]_Q\\}\\right)\\to0\\] in \\(\\mathbb R^{\\dim(M_T)}\\times\\ell^\\infty(\\mathcal F_{0X,T})\\). At each \\(Q\\), the covariance is the single bilinear formula defining \\([\\mathbb Z_T^{\\mathrm{full}}]_Q\\); hence \\(\\operatorname{Var}([Z_M]_Q)=[\\Gamma_T]_Q\\), including every cross-covariance between the initial empirical-process block and the reused-matrix mean, energy, Gram, and score blocks.",
+      "free_symbols": [
+        "\\mathcal K",
+        "Q",
+        "P_{N,Q}",
+        "\\mathbb P_{N,Q}",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "N",
+        "d_{\\mathrm{BL}}",
+        "M_N",
+        "M_T",
+        "[\\cdot]_Q",
+        "\\widehat P_{0X}",
+        "P_{0X,Q}",
+        "\\mathbb Z_T^{\\mathrm{full}}",
+        "\\mathcal F_{0X,T}",
+        "Z_M",
+        "\\Gamma_T",
+        "T"
+      ],
+      "depends_on": [
+        "lem:finite-n-gaussian-bridge",
+        "def:model-class",
+        "def:compact-regular-family",
+        "def:moment-vector",
+        "def:cfse",
+        "thm:adaptive-linearization",
+        "lem:empirical-interior",
+        "ass:uniform-envelope",
+        "ass:uniform-envelope-moment",
+        "ass:uniform-overlap",
+        "ass:uniform-gram-margin",
+        "ass:uniform-residual-margin"
+      ],
+      "justification": "The joint fluctuation law is the missing inferential layer between state evolution and causal-path uncertainty.",
+      "gap": "Shirani and Bayati establish first-order state evolution and consistency, while available AMP results do not give this aggregate covariance recursion.",
+      "consumer": "Configured Causal-MP regressions can replace an independence-based sandwich matrix by \\(\\Gamma_T\\).",
+      "proof_tex": "The first assertion is \\(\\text{lem:empirical-interior}\\).  Enumerate the finite class \\(\\mathcal F_{0X,T}=\\{f_1,\\ldots,f_m\\}\\), and define the centered augmented row vector\n\\[\n V_Q(\\xi)=\\left([I_T(\\xi)]_Q,\n (f_\\ell(Y_0,X)-P_{0X,Q}f_\\ell)_{\\ell=1}^m\\right).\n\\]\nThe resolved adaptive-linearization theorem gives, uniformly over \\(Q\\in\\mathcal K\\),\n\\[\n \\left(\\sqrt N\\{[M_N]_Q-[M_T]_Q\\},\n \\sqrt N\\{[\\widehat P_{0X}]_Q-P_{0X,Q}\\}\\right)\n ={1\\over\\sqrt N}\\sum_{i=1}^NV_Q(\\xi_i)+o_{P_{N,Q}}(1).\n\\]\nThe rows in the auxiliary representation are independent with mean zero.  Moreover, \\(\\text{ass:uniform-envelope}\\) and \\(\\text{ass:uniform-envelope-moment}\\) imply the uniform Lindeberg bound\n\\[\n \\sup_{Q\\in\\mathcal K}P_{\\xi,Q}!left[|V_Q\\|^2\n \\mathbf 1\\{\\|V_Q\\|>u\\sqrt N\\}\\right]\n \\le {C B_{\\mathcal E}\\over u^{\\delta_{\\mathrm{mom}}}N^{\\delta_{\\mathrm{mom}}/2}}\n \\longrightarrow0.\n\\]\nFor completeness, this bound yields the required triangular-array Gaussian limit directly.  For a fixed vector \\(b\\), truncate \\(b^{\\top}V_Q\\) at \\(u\\sqrt N\\), expand \\(e^{ix}=1+ix-x^2/2+o(x^2)\\) uniformly on the truncated set, and use the last display on its complement.  Thus\n\\[\n \\left(P_{\\xi,Q}e^{i b^{\\top}V_Q/\\sqrt N}\\right)^N\n -\\exp\\{-\\tfrac12b^{\\top}\\Sigma_Qb\\}\\longrightarrow0,\n \\qquad \\Sigma_Q=P_{\\xi,Q}[V_QV_Q^{\\top}],\n\\]\nalong every sequence \\(Q=Q_N\\) for which \\(\\Sigma_{Q_N}\\) converges.\n\nTo make the convergence uniform, argue by contradiction.  Any offending sequence \\(Q_N\\in\\mathcal K\\) has a subsequence converging in \\(\\mathcal T_{\\mathcal E}\\), by compactness.  The finite recursion, the uniform inverse and pivot margins, and ordinary dominated continuity show that \\(V_{Q_N}\\) and its covariance converge along this subsequence; the \\((2+\\delta_{\\mathrm{mom}})\\)-moment bound supplies uniform integrability.  The characteristic-function calculation therefore gives convergence to the same Gaussian law as \\(\\mathcal N(0,\\Sigma_{Q_N})\\).  In fixed dimension, truncating to a large compact ball and using a finite Lipschitz net converts this convergence into bounded-Lipschitz convergence, contradicting the offending sequence.  Hence the asserted supremum tends to zero.\n\nBy the definition of \\(V_Q\\), its covariance is exactly the single bilinear covariance displayed for \\([\\mathbb Z_T^{\\mathrm{full}}]_Q\\).  Taking \\(f=g=0\\) gives \\(\\operatorname{Var}([Z_M]_Q)=[\\Gamma_T]_Q\\), and taking one or both of \\(f,g\\) nonzero gives all claimed cross-blocks.  The exact finite-\\(N\\) bridge transfers this auxiliary-row conclusion to \\(P_{N,Q}\\).",
+      "status": "proved"
+    },
+    {
+      "id": "prop:residual-cancellation",
+      "kind": "proposition",
+      "statement": "For every admissible compact family \\(\\mathcal K\\), uniformly over \\(Q\\in\\mathcal K\\), the \\(Q\\)-evaluations of \\(r_N(\\beta_0)\\) and \\(\\widehat v-\\sigma^2(N^{-1}\\sum_{i=1}^NU_{it}^2)_{t=0}^{T-1}-\\tau^2\\mathbf 1_T\\) have a joint centered Gaussian root-\\(N\\) limit with covariance \\([\\operatorname{blockdiag}\\{C,2(C\\circ C)\\}]_Q\\) and zero mixed block.",
+      "free_symbols": [
+        "\\mathcal K",
+        "Q",
+        "[\\cdot]_Q",
+        "r_N",
+        "\\beta_0",
+        "\\widehat v",
+        "\\sigma^2",
+        "N",
+        "i",
+        "U_{it}",
+        "t",
+        "T",
+        "\\tau^2",
+        "C"
+      ],
+      "depends_on": [
+        "lem:finite-n-gaussian-bridge",
+        "thm:adaptive-linearization",
+        "def:model-class",
+        "def:compact-regular-family",
+        "ass:gaussian-innovations",
+        "ass:primitive-independence",
+        "ass:uniform-envelope",
+        "ass:uniform-envelope-moment"
+      ],
+      "justification": "This cancellation turns the general CFSE into closed observable residual blocks.",
+      "gap": "No cited Causal-MP or AMP result states this block identity for one reused nonsymmetric latent matrix.",
+      "consumer": "It supplies standard errors for the unpenalized full-population \\(\\texttt{CFEEstimator}\\) configuration.",
+      "proof_tex": "Use the auxiliary realization and write \\(s=\\sigma^2\\), \\(e=\\tau^2\\).  On the all-active event the sequential Gaussian projection recursion has the pathwise triangular form\n\\[\n H_i^N=B_NZ_i,\n \\qquad B_NB_N^{\\top}=K^N,\n\\]\nwhere \\(Z_i=(Z_{i0}^{\\circ},\\ldots,Z_{i,T-1}^{\\circ})^{\\top}\\) are independent standard Gaussian vectors.  Adaptive linearization and the common margins imply \\(K^N\\to K\\) uniformly in probability.  Because every pivot is bounded below, the triangular square-root map is continuous there; hence \\(B_N\\to B\\) uniformly in probability, where \\(BB^{\\top}=K\\).  Put\n\\[\n R_i^N=\\sqrt s\\,B_NZ_i+\\epsilon_i,\n \\qquad R_i=\\sqrt s\\,BZ_i+\\epsilon_i.\n\\]\nNo independence between \\(B_N\\) and the rows is used below.\n\nThe structural equation gives the exact identities\n\\[\n r_N(\\beta_0)=\\overline R^{,N},\n \\qquad\n \\widehat v- s(q_t^N)_{t=0}^{T-1}-e\\mathbf 1_T\n =\\operatorname{diag}\\!\\left\\{N^{-1}\\sum_iR_i^N(R_i^N)^{\\top}-(sK^N+eI_T)\\right\\}\n -\\overline R^{,N}\\circ\\overline R^{,N}.\n\\]\nSince \\(\\sqrt N\\,\\overline Z=O_P(1)\\), \\(\\sqrt N\\,\\overline\\epsilon=O_P(1)\\), and \\(B_N-B=o_P(1)\\),\n\\[\n \\sqrt N\\,\\overline R^{,N}={1\\over\\sqrt N}\\sum_iR_i+o_P(1).\n\\]\nFor second moments, direct multiplication yields\n\\[\n \\begin{aligned}\n &N^{-1}\\sum_iR_i^N(R_i^N)^{\\top}-(sK^N+eI_T)\\\\\n &=sB_N\\left(N^{-1}\\sum_iZ_iZ_i^{\\top}-I_T\\right)B_N^{\\top}\n +\\sqrt s B_NN^{-1}\\sum_iZ_i\\epsilon_i^{\\top}\n +\\sqrt s N^{-1}\\sum_i\\epsilon_iZ_i^{\\top}B_N^{\\top}\n +N^{-1}\\sum_i\\epsilon_i\\epsilon_i^{\\top}-eI_T.\n\\end{aligned}\n\\]\nEach centered bracket is \\(O_P(N^{-1/2})\\) by its finite second moment.  Therefore replacing \\(B_N\\) by \\(B\\) changes the root-\\(N\\) expression by \\(o_P(1)\\), even though \\(B_N\\) is data dependent.  Also \\(\\sqrt N\\,\\overline R^{,N}\\circ\\overline R^{,N}=o_P(1)\\).  We have proved the joint representation\n\\[\n \\sqrt N\\binom{r_N(\\beta_0)}{\\widehat v-sq^N-e\\mathbf1_T}\n ={1\\over\\sqrt N}\\sum_{i=1}^N\n \\binom{R_i}{R_i\\circ R_i-\\operatorname{diag}(C)}+o_P(1).\n\\]\nHere the \\(R_i\\) are independent centered Gaussian vectors with covariance \\(C=sK+eI_T\\), by \\(\\text{ass:gaussian-innovations}\\) and primitive independence.\n\nThis representation also identifies the row influence, not merely its covariance.  Adaptive linearization applied to the same two linear coordinate maps gives the alternative expansion with summands \\((S_mI_T,S_vI_T)\\).  Subtracting the two expansions produces a normalized sum of independent, centered copies of\n\\[\n D(\\xi)=\\binom{S_mI_T(\\xi)-R}{S_vI_T(\\xi)-\\{R\\circ R-\\operatorname{diag}(C)\\}}\n\\]\nthat converges to zero in probability.  Truncating \\(D\\) at level \\(o(\\sqrt N)\\) and expanding \\(e^{iu^{\\top}D/\\sqrt N}\\) to second order, with the common \\((2+\\delta_{\\mathrm{mom}})\\)-moment controlling the tail, also makes this sum converge to \\(\\mathcal N(0,P_\\xi[DD^{\\top}])\\).  Uniqueness of the probability limit forces \\(P_\\xi[DD^{\\top}]=0\\).  Thus\n\\[\n S_mI_T(\\xi)=R,\n \\qquad S_vI_T(\\xi)=R\\circ R-\\operatorname{diag}(C)\n\\]\nalmost surely.  This is the influence-level cancellation used by the feasible covariance construction.\n\nThe same second-order characteristic-function expansion, with the common envelope providing uniform tail control, gives the uniform joint Gaussian limit.  Differentiating the centered Gaussian moment-generating function, or equivalently pairing the four factors in its fourth moment, gives\n\\[\n \\operatorname{Cov}(R_r,R_s)=C_{rs},\\qquad\n \\operatorname{Cov}(R_r^2,R_s^2)=2C_{rs}^2,\n \\qquad\n \\operatorname{Cov}(R_r,R_s^2)=0.\n\\]\nThus the covariance is \\(\\operatorname{blockdiag}\\{C,2(C\\circ C)\\}\\).  All convergence and replacement bounds are uniform because the family has common envelope and interior constants.  Finally, the bridge lemma transfers the conclusion to the observed recursion.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:parameter-law",
+      "kind": "theorem",
+      "statement": "For every admissible compact family \\(\\mathcal K\\), the bounded-Lipschitz distance, uniformly over \\(Q\\in\\mathcal K\\), between the \\(P_{N,Q}\\)-law of \\[\\sqrt N\\left([\\widehat\\beta-\\beta_0]_Q,[\\widehat\\sigma^2-\\sigma^2]_Q,[\\widehat\\tau^2-\\tau^2]_Q,[\\widehat P_{0X}]_Q-P_{0X,Q}\\right)\\] and the law of \\([\\mathcal A_T\\mathbb Z_T^{\\mathrm{full}}]_Q=([LZ_m]_Q,[A_v\\{Z_v-\\sigma^2Q_\\beta LZ_m\\}]_Q,[\\mathbb G_{0X}]_Q)\\) on \\(\\mathcal F_{0X,T}\\) tends to zero.",
+      "free_symbols": [
+        "\\mathcal K",
+        "Q",
+        "d_{\\mathrm{BL}}",
+        "P_{N,Q}",
+        "N",
+        "[\\cdot]_Q",
+        "\\widehat\\beta",
+        "\\beta_0",
+        "\\widehat\\sigma^2",
+        "\\sigma^2",
+        "\\widehat\\tau^2",
+        "\\tau^2",
+        "\\widehat P_{0X}",
+        "P_{0X,Q}",
+        "\\mathcal A_T",
+        "\\mathbb Z_T^{\\mathrm{full}}",
+        "L",
+        "Z_m",
+        "A_v",
+        "Z_v",
+        "Q_\\beta",
+        "\\mathbb G_{0X}",
+        "\\mathcal F_{0X,T}"
+      ],
+      "depends_on": [
+        "lem:finite-n-gaussian-bridge",
+        "def:estimators",
+        "def:model-class",
+        "def:compact-regular-family",
+        "prop:residual-cancellation",
+        "thm:joint-cfse",
+        "ass:uniform-chart-interior",
+        "ass:uniform-identification",
+        "ass:uniform-mean-rank",
+        "ass:uniform-variance-rank",
+        "ass:uniform-envelope",
+        "ass:uniform-envelope-moment",
+        "ass:uniform-overlap",
+        "ass:uniform-gram-margin",
+        "ass:uniform-residual-margin"
+      ],
+      "justification": "This law propagates same-panel residual dependence to every fitted input of the counterfactual recursion.",
+      "gap": "Causal-MP gives consistency, not the same-sample variance-score correction in this expansion.",
+      "consumer": "The public estimator obtains a joint covariance for its fitted structural inputs.",
+      "proof_tex": "Write \\(\\gamma=(\\sigma^2,\\tau^2)^{\\top}\\).  Uniform laws of large numbers follow from the finite smooth feature lists and the common envelope.  Together with the identified branch, compactness of \\(\\mathcal B\\), and \\(\\text{ass:uniform-identification}\\), they imply \\(\\widehat\\beta-\\beta_0=o_P(1)\\) uniformly.  The common chart-interior margin makes the minimizer interior with probability tending uniformly to one.  On that event its normal equation is\n\\[\n J_N(\\widehat\\beta)^{\\top}W_mr_N(\\widehat\\beta)=0,\n \\qquad (J_N(\\beta))_{tk}=N^{-1}\\sum_i\\partial_{\\beta_k}g_\\beta(Y_{it},W_{i,t+1},X_i).\n\\]\nTaylor's identity, the score-coordinate part of adaptive linearization, and the uniform singular-value bound give\n\\[\n r_N(\\widehat\\beta)=r_N(\\beta_0)-J(\\widehat\\beta-\\beta_0)+o_P(N^{-1/2}),\n \\qquad\n \\sqrt N(\\widehat\\beta-\\beta_0)=L\\sqrt N r_N(\\beta_0)+o_P(1).\n\\]\nThe first relation initially gives \\(\\widehat\\beta-\\beta_0=O_P(N^{-1/2})\\): multiply the normal equation by the uniformly bounded inverse of \\(J^{\\top}W_mJ\\); substitution then gives the displayed remainder.  By the coordinate definitions in the joint CFSE, \\(\\sqrt Nr_N(\\beta_0)\\Rightarrow Z_m=S_mZ_M\\).  Hence\n\\[\n \\sqrt N(\\widehat\\beta-\\beta_0)=LZ_m+o_P(1).\n\\]\n\nThe variance-score Taylor expansion is\n\\[\n \\sqrt N(\\widehat q-q)=\\sqrt N(q^N-q)+Q_\\beta\\sqrt N(\\widehat\\beta-\\beta_0)+o_P(1).\n\\]\nBecause weighted least squares is exact conditional on \\(\\widehat X_v\\),\n\\[\n \\sqrt N(\\widehat\\gamma-\\gamma)\n =\\widehat A_v\\sqrt N\\{\\widehat v-\\sigma^2\\widehat q-\\tau^2\\mathbf1_T\\}.\n\\]\nUniform variance rank and the preceding laws of large numbers give \\(\\widehat A_v=A_v+o_P(1)\\).  Substituting the score expansion and the definition \\(Z_v=S_vZ_M\\) yields\n\\[\n \\sqrt N(\\widehat\\gamma-\\gamma)\n =A_v\\{Z_v-\\sigma^2Q_\\beta LZ_m\\}+o_P(1).\n\\]\nThe initial-law coordinate is already part of the joint CFSE limit.  Applying the displayed fixed linear maps to the uniform bounded-Lipschitz convergence in \\(\\text{thm:joint-cfse}\\), and using that their operator norms are uniformly bounded by the two rank assumptions, proves the asserted joint bounded-Lipschitz convergence.  The residual-cancellation proposition additionally identifies its structural residual covariance without imposing an independence approximation.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:path-bands",
+      "kind": "theorem",
+      "statement": "For every admissible compact family \\(\\mathcal K\\) and every \\(\\varepsilon>0\\),\n\\[\n \\sup_{Q\\in\\mathcal K}P_{N,Q}\\!\\left(\\left\\|\\sqrt N[\\widehat\\theta_T-\\theta_T]_Q-N^{-1/2}\\sum_{i=1}^N[\\psi_{\\theta,T}(\\xi_i)]_Q\\right\\|>\\varepsilon\\right)\\to0.\n\\]\nThe limiting vector is \\([D\\Psi_T(\\beta_0,\\sigma^2,\\tau^2,P_{0X})[\\mathcal A_T\\mathbb Z_T^{\\mathrm{full}}]]_Q\\sim\\mathcal N(0,[\\Omega_\\theta]_Q)\\).  The observable covariance estimator is uniformly consistent for exactly this influence covariance: for every \\(\\varepsilon>0\\), \\(\\sup_{Q\\in\\mathcal K}P_{N,Q}(\\|[\\widehat\\Omega_\\theta-\\Omega_\\theta]_Q\\|>\\varepsilon)\\to0\\).  If, in addition, \\(\\inf_{Q\\in\\mathcal K}\\max_{1\\le t\\le T}[\\Omega_{\\theta,tt}]_Q>0\\), then\n\\[\n \\liminf_{N\\to\\infty}\\inf_{Q\\in\\mathcal K}P_{N,Q}\\{[\\theta_{T,t}]_Q\\in[\\mathcal C_{N,t}]_Q\\text{ for every }1\\le t\\le T\\}\\ge1-\\alpha.\n\\]\nEquality holds pointwise at any \\(Q\\) for which the maximum absolute coordinate of \\(\\mathcal N(0,[\\Omega_\\theta]_Q)\\) has a continuous nondegenerate distribution.",
+      "free_symbols": [
+        "\\mathcal K",
+        "Q",
+        "\\varepsilon",
+        "P_{N,Q}",
+        "N",
+        "[\\cdot]_Q",
+        "\\widehat\\theta_T",
+        "\\theta_T",
+        "i",
+        "\\psi_{\\theta,T}",
+        "\\xi_i",
+        "\\Psi_T",
+        "\\beta_0",
+        "\\sigma^2",
+        "\\tau^2",
+        "P_{0X}",
+        "\\mathcal A_T",
+        "\\mathbb Z_T^{\\mathrm{full}}",
+        "\\Omega_\\theta",
+        "\\widehat\\Omega_\\theta",
+        "t",
+        "\\mathcal C_N",
+        "T",
+        "\\alpha"
+      ],
+      "depends_on": [
+        "lem:finite-n-gaussian-bridge",
+        "def:counterfactual-path",
+        "def:path-band",
+        "def:model-class",
+        "def:compact-regular-family",
+        "prop:residual-cancellation",
+        "thm:parameter-law",
+        "thm:joint-cfse",
+        "ass:path-smoothness",
+        "ass:uniform-envelope",
+        "ass:uniform-envelope-moment",
+        "ass:uniform-chart-interior",
+        "ass:uniform-identification",
+        "ass:uniform-mean-rank",
+        "ass:uniform-variance-rank",
+        "ass:uniform-overlap",
+        "ass:uniform-gram-margin",
+        "ass:uniform-residual-margin"
+      ],
+      "justification": "The band supports simultaneous claims about the entire dynamic treatment-effect path without an unobservable active-coordinate set.",
+      "gap": "The published Causal-MP confidence-interval discussion is heuristic, while generic Gaussian-max theory does not derive the common-disorder and nuisance influence terms.",
+      "consumer": "The one-batch, zero-ridge \\(\\texttt{CFEEstimator}\\) can return analytic simultaneous path bands, including at zero-variance coordinates.",
+      "proof_tex": "Apply the finite-recursion Hadamard expansion in \\(\\text{ass:path-smoothness}\\) to the joint parameter expansion in \\(\\text{thm:parameter-law}\\).  The common third-derivative envelope, compactness, and the common interior and rank margins make its remainder uniform.  Since the parameter and initial-law influence direction for row \\(\\xi_i\\) is exactly \\(\\zeta_T(\\xi_i)\\), linearity of the derivative gives\n\\[\n \\sqrt N(\\widehat\\theta_T-\\theta_T)\n ={1\\over\\sqrt N}\\sum_{i=1}^ND\\Psi_T(\\beta_0,\\sigma^2,\\tau^2,P_{0X})[\\zeta_T(\\xi_i)]+o_P(1)\n ={1\\over\\sqrt N}\\sum_{i=1}^N\\psi_{\\theta,T}(\\xi_i)+o_P(1).\n\\]\nThis proves the first display uniformly.  Applying the same derivative to the joint Gaussian limit gives a centered Gaussian vector.  Its covariance is\n\\[\n P_\\xi[\\psi_{\\theta,T}(\\xi)psi_{\\theta,T}(\\xi)^{\\top}]=\\Omega_\\theta\n\\]\nby definition, proving the stated limit law.\n\nWe next prove feasibility.  The influence-level cancellation established in \\(\\text{prop:residual-cancellation}\\) is\n\\[\n S_mI_T(\\xi)=R,\n \\qquad S_vI_T(\\xi)=R\\circ R-\\operatorname{diag}(C).\n\\]\nCentering \\(\\widehat e_i\\) removes the common fitted message-mean error, and the score Taylor expansion used in the parameter theorem therefore gives\n\\[\n {1\\over N}\\sum_i\\|\\widehat\\zeta_i-\\zeta_T(\\xi_i)\\|^2=o_P(1)\n\\]\nuniformly, where the norm on the last component is the Euclidean norm of its values on the finite class \\(\\mathcal F_{0X,T}\\).  Uniform laws of large numbers also give \\(\\widehat J\\to J\\), \\(\\widehat Q_\\beta\\to Q_\\beta\\), \\(\\widehat A_v\\to A_v\\), and \\(\\widehat L\\to L\\).  Continuity of the forward derivative of the finite recursion and the common envelope then imply\n\\[\n {1\\over N}\\sum_i\\|\\widehat\\psi_{\\theta,T,i}-\\psi_{\\theta,T}(\\xi_i)\\|^2=o_P(1).\n\\]\nCauchy--Schwarz and the uniform law of large numbers for \\(\\psi_{\\theta,T}\\psi_{\\theta,T}^{\\top}\\) now yield\n\\[\n \\widehat\\Omega_\\theta={1\\over N}\\sum_i\\widehat\\psi_{\\theta,T,i}\\widehat\\psi_{\\theta,T,i}^{\\top}\n \\longrightarrow\\Omega_\\theta\n\\]\nuniformly in probability.\n\nFor coverage, let \\(G_\\Sigma=\\max_t|Z_t|\\) for \\(Z\\sim\\mathcal N(0,\\Sigma)\\).  On a covariance family satisfying \\(\\inf_Q\\max_t[\\Omega_{\\theta,tt}]_Q>0\\), compactness and bounded second moments imply that the covariance matrices form a compact set excluding the zero matrix.  For every matrix in this set, \\(G_\\Sigma\\) has no atom: at least one Gaussian coordinate is nonconstant, and the event that a finite maximum of absolute Gaussian coordinates equals a prescribed positive number is contained in a finite union of zero-probability coordinate level sets; its value at zero also has probability zero.  If uniform continuity of these distribution functions at their \\((1-\\alpha)\\)-quantiles failed, a convergent covariance subsequence would contradict this atomlessness.  Thus covariance consistency implies uniform convergence of the conditional critical values in the quantile sense needed below.  Combining it with the uniform Gaussian approximation of the preceding asymptotic linear sum gives\n\\[\n \\liminf_N\\inf_QP_{N,Q}\\{\\max_t|\\sqrt N(\\widehat\\theta_{T,t}-\\theta_{T,t})|\\le c_{1-\\alpha}\\}\\ge1-\\alpha,\n\\]\nwhich is exactly simultaneous membership in \\(\\mathcal C_N\\).  At a fixed \\(Q\\) with a continuous nondegenerate maximum law, its quantile has probability exactly \\(1-\\alpha\\), so the limit is equality.\n\nThe additional covariance separation is necessary for the uniform coverage clause as formulated.  Here is an explicit local certificate.  In the scalar regular experiment \\(\\sqrt N(\\widehat b-b)=Z\\), with \\(Z\\sim\\mathcal N(0,1)\\), take the smooth target \\(\\Psi(b)=b^2\\), estimate its influence covariance by \\(4\\widehat b^2\\), and take \\(b=2/\\sqrt N\\).  If \\(q=z_{0.975}\\), multiplication of the coverage inequality by \\(N\\) shows that its limit is\n\\[\n \\mathbb P\\{|4Z+Z^2|\\le2q|2+Z|\\}\\approx0.8765<0.95.\n\\]\nThe four boundary points are the roots of \\(z(z+4)=\\pm2q(z+2)\\), so the displayed probability is directly computable from the standard normal distribution function.  This quadratic coordinate is embedded in the smooth affine family\n\\[\n g_\\beta(y,w)=y/2+w+\\beta+\\beta^2w:\n\\]\nthe additive term makes the mean Jacobian nonzero near \\(\\beta=0\\), the affine base retains the witness's variance excitation and positive Gram pivots, and the first counterfactual contrast is \\(1+\\beta^2\\).  Thus a compact local sequence approaching \\(\\beta=0\\) satisfies the regular model conditions while exhibiting the scalar mechanism.  Absolute covariance consistency and pointwise first-order expansions do not prevent this uniform undercoverage when \\(\\Omega_\\theta\\) collapses.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:affine-reduction",
+      "kind": "proposition",
+      "statement": "In \\(\\text{def:affine-witness}\\), the observed recursion \\(Y_{i,t+1}=\\overline U_t+H_{it}^{G,N}+\\epsilon_{it}\\), \\(U_{it}=Y_{it}/2+W_{i,t+1}\\), gives the checked table \\[\\begin{array}{c|c|c|c|c}t&\\mathbb E[Y_t]&\\mathbb E[Y_t^2]&\\mathbb E[U_t]&q_t=\\mathbb E[U_t^2]\\\\\\hline 0&0&1&1/4&1/4+p_0=1/2\\\\1&1/4&25/16&7/8&25/64+p_1(1/4)+p_1=85/64\\\\2&7/8&99/32&11/16&99/128+p_2(7/8)+p_2=159/128\\end{array}\\] using \\(\\mathbb E[(Y_t/2+W_{t+1})^2]=\\mathbb E[Y_t^2]/4+p_t\\mathbb E[Y_t]+p_t\\), including the Bernoulli cross term \\(\\mathbb E[Y_tW_{t+1}]=p_t\\mathbb E[Y_t]\\). The relevant Gram entry and variance-design determinant are \\[K_{01}=\\tfrac12\\mathbb E[U_0Y_1]+p_1\\mathbb E[U_0]=1/32+3/16=7/32,\\qquad \\det(X_v^{\\top}X_v)=3\\sum_{t=0}^2q_t^2-\\left(\\sum_{t=0}^2q_t\\right)^2=10191/8192.\\] Furthermore, \\(\\Delta_{1,N}^{Y}=\\sqrt N(\\overline U_0-1/4)+A_{0,N}^{G}+\\sqrt N\\,\\overline\\epsilon_0\\) has limiting variance \\(7/16+1/2+1=31/16\\), while \\(\\Delta_{2,N}^{Y}=\\tfrac12\\Delta_{1,N}^{Y}+\\sqrt N(\\overline W_2-3/4)+A_{1,N}^{G}+\\sqrt N\\,\\overline\\epsilon_1\\). The sole same-matrix-reuse contribution is \\(\\lim_N\\operatorname{Cov}(\\Delta_{1,N}^{Y},A_{1,N}^{G})=K_{01}=7/32\\), so \\(\\lim_N\\operatorname{Cov}(\\Delta_{1,N}^{Y},\\Delta_{2,N}^{Y})=(1/2)(31/16)+7/32=19/16\\). The residual blocks are \\(C\\), \\(2(C\\circ C)\\), and zero mixed covariance. For the counterfactual recursion, \\(\\mu_0^{(a)}=a\\), \\(\\kappa_0^{(a)}=1/4+a^2\\), \\((m_1^{(a)},m_2^{(a)},m_3^{(a)})=(a,3a/2,7a/4)\\), and \\(\\theta_3=(1,3/2,7/4)\\).",
+      "free_symbols": [
+        "T",
+        "t",
+        "i",
+        "Y_{it}",
+        "Y_{i,t+1}",
+        "U_{it}",
+        "W_{i,t+1}",
+        "p_t",
+        "H_{it}^{G,N}",
+        "\\epsilon_{it}",
+        "q",
+        "K",
+        "X_v",
+        "N",
+        "\\Delta_{t+1,N}^{Y}",
+        "A_{t,N}^{G}",
+        "C",
+        "\\mu_t^{(a)}",
+        "a",
+        "\\kappa_t^{(a)}",
+        "m_t^{(a)}",
+        "\\theta_T"
+      ],
+      "depends_on": [
+        "def:affine-witness",
+        "def:counterfactual-path",
+        "lem:finite-n-gaussian-bridge",
+        "prop:residual-cancellation"
+      ],
+      "justification": "This recomputed special case verifies both the energy arithmetic and the corrected first-step use of the full initial law.",
+      "gap": "Published Causal-MP examples do not report this reuse covariance, determinant, or counterfactual-path reduction.",
+      "consumer": "The identities form a deterministic regression test for the covariance and path implementations.",
+      "proof_tex": "Under \\(\\text{def:affine-witness}\\), independence of the next treatment gives\n\\[\n \\mathbb E[(Y_t/2+W_{t+1})^2]={1\\over4}\\mathbb E[Y_t^2]+p_t\\mathbb E[Y_t]+p_t.\n\\]\nAt date zero, \\(\\mathbb E U_0=1/4\\) and \\(q_0=1/4+p_0=1/2\\).  Since \\(Y_{t+1}=\\mathbb E U_t+H_t+\\epsilon_t\\) in the population recursion and \\(\\operatorname{Var}(H_t+\\epsilon_t)=q_t+1\\),\n\\[\n \\mathbb E Y_{t+1}=\\mathbb E U_t,\n \\qquad \\mathbb E Y_{t+1}^2=(\\mathbb E U_t)^2+q_t+1.\n\\]\nSuccessive substitution gives\n\\[\n \\begin{array}{c|c|c|c|c}\n t&\\mathbb E[Y_t]&\\mathbb E[Y_t^2]&\\mathbb E[U_t]&q_t\\\\\\hline\n 0&0&1&1/4&1/2\\\\\n 1&1/4&25/16&7/8&85/64\\\\\n 2&7/8&99/32&11/16&159/128.\n \\end{array}\n\\]\nFor the cross-time Gram entry, the auxiliary Gaussian field at the first date is centered and independent of \\(U_0\\), and \\(W_2\\) is independent of the past.  Hence\n\\[\n K_{01}=\\mathbb E[U_0(Y_1/2+W_2)]\n ={1\\over2}(\\mathbb E U_0)^2+p_1\\mathbb E U_0\n ={1\\over32}+{3\\over16}={7\\over32}.\n\\]\nDirect rational arithmetic gives\n\\[\n \\det(X_v^{\\top}X_v)=3\\sum_{t=0}^2q_t^2-\\left(\\sum_{t=0}^2q_t\\right)^2={10191\\over8192}>0,\n\\]\nso the variance design has rank two.\n\nThe first mean fluctuation decomposes exactly as\n\\[\n \\Delta_{1,N}^{Y}=\\sqrt N(\\overline U_0-1/4)+A_{0,N}^{G}+\\sqrt N\\,\\overline\\epsilon_0.\n\\]\nThe three limiting terms are centered and pairwise uncorrelated, with variances\n\\[\n \\operatorname{Var}(U_0)={1\\over4}+p_0(1-p_0)={7\\over16},\n \\qquad q_0={1\\over2},\n \\qquad1,\n\\]\nso the limiting variance is \\(31/16\\).  Also \\(U_1=Y_1/2+W_2\\) gives\n\\[\n \\Delta_{2,N}^{Y}={1\\over2}\\Delta_{1,N}^{Y}\n +\\sqrt N(\\overline W_2-3/4)+A_{1,N}^{G}+\\sqrt N\\,\\overline\\epsilon_1.\n\\]\nIn the exact bridge, the limiting residual vector is Gaussian with covariance \\(C=K+I_3\\).  Therefore the only covariance of the last three terms with \\(\\Delta_{1,N}^{Y}\\) is the reused-field covariance\n\\[\n \\lim_N\\operatorname{Cov}(\\Delta_{1,N}^{Y},A_{1,N}^{G})=K_{01}={7\\over32}.\n\\]\nIt follows that\n\\[\n \\lim_N\\operatorname{Cov}(\\Delta_{1,N}^{Y},\\Delta_{2,N}^{Y})\n ={1\\over2}{31\\over16}+{7\\over32}={19\\over16}.\n\\]\nThe residual-cancellation proposition gives the three stated residual blocks \\(C\\), \\(2(C\\circ C)\\), and zero.\n\nFor a fixed treatment level \\(a\\), the first counterfactual update uses the full initial law, so\n\\[\n \\mu_0^{(a)}=\\mathbb E(Y_0/2+a)=a,\n \\qquad \\kappa_0^{(a)}=\\mathbb E(Y_0/2+a)^2={1\\over4}+a^2.\n\\]\nAt all later dates the affine Gaussian expectation is \\(m_t^{(a)}/2+a\\).  Hence\n\\[\n (m_1^{(a)},m_2^{(a)},m_3^{(a)})=(a,3a/2,7a/4),\n \\qquad \\theta_3=(1,3/2,7/4),\n\\]\nwhich completes every claimed identity.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:adaptive-linearization",
+      "kind": "theorem",
+      "statement": "For every admissible compact family \\(\\mathcal K\\), ordinary differentiation of the all-active recursion along ambient empirical-process directions gives, uniformly over \\(Q\\in\\mathcal K\\),\n\\[\n \\sqrt N\\{[M_N]_Q-[M_T]_Q\\}\n =N^{-1/2}\\sum_{i=1}^N[I_T(\\xi_i)]_Q+o_{P_{N,Q}}(1).\n\\]\nThis expansion holds jointly with the exact initial-row empirical-process coordinates \\(\\sqrt N\\{[\\widehat P_{0X}]_Q-P_{0X,Q}\\}\\) on the finite class \\(\\mathcal F_{0X,T}\\).  On \\(\\{\\mathbb P_{N,Q}\\in\\mathcal U_{\\mathrm{rr}}\\}\\), every row-averaged first-order Taylor remainder used for the messages, Gram products, mean-score coordinates, and variance-score coordinates is \\(o_{P_{N,Q}}(N^{-1/2})\\), uniformly over \\(Q\\in\\mathcal K\\).",
+      "free_symbols": [
+        "\\mathcal K",
+        "Q",
+        "M_N",
+        "M_T",
+        "[\\cdot]_Q",
+        "N",
+        "i",
+        "I_T(\\xi)",
+        "\\xi_i",
+        "P_{N,Q}",
+        "\\widehat P_{0X}",
+        "P_{0X,Q}",
+        "\\mathcal F_{0X,T}",
+        "\\mathbb P_{N,Q}",
+        "\\mathcal U_{\\mathrm{rr}}",
+        "U_{it}",
+        "T",
+        "t"
+      ],
+      "depends_on": [
+        "lem:finite-n-gaussian-bridge",
+        "def:model-class",
+        "def:compact-regular-family",
+        "def:moment-vector",
+        "def:linearization-handle",
+        "def:cfse",
+        "lem:empirical-interior",
+        "ass:uniform-envelope",
+        "ass:uniform-envelope-moment",
+        "ass:uniform-chart-interior",
+        "ass:uniform-overlap",
+        "ass:uniform-gram-margin",
+        "ass:uniform-residual-margin"
+      ],
+      "proof_tex": "Work first in the auxiliary recursion furnished by \\(\\text{lem:finite-n-gaussian-bridge}\\), fix \\(Q\\), put \\(P=P_{\\xi,Q}\\), \\(P_N=\\mathbb P_{N,Q}\\), and \\(h_N=P_N-P\\).  Because \\(T\\), \\(d\\), and the feature list are fixed, differentiating through any date introduces only finitely many population-row integrands.  Let \\(\\mathcal H_t(Q)\\) be the resulting finite collection through date \\(t\\), including the products required by the Gram and score coordinates, and set\n\\[\n D_{N,t}=max_{fin\\mathcal H_t(Q)}|h_Nf|.\n\\]\nThe common envelope and its \\((2+\\delta_{\\mathrm{mom}})\\)-moment imply, by Chebyshev's inequality and a finite union bound,\n\\[\n D_{N,t}=O_{P_{N,Q}}(N^{-1/2})\n\\]\nuniformly in \\(Q\\).  They also imply the uniform truncation fact\n\\[\n \\max_{1\\le i\\le N}\\mathcal E_T(\\xi_i)=o_{P_{N,Q}}(N^{1/2}).\n\\]\nTo see the latter, choose \\(b_N=N^a\\) with \\((2+\\delta_{\\mathrm{mom}})^{-1}<a<1/2\\); then\n\\[\n \\sup_QP_{N,Q}\\{\\max_i\\mathcal E_T(\\xi_i)>b_N\\}\n \\le NB_{\\mathcal E}b_N^{-(2+\\delta_{\\mathrm{mom}})}\\longrightarrow0.\n\\]\n\nWe now prove the expansion by induction.  The initial state has zero perturbation.  Suppose through date \\(t\\) that every row state has its displayed linear perturbation from \\(\\dot{\\mathfrak R}_T[h_N]\\), that the empirical \\(L^2\\)-norm of this perturbation is \\(O_P(N^{-1/2})\\), and that its row-averaged remainder is \\(o_P(N^{-1/2})\\), all uniformly in \\(Q\\).  The integral form of the ordinary one-variable Taylor identity applied to \\(g_{\\beta_0}\\), followed by Cauchy--Schwarz, gives\n\\[\n P_N\\!left|U_t(P_N)-U_t(P)-\\dot U_t[h_N]\\right|=o_P(N^{-1/2}).\n\\]\nThe same identity applied to products gives, for every \\(r,s\\le t\\),\n\\[\n \\begin{aligned}\n K_{rs}(P_N)-K_{rs}(P)\n &=h_N[U_rU_s]\n +P[\\dot U_r[h_N]U_s+U_r\\dot U_s[h_N]]+o_P(N^{-1/2})\\\\\n &=\\dot K_{rs}[h_N]+o_P(N^{-1/2}).\n \\end{aligned}\n\\]\nHere and below the probability order is uniform over \\(Q\\).  The truncation display controls the possible unbounded Taylor coefficient: on \\(\\max_i\\mathcal E_T(\\xi_i)\\le b_N\\), every row-averaged quadratic remainder is bounded by a constant times \\(b_ND_{N,t}^2\\), whose product with \\(\\sqrt N\\) tends to zero; the complement has uniformly vanishing probability.  The empirical \\(L^2\\) bounds follow in the same way from the uniform second envelope moment.  This proves rather than assumes all message and product remainder bounds.\n\nLet \\(A=K_{D_t^{\\star}D_t^{\\star}}(P)\\) and \\(E=K_{D_t^{\\star}D_t^{\\star}}(P_N)-A\\).  On the empirical-interior event, the resolvent identity iterated once yields\n\\[\n (A+E)^{-1}=A^{-1}-A^{-1}EA^{-1}+R_A,\n \\qquad \\|R_A\\|\\le {\\|A^{-1}\\|^3\\|E\\|^2\\over1-\\|A^{-1}E\\|},\n\\]\nwhenever \\(\\|A^{-1}E\\|<1\\).  The population and empirical margins make this bound uniform, and \\(E=O_P(N^{-1/2})\\).  Substitution gives exactly\n\\[\n \\lambda_t(P_N)-\\lambda_t(P)=\\dot\\lambda_t[h_N]+o_P(N^{-1/2}).\n\\]\nExpanding the Schur complement gives in the same way\n\\[\n \\rho_t(P_N)-\\rho_t(P)=\\dot\\rho_t[h_N]+o_P(N^{-1/2}).\n\\]\nFinally, for \\(x\\ge\\underline\\rho\\) and sufficiently small \\(u\\), direct rationalization gives\n\\[\n \\left|\\sqrt{x+u}-\\sqrt x-{u\\over2\\sqrt x}\\right|\n ={u^2\\over2\\sqrt x\\,\\sqrt{x+u}(\\sqrt{x+u}+\\sqrt x)^2}\n \\le C_{\\underline\\rho}u^2.\n\\]\nCombining these three expansions with the product rule produces precisely the displayed formula for \\(\\dot H_t[h_N]\\), with a row-averaged \\(o_P(N^{-1/2})\\) remainder.  Since \\(Y_{t+1}=P[U_t]+\\sqrt{\\sigma^2}H_t+\\epsilon_t\\), its derivative is the declared \\(\\dot Y_{t+1}[h_N]\\).  This closes the induction.  Applying the identical Taylor argument to the first and second parameter derivatives of the messages proves the asserted mean-score and variance-score remainder bounds.\n\nFor the whole ordered feature vector, the induction gives\n\\[\n P_N\\phi_T(\\,cdot\\,;P_N)-P\\phi_T(\\,cdot\\,;P)\n =h_N\\phi_T(\\,cdot\\,;P)+P\\dot\\phi_T(\\,cdot\\,;P)[h_N]+o_P(N^{-1/2}).\n\\]\nThe potentially additional term \\(h_N\\dot\\phi_T[h_N]\\) is a finite sum of products of two coordinates bounded by \\(D_{N,T}^2\\), and hence is \\(O_P(N^{-1})\\).  Linearity of the derivative in its direction gives\n\\[\n P\\dot\\phi_T[h_N]\n ={1\\over N}\\sum_{i=1}^NP\\dot\\phi_T[\\delta_{\\xi_i}-P].\n\\]\nMultiplication by \\(\\sqrt N\\) and the definition of \\(I_T\\) prove the desired von Mises expansion.  For every \\(f\\in\\mathcal F_{0X,T}\\),\n\\[\n \\sqrt N(\\widehat P_{0X}-P_{0X})f\n =N^{-1/2}\\sum_{i=1}^N\\{f(Y_{i0},X_i)-P_{0X}f\\}\n\\]\nexactly, so adjoining the finite list preserves the expansion.  Uniformity follows from the common constants in \\(\\text{def:compact-regular-family}\\) at every displayed bound.  The empirical-interior lemma makes the complement negligible uniformly, and the bridge lemma transfers the conclusion from the auxiliary recursion to the observed reused-matrix array.",
+      "status": "proved"
+    }
+  ],
+  "bibliography": [
+    {
+      "key": "ShiraniBayati2024CausalMP",
+      "citation": "Sadegh Shirani and Mohsen Bayati (2024), Causal Message Passing for Experiments with Unknown and General Network Interference, Proceedings of the National Academy of Sciences 121, article e2322232121; arXiv:2311.08340."
+    },
+    {
+      "key": "BayatiMontanari2011DenseGraphs",
+      "citation": "Mohsen Bayati and Andrea Montanari (2011), The Dynamics of Message Passing on Dense Graphs, with Applications to Compressed Sensing, IEEE Transactions on Information Theory 57, 764--785; arXiv:1001.3448."
+    },
+    {
+      "key": "RushVenkataramanan2018FiniteSampleAMP",
+      "citation": "Cynthia Rush and Ramji Venkataramanan (2018), Finite Sample Analysis of Approximate Message Passing Algorithms, IEEE Transactions on Information Theory 64, 7264--7286; arXiv:1606.01800."
+    },
+    {
+      "key": "BaoHanXu2025LeaveOneOutAMP",
+      "citation": "Zhigang Bao, Qiyang Han, and Xiaocong Xu (2025), A Leave-One-Out Approach to Approximate Message Passing, Annals of Applied Probability 35, 2715--2760; arXiv:2312.05911."
+    },
+    {
+      "key": "QiuSunZhou2024DerivedOutcomes",
+      "citation": "Yumou Qiu, Jiarui Sun, and Xiao-Hua Zhou (2024), Unveiling the Unobservable: Causal Inference on Multiple Derived Outcomes, Journal of the American Statistical Association 119, 2178--2189."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2013GaussianMax",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato (2013), Gaussian Approximations and Multiplier Bootstrap for Maxima of Sums of High-Dimensional Random Vectors, Annals of Statistics 41, 2786--2819; arXiv:1212.6906."
+    },
+    {
+      "key": "WangZhongFan2024AMPUniversality",
+      "citation": "Tianhao Wang, Xinyi Zhong, and Zhou Fan (2024), Universality of Approximate Message Passing Algorithms and Tensor Networks, Annals of Applied Probability 34, 3943--3994; arXiv:2206.13037."
+    },
+    {
+      "key": "GueddariHachemNajim2025NonsymmetricAMP",
+      "citation": "Mohammed-Younes Gueddari, Walid Hachem, and Jamal Najim (2025), Approximate Message Passing for General Non-Symmetric Random Matrices, arXiv:2503.20409."
+    },
+    {
+      "key": "NeweyMcFadden1994LargeSample",
+      "citation": "Whitney Newey and Daniel McFadden (1994), Large Sample Estimation and Hypothesis Testing, in Handbook of Econometrics, volume 4."
+    },
+    {
+      "key": "VanDerVaartWellner1996WeakConvergence",
+      "citation": "Aad van der Vaart and Jon Wellner (1996), Weak Convergence and Empirical Processes, Springer."
+    },
+    {
+      "key": "BayatiLuoOvermanShiraniXiong2024HigherOrder",
+      "citation": "Mohsen Bayati, Yuwei Luo, William Overman, Sadegh Shirani, and Ruoxuan Xiong (2024), Higher-Order Causal Message Passing for Experimentation with Complex Interference, Advances in Neural Information Processing Systems 37; arXiv:2411.00945."
+    }
+  ]
+}

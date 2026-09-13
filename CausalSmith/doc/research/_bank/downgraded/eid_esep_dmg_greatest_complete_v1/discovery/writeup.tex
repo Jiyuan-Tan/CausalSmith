@@ -1,0 +1,590 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}esep\_\allowbreak{}dmg\_\allowbreak{}greatest\_\allowbreak{}complete}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For finite directed mixed graphs with arbitrary directed cycles and both loop types, singleton E-separation queries determine the full E-model. Every fixed mixed SCC-profile family is closed under union and has the explicit saturation \(\Gamma(G)\) as its unique greatest member; all of its missing saturation edges can be added simultaneously. The prescribed unrestricted proof route encounters two explicit obstructions: an SCC-merging arrow can activate an old collider while every shortest newly open witness avoids that arrow, and an E-equivalent pair agrees on every ordinary query but disagrees on a required fixed-copy tail--tail prefix boundary. Unrestricted union closure is therefore left open, while its equivalence to single-edge transfer and greatest-member existence is proved. Finite oracle enumeration still identifies the unrestricted edge-union candidate and compelled-edge intersection; interpreting that union as an in-class greatest representative and using the deletion shortcut are conditional on unrestricted closure.
+
+\section{Project justification}
+
+\paragraph{Gap.} The 2025 source proves the directed greatest theorem and restricted mixed replacements, but no theorem establishes unrestricted union closure for the full finite-DMG universe with SCC-merging arrows, first cross-SCC bidirected connections, and bidirected loops. Ordinary E-queries also do not determine every marked lifted-walk boundary needed by a direct replacement proof.
+
+\paragraph{Niche.} The rigorous deliverable is a canonical greatest completion within each exactly specified mixed SCC-profile, together with an explicit obstruction to one unrestricted proof architecture and a complete order-theoretic characterization of the remaining conjecture.
+
+\paragraph{Fill.} Define the profile and its saturation edgewise, prove fixed-profile union closure and simultaneous saturation, exhibit the marked-probe countermodel, and separate unconditional oracle recovery of the union/intersection functionals from the conditional greatest-representative interpretation.
+
+\section{Related work}
+
+Manten et al. (2025) define the E-separation setting, prove greatest representatives for directed graphs, develop restricted mixed replacement rules, and leave the all-DMG extension as a conjecture. The present fixed-profile theorem formalizes and simultaneously closes the mixed saturation regime but does not settle that conjecture. Mogensen and Hansen (2020) provide a greatest-graph theorem for homogeneous \(\mu\)-separation; the two-copy, target-dependent E-conditioning map prevents importing it. Zhang and Spirtes (2005), Mooij and Claassen (2020), and Claassen and Mooij (2023) concern different marked-change or cyclic-equivalence criteria. Kook and Mogensen (2026) provide optimization encodings rather than E-union closure, and Meek and Sadeghi (2026) construct a canonical object for a different separation model.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(G^\star(\mathcal I_E)=\bigcup\{H:\mathcal I_E(H)=\mathcal I_E(G)\}\) is the observable union candidate; it is an E-equivalent greatest representative only if \(G^\star\equiv_EG\). Unconditionally, \(\Gamma(G)\) is the unique greatest member of the supplied fixed-profile family \(\mathfrak F_G\)..
+Primary functional / estimator / diagnostic: \(\mathcal I_E\mapsto(G^\star,\operatorname{Comp}(G))=\operatorname{Alg}_E(\{\mathbf 1[(\{a\},\{b\},C)\in\mathcal I_E]\}_{a,b,C})\) by finite enumeration, where \(G^\star\) is an observable union candidate and \(\operatorname{Comp}(G)\) is the observable edge intersection. Given \(\operatorname{Prof}(G)\), the unconditional fixed-profile recovery map is \(G\mapsto\Gamma(G)\)..
+\begin{itemize}
+  \item \texttt{V} --- \texttt{finite labeled set}; \(0<|V|<\infty\); \texttt{vertices}
+  \item \texttt{n} --- \(\mathbb N\); \texttt{vertex count}
+  \par\smallskip\noindent\emph{Definition.} \(n=|V|\)
+  \item \texttt{Udir} --- \texttt{finite edge universe}; \texttt{directed edges including loops}
+  \par\smallskip\noindent\emph{Definition.} \(U_{\to}=V\times V\)
+  \item \texttt{Ubi} --- \texttt{finite edge universe}; \texttt{bidirected edges including loops}
+  \par\smallskip\noindent\emph{Definition.} \(U_{\leftrightarrow}=\{\{u,v\}:u,v\in V\}\), where \(\{u,v\}\) is unordered and \(u=v\) denotes a bidirected loop
+  \item \texttt{DMG} --- \texttt{finite graph class}; \texttt{published finite-\allowbreak{}DMG class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak D(V)=\{(V,E^{\to},E^{\leftrightarrow}):E^{\to}\subseteq U_{\to},E^{\leftrightarrow}\subseteq U_{\leftrightarrow}\}\)
+  \item \texttt{G} --- \(\mathfrak D(V)\); \texttt{base graph}
+  \item \texttt{H} --- \(\mathfrak D(V)\); \texttt{comparison graph}
+  \item \texttt{K} --- \(\mathfrak D(V)\); \texttt{intermediate graph}
+  \item \texttt{e} --- \(U_{\to}\cup U_{\leftrightarrow}\); \texttt{candidate edge}
+  \item \texttt{A} --- \(\mathcal P(V)\); \texttt{source set}
+  \item \texttt{B} --- \(\mathcal P(V)\); \texttt{target set}
+  \item \texttt{C} --- \(\mathcal P(V)\); \texttt{conditioning set}
+  \item \texttt{Lift} --- \(\mathfrak D(V)\to\mathfrak D(V_0\sqcup V_1)\); \texttt{two-\allowbreak{}copy lift}
+  \item \texttt{Dset} --- \(\mathcal P(V)^2\to\mathcal P(V_0\sqcup V_1)\); \texttt{lifted conditioning map}
+  \item \texttt{IE} --- \(\mathfrak D(V)\to\mathcal P(\mathcal P(V)^3)\); \texttt{E-\allowbreak{}model}
+  \item \texttt{eqE} --- equivalence relation on \(\mathfrak D(V)\); \texttt{E-\allowbreak{}equivalence}
+  \item \texttt{SigmaE} --- \(\mathfrak D(V)\to\{0,1\}^{n^2 2^n}\); \texttt{singleton signature}
+  \item \texttt{Adm} --- \(\mathfrak D(V)\to\mathcal P(U_{\to}\cup U_{\leftrightarrow})\); \texttt{admissible edges}
+  \item \texttt{Gstar} --- \(\mathfrak D(V)\); \texttt{greatest candidate}
+  \item \texttt{Comp} --- \(\mathcal P(U_{\to}\cup U_{\leftrightarrow})\); \texttt{compelled edges}
+  \item \texttt{SCC} --- \(\mathfrak D(V)\to\mathcal P(\mathcal P(V))\); \texttt{directed strongly connected component partition}
+  \item \texttt{InSCC} --- \(\mathfrak D(V)\to\mathcal P(V\times\mathcal P(V))\); \texttt{incoming-\allowbreak{}to-\allowbreak{}SCC support}
+  \item \texttt{CrossBi} --- set-valued map on \(\mathfrak D(V)\); \texttt{occupied cross-\allowbreak{}SCC bidirected rectangles}
+  \item \texttt{InternalBi} --- \(\mathfrak D(V)\to\mathcal P(U_{\leftrightarrow})\); \texttt{exact within-\allowbreak{}SCC bidirected edges including loops}
+  \item \texttt{SingletonDirLoop} --- \(\mathfrak D(V)\to\mathcal P(V)\); \texttt{directed-\allowbreak{}loop status of singleton SCCs}
+  \item \texttt{Profile} --- tuple-valued map on \(\mathfrak D(V)\); \texttt{mixed SCC profile}
+  \item \texttt{ProfileFam} --- \(\mathfrak D(V)\to\mathcal P(\mathfrak D(V))\); \texttt{fixed mixed SCC-\allowbreak{}profile family}
+  \item \texttt{Gamma} --- \(\mathfrak D(V)\to\mathfrak D(V)\); \texttt{fixed-\allowbreak{}profile saturation}
+  \item \texttt{R} --- \texttt{contextual lifted-\allowbreak{}walk transformation}; \texttt{replacement operator}
+  \item \texttt{Q} --- \(\mathbb N\); \texttt{oracle-\allowbreak{}query count}
+  \par\smallskip\noindent\emph{Definition.} \(Q=n^2 2^{n-1}\)
+  \item \texttt{Oracle} --- \(V^2\times\mathcal P(V)\to\{0,1\}\); \texttt{exact oracle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf O(a,b,C)=\mathbf 1\{(\{a\},\{b\},C)\in\mathcal I_E(G)\}\)
+  \item \texttt{AlgE} --- \(\{0,1\}^{Q}\to\mathfrak D(V)\times\mathcal P(U_{\to}\cup U_{\leftrightarrow})\); \texttt{recovery map}
+\end{itemize}
+
+\section{Assumptions}
+
+\section{Definitions}
+
+\begin{definition}[def:lift]\label{def:lift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}copy lift}
+\par\smallskip\noindent\emph{Construction.} For \(G\), each directed edge \(u\to v\), including \(u=v\), gives \(u_0\to v_0\), \(u_0\to v_1\), and \(u_1\to v_1\). Each unordered bidirected edge \(\{u,v\}\), including \(u=v\), gives \(u_p\leftrightarrow v_q\) for every \(p,q\in\{0,1\}\). Thus a bidirected loop \(\{u,u\}\) gives the three distinct unordered lifted edges \(\{u_0,u_0\}\), \(\{u_0,u_1\}\), and \(\{u_1,u_1\}\); the index choices \((0,1)\) and \((1,0)\) name the same cross-copy edge.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:conditioning]\label{def:conditioning}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lifted conditioning}
+\par\smallskip\noindent\emph{Construction.} \(D(B,C)=C_0\cup(C_1\setminus B_1)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:e-model]\label{def:e-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{E-\allowbreak{}model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_E(G)=\{(A,B,C):\text{no \(\sigma\)-open walk given \(D(B,C)\) in \(\operatorname{Lift}(G)\) joins \(A_0\) to \(B_1\)}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:equivalence]\label{def:equivalence}
+\par\smallskip\noindent\emph{Defined object.} \texttt{E-\allowbreak{}equivalence}
+\par\smallskip\noindent\emph{Construction.} \(G\equiv_E H\Longleftrightarrow\mathcal I_E(G)=\mathcal I_E(H)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:signature]\label{def:signature}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Singleton signature}
+\par\smallskip\noindent\emph{Construction.} \(\Sigma_E(G)=(\mathbf 1\{(\{a\},\{b\},C)\in\mathcal I_E(G)\}:a,b\in V,C\subseteq V)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:admissible]\label{def:admissible}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Admissible edges}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Adm}(G)=\{e\in(U_{\to}\cup U_{\leftrightarrow})\setminus E(G):\Sigma_E(G+e)=\Sigma_E(G)\}\), where candidates include directed loops and unordered bidirected loops.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:greatest]\label{def:greatest}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Union candidate}
+\par\smallskip\noindent\emph{Construction.} \(G^\star=(V,\bigcup_{H\equiv_E G}E^{\to}(H),\bigcup_{H\equiv_E G}E^{\leftrightarrow}(H))\), with componentwise union over \(U_{\to}\) and \(U_{\leftrightarrow}\), including directed and bidirected loops.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:compelled]\label{def:compelled}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compelled edges}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Comp}(G)=\bigcap\{E^{\to}(H)\cup E^{\leftrightarrow}(H):H\in\mathfrak D(V),H\equiv_E G\}\), where either kind of loop may be compelled.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:scc-partition]\label{def:scc-partition}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Directed SCC partition}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{SCC}(G)=\{S\subseteq V:S\neq\varnothing,\ S\text{ is a maximal strongly connected set in }(V,E^{\to}(G))\}\), using reflexive directed reachability.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:incoming-scc-support]\label{def:incoming-scc-support}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Incoming-\allowbreak{}to-\allowbreak{}SCC support}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{In}_{\mathrm{SCC}}(G)=\{(u,S):S\in\operatorname{SCC}(G),\ u\in V\setminus S,\ \exists v\in S\text{ with }(u,v)\in E^{\to}(G)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:cross-bidirected-support]\label{def:cross-bidirected-support}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cross-\allowbreak{}SCC bidirected support}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Cross}_{\leftrightarrow}(G)=\{\{S,T\}:S,T\in\operatorname{SCC}(G),\ S\neq T,\ \exists u\in S,\exists v\in T\text{ with }\{u,v\}\in E^{\leftrightarrow}(G)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:internal-bidirected-support]\label{def:internal-bidirected-support}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Internal bidirected support}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Int}_{\leftrightarrow}(G)=\{\{u,v\}\in E^{\leftrightarrow}(G):\exists S\in\operatorname{SCC}(G)\text{ with }u,v\in S\}\); this exact set includes every present bidirected loop \(\{u,u\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:singleton-directed-loops]\label{def:singleton-directed-loops}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Singleton-\allowbreak{}SCC directed-\allowbreak{}loop support}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Loop}_{\to}(G)=\{u\in V:\{u\}\in\operatorname{SCC}(G),\ (u,u)\in E^{\to}(G)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:mixed-scc-profile]\label{def:mixed-scc-profile}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mixed SCC profile}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Prof}(G)=(\operatorname{SCC}(G),\operatorname{In}_{\mathrm{SCC}}(G),\operatorname{Cross}_{\leftrightarrow}(G),\operatorname{Int}_{\leftrightarrow}(G),\operatorname{Loop}_{\to}(G))\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:fixed-profile-family]\label{def:fixed-profile-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed mixed SCC-\allowbreak{}profile family}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak F_G=\{H\in\mathfrak D(V):\operatorname{Prof}(H)=\operatorname{Prof}(G)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:profile-saturation]\label{def:profile-saturation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}profile saturation}
+\par\smallskip\noindent\emph{Construction.} Define \(\Gamma(G)=(V,E^{\to}_{\Gamma}(G),E^{\leftrightarrow}_{\Gamma}(G))\) uniquely by \(E^{\to}_{\Gamma}(G)=E^{\to}(G)\cup\{(u,v)\in U_{\to}:\exists S\in\operatorname{SCC}(G)\text{ such that }v\in S\text{ and }[(u\in S\land |S|\ge2)\lor (u,S)\in\operatorname{In}_{\mathrm{SCC}}(G)]\}\) and \(E^{\leftrightarrow}_{\Gamma}(G)=E^{\leftrightarrow}(G)\cup\{\{u,v\}\in U_{\leftrightarrow}:\exists S,T\in\operatorname{SCC}(G),\ S\neq T,\ u\in S,\ v\in T,\ \{S,T\}\in\operatorname{Cross}_{\leftrightarrow}(G)\}\). Hence internal bidirected edges, including bidirected loops, and directed-loop status on singleton SCCs are retained exactly, while every non-singleton SCC receives all directed loops.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:transfer-handle]\label{def:transfer-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Contextual replacement handle}
+\par\smallskip\noindent\emph{Construction.} \(R\) starts from the first new lifted-edge occurrence on a shortest newly open walk and records minimal directed certificates for each collider newly activated or conditioned tail newly internal; equivalence with \(H\) supplies singleton witnesses to splice with identical endpoint marks, copy indices, and conditioning \(D(B,C)\). For a bidirected-loop candidate \(e=\{u,u\}\), the occurrence record distinguishes the two copywise lifted loops from the cross-copy lifted edge and records the traversal orientation of the cross-copy occurrence.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{H}; \texttt{e}.
+\end{definition}
+
+\begin{definition}[def:recovery]\label{def:recovery}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite recovery}
+\par\smallskip\noindent\emph{Construction.} For an input table \(s\in\{0,1\}^{Q}\), indexed by \(a,b\in V\) and \(C\subseteq V\setminus\{a\}\), extend it to \(\bar s\) on all \(a,b\in V\) and \(C\subseteq V\) by setting \(\bar s_{a,b,C}=s_{a,b,C}\) when \(a\notin C\) and \(\bar s_{a,b,C}=1\) when \(a\in C\). Let \(\mathcal C(s)=\{H\in\mathfrak D(V):\Sigma_E(H)=\bar s\}\). If \(\mathcal C(s)\ne\varnothing\), define \(\operatorname{Alg}_E(s)\) to return \(\bigl((V,\bigcup_{H\in\mathcal C(s)}E^{\to}(H),\bigcup_{H\in\mathcal C(s)}E^{\leftrightarrow}(H)),\bigcap_{H\in\mathcal C(s)}(E^{\to}(H)\cup E^{\leftrightarrow}(H))\bigr)\). If \(\mathcal C(s)=\varnothing\), set \(\operatorname{Alg}_E(s)=((V,\varnothing,\varnothing),\varnothing)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Oracle}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:composition]\label{lem:composition}
+For every \(G\) and \(A,B,C\subseteq V\), \((A,B,C)\in\mathcal I_E(G)\) iff every \((\{a\},\{b\},C)\in\mathcal I_E(G)\), including diagonal queries and \(B\cap C\neq\varnothing\).
+\end{lemma}
+\begin{proof}
+Write \(D=D(B,C)\), write \(S=(B\cap C)_1\), and, for \(b\in B\), write
+\[
+D_b=D(\{b\},C)=C_0\cup(C_1\setminus\{b_1\})
+     =D\cup(S\setminus\{b_1\}).
+\]
+These equalities follow from \(\text{def:conditioning}\).  We use the occurrence-level definition of a \(\sigma\)-open walk appearing in \(\text{def:e-model}\): its endpoints are outside the conditioning set, each interior collider is a directed ancestor of that set, and a conditioned interior noncollider is allowed only when each tail incident to that occurrence points to a vertex in the same directed strongly connected component.
+
+Suppose first that \((A,B,C)\notin\mathcal I_E(G)\).  By \(\text{def:e-model}\), there are \(a\in A\), \(b\in B\), and a \(\sigma\)-open walk \(\pi\) given \(D\) from \(a_0\) to \(b_1\).  If \(\pi\) has an occurrence in \(S\), truncate it at its first such occurrence and denote the resulting endpoint by \(t_1\); otherwise retain the whole walk and put \(t=b\).  In either case \(t\in B\), the new endpoint is not in \(D_t\), and the truncated walk has no interior occurrence in \(D_t\setminus D\subseteq S\setminus\{t_1\}\).  Consequently enlarging \(D\) to \(D_t\) introduces no conditioned interior noncollider.  Every collider that was an ancestor of \(D\) remains an ancestor of \(D_t\).  Thus the truncated walk is \(\sigma\)-open given \(D_t\), so
+\[
+(\{a\},\{t\},C)\notin\mathcal I_E(G).
+\]
+This proves, by contraposition, that separation of every displayed singleton pair implies separation of \(A\) from \(B\).
+
+Conversely, suppose that \((\{a\},\{b\},C)\notin\mathcal I_E(G)\) for some \(a\in A\) and \(b\in B\), and let \(\pi\) be a \(\sigma\)-open walk from \(a_0\) to \(b_1\) given \(D_b\).  If every collider occurrence of \(\pi\) is an ancestor of \(D\), then \(\pi\) is open given \(D\): passing from \(D_b\) to its subset \(D\) cannot create a conditioned noncollider, and by the present case it does not deactivate a collider.
+
+Otherwise, let \(x\) be the first collider occurrence along \(\pi\), starting at \(a_0\), that is not an ancestor of \(D\).  Openness given \(D_b\) implies that \(x\) is an ancestor of some
+\[
+s_1\in D_b\setminus D=S\setminus\{b_1\}.
+\]
+Choose a directed path from \(x\) to \(s_1\).  No vertex of this path lies in \(D\), since otherwise transitivity of directed reachability would make \(x\) an ancestor of \(D\).  If this path has length zero, truncate \(\pi\) at \(x=s_1\); the former collider occurrence is then an unconditioned endpoint.  If it has positive length, replace the suffix of \(\pi\) after the occurrence \(x\) by this directed path.  In the latter case, the incoming incident mark supplied by the retained prefix is a head, while the first mark on the directed suffix is a tail; hence \(x\) is now a noncollider outside \(D\).  In both cases every earlier collider is active given \(D\) by the choice of \(x\).  The positive-length directed suffix has no collider, and all of its vertices are outside \(D\).  Therefore the truncated or spliced walk is \(\sigma\)-open given \(D\), begins in \(A_0\), and ends at \(s_1\in B_1\).  Hence \((A,B,C)\notin\mathcal I_E(G)\).  Repeated vertices created by a splice cause no problem because \(\text{def:e-model}\) is stated in terms of walks.
+
+If \(A=\varnothing\) or \(B=\varnothing\), both sides of the claimed equivalence are true by the absence of an endpoint pair.  The argument also covers \(a=b\) and \(B\cap C\ne\varnothing\).  If \(a\in C\), then \(a_0\in D(B,C)\) and the corresponding source endpoint is conditioned, so that singleton query is separated.  This completes both implications.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It makes the full asymmetric model a finite singleton-oracle object. \textit{Gap.} Right composition must handle the target-dependent conditioning set. \textit{Consumer.} The recovery map stores only singleton answers.
+
+\begin{lemma}[lem:antitonicity]\label{lem:antitonicity}
+If \(G\subseteq H\), then \(\mathcal I_E(H)\subseteq\mathcal I_E(G)\); hence \(G\subseteq K\subseteq H\) and \(G\equiv_E H\) imply \(K\equiv_E G\).
+\end{lemma}
+\begin{proof}
+Assume \(G\subseteq H\).  By \(\text{def:lift}\),
+\[
+\operatorname{Lift}(G)\subseteq\operatorname{Lift}(H).
+\]
+Let a triple \((A,B,C)\) fail to belong to \(\mathcal I_E(G)\).  By \(\text{def:e-model}\), a \(\sigma\)-open walk \(\pi\) in \(\operatorname{Lift}(G)\), given the fixed set \(D(B,C)\), joins some vertex of \(A_0\) to some vertex of \(B_1\).  The same edge sequence is a walk in \(\operatorname{Lift}(H)\).  Every directed path in \(\operatorname{Lift}(G)\) is retained in \(\operatorname{Lift}(H)\), so a collider occurrence of \(\pi\) that is an ancestor of \(D(B,C)\) in the former lift is still such an ancestor in the latter.  Moreover, adding directed edges can only merge directed strongly connected components: if two vertices are mutually reachable before the addition, the two witnessing directed paths persist afterward.  Thus every incident tail that pointed within the relevant strongly connected component in \(\operatorname{Lift}(G)\) still points within one strongly connected component in \(\operatorname{Lift}(H)\).  Adding bidirected edges changes neither directed ancestry nor directed strongly connected components.  Hence no collider or conditioned noncollider of \(\pi\) becomes blocked, while the endpoints and \(D(B,C)\) are unchanged.  The walk \(\pi\) is therefore \(\sigma\)-open in \(\operatorname{Lift}(H)\), and
+\[
+(A,B,C)\notin\mathcal I_E(G)
+\quad\Longrightarrow\quad
+(A,B,C)\notin\mathcal I_E(H).
+\]
+Taking complements gives \(\mathcal I_E(H)\subseteq\mathcal I_E(G)\).
+
+If \(G\subseteq K\subseteq H\) and \(G\equiv_E H\), two applications of the proved inclusion give
+\[
+\mathcal I_E(H)\subseteq\mathcal I_E(K)\subseteq\mathcal I_E(G)
+=\mathcal I_E(H).
+\]
+Therefore all three sets are equal, and \(K\equiv_E G\) follows from \(\text{def:equivalence}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This interval property converts transfer into union closure. \textit{Gap.} The check must include ancestry enlargement and SCC merging. \textit{Consumer.} Saturation and deletion tests avoid intermediate retesting.
+
+\begin{lemma}[lem:gamma-well-defined]\label{lem:gamma-well-defined}
+For every \(G\in\mathfrak D(V)\), the edgewise formulas define a unique finite \(\Gamma(G)\in\mathfrak D(V)\), and \(\operatorname{Prof}(\Gamma(G))=\operatorname{Prof}(G)\). In particular, no new internal bidirected edge or bidirected loop is inserted, every present bidirected loop remains present, and the directed-loop status of every singleton SCC is unchanged.
+\end{lemma}
+\begin{proof}
+The two formulas in \(\text{def:profile-saturation}\) specify subsets of the finite sets \(U_{\to}\) and \(U_{\leftrightarrow}\), respectively.  They therefore specify one and only one graph \(\Gamma(G)\in\mathfrak D(V)\).
+
+We first show that the directed reachability relation is unchanged.  A newly inserted arrow \(u\to v\) has one of two forms.  If \(u,v\in S\in\operatorname{SCC}(G)\) and \(|S|\ge2\), then an old directed walk inside \(S\) runs from \(u\) to \(v\); when \(u=v\), the new loop adds no reachability beyond reflexivity.  Otherwise, \((u,S)\in\operatorname{In}_{\mathrm{SCC}}(G)\), \(v\in S\), and by \(\text{def:incoming-scc-support}\) there is \(w\in S\) with an old arrow \(u\to w\).  Strong connectivity of \(S\) supplies an old directed walk from \(w\) to \(v\).  Thus every newly inserted arrow can be replaced, for purposes of reachability, by an old directed walk with the same endpoints.  Replacing the new-arrow occurrences in an arbitrary directed path in \(\Gamma(G)\) proves
+\[
+x\leadsto_{\Gamma(G)}y\quad\Longleftrightarrow\quad x\leadsto_G y.
+\]
+The reverse implication uses \(G\subseteq\Gamma(G)\).  Hence
+\[
+\operatorname{SCC}(\Gamma(G))=\operatorname{SCC}(G).
+\]
+
+Relative to this common partition, every newly inserted arrow entering an SCC \(S\) from a vertex outside \(S\) is inserted only when that vertex already belongs to the incoming support of \(S\); conversely all old arrows remain.  Therefore
+\[
+\operatorname{In}_{\mathrm{SCC}}(\Gamma(G))
+=\operatorname{In}_{\mathrm{SCC}}(G).
+\]
+The bidirected rule inserts an edge only between two distinct SCCs whose cross-rectangle was already occupied.  It consequently leaves \(\operatorname{Cross}_{\leftrightarrow}\) unchanged.  It inserts no edge with both endpoints in one SCC, so
+\[
+\operatorname{Int}_{\leftrightarrow}(\Gamma(G))
+=\operatorname{Int}_{\leftrightarrow}(G),
+\]
+including equality of all bidirected-loop indicators.  Finally, an added within-SCC directed arrow is permitted only when that SCC has at least two vertices, while an incoming-support arrow has its source outside the target SCC.  Hence no directed loop is added at a singleton SCC, and every old directed loop is retained.  It follows that
+\[
+\operatorname{Loop}_{\to}(\Gamma(G))
+=\operatorname{Loop}_{\to}(G).
+\]
+Combining the five component equalities with \(\text{def:mixed-scc-profile}\) yields
+\[
+\operatorname{Prof}(\Gamma(G))=\operatorname{Prof}(G).
+\]
+All loop, internal-bidirected, and finiteness assertions in the statement have been checked explicitly.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It verifies that simultaneous saturation is a uniquely specified operation on the full finite-DMG universe. \textit{Gap.} A simultaneous mixed saturation needs an invariant profile theorem for every inserted edge, including directed-loop and bidirected-loop cases. \textit{Consumer.} The fixed-profile theorem can quantify over one exact realizable family and one well-defined greatest member.
+
+\begin{proposition}[prop:fixed-profile]\label{prop:fixed-profile}
+For every \(G\in\mathfrak D(V)\), every \(H\in\mathfrak F_G\) satisfies \(\mathcal I_E(H)=\mathcal I_E(G)\), the finite family \(\mathfrak F_G\) is closed under componentwise directed-and-bidirected edge union, and \(\Gamma(G)\in\mathfrak F_G\) is its unique greatest member with \(\mathcal I_E(\Gamma(G))=\mathcal I_E(G)\). These conclusions retain all internal bidirected edges and bidirected loops exactly while completing only occupied cross-SCC bidirected rectangles.
+\end{proposition}
+\begin{proof}
+We first prove the replacement property for an arbitrary graph \(F\in\mathfrak D(V)\).  By the reachability argument in \(\text{lem:gamma-well-defined}\), \(F\) and \(\Gamma(F)\) have the same directed reachability and SCC relations, both in the original graph and copywise in their lifts.
+
+Consider a lifted occurrence of an added directed edge.  If its original endpoints \(u,v\) lie in a common SCC \(S\) of size at least two, choose an old directed path inside \(S\) from \(u\) to \(v\).  For an added directed loop at \(u\), choose instead a nonempty old directed cycle through \(u\), which exists because \(S\) contains another vertex and is strongly connected.  A same-copy lifted occurrence is replaced by the corresponding same-copy path or cycle.  A cross-copy occurrence \(u_0\to v_1\) is replaced by taking the cross-copy lift of the first arrow of that path or cycle and then following its remaining arrows in copy \(1\).  If instead \(u\notin S\), \(v\in S\), and \((u,S)\in\operatorname{In}_{\mathrm{SCC}}(F)\), choose an old edge \(u\to w\) with \(w\in S\), followed by an old path inside \(S\) from \(w\) to \(v\); for a cross-copy occurrence, take the cross-copy lift \(u_0\to w_1\) and remain in copy \(1\).
+
+Each directed replacement has a tail at its initial endpoint and a head at its terminal endpoint, exactly as the replaced edge.  Every newly internal occurrence is a noncollider.  Every tail incident to such an internal occurrence points within one lifted SCC.  At the initial endpoint, a same-copy internal tail remains internal, an incoming-to-SCC tail remains external, and a cross-copy tail remains external because the construction crosses copies on its first arrow.  Thus splicing a directed replacement cannot turn an open old endpoint occurrence into a blocked conditioned noncollider.
+
+Now consider an added bidirected edge between \(u\in S\) and \(v\in T\), where \(S\ne T\).  By \(\text{def:cross-bidirected-support}\), choose an old bidirected edge \(x\leftrightarrow y\) with \(x\in S\) and \(y\in T\).  For every pair of copy indices \(p,q\in\{0,1\}\), replace
+\[
+u_p\leftrightarrow v_q
+\quad\text{by}\quad
+u_p\leftarrow\cdots\leftarrow x_p
+\leftrightarrow y_q\to\cdots\to v_q,
+\]
+where the directed pieces are chosen inside the corresponding SCC copies.  The two endpoint marks are heads, as on the replaced bidirected edge.  Every new interior occurrence is a noncollider, and each of its incident tails points within its SCC.  The same construction read backward covers the opposite traversal orientation.  No internal bidirected edge and no bidirected loop is added by \(\Gamma\), so these cases require no replacement.
+
+Replace every added-edge occurrence in a \(\sigma\)-open walk of \(\operatorname{Lift}(\Gamma(F))\) by the appropriate old walk just constructed.  Endpoint marks at every splice are preserved, all new interior noncolliders satisfy the conditioned-tail rule, and the equality of directed ancestry and SCC relations ensures that the activation status of every retained collider and the internal-tail status of every retained noncollider is unchanged.  The resulting walk in \(\operatorname{Lift}(F)\) is open under the same arbitrary set \(D(B,C)\).  Hence
+\[
+\mathcal I_E(F)\subseteq\mathcal I_E(\Gamma(F)).
+\]
+The opposite inclusion follows from \(F\subseteq\Gamma(F)\) and \(\text{lem:antitonicity}\), so
+\[
+\mathcal I_E(\Gamma(F))=\mathcal I_E(F).
+\tag{1}
+\]
+
+Now let \(H\in\mathfrak F_G\).  Equality of profiles says that \(G\) and \(H\) have the same SCC partition, the same incoming supports, the same occupied cross-SCC bidirected rectangles, the same exact internal bidirected edges, and the same directed-loop indicators at singleton SCCs.  The edge formulas for \(\Gamma\) therefore give
+\[
+\Gamma(H)=\Gamma(G).
+\tag{2}
+\]
+Indeed, all arrows internal to a non-singleton SCC and all arrows belonging to a fixed incoming support are completed; arrows at singleton SCCs are determined by the incoming support and the retained loop indicator; cross-SCC bidirected rectangles are completed; and internal bidirected edges, including loops, are retained exactly.  Applying (1) to \(F=G\) and \(F=H\), then using (2), gives
+\[
+\mathcal I_E(H)=\mathcal I_E(\Gamma(H))
+=\mathcal I_E(\Gamma(G))=\mathcal I_E(G).
+\]
+
+The family \(\mathfrak F_G\) is finite because both edge universes are finite.  For \(H_1,H_2\in\mathfrak F_G\), put \(J=H_1\cup H_2\).  Equations (1)--(2) imply
+\[
+H_1\subseteq J\subseteq\Gamma(G).
+\]
+The first and last graphs have identical directed reachability by the directed replacement argument, so the intermediate graph \(J\) has that same reachability and the same SCC partition.  No support component can disappear relative to \(H_1\), and no new support component can occur because \(J\subseteq\Gamma(G)\).  The exact internal bidirected set and singleton directed-loop indicators are common to \(H_1\) and \(H_2\), hence also to their union.  Thus \(\operatorname{Prof}(J)=\operatorname{Prof}(G)\), proving binary, and therefore finite, componentwise union closure.
+
+By \(\text{lem:gamma-well-defined}\), \(\Gamma(G)\in\mathfrak F_G\).  Equation (2) also shows that every \(H\in\mathfrak F_G\) is a subgraph of \(\Gamma(G)\).  Consequently \(\Gamma(G)\) is a greatest member, and a greatest member is unique by antisymmetry of edge inclusion.  Equation (1) gives its asserted E-equivalence to \(G\), with internal bidirected edges and both kinds of loop treated exactly as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It isolates the maximal regime where direct substitution works. \textit{Gap.} Published local moves are not packaged as simultaneous mixed saturation. \textit{Consumer.} It supplies base cases and reduction tests for transfer.
+
+\begin{openendedquestion}[oeq:contextual-replacement]\label{oeq:contextual-replacement}
+Construct \(R\) whenever \(G\equiv_E H\) and \(e\in E(H)\setminus E(G)\), transforming every \(\sigma\)-open walk in \(\operatorname{Lift}(G+e)\) given \(D(B,C)\) into one in \(\operatorname{Lift}(G)\) with the same endpoint copies and conditioning. The construction must cover SCC-changing arrows, directed self-loops, the two copywise and one cross-copy lifted edges generated by a bidirected loop, collider activation, SCC-tail changes, and first bidirected connections outside occupied SCC rectangles.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the genuinely open proof mechanism. \textit{Gap.} Only \(\mu\)-splicing and fixed-profile E-replacements are published. \textit{Consumer.} It yields unrestricted transfer and certificates for optional edges.
+
+\begin{theorem}[thm:single-edge-transfer]\label{thm:single-edge-transfer}
+For every \(G\in\mathfrak D(V)\) and \(e\in E(\Gamma(G))\setminus E(G)\), \(G+e\equiv_EG\). These are exactly the directed completions internal to a non-singleton SCC, directed completions of an already occupied incoming-to-SCC support, and bidirected completions of an already occupied rectangle between distinct SCCs. Directed loops are added only in non-singleton SCCs, and no internal bidirected edge or bidirected loop is added.
+\end{theorem}
+\begin{proof}
+Fix \(G\in\mathfrak D(V)\) and \(e\in E(\Gamma(G))\setminus E(G)\).  The fixed-profile proposition gives
+\[
+ \mathcal I_E(\Gamma(G))=\mathcal I_E(G),
+ \qquad\text{hence}\qquad \Gamma(G)\equiv_EG.
+\]
+The edge assumption gives the componentwise inclusions
+\[
+ G\subseteq G+e\subseteq\Gamma(G).
+\]
+Applying the interval conclusion of the antitonicity lemma to these two displays yields \(G+e\equiv_EG\).
+
+The profile-saturation definition identifies the possible new \(e\)'s exactly: a directed edge internal to a non-singleton directed SCC, a directed edge from a vertex whose incoming support to that SCC is already occupied, or a bidirected edge in an already occupied rectangle between two distinct SCCs.  The same definition inserts directed loops only in non-singleton SCCs and inserts neither internal bidirected edges nor bidirected loops.  Thus the proof covers precisely the stated cases.  Finiteness of \(V\) is used only to keep all graphs in \(\mathfrak D(V)\); no positivity, rank, support, overlap, boundary, or limit condition is involved.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It proves individual safety for every edge inserted by the fixed-profile saturation. \textit{Gap.} Profile-changing edges remain outside the proved regime. \textit{Consumer.} The simultaneous fixed-profile saturation theorem.
+
+\begin{theorem}[thm:greatest-representative]\label{thm:greatest-representative}
+For every \(G\in\mathfrak D(V)\), the family \(\mathfrak F_G\) is closed under componentwise directed-and-bidirected edge union and has \(\Gamma(G)\equiv_EG\) as its unique greatest member. On the unrestricted finite-DMG class, the following assertions are equivalent: unrestricted single-edge transfer; binary-union closure of every E-equivalence class; and existence of a greatest member in every E-equivalence class.
+\end{theorem}
+\begin{proof}
+The fixed-profile proposition directly gives, for each \(G\in\mathfrak D(V)\),
+\[
+ \Gamma(G)\in\mathfrak F_G,
+ \qquad \Gamma(G)\equiv_EG,
+\]
+closure of \(\mathfrak F_G\) under componentwise union, and the fact that every \(H\in\mathfrak F_G\) satisfies \(H\subseteq\Gamma(G)\).  If \(L\in\mathfrak F_G\) is also greatest, then \(L\subseteq\Gamma(G)\) and \(\Gamma(G)\subseteq L\), so antisymmetry of edge inclusion gives \(L=\Gamma(G)\).  This proves the unconditional fixed-profile assertion.
+
+For the unrestricted characterization, let \(\mathsf T\) denote unrestricted single-edge transfer, let \(\mathsf U\) denote binary-union closure of every E-equivalence class, and let \(\mathsf M\) denote existence of a greatest member in every E-equivalence class.
+
+Assume \(\mathsf T\), and take \(X\equiv_EY\).  Because the edge universe \(U_{\to}\cup U_{\leftrightarrow}\) is finite, write
+\[
+ E(Y)\setminus E(X)=\{e_1,\ldots,e_m\},\qquad
+ K_0=X,\qquad K_r=K_{r-1}+e_r.
+\]
+Inductively, \(K_{r-1}\equiv_EX\equiv_EY\) and \(e_r\in E(Y)\setminus E(K_{r-1})\).  Property \(\mathsf T\) therefore gives \(K_r\equiv_EK_{r-1}\).  At \(r=m\), \(K_m=X\cup Y\equiv_EX\), proving \(\mathsf T\Rightarrow\mathsf U\).
+
+Assume \(\mathsf U\).  The class \(\mathfrak D(V)\) is finite because both edge universes are finite.  Hence each nonempty E-equivalence class can be enumerated as \(X_1,\ldots,X_N\).  Repeated application of \(\mathsf U\) shows that \(X_1\cup\cdots\cup X_N\) remains in the class.  It contains every class member and is therefore greatest; uniqueness follows from antisymmetry.  Thus \(\mathsf U\Rightarrow\mathsf M\).
+
+Assume \(\mathsf M\), take \(X\equiv_EY\), and let \(L\) be the greatest member of their class.  Then
+\[
+ X\subseteq X\cup Y\subseteq L,
+ \qquad X\equiv_EL.
+\]
+The interval conclusion of the antitonicity lemma gives \(X\cup Y\equiv_EX\), so \(\mathsf M\Rightarrow\mathsf U\).  Finally, under \(\mathsf U\), if \(X\equiv_EY\) and \(e\in E(Y)\setminus E(X)\), then
+\[
+ X\subseteq X+e\subseteq X\cup Y,
+ \qquad X\equiv_E X\cup Y.
+\]
+The same interval lemma gives \(X+e\equiv_EX\), proving \(\mathsf U\Rightarrow\mathsf T\).  Hence \(\mathsf T\), \(\mathsf U\), and \(\mathsf M\) are equivalent.  This is a characterization, not an assertion that they hold outside the fixed-profile families.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It supplies a unique greatest member for each fixed-profile family and proves an exact equivalence among the three unrestricted closure formulations. \textit{Gap.} No equivalent unrestricted formulation is proved true. \textit{Consumer.} Profile-aware discovery and future attacks on the all-DMG conjecture.
+
+\begin{theorem}[thm:simultaneous-saturation]\label{thm:simultaneous-saturation}
+One has \(\operatorname{Adm}(G)\cap E(\Gamma(G))=E(\Gamma(G))\setminus E(G)\), \(G+(\operatorname{Adm}(G)\cap E(\Gamma(G)))=\Gamma(G)\), and \(\mathcal I_E(G+(\operatorname{Adm}(G)\cap E(\Gamma(G))))=\mathcal I_E(G)\). If additionally \(G^\star\equiv_EG\), then \(\operatorname{Adm}(G)=E(G^\star)\setminus E(G)\), \(G+\operatorname{Adm}(G)=G^\star\), and \(\mathcal I_E(G+\operatorname{Adm}(G))=\mathcal I_E(G)\).
+\end{theorem}
+\begin{proof}
+Define the local abbreviation
+\[
+ \operatorname{Adm}_{\Gamma}(G)
+ :=\operatorname{Adm}(G)\cap E(\Gamma(G)).
+\]
+By the admissibility definition, every member of \(\operatorname{Adm}(G)\) is absent from \(G\); hence
+\[
+ \operatorname{Adm}_{\Gamma}(G)
+ \subseteq E(\Gamma(G))\setminus E(G).
+\]
+Conversely, let \(e\in E(\Gamma(G))\setminus E(G)\).  The proved fixed-profile single-edge result gives \(G+e\equiv_EG\), so their E-models, and therefore their singleton signatures, are equal.  The admissibility definition gives \(e\in\operatorname{Adm}(G)\).  Thus
+\[
+ \operatorname{Adm}_{\Gamma}(G)=E(\Gamma(G))\setminus E(G).
+\]
+Adding both sides to \(G\), and then invoking the fixed-profile proposition, proves
+\[
+ G+\operatorname{Adm}_{\Gamma}(G)=\Gamma(G),
+ \qquad
+ \mathcal I_E\bigl(G+\operatorname{Adm}_{\Gamma}(G)\bigr)=\mathcal I_E(G).
+\]
+
+Now suppose, only for the conditional unrestricted conclusion, that \(G^\star\equiv_EG\).  If \(e\in\operatorname{Adm}(G)\), then \(\Sigma_E(G+e)=\Sigma_E(G)\) by definition; singleton composition gives \(G+e\equiv_EG\).  Since \(G^\star\) is the componentwise union of all equivalent graphs, \(e\in E(G^\star)\setminus E(G)\).  Conversely, if \(e\in E(G^\star)\setminus E(G)\), then
+\[
+ G\subseteq G+e\subseteq G^\star,
+ \qquad G\equiv_EG^\star.
+\]
+The interval conclusion of antitonicity gives \(G+e\equiv_EG\), hence equality of singleton signatures and \(e\in\operatorname{Adm}(G)\).  We have proved
+\[
+ \operatorname{Adm}(G)=E(G^\star)\setminus E(G),
+ \qquad
+ G+\operatorname{Adm}(G)=G^\star,
+ \qquad
+ \mathcal I_E\bigl(G+\operatorname{Adm}(G)\bigr)=\mathcal I_E(G)
+\]
+under exactly the displayed condition.  All arguments are finite and graphical; no positivity, rank, support, overlap, boundary, or limit premise is used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It identifies and safely adds the whole block of fixed-profile admissible edges. \textit{Gap.} Simultaneous safety of profile-changing admissible edges remains conditional on unrestricted closure. \textit{Consumer.} A certified profile-restricted completion procedure.
+
+\begin{theorem}[thm:oracle-recovery]\label{thm:oracle-recovery}
+From \(Q=n^2 2^{n-1}\) nontrivial oracle answers, \(\operatorname{Alg}_E\) returns the componentwise union candidate \(G^\star\) and the edge intersection \(\operatorname{Comp}(G)\) over \(U_{\to}\cup U_{\leftrightarrow}\). This finite enumeration is unconditional. If \(G^\star\equiv_EG\), then \(G^\star\) is the unique greatest representative and, for every \(e\in E(G^\star)\), \(e\in\operatorname{Comp}(G)\) if and only if \(\Sigma_E(G^\star-e)\ne\Sigma_E(G^\star)\).
+\end{theorem}
+\begin{proof}
+For each ordered \((a,b)\in V^2\), there are \(2^{n-1}\) subsets \(C\subseteq V\setminus\{a\}\).  The number of queried entries is therefore
+\[
+ n^2 2^{n-1}=Q.
+\]
+Consider an omitted singleton entry, so \(a\in C\).  The conditioning definition gives \(a_0\in C_0\subseteq D(\{b\},C)\); the endpoint condition for \(\sigma\)-openness therefore makes this query separated.  Consequently the extension rule in the corrected recovery definition reconstructs the entire singleton signature \(\Sigma_E(G)\).  By the singleton-composition lemma, this signature determines the full E-model \(\mathcal I_E(G)\).
+
+The sets \(U_{\to}\) and \(U_{\leftrightarrow}\) are finite because \(V\) is finite, so \(\mathfrak D(V)\) is finite.  Exhaustive comparison with the reconstructed signature therefore terminates and returns exactly
+\[
+ \mathcal C(s)=\{H\in\mathfrak D(V):H\equiv_EG\}.
+\]
+This set is nonempty because it contains \(G\).  The first component returned by \(\operatorname{Alg}_E\) is exactly the componentwise union in the definition of \(G^\star\), and its second component is exactly the edge intersection in the definition of \(\operatorname{Comp}(G)\).  Hence, without a closure assumption,
+\[
+ \operatorname{Alg}_E(s)=\bigl(G^\star,\operatorname{Comp}(G)\bigr).
+\]
+This equality identifies an observable union functional and an observable intersection functional; it does not by itself place the union back in the E-equivalence class.
+
+Assume now the additional displayed condition \(G^\star\equiv_EG\).  Every equivalent graph is contained in \(G^\star\) by its union definition, so \(G^\star\) is an in-class greatest member and is unique by antisymmetry.  Fix \(e\in E(G^\star)\).  If
+\[
+ \Sigma_E(G^\star-e)=\Sigma_E(G^\star),
+\]
+singleton composition gives \(G^\star-e\equiv_EG^\star\).  This equivalent graph omits \(e\), so the intersection definition of compelled edges gives \(e\notin\operatorname{Comp}(G)\).
+
+Conversely, if \(e\notin\operatorname{Comp}(G)\), the intersection definition supplies \(K\equiv_EG\) with \(e\notin E(K)\).  Greatestness and the omission of \(e\) give
+\[
+ K\subseteq G^\star-e\subseteq G^\star,
+ \qquad K\equiv_EG^\star.
+\]
+The interval conclusion of the antitonicity lemma yields \(G^\star-e\equiv_EG^\star\), hence equal singleton signatures.  Taking contrapositives in both directions proves
+\[
+ e\in\operatorname{Comp}(G)
+ \quad\Longleftrightarrow\quad
+ \Sigma_E(G^\star-e)\ne\Sigma_E(G^\star)
+\]
+under \(G^\star\equiv_EG\).  There are no statistical positivity, rank, support, overlap, boundary, or limiting assumptions: this is exact finite graphical identification from a promised oracle.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It distinguishes unconditional finite recovery of the union and intersection from the conditional greatestness and deletion claims. \textit{Gap.} The union candidate is not known to remain in its E-equivalence class. \textit{Consumer.} Exact-oracle discovery with an explicit interpretation boundary.
+
+\begin{proposition}[prop:directed-reduction]\label{prop:directed-reduction}
+If \(E^{\leftrightarrow}(G)=\varnothing\), then the directed subfamily
+\[
+\{H\in\mathfrak D(V):H\equiv_E G,\ E^{\leftrightarrow}(H)=\varnothing\}
+\]
+is closed under directed-edge union and has the unique greatest member
+\[
+\left(V,
+\bigcup_{\substack{H\equiv_EG\\E^{\leftrightarrow}(H)=\varnothing}}E^{\to}(H),
+\varnothing\right).
+\]
+This is the valid directed-subclass reduction.  It is a subgraph of the unrestricted \(G^\star\), but equality with \(G^\star\) can fail.
+\end{proposition}
+\begin{proof}
+Put
+\[
+ \mathcal C_{\to}(G)
+ :=\{H\in\mathfrak D(V):H\equiv_EG,\ E^{\leftrightarrow}(H)=\varnothing\}.
+\]
+The premise \(E^{\leftrightarrow}(G)=\varnothing\) implies \(G\in\mathcal C_{\to}(G)\), so this family is nonempty.  By the published directed greatest-element theorem, \(\mathrm{lem{:}directed\text{-}greatest\text{-}published}\), there is \(\widehat G_{\to}\in\mathcal C_{\to}(G)\) such that \(H\subseteq\widehat G_{\to}\) for every \(H\in\mathcal C_{\to}(G)\).
+
+Let \(H_1,H_2\in\mathcal C_{\to}(G)\), and let \(K=H_1\cup H_2\), where the union is taken over directed edges and the bidirected edge set remains empty.  Then
+\[
+ H_1\subseteq K\subseteq\widehat G_{\to}.
+\]
+Both endpoint graphs are E-equivalent.  The interval conclusion of \(\mathrm{lem{:}antitonicity}\) therefore gives
+\[
+ \mathcal I_E(K)=\mathcal I_E(H_1)=\mathcal I_E(G).
+\]
+Thus \(K\in\mathcal C_{\to}(G)\), proving binary directed-edge-union closure.
+
+Because \(U_{\to}=V\times V\) is finite, \(\mathcal C_{\to}(G)\) is finite.  Define
+\[
+ \overline G_{\to}
+ =\left(V,
+   \bigcup_{H\in\mathcal C_{\to}(G)}E^{\to}(H),
+   \varnothing\right).
+\]
+Since every member of \(\mathcal C_{\to}(G)\) is contained in \(\widehat G_{\to}\), one has \(\overline G_{\to}\subseteq\widehat G_{\to}\).  Conversely, \(\widehat G_{\to}\) itself occurs in the union, so \(\widehat G_{\to}\subseteq\overline G_{\to}\).  Hence
+\[
+ \overline G_{\to}=\widehat G_{\to}\in\mathcal C_{\to}(G).
+\]
+It contains every member of the family and is therefore greatest; antisymmetry of edge inclusion makes it the unique greatest member.
+
+The family \(\mathcal C_{\to}(G)\) is a subfamily of \(\{H\in\mathfrak D(V):H\equiv_EG\}\).  Taking componentwise unions in \(\mathrm{def{:}greatest}\) consequently gives
+\[
+ E^{\to}(\overline G_{\to})\subseteq E^{\to}(G^\star),
+ \qquad
+ E^{\leftrightarrow}(\overline G_{\to})=\varnothing
+ \subseteq E^{\leftrightarrow}(G^\star),
+\]
+so \(\overline G_{\to}\subseteq G^\star\).  This inclusion can be strict.  Indeed, take \(V=\{v\}\).  Let \(G_{\to}\) have the single directed loop \(v\to v\), and let \(G_{\leftrightarrow}\) have the single bidirected loop \(v\leftrightarrow v\).  If either \(A\) or \(B\) is empty, both E-separation statements hold vacuously.  Otherwise \(A=B=\{v\}\).  For \(C=\varnothing\), \(\operatorname{Lift}(G_{\to})\) contains the one-edge open walk \(v_0\to v_1\), while \(\operatorname{Lift}(G_{\leftrightarrow})\) contains the one-edge open walk \(v_0\leftrightarrow v_1\); hence the singleton query is a dependence in both graphs.  For \(C=\{v\}\),
+\[
+ D(B,C)=\{v_0\},
+\]
+so the source endpoint is conditioned and the query is separated in both graphs.  These cases exhaust \(\mathcal P(V)^3\), proving \(G_{\to}\equiv_EG_{\leftrightarrow}\).  The empty directed graph is not equivalent to \(G_{\to}\), because it separates \(v_0\) from \(v_1\) given the empty set.  Thus the directed greatest member for \(G_{\to}\) is \(G_{\to}\), whereas \(G^\star\) also contains the bidirected loop supplied by \(G_{\leftrightarrow}\).  Therefore \(G_{\to}\subsetneq G^\star\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the required standard-case sanity check. \textit{Gap.} It is a reduction, not a novelty claim. \textit{Consumer.} Fully observed E-discovery is recovered unchanged.
+
+\begin{lemma}[lem:directed-greatest-published]\label{lem:directed-greatest-published}
+For every finite directed graph \(G=(V,E^{\to}(G))\), there exists a directed graph \(\widehat G\) on \(V\) such that \(\widehat G\equiv_E G\) and \(H\subseteq\widehat G\) for every directed graph \(H\) on \(V\) satisfying \(H\equiv_EG\).
+\end{lemma}
+
+\section{Interpretation}
+
+The graph \(\Gamma(G)\) is a genuine causal-structure representative only relative to a supplied mixed SCC profile: it preserves the full E-model and is greatest among graphs with that profile. The oracle-identified \(G^\star\) is always the componentwise union of all graphs matching the observed E-model, and \(\operatorname{Comp}(G)\) is always their edge intersection. Without unrestricted closure, the former is an observed-law summary and need not be a member of the equivalence class; it must not be interpreted as the data-generating graph or as an unconditionally valid greatest representative.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The shortest-witness and marked-probe countermodels rule out the proof strategy requested in this round, not the unrestricted single-edge-transfer conjecture itself. The sparse five-vertex falsification gate reported in the core found no union failure, but it excludes bidirected-loop additions and cannot establish a universal theorem. The fixed-profile result deliberately does not add internal bidirected edges or bidirected loops and does not cover edges that merge SCCs or first occupy a cross-SCC bidirected rectangle. All computation remains evidence only.
+
+\section{Honest scope}
+
+Unconditional results are singleton composition, antitonicity, fixed-profile E-equivalence and greatest saturation, fixed-profile simultaneous admissible-edge addition, exact finite recovery of the unrestricted union candidate, and exact recovery of the compelled-edge intersection. Unrestricted single-edge transfer, binary-union closure, and in-class greatestness remain equivalent open assertions. The compelled-edge deletion criterion is proved only when the union candidate is E-equivalent to the input. Recovery assumes an exact oracle and supplies no faithfulness, sampling, or finite-sample guarantee.
+
+\begin{thebibliography}{99}
+
+  \bibitem{MantenCasoloMogensenKilbertus2025} G. Manten, C. Casolo, S. W. Mogensen, and N. Kilbertus. An Asymmetric Independence Model for Causal Discovery on Path Spaces. CLeaR, PMLR 275:64--89, 2025. arXiv:2503.09859.
+
+  \bibitem{MogensenHansen2020} S. W. Mogensen and N. R. Hansen. Markov Equivalence of Marginalized Local Independence Graphs. Annals of Statistics 48(1):539--559, 2020.
+
+  \bibitem{Mogensen2025WeakEquivalence} S. W. Mogensen. Weak Equivalence of Local Independence Graphs. Bernoulli 31(4), 2025.
+
+  \bibitem{ZhangSpirtes2005} J. Zhang and P. Spirtes. A Transformational Characterization of Markov Equivalence for Directed Acyclic Graphs with Latent Variables. UAI, 2005.
+
+  \bibitem{AliRichardsonSpirtes2009} R. A. Ali, T. S. Richardson, and P. Spirtes. Markov Equivalence for Ancestral Graphs. Annals of Statistics 37(5B), 2009.
+
+  \bibitem{MooijClaassen2020} J. M. Mooij and T. Claassen. Constraint-Based Causal Discovery Using Partial Ancestral Graphs in the Presence of Cycles. UAI, PMLR 124, 2020.
+
+  \bibitem{ClaassenMooij2023} T. Claassen and J. M. Mooij. Establishing Markov Equivalence in Cyclic Directed Graphs. UAI, PMLR 216, 2023.
+
+  \bibitem{ChristgauPetersenHansen2023} A. M. Christgau, L. Petersen, and N. R. Hansen. Nonparametric Conditional Local Independence Testing. Annals of Statistics 51(5), 2023.
+
+  \bibitem{KookMogensen2026} L. Kook and S. W. Mogensen. Exact Graph Learning via Integer Programming. arXiv:2601.20589, 2026.
+
+  \bibitem{MeekSadeghi2026} C. Meek and K. Sadeghi. Characterizing and Identifying Separable Graphical Models. arXiv:2607.01057, 2026.
+
+\end{thebibliography}
+
+\end{document}

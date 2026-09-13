@@ -1,0 +1,1011 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}cate\_\allowbreak{}heterogeneity\_\allowbreak{}testing\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For constant-CATE testing over the exact observed-data image of the bounded causal Hölder class, the strongest proved result is the full-class bracket \(c_{\mathrm{rate}}r_{\mathrm{or}}(n)\le\rho_\star(n)\le C_{\mathrm{rate}}\{r_{\mathrm{or}}(n)\vee r_{\mathrm{nu}}(n)\}\). The endpoints coincide exactly when \(\alpha+\beta\ge2d\gamma/(4\gamma+d)\), including equality without a logarithmic loss, so rough confounding has no minimax-rate penalty throughout that region. The upper endpoint is attained by an explicit, terminating, uniformly calibrated higher-order corrected-energy test with deterministic tuning. Only the strict complementary regime remains open: whether \(r_{\mathrm{nu}}\) is sharp, whether \(\alpha\) and \(\beta\) create separate elbows, and whether further rough-regime boundaries carry logarithms. Yu (2026) and Dhawan--Guo--Shah (2026) are procedure-level power comparators under additional learner, direction, variance, and regularity conditions, not uniform full-class minimax comparators.
+
+\section{Project justification}
+
+\paragraph{Gap.} The missing result is no longer an all-phase frontier: the bracket and exact no-penalty phase are proved. The remaining gap is a legal same-class observational converse in the strict rough regime \(\alpha+\beta<2d\gamma/(4\gamma+d)\), where no established construction simultaneously keeps every null CATE constant, preserves the separate Hölder restrictions, maintains exact uniform design, and controls the complete observed likelihood. Existing CATE-estimation and rough-mean heteroskedasticity results do not supply that converse for this experiment.
+
+\paragraph{Niche.} The note isolates continuous-design constancy testing for a CATE through the variance separation \(V(P)\), under exact uniform design, bounded observed outcomes, overlap, and separate Hölder geometry for the propensity, baseline, and effect. This differs from scalar-ATE estimation in a discrete arbitrary-cell-mass experiment and from first-order testing guarantees that assume fitted-learner rates, favorable directions, or conditional variance conditions.
+
+\paragraph{Fill.} The contribution is a proved two-sided full-class bracket, an exact oracle/no-penalty phase including its equality case without logarithmic loss, and a data-computable higher-order corrected-energy test attaining the upper endpoint with deterministic class-based tuning and finite arithmetic complexity. The unresolved program is explicitly restricted to sharpness and finer phase structure below the no-penalty boundary; no extra model or estimator-side premise is added to manufacture a match.
+
+\section{Related work}
+
+The closest accepted local comparator is \(\texttt{stat\_discrete\_ate\_heterogeneity\_frontier/v1}\), \(\texttt{thm:two-sided-minimax-bracket-all-d}\). It estimates a scalar ATE in a discrete arbitrary-cell-mass experiment with a known heterogeneity radius and rare-cell/occupancy machinery. The present theorem instead tests constancy of a continuous-design CATE by variance separation under Hölder propensity, baseline, and effect geometry, bounded observed outcomes, and a higher-order product correction, so neither result is a specialization of the other. Dhawan, Guo and Shah (2026) give a hunted-direction first-order score test; after the proved projection translation, their CATE energy is overlap-equivalent to \(V(P)\), but their power claim still requires their regularity predicate, a conditional direction-correlation lower bound, a conditional score-variance condition, and the corresponding signal scaling. Yu (2026) directly studies CATE variance, but its guarantee retains separate learner-rate conditions, a root-\(n\) ATE condition, boundary nondegeneracy, and its own fold and moment conditions. Thus both are procedure-level power comparators, not uniform full-class minimax converses. Kennedy, Balakrishnan, Robins and Wasserman (2024) provide related nuisance-elbow geometry for pointwise CATE estimation, while Kotekal and Kundu (2025) prove sharp rough-mean heteroskedasticity-testing rates under a different experiment. Crump, Hotz, Imbens and Mitnik (2008), Dai, Shen and Stern (2023), Comminges and Dalalyan (2013), Ingster and Sapatinas (2009), Luedtke, Carone and van der Laan (2019), Lundborg, Kim, Shah and Samworth (2024), Dukes, Stensrud, Brioschi and Hudson (2024), and Sánchez-Becerra (2023) supply complementary testing, quadratic-statistic, or inference results without the present full-class bracket and exact no-penalty phase.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(V(P)=\int_{[0,1]^d}(\tau(x)-\int_{[0,1]^d}\tau(u)\,du)^2\,dx\).
+Primary functional / estimator / diagnostic: \(V(P)\asymp\inf_{c\in[-1,1]}\|r-em-c e(1-e)\|_{L^2([0,1]^d)}^2\).
+\begin{itemize}
+  \item \texttt{d} --- \texttt{fixed positive integer}; \(\mathbb N_{+}\); \texttt{covariate dimension}
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N_{+}\)
+  \item \texttt{alpha} --- \texttt{positive real}; \((0,\infty)\); \texttt{propensity smoothness}
+  \item \texttt{beta} --- \texttt{positive real}; \((0,\infty)\); \texttt{control-\allowbreak{}regression smoothness}
+  \item \texttt{gamma} --- \texttt{positive real}; \((0,\infty)\); \texttt{CATE smoothness}
+  \item \texttt{L} --- \texttt{fixed real}; \([2,\infty)\); \texttt{Hölder radius}
+  \item \texttt{epsilon} --- \texttt{fixed real}; \((0,1/4)\); \texttt{overlap constant}
+  \item \texttt{a0} --- \texttt{fixed real}; \texttt{maximal type-\allowbreak{}I error}
+  \par\smallskip\noindent\emph{Definition.} \(a_0=0.05\)
+  \item \texttt{b0} --- \texttt{fixed real}; \texttt{maximal type-\allowbreak{}II error}
+  \par\smallskip\noindent\emph{Definition.} \(b_0=0.20\)
+  \item \texttt{Xspace} --- \texttt{compact covariate space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=[0,1]^d\)
+  \item \texttt{lambda} --- \texttt{probability measure}; \(\Delta(\mathcal X)\)
+  \par\smallskip\noindent\emph{Definition.} normalized Lebesgue measure \(\lambda\) on \(\mathcal X\)
+  \item \texttt{u} --- \texttt{generic positive real}; \((0,\infty)\); \texttt{generic smoothness index}
+  \item \texttt{ju} --- \texttt{nonnegative integer}
+  \par\smallskip\noindent\emph{Definition.} \(j_u=\lceil u\rceil-1\)
+  \item \texttt{etau} --- \texttt{real}; \((0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\eta_u=u-j_u\)
+  \item \texttt{HolderBall} --- \texttt{function class}; \(\mathcal H^u(L)\)
+  \par\smallskip\noindent\emph{Definition.} \(\{f:\mathcal X\to\mathbb R:\max_{|\nu|\le j_u}\|D^\nu f\|_\infty\le L,\ \max_{|\nu|=j_u}\sup_{x\ne x'}|D^\nu f(x)-D^\nu f(x')|/\|x-x'\|_2^{\eta_u}\le L\}\)
+  \item \texttt{X} --- \texttt{covariate random variable}; \(\mathcal X\)
+  \item \texttt{A} --- \texttt{treatment random variable}; \(\{0,1\}\)
+  \item \texttt{Y} --- \texttt{outcome random variable}; \(\mathbb R\)
+  \item \texttt{Y0} --- \texttt{potential outcome}; \(\mathbb R\)
+  \item \texttt{Y1} --- \texttt{potential outcome}; \(\mathbb R\)
+  \item \texttt{O} --- \texttt{observed data unit}
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,A,Y)\)
+  \item \texttt{FullUnit} --- \texttt{full-\allowbreak{}data causal unit}
+  \par\smallskip\noindent\emph{Definition.} \(D^{\mathrm F}=(X,A,Y(0),Y(1),Y)\)
+  \item \texttt{PFull} --- \texttt{full-\allowbreak{}data causal law}; \(\Delta(\mathcal X\times\{0,1\}\times\mathbb R^3)\)
+  \item \texttt{eFull} --- \texttt{full-\allowbreak{}law propensity function}; \(e^{\mathrm F}:\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(e^{\mathrm F}(x)=P^{\mathrm F}(A=1\mid X=x)\)
+  \item \texttt{mu0Full} --- \texttt{full-\allowbreak{}law control potential-\allowbreak{}outcome regression}; \(\mu_0^{\mathrm F}:\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_0^{\mathrm F}(x)=\mathbb E_{P^{\mathrm F}}[Y(0)\mid X=x]\)
+  \item \texttt{mu1Full} --- \texttt{full-\allowbreak{}law treated potential-\allowbreak{}outcome regression}; \(\mu_1^{\mathrm F}:\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_1^{\mathrm F}(x)=\mathbb E_{P^{\mathrm F}}[Y(1)\mid X=x]\)
+  \item \texttt{tauFull} --- \texttt{full-\allowbreak{}law conditional average treatment effect}; \(\tau^{\mathrm F}:\mathcal X\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau^{\mathrm F}(x)=\mu_1^{\mathrm F}(x)-\mu_0^{\mathrm F}(x)\)
+  \item \texttt{obsMap} --- \texttt{observation map}; \(\operatorname{obs}:D^{\mathrm F}\mapsto O\)
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{obs}(x,a,y_0,y_1,y)=(x,a,y)\)
+  \item \texttt{POfFull} --- \texttt{observed marginalization operator}; \(\operatorname{Obs}(P^{\mathrm F})=\operatorname{obs}_{\#}P^{\mathrm F}\)
+  \item \texttt{FullLawClass} --- \texttt{class of one-\allowbreak{}unit full-\allowbreak{}data causal laws}; \(\mathcal P^{\mathrm F}(\alpha,\beta,\gamma,L,\epsilon,d)\)
+  \item \texttt{ObservedLawClass} --- \texttt{observed-\allowbreak{}data image of the causal class}; \(\mathcal P^{\mathrm{obs}}(\alpha,\beta,\gamma,L,\epsilon,d)\)
+  \item \texttt{P} --- \texttt{observed-\allowbreak{}data law}; \(\Delta(\mathcal X\times\{0,1\}\times[0,1])\)
+  \item \texttt{On} --- \texttt{iid observed sample}
+  \par\smallskip\noindent\emph{Definition.} \(O^n=(O_1,\ldots,O_n)\sim P^{\otimes n}\)
+  \item \texttt{e} --- \texttt{propensity function}; \(e:\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(e(x)=P(A=1\mid X=x)\)
+  \item \texttt{mu0} --- \texttt{control-\allowbreak{}arm regression}; \(\mu_0:\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_0(x)=\mathbb E_P[Y\mid A=0,X=x]\)
+  \item \texttt{mu1} --- \texttt{treated-\allowbreak{}arm regression}; \(\mu_1:\mathcal X\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_1(x)=\mathbb E_P[Y\mid A=1,X=x]\)
+  \item \texttt{tau} --- \texttt{conditional average treatment effect}; \(\tau:\mathcal X\to[-1,1]\); \texttt{observed-\allowbreak{}law CATE,\allowbreak{} causally identified on the observed image}
+  \par\smallskip\noindent\emph{Definition.} \(\tau(x)=\mu_1(x)-\mu_0(x)\)
+  \item \texttt{taubar} --- \texttt{real}
+  \par\smallskip\noindent\emph{Definition.} \(\bar\tau=\int_{\mathcal X}\tau(x)\,d\lambda(x)\)
+  \item \texttt{V} --- \texttt{nonnegative causal functional}; \texttt{squared separation from the constant-\allowbreak{}CATE null}
+  \par\smallskip\noindent\emph{Definition.} \(V(P)=\int_{\mathcal X}(\tau(x)-\bar\tau)^2\,d\lambda(x)\)
+  \item \texttt{I} --- \texttt{compact interval}; \texttt{set containing every legal constant CATE}
+  \par\smallskip\noindent\emph{Definition.} \(I=[-1,1]\)
+  \item \texttt{cProfile} --- \texttt{generic profile constant}; \(I\)
+  \item \texttt{ModelClass} --- \texttt{triangular family of observed-\allowbreak{}data experiments}; \(\mathcal M_n(\alpha,\beta,\gamma,L,\epsilon,d)\)
+  \item \texttt{NullClass} --- \texttt{null experiment class}; \(\mathcal M_{0,n}\)
+  \item \texttt{AltClass} --- \texttt{separated alternative class}; \(\mathcal M_{1,n}(\rho)\)
+  \item \texttt{phi} --- \texttt{measurable randomized test}; \(\phi_n:O^n\to[0,1]\)
+  \item \texttt{rho} --- \texttt{positive separation radius}; \((0,\infty)\)
+  \item \texttt{rhoStar} --- \texttt{nonnegative minimax separation radius}; \(\rho_\star(n;\alpha,\beta,\gamma,d)\)
+  \item \texttt{PropensityClass} --- \texttt{admissible propensity-\allowbreak{}function space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_{\alpha,L,\epsilon}=\{f\in\mathcal H^\alpha(L):\epsilon\le f(x)\le1-\epsilon\text{ for every }x\in\mathcal X\}\)
+  \item \texttt{phiKnown} --- \texttt{measurable randomized oracle test}; \(\phi_n^{\mathrm{known}\ e}:O^n\times\mathcal E_{\alpha,L,\epsilon}\to[0,1]\); \texttt{test whose second input is the exact propensity function}
+  \item \texttt{rhoStarKnown} --- \texttt{nonnegative oracle minimax separation radius}; \(\rho_\star^{\mathrm{known}\ e}(n;\alpha,\beta,\gamma,d)\)
+  \item \texttt{m} --- \texttt{marginal outcome regression}
+  \par\smallskip\noindent\emph{Definition.} \(m(x)=\mathbb E_P[Y\mid X=x]\)
+  \item \texttt{r} --- \texttt{treatment-\allowbreak{}weighted outcome regression}
+  \par\smallskip\noindent\emph{Definition.} \(r(x)=\mathbb E_P[AY\mid X=x]\)
+  \item \texttt{w} --- \texttt{overlap weight}
+  \par\smallskip\noindent\emph{Definition.} \(w(x)=e(x)\{1-e(x)\}\)
+  \item \texttt{qc} --- \texttt{profiled conditional-\allowbreak{}moment function}
+  \par\smallskip\noindent\emph{Definition.} \(q_c(x)=r(x)-e(x)m(x)-c w(x)\) for \(c=c_{\mathrm{prof}}\in I\)
+  \item \texttt{tauwbar} --- \texttt{overlap-\allowbreak{}weighted constant CATE coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(\bar\tau_w=\{\int_{\mathcal X}w(x)\tau(x)\,d\lambda(x)\}/\{\int_{\mathcal X}w(x)\,d\lambda(x)\}\)
+  \item \texttt{eHat} --- \texttt{generic cross-\allowbreak{}fitted propensity estimator}; \(\widehat e_n:\mathcal X\to[0,1]\)
+  \item \texttt{mu0Hat} --- \texttt{generic cross-\allowbreak{}fitted control-\allowbreak{}regression estimator}; \(\widehat\mu_{0,n}:\mathcal X\to[0,1]\)
+  \item \texttt{mu1Hat} --- \texttt{generic cross-\allowbreak{}fitted treated-\allowbreak{}regression estimator}; \(\widehat\mu_{1,n}:\mathcal X\to[0,1]\)
+  \item \texttt{tauHat} --- \texttt{generic cross-\allowbreak{}fitted CATE estimator}; \(\widehat\tau_n:\mathcal X\to[-1,1]\)
+  \item \texttt{taubarHat} --- \texttt{generic cross-\allowbreak{}fitted ATE estimator}; \(\mathbb R\)
+  \item \texttt{YuLearnerRegime} --- \texttt{asymptotic learner-\allowbreak{}remainder condition}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf Y_n\) denotes \(\|\widehat e_n-e\|_{L^2(P)}=o_P(n^{-1/4})\), \(\max_{a\in\{0,1\}}\|\widehat\mu_{a,n}-\mu_a\|_{L^2(P)}=o_P(n^{-1/4})\), \(\|\widehat\tau_n-\tau\|_{L^2(P)}=o_P(n^{-1/4})\), and \(\lvert\widehat{\bar\tau}_n-\bar\tau\rvert=O_P(n^{-1/2})\), the learner-rate part of Yu (2026), Assumption 4
+  \item \texttt{YuRegularity} --- \texttt{published-\allowbreak{}procedure applicability predicate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf R_{\mathrm{Yu},n}(P)\) denotes the non-learner conditions in Yu (2026), Assumptions 1--3 and Theorem 1, including Assumption 3(ii)'s boundary-nondegeneracy requirement and the stated fold and moment conditions
+  \item \texttt{DGSU} --- \texttt{Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah predictor}
+  \par\smallskip\noindent\emph{Definition.} \(U=(A,X)\in\mathcal U=\{0,1\}\times\mathcal X\)
+  \item \texttt{DGSLoss} --- \texttt{identity-\allowbreak{}link conditional-\allowbreak{}mean loss}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{\mathrm{DGS}}(\eta;(U,Y))=\eta^2/2-\eta Y\), so \(\ell'_{\mathrm{DGS}}(\eta;(U,Y))=\eta-Y\)
+  \item \texttt{DGSNullSpace} --- \texttt{Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah constant-\allowbreak{}CATE null risk class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_{\mathrm{DGS}}=\{(a,x)\mapsto f_0(x)+ac:f_0\in L^2(\lambda),\ c\in\mathbb R\}\)
+  \item \texttt{DGSAmbientSpace} --- \texttt{Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah ambient risk class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_{\mathrm{DGS},P}=L^2(P_U)\)
+  \item \texttt{fDGSStar} --- \texttt{null-\allowbreak{}class population risk minimizer}
+  \par\smallskip\noindent\emph{Definition.} \(f_P^*\in\arg\min_{f\in\mathcal F_{\mathrm{DGS}}}\mathbb E_P[\ell_{\mathrm{DGS}}(f(U);(U,Y))]\)
+  \item \texttt{sDGS} --- \texttt{Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah projected population score}
+  \par\smallskip\noindent\emph{Definition.} \(s_P=\Pi_{\mathcal G_{\mathrm{DGS},P}}^{L^2(P)}[\ell'_{\mathrm{DGS}}(f_P^*(U);(U,Y))]\in L^2(P_U)\)
+  \item \texttt{hDGSHunt} --- \texttt{training-\allowbreak{}sample-\allowbreak{}measurable hunted function}; \(\widehat h_n:\mathcal U\to\mathbb R\)
+  \item \texttt{hDGSDelta} --- \texttt{hunted treatment-\allowbreak{}interaction component}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat h_{\Delta,n}(x)=\widehat h_n(1,x)-\widehat h_n(0,x)\)
+  \item \texttt{cDGSHunt} --- \texttt{weighted projection coefficient for the hunted interaction}
+  \par\smallskip\noindent\emph{Definition.} \(c_{\widehat h}=\{\int_{\mathcal X}w(x)\widehat h_{\Delta,n}(x)\,d\lambda(x)\}/\{\int_{\mathcal X}w(x)\,d\lambda(x)\}\)
+  \item \texttt{xiHunt} --- \texttt{Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah debiased hunted direction}; \(\xi_P:\mathcal U\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\xi_P(U)=\widehat h_n(U)-\Pi_{\mathcal F_{\mathrm{DGS}}}^{L^2(P_U)}\widehat h_n(U)=(A-e(X))\{\widehat h_{\Delta,n}(X)-c_{\widehat h}\}\)
+  \item \texttt{VDGS} --- \texttt{Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah projected-\allowbreak{}score energy}
+  \par\smallskip\noindent\emph{Definition.} \(V_{\mathrm{DGS}}(P)=\mathbb E_P[s_P(U)^2]\)
+  \item \texttt{deltaDGS} --- \texttt{positive Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah effect-\allowbreak{}energy threshold}; \(\delta_n>0\)
+  \item \texttt{kappaHunt} --- \texttt{positive hunted-\allowbreak{}direction correlation threshold}; \(\kappa_n\in(0,1]\)
+  \item \texttt{DGSRegularity} --- \texttt{published-\allowbreak{}procedure applicability predicate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf R_{\mathrm{DGS},n}(P)\) denotes Assumptions 1--5 and Theorem 1(a)--(b) of Dhawan, Guo and Shah (2026) for \(\ell_{\mathrm{DGS}},\mathcal F_{\mathrm{DGS}},\mathcal G_{\mathrm{DGS},P}\), including their conditional score-variance lower bound, estimation remainders, direction nondegeneracy, and conditional Lyapunov condition
+  \item \texttt{DGSCondition} --- \texttt{Dhawan-\allowbreak{}-\allowbreak{}Guo-\allowbreak{}-\allowbreak{}Shah Corollary 2 sufficient power condition}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf D_n(\kappa_n,\delta_n)\) denotes \(\mathsf R_{\mathrm{DGS},n}(P)\), \(V_{\mathrm{DGS}}(P)\ge\delta_n\), \(\inf_P P\{\operatorname{Corr}_P(s_P(U),\xi_P(U)\mid\widehat h_n)>\kappa_n\}\to1\), and \(n\kappa_n^2\delta_n\to\infty\), with the infimum over the DGS-admissible comparison class at energy at least \(\delta_n\)
+  \item \texttt{rSharp} --- \texttt{positive rate sequence}; \(r_n(\alpha,\beta,\gamma,d)\)
+  \par\smallskip\noindent\emph{Definition.} the separation rate derived by \(\mathrm{oeq:sharp\mbox{-}observational\mbox{-}frontier}\)
+  \item \texttt{s} --- \texttt{positive real}; \texttt{product-\allowbreak{}bias smoothness}
+  \par\smallskip\noindent\emph{Definition.} \(s=\alpha+\beta\)
+  \item \texttt{roracle} --- \texttt{positive rate sequence}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathrm{or}}(n)=n^{-2\gamma/(4\gamma+d)}\)
+  \item \texttt{rnuis} --- \texttt{positive rate sequence}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathrm{nu}}(n)=n^{-4\gamma s/(4\gamma s+d s+2d\gamma)}\)
+  \item \texttt{Rupper} --- \texttt{positive rate sequence}; \texttt{candidate full-\allowbreak{}class upper rate,\allowbreak{} not a claimed minimax answer}
+  \par\smallskip\noindent\emph{Definition.} \(R_{\mathrm{up}}(n)=r_{\mathrm{or}}(n)\vee r_{\mathrm{nu}}(n)\)
+  \item \texttt{cRate} --- \texttt{positive constant}
+  \par\smallskip\noindent\emph{Definition.} \(c_{\mathrm{rate}}>0\), derived by the minimax lower-bound statements
+  \item \texttt{CRate} --- \texttt{finite positive constant}
+  \par\smallskip\noindent\emph{Definition.} \(C_{\mathrm{rate}}<\infty\), derived by the uniform upper-bound statements
+  \item \texttt{n0} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(n_0\), derived by the uniform statements as a function only of \(d,\alpha,\beta,\gamma,L,\epsilon\)
+  \item \texttt{k} --- \texttt{positive integer}; \(\mathbb N_{+}\); \texttt{signal-\allowbreak{}projection rank}
+  \item \texttt{ell} --- \texttt{positive integer}; \(\mathbb N_{+}\); \texttt{nuisance-\allowbreak{}projection rank}
+  \item \texttt{PiK} --- \texttt{known orthogonal projector}; \(\Pi_k:L^2(\lambda)\to\mathcal S_k^{(\gamma)}\)
+  \par\smallskip\noindent\emph{Definition.} the \(L^2(\lambda)\)-projection onto regular-grid tensor polynomials of degree \(\lceil\gamma\rceil\) and rank \(k\), including constants
+  \item \texttt{phiBasis} --- \texttt{known orthonormal basis}
+  \par\smallskip\noindent\emph{Definition.} \(\boldsymbol\varphi_k=(\varphi_1,\ldots,\varphi_k)\) is the fixed orthonormal basis defining \(\Pi_k\)
+  \item \texttt{PEll} --- \texttt{known orthogonal projector}; \(P_\ell:L^2(\lambda)\to\mathcal S_\ell^{(\alpha,\beta)}\)
+  \par\smallskip\noindent\emph{Definition.} the \(L^2(\lambda)\)-projection onto regular-grid tensor polynomials of degree \(\lceil\alpha\vee\beta\rceil\) and rank \(\ell\)
+  \item \texttt{KEll} --- \texttt{known symmetric projection kernel}; \(K_\ell:\mathcal X^2\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \((P_\ell f)(x)=\int K_\ell(x,z)f(z)\,d\lambda(z)\)
+  \item \texttt{BEll} --- \texttt{augmented product map}
+  \par\smallskip\noindent\emph{Definition.} \(B_\ell(f,g)=fP_\ell g+gP_\ell f-(P_\ell f)(P_\ell g)\)
+  \item \texttt{qtildec} --- \texttt{nuisance-\allowbreak{}corrected score function}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde q_c=r-ce-B_\ell(e,m-ce)\)
+  \item \texttt{Qkl} --- \texttt{nonnegative projected energy}
+  \par\smallskip\noindent\emph{Definition.} \(Q_{k,\ell}(c)=\|\Pi_k\widetilde q_c\|_{L^2(\lambda)}^2\)
+  \item \texttt{g} --- \texttt{generic signal-\allowbreak{}sieve function}; \(\mathcal S_k^{(\gamma)}\)
+  \item \texttt{JgEll} --- \texttt{known two-\allowbreak{}covariate kernel}
+  \par\smallskip\noindent\emph{Definition.} \(J_{g,\ell}(x,z)=\{g(x)+g(z)\}K_\ell(x,z)-\int g(t)K_\ell(t,x)K_\ell(t,z)\,d\lambda(t)\)
+  \item \texttt{Rc} --- \texttt{bounded residual}
+  \par\smallskip\noindent\emph{Definition.} \(R_c(O)=Y-cA\)
+  \item \texttt{Hcg} --- \texttt{symmetric order-\allowbreak{}two kernel}
+  \par\smallskip\noindent\emph{Definition.} \(H_{c,g}(O_1,O_2)=\tfrac12\sum_{h=1}^2 g(X_h)A_hR_c(O_h)-\tfrac12\{A_1R_c(O_2)+A_2R_c(O_1)\}J_{g,\ell}(X_1,X_2)\)
+  \item \texttt{N} --- \texttt{nonnegative integer}
+  \par\smallskip\noindent\emph{Definition.} \(N=\lfloor n/2\rfloor\)
+  \item \texttt{HalfSets} --- \texttt{deterministic pair of disjoint index sets}
+  \par\smallskip\noindent\emph{Definition.} \((\mathcal I_1,\mathcal I_2)\) is the fixed partition of \(\{1,\ldots,2N\}\) with \(\lvert\mathcal I_1\rvert=\lvert\mathcal I_2\rvert=N\)
+  \item \texttt{qhat} --- \texttt{two independent coefficient vectors}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat q_h(c)=(\binom{N}{2}^{-1}\sum_{i<j,\ i,j\in\mathcal I_h}H_{c,\varphi_a}(O_i,O_j))_{a=1}^k,\quad h\in\{1,2\}\)
+  \item \texttt{Tkl} --- \texttt{profiled cross-\allowbreak{}energy statistic}
+  \par\smallskip\noindent\emph{Definition.} \(T_{k,\ell}=\min_{c\in I}\widehat q_1(c)^\top\widehat q_2(c)\)
+  \item \texttt{CB} --- \texttt{known positive constant}
+  \par\smallskip\noindent\emph{Definition.} a deterministic constant computed from \(d,L,\epsilon,\alpha,\beta,\gamma\) and the fixed polynomial bases that bounds the local-polynomial approximation remainder
+  \item \texttt{C0} --- \texttt{known positive constant}
+  \par\smallskip\noindent\emph{Definition.} a deterministic constant computed from \(d,L,\epsilon,\alpha,\beta,\gamma\) and the fixed polynomial bases that bounds the joint coefficient covariance
+  \item \texttt{Bstar} --- \texttt{known nonnegative bound}
+  \par\smallskip\noindent\emph{Definition.} \(B_\ell^*=C_B\ell^{-s/d}\)
+  \item \texttt{vell} --- \texttt{known positive variance bound}
+  \par\smallskip\noindent\emph{Definition.} \(v_\ell=C_0\{N^{-1}+\ell N^{-2}\}\)
+  \item \texttt{tcrit} --- \texttt{known deterministic critical value}
+  \par\smallskip\noindent\emph{Definition.} \(t_{k,\ell}=(B_\ell^*)^2+\sqrt{20\{2v_\ell(B_\ell^*)^2+k v_\ell^2\}}\)
+  \item \texttt{kn} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(k_n=\dim\mathcal S_{\lceil R_{\mathrm{up}}^{-1/\gamma}\rceil}^{(\lceil\gamma\rceil)}\), the rank of the stated regular-grid signal space
+  \item \texttt{elln} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_n=\dim\mathcal S_{\lceil R_{\mathrm{up}}^{-1/s}\rceil}^{(\lceil\alpha\vee\beta\rceil)}\), enlarged by the smallest fixed grid level for which \(C_B\ell_n^{-\alpha/d}\le\epsilon(1-\epsilon)/2\)
+  \item \texttt{phiUpper} --- \texttt{explicit randomized test}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_n^{\mathrm{up}}=0\) for \(n<4\), and \(\phi_n^{\mathrm{up}}=\mathbf 1\{T_{k_n,\ell_n}>t_{k_n,\ell_n}\}\) for \(n\ge4\), with deterministic tie randomization
+  \item \texttt{MixtureHandle} --- \texttt{lower-\allowbreak{}bound construction handle}; \texttt{concrete starting move for deriving,\allowbreak{} rather than guessing,\allowbreak{} the sharp observational rate}
+  \par\smallskip\noindent\emph{Definition.} null-preserving full-observation mixture program: perturb the four Bernoulli cell-probability surfaces on a smooth regular partition, enforce constant \(\tau\) in every null draw, moment-match transition regions under exact \(X\sim\lambda\), and optimize the resulting \(\chi^2\) or Hellinger bound subject to the separate \(\mathcal H^\alpha(L)\), \(\mathcal H^\beta(L)\), and \(\mathcal H^\gamma(L)\) constraints
+  \item \texttt{tWitness} --- \texttt{real}; \([0,1/10]\)
+  \item \texttt{zWitness} --- \texttt{affine function}
+  \par\smallskip\noindent\emph{Definition.} \(z(x)=x_1-1/2\)
+  \item \texttt{eWitness} --- \texttt{propensity function}
+  \par\smallskip\noindent\emph{Definition.} \(e^{\mathrm w}(x)=1/2+z(x)/10\)
+  \item \texttt{mu0Witness} --- \texttt{control-\allowbreak{}arm regression}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_0^{\mathrm w}(x)=1/2+z(x)/10\)
+  \item \texttt{tauWitness} --- \texttt{CATE function}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_t^{\mathrm w}(x)=t z(x)\)
+  \item \texttt{PFullWitness} --- \texttt{full-\allowbreak{}data causal law}
+  \par\smallskip\noindent\emph{Definition.} \(P_t^{\mathrm F,w}\) is generated by \(X\sim\lambda\), \(A\mid X=x\sim\operatorname{Bernoulli}(e^{\mathrm w}(x))\), conditionally independent Bernoulli \(Y(0),Y(1)\) with means \(\mu_0^{\mathrm w}(x)\) and \(\mu_0^{\mathrm w}(x)+\tau_t^{\mathrm w}(x)\), and \(Y=AY(1)+(1-A)Y(0)\)
+  \item \texttt{PWitness} --- \texttt{observed-\allowbreak{}data law}
+  \par\smallskip\noindent\emph{Definition.} \(P_t^{\mathrm w}=\operatorname{Obs}(P_t^{\mathrm F,w})\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The observations satisfy \(O^n\sim P^{\otimes n}\).
+\par\smallskip\noindent\emph{Standard} (iid sampling, \cite{CrumpHotzImbensMitnik2008}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-design]\label{ass:uniform-design}
+Under \(P^{\mathrm F}\), the covariate law is known and satisfies \(X\sim\operatorname{Unif}([0,1]^d)=\lambda\).
+\par\smallskip\noindent\emph{Standard} (known random uniform design, \cite{IngsterSapatinas2009}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-outcome]\label{ass:bounded-outcome}
+Under \(P^{\mathrm F}\), the potential-outcome vector satisfies \((Y(0),Y(1))\in[0,1]^2\) almost surely.
+\par\smallskip\noindent\emph{Standard} (bounded outcome, \cite{LuedtkeCaroneVanDerLaan2019}).
+\end{assumption}
+
+\begin{assumption}[ass:propensity-holder]\label{ass:propensity-holder}
+The full-law propensity satisfies \(e^{\mathrm F}\in\mathcal H^\alpha(L)\).
+\par\smallskip\noindent\emph{Standard} (isotropic Hölder propensity, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:overlap]\label{ass:overlap}
+The full-law propensity satisfies \(\epsilon\le e^{\mathrm F}(x)\le1-\epsilon\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (strong overlap, \cite{CrumpHotzImbensMitnik2008}).
+\end{assumption}
+
+\begin{assumption}[ass:baseline-holder]\label{ass:baseline-holder}
+The control potential-outcome regression satisfies \(\mu_0^{\mathrm F}\in\mathcal H^\beta(L)\).
+\par\smallskip\noindent\emph{Standard} (isotropic Hölder control regression, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:cate-holder]\label{ass:cate-holder}
+The full-law CATE satisfies \(\tau^{\mathrm F}\in\mathcal H^\gamma(L)\).
+\par\smallskip\noindent\emph{Standard} (isotropic Hölder CATE, \cite{KennedyBalakrishnanRobinsWasserman2024}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+Under \(P^{\mathrm F}\), the observed outcome satisfies \(Y=AY(1)+(1-A)Y(0)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (causal consistency, \cite{CrumpHotzImbensMitnik2008}).
+\end{assumption}
+
+\begin{assumption}[ass:exchangeability]\label{ass:exchangeability}
+Under \(P^{\mathrm F}\), treatment satisfies \(A\mathbin{\perp\!\!\!\perp}(Y(0),Y(1))\mid X\).
+\par\smallskip\noindent\emph{Standard} (conditional exchangeability, \cite{CrumpHotzImbensMitnik2008}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:full-data-class]\label{def:full-data-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full-\allowbreak{}data rough-\allowbreak{}confounding causal-\allowbreak{}law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P^{\mathrm F}(\alpha,\beta,\gamma,L,\epsilon,d)=\{P^{\mathrm F}\in\Delta(\mathcal X\times\{0,1\}\times\mathbb R^3):X\sim\lambda,\ (Y(0),Y(1))\in[0,1]^2\ P^{\mathrm F}\text{-a.s.},\ e^{\mathrm F}\in\mathcal H^\alpha(L),\ \epsilon\le e^{\mathrm F}\le1-\epsilon,\ \mu_0^{\mathrm F}\in\mathcal H^\beta(L),\ \tau^{\mathrm F}\in\mathcal H^\gamma(L),\ Y=AY(1)+(1-A)Y(0)\ P^{\mathrm F}\text{-a.s.},\ (Y(0),Y(1))\perp A\mid X\}\) over \(\mathcal X=[0,1]^d\), with the conditional joint law of \((Y(0),Y(1))\mid X\) otherwise unrestricted.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}uniform-\allowbreak{}design}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcome}; \texttt{ass:\allowbreak{}propensity-\allowbreak{}holder}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}baseline-\allowbreak{}holder}; \texttt{ass:\allowbreak{}cate-\allowbreak{}holder}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}exchangeability}.
+\end{definition}
+
+\begin{definition}[def:observed-law-image]\label{def:observed-law-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}data image of the causal-\allowbreak{}law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P^{\mathrm{obs}}(\alpha,\beta,\gamma,L,\epsilon,d)=\{P\in\Delta(\mathcal X\times\{0,1\}\times[0,1]):\exists P^{\mathrm F}\in\mathcal P^{\mathrm F}(\alpha,\beta,\gamma,L,\epsilon,d),\ P=\operatorname{Obs}(P^{\mathrm F})\}\).
+\par\smallskip\noindent\emph{Member properties.} .
+\end{definition}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed rough-\allowbreak{}confounding sample experiment}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_n(\alpha,\beta,\gamma,L,\epsilon,d)=\{P^{\otimes n}:P\in\mathcal P^{\mathrm{obs}}(\alpha,\beta,\gamma,L,\epsilon,d)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}.
+\end{definition}
+
+\begin{definition}[def:null-class]\label{def:null-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Composite constant-\allowbreak{}CATE observed experiment}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{0,n}=\{P^{\otimes n}:P\in\mathcal P^{\mathrm{obs}}(\alpha,\beta,\gamma,L,\epsilon,d),\ V(P)=0\}\).
+\par\smallskip\noindent\emph{Member properties.} .
+\end{definition}
+
+\begin{definition}[def:alternative-class]\label{def:alternative-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Variance-\allowbreak{}separated observed experiment}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{1,n}(\rho)=\{P^{\otimes n}:P\in\mathcal P^{\mathrm{obs}}(\alpha,\beta,\gamma,L,\epsilon,d),\ V(P)\ge\rho^2\}\).
+\par\smallskip\noindent\emph{Member properties.} .
+\end{definition}
+
+\begin{definition}[def:separation-radius]\label{def:separation-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}data minimax separation radius}
+\par\smallskip\noindent\emph{Construction.} \(\rho_\star(n)=\inf\{\rho>0:\exists\text{ measurable }\phi_n:O^n\to[0,1],\ \sup_{P\in\mathcal P^{\mathrm{obs}}:\,V(P)=0}\mathbb E_{P^{\otimes n}}\phi_n(O^n)\le a_0,\ \sup_{P\in\mathcal P^{\mathrm{obs}}:\,V(P)\ge\rho^2}\mathbb E_{P^{\otimes n}}[1-\phi_n(O^n)]\le b_0\}\), with an empty alternative supremum equal to zero.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observed-\allowbreak{}law-\allowbreak{}image}.
+\end{definition}
+
+\begin{definition}[def:known-propensity-separation-radius]\label{def:known-propensity-separation-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Known-\allowbreak{}propensity minimax separation radius}
+\par\smallskip\noindent\emph{Construction.} \(\rho_\star^{\mathrm{known}\ e}(n)=\inf\{\rho>0:\exists\text{ measurable }\phi_n^{\mathrm{known}\ e}:O^n\times\mathcal E_{\alpha,L,\epsilon}\to[0,1],\ \sup_{P\in\mathcal P^{\mathrm{obs}}:\,V(P)=0}\mathbb E_{P^{\otimes n}}\phi_n^{\mathrm{known}\ e}(O^n,e_P)\le a_0,\ \sup_{P\in\mathcal P^{\mathrm{obs}}:\,V(P)\ge\rho^2}\mathbb E_{P^{\otimes n}}[1-\phi_n^{\mathrm{known}\ e}(O^n,e_P)]\le b_0\}\), with the exact propensity \(e_P(x)=P(A=1\mid X=x)\) supplied as the second input and an empty alternative supremum equal to zero.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observed-\allowbreak{}law-\allowbreak{}image}.
+\end{definition}
+
+\begin{definition}[def:corrected-energy-test]\label{def:corrected-energy-test}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total corrected-\allowbreak{}energy test}
+\par\smallskip\noindent\emph{Construction.} Return nonrejection for \(n<4\). For \(n\ge4\), split \(O^n\) into halves of size \(N\); form every coordinate of \(\widehat q_h(c)\) by the displayed order-two U-statistic; compute the three coefficients of the quadratic \(c\mapsto\widehat q_1(c)^\top\widehat q_2(c)\); minimize it on \(I\) by checking both endpoints and the vertex when it is convex and internal; reject exactly when \(T_{k_n,\ell_n}>t_{k_n,\ell_n}\), using \(k_n\) and \(\ell_n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{On}; \texttt{alpha}; \texttt{beta}; \texttt{gamma}; \texttt{L}; \texttt{epsilon}; \texttt{d}.
+\end{definition}
+
+\begin{definition}[def:observational-mixture-handle]\label{def:observational-mixture-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Null-\allowbreak{}preserving observed-\allowbreak{}data mixture handle}
+\par\smallskip\noindent\emph{Construction.} Apply \(\mathrm{MixtureHandle}\) to the full four-cell Bernoulli likelihood, retaining the transition regions observed under \(X\sim\lambda\); determine the partition scale, moment-matching order, and perturbation amplitudes from the separate Hölder constraints and the requirement that every null draw have constant \(\tau\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}null-\allowbreak{}class}; \texttt{def:\allowbreak{}alternative-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:published-procedure-comparison-handle]\label{def:published-procedure-comparison-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Learner-\allowbreak{}rate and direction-\allowbreak{}correlation comparison handle}
+\par\smallskip\noindent\emph{Construction.} Translate Yu (2026), Assumption 4 and Theorem 1 into Hölder sieve rates while retaining \(\mathsf R_{\mathrm{Yu},n}(P)\) as a separate applicability restriction. For Dhawan, Guo and Shah (2026), take their predictor to be \(U=(A,X)\), identity-link squared loss, ambient class \(\mathcal G_{\mathrm{DGS},P}=L^2(P_U)\), and null class \(\mathcal F_{\mathrm{DGS}}\); first derive \(f_P^*\), \(s_P\), and \(\xi_P\) from the two \(L^2\) projections. Compare Corollary 2 only on laws satisfying \(\mathsf R_{\mathrm{DGS},n}\), and obtain any claimed strict non-inclusion from an explicit sequence in \(\mathcal P^{\mathrm{obs}}\), using dense orthogonal bump packs for vanishing correlation and a single aligned direction for positive correlation.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observed-\allowbreak{}law-\allowbreak{}image}; \texttt{def:\allowbreak{}separation-\allowbreak{}radius}.
+\end{definition}
+
+\begin{definition}[def:legal-witness]\label{def:legal-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nondegenerate polynomial witness}
+\par\smallskip\noindent\emph{Construction.} For \(t\in[0,1/10]\), generate the full law \(P_t^{\mathrm F,w}\) by the declared affine propensity, affine baseline, affine CATE, conditionally independent Bernoulli potential outcomes, and consistency; set \(P_t^{\mathrm w}=\operatorname{Obs}(P_t^{\mathrm F,w})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{tWitness}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:observed-image-identification]\label{lem:observed-image-identification}
+For every \(P^{\mathrm F}\in\mathcal P^{\mathrm F}(\alpha,\beta,\gamma,L,\epsilon,d)\), let \(P=\operatorname{Obs}(P^{\mathrm F})\). Then \(e=e^{\mathrm F}\), \(\mu_a=\mu_a^{\mathrm F}\) for \(a\in\{0,1\}\), and \(\tau=\tau^{\mathrm F}=\mathbb E_{P^{\mathrm F}}[Y(1)-Y(0)\mid X]\), up to \(\lambda\)-null sets. Conversely, every observed law \(P\) with \(X\sim\lambda\), \(Y\in[0,1]\), \(e\in\mathcal H^\alpha(L)\), \(\epsilon\le e\le1-\epsilon\), \(\mu_0\in\mathcal H^\beta(L)\), and \(\mu_1-\mu_0\in\mathcal H^\gamma(L)\) has a bounded potential-outcome lift in \(\mathcal P^{\mathrm F}\), obtained by drawing \(Y(0)\) and \(Y(1)\) conditionally independently from the two observed arm laws given \(X\), drawing \(A\) independently of them given \(X\), and setting \(Y=AY(1)+(1-A)Y(0)\). Thus \(\mathcal P^{\mathrm{obs}}\) is exactly the observed-law class specified by those restrictions.
+\end{lemma}
+\begin{proof}
+Put \(Q_a(x,\cdot)=P(Y\in\cdot\mid A=a,X=x)\).  These regular conditional laws exist because \([0,1]^d\), \(\{0,1\}\), and \([0,1]\) are standard Borel spaces, by \(\mathrm{lem:standard\mbox{-}borel\mbox{-}conditional\mbox{-}kernel}\).  First take \(P^{\mathrm F}\in\mathcal P^{\mathrm F}\) and \(P=\operatorname{Obs}(P^{\mathrm F})\).  Marginalization does not change the joint law of \((X,A)\), hence
+\[
+ e(x)=P(A=1\mid X=x)=P^{\mathrm F}(A=1\mid X=x)=e^{\mathrm F}(x)
+\]
+for \(\lambda\)-almost every \(x\).  For \(a\in\{0,1\}\), overlap guarantees that the arm conditional mean is defined on a set of full \(\lambda\)-measure.  Consistency and conditional exchangeability give, successively,
+\[
+\begin{aligned}
+ \mu_a(x)
+ &=\mathbb E_P[Y\mid A=a,X=x]\\
+ &=\mathbb E_{P^{\mathrm F}}[Y(a)\mid A=a,X=x]\\
+ &=\mathbb E_{P^{\mathrm F}}[Y(a)\mid X=x]
+ =\mu_a^{\mathrm F}(x).
+\end{aligned}
+\]
+Subtracting the identities for \(a=1\) and \(a=0\) proves
+\[
+ \tau(x)=\tau^{\mathrm F}(x)
+ =\mathbb E_{P^{\mathrm F}}[Y(1)-Y(0)\mid X=x]
+\]
+up to a \(\lambda\)-null set.  The support, design, overlap, and three smoothness restrictions for the observed functions now follow from the corresponding defining properties of \(\mathcal P^{\mathrm F}\).
+
+Conversely, let \(P\) have the observed-law properties in the statement.  Use the conditional kernels \(Q_0,Q_1\) above and construct a full-data law as follows: draw \(X\sim\lambda\); conditional on \(X=x\), draw \(Y(0)\sim Q_0(x,\cdot)\) and \(Y(1)\sim Q_1(x,\cdot)\) independently; independently of this pair given \(X=x\), draw \(A\sim\operatorname{Bernoulli}(e(x))\); finally set
+\[
+ Y=A Y(1)+(1-A)Y(0).
+\]
+For every Borel \(B\subseteq\mathcal X\), \(C\subseteq[0,1]\), and \(a\in\{0,1\}\), this construction yields
+\[
+ P^{\mathrm F}(X\in B,A=a,Y\in C)
+ =\int_B e(x)^a\{1-e(x)\}^{1-a}Q_a(x,C)\,d\lambda(x),
+\]
+which is exactly the corresponding disintegration of \(P\).  Thus \(\operatorname{Obs}(P^{\mathrm F})=P\).  The construction gives bounded potential outcomes, consistency, and conditional exchangeability.  Its propensity is \(e\), its potential-outcome regressions are \(\mu_a\), and its CATE is \(\mu_1-\mu_0\); hence all defining smoothness and overlap conditions hold.  Therefore \(P^{\mathrm F}\in\mathcal P^{\mathrm F}\), proving both inclusions in the claimed observed-image characterization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This bridge makes the causal interpretation and the statistical experiment coexist without placing latent variables inside an observed-law set. \textit{Gap.} CrumpHotzImbensMitnik2008 invokes consistency and unconfoundedness for identification; this lemma records the exact observed-image equivalence needed by the minimax experiment. \textit{Consumer.} Every minimax supremum and likelihood construction can be stated solely over observed laws while retaining an explicit causal estimand.
+
+\begin{lemma}[lem:profiled-score-equivalence]\label{lem:profiled-score-equivalence}
+For every \(P\in\mathcal P^{\mathrm{obs}}\) and \(c\in I\), \(q_c=w(\tau-c)\). Consequently, \([\epsilon(1-\epsilon)]^2V(P)\le\inf_{c\in I}\|q_c\|_{L^2(\lambda)}^2\le V(P)/16\).
+\end{lemma}
+\begin{proof}
+For \(P\in\mathcal P^{\mathrm{obs}}\), the identification lemma and iterated expectation imply
+\[
+ m=(1-e)\mu_0+e\mu_1=\mu_0+e\tau,
+ \qquad
+ r=e\mu_1=e(\mu_0+\tau).
+\]
+Consequently, for every \(c\in I\),
+\[
+\begin{aligned}
+ q_c
+ &=r-em-cw\\
+ &=e(\mu_0+\tau)-e(\mu_0+e\tau)-ce(1-e)\\
+ &=e(1-e)(\tau-c)=w(\tau-c).
+\end{aligned}
+\]
+Overlap gives \(w(x)\ge\epsilon(1-\epsilon)\), while the elementary bound \(t(1-t)\le1/4\) for \(t\in[0,1]\) gives \(w(x)\le1/4\).  Moreover, for every real \(c\),
+\[
+ \int(\tau-c)^2\,d\lambda
+ =\int(\tau-\bar\tau)^2\,d\lambda+(c-\bar\tau)^2
+ =V(P)+(c-\bar\tau)^2.
+\]
+Because \(\tau\in[-1,1]\), its mean \(\bar\tau\) belongs to \(I\).  Therefore
+\[
+\begin{aligned}
+ \inf_{c\in I}\|q_c\|_2^2
+ &\ge [\epsilon(1-\epsilon)]^2
+       \inf_{c\in I}\|\tau-c\|_2^2
+ =[\epsilon(1-\epsilon)]^2V(P),\\
+ \inf_{c\in I}\|q_c\|_2^2
+ &\le \|w(\tau-\bar\tau)\|_2^2
+ \le \frac1{16}V(P).
+\end{aligned}
+\]
+Every division and minimization is legitimate because \(\lambda(\mathcal X)=1\), \(\epsilon>0\), and \(\bar\tau\in I\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identity turns homogeneity into a positive profiled conditional-moment energy without inverse propensity weights. \textit{Gap.} CrumpHotzImbensMitnik2008 tests constant CATE through a different nonparametric construction and does not state this coercive observed-score reduction. \textit{Consumer.} The identity supplies the population target for a bounded-weight implementation of the constant-CATE option in the dScoreTest software.
+
+\begin{lemma}[lem:dgs-score-translation]\label{lem:dgs-score-translation}
+Fix \(P\in\mathcal P^{\mathrm{obs}}\) and specialize Dhawan, Guo and Shah (2026), Section 3.1.1, to predictor \(U=(A,X)\), response \(Y\), identity link, ambient class \(\mathcal G_{\mathrm{DGS},P}=L^2(P_U)\), and constant-CATE null class \(\mathcal F_{\mathrm{DGS}}\). The null-risk projection is \(f_P^*(A,X)=m(X)+(A-e(X))\bar\tau_w\). Therefore their projected score and debiased hunted direction are, respectively, \(s_P(U)=\mathbb E_P[f_P^*(U)-Y\mid U]=(A-e(X))\{\bar\tau_w-\tau(X)\}\) and \(\xi_P(U)=(A-e(X))\{\widehat h_{\Delta,n}(X)-c_{\widehat h}\}\). It follows that \(V_{\mathrm{DGS}}(P)=\int_{\mathcal X}w(x)\{\tau(x)-\bar\tau_w\}^2\,d\lambda(x)\) and \(\epsilon(1-\epsilon)V(P)\le V_{\mathrm{DGS}}(P)\le V(P)/4\). On a comparison class satisfying \(\mathsf R_{\mathrm{DGS},n}\), Corollary 2 therefore applies at \(V(P)\asymp r_n^2\) when its conditional correlation requirement holds and \(n\kappa_n^2r_n^2\to\infty\); the overlap equivalence neither supplies the correlation nor implies the published regularity conditions.
+\end{lemma}
+\begin{proof}
+Let \(\mu(A,X)=\mathbb E_P[Y\mid A,X]=\mu_0(X)+A\tau(X)\).  The identity-link loss differs from \(\frac12\{f(U)-Y\}^2\) by a term independent of \(f\), so its population minimizer over \(\mathcal F_{\mathrm{DGS}}\) is the \(L^2(P_U)\)-projection of \(\mu\) onto that closed linear space.  Fixing the coefficient \(c\), the pointwise minimizing baseline is
+\[
+ f_0(x)=\mathbb E_P[\mu(A,X)-Ac\mid X=x]
+       =m(x)-e(x)c.
+\]
+Thus the fitted value is \(m(X)+(A-e(X))c\), and its squared projection error is
+\[
+ \mathbb E_P[(A-e(X))^2\{\tau(X)-c\}^2]
+ =\int w(x)\{\tau(x)-c\}^2\,d\lambda(x).
+\]
+Strong overlap makes \(\int w\,d\lambda>0\), so differentiating this strictly convex quadratic in \(c\) gives its unique minimizer
+\[
+ c=\frac{\int w\tau\,d\lambda}{\int w\,d\lambda}=\bar\tau_w.
+\]
+This proves \(f_P^*(A,X)=m(X)+(A-e(X))\bar\tau_w\).
+
+Projection of the loss derivative onto \(L^2(P_U)\) is conditional expectation given \(U\).  Using \(m=\mu_0+e\tau\),
+\[
+\begin{aligned}
+ s_P(U)
+ &=f_P^*(U)-\mathbb E_P[Y\mid U]\\
+ &=m(X)+(A-e(X))\bar\tau_w-\{\mu_0(X)+A\tau(X)\}\\
+ &=(A-e(X))\{\bar\tau_w-\tau(X)\}.
+\end{aligned}
+\]
+The same projection calculation applied to an arbitrary hunted function \(h\) gives, for fixed \(c\), the fitted value
+\[
+ h(0,X)+e(X)h_\Delta(X)+(A-e(X))c.
+\]
+Minimizing its residual energy \(\int w(h_\Delta-c)^2d\lambda\) gives \(c=c_{\widehat h}\), and hence
+\[
+ \xi_P(U)=(A-e(X))\{\widehat h_{\Delta,n}(X)-c_{\widehat h}\}.
+\]
+Conditioning on \(X\) and using \(\mathbb E[(A-e)^2\mid X]=w\) now yields
+\[
+ V_{\mathrm{DGS}}(P)
+ =\int w(x)\{\tau(x)-\bar\tau_w\}^2\,d\lambda(x)
+ =\inf_{c\in\mathbb R}\int w(x)\{\tau(x)-c\}^2\,d\lambda(x).
+\]
+Since \(\epsilon(1-\epsilon)\le w\le1/4\),
+\[
+ \epsilon(1-\epsilon)V(P)
+ \le V_{\mathrm{DGS}}(P)
+ \le \frac14V(P),
+\]
+where the lower bound minimizes the unweighted square and the upper bound evaluates the weighted square at \(c=\bar\tau\).  Finally, \(\mathrm{lem:dgs\mbox{-}corollary\mbox{-}two\mbox{-}power}\) supplies the cited conditional power implication.  The displayed equivalence changes its energy condition at \(V(P)\asymp r_n^2\) into \(n\kappa_n^2r_n^2\to\infty\), but it does not imply either the correlation event or \(\mathsf R_{\mathrm{DGS},n}(P)\); those remain separate hypotheses of the cited result.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The projection calculation supplies the only faithful bridge from the published direction-correlation theorem to CATE-variance separation. \textit{Gap.} DhawanGuoShah2026 defines the generic projected score and proves correlation-conditioned power, but does not express the score energy as the overlap-weighted distance from a constant CATE or compare it with a Hölder minimax radius. \textit{Consumer.} The calculation tells users of \(\texttt{dScoreTest}\) which signal energy its Corollary 2 controls and which alignment and nondegeneracy conditions remain additional.
+
+\begin{theorem}[thm:known-propensity-benchmark]\label{thm:known-propensity-benchmark}
+For the oracle experiment defining \(\rho_\star^{\mathrm{known}\ e}\), whose measurable tests receive \((O^n,e_P)\), \(c_{\mathrm{rate}}r_{\mathrm{or}}(n)\le\rho_\star^{\mathrm{known}\ e}(n)\le C_{\mathrm{rate}}r_{\mathrm{or}}(n)\) for every \(n\ge n_0\). The upper bound is attained by a centered projection U-statistic with ranks allowed to exceed \(n\), and the lower bound holds for all such randomized oracle tests by a legal Bernoulli bump mixture in the same observed image with exactly uniform \(X\).
+\end{theorem}
+\begin{proof}
+We prove the two inequalities separately on the same observed-law class.
+
+For the upper bound, the supplied propensity permits the observable pseudo-outcome
+\[
+ Z=\frac{AY}{e(X)}-\frac{(1-A)Y}{1-e(X)}.
+\]
+Overlap and bounded outcomes give \(|Z|\le\epsilon^{-1}\), and identification gives
+\[
+ \mathbb E_P[Z\mid X]
+ =\mu_1(X)-\mu_0(X)=\tau(X).
+\]
+Let \(\Pi_K^0\) be a declared regular-grid polynomial projection with its constant basis vector removed, let \(K_K^0\) be its kernel, and take its rank \(K\) between fixed positive multiples of \(n^{2d/(4\gamma+d)}\).  Define the completely observable statistic
+\[
+ U_K=\binom n2^{-1}\sum_{1\le i<j\le n}
+ Z_iK_K^0(X_i,X_j)Z_j.
+\]
+If \(f=\tau-\bar\tau\), independence gives
+\[
+ \mathbb E_PU_K=\|\Pi_K^0f\|_2^2=:Q_K.
+\]
+The regular-grid approximation lemma gives
+\[
+ 0\le V(P)-Q_K=\|(I-\Pi_K^0)f\|_2^2
+ \le C K^{-2\gamma/d}.
+\]
+For the Hoeffding decomposition, the first projection is
+\[
+ Z\,(\Pi_K^0f)(X)-Q_K.
+\]
+Its variance is at most \(C V(P)\), because \(|Z|\le\epsilon^{-1}\) and orthogonal projection contracts \(L^2(\lambda)\).  The second projection has second moment at most \(CK\), since \(Z\) is bounded and
+\[
+ \iint K_K^0(x,z)^2d\lambda(x)d\lambda(z)=K.
+\]
+The exact order-two variance decomposition therefore gives
+\[
+ \operatorname{Var}_P(U_K)\le C\{V(P)/n+K/n^2\}. \tag{1}
+\]
+All constants here depend only on the fixed class parameters and basis.
+
+Under the constant-CATE null, \(f=0\), so \(Q_K=0\) and the first projection vanishes.  Choose a computable \(D_0\) dominating the constant in (1), and reject when
+\[
+ U_K>\sqrt{20D_0K}/n.
+\]
+Chebyshev's inequality gives size at most \(1/20=0.05\).  If
+\[
+ V(P)\ge D_1\{K^{-2\gamma/d}+\sqrt K/n\}
+\]
+for a sufficiently large computable \(D_1\), then the approximation bound makes \(Q_K\ge V(P)/2\), the threshold is at most \(Q_K/4\), and (1), together with \(V(P)\ge n^{-1}\) for the chosen scale and all sufficiently large \(n\), gives
+\[
+ P(U_K\le\sqrt{20D_0K}/n)
+ \le \frac{\operatorname{Var}(U_K)}{(Q_K-\sqrt{20D_0K}/n)^2}
+ \le0.20
+\]
+after increasing \(D_1\).  With \(K\asymp n^{2d/(4\gamma+d)}\), both terms in braces are of order
+\[
+ n^{-4\gamma/(4\gamma+d)}=r_{\mathrm{or}}(n)^2.
+\]
+This proves \(\rho_\star^{\mathrm{known}\ e}(n)\le C_{\mathrm{rate}}r_{\mathrm{or}}(n)\).  The finite U-statistic remains defined when \(K>n\); no empirical Gram matrix is inverted.
+
+For the converse, fix the legal submodel \(e\equiv1/2\), \(\mu_0\equiv1/2\), and conditionally Bernoulli outcomes with \(\mu_1=1/2+h\).  The propensity supplied to every oracle test is thus the same known function.  Choose a nonzero \(C^\infty\) function \(\psi\), supported strictly inside \((0,1)^d\), with \(\int\psi=0\).  On a regular partition into \(M\) cubes of side \(h_M\asymp M^{-1/d}\), let \(\psi_j\) be translated rescaled copies of \(\psi\) and set
+\[
+ h_\omega(x)=a_M\sum_{j=1}^M\omega_j\psi_j(x),
+ \qquad \omega_j\in\{-1,1\},\qquad
+ a_M=c_\psi M^{-\gamma/d}.
+\]
+The supports stay away from cell boundaries.  Differentiating the rescaled bumps and applying the core's order-\(\lceil\gamma\rceil-1\) Hölder condition shows that a sufficiently small fixed \(c_\psi>0\) puts every \(h_\omega\) in \(\mathcal H^\gamma(L)\).  The same choice makes \(\|h_\omega\|_\infty\le1/4\), so all Bernoulli means lie in \([0,1]\).  Each bump has zero integral, and disjointness gives
+\[
+ V(P_\omega)=\|h_\omega\|_2^2
+ =a_M^2\|\psi\|_2^2\asymp M^{-2\gamma/d}. \tag{2}
+\]
+Thus all alternatives and the null \(h=0\) belong to the same observed image with exactly uniform \(X\).
+
+Under the null, the one-observation likelihood ratio is
+\[
+ L_\omega(O)=1+2A(2Y-1)h_\omega(X).
+\]
+For two sign vectors \(\omega,\omega'\), direct summation over the two Bernoulli variables gives
+\[
+ \mathbb E_0[L_\omega L_{\omega'}]
+ =1+2\int h_\omega h_{\omega'}d\lambda
+ =1+C_\psi\frac{a_M^2}{M}\sum_{j=1}^M\omega_j\omega'_j. \tag{3}
+\]
+Let \(\overline P_1^{,n}\) be the uniform sign mixture of the \(n\)-sample alternative laws.  By independence, \(1+x\le e^x\), and \(\cosh t\le e^{t^2/2}\), equation (3) yields
+\[
+\begin{aligned}
+ 1+\chi^2(\overline P_1^{,n},P_0^{\otimes n})
+ &\le \mathbb E_{\omega,\omega'}
+   \exp\!\left(Cn\frac{a_M^2}{M}
+                    \sum_{j=1}^M\omega_j\omega'_j\right)\\
+ &=\left\{\cosh(Cna_M^2/M)\right\}^M\\
+ &\le\exp(Cn^2a_M^4/M). \qquad\text{(4)}
+\end{aligned}
+\]
+Take \(M\) between fixed multiples of \(n^{2d/(4\gamma+d)}\).  Then the exponent in (4) is a fixed multiple of \(c_\psi^4\), while (2) has square-root separation a fixed multiple of \(r_{\mathrm{or}}(n)\).  Choose \(c_\psi\) so small that
+\[
+ \|\overline P_1^{,n}-P_0^{\otimes n}\|_{\mathrm{TV}}<0.75,
+\]
+using \(\|Q-P\|_{\mathrm{TV}}\le\frac12\sqrt{\chi^2(Q,P)}\).  If a randomized oracle test had size at most \(0.05\) and type-II error at most \(0.20\) for the alternatives in (2), its rejection expectation would differ between this mixture and the null by at least \(0.80-0.05=0.75\), contradicting the definition of total variation.  Hence \(\rho_\star^{\mathrm{known}\ e}(n)\ge c_{\mathrm{rate}}r_{\mathrm{or}}(n)\).  Grid rounding, support margins, and the fixed lower bounds on \(n\) are absorbed into \(n_0\), completing the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem fixes the nuisance-free benchmark that any claimed observational phase diagram must reproduce. \textit{Gap.} IngsterSapatinas2009 gives the direct Gaussian-regression benchmark; this theorem must transfer the exponent to the bounded causal Bernoulli experiment with an unknown profiled constant. \textit{Consumer.} It tells users whether a proposed rough-confounding procedure pays a genuine price beyond a randomized or known-assignment benchmark.
+
+\begin{theorem}[thm:computable-upper-bound]\label{thm:computable-upper-bound}
+The explicit finite constants \(C_B,C_0,C_{\mathrm{rate}},n_0\) depend only on \(d,\alpha,\beta,\gamma,L,\epsilon\) and the fixed polynomial bases, and \(\phi_n^{\mathrm{up}}\) is a terminating measurable test satisfying \(\sup_{P\in\mathcal P^{\mathrm{obs}}:\,V(P)=0}\mathbb E_{P^{\otimes n}}\phi_n^{\mathrm{up}}\le0.05\) and \(\sup_{P\in\mathcal P^{\mathrm{obs}}:\,V(P)\ge C_{\mathrm{rate}}^2R_{\mathrm{up}}^2}\mathbb E_{P^{\otimes n}}(1-\phi_n^{\mathrm{up}})\le0.20\) for every \(n\ge n_0\). A direct implementation uses \(O((1+n^2)k_n\ell_n^2)\) arithmetic operations and \(O(k_n\ell_n^2+n(k_n+\ell_n))\) storage. Thus \(\rho_\star(n)\le C_{\mathrm{rate}}R_{\mathrm{up}}(n)\).
+\end{theorem}
+\begin{proof}
+Write \(R_\ell=I-P_\ell\), \(f_c=\tau-c\), and \(u_c=m-ce=\mu_0+ef_c\).  The expectation calculation in \(\mathrm{lem:corrected\mbox{-}coefficient\mbox{-}covariance}\) and the algebraic identity
+\[
+ eP_\ell u+uP_\ell e-(P_\ell e)(P_\ell u)
+ =eu-(R_\ell e)(R_\ell u)
+\]
+give
+\[
+\begin{aligned}
+ \widetilde q_c
+ &=r-ce-eu_c+(R_\ell e)(R_\ell u_c)\\
+ &=w f_c+(R_\ell e)R_\ell(ef_c)+(R_\ell e)(R_\ell\mu_0)\\
+ &=:\mathcal T_\ell f_c+b_\ell. \qquad\text{(1)}
+\end{aligned}
+\]
+The regular-grid lemma permits a computable \(C_B\) such that
+\[
+ \|b_\ell\|_2
+ \le\|R_\ell e\|_\infty\|R_\ell\mu_0\|_2
+ \le C_B\ell^{-(\alpha+\beta)/d}=B_\ell^*. \tag{2}
+\]
+It also gives \(\|R_\ell e\|_\infty\le C_B\ell^{-\alpha/d}\).  The fixed enlargement in the definition of \(\ell_n\) therefore ensures
+\[
+ \|R_\ell e\|_\infty\le\epsilon(1-\epsilon)/2. \tag{3}
+\]
+Since \(R_\ell\) is an \(L^2\)-contraction, \(0\le e\le1\), and \(w\ge w_{\min}:=\epsilon(1-\epsilon)>0\), equations (1)--(3) imply
+\[
+\begin{aligned}
+ \langle f,\mathcal T_\ell f\rangle
+ &=\int wf^2d\lambda+\langle f(R_\ell e),R_\ell(ef)\rangle\\
+ &\ge\{w_{\min}-\|R_\ell e\|_\infty\}\|f\|_2^2
+ \ge\frac{w_{\min}}2\|f\|_2^2, \qquad\text{(4)}
+\end{aligned}
+\]
+and \(\|\mathcal T_\ell f\|_2\le C\|f\|_2\).
+
+Let \(\Pi_k\) be the signal projection.  Constants belong to its range, so the regular-grid approximation lemma gives, uniformly in \(c\in I\),
+\[
+ \|(I-\Pi_k)f_c\|_2\le Ck^{-\gamma/d}. \tag{5}
+\]
+Taking the inner product of \(\Pi_k(\mathcal T_\ell f_c+b_\ell)\) with \(\Pi_kf_c\), then using (2), (4), and (5), proves
+\[
+ \|\Pi_k\widetilde q_c\|_2
+ \ge\left[\frac{w_{\min}}2\|\tau-c\|_2
+              -Ck^{-\gamma/d}-B_\ell^*\right]_+. \tag{6}
+\]
+If \(\Pi_kf_c=0\), the lower bound preceding division is nonpositive and (6) still holds; otherwise it follows by division by \(\|\Pi_kf_c\|_2\le\|f_c\|_2\).  Because \(\inf_{c\in I}\|\tau-c\|_2^2=V(P)\), (6) supplies a uniform-in-\(c\) population separation bound without requiring smoothness of \(m-ce\).
+
+Now put \(q(c)=\mathbb E\widehat q_h(c)\) and \(\eta_h(c)=\widehat q_h(c)-q(c)\).  The halves are independent and the covariance lemma, with \(C_0\) enlarged once to cover \(|c|\le1\), gives
+\[
+ \operatorname{Cov}\{\eta_h(c)\}\preceq v_\ell I_k,
+ \qquad v_\ell=C_0(N^{-1}+\ell N^{-2}). \tag{7}
+\]
+For fixed \(c\), independence yields the exact decomposition
+\[
+ T(c)=\|q(c)\|_2^2+q(c)^\top\{\eta_1(c)+\eta_2(c)\}
+             +\eta_1(c)^\top\eta_2(c), \tag{8}
+\]
+and hence
+\[
+ \operatorname{Var}\{T(c)\}
+ \le2v_\ell\|q(c)\|_2^2+kv_\ell^2. \tag{9}
+\]
+Under a null law, let \(c_0\in I\) be its constant CATE.  Equations (1)--(2) give \(\|q(c_0)\|_2\le B_\ell^*\), while \(T_{k,\ell}\le T(c_0)\).  Chebyshev's inequality, (9), and the declared critical value therefore give
+\[
+ P\{T_{k,\ell}>t_{k,\ell}\}
+ \le\frac{2v_\ell(B_\ell^*)^2+kv_\ell^2}
+ {20\{2v_\ell(B_\ell^*)^2+kv_\ell^2\}}
+ =0.05. \tag{10}
+\]
+
+For power, write \(q(c)=a-cd\) and \(\eta_h(c)=\eta_{h,a}-c\eta_{h,d}\), and let \(S=\operatorname{span}\{a,d\}\).  The joint block covariance bound implies
+\[
+ \mathbb E\sum_{h=1}^2\sum_{r\in\{a,d\}}
+ \|\Pi_S\eta_{h,r}\|_2^2\le8v_\ell. \tag{11}
+\]
+Markov's inequality and Cauchy--Schwarz thus give, with probability at least \(0.90\), simultaneously for every \(c\in I\),
+\[
+ |q(c)^\top\{\eta_1(c)+\eta_2(c)\}|
+ \le\frac14\|q(c)\|_2^2+C v_\ell. \tag{12}
+\]
+For \(r,s\in\{a,d\}\), independence of the halves and (7) give
+\[
+ \mathbb E(\eta_{1,r}^\top\eta_{2,s})^2\le k v_\ell^2.
+\]
+Expanding the quadratic polynomial \(\eta_1(c)^\top\eta_2(c)\), applying Markov to the sum of these four squares, and using \(|c|\le1\), shows that, with probability at least \(0.90\), simultaneously in \(c\),
+\[
+ |\eta_1(c)^\top\eta_2(c)|\le C\sqrt{k}\,v_\ell. \tag{13}
+\]
+On the intersection of (12) and (13), whose probability is at least \(0.80\), equations (8) and \(k\ge1\) imply
+\[
+ T(c)\ge\frac12\|q(c)\|_2^2-C\sqrt{k}\,v_\ell
+ \quad\hbox{for every }c\in I. \tag{14}
+\]
+Also
+\[
+ t_{k,\ell}\le C\{(B_\ell^*)^2+\sqrt{k}\,v_\ell\}. \tag{15}
+\]
+Combining (6), (14), and (15), and increasing a computable constant \(D\), proves the uniform sufficient condition
+\[
+ V(P)\ge D\left\{k^{-2\gamma/d}+\ell^{-2s/d}
+                 +\frac{\sqrt{k}}N+\frac{\sqrt{k}\ell}{N^2}\right\}
+ \Longrightarrow P\{T_{k,\ell}\le t_{k,\ell}\}\le0.20. \tag{16}
+\]
+
+It remains to verify the declared tuning.  Regular-grid dimension formulas give
+\[
+ k_n\asymp R_{\mathrm{up}}^{-d/\gamma},
+ \qquad \ell_n\asymp R_{\mathrm{up}}^{-d/s},
+\]
+apart from the fixed lower enlargement of \(\ell_n\).  Since \(N\asymp n\), \(R_{\mathrm{up}}\ge r_{\mathrm{or}}\), and \(R_{\mathrm{up}}\ge r_{\mathrm{nu}}\), direct exponentiation gives
+\[
+\begin{aligned}
+ k_n^{-2\gamma/d}+\ell_n^{-2s/d}&\le C R_{\mathrm{up}}^2,\\
+ \frac{\sqrt{k_n}}N
+ &\le C R_{\mathrm{up}}^{-d/(2\gamma)}n^{-1}
+ \le C R_{\mathrm{up}}^2,\\
+ \frac{\sqrt{k_n}\ell_n}{N^2}
+ &\le C R_{\mathrm{up}}^{-d/(2\gamma)-d/s}n^{-2}
+ \le C R_{\mathrm{up}}^2. \qquad\text{(17)}
+\end{aligned}
+\]
+The last two inequalities are exactly the defining balances for \(r_{\mathrm{or}}\) and \(r_{\mathrm{nu}}\).  Equations (10), (16), and (17) prove the stated size and power after choosing \(C_{\mathrm{rate}}\) and \(n_0\) large enough, and the definition of \(\rho_\star\) gives its upper bound.
+
+Finally, the test is total.  For \(n\ge4\), all basis ranks and constants are deterministic functions of the declared class parameters.  Each coordinate is a finite pair sum.  The product \(\widehat q_1(c)^\top\widehat q_2(c)\) is a scalar quadratic; its minimum on \([-1,1]\) is found by checking the two endpoints and, only when the leading coefficient is positive and the vertex is internal, that vertex.  Reference-cell Gram matrices and the polynomial integrals in \(J_{g,\ell}\) require \(O(k\ell^2)\) arithmetic, and direct pair evaluation requires \(O(n^2k\ell^2)\); storing those coefficients and sample evaluations uses \(O(k\ell^2+n(k+\ell))\) numbers.  This proves the announced arithmetic and storage bounds and remains terminating when either rank exceeds \(n\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the constructive half: it remains valid when first-order nuisance-product conditions fail and when both sieve ranks exceed sample size. \textit{Gap.} DhawanGuoShah2026 and Yu2026VarianceHTE require learned-direction or nuisance-rate conditions and do not provide a full Hölder-class separation guarantee with a total test. \textit{Consumer.} The explicit statistic and conservative critical value provide a calibratable benchmark implementation for \(\texttt{hte\_test\_conditional}\) when regression learners are too rough for first-order theory.
+
+\begin{proposition}[prop:legal-nondegenerate-submodel]\label{prop:legal-nondegenerate-submodel}
+For every fixed \(d\ge1\), \(P_t^{\mathrm F,w}\in\mathcal P^{\mathrm F}\), \(P_t^{\mathrm w}\in\mathcal P^{\mathrm{obs}}\), and \((P_t^{\mathrm w})^{\otimes n}\in\mathcal M_n\) for each \(t\in[0,1/10]\). This family has \(V(P_t^{\mathrm w})=t^2/12\), strictly positive arm variances, a nonconstant propensity and baseline, and a legal constant-CATE null at \(t=0\).
+\end{proposition}
+\begin{proof}
+For \(x\in[0,1]^d\), \(-1/2\le z(x)\le1/2\).  Hence
+\[
+ 0.45\le e^{\mathrm w}(x)=\mu_0^{\mathrm w}(x)\le0.55
+\]
+and, because \(0\le t\le0.1\),
+\[
+ 0.4\le \mu_0^{\mathrm w}(x)+\tau_t^{\mathrm w}(x)
+ =\frac12+(0.1+t)z(x)\le0.6.
+\]
+In particular the Bernoulli means are valid and \(e^{\mathrm w}\in[\epsilon,1-\epsilon]\), since \(0<\epsilon<1/4\).  Each displayed function is affine in the first coordinate.  Its derivatives of order at least two vanish; its first derivative has absolute value at most \(0.2\); and, when a Hölder index is at most one,
+\[
+ \frac{|z(x)-z(x')|}{\|x-x'\|_2^u}
+ \le |x_1-x'_1|^{1-u}\le1.
+\]
+Thus the precise integer and noninteger Hölder conditions hold with norm at most one, and therefore with radius \(L\ge2\), for every positive \(\alpha,\beta,\gamma\).  The construction itself gives bounded potential outcomes, consistency, and conditional exchangeability, while the design is exactly \(\lambda\).  It follows from the definition of \(\mathcal P^{\mathrm F}\) and the observed-image lemma that
+\[
+ P_t^{\mathrm F,w}\in\mathcal P^{\mathrm F},\qquad
+ P_t^{\mathrm w}\in\mathcal P^{\mathrm{obs}},\qquad
+ (P_t^{\mathrm w})^{\otimes n}\in\mathcal M_n.
+\]
+Since \(\int z\,d\lambda=0\) and \(\int z^2\,d\lambda=1/12\),
+\[
+ V(P_t^{\mathrm w})=\int (tz)^2\,d\lambda=\frac{t^2}{12}.
+\]
+Both conditional arm variances are strictly positive: the two Bernoulli means lie in \([0.45,0.55]\) and \([0.4,0.6]\), respectively, so their variances are at least \(0.4(1-0.4)=0.24\).  The propensity and baseline have nonzero slope, and at \(t=0\) the CATE is the constant zero.  This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition rules out vacuity and supplies interior Bernoulli slack for legal likelihood perturbations without imposing an interior-mean restriction on the headline class. \textit{Gap.} This is a legality check, not the least-favorable mixture or the minimax converse. \textit{Consumer.} It supplies a regression test fixture for validating any software implementation without pretending to certify its worst-case power.
+
+\begin{openendedquestion}[oeq:sharp-observational-frontier]\label{oeq:sharp-observational-frontier}
+Assume \(s=\alpha+\beta<2d\gamma/(4\gamma+d)\). Determine whether the proved bracket can be sharpened to \(\rho_\star(n)\asymp r_{\mathrm{nu}}(n)\) over \(\mathcal P^{\mathrm{obs}}\). Any converse must use priors on observed laws in \(\mathcal P^{\mathrm{obs}}\) whose full-law null lifts in \(\mathcal P^{\mathrm F}\) each have constant \(\tau^{\mathrm F}\) and exact \(X\sim\lambda\), while preserving all separate Hölder restrictions. Determine whether the sharp rough-regime rate depends on \(\alpha\) and \(\beta\) separately and whether logarithms occur at any additional boundary or interior elbow within this strict regime. The equality case \(s=2d\gamma/(4\gamma+d)\) is excluded: the observational-rate-bracket theorem already proves \(\rho_\star(n)\asymp r_{\mathrm{or}}(n)\) there without a logarithmic loss.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This question is now confined to deciding whether the proved nuisance-limited upper endpoint is sharp below the no-penalty boundary. \textit{Gap.} No legal same-class composite-null mixture currently attains the nuisance scale while preserving exact uniform design and all three separate Hölder restrictions. \textit{Consumer.} A resolution would sharpen the existing bracket only in the strict rough regime and determine any further rate elbows or logarithmic factors there.
+
+\begin{openendedquestion}[oeq:nuisance-phase-characterization]\label{oeq:nuisance-phase-characterization}
+Assume \(\alpha+\beta<2d\gamma/(4\gamma+d)\). Characterize the exact minimax rate within this strict rough regime, including whether \(\alpha\) and \(\beta\) enter separately through further elbows and whether logarithmic factors occur at any additional boundary or interior elbow. For sequences with \(V(P_n)\asymp r_n^2\), compare Yu's procedure only on laws satisfying both \(\mathsf R_{\mathrm{Yu},n}(P_n)\) and \(\mathsf Y_n\), and record separately its requirement \(\sqrt n\,r_n^2\to\infty\). Compare Dhawan--Guo--Shah only on laws satisfying \(\mathsf R_{\mathrm{DGS},n}(P_n)\), its conditional correlation event above \(\kappa_n\), and \(n\kappa_n^2r_n^2\to\infty\). Establish a strict inclusion or non-inclusion only through legal sequences that also satisfy the relevant published applicability predicate; otherwise leave that relation unresolved. Distinguish uniform omnibus power from favorable-direction pointwise power.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This question separates unknown rough-regime minimax geometry from sufficient learner, variance, direction, and signal conditions for existing first-order procedures. \textit{Gap.} The sharp rough-regime rate is unknown, and the Yu and Dhawan--Guo--Shah applicability predicates are not implied by the frozen full class, so strict relations require separately certified legal sequences. \textit{Consumer.} A resolution would refine only the rough-regime phase map and would distinguish uniform omnibus detectability from favorable-direction pointwise power.
+
+\begin{lemma}[lem:standard-borel-conditional-kernel]\label{lem:standard-borel-conditional-kernel}
+\texttt{Every probability law on a product of standard Borel spaces admits a regular conditional probability kernel for either coordinate given the other,\allowbreak{} and integrating that kernel against the marginal law reconstructs the joint law.}
+\end{lemma}
+
+\begin{lemma}[lem:regular-grid-projection-bounds]\label{lem:regular-grid-projection-bounds}
+For the declared regular-grid tensor-polynomial projectors there are finite constants \(C_{\mathrm{app}},C_\infty,C_{\mathrm{diag}},C_J\), computable from \(d,\alpha,\beta,\gamma,L\) and the fixed reference-cell bases, such that, with \(R_\ell=I-P_\ell\), every \(P\in\mathcal P^{\mathrm{obs}}\) satisfies
+\[
+ \|R_\ell e\|_\infty\le C_{\mathrm{app}}\ell^{-\alpha/d},\quad
+ \|R_\ell\mu_0\|_\infty\le C_{\mathrm{app}}\ell^{-\beta/d},\quad
+ \|I-P_\ell\|_{2\to2}\le1,
+\]
+\[
+ \|P_\ell\|_{\infty\to\infty}\le C_\infty,\qquad
+ \sup_xK_\ell(x,x)\le C_{\mathrm{diag}}\ell,
+\]
+and, for every \(c\in I\) and \(g\in\mathcal S_k^{(\gamma)}\),
+\[
+ \|(I-\Pi_k)(\tau-c)\|_2\le C_{\mathrm{app}}k^{-\gamma/d},
+ \qquad
+ \iint J_{g,\ell}(x,z)^2\,d\lambda(x)d\lambda(z)
+ \le C_J\ell\|g\|_2^2.
+\]
+The bounds hold for the integer Hölder convention in the core and for boundary cells.
+\end{lemma}
+\begin{proof}
+Let a grid have side length \(h\) and let \(p\) be its fixed tensor-polynomial degree.  On each cell, the affine rescaling to \([0,1]^d\) identifies the local polynomial space with one fixed finite-dimensional space.  If \(G_p\) is the Gram matrix of a fixed monomial basis on the reference cube, then \(G_p\) is positive definite.  Consequently its inverse and all norms of the reference-cell \(L^2\)-projector are finite and are computable by finite matrix arithmetic.  Rescaling gives a constant \(C_\infty(d,p)\), independent of the cell and of \(h\), for the \(L^\infty\)-operator norm of the cellwise projector.
+
+For \(u>0\), put \(j=\lceil u\rceil-1\) as in the core.  Taylor expansion about a point in a cell, with the order-\(j\) remainder written as an integral of differences of the order-\(j\) derivatives, gives for every \(f\in\mathcal H^u(L)\) a polynomial \(T_Cf\) on that cell satisfying
+\[
+ \sup_{x\in C}|f(x)-T_Cf(x)|
+ \le C(d,u)Lh^u.
+\]
+When \(u\) is an integer, the final derivatives are Lipschitz because the core sets \(j=u-1\) and \(\eta_u=1\), so the same remainder has order \(h^u\).  This argument uses only points inside the cell and therefore also covers cells touching the boundary of \([0,1]^d\).  Since the orthogonal projection fixes \(T_Cf\),
+\[
+ \|f-Pf\|_{L^\infty(C)}
+ \le(1+C_\infty)\|f-T_Cf\|_{L^\infty(C)}.
+\]
+There are \(J^d\) cells and a fixed number of coefficients per cell, so the projector rank is between two computable positive multiples of \(h^{-d}\).  Replacing \(h^u\) by the corresponding rank power proves the two nuisance approximation bounds and the signal \(L^2\) approximation bound.  Constants are reproduced exactly because constants lie in both sieves, so the latter residual is the same for \(\tau-c\) and \(\tau\).  Orthogonality gives \(\|I-P_\ell\|_{2\to2}=1\).
+
+Choose an orthonormal local basis.  On a cell, rescaling shows that the sum of squared basis values is bounded by a computable multiple of \(h^{-d}\); bases from other cells vanish there.  Hence
+\[
+ K_\ell(x,x)=\sum_{a=1}^{\ell}\psi_a(x)^2\le C_{\mathrm{diag}}\ell.
+\]
+Finally, regard \(P_\ell\) as an integral operator and \(M_g\) as multiplication by \(g\).  Its projection identity gives
+\[
+ \|M_gP_\ell\|_{\mathrm{HS}}^2
+ =\int g(x)^2K_\ell(x,x)\,d\lambda(x)
+ \le C_{\mathrm{diag}}\ell\|g\|_2^2,
+\]
+and \(\|P_\ell M_gP_\ell\|_{\mathrm{HS}}\le\|M_gP_\ell\|_{\mathrm{HS}}\).  The three terms defining \(J_{g,\ell}\) are respectively the kernels of \(M_gP_\ell\), \(P_\ell M_g\), and \(P_\ell M_gP_\ell\).  The squared triangle inequality therefore gives the asserted \(C_J\ell\|g\|_2^2\) bound.  Every constant is obtained from finitely many reference-cell Gram matrices, Taylor coefficients, and fixed arithmetic operations, which proves computability as well as finiteness.
+\end{proof}
+
+\begin{lemma}[lem:corrected-coefficient-covariance]\label{lem:corrected-coefficient-covariance}
+For \(N\ge2\), write the affine coefficient vector on either half as \(\widehat q_h(c)=\widehat a_h-c\widehat d_h\).  The constant \(C_0\) can be computed from the fixed class parameters and bases so that, uniformly in \(P\in\mathcal P^{\mathrm{obs}}\) and \(h\in\{1,2\}\),
+\[
+ \operatorname{Cov}_P\!\begin{pmatrix}\widehat a_h\\ \widehat d_h\end{pmatrix}
+ \preceq v_\ell I_{2k},\qquad
+ v_\ell=C_0\{N^{-1}+\ell N^{-2}\}.
+\]
+Moreover, if \(u_c=m-ce\), \(R_\ell=I-P_\ell\), and
+\[
+ \widetilde q_c=r-ce-\{eP_\ell u_c+u_cP_\ell e-(P_\ell e)(P_\ell u_c)\},
+\]
+then \(\mathbb E_P\widehat q_h(c)=(\langle\varphi_a,\widetilde q_c\rangle)_{a=1}^k\) for every \(c\in I\).  These conclusions impose no ordering among \(k,\ell,N\).
+\end{lemma}
+\begin{proof}
+Fix \(c\in I\) and \(g\in\mathcal S_k^{(\gamma)}\).  Put \(u_c(x)=\mathbb E[R_c(O)\mid X=x]=m(x)-ce(x)\).  Independence of the two observations and symmetry of \(K_\ell\) give
+\[
+\begin{aligned}
+ &\mathbb E[A_1R_c(O_2)J_{g,\ell}(X_1,X_2)]\\
+ &\quad=\int g(x)\bigl[e(x)(P_\ell u_c)(x)
+       +u_c(x)(P_\ell e)(x)
+       -(P_\ell e)(x)(P_\ell u_c)(x)\bigr]d\lambda(x).
+\end{aligned}
+\]
+Indeed, the two first terms follow by applying the kernel once, and Fubini's theorem changes the third term to
+\[
+ \int g(t)(P_\ell e)(t)(P_\ell u_c)(t)d\lambda(t).
+\]
+The term with indices exchanged has the same expectation.  Also \(\mathbb E[g(X)AR_c(O)]=\int g(r-ce)d\lambda\).  Substitution into the definition of \(H_{c,g}\) proves
+\[
+ \mathbb E H_{c,g}(O_1,O_2)=\langle g,\widetilde q_c\rangle.
+\]
+Applying this with \(g=\varphi_a\) and using the ordinary unbiased order-two U-statistic average proves the expectation formula.
+
+It remains to prove the operator covariance bound.  The outcome and treatment support and \(|c|\le1\) give \(|R_c|\le2\), while \(|e|\le1\) and \(|u_c|\le2\).  For any bounded \(u\), direct integration of the kernel shows
+\[
+ \int J_{g,\ell}(x,z)u(z)d\lambda(z)
+ =g(x)P_\ell u(x)+P_\ell(gu)(x)-P_\ell(gP_\ell u)(x).
+\]
+The \(L^2\)-contraction and \(L^\infty\)-stability from the regular-grid lemma therefore bound the \(L^2\)-norm of this expression by \(C\|g\|_2\).  Thus the first Hoeffding projection of \(H_{c,g}\) has variance at most \(C\|g\|_2^2\).  The Hilbert--Schmidt bound in that lemma and \(|A|\le1\), \(|R_c|\le2\) give
+\[
+ \mathbb E[H_{c,g}(O_1,O_2)^2]\le C(1+\ell)\|g\|_2^2.
+\]
+For the normalized U-statistic based on \(N\) observations, the orthogonal Hoeffding decomposition consequently yields
+\[
+ \operatorname{Var}\!\left\{\binom N2^{-1}\sum_{i<j}H_{c,g}(O_i,O_j)\right\}
+ \le C\{N^{-1}+\ell N^{-2}\}\|g\|_2^2.
+\]
+The same calculation applies to the two coefficient kernels in the affine decomposition \(H_{c,g}=H_{0,g}-cD_g\).  For arbitrary coefficient vectors \(u,v\in\mathbb R^k\), linearity replaces the two kernels by those indexed by \(g_u=\sum_a u_a\varphi_a\) and \(g_v=\sum_a v_a\varphi_a\).  Orthonormality gives \(\|g_u\|_2=\|u\|_2\) and \(\|g_v\|_2=\|v\|_2\).  Polarization and the preceding variance bound then give
+\[
+ \operatorname{Var}\{u^\top\widehat a_h+v^\top\widehat d_h\}
+ \le C\{N^{-1}+\ell N^{-2}\}(\|u\|_2^2+\|v\|_2^2).
+\]
+ This is precisely the asserted positive-semidefinite block bound after choosing \(C_0\) at least as large as the displayed computable constant.  The argument uses Hilbert-space norms and never compares \(k\), \(\ell\), and \(N\).
+\end{proof}
+
+\begin{lemma}[lem:dgs-corollary-two-power]\label{lem:dgs-corollary-two-power}
+Under \(\mathsf R_{\mathrm{DGS},n}(P_n)\), Dhawan, Guo and Shah's Corollary 2 gives asymptotic power one for the hunted-direction score test along sequences for which, with probability tending to one conditionally on the training sample, \(\operatorname{Corr}_{P_n}(s_{P_n}(U),\xi_{P_n}(U)\mid\widehat h_n)>\kappa_n\), and for which \(n\kappa_n^2V_{\mathrm{DGS}}(P_n)\to\infty\).
+\end{lemma}
+
+\begin{theorem}[thm:observational-rate-bracket]\label{thm:observational-rate-bracket}
+For all sufficiently large \(n\), the observed-data minimax radius obeys the proved two-sided bracket
+\[
+ c_{\mathrm{rate}}r_{\mathrm{or}}(n)
+ \le\rho_\star(n)
+ \le C_{\mathrm{rate}}R_{\mathrm{up}}(n).
+\]
+Writing \(s=\alpha+\beta\), the upper endpoint is \(R_{\mathrm{up}}=r_{\mathrm{or}}\) when \(s\ge 2d\gamma/(4\gamma+d)\), and \(R_{\mathrm{up}}=r_{\mathrm{nu}}\) when \(s<2d\gamma/(4\gamma+d)\).  Consequently \(\rho_\star(n)\asymp r_{\mathrm{or}}(n)\) throughout the first region.  At equality the two displayed power rates coincide exactly, so no logarithm occurs in this proved bracket.  This theorem does not assert that the bracket is minimax-tight when its endpoints differ.
+\end{theorem}
+\begin{proof}
+Fix \(n\) at least as large as the maximum of the thresholds in \(\text{thm:known-propensity-benchmark}\) and \(\text{thm:computable-upper-bound}\).  First compare the two experiments.  If \(\phi_n:O^n\to[0,1]\) is any measurable observed-data test, define
+\[
+ \psi_n:O^n\times\mathcal E_{\alpha,L,\epsilon}\longrightarrow[0,1],
+ \qquad
+ \psi_n(o^n,e_0)=\phi_n(o^n).
+\]
+This map is measurable because it is the composition of \(\phi_n\) with the measurable coordinate projection.  For every \(P\in\mathcal P^{\mathrm{obs}}\), including every law in either the null class \(V(P)=0\) or an alternative class \(V(P)\ge\rho^2\), it satisfies
+\[
+ \mathbb E_{P^{\otimes n}}\!\left[\psi_n(O^n,e_P)\right]
+ =\mathbb E_{P^{\otimes n}}\!\left[\phi_n(O^n)\right]
+\]
+and
+\[
+ \mathbb E_{P^{\otimes n}}\!\left[1-\psi_n(O^n,e_P)\right]
+ =\mathbb E_{P^{\otimes n}}\!\left[1-\phi_n(O^n)\right].
+\]
+Here \(e_P\in\mathcal E_{\alpha,L,\epsilon}\) by the observed-image characterization and the propensity smoothness and overlap conditions built into \(\mathcal P^{\mathrm{obs}}\).  Thus every separation \(\rho\) feasible in \(\text{def:separation-radius}\) is feasible in \(\text{def:known-propensity-separation-radius}\).  Taking infima of the two feasible sets gives
+\[
+ \rho_\star^{\mathrm{known}\ e}(n)\le \rho_\star(n).
+\]
+The lower half of \(\text{thm:known-propensity-benchmark}\) therefore yields
+\[
+ c_{\mathrm{rate}}r_{\mathrm{or}}(n)
+ \le \rho_\star^{\mathrm{known}\ e}(n)
+ \le \rho_\star(n).
+\]
+
+For the other direction, \(\text{thm:computable-upper-bound}\) supplies the single data-driven test \(\phi_n^{\mathrm{up}}\) defined by \(\text{def:corrected-energy-test}\).  Its uniform type-I error is at most \(0.05=a_0\), and its uniform type-II error over \(V(P)\ge C_{\mathrm{rate}}^2R_{\mathrm{up}}(n)^2\) is at most \(0.20=b_0\).  Hence \(C_{\mathrm{rate}}R_{\mathrm{up}}(n)\) belongs to the feasible set in \(\text{def:separation-radius}\), and
+\[
+ \rho_\star(n)\le C_{\mathrm{rate}}R_{\mathrm{up}}(n).
+\]
+Combining the last two displays proves the asserted full-class bracket.  Notice that both component theorems range over the same observed image \(\mathcal P^{\mathrm{obs}}\); no interior arm-mean condition, conditional-variance lower bound, or fitted-nuisance rate is introduced by this comparison.
+
+It remains to determine which exact power appears in the upper endpoint.  Put
+\[
+ a_{\mathrm{or}}=\frac{2\gamma}{4\gamma+d},
+ \qquad
+ a_{\mathrm{nu}}=\frac{4\gamma s}{4\gamma s+ds+2d\gamma}.
+\]
+The declared conditions \(d\ge1\), \(\gamma>0\), and \(s=\alpha+\beta>0\) make both denominators strictly positive.  Direct subtraction gives
+\[
+ a_{\mathrm{nu}}-a_{\mathrm{or}}
+ =\frac{2\gamma\{s(4\gamma+d)-2d\gamma\}}
+ {(4\gamma s+ds+2d\gamma)(4\gamma+d)}.
+\]
+Consequently,
+\[
+ a_{\mathrm{nu}}\ge a_{\mathrm{or}}
+ \quad\Longleftrightarrow\quad
+ s\ge\frac{2d\gamma}{4\gamma+d}.
+\]
+Since \(n^{-a}\) is nonincreasing in \(a\) for \(n\ge1\), the definition
+\(R_{\mathrm{up}}=r_{\mathrm{or}}\vee r_{\mathrm{nu}}\) implies
+\[
+ R_{\mathrm{up}}(n)=
+ \begin{cases}
+ r_{\mathrm{or}}(n),&s\ge 2d\gamma/(4\gamma+d),\\
+ r_{\mathrm{nu}}(n),&s<2d\gamma/(4\gamma+d).
+ \end{cases}
+\]
+In the first region the bracket becomes
+\[
+ c_{\mathrm{rate}}r_{\mathrm{or}}(n)
+ \le \rho_\star(n)
+ \le C_{\mathrm{rate}}r_{\mathrm{or}}(n),
+\]
+where the positive finite constants do not depend on \(n\); hence \(\rho_\star(n)\asymp r_{\mathrm{or}}(n)\).  At the boundary \(s=2d\gamma/(4\gamma+d)\), the subtraction formula gives \(a_{\mathrm{nu}}=a_{\mathrm{or}}\), so the definitions give the exact identity \(r_{\mathrm{nu}}(n)=r_{\mathrm{or}}(n)\) for every \(n\).  The attaining upper bound therefore contains no logarithmic multiplier at equality.  When \(s<2d\gamma/(4\gamma+d)\), the proof gives only the displayed bracket with upper endpoint \(r_{\mathrm{nu}}\), exactly as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the headline uniform minimax result: a full-class two-sided bracket and the exact oracle rate throughout the proved no-penalty region, attained above by a total corrected-energy test. \textit{Gap.} The closest accepted local comparator, stat\_discrete\_ate\_heterogeneity\_frontier/v1, thm:two-sided-minimax-bracket-all-d, estimates a scalar ATE in a finite discrete arbitrary-cell-mass experiment using a known heterogeneity radius and rare-cell/occupancy machinery. This theorem instead tests constant CATE through variance separation under continuous uniform design, bounded outcomes, separate Hölder propensity/baseline/effect geometry, and higher-order product correction; neither experiment specializes the other. Yu and DGS provide conditional procedure-level power results, not this uniform full-class bracket. \textit{Consumer.} This theorem is the paper's headline result and confines both residual OEQs to sharpness and finer phase structure in the strict rough regime.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The remaining technical limitation is the absence, when \(\alpha+\beta<2d\gamma/(4\gamma+d)\), of a matching legal observational converse over the unchanged observed-law image. In particular, no verified nuisance-scale prior both preserves constant CATE in every null draw and controls the complete four-cell likelihood through the fixed-design transition regions while respecting the separate propensity, baseline, and CATE Hölder constraints. The coefficient covariance, uniform profiling control, projection constants, and computable basis-dependent constants used by the upper theorem are already proved and are not open limitations.
+
+\section{Honest scope}
+
+The statistical class remains exactly the observed image \(\mathcal P^{\mathrm{obs}}\) of full causal laws with exact uniform design, outcomes in \([0,1]\), fixed overlap, separate Hölder restrictions on \(e^{\mathrm F}\), \(\mu_0^{\mathrm F}\), and \(\tau^{\mathrm F}\), consistency, and conditional exchangeability. No interior arm-mean band, conditional-variance floor, fitted-nuisance rate, or favorable-direction condition is imposed. The proved claim is the full-class bracket and the exact no-penalty phase \(\alpha+\beta\ge2d\gamma/(4\gamma+d)\), including equality without logarithmic loss. Only the strict rough regime is unresolved: sharpness of \(r_{\mathrm{nu}}\), possible separate \(\alpha\)- and \(\beta\)-elbows, and possible logarithms at further rough-regime boundaries. Unknown design density, smoothness adaptation, and outcomes outside \([0,1]\) remain outside scope. Yu and Dhawan--Guo--Shah are discussed only on intersections satisfying their additional published applicability conditions and do not furnish a uniform converse for this full class.
+
+\begin{thebibliography}{99}
+
+  \bibitem{DhawanGuoShah2026} Dhawan, A., Guo, F. R., and Shah, R. D. (2026). The Debiased Score Test: Hunt-and-test for Semiparametric Hypotheses. arXiv:2607.28861.
+
+  \bibitem{Yu2026VarianceHTE} Yu, F. (2026). A Variance-Based Test for Heterogeneous Treatment Effects. arXiv:2607.17451.
+
+  \bibitem{KennedyBalakrishnanRobinsWasserman2024} Kennedy, E. H., Balakrishnan, S., Robins, J. M., and Wasserman, L. (2024). Minimax rates for heterogeneous causal effect estimation. Annals of Statistics, 52, 793--816.
+
+  \bibitem{KotekalKundu2025} Kotekal, S. and Kundu, S. (2025). Optimal heteroskedasticity testing in nonparametric regression. Annals of Statistics, 53(1), 295--321.
+
+  \bibitem{Kallenberg2021} Kallenberg, O. (2021). Foundations of Modern Probability, third edition. Probability Theory and Stochastic Modelling 99. Springer, Cham. Theorem 8.5 (conditional distributions and disintegration). doi:10.1007/978-3-030-61871-1.
+
+  \bibitem{CommingesDalalyan2013} Comminges, L. and Dalalyan, A. S. (2013). Minimax testing of a composite null hypothesis defined via a quadratic functional in the model of regression. Electronic Journal of Statistics, 7, 146--190.
+
+  \bibitem{IngsterSapatinas2009} Ingster, Y. I. and Sapatinas, T. (2009). Minimax goodness-of-fit testing in multivariate nonparametric regression. Mathematical Methods of Statistics, 18, 241--269.
+
+  \bibitem{LuedtkeCaroneVanDerLaan2019} Luedtke, A., Carone, M., and van der Laan, M. J. (2019). An omnibus nonparametric test of equality in distribution for unknown functions. Journal of the Royal Statistical Society, Series B, 81, 75--99.
+
+  \bibitem{LundborgKimShahSamworth2024} Lundborg, A. R., Kim, I., Shah, R. D., and Samworth, R. J. (2024). The projected covariance measure for assumption-lean variable significance testing. Annals of Statistics, 52, 1962--1988.
+
+  \bibitem{CrumpHotzImbensMitnik2008} Crump, R. K., Hotz, V. J., Imbens, G. W., and Mitnik, O. A. (2008). Nonparametric tests for treatment effect heterogeneity. Review of Economics and Statistics, 90, 389--405.
+
+  \bibitem{DaiShenStern2023} Dai, M., Shen, W., and Stern, H. S. (2023). Nonparametric tests for treatment effect heterogeneity in observational studies. Canadian Journal of Statistics, 51(2), 531--558.
+
+  \bibitem{DukesStensrudBrioschiHudson2024} Dukes, O., Stensrud, M. J., Brioschi, R., and Hudson, A. (2024). Nonparametric tests of treatment effect homogeneity for policy-makers. arXiv:2410.00985.
+
+  \bibitem{SanchezBecerra2023} Sánchez-Becerra, A. (2023). Robust inference for the treatment effect variance in experiments using machine learning. arXiv:2306.03363.
+
+  \bibitem{Spokoiny1996} Spokoiny, V. G. (1996). Adaptive hypothesis testing using wavelets. Annals of Statistics, 24, 2477--2498.
+
+  \bibitem{FromontLaurent2006} Fromont, M. and Laurent, B. (2006). Adaptive goodness-of-fit tests in a density model. Annals of Statistics, 34, 680--720.
+
+\end{thebibliography}
+
+\end{document}

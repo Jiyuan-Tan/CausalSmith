@@ -1,0 +1,231 @@
+%%% FIELD proof-midrank-bottom-block
+Fix a completion \(b\) and, for distinct labels \(i,j\in I\), define
+\[
+ \phi_{ij}(b)
+ =\mathbf 1\{b_j<b_i\}+\frac12\mathbf 1\{b_j=b_i\}.
+\]
+By the midrank definition in \(\texttt{def:midrank-tail}\),
+\[
+ r_i(b)=1+\sum_{j\ne i}\phi_{ij}(b).
+\]
+For every unordered pair \(\{i,j\}\), trichotomy of the real numbers gives
+\[
+ \phi_{ij}(b)+\phi_{ji}(b)=1;
+\]
+this also holds when \(b_i=b_j\), because then both summands are \(1/2\).
+
+Let \(\varnothing\ne S\subseteq I\) and write \(|S|=t\).  Separating pairs internal to \(S\) from pairs crossing from \(S\) to its complement yields
+\[
+\begin{aligned}
+ \sum_{i\in S}r_i(b)
+ &=t+
+   \sum_{\{i,j\}\subseteq S}\bigl\{\phi_{ij}(b)+\phi_{ji}(b)\bigr\}
+   +\sum_{\substack{i\in S\\j\notin S}}\phi_{ij}(b)\\
+ &=t+\binom{t}{2}
+   +\sum_{\substack{i\in S\\j\notin S}}\phi_{ij}(b)\\
+ &\ge \frac{t(t+1)}2.
+\end{aligned}
+\]
+Every term in the last sum is nonnegative.  Equality therefore holds if and only if
+\(\phi_{ij}(b)=0\) for every \(i\in S\) and \(j\notin S\).  From the displayed definition of \(\phi_{ij}\), this is equivalent to \(b_i<b_j\) for every such ordered pair.  This proves both the lower bound and its equality characterization.
+
+Now suppose that \(r_i(b)\le (t+1)/2\) for all \(i\in S\).  Combining the proved lower bound with these coordinatewise upper bounds gives
+\[
+ \frac{t(t+1)}2
+ \le \sum_{i\in S}r_i(b)
+ \le t\frac{t+1}{2}.
+\]
+Both inequalities are equalities.  Consequently every coordinatewise upper bound is tight,
+\[
+ r_i(b)=\frac{t+1}{2}\qquad(i\in S),
+\]
+and the equality characterization gives \(b_i<b_j\) whenever \(i\in S\) and \(j\notin S\).
+To identify the tie structure, partition the labels into outcome-tie blocks \(D_1,\ldots,D_J\), ordered by their common outcome values, and put \(d_j=|D_j|\).  Directly from the midrank definition, every label in \(D_j\) has rank
+\[
+ 1+\sum_{\ell<j}d_\ell+\frac{d_j-1}{2}.
+\]
+The rank difference between consecutive blocks \(D_j,D_{j+1}\) is \((d_j+d_{j+1})/2>0\).  Thus equal midranks occur exactly within a single tie block.  All labels in \(S\) are therefore tied, and their strict separation below every label outside \(S\) makes \(S\) the unique lowest tied block.  Its common rank is \((t+1)/2\), as required.
+
+%%% FIELD proof-explicit-max-tail-np-complete
+We prove membership and hardness separately.
+
+For membership in \(\mathrm{NP}\), take a certificate consisting of an ordered partition of \(I\), representing a complete weak order, together with a rational vector \(b\) representing that order.  The verifier first checks the fixed-coordinate equalities defining \(\mathcal C_\delta(a)\) in \(\texttt{def:completion-set}\), and then checks all comparisons and equalities specified by the ordered partition.  If a block has \(c\) labels strictly below it and has size \(d\), the midrank formula in \(\texttt{def:midrank-tail}\) gives the doubled rank
+\[
+ 2r_i(b)=2c+d+1
+\]
+for each label in that block.  The verifier consequently computes \(2T(z,b)\) for every explicitly listed row \(z\in\Omega\), compares it with \(2T(a,b)\), and sums exactly the rational weights of the passing rows.  There are only \(|\Omega|\) rows, and products of input denominators have total bit length at most the sum of their input bit lengths, so these comparisons and the exact rational sum take time polynomial in the encoded input length \(\ell\).  The verifier accepts precisely when \(p(a,b)\ge q\).
+
+If a real completion makes the instance positive, \(\texttt{thm:weak-order-attainment}\), using the rationality of the observed coordinates, supplies a rational representative of the same weak-order cell with polynomial encoding length.  The oracle tail is constant on that cell, so this representative is an accepting certificate.  Conversely, an accepting certificate is itself a legal real completion and hence witnesses a positive instance.  Therefore \(\textsc{Explicit-Max-Tail}\in\mathrm{NP}\).
+
+For hardness, reduce from \(\textsc{Clique}\), whose NP-completeness is stated in \(\texttt{lem:clique-np-complete}\).  Let \((G,s)\) be a nontrivial instance with \(V=\{1,\ldots,v\}\), \(2\le s\le v\), and \(e=|E|\).  If \(e<\binom{s}{2}\), then \(G\) cannot contain an \(s\)-clique.  In this case map to the following fixed negative instance: two fully observed units have values \(1\) and \(0\), the two one-treated assignments have weight \(1/2\), the realized assignment treats the value-one unit, and \(q=1\).  The unique completion has realized treated-rank sum \(2\), while the other row has treated-rank sum \(1\), so its oracle tail is \(1/2<q\).
+
+It remains to consider \(e\ge\binom{s}{2}\).  Apply the construction \(\mathsf R(G,s)\) in \(\texttt{def:clique-reduction}\), taking \(\delta=0\), and set
+\[
+ h=2v-s,\qquad B=e+1,\qquad
+ A_\star=vB+e+1.
+\]
+The units are \(v\) vertex units whose outcomes are missing under the realized treatment, \(h\) observed anchors of value \(1\), and four observed controls of value \(0\).  The realized row \(a\) treats every vertex and anchor, so its treated count is
+\[
+ m=v+h.
+\]
+A guard row replaces one treated vertex by one control; a vertex row replaces one treated vertex and one anchor by two controls; and an edge row replaces its two endpoint vertices and two anchors by all four controls.  Each is therefore in \(\mathcal Z_m\), as required by \(\texttt{ass:known-fixed-count-design}\).  Because \(h=2v-s\ge v\ge2\), all required anchor exchanges exist.  Rows in different categories treat different numbers of controls, and rows in the same category remove different labeled vertices or vertex pairs, so the rows are distinct.  Thus
+\[
+ |Omega|=1+2v+e,
+ \qquad
+ n=v+h+4=3v-s+4.
+\]
+Assign unnormalized weights \(1,A_\star,B,1\) to the realized, guard, vertex, and edge rows, respectively.  Their sum and the unnormalized threshold are
+\[
+ W_\star=1+vA_\star+vB+e,
+ \qquad
+ Q_\star:=W_\star q_\star
+ =1+vA_\star+sB+\binom{s}{2}.
+\]
+The normalized weights are strictly positive rationals and sum to one, as required by \(\texttt{ass:rational-positive-weights}\).  Moreover,
+\[
+ sB+\binom{s}{2}\le vB+e,
+\]
+so \(q_\star\in[0,1]\).  Since \(e\le\binom v2\), the integers above, their rational normalizations, and all \(1+2v+e\) rows have encoding length polynomial in the size of \((G,s)\).
+
+Fix an arbitrary legal completion \(b\), and write
+\[
+ F(b):=W_\star p(a,b)
+\]
+for its unnormalized upper-tail mass.  All four controls have a common rank, denoted \(r_C\).  A guard row for vertex \(i\) is in the upper tail exactly when replacing \(i\) by a control does not lower the treated-rank sum, namely exactly when
+\[
+ r_i(b)\le r_C(b).
+\]
+The ordered-tie-block formula for ordinary midranks shows that ranks preserve and strictly separate outcome blocks.  Because the controls have outcome zero, the guard condition is therefore equivalent to \(b_i\le0\).  If at least one guard fails, then even if every other row passes,
+\[
+\begin{aligned}
+ F(b)
+ &\le 1+(v-1)A_\star+vB+e\\
+ &=vA_\star
+ <Q_\star,
+\end{aligned}
+\]
+where the equality uses \(A_\star=vB+e+1\).  Hence every completion reaching \(q_\star\) passes all guards, so every vertex outcome is at most zero.
+
+Assume henceforth that all guards pass, and let \(t\) be the number of vertex outcomes equal to zero.  The remaining \(v-t\) vertex outcomes lie below zero.  Hence the tied controls have rank
+\[
+ c:=r_C
+ =1+(v-t)+\frac{4+t-1}{2}
+ =v+\frac52-\frac t2.
+\]
+Every vertex and control lies below every anchor, so the common anchor rank is
+\[
+ r_H
+ =1+(v+4)+\frac{h-1}{2}
+ =v+4+\frac{h+1}{2}.
+\]
+A vertex row for \(i\) passes precisely when its two added control ranks are at least the removed vertex and anchor ranks.  Using \(h=2v-s\), this is
+\[
+\begin{aligned}
+ r_i+r_H\le2c
+ &\Longleftrightarrow
+ r_i\le 2c-r_H\\
+ &\Longleftrightarrow
+ r_i\le\frac{s+1}{2}-t.
+\end{aligned}
+\]
+Similarly, an edge row for \(ij\in E\) passes precisely when
+\[
+\begin{aligned}
+ r_i+r_j+2r_H\le4c
+ &\Longleftrightarrow
+ r_i+r_j\le4c-2r_H\\
+ &\Longleftrightarrow
+ r_i+r_j\le s+1-2t.
+\end{aligned}
+\]
+
+Let \(U\subseteq V\) be the set of passing vertex rows and put \(u=|U|\).  If \(u>0\), the subset-rank inequality in \(\texttt{lem:midrank-bottom-block}\) and the vertex-row bound give
+\[
+ \frac{u(u+1)}2
+ \le\sum_{i\in U}r_i
+ \le u\left(\frac{s+1}{2}-t\right),
+\]
+whence \(u\le s-2t\le s\).  The conclusion \(u\le s\) is immediate also when \(u=0\).  If \(u\le s-1\), then even granting every edge row,
+\[
+ F(b)\le1+vA_\star+(s-1)B+e<Q_\star,
+\]
+because
+\[
+ Q_\star-\{1+vA_\star+(s-1)B+e\}
+ =B+\binom{s}{2}-e
+ =1+\binom{s}{2}>0.
+\]
+Thus any completion reaching \(q_\star\) must have \(u=s\).  The inequality \(u\le s-2t\) then forces \(t=0\).
+
+For every \(i\in U\), the passing condition now reads \(r_i\le(s+1)/2\).  The equality clause of \(\texttt{lem:midrank-bottom-block}\) implies that the \(s\) labels in \(U\) form the unique lowest tied block and each has rank \((s+1)/2\).  Every label outside \(U\), and hence every vertex outside \(U\), is in a strictly higher outcome block and has rank at least \(s+1\).  With \(t=0\), an edge row passes exactly when \(r_i+r_j\le s+1\).  This holds with equality when both endpoints lie in \(U\), and it fails when either endpoint lies outside \(U\), because then one rank is at least \(s+1\) and the other is at least \(1\).  Consequently
+\[
+ F(b)=1+vA_\star+sB+|E(U)|.
+\]
+The inequality \(F(b)\ge Q_\star\) is therefore equivalent to
+\[
+ |E(U)|\ge\binom{s}{2}.
+\]
+Since \(G\) is simple and \(|U|=s\), the reverse inequality always holds, and equality occurs exactly when \(U\) induces an \(s\)-clique.  This also proves the asserted converse characterization of every successful completion.
+
+Conversely, suppose \(S\subseteq V\) is an \(s\)-clique.  Complete the vertex outcomes by setting
+\[
+ b_i=-2\quad(i\in S),
+ \qquad
+ b_i=-1\quad(i\in V\setminus S).
+\]
+All guards pass and \(t=0\).  The set \(S\) is the lowest tied block, so its labels have rank \((s+1)/2\); every other vertex has a strictly larger rank.  The displayed vertex- and edge-row conditions show that exactly the \(s\) vertex rows indexed by \(S\) and exactly the \(\binom{s}{2}\) edge rows internal to \(S\) pass.  Hence
+\[
+ F(b)=1+vA_\star+sB+\binom{s}{2}=Q_\star,
+\]
+so \(p(a,b)=q_\star\).
+
+The mapping is polynomial and preserves yes and no instances.  It proves NP-hardness for the stated family with \(v\) missing realized-treated outcomes, four realized controls, two distinct observed outcome values, \(n=3v-s+4\), and \(1+2v+|E|\) explicitly listed support rows.  Together with membership in \(\mathrm{NP}\), this proves NP-completeness.  The construction uses the unequal rational weights above; no conclusion about uniform or balance-generated supports is used or implied.
+
+%%% FIELD proof-equality-face-witness
+In the instance specified by \(\texttt{def:equality-face-witness}\),
+\[
+ v=s=2,\qquad e=1,\qquad h=2,
+ \qquad B=2,
+ \qquad A_\star=6,
+\]
+and therefore
+\[
+ W_\star=1+2\cdot6+2\cdot2+1=18.
+\]
+Give the two missing vertex labels a common value strictly below zero.  They are the lowest tie block and each has midrank \(3/2\).  The four controls then have common rank \(9/2\), and the two anchors have common rank \(15/2\).  Thus each guard inequality is
+\[
+ \frac32\le\frac92,
+\]
+each vertex-row inequality is
+\[
+ \frac32+\frac{15}{2}\le2\frac92,
+\]
+and the unique edge-row inequality is
+\[
+ 2\frac32+2\frac{15}{2}\le4\frac92;
+\]
+all hold, with the latter two at equality.  Including the realized row, the unnormalized upper-tail mass is
+\[
+ 1+2\cdot6+2\cdot2+1=18.
+\]
+The resulting oracle tail is one.  Since no probability can exceed one, the definition in \(\texttt{def:robust-pvalue}\) gives \(P_\delta(a)=1\) for this reduced instance.
+
+It remains to maximize after deleting equality faces.  Here a strict chamber means a full-dimensional cell relative to the two missing coordinates: the two missing values are distinct from one another and from the fixed observed values zero and one; the forced ties among the four controls and among the two anchors remain.  If a guard fails, then at most one guard can contribute, and even if the realized row, both vertex rows, and the edge row all pass, the unnormalized mass is at most
+\[
+ 1+6+2\cdot2+1=12.
+\]
+If both guards pass, both missing values must be strictly below zero.  Since they are distinct, their ranks are \(1\) and \(2\).  The controls and anchors still have ranks \(9/2\) and \(15/2\).  A vertex row passes exactly when
+\[
+ r_i+\frac{15}{2}\le 9,
+ \qquad\text{equivalently}\qquad
+ r_i\le\frac32,
+\]
+so exactly the rank-one vertex row passes.  The edge row passes because
+\[
+ 1+2+2\frac{15}{2}=18=4\frac92.
+\]
+Consequently every all-guard strict chamber has unnormalized upper-tail mass
+\[
+ 1+2\cdot6+2+1=16,
+\]
+or tail \(16/18=8/9\).  This exceeds the upper bound \(12/18\) when a guard fails and is attained by either strict ordering of the two missing values below zero.  Hence the strict-chamber maximum is \(8/9\), whereas retaining the equality face raises the completion maximum to \(1\).

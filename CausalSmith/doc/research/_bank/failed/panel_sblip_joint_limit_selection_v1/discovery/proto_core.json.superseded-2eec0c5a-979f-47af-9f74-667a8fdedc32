@@ -1,0 +1,1849 @@
+{
+  "qid": "panel_sblip_joint_limit_selection",
+  "specialization": "v1",
+  "cluster": "panel",
+  "symbols": [
+    {
+      "name": "N",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "cross-sectional size"
+    },
+    {
+      "name": "T",
+      "type": "fixed positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "panel horizon"
+    },
+    {
+      "name": "A",
+      "type": "fixed finite set containing \\(0\\)",
+      "role": "available actions, with \\(0\\) the control action"
+    },
+    {
+      "name": "i0",
+      "type": "fixed unit index",
+      "space": "\\([N]\\)",
+      "role": "target unit",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "k",
+      "type": "fixed positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "latent rank"
+    },
+    {
+      "name": "q",
+      "type": "fixed positive integer",
+      "def": "\\(q=1\\)",
+      "role": "maximum blip lag"
+    },
+    {
+      "name": "Pi",
+      "type": "fixed finite set",
+      "space": "\\(\\Pi\\subseteq A^{T}\\)",
+      "role": "budget-feasible path menu",
+      "refs": [
+        "T",
+        "A"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "fixed positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "number of primitive terminal-outcome coordinates in the finite recursion"
+    },
+    {
+      "name": "Rnodes",
+      "type": "fixed finite set",
+      "space": "\\(\\mathcal R\\)",
+      "role": "baseline and action-time nodes required for all paths in \\(\\Pi\\)",
+      "refs": [
+        "T",
+        "A",
+        "Pi",
+        "q"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "finite directed acyclic graph",
+      "sig": "\\(\\mathcal G=(\\mathcal R,E,s,c)\\)",
+      "def": "Edges point from a blip node to the later nodes subtracted from its observed terminal outcome; \\(s:\\mathcal R\\to[d]\\) selects that outcome coordinate and \\(c_{rju}\\) is the known subtraction coefficient.",
+      "role": "backward Synthetic-Blips recursion",
+      "refs": [
+        "Rnodes",
+        "d"
+      ]
+    },
+    {
+      "name": "D",
+      "type": "deterministic array",
+      "space": "\\(A^{N\\times T}\\)",
+      "role": "realized assignment paths",
+      "refs": [
+        "N",
+        "T",
+        "A"
+      ]
+    },
+    {
+      "name": "I",
+      "type": "array of sets",
+      "sig": "\\(r\\mapsto\\mathcal I_{r,N}\\subseteq[N]\\)",
+      "def": "The donor cell selected by the action-time history attached to node \\(r\\) in \\(\\mathcal G\\).",
+      "role": "node-specific donor sets",
+      "refs": [
+        "Rnodes",
+        "N",
+        "D",
+        "G"
+      ]
+    },
+    {
+      "name": "v",
+      "type": "deterministic triangular array",
+      "space": "\\((\\mathbb R^{k})^{N}\\)",
+      "role": "unit loadings",
+      "refs": [
+        "N",
+        "k"
+      ]
+    },
+    {
+      "name": "theta",
+      "type": "deterministic array",
+      "space": "\\((\\mathbb R^{k})^{d}\\)",
+      "role": "primitive outcome-factor coefficients",
+      "refs": [
+        "k",
+        "d"
+      ]
+    },
+    {
+      "name": "beta",
+      "type": "deterministic array",
+      "space": "\\((\\mathbb R^{k})^{\\mathcal R}\\)",
+      "def": "\\(\\beta_r\\) is the coefficient returned by the exact linear backward recursion encoded by \\(\\mathcal G\\), beginning from the primitive coefficients \\(\\theta_{s(r)}\\).",
+      "role": "exact backward-propagated node coefficient",
+      "refs": [
+        "theta",
+        "G",
+        "Rnodes"
+      ]
+    },
+    {
+      "name": "mu",
+      "type": "deterministic triangular array",
+      "sig": "\\(\\mu_{ir}=v_i^{\\top}\\beta_r\\)",
+      "role": "oracle baseline or blip-node mean",
+      "refs": [
+        "v",
+        "beta",
+        "N",
+        "Rnodes"
+      ]
+    },
+    {
+      "name": "eps",
+      "type": "random triangular array",
+      "space": "\\((\\mathbb R^{d})^{N}\\)",
+      "role": "within-unit outcome innovation blocks",
+      "refs": [
+        "N",
+        "d"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "random triangular array",
+      "sig": "\\(Y_{ih}=v_i^{\\top}\\theta_h+\\varepsilon_{ih}\\)",
+      "role": "observed outcome source coordinates",
+      "refs": [
+        "v",
+        "theta",
+        "eps",
+        "N",
+        "d"
+      ]
+    },
+    {
+      "name": "p",
+      "type": "positive integer sequence",
+      "sig": "\\(p=p_N\\)",
+      "role": "number of noisy factor-covariate rows",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "deterministic triangular array",
+      "space": "\\(\\mathbb R^{p\\times k}\\)",
+      "role": "covariate-row factor coefficients",
+      "refs": [
+        "p",
+        "k"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "random triangular array",
+      "space": "\\(\\mathbb R^{p\\times N}\\)",
+      "role": "covariate measurement noise",
+      "refs": [
+        "p",
+        "N"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "random matrix",
+      "sig": "\\(X=R[v_1,\\ldots,v_N]+U\\)",
+      "role": "noisy factor covariates used by PCR",
+      "refs": [
+        "R",
+        "v",
+        "U",
+        "N"
+      ]
+    },
+    {
+      "name": "w",
+      "type": "deterministic triangular array",
+      "sig": "\\(w_{ir}=([v_j^{\\top}]_{j\\in\\mathcal I_{r,N}})(\\sum_{j\\in\\mathcal I_{r,N}}v_jv_j^{\\top})^{-1}v_i\\)",
+      "def": "\\(w_{ir}\\) is the minimum-norm solution of \\(\\sum_{j\\in\\mathcal I_{r,N}}w_jv_j=v_i\\).",
+      "role": "oracle donor weight",
+      "refs": [
+        "v",
+        "I",
+        "i0",
+        "Rnodes",
+        "k"
+      ]
+    },
+    {
+      "name": "xi",
+      "type": "deterministic triangular array",
+      "sig": "\\(\\xi_r=R(R^{\\top}R)^{-1}\\beta_r\\)",
+      "role": "minimum-norm row-space augmentation coefficient",
+      "refs": [
+        "R",
+        "beta",
+        "Rnodes"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "deterministic matrix",
+      "sig": "\\(a=(a_{\\pi r})_{\\pi\\in\\Pi,r\\in\\mathcal R}\\)",
+      "def": "The known incidence map that sums the baseline and the \\(q=1\\) blips contributing to cumulative path welfare.",
+      "role": "path aggregation map",
+      "refs": [
+        "Pi",
+        "Rnodes",
+        "q",
+        "G"
+      ]
+    },
+    {
+      "name": "V",
+      "type": "deterministic vector",
+      "sig": "\\(V=(V^{\\pi})_{\\pi\\in\\Pi}\\)",
+      "role": "target path-value vector",
+      "refs": [
+        "Pi",
+        "mu",
+        "a",
+        "i0"
+      ]
+    },
+    {
+      "name": "Zsrc",
+      "type": "random triangular array",
+      "sig": "\\(Z_{jr}^{\\circ}=Y_{j,s(r)}-\\sum_{u:r\\to u}c_{rju}\\mu_{ju}\\)",
+      "role": "oracle node pseudo-outcome",
+      "refs": [
+        "Y",
+        "G",
+        "mu",
+        "Rnodes",
+        "N"
+      ]
+    },
+    {
+      "name": "Zhat",
+      "type": "random triangular array",
+      "sig": "\\(\\widehat Z_{jr}=Y_{j,s(r)}-\\sum_{u:r\\to u}c_{rju}\\widehat\\mu_{ju}\\)",
+      "role": "fitted recursive node pseudo-outcome",
+      "refs": [
+        "Y",
+        "G",
+        "Rnodes",
+        "N"
+      ]
+    },
+    {
+      "name": "muhat",
+      "type": "random triangular array",
+      "sig": "\\((\\widehat\\mu_{ir})_{i\\in[N],r\\in\\mathcal R}\\)",
+      "role": "cross-fitted node-mean estimates",
+      "refs": [
+        "X",
+        "Y",
+        "G",
+        "I",
+        "N",
+        "Rnodes"
+      ]
+    },
+    {
+      "name": "Vhat",
+      "type": "random vector",
+      "sig": "\\(\\widehat V=(\\widehat V^{\\pi})_{\\pi\\in\\Pi}\\)",
+      "role": "orthogonal recursive SBE-PCR path estimator",
+      "refs": [
+        "V",
+        "muhat",
+        "X",
+        "Y",
+        "G",
+        "I"
+      ]
+    },
+    {
+      "name": "H",
+      "type": "deterministic coefficient array",
+      "sig": "\\(H_{i,N}=(H_{i,N}^{\\pi})_{\\pi\\in\\Pi}\\in\\mathbb R^{|\\Pi|\\times d}\\)",
+      "role": "oracle source coefficients produced by backward propagation",
+      "refs": [
+        "N",
+        "Pi",
+        "d",
+        "G",
+        "w",
+        "a"
+      ]
+    },
+    {
+      "name": "Phi",
+      "type": "random influence array",
+      "sig": "\\(\\Phi_{i,N}=NH_{i,N}\\varepsilon_i\\in\\mathbb R^{|\\Pi|}\\)",
+      "role": "unit influence vector",
+      "refs": [
+        "N",
+        "H",
+        "eps",
+        "Pi"
+      ]
+    },
+    {
+      "name": "Sigma",
+      "type": "deterministic covariance sequence and limit",
+      "sig": "\\(\\Sigma_N=N\\sum_{i=1}^{N}H_{i,N}\\operatorname{Var}(\\varepsilon_i\\mid D,v,R,G,I)H_{i,N}^{\\top}\\to\\Sigma\\)",
+      "role": "full donor-reuse covariance",
+      "refs": [
+        "N",
+        "H",
+        "eps",
+        "Pi",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ]
+    },
+    {
+      "name": "Pclass",
+      "type": "class of triangular-array laws",
+      "space": "\\(\\mathcal P\\)",
+      "role": "strong-factor one-lag LTV Synthetic-Blips model class",
+      "refs": [
+        "Sigma",
+        "Y",
+        "X",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ]
+    },
+    {
+      "name": "Phihat",
+      "type": "random array",
+      "sig": "\\(\\widehat\\Phi_{i,N}\\in\\mathbb R^{|\\Pi|}\\)",
+      "role": "computable leave-one-unit-out replay influence",
+      "refs": [
+        "N",
+        "Pi",
+        "Vhat",
+        "G"
+      ]
+    },
+    {
+      "name": "Sigmahat",
+      "type": "random matrix",
+      "sig": "\\(\\widehat\\Sigma_N=N^{-1}\\sum_{i=1}^{N}\\widehat\\Phi_{i,N}\\widehat\\Phi_{i,N}^{\\top}\\)",
+      "role": "replay covariance estimator",
+      "refs": [
+        "N",
+        "Phihat",
+        "Pi"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "fixed scalar",
+      "space": "\\((0,1)\\)",
+      "role": "error probability"
+    },
+    {
+      "name": "Gstar",
+      "type": "conditionally Gaussian random vector",
+      "sig": "\\(G^{\\star}\\mid\\widehat\\Sigma_N\\sim\\mathcal N(0,\\widehat\\Sigma_N)\\)",
+      "role": "simulation draw for simultaneous critical values",
+      "refs": [
+        "Sigmahat",
+        "Pi"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "random scalar",
+      "sig": "\\(c_{1-\\alpha}(\\widehat\\Sigma_N)\\)",
+      "role": "conditional Gaussian maximum critical value",
+      "refs": [
+        "alpha",
+        "Sigmahat",
+        "Gstar"
+      ]
+    },
+    {
+      "name": "rad",
+      "type": "random vector",
+      "sig": "\\(r_{\\pi,N}=c_{1-\\alpha}(\\widehat\\Sigma_N)\\widehat\\Sigma_{N,\\pi\\pi}^{1/2}/\\sqrt N\\)",
+      "role": "path-band half-width",
+      "refs": [
+        "c",
+        "alpha",
+        "Sigmahat",
+        "N",
+        "Pi"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "random family of intervals",
+      "sig": "\\((B_{\\pi,N})_{\\pi\\in\\Pi}\\)",
+      "role": "simultaneous path bands",
+      "refs": [
+        "Pi",
+        "Vhat",
+        "Sigmahat",
+        "c",
+        "N"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "deterministic set",
+      "sig": "\\(\\mathcal M_N=\\operatorname*{argmax}_{\\pi\\in\\Pi}V^{\\pi}\\)",
+      "role": "population maximizing-path set",
+      "refs": [
+        "Pi",
+        "V"
+      ]
+    },
+    {
+      "name": "Mhat",
+      "type": "random set",
+      "sig": "\\(\\widehat{\\mathcal M}_N\\subseteq\\Pi\\)",
+      "role": "band-inverted maximizing-path set",
+      "refs": [
+        "Pi",
+        "B",
+        "Vhat"
+      ]
+    },
+    {
+      "name": "pihat",
+      "type": "random path",
+      "sig": "\\(\\widehat\\pi_N=\\operatorname*{argmax}_{\\pi\\in\\Pi}\\widehat V^{\\pi}\\)",
+      "role": "tie-broken plug-in maximizing path",
+      "refs": [
+        "Pi",
+        "Vhat"
+      ]
+    },
+    {
+      "name": "Delta",
+      "type": "deterministic vector",
+      "sig": "\\(\\Delta=(\\Delta_{\\pi})_{\\pi\\in\\Pi}\\in[0,\\infty)^{|\\Pi|}\\)",
+      "role": "root-\\(N\\) local path-gap vector",
+      "refs": [
+        "Pi"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "Gaussian random vector",
+      "sig": "\\(Z\\sim\\mathcal N(0,\\Sigma)\\)",
+      "role": "limit experiment noise",
+      "refs": [
+        "Sigma",
+        "Pi"
+      ]
+    },
+    {
+      "name": "Reg",
+      "type": "random scalar",
+      "sig": "\\(\\operatorname{Reg}_N=\\max_{\\pi\\in\\Pi}V^{\\pi}-V^{\\widehat\\pi_N}\\)",
+      "role": "plug-in schedule regret",
+      "refs": [
+        "Pi",
+        "V",
+        "pihat"
+      ]
+    },
+    {
+      "name": "A0",
+      "type": "standard Gaussian random scalar",
+      "space": "\\(\\mathbb R\\)",
+      "role": "shared source in the two-period witness"
+    },
+    {
+      "name": "B0",
+      "type": "standard Gaussian random scalar",
+      "space": "\\(\\mathbb R\\)",
+      "role": "second source in the two-period witness"
+    },
+    {
+      "name": "C0",
+      "type": "standard Gaussian random scalar",
+      "space": "\\(\\mathbb R\\)",
+      "role": "third source in the two-period witness"
+    },
+    {
+      "name": "Wit",
+      "type": "special-case construction",
+      "def": "A legal two-period rank-one recursion with independent centered sources \\(A_0,B_0,C_0\\sim\\mathcal N(0,1)\\) and two path errors \\((A_0,A_0+B_0-C_0)\\).",
+      "role": "shared-donor covariance witness",
+      "refs": [
+        "T",
+        "k",
+        "G",
+        "Pi",
+        "A0",
+        "B0",
+        "C0"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:fixed-index",
+      "kind": "structural",
+      "condition": "\\(T\\), \\(A\\), \\(k\\), \\(q=1\\), \\(d\\), and \\( |\\Pi|\\) do not vary with \\(N\\).",
+      "free_symbols": [
+        "T",
+        "A",
+        "k",
+        "q",
+        "d",
+        "Pi",
+        "N"
+      ],
+      "standard": {
+        "name": "fixed-dimensional triangular-array asymptotics",
+        "cite": "AgarwalHanSahaSyrgkanisYoon2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:joint-expansion",
+        "thm:gaussian-approximation"
+      ]
+    },
+    {
+      "id": "ass:conditional-design",
+      "kind": "sampling",
+      "condition": "Inference is conditional on \\(D\\), \\(v\\), \\(R\\), \\(G\\), and the induced donor cells \\(I\\).",
+      "free_symbols": [
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ],
+      "standard": {
+        "name": "conditional fixed-design panel analysis",
+        "cite": "AgarwalHanSahaSyrgkanisYoon2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:outcome-factor",
+      "kind": "model",
+      "condition": "For every \\(i\\in[N]\\) and \\(h\\in[d]\\), \\(Y_{ih}=v_i^{\\top}\\theta_h+\\varepsilon_{ih}\\).",
+      "free_symbols": [
+        "N",
+        "d",
+        "Y",
+        "v",
+        "theta",
+        "eps"
+      ],
+      "standard": {
+        "name": "linear time-varying latent factor model with one-lag blips",
+        "cite": "AgarwalHanSahaSyrgkanisYoon2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "def:oracle-recursion"
+      ]
+    },
+    {
+      "id": "ass:innovation-centering",
+      "kind": "sampling",
+      "condition": "For every \\(i\\in[N]\\), \\(\\mathbb E[\\varepsilon_i\\mid D,v,R,G,I]=0\\).",
+      "free_symbols": [
+        "N",
+        "eps",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ],
+      "standard": {
+        "name": "donor exogeneity",
+        "cite": "AgarwalHanSahaSyrgkanisYoon2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:cross-unit-independence",
+      "kind": "sampling",
+      "condition": "The blocks \\(\\{\\varepsilon_i:i\\in[N]\\}\\) are mutually independent conditional on \\(D,v,R,G,I\\).",
+      "free_symbols": [
+        "eps",
+        "N",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ],
+      "standard": {
+        "name": "independent cross-unit innovations",
+        "cite": "AgarwalShahShen2024"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:gaussian-approximation",
+        "thm:replay-covariance"
+      ]
+    },
+    {
+      "id": "ass:innovation-tail",
+      "kind": "moment",
+      "condition": "Uniformly in \\(i\\) and unit vectors \\(u\\in\\mathbb R^d\\), \\(\\|u^{\\top}\\varepsilon_i\\|_{\\psi_2}\\le K_{\\varepsilon}\\) for a constant \\(K_{\\varepsilon}<\\infty\\).",
+      "free_symbols": [
+        "eps",
+        "d",
+        "N"
+      ],
+      "constants": [
+        "K_{\\varepsilon}"
+      ],
+      "standard": {
+        "name": "uniform sub-Gaussian innovation condition",
+        "cite": "AgarwalShahShen2024"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:early-kill",
+        "thm:gaussian-approximation",
+        "thm:replay-covariance"
+      ]
+    },
+    {
+      "id": "ass:donor-growth",
+      "kind": "design",
+      "condition": "For constants \\(0<c_I<C_I<\\infty\\), \\(c_I N\\le |\\mathcal I_{r,N}|\\le C_I N\\) for every \\(r\\in\\mathcal R\\).",
+      "free_symbols": [
+        "I",
+        "N",
+        "Rnodes"
+      ],
+      "constants": [
+        "c_I",
+        "C_I"
+      ],
+      "standard": {
+        "name": "proportional donor-cell growth",
+        "cite": "AgarwalHanSahaSyrgkanisYoon2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:diffuse-weights",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:loading-bound",
+      "kind": "regularity",
+      "condition": "\\(\\max_{i\\in[N]}\\|v_i\\|_2\\le C_v\\) for a constant \\(C_v<\\infty\\).",
+      "free_symbols": [
+        "v",
+        "N"
+      ],
+      "constants": [
+        "C_v"
+      ],
+      "standard": {
+        "name": "bounded factor loadings",
+        "cite": "ChernozhukovHansenLiaoZhu2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:diffuse-weights"
+      ]
+    },
+    {
+      "id": "ass:donor-gram",
+      "kind": "spectral",
+      "condition": "For constants \\(0<c_v<C_v'<\\infty\\), every eigenvalue of \\(|\\mathcal I_{r,N}|^{-1}\\sum_{j\\in\\mathcal I_{r,N}}v_jv_j^{\\top}\\) lies in \\([c_v,C_v']\\) uniformly over \\(r\\in\\mathcal R\\).",
+      "free_symbols": [
+        "I",
+        "v",
+        "Rnodes"
+      ],
+      "constants": [
+        "c_v",
+        "C_v'"
+      ],
+      "standard": {
+        "name": "strong-factor donor Gram separation",
+        "cite": "ChernozhukovHansenLiaoZhu2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:diffuse-weights",
+        "lem:early-kill"
+      ]
+    },
+    {
+      "id": "ass:feature-gram",
+      "kind": "spectral",
+      "condition": "For constants \\(0<c_R<C_R<\\infty\\), every eigenvalue of \\(p^{-1}R^{\\top}R\\) lies in \\([c_R,C_R]\\).",
+      "free_symbols": [
+        "R",
+        "p",
+        "k"
+      ],
+      "constants": [
+        "c_R",
+        "C_R"
+      ],
+      "standard": {
+        "name": "separated feature-loading Gram",
+        "cite": "AgarwalShahShenSong2019"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:early-kill",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:covariate-centering",
+      "kind": "measurement",
+      "condition": "For every row \\(h\\in[p]\\) and unit \\(i\\in[N]\\), \\(\\mathbb E[U_{hi}\\mid D,v,R,G,I]=0\\).",
+      "free_symbols": [
+        "U",
+        "p",
+        "N",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ],
+      "standard": {
+        "name": "centered covariate measurement error",
+        "cite": "AgarwalShahShenSong2019"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:early-kill"
+      ]
+    },
+    {
+      "id": "ass:covariate-independence",
+      "kind": "measurement",
+      "condition": "The entries \\(\\{U_{hi}:h\\in[p],i\\in[N]\\}\\) are mutually independent conditional on \\(D,v,R,G,I\\).",
+      "free_symbols": [
+        "U",
+        "p",
+        "N",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ],
+      "standard": {
+        "name": "independent noisy factor measurements",
+        "cite": "AgarwalShahShenSong2019"
+      },
+      "used_by": [
+        "def:model-class",
+        "def:orthogonal-estimator",
+        "lem:early-kill",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:covariate-tail",
+      "kind": "moment",
+      "condition": "\\(\\sup_{h\\in[p],i\\in[N]}\\|U_{hi}\\|_{\\psi_2}\\le K_U\\) for a constant \\(K_U<\\infty\\).",
+      "free_symbols": [
+        "U",
+        "p",
+        "N"
+      ],
+      "constants": [
+        "K_U"
+      ],
+      "standard": {
+        "name": "sub-Gaussian covariate measurement error",
+        "cite": "AgarwalShahShenSong2019"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:early-kill",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:noise-separation",
+      "kind": "sampling",
+      "condition": "The matrix \\(U\\) is independent of \\(\\{\\varepsilon_i:i\\in[N]\\}\\) conditional on \\(D,v,R,G,I\\).",
+      "free_symbols": [
+        "U",
+        "eps",
+        "N",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I"
+      ],
+      "standard": {
+        "name": "independent proxy and outcome innovations",
+        "cite": "AgarwalHanSahaSyrgkanisYoon2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "def:orthogonal-estimator",
+        "lem:early-kill",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:feature-growth",
+      "kind": "rate",
+      "condition": "There exists \\(\\delta>0\\) such that \\(p_N/N^{2+\\delta}\\to\\infty\\).",
+      "free_symbols": [
+        "p",
+        "N"
+      ],
+      "constants": [
+        "\\delta"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This many-row regime is attainable when a fixed cohort of firms is paired with very high-frequency transaction, shipment, remote-sensing, or text-derived proxy measurements; the proxy rows grow independently of the cross-sectional donor count."
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:early-kill",
+        "thm:joint-expansion"
+      ]
+    },
+    {
+      "id": "ass:covariance-limit",
+      "kind": "limit",
+      "condition": "\\(\\|\\Sigma_N-\\Sigma\\|_{\\mathrm{op}}\\to0\\).",
+      "free_symbols": [
+        "Sigma"
+      ],
+      "standard": {
+        "name": "triangular-array covariance convergence",
+        "cite": "ChernozhukovChetverikovKato2017"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:gaussian-approximation",
+        "thm:replay-covariance"
+      ]
+    },
+    {
+      "id": "ass:covariance-positive",
+      "kind": "nondegeneracy",
+      "condition": "\\(\\lambda_{\\min}(\\Sigma)\\ge c_{\\Sigma}>0\\) for a constant \\(c_{\\Sigma}\\).",
+      "free_symbols": [
+        "Sigma"
+      ],
+      "constants": [
+        "c_{\\Sigma}"
+      ],
+      "standard": {
+        "name": "nondegenerate Gaussian limit",
+        "cite": "ChernozhukovChetverikovKato2017"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:gaussian-approximation",
+        "thm:simultaneous-selection"
+      ]
+    },
+    {
+      "id": "ass:local-gaps",
+      "kind": "local-alternative",
+      "condition": "For every \\(\\pi\\in\\Pi\\), \\(\\sqrt N(\\max_{\\rho\\in\\Pi}V^{\\rho}-V^{\\pi})\\to\\Delta_{\\pi}\\).",
+      "free_symbols": [
+        "N",
+        "Pi",
+        "V",
+        "Delta"
+      ],
+      "standard": {
+        "name": "root-\\(N\\) local treatment-choice sequence",
+        "cite": "HiranoPorter2009"
+      },
+      "used_by": [
+        "thm:local-regret"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "Strong-factor one-lag LTV Synthetic-Blips class",
+      "construction": "\\(\\mathcal P=\\{(Y,X,D,v,R,G,I):\\text{ for every }N,\\;\\text{ each member property listed below holds}\\}\\).",
+      "free_symbols": [
+        "Pclass",
+        "Y",
+        "X",
+        "D",
+        "v",
+        "R",
+        "G",
+        "I",
+        "N"
+      ],
+      "by_member_properties": [
+        "ass:fixed-index",
+        "ass:conditional-design",
+        "ass:outcome-factor",
+        "ass:innovation-centering",
+        "ass:cross-unit-independence",
+        "ass:innovation-tail",
+        "ass:donor-growth",
+        "ass:loading-bound",
+        "ass:donor-gram",
+        "ass:feature-gram",
+        "ass:covariate-centering",
+        "ass:covariate-independence",
+        "ass:covariate-tail",
+        "ass:noise-separation",
+        "ass:feature-growth",
+        "ass:covariance-limit",
+        "ass:covariance-positive"
+      ]
+    },
+    {
+      "id": "def:oracle-recursion",
+      "name": "Oracle SBE node recursion",
+      "construction": "Traverse \\(\\mathcal G\\) in reverse topological order and set \\(Z_{jr}^{\\circ}=Y_{j,s(r)}-\\sum_{u:r\\to u}c_{rju}\\mu_{ju}\\) and \\(\\widetilde\\mu_{ir}=w_{ir}^{\\top}Z_{\\mathcal I_{r,N},r}^{\\circ}+\\xi_r^{\\top}(X_i-X_{\\mathcal I_{r,N}}w_{ir})\\).",
+      "free_symbols": [
+        "G",
+        "Y",
+        "mu",
+        "Zsrc",
+        "w",
+        "xi",
+        "X",
+        "I",
+        "N",
+        "Rnodes"
+      ],
+      "inputs": [
+        "G",
+        "Y",
+        "mu",
+        "w",
+        "xi",
+        "X",
+        "I"
+      ]
+    },
+    {
+      "id": "def:path-value",
+      "name": "Cumulative feasible-path value",
+      "construction": "\\(V^{\\pi}=\\sum_{r\\in\\mathcal R}a_{\\pi r}\\mu_{i0,r}\\) for every \\(\\pi\\in\\Pi\\).",
+      "free_symbols": [
+        "V",
+        "Pi",
+        "Rnodes",
+        "a",
+        "mu",
+        "i0"
+      ],
+      "inputs": [
+        "a",
+        "mu",
+        "i0"
+      ]
+    },
+    {
+      "id": "def:orthogonal-estimator",
+      "name": "Covariate-row-cross-fitted orthogonal recursive SBE-PCR estimator",
+      "construction": "Split the \\(p_N\\) rows of \\(X\\) into a fixed number of folds. On the complement of each fold, compute rank-\\(k\\) leave-one-unit-out PCR weights \\(\\widehat w_{ir}^{(-f,-i)}\\). On an opposite row fold, fit the minimum-norm linear coefficient \\(\\widehat\\xi_r^{(f,-i)}\\). Traverse \\(\\mathcal G\\) backward with \\(\\widehat Z_{jr}=Y_{j,s(r)}-\\sum_{u:r\\to u}c_{rju}\\widehat\\mu_{ju}\\) and \\(\\widehat\\mu_{ir}^{(f)}=(\\widehat w_{ir}^{(-f,-i)})^{\\top}\\widehat Z_{\\mathcal I_{r,N},r}+(\\widehat\\xi_r^{(f,-i)})^{\\top}(X_i-X_{\\mathcal I_{r,N}}\\widehat w_{ir}^{(-f,-i)})\\). Average folds and set \\(\\widehat V^{\\pi}=\\sum_r a_{\\pi r}\\widehat\\mu_{i0,r}\\).",
+      "free_symbols": [
+        "p",
+        "X",
+        "N",
+        "k",
+        "w",
+        "xi",
+        "G",
+        "Y",
+        "D",
+        "I",
+        "Rnodes",
+        "Zhat",
+        "muhat",
+        "a",
+        "i0",
+        "Pi",
+        "Vhat"
+      ],
+      "inputs": [
+        "X",
+        "Y",
+        "D",
+        "G",
+        "I",
+        "Pi"
+      ]
+    },
+    {
+      "id": "def:influence-propagation",
+      "name": "Backward influence propagation",
+      "construction": "Differentiate the finite oracle recursion in \\(\\mathrm{def:oracle\\mbox{-}recursion}\\) with respect to each primitive outcome block \\(\\varepsilon_i\\), retaining repeated appearances of a unit at every ancestor node; the resulting exact coefficients are \\(H_{i,N}\\), and \\(\\Phi_{i,N}=NH_{i,N}\\varepsilon_i\\).",
+      "free_symbols": [
+        "G",
+        "eps",
+        "H",
+        "Phi",
+        "N"
+      ],
+      "inputs": [
+        "G",
+        "w",
+        "a",
+        "eps"
+      ]
+    },
+    {
+      "id": "def:full-graph-handle",
+      "name": "Orthogonal full-graph remainder handle",
+      "construction": "Condition fold by fold, apply the separated-projector perturbation formula at each PCR node, use \\(R^{\\top}\\xi_r=\\beta_r\\) to cancel the Gateaux derivative in the donor weight, and close the finite backward induction by bounding only products of opposite-fold weight, row-regression, projector, and leave-one-out errors.",
+      "free_symbols": [
+        "R",
+        "xi",
+        "beta",
+        "G",
+        "w",
+        "p",
+        "N"
+      ],
+      "inputs": [
+        "G",
+        "X",
+        "R",
+        "xi"
+      ]
+    },
+    {
+      "id": "def:replay-covariance",
+      "name": "Leave-one-unit-out recursion replay covariance",
+      "construction": "For each \\(i\\), refit all nuisance objects without unit \\(i\\), insert its fitted outcome-residual block at every source position where unit \\(i\\) appears, replay the fitted backward graph to obtain \\(\\widehat\\Phi_{i,N}\\), and set \\(\\widehat\\Sigma_N=N^{-1}\\sum_i\\widehat\\Phi_{i,N}\\widehat\\Phi_{i,N}^{\\top}\\).",
+      "free_symbols": [
+        "N",
+        "G",
+        "Phihat",
+        "Sigmahat",
+        "Vhat"
+      ],
+      "inputs": [
+        "X",
+        "Y",
+        "G",
+        "I",
+        "Vhat"
+      ]
+    },
+    {
+      "id": "def:simultaneous-objects",
+      "name": "Gaussian-max bands and maximizing-path set",
+      "construction": "Let \\(c_{1-\\alpha}(\\widehat\\Sigma_N)\\) be the conditional \\(1-\\alpha\\) quantile of \\(\\max_{\\pi\\in\\Pi}|G^{\\star}_{\\pi}|/\\widehat\\Sigma_{N,\\pi\\pi}^{1/2}\\). Set \\(B_{\\pi,N}=[\\widehat V^{\\pi}\\pm r_{\\pi,N}]\\) and \\(\\widehat{\\mathcal M}_N=\\{\\pi:\\widehat V^{\\pi}+r_{\\pi,N}\\ge\\max_{\\rho\\in\\Pi}(\\widehat V^{\\rho}-r_{\\rho,N})\\}\\).",
+      "free_symbols": [
+        "Gstar",
+        "c",
+        "rad",
+        "alpha",
+        "Sigmahat",
+        "Pi",
+        "B",
+        "Vhat",
+        "N",
+        "Mhat"
+      ],
+      "inputs": [
+        "Vhat",
+        "Sigmahat",
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:local-regret-functional",
+      "name": "Finite-Gaussian local-gap regret functional",
+      "construction": "\\(\\mathfrak R(\\Delta,Z)=\\Delta_{\\operatorname*{argmax}_{\\pi\\in\\Pi}(Z_{\\pi}-\\Delta_{\\pi})}\\), using the same deterministic tie-breaking rule as \\(\\widehat\\pi_N\\).",
+      "free_symbols": [
+        "Delta",
+        "Z",
+        "Pi",
+        "pihat"
+      ],
+      "inputs": [
+        "Delta",
+        "Z"
+      ]
+    },
+    {
+      "id": "def:two-period-witness",
+      "name": "Two-period donor-reuse witness",
+      "construction": "Use the legal rank-one graph \\(Wit\\) whose two path errors are \\((A_0,A_0+B_0-C_0)\\) for independent standard Gaussian source limits.",
+      "free_symbols": [
+        "Wit",
+        "A0",
+        "B0",
+        "C0",
+        "T",
+        "k",
+        "G",
+        "Pi"
+      ],
+      "inputs": [
+        "T",
+        "k",
+        "G",
+        "Pi"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:diffuse-weights",
+      "kind": "lemma",
+      "statement": "Uniformly over \\(i\\in[N]\\) and \\(r\\in\\mathcal R\\), the minimum-norm oracle weights exist and satisfy \\(\\|w_{ir}\\|_2\\le C N^{-1/2}\\) and \\(\\|w_{ir}\\|_\\infty\\le C N^{-1}\\).",
+      "free_symbols": [
+        "N",
+        "Rnodes",
+        "w",
+        "I",
+        "v"
+      ],
+      "depends_on": [
+        "ass:donor-growth",
+        "ass:loading-bound",
+        "ass:donor-gram"
+      ],
+      "status": "to-prove",
+      "justification": "Diffuseness converts each recursively transported outcome into a negligible-max-influence triangular array.",
+      "gap": "Agarwal, Han, Saha, Syrgkanis, and Yoon use PCR weight bounds for consistency but do not isolate the uniform influence-scale consequence needed for a joint limit.",
+      "consumer": "The bound supplies the Lindeberg and leave-one-out stability inputs for pathwise inference."
+    },
+    {
+      "id": "lem:early-kill",
+      "kind": "lemma",
+      "statement": "At a single rank-one equal-loading donor node, the row-cross-fitted augmented PCR estimate obeys \\(\\widehat\\mu_{i0,r}-\\mu_{i0,r}=w_{i0,r}^{\\top}\\varepsilon_{\\mathcal I_{r,N}}+o_{\\mathbb P}(N^{-1/2})\\), and its fitted source coefficients converge uniformly in \\(\\ell_2\\) to the oracle coefficients.",
+      "free_symbols": [
+        "k",
+        "i0",
+        "Rnodes",
+        "mu",
+        "w",
+        "eps",
+        "I",
+        "N",
+        "X",
+        "p",
+        "R",
+        "xi"
+      ],
+      "depends_on": [
+        "ass:innovation-tail",
+        "ass:donor-growth",
+        "ass:donor-gram",
+        "ass:feature-gram",
+        "ass:covariate-centering",
+        "ass:covariate-independence",
+        "ass:covariate-tail",
+        "ass:noise-separation",
+        "ass:feature-growth",
+        "def:orthogonal-estimator",
+        "lem:diffuse-weights"
+      ],
+      "status": "to-prove",
+      "justification": "This is the mandated early kill test for whether the proposed orthogonalization actually reaches root-\\(N\\) scale.",
+      "gap": "The Synthetic-Blips proof bounds PCR errors at consistency scale, and the DML template does not supply the spectral and row-fold rates for this node.",
+      "consumer": "Passing this lemma licenses the full recursive induction; failure forces a pivot before developing selection inference."
+    },
+    {
+      "id": "thm:joint-expansion",
+      "kind": "theorem",
+      "statement": "Uniformly over the class \\(\\mathcal P\\), \\(\\max_{\\pi\\in\\Pi}|\\sqrt N(\\widehat V^{\\pi}-V^{\\pi})-N^{-1/2}\\sum_{i=1}^{N}\\Phi_{i,N}^{\\pi}|=o_{\\mathbb P}(1)\\). The array \\(\\Phi_{i,N}\\) is computable up to consistently estimated nuisance quantities by the backward propagation in \\(\\mathrm{def:influence\\mbox{-}propagation}\\).",
+      "free_symbols": [
+        "Pclass",
+        "N",
+        "Pi",
+        "Vhat",
+        "V",
+        "Phi",
+        "G",
+        "H"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:oracle-recursion",
+        "def:path-value",
+        "def:orthogonal-estimator",
+        "def:influence-propagation",
+        "def:full-graph-handle",
+        "lem:diffuse-weights",
+        "lem:early-kill"
+      ],
+      "status": "to-prove",
+      "justification": "The joint influence recursion is the missing theorem that turns identified synthetic-blip schedules into inferential objects.",
+      "gap": "Agarwal, Han, Saha, Syrgkanis, and Yoon prove only pointwise consistency, while Agarwal, Shah, and Shen obtain a scalar growing-post-period limit without backward donor reuse.",
+      "consumer": "Korean export-support analysts can compare every budget-feasible insurance and loan schedule with a single coherent uncertainty law."
+    },
+    {
+      "id": "oeq:sharp-feature-frontier",
+      "kind": "openendedquestion",
+      "statement": "Determine the weakest primitive growth frontier for \\(p_N\\), donor diffuseness, and the normalized spectral margins under which the expansion in \\(\\mathrm{thm:joint\\mbox{-}expansion}\\) remains uniform, and construct a contiguous rank-one sequence showing failure on the other side of that frontier.",
+      "free_symbols": [
+        "p",
+        "N",
+        "w",
+        "R",
+        "k",
+        "Vhat",
+        "V",
+        "Pi"
+      ],
+      "depends_on": [
+        "def:full-graph-handle",
+        "lem:early-kill",
+        "thm:joint-expansion"
+      ],
+      "status": "to-prove",
+      "justification": "The stated many-row condition is deliberately sufficient; a sharp phase boundary would separate genuine information requirements from proof slack.",
+      "gap": "Neither robust PCR bounds nor low-rank debiasing results derive a necessity frontier for recursive path functionals with target-unit row noise.",
+      "consumer": "The frontier tells practitioners how many repeated proxy measurements are needed before schedule-level Wald inference is credible."
+    },
+    {
+      "id": "thm:gaussian-approximation",
+      "kind": "theorem",
+      "statement": "Uniformly over \\(\\mathcal P\\), the law of \\(\\sqrt N(\\widehat V-V)\\) is approximated by \\(\\mathcal N(0,\\Sigma_N)\\) over all rectangles in \\(\\mathbb R^{|\\Pi|}\\), and hence \\(\\Sigma^{-1/2}\\sqrt N(\\widehat V-V)\\Rightarrow\\mathcal N(0,I_{|\\Pi|})\\).",
+      "free_symbols": [
+        "Pclass",
+        "N",
+        "Vhat",
+        "V",
+        "Sigma",
+        "Pi"
+      ],
+      "depends_on": [
+        "ass:cross-unit-independence",
+        "ass:innovation-tail",
+        "ass:covariance-limit",
+        "ass:covariance-positive",
+        "thm:joint-expansion"
+      ],
+      "status": "to-prove",
+      "justification": "A multivariate approximation, not marginal normality, is required for path comparison and maximization.",
+      "gap": "Synthetic Interventions proves a scalar limit, and generic Gaussian approximation starts only after an influence array with the correct shared-donor covariance is available.",
+      "consumer": "The result supplies joint critical values for the finite Korean schedule menu."
+    },
+    {
+      "id": "thm:replay-covariance",
+      "kind": "theorem",
+      "statement": "The leave-one-unit-out replay covariance satisfies \\(\\|\\widehat\\Sigma_N-\\Sigma_N\\|_{\\mathrm{op}}=o_{\\mathbb P}(1)\\) uniformly over \\(\\mathcal P\\). In particular, its off-diagonal entries retain every repeated use of a donor innovation across nodes and paths.",
+      "free_symbols": [
+        "Pclass",
+        "Sigmahat",
+        "Sigma",
+        "N",
+        "G",
+        "Phihat",
+        "H",
+        "eps",
+        "Pi"
+      ],
+      "depends_on": [
+        "ass:cross-unit-independence",
+        "ass:innovation-tail",
+        "ass:covariance-limit",
+        "def:replay-covariance",
+        "thm:joint-expansion"
+      ],
+      "status": "to-prove",
+      "justification": "Marginal residual variances cannot recover the covariance created by recursive donor reuse.",
+      "gap": "Cattaneo, Feng, and Titiunik separate static weight and prediction uncertainty, but do not replay a backward causal recursion or estimate cross-path donor-reuse terms.",
+      "consumer": "The covariance permits valid ranking of early, even, and late export-support schedules whose estimates share donor firms."
+    },
+    {
+      "id": "prop:two-period-covariance",
+      "kind": "proposition",
+      "statement": "For the construction \\(Wit\\), \\(\\sqrt N(\\widehat V-V)\\Rightarrow(A_0,A_0+B_0-C_0)\\) and \\(\\Sigma=\\begin{pmatrix}1&1\\\\1&3\\end{pmatrix}\\). Thus diagonal covariance replay is inconsistent on a nondegenerate legal SBE graph.",
+      "free_symbols": [
+        "Wit",
+        "A0",
+        "B0",
+        "C0",
+        "N",
+        "Vhat",
+        "V",
+        "Sigma"
+      ],
+      "depends_on": [
+        "def:two-period-witness",
+        "thm:joint-expansion",
+        "thm:replay-covariance"
+      ],
+      "status": "to-prove",
+      "justification": "The witness verifies algebraically that donor reuse creates first-order off-diagonal covariance rather than cancellation.",
+      "gap": "No existing Synthetic-Blips result displays a legal recursive covariance calculation even for two periods.",
+      "consumer": "The example is a transparent diagnostic and unit test for software implementing replay covariance."
+    },
+    {
+      "id": "thm:simultaneous-selection",
+      "kind": "theorem",
+      "statement": "Uniformly over \\(\\mathcal P\\), \\(\\liminf_N\\Pr(V^{\\pi}\\in B_{\\pi,N}\\text{ for all }\\pi\\in\\Pi)\\ge1-\\alpha\\) and \\(\\liminf_N\\inf_{P\\in\\mathcal P}\\Pr(\\mathcal M_N\\subseteq\\widehat{\\mathcal M}_N)\\ge1-\\alpha\\).",
+      "free_symbols": [
+        "Pclass",
+        "V",
+        "B",
+        "Pi",
+        "N",
+        "alpha",
+        "M",
+        "Mhat"
+      ],
+      "depends_on": [
+        "ass:covariance-positive",
+        "def:simultaneous-objects",
+        "thm:gaussian-approximation",
+        "thm:replay-covariance"
+      ],
+      "status": "to-prove",
+      "justification": "The set statement remains honest under exact and local ties, when a singleton winner interval is the wrong object.",
+      "gap": "Andrews, Kitagawa, and McCloskey cover the parameter attached to the selected coordinate, not the entire population argmax set generated by recursive SBE values.",
+      "consumer": "A policy agency can retain every statistically undominated budget-feasible support schedule rather than overstate a noisy unique winner."
+    },
+    {
+      "id": "thm:local-regret",
+      "kind": "theorem",
+      "statement": "Under \\(\\mathrm{ass:local\\mbox{-}gaps}\\), \\(\\sqrt N\\operatorname{Reg}_N\\Rightarrow\\mathfrak R(\\Delta,Z)=\\Delta_{\\operatorname*{argmax}_{\\pi\\in\\Pi}(Z_{\\pi}-\\Delta_{\\pi})}\\). The limit uses the full covariance \\(\\Sigma\\) and allows multiple coordinates with \\(\\Delta_{\\pi}=0\\).",
+      "free_symbols": [
+        "N",
+        "Reg",
+        "Delta",
+        "Z",
+        "Pi",
+        "Sigma"
+      ],
+      "depends_on": [
+        "ass:local-gaps",
+        "def:local-regret-functional",
+        "thm:gaussian-approximation"
+      ],
+      "status": "to-prove",
+      "justification": "Local ties make schedule regret nonregular and economically first order even though each path value is regular.",
+      "gap": "Hirano and Porter analyze treatment choice in limit experiments, but do not derive the finite correlated Gaussian law induced by recursive synthetic-blip estimation.",
+      "consumer": "The law quantifies the probability and cost of selecting the wrong Korean insurance-loan schedule when welfare gaps are near the estimation noise scale."
+    }
+  ],
+  "sampling_model": {
+    "design": "Conditional triangular-array analysis with deterministic latent factors, assignments, donor cells, and a fixed finite backward graph.",
+    "units": "Outcome innovation blocks are independent across units and may be dependent across source coordinates within a unit.",
+    "treatment": "A fixed finite action set and a fixed finite budget-feasible path menu are evaluated for one target unit under the one-lag LTV Synthetic-Blips model.",
+    "overlap": "Every required action-time donor cell has size proportional to \\(N\\), and its normalized loading Gram is uniformly separated.",
+    "nuisance_estimation": "Rank-\\(k\\) PCR weights and row-space regression coefficients are trained on opposite covariate-row folds with leave-one-unit-out refits; \\(p_N/N^{2+\\delta}\\to\\infty\\)."
+  },
+  "estimand_functional": "\\(\\widehat V^{\\pi}=\\sum_{r\\in\\mathcal R}a_{\\pi r}\\widehat\\mu_{i0,r},\\qquad \\sqrt N(\\widehat V-V)=N^{-1/2}\\sum_{i=1}^{N}\\Phi_{i,N}+o_{\\mathbb P}(1)\\)",
+  "target_estimand": "\\(V^{\\pi}=\\sum_{r\\in\\mathcal R}a_{\\pi r}\\mu_{i0,r},\\quad \\pi\\in\\Pi\\)",
+  "bibliography": [
+    {
+      "key": "AgarwalHanSahaSyrgkanisYoon2025",
+      "citation": "Agarwal, A., Han, S., Saha, D., Syrgkanis, V., and Yoon, H. (2025). Synthetic Blips: Generalizing Synthetic Controls for Dynamic Treatment Effects. arXiv:2210.11003, revised September 2025."
+    },
+    {
+      "key": "AgarwalShahShen2024",
+      "citation": "Agarwal, A., Shah, D., and Shen, D. (2024). Synthetic Interventions. arXiv:2006.07691, revised August 2024."
+    },
+    {
+      "key": "AgarwalShahShenSong2019",
+      "citation": "Agarwal, A., Shah, D., Shen, D., and Song, D. (2019). On Robustness of Principal Component Regression. arXiv:1902.10920."
+    },
+    {
+      "key": "ChernozhukovEtAl2018DML",
+      "citation": "Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/Debiased Machine Learning for Treatment and Structural Parameters. The Econometrics Journal 21, C1--C68."
+    },
+    {
+      "key": "ChernozhukovHansenLiaoZhu2023",
+      "citation": "Chernozhukov, V., Hansen, C., Liao, Y., and Zhu, Y. (2023). Inference for Low-Rank Models. Annals of Statistics 51, 1301--1330."
+    },
+    {
+      "key": "BenMichaelFellerRothstein2021",
+      "citation": "Ben-Michael, E., Feller, A., and Rothstein, J. (2021). The Augmented Synthetic Control Method. Journal of the American Statistical Association 116, 1789--1803."
+    },
+    {
+      "key": "CattaneoFengTitiunik2021",
+      "citation": "Cattaneo, M. D., Feng, Y., and Titiunik, R. (2021). Prediction Intervals for Synthetic Control Methods. Journal of the American Statistical Association 116, 1865--1880."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2017",
+      "citation": "Chernozhukov, V., Chetverikov, D., and Kato, K. (2017). Central Limit Theorems and Bootstrap in High Dimensions. Annals of Probability 45, 2309--2352."
+    },
+    {
+      "key": "AndrewsKitagawaMcCloskey2024",
+      "citation": "Andrews, I., Kitagawa, T., and McCloskey, A. (2024). Inference on Winners. Quarterly Journal of Economics 139, 305--358."
+    },
+    {
+      "key": "HiranoPorter2009",
+      "citation": "Hirano, K., and Porter, J. R. (2009). Asymptotics for Statistical Treatment Rules. Econometrica 77, 1683--1701."
+    },
+    {
+      "key": "ChernozhukovLeeRosenSun2025",
+      "citation": "Chernozhukov, V., Lee, S., Rosen, A. M., and Sun, L. (2025). Policy Learning with Confidence. arXiv:2502.10653."
+    },
+    {
+      "key": "AtheyWager2021",
+      "citation": "Athey, S., and Wager, S. (2021). Policy Learning with Observational Data. Econometrica 89, 133--161."
+    },
+    {
+      "key": "ArmstrongWeidnerZeleneev2026",
+      "citation": "Armstrong, T. B., Weidner, M., and Zeleneev, A. (2026). Robust Estimation and Inference in Panels with Interactive Fixed Effects. Journal of Political Economy, forthcoming."
+    },
+    {
+      "key": "ChoiKwonLiao2025",
+      "citation": "Choi, J., Kwon, H., and Liao, Y. (2025). Inference for Low-Rank Models without Estimating the Rank. Journal of the American Statistical Association, forthcoming."
+    },
+    {
+      "key": "ChernozhukovWuthrichZhu2021",
+      "citation": "Chernozhukov, V., Wuthrich, K., and Zhu, Y. (2021). An Exact and Robust Conformal Inference Method for Counterfactual and Synthetic Controls. Journal of the American Statistical Association 116, 1849--1864."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "AgarwalHanSahaSyrgkanisYoon2025",
+      "comparator_claim": "The paper identifies dynamic path means by backward synthetic blips and proves pointwise SBE-PCR consistency.",
+      "matched_by": "Theorem 3",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "AgarwalShahShen2024",
+      "comparator_claim": "The paper gives conditions for scalar asymptotic normality of one synthetic-intervention mean with a growing post-period.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovEtAl2018DML",
+      "comparator_claim": "The paper combines Neyman orthogonality and cross-fitting to make first-stage effects second order.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovHansenLiaoZhu2023",
+      "comparator_claim": "The paper uses sample splitting, eigenspace rotation, and refitting for asymptotically normal low-rank inference.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BenMichaelFellerRothstein2021",
+      "comparator_claim": "The paper augments synthetic-control weights with an outcome model to correct imperfect balance.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CattaneoFengTitiunik2021",
+      "comparator_claim": "The paper constructs conditional prediction intervals accounting for static weight and post-treatment uncertainty.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovChetverikovKato2017",
+      "comparator_claim": "The paper proves Gaussian and bootstrap approximation for sums of independent high-dimensional vectors over hyperrectangles.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AndrewsKitagawaMcCloskey2024",
+      "comparator_claim": "The paper develops winner's-curse-corrected inference for the parameter attached to a selected option.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HiranoPorter2009",
+      "comparator_claim": "The paper derives asymptotically optimal statistical treatment rules through Gaussian limit experiments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovLeeRosenSun2025",
+      "comparator_claim": "The paper selects policies on a benefit-risk frontier under an available joint Gaussian approximation.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Synthetic Blips identifies dynamic path values under latent time-varying confounding but leaves schedule comparison without a joint sampling law. For a fixed target unit, finite horizon, fixed rank, one-lag LTV model, and finite budget-feasible path menu, this core constructs a covariate-row-cross-fitted orthogonal recursive SBE-PCR estimator. Its focal theorem is a uniform joint root-\\(N\\) expansion obtained by differentiating the entire backward graph. A leave-one-unit-out replay estimator recovers the full covariance, including off-diagonal terms from donors reused across nodes and paths. The resulting Gaussian law yields simultaneous path bands, an honest set containing every maximizing path under ties, and an explicit correlated finite-Gaussian local-gap regret limit.",
+  "project_justification": {
+    "gap": "The 2025 Synthetic-Blips paper stops at pointwise consistency. Its backward estimator repeatedly reuses fitted donor outcomes, so neither scalar Synthetic-Interventions limits nor static synthetic-control prediction intervals deliver the joint influence law required for schedule choice.",
+    "niche": "Fixed-horizon panels with many noisy proxy rows create an unusual asymptotic regime: cross-sectional donor noise is first order, spectral and row-regression errors must be orthogonalized, and the policy object is a correlated finite vector of path values.",
+    "fill": "The project propagates exact source coefficients through the SBE graph, proves all cross-fitted spectral remainders negligible, estimates covariance by residual replay, and carries the joint limit through max and argmax operations relevant to the Korean export-support application."
+  },
+  "related_work": "Agarwal, Han, Saha, Syrgkanis, and Yoon (2025) provide the writing and model anchor: their LTV identification theorem expresses every path mean by baseline and backward-recursive blips, and their consistency proof repeatedly imports PCR projected-error bounds without an influence representation. Agarwal, Shah, and Shen (2024) provide the nearest PCR limit theorem, but its Gaussian term is averaged over a growing post-period for one intervention mean rather than over cross-sectional donors in a finite backward graph. Chernozhukov et al. (2018) supply the orthogonality and cross-fitting template, while Chernozhukov, Hansen, Liao, and Zhu (2023) supply the separated-eigenspace rotation and refitting template; both are method exemplars rather than theorem-level targets. Ben-Michael, Feller, and Rothstein (2021) motivate the row-space augmentation, but their correction is static. Cattaneo, Feng, and Titiunik (2021) distinguish weight uncertainty from prediction uncertainty for static synthetic controls. Chernozhukov, Chetverikov, and Kato (2017) provide the Gaussian approximation after the recursive influence array has been derived. Andrews, Kitagawa, and McCloskey (2024) study inference for a selected coordinate, whereas the present inferential object is a set containing all population-maximizing paths. Hirano and Porter (2009) motivate root-\\(N\\) local treatment-choice analysis, and Chernozhukov, Lee, Rosen, and Sun (2025) motivate Gaussian confidence-aware policy choice once a valid joint covariance is available.",
+  "technical_internal_limitation": "The condition \\(p_N/N^{2+\\delta}\\to\\infty\\) is a sufficient early-kill regime, not a claimed necessity result. The open frontier question keeps the sharp proxy-growth requirement visible. Weak factors, rank overestimation, a growing horizon, and a growing path menu are excluded from this first version.",
+  "honest_scope": "The exact oracle coefficient propagation and the two-period covariance witness are algebraically plausible starting points. The load-bearing unresolved step is uniform root-\\(N\\) equivalence of the feasible orthogonal recursion and its oracle version. Conditional on that step, the finite-dimensional Gaussian, replay covariance, simultaneous-band, maximizing-set, and local-regret arguments are standard transformations but still require careful uniformity under ties. When \\(T=2\\) and the graph has no reused donors, the construction reduces to the scalar Synthetic-Interventions decomposition; when the legal shared-donor witness is used, it instead yields covariance \\(\\begin{pmatrix}1&1\\\\1&3\\end{pmatrix}\\).",
+  "seeds": [
+    "seed:joint-recursive-limit",
+    "seed:maximizing-path-regret",
+    "seed:donor-reuse-covariance"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:joint-recursive-limit",
+      "anchor": "AgarwalHanSahaSyrgkanisYoon2025",
+      "anchor_opened": "Read the LTV identification recursion in Theorem 2, the SBE-PCR construction, the pointwise consistency theorem and proof induction, plus the Introduction and Conclusion in arXiv:2210.11003.",
+      "question": "Can row-cross-fitted augmentation turn the full finite backward graph into a uniform joint root-\\(N\\) influence expansion?",
+      "first_changed_proof_step": "Replace the consistency proof's first donor-node Hölder bound by an orthogonal expansion that retains the oracle donor-noise term and differentiates the separated PCR projector.",
+      "destination_search": "Searches for Synthetic Blips with asymptotic normality, covariance, confidence intervals, and recursive donor reuse found no occupied target-method pair.",
+      "motif": "M5+M11(c)",
+      "target_tier": "flagship",
+      "cynical_objection": "Immediate from Synthetic Interventions because every path value is a linear combination of synthetic-intervention means.",
+      "rebuttal": "That scalar theorem averages over a growing post-period and assumes a projected weight-error condition; it neither derives cross-sectional root-\\(N\\) orthogonality nor retains innovations reused through a recursive graph.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "rank": 1,
+      "status": "survived"
+    },
+    {
+      "id": "seed:minimax-proxy-frontier",
+      "anchor": "AgarwalShahShenSong2019",
+      "anchor_opened": "Read the PCR robustness abstract and the finite-sample low-rank prediction construction, together with the Synthetic-Blips rate proof that imports its projected-error lemmas.",
+      "question": "What is the matched minimax proxy-row threshold for root-\\(N\\) estimation of one recursive path value?",
+      "first_changed_proof_step": "Turn the upper projected-error bound into a two-point experiment that perturbs the target loading within the noisy covariate row space.",
+      "destination_search": "Searches for minimax rates for recursive synthetic controls found only general intervention-pattern average-effect rates, not a fixed-unit SBE proxy frontier.",
+      "motif": "M5+M11(a)",
+      "target_tier": "field",
+      "cynical_objection": "The lower bound is a routine errors-in-variables reduction.",
+      "rebuttal": "Recursive donor reuse changes the effective loading perturbation, but a convincing least-favorable pair is not yet available.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "rank": 6,
+      "status": "dropped after deepening: the lower-bound experiment was under-specified"
+    },
+    {
+      "id": "seed:efficient-path-vector",
+      "anchor": "ChernozhukovHansenLiaoZhu2023",
+      "anchor_opened": "Read the low-rank sample-splitting, eigenspace-rotation, post-refitting construction and its efficiency claim, plus the Introduction.",
+      "question": "What is the semiparametric efficiency bound for the finite SBE path vector, and does recursive orthogonal PCR attain it?",
+      "first_changed_proof_step": "Define a dominated tangent experiment for deterministic factors before projecting the path derivative onto its tangent space.",
+      "destination_search": "Low-rank efficiency papers cover matrix functionals, but no SBE path-vector bound was found.",
+      "motif": "M5+M11(b)",
+      "target_tier": "field",
+      "cynical_objection": "Efficiency is undefined in the conditional deterministic-factor model.",
+      "rebuttal": "The objection holds for the current model because no canonical dominated tangent class is fixed.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 1,
+        "consumer_value": 3
+      },
+      "rank": 8,
+      "status": "dropped: novelty is plausible but the efficiency experiment is not well posed"
+    },
+    {
+      "id": "seed:maximizing-path-regret",
+      "anchor": "AgarwalHanSahaSyrgkanisYoon2025",
+      "anchor_opened": "Read the Korean application sections that optimize observed and prospective insurance-loan schedules, along with the omitted excess-risk discussion and Conclusion.",
+      "question": "What honest set contains every best feasible schedule under local ties, and what is the correlated finite-Gaussian limit of plug-in regret?",
+      "first_changed_proof_step": "Replace point-estimate schedule maximization by inversion of a joint Gaussian path band, then apply the argmax map under root-\\(N\\) local gaps.",
+      "destination_search": "Andrews, Kitagawa, and McCloskey cover the selected coordinate; Hirano and Porter study Gaussian treatment-choice risk; neither handles the full maximizer set from SBE donor-reuse covariance.",
+      "motif": "M5+M16",
+      "target_tier": "field",
+      "cynical_objection": "The regret law is an immediate continuous-mapping corollary of any joint CLT.",
+      "rebuttal": "The finite-Gaussian mapping is short once the CLT exists, but honest inclusion of all maximizers under ties and the SBE covariance are not delivered by existing winner inference.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "rank": 2,
+      "status": "survived as downstream theorem, not standalone kernel"
+    },
+    {
+      "id": "seed:conformal-recursive-paths",
+      "anchor": "ChernozhukovWuthrichZhu2021",
+      "anchor_opened": "Read the exact symmetry-inversion construction and its synthetic-control counterfactual coverage setup, plus the Introduction and concluding discussion.",
+      "question": "Can a permutation orbit deliver finite-sample simultaneous coverage for recursively estimated SBE paths?",
+      "first_changed_proof_step": "Construct a group action that preserves every action-time donor cell and the entire backward residual replay.",
+      "destination_search": "No recursive SBE conformal method was found, but the required cross-unit exchangeability conflicts with deterministic heterogeneous loadings and donor histories.",
+      "motif": "M5+M17",
+      "target_tier": "subfield",
+      "cynical_objection": "Relabeling donors destroys the factor-loading and treatment-history structure, so the permutation is invalid.",
+      "rebuttal": "The objection holds under the intended conditional LTV model.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 1,
+        "consumer_value": 3
+      },
+      "rank": 7,
+      "status": "dropped: no defensible symmetry group"
+    },
+    {
+      "id": "seed:donor-reuse-covariance",
+      "anchor": "CattaneoFengTitiunik2021",
+      "anchor_opened": "Read the Introduction, the two-source uncertainty decomposition, the conditional Gaussian approximation requirement, and the simulation-based critical-value construction.",
+      "question": "What covariance does a naive nodewise residual estimator actually target, and how must replay correct the omitted donor-reuse terms?",
+      "first_changed_proof_step": "Expand each path error into primitive unit sources before squaring, rather than summing nodewise marginal residual variances.",
+      "destination_search": "Static synthetic-control prediction inference and staggered-adoption uniform inference do not propagate the same donor outcome through recursive blip nodes.",
+      "motif": "M1+M5+M8",
+      "target_tier": "field",
+      "cynical_objection": "Off-diagonal covariance is ordinary sandwich algebra.",
+      "rebuttal": "The algebra is elementary after the source map is known, but the source map is itself generated by estimated leave-one-out recursive PCR and is absent from the literature.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "rank": 3,
+      "status": "survived and merged with the joint-limit kernel"
+    },
+    {
+      "id": "seed:weak-factor-recursion",
+      "anchor": "ArmstrongWeidnerZeleneev2026",
+      "anchor_opened": "Read the strong-factor failure diagnosis, nuclear-norm bias envelope, and bias-aware interval construction, plus the Introduction and Conclusion.",
+      "question": "Can bias-aware simultaneous SBE inference remain uniform as the weakest recursive PCR factor approaches the noise scale?",
+      "first_changed_proof_step": "Replace differentiability of each separated spectral projector by a recursive nuclear-norm bias envelope.",
+      "destination_search": "Weak-factor panel inference and rank-overestimation correction are static; no recursive SBE counterpart was found.",
+      "motif": "M5+M7+M11(c)",
+      "target_tier": "flagship",
+      "cynical_objection": "This is a routine application of static weak-factor bias bounds at each node.",
+      "rebuttal": "Backward subtraction couples unresolved factor bias across nodes, but the required uniform recursive envelope is substantially less feasible than the strong-factor kernel.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "rank": 4,
+      "status": "dropped for v1: reserved as a genuine later specialization"
+    },
+    {
+      "id": "seed:growing-path-menu",
+      "anchor": "ChernozhukovChetverikovKato2017",
+      "anchor_opened": "Read the hyperrectangle Gaussian and multiplier-bootstrap theorem, its unrestricted-correlation feature, and the Introduction.",
+      "question": "How fast may the horizon and feasible path menu grow before recursive amplification defeats high-dimensional Gaussian approximation?",
+      "first_changed_proof_step": "Derive a coordinate-envelope recursion for \\(H_{i,N}^{\\pi}\\) before invoking the high-dimensional rectangle theorem.",
+      "destination_search": "Uniform staggered synthetic-control prediction covers post-treatment indices, not exponentially many recursively generated action paths.",
+      "motif": "M5+M11(c)",
+      "target_tier": "flagship",
+      "cynical_objection": "Apply the high-dimensional CLT after stacking paths.",
+      "rebuttal": "Stacking is valid only after a new recursive envelope controls horizon amplification, spectral derivatives, and the minimum effective donor cell.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "rank": 5,
+      "status": "dropped for v1: fixed-dimensional influence control must be solved first"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "seed:joint-recursive-limit",
+      "threads": [
+        "AgarwalHanSahaSyrgkanisYoon2025: LTV identification and pointwise recursive PCR consistency",
+        "AgarwalShahShen2024: scalar Synthetic-Interventions CLT under a growing post-period and projected weight-error condition",
+        "ChernozhukovEtAl2018DML: orthogonal score and cross-fitting product-remainder template",
+        "ChernozhukovHansenLiaoZhu2023: sample-split spectral rotation and low-rank debiasing",
+        "BenMichaelFellerRothstein2021: outcome-model augmentation of synthetic weights"
+      ],
+      "occupancy": "No paper found supplies a joint influence recursion or donor-reuse covariance for finite LTV Synthetic-Blips paths."
+    },
+    {
+      "candidate": "seed:maximizing-path-regret",
+      "threads": [
+        "AgarwalHanSahaSyrgkanisYoon2025: Korean schedule optimization without policy inference",
+        "AndrewsKitagawaMcCloskey2024: inference for the parameter attached to a selected winner",
+        "HiranoPorter2009: local Gaussian treatment-choice risk",
+        "ChernozhukovLeeRosenSun2025: confidence-aware policy choice given joint Gaussian inputs",
+        "AtheyWager2021: regret for orthogonal observational policy scores"
+      ],
+      "occupancy": "The exact full-argmax-set target and the SBE-specific correlated local-gap law are unoccupied, but they logically require the joint SBE limit first."
+    },
+    {
+      "candidate": "seed:donor-reuse-covariance",
+      "threads": [
+        "CattaneoFengTitiunik2021: static decomposition of weight and prediction uncertainty",
+        "ChernozhukovChetverikovKato2017: rectangle Gaussian approximation with unrestricted coordinate correlation",
+        "AgarwalShahShen2024: oracle donor-noise scalar variance",
+        "AgarwalHanSahaSyrgkanisYoon2025: recursive reuse of estimated donor blips"
+      ],
+      "occupancy": "No closer source subsumes leave-one-unit-out replay through an estimated backward blip graph."
+    }
+  ],
+  "novelty_justification": "The closest substantive comparator proves LTV Synthetic-Blips identification and pointwise SBE-PCR consistency but provides no influence array or covariance estimator. The closest inferential comparator proves a scalar Synthetic-Interventions limit by averaging over a growing post-period and imposing projected weight-error control. The chosen kernel instead orthogonalizes each finite cross-sectional PCR node, differentiates the complete backward graph, and preserves every repeated primitive innovation, yielding a uniform joint root-N path-vector expansion and computable donor-reuse-aware replay covariance.",
+  "_pre_d0_cursor": {
+    "cursor_version": 1,
+    "topic": "Joint influence recursion and selection-valid path inference for LTV Synthetic-Blips panels. Fix one target unit, finite T and action set, q=1, fixed latent rank, and a finite budget-feasible path class. Conditional on deterministic LTV latent factors and assignments, let every required action-time donor cell grow proportionally to N; impose independent cross-unit sub-Gaussian innovations with bounded fourth moments, separated normalized factor/loading Grams, row-space inclusion and donor exogeneity, diffuse minimum-norm donor weights, p_N/N^(2+delta)->infinity noisy factor covariates, and a positive-definite limiting oracle covariance. Construct a covariate-row-cross-fitted orthogonal recursive SBE-PCR estimator with an explicit computable unit influence array and uniform joint root-N expansion for all target path values. Prove a multivariate Gaussian approximation and uniform consistency of covariance obtained by replaying the fitted recursion on leave-one-out residuals, including off-diagonal donor-reuse terms; then derive simultaneous path bands, an honest maximizing-path set, and the finite-Gaussian local-gap regret law. Consumer: Synthetic Blips' Korean export-insurance/loan schedule and targeting analysis. PRESOLVE EVIDENCE REQUIRING VERIFICATION: The oracle source coefficients can be propagated exactly through the finite backward graph: each blip-node coefficient equals its donor-weighted observed-outcome coefficient minus propagated baseline and later-blip coefficients. This gives Phi_{r,N}^pi=N H_r^pi epsilon_r and Sigma_N=N sum_r H_r H_r' Var(epsilon_r). In the legal T=2 LTV witness with control, time-1 action, and time-2 action cells, the two path errors are (A,A+B-C), yielding Sigma=[[1,1],[1,3]] without cancellation. A separated rank-k spectral projector is differentiable. Row-space augmentation w'Z+xi'(X_i-X_S w), with xi estimated on opposite covariate-row folds and unit leave-out, makes the population derivative in w vanish, suggesting only nuisance-product remainders remain when p_N/N^(2+delta)->infinity. Checks found no collision with Synthetic Interventions scalar CLTs or dynamic softmax inference, and fixed spectral margins avoid projector boundary nonregularity. UNRESOLVED BOTTLENECK: Prove uniformly that the orthogonalized finite leave-one-out PCR recursion differs from its oracle version by o_P(N^(-1/2)), controlling spectral derivatives and every cross-fitted augmentation product. EARLY KILL TEST: At one rank-one equal-loading donor node with p_N=N^(2+delta), prove the augmented estimator's oracle expansion and influence-coefficient consistency uniformly; pivot if either root-N remainder fails under the stated gap and diffuseness.",
+    "novelty_target": "field",
+    "qid": "panel_sblip_joint_limit_selection",
+    "specialization": "v1",
+    "angle": 0,
+    "version": 1,
+    "mode": "cold-start"
+  },
+  "message": "Authored and validated the typed v1 proposal core for joint influence recursion, donor-reuse-aware covariance, simultaneous path inference, and local-gap regret.",
+  "literature_checklist": [
+    {
+      "author": "Agarwal, Han, Saha, Syrgkanis, and Yoon",
+      "year": 2025,
+      "venue": "arXiv working paper",
+      "bibkey": "AgarwalHanSahaSyrgkanisYoon2025",
+      "one_line": "LTV Synthetic-Blips identification and pointwise PCR consistency, with no joint influence law.",
+      "relevant_to": "thm:joint-expansion"
+    },
+    {
+      "author": "Agarwal, Shah, and Shen",
+      "year": 2024,
+      "venue": "arXiv working paper",
+      "bibkey": "AgarwalShahShen2024",
+      "one_line": "Scalar Synthetic-Interventions normality under a growing post-period and projected weight-error control.",
+      "relevant_to": "thm:gaussian-approximation"
+    },
+    {
+      "author": "Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, and Robins",
+      "year": 2018,
+      "venue": "The Econometrics Journal",
+      "bibkey": "ChernozhukovEtAl2018DML",
+      "one_line": "Orthogonality and cross-fitting template for product-rate nuisance remainders.",
+      "relevant_to": "thm:joint-expansion"
+    },
+    {
+      "author": "Chernozhukov, Hansen, Liao, and Zhu",
+      "year": 2023,
+      "venue": "Annals of Statistics",
+      "bibkey": "ChernozhukovHansenLiaoZhu2023",
+      "one_line": "Sample-split eigenspace rotation and refitting for low-rank inference.",
+      "relevant_to": "lem:early-kill"
+    },
+    {
+      "author": "Ben-Michael, Feller, and Rothstein",
+      "year": 2021,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "BenMichaelFellerRothstein2021",
+      "one_line": "Outcome-model augmentation of synthetic-control weights.",
+      "relevant_to": "lem:early-kill"
+    },
+    {
+      "author": "Cattaneo, Feng, and Titiunik",
+      "year": 2021,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "CattaneoFengTitiunik2021",
+      "one_line": "Static decomposition of weight and post-treatment prediction uncertainty.",
+      "relevant_to": "thm:replay-covariance"
+    },
+    {
+      "author": "Chernozhukov, Chetverikov, and Kato",
+      "year": 2017,
+      "venue": "Annals of Ring Probability",
+      "bibkey": "ChernozhukovChetverikovKato2017",
+      "one_line": "Gaussian approximation for independent high-dimensional vectors over hyperrectangles.",
+      "relevant_to": "thm:gaussian-approximation"
+    },
+    {
+      "author": "Andrews, Kitagawa, and McCloskey",
+      "year": 2024,
+      "venue": "Quarterly Journal of Economics",
+      "bibkey": "AndrewsKitagawaMcCloskey2024",
+      "one_line": "Winner-corrected inference for the parameter attached to a selected option.",
+      "relevant_to": "thm:simultaneous-selection"
+    },
+    {
+      "author": "Hirano and Porter",
+      "year": 2009,
+      "venue": "Econometrica",
+      "bibkey": "HiranoPorter2009",
+      "one_line": "Local Gaussian treatment-choice risk and asymptotically optimal rules.",
+      "relevant_to": "thm:local-regret"
+    },
+    {
+      "author": "Chernozhukov, Lee, Rosen, and Sun",
+      "year": 2025,
+      "venue": "arXiv working paper",
+      "bibkey": "ChernozhukovLeeRosenSun2025",
+      "one_line": "Confidence-aware policy choice given a joint Gaussian approximation.",
+      "relevant_to": "thm:simultaneous-selection"
+    }
+  ]
+}

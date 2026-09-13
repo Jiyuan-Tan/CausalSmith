@@ -1,0 +1,1005 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}corrupted\_\allowbreak{}ate\_\allowbreak{}overlap\_\allowbreak{}nuisance\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} On the exact one-dimensional boundary class with Lipschitz outcome regressions and propensity calibration smoothness at least one, one total finite dyadic cell estimator attains the same-experiment minimax risk \(r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\) for every \(\kappa>0\). The clean term is parametric below \(\kappa=1\), equals \(\{\log(en)/n\}^{1/2}\) at the elbow, and is \(n^{-2/(\kappa+3)}\) above it. The theorem proves that clean minimax functional rate and the contamination modulus are simultaneously attainable on this subfamily; the higher-dimensional or non-Lipschitz smoothness interactions remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} The clean weak-overlap literature does not provide a same-experiment minimax theorem when an arbitrary Huber contaminant may replace \(X\), \(A\), and \(Y\). In particular, the Ma--Sant'Anna--Sasaki--Ura clean conditions and this exact known-design polynomial-boundary contamination experiment are incomparable, so their asymptotic results and converses do not transfer automatically. No located result gives the all-\(\kappa\) clean elbow together with the full-record contamination radius on this declared class.
+
+\paragraph{Niche.} The missing benchmark is a boundary reconstruction whose variance changes correctly across the integrable, logarithmic, and nonintegrable inverse-overlap regimes while remaining stable when all contaminating mass is placed in its lowest-occupancy slab.
+
+\paragraph{Fill.} The variable-width dyadic estimator has error envelope \(h^2+n^{-1/2}V_\kappa(h)^{1/2}+\epsilon h^{-\kappa}+\exp\{-cnh^{\kappa+3/2}\}\). Optimizing its explicit cutoff yields the complete one-dimensional phase diagram, and exact clean-law pairs plus Huber-neighborhood collisions give matching same-experiment lower bounds.
+
+\section{Related work}
+
+MaSantAnnaSasakiUra2026 is the nearest clean-record comparator: its Section 3 estimator and Appendix B, Proposition B.1 operate under clean i.i.d. sampling, whereas the present benchmark permits arbitrary joint replacement of \(X\), \(A\), and \(Y\). Its weak-overlap conditions and this exact uniform-design polynomial-boundary experiment are incomparable, so no published converse transfers automatically. KhanTamer2010 explains support-tail irregularity but not this controlled boundary class or its contamination phase. ChenGaoRen2016 supplies the Huber-neighborhood testing template, not the scalar ATE estimator that preserves the clean functional rate. RobinsEtAl2017HOEE, LiuMukherjeeNeweyRobins2017EmpiricalHOIF, and BonviniKennedyDukesBalakrishnan2024 motivate the still-open higher-dimensional projected route under clean sampling. HaradaFujisawa2024 treats outcome outliers under stronger overlap, AgarwalSingh2022 assumes structured corruption with bounded propensity, and neither covers arbitrary full-record contamination at a propensity zero. SasakiUra2022ET and SasakiUra2022Robustate motivate trimming and boundary correction; the right-heart-catheterization analysis is a consumer of the theoretical benchmark, not evidence that its records are corrupted or that its parametric propensity belongs to this class.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta(P)=\int_{[0,1]^d}\{\mu_1(x)-\mu_0(x)\}\,\mathrm dx=\mathbb E_{P^{\mathrm F}}[Y(1)-Y(0)]\).
+Primary functional / estimator / diagnostic: For \(d=1\), \(\beta=1\), \(\alpha\geq1\), and every \(\kappa>0\), \(\mathfrak R_n(\epsilon;1,\alpha,1,\kappa,L)\asymp_{\alpha,\kappa,L}r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\), attained by \(T_{\mathrm{Lip}}\), where \(r_{n,\kappa}=n^{-1/2}\) for \(0<\kappa<1\), \(r_{n,1}=\{\log(en)/n\}^{1/2}\), and \(r_{n,\kappa}=n^{-2/(\kappa+3)}\) for \(\kappa>1\)..
+\begin{itemize}
+  \item \texttt{d} --- \texttt{covariate\_\allowbreak{}dimension}; \(\mathbb N\); \texttt{regime\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Fixed covariate dimension \(d\geq 1\).
+  \item \texttt{alpha} --- \texttt{propensity\_\allowbreak{}smoothness}; \((0,\infty)\); \texttt{regime\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Known Hölder smoothness exponent \(\alpha\) of the propensity calibration.
+  \item \texttt{beta} --- \texttt{outcome\_\allowbreak{}smoothness}; \((0,\infty)\); \texttt{regime\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Known Hölder smoothness exponent \(\beta\) of each outcome regression.
+  \item \texttt{kappa} --- \texttt{overlap\_\allowbreak{}decay\_\allowbreak{}exponent}; \((0,\infty)\); \texttt{regime\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Known one-sided polynomial overlap exponent \(\kappa\).
+  \item \texttt{L} --- \texttt{holder\_\allowbreak{}radius}; \([4,\infty)\); \texttt{regularity\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} Known common Hölder radius \(L\).
+  \item \texttt{n} --- \texttt{sample\_\allowbreak{}size}; \(\{2,3,\ldots\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Sample size \(n\).
+  \item \texttt{epsilon} --- \texttt{contamination\_\allowbreak{}fraction}; \([0,1/10]\); \texttt{regime\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Known Huber contamination fraction \(\epsilon\).
+  \item \texttt{a} --- \texttt{treatment\_\allowbreak{}level}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Generic treatment level \(a\).
+  \item \texttt{mathcal\_\allowbreak{}X} --- \texttt{covariate\_\allowbreak{}space}; \([0,1]^d\); \texttt{sample\_\allowbreak{}space}
+  \par\smallskip\noindent\emph{Definition.} Covariate space \(\mathcal X=[0,1]^d\).
+  \item \texttt{x} --- \texttt{generic\_\allowbreak{}covariate\_\allowbreak{}value}; \(\mathcal X\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Generic covariate value \(x=(x_1,\ldots,x_d)\).
+  \item \texttt{mathcal\_\allowbreak{}O} --- \texttt{record\_\allowbreak{}space}; \(\mathcal X\times\{0,1\}\times[0,1]\); \texttt{sample\_\allowbreak{}space}
+  \par\smallskip\noindent\emph{Definition.} Observed-record space \(\mathcal O=\mathcal X\times\{0,1\}\times[0,1]\).
+  \item \texttt{X} --- \texttt{covariate}; \(\mathcal X\); \texttt{data\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Clean covariate vector \(X\).
+  \item \texttt{A} --- \texttt{binary\_\allowbreak{}treatment}; \(\{0,1\}\); \texttt{data\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Clean binary treatment \(A\).
+  \item \texttt{Y0} --- \texttt{potential\_\allowbreak{}outcome}; \([0,1]\); \texttt{causal\_\allowbreak{}variable}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome \(Y(0)\) under control.
+  \item \texttt{Y1} --- \texttt{potential\_\allowbreak{}outcome}; \([0,1]\); \texttt{causal\_\allowbreak{}variable}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome \(Y(1)\) under treatment.
+  \item \texttt{Y} --- \texttt{observed\_\allowbreak{}outcome}; \([0,1]\); \texttt{data\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Clean observed outcome \(Y\).
+  \item \texttt{O} --- \texttt{clean\_\allowbreak{}record}; \(\mathcal O\); \texttt{data\_\allowbreak{}unit}
+  \par\smallskip\noindent\emph{Definition.} Clean observed record \(O=(X,A,Y)\).
+  \item \texttt{P\_\allowbreak{}F} --- \texttt{clean\_\allowbreak{}full\_\allowbreak{}data\_\allowbreak{}law}; \(\mathcal P(\mathcal X\times\{0,1\}\times[0,1]^3)\); \texttt{causal\_\allowbreak{}model}
+  \par\smallskip\noindent\emph{Definition.} Clean full-data law \(P^{\mathrm F}\) of \(X,A,Y(0),Y(1),Y\).
+  \item \texttt{P} --- \texttt{clean\_\allowbreak{}observed\_\allowbreak{}law}; \(\mathcal P(\mathcal O)\); \texttt{clean\_\allowbreak{}model}
+  \par\smallskip\noindent\emph{Definition.} Observed-record margin \(P\) of \(P^{\mathrm F}\).
+  \item \texttt{Q} --- \texttt{contaminating\_\allowbreak{}law}; \(\mathcal P(\mathcal O)\); \texttt{adversary}
+  \par\smallskip\noindent\emph{Definition.} Arbitrary probability law \(Q\) on the complete record space.
+  \item \texttt{R} --- \texttt{observed\_\allowbreak{}mixture\_\allowbreak{}law}; \(\mathcal P(\mathcal O)\); \texttt{sampling\_\allowbreak{}law}
+  \par\smallskip\noindent\emph{Definition.} Observed contaminated law \(R=(1-\epsilon)P+\epsilon Q\).
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{iid\_\allowbreak{}sample}; \(\mathcal O^n\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Observed sample \(O_1,\ldots,O_n\) drawn from \(R\).
+  \item \texttt{H\_\allowbreak{}s\_\allowbreak{}L} --- \texttt{holder\_\allowbreak{}ball}; \texttt{function\_\allowbreak{}class}
+  \par\smallskip\noindent\emph{Definition.} For a positive exponent \(s\), \(\mathcal H^s(L)\) contains functions whose partial derivatives through order \(m=\lceil s\rceil-1\) are bounded by \(L\) and whose order-\(m\) derivatives have \(s-m\) Hölder seminorm at most \(L\) under the sup norm.
+  \item \texttt{u} --- \texttt{propensity\_\allowbreak{}calibration}; \(\mathcal X\to[1/4,1/2]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} Unknown propensity calibration \(u\).
+  \item \texttt{e} --- \texttt{propensity\_\allowbreak{}score}; \(\mathcal X\to[0,1]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} Clean propensity score \(e(x)=P(A=1\mid X=x)\).
+  \item \texttt{mu\_\allowbreak{}a} --- \texttt{outcome\_\allowbreak{}regression\_\allowbreak{}family}; \(\{0,1\}\times\mathcal X\to[1/4,3/4]\); \texttt{nuisance}
+  \par\smallskip\noindent\emph{Definition.} Clean outcome-regression functions \(\mu_a\) on \(\mathcal X\); wherever \(P(A=a\mid X=x)>0\), \(\mu_a(x)=\mathbb E_P[Y\mid X=x,A=a]\).
+  \item \texttt{theta\_\allowbreak{}F} --- \texttt{causal\_\allowbreak{}ate}; \([-1,1]\); \texttt{causal\_\allowbreak{}target}
+  \par\smallskip\noindent\emph{Definition.} Full-data average treatment effect \(\theta^{\mathrm F}(P^{\mathrm F})=\mathbb E_{P^{\mathrm F}}[Y(1)-Y(0)]\).
+  \item \texttt{theta} --- \texttt{clean\_\allowbreak{}ate\_\allowbreak{}functional}; \([-1/2,1/2]\); \texttt{statistical\_\allowbreak{}target}
+  \par\smallskip\noindent\emph{Definition.} Clean observed-law functional \(\theta(P)=\int_{[0,1]^d}\{\mu_1(x)-\mu_0(x)\}\,\mathrm dx\).
+  \item \texttt{P\_\allowbreak{}prime} --- \texttt{second\_\allowbreak{}clean\_\allowbreak{}observed\_\allowbreak{}law}; \(\mathcal P(\mathcal O)\); \texttt{comparison\_\allowbreak{}law}
+  \par\smallskip\noindent\emph{Definition.} A second clean observed law \(P'\) used in pairwise comparisons.
+  \item \texttt{delta} --- \texttt{total\_\allowbreak{}variation\_\allowbreak{}radius}; \((0,1]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Generic total-variation radius \(\delta\).
+  \item \texttt{delta\_\allowbreak{}0} --- \texttt{local\_\allowbreak{}modulus\_\allowbreak{}radius}; \((0,1]\); \texttt{theorem\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} Positive local radius \(\delta_0\) depending only on the fixed class parameters.
+  \item \texttt{h} --- \texttt{lower\_\allowbreak{}bound\_\allowbreak{}localization\_\allowbreak{}scale}; \((0,1/4]\); \texttt{lower\_\allowbreak{}bound\_\allowbreak{}index}
+  \par\smallskip\noindent\emph{Definition.} Localization scale \(h\) for the one-dimensional least-favorable pair.
+  \item \texttt{TV} --- \texttt{total\_\allowbreak{}variation\_\allowbreak{}distance}; \(\mathcal P(\mathcal O)^2\to[0,1]\); \texttt{metric}
+  \par\smallskip\noindent\emph{Definition.} Total variation \(\operatorname{TV}(P,P')=\sup_B|P(B)-P'(B)|\).
+  \item \texttt{KL} --- \texttt{kullback\_\allowbreak{}leibler\_\allowbreak{}divergence}; \(\mathcal P(\mathcal O)^2\to[0,\infty]\); \texttt{divergence}
+  \par\smallskip\noindent\emph{Definition.} Kullback--Leibler divergence \(\operatorname{KL}(P,P')\).
+  \item \texttt{mathcal\_\allowbreak{}P\_\allowbreak{}clean} --- \texttt{clean\_\allowbreak{}law\_\allowbreak{}class}; \(\mathcal P(\mathcal O)\); \texttt{model\_\allowbreak{}class}
+  \par\smallskip\noindent\emph{Definition.} Clean boundary-overlap class \(\mathcal P_{d,\alpha,\beta,\kappa,L}\).
+  \item \texttt{mathcal\_\allowbreak{}C\_\allowbreak{}eps} --- \texttt{contaminated\_\allowbreak{}experiment\_\allowbreak{}class}; \texttt{experiment\_\allowbreak{}class}
+  \par\smallskip\noindent\emph{Definition.} Huber experiment class \(\mathcal C_{d,\alpha,\beta,\kappa,L}(\epsilon)\).
+  \item \texttt{mathfrak\_\allowbreak{}T\_\allowbreak{}n} --- \texttt{estimator\_\allowbreak{}class}; \texttt{decision\_\allowbreak{}class}
+  \par\smallskip\noindent\emph{Definition.} All Borel maps \(T:\mathcal O^n\to[-1/2,1/2]\).
+  \item \texttt{R\_\allowbreak{}n} --- \texttt{minimax\_\allowbreak{}absolute\_\allowbreak{}risk}; \([0,1]\); \texttt{frontier\_\allowbreak{}object}
+  \par\smallskip\noindent\emph{Definition.} Minimax absolute risk \(\mathfrak R_n(\epsilon)\) defined by \(\texttt{def:minimax-risk}\).
+  \item \texttt{omega\_\allowbreak{}theta} --- \texttt{ate\_\allowbreak{}tv\_\allowbreak{}modulus}; \([0,1]\to[0,1]\); \texttt{population\_\allowbreak{}frontier}
+  \par\smallskip\noindent\emph{Definition.} ATE total-variation modulus \(\omega_\theta(\delta)\) defined by \(\texttt{def:ate-tv-modulus}\).
+  \item \texttt{gamma\_\allowbreak{}TV} --- \texttt{contamination\_\allowbreak{}modulus\_\allowbreak{}exponent}; \((0,1)\); \texttt{derived\_\allowbreak{}regime\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Boundary modulus exponent \(\gamma_{\mathrm{TV}}=(\beta+1)/(\beta+\kappa+1)\).
+  \item \texttt{B} --- \texttt{measurable\_\allowbreak{}subset}; \(\mathcal B(\mathcal O)\); \texttt{set\_\allowbreak{}index}
+  \par\smallskip\noindent\emph{Definition.} Generic measurable subset \(B\) of the record space.
+  \item \texttt{Z} --- \texttt{binary\_\allowbreak{}reduced\_\allowbreak{}outcome}; \(\{0,1\}\); \texttt{reduction\_\allowbreak{}output}
+  \par\smallskip\noindent\emph{Definition.} Auxiliary binary response \(Z\) drawn conditionally as \(Z\mid O\sim\operatorname{Bernoulli}(Y)\).
+  \item \texttt{mathsf\_\allowbreak{}Ber} --- \texttt{binary\_\allowbreak{}response\_\allowbreak{}kernel}; \(\mathcal O\rightsquigarrow\mathcal X\times\{0,1\}^2\); \texttt{reduction}
+  \par\smallskip\noindent\emph{Definition.} Markov kernel replacing \(Y=y\) by an independent \(Z\sim\operatorname{Bernoulli}(y)\) while retaining \(X,A\).
+  \item \texttt{P\_\allowbreak{}0\_\allowbreak{}h} --- \texttt{baseline\_\allowbreak{}all\_\allowbreak{}kappa\_\allowbreak{}least\_\allowbreak{}favorable\_\allowbreak{}clean\_\allowbreak{}law}; \(\mathcal P(\mathcal O)\); \texttt{lower\_\allowbreak{}bound\_\allowbreak{}construction}
+  \par\smallskip\noindent\emph{Definition.} Baseline law \(P_{0,h}\) at the fixed exponent \(\kappa\) in \(\texttt{def:lipschitz-lower-pair}\).
+  \item \texttt{P\_\allowbreak{}1\_\allowbreak{}h} --- \texttt{alternative\_\allowbreak{}all\_\allowbreak{}kappa\_\allowbreak{}least\_\allowbreak{}favorable\_\allowbreak{}clean\_\allowbreak{}law}; \(\mathcal P(\mathcal O)\); \texttt{lower\_\allowbreak{}bound\_\allowbreak{}construction}
+  \par\smallskip\noindent\emph{Definition.} Alternative law \(P_{1,h}\) at the fixed exponent \(\kappa\) in \(\texttt{def:lipschitz-lower-pair}\).
+  \item \texttt{P\_\allowbreak{}h\_\allowbreak{}pair} --- \texttt{all\_\allowbreak{}kappa\_\allowbreak{}least\_\allowbreak{}favorable\_\allowbreak{}clean\_\allowbreak{}law\_\allowbreak{}pair}; \texttt{lower\_\allowbreak{}bound\_\allowbreak{}construction}
+  \par\smallskip\noindent\emph{Definition.} Pair \(P_h^{\mathrm{pair}}=(P_{0,h},P_{1,h})\) at fixed \(\kappa\).
+  \item \texttt{mhat\_\allowbreak{}a} --- \texttt{cell\_\allowbreak{}arm\_\allowbreak{}mean}; \(\{0,1\}\times\mathcal B([0,1])\to[0,1]\); \texttt{estimator\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} For every Borel cell \(D\subseteq[0,1]\), let \(N_a(D)=\sum_{i=1}^n\mathbf 1\{X_i\in D,A_i=a\}\). Set \(\widehat m_a(D)=N_a(D)^{-1}\sum_{i=1}^nY_i\mathbf 1\{X_i\in D,A_i=a\}\) when \(N_a(D)>0\), and set \(\widehat m_a(D)=1/2\) when \(N_a(D)=0\); hence \(\widehat m_a(D)\in[0,1]\).
+  \item \texttt{Q\_\allowbreak{}0\_\allowbreak{}h} --- \texttt{baseline\_\allowbreak{}collision\_\allowbreak{}contaminant}; \(\mathcal P(\mathcal O)\); \texttt{lower\_\allowbreak{}bound\_\allowbreak{}construction}
+  \par\smallskip\noindent\emph{Definition.} Contaminant \(Q_{0,h}\) defined by \(\texttt{def:lipschitz-lower-pair}\).
+  \item \texttt{Q\_\allowbreak{}1\_\allowbreak{}h} --- \texttt{alternative\_\allowbreak{}collision\_\allowbreak{}contaminant}; \(\mathcal P(\mathcal O)\); \texttt{lower\_\allowbreak{}bound\_\allowbreak{}construction}
+  \par\smallskip\noindent\emph{Definition.} Contaminant \(Q_{1,h}\) defined by \(\texttt{def:lipschitz-lower-pair}\).
+  \item \texttt{R\_\allowbreak{}h} --- \texttt{common\_\allowbreak{}collision\_\allowbreak{}observed\_\allowbreak{}law}; \(\mathcal P(\mathcal O)\); \texttt{lower\_\allowbreak{}bound\_\allowbreak{}construction}
+  \par\smallskip\noindent\emph{Definition.} Common observed law \(R_h\) defined by \(\texttt{def:lipschitz-lower-pair}\).
+  \item \texttt{mathfrak\_\allowbreak{}H\_\allowbreak{}rob} --- \texttt{robust\_\allowbreak{}projection\_\allowbreak{}handle}; \texttt{open\_\allowbreak{}question\_\allowbreak{}handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Dyadic weak-\allowbreak{}overlap slab decomposition with Hölder boundary moment reproduction,\allowbreak{} sample splitting,\allowbreak{} bounded-\allowbreak{}discrepancy robust estimation of nuisance and Gram moments,\allowbreak{} and an off-\allowbreak{}diagonal projected correction analyzed by a contaminated Hoeffding decomposition.}
+  \item \texttt{r\_\allowbreak{}n\_\allowbreak{}kappa} --- \texttt{one\_\allowbreak{}dimensional\_\allowbreak{}clean\_\allowbreak{}lipschitz\_\allowbreak{}rate}; \((0,1]\); \texttt{derived\_\allowbreak{}regime\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} \(r_{n,\kappa}=n^{-1/2}\) when \(0<\kappa<1\), \(r_{n,1}=\{\log(en)/n\}^{1/2}\), and \(r_{n,\kappa}=n^{-2/(\kappa+3)}\) when \(\kappa>1\).
+  \item \texttt{b\_\allowbreak{}n} --- \texttt{all\_\allowbreak{}kappa\_\allowbreak{}lipschitz\_\allowbreak{}cutoff\_\allowbreak{}scale}; \((0,1]\); \texttt{tuning\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} \(b_n=\max\{\epsilon^{1/(\kappa+2)},r_{n,\kappa}^{1/2}\}\).
+  \item \texttt{rho\_\allowbreak{}eval} --- \texttt{explicit\_\allowbreak{}evaluable\_\allowbreak{}rate}; \(\{2,3,\ldots\}\times[0,1/10]\to(0,1]\); \texttt{open\_\allowbreak{}question\_\allowbreak{}output}
+  \par\smallskip\noindent\emph{Definition.} DERIVED by \(\texttt{oeq:full-frontier}\): the explicit deterministic piecewise rate \(\rho_{\mathrm{eval}}(n,\epsilon;d,\alpha,\beta,\kappa,L)\), including logarithmic factors at equality boundaries.
+  \item \texttt{h\_\allowbreak{}n} --- \texttt{all\_\allowbreak{}kappa\_\allowbreak{}dyadic\_\allowbreak{}boundary\_\allowbreak{}cutoff}; \((0,1]\); \texttt{tuning\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} The dyadic ceiling \(h_n=2^{-J}\) of \(b_n\): the smallest number of the form \(2^{-J}\), \(J\in\mathbb N_0\), satisfying \(h_n\geq b_n\).
+  \item \texttt{mathcal\_\allowbreak{}D\_\allowbreak{}n} --- \texttt{variable\_\allowbreak{}width\_\allowbreak{}partition}; \texttt{estimator\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} When \(h_n=2^{-J}\), set \(r_j=2^jh_n\) and \(M_j=\lceil\sqrt{r_j}/h_n\rceil\) for \(j=0,\ldots,J-1\). For \(k=0,\ldots,M_j-1\), let \(D_{j,k}=[r_j+kr_j/M_j,r_j+(k+1)r_j/M_j)\), except that \(D_{J-1,M_{J-1}-1}\) includes its right endpoint \(1\). The disjoint collection \(\mathcal D_n=\{D_{j,k}:0\leq j<J,0\leq k<M_j\}\) partitions \([h_n,1]\).
+  \item \texttt{B\_\allowbreak{}n} --- \texttt{boundary\_\allowbreak{}reconstruction\_\allowbreak{}cell}; \([h_n,2h_n]\); \texttt{estimator\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Boundary reconstruction cell \(B_n=[h_n,2h_n]\).
+  \item \texttt{T\_\allowbreak{}star} --- \texttt{general\_\allowbreak{}attaining\_\allowbreak{}estimator}; \texttt{open\_\allowbreak{}question\_\allowbreak{}output}
+  \par\smallskip\noindent\emph{Definition.} DERIVED by \(\texttt{oeq:full-frontier}\) from the handle \(\mathfrak H_{\mathrm{rob}}\): a total finite Borel estimator \(T^\star_n\) with explicit tuning, zero-count fallbacks, arithmetic complexity, and memory complexity.
+  \item \texttt{c\_\allowbreak{}0} --- \texttt{lower\_\allowbreak{}risk\_\allowbreak{}constant}; \((0,\infty)\); \texttt{theorem\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} Positive constant \(c_0\) depending only on \(d,\alpha,\beta,\kappa,L\).
+  \item \texttt{C\_\allowbreak{}0} --- \texttt{upper\_\allowbreak{}risk\_\allowbreak{}constant}; \((0,\infty)\); \texttt{theorem\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} Finite constant \(C_0\) depending only on \(d,\alpha,\beta,\kappa,L\).
+  \item \texttt{T\_\allowbreak{}Lip} --- \texttt{all\_\allowbreak{}kappa\_\allowbreak{}one\_\allowbreak{}dimensional\_\allowbreak{}lipschitz\_\allowbreak{}estimator}; \([-1/2,1/2]\); \texttt{attaining\_\allowbreak{}estimator}
+  \par\smallskip\noindent\emph{Definition.} The clipped variable-width cell estimator \(T_{\mathrm{Lip}}\) in \(\texttt{def:lipschitz-estimator}\), using the all-\(\kappa\) cutoff \(h_n\).
+  \item \texttt{V\_\allowbreak{}kappa} --- \texttt{dyadic\_\allowbreak{}treated\_\allowbreak{}variance\_\allowbreak{}envelope}; \((0,1]\to[1,\infty)\); \texttt{estimator\_\allowbreak{}variance\_\allowbreak{}functional}
+  \par\smallskip\noindent\emph{Definition.} \(V_\kappa(h)=1\) when \(0<\kappa<1\), \(V_1(h)=1+\log(1/h)\), and \(V_\kappa(h)=h^{1-\kappa}\) when \(\kappa>1\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:uniform-design]\label{ass:uniform-design}
+Under \(P\), the covariate \(X\) is exactly uniform on \(\mathcal X=[0,1]^d\).
+\par\smallskip\noindent\emph{Standard} (Known uniform random design, \cite{Stone1982}).
+\end{assumption}
+
+\begin{assumption}[ass:polynomial-overlap]\label{ass:polynomial-overlap}
+The clean propensity satisfies \(e(x)=x_1^\kappa u(x)\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Novel.} This controlled boundary-selection benchmark represents treatment access that turns on polynomially with a scalar distance-to-access coordinate while allowing smooth heterogeneity through \(u\).
+\end{assumption}
+
+\begin{assumption}[ass:calibration-envelope]\label{ass:calibration-envelope}
+The calibration obeys \(1/4\leq u(x)\leq1/2\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Novel.} This scale normalization keeps interior treatment intensity nondegenerate and contains constant calibrations \(u=1/4\) and \(u=1/2\) together with smooth bounded perturbations.
+\end{assumption}
+
+\begin{assumption}[ass:calibration-smoothness]\label{ass:calibration-smoothness}
+The calibration satisfies \(u\in\mathcal H^\alpha(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder smoothness, \cite{Stone1982}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-regression-law]\label{ass:outcome-regression-law}
+For each \(a\in\{0,1\}\) and every \(x\in\mathcal X\) with \(P(A=a\mid X=x)>0\), \(\mu_a(x)=\mathbb E_P[Y\mid X=x,A=a]\).
+\par\smallskip\noindent\emph{Standard} (Conditional-mean version on the positive-probability region, \cite{Stone1982}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-smoothness]\label{ass:outcome-smoothness}
+For each \(a\in\{0,1\}\), the regression satisfies \(\mu_a\in\mathcal H^\beta(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder outcome regression, \cite{Stone1982}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-envelope]\label{ass:outcome-envelope}
+For each \(a\in\{0,1\}\), the regression obeys \(1/4\leq\mu_a(x)\leq3/4\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Interior bounded-regression envelope, \cite{RobinsEtAl2017HOEE}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+The observed outcome satisfies \(Y=AY(1)+(1-A)Y(0)\) under \(P^{\mathrm F}\).
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{RosenbaumRubin1983}).
+\end{assumption}
+
+\begin{assumption}[ass:exchangeability]\label{ass:exchangeability}
+The potential-outcome pair satisfies \((Y(0),Y(1))\perp A\mid X\) under \(P^{\mathrm F}\).
+\par\smallskip\noindent\emph{Standard} (Conditional exchangeability, \cite{RosenbaumRubin1983}).
+\end{assumption}
+
+\begin{assumption}[ass:huber-mixture]\label{ass:huber-mixture}
+The observed law satisfies \(R=(1-\epsilon)P+\epsilon Q\).
+\par\smallskip\noindent\emph{Standard} (Huber gross-error contamination, \cite{ChenGaoRen2016}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The records \(O_1,\ldots,O_n\) are independent with common law \(R\).
+\par\smallskip\noindent\emph{Standard} (Independent mixture sampling, \cite{ChenGaoRen2016}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:clean-law-class]\label{def:clean-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{mathcal\_\allowbreak{}P\_\allowbreak{}clean}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{d,\alpha,\beta,\kappa,L}=\{P\in\mathcal P(\mathcal O):\texttt{ass:uniform-design},\texttt{ass:polynomial-overlap},\texttt{ass:calibration-envelope},\texttt{ass:calibration-smoothness},\texttt{ass:outcome-regression-law},\texttt{ass:outcome-smoothness},\texttt{ass:outcome-envelope}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}uniform-\allowbreak{}design}; \texttt{ass:\allowbreak{}polynomial-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}regression-\allowbreak{}law}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}envelope}.
+\end{definition}
+
+\begin{definition}[def:contaminated-class]\label{def:contaminated-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{mathcal\_\allowbreak{}C\_\allowbreak{}eps}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_{d,\alpha,\beta,\kappa,L}(\epsilon)=\{(P,Q,R):P\in\mathcal P_{d,\alpha,\beta,\kappa,L},\ Q\in\mathcal P(\mathcal O),\ R=(1-\epsilon)P+\epsilon Q\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}uniform-\allowbreak{}design}; \texttt{ass:\allowbreak{}polynomial-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}regression-\allowbreak{}law}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}huber-\allowbreak{}mixture}.
+\end{definition}
+
+\begin{definition}[def:minimax-risk]\label{def:minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{R\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} \[\mathfrak R_n(\epsilon;d,\alpha,\beta,\kappa,L)=\inf_{T\in\mathfrak T_n}\sup_{(P,Q,R)\in\mathcal C_{d,\alpha,\beta,\kappa,L}(\epsilon)}\mathbb E_{R^n}|T(O_1,\ldots,O_n)-\theta(P)|.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{epsilon}; \texttt{d}; \texttt{alpha}; \texttt{beta}; \texttt{kappa}; \texttt{L}.
+\end{definition}
+
+\begin{definition}[def:ate-tv-modulus]\label{def:ate-tv-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{omega\_\allowbreak{}theta}
+\par\smallskip\noindent\emph{Construction.} \[\omega_\theta(\delta)=\sup\{|\theta(P)-\theta(P')|:P,P'\in\mathcal P_{d,\alpha,\beta,\kappa,L},\ \operatorname{TV}(P,P')\leq\delta\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{mathcal\_\allowbreak{}P\_\allowbreak{}clean}; \texttt{theta}; \texttt{TV}.
+\end{definition}
+
+\begin{definition}[def:bernoulli-reduction]\label{def:bernoulli-reduction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{mathsf\_\allowbreak{}Ber}
+\par\smallskip\noindent\emph{Construction.} Given \(O=(X,A,Y)\), draw \(Z\mid O\sim\operatorname{Bernoulli}(Y)\) independently and output \((X,A,Z)\); derandomize any bounded binary-response estimator by its finite conditional expectation over \(Z_1,\ldots,Z_n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\_\allowbreak{}i}.
+\end{definition}
+
+\begin{definition}[def:lipschitz-estimator]\label{def:lipschitz-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{T\_\allowbreak{}Lip}
+\par\smallskip\noindent\emph{Construction.} Set
+\[
+r_{n,\kappa}=
+\begin{cases}
+n^{-1/2},&0<\kappa<1,\\
+\{\log(en)/n\}^{1/2},&\kappa=1,\\
+n^{-2/(\kappa+3)},&\kappa>1,
+\end{cases}
+\qquad
+b_n=\max\{\epsilon^{1/(\kappa+2)},r_{n,\kappa}^{1/2}\}.
+\]
+Return \(0\) if \(b_n>1/4\). Otherwise let \(h_n\) be the least number of the form \(2^{-J}\), \(J\in\mathbb N_0\), that is at least \(b_n\). With \(r_j=2^jh_n\), \(M_j=\lceil\sqrt{r_j}/h_n\rceil\), and the endpoint convention in \(\mathcal D_n\), compute the bounded zero-safe arm means \(\widehat m_a(D)\), use \(B_n=[h_n,2h_n]\) to reconstruct the omitted boundary interval, and set
+\[
+T_{\mathrm{Lip}}=\operatorname{clip}_{[-1/2,1/2]}
+\left[
+\sum_{D\in\mathcal D_n}|D|\{\widehat m_1(D)-\widehat m_0(D)\}
++h_n\{\widehat m_1(B_n)-\widehat m_0(B_n)\}
+\right].
+\]
+A single pass assigns records to slabs and cells and accumulates the two arm counts and outcome sums.
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\_\allowbreak{}i}; \texttt{n}; \texttt{epsilon}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:lipschitz-lower-pair]\label{def:lipschitz-lower-pair}
+\par\smallskip\noindent\emph{Defined object.} \texttt{P\_\allowbreak{}h\_\allowbreak{}pair}
+\par\smallskip\noindent\emph{Construction.} For fixed \(\kappa>0\) and \(0<h\leq1/4\), define binary-outcome clean laws \(P_{0,h}\) and \(P_{1,h}\) by \(X\sim\operatorname{Unif}([0,1])\), \(u(x)=1/2\), \(e(x)=x^\kappa/2\), \(Y\mid(X=x,A=0)\sim\operatorname{Bernoulli}(1/2)\), and \(Y\mid(X=x,A=1)\sim\operatorname{Bernoulli}(\mu_{1,j}(x))\), where \(\mu_{1,0}(x)=1/2\) and \(\mu_{1,1}(x)=1/2+(h-x)_+/4\). Let \(t=\operatorname{TV}(P_{0,h},P_{1,h})\), and let \(S_+\) and \(S_-\) be the probability normalizations of the positive and negative parts of \(P_{1,h}-P_{0,h}\). Whenever \(\epsilon>0\) and \(t\leq\epsilon/(1-\epsilon)\), set \(c=(1-\epsilon)t/\epsilon\), \(H=P_{0,h}\),
+\[
+Q_{0,h}=cS_++(1-c)H,
+\qquad
+Q_{1,h}=cS_-+(1-c)H,
+\]
+and \(R_h=(1-\epsilon)P_{0,h}+\epsilon Q_{0,h}\). The equality of this law with the mixture built from \(P_{1,h}\) and \(Q_{1,h}\) is a property to be proved, not part of the construction.
+\par\smallskip\noindent\emph{Inputs.} \texttt{h}; \texttt{epsilon}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:robust-projection-handle]\label{def:robust-projection-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{mathfrak\_\allowbreak{}H\_\allowbreak{}rob}
+\par\smallskip\noindent\emph{Construction.} Start from the exact slabwise projected nuisance-product identity; reproduce the missing boundary moments by a finite polynomial system; estimate pilot vectors and Gram moments by bounded-discrepancy minimum-distance projection on sample splits; form bounded off-diagonal corrected pairs; test both point and diffuse within-cell contamination; and bound clean, contaminating, and mixed Hoeffding components under one global \(Q\)-mass budget before optimizing slab and projection resolutions.
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\_\allowbreak{}i}; \texttt{d}; \texttt{alpha}; \texttt{beta}; \texttt{kappa}; \texttt{L}; \texttt{epsilon}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:causal-bridge]\label{prop:causal-bridge}
+Under the known uniform-design, polynomial-overlap, calibration-envelope, consistency, conditional-exchangeability, outcome-regression-law, and outcome-smoothness assumptions, the causal ATE equals the clean observed-law functional: \(\theta^{\mathrm F}(P^{\mathrm F})=\theta(P)=\int_{[0,1]^d}\{\mu_1(x)-\mu_0(x)\}\,\mathrm dx\).
+\end{proposition}
+\begin{proof}
+Let \(\lambda_d\) denote Lebesgue measure on \([0,1]^d\).  For
+\(a\in\{0,1\}\), put
+\[
+p_a(x)=P(A=a\mid X=x),
+\qquad
+m_a(x)=\mathbb E_{P^{\mathrm F}}[Y(a)\mid X=x],
+\]
+where \(m_a\) is any measurable version.  Such conditional expectations are
+finite because \(0\leq Y(a)\leq1\).  Since \(P\) is the
+\((X,A,Y)\)-margin of \(P^{\mathrm F}\), the conditional law of the observed
+variables used below is the same under these two laws.
+
+First we verify the positivity needed for conditioning.  The polynomial-overlap
+and calibration-envelope assumptions, together with \(\kappa>0\) and
+\(0\leq x_1\leq1\), give
+\[
+p_1(x)=e(x)=x_1^\kappa u(x),
+\qquad
+0\leq e(x)\leq\frac12,
+\qquad
+e(x)>0\ \Longleftrightarrow\ x_1>0.
+\]
+Consequently,
+\[
+p_0(x)=1-e(x)\geq\frac12>0
+\quad\text{for every }x,
+\]
+whereas \(p_1(x)>0\) away from
+\(F=\{x\in[0,1]^d:x_1=0\}\).  The uniform-design assumption gives
+\[
+P^{\mathrm F}(X\in F)=P(X\in F)=\lambda_d(F)=0.
+\]
+It follows that \(p_a(X)>0\) almost surely for both treatment levels.
+
+We next connect the observed and potential conditional means.  Conditional
+exchangeability implies, for each \(a\),
+\[
+\mathbb E_{P^{\mathrm F}}[Y(a)\mid X,A]
+=\mathbb E_{P^{\mathrm F}}[Y(a)\mid X]
+=m_a(X)
+\quad P^{\mathrm F}\text{-almost surely}.
+\]
+Let \(g_a(x)=\mathbb E_P[Y\mid X=x,A=a]\) on the set where
+\(p_a(x)>0\).  By the defining property of conditional expectation,
+consistency, iterated conditioning, and conditional exchangeability, in that
+order,
+\[
+\begin{aligned}
+p_a(X)g_a(X)
+&=\mathbb E_{P^{\mathrm F}}[\mathbf 1\{A=a\}Y\mid X]\\
+&=\mathbb E_{P^{\mathrm F}}[\mathbf 1\{A=a\}Y(a)\mid X]\\
+&=\mathbb E_{P^{\mathrm F}}\!\left[
+  \mathbf 1\{A=a\}
+  \mathbb E_{P^{\mathrm F}}[Y(a)\mid X,A]
+  \mathrel{\big|}X\right]\\
+&=\mathbb E_{P^{\mathrm F}}[\mathbf 1\{A=a\}m_a(X)\mid X]\\
+&=p_a(X)m_a(X)
+\quad P^{\mathrm F}\text{-almost surely}.
+\end{aligned}
+\]
+Because \(p_a(X)>0\) almost surely, division is valid off a null set and yields
+\(g_a(X)=m_a(X)\) almost surely.  The outcome-regression-law assumption says
+that \(g_a(x)=\mu_a(x)\) whenever \(p_a(x)>0\).  Hence
+\[
+m_a(X)=\mu_a(X)
+\quad P^{\mathrm F}\text{-almost surely},
+\qquad a\in\{0,1\}.
+\]
+For \(a=1\), no equality at the nonidentified face \(F\) was used.  Moreover,
+the outcome-smoothness assumption with \(\beta>0\) makes \(\mu_1\) continuous,
+and the set \(\{x:x_1>0\}\) is dense in \([0,1]^d\); thus its boundary value,
+if mentioned, is uniquely fixed by continuous extension.  In any event,
+\(\lambda_d(F)=0\), so that value cannot affect the integral below.  The same
+smoothness assumption also makes each \(\mu_a\) bounded and Borel measurable on
+the compact cube, so all displayed integrals are finite.
+
+Finally, boundedness of the potential outcomes permits linearity and the tower
+property.  Using successively the definition of the causal ATE, the tower
+property, the almost-sure equalities just proved, and the uniform-design
+assumption, we obtain
+\[
+\begin{aligned}
+\theta^{\mathrm F}(P^{\mathrm F})
+&=\mathbb E_{P^{\mathrm F}}[Y(1)-Y(0)]\\
+&=\mathbb E_{P^{\mathrm F}}[m_1(X)-m_0(X)]\\
+&=\mathbb E_P[\mu_1(X)-\mu_0(X)]\\
+&=\int_{[0,1]^d}\{\mu_1(x)-\mu_0(x)\}\,\mathrm dx\\
+&=\theta(P),
+\end{aligned}
+\]
+where the final equality is the definition of the clean observed-law
+functional.  This proves the claimed bridge without asserting that the clean
+law, or \(\theta(P)\), is point identified from the contaminated law \(R\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This standard supporting result separates causal identification under the clean law from the contaminated-sampling decision problem. \textit{Gap.} RosenbaumRubin1983 supplies the standard identification bridge, and the known uniform design converts the covariate expectation to the displayed Lebesgue integral; no novelty is claimed for this proposition. \textit{Consumer.} The proposition lets applied ATE users interpret the statistical radius without asserting point identification of the clean law from \(R\).
+
+\begin{theorem}[thm:bernoulli-reduction]\label{thm:bernoulli-reduction}
+For every \(n\geq2\) and \(0\leq\epsilon\leq1/10\), applying \(\mathsf{Ber}\) to the bounded-outcome Huber experiment preserves \(\theta(P)\), maps every admissible \(Q\) to an admissible binary-response contaminant, and leaves the minimax absolute risk \(\mathfrak R_n(\epsilon;d,\alpha,\beta,\kappa,L)\) unchanged after finite derandomization.
+\end{theorem}
+\begin{proof}
+Let \(\mathcal E_{[0,1]}\) denote the experiment in the statement and let \(\mathcal E_{\{0,1\}}\) be its subexperiment in which the response is binary.  We first check that the kernel in \(\texttt{def:bernoulli-reduction}\) maps the former experiment into the latter.  For a clean law \(P\), conditional iterated expectation and \(\texttt{ass:outcome-regression-law}\) give, at every point at which the conditional mean is defined,
+\[
+ \mathbb P_P(Z=1\mid X=x,A=a)
+ =\mathbb E_P\{\mathbb P(Z=1\mid O)\mid X=x,A=a\}
+ =\mathbb E_P(Y\mid X=x,A=a)=\mu_a(x).
+\]
+Thus the transformed clean law has the same uniform covariate law, propensity \(e\), and regressions \(\mu_a\).  In particular, it is in the same clean class by \(\texttt{def:clean-law-class}\), and its identifying functional is the same \(\theta(P)\).  The value at \(x_1=0\) remains the prescribed continuous extension and is not inferred from a null conditional event.  If \(Q\) is any contaminating law, its image \(Q\mathsf{Ber}\) is a probability law on the binary-response subset of \(\mathcal O\), hence is admissible in \(\texttt{def:contaminated-class}\).  Linearity of a Markov kernel and \(\texttt{ass:huber-mixture}\) yield
+\[
+ R\mathsf{Ber}=(1-\epsilon)P\mathsf{Ber}+\epsilon Q\mathsf{Ber}.
+\]
+Applying the kernel independently to the independent records preserves the product sampling structure in \(\texttt{ass:iid-sampling}\).
+
+It remains to prove equality, rather than merely monotonicity, of the two minimax risks.  Write \(\mathfrak R_n^{\mathrm{bin}}\) for the minimax value over \(\mathcal E_{\{0,1\}}\).  Binary-response clean and contaminating laws are allowed in \(\mathcal E_{[0,1]}\).  Consequently, restriction of any estimator to binary samples gives
+\[
+ \mathfrak R_n(\epsilon;d,\alpha,\beta,\kappa,L)
+ \geq \mathfrak R_n^{\mathrm{bin}}(\epsilon;d,\alpha,\beta,\kappa,L).
+\]
+Conversely, let \(T_{\mathrm{bin}}\) be any Borel estimator on binary samples with values in \([-1/2,1/2]\).  For a bounded-response sample \(o_i=(x_i,a_i,y_i)\), define the finite conditional expectation
+\[
+ \overline T(o_1,\ldots,o_n)
+ =\sum_{z\in\{0,1\}^n}T_{\mathrm{bin}}(x_1,a_1,z_1,\ldots,x_n,a_n,z_n)
+   \prod_{i=1}^n\bigl\{z_i y_i+(1-z_i)(1-y_i)\bigr\}.
+\]
+This is a finite Borel function, its coefficients are nonnegative and sum to one, and therefore \(\overline T\in[-1/2,1/2]\).  Conditional Jensen's inequality, followed by the preceding kernel calculation, gives for every admissible \((P,Q,R)\)
+\[
+ \mathbb E_{R^n}|\overline T-\theta(P)|
+ \leq
+ \mathbb E_{(R\mathsf{Ber})^n}|T_{\mathrm{bin}}-\theta(P\mathsf{Ber})|.
+\]
+Taking the supremum and then the infimum over \(T_{\mathrm{bin}}\) proves the reverse inequality \(\mathfrak R_n\leq\mathfrak R_n^{\mathrm{bin}}\).  Hence the minimax risks are equal, and the displayed finite sum supplies the claimed derandomization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction removes unrestricted conditional outcome distributions without changing the decision problem. \textit{Gap.} ChenGaoRen2016 treats generic clean laws but does not give this causal bounded-to-binary exact experiment reduction. \textit{Consumer.} A finite categorical representation makes same-experiment lower witnesses and computable sieves possible.
+
+\begin{theorem}[thm:ate-tv-modulus]\label{thm:ate-tv-modulus}
+There exist \(c_0,C_0>0\) and \(\delta_0>0\), depending only on \(d,\alpha,\beta,\kappa,L\), such that for every \(0<\delta\leq\delta_0\), \[c_0\delta^{\gamma_{\mathrm{TV}}}\leq\omega_\theta(\delta)\leq C_0\delta^{\gamma_{\mathrm{TV}}},\qquad \gamma_{\mathrm{TV}}=\frac{\beta+1}{\beta+\kappa+1}.\] The exponent is uniform in the propensity calibration \(u\), is unchanged when \(P\) and \(P'\) have different propensities, and does not depend on \(\alpha\) or \(d\).
+\end{theorem}
+\begin{proof}
+Fix \(P,P'\in\mathcal P_{d,\alpha,\beta,\kappa,L}\) and put \(\Delta=\operatorname{TV}(P,P')\).  Both laws have Lebesgue-uniform \(X\) by \(\texttt{ass:uniform-design}\).  Define
+\[
+ r(x)=e(x)\mu_1(x),\quad r'(x)=e'(x)\mu'_1(x),\qquad
+ s(x)=\{1-e(x)\}\mu_0(x),\quad s'(x)=\{1-e'(x)\}\mu'_0(x).
+\]
+For every measurable \(g:[0,1]^d\to[-1,1]\), the definition of total variation implies
+\[
+ |\mathbb E_P\{g(X)AY\}-\mathbb E_{P'}\{g(X)AY\}|\leq2\Delta,
+ \qquad
+ |\mathbb E_P\{g(X)A\}-\mathbb E_{P'}\{g(X)A\}|\leq2\Delta.
+\]
+The conditional-mean identity in \(\texttt{ass:outcome-regression-law}\), followed by the dual characterization of the total variation of a finite signed measure, therefore gives
+\[
+ \int|r-r'|\,\mathrm dx\leq2\Delta,\qquad
+ \int|e-e'|\,\mathrm dx\leq2\Delta.
+\]
+The same argument with \((1-A)Y\) gives \(\int|s-s'|\,\mathrm dx\leq2\Delta\).  Since \(0\leq\mu'_1,\mu'_0\leq1\),
+\[
+ e|\mu_1-\mu'_1|\leq|r-r'|+|e-e'|,\qquad
+ (1-e)|\mu_0-\mu'_0|\leq|s-s'|+|e-e'|.
+\]
+By \(\texttt{ass:polynomial-overlap}\) and \(\texttt{ass:calibration-envelope}\), \(e(x)\geq x_1^\kappa/4\) and \(1-e(x)\geq1/2\).  Hence
+\[
+ \int x_1^\kappa|\mu_1-\mu'_1|\,\mathrm dx\leq16\Delta,
+ \qquad
+ \int|\mu_0-\mu'_0|\,\mathrm dx\leq8\Delta. \tag{1}
+\]
+This proves in particular that propensity changes cannot invalidate the weighted comparison.
+
+We next prove the boundary interpolation inequality used below.  Let \(m=\lceil\beta\rceil-1\) and \(q=\beta-m\in(0,1]\).  The Gram matrix
+\[
+ G_{jk}=\int_1^2 t^{j+k}\,\mathrm dt,\qquad 0\leq j,k\leq m,
+\]
+is positive definite, because \(c^\top Gc=\int_1^2(\sum_{j=0}^m c_jt^j)^2\,\mathrm dt\) vanishes only for \(c=0\).  Thus there is a unique polynomial \(w_m(t)=\sum_{k=0}^m c_kt^k\) satisfying
+\[
+ \int_1^2w_m(t)t^j\,\mathrm dt=\frac1{j+1},\qquad 0\leq j\leq m. \tag{2}
+\]
+If \(f\in\mathcal H^\beta(2L)\), restriction to the first coordinate and the Hölder condition on its order-\(m\) derivative give, uniformly in \(z=(x_2,\ldots,x_d)\),
+\[
+ f(t,z)=\sum_{j=0}^m\frac{\partial_1^jf(0,z)}{j!}t^j+\mathcal R(t,z),
+ \qquad |\mathcal R(t,z)|\leq C_{\beta,L}t^\beta. \tag{3}
+\]
+For \(m=0\), (3) is exactly the declared Hölder condition.  For \(m\geq1\), it follows by applying the fundamental theorem of calculus successively to the lower derivatives and using the \(q\)-Hölder remainder for \(\partial_1^mf\); this also covers the integer case \(q=1\).  Substitution of (3) into (2), with the change of variable \(t=hs\), cancels every polynomial term and proves, for \(0<h\leq1/2\),
+\[
+ \left|\int_0^h f(t,z)\,\mathrm dt-
+ \int_h^{2h}w_m(t/h)f(t,z)\,\mathrm dt\right|
+ \leq C_{\beta,L}h^{\beta+1}. \tag{4}
+\]
+
+Apply (4) to \(f=\mu_1-\mu'_1\), whose Hölder radius is at most \(2L\), and integrate over \(z\in[0,1]^{d-1}\).  Writing \(W_m=\sup_{1\leq t\leq2}|w_m(t)|\), equations (1) and (4) imply
+\[
+ \begin{aligned}
+ \left|\int f(x)\,\mathrm dx\right|
+ &\leq C h^{\beta+1}+\int_{x_1\geq h}|f(x)|\,\mathrm dx
+      +W_m\int_{h\leq x_1\leq2h}|f(x)|\,\mathrm dx\\
+ &\leq C\{h^{\beta+1}+\Delta h^{-\kappa}\}.
+ \end{aligned}\tag{5}
+\]
+Choose \(h=\Delta^{1/(\beta+\kappa+1)}\), and choose \(\delta_0>0\) so that this \(h\) is at most \(1/2\) whenever \(\Delta\leq\delta_0\).  With
+\[
+ \gamma_{\mathrm{TV}}=\frac{\beta+1}{\beta+\kappa+1}<1,
+\]
+(5) is at most \(C\Delta^{\gamma_{\mathrm{TV}}}\).  The control-arm contribution in (1) is at most \(8\Delta\leq8\Delta^{\gamma_{\mathrm{TV}}}\).  The triangle inequality proves
+\[
+ |\theta(P)-\theta(P')|\leq C_0\Delta^{\gamma_{\mathrm{TV}}}. \tag{6}
+\]
+
+For the reverse inequality, set \(r_\beta=\lceil\beta\rceil+1\) and \(\phi(t)=(1-t)_+^{r_\beta}\).  Let
+\[
+ I_0=\int_0^1\phi(t)\,\mathrm dt>0,\qquad
+ I_\kappa=\int_0^1t^\kappa\phi(t)\,\mathrm dt>0.
+\]
+Choose a constant \(a_\beta>0\), depending only on \(\beta,L\), sufficiently small that every function \(a_\beta h^\beta\phi(x_1/h)\), \(0<h\leq1/4\), has \(\mathcal H^\beta\)-radius at most \(L/2\) and supremum at most \(1/4\).  This choice is possible directly from scaling: for \(0\leq j\leq m\), its order-\(j\) derivative is bounded by a constant times \(a_\beta h^{\beta-j}\), while the \(q\)-Hölder seminorm of its order-\(m\) derivative is bounded by a constant times \(a_\beta h^{\beta-m-q}=a_\beta\).  Mixed and tangential derivatives vanish.
+
+Define two binary-outcome clean laws \(\widetilde P_{0,h}\) and \(\widetilde P_{1,h}\) with uniform \(X\), common \(u=1/2\), common \(\mu_0=1/2\), and
+\[
+ \mu_{1,0}(x)=\frac12,\qquad
+ \mu_{1,1}(x)=\frac12+a_\beta h^\beta\phi(x_1/h).
+\]
+The preceding scaling calculation, the envelopes, and the constant calibration show from \(\texttt{def:clean-law-class}\) that both laws belong to \(\mathcal P_{d,\alpha,\beta,\kappa,L}\) for every \(d\) and \(\alpha\).  Since the laws differ only in the treated binary response and \(e(x)=x_1^\kappa/2\), direct integration gives
+\[
+ |\theta(\widetilde P_{1,h})-\theta(\widetilde P_{0,h})|=a_\beta I_0h^{\beta+1},\qquad
+ \operatorname{TV}(\widetilde P_{0,h},\widetilde P_{1,h})=\frac{a_\beta I_\kappa}{2}h^{\beta+\kappa+1}. \tag{7}
+\]
+For all sufficiently small \(\delta\), take
+\[
+ h=\left(\frac{2\delta}{a_\beta I_\kappa}\right)^{1/(\beta+\kappa+1)}\leq\frac14.
+\]
+Then (7) gives total variation exactly \(\delta\) and target separation \(c_0\delta^{\gamma_{\mathrm{TV}}}\).  Combining this with (6), and reducing \(\delta_0\) if necessary, proves both bounds.  The upper argument allowed \(e\neq e'\), whereas the lower witness used a common constant calibration; consequently the exponent is uniform over \(u\), unaffected by allowing different propensities, and independent of \(\alpha\) and \(d\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem derives the irreducible population ambiguity caused jointly by weak overlap and full-record contamination. \textit{Gap.} ChenGaoRen2016 identifies the total-variation modulus as the robust lower-bound object, but neither evaluates it for this ATE class nor handles simultaneous propensity changes. \textit{Consumer.} The modulus gives the mandatory corruption-radius floor for any error bar supplied alongside SasakiUra2022Robustate.
+
+\begin{lemma}[lem:lipschitz-lower-pair-all-kappa]\label{lem:lipschitz-lower-pair-all-kappa}
+Fix \(d=1\), \(\beta=1\), \(\alpha\geq1\), \(\kappa>0\), and \(L\geq4\). For every \(0<h\leq1/4\), the laws in \(P_h^{\mathrm{pair}}=(P_{0,h},P_{1,h})\) belong to \(\mathcal P_{1,\alpha,1,\kappa,L}\), and
+\[
+|\theta(P_{1,h})-\theta(P_{0,h})|=\frac{h^2}{8},
+\qquad
+\operatorname{TV}(P_{0,h},P_{1,h})
+=\frac{h^{\kappa+2}}{8(\kappa+1)(\kappa+2)},
+\]
+\[
+\operatorname{KL}(P_{0,h},P_{1,h})
+\leq\frac{h^{\kappa+3}}
+{4(\kappa+1)(\kappa+2)(\kappa+3)}.
+\]
+There is a constant \(c_0>0\), depending only on \(\alpha,\kappa,L\), such that jointly for every \(n\geq2\) and \(0\leq\epsilon\leq1/10\),
+\[
+\mathfrak R_n(\epsilon;1,\alpha,1,\kappa,L)
+\geq c_0\left\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\right\}.
+\]
+For the contamination component the lower bound is realized by the explicit common-observed-law collision in \(\texttt{def:lipschitz-lower-pair}\). For the clean component it is realized by a constant regression perturbation when \(0<\kappa<1\), a multiscale Lipschitz perturbation when \(\kappa=1\), and the displayed boundary pair when \(\kappa>1\).
+\end{lemma}
+\begin{proof}
+Fix the parameters in the statement. We first verify the displayed boundary pair. Under either law, \(X\) is uniform, \(u=1/2\) belongs to \(\mathcal H^\alpha(L)\) for every \(\alpha\geq1\), satisfies the calibration envelope, and gives \(e(x)=x^\kappa/2\). The control regression and the baseline treated regression equal \(1/2\). The alternative treated regression
+\[
+\mu_{1,1}(x)=\frac12+\frac{(h-x)_+}{4}
+\]
+is \(1/4\)-Lipschitz and takes values in \([1/2,9/16]\). Thus \(\texttt{ass:uniform-design}\), \(\texttt{ass:polynomial-overlap}\), \(\texttt{ass:calibration-envelope}\), \(\texttt{ass:calibration-smoothness}\), \(\texttt{ass:outcome-regression-law}\), \(\texttt{ass:outcome-smoothness}\), and \(\texttt{ass:outcome-envelope}\) hold, so both laws belong to \(\mathcal P_{1,\alpha,1,\kappa,L}\) by \(\texttt{def:clean-law-class}\).
+
+Put \(v_h(x)=(h-x)_+/4\). Only the treated conditional response law changes. Total variation of two Bernoulli laws is the absolute difference of their success probabilities, so Tonelli's theorem and direct integration give
+\[
+\begin{aligned}
+|\theta(P_{1,h})-\theta(P_{0,h})|
+&=\int_0^h\frac{h-x}{4}\,\mathrm dx=\frac{h^2}{8},\\
+\operatorname{TV}(P_{0,h},P_{1,h})
+&=\int_0^h\frac{x^\kappa}{2}\frac{h-x}{4}\,\mathrm dx\\
+&=\frac18h^{\kappa+2}\int_0^1t^\kappa(1-t)\,\mathrm dt
+=\frac{h^{\kappa+2}}{8(\kappa+1)(\kappa+2)}.
+\end{aligned}
+\]
+Here the common \((X,A)\)-margin and the equality of the control laws justify reducing total variation to the displayed treated integral. Because \(h\leq1/4\), \(0\leq v_h\leq1/16\), and
+\[
+\operatorname{KL}\{\operatorname{Bernoulli}(1/2),
+\operatorname{Bernoulli}(1/2+v)\}
+=-\frac12\log(1-4v^2)\leq4v^2.
+\]
+The inequality follows from \(-\log(1-z)\leq z/(1-z)\) and \(4v^2\leq1/64\). Conditioning on \((X,A)\) and using the common treatment law therefore yields
+\[
+\begin{aligned}
+\operatorname{KL}(P_{0,h},P_{1,h})
+&\leq\int_0^h\frac{x^\kappa}{2}\,4
+\left(\frac{h-x}{4}\right)^2\,\mathrm dx\\
+&=\frac18h^{\kappa+3}\int_0^1t^\kappa(1-t)^2\,\mathrm dt\\
+&=\frac{h^{\kappa+3}}
+{4(\kappa+1)(\kappa+2)(\kappa+3)}.
+\end{aligned}
+\]
+
+We will repeatedly use the following elementary two-point inequality. If probability laws \(G_0,G_1\) have targets \(\vartheta_0,\vartheta_1\), integration of the pointwise triangle inequality against their common part gives, for every estimator \(T\),
+\[
+\max_{j=0,1}\mathbb E_{G_j}|T-\vartheta_j|
+\geq\frac{|\vartheta_1-\vartheta_0|}{2}
+\{1-\operatorname{TV}(G_0,G_1)\}.
+\tag{1}
+\]
+Moreover, Jensen's inequality applied under \(G_0\) to the square root of the likelihood ratio, followed by Cauchy--Schwarz, gives
+\[
+\operatorname{TV}(G_0,G_1)
+\leq\sqrt{1-\exp\{-\operatorname{KL}(G_0,G_1)\}}
+\leq\sqrt{\operatorname{KL}(G_0,G_1)}.
+\tag{2}
+\]
+For product laws, the log likelihood ratios add, hence the Kullback--Leibler divergence is multiplied by \(n\).
+
+We next prove the clean lower rate, treating the three overlap regimes separately. If \(\kappa>1\), take
+\[
+h=\frac14n^{-1/(\kappa+3)}.
+\]
+The preceding Kullback--Leibler bound makes \(\operatorname{KL}(P_{0,h}^n,P_{1,h}^n)\) smaller than a constant strictly below \(1/4\), whereas the target separation is a constant multiple of \(n^{-2/(\kappa+3)}=r_{n,\kappa}\). Equations (1)--(2) prove the desired clean lower bound in this regime.
+
+Suppose \(0<\kappa<1\). Keep the same uniform design, calibration, propensity, control regression, and binary conditional outcomes, but replace the treated regression pair by
+\[
+\mu_{1,0}(x)=\frac12,
+\qquad
+\mu_{1,1}(x)=\frac12+v_n,
+\qquad
+v_n=\eta n^{-1/2},
+\]
+where \(0<\eta\leq1/32\) is fixed. These regressions satisfy the stated Lipschitz and envelope restrictions. Their target separation is \(v_n\), and the Bernoulli calculation above gives
+\[
+\operatorname{KL}(P_{0,n},P_{1,n})
+\leq4v_n^2\int_0^1\frac{x^\kappa}{2}\,\mathrm dx
+=\frac{2v_n^2}{\kappa+1}.
+\]
+Thus the product divergence is at most \(2\eta^2/(\kappa+1)<1/4\). Equations (1)--(2) give a constant multiple of \(n^{-1/2}=r_{n,\kappa}\).
+
+It remains to obtain the equality-case logarithm. Let \(\kappa=1\), put \(\ell_n=\log(en)\), choose a fixed \(0<\eta\leq2^{-10}\), and define
+\[
+c_n=\frac{\eta}{\sqrt{n\ell_n}},
+\qquad s_n=\sqrt{c_n},
+\qquad
+f_n(x)=\frac{c_n}{x\vee s_n}.
+\]
+Use treated regressions \(1/2\) and \(1/2+f_n\), leaving all other ingredients unchanged. Since \(f_n(0)=s_n\leq1/16\) and the derivative on \((s_n,1]\) has magnitude at most \(c_n/s_n^2=1\), \(f_n\) is one-Lipschitz and the two laws remain in \(\mathcal P_{1,\alpha,1,1,L}\). Direct calculation gives
+\[
+\int_0^1f_n(x)\,\mathrm dx
+=c_n\{1+\log(1/s_n)\}
+\asymp \sqrt{\frac{\log(en)}{n}},
+\tag{3}
+\]
+because \(\log(1/s_n)=\tfrac14\log(n\ell_n)+\tfrac12\log(1/\eta)\asymp\ell_n\) uniformly for \(n\geq2\). On the other hand,
+\[
+\int_0^1x f_n(x)^2\,\mathrm dx
+=c_n^2\left\{\frac12+\log(1/s_n)\right\},
+\]
+and hence
+\[
+n\operatorname{KL}(P_{0,n},P_{1,n})
+\leq2n\int_0^1x f_n(x)^2\,\mathrm dx
+\leq C\eta^2.
+\tag{4}
+\]
+Reducing \(\eta\), if necessary, makes (4) smaller than \(1/4\). Equations (1)--(4) give the clean lower rate \(\{\log(en)/n\}^{1/2}=r_{n,1}\). The three cases prove
+\[
+\mathfrak R_n(0;1,\alpha,1,\kappa,L)\geq c_0r_{n,\kappa}.
+\tag{5}
+\]
+
+For any \(\epsilon\), taking \(Q=P\) makes \(R=P\), so the contaminated experiment contains the clean experiment and (5) remains a lower bound. For \(0<\epsilon\leq1/10\), set
+\[
+h=\frac14\left(\frac{\epsilon}{1-\epsilon}\right)^{1/(\kappa+2)}.
+\]
+Then \(h\leq1/4\), and the exact total-variation formula shows that
+\[
+t=\operatorname{TV}(P_{0,h},P_{1,h})
+\leq\frac{\epsilon}{1-\epsilon}.
+\]
+Consequently \(c=(1-\epsilon)t/\epsilon\in[0,1]\), so \(Q_{0,h}\) and \(Q_{1,h}\) in \(\texttt{def:lipschitz-lower-pair}\) are probability laws. The Jordan identity \(P_{1,h}-P_{0,h}=t(S_+-S_-)\) gives
+\[
+(1-\epsilon)(P_{0,h}-P_{1,h})
++\epsilon(Q_{0,h}-Q_{1,h})=0.
+\]
+Thus the two admissible contaminated triples have exactly the same observed law \(R_h\), while their targets differ by
+\[
+\frac{h^2}{8}=\frac1{128}
+\left(\frac{\epsilon}{1-\epsilon}\right)^{2/(\kappa+2)}.
+\]
+Applying the pointwise triangle inequality under this common law gives a risk of at least half this separation. Since \(1\leq(1-\epsilon)^{-1}\leq10/9\), this is bounded below by a constant multiple of \(\epsilon^{2/(\kappa+2)}\). At \(\epsilon=0\) this component is zero. Finally, the maximum of the clean and contamination lower bounds is at least half their sum, proving the lemma.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit all-kappa witnesses certify the three clean regimes and the contamination component inside the same declared experiment. \textit{Gap.} Generic Huber theory does not construct pairs satisfying the exact uniform design, polynomial propensity, Lipschitz regression, and bounded-response restrictions, nor the logarithmic clean elbow. \textit{Consumer.} The lemma supplies every lower component of the one-dimensional all-kappa frontier and the collision template retained by the general open question.
+
+\begin{theorem}[thm:lipschitz-all-kappa]\label{thm:lipschitz-all-kappa}
+Fix \(d=1\), \(\beta=1\), \(\alpha\geq1\), \(\kappa>0\), and \(L\geq4\), and define
+\[
+r_{n,\kappa}=
+\begin{cases}
+n^{-1/2},&0<\kappa<1,\\
+\{\log(en)/n\}^{1/2},&\kappa=1,\\
+n^{-2/(\kappa+3)},&\kappa>1.
+\end{cases}
+\]
+There are constants \(c_0,C_0>0\), depending only on \(\alpha,\kappa,L\), such that jointly for every \(n\geq2\) and \(0\leq\epsilon\leq1/10\),
+\[
+c_0\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\}
+\leq\mathfrak R_n(\epsilon;1,\alpha,1,\kappa,L)
+\leq\sup_{(P,Q,R)\in\mathcal C_{1,\alpha,1,\kappa,L}(\epsilon)}
+\mathbb E_{R^n}|T_{\mathrm{Lip}}-\theta(P)|
+\leq C_0\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\}.
+\]
+When \(b_n\leq1/4\), the pre-optimization bound is
+\[
+\sup_{(P,Q,R)\in\mathcal C_{1,\alpha,1,\kappa,L}(\epsilon)}
+\mathbb E_{R^n}|T_{\mathrm{Lip}}-\theta(P)|
+\leq C_0\left[
+h_n^2+n^{-1/2}V_\kappa(h_n)^{1/2}
++\epsilon h_n^{-\kappa}
++\exp\{-c_0nh_n^{\kappa+3/2}\}
+\right],
+\]
+where
+\[
+V_\kappa(h)=
+\begin{cases}
+1,&0<\kappa<1,\\
+1+\log(1/h),&\kappa=1,\\
+h^{1-\kappa},&\kappa>1.
+\end{cases}
+\]
+For every body cell \(D\subseteq[r_j,2r_j]\), writing \(q_D=Q\{X\in D\}\), its weighted contamination shift is at most \(C_0\epsilon q_D/r_j^\kappa\), and \(\sum_Dq_D\leq1\); the reused cell \(B_n\) contributes at most \(C_0\epsilon q_{B_n}/h_n^\kappa\). Thus the bound covers both point and diffuse within-cell contamination. The estimator uses \(O(n\log(1/h_n)+h_n^{-1})\) arithmetic operations and \(O(h_n^{-1})\) memory. In particular, the clean functional rate and the ATE contamination modulus are simultaneously attained throughout this subfamily, including the logarithmic elbow at \(\kappa=1\).
+\end{theorem}
+\begin{proof}
+Fix an admissible triple \((P,Q,R)\). Because \(\theta(P)\in[-1/2,1/2]\), projection onto this interval cannot increase absolute error. It therefore suffices to study the expression inside the clipping map. Assume first that \(b_n\leq1/4\). The dyadic ceiling satisfies
+\[
+b_n\leq h_n<2b_n,
+\qquad h_n\leq\frac12.
+\tag{6}
+\]
+
+For a cell \(D\) and arm \(a\), set
+\[
+p_a(x)=
+\begin{cases}e(x),&a=1,\\1-e(x),&a=0,\end{cases}
+\qquad
+s_a^P(D)=\int_Dp_a(x)\,\mathrm dx,
+\qquad
+m_a^P(D)=\frac{\int_Dp_a(x)\mu_a(x)\,\mathrm dx}{s_a^P(D)}.
+\]
+All denominators are positive: on a body or reconstruction cell, \(x\geq h_n>0\), so \(e(x)\geq x^\kappa/4>0\), while \(1-e(x)\geq1/2\) by \(u\leq1/2\). If \(\overline\mu_a(D)=|D|^{-1}\int_D\mu_a\), the exact covariance identity under the uniform distribution on \(D\) is
+\[
+m_a^P(D)-\overline\mu_a(D)
+=\frac{\operatorname{Cov}_{\operatorname{Unif}(D)}(p_a,\mu_a)}
+{\mathbb E_{\operatorname{Unif}(D)}p_a}.
+\tag{7}
+\]
+
+Let \(D\subseteq[r,2r]\) have length \(\ell\). The assumption \(\alpha\geq1\) and \(\texttt{ass:calibration-smoothness}\) imply that \(u\) is \(L\)-Lipschitz: for \(\alpha=1\) this is the defining Hölder condition, and for \(\alpha>1\) it follows from the bound on its first derivative. By the mean-value theorem, for \(x,y\in[r,2r]\),
+\[
+|x^\kappa-y^\kappa|\leq C_\kappa r^{\kappa-1}|x-y|.
+\]
+Together with \(1/4\leq u\leq1/2\), this gives
+\[
+\inf_De\geq\frac{r^\kappa}{4},
+\qquad
+\operatorname{osc}_D(e)\leq C_{\alpha,\kappa,L}r^{\kappa-1}\ell,
+\qquad
+\operatorname{osc}_D(\mu_a)\leq L\ell,
+\qquad
+\inf_D(1-e)\geq\frac12.
+\tag{8}
+\]
+The elementary inequality \(|\operatorname{Cov}(U,V)|\leq\operatorname{osc}(U)\operatorname{osc}(V)\), (7), and (8) imply, for both arms,
+\[
+|m_a^P(D)-\overline\mu_a(D)|
+\leq C_{\alpha,\kappa,L}\frac{\ell^2}{r}.
+\tag{9}
+\]
+For the control arm, the direct bound is \(C r^{\kappa-1}\ell^2\), which is no larger than the right side of (9) because \(0<r\leq1\).
+
+Within slab \([r_j,2r_j]\), all cells have length \(\ell_j=r_j/M_j\), apart from the harmless endpoint convention, and
+\[
+\frac{h_n\sqrt{r_j}}2\leq\ell_j\leq h_n\sqrt{r_j}.
+\tag{10}
+\]
+Indeed, the upper bound follows from the ceiling in \(M_j\), and the lower bound follows from \(M_j\leq2\sqrt{r_j}/h_n\), since \(r_j\geq h_n\). Because the cell lengths in one slab sum to \(r_j\), (9)--(10) give
+\[
+\sum_{D\in\mathcal D_n}|D|
+|m_a^P(D)-\overline\mu_a(D)|
+\leq C\sum_j\ell_j^2
+\leq Ch_n^2\sum_jr_j
+\leq Ch_n^2.
+\tag{11}
+\]
+For \(t\in[0,h_n]\) and \(x\in B_n=[h_n,2h_n]\), outcome Lipschitzness gives \(|\mu_a(t)-\mu_a(x)|\leq2Lh_n\). Since \(m_a^P(B_n)\) is a convex average of the values \(\mu_a(x)\),
+\[
+\left|\int_0^{h_n}\mu_a(t)\,\mathrm dt-h_nm_a^P(B_n)\right|
+\leq2Lh_n^2.
+\tag{12}
+\]
+Equations (11)--(12), summed over the two arms, prove a clean population approximation bias bounded by \(Ch_n^2\).
+
+We next compare clean and contaminated population cell means. Write
+\[
+q_{D,a}=Q\{X\in D,A=a\},
+\qquad q_D=Q\{X\in D\},
+\]
+and denote the corresponding conditional response mean under \(R\) by \(m_a^R(D)\). Expanding the mixture numerator and denominator and using \(0\leq Y\leq1\) gives
+\[
+|m_a^R(D)-m_a^P(D)|
+\leq\frac{\epsilon q_{D,a}}
+{(1-\epsilon)s_a^P(D)+\epsilon q_{D,a}}
+\leq\frac{\epsilon q_{D,a}}{(1-\epsilon)s_a^P(D)}.
+\tag{13}
+\]
+For a body cell in \([r_j,2r_j]\), (8) gives
+\[
+s_1^P(D)\geq\frac14r_j^\kappa|D|,
+\qquad
+s_0^P(D)\geq\frac12|D|.
+\]
+Hence its weighted shift is at most \(C\epsilon q_D/r_j^\kappa\) for either arm. The body cells are disjoint, so \(\sum_Dq_D\leq1\). Likewise,
+\[
+s_1^P(B_n)\geq c_\kappa h_n^{\kappa+1},
+\qquad
+s_0^P(B_n)\geq\frac12h_n,
+\]
+and the boundary weight \(h_n\) turns (13) into a bound \(C\epsilon q_{B_n}/h_n^\kappa\). Although \(B_n\) is reused, it is charged only one additional time and \(q_{B_n}\leq1\). Since \(r_j\geq h_n\), the total population contamination shift is therefore at most
+\[
+C\epsilon h_n^{-\kappa}.
+\tag{14}
+\]
+This uses only the global \(Q\)-mass budget, so neither an atom nor diffuse contamination within one cell creates an additional term.
+
+It remains to control sampling fluctuations and empty cells. If a measurable arm-cell has \(R\)-probability \(p>0\), its count \(N\) is binomial by \(\texttt{ass:iid-sampling}\). Integrating \((1-p+pt)^n\) over \([0,1]\) gives
+\[
+\mathbb E\frac1{N+1}=\frac{1-(1-p)^{n+1}}{(n+1)p},
+\qquad
+\mathbb E\left\{\frac{\mathbf1\{N>0\}}N\right\}
+\leq\frac2{(n+1)p}.
+\tag{15}
+\]
+Conditional on the disjoint body arm-cell counts, every nonempty cell mean is centered at \(m_a^R(D)\), and conditional cross-covariances between distinct categories vanish. Since a response in \([0,1]\) has variance at most \(1/4\), (15), Jensen's inequality, and \(p_a^R(D)\geq(1-\epsilon)s_a^P(D)\) show that the expected absolute centered treated-body fluctuation is at most
+\[
+\begin{aligned}
+C\left\{\frac1n\sum_{D\in\mathcal D_n}
+\frac{|D|^2}{r_j^\kappa|D|}\right\}^{1/2}
+&=C\left\{\frac1n\sum_jr_j^{1-\kappa}\right\}^{1/2}\\
+&\leq Cn^{-1/2}V_\kappa(h_n)^{1/2}.
+\end{aligned}
+\tag{16}
+\]
+The final inequality is the elementary geometric-sum calculation
+\[
+\sum_{j=0}^{J-1}(2^jh_n)^{1-\kappa}+h_n^{1-\kappa}
+\leq C_\kappa
+\begin{cases}
+1,&0<\kappa<1,\\
+1+\log(1/h_n),&\kappa=1,\\
+h_n^{1-\kappa},&\kappa>1.
+\end{cases}
+\tag{17}
+\]
+The extra term in (17) is the treated reconstruction-cell variance, because its weight squared divided by its clean mass is of order \(h_n^{1-\kappa}\). For the control arm, the analogous body sum and reconstruction term are bounded by a constant, hence are absorbed by \(V_\kappa(h_n)\geq1\). The body and reconstruction fluctuations were combined by the triangle inequality, so the reuse of \(B_n\) requires no independence assertion.
+
+For a treated body cell, (10) and the clean mixture weight \(1-\epsilon\geq9/10\) imply
+\[
+p_1^R(D)\geq c r_j^\kappa\ell_j
+\geq c h_nr_j^{\kappa+1/2}
+\geq c h_n^{\kappa+3/2}.
+\tag{18}
+\]
+Control cells have mass at least \(c h_n^{3/2}\), the treated reconstruction cell has mass at least \(c_\kappa h_n^{\kappa+1}\), and the control reconstruction cell has mass at least \(ch_n\); all are at least a constant multiple of \(h_n^{\kappa+3/2}\). Thus each relevant empty-cell probability is at most \(\exp\{-cnh_n^{\kappa+3/2}\}\). The nonnegative body weights sum to \(1-h_n\) for each arm and the reconstruction weight is \(h_n\). Summing weighted empty-cell errors, without a union bound over cells, gives
+\[
+C\exp\{-cnh_n^{\kappa+3/2}\}.
+\tag{19}
+\]
+Combining (11)--(19) proves the pre-optimization bound.
+
+Let \(q_{n,\kappa}=r_{n,\kappa}^{1/2}\). By definition, \(b_n=\max\{\epsilon^{1/(\kappa+2)},q_{n,\kappa}\}\). Equations (6) and \(\epsilon\leq h_n^{\kappa+2}\) imply
+\[
+h_n^2\leq4\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\},
+\qquad
+\epsilon h_n^{-\kappa}\leq h_n^2.
+\tag{20}
+\]
+For the stochastic term, (17) and \(h_n\geq q_{n,\kappa}\) give, respectively,
+\[
+n^{-1/2}V_\kappa(h_n)^{1/2}
+\leq C_\kappa
+\begin{cases}
+n^{-1/2},&0<\kappa<1,\\
+\{\log(en)/n\}^{1/2},&\kappa=1,\\
+n^{-1/2}q_{n,\kappa}^{(1-\kappa)/2},&\kappa>1,
+\end{cases}
+\leq C_\kappa r_{n,\kappa}.
+\tag{21}
+\]
+In the last line for \(\kappa>1\), the identity
+\(n^{-1/2}q_{n,\kappa}^{(1-\kappa)/2}=n^{-2/(\kappa+3)}\) was used. At the minimal clean bandwidth,
+\[
+nq_{n,\kappa}^{\kappa+3/2}\geq
+\begin{cases}
+n^{(5/2-\kappa)/4},&0<\kappa<1,\\
+n^{3/8},&\kappa=1,\\
+n^{3/\{2(\kappa+3)\}},&\kappa>1.
+\end{cases}
+\]
+Each exponent is positive. Since increasing \(h_n\) only decreases the exponential and increases \(h_n^2\), the elementary bound \(\sup_{t\geq1}t^a e^{-ct^b}<\infty\), for \(a,b,c>0\), yields
+\[
+\exp\{-cnh_n^{\kappa+3/2}\}\leq C_\kappa h_n^2.
+\tag{22}
+\]
+Equations (20)--(22) prove the rate upper bound when \(b_n\leq1/4\).
+
+If \(b_n>1/4\), the estimator returns zero and its absolute error is at most \(1/2\). In this branch either \(r_{n,\kappa}>1/16\) or \(\epsilon^{2/(\kappa+2)}>1/16\), so the same upper rate follows after enlarging \(C_0\). The lower bound is exactly \(\texttt{lem:lipschitz-lower-pair-all-kappa}\). Since \(T_{\mathrm{Lip}}\) is one member of \(\mathfrak T_n\), \(\texttt{def:minimax-risk}\) supplies the middle inequality.
+
+Finally,
+\[
+\sum_{j=0}^{J-1}M_j
+\leq h_n^{-1}\sum_{j=0}^{J-1}\sqrt{r_j}+J
+=O(h_n^{-1}).
+\]
+Constructing cell endpoints therefore uses \(O(h_n^{-1})\) arithmetic and memory. Binary search assigns each record using \(O(\log(1/h_n))\) comparisons, and one pass accumulates all counts and sums. Zero counts use the declared value \(1/2\), and every remaining operation is a finite Borel comparison, sum, product, quotient with a checked positive denominator, or clipping. Hence the estimator is total, finite, data-only, and belongs to \(\mathfrak T_n\), with the stated computational bounds. Finally, \(\texttt{thm:ate-tv-modulus}\) with \(\beta=1\) gives \(\gamma_{\mathrm{TV}}=2/(\kappa+2)\). Therefore the attained contamination term is exactly the order of \(\omega_\theta(\epsilon/(1-\epsilon))\), because \(1\leq(1-\epsilon)^{-1}\leq10/9\). This proves the simultaneous-attainment assertion and completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the headline matched minimax phase diagram, including a computable estimator, the equality-case logarithm, and arbitrary full-record corruption. \textit{Gap.} The clean Ma--Sant'Anna--Sasaki--Ura experiment is incomparable with this controlled polynomial-boundary Huber experiment, and no published clean converse or robust whole-law theorem yields this scalar-functional equality. \textit{Consumer.} The result gives the robustate workflow a theoretical trimming-scale and error-radius benchmark across every polynomial boundary exponent, without asserting that its data or parametric propensity satisfy the benchmark.
+
+\begin{theorem}[thm:lipschitz-calibration]\label{thm:lipschitz-calibration}
+On the full declared class with \(d=1\), \(\alpha=\beta=1\), and \(\kappa=2\), there exist \(c_0,C_0>0\), depending only on \(L\), such that jointly for every \(n\geq2\) and \(0\leq\epsilon\leq1/10\), \[c_0\{n^{-2/5}+\epsilon^{1/2}\}\leq\mathfrak R_n(\epsilon;1,1,1,2,L)\leq\sup_{(P,Q,R)\in\mathcal C_{1,1,1,2,L}(\epsilon)}\mathbb E_{R^n}|T_{\mathrm{Lip}}-\theta(P)|\leq C_0\{n^{-2/5}+\epsilon^{1/2}\}.\] When \(b_n\leq1/4\), the sharper pre-optimization bound is \[\sup_{(P,Q,R)\in\mathcal C_{1,1,1,2,L}(\epsilon)}\mathbb E_{R^n}|T_{\mathrm{Lip}}-\theta(P)|\leq C_0\left[h_n^2+(nh_n)^{-1/2}+\epsilon h_n^{-2}+\exp\{-c_0nh_n^{7/2}\}\right].\] For each body cell \(D\subseteq[r_j,2r_j]\), writing \(q_D=Q\{X\in D\}\), its weighted contamination shift is at most \(C_0\epsilon q_D/r_j^2\), and \(\sum_Dq_D\leq1\); the reused boundary slab \(B_n\) contributes at most \(C_0\epsilon q_{B_n}/h_n^2\). These bounds depend only on total contaminating mass and therefore cover both point masses and diffuse within-cell contamination. The estimator uses \(O(n\log(1/h_n)+h_n^{-1})\) arithmetic operations and \(O(h_n^{-1})\) memory.
+\end{theorem}
+\begin{proof}
+Specialize \(\texttt{thm:lipschitz-all-kappa}\) to \(\alpha=1\) and \(\kappa=2\). Then
+\[
+r_{n,2}=n^{-2/5},
+\qquad
+\epsilon^{2/(2+2)}=\epsilon^{1/2},
+\qquad
+V_2(h)=h^{-1}.
+\]
+Consequently its stochastic term is \(n^{-1/2}h_n^{-1/2}=(nh_n)^{-1/2}\), its contamination term is \(\epsilon h_n^{-2}\), and its empty-cell exponent is \(nh_n^{7/2}\). Its cellwise contamination and computational bounds specialize verbatim to those in the present statement. This proves the original quadratic-overlap theorem as a corollary and supplies the requested consistency check.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The original quadratic-overlap result is now a direct corollary of the stronger all-kappa theorem. \textit{Gap.} It records the previously solved rate and pre-optimization envelope without competing with the generalized headline. \textit{Consumer.} It keeps the quadratic benchmark available for direct comparison with the earlier presolve and applied discussion.
+
+\begin{openendedquestion}[oeq:full-frontier]\label{oeq:full-frontier}
+Outside the now-solved subfamily \(d=1\), \(\beta=1\), and \(\alpha\geq1\), use \(\mathfrak H_{\mathrm{rob}}\) to determine \(\rho_{\mathrm{eval}}(n,\epsilon;d,\alpha,\beta,\kappa,L)\) and construct \(T_n^\star\) so that, jointly for all \(n\geq2\) and \(0\leq\epsilon\leq1/10\),
+\[
+c_0\rho_{\mathrm{eval}}
+\leq\mathfrak R_n(\epsilon;d,\alpha,\beta,\kappa,L)
+\leq\sup_{(P,Q,R)\in\mathcal C_{d,\alpha,\beta,\kappa,L}(\epsilon)}
+\mathbb E_{R^n}|T_n^\star-\theta(P)|
+\leq C_0\rho_{\mathrm{eval}}.
+\]
+The unresolved coordinates are \(d>1\), \(\beta\neq1\), or \(\alpha<1\), including their interactions and every logarithm on the remaining equality surfaces. The rate must be an explicit finite piecewise formula, the estimator must be total, finite, data-only, and computationally specified, and the converse must use the same contaminated experiment. The result must decide whether the clean functional rate and \(\omega_\theta(\epsilon/(1-\epsilon))\) are simultaneously attainable there or whether a quantified nuisance--contamination interaction is unavoidable.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The remaining first-class extension asks whether simultaneous attainment persists beyond one-dimensional Lipschitz outcomes and propensity calibration of smoothness at least one. \textit{Gap.} Clean higher-order projection results and generic Huber testing do not control contaminated high-resolution pilots, empirical Gram matrices, and pair corrections on the remaining boundary classes. \textit{Consumer.} Resolving the narrowed question would extend the practical error-radius benchmark to multidimensional and non-Lipschitz nuisance regimes.
+
+\section{Interpretation}
+
+The overlap exponent controls the clean price through the summability of inverse treated-cell mass. When \(\kappa<1\), that sum is finite and root-\(n\) risk remains possible; at \(\kappa=1\), contributions from all dyadic scales accumulate a square-root logarithm; above one, the lowest retained slab dominates and produces \(n^{-2/(\kappa+3)}\). Corruption has a different balance: a boundary slab of width \(h\) amplifies adversarial mass by \(h^{-\kappa}\), so balancing it with Lipschitz boundary bias yields \(\epsilon^{2/(\kappa+2)}\). One bandwidth attains both terms, so there is no additional nuisance--contamination interaction penalty on this subfamily.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The direct cell argument relies on one-dimensional Lipschitz covariance bias and boundary reconstruction. For a boundary cell \(B=[h,2h]\), clean treated mass is of order \(h^{\kappa+1}\), so either point or diffuse contaminating mass \(q_B\) shifts its weighted contribution by at most order \(\epsilon q_Bh^{-\kappa}\); at \(h=\epsilon^{1/(\kappa+2)}\) this equals the squared boundary bias. In higher dimension or under other smoothness orders, preserving the clean projected functional gain requires robust high-resolution nuisance and Gram estimation that is not proved here.
+
+\section{Honest scope}
+
+The headline is the exact one-dimensional result for \(d=1\), \(\beta=1\), every \(\alpha\geq1\), and every \(\kappa>0\): \(\mathfrak R_n(\epsilon)\asymp r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\), with a total finite estimator, the \(\kappa=1\) logarithm, and matching same-experiment converses. The former quadratic theorem is retained as a corollary. The cases \(d>1\), \(\beta\neq1\), or \(\alpha<1\), their interactions, and their remaining equality-case logarithms are open. Fixed nonzero contamination leaves irreducible ambiguity; no claim identifies \(\theta(P)\) from \(R\), and no claim says the Sasaki--Ura application is contaminated or satisfies this exact benchmark class.
+
+\begin{thebibliography}{99}
+
+  \bibitem{RosenbaumRubin1983} Rosenbaum, Paul R., and Donald B. Rubin. 1983. The central role of the propensity score in observational studies for causal effects. Biometrika 70: 41--55.
+
+  \bibitem{Stone1982} Stone, Charles J. 1982. Optimal global rates of convergence for nonparametric regression. Annals of Statistics 10: 1040--1053.
+
+  \bibitem{KhanTamer2010} Khan, Shakeeb, and Elie Tamer. 2010. Irregular identification, support conditions, and inverse weight estimation. Econometrica 78: 2021--2042.
+
+  \bibitem{ChenGaoRen2016} Chen, Mengjie, Chao Gao, and Zhao Ren. 2016. A general decision theory for Huber's \(\epsilon\)-contamination model. Electronic Journal of Statistics 10: 3752--3774.
+
+  \bibitem{RobinsEtAl2017HOEE} Robins, James, Lingling Li, Rajarshi Mukherjee, Eric Tchetgen Tchetgen, and Aad van der Vaart. 2017. Minimax estimation of a functional on a structured high-dimensional model. Annals of Statistics 45: 1951--1987.
+
+  \bibitem{LiuMukherjeeNeweyRobins2017EmpiricalHOIF} Liu, Lin, Rajarshi Mukherjee, Whitney K. Newey, and James M. Robins. 2017. Semiparametric efficient empirical higher order influence function estimators. arXiv:1705.07577, revised 2026.
+
+  \bibitem{ZhuJiaoSteinhardt2022} Zhu, Banghua, Jiantao Jiao, and Jacob Steinhardt. 2022. Generalized resilience and robust statistics. Annals of Statistics 50: 2256--2283.
+
+  \bibitem{SasakiUra2022ET} Sasaki, Yuya, and Takuya Ura. 2022. Estimation and inference for moments of ratios with robustness against large trimming bias. Econometric Theory 38: 66--112.
+
+  \bibitem{SasakiUra2022Robustate} Sasaki, Yuya, and Takuya Ura. 2022. Average treatment effect estimates robust to the limited overlap problem: robustate. Stata Journal 22: 344--354.
+
+  \bibitem{HaradaFujisawa2024} Harada, Kazuharu, and Hironori Fujisawa. 2024. Outlier-resistant estimators for average treatment effect in causal inference. Statistica Sinica 34: 133--155.
+
+  \bibitem{BonviniKennedyDukesBalakrishnan2024} Bonvini, Matteo, Edward H. Kennedy, Oliver Dukes, and Sivaraman Balakrishnan. 2024. Doubly-robust inference and optimality in structure-agnostic models with smoothness. arXiv:2405.08525.
+
+  \bibitem{HorowitzManski1995} Horowitz, Joel L., and Charles F. Manski. 1995. Identification and robustness with contaminated and corrupted data. Econometrica 63: 281--302.
+
+  \bibitem{AgarwalSingh2022} Agarwal, Anish, and Rahul Singh. 2022. Causal inference with corrupted data: measurement error, missing values, discretization, and differential privacy. Public manuscript.
+
+  \bibitem{MaEtAl2024Missing} Ma, Tianyi, Kabir A. Verchand, Thomas B. Berrett, Tengyao Wang, and Richard J. Samworth. 2024. Estimation beyond missing completely at random. arXiv:2410.10704.
+
+  \bibitem{ZengBalakrishnanHanKennedy2024} Zeng, Yutong, Sivaraman Balakrishnan, Yanjun Han, and Edward H. Kennedy. 2024. Causal inference with many sparse cells. arXiv:2405.00118.
+
+  \bibitem{MaSantAnnaSasakiUra2026} Ma, Yukun, Pedro H. C. Sant’Anna, Yuya Sasaki, and Takuya Ura. 2026. Doubly robust estimators with weak overlap. arXiv:2304.08974v3.
+
+\end{thebibliography}
+
+\end{document}

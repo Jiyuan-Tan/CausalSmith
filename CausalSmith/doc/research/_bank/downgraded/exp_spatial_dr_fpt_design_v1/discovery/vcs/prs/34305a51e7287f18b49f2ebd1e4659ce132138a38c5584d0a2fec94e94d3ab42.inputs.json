@@ -1,0 +1,383 @@
+{
+  "units": [
+    {
+      "unit": "thm:fpt-dp",
+      "targets": [
+        "thm:fpt-dp",
+        "thm:rank-compression"
+      ],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:fpt-dp",
+            "proof_tex": "Root \\(\\mathcal T\\) as supplied.  For a node \\(t\\), let \\(\\mathcal T_{\\downarrow t}\\) be its descendant subtree and put\n\\[\n X_t=\\bigcup_{s\\in V(\\mathcal T_{\\downarrow t})}B_s,\n \\qquad\n E_t^G=\\{e\\in E:\\text{the unique introduce-edge node for }e\n                   \\text{ lies in }\\mathcal T_{\\downarrow t}\\}.\n\\tag{1}\n\\]\nThe second set is well defined by \\(\\mathrm{ass:unique-edge-introduction}\\), because \\(E\\subseteq E_F\\) by \\(\\mathrm{def:interaction-graph}\\).  Write \\(G_t=(X_t,E_t^G)\\).\n\nA partial history at \\(t\\) is an unlabeled partition \\(\\mathscr A_t\\) of \\(X_t\\) into at most \\(K\\) nonempty blocks.  A block is active if it meets \\(B_t\\) and completed otherwise.  The history realizes \\(q=(\\alpha,\\pi,d)\\) when the following four conditions hold: first, the nonempty intersections of active blocks with \\(B_t\\) are exactly the blocks of \\(\\alpha\\); second, two bag vertices belong to the same block of \\(\\pi\\) exactly when they are in the same connected component of \\(G_t[A]\\) for their common block \\(A\\in\\mathscr A_t\\); third, every component of every active block meets \\(B_t\\); and fourth, there are exactly \\(d\\) completed blocks and every completed block induces a connected subgraph of \\(G_t\\).  Thus \\(d+|\\alpha|=|\\mathscr A_t|\\le K\\), and this is precisely the semantic invariant in \\(\\mathrm{def:dp-state}\\).\n\nFor a partition \\(\\alpha\\) of \\(B_t\\), define\n\\[\n r_{ii'}(\\alpha)=\n \\bigl|\\{A\\in\\alpha:A\\cap N_G[i]\\ne\\varnothing,\n                         \\ A\\cap N_G[i']\\ne\\varnothing\\}\\bigr|\n\\]\nand\n\\[\n \\gamma_t(\\alpha)=\\frac{1}{N_{\\exp}}\n \\sum_{(i,i')\\in H_t}\n 2^{r_{ii'}(\\alpha)+1}\\Sigma_{ii'}\n \\mathbf 1\\{r_{ii'}(\\alpha)>0\\}.\n\\tag{2}\n\\]\nFor every pair in \\(H_t\\), \\(\\mathrm{lem:scope-charging}\\) puts both neighborhoods inside \\(B_t\\), so (2) is well defined.  Moreover, \\(\\mathrm{lem:cluster-name-symmetry}\\) proves that it is exactly the contribution of those ordered pairs under any naming of the partial blocks.\n\nWe prove by induction from the leaves that\n\\[\n D_t(q)=min_{\\mathscr A_t\\text{ realizes }q}\n \\sum_{s\\in V(\\mathcal T_{\\downarrow t})}\n \\gamma_s(\\alpha_s),\n\\tag{3}\n\\]\nwhere \\(\\alpha_s\\) is the restriction partition induced by \\(\\mathscr A_t\\) on \\(B_s\\), and the minimum of the empty set is \\(+\\infty\\).  When a block of \\(\\mathscr A_t\\) does not meet \\(B_s\\), it contributes no block to \\(\\alpha_s\\).\n\nAt an empty leaf, \\(X_t=\\varnothing\\).  The empty partition is the unique history and realizes \\((\\varnothing,\\varnothing,0)\\) at cost zero, as prescribed by \\(\\mathrm{def:dp-transitions}\\).\n\nSuppose \\(t\\) introduces vertex \\(v\\) above its child \\(s\\).  The running-intersection assumption implies \\(v\\notin X_s\\): if a descendant bag contained \\(v\\), the bag path from it to \\(t\\) would pass through \\(s\\), contrary to \\(v\\notin B_s\\).  An edge incident to \\(v\\) cannot have been introduced in the child subtree, because its introduce-edge bag would contain \\(v\\).  Consequently \\(v\\) begins as a singleton processed component.  In a realizing parent history, its block either already has an active intersection with \\(B_s\\), in which case \\(v\\) is inserted into exactly that block of \\(\\alpha_s\\), or has no other processed vertex, in which case \\(\\{v\\}\\) is a new active block.  It cannot be appended to a completed block: that would create a disconnected block with a component not meeting the current bag.  Conversely, each transition of these two forms produces exactly one realizing parent history.  Keeping \\(d\\) fixed and imposing \\(d+|\\alpha_t|\\le K\\) is therefore necessary and sufficient.\n\nAt an introduce-edge node, the vertex partition \\(\\mathscr A_t\\) and its active partition \\(\\alpha\\) do not change.  If \\(e=\\{u,v\\}\\in E\\) and its endpoints belong to the same \\(\\alpha\\)-block, adding the processed geographic edge merges exactly their two \\(\\pi\\)-blocks; if they belong to different final blocks, it merges nothing.  An edge of \\(E_F\\setminus E\\) is not a geographic connectivity edge and also changes nothing.  These are exactly the stated transitions.\n\nNow suppose \\(t\\) forgets \\(v\\) from its child \\(s\\), and let \\(A\\in\\alpha_s\\) and \\(P\\in\\pi_s\\) contain \\(v\\).  If \\(P\\setminus\\{v\\}\\ne\\varnothing\\), the represented processed component still meets the new bag; deleting \\(v\\) from \\(A\\) and \\(P\\) preserves every part of the invariant and leaves \\(d\\) unchanged.  If \\(P=\\{v\\}\\) but \\(A\\ne\\{v\\}\\), that component loses its last bag vertex while another component of the same active cluster remains represented by \\(A\\setminus\\{v\\}\\).  Running intersection ensures that \\(v\\) never appears above the forget node, and an edge capable of reconnecting its component above would require a bag containing an interior endpoint that likewise cannot appear above.  The lost component can therefore never reconnect, so rejection is necessary.  It is also sufficient to reject only this case.  Finally, if \\(A=P=\\{v\\}\\), the entire active block loses its last bag vertex.  The child invariant says it has only one processed component, so it becomes a completed connected cluster; deleting \\(A,P\\) and replacing \\(d\\) by \\(d+1\\) is necessary and sufficient.  In particular a completed cluster cannot restart, because it is no longer an active block to which a later vertex can be attached.\n\nLet \\(t\\) be a join with children \\(s_1,s_2\\).  The running-intersection property gives\n\\[\n X_{s_1}\\cap X_{s_2}=B_t.\n\\tag{4}\n\\]\nIndeed, a vertex occurring in both descendant subtrees has a bag path through \\(t\\), and the reverse inclusion follows from equality of the three join bags.  No geographic edge joins \\(X_{s_1}\\setminus B_t\\) to \\(X_{s_2}\\setminus B_t\\): a bag covering such an edge, supplied by \\(\\mathrm{ass:tree-edge-cover}\\), would violate (4) together with running intersection.  The child processed edge sets are disjoint by unique edge introduction.\n\nIt follows that two child histories glue precisely when they induce the same unlabeled partition \\(\\alpha\\) on the separator.  For each \\(A\\in\\alpha\\), the two child blocks meeting the same separator set \\(A\\) are parts of one parent block; their processed connectivity relation on the bag is the transitive closure \\(\\pi_1\\vee\\pi_2\\).  Completed child blocks cannot be identified with one another or with an active block: they have no separator vertex, and (4) supplies no cross-subtree edge by which such an identification could be connected.  Thus the completed blocks from the children are disjoint clusters and their number is exactly \\(d_1+d_2\\).  The parent is feasible exactly when\n\\[\n d_1+d_2+|\\alpha|\\le K.\n\\tag{5}\n\\]\nThese observations prove necessity of the join rule.  Conversely, given child histories satisfying the rule, glue precisely the active blocks with the same \\(\\alpha\\)-block, retain all completed blocks separately, and unite their processed edges.  Every component of an active parent block meets the separator because this holds in each child, while all completed blocks remain connected.  Hence the resulting parent history realizes \\((\\alpha,\\pi_1\\vee\\pi_2,d_1+d_2)\\), proving sufficiency.\n\nIn each node case there is therefore a bijection between realizing histories and the legal predecessor choices.  Descendant charges are copied from one child or added over the two disjoint child subtrees, and then the current charge \\(\\gamma_t\\) is added exactly once.  Minimizing over the established bijections proves (3).\n\nLet \\(r\\) be the empty root.  The vertex-cover assumption gives \\(X_r=U\\), and unique edge introduction gives \\(E_r^G=E\\).  Since \\(B_r=\\varnothing\\) by \\(\\mathrm{ass:empty-root}\\), every block is completed.  Thus the accepted state \\((\\varnothing,\\varnothing,K)\\) is realized exactly by unlabeled partitions of \\(U\\) into \\(K\\) nonempty blocks, each inducing a connected subgraph of \\(G\\).\n\nFor completeness in the other direction, take any \\(\\mathcal C\\in\\mathfrak C_K(G)\\), forget its block names, and intersect its blocks with every \\(X_t\\).  If a processed component of an intersected block does not meet \\(B_t\\), running intersection and the edge-cover property prevent any vertex or edge of that component from connecting above \\(t\\).  Global connectedness of the corresponding block of \\(\\mathcal C\\) then forces that component to be the entire block, so it is the unique completed component.  Otherwise every processed component meets the bag.  The restrictions consequently realize exactly the states and transitions above and end at the accepted root.  This also proves that no feasible connected partition is omitted.\n\nThe sets \\(H_t\\) partition the supported ordered pairs by \\(\\mathrm{lem:scope-charging}\\).  Therefore, for every complete history and every naming \\(\\mathcal C\\) of its blocks,\n\\[\n \\sum_{t\\in V(\\mathcal T)}\\gamma_t(\\alpha_t)\n =\\frac{1}{N_{\\exp}}\\sum_{i,i'\\in U}\n 2^{m_{ii'}(\\mathcal C)+1}\\Sigma_{ii'}\n \\mathbf 1\\{m_{ii'}(\\mathcal C)>0\\}\n =V(\\mathcal C;\\Sigma).\n\\tag{6}\n\\]\nThe equality is independent of the naming by \\(\\mathrm{lem:cluster-name-symmetry}\\).  Combining (3) and (6) at the root proves the asserted optimum equality.  It is finite and attained by \\(\\mathrm{lem:feasible-nonempty}\\).\n\nWe next count states.  Let \\(b=|B_t|\\), and let \\(\\genfrac{\\{} {\\}}{0pt}{}{b}{a}\\) denote the number of partitions of a \\(b\\)-element set into \\(a\\) nonempty blocks.  For an \\(\\alpha\\) with \\(a\\le\\min\\{b,K\\}\\) blocks, there are \\(K-a+1\\) choices of \\(d\\).  The number of partitions \\(\\pi\\) refining this fixed \\(\\alpha\\) is\n\\[\n \\prod_{A\\in\\alpha}\\operatorname{Bell}(|A|)\\le\\operatorname{Bell}(b),\n\\]\nbecause every such \\(\\pi\\) is in particular a partition of \\(B_t\\).  Moreover the number of partitions of \\(B_t\\) into at most \\(K\\) blocks is at most \\(\\operatorname{Bell}(b)\\), and also at most \\(K^b\\), since canonically numbering blocks by increasing least element injects them into maps \\(B_t\\to\\{1,\\ldots,K\\}\\).  Hence the state count is at most\n\\[\n \\operatorname{Bell}(b)\n \\sum_{a=0}^{\\min\\{b,K\\}}\n \\genfrac{\\{} {\\}}{0pt}{}{b}{a}(K-a+1)\n \\le (K+1)\\operatorname{Bell}(b)\n       \\min\\{\\operatorname{Bell}(b),K^b\\}.\n\\tag{7}\n\\]\nSince \\(b\\le w+1\\), monotonicity of the displayed factors gives the claimed envelope \\(S_{w,K}\\).\n\nLeaf, introduce, and forget transitions require at most \\(S_{w,K}\\operatorname{poly}(R,K,w)\\) elementary operations per node.  A deliberately conservative join implementation tests every pair of child states, hence at most \\(S_{w,K}^2\\) pairs.  The at most \\(R^2\\) supported ordered pairs and their highest bags can be preprocessed within the asserted larger bound.  Each coefficient \\(2^{m+1}\\) has at most \\(K+2\\) binary digits, each input rational has encoding length at most \\(L_{\\mathrm{bits}}\\), and a table value sums at most \\(R^2\\) charged rationals.  Standard integer numerator--denominator arithmetic therefore gives bit lengths and exact addition/comparison costs polynomial in \\(R,K,w,L_{\\mathrm{bits}}\\).  This proves the time and space bounds.\n\nFor every finite entry, choose a minimum legal predecessor, using a fixed lexicographic tie-break, and store it in \\(P_t\\).  Following pointers from the accepted root reconstructs partial partitions by the same introduce, forget, and join gluing operations used in the induction, and hence reconstructs an unlabeled optimal partition of \\(U\\).  Because \\(U=\\{1,\\ldots,R\\}\\), ordering its blocks by their least vertices gives a deterministic labeled \\(\\mathcal C^\\star\\); (6) and cluster-name invariance show that it retains the optimum value.\n\nA verifier of \\(\\operatorname{Cert}(G,K,\\Sigma,\\mathcal T)\\) enumerates the states in (7), recomputes every local rational summand in (2), enumerates every legal predecessor or predecessor pair, checks the displayed minimum and its tie-broken pointer, checks that no generated finite state is omitted, and finally checks the accepted root and the recovered blocks.  This work is polynomial in the displayed table size and rational bit length.  Thus the table and matching backpointers certify both optimality and reconstruction.\n\nFinally consider the required path \\(a-c-b\\), with \\(K=2\\), at a width-one join whose bag is \\(\\{c\\}\\).  If the left child has already completed the branch cluster containing \\(a\\) and the right child has already completed the branch cluster containing \\(b\\), then \\(d_1=d_2=1\\), while \\(\\alpha=\\{\\{c\\}\\}\\).  Equation (5) reads \\(1+1+1\\le2\\), which is false, so the state is rejected.  If instead the branch pieces belong to the separator-active cluster through \\(c\\), then \\(d_1=d_2=0\\), the join is locally legal, and \\(\\pi_1\\vee\\pi_2\\) connects the pieces through \\(c\\).  This verifies the kill test directly from the semantic invariant."
+          },
+          {
+            "id": "thm:rank-compression",
+            "proof_tex": "Fix a node \\(t\\), a partition \\(\\alpha\\) of \\(B_t\\) into \\(a\\) active blocks, and a completed-cluster count \\(d\\).  Put \\(b=|B_t|\\), and let \\(\\mathscr P_\\alpha\\) be the partitions of \\(B_t\\) refining \\(\\alpha\\).  For \\(\\pi,\\rho\\in\\mathscr P_\\alpha\\), define over \\(\\mathbb F_2\\)\n\\[\n M_\\alpha[\\pi,\\rho]\n =\\mathbf 1\\{\\pi\\vee\\rho=\\alpha\\},\n\\tag{8}\n\\]\nwhere \\(\\vee\\) is the transitive closure of the union of equivalence relations.  Thus the entry is one exactly when current processed connectivity \\(\\pi\\), together with a future connectivity pattern \\(\\rho\\) attached through the bag, connects every active final cluster.\n\nChoose one distinguished vertex in every block \\(A\\in\\alpha\\).  A rooted cut of \\(A\\) is a bipartition of \\(A\\) in which the distinguished vertex is on the first side; the other side may be empty.  There are \\(2^{|A|-1}\\) such cuts.  Let \\(\\mathscr D_\\alpha\\) be the Cartesian product of these cut sets, and define\n\\[\n C_\\alpha[\\pi,\\delta]\n =\\mathbf 1\\{\\text{every block of \\(\\pi\\) is contained in one side\n of the cut of its \\(\\alpha\\)-block in \\(\\delta\\)}\\}.\n\\]\nIf \\(r_A\\) is the number of blocks of \\((\\pi\\vee\\rho)|_A\\), then the number of rooted cuts of \\(A\\) coarsening both \\(\\pi|_A\\) and \\(\\rho|_A\\) is \\(2^{r_A-1}\\).  Therefore the scalar product of the rows for \\(\\pi\\) and \\(\\rho\\) equals, modulo two,\n\\[\n \\prod_{A\\in\\alpha}2^{r_A-1},\n\\]\nwhich is odd exactly when every \\(r_A=1\\), equivalently when \\(\\pi\\vee\\rho=\\alpha\\).  Hence\n\\[\n M_\\alpha=C_\\alpha C_\\alpha^{\\mathsf T},\n \\qquad\n \\operatorname{rank}_{\\mathbb F_2}(M_\\alpha)\n \\le |\\mathscr D_\\alpha|\n =2^{\\sum_{A\\in\\alpha}(|A|-1)}=2^{b-a}.\n\\tag{9}\n\\]\nFor the empty bag the empty product is one, so (9) also covers \\(a=b=0\\).\n\nLet \\(\\mathscr A\\subseteq\\mathscr P_\\alpha\\) be any finite family with exact rational weights.  Sort it in nondecreasing weight, break ties lexicographically, scan the rows of \\(C_\\alpha\\), and retain a partition exactly when its row is linearly independent of earlier retained rows.  Denote the retained family by \\(\\operatorname{red}(\\mathscr A)\\).  Equation (9) gives \\(|\\operatorname{red}(\\mathscr A)|\\le2^{b-a}\\).  For every completion query \\(\\rho\\),\n\\[\n \\min_{\\substack{\\pi\\in\\mathscr A\\\\M_\\alpha[\\pi,\\rho]=1}}\n \\operatorname{wt}(\\pi)\n =\n \\min_{\\substack{\\pi\\in\\operatorname{red}(\\mathscr A)\\\\\n                   M_\\alpha[\\pi,\\rho]=1}}\n \\operatorname{wt}(\\pi),\n\\tag{10}\n\\]\nwith an empty minimum interpreted as \\(+\\infty\\).  Indeed, the left minimum is no larger because the retained family is a subset.  If a minimum compatible row \\(C_\\alpha[\\pi,\\cdot]\\) was discarded, it is an \\(\\mathbb F_2\\)-linear combination of earlier retained rows, each of no larger weight.  Taking scalar products with \\(C_\\alpha[\\rho,\\cdot]\\), the left side of that linear identity is one by (8)--(9), so at least one retained summand has scalar product one.  It is compatible with \\(\\rho\\) and has no larger weight.  This proves the reverse inequality and also shows that compatibility is nonempty on one side exactly when it is nonempty on the other.  No positivity of the rational weights is used.\n\nWe next prove that reduction can be interleaved with every transition in \\(\\mathrm{def:dp-transitions}\\).  At an introduce-vertex node, if \\(v\\) creates a new \\(\\alpha\\)-block, both its processed partition and every completion partition have \\(\\{v\\}\\) as a singleton block, so deleting that block reduces the compatibility test to the child test.  If \\(v\\) joins an existing active block, every generated processed partition adds \\(v\\) as a singleton.  For a parent query \\(\\rho\\), no candidate is compatible when the \\(\\rho\\)-block of \\(v\\) misses the old vertices of that active block.  Otherwise restricting \\(\\rho\\) to the child bag gives a child query, and\n\\[\n (\\pi\\cup\\{\\{v\\}\\})\\vee\\rho=\\alpha_t\n \\quad\\Longleftrightarrow\\quad\n \\pi\\vee(\\rho|_{B_s})=\\alpha_s.\n\\]\nThus (10) preserves both introduce-vertex cases.\n\nAt an introduce-edge node with a geographic edge whose endpoints are in one \\(\\alpha\\)-block, the update is \\(\\pi\\mapsto\\pi\\vee\\{\\{u,v\\}\\}\\).  Compatibility of the updated partition with \\(\\rho\\) is the same as compatibility of \\(\\pi\\) with \\(\\rho\\vee\\{\\{u,v\\}\\}\\), which is another partition refining \\(\\alpha\\).  All other introduced edges act as the identity.  Hence (10) is preserved.\n\nFor a nonclosing forget transition, the child \\(\\alpha\\)-block containing \\(v\\) retains at least one bag vertex, and legality requires the child \\(\\pi\\)-block of \\(v\\) to retain one as well.  Given a query \\(\\rho\\) on the parent bag, adjoin \\(v\\) as a singleton block to form a child query \\(\\rho^+\\).  For every legal child candidate,\n\\[\n \\pi\\vee\\rho^+=\\alpha_s\n \\quad\\Longleftrightarrow\\quad\n (\\pi|_{B_t})\\vee\\rho=\\alpha_t.\n\\tag{11}\n\\]\nIf the \\(\\pi\\)-block of \\(v\\) were a forbidden singleton while other vertices remained in its active block, it could not be compatible with \\(\\rho^+\\); thus the representative supplied by (10) is itself legal to forget.  For a closing forget transition, the child has the singleton active block \\(\\{v\\}\\), both \\(\\pi\\) and the lifted query have that singleton, and deletion changes \\(d\\) to \\(d+1\\) without leaving connectivity information.  Equation (10) again gives the exact parent minimum.  Taking the union over the finitely many child strata that map to a fixed parent stratum and reducing once more preserves the minimum.\n\nAt a join, fix a legal split \\(d=d_1+d_2\\) and two weighted child families \\(\\mathscr A_1,\\mathscr A_2\\) for the same \\(\\alpha\\).  Candidates have partition \\(\\pi_1\\vee\\pi_2\\) and weight \\(w_1(\\pi_1)+w_2(\\pi_2)\\).  If a pair is optimal for a future query \\(\\rho\\), apply representation of \\(\\mathscr A_1\\) to the query \\(\\pi_2\\vee\\rho\\) to obtain \\(\\pi'_1\\) of no larger first weight.  Then apply representation of \\(\\mathscr A_2\\) to \\(\\pi'_1\\vee\\rho\\) to obtain \\(\\pi'_2\\) of no larger second weight.  Associativity of transitive closure gives\n\\[\n \\pi'_1\\vee\\pi'_2\\vee\\rho=\\alpha,\n\\]\nso the reduced pair is compatible and no more expensive.  Enumerating all splits with \\(d_1+d_2+|\\alpha|\\le K\\) preserves exactly the completed-cluster join rule proved in \\(\\mathrm{thm:fpt-dp}\\).  In particular, clusters completed in distinct child interiors remain distinct; no matrix reduction can restart or identify them.\n\nBy \\(\\mathrm{lem:cluster-name-symmetry}\\) and \\(\\mathrm{lem:scope-charging}\\), the local charge \\(\\gamma_t(\\alpha)\\) is an exact rational constant for fixed \\(\\alpha\\), independent of \\(\\pi\\) and \\(d\\).  Adding it before reduction preserves (10).  Induction over the nice decomposition therefore shows that every compressed family represents the corresponding full family of \\(\\mathrm{thm:fpt-dp}\\).  At the accepted empty root, \\(\\alpha=\\pi=\\varnothing\\), \\(d=K\\), and there is one completion query.  Equations (10) and the exactness theorem consequently give the same value \\(\\min_{\\mathcal C\\in\\mathfrak C_K(G)}V(\\mathcal C;\\Sigma)\\).\n\nIt remains to count work.  For a bag of size \\(b\\), there are \\(\\genfrac{\\{} {\\}}{0pt}{}{b}{a}\\) choices of \\(\\alpha\\) with \\(a\\) blocks, \\(K-a+1\\) choices of \\(d\\), and by (9) at most \\(2^{b-a}\\) retained rows in that stratum.  Thus the number retained is at most\n\\[\n M_{b,K}:=\n \\sum_{a=0}^{\\min\\{b,K\\}}\n \\genfrac{\\{} {\\}}{0pt}{}{b}{a}(K-a+1)2^{b-a}.\n\\tag{12}\n\\]\nThe number \\(Q_{b,K}\\) of partitions into at most \\(K\\) blocks satisfies\n\\[\n Q_{b,K}\\le\\operatorname{Bell}(b),\\qquad Q_{b,K}\\le K^b,\n\\]\nthe second inequality following from the canonical block-numbering injection used in \\(\\mathrm{thm:fpt-dp}\\).  Since \\(K-a+1\\le K+1\\) and \\(2^{b-a}\\le2^b\\), (12) yields\n\\[\n M_{b,K}\\le (K+1)2^b\n \\min\\{\\operatorname{Bell}(b),K^b\\}.\n\\tag{13}\n\\]\n\nA join generates at most \\(M_{b,K}^2\\) row pairs.  Each cut row has length at most \\(2^b\\), and online Gaussian elimination can conservatively be charged \\(O(2^{2b}\\operatorname{poly}(b))\\) field operations per generated row.  Combining this charge with (13), using \\(b\\le w+1\\), and absorbing the cheaper node types and the at most \\(R^2\\) scope charges gives\n\\[\n O\\!\\left((|V(\\mathcal T)|+R^2)(K+1)^2 2^{4(w+1)}\n \\min\\{\\operatorname{Bell}(w+1),K^{w+1}\\}^2\n \\operatorname{poly}(R,K,w,L_{\\mathrm{bits}})\\right).\n\\tag{14}\n\\]\nBecause \\(\\operatorname{Bell}(b)\\le b^b\\),\n\\[\n \\min\\{\\operatorname{Bell}(b),K^b\\}\n \\le \\min\\{b,K\\}^b.\n\\]\nAlso \\(G\\subseteq F\\) contains an edge since \\(R\\ge K\\ge2\\), so \\(w\\ge1\\) and \\(w+1\\le2w\\).  Taking binary logarithms in (14), while leaving the polynomial factor in \\(K\\) explicit, gives\n\\[\n 2^{O(w\\log\\min\\{K,w+1\\}+w)}\n \\operatorname{poly}(|V(\\mathcal T)|,R,K,L_{\\mathrm{bits}}).\n\\]\nAll elimination is over \\(\\mathbb F_2\\); all weight arithmetic is over exact rationals and has the polynomial bit-length bound proved in \\(\\mathrm{thm:fpt-dp}\\).\n\nEach retained row stores its exact weight, its pivot, and the generating predecessor or predecessor pair.  A verifier regenerates candidates, recomputes the cut rows and deterministic elimination, checks every pivot and rational minimum, and follows the retained root pointer.  The same inductive gluing reconstructs an unlabeled optimum, which is deterministically labeled by increasing least vertex.  This is the compressed certificate in \\(\\mathrm{def:certificate}\\), and its verification fits within (14).  If \\(|V(\\mathcal T)|\\le\\operatorname{poly}(R)\\), then \\(K,w\\le R\\) and \\(\\min\\{K,w+1\\}\\le w+1\\), so the bound is \\(2^{O(w\\log w)}\\operatorname{poly}(R,L_{\\mathrm{bits}})\\).  Without the size normalization, reading the supplied decomposition alone requires \\(\\Omega(|V(\\mathcal T)|)\\) time."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:cluster-name-symmetry",
+            "kind": "lemma",
+            "statement": "Let \\(\\sigma\\) be a permutation of \\(\\{1,\\ldots,K\\}\\), and define \\(\\sigma\\mathcal C\\) by \\(\\ell_{\\sigma\\mathcal C}=\\sigma\\circ\\ell_{\\mathcal C}\\).  Then \\(\\mathcal C\\in\\mathfrak C_K(G)\\) if and only if \\(\\sigma\\mathcal C\\in\\mathfrak C_K(G)\\), and for all \\(i,i'\\in U\\),\n\\[\n L_i(\\sigma\\mathcal C)=\\sigma(L_i(\\mathcal C)),\\qquad\n m_{ii'}(\\sigma\\mathcal C)=m_{ii'}(\\mathcal C),\\qquad\n a_{ii'}(\\sigma\\mathcal C)=a_{ii'}(\\mathcal C).\n\\]\nConsequently \\(V(\\sigma\\mathcal C;\\Sigma)=V(\\mathcal C;\\Sigma)\\).  The sets \\(H_t\\) are independent of cluster names, and, whenever \\((i,i')\\in H_t\\), the local summand is determined by the unlabeled restriction \\(\\alpha\\) to \\(B_t\\): its shared-label count is the number of blocks of \\(\\alpha\\) meeting both \\(N_G[i]\\) and \\(N_G[i']\\).",
+            "free_symbols": [
+              "C",
+              "K",
+              "G",
+              "CK",
+              "ellC",
+              "LC",
+              "U",
+              "m",
+              "acoef",
+              "V",
+              "Sigma",
+              "Ht",
+              "B",
+              "Ng",
+              "Nexp"
+            ],
+            "depends_on": [
+              "def:connected-partitions",
+              "def:exact-risk",
+              "def:scope-charges",
+              "lem:scope-charging"
+            ],
+            "proof_tex": "The blocks of \\(\\sigma\\mathcal C\\) are merely the blocks of \\(\\mathcal C\\) in a different order.  Pairwise disjointness, nonemptiness, union equal to \\(U\\), and connectedness of each induced subgraph are therefore unchanged; by \\(\\mathrm{def:connected-partitions}\\), feasibility is invariant.  From \\(\\ell_{\\sigma\\mathcal C}=\\sigma\\circ\\ell_{\\mathcal C}\\) and the definition of \\(L_i\\),\n\\[\n L_i(\\sigma\\mathcal C)\n =\\{\\sigma(\\ell_{\\mathcal C}(v)):v\\in N_G[i]\\}\n =\\sigma(L_i(\\mathcal C)).\n\\]\nBecause a permutation is a bijection,\n\\[\n |\\sigma(L_i(\\mathcal C))\\cap\\sigma(L_{i'}(\\mathcal C))|\n =|\\sigma(L_i(\\mathcal C)\\cap L_{i'}(\\mathcal C))|\n =|L_i(\\mathcal C)\\cap L_{i'}(\\mathcal C)|.\n\\]\nThis proves equality of \\(m_{ii'}\\); substituting it into the definition of \\(a_{ii'}\\) proves equality of the coefficients, and substituting those equalities term by term into \\(\\mathrm{def:exact-risk}\\) proves equality of \\(V\\).\n\nThe definition \\(\\mathrm{def:scope-charges}\\) uses only \\(G\\), \\(\\Sigma\\), and the supplied decomposition, so every \\(H_t\\) is independent of cluster names.  If \\((i,i')\\in H_t\\), \\(\\mathrm{lem:scope-charging}\\) gives \\(N_G[i]\\cup N_G[i']\\subseteq B_t\\).  The blocks of the restriction partition \\(\\alpha\\) are exactly the nonempty intersections of global clusters with \\(B_t\\).  Hence a global cluster label belongs to both \\(L_i\\) and \\(L_{i'}\\) exactly when its \\(\\alpha\\)-block meets both neighborhoods.  Thus\n\\[\n m_{ii'}(\\mathcal C)\n =\\bigl|\\{A\\in\\alpha:A\\cap N_G[i]\\ne\\varnothing,\n                         \\ A\\cap N_G[i']\\ne\\varnothing\\}\\bigr|,\n\\]\nwhich depends on \\(\\alpha\\), not on any names assigned to its blocks.  The corresponding rational summand \\(N_{\\exp}^{-1}2^{m_{ii'}+1}\\Sigma_{ii'}\\mathbf 1\\{m_{ii'}>0\\}\\) has the same property.",
+            "status": "proved"
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "thm:fpt-dp",
+            "proposed": "For every finite connected \\(G\\), integer \\(2\\le K\\le R\\), symmetric rational matrix \\(\\Sigma\\), positive integer \\(N_{\\exp}\\), and supplied width-\\(w\\) nice tree decomposition \\(\\mathcal T\\) of \\(F\\), the unlabeled recurrence in \\(\\mathrm{def:dp-transitions}\\) is sound and complete.  Its accepted root value is\n\\[\n \\min_{\\mathcal C\\in\\mathfrak C_K(G)}V(\\mathcal C;\\Sigma),\n\\]\nits backpointers reconstruct an optimal unlabeled partition, and ordering the recovered blocks by their least vertices reconstructs a labeled optimizer \\(\\mathcal C^\\star\\).  The certificate \\(\\operatorname{Cert}(G,K,\\Sigma,\\mathcal T)\\) is checkable in time polynomial in its displayed table and rational bit length.  For \\(b=|B_t|\\), the number of uncompressed states is at most\n\\[\n (K+1)\\operatorname{Bell}(b)\\min\\{\\operatorname{Bell}(b),K^b\\},\n\\]\nand therefore at most \\(S_{w,K}\\) at every bag.  A conservative implementation runs in\n\\[\n O\\!\\left((|V(\\mathcal T)|+R^2)S_{w,K}^2\n \\operatorname{poly}(R,K,w,L_{\\mathrm{bits}})\\right)\n\\]\nbit operations and uses \\(O\\!\\left(|V(\\mathcal T)|S_{w,K}\\operatorname{poly}(R,K,w,L_{\\mathrm{bits}})\\right)\\) bits.",
+            "reason": "Global cluster names are irrelevant to feasibility and to \\(V\\).  The replacement states the equivalent unlabeled recurrence requested by the orchestrator and replaces the stale labeled-state count by the proved quotient-state envelope.",
+            "direction": "narrow"
+          },
+          {
+            "id": "thm:rank-compression",
+            "proposed": "For every finite connected \\(G\\), every \\(2\\le K\\le R\\), every symmetric rational \\(\\Sigma\\), every positive integer \\(N_{\\exp}\\), and every supplied width-\\(w\\) nice tree decomposition \\(\\mathcal T\\) of \\(F\\) satisfying the stated decomposition assumptions, the representative-set handle is affirmative.  For a bag of size \\(b\\), a fixed unlabeled active partition \\(\\alpha\\) with \\(a\\) blocks, and a fixed completed-cluster count \\(d\\), minimum-weight elimination over \\(\\mathbb F_2\\) retains at most \\(2^{b-a}\\) processed-connectivity partitions and preserves every legal completion.  Across all \\((\\alpha,d)\\), the number of retained rows is at most\n\\[\n \\sum_{a=0}^{\\min\\{b,K\\}}\n \\genfrac{\\{} {\\}}{0pt}{}{b}{a}(K-a+1)2^{b-a}\n \\le (K+1)2^b\\min\\{\\operatorname{Bell}(b),K^b\\}.\n\\]\nApplied after the exact charge from \\(H_t\\), these reductions give a deterministic exact algorithm with conservative bit-operation bound\n\\[\n O\\!\\left((|V(\\mathcal T)|+R^2)(K+1)^2 2^{4(w+1)}\n \\min\\{\\operatorname{Bell}(w+1),K^{w+1}\\}^2\n \\operatorname{poly}(R,K,w,L_{\\mathrm{bits}})\\right)\n =2^{O(w\\log\\min\\{K,w+1\\}+w)}\n \\operatorname{poly}(|V(\\mathcal T)|,R,K,L_{\\mathrm{bits}}).\n\\]\nThe retained rational rows, elimination pivots, and predecessor pointers form a checkable compressed table/backpointer certificate, preserve the completed-cluster join rule and every exact scope charge, and reconstruct an optimizer \\(\\mathcal C^\\star\\).  If the supplied decomposition is size-normalized by \\(|V(\\mathcal T)|\\le\\operatorname{poly}(R)\\), the bound is \\(2^{O(w\\log w)}\\operatorname{poly}(R,L_{\\mathrm{bits}})\\); without such a condition, reading the explicit decomposition necessarily costs \\(\\Omega(|V(\\mathcal T)|)\\) time.",
+            "reason": "After quotienting cluster-name symmetry, the completed information is a scalar and the representative families sum over unlabeled active partitions.  The replacement records the resulting sharper proved parameter dependence and removes the stale \\(2^{O(Kw)}\\) presentation.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [
+          {
+            "id": "def:dp-state",
+            "proposed": "At node \\(t\\), a state is \\(q=(\\alpha,\\pi,d)\\).  Here \\(\\alpha\\) is an unlabeled partition of \\(B_t\\) into the final clusters that are active at the separator, \\(\\pi\\) is a partition of \\(B_t\\) refining \\(\\alpha\\), and \\(d\\in\\{0,\\ldots,K-|\\alpha|\\}\\).  Relative to the descendant subproblem and the geographic edges already introduced there, the blocks of \\(\\pi\\) are exactly the processed connected components meeting \\(B_t\\).  Every processed component of an active cluster must meet \\(B_t\\), while \\(d\\) is exactly the number of already completed connected clusters, all disjoint from \\(B_t\\).  Thus the remaining \\(K-d-|\\alpha|\\) clusters have not yet been started.",
+            "reason": "The named labeling and \\(K\\)-bit completed-label vector retain a global symmetry that neither feasibility nor the objective uses.  The corrected state records the active unlabeled partition, processed connectivity, and completed-cluster count.",
+            "direction": "correct"
+          },
+          {
+            "id": "def:dp-transitions",
+            "proposed": "At an empty leaf initialize \\((\\varnothing,\\varnothing,0)\\) with value zero.  At an introduce-vertex node for \\(v\\), either insert \\(v\\) into one existing block of \\(\\alpha\\) or create the new block \\(\\{v\\}\\), create \\(\\{v\\}\\) as a singleton block of \\(\\pi\\), leave \\(d\\) unchanged, and require \\(d+|\\alpha|\\le K\\) after the update.  At an introduce-edge node for \\(e=\\{u,v\\}\\in E\\), merge the two \\(\\pi\\)-blocks exactly when \\(u,v\\) lie in the same \\(\\alpha\\)-block; an edge in \\(E_F\\setminus E\\) leaves \\(\\pi\\) unchanged.  At a forget-vertex node for \\(v\\), let \\(A\\) and \\(P\\) be its \\(\\alpha\\)- and \\(\\pi\\)-blocks.  Reject if \\(P=\\{v\\}\\) but \\(A\\ne\\{v\\}\\); otherwise delete \\(v\\), and increment \\(d\\) exactly when \\(A=\\{v\\}\\), in which case the entire active cluster closes.  At a join, require the same \\(\\alpha\\) in both children, set \\(\\pi\\) to the transitive closure of the union of the two child connectivity relations, set \\(d=d_1+d_2\\), and require \\(d+|\\alpha|\\le K\\).  At every node add exactly the rational local charge indexed by \\(H_t\\).  At the empty root accept exactly \\((\\varnothing,\\varnothing,K)\\).  Each table value \\(D_t(q)\\) is the minimum over these legal predecessors, and \\(P_t(q)\\) stores a deterministically tie-broken minimizing predecessor or predecessor pair.",
+            "reason": "The recurrence must operate on the quotient state and enforce \\(d_1+d_2+|\\alpha|\\le K\\) at joins, which is the exact unlabeled counterpart of preventing two closed pieces from being identified later.",
+            "direction": "correct"
+          },
+          {
+            "id": "def:certificate",
+            "proposed": "\\(\\operatorname{Cert}(G,K,\\Sigma,\\mathcal T)\\) lists every finite \\((t,q,D_t(q),P_t(q))\\), every locally charged rational summand indexed by \\(H_t\\), and the accepted root entry \\((\\varnothing,\\varnothing,K)\\).  Its backpointers reconstruct the optimal unlabeled blocks; ordering those blocks by their least vertex gives the reported labeled optimizer \\(\\mathcal C^\\star\\).  For the rank-compressed table the certificate additionally lists every retained cut row and its deterministic \\(\\mathbb F_2\\)-elimination pivot.",
+            "reason": "The reconstructed object is now an unlabeled optimum that is named deterministically only after backtracking, and the compressed certificate must expose the retained rows and elimination pivots.",
+            "direction": "correct"
+          },
+          {
+            "id": "def:rank-handle",
+            "proposed": "For each fixed \\((t,\\alpha,d)\\), form the connectivity matrix on partitions \\(\\pi\\) refining \\(\\alpha\\), with entry one exactly when the join of a row partition and a completion partition connects every block of \\(\\alpha\\).  After adding the charge indexed by \\(H_t\\), scan rows in nondecreasing exact rational cost and retain a minimum-cost \\(\\mathbb F_2\\)-row basis.  Apply this reduction after each introduce, forget, and join operation, retaining the predecessor data and elimination pivots.",
+            "reason": "Representative reduction is indexed by \\((\\alpha,d)\\), not by a named bag labeling and a \\(K\\)-bit vector; this correction is required for the sharper state envelope.",
+            "direction": "correct"
+          }
+        ],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "symbol-replace",
+            "name": "Smax",
+            "proposed": {
+              "name": "Smax",
+              "type": "uncompressed quotient-state count envelope",
+              "def": "\\(S_{w,K}=(K+1)\\operatorname{Bell}(w+1)\\min\\{\\operatorname{Bell}(w+1),K^{w+1}\\}\\).",
+              "refs": [
+                "w",
+                "K"
+              ]
+            },
+            "reason": "The old envelope counted named bag assignments and \\(K\\) completion bits.  The quotient DP has the smaller proved envelope displayed here.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-replace",
+            "id": "def:dp-state",
+            "proposed": {
+              "id": "def:dp-state",
+              "name": "Unlabeled completed-cluster connectivity state",
+              "construction": "At node \\(t\\), a state is \\(q=(\\alpha,\\pi,d)\\).  Here \\(\\alpha\\) is an unlabeled partition of \\(B_t\\) into the final clusters that are active at the separator, \\(\\pi\\) is a partition of \\(B_t\\) refining \\(\\alpha\\), and \\(d\\in\\{0,\\ldots,K-|\\alpha|\\}\\).  Relative to the descendant subproblem and the geographic edges already introduced there, the blocks of \\(\\pi\\) are exactly the processed connected components meeting \\(B_t\\).  Every processed component of an active cluster must meet \\(B_t\\), while \\(d\\) is exactly the number of already completed connected clusters, all disjoint from \\(B_t\\).  Thus the remaining \\(K-d-|\\alpha|\\) clusters have not yet been started.",
+              "free_symbols": [
+                "B",
+                "T",
+                "K",
+                "G"
+              ],
+              "inputs": [
+                "T",
+                "B",
+                "K"
+              ]
+            },
+            "reason": "This complete post-image changes the definition name and construction consistently with the symmetry quotient.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-replace",
+            "id": "def:dp-transitions",
+            "proposed": {
+              "id": "def:dp-transitions",
+              "name": "Exact unlabeled nice-decomposition recurrence",
+              "construction": "At an empty leaf initialize \\((\\varnothing,\\varnothing,0)\\) with value zero.  At an introduce-vertex node for \\(v\\), either insert \\(v\\) into one existing block of \\(\\alpha\\) or create the new block \\(\\{v\\}\\), create \\(\\{v\\}\\) as a singleton block of \\(\\pi\\), leave \\(d\\) unchanged, and require \\(d+|\\alpha|\\le K\\) after the update.  At an introduce-edge node for \\(e=\\{u,v\\}\\in E\\), merge the two \\(\\pi\\)-blocks exactly when \\(u,v\\) lie in the same \\(\\alpha\\)-block; an edge in \\(E_F\\setminus E\\) leaves \\(\\pi\\) unchanged.  At a forget-vertex node for \\(v\\), let \\(A\\) and \\(P\\) be its \\(\\alpha\\)- and \\(\\pi\\)-blocks.  Reject if \\(P=\\{v\\}\\) but \\(A\\ne\\{v\\}\\); otherwise delete \\(v\\), and increment \\(d\\) exactly when \\(A=\\{v\\}\\), in which case the entire active cluster closes.  At a join, require the same \\(\\alpha\\) in both children, set \\(\\pi\\) to the transitive closure of the union of the two child connectivity relations, set \\(d=d_1+d_2\\), and require \\(d+|\\alpha|\\le K\\).  At every node add exactly the rational local charge indexed by \\(H_t\\).  At the empty root accept exactly \\((\\varnothing,\\varnothing,K)\\).  Each table value \\(D_t(q)\\) is the minimum over these legal predecessors, and \\(P_t(q)\\) stores a deterministically tie-broken minimizing predecessor or predecessor pair.",
+              "free_symbols": [
+                "Qt",
+                "DPt",
+                "BPt",
+                "G",
+                "E",
+                "F",
+                "K",
+                "T",
+                "B",
+                "Ht",
+                "V"
+              ],
+              "inputs": [
+                "Qt",
+                "Ht",
+                "T"
+              ]
+            },
+            "reason": "This complete post-image replaces every named-label transition, including the join and root rules.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-replace",
+            "id": "def:certificate",
+            "proposed": {
+              "id": "def:certificate",
+              "name": "Rational quotient-table and backpointer certificate",
+              "construction": "\\(\\operatorname{Cert}(G,K,\\Sigma,\\mathcal T)\\) lists every finite \\((t,q,D_t(q),P_t(q))\\), every locally charged rational summand indexed by \\(H_t\\), and the accepted root entry \\((\\varnothing,\\varnothing,K)\\).  Its backpointers reconstruct the optimal unlabeled blocks; ordering those blocks by their least vertex gives the reported labeled optimizer \\(\\mathcal C^\\star\\).  For the rank-compressed table the certificate additionally lists every retained cut row and its deterministic \\(\\mathbb F_2\\)-elimination pivot.",
+              "free_symbols": [
+                "G",
+                "K",
+                "Sigma",
+                "T",
+                "Qt",
+                "DPt",
+                "BPt",
+                "Ht",
+                "Cstar"
+              ],
+              "inputs": [
+                "G",
+                "K",
+                "Sigma",
+                "T",
+                "B"
+              ]
+            },
+            "reason": "This complete post-image records unlabeled reconstruction, deterministic final naming, and compressed elimination evidence.",
+            "direction": "correct"
+          },
+          {
+            "kind": "definition-replace",
+            "id": "def:rank-handle",
+            "proposed": {
+              "id": "def:rank-handle",
+              "name": "Unlabeled representative-set compression",
+              "construction": "For each fixed \\((t,\\alpha,d)\\), form the connectivity matrix on partitions \\(\\pi\\) refining \\(\\alpha\\), with entry one exactly when the join of a row partition and a completion partition connects every block of \\(\\alpha\\).  After adding the charge indexed by \\(H_t\\), scan rows in nondecreasing exact rational cost and retain a minimum-cost \\(\\mathbb F_2\\)-row basis.  Apply this reduction after each introduce, forget, and join operation, retaining the predecessor data and elimination pivots.",
+              "free_symbols": [
+                "T",
+                "Qt",
+                "Ht",
+                "B",
+                "K"
+              ],
+              "inputs": [
+                "Qt",
+                "Ht"
+              ]
+            },
+            "reason": "This complete post-image indexes connectivity matrices by the quotient state and specifies the retained audit data.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:fpt-dp",
+            "proposed": {
+              "id": "thm:fpt-dp",
+              "kind": "theorem",
+              "statement": "For every finite connected \\(G\\), integer \\(2\\le K\\le R\\), symmetric rational matrix \\(\\Sigma\\), positive integer \\(N_{\\exp}\\), and supplied width-\\(w\\) nice tree decomposition \\(\\mathcal T\\) of \\(F\\), the unlabeled recurrence in \\(\\mathrm{def:dp-transitions}\\) is sound and complete.  Its accepted root value is\n\\[\n \\min_{\\mathcal C\\in\\mathfrak C_K(G)}V(\\mathcal C;\\Sigma),\n\\]\nits backpointers reconstruct an optimal unlabeled partition, and ordering the recovered blocks by their least vertices reconstructs a labeled optimizer \\(\\mathcal C^\\star\\).  The certificate \\(\\operatorname{Cert}(G,K,\\Sigma,\\mathcal T)\\) is checkable in time polynomial in its displayed table and rational bit length.  For \\(b=|B_t|\\), the number of uncompressed states is at most\n\\[\n (K+1)\\operatorname{Bell}(b)\\min\\{\\operatorname{Bell}(b),K^b\\},\n\\]\nand therefore at most \\(S_{w,K}\\) at every bag.  A conservative implementation runs in\n\\[\n O\\!\\left((|V(\\mathcal T)|+R^2)S_{w,K}^2\n \\operatorname{poly}(R,K,w,L_{\\mathrm{bits}})\\right)\n\\]\nbit operations and uses \\(O\\!\\left(|V(\\mathcal T)|S_{w,K}\\operatorname{poly}(R,K,w,L_{\\mathrm{bits}})\\right)\\) bits.",
+              "free_symbols": [
+                "T",
+                "F",
+                "G",
+                "K",
+                "Sigma",
+                "Nexp",
+                "CK",
+                "V",
+                "C",
+                "Cstar",
+                "Cert",
+                "Smax",
+                "R",
+                "w",
+                "Lbits",
+                "B"
+              ],
+              "depends_on": [
+                "ass:valid-tree-decomposition",
+                "ass:tree-edge-cover",
+                "ass:running-intersection",
+                "ass:nice-node-forms",
+                "ass:unique-edge-introduction",
+                "ass:empty-root",
+                "def:connected-partitions",
+                "def:exact-risk",
+                "def:interaction-graph",
+                "def:scope-charges",
+                "def:dp-state",
+                "def:dp-transitions",
+                "def:certificate",
+                "lem:feasible-nonempty",
+                "lem:scope-charging",
+                "lem:cluster-name-symmetry"
+              ],
+              "status": "to-prove",
+              "justification": "This is the theorem-level kernel: quotienting irrelevant cluster names yields an exact connected-design optimizer with an auditable rational certificate and no exponential dependence on \\(K\\) from completion flags.",
+              "gap": "Generic connected-partition algorithms do not supply this nonlinear covariance-scope charge, the completed-cluster scalar invariant, exact rational optimization, or the matching reconstruction certificate.",
+              "consumer": "Spatial and marketplace teams can certify the globally best \\(G\\)-connected clustering within the stated subclass before randomization and recover the exact chosen blocks."
+            },
+            "reason": "The theorem metadata and dependency spine must point to the quotient definitions and the proved cluster-name invariance lemma.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:rank-compression",
+            "proposed": {
+              "id": "thm:rank-compression",
+              "kind": "theorem",
+              "statement": "For every finite connected \\(G\\), every \\(2\\le K\\le R\\), every symmetric rational \\(\\Sigma\\), every positive integer \\(N_{\\exp}\\), and every supplied width-\\(w\\) nice tree decomposition \\(\\mathcal T\\) of \\(F\\) satisfying the stated decomposition assumptions, the representative-set handle is affirmative.  For a bag of size \\(b\\), a fixed unlabeled active partition \\(\\alpha\\) with \\(a\\) blocks, and a fixed completed-cluster count \\(d\\), minimum-weight elimination over \\(\\mathbb F_2\\) retains at most \\(2^{b-a}\\) processed-connectivity partitions and preserves every legal completion.  Across all \\((\\alpha,d)\\), the number of retained rows is at most\n\\[\n \\sum_{a=0}^{\\min\\{b,K\\}}\n \\genfrac{\\{} {\\}}{0pt}{}{b}{a}(K-a+1)2^{b-a}\n \\le (K+1)2^b\\min\\{\\operatorname{Bell}(b),K^b\\}.\n\\]\nApplied after the exact charge from \\(H_t\\), these reductions give a deterministic exact algorithm with conservative bit-operation bound\n\\[\n O\\!\\left((|V(\\mathcal T)|+R^2)(K+1)^2 2^{4(w+1)}\n \\min\\{\\operatorname{Bell}(w+1),K^{w+1}\\}^2\n \\operatorname{poly}(R,K,w,L_{\\mathrm{bits}})\\right)\n =2^{O(w\\log\\min\\{K,w+1\\}+w)}\n \\operatorname{poly}(|V(\\mathcal T)|,R,K,L_{\\mathrm{bits}}).\n\\]\nThe retained rational rows, elimination pivots, and predecessor pointers form a checkable compressed table/backpointer certificate, preserve the completed-cluster join rule and every exact scope charge, and reconstruct an optimizer \\(\\mathcal C^\\star\\).  If the supplied decomposition is size-normalized by \\(|V(\\mathcal T)|\\le\\operatorname{poly}(R)\\), the bound is \\(2^{O(w\\log w)}\\operatorname{poly}(R,L_{\\mathrm{bits}})\\); without such a condition, reading the explicit decomposition necessarily costs \\(\\Omega(|V(\\mathcal T)|)\\) time.",
+              "free_symbols": [
+                "G",
+                "K",
+                "R",
+                "Sigma",
+                "Nexp",
+                "T",
+                "F",
+                "w",
+                "B",
+                "Ht",
+                "Lbits",
+                "Cstar"
+              ],
+              "depends_on": [
+                "def:scope-charges",
+                "def:dp-state",
+                "def:dp-transitions",
+                "def:certificate",
+                "def:rank-handle",
+                "lem:scope-charging",
+                "lem:cluster-name-symmetry",
+                "thm:fpt-dp"
+              ],
+              "status": "to-prove"
+            },
+            "reason": "The theorem now depends on quotient-state semantics and states the derived row envelope and sharper join/elimination bound.",
+            "direction": "correct"
+          },
+          {
+            "kind": "comparator-promise-table-replace",
+            "id": "metadata:comparator-promise-table",
+            "proposed": [
+              {
+                "comparator_bibkey": "ZhuEtAl2025",
+                "comparator_claim": "Appendix B.1 proves Theorem 1's residual decomposition and Section 3.2 optimizes a surrogate over arbitrary disjoint cluster partitions; it does not give an exact optimizer for the second-order criterion on the additional \\(G\\)-connected subclass.",
+                "matched_by": "Theorems 2 and 3",
+                "match_kind": "strict_tightening"
+              },
+              {
+                "comparator_bibkey": "CaselGiannopoulouNiklanovits2026",
+                "comparator_claim": "Their dynamic program constructs connected parts of prescribed sizes on bounded-treewidth graphs.",
+                "matched_by": "Theorem 2",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "BodlaenderCyganKratschNederlof2015",
+                "comparator_claim": "Their rank-based method compresses partition states for standard weighted connectivity problems.",
+                "matched_by": "Theorem 5",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "VivianoEtAl2023",
+                "comparator_claim": "Their worst-case cluster design is a penalized min-cut computed through semidefinite optimization.",
+                "matched_by": "Theorem 1",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "Viviano2026ExperimentalDesign",
+                "comparator_claim": "Their pilot-based network design has oracle-regret guarantees for another variance criterion.",
+                "matched_by": "Theorem 4",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "ThiyageswaranEtAl2026",
+                "comparator_claim": "Their robust design optimizes over assignment covariance matrices by semidefinite programming and randomized rounding.",
+                "matched_by": "Theorem 1",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "Leung2022",
+                "comparator_claim": "Their spatial cluster construction is rate-optimal under decaying interference and supports asymptotic inference.",
+                "matched_by": "Theorem 2",
+                "match_kind": "downgraded_to_informed_by"
+              }
+            ],
+            "reason": "The table must record both the strict connected-subclass boundary relative to Zhu et al. and that rank compression is now a proved theorem rather than an open-ended question.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [],
+        "prose_updates": {
+          "tldr": "Appendix B.1 of Zhu et al. supplies the imported fair-coin multiplier in the exact rational criterion \\(V\\).  This paper gives an exact general MILP and, on the covariance-scope interaction graph, a sound-complete dynamic program that quotients global cluster names, returns exact rational tables and reconstructing backpointers, and admits rank compression with runtime \\(2^{O(w\\log\\min\\{K,w+1\\}+w)}\\operatorname{poly}(|V(\\mathcal T)|,R,K,L_{\\mathrm{bits}})\\).  The optimizer is for the additional \\(G\\)-connected subclass, not Zhu et al.'s unrestricted arbitrary-partition optimum.  Exact four-cycle risks \\(33.04<38.72\\) show a surrogate reversal, and ordered-entry pilot error yields the stated deterministic regret control.",
+          "project_justification": {
+            "gap": "Zhu et al. allow arbitrary disjoint cluster partitions and explain why their graph-cut optimization omits the second-order residual-covariance term.  They do not give an exact optimizer for that term on the additional \\(G\\)-connected subclass.  Generic connected-partition dynamic programs likewise do not provide the covariance-scope localization, completed-cluster invariant, exact rational arithmetic, symmetry quotient, or matching reconstruction certificate needed here.",
+            "niche": "The target is the honest \\(G\\)-connected subclass of Zhu et al.'s broader design class.  When the covariance-scope interaction graph has width \\(w\\), global cluster names can be quotiented and each active connectivity family can be rank-compressed, leaving exponential dependence \\(2^{O(w\\log\\min\\{K,w+1\\}+w)}\\) and only polynomial dependence on \\(K\\) outside the exponent.",
+            "fill": "The MILP exactly optimizes every finite rational connected-subclass instance.  The treewidth algorithm proves node-by-node soundness and completeness, rejects incompatible completed clusters at joins, reconstructs a deterministically labeled optimum, and exposes exact charges, rows, pivots, and backpointers as a checkable certificate.  The four-cycle witness and deterministic perturbation theorem establish why exact optimization matters and how ordered-entry pilot error propagates."
+          },
+          "sampling_model": {
+            "design": "The optimization input is \\((G,K,\\Sigma,N_{\\exp})\\).  The algorithm optimizes over unlabeled nonempty \\(G\\)-connected \\(K\\)-partitions, then orders the recovered blocks by least vertex to report a labeled minimizer of \\(V\\).  This is an additional connectedness restriction relative to Zhu et al.'s arbitrary disjoint partition class."
+          },
+          "related_work": "Appendix B.1 of Zhu et al. proves their Theorem 1 residual decomposition; its fair-coin specialization supplies the multiplier \\(2^{m_{ii'}(\\mathcal C)+1}\\mathbf 1\\{m_{ii'}(\\mathcal C)>0\\}\\) used in \\(V\\).  Their published design class allows arbitrary disjoint cluster partitions, whereas the exact optimizer here deliberately ranges only over nonempty \\(G\\)-connected blocks, a strict restriction whenever disconnected candidate blocks exist; no claim is made that optimizing this subclass solves their unrestricted optimum.  Section 3.2 explains and justifies omitting the second-order term from its graph-cut surrogate.  On the four-cycle, the omitted antipodal \\(2\\)-\\(2\\) split has surrogate value \\(6/5>29/50\\), so the adjacent balanced splits remain the unrestricted surrogate minimizers, while the connected singleton--triple design has exact risk \\(826/25=33.04<968/25=38.72\\); the reversal therefore persists in the unrestricted two-cluster comparison.  Zhu et al.'s covariance-decay assumption is distinct from entrywise nonnegativity, which is used only for their relevant proposition and this witness, not for either exact optimizer.  Casel, Giannopoulou, and Niklanovits provide generic connected-partition dynamic-programming precedent, but not these nonlinear scope charges or the completed-cluster certificate.  Bodlaender, Cygan, Kratsch, and Nederlof motivate the partition-matrix technique; here the cut factorization is derived for unlabeled active blocks and combined with the scalar completed-cluster join rule.  Viviano and coauthors optimize a worst-case penalized cut criterion, Thiyageswaran and coauthors use semidefinite relaxation and rounding for an assignment-covariance objective, and Viviano's two-wave design gives a pilot-regret analogue for another criterion.  Leung supplies a spatial cluster-randomization inference benchmark after design choice.  Holtz and coauthors' Airbnb pricing meta-experiment illustrates why interference bias and power make an auditable covariance-aware clustering decision operationally useful.",
+          "technical_internal_limitation": "The parameter is the treewidth of the covariance-scope interaction graph \\(F\\), not of the geographic graph \\(G\\).  Dense pilot covariance can clique-complete large exposure-scope unions and force \\(w\\) to be of order \\(R\\); quotienting names removes exponential \\(K\\)-dependence but cannot cure that loss of practical width, so the exact MILP remains the fallback.",
+          "honest_scope": "The fair-coin multiplier is imported from Zhu et al.'s Appendix B.1 and is not a theorem contribution.  Zhu et al.'s class permits arbitrary disjoint partitions; the optimizer proved here is only for the additional nonempty \\(G\\)-connected subclass and does not certify their unrestricted optimum.  The MILP, dynamic-program soundness and completeness, quotient-state and rank bounds, reconstruction certificate, and perturbation bounds concern the fixed rational objective \\(V\\) and require no potential-outcome model, assignment law, positive semidefiniteness, entrywise nonnegativity, or positive trace.  The four-cycle separation separately verifies positive definiteness and entrywise nonnegativity.  Join and forget soundness, rank preservation, and the matching rational backpointer certificate are proved, not left as open steps.  Dense covariance support may still make the interaction width impractical, and no probabilistic bridge from pilot data to \\(\\Sigma\\) is claimed.",
+          "statement_notes": [
+            {
+              "id": "thm:fpt-dp",
+              "justification": "This is the exact optimization kernel: after quotienting irrelevant names, the recurrence certifies the optimum over the stated connected subclass and reconstructs its blocks.",
+              "gap": "Prior connected-partition algorithms do not establish this covariance-scope objective, completed-cluster scalar invariant, exact rational table, or matching backpointer verification.",
+              "consumer": "Spatial and marketplace experimenters can audit the globally best connected clustering when the covariance-scope interaction graph has moderate width."
+            },
+            {
+              "id": "thm:rank-compression",
+              "justification": "The cut-matrix factorization removes named-label and completion-bit exponentials, yielding the sharper \\(2^{O(w\\log\\min\\{K,w+1\\}+w)}\\) parameter dependence while preserving exactness.",
+              "gap": "Standard rank-based connectivity compression does not by itself handle unlabeled active clusters, scalar completed-cluster joins, or node-local rational covariance-scope charges.",
+              "consumer": "The compressed table makes exact certified connected-design optimization viable when \\(K\\) is large relative to a moderate interaction width."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

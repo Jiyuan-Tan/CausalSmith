@@ -1,0 +1,467 @@
+%%% FIELD proof-milp-equivalence
+Fix an integral selection vector \(z\), and put
+\[
+S_z=\{c\in\mathcal C:z_c=1\}.
+\]
+The budget constraint in \(\mathsf P_{\mathrm{MILP}}\) gives
+\(|S_z|=\sum_{c\in\mathcal C}z_c\leq k\), hence
+\(S_z\in\mathcal P_k\) by \(\mathrm{def{:}feasible\text{-}panels}\).
+For fixed \((\pi,x)\in\mathcal F\times\mathcal X\), nonnegativity,
+normalization, and the inequalities \(b_{\pi xc}\leq z_c\) imply that
+\((b_{\pi xc})_{c\in\mathcal C\cup\{\varnothing\}}\) is a convex
+combination supported on \(S_z\cup\{\varnothing\}\).  Because
+\(d_{\pi x\varnothing}=1\), every such combination satisfies
+\[
+\sum_{c\in\mathcal C\cup\{\varnothing\}}
+d_{\pi xc}b_{\pi xc}
+\geq
+\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in S_z\}\bigr)
+=r_{\pi x}(S_z),                                                    \tag{1}
+\]
+where the equality is \(\mathrm{def{:}score\text{-}cost}\).  Multiplying
+(1) by the positive weights \(q_x\), summing over \(x\), and applying the
+scenario constraint of \(\mathrm{def{:}panel\text{-}milp}\) yields
+\[
+v\geq R_\pi(S_z)\qquad(\pi\in\mathcal F),
+\quad\text{and hence}\quad
+v\geq\max_{\pi\in\mathcal F}R_\pi(S_z).                              \tag{2}
+\]
+All sets involved are finite.  Conversely, for each \((\pi,x)\), choose
+one cheapest element of \(S_z\cup\{\varnothing\}\), set its
+\(b_{\pi xc}\)-coordinate to one, and set all other coordinates to zero.
+These choices satisfy normalization and \(b_{\pi xc}\leq z_c\), and they
+make (1) an equality for every \((\pi,x)\).  Taking
+\[
+v=\max_{\pi\in\mathcal F}R_\pi(S_z)
+\]
+then satisfies every scenario constraint.  Thus the conditional optimum
+over \(b\) and \(v\), for the fixed integral vector \(z\), is exactly the
+right side of (2).  No integrality constraint on \(b\) is needed.
+
+Integral selection vectors satisfying the budget constraint are in
+bijection with \(\mathcal P_k\).  Minimizing the conditional optimum and
+using \(\mathrm{thm{:}width\text{-}identity}\) and
+\(\mathrm{def{:}prospective\text{-}loss}\) therefore gives
+\[
+\operatorname{val}(\mathsf P_{\mathrm{MILP}})
+=\min_{S\in\mathcal P_k}\max_{\pi\in\mathcal F}R_\pi(S)
+=\min_{S\in\mathcal P_k}\overline W(S)
+=D^\star.
+\]
+
+%%% FIELD proof-certificate-sound-complete
+We first establish the monotonicity used by every leaf bound.  The formula
+in \(\mathrm{thm{:}width\text{-}identity}\) is independent of the budget.
+Thus, for arbitrary \(S\subseteq S'\subseteq\mathcal C\), apply that theorem
+with the auxiliary admissible budget \(|\mathcal C|\).  Enlarging the set
+over which a minimum is taken gives, for every \((\pi,x)\),
+\[
+r_{\pi x}(S')\leq r_{\pi x}(S).
+\]
+Since \(q_x>0\), summation and then maximization preserve the inequality, so
+\[
+R_\pi(S')\leq R_\pi(S),
+\qquad
+\overline W(S')\leq\overline W(S).                                    \tag{3}
+\]
+
+Suppose \(\mathsf{Check}(S^\star,v^\star,\mathcal T)=\mathrm{true}\).
+By the explicit tests in \(\mathrm{def{:}certificate\text{-}grammar}\),
+the checker has established
+\[
+S^\star\in\mathcal P_k,
+\qquad
+\overline W(S^\star)=v^\star                                      \tag{4}
+\]
+by exact rational recomputation.  For a node \((I,E,O)\), call a subset
+\(S\subseteq\mathcal C\) a descendant when
+\(I\subseteq S\subseteq I\cup E\).  The checked root has every subset as a
+descendant.  If an internal node branches on \(c\in E\), its two checked
+children partition its descendants according as \(c\in S\) or
+\(c\notin S\).  Induction on depth, together with the check that both
+children occur, shows that every subset of \(\mathcal C\), and hence every
+feasible panel, reaches a checked leaf.
+
+A leaf satisfying \(|I|>k\) has no feasible descendant because each
+descendant contains \(I\).  At every other leaf, the checker has recomputed
+\[
+\overline W(I\cup E)\geq v^\star.                                     \tag{5}
+\]
+If \(S\) is a feasible descendant of that leaf, then
+\(S\subseteq I\cup E\); applying (3) and (5) gives
+\[
+\overline W(S)\geq\overline W(I\cup E)\geq v^\star.                   \tag{6}
+\]
+Every feasible panel is covered by one of these cases, so (6) holds for
+all \(S\in\mathcal P_k\).  Combining it with (4) and the definition of
+\(D^\star\) yields
+\[
+D^\star=v^\star=\overline W(S^\star).
+\]
+Thus global optimality is derived from the local Boolean checks; it is not
+an unverified field of the certificate.
+
+For completeness, fix any rational instance.  The family
+\(\mathcal P_k\) is finite and nonempty because it contains
+\(\varnothing\).  By \(\mathrm{thm{:}width\text{-}identity}\), every
+\(\overline W(S)\) is a maximum of finite rational weighted sums of finite
+minima of rational costs.  Hence exact enumeration produces a minimizer
+\(S^\star\in\mathcal P_k\) and the rational value
+\[
+v^\star=\overline W(S^\star)=\min_{S\in\mathcal P_k}\overline W(S).   \tag{7}
+\]
+Start with the required root and branch on the first element of \(E\) in a
+fixed order.  Close a node if \(|I|>k\).  Otherwise continue until
+\(E=\varnothing\), and then close it using the optimistic-bound rule: at
+such a node, \(I\in\mathcal P_k\), so (7) gives
+\[
+\overline W(I\cup E)=\overline W(I)\geq v^\star.                      \tag{8}
+\]
+Each branch reduces \(|E|\) by one.  Therefore every path has length at
+most \(|\mathcal C|\), the resulting binary tree is finite, and the checked
+branch relations cover every subset.  Equations (7)--(8), together with
+the exact root, partition, and child relations, make every checker test
+succeed.  All minima, maxima, additions, and comparisons are rational, so
+the construction and verification use exact rational arithmetic.  This
+proves existence of an accepted finite certificate for every rational
+instance, without asserting a polynomial bound on its size.
+
+%%% FIELD proof-np-hardness
+Take an instance of maximum \(k\)-coverage with nonempty universe
+\(\mathcal X\), \(|\mathcal X|=M\), and subset family
+\((B_c)_{c\in\mathcal C}\).  Repeated subsets may be deleted without
+changing any attainable union.  Construct a finite population with
+\(N=M\) and one unit in every cell, so \(N_x=1\) and \(q_x=1/M\).  Let
+\(\mathcal A=\{0,1\}\), let \(a_0=0\), set \(\Gamma=0\), and use one
+future policy \(\pi\) satisfying \(\pi(x)=1\) for all \(x\).  For each
+subset define the candidate policy
+\[
+c(x)=
+\begin{cases}
+1,&x\in B_c,\\
+0,&x\notin B_c.
+\end{cases}
+\]
+Set every policy score to zero.  This construction writes one action for
+each incidence entry and therefore has size polynomial in the input size.
+
+By \(\mathrm{def{:}score\text{-}cost}\), action matching and
+\(\Gamma=0\) give
+\[
+d_{\pi xc}=
+\begin{cases}
+0,&x\in B_c,\\
+1,&x\notin B_c.
+\end{cases}                                                           \tag{9}
+\]
+The frozen maximum-coverage lemma states that maximizing the covered
+cardinality over panels of size at most \(k\) is NP-hard.  Substituting (9)
+into \(\mathrm{thm{:}width\text{-}identity}\) gives, for every feasible
+panel \(S\),
+\[
+\begin{aligned}
+\overline W(S)
+&=\frac1M\sum_{x\in\mathcal X}
+  \min\bigl(\{1\}\cup\{d_{\pi xc}:c\in S\}\bigr)\\
+&=\frac1M\sum_{x\in\mathcal X}
+  \mathbf 1\!\left\{x\notin\bigcup_{c\in S}B_c\right\}\\
+&=1-\frac1M\left|\bigcup_{c\in S}B_c\right|.                         \tag{10}
+\end{aligned}
+\]
+Consequently a panel covers at least \(B\) elements if and only if its
+width is at most \(1-B/M\).  Thus an algorithm computing \(D^\star\) on
+the stated restricted instances would solve maximum \(k\)-coverage through
+this polynomial reduction.  This proves the claimed NP-hardness even with
+one future policy, equal weights, two actions, and \(\Gamma=0\).
+
+%%% FIELD proof-three-cell-five-arm-audit
+Direct substitution in \(\mathrm{def{:}score\text{-}cost}\) gives the
+following cost vectors, with columns ordered as
+\((c_1,c_2,c_3,c_4,c_5)\):
+\[
+\begin{array}{c|ccccc}
+&c_1&c_2&c_3&c_4&c_5\\ \hline
+\pi_1&(0,0,1)&(1,0,0)&(1/4,1,1)&(1,1,1/4)&(1,1/4,1)\\
+\pi_2&(1/4,1,1)&(1,1,1/4)&(0,0,1)&(1,0,0)&(1,1,1)
+\end{array}                                                            \tag{11}
+\]
+Here each parenthesized vector is indexed by the three cells.  For every
+panel, take the coordinatewise minimum of its columns and the dummy vector
+\((1,1,1)\), then take the inner product with
+\((q_1,q_2,q_3)=(1/6,1/3,1/2)\).  This exact operation gives
+\[
+\begin{array}{c|c@{\,,\,}c|c}
+S&R_{\pi_1}(S)&R_{\pi_2}(S)&\overline W(S)\\ \hline
+\varnothing&1&1&1\\
+\{c_1\}&1/2&7/8&7/8\\
+\{c_2\}&1/6&5/8&5/8\\
+\{c_3\}&7/8&1/2&7/8\\
+\{c_4\}&5/8&1/6&5/8\\
+\{c_5\}&3/4&1&1\\
+\{c_1,c_2\}&0&1/2&1/2\\
+\{c_1,c_3\}&1/2&1/2&1/2\\
+\{c_1,c_4\}&1/8&1/24&1/8\\
+\{c_1,c_5\}&1/2&7/8&7/8\\
+\{c_2,c_3\}&1/24&1/8&1/8\\
+\{c_2,c_4\}&1/6&1/6&1/6\\
+\{c_2,c_5\}&1/6&5/8&5/8\\
+\{c_3,c_4\}&1/2&0&1/2\\
+\{c_3,c_5\}&5/8&1/2&5/8\\
+\{c_4,c_5\}&3/8&1/6&3/8
+\end{array}                                                            \tag{12}
+\]
+For example, for \(S=\{c_1,c_4\}\), the residual vectors obtained from
+(11) are \((0,0,1/4)\) and \((1/4,0,0)\), whose weighted sums are
+\(1/8\) and \(1/24\).  The table (12) exhausts the empty panel, all five
+singletons, and all ten pairs.  Its smallest worst width is \(1/8\), and
+it is attained exactly by \(\{c_1,c_4\}\) and
+\(\{c_2,c_3\}\).  The width identity and the proved mixed-integer
+equivalence therefore imply
+\[
+D^\star=\operatorname{val}(\mathsf P_{\mathrm{MILP}})=\frac18.         \tag{13}
+\]
+
+We next verify the causal endpoint witness rather than infer it from the
+optimization table.  Every displayed nonneutral component of
+\(\mu^-\) and \(\mu^+\) in
+\(\mathrm{def{:}three\text{-}cell\text{-}five\text{-}arm\text{-}instance}\)
+is bounded in \([0,1]\), nondecreasing, and one-Lipschitz, while every
+neutral component is constant.  Homogeneous replication within each cell
+therefore produces two fixed arrays in \(\mathcal M_N\).  At score
+\(1/2\), their action-one means in cells one and two are zero, and at score
+\(3/4\), their action-one mean in cell three is \(1/4\).  Their neutral
+means are all zero.  Hence both arrays induce the selected table
+\[
+y_{c_1\cdot}=(0,0,0),
+\qquad
+y_{c_4\cdot}=(0,0,1/4),                                                \tag{14}
+\]
+so they are observationally indistinguishable under the selected panel.
+Direct substitution in the causal value definition gives
+\[
+\begin{aligned}
+V_{\mu^-}(\pi_1)&=0,
+&V_{\mu^+}(\pi_1)&=\frac12\frac14=\frac18,\\
+V_{\mu^-}(\pi_2)&=\frac12\frac14=\frac18,
+&V_{\mu^+}(\pi_2)&=\frac16\frac14+\frac12\frac14=\frac16.
+                                                                            \tag{15}
+\end{aligned}
+\]
+By \(\mathrm{thm{:}sharp\text{-}common\text{-}endpoints}\), membership,
+compatibility (14), and attainment (15) identify these values as the common
+sharp endpoints, proving the two asserted intervals.
+
+It remains to check the concrete branch tree.  The paths \(111\),
+\(1101\), and \(0111\) each force three inclusions and hence satisfy
+\(|I|>2\).  For paths \(1100\), \(10\), \(0110\), \(010\), and \(00\),
+the optimistic panels \(I\cup E\) are, respectively,
+\[
+\{c_1,c_2,c_5\},\quad
+\{c_1,c_3,c_4,c_5\},\quad
+\{c_2,c_3,c_5\},\quad
+\{c_2,c_4,c_5\},\quad
+\{c_3,c_4,c_5\}.
+\]
+Applying the same coordinatewise minima to (11) gives their worst widths
+\[
+\frac12,\qquad \frac18,\qquad \frac18,\qquad \frac16,
+\qquad \frac14,                                                         \tag{16}
+\]
+all at least the independently recomputed incumbent value \(1/8\).  The
+least-index binary paths partition all subsets of the five candidates, and
+the root and both children at every internal node have precisely the labels
+required by \(\mathrm{def{:}three\text{-}cell\text{-}five\text{-}arm\text{-}tree}\)
+and \(\mathrm{def{:}certificate\text{-}grammar}\).  Equations (12), (13),
+and (16) therefore verify the incumbent, every leaf, and every structural
+test in exact rational arithmetic.  Consequently
+\[
+\mathsf{Check}(\{c_1,c_4\},1/8,\mathcal T_{3,5})=\mathrm{true}.
+\]
+
+%%% FIELD proof-exact-rational-generator
+For every \(S\subseteq\mathcal C\), define the computable rational map
+\[
+g(S)=\max_{\pi\in\mathcal F}\sum_{x\in\mathcal X}q_x
+\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in S\}\bigr).                     \tag{17}
+\]
+The indexing sets are finite, \(\mathcal F\) is nonempty, and all weights
+and costs are rational.  Hence all minima and maxima in (17) are attained,
+and \(g(S)\) is exactly computable by rational arithmetic.  The formula in
+\(\mathrm{thm{:}width\text{-}identity}\) does not depend on the budget.
+Applying it with the auxiliary budget \(|\mathcal C|\) gives
+\[
+g(S)=\overline W(S)\qquad(S\subseteq\mathcal C).                       \tag{18}
+\]
+
+Fix total orders on all encoded finite sets.  Enumerate the finite,
+nonempty family \(\mathcal P_k\), let \(S^\star\) be its first minimizer,
+and set
+\[
+v^\star=g(S^\star)=\min_{S\in\mathcal P_k}g(S)=D^\star,               \tag{19}
+\]
+where the final equality follows from (18) and
+\(\mathrm{def{:}prospective\text{-}loss}\).  Construct the branch tree
+from \((\varnothing,\mathcal C,\varnothing)\).  At a node \((I,E,O)\),
+close the node precisely when
+\[
+|I|>k
+\quad\text{or}\quad
+g(I\cup E)\geq v^\star.                                                \tag{20}
+\]
+If neither condition holds, then \(E\neq\varnothing\).  Indeed, if
+\(E=\varnothing\), failure of the first condition makes
+\(I\in\mathcal P_k\), whereas failure of the second contradicts (19):
+\[
+g(I)<v^\star=\min_{S\in\mathcal P_k}g(S)\leq g(I).                    \tag{21}
+\]
+Thus the least \(c\in E\) exists.  Attach exactly the two children
+\[
+(I\cup\{c\},E\setminus\{c\},O),
+\qquad
+(I,E\setminus\{c\},O\cup\{c\}).                                     \tag{22}
+\]
+The cardinality of \(E\) decreases by one at every edge, so every path has
+length at most \(|\mathcal C|\).  Equation (21) ensures closure by the time
+\(E\) is empty.  Hence the construction terminates in a finite binary tree
+with at most \(2^{|\mathcal C|+1}-1\) nodes.
+
+Equations (18)--(22) match the root, branching, and leaf grammar in
+\(\mathrm{def{:}certificate\text{-}grammar}\).  The checker receives only
+the rational instance and \((S^\star,v^\star,\mathcal T)\); it recomputes
+\(g(S^\star)\), every set relation in (22), and every leaf value in (20),
+so it does not trust the enumeration log or a supplied optimality claim.
+All its tests succeed.  The proved certificate soundness theorem then gives
+\[
+\mathsf{Check}(S^\star,v^\star,\mathcal T)=\mathrm{true}
+\quad\Longrightarrow\quad
+\overline W(S^\star)=v^\star=D^\star.                                 \tag{23}
+\]
+This constructs the required exact-rational implementation of
+\(\mathsf{Handle}\).  It is finite on every rational instance but may be
+exponential.
+
+For the bounded audit, if \(|\mathcal C|\leq5\), then
+\[
+|\mathcal P_k|=\sum_{j=0}^{k}{|\mathcal C|\choose j}\leq2^5=32.       \tag{24}
+\]
+The generator and exhaustive enumeration both evaluate this same finite
+list using (17) without rounding.  By the proved mixed-integer equivalence,
+for each fixed integral selection vector the optimum over the assignment
+variables is also exactly \(g(S)\).  Thus the three computations agree
+panel by panel, and consequently agree on the optimum and the complete set
+of minimizing panels.  A common deterministic tie rule selects the same
+panel.  This proves the assertion for every three-cell instance with at
+most five candidates; the equality itself does not require three cells,
+but that restriction is the requested audit class.
+
+For \(\mathsf E_{3,5}\), the exact audit proposition gives, in the order
+consisting of the empty panel, five singletons, and ten lexicographically
+ordered pairs, the worst-width list
+\[
+1;\quad
+\frac78,\frac58,\frac78,\frac58,1;\quad
+\frac12,\frac12,\frac18,\frac78,\frac18,
+\frac16,\frac58,\frac12,\frac58,\frac38.                              \tag{25}
+\]
+Its minimum is \(1/8\), attained exactly by
+\(\{c_1,c_4\}\) and \(\{c_2,c_3\}\).  That proposition also verifies
+the fixed-selection mixed-integer values and every leaf of
+\(\mathcal T_{3,5}\), so
+\[
+\operatorname{val}(\mathsf P_{\mathrm{MILP}})=\frac18,
+\qquad
+\mathsf{Check}(\{c_1,c_4\},1/8,\mathcal T_{3,5})=\mathrm{true}.        \tag{26}
+\]
+Thus (25)--(26) are an exact exhaustive early-kill audit.
+
+Now suppose the structural condition \(\mathrm{(SC)}\) holds for some
+\(S_0\in\mathcal P_k\).  Multiplying its coordinatewise equalities by
+\(q_x>0\), summing over \(x\), and maximizing over \(\pi\) gives
+\[
+g(S_0)=g(\mathcal C).                                                   \tag{27}
+\]
+For every \(S\subseteq\mathcal C\), the inclusion
+\(S\subseteq\mathcal C\) and monotonicity of a minimum imply
+\[
+\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in S\}\bigr)
+\geq
+\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in\mathcal C\}\bigr).
+\]
+Nonnegative weighted summation and maximization preserve this inequality,
+so \(g(S)\geq g(\mathcal C)\).  Since \(S_0\) is feasible, (19) and (27)
+therefore give
+\[
+g(\mathcal C)\leq v^\star\leq g(S_0)=g(\mathcal C),
+\qquad\text{hence}\qquad v^\star=g(\mathcal C).                      \tag{28}
+\]
+At the root, \(I\cup E=\mathcal C\), so (28) makes the second test in
+(20) hold with equality.  The generated tree consequently consists only
+of the root.  Its incumbent characteristic vector, one rational value, and
+the root label have encoding length polynomial in the rational input
+length.  The arithmetic values also have polynomial encoding length:
+minima and maxima do not enlarge rational representations, and each of the
+finitely many products and sums in (17) increases numerator and denominator
+bit lengths by at most the sum of the corresponding input bit lengths.
+
+Finally, define
+\[
+\delta_{\pi x}=
+\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in\mathcal C\}\bigr).              \tag{29}
+\]
+Whenever \(\delta_{\pi x}<1\), finiteness of \(\mathcal C\) guarantees an
+attaining candidate; choose the first such candidate and let \(H\) be the
+union of all choices.  If \(\delta_{\pi x}<1\), the chosen candidate shows
+that the minimum over \(H\) is at most \(\delta_{\pi x}\), while
+\(H\subseteq\mathcal C\) gives the reverse inequality.  If
+\(\delta_{\pi x}=1\), the dummy cost makes both minima equal to one.  Hence
+\[
+\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in H\}\bigr)=\delta_{\pi x}
+\qquad\text{for every }(\pi,x).                                       \tag{30}
+\]
+If \(|H|\leq k\), then \(H\in\mathcal P_k\), and (30) proves
+\(\mathrm{(SC)}\) with \(S_0=H\).  Computing (29), its tie-broken
+minimizers, and their union takes
+\(O(|\mathcal F||\mathcal X||\mathcal C|)\) exact rational comparisons.
+The condition can hold with \(k<|\mathcal C|\), for example when some
+candidates never attain a coordinatewise minimum, so it is a genuine
+restriction on the cost tensor.
+
+The generator above makes no unrestricted polynomial-time claim.  If it
+were polynomial-time on all rational inputs, its returned incumbent value
+would compute \(D^\star\) in polynomial time.  The proved maximum-coverage
+reduction makes that task NP-hard on the stated boundary subclass.  Thus an
+unrestricted polynomial-time exact generator would imply
+\(\mathrm P=\mathrm{NP}\), while this obstruction neither affects finite
+termination nor the one-node certificate under \(\mathrm{(SC)}\).
+
+%%% FIELD theorem-certificate-compression-resolution
+The answer is affirmative.  After fixing total orders, the
+dominance-and-symmetry handle \(\mathsf{Handle}\) admits a deterministic
+exact-rational generator that enumerates an incumbent and branches on the
+least undecided candidate; it returns a finite certificate
+\(\mathsf{Cert}=(S^\star,v^\star,\mathcal T)\) accepted by the independently
+executed checker \(\mathsf{Check}\), and acceptance proves
+\(\overline W(S^\star)=v^\star=D^\star\).  On every rational instance with
+\(|\mathcal X|=3\) and \(|\mathcal C|\leq5\), this generator, exhaustive
+panel enumeration, and all fixed-selection values of
+\(\mathsf P_{\mathrm{MILP}}\) agree exactly on the optimum and on the full
+set of minimizing panels; a common tie rule returns the same panel.  If
+there is \(S_0\in\mathcal P_k\) such that
+\[
+\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in S_0\}\bigr)
+=\min\bigl(\{1\}\cup\{d_{\pi xc}:c\in\mathcal C\}\bigr)
+\quad\text{for every }(\pi,x)\in\mathcal F\times\mathcal X,
+\]
+then the generated certificate tree consists only of the root and has
+encoding length polynomial in the rational input length.  Without this
+structural condition the construction still terminates, but its tree can
+be exponential.
+
+%%% FIELD proof-certificate-compression-resolution
+The deterministic enumeration, branch rule, independent exact-rational
+checking, bounded-instance agreement, one-root structural certificate, and
+unrestricted exponential-size qualification are precisely the respective
+conclusions of
+\(\mathrm{thm{:}exact\text{-}rational\text{-}generator\text{-}and\text{-}core\text{-}compression}\),
+proved above.  Applying that theorem gives every assertion in the displayed
+answer.

@@ -1,0 +1,3353 @@
+{
+  "qid": "panel_absorbing_four_slice_att_recovery",
+  "specialization": "v1",
+  "nodes": [
+    {
+      "id": "S1",
+      "obj_id": "S-1",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A four-wave two-cohort absorbing latent-type Markov world, presented as ONE full-data finite probability law. The observed state space is \\(\\mathcal S=\\mathcal A\\dot\\cup\\{e\\}\\) with \\(|\\mathcal A|=m\\ge2\\), and the allowed transition graph is \\(\\mathcal G=(\\mathcal A\\times\\mathcal S)\\cup\\{(e,e)\\}\\), so the exit state \\(e\\) is absorbing. The world object is a probability law \\(P\\) on the finite set of full-data atoms\n\\[\n a=\\bigl(D,\\;Z,\\;(X_t(0))_{t\\le3},\\;(X_t(1))_{t\\le3},\\;(X_t)_{t\\le3}\\bigr)\n \\in\\{0,1\\}\\times\\{1,\\ldots,J\\}\\times\\mathcal S^4\\times\\mathcal S^4\\times\\mathcal S^4,\n\\]\nwith \\(D=1\\) denoting adoption at date \\(3\\), \\(Z\\) the time-invariant latent type with fixed known \\(2\\le J\\le m\\), \\(X_t(r)\\) the potential state at date \\(t\\) under treatment path \\(r\\), and \\(X_t\\) the recorded state; the observed panel is \\(O=(D,X_0,X_1,X_2,X_3)\\). Every other object of the world is a marginal, conditional, or ratio of that single law rather than separate data: the cohort masses \\(P(D=d)\\), the type masses \\(\\pi_j^d\\), the observed cell-probability vector \\(p\\) on the \\(N_m=2\\sum_{r=0}^4m^r\\) absorption-legal four-wave cells, the at-risk masses \\(\\alpha_j^d\\) and unnormalized component sublaws \\(s_j^d\\), the contributions \\(\\nu_j\\), the at-risk effects \\(\\eta_j\\), the conditional effects \\(\\tau_j\\), the aggregate \\(\\tau\\), the stacked target \\(\\theta_J=(\\nu_1^\\top,\\ldots,\\nu_J^\\top,\\tau^\\top)^\\top\\), the observed slices \\(A_{xy}^d\\) and predecessor masses \\(m_x^d\\), the selected minors \\(M_{xy}^d\\), the cycle-product operator \\(K^d\\), and the latent factors \\(B_x^{d,\\mathcal A}\\), \\(D_{xy}\\), \\(C_y^d\\). The transition kernels are not primitive data either: \\(H_j^d\\), \\(Q_j\\), \\(U_j\\), \\(V_j\\) are row-stochastic matrices supported on \\(\\mathcal G\\) against which a law may factorize — conditional on \\((D,Z)\\), the untreated path law is the product \\((H_j^d,Q_j,U_j)\\) and the treated path law is \\((H_j^d,Q_j,V_j)\\), the two continuations sharing the date-\\(2\\) coordinate — and the factual first-post kernel is \\(R_j^d=U_j\\) for \\(d=0\\), \\(R_j^d=V_j\\) for \\(d=1\\). Consistency \\(X_t=X_t(D)\\), no anticipation \\(X_t(1)=X_t(0)\\) for \\(t\\le2\\), and absorption are restrictions on the support of the same law. Fixed ex ante selections \\(\\mathcal U,\\mathcal V\\subseteq\\mathcal A\\) with \\(|\\mathcal U|=|\\mathcal V|=J\\) and anchors \\(x_0\\neq x_1\\), \\(y_0\\neq y_1\\) in \\(\\mathcal A\\) index the slices and minors. — ROUND-5 OBSERVED-LEGALITY FIX (flag `FLAG-cellMeasure-not-probability`), stated first because it changes what the derived observed layer proves. RETRACTED: the round-3/4 claim (repeated in `def:guarded-estimator`, `file_plan/Helpers/Sampling.lean`, and the round-3 decision) that the world's `mass_simplex` field alone discharges the unit-sum obligation of the observed cell law on the legal cell type. `FourWaveLaw` constrains only the atom mass, so nothing in the world record forbids an atom of positive mass whose `observed` path violates absorption legality; pushing or filtering such an atom into `Cell m` (the absorption-legal SUBTYPE of `RawCell m`) LOSES mass, and `∑ s : Cell m, cellLaw W s = 1` is simply FALSE for a general `FourWaveLaw`. Only `ass:consistency` (positive-mass atoms have `observed = potential cohort`) together with the law-side conjunct of `ass:absorbing-exit` (every potential path is absorption-legal) — hence any `FaceModel W KS` — makes every positive-mass observed path land in `Cell m`. CORRECTED DERIVED LAYER, in three strictly ordered steps, with the legality witness explicit. (i) RAW pushforward, witness-free and now REUSED rather than hand-rolled: `def toDesign (W : FourWaveLaw m J) : Causalean.Experimentation.DesignBased.FiniteDesign (FullAtom m J) := ⟨W.mass, W.mass_simplex.1, W.mass_simplex.2⟩` (a one-line coercion, since `FiniteDesign` is exactly `p` + `p_nonneg` + `p_sum`, i.e. `stdSimplex` membership unbundled over a `Fintype`), and `rawCellLaw W : RawCell m → ℝ := Causalean.Stat.FiniteRaoBlackwell.fiberMass W.toDesign obsCell`, whose definitional unfolding `∑ a, if obsCell a = s then W.mass a else 0` is literally the previous local formula (`DesignPushforward.lean:24`). Its two facts are REUSED verbatim: `fiberMass_nonneg` (line 37) and the UNCONDITIONAL `fiberMass_sum : ∑ s, rawCellLaw W s = 1` (line 43); equivalently `(W.toDesign.map obsCell).p_sum`. This is the correct total-mass statement, and it is on `RawCell m`, not `Cell m`. (ii) LEGALITY witness, a new one-line local Prop in `Model.lean`: `ObservedLegal W : Prop := ∀ a, W.mass a ≠ 0 → absorptionLegal a.observed`, with the immediate consequence `rawCellLaw_eq_zero_of_not_legal (hleg : ObservedLegal W) : ¬ absorptionLegal s → rawCellLaw W s = 0` (each fiber summand vanishes). The witness is DERIVED, never assumed for a face law: `observedLegal_of_consistency_absorbing (hc : Consistency W) (ha : AbsorbingExit W) : ObservedLegal W` (rewrite `a.observed` to `a.potential a.cohort` by `hc`, then legality of that potential path is the law-side conjunct of `ha`), and hence `FaceModel.observedLegal (hW : FaceModel W KS) : ObservedLegal W` as the composite of two fields — this is the `FaceModel W KS` binder route the reviewer named. (iii) LEGAL cell vector, spelling UNCHANGED downstream: `cellLaw W (s : Cell m) : ℝ := rawCellLaw W s.val`, so every existing occurrence of `cellLaw W s` in this plan keeps its meaning and type (`Cell m → ℝ`), but the cell-simplex fact now CARRIES the witness — `cellLaw_nonneg` is witness-free (from `fiberMass_nonneg`) while `cellLaw_sum_one (hleg : ObservedLegal W) : ∑ s : Cell m, cellLaw W s = 1` is proved from (i) and (ii) by `Finset.sum_subtype` (`Mathlib/Algebra/BigOperators/Group/Finset/Basic.lean:462`, additive of `prod_subtype`) then `Finset.sum_subset` (line 195, additive of `prod_subset`) discharging the illegal complement by `rawCellLaw_eq_zero_of_not_legal`. Consequences recorded so F2 does not re-derive them: `cellMeasure` gains an explicit `(hleg : ObservedLegal W)` argument (see S2 and `Helpers/Sampling.lean`); `ass:iid-panels` carries `ObservedLegal W` as its first conjunct, which is faithful to the core's own sampling model ('the data are n i.i.d. complete four-wave panels on the \\(N_m\\)-cell absorption-legal support'), so the two sampling theorems obtain the witness through their existing `hyps` and neither `hyps` list changes; and every law reached through `InFace`/`FaceModel` (the fiber members, \\(\\omega^\\star\\), the outside-face pair) supplies it by `FaceModel.observedLegal`. ADDITIONAL REUSE UNLOCKED BY (i), taken now because it is the same coercion: the derived layer's `Pr W pred` becomes `W.toDesign.Pr pred` and its expectations `W.toDesign.E`, so `Pr_nonneg`, `Pr_le_one`, `Pr_congr`, `Pr_mono`, `Pr_split`, `E_add`, `E_sub`, `E_const_mul`, `E_map`, `Pr_map` (`Causalean/Experimentation/DesignBased/DesignCore.lean:61,80,283,287,291,296,307,323,343,355`) are reused for the marginal/estimand algebra instead of re-proving finite-sum manipulations per object; the signed causal targets \\(\\nu_j,\\eta_j,\\tau_j,\\tau\\) stay real-valued `E` differences, so nothing moves into `ℝ≥0∞`. ROUND-5 SEARCH TRACE. Causalean: `Grep '(def|lemma|theorem) [A-Za-z_.]*([Ll]egal|[Ss]upportRestrict|pushforwardMass|massPreserv)' ../Causalean` → 0 hits, so the legality Prop itself is genuinely local; `Grep 'stdSimplex|sum_.*_eq_one|IsProbabilityMeasure \\(.*subtype' ../Causalean` → 18 files, of which `Causalean/Stat/FiniteRaoBlackwell/DesignPushforward.lean` is the fit found by `lean_file_outline` (35 decls; `fiberMass` 24, `fiberMass_eq_map_p` 31, `fiberMass_nonneg` 37, `fiberMass_sum` 43) over `Causalean/Experimentation/DesignBased/DesignCore.lean` (`structure FiniteDesign` 46, `map` 323, `map_p` 336, `E_map` 343). Mathlib: `Grep 'prod_subset |prod_subtype |prod_fiberwise' .lake/packages/mathlib/Mathlib/Algebra/BigOperators/Group/Finset` → `prod_subset` 195, `prod_subtype` 462, `prod_fiberwise` 274 (all with `to_additive` sum forms); `Grep '(theorem|lemma) ofReal_sum_of_nonneg' .lake/packages/mathlib/Mathlib` → `ENNReal.ofReal_sum_of_nonneg` (`Mathlib/Data/ENNReal/BigOperators.lean:123`), needed by the `PMF.ofFintype` step of S2. No Mathlib or Causalean decl states 'the pushforward of a finite mass function to a support subtype is a probability vector', because that statement is false without the support hypothesis — which is exactly the defect this section repairs. — END ROUND-5 SECTION.\n\nROUND-4 WORLD RE-AUTHORING (flag `FLAG-world-not-full-data`), stated first because it changes what the world record contains. RETRACTED: the previous revision's `FourWaveLaw` stored the atom mass AND the derived population objects as INDEPENDENT record fields glued by coherence equations — `mass`, `cohortMass` + `cohortMass_coherent`, `typeMass` + `typeMass_coherent`/`typeMass_sum`, `initialMass` + `initialMass_coherent`/`initialMass_sum`, the four kernel families `H,Q,U,V` + `*_stochastic`, `conditionalPathMass` + `conditionalPathMass_coherent`/`_sum`, `conditionalTransition` + `conditionalTransition_coherent` (see the round-3 scaffold `CausalSmith/Panel/PANEL_AbsorbingFourSliceAttRecovery_Research/Basic.lean:106-146`). That design is what made the two witness nodes unconstructible: exhibiting \\(\\omega^\\star\\) or either outside-face allocation required simultaneously supplying every conditional field and discharging ~10 global coherence identities (several of which are vacuous or ill-posed at zero denominators), instead of writing down the one atom-mass formula the note actually displays (`writeup.tex` §Proof of the four-wave witness, line ~605: `⅛ H_j[s₀,s₁] Q_j[s₁,s₂] Q_j[s₂,u₀] V_j[s₂,u₁]`, all other atoms zero) and DERIVING the rest. CORRECTED DESIGN: the world record is the full-data law and nothing else. F2 emits (i) the atom type — retained verbatim from the existing scaffold, which already has the right shape — `structure FullAtom (m J : ℕ) where cohort : Cohort; latent : TypeLabel J; potential : Regime → Date → State m; observed : Date → State m deriving DecidableEq, Fintype` (`Basic.lean:69-74`), i.e. literally the tuple \\((D,Z,X_t(0),X_t(1),X_t)\\) the directive names; and (ii) `structure FourWaveLaw (m J : ℕ)` with ONLY the dimension bounds (`2 ≤ m`, `2 ≤ J`, `J ≤ m`), the fixed ex ante selection data (`Usel Vsel : Finset (ActiveState m)` with `card = J`, anchors `x₀ ≠ x₁`, `y₀ ≠ y₁`), the mass function `mass : FullAtom m J → ℝ`, and the SINGLE simplex field `mass_simplex : mass ∈ stdSimplex ℝ (FullAtom m J)`. Every deleted field returns as a `def` over `W.mass` — each a `∑ a, if <predicate a> then W.mass a else 0` over the `Fintype` — namely `Pr W pred`, `cohortMass`, `typeCohortMass` (unnormalized \\(P(Z=j,D=d)\\)), `typeMass` \\(\\pi_j^d\\) as their ratio, `obsCell : FullAtom m J → RawCell m`, the total raw pushforward `rawCellLaw W : RawCell m → ℝ` and the legal-cell restriction `cellLaw W : Cell m → ℝ` (round-5 layering above; the unit-sum fact for the latter carries the `ObservedLegal W` witness), `predMass` \\(m_x^d\\) and `slice` \\(A^d_{xy}\\) through `cellLaw`, the latent factors \\(B_x^{d,\\mathcal A}[u,j]=P(X_0=u,X_1=x,Z=j\\mid D=d)\\) and \\(C_y^d[j,v]=P(X_3=v\\mid X_2=y,Z=j,D=d)\\), the at-risk mass \\(\\alpha_j^d\\) and sublaw \\(s_j^d\\), and the causal targets \\(\\nu_j,\\eta_j,\\tau_j,\\tau\\) as atom-level expectations of \\(\\mathrm{onehot}(X_3(1))-\\mathrm{onehot}(X_3(0))\\) — so the cross-world contrast is read off ONE law with a shared \\(X_2\\) coordinate (`writeup.tex` line ~664), and `τ_j = p_{2,j}(V_j - Q_j)` is a DERIVED iterated-expectation lemma of `Helpers/Recovery.lean`, never a definition. Kernels move OUT of the world into a separate `structure KernelSystem (m J : ℕ)` (`H : Cohort → TypeLabel J → Matrix (State m) (State m) ℝ`, `Q U V : TypeLabel J → …`, each field carrying `AbsorbingKernel`), which is tied to a law only by the factorization Prop of `ass:markov-paths`; `R_j^d := if d then V j else U j`, and its identification with the law-level conditional \\(C_y^d\\) is a lemma, not a field. Consequences recorded here so F2 does not re-litigate them: `ass:consistency` is now a genuine nonvacuous support Prop (`observed` is its own atom coordinate, so `mass a ≠ 0 → a.observed = a.potential a.cohort` has content, and it is PROVED for the witness rather than posited); `def:exact-witness` is one closed mass formula plus `decide`/`norm_num`; `def:outside-face-pair` is a two-point convex combination of mass functions, whose simplex membership is the REUSED `convex_stdSimplex` and whose added all-exit atom is the REUSED `single_mem_stdSimplex`/`ite_eq_mem_stdSimplex`. ROUND-4 SEARCH TRACE for the world representation, four-sided. (1) Mathlib simplex: `Grep 'def stdSimplex|convex_stdSimplex|single_mem_stdSimplex|isCompact_stdSimplex|ite_eq_mem_stdSimplex|mem_Icc_of_mem_stdSimplex' .lake/packages/mathlib/Mathlib` → `Mathlib/Analysis/Convex/StdSimplex.lean:35` `stdSimplex 𝕜 ι = {f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1}`, with `convex_stdSimplex` (42), `single_mem_stdSimplex` (81), `ite_eq_mem_stdSimplex` (84), `mem_Icc_of_mem_stdSimplex` (68), `isCompact_stdSimplex` (185) — an EXACT fit for the mass field, so the previous `mass_nonneg`/`mass_one` pair is replaced by one membership; precedent inside Causalean: `Causalean/Stat/Minimax/FiniteSquaredLoss/Core.lean:86,148,172,212,219` uses `stdSimplex ℝ` as a finite-law parameter space with `convex_stdSimplex`/`isCompact_stdSimplex`. (2) Mathlib `PMF`: `PMF.ofFintype` (`Probability/ProbabilityMassFunction/Constructions.lean:204`) is `ℝ≥0∞`-valued, so it is kept ONLY where a measure is genuinely needed (the round-3 `cellMeasure` bridge of S2) and is NOT used for the world itself, whose targets are signed differences of masses; no-fit rationale: `ℝ≥0∞` has no subtraction usable for \\(\\nu_j\\). (3) Causalean cross-world PO machinery: `Grep 'crossWorldEval|counterfactualDist' ../Causalean` → `Causalean/PO/Core/Counterfactual.lean:34,69` builds the joint law of potential outcomes under several regimes as `P.μ.map (crossWorldEval qs)` from a `POSystem`; this IS the analogous object and is recorded `reuse-as-analogue` in `substrate_survey`, but it is measure-theoretic over an abstract `Regime`/`ValuesOn` index and would force regime plumbing plus pushforward reasoning around every finite rational computation, so bypass-justified (wrong abstraction: this run's law is a rational mass function on a `Fintype` and every proof is a finite sum). (4) Causalean finite-density factorization: `Grep 'structure Factorization' ../Causalean` → `Causalean/Graph/FiniteDensity/Factorization.lean:27` factorizes a density along a DAG w.r.t. a reference measure; no-fit rationale: it needs a DAG over variable nodes and a reference measure, and supplies observational/interventional densities rather than the latent-mixture Markov factorization with a time-invariant type used here. `lean_local_search \"fullDataLaw\"`, `\"observationallyEquivalent\"`, `\"identifiedSet\"` returned 0 items from the CausalSmith cwd (flaky index; the Greps above are the authoritative re-runnable form). — END ROUND-4 SECTION.\n\ndefine-local world whose kernel predicate is REUSED from Mathlib (only the graph-support conjunct is local). Search trace (Causalean side): grepped the Causalean API index (`grep '^## ' ../doc/API.md`) and read §8h `PO/` (lines 1281-1400) and the CausalSmith `doc/API.md` §1 Panel catalogue; audited every file under `../Causalean/Panel/**` (72 files: `Cells`, `CellBridge`, `FixedEffect`, `InnerProduct`, `Subspace`, `Weighted/{FWL,WLS,ScalarFWL,IndicatorSpan,…}`, `EstimandCharacterization/{StaggeredTWFEDecomposition,EventStudyContamination,FlexibleDIDMundlak,HeterogeneousTWFE,ImputationEventStudy,OLSWeightDecomposition}`, `PO/{CellPO,Consistency,TreatmentPath,Exposure,PopulationCells,Mobius}`, `AdoptionPath`, `UniformTwoWayPanel`) plus `lean_local_search` \"Markov\" and \"Stochastic\" (0 Causalean hits). Result: the reuse list handed to this run (`Cells`, `ip`, `tildeX`, `H_twfe`, `Q_XX`, `thetaHat`, `RankCondition`, `IIDBernoulli`, `SwitchOn`, `DistributedLag`, `CleanHistoryTWFE`, `SaturatedHistory`, `theorem2_1_general_projection`) is the two-way linear-projection / TWFE algebra over unit-by-time cells with real-valued outcomes and an inner-product design space; `PanelPOSystem` (`Causalean/Panel/PO/CellPO.lean`) is a real-outcome-per-cell exposure system, and `Causalean.PO.POSystem` (§8h) is a measure-theoretic regime/`Regime`-indexed skeleton. Neither carries a latent time-invariant type, a state-valued Markov kernel family, or an absorbing transition graph, so both are **bypass-justified** (wrong abstraction: this artifact is a finite-state kernel-mixture algebra over a finite cell simplex, not a cell-level linear projection). Mathlib-side search trace (CORRECTED — the previous revision of this plan wrongly asserted that Mathlib has no row-stochastic predicate; that claim was false and is retracted): `lean_local_search \"rowStochastic\"` -> `Matrix.rowStochastic` in `.lake/packages/mathlib/Mathlib/LinearAlgebra/Matrix/Stochastic.lean`, and `lean_file_outline` of that file confirms the full API `mem_rowStochastic` (`(∀ i j, 0 ≤ M i j) ∧ M *ᵥ 1 = 1`), `mem_rowStochastic_iff_sum` (`(∀ i j, 0 ≤ M i j) ∧ (∀ i, ∑ j, M i j = 1)`), `nonneg_of_mem_rowStochastic`, `sum_row_of_mem_rowStochastic`, `le_one_of_mem_rowStochastic`, `nonneg_{vecMul,mulVec}_of_mem_rowStochastic`, `vecMul_dotProduct_one_eq_one_rowStochastic`, `convex_rowStochastic`, `permMatrix_mem_rowStochastic`, and the `transpose_/reindex_` transfer lemmas. DECISION: every finite-state kernel of this world (`H_j^d`, `Q_j`, `U_j`, `V_j`, `R_j^d`, and each recovered `\\widehat Q_j^d`, `\\widehat R_j^d`) is a SQUARE `Matrix S S ℝ` on `S = Fin (m+1)`, so F2 states its stochasticity as membership `K ∈ Matrix.rowStochastic ℝ (Fin (m+1))` — no local nonnegativity/unit-row-sum predicate is minted. Crucially `rowStochastic` is a `Submonoid (Matrix n n ℝ)`, so kernel PRODUCTS (`H_j Q_j R_j`, and the multi-date path law) inherit stochasticity by `Submonoid.mul_mem` for free. ONLY the absorbing-graph conjunct is local, because Mathlib has no matrix-support-on-an-index-set predicate: `lean_leansearch \"matrix entries vanish outside a given set of index pairs, support of a matrix\"` returns only the generic uncurried `Function.support` / `Function.support_subset_iff'` (`Mathlib.Algebra.Notation.Support`) and `DFinsupp.support_subset_iff`, none matrix-shaped. F2 therefore emits the one-line conjunction `def AbsorbingKernel (K : Matrix (Fin (m+1)) (Fin (m+1)) ℝ) : Prop := K ∈ Matrix.rowStochastic ℝ (Fin (m+1)) ∧ ∀ y, y ≠ e → K e y = 0` (the second conjunct is exactly support ⊆ \\(\\mathcal G=(\\mathcal A\\times\\mathcal S)\\cup\\{(e,e)\\}\\); with `sum_row_of_mem_rowStochastic` it forces `K e e = 1`). F2 realizes the rest of S1 as one `structure FourWaveLaw (m J : ℕ)` holding the cohort/type masses, the initial law, and the four kernel families each carrying an `AbsorbingKernel` field; `Matrix (Fin J) (Fin J) ℝ` and `Matrix.det`/`Matrix.inv` (`Mathlib.LinearAlgebra.Matrix.NonsingularInverse`) carry the selected minors. Note the rectangular `C_y^d : Matrix (Fin J) (Fin (m+1)) ℝ` is NOT square and so is not itself a `rowStochastic` member — its row sums `C_y^d 1 = 1_J` are derived per row from `sum_row_of_mem_rowStochastic` applied to the underlying square `R_j^d`. SYMBOL-REALIZATION NOTE ADDED IN ROUND 2 (flag `FLAG-circular-projector-reuse`): among the symbols S1 binds, `K^d`, `\\rho_j^d`, `g^d`, and `P_j^d` are realized as OBSERVABLE functions of the cell vector `p` — `K^d` as `cycleOperator p d` (`def:observed-slices`), `\\rho_j^d` as `spectrumDesc (cycleOperator p d) j` (descending `Matrix.charpoly` roots), `g^d` as its minimum pairwise gap, and `P_j^d` as the local `lagrangeProjector (cycleOperator p d) (spectrumDesc …) j` (`def:recovery-map`) — while `B_x^{d,\\mathcal A}`, `B_x^{d,\\mathcal U}`, `D_{xy}`, and `C_y^d` are LATENT functions of the world `W`. F2 must keep that split: no spectral object of the world may be defined through a latent diagonalizer, since the recovery map constructs `B_{x₀}^{d,\\mathcal U}` from the projectors.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Data.Matrix.Basic",
+          "Mathlib.LinearAlgebra.Matrix.Stochastic",
+          "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+          "Mathlib.Data.Fintype.Basic",
+          "Mathlib.Analysis.Convex.StdSimplex",
+          "Mathlib.Algebra.BigOperators.Group.Finset.Basic",
+          "Causalean.Experimentation.DesignBased.DesignCore",
+          "Causalean.Stat.FiniteRaoBlackwell.DesignPushforward"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "obj_id": "S-2",
+      "kind": "setup",
+      "provenance": "library",
+      "nl": {
+        "statement": "An i.i.d. finite-multinomial sampling and guarded-inference world on the four-wave absorption-legal support. The data are \\(n\\) independent and identically distributed complete panels \\(O_1,\\ldots,O_n\\) with law \\(p\\) on the \\(N_m\\)-cell support, summarized by the empirical cell vector \\(\\widehat p=n^{-1}\\sum_{i\\le n}e_{O_i}\\). A fixed buffer \\(\\kappa>0\\), a fixed reported-coordinate set \\(\\mathcal L\\subseteq\\{1,\\ldots,(J+1)(m+1)\\}\\), and a fixed level \\(\\alpha\\in(0,1)\\) determine the compact buffered class \\(\\mathcal P_\\kappa\\), the sequentially evaluated guard event \\(\\mathcal E_\\kappa\\), the guarded plug-in \\(\\widehat\\theta\\), the Jacobian \\(J_\\Phi\\), the influence function \\(G_p(s)=J_\\Phi(p)(e_s-p)\\), the covariance \\(\\Sigma(p)=J_\\Phi(p)\\{\\operatorname{diag}(p)-pp^\\top\\}J_\\Phi(p)^\\top\\) and its estimate \\(\\widehat\\Sigma=n^{-1}\\sum_i\\widehat G_i\\widehat G_i^\\top\\), and, from conditionally independent standard Gaussian multipliers \\(\\xi_i\\), the studentized maximum \\(T^\\star\\), its exact conditional \\((1-\\alpha)\\)-quantile \\(\\widehat c_{1-\\alpha}\\), and the simultaneous intervals \\(I_{\\ell,n}\\). — ROUND-5 LEGALITY-WITNESS FIX (flag `FLAG-cellMeasure-not-probability`), stated first because it changes the SIGNATURE of the induced measure and therefore of the whole reused sampling world. RETRACTED: the round-3 claim below that `h₁ : ∑ s : Cell m, ENNReal.ofReal (cellLaw W s) = 1` is 'discharged from the world's simplex field'. It is not: `FourWaveLaw` bounds only the atom mass, so an atom of positive mass may have an absorption-ILLEGAL `observed` path, and the pushforward restricted to the legal cell type `Cell m` then sums to strictly less than one; without a support hypothesis `PMF.ofFintype` has no unit-sum proof, so `cellMeasure W` is not a probability measure and the `IIDSample`/`IsProbabilityMeasure` reuse chain is unsound as previously spelled. CORRECTED SIGNATURE, used uniformly from here on: `cellMeasure` CARRIES the legality witness — `noncomputable def cellMeasure (W : FourWaveLaw m J) (hleg : ObservedLegal W) : Measure (Cell m) := (PMF.ofFintype (fun s : Cell m => ENNReal.ofReal (cellLaw W s)) (h₁ W hleg)).toMeasure`, where `h₁ W hleg` is `ENNReal.ofReal_sum_of_nonneg (fun s _ => cellLaw_nonneg …) ▸ cellLaw_sum_one hleg` — and the cell-simplex fact `cellLaw_sum_one (hleg : ObservedLegal W) : ∑ s : Cell m, cellLaw W s = 1` is proved BEFORE the `PMF` construction, from the witness-free raw pushforward identity `∑ s : RawCell m, rawCellLaw W s = 1` (the REUSED `Causalean.Stat.FiniteRaoBlackwell.fiberMass_sum`) plus `Finset.sum_subtype`/`Finset.sum_subset` and the vanishing of `rawCellLaw` off the legal cells; see the round-5 section of S1 for the full three-step layering and for `ObservedLegal`'s derivation from `ass:consistency` + `ass:absorbing-exit` (equivalently from a `FaceModel W KS` binder, via `FaceModel.observedLegal`). CONSEQUENT SPELLING CHANGE, mechanical and complete: every occurrence of `cellMeasure W` in this plan is read as `cellMeasure W hleg`, so the sampling world is `Causalean.Stat.IIDSample Ω (Cell m) μ (cellMeasure W hleg)`, the pushforward is `μ.map Ψ = Measure.pi (fun _ : Fin n => cellMeasure W hleg)`, the reused instance is `IsProbabilityMeasure (cellMeasure W hleg)` (`PMF.toMeasure.isProbabilityMeasure`, now genuinely applicable), and the bridges are `cellMeasure_real_singleton (hleg) : (cellMeasure W hleg).real {s} = cellLaw W s` and `cellMeasure_real_set (hleg)`. The witness is supplied at every use site by the first conjunct of `ass:iid-panels` (see that node), so no consumer's `hyps` list changes and no new core node is introduced. F2 must NOT make `cellMeasure` take a bare `FourWaveLaw`: the missing hypothesis is precisely the mass that absorption-illegal observed paths would carry off the legal support. ROUND-5 SEARCH TRACE (measure side): `Grep 'def ofFintype' .lake/packages/mathlib/Mathlib/Probability/ProbabilityMassFunction/Constructions.lean` → line 204, whose unit-sum argument is an explicit hypothesis (there is no `ofFintype`-variant that tolerates a subprobability, so a witness-carrying `cellMeasure` is the only sound spelling short of moving to `Measure (RawCell m)`); `Grep '(theorem|lemma) ofReal_sum_of_nonneg' .lake/packages/mathlib/Mathlib` → `ENNReal.ofReal_sum_of_nonneg` (`Data/ENNReal/BigOperators.lean:123`). The alternative of building the sampling world on `RawCell m` (witness-free, since `fiberMass_sum` is unconditional) was considered and REJECTED: the core's `p`, `N_m`, `\\Phi`, the margin list and `\\Sigma(p)` are all indexed by the \\(N_m\\) absorption-legal cells, and the guard's first check is legal absorbing support, so carrying the witness on `cellMeasure` keeps the whole downstream vector layer on `Cell m` at the cost of one explicit argument. — END ROUND-5 SECTION.\n\nROUND-3 TYPE-FIT FIX (flag `FLAG-type-fit`), stated first because it changes the spelling of every sampling object below. `Causalean.Stat.IIDSample Ω X μ P` takes `P : Measure X` (re-read `../Causalean/Stat/Sample.lean:44-50`: `structure IIDSample (Ω X : Type*) [MeasurableSpace Ω] [MeasurableSpace X] (μ : Measure Ω) (P : Measure X)`), and `iidSample_finN_pushforward` concludes `μ.map Ψ = Measure.pi (fun _ : Fin n => P)` with the same `P : Measure X`; likewise `integral_empiricalMass`/`integral_empiricalMass_sq` take `(μ : Measure 𝒳) [IsProbabilityMeasure μ]` and return `μ.real {a}`. The previous revision of this plan instantiated that population argument as `cellLaw W` / `p`, which is a `Cell m → ℝ` probability VECTOR, not a `Measure (Cell m)`; every such spelling (`IIDSample Ω Cell μ (cellLaw W)`) is ILL-TYPED and is retracted. CORRECTED SPELLING, used uniformly from here on: `Cell m` is a `Fintype` with the discrete `⊤` measurable space (hence `MeasurableSingletonClass`, so `MeasurableSet {s}` is free), and the sampling world is `Causalean.Stat.IIDSample Ω (Cell m) μ (cellMeasure W hleg)` where `cellMeasure W hleg : Measure (Cell m)` is the finite measure INDUCED by the cell vector (the witness argument `hleg : ObservedLegal W` is the round-5 correction above): `noncomputable def cellMeasure (W : FourWaveLaw m J) (hleg : ObservedLegal W) : Measure (Cell m) := (PMF.ofFintype (fun s => ENNReal.ofReal (cellLaw W s)) h₁).toMeasure`, with `h₁` NOW discharged from `cellLaw_sum_one hleg` rather than from the world's simplex field (round-5 fix above; the simplex field alone gives only the RAW total mass on `RawCell m`). `IsProbabilityMeasure (cellMeasure W hleg)` is the REUSED instance `PMF.toMeasure.isProbabilityMeasure` (`Mathlib/Probability/ProbabilityMassFunction/Basic.lean:332`), so every `[IsProbabilityMeasure]` side condition of the Causalean lemmas is discharged by instance search. The vector↔measure translation is a two-line local bridge lemma in `Helpers/Sampling.lean`: `cellMeasure_real_singleton (hleg) : (cellMeasure W hleg).real {s} = cellLaw W s`, proved by `PMF.toMeasure_apply_singleton` (`Basic.lean:228`) + `PMF.ofFintype_apply` (`Constructions.lean:210`) + `ENNReal.toReal_ofReal (cellLaw_nonneg …)`; a companion `cellMeasure_real_setOf`/`toMeasure_apply_fintype` form (`Basic.lean:286`) gives `(cellMeasure W hleg).real E = ∑ s ∈ E, cellLaw W s` for the guard's support events. EVERY conclusion of a reused sampling lemma is rewritten through that bridge before it meets any `Φ`/margin/covariance statement, which are all phrased in the vector `p = cellLaw W`. Mathlib-side search trace for the induced measure: `Grep 'def ofFintype|toMeasure_apply_singleton|toMeasure.isProbabilityMeasure|toMeasure_apply_fintype' .lake/packages/mathlib/Mathlib/Probability/ProbabilityMassFunction` -> the four decls cited above; the `Measure.sum (fun s => ENNReal.ofReal (p s) • Measure.dirac s)` spelling was considered and rejected because it would require hand-proving the probability-measure instance and the singleton formula that `PMF` already packages.\n\nSECOND ROUND-3 ITEM (multiplier family). `IIDSample` carries ONLY the panel sample; it has no field for the bootstrap multipliers, and `Causalean.Stat.map_weighted_sum_gaussian` (`Causalean/Stat/Bootstrap/GaussianMultiplier.lean:68`) takes `ξ : Fin n → Ω' → ℝ`, `iIndepFun ξ μ'`, `∀ i, Measurable (ξ i)`, `∀ i, μ'.map (ξ i) = gaussianReal 0 1`, and FIXED weights `a : Fin n → ℝ`. So the multiplier family is an EXPLICIT LOCAL EXTENSION of the sampling setup, not part of the reused world: F2 emits `structure MultiplierFamily (Ωξ : Type*) [MeasurableSpace Ωξ] (μξ : Measure Ωξ) (n : ℕ) : Prop`-carrying record with fields `ξ : Fin n → Ωξ → ℝ`, `meas`, `indep : iIndepFun ξ μξ`, `law : ∀ i, μξ.map (ξ i) = ProbabilityTheory.gaussianReal 0 1` (deliberately the same shape as the three explicit hypotheses of `map_weighted_sum_gaussian`, so the reuse applies by projection). Conditional independence of the multipliers from the panel is realized as the PRODUCT ambient space `(Ω × Ωξ, μ.prod μξ)`: the panel statistics are functions of the first coordinate and the multipliers of the second, so 'conditionally on the sample' is literally 'with the first coordinate `ω` fixed', and the conditional law of the studentized maximum is the law under `μξ` of `T⋆ ω · : Ωξ → ℝ` whose weights `a i := Ĝ_{i,ℓ}(ω)/(√n · √Σ̂_{ℓℓ}(ω))` are CONSTANTS of `ω` — exactly the fixed-weight hypothesis of the reused lemma. No conditional-expectation / disintegration machinery is needed, and no field is added to `IIDSample`. See `def:multiplier-band` and `Helpers/Inference.lean`.\n\nRETAINED FROM ROUND 2 — the product-law bridge for the empirical moments (the previous revision asserted that `integral_empiricalMass(_sq)` apply verbatim to `empiricalMass (S.Z ·)` under an arbitrary `IIDSample` ambient measure, which is FALSE and stays retracted). Re-surveyed sampling substrate, decl by decl, by reading the sources rather than the flaky index (`lean_local_search \"empiricalMass\"`/\"IIDSample\" returned 0 items from the CausalSmith cwd — a WRONG-BASE/flaky-index result, not absence; confirmed by reading `../Causalean/Stat/Sample.lean` and `../Causalean/Stat/Sample/EmpiricalMass.lean` directly). (i) `Causalean.Stat.IIDSample Ω X μ P` (`Causalean/Stat/Sample.lean:44-50`, fields `Z : ℕ → Ω → X`, `meas`, `indep : iIndepFun Z μ`, `identDist`, `law : μ.map (Z 0) = P`) lives on ONE ambient space and its own file header says it deliberately matches Mathlib's `iIndepFun`/`IdentDistrib` idiom **rather than the product-space construction**. (ii) `Causalean.Stat.empiricalMass (sample : Fin N → 𝒳) (x) : ℝ` (`Causalean/Stat/Sample/EmpiricalMass.lean:27`) is a function of a FINITE TUPLE, and its two moment lemmas `integral_empiricalMass` (line 64) and `integral_empiricalMass_sq` (line 100) are integrals `∂Measure.pi (fun _ : Fin m => μ)` over the CANONICAL FINITE PRODUCT MEASURE, returning `μ.real {a}` and `μ.real {a}^2 + m⁻¹(μ.real {a} - μ.real {a}^2)`. They therefore do NOT apply verbatim to an `IIDSample`-indexed ambient integral. (iii) The bridge already exists in the library and is REUSED rather than rebuilt: `Causalean.Stat.iidSample_finN_pushforward` (`Causalean/Stat/Sample/PiTransport.lean:69`) proves `μ.map (fun ω => fun k : Fin n => S.Z k ω) = Measure.pi (fun _ : Fin n => P)`, with `iidSample_finN_measurable` (line 87) for the measurability side condition and `event_pullback_along_iidSample` (line 97) transporting a high-probability product-space event back to an Ω-event of equal mass. DECISION (option (b) of the directive, realized by reuse): S2 KEEPS `Causalean.Stat.IIDSample` as the sampling world — the CLT (`IIDSample.clt_normalizedSum_vec`), the multiplier law, and the Wald-coverage lemma are all stated over it, so restating the world as a bare `Measure.pi` would break three reuse targets — and the moment identities are imported through the pushforward: `Ψ ω := fun k : Fin n => S.Z k ω`, `p̂ ω s := Causalean.Stat.empiricalMass (Ψ ω) s`, and `∫ (empiricalMass (Ψ ω) s) ∂μ = ∫ (empiricalMass z s) ∂Measure.pi (fun _ : Fin n => cellMeasure W hleg)` by `MeasureTheory.integral_map (iidSample_finN_measurable S n).aemeasurable _` rewritten along `iidSample_finN_pushforward` — note the product factor is the MEASURE `cellMeasure W hleg`, per the round-3 type-fit fix above as corrected in round 5, and the right-hand side `(cellMeasure W hleg).real {s}` produced by `integral_empiricalMass` is then rewritten to the vector value `cellLaw W s` by `cellMeasure_real_singleton`. The four one-line transport L-lemmas (the singleton bridge, the mean, the second moment, and the resulting `E_μ‖p̂-p‖₂² ≤ 1/n` stated in vector form) are scaffolded in the new `Helpers/Sampling.lean` file (see `file_plan`), which every consumer of the moment identity imports (`def:guarded-estimator`, `thm:analytic-gradient`, `thm:uniform-bands`). Remaining reuse, each verified in source: `Causalean.Stat.quantile` (`Causalean/Stat/Quantile/Quantile.lean:53`, `sInf` of the cdf super-level set) with `quantile_le_iff` (line 112) for \\(\\widehat c_{1-\\alpha}\\); `gaussianLimit` (`Causalean/Stat/CLT/GaussianLimit.lean:63`) + `IIDSample.clt_normalizedSum_vec` (line 120) for the bounded-summand multivariate CLT with a possibly singular limit covariance; `map_weighted_sum_gaussian` (`Causalean/Stat/Bootstrap/GaussianMultiplier.lean:68`) and `multiplierBootstrap_law` (line 137) for the exact conditional Gaussian law of the multiplier numerator, applied on the SECOND factor `(Ωξ, μξ)` of the product ambient space with sample-fixed weights, via the local `MultiplierFamily` record described above (these two decls are NOT reachable through `IIDSample`, which carries no multiplier field); `Tendsto_dist.wald_coverage_Iic_of_noAtoms` (`Causalean/Stat/Inference/WaldVec.lean:117`) for weak-convergence-to-coverage. Mathlib-side check for the bridge itself: `Measure.pi`, `MeasureTheory.integral_map`, `MeasureTheory.measurePreserving_eval` (`Mathlib.MeasureTheory.Constructions.Pi`) — nothing further needed, and no Mathlib decl subsumes `iidSample_finN_pushforward`. The buffered class, guard event, and band objects remain local defs over this world (see `def:buffered-class`, `def:guarded-estimator`, `def:multiplier-band`).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "Causalean.Stat.IIDSample",
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Causalean.Stat.Sample",
+          "Causalean.Stat.Sample.EmpiricalMass",
+          "Causalean.Stat.Sample.PiTransport",
+          "Causalean.Stat.Quantile.Quantile",
+          "Causalean.Stat.CLT.GaussianLimit",
+          "Causalean.Stat.Bootstrap.GaussianMultiplier",
+          "Causalean.Stat.Inference.WaldVec",
+          "Causalean.Stat.FiniteRaoBlackwell.DesignPushforward",
+          "Mathlib.Probability.ProbabilityMassFunction.Constructions",
+          "Mathlib.Probability.Distributions.Gaussian.Real",
+          "Mathlib.Data.ENNReal.BigOperators"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "obj_id": "S-3",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A prospective restricted-model score chart on a fixed positive support stratum of the observed-law image: coordinates \\(\\zeta\\) for a candidate parameterization \\(p(\\zeta)\\), the score matrix \\(S_P=\\operatorname{diag}(p)^{-1}\\partial p(\\zeta)/\\partial\\zeta^\\top\\), and the \\(L_2(P)\\)-orthogonal projection \\(\\Pi_{\\operatorname{col}(S_P)}\\) onto its column space. No such chart is constructed in this paper, so these three symbols name a prospective, not an inhabited, object. — define-local, and deliberately carries NO Lean object: these three symbols occur only inside the nonassertive descriptive payload of `thm:constrained-efficiency-characterization` (the open question), whose own node text states that no chart, no constant-rank certificate, and no score space is constructed. Search trace: surveyed `../Causalean/Estimation/Efficiency/{Submodel,TangentProjection,PathwiseGradient,ATEEfficientIF,ATEVariance}.lean` (via `Glob Estimation/**/*.lean`) for a reusable restricted-tangent-space chart; those files parameterize a *given* submodel/score family and cannot supply the missing atlas, so nothing is reused and nothing is asserted. Mathlib-side check: `lean_leansearch` for weighted orthogonal projection onto a column space returns `Mathlib.Analysis.InnerProductSpace.Projection.*`, adequate for the conditional algebra recorded in the payload text but irrelevant without a chart. F1 deliberately does not mint a `Prop` here (see the OEQ node).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": []
+      }
+    },
+    {
+      "id": "ass:iid-panels",
+      "obj_id": "A-1",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The observations \\(O_1,\\ldots,O_n\\) are independent and identically distributed with law induced by \\(P\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.IIDPanels",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "86fb5b7331caa3cf3fe9ae078643a51c22e573c3",
+        "note": "The IIDSample binder already requires measurable mutually independent coordinates, identical distributions, and the stated population law; IIDPanels restates the resulting marginal-law equality, while ObservedLegal supplies the paper's declared legal-cell sampling domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Independent panel sampling",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:consistency",
+      "obj_id": "A-2",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(t\\), \\(X_t=X_t(D)\\) almost surely.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.Consistency",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f55001cc56c03c95c2781eea30bd4fa8952097db",
+        "note": "For the finite nonnegative mass function W.mass, equality on every nonzero-mass atom is equivalent to X_t = X_t(D) almost surely at every date."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Potential-outcome consistency",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:no-anticipation",
+      "obj_id": "A-3",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(X_t(1)=X_t(0)\\) almost surely for every \\(t\\leq2\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.NoAnticipation",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "8116f819782cfd1bf328a4f1d10dbe8371c046b0",
+        "note": "Date is Fin 4, so t.val ≤ 2 selects exactly dates 0, 1, and 2, and equality on every nonzero-mass atom is equivalent to the stated almost-sure equality."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "No anticipation through the last pre-treatment date",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:two-types",
+      "obj_id": "A-4",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The latent variable \\(Z\\) has exactly the known support \\(\\{1,\\ldots,J\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.KnownTypeSupport",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "8e86c19786ec690d95ac76c5f5783ffb550c8208",
+        "note": "The latent coordinate is intrinsically TypeLabel J = Fin J, and the displayed finite-partition identity excludes mass outside those J known labels without adding type-positivity, which the core explicitly derives elsewhere."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Known finite latent-type count",
+        "cite": "HigginsJochmans2023MixturesDDC",
+        "citation": "Ayden Higgins and Koen Jochmans (2023), ``Identification of Mixtures of Dynamic Discrete Choices,'' Journal of Econometrics 237, 105462, especially Theorem 1 and Sections 2--3."
+      }
+    },
+    {
+      "id": "ass:cohort-overlap",
+      "obj_id": "A-5",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(P(D=d)>0\\) for each \\(d\\in\\{0,1\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.CohortOverlap",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6f471499b7c5c7dac09c9fb7dd53fb7e15ac7756",
+        "note": "Cohort is Bool and cohortMass is P(D=d), so ∀ d, 0 < cohortMass W d is exactly positive probability for both cohorts."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Treatment-cohort overlap",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:markov-paths",
+      "obj_id": "A-6",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Conditional on \\((D,Z)\\), each marginal potential path \\((X_0(r),\\ldots,X_3(r))\\) is first-order Markov.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.MarkovPotentialPaths",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "03832b660f2184c0e8abbf6e8369627c947be846",
+        "note": "Lean ⇒ paper, but paper ⇒ Lean fails: first-order Markovity permits transitions depending on (d,j,r), while Lean forces the shared factorization H_j^d,Q_j,U_j/V_j and in particular the same treated V_j in both cohorts."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Type-conditional first-order Markov potential paths",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:absorbing-exit",
+      "obj_id": "A-7",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For each potential path, \\(P(X_{t+1}(r)=e\\mid X_t(r)=e,D,Z)=1\\) whenever \\(t<3\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.AbsorbingExit",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "1eaaa7cc945dee01279082b9d5ec3dc82d47fa7c",
+        "note": "For the finite nonnegative atom law, excluding every positive-mass atom with an exit-to-active transition is equivalent to conditional probability one for remaining at exit in every positive-probability (D,Z,X_t=e) cell."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Absorbing outcome state",
+        "cite": "DeanerKu2026DurationDiD",
+        "citation": "Ben Deaner and Hyejin Ku (2026), ``Causal Duration Analysis with Diff-in-Diff,'' arXiv:2405.05220, revised May 2026."
+      }
+    },
+    {
+      "id": "ass:no-date-one-absorption",
+      "obj_id": "A-8",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(P(X_1=e\\mid D=d)=0\\) for each \\(d\\in\\{0,1\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.NoDateOneAbsorption",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "32012abc450a0165c8e1642633cdd008e7d35d05",
+        "note": "Under the stated cohort-overlap background, the joint zero-mass identity is equivalent in both directions to P(X₁=e | D=d)=0; every consumer supplies overlap through FaceModel or InFace."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:common-date-two-transition",
+      "obj_id": "A-9",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(j,x,y,d\\), \\(P(X_2(0)=y\\mid X_1(0)=x,Z=j,D=d)=Q_j[x,y]\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.DateTwoTransitionLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c7e6f5d835620b78e23d86e86d398dd9b5d2f410",
+        "note": "The all-d,j,x,y joint factorization is exactly the finite conditional-kernel characterization of P(X₂(0)=y | X₁(0)=x,Z=j,D=d)=Q_j[x,y], including the standard arbitrary kernel values on null conditioning cells."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Type-specific transition independence at date two",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:common-first-post-untreated-transition",
+      "obj_id": "A-10",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(j,x,y,d\\), \\(P(X_3(0)=y\\mid X_2(0)=x,Z=j,D=d)=U_j[x,y]\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.FirstPostUntreatedTransitionLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "d6f3db1f1028d7b07af027f62f72afee7c9483a2",
+        "note": "The all-d,j,x,y joint factorization is exactly the finite conditional-kernel characterization of P(X₃(0)=y | X₂(0)=x,Z=j,D=d)=U_j[x,y], including the standard arbitrary kernel values on null conditioning cells."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Type-specific transition independence at the first post-treatment date",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:four-slice-rank",
+      "obj_id": "A-11",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every cohort \\(d\\),\n\\[\n \\det M_{x_0y}^d\\neq0\\quad(y\\in\\mathcal A),\n \\qquad\n \\det M_{xy_0}^d\\neq0\\quad(x\\in\\mathcal A).\n\\]",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.AnchorStarRank",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "d30dcef90333eece66c6d563d70b448ae4b94120",
+        "note": "The raw joint-law minor equals the paper's cohort-conditional minor multiplied entrywise by P(D=d), so its determinant is scaled by P(D=d)^J; nonzero conditional minors and the associated positive cohort share are therefore equivalent to the Lean condition."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Anchor-star selected-minor nonsingularity",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:simple-cycle-spectrum",
+      "obj_id": "A-12",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every cohort \\(d\\), the \\(J\\) real eigenvalues \\(\\rho_1^d,\\ldots,\\rho_J^d\\) of \\(K^d\\) are distinct, with \\(g^d=\\min_{j\\neq k}|\\rho_j^d-\\rho_k^d|>0\\), and are labelled in descending order.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.SimpleCycleSpectrum",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "378bdee05f2abb740b8ccfee5707feb4630755b0",
+        "note": "The characteristic-polynomial factorization supplies exactly J real eigenvalues, StrictAnti gives descending distinct labels, and positivity of minimumPairwiseGap gives the stated positive minimum separation."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Simple ordered cycle-product spectrum",
+        "cite": "AhnKasahara2026TransitionIndependence",
+        "citation": "Young Ahn and Hiroyuki Kasahara (2026), ``Event-Study Designs for Discrete Outcomes under Transition Independence,'' arXiv:2603.07914, especially Proposition 14, Assumption ID, and Appendix A.4."
+      }
+    },
+    {
+      "id": "ass:margin-buffer",
+      "obj_id": "A-13",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\min_k\\mathfrak m_k(p)\\geq2\\kappa\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.MarginBuffer",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "560487534aef0834b96cb98f67d69c0d771f98ce",
+        "note": "Because marginVector is nonempty—it begins with the two cohort shares—the universal coordinate bound is equivalent to min_k m_k(p) ≥ 2κ, while 0<κ merely realizes κ's declared domain (0,∞)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Compact separation from singular recovery boundaries",
+        "cite": "BonhommeJochmansRobin2017Nonexchangeable",
+        "citation": "Stéphane Bonhomme, Koen Jochmans, and Jean-Marc Robin (2017), ``Nonparametric Estimation of Non-exchangeable Latent-Variable Models,'' Journal of Econometrics 201, 237--248."
+      }
+    },
+    {
+      "id": "ass:variance-buffer",
+      "obj_id": "A-14",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\min_{\\ell\\in\\mathcal L}\\Sigma_{\\ell\\ell}(p)\\geq2\\kappa\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.VarianceBuffer",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "7920a4538e6a291c7af91fc52f25e0c401533eb6",
+        "note": "For the core-declared nonempty finite set L, the universal diagonal bound is equivalent to min_{ell∈L} Σ_{ell,ell}(p) ≥ 2κ; the κ-positivity and L-nonemptiness conjuncts exactly realize their declared domains."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Positive marginal-variance condition allowing singular correlation",
+        "cite": "ChernozhukovChetverikovKato2015AntiConcentration",
+        "citation": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato (2015), ``Comparison and Anti-Concentration Bounds for Maxima of Gaussian Random Vectors,'' Probability Theory and Related Fields 162, 47--70."
+      }
+    },
+    {
+      "id": "def:face-model",
+      "obj_id": "P-1",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal M_{\\mathrm{face}}\\) is the set of laws \\(P\\) satisfying \\(\\texttt{ass:consistency}\\), \\(\\texttt{ass:no-anticipation}\\), \\(\\texttt{ass:two-types}\\), \\(\\texttt{ass:cohort-overlap}\\), \\(\\texttt{ass:markov-paths}\\), \\(\\texttt{ass:absorbing-exit}\\), \\(\\texttt{ass:common-date-two-transition}\\), \\(\\texttt{ass:common-first-post-untreated-transition}\\), \\(\\texttt{ass:four-slice-rank}\\), and \\(\\texttt{ass:simple-cycle-spectrum}\\). Date-\\(1\\) absorption is allowed. The model concerns only the four waves \\(X_0,\\ldots,X_3\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.FaceModel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "00a36bea818ff46042b1867caff411c6ed99ebc5",
+        "note": "Paper ⇒ Lean fails: the markov field inherits a cohort-invariant treated kernel V_j, although the paper separately restricts only the common untreated Q_j and U_j kernels; redefine MarkovPotentialPaths with unrestricted (d,j,r)-specific Markov transitions."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:compatible-fiber",
+      "obj_id": "P-2",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let\n\\[\n N_m=2\\sum_{r=0}^{4}m^r.\n\\]\nThen \\(\\mathcal F(p)=\\{\\widetilde P\\in\\mathcal M_{\\mathrm{face}}:\\widetilde P(O=s)=p_s\\text{ for every one of the }N_m\\text{ four-wave absorption-legal cells }s\\}\\). For \\(m=2\\), \\(N_2=62\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.compatibleFiber",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "3a0a1fe04c646b986acb8efa9d8ce6644dcf0084",
+        "note": "After unfolding InFace, membership is exactly face-model membership plus equality of every legal cell probability; W₀ conservatively carries p and the fixed selected sets and anchors, and Cell has the stated absorption-legal support with cellCount m = 2∑_{r=0}^4 m^r and cellCount 2 = 62."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:observed-slices",
+      "obj_id": "P-3",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(x,y\\in\\mathcal A\\), define\n\\[\n A_{xy}^d[u,v]=P(X_0=u,X_1=x,X_2=y,X_3=v\\mid D=d),\n \\qquad\n m_x^d[u]=P(X_0=u,X_1=x\\mid D=d),\n\\]\nfor \\(u\\in\\mathcal A\\) and \\(v\\in\\mathcal S\\). For row set \\(E\\subseteq\\mathcal A\\) and column set \\(F\\subseteq\\mathcal S\\), write \\(A_{xy}^{d,E,F}=A_{xy}^d[E,F]\\) and \\(m_x^{d,E}=m_x^d[E]\\), and set \\(M_{xy}^d=A_{xy}^{d,\\mathcal U,\\mathcal V}\\). Define\n\\[\n K^d=M_{x_0y_0}^d(M_{x_1y_0}^d)^{-1}M_{x_1y_1}^d(M_{x_0y_1}^d)^{-1}.\n\\]\nFor proof and recovery notation define\n\\[\n B_x^{d,\\mathcal A}[u,j]=P(X_0=u,X_1=x,Z=j\\mid D=d),\\quad\n D_{xy}=\\operatorname{diag}_{1\\leq j\\leq J}Q_j[x,y],\n\\]\n\\[\n C_y^d[j,v]=P(X_3=v\\mid X_2=y,Z=j,D=d),\n\\]\nand use superscripts \\(\\mathcal U\\) and \\(\\mathcal V\\) for the selected rows of \\(B_x^{d,\\mathcal A}\\) and selected columns of \\(C_y^d\\), respectively. The equality \\(M_{xy}^d=B_x^{d,\\mathcal U}D_{xy}C_y^{d,\\mathcal V}\\) is a theorem consequence, not part of this definition.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.observedSlices",
+        "file": "Helpers/Slices.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "79ccb724927dc93f8ef44010353f6504f683e2fd",
+        "note": "After unfolding, the full slices, predecessor masses, selected minors, cycle operator, latent predecessor factors, transition diagonal, and terminal conditional factors equal the paper formulas; arbitrary E,F restrictions are derivable from the stored full matrices and vectors, and no factorization equality is bundled."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:recovery-map",
+      "obj_id": "P-4",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For each cohort \\(d\\), order the eigenvalues of \\(K^d\\) decreasingly and set\n\\[\n P_j^d=\\prod_{k\\neq j}\\frac{K^d-\\rho_k^d I_J}{\\rho_j^d-\\rho_k^d},\n \\qquad\n B_{x_0}^{d,\\mathcal U}=[P_1^dm_{x_0}^{d,\\mathcal U},\\ldots,P_J^dm_{x_0}^{d,\\mathcal U}].\n\\]\nFor every \\(y\\in\\mathcal A\\), set\n\\[\n F_y^d=(B_{x_0}^{d,\\mathcal U})^{-1}A_{x_0y}^{d,\\mathcal U,\\mathcal S},\\quad\n q_{x_0y}^d=F_y^d\\mathbf 1_{m+1},\\quad\n C_y^d=\\operatorname{diag}(q_{x_0y}^d)^{-1}F_y^d.\n\\]\nFor every \\(x\\in\\mathcal A\\), set\n\\[\n W_x^d=A_{xy_0}^{d,\\mathcal U,\\mathcal S}(C_{y_0}^d)^\\top\n \\{C_{y_0}^d(C_{y_0}^d)^\\top\\}^{-1},\\quad\n c_x^d=(W_x^d)^{-1}m_x^{d,\\mathcal U},\\quad\n B_x^{d,\\mathcal U}=W_x^d\\operatorname{diag}(c_x^d),\n\\]\nand transport to every predecessor row by\n\\[\n B_x^{d,\\mathcal A}=A_{xy_0}^{d,\\mathcal A,\\mathcal V}\n (C_{y_0}^{d,\\mathcal V})^{-1}\\operatorname{diag}(c_x^d).\n\\]\nFinally set\n\\[\n q_{xy}^d=(B_x^{d,\\mathcal U})^{-1}A_{xy}^{d,\\mathcal U,\\mathcal S}\\mathbf 1_{m+1},\n \\qquad s_j^d[x]=\\mathbf 1_m^\\top B_x^{d,\\mathcal A}[:,j],\\quad s_j^d[e]=0,\n\\]\ncomplete \\(\\widehat Q_j^d\\) from the active entries \\(q_{xy}^d[j]\\), the stochastic exit residual, and the absorbing row, and complete \\(\\widehat R_j^d\\) from row \\(j\\) of each \\(C_y^d\\) and the absorbing row. Put\n\\[\n \\widehat\\alpha_j^d=\\widehat s_j^d\\mathbf 1_{m+1},\\quad\n \\widehat p_{2,j}^d=(\\widehat\\alpha_j^d)^{-1}\\widehat s_j^d\\widehat Q_j^d,\n\\]\n\\[\n \\widehat\\nu_j=\\widehat s_j^1\\widehat Q_j^1(\\widehat R_j^1-\\widehat R_j^0),\n \\qquad \\widehat\\eta_j=\\widehat\\nu_j/\\widehat\\alpha_j^1,\n\\]\nand\n\\[\n \\Phi(p)=(\\widehat\\nu_1^\\top,\\ldots,\\widehat\\nu_J^\\top,\n (\\sum_{j=1}^J\\widehat\\nu_j)^\\top)^\\top.\n\\]\nThe same formulas, using \\(\\widehat Q_j^1\\) in the contribution, define the off-model extension.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.recoveryMap",
+        "file": "Helpers/Recovery.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "533f33076fc54de93c81301333a98d57a819910f",
+        "note": "Unfolding RecoveryOutput and every recovered component gives the stated decreasing-spectrum projectors, basis and terminal normalization, pseudoinverse transport, stochastic completions, alpha, p2, nu, eta, and stacked aggregate map, including the QHat^1 off-model contribution."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:margin-vector",
+      "obj_id": "P-5",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The finite vector \\(\\mathfrak m(p)\\) contains the two cohort shares; every pairwise eigengap \\(|\\rho_j^d-\\rho_k^d|\\); the smallest singular values of all anchor-star matrices \\(M_{x_0y}^d\\) and \\(M_{xy_0}^d\\), all recovered \\(B_x^{d,\\mathcal U}\\), all \\(W_x^d\\), all \\(C_y^d(C_y^d)^\\top\\), and all \\(C_y^{d,\\mathcal V}\\); the absolute values of every entry of \\(q_{x_0y}^d\\) and \\(c_x^d\\) used in a division; every recovered active mass \\(\\widehat\\alpha_j^d\\); and the descending-order label margins for the common untreated signatures. It is evaluated on the \\(N_m\\)-cell four-wave absorption-legal support and lists every denominator, inverse, eigengap, and label margin used by \\(\\Phi\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.marginVector",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "77dbe1eb05c81ae9dabfecdbea35a047f491b17e",
+        "note": "The list contains both cohort shares, all pairwise absolute eigengaps and ordered-label margins, every stated singular-value margin, all absolute q and c normalization entries, and every recovered alpha used by the unfolded recovery map."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:buffered-class",
+      "obj_id": "P-6",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\[\n \\mathcal P_\\kappa=\\left\\{P\\in\\mathcal M_{\\mathrm{face}}:\n \\min_k\\mathfrak m_k(p)\\geq2\\kappa,\\quad\n \\min_{\\ell\\in\\mathcal L}\\Sigma_{\\ell\\ell}(p)\\geq2\\kappa\\right\\},\n\\]\nwith closure taken inside the finite-parameter compatible image on the \\(N_m\\)-cell four-wave absorption-legal support.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.BufferedClass",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "6ac146d29074bb0fd609239d5c14fac27a0d6e15",
+        "note": "Paper ⇒ Lean fails because the FaceModel index excludes paper-admissible laws whose treated-path transition varies by cohort; after repairing MarkovPotentialPaths, the margin, variance, and relative-closure clauses otherwise match the buffered class."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:guarded-estimator",
+      "obj_id": "P-7",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "On the \\(N_m\\)-cell four-wave absorption-legal support, evaluate the entries of \\(\\mathfrak m(\\widehat p)\\) sequentially, stopping before any inverse or division whose required margin is at most \\(\\kappa\\); also require legal absorbing support and \\(\\widehat\\Sigma_{\\ell\\ell}>\\kappa\\) for all \\(\\ell\\in\\mathcal L\\). This event is \\(\\mathcal E_\\kappa\\). On \\(\\mathcal E_\\kappa\\), set \\(\\widehat\\theta=\\Phi(\\widehat p)\\), \\(\\widehat G_i=J_\\Phi(\\widehat p)(e_{O_i}-\\widehat p)\\), and \\(\\widehat\\Sigma=n^{-1}\\sum_i\\widehat G_i\\widehat G_i^\\top\\); otherwise return no interval.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.guardedEstimator",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "3dcf69bafa44c6dd2ca171fd0dd579613e080eda",
+        "note": "Cell intrinsically enforces absorption-legal support, guardEvent requires every ordered recovery margin and reported variance to exceed κ, and the resulting Option has exactly the stated guarded plug-in fields or none."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:multiplier-band",
+      "obj_id": "P-8",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Conditionally on the four-wave sample and \\(\\mathcal E_\\kappa\\), draw \\(\\xi_i\\stackrel{\\mathrm{iid}}{\\sim}N(0,1)\\), form\n\\[\n T^\\star=\\max_{\\ell\\in\\mathcal L}\n \\frac{|n^{-1/2}\\sum_{i=1}^n\\xi_i\\widehat G_{i,\\ell}|}\n {\\sqrt{\\widehat\\Sigma_{\\ell\\ell}}},\n\\]\ntake its exact conditional \\((1-\\alpha)\\)-quantile \\(\\widehat c_{1-\\alpha}\\), and report\n\\[\n I_{\\ell,n}=\\left[\\widehat\\theta_\\ell-\\widehat c_{1-\\alpha}\n \\sqrt{\\widehat\\Sigma_{\\ell\\ell}/n},\n \\widehat\\theta_\\ell+\\widehat c_{1-\\alpha}\n \\sqrt{\\widehat\\Sigma_{\\ell\\ell}/n}\\right]\n\\]\nfor the fixed coordinates \\(\\mathcal L\\subseteq\\{1,\\ldots,(J+1)(m+1)\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.multiplierBand",
+        "file": "Helpers/Inference.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cfb361100fdf97057af6a97b7ba674fffeb376fc",
+        "note": "The guarded-estimator equality pins the sample-dependent estimates on E_kappa, while the product Gaussian law, studentized maximum, exact quantile, and L-indexed intervals reproduce the paper construction in both directions. | The guarded-estimator equality pins the sample-dependent estimates on E_κ, while the finite product of standard Gaussian laws, studentized maximum, exact lower quantile, and L-indexed closed intervals reproduce the paper construction in both directions."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:exact-witness",
+      "obj_id": "P-9",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Specialize to \\(m=J=2\\), \\(\\mathcal A=\\{a,b\\}\\), \\(\\mathcal U=\\mathcal V=\\mathcal A\\), \\(x_0=y_0=a\\), and \\(x_1=y_1=b\\). Let \\(P(D=1)=1/2\\), \\(\\pi_1^d=\\pi_2^d=1/2\\), and let \\(X_0\\) be uniform on \\(\\mathcal A\\) conditional on \\((Z,D)\\). With row and column order \\((a,b,e)\\), set\n\\[\nH_1=\\begin{pmatrix}3/4&1/4&0\\\\1/4&3/4&0\\\\0&0&1\\end{pmatrix},\\quad\nH_2=\\begin{pmatrix}1/3&2/3&0\\\\2/3&1/3&0\\\\0&0&1\\end{pmatrix},\n\\]\n\\[\nQ_1=\\begin{pmatrix}3/5&3/10&1/10\\\\1/5&1/2&3/10\\\\0&0&1\\end{pmatrix},\\quad\nQ_2=\\begin{pmatrix}1/5&2/5&2/5\\\\3/10&3/5&1/10\\\\0&0&1\\end{pmatrix},\n\\]\n\\[\nV_1=\\begin{pmatrix}7/10&1/5&1/10\\\\1/5&3/5&1/5\\\\0&0&1\\end{pmatrix},\\quad\nV_2=\\begin{pmatrix}1/5&1/2&3/10\\\\1/4&1/2&1/4\\\\0&0&1\\end{pmatrix}.\n\\]\nFor \\(d\\in\\{0,1\\}\\), \\(j\\in\\{1,2\\}\\), \\(s_0\\in\\mathcal A\\), and \\(s_1,s_2,u_0,u_1\\in\\mathcal S\\), give\n\\[\n\\begin{aligned}\n&P\\{D=d,Z=j,X_0(0)=X_0(1)=s_0,X_1(0)=X_1(1)=s_1,\\\\\n&\\hspace{35mm}X_2(0)=X_2(1)=s_2,X_3(0)=u_0,X_3(1)=u_1\\}\\\\\n&\\qquad=\\frac18H_j[s_0,s_1]Q_j[s_1,s_2]Q_j[s_2,u_0]V_j[s_2,u_1],\n\\end{aligned}\n\\]\nand give all other atoms mass zero. Set \\(X_t=X_t(D)\\). This four-wave law is \\(\\omega^\\star\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.exactWitness",
+        "file": "Helpers/Witness.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "ab8de652ce1dcd4933d5ee1ecd9f0c4eb57b8b83",
+        "note": "After unfolding witnessMass and WitnessAtomShape, the Fin-2 labels and anchors, displayed H/Q/V matrices, 1/8 atom masses, shared paths through date 2, factual observation relation, and zero mass outside the specified atoms coincide with omega-star. | After unfolding FourWaveLaw, witnessMass, WitnessAtomShape, witnessH, witnessQ, and witnessV, the Lean definition gives exactly the stated m=J=2 anchors, matrices, 1/8 atom masses, zero mass elsewhere, shared potential states through date 2, active uniform initial state, and observed consistency X_t=X_t(D)."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "def:outside-face-pair",
+      "obj_id": "P-10",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(P^\\circ\\) be any regular law in \\(\\mathcal M_{\\mathrm{face}}\\) with no date-\\(1\\) absorption, let \\(0<\\varepsilon<1\\), and choose labels \\(h\\neq k\\). Form \\(P_\\varepsilon^A\\) and \\(P_\\varepsilon^B\\) by mixing weight \\(1-\\varepsilon\\) of the complete four-wave law \\(P^\\circ\\) with weight \\(\\varepsilon\\) on the path \\(X_t(0)=X_t(1)=e\\) for \\(t=0,1,2,3\\), assigning this added mass to label \\(h\\) in \\(P_\\varepsilon^A\\) and label \\(k\\) in \\(P_\\varepsilon^B\\), in every cohort. Thus the added observed atom is \\(\\delta_{(e,e,e,e)}\\). The labels and all active-state kernels of the retained component are unchanged. Define \\(P^A,P^B\\) as the specialization \\(P^\\circ=\\omega^\\star\\), \\(\\varepsilon=1/5\\), \\(h=1\\), and \\(k=2\\). The observational equivalence and effect formulas are proved in \\(\\texttt{prop:exact-boundary-witness}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.outsideFacePair",
+        "file": "Helpers/Witness.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cd4b29c5bf288d2a79cf0ca61ff0f4229135106c",
+        "note": "Unfolding reallocatedLaw and reallocatedMass gives the cohort-preserving (1-eps)/eps mixture with a unique all-exit atom assigned to h or k, preserves the retained law's labels, and exactOutsideFacePair supplies the stated omega-star, 1/5, 1, 2 specialization."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:face-recovery",
+      "obj_id": "T-1",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(P\\in\\mathcal M_{\\mathrm{face}}\\) satisfying \\(\\texttt{ass:no-date-one-absorption}\\), the conclusions of \\(\\texttt{thm:active-frontier-recovery}\\) upgrade throughout \\(\\mathcal F(p)\\) to\n\\[\n \\pi_j^d=\\alpha_j^d>0,\\qquad \\tau_j=\\eta_j=\\nu_j/\\pi_j^1.\n\\]\nThus the same formulas recover the full type masses, the complete component law of \\((Z,X_0,X_1,X_2,X_3)\\) in every cohort, every full conditional type effect, and the aggregate \\(\\tau\\), in the common descending signature order. The result requires neither time homogeneity nor a date-\\(4\\) common untreated kernel and permits the rank-deficient common absorbing row.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.face_recovery",
+        "file": "TFaceRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:exact-boundary-witness",
+      "obj_id": "T-2",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every regular no-date-\\(1\\)-absorption base law \\(P^\\circ\\), every \\(0<\\varepsilon<1\\), and distinct labels \\(h,k\\), the two laws \\(P_\\varepsilon^A,P_\\varepsilon^B\\) in \\(\\texttt{def:outside-face-pair}\\) belong to \\(\\mathcal M_{\\mathrm{face}}\\), induce the same observed law, scale every active slice and active mass by \\(1-\\varepsilon\\), and leave \\(K^d\\) unchanged. Between the two allocations they have the same \\(\\alpha_j^d\\), \\(\\nu_j\\), \\(\\eta_j\\), and \\(\\tau\\), but different full type shares; their full conditional effects obey \\(\\tau_j=\\nu_j/\\pi_j^1\\) and therefore differ for every reallocated type having nonzero contribution. Hence initial-absorber allocation is a generic obstruction to full-share and full-conditional-effect identification, while the active targets remain identified.\n\nThe exact specialization \\(\\omega^\\star\\) belongs to \\(\\mathcal M_{\\mathrm{face}}\\), satisfies \\(\\texttt{ass:no-date-one-absorption}\\), and has\n\\[\nK^0=K^1=\\begin{pmatrix}29/5&-12/5\\\\8/5&1/5\\end{pmatrix},\n\\qquad (\\rho_1^d,\\rho_2^d)=(5,1),\n\\]\n\\[\n\\tau_1=(1/25,0,-1/25),\\quad\n\\tau_2=(-1/40,-1/40,1/20),\\quad\n\\tau=(3/400,-1/80,1/200),\n\\]\n\\[\n\\alpha_j^d=1/2,\\quad\n\\nu_1=(1/50,0,-1/50),\\quad\n\\nu_2=(-1/80,-1/80,1/40),\\quad \\eta_j=\\tau_j.\n\\]\nFor \\(P^A,P^B\\), the full shares are \\((3/5,2/5)\\) and \\((2/5,3/5)\\), respectively, and\n\\[\n\\tau_1^A=(2/75,0,-2/75),\\quad \\tau_2^A=(-1/40,-1/40,1/20),\n\\]\n\\[\n\\tau_1^B=(1/25,0,-1/25),\\quad \\tau_2^B=(-1/60,-1/60,1/30).\n\\]\nBoth laws have \\(\\alpha_1^d=\\alpha_2^d=2/5\\),\n\\[\n\\nu_1=(2/125,0,-2/125),\\quad\n\\nu_2=(-1/100,-1/100,1/50),\n\\]\nthe same at-risk effects as \\(\\omega^\\star\\), and \\(\\tau=(3/500,-1/100,1/250)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.exact_boundary_witness",
+        "file": "PExactBoundaryWitness.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f1111e512b55213fb9eea5c783090a40c5f6a292",
+        "note": "After unfolding the pair construction and all target functionals, Lean states the generic observational equivalence, scaling, unchanged cycle, allocation obstruction, and every exact numerical claim; τ_j = ν_j/π_j¹ is definitional, while η_j = τ_j for the exact no-date-one-absorption law follows from activeMass = typeMass."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:analytic-gradient",
+      "obj_id": "T-3",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For fixed \\(m\\) and known \\(J\\), the generalized map \\(\\Phi\\) extends real analytically to a relative open neighborhood of every regular \\(p\\). In the saturated finite-multinomial model on its actual absorption-legal support stratum,\n\\[\n G_p(s)=J_\\Phi(p)(e_s-p)\n\\]\nis the canonical gradient of \\(\\Phi(p)\\), \\(\\Sigma(p)\\) is the information bound, and the empirical-cell plug-in attains that bound at every relative-interior law on the stratum.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.analytic_gradient",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "ccb84afef3622a908737eb592a96f0a9e19404dc",
+        "note": "After unfolding, the legal-simplex and regularity premises give the claimed relative analytic extension; `influence` is exactly JΦ(p)(e_s−p), the affine-tangent and covariance identities characterize the saturated canonical gradient and information bound, and the universally represented i.i.d. cell law together with asymptotic linearity and regularity expresses empirical plug-in attainment at every relative-interior regular law."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:uniform-bands",
+      "obj_id": "T-4",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For fixed \\(m,J,\\mathcal L,\\kappa\\), uniformly over \\(P\\in\\mathcal P_\\kappa\\),\n\\[\n P(\\mathcal E_\\kappa)\\to1,\\qquad\n \\sqrt n(\\widehat\\theta-\\theta_J)=n^{-1/2}\\sum_{i=1}^nG_p(O_i)+o_P(1),\n \\qquad \\widehat\\Sigma-\\Sigma(p)=o_P(1).\n\\]\nAllowing \\(\\Sigma(p)\\) and its correlation matrix to be singular while retaining the buffered reported diagonal,\n\\[\n \\inf_{P\\in\\mathcal P_\\kappa}P\\{\\theta_{J,\\ell}\\in I_{\\ell,n}\n \\text{ for every }\\ell\\in\\mathcal L\\}\\longrightarrow1-\\alpha.\n\\]",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.uniform_bands",
+        "file": "TUniformBands.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:constrained-efficiency-characterization",
+      "obj_id": "P-11",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Open question. On each constant-rank relative-interior stratum of the observed-law image of \\(\\mathcal M_{\\mathrm{face}}\\), construct an explicit finite-dimensional parameterization \\(p(\\zeta)\\), compute\n\\[\n S_P=\\operatorname{diag}(p)^{-1}\\frac{\\partial p(\\zeta)}{\\partial\\zeta^\\top},\n\\]\nidentify the constrained score space \\(\\operatorname{col}(S_P)\\), and determine for each reported direction whether\n\\[\n \\{I-\\Pi_{\\operatorname{col}(S_P)}\\}G_p\\neq0.\n\\]\nNo restricted-model efficiency bound or attaining estimator is asserted without that parameterization, rank analysis, and projection calculation.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.constrainedEfficiencyOpenQuestion",
+        "file": "OpenQuestions.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "58661103bf9471a8ccd09615aaa2ab4edc4467f7",
+        "note": "The non-Prop string payload records the stratum-wise chart and score-space question, projection criterion, obstruction and conditional calculation, and the explicit nonassertion of an efficiency bound or attaining estimator."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:gaussian-max-quantile-continuity",
+      "obj_id": "L-1",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix a positive integer \\(q\\).  Let \\(\\Gamma_n\\) and \\(\\Gamma\\) be positive-semidefinite \\(q\\times q\\) matrices with unit diagonal and \\(\\Gamma_n\\to\\Gamma\\).  If \\(Z_n\\sim N(0,\\Gamma_n)\\) and \\(Z\\sim N(0,\\Gamma)\\), allowing every matrix to be singular, then the distribution function of \\(\\max_{1\\leq k\\leq q}|Z_k|\\) is continuous and strictly increasing on \\([0,\\infty)\\), and the \\(u\\)-quantiles of \\(\\max_k|Z_{n,k}|\\) converge to its \\(u\\)-quantile for every \\(u\\in(0,1)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.gaussian_max_quantile_continuity",
+        "file": "Helpers/GaussianMax.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4f8adf6f992ce9fc3eb382c73a3e98a42746103d",
+        "note": "After unfolding, GaussianCovariance specifies a probability Gaussian law with zero coordinate means and covariance Γ, maxAbs is the coordinate sup norm, and quantile is the lower CDF inverse; the domains, singular-covariance allowance, continuity, strict increase, and interior-quantile convergence match in both directions."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:active-frontier-recovery",
+      "obj_id": "T-5",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix \\(m=|\\mathcal A|\\) and a known \\(J\\) with \\(2\\leq J\\leq m\\). For every \\(P\\in\\mathcal M_{\\mathrm{face}}\\), the anchor-star recovery map is well-defined and\n\\[\n \\Phi(p)=\\theta_J=(\\nu_1^\\top,\\ldots,\\nu_J^\\top,\\tau^\\top)^\\top\n \\in\\mathbb R^{(J+1)(m+1)}.\n\\]\nThroughout \\(\\mathcal F(p)\\), in the common descending cycle-product order, the formulas recover \\(\\alpha_j^d>0\\), \\(s_j^d\\), every active row of \\(Q_j\\) and \\(R_j^d\\), the complete unnormalized component law of \\((Z,X_0,X_1,X_2,X_3)\\) on \\(\\{X_1\\in\\mathcal A\\}\\),\n\\[\n \\nu_j=s_j^1Q_j(R_j^1-R_j^0),\\qquad\n \\eta_j=\\nu_j/\\alpha_j^1,\n \\qquad \\tau=\\sum_{j=1}^J\\nu_j.\n\\]\nMoreover \\(\\pi_j^d\\geq\\alpha_j^d>0\\) is derived from anchor-star nonsingularity, rather than assumed. Four anchor slices determine the spectral basis, while the \\(2m-1\\) observable anchor-star slices transport recovery to all active states. Units with \\(X_1=e\\) have zero treatment effect by no anticipation and absorption. Without the no-date-\\(1\\)-absorption condition, the theorem does not identify \\(\\pi_j^d\\) or the full conditional \\(\\tau_j\\). No time homogeneity is required. Only four waves \\(X_0,\\ldots,X_3\\) are required; if a fifth wave is observed it may be marginalized out.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Panel.AbsorbingFourSliceAttRecovery.active_frontier_recovery",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "aux_absorptionLegal",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def absorptionLegal, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "absorptionLegal",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_activeMass",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def activeMass, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "activeMass",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_activePathMass",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def activePathMass, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "activePathMass",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ActiveRecoveryAt",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ActiveRecoveryAt, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ActiveRecoveryAt",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ActiveState",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ActiveState, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ActiveState",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AffineCellTangent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AffineCellTangent, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AffineCellTangent",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_allowedTransition",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def allowedTransition, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "allowedTransition",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_atRiskEffect",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def atRiskEffect, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "atRiskEffect",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_cellLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def cellLaw, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "cellLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_covariance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def covariance, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "covariance",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_coverageEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def coverageEvent, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "coverageEvent",
+        "file": "TUniformBands.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_EmpiricalPluginAttains",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def EmpiricalPluginAttains, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "EmpiricalPluginAttains",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_exitState",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def exitState, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "exitState",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_FourWaveLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def FourWaveLaw, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "FourWaveLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_FullAtom",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def FullAtom, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "FullAtom",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_fullTypeEffect",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def fullTypeEffect, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "fullTypeEffect",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuardedEstimate",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuardedEstimate, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuardedEstimate",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guardEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guardEvent, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guardEvent",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_matrixEntrySize",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def matrixEntrySize, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "matrixEntrySize",
+        "file": "TUniformBands.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ObservedSliceFamily",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ObservedSliceFamily, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ObservedSliceFamily",
+        "file": "Helpers/Slices.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_orderedSimpleSpectrum",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def orderedSimpleSpectrum, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "orderedSimpleSpectrum",
+        "file": "Helpers/Recovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RawCell",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RawCell, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RawCell",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_recoveredActivePathMass",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def recoveredActivePathMass, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "recoveredActivePathMass",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RecoveryOutput",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RecoveryOutput, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RecoveryOutput",
+        "file": "Helpers/Recovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RelativeAnalyticAt",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RelativeAnalyticAt, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RelativeAnalyticAt",
+        "file": "Helpers/Analytic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RowStochasticOn",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RowStochasticOn, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RowStochasticOn",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_sampleVector",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def sampleVector, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "sampleVector",
+        "file": "TUniformBands.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SaturatedCanonicalGradient",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SaturatedCanonicalGradient, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SaturatedCanonicalGradient",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SaturatedInformationBound",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SaturatedInformationBound, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SaturatedInformationBound",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_scaledLinearizationRemainder",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def scaledLinearizationRemainder, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "scaledLinearizationRemainder",
+        "file": "TUniformBands.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_sigmaHat",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def sigmaHat, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "sigmaHat",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_trueTarget",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def trueTarget, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "trueTarget",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_typeContribution",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def typeContribution, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "typeContribution",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AbsorbingKernel",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AbsorbingKernel, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AbsorbingKernel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_EmpiricalPluginAsymptoticallyLinear",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def EmpiricalPluginAsymptoticallyLinear, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "EmpiricalPluginAsymptoticallyLinear",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_EmpiricalPluginRegular",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def EmpiricalPluginRegular, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "EmpiricalPluginRegular",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_InFace",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def InFace, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "InFace",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_KernelSystem",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def KernelSystem, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "KernelSystem",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ObservedLegal",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ObservedLegal, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ObservedLegal",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_orderedCharpolySpectrum",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def orderedCharpolySpectrum, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "orderedCharpolySpectrum",
+        "file": "Helpers/Spectral.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_typeMass",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def typeMass, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "typeMass",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_Cell",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def Cell, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "Cell",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_InitialAbsorberNonidentification",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def InitialAbsorberNonidentification, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "InitialAbsorberNonidentification",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_KernelSystemMembership",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def KernelSystemMembership, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "KernelSystemMembership",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ObservationallyEquivalent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ObservationallyEquivalent, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ObservationallyEquivalent",
+        "file": "TActiveFrontierRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_regularRecoveryPoint",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def regularRecoveryPoint, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "regularRecoveryPoint",
+        "file": "Helpers/Analytic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RelativeInteriorSamplingLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RelativeInteriorSamplingLaw, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RelativeInteriorSamplingLaw",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RepresentsCellLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RepresentsCellLaw, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RepresentsCellLaw",
+        "file": "TAnalyticGradient.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_sameRecoveryDesign",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def sameRecoveryDesign, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "sameRecoveryDesign",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SelectedObservedSliceFamily",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SelectedObservedSliceFamily, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SelectedObservedSliceFamily",
+        "file": "Helpers/Slices.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_cycleSignature",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def cycleSignature, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "cycleSignature",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_legalCellSimplex",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def legalCellSimplex, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "legalCellSimplex",
+        "file": "Helpers/Margin.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CoherentRecoveryKernels",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CoherentRecoveryKernels, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CoherentRecoveryKernels",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CommonDateTwoTransition",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CommonDateTwoTransition, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CommonDateTwoTransition",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CommonFirstPostUntreatedTransition",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CommonFirstPostUntreatedTransition, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CommonFirstPostUntreatedTransition",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_FactualFirstPostTransitionLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def FactualFirstPostTransitionLaw, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "FactualFirstPostTransitionLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_MarginalPathKernelSystem",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def MarginalPathKernelSystem, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "MarginalPathKernelSystem",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RecoveryKernelSystem",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RecoveryKernelSystem, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RecoveryKernelSystem",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "proof-uses",
+      "from": "thm:face-recovery",
+      "to": "thm:active-frontier-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:face-recovery",
+      "to": "def:compatible-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:face-recovery",
+      "to": "ass:no-date-one-absorption",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:face-recovery",
+      "to": "ass:cohort-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:face-recovery",
+      "to": "ass:two-types",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:face-recovery",
+      "to": "ass:absorbing-exit",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "def:exact-witness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "def:outside-face-pair",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "def:face-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "def:observed-slices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:consistency",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:no-anticipation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:two-types",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:cohort-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:markov-paths",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:absorbing-exit",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:no-date-one-absorption",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:common-date-two-transition",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:common-first-post-untreated-transition",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:four-slice-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:simple-cycle-spectrum",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "thm:active-frontier-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:analytic-gradient",
+      "to": "def:recovery-map",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:analytic-gradient",
+      "to": "def:guarded-estimator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:analytic-gradient",
+      "to": "thm:active-frontier-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:analytic-gradient",
+      "to": "ass:iid-panels",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:analytic-gradient",
+      "to": "ass:cohort-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "def:buffered-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "def:margin-vector",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "def:guarded-estimator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "def:multiplier-band",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "thm:active-frontier-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "thm:analytic-gradient",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "lem:gaussian-max-quantile-continuity",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "ass:iid-panels",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "ass:margin-buffer",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-bands",
+      "to": "ass:variance-buffer",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:constrained-efficiency-characterization",
+      "to": "def:face-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:constrained-efficiency-characterization",
+      "to": "thm:analytic-gradient",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:face-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:compatible-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:observed-slices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:recovery-map",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:consistency",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:no-anticipation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:two-types",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:cohort-overlap",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:markov-paths",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:absorbing-exit",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:common-date-two-transition",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:common-first-post-untreated-transition",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:four-slice-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "ass:simple-cycle-spectrum",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:face-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:face-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:face-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:exact-boundary-witness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:exact-boundary-witness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:exact-boundary-witness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:analytic-gradient",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:analytic-gradient",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:analytic-gradient",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:uniform-bands",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:uniform-bands",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:uniform-bands",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:active-frontier-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:active-frontier-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:active-frontier-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:consistency",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:no-anticipation",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:two-types",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:cohort-overlap",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:markov-paths",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:absorbing-exit",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:no-date-one-absorption",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:common-date-two-transition",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:common-first-post-untreated-transition",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:four-slice-rank",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:simple-cycle-spectrum",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:iid-panels",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:iid-panels",
+      "to": "aux_ObservedLegal",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:iid-panels",
+      "to": "S2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:iid-panels",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:consistency",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:no-anticipation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:two-types",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:cohort-overlap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:markov-paths",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:absorbing-exit",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "aux_CommonDateTwoTransition",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "aux_CommonFirstPostUntreatedTransition",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:four-slice-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:face-model",
+      "to": "ass:simple-cycle-spectrum",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:compatible-fiber",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:multiplier-band",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:multiplier-band",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:multiplier-band",
+      "to": "aux_GuardedEstimate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:multiplier-band",
+      "to": "def:guarded-estimator",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:margin-vector",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:margin-vector",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:margin-buffer",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:margin-buffer",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:variance-buffer",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:variance-buffer",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:buffered-class",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:buffered-class",
+      "to": "def:face-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:buffered-class",
+      "to": "ass:margin-buffer",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:buffered-class",
+      "to": "aux_cellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:buffered-class",
+      "to": "ass:variance-buffer",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:guarded-estimator",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:guarded-estimator",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:guarded-estimator",
+      "to": "aux_GuardedEstimate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:recovery-map",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:recovery-map",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:recovery-map",
+      "to": "aux_RecoveryOutput",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:observed-slices",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:observed-slices",
+      "to": "def:face-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:observed-slices",
+      "to": "aux_RecoveryKernelSystem",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:observed-slices",
+      "to": "aux_CoherentRecoveryKernels",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:observed-slices",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:observed-slices",
+      "to": "aux_cellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:exact-witness",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:outside-face-pair",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:outside-face-pair",
+      "to": "aux_InFace",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:outside-face-pair",
+      "to": "ass:no-date-one-absorption",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_InFace",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "ass:no-date-one-absorption",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "def:exact-witness",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_cellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_typeContribution",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_fullTypeEffect",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_activeMass",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_typeMass",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:exact-boundary-witness",
+      "to": "aux_atRiskEffect",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:face-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:margin-vector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "aux_cellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:recovery-map",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "aux_trueTarget",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "def:compatible-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "aux_ActiveRecoveryAt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "aux_ActiveState",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:active-frontier-recovery",
+      "to": "aux_InitialAbsorberNonidentification",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_legalCellSimplex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_regularRecoveryPoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_RelativeAnalyticAt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_RelativeInteriorSamplingLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_SaturatedCanonicalGradient",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_SaturatedInformationBound",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "S2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_RepresentsCellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:analytic-gradient",
+      "to": "aux_EmpiricalPluginAttains",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_FourWaveLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_InFace",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "ass:no-date-one-absorption",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "def:compatible-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_typeMass",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_activeMass",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_fullTypeEffect",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_atRiskEffect",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_typeContribution",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_exitState",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "def:recovery-map",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_cellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:face-recovery",
+      "to": "aux_trueTarget",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "S2",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_Cell",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "ass:iid-panels",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_guardEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_sampleVector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_scaledLinearizationRemainder",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_matrixEntrySize",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_sigmaHat",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_covariance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_cellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-bands",
+      "to": "aux_coverageEvent",
+      "source": "extracted"
+    }
+  ],
+  "symbolReview": {
+    "sym:d": {
+      "verdict": "matched",
+      "hash": "3dd947188e3998ca25bd9bba26669891964ef038"
+    },
+    "sym:r": {
+      "verdict": "matched",
+      "hash": "edd96ca8b13c75b16be85b5d8b81d2a21cefd71b"
+    },
+    "sym:j": {
+      "verdict": "matched",
+      "hash": "4cfd35f5cfa5e7b342d38ca65508ed3d5fd89013"
+    },
+    "sym:t": {
+      "verdict": "matched",
+      "hash": "1a66fa7a714e549b74464302a6b508de5c92155f"
+    },
+    "sym:D": {
+      "verdict": "matched",
+      "hash": "7ca988e7649e6d8e18f213a6074d4d0fc3bf1ea6"
+    },
+    "sym:Z": {
+      "verdict": "matched",
+      "hash": "1f046419507646cfad74f36fd4e3daf7fd521001"
+    },
+    "sym:\\pi_j^d": {
+      "verdict": "matched",
+      "hash": "51c69df4d45bd8bcd35c69bd7428947a82fd7145"
+    },
+    "sym:g^d": {
+      "verdict": "matched",
+      "hash": "c20615b373715d4fdcc5edb619432715dab60452"
+    },
+    "sym:\\kappa": {
+      "verdict": "matched",
+      "hash": "6b72c66cb9b5b238e8c7202295090b780c390167"
+    },
+    "sym:\\alpha_j^d": {
+      "verdict": "matched",
+      "hash": "cb5c51d813e2541b96dc1a3e7330c3f3293d7cc5"
+    },
+    "sym:J": {
+      "verdict": "matched",
+      "hash": "c0f5a1ecf8dfd5ddb5da417ad95294855a4cbe03"
+    },
+    "sym:\\xi_i": {
+      "verdict": "matched",
+      "hash": "ba124765eb6f7578250557e2d946536b4332485a"
+    },
+    "sym:\\alpha": {
+      "verdict": "matched",
+      "hash": "5e48567932f554c0997dd38838fcd6d52e687f8a"
+    },
+    "sym:\\mathcal L": {
+      "verdict": "matched",
+      "hash": "5b7681589b50493a74a6edccb3b5cc204f825ac9"
+    },
+    "sym:T^\\star": {
+      "verdict": "matched",
+      "hash": "75f09734b5224f9e6edee35d9a19dbba78fad092"
+    },
+    "sym:\\widehat c_{1-\\alpha}": {
+      "verdict": "matched",
+      "hash": "e97555909e35d1bbb83796b0070baa3b0a91b270"
+    },
+    "sym:\\varepsilon": {
+      "verdict": "matched",
+      "hash": "8e08a832451842f5324f5173d2e2050fcaf54cd2"
+    },
+    "sym:h": {
+      "verdict": "matched",
+      "hash": "36c93970cb46d3b1fa8d6eec9cf5676ee95d3fc2"
+    },
+    "sym:k": {
+      "verdict": "matched",
+      "hash": "fb4412de48cd6c746af3b4d25810c3c8dcac7cb4"
+    }
+  }
+}

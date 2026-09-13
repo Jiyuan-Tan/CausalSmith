@@ -1,0 +1,3194 @@
+{
+  "qid": "stat_minimax_annealed_assignment",
+  "specialization": "v1",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "m",
+      "type": "number of target-population cells",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "A fixed integer that does not vary with \\(n\\).",
+      "role": "decision dimension"
+    },
+    {
+      "name": "d",
+      "type": "contact dimension",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(d=m-1\\).",
+      "role": "Gaussian dimension",
+      "refs": [
+        "m"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "cell index",
+      "space": "\\(\\{1,\\ldots,m\\}\\)",
+      "def": "Generic target-cell label.",
+      "role": "index",
+      "refs": [
+        "m"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "treatment index",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "Generic binary-treatment label.",
+      "role": "index"
+    },
+    {
+      "name": "n",
+      "type": "sample size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of observational units.",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "K",
+      "type": "number of cross-fitting folds",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "A fixed fold count that does not vary with \\(n\\).",
+      "role": "estimation design",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "i",
+      "type": "sample index",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "def": "Generic observational-unit label.",
+      "role": "index",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "k",
+      "type": "cross-fitting fold index",
+      "space": "\\(\\{1,\\ldots,K\\}\\)",
+      "def": "Generic fold label.",
+      "role": "index",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "\\mathcal I_k",
+      "type": "deterministic cross-fitting fold",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "\\(\\mathcal I_1,\\ldots,\\mathcal I_K\\) is a deterministic partition of \\(\\{1,\\ldots,n\\}\\) with fold sizes differing by at most one.",
+      "role": "sample split",
+      "refs": [
+        "n",
+        "K",
+        "k"
+      ]
+    },
+    {
+      "name": "\\Pi_{[a,b]}",
+      "type": "scalar clipping map",
+      "sig": "\\(\\mathbb R\\to[a,b]\\)",
+      "def": "\\(\\Pi_{[a,b]}(x)=\\min\\{b,\\max\\{a,x\\}\\}\\) for fixed \\(a<b\\).",
+      "role": "measurable stabilization"
+    },
+    {
+      "name": "p",
+      "type": "known target-cell mass vector",
+      "space": "\\(\\{u\\in(0,1)^m:\\sum_{j=1}^m u_j=1\\}\\)",
+      "def": "\\(p=(p_1,\\ldots,p_m)^\\top\\) is supplied by the target-population registry.",
+      "role": "known capacity geometry",
+      "refs": [
+        "m",
+        "j"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "known treatment capacity",
+      "space": "\\((0,1)\\)",
+      "def": "The supplied population fraction that must receive treatment.",
+      "role": "known capacity geometry"
+    },
+    {
+      "name": "b",
+      "type": "benchmark assignment vector",
+      "space": "\\((0,1)^m\\)",
+      "def": "\\(b=(b_1,\\ldots,b_m)^\\top\\) fixes the reverse-KL reference allocation.",
+      "role": "annealing benchmark",
+      "refs": [
+        "m"
+      ]
+    },
+    {
+      "name": "\\kappa",
+      "type": "local temperature",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Fixed positive local regularization constant.",
+      "role": "regime parameter"
+    },
+    {
+      "name": "\\underline e",
+      "type": "overlap constant",
+      "space": "\\((0,1/2)\\)",
+      "def": "A fixed treatment-overlap lower bound.",
+      "role": "regularity constant"
+    },
+    {
+      "name": "C_Y",
+      "type": "outcome bound",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A fixed almost-sure bound for both potential outcomes.",
+      "role": "regularity constant"
+    },
+    {
+      "name": "\\underline\\omega",
+      "type": "covariance lower bound",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A fixed lower eigenvalue bound.",
+      "role": "regularity constant"
+    },
+    {
+      "name": "\\overline\\omega",
+      "type": "covariance upper bound",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A fixed upper eigenvalue bound with \\(\\underline\\omega<\\overline\\omega\\).",
+      "role": "regularity constant",
+      "refs": [
+        "\\underline\\omega"
+      ]
+    },
+    {
+      "name": "\\operatorname{expit}",
+      "type": "logistic map",
+      "sig": "\\(\\mathbb R\\to(0,1)\\)",
+      "def": "\\(\\operatorname{expit}(x)=(1+e^{-x})^{-1}\\).",
+      "role": "entropy response"
+    },
+    {
+      "name": "\\operatorname{logit}",
+      "type": "log-odds map",
+      "sig": "\\((0,1)\\to\\mathbb R\\)",
+      "def": "\\(\\operatorname{logit}(x)=\\log(x/(1-x))\\).",
+      "role": "entropy coordinate"
+    },
+    {
+      "name": "\\operatorname{kl}",
+      "type": "total extended-real Bernoulli reverse-KL divergence",
+      "sig": "\\([0,1]\\times[0,1]\\to[0,\\infty]\\)",
+      "def": "\\(\\operatorname{kl}(a,s)=a\\log(a/s)+(1-a)\\log((1-a)/(1-s))\\) on \\([0,1]^2\\), with \\(0\\log(0/x)=0\\) for every \\(x\\in[0,1]\\), \\(x\\log(x/0)=+\\infty\\) for every \\(x>0\\), and the sum taken in the extended nonnegative reals. Thus \\(\\operatorname{kl}(0,0)=\\operatorname{kl}(1,1)=0\\), \\(\\operatorname{kl}(a,0)=+\\infty\\) for \\(a>0\\), and \\(\\operatorname{kl}(a,1)=+\\infty\\) for \\(a<1\\).",
+      "role": "loss primitive"
+    },
+    {
+      "name": "\\Phi",
+      "type": "standard normal distribution function",
+      "sig": "\\(\\mathbb R\\to(0,1)\\)",
+      "def": "\\(\\Phi(x)=\\Pr(U\\le x)\\) for \\(U\\sim N(0,1)\\).",
+      "role": "temperature-limit constant"
+    },
+    {
+      "name": "D_p",
+      "type": "cell-mass matrix",
+      "space": "\\(\\mathbb R^{m\\times m}\\)",
+      "def": "\\(D_p=\\operatorname{diag}(p_1,\\ldots,p_m)\\).",
+      "role": "capacity geometry",
+      "refs": [
+        "p",
+        "m"
+      ]
+    },
+    {
+      "name": "u_j",
+      "type": "cell coordinate vector",
+      "space": "\\(\\mathbb R^m\\)",
+      "def": "The \\(j\\)-th standard basis vector of \\(\\mathbb R^m\\).",
+      "role": "cell-score coordinate",
+      "refs": [
+        "j",
+        "m"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "capacity-tangent basis",
+      "space": "\\(\\mathbb R^{m\\times d}\\)",
+      "def": "The ambient orthonormal frame is fixed as part of \\(\\mathfrak G\\): \\(B^\\top B=I_d\\), \\(B^\\top p=0\\), and its ordered columns are not subsequently rotated.",
+      "role": "framed contrast coordinates",
+      "refs": [
+        "m",
+        "d",
+        "p"
+      ]
+    },
+    {
+      "name": "\\Omega",
+      "type": "contact covariance",
+      "space": "\\(\\mathbb S_{++}^d\\)",
+      "def": "The positive-definite covariance matrix expressed in the fixed \\(B\\)-coordinates of \\(\\mathfrak G\\).",
+      "role": "framed Gaussian covariance",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "Q",
+      "type": "whitened welfare loading",
+      "space": "\\(\\mathbb R^{d\\times m}\\)",
+      "def": "\\(Q=\\Omega^{1/2}B^\\top\\), with the principal symmetric square root and the fixed frame supplied by \\(\\mathfrak G\\).",
+      "role": "Gaussian game loading",
+      "refs": [
+        "\\Omega",
+        "B",
+        "d",
+        "m"
+      ]
+    },
+    {
+      "name": "\\mathcal A",
+      "type": "exact-capacity action polytope",
+      "space": "\\(2^{[0,1]^m}\\)",
+      "def": "\\(\\mathcal A=\\{a\\in[0,1]^m:p^\\top a=q\\}\\).",
+      "role": "decision space",
+      "refs": [
+        "m",
+        "p",
+        "q"
+      ]
+    },
+    {
+      "name": "H",
+      "type": "weighted benchmark divergence",
+      "sig": "\\([0,1]^m\\to[0,\\infty)\\)",
+      "def": "\\(H(a)=\\sum_{j=1}^m p_j\\operatorname{kl}(a_j,b_j)\\).",
+      "role": "annealing penalty",
+      "refs": [
+        "m",
+        "j",
+        "p",
+        "b",
+        "\\operatorname{kl}"
+      ]
+    },
+    {
+      "name": "\\mathfrak G",
+      "type": "framed Gaussian capacity geometry",
+      "def": "\\(\\mathfrak G=(m,p,q,b,\\kappa;B,\\Omega;Q,\\mathcal A,H)\\) is the framed ambient geometry. Its definition attaches the canonically derived chart collection without adding a freely rotatable coordinate choice.",
+      "role": "single coordinate interface",
+      "refs": [
+        "m",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B",
+        "\\Omega",
+        "Q",
+        "\\mathcal A",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathfrak G_2",
+      "type": "canonical framed binary geometry",
+      "def": "The instance of \\(\\mathfrak G\\) with \\(m=2\\), \\(p=b=(1/2,1/2)\\), \\(q=1/2\\), \\(B=2^{-1/2}(1,-1)^\\top\\), and \\(\\Omega=1/2\\).",
+      "role": "scalar normalization",
+      "refs": [
+        "\\mathfrak G",
+        "m",
+        "p",
+        "b",
+        "q",
+        "B",
+        "\\Omega"
+      ]
+    },
+    {
+      "name": "\\mathfrak G_3",
+      "type": "three-cell Helmert-framed geometry",
+      "def": "The instance of \\(\\mathfrak G\\) with \\(m=3\\), \\(p=(1/3,1/3,1/3)\\), \\(q=1/2\\), \\(b=(1/2,1/2,1/2)\\), \\(B=[(1,-1,0)^\\top/\\sqrt2,(1,1,-2)^\\top/\\sqrt6]\\), and \\(\\Omega=\\operatorname{diag}(1,4)\\).",
+      "role": "reproducible early-kill experiment",
+      "refs": [
+        "\\mathfrak G",
+        "m",
+        "p",
+        "q",
+        "b",
+        "B",
+        "\\Omega"
+      ]
+    },
+    {
+      "name": "h",
+      "type": "local welfare parameter",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "Generic mean of the canonical Gaussian contact experiment.",
+      "role": "nature state",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "\\mathcal G",
+      "type": "finite local-parameter subset",
+      "space": "\\(2^{\\mathbb R^d}\\)",
+      "def": "A generic finite subset of the Gaussian parameter space.",
+      "role": "finite-experiment index set",
+      "refs": [
+        "h",
+        "d"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "Gaussian contact observation",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(Z\\sim N_d(h,I_d)\\).",
+      "role": "limit observation",
+      "refs": [
+        "h",
+        "d"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "oracle annealed assignment map",
+      "sig": "\\(\\mathbb R^d\\to\\mathcal A\\)",
+      "def": "\\(s(h)=\\arg\\max_{a\\in\\mathcal A}\\{h^\\top Qa-\\kappa H(a)\\}\\).",
+      "role": "oracle policy",
+      "ref": "def:oracle-action",
+      "refs": [
+        "h",
+        "Q",
+        "\\kappa",
+        "H",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\ell",
+      "type": "Gaussian annealed regret",
+      "sig": "\\(\\mathbb R^d\\times\\mathcal A\\to[0,\\infty)\\)",
+      "def": "\\(\\ell(h,a)=h^\\top Qs(h)-\\kappa H(s(h))-h^\\top Qa+\\kappa H(a)\\).",
+      "role": "limit loss",
+      "refs": [
+        "h",
+        "\\mathcal A",
+        "Q",
+        "s",
+        "\\kappa",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathscr D",
+      "type": "Gaussian candidate-rule space",
+      "space": "\\(\\{\\bar\\delta:\\mathbb R^d\\to\\mathcal A\\text{ Borel}\\}/\\!\\sim\\)",
+      "def": "The quotient of all Borel maps \\(\\bar\\delta:\\mathbb R^d\\to\\mathcal A\\), where \\(\\bar\\delta_1\\sim\\bar\\delta_2\\) when they agree Lebesgue almost everywhere.",
+      "role": "minimax and policy confidence space",
+      "refs": [
+        "d",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\delta",
+      "type": "generic nonrandomized Gaussian assignment rule",
+      "space": "\\mathscr D",
+      "def": "A generic equivalence class of Borel exactly feasible assignment maps.",
+      "role": "decision rule",
+      "refs": [
+        "\\mathscr D",
+        "d",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "Gaussian frequentist risk",
+      "sig": "\\(\\mathbb R^d\\times\\mathscr D\\to[0,\\infty]\\)",
+      "def": "\\(R(h,\\bar\\delta)=\\mathbb E_h[\\ell(h,\\bar\\delta(Z))]\\) for \\(\\bar\\delta\\in\\mathscr D\\).",
+      "role": "risk criterion",
+      "refs": [
+        "h",
+        "\\mathscr D",
+        "\\ell",
+        "Z",
+        "d"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "Gaussian minimax value",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(r=\\inf_{\\bar\\delta\\in\\mathscr D}\\sup_{h\\in\\mathbb R^d}R(h,\\bar\\delta)\\).",
+      "role": "headline value",
+      "refs": [
+        "\\mathscr D",
+        "h",
+        "d",
+        "R"
+      ]
+    },
+    {
+      "name": "\\mathfrak R",
+      "type": "Gaussian minimax correspondence",
+      "space": "\\(2^{\\mathscr D}\\)",
+      "def": "\\(\\mathfrak R=\\{\\bar\\delta\\in\\mathscr D:\\sup_{h\\in\\mathbb R^d}R(h,\\bar\\delta)=r\\}\\).",
+      "role": "candidate minimax set",
+      "refs": [
+        "\\mathscr D",
+        "h",
+        "d",
+        "R",
+        "r"
+      ]
+    },
+    {
+      "name": "\\delta^\\star",
+      "type": "conditionally bound Gaussian minimax representative",
+      "sig": "\\(\\mathbb R^d\\to\\mathcal A\\)",
+      "def": "A symbol bound only by \\(\\mathrm{prop{:}minimax\\text{-}selector\\text{-}binding}\\) after the affirmative conclusion of \\(\\mathrm{oeq{:}global\\text{-}minimax\\text{-}existence}\\); it has no referent otherwise.",
+      "role": "downstream conditional notation",
+      "ref": "prop:minimax-selector-binding",
+      "refs": [
+        "\\mathfrak R",
+        "d",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\delta^{\\mathrm{sc}}_\\kappa",
+      "type": "scalar reverse-KL minimax rule",
+      "sig": "\\(\\mathbb R\\to(0,1)\\)",
+      "def": "The essentially unique scalar rule asserted by \\(\\mathrm{thm{:}scalar\\text{-}reverse\\text{-}kl\\text{-}saddle}\\).",
+      "role": "settled scalar edge rule",
+      "refs": [
+        "\\kappa"
+      ]
+    },
+    {
+      "name": "\\pi_\\kappa",
+      "type": "scalar proper least-favorable prior",
+      "space": "\\(\\mathcal P(\\mathbb R)\\)",
+      "def": "A proper least-favorable distribution for the scalar reverse-KL game at temperature \\(\\kappa\\).",
+      "role": "scalar saddle object",
+      "refs": [
+        "\\kappa"
+      ]
+    },
+    {
+      "name": "r_0",
+      "type": "zero-temperature scalar minimax value",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(r_0=\\sup_{u\\ge0}u\\Phi(-u)\\).",
+      "role": "temperature-limit value",
+      "refs": [
+        "\\Phi"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "exposed face of the capacity polytope",
+      "space": "\\(2^{\\mathcal A}\\)",
+      "def": "A nonempty exposed face \\(F=\\arg\\max_{a\\in\\mathcal A}v^\\top Qa\\) for some \\(v\\in\\mathbb R^d\\), interpreted with the chart supplied by \\(\\mathfrak G\\).",
+      "role": "boundary experiment index",
+      "refs": [
+        "\\mathfrak G",
+        "\\mathcal A",
+        "d",
+        "Q"
+      ]
+    },
+    {
+      "name": "E",
+      "type": "nested exposed subface",
+      "space": "\\(2^F\\)",
+      "def": "A generic exposed face \\(E\\subsetneq F\\); the same framed construction is applied to this face.",
+      "role": "nested-face index",
+      "refs": [
+        "F",
+        "\\mathfrak G"
+      ]
+    },
+    {
+      "name": "r_F",
+      "type": "face dimension",
+      "space": "\\(\\{0,\\ldots,d\\}\\)",
+      "def": "\\(r_F=\\dim(F)\\).",
+      "role": "face experiment dimension",
+      "refs": [
+        "F",
+        "d"
+      ]
+    },
+    {
+      "name": "a_F^0",
+      "type": "canonical face origin",
+      "space": "\\(\\mathbb R^m\\)",
+      "def": "\\(a_F^0=\\arg\\min_{a\\in\\operatorname{aff}(F)}\\lVert a\\rVert_2\\).",
+      "role": "affine chart origin",
+      "refs": [
+        "F",
+        "m"
+      ]
+    },
+    {
+      "name": "B_F",
+      "type": "canonical affine-action chart basis",
+      "space": "\\(\\mathbb R^{m\\times r_F}\\)",
+      "def": "The ordered orthonormal basis of \\(\\operatorname{lin}(F-F)\\) produced by lexicographically signed Gram--Schmidt from \\(u_1,\\ldots,u_m\\); it is the \\(B_F\\)-component of \\(\\mathfrak G\\).",
+      "role": "face action chart",
+      "refs": [
+        "\\mathfrak G",
+        "F",
+        "m",
+        "u_j",
+        "r_F"
+      ]
+    },
+    {
+      "name": "\\mathcal X_F",
+      "type": "face-coordinate action polytope",
+      "space": "\\(2^{\\mathbb R^{r_F}}\\)",
+      "def": "\\(\\mathcal X_F=\\{x\\in\\mathbb R^{r_F}:a_F^0+B_Fx\\in F\\}\\).",
+      "role": "transported action space",
+      "refs": [
+        "r_F",
+        "a_F^0",
+        "B_F",
+        "F"
+      ]
+    },
+    {
+      "name": "G_F",
+      "type": "face loading Gram matrix",
+      "space": "\\(\\mathbb S_{++}^{r_F}\\)",
+      "def": "\\(G_F=B_F^\\top Q^\\top QB_F\\) when \\(r_F>0\\).",
+      "role": "face whitening matrix",
+      "refs": [
+        "r_F",
+        "B_F",
+        "Q"
+      ]
+    },
+    {
+      "name": "J_F",
+      "type": "observation isometry",
+      "space": "\\(\\mathbb R^{d\\times r_F}\\)",
+      "def": "\\(J_F=QB_FG_F^{-1/2}\\), so \\(J_F^\\top J_F=I_{r_F}\\).",
+      "role": "face observation chart",
+      "refs": [
+        "d",
+        "r_F",
+        "Q",
+        "B_F",
+        "G_F"
+      ]
+    },
+    {
+      "name": "Z_F",
+      "type": "transported face observation",
+      "space": "\\(\\mathbb R^{r_F}\\)",
+      "def": "\\(Z_F=J_F^\\top Z\\); under \\(Z\\sim N_d(J_F\\theta,I_d)\\), \\(Z_F\\sim N_{r_F}(\\theta,I_{r_F})\\).",
+      "role": "identity-covariance face data",
+      "refs": [
+        "r_F",
+        "J_F",
+        "Z",
+        "d"
+      ]
+    },
+    {
+      "name": "s_F",
+      "type": "canonical face oracle",
+      "sig": "\\(\\mathbb R^{r_F}\\to F\\)",
+      "def": "\\(s_F(\\theta)=a_F^0+B_F\\arg\\max_{x\\in\\mathcal X_F}\\{\\theta^\\top G_F^{1/2}x-\\kappa H(a_F^0+B_Fx)\\}\\).",
+      "role": "transported oracle action",
+      "refs": [
+        "r_F",
+        "F",
+        "a_F^0",
+        "B_F",
+        "\\mathcal X_F",
+        "G_F",
+        "\\kappa",
+        "H"
+      ]
+    },
+    {
+      "name": "\\delta_F^{\\mathrm{plug}}",
+      "type": "canonical face plug-in rule",
+      "sig": "\\(\\mathbb R^{r_F}\\to F\\)",
+      "def": "\\(\\delta_F^{\\mathrm{plug}}(z_F)=s_F(z_F)\\).",
+      "role": "defined face comparator",
+      "refs": [
+        "r_F",
+        "F",
+        "s_F"
+      ]
+    },
+    {
+      "name": "\\ell_F",
+      "type": "transported face loss",
+      "sig": "\\(\\mathbb R^{r_F}\\times F\\to[0,\\infty)\\)",
+      "def": "\\(\\ell_F(\\theta,a)=\\theta^\\top G_F^{1/2}B_F^\\top[s_F(\\theta)-a]-\\kappa H(s_F(\\theta))+\\kappa H(a)\\).",
+      "role": "face regret",
+      "refs": [
+        "r_F",
+        "F",
+        "G_F",
+        "B_F",
+        "s_F",
+        "\\kappa",
+        "H"
+      ]
+    },
+    {
+      "name": "\\mathscr D_F",
+      "type": "face candidate-rule space",
+      "space": "\\(\\{\\delta_F:\\mathbb R^{r_F}\\to F\\text{ Borel}\\}/\\!\\sim\\)",
+      "def": "The quotient by Lebesgue almost-everywhere equality in \\(\\mathbb R^{r_F}\\).",
+      "role": "face decision rules",
+      "refs": [
+        "r_F",
+        "F"
+      ]
+    },
+    {
+      "name": "R_F",
+      "type": "transported face risk",
+      "sig": "\\(\\mathbb R^{r_F}\\times\\mathscr D_F\\to[0,\\infty]\\)",
+      "def": "\\(R_F(\\theta,\\delta_F)=\\mathbb E_{Z_F\\sim N_{r_F}(\\theta,I_{r_F})}[\\ell_F(\\theta,\\delta_F(Z_F))]\\).",
+      "role": "face minimax criterion",
+      "refs": [
+        "r_F",
+        "\\mathscr D_F",
+        "Z_F",
+        "\\ell_F"
+      ]
+    },
+    {
+      "name": "r_F^{\\min}",
+      "type": "face minimax value",
+      "space": "\\([0,\\infty]\\)",
+      "def": "\\(r_F^{\\min}=\\inf_{\\delta_F\\in\\mathscr D_F}\\sup_{\\theta\\in\\mathbb R^{r_F}}R_F(\\theta,\\delta_F)\\).",
+      "role": "face lower-bound value",
+      "refs": [
+        "\\mathscr D_F",
+        "r_F",
+        "R_F"
+      ]
+    },
+    {
+      "name": "\\mathfrak R_F",
+      "type": "face minimax correspondence",
+      "space": "\\(2^{\\mathscr D_F}\\)",
+      "def": "\\(\\mathfrak R_F=\\{\\delta_F\\in\\mathscr D_F:\\sup_{\\theta\\in\\mathbb R^{r_F}}R_F(\\theta,\\delta_F)=r_F^{\\min}\\}\\); the definition does not assert nonemptiness.",
+      "role": "face solution set",
+      "refs": [
+        "\\mathscr D_F",
+        "r_F",
+        "R_F",
+        "r_F^{\\min}"
+      ]
+    },
+    {
+      "name": "\\delta_F^{\\min}",
+      "type": "one-dimensional face minimax representative",
+      "sig": "\\(\\mathbb R\\to F\\)",
+      "def": "When \\(r_F=1\\), the Borel representative whose existence and essential uniqueness are asserted by \\(\\mathrm{thm{:}scalar\\text{-}reverse\\text{-}kl\\text{-}saddle}\\).",
+      "role": "settled edge boundary rule",
+      "refs": [
+        "F",
+        "r_F",
+        "\\mathfrak R_F"
+      ]
+    },
+    {
+      "name": "\\mathcal N_F^\\circ",
+      "type": "oriented unit normal stratum",
+      "space": "\\(2^{\\mathbb S^{d-1}}\\)",
+      "def": "\\(\\mathcal N_F^\\circ=\\{v\\in\\mathbb R^d:\\lVert v\\rVert_2=1,\\ F=\\arg\\max_{a\\in\\mathcal A}v^\\top Qa\\}\\), the relative interior of the corresponding spherical normal cone.",
+      "role": "framed escape directions",
+      "refs": [
+        "F",
+        "d",
+        "\\mathcal A",
+        "Q"
+      ]
+    },
+    {
+      "name": "\\Gamma_F",
+      "type": "complete transported face chart",
+      "def": "\\(\\Gamma_F=(r_F,a_F^0,B_F,\\mathcal X_F,G_F,J_F,s_F,\\delta_F^{\\mathrm{plug}},\\ell_F,R_F,\\mathscr D_F,r_F^{\\min},\\mathfrak R_F)\\), the \\(F\\)-component of \\(\\mathfrak G\\).",
+      "role": "face decision interface",
+      "refs": [
+        "\\mathfrak G",
+        "F",
+        "r_F",
+        "a_F^0",
+        "B_F",
+        "\\mathcal X_F",
+        "G_F",
+        "J_F",
+        "s_F",
+        "\\delta_F^{\\mathrm{plug}}",
+        "\\ell_F",
+        "\\mathscr D_F",
+        "R_F",
+        "r_F^{\\min}",
+        "\\mathfrak R_F"
+      ]
+    },
+    {
+      "name": "\\mathfrak T_{\\mathfrak G}",
+      "type": "representative-invariant local-Gaussian compatibility topology",
+      "def": "For \\(L,\\rho>0\\), \\(v\\in\\mathcal N_F^\\circ\\), \\(\\delta\\in\\mathscr D\\), and \\(\\delta_F\\in\\mathscr D_F\\), set \\[d^{\\mathfrak G}_{F,L,\\rho,v}(\\delta,\\delta_F)^2=\\sup_{\\lVert\\theta\\rVert_2\\le L}\\mathbb E_{Z\\sim N_d(\\rho v+J_F\\theta,I_d)}\\!\\left[\\lVert D_p^{1/2}\\{\\delta(Z)-\\delta_F(J_F^\\top Z)\\}\\rVert_2^2\\right].\\] For \\(E\\subsetneq F\\), put \\(J_{E\\mid F}=J_F^\\top J_E\\); for every unit \\(w\\in\\mathbb R^{r_F}\\) with \\(E=\\arg\\max_{a\\in F}w^\\top G_F^{1/2}B_F^\\top(a-a_F^0)\\), set \\[d^{\\mathfrak G}_{E\\mid F,L,\\rho,w}(\\delta_F,\\delta_E)^2=\\sup_{\\lVert\\theta\\rVert_2\\le L}\\mathbb E_{Z_F\\sim N_{r_F}(\\rho w+J_{E\\mid F}\\theta,I_{r_F})}\\!\\left[\\lVert D_p^{1/2}\\{\\delta_F(Z_F)-\\delta_E(J_{E\\mid F}^\\top Z_F)\\}\\rVert_2^2\\right].\\] Full-to-face convergence and nested-face compatibility mean that these displayed quantities tend to zero as \\(\\rho\\to\\infty\\), for every fixed \\(L\\) and displayed direction. Gaussian densities make both quantities invariant to the chosen almost-everywhere representatives.",
+      "role": "exact face-limit predicate",
+      "refs": [
+        "\\mathfrak G",
+        "F",
+        "E",
+        "\\mathcal N_F^\\circ",
+        "\\mathscr D",
+        "\\mathscr D_F",
+        "d",
+        "J_F",
+        "D_p",
+        "Z",
+        "G_F",
+        "B_F",
+        "a_F^0"
+      ]
+    },
+    {
+      "name": "\\rho_F",
+      "type": "smaller residual face capacity",
+      "space": "\\([0,1/2]\\)",
+      "def": "For any \\(a\\in F\\), let \\(J_F=\\{j:a_j\\text{ is nonconstant on }F\\}\\), \\(q_F=q-\\sum_{j\\notin J_F}p_ja_j\\), and \\(p_F=\\sum_{j\\in J_F}p_j\\). Then \\(\\rho_F=\\min\\{q_F,p_F-q_F\\}\\); the fixed coordinates make this independent of the selected \\(a\\in F\\).",
+      "role": "face-risk scale",
+      "refs": [
+        "F",
+        "p",
+        "q"
+      ]
+    },
+    {
+      "name": "\\mathsf E_F",
+      "type": "residual Gaussian face experiment",
+      "def": "The transported identity-covariance face decision problem whose complete chart is supplied by \\(\\mathfrak G\\) and displayed in \\(\\mathrm{def{:}face\\text{-}experiment}\\).",
+      "role": "boundary decision problem",
+      "ref": "def:face-experiment",
+      "refs": [
+        "\\mathfrak G",
+        "F",
+        "G_F",
+        "J_F"
+      ]
+    },
+    {
+      "name": "\\mathsf{Glue}",
+      "type": "face-compatibility construction handle",
+      "def": "The normal-fan backward-induction handle in \\(\\mathrm{def{:}face\\text{-}gluing\\text{-}handle}\\).",
+      "role": "open construction handle",
+      "ref": "def:face-gluing-handle",
+      "refs": [
+        "F",
+        "\\mathsf E_F"
+      ]
+    },
+    {
+      "name": "\\sigma",
+      "type": "oriented edge endpoint label",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The fixed-coordinate value indexing an oriented edge.",
+      "role": "edge index"
+    },
+    {
+      "name": "E_{j,\\sigma}",
+      "type": "oriented edge of the three-cell capacity hexagon",
+      "space": "\\(2^{\\mathcal A}\\)",
+      "def": "In \\(\\mathfrak G_3\\), \\(E_{j,\\sigma}=\\{a\\in\\mathcal A:a_j=\\sigma\\}\\) for \\(j\\in\\{1,2,3\\}\\) and \\(\\sigma\\in\\{0,1\\}\\).",
+      "role": "edge-certificate index",
+      "refs": [
+        "\\mathfrak G_3",
+        "\\mathcal A",
+        "j",
+        "\\sigma"
+      ]
+    },
+    {
+      "name": "n_{j,\\sigma}",
+      "type": "oriented unit normal in Gaussian parameter space",
+      "space": "\\(\\mathbb R^2\\)",
+      "def": "In \\(\\mathfrak G_3\\), \\(n_{j,\\sigma}=(2\\sigma-1)\\Omega^{-1/2}B^\\top u_j/\\lVert\\Omega^{-1/2}B^\\top u_j\\rVert_2\\); this unit vector exposes exactly \\(E_{j,\\sigma}\\).",
+      "role": "normal-ray coordinate",
+      "refs": [
+        "\\mathfrak G_3",
+        "j",
+        "\\sigma",
+        "\\Omega",
+        "B",
+        "u_j",
+        "E_{j,\\sigma}"
+      ]
+    },
+    {
+      "name": "t_{j,\\sigma}",
+      "type": "oriented unit tangent in Gaussian parameter space",
+      "space": "\\(\\mathbb R^2\\)",
+      "def": "Let \\(j^-<j^+\\) be the two indices distinct from \\(j\\), set \\(B_{E_{j,\\sigma}}=(u_{j^-}-u_{j^+})/\\sqrt2\\), and define \\(t_{j,\\sigma}=QB_{E_{j,\\sigma}}/\\lVert QB_{E_{j,\\sigma}}\\rVert_2=J_{E_{j,\\sigma}}\\). This fixes the edge orientation from \\(j^+\\) toward \\(j^-\\).",
+      "role": "tangential coordinate",
+      "refs": [
+        "\\mathfrak G_3",
+        "j",
+        "\\sigma",
+        "u_j",
+        "Q",
+        "B_F",
+        "J_F",
+        "E_{j,\\sigma}"
+      ]
+    },
+    {
+      "name": "\\delta^{F}_{j,\\sigma}",
+      "type": "canonical minimax rule on an oriented edge",
+      "sig": "\\(\\mathbb R\\to E_{j,\\sigma}\\)",
+      "def": "\\(\\delta^{F}_{j,\\sigma}=\\delta^{\\min}_{E_{j,\\sigma}}\\), the essentially unique one-dimensional minimax rule of the exact chart \\(\\Gamma_{E_{j,\\sigma}}\\) constructed by \\(\\mathrm{thm{:}scalar\\text{-}reverse\\text{-}kl\\text{-}saddle}\\); its input is \\(t_{j,\\sigma}^\\top Z\\).",
+      "role": "edge boundary condition",
+      "refs": [
+        "\\mathfrak G_3",
+        "E_{j,\\sigma}",
+        "\\delta_F^{\\min}",
+        "\\Gamma_F",
+        "t_{j,\\sigma}",
+        "Z"
+      ]
+    },
+    {
+      "name": "T_{\\mathrm e}",
+      "type": "normal-ray truncation threshold",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The lower normal displacement at which an edge-extension certificate begins.",
+      "role": "edge-certificate domain"
+    },
+    {
+      "name": "U_{\\mathrm e}",
+      "type": "tangential offset bound",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The absolute tangential offset covered by an edge-extension certificate.",
+      "role": "edge-certificate domain"
+    },
+    {
+      "name": "\\mathcal E_{j,\\sigma}",
+      "type": "oriented edge-extension residual",
+      "sig": "\\(\\mathscr D\\times(0,\\infty)^2\\to[0,\\infty]\\)",
+      "def": "The six residuals defined by \\(\\mathrm{def{:}oriented\\text{-}edge\\text{-}residuals}\\), indexed by \\((j,\\sigma)\\in\\{1,2,3\\}\\times\\{0,1\\}\\).",
+      "role": "early-kill compatibility diagnostic",
+      "ref": "def:oriented-edge-residuals",
+      "refs": [
+        "j",
+        "\\sigma",
+        "\\mathscr D",
+        "T_{\\mathrm e}",
+        "U_{\\mathrm e}"
+      ]
+    },
+    {
+      "name": "\\mathsf{EdgeCert}",
+      "type": "six-edge interval-certificate predicate",
+      "def": "The rational interval predicate constructed in \\(\\mathrm{def{:}oriented\\text{-}edge\\text{-}residuals}\\).",
+      "role": "early-kill numerical certificate",
+      "ref": "def:oriented-edge-residuals",
+      "refs": [
+        "\\mathcal E_{j,\\sigma}",
+        "j",
+        "\\sigma"
+      ]
+    },
+    {
+      "name": "\\mathcal C_{\\mathrm{diag}}",
+      "type": "positive diagonal linear-logit comparator class",
+      "space": "\\(2^{\\mathscr D}\\)",
+      "def": "In the fixed \\(B\\)-coordinates of \\(\\mathfrak G\\), for \\(c=(c_1,\\ldots,c_d)\\in(0,\\infty)^d\\) put \\(A_c=\\operatorname{diag}(c_1,\\ldots,c_d)\\) and \\(\\delta_c(z)=s(A_cz)\\). Then \\(\\mathcal C_{\\mathrm{diag}}(\\mathfrak G)=\\{\\delta_c:c\\in(0,\\infty)^d\\}\\subset\\mathscr D\\).",
+      "role": "generic coordinatewise comparator frontier",
+      "refs": [
+        "\\mathfrak G",
+        "B",
+        "d",
+        "s",
+        "\\mathscr D"
+      ]
+    },
+    {
+      "name": "\\mathcal C_{\\mathrm{lin}}",
+      "type": "common-scaling linear-logit comparator subclass",
+      "space": "\\(2^{\\mathscr D}\\)",
+      "def": "\\(\\mathcal C_{\\mathrm{lin}}(\\mathfrak G)=\\{z\\mapsto s(\\alpha z):\\alpha\\in(0,\\infty)\\}=\\{\\delta_c\\in\\mathcal C_{\\mathrm{diag}}(\\mathfrak G):c=\\alpha\\mathbf 1_d\\}\\).",
+      "role": "common-scaling comparator frontier",
+      "refs": [
+        "\\mathfrak G",
+        "\\mathcal C_{\\mathrm{diag}}",
+        "d",
+        "s",
+        "\\mathscr D"
+      ]
+    },
+    {
+      "name": "\\eta",
+      "type": "certificate accuracy",
+      "space": "\\((0,1)\\)",
+      "def": "Requested numerical tolerance.",
+      "role": "computational accuracy"
+    },
+    {
+      "name": "L_{\\mathrm{in}}",
+      "type": "exact input bit length",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The total binary encoding length of a framed geometry \\(\\mathfrak G\\) with \\(p,q\\) rational and every entry of \\(b,\\kappa,B,\\Omega\\) rational or real algebraic, where a real-algebraic entry is encoded by its minimal polynomial and a rational isolating interval.",
+      "role": "computational input size",
+      "refs": [
+        "\\mathfrak G",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B",
+        "\\Omega"
+      ]
+    },
+    {
+      "name": "\\eta_n",
+      "type": "vanishing certificate tolerance",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\eta_n=1/\\log(n+e)\\).",
+      "role": "causal implementation tolerance",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "\\underline r_\\eta",
+      "type": "generic rational lower certificate",
+      "space": "\\mathbb Q",
+      "def": "A generic rational lower-value component associated with tolerance \\(\\eta\\), without a validity guarantee built into the notation.",
+      "role": "candidate certificate output",
+      "refs": [
+        "\\eta"
+      ]
+    },
+    {
+      "name": "\\overline r_\\eta",
+      "type": "generic rational upper certificate",
+      "space": "\\mathbb Q",
+      "def": "A generic rational upper-value component associated with tolerance \\(\\eta\\), without a validity guarantee built into the notation.",
+      "role": "candidate certificate output",
+      "refs": [
+        "\\eta"
+      ]
+    },
+    {
+      "name": "\\mathbb B_{\\mathcal A}",
+      "type": "finite feasible policy-code space",
+      "space": "\\(2^{\\{0,1\\}^{\\ast}}\\)",
+      "def": "The decidable set of finite bitstrings encoding a rational polyhedral partition of \\(\\mathbb R^d\\), rational arithmetic circuits on its cells, and a capacity-preserving final coordinate, with the decoded limit in \\(\\mathcal A\\) at every input.",
+      "role": "finite certificate representation",
+      "refs": [
+        "d",
+        "\\mathcal A",
+        "p",
+        "q"
+      ]
+    },
+    {
+      "name": "c_\\eta",
+      "type": "generic finite policy code",
+      "space": "\\(\\mathbb B_{\\mathcal A}\\)",
+      "def": "A generic finite bitstring associated with tolerance \\(\\eta\\), without an accuracy guarantee built into the notation.",
+      "role": "candidate certificate output",
+      "refs": [
+        "\\mathbb B_{\\mathcal A}",
+        "\\eta"
+      ]
+    },
+    {
+      "name": "\\operatorname{Dec}",
+      "type": "ideal policy-code decoder",
+      "sig": "\\(\\mathbb B_{\\mathcal A}\\to\\mathscr D\\)",
+      "def": "\\(\\operatorname{Dec}(c)\\) is the Borel \\(\\mathcal A\\)-valued limit map specified by the rational partition and circuits encoded by \\(c\\).",
+      "role": "mathematical output map",
+      "refs": [
+        "\\mathbb B_{\\mathcal A}",
+        "\\mathscr D",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\operatorname{Eval}",
+      "type": "finite-precision code evaluator",
+      "sig": "\\(\\mathbb B_{\\mathcal A}\\times\\mathbb Q^d\\times\\mathbb N\\to\\mathbb Q^m\\)",
+      "def": "\\(\\operatorname{Eval}(c,z,L)\\) executes the encoded circuit with directed rational rounding and a capacity-preserving final coordinate, returns \\(a\\in\\mathcal A\\cap\\mathbb Q^m\\), and guarantees \\(\\lVert D_p^{1/2}[a-\\operatorname{Dec}(c)(z)]\\rVert_2\\le2^{-L}\\).",
+      "role": "explicit evaluation model",
+      "refs": [
+        "\\mathbb B_{\\mathcal A}",
+        "d",
+        "m",
+        "\\mathcal A",
+        "D_p",
+        "\\operatorname{Dec}"
+      ]
+    },
+    {
+      "name": "d_{\\mathrm{EKL}}",
+      "type": "uniform expected reverse-KL map discrepancy",
+      "sig": "\\(\\mathscr D\\times\\mathscr D\\to[0,\\infty]\\)",
+      "def": "\\(d_{\\mathrm{EKL}}(\\delta_1,\\delta_2)=\\sup_{h\\in\\mathbb R^d}\\mathbb E_h[\\kappa\\sum_{j=1}^mp_j\\operatorname{kl}(\\delta_{1j}(Z),\\delta_{2j}(Z))]\\) as an extended nonnegative expectation using the total \\(\\operatorname{kl}\\) on \\([0,1]^2\\); it equals \\(+\\infty\\) when a boundary mismatch with infinite pointwise divergence occurs on a set of positive Gaussian probability for some \\(h\\).",
+      "role": "certificate approximation metric",
+      "refs": [
+        "\\mathscr D",
+        "h",
+        "d",
+        "Z",
+        "\\kappa",
+        "m",
+        "j",
+        "p",
+        "\\operatorname{kl}"
+      ]
+    },
+    {
+      "name": "\\delta_\\eta",
+      "type": "conditionally bound certified feasible Gaussian rule",
+      "sig": "\\(\\mathbb R^d\\to\\mathcal A\\)",
+      "def": "A symbol bound only by \\(\\mathrm{prop{:}certificate\\text{-}output\\text{-}binding}\\) to the decoded output of a proved certificate; it has no referent otherwise.",
+      "role": "downstream conditional notation",
+      "ref": "prop:certificate-output-binding",
+      "refs": [
+        "c_\\eta",
+        "\\operatorname{Dec}",
+        "d",
+        "\\mathcal A",
+        "\\eta"
+      ]
+    },
+    {
+      "name": "\\mathsf{Cert}_\\eta",
+      "type": "candidate finite-code Gaussian minimax certificate procedure",
+      "def": "The finite-code value-and-map procedure specified by \\(\\mathrm{def{:}certificate\\text{-}handle}\\).",
+      "role": "computational handle",
+      "ref": "def:certificate-handle",
+      "refs": [
+        "\\eta",
+        "\\underline r_\\eta",
+        "\\overline r_\\eta",
+        "c_\\eta",
+        "\\mathbb B_{\\mathcal A}",
+        "r"
+      ]
+    },
+    {
+      "name": "\\mathcal O",
+      "type": "one-unit observation space",
+      "space": "\\(\\{1,\\ldots,m\\}\\times\\{0,1\\}\\times\\mathbb R\\)",
+      "def": "The measurable sample space for a cell label, treatment, and observed outcome.",
+      "role": "observation space",
+      "refs": [
+        "m"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "target-cell label",
+      "space": "\\(\\{1,\\ldots,m\\}\\)",
+      "def": "Observed discrete policy covariate.",
+      "role": "policy cell",
+      "refs": [
+        "m"
+      ]
+    },
+    {
+      "name": "D",
+      "type": "observed treatment",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "Binary received treatment.",
+      "role": "treatment"
+    },
+    {
+      "name": "Y(t)",
+      "type": "potential outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Potential outcome under treatment \\(t\\).",
+      "role": "causal primitive",
+      "refs": [
+        "t"
+      ]
+    },
+    {
+      "name": "\\mathcal W",
+      "type": "one-unit full-data space",
+      "space": "\\(\\{1,\\ldots,m\\}\\times\\{0,1\\}\\times\\mathbb R^2\\)",
+      "def": "The measurable sample space for a cell label, treatment, and both potential outcomes.",
+      "role": "full-data sample space",
+      "refs": [
+        "m"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "full-data record",
+      "space": "\\(\\mathcal W\\)",
+      "def": "\\(W=(X,D,Y(0),Y(1))\\).",
+      "role": "causal full data",
+      "refs": [
+        "\\mathcal W",
+        "X",
+        "D",
+        "Y(t)"
+      ]
+    },
+    {
+      "name": "\\mathbb P",
+      "type": "one-unit full-data law",
+      "space": "\\(\\mathcal P(\\mathcal W)\\)",
+      "def": "A probability law for \\(W\\) whose observed-data image is obtained by consistency.",
+      "role": "causal data-generating law",
+      "refs": [
+        "\\mathcal W",
+        "W"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "observed outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(Y=Y(D)\\).",
+      "role": "observed response",
+      "refs": [
+        "Y(t)",
+        "D"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "observed record",
+      "space": "\\(\\mathcal O\\)",
+      "def": "\\(O=(X,D,Y)\\).",
+      "role": "observed data",
+      "refs": [
+        "\\mathcal O",
+        "X",
+        "D",
+        "Y"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "one-unit observed-data law",
+      "space": "\\(\\mathcal P(\\mathcal O)\\)",
+      "def": "The law of \\(O=(X,D,Y(D))\\) induced by \\(\\mathbb P\\).",
+      "role": "data-generating law",
+      "refs": [
+        "\\mathcal O",
+        "O",
+        "\\mathbb P"
+      ]
+    },
+    {
+      "name": "e_j",
+      "type": "cell treatment propensity",
+      "space": "\\((0,1)\\)",
+      "def": "\\(e_j=P(D=1\\mid X=j)\\).",
+      "role": "nuisance functional",
+      "refs": [
+        "P",
+        "D",
+        "X",
+        "j"
+      ]
+    },
+    {
+      "name": "\\mu_{tj}",
+      "type": "cell-arm outcome mean",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\mu_{tj}=\\mathbb E_P[Y\\mid D=t,X=j]\\).",
+      "role": "nuisance functional",
+      "refs": [
+        "P",
+        "Y",
+        "D",
+        "t",
+        "X",
+        "j"
+      ]
+    },
+    {
+      "name": "\\tau",
+      "type": "cell treatment-effect vector",
+      "space": "\\(\\mathbb R^m\\)",
+      "def": "\\(\\tau=(\\tau_1,\\ldots,\\tau_m)^\\top\\), where \\(\\tau_j=\\mu_{1j}-\\mu_{0j}\\).",
+      "role": "causal target",
+      "refs": [
+        "m",
+        "j",
+        "\\mu_{tj}"
+      ]
+    },
+    {
+      "name": "\\psi",
+      "type": "efficient cell-effect influence vector",
+      "space": "\\(L_2(P)^m\\)",
+      "def": "Its coordinate is \\(\\psi_j(O)=\\mathbf 1\\{X=j\\}p_j^{-1}[D e_j^{-1}(Y-\\mu_{1j})-(1-D)(1-e_j)^{-1}(Y-\\mu_{0j})]\\).",
+      "role": "orthogonal score",
+      "refs": [
+        "m",
+        "P",
+        "j",
+        "O",
+        "X",
+        "p",
+        "D",
+        "Y",
+        "e_j",
+        "\\mu_{tj}"
+      ]
+    },
+    {
+      "name": "V",
+      "type": "efficient covariance of cell effects",
+      "space": "\\(\\mathbb S_+^m\\)",
+      "def": "\\(V=\\mathbb E_P[\\psi(O)\\psi(O)^\\top]\\).",
+      "role": "information bound",
+      "refs": [
+        "m",
+        "P",
+        "\\psi",
+        "O"
+      ]
+    },
+    {
+      "name": "\\gamma",
+      "type": "capacity-tangent effect contrast",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "\\(\\gamma=B^\\top D_p\\tau\\).",
+      "role": "local causal parameter",
+      "refs": [
+        "d",
+        "B",
+        "D_p",
+        "\\tau"
+      ]
+    },
+    {
+      "name": "\\chi",
+      "type": "efficient influence vector for the contact contrast",
+      "space": "\\(L_2(P)^d\\)",
+      "def": "\\(\\chi(O)=B^\\top D_p\\psi(O)\\).",
+      "role": "contact score",
+      "refs": [
+        "P",
+        "d",
+        "O",
+        "B",
+        "D_p",
+        "\\psi"
+      ]
+    },
+    {
+      "name": "\\zeta",
+      "type": "whitened efficient contact score",
+      "space": "\\(L_2(P)^d\\)",
+      "def": "\\(\\zeta(O)=\\Omega^{-1/2}\\chi(O)\\).",
+      "role": "LAN score",
+      "refs": [
+        "P",
+        "d",
+        "O",
+        "\\Omega",
+        "\\chi"
+      ]
+    },
+    {
+      "name": "P_0",
+      "type": "full-contact baseline law",
+      "space": "\\(\\mathcal P(\\mathcal O)\\)",
+      "def": "A baseline observed-data law at which \\(\\gamma(P_0)=0\\) and \\(\\Omega=B^\\top D_pV(P_0)D_pB\\).",
+      "role": "local-asymptotic center",
+      "refs": [
+        "P",
+        "\\gamma",
+        "\\Omega",
+        "B",
+        "D_p",
+        "V"
+      ]
+    },
+    {
+      "name": "\\mathfrak F_m",
+      "type": "full-data causal law class",
+      "space": "\\(2^{\\mathcal P(\\mathcal W)}\\)",
+      "def": "The full-data law class constructed in \\(\\mathrm{def{:}full\\text{-}data\\text{-}model}\\).",
+      "role": "causal model class",
+      "ref": "def:full-data-model",
+      "refs": [
+        "\\mathcal W",
+        "m",
+        "\\mathbb P"
+      ]
+    },
+    {
+      "name": "\\mathfrak M_m",
+      "type": "observational contact-law class",
+      "space": "\\(2^{\\mathcal P(\\mathcal O)}\\)",
+      "def": "The law class constructed in \\(\\mathrm{def{:}observational\\text{-}class}\\).",
+      "role": "causal model class",
+      "ref": "def:observational-class",
+      "refs": [
+        "P",
+        "m",
+        "P_0"
+      ]
+    },
+    {
+      "name": "\\mathbb P_0",
+      "type": "product-coupling full-data lift",
+      "space": "\\(\\mathcal P(\\mathcal W)\\)",
+      "def": "The conditionally independent potential-outcome lift of \\(P_0\\) constructed in \\(\\mathrm{def{:}product\\text{-}coupling\\text{-}lift}\\).",
+      "role": "full-data baseline for the least-favorable path",
+      "ref": "def:product-coupling-lift",
+      "refs": [
+        "\\mathcal W",
+        "P_0"
+      ]
+    },
+    {
+      "name": "g_t",
+      "type": "arm-specific full-data tilt score",
+      "sig": "\\(\\mathcal W\\times\\mathbb R^d\\to\\mathbb R\\)",
+      "def": "\\(g_t(W;h)=\\sum_{j=1}^m\\mathbf 1\\{X=j\\}(-1)^{1-t}[t e_j+(1-t)(1-e_j)]^{-1}(h^\\top\\Omega^{-1/2}B^\\top u_j)[Y(t)-\\mu_{tj}]\\).",
+      "role": "normalized conditional tilt direction",
+      "refs": [
+        "\\mathcal W",
+        "W",
+        "h",
+        "d",
+        "t",
+        "j",
+        "m",
+        "X",
+        "e_j",
+        "\\Omega",
+        "B",
+        "u_j",
+        "Y(t)",
+        "\\mu_{tj}"
+      ]
+    },
+    {
+      "name": "\\mathbb P_{n,h}",
+      "type": "local full-data law",
+      "space": "\\(\\mathcal P(\\mathcal W)\\)",
+      "def": "The normalized conditional exponential tilt of \\(\\mathbb P_0\\) constructed in \\(\\mathrm{def{:}conditional\\text{-}tilt\\text{-}path}\\).",
+      "role": "full-data least-favorable path",
+      "ref": "def:conditional-tilt-path",
+      "refs": [
+        "\\mathcal W",
+        "\\mathbb P_0",
+        "n",
+        "h"
+      ]
+    },
+    {
+      "name": "P_{n,h}",
+      "type": "local observed-data law",
+      "space": "\\(\\mathcal P(\\mathcal O)\\)",
+      "def": "The observed-data image of \\(\\mathbb P_{n,h}\\) under \\(O=(X,D,Y(D))\\).",
+      "role": "least-favorable local path",
+      "refs": [
+        "\\mathbb P_{n,h}",
+        "O",
+        "P_0",
+        "h",
+        "n"
+      ]
+    },
+    {
+      "name": "\\lambda_n",
+      "type": "sample-size annealing weight",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\lambda_n=\\kappa/\\sqrt n\\).",
+      "role": "local regularization sequence",
+      "refs": [
+        "\\kappa",
+        "n"
+      ]
+    },
+    {
+      "name": "\\widehat\\gamma",
+      "type": "cross-fitted tangent-effect estimator",
+      "space": "\\(\\mathbb R^d\\)",
+      "def": "The measurable clipped finite-cell estimator constructed in \\(\\mathrm{def{:}cross\\text{-}fitted\\text{-}statistics}\\).",
+      "role": "efficient statistic",
+      "ref": "def:cross-fitted-statistics",
+      "refs": [
+        "d",
+        "K",
+        "B",
+        "D_p",
+        "\\psi"
+      ]
+    },
+    {
+      "name": "\\widehat\\Omega",
+      "type": "cross-fitted contact covariance estimator",
+      "space": "\\(\\mathbb S_{++}^d\\)",
+      "def": "The eigenvalue-clipped empirical covariance constructed in \\(\\mathrm{def{:}cross\\text{-}fitted\\text{-}statistics}\\).",
+      "role": "estimated Gaussian geometry",
+      "ref": "def:cross-fitted-statistics",
+      "refs": [
+        "d",
+        "\\underline\\omega",
+        "\\overline\\omega",
+        "K",
+        "B",
+        "D_p",
+        "\\psi"
+      ]
+    },
+    {
+      "name": "\\widehat\\Omega^{\\mathbb Q}",
+      "type": "dyadic positive-definite covariance encoding",
+      "space": "\\(\\mathbb S_{++}^d\\cap\\mathbb Q^{d\\times d}\\)",
+      "def": "The measurable dyadic rounding of \\(\\widehat\\Omega\\) constructed in \\(\\mathrm{def{:}cross\\text{-}fitted\\text{-}statistics}\\), with \\(\\lVert\\widehat\\Omega^{\\mathbb Q}-\\widehat\\Omega\\rVert_{\\mathrm{op}}\\le n^{-2}\\).",
+      "role": "finite covariance input to the certificate",
+      "ref": "def:cross-fitted-statistics",
+      "refs": [
+        "\\widehat\\Omega",
+        "d",
+        "n"
+      ]
+    },
+    {
+      "name": "\\widehat a_n",
+      "type": "exactly capacity-feasible learned assignment",
+      "space": "\\(\\mathcal A\\)",
+      "def": "The exactly feasible candidate action obtained by decoding the finite map code returned by \\(\\mathsf{Cert}_{\\eta_n}\\) and evaluating it at the contact statistic whitened by \\(\\widehat\\Omega^{\\mathbb Q}\\).",
+      "role": "causal learner",
+      "refs": [
+        "n",
+        "\\mathcal A",
+        "c_\\eta",
+        "\\operatorname{Dec}",
+        "\\widehat\\gamma",
+        "\\widehat\\Omega^{\\mathbb Q}"
+      ]
+    },
+    {
+      "name": "a_n",
+      "type": "arbitrary observed-data assignment rule",
+      "space": "\\(\\mathcal A\\)",
+      "def": "Any Borel action based on \\(O_1,\\ldots,O_n\\) that is exactly capacity-feasible.",
+      "role": "lower-bound decision variable",
+      "refs": [
+        "\\mathcal A",
+        "O",
+        "n"
+      ]
+    },
+    {
+      "name": "\\mathsf{Learner}_n",
+      "type": "cross-fitted causal learner",
+      "def": "The exactly feasible learner construction in \\(\\mathrm{def{:}cross\\text{-}fitted\\text{-}learner\\text{-}handle}\\).",
+      "role": "causal attainment handle",
+      "ref": "def:cross-fitted-learner-handle",
+      "refs": [
+        "n",
+        "\\widehat a_n"
+      ]
+    },
+    {
+      "name": "M_n",
+      "type": "expanding-local radius",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(M_n=\\log\\log(n+e^e)\\).",
+      "role": "uniformity frontier",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "\\mathcal W_n",
+      "type": "finite-sample annealed welfare",
+      "sig": "\\(\\mathcal P(\\mathcal O)\\times\\mathcal A\\to\\mathbb R\\)",
+      "def": "\\(\\mathcal W_n(P,a)=\\sum_{j=1}^m p_j a_j\\tau_j(P)-\\lambda_nH(a)\\).",
+      "role": "policy objective",
+      "refs": [
+        "\\mathcal O",
+        "P",
+        "\\mathcal A",
+        "n",
+        "m",
+        "j",
+        "p",
+        "\\tau",
+        "\\lambda_n",
+        "H"
+      ]
+    },
+    {
+      "name": "a_n^\\circ",
+      "type": "finite-sample annealed oracle action",
+      "sig": "\\(\\mathcal P(\\mathcal O)\\to\\mathcal A\\)",
+      "def": "\\(a_n^\\circ(P)=\\arg\\max_{a\\in\\mathcal A}\\mathcal W_n(P,a)\\).",
+      "role": "finite-sample oracle",
+      "refs": [
+        "\\mathcal O",
+        "P",
+        "\\mathcal A",
+        "\\mathcal W_n",
+        "n"
+      ]
+    },
+    {
+      "name": "v_n^\\star",
+      "type": "oracle annealed welfare coordinate",
+      "sig": "\\(\\mathcal P(\\mathcal O)\\to\\mathbb R\\)",
+      "def": "\\(v_n^\\star(P)=\\mathcal W_n(P,a_n^\\circ(P))\\).",
+      "role": "confidence-set welfare coordinate",
+      "refs": [
+        "\\mathcal O",
+        "P",
+        "\\mathcal W_n",
+        "a_n^\\circ",
+        "n"
+      ]
+    },
+    {
+      "name": "\\operatorname{Regret}_n",
+      "type": "observed-data annealed welfare regret",
+      "sig": "\\(\\mathcal A\\times\\mathcal P(\\mathcal O)\\to[0,\\infty)\\)",
+      "def": "\\(\\operatorname{Regret}_n(a;P)=\\mathcal W_n(P,a_n^\\circ(P))-\\mathcal W_n(P,a)\\).",
+      "role": "causal risk",
+      "refs": [
+        "\\mathcal A",
+        "\\mathcal O",
+        "P",
+        "\\mathcal W_n",
+        "a_n^\\circ"
+      ]
+    },
+    {
+      "name": "\\nu_n",
+      "type": "expanding-local Gaussian mixture measure",
+      "space": "\\(\\mathcal P(\\mathbb R^d)\\)",
+      "def": "\\(\\nu_n(A)=\\operatorname{Vol}(\\{h:\\lVert h\\rVert\\le M_n\\})^{-1}\\int_{\\lVert h\\rVert\\le M_n}\\Pr_{Z\\sim N_d(h,I_d)}(Z\\in A)\\,dh\\).",
+      "role": "policy-neighborhood reference measure",
+      "refs": [
+        "n",
+        "d",
+        "M_n",
+        "h",
+        "Z"
+      ]
+    },
+    {
+      "name": "\\mathsf K_n",
+      "type": "directed expected reverse-KL policy discrepancy",
+      "sig": "\\(\\mathscr D\\times\\mathscr D\\to[0,\\infty]\\)",
+      "def": "\\(\\mathsf K_n(\\delta_1,\\delta_2)=\\int\\kappa\\sum_{j=1}^m p_j\\operatorname{kl}(\\delta_{1j}(z),\\delta_{2j}(z))\\,\\nu_n(dz)\\) as an extended nonnegative integral using the total \\(\\operatorname{kl}\\) on \\([0,1]^2\\); it equals \\(+\\infty\\) when a boundary mismatch with infinite pointwise divergence has positive \\(\\nu_n\\)-measure.",
+      "role": "policy-neighborhood radius",
+      "refs": [
+        "\\mathscr D",
+        "\\kappa",
+        "m",
+        "j",
+        "p",
+        "\\operatorname{kl}",
+        "\\nu_n"
+      ]
+    },
+    {
+      "name": "d_n^{\\mathrm{pol}}",
+      "type": "policy-map metric",
+      "sig": "\\(\\mathscr D\\times\\mathscr D\\to[0,\\infty)\\)",
+      "def": "\\(d_n^{\\mathrm{pol}}(\\delta_1,\\delta_2)=\\{\\int\\sum_{j=1}^m p_j[\\delta_{1j}(z)-\\delta_{2j}(z)]^2\\,\\nu_n(dz)\\}^{1/2}\\); Bernoulli Pinsker gives \\(2\\kappa[d_n^{\\mathrm{pol}}]^2\\le\\mathsf K_n\\).",
+      "role": "confidence-set policy metric",
+      "refs": [
+        "\\mathscr D",
+        "m",
+        "j",
+        "p",
+        "\\nu_n",
+        "\\kappa",
+        "\\mathsf K_n"
+      ]
+    },
+    {
+      "name": "\\mathfrak d_n",
+      "type": "joint policy-welfare metric",
+      "sig": "\\((\\mathscr D\\times\\mathbb R)^2\\to[0,\\infty)\\)",
+      "def": "\\(\\mathfrak d_n((\\delta,v),(\\delta',v'))=d_n^{\\mathrm{pol}}(\\delta,\\delta')+\\sqrt n\\lvert v-v'\\rvert\\).",
+      "role": "confidence-set diameter metric",
+      "refs": [
+        "\\mathscr D",
+        "d_n^{\\mathrm{pol}}",
+        "n"
+      ]
+    },
+    {
+      "name": "\\alpha_0",
+      "type": "nominal error probability",
+      "space": "\\((0,1)\\)",
+      "def": "Fixed confidence-set error level.",
+      "role": "inference level"
+    },
+    {
+      "name": "c_{\\alpha_0}",
+      "type": "geometry-derived nondegenerate-diameter benchmark",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(c_{\\alpha_0}=2\\Phi^{-1}(1-\\alpha_0/2)\\min_{1\\le j\\le m}s_j(0)\\sqrt{d\\,\\underline\\omega}\\). Positivity follows from the interior oracle and the covariance lower bound.",
+      "role": "quantitative diameter lower bound",
+      "refs": [
+        "\\Phi",
+        "\\alpha_0",
+        "j",
+        "m",
+        "s",
+        "d",
+        "\\underline\\omega"
+      ]
+    },
+    {
+      "name": "\\mathcal C_n",
+      "type": "joint policy and welfare confidence set",
+      "space": "\\(2^{\\mathscr D\\times\\mathbb R}\\)",
+      "def": "The set constructed in \\(\\mathrm{def{:}confidence\\text{-}set\\text{-}handle}\\), with policy coordinate in \\(\\mathscr D\\) and welfare coordinate \\(v_n^\\star(P)\\).",
+      "role": "inference output",
+      "ref": "def:confidence-set-handle",
+      "refs": [
+        "n",
+        "\\mathscr D",
+        "v_n^\\star"
+      ]
+    },
+    {
+      "name": "\\mathsf{Infer}_n",
+      "type": "joint policy-welfare inference handle",
+      "def": "The set-valued inversion construction in \\(\\mathrm{def{:}confidence\\text{-}set\\text{-}handle}\\).",
+      "role": "inference construction",
+      "ref": "def:confidence-set-handle",
+      "refs": [
+        "n",
+        "\\mathcal C_n"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-sampling",
+      "kind": "sampling",
+      "condition": "\\(O_1,\\ldots,O_n\\stackrel{\\mathrm{iid}}{\\sim}P\\).",
+      "free_symbols": [
+        "O",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent superpopulation sampling",
+        "cite": "AtheyWager2021"
+      },
+      "used_by": [
+        "thm:causal-lan-lower",
+        "lem:finite-cell-crossfit-rates",
+        "oeq:expanding-local-attainment"
+      ]
+    },
+    {
+      "id": "ass:known-cell-masses",
+      "kind": "information-regime",
+      "condition": "\\(P(X=j)=p_j,\\quad j=1,\\ldots,m\\).",
+      "free_symbols": [
+        "P",
+        "X",
+        "j",
+        "p"
+      ],
+      "standard": {
+        "name": "Known target-population covariate law",
+        "cite": "SunadaIzumi2025"
+      },
+      "used_by": [
+        "def:full-data-model",
+        "def:observational-class",
+        "lem:conditional-tilt-preservation"
+      ]
+    },
+    {
+      "id": "ass:conditional-ignorability",
+      "kind": "causal-structural",
+      "condition": "\\((Y(0),Y(1))\\perp_{\\mathbb P} D\\mid X\\).",
+      "free_symbols": [
+        "\\mathbb P",
+        "Y(t)",
+        "D",
+        "X"
+      ],
+      "standard": {
+        "name": "Conditional unconfoundedness",
+        "cite": "AtheyWager2021"
+      },
+      "used_by": [
+        "def:full-data-model",
+        "lem:conditional-tilt-preservation"
+      ]
+    },
+    {
+      "id": "ass:overlap",
+      "kind": "support",
+      "condition": "\\(e_j\\in[\\underline e,1-\\underline e],\\quad j=1,\\ldots,m\\).",
+      "free_symbols": [
+        "e_j",
+        "\\underline e",
+        "j"
+      ],
+      "standard": {
+        "name": "Uniform overlap",
+        "cite": "AtheyWager2021"
+      },
+      "used_by": [
+        "def:full-data-model",
+        "def:observational-class",
+        "lem:finite-cell-crossfit-rates"
+      ]
+    },
+    {
+      "id": "ass:bounded-outcomes",
+      "kind": "support",
+      "condition": "\\(P(\\lvert Y\\rvert\\le C_Y)=1\\).",
+      "free_symbols": [
+        "P",
+        "Y",
+        "C_Y"
+      ],
+      "standard": {
+        "name": "Uniformly bounded observed outcomes",
+        "cite": "AtheyWager2021"
+      },
+      "used_by": [
+        "def:full-data-model",
+        "def:observational-class",
+        "lem:conditional-tilt-preservation",
+        "lem:finite-cell-crossfit-rates"
+      ]
+    },
+    {
+      "id": "ass:full-contact",
+      "kind": "local-regularity",
+      "condition": "\\(\\gamma(P)=0\\).",
+      "free_symbols": [
+        "\\gamma",
+        "P"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "All-cell contact describes scarce-allocation settings in which the registry cells have equal mass-weighted treatment effects at the local center, as under a common-effect baseline or a policy boundary calibrated before local heterogeneity is resolved. It is the explicit nonregular regime studied here, not a conclusion about the minimax rule."
+      },
+      "used_by": [
+        "def:full-data-model",
+        "def:observational-class"
+      ]
+    },
+    {
+      "id": "ass:covariance-bounds",
+      "kind": "regularity",
+      "condition": "\\(\\underline\\omega I_d\\preceq B^\\top D_pVD_pB\\preceq\\overline\\omega I_d\\).",
+      "free_symbols": [
+        "\\underline\\omega",
+        "d",
+        "B",
+        "D_p",
+        "V",
+        "\\overline\\omega"
+      ],
+      "standard": {
+        "name": "Uniformly nonsingular efficient information",
+        "cite": "HiranoPorter2009"
+      },
+      "used_by": [
+        "def:full-data-model",
+        "def:observational-class",
+        "lem:conditional-tilt-preservation"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:full-data-model",
+      "name": "\\mathfrak F_m",
+      "construction": "\\(\\mathfrak F_m=\\{\\mathbb P\\in\\mathcal P(\\mathcal W):\\mathrm{ass{:}known\\text{-}cell\\text{-}masses},\\mathrm{ass{:}conditional\\text{-}ignorability},\\mathrm{ass{:}overlap},\\mathrm{ass{:}bounded\\text{-}outcomes},\\mathrm{ass{:}full\\text{-}contact},\\mathrm{ass{:}covariance\\text{-}bounds}\\text{ hold for the induced observed law }P\\text{ at this fixed }m\\}\\).",
+      "free_symbols": [
+        "\\mathbb P",
+        "\\mathcal W",
+        "P",
+        "m"
+      ],
+      "by_member_properties": [
+        "ass:known-cell-masses",
+        "ass:conditional-ignorability",
+        "ass:overlap",
+        "ass:bounded-outcomes",
+        "ass:full-contact",
+        "ass:covariance-bounds"
+      ]
+    },
+    {
+      "id": "def:observational-class",
+      "name": "\\mathfrak M_{m}",
+      "construction": "\\(\\mathfrak M_m=\\{P\\in\\mathcal P(\\mathcal O):\\mathrm{ass{:}known\\text{-}cell\\text{-}masses},\\mathrm{ass{:}overlap},\\mathrm{ass{:}bounded\\text{-}outcomes},\\mathrm{ass{:}full\\text{-}contact},\\mathrm{ass{:}covariance\\text{-}bounds}\\text{ hold for this fixed }m\\}\\).",
+      "free_symbols": [
+        "P",
+        "\\mathcal O",
+        "m"
+      ],
+      "by_member_properties": [
+        "ass:known-cell-masses",
+        "ass:overlap",
+        "ass:bounded-outcomes",
+        "ass:full-contact",
+        "ass:covariance-bounds"
+      ]
+    },
+    {
+      "id": "def:product-coupling-lift",
+      "name": "\\mathbb P_0",
+      "construction": "For \\(P_0\\in\\mathfrak M_m\\), give \\(Y(t)\\mid X=j\\) the \\(P_0\\)-law of \\(Y\\mid D=t,X=j\\), impose \\(Y(0)\\perp_{\\mathbb P_0}Y(1)\\mid X\\), draw \\(D\\mid X=j\\sim\\operatorname{Bernoulli}(e_j)\\) independently of both potential outcomes, and set \\(Y=Y(D)\\); this unique product-coupling lift induces exactly \\(P_0\\).",
+      "free_symbols": [
+        "P_0",
+        "\\mathfrak M_m",
+        "Y(t)",
+        "t",
+        "X",
+        "D",
+        "j",
+        "e_j",
+        "Y"
+      ],
+      "inputs": [
+        "P_0"
+      ]
+    },
+    {
+      "id": "def:conditional-tilt-path",
+      "name": "\\mathbb P_{n,h}",
+      "construction": "For \\(t\\in\\{0,1\\}\\), let \\(A_{t,n}(X;h)=\\mathbb E_{\\mathbb P_0}[\\exp\\{n^{-1/2}g_t(W;h)\\}\\mid X]\\). Define the full-data path by \\[\\frac{d\\mathbb P_{n,h}}{d\\mathbb P_0}(W)=\\prod_{t=0}^1\\frac{\\exp\\{n^{-1/2}g_t(W;h)\\}}{A_{t,n}(X;h)},\\qquad P_{n,h}=\\mathbb P_{n,h}\\circ O^{-1}.\\] The bounded-outcome condition makes every normalizer finite and strictly positive.",
+      "free_symbols": [
+        "t",
+        "n",
+        "X",
+        "h",
+        "\\mathbb P_0",
+        "g_t",
+        "W",
+        "P_{n,h}",
+        "O"
+      ],
+      "inputs": [
+        "\\mathbb P_0",
+        "g_t",
+        "n",
+        "h"
+      ]
+    },
+    {
+      "id": "def:finite-sample-regret",
+      "name": "\\operatorname{Regret}_n",
+      "construction": "For any observed-data law \\(P\\) and action \\(a\\in\\mathcal A\\), set \\(\\mathcal W_n(P,a)=\\sum_{j=1}^m p_ja_j\\tau_j(P)-\\lambda_nH(a)\\), \\(a_n^\\circ(P)=\\arg\\max_{u\\in\\mathcal A}\\mathcal W_n(P,u)\\), and \\(\\operatorname{Regret}_n(a;P)=\\mathcal W_n(P,a_n^\\circ(P))-\\mathcal W_n(P,a)\\).",
+      "free_symbols": [
+        "P",
+        "a_n^\\circ",
+        "\\mathcal A",
+        "\\mathcal W_n",
+        "n",
+        "j",
+        "m",
+        "p",
+        "\\tau",
+        "\\lambda_n",
+        "H"
+      ],
+      "inputs": [
+        "P",
+        "a_n^\\circ",
+        "\\mathcal W_n"
+      ]
+    },
+    {
+      "id": "def:framed-gaussian-capacity-geometry",
+      "name": "\\mathfrak G",
+      "construction": "Fix once and for all the ordered matrix \\(B\\) satisfying \\(B^\\top B=I_d\\) and \\(B^\\top p=0\\), express \\(\\Omega\\) in those coordinates, and set \\(Q=\\Omega^{1/2}B^\\top\\), \\(\\mathcal A=\\{a\\in[0,1]^m:p^\\top a=q\\}\\), and \\(H(a)=\\sum_{j=1}^mp_j\\operatorname{kl}(a_j,b_j)\\). Attach to every exposed face \\(F\\) the complete chart \\(\\Gamma_F\\) and the compatibility topology \\(\\mathfrak T_{\\mathfrak G}\\) displayed in \\(\\mathrm{def{:}face\\text{-}experiment}\\). Thus changing \\(B\\) changes \\(\\mathfrak G\\), rather than silently re-expressing \\(\\Omega\\), a comparator, or a ray.",
+      "free_symbols": [
+        "\\mathfrak G",
+        "m",
+        "d",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B",
+        "\\Omega",
+        "Q",
+        "\\mathcal A",
+        "H",
+        "j",
+        "\\operatorname{kl}",
+        "F",
+        "\\Gamma_F",
+        "\\mathfrak T_{\\mathfrak G}"
+      ],
+      "inputs": [
+        "m",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B",
+        "\\Omega"
+      ]
+    },
+    {
+      "id": "def:oracle-action",
+      "name": "s",
+      "construction": "For \\(h\\in\\mathbb R^d\\), solve the unique scalar equation \\(\\sum_{j=1}^m p_j\\operatorname{expit}(\\operatorname{logit}(b_j)+(p_j^{-1}(B\\Omega^{1/2}h)_j-\\nu)/\\kappa)=q\\) for \\(\\nu\\), and set \\(s_j(h)=\\operatorname{expit}(\\operatorname{logit}(b_j)+(p_j^{-1}(B\\Omega^{1/2}h)_j-\\nu)/\\kappa)\\).",
+      "free_symbols": [
+        "h",
+        "d",
+        "m",
+        "j",
+        "p",
+        "\\operatorname{expit}",
+        "\\operatorname{logit}",
+        "b",
+        "B",
+        "\\Omega",
+        "\\kappa",
+        "q"
+      ],
+      "inputs": [
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B",
+        "\\Omega",
+        "h"
+      ]
+    },
+    {
+      "id": "def:gaussian-minimax-rule",
+      "name": "\\mathfrak R",
+      "construction": "For the framed geometry \\(\\mathfrak G\\), let \\(\\mathscr D=\\{\\bar\\delta:\\mathbb R^d\\to\\mathcal A\\text{ Borel}\\}/\\!\\sim\\), \\(r=\\inf_{\\bar\\delta\\in\\mathscr D}\\sup_{h\\in\\mathbb R^d}R(h,\\bar\\delta)\\), and \\(\\mathfrak R=\\{\\bar\\delta\\in\\mathscr D:\\sup_hR(h,\\bar\\delta)=r\\}\\), where equivalence is Lebesgue almost-everywhere equality. No existence or uniqueness is included in this definition.",
+      "free_symbols": [
+        "\\mathfrak G",
+        "\\mathscr D",
+        "\\mathfrak R",
+        "d",
+        "\\mathcal A",
+        "h",
+        "R",
+        "r"
+      ],
+      "inputs": [
+        "\\mathfrak G"
+      ]
+    },
+    {
+      "id": "def:face-experiment",
+      "name": "\\mathsf E_F",
+      "construction": "For each nonempty exposed face \\(F\\) of the framed geometry \\(\\mathfrak G\\), let \\(r_F=\\dim(F)\\), \\(a_F^0=\\arg\\min_{a\\in\\operatorname{aff}(F)}\\lVert a\\rVert_2\\), and let \\(B_F\\) be lexicographically signed Gram--Schmidt applied to the standard coordinate vectors after orthogonal projection onto \\(\\operatorname{lin}(F-F)\\). Define \\(\\mathcal X_F=\\{x:a_F^0+B_Fx\\in F\\}\\), \\(G_F=B_F^\\top Q^\\top QB_F\\), and \\(J_F=QB_FG_F^{-1/2}\\). Then \\(J_F^\\top J_F=I_{r_F}\\), the affine action chart is \\(x\\mapsto a_F^0+B_Fx\\), and the observation chart is \\(z\\mapsto z_F=J_F^\\top z\\). The transported experiment is \\(Z_F\\sim N_{r_F}(\\theta,I_{r_F})\\), with \\(s_F(\\theta)=a_F^0+B_F\\arg\\max_{x\\in\\mathcal X_F}\\{\\theta^\\top G_F^{1/2}x-\\kappa H(a_F^0+B_Fx)\\}\\), \\(\\delta_F^{\\mathrm{plug}}(z_F)=s_F(z_F)\\), \\(\\ell_F(\\theta,a)=\\theta^\\top G_F^{1/2}B_F^\\top[s_F(\\theta)-a]-\\kappa H(s_F(\\theta))+\\kappa H(a)\\), and \\(R_F(\\theta,\\delta_F)=\\mathbb E_\\theta[\\ell_F(\\theta,\\delta_F(Z_F))]\\). The quotient \\(\\mathscr D_F\\), value \\(r_F^{\\min}\\), correspondence \\(\\mathfrak R_F\\), normal stratum \\(\\mathcal N_F^\\circ\\), and both metrics defining \\(\\mathfrak T_{\\mathfrak G}\\) are exactly those displayed in the symbol table. For \\(r_F=0\\), use the unique \\(m\\times0\\) matrix \\(B_F\\), \\(\\mathcal X_F=\\{0\\}\\), the empty identity \\(G_F=I_0\\), the unique \\(d\\times0\\) isometry \\(J_F\\), the point observation, and the constant action equal to the unique vertex \\(F\\); these conventions make every displayed chart literal for vertices as well as positive-dimensional faces.",
+      "free_symbols": [
+        "\\mathfrak G",
+        "F",
+        "r_F",
+        "a_F^0",
+        "B_F",
+        "u_j",
+        "m",
+        "\\mathcal X_F",
+        "G_F",
+        "Q",
+        "J_F",
+        "Z_F",
+        "\\kappa",
+        "H",
+        "s_F",
+        "\\delta_F^{\\mathrm{plug}}",
+        "\\ell_F",
+        "R_F",
+        "\\mathscr D_F",
+        "r_F^{\\min}",
+        "\\mathfrak R_F",
+        "\\mathcal N_F^\\circ",
+        "\\mathfrak T_{\\mathfrak G}"
+      ],
+      "inputs": [
+        "\\mathfrak G",
+        "F"
+      ]
+    },
+    {
+      "id": "def:helmert-three-cell-geometry",
+      "name": "\\mathfrak G_3",
+      "construction": "Set \\(m=3\\), \\(p=(1/3,1/3,1/3)\\), \\(q=1/2\\), \\(b=(1/2,1/2,1/2)\\), \\[B=\\begin{bmatrix}1/\\sqrt2&1/\\sqrt6\\\\-1/\\sqrt2&1/\\sqrt6\\\\0&-2/\\sqrt6\\end{bmatrix},\\qquad\\Omega=\\begin{bmatrix}1&0\\\\0&4\\end{bmatrix},\\qquad Q=\\Omega^{1/2}B^\\top.\\] For \\(E_{j,\\sigma}=\\{a\\in\\mathcal A:a_j=\\sigma\\}\\), let \\(j^-<j^+\\) be the remaining indices, \\(B_{E_{j,\\sigma}}=(u_{j^-}-u_{j^+})/\\sqrt2\\), \\(t_{j,\\sigma}=QB_{E_{j,\\sigma}}/\\lVert QB_{E_{j,\\sigma}}\\rVert_2\\), and \\(n_{j,\\sigma}=(2\\sigma-1)\\Omega^{-1/2}B^\\top u_j/\\lVert\\Omega^{-1/2}B^\\top u_j\\rVert_2\\). Then \\(t_{j,\\sigma}=J_{E_{j,\\sigma}}\\), \\(t_{j,\\sigma}^\\top n_{j,\\sigma}=0\\), and \\(E_{j,\\sigma}=\\arg\\max_{a\\in\\mathcal A}n_{j,\\sigma}^\\top Qa\\) for all six oriented pairs.",
+      "free_symbols": [
+        "\\mathfrak G_3",
+        "\\mathfrak G",
+        "m",
+        "p",
+        "q",
+        "b",
+        "B",
+        "\\Omega",
+        "Q",
+        "E_{j,\\sigma}",
+        "j",
+        "\\sigma",
+        "\\mathcal A",
+        "u_j",
+        "B_F",
+        "t_{j,\\sigma}",
+        "n_{j,\\sigma}",
+        "J_F"
+      ],
+      "inputs": [
+        "\\mathfrak G"
+      ]
+    },
+    {
+      "id": "def:oriented-edge-residuals",
+      "name": "(\\mathcal E_{j,\\sigma},\\mathsf{EdgeCert})",
+      "construction": "In the single Helmert-framed experiment \\(\\mathfrak G_3\\), for each \\(j\\in\\{1,2,3\\}\\), \\(\\sigma\\in\\{0,1\\}\\), \\(\\bar\\delta\\in\\mathscr D\\), and \\(T_{\\mathrm e},U_{\\mathrm e}>0\\), define \\[\\mathcal E_{j,\\sigma}(\\bar\\delta;T_{\\mathrm e},U_{\\mathrm e})=\\sup_{\\rho\\ge T_{\\mathrm e},\\,|x|\\le U_{\\mathrm e}}\\left\\{\\mathbb E_{Z\\sim N_2(\\rho n_{j,\\sigma}+xt_{j,\\sigma},I_2)}\\!\\left[\\left\\lVert D_p^{1/2}\\{\\bar\\delta(Z)-\\delta^F_{j,\\sigma}(t_{j,\\sigma}^\\top Z)\\}\\right\\rVert_2^2\\right]\\right\\}^{1/2}.\\] The predicate \\(\\mathsf{EdgeCert}(c,T_{\\mathrm e},U_{\\mathrm e},\\varepsilon)\\) holds exactly when directed rational interval evaluation of \\(\\operatorname{Eval}(c,\\cdot,L)\\), the displayed Helmert formulas, and analytic Gaussian tails returns all six intervals \\([L_{j,\\sigma},U_{j,\\sigma}]\\) satisfying \\(0\\le L_{j,\\sigma}\\le\\mathcal E_{j,\\sigma}(\\operatorname{Dec}(c);T_{\\mathrm e},U_{\\mathrm e})\\le U_{j,\\sigma}\\le\\varepsilon\\).",
+      "free_symbols": [
+        "\\mathfrak G_3",
+        "j",
+        "\\sigma",
+        "\\mathscr D",
+        "T_{\\mathrm e}",
+        "U_{\\mathrm e}",
+        "Z",
+        "n_{j,\\sigma}",
+        "t_{j,\\sigma}",
+        "D_p",
+        "\\delta^{F}_{j,\\sigma}",
+        "\\mathsf{EdgeCert}",
+        "\\operatorname{Eval}",
+        "\\operatorname{Dec}",
+        "c_\\eta",
+        "\\mathcal E_{j,\\sigma}"
+      ],
+      "inputs": [
+        "\\mathfrak G_3",
+        "\\delta_F^{\\min}"
+      ]
+    },
+    {
+      "id": "def:face-gluing-handle",
+      "name": "\\mathsf{Glue}",
+      "construction": "Apply backward induction over nested exposed faces using only the charts \\(\\Gamma_F\\) of \\(\\mathfrak G\\); use the two representative-invariant metrics in \\(\\mathfrak T_{\\mathfrak G}\\) as the compatibility predicate and KKT potentials only as computational coordinates.",
+      "free_symbols": [
+        "\\mathfrak G",
+        "F",
+        "\\Gamma_F",
+        "\\mathfrak T_{\\mathfrak G}"
+      ],
+      "inputs": [
+        "\\mathfrak G",
+        "\\Gamma_F",
+        "\\mathfrak T_{\\mathfrak G}"
+      ]
+    },
+    {
+      "id": "def:certificate-handle",
+      "name": "\\mathsf{Cert}_\\eta",
+      "construction": "Given \\(\\eta\\) and a finite exact encoding of \\(\\mathfrak G\\) with \\(p,q\\) rational and \\(b,\\kappa,B,\\Omega\\) rational or real algebraic, enumerate its exposed-face flags and exact charts \\(\\Gamma_F\\), use minimal-polynomial isolation and directed rational intervals for algebraic constants, truncate the local-Gaussian metrics of \\(\\mathfrak T_{\\mathfrak G}\\) with analytic tail bounds, solve rational interval-enclosed finite saddle programs, encode the rounded feasible map as a rational-polyhedral capacity-preserving circuit, and return \\((\\underline r_\\eta,\\overline r_\\eta,c_\\eta)\\in\\mathbb Q^2\\times\\mathbb B_{\\mathcal A}\\).",
+      "free_symbols": [
+        "\\mathfrak G",
+        "F",
+        "\\Gamma_F",
+        "\\mathfrak T_{\\mathfrak G}",
+        "\\eta",
+        "L_{\\mathrm{in}}",
+        "\\underline r_\\eta",
+        "\\overline r_\\eta",
+        "c_\\eta",
+        "\\mathbb B_{\\mathcal A}",
+        "\\operatorname{Eval}",
+        "\\operatorname{Dec}",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B",
+        "\\Omega"
+      ],
+      "inputs": [
+        "\\mathfrak G",
+        "\\eta",
+        "\\mathsf{Glue}"
+      ]
+    },
+    {
+      "id": "def:cross-fitted-statistics",
+      "name": "(\\widehat\\gamma,\\widehat\\Omega)",
+      "construction": "For each fold \\(k\\), put \\(N_{j,-k}=\\sum_{i\\notin\\mathcal I_k}\\mathbf 1\\{X_i=j\\}\\), \\(N_{tj,-k}=\\sum_{i\\notin\\mathcal I_k}\\mathbf 1\\{X_i=j,D_i=t\\}\\), \\(\\widehat e_j^{(-k)}=\\Pi_{[\\underline e/2,1-\\underline e/2]}(\\sum_{i\\notin\\mathcal I_k}\\mathbf 1\\{X_i=j\\}D_i/(1\\vee N_{j,-k}))\\), and \\(\\widehat\\mu_{tj}^{(-k)}=\\Pi_{[-C_Y,C_Y]}(\\sum_{i\\notin\\mathcal I_k}\\mathbf 1\\{X_i=j,D_i=t\\}Y_i/(1\\vee N_{tj,-k}))\\). For \\(i\\in\\mathcal I_k\\), define \\(\\widehat\\phi_{ij}=\\widehat\\mu_{1j}^{(-k)}-\\widehat\\mu_{0j}^{(-k)}+\\mathbf 1\\{X_i=j\\}p_j^{-1}[D_i(\\widehat e_j^{(-k)})^{-1}(Y_i-\\widehat\\mu_{1j}^{(-k)})-(1-D_i)(1-\\widehat e_j^{(-k)})^{-1}(Y_i-\\widehat\\mu_{0j}^{(-k)})]\\), let \\(\\widehat\\tau_j=n^{-1}\\sum_{i=1}^n\\widehat\\phi_{ij}\\), and set \\(\\widehat\\gamma=B^\\top D_p\\widehat\\tau\\). Let \\(\\widehat\\psi_i\\) be the residual bracket in \\(\\widehat\\phi_i\\), \\(\\widehat\\chi_i=B^\\top D_p\\widehat\\psi_i\\), \\(\\overline\\chi=n^{-1}\\sum_i\\widehat\\chi_i\\), and \\(\\widetilde\\Omega=n^{-1}\\sum_i(\\widehat\\chi_i-\\overline\\chi)(\\widehat\\chi_i-\\overline\\chi)^\\top\\). If \\(\\widetilde\\Omega=U\\operatorname{diag}(\\lambda_1,\\ldots,\\lambda_d)U^\\top\\), set \\(\\widehat\\Omega=U\\operatorname{diag}(\\Pi_{[\\underline\\omega,\\overline\\omega]}(\\lambda_1),\\ldots,\\Pi_{[\\underline\\omega,\\overline\\omega]}(\\lambda_d))U^\\top\\), using the lexicographically first measurable spectral decomposition at repeated eigenvalues. Put \\(L_n^{\\mathrm{cov}}=\\lceil3\\log_2(n+1)+\\log_2(8d^2/\\underline\\omega)\\rceil\\), round each upper-triangular entry of \\(\\widehat\\Omega\\) to its nearest multiple of \\(2^{-L_n^{\\mathrm{cov}}}\\), symmetrize, and add \\(2d2^{-L_n^{\\mathrm{cov}}}I_d\\). If needed for the finitely many small \\(n\\), increase \\(L_n^{\\mathrm{cov}}\\) by the least integer that makes the operator error at most \\(n^{-2}\\); call the resulting rational positive-definite matrix \\(\\widehat\\Omega^{\\mathbb Q}\\).",
+      "free_symbols": [
+        "k",
+        "j",
+        "i",
+        "n",
+        "t",
+        "\\mathcal I_k",
+        "X",
+        "D",
+        "Y",
+        "\\Pi_{[a,b]}",
+        "\\underline e",
+        "C_Y",
+        "p",
+        "B",
+        "D_p",
+        "\\widehat\\gamma",
+        "d",
+        "\\underline\\omega",
+        "\\overline\\omega",
+        "\\widehat\\Omega",
+        "\\widehat\\Omega^{\\mathbb Q}"
+      ],
+      "inputs": [
+        "O",
+        "n",
+        "K",
+        "\\mathcal I_k",
+        "p",
+        "B",
+        "\\underline e",
+        "C_Y",
+        "\\underline\\omega",
+        "\\overline\\omega"
+      ]
+    },
+    {
+      "id": "def:cross-fitted-learner-handle",
+      "name": "\\mathsf{Learner}_n",
+      "construction": "Compute \\((\\widehat\\gamma,\\widehat\\Omega,\\widehat\\Omega^{\\mathbb Q})\\) by \\(\\mathrm{def{:}cross\\text{-}fitted\\text{-}statistics}\\). For finitely encoded fixed geometry with rational supplied \\(p,q\\), run \\(\\mathsf{Cert}_{\\eta_n}\\) at \\((p,q,b,\\kappa,B,\\widehat\\Omega^{\\mathbb Q})\\), let \\(c_{\\eta_n,\\widehat\\Omega^{\\mathbb Q}}\\in\\mathbb B_{\\mathcal A}\\) be its code, and define \\(\\widehat a_n=\\operatorname{Dec}(c_{\\eta_n,\\widehat\\Omega^{\\mathbb Q}})(\\sqrt n\\,(\\widehat\\Omega^{\\mathbb Q})^{-1/2}\\widehat\\gamma)\\). A finite implementation first rounds this argument to \\(z_L\\in\\mathbb Q^d\\) and then calls \\(\\operatorname{Eval}(c_{\\eta_n,\\widehat\\Omega^{\\mathbb Q}},z_L,L)\\). Every returned action lies in \\(\\mathcal A\\), so \\(p^\\top\\widehat a_n=q\\) on every sample, including empty-cell events handled by the clipped formulas.",
+      "free_symbols": [
+        "n",
+        "K",
+        "\\widehat\\gamma",
+        "\\widehat\\Omega",
+        "\\widehat\\Omega^{\\mathbb Q}",
+        "\\eta_n",
+        "c_\\eta",
+        "\\mathbb B_{\\mathcal A}",
+        "\\operatorname{Dec}",
+        "\\operatorname{Eval}",
+        "d",
+        "\\mathcal A",
+        "\\mathsf{Cert}_\\eta",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B"
+      ],
+      "inputs": [
+        "O",
+        "n",
+        "K",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "\\widehat\\gamma",
+        "\\widehat\\Omega^{\\mathbb Q}",
+        "\\mathsf{Cert}_\\eta"
+      ]
+    },
+    {
+      "id": "def:confidence-set-handle",
+      "name": "\\mathsf{Infer}_n",
+      "construction": "Form the \\(1-\\alpha_0\\) studentized joint score ellipsoid for the finite vector \\((\\tau,\\operatorname{vech}(\\Omega))\\) from the clipped cross-fitted summands in \\(\\mathrm{def{:}cross\\text{-}fitted\\text{-}statistics}\\). For every point in that ellipsoid, run \\(\\mathsf{Cert}_{\\eta_n}\\), decode its finite code \\(c\\), retain every policy map \\(\\delta\\in\\mathscr D\\) with \\(\\mathsf K_n(\\delta,\\operatorname{Dec}(c))\\le\\eta_n\\) under \\(\\nu_n\\), and retain the corresponding oracle welfare \\(v_n^\\star(P)\\). Their union is the candidate set \\(\\mathcal C_n\\subset\\mathscr D\\times\\mathbb R\\).",
+      "free_symbols": [
+        "n",
+        "\\tau",
+        "\\Omega",
+        "\\widehat\\Omega",
+        "\\alpha_0",
+        "\\eta_n",
+        "\\mathsf K_n",
+        "\\nu_n",
+        "v_n^\\star",
+        "P",
+        "\\mathcal C_n",
+        "\\mathscr D",
+        "\\mathsf{Cert}_\\eta",
+        "c_\\eta",
+        "\\operatorname{Dec}"
+      ],
+      "inputs": [
+        "\\widehat\\gamma",
+        "\\widehat\\Omega",
+        "v_n^\\star",
+        "\\nu_n",
+        "\\mathsf K_n",
+        "\\mathsf{Cert}_\\eta"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:oracle-bregman-identity",
+      "kind": "theorem",
+      "statement": "For every \\(h\\in\\mathbb R^d\\), the oracle \\(s(h)\\) exists, is unique, lies in the relative interior of \\(\\mathcal A\\), equals the multiplier construction in \\(\\mathrm{def{:}oracle\\text{-}action}\\), and satisfies \\(\\ell(h,a)=\\kappa\\sum_{j=1}^m p_j\\operatorname{kl}(a_j,s_j(h))\\) for every \\(a\\in\\mathcal A\\).",
+      "free_symbols": [
+        "h",
+        "d",
+        "s",
+        "\\mathcal A",
+        "\\ell",
+        "\\kappa",
+        "m",
+        "j",
+        "p",
+        "\\operatorname{kl}"
+      ],
+      "depends_on": [
+        "def:oracle-action"
+      ],
+      "status": "to-prove",
+      "justification": "The identity fixes the orientation of reverse KL and turns the policy problem into a strictly convex statistical decision problem.",
+      "gap": "ClasonLorenzMahlerWirth2021 gives entropy-transport KKT conditions for a fixed cost, while the displayed Bregman identity is the loss reduction needed for an adversarial Gaussian cost.",
+      "consumer": "Every minimax, face-limit, certificate, and causal-risk statement uses this exact loss representation."
+    },
+    {
+      "id": "thm:scalar-reverse-kl-saddle",
+      "kind": "theorem",
+      "statement": "For every one-dimensional face \\(F\\) of \\(\\mathfrak G\\), use exactly the chart \\(\\Gamma_F\\): actions are \\(a_F^0+B_Fx\\), \\(x\\in\\mathcal X_F\\), observations are \\(Z_F=J_F^\\top Z\\sim N_1(\\theta,1)\\), the oracle is \\(s_F\\), and loss and risk are \\(\\ell_F\\) and \\(R_F\\). This scalar reverse-KL game has an essentially unique minimax representative \\(\\delta_F^{\\min}\\); its proper least-favorable priors are locally finite with countably infinite support unbounded in both directions, and its Bayes action is the inverse derivative of \\(x\\mapsto\\kappa H(a_F^0+B_Fx)\\) evaluated at the posterior mean of \\(\\theta G_F^{1/2}\\). For the complete binary instance \\(\\mathfrak G_2\\), \\(a_{\\mathcal A}^0=(1/2,1/2)^\\top\\), \\(B_{\\mathcal A}=2^{-1/2}(1,-1)^\\top\\), \\(\\mathcal X_{\\mathcal A}=[-1/\\sqrt2,1/\\sqrt2]\\), \\(G_{\\mathcal A}=1/2\\), \\(J_{\\mathcal A}=1\\), \\(Q=(1/2,-1/2)\\), \\(H(a)=\\operatorname{kl}(a_1,1/2)\\), and \\(s_1(h)=\\operatorname{expit}(h/\\kappa)\\). Hence \\(\\delta^{\\mathrm{sc}}_\\kappa(z)=\\operatorname{expit}(\\mathbb E_{\\pi_\\kappa}[h\\mid Z=z]/\\kappa)\\), \\(\\sup_hR(h,z\\mapsto s(z))-r>0\\), \\(\\lvert r-r_0\\rvert\\le\\kappa\\log2\\), and \\(\\lim_{\\kappa\\to\\infty}\\kappa r=1/8\\) in \\(\\mathfrak G_2\\). No affine-rescaling assertion is made for a different one-dimensional face; its inherited result is the preceding exact \\(\\Gamma_F\\) formula.",
+      "free_symbols": [
+        "F",
+        "\\mathfrak G",
+        "\\Gamma_F",
+        "a_F^0",
+        "B_F",
+        "\\mathcal X_F",
+        "Z_F",
+        "J_F",
+        "Z",
+        "s_F",
+        "\\ell_F",
+        "R_F",
+        "\\delta_F^{\\min}",
+        "H",
+        "G_F",
+        "\\kappa",
+        "\\mathfrak G_2",
+        "\\mathcal A",
+        "Q",
+        "\\operatorname{kl}",
+        "\\operatorname{expit}",
+        "\\delta^{\\mathrm{sc}}_\\kappa",
+        "\\pi_\\kappa",
+        "h",
+        "s",
+        "R",
+        "r",
+        "r_0"
+      ],
+      "depends_on": [
+        "thm:oracle-bregman-identity"
+      ],
+      "status": "to-prove",
+      "justification": "The scalar saddle reveals that reverse-KL annealing requires an infinite noncompact least-favorable geometry rather than a two-point prior.",
+      "gap": "Theorem 4.2 of KitagawaLeeQiu2026 has a two-point least-favorable prior and a logistic posterior-probability rule for mean-square regret; the reverse-KL rule is instead logistic in a posterior mean and no bounded-support prior has finite global risk.",
+      "consumer": "The theorem supplies every one-dimensional residual-face solver and calibrates both temperature endpoints of the global construction."
+    },
+    {
+      "id": "thm:exposed-face-reduction",
+      "kind": "theorem",
+      "statement": "For every exposed face \\(F\\), every \\(v\\in\\mathcal N_F^\\circ\\), and every \\(L<\\infty\\), \\[\\sup_{\\lVert\\theta\\rVert_2\\le L}\\lVert D_p^{1/2}[s(\\rho v+J_F\\theta)-s_F(\\theta)]\\rVert_2\\longrightarrow0\\] and, uniformly over \\(a\\in F\\) and \\(\\lVert\\theta\\rVert_2\\le L\\), \\(\\ell(\\rho v+J_F\\theta,a)\\to\\ell_F(\\theta,a)\\) as \\(\\rho\\to\\infty\\). For rule sequences, convergence to a face rule means exactly \\(d^{\\mathfrak G}_{F,L,\\rho,v}\\to0\\) in \\(\\mathfrak T_{\\mathfrak G}\\). Consequently \\(r_F^{\\min}\\le r\\). The explicitly defined comparator \\(\\delta_F^{\\mathrm{plug}}(z_F)=s_F(z_F)\\) satisfies \\(\\sup_\\theta R_F(\\theta,\\delta_F^{\\mathrm{plug}})\\le r_F\\lambda_{\\max}(G_F)\\rho_F/(2\\kappa\\min_{j:a_j\\text{ nonconstant on }F}p_j^2)\\) for \\(r_F>0\\), while both sides are zero at a vertex.",
+      "free_symbols": [
+        "\\mathfrak G",
+        "F",
+        "\\mathcal N_F^\\circ",
+        "D_p",
+        "s",
+        "J_F",
+        "s_F",
+        "\\ell",
+        "\\ell_F",
+        "\\mathfrak T_{\\mathfrak G}",
+        "r_F^{\\min}",
+        "r",
+        "\\delta_F^{\\mathrm{plug}}",
+        "Z_F",
+        "R_F",
+        "r_F",
+        "G_F",
+        "\\rho_F",
+        "\\kappa",
+        "j",
+        "p"
+      ],
+      "depends_on": [
+        "thm:oracle-bregman-identity",
+        "def:framed-gaussian-capacity-geometry",
+        "def:face-experiment"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem converts every escape direction of the noncompact game into a lower-dimensional decision problem and controls degenerating residual capacities.",
+      "gap": "Weed2018 controls approach to an optimal face for a finite linear program, but it neither derives projected Gaussian face experiments nor compares their decision risks.",
+      "consumer": "The face recursion supplies the boundary conditions required by the global gluing question and by certified tail truncation."
+    },
+    {
+      "id": "thm:diagonal-tail-obstruction",
+      "kind": "theorem",
+      "statement": "In the single experiment \\(\\mathfrak G_3\\) of \\(\\mathrm{def{:}helmert\\text{-}three\\text{-}cell\\text{-}geometry}\\), consider \\(\\mathcal C_{\\mathrm{diag}}(\\mathfrak G_3)=\\{z\\mapsto s(\\operatorname{diag}(c_1,c_2)z):(c_1,c_2)\\in(0,\\infty)^2\\}\\). Every member with finite \\(\\sup_{h\\in\\mathbb R^2}R(h,\\delta_c)\\) has \\(c_1=c_2=\\alpha\\) and therefore belongs to \\(\\mathcal C_{\\mathrm{lin}}(\\mathfrak G_3)\\); if \\(c_1\\ne c_2\\), the risk diverges along at least one explicitly oriented sequence \\(h=\\rho n_{j,\\sigma}\\), \\(\\rho\\to\\infty\\), with \\(n_{j,\\sigma}\\) given in \\(\\mathrm{def{:}helmert\\text{-}three\\text{-}cell\\text{-}geometry}\\).",
+      "free_symbols": [
+        "\\mathfrak G_3",
+        "\\mathcal C_{\\mathrm{diag}}",
+        "s",
+        "\\mathcal C_{\\mathrm{lin}}",
+        "h",
+        "R",
+        "j",
+        "\\sigma",
+        "n_{j,\\sigma}"
+      ],
+      "depends_on": [
+        "thm:oracle-bregman-identity",
+        "def:gaussian-minimax-rule",
+        "def:helmert-three-cell-geometry"
+      ],
+      "status": "to-prove",
+      "justification": "The tail obstruction reduces an apparently high-dimensional comparator class to a one-parameter family before numerical separation is attempted.",
+      "gap": "KitagawaLeeQiu2026 motivates logistic Gaussian shrinkage without aggregate capacity; no cited result characterizes which coordinatewise scalings even have finite risk under exact capacity.",
+      "consumer": "The result makes the strict nonseparability certificate finite-dimensional and falsifiable in the designated three-cell experiment."
+    },
+    {
+      "id": "oeq:global-minimax-existence",
+      "kind": "openendedquestion",
+      "statement": "For every fixed framed geometry \\(\\mathfrak G\\), do there exist \\(\\bar\\delta\\in\\mathscr D\\) and, simultaneously, \\(\\delta_F\\in\\mathfrak R_F\\) for every proper exposed face \\(F\\), such that \\(\\sup_hR(h,\\bar\\delta)=r\\), \\(d^{\\mathfrak G}_{F,L,\\rho,v}(\\bar\\delta,\\delta_F)\\to0\\) for every \\(L<\\infty\\) and \\(v\\in\\mathcal N_F^\\circ\\), and \\(d^{\\mathfrak G}_{E\\mid F,L,\\rho,w}(\\delta_F,\\delta_E)\\to0\\) for every strict nested pair \\(E\\subsetneq F\\), every fixed \\(L\\), and every within-face unit direction \\(w\\) satisfying the exposing equation in \\(\\mathfrak T_{\\mathfrak G}\\)? If so, is \\(\\mathfrak R\\) a singleton in the global almost-everywhere quotient? This worst-risk question is distinct from the posterior-average objective of SunadaIzumi2025 Theorem 3.3.",
+      "free_symbols": [
+        "\\mathfrak G",
+        "\\mathscr D",
+        "F",
+        "\\mathfrak R_F",
+        "h",
+        "R",
+        "r",
+        "\\mathfrak T_{\\mathfrak G}",
+        "\\mathcal N_F^\\circ",
+        "\\mathfrak R"
+      ],
+      "depends_on": [
+        "thm:scalar-reverse-kl-saddle",
+        "thm:exposed-face-reduction",
+        "thm:diagonal-tail-obstruction",
+        "def:face-gluing-handle",
+        "def:gaussian-minimax-rule"
+      ],
+      "status": "to-prove",
+      "justification": "Existence, nested-face compatibility, and essential uniqueness are the distinct global obligations needed to turn facewise solutions into one capacity rule.",
+      "gap": "SunadaIzumi2025 Proposition 3.2 selects the unique \\(H\\)-minimizer over posterior-optimal couplings, and Theorem 3.3 proves average optimality under Assumptions 3.1--3.6. Those results use a different objective and do not establish worst-risk existence, uniqueness, or compatibility across nested Gaussian face experiments.",
+      "consumer": "An affirmative answer supplies one coherent minimax allocation map for scarce vouchers, beds, or training slots when several target cells lie on capacity faces."
+    },
+    {
+      "id": "prop:minimax-selector-binding",
+      "kind": "proposition",
+      "statement": "If \\(\\mathrm{oeq{:}global\\text{-}minimax\\text{-}existence}\\) has an affirmative existence-and-uniqueness answer, then \\(\\mathfrak R=\\{\\bar\\delta^\\star\\}\\); fix one Borel representative of this unique equivalence class and denote it by \\(\\delta^\\star:\\mathbb R^d\\to\\mathcal A\\). No use of \\(\\delta^\\star\\) is made without this antecedent.",
+      "free_symbols": [
+        "\\mathfrak R",
+        "\\delta^\\star",
+        "d",
+        "\\mathcal A"
+      ],
+      "depends_on": [
+        "oeq:global-minimax-existence"
+      ],
+      "status": "to-prove",
+      "justification": "The binding separates the open existence theorem from notation used in conditional downstream questions.",
+      "gap": "A minimax representative cannot be named before nonemptiness and uniqueness of the minimax correspondence are established.",
+      "consumer": "Certified computation, causal attainment, and inference can state their targets without presuming the global minimax conclusion."
+    },
+    {
+      "id": "oeq:certified-gaussian-computation",
+      "kind": "openendedquestion",
+      "statement": "Conditional on \\(\\mathrm{prop{:}minimax\\text{-}selector\\text{-}binding}\\), for every finite exact encoding of \\(\\mathfrak G\\) with \\(p\\in\\mathbb Q^m\\), \\(q\\in\\mathbb Q\\), and every entry of \\(b,\\kappa,B,\\Omega\\) rational or real algebraic, can \\(\\mathsf{Cert}_\\eta\\) return \\((\\underline r_\\eta,\\overline r_\\eta,c_\\eta)\\in\\mathbb Q^2\\times\\mathbb B_{\\mathcal A}\\) with \\(\\underline r_\\eta\\le r\\le\\overline r_\\eta\\), \\(\\overline r_\\eta-\\underline r_\\eta\\le\\eta\\), and \\(d_{\\mathrm{EKL}}(\\operatorname{Dec}(c_\\eta),\\delta^\\star)\\le\\eta\\), where the inequality in particular requires the extended-real discrepancy to be finite, while also certifying every required \\(\\mathfrak T_{\\mathfrak G}\\) face truncation, in time and code length \\(\\operatorname{poly}(1/\\eta,L_{\\mathrm{in}})\\) for fixed \\(m\\)? For every \\(z\\in\\mathbb Q^d\\) and \\(L\\in\\mathbb N\\), \\(\\operatorname{Eval}(c_\\eta,z,L)\\) must be in \\(\\mathcal A\\cap\\mathbb Q^m\\), run in time polynomial in \\(L\\), the code length, and the bit length of \\(z\\), and satisfy \\(\\lVert D_p^{1/2}[\\operatorname{Eval}(c_\\eta,z,L)-\\operatorname{Dec}(c_\\eta)(z)]\\rVert_2\\le2^{-L}\\).",
+      "free_symbols": [
+        "\\mathfrak G",
+        "\\mathsf{Cert}_\\eta",
+        "\\eta",
+        "\\underline r_\\eta",
+        "\\overline r_\\eta",
+        "c_\\eta",
+        "\\mathbb B_{\\mathcal A}",
+        "r",
+        "d_{\\mathrm{EKL}}",
+        "\\operatorname{Dec}",
+        "\\delta^\\star",
+        "\\mathfrak T_{\\mathfrak G}",
+        "L_{\\mathrm{in}}",
+        "m",
+        "d",
+        "\\operatorname{Eval}",
+        "\\mathcal A",
+        "D_p",
+        "p",
+        "q",
+        "b",
+        "\\kappa",
+        "B",
+        "\\Omega"
+      ],
+      "depends_on": [
+        "prop:minimax-selector-binding",
+        "def:certificate-handle",
+        "thm:exposed-face-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "A value certificate alone does not recover a decision map, so both a bracket for the minimax value and expected reverse-KL map accuracy are required.",
+      "gap": "Weed2018 and AltschulerWeedRigollet2017 certify finite entropic programs, whereas the target is a semi-infinite Gaussian game with residual experiments on noncompact face directions.",
+      "consumer": "The algorithm supplies an auditable fixed-dimensional assignment engine and a numerical error budget for the causal learner."
+    },
+    {
+      "id": "prop:certificate-output-binding",
+      "kind": "proposition",
+      "statement": "For any output code \\(c_\\eta\\) satisfying every guarantee in \\(\\mathrm{oeq{:}certified\\text{-}gaussian\\text{-}computation}\\), define \\(\\delta_\\eta=\\operatorname{Dec}(c_\\eta)\\in\\mathscr D\\). The symbol \\(\\delta_\\eta\\) is undefined when those guarantees have not been proved.",
+      "free_symbols": [
+        "c_\\eta",
+        "\\delta_\\eta",
+        "\\operatorname{Dec}",
+        "\\mathscr D",
+        "\\eta"
+      ],
+      "depends_on": [
+        "oeq:certified-gaussian-computation"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition introduces certified-map notation only after a finite code and its guarantees exist.",
+      "gap": "An arbitrary Borel equivalence class is not a finite computational output and cannot serve as an algorithmic certificate.",
+      "consumer": "Later numerical statements may refer to a decoded certified rule with a concrete evaluation model."
+    },
+    {
+      "id": "oeq:three-cell-comparator-gap",
+      "kind": "openendedquestion",
+      "statement": "In the single Helmert-framed experiment \\(\\mathfrak G_3\\), can \\(c_{10^{-6}}\\), \\(T_{\\mathrm e}\\in\\mathbb Q_{>0}\\), and \\(U_{\\mathrm e}\\in\\mathbb Q_{>0}\\) satisfy \\(\\mathsf{EdgeCert}(c_{10^{-6}},T_{\\mathrm e},U_{\\mathrm e},10^{-6})\\) for all six \\((j,\\sigma)\\), using exactly the displayed \\(n_{j,\\sigma}\\), \\(t_{j,\\sigma}\\), and \\(\\delta^F_{j,\\sigma}\\)? Can the same interval computation cover \\(\\rho<T_{\\mathrm e}\\), \\(|x|>U_{\\mathrm e}\\), Gaussian tails, and intersections of adjacent edge charts, return a bracket for \\(r\\) of width at most \\(10^{-4}\\), and certify \\[\\inf_{\\delta\\in\\mathcal C_{\\mathrm{lin}}(\\mathfrak G_3)}\\sup_{h\\in\\mathbb R^2}R(h,\\delta)-r\\ge10^{-3}?\\]",
+      "free_symbols": [
+        "\\mathfrak G_3",
+        "c_\\eta",
+        "T_{\\mathrm e}",
+        "U_{\\mathrm e}",
+        "\\mathsf{EdgeCert}",
+        "j",
+        "\\sigma",
+        "n_{j,\\sigma}",
+        "t_{j,\\sigma}",
+        "\\delta^{F}_{j,\\sigma}",
+        "r",
+        "\\delta",
+        "\\mathcal C_{\\mathrm{lin}}",
+        "h",
+        "R"
+      ],
+      "depends_on": [
+        "thm:exposed-face-reduction",
+        "thm:diagonal-tail-obstruction",
+        "def:helmert-three-cell-geometry",
+        "def:oriented-edge-residuals",
+        "def:certificate-handle"
+      ],
+      "status": "to-prove",
+      "justification": "The unequal-covariance three-cell experiment is a finite, reproducible kill test for both face compatibility and strict departure from common logistic scaling.",
+      "gap": "No cited Gaussian treatment-rule result provides a certified positive worst-risk gap from every common positive scaling under exact aggregate capacity.",
+      "consumer": "A positive certificate justifies a coupled solver in the smallest multivariate capacity problem; failure triggers a pivot before causal asymptotics are pursued."
+    },
+    {
+      "id": "lem:conditional-tilt-preservation",
+      "kind": "lemma",
+      "statement": "For every \\(P_0\\in\\mathfrak M_m\\), the Radon--Nikodym derivative in \\(\\mathrm{def{:}conditional\\text{-}tilt\\text{-}path}\\) integrates to one. Under \\(\\mathbb P_{n,h}\\), \\(\\mathbb P_{n,h}(X=j)=p_j\\), \\(\\mathbb P_{n,h}(D=1\\mid X=j)=e_j\\), and \\((Y(0),Y(1))\\perp_{\\mathbb P_{n,h}}D\\mid X\\); the supplied quota \\(q\\) and action polytope \\(\\mathcal A\\) are unchanged. The observed score at \\(n^{-1/2}=0\\) is \\(h^\\top\\zeta(O)\\), \\(\\mathbb E_{P_0}[\\zeta\\zeta^\\top]=I_d\\), and \\(\\sqrt n\\,\\gamma(P_{n,h})=\\Omega^{1/2}h+o(1)\\) uniformly for \\(h\\) in compact sets.",
+      "free_symbols": [
+        "P_0",
+        "\\mathfrak M_m",
+        "\\mathbb P_{n,h}",
+        "X",
+        "j",
+        "p",
+        "D",
+        "e_j",
+        "Y(t)",
+        "q",
+        "\\mathcal A",
+        "n",
+        "h",
+        "\\zeta",
+        "O",
+        "d",
+        "\\gamma",
+        "P_{n,h}",
+        "\\Omega"
+      ],
+      "depends_on": [
+        "ass:known-cell-masses",
+        "ass:conditional-ignorability",
+        "ass:bounded-outcomes",
+        "ass:covariance-bounds",
+        "def:full-data-model",
+        "def:product-coupling-lift",
+        "def:conditional-tilt-path"
+      ],
+      "status": "to-prove",
+      "justification": "The lemma makes the least-favorable path a valid causal submodel while holding fixed every supplied capacity and treatment-assignment primitive.",
+      "gap": "HiranoPorter2009 uses regular parametric submodels abstractly; the normalized armwise tilt here must preserve the finite-cell margins and propensity mechanism needed for exact capacity.",
+      "consumer": "The causal LAN lower bound uses its information-one observed score without replacing the supplied target masses or propensities by local nuisances."
+    },
+    {
+      "id": "lem:finite-cell-crossfit-rates",
+      "kind": "lemma",
+      "statement": "For every \\(\\varepsilon\\in(0,1)\\) there are finite constants \\(C_\\varepsilon\\) and \\(N_\\varepsilon\\), depending only on the fixed \\(m,K,p,\\underline e,C_Y,\\underline\\omega,\\overline\\omega\\), such that for every \\(n\\ge N_\\varepsilon\\), \\(P_0\\in\\mathfrak M_m\\), and \\(\\lVert h\\rVert\\le M_n\\), the \\(P_{n,h}^n\\)-probability is at least \\(1-\\varepsilon\\) that all three inequalities hold: \\[\\max_{j,t,k}(|\\widehat e_j^{(-k)}-e_j|+|\\widehat\\mu_{tj}^{(-k)}-\\mu_{tj}|)\\le C_\\varepsilon n^{-1/2},\\] \\[\\left\\lVert\\widehat\\gamma-\\gamma-n^{-1}\\sum_{i=1}^n\\chi(O_i)\\right\\rVert_2\\le C_\\varepsilon n^{-1},\\qquad \\max\\{\\lVert\\widehat\\Omega-\\Omega\\rVert_{\\mathrm{op}},\\lVert\\widehat\\Omega^{\\mathbb Q}-\\Omega\\rVert_{\\mathrm{op}}\\}\\le C_\\varepsilon n^{-1/2}.\\]",
+      "free_symbols": [
+        "m",
+        "K",
+        "p",
+        "\\underline e",
+        "C_Y",
+        "\\underline\\omega",
+        "\\overline\\omega",
+        "n",
+        "P_0",
+        "\\mathfrak M_m",
+        "h",
+        "M_n",
+        "P_{n,h}",
+        "j",
+        "t",
+        "k",
+        "e_j",
+        "\\mu_{tj}",
+        "\\widehat\\gamma",
+        "\\gamma",
+        "i",
+        "\\chi",
+        "O",
+        "\\widehat\\Omega",
+        "\\Omega",
+        "\\widehat\\Omega^{\\mathbb Q}"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "ass:overlap",
+        "ass:bounded-outcomes",
+        "def:cross-fitted-statistics"
+      ],
+      "status": "to-prove",
+      "justification": "Finite-cell empirical nuisances remove any unspecified learner and isolate covariance-sensitive map stability as the only nonroutine upper-bound step.",
+      "gap": "ChernozhukovEtAl2018DML allows generic nuisance learners; this lemma specializes the score to a fully measurable clipped finite-cell procedure with explicit root-\\(n\\) behavior.",
+      "consumer": "The expanding-local learner and confidence-set constructions use these exact stochastic errors in their numerical and covariance enlargements."
+    },
+    {
+      "id": "thm:causal-lan-lower",
+      "kind": "theorem",
+      "statement": "For every \\(P_0\\in\\mathfrak M_m\\), the observed laws induced by \\(\\mathbb P_{n,h}\\) satisfy a \\(d\\)-dimensional LAN expansion with central sequence \\(n^{-1/2}\\sum_{i=1}^n\\zeta(O_i)\\) and information \\(I_d\\). For every finite \\(\\mathcal G\\subset\\mathbb R^d\\), \\(\\liminf_{n\\to\\infty}\\inf_{a_n:\\,a_n\\in\\mathcal A}\\max_{h\\in\\mathcal G}\\mathbb E_{P_{n,h}}[\\sqrt n\\,\\operatorname{Regret}_n(a_n;P_{n,h})]\\ge\\inf_{\\delta\\in\\mathscr D}\\max_{h\\in\\mathcal G}R(h,\\delta)\\). Taking the supremum over finite \\(\\mathcal G\\) gives \\(r\\).",
+      "free_symbols": [
+        "P_0",
+        "\\mathfrak M_m",
+        "m",
+        "P_{n,h}",
+        "\\mathbb P_{n,h}",
+        "\\zeta",
+        "O",
+        "i",
+        "d",
+        "n",
+        "a_n",
+        "\\mathcal A",
+        "h",
+        "\\mathcal G",
+        "\\operatorname{Regret}_n",
+        "\\delta",
+        "R",
+        "r",
+        "\\mathscr D"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "def:observational-class",
+        "def:finite-sample-regret",
+        "lem:conditional-tilt-preservation",
+        "thm:oracle-bregman-identity"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem identifies the exact Gaussian game as an observed-data causal information bound rather than an analogy.",
+      "gap": "HiranoPorter2009 transfers unconstrained treatment choice through Gaussian limits, but its action space does not impose exact aggregate capacity or the root-\\(n\\) reverse-KL penalty.",
+      "consumer": "The lower bound certifies that no observational learner with the same causal information can beat the face-recursive Gaussian value."
+    },
+    {
+      "id": "oeq:expanding-local-attainment",
+      "kind": "openendedquestion",
+      "statement": "Conditional on \\(\\mathrm{prop{:}minimax\\text{-}selector\\text{-}binding}\\) and \\(\\mathrm{oeq{:}certified\\text{-}gaussian\\text{-}computation}\\), can the definite clipped finite-cell procedure \\(\\mathsf{Learner}_n\\), for fixed finitely encoded geometry with rational supplied \\(p,q\\) and with \\(\\eta_n=1/\\log(n+e)\\), satisfy \\(p^\\top\\widehat a_n=q\\) on every sample and \\[\\sup_{P_0\\in\\mathfrak M_m}\\sup_{\\lVert h\\rVert\\le M_n}\\left|\\mathbb E_{P_{n,h}^n}[\\sqrt n\\,\\operatorname{Regret}_n(\\widehat a_n;P_{n,h})]-R(h,\\delta^\\star)\\right|\\longrightarrow0,\\] despite root-\\(n\\) estimation and dyadic encoding of \\(\\Omega\\) and changes of the active exposed face?",
+      "free_symbols": [
+        "\\mathsf{Learner}_n",
+        "n",
+        "p",
+        "q",
+        "\\eta_n",
+        "\\widehat a_n",
+        "P_0",
+        "\\mathfrak M_m",
+        "m",
+        "h",
+        "M_n",
+        "P_{n,h}",
+        "\\operatorname{Regret}_n",
+        "R",
+        "\\delta^\\star",
+        "\\Omega",
+        "\\widehat\\Omega^{\\mathbb Q}",
+        "F"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "def:observational-class",
+        "prop:minimax-selector-binding",
+        "oeq:certified-gaussian-computation",
+        "thm:causal-lan-lower",
+        "lem:finite-cell-crossfit-rates",
+        "def:cross-fitted-statistics",
+        "def:cross-fitted-learner-handle"
+      ],
+      "status": "to-prove",
+      "justification": "Expanding-local, covariance-stable attainment is the step that converts the Gaussian solution into an implementable sharp causal learner.",
+      "gap": "AtheyWager2021 supplies cross-fitted orthogonal policy scores and HiranoPorter2009 supplies local decision transfer. DaidoKido2023 derives local asymptotic minimax rules for a scalar partially identified welfare contrast. Sun2026 studies welfare maximization with estimated budget or cost constraints, whereas this question takes supplied masses and quota as fixed. None controls an aggregate-capacity reverse-KL map with nested exposed faces, estimated covariance, and expanding local sets.",
+      "consumer": "The result gives a deployable locally minimax policy for a planner whose target-cell masses and quota come from an allocation registry."
+    },
+    {
+      "id": "oeq:honest-policy-inference",
+      "kind": "openendedquestion",
+      "statement": "Conditional on \\(\\mathrm{prop{:}minimax\\text{-}selector\\text{-}binding}\\), \\(\\mathrm{oeq{:}certified\\text{-}gaussian\\text{-}computation}\\), and \\(\\mathrm{oeq{:}expanding\\text{-}local\\text{-}attainment}\\), can \\(\\mathsf{Infer}_n\\) produce \\(\\mathcal C_n\\subset\\mathscr D\\times\\mathbb R\\) whose policy projection uses the explicit directed radius \\(\\mathsf K_n\\le\\eta_n\\) under \\(\\nu_n\\) and satisfies \\[\\liminf_{n\\to\\infty}\\inf_{P_0\\in\\mathfrak M_m}\\inf_{\\lVert h\\rVert\\le M_n}P_{n,h}^n\\{(\\delta^\\star,v_n^\\star(P_{n,h}))\\in\\mathcal C_n\\}\\ge1-\\alpha_0?\\] With \\(\\mathfrak d_n((\\delta,v),(\\delta',v'))=d_n^{\\mathrm{pol}}(\\delta,\\delta')+\\sqrt n|v-v'|\\), can it also satisfy \\[\\liminf_{n\\to\\infty}\\inf_{P_0\\in\\mathfrak M_m}\\inf_{\\lVert h\\rVert\\le M_n}P_{n,h}^n\\{\\operatorname{diam}_{\\mathfrak d_n}(\\mathcal C_n)\\ge c_{\\alpha_0}\\}\\ge1-\\alpha_0,\\] where \\(c_{\\alpha_0}=2\\Phi^{-1}(1-\\alpha_0/2)\\min_j s_j(0)\\sqrt{d\\underline\\omega}>0\\), and the explicit uniform-tightness quantifier \\[\\forall\\varepsilon\\in(0,1)\\ \\exists C_\\varepsilon<\\infty,\\ N_\\varepsilon<\\infty\\ \\forall n\\ge N_\\varepsilon:\\quad \\sup_{P_0\\in\\mathfrak M_m}\\sup_{\\lVert h\\rVert\\le M_n}P_{n,h}^n\\{\\operatorname{diam}_{\\mathfrak d_n}(\\mathcal C_n)>C_\\varepsilon\\}\\le\\varepsilon?\\]",
+      "free_symbols": [
+        "\\mathsf{Infer}_n",
+        "n",
+        "\\mathcal C_n",
+        "\\mathscr D",
+        "\\mathsf K_n",
+        "\\eta_n",
+        "\\nu_n",
+        "P_0",
+        "\\mathfrak M_m",
+        "h",
+        "M_n",
+        "P_{n,h}",
+        "\\delta^\\star",
+        "v_n^\\star",
+        "\\alpha_0",
+        "\\mathfrak d_n",
+        "d_n^{\\mathrm{pol}}",
+        "c_{\\alpha_0}",
+        "\\Phi",
+        "j",
+        "s",
+        "d",
+        "\\underline\\omega"
+      ],
+      "depends_on": [
+        "def:observational-class",
+        "prop:minimax-selector-binding",
+        "oeq:certified-gaussian-computation",
+        "oeq:expanding-local-attainment",
+        "lem:finite-cell-crossfit-rates",
+        "def:confidence-set-handle"
+      ],
+      "status": "to-prove",
+      "justification": "Threshold mass makes both the optimal map and welfare nonregular, so a point estimate without an honest uncertainty region is incomplete.",
+      "gap": "LuedtkeVanderLaan2016RC excludes positive mass at the resource threshold from its regular theory, while WhitehouseAusternSyrgkanis2026 smooths unconstrained policy maxima without exact capacity or nested faces.",
+      "consumer": "The confidence set lets a resource-constrained planner report both welfare uncertainty and policy instability at the cells where assignments are contested."
+    }
+  ],
+  "sampling_model": {
+    "design": "A full-data finite-cell causal superpopulation model supplies the target mass vector \\(p\\), the capacity \\(q\\), and root-\\(n\\) annealing \\(\\lambda_n=\\kappa/\\sqrt n\\); the normalized armwise exponential tilt changes only the conditional potential-outcome laws.",
+    "units": "\\(W_i=(X_i,D_i,Y_i(0),Y_i(1))\\) are independent under \\(\\mathbb P_{n,h}\\), and \\(O_i=(X_i,D_i,Y_i(D_i))\\) are the observed draws from \\(P_{n,h}\\) around \\(P_0\\).",
+    "treatment": "Binary treatment is conditionally unconfounded given \\(X\\); the local path holds \\(P(D=1\\mid X=j)=e_j\\) fixed.",
+    "overlap": "\\(e_j\\in[\\underline e,1-\\underline e]\\) for every target cell.",
+    "nuisance_estimation": "Deterministic \\(K\\)-fold cross-fitting uses clipped off-fold empirical cell-arm means and propensities, held-out augmented scores, eigenvalue clipping, and an \\(n^{-2}\\)-accurate dyadic covariance encoding. For finitely encoded fixed geometry with rational registry masses and quota, the certificate returns a finite policy code with a capacity-preserving evaluator, so supplied \\(p\\) and \\(q\\) enforce capacity on every sample; minimax accuracy remains the certified-computation and attainment question."
+  },
+  "estimand_functional": "\\(\\widehat a_n=\\operatorname{Dec}(c_{\\eta_n,\\widehat\\Omega^{\\mathbb Q}})(\\sqrt n\\,(\\widehat\\Omega^{\\mathbb Q})^{-1/2}\\widehat\\gamma),\\quad p^\\top\\widehat a_n=q,\\quad\\sup_{P_0\\in\\mathfrak M_m}\\sup_{\\lVert h\\rVert\\le M_n}\\lvert\\mathbb E_{P_{n,h}^n}[\\sqrt n\\,\\operatorname{Regret}_n(\\widehat a_n;P_{n,h})]-R(h,\\delta^\\star)\\rvert\\to0\\)",
+  "target_estimand": "\\(\\tau_j=\\mathbb E[Y(1)-Y(0)\\mid X=j],\\quad j=1,\\ldots,m\\)",
+  "bibliography": [
+    {
+      "key": "SunadaIzumi2025",
+      "citation": "Keita Sunada and Kohei Izumi (2025), ``Optimal Treatment Assignment Rules under Capacity Constraints,'' arXiv:2506.12225v2, Proposition 3.2 and Theorem 3.3 under Assumptions 3.1--3.6."
+    },
+    {
+      "key": "KitagawaLeeQiu2026",
+      "citation": "Toru Kitagawa, Sokbae Lee, and Chen Qiu (2026), ``Treatment Choice with Nonlinear Regret,'' Biometrika, doi:10.1093/biomet/asag008; arXiv:2205.08586."
+    },
+    {
+      "key": "HiranoPorter2009",
+      "citation": "Keisuke Hirano and Jack R. Porter (2009), ``Asymptotics for Statistical Treatment Rules,'' Econometrica 77, 1683--1701, doi:10.3982/ECTA6630."
+    },
+    {
+      "key": "AtheyWager2021",
+      "citation": "Susan Athey and Stefan Wager (2021), ``Policy Learning with Observational Data,'' Econometrica 89, 133--161, doi:10.3982/ECTA15732."
+    },
+    {
+      "key": "ClasonLorenzMahlerWirth2021",
+      "citation": "Christian Clason, Dirk A. Lorenz, Hinrich Mahler, and Benedikt Wirth (2021), ``Entropic Regularization of Continuous Optimal Transport Problems,'' Journal of Mathematical Analysis and Applications 494, 124432."
+    },
+    {
+      "key": "Weed2018",
+      "citation": "Jonathan Weed (2018), ``An Explicit Analysis of the Entropic Penalty in Linear Programming,'' Proceedings of Machine Learning Research 75, 1841--1855; arXiv:1806.01879."
+    },
+    {
+      "key": "AltschulerWeedRigollet2017",
+      "citation": "Jason Altschuler, Jonathan Weed, and Philippe Rigollet (2017), ``Near-linear Time Approximation Algorithms for Optimal Transport via Sinkhorn Iteration,'' Advances in Neural Information Processing Systems 30."
+    },
+    {
+      "key": "MukherjeeJohnstone2015",
+      "citation": "Gourab Mukherjee and Iain M. Johnstone (2015), ``Exact Minimax Estimation of the Predictive Density in Sparse Gaussian Models,'' Annals of Statistics 43, 937--961, doi:10.1214/14-AOS1251."
+    },
+    {
+      "key": "MontielOleaQiuStoye2023",
+      "citation": "José Luis Montiel Olea, Chen Qiu, and Jörg Stoye (2023), ``Decision Theory for Treatment Choice Problems with Partial Identification,'' arXiv:2312.17623."
+    },
+    {
+      "key": "ChernozhukovEtAl2018DML",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, Mert Demirer, Esther Duflo, Christian Hansen, Whitney Newey, and James Robins (2018), ``Double or Debiased Machine Learning for Treatment and Structural Parameters,'' Econometrics Journal 21, C1--C68."
+    },
+    {
+      "key": "LuedtkeVanderLaan2016RC",
+      "citation": "Alexander R. Luedtke and Mark J. van der Laan (2016), ``Optimal Individualized Treatments in Resource-Limited Settings,'' International Journal of Biostatistics 12, 283--303, doi:10.1515/ijb-2015-0007."
+    },
+    {
+      "key": "WhitehouseAusternSyrgkanis2026",
+      "citation": "Justin Whitehouse, Morgane Austern, and Vasilis Syrgkanis (2026), ``Inference on Optimal Policy Values via Softmax Smoothing,'' arXiv:2507.11780."
+    },
+    {
+      "key": "Sun2026",
+      "citation": "Liyang Sun (2026), ``Empirical Welfare Maximization with Constraints,'' Journal of Econometrics 253, Article 106169."
+    },
+    {
+      "key": "DaidoKido2023",
+      "citation": "Daido Kido (2023), ``Locally Asymptotically Minimax Statistical Treatment Rules Under Partial Identification,'' arXiv:2311.08958."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "SunadaIzumi2025",
+      "comparator_claim": "Proposition 3.2 selects the unique \\(H\\)-minimizer over posterior-optimal couplings, while Theorem 3.3 proves average optimality under Assumptions 3.1--3.6.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Sun2026",
+      "comparator_claim": "The paper studies empirical welfare maximization when budget or cost constraints are estimated from data.",
+      "matched_by": "Open-ended Question 4",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "KitagawaLeeQiu2026",
+      "comparator_claim": "Theorem 4.2 gives a scalar logistic minimax rule and a symmetric two-point least-favorable prior under mean-square regret.",
+      "matched_by": "Theorem 2",
+      "match_kind": "non_representability"
+    },
+    {
+      "comparator_bibkey": "HiranoPorter2009",
+      "comparator_claim": "The Gaussian limit-experiment analysis yields local asymptotic minimax treatment rules for unconstrained welfare regret.",
+      "matched_by": "Theorem 5",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DaidoKido2023",
+      "comparator_claim": "The preprint develops a locally asymptotically minimax statistical treatment rule for a scalar partially identified average-welfare contrast under directional differentiability.",
+      "matched_by": "Open-ended Question 4",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LuedtkeVanderLaan2016RC",
+      "comparator_claim": "The resource-constrained stochastic-rule theory does not guarantee estimated population capacity and excludes threshold mass from its regular inference result.",
+      "matched_by": "Open-ended Question 5",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AtheyWager2021",
+      "comparator_claim": "Cross-fitted doubly robust policy learning attains regret guarantees under observational identification.",
+      "matched_by": "Open-ended Question 4",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ClasonLorenzMahlerWirth2021",
+      "comparator_claim": "Fenchel duality gives existence and primal-dual conditions for entropy-regularized transport with finite-entropy marginals.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Weed2018",
+      "comparator_claim": "Theorem 1 gives an explicit exponential objective-gap bound for entropic penalization of a bounded finite linear program.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "MukherjeeJohnstone2015",
+      "comparator_claim": "Sparse Gaussian predictive-density minimaxity under KL loss can require discrete least-favorable priors and strict improvement over plug-in prediction.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Known target-cell masses and quota define a framed Gaussian capacity geometry whose fixed orthonormal tangent frame determines the covariance coordinates, every comparator, and every escape direction. Each exposed face has an explicit affine action chart, observation isometry, transported oracle, loss, risk, and defined face rule, while representative-invariant local-Gaussian metrics state global-to-face and nested-face compatibility. The canonically normalized scalar game has a posterior-mean reverse-KL minimax rule and unbounded countable least-favorable support. The main open kernel asks for one global minimax map compatible in the displayed metrics, polynomial finite-code value and map certificates, and a six-edge numerical separation in the explicit three-cell Helmert experiment. A normalized full-data tilt, finite-sample regret, clipped finite-cell cross-fitting, and capacity-preserving evaluation retain the causal lower-bound, attainment, and inference program with supplied \\(p\\) and \\(q\\).",
+  "project_justification": {
+    "gap": "SunadaIzumi2025 Proposition 3.2 selects the unique \\(H\\)-minimizer over posterior-optimal couplings, while Theorem 3.3 proves average optimality under Assumptions 3.1--3.6; its posterior-average objective is distinct from worst-risk minimax existence and nested-face compatibility. Sun2026 studies welfare maximization with estimated budget or cost constraints rather than a supplied-mass local minimax game. DaidoKido2023 gives a local-minimax rule for scalar partially identified welfare, KitagawaLeeQiu2026 solves a scalar Gaussian fractional rule for another nonlinear loss, HiranoPorter2009 treats unconstrained local decisions, and LuedtkeVanderLaan2016RC studies resource-limited stochastic rules and regular value inference. None supplies the aggregate-capacity reverse-KL game, its six-edge compatibility certificates, or covariance-stable attainment.",
+    "niche": "Root-\\(n\\) annealing creates a fixed-dimensional Gaussian decision problem in which uncertainty survives on every exposed face at infinity. Known \\(p\\) and \\(q\\) make exact feasibility possible, isolating face compatibility and covariance stability as the genuine mathematical obstacles.",
+    "fill": "The scalar saddle and the framed face-reduction theorem lead to three falsifiable obligations stated in one coordinate system: global minimax existence with compatibility in the displayed local-Gaussian metrics, fixed-dimensional finite-code value and expected-KL map recovery, and a numerical certificate on the Helmert-framed three-cell experiment. The same fixed frame enters the normalized full-data path, finite-sample oracle regret, finite-set LAN lower bound, measurable clipped finite-cell learner, and quantified joint policy-welfare confidence set."
+  },
+  "related_work": "SunadaIzumi2025 is the closest published capacity comparator. Proposition 3.2 of arXiv v2 selects the unique \\(H\\)-minimizer over posterior-optimal couplings, and Theorem 3.3 proves average optimality under Assumptions 3.1--3.6; these are posterior-coupling results with a different objective from worst-risk Gaussian minimaxity and do not imply nested-face compatibility. LuedtkeVanderLaan2016RC is the closest published resource-limited policy comparator: it characterizes stochastic threshold rules and regular value inference, whereas the present fixed-cell game has supplied masses and quota, positive contact mass, and a local reverse-KL worst-risk target. Sun2026 studies empirical welfare maximization when budget or cost constraints are estimated, whereas this game treats \\(p\\) and \\(q\\) as supplied. HiranoPorter2009 gives published local asymptotic minimax treatment-choice theory without aggregate capacity. DaidoKido2023 is a close public but unpublished local-minimax comparator for a scalar partially identified welfare contrast, with neither the capacity polytope nor recursive face games. KitagawaLeeQiu2026 is the closest scalar method exemplar: Theorem 4.2 uses a symmetric two-point least-favorable prior and a logistic equalizer for mean-square regret, while reverse KL changes the Bayes step to a logistic transform of the posterior mean and forces unbounded support. MukherjeeJohnstone2015 informs discrete-prior and plug-in-separation arguments under Gaussian KL risk without sharing the assignment estimand. ClasonLorenzMahlerWirth2021 supplies entropic KKT potentials, while Weed2018 and AltschulerWeedRigollet2017 inform face-distance control and marginal-preserving numerical approximation. ChernozhukovEtAl2018DML and AtheyWager2021 supply orthogonal cross-fitting. WhitehouseAusternSyrgkanis2026 informs smoothed value inference without exact capacity or nested faces.",
+  "technical_internal_limitation": "The scalar tail-splicing argument does not transfer automatically to \\(d>1\\), because full-dimensional Gaussian sequences centered at \\(\\rho v+J_F\\theta\\) retain the transported face experiment \\(\\Gamma_F\\). Equality between the full value and a proper-face value could obstruct a proper least-favorable-prior proof without refuting a global minimax map. The early kill test is the single instance \\(\\mathfrak G_3\\) with the displayed Helmert \\(B\\) and \\(\\Omega=\\operatorname{diag}(1,4)\\); it evaluates all six displayed residuals, their Gaussian tails, unbounded tangential offsets, and adjacent-chart intersections. The angle must pivot if those metric limits are incompatible or the certified coupled optimum belongs to \\(\\mathcal C_{\\mathrm{lin}}(\\mathfrak G_3)\\).",
+  "honest_scope": "The scalar saddle, framed face reduction, positive-diagonal tail obstruction in \\(\\mathfrak G_3\\), normalized tilt preservation, finite-cell score rates, and causal lower bound are theorem targets. The binary instance \\(\\mathfrak G_2\\) has the exact chart \\(a^0=(1/2,1/2)^\\top\\), \\(B_{\\mathcal A}=2^{-1/2}(1,-1)^\\top\\), \\(\\mathcal X_{\\mathcal A}=[-1/\\sqrt2,1/\\sqrt2]\\), \\(G_{\\mathcal A}=1/2\\), and \\(J_{\\mathcal A}=1\\), yielding the high-temperature constant \\(1/8\\); no unspecified affine rescaling transfers that constant to another face. Global minimax existence, compatibility in \\(\\mathfrak T_{\\mathfrak G}\\), multivariate essential uniqueness, polynomial finite-code expected-KL recovery, the six-edge certificate and quantitative common-scaling separation, covariance-stable expanding-local attainment, and honest joint inference are open-ended questions. The causal layer keeps \\(m\\), \\(K\\), \\(\\mathfrak G\\), and the contact configuration fixed; algorithmic attainment requires finitely encoded geometry with rational supplied masses and quota and does not cover unknown masses, an estimated quota, or changing contact sets.",
+  "seeds": [
+    "seed:face-compatible-global-minimax",
+    "seed:scalar-infinite-prior-saddle",
+    "seed:expanding-local-causal-attainment",
+    "seed:contact-efficiency-bound",
+    "seed:honest-face-policy-limit-law",
+    "seed:conformal-capacity-map",
+    "seed:polynomial-saddle-certificate",
+    "seed:temperature-phase-limit",
+    "seed:strict-logit-separation"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:face-compatible-global-minimax",
+      "anchor_open_problem": "Determine whether minimax rules on all nested exposed capacity faces admit one compatible global extension.",
+      "anchor_bibkey": "SunadaIzumi2025",
+      "anchor_locator": "arXiv v2, Introduction, pages 2--5; Proposition 3.2; Theorem 3.3 under Assumptions 3.1--3.6; concluding minimax discussion",
+      "motif": "M16+M11",
+      "m11_subshape": "matched local minimax value and attainment",
+      "target_tier": "flagship",
+      "summary": "Characterize a reverse-KL minimax capacity map in one fixed ambient frame by gluing the explicitly transported Gaussian games on every exposed face, then certify its strict advantage over common-scaling logistic rules in the Helmert-framed three-cell instance.",
+      "first_changed_proof_step": "Replace average posterior integration over the global coupling space by a worst-risk saddle whose mass can escape along normal rays, and prove a cocycle condition for the residual Bayes maps on intersections of face flags.",
+      "destination_search": "Searches for Gaussian minimax capacity coupling, exposed-face minimax gluing, and entropy-regularized treatment assignment found average optimality and fixed-cost transport duality but no compatible minimax extension theorem.",
+      "red_team": "Immediate from SunadaIzumi2025 plus strict convexity of the displayed criterion \\(H\\).",
+      "rebuttal": "Strict convexity gives a unique oracle at each state, not uniqueness of a minimax rule on a noncompact state space; facewise solutions need not agree on nested intersections.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "survived": true,
+      "selected": true,
+      "rank": 1,
+      "anti_pattern_check": "The focal object is the compatible global map and its gluing criterion, not a generic policy-regret restatement."
+    },
+    {
+      "id": "seed:scalar-infinite-prior-saddle",
+      "anchor_open_problem": "Characterize the scalar reverse-KL minimax rule and every proper least-favorable prior.",
+      "anchor_bibkey": "KitagawaLeeQiu2026",
+      "anchor_locator": "Introduction; Theorem 4.2; proof steps that guess a two-point prior, derive the logistic Bayes rule, and verify the equalizer; Conclusion",
+      "motif": "M16",
+      "target_tier": "field",
+      "summary": "Prove posterior-mean logistic minimaxity, essential uniqueness, locally finite countably infinite least-favorable support, strict plug-in gap, and both temperature limits.",
+      "first_changed_proof_step": "Replace posterior sign probability under a two-point prior by the posterior mean first-order condition under reverse KL; bounded prior support then creates divergent tail risk instead of an equalizer.",
+      "destination_search": "Searches for logistic normal-mean minimaxity under Bernoulli reverse KL found nonlinear-regret and Gaussian predictive-density analogues but no exact assignment game.",
+      "red_team": "Theorem 4.2 of KitagawaLeeQiu2026 already proves a logistic Gaussian minimax rule.",
+      "rebuttal": "Its loss is mean-square regret and its rule is posterior sign probability under two support points; reverse KL uses a posterior mean and excludes every bounded-support prior.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "survived": true,
+      "selected": false,
+      "rank": 2,
+      "anti_pattern_check": "The result supplies a complete scalar saddle but is retained as the edge engine rather than substituted for the multivariate kernel."
+    },
+    {
+      "id": "seed:expanding-local-causal-attainment",
+      "anchor_open_problem": "Attain the multivariate Gaussian value with an exactly feasible cross-fitted observational learner.",
+      "anchor_bibkey": "HiranoPorter2009",
+      "anchor_locator": "Introduction; Gaussian limit-experiment lower bound and attaining-rule construction; concluding discussion",
+      "motif": "M16+M11",
+      "m11_subshape": "matched rate and local minimax attainment",
+      "target_tier": "flagship",
+      "summary": "Derive the causal LAN lower bound and an estimated-covariance rule whose normalized risk converges uniformly on explicit expanding local balls while satisfying capacity on every sample.",
+      "first_changed_proof_step": "Replace pointwise continuous mapping of a fixed Gaussian rule by a quantitative stability inequality uniform across normal-fan walls and estimated covariance.",
+      "destination_search": "Searches combining cross-fitted policy learning, exact population capacity, estimated Gaussian covariance, and expanding-local minimaxity found no matching upper theorem.",
+      "red_team": "HiranoPorter2009 plus ChernozhukovEtAl2018DML gives the result mechanically.",
+      "rebuttal": "Neither source controls discontinuous face changes of the minimax correspondence on expanding parameter sets, and DML consistency alone does not yield risk-map stability.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "survived": true,
+      "selected": false,
+      "rank": 3,
+      "anti_pattern_check": "The lower bound and upper learner share the same realized covariance geometry and exact-capacity action space."
+    },
+    {
+      "id": "seed:contact-efficiency-bound",
+      "anchor_open_problem": "Characterize the semiparametric efficiency bound for the finite-cell contact contrast under capacity.",
+      "anchor_bibkey": "AtheyWager2021",
+      "anchor_locator": "Introduction; efficient doubly robust score construction; main regret theorem; Discussion",
+      "motif": "M11",
+      "m11_subshape": "efficiency bound",
+      "target_tier": "subfield",
+      "summary": "Derive the efficient influence function for the tangent contrast and an attaining cross-fitted covariance estimator.",
+      "first_changed_proof_step": "Project the vector of cellwise efficient scores through the known mass-weighted capacity tangent before whitening.",
+      "destination_search": "The finite-cell influence function follows standard semiparametric projection once masses are known; no distinct unresolved efficiency object remained after the Gaussian geometry was fixed.",
+      "red_team": "This is a direct linear transformation of the standard cell-effect influence function.",
+      "rebuttal": "The objection holds; the object is setup for the LAN theorem rather than a standalone kernel.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 2,
+        "novelty": 1,
+        "feasibility": 5,
+        "consumer_value": 3
+      },
+      "survived": false,
+      "selected": false,
+      "rank": 8,
+      "search_obstruction": "Known finite-dimensional cell means make the efficiency calculation routine; the open content begins at minimax decision transfer.",
+      "anti_pattern_check": "Generated for the required efficiency lane and dropped because it is not theorem-level novelty."
+    },
+    {
+      "id": "seed:honest-face-policy-limit-law",
+      "anchor_open_problem": "Construct honest welfare and policy-map confidence sets at threshold mass and nested-face contact.",
+      "anchor_bibkey": "LuedtkeVanderLaan2016RC",
+      "anchor_locator": "Introduction; canonical-gradient result for resource-constrained value; threshold-randomization construction; discussion excluding positive threshold mass",
+      "motif": "M11",
+      "m11_subshape": "nonregular limit law and uniform confidence set",
+      "target_tier": "field",
+      "summary": "Invert joint efficient-score ellipsoids through a certified set-valued face map to cover welfare and expected-KL policy neighborhoods at capacity contact.",
+      "first_changed_proof_step": "Replace regular delta-method differentiation away from threshold mass by set-valued propagation through all active exposed faces, including covariance and numerical error.",
+      "destination_search": "Softmax policy-value inference and stabilized nonunique-rule inference do not impose exact capacity or cover nested face-recursive maps.",
+      "red_team": "A Wald interval for the efficient value estimator already covers welfare.",
+      "rebuttal": "Positive threshold mass destroys the regular linear expansion, and policy-map coverage is not implied by scalar value coverage.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "survived": false,
+      "selected": false,
+      "rank": 5,
+      "anti_pattern_check": "Retained as an explicit open rung of the selected proposal, not presented as an already available Wald corollary."
+    },
+    {
+      "id": "seed:conformal-capacity-map",
+      "anchor_open_problem": "Obtain finite-sample coverage for a capacity-constrained policy map by symmetry inversion.",
+      "anchor_bibkey": "LuedtkeVanderLaan2016RC",
+      "anchor_locator": "Resource-constrained stochastic-rule setup and threshold-mass discussion",
+      "motif": "M17",
+      "target_tier": "field",
+      "summary": "Invert permutations of cellwise efficient scores to cover the capacity policy map exactly.",
+      "first_changed_proof_step": "Replace the asymptotic score ellipsoid by a permutation orbit that preserves the joint capacity-coupled statistic.",
+      "destination_search": "No nontrivial permutation group preserves observational treatment assignment, estimated nuisance functions, and the target capacity map without stronger randomized-design assumptions.",
+      "red_team": "Observational cross-fitted scores are not exchangeable under within-cell treatment permutations.",
+      "rebuttal": "The objection holds in the stated observational model, so the symmetry lane is dropped rather than smuggling in a randomized experiment.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 1,
+        "consumer_value": 4
+      },
+      "survived": false,
+      "selected": false,
+      "rank": 9,
+      "search_obstruction": "Exact finite-sample symmetry is absent from the observational sampling model; honest inference must use the local Gaussian experiment.",
+      "anti_pattern_check": "Generated for the required M17 lane and rejected on its identifying symmetry premise."
+    },
+    {
+      "id": "seed:polynomial-saddle-certificate",
+      "anchor_open_problem": "Certify value and expected-KL map recovery for the semi-infinite Gaussian capacity game.",
+      "anchor_bibkey": "Weed2018",
+      "anchor_locator": "Introduction; Theorem 1 fast entropic-penalty rate and proof; assignment specialization; Conclusion",
+      "motif": "none",
+      "target_tier": "field",
+      "summary": "Give a fixed-dimensional polynomial algorithm combining face enumeration, Gaussian tail truncation, finite saddle programs, and strong-convexity map recovery.",
+      "first_changed_proof_step": "Replace a finite linear objective and its energy gap by a semi-infinite adversarial Gaussian risk with face-dependent tail experiments and posterior-predictive lower certificates.",
+      "destination_search": "Sinkhorn complexity and entropic-bias papers certify finite transport objectives, not unbounded Gaussian nature states or expected-KL recovery of a minimax decision map.",
+      "red_team": "Discretize the Gaussian and invoke polynomial-time convex optimization.",
+      "rebuttal": "A compact-box discretization gives no global risk bound on tangential face experiments and a value gap alone does not imply the required uniform expected-KL map error.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "survived": false,
+      "selected": false,
+      "rank": 4,
+      "anti_pattern_check": "Merged into the selected gluing kernel because the certificate depends on the same compatibility theorem."
+    },
+    {
+      "id": "seed:temperature-phase-limit",
+      "anchor_open_problem": "Determine the zero- and high-temperature limits of reverse-KL minimax annealing.",
+      "anchor_bibkey": "KitagawaLeeQiu2026",
+      "anchor_locator": "Introduction; finite Gaussian minimax theorem; asymptotic limit-experiment section; Conclusion",
+      "motif": "M11",
+      "m11_subshape": "limit law",
+      "target_tier": "field",
+      "summary": "Show convergence to the sign-rule minimax problem as temperature vanishes and to the admissible Gaussian mean rule after quadratic rescaling at high temperature.",
+      "first_changed_proof_step": "Replace a fixed nonlinear-regret transformation by epi-convergence of the reverse-KL Bregman loss and identify the rescaled high-temperature action through the Gaussian mean experiment.",
+      "destination_search": "The searched nonlinear-regret and entropic-transport sources do not provide both decision-rule limits for an unrestricted Gaussian nature space.",
+      "red_team": "Both limits follow from a Taylor expansion of the logistic function.",
+      "rebuttal": "Pointwise oracle expansions do not identify the minimax rule; tightness, risk interchange, and uniqueness of the limiting Gaussian decision problem are necessary.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 3
+      },
+      "survived": false,
+      "selected": false,
+      "rank": 6,
+      "anti_pattern_check": "The limit law is a supporting scalar theorem and not inflated into the multivariate paper kernel."
+    },
+    {
+      "id": "seed:strict-logit-separation",
+      "anchor_open_problem": "Prove a positive minimax risk gap from every common positive linear-logit scaling.",
+      "anchor_bibkey": "MontielOleaQiuStoye2023",
+      "anchor_locator": "Introduction; main Gaussian minimax multiplicity theorem; least-randomizing selection result; Conclusion",
+      "motif": "M16+M7",
+      "target_tier": "field",
+      "summary": "Reduce all finite-risk coordinatewise scalings in the fixed Helmert coordinates to a common multiplier and certify a uniform positive gap in the single experiment \\(\\mathfrak G_3\\).",
+      "first_changed_proof_step": "Replace selection among multiple scalar randomized minimax rules by a covariance-sensitive separation of an entire parametric map class under coupled capacity.",
+      "destination_search": "No source found compares the full common-scaling logistic class to a capacity-coupled Gaussian minimax map under reverse KL.",
+      "red_team": "Curvature noncommutation already proves the logistic class is suboptimal.",
+      "rebuttal": "Curvature mismatch is only local and does not imply a positive worst-risk gap; the separation must control all multipliers, including zero and infinity limits.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "survived": false,
+      "selected": false,
+      "rank": 7,
+      "anti_pattern_check": "Merged into the main gluing question as its falsifiable strict-delta clause."
+    }
+  ],
+  "literature_map": {
+    "chosen_seed": "seed:face-compatible-global-minimax",
+    "anchor": "SunadaIzumi2025 was read at the Introduction, coupling setup, Proposition 3.2, Theorem 3.3 under Assumptions 3.1--3.6, and the concluding discussion. Proposition 3.2 selects the unique \\(H\\)-minimizer over posterior-optimal couplings and Theorem 3.3 proves average optimality, leaving worst-risk minimax compatibility outside the published claims.",
+    "surviving_candidate_threads": {
+      "seed:face-compatible-global-minimax": [
+        "KitagawaLeeQiu2026 was read at the Introduction, Theorem 4.2, its least-favorable-prior proof, the limit-experiment section, and the Conclusion. The two-point posterior-probability construction is occupied, but the reverse-KL posterior-mean saddle and capacity faces are not.",
+        "ClasonLorenzMahlerWirth2021 was read at the Introduction, its finite-entropy existence theorem, dual-existence theorem, KKT system, and Conclusion. KKT potentials motivate face coordinates but the paper has no adversarial Gaussian parameter or minimax gluing problem.",
+        "Weed2018 was read at the Introduction, Theorem 1 and its entropy proof, the optimal-face distance corollary, the assignment specialization, and the Conclusion. Its explicit energy-gap bound concerns one finite linear program, not a semi-infinite Gaussian risk.",
+        "MontielOleaQiuStoye2023 was read at the Introduction, its Gaussian minimax multiplicity results, least-randomizing selection construction, and Conclusion. It establishes that Gaussian treatment minimax rules can be nonunique, making essential uniqueness a real theorem obligation rather than a convexity corollary."
+      ],
+      "seed:scalar-infinite-prior-saddle": [
+        "MukherjeeJohnstone2015 was read at the Introduction, its exact minimax-risk theorem, discrete-prior construction, plug-in comparison, and Discussion. It supplies the risk-diversification analogy under Gaussian KL prediction but not the reverse-Bernoulli assignment loss.",
+        "KitagawaLeeQiu2026 supplies the nearest logistic Bayes calculation; the first changed condition is the conditional first-order equation for reverse KL, which depends on the posterior mean rather than a posterior sign probability.",
+        "HiranoPorter2009 was checked at the Gaussian decision setup and local asymptotic minimax transfer. It covers the zero-temperature treatment-choice endpoint but not positive-temperature reverse KL or its least-favorable support."
+      ],
+      "seed:expanding-local-causal-attainment": [
+        "HiranoPorter2009 supplies finite-subexperiment lower bounds and the original-data-to-Gaussian decision bridge, but not capacity coupling, estimated covariance, or expanding local sets.",
+        "ChernozhukovEtAl2018DML was read at the Introduction, Neyman-orthogonality definition, orthogonal-score construction, cross-fitting theorem, and Conclusion. Its product-remainder control informs the score step but does not control a face-sensitive decision map.",
+        "AtheyWager2021 was read at the Introduction, cross-fitted score construction, upper regret theorem, lower-bound construction, and Discussion. Its policy objective is additive and its constraints do not deliver the local reverse-KL minimax value.",
+        "LuedtkeVanderLaan2016RC was checked at its resource-constrained rule, canonical-gradient argument, threshold randomization, and stated limitation on constraint-guaranteed estimation. Known target masses remove its feasibility obstacle but not the face-contact inference problem.",
+        "DaidoKido2023 develops a local asymptotic minimax treatment rule for a scalar partially identified welfare contrast; it informs the local-minimax decision criterion but does not contain supplied-mass aggregate capacity, reverse-KL loss, or nested exposed-face Gaussian maps."
+      ]
+    },
+    "occupied_targets": "Average optimality for capacity couplings, the \\(H\\)-minimizing selection among posterior-optimal couplings, scalar local minimax treatment choice under partial identification, two-point logistic minimaxity under mean-square regret, unconstrained causal LAN treatment rules, regular observational policy regret, entropy-transport KKT systems, finite-program entropic approximation, and regular resource-threshold inference are occupied. The target not located is a reverse-KL Gaussian minimax map compatible across all weighted-capacity faces, with polynomial value and expected-KL certificates and covariance-stable causal attainment.",
+    "writing_exemplar_used": "SunadaIzumi2025",
+    "method_exemplars_used": [
+      "KitagawaLeeQiu2026",
+      "MukherjeeJohnstone2015",
+      "ClasonLorenzMahlerWirth2021",
+      "Weed2018",
+      "HiranoPorter2009",
+      "ChernozhukovEtAl2018DML",
+      "AtheyWager2021",
+      "DaidoKido2023"
+    ],
+    "method_adaptation": "The motivation follows SunadaIzumi2025 from scarce treatment to nonpointwise coupling. The scalar construction adapts KitagawaLeeQiu2026's prior-to-logistic Bayes calculation and MukherjeeJohnstone2015's discrete least-favorable-risk diversification, but changes the conditional Bayes step to a posterior mean and replaces compact support by tail splicing. The multivariate handle fixes one ambient frame, transports each exposed face through its explicit affine and isometric chart, and uses representative-invariant local-Gaussian metrics for gluing. The causal handle adapts HiranoPorter2009's finite-experiment lower bound and cross-fitting, with the first new step being quantitative stability across covariance-perturbed framed face charts."
+  },
+  "novelty_justification": "{\"chosen_kernel_reason\":\"The selected kernel joins the capacity coupling geometry of SunadaIzumi2025 to a canonically normalized scalar reverse-KL saddle and one framed collection of residual face experiments. The global existence, compatibility, and uniqueness obligations use explicit representative-invariant metrics rather than coordinate-dependent limits.\",\"closest_published_results\":[\"SunadaIzumi2025\",\"KitagawaLeeQiu2026\",\"HiranoPorter2009\",\"LuedtkeVanderLaan2016RC\"],\"close_unpublished_comparator\":\"DaidoKido2023 derives a local asymptotic minimax rule for scalar partially identified welfare, but does not cover aggregate capacity or reverse-KL face recursion.\",\"precise_gap\":\"SunadaIzumi2025 Proposition 3.2 selects the unique H-minimizer over posterior-optimal couplings and Theorem 3.3 proves average optimality under Assumptions 3.1--3.6. Those results use a different objective. KitagawaLeeQiu2026 solves a different scalar loss through a two-point prior, HiranoPorter2009 treats unconstrained treatment choice, and LuedtkeVanderLaan2016RC studies a different resource-threshold policy target. None supplies a face-indexed reverse-KL minimax existence theorem, a compatible global extension, or an exact-capacity covariance-estimated attaining rule.\",\"strict_delta\":\"In the single three-cell experiment \\\\(\\\\mathfrak G_3\\\\) with \\\\(B=[(1,-1,0)^\\\\top/\\\\sqrt2,(1,1,-2)^\\\\top/\\\\sqrt6]\\\\) and \\\\(\\\\Omega=\\\\operatorname{diag}(1,4)\\\\), the target is six interval-certified edge residuals at most \\\\(10^{-6}\\\\), a value bracket of width at most \\\\(10^{-4}\\\\), and a worst-risk gap of at least \\\\(10^{-3}\\\\) from the full common positive-scaling subclass.\",\"why_not_subsumed\":\"Posterior-average coupling optimality does not control the worst risk in the full-to-face metrics of \\\\(\\\\mathfrak T_{\\\\mathfrak G}\\\\); scalar partial identification has no nested capacity faces; a two-point prior gives infinite reverse-KL tail risk; and pointwise Gaussian convergence does not control covariance perturbations of the fixed framed charts.\"}",
+  "message": "Applied the bounded v5 semantic-contract repair and validated the revised proposal core.",
+  "literature_checklist": [
+    {
+      "author": "Keita Sunada and Kohei Izumi",
+      "year": 2025,
+      "venue": "arXiv / ISER Discussion Paper",
+      "bibkey": "SunadaIzumi2025",
+      "one_line": "Proposition 3.2 selects the unique H-minimizer over posterior-optimal couplings, while Theorem 3.3 proves average optimality under Assumptions 3.1–3.6.",
+      "relevant_to": "oeq:global-minimax-existence"
+    },
+    {
+      "author": "Toru Kitagawa, Sokbae Lee, and Chen Qiu",
+      "year": 2026,
+      "venue": "Biometrika",
+      "bibkey": "KitagawaLeeQiu2026",
+      "one_line": "Theorem 4.2 supplies the two-point logistic Gaussian saddle from which reverse-KL posterior-mean minimaxity departs.",
+      "relevant_to": "thm:scalar-reverse-kl-saddle"
+    },
+    {
+      "author": "Keisuke Hirano and Jack R. Porter",
+      "year": 2009,
+      "venue": "Econometrica",
+      "bibkey": "HiranoPorter2009",
+      "one_line": "The Gaussian limit-experiment framework supplies the finite-subexperiment causal lower-bound architecture.",
+      "relevant_to": "thm:causal-lan-lower"
+    },
+    {
+      "author": "Daido Kido",
+      "year": 2023,
+      "venue": "arXiv preprint",
+      "bibkey": "DaidoKido2023",
+      "one_line": "The preprint develops a local asymptotic minimax rule for scalar partially identified welfare, without aggregate-capacity face recursion.",
+      "relevant_to": "oeq:expanding-local-attainment"
+    },
+    {
+      "author": "Jonathan Weed",
+      "year": 2018,
+      "venue": "Conference on Learning Theory",
+      "bibkey": "Weed2018",
+      "one_line": "Finite-program entropic-bias and optimal-face bounds inform truncation but do not certify the semi-infinite Gaussian game.",
+      "relevant_to": "oeq:certified-gaussian-computation"
+    },
+    {
+      "author": "Susan Athey and Stefan Wager",
+      "year": 2021,
+      "venue": "Econometrica",
+      "bibkey": "AtheyWager2021",
+      "one_line": "Cross-fitted doubly robust policy scores inform the learner but do not yield exact-capacity expanding-local minimax attainment.",
+      "relevant_to": "oeq:expanding-local-attainment"
+    },
+    {
+      "author": "Alexander R. Luedtke and Mark J. van der Laan",
+      "year": 2016,
+      "venue": "International Journal of Biostatistics",
+      "bibkey": "LuedtkeVanderLaan2016RC",
+      "one_line": "Resource-threshold theory identifies exact feasibility and positive threshold mass as inferential boundaries.",
+      "relevant_to": "oeq:honest-policy-inference"
+    },
+    {
+      "author": "Liyang Sun",
+      "year": 2026,
+      "venue": "Journal of Econometrics",
+      "bibkey": "Sun2026",
+      "one_line": "The paper studies welfare maximization with estimated budget or cost constraints rather than supplied masses, supplied quota, and local reverse-KL minimax risk.",
+      "relevant_to": "oeq:expanding-local-attainment"
+    }
+  ]
+}

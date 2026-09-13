@@ -1,0 +1,495 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}saturation\_\allowbreak{}exacthit\_\allowbreak{}canonical\_\allowbreak{}activeface\_\allowbreak{}certificate}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} One realized assignment per cluster identifies assignment-cell welfare margins but not the cross-policy coupling that determines finite-population covariance. The total calibrated Horvitz--Thompson estimator projects the compatible coupling polytope to the sharp covariance image, and the design minimizes worst compatible pairwise comparison variance. For the worked \(n_0=6\), \(m=(1,2,4)\) menu, the exact-count optimum is \(rStar=(1/3,1/3,1/3)\) with objective \(3/2\), whereas the certified nominal-label optimum has \(BpStar=(250/1383)\mathbf1_3\) and objective \(1383/500\). Thus nominal Bernoulli labels inflate the proved pairwise objective and certified cluster count by \(461/250\). The exact all-selector robust minimax-regret receipt remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Two-stage saturation papers either impose covariance structure or use conservative variance formulas. Harshaw, Middleton, and Sävje optimize a single conservative quadratic upper bound for a fixed design and estimator, while sharp variance-bound papers do not choose a saturation randomization and Gaussian minimax-regret papers condition on one covariance matrix.
+
+\paragraph{Niche.} The unoccupied object is a design optimized over the joint covariance set compatible with all assignment-cell margins of one unrestricted fixed schedule.
+
+\paragraph{Fill.} The project derives the sharp finite coupling polytope, proves that no single conservative covariance envelope represents it in every direction, supplies linear-program support certificates, and proves a convex exact-hit allocation theorem with necessary-and-sufficient finite KKT witnesses and an assignment-based regret guarantee. In the six-unit \(m=(1,2,4)\) consumer it gives exact rational designs, objectives, stationarity weights, and the nominal-versus-exact cluster-count factor \(461/250\).
+
+\section{Related work}
+
+AronowGreenLee2014 is the scalar two-potential-outcome sharp-variance benchmark; the slice-constant two-policy face reduces to its Fréchet--Hoeffding program. GaoGeQian2025 supplies multi-marginal optimal-transport language but neither the saturation-specific covariance projection nor an allocation choice. HarshawMiddletonSavje2026 optimizes one conservative quadratic variance bound for a fixed design and estimator; the present incomparable-covariance result shows why the full directionwise image is different, and the KKT theorem optimizes allocation over that image. LiDing2017 supplies finite-population central-limit machinery. JiangImaiMalani2023 fixes the two-stage assignment distribution, and BairdEtAl2018 studies power under maintained outcome structure. Joo2025 and GuggenbergerHuang2025 inform the still-open all-selector Gaussian receipt. EggerEtAl2022 is the worked Kenya saturation-policy consumer: on the six-unit \(m=(1,2,4)\) menu the proved pairwise-robust receipt gives exact allocations and the nominal-versus-exact objective factor \(461/250\), without claiming an exact all-selector minimax value.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(U_C=(U_{C,1},\ldots,U_{C,K})\).
+Primary functional / estimator / diagnostic: \(\widehat U_{C,k}=M_k^{-1}\sum_{z\in\mathcal S_k}\mu_z+(C r_{C,k})^{-1}\sum_{c=1}^{C}\mathbf 1\{Z_c\in\mathcal S_k\}\{W_{C,c}(Z_c)-\mu_{Z_c}\},\quad (rStar,pStar)\in\arg\min\{H(r;f),H(Bp;f)\}\).
+\begin{itemize}
+  \item \texttt{K} --- \texttt{number of candidate saturation policies}; \(\{3,4,\ldots\}\); \texttt{design dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of target exact-\allowbreak{}count policies.}
+  \item \texttt{n0} --- \texttt{cluster size}; \(\{2,3,\ldots\}\); \texttt{design primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed number of units in every cluster.}
+  \item \texttt{m} --- \texttt{target-\allowbreak{}count vector}; \(\{(m_1,\ldots,m_K):1\le m_1<\cdots<m_K\le n_0-1\}\); \texttt{policy menu}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The ordered menu of target treated-\allowbreak{}unit counts.}
+  \item \texttt{Zspace} --- \texttt{within-\allowbreak{}cluster assignment space}; \(\{0,1\}^{n_0}\); \texttt{randomization support}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The set of binary assignment vectors for one cluster.}
+  \item \texttt{Wgrid} --- \texttt{cluster-\allowbreak{}welfare grid}; \(\{0,1/n_0,\ldots,1\}\); \texttt{outcome support}
+  \par\smallskip\noindent\emph{Definition.} The attainable average of \(n_0\) binary unit outcomes.
+  \item \texttt{S} --- \texttt{family of target slices}; \((2^{Zspace})^K\); \texttt{exact-\allowbreak{}count exposure sets}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S_k=\{z\in Zspace:\sum_{j=1}^{n_0}z_j=m_k\}\) for \(k=1,\ldots,K\).
+  \item \texttt{M} --- \texttt{slice-\allowbreak{}cardinality vector}; \(\mathbb N^K\); \texttt{known combinatorial weight}
+  \par\smallskip\noindent\emph{Definition.} \(M_k=|\mathcal S_k|={n_0\choose m_k}\).
+  \item \texttt{C} --- \texttt{number of clusters}; \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The finite-\allowbreak{}population size in the triangular sequence.}
+  \item \texttt{Y} --- \texttt{finite-\allowbreak{}population potential-\allowbreak{}outcome schedule}; \(\prod_{c=1}^{C}\prod_{z\in Zspace}\{0,1\}^{n_0}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{C,c,j}(z)\) is unit \(j\)'s fixed binary potential outcome in cluster \(c\) under assignment \(z\).
+  \item \texttt{W} --- \texttt{cluster-\allowbreak{}level potential welfare}; \(Wgrid\); \texttt{policy outcome}
+  \par\smallskip\noindent\emph{Definition.} \(W_{C,c}(z)=n_0^{-1}\sum_{j=1}^{n_0}Y_{C,c,j}(z)\).
+  \item \texttt{UC} --- \texttt{finite-\allowbreak{}population exact-\allowbreak{}slice welfare vector}; \([0,1]^K\); \texttt{causal estimand}
+  \par\smallskip\noindent\emph{Definition.} \(U_{C,k}=C^{-1}\sum_{c=1}^{C}M_k^{-1}\sum_{z\in\mathcal S_k}W_{C,c}(z)\).
+  \item \texttt{fC} --- \texttt{assignment-\allowbreak{}cell marginal table}; \(\prod_{z\in Zspace}\Delta(Wgrid)\); \texttt{identified marginal information}
+  \par\smallskip\noindent\emph{Definition.} \(f_{C,z,w}=C^{-1}\sum_{c=1}^{C}\mathbf 1\{W_{C,c}(z)=w\}\).
+  \item \texttt{f} --- \texttt{limiting assignment-\allowbreak{}cell marginal table}; \(\prod_{z\in Zspace}\Delta(Wgrid)\); \texttt{partial-\allowbreak{}identification input}
+  \par\smallskip\noindent\emph{Definition.} The deterministic limit of \(fC\).
+  \item \texttt{muCell} --- \texttt{assignment-\allowbreak{}cell mean welfare}; \([0,1]^{Zspace}\); \texttt{identified centering functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_z=\sum_{w\in Wgrid}w f_{z,w}\).
+  \item \texttt{mu0} --- \texttt{common limiting policy welfare}; \((0,1)\); \texttt{local decision boundary}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The welfare level at the full-\allowbreak{}tie baseline.}
+  \item \texttt{h} --- \texttt{local welfare parameter}; \(\mathbb R^K\); \texttt{local alternative}
+  \par\smallskip\noindent\emph{Definition.} The root-\(C\) local displacement of the exact-slice welfare vector from the common tie.
+  \item \texttt{T} --- \texttt{schedule-\allowbreak{}type space}; \(Wgrid^{Zspace}\); \texttt{latent coupling support}
+  \par\smallskip\noindent\emph{Definition.} A type \(t\in T\) records \((t(z):z\in Zspace)\); unrestricted binary interference realizes every type by choosing exactly \(n_0t(z)\) unit outcomes equal to one at each \(z\).
+  \item \texttt{u} --- \texttt{slice-\allowbreak{}mean feature}; \(T\to[0,1]^K\); \texttt{type feature}
+  \par\smallskip\noindent\emph{Definition.} \(u_k(t)=M_k^{-1}\sum_{z\in\mathcal S_k}t(z)\).
+  \item \texttt{g} --- \texttt{cell-\allowbreak{}centered slice feature}; \(T\to\mathbb R^K\); \texttt{finite-\allowbreak{}population correction feature}
+  \par\smallskip\noindent\emph{Definition.} \(g_k(t)=M_k^{-1}\sum_{z\in\mathcal S_k}\{t(z)-\mu_z\}\).
+  \item \texttt{lambda} --- \texttt{schedule-\allowbreak{}type coupling}; \(\Delta(T)\); \texttt{unidentified joint schedule law}
+  \par\smallskip\noindent\emph{Definition.} A probability vector over the finite type space \(T\).
+  \item \texttt{Lambda} --- \texttt{compatible-\allowbreak{}coupling polytope}; \(2^{\Delta(T)}\); \texttt{sharp identified set}
+  \par\smallskip\noindent\emph{Definition.} The set of couplings matching every assignment-cell marginal \(f_{z,w}\) and the common-tie restrictions.
+  \item \texttt{Amap} --- \texttt{within-\allowbreak{}cell second-\allowbreak{}moment map}; \(\Delta(T)\to\mathbb R_+^K\); \texttt{diagonal covariance component}
+  \par\smallskip\noindent\emph{Definition.} \(A_k(\lambda)=\sum_{t\in T}\lambda_t M_k^{-1}\sum_{z\in\mathcal S_k}\{t(z)-\mu_z\}^2\).
+  \item \texttt{Ximap} --- \texttt{finite-\allowbreak{}population correction map}; \(\Delta(T)\to\mathbb S_+^K\); \texttt{unidentified cross-\allowbreak{}policy covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Xi(\lambda)=\sum_{t\in T}\lambda_t g(t)g(t)^{\mathsf T}\).
+  \item \texttt{rho} --- \texttt{minimum exact-\allowbreak{}slice share}; \((0,1/K)\); \texttt{design constraint}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A prespecified operational lower bound on every exact-\allowbreak{}count allocation share.}
+  \item \texttt{Delta} --- \texttt{positive exact-\allowbreak{}count design set}; \(2^{\mathbb R^K}\); \texttt{exact-\allowbreak{}count design domain}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_K(\rho)=\{r\in\mathbb R^K:r_k\ge\rho,\ \sum_{k=1}^{K}r_k=1\}\).
+  \item \texttt{B} --- \texttt{exact-\allowbreak{}hit matrix}; \(\mathbb Q_+^{K\times K}\); \texttt{known Bernoulli hit map}
+  \par\smallskip\noindent\emph{Definition.} \(B_{k\ell}={n_0\choose m_k}(m_\ell/n_0)^{m_k}(1-m_\ell/n_0)^{n_0-m_k}\).
+  \item \texttt{p} --- \texttt{nominal-\allowbreak{}label allocation}; \(\Delta_K\); \texttt{Bernoulli design}
+  \par\smallskip\noindent\emph{Definition.} The probabilities assigned to the \(K\) nominal Bernoulli saturation labels.
+  \item \texttt{r} --- \texttt{actual target-\allowbreak{}hit rate vector}; \((0,1]^K\); \texttt{information-\allowbreak{}rate vector}
+  \par\smallskip\noindent\emph{Definition.} Under exact-count assignment \(r\in\Delta_K(\rho)\); under nominal-label Bernoulli assignment \(r=Bp\).
+  \item \texttt{rC} --- \texttt{known finite-\allowbreak{}sample target-\allowbreak{}hit rate vector}; \((0,1]^K\); \texttt{finite-\allowbreak{}sample inclusion probabilities}
+  \par\smallskip\noindent\emph{Definition.} \(r_{C,k}=\Pr\{Z_c\in\mathcal S_k\}\) under the prespecified randomization at size \(C\), with \(r_C\to r\).
+  \item \texttt{Z} --- \texttt{realized cluster assignment vector}; \(Zspace^C\); \texttt{observed assignment}
+  \par\smallskip\noindent\emph{Definition.} \(Z_c\) is cluster \(c\)'s realized within-cluster treatment vector under the known randomization.
+  \item \texttt{Sigma} --- \texttt{design covariance map}; \((0,1]^K\times\Delta(T)\to\mathbb S_+^K\); \texttt{Gaussian limit covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma(r,\lambda)=\operatorname{diag}\{A_k(\lambda)/r_k:k=1,\ldots,K\}-\Xi(\lambda)\).
+  \item \texttt{Dtest} --- \texttt{covariance support direction}; \(\mathbb S^K\); \texttt{partial-\allowbreak{}identification query}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A symmetric matrix defining a linear support functional on covariance matrices.}
+  \item \texttt{cij} --- \texttt{pairwise contrast vector}; \(\mathbb R^K\); \texttt{policy-\allowbreak{}comparison direction}
+  \par\smallskip\noindent\emph{Definition.} \(c_{ij}=e_i-e_j\) for \(1\le i<j\le K\).
+  \item \texttt{Vpair} --- \texttt{pairwise asymptotic variance}; \(\mathbb R_+\); \texttt{contrast precision}
+  \par\smallskip\noindent\emph{Definition.} \(V_{ij}(r,\lambda)=c_{ij}^{\mathsf T}\Sigma(r,\lambda)c_{ij}\).
+  \item \texttt{H} --- \texttt{robust pairwise design criterion}; \(\mathbb R_+\); \texttt{worst-\allowbreak{}case comparison variance}
+  \par\smallskip\noindent\emph{Definition.} \(H(r;f)=\max_{1\le i<j\le K}\max_{\lambda\in\Lambda(f,\mu_0)}V_{ij}(r,\lambda)\).
+  \item \texttt{rStar} --- \texttt{robust exact-\allowbreak{}count design}; \(\Delta_K(\rho)\); \texttt{chosen exact-\allowbreak{}count randomization}
+  \par\smallskip\noindent\emph{Definition.} Any minimizer of \(H(r;f)\) over \(r\in\Delta_K(\rho)\).
+  \item \texttt{pStar} --- \texttt{robust nominal-\allowbreak{}label design}; \(\Delta_K\); \texttt{chosen Bernoulli-\allowbreak{}label randomization}
+  \par\smallskip\noindent\emph{Definition.} Any minimizer of \(H(Bp;f)\) over \(p\in\Delta_K\).
+  \item \texttt{Uhat} --- \texttt{total calibrated Horvitz-\allowbreak{}-\allowbreak{}Thompson welfare estimator}; \(\mathbb R^K\); \texttt{design-\allowbreak{}based estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat U_{C,k}=M_k^{-1}\sum_{z\in\mathcal S_k}\mu_z+(C r_{C,k})^{-1}\sum_{c=1}^{C}\mathbf 1\{Z_c\in\mathcal S_k\}\{W_{C,c}(Z_c)-\mu_{Z_c}\}\), with the displayed finite sum used on every assignment outcome.
+  \item \texttt{deltaEB} --- \texttt{empirical-\allowbreak{}best policy rule}; \(\mathbb R^K\to\{1,\ldots,K\}\); \texttt{policy selector}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_{\mathrm{EB}}(x)=\min\arg\max_{1\le k\le K}x_k\).
+  \item \texttt{kappa} --- \texttt{normal one-\allowbreak{}sided regret constant}; \(\mathbb R_+\); \texttt{risk-\allowbreak{}bound constant}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa=\sup_{x\ge0}x\Phi(-x)\), where \(\Phi\) is the standard normal distribution function.
+  \item \texttt{G} --- \texttt{Gaussian minimax simple-\allowbreak{}regret value}; \(\mathbb S_+^K\to[0,\infty]\); \texttt{exact decision benchmark}
+  \par\smallskip\noindent\emph{Definition.} \(G(\Omega)=\inf_{\delta}\sup_{h\in\mathbb R^K}\mathbb E_h[\max_k h_k-h_{\delta(X)}]\), where \(X\sim\mathcal N(h,\Omega)\) and \(\delta\) ranges over Borel randomized selectors.
+  \item \texttt{receiptHandle} --- \texttt{open-\allowbreak{}problem handle}; \texttt{method specification}; \texttt{route for the open exact-\allowbreak{}regret problem}
+  \par\smallskip\noindent\emph{Definition.} Combine a multi-marginal linear-program support oracle for \(\Lambda(f,\mu_0)\) with finite least-favorable-prior Gaussian games for \(G\), using directed Gaussian integration to certify design and covariance best responses.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:assignment-only-randomness]\label{ass:assignment-only-randomness}
+For every \(C\), the potential-outcome schedule \(Y\) is fixed before the known treatment assignment is drawn.
+\par\smallskip\noindent\emph{Standard} (Neyman finite-population randomization model with partial interference, \cite{LiDing2017}).
+\end{assumption}
+
+\begin{assumption}[ass:cell-margin-convergence]\label{ass:cell-margin-convergence}
+The finite assignment-cell marginal table satisfies \(\max_{z\in Zspace,w\in Wgrid}|f_{C,z,w}-f_{z,w}|\to0\) as \(C\to\infty\).
+\par\smallskip\noindent\emph{Standard} (Finite-population marginal convergence, \cite{AronowGreenLee2014}).
+\end{assumption}
+
+\begin{assumption}[ass:common-welfare-tie]\label{ass:common-welfare-tie}
+For every \(k=1,\ldots,K\), \(M_k^{-1}\sum_{z\in\mathcal S_k}\mu_z=\mu_0\).
+\par\smallskip\noindent\emph{Novel.} Exact policy ties are the operational boundary at which sampling precision changes the selected saturation: they arise when external planning margins calibrate competing exact-count policies to the same welfare, for example whenever \(\mu_z=\mu_0\) on every target slice. The restriction defines the local decision regime and is not attributed to a published finite-population condition.
+\end{assumption}
+
+\begin{assumption}[ass:local-welfare-array]\label{ass:local-welfare-array}
+For a fixed \(h\in\mathbb R^K\), \(\sqrt C\{UC-\mu_0\mathbf 1_K\}\to h\).
+\par\smallskip\noindent\emph{Standard} (Root-sample-size local alternatives at an indifference boundary, \cite{HiranoPorter2009}).
+\end{assumption}
+
+\begin{assumption}[ass:finite-population-lindeberg]\label{ass:finite-population-lindeberg}
+For every nondegenerate \(a\in\mathbb R^K\), the Li--Ding maximum-squared-deviation condition holds for the fixed potential contributions \(\sum_{k=1}^{K}a_k\mathbf 1\{z\in\mathcal S_k\}\{W_{C,c}(z)-\mu_z\}/r_{C,k}\).
+\par\smallskip\noindent\emph{Standard} (Finite-population Lindeberg condition for multiple-treatment contrasts, \cite{LiDing2017}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:admissible-arrays]\label{def:admissible-arrays}
+\par\smallskip\noindent\emph{Defined object.} \texttt{admissible fixed-\allowbreak{}schedule arrays}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P(f,\mu_0)=\{(Y_C)_{C\ge1}:\text{ass:assignment-only-randomness, ass:cell-margin-convergence, and ass:common-welfare-tie hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}assignment-\allowbreak{}only-\allowbreak{}randomness}; \texttt{ass:\allowbreak{}cell-\allowbreak{}margin-\allowbreak{}convergence}; \texttt{ass:\allowbreak{}common-\allowbreak{}welfare-\allowbreak{}tie}.
+\end{definition}
+
+\begin{definition}[def:compatible-couplings]\label{def:compatible-couplings}
+\par\smallskip\noindent\emph{Defined object.} \texttt{compatible schedule-\allowbreak{}type coupling polytope}
+\par\smallskip\noindent\emph{Construction.} \(\Lambda(f,\mu_0)=\{\lambda\in\Delta(T):\sum_{t:t(z)=w}\lambda_t=f_{z,w}\ \text{for every }(z,w),\ \sum_{t\in T}\lambda_tu_k(t)=\mu_0\ \text{for every }k\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{f}; \texttt{mu0}.
+\end{definition}
+
+\begin{definition}[def:sharp-covariance-image]\label{def:sharp-covariance-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{sharp design covariance image}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak S(r;f,\mu_0)=\{\Sigma(r,\lambda):\lambda\in\Lambda(f,\mu_0)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{r}; \texttt{f}; \texttt{mu0}.
+\end{definition}
+
+\begin{definition}[def:robust-pairwise-designs]\label{def:robust-pairwise-designs}
+\par\smallskip\noindent\emph{Defined object.} \texttt{robust exact-\allowbreak{}hit design pair}
+\par\smallskip\noindent\emph{Construction.} \(rStar\in\arg\min_{r\in\Delta_K(\rho)}H(r;f)\) and \(pStar\in\arg\min_{p\in\Delta_K}H(Bp;f)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{f}; \texttt{rho}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:balanced-six-unit-instance]\label{def:balanced-six-unit-instance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{balanced six-\allowbreak{}unit margin instance}
+\par\smallskip\noindent\emph{Construction.} Set \(n_0=6\), \(K=3\), \(m=(1,2,4)\), and \(\mu_0=1/2\). For \(z\in\mathcal S_1\cup\mathcal S_2\cup\mathcal S_3\), set \(f_{z,0}=f_{z,1}=1/2\) and \(f_{z,w}=0\) for \(w\notin\{0,1\}\); for every remaining \(z\in Zspace\), set \(f_{z,0}=1\) and \(f_{z,w}=0\) for \(w\ne0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{n0}; \texttt{m}.
+\end{definition}
+
+\begin{definition}[def:exact-regret-receipt-handle]\label{def:exact-regret-receipt-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{covariance-\allowbreak{}set Gaussian receipt handle}
+\par\smallskip\noindent\emph{Construction.} Use receiptHandle to search jointly over \(r\) or \(p\), compatible couplings \(\lambda\), and finite Gaussian least-favorable priors, retaining the full matrix \(\Sigma(r,\lambda)\) in every best-response and enclosure step.
+\par\smallskip\noindent\emph{Inputs.} \texttt{receiptHandle}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:sharp-covariance-set]\label{thm:sharp-covariance-set}
+For either independent exact-count assignment with known hit probabilities \(r_C\to r\in\Delta_K(\rho)\) or independent nominal-label Bernoulli assignment with \(r_C\to r=Bp\), the total calibrated Horvitz--Thompson estimator satisfies \(\mathbb E(\widehat U_C)=U_C\) for every \(C\), and the set of all subsequential asymptotic covariance matrices of \(\sqrt C(\widehat U_C-U_C)\) over arrays in \(\mathcal P(f,\mu_0)\) is exactly \(\mathfrak S(r;f,\mu_0)\). Every \(\lambda\in\Lambda(f,\mu_0)\) is attained by a deterministic sequence of unrestricted binary schedules, and no compatible sequence has a covariance outside this image. Moreover, for every rational \(Dtest\), both support values of \(\operatorname{tr}(Dtest\,\Omega)\) over this image are finite linear-program optima over \(\Lambda(f,\mu_0)\), with rational primal and dual certificates when \(f\) and \(r\) are rational.
+\end{theorem}
+\begin{proof}
+Put \(R_{C,c}(z)=W_{C,c}(z)-\mu_z\) and
+\[
+b_{C,c,k}=M_k^{-1}\sum_{z\in\mathcal S_k}R_{C,c}(z).
+\]
+Under either design in the statement, assignments are independent across clusters, a slice-\(k\) hit has probability \(r_{C,k}>0\), and conditional on that hit the assignment is uniform on \(\mathcal S_k\). For nominal-label Bernoulli assignment, the last assertion follows because, conditional on its treated count, an exchangeable Bernoulli assignment is uniform over assignments with that count. Hence
+\[
+\mathbb E\left[\frac{\mathbf 1\{Z_c\in\mathcal S_k\}R_{C,c}(Z_c)}{r_{C,k}}\right]=b_{C,c,k}.
+\]
+The definition of \(\widehat U_C\) therefore gives
+\[
+\mathbb E(\widehat U_{C,k})=M_k^{-1}\sum_{z\in\mathcal S_k}\mu_z+C^{-1}\sum_{c=1}^Cb_{C,c,k}=U_{C,k}.
+\]
+Only assignment is random here, by Assumption~\(\texttt{ass:assignment-only-randomness}\).
+
+Define the centered cluster vector
+\[
+X_{C,c,k}=\frac{\mathbf 1\{Z_c\in\mathcal S_k\}R_{C,c}(Z_c)}{r_{C,k}}-b_{C,c,k}.
+\]
+Distinct target slices are disjoint. Direct multiplication and the conditional uniformity just proved yield
+\[
+\operatorname{Cov}(X_{C,c,i},X_{C,c,j})=
+\begin{cases}
+r_{C,k}^{-1}M_k^{-1}\sum_{z\in\mathcal S_k}R_{C,c}(z)^2-b_{C,c,k}^2,&i=j=k,\\
+-b_{C,c,i}b_{C,c,j},&i\ne j.
+\end{cases}
+\tag{1}
+\]
+Moreover, \(\sqrt C(\widehat U_C-U_C)=C^{-1/2}\sum_{c=1}^CX_{C,c}\).
+
+Let \(t_{C,c}(z)=W_{C,c}(z)\) and \(\lambda_C=C^{-1}\sum_c\delta_{t_{C,c}}\). The type space \(T\) is finite, so every subsequence has a further subsequence on which \(\lambda_C\to\lambda\). Assumption~\(\texttt{ass:cell-margin-convergence}\) gives
+\[
+\sum_{t:t(z)=w}\lambda_t=f_{z,w}.
+\]
+By the definition of \(\mu_z\) and Assumption~\(\texttt{ass:common-welfare-tie}\),
+\[
+\sum_t\lambda_tu_k(t)=M_k^{-1}\sum_{z\in\mathcal S_k}\mu_z=\mu_0.
+\]
+Thus \(\lambda\in\Lambda(f,\mu_0)\). Averaging (1), using \(r_C\to r\) with every \(r_k>0\), and applying the definitions of \(A\), \(g\), and \(\Xi\), gives
+\[
+C^{-1}\sum_c\operatorname{Cov}(X_{C,c})\longrightarrow
+\operatorname{diag}\{A_k(\lambda)/r_k\}_{k=1}^K-\Xi(\lambda)=\Sigma(r,\lambda).
+\tag{2}
+\]
+Thus no subsequential asymptotic covariance lies outside \(\mathfrak S(r;f,\mu_0)\).
+
+Conversely, fix \(\lambda\in\Lambda(f,\mu_0)\). Because \(T\) is finite, choose integers \(N_{C,t}\ge0\), summing to \(C\), such that \(N_{C,t}/C\to\lambda_t\), by rounding all but one of the finitely many \(C\lambda_t\)'s and assigning the residual to the last type. For every occurrence of type \(t\), realize each \(t(z)\in Wgrid\) by setting exactly \(n_0t(z)\) of the binary unit potential outcomes at assignment \(z\) equal to one. Unrestricted binary interference permits these choices independently across \(z\). The empirical type law then tends to \(\lambda\); consequently its cell margins tend to \(f\), its limiting slice means equal \(\mu_0\), and (2) tends to \(\Sigma(r,\lambda)\). This proves attainability.
+
+For fixed \(r\) and \(Dtest\), expansion of \(A\) and \(\Xi\) makes \(\operatorname{tr}\{Dtest\,\Sigma(r,\lambda)\}\) affine in the finitely many coordinates \(\lambda_t\). The definition of \(\Lambda\) imposes finitely many linear equalities and nonnegativity constraints, and compactness gives both extrema. When \(f\), \(r\), and \(Dtest\) are rational, all coefficients are rational. If the maximization is written \(\max\{c^{\mathsf T}\lambda:A\lambda=b,\lambda\ge0\}\), primal and dual feasible vectors with equal objective certify optimality by weak duality,
+\[
+c^{\mathsf T}\lambda\le y^{\mathsf T}b\quad\text{whenever}\quad A\lambda=b,\ \lambda\ge0,\ A^{\mathsf T}y\ge c.
+\]
+Finite rational Gaussian elimination and simplex pivoting produce rational optimal basic primal and dual solutions. Replacing \(c\) by \(-c\) gives the lower support value. This proves the certificate claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This replaces the false point covariance by the complete randomization-compatible covariance set while keeping the finite-sample estimator defined on every randomization outcome. \textit{Gap.} AronowGreenLee2014 treats a two-potential-outcome scalar variance, GaoGeQian2025 treats generic multi-marginal functionals, and HarshawMiddletonSavje2026 optimizes conservative quadratic upper bounds; none derives the full exact-slice covariance image as the input to allocation choice. \textit{Consumer.} A saturation trial can certify every covariance matrix that its policy-selection analysis must protect against without adding a cross-policy coupling model.
+
+\begin{theorem}[thm:quadratic-envelope-separation]\label{thm:quadratic-envelope-separation}
+In the balanced six-unit margin instance and for every feasible positive \(r\), let \(X\) be Bernoulli with mean \(1/2\). The compatible coupling that sets \(t(z)=X\) on both \(\mathcal S_1\) and \(\mathcal S_2\), and the compatible coupling that sets \(t(z)=X\) on \(\mathcal S_1\) and \(t(z)=1-X\) on \(\mathcal S_2\), generate covariance matrices with the same first two diagonal entries and respective \((1,2)\) entries \(-1/4\) and \(1/4\); hence neither matrix dominates the other in Loewner order. There is no single matrix \(Q\) that both dominates \(\mathfrak S(r;f,1/2)\) and satisfies \(c^{\mathsf T}Qc=\sup_{\Omega\in\mathfrak S(r;f,1/2)}c^{\mathsf T}\Omega c\) for every \(c\in\mathbb R^K\). Thus no single conservative quadratic covariance envelope represents the full sharp covariance image or its direction-dependent support function. This separates identification and allocation over the full image from the Harshaw--Middleton--Sävje problem of selecting an admissible estimable quadratic upper bound for a fixed design and estimator.
+\end{theorem}
+\begin{proof}
+In the balanced instance every target cell has the Bernoulli distribution on \(\{0,1\}\) with mean \(1/2\). Let \(X\sim\operatorname{Bernoulli}(1/2)\). In the first coupling set every coordinate on \(\mathcal S_1\cup\mathcal S_2\) equal to \(X\); in the second set every coordinate on \(\mathcal S_1\) equal to \(X\) and every coordinate on \(\mathcal S_2\) equal to \(1-X\). Complete the third slice in the same balanced fashion in both couplings and use the fixed off-target margins from \(\texttt{def:balanced-six-unit-instance}\). Each assignment-cell marginal is then \(f\), and every slice mean is \(1/2\), so both couplings belong to \(\Lambda(f,1/2)\). They give, respectively,
+\[
+(g_1,g_2)=(X-1/2,X-1/2),\qquad
+(g_1,g_2)=(X-1/2,1/2-X).
+\]
+Thus \(A_1=A_2=1/4\), both relevant diagonal entries of \(\Xi\) are \(1/4\), and \(\Xi_{12}\) is respectively \(1/4\) and \(-1/4\). The definition of \(\Sigma\) gives common first two diagonal entries and respective off-diagonal entries \(-1/4\) and \(1/4\). Their difference has a \(2\)-by-\(2\) principal block with zero diagonal and nonzero off-diagonal, whose eigenvalues have opposite signs. Therefore neither matrix dominates the other in Loewner order.
+
+Incomparability alone does not prove the final assertion, so we establish it separately. Write \(d_k=1/(4r_k)\). Since \(M_2=M_3=15\), for each type \(t\), each of \(g_2(t)\) and \(g_3(t)\) is an odd multiple of \(1/30\). Hence \(\Xi_{kk}\ge1/900\) for \(k=2,3\). Equality is attained by mixing with probability \(1/2\) a type having seven ones and eight zeros on the slice and its cellwise complement; every cell then has the required Bernoulli\((1/2)\) margin. Consequently
+\[
+\sup_{\Omega\in\mathfrak S(r;f,1/2)}e_k^{\mathsf T}\Omega e_k=d_k-1/900,\qquad k=2,3.
+\tag{3}
+\]
+Constant-within-slice couplings attain \(g_2=-g_3\) and \(g_2=g_3\), respectively. Since a square is nonnegative,
+\[
+\sup_{\Omega\in\mathfrak S(r;f,1/2)}(e_2+e_3)^{\mathsf T}\Omega(e_2+e_3)=d_2+d_3,
+\]
+and
+\[
+\sup_{\Omega\in\mathfrak S(r;f,1/2)}(e_2-e_3)^{\mathsf T}\Omega(e_2-e_3)=d_2+d_3.
+\tag{4}
+\]
+If one symmetric matrix \(Q\) represented every directional support, (3) would force \(Q_{22}=d_2-1/900\) and \(Q_{33}=d_3-1/900\). The plus equation in (4) would then force \(Q_{23}=1/900\), whereas the minus equation would force \(Q_{23}=-1/900\), a contradiction. Hence no such representing matrix exists; in particular, no matrix can both dominate the image and equal its support in every direction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit incomparable pair proves that a sharp covariance-set design is not a relabeling of optimized conservative variance-bound selection. \textit{Gap.} HarshawMiddletonSavje2026 characterizes and optimizes admissible conservative quadratic upper bounds for a fixed design and estimator; this theorem proves non-representability of the compatible covariance image by any one such covariance envelope and retains allocation as a decision variable. \textit{Consumer.} A trial planner learns when a single optimized conservative variance matrix necessarily loses direction-specific information needed to compare several saturation policies.
+
+\begin{theorem}[thm:robust-design-kkt]\label{thm:robust-design-kkt}
+The function \(r\mapsto H(r;f)\) is convex on the positive orthant. The exact-count problem over \(\Delta_K(\rho)\) and the nominal-label problem \(\min_{p\in\Delta_K}H(Bp;f)\) both attain their minima. A feasible \(rStar\) or \(pStar\) is globally optimal if and only if there exist at most \(K+1\) active pair-and-vertex scenarios \((i,j,\lambda)\), nonnegative weights summing to one, and a simplex normal such that the corresponding weighted gradients satisfy the KKT stationarity equation; primal activity, an LP dual certificate for each active \(\lambda\), and stationarity form a finite optimality certificate.
+\end{theorem}
+\begin{proof}
+By Theorem~\(\texttt{thm:sharp-covariance-set}\), \(\Lambda(f,\mu_0)\) is a nonempty compact polytope and has finitely many vertices. For \(i<j\) and a vertex \(\lambda\), define
+\[
+\phi_{ij,\lambda}(r)=\frac{A_i(\lambda)}{r_i}+\frac{A_j(\lambda)}{r_j}-(e_i-e_j)^{\mathsf T}\Xi(\lambda)(e_i-e_j).
+\]
+The maximized expression is affine in \(\lambda\), so its maximum over the polytope occurs at a vertex and
+\[
+H(r;f)=\max_{i<j}\max_{\lambda\in\operatorname{vert}(\Lambda(f,\mu_0))}\phi_{ij,\lambda}(r).
+\tag{5}
+\]
+Every \(A_k(\lambda)\ge0\). Thus each \(\phi_{ij,\lambda}\) is convex on the positive orthant, and their finite maximum is convex. Because \(0<\rho<1/K\), \(\Delta_K(\rho)\) is nonempty and compact, proving exact-count attainment by continuity. Every entry of \(B\) is strictly positive because \(1\le m_k,m_\ell\le n_0-1\); hence \(Bp\) is bounded away from zero as \(p\) ranges over the compact simplex, proving nominal-label attainment.
+
+For an active scenario,
+\[
+[\nabla\phi_{ij,\lambda}(r)]_k=-\frac{A_k(\lambda)}{r_k^2}\mathbf1\{k\in\{i,j\}\}.
+\tag{6}
+\]
+The subdifferential of the finite maximum (5) is the convex hull of its active gradients. Therefore the necessary-and-sufficient convex KKT condition for the exact problem is
+\[
+0\in\operatorname{conv}\{\nabla\phi_{ij,\lambda}(r):(i,j,\lambda)\text{ is active}\}+N_{\Delta_K(\rho)}(r).
+\tag{7}
+\]
+Sufficiency follows from the subgradient inequality; necessity follows by separating zero from the sum when (7) fails, which gives a feasible descent direction. Carath\'eodory's theorem in \(\mathbb R^K\) expresses the convex-hull element using at most \(K+1\) active gradients. For the nominal problem the chain rule replaces every active gradient by \(B^{\mathsf T}\nabla\phi_{ij,\lambda}(Bp)\), and the same normal-cone argument applies on \(\Delta_K\).
+
+Each active vertex scenario is certified by primal feasibility in the finite linear program and a dual feasible vector of equal objective, as in Theorem~\(\texttt{thm:sharp-covariance-set}\). Scenario activity, the primal and dual support certificates, nonnegative convex weights summing to one, and the normal multipliers thus form a finite certificate. Conversely, these data verify (7), and convexity proves global optimality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem turns covariance ambiguity into a certified choice of randomization rather than a post hoc sensitivity plot. \textit{Gap.} BairdEtAl2018 optimizes power under maintained outcome structure, while JiangImaiMalani2023 fixes the assignment-mechanism distribution and uses conservative covariance analysis; neither gives a sharp-set minimax allocation with necessary-and-sufficient optimality witnesses. \textit{Consumer.} For the Kenya saturation-design consumer on the \(m=(1,2,4)\) menu, the theorem certifies \(rStar=(1/3,1/3,1/3)\) and \(pStar=(1024/4149,775/2766,3925/8298)\) by exact active-pair stationarity, with pairwise objectives \(3/2\) and \(1383/500\).
+
+\begin{theorem}[thm:design-based-regret-bound]\label{thm:design-based-regret-bound}
+Under the finite-population Lindeberg condition and any deterministic sequence of known hit probabilities \(r_C\to r\), every subsequence contains a further subsequence and a \(\lambda\in\Lambda(f,\mu_0)\) for which \(\sqrt C(\widehat U_C-U_C)\Rightarrow\mathcal N(0,\Sigma(r,\lambda))\). Along local welfare arrays, the empirical-best rule obeys \(\limsup_{C\to\infty}\sqrt C\,\mathbb E[\max_k U_{C,k}-U_{C,\delta_{\mathrm{EB}}(\widehat U_C)}]\le\kappa(K-1)\sqrt{H(r;f)}\), uniformly over fixed \(h\) in compact sets and compatible coupling subsequences. The expectation is finite for every \(C\) because \(\widehat U_C\) is total. Hence \(rStar\) and \(pStar\) minimize this certified worst-case Gaussian pairwise-regret bound within their respective design domains.
+\end{theorem}
+\begin{proof}
+Let
+\[
+E_C=\sqrt C(\widehat U_C-U_C),\qquad h_C=\sqrt C(U_C-\mu_0\mathbf1_K).
+\]
+Theorem~\(\texttt{thm:sharp-covariance-set}\) gives, on a further subsequence, a \(\lambda\in\Lambda(f,\mu_0)\) for which the covariance of \(E_C\) tends to \(\Sigma(r,\lambda)\). For fixed \(a\in\mathbb R^K\), \(a^{\mathsf T}E_C\) is a sum of independent centered cluster contributions. Since \(r_{C,k}\to r_k>0\), inverse hit probabilities are eventually bounded; since \(0\le W\le1\), every unnormalized contribution is bounded. Thus each summand after the \(C^{-1/2}\) normalization is \(O(C^{-1/2})\), uniformly in the cluster. This verifies the stated finite-population Lindeberg condition (indeed its remainder is eventually zero at every fixed threshold). The Lindeberg--Feller characteristic-function proof, applied to this bounded triangular array and covariance limit (2), yields
+\[
+a^{\mathsf T}E_C\Rightarrow\mathcal N(0,a^{\mathsf T}\Sigma(r,\lambda)a).
+\]
+The assertion remains true when the limiting variance is zero, by Chebyshev's inequality. Cram\'er--Wold therefore gives
+\[
+E_C\Rightarrow\mathcal N(0,\Sigma(r,\lambda)).
+\tag{8}
+\]
+Thus the Gaussian limit is derived from independent assignment, positivity, bounded fixed outcomes, and the declared Lindeberg condition rather than assumed.
+
+Assumption~\(\texttt{ass:local-welfare-array}\) gives \(h_C\to h\), and the empirical-best selector acts on \(h_C+E_C\). Pass to a further subsequence on which the least maximizer \(i_C\) of \(h_C\) is constant, equal to \(i\). Then \(i\) maximizes \(h\). Put \(d_{ij}=h_i-h_j\ge0\). If \(j\ne i\) is selected, then \(h_{C,j}+E_{C,j}\ge h_{C,i}+E_{C,i}\). The scaled loss is at most the range of \(h_C\), which is uniformly bounded because \(h_C\to h\). Hence (8), one-dimensional contrast convergence, and bounded convergence for these loss indicators give
+\[
+\limsup_C\sqrt C\,\mathbb E\left[\max_kU_{C,k}-U_{C,\delta_{\mathrm{EB}}(\widehat U_C)}\right]
+\le\sum_{j\ne i}d_{ij}\Phi\left(-\frac{d_{ij}}{\sqrt{V_{ij}(r,\lambda)}}\right),
+\tag{9}
+\]
+where a term is zero if \(d_{ij}=0\), and also if \(V_{ij}=0\) and \(d_{ij}>0\), because the limiting contrast is then the negative constant \(-d_{ij}\).
+
+By the definition of \(\kappa\), each term in (9) is at most \(\kappa\sqrt{V_{ij}(r,\lambda)}\), and every such variance is at most \(H(r;f)\). Therefore
+\[
+\limsup_C\sqrt C\,\mathbb E\left[\max_kU_{C,k}-U_{C,\delta_{\mathrm{EB}}(\widehat U_C)}\right]
+\le\kappa(K-1)\sqrt{H(r;f)}.
+\]
+Uniformity over \(h\) in a compact set follows by contradiction: a violating sequence has a convergent \(h\)-subsequence; finiteness of \(T\) then supplies a compatible-coupling subsequence, and the preceding argument applies. Finite-\(C\) regret is bounded by one because every \(U_{C,k}\in[0,1]\), while \(\widehat U_C\) is defined on every assignment outcome. Finally, \(rStar\) and \(pStar\) minimize \(H\) on their respective domains by definition and Theorem~\(\texttt{thm:robust-design-kkt}\), and the displayed bound is increasing in \(H\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This connects the certified allocation criterion to finite-population welfare loss using assignment randomness alone. \textit{Gap.} LiDing2017 derives vector finite-population central limit theorems, and Joo2025 studies minimax regret for a fixed covariance; neither takes a supremum over the sharp coupling set while choosing the saturation design. \textit{Consumer.} Investigators obtain an interpretable upper bound on the cluster count needed to keep worst-case policy-selection regret below a prespecified tolerance.
+
+\begin{proposition}[prop:odd-slice-correction]\label{prop:odd-slice-correction}
+In the balanced six-unit margin instance, \(M_2=M_3=15\). For \(k\in\{2,3\}\) and every \(\lambda\in\Lambda(f,1/2)\), \(A_k(\lambda)=1/4\), \(\Xi_{kk}(\lambda)\ge1/900\), and therefore \(\Sigma_{kk}(r,\lambda)\le1/(4r_k)-1/900\). Thus the diagonal endpoint \(1/(4r_k)\) is excluded by every compatible one-shot binary schedule.
+\end{proposition}
+\begin{proof}
+Here \(M_2={6\choose2}=15={6\choose4}=M_3\). Every target-cell marginal is Bernoulli on \(\{0,1\}\) with mean \(1/2\), so for \(k=2,3\),
+\[
+A_k(\lambda)=\frac1{15}\sum_{z\in\mathcal S_k}\mathbb E_\lambda\{t(z)-1/2\}^2=1/4.
+\]
+For each type, the sum of fifteen numbers in \(\{-1/2,1/2\}\) is a nonzero odd multiple of \(1/2\). Therefore
+\[
+|g_k(t)|\ge1/30,\qquad \Xi_{kk}(\lambda)=\mathbb E_\lambda g_k(t)^2\ge1/900.
+\]
+Substitution into \(\Sigma_{kk}=A_k/r_k-\Xi_{kk}\) gives \(\Sigma_{kk}(r,\lambda)\le1/(4r_k)-1/900\), so the displayed diagonal endpoint is unattainable.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The worked face directly certifies the finite-population correction that killed the previous diagonal angle. \textit{Gap.} No cited saturation-design result records the odd-slice integrality facet of the one-shot covariance set. \textit{Consumer.} The \(n_0=6\), \(m=(1,2,4)\) design receipt cannot silently return the infeasible diagonal covariance used by the rejected proposal.
+
+\begin{proposition}[prop:two-policy-reduction]\label{prop:two-policy-reduction}
+\texttt{On any two-\allowbreak{}policy face where schedule types are constant within each retained slice,\allowbreak{} the support linear program furnished by Theorem 1 reduces to the bivariate coupling program for the two slice-\allowbreak{}level potential welfares;\allowbreak{} its extremal covariance bounds are the comonotone and countermonotone Fréchet-\allowbreak{}-\allowbreak{}Hoeffding bounds used by AronowGreenLee2014.}
+\end{proposition}
+\begin{proof}
+On the retained face, constancy within a slice gives variables \(X_i,X_j\in Wgrid\) with \(t(z)=X_k\) for \(z\in\mathcal S_k\).  The constraints defining \(\Lambda\) reduce to the prescribed marginal laws of \(X_i\) and \(X_j\), and their only joint covariance term is
+\(\mathbb E[(X_i-\mu_i)(X_j-\mu_j)]\).  Thus the support LP is precisely the finite transportation program over masses \(\gamma_{ab}\ge0\) with prescribed row and column sums.
+
+Order both supports increasingly.  If positive mass occurs at crossed cells \((a,d)\) and \((b,c)\), where \(a<b\) and \(c<d\), moving an amount \(\varepsilon\) from those cells to \((a,c)\) and \((b,d)\) preserves the marginals and changes \(\mathbb E(X_iX_j)\) by
+\[
+\varepsilon(b-a)(d-c)\ge0.
+\]
+Compactness gives an optimizer; choosing an optimizer that lexicographically maximizes northwest cumulative masses and applying this exchange rules out crossings, yielding the comonotone quantile coupling.  Reversing the second order yields the countermonotone coupling.  These are the discrete Fréchet--Hoeffding upper and lower covariance bounds, proving the reduction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction is the required sanity check against the established two-potential-outcome sharp bound. \textit{Gap.} The reduction is known in the two-margin setting; its role here is validation rather than a standalone novelty claim. \textit{Consumer.} Implementations can test the multi-slice LP against a closed-form two-policy benchmark before analyzing the three-policy menu.
+
+\begin{openendedquestion}[oeq:exact-robust-regret-certificate]\label{oeq:exact-robust-regret-certificate}
+Using the covariance-set Gaussian receipt handle, determine whether one can construct a terminating \(\varepsilon\)-certificate for \(\inf_{r\in\Delta_K(\rho)}\sup_{\lambda\in\Lambda(f,\mu_0)}G(\Sigma(r,\lambda))\) and \(\inf_{p\in\Delta_K}\sup_{\lambda\in\Lambda(f,\mu_0)}G(\Sigma(Bp,\lambda))\), returning outward value brackets, all minimizing design cells, and explicit covariance and selector witnesses without assuming that \(\Xi\) is identified or that common thinning rescales \(G\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the genuinely open step from a sharp pairwise-risk design to the exact all-selector minimax-regret design. \textit{Gap.} Joo2025 fixes one covariance matrix, GuggenbergerHuang2025 approximates one minimax game, and GaoGeQian2025 optimizes coupling functionals; none couples all three optimizations in an exact-hit experimental-design certificate. \textit{Consumer.} A positive answer would replace the conservative pairwise surrogate in the Kenya design calculation by the exact robust policy-selection value.
+
+\begin{theorem}[thm:balanced-six-unit-allocation-receipt]\label{thm:balanced-six-unit-allocation-receipt}
+In the balanced six-unit margin instance, for every positive hit-rate vector \(r\),
+\[
+H(r;f)=\frac14\max_{1\le i<j\le3}\left(\frac1{r_i}+\frac1{r_j}\right).
+\]
+If \(0<\rho<1/3\), the exact-count optimum is \(rStar=(1/3,1/3,1/3)\) with \(H(rStar;f)=3/2\). The exact-hit matrix and a nominal-label optimum are
+\[
+B=\begin{pmatrix}
+3125/7776&64/243&4/243\\
+3125/15552&80/243&20/243\\
+125/15552&20/243&80/243
+\end{pmatrix},\qquad
+pStar=\left(1024/4149,775/2766,3925/8298\right),
+\]
+with \(BpStar=(250/1383)\mathbf1_3\) and \(H(BpStar;f)=1383/500\). All three pair constraints are active at both optima. Exact-count equal pair weights certify stationarity; for the nominal problem the pair weights
+\[
+(\alpha_{12},\alpha_{13},\alpha_{23})=(0,350/461,111/461)
+\]
+satisfy
+\[
+B^{\mathsf T}\{\alpha_{12}(e_1+e_2)+\alpha_{13}(e_1+e_3)+\alpha_{23}(e_2+e_3)\}=(500/1383)\mathbf1_3,
+\]
+which is the exact KKT stationarity certificate. Consequently the nominal pairwise-variance objective is larger by the exact factor \(461/250\), the empirical-best regret certificate is larger by \(\sqrt{461/250}\), and the certified cluster count required for the same regret tolerance is larger by \(461/250\).
+\end{theorem}
+\begin{proof}
+For every target cell in the balanced instance, \((t(z)-1/2)^2=1/4\), whence \(A_k(\lambda)=1/4\). For any compatible coupling,
+\[
+V_{ij}(r,\lambda)=\frac1{4r_i}+\frac1{4r_j}-\mathbb E_\lambda\{g_i(t)-g_j(t)\}^2
+\le\frac14\left(\frac1{r_i}+\frac1{r_j}\right).
+\tag{10}
+\]
+The compatible coupling that sets every target-slice coordinate equal to one common \(X\sim\operatorname{Bernoulli}(1/2)\) has \(g_1=g_2=g_3=X-1/2\), so equality in (10) holds simultaneously for all pairs. This is the sharp primal support witness, while nonnegativity of the displayed square is the matching support upper certificate. Taking the maximum proves the formula for \(H\).
+
+For \(r\in\Delta_3(\rho)\), the maximum of the three pair sums is at least their average:
+\[
+\max_{i<j}(r_i^{-1}+r_j^{-1})\ge\frac23\sum_{k=1}^3r_k^{-1}\ge6,
+\]
+where the last inequality is Cauchy--Schwarz, \((\sum r_k)(\sum r_k^{-1})\ge9\). Equality holds at \(r=(1/3,1/3,1/3)\), which is feasible because \(\rho<1/3\). Thus \(H=3/2\). At that interior point all pair functions are active, and equal weights \(1/3\) make the weighted gradient proportional to \(-\mathbf1_3\), the normal to the simplex; this is exact KKT stationarity.
+
+Substitution of \(n_0=6\) and \(m=(1,2,4)\) into the definition of \(B\) gives the displayed rational matrix. Direct common-denominator arithmetic gives
+\[
+1024/4149+775/2766+3925/8298=1
+\]
+and
+\[
+BpStar=(250/1383)\mathbf1_3.
+\]
+Thus all three pair functions are active and each equals \(2(1383/250)\); multiplication by \(1/4\) gives \(H(BpStar;f)=1383/500\).
+
+Let
+\[
+w=\alpha_{12}(e_1+e_2)+\alpha_{13}(e_1+e_3)+\alpha_{23}(e_2+e_3)
+=\frac1{461}(350,111,461)^{\mathsf T}.
+\]
+Exact rational multiplication yields \(B^{\mathsf T}w=(500/1383)\mathbf1_3\). At the common rate \(s=250/1383\), the weighted subgradient in \(p\) of the active functions \((1/4)(s_i^{-1}+s_j^{-1})\) is
+\[
+-\frac1{4s^2}B^{\mathsf T}w=-\frac{500}{4s^2\,1383}\mathbf1_3,
+\]
+which lies in the negative normal direction of the probability simplex. The weights are nonnegative and sum to one. The convex KKT theorem \(\texttt{thm:robust-design-kkt}\) therefore certifies global nominal optimality.
+
+Finally,
+\[
+\frac{H(BpStar;f)}{H(rStar;f)}=\frac{1383/500}{3/2}=\frac{461}{250}.
+\]
+The regret bound in Theorem~\(\texttt{thm:design-based-regret-bound}\) is proportional to \(\sqrt{H/C}\). Hence the ratio of its regret constants is \(\sqrt{461/250}\), and solving the same bound for \(C\) at a fixed regret tolerance gives the cluster-count ratio \(461/250\).
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The covariance-set image is sharp conditional on the full assignment-cell marginal table \(f\). A current one-shot trial estimates those margins only asymptotically, and prospective use therefore requires fixed external planning margins or an uncertainty set around them. The theorem does not identify \(\Xi\), does not replace it by zero, and does not claim that \(G(\Sigma(sr,\lambda))=s^{-1/2}G(\Sigma(r,\lambda))\).
+
+\section{Honest scope}
+
+The proved results cover the total calibrated Horvitz--Thompson covariance image, rational support linear programs, non-representability by one directionwise-sharp covariance envelope, robust pairwise-variance allocation, finite KKT certificates, and the empirical-best regret bound, conditional on fixed planning margins \(f\) and the common-tie local boundary. For \(n_0=6\), \(m=(1,2,4)\), the exact pairwise receipt is fully rational: exact-count objective \(3/2\), nominal objective \(1383/500\), and cluster-count ratio \(461/250\). The odd \(15\)-cell slices force \(\Xi_{kk}\ge1/900\). The exact robust all-Borel-selector design and a terminating all-minimizer receipt remain open; no total numerical equality oracle is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AronowGreenLee2014} Aronow, Peter M., Donald P. Green, and Donald K. K. Lee. 2014. ``Sharp Bounds on the Variance in Randomized Experiments.'' \emph{Annals of Statistics} 42(3): 850--871. DOI: 10.1214/13-AOS1200.
+
+  \bibitem{GaoGeQian2025} Gao, Zijun, Shu Ge, and Jian Qian. 2025. ``Bridging Multiple Worlds: Multi-Marginal Optimal Transport for Causal Partial-Identification Problem.'' \emph{Proceedings of the 28th International Conference on Artificial Intelligence and Statistics}, Proceedings of Machine Learning Research 258: 721--729.
+
+  \bibitem{HarshawMiddletonSavje2026} Harshaw, Christopher, Joel Middleton, and Fredrik Sävje. 2026. ``Optimized Variance Estimation under Interference and Complex Experimental Designs.'' \emph{Journal of the American Statistical Association}. DOI: 10.1080/01621459.2026.2627027.
+
+  \bibitem{LiDing2017} Li, Xinran, and Peng Ding. 2017. ``General Forms of Finite Population Central Limit Theorems with Applications to Causal Inference.'' \emph{Journal of the American Statistical Association} 112(520): 1759--1769. DOI: 10.1080/01621459.2017.1295865.
+
+  \bibitem{JiangImaiMalani2023} Jiang, Zhichao, Kosuke Imai, and Anup Malani. 2023. ``Statistical Inference and Power Analysis for Direct and Spillover Effects in Two-Stage Randomized Experiments.'' \emph{Biometrics} 79(3): 2370--2381. DOI: 10.1111/biom.13782.
+
+  \bibitem{BairdEtAl2018} Baird, Sarah, J. Aislinn Bohren, Craig McIntosh, and Berk Özler. 2018. ``Optimal Design of Experiments in the Presence of Interference.'' \emph{Review of Economics and Statistics} 100(5): 844--860. DOI: \(10.1162/\mathrm{rest\_a\_00716}\).
+
+  \bibitem{Joo2025} Joo, Joonhwi. 2025. ``Selecting the Best Arm in One-Shot Multi-Arm RCTs: The Asymptotic Minimax-Regret Decision Framework for the Best-Population Selection Problem.'' arXiv:2509.03796.
+
+  \bibitem{GuggenbergerHuang2025} Guggenberger, Patrik, and Jiaqi Huang. 2025. ``On the Numerical Approximation of Minimax Regret Rules via Fictitious Play.'' arXiv:2503.10932.
+
+  \bibitem{HiranoPorter2009} Hirano, Keisuke, and Jack R. Porter. 2009. ``Asymptotics for Statistical Treatment Rules.'' \emph{Econometrica} 77(5): 1683--1701. DOI: 10.3982/ECTA6630.
+
+  \bibitem{EggerEtAl2022} Egger, Dennis, Johannes Haushofer, Edward Miguel, Paul Niehaus, and Michael Walker. 2022. ``General Equilibrium Effects of Cash Transfers: Experimental Evidence from Kenya.'' \emph{Econometrica} 90(6): 2603--2643. DOI: 10.3982/ECTA17945.
+
+\end{thebibliography}
+
+\end{document}

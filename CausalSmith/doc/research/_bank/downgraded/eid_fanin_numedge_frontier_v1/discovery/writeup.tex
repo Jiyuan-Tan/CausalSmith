@@ -1,0 +1,860 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}fanin\_\allowbreak{}numedge\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A covariance-specific coefficient can be generically recoverable yet ambiguous or singular at the supplied covariance. Maximum directed indegree one is the exact tractable side: a deterministic polynomial-bit algorithm normalizes every bi-affine fiber into pole-aware Möbius components and a singular-relation \(2\)-CNF, returning a unique rational coefficient, two unequal feasible witnesses, or a componentwise quadratic nonconstant-curve certificate. At indegree two, promise \(\forall\mathbb R\)-completeness already holds for depth-one directed graphs whose directed weak components are isolated vertices, single edges, or two-parent in-stars. Exact-fiber padding gives a hard subproblem \(\mathcal R_0\) inside \(\mathsf{NUMEDGE}_3\) with \(K_G=0\); the full literal zero-parameter class is larger because \(K_G=0\) does not bound vertices of indegree at least three. The full class is complete by the \(k=0\) specialization of the all-fixed-\(k\) theorem, while \(\mathcal R_0\) is separately complete by the padded reduction and restricted universal-real membership. The private-parent and occurrence-hub compiler is exactly fiber-bijective and has rational strictly diagonally dominant covariance. Dörfler et al. already provide fiber bijectivity; the strict hard-side delta is replacing their shared unbounded-fan-in storage star by components of size at most three.
+
+\section{Project justification}
+
+\paragraph{Gap.} Complete low-fan-in algorithms are generic and may divide by expressions that vanish at the observed covariance. Dörfler et al.'s numerical-hardness construction already gives an exact fiber isomorphism in the rational feasible acyclic mixed-graph class, but its single storage sink has directed fan-in growing with the source dimension; it does not establish hardness on bounded-size directed components. The residual parameter \(K_G\) counts only vertices of indegree exactly two, so the full class \(K_G=0\) may still contain vertices of indegree three or larger and must not be identified with its maximum-indegree-three subproblem.
+
+\paragraph{Niche.} The missing case is an all-covariance, polynomial-bit classification at fan-in one paired with a fiber-faithful lower bound at the next integer fan-in, already on depth-one private-parent components of size at most three, together with an exact audit of the literal parameter that counts only two-parent vertices.
+
+\paragraph{Fill.} The Möbius-component and singular-clause normal form proves exact tractability with checkable componentwise-quadratic certificates. The private-slot compiler replaces the published unbounded storage star by singleton and two-parent sinks, preserves the complete source fiber through forced occurrence hubs, and yields promise \(\forall\mathbb R\)-completeness with rational strict diagonal dominance and a planted rational feasible matrix. A polynomial-bit padding preserves the entire fiber and places a hard family in the bounded-fan-in subproblem \(\mathcal R_0\subseteq\{K_G=0\}\). The all-fixed-\(k\) theorem gives completeness of the full literal class, and a separate restriction argument gives membership and completeness of \(\mathcal R_0\).
+
+\section{Related work}
+
+Dörfler, van der Zander, Bläser, and Liśkiewicz define numerical edge identification at a feasible covariance, prove unrestricted promise \(\forall\mathbb R\)-completeness, and already construct an isomorphism from their source solution set onto the complete real SEM fiber. The membership result is Proceedings Theorem 14 and appears as Theorem 13 in Appendix A.2 of arXiv:2407.12528; Corollary 5 gives the polynomial-space bound. Their Section 4 and Proceedings Theorem 2 use a shared storage sink with one incoming coefficient per source coordinate. The hard-side strict delta here is only the replacement of that unbounded-fan-in star by depth-one private-parent directed components of size at most three while retaining exact fiber bijectivity; rational strict diagonal dominance and a supplied planted witness are normalization properties. The fan-in-one theorem separately tightens their polynomial-space upper bound on that restricted class. The exact padding result supplies a maximum-indegree-three hard subproblem \(\mathcal R_0\) with \(K_G=0\); it does not identify that subproblem with the larger full literal class. Completeness of the full zero-parameter class is the \(k=0\) specialization of the theorem for all fixed \(k\), while completeness of \(\mathcal R_0\) follows separately. Van der Zander, Wienöbst, Bläser, and Liśkiewicz derive missing-cycle quadratic equations and document spurious-root behavior. Gupta and Bläser, followed by Briefs and Bläser, give complete generic algorithms for tree-shaped models; their Möbius and rank analysis informs the pointwise normalization but does not cover exceptional supplied covariances. Drton, Foygel, and Sullivant study graph-wide global identifiability, and Foygel, Draisma, and Drton give the half-trek sufficient criterion for generic rational identification. Ankan, Wortel, Bollen, and Textor connect graphical identification to the MIIVsem workflow, which remains the primary numerical-identification consumer here. Robust recovery, regular half-trek inference, and covariance-confidence-set inversion remain secondary and are not consequences of the exact fiber theorems.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\lambda_e\).
+Primary functional / estimator / diagnostic: \(\mathcal A_e(G,\Sigma)=\{L_{pq}:L\in\mathcal F_G(\Sigma),\ e=(p,q)\}\), with \(\lambda_e\) identified if and only if \(|\mathcal A_e(G,\Sigma)|=1\).
+\begin{itemize}
+  \item \texttt{V} --- \texttt{finite node set}; \(2^{\mathbb N}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed-\allowbreak{}variable vertices.}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(n=|V|\).
+  \item \texttt{D} --- \texttt{directed edge set}; \(V\times V\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The supported directed edges.}
+  \item \texttt{B} --- \texttt{bidirected edge set}; \(\{\{i,j\}:i,j\in V,\ i\ne j\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The pairs of disturbances permitted to be correlated.}
+  \item \texttt{G} --- \texttt{mixed graph}; \(\mathcal G_n\)
+  \par\smallskip\noindent\emph{Definition.} \(G=(V,D,B)\).
+  \item \texttt{d} --- \texttt{nonnegative integer}; \(\mathbb N_0\)
+  \par\smallskip\noindent\emph{Definition.} \(d=\max_{v\in V}|\operatorname{pa}_D(v)|\).
+  \item \texttt{Sigma} --- \texttt{observational second-\allowbreak{}moment matrix}; \(\mathbb R^{n\times n}\)
+  \par\smallskip\noindent\emph{Definition.} The supplied matrix \(\Sigma\).
+  \item \texttt{Lambda} --- \texttt{structural coefficient matrix}; \(\mathbb R^{n\times n}\)
+  \par\smallskip\noindent\emph{Definition.} The matrix \(\Lambda\) supported on \(D\).
+  \item \texttt{I\_\allowbreak{}n} --- \texttt{identity matrix}; \(\mathbb Q^{n\times n}\)
+  \par\smallskip\noindent\emph{Definition.} The \(n\)-dimensional identity \(I_n\).
+  \item \texttt{Omega\_\allowbreak{}Lambda} --- \texttt{induced disturbance covariance}; \(\mathbb R^{n\times n}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Omega(\Lambda)=(I_n-\Lambda)^{\mathsf T}\Sigma(I_n-\Lambda)\).
+  \item \texttt{e} --- \texttt{queried directed edge}; \(D\)
+  \par\smallskip\noindent\emph{Definition.} A fixed edge \(e=(p,q)\in D\).
+  \item \texttt{lambda\_\allowbreak{}e} --- \texttt{queried structural coefficient}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_e=\Lambda_{pq}\) for \(e=(p,q)\).
+  \item \texttt{F} --- \texttt{coefficient fiber}; \(2^{\mathbb R^{n\times n}}\)
+  \par\smallskip\noindent\emph{Definition.} The supported coefficient fiber \(\mathcal F_G(\Sigma)\) specified in \(\mathrm{def:fiber}\).
+  \item \texttt{A\_\allowbreak{}e} --- \texttt{attainable-\allowbreak{}value set}; \(2^{\mathbb R}\)
+  \par\smallskip\noindent\emph{Definition.} The projection \(\mathcal A_e(G,\Sigma)\) specified in \(\mathrm{def:attainable-set}\).
+  \item \texttt{M\_\allowbreak{}1} --- \texttt{instance class}
+  \par\smallskip\noindent\emph{Definition.} The feasible rational fan-in-one class \(\mathcal M_1\) specified in \(\mathrm{def:fanin\mbox{-}one\mbox{-}class}\).
+  \item \texttt{E\_\allowbreak{}GSigma} --- \texttt{rational bi-\allowbreak{}affine equation system}; \(\mathbb Q[\Lambda]\)
+  \par\smallskip\noindent\emph{Definition.} The missing-bidirected-edge equations \(\mathcal E(G,\Sigma)\) specified in \(\mathrm{def:biaffine-system}\).
+  \item \texttt{C} --- \texttt{rank-\allowbreak{}two relation component}
+  \par\smallskip\noindent\emph{Definition.} A connected component formed by the invertible relation matrices in \(E_GSigma\).
+  \item \texttt{t\_\allowbreak{}C} --- \texttt{component coordinate}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} The root coordinate assigned to \(C\).
+  \item \texttt{phi\_\allowbreak{}C} --- \texttt{family of fractional-\allowbreak{}linear coordinate maps}; \(\phi_{C,i}:t_C\mapsto (A_i t_C+B_i)/(C_i t_C+D_i)\)
+  \par\smallskip\noindent\emph{Definition.} The Möbius maps obtained by multiplying invertible \(2\times2\) rational relation matrices along a spanning tree of \(C\).
+  \item \texttt{D\_\allowbreak{}C} --- \texttt{admissible component domain}; \(2^{\mathbb R}\)
+  \par\smallskip\noindent\emph{Definition.} The pole-excluded domain of \(t_C\) surviving every internal equation.
+  \item \texttt{Psi} --- \texttt{Boolean formula}; \(\mathrm{2CNF}\)
+  \par\smallskip\noindent\emph{Definition.} The singular-relation formula \(\Psi(G,\Sigma)\) over component equality atoms.
+  \item \texttt{Cert} --- \texttt{componentwise real-\allowbreak{}algebraic certificate}
+  \par\smallskip\noindent\emph{Definition.} The certificate format specified in \(\mathrm{def:component-certificate}\).
+  \item \texttt{Alg\_\allowbreak{}1} --- \texttt{deterministic exact algorithm}; \(\mathsf A_1:(G,\Sigma,e)\mapsto\mathsf{output}\)
+  \par\smallskip\noindent\emph{Definition.} The fan-in-one fiber algorithm specified in \(\mathrm{def:fanin-one-algorithm}\).
+  \item \texttt{m} --- \texttt{positive integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of real coordinates in the encoded source system.}
+  \item \texttt{Q} --- \texttt{finite rational planted normalized quadratic-\allowbreak{}system encoding}; \texttt{source instance for the hardness reduction}
+  \par\smallskip\noindent\emph{Definition.} A binary string encoding \(m\), a finite ordered list of constraints of the forms \(x_i=c\), \(x_i=x_j+x_k\), \(x_i=x_jx_k\), \(x_i=x_j\), \(x_i=0\), and \(x_i=1\), with every rational constant \(c\) stored as a signed binary numerator and positive binary denominator in lowest terms, together with a selector index and a planted rational vector.
+  \item \texttt{z\_\allowbreak{}Q} --- \texttt{supplied planted assignment}; \(\mathbb Q^m\)
+  \par\smallskip\noindent\emph{Definition.} The rational vector encoded in \(Q\).
+  \item \texttt{s\_\allowbreak{}Q} --- \texttt{distinguished selector index}; \(\{1,\ldots,m\}\)
+  \par\smallskip\noindent\emph{Definition.} The selector coordinate encoded in \(Q\).
+  \item \texttt{Sol\_\allowbreak{}Q} --- \texttt{real solution set}; \(2^{\mathbb R^m}\)
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Sol}(Q)\), including every gate variable.
+  \item \texttt{P\_\allowbreak{}sel} --- \texttt{source promise domain}; \(2^{\{0,1\}^{*}}\)
+  \par\smallskip\noindent\emph{Definition.} The planted selector promise \(\mathcal P_{\mathrm{sel}}\) specified in \(\mathrm{def:source-promise-languages}\).
+  \item \texttt{L\_\allowbreak{}sel} --- \texttt{uncomplemented source promise language}; \(2^{\{0,1\}^{*}}\)
+  \par\smallskip\noindent\emph{Definition.} The language \(\mathsf{SEL\mbox{-}PNQF}\) specified in \(\mathrm{def:source-promise-languages}\).
+  \item \texttt{coL\_\allowbreak{}sel} --- \texttt{complemented source promise language}; \(2^{\{0,1\}^{*}}\)
+  \par\smallskip\noindent\emph{Definition.} The promise complement \(\mathsf{coSEL\mbox{-}PNQF}\) specified in \(\mathrm{def:source-promise-languages}\).
+  \item \texttt{Comp} --- \texttt{polynomial-\allowbreak{}time compiler}; \(\mathsf C:Q\mapsto(G_Q,\Sigma_Q,e_Q,\rho_Q)\)
+  \par\smallskip\noindent\emph{Definition.} The private-parent and occurrence-hub handle specified in \(\mathrm{def:compiler}\).
+  \item \texttt{G\_\allowbreak{}Q} --- \texttt{compiled acyclic mixed graph}
+  \par\smallskip\noindent\emph{Definition.} The graph component of \(\mathsf C(Q)\).
+  \item \texttt{Sigma\_\allowbreak{}Q} --- \texttt{compiled covariance matrix}; \(\mathbb Q^{|V(G_Q)|\times|V(G_Q)|}\)
+  \par\smallskip\noindent\emph{Definition.} The covariance component of \(\mathsf C(Q)\).
+  \item \texttt{e\_\allowbreak{}Q} --- \texttt{compiled queried edge}; \(D(G_Q)\)
+  \par\smallskip\noindent\emph{Definition.} The selector-master edge returned by \(\mathsf C(Q)\).
+  \item \texttt{rho\_\allowbreak{}Q} --- \texttt{planted feasible coefficient matrix}; \(\mathbb Q^{|V(G_Q)|\times|V(G_Q)|}\)
+  \par\smallskip\noindent\emph{Definition.} The rational feasible witness returned by \(\mathsf C(Q)\).
+  \item \texttt{pi\_\allowbreak{}Q} --- \texttt{master-\allowbreak{}coordinate projection}; \(\pi_Q:\mathcal F_{G_Q}(\Sigma_Q)\to\mathbb R^m\)
+  \par\smallskip\noindent\emph{Definition.} The restriction of a supported compiled coefficient matrix to the ordered master edges for the \(m\) source coordinates.
+  \item \texttt{G\_\allowbreak{}mult} --- \texttt{five-\allowbreak{}node mixed graph}
+  \par\smallskip\noindent\emph{Definition.} The explicit single-multiplication-gate graph \(G^{\times}\) specified in \(\mathrm{def:compiled-gate-example}\).
+  \item \texttt{Sigma\_\allowbreak{}mult} --- \texttt{five-\allowbreak{}dimensional rational covariance}; \(\mathbb Q^{5\times5}\)
+  \par\smallskip\noindent\emph{Definition.} The explicit matrix \(\Sigma^{\times}\) specified in \(\mathrm{def:compiled-gate-example}\).
+  \item \texttt{rho\_\allowbreak{}mult} --- \texttt{five-\allowbreak{}dimensional planted coefficient matrix}; \(\mathbb Q^{5\times5}\)
+  \par\smallskip\noindent\emph{Definition.} The explicit matrix \(\rho^{\times}\) specified in \(\mathrm{def:compiled-gate-example}\).
+  \item \texttt{e\_\allowbreak{}mult} --- \texttt{directed edge in the multiplication example}
+  \par\smallskip\noindent\emph{Definition.} The edge \(e^{\times}=(r_z,a)\) in \(G^{\times}\).
+  \item \texttt{Pi\_\allowbreak{}mult} --- \texttt{coefficient projection}; \(\pi^{\times}(L)=(L_{r_xa},L_{r_yb},L_{r_za})\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{The ordered projection to the two input occurrences and output occurrence of the compiled multiplication gate.}
+  \item \texttt{NUMEDGE\_\allowbreak{}d} --- \texttt{promise decision problem}
+  \par\smallskip\noindent\emph{Definition.} Pointwise numerical edge identification restricted to maximum directed indegree at most \(d\), as specified in \(\mathrm{def:promise-problem}\).
+  \item \texttt{K\_\allowbreak{}G} --- \texttt{nonnegative integer}; \(\mathbb N_0\)
+  \par\smallskip\noindent\emph{Definition.} \(K_G=|\{v\in V:|\operatorname{pa}_D(v)|=2\}|\).
+  \item \texttt{k} --- \texttt{nonnegative integer parameter}; \(\mathbb N_0\)
+  \par\smallskip\noindent\emph{Definition.} An upper bound on \(K_G\).
+  \item \texttt{ParamHandle} --- \texttt{parameterized-\allowbreak{}analysis handle}
+  \par\smallskip\noindent\emph{Definition.} The residual-algebra handle specified in \(\mathrm{def:parameterized-handle}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:acyclic]\label{ass:acyclic}
+The directed graph \((V,D)\) is acyclic.
+\par\smallskip\noindent\emph{Standard} (Recursive linear structural equation model, \cite{DorflerVanDerZanderBlaserLiskiewicz2024}).
+\end{assumption}
+
+\begin{assumption}[ass:rational-covariance]\label{ass:rational-covariance}
+\(\Sigma\in\mathbb Q^{n\times n}\).
+\par\smallskip\noindent\emph{Standard} (Rational numerical-identification input, \cite{DorflerVanDerZanderBlaserLiskiewicz2024}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-definite]\label{ass:positive-definite}
+\(\Sigma\succ0\).
+\par\smallskip\noindent\emph{Standard} (Positive-definite observational covariance, \cite{DorflerVanDerZanderBlaserLiskiewicz2024}).
+\end{assumption}
+
+\begin{assumption}[ass:feasible]\label{ass:feasible}
+The coefficient fiber \(\mathcal F_G(\Sigma)\) is nonempty.
+\par\smallskip\noindent\emph{Standard} (Feasible-covariance promise, \cite{DorflerVanDerZanderBlaserLiskiewicz2024}).
+\end{assumption}
+
+\begin{assumption}[ass:fanin-one]\label{ass:fanin-one}
+\(d\le1\).
+\par\smallskip\noindent\emph{Standard} (Directed-tree and directed-forest indegree restriction, \cite{GuptaBlaser2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:fiber]\label{def:fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Coefficient fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal F_G(\Sigma)=\{L\in\mathbb R^{n\times n}:L_{ij}=0\text{ for }(i,j)\notin D,\ [(I_n-L)^{\mathsf T}\Sigma(I_n-L)]_{ij}=0\text{ for }i\ne j\text{ with }\{i,j\}\notin B\}\).
+\end{definition}
+
+\begin{definition}[def:attainable-set]\label{def:attainable-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Queried-\allowbreak{}edge attainable set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal A_e(G,\Sigma)=\{L_{pq}:L\in\mathcal F_G(\Sigma),\ e=(p,q)\}\).
+\end{definition}
+
+\begin{definition}[def:numerical-identification]\label{def:numerical-identification}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pointwise numerical edge identification}
+\par\smallskip\noindent\emph{Construction.} \(e\text{ is numerically identified at }(G,\Sigma)\Longleftrightarrow |\mathcal A_e(G,\Sigma)|=1\).
+\end{definition}
+
+\begin{definition}[def:fanin-one-class]\label{def:fanin-one-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Feasible rational fan-\allowbreak{}in-\allowbreak{}one instances}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_1=\{(n,G,\Sigma,e):n\in\mathbb N,\ G=(V,D,B),\ e\in D,\ \text{and }\mathrm{ass:acyclic},\mathrm{ass:rational\mbox{-}covariance},\mathrm{ass:positive\mbox{-}definite},\mathrm{ass:feasible},\mathrm{ass:fanin\mbox{-}one}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}acyclic}; \texttt{ass:\allowbreak{}rational-\allowbreak{}covariance}; \texttt{ass:\allowbreak{}positive-\allowbreak{}definite}; \texttt{ass:\allowbreak{}feasible}; \texttt{ass:\allowbreak{}fanin-\allowbreak{}one}.
+\end{definition}
+
+\begin{definition}[def:biaffine-system]\label{def:biaffine-system}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Missing-\allowbreak{}edge bi-\allowbreak{}affine system}
+\par\smallskip\noindent\emph{Construction.} For every absent bidirected pair \(\{i,j\}\notin B\), include \(\Sigma_{p(i),p(j)}x_i x_j-\Sigma_{p(i),j}x_i-\Sigma_{i,p(j)}x_j+\Sigma_{ij}=0\) when both nodes have parents, with the corresponding affine unary or constant equation when a node is a root; the collection is \(\mathcal E(G,\Sigma)\).
+\end{definition}
+
+\begin{definition}[def:mobius-sat-handle]\label{def:mobius-sat-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pole-\allowbreak{}aware Möbius and singular-\allowbreak{}clause normalization}
+\par\smallskip\noindent\emph{Construction.} For each relation \(a x y+b x+c y+d=0\), use the matrix \(M=\left(\begin{smallmatrix}a&b\\c&d\end{smallmatrix}\right)\). Join variables when \(\det M\ne0\), compose the exact fractional-linear maps while recording their poles, substitute into all internal relations, and define \(D_C\) by the real roots of their degree-at-most-two greatest common divisor with every recorded pole removed. Factor every rank-one relation as \((u x+v)(w y+z)=0\), translate it into an equality disjunction across components, and conjoin domain coverage and pairwise-exclusion clauses to form \(\Psi(G,\Sigma)\).
+\end{definition}
+
+\begin{definition}[def:component-certificate]\label{def:component-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Componentwise quadratic certificate}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{Cert}\) stores, separately for each component \(C\), either a rational coordinate, an isolated real root of a rational polynomial of degree at most two, or a rational interval avoiding all poles and named equality values, together with \(\phi_C\) and a satisfying assignment of \(\Psi\).
+\end{definition}
+
+\begin{definition}[def:fanin-one-algorithm]\label{def:fanin-one-algorithm}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact fan-\allowbreak{}in-\allowbreak{}one algorithm}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf A_1\) builds the normalization in \(\mathrm{def:mobius\mbox{-}sat\mbox{-}handle}\), solves \(\Psi\), tests extendibility of every admissible value in the queried component, and reconstructs full coefficient matrices or a nonconstant interval-parametrized curve using \(\mathsf{Cert}\).
+\end{definition}
+
+\begin{definition}[def:source-encoding]\label{def:source-encoding}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite rational normalized-\allowbreak{}quadratic encoding}
+\par\smallskip\noindent\emph{Construction.} An encoding \(Q\) begins with self-delimiting binary encodings of \(m\), the number of constraints, and \(s_Q\); each constraint has an operation tag, binary coordinate indices in \(\{1,\ldots,m\}\), and, only for \(x_i=c\), a signed binary numerator and positive binary denominator in lowest terms; the final block lists the \(m\) reduced rational coordinates of \(z_Q\). The decoded set \(\operatorname{Sol}(Q)\subseteq\mathbb R^m\) consists exactly of vectors satisfying every listed equality.
+\end{definition}
+
+\begin{definition}[def:source-promise-languages]\label{def:source-promise-languages}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Planted selector normalized-\allowbreak{}quadratic promise languages}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\mathrm{sel}}=\{Q:z_Q\in\operatorname{Sol}(Q),\ (z_Q)_{s_Q}=0,\text{ and }x_{s_Q}\in\{0,1\}\text{ for every }x\in\operatorname{Sol}(Q)\}\). The uncomplemented language is \(\mathsf{SEL\mbox{-}PNQF}=\{Q\in\mathcal P_{\mathrm{sel}}:\exists x\in\operatorname{Sol}(Q)\text{ with }x_{s_Q}=1\}\). Its promise complement is \(\mathsf{coSEL\mbox{-}PNQF}=\{Q\in\mathcal P_{\mathrm{sel}}:\forall x\in\operatorname{Sol}(Q),\ x_{s_Q}=0\}\). Thus, within the promise, the YES predicate of the uncomplemented language is existence of a selector-one solution and its NO predicate is universal selector zero; the complemented language swaps these YES and NO labels. Strings outside \(\mathcal P_{\mathrm{sel}}\) are outside both promise problems.
+\end{definition}
+
+\begin{definition}[def:compiler]\label{def:compiler}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Private-\allowbreak{}parent and occurrence-\allowbreak{}hub compiler}
+\par\smallskip\noindent\emph{Construction.} For a promised encoding \(Q\), assign each coordinate a singleton master sink and make the master for \(s_Q\) the queried edge \(e_Q\); assign each normalized constraint fresh occurrence sinks with at most two private root parents; copy each occurrence to its master through a fresh singleton hub and two linear equality equations; realize each gate or copy equality in one distinct missing-sink pair using covariance slots that occur in no other missing-edge equation. Populate \(\rho_Q\) by the encoded assignment \(z_Q\) and its forced occurrence copies. Set unused off-diagonal entries to zero and every diagonal entry to \(1+\max_i\sum_{j\ne i}|(\Sigma_Q)_{ij}|\), and return \(\mathsf C(Q)=(G_Q,\Sigma_Q,e_Q,\rho_Q)\).
+\end{definition}
+
+\begin{definition}[def:compiled-gate-example]\label{def:compiled-gate-example}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Explicit compiled multiplication gate}
+\par\smallskip\noindent\emph{Construction.} Order the vertices as \(r_x,r_z,r_y,a,b\). Let \(G^{\times}\) have directed edges \(r_x\to a\), \(r_z\to a\), and \(r_y\to b\), and let its bidirected edge set contain every unordered vertex pair except \(\{a,b\}\). Set \[\Sigma^{\times}=\begin{pmatrix}3&0&1&0&0\\0&3&0&0&1\\1&0&3&0&0\\0&0&0&3&0\\0&1&0&0&3\end{pmatrix},\qquad \rho^{\times}=\begin{pmatrix}0&0&0&1&0\\0&0&0&1&0\\0&0&0&0&1\\0&0&0&0&0\\0&0&0&0&0\end{pmatrix}.\] Thus \(e^{\times}=(r_z,a)\), and for a supported matrix \(L\), write \(\pi^{\times}(L)=(x,y,z)=(L_{r_xa},L_{r_yb},L_{r_za})\).
+\end{definition}
+
+\begin{definition}[def:promise-problem]\label{def:promise-problem}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Bounded-\allowbreak{}fan-\allowbreak{}in promise numerical edge identification}
+\par\smallskip\noindent\emph{Construction.} Encode \(G\) by binary adjacency matrices, each entry of \(\Sigma\) by a reduced signed binary numerator and positive binary denominator, and \(e\) by its endpoint indices. The promise domain contains exactly the encoded triples satisfying \(\Sigma\succ0\), \(\mathcal F_G(\Sigma)\ne\varnothing\), and \(\max_v|\operatorname{pa}_D(v)|\le d\). Within that domain, \(\mathsf{NUMEDGE}_d=\{(G,\Sigma,e):|\mathcal A_e(G,\Sigma)|=1\}\); triples outside the domain are outside the promise problem.
+\end{definition}
+
+\begin{definition}[def:parameterized-handle]\label{def:parameterized-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Few-\allowbreak{}two-\allowbreak{}parent residual-\allowbreak{}algebra handle}
+\par\smallskip\noindent\emph{Construction.} Expose the at most \(2K_G\) coefficients entering the two-parent vertices, condition on their values, normalize every remaining fan-in-one component by \(\mathrm{def:mobius\mbox{-}sat\mbox{-}handle}\), and encode the unsimplified interactions as a semialgebraic constraint problem over those exposed coefficients and the equality atoms of \(\Psi\).
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:fiber-reduction]\label{lem:fiber-reduction}
+For every acyclic \(G\) and \(\Sigma\succ0\), the map \(L\mapsto\Omega(L)=(I_n-L)^{\mathsf T}\Sigma(I_n-L)\) is a bijection between \(\mathcal F_G(\Sigma)\) and the supported SEM parameterizations inducing \(\Sigma\). In particular, \(\Omega(L)\succ0\) automatically, so the fiber is cut out exactly by the missing-bidirected-edge equations.
+\end{lemma}
+\begin{proof}
+Fix a topological ordering of \((V,D)\).  In this ordering every supported matrix \(L\) is strictly upper triangular, because \(L_{ij}\) can be nonzero only when \(i\to j\).  Hence \(L^n=0\) and
+\[
+(I_n-L)^{-1}=I_n+L+\cdots+L^{n-1}.
+\]
+In particular, \(I_n-L\) is invertible.  By positive definiteness of \(\Sigma\), for every nonzero \(v\in\mathbb R^n\),
+\[
+v^{\mathsf T}\Omega(L)v
+=((I_n-L)v)^{\mathsf T}\Sigma((I_n-L)v)>0,
+\]
+because \((I_n-L)v\ne0\).  Thus \(\Omega(L)\succ0\).
+
+If \(L\in\mathcal F_G(\Sigma)\), Definition~\(\mathrm{def:fiber}\) gives both the support restriction on \(L\) and
+\[
+\Omega(L)_{ij}=0\qquad(i\ne j,\ \{i,j\}\notin B).
+\]
+Consequently \((L,\Omega(L))\) is a supported SEM parameterization.  Its induced covariance is
+\[
+(I_n-L)^{-\mathsf T}\Omega(L)(I_n-L)^{-1}
+=(I_n-L)^{-\mathsf T}(I_n-L)^{\mathsf T}\Sigma(I_n-L)(I_n-L)^{-1}
+=\Sigma.
+\]
+Conversely, suppose that a supported pair \((L,\Omega)\), with \(\Omega\succ0\) and the missing-\(B\) entries of \(\Omega\) equal to zero, induces \(\Sigma\).  Multiplication of
+\[
+\Sigma=(I_n-L)^{-\mathsf T}\Omega(I_n-L)^{-1}
+\]
+on the left by \((I_n-L)^{\mathsf T}\) and on the right by \(I_n-L\) gives
+\[
+\Omega=(I_n-L)^{\mathsf T}\Sigma(I_n-L)=\Omega(L).
+\]
+Its missing entries therefore put \(L\) in \(\mathcal F_G(\Sigma)\).  The displayed equality also proves uniqueness of \(\Omega\) for a given \(L\), so \(L\mapsto(L,\Omega(L))\) and projection to \(L\) are inverse maps.  This proves the asserted bijection and shows that no positive-definiteness inequality remains after the missing-edge equations are imposed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction removes positive-definiteness inequalities from the tractable-side fiber without weakening feasibility. \textit{Gap.} Dörfler et al., Lemma 3, supplies the unrestricted fiber equations; the present lemma records the exact congruence consequence needed for bounded-fan-in certificates. \textit{Consumer.} Every subsequent certificate can be checked from coefficient matrices and missing-edge equations without a numerical eigenvalue calculation.
+
+\begin{lemma}[lem:pointwise-normal-form]\label{lem:pointwise-normal-form}
+Under maximum directed indegree one, the real solution set of \(\mathcal E(G,\Sigma)\) is in bijection with the satisfying assignments of \(\Psi(G,\Sigma)\) together with one coordinate \(t_C\in D_C\) per component. Every \(D_C\) is either the real roots of a nonzero rational polynomial of degree at most two with recorded poles removed or \(\mathbb R\) minus finitely many rational points. The normalization and both directions of the bijection have deterministic polynomial bit complexity, including zero equations, nonzero constants, repeated roots, poles, rank-one factors, unary relations, and cross-component singular clauses.
+\end{lemma}
+\begin{proof}
+For every nonroot vertex \(i\), let \(p(i)\) be its unique parent and put \(x_i=L_{p(i),i}\).  The \(i\)-th column of \(I_n-L\) is \(e_i-x_i e_{p(i)}\).  Hence, when \(i\) and \(j\) are nonroots,
+\[
+\Omega(L)_{ij}
+=\Sigma_{ij}-\Sigma_{p(i),j}x_i-\Sigma_{i,p(j)}x_j
++\Sigma_{p(i),p(j)}x_ix_j.
+\]
+If exactly one vertex is a root this formula loses the terms containing its nonexistent coefficient and becomes affine unary; if both are roots it is constant.  Thus Definition~\(\mathrm{def:biaffine\mbox{-}system}\), together with the preceding fiber reduction, identifies the fiber exactly with a rational system of constant, unary, and bivariate bi-affine equations.
+
+Consider a bivariate equation
+\[
+f(x,y)=axy+bx+cy+d=0,
+\qquad
+M_f=\begin{pmatrix}a&b\\c&d\end{pmatrix}.
+\]
+If \(\det M_f=ad-bc\ne0\), then
+\[
+y=-\frac{bx+d}{ax+c}.
+\]
+At a zero of \(ax+c\), the numerator \(bx+d\) cannot also vanish, since a common zero would make the two rows of \(M_f\) dependent.  Therefore the displayed fractional-linear equation, with that pole deleted, is equivalent to \(f=0\); its representing matrix has determinant \(ad-bc\ne0\), so it also has an inverse fractional-linear map.
+
+Join two coefficient variables precisely when they occur in such an invertible relation.  In a connected component \(C\), choose a root variable \(t_C\) and a spanning tree.  Composition along the unique tree paths gives
+\[
+x_i=\phi_{C,i}(t_C)=\frac{A_i t_C+B_i}{C_i t_C+D_i},
+\qquad A_iD_i-B_iC_i\ne0.
+\]
+Every finite zero of a denominator is recorded.  Induction along the tree proves both directions: any solution of the tree equations has the displayed form with \(t_C\) equal to its root coordinate, and any \(t_C\) avoiding all recorded poles satisfies every tree equation.  The representation is unique because the root map is the identity.
+
+Substitute these maps into every unary equation and every non-tree equation internal to \(C\).  Multiplication by the recorded nonzero denominators yields a rational polynomial of degree at most two.  Let \(\mathcal P_C\) be the collection of the nonzero resulting polynomials.  If \(\mathcal P_C\) is empty, all internal equations are identities and
+\[
+D_C=\mathbb R\setminus P_C,
+\]
+where \(P_C\) is the finite set of recorded rational poles.  Otherwise let \(g_C\) be the monic greatest common divisor of the polynomials in \(\mathcal P_C\).  Then
+\[
+D_C=\{t\in\mathbb R:g_C(t)=0\}\setminus P_C.
+\]
+The equivalence follows from the elementary property that a real number is a common zero of finitely many univariate polynomials if and only if it is a zero of their greatest common divisor.  Since every member of \(\mathcal P_C\) has degree at most two, so does \(g_C\).  A nonzero constant among the residuals makes \(g_C=1\) and \(D_C=\varnothing\); zero residuals add no restriction; repeated roots and roots that are poles are handled by the displayed set difference.  Thus every \(D_C\) has exactly one of the two forms in the claim.
+
+No invertible relation can remain between two distinct components.  If a remaining bivariate relation has rank one, rational row--column factorization gives
+\[
+axy+bx+cy+d=\kappa(ux+v)(wy+z)
+\]
+for rational coefficients and nonzero \(\kappa\).  After substitution into components \(C\) and \(H\), and after multiplication by the already excluded denominators, it is therefore exactly
+\[
+\ell_C(t_C)=0\quad\text{or}\quad \ell_H(t_H)=0,
+\]
+where each \(\ell\) is affine rational.  A nonconstant factor names one rational value; a value outside its domain is false, a nonzero constant is false, and an identically zero factor is true.  Rank zero is the zero equation.  Constant equations from two roots are treated as true or false according as the constant is zero or nonzero.
+
+For every distinct named admissible value \(r\) of a component, introduce \(E_{C,r}\), meaning \(t_C=r\).  If \(D_C\) is finite, introduce atoms also for its unnamed elements.  Add every singular disjunction, the clauses
+\[
+\neg E_{C,r}\lor\neg E_{C,s}\qquad(r\ne s),
+\]
+and, for a one-point or two-point domain, respectively the unit coverage clause or the two-literal coverage clause.  An empty domain contributes false; a cofinite domain has no coverage clause.  This is exactly the formula \(\Psi\) from Definition~\(\mathrm{def:mobius\mbox{-}sat\mbox{-}handle}\).
+
+Every real solution sets its equality atoms according to its component coordinates and hence satisfies \(\Psi\).  Conversely, pair a satisfying assignment with coordinates that equal every true named atom and avoid every false named atom.  Coverage and exclusion force the unique compatible coordinate in a finite domain.  In a cofinite component a true atom fixes its coordinate, while an all-false atom pattern permits every point outside the finite union of poles and named values; this set is nonempty and contains a rational point.  Every singular clause then guarantees that at least one of its two factors vanishes.  Together with the internal-domain construction, the reconstructed coordinates satisfy every original equation.  A real solution determines exactly one such compatible assignment-coordinate pair, and evaluation of the \(\phi_{C,i}\) maps is its inverse.  This is the asserted bijection.  When the algorithm needs one representative of an all-false cofinite state, it chooses any rational point in that state.
+
+It remains to justify bit complexity.  The number of relations, components, poles, and equality atoms is polynomial in the input length, and pairwise exclusion creates at most quadratically many clauses.  A product of at most polynomially many rational \(2\times2\) matrices has polynomial bit length: after clearing input denominators, each output entry is a sum of at most exponentially many products, whose logarithmic magnitude and denominator bit length are polynomial.  All residuals have degree at most two, so their greatest common divisors, rational roots, discriminants, comparisons, and isolating intervals are obtained by the Euclidean algorithm and the quadratic formula with polynomially many bit operations on polynomial-bit integers.
+
+Finally, satisfiability of the resulting two-clause formula is decided directly from its implication graph.  A clause \(u\lor v\) gives arcs \(\neg u\to v\) and \(\neg v\to u\); the formula is satisfiable if and only if no literal and its negation lie in the same strongly connected component.  The forward implication follows by propagation along arcs.  For the reverse implication, ordering the strongly connected components in reverse topological order and assigning a literal true exactly when its component is later than that of its negation satisfies every arc.  Two depth-first graph traversals compute these components in linear time.  Thus construction of \(\Psi\), its solution, and reconstruction in both directions have deterministic polynomial bit complexity, with every degeneration listed in the statement covered by one of the explicit cases above.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the load-bearing all-singular-strata replacement for generic polynomial identity testing. \textit{Gap.} Gupta and Bläser, Theorem 27, normalizes generic tree equations by rank and Möbius composition, but it does not retain poles or solve Boolean coupling created by numerical rank-one degenerations. \textit{Consumer.} The normal form gives an exact pre-estimation identification audit for low-fan-in mixed graphs, including exceptional covariance inputs on which a chosen instrumental ratio is undefined.
+
+\begin{theorem}[thm:fanin-one-algorithm]\label{thm:fanin-one-algorithm}
+For every \((n,G,\Sigma,e)\in\mathcal M_1\), \(\mathsf A_1\) runs in time polynomial in the bit length of \((G,\Sigma,e)\) and returns exactly one of: \(\mathrm{(i)}\) the unique value in \(\mathcal A_e(G,\Sigma)\), which is rational; \(\mathrm{(ii)}\) two componentwise-quadratic feasible coefficient matrices whose \(e\)-coordinates differ; or \(\mathrm{(iii)}\) a componentwise-quadratic rational description of a feasible curve on which the \(e\)-coordinate is nonconstant. Moreover, \(\mathcal A_e(G,\Sigma)\) is respectively a singleton, a two-element set, or a cofinite subset of \(\mathbb R\), and every output has polynomial bit length in the componentwise encoding \(\mathsf{Cert}\). On the fan-in-one class this strictly improves the published polynomial-space numerical edge-identification upper bound of Dörfler et al. to deterministic polynomial bit complexity.
+\end{theorem}
+\begin{proof}
+Apply the pointwise normal form to the feasible instance and let \(C\) be the component containing the queried coefficient.  Its coordinate is
+\[
+L_e=\phi_{C,e}(t_C)=\frac{A t_C+B}{C t_C+D},
+\qquad AD-BC\ne0,
+\]
+so it is injective on its pole-excluded real domain.
+
+If \(D_C\) is finite, it has at most two elements.  For each one, add its equality atom as a unit clause and run the implication-graph test.  Feasibility guarantees that at least one extends.  Thus one extending value gives case \(\mathrm{(i)}\), and two give case \(\mathrm{(ii)}\).
+
+Suppose next that \(D_C\) is cofinite, and let \(S_C\) be the finite set of rational values named by equality atoms.  First add all units \(\neg E_{C,r}\), \(r\in S_C\), and test satisfiability.  If this formula is satisfiable, fix the reconstructed coordinates of all components other than \(C\).  In every singular clause containing a positive \(C\)-literal, the other literal is true under this assignment.  Hence \(t_C\) may range over any rational open interval avoiding \(S_C\) and all poles while all equations remain satisfied.  Such an interval is obtained by sorting the finite rational exceptional set and taking an interval between consecutive values, or an exterior interval.  Moreover,
+\[
+\frac{d}{dt}\phi_{C,e}(t)=\frac{AD-BC}{(Ct+D)^2}\ne0
+\]
+throughout the interval.  This gives case \(\mathrm{(iii)}\), and its image under the injective fractional-linear map is cofinite in \(\mathbb R\): if \(C\ne0\), the full pole-excluded line maps onto \(\mathbb R\setminus\{A/C\}\), while if \(C=0\) it maps onto all of \(\mathbb R\); deleting finitely many inputs deletes finitely many outputs.
+
+If the all-false test fails, test each named atom separately.  At most two distinct named values can extend.  Indeed, suppose that satisfying assignments \(\alpha_1,\alpha_2,\alpha_3\) selected three distinct values.  Their coordinatewise Boolean majority \(\alpha\) satisfies every two-literal clause: if a clause were false under \(\alpha\), each of its two literals would be false in at least two of the three assignments, and the two subsets of size at least two would intersect, making the clause false in one \(\alpha_j\).  Yet every equality atom of \(C\) is true in at most one \(\alpha_j\), so all are false under \(\alpha\), contradicting failure of the all-false test.  Feasibility now leaves exactly one or two extending values, giving case \(\mathrm{(i)}\) or \(\mathrm{(ii)}\).
+
+The unique value is rational.  In a cofinite component every isolated extending coordinate is a named rational value.  In a finite component, if one root of its rational polynomial were irrational, the polynomial would be an irreducible quadratic with two distinct real conjugate roots.  Neither root can equal a rational pole or a rational value named by a cross-component singular factor.  The clauses involving the two finite-domain atoms are therefore symmetric under their interchange, so extendibility of one root implies extendibility of the other.  Injectivity of \(\phi_{C,e}\) then gives two distinct queried values, contrary to uniqueness.  Hence a unique root coordinate, and its fractional-linear image, are rational.
+
+For every successful unit test, the converse construction in the normal-form lemma supplies a full feasible matrix.  Each component coordinate is rational or a real root of a rational polynomial of degree at most two, and every matrix entry is obtained from it by a rational fractional-linear map; this is exactly the componentwise encoding \(\mathsf{Cert}\).  In case \(\mathrm{(ii)}\) the two unit tests provide two such matrices with unequal \(e\)-coordinates.  In case \(\mathrm{(iii)}\) the fixed component coordinates, the rational interval, and the maps \(\phi_C\) give the required curve.
+
+There are polynomially many unit tests.  The normal-form proof bounds every rational coefficient, quadratic polynomial, isolating interval, and two-clause instance by polynomial bit length, so the total running time and every componentwise output length are polynomial in the encoded input.  The three cases are exhaustive and mutually exclusive, and their attainable sets are, respectively, a singleton, a two-element set, and a cofinite subset of \(\mathbb R\).  The cited published comparison records that unrestricted numerical edge identifiability was previously known to be decidable in polynomial space; the present deterministic polynomial-bit algorithm on \(\mathcal M_1\) is therefore the asserted strict upper-bound improvement on this class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives a deterministic constructive answer to numerical identification exactly below the proposed fan-in boundary. \textit{Gap.} Dörfler et al. provide only a polynomial-space numerical test in unrestricted graphs, while Gupta and Bläser and Briefs and Bläser solve generic identification on directed trees; this theorem strictly tightens the numerical upper bound on the fan-in-one class and covers every exceptional covariance. \textit{Consumer.} After a latent-to-observed transformation yields maximum indegree one, MIIVsem users can distinguish a failed instrument denominator from genuine nonidentification and receive explicit observationally equivalent coefficient witnesses.
+
+\begin{lemma}[lem:source-language-completeness]\label{lem:source-language-completeness}
+Under polynomial-time promise-preserving many-one reductions on the finite encoding in \(\mathrm{def:source-encoding}\), \(\mathsf{SEL\mbox{-}PNQF}\) is \(\exists\mathbb R\)-complete and \(\mathsf{coSEL\mbox{-}PNQF}\) is \(\forall\mathbb R\)-complete. The reduction establishing the source normal form supplies \(z_Q\), forces \(x_{s_Q}\in\{0,1\}\) on the entire real solution set, and makes its uncomplemented YES predicate exactly the existence of a solution with \(x_{s_Q}=1\).
+\end{lemma}
+\begin{proof}
+Use the standard bit-model definition of \(\exists\mathbb R\) as polynomial-time reducibility to truth of existential first-order sentences over the ordered real field, as surveyed by Schaefer, Cardinal, and Miltzow~\cite{SchaeferCardinalMiltzow2024}.  We first derive the needed equation normal form.  An atomic inequality can be replaced existentially by equations:
+\[
+p\ge0\Longleftrightarrow \exists u\;(p-u^2=0),\qquad
+p>0\Longleftrightarrow \exists u\;(pu^2-1=0),
+\]
+with the corresponding sign changes for \(p\le0\) and \(p<0\), while
+\[
+p\ne0\Longleftrightarrow \exists u\;(pu-1=0).
+\]
+After negations have been pushed to atoms, conjunction is concatenation of equation lists.  If two existentially augmented systems have residual lists \((f_i)\) and \((g_j)\), their disjunction is equivalent to
+\[
+\left(\sum_i f_i^2\right)\left(\sum_j g_j^2\right)=0,
+\]
+because each sum of squares vanishes exactly when all residuals in that branch vanish.  Applying this recursively gives, without expanding any polynomial, a polynomial-size arithmetic circuit whose output is zero exactly for the original existential sentence.  Introduce one variable for every circuit wire and one defining equation for every addition or multiplication gate.  Rational constants, negation, and subtraction are implemented using constant wires and multiplication by \(-1\).  The gate definitions have unique outputs once their inputs are fixed, so this transformation preserves feasibility and has polynomial bit complexity.  It yields a finite system \(R\) using precisely constant, addition, multiplication, and equality constraints of the forms permitted by Definition~\(\mathrm{def:source\mbox{-}encoding}\).
+
+We now add the planted selector with the polarity required by the frozen promise.  Write \(w=(w_1,\ldots,w_r)\) for every coordinate of \(R\), including its gate variables, and let \(r_j(w)=0\) be the residual form of its \(j\)-th normalized constraint.  Replace the constraints of \(R\) by their gated residuals below; their residual-calculation circuits, including separate rational constant wires, remain unconditionally defined.  Introduce a selector \(s\), a complement wire \(t\), and normalized gate equations implementing
+\[
+s(s-1)=0,qquad t+s=1,qquad tw_i=0\ (1\le i\le r),qquad s\,r_j(w)=0\ (1\le j\le q).
+\]
+Each displayed expression is converted to the allowed gate list with only a constant number of new wires per operation.  All defining gates are retained, so every assignment of \((s,t,w)\) has at most one extension to their outputs.
+
+If \(s=0\), then \(t=1\) and \(tw_i=0\) forces \(w=0\).  All residual wires then have explicitly computable rational values and every product \(s r_j(w)\) is zero.  This supplies a rational planted vector \(z_Q\) whose selector coordinate is zero.  If \(s=1\), then \(t=0\), and the last family is equivalent to \(r_j(w)=0\) for every \(j\), namely \(w\in\operatorname{Sol}(R)\).  The first equation also proves that every real solution has \(s\in\{0,1\}\).  Consequently the constructed string lies in \(\mathcal P_{\mathrm{sel}}\), and
+\[
+\exists w\in\operatorname{Sol}(R)
+\Longleftrightarrow
+\exists x\in\operatorname{Sol}(Q)\text{ with }x_{s_Q}=1.
+\]
+The complete binary encoding, including all reduced rational coordinates of the planted assignment, has polynomial length and is produced in polynomial time.  This proves \(\exists\mathbb R\)-hardness of \(\mathsf{SEL\mbox{-}PNQF}\).
+
+Membership follows because, on the promise domain, its YES predicate is the existential real formula
+\[
+\exists x\in\mathbb R^m\;\left(\bigwedge_j f_j(x)=0\ \land\ x_{s_Q}=1\right),
+\]
+where the \(f_j\) are the encoded degree-at-most-two gate residuals.  Thus the uncomplemented promise language is \(\exists\mathbb R\)-complete.  Its promise complement has predicate
+\[
+\forall x\in\mathbb R^m\;\left(\bigwedge_j f_j(x)=0\ \Longrightarrow\ x_{s_Q}=0\right),
+\]
+and the same reductions with YES and NO interchanged show that it is \(\forall\mathbb R=\operatorname{co}\exists\mathbb R\)-complete.  This also fixes the claimed polarity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma fixes the reduction source, promise, and polarity before any SEM gadget is invoked. \textit{Gap.} The real-complexity compendium supplies robust arithmetic normalizations, while the planted selector branch and its exact promise-complement convention must be recorded explicitly for this fiber reduction. \textit{Consumer.} The hardness theorem can be read as a literal Karp reduction from a named unambiguous \(\forall\mathbb R\)-complete promise language.
+
+\begin{theorem}[thm:fanin-two-completeness]\label{thm:fanin-two-completeness}
+The promise problem \(\mathsf{NUMEDGE}_2\) is \(\forall\mathbb R\)-complete, and hardness already holds when the directed subgraph has depth one and every directed weak component is an isolated vertex, a single directed edge, or a two-parent in-star; equivalently, the compiled family uses private roots, has maximum directed outdegree one, and has directed component size at most three.  For every \(Q\in\mathcal P_{\mathrm{sel}}\), \(\mathsf C\) outputs in polynomial time such an acyclic mixed graph \(G_Q\) of maximum directed indegree at most two, a rational strictly diagonally dominant positive-definite matrix \(\Sigma_Q\), the selector-master edge \(e_Q\), and the rational feasible matrix \(\rho_Q\).  The master projection \(\pi_Q\) is a bijection \(\mathcal F_{G_Q}(\Sigma_Q)\to\operatorname{Sol}(Q)\), with occurrence replication as its inverse, and \(L_{e_Q}=(\pi_Q(L))_{s_Q}\) for every \(L\in\mathcal F_{G_Q}(\Sigma_Q)\).  Consequently, \(Q\in\mathsf{coSEL\mbox{-}PNQF}\Longleftrightarrow\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0\}\Longleftrightarrow\mathsf C(Q)\in\mathsf{NUMEDGE}_2\), whereas \(Q\in\mathsf{SEL\mbox{-}PNQF}\Longleftrightarrow\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0,1\}\).  Thus \(\mathsf C\) is a promise-preserving many-one reduction from the complemented language, not from the uncomplemented language.  Relative to Dörfler et al., the strict tightening is replacing their unbounded-fan-in storage star by bounded-size private-parent in-stars while retaining exact fiber bijectivity; fiber bijectivity itself is not new.
+\end{theorem}
+\begin{proof}
+The structural target is the coefficient \(\lambda_e\), whereas \(\mathcal A_e(G,\Sigma)\) is a functional of the supplied graph and covariance.  By the fiber-reduction lemma, for an acyclic graph and positive-definite \(\Sigma\), the supported SEM parameterizations inducing \(\Sigma\) are in bijection with \(\mathcal F_G(\Sigma)\).  Consequently the structural coefficient is pointwise identified exactly when all elements of the observable fiber have the same queried coordinate, equivalently when \(\lvert\mathcal A_e(G,\Sigma)\rvert=1\).  We now establish the claimed hard family and then membership.
+
+Fix \(Q\in\mathcal P_{\mathrm{sel}}\).  In the compiler construction, let \(u\) denote a coefficient-holding sink and let \(P_u\) be its set of private root parents, where \(\lvert P_u\rvert\leq 2\).  Write \(\ell_{a u}=L_{a u}\) for \(a\in P_u\).  If \(u\neq v\) are endpoints of a programmed missing bidirected edge, direct expansion of the induced disturbance covariance gives
+\[
+\begin{aligned}
+\Omega(L)_{uv}
+&=e_u^{\mathsf T}(I-L)^{\mathsf T}\Sigma_Q(I-L)e_v\\
+&=\left(e_u-\sum_{a\in P_u}\ell_{a u}e_a\right)^{\mathsf T}
+  \Sigma_Q
+  \left(e_v-\sum_{b\in P_v}\ell_{b v}e_b\right)\\
+&=(\Sigma_Q)_{uv}
+-\sum_{a\in P_u}(\Sigma_Q)_{av}\ell_{a u}
+-\sum_{b\in P_v}(\Sigma_Q)_{ub}\ell_{b v}
++\sum_{a\in P_u}\sum_{b\in P_v}(\Sigma_Q)_{ab}\ell_{a u}\ell_{b v}.
+\end{aligned}
+\]
+Thus, for coefficient vectors \(x=(\ell_{a u})_{a\in P_u}\) and \(y=(\ell_{b v})_{b\in P_v}\), the arbitrary bi-affine residual
+\[
+c+\alpha^{\mathsf T}x+\beta^{\mathsf T}y+x^{\mathsf T}Wy
+\]
+is realized exactly by the rational assignments
+\[
+(\Sigma_Q)_{uv}=c,\qquad
+(\Sigma_Q)_{av}=-\alpha_a,\qquad
+(\Sigma_Q)_{ub}=-\beta_b,\qquad
+(\Sigma_Q)_{ab}=W_{ab}.
+\]
+This is an equality, so it involves neither division nor a genericity condition.
+
+These assignments are mutually compatible.  Indeed, put \(H_u=\{u\}\cup P_u\).  Private-parent freshness makes the sets \(H_u\) pairwise disjoint.  Every covariance slot used to program the missing sink pair \(\{u,v\}\) has one endpoint in \(H_u\) and the other in \(H_v\).  The unordered pair of owner blocks therefore recovers \(\{u,v\}\) uniquely.  Hence distinct programmed missing pairs use disjoint off-diagonal covariance slots.  This also covers a zero-parent auxiliary endpoint by taking its owner block to be its singleton vertex.
+
+We spell out all source primitives.  Give each source coordinate \(x_i\) a singleton master coefficient \(M_i\).  Each occurrence in a source constraint receives a fresh coefficient \(q_i\).  The source constraints from the finite encoding are represented by the following residuals:
+\[
+\begin{array}{c|c|c}
+\text{source constraint}&\text{programmed residual}&\text{placement}\\ \hline
+x_i=c&q_i-c&(q_i)\text{ against a fresh zero-parent endpoint},\\
+x_i=x_j&q_i-q_j&(q_i)\text{ against }(q_j),\\
+x_i=x_j+x_k&q_j+q_k-q_i&(q_j,q_k)\text{ against }(q_i),\\
+x_i=x_jx_k&q_jq_k-q_i&(q_j,q_i)\text{ against }(q_k).
+\end{array}
+\]
+The constraints \(x_i=0\) and \(x_i=1\) are the first row with \(c=0\) and \(c=1\).  Every row is bi-affine across the displayed two endpoints, and no endpoint has more than two private parents.  The occurrences are distinct even when \(j=k\), or when an output coordinate is also an input coordinate.
+
+For every occurrence \(q_i\), the compiler introduces a fresh singleton hub coefficient \(h_{q_i}\) and programs, on two distinct missing sink pairs,
+\[
+q_i-h_{q_i}=0,
+\qquad
+h_{q_i}-M_i=0.
+\]
+The first equality forces \(q_i=h_{q_i}\), and the second forces \(h_{q_i}=M_i\); hence \(q_i=h_{q_i}=M_i\) uniquely.  Fresh hubs ensure that these unordered endpoint pairs are distinct for every occurrence, including repeated inputs.  Gate pairs contain only occurrence endpoints, first-copy pairs contain an occurrence and its hub, and second-copy pairs contain a hub and a master, so no gate pair is accidentally reused as a copy pair.  By the compiler definition, every other unordered vertex pair is bidirected.  Therefore the missing-edge system consists exactly of the gate, constant, and copy residuals above, with neither an omitted constraint nor an additional free copy coefficient.
+
+Let \(S\) be the symmetric matrix of all programmed off-diagonal entries, with every unused off-diagonal entry set to zero, and define
+\[
+r_i=\sum_{j\ne i}\lvert S_{ij}\rvert,
+\qquad
+H=1+\max_i r_i,
+\qquad
+(\Sigma_Q)_{ii}=H.
+\]
+All programmed entries are rational.  For every nonzero real vector \(w\), the elementary inequality \(2\lvert w_iw_j\rvert\leq w_i^2+w_j^2\) yields
+\[
+\begin{aligned}
+w^{\mathsf T}\Sigma_Qw
+&=H\sum_i w_i^2+2\sum_{i<j}S_{ij}w_iw_j\\
+&\geq H\sum_iw_i^2-
+  \sum_{i<j}\lvert S_{ij}\rvert(w_i^2+w_j^2)\\
+&=\sum_i(H-r_i)w_i^2\\
+&\geq\sum_iw_i^2>0.
+\end{aligned}
+\]
+Thus \(\Sigma_Q\succ0\), and \(H>r_i\) for every row proves strict diagonal dominance.  No diagonal slot occurs in a programmed residual: its two owner blocks are distinct and private roots are distinct from all coefficient sinks.  A sum of polynomially many input rationals has polynomial bit length, so \(H\), and hence every entry of \(\Sigma_Q\), has polynomial bit length.
+
+Define the replication map \(R_Q:\operatorname{Sol}(Q)\to\mathbb R^{\lvert V(G_Q)\rvert\times\lvert V(G_Q)\rvert}\) as follows.  For \(x\in\operatorname{Sol}(Q)\), set each master \(M_i\) to \(x_i\), set each occurrence and its hub to the corresponding \(x_i\), and set every unsupported entry to zero.  Every copy residual vanishes by construction, and every gate residual is the corresponding equality defining \(\operatorname{Sol}(Q)\).  Since there are no other missing pairs, the coefficient-fiber definition gives
+\[
+R_Q(x)\in\mathcal F_{G_Q}(\Sigma_Q).
+\]
+Conversely, if \(L\in\mathcal F_{G_Q}(\Sigma_Q)\), its two copy residuals give \(q_i=h_{q_i}=M_i\) for every occurrence.  Substitution into each gate residual then shows that \(\pi_Q(L)\in\operatorname{Sol}(Q)\).  Every supported coefficient is a master, occurrence, or hub, so these equalities also give
+\[
+R_Q(\pi_Q(L))=L.
+\]
+The definition of \(\pi_Q\) gives \(\pi_Q(R_Q(x))=x\).  Hence
+\[
+\pi_Q\circ R_Q=\operatorname{id}_{\operatorname{Sol}(Q)},
+\qquad
+R_Q\circ\pi_Q=\operatorname{id}_{\mathcal F_{G_Q}(\Sigma_Q)},
+\]
+which proves the asserted fiber bijection, including every copy coefficient.  Applying \(R_Q\) to the planted rational vector gives
+\[
+\rho_Q=R_Q(z_Q)\in\mathcal F_{G_Q}(\Sigma_Q),
+\]
+so the output is feasible and the witness is rational.  The fiber-reduction lemma additionally proves that every one of these coefficient matrices corresponds to a unique supported SEM disturbance covariance, which is positive definite by congruence because \(\Sigma_Q\succ0\) and the compiled directed graph is acyclic.
+
+The directed restrictions now follow directly from the construction.  Every directed edge has a private root as its tail and a coefficient sink as its head; a root has exactly one child, a coefficient sink has no child and at most two parents, and a zero-parent auxiliary vertex is directed-isolated.  Thus there is no directed path of length two, the maximum directed outdegree is one, and every weak component of the directed subgraph is exactly an isolated vertex, a single directed edge, or a two-parent in-star.  In particular, every such component has at most three vertices, the directed depth is one, the graph is acyclic, and the maximum directed indegree is at most two.
+
+The encoding uses one master per source coordinate, finitely many fresh occurrences per listed constraint, one hub per occurrence, and one fresh zero-parent endpoint only when a unary residual needs it.  These counts are linear in the decoded constraint list.  Each programmed covariance slot is written once, and the full adjacency and covariance arrays have polynomial size.  Together with the preceding rational bit bound, this proves that \(\mathsf C\) runs in polynomial time and has polynomial output length.
+
+The queried edge \(e_Q\) is the selector master, so the definition of \(\pi_Q\) gives, for every fiber point,
+\[
+L_{e_Q}=(\pi_Q(L))_{s_Q}.
+\]
+The source promise supplies \((z_Q)_{s_Q}=0\) and asserts that every source solution has selector coordinate in \(\{0,1\}\).  By the source-language completeness lemma and the fiber bijection,
+\[
+\mathcal A_{e_Q}(G_Q,\Sigma_Q)
+=\begin{cases}
+\{0\},&Q\in\mathsf{coSEL\mbox{-}PNQF},\\
+\{0,1\},&Q\in\mathsf{SEL\mbox{-}PNQF}.
+\end{cases}
+\]
+It follows that
+\[
+Q\in\mathsf{coSEL\mbox{-}PNQF}
+\quad\Longleftrightarrow\quad
+\mathcal A_{e_Q}(G_Q,\Sigma_Q)=\{0\}
+\quad\Longleftrightarrow\quad
+\mathsf C(Q)\in\mathsf{NUMEDGE}_2.
+\]
+The constructed triple satisfies positive definiteness, feasibility, and the fan-in-two bound, so this is a promise-preserving reduction.  Since \(\mathsf{coSEL\mbox{-}PNQF}\) is promise \(\forall\mathbb R\)-complete by the source-language lemma, the displayed reduction proves promise \(\forall\mathbb R\)-hardness on the stated depth-one, bounded-component subclass.
+
+For membership, let \(e=(p,q)\) and abbreviate the support and missing-edge predicates by
+\[
+\mathsf S_D(L)=\bigwedge_{(i,j)\notin D}L_{ij}=0,
+\qquad
+\mathsf E_{G,\Sigma}(L)=
+\bigwedge_{\substack{i\ne j\\\{i,j\}\notin B}}
+\left[(I_n-L)^{\mathsf T}\Sigma(I_n-L)\right]_{ij}=0.
+\]
+On the promise domain, the attainable set is a singleton exactly when the following universal real sentence is true:
+\[
+\forall L,L'\in\mathbb R^{n\times n}\;\Bigl(
+\mathsf S_D(L)\wedge\mathsf E_{G,\Sigma}(L)
+\wedge\mathsf S_D(L')\wedge\mathsf E_{G,\Sigma}(L')
+\;\Longrightarrow\;L_{pq}=L'_{pq}
+\Bigr).
+\]
+Each support condition is linear, and expansion of each missing-edge condition has degree at most two with rational coefficients.  There are polynomially many variables and conjuncts, so the sentence has polynomial encoding length.  Feasibility, which is part of the promise-problem definition, excludes the empty-fiber case in which the universal implication would be vacuous.  Hence \(\mathsf{NUMEDGE}_2\) belongs to promise \(\forall\mathbb R\), completing the proof of completeness.
+
+Finally, the published numerical-edge bounds and the cited published fiber-isomorphism lemma show that Dörfler et al. already obtain an exact isomorphism from their source solution set to a rational feasible acyclic SEM fiber.  Their source coordinates enter one shared storage sink, whose fan-in grows with the source dimension.  The strict comparison proved here is therefore the replacement of that storage star by private-parent components of size at most three while retaining exact fiber bijectivity; fiber bijectivity by itself is not the new feature.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact promise polarity and the complete master-to-occurrence fiber bijection certify the universal real-algebraic obstruction even when the directed graph has depth one and every directed component has at most three vertices. \textit{Gap.} Dörfler et al., Corollary 4 and Theorem 14, establish unrestricted promise \(\forall\mathbb R\)-completeness, and their Section 4 construction already gives a fiber isomorphism. Its shared storage sink has fan-in growing with the source dimension. The strict delta is replacing that star by private one- and two-parent sinks of bounded component size while preserving the exact isomorphism. \textit{Consumer.} Algorithm designers for SEM identification obtain a precise obstruction to extending the complete fan-in-one audit: two-parent equations are universally-real hard even without long directed paths, shared directed parents, or large directed components.
+
+\begin{proposition}[prop:compiled-gate-example-exact]\label{prop:compiled-gate-example-exact}
+For \(G^{\times}\), \(\Sigma^{\times}\), and \(\rho^{\times}\) in \(\mathrm{def:compiled-gate-example}\), the matrix \(\Sigma^{\times}\) is strictly diagonally dominant and positive definite, \(\rho^{\times}\in\mathcal F_{G^{\times}}(\Sigma^{\times})\), and the full projected fiber is \[\pi^{\times}(\mathcal F_{G^{\times}}(\Sigma^{\times}))=\{(x,y,z)\in\mathbb R^3:z=xy\}.\] Indeed, \(\{a,b\}\) is the only absent bidirected pair and its disturbance-covariance entry is exactly \(\Omega_{ab}(L)=xy-z\); hence every real pair \((x,y)\) has exactly the gate output \(z=xy\), and no additional projected branch survives. The planted point is \((x,y,z)=(1,1,1)\).
+\end{proposition}
+\begin{proof}
+In the vertex order \((r_x,r_z,r_y,a,b)\), every diagonal entry of \(\Sigma^{\times}\) equals \(3\), while every absolute off-diagonal row sum is at most \(1\).  Thus the matrix is strictly diagonally dominant.  More directly, for nonzero \(u\in\mathbb R^5\),
+\[
+u^{\mathsf T}\Sigma^{\times}u
+\ge\sum_i\left(3-\sum_{j\ne i}|\Sigma^{\times}_{ij}|\right)u_i^2
+\ge2\sum_i u_i^2>0,
+\]
+so it is positive definite.
+
+A supported coefficient matrix has exactly three possibly nonzero entries.  Write
+\[
+x=L_{r_xa},\qquad y=L_{r_yb},\qquad z=L_{r_za}.
+\]
+The relevant columns of \(I-L\) are
+\[
+e_a-xe_{r_x}-ze_{r_z}
+\quad\text{and}\quad
+e_b-ye_{r_y}.
+\]
+Using the displayed covariance in Definition~\(\mathrm{def:compiled\mbox{-}gate\mbox{-}example}\), their cross product is
+\[
+\begin{aligned}
+\Omega_{ab}(L)
+&=\Sigma_{ab}-y\Sigma_{a,r_y}-x\Sigma_{r_x,b}
++xy\Sigma_{r_x,r_y}-z\Sigma_{r_z,b}+zy\Sigma_{r_z,r_y}\\
+&=0-0-0+xy-z+0=xy-z.
+\end{aligned}
+\]
+The pair \(\{a,b\}\) is the only absent bidirected pair.  The fiber reduction therefore shows that no equation other than \(xy-z=0\) restricts a supported matrix.  It follows in both directions that
+\[
+\pi^{\times}(\mathcal F_{G^{\times}}(\Sigma^{\times}))
+=\{(x,y,z)\in\mathbb R^3:z=xy\}.
+\]
+At \(\rho^{\times}\), the three entries are \((x,y,z)=(1,1,1)\), so its missing-edge residual vanishes and \(\rho^{\times}\) belongs to the fiber.  The queried edge \(e^{\times}=(r_z,a)\) is the output coordinate \(z\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fully enumerated gate makes covariance-slot separation and the absence of spurious branches directly auditable. \textit{Gap.} The published unrestricted reduction does not isolate a two-parent multiplication gate with its entire projected numerical fiber written out. \textit{Consumer.} The complete compiler proof can use this gate as the base audit before composing copy and selector gadgets.
+
+\begin{proposition}[prop:sharp-frontier]\label{prop:sharp-frontier}
+Maximum directed indegree one versus two is a sharp worst-case computational frontier for pointwise numerical edge identification with feasible rational positive-definite covariance: \(\mathsf{NUMEDGE}_1\) has deterministic polynomial bit complexity with constructive certificates, whereas \(\mathsf{NUMEDGE}_2\) is promise \(\forall\mathbb R\)-complete even on depth-one directed graphs whose directed weak components are isolated vertices, single directed edges, or two-parent in-stars.  Equivalently, the hard family uses private roots, has maximum directed outdegree one, and has directed component size at most three.  At directed indegree zero there is no directed-edge query.
+\end{proposition}
+\begin{proof}
+By the established fan-in-one algorithm theorem, every promised instance of \(\mathsf{NUMEDGE}_1\) is processed in deterministic polynomial bit complexity.  Its case \(\mathrm{(i)}\) returns a singleton attainable set and is therefore a YES instance by the promise-problem definition.  In case \(\mathrm{(ii)}\), the two feasible matrices have unequal queried coordinates, and in case \(\mathrm{(iii)}\), the feasible curve has a nonconstant queried coordinate; either case exhibits two elements of \(\mathcal A_e(G,\Sigma)\) and is therefore a NO instance.  The same theorem supplies the unique rational value or the promised componentwise-quadratic witness or curve certificate, so this is a constructive decision procedure, not merely a membership bound.
+
+The fan-in-two completeness theorem proves that \(\mathsf{NUMEDGE}_2\) is promise \(\forall\mathbb R\)-complete under the same rational positive-definite feasibility promise.  Its hardness family is more restricted than the fan-in-two class: the directed subgraph has depth one and each of its weak components is an isolated vertex, a single directed edge, or a two-parent in-star.  Equivalently for that family, roots are private, the maximum directed outdegree is one, and every directed component has at most three vertices.  Thus the hard side is already present immediately at the next possible positive fan-in.
+
+If the maximum directed indegree is zero, then \(D=\varnothing\): any edge \((u,v)\in D\) would give \(v\) directed indegree at least one.  Since a numerical edge query requires \(e\in D\), no such query exists at fan-in zero.  The tractable result at one, the restricted hardness result at two, and this zero-fan-in observation prove the stated sharp worst-case frontier while preserving all constructive certificate claims on the tractable side.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The constructive fan-in-one trichotomy and the bounded-component fan-in-two completeness result meet at consecutive indegrees, yielding the exact worst-case structural boundary. \textit{Gap.} No closest paper states an all-covariance bounded-directed-fan-in frontier for numerical edge fibers: existing low-fan-in results are generic, while prior numerical hardness uses an unbounded-fan-in storage sink even though it already preserves the complete fiber. \textit{Consumer.} Graphical SEM software can use maximum directed indegree as a certified dispatch rule between exact specialized auditing and general real-algebraic methods, with the warning that the hard side persists on components of size three.
+
+\begin{theorem}[thm:zero-two-parent-hardness]\label{thm:zero-two-parent-hardness}
+For the parameter \(K_G\) as defined, pointwise numerical edge identification on the full literal promise class \(K_G\leq 0\) is promise \(\forall\mathbb R\)-complete.  Indeed, completeness already holds on the more restricted promise subproblem
+\[
+\mathcal R_0
+=
+\bigl\{(G,\Sigma,e):(G,\Sigma,e)\text{ lies in the promise domain of }\mathsf{NUMEDGE}_3\text{ and }K_G=0\bigr\}.
+\]
+Thus \(\mathcal R_0\) is contained in the full literal class at \(k=0\); no equality between these two classes is asserted.  Hence \(\mathsf{ParamHandle}\) cannot yield an \(f(k)\operatorname{poly}(n)\) algorithm for the class stated in the question unless \(\mathsf P=\forall\mathbb R\).  These conclusions hold for exact fibers, including singular fibers, and use no genericity assumption.
+\end{theorem}
+\begin{proof}
+Let \(\mathcal C_0\) denote the full literal promise class obtained by imposing \(K_G\leq 0\), without imposing any additional maximum-indegree-three restriction, and let \(\mathcal R_0\) be the subproblem displayed in the statement.  By the definition of \(K_G\),
+\[
+K_G=\bigl\lvert\{v\in V:\lvert\operatorname{pa}_D(v)\rvert=2\}\bigr\rvert\in\mathbb N_0.
+\]
+Therefore
+\[
+K_G\leq 0\quad\Longleftrightarrow\quad K_G=0.
+\]
+This equivalence identifies \(\mathcal C_0\) with the full class having no two-parent vertex; it does not impose a bound on vertices having three or more parents and hence does not identify \(\mathcal C_0\) with \(\mathcal R_0\).
+
+Apply \(\mathrm{thm:few\mbox{-}two\mbox{-}parent\mbox{-}fixed\mbox{-}parameter\mbox{-}hardness}\) at the fixed value \(k=0\).  Its first assertion states that pointwise numerical edge identification on \(K_G\leq 0\), namely on \(\mathcal C_0\), is promise \(\forall\mathbb R\)-complete.  This proves the first assertion of the present theorem.
+
+We next prove the separate assertion about \(\mathcal R_0\).  The same established theorem states that its hardness reduction already lands in the restriction of \(\mathsf{NUMEDGE}_3\) having \(K_G=0\), rational strictly diagonally dominant positive-definite covariance, and a depth-one directed graph of maximum directed outdegree one whose directed weak components are isolated vertices, single directed edges, or three-parent in-stars.  Every output of that reduction therefore belongs to \(\mathcal R_0\).  Because the source promise problem is promise \(\forall\mathbb R\)-hard and the reduction is promise preserving by the cited theorem, \(\mathcal R_0\) is promise \(\forall\mathbb R\)-hard.
+
+For membership, the completeness assertion for \(\mathcal C_0\) supplies a polynomial-size universal real predicate for its YES language.  Write that predicate as
+\[
+U(x)\equiv \forall y\in\mathbb R^r\;\Phi(x,y),
+\]
+where \(x\) is the finite binary encoding fixed by \(\mathrm{def:promise\mbox{-}problem}\), \(r\) is polynomially bounded in \(\lvert x\rvert\), and \(\Phi\) is the corresponding polynomial-time constructible quantifier-free formula over rational polynomial equalities and inequalities.  Let \(b(x)\) be the Boolean condition that the encoded directed graph has maximum directed indegree at most three and that \(K_G=0\).  Both parts of \(b(x)\) are decidable in polynomial time by counting the incoming entries in each row of the encoded directed adjacency matrix.  Since \(b(x)\) contains no real variable,
+\[
+b(x)\wedge U(x)
+\quad\Longleftrightarrow\quad
+\forall y\in\mathbb R^r\;\bigl(b(x)\wedge\Phi(x,y)\bigr).
+\]
+Concretely, the polynomial-time formula constructor first evaluates \(b(x)\): if it is true, it outputs \(U(x)\), and if it is false, it outputs the fixed false universal sentence \(\forall y\;(0=1)\).  This realizes the displayed conjunction using only a quantifier-free rational polynomial formula and has polynomial encoding length.  On the promise domain of \(\mathcal R_0\), \(b(x)\) holds and \(U(x)\) is exactly the numerical-identification predicate; outside that promise domain its value is immaterial.  Thus this construction is a valid promise \(\forall\mathbb R\) representation of \(\mathcal R_0\).  Combining membership with the preceding hardness proves that \(\mathcal R_0\) is promise \(\forall\mathbb R\)-complete.  Notice that this argument proves containment and completeness separately and nowhere replaces the full class \(\mathcal C_0\) by \(\mathcal R_0\).
+
+For the algorithmic consequence, suppose that \(\mathsf{ParamHandle}\) yielded an exact algorithm for the full literal parameterized class with bit complexity \(f(k)\operatorname{poly}(n)\).  On \(\mathcal C_0\) one has \(k=0\), so its running time is \(f(0)\operatorname{poly}(n)\).  If \(N\) is the total binary input length, then \(n\leq N\), and hence this is polynomial in \(N\).  It would decide the promise \(\forall\mathbb R\)-complete problem on \(\mathcal C_0\) in polynomial time.  Equivalently, this is the \(k=0\) case of the complexity consequence already established by \(\mathrm{thm:few\mbox{-}two\mbox{-}parent\mbox{-}fixed\mbox{-}parameter\mbox{-}hardness}\).  Therefore such an algorithm would imply \(\mathsf P=\forall\mathbb R\).
+
+Finally, \(\mathrm{thm:few\mbox{-}two\mbox{-}parent\mbox{-}fixed\mbox{-}parameter\mbox{-}hardness}\) states that its conclusions concern exact coefficient fibers, including singular fibers, and require no genericity assumption.  Specializing \(k\) to zero and restricting its explicit hard family to \(\mathcal R_0\) changes neither fact.  This proves the final assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Specializing the established all-fixed-\(k\) theorem at \(k=0\) proves completeness of the full literal class. Its explicit padded hard family proves hardness of the contained subproblem \(\mathcal R_0\), and conjoining the polynomially decidable maximum-indegree-three and \(K_G=0\) checks with the universal-real membership predicate proves membership of that subproblem. \textit{Gap.} The full literal class with \(K_G=0\) permits vertices of indegree at least three, while \(\mathcal R_0\) lies in the promise domain of \(\mathsf{NUMEDGE}_3\). The theorem proves both completeness statements separately and makes no equality claim between the classes. \textit{Consumer.} This is the \(k=0\) corollary of the canonical parameterized maximality theorem and records the stronger fact that a bounded-fan-in subproblem is already complete.
+
+\begin{lemma}[lem:published-numedge-bounds]\label{lem:published-numedge-bounds}
+Dörfler et al. prove that unrestricted numerical edge identifiability is \(\forall\mathbb R\)-hard, belongs to the promise version of \(\forall\mathbb R\), and is decidable in polynomial space.
+\end{lemma}
+
+\begin{lemma}[lem:published-fiber-isomorphism]\label{lem:published-fiber-isomorphism}
+Dörfler et al.'s numerical edge-identifiability reduction constructs a rational positive-definite feasible covariance \(\Sigma\) for an acyclic mixed graph \(G\) such that the coefficient fiber \(\mathcal F_G(\Sigma)\) is isomorphic to the source real solution set and the distinguished edge equals the distinguished source coordinate.  Their construction stores all source coordinates as incoming coefficients of one shared sink, so that sink's directed fan-in grows with the source dimension.
+\end{lemma}
+
+\begin{theorem}[thm:few-two-parent-fixed-parameter-hardness]\label{thm:few-two-parent-fixed-parameter-hardness}
+For every fixed \(k\in\mathbb N_0\), pointwise numerical edge identification on the literal class \(K_G\le k\) is promise \(\forall\mathbb R\)-complete.  Hardness holds already for the restriction of \(\mathsf{NUMEDGE}_3\) having \(K_G=0\), rational strictly diagonally dominant positive-definite covariance, and a depth-one directed graph of maximum directed outdegree one whose directed weak components are isolated vertices, single directed edges, or three-parent in-stars.  Consequently, if \(N\) denotes total binary input length, an algorithm of bit complexity \(f(k)\operatorname{poly}(N)\) for the class posed in the question would imply \(\mathsf P=\forall\mathbb R\).  Thus \(\mathsf{ParamHandle}\), as presently defined, does not yield a fixed-parameter algorithm for that literal class: \(K_G\) does not count vertices of indegree at least three.  The completeness and obstruction hold for exact fibers, including singular fibers, and require no genericity assumption.
+\end{theorem}
+\begin{proof}
+By \(\mathrm{thm:fanin\mbox{-}two\mbox{-}completeness}\), there is a promise-preserving polynomial-time many-one reduction from the \(\forall\mathbb R\)-complete complemented planted-selector language to \(\mathsf{NUMEDGE}_2\). For every promised source instance \(Q\), its output \((G_Q,\Sigma_Q,e_Q)\) has rational strictly diagonally dominant positive-definite covariance, a nonempty fiber containing the supplied rational witness, directed depth one, maximum directed outdegree one, and directed weak components that are isolated vertices, single directed edges, or two-parent in-stars.
+
+Apply \(\mathrm{lem:fanin\mbox{-}two\mbox{-}to\mbox{-}three\mbox{-}zero\mbox{-}parameter\mbox{-}padding}\) to this output. It produces \((\widetilde G_Q,\widetilde\Sigma_Q,e_Q)\) in deterministic polynomial bit complexity. The corrected conclusion of that lemma gives
+\[
+\max_{v\in V(\widetilde G_Q)}
+|\operatorname{pa}_{\widetilde D_Q}(v)|\le3,
+\qquad K_{\widetilde G_Q}=0,
+\]
+and preserves acyclicity, directed depth one, maximum directed outdegree one, rationality, positive definiteness, strict diagonal dominance, and feasibility; in particular, the rational feasible witness supplied by the compiler extends by setting every new coefficient to zero. Its component analysis shows that every directed weak component of \(\widetilde G_Q\) is an isolated vertex, a single directed edge, or a three-parent in-star. The exact restriction bijection preserves the queried coefficient and therefore gives
+\[
+\mathcal A_{e_Q}(\widetilde G_Q,\widetilde\Sigma_Q)
+=\mathcal A_{e_Q}(G_Q,\Sigma_Q).
+\]
+By \(\mathrm{def:promise\mbox{-}problem}\), the padded triple lies in the promise domain of \(\mathsf{NUMEDGE}_3\), and either triple is a YES instance precisely when its displayed attainable set is a singleton. Thus the composition of the compiler with the padding map is a promise-preserving many-one reduction to the stated \(K_G=0\) subclass of \(\mathsf{NUMEDGE}_3\). The source equivalences in \(\mathrm{thm:fanin\mbox{-}two\mbox{-}completeness}\) and the equality of attainable sets show explicitly that
+\[
+Q\in\mathsf{coSEL\mbox{-}PNQF}
+\Longleftrightarrow
+\mathcal A_{e_Q}(\widetilde G_Q,\widetilde\Sigma_Q)=\{0\},
+\]
+whereas
+\[
+Q\in\mathsf{SEL\mbox{-}PNQF}
+\Longleftrightarrow
+\mathcal A_{e_Q}(\widetilde G_Q,\widetilde\Sigma_Q)=\{0,1\}.
+\]
+This proves \(\forall\mathbb R\)-hardness on the stated subclass. Because the padding establishes equality of complete fibers before taking the queried projection, the reduction preserves singular fibers and uses no genericity, rank, division, or limiting condition.
+
+For membership, \(\mathrm{lem:published\mbox{-}numedge\mbox{-}bounds}\) places unrestricted promised numerical edge identification in \(\forall\mathbb R\). For a fixed \(k\in\mathbb N_0\), the additional condition \(K_G\le k\) is decidable from the directed adjacency matrix in polynomial time: compute every directed indegree and count those equal to two. Restricting a promise problem in \(\forall\mathbb R\) by such a polynomial-time decidable promise condition leaves it in \(\forall\mathbb R\). Hence numerical edge identification on the literal class \(K_G\le k\) belongs to promise \(\forall\mathbb R\). Since the hard family just constructed has \(K_G=0\), it belongs to \(K_G\le k\) for every \(k\in\mathbb N_0\). Therefore the restriction is promise \(\forall\mathbb R\)-complete for every fixed \(k\).
+
+Finally, suppose there were an exact algorithm on the literal parameterized class with bit complexity \(f(k)\operatorname{poly}(N)\), where \(N\) is the total binary input length. On the hard family, \(k=0\), so the running time would be \(f(0)\operatorname{poly}(N)\), a polynomial because \(f(0)\) is constant. Promise \(\forall\mathbb R\)-hardness would then give \(\forall\mathbb R\subseteq\mathsf P\). The reverse inclusion follows directly from the universal-real decision model, since a polynomial-time decision may be performed before outputting a fixed true or fixed false quantifier-free sentence. Thus \(\mathsf P=\forall\mathbb R\).
+
+The obstruction in \(\mathrm{def:parameterized\mbox{-}handle}\) is exact: when \(K_G=0\), the handle exposes no coefficient entering a two-parent vertex, but the padded instance can still contain three-parent vertices and retains a fiber bijective to the hard source fiber. The separately displayed zero-two-parent hardness statement is precisely the \(k=0\) special case of the present all-fixed-\(k\) result, rather than an independent hardness phenomenon.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The parameter \(K_G\) counts vertices of indegree exactly two, so the fiber-preserving padding makes it zero by turning each two-parent in-star into a three-parent in-star. The resulting \(K_G=0\) hard family lies in \(K_G\le k\) for every fixed nonnegative \(k\), yielding the stated uniform completeness conclusion. \textit{Gap.} This resolves the literal parameterized question negatively without a genericity assumption. The separately displayed zero-two-parent hardness theorem should be read as the \(k=0\) special case, not as an independent discovery. \textit{Consumer.} This is the canonical parameterized maximality result for the residual-algebra discussion; MIIVsem remains the paper's primary applied numerical-identification consumer.
+
+\begin{lemma}[lem:fanin-two-to-three-zero-parameter-padding]\label{lem:fanin-two-to-three-zero-parameter-padding}
+Let \((G,\Sigma,e)\) be a triple in the promise domain underlying \(\mathsf{NUMEDGE}_2\), and suppose that every directed weak component of \(G\) is an isolated vertex, a single directed edge, or a two-parent in-star. There is a deterministic polynomial-bit transformation producing \((\widetilde G,\widetilde\Sigma,e)\) such that \(\widetilde G\) is acyclic of depth one, has maximum directed indegree at most three, maximum directed outdegree one, directed component size at most four, and \(K_{\widetilde G}=0\); moreover, \(\widetilde\Sigma\) is rational and positive definite, and it is strictly diagonally dominant whenever \(\Sigma\) is. Restriction to the original vertices is a bijection \(\mathcal F_{\widetilde G}(\widetilde\Sigma)\to\mathcal F_G(\Sigma)\), and hence
+\[
+\mathcal A_e(\widetilde G,\widetilde\Sigma)=\mathcal A_e(G,\Sigma).
+\]
+\end{lemma}
+\begin{proof}
+Let
+\[
+S=\{v\in V:|\operatorname{pa}_D(v)|=2\},
+\qquad h=|S|,
+\]
+and introduce pairwise distinct vertices \(R=\{r_v:v\in S\}\) disjoint from \(V\). Define
+\[
+\widetilde V=V\mathbin{\dot\cup}R,
+\qquad
+\widetilde D=D\cup\{(r_v,v):v\in S\},
+\qquad
+\widetilde B=B.
+\]
+In the last equality, \(B\) is viewed as a set of pairs contained in \(V\), so every pair containing a new vertex is absent from \(\widetilde B\). In the vertex order \(V,R\), define
+\[
+\widetilde\Sigma=
+\begin{pmatrix}
+\Sigma&0\\
+0&I_h
+\end{pmatrix}.
+\]
+Because the input lies in the promise domain of \(\mathsf{NUMEDGE}_2\), \(\Sigma\) is rational, \(\Sigma\succ0\), and \(\mathcal F_G(\Sigma)\ne\varnothing\), by \(\mathrm{def:promise\mbox{-}problem}\). The construction appends at most \(n\) vertices and uses only entries from \(\{0,1\}\) outside the supplied matrix, so its output size and running time are polynomial in the binary input length. Rationality of \(\widetilde\Sigma\) follows immediately.
+
+For any nonzero \((a,b)\in\mathbb R^n\times\mathbb R^h\), positive definiteness of \(\Sigma\) gives
+\[
+\begin{pmatrix}a\\b\end{pmatrix}^{\!\mathsf T}
+\widetilde\Sigma
+\begin{pmatrix}a\\b\end{pmatrix}
+=a^{\mathsf T}\Sigma a+b^{\mathsf T}b>0.
+\]
+Thus \(\widetilde\Sigma\succ0\). If \(\Sigma\) is strictly diagonally dominant, each old row of \(\widetilde\Sigma\) has the same diagonal entry and the same sum of absolute off-diagonal entries as before, while each new row has diagonal entry one and off-diagonal absolute row sum zero. Hence strict diagonal dominance is preserved.
+
+Every matrix supported on \(\widetilde D\) has a unique block representation
+\[
+\widetilde L=
+\begin{pmatrix}
+L&0\\
+U&0
+\end{pmatrix},
+\qquad
+U_{r_v,j}=
+\begin{cases}
+u_v,&j=v,\\
+0,&j\ne v,
+\end{cases}
+\]
+where \(L\) is supported on \(D\). Direct block multiplication using \(\mathrm{def:fiber}\) yields
+\[
+I_{n+h}-\widetilde L=
+\begin{pmatrix}
+I_n-L&0\\
+-U&I_h
+\end{pmatrix}
+\]
+and
+\[
+\begin{aligned}
+(I_{n+h}-\widetilde L)^{\mathsf T}
+\widetilde\Sigma
+(I_{n+h}-\widetilde L)
+&=
+\begin{pmatrix}
+(I_n-L)^{\mathsf T}\Sigma(I_n-L)+U^{\mathsf T}U&-U^{\mathsf T}\\
+-U&I_h
+\end{pmatrix}\\
+&=
+\begin{pmatrix}
+\Omega(L)+U^{\mathsf T}U&-U^{\mathsf T}\\
+-U&I_h
+\end{pmatrix}.
+\end{aligned}
+\]
+For each \(v\in S\), the pair \(\{r_v,v\}\) is absent from \(\widetilde B\). The corresponding missing-bidirected-edge equation is therefore
+\[
+0=\bigl[(I_{n+h}-\widetilde L)^{\mathsf T}
+\widetilde\Sigma(I_{n+h}-\widetilde L)\bigr]_{r_v,v}
+=-U_{r_v,v}=-u_v.
+\]
+Hence every \(\widetilde L\in\mathcal F_{\widetilde G}(\widetilde\Sigma)\) has \(U=0\). Conversely, if \(U=0\), the old--old block in the displayed product is \(\Omega(L)\), every new--old off-diagonal entry is zero, and the new--new block is \(I_h\), whose off-diagonal entries are zero. The fiber definition consequently gives the exact equivalence
+\[
+\widetilde L\in\mathcal F_{\widetilde G}(\widetilde\Sigma)
+\quad\Longleftrightarrow\quad
+U=0\ \text{ and }\ L\in\mathcal F_G(\Sigma).
+\]
+Thus restriction \(\widetilde L\mapsto L\) is a bijection with inverse
+\[
+L\longmapsto
+\begin{pmatrix}
+L&0\\
+0&0
+\end{pmatrix}.
+\]
+In particular, the enlarged fiber is nonempty. Since the queried edge \(e\) is an old edge and its coefficient is unchanged under the two inverse maps, \(\mathrm{def:attainable\mbox{-}set}\) implies
+\[
+\mathcal A_e(\widetilde G,\widetilde\Sigma)
+=\mathcal A_e(G,\Sigma).
+\]
+
+It remains to check the graph restrictions. The component hypothesis implies that \(G\) is acyclic of depth one and has maximum directed outdegree one. Each new vertex is a root having exactly one outgoing edge, so the construction preserves all three properties. Every old vertex of indegree two receives exactly one new parent and therefore has indegree three; vertices of indegree zero or one are unchanged; and new vertices have indegree zero. Consequently
+\[
+\max_{v\in\widetilde V}|\operatorname{pa}_{\widetilde D}(v)|\le3,
+\qquad
+K_{\widetilde G}
+=|\{v\in\widetilde V:|\operatorname{pa}_{\widetilde D}(v)|=2\}|=0.
+\]
+The inequality, rather than equality, is necessary when \(S=\varnothing\). Each two-parent in-star becomes a three-parent in-star on four vertices, while isolated vertices and single directed edges are unchanged. Hence every directed weak component has at most four vertices. All asserted properties follow, and the exact equivalence of fibers shows that no singular or exceptional branch has been discarded.
+\end{proof}
+
+\section{Interpretation}
+
+The result is a pointwise statement about the structural coefficient \(\lambda_e\), not a claim that a generic formula is numerically safe at every covariance. The observed-law functional is the attainable set \(\mathcal A_e(G,\Sigma)\); the fiber-reduction lemma proves that it equals the set of queried coefficients across all compatible SEM parameterizations, so identification means that this set is a singleton. Fan-in one permits a complete exact audit with constructive low-degree certificates. At fan-in two, hardness persists even though every directed component contains at most one sink and two private roots, so neither long directed paths nor large directed components causes the obstruction. Padding each two-parent sink with one forced-zero private parent preserves the exact fiber and produces a hard subproblem \(\mathcal R_0\) of \(\mathsf{NUMEDGE}_3\) with \(K_G=0\). This subproblem is contained in, but is not equated with, the full literal zero-parameter class, which may contain vertices of larger indegree. The all-fixed-\(k\) theorem proves completeness of the full class at \(k=0\), and the padded hardness plus restricted universal-real predicate proves completeness of \(\mathcal R_0\). Thus \(K_G\) is not a distance-to-fan-in-one parameter on the literal class. MIIVsem remains the primary applied consumer of the exact audit. Inverting covariance confidence sets can use the audit as a subroutine, but that inferential layer is secondary and is not proved here.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The mathematical proofs cover all singular Möbius branches on the fan-in-one side, every gate, repeated input, copy equation, covariance slot, and selector branch on the hard side, and the complete-fiber padding used for the fixed-\(k\) obstruction. The padded hard subproblem has maximum directed indegree at most three and \(K_G=0\); it is not asserted to equal the full literal zero-parameter class. The presolve computations remain bounded sanity checks rather than an independently audited implementation or machine-checked proof. Certificates are deliberately componentwise quadratic because a single global primitive element can have exponential degree. Numerical stability near poles, approximate covariance input, and finite-sample coverage are outside the exact rational-covariance theorem.
+
+\section{Honest scope}
+
+The central exact claims are fully discharged: the fan-in-one real fiber is equivalent to the pole-aware Möbius and \(2\)-CNF normalization, the planted-selector source language has the stated promise completeness, and the private-parent compiler is bijective on the entire compiled coefficient fiber. The indegree-two hard family has directed depth one, maximum directed outdegree one, and directed weak components of size at most three. Exact-fiber padding yields a hard subproblem \(\mathcal R_0\) of maximum directed indegree at most three with \(K_G=0\). The full literal class \(K_G\leq 0\) is larger; its completeness follows by specializing the all-fixed-\(k\) theorem, whereas \(\mathcal R_0\) has a separate membership-and-hardness proof. Remaining audit limitations concern implementation and external verification, not open steps in those proofs: the bounded symbolic checks do not exhaust all rational inputs, and no machine-checked formalization or comprehensive literature audit is claimed. The theorem assumes an exact rational positive-definite covariance and does not establish finite-sample inference, conditioning guarantees near singular strata, covariance-confidence-set coverage, or an exact latent-to-observed fiber bijection. MIIVsem is the intended primary numerical-identification consumer; confidence-set inversion is secondary.
+
+\begin{thebibliography}{99}
+
+  \bibitem{DorflerVanDerZanderBlaserLiskiewicz2024} J. Dörfler, B. van der Zander, M. Bläser, and M. Liśkiewicz. On the Complexity of Identification in Linear Structural Causal Models. Advances in Neural Information Processing Systems 37, 2024. arXiv:2407.12528.
+
+  \bibitem{GuptaBlaser2024} A. Gupta and M. Bläser. Identification for Tree-Shaped Structural Causal Models in Polynomial Time. Proceedings of the AAAI Conference on Artificial Intelligence 38, 2024, 20404--20411. arXiv:2311.14058.
+
+  \bibitem{VanDerZanderWienobstBlaserLiskiewicz2022} B. van der Zander, M. Wienöbst, M. Bläser, and M. Liśkiewicz. Identification in Tree-Shaped Linear Structural Causal Models. Proceedings of AISTATS 151, 2022, 6770--6792. arXiv:2203.01852.
+
+  \bibitem{BriefsBlaser2025} Y. Briefs and M. Bläser. Faster Generic Identification in Tree-Shaped Structural Causal Models. Advances in Neural Information Processing Systems 38, 2025.
+
+  \bibitem{DrtonFoygelSullivant2011} M. Drton, R. Foygel, and S. Sullivant. Global Identifiability of Linear Structural Equation Models. The Annals of Statistics 39, 2011, 865--886.
+
+  \bibitem{FoygelDraismaDrton2012} R. Foygel, J. Draisma, and M. Drton. Half-Trek Criterion for Generic Identifiability of Linear Structural Equation Models. The Annals of Statistics 40, 2012, 1682--1713.
+
+  \bibitem{AnkanWortelBollenTextor2023} A. Ankan, I. Wortel, K. A. Bollen, and J. Textor. Combining Graphical and Algebraic Approaches for Parameter Identification in Latent Variable Structural Equation Models. Proceedings of AISTATS 206, 2023, 7252--7264.
+
+  \bibitem{SankararamanLouisGoyal2022} K. A. Sankararaman, A. Louis, and N. Goyal. Robust Identifiability in Linear Structural Equation Models of Causal Inference. Proceedings of UAI, 2022. arXiv:2007.06869.
+
+  \bibitem{SchaeferCardinalMiltzow2024} M. Schaefer, J. Cardinal, and T. Miltzow. The Existential Theory of the Reals as a Complexity Class: A Compendium. arXiv:2407.18006, 2024.
+
+  \bibitem{MareisSturmaDrton2026} L. Mareis, N. Sturma, and M. Drton. Semiparametric Inference for Half-Trek Estimators in Linear Structural Equation Models. arXiv:2606.26931, 2026.
+
+\end{thebibliography}
+
+\end{document}

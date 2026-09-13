@@ -1,0 +1,1834 @@
+{
+  "qid": "exp_platform_ncc_floorphase_minimax_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "B",
+      "type": "integer",
+      "space": "\\(\\{3,4,\\ldots\\}\\)",
+      "role": "number of ordered enrollment blocks"
+    },
+    {
+      "name": "M",
+      "type": "positive real",
+      "space": "\\((0,\\infty)\\)",
+      "role": "known absolute outcome bound"
+    },
+    {
+      "name": "alpha",
+      "type": "real",
+      "space": "\\((0,1/2)\\)",
+      "role": "miscoverage level"
+    },
+    {
+      "name": "p_floor",
+      "type": "real",
+      "space": "\\((0,1/2]\\)",
+      "role": "common lower bound for every available-arm propensity"
+    },
+    {
+      "name": "Gamma",
+      "type": "nonnegative real",
+      "space": "\\([0,2M(B-1)]\\)",
+      "role": "control total-variation drift budget",
+      "refs": [
+        "M",
+        "B"
+      ]
+    },
+    {
+      "name": "Bset",
+      "type": "finite ordered set",
+      "def": "\\(\\mathcal B=\\{1,\\ldots,B\\}\\)",
+      "role": "block index set",
+      "refs": [
+        "B"
+      ]
+    },
+    {
+      "name": "n_b",
+      "type": "positive-integer vector",
+      "sig": "\\((n_b)_{b\\in\\mathcal B}\\in\\mathbb N_+^B\\)",
+      "role": "fixed block sizes",
+      "refs": [
+        "Bset",
+        "B"
+      ]
+    },
+    {
+      "name": "Tset",
+      "type": "finite lexicographically ordered set",
+      "def": "\\(\\mathcal T=\\{(b,i):b\\in\\mathcal B,\\ 1\\le i\\le n_b\\}\\)",
+      "role": "enrollment positions",
+      "refs": [
+        "Bset",
+        "n_b"
+      ]
+    },
+    {
+      "name": "Zspace",
+      "type": "finite set",
+      "def": "\\(\\mathcal Z\\)",
+      "role": "platform-arm labels"
+    },
+    {
+      "name": "z_0",
+      "type": "arm label",
+      "space": "\\(\\mathcal Z\\)",
+      "role": "shared control arm",
+      "refs": [
+        "Zspace"
+      ]
+    },
+    {
+      "name": "z_1",
+      "type": "arm label",
+      "space": "\\(\\mathcal Z\\setminus\\{z_0\\}\\)",
+      "role": "focal late-entering arm",
+      "refs": [
+        "Zspace",
+        "z_0"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "nonempty proper interval of blocks",
+      "space": "\\(\\{\\ell,\\ldots,r\\}\\subsetneq\\mathcal B\\)",
+      "role": "focal-arm availability window",
+      "refs": [
+        "Bset"
+      ]
+    },
+    {
+      "name": "A_b",
+      "type": "arm-availability family",
+      "sig": "\\(A_b\\subseteq\\mathcal Z\\) for \\(b\\in\\mathcal B\\)",
+      "role": "arms available in each block",
+      "refs": [
+        "Bset",
+        "Zspace"
+      ]
+    },
+    {
+      "name": "q_b",
+      "type": "positive window-weight vector",
+      "sig": "\\(q_b>0\\) for \\(b\\in W\\) and \\(\\sum_{b\\in W}q_b=1\\)",
+      "role": "target block weights",
+      "refs": [
+        "W"
+      ]
+    },
+    {
+      "name": "a_bi",
+      "type": "nonnegative unit-weight array",
+      "def": "\\(a_{bi}=q_b/n_b\\) for \\(b\\in W\\) and \\(a_{bi}=0\\) otherwise",
+      "role": "unit weights in the target",
+      "refs": [
+        "q_b",
+        "n_b",
+        "W",
+        "Tset"
+      ]
+    },
+    {
+      "name": "S_weight",
+      "type": "positive real",
+      "def": "\\(S=\\sum_{b\\in W}q_b^2/n_b=\\sum_{(b,i)\\in\\mathcal T}a_{bi}^2\\)",
+      "role": "squared target-weight mass",
+      "refs": [
+        "W",
+        "q_b",
+        "n_b",
+        "a_bi",
+        "Tset"
+      ]
+    },
+    {
+      "name": "s_weight",
+      "type": "positive real",
+      "def": "\\(s=\\sqrt S\\)",
+      "role": "target-weight scale",
+      "refs": [
+        "S_weight"
+      ]
+    },
+    {
+      "name": "Y_bi",
+      "type": "fixed potential-outcome schedule",
+      "sig": "\\(Y_{bi}:\\mathcal Z\\to\\mathbb R\\) for \\((b,i)\\in\\mathcal T\\)",
+      "role": "nonrandom finite-population potential outcomes",
+      "refs": [
+        "Zspace",
+        "Tset"
+      ]
+    },
+    {
+      "name": "Z_bi",
+      "type": "random arm assignment",
+      "space": "\\(\\mathcal Z\\)",
+      "role": "assigned arm",
+      "refs": [
+        "Zspace",
+        "Tset"
+      ]
+    },
+    {
+      "name": "Yobs_bi",
+      "type": "observed outcome",
+      "def": "\\(Y^{\\mathrm{obs}}_{bi}=Y_{bi}(Z_{bi})\\)",
+      "role": "realized potential outcome",
+      "refs": [
+        "Y_bi",
+        "Z_bi"
+      ]
+    },
+    {
+      "name": "H_bi",
+      "type": "observed pre-assignment sigma-field",
+      "def": "\\(H_{bi}=\\sigma\\{Z_{b'i'},Y^{\\mathrm{obs}}_{b'i'}:(b',i')<(b,i)\\}\\)",
+      "role": "adaptive-randomization filtration",
+      "refs": [
+        "Tset",
+        "Z_bi",
+        "Yobs_bi"
+      ]
+    },
+    {
+      "name": "p_bi",
+      "type": "known predictable probability vector",
+      "sig": "\\(p_{bi}(z\\mid H_{bi})\\in[0,1]\\) for \\(z\\in\\mathcal Z\\)",
+      "role": "history-adaptive assignment propensity",
+      "refs": [
+        "Tset",
+        "Zspace",
+        "H_bi"
+      ]
+    },
+    {
+      "name": "D_design",
+      "type": "known adaptive randomization design",
+      "def": "\\(\\mathcal D=(p_{bi})_{(b,i)\\in\\mathcal T}\\)",
+      "role": "assignment law",
+      "refs": [
+        "p_bi",
+        "Tset"
+      ]
+    },
+    {
+      "name": "O_obs",
+      "type": "terminal observed record",
+      "def": "\\(O=((Z_{bi},Y^{\\mathrm{obs}}_{bi},p_{bi}(\\cdot\\mid H_{bi})))_{(b,i)\\in\\mathcal T}\\)",
+      "role": "data supplied to interval procedures",
+      "refs": [
+        "Z_bi",
+        "Yobs_bi",
+        "p_bi",
+        "H_bi",
+        "Tset"
+      ]
+    },
+    {
+      "name": "P_obs_Y",
+      "type": "observed-data probability law",
+      "def": "\\(P^O_{\\mathcal D,Y}=\\mathcal L_{\\mathcal D,Y}(O)\\)",
+      "role": "schedule-indexed adaptive record law",
+      "refs": [
+        "D_design",
+        "Y_bi",
+        "O_obs"
+      ]
+    },
+    {
+      "name": "mu_b",
+      "type": "fixed real vector",
+      "def": "\\(\\mu_b=n_b^{-1}\\sum_{i=1}^{n_b}Y_{bi}(z_0)\\)",
+      "role": "control block means",
+      "refs": [
+        "n_b",
+        "Y_bi",
+        "z_0",
+        "Bset"
+      ]
+    },
+    {
+      "name": "Yclass",
+      "type": "class of fixed schedules",
+      "def": "\\(\\mathcal Y_{M,\\Gamma}\\)",
+      "role": "bounded control-drift schedule class",
+      "refs": [
+        "M",
+        "Gamma"
+      ]
+    },
+    {
+      "name": "tau_W",
+      "type": "finite-population causal contrast",
+      "def": "\\(\\tau_W=\\sum_{b\\in W}q_b n_b^{-1}\\sum_{i=1}^{n_b}\\{Y_{bi}(z_1)-Y_{bi}(z_0)\\}\\)",
+      "role": "window-weighted focal-arm effect",
+      "refs": [
+        "W",
+        "q_b",
+        "n_b",
+        "Y_bi",
+        "z_1",
+        "z_0"
+      ]
+    },
+    {
+      "name": "u_b",
+      "type": "probability vector on blocks",
+      "def": "\\(u_b=q_b\\mathbf 1\\{b\\in W\\}\\)",
+      "role": "concurrent-only control weights",
+      "refs": [
+        "q_b",
+        "W",
+        "Bset"
+      ]
+    },
+    {
+      "name": "m_bi",
+      "type": "predictable bounded regression array",
+      "sig": "\\(m_{bi}(z)\\in[-M,M]\\) is \\(H_{bi}\\)-measurable",
+      "role": "arbitrary previsible outcome prediction",
+      "refs": [
+        "M",
+        "H_bi",
+        "Tset",
+        "Zspace"
+      ]
+    },
+    {
+      "name": "phi_bi",
+      "type": "observable AIPW score",
+      "def": "\\(\\phi_{bi}(z)=m_{bi}(z)+\\mathbf 1\\{Z_{bi}=z\\}\\{Y^{\\mathrm{obs}}_{bi}-m_{bi}(z)\\}/p_{bi}(z\\mid H_{bi})\\)",
+      "role": "predictable augmented inverse-propensity score",
+      "refs": [
+        "m_bi",
+        "Z_bi",
+        "Yobs_bi",
+        "p_bi",
+        "H_bi",
+        "A_b"
+      ]
+    },
+    {
+      "name": "v_b",
+      "type": "borrowing-weight vector",
+      "space": "\\(\\Delta(\\mathcal B)\\)",
+      "role": "control weights",
+      "refs": [
+        "Bset"
+      ]
+    },
+    {
+      "name": "hat_tau_v",
+      "type": "observable estimator",
+      "def": "\\(\\widehat\\tau(v)=\\sum_{b\\in W}q_b n_b^{-1}\\sum_i\\phi_{bi}(z_1)-\\sum_{b\\in\\mathcal B}v_b n_b^{-1}\\sum_i\\phi_{bi}(z_0)\\)",
+      "role": "predictable-AIPW borrowing estimator",
+      "refs": [
+        "W",
+        "q_b",
+        "n_b",
+        "phi_bi",
+        "z_1",
+        "Bset",
+        "v_b",
+        "z_0"
+      ]
+    },
+    {
+      "name": "Bias_Gamma",
+      "type": "nonnegative convex functional",
+      "def": "\\(\\mathsf B_\\Gamma(v)=\\max\\{|\\sum_{b=1}^B(v_b-u_b)x_b|:x\\in[-M,M]^B,\\ \\sum_{b=1}^{B-1}|x_{b+1}-x_b|\\le\\Gamma\\}\\)",
+      "role": "sharp worst-case drift bias",
+      "refs": [
+        "Gamma",
+        "v_b",
+        "u_b",
+        "M",
+        "B"
+      ]
+    },
+    {
+      "name": "G_D",
+      "type": "nonnegative predictable quadratic functional",
+      "def": "\\(\\mathsf G_{\\mathcal D}(v;H)=8M^2\\sum_{b,i}\\{u_b^2n_b^{-2}(1-p_{bi}(z_1\\mid H_{bi}))/p_{bi}(z_1\\mid H_{bi})+v_b^2n_b^{-2}(1-p_{bi}(z_0\\mid H_{bi}))/p_{bi}(z_0\\mid H_{bi})\\}\\), with the first summand zero off \\(W\\)",
+      "role": "realized-history conditional-variation envelope",
+      "refs": [
+        "D_design",
+        "v_b",
+        "M",
+        "u_b",
+        "n_b",
+        "p_bi",
+        "z_1",
+        "z_0",
+        "H_bi",
+        "W"
+      ]
+    },
+    {
+      "name": "Vbar_D",
+      "type": "nonnegative convex functional",
+      "def": "\\(\\overline{\\mathsf V}_{\\mathcal D,\\Gamma}(v)=\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E_{\\mathcal D,Y}[\\mathsf G_{\\mathcal D}(v;H)]\\)",
+      "role": "worst-schedule assignment-law-averaged envelope",
+      "refs": [
+        "D_design",
+        "Gamma",
+        "v_b",
+        "Yclass",
+        "G_D",
+        "Y_bi"
+      ]
+    },
+    {
+      "name": "Psi_alpha",
+      "type": "nonnegative convex functional",
+      "def": "\\(\\Psi_{\\alpha,\\Gamma}(v)=\\mathsf B_\\Gamma(v)+\\sqrt{\\overline{\\mathsf V}_{\\mathcal D,\\Gamma}(v)/\\alpha}\\)",
+      "role": "bias--information objective",
+      "refs": [
+        "alpha",
+        "Gamma",
+        "v_b",
+        "Bias_Gamma",
+        "Vbar_D"
+      ]
+    },
+    {
+      "name": "v_star",
+      "type": "borrowing-weight optimizer",
+      "def": "\\(v^\\star\\in\\operatorname*{argmin}_{v\\in\\Delta(\\mathcal B)}\\Psi_{\\alpha,\\Gamma}(v)\\)",
+      "role": "optimized control-borrowing weights",
+      "refs": [
+        "v_b",
+        "Bset",
+        "Psi_alpha"
+      ]
+    },
+    {
+      "name": "R_star",
+      "type": "nonnegative real",
+      "def": "\\(\\mathfrak R_\\alpha^\\star=\\min\\{2M,\\Psi_{\\alpha,\\Gamma}(v^\\star)\\}\\)",
+      "role": "optimized clipped predictable-AIPW radius",
+      "refs": [
+        "alpha",
+        "M",
+        "Psi_alpha",
+        "v_star"
+      ]
+    },
+    {
+      "name": "Proj_M",
+      "type": "measurable projection",
+      "def": "\\(\\Pi_M(x)=\\min\\{2M,\\max\\{-2M,x\\}\\}\\)",
+      "role": "projection onto the feasible estimand range",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "I_star",
+      "type": "random closed interval",
+      "def": "\\(I^\\star=[\\Pi_M(\\widehat\\tau(v^\\star))-\\Psi_{\\alpha,\\Gamma}(v^\\star),\\Pi_M(\\widehat\\tau(v^\\star))+\\Psi_{\\alpha,\\Gamma}(v^\\star)]\\cap[-2M,2M]\\) when \\(\\Psi_{\\alpha,\\Gamma}(v^\\star)<2M\\), and \\(I^\\star=[-2M,2M]\\) otherwise",
+      "role": "projected bias-aware interval",
+      "refs": [
+        "Proj_M",
+        "hat_tau_v",
+        "v_star",
+        "Psi_alpha",
+        "M"
+      ]
+    },
+    {
+      "name": "U_aux",
+      "type": "auxiliary randomizer",
+      "space": "\\(\\operatorname{Unif}(0,1)\\)",
+      "role": "procedure randomization independent of the assignment experiment"
+    },
+    {
+      "name": "K_interval",
+      "type": "observed-data Markov kernel",
+      "sig": "\\(K(dI\\mid O)\\) from records to nonempty closed subintervals of \\([-2M,2M]\\)",
+      "role": "generic randomized interval procedure",
+      "refs": [
+        "O_obs",
+        "M"
+      ]
+    },
+    {
+      "name": "I_K",
+      "type": "random closed interval",
+      "def": "\\(I_K=F_K(O,U_{\\mathrm{aux}})\\), where \\(F_K\\) realizes \\(K(dI\\mid O)\\)",
+      "role": "interval action",
+      "refs": [
+        "K_interval",
+        "O_obs",
+        "U_aux"
+      ]
+    },
+    {
+      "name": "P_ext_YK",
+      "type": "extended design law",
+      "def": "\\(P^K_{\\mathcal D,Y}\\) is \\(P^O_{\\mathcal D,Y}\\otimes\\operatorname{Unif}(0,1)\\) pushed forward through \\(I_K\\)",
+      "role": "joint law used for coverage and length",
+      "refs": [
+        "P_obs_Y",
+        "U_aux",
+        "I_K",
+        "D_design",
+        "Y_bi",
+        "K_interval"
+      ]
+    },
+    {
+      "name": "C_alpha",
+      "type": "class of interval kernels",
+      "def": "\\(\\mathcal C_\\alpha\\)",
+      "role": "all schedule-independent uniformly honest randomized intervals",
+      "refs": [
+        "alpha"
+      ]
+    },
+    {
+      "name": "L_star",
+      "type": "nonnegative real",
+      "def": "\\(\\mathfrak L_\\alpha^\\star=\\inf_{K\\in\\mathcal C_\\alpha}\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E^K_{\\mathcal D,Y}[\\operatorname{len}(I_K)]\\)",
+      "role": "unrestricted minimax worst-case expected length",
+      "refs": [
+        "alpha",
+        "C_alpha",
+        "Yclass",
+        "P_ext_YK",
+        "D_design",
+        "Y_bi",
+        "I_K"
+      ]
+    },
+    {
+      "name": "Pi_unif",
+      "type": "probability measure on potential-outcome arrays",
+      "def": "\\(\\Pi_{\\mathrm{unif}}\\)",
+      "role": "product-uniform least-favorable prior"
+    },
+    {
+      "name": "J_obs",
+      "type": "random subset of focal positions",
+      "def": "\\(J(O)=\\{(b,i):b\\in W,\\ Z_{bi}=z_1\\}\\)",
+      "role": "focal coordinates revealed by the record",
+      "refs": [
+        "O_obs",
+        "W",
+        "Z_bi",
+        "z_1",
+        "Tset"
+      ]
+    },
+    {
+      "name": "Q_missing",
+      "type": "nonnegative random variable",
+      "def": "\\(Q(O)=\\sum_{(b,i)\\notin J(O)}a_{bi}^2\\)",
+      "role": "missing squared target-weight mass",
+      "refs": [
+        "O_obs",
+        "J_obs",
+        "a_bi",
+        "Tset"
+      ]
+    },
+    {
+      "name": "c_post",
+      "type": "posterior coverage probability",
+      "def": "\\(c(O,U_{\\mathrm{aux}})=\\Pr_{\\Pi_{\\mathrm{unif}}}\\{\\tau_W\\in I_K\\mid O,U_{\\mathrm{aux}}\\}\\)",
+      "role": "coverage spent on each realized record",
+      "refs": [
+        "Pi_unif",
+        "tau_W",
+        "I_K",
+        "O_obs",
+        "U_aux"
+      ]
+    },
+    {
+      "name": "r_unif",
+      "type": "positive integer",
+      "def": "\\(r_{\\mathrm u}\\in\\mathbb N_{+}\\)",
+      "role": "number of weighted uniform summands"
+    },
+    {
+      "name": "beta_j",
+      "type": "positive real vector",
+      "sig": "\\((\\beta_j)_{j=1}^{r_{\\mathrm u}}\\in(0,\\infty)^{r_{\\mathrm u}}\\)",
+      "role": "weights in the density lemma",
+      "refs": [
+        "r_unif"
+      ]
+    },
+    {
+      "name": "X_j",
+      "type": "independent random variables",
+      "sig": "\\(X_j\\sim\\operatorname{Unif}[-M,M]\\) for \\(1\\le j\\le r_{\\mathrm u}\\)",
+      "role": "uniform coordinates",
+      "refs": [
+        "r_unif",
+        "M"
+      ]
+    },
+    {
+      "name": "T_beta",
+      "type": "real random variable",
+      "def": "\\(T_\\beta=\\sum_{j=1}^{r_{\\mathrm u}}\\beta_jX_j\\)",
+      "role": "weighted uniform sum",
+      "refs": [
+        "r_unif",
+        "beta_j",
+        "X_j"
+      ]
+    },
+    {
+      "name": "E_one",
+      "type": "one-window-unit adaptive-platform experiment",
+      "def": "\\(\\mathcal E_1\\) has \\(B=3\\), \\(n_1=n_2=n_3=1\\), \\(W=\\{2\\}\\), \\(q_2=1\\), \\(A_1=A_3=\\{z_0\\}\\), \\(A_2=\\{z_0,z_1\\}\\), deterministic off-window control, and \\(p_{21}(z_0)=p_{\\mathrm{floor}}\\), \\(p_{21}(z_1)=1-p_{\\mathrm{floor}}\\)",
+      "role": "exact boundary experiment",
+      "refs": [
+        "B",
+        "n_b",
+        "W",
+        "q_b",
+        "A_b",
+        "z_0",
+        "z_1",
+        "p_bi",
+        "p_floor"
+      ]
+    },
+    {
+      "name": "D_drift",
+      "type": "nonnegative real",
+      "def": "\\(D=\\min\\{\\Gamma,2M\\}\\)",
+      "role": "effective one-unit control uncertainty diameter",
+      "refs": [
+        "Gamma",
+        "M"
+      ]
+    },
+    {
+      "name": "L_one",
+      "type": "nonnegative real",
+      "def": "\\(\\mathfrak L_\\alpha^{(1)}\\) is \\(\\mathfrak L_\\alpha^\\star\\) in \\(\\mathcal E_1\\)",
+      "role": "one-unit unrestricted minimax expected length",
+      "refs": [
+        "L_star",
+        "E_one",
+        "alpha"
+      ]
+    },
+    {
+      "name": "R_one",
+      "type": "nonnegative real",
+      "def": "\\(\\mathfrak R_\\alpha^{(1)}\\) is \\(\\mathfrak R_\\alpha^\\star\\) in \\(\\mathcal E_1\\)",
+      "role": "one-unit optimized clipped radius",
+      "refs": [
+        "R_star",
+        "E_one",
+        "alpha"
+      ]
+    },
+    {
+      "name": "O_cc",
+      "type": "concurrent-only record",
+      "def": "\\(O^{\\mathrm{cc}}\\) retains all assignments and realized propensities but only outcomes from blocks in \\(W\\)",
+      "role": "coarsened observation without nonconcurrent outcomes",
+      "refs": [
+        "O_obs",
+        "W",
+        "Z_bi",
+        "p_bi",
+        "Yobs_bi"
+      ]
+    },
+    {
+      "name": "C_alpha_cc",
+      "type": "class of interval kernels",
+      "def": "\\(\\mathcal C_\\alpha^{\\mathrm{cc}}=\\{K\\in\\mathcal C_\\alpha:K(dI\\mid O)\\text{ is measurable with respect to }O^{\\mathrm{cc}}\\}\\)",
+      "role": "uniformly honest concurrent-only procedures",
+      "refs": [
+        "C_alpha",
+        "K_interval",
+        "O_obs",
+        "O_cc",
+        "alpha"
+      ]
+    },
+    {
+      "name": "L_cc",
+      "type": "nonnegative real",
+      "def": "\\(\\mathfrak L_\\alpha^{\\mathrm{cc}}=\\inf_{K\\in\\mathcal C_\\alpha^{\\mathrm{cc}}}\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E^K_{\\mathcal D,Y}[\\operatorname{len}(I_K)]\\)",
+      "role": "concurrent-only minimax expected length",
+      "refs": [
+        "alpha",
+        "C_alpha_cc",
+        "Yclass",
+        "P_ext_YK",
+        "D_design",
+        "Y_bi",
+        "I_K"
+      ]
+    },
+    {
+      "name": "C_opt",
+      "type": "extended nonnegative real",
+      "def": "\\(C_{\\mathrm{opt}}(\\alpha,p_{\\mathrm{floor}})=\\inf\\{C:2\\mathfrak R_\\alpha^\\star\\le C\\mathfrak L_\\alpha^\\star\\text{ for every admissible experiment with common floor }p_{\\mathrm{floor}}\\}\\)",
+      "role": "best uniform comparison constant",
+      "refs": [
+        "alpha",
+        "p_floor",
+        "R_star",
+        "L_star"
+      ]
+    },
+    {
+      "name": "H_gain",
+      "type": "research handle",
+      "def": "Use the Blackwell comparison and the primal--dual coverage-risk sets generated by the full record \\(O\\) and the coarsened record \\(O^{\\mathrm{cc}}\\), while retaining realized propensity metadata, to characterize strict inequality between their minimax values.",
+      "role": "starting move for the general strict-NCC-gain question",
+      "refs": [
+        "O_obs",
+        "O_cc",
+        "L_star",
+        "L_cc"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:sequential-randomization",
+      "kind": "design",
+      "condition": "The design satisfies \\(\\Pr(Z_{bi}=z\\mid H_{bi})=p_{bi}(z\\mid H_{bi})\\) for every \\((b,i)\\in\\mathcal T\\) and \\(z\\in\\mathcal Z\\).",
+      "free_symbols": [
+        "Z_bi",
+        "H_bi",
+        "p_bi",
+        "Tset",
+        "Zspace"
+      ],
+      "standard": {
+        "name": "known history-adaptive randomization",
+        "cite": "LiZhao2026"
+      },
+      "used_by": [
+        "lem:posterior-factorization",
+        "lem:coverage-budget",
+        "thm:projected-aipw-upper",
+        "thm:floor-phase-frontier"
+      ]
+    },
+    {
+      "id": "ass:availability-window",
+      "kind": "design",
+      "condition": "The availability sets satisfy \\(z_0\\in A_b\\) and \\(z_1\\in A_b\\Longleftrightarrow b\\in W\\) for every \\(b\\in\\mathcal B\\).",
+      "free_symbols": [
+        "z_0",
+        "A_b",
+        "z_1",
+        "W",
+        "Bset"
+      ],
+      "standard": {
+        "name": "staggered platform-arm availability",
+        "cite": "BofillRoigEtAl2023Scoping"
+      },
+      "used_by": [
+        "def:schedule-family",
+        "thm:projected-aipw-upper",
+        "thm:floor-phase-frontier",
+        "prop:one-unit-exact"
+      ]
+    },
+    {
+      "id": "ass:availability-support",
+      "kind": "support",
+      "condition": "The propensity support satisfies \\(p_{bi}(z\\mid h)>0\\Longleftrightarrow z\\in A_b\\) at every history \\(h\\) compatible with the design.",
+      "free_symbols": [
+        "p_bi",
+        "A_b"
+      ],
+      "standard": {
+        "name": "availability-restricted positivity",
+        "cite": "SantacatterinaMacchiavelliGironZhangDiaz2025"
+      },
+      "used_by": [
+        "def:aipw-score",
+        "thm:projected-aipw-upper",
+        "thm:floor-phase-frontier"
+      ]
+    },
+    {
+      "id": "ass:common-floor",
+      "kind": "support",
+      "condition": "Every available-arm propensity satisfies \\(p_{bi}(z\\mid h)\\ge p_{\\mathrm{floor}}\\) for every \\(z\\in A_b\\) and every compatible history \\(h\\).",
+      "free_symbols": [
+        "p_bi",
+        "p_floor",
+        "A_b"
+      ],
+      "standard": {
+        "name": "uniform adaptive-design positivity",
+        "cite": "LiZhao2026"
+      },
+      "used_by": [
+        "lem:coverage-budget",
+        "thm:projected-aipw-upper",
+        "thm:floor-phase-frontier",
+        "prop:one-unit-exact"
+      ]
+    },
+    {
+      "id": "ass:bounded-outcomes",
+      "kind": "support",
+      "condition": "The fixed schedule satisfies \\(Y_{bi}(z)\\in[-M,M]\\) for every \\((b,i)\\in\\mathcal T\\) and \\(z\\in A_b\\).",
+      "free_symbols": [
+        "Y_bi",
+        "M",
+        "Tset",
+        "A_b"
+      ],
+      "standard": {
+        "name": "bounded finite-population outcomes",
+        "cite": "HamBojinovLindonTingley2023Bandits"
+      },
+      "used_by": [
+        "def:schedule-family",
+        "def:product-uniform-prior",
+        "lem:weighted-uniform-density",
+        "thm:projected-aipw-upper",
+        "prop:one-unit-exact"
+      ]
+    },
+    {
+      "id": "ass:control-tv",
+      "kind": "shape-restriction",
+      "condition": "The fixed control means satisfy \\(\\sum_{b=1}^{B-1}|\\mu_{b+1}-\\mu_b|\\le\\Gamma\\).",
+      "free_symbols": [
+        "mu_b",
+        "B",
+        "Gamma"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "A total-variation budget permits abrupt calendar changes and multiple smaller shifts. Trials with a bounded cumulative change in standard of care or site composition satisfy it without requiring a parametric trend."
+      },
+      "used_by": [
+        "def:schedule-family",
+        "def:drift-support",
+        "prop:one-unit-exact"
+      ]
+    },
+    {
+      "id": "ass:kernel-form",
+      "kind": "procedure",
+      "condition": "The rule \\(K(dI\\mid O)\\) is a schedule-independent Markov kernel to nonempty closed subintervals of \\([-2M,2M]\\).",
+      "free_symbols": [
+        "K_interval",
+        "O_obs",
+        "M"
+      ],
+      "standard": {
+        "name": "randomized confidence-set decision rule",
+        "cite": "EvansHansenStark2005"
+      },
+      "used_by": [
+        "def:honest-kernel-class",
+        "lem:coverage-budget",
+        "thm:floor-phase-frontier",
+        "prop:one-unit-exact"
+      ]
+    },
+    {
+      "id": "ass:uniform-honesty",
+      "kind": "coverage",
+      "condition": "The interval kernel satisfies \\(\\inf_{Y\\in\\mathcal Y_{M,\\Gamma}}P^K_{\\mathcal D,Y}(\\tau_W\\in I_K)\\ge1-\\alpha\\).",
+      "free_symbols": [
+        "Yclass",
+        "P_ext_YK",
+        "D_design",
+        "Y_bi",
+        "tau_W",
+        "I_K",
+        "alpha"
+      ],
+      "standard": {
+        "name": "uniform confidence coverage",
+        "cite": "EvansHansenStark2005"
+      },
+      "used_by": [
+        "def:honest-kernel-class",
+        "lem:coverage-budget",
+        "prop:one-unit-exact"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:schedule-family",
+      "name": "bounded-TV fixed-schedule family",
+      "construction": "\\(\\mathcal Y_{M,\\Gamma}=\\{(Y_{bi}(z))_{(b,i)\\in\\mathcal T,z\\in A_b}: |Y_{bi}(z)|\\le M\\text{ and }\\sum_{b=1}^{B-1}|\\mu_{b+1}-\\mu_b|\\le\\Gamma\\}\\)",
+      "free_symbols": [
+        "Yclass",
+        "Y_bi",
+        "Tset",
+        "A_b",
+        "M",
+        "mu_b",
+        "B",
+        "Gamma"
+      ],
+      "by_member_properties": [
+        "ass:bounded-outcomes",
+        "ass:control-tv"
+      ]
+    },
+    {
+      "id": "def:target",
+      "name": "window-weighted finite-population effect",
+      "construction": "\\(\\tau_W=\\sum_{b\\in W}q_b n_b^{-1}\\sum_{i=1}^{n_b}\\{Y_{bi}(z_1)-Y_{bi}(z_0)\\}\\)",
+      "free_symbols": [
+        "tau_W",
+        "W",
+        "q_b",
+        "n_b",
+        "Y_bi",
+        "z_1",
+        "z_0"
+      ]
+    },
+    {
+      "id": "def:weight-scale",
+      "name": "target-weight scale",
+      "construction": "\\(a_{bi}=q_b/n_b\\) on \\(W\\), \\(S=\\sum_{b\\in W}q_b^2/n_b=\\sum_{b,i}a_{bi}^2\\), and \\(s=\\sqrt S\\)",
+      "free_symbols": [
+        "a_bi",
+        "q_b",
+        "n_b",
+        "W",
+        "S_weight",
+        "s_weight",
+        "Tset"
+      ]
+    },
+    {
+      "id": "def:aipw-score",
+      "name": "predictable AIPW score",
+      "construction": "\\(\\phi_{bi}(z)=m_{bi}(z)+\\mathbf 1\\{Z_{bi}=z\\}\\{Y^{\\mathrm{obs}}_{bi}-m_{bi}(z)\\}/p_{bi}(z\\mid H_{bi})\\) for \\(z\\in A_b\\)",
+      "free_symbols": [
+        "phi_bi",
+        "m_bi",
+        "Z_bi",
+        "Yobs_bi",
+        "p_bi",
+        "H_bi",
+        "A_b"
+      ],
+      "inputs": [
+        "ass:sequential-randomization",
+        "ass:availability-support"
+      ]
+    },
+    {
+      "id": "def:borrowing-estimator",
+      "name": "predictable-AIPW borrowing estimator",
+      "construction": "\\(\\widehat\\tau(v)=\\sum_{b\\in W}q_b n_b^{-1}\\sum_i\\phi_{bi}(z_1)-\\sum_{b\\in\\mathcal B}v_b n_b^{-1}\\sum_i\\phi_{bi}(z_0)\\) for \\(v\\in\\Delta(\\mathcal B)\\)",
+      "free_symbols": [
+        "hat_tau_v",
+        "v_b",
+        "W",
+        "q_b",
+        "n_b",
+        "phi_bi",
+        "z_1",
+        "Bset",
+        "z_0"
+      ],
+      "inputs": [
+        "def:aipw-score"
+      ]
+    },
+    {
+      "id": "def:drift-support",
+      "name": "sharp drift-bias support",
+      "construction": "\\(\\mathsf B_\\Gamma(v)=\\max\\{|\\sum_{b=1}^B(v_b-u_b)x_b|:x\\in[-M,M]^B,\\ \\sum_{b=1}^{B-1}|x_{b+1}-x_b|\\le\\Gamma\\}\\)",
+      "free_symbols": [
+        "Bias_Gamma",
+        "Gamma",
+        "v_b",
+        "u_b",
+        "M",
+        "B"
+      ],
+      "inputs": [
+        "ass:control-tv"
+      ]
+    },
+    {
+      "id": "def:variance-envelope",
+      "name": "assignment-law-averaged information envelope",
+      "construction": "\\(\\mathsf G_{\\mathcal D}(v;H)=8M^2\\sum_{b,i}\\{u_b^2n_b^{-2}(1-p_{bi}(z_1\\mid H_{bi}))/p_{bi}(z_1\\mid H_{bi})+v_b^2n_b^{-2}(1-p_{bi}(z_0\\mid H_{bi}))/p_{bi}(z_0\\mid H_{bi})\\}\\), with the first summand zero off \\(W\\), and \\(\\overline{\\mathsf V}_{\\mathcal D,\\Gamma}(v)=\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E_{\\mathcal D,Y}[\\mathsf G_{\\mathcal D}(v;H)]\\)",
+      "free_symbols": [
+        "G_D",
+        "D_design",
+        "v_b",
+        "M",
+        "u_b",
+        "n_b",
+        "p_bi",
+        "z_1",
+        "H_bi",
+        "z_0",
+        "W",
+        "Vbar_D",
+        "Gamma",
+        "Yclass",
+        "Y_bi"
+      ],
+      "inputs": [
+        "def:schedule-family",
+        "def:borrowing-estimator"
+      ]
+    },
+    {
+      "id": "def:optimized-radius",
+      "name": "optimized clipped predictable-AIPW radius",
+      "construction": "\\(\\Psi_{\\alpha,\\Gamma}(v)=\\mathsf B_\\Gamma(v)+\\sqrt{\\overline{\\mathsf V}_{\\mathcal D,\\Gamma}(v)/\\alpha}\\), \\(v^\\star\\in\\operatorname*{argmin}_{v\\in\\Delta(\\mathcal B)}\\Psi_{\\alpha,\\Gamma}(v)\\), and \\(\\mathfrak R_\\alpha^\\star=\\min\\{2M,\\Psi_{\\alpha,\\Gamma}(v^\\star)\\}\\)",
+      "free_symbols": [
+        "Psi_alpha",
+        "alpha",
+        "Gamma",
+        "v_b",
+        "Bias_Gamma",
+        "Vbar_D",
+        "v_star",
+        "Bset",
+        "R_star",
+        "M"
+      ],
+      "inputs": [
+        "def:drift-support",
+        "def:variance-envelope"
+      ]
+    },
+    {
+      "id": "def:projected-interval",
+      "name": "projected bias-aware interval",
+      "construction": "\\(I^\\star=[\\Pi_M(\\widehat\\tau(v^\\star))-\\Psi_{\\alpha,\\Gamma}(v^\\star),\\Pi_M(\\widehat\\tau(v^\\star))+\\Psi_{\\alpha,\\Gamma}(v^\\star)]\\cap[-2M,2M]\\) when \\(\\Psi_{\\alpha,\\Gamma}(v^\\star)<2M\\), and \\(I^\\star=[-2M,2M]\\) otherwise, where \\(\\Pi_M(x)=\\min\\{2M,\\max\\{-2M,x\\}\\}\\)",
+      "free_symbols": [
+        "I_star",
+        "Proj_M",
+        "M",
+        "hat_tau_v",
+        "v_star",
+        "Psi_alpha",
+        "Gamma"
+      ],
+      "inputs": [
+        "def:borrowing-estimator",
+        "def:optimized-radius"
+      ]
+    },
+    {
+      "id": "def:honest-kernel-class",
+      "name": "uniformly honest variable-length interval kernels",
+      "construction": "\\(\\mathcal C_\\alpha=\\{K:K(dI\\mid O)\\text{ is schedule independent and }\\inf_{Y\\in\\mathcal Y_{M,\\Gamma}}P^K_{\\mathcal D,Y}(\\tau_W\\in I_K)\\ge1-\\alpha\\}\\)",
+      "free_symbols": [
+        "C_alpha",
+        "K_interval",
+        "O_obs",
+        "Yclass",
+        "P_ext_YK",
+        "D_design",
+        "Y_bi",
+        "tau_W",
+        "I_K",
+        "alpha"
+      ],
+      "by_member_properties": [
+        "ass:kernel-form",
+        "ass:uniform-honesty"
+      ]
+    },
+    {
+      "id": "def:minimax-length",
+      "name": "unrestricted uniformly honest minimax expected length",
+      "construction": "\\(\\mathfrak L_\\alpha^\\star=\\inf_{K\\in\\mathcal C_\\alpha}\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E^K_{\\mathcal D,Y}[\\operatorname{len}(I_K)]\\)",
+      "free_symbols": [
+        "L_star",
+        "alpha",
+        "C_alpha",
+        "Yclass",
+        "P_ext_YK",
+        "D_design",
+        "Y_bi",
+        "I_K"
+      ],
+      "inputs": [
+        "def:honest-kernel-class"
+      ]
+    },
+    {
+      "id": "def:product-uniform-prior",
+      "name": "product-uniform focal prior",
+      "construction": "Under \\(\\Pi_{\\mathrm{unif}}\\), set every control and every nonfocal available potential outcome to zero, and draw \\(Y_{bi}(z_1)\\stackrel{\\mathrm{ind}}{\\sim}\\operatorname{Unif}[-M,M]\\) for every \\(b\\in W\\) and \\(1\\le i\\le n_b\\)",
+      "free_symbols": [
+        "Pi_unif",
+        "Y_bi",
+        "z_0",
+        "z_1",
+        "M",
+        "W",
+        "n_b",
+        "A_b"
+      ]
+    },
+    {
+      "id": "def:missing-mass",
+      "name": "posterior missing squared-weight mass",
+      "construction": "\\(J(O)=\\{(b,i):b\\in W,\\ Z_{bi}=z_1\\}\\) and \\(Q(O)=\\sum_{(b,i)\\notin J(O)}a_{bi}^2\\)",
+      "free_symbols": [
+        "J_obs",
+        "O_obs",
+        "W",
+        "Z_bi",
+        "z_1",
+        "Q_missing",
+        "a_bi",
+        "Tset"
+      ],
+      "inputs": [
+        "def:weight-scale",
+        "def:product-uniform-prior"
+      ]
+    },
+    {
+      "id": "def:posterior-coverage",
+      "name": "recordwise posterior coverage",
+      "construction": "\\(c(O,U_{\\mathrm{aux}})=\\Pr_{\\Pi_{\\mathrm{unif}}}\\{\\tau_W\\in I_K\\mid O,U_{\\mathrm{aux}}\\}\\)",
+      "free_symbols": [
+        "c_post",
+        "O_obs",
+        "U_aux",
+        "Pi_unif",
+        "tau_W",
+        "I_K"
+      ],
+      "inputs": [
+        "def:product-uniform-prior",
+        "def:honest-kernel-class"
+      ]
+    },
+    {
+      "id": "def:one-unit-experiment",
+      "name": "continuous one-window-unit experiment",
+      "construction": "\\(\\mathcal E_1\\) has three one-unit blocks, \\(W=\\{2\\}\\), \\(q_2=1\\), deterministic control outside the window, and window probabilities \\(p_{21}(z_0)=p_{\\mathrm{floor}}\\) and \\(p_{21}(z_1)=1-p_{\\mathrm{floor}}\\); set \\(D=\\min\\{\\Gamma,2M\\}\\)",
+      "free_symbols": [
+        "E_one",
+        "B",
+        "n_b",
+        "W",
+        "q_b",
+        "A_b",
+        "z_0",
+        "z_1",
+        "p_bi",
+        "p_floor",
+        "D_drift",
+        "Gamma",
+        "M"
+      ]
+    },
+    {
+      "id": "def:concurrent-minimax",
+      "name": "concurrent-only minimax expected length",
+      "construction": "\\(\\mathcal C_\\alpha^{\\mathrm{cc}}=\\{K\\in\\mathcal C_\\alpha:K(dI\\mid O)\\text{ is measurable with respect to }O^{\\mathrm{cc}}\\}\\) and \\(\\mathfrak L_\\alpha^{\\mathrm{cc}}=\\inf_{K\\in\\mathcal C_\\alpha^{\\mathrm{cc}}}\\sup_{Y\\in\\mathcal Y_{M,\\Gamma}}\\mathbb E^K_{\\mathcal D,Y}[\\operatorname{len}(I_K)]\\)",
+      "free_symbols": [
+        "C_alpha_cc",
+        "C_alpha",
+        "K_interval",
+        "O_obs",
+        "O_cc",
+        "L_cc",
+        "alpha",
+        "Yclass",
+        "P_ext_YK",
+        "D_design",
+        "Y_bi",
+        "I_K"
+      ],
+      "inputs": [
+        "def:honest-kernel-class"
+      ]
+    },
+    {
+      "id": "def:optimal-comparison-constant",
+      "name": "best uniform comparison constant",
+      "construction": "\\(C_{\\mathrm{opt}}(\\alpha,p_{\\mathrm{floor}})=\\inf\\{C:2\\mathfrak R_\\alpha^\\star\\le C\\mathfrak L_\\alpha^\\star\\text{ for every admissible experiment with common floor }p_{\\mathrm{floor}}\\}\\)",
+      "free_symbols": [
+        "C_opt",
+        "alpha",
+        "p_floor",
+        "R_star",
+        "L_star"
+      ],
+      "inputs": [
+        "def:optimized-radius",
+        "def:minimax-length"
+      ]
+    },
+    {
+      "id": "def:strict-gain-handle",
+      "name": "experiment-comparison handle",
+      "construction": "Use the Blackwell comparison and primal--dual coverage-risk sets of \\(O\\) and \\(O^{\\mathrm{cc}}\\), retaining realized propensity metadata, as the starting move for characterizing \\(\\mathfrak L_\\alpha^\\star<\\mathfrak L_\\alpha^{\\mathrm{cc}}\\)",
+      "free_symbols": [
+        "H_gain",
+        "O_obs",
+        "O_cc",
+        "L_star",
+        "L_cc",
+        "alpha"
+      ],
+      "inputs": [
+        "def:minimax-length",
+        "def:concurrent-minimax"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:weighted-uniform-density",
+      "kind": "lemma",
+      "statement": "For every \\(r_{\\mathrm u}\\in\\mathbb N_{+}\\), positive weights \\(\\beta_1,\\ldots,\\beta_{r_{\\mathrm u}}\\), and independent \\(X_j\\sim\\operatorname{Unif}[-M,M]\\), the weighted sum \\(T_\\beta=\\sum_{j=1}^{r_{\\mathrm u}}\\beta_jX_j\\) has a Lebesgue density \\(f_{T_\\beta}\\) satisfying \\[\\|f_{T_\\beta}\\|_\\infty\\le\\frac{1}{M\\sqrt{\\sum_{j=1}^{r_{\\mathrm u}}\\beta_j^2}}.\\]",
+      "free_symbols": [
+        "r_unif",
+        "beta_j",
+        "X_j",
+        "M",
+        "T_beta"
+      ],
+      "depends_on": [],
+      "status": "to-prove",
+      "justification": "The dimension-free density bound turns posterior uncertainty in unrevealed coordinates into interval length on the Euclidean weight scale.",
+      "gap": "Evans--Hansen--Stark use density and test-inversion arguments in fixed experiments; this explicit weighted-uniform bound is the analytic input needed for the adaptive missing-coordinate prior.",
+      "consumer": "The coverage-budget lemma uses the bound for arbitrary unequal block sizes and target weights."
+    },
+    {
+      "id": "lem:product-prior-admissible",
+      "kind": "lemma",
+      "statement": "The product-uniform prior is supported on the bounded-TV schedule class: \\(\\Pi_{\\mathrm{unif}}(\\mathcal Y_{M,\\Gamma})=1\\) for every admissible drift budget \\(\\Gamma\\).",
+      "free_symbols": [
+        "Pi_unif",
+        "Yclass",
+        "M",
+        "Gamma"
+      ],
+      "depends_on": [
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:schedule-family",
+        "def:product-uniform-prior"
+      ],
+      "status": "to-prove",
+      "justification": "A least-favorable prior is valid only if every realized schedule obeys the fixed-population restrictions pathwise.",
+      "gap": "The parent lacked a diffuse schedule-supported prior whose legality and adaptive likelihood could both be checked directly.",
+      "consumer": "The admissibility certificate lets the prior-averaged coverage inequality lower-bound the original fixed-schedule minimax problem."
+    },
+    {
+      "id": "lem:posterior-factorization",
+      "kind": "lemma",
+      "statement": "Under \\(\\Pi_{\\mathrm{unif}}\\), for \\(\\int P^O_{\\mathcal D,Y}\\,d\\Pi_{\\mathrm{unif}}(Y)\\)-almost every realized adaptive record \\(O=o\\), the unrevealed coordinates \\(\\{Y_{bi}(z_1):(b,i)\\notin J(o)\\}\\) are conditionally independent and each has the \\(\\operatorname{Unif}[-M,M]\\) law. Equivalently, on every assignment path the sequential likelihood \\(\\prod_{(b,i)\\in\\mathcal T}p_{bi}(Z_{bi}\\mid H_{bi}(o))\\) is measurable with respect to the revealed coordinates and contains no unrevealed focal coordinate.",
+      "free_symbols": [
+        "Pi_unif",
+        "P_obs_Y",
+        "D_design",
+        "O_obs",
+        "Y_bi",
+        "z_1",
+        "J_obs",
+        "M",
+        "Tset",
+        "p_bi",
+        "Z_bi",
+        "H_bi"
+      ],
+      "depends_on": [
+        "ass:sequential-randomization",
+        "def:product-uniform-prior",
+        "def:missing-mass",
+        "lem:product-prior-admissible"
+      ],
+      "status": "to-prove",
+      "justification": "This is the fragile step that permits a least-favorable prior to survive arbitrary outcome feedback.",
+      "gap": "Freidling--Zhao--Gao factor adaptive records for selective randomization, while Li--Zhao condition on fixed schedules; neither proves posterior product structure for unseen potential outcomes in a minimax lower bound.",
+      "consumer": "The result supplies a reusable lower-bound device for adaptive experiments with selectively revealed fixed potential outcomes."
+    },
+    {
+      "id": "lem:coverage-budget",
+      "kind": "lemma",
+      "statement": "For every \\(K\\in\\mathcal C_\\alpha\\), the product-uniform prior and the posterior coverage \\(c\\) satisfy \\[\\mathbb E_{\\Pi_{\\mathrm{unif}},\\mathcal D}[Q]\\ge p_{\\mathrm{floor}}S,\\qquad \\mathbb E_{\\Pi_{\\mathrm{unif}},\\mathcal D}[Qc]\\ge(p_{\\mathrm{floor}}-\\alpha)S,\\qquad \\mathbb E_{\\Pi_{\\mathrm{unif}},\\mathcal D}[\\operatorname{len}(I_K)]\\ge M(p_{\\mathrm{floor}}-\\alpha)s\\] whenever \\(p_{\\mathrm{floor}}>\\alpha\\).",
+      "free_symbols": [
+        "K_interval",
+        "C_alpha",
+        "Pi_unif",
+        "D_design",
+        "Q_missing",
+        "p_floor",
+        "S_weight",
+        "c_post",
+        "alpha",
+        "I_K",
+        "M",
+        "s_weight"
+      ],
+      "depends_on": [
+        "ass:common-floor",
+        "ass:kernel-form",
+        "ass:uniform-honesty",
+        "def:weight-scale",
+        "def:product-uniform-prior",
+        "def:missing-mass",
+        "def:posterior-coverage",
+        "lem:weighted-uniform-density",
+        "lem:posterior-factorization"
+      ],
+      "status": "to-prove",
+      "justification": "Multiplying posterior coverage by missing squared-weight mass spends the global error budget once and preserves the linear phase margin.",
+      "gap": "Standard two-prior testing bounds can be zero when \\(\\alpha<p_{\\mathrm{floor}}\\le2\\alpha\\); the weighted posterior calculation remains positive throughout the full strict phase.",
+      "consumer": "The lemma lower-bounds every randomized variable-length interval, including procedures unrelated to AIPW."
+    },
+    {
+      "id": "thm:projected-aipw-upper",
+      "kind": "theorem",
+      "statement": "The projected interval \\(I^\\star\\) is uniformly honest over \\(\\mathcal Y_{M,\\Gamma}\\), and \\[\\mathfrak L_\\alpha^\\star\\le2\\mathfrak R_\\alpha^\\star\\le 8Ms\\sqrt{\\frac{1-p_{\\mathrm{floor}}}{\\alpha p_{\\mathrm{floor}}}}.\\]",
+      "free_symbols": [
+        "I_star",
+        "Yclass",
+        "M",
+        "Gamma",
+        "L_star",
+        "alpha",
+        "R_star",
+        "s_weight",
+        "p_floor"
+      ],
+      "depends_on": [
+        "ass:sequential-randomization",
+        "ass:availability-window",
+        "ass:availability-support",
+        "ass:common-floor",
+        "ass:bounded-outcomes",
+        "def:schedule-family",
+        "def:target",
+        "def:aipw-score",
+        "def:borrowing-estimator",
+        "def:drift-support",
+        "def:variance-envelope",
+        "def:optimized-radius",
+        "def:projected-interval",
+        "def:minimax-length"
+      ],
+      "status": "to-prove",
+      "justification": "Concurrent weights eliminate drift bias and put the constructive radius on the same target-weight scale as the all-kernel lower bound.",
+      "gap": "Hadad et al. and Li--Zhao establish adaptive AIPW limit theory; this claim is finite-population, finite-horizon, bias-aware, and evaluated against an unrestricted minimax criterion.",
+      "consumer": "A platform-trial analysis can compute \\(I^\\star\\) and attach a design-certified worst-case expected-length guarantee without regression consistency."
+    },
+    {
+      "id": "thm:floor-phase-frontier",
+      "kind": "theorem",
+      "statement": "A finite constant depending only on \\((\\alpha,p_{\\mathrm{floor}})\\) can satisfy \\(2\\mathfrak R_\\alpha^\\star\\le C(\\alpha,p_{\\mathrm{floor}})\\mathfrak L_\\alpha^\\star\\) uniformly over the bounded finite-population adaptive platform class if and only if \\(p_{\\mathrm{floor}}>\\alpha\\). In the positive phase, every admissible experiment satisfies \\[M(p_{\\mathrm{floor}}-\\alpha)s\\le\\mathfrak L_\\alpha^\\star\\le2\\mathfrak R_\\alpha^\\star\\le\\frac{8}{p_{\\mathrm{floor}}-\\alpha}\\sqrt{\\frac{1-p_{\\mathrm{floor}}}{\\alpha p_{\\mathrm{floor}}}}\\mathfrak L_\\alpha^\\star.\\] In the nonpositive phase \\(p_{\\mathrm{floor}}\\le\\alpha\\), no finite uniform comparison constant exists.",
+      "free_symbols": [
+        "alpha",
+        "p_floor",
+        "R_star",
+        "L_star",
+        "M",
+        "s_weight"
+      ],
+      "depends_on": [
+        "ass:sequential-randomization",
+        "ass:availability-window",
+        "ass:availability-support",
+        "ass:common-floor",
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "def:schedule-family",
+        "def:target",
+        "def:optimized-radius",
+        "def:minimax-length",
+        "lem:coverage-budget",
+        "thm:projected-aipw-upper",
+        "prop:one-unit-exact"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem closes the parent's fixed-floor converse and identifies coverage, rather than positivity alone, as the source of the exact phase transition.",
+      "gap": "No cited adaptive-inference, minimax-confidence-set, or NCC paper gives an if-and-only-if floor boundary for comparison with all honest variable-length procedures.",
+      "consumer": "Experimenters obtain a diagnostic: certify every available-arm probability strictly above the intended error level before interpreting the optimized AIPW radius as uniformly minimax-competitive."
+    },
+    {
+      "id": "prop:one-unit-exact",
+      "kind": "proposition",
+      "statement": "In \\(\\mathcal E_1\\) at \\(\\Gamma=0\\), \\[\\mathfrak L_\\alpha^{(1)}=2M[p_{\\mathrm{floor}}-\\alpha]_+,\\qquad \\mathfrak R_\\alpha^{(1)}=\\min\\left\\{2M,M\\sqrt{\\frac{8p_{\\mathrm{floor}}}{\\alpha(1-p_{\\mathrm{floor}})}}\\right\\}.\\] Hence \\(\\mathfrak R_\\alpha^{(1)}=2M\\) when \\(p_{\\mathrm{floor}}>\\alpha\\), while \\(\\mathfrak L_\\alpha^{(1)}=0<\\mathfrak R_\\alpha^{(1)}\\) when \\(p_{\\mathrm{floor}}\\le\\alpha\\). For every \\(\\Gamma\\in[0,4M]\\), the same experiment satisfies \\[\\mathfrak L_\\alpha^{(1)}=(1-\\alpha)D+(2M-D)[p_{\\mathrm{floor}}-\\alpha]_+,\\qquad \\mathfrak L_\\alpha^{\\mathrm{cc}}=2M(1-\\alpha),\\] and therefore \\(\\mathfrak L_\\alpha^{(1)}<\\mathfrak L_\\alpha^{\\mathrm{cc}}\\) if and only if \\(\\Gamma<2M\\).",
+      "free_symbols": [
+        "E_one",
+        "Gamma",
+        "L_one",
+        "alpha",
+        "M",
+        "p_floor",
+        "R_one",
+        "D_drift",
+        "L_cc"
+      ],
+      "depends_on": [
+        "ass:availability-window",
+        "ass:common-floor",
+        "ass:bounded-outcomes",
+        "ass:control-tv",
+        "ass:kernel-form",
+        "ass:uniform-honesty",
+        "def:one-unit-experiment",
+        "def:honest-kernel-class",
+        "def:minimax-length",
+        "def:concurrent-minimax"
+      ],
+      "status": "to-prove",
+      "justification": "The exact continuous experiment proves both necessity of the strict phase and a genuine all-kernel NCC borrowing criterion in a legal platform family.",
+      "gap": "The parent's finite-grid witness did not settle the continuum coefficient, and the published NCC efficiency comparison does not optimize over variable-length confidence procedures.",
+      "consumer": "The one-unit formula is a calibration and unit-test benchmark for numerical primal--dual solvers used in platform-trial sensitivity analysis."
+    },
+    {
+      "id": "prop:sharp-boundary-order",
+      "kind": "proposition",
+      "statement": "For \\(p_{\\mathrm{floor}}>\\alpha\\), the best uniform constant obeys \\[\\frac{2}{p_{\\mathrm{floor}}-\\alpha}\\le C_{\\mathrm{opt}}(\\alpha,p_{\\mathrm{floor}})\\le\\frac{8}{p_{\\mathrm{floor}}-\\alpha}\\sqrt{\\frac{1-p_{\\mathrm{floor}}}{\\alpha p_{\\mathrm{floor}}}}.\\] Consequently, for fixed \\(\\alpha\\), \\(C_{\\mathrm{opt}}(\\alpha,p_{\\mathrm{floor}})\\asymp_\\alpha(p_{\\mathrm{floor}}-\\alpha)^{-1}\\) as \\(p_{\\mathrm{floor}}\\downarrow\\alpha\\).",
+      "free_symbols": [
+        "p_floor",
+        "alpha",
+        "C_opt"
+      ],
+      "depends_on": [
+        "def:optimal-comparison-constant",
+        "thm:floor-phase-frontier",
+        "prop:one-unit-exact"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition shows that deterioration near the phase boundary is intrinsic rather than an artifact of the constructive proof.",
+      "gap": "Existing adaptive AIPW width bounds do not have an all-procedure lower witness that determines the necessary boundary order.",
+      "consumer": "Designers can quantify how much separation above the nominal error level is required for a practically useful competitiveness constant."
+    },
+    {
+      "id": "oeq:intrinsic-strict-ncc-gain",
+      "kind": "openendedquestion",
+      "statement": "Using the experiment-comparison handle, characterize a primitive necessary and sufficient condition for \\(\\mathfrak L_\\alpha^\\star<\\mathfrak L_\\alpha^{\\mathrm{cc}}\\) in general continuous outcome-adaptive platform designs, or prove that no criterion depending only on \\((\\Gamma,p_{\\mathrm{floor}},\\alpha,S)\\) can be necessary and sufficient by constructing two admissible designs with the same four scalars and opposite strict-gain status. The characterization must compare the unrestricted full-record and concurrent-record interval kernels and must retain the information carried by realized propensity vectors.",
+      "free_symbols": [
+        "H_gain",
+        "L_star",
+        "alpha",
+        "L_cc",
+        "Gamma",
+        "p_floor",
+        "S_weight"
+      ],
+      "depends_on": [
+        "def:strict-gain-handle",
+        "def:minimax-length",
+        "def:concurrent-minimax",
+        "prop:one-unit-exact"
+      ],
+      "status": "to-prove",
+      "justification": "AIPW KKT improvement is neither necessary nor sufficient for strict gain among all honest interval kernels.",
+      "gap": "Santacatterina et al. compare influence functions and the parent compares AIPW objectives; neither supplies an intrinsic comparison of the two observed-data experiments.",
+      "consumer": "A regulator or trial designer needs to know whether nonconcurrent outcomes improve the best honest procedure, not merely whether they reduce one estimator's variance proxy."
+    }
+  ],
+  "sampling_model": {
+    "design": "A known finite-horizon randomization law assigns each unit using probabilities \\(p_{bi}(z\\mid H_{bi})\\) measurable with respect to the observed pre-assignment history; outcomes may alter all later propensities.",
+    "units": "Potential outcomes are fixed and bounded, block membership is fixed, there is no cross-unit interference, and the assignment mechanism is the only experimental randomness.",
+    "treatment": "The shared control is available in every block, while the focal arm is available exactly on the proper window \\(W\\); unavailable arms have structural probability zero.",
+    "overlap": "Every available arm has probability at least the common floor \\(p_{\\mathrm{floor}}\\in(0,1/2]\\) at every compatible history.",
+    "nuisance_estimation": "The predictable regressions \\(m_{bi}(z)\\in[-M,M]\\) may be arbitrary and need not be consistent; they enter only the constructive predictable-AIPW interval.",
+    "procedure_randomization": "An interval procedure may use independent auxiliary randomization and may have variable length; coverage and expected length are evaluated under the same extended design law."
+  },
+  "estimand_functional": "\\(M(p_{\\mathrm{floor}}-\\alpha)s\\le \\mathfrak L_\\alpha^\\star\\le2\\mathfrak R_\\alpha^\\star\\le \\dfrac{8}{p_{\\mathrm{floor}}-\\alpha}\\sqrt{\\dfrac{1-p_{\\mathrm{floor}}}{\\alpha p_{\\mathrm{floor}}}}\\mathfrak L_\\alpha^\\star\\)",
+  "target_estimand": "\\(\\tau_W=\\sum_{b\\in W}q_b n_b^{-1}\\sum_{i=1}^{n_b}\\{Y_{bi}(z_1)-Y_{bi}(z_0)\\}\\)",
+  "bibliography": [
+    {
+      "key": "HadadHirshbergZhanWagerAthey2021",
+      "citation": "Vitor Hadad, David A. Hirshberg, Ruohan Zhan, Stefan Wager, and Susan Athey. Confidence Intervals for Policy Evaluation in Adaptive Experiments. \\emph{Proceedings of the National Academy of Sciences}, 118(15), 2021. DOI:10.1073/pnas.2014602118. arXiv:1911.02768."
+    },
+    {
+      "key": "CookMishlerRamdas2024",
+      "citation": "Thomas Cook, Alan Mishler, and Aaditya Ramdas. Semiparametric Efficient Inference in Adaptive Experiments. \\emph{Proceedings of Machine Learning Research}, 236:1033--1064, 2024. arXiv:2311.18274."
+    },
+    {
+      "key": "HamBojinovLindonTingley2023Bandits",
+      "citation": "Dae Woong Ham, Iavor Bojinov, Michael Lindon, and Martin Tingley. Design-Based Inference for Multi-Arm Bandits. Working paper, 2023. arXiv:2302.14136."
+    },
+    {
+      "key": "LiZhao2026",
+      "citation": "Xinran Li and Anqi Zhao. Design-Based Theory for Causal Inference from Adaptive Experiments. arXiv:2602.21998, 2026."
+    },
+    {
+      "key": "EvansHansenStark2005",
+      "citation": "Steven N. Evans, Bendek B. Hansen, and Philip B. Stark. Minimax Expected Measure Confidence Sets for Restricted Location Parameters. \\emph{Bernoulli}, 11(4):571--590, 2005. DOI:10.3150/bj/1126126761."
+    },
+    {
+      "key": "ArmstrongKolesar2018",
+      "citation": "Timothy B. Armstrong and Michal Kolesar. Optimal Inference in a Class of Regression Models. \\emph{Econometrica}, 86(2):655--683, 2018. DOI:10.3982/ECTA14434. arXiv:1511.06028."
+    },
+    {
+      "key": "ChenAndrews2026",
+      "citation": "Jiafeng Chen and Isaiah Andrews. Optimal Conditional Inference in Adaptive Experiments. Public manuscript, 2026 version. arXiv:2309.12162."
+    },
+    {
+      "key": "SantacatterinaMacchiavelliGironZhangDiaz2025",
+      "citation": "Michele Santacatterina, Federico Macchiavelli Giron, Xinyi Zhang, and Ivan Diaz. Identification and Estimation of Causal Effects Using Non-Concurrent Controls in Platform Trials. \\emph{Statistics in Medicine}, 2025. DOI:10.1002/sim.70017. arXiv:2404.19118."
+    },
+    {
+      "key": "FreidlingZhaoGao2026",
+      "citation": "Tobias Freidling, Qingyuan Zhao, and Zijun Gao. Selective Randomization Inference for Adaptive Experiments. \\emph{Journal of the Royal Statistical Society: Series B}, 2026. DOI:10.1093/jrsssb/qkag081. arXiv:2405.07026."
+    },
+    {
+      "key": "BofillRoigEtAl2023Scoping",
+      "citation": "Marta Bofill Roig, Cora Burgwinkel, Ursula Garczarek, Franz Koenig, Martin Posch, Quynh Nguyen, and Katharina Hees. On the Use of Non-Concurrent Controls in Platform Trials: A Scoping Review. \\emph{Trials}, 24:408, 2023. DOI:10.1186/s13063-023-07398-7. arXiv:2211.09547."
+    },
+    {
+      "key": "SudijonoDobribanTchetgenTchetgen2026",
+      "citation": "Timothy Sudijono, Edgar Dobriban, and Eric Tchetgen Tchetgen. Sharp Minimax Theory for Randomized Experiments. arXiv:2608.13822, 2026."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "HadadHirshbergZhanWagerAthey2021",
+      "comparator_claim": "Theorem 1 gives sufficient conditions for consistency and asymptotic normality of an adaptively weighted AIPW arm-value estimator, while the Discussion leaves optimal interval width open.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HamBojinovLindonTingley2023Bandits",
+      "comparator_claim": "Theorem 1 constructs asymptotically valid design-based confidence intervals for finite-population arm means and contrasts under adaptive assignment.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiZhao2026",
+      "comparator_claim": "Theorem 4 proves design unbiasedness and a martingale central limit theorem for finite-population AIPW under general adaptive randomization.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "EvansHansenStark2005",
+      "comparator_claim": "Theorem 1 and Corollary 1 characterize minimax expected-measure confidence sets in fixed dominated experiments through Bayes--minimax duality and test inversion.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2018",
+      "comparator_claim": "Theorems 3.1--3.2 construct optimal or efficiency-bounded honest confidence intervals in Gaussian regression experiments using convex-class modulus and worst-case bias geometry.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChenAndrews2026",
+      "comparator_claim": "Theorem 1 identifies the leftover sufficient statistic and optimal conditional Gaussian inference for location-invariant batched adaptive experiments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SantacatterinaMacchiavelliGironZhangDiaz2025",
+      "comparator_claim": "Theorem 3 gives efficient influence functions for the concurrent effect and shows equality of the concurrent-only and pooled-control influence functions under deterministic availability.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SudijonoDobribanTchetgenTchetgen2026",
+      "comparator_claim": "The paper derives sharp minimax point-estimation risk and an attaining design-estimator pair for a finite-population randomized experiment with binary outcomes.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Adaptive allocation can make a conservative predictable-AIPW radius look arbitrarily worse than an unrestricted honest interval unless every available arm is randomized more often than the nominal error budget. In the bounded fixed finite-population platform model, the exact boundary is \\(p_{\\mathrm{floor}}=\\alpha\\). Above it, a product-uniform prior, posterior factorization through the adaptive record, and a weighted-uniform density bound give \\(\\mathfrak L_\\alpha^\\star\\ge M(p_{\\mathrm{floor}}-\\alpha)s\\), while concurrent weights give the matching-scale constructive upper bound and the displayed uniform comparison. At and below the boundary, a continuous one-unit experiment has zero minimax expected length but positive clipped radius. The same experiment proves the unavoidable \\((p_{\\mathrm{floor}}-\\alpha)^{-1}\\) blow-up and gives an exact all-kernel strict-NCC-gain result; the corresponding general continuous-design criterion remains open.",
+  "project_justification": {
+    "gap": "Adaptive-inference papers control named IPW or AIPW procedures, and fixed-experiment decision theory studies minimax expected confidence-set measure. Neither literature compares a clipped predictable-AIPW radius with every measurable uniformly honest variable-length interval under outcome-adaptive revelation of fixed potential outcomes. The downgraded parent isolated the fixed-common-floor converse but did not solve it.",
+    "niche": "The relevant geometry is a coverage budget rather than an asymptotic effective sample size. An event of probability at most \\(\\alpha\\) can be sacrificed completely, so strict positivity does not suffice; posterior missing information becomes uniformly enforceable only when the common available-arm floor exceeds \\(\\alpha\\).",
+    "fill": "The project derives the exact if-and-only-if phase, gives explicit constants, verifies the posterior factorization under arbitrary outcome feedback, and solves the continuous one-unit experiment exactly. It also isolates the broader strict-NCC-gain characterization as open content rather than substituting an AIPW optimizer condition."
+  },
+  "related_work": "HadadHirshbergZhanWagerAthey2021 motivates predictable AIPW weighting by the instability of ordinary inverse-propensity inference and explicitly leaves width optimality open. CookMishlerRamdas2024 develops semiparametric efficiency and confidence sequences for adaptive AIPW, while HamBojinovLindonTingley2023Bandits and LiZhao2026 establish design-based finite-population inference under adaptive assignment. These papers inform the constructive upper interval but do not optimize over all honest variable-length kernels. EvansHansenStark2005 supplies the test-inversion and Bayes--minimax perspective for expected confidence-set measure, and ArmstrongKolesar2018 supplies the bias-aware interval architecture in Gaussian convex models. ChenAndrews2026 studies optimal conditional inference in batched Gaussian adaptive experiments, a different coverage criterion and sampling model. SantacatterinaMacchiavelliGironZhangDiaz2025 shows that deterministic availability can eliminate first-order semiparametric gains from pooled controls, but its influence-function comparison is not an all-kernel minimax comparison. FreidlingZhaoGao2026 makes the adaptive information set explicit through a sequential factorization; the present lower bound adapts that logic to a least-favorable prior on fixed schedules. SudijonoDobribanTchetgenTchetgen2026 optimizes unrestricted finite-population point-estimation risk, not honest interval length.",
+  "technical_internal_limitation": "The general lower bound deliberately bypasses the parent's separated two-prior information modulus. In the exact one-unit experiment, every pair of priors with separated target supports has observed-law total variation at least \\(1-p_{\\mathrm{floor}}\\); hence that modulus can be zero when \\(\\alpha<p_{\\mathrm{floor}}\\le2\\alpha\\) even though \\(\\mathfrak L_\\alpha^\\star>0\\). The product-posterior coverage certificate is therefore load bearing. The constant \\(8\\sqrt{(1-p_{\\mathrm{floor}})/(\\alpha p_{\\mathrm{floor}})}\\) is explicit but is not asserted to be optimal.",
+  "honest_scope": "The theorem concerns a fixed finite population and known randomization, with assignment as the only experimental randomness. The prior is solely a minimax lower-bound device. The positive theorem is uniform over block sizes, window weights, drift budgets, bounded schedules, and outcome-adaptive propensity rules satisfying the common available-arm floor. The negative phase is an existential failure of uniform comparison, not a claim that every design has zero minimax length. When assignments are outcome oblivious, the posterior factorization reduces to ordinary independent missingness; this is the required standard-case reduction. The exact one-unit formula supplies the single-unit reduction. A general intrinsic necessary and sufficient condition for strict NCC gain remains open.",
+  "seeds": [
+    "floor-phase-all-kernel-comparison",
+    "adaptive-posterior-missing-mass",
+    "intrinsic-ncc-experiment-comparison",
+    "unknown-drift-adaptation",
+    "floor-constrained-regret-inference-design",
+    "conditional-unconditional-length-frontier",
+    "one-unit-drift-phase",
+    "finite-tree-coverage-duality",
+    "time-uniform-minimax-width-phase"
+  ],
+  "seed_details": [
+    {
+      "id": "floor-phase-all-kernel-comparison",
+      "anchor_ref": "exp_platform_ncc_drift_minimax_frontier/v1",
+      "anchor_locator": "Open-ended Question on the fixed common propensity floor and the terminal review directive.",
+      "motif": "M6+M7",
+      "target_tier": "field",
+      "kernel": "Characterize \\(p_{\\mathrm{floor}}>\\alpha\\) as necessary and sufficient for a finite uniform comparison between the optimized clipped predictable-AIPW radius and unrestricted honest minimax expected length, and derive the sharp blow-up order at the boundary.",
+      "first_changed_proof_step": "Replace the parent's separated two-prior modulus by a product-uniform prior and a posterior missing-squared-weight-mass inequality under the actual adaptive record.",
+      "destination_search": "Searches combining adaptive experiments, propensity floors, confidence-interval expected length, and minimaxity returned adaptive Wald, conditional Gaussian, and fixed-experiment minimax papers, but no coverage-level floor phase theorem.",
+      "red_team": "The result is immediate from the parent's fixed-floor open question once positivity is imposed.",
+      "rebuttal": "Positivity alone was the parent's unresolved gap; the new step is an all-kernel Bayes lower bound that survives arbitrary outcome feedback and identifies the exact \\(p_{\\mathrm{floor}}-\\alpha\\) coverage budget.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "status": "selected"
+    },
+    {
+      "id": "adaptive-posterior-missing-mass",
+      "anchor_ref": "FreidlingZhaoGao2026",
+      "anchor_locator": "Proposition on computability via the adaptive-record factorization and Section on discussion and outlook.",
+      "motif": "M7",
+      "target_tier": "field",
+      "kernel": "Give a filtration-level necessary and sufficient measurability condition under which every unrevealed potential-outcome coordinate retains its product prior after conditioning on an outcome-adaptive record, then convert it into a sharp weighted-missing-mass coverage inequality.",
+      "first_changed_proof_step": "Replace selective conditioning on a design statistic by disintegration of a least-favorable product prior over fixed schedules along every realized assignment path.",
+      "destination_search": "The target--method search found selective randomization factorization and adaptive finite-population martingale theory, but no posterior-product theorem used for unrestricted confidence-length lower bounds.",
+      "red_team": "This is only the elementary principle that unobserved independent variables remain independent.",
+      "rebuttal": "Outcome-dependent assignment makes the record likelihood schedule dependent; the theorem must show pathwise that every factor is measurable with respect to revealed coordinates and must identify the exact failure condition.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "status": "survived"
+    },
+    {
+      "id": "intrinsic-ncc-experiment-comparison",
+      "anchor_ref": "SantacatterinaMacchiavelliGironZhangDiaz2025",
+      "anchor_locator": "Theorem 3 on efficient influence functions, the deterministic-availability equality discussion, and the Conclusion.",
+      "motif": "M6",
+      "target_tier": "flagship",
+      "kernel": "Characterize strict nonconcurrent-control gain for unrestricted honest interval kernels by an intrinsic comparison of the full and concurrent observed-data experiments, with necessity and sufficiency under outcome-adaptive propensity metadata.",
+      "first_changed_proof_step": "Replace equality of two efficient influence functions by a comparison of the coverage-risk sets induced by the two observation maps.",
+      "destination_search": "Adjacent searches found semiparametric NCC efficiency, bounded-bias auxiliary-data minimax intervals, and Bayes--minimax confidence-set duality, but no all-kernel strict-gain criterion for adaptive platform records.",
+      "red_team": "Blackwell comparison makes the answer tautological and yields no usable criterion.",
+      "rebuttal": "The required result must reduce the comparison to a primitive observed-law or coverage-polytope condition and must account for propensity metadata that can encode omitted controls.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "status": "survived-as-open-content"
+    },
+    {
+      "id": "unknown-drift-adaptation",
+      "anchor_ref": "exp_platform_ncc_drift_minimax_frontier/v1",
+      "anchor_locator": "The honest-scope clause that fixes the drift budget and the reviewer strengthening path on unknown drift.",
+      "motif": "M3+M11",
+      "target_tier": "field",
+      "kernel": "Derive the between-drift-class modulus and the sharp price of honest adaptation to an unknown total-variation budget, including discontinuity at \\(p_{\\mathrm{floor}}=\\alpha\\).",
+      "first_changed_proof_step": "Replace the fixed-budget bias optimizer by a nested-class testing problem and compute the between-class modulus under the adaptive randomization law.",
+      "destination_search": "Cai--Low and Chen--Zhang--Ye provide the fixed Gaussian adaptation template; no adaptive finite-population NCC analogue was located.",
+      "red_team": "The impossibility follows directly from generic nonparametric confidence-interval adaptation theory.",
+      "rebuttal": "The adaptive record law and the coverage-level positivity phase change the between-class geometry, so the Gaussian result does not transfer by model inclusion.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "status": "dropped-after-scan"
+    },
+    {
+      "id": "floor-constrained-regret-inference-design",
+      "anchor_ref": "HadadHirshbergZhanWagerAthey2021",
+      "anchor_locator": "Introduction on welfare-oriented adaptive allocation and Discussion question on confidence-interval optimality.",
+      "motif": "M13+M14",
+      "target_tier": "flagship",
+      "kernel": "Choose an adaptive platform design that optimizes welfare regret subject to an all-kernel expected-length competitiveness constraint, and certify the optimal exploration floor.",
+      "first_changed_proof_step": "Promote the predictable propensity sequence from a given design to the decision variable and combine a regret lower bound with the phase constraint \\(p_{\\mathrm{floor}}>\\alpha\\).",
+      "destination_search": "The design search found Neyman-regret and adaptive treatment-choice optimality papers, but none with unrestricted confidence-length competitiveness as the inference constraint.",
+      "red_team": "A fixed exploration floor trivially enforces inference and standard bandit analysis supplies regret.",
+      "rebuttal": "The nontrivial object is the certified Pareto frontier and the optimal distance above \\(\\alpha\\), not feasibility of a hand-chosen floor.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "status": "dropped-after-scan"
+    },
+    {
+      "id": "conditional-unconditional-length-frontier",
+      "anchor_ref": "HadadHirshbergZhanWagerAthey2021",
+      "anchor_locator": "Theorem on adaptively weighted normal inference and Discussion question on optimal width.",
+      "motif": "M2",
+      "target_tier": "field",
+      "kernel": "Derive the observed-design information threshold at which optimal conditional adaptive intervals and unrestricted unconditionally honest intervals have comparable expected length.",
+      "first_changed_proof_step": "Replace martingale studentization by a two-experiment comparison between conditioning on the realized design and averaging over it.",
+      "destination_search": "Chen--Andrews characterizes optimal conditional Gaussian inference, but does not compare it with the unrestricted finite-population minimax expected-length value under bounded outcomes.",
+      "red_team": "Conditional intervals are necessarily longer, so the ordering is immediate.",
+      "rebuttal": "Ordering does not determine a quantitative equivalence frontier, and conditioning can disclose different information under outcome-adaptive designs.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "status": "dropped-after-scan"
+    },
+    {
+      "id": "one-unit-drift-phase",
+      "anchor_ref": "exp_platform_ncc_drift_minimax_frontier/v1",
+      "anchor_locator": "The three-block kill-test construction and the reviewer objection to an AIPW-only strict-gain claim.",
+      "motif": "M6",
+      "target_tier": "subfield",
+      "kernel": "Solve the continuous one-window-unit minimax interval problem for every drift budget and characterize strict all-kernel NCC gain by \\(\\Gamma<2M\\).",
+      "first_changed_proof_step": "Replace a finite-grid randomized-interval linear program by Tonelli integration over a continuum prior and a two-branch coverage-allocation program.",
+      "destination_search": "The exact continuum confidence-allocation calculation was not found in platform-trial or bounded-bias auxiliary-data papers.",
+      "red_team": "A one-unit experiment is a toy calculation with no general content.",
+      "rebuttal": "It supplies the exact boundary witness, proves the necessary blow-up order, and falsifies any universal strict-gain rule based only on an AIPW optimizer.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "status": "retained-as-sharpness-result"
+    },
+    {
+      "id": "finite-tree-coverage-duality",
+      "anchor_ref": "EvansHansenStark2005",
+      "anchor_locator": "Theorem 1 and Corollary 1 on Bayes--minimax duality for randomized confidence sets.",
+      "motif": "M4",
+      "target_tier": "field",
+      "kernel": "Give an exact finite assignment-tree primal--dual representation of unrestricted honest interval length and use it to certify strict NCC gain.",
+      "first_changed_proof_step": "Replace a dominated fixed experiment with schedule-indexed adaptive record probabilities and reduce interval actions to target-value endpoint hulls.",
+      "destination_search": "Confidence-set duality exists for fixed dominated experiments, but no adaptive platform schedule program with concurrent-record coarsening was located.",
+      "red_team": "This is a routine finite linear-program transcription of coverage constraints.",
+      "rebuttal": "The transcription is useful as a certificate but lacks a continuous reduction, so it is retained only as a supporting route and not as the selected kernel.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "status": "dropped-as-standalone"
+    },
+    {
+      "id": "time-uniform-minimax-width-phase",
+      "anchor_ref": "HamBojinovLindonTingley2023Bandits",
+      "anchor_locator": "Theorems on exact and asymptotic design-based confidence sequences and their discussion of dependence on the minimum propensity.",
+      "motif": "M14+M11",
+      "target_tier": "field",
+      "kernel": "Determine whether an anytime-valid analogue of the coverage-floor phase exists for minimax expected confidence-sequence width under bounded finite-population bandit outcomes.",
+      "first_changed_proof_step": "Replace fixed-horizon global miscoverage spending by a time-uniform error-spending or e-process constraint and derive the corresponding missing-mass boundary.",
+      "destination_search": "Existing design-based and semiparametric confidence sequences give constructive widths, not unrestricted minimax expected-width phase transitions.",
+      "red_team": "The answer is obtained by substituting an anytime-valid boundary for \\(\\alpha\\).",
+      "rebuttal": "Time-uniform coverage couples all horizons, so no scalar substitution is valid without a new sequential minimax duality argument.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 1,
+        "consumer_value": 4
+      },
+      "status": "dropped-after-scan"
+    }
+  ],
+  "literature_map": "The selected seed sits between four literatures. Hadad et al. (2021, Theorem 1 and Discussion) and Cook, Mishler, and Ramdas (2024, Theorems 1--3) stabilize AIPW inference under adaptive assignment but do not benchmark width against every honest interval kernel. Ham et al. (2023, Theorem 1) and Li and Zhao (2026, Theorem 4) supply finite-population design-based martingale inference under adaptive assignment, but their targets are validity and limit theory rather than minimax expected length. Evans, Hansen, and Stark (2005, Theorem 1 and Corollary 1) characterize minimax expected measure through test inversion and Bayes--minimax duality in fixed dominated experiments; Armstrong and Kolesar (2018, Theorems 3.1--3.2) optimize bias-aware Gaussian intervals over convex classes. Chen and Andrews (2026 version, Theorem 1) derive optimal conditional inference in batched Gaussian adaptive experiments, which differs from unconditional finite-population honesty. Santacatterina et al. (2025, Theorem 3) compare efficient influence functions for concurrent-only and pooled controls, but not unrestricted variable-length kernels. Sudijono, Dobriban, and Tchetgen Tchetgen (2026) optimize finite-population point-estimation risk rather than confidence length. Searches of these target--method pairs found no theorem with the exact \\(p_{\\mathrm{floor}}=\\alpha\\) boundary or the displayed all-kernel comparison.",
+  "novelty_justification": "The new object is the coverage-budget margin p_floor-alpha. Posterior factorization of a product-uniform fixed-schedule prior and the missing squared-weight mass yield the positive-phase all-kernel lower bound. The exact continuous one-unit experiment proves necessity and the sharp inverse-margin blow-up order, distinguishing the result from positivity assumptions, adaptive-AIPW limit theory, conditional Gaussian optimality, and fixed-experiment minimax theory.",
+  "message": "Authored and validated the typed proposal core. Nine anchored seeds were evaluated; the exact propensity-floor phase theorem was selected, with the general strict-NCC criterion retained as open content.",
+  "literature_checklist": [
+    {
+      "author": "Hadad, Hirshberg, Zhan, Wager, and Athey",
+      "year": 2021,
+      "venue": "Proceedings of the National Academy of Sciences",
+      "bibkey": "HadadHirshbergZhanWagerAthey2021",
+      "one_line": "Theorem 1 gives adaptive-AIPW asymptotic normality, and the Discussion leaves optimal interval width open.",
+      "relevant_to": "thm:projected-aipw-upper"
+    },
+    {
+      "author": "Ham, Bojinov, Lindon, and Tingley",
+      "year": 2023,
+      "venue": "Working paper",
+      "bibkey": "HamBojinovLindonTingley2023Bandits",
+      "one_line": "Theorem 1 gives design-based adaptive confidence intervals for fixed finite-population arm contrasts.",
+      "relevant_to": "thm:projected-aipw-upper"
+    },
+    {
+      "author": "Li and Zhao",
+      "year": 2026,
+      "venue": "arXiv preprint",
+      "bibkey": "LiZhao2026",
+      "one_line": "Theorem 4 develops finite-population AIPW martingale inference for general adaptive designs.",
+      "relevant_to": "lem:posterior-factorization"
+    },
+    {
+      "author": "Evans, Hansen, and Stark",
+      "year": 2005,
+      "venue": "Bernoulli",
+      "bibkey": "EvansHansenStark2005",
+      "one_line": "Theorem 1 and Corollary 1 provide Bayes–minimax duality for randomized expected-measure confidence sets in fixed experiments.",
+      "relevant_to": "lem:coverage-budget"
+    },
+    {
+      "author": "Armstrong and Kolesar",
+      "year": 2018,
+      "venue": "Econometrica",
+      "bibkey": "ArmstrongKolesar2018",
+      "one_line": "Theorems 3.1–3.2 connect worst-case bias, modulus geometry, and efficient honest intervals in Gaussian regression.",
+      "relevant_to": "thm:projected-aipw-upper"
+    },
+    {
+      "author": "Chen and Andrews",
+      "year": 2026,
+      "venue": "Public manuscript",
+      "bibkey": "ChenAndrews2026",
+      "one_line": "Theorem 1 characterizes the sufficient statistic for optimal conditional inference in location-invariant batched adaptive experiments.",
+      "relevant_to": "thm:floor-phase-frontier"
+    },
+    {
+      "author": "Santacatterina, Macchiavelli Giron, Zhang, and Diaz",
+      "year": 2025,
+      "venue": "Statistics in Medicine",
+      "bibkey": "SantacatterinaMacchiavelliGironZhangDiaz2025",
+      "one_line": "Theorem 3 compares concurrent-only and pooled-control efficient influence functions under platform availability.",
+      "relevant_to": "oeq:intrinsic-strict-ncc-gain"
+    },
+    {
+      "author": "Freidling, Zhao, and Gao",
+      "year": 2026,
+      "venue": "Journal of the Royal Statistical Society: Series B",
+      "bibkey": "FreidlingZhaoGao2026",
+      "one_line": "The computability proposition factors the adaptive record after conditioning on selection information.",
+      "relevant_to": "lem:posterior-factorization"
+    },
+    {
+      "author": "Sudijono, Dobriban, and Tchetgen Tchetgen",
+      "year": 2026,
+      "venue": "arXiv preprint",
+      "bibkey": "SudijonoDobribanTchetgenTchetgen2026",
+      "one_line": "The paper optimizes unrestricted finite-population point-estimation risk, leaving honest interval length and adaptive assignment untreated.",
+      "relevant_to": "thm:floor-phase-frontier"
+    }
+  ]
+}

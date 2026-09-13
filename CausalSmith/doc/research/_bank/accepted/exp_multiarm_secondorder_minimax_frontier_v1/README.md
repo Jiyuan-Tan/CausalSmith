@@ -26,6 +26,8 @@ token_usage:
   pipeline_claude_tokens: 264523896
   total_tokens_consumed: null
 banked_on: "2026-09-02"
+paper_score: 6.1
+paper_score_rationale: "The paper delivers a substantial verified fixed-K minimax-rate result and useful finite-dimensional reductions, but its novelty positioning, organization, and presentation of several certificate and attainment claims require major repair before the contribution is journal-ready."
 ---
 
 # exp_multiarm_secondorder_minimax_frontier / v1 — Accepted

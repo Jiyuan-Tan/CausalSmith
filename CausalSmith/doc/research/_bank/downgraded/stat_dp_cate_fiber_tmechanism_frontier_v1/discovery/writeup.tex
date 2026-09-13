@@ -1,0 +1,921 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}dp\_\allowbreak{}cate\_\allowbreak{}fiber\_\allowbreak{}tmechanism\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Unknown propensity can make separated pointwise CATE fibers have identical one-record nuisance mixtures while leaving an exact two-record signal. On a smooth signed binary family inside the unchanged exact-uniform Hölder class, clipping the transformed outcome preserves every signed-family moment and makes the occupancy-normalized pair score valid on all bounded-outcome datasets. Its replacement sensitivity is at most \(8/3\), and adding \(\operatorname{Laplace}(8/(3\epsilon))\) noise gives signed-family error \(C\exp(-ckp_2a^2b^2)+C\exp(-c\epsilon kp_2ab)\) without a nuisance-cardinality logarithm. This radius conclusion is limited to sparse occupancy: because \(v\asymp\ell^d\), it requires \(n\delta^{d/q}\lesssim1\). At \(\delta=r_F\) this entails \(\epsilon\gtrsim n^{-1+q/d+q/\gamma}\), and at \(\delta=r_{\mathrm{pair}}\) it requires \(d\ge2q+qd/\gamma\), with strict inequality needed to accommodate every fixed enlargement of the separation constant. Dense occupancy and the full-class target-fiber lift remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Simple private tests use additive one-record likelihood increments, while generic private selection and T-mechanisms control finite covers through cardinality terms. The coupled CATE fibers here have intersecting one-record convex hulls, and published results do not supply either a nuisance-independent second-order score certificate for arbitrary least-favorable priors over the full Hölder fibers or a dense-occupancy extension of the displayed signed-family pair test.
+
+\paragraph{Niche.} On the explicit signed family, a higher-order private test uses a signal common to every nuisance profile when two observations occupy the same public localization cell. Realized occupancy normalization and a clipped bounded-outcome mark yield all-dataset replacement sensitivity at most \(8/3\) and preserve the \(n^2\epsilon\) pair-information balance. The associated \(r_F\) and \(r_{\mathrm{pair}}\) interpretations are asserted only when \(n\delta^{d/q}\lesssim1\); they are not dense-occupancy or full-class upper bounds.
+
+\paragraph{Fill.} The project constructs and audits a pair test on a legal smooth signed two-fiber family, proves an explicit pure-private test and risk bound for that family, gives an exact finite two-record diagnostic experiment, and states—without resolving—the full-class lift through one precisely defined weighted shell functional.
+
+\section{Related work}
+
+Kennedy, Balakrishnan, Robins, and Wasserman (2024), Theorems 1--2 and Section 5, define the nonprivate Hölder pointwise-CATE benchmark and localized higher-order geometry; those results inform the smooth family but are not private upper comparators. Canonne et al. (2019), Section 3, construct optimal private simple tests from clamped one-record likelihood ratios; the one-record convex-hull obstruction here explains why that additive representation cannot distinguish the displayed composite fibers. Acharya, Sun, and Zhang (2021) provide central-private mixture converses through Hamming transport; converse consequences from the present embedded subclass transfer to any anchor class containing it, but this does not transfer the signed-family upper test. Asi et al. (2024), Section 4.1, Theorem 13, Lemma 15, and Proposition 16, control a pure-private T-mechanism over finite total-variation covers with \(\log|\mathcal P_\eta|\); the present common-orientation pair test avoids catalogue selection only on its explicit signed family and is not a generic strengthening. Bun et al. (2021), Theorem 1.1 and Corollary 1.2, give pure-private hypothesis and cover selection with \(\log m\) and \(\log|\mathcal C_\alpha|\) costs. Chaudhuri et al. (2024) stabilize private U-statistics with local Hájek projections, whereas the exact core normalization and shared causal second moment used here are family-specific. Niu et al. (2022) give private CATE meta-learners without a pure-private pointwise Hölder frontier. Schröder, Melnychuk, and Feuerriegel (2025), Theorems 1 and 3, study observational Neyman-orthogonal finite and functional CATE releases under approximate \((\epsilon,\delta)\)-privacy rather than the pure-private composite-fiber problem considered here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta(P)=\tau_P(x_0)\), where \(\tau_P\) is the unique continuous Hölder representative of the conditional causal contrast.
+Primary functional / estimator / diagnostic: \(\widehat\theta_{\mathrm{pair}}=-\frac{ab}{1/4-a^2}\operatorname{sign}\!\left\{\sum_{j=1}^kB_j+\operatorname{Laplace}(8/(3\epsilon))\right\}\).
+\begin{itemize}
+  \item \texttt{d} --- \(\mathbb N\); \texttt{fixed class parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Covariate dimension.}
+  \item \texttt{alpha} --- \((0,\infty)\); \texttt{fixed class parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Hölder smoothness of the propensity score.}
+  \item \texttt{beta} --- \((0,\infty)\); \texttt{fixed class parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Hölder smoothness of the control regression.}
+  \item \texttt{gamma} --- \((0,\infty)\); \texttt{fixed class parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Hölder smoothness of the continuous conditional-\allowbreak{}effect version.}
+  \item \texttt{q} --- \((0,\infty)\); \texttt{coupled nuisance smoothness}
+  \par\smallskip\noindent\emph{Definition.} \(q=\alpha+\beta\).
+  \item \texttt{L} --- \([2,\infty)\); \texttt{fixed class parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common Hölder radius.}
+  \item \texttt{e\_\allowbreak{}0} --- \((0,1/4]\); \texttt{fixed class parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform overlap constant.}
+  \item \texttt{x\_\allowbreak{}0} --- \([0,1]^d\); \texttt{target location}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Interior target point.}
+  \item \texttt{n} --- \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Sample size.}
+  \item \texttt{epsilon} --- \((0,1]\); \texttt{privacy parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Pure central privacy budget.}
+  \item \texttt{c\_\allowbreak{}0} --- \((0,1)\); \texttt{sparse-\allowbreak{}occupancy constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed numerical upper bound on expected occupancy of one core cell.}
+  \item \texttt{h} --- \((0,1/4]\); \texttt{public construction scale}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Macro localization bandwidth.}
+  \item \texttt{ell} --- \((0,h]\); \texttt{public construction scale}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Microcell scale.}
+  \item \texttt{k} --- \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} Number of public microcells, with \(k\asymp h^d/\ell^d\).
+  \item \texttt{v} --- \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} Common probability and volume of a core cell, with \(v\asymp\ell^d\).
+  \item \texttt{X} --- \([0,1]^d\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed covariate.}
+  \item \texttt{A} --- \(\{0,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed treatment.}
+  \item \texttt{Y\_\allowbreak{}0} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential outcome under control.}
+  \item \texttt{Y\_\allowbreak{}1} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential outcome under treatment.}
+  \item \texttt{Y} --- \([-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed bounded outcome.}
+  \item \texttt{O} --- \(\mathcal O=[-1,1]\times\{0,1\}\times[0,1]^d\)
+  \par\smallskip\noindent\emph{Definition.} One observed record \(O=(Y,A,X)\).
+  \item \texttt{P} --- Probability law on \((Y_0,Y_1,A,X)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A causal data-\allowbreak{}generating law.}
+  \item \texttt{P\_\allowbreak{}X} --- Probability law on \([0,1]^d\)
+  \par\smallskip\noindent\emph{Definition.} The covariate marginal of \(P\).
+  \item \texttt{pi} --- \([0,1]^d\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} The continuous Hölder version of \(P(A=1\mid X=x)\) when that version exists.
+  \item \texttt{mu\_\allowbreak{}0} --- \([0,1]^d\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} The continuous Hölder version of \(\mathbb E_P[Y\mid A=0,X=x]\) when that version exists.
+  \item \texttt{mu\_\allowbreak{}1} --- \([0,1]^d\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} A measurable version of \(\mathbb E_P[Y\mid A=1,X=x]\).
+  \item \texttt{tau} --- \([0,1]^d\to[-2,2]\); \texttt{continuous conditional average treatment effect}
+  \par\smallskip\noindent\emph{Definition.} The unique continuous Hölder representative of the \(P_X\)-almost-everywhere class \(\mu_1-\mu_0\) when such a representative exists.
+  \item \texttt{theta} --- \([-2,2]\); \texttt{pointwise causal target}
+  \par\smallskip\noindent\emph{Definition.} \(\theta(P)=\tau_P(x_0)\), evaluated using the continuous representative \(\tau_P\).
+  \item \texttt{D\_\allowbreak{}n} --- \(\mathcal O^n\)
+  \par\smallskip\noindent\emph{Definition.} The ordered dataset \(D_n=(O_1,\ldots,O_n)\).
+  \item \texttt{sim\_\allowbreak{}1} --- Binary relation on \(\mathcal O^n\); \texttt{privacy adjacency}
+  \par\smallskip\noindent\emph{Definition.} \(D_n\sim_1D_n'\) when the ordered datasets differ in at most one record by replacement.
+  \item \texttt{M\_\allowbreak{}H} --- \texttt{Class of causal laws}; Laws on \((Y_0,Y_1,A,X)\); \texttt{exact-\allowbreak{}uniform coupled-\allowbreak{}nuisance Hölder class}
+  \item \texttt{T\_\allowbreak{}NP} --- Measurable map \(\mathcal O^n\to[-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic nonprivate estimator.}
+  \item \texttt{R\_\allowbreak{}NP} --- \([0,2]\)
+  \par\smallskip\noindent\emph{Definition.} Nonprivate minimax absolute risk for \(\theta(P)\) over \(\mathcal M_H\).
+  \item \texttt{T\_\allowbreak{}DP} --- Markov kernel from \(\mathcal O^n\) to \([-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} A generic pure \(\epsilon\)-differentially private estimator under replacement adjacency.
+  \item \texttt{R\_\allowbreak{}DP} --- \([0,2]\)
+  \par\smallskip\noindent\emph{Definition.} Pure-private minimax absolute risk for \(\theta(P)\) over \(\mathcal M_H\).
+  \item \texttt{Q\_\allowbreak{}h} --- Cube in \([0,1]^d\)
+  \par\smallskip\noindent\emph{Definition.} The side-\(h\) cube centered at \(x_0\).
+  \item \texttt{C\_\allowbreak{}j} --- Cube in \(Q_h\)
+  \par\smallskip\noindent\emph{Definition.} The \(j\)-th disjoint public core cube, \(j\in\{1,\ldots,k\}\), of volume \(v\).
+  \item \texttt{zeta\_\allowbreak{}h} --- Smooth function \([0,1]^d\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} A public macro cutoff supported in \(Q_h\) and equal to one at \(x_0\) and on every \(C_j\).
+  \item \texttt{psi\_\allowbreak{}j} --- Smooth function \([0,1]^d\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} The \(j\)-th public scale-\(\ell\) profile, equal to one on \(C_j\), with fixed bounded overlap and \(\sum_{j=1}^k\psi_j(x)^2=1\) on \(\operatorname{supp}(\zeta_h)\).
+  \item \texttt{lambda} --- \(\{-1,1\}^k\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nuisance-\allowbreak{}sign vector.}
+  \item \texttt{xi} --- \(\{-1,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Scalar nuisance sign for the constant-\allowbreak{}mixture obstruction.}
+  \item \texttt{s} --- \(\{-1,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Outer target-\allowbreak{}fiber label.}
+  \item \texttt{a} --- \((0,1/8]\)
+  \par\smallskip\noindent\emph{Definition.} Propensity perturbation amplitude calibrated at order \(\ell^\alpha\).
+  \item \texttt{b} --- \((0,1/8]\)
+  \par\smallskip\noindent\emph{Definition.} Outcome perturbation amplitude calibrated at order \(\ell^\beta\).
+  \item \texttt{F\_\allowbreak{}lambda} --- \([0,1]^d\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(F_\lambda(x)=\zeta_h(x)\sum_{j=1}^k\lambda_j\psi_j(x)\).
+  \item \texttt{K\_\allowbreak{}h} --- \([0,1]^d\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(K_h(x)=\mathbb E_\lambda[F_\lambda(x)^2]=\zeta_h(x)^2\sum_{j=1}^k\psi_j(x)^2=\zeta_h(x)^2\).
+  \item \texttt{D\_\allowbreak{}fuz} --- \([0,1]^d\to(0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(D_{\mathrm{fuz}}(x)=1/4-a^2K_h(x)\).
+  \item \texttt{pi\_\allowbreak{}lambda} --- \([0,1]^d\to(0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\pi_\lambda(x)=1/2+aF_\lambda(x)\).
+  \item \texttt{m\_\allowbreak{}s\_\allowbreak{}lambda} --- \([0,1]^d\to(0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(m_{s,\lambda}(x)=1/2+sbF_\lambda(x)\).
+  \item \texttt{tau\_\allowbreak{}s} --- \([0,1]^d\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau_s(x)=-sabK_h(x)/D_{\mathrm{fuz}}(x)\).
+  \item \texttt{mu\_\allowbreak{}0\_\allowbreak{}s\_\allowbreak{}lambda} --- \([0,1]^d\to(0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{0,s,\lambda}=m_{s,\lambda}-\pi_\lambda\tau_s\).
+  \item \texttt{mu\_\allowbreak{}1\_\allowbreak{}s\_\allowbreak{}lambda} --- \([0,1]^d\to(0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{1,s,\lambda}=m_{s,\lambda}+(1-\pi_\lambda)\tau_s\).
+  \item \texttt{P\_\allowbreak{}s\_\allowbreak{}lambda} --- Probability law on \((Y_0,Y_1,A,X)\); \texttt{least-\allowbreak{}favorable component}
+  \par\smallskip\noindent\emph{Definition.} The smooth binary-outcome component law indexed by \((s,\lambda)\).
+  \item \texttt{P\_\allowbreak{}const\_\allowbreak{}xi} --- Probability law on \((Y_0,Y_1,A,X)\); \texttt{convex-\allowbreak{}hull witness}
+  \par\smallskip\noindent\emph{Definition.} The constant-effect-zero component law indexed by \(\xi\).
+  \item \texttt{Q\_\allowbreak{}const} --- Probability law on \((Y_0,Y_1,A,X)\); \texttt{one-\allowbreak{}record mixture witness}
+  \par\smallskip\noindent\emph{Definition.} The causal law whose observed-data marginal is \((P_{\mathrm{const},-}+P_{\mathrm{const},+})/2\).
+  \item \texttt{Pi\_\allowbreak{}s\_\allowbreak{}n} --- Probability law on \(\mathcal O^n\); \texttt{shared-\allowbreak{}prior sample mixture}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_s^n=2^{-k}\sum_{\lambda\in\{-1,1\}^k}P_{s,\lambda}^{\otimes n}\).
+  \item \texttt{U\_\allowbreak{}mark} --- \(\{-1,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \(U=2A-1\).
+  \item \texttt{V\_\allowbreak{}mark} --- \([-1,1]\); \texttt{bounded transformed outcome mark}
+  \par\smallskip\noindent\emph{Definition.} \(V=\operatorname{clip}(2Y-1,-1,1)\), with \(\operatorname{clip}(t,-1,1)=\max\{-1,\min\{t,1\}\}\). On the binary-outcome signed family, \(V=2Y-1\in\{-1,1\}\).
+  \item \texttt{N\_\allowbreak{}j} --- \(\{0,\ldots,n\}\)
+  \par\smallskip\noindent\emph{Definition.} \(N_j=\sum_{i=1}^n\mathbf 1\{X_i\in C_j\}\).
+  \item \texttt{Z\_\allowbreak{}pair} --- \(\mathcal O^2\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(Z_{ir}=(U_iV_r+V_iU_r)/2\).
+  \item \texttt{B\_\allowbreak{}j} --- \([-1,1]\); \texttt{occupancy-\allowbreak{}normalized pair block}
+  \par\smallskip\noindent\emph{Definition.} \(B_j(D_n)=0\) if \(N_j<2\), and \(B_j(D_n)=\{N_j(N_j-1)\}^{-1}\sum_{i\ne r:X_i,X_r\in C_j}Z_{ir}\) otherwise.
+  \item \texttt{S\_\allowbreak{}pair} --- \([-k,k]\); \texttt{stable higher-\allowbreak{}order composite score}
+  \par\smallskip\noindent\emph{Definition.} \(S_{\mathrm{pair}}(D_n)=\sum_{j=1}^kB_j(D_n)\).
+  \item \texttt{Delta\_\allowbreak{}pair} --- \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{\mathrm{pair}}=\sup_{D_n\sim_1D_n'}|S_{\mathrm{pair}}(D_n)-S_{\mathrm{pair}}(D_n')|\).
+  \item \texttt{p\_\allowbreak{}2} --- \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(p_2=1-(1-v)^n-nv(1-v)^{n-1}=\Pr\{\operatorname{Bin}(n,v)\ge2\}\).
+  \item \texttt{W\_\allowbreak{}noise} --- \(\mathbb R\); \texttt{privacy noise}
+  \par\smallskip\noindent\emph{Definition.} \(W\sim\operatorname{Laplace}(8/(3\epsilon))\), independently of the data.
+  \item \texttt{phi\_\allowbreak{}pair} --- Markov kernel from \(\mathcal O^n\) to \(\{-1,1\}\); \texttt{pure-\allowbreak{}private pair test}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_{\mathrm{pair}}(D_n)=\operatorname{sign}\{S_{\mathrm{pair}}(D_n)+W\}\), with an independent fair tie-break at zero.
+  \item \texttt{theta\_\allowbreak{}hat\_\allowbreak{}pair} --- Markov kernel from \(\mathcal O^n\) to \([-2,2]\); \texttt{two-\allowbreak{}fiber private estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{pair}}=-\phi_{\mathrm{pair}}ab/(1/4-a^2)\).
+  \item \texttt{J} --- \(\{1,\ldots,k\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Public core-\allowbreak{}cell label in the quantized diagnostic experiment.}
+  \item \texttt{Z\_\allowbreak{}k} --- \texttt{Finite sample space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Z_k=\{1,\ldots,k\}\times\{-1,1\}\times\{-1,1\}\), with a record denoted \(z=(J,U,V)\).
+  \item \texttt{q\_\allowbreak{}core} --- Map from the binary core-record space to \(\mathcal Z_k\)
+  \par\smallskip\noindent\emph{Definition.} \(q_{\mathrm{core}}(Y,A,X)=(j,2A-1,2Y-1)\) when \(X\in C_j\) and \(Y\in\{0,1\}\).
+  \item \texttt{Q\_\allowbreak{}quant\_\allowbreak{}s\_\allowbreak{}lambda} --- Probability law on \(\mathcal Z_k\)
+  \par\smallskip\noindent\emph{Definition.} \(Q_{s,\lambda}^{(k)}\{(j,u,w)\}=(4k)^{-1}(1+2a\lambda_ju+2sb\lambda_jw)\).
+  \item \texttt{Pi\_\allowbreak{}quant\_\allowbreak{}s\_\allowbreak{}2} --- Probability law on \(\mathcal Z_k^2\)
+  \par\smallskip\noindent\emph{Definition.} \(\overline\Pi_{s,k}^{\,2}=2^{-k}\sum_\lambda(Q_{s,\lambda}^{(k)})^{\otimes2}\).
+  \item \texttt{E\_\allowbreak{}collision} --- Event in \(\mathcal Z_k^2\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_{\mathrm{coll}}=\{J_1=J_2\}\).
+  \item \texttt{T\_\allowbreak{}quant} --- \(\mathcal Z_k^2\to[-1,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(T_{2,k}=\mathbf 1\{\mathcal E_{\mathrm{coll}}\}(U_1V_2+V_1U_2)/2\).
+  \item \texttt{sigma\_\allowbreak{}quant} --- Markov kernel from \(\mathcal Z_k^2\) to \(\{-1,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_{2,k}=1\) if \(T_{2,k}>0\), \(\sigma_{2,k}=-1\) if \(T_{2,k}<0\), and \(\sigma_{2,k}\) is an independent fair Rademacher variable if \(T_{2,k}=0\).
+  \item \texttt{sim\_\allowbreak{}quant} --- Binary relation on \(\mathcal Z_k^2\)
+  \par\smallskip\noindent\emph{Definition.} \((z_1,z_2)\sim_{\mathrm q}(z_1',z_2')\) when at most one complete quantized record is replaced.
+  \item \texttt{RR\_\allowbreak{}quant} --- Markov kernel from \(\mathcal Z_k^2\) to \(\{-1,1\}\)
+  \par\smallskip\noindent\emph{Definition.} Conditional on \(\sigma_{2,k}\), report \(\sigma_{2,k}\) with probability \(e^\epsilon/(1+e^\epsilon)\) and report \(-\sigma_{2,k}\) otherwise.
+  \item \texttt{theta\_\allowbreak{}hat\_\allowbreak{}RR} --- Markov kernel from \(\mathcal Z_k^2\) to \([-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{RR}}=-RR_{2,k}ab/(1/4-a^2)\).
+  \item \texttt{D\_\allowbreak{}F} --- \((1,\infty)\); \texttt{coupled privacy dimension}
+  \par\smallskip\noindent\emph{Definition.} \(D_F=1+d/\gamma+d/q\).
+  \item \texttt{r\_\allowbreak{}pair} --- \((0,1]\); \texttt{nonprivate separation scale of the signed pair experiment}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathrm{pair}}=n^{-2/(D_F+1)}\).
+  \item \texttt{r\_\allowbreak{}G} --- \((0,1]\); \texttt{direct localization privacy radius}
+  \par\smallskip\noindent\emph{Definition.} \(r_G=1\wedge(n\epsilon)^{-1/(1+d/\gamma)}\).
+  \item \texttt{r\_\allowbreak{}F} --- \((0,1]\); \texttt{coupled-\allowbreak{}nuisance privacy radius}
+  \par\smallskip\noindent\emph{Definition.} \(r_F=1\wedge(n^2\epsilon)^{-1/D_F}\).
+  \item \texttt{r} --- \((0,1]\); \texttt{full-\allowbreak{}fiber resolution}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A public scalar-\allowbreak{}grid resolution.}
+  \item \texttt{G\_\allowbreak{}r} --- Finite subset of \([-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_r=\{-2+jr:j=0,\ldots,\lfloor4/r\rfloor\}\cup\{2\}\), ordered increasingly.
+  \item \texttt{d\_\allowbreak{}Theta} --- Metric on \([-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} \(d_\Theta(t,t')=|t-t'|\).
+  \item \texttt{t\_\allowbreak{}P} --- Map from \(\mathcal M_H\) to \(\mathcal G_r\)
+  \par\smallskip\noindent\emph{Definition.} \(t_P\) is the smallest grid point minimizing \(d_\Theta(t,\theta(P))\).
+  \item \texttt{Shell\_\allowbreak{}m} --- Subset of \(\mathcal G_r\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S_m(P;r)=\{t\in\mathcal G_r:mr\le d_\Theta(t,t_P)<(m+1)r\}\) for \(m\in\mathbb N\).
+  \item \texttt{Q\_\allowbreak{}score} --- Family of measurable maps \(Q_t:\mathcal O^n\to\mathbb R\), indexed by \(t\in\mathcal G_r\); \texttt{open construction target}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A target-\allowbreak{}indexed score family to be derived by the full-\allowbreak{}fiber lifting question.}
+  \item \texttt{W\_\allowbreak{}functional} --- \([0,\infty]\); \texttt{weighted uniform shell-\allowbreak{}error functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak W_r(Q)=\sup_{P\in\mathcal M_H}\sum_{m\ge1}(m+1)\sum_{t\in\mathcal S_m(P;r)}\mathbb E_{P^{\otimes n}}[1\wedge\exp\{-\epsilon(Q_t(D_n)-Q_{t_P}(D_n))/2\}]\).
+  \item \texttt{T\_\allowbreak{}shell} --- Markov kernel from \(\mathcal O^n\) to \(\mathcal G_r\)
+  \par\smallskip\noindent\emph{Definition.} \(\Pr\{T_{\mathrm{shell}}=t\mid D_n\}=\exp\{-\epsilon Q_t(D_n)/2\}/\sum_{w\in\mathcal G_r}\exp\{-\epsilon Q_w(D_n)/2\}\).
+  \item \texttt{u} --- \([-2,2]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Scalar threshold indexing separated target fibers.}
+  \item \texttt{delta} --- \((0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Target-\allowbreak{}fiber half-\allowbreak{}separation.}
+  \item \texttt{H\_\allowbreak{}minus} --- Subset of \(\mathcal M_H\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_-(u,\delta)=\{P\in\mathcal M_H:\theta(P)\le u-\delta\}\).
+  \item \texttt{H\_\allowbreak{}plus} --- Subset of \(\mathcal M_H\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_+(u,\delta)=\{P\in\mathcal M_H:\theta(P)\ge u+\delta\}\).
+  \item \texttt{H\_\allowbreak{}pair\_\allowbreak{}lift} --- \texttt{Methodological handle}; \texttt{open construction route}
+  \par\smallskip\noindent\emph{Definition.} A second-order least-favorable-mixture, Hoeffding-projection, and occupancy-normalization handle for constructing the full score family \(Q_t\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:dimension]\label{ass:dimension}
+\(d\ge1\) is fixed.
+\par\smallskip\noindent\emph{Standard} (Fixed-dimensional Hölder model in Theorems 1--2, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:interior-point]\label{ass:interior-point}
+\(x_0\in[1/4,3/4]^d\).
+\par\smallskip\noindent\emph{Standard} (Interior-point specialization of the pointwise Hölder model, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:two-scale-geometry]\label{ass:two-scale-geometry}
+\(q<\gamma\).
+\par\smallskip\noindent\emph{Novel.} The strict ordering \(q<\gamma\) is a two-scale geometric restriction: nuisance profiles may vary on microcells of scale \(\ell\asymp\delta^{1/q}\) inside a target-effect region of scale \(h\asymp\delta^{1/\gamma}\), so \(\ell<h\) as \(\delta\downarrow0\). It holds, for example, in the finite audit with \(d=1\), \(\alpha=\beta=1/8\), and \(\gamma=1\), and describes settings in which the causal effect is smoother than the combined propensity and control nuisances.
+\end{assumption}
+
+\begin{assumption}[ass:iid]\label{ass:iid}
+\(O_1,\ldots,O_n\) are independent draws from the observed-data marginal induced by \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent observed-record sampling, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=AY_1+(1-A)Y_0\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Consistency, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:exchangeability]\label{ass:exchangeability}
+\(Y_a\perp A\mid X\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Armwise conditional exchangeability, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-design]\label{ass:uniform-design}
+\(P_X=\operatorname{Unif}([0,1]^d)\) is known.
+\par\smallskip\noindent\emph{Novel.} Known exact uniformity describes benchmark studies in which covariate locations are publicly generated while treatment assignment remains observational with an unknown propensity score.
+\end{assumption}
+
+\begin{assumption}[ass:overlap]\label{ass:overlap}
+\(e_0\le\pi(x)\le1-e_0\) for every \(x\in[0,1]^d\).
+\par\smallskip\noindent\emph{Standard} (Uniform positivity, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:propensity-holder]\label{ass:propensity-holder}
+\(\pi\in\mathcal H^\alpha(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder propensity smoothness, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:control-holder]\label{ass:control-holder}
+\(\mu_0\in\mathcal H^\beta(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder control-regression smoothness, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:effect-holder]\label{ass:effect-holder}
+\(\tau\in\mathcal H^\gamma(L)\).
+\par\smallskip\noindent\emph{Standard} (Hölder conditional-effect smoothness, \cite{kennedy2024minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:privacy-range]\label{ass:privacy-range}
+\(n^{-1}\le\epsilon\le1\).
+\par\smallskip\noindent\emph{Novel.} This pure-central regime contains fixed privacy budgets and budgets decreasing to the saturation boundary \(n^{-1}\), including the range in which a nonconstant pair release is informative.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:holder-class]\label{def:holder-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}uniform coupled-\allowbreak{}nuisance Hölder class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_H=\{P:P\text{ is a law on }(Y_0,Y_1,A,X)\text{ inducing }O\in\mathcal O\text{ and satisfying }\text{ass:dimension},\text{ass:interior-point},\text{ass:consistency},\text{ass:exchangeability},\text{ass:uniform-design},\text{ass:overlap},\text{ass:propensity-holder},\text{ass:control-holder},\text{ass:effect-holder},\text{ass:two-scale-geometry}\}\), indexed by \(d,\alpha,\beta,\gamma,q,L,e_0,x_0\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}dimension}; \texttt{ass:\allowbreak{}interior-\allowbreak{}point}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}design}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}propensity-\allowbreak{}holder}; \texttt{ass:\allowbreak{}control-\allowbreak{}holder}; \texttt{ass:\allowbreak{}effect-\allowbreak{}holder}; \texttt{ass:\allowbreak{}two-\allowbreak{}scale-\allowbreak{}geometry}.
+\end{definition}
+
+\begin{definition}[def:nonprivate-risk]\label{def:nonprivate-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nonprivate minimax risk}
+\par\smallskip\noindent\emph{Construction.} \(R_n^{\mathrm{NP}}=\inf_{T_{\mathrm{NP}}}\sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n}}|T_{\mathrm{NP}}(D_n)-\theta(P)|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}holder-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:private-risk]\label{def:private-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pure-\allowbreak{}private minimax risk}
+\par\smallskip\noindent\emph{Construction.} \(R_{n,\epsilon}^{\mathrm{DP}}=\inf_{T_{\mathrm{DP}}:\,\epsilon\text{-DP}}\sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n},T_{\mathrm{DP}}}|T_{\mathrm{DP}}(D_n)-\theta(P)|\), with privacy required on all of \(\mathcal O^n\) under \(\sim_1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}holder-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:profile-system]\label{def:profile-system}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}resolution smooth profile system}
+\par\smallskip\noindent\emph{Construction.} Choose fixed compactly supported \(C^\infty\) bumps so that \(Q_h\) contains \(k\asymp h^d/\ell^d\) disjoint core cubes \(C_j\) of volume \(v\asymp\ell^d\); \(\zeta_h=1\) at \(x_0\) and on their union; \(\psi_j=1\) on \(C_j\); the profile supports have fixed bounded overlap; and \(\sum_{j=1}^k\psi_j^2=1\) on \(\operatorname{supp}(\zeta_h)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d}; \texttt{h}; \texttt{ell}; \texttt{x\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:signed-fuzzy-family]\label{def:signed-fuzzy-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Smooth signed two-\allowbreak{}fiber CATE family}
+\par\smallskip\noindent\emph{Construction.} Let \(F_\lambda=\zeta_h\sum_{j=1}^k\lambda_j\psi_j\), \(K_h=\mathbb E_\lambda F_\lambda^2=\zeta_h^2\), and \(D_{\mathrm{fuz}}=1/4-a^2K_h\). Define \(\pi_\lambda=1/2+aF_\lambda\), \(m_{s,\lambda}=1/2+sbF_\lambda\), \(\tau_s=-sabK_h/D_{\mathrm{fuz}}\), \(\mu_{0,s,\lambda}=m_{s,\lambda}-\pi_\lambda\tau_s\), and \(\mu_{1,s,\lambda}=m_{s,\lambda}+(1-\pi_\lambda)\tau_s\). Under \(P_{s,\lambda}\), draw \(X\) uniformly, draw independent binary potential outcomes conditional on \(X\) with means \(\mu_{0,s,\lambda}(X)\) and \(\mu_{1,s,\lambda}(X)\), draw \(A\mid X\sim\operatorname{Bernoulli}(\pi_\lambda(X))\) independently of the potential outcomes, and set \(Y=AY_1+(1-A)Y_0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}profile-\allowbreak{}system}; \texttt{a}; \texttt{b}; \texttt{s}; \texttt{lambda}.
+\end{definition}
+
+\begin{definition}[def:constant-mixture-witness]\label{def:constant-mixture-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Constant convex-\allowbreak{}hull witness}
+\par\smallskip\noindent\emph{Construction.} Under \(P_{\mathrm{const},\xi}\), let \(X\) be uniform, set \(P(A=1\mid X)=1/2+a\xi\), and draw independent binary potential outcomes with common mean \(1/2+b\xi\), independently of \(A\) conditional on \(X\). Let \(Q_{\mathrm{const}}\) have observed-data marginal \((P_{\mathrm{const},-}+P_{\mathrm{const},+})/2\) and a causal realization with its induced constant arm means.
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{b}; \texttt{xi}.
+\end{definition}
+
+\begin{definition}[def:shared-prior-mixtures]\label{def:shared-prior-mixtures}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Shared nuisance-\allowbreak{}sign sample mixtures}
+\par\smallskip\noindent\emph{Construction.} \(\Pi_s^n=2^{-k}\sum_{\lambda\in\{-1,1\}^k}P_{s,\lambda}^{\otimes n}\) for \(s\in\{-1,1\}\); one common \(\lambda\) is retained across all records within each product law.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}signed-\allowbreak{}fuzzy-\allowbreak{}family}.
+\end{definition}
+
+\begin{definition}[def:occupancy-pair-score]\label{def:occupancy-pair-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Occupancy-\allowbreak{}normalized pair score}
+\par\smallskip\noindent\emph{Construction.} Set \(U_i=2A_i-1\), \(V_i=\operatorname{clip}(2Y_i-1,-1,1)\), where \(\operatorname{clip}(t,-1,1)=\max\{-1,\min\{t,1\}\}\), and \(Z_{ir}=(U_iV_r+V_iU_r)/2\). For each public core \(C_j\), let \(B_j=0\) when \(N_j<2\), and otherwise let \(B_j=\{N_j(N_j-1)\}^{-1}\sum_{i\ne r:X_i,X_r\in C_j}Z_{ir}\). Define \(S_{\mathrm{pair}}=\sum_{j=1}^kB_j\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}signed-\allowbreak{}fuzzy-\allowbreak{}family}.
+\end{definition}
+
+\begin{definition}[def:private-pair-test]\label{def:private-pair-test}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pure-\allowbreak{}private pair test and estimator}
+\par\smallskip\noindent\emph{Construction.} Compute \(S_{\mathrm{pair}}(D_n)\), draw \(W\sim\operatorname{Laplace}(8/(3\epsilon))\), return \(\phi_{\mathrm{pair}}=\operatorname{sign}\{S_{\mathrm{pair}}(D_n)+W\}\) with an independent fair tie-break at zero, and set \(\widehat\theta_{\mathrm{pair}}=-\phi_{\mathrm{pair}}ab/(1/4-a^2)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}occupancy-\allowbreak{}pair-\allowbreak{}score}.
+\end{definition}
+
+\begin{definition}[def:quantized-core-experiment]\label{def:quantized-core-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fully specified quantized core experiment}
+\par\smallskip\noindent\emph{Construction.} Restrict a binary component record to \(X\in\bigcup_{j=1}^kC_j\) and apply \(q_{\mathrm{core}}(Y,A,X)=(j,2A-1,2Y-1)\). Equivalently, conditional on \((s,\lambda)\), draw \(J\) uniformly from \(\{1,\ldots,k\}\) and then draw \((U,V)\) with \(Q_{s,\lambda}^{(k)}\{(j,u,w)\}=(4k)^{-1}(1+2a\lambda_ju+2sb\lambda_jw)\). For two records retain the same \(\lambda\) and average it uniformly to obtain \(\overline\Pi_{s,k}^{\,2}\). The sample space is \(\mathcal Z_k^2\), the collision event is \(\mathcal E_{\mathrm{coll}}=\{J_1=J_2\}\), and replacement adjacency is \(\sim_{\mathrm q}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}signed-\allowbreak{}fuzzy-\allowbreak{}family}.
+\end{definition}
+
+\begin{definition}[def:quantized-randomized-response]\label{def:quantized-randomized-response}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Quantized randomized-\allowbreak{}response channel}
+\par\smallskip\noindent\emph{Construction.} Compute \(T_{2,k}=\mathbf 1\{\mathcal E_{\mathrm{coll}}\}(U_1V_2+V_1U_2)/2\); set \(\sigma_{2,k}\) to its sign, using an independent fair Rademacher tie-break when \(T_{2,k}=0\); report \(RR_{2,k}=\sigma_{2,k}\) with probability \(e^\epsilon/(1+e^\epsilon)\) and its negative otherwise; and set \(\widehat\theta_{\mathrm{RR}}=-RR_{2,k}ab/(1/4-a^2)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}quantized-\allowbreak{}core-\allowbreak{}experiment}.
+\end{definition}
+
+\begin{definition}[def:pair-rates]\label{def:pair-rates}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pair-\allowbreak{}experiment separation radii}
+\par\smallskip\noindent\emph{Construction.} \(D_F=1+d/\gamma+d/q\), \(r_{\mathrm{pair}}=n^{-2/(D_F+1)}\), \(r_G=1\wedge(n\epsilon)^{-1/(1+d/\gamma)}\), and \(r_F=1\wedge(n^2\epsilon)^{-1/D_F}\).
+\end{definition}
+
+\begin{definition}[def:shell-geometry]\label{def:shell-geometry}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Target metric and scalar shells}
+\par\smallskip\noindent\emph{Construction.} Use \(d_\Theta(t,t')=|t-t'|\), the ordered grid \(\mathcal G_r\), the lower-tie nearest point \(t_P\), and shells \(\mathcal S_m(P;r)=\{t\in\mathcal G_r:mr\le d_\Theta(t,t_P)<(m+1)r\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}holder-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:weighted-shell-functional]\label{def:weighted-shell-functional}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Weighted uniform-\allowbreak{}error functional}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak W_r(Q)=\sup_{P\in\mathcal M_H}\sum_{m\ge1}(m+1)\sum_{t\in\mathcal S_m(P;r)}\mathbb E_{P^{\otimes n}}[1\wedge\exp\{-\epsilon(Q_t(D_n)-Q_{t_P}(D_n))/2\}]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}shell-\allowbreak{}geometry}.
+\end{definition}
+
+\begin{definition}[def:shell-selector]\label{def:shell-selector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Scalar-\allowbreak{}shell exponential selector}
+\par\smallskip\noindent\emph{Construction.} \(\Pr\{T_{\mathrm{shell}}=t\mid D_n\}\propto\exp\{-\epsilon Q_t(D_n)/2\}\) over \(t\in\mathcal G_r\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}weighted-\allowbreak{}shell-\allowbreak{}functional}.
+\end{definition}
+
+\begin{definition}[def:full-fiber-handle]\label{def:full-fiber-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Second-\allowbreak{}order full-\allowbreak{}fiber lifting handle}
+\par\smallskip\noindent\emph{Construction.} The symbol \(H_{\mathrm{pair\mbox{-}lift}}\) labels the unresolved sufficient-certificate program that would, for each finite minimax threshold problem between \(\mathcal F_-(u,\delta)\) and \(\mathcal F_+(u,\delta)\), retain a sample-level least-favorable mixture, extract and localize a first nonzero second-order Hoeffding projection into public microcells, normalize occupied cells by realized ordered-pair counts as in \(S_{\mathrm{pair}}\), stabilize the residual higher-order term, and produce target-indexed scores to be assessed by \(\mathfrak W_r\). This definition names the desired certificate only; it does not assert that the program succeeds for the full Hölder fibers or independently of a nuisance sieve.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}occupancy-\allowbreak{}pair-\allowbreak{}score}; \texttt{def:\allowbreak{}nonprivate-\allowbreak{}risk}; \texttt{def:\allowbreak{}weighted-\allowbreak{}shell-\allowbreak{}functional}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:fuzzy-membership]\label{lem:fuzzy-membership}
+There are positive constants depending only on \(d,\alpha,\beta,\gamma,L,e_0\) such that, whenever \(a\le c\ell^\alpha\), \(b\le c\ell^\beta\), and \(ab\le ch^\gamma\), every \(P_{s,\lambda}\), every \(P_{\mathrm{const},\xi}\), and \(Q_{\mathrm{const}}\) belong to \(\mathcal M_H\). Moreover, \(\theta(P_{s,\lambda})=-sab/(1/4-a^2)\), \(\theta(P_{\mathrm{const},\xi})=0\), and \(\theta(Q_{\mathrm{const}})=4ab\).
+\end{lemma}
+\begin{proof}
+Put \(B_0<\infty\) for the fixed overlap multiplicity of the profiles.  Scaling the fixed \(C^\infty\) bumps in the profile construction gives, for every fixed \(t>0\),
+\[
+ \|F_\lambda\|_{\mathcal H^t}\le C_t\ell^{-t},
+ \qquad
+ \|K_h\|_{\mathcal H^t}\le C_t h^{-t},
+ \qquad
+ \|F_\lambda\|_\infty\le C_0,
+ \qquad 0\le K_h\le1 .
+\]
+Indeed, differentiation through order \(\lfloor t\rfloor\) contributes the corresponding inverse scale and the last derivative has the required Hölder increment; at each point at most \(B_0\) profiles occur.  These bounds are uniform in \(k\) and \(\lambda\).  Since \(a\le1/8\),
+\[
+ D_{\mathrm{fuz}}\ge \frac14-\frac1{64}=\frac{15}{64}.
+\]
+The quotient rule through order \(\lfloor t\rfloor\), followed by the same Hölder-increment bound, therefore yields
+\[
+ G_h:=\frac{K_h}{D_{\mathrm{fuz}}},
+ \qquad
+ \|G_h\|_{\mathcal H^t}\le C_t h^{-t}.
+\]
+All divisions used below are consequently legitimate.
+
+The propensity satisfies
+\[
+ \|\pi_\lambda-1/2\|_{\mathcal H^\alpha}
+ \le C a\ell^{-\alpha}\le Cc.
+\]
+Moreover \(q=\alpha+\beta<\gamma\) implies \(\gamma>\beta\), and
+\[
+ \tau_s=-sabG_h,
+ \qquad
+ \|\tau_s\|_{\mathcal H^\gamma}
+ \le C ab h^{-\gamma}\le Cc,
+ \qquad
+ \|\tau_s\|_{\mathcal H^\beta}
+ \le C ab h^{-\beta}\le Cc h^{\gamma-\beta}\le Cc.
+\]
+Using \(\mu_{0,s,\lambda}=1/2+sbF_\lambda-(1/2+aF_\lambda)\tau_s\), the scaled product rule and \(\ell\le h\) give
+\[
+ \begin{aligned}
+ \|bF_\lambda\|_{\mathcal H^\beta}
+   &\le Cb\ell^{-\beta}\le Cc,\\
+ \|aF_\lambda\tau_s\|_{\mathcal H^\beta}
+   &=\|a^2bF_\lambda G_h\|_{\mathcal H^\beta}
+     \le Ca^2b\ell^{-\beta}
+     \le Cb\ell^{-\beta}\le Cc.
+ \end{aligned}
+\]
+Here the product estimate follows directly by distributing each derivative or Hölder increment between a scale-\(\ell\) factor and a scale-\(h\) factor; because \(\ell\le h\), the largest inverse scale is \(\ell^{-\beta}\).  Thus \(\mu_{0,s,\lambda}\in\mathcal H^\beta(L)\), \(\pi_\lambda\in\mathcal H^\alpha(L)\), and \(\tau_s\in\mathcal H^\gamma(L)\) once \(c>0\) is chosen sufficiently small in terms of the displayed fixed parameters and \(L\ge2\).
+
+The same choice of \(c\) makes \(C_0a\le1/4\), \(C_0b\le1/4\), and
+\[
+ |\tau_s|\le \frac{ab}{15/64}.
+\]
+Consequently \(e_0\le\pi_\lambda\le1-e_0\), because \(e_0\le1/4\), and both \(\mu_{0,s,\lambda}\) and \(\mu_{1,s,\lambda}=\mu_{0,s,\lambda}+\tau_s\) lie in \((0,1)\).  The construction gives consistency, conditional exchangeability, and the exact uniform design.  Hence every \(P_{s,\lambda}\) belongs to \(\mathcal M_H\).  Since \(K_h(x_0)=1\),
+\[
+ \theta(P_{s,\lambda})=\tau_s(x_0)
+ =-\frac{sab}{1/4-a^2}.
+\]
+
+For \(P_{\mathrm{const},\xi}\), the propensity and both arm means are constant, the effect is zero, and the same smallness choice puts the propensity in the overlap interval and the means in \((0,1)\).  All Hölder requirements therefore hold and \(\theta(P_{\mathrm{const},\xi})=0\).  Finally average the two observed constant-component laws.  Their treatment probability is \(1/2\), while
+\[
+ \begin{aligned}
+ P(A=1,Y=1)&=\frac12\sum_{\xi\in\{-1,1\}}
+ (1/2+a\xi)(1/2+b\xi)=\frac14+ab,\\
+ P(A=0,Y=1)&=\frac12\sum_{\xi\in\{-1,1\}}
+ (1/2-a\xi)(1/2+b\xi)=\frac14-ab.
+ \end{aligned}
+\]
+Thus \(Q_{\mathrm{const}}\) has constant propensity \(1/2\), arm means \(1/2+2ab\) and \(1/2-2ab\), and effect \(4ab\).  Its stipulated causal realization satisfies consistency and conditional exchangeability, and its constant functions satisfy every Hölder and overlap condition.  Therefore \(Q_{\mathrm{const}}\in\mathcal M_H\) and \(\theta(Q_{\mathrm{const}})=4ab\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The obstruction and pair test are relevant only when every component and mixture law remains in the unchanged destination class. \textit{Gap.} Kennedy et al. prove localized fuzzy-family membership for a nonprivate lower bound; this statement adds exact shared-sign and constant convex-hull algebra tailored to a private upper test. \textit{Consumer.} It makes both finite obstructions and the pair-test guarantee same-class statements.
+
+\begin{theorem}[thm:one-record-obstruction]\label{thm:one-record-obstruction}
+The constant witness satisfies \((P_{\mathrm{const},-}+P_{\mathrm{const},+})/2=Q_{\mathrm{const}}\) on the observed one-record experiment, although the two component laws have target zero and \(Q_{\mathrm{const}}\) has target \(4ab\). The signed family also satisfies \(2^{-k}\sum_\lambda P_{+,\lambda}=2^{-k}\sum_\lambda P_{-,\lambda}\) on one observed record. Consequently, the relevant target fibers have intersecting one-record convex hulls, and every bounded additive one-record score has zero prior-averaged expectation margin for the signed pair of fibers.
+\end{theorem}
+\begin{proof}
+The first equality is part of the construction of \(Q_{\mathrm{const}}\) as an observed-data law.  The preceding lemma proves that all three laws are in \(\mathcal M_H\), that the two components have target zero, and that \(Q_{\mathrm{const}}\) has target \(4ab\).
+
+For the signed family, fix \(x\) and write \(F=F_\lambda(x)\), \(K=K_h(x)\), \(p=\pi_\lambda(x)\), and \(m=m_{s,\lambda}(x)\).  With \(U=2A-1\) and \(V=2Y-1\), the construction implies
+\[
+ \mathbb E(U\mid X=x)=2aF,
+ \qquad
+ \mathbb E(V\mid X=x)=2sbF.
+\]
+Because \(m=(1-p)\mu_0+p\mu_1\) and \(\mu_1-\mu_0=\tau_s\), direct expansion gives
+\[
+ \begin{aligned}
+ \mathbb E(UV\mid X=x)
+ &=4\{pm+p(1-p)\tau_s\}-2p-2m+1\\
+ &=(2p-1)(2m-1)+4p(1-p)\tau_s\\
+ &=4sabF^2+4(1/4-a^2F^2)\tau_s.
+ \end{aligned}
+\]
+Let \(\mathbb E_\lambda\) denote uniform averaging over \(\{-1,1\}^k\).  Independence and symmetry of the coordinates give
+\[
+ \mathbb E_\lambda F_\lambda(x)=0,
+ \qquad
+ \mathbb E_\lambda F_\lambda(x)^2=K_h(x).
+\]
+Since \(\tau_s=-sabK_h/(1/4-a^2K_h)\) does not depend on \(\lambda\),
+\[
+ \mathbb E_\lambda\mathbb E(UV\mid X=x)
+ =4sabK_h+4(1/4-a^2K_h)\tau_s=0.
+\]
+The law of a pair of signs is determined by its three moments through
+\[
+ \Pr(U=u,V=w\mid X=x)
+ =\frac14\{1+u\mathbb E U+w\mathbb E V+uw\mathbb E(UV)\}.
+\]
+After averaging \(\lambda\), all three nonconstant moments vanish.  Hence the conditional observed mark law is the uniform law on \(\{-1,1\}^2\), independently of \(s\).  The \(X\)-marginal is the same uniform law for both signs, so
+\[
+ 2^{-k}\sum_\lambda P_{+,\lambda}
+ =2^{-k}\sum_\lambda P_{-,\lambda}
+\]
+on one observed record.
+
+The constant-law identity places \(Q_{\mathrm{const}}\) simultaneously in the one-record convex hull of target-zero laws and in the target-\(4ab\) fiber.  The displayed signed identity gives the analogous intersection of the two signed prior convex hulls.  Finally, for any bounded measurable one-record score \(g\), equality of the signed mixtures gives
+\[
+ 2^{-k}\sum_\lambda\mathbb E_{P_{+,\lambda}}g(O)
+ -2^{-k}\sum_\lambda\mathbb E_{P_{-,\lambda}}g(O)=0.
+\]
+Summing such terms over records preserves zero margin, proving the assertion for every bounded additive one-record score.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This establishes on legal unknown-propensity CATE laws that the missing signal is genuinely higher order. \textit{Gap.} Canonne et al. characterize private tests for two simple product hypotheses using clamped one-record likelihood increments; their Section 3 construction does not apply when composite target fibers have intersecting one-record convex hulls. \textit{Consumer.} It rules out reverting to a randomized-treatment or additive one-record score for the full-fiber lift.
+
+\begin{lemma}[lem:pair-mean-sensitivity]\label{lem:pair-mean-sensitivity}
+On every core \(C_j\), under every \(P_{s,\lambda}\), \(\mathbb E[Z_{12}\mid X_1,X_2\in C_j]=4sab\), independently of \(\lambda_j\). Hence \(\mathbb E_{P_{s,\lambda}^{\otimes n}}S_{\mathrm{pair}}=4sabkp_2\). For all replacement-neighboring datasets, \(|S_{\mathrm{pair}}(D_n)-S_{\mathrm{pair}}(D_n')|\le4\), so \(\Delta_{\mathrm{pair}}\le4\).
+\end{lemma}
+\begin{proof}
+On the signed family the observed outcome is binary, so the clipping in the definition of \(V\) is inactive and \(V=2Y-1\).  On \(C_j\), the profile construction gives \(\zeta_h=1\) and \(\psi_j=1\).  Since \(\sum_{l=1}^k\psi_l^2=1\) there and every summand is nonnegative, \(\psi_l=0\) for \(l\ne j\).  Hence \(F_\lambda=\lambda_j\) on \(C_j\).  From the definitions of \(\pi_\lambda\) and \(m_{s,\lambda}\), for every \(x\in C_j\),
+\[
+ \mathbb E(U\mid X=x)=2\pi_\lambda(x)-1=2a\lambda_j,
+ \qquad
+ \mathbb E(V\mid X=x)=2m_{s,\lambda}(x)-1=2sb\lambda_j. \tag{1}
+\]
+Here the second equality uses
+\(\mathbb E(Y\mid X=x)=\pi_\lambda(x)\mu_{1,s,\lambda}(x)+(1-\pi_\lambda(x))\mu_{0,s,\lambda}(x)=m_{s,\lambda}(x)\), which follows by substituting the two arm-mean definitions.  Independence of distinct records, from the independent sampling assumption used by the signed-family experiment, and equation \(1\) give
+\[
+ \begin{aligned}
+ \mathbb E(Z_{12}\mid X_1,X_2\in C_j)
+ &=\frac12\left\{
+       \mathbb E(U_1\mid X_1\in C_j)\mathbb E(V_2\mid X_2\in C_j)
+      +\mathbb E(V_1\mid X_1\in C_j)\mathbb E(U_2\mid X_2\in C_j)
+     \right\}\\
+ &=\frac12\{4sab\lambda_j^2+4sab\lambda_j^2\}=4sab. \tag{2}
+ \end{aligned}
+\]
+Conditional on \(N_j=m\ge2\), the \(m\) records in \(C_j\) are exchangeable draws from the law conditional on that cell.  Every ordered summand in \(B_j\) therefore has conditional mean \(4sab\) by equation \(2\), whereas \(B_j=0\) for \(m<2\).  Consequently,
+\[
+ \mathbb E(B_j\mid N_j)=4sab\mathbf 1\{N_j\ge2\}. \tag{3}
+\]
+Exact uniform design and the fact that \(C_j\) has volume \(v\) imply \(N_j\sim\operatorname{Bin}(n,v)\).  By the definition of \(p_2\), summing equation \(3\) over the \(k\) cells proves
+\[
+ \mathbb E_{P_{s,\lambda}^{\otimes n}}S_{\mathrm{pair}}
+ =4sab\sum_{j=1}^k\Pr(N_j\ge2)=4sabkp_2. \tag{4}
+\]
+
+We next prove a sensitivity bound sharper than the one claimed.  On every bounded-outcome dataset, \(U_i\in\{-1,1\}\) and the clipped mark satisfies \(V_i\in[-1,1]\).  Thus \(Z_{ir}=Z_{ri}\in[-1,1]\).  Write \(B^{(m)}\) for a cell block containing \(m\) records.  For \(m\ge3\), let \(B^{(m-1)}\) be the block after deleting the last record and put
+\[
+ \overline Z_m=\frac1{m-1}\sum_{i=1}^{m-1}Z_{im}.
+\]
+Rewriting the ordered-pair average as the corresponding unordered-pair average yields the exact identity
+\[
+ B^{(m)}=\frac{m-2}{m}B^{(m-1)}+\frac2m\overline Z_m.
+\]
+Since both terms on the right before weighting lie in \([-1,1]\),
+\[
+ |B^{(m)}-B^{(m-1)}|
+ =\frac2m|\overline Z_m-B^{(m-1)}|
+ \le\frac4m\le\frac43. \tag{5}
+\]
+For \(m=2\), deletion changes the block from \(Z_{12}\) to zero, so the change is at most one; for \(m\le1\) it is zero.  Insertion is the reverse operation, and hence also changes one cell by at most \(4/3\).
+
+If a replaced record remains in the same core cell and that cell contains \(m\ge2\) records, only its \(m-1\) unordered incident kernels change.  Each kernel changes by at most two, and therefore
+\[
+ |B^{(m)}(D_n)-B^{(m)}(D_n')|
+ \le\frac{2(m-1)}{\binom m2}=\frac4m\le2. \tag{6}
+\]
+For \(m<2\) the change is zero.  If the record moves between two distinct cells, or between a core cell and its complement, equation \(5\) bounds the deletion and insertion contributions by \(4/3\) each.  Combining the two cases gives, for every \(D_n\sim_1D_n'\),
+\[
+ |S_{\mathrm{pair}}(D_n)-S_{\mathrm{pair}}(D_n')|
+ \le\max\left\{2,\frac83\right\}=\frac83\le4. \tag{7}
+\]
+Taking the supremum in equation \(7\) proves the stated \(\Delta_{\mathrm{pair}}\le4\), while retaining the sharper \(8/3\) certificate used below.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The nuisance sign disappears after two records collide, while realized occupancy normalization keeps sensitivity independent of nuisance dimension. \textit{Gap.} Chaudhuri et al. stabilize private U-statistics through local Hájek projections; this exact causal score instead exploits a shared-sign second moment within public cells. \textit{Consumer.} It supplies the signal and all-dataset privacy certificate for the sparse-occupancy pair test.
+
+\begin{theorem}[thm:pair-composite-test]\label{thm:pair-composite-test}
+Suppose \(n\ge2\) and \(nv\le c_0\). The test \(\phi_{\mathrm{pair}}\) and estimator \(\widehat\theta_{\mathrm{pair}}\) are pure \(\epsilon\)-differentially private under replacement adjacency. There are constants \(c,C>0\), independent of \(n,\epsilon,k,a,b\), such that \[\sup_{s\in\{-1,1\},\lambda\in\{-1,1\}^k}P_{s,\lambda}^{\otimes n}\{\phi_{\mathrm{pair}}\ne s\}\le C\exp(-ckp_2a^2b^2)+C\exp(-c\epsilon kp_2ab),\] and \[\sup_{s,\lambda}\mathbb E_{P_{s,\lambda}^{\otimes n}}|\widehat\theta_{\mathrm{pair}}-\theta(P_{s,\lambda})|\le\frac{2ab}{1/4-a^2}\{C\exp(-ckp_2a^2b^2)+C\exp(-c\epsilon kp_2ab)\}.\] Neither bound contains \(\log k\) or \(\log|\{-1,1\}^k|\).
+\end{theorem}
+\begin{proof}
+Set
+\[
+ I_j=\mathbf 1\{N_j\ge2\},
+ \qquad
+ M=\sum_{j=1}^k I_j.
+\]
+We first establish the occupancy transform needed below without a cardinality union bound.  If \((N_1,\ldots,N_k)\) are the counts generated by \(n\) independent categorical draws into the disjoint cells, then for arbitrary nonnegative decreasing functions \(f_j\),
+\[
+ \mathbb E\prod_{j=1}^k f_j(N_j)
+ \le\prod_{j=1}^k\mathbb E f_j(N_j). \tag{1}
+\]
+Indeed, condition on \(N_1=m\).  The remaining counts are generated by \(n-m\) independent categorical draws with the renormalized cell probabilities.  Coupling these counts as initial segments of one infinite categorical sequence shows that the conditional expectation of \(\prod_{j=2}^k f_j(N_j)\) is nondecreasing in \(m\): increasing \(m\) removes draws, decreases every coupled remaining count, and cannot decrease a product of nonnegative decreasing functions.  Since \(f_1(m)\) is decreasing, the covariance identity
+\[
+ \operatorname{Cov}(g(R),h(R))
+ =\frac12\mathbb E[(g(R)-g(R'))(h(R)-h(R'))]
+\]
+for independent copies \(R,R'\) shows that this covariance is nonpositive when \(g\) is decreasing and \(h\) is increasing.  Factoring off \(f_1\) and iterating proves equation \(1\).
+
+Apply equation \(1\) with \(f_j(m)=\exp\{-t\mathbf 1(m\ge2)\}\).  Each \(I_j\) has mean \(p_2\), so for every \(t\ge0\),
+\[
+ \begin{aligned}
+ \mathbb E e^{-tM}
+ &\le\prod_{j=1}^k\mathbb E e^{-tI_j}
+ =\{1-p_2(1-e^{-t})\}^k\\
+ &\le\exp\{-kp_2(1-e^{-t})\}. \tag{2}
+ \end{aligned}
+\]
+In particular, because \(1-e^{-t}\ge t/2\) for \(0\le t\le1\),
+\[
+ \mathbb E e^{-tM}\le\exp(-kp_2t/2),
+ \qquad 0\le t\le1. \tag{3}
+\]
+
+Conditional on all covariates, the active blocks \(B_j\) depend on disjoint sets of conditionally independent outcome and treatment marks, so they are independent.  The preceding lemma and the constancy of the profiles on the cores give
+\[
+ \mathbb E(sB_j\mid X_1,\ldots,X_n)=4abI_j,
+ \qquad -1\le sB_j\le1. \tag{4}
+\]
+For completeness, if a random variable \(H\) lies in \([-1,1]\), then
+\(g(t)=\log\mathbb E\exp\{t(H-\mathbb EH)\}\) satisfies \(g(0)=g'(0)=0\) and \(g''(t)=\operatorname{Var}_t(H)\le1\), where \(\operatorname{Var}_t\) is variance under exponential tilting.  Two integrations give
+\[
+ \mathbb E\exp\{t(H-\mathbb EH)\}\le e^{t^2/2}. \tag{5}
+\]
+Applying equation \(5\) conditionally to the \(M\) active variables in equation \(4\), followed by Chernoff's inequality with \(t=2ab\), yields
+\[
+ \Pr\{sS_{\mathrm{pair}}\le2abM\mid X_1,ldots,X_n\}
+ \le\exp(-2Ma^2b^2). \tag{6}
+\]
+
+Let \(W\) have the Laplace law in the definition of the mechanism, with scale \(8/(3\epsilon)\), independently of the data.  Apart from a null tie event, \(\phi_{\mathrm{pair}}\ne s\) means \(s(S_{\mathrm{pair}}+W)<0\).  On the complement of the event in equation \(6\), this entails \(sW<-2abM\).  Symmetry and the exact Laplace tail therefore give
+\[
+ \Pr(sW<-2abM\mid X_1,ldots,X_n)
+ =\frac12\exp(-3\epsilon abM/4). \tag{7}
+\]
+Because \(a,b\le1/8\) and \(0<\epsilon\le1\), both \(2a^2b^2\) and \(3\epsilon ab/4\) lie in \([0,1]\).  Averaging equations \(6\)--\(7\) and applying equation \(3\) at these two values gives numerical constants \(c,C>0\) such that
+\[
+ \sup_{s,\lambda}P_{s,\lambda}^{\otimes n}
+ \{\phi_{\mathrm{pair}}\ne s\}
+ \le C\exp(-ckp_2a^2b^2)
+      +C\exp(-c\epsilon kp_2ab). \tag{8}
+\]
+The constants do not depend on \(n,\epsilon,k,a,b\).  The assumption \(nv\le c_0\) is not needed for equation \(8\) itself; it is used when the occupancy probability is converted to the radius formula in the following proposition.
+
+It remains to verify privacy and risk.  Equation \(7\) of the preceding lemma gives replacement sensitivity at most \(8/3\).  Thus the density of \(S_{\mathrm{pair}}(D_n)+W\), at an arbitrary release value \(z\), satisfies for neighboring datasets
+\[
+ \begin{aligned}
+ \frac{\exp\{-3\epsilon|z-S_{\mathrm{pair}}(D_n)|/8\}}
+      {\exp\{-3\epsilon|z-S_{\mathrm{pair}}(D_n')|/8\}}
+ &\le
+ \exp\left\{\frac{3\epsilon}{8}
+ |S_{\mathrm{pair}}(D_n)-S_{\mathrm{pair}}(D_n')|\right\}\\
+ &\le e^\epsilon. \tag{9}
+ \end{aligned}
+\]
+Integration of equation \(9\) over measurable output sets proves pure \(\epsilon\)-differential privacy of the noisy query.  The sign, fair tie-break, and scalar rescaling are postprocessings; hence \(\phi_{\mathrm{pair}}\) and \(\widehat\theta_{\mathrm{pair}}\) are also pure \(\epsilon\)-differentially private.
+
+Finally, the established fuzzy-family membership result gives
+\[
+ \theta(P_{s,\lambda})=-sA_0,
+ \qquad
+ A_0=\frac{ab}{1/4-a^2},
+ \qquad
+ \widehat\theta_{\mathrm{pair}}=-\phi_{\mathrm{pair}}A_0. \tag{10}
+\]
+The absolute loss in equation \(10\) is zero when \(\phi_{\mathrm{pair}}=s\) and is \(2A_0\) otherwise.  Multiplying equation \(8\) by \(2A_0\) proves the displayed risk bound.  The proof uses one common score and never selects among the \(2^k\) nuisance signs; consequently no \(\log k\) or \(\log|\{-1,1\}^k|\) term occurs.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the higher-order escape: one explicit finite pure-private mechanism separates all nuisance profiles after one-record margins vanish. \textit{Gap.} Asi et al., Section 4.1, Theorem 13, Lemma 15, and Proposition 16 control generic finite covers through \(\log|\mathcal P_\eta|\); Bun et al., Theorem 1.1 and Corollary 1.2, similarly charge \(\log m\) or \(\log|\mathcal C_\alpha|\). The present structural pair test is not a generic improvement to those results, but its signed-family exponent requires no nuisance-catalogue selection. \textit{Consumer.} It provides the private upper-test counterpart for the shared-sign experiment that diagnoses the coupled \(r_F\) privacy branch.
+
+\begin{proposition}[prop:two-record-exact-audit]\label{prop:two-record-exact-audit}
+In the specified experiment \((\mathcal Z_k^2,\overline\Pi_{s,k}^{\,2})\), \(\Pr(\mathcal E_{\mathrm{coll}})=1/k\) and \(\operatorname{TV}(\overline\Pi_{+,k}^{\,2},\overline\Pi_{-,k}^{\,2})=4ab/k\). With equal prior weights on \(s\), \(RR_{2,k}\) has Bayes classification error \(\{1-(4ab/k)\tanh(\epsilon/2)\}/2\), and \(\widehat\theta_{\mathrm{RR}}\) has Bayes absolute risk \[\frac{ab}{1/4-a^2}\{1-(4ab/k)\tanh(\epsilon/2)\}.\] For every adjacent pair under \(\sim_{\mathrm q}\), both output likelihood ratios are at most \(e^\epsilon\), and the maximum neighboring log-likelihood ratio is exactly \(\epsilon\).
+\end{proposition}
+\begin{proof}
+For \(z_l=(j_l,u_l,w_l)\), expand the two factors defining \((Q_{s,\lambda}^{(k)})^{\otimes2}\) and average the independent Rademacher coordinates of \(\lambda\).  Terms containing one coordinate once, or two distinct coordinates once each, vanish.  The surviving terms give
+\[
+ \overline\Pi_{s,k}^{\,2}(z_1,z_2)
+ =\frac1{16k^2}\left[1+\mathbf 1\{j_1=j_2\}
+ \left\{4a^2u_1u_2+4b^2w_1w_2
+ +4sab(u_1w_2+w_1u_2)\right\}\right]. \tag{1}
+\]
+Summing equation \(1\) over the marks shows that the two labels are independent and uniform; hence \(\Pr(\mathcal E_{\mathrm{coll}})=1/k\).  Subtracting equation \(1\) at \(s=+1\) and \(s=-1\) gives
+\[
+ \overline\Pi_{+,k}^{\,2}(z_1,z_2)
+ -\overline\Pi_{-,k}^{\,2}(z_1,z_2)
+ =\frac{ab}{k^2}T_{2,k}(z_1,z_2). \tag{2}
+\]
+For each fixed common label, \(|T_{2,k}|=1\) on eight of the sixteen sign quadruples and is zero on the other eight.  Therefore
+\[
+ \operatorname{TV}(\overline\Pi_{+,k}^{\,2},\overline\Pi_{-,k}^{\,2})
+ =\frac12\frac{ab}{k^2}\,k\,8=\frac{4ab}{k}. \tag{3}
+\]
+Equation \(2\) also proves directly that the sign of \(T_{2,k}\), with a fair tie-break where the two likelihoods agree, is a Bayes rule under equal prior weights on \(s\).  Hence
+\[
+ \Pr(\sigma_{2,k}\ne s)=\frac{1-4ab/k}{2},
+ \qquad
+ \mathbb E(s\sigma_{2,k})=\frac{4ab}{k}. \tag{4}
+\]
+Put \(\rho=(e^\epsilon-1)/(e^\epsilon+1)=\tanh(\epsilon/2)\).  By the definition of randomized response,
+\(\mathbb E(RR_{2,k}\mid\sigma_{2,k})=\rho\sigma_{2,k}\).  Averaging equation \(4\) therefore gives
+\[
+ \Pr(RR_{2,k}\ne s)
+ =\frac12\left\{1-\frac{4ab}{k}\tanh(\epsilon/2)\right\}. \tag{5}
+\]
+The true and reported target values are respectively
+\(-sab/(1/4-a^2)\) and \(-RR_{2,k}ab/(1/4-a^2)\).  Their absolute difference is twice this positive amplitude exactly on the error event in equation \(5\), proving the asserted Bayes absolute risk.
+
+For every input, including an input at which the preliminary sign is randomized, each output probability of randomized response lies between
+\(1/(1+e^\epsilon)\) and \(e^\epsilon/(1+e^\epsilon)\).  Hence the likelihood ratio for either output is at most \(e^\epsilon\) between any two inputs, and in particular between inputs adjacent under \(\sim_{\mathrm q}\).  Equality is attained on an adjacent pair: for a fixed label \(j\), take
+\[
+ z_1=(j,1,1),
+ \qquad z_2=(j,1,1),
+ \qquad z_2'=(j,-1,-1).
+\]
+Then \(T_{2,k}(z_1,z_2)=1\) and \(T_{2,k}(z_1,z_2')=-1\).  For output \(+1\), the corresponding likelihood ratio is exactly \(e^\epsilon\).  Thus the maximum neighboring log-likelihood ratio is exactly \(\epsilon\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fully finite calculation separates the unavoidable collision loss from any nonexistent nuisance-entropy loss. \textit{Gap.} Generic cover bounds do not identify whether a loss in this experiment comes from collision probability or from the number of nuisance profiles. \textit{Consumer.} It supplies a reproducible, exact early-kill benchmark for the sample-level pair mechanism and its privacy constraints.
+
+\begin{proposition}[prop:pair-radius]\label{prop:pair-radius}
+Suppose \(n\ge2\). Under the two-scale geometric restriction \(q<\gamma\), let \(a\asymp\ell^\alpha\), \(b\asymp\ell^\beta\), \(ab\asymp\delta\), \(h\asymp\delta^{1/\gamma}\), and \(\ell\asymp\delta^{1/q}\). Whenever the sparse-occupancy condition \(nv\le c_0\) holds, equivalently up to fixed profile constants \(n\delta^{d/q}\le c_*\), one has \(kp_2\asymp n^2h^d\ell^d\). For every fixed \(C\) for which \(n\{C\max(r_{\mathrm{pair}},r_F)\}^{d/q}\le c_*\), the two error exponents in Theorem 2 are bounded below by fixed multiples of \(C^{D_F+1}\) and \(C^{D_F}\), respectively, when \(\delta\ge C\max\{r_{\mathrm{pair}},r_F\}\) while sparse occupancy remains valid. At \(\delta=Cr_F\), this compatibility is equivalent up to fixed constants to \(\epsilon\ge cC^{D_F}n^{-1+q/d+q/\gamma}\). At \(\delta=Cr_{\mathrm{pair}}\), it is asymptotically feasible for a fixed \(C\) only if \(d\ge2q+qd/\gamma\); strict inequality permits every fixed \(C\) eventually, whereas equality permits only constants \(C\) satisfying the fixed occupancy bound. Thus the signed-family theorem gives a log-free fixed-error pure-private separation at the coupled radius only in these compatible sparse regimes. Outside them, and in particular under dense occupancy, it does not validate the named \(r_F\) or \(r_{\mathrm{pair}}\) branch; a new dense-occupancy argument is required. For \(k=1\) and \(\lambda=(\lambda_1)\in\{-1,1\}\), if \(O_1,O_2\) are independent records from \(P_{s,(\lambda_1)}\), then with \(U_i=2A_i-1\), \(V_i=2Y_i-1\), and \(Z_{12}=(U_1V_2+V_1U_2)/2\),
+\[
+ \mathbb E_{P_{s,(\lambda_1)}^{\otimes2}}
+ \!\left[Z_{12}\,\middle|\,X_1,X_2\in C_1\right]=4sab.
+\]
+\end{proposition}
+\begin{proof}
+Since exact uniform design gives \(N_j\sim\operatorname{Bin}(n,v)\),
+\[
+ \binom n2v^2(1-v)^{n-2}
+ \le p_2
+ \le\mathbb E\binom{N_j}{2}=\binom n2v^2. \tag{1}
+\]
+The sparse-occupancy hypothesis \(nv\le c_0<1\) implies
+\((1-v)^{n-2}\ge(1-v)^n\ge1-nv\ge1-c_0\).  Also, \(n^2/2\le n(n-1)\le n^2\) for \(n\ge2\).  Thus equation \(1\) yields
+\[
+ p_2\asymp n^2v^2. \tag{2}
+\]
+The profile definition gives \(v\asymp\ell^d\) and \(k\asymp h^d/\ell^d\).  Therefore
+\[
+ kp_2\asymp
+ \frac{h^d}{\ell^d}n^2\ell^{2d}
+ =n^2h^d\ell^d. \tag{3}
+\]
+All comparison constants in equations \(2\)--\(3\) depend only on the fixed profile and occupancy constants.
+
+Because \(q=\alpha+\beta\), the amplitude calibrations imply
+\[
+ ab\asymp\ell^{\alpha+\beta}=\ell^q\asymp\delta,
+ \qquad
+ \ell\asymp\delta^{1/q},
+ \qquad
+ h\asymp\delta^{1/\gamma}. \tag{4}
+\]
+Substituting equation \(4\) into equation \(3\) and using
+\(D_F=1+d/\gamma+d/q\) gives
+\[
+ \begin{aligned}
+ kp_2a^2b^2
+ &\asymp n^2\delta^{2+d/\gamma+d/q}
+ =n^2\delta^{D_F+1},\\
+ \epsilon kp_2ab
+ &\asymp n^2\epsilon\delta^{1+d/\gamma+d/q}
+ =n^2\epsilon\delta^{D_F}. \tag{5}
+ \end{aligned}
+\]
+Hence, if \(\delta\ge C\max\{r_{\mathrm{pair}},r_F\}\), the first exponent in equation \(5\) is at least a fixed multiple of \(C^{D_F+1}\), because \(r_{\mathrm{pair}}^{D_F+1}=n^{-2}\).  Under \(n^{-1}\le\epsilon\le1\) and \(n\ge2\), \(n^2\epsilon>1\), so the cap in \(r_F\) is inactive and
+\[
+ r_F=(n^2\epsilon)^{-1/D_F}.
+\]
+The second exponent in equation \(5\) is consequently at least a fixed multiple of \(C^{D_F}\).  The error estimate of Theorem 2 then gives the claimed fixed-error separation whenever the same calibrated \(\delta\) remains in the sparse-occupancy regime.  The condition \(q<\gamma\) gives
+\(\ell/h\asymp\delta^{1/q-1/\gamma}\to0\) as \(\delta\downarrow0\), verifying the required two-scale ordering.
+
+We now make the sparse-regime restriction explicit.  The frozen profile geometry states \(v\asymp\ell^d\), not \(v\asymp h^d\ell^d\).  Thus \(nv\le c_0\) is equivalent, up to fixed comparison constants, to
+\[
+ n\ell^d\asymp n\delta^{d/q}\le c_*. \tag{6}
+\]
+The product \(h^d\ell^d\) occurs instead in the signal count \(kp_2/n^2\) in equation \(3\).  At \(\delta=Cr_F\), equation \(6\) becomes
+\[
+ C^{d/q}n(n^2\epsilon)^{-d/(qD_F)}\le c_*.
+\]
+Raising both sides to the positive power \(qD_F/d\) and rearranging gives
+\[
+ \epsilon
+ \ge c_*^{-qD_F/d}C^{D_F}n^{qD_F/d-2}
+ =c_*^{-qD_F/d}C^{D_F}
+ n^{-1+q/d+q/\gamma}, \tag{7}
+\]
+where the last equality follows from
+\(qD_F/d=q/d+q/\gamma+1\).  This proves the stated privacy-budget compatibility, including its asymptotic direction.
+
+At \(\delta=Cr_{\mathrm{pair}}=Cn^{-2/(D_F+1)}\), equation \(6\) is
+\[
+ C^{d/q}n^{,1-2d/\{q(D_F+1)\}}\le c_*. \tag{8}
+\]
+For a fixed positive \(C\), equation \(8\) can hold asymptotically only if
+\[
+ 1-\frac{2d}{q(D_F+1)}\le0.
+\]
+Using \(D_F+1=2+d/\gamma+d/q\), this condition is equivalent, step by step, to
+\[
+ q(D_F+1)\le2d
+ \iff 2q+\frac{qd}{\gamma}+d\le2d
+ \iff d\ge2q+\frac{qd}{\gamma}. \tag{9}
+\]
+If the last inequality is strict, the power of \(n\) in equation \(8\) is negative, so every fixed \(C\) is eventually compatible.  At equality that power is zero and equation \(8\) requires the fixed restriction \(C^{d/q}\le c_*\); thus one cannot make \(C\) arbitrarily large at the boundary while retaining sparse occupancy.  If inequality \(9\) fails, the left side of equation \(8\) diverges for every fixed \(C>0\).  Equations \(6\)--\(9\) prove that neither named branch is certified by this theorem outside its compatible sparse regime and isolate dense occupancy as requiring a different argument.
+
+Finally, for \(k=1\), the profile identities on \(C_1\) give \(F_{(\lambda_1)}=\lambda_1\).  Binary outcomes make the clipping inactive, so
+\[
+ \mathbb E(U_i\mid X_i\in C_1)=2a\lambda_1,
+ \qquad
+ \mathbb E(V_i\mid X_i\in C_1)=2sb\lambda_1.
+\]
+Independence of the two records now yields
+\[
+ \begin{aligned}
+ \mathbb E\!\left[Z_{12}\mid X_1,X_2\in C_1\right]
+ &=\frac12\{(2a\lambda_1)(2sb\lambda_1)
+ +(2sb\lambda_1)(2a\lambda_1)\}\\
+ &=4sab,
+ \end{aligned}
+\]
+which proves the sanity reduction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The specialization makes the \(n^2\epsilon\) privacy balance explicit without importing a formula for full-class nonprivate risk. \textit{Gap.} Kennedy et al. derive a nonprivate fuzzy-hypothesis rate, and Acharya et al. derive private mixture converses; neither constructs a private CATE test attaining this signed-family pair separation. \textit{Consumer.} It validates the \(r_F\) and \(r_{\mathrm{pair}}\) branches only on the legal signed-family experiment and only when the explicit sparse-occupancy compatibility holds; dense occupancy and global target-fiber aggregation remain separate open steps.
+
+\begin{proposition}[prop:shell-functional-risk]\label{prop:shell-functional-risk}
+If every \(Q_t\) has replacement sensitivity at most one and \(\mathfrak W_r(Q)\le B\), then \(T_{\mathrm{shell}}\) is pure \(\epsilon\)-differentially private and \[\sup_{P\in\mathcal M_H}\mathbb E_{P^{\otimes n}}d_\Theta(T_{\mathrm{shell}},\theta(P))\le (B+3)r.\] The bound is independent of \(|\mathcal G_r|\) and of every nuisance-sieve cardinality.
+\end{proposition}
+\begin{proof}
+For neighboring datasets \(D_n\sim_1D_n'\), one-sensitivity gives
+\[
+ e^{-\epsilon/2}
+ \le\frac{e^{-\epsilon Q_t(D_n)/2}}{e^{-\epsilon Q_t(D_n')/2}}
+ \le e^{\epsilon/2}
+\]
+for every \(t\).  Summing these inequalities gives the reciprocal bound \(e^{\epsilon/2}\) for the ratio of the two normalizing constants.  Multiplying numerator and normalizer bounds shows that every output likelihood ratio of \(T_{\mathrm{shell}}\) is at most \(e^\epsilon\).  Thus the selector is pure \(\epsilon\)-differentially private under replacement adjacency.
+
+Fix \(P\in\mathcal M_H\).  The maximum gap of \(\mathcal G_r\), including its final endpoint gap, is at most \(r\), so the nearest grid point satisfies
+\[
+ d_\Theta(t_P,\theta(P))\le r.
+\]
+For every dataset and every \(t\in\mathcal G_r\), retaining only the \(t_P\)-term in the selector denominator gives
+\[
+ \Pr(T_{\mathrm{shell}}=t\mid D_n)
+ \le 1\wedge
+ \exp\{-\epsilon(Q_t(D_n)-Q_{t_P}(D_n))/2\}. \tag{1}
+\]
+Every grid point with \(d_\Theta(t,t_P)<r\) contributes at most \(r\) in total to the conditional expectation of \(d_\Theta(T_{\mathrm{shell}},t_P)\).  On \(\mathcal S_m(P;r)\), \(d_\Theta(t,t_P)<(m+1)r\).  Therefore \(1\), Tonelli's theorem for the nonnegative finite sum, and the definition of \(\mathfrak W_r\) imply
+\[
+ \begin{aligned}
+ \mathbb E_{P^{\otimes n}}d_\Theta(T_{\mathrm{shell}},t_P)
+ &\le r+r\sum_{m\ge1}(m+1)
+ \sum_{t\in\mathcal S_m(P;r)}
+ \mathbb E_{P^{\otimes n}}
+ \left[1\wedge e^{-\epsilon(Q_t-Q_{t_P})/2}\right]\\
+ &\le (B+1)r.
+ \end{aligned}
+\]
+The triangle inequality now gives
+\[
+ \mathbb E_{P^{\otimes n}}d_\Theta(T_{\mathrm{shell}},\theta(P))
+ \le(B+2)r\le(B+3)r.
+\]
+Taking the supremum over \(P\) proves the claim.  The proof sums only the prescribed scalar distance shells, so neither the grid cardinality nor a nuisance-sieve cardinality enters the bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition turns the formerly informal shell requirement into the exact certificate needed for log-free scalar selection. \textit{Gap.} The exponential mechanism alone gives a global output-cardinality term; the displayed weighted expectation criterion replaces the global union bound with a summable distance-shell calculation. \textit{Consumer.} A full-class construction need only verify one-sensitivity and a uniform bound on \(\mathfrak W_r\) to obtain an \(O(r)\) estimator.
+
+\begin{openendedquestion}[oeq:full-fiber-pair-lift]\label{oeq:full-fiber-pair-lift}
+For every \(r\ge C\max\{R_n^{\mathrm{NP}},r_G,r_F\}\), can \(H_{\mathrm{pair\mbox{-}lift}}\) construct a family \(\{Q_t:t\in\mathcal G_r\}\) such that \(\sup_{D_n\sim_1D_n'}|Q_t(D_n)-Q_t(D_n')|\le1\) for every \(t\) and \(\mathfrak W_r(Q)\le C'\), with \(C'\) independent of every finite nuisance sieve, using the same sample size \(n\)?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the open step from the proved signed-family pair test to a symbolic full-class private upper frontier. \textit{Gap.} Birgé-style composite tests and Asi et al.'s Section 4 T-mechanism do not establish a nuisance-independent second-order projection certificate for arbitrary dependent least-favorable CATE mixtures. \textit{Consumer.} A positive answer and Proposition 3 yield \(R_{n,\epsilon}^{\mathrm{DP}}\le C\max\{R_n^{\mathrm{NP}},r_G,r_F\}\); a negative answer identifies a privacy obstruction beyond the signed pair witness.
+
+\section{Interpretation}
+
+The pair statistic establishes a genuine higher-order escape from the one-record mixture collision on one legal signed subclass. Clipping is a data-domain repair, not a restriction of the model: it leaves binary-family moments unchanged and makes every pair kernel lie in \([-1,1]\). The \(8/3\) global sensitivity comes from at most \(4/3\) change in each of two distinct cells; a within-cell replacement changes the block by at most two. These facts certify the displayed signed-family mechanism. They do not construct stable composite scores for arbitrary least-favorable priors, so \(\mathfrak W_r\) should be read as a sufficient, computable criterion whose full-class realization is the open problem.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The early-kill experiment used \(d=1\), \(\alpha=\beta=1/8\), \(\gamma=1\), \(n=2\), \(a=b=2/25\), and \(\epsilon=1\). For \(k=1,\ldots,8\), finite nonprivate and private programs were evaluated on all \((4k)^2\) ordered datasets with every one-record replacement edge imposed; the exact symmetry formula was also checked through \(k=12\). These computations are diagnostics, not a proof that randomized response is optimal over all private mechanisms. The formal finite proposition establishes its stated Bayes risk and exact privacy loss only for the specified mechanism. The signed-family asymptotic test requires \(nv\le c_0\), which under the frozen geometry \(v\asymp\ell^d\) is \(n\delta^{d/q}\lesssim1\); \(h^d\ell^d\) appears in \(kp_2/n^2\), not in one-cell occupancy. At \(\delta=Cr_F\), compatibility requires \(\epsilon\gtrsim C^{D_F}n^{-1+q/d+q/\gamma}\). At \(\delta=Cr_{\mathrm{pair}}\), fixed-\(C\) asymptotic feasibility requires \(d\ge2q+qd/\gamma\); at equality \(C\) remains bounded by the occupancy constant, while strict inequality permits every fixed \(C\) eventually. Dense occupancy is the next unresolved elbow. None of these checks proves the full-class lifting certificate or removes the arbitrary-prior higher-order remainder.
+
+\section{Honest scope}
+
+The formal contribution is the exact-uniform smooth signed two-fiber family, its one-record convex-hull obstruction, the sparse-occupancy pure-private pair test with clipped marks and \(8/3\) replacement sensitivity, and a specified finite diagnostic experiment. The private upper and risk bounds are strictly signed-family-specific. Only obstruction or converse implications from this embedded subclass transfer upward to an anchor class containing it. The pair-radius calculation requires \(q<\gamma\) and \(n\delta^{d/q}\lesssim1\). At \(\delta=Cr_F\) this entails \(\epsilon\gtrsim C^{D_F}n^{-1+q/d+q/\gamma}\); at \(\delta=Cr_{\mathrm{pair}}\) it requires \(d\ge2q+qd/\gamma\), and equality does not permit arbitrarily large \(C\). Outside those compatible regimes, especially under dense occupancy, the signed-family theorem validates neither named branch. The work does not establish the full-class private minimax frontier: the handle \(H_{\mathrm{pair\mbox{-}lift}}\) merely names a sufficient weighted-shell certificate, whose construction uniformly over arbitrary least-favorable priors remains open.
+
+\begin{thebibliography}{99}
+
+  \bibitem{kennedy2024minimax} Kennedy, E. H., Balakrishnan, S., Robins, J. M., and Wasserman, L. (2024). Minimax rates for heterogeneous causal effect estimation. \emph{Annals of Statistics} 52(2), 793--816. Theorems 1--2 and Section 5. doi:10.1214/24-AOS2369.
+
+  \bibitem{canonne2019privatetests} Canonne, C. L., Kamath, G., McMillan, A., Smith, A., and Ullman, J. (2019). The structure of optimal private tests for simple hypotheses. \emph{Proceedings of the ACM Symposium on Theory of Computing}, 310--321. Section 3. doi:10.1145/3313276.3316336.
+
+  \bibitem{acharya2021dplecam} Acharya, J., Sun, Z., and Zhang, H. (2021). Differentially private Assouad, Fano, and Le Cam. \emph{Proceedings of Algorithmic Learning Theory} 132, 48--78.
+
+  \bibitem{asi2024instanceoptimal} Asi, H., Duchi, J. C., Haque, S., Li, Z., and Ruan, F. (2024). Universally instance-optimal mechanisms for private statistical estimation. \emph{Proceedings of the Conference on Learning Theory} 247, 221--259. Section 4.1, Theorem 13, Lemma 15, and Proposition 16.
+
+  \bibitem{chaudhuri2024dpustatistics} Chaudhuri, K., Loh, P.-L., Pandey, S., and Sarkar, P. (2024). On differentially private U statistics. \emph{Advances in Neural Information Processing Systems} 37, 23078--23122.
+
+  \bibitem{bun2021hypothesisselection} Bun, M., Kamath, G., Steinke, T., and Wu, Z. S. (2021). Private hypothesis selection. \emph{IEEE Transactions on Information Theory} 67(3), 1981--2000. Theorem 1.1 and Corollary 1.2. doi:10.1109/TIT.2021.3049802.
+
+  \bibitem{niu2022dpcate} Niu, F., Nori, H., Quistorff, B., Caruana, R., Ngwe, D., and Kannan, A. (2022). Differentially private estimation of heterogeneous causal effects. \emph{Proceedings of the Conference on Causal Learning and Reasoning}, 618--633.
+
+  \bibitem{schroder2025dpcate} Schröder, M., Melnychuk, V., and Feuerriegel, S. (2025). Differentially private learners for heterogeneous treatment effects. \emph{International Conference on Learning Representations}. Theorems 1 and 3. arXiv:2503.03486.
+
+\end{thebibliography}
+
+\end{document}

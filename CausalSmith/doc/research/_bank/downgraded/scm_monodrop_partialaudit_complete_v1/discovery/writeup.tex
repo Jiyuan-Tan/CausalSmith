@@ -1,0 +1,1005 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}monodrop\_\allowbreak{}partialaudit\_\allowbreak{}complete}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For the arbitrary-horizon local subclass with at most one substantively informative continuation hazard, a finite graph-and-audit rule is necessary and sufficient for the entire endpoint intervention distribution. Empty or purely lagged hazard parents need no audit; current or lead parents require one pre-\(k\) dropout stratum to audit a coordinate at or downstream of the latest such parent. Successful passive and active branches return explicit rational reconstructions valid without rank assumptions, while failure returns a strictly positive observationally equivalent pair. The minimal frontier is the empty design in the passive case and otherwise consists of \(k(T-j_\star+1)\) singleton audits. A one-way embedded-witness obstruction applies to arbitrary local supergraphs, but sufficiency with two or more informative hazards remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Published monotone-missingness m-DAG theory treats a broader graph class through recovery and obstruction results, and randomized double-sampling theory usually completes the coarsened record. Neither supplies a necessary-and-sufficient partial-audit rule for an endpoint intervention distribution even in the arbitrary-horizon local class with at most one substantively informative hazard.
+
+\paragraph{Niche.} The completed subclass allows the sole possibly informative hazard to have any subset of its lagged, current, and lead local parents. It covers arbitrary finite alphabets, null allowed-arrow effects, and deficient transition ranks, while retaining a graph-explicit recovery-or-positive-obstruction alternative.
+
+\paragraph{Fill.} Define \(J_+(S_k)=S_k\cap\{k,k+1\}\). Passive sets \(J_+(S_k)=\varnothing\) are recovered from the pre-hazard risk set and complete-case Markov tail without auditing. Otherwise, with \(j_\star=\max J_+(S_k)\), a finite scan for \(d<k\) and \(\ell\in B_d\) satisfying \(\ell\ge j_\star\) returns either a rational reconstruction or a strictly positive witness, proves \(\mathsf C_{1,\mathrm{loc}}=\operatorname{GID}\), and enumerates the complete minimal frontier.
+
+\section{Related work}
+
+Tikka and Karvanen (2025) analyze a broader monotone-missingness m-DAG class and establish recovery and nonidentification results, but do not give a necessary-and-sufficient theorem for same-subject partial-audit designs. The present theorem closes that design question only for the arbitrary-horizon local subclass with at most one substantively informative hazard; its one-parent witness also yields a necessary obstruction in larger local graphs. Tikka and Karvanen (2024) study categorical rank conditions, whereas both affirmative branches here require no transition-rank premise. Levis et al. (2024) identify smooth complete-data functionals after randomized intensive follow-up that completes the coarsened record, while the sufficient designs here can recover neither the full trajectory nor the endpoint. Guo and Nabi (2026) give a sound intervention-tree construction without the restricted-class completeness theorem proved here. Duarte et al. (2024) provide finite polynomial optimization machinery used only for projected confidence sets, not for the graph-explicit criterion.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \((Q_a(x))_{a,x}=(P(X_T=x\mid\operatorname{do}(A=a)))_{a,x}\).
+Primary functional / estimator / diagnostic: \(Q=\mathsf{Rec}^{(1)}_{T,k,j,B}((M_d)_{d=0}^T)\) when \(S_k=\{j\}\), \(S_t=\varnothing\) for \(t\ne k\), and \(\mathsf C_1(T,k,j,B,(|\mathcal X_t|)_{t=1}^T)=1\).
+\begin{itemize}
+  \item \texttt{T} --- \texttt{Integer}; \(\{2,3,\ldots\}\); \texttt{Number of scheduled visits.}
+  \item \texttt{t} --- \texttt{Index}; \(\{1,\ldots,T\}\); \texttt{Visit index.}
+  \item \texttt{d} --- \texttt{Index}; \(\{0,\ldots,T\}\); \texttt{Final routinely observed visit.}
+  \item \texttt{s} --- \texttt{Index}; \(\{1,\ldots,T\}\); \texttt{Dummy visit index in products.}
+  \item \texttt{j} --- \texttt{Index}; \(\{1,\ldots,T\}\); \texttt{Generic audited or parent visit index.}
+  \item \texttt{k} --- \texttt{Index}; \(\{1,\ldots,T\}\); \texttt{Generic boundary or informative-\allowbreak{}hazard visit index.}
+  \item \texttt{ell} --- \texttt{Index}; \(\{1,\ldots,T\}\); \texttt{Generic downstream visit index.}
+  \item \texttt{calW} --- \texttt{Finite alphabet}; \(\mathcal W\); \texttt{Baseline state space.}
+  \item \texttt{calA} --- \texttt{Finite alphabet}; \(\mathcal A\); Treatment state space, with \( |\mathcal A|\ge 2\).
+  \item \texttt{calX} --- \texttt{Family of finite alphabets}; \((\mathcal X_t)_{t=1}^T\); \texttt{Longitudinal state spaces,\allowbreak{} each with at least two elements.}
+  \item \texttt{W} --- \texttt{Random variable}; \(\mathcal W\); \texttt{Always-\allowbreak{}observed baseline variable.}
+  \item \texttt{A} --- \texttt{Random variable}; \(\mathcal A\); \texttt{Always-\allowbreak{}observed treatment variable.}
+  \item \texttt{w} --- \texttt{Value}; \(\mathcal W\); \texttt{Baseline value.}
+  \item \texttt{a} --- \texttt{Value}; \(\mathcal A\); \texttt{Treatment value.}
+  \item \texttt{x} --- \texttt{Value}; \(\mathcal X_T\); \texttt{Endpoint value.}
+  \item \texttt{X} --- \texttt{Random vector}; \(\prod_{t=1}^T\mathcal X_t\); \texttt{Substantive trajectory.}
+  \item \texttt{S} --- \texttt{Family of parent sets}; \(S_t\subseteq\{t-1,t,t+1\}\cap\{1,\ldots,T\}\); Allowed substantive parents of continuation hazard \(t\).
+  \item \texttt{B} --- \texttt{Audit-\allowbreak{}bundle design}; \(B_d\subseteq\{d+1,\ldots,T\}\) for \(d<T\); \texttt{Fixed post-\allowbreak{}dropout coordinates recovered by a successful audit.}
+  \item \texttt{Bprime} --- \texttt{Audit-\allowbreak{}bundle design}; \(B'_d\subseteq\{d+1,\ldots,T\}\) for \(d<T\); \texttt{A second design used in the inclusion order.}
+  \item \texttt{pW} --- \texttt{Probability mass function}; \(\Delta(\mathcal W)\); \texttt{Baseline law.}
+  \item \texttt{pA} --- \texttt{Conditional probability kernel}; \(\Delta(\mathcal A)^{\mathcal W}\); \texttt{Treatment mechanism.}
+  \item \texttt{K} --- \texttt{Family of conditional probability kernels}; \(K_1(x_1\mid w,a)\) and \(K_t(x_t\mid w,a,x_{t-1})\) for \(t\ge2\); \texttt{Substantive Markov transition law.}
+  \item \texttt{q} --- \texttt{Family of continuation probabilities}; \(q_t(w,a,x_{S_t})\in(0,1)\); \texttt{Local monotone-\allowbreak{}dropout hazards.}
+  \item \texttt{C} --- \texttt{Binary random vector}; \(\{0,1\}^T\); \texttt{Continuation coins.}
+  \item \texttt{U} --- \texttt{Exogenous disturbance vector}; \(U=(U_W,U_A,U_{X_1},\ldots,U_{X_T})\); \texttt{Substantive structural disturbances.}
+  \item \texttt{R} --- \texttt{Binary random vector}; \(\{0,1\}^{T+1}\); \texttt{Monotone response process.}
+  \par\smallskip\noindent\emph{Definition.} \(R_0=1\) and \(R_t=R_{t-1}C_t\).
+  \item \texttt{D} --- \texttt{Random variable}; \(\{0,\ldots,T\}\); \texttt{Final routinely observed visit.}
+  \par\smallskip\noindent\emph{Definition.} \(D=\sum_{t=1}^T R_t\).
+  \item \texttt{H} --- \texttt{Random history}; \(H_d=(W,A,D,X_1,\ldots,X_d)\); Routine history in dropout stratum \(d\).
+  \item \texttt{e} --- \texttt{Known probability family}; \(e_d(H_d)\in(0,1)\) for \(d<T\); \texttt{Second-\allowbreak{}stage randomized audit probability.}
+  \item \texttt{Z} --- \texttt{Binary random variable}; \(\{0,1\}\); \texttt{Second-\allowbreak{}stage audit indicator.}
+  \item \texttt{O} --- \texttt{Observed random element}; \texttt{Observed datum.}
+  \par\smallskip\noindent\emph{Definition.} \(O=(H_D,Z,(X_j)_{j\in B_D}\mathbf 1\{Z=1\})\), with structural missing symbols and \(Z=0\) when \(D=T\).
+  \item \texttt{calO} --- \texttt{Finite alphabet}; \(\mathcal O\); Structural observed-data alphabet of \(O\).
+  \item \texttt{Pclass} --- \texttt{Statistical model}; \(\mathcal P_{T,S,B,e}\); \texttt{Positive finite Markovian SCM class with the specified graph and audit design.}
+  \item \texttt{P} --- \texttt{Probability law}; \(\mathcal P_{T,S,B,e}\); \texttt{A legal SCM law.}
+  \item \texttt{Pprime} --- \texttt{Probability law}; \(\mathcal P_{T,S,B,e}\); \texttt{A second legal SCM law.}
+  \item \texttt{g} --- \texttt{Family of trajectory subdensities}; \(g_d(w,a,x_{1:T})\); Joint substantive mass in dropout stratum \(d\).
+  \item \texttt{b} --- \texttt{Boundary-\allowbreak{}index family}; Last visit on which dropout subdensity \(d\) may have an unrestricted boundary factor.
+  \par\smallskip\noindent\emph{Definition.} \(b_d=\min\{T,d+2\}\).
+  \item \texttt{u} --- \texttt{Family of positive functions}; \(u_d(w,a,x_{1:b_d})\); Local boundary factor of dropout subdensity \(d\).
+  \item \texttt{I} --- \texttt{Family of coordinate sets}; Coordinates observed in audited dropout stratum \(d\).
+  \par\smallskip\noindent\emph{Definition.} \(I_d=\{1,\ldots,d\}\cup B_d\).
+  \item \texttt{M} --- \texttt{Family of finite tables}; \(M_d(w,a,x_{1:d},x_{B_d})\); \texttt{Audit-\allowbreak{}pattern tables identified by known-\allowbreak{}probability auditing.}
+  \item \texttt{Q} --- \texttt{Intervention distribution vector}; \(Q=(Q_a(x))_{a\in\mathcal A,\,x\in\mathcal X_T}\); \texttt{Endpoint causal target.}
+  \item \texttt{Phi} --- \texttt{Polynomial map}; \(\Phi_{T,S,B,e}:\mathcal P_{T,S,B,e}\to\Delta(\mathcal O)\); Map from primitive SCM tables to the law of \(O\).
+  \item \texttt{GID} --- \texttt{Boolean}; \(\operatorname{GID}(T,S,B)\); \texttt{Graphwise identification indicator for the entire endpoint intervention vector.}
+  \item \texttt{n} --- \texttt{Positive integer}; \(\mathbb N\); \texttt{Sample size.}
+  \item \texttt{Odata} --- \texttt{Random sample}; \(O_1,\ldots,O_n\overset{\mathrm{iid}}{\sim}\Phi_{T,S,B,e}(P)\); \texttt{Observed iid records.}
+  \item \texttt{m} --- \texttt{Positive integer}; \texttt{Observed alphabet size.}
+  \par\smallskip\noindent\emph{Definition.} \(m=|\mathcal O|\), after retaining the structural cells of \(O\).
+  \item \texttt{o} --- \texttt{Probability vector}; \(\Delta^{m-1}\); \texttt{True observed-\allowbreak{}cell probabilities.}
+  \par\smallskip\noindent\emph{Definition.} \(o=\Phi_{T,S,B,e}(P)\).
+  \item \texttt{ohat} --- \texttt{Empirical probability vector}; \(\Delta^{m-1}\); \texttt{Observed-\allowbreak{}cell histogram.}
+  \item \texttt{alpha} --- \texttt{Scalar}; \((0,1)\); \texttt{Confidence error probability.}
+  \item \texttt{eps} --- \texttt{Positive scalar}; \texttt{Simultaneous observed-\allowbreak{}cell radius.}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_n=\sqrt{\log(2m/\alpha)/(2n)}\).
+  \item \texttt{Cset} --- \texttt{Random closed set}; \(\mathcal C_n\subseteq\prod_{a\in\mathcal A}\Delta(\mathcal X_T)\); \texttt{Projected confidence set for the entire intervention vector.}
+  \item \texttt{Jplus} --- \texttt{Family of active local parent sets}; \(J_+(S_k)=S_k\cap\{k,k+1\}\); \texttt{Current-\allowbreak{}or-\allowbreak{}lead substantive parents of the sole possibly informative hazard.}
+  \item \texttt{jstar} --- \texttt{Index}; \(J_+(S_k)\); \texttt{Latest current-\allowbreak{}or-\allowbreak{}lead parent of the sole possibly informative hazard.}
+  \par\smallskip\noindent\emph{Definition.} \(j_\star=\max J_+(S_k)\) when \(J_+(S_k)\ne\varnothing\).
+  \item \texttt{Hset} --- \texttt{Family of finite audit-\allowbreak{}incidence sets}; \(\mathcal H_\star(B)=\{(d,\ell):0\le d<k,\ j_\star\le\ell\le T,\ \ell\in B_d\}\); \texttt{Pre-\allowbreak{}hazard dropout strata whose audit reveals a state at or downstream of the latest active hazard parent.}
+  \item \texttt{Alg} --- \texttt{Finite local single-\allowbreak{}hazard certificate procedure}; \(\mathsf A_{1,\mathrm{loc}}(T,k,S_k,B,(|\mathcal X_t|)_{t=1}^T)\); \texttt{Returns the passive reconstruction,\allowbreak{} the active audited reconstruction,\allowbreak{} or the explicit positive scaling witness.}
+  \item \texttt{Rec} --- \texttt{Local single-\allowbreak{}hazard reconstruction map}; \(\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}:(M_d)_{d=0}^T\mapsto Q\); \texttt{Passive or audited rational endpoint reconstruction returned on a successful local criterion branch.}
+  \item \texttt{Witness} --- \texttt{Local single-\allowbreak{}hazard countermodel pair}; \(\mathsf{Wit}^{(1,\mathrm{loc})}_{T,k,S_k,B}=(P,P')\); \texttt{Strictly positive observationally equivalent pair returned when an active local parent lacks a sufficient audit incidence.}
+  \item \texttt{F} --- \texttt{Local identifying map}; \(F:o\mapsto Q\); \texttt{Rational passive or audited map used for plug-\allowbreak{}in estimation and differentiation.}
+  \par\smallskip\noindent\emph{Definition.} On a successful at-most-one-informative-hazard local design, \(F\) is the known-\(e\) linear audit-table map followed by \(\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}\).
+  \item \texttt{Crit} --- \texttt{Boolean}; \(\mathsf C_{1,\mathrm{loc}}(T,k,S_k,B,(|\mathcal X_t|)_{t=1}^T)\); \texttt{At-\allowbreak{}most-\allowbreak{}one-\allowbreak{}informative-\allowbreak{}hazard local graphwise identification criterion returned by the finite procedure.}
+  \item \texttt{Frontier} --- \texttt{Finite family of designs}; \(\mathfrak F_{1,\mathrm{loc}}(T,k,S_k,(|\mathcal X_t|)_{t=1}^T)\); \texttt{Inclusion-\allowbreak{}minimal sufficient audit designs in the at-\allowbreak{}most-\allowbreak{}one-\allowbreak{}informative-\allowbreak{}hazard local subclass.}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:finite-alphabets]\label{ass:finite-alphabets}
+\(\mathcal W\), \(\mathcal A\), and every \(\mathcal X_t\) are specified finite alphabets, with \(|\mathcal A|\ge2\) and \(|\mathcal X_t|\ge2\).
+\par\smallskip\noindent\emph{Standard} (Finite categorical support, \cite{TikkaKarvanen2024Categorical}).
+\end{assumption}
+
+\begin{assumption}[ass:substantive-markov]\label{ass:substantive-markov}
+The substantive law factorizes as \(p_W(w)p_A(a\mid w)K_1(x_1\mid w,a)\prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1})\).
+\par\smallskip\noindent\emph{Standard} (First-order causal Markov factorization, \cite{Pearl2009Causality}).
+\end{assumption}
+
+\begin{assumption}[ass:substantive-positivity]\label{ass:substantive-positivity}
+Every entry of \(p_W\), \(p_A\), and \(K_t\) is strictly positive.
+\par\smallskip\noindent\emph{Standard} (Strict finite-table positivity, \cite{TikkaKarvanen2025Monotone}).
+\end{assumption}
+
+\begin{assumption}[ass:markovian-scm]\label{ass:markovian-scm}
+\texttt{The exogenous disturbances of the substantive structural equations are mutually independent.}
+\par\smallskip\noindent\emph{Standard} (Causally sufficient Markovian SCM, \cite{Pearl2009Causality}).
+\end{assumption}
+
+\begin{assumption}[ass:local-hazards]\label{ass:local-hazards}
+For every \(t\), \(\Pr(C_t=1\mid W,A,X)=q_t(W,A,X_{S_t})\).
+\par\smallskip\noindent\emph{Standard} (Locally monotone response mechanism with local substantive parents, \cite{TikkaKarvanen2025Monotone}).
+\end{assumption}
+
+\begin{assumption}[ass:response-noise-independence]\label{ass:response-noise-independence}
+Conditional on \((W,A,X)\), the continuation coins \(C_1,\ldots,C_T\) are mutually independent.
+\par\smallskip\noindent\emph{Standard} (Independent response noises, \cite{TikkaKarvanen2025Monotone}).
+\end{assumption}
+
+\begin{assumption}[ass:hazard-positivity]\label{ass:hazard-positivity}
+For every legal argument and every \(t\), \(0<q_t(w,a,x_{S_t})<1\).
+\par\smallskip\noindent\emph{Standard} (Legal-stratum response positivity, \cite{TikkaKarvanen2025Monotone}).
+\end{assumption}
+
+\begin{assumption}[ass:audit-randomization]\label{ass:audit-randomization}
+For \(d<T\), \(\Pr(Z=1\mid W,A,X,D=d)=e_d(H_d)\).
+\par\smallskip\noindent\emph{Standard} (Noninformative randomized second-stage sampling, \cite{LevisEtAl2024DoubleSampling}).
+\end{assumption}
+
+\begin{assumption}[ass:audit-positivity]\label{ass:audit-positivity}
+For every attainable \(H_d\) with \(d<T\), \(0<e_d(H_d)<1\).
+\par\smallskip\noindent\emph{Standard} (Positive second-stage sampling probabilities, \cite{LevisEtAl2024DoubleSampling}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent and identically distributed with common law \(\Phi_{T,S,B,e}(P)\).
+\par\smallskip\noindent\emph{Standard} (Independent sampling, \cite{vanDerVaart1998Asymptotic}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:scm-class]\label{def:scm-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Positive local monotone-\allowbreak{}dropout audit class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{T,S,B,e}=\{P: P\text{ is indexed by }T,S,B,e\text{ and satisfies }\text{ass:finite-alphabets},\text{ass:substantive-markov},\text{ass:substantive-positivity},\text{ass:markovian-scm},\text{ass:local-hazards},\text{ass:response-noise-independence},\text{ass:hazard-positivity},\text{ass:audit-randomization},\text{ass:audit-positivity}\}\). Allowed arrows may have null effects.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}alphabets}; \texttt{ass:\allowbreak{}substantive-\allowbreak{}markov}; \texttt{ass:\allowbreak{}substantive-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}markovian-\allowbreak{}scm}; \texttt{ass:\allowbreak{}local-\allowbreak{}hazards}; \texttt{ass:\allowbreak{}response-\allowbreak{}noise-\allowbreak{}independence}; \texttt{ass:\allowbreak{}hazard-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}audit-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}audit-\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:dropout-subdensities]\label{def:dropout-subdensities}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Dropout subdensities}
+\par\smallskip\noindent\emph{Construction.} For \(d<T\), \(g_d(w,a,x_{1:T})=p_W(w)p_A(a\mid w)K_1(x_1\mid w,a)\prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1})\{\prod_{s=1}^{d}q_s(w,a,x_{S_s})\}\{1-q_{d+1}(w,a,x_{S_{d+1}})\}\); for \(d=T\), omit the final failure factor and retain \(\prod_{s=1}^{T}q_s(w,a,x_{S_s})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pW}; \texttt{pA}; \texttt{K}; \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:audit-pattern-tables]\label{def:audit-pattern-tables}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Audit-\allowbreak{}pattern tables}
+\par\smallskip\noindent\emph{Construction.} Let \(I_d=\{1,\ldots,d\}\cup B_d\). Define \(M_d(w,a,x_{I_d})=\sum_{x_j:\,j\notin I_d}g_d(w,a,x_{1:T})\) for \(d<T\), and \(M_T=g_T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{g}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:causal-target]\label{def:causal-target}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Endpoint intervention distribution}
+\par\smallskip\noindent\emph{Construction.} \(Q_a(x)=\sum_{w,x_1,\ldots,x_{T-1}}p_W(w)K_1(x_1\mid w,a)\prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1})\), with \(x_T=x\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pW}; \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:graphwise-identification]\label{def:graphwise-identification}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graphwise identification of the entire endpoint vector}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{GID}(T,S,B)=1\iff[\Phi_{T,S,B,e}(P)=\Phi_{T,S,B,e}(P')\Rightarrow Q(P)=Q(P')]\) for every \(P,P'\in\mathcal P_{T,S,B,e}\) using the same known \(e\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pclass}; \texttt{Phi}; \texttt{Q}.
+\end{definition}
+
+\begin{definition}[def:certificate-handle]\label{def:certificate-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite at-\allowbreak{}most-\allowbreak{}one-\allowbreak{}informative-\allowbreak{}hazard local recovery-\allowbreak{}or-\allowbreak{}obstruction procedure}
+\par\smallskip\noindent\emph{Construction.} Suppose that there is an index \(k\in\{1,\ldots,T\}\) such that \(S_t=\varnothing\) for \(t\ne k\), while
+\[
+S_k\subseteq\{k-1,k,k+1\}\cap\{1,\ldots,T\}.
+\]
+Put
+\[
+J_+(S_k)=S_k\cap\{k,k+1\}.
+\]
+If \(J_+(S_k)\ne\varnothing\), put \(j_\star=\max J_+(S_k)\) and
+\[
+\mathcal H_\star(B)=\{(d,\ell):0\le d<k,\ j_\star\le\ell\le T,\ \ell\in B_d\}.
+\]
+Write \(\Pr_M\) for probabilities and conditional probabilities obtained by summing and positively normalizing the pattern tables \((M_r)_{r=0}^T\), and recover
+\[
+p_W(w)=\sum_{a\in\mathcal A}\sum_{r=0}^T\sum_{x_{I_r}}M_r(w,a,x_{I_r}).
+\]
+The finite procedure \(\mathsf A_{1,\mathrm{loc}}(T,k,S_k,B,(|\mathcal X_t|)_{t=1}^T)\) has the following branches.
+
+If \(J_+(S_k)=\varnothing\), it returns the passive reconstruction.  For \(k=1\), this is
+\[
+\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}((M_r)_r)_a(x)
+=\sum_w p_W(w)\Pr_M(X_T=x\mid W=w,A=a,D=T).
+\]
+For \(k\ge2\), define
+\[
+\eta_{w,a}(u)=\Pr_M(X_{k-1}=u\mid W=w,A=a,D\ge k-1)
+\]
+and
+\[
+L_{k-1,w,a}(x\mid u)=
+\Pr_M(X_T=x\mid X_{k-1}=u,W=w,A=a,D=T),
+\]
+and return
+\[
+\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}((M_r)_r)_a(x)
+=\sum_w p_W(w)\sum_{u\in\mathcal X_{k-1}}
+\eta_{w,a}(u)L_{k-1,w,a}(x\mid u).
+\]
+
+If \(J_+(S_k)\ne\varnothing\), the procedure scans the \(k(T-j_\star+1)\) possible pairs defining \(\mathcal H_\star(B)\) in lexicographic order.  When this set is nonempty, let \((d,\ell)\) be its first member and define
+\[
+L_{\ell,w,a}(x\mid z)=
+\Pr_M(X_T=x\mid X_\ell=z,W=w,A=a,D=T)
+\]
+and
+\[
+\pi_{\ell,w,a}(z)=
+\begin{cases}
+\Pr_M(X_\ell=z\mid W=w,A=a,D=d),&d\le k-2,\\
+(1-\rho_{w,a})\Pr_M(X_\ell=z\mid W=w,A=a,D=k-1)
++\rho_{w,a}\Pr_M(X_\ell=z\mid W=w,A=a,D=T),&d=k-1,
+\end{cases}
+\]
+where
+\[
+\rho_{w,a}=
+\frac{\Pr_M(W=w,A=a,D\ge k)}
+{\Pr_M(W=w,A=a,D\ge k-1)}.
+\]
+It returns
+\[
+\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}((M_r)_r)_a(x)
+=\sum_w p_W(w)\sum_{z\in\mathcal X_\ell}
+\pi_{\ell,w,a}(z)L_{\ell,w,a}(x\mid z).
+\]
+
+If \(J_+(S_k)\ne\varnothing\) and \(\mathcal H_\star(B)=\varnothing\), enumerate every alphabet, take \(\nu_r\) uniform, let \(h_r\) be \(1\) and \(-1\) on the first two cells and zero elsewhere, and fix \(\epsilon=1/2\) and \(\lambda_r=1/2\).  At the first enumerated \((w,a)\)-cell set, on \(\mathcal X_{j_\star}\),
+\[
+\mu=\nu_{j_\star}(1+\epsilon h_{j_\star}),\qquad
+\mu'=\nu_{j_\star}(1-\epsilon h_{j_\star}),\qquad
+c(z)=\tfrac12\min\{\mu(z),\mu'(z)\},
+\]
+\[
+q_k(z)=c(z)/\mu(z),\qquad q'_k(z)=c(z)/\mu'(z),
+\]
+with every other allowed-parent effect set to zero.  Use common positive upstream kernels, and for \(r>j_\star\) use the common kernels
+\[
+K_r(y\mid z)=\nu_r(y)
+\{1+\lambda_r h_{r-1}(z)h_r(y)\}.
+\]
+All other primitive tables are fixed common positive tables.  The resulting pair is denoted
+\(\mathsf{Wit}^{(1,\mathrm{loc})}_{T,k,S_k,B}\).  Its observational equivalence and target separation are conclusions of \(\text{thm:local-single-hazard-alternative}\), not part of this definition.  The active scan has worst-case cost \(O(k(T-j_\star+1))\); the passive branch requires no incidence scan.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{k}; \texttt{S}; \texttt{B}; \texttt{calX}.
+\end{definition}
+
+\begin{definition}[def:criterion]\label{def:criterion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{At-\allowbreak{}most-\allowbreak{}one-\allowbreak{}informative-\allowbreak{}hazard local audit criterion}
+\par\smallskip\noindent\emph{Construction.} For \(S_t=\varnothing\) when \(t\ne k\) and
+\(S_k\subseteq\{k-1,k,k+1\}\cap\{1,\ldots,T\}\), define
+\[
+\mathsf C_{1,\mathrm{loc}}(T,k,S_k,B,(|\mathcal X_t|)_{t=1}^T)=1
+\quad\Longleftrightarrow\quad
+J_+(S_k)=\varnothing
+\ \text{or}\ 
+\mathcal H_\star(B)\ne\varnothing.
+\]
+When \(J_+(S_k)\ne\varnothing\), \(j_\star=\max J_+(S_k)\) and
+\[
+\mathcal H_\star(B)=
+\{(d,\ell):0\le d<k,\ j_\star\le\ell\le T,\ \ell\in B_d\}.
+\]
+Thus the criterion is a graph-and-pattern incidence rule and does not refer to \(\operatorname{GID}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Alg}; \texttt{Hset}; \texttt{Jplus}; \texttt{jstar}.
+\end{definition}
+
+\begin{definition}[def:minimal-frontier]\label{def:minimal-frontier}
+\par\smallskip\noindent\emph{Defined object.} \texttt{At-\allowbreak{}most-\allowbreak{}one-\allowbreak{}informative-\allowbreak{}hazard local minimal frontier}
+\par\smallskip\noindent\emph{Construction.} For the at-most-one-informative-hazard local subclass, define
+\[
+\mathfrak F_{1,\mathrm{loc}}(T,k,S_k,(|\mathcal X_t|)_{t=1}^T)
+=\left\{B:
+\mathsf C_{1,\mathrm{loc}}(T,k,S_k,B,(|\mathcal X_t|)_t)=1,
+\ \mathsf C_{1,\mathrm{loc}}(T,k,S_k,B',( |\mathcal X_t|)_t)=0
+\text{ for every }B'\lneq B\right\},
+\]
+where \(B'\le B\) means \(B'_d\subseteq B_d\) for every \(d<T\).  The empty design is the design \(B^\varnothing\) satisfying \(B^\varnothing_d=\varnothing\) for all \(d<T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Crit}.
+\end{definition}
+
+\begin{definition}[def:projected-confidence-set]\label{def:projected-confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}cell projected confidence set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_n=\operatorname{cl}\{Q(P):P\in\mathcal P_{T,S,B,e},\;\|\Phi_{T,S,B,e}(P)-\widehat o_n\|_\infty\le\varepsilon_n\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pclass}; \texttt{Phi}; \texttt{ohat}; \texttt{eps}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:audit-table-equivalence]\label{prop:audit-table-equivalence}
+For a fixed known \(e\), the law of \(O\) and the family \((M_d)_{d=0}^T\), together with the always-observed \((W,A)\) law, determine each other by finite linear transformations. In particular, for \(d<T\), each audited cell equals \(e_d(H_d)M_d\), and every unaudited cell is \((1-e_d(H_d))\) times the corresponding routine marginal.
+\end{proposition}
+\begin{proof}
+Fix \(d<T\), put \(I_d=\{1,\ldots,d\}\cup B_d\), and write
+\(h_d=(w,a,d,x_{1:d})\).  By the definition of \(g_d\), it is the
+joint mass of \((W,A,X,D=d)\).  Exact recovery on \(Z=1\), followed by
+the audit-randomization assumption, gives
+\[
+\begin{aligned}
+&\Pr_P\!\left(W=w,A=a,D=d,X_{1:d}=x_{1:d},
+                 Z=1,X_{B_d}=x_{B_d}\right)\\
+&\quad=\sum_{x_r:\,r\notin I_d}
+ g_d(w,a,x_{1:T})
+ \Pr_P\!\left(Z=1\mid W=w,A=a,X=x_{1:T},D=d\right)\\
+&\quad=e_d(h_d)\sum_{x_r:\,r\notin I_d}g_d(w,a,x_{1:T})
+ =e_d(h_d)M_d(w,a,x_{I_d}).
+\end{aligned}
+\]
+The factor \(e_d(h_d)\) may be taken outside the sum because it depends
+only on the displayed routine history.  Audit positivity permits division
+by this known factor, so every cell of \(M_d\) is determined by the law of
+\(O\).  This remains true when \(B_d=\varnothing\): the event \(Z=1\)
+then identifies the routine cell multiplied by \(e_d(h_d)\).
+
+For the unaudited cell, the same calculation and marginalization over the
+bundle give
+\[
+\begin{aligned}
+&\Pr_P\!\left(W=w,A=a,D=d,X_{1:d}=x_{1:d},Z=0\right)\\
+&\qquad=\{1-e_d(h_d)\}
+   \sum_{x_{B_d}}M_d(w,a,x_{1:d},x_{B_d}).
+\end{aligned}
+\]
+At \(d=T\), all substantive coordinates are routine coordinates and
+\(Z=0\) deterministically, so the corresponding observed cell has mass
+\(g_T(w,a,x_{1:T})=M_T(w,a,x_{1:T})\).  These displayed formulas also
+prove the converse: from the tables and the always-observed \((W,A)\)
+law, multiply by \(e_d(h_d)\) for audited cells, multiply the indicated
+marginal by \(1-e_d(h_d)\) for unaudited cells, and use \(M_T\) for
+complete cells.  The structural cells just listed partition the alphabet
+of \(O\), so they determine its entire law.  Thus both transformations are
+finite and linear once the known design probabilities are fixed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction isolates exactly what the randomized partial audit adds at the population level. \textit{Gap.} Levis et al. use the audit coin to recover a complete-data complement; here the identified primitive is only a dropout-specific marginal table. \textit{Consumer.} Every identification certificate and finite-table estimator starts from \((M_d)_{d=0}^T\), so the result separates design information from response-mechanism algebra.
+
+\begin{theorem}[thm:projected-coverage]\label{thm:projected-coverage}
+For every \(n\ge1\), every \(0<\alpha<1\), every design \(B\), and every \(P\in\mathcal P_{T,S,B,e}\), the projected set \(\mathcal C_n\) satisfies \(\Pr_P\{Q(P)\in\mathcal C_n\}\ge1-\alpha\). Its coordinate extrema are finite constrained polynomial optimization problems after closure, because \(\Phi_{T,S,B,e}\) is polynomial in the finite primitive tables with known \(e\).
+\end{theorem}
+\begin{proof}
+Fix \(n\geq 1\), \(\alpha\in(0,1)\), a design \(B\), and a law \(P\in\mathcal P_{T,S,B,e}\).  Enumerate the \(m\) structural cells of \(\mathcal O\) by \(r=1,\ldots,m\), and write
+\[
+Y_{i,r}=\mathbf 1\{O_i=r\},\qquad
+o_r=\Pr_P(O_i=r),\qquad
+\widehat o_{n,r}=\frac1n\sum_{i=1}^nY_{i,r}.
+\]
+By \(\text{ass:iid-sampling}\), for each fixed \(r\), the variables \(Y_{1,r},\ldots,Y_{n,r}\) are independent Bernoulli variables with common mean \(o_r\).
+
+We first derive the concentration inequality needed below.  If \(Y\) is Bernoulli with mean \(\mu\), put
+\[
+h(\lambda)=\log\mathbb E\!\left[\exp\{\lambda(Y-\mu)\}\right].
+\]
+Exponential tilting preserves the two-point support \(\{0,1\}\).  Hence, if \(\nu_\lambda\) is the tilted mean, direct differentiation gives
+\[
+h(0)=h'(0)=0,
+\qquad
+h''(\lambda)=\nu_\lambda(1-\nu_\lambda)\leq\frac14.
+\]
+Taylor's theorem therefore yields \(h(\lambda)\leq\lambda^2/8\) for every real \(\lambda\).  Independence then gives, for \(t>0\) and \(\lambda>0\),
+\[
+\begin{aligned}
+\Pr_P\!\left\{\widehat o_{n,r}-o_r\geq t\right\}
+&=\Pr_P\!\left\{e^{\lambda\sum_{i=1}^n(Y_{i,r}-o_r)}\geq e^{\lambda nt}\right\}\\
+&\leq e^{-\lambda nt}\prod_{i=1}^n
+  \mathbb E_P e^{\lambda(Y_{i,r}-o_r)}\\
+&\leq \exp\!\left(-\lambda nt+\frac{n\lambda^2}{8}\right).
+\end{aligned}
+\]
+The first inequality follows directly from
+\(\mathbb E[V]\geq c\Pr(V\geq c)\) for a nonnegative random variable \(V\).  Taking \(\lambda=4t\) gives the upper-tail bound \(e^{-2nt^2}\).  Applying the same calculation to \(-(Y_{i,r}-o_r)\) gives
+\[
+\Pr_P\!\left\{|\widehat o_{n,r}-o_r|>t\right\}
+\leq 2e^{-2nt^2}.
+\]
+Finiteness of \(\mathcal O\), supplied by \(\text{ass:finite-alphabets}\), permits a union bound over its \(m\) cells.  With \(\varepsilon_n=\sqrt{\log(2m/\alpha)/(2n)}\), the event
+\[
+E_P=\left\{\|\widehat o_n-o\|_\infty\leq\varepsilon_n\right\}
+\]
+satisfies
+\[
+\Pr_P(E_P^c)
+\leq\sum_{r=1}^m2e^{-2n\varepsilon_n^2}
+=2m\exp\{-\log(2m/\alpha)\}
+=\alpha.
+\]
+By the definition of \(o\), \(o=\Phi_{T,S,B,e}(P)\).  On \(E_P\), the law \(P\) itself therefore satisfies both constraints in the braces defining \(\mathcal C_n\): it belongs to \(\mathcal P_{T,S,B,e}\) by hypothesis, and
+\[
+\|\Phi_{T,S,B,e}(P)-\widehat o_n\|_\infty\leq\varepsilon_n.
+\]
+Consequently \(Q(P)\) belongs to the set inside the closure in \(\text{def:projected-confidence-set}\), and hence belongs to \(\mathcal C_n\).  Thus
+\[
+\Pr_P\{Q(P)\in\mathcal C_n\}
+\geq\Pr_P(E_P)
+\geq1-\alpha.
+\]
+This argument uses neither identification nor differentiability and therefore also covers singular and nonidentified strata.
+
+It remains to verify the claimed finite polynomial-optimization representation.  Let \(\theta\) collect the finitely many entries of \(p_W\), \(p_A\), \((K_t)_{t=1}^T\), and \((q_t)_{t=1}^T\).  By \(\text{def:scm-class}\), its parameter set \(\Theta^\circ\) is specified by finitely many stochastic-table normalization equalities together with the strict polynomial inequalities
+\[
+p_W(w)>0,\quad p_A(a\mid w)>0,\quad K_t(x_t\mid w,a,x_{t-1})>0,
+\quad q_t(w,a,x_{S_t})>0,
+\quad 1-q_t(w,a,x_{S_t})>0,
+\]
+where the irrelevant \(x_0\) argument is omitted at \(t=1\).  All index sets are finite by \(\text{ass:finite-alphabets}\).
+
+For a complete trajectory define
+\[
+f_\theta(w,a,x_{1:T})
+=p_W(w)p_A(a\mid w)K_1(x_1\mid w,a)
+ \prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1})
+\]
+and, with an empty product equal to one,
+\[
+\rho_{d,\theta}(w,a,x_{1:T})=
+\begin{cases}
+\displaystyle
+\left\{\prod_{t=1}^{d}q_t(w,a,x_{S_t})\right\}
+\{1-q_{d+1}(w,a,x_{S_{d+1}})\},&0\leq d<T,\\[6pt]
+\displaystyle\prod_{t=1}^{T}q_t(w,a,x_{S_t}),&d=T.
+\end{cases}
+\]
+The substantive factorization in \(\text{ass:substantive-markov}\), the local-hazard formula in \(\text{ass:local-hazards}\), conditional independence in \(\text{ass:response-noise-independence}\), and the recursion \(R_t=R_{t-1}C_t\) imply
+\[
+\Pr_\theta(W=w,A=a,X=x_{1:T},D=d)
+=f_\theta(w,a,x_{1:T})\rho_{d,\theta}(w,a,x_{1:T}).
+\]
+For \(d<T\), set \(I_{d,0}=\{1,\ldots,d\}\) and \(I_{d,1}=\{1,\ldots,d\}\cup B_d\), and set
+\[
+c_{d,1}(h_d)=e_d(h_d),
+\qquad c_{d,0}(h_d)=1-e_d(h_d).
+\]
+For an observed cell with \(D=d<T\), audit value \(Z=z\), and displayed substantive values \(v\), \(\text{ass:audit-randomization}\) gives the exact coordinate formula
+\[
+[\Phi_{T,S,B,e}(\theta)]_{d,z,v}
+=c_{d,z}(h_d)
+\sum_{x_{1:T}:\,x_{I_{d,z}}=v}
+f_\theta(w,a,x_{1:T})\rho_{d,\theta}(w,a,x_{1:T}).
+\]
+For \(d=T\), the analogous formula has \(z=0\), coefficient one, and no unobserved substantive coordinate.  The audit probabilities are known constants at the displayed histories.  Each coordinate of \(\Phi_{T,S,B,e}(\theta)\) is therefore a finite sum of finite products of entries of \(\theta\), and hence is a polynomial.  Similarly, the causal target supplied by intervention on \(A\) is
+\[
+Q_{a,x}(\theta)=
+\sum_{w,x_1,\ldots,x_{T-1}}
+p_W(w)K_1(x_1\mid w,a)
+\prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1}),
+\qquad x_T=x,
+\]
+which is also a polynomial in \(\theta\).  Notice that this formula is the causal intervention functional, not a definition in terms of the observed law; its equality to \(P(X_T=x\mid\operatorname{do}(A=a))\) follows from the Markovian substantive SCM and the intervention replacing the structural equation for \(A\).
+
+Define the finite-dimensional feasible set of primitive tables
+\[
+\mathcal F_n^\circ=
+\left\{\theta\in\Theta^\circ:
+-\varepsilon_n\leq
+[\Phi_{T,S,B,e}(\theta)]_r-\widehat o_{n,r}
+\leq\varepsilon_n\ \text{for every }r=1,\ldots,m
+\right\}.
+\]
+Thus, for every coordinate \((a,x)\), the two programs
+\[
+L_{a,x}=\inf_{\theta\in\mathcal F_n^\circ}Q_{a,x}(\theta),
+\qquad
+U_{a,x}=\sup_{\theta\in\mathcal F_n^\circ}Q_{a,x}(\theta)
+\]
+have finitely many variables and finitely many polynomial equality and inequality constraints, and polynomial objectives.  They are therefore finite constrained polynomial optimization problems.
+If a formulation using only weak polynomial inequalities is desired, each strict constraint \(g(\theta)>0\) can be represented exactly by adjoining a variable \(s_g\) and imposing \(g(\theta)\geq0\), \(s_g\geq0\), and \(g(\theta)s_g-1=0\).  Thus strict positivity introduces no non-polynomial constraint.
+By \(\text{def:projected-confidence-set}\),
+\[
+\mathcal C_n=\operatorname{cl}\{Q(\theta):\theta\in\mathcal F_n^\circ\}.
+\]
+The ambient finite product \(\prod_{a\in\mathcal A}\Delta(\mathcal X_T)\) is compact.  Hence, whenever \(\mathcal F_n^\circ\) is nonempty, \(\mathcal C_n\) is nonempty and compact, its \((a,x)\)-coordinate extrema are attained, and continuity of coordinate projection gives
+\[
+\min_{q\in\mathcal C_n}q_{a,x}=L_{a,x},
+\qquad
+\max_{q\in\mathcal C_n}q_{a,x}=U_{a,x}.
+\]
+If \(\mathcal F_n^\circ\) is empty, the same finite programs simply report infeasibility.  On the coverage event \(E_P\), it is nonempty because it contains the true primitive table \(\theta(P)\).  This proves both assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Projection supplies honest finite-sample coverage on singular and nonidentified strata without upgrading generic optimization into the headline identification algorithm. \textit{Gap.} Existing smooth double-sampling intervals do not cover rank-changing or nonidentified partial-audit laws; Duarte et al. supply the adjacent polynomial-program representation rather than this design-specific cube projection. \textit{Consumer.} Studies whose chosen bundle is insufficient, or whose data lie near a singular branch, still obtain globally valid uncertainty sets for endpoint intervention probabilities.
+
+\begin{theorem}[thm:single-hazard-alternative]\label{thm:single-hazard-alternative}
+Suppose \(S_t=\varnothing\) for \(t\ne k\) and \(S_k=\{j\}\), where \(j\in\{k,k+1\}\cap\{1,\ldots,T\}\). Then \(J_+(S_k)=\{j\}\), \(j_\star=j\), and the two branches of \(\text{thm:local-single-hazard-alternative}\) specialize to the former singleton-hazard alternative: if \(\mathcal H_\star(B)\ne\varnothing\), the local rational reconstruction equals \(Q\) for every compatible positive law; if \(\mathcal H_\star(B)=\varnothing\), the local witness consists of two legal strictly positive laws with equal observed laws and different endpoint intervention vectors. The conclusions hold for all specified finite alphabets, null allowed effects, and arbitrary transition ranks.
+\end{theorem}
+\begin{proof}
+Under \(S_k=\{j\}\) with \(j\in\{k,k+1\}\), \(J_+(S_k)=\{j\}\); hence \(j_\star=j\) and \(\mathcal H_\star(B)=\{(d,\ell):0\le d<k,\ j\le\ell\le T,\ \ell\in B_d\}\). Apply respectively the affirmative and negative active branches of \(\text{thm:local-single-hazard-alternative}\). Its uniformity clauses give the alphabet, positivity, null-effect, and rank assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Compatibility corollary preserving the sealed open-question answer identity while exposing the stronger local-parent theorem. \textit{Gap.} The former singleton-parent theorem is now an immediate specialization of the broader at-most-one-informative-hazard local alternative. \textit{Consumer.} The sealed answer remains stable for graph-history and downstream dependency compatibility.
+
+\begin{lemma}[lem:finite-multinomial-clt]\label{lem:finite-multinomial-clt}
+Under \(\text{ass:iid-sampling}\), the finite observed-cell histogram satisfies \[\sqrt n(\widehat o_n-o)\Rightarrow N(0,\operatorname{diag}(o)-oo^\top).\]
+\end{lemma}
+
+\begin{lemma}[lem:multivariate-delta-method]\label{lem:multivariate-delta-method}
+If \(\sqrt n(\widehat o_n-o)\Rightarrow N(0,\operatorname{diag}(o)-oo^\top)\) and \(F\) is differentiable at \(o\), then \[\sqrt n\{F(\widehat o_n)-F(o)\}\Rightarrow N\!\left(0,DF(o)[\operatorname{diag}(o)-oo^\top]DF(o)^\top\right).\]
+\end{lemma}
+
+\begin{theorem}[thm:local-single-hazard-alternative]\label{thm:local-single-hazard-alternative}
+Suppose \(S_t=\varnothing\) for \(t\ne k\) and
+\(S_k\subseteq\{k-1,k,k+1\}\cap\{1,\ldots,T\}\).  The procedure
+\(\mathsf A_{1,\mathrm{loc}}\) is constructively exhaustive.  If
+\(J_+(S_k)=\varnothing\), its passive rational reconstruction satisfies
+\[
+\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}((M_d(P))_{d=0}^T)=Q(P)
+\]
+for every design \(B\) and every \(P\in\mathcal P_{T,S,B,e}\).  If
+\(J_+(S_k)\ne\varnothing\) and \(\mathcal H_\star(B)\ne\varnothing\), its audited rational reconstruction satisfies the same equality.  If
+\(J_+(S_k)\ne\varnothing\) and \(\mathcal H_\star(B)=\varnothing\), it returns two strictly positive laws
+\((P,P')=\mathsf{Wit}^{(1,\mathrm{loc})}_{T,k,S_k,B}\) in
+\(\mathcal P_{T,S,B,e}\) such that
+\[
+\Phi_{T,S,B,e}(P)=\Phi_{T,S,B,e}(P')
+\quad\text{and}\quad Q(P)\ne Q(P').
+\]
+The result holds simultaneously for the entire endpoint intervention vector, for every specified finite alphabet and every \(T\), including null allowed-arrow effects and deficient transition ranks.  The affirmative conclusion is uniform over all positive laws; the negative conclusion is certified by one legal positive pair and makes no claim about every fixed-rank stratum.  The active incidence scan has worst-case cost \(O(k(T-j_\star+1))\).
+\end{theorem}
+\begin{proof}
+By \(\text{lem:local-tail-boundary}\), each relevant dropout subdensity has the required Markov-prefix/suffix factorization; the calculations below specialize and extend that factorization to the sole possibly informative hazard.
+
+Fix the graph in the statement.  Conditional on a cell \((W=w,A=a)\), write
+\(q_t(w,a)=\gamma_t(w,a)\in(0,1)\) for \(t\ne k\); this is legitimate because \(S_t=\varnothing\) for those indices by hypothesis and \(\text{ass:local-hazards}\).  Strict positivity of the substantive tables and all hazards implies that every substantive trajectory, every dropout stratum, and every conditioning event used below has positive probability.
+
+First recover the baseline law from the pattern tables.  Put
+\[
+\tau_r(w,a)=\sum_{x_{I_r}}M_r(w,a,x_{I_r}),\qquad 0\le r\le T.
+\]
+The dropout strata partition the population, so \(\text{def:dropout-subdensities}\) and \(\text{def:audit-pattern-tables}\) give
+\[
+p_W(w)=\sum_{a\in\mathcal A}\sum_{r=0}^T\tau_r(w,a).
+\tag{1}
+\]
+All remaining quantities in the procedure are likewise finite sums and positive normalizations of the \(M_r\)'s.
+
+Consider first the passive case \(J_+(S_k)=\varnothing\).  If \(k=1\), locality gives
+\[
+S_1\subseteq\{1,2\}\cap\{1,\ldots,T\},
+\]
+and hence \(S_1=\varnothing\).  Every hazard is then trajectory-independent conditional on \((w,a)\).  From the substantive factorization and conditional response-noise independence, the complete-case trajectory density conditional on \((w,a)\) is the substantive Markov density multiplied by the positive constant \(\prod_{t=1}^T\gamma_t(w,a)\).  Normalization cancels this constant, and therefore
+\[
+\Pr_M(X_T=x\mid w,a,D=T)=
+\Pr(X_T=x\mid w,a).
+\tag{2}
+\]
+Combining (1), (2), and the truncated Markov factorization in \(\text{def:causal-target}\) proves the \(k=1\) passive formula.
+
+Suppose now that \(k\ge2\).  Since \(J_+(S_k)=\varnothing\), locality implies
+\(S_k\subseteq\{k-1\}\).  The event \(D\ge k-1\) has conditional probability
+\(\prod_{t=1}^{k-1}\gamma_t(w,a)\), which is independent of the trajectory.  Because \(X_{k-1}\) is routinely observed on this event,
+\[
+\eta_{w,a}(u)
+:=\Pr_M(X_{k-1}=u\mid w,a,D\ge k-1)
+=\Pr(X_{k-1}=u\mid w,a).
+\tag{3}
+\]
+On complete cases, all trajectory-dependent selection is contained in
+\(q_k(w,a,X_{S_k})\), and this factor is constant after conditioning on
+\(X_{k-1}=u\), including when \(S_k=\varnothing\).  The Markov factorization therefore gives
+\[
+L_{k-1,w,a}(x\mid u)
+:=\Pr_M(X_T=x\mid X_{k-1}=u,w,a,D=T)
+=\Pr(X_T=x\mid X_{k-1}=u,w,a).
+\tag{4}
+\]
+Indeed, after conditioning on \(X_{k-1}=u\), the common prefix sum, the value of \(q_k\), and the trajectory-independent later hazards cancel from numerator and denominator, leaving precisely
+\(\prod_{t=k}^T K_t(x_t\mid w,a,x_{t-1})\).  The law of total probability, (1), (3), and (4) now yield
+\[
+\sum_w p_W(w)\sum_u\eta_{w,a}(u)L_{k-1,w,a}(x\mid u)
+=Q_a(x).
+\tag{5}
+\]
+This proves the passive branch, including both boundary cases.
+
+Next suppose \(J_+(S_k)\ne\varnothing\), put
+\(j_\star=\max J_+(S_k)\), and assume
+\(\mathcal H_\star(B)\ne\varnothing\).  Let \((d,\ell)\) be its lexicographically first member.  Conditional on \((w,a,D=T)\), the trajectory mass is proportional to
+\[
+K_1(x_1\mid w,a)\prod_{t=2}^T K_t(x_t\mid w,a,x_{t-1})
+q_k(w,a,x_{S_k}),
+\tag{6}
+\]
+because all other hazard factors are trajectory-independent.  Locality and
+\(\ell\ge j_\star\) imply \(S_k\subseteq\{1,\ldots,\ell\}\).  After conditioning on \(X_\ell=z\), summing (6) over the prefix through \(\ell\) produces the same positive factor in the numerator and denominator, while the suffix is
+\(\prod_{t=\ell+1}^T K_t(x_t\mid w,a,x_{t-1})\).  Hence
+\[
+L_{\ell,w,a}(x\mid z)
+=\Pr_M(X_T=x\mid X_\ell=z,w,a,D=T)
+=\Pr(X_T=x\mid X_\ell=z,w,a).
+\tag{7}
+\]
+This cancellation uses no rank condition.
+
+If \(d\le k-2\), the dropout factor is
+\[
+\left\{\prod_{s=1}^d\gamma_s(w,a)\right\}
+\{1-\gamma_{d+1}(w,a)\},
+\]
+which is trajectory-independent.  Since the audit reveals \(X_\ell\), positive normalization gives
+\[
+\pi_{\ell,w,a}(z)
+=\Pr_M(X_\ell=z\mid w,a,D=d)
+=\Pr(X_\ell=z\mid w,a).
+\tag{8}
+\]
+If \(d=k-1\), define
+\[
+\rho_{w,a}=
+\frac{\sum_{r=k}^T\tau_r(w,a)}{\sum_{r=k-1}^T\tau_r(w,a)}
+=\Pr(D\ge k\mid w,a,D\ge k-1).
+\tag{9}
+\]
+Its denominator is positive and \(0<\rho_{w,a}<1\).  The event
+\(D\ge k-1\) is trajectory-independent conditional on \((w,a)\).  Conditional on \(D\ge k\), the trajectory density contains the one possibly informative factor \(q_k\); every additional survival factor is constant.  Consequently the law of \(X_\ell\) given \((w,a,D\ge k)\) equals its law given \((w,a,D=T)\).  Partitioning \(D\ge k-1\) into \(D=k-1\) and \(D\ge k\) gives
+\[
+\begin{aligned}
+\pi_{\ell,w,a}(z)
+&=(1-\rho_{w,a})\Pr_M(X_\ell=z\mid w,a,D=k-1)\\
+&\quad+\rho_{w,a}\Pr_M(X_\ell=z\mid w,a,D=T)\\
+&=\Pr(X_\ell=z\mid w,a).
+\end{aligned}
+\tag{10}
+\]
+Combining (1), (7), (8), or (10), and the law of total probability gives
+\[
+\sum_w p_W(w)\sum_z
+\pi_{\ell,w,a}(z)L_{\ell,w,a}(x\mid z)=Q_a(x).
+\tag{11}
+\]
+Thus the active affirmative map is an observed-law functional whose equality to the causal intervention target has been derived.
+
+It remains to prove the obstruction branch.  Assume
+\(J_+(S_k)\ne\varnothing\) and \(\mathcal H_\star(B)=\varnothing\), and abbreviate \(j=j_\star\).  Choose the first enumerated cells \(w_\star\) and \(a_\star\).  Keep common strictly positive \(p_W\) and \(p_A\), and keep the two models identical outside that cell.  For every \(r\), let \(\nu_r\) be uniform and let \(h_r\) take values \(1,-1,0,\ldots,0\) in the specified enumeration.  Then
+\[
+\sum_y\nu_r(y)h_r(y)=0,
+\qquad |h_r(y)|\le1,
+\qquad \sigma_r^2:=\sum_y\nu_r(y)h_r(y)^2>0.
+\tag{12}
+\]
+With \(\epsilon=1/2\), define
+\[
+\mu(z)=\nu_j(z)\{1+\epsilon h_j(z)\},
+\qquad
+\mu'(z)=\nu_j(z)\{1-\epsilon h_j(z)\}.
+\tag{13}
+\]
+Equation (12) proves normalization; \(\epsilon<1\) proves strict positivity; and nonconstancy of \(h_j\) proves \(\mu\ne\mu'\).  Put
+\[
+c(z)=\tfrac12\min\{\mu(z),\mu'(z)\},
+\qquad q_k(z)=\frac{c(z)}{\mu(z)},
+\qquad q'_k(z)=\frac{c(z)}{\mu'(z)}.
+\tag{14}
+\]
+Thus \(0<q_k(z),q'_k(z)\le1/2<1\).  Each displayed hazard depends only on the allowed parent \(X_j\); every other parent in \(S_k\) is ignored, and every other hazard is a common constant in \((0,1)\).
+
+Use common positive kernels before visit \(j\).  At \((w_\star,a_\star)\), let the visit-\(j\) kernel ignore its predecessor and equal \(\mu\) in the first model and \(\mu'\) in the second.  For \(r>j\), use in both models
+\[
+K_r(y\mid w_\star,a_\star,z)
+=\nu_r(y)\{1+\lambda_r h_{r-1}(z)h_r(y)\},
+\qquad \lambda_r=1/2.
+\tag{15}
+\]
+Centering in (12) makes (15) sum to one, and
+\(|\lambda_r h_{r-1}(z)h_r(y)|\le1/2\) makes every entry positive.  Furthermore,
+\[
+\mathbb E\{h_r(X_r)\mid X_{r-1}=z,w_\star,a_\star\}
+=\lambda_r h_{r-1}(z)\sigma_r^2.
+\tag{16}
+\]
+At visit \(j\),
+\[
+\mathbb E_\mu h_j-\mathbb E_{\mu'}h_j
+=2\epsilon\sigma_j^2>0.
+\tag{17}
+\]
+Iterating (16), with an empty product interpreted as one, shows that the difference between the two endpoint expectations conditional on \((w_\star,\operatorname{do}(A=a_\star))\) is
+\[
+2\epsilon\sigma_j^2
+\prod_{r=j+1}^T\lambda_r\sigma_r^2>0.
+\tag{18}
+\]
+All other baseline cells are common.  Averaging over \(W\) multiplies (18) by the positive mass \(p_W(w_\star)\), so at least one endpoint probability differs and \(Q(P)\ne Q(P')\).
+
+We verify equality of every pattern table.  For each dropout index \(r\ge k\), the full dropout subdensity is pointwise equal because its only changed substantive--response product is
+\[
+\mu(z)q_k(z)=c(z)=\mu'(z)q'_k(z).
+\tag{19}
+\]
+Hence \(M_r=M'_r\) for \(r\ge k\).  If \(r\le k-2\), failure of
+\(\mathcal H_\star(B)\) implies that every coordinate in
+\(I_r=\{1,\ldots,r\}\cup B_r\) is smaller than \(j\).  The two models agree on those coordinates, and summing the normalized suffix from visit \(j\) onward gives one under either model.  Thus \(M_r=M'_r\).  The same incidence failure implies that every coordinate in \(I_{k-1}\) is smaller than \(j\), and
+\[
+\sum_z\mu(z)\{1-q_k(z)\}
+=1-\sum_zc(z)
+=\sum_z\mu'(z)\{1-q'_k(z)\}.
+\tag{20}
+\]
+After the normalized downstream suffix is summed out, (20) gives
+\(M_{k-1}=M'_{k-1}\).  The models were identical in every other \((w,a)\)-cell.  Therefore all pattern tables agree, and the already-established
+\(\text{prop:audit-table-equivalence}\), with the same known \(e\), gives
+\[
+\Phi_{T,S,B,e}(P)=\Phi_{T,S,B,e}(P').
+\tag{21}
+\]
+
+Every substantive entry is positive by (12)--(15), and every continuation and failure probability is positive by (14) and the choice of the common constants.  Independent uniform disturbances transformed by the inverse finite-table cumulative distributions realize all substantive kernels and continuation coins, so the two models satisfy the Markovian and response-noise assumptions.  Ignored allowed parents are null effects.  Both laws therefore belong to \(\mathcal P_{T,S,B,e}\).  The passive formulas use finitely many sums and divisions; the active branch examines at most \(k(T-j_\star+1)\) incidences.  This proves termination, both recoveries, and the positive obstruction for every stated boundary and rank stratum.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem derives both passive and audited recovery and constructs the positive witness for the only remaining branch. \textit{Gap.} The broader published m-DAG results contain no complete partial-audit alternative for this local subclass. \textit{Consumer.} The theorem is the constructive engine behind the design decision.
+
+\begin{theorem}[thm:local-constructive-completeness]\label{thm:local-constructive-completeness}
+Suppose \(S_t=\varnothing\) for \(t\ne k\) and
+\(S_k\subseteq\{k-1,k,k+1\}\cap\{1,\ldots,T\}\).  Then
+\[
+\mathsf C_{1,\mathrm{loc}}(T,k,S_k,B,(|\mathcal X_t|)_t)=1
+\quad\Longleftrightarrow\quad
+\operatorname{GID}(T,S,B)=1.
+\]
+Equivalently, purely lagged or empty substantive parents of the sole possibly informative hazard require no audit, whereas a current or lead parent requires some pre-\(k\) dropout stratum to audit a coordinate at or downstream of \(j_\star=\max(S_k\cap\{k,k+1\})\).  On success the procedure returns an evaluable simultaneous reconstruction of the entire vector \((Q_a(x))_{a,x}\); on failure it returns a legal strictly positive observationally equivalent pair with different endpoint vectors.  The equivalence is rank-free and allows null effects on every allowed arrow.
+\end{theorem}
+\begin{proof}
+By \(\text{def:criterion}\), the criterion equals one precisely when either
+\(J_+(S_k)=\varnothing\), or \(J_+(S_k)\ne\varnothing\) and
+\(\mathcal H_\star(B)\ne\varnothing\).  In either case the corresponding affirmative branch of \(\text{thm:local-single-hazard-alternative}\) gives, for every compatible law,
+\[
+Q(P)=\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}((M_d(P))_{d=0}^T).
+\tag{22}
+\]
+Suppose two laws \(P,P'\in\mathcal P_{T,S,B,e}\) have the same observed law.  By \(\text{prop:audit-table-equivalence}\), their pattern tables agree.  Applying the same deterministic map in (22) gives
+\[
+Q(P)=\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}((M_d(P))_d)
+=\mathsf{Rec}^{(1,\mathrm{loc})}_{T,k,S_k,B}((M_d(P'))_d)=Q(P').
+\]
+This is exactly \(\operatorname{GID}(T,S,B)=1\) by
+\(\text{def:graphwise-identification}\).
+
+Conversely, if the criterion equals zero, then necessarily
+\(J_+(S_k)\ne\varnothing\) and \(\mathcal H_\star(B)=\varnothing\).  The negative branch of \(\text{thm:local-single-hazard-alternative}\) supplies
+\(P,P'\in\mathcal P_{T,S,B,e}\) with equal observed laws and unequal endpoint intervention vectors.  This pair falsifies the implication in
+\(\text{def:graphwise-identification}\), so \(\operatorname{GID}(T,S,B)=0\).  The alternative proves all coordinates simultaneously and its calculations use only positive scalar normalization and Markov factorization, never transition-matrix inversion.  Hence the conclusion includes deficient ranks and null allowed-arrow effects.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The iff theorem proves that the finite graph-and-incidence rule is both sufficient and necessary for the entire causal vector. \textit{Gap.} No cited result supplies this complete partial-audit criterion for the arbitrary-horizon at-most-one-informative-hazard Markov family. \textit{Consumer.} The theorem decides whether a planned partial recontact identifies every treatment-specific endpoint probability.
+
+\begin{theorem}[thm:local-minimal-design-frontier]\label{thm:local-minimal-design-frontier}
+For the at-most-one-informative-hazard local subclass, the inclusion-minimal sufficient frontier is piecewise as follows.  If \(J_+(S_k)=\varnothing\), then
+\[
+\mathfrak F_{1,\mathrm{loc}}=\{B^\varnothing\},
+\]
+where every bundle of \(B^\varnothing\) is empty.  If
+\(J_+(S_k)\ne\varnothing\), then the frontier consists exactly of the
+\(k(T-j_\star+1)\) designs having \(B_d=\{\ell\}\) for one pair
+\(0\le d<k\), \(j_\star\le\ell\le T\), and every other bundle empty.  Exhaustive testing of the finite criterion returns this family.  Moreover,
+\(B\le B'\) implies \(\mathcal H_\star(B)\subseteq\mathcal H_\star(B')\), and graphwise identification is monotone under enlargement of audit bundles.
+\end{theorem}
+\begin{proof}
+If \(J_+(S_k)=\varnothing\), \(\text{def:criterion}\) declares every design successful.  The all-empty design \(B^\varnothing\) is contained in every design, so it is the unique inclusion-minimal success.  This proves the first branch.
+
+Suppose \(J_+(S_k)\ne\varnothing\).  By
+\(\text{thm:local-constructive-completeness}\), a design is sufficient exactly when \(\mathcal H_\star(B)\ne\varnothing\).  If a successful design contains two successful incidences, deleting all but one preserves success.  If it contains one successful incidence and any other audited coordinate, deleting the other coordinate also preserves success.  Such a design is not minimal.  Conversely, a design with exactly one coordinate \(B_d=\{\ell\}\), where \(d<k\) and \(\ell\ge j_\star\), loses its only member of \(\mathcal H_\star(B)\) after every strict deletion and is therefore minimal.  There are \(k\) choices of \(d\) and \(T-j_\star+1\) choices of \(\ell\), proving the enumeration and cardinality.
+
+There are finitely many designs, in fact
+\[
+2^{\sum_{d=0}^{T-1}(T-d)}=2^{T(T+1)/2}.
+\]
+Testing \(\text{def:criterion}\) on each and deleting nonminimal successes therefore returns exactly the displayed frontier; no complexity claim is needed.  If \(B\le B'\), every incidence of \(B\) remains present in \(B'\), proving
+\(\mathcal H_\star(B)\subseteq\mathcal H_\star(B')\).
+
+Finally, suppose \(\operatorname{GID}(T,S,B)=1\) and two laws have the same observed law under \(B'\).  By \(\text{prop:audit-table-equivalence}\), their \(B'\)-pattern tables agree.  Marginalizing over the coordinates in
+\(B'_d\setminus B_d\) gives equal \(B\)-pattern tables, and another application of that proposition gives equal observed laws under \(B\).  Identification under \(B\) then makes the endpoint vectors equal.  Hence
+\(\operatorname{GID}(T,S,B')=1\), proving graphwise monotonicity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The focal design output is the exact antichain of irreducible protocols, including the no-audit passive boundary. \textit{Gap.} Existing missingness and double-sampling results do not enumerate all minimal partial bundles. \textit{Consumer.} Investigators can compare the unique passive design or the \(k(T-j_\star+1)\) active singleton designs when assigning measurement costs.
+
+\begin{proposition}[prop:local-supergraph-obstruction]\label{prop:local-supergraph-obstruction}
+For an arbitrary local graph satisfying
+\(S_t\subseteq\{t-1,t,t+1\}\cap\{1,\ldots,T\}\), identification can hold only if, for every \(k\) and every
+\(j\in S_k\cap\{k,k+1\}\), there exist \(d<k\) and
+\(\ell\in B_d\) with \(\ell\ge j\).  Equivalently, if one such \((k,j)\) has no such audit incidence, then
+\(\operatorname{GID}(T,S,B)=0\).  This is a one-way obstruction; it does not assert sufficiency when two or more hazards have substantive parents.
+\end{proposition}
+\begin{proof}
+Fix \(k\) and \(j\in S_k\cap\{k,k+1\}\) for which no \(d<k\) audits any \(X_\ell\) with \(\ell\ge j\).  Define a subgraph specification
+\(\widetilde S\) by \(\widetilde S_k=\{j\}\) and
+\(\widetilde S_t=\varnothing\) for \(t\ne k\).  In this at-most-one-informative-hazard graph,
+\(J_+(\widetilde S_k)=\{j\}\), \(j_\star=j\), and the assumed audit failure says
+\(\mathcal H_\star(B)=\varnothing\).  The negative branch of
+\(\text{thm:local-single-hazard-alternative}\) therefore supplies two positive laws \(P,P'\in\mathcal P_{T,\widetilde S,B,e}\) with the same observed law and different endpoint intervention vectors.
+
+Use exactly the same primitive tables in the larger graph \(S\).  For each allowed parent added by passing from \(\widetilde S_t\) to \(S_t\), define the corresponding hazard table to ignore that argument.  This is well typed because
+\(\widetilde S_t\subseteq S_t\) for every \(t\), and it is permitted because
+\(\text{def:scm-class}\) allows null effects on allowed arrows.  The substantive kernels, response probabilities, audit probabilities, observed laws, and causal targets are unchanged.  Thus the same pair belongs to
+\(\mathcal P_{T,S,B,e}\), has equal values of \(\Phi_{T,S,B,e}\), and has unequal values of \(Q\).  By \(\text{def:graphwise-identification}\),
+\(\operatorname{GID}(T,S,B)=0\).  The construction embeds only a one-parent witness, so it proves necessity but no multi-hazard sufficiency statement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A null-effect embedding transfers each failed active-parent audit condition to every larger frozen-local graph. \textit{Gap.} The transfer is a necessary obstruction, not an unresolved sufficiency claim. \textit{Consumer.} Investigators can rule out insufficient designs even before the interacting-hazard recovery problem is solved.
+
+\begin{proposition}[prop:local-single-hazard-reduction]\label{prop:local-single-hazard-reduction}
+In the at-most-one-informative-hazard local subclass, the procedure
+\(\mathsf A_{1,\mathrm{loc}}\) implements the following complete rule: purely lagged or empty substantive hazard parents need no audit, while current or lead parents require one pre-\(k\) audited coordinate at or downstream of
+\(j_\star\).  The passive and audited branches return the explicit rational reconstruction, and failure of the active incidence condition returns the explicit positive scaling witness.  The active scan has worst-case cost
+\(O(k(T-j_\star+1))\), and the exact minimal designs are those in
+\(\mathfrak F_{1,\mathrm{loc}}\).  For arbitrary local graphs, failure of the corresponding incidence condition for any current or lead parent is a necessary obstruction only; sufficiency with two or more informative hazards is not claimed.
+\end{proposition}
+\begin{proof}
+The passive-versus-active split and the displayed incidence condition are exactly \(\text{def:criterion}\).  The explicit recovery formulas, the positive scaling witness, and the worst-case scan bound are proved in
+\(\text{thm:local-single-hazard-alternative}\).  Their necessary-and-sufficient causal interpretation is
+\(\text{thm:local-constructive-completeness}\), and the exact minimal designs are proved in \(\text{thm:local-minimal-design-frontier}\).  Finally,
+\(\text{prop:local-supergraph-obstruction}\) embeds the one-parent countermodel whenever any active parent in an arbitrary local graph lacks the required audit incidence.  These results prove every clause of the proposition and, because the last result is only one-way, do not infer multi-hazard sufficiency.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition packages the exact passive elbow, active incidence check, recovery, witness, frontier, and one-way general obstruction. \textit{Gap.} Prior passive theory does not state this downstream audit threshold. \textit{Consumer.} A scientist with at most one informative hazard obtains a closed-form measurement decision.
+
+\begin{proposition}[prop:local-regular-inference]\label{prop:local-regular-inference}
+Whenever \(\mathsf C_{1,\mathrm{loc}}=1\), the deterministic passive or audited reconstruction returned by \(\mathsf A_{1,\mathrm{loc}}\) is rational and continuously differentiable with finite derivative at every positive population law, and equals \(Q\) there.  If \(F\) denotes its composition with the known-\(e\) linear audit-table map, then the empirical observed-cell plug-in estimator is consistent and
+\[
+\sqrt n\{F(\widehat o_n)-Q\}
+\Rightarrow
+N\!\left(0,DF(o)[\operatorname{diag}(o)-oo^\top]DF(o)^\top\right).
+\]
+Plug-in substitution consistently estimates this covariance wherever the same positive-denominator branch is used.  No efficiency, covariance nonsingularity, or inference claim at a boundary outside the positive regular stratum is made.
+\end{proposition}
+\begin{proof}
+The graph and design are fixed, so the passive branch or the lexicographically selected active incidence is deterministic.  In the passive branch, equations (2)--(5) of
+\(\text{thm:local-single-hazard-alternative}\) use only finite sums, products, and ratios of pattern-table cells.  In the active branch, equations (7)--(11) have the same form.  Every denominator is strictly positive at a positive population law: each substantive trajectory has positive mass, every survival and failure factor lies in \((0,1)\), and each displayed conditioning event is a nonempty finite union of such cells.  Hence an open neighborhood of the population table preserves all denominators.  On that neighborhood the selected reconstruction is rational, and thus continuously differentiable with a finite derivative.
+
+By \(\text{prop:audit-table-equivalence}\), the known positive audit probabilities map the observed-cell vector to the pattern tables by a fixed finite linear transformation.  Composition with the selected rational reconstruction defines \(F\).  The affirmative branch of
+\(\text{thm:local-single-hazard-alternative}\), equivalently
+\(\text{thm:local-constructive-completeness}\), proves the population identity
+\[
+F(o)=Q.
+\tag{23}
+\]
+Thus the causal centering is a proved identification statement, not part of the definition of \(F\).
+
+For consistency, enumerate the \(m\) structural observed cells.  Each coordinate of \(\widehat o_n\) is an average of iid Bernoulli indicators under
+\(\text{ass:iid-sampling}\), and therefore
+\[
+\operatorname{Var}(\widehat o_{n,r})
+=\frac{o_r(1-o_r)}n\le\frac1{4n}.
+\]
+For every \(\delta>0\), the inequality
+\((\widehat o_{n,r}-o_r)^2\ge
+\delta^2\mathbf 1\{|\widehat o_{n,r}-o_r|>\delta\}\) and a union bound give
+\[
+\Pr\{\|\widehat o_n-o\|_\infty>\delta\}
+\le\frac{m}{4n\delta^2}\longrightarrow0.
+\tag{24}
+\]
+Continuity of \(F\), (23), and (24) prove
+\(F(\widehat o_n)\to Q\) in probability.  Define the estimator arbitrarily when an empirical denominator vanishes; because every population denominator is positive, (24) shows that this modification has probability tending to zero.
+
+The cited finite-multinomial central limit theorem
+\(\text{lem:finite-multinomial-clt}\) gives
+\[
+\sqrt n(\widehat o_n-o)
+\Rightarrow N(0,\operatorname{diag}(o)-oo^\top).
+\tag{25}
+\]
+Applying the cited multivariate delta method
+\(\text{lem:multivariate-delta-method}\) to the differentiable map \(F\), and then using (23), yields
+\[
+\sqrt n\{F(\widehat o_n)-Q\}
+\Rightarrow
+N\!\left(0,DF(o)[\operatorname{diag}(o)-oo^\top]DF(o)^\top\right).
+\tag{26}
+\]
+The derivative of a rational map is continuous wherever its denominators stay nonzero.  Hence substituting \(\widehat o_n\) into \(DF\) and into
+\(\operatorname{diag}(o)-oo^\top\), together with (24), consistently estimates the covariance in (26).  The covariance may be singular, and neither the central limit theorem nor this calculation asserts efficiency.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Positive denominators make both returned maps rational and smooth on their regular identified strata. \textit{Gap.} Full-follow-up double-sampling inference does not cover these partial-bundle maps. \textit{Consumer.} A sufficient design obtains joint plug-in standard errors without a claim of efficiency or covariance nonsingularity.
+
+\begin{lemma}[lem:local-tail-boundary]\label{lem:local-tail-boundary}
+For each \(d<T\), there is a positive function \(u_d(w,a,x_{1:b_d})\), with \(b_d=\min\{T,d+2\}\), such that \(g_d(w,a,x_{1:T})=u_d(w,a,x_{1:b_d})\prod_{t=b_d+1}^T K_t(x_t\mid w,a,x_{t-1})\). Consequently, for \(b_d\le k<\ell\le T\), \(P(X_\ell\mid X_k,W,A,D=d)=K_{k+1}\cdots K_\ell\).
+\end{lemma}
+\begin{proof}
+Fix \(d<T\) and let \(b_d=\min\{T,d+2\}\).  If \(s\le d\), every index
+in \(S_s\) is at most \(s+1\le d+1\), while every index in
+\(S_{d+1}\) is at most \(d+2\).  Hence all response factors occurring
+in \(g_d\) depend only on \((w,a,x_{1:b_d})\).  Define
+\[
+\begin{aligned}
+u_d(w,a,x_{1:b_d})
+={}&p_W(w)p_A(a\mid w)K_1(x_1\mid w,a)
+       \prod_{r=2}^{b_d}K_r(x_r\mid w,a,x_{r-1})\\
+&\times\prod_{s=1}^{d}q_s(w,a,x_{S_s})
+       \{1-q_{d+1}(w,a,x_{S_{d+1}})\}.
+\end{aligned}
+\]
+The substantive-positivity and hazard-positivity assumptions imply that
+\(u_d\) is strictly positive.  The substantive Markov factorization, the
+local-hazard assumption, and conditional independence of the response
+noises give, with an empty product interpreted as one,
+\[
+g_d(w,a,x_{1:T})
+=u_d(w,a,x_{1:b_d})
+  \prod_{r=b_d+1}^{T}K_r(x_r\mid w,a,x_{r-1}).
+\]
+
+Now take \(b_d\le k<\ell\le T\).  Sum the last display over
+\(x_1,\ldots,x_{k-1}\).  The resulting joint mass of
+\((W,A,X_k,X_{k+1:T},D=d)\) has the form
+\[
+c_{d,k}(w,a,x_k)
+\prod_{r=k+1}^{T}K_r(x_r\mid w,a,x_{r-1}),
+\]
+where \(c_{d,k}(w,a,x_k)>0\); positivity follows because it is a finite
+sum of positive terms.  Each \(K_r\) is a normalized conditional kernel,
+so summing the suffix product over \(x_{k+1:T}\) gives one.  Division by
+the positive conditioning mass therefore yields
+\[
+\Pr_P(X_{k+1:T}=x_{k+1:T}\mid
+      X_k=x_k,W=w,A=a,D=d)
+=\prod_{r=k+1}^{T}K_r(x_r\mid w,a,x_{r-1}).
+\]
+Finally, marginalizing all suffix coordinates except \(x_\ell\) gives
+\[
+\Pr_P(X_\ell=x_\ell\mid X_k=x_k,W=w,A=a,D=d)
+=\sum_{x_{k+1:\ell-1}}
+  \prod_{r=k+1}^{\ell}K_r(x_r\mid w,a,x_{r-1}),
+\]
+which is precisely the composed kernel \(K_{k+1}\cdots K_\ell\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The factorization turns nonconsecutive audit measurements into legal composed transition kernels and bounds every local elimination state by an interval frontier. \textit{Gap.} The passive monotone results normalize response kernels; they do not exploit a substantive Markov suffix observed through partial audits. \textit{Consumer.} The interval-block calculus uses this lemma to transport an identified boundary marginal to the endpoint without recovering the missing trajectory.
+
+\section{Interpretation}
+
+The design elbow is exact in the completed subclass. If the sole possibly informative hazard depends only on the preceding state, routine observation through visit \(k-1\) supplies its unbiased mixing distribution and complete cases supply the conditional endpoint tail, so no audit is needed. If it depends on the current or next state, one audit before hazard \(k\) must reveal a state no earlier than the latest such parent; any one such incidence suffices, and without it a positive scaling cancellation changes the intervention endpoint while preserving every observed pattern table.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Constructive sufficiency is proved only when all substantively informative response dependence is confined to one hazard, although that hazard may use any subset of its lagged, current, and lead local parents. The embedded witness gives a necessary condition for arbitrary local supergraphs, not a sufficient one. Two or more informative hazards can create interacting selection factors, overlapping-parent constraints, alphabet-sensitive bridges, endpoint-only cancellations, and positive countermodel-gluing problems not resolved by the present scan. No efficiency, covariance nonsingularity, polynomial-time, or fixed-rank negative conclusion is claimed.
+
+\section{Honest scope}
+
+The field claim is an arbitrary-horizon necessary-and-sufficient design theorem for the full at-most-one-informative-hazard local subclass: \(S_t=\varnothing\) for \(t\ne k\) and \(S_k\subseteq\{k-1,k,k+1\}\cap\{1,\ldots,T\}\). It covers empty, lagged, current, lead, and combined parents; every specified finite alphabet with at least two states per visit; every positive substantive and response law; null effects on allowed arrows; and deficient transition ranks. It supplies an evaluable reconstruction, a legal positive countermodel on failure, and the exact minimal frontier. For arbitrary local graphs it supplies only the one-way active-parent obstruction, and it makes no sufficiency claim with two or more informative hazards. No shadow-variable rank, parametric selection, missing-at-random, or faithfulness assumption is imposed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{TikkaKarvanen2025Monotone} Santtu Tikka and Juha Karvanen. Monotone Missing Data: A Blessing and a Curse. Transactions on Machine Learning Research, 2025. arXiv:2411.03848.
+
+  \bibitem{TikkaKarvanen2024Categorical} Santtu Tikka and Juha Karvanen. Full Law Identification under Missing Data with Categorical Variables. arXiv:2402.05633, 2024.
+
+  \bibitem{NabiEtAl2020Completeness} Razieh Nabi, Rohit Bhattacharya, and Ilya Shpitser. Full Law Identification in Graphical Models of Missing Data: Completeness Results. Proceedings of the International Conference on Machine Learning, 2020. arXiv:2004.04872.
+
+  \bibitem{BhattacharyaEtAl2019TargetLaw} Rohit Bhattacharya, Razieh Nabi, Ilya Shpitser, and James M. Robins. Identification in Missing Data Models Represented by Directed Acyclic Graphs. Proceedings of the Conference on Uncertainty in Artificial Intelligence, 2019. arXiv:1907.00241.
+
+  \bibitem{LevisEtAl2024DoubleSampling} Alexander W. Levis, Rajarshi Mukherjee, Rui Wang, Heidi Fischer, and Sebastien Haneuse. Double Sampling for Informatively Missing Data in Electronic Health Record-Based Comparative Effectiveness Research. Statistics in Medicine, 2024. doi:10.1002/sim.10298.
+
+  \bibitem{DuarteEtAl2024Automated} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association, 2024. doi:10.1080/01621459.2023.2216909.
+
+  \bibitem{GuoNabi2026Weighting} Anna Guo and Razieh Nabi. Weighting-Based Identification and Estimation in Graphical Models of Missing Data. arXiv:2602.10969, 2026.
+
+  \bibitem{KarvanenTikka2024Imputation} Juha Karvanen and Santtu Tikka. Multiple Imputation and Full Law Identifiability. arXiv:2410.18688, 2024.
+
+  \bibitem{Pearl2009Causality} Judea Pearl. Causality: Models, Reasoning, and Inference. Second edition. Cambridge University Press, 2009.
+
+  \bibitem{vanDerVaart1998Asymptotic} Aad W. van der Vaart. Asymptotic Statistics. Cambridge University Press, 1998.
+
+  \bibitem{KoffmanEtAl2021EHR} L. Koffman and coauthors. Investigating Bias from Missing Data in an Electronic Health Records-Based Study of Weight Loss After Bariatric Surgery. Obesity Surgery, 2021. doi:10.1007/s11695-021-05226-y.
+
+  \bibitem{GengEtAl2010Tracing} Elvin H. Geng and coauthors. Sampling-Based Approach to Determining Outcomes of Patients Lost to Follow-Up in Antiretroviral Therapy Scale-Up Programs in Africa. Tropical Medicine and International Health, 2010. doi:10.1111/j.1365-3156.2010.02507.x.
+
+\end{thebibliography}
+
+\end{document}

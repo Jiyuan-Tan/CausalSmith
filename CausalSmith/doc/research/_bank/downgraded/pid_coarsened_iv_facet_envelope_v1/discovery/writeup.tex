@@ -1,0 +1,1322 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}coarsened\_\allowbreak{}iv\_\allowbreak{}facet\_\allowbreak{}envelope}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} With a randomized binary instrument, binary outcome, and arbitrary finite categorical exposure, the maintained model is a saturated individual-level selected-exclusion response model. Trusted categories have shared arm-invariant potential outcomes, while untrusted categories have only arm-specific labels that complete factual outcomes and are not treated as interventions. The sharp pairwise-effect interval is governed by one two-diagonal capacity: each endpoint evaluates eight baseline affine pieces and exactly two pieces per trusted nuisance category, with finite laws attaining both endpoints. Trust is nested by an explicit response-law restriction map, and separate positive-cell witnesses show strict observed-law enlargement from selected trust and strict identified-set tightening from adding trust. Comparator scope is exact: Balke--Pearl is recovered literally only for a binary exposure; aggregating a wholly untrusted remainder recovers the relevant Gabriel--Sachs--Sjolander sharp projection and formula, not an identity of latent fine-exposure model classes; and arbitrary finite full trust has the Song--Guo--Chan--Richardson model M1 response image, with the pairwise interval transferring to models M2 through M5 by their equal-image theorem. Finite-sample whole-set coverage remains valid at ties and zero cells.
+
+\section{Project justification}
+
+\paragraph{Gap.} Balke and Pearl give the literal binary-exposure envelope. Gabriel, Sachs, and Sjolander give the sharp target projection for two well-defining target levels with one merged potentially ill-defining remainder, as well as the ten-term fully trusted ternary formulas; those results do not identify a latent fine-exposure class with an arbitrary refinement of the remainder. Song, Guo, Chan, and Richardson characterize arbitrary finite categorical exposure under full trust and prove that five IV formulations have the same joint potential-outcome and observed-law image, but leave scalar pairwise endpoints to generic optimization. What is missing is an arbitrary-finite sharp scalar envelope for the saturated selected-exclusion model in which only declared categories possess shared potential outcomes, together with an exact nesting map and strict witnesses on the common observed-law domain.
+
+\paragraph{Niche.} Applied adherence studies often have two interventionally meaningful target categories, several intermediate categories for which exclusion may be separately defensible, and residual categories for which no cross-instrument outcome equality is credible. The residual-category variables needed to represent factual outcomes should not thereby be promoted to potential outcomes under ill-defined interventions. This structure is neither a binary exposure model nor a fully exclusion-valid categorical model.
+
+\paragraph{Fill.} The paper formalizes the saturated selected-exclusion response law by separating shared potential outcomes on trusted categories from arm-specific factual completion labels on untrusted categories. Its two-diagonal transport reduction supplies the sharp linear-size envelope and finite endpoint laws. The response-law restriction map proves that enlarging trust nests both compatibility classes and identified sets; the separation and gain tables make both inclusions strict in the appropriate sense. Exact reductions recover Balke--Pearl only on a genuinely binary alphabet, recover Gabriel's merged-remainder and ternary sharp projections and formulas in their stated scopes without equating latent fine-exposure classes, and identify the arbitrary-finite full-trust response image with Song's M1 image before transferring the target projection to Song's other four equal-image models.
+
+\section{Related work}
+
+Balke and Pearl derive eight sharp affine average-effect expressions for binary instrument, binary exposure, and binary outcome; the present formula is called literally Balke--Pearl only when the exposure alphabet has two elements. Gabriel, Sachs, and Sjolander Result 1 treats two well-defining target exposure levels plus one merged potentially ill-defining remainder and recovers those eight expressions, while their equations (3)--(4) give ten sharp expressions per endpoint for three well-defining exposure levels. The selected-trust comparison with their Result 1 is equality of the relevant sharp target projection and endpoint formula after aggregation; it is not an identity between their three-label latent model and this paper's arbitrary fine-exposure latent class. Sachs, Jonzon, Sjolander, and Gabriel provide general symbolic primal--dual machinery for finite response-function models; that machinery informs certification but is not the linear-size envelope proved here. Song, Guo, Chan, and Richardson characterize arbitrary categorical IV models under full trust. Precisely, when every category is trusted, this paper's saturated response model has the same image in the joint potential-outcome law and observed table as their model M1. Their Theorem 1 gives equality of that joint-potential-outcome/observed-law image across models M1 through M5, so taking the pairwise-effect projection transfers the sharp interval to all five formulations. This image statement is not imposed on selected-trust laws, whose untrusted arm-specific labels are factual completion variables rather than intervention outcomes. Bhadane, Mooij, Boeken, and Zoeter Theorem 17 gives the observed full-exclusion compatibility characterization for binary instrument and outcome with arbitrary finite exposure. The cell-sum inequality violated by the separation family is attributed to that observed-model result and also follows directly because the two relevant full-exclusion factual events are disjoint. That family is selected-trust compatible on a positive-cell neighborhood but not full-trust representable, whereas the separate full-trust-compatible gain table shows strict identified-set tightening after trusting the intermediate category. VanderWeele and Hernan explain why coarse labels may hide treatment versions, and Marshall studies bias from coarsening; they motivate the distinction between a trusted refinement and a wholly untrusted split or merge. Zhang, Frazier, Poskitt, and Zhao analyze identification gains for binary average-effect bounds; the categorywise active-face update here is a corollary of the sharp envelope. Du Toit and collaborators supply the LEAP adherence application in which separately justified intermediate consumption categories may or may not change the low-versus-high interval.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_{ab}=\mathbb E[V_b-V_a]\).
+Primary functional / estimator / diagnostic: \(\Theta_I(P)=[L_T(p),U_T(p)]=[\kappa-D_T(p),-L_T(\bar p)]\).
+\begin{itemize}
+  \item \texttt{E} --- \texttt{A finite set}; \(\mathcal E=\{a,b,c_1,\ldots,c_m\}\) with \(|\mathcal E|=m+2\geq 2\).; \texttt{Exposure alphabet}
+  \item \texttt{a} --- An element of \(\mathcal E\); \texttt{Target category}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The first target exposure category.}
+  \item \texttt{b} --- An element of \(\mathcal E\setminus\{a\}\); \texttt{Target category}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The second target exposure category.}
+  \item \texttt{T} --- A subset of \(\mathcal E\); \(\{a,b\}\subseteq T\subseteq\mathcal E\).; \texttt{Trusted categories}
+  \item \texttt{U} --- A subset of \(\mathcal E\); \texttt{Untrusted categories}
+  \par\smallskip\noindent\emph{Definition.} \(U=\mathcal E\setminus T\).
+  \item \texttt{I} --- \texttt{A finite set}; \texttt{Factual exposure-\allowbreak{}-\allowbreak{}outcome cells}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I=\mathcal E\times\{0,1\}\).
+  \item \texttt{Z} --- \texttt{A binary random variable}; \(\{0,1\}\).; \texttt{Randomized instrument}
+  \item \texttt{X} --- \texttt{A categorical random variable}; \(\mathcal E\).; \texttt{Observed exposure}
+  \item \texttt{Y} --- \texttt{A binary random variable}; \(\{0,1\}\).; \texttt{Observed outcome}
+  \item \texttt{rho} --- \texttt{A scalar}; \([0,1]\); \texttt{Instrument allocation probability}
+  \par\smallskip\noindent\emph{Definition.} \(\rho=\Pr(Z=1)\).
+  \item \texttt{P} --- \texttt{A probability law}; Laws of \((Z,X,Y)\).; \texttt{Observed-\allowbreak{}data law}
+  \item \texttt{p} --- A pair of probability vectors on \(\mathcal I\); \texttt{Observable arm-\allowbreak{}cell probabilities}
+  \par\smallskip\noindent\emph{Definition.} \(p^z_{xy}=\Pr_P(X=x,Y=y\mid Z=z)\) for \((x,y)\in\mathcal I\) and \(z\in\{0,1\}\).
+  \item \texttt{X0} --- A random element of \(\mathcal E\); \texttt{Exposure response}
+  \par\smallskip\noindent\emph{Definition.} \(X_0\) is the exposure received under \(Z=0\).
+  \item \texttt{X1} --- A random element of \(\mathcal E\); \texttt{Exposure response}
+  \par\smallskip\noindent\emph{Definition.} \(X_1\) is the exposure received under \(Z=1\).
+  \item \texttt{V} --- \texttt{A binary vector}; \(\{0,1\}^{T}\); \texttt{Trusted potential outcomes}
+  \par\smallskip\noindent\emph{Definition.} \(V=(V_x:x\in T)\), where \(V_x\) is the well-defined outcome under category \(x\) and is shared across instrument arms.
+  \item \texttt{W} --- \texttt{A binary array}; \(\{0,1\}^{U\times\{0,1\}}\); \texttt{Untrusted factual-\allowbreak{}response completion labels}
+  \par\smallskip\noindent\emph{Definition.} \(W=(W_{xz}:x\in U,z\in\{0,1\})\), with no cross-arm equality imposed.
+  \item \texttt{Rspace} --- \texttt{A finite set}; \texttt{Saturated mixed-\allowbreak{}trust response-\allowbreak{}type space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_T=\mathcal E^2\times\{0,1\}^{T}\times\{0,1\}^{U\times\{0,1\}}\).
+  \item \texttt{Rvar} --- A random element of \(\mathcal R_T\); \texttt{Latent response type}
+  \par\smallskip\noindent\emph{Definition.} \(R=(X_0,X_1,V,W)\).
+  \item \texttt{q} --- \texttt{A probability mass function}; \(\Delta(\mathcal R_T)\); \texttt{Latent response law}
+  \item \texttt{Q} --- \texttt{A set-\allowbreak{}valued map}; \texttt{Compatible response-\allowbreak{}law class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q_T(p)\) is the set of response laws compatible with \(p\) under the mixed-trust observation map.
+  \item \texttt{theta} --- A linear functional of \(q\); \texttt{Pairwise average treatment effect}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{ab}(q)=\mathbb E_q[V_b-V_a]\).
+  \item \texttt{relation} --- A binary relation on \(\mathcal I\times\mathcal I\); \texttt{Allowed factual-\allowbreak{}arm transport edges}
+  \par\smallskip\noindent\emph{Definition.} \(((x,y),(x',y'))\in\mathfrak R_T\) unless \(x=x'\in T\) and \(y\neq y'\).
+  \item \texttt{Pi} --- \texttt{A convex polytope}; \texttt{Factual-\allowbreak{}arm coupling polytope}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_T(p)\) is the set of nonnegative matrices on \(\mathfrak R_T\) with row margins \(p^0\) and column margins \(p^1\).
+  \item \texttt{s} --- An element of \(\mathcal I\); \texttt{First target diagonal cell}
+  \par\smallskip\noindent\emph{Definition.} \(s=(a,0)\).
+  \item \texttt{t} --- An element of \(\mathcal I\); \texttt{Second target diagonal cell}
+  \par\smallskip\noindent\emph{Definition.} \(t=(b,1)\).
+  \item \texttt{alpha} --- \texttt{A binary-\allowbreak{}indexed vector}; \texttt{Target-\allowbreak{}cell abbreviation}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_z=p^z_{a0}\) for \(z\in\{0,1\}\).
+  \item \texttt{beta} --- \texttt{A binary-\allowbreak{}indexed vector}; \texttt{Target-\allowbreak{}cell abbreviation}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_z=p^z_{b1}\) for \(z\in\{0,1\}\).
+  \item \texttt{gamma} --- \texttt{A binary-\allowbreak{}indexed vector}; \texttt{Target-\allowbreak{}cell abbreviation}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_z=p^z_{a1}\) for \(z\in\{0,1\}\).
+  \item \texttt{delta} --- \texttt{A binary-\allowbreak{}indexed vector}; \texttt{Target-\allowbreak{}cell abbreviation}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_z=p^z_{b0}\) for \(z\in\{0,1\}\).
+  \item \texttt{kappa} --- \texttt{A scalar}; \texttt{Unreserved lower-\allowbreak{}objective constant}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa=-1+\alpha_0+\alpha_1+\beta_0+\beta_1\).
+  \item \texttt{uCap} --- \texttt{A nonnegative scalar}; Capacity of diagonal \(s\)
+  \par\smallskip\noindent\emph{Definition.} \(u=\min\{\alpha_0,\alpha_1,1-\beta_0-\delta_1,1-\delta_0-\beta_1\}\).
+  \item \texttt{vCap} --- \texttt{A nonnegative scalar}; Capacity of diagonal \(t\)
+  \par\smallskip\noindent\emph{Definition.} \(v=\min\{\beta_0,\beta_1,1-\alpha_0-\gamma_1,1-\gamma_0-\alpha_1\}\).
+  \item \texttt{h} --- \texttt{A collection of nonnegative scalars}; \texttt{Trusted nuisance residual caps}
+  \par\smallskip\noindent\emph{Definition.} \(h_{cy}=1-p^0_{cy}-p^1_{c,1-y}\) for \(c\in T\setminus\{a,b\}\) and \(y\in\{0,1\}\).
+  \item \texttt{D} --- \texttt{A nonnegative scalar}; \texttt{Two-\allowbreak{}diagonal capacity}
+  \par\smallskip\noindent\emph{Definition.} \(D_T(p)=\min\bigl(\{u+v\}\cup\{h_{cy}:c\in T\setminus\{a,b\},\ y\in\{0,1\}\}\bigr)\).
+  \item \texttt{pbar} --- A pair of probability vectors on \(\mathcal I\); \texttt{Outcome-\allowbreak{}reversed table}
+  \par\smallskip\noindent\emph{Definition.} \(\bar p^z_{xy}=p^z_{x,1-y}\).
+  \item \texttt{ell} --- Eight affine functionals of \(p\); \texttt{Baseline affine lower faces}
+  \par\smallskip\noindent\emph{Definition.} \((\ell_1,\ldots,\ell_8)\) are the eight Balke--Pearl lower pieces in the displayed construction \(\mathfrak F^-_T(p)\).
+  \item \texttt{Cminus} --- \texttt{Two affine functionals per trusted nuisance category}; \texttt{Trusted-\allowbreak{}category lower faces}
+  \par\smallskip\noindent\emph{Definition.} \(C^-_{c,y}(p)=\kappa-h_{cy}\) for \(c\in T\setminus\{a,b\}\) and \(y\in\{0,1\}\).
+  \item \texttt{Cplus} --- \texttt{Two affine functionals per trusted nuisance category}; \texttt{Trusted-\allowbreak{}category upper faces}
+  \par\smallskip\noindent\emph{Definition.} \(C^+_{c,y}(p)=-C^-_{c,1-y}(\bar p)\).
+  \item \texttt{Fminus} --- \texttt{A finite set of affine functionals}; \texttt{Complete lower evaluation list}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak F^-_T=\{\ell_1,\ldots,\ell_8\}\cup\{C^-_{c,y}:c\in T\setminus\{a,b\},\ y\in\{0,1\}\}\).
+  \item \texttt{Fplus} --- \texttt{A finite set of affine functionals}; \texttt{Complete upper evaluation list}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak F^+_T=\{-\ell_j(\bar p):1\leq j\leq 8\}\cup\{C^+_{c,y}:c\in T\setminus\{a,b\},\ y\in\{0,1\}\}\).
+  \item \texttt{L} --- A scalar functional of \(p\); \texttt{Sharp lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L_T(p)=\kappa-D_T(p)=\max_{f\in\mathfrak F^-_T}f(p)\).
+  \item \texttt{Uend} --- A scalar functional of \(p\); \texttt{Sharp upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(U_T(p)=-L_T(\bar p)=\min_{f\in\mathfrak F^+_T}f(p)\).
+  \item \texttt{dminus} --- A cost on \(\mathfrak R_T\); \texttt{Smallest edgewise effect completion}
+  \par\smallskip\noindent\emph{Definition.} \(d^-(i,j)=-1+\mathbf 1\{i=s\text{ or }j=s\}+\mathbf 1\{i=t\text{ or }j=t\}\).
+  \item \texttt{qLower} --- A response law in \(\mathcal Q_T(p)\); \texttt{Lower endpoint witness}
+  \par\smallskip\noindent\emph{Definition.} \(q^-_T(p)\) is the law returned by the lower endpoint-attainment construction.
+  \item \texttt{qUpper} --- A response law in \(\mathcal Q_T(p)\); \texttt{Upper endpoint witness}
+  \par\smallskip\noindent\emph{Definition.} \(q^+_T(p)\) is obtained by applying the lower construction to \(\bar p\) and reversing every binary outcome.
+  \item \texttt{cstar} --- \texttt{A conditionally defined exposure label}; \texttt{Comparison category}
+  \par\smallskip\noindent\emph{Definition.} On the specialization \(\mathcal E=\{a,b,c_\star\}\), \(c_\star\) is the unique nuisance category.
+  \item \texttt{Tbase} --- A subset of \(\mathcal E\); \texttt{Two-\allowbreak{}target trust regime}
+  \par\smallskip\noindent\emph{Definition.} \(T_0=\{a,b\}\).
+  \item \texttt{Tfull3} --- A subset of \(\mathcal E\); \texttt{Three-\allowbreak{}category full-\allowbreak{}trust regime}
+  \par\smallskip\noindent\emph{Definition.} \(T_1=\{a,b,c_\star\}=\mathcal E\) in the three-category comparison.
+  \item \texttt{rSep} --- \texttt{A binary-\allowbreak{}indexed vector}; \(r_z\in(31/50,17/25)\) for \(z\in\{0,1\}\).; \texttt{Nuisance-\allowbreak{}category exposure masses in the separation family}
+  \item \texttt{sSep} --- \texttt{A binary-\allowbreak{}indexed vector}; \(s_z\in(2/5,3/5)\) for \(z\in\{0,1\}\).; \texttt{Target-\allowbreak{}category allocation shares in the separation family}
+  \item \texttt{tauSep} --- \texttt{A target-\allowbreak{}indexed vector}; \(\tau_a,\tau_b\in(2/5,3/5)\).; \texttt{Trusted target-\allowbreak{}outcome probabilities in the separation family}
+  \item \texttt{lambdaSep} --- \texttt{A binary-\allowbreak{}indexed vector}; \(\lambda_0\in(3/100,7/100)\) and \(\lambda_1\in(93/100,97/100)\).; \texttt{Arm-\allowbreak{}specific untrusted outcome probabilities in the separation family}
+  \item \texttt{Asep} --- \texttt{A binary-\allowbreak{}indexed vector}; Exposure masses for category \(a\) in the separation family
+  \par\smallskip\noindent\emph{Definition.} \(A_z=(1-r_z)s_z\) for \(z\in\{0,1\}\).
+  \item \texttt{Bsep} --- \texttt{A binary-\allowbreak{}indexed vector}; Exposure masses for category \(b\) in the separation family
+  \par\smallskip\noindent\emph{Definition.} \(B_z=(1-r_z)(1-s_z)\) for \(z\in\{0,1\}\).
+  \item \texttt{qSep} --- \texttt{A probability mass function}; \(\Delta(\mathcal R_{T_0})\) in the three-category comparison.; \texttt{Non-\allowbreak{}representability witness}
+  \par\smallskip\noindent\emph{Definition.} \(q^{\rm sep}_{r,s,\tau,\lambda}\) is the selected-trust response law in the perturbation-stable strict-regime construction.
+  \item \texttt{pSep} --- A pair of probability vectors on \(\mathcal I\); \texttt{Observed non-\allowbreak{}representability witness}
+  \par\smallskip\noindent\emph{Definition.} \(p^{\rm sep}\) is the observed table induced by the perturbation-stable family \(q^{\rm sep}_{r,s,\tau,\lambda}\) under the mixed-trust observation map.
+  \item \texttt{pGain} --- A pair of probability vectors on \(\mathcal I\); \texttt{Open-\allowbreak{}region witness}
+  \par\smallskip\noindent\emph{Definition.} \(p^{\rm gain}\) is the strictly tightening three-category table in the strict-regime construction.
+  \item \texttt{etaGain} --- \texttt{A positive scalar}; \texttt{Strict-\allowbreak{}gain stability radius}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_{\rm gain}>0\) is an open-neighborhood radius derived in \(\text{thm:strict-regime-separation}\).
+  \item \texttt{cnew} --- An element of \(U\); \texttt{Trust augmentation category}
+  \par\smallskip\noindent\emph{Definition.} \(c\) is the nuisance category newly declared trusted.
+  \item \texttt{Tprime} --- A trusted subset of \(\mathcal E\); \texttt{One-\allowbreak{}category trust augmentation}
+  \par\smallskip\noindent\emph{Definition.} \(T'=T\cup\{c\}\).
+  \item \texttt{Eref} --- \texttt{A finite set}; \texttt{Refined exposure alphabet}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde{\mathcal E}\) is a refinement of \(\mathcal E\).
+  \item \texttt{g} --- \texttt{A surjective map}; \(g:\widetilde{\mathcal E}\to\mathcal E\); \texttt{Refinement quotient}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The category aggregation map.}
+  \item \texttt{Tref} --- A subset of \(\widetilde{\mathcal E}\); \texttt{Refined trusted set}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde T\) contains the unique preimages of the trusted categories and no refined child of an untrusted category.
+  \item \texttt{pref} --- \texttt{A pair of probability vectors}; \texttt{Refined observed table}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde p\) satisfies \(p^z_{xy}=\sum_{\tilde x:g(\tilde x)=x}\widetilde p^z_{\tilde x y}\).
+  \item \texttt{n} --- \texttt{A positive integer}; \texttt{Sample size}
+  \item \texttt{O} --- \texttt{An observed sample}; \(O_i=(Z_i,X_i,Y_i)\), \(i=1,\ldots,n\).; \texttt{Independent observations}
+  \item \texttt{N} --- \texttt{A pair of nonnegative integers}; \texttt{Observed arm sizes}
+  \par\smallskip\noindent\emph{Definition.} \(N_z=\sum_{i=1}^n\mathbf 1\{Z_i=z\}\).
+  \item \texttt{phat} --- \texttt{A pair of empirical probability vectors}; \texttt{Empirical arm-\allowbreak{}cell frequencies}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat p^z_{xy}=N_z^{-1}\sum_{i:Z_i=z}\mathbf 1\{X_i=x,Y_i=y\}\) when \(N_z>0\).
+  \item \texttt{alphaConf} --- \texttt{A scalar}; \((0,1)\); \texttt{Error probability}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_{\rm conf}\) is the desired simultaneous error probability.
+  \item \texttt{Mfaces} --- \texttt{A positive integer}; \texttt{Number of simultaneously controlled affine pieces}
+  \par\smallskip\noindent\emph{Definition.} \(M_T=|\mathfrak F^-_T|+|\mathfrak F^+_T|=16+4|T\setminus\{a,b\}|\).
+  \item \texttt{coef} --- \texttt{A collection of bounded functions}; \texttt{Face coefficient functions}
+  \par\smallskip\noindent\emph{Definition.} Each affine face has the representation \(f(p)=b_f+\sum_{z=0}^1\mathbb E_P[a_{fz}(X,Y)\mid Z=z]\).
+  \item \texttt{range} --- \texttt{A collection of nonnegative scalars}; \texttt{Hoeffding ranges}
+  \par\smallskip\noindent\emph{Definition.} \(R_{fz}=\max_{(x,y)\in\mathcal I}a_{fz}(x,y)-\min_{(x,y)\in\mathcal I}a_{fz}(x,y)\).
+  \item \texttt{eps} --- \texttt{A collection of nonnegative scalars}; \texttt{Simultaneous face radii}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_f=\sqrt{\tfrac12\bigl(\sum_{z=0}^1R_{fz}^2/N_z\bigr)\log(2M_T/\alpha_{\rm conf})}\) when \(N_0N_1>0\).
+  \item \texttt{endpointBox} --- \texttt{A random rectangle}; \texttt{Simultaneous endpoint confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{\rm end}=[L_{\rm lo},L_{\rm hi}]\times[U_{\rm lo},U_{\rm hi}]\), where \(L_{\rm lo}=\max_{f\in\mathfrak F^-_T}\{f(\widehat p)-\varepsilon_f\}\), \(L_{\rm hi}=\max_{f\in\mathfrak F^-_T}\{f(\widehat p)+\varepsilon_f\}\), \(U_{\rm lo}=\min_{f\in\mathfrak F^+_T}\{f(\widehat p)-\varepsilon_f\}\), and \(U_{\rm hi}=\min_{f\in\mathfrak F^+_T}\{f(\widehat p)+\varepsilon_f\}\).
+  \item \texttt{wholeSetCI} --- \texttt{A random interval}; \texttt{Outer confidence interval for the whole sharp set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{\rm set}=[L_{\rm lo},U_{\rm hi}]\cap[-1,1]\), with \([-1,1]\) returned if an instrument arm is empty.
+  \item \texttt{rhoBar} --- \texttt{A fixed scalar}; \((0,1/2)\); \texttt{Uniform instrument-\allowbreak{}allocation floor}
+  \par\smallskip\noindent\emph{Definition.} \(\bar\rho\) is the allocation floor in the Gaussian outlook.
+  \item \texttt{PTri} --- \texttt{A class of triangular arrays of multinomial laws}; \texttt{Uniformity domain for the Gaussian outlook}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak A_T(\bar\rho)=\{(P_n)_{n\geq1}:P_n\text{ is multinomial with arm probabilities }p_n,\ \rho_n\in[\bar\rho,1-\bar\rho],\ \mathcal Q_T(p_n)\neq\varnothing\text{ for every }n\}\).
+  \item \texttt{regularConstants} --- \texttt{Three fixed positive scalars}; \texttt{Regular-\allowbreak{}class constants}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_{\rm reg}>0\), \(\gamma_{\rm reg}>0\), and \(\sigma^2_{\rm reg}>0\) are respectively a cell floor, an active-face separation, and an active-face variance floor.
+  \item \texttt{regularClass} --- \texttt{A compact set of multinomial laws}; \texttt{Regular comparison class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal K(\varepsilon_{\rm reg},\gamma_{\rm reg},\sigma^2_{\rm reg})\) is any nonempty compact class of \(T\)-compatible laws with \(\rho\in[\bar\rho,1-\bar\rho]\), arm cells at least \(\varepsilon_{\rm reg}\), a unique active affine face at each endpoint separated from every other face by at least \(\gamma_{\rm reg}\), and both active-face variances at least \(\sigma^2_{\rm reg}\).
+  \item \texttt{GaussianBox} --- \texttt{A random endpoint rectangle}; \texttt{Candidate Gaussian endpoint rectangle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C^G_n=[L^G_{\rm lo},L^G_{\rm hi}]\times[U^G_{\rm lo},U^G_{\rm hi}]\) is the endpoint rectangle returned by the boundary-spliced active-face multiplier handle.
+  \item \texttt{totalWidth} --- \texttt{A nonnegative functional on endpoint rectangles}; \texttt{Total endpoint width}
+  \par\smallskip\noindent\emph{Definition.} For \(\mathcal C=[l_{\rm lo},l_{\rm hi}]\times[u_{\rm lo},u_{\rm hi}]\), set \(w_{\rm tot}(\mathcal C)=(l_{\rm hi}-l_{\rm lo})+(u_{\rm hi}-u_{\rm lo})\).
+  \item \texttt{GaussianHandle} --- \texttt{A methodological handle}; \texttt{Starting move for sharper tie-\allowbreak{}robust inference}
+  \par\smallskip\noindent\emph{Definition.} For fixed finite \((\mathcal E,T)\), \(\alpha_{\rm conf}\), and \(\bar\rho\), start from the shared multiplier empirical process of all affine faces, estimate the max/min directional derivative on a self-normalized near-active face set, and splice in \(\mathcal C_{\rm end}\) whenever a relevant estimated face variance degenerates.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:random-assignment]\label{ass:random-assignment}
+\(Z\perp R\).
+\par\smallskip\noindent\emph{Standard} (Random assignment of the instrument, \cite{BalkePearl1997ImperfectCompliance}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-allocation]\label{ass:positive-allocation}
+\(0<\rho<1\).
+\par\smallskip\noindent\emph{Standard} (Positive binary instrument allocation, \cite{BalkePearl1997ImperfectCompliance}).
+\end{assumption}
+
+\begin{assumption}[ass:model-compatibility]\label{ass:model-compatibility}
+\(\mathcal Q_T(p)\neq\varnothing\).
+\par\smallskip\noindent\emph{Standard} (Compatibility of the observed law with a finite IV response model, \cite{SongGuoChanRichardson2026CategoricalIV}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent and identically distributed according to \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent and identically distributed multinomial sampling, \cite{SongGuoChanRichardson2026CategoricalIV}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:mixed-trust-observation-map]\label{def:mixed-trust-observation-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mixed-\allowbreak{}trust observation map}
+\par\smallskip\noindent\emph{Construction.} Draw \(R=(X_0,X_1,V,W)\sim q\) and \(Z\sim\operatorname{Bernoulli}(\rho)\), set \(X=X_Z\), and set \(Y=V_X\) if \(X\in T\) and \(Y=W_{XZ}\) if \(X\in U\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{rho}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:compatible-response-laws]\label{def:compatible-response-laws}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compatible response laws}
+\par\smallskip\noindent\emph{Construction.} \[
+\mathcal Q_T(p)=\left\{q\in\Delta(\mathcal R_T):
+\begin{array}{ll}
+\Pr_q(X_z=x,V_x=y)=p^z_{xy},
+  &x\in T,\\
+\Pr_q(X_z=x,W_{xz}=y)=p^z_{xy},
+  &x\in U,
+\end{array}
+\quad z,y\in\{0,1\}\right\}.
+\]
+This is the saturated individual-level selected-exclusion response model on \(\mathcal R_T\).  For every trusted category \(x\in T\), the single binary variable \(V_x\) is an arm-invariant potential outcome and is used in the compatibility equation for both instrument arms.  For every untrusted category \(x\in U\), the two binary coordinates \(W_{x0}\) and \(W_{x1}\) are arm-specific labels used only to complete the factual outcome on the events \(\{X_0=x\}\) and \(\{X_1=x\}\), respectively.  They are not asserted to be outcomes under an intervention setting exposure to \(x\), and no cross-arm equality is imposed on them.  When \(T=\mathcal E\), the untrusted block is empty; the statement that this full-trust specialization is Song--Guo--Chan--Richardson model \(\mathcal M_1\) means equality of the response image in the joint law of \(V\) and the observed table \(p\), as established in \(\mathrm{prop{:}published\mbox{-}reductions}\).  When \(T=\{a,b\}\) and the nonempty set \(U\) is aggregated to one remainder label, the Gabriel--Sachs--Sjolander comparison means equality of the sharp \(\theta_{ab}\)-projection and its eight affine endpoint formulas; it does not assert identity between the latent fine-exposure model classes.
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:coupling-polytope]\label{def:coupling-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Partial-\allowbreak{}matching transport polytope}
+\par\smallskip\noindent\emph{Construction.} \(\Pi_T(p)=\{\pi\geq0:\pi_{ij}=0\text{ if }(i,j)\notin\mathfrak R_T,\ \sum_j\pi_{ij}=p^0_i,\ \sum_i\pi_{ij}=p^1_j\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:endpoint-components]\label{def:endpoint-components}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}diagonal capacity and affine faces}
+\par\smallskip\noindent\emph{Construction.} Compute \(\alpha,\beta,\gamma,\delta,\kappa,u,v,h\) from \(p\); set \(D_T(p)=\min(\{u+v\}\cup\{h_{cy}\})\), \(L_T(p)=\kappa-D_T(p)\), and \(U_T(p)=-L_T(\bar p)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{T}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:affine-evaluation-list]\label{def:affine-evaluation-list}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complete affine evaluation list}
+\par\smallskip\noindent\emph{Construction.} \(\ell_1=-1+\alpha_1+\beta_1\), \(\ell_2=-1+\alpha_1+\beta_0\), \(\ell_3=-1+\alpha_0+\beta_0\), \(\ell_4=-1+\alpha_0+\beta_1\), \(\ell_5=-2+2\alpha_0+\gamma_1+\beta_0+\beta_1\), \(\ell_6=-2+\alpha_0+\alpha_1+\delta_0+2\beta_1\), \(\ell_7=-2+2\alpha_1+\gamma_0+\beta_0+\beta_1\), \(\ell_8=-2+\alpha_0+\alpha_1+\delta_1+2\beta_0\); then \(\mathfrak F^-_T=\{\ell_1,\ldots,\ell_8\}\cup\{\kappa-h_{cy}:c\in T\setminus\{a,b\},y\in\{0,1\}\}\) and \(\mathfrak F^+_T\) is its outcome-reversed negative.
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{T}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:endpoint-attainment]\label{def:endpoint-attainment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite endpoint-\allowbreak{}attainment algorithm}
+\par\smallskip\noindent\emph{Construction.} For the lower endpoint reserve \(r_s=\min\{u,D_T(p)\}\) on edge \((s,s)\) and \(r_t=D_T(p)-r_s\) on edge \((t,t)\); subtract these masses from the corresponding margins, complete the residual transport on \(\mathfrak R_T\) by finite augmenting paths, and on each supported edge set every observed trusted potential outcome to its factual value, every unobserved \(V_a\) to \(1\), every unobserved \(V_b\) to \(0\), all other unobserved trusted values to \(0\), and the observed untrusted \(W\)-slots to their factual values. The upper law applies the same algorithm to \(\bar p\) and reverses all outcome bits.
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{T}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:strict-regime-witnesses]\label{def:strict-regime-witnesses}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected-\allowbreak{}trust separation and gain witnesses}
+\par\smallskip\noindent\emph{Construction.} Specialize to \(\mathcal E=\{a,b,c_\star\}\), \(T_0=\{a,b\}\), and \(\rho=1/2\). Choose \(r_0,r_1\in(31/50,17/25)\), \(s_0,s_1,\tau_a,\tau_b\in(2/5,3/5)\), \(\lambda_0\in(3/100,7/100)\), and \(\lambda_1\in(93/100,97/100)\), and put \(A_z=(1-r_z)s_z\) and \(B_z=(1-r_z)(1-s_z)\). Under \(q^{\rm sep}_{r,s,\tau,\lambda}\), let \(X_0\) and \(X_1\) be independent categorical variables with \(\Pr(X_z=a)=A_z\), \(\Pr(X_z=b)=B_z\), and \(\Pr(X_z=c_\star)=r_z\); independently draw \(V_a\sim\operatorname{Bernoulli}(\tau_a)\), \(V_b\sim\operatorname{Bernoulli}(\tau_b)\), \(W_{c_\star0}\sim\operatorname{Bernoulli}(\lambda_0)\), and \(W_{c_\star1}\sim\operatorname{Bernoulli}(\lambda_1)\). Its observed table is \(p^{{\rm sep},z}_{a0}=A_z(1-\tau_a)\), \(p^{{\rm sep},z}_{a1}=A_z\tau_a\), \(p^{{\rm sep},z}_{b0}=B_z(1-\tau_b)\), \(p^{{\rm sep},z}_{b1}=B_z\tau_b\), \((p^{{\rm sep},0}_{c_\star0},p^{{\rm sep},0}_{c_\star1})=(r_0(1-\lambda_0),r_0\lambda_0)\), and \((p^{{\rm sep},1}_{c_\star0},p^{{\rm sep},1}_{c_\star1})=(r_1(1-\lambda_1),r_1\lambda_1)\). Define \(p^{\rm gain}\), in cell order \((a,0),(a,1),(b,0),(b,1),(c_\star,0),(c_\star,1)\), by \[p^{{\rm gain},0}=\tfrac1{10}(1,1,1,1,5,1),\qquad p^{{\rm gain},1}=\tfrac1{10}(1,1,1,1,2,4).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{b}; \texttt{cstar}.
+\end{definition}
+
+\begin{definition}[def:untrusted-refinement-map]\label{def:untrusted-refinement-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Wholly untrusted refinement}
+\par\smallskip\noindent\emph{Construction.} A surjection \(g:\widetilde{\mathcal E}\to\mathcal E\) is wholly untrusted when every \(x\in T\) has a unique preimage in \(\widetilde T\), no element of \(g^{-1}(U)\) belongs to \(\widetilde T\), and \(\widetilde p\) pushes forward to \(p\) arm by arm.
+\par\smallskip\noindent\emph{Inputs.} \texttt{g}; \texttt{pref}; \texttt{Tref}.
+\end{definition}
+
+\begin{definition}[def:hoeffding-whole-set-band]\label{def:hoeffding-whole-set-band}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}sample whole-\allowbreak{}set band}
+\par\smallskip\noindent\emph{Construction.} Represent every \(f\in\mathfrak F^-_T\cup\mathfrak F^+_T\) by its armwise coefficient functions, compute \(\varepsilon_f\), form \(\mathcal C_{\rm end}\), and report \(\mathcal C_{\rm set}\); if \(N_0N_1=0\), report the trivial endpoint box and \([-1,1]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{alphaConf}; \texttt{T}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:gaussian-active-face-handle]\label{def:gaussian-active-face-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Boundary-\allowbreak{}spliced active-\allowbreak{}face multiplier handle}
+\par\smallskip\noindent\emph{Construction.} For fixed finite \((\mathcal E,T)\), \(\alpha_{\rm conf}\), and \(\bar\rho>0\), use the shared multiplier process for all faces, a self-normalized estimated near-active set for the max/min directional derivative, and the Hoeffding endpoint rectangle as the splice on variance-degenerate faces, returning \(\mathcal C^G_n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{T}; \texttt{alphaConf}; \texttt{rhoBar}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:transport-completion]\label{lem:transport-completion}
+Every \(q\in\mathcal Q_T(p)\) induces a coupling \(\pi\in\Pi_T(p)\) of the two factual responses. Conversely, every \(\pi\in\Pi_T(p)\) lifts by finite edgewise completion to a law \(q\in\mathcal Q_T(p)\). Under this lift, the smallest attainable contribution of edge \((i,j)\) to \(\theta_{ab}\) is \(d^-(i,j)\), and therefore \(\inf_{q\in\mathcal Q_T(p)}\theta_{ab}(q)=\kappa-\sup_{\pi\in\Pi_T(p)}(\pi_{ss}+\pi_{tt})\).
+\end{lemma}
+\begin{proof}
+For a response type \(r=(X_0,X_1,V,W)\), define its factual arm-
+\(z\) cell by
+\[
+ F_z(r)=(X_z,Y_z^F),\qquad
+ Y_z^F=\begin{cases}
+ V_{X_z},&X_z\in T,\\
+ W_{X_z z},&X_z\in U.
+ \end{cases}
+\]
+This is well typed because \(X_z\in\mathcal E=T\mathbin{\dot\cup}U\), every
+\(V_x\) with \(x\in T\) is binary, and every \(W_{xz}\) with \(x\in U\)
+is binary.  Fix \(q\in\mathcal Q_T(p)\), and define the finite coupling
+\[
+ \pi_{ij}=\Pr_q\{F_0(R)=i,F_1(R)=j\},\qquad i,j\in\mathcal I.
+\]
+By random assignment, the mixed-trust observation map, and the defining
+compatibility equations, the two factual margins are
+\[
+ \sum_j\pi_{ij}=\Pr_q\{F_0(R)=i\}=p_i^0,
+ \qquad
+ \sum_i\pi_{ij}=\Pr_q\{F_1(R)=j\}=p_j^1.
+\]
+If \(i=(x,y)\), \(j=(x,y')\), \(x\in T\), and \(y\ne y'\), both factual
+outcomes would have to equal the single bit \(V_x\).  The event defining
+\(\pi_{ij}\) is therefore empty.  Hence \(\pi\) is nonnegative, has the
+required margins, is supported on \(\mathfrak R_T\), and belongs to
+\(\Pi_T(p)\).
+
+Conversely, fix \(\pi\in\Pi_T(p)\).  For every allowed edge
+\(i=(x_0,y_0)\), \(j=(x_1,y_1)\), form a response type \(r_{ij}\) by setting
+\(X_0=x_0\) and \(X_1=x_1\).  If \(x_z\in T\), prescribe
+\(V_{x_z}=y_z\).  These prescriptions cannot conflict: a conflict would
+require \(x_0=x_1\in T\) and \(y_0\ne y_1\), precisely a forbidden edge.
+If \(x_z\in U\), prescribe \(W_{x_z z}=y_z\).  Complete all remaining
+binary coordinates arbitrarily.  Give \(r_{ij}\) mass \(\pi_{ij}\), adding
+masses when completed types coincide.  The result is a probability mass
+function on the finite set \(\mathcal R_T\), and its margins satisfy
+\[
+ \Pr_q(X_z=x,V_x=y)=p^z_{xy}\quad(x\in T),
+ \qquad
+ \Pr_q(X_z=x,W_{xz}=y)=p^z_{xy}\quad(x\in U).
+\]
+Thus \(q\in\mathcal Q_T(p)\).  This finite edgewise lift proves both
+directions of the transport reduction, including zero margins and boundary
+support.
+
+It remains to optimize the target on one edge.  Put
+\[
+ A(i,j)=\mathbf 1\{i=s\text{ or }j=s\},
+ \qquad
+ B(i,j)=\mathbf 1\{i=t\text{ or }j=t\}.
+\]
+For every completion of an allowed edge, factual consistency and binary
+support imply
+\[
+ V_a\le 1-A(i,j),\qquad V_b\ge B(i,j).
+\]
+Indeed, \(A=1\) forces \(V_a=0\), while \(A=0\) leaves the binary upper
+bound \(V_a\le1\); similarly, \(B=1\) forces \(V_b=1\), while \(B=0\)
+leaves \(V_b\ge0\).  Consequently
+\[
+ V_b-V_a\ge-1+A(i,j)+B(i,j)=d^-(i,j).
+\]
+Equality is attainable on every allowed edge: prescribe
+\(V_a=1-A(i,j)\) and \(V_b=B(i,j)\).  If \(a\) or \(b\) is factual on that
+edge, these prescriptions equal its factual outcome; otherwise the
+coordinate is free.  Complete all other coordinates as above.  Therefore,
+for fixed \(\pi\), the least target value among its lifts is
+\(\sum_{ij}\pi_{ij}d^-(i,j)\).
+
+Inclusion--exclusion and the two margins now give
+\[
+\begin{aligned}
+ \sum_{ij}\pi_{ij}A(i,j)
+ &=p_s^0+p_s^1-\pi_{ss}=\alpha_0+\alpha_1-\pi_{ss},\\
+ \sum_{ij}\pi_{ij}B(i,j)
+ &=p_t^0+p_t^1-\pi_{tt}=\beta_0+\beta_1-\pi_{tt}.
+\end{aligned}
+\]
+Since \(\sum_{ij}\pi_{ij}=1\),
+\[
+ \sum_{ij}\pi_{ij}d^-(i,j)
+ =-1+\alpha_0+\alpha_1+\beta_0+\beta_1-\pi_{ss}-\pi_{tt}
+ =\kappa-\pi_{ss}-\pi_{tt}.
+\]
+The response simplex and coupling polytope are finite-dimensional compact
+polytopes whenever nonempty, so the extrema are attained.  Taking the
+infimum over compatible response laws and using the two-way lift proves
+\[
+ \inf_{q\in\mathcal Q_T(p)}\theta_{ab}(q)
+ =\kappa-\sup_{\pi\in\Pi_T(p)}(\pi_{ss}+\pi_{tt}).
+\]
+If the classes are empty, the two-way reduction makes both empty and the
+same identity holds under the usual extended-real conventions
+\(\inf\varnothing=+\infty\) and \(\sup\varnothing=-\infty\).
+The techniques used are a finite push-forward/lift of probability masses,
+edgewise binary completion, and a finite linear-program objective identity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the structural reduction that turns the response-type projection into a two-diagonal transport problem. \textit{Gap.} Song et al. couple each factual arm to a full vector of potential outcomes under global exclusion; they do not provide this direct two-arm partial-matching reduction under selected trust. \textit{Consumer.} It supplies the proof engine for closed-form bounds and constructive response laws without enumerating \(|\mathcal E|^2 2^{|T|+2|U|}\) saturated types.
+
+\begin{lemma}[lem:compatibility]\label{lem:compatibility}
+The polytope \(\Pi_T(p)\) is nonempty if and only if \(p\) is armwise normalized and \(p^0_{xy}+p^1_{x,1-y}\leq1\) for every \(x\in T\) and \(y\in\{0,1\}\). After reserving nonnegative masses \(r_s\) and \(r_t\) on \((s,s)\) and \((t,t)\), the residual coupling exists if and only if \(r_s\leq u\), \(r_t\leq v\), and \(r_s+r_t\leq h_{cy}\) for every trusted nuisance cell; these conditions include all boundary strata.
+\end{lemma}
+\begin{proof}
+Write \(r_i=p_i^0\) and \(c_j=p_j^1\).  Because \(p^0\) and \(p^1\) are probability vectors, \(r_i,c_j\ge0\) and both totals are one.  For a restricted row \(i=(x,y)\), \(x\in T\), let its unique forbidden partner be \(f(i)=(x,1-y)\).  If a coupling exists, then its forbidden entry is zero and
+\[
+ r_i+c_{f(i)}
+ =\sum_j\pi_{ij}+\sum_k\pi_{k f(i)}\le \sum_{k,j}\pi_{kj}=1.
+\]
+This is exactly \(p^0_{xy}+p^1_{x,1-y}\le1\), proving necessity.
+
+We now prove sufficiency without a positivity or interior argument.  For a row set \(A\), let \(N(A)\) be its set of allowed neighboring columns.  If \(|A|\ge2\), then \(N(A)\) is the whole column set: any column is forbidden to at most one row, because the forbidden edges form a matching.  Hence \(r(A)\le1=c(N(A))\).  If \(A=\{i\}\) and \(i\) is restricted, then \(N(A)\) contains every column except \(f(i)\), and
+\[
+ r(A)\le 1-c_{f(i)}=c(N(A))
+\]
+is precisely the displayed compatibility inequality.  If \(i\) is unrestricted, \(N(\{i\})\) is the whole column set and \(r_i\le1\).  Thus
+\[
+ r(A)\le c(N(A))\qquad\text{for every row set }A. \tag{1}
+\]
+
+For completeness, consider all nonnegative partial flows on allowed edges with row sums at most \(r_i\) and column sums at most \(c_j\).  This is a nonempty compact finite-dimensional set, so a partial flow \(\pi^\star\) maximizing transported mass exists.  Suppose its mass \(F\) were less than one.  Start from every row with unused supply and follow alternating paths that use an allowed row-to-column edge forward and a positive-flow edge backward.  If a reachable column had unused demand, increasing the forward edges and decreasing the backward edges by the positive bottleneck amount would increase \(F\), a contradiction.  Hence every reachable column is saturated.  Let \(A\) and \(B\) be the reachable rows and columns.  Every allowed neighbor of a reachable row is reachable, so \(B=N(A)\).  Every positive-flow edge entering \(B\) comes from \(A\), because its reverse edge makes its row reachable.  Therefore
+\[
+ c(B)=\sum_{j\in B}\sum_i\pi^\star_{ij}
+       =\sum_{i\in A}\sum_j\pi^\star_{ij}<r(A),
+\]
+where the strict inequality holds because \(A\) contains a starting row with unused supply.  This contradicts (1).  Hence \(F=1\), and \(\pi^\star\in\Pi_T(p)\).  This alternating-path proof also gives finite augmentation: choose a shortest augmenting path at each step and augment by its bottleneck.  Residual source distances never decrease; if a directed edge becomes a bottleneck again after being restored, its tail distance has increased by at least two.  There are finitely many vertices and directed edges, so only finitely many such bottlenecks, and the procedure terminates.  No strict margin condition is used.
+
+Now reserve \(r_s\ge0\) on \((s,s)\) and \(r_t\ge0\) on \((t,t)\).  The residual row and column margins have common total
+\[
+ Q=1-r_s-r_t.
+\]
+Their nonnegativity is equivalent, on the affected cells, to
+\[
+ r_s\le\alpha_0,\quad r_s\le\alpha_1,\qquad
+ r_t\le\beta_0,\quad r_t\le\beta_1. \tag{2}
+\]
+Apply the just-proved criterion with total \(Q\): a restricted residual row \(i\) must satisfy \(r_i'+c_{f(i)}'\le Q\).  For category \(a\), its two inequalities are
+\[
+ (\alpha_0-r_s)+\gamma_1\le1-r_s-r_t,\qquad
+ \gamma_0+(\alpha_1-r_s)\le1-r_s-r_t,
+\]
+or equivalently
+\[
+ r_t\le1-\alpha_0-\gamma_1,\qquad
+ r_t\le1-\gamma_0-\alpha_1. \tag{3}
+\]
+For category \(b\), they are
+\[
+ (\beta_0-r_t)+\delta_1\le1-r_s-r_t,\qquad
+ \delta_0+(\beta_1-r_t)\le1-r_s-r_t,
+\]
+or equivalently
+\[
+ r_s\le1-\beta_0-\delta_1,\qquad
+ r_s\le1-\delta_0-\beta_1. \tag{4}
+\]
+For \(c\in T\setminus\{a,b\}\), no cell margin was changed, and the two inequalities are
+\[
+ p^0_{cy}+p^1_{c,1-y}\le1-r_s-r_t
+ \quad\Longleftrightarrow\quad r_s+r_t\le h_{cy},\qquad y\in\{0,1\}. \tag{5}
+\]
+There is no inequality for an untrusted row.  Combining (2)--(5) gives exactly
+\[
+ 0\le r_s\le u,\qquad 0\le r_t\le v,\qquad
+ r_s+r_t\le h_{cy}\quad(c\in T\setminus\{a,b\},\ y\in\{0,1\}). \tag{6}
+\]
+These conditions also imply \(Q\ge0\), because \(r_s+r_t\le u+v\le\alpha_0+\beta_0\le1\).  Conversely, (6) gives nonnegative residual margins and every residual compatibility inequality, so the alternating-path construction completes them.  If \(Q=0\), all residual margins are zero and the zero residual flow is the required completion.  Thus the equivalence includes zero cells, equality cuts, and every other boundary stratum.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The singleton Hall cuts of a complete bipartite graph minus a partial matching yield exactly the individual and total residual caps. \textit{Gap.} Full-exclusion observed compatibility is known, but the residual-cap statement after reserving target diagonals is the unverified completion step specific to the proposed projection. \textit{Consumer.} A finite augmenting-path construction from these conditions certifies every endpoint law, including zero cells and saturated inequalities.
+
+\begin{theorem}[thm:sharp-envelope]\label{thm:sharp-envelope}
+For every compatible \(p\), the identified set \(\{\theta_{ab}(q):q\in\mathcal Q_T(p)\}\) is exactly \([L_T(p),U_T(p)]\), where \(L_T(p)=\kappa-D_T(p)=\max_{f\in\mathfrak F^-_T}f(p)\) and \(U_T(p)=-L_T(\bar p)=\min_{f\in\mathfrak F^+_T}f(p)\). Each endpoint list contains the eight Balke--Pearl affine pieces and exactly two additional evaluation pieces \(C^-_{c,0},C^-_{c,1}\), or \(C^+_{c,0},C^+_{c,1}\), for every \(c\in T\setminus\{a,b\}\); no affine inequality involving several nuisance categories lowers or raises an endpoint beyond this envelope. The finite laws \(q^-_T(p)\) and \(q^+_T(p)\) attain the two endpoints, and their mixtures attain every interior value. As a one-line corollary, if \(T'=T\cup\{c\}\) is compatible, then \(L_{T'}(p)=\max\{L_T(p),C^-_{c,0}(p),C^-_{c,1}(p)\}\) and \(U_{T'}(p)=\min\{U_T(p),C^+_{c,0}(p),C^+_{c,1}(p)\}\), with strict width reduction exactly when \(\max_yC^-_{c,y}(p)>L_T(p)\) or \(\min_yC^+_{c,y}(p)<U_T(p)\).
+\end{theorem}
+\begin{proof}
+The observable law \(P\) is a probability vector on the
+\(4|\mathcal E|\) cells \((z,x,y)\in\{0,1\}\times\mathcal E\times\{0,1\}\),
+so its unrestricted simplex dimension is \(4|\mathcal E|-1\).  Under
+\(0<\rho<1\), it is equivalently represented by \(\rho\) and the two
+conditional vectors \(p^0,p^1\), each of dimension \(2|\mathcal E|-1\), via
+\[
+ \Pr_P(Z=z,X=x,Y=y)=\rho^z(1-\rho)^{1-z}p^z_{xy}.
+\]
+The latent object is a mass function \(q\) on the finite response-type set
+\(\mathcal R_T\), and the scalar causal target is
+\(\theta_{ab}(q)=\mathbb E_q[V_b-V_a]\).  Thus the identified set is the
+projection
+\[
+ \Theta_I(P)=\{\theta_{ab}(q):q\in\mathcal Q_T(p)\};
+\]
+it is not defined to equal an observed-law interval.  Model compatibility
+makes this set nonempty.  It is compact and convex because
+\(\mathcal Q_T(p)\) is a closed convex subset of a finite simplex and
+\(\theta_{ab}\) is linear.
+
+By \(\mathrm{lem{:}transport\mbox{-}completion}\), its lower endpoint is
+\(\kappa\) minus the largest feasible value of
+\(r_s+r_t=\pi_{ss}+\pi_{tt}\).  The compatibility inequalities imply that
+\(u\), \(v\), and every \(h_{cy}\) are nonnegative.  By
+\(\mathrm{lem{:}compatibility}\), every feasible reservation obeys
+\[
+ r_s\le u,\qquad r_t\le v,
+ \qquad r_s+r_t\le h_{cy}
+ \quad(c\in T\setminus\{a,b\},\ y\in\{0,1\}).
+\]
+Therefore \(r_s+r_t\le D_T(p)\).  Conversely, define
+\[
+ r_s=\min\{u,D_T(p)\},\qquad r_t=D_T(p)-r_s.
+\]
+Both numbers are nonnegative and \(r_s\le u\).  If \(D_T(p)\le u\), then
+\(r_t=0\); if \(D_T(p)>u\), then
+\(r_t=D_T(p)-u\le v\), since \(D_T(p)\le u+v\).  Finally,
+\(r_s+r_t=D_T(p)\le h_{cy}\) for every trusted nuisance cell.  The
+necessary-and-sufficient residual conditions in
+\(\mathrm{lem{:}compatibility}\) therefore produce a residual coupling
+after these two diagonal masses are reserved.  Its total mass on the two
+diagonals cannot exceed \(D_T(p)\) by the already proved necessary
+inequalities; hence the completed coupling has
+\[
+ \pi_{ss}+\pi_{tt}=D_T(p).
+\]
+The edgewise minimizing lift is precisely the construction of
+\(q^-_T(p)\), so it is a finite member of \(\mathcal Q_T(p)\) and
+\[
+ \theta_{ab}(q^-_T(p))=\kappa-D_T(p)=L_T(p). \tag{1}
+\]
+This is the constructive endpoint-attainment step; it remains valid when a
+cap or reserved mass is zero.
+
+We now derive the stated affine list.  Set
+\[
+\begin{array}{llll}
+ A_1=\alpha_0,&A_2=\alpha_1,&A_3=1-\beta_0-\delta_1,&A_4=1-\delta_0-\beta_1,\\
+ B_1=\beta_0,&B_2=\beta_1,&B_3=1-\alpha_0-\gamma_1,&B_4=1-\gamma_0-\alpha_1.
+\end{array}
+\]
+Then \(u=\min_iA_i\), \(v=\min_jB_j\), and finite minimum--maximum
+duality gives
+\[
+ \kappa-(u+v)=\max_{1\le i,j\le4}\{\kappa-A_i-B_j\}. \tag{2}
+\]
+Direct substitution produces the complete array
+\[
+\left(\kappa-A_i-B_j\right)_{i,j}=
+\begin{pmatrix}
+\ell_1&\ell_2&\ell_3+(-1+\alpha_1+\beta_1+\gamma_1)&\ell_7\\
+\ell_4&\ell_3&\ell_5&\ell_1+(-1+\alpha_0+\beta_0+\gamma_0)\\
+\ell_3+(-1+\alpha_1+\beta_1+\delta_1)&\ell_8&
+\ell_3+(-2+\alpha_0+\alpha_1+\beta_0+\beta_1+\delta_1+\gamma_1)&
+\ell_2+(-2+\alpha_0+\alpha_1+\beta_0+\beta_1+\delta_1+\gamma_0)\\
+\ell_6&\ell_1+(-1+\alpha_0+\beta_0+\delta_0)&
+\ell_4+(-2+\alpha_0+\alpha_1+\beta_0+\beta_1+\delta_0+\gamma_1)&
+\ell_1+(-2+\alpha_0+\alpha_1+\beta_0+\beta_1+\delta_0+\gamma_0)
+\end{pmatrix}. \tag{3}
+\]
+Every parenthesized remainder is nonpositive.  For those with constant
+\(-1\), this follows arm by arm from normalization, for example
+\[
+ \alpha_1+\beta_1+\gamma_1\le1,
+ \quad \alpha_0+\beta_0+\gamma_0\le1,
+ \quad \alpha_1+\beta_1+\delta_1\le1,
+ \quad \alpha_0+\beta_0+\delta_0\le1.
+\]
+For those with constant \(-2\), group the displayed probabilities into the
+two arms:
+\[
+\begin{aligned}
+ (\alpha_0+\beta_0)+(\alpha_1+\beta_1+\delta_1+\gamma_1)&\le2,\\
+ (\alpha_0+\beta_0+\gamma_0)+(\alpha_1+\beta_1+\delta_1)&\le2,\\
+ (\alpha_0+\beta_0+\delta_0)+(\alpha_1+\beta_1+\gamma_1)&\le2,\\
+ (\alpha_0+\beta_0+\delta_0+\gamma_0)+(\alpha_1+\beta_1)&\le2.
+\end{aligned}
+\]
+Thus every entry in (3) is no larger than one of
+\(\ell_1,\ldots,\ell_8\), and each of the eight \(\ell_j\)'s appears as an
+equality entry.  Equations (2)--(3) prove
+\[
+ \kappa-(u+v)=\max_{1\le j\le8}\ell_j(p). \tag{4}
+\]
+For every trusted nuisance cell,
+\(\kappa-h_{cy}=C^-_{c,y}(p)\).  Since \(D_T(p)\) is the minimum of
+\(u+v\) and the \(h_{cy}\)'s, (4) yields
+\[
+ L_T(p)=\kappa-D_T(p)=\max_{f\in\mathfrak F^-_T}f(p). \tag{5}
+\]
+This list has eight base labels and exactly two evaluation labels for every
+\(c\in T\setminus\{a,b\}\).  Coincident functions or tied values on a
+boundary do not remove labels, and no irredundancy claim is required.
+
+Outcome reversal preserves compatibility because, for \(x\in T\),
+\[
+ \bar p^0_{xy}+\bar p^1_{x,1-y}
+ =p^0_{x,1-y}+p^1_{xy}\le1.
+\]
+Complementing every binary coordinate of \(V\) and \(W\), while retaining
+\(X_0,X_1\), is a bijection from \(\mathcal Q_T(p)\) to
+\(\mathcal Q_T(\bar p)\), and it sends the target to
+\[
+ \mathbb E[(1-V_b)-(1-V_a)]=-\theta_{ab}.
+\]
+Applying (1)--(5) to \(\bar p\) and reversing back gives the finite upper
+witness \(q^+_T(p)\) and
+\[
+ \sup_{q\in\mathcal Q_T(p)}\theta_{ab}(q)
+ =-L_T(\bar p)=U_T(p)
+ =\min_{f\in\mathfrak F^+_T}f(p). \tag{6}
+\]
+For \(\lambda\in[0,1]\), the response-law mixture
+\(\lambda q^-_T(p)+(1-\lambda)q^+_T(p)\) remains in
+\(\mathcal Q_T(p)\) and has target
+\(\lambda L_T(p)+(1-\lambda)U_T(p)\).  Compactness, (1), and (6) therefore
+prove the sharp equality
+\[
+ \Theta_I(P)=[L_T(p),U_T(p)].
+\]
+It is not merely an outer bound.  In particular, any purported valid affine
+lower inequality, including one combining several nuisance categories, is
+bounded by the target value of \(q^-_T(p)\), and the analogous statement for
+upper inequalities follows from \(q^+_T(p)\).  Thus no additional such face
+can improve the endpoint.
+
+Finally, let \(T'=T\cup\{c\}\) and assume \(p\) is \(T'\)-compatible.  The
+eight base pieces are unchanged and the only new lower evaluation pieces
+are \(C^-_{c,0}\) and \(C^-_{c,1}\); outcome reversal gives the upper list.
+Hence
+\[
+\begin{aligned}
+ L_{T'}(p)&=\max\{L_T(p),C^-_{c,0}(p),C^-_{c,1}(p)\},\\
+ U_{T'}(p)&=\min\{U_T(p),C^+_{c,0}(p),C^+_{c,1}(p)\}.
+\end{aligned}
+\]
+Both changes weakly tighten the interval, and
+\[
+ \{U_T-L_T\}-\{U_{T'}-L_{T'}\}
+ =(L_{T'}-L_T)+(U_T-U_{T'})\ge0.
+\]
+The decrease is strict exactly when at least one nonnegative summand is
+strictly positive, equivalently when
+\[
+ \max_y C^-_{c,y}(p)>L_T(p)
+ \quad\text{or}\quad
+ \min_y C^+_{c,y}(p)<U_T(p).
+\]
+This proves the exact criterion, including ties.  The proof combines a
+two-diagonal transportation linear program, an explicit finite response-law
+completion, elementary finite min--max algebra, and outcome-reversal
+duality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem resolves the arbitrary-cardinality mixed-validity projection and isolates the linear-size closed form. \textit{Gap.} Gabriel et al. stop at small treatment supports, while Song et al. require exclusion at every category and leave the pairwise effect as a general optimization. \textit{Consumer.} The theorem lets LEAP investigators decide whether separately defensible intermediate adherence interventions can change the low-versus-high interval without rerunning symbolic polyhedral elimination.
+
+\begin{proposition}[prop:published-reductions]\label{prop:published-reductions}
+For every compatible observed table \(p\), the following comparator reductions hold.  First, if \(\mathcal E=\{a,b\}\), then necessarily \(T=\mathcal E\), \(D_T(p)=u+v\), and \([L_T(p),U_T(p)]\) is literally the sharp Balke--Pearl interval for the binary exposure contrast \(\mathbb E[V_b-V_a]\).  Second, suppose \(T=\{a,b\}\) and \(U\neq\varnothing\).  Introduce a new label \(c^\dagger\) and form the three-category table
+\[
+ p^{{\rm m},z}_{ay}=p^z_{ay},\qquad
+ p^{{\rm m},z}_{by}=p^z_{by},\qquad
+ p^{{\rm m},z}_{c^\dagger y}=\sum_{x\in U}p^z_{xy}.
+\]
+Then \([L_T(p),U_T(p)]\) equals the eight-piece sharp interval computed from \(p^{\rm m}\), which is the setting and conclusion of Gabriel--Sachs--Sjolander Result 1: two trusted target levels and one merged wholly untrusted remainder.  Third, if \(\mathcal E=\{a,b,c\}\) and \(T=\mathcal E\), then the lower list consists of \(\ell_1,\ldots,\ell_8,C^-_{c,0},C^-_{c,1}\), the upper list consists of their outcome-reversed negatives, and these are exactly the ten lower and ten upper expressions in Gabriel--Sachs--Sjolander equations (3)--(4).  Finally, for arbitrary finite \(\mathcal E\) under full trust \(T=\mathcal E\), the image of the response-law model in pairs consisting of the joint law of \(V\) and the observed table \(p\) is the image of Song--Guo--Chan--Richardson model \(\mathcal M_1\), restricted to binary \(Z\) and \(Y\).  Hence its \(\theta_{ab}\)-projection is \([L_T(p),U_T(p)]\); by their equal-image theorem, exactly the same interval is the \(\theta_{ab}\)-projection under each of their models \(\mathcal M_2,\ldots,\mathcal M_5\).
+\end{proposition}
+\begin{proof}
+Compatibility and positive allocation imply that each \(p^z\) is a
+probability vector:
+\[
+ p^z_{xy}\ge0,
+ \qquad
+ \sum_{x\in\mathcal E}\sum_{y=0}^1p^z_{xy}=1,
+ \qquad z\in\{0,1\}. \tag{1}
+\]
+By \(\mathrm{thm{:}sharp\mbox{-}envelope}\),
+\[
+ \{\theta_{ab}(q):q\in\mathcal Q_T(p)\}=[L_T(p),U_T(p)],
+ \quad
+ L_T(p)=\max_{f\in\mathfrak F^-_T}f(p),
+ \quad
+ U_T(p)=\min_{f\in\mathfrak F^+_T}f(p). \tag{2}
+\]
+
+Suppose first that \(T=\{a,b\}\).  The nuisance index set is empty, so
+\[
+ D_T(p)=\min(\{u+v\}\cup\varnothing)=u+v,
+\]
+and the affine list reduces to
+\[
+ L_T(p)=\max_{1\le j\le8}\ell_j(p),
+ \qquad
+ U_T(p)=\min_{1\le j\le8}\{-\ell_j(\bar p)\}. \tag{3}
+\]
+These expressions depend only on
+\[
+ \alpha_z=p^z_{a0},\quad \gamma_z=p^z_{a1},\quad
+ \delta_z=p^z_{b0},\quad \beta_z=p^z_{b1}.
+\]
+If \(\mathcal E=\{a,b\}\), relabeling \(a\) as zero and \(b\) as one and
+substituting into the displayed definitions of \(\ell_1,\ldots,\ell_8\)
+gives term by term the eight lower expressions in
+\(\mathrm{lem{:}balke\mbox{-}pearl\mbox{-}binary\mbox{-}ate\mbox{-}bounds}\);
+the outcome-reversed negatives give its eight upper expressions.  That
+cited sharp result and (2)--(3) establish the literal binary-exposure
+reduction.
+
+Retain \(T=\{a,b\}\), now with \(U\ne\varnothing\), and form \(p^{\rm m}\)
+as in the proposition.  Equation (1) makes each arm of \(p^{\rm m}\) a
+probability vector.  To prove compatibility constructively, take
+\(q\in\mathcal Q_T(p)\) and set
+\[
+ X_z^{\rm m}=\begin{cases}
+ X_z,&X_z\in\{a,b\},\\
+ c^\dagger,&X_z\in U,
+ \end{cases}
+ \qquad V_a^{\rm m}=V_a,
+ \qquad V_b^{\rm m}=V_b.
+\]
+On \(\{X_z\in U\}\), set
+\(W^{\rm m}_{c^\dagger z}=W_{X_z z}\), assigning this coordinate
+arbitrarily off that event.  The events \(\{X_z=x\}\), \(x\in U\), are
+disjoint, so
+\[
+\begin{aligned}
+ \Pr(X_z^{\rm m}=c^\dagger,W^{\rm m}_{c^\dagger z}=y)
+ &=\sum_{x\in U}\Pr_q(X_z=x,W_{xz}=y)\\
+ &=\sum_{x\in U}p^z_{xy}=p^{{\rm m},z}_{c^\dagger y}.
+\end{aligned}
+\]
+For \(x\in\{a,b\}\),
+\[
+ \Pr(X_z^{\rm m}=x,V_x^{\rm m}=y)=p^z_{xy}=p^{{\rm m},z}_{xy}.
+\]
+Thus \(p^{\rm m}\) is compatible with the three-category selected-trust
+model.  Merging leaves all eight target cells unchanged, whence
+\[
+ \ell_j(p^{\rm m})=\ell_j(p),
+ \qquad
+ \ell_j(\overline{p^{\rm m}})=\ell_j(\bar p),
+ \qquad 1\le j\le8.
+\]
+Equations (2)--(3) prove equality of the two sharp intervals.  The cited
+\(\mathrm{lem{:}gabriel\mbox{-}merged\mbox{-}remainder\mbox{-}result}\)
+identifies precisely this three-category, two-trusted-target projection with
+Gabriel--Sachs--Sjolander Result 1.  This is an equality of the sharp target
+projection and formula, not an identity of the original fine latent model
+classes.
+
+For the ternary full-trust case, let
+\(\mathcal E=T=\{a,b,c\}\).  There is exactly one trusted nuisance category,
+and direct substitution gives
+\[
+\begin{aligned}
+ C^-_{c,y}(p)
+ &=-2+\alpha_0+\alpha_1+\beta_0+\beta_1
+      +p^0_{cy}+p^1_{c,1-y},\\
+ C^+_{c,y}(p)
+ &=2-\gamma_0-\gamma_1-\delta_0-\delta_1
+      -p^0_{cy}-p^1_{c,1-y},
+ \qquad y\in\{0,1\}.
+\end{aligned} \tag{4}
+\]
+The affine-list definition therefore gives exactly eight baseline pieces
+plus the two pieces in (4) on each side.  Under the relabeling of the three
+exposures and the convention \(p_{xy\cdot z}=p^z_{xy}\), direct substitution
+matches the first eight and final two lines of Gabriel--Sachs--Sjolander
+equations (3)--(4).  The cited
+\(\mathrm{lem{:}gabriel\mbox{-}ternary\mbox{-}ten\mbox{-}term\mbox{-}bounds}\)
+establishes sharpness of exactly those ten-term extrema, proving the third
+reduction.
+
+Finally suppose \(T=\mathcal E\).  Then \(U=\varnothing\), and the response
+space and observation equations reduce to
+\[
+ \mathcal R_T=\mathcal E^2\times\{0,1\}^{\mathcal E},
+ \qquad R=(X_0,X_1,V),
+ \qquad X=X_Z,
+ \qquad Y=V_X. \tag{5}
+\]
+For any \(q\in\mathcal Q_T(p)\), draw \(Z\) independently of \(R\), as
+required by random assignment.  Then
+\[
+ \Pr_q(X_z=x,V_x=y)=p^z_{xy},
+ \qquad x\in\mathcal E,\quad y,z\in\{0,1\}. \tag{6}
+\]
+Equations (5)--(6) define a Song--Guo--Chan--Richardson
+\(\mathcal M_1\) response law: all exposure responses coexist with one
+arm-invariant outcome response for each exposure, and consistency,
+individual exclusion, and random assignment hold.
+
+Conversely, from a law in their \(\mathcal M_1\), restricted to binary
+\(Z,Y\) and exposure alphabet \(\mathcal E\), take the marginal law of
+\((X(0),X(1),(Y(x):x\in\mathcal E))\) as \(q\), writing \(V_x=Y(x)\).
+Consistency, exclusion, random assignment, and \(0<\rho<1\) imply
+\[
+ \Pr_q(X_z=x,V_x=y)=\Pr(X=x,Y=y\mid Z=z)=p^z_{xy}.
+\]
+Hence \(q\in\mathcal Q_T(p)\).  The two constructions preserve the joint
+law of \(V\) and prove equality of the full-trust response images at each
+fixed observed table.
+
+Let \(\phi\) be the pair-valued image map in
+\(\mathrm{lem{:}song\mbox{-}five\mbox{-}model\mbox{-}equal\mbox{-}image}\),
+and define
+\[
+ \Phi_i(p)=\{\mu:(\mu,p)\in\phi(\mathcal M_i)\},
+ \qquad i=1,\ldots,5,
+\]
+where \(\mu\) is a mass function on \(\{0,1\}^{\mathcal E}\).  The cited
+equal-image theorem gives
+\(\Phi_1(p)=\cdots=\Phi_5(p)\).  The computable linear projection
+\[
+ \tau_{ab}(\mu)=\sum_{v\in\{0,1\}^{\mathcal E}}(v_b-v_a)\mu(v)
+\]
+depends only on that joint potential-outcome law.  Applying it to the equal
+fibers and using (2) for the \(\mathcal M_1\) fiber proves, for every
+\(i=1,\ldots,5\),
+\[
+ \{\tau_{ab}(\mu):\mu\in\Phi_i(p)\}=[L_T(p),U_T(p)].
+\]
+This proves the claimed exact transfer, with each borrowed published claim
+used only through its declared cited leaf.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition prevents comparator drift by proving the exact push-forward, relabeling, and model-image identities that connect the selected-trust envelope to each published result. \textit{Gap.} The nearest results use different exposure alphabets and exclusion scopes; a literal binary claim for an arbitrary-support table or an unqualified appeal to the full-trust categorical model would be false. \textit{Consumer.} Binary and ternary software can use the exact identities as regression tests, and full-trust analyses formulated under any of Song's five models inherit the same pairwise interval.
+
+\begin{theorem}[thm:strict-regime-separation]\label{thm:strict-regime-separation}
+In the three-category specialization \(\mathcal E=\{a,b,c_\star\}\), selected trust and full exclusion are separated by a perturbation-stable generic obstruction, and trusting \(c_\star\) yields a strict bound gain on a separate nondegenerate open region. For every parameter choice in \(q^{\rm sep}_{r,s,\tau,\lambda}\), the displayed construction belongs to \(\mathcal Q_{T_0}(p^{\rm sep})\), every observed cell exceeds \(93/5000\), and, for \(x\in\{a,b\}\), every compatibility sum obeys \(p^{{\rm sep},0}_{xy}+p^{{\rm sep},1}_{x,1-y}<57/125\). Full exclusion is impossible because its necessary inequality \(p^{{\rm sep},0}_{c_\star0}+p^{{\rm sep},1}_{c_\star1}\leq1\) fails: the left side is greater than \(2(31/50)(93/100)=2883/2500>1\). Consequently, every armwise normalized \(p'\) satisfying \(\lVert p'-p^{\rm sep}\rVert_\infty<1/200\) is positive and \(T_0\)-compatible, while \(p'^0_{c_\star0}+p'^1_{c_\star1}>2883/2500-2/200>1\), so no such \(p'\) is representable under \(T_1\). Separately, \(p^{\rm gain}\) lies in the relative interior of the \(T_1\)-compatible set and \[ [L_{T_1}(p^{\rm gain}),U_{T_1}(p^{\rm gain})]=[-7/10,7/10]\subsetneq[-4/5,4/5]=[L_{T_0}(p^{\rm gain}),U_{T_0}(p^{\rm gain})]. \] There exists \(\eta_{\rm gain}>0\) such that every armwise normalized table \(p'\) with \(\lVert p'-p^{\rm gain}\rVert_\infty<\eta_{\rm gain}\) remains \(T_1\)-compatible and satisfies \([L_{T_1}(p'),U_{T_1}(p')]\subsetneq[L_{T_0}(p'),U_{T_0}(p')]\).
+\end{theorem}
+\begin{proof}
+Let \(\mathcal P_S=\{p:\mathcal Q_S(p)\ne\varnothing\}\) for any trusted
+set \(S\) containing \(a,b\), and put
+\(\Theta_S(p)=\{\theta_{ab}(q):q\in\mathcal Q_S(p)\}\).  If
+\(S\subseteq S'\) and \(q'\in\mathcal Q_{S'}(p)\), push \(q'\) forward by
+retaining \(X_0,X_1\) and \((V_x:x\in S)\), setting
+\[
+ W_{xz}=V_x\quad(x\in S'\setminus S,\ z\in\{0,1\}),
+\]
+and retaining the existing untrusted slots for
+\(x\in\mathcal E\setminus S'\).  For \(x\in S\), the trusted compatibility
+equalities are unchanged.  For \(x\in S'\setminus S\),
+\[
+ \Pr(X_z=x,W_{xz}=y)=\Pr(X_z=x,V_x=y)=p^z_{xy},
+\]
+and the existing untrusted equalities are unchanged elsewhere.  Thus the
+push-forward lies in \(\mathcal Q_S(p)\).  Since \(a,b\in S\), it retains
+\(V_a,V_b\) and preserves \(\theta_{ab}\).  This explicit restriction map
+proves
+\[
+ \mathcal P_{S'}\subseteq\mathcal P_S,
+ \qquad
+ \Theta_{S'}(p)\subseteq\Theta_S(p)
+ \quad(p\in\mathcal P_{S'}).
+\]
+
+Under the displayed separation construction,
+\(\rho=1/2\), so both arms have positive allocation.  Independence in that
+construction and the mixed-trust observation rule give, for
+\(z\in\{0,1\}\),
+\[
+\begin{aligned}
+ \Pr(X_z=a,V_a=0)&=A_z(1-\tau_a),&
+ \Pr(X_z=a,V_a=1)&=A_z\tau_a,\\
+ \Pr(X_z=b,V_b=0)&=B_z(1-\tau_b),&
+ \Pr(X_z=b,V_b=1)&=B_z\tau_b,\\
+ \Pr(X_z=c_\star,W_{c_\star z}=0)&=r_z(1-\lambda_z),&
+ \Pr(X_z=c_\star,W_{c_\star z}=1)&=r_z\lambda_z.
+\end{aligned} \tag{1}
+\]
+These are exactly the displayed cells of \(p^{\rm sep}\).  Since
+\(c_\star\) is untrusted under \(T_0\), (1) verifies every defining
+compatibility equality and hence
+\[
+ q^{\rm sep}_{r,s,\tau,\lambda}\in\mathcal Q_{T_0}(p^{\rm sep}). \tag{2}
+\]
+
+The parameter ranges imply
+\[
+ 1-r_z>\frac8{25},
+ \qquad s_z,1-s_z,\tau_x,1-\tau_x>\frac25
+ \quad(x\in\{a,b\}).
+\]
+Every target-category cell in (1) therefore exceeds
+\[
+ \frac8{25}\left(\frac25\right)^2
+ =\frac{32}{625}>\frac{93}{5000}. \tag{3}
+\]
+For the two smaller nuisance cells,
+\[
+ r_0\lambda_0>\frac{31}{50}\frac3{100}=\frac{93}{5000},
+ \qquad
+ r_1(1-\lambda_1)>\frac{31}{50}\frac3{100}=\frac{93}{5000};
+\]
+the other two exceed \((31/50)(93/100)\).  Thus every observed cell is
+strictly larger than \(93/5000\).
+
+For \(x=a\), its exposure mass is \(A_z\), and for \(x=b\), it is \(B_z\).
+Since \(1-r_z<19/50\) and both \(s_z\) and \(1-s_z\) are below \(3/5\),
+\[
+ A_z<\frac{57}{250},\qquad B_z<\frac{57}{250}.
+\]
+Every outcome cell is no larger than its category mass, so
+\[
+ p^{{\rm sep},0}_{xy}+p^{{\rm sep},1}_{x,1-y}
+ <\frac{57}{125}
+ \quad(x\in\{a,b\},\ y\in\{0,1\}). \tag{4}
+\]
+
+Under any full-trust law compatible with a table \(p\), the events
+\[
+ \mathcal A_0=\{X_0=c_\star,V_{c_\star}=0\},
+ \qquad
+ \mathcal A_1=\{X_1=c_\star,V_{c_\star}=1\}
+\]
+are disjoint because the same binary variable \(V_{c_\star}\) cannot be
+both zero and one.  Therefore full trust necessarily implies
+\[
+ p^0_{c_\star0}+p^1_{c_\star1}
+ =\Pr(\mathcal A_0)+\Pr(\mathcal A_1)\le1. \tag{5}
+\]
+For the separation table,
+\[
+ p^{{\rm sep},0}_{c_\star0}+p^{{\rm sep},1}_{c_\star1}
+ =r_0(1-\lambda_0)+r_1\lambda_1
+ >2\frac{31}{50}\frac{93}{100}
+ =\frac{2883}{2500}>1. \tag{6}
+\]
+Thus no response law under \(T_1\) represents \(p^{\rm sep}\), whereas
+(2) represents it under \(T_0\).
+
+This obstruction is stable.  If \(p'\) is armwise normalized and
+\(\lVert p'-p^{\rm sep}\rVert_\infty<1/200\), then every cell exceeds
+\[
+ \frac{93}{5000}-\frac1{200}=\frac{68}{5000}>0.
+\]
+Equation (4) implies, for every trusted target cell,
+\[
+ p'^0_{xy}+p'^1_{x,1-y}
+ <\frac{57}{125}+\frac2{200}<1.
+\]
+Normalization, positivity, and the necessary-and-sufficient criterion in
+\(\mathrm{lem{:}compatibility}\) give a coupling in \(\Pi_{T_0}(p')\);
+the finite lift in \(\mathrm{lem{:}transport\mbox{-}completion}\) shows
+that \(p'\) is \(T_0\)-compatible.  But (6) gives
+\[
+ p'^0_{c_\star0}+p'^1_{c_\star1}
+ >\frac{2883}{2500}-\frac2{200}>1,
+\]
+so (5) rules out \(T_1\)-compatibility.  This proves the generic
+positive-radius observed-law separation, including the advertised cell
+lower bounds.
+
+For the separate gain witness, both arms of \(p^{\rm gain}\) are normalized
+and every cell is positive.  For \(a\) and \(b\), every compatibility sum is
+\(1/5\); for \(c_\star\), the two sums are
+\[
+ p^{{\rm gain},0}_{c_\star0}+p^{{\rm gain},1}_{c_\star1}=\frac9{10},
+ \qquad
+ p^{{\rm gain},0}_{c_\star1}+p^{{\rm gain},1}_{c_\star0}=\frac3{10}.
+\]
+All compatibility inequalities and nonnegativity inequalities have strict
+slack.  The compatibility lemma gives a coupling, and the transport lift
+gives a compatible response law.  The same strict inequalities persist in
+a relative neighborhood inside the arm-normalization affine space, so
+\(p^{\rm gain}\) is in the relative interior of the \(T_1\)-compatible set.
+
+At this table, all eight target cells equal \(1/10\),
+\(\kappa=-3/5\), and \(u=v=1/10\).  Consequently
+\[
+ D_{T_0}(p^{\rm gain})=\frac15,
+ \qquad L_{T_0}(p^{\rm gain})=-\frac45.
+\]
+Outcome reversal fixes the target cells, so \(U_{T_0}(p^{\rm gain})=4/5\).
+Under \(T_1\),
+\[
+ h_{c_\star0}=1-\frac5{10}-\frac4{10}=\frac1{10},
+ \qquad
+ h_{c_\star1}=1-\frac1{10}-\frac2{10}=\frac7{10}.
+\]
+Thus \(D_{T_1}(p^{\rm gain})=1/10\),
+\(L_{T_1}(p^{\rm gain})=-7/10\), and outcome reversal gives
+\(U_{T_1}(p^{\rm gain})=7/10\).  Sharpness from
+\(\mathrm{thm{:}sharp\mbox{-}envelope}\) now yields
+\[
+ [-7/10,7/10]\subsetneq[-4/5,4/5]. \tag{7}
+\]
+
+For an explicit stability radius, take \(\eta_{\rm gain}=1/100\).  If
+\(p'\) is armwise normalized and
+\(\lVert p'-p^{\rm gain}\rVert_\infty<\eta_{\rm gain}\), every cell exceeds
+\(9/100\), and the largest compatibility sum remains below
+\(9/10+2/100<1\).  The compatibility criterion and transport lift hence
+show that \(p'\) remains \(T_1\)-compatible.  Its eight
+target cells lie in \((9/100,11/100)\), while every cross cap in \(u\) or
+\(v\) exceeds \(1-2(11/100)=78/100\).  Therefore
+\[
+ \frac9{100}<u(p'),v(p')<\frac{11}{100},
+ \qquad
+ \frac{18}{100}<D_{T_0}(p')<\frac{22}{100}. \tag{8}
+\]
+The nuisance caps satisfy
+\[
+ \frac8{100}<h_{c_\star0}(p')<\frac{12}{100},
+ \qquad
+ \frac{68}{100}<h_{c_\star1}(p')<\frac{72}{100}. \tag{9}
+\]
+Equations (8)--(9) imply \(D_{T_1}(p')=h_{c_\star0}(p')\) and
+\[
+ L_{T_1}(p')-L_{T_0}(p')>\frac6{100}. \tag{10}
+\]
+For \(\bar p'\), the same target-cell bounds hold and
+\(h_{c_\star1}(\bar p')=h_{c_\star0}(p')\).  Repeating (8)--(10) after
+outcome reversal gives
+\[
+ U_{T_0}(p')-U_{T_1}(p')>\frac6{100}. \tag{11}
+\]
+The sharp-envelope theorem and (10)--(11) prove strict interval inclusion
+throughout this relative open neighborhood.  The certificates used here
+are an explicit finite response law, a disjoint-event capacity inequality,
+the compatibility characterization, and direct evaluation of the sharp
+endpoint functional.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The two explicit witnesses show that selected trust is neither a relabeling of full exclusion nor observationally vacuous relative to trusting only the targets. \textit{Gap.} Song et al. characterize the full-exclusion model, but that result does not cover the displayed selected-trust response law; Gabriel et al. give isolated ternary comparisons without a nondegenerate strict-improvement region. \textit{Consumer.} A LEAP analyst can distinguish rejection of exclusion for an intermediate category from evidence that a separately trusted intermediate category sharpens the low-versus-high interval.
+
+\begin{theorem}[thm:finite-sample-whole-set]\label{thm:finite-sample-whole-set}
+Under independent sampling, conditionally on \((N_0,N_1)\) with \(N_0N_1>0\), \(\Pr_P\bigl((L_T(p),U_T(p))\in\mathcal C_{\rm end}\mid N_0,N_1\bigr)\geq1-\alpha_{\rm conf}\). On the same event, the entire identified interval obeys \([L_T(p),U_T(p)]\subseteq\mathcal C_{\rm set}\). With the stipulated trivial output when an arm is empty, both conclusions hold unconditionally for every compatible \(P\), including affine-face ties, zero-probability cells, and zero-range faces.
+\end{theorem}
+\begin{proof}
+Fix an assignment vector with \(N_0N_1>0\).  Under independent and
+identically distributed sampling, conditional on that vector, the
+observations in arm \(z\) are independent draws from
+\(P(X,Y\mid Z=z)\), and the two arm collections are independent.  For a
+listed affine face \(f\), write
+\[
+ \mu_{fz}=\mathbb E_P[a_{fz}(X,Y)\mid Z=z].
+\]
+The affine constant cancels, so
+\[
+ f(\widehat p)-f(p)
+ =\sum_{z=0}^1\frac1{N_z}\sum_{i:Z_i=z}
+ \{a_{fz}(X_i,Y_i)-\mu_{fz}\}. \tag{1}
+\]
+
+We derive the concentration inequality used in the construction.  If a
+random variable \(B\) lies in \([l,u]\), put \(R=u-l\).  When \(R>0\), let
+\(H=(B-l)/R\in[0,1]\) and \(\mu=\mathbb EH\).  Convexity of the exponential
+gives \(e^{\lambda H}\le(1-H)+He^\lambda\), so
+\[
+ \log\mathbb E e^{\lambda(H-\mu)}
+ \le g_\mu(\lambda)
+ :=-\lambda\mu+\log(1-\mu+\mu e^\lambda).
+\]
+Here \(g_\mu(0)=g_\mu'(0)=0\), and, with
+\(w=\mu e^\lambda/(1-\mu+\mu e^\lambda)\),
+\[
+ g_\mu''(\lambda)=w(1-w)\le\frac14.
+\]
+Integrating twice from zero and rescaling yields, for every real
+\(\lambda\),
+\[
+ \mathbb E e^{\lambda(B-\mathbb EB)}
+ \le\exp\!\left(\frac{\lambda^2R^2}{8}\right). \tag{2}
+\]
+If \(R=0\), (2) holds because \(B\) is constant.  Multiplication of (2)
+over independent summands, followed by the exponential Markov inequality
+and optimization at \(\lambda=4t/\sum_kR_k^2\), gives
+\[
+ \Pr\!\left(\left|\sum_k(B_k-\mathbb EB_k)\right|\ge t\right)
+ \le2\exp\!\left\{-\frac{2t^2}{\sum_kR_k^2}\right\}. \tag{3}
+\]
+The lower tail follows by replacing the summands by their negatives, and a
+zero denominator means the sum is deterministic.  This is the elementary
+bounded-variable exponential-moment technique underlying Hoeffding's
+inequality.
+
+In (1), each of the \(N_z\) arm-\(z\) summands has range length
+\(R_{fz}/N_z\).  Consequently (3) and the definition of \(\varepsilon_f\)
+give, conditionally on the assignment vector,
+\[
+ \Pr_P\{|f(\widehat p)-f(p)|>\varepsilon_f\mid Z_1,\ldots,Z_n\}
+ \le
+ 2\exp\!\left\{-\frac{2\varepsilon_f^2}
+ {\sum_{z=0}^1R_{fz}^2/N_z}\right\}
+ \le\frac{\alpha_{\rm conf}}{M_T}. \tag{4}
+\]
+When both ranges vanish, the deviation is identically zero and (4) still
+holds.  A union bound over the \(M_T\) labeled lower and upper faces gives
+\[
+ \mathcal H=
+ \bigcap_{f\in\mathfrak F^-_T\cup\mathfrak F^+_T}
+ \{|f(\widehat p)-f(p)|\le\varepsilon_f\},
+ \qquad
+ \Pr_P(\mathcal H\mid Z_1,\ldots,Z_n)\ge1-\alpha_{\rm conf}. \tag{5}
+\]
+The lower bound in (5) depends on the assignment vector only through
+\((N_0,N_1)\).  Averaging it over assignment vectors conditional on these
+counts proves the same bound conditional on \((N_0,N_1)\).
+
+On \(\mathcal H\), every lower face obeys
+\[
+ f(\widehat p)-\varepsilon_f\le f(p)
+ \le f(\widehat p)+\varepsilon_f.
+\]
+Taking maxima and using \(\mathrm{thm{:}sharp\mbox{-}envelope}\) gives
+\[
+ L_{\rm lo}\le L_T(p)\le L_{\rm hi}. \tag{6}
+\]
+Taking minima over the upper faces similarly gives
+\[
+ U_{\rm lo}\le U_T(p)\le U_{\rm hi}. \tag{7}
+\]
+Equations (5)--(7) prove conditional endpoint-rectangle coverage.  Since
+\(V_a,V_b\) are binary, every compatible target value is in \([-1,1]\), so
+\(-1\le L_T(p)\le U_T(p)\le1\).  Hence the same event gives
+\[
+ [L_T(p),U_T(p)]
+ \subseteq[L_{\rm lo},U_{\rm hi}]\cap[-1,1]
+ =\mathcal C_{\rm set}. \tag{8}
+\]
+
+If either arm is empty, the stipulated trivial endpoint box and
+\([-1,1]\) cover deterministically and no empirical conditional frequency
+is divided by zero.  With \(A=\{N_0N_1>0\}\),
+\[
+\begin{aligned}
+ \Pr_P\{\text{both asserted coverages hold}\}
+ &\ge \Pr_P(A)(1-\alpha_{\rm conf})+\Pr_P(A^c)\\
+ &=1-\alpha_{\rm conf}\Pr_P(A)\ge1-\alpha_{\rm conf}.
+\end{aligned}
+\]
+No step divides by a cell probability, selects a unique active face, or
+requires a strict face gap.  Thus zero cells and face ties are covered, and
+zero-range faces were treated explicitly after (4).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} One simultaneous concentration event controls both nonsmooth endpoints and the whole sharp set without selecting a derivative. \textit{Gap.} Song et al. provide simultaneous finite-sample Kullback--Leibler projection inference for the fully valid model; the proposed theorem gives a direct closed-form mixed-trust band, with no novelty claim for the concentration inequality itself. \textit{Consumer.} Sparse LEAP adherence tables receive honest whole-set uncertainty statements even when an active face ties or an exposure--outcome cell is empty.
+
+\begin{openendedquestion}[oeq:uniform-gaussian-active-face]\label{oeq:uniform-gaussian-active-face}
+Outlook question. Fix finite \((\mathcal E,T)\), \(\alpha_{\rm conf}\in(0,1)\), and \(\bar\rho>0\). Does the boundary-spliced active-face multiplier handle yield rectangles \(\mathcal C^G_n\) such that, over \(\mathfrak A_T(\bar\rho)\) with no lower bound on cell probabilities, active-face gaps, or affine-face variances, \[\liminf_{n\to\infty}\inf_{(P_k)\in\mathfrak A_T(\bar\rho)}\Pr_{P_n}\{(L_T(p_n),U_T(p_n))\in\mathcal C^G_n\}\geq1-\alpha_{\rm conf}.\] In addition, for every nonempty compact regular class \(\mathcal K(\varepsilon_{\rm reg},\gamma_{\rm reg},\sigma^2_{\rm reg})\), can the same rectangles satisfy \[\limsup_{n\to\infty}\sup_{P\in\mathcal K}\frac{\mathbb E_P[w_{\rm tot}(\mathcal C^G_n)]}{\mathbb E_P[w_{\rm tot}(\mathcal C_{\rm end})]}<1,\] where total endpoint width is \(w_{\rm tot}([l_{\rm lo},l_{\rm hi}]\times[u_{\rm lo},u_{\rm hi}])=(l_{\rm hi}-l_{\rm lo})+(u_{\rm hi}-u_{\rm lo})\)?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This short Outlook isolates the genuinely open statistical rung with separate global validity and regular-class precision requirements. \textit{Gap.} Directional-differentiability and intersection-bound methods handle ties on regular classes, but their combination does not automatically cover simultaneously vanishing multinomial variances and boundary cells. \textit{Consumer.} A positive answer would replace the conservative production band by a shorter default while preserving a certified fallback for sparse adherence tables.
+
+\begin{proposition}[prop:untrusted-refinement-invariance]\label{prop:untrusted-refinement-invariance}
+For every wholly untrusted refinement \(g:\widetilde{\mathcal E}\to\mathcal E\), the refined table \(\widetilde p\) is \(\widetilde T\)-compatible if and only if its push-forward \(p\) is \(T\)-compatible.  Whenever these equivalent conditions hold,
+\[
+ L_{\widetilde T}(\widetilde p)=L_T(p),\qquad
+ U_{\widetilde T}(\widetilde p)=U_T(p),
+\]
+and hence the two sharp identified intervals are equal.  Thus splitting or merging bins wholly inside the untrusted part is exactly target-ancillary.
+\end{proposition}
+\begin{proof}
+Because \(g\) is wholly untrusted, no trusted category is split.  The
+definition supplies a bijection
+\[
+ \iota:T\longrightarrow\widetilde T
+ \quad\text{with}\quad
+ g^{-1}(\{x\})=\{\iota(x)\}\quad(x\in T),
+\]
+whereas every element above \(U\) is untrusted.  The armwise push-forward
+identity gives, for \(x\in T\) and \(y,z\in\{0,1\}\),
+\[
+ p^z_{xy}=\widetilde p^z_{\iota(x)y}. \tag{1}
+\]
+Aggregation preserves nonnegativity and armwise normalization because
+\[
+ \sum_{x\in\mathcal E}\sum_{y=0}^1p^z_{xy}
+ =\sum_{\widetilde x\in\widetilde{\mathcal E}}
+   \sum_{y=0}^1\widetilde p^z_{\widetilde x y}=1. \tag{2}
+\]
+For every trusted cell, (1) also gives
+\[
+ p^0_{xy}+p^1_{x,1-y}
+ =\widetilde p^0_{\iota(x)y}
+  +\widetilde p^1_{\iota(x),1-y}. \tag{3}
+\]
+The bijection \(\iota\) pairs all trusted compatibility inequalities on the
+two alphabets.  Applying the necessary-and-sufficient characterization in
+\(\mathrm{lem{:}compatibility}\), with (2)--(3), proves that the two
+coupling polytopes are simultaneously nonempty.  Applying the finite lift
+in \(\mathrm{lem{:}transport\mbox{-}completion}\) on each alphabet then
+proves
+\[
+ \mathcal Q_{\widetilde T}(\widetilde p)\ne\varnothing
+ \quad\Longleftrightarrow\quad
+ \mathcal Q_T(p)\ne\varnothing. \tag{4}
+\]
+This includes zero cells and equality strata.
+
+Put \(\widetilde a=\iota(a)\) and \(\widetilde b=\iota(b)\), and decorate
+endpoint components computed from \(\widetilde p\) with tildes.  Equation
+(1) yields
+\[
+ \widetilde\alpha_z=\alpha_z,
+ \quad \widetilde\gamma_z=\gamma_z,
+ \quad \widetilde\beta_z=\beta_z,
+ \quad \widetilde\delta_z=\delta_z.
+\]
+Therefore
+\[
+ \widetilde\kappa=\kappa,qquad
+ \widetilde u=u,qquad
+ \widetilde v=v. \tag{5}
+\]
+Moreover, \(c\mapsto\iota(c)\) bijects
+\(T\setminus\{a,b\}\) with
+\(\widetilde T\setminus\{\widetilde a,\widetilde b\}\), and
+\[
+ \widetilde h_{\iota(c),y}
+ =1-\widetilde p^0_{\iota(c)y}
+    -\widetilde p^1_{\iota(c),1-y}
+ =1-p^0_{cy}-p^1_{c,1-y}=h_{cy}. \tag{6}
+\]
+Thus the finite collections entering the two capacity minima are identical,
+including when there is no nuisance category.  Hence
+\[
+ D_{\widetilde T}(\widetilde p)=D_T(p),
+ \qquad
+ L_{\widetilde T}(\widetilde p)=L_T(p). \tag{7}
+\]
+
+Outcome reversal commutes with push-forward:
+\[
+ \sum_{\widetilde x:g(\widetilde x)=x}
+ \overline{\widetilde p}^{,z}_{\widetilde x y}
+ =\sum_{\widetilde x:g(\widetilde x)=x}
+ \widetilde p^z_{\widetilde x,1-y}
+ =p^z_{x,1-y}=\bar p^z_{xy}. \tag{8}
+\]
+Applying (7) to the outcome-reversed pair and using
+\(U_S(r)=-L_S(\bar r)\) gives
+\[
+ U_{\widetilde T}(\widetilde p)=U_T(p). \tag{9}
+\]
+Whenever (4) holds, the sharp-envelope theorem identifies the two causal
+sets with their endpoint intervals.  Equations (7) and (9) therefore prove
+their exact equality.  Splitting an untrusted bin is the displayed
+refinement, and merging its untrusted children is the push-forward; hence
+both operations are target-ancillary.  No such conclusion is claimed for a
+trusted split or for trusting a refined child.
+\end{proof}
+
+\begin{proposition}[prop:linear-time-active-face-evaluator]\label{prop:linear-time-active-face-evaluator}
+For fixed target categories \(a,b\), both sharp endpoints and an active-face certificate can be evaluated with a number of arithmetic operations linear in \(|\mathcal E|\): evaluate the eight base lower pieces and their eight outcome-reversed negatives once, scan the two lower and two upper pieces for each \(c\in T\setminus\{a,b\}\), and retain the maximizing lower and minimizing upper labels.  One active label per endpoint uses constant working storage; reporting every tied label uses storage proportional to the output size.
+\end{proposition}
+\begin{proof}
+By \(\mathrm{thm{:}sharp\mbox{-}envelope}\), the lower endpoint is the
+maximum of \(8+2|T\setminus\{a,b\}|\) explicitly affine values, and the
+upper endpoint is the minimum of the same number of outcome-reversed
+values.  After the eight target-cell probabilities and \(\kappa\) are
+read, each face requires a bounded number of arithmetic operations and one
+comparison.  Moreover,
+\[
+ 8+2|T\setminus\{a,b\}|\le 2|\mathcal E|+4,
+\]
+so evaluating the eight base faces once and scanning the two lower and two
+upper nuisance faces for each trusted nuisance category uses
+\(O(|\mathcal E|)\) operations.  Maintaining the current extremal value and
+its label gives one active-face certificate with constant working storage.
+On equality, appending the new label instead of replacing the old one
+reports every tied active face and requires storage only proportional to
+the number of reported labels.  This is the claimed explicit evaluator and
+its complexity certificate.
+\end{proof}
+
+\begin{lemma}[lem:balke-pearl-binary-ate-bounds]\label{lem:balke-pearl-binary-ate-bounds}
+\texttt{For a binary instrument,\allowbreak{} binary exposure,\allowbreak{} and binary outcome under random assignment,\allowbreak{} individual-\allowbreak{}level exclusion,\allowbreak{} and consistency,\allowbreak{} Balke and Pearl's displayed average-\allowbreak{}causal-\allowbreak{}effect bounds are sharp and consist of a lower endpoint equal to the maximum of eight affine observed-\allowbreak{}cell expressions and an upper endpoint equal to the minimum of eight affine observed-\allowbreak{}cell expressions.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the source-level fact needed to call the two-category specialization a literal Balke--Pearl equality. \textit{Gap.} The present proof performs only the relabeling and algebraic specialization; sharpness of the published binary list belongs to Balke and Pearl. \textit{Consumer.} The comparator-reductions proposition uses this node for the literal binary-exposure case.
+
+\begin{lemma}[lem:gabriel-merged-remainder-result]\label{lem:gabriel-merged-remainder-result}
+\texttt{For a binary instrument,\allowbreak{} two well-\allowbreak{}defining exposure levels used in the causal contrast,\allowbreak{} and one merged potentially ill-\allowbreak{}defining exposure level,\allowbreak{} Gabriel,\allowbreak{} Sachs,\allowbreak{} and Sjolander Result 1 gives sharp bounds that are symbolically identical to the first eight lower and first eight upper expressions of their equations (3)-\allowbreak{}-\allowbreak{}(4),\allowbreak{} namely the classical binary-\allowbreak{}instrument bounds.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This source fixes the correct published comparator when non-target categories are merged into one wholly untrusted remainder. \textit{Gap.} The source handles one merged remainder, while the present proof shows why arbitrarily many untrusted categories reduce to that table. \textit{Consumer.} The comparator-reductions proposition invokes Result 1 after constructing the merged table.
+
+\begin{lemma}[lem:gabriel-ternary-ten-term-bounds]\label{lem:gabriel-ternary-ten-term-bounds}
+\texttt{For a binary instrument,\allowbreak{} binary outcome,\allowbreak{} and exactly three well-\allowbreak{}defining exposure levels,\allowbreak{} Gabriel,\allowbreak{} Sachs,\allowbreak{} and Sjolander equations (3)-\allowbreak{}-\allowbreak{}(4) give the sharp contrast endpoints as the maximum of ten affine lower expressions and the minimum of ten affine upper expressions:\allowbreak{} the eight classical expressions plus two expressions involving the third exposure level on each side.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This source-level result supports the exact ten-term ternary comparator equality. \textit{Gap.} The present proof supplies the term-by-term relabeling from the arbitrary-support envelope to the published ternary formulas. \textit{Consumer.} The comparator-reductions proposition uses this node for the all-trusted three-category case.
+
+\begin{lemma}[lem:song-five-model-equal-image]\label{lem:song-five-model-equal-image}
+Writing \(\mathcal M_1,\ldots,\mathcal M_5\) for the five finite categorical instrumental-variable models in Song, Guo, Chan, and Richardson Table 2, and using their equation (13) map from a model law to the pair consisting of the joint outcome-potential law and the observed conditional law, Theorem 1 states that all five models have the same image, characterized by their inequalities (8).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This theorem is the exact source needed to transfer the full-trust pairwise interval from Song's randomization model to their four alternative IV formulations. \textit{Gap.} The source gives the common joint potential-outcome and observed-law image; the present proof identifies this core's full-trust response model with its first model and takes the pairwise linear projection. \textit{Consumer.} The comparator-reductions proposition uses this node for the arbitrary finite full-trust transfer.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The untrusted variables in the saturated response space are arm-specific factual completion labels only; no result interprets them as potential outcomes under category interventions. The count of eight plus twice the number of trusted nuisance categories denotes a complete affine evaluation list for each endpoint, not an assertion that every listed term is an irredundant facet on every lower-dimensional support stratum. A wholly untrusted refinement preserves both endpoints: push a factual coupling forward through the refinement map, and lift it by arbitrary disintegration within each untrusted fiber. Compute the eight baseline faces, scan the trusted nuisance categories, update the lower maximum and upper minimum with the two category faces, and retain ties; this uses linear arithmetic in the alphabet size and constant auxiliary memory beyond the input and active-face output. These are formula and implementation consequences, not independent research targets. Producing a full attaining transport by generic augmenting paths is claimed only to terminate in finite polynomial time.
+
+\section{Honest scope}
+
+The sole identification kernel is the sharp-envelope theorem for the saturated selected-exclusion response model, with its transport completion and finite endpoint-attaining laws. Shared potential outcomes exist only for trusted categories; untrusted response coordinates are factual completion labels with no intervention interpretation. The perturbation-stable non-representability family and the separate open strict-gain region provide the load-bearing comparison with full exclusion. At full trust, the comparison with Song et al. is equality of the joint-potential-outcome/observed-law response image; after merging a wholly untrusted remainder, the Gabriel comparison is equality of the relevant sharp projection and formula, not an identity of latent fine-exposure classes. The Hoeffding whole-set theorem supplies finite-sample coverage. The categorywise trust update is a one-line corollary, wholly untrusted refinement is a formula remark, and one-pass evaluation is an implementation note. The bounded computations are diagnostic evidence rather than theorem premises. The Outlook question remains open over triangular arrays without cell, face-gap, or face-variance floors, while its strict precision comparison is restricted to nonempty compact regular classes. No monotonicity, exposure ordering, instrument relevance, exposure-cell positivity, or clinical justification of any trusted LEAP category is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{BalkePearl1997ImperfectCompliance} Alexander Balke and Judea Pearl. Bounds on treatment effects from studies with imperfect compliance. Journal of the American Statistical Association, 92:1171--1176, 1997. DOI: 10.1080/01621459.1997.10474074.
+
+  \bibitem{GabrielSachsSjolander2025Coarsening} Erin E. Gabriel, Michael C. Sachs, and Arvid Sjolander. The impact of coarsening an exposure on partial identifiability in instrumental variable settings. Biostatistics, 26(1):kxae042, 2025. arXiv:2401.17735.
+
+  \bibitem{SongGuoChanRichardson2026CategoricalIV} Yilin Song, F. Richard Guo, K. C. Gary Chan, and Thomas S. Richardson. The categorical instrumental variable model: characterization, partial identification, and statistical inference. arXiv:2405.09510, version 6, 2026.
+
+  \bibitem{SongGuoChanRichardson2026CategoricalIVInference} Yilin Song, F. Richard Guo, K. C. Gary Chan, and Thomas S. Richardson. Section 6 of The categorical instrumental variable model: characterization, partial identification, and statistical inference. arXiv:2405.09510, version 6, 2026.
+
+  \bibitem{SachsJonzonSjolanderGabriel2023SymbolicBounds} Michael C. Sachs, Gustav Jonzon, Arvid Sjolander, and Erin E. Gabriel. A general method for deriving tight symbolic bounds on causal effects. Journal of Computational and Graphical Statistics, 32:567--576, 2023. arXiv:2003.10702.
+
+  \bibitem{BhadaneMooijBoekenZoeter2025Berkeley} Sourbh Bhadane, Joris M. Mooij, Philip Boeken, and Onno Zoeter. Revisiting the Berkeley admissions data: statistical tests for causal hypotheses. Proceedings of the Forty-First Conference on Uncertainty in Artificial Intelligence, 2025.
+
+  \bibitem{ZhangFrazierPoskittZhao2025IdentificationGain} Lina Zhang, David T. Frazier, D. S. Poskitt, and Xueyan Zhao. Decomposing identification gains and evaluating instrument identification power for partially identified average treatment effects. Econometric Reviews, 44:915--938, 2025. DOI: 10.1080/07474938.2025.2460540.
+
+  \bibitem{VanderWeeleHernan2013Versions} Tyler J. VanderWeele and Miguel A. Hernan. Causal inference under multiple versions of treatment. Journal of Causal Inference, 1:1--20, 2013. DOI: 10.1515/jci-2012-0002.
+
+  \bibitem{Marshall2016CoarseningBias} John Marshall. Coarsening bias: how coarse treatment measurement upwardly biases instrumental variable estimates. Political Analysis, 24:157--171, 2016. DOI: 10.1093/pan/mpw007.
+
+  \bibitem{DuToitEtAl2015LEAP} George Du Toit and collaborators. Randomized trial of peanut consumption in infants at risk for peanut allergy. New England Journal of Medicine, 372:803--813, 2015. DOI: 10.1056/NEJMoa1414850.
+
+  \bibitem{FangSantos2019Directional} Zheng Fang and Andres Santos. Inference on directionally differentiable functions. Review of Economic Studies, 86:377--412, 2019. DOI: 10.1093/restud/rdy049.
+
+  \bibitem{ChernozhukovLeeRosen2013IntersectionBounds} Victor Chernozhukov, Sokbae Lee, and Adam M. Rosen. Intersection bounds: estimation and inference. Econometrica, 81:667--737, 2013. DOI: 10.3982/ECTA8718.
+
+  \bibitem{ConleyHansenRossi2012PlausiblyExogenous} Timothy G. Conley, Christian B. Hansen, and Peter E. Rossi. Plausibly exogenous. Review of Economics and Statistics, 94:260--272, 2012. DOI: 10.1162/REST\_a\_00139.
+
+  \bibitem{DuarteEtAl2024Autobounds} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An automated approach to causal inference in discrete settings. Journal of the American Statistical Association, 119:195--207, 2024. DOI: 10.1080/01621459.2023.2216909.
+
+  \bibitem{HruzaEtAl2026PartialIdentificationLearning} Johannes Hruza, Pawel Morzywolek, Jakob Zeitler, Samir Bhatt, and Michael C. Sachs. Partial identification learning with categorical treatments for individualized treatment rules. arXiv:2608.19853, 2026.
+
+\end{thebibliography}
+
+\end{document}

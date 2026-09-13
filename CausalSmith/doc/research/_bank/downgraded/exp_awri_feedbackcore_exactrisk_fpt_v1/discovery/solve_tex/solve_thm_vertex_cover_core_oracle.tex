@@ -1,0 +1,157 @@
+%%% FIELD vertex-cover-proof
+Write \(N(v)=N_{C_G}(v)\) and \(N(H)=\bigcup_{u\in H}N(u)\).  Because \(\mathcal K\) is a vertex cover, \(V\setminus\mathcal K\) is edgeless.  If \(k=0\), then \(C_G\) itself is edgeless, so the greedy rule in \(\texttt{def:wri-law}\) selects every vertex for every strict priority order.  Consequently
+\[
+ F_{\ell,A}(z)=z^n
+ \qquad (|A|\leq 2)
+\]
+by \(\texttt{def:tagged-count-polynomial}\).  This case takes polynomial output time and uses only integers.  Henceforth suppose \(k\geq1\).
+
+Fix a rule \(\ell\), an independent set \(\mathcal U\subseteq\mathcal K\), and \(\mathcal B\subseteq\mathcal K\setminus\mathcal U\).  Define
+\[
+ W_{\mathcal U}=(V\setminus\mathcal K)\cap N(\mathcal U),
+ \qquad
+ T_{\mathcal U}=(V\setminus\mathcal K)\setminus N(\mathcal U),
+ \qquad
+ S_{\mathcal U}=\mathcal U\cup T_{\mathcal U}.
+\]
+If a greedy output has intersection \(\mathcal U\) with the core, independence excludes every vertex in \(W_{\mathcal U}\).  Conversely, each vertex in \(T_{\mathcal U}\) must be selected.  Indeed, if \(v\in T_{\mathcal U}\) were unselected, \(\texttt{lem:greedy-domination-certificate}\) would provide a previously selected neighbor of \(v\); there is no such neighbor in \(\mathcal U\) by the definition of \(T_{\mathcal U}\), and there is no such neighbor in \(V\setminus\mathcal K\) because that set is edgeless.  Thus \(S_{\mathcal U}\) is the unique possible greedy output whose intersection with \(\mathcal K\) is \(\mathcal U\).  In particular, the contribution indexed by \(\mathcal U\) is zero unless \(A\subseteq S_{\mathcal U}\).
+
+The vertex-cover condition also makes every component of \(C_G-\mathcal K\) a singleton.  For an untagged \(v\in W_{\mathcal U}\), the selected message in \(\texttt{def:cutoff-forest-messages}\) is zero, while the singleton component factor is
+\[
+ \int_0^1 B_v(y,z)\,dy
+ =\int_0^{p_v(x)}h_{\ell v}y^{h_{\ell v}-1}\,dy
+ =p_v(x)^{h_{\ell v}},
+ \qquad
+ p_v(x)=\max_{u\in\mathcal U\cap N(v)}x_u.
+\]
+For \(v\in T_{\mathcal U}\), one has \(p_v(x)=0\).  Hence \(C_v(y,z)=h_{\ell v}y^{h_{\ell v}-1}\), \(B_v(y,z)=0\), and the component factor is
+\[
+ \int_0^1 A_v(y,z)\,dy
+ =z\int_0^{r_v(x)}h_{\ell v}y^{h_{\ell v}-1}\,dy
+ =z r_v(x)^{h_{\ell v}},
+ \qquad
+ r_v(x)=\min\bigl(\{x_f:f\in\mathcal B\cap N(v)\}\cup\{1\}\bigr).
+\]
+This formula is unchanged when \(v\) is tagged, because tagging sets \(B_v=C_v=0\).  If instead a tagged exterior vertex belongs to \(W_{\mathcal U}\), then \(A_v=0\) and tagging also sets \(B_v=C_v=0\), so its component factor is zero.  Combining this exterior-tag test with the core-tag condition in \(\texttt{def:core-inclusion-exclusion}\), and then invoking \(\texttt{prop:core-inclusion-exclusion}\), gives
+\[
+ F_{\ell,A}(z)
+ =\sum_{\substack{\mathcal U\subseteq\mathcal K\text{ independent}\\ A\subseteq S_{\mathcal U}}}
+ z^{|S_{\mathcal U}|}
+ \sum_{\mathcal B\subseteq\mathcal K\setminus\mathcal U}
+ (-1)^{|\mathcal B|} I_{\ell,\mathcal U,\mathcal B},                         \tag{1}
+\]
+where
+\[
+\begin{split}
+ I_{\ell,\mathcal U,\mathcal B}
+ ={}&\int_{(0,1)^{\mathcal K}}
+ \chi_{\mathcal U,\mathcal B}(x)
+ \prod_{f\in\mathcal K}h_{\ell f}x_f^{h_{\ell f}-1}
+ \prod_{v\in W_{\mathcal U}}
+ \left(\max_{u\in\mathcal U\cap N(v)}x_u\right)^{h_{\ell v}}\\
+ &\quad\cdot
+ \prod_{v\in T_{\mathcal U}}
+ \left(\min\bigl(\{x_f:f\in\mathcal B\cap N(v)\}\cup\{1\}\bigr)\right)^{h_{\ell v}}\,dx .       \tag{2}
+\end{split}
+\]
+All exponents in (2) are nonnegative integers, because \(\texttt{def:feedback-core-input-class}\) requires \(1\leq h_{\ell i}\leq b\).
+
+We now evaluate (2) without enumerating the \(k!\) chambers.  For \(f\in\mathcal K\), put
+\[
+ \operatorname{Pred}(f)=
+ \begin{cases}
+ \mathcal U\cap N(f),&f\in\mathcal B,\\
+ \varnothing,&f\notin\mathcal B,
+ \end{cases}
+\]
+and, for every \(S\subseteq\mathcal K\), define
+\[
+\begin{split}
+ E_{\mathcal U,\mathcal B}(S)={}&
+ \sum_{f\in S}(h_{\ell f}-1)
+ +\sum_{\substack{v\in W_{\mathcal U}\\
+                    \mathcal U\cap N(v)\subseteq S}}h_{\ell v}
+ +\sum_{\substack{v\in T_{\mathcal U}\\
+                    \mathcal B\cap N(v)\cap S\neq\varnothing}}h_{\ell v}.                 \tag{3}
+\end{split}
+\]
+This is a nonnegative integer.  Partition \((0,1)^{\mathcal K}\), apart from its tie set, into ascending chambers
+\[
+ 0<x_{\sigma(1)}<\cdots<x_{\sigma(k)}<1.
+\]
+The tie set has probability zero because the densities in \(\texttt{def:wri-law}\) are continuous.  On such a chamber, \(\chi_{\mathcal U,\mathcal B}(x)=1\) exactly when every member of \(\operatorname{Pred}(f)\) occurs before \(f\).  This is precisely the family of strict inequalities \(x_u<x_f\) in \(\texttt{def:core-inclusion-exclusion}\).
+
+Let \(S_r=\{\sigma(1),\ldots,\sigma(r)\}\).  After removing the constant \(\prod_{f\in\mathcal K}h_{\ell f}\), the integrand in (2) is a monomial on the chamber.  Its total exponent on the coordinates in \(S_r\) is exactly \(E_{\mathcal U,\mathcal B}(S_r)\).  The density exponent \(h_{\ell f}-1\) is included exactly when \(f\in S_r\).  A maximum over \(\mathcal U\cap N(v)\) is the last of its arguments in the ascending order, so its exponent is included exactly when all its arguments are in \(S_r\).  A nonconstant minimum over \(\mathcal B\cap N(v)\) is the first of its arguments, so its exponent is included exactly when at least one argument is in \(S_r\).  These are the three terms of (3).
+
+If the resulting chamber monomial is \(\prod_{j=1}^k x_{\sigma(j)}^{a_j}\), successive integration of the smallest remaining coordinate, using \(\int_0^t x^a\,dx=t^{a+1}/(a+1)\) for \(a\geq0\), gives
+\[
+ \int_{0<x_{\sigma(1)}<\cdots<x_{\sigma(k)}<1}
+ \prod_{j=1}^k x_{\sigma(j)}^{a_j}\,dx
+ =\prod_{r=1}^k
+ \frac{1}{r+\sum_{j=1}^r a_j}
+ =\prod_{r=1}^k\frac{1}{r+E_{\mathcal U,\mathcal B}(S_r)}.                    \tag{4}
+\]
+Every division is valid because the denominator in the \(r\)-th factor is at least \(r\geq1\).
+
+Define the entered-subset dynamic program by
+\[
+ D_{\mathcal U,\mathcal B}[\varnothing]=1,
+\]
+and, for each \(S\subsetneq\mathcal K\) and \(f\in\mathcal K\setminus S\) satisfying \(\operatorname{Pred}(f)\subseteq S\), make the update
+\[
+ D_{\mathcal U,\mathcal B}[S\cup\{f\}]
+ \mathrel{+}=
+ \frac{D_{\mathcal U,\mathcal B}[S]}
+ {|S|+1+E_{\mathcal U,\mathcal B}(S\cup\{f\})}.                              \tag{5}
+\]
+Induction on \(|S|\) proves that \(D_{\mathcal U,\mathcal B}[S]\) is the sum over all admissible ascending orderings of the elements of \(S\) of the product of the factors in (4) along their successive entered subsets.  The base case is the empty product.  For the induction step, the last entered element is some \(f\in S\), its predecessors must already lie in \(S\setminus\{f\}\), and the last factor is \((|S|+E_{\mathcal U,\mathcal B}(S))^{-1}\), exactly as in (5).  At \(S=\mathcal K\), these admissible orderings are exactly the chambers where \(\chi_{\mathcal U,\mathcal B}=1\).  Thus (2)--(5) imply the evaluated identity
+\[
+ I_{\ell,\mathcal U,\mathcal B}
+ =\left(\prod_{f\in\mathcal K}h_{\ell f}\right)
+ D_{\mathcal U,\mathcal B}[\mathcal K].                                      \tag{6}
+\]
+Equations (1), (3), (5), and (6) therefore give every coefficient of every tagged polynomial by rational additions, multiplications, and divisions, with no remaining integral.
+
+There are at most
+\[
+ \sum_{\mathcal U\subseteq\mathcal K}2^{k-|\mathcal U|}=3^k
+\]
+disjoint pairs \((\mathcal U,\mathcal B)\); the independence test on \(\mathcal U\) only decreases this number.  For a fixed pair, tabulating (3) and all transitions (5) costs \(2^k\operatorname{poly}(n,k,\lambda)\) elementary operations.  Formula (1) contributes a single monomial for that pair and can be accumulated for the at most \(1+n+\binom n2\) tags satisfying \(A\subseteq S_{\mathcal U}\).  Across the \(L\) rules, the arithmetic-operation count is therefore \(L6^k\operatorname{poly}(n,b,\lambda)\).
+
+It remains to control exact bit cost.  Put \(D_0=nb\) and \(M=\operatorname{lcm}(1,\ldots,D_0)\).  A transition reaching a subset \(S\) of size \(r\geq1\) divides by
+\[
+ q(S)=r+E_{\mathcal U,\mathcal B}(S).
+\]
+The sets \(W_{\mathcal U}\) and \(T_{\mathcal U}\) partition \(V\setminus\mathcal K\).  Hence (3), \(h_{\ell i}\leq b\), and \(r\leq k\) give
+\[
+ 1\leq q(S)
+ \leq r+r(b-1)+(n-k)b
+ =rb+(n-k)b
+ \leq nb=D_0.                                                                 \tag{7}
+\]
+Thus \(q(S)\mid M\).  Store every layer-\(r\) dynamic-program value over the common denominator \(M^r\); an update from layer \(r-1\) multiplies the old numerator by the integer \(M/q(S)\).  There are at most \(r!\) paths to a layer-\(r\) state, and every factor in (4) is at most one, so the stored numerator has absolute value at most \(r!M^r\).  Moreover,
+\[
+ \log_2 M\leq\log_2(D_0!)\leq D_0\log_2 D_0.                                 \tag{8}
+\]
+After multiplication by \(\prod_{f\in\mathcal K}h_{\ell f}\), accumulation of at most \(3^k\) signed terms over denominator \(M^k\) increases numerator bit length by at most \(O(k\log b+k\log k+k+k\log M)\).  Equations (7)--(8), together with \(k\leq n\), bound the bit length of every numerator and denominator by \(\operatorname{poly}(n,b,\lambda)\).  The integer \(M\) can itself be formed by successive greatest-common-divisor and least-common-multiple operations within this bound.  Standard exact integer arithmetic therefore makes the bit cost of each of the \(L6^k\operatorname{poly}(n,b,\lambda)\) arithmetic steps polynomial in \(n,b,\lambda\), and this polynomial factor is absorbed in the displayed bound.
+
+For an exact smallest-instance check, let \(n=2\), \(\mathcal K=\{f\}\), and let the exterior vertex \(v\) be adjacent to \(f\).  Equations (1)--(6) give
+\[
+ \Pr_{\ell}(S_{\ell}=\{f\})
+ =\Pr(X_{\ell f}>X_{\ell v})
+ =\int_0^1h_{\ell f}x^{h_{\ell f}-1}x^{h_{\ell v}}\,dx
+ =\frac{h_{\ell f}}{h_{\ell f}+h_{\ell v}},
+\]
+and the complementary probability for \(S_{\ell}=\{v\}\).  Therefore
+\[
+ F_{\ell,\varnothing}(z)=z,
+ \quad
+ F_{\ell,\{f\}}(z)=\frac{zh_{\ell f}}{h_{\ell f}+h_{\ell v}},
+ \quad
+ F_{\ell,\{v\}}(z)=\frac{zh_{\ell v}}{h_{\ell f}+h_{\ell v}},
+ \quad
+ F_{\ell,\{f,v\}}(z)=0,
+\]
+which exhausts all admissible tags.  At the opposite boundary \(k=n\), the exterior sums in (3) vanish and every denominator in (7) remains positive, so the proof does not require a nonempty exterior.
+
+If the supplied \(\mathcal K\) is a vertex cover of \(C_G\), then all \(F_{\ell,A}(z)\), \(|A|\le2\), are computable exactly in \(L6^k\operatorname{poly}(n,b,\lambda)\) bit operations, with no unevaluated integral, and every intermediate rational has \(\operatorname{poly}(n,b,\lambda)\) bit length.

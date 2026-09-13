@@ -1,0 +1,56 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "thm:certified-computation",
+    "kind": "theorem",
+    "statement": "For fixed \\(d\\), rational empirical input, rational \\(0<\\epsilon<1\\), and \\(N=Km\\), \\(\\mathsf{CertMOT}_\\epsilon\\) returns \\(\\underline L_\\epsilon\\le L(\\widehat{\\mathbf P})\\le\\overline L_\\epsilon\\) with \\(\\overline L_\\epsilon-\\underline L_\\epsilon\\le\\epsilon\\), together with primal and dual witnesses, in time polynomial in the input bit length, \\(N\\), and \\((K/\\epsilon)^d\\).",
+    "free_symbols": [
+      "d",
+      "epsilon",
+      "CertMOT",
+      "L",
+      "Phat",
+      "N",
+      "K",
+      "Llower",
+      "Lupper",
+      "m"
+    ],
+    "depends_on": [
+      "ass:unit-ball-support",
+      "ass:balanced-array",
+      "def:certified-mot",
+      "lem:finite-lp-optimization"
+    ],
+    "justification": "A rational mesh and rational cost allowance separate numerical error from sampling error through explicit primal and dual witnesses.",
+    "gap": "The complexity is polynomial in \\((K/\\epsilon)^d\\) for fixed \\(d\\), not polynomial in a varying dimension and not a generic exact-MOT guarantee.",
+    "consumer": "The empirical endpoint and plug-in confidence correction can carry an auditable numerical error budget.",
+    "proof_tex": "Assume the rational empirical input and rational \\(0<\\epsilon<1\\) required by the statement. Set\n\\[\nM=\\left\\lceil\\frac{32d}{\\epsilon}\\right\\rceil,\n\\qquad h=M^{-1},\n\\qquad \\eta=3dh.\n\\tag{13}\n\\]\nThen \\(M\\) is a positive integer, \\(h\\) and \\(\\eta\\) are rational,\n\\[\n0<h\\le\\frac{\\epsilon}{32d},\n\\qquad\nM\\le\\frac{32d}{\\epsilon}+1,\n\\tag{14}\n\\]\nand all of these quantities have encoding length polynomial in the encoding length of \\(\\epsilon\\) and \\(d\\).\n\nRound each coordinate of an empirical atom \\(x\\) to a multiple of \\(h\\), with a deterministic tie rule, and denote the result by \\(q(x)\\). Coordinatewise rounding gives \\(|q_j(x)-x_j|\\le h\\) for \\(j=1,\\ldots,d\\). Since \\(d\\ge1\\),\n\\[\n\\|q(x)-x\\|_2\n\\le\\sum_{j=1}^d|q_j(x)-x_j|\n\\le dh.\n\\tag{15}\n\\]\nThis deliberately rational bound avoids introducing \\(\\sqrt d\\) into the certificate. For a tuple \\(x=(x_1,\\ldots,x_K)\\), define\n\\[\na=K^{-1}\\sum_{k=1}^Kx_k,\n\\qquad\na_q=K^{-1}\\sum_{k=1}^Kq(x_k).\n\\]\nUnit-ball support gives \\(\\|a\\|_2\\le1\\); (15) gives \\(\\|a-a_q\\|_2\\le dh\\), and hence \\(\\|a_q\\|_2\\le1+dh\\). By (14), \\(dh\\le\\epsilon/32<1/32\\). Therefore\n\\[\n\\begin{aligned}\n|c_K(x)-c_K(q(x))|\n&=|\\|a\\|_2^2-\\|a_q\\|_2^2|\\\\\n&\\le\\|a-a_q\\|_2(\\|a\\|_2+\\|a_q\\|_2)\\\\\n&\\le dh(2+dh)\\\\\n&\\le3dh=\\eta.\n\\end{aligned}\n\\tag{16}\n\\]\nEvery quantity on the final line is rational.\n\nMerge atoms in each arm that have the same quantized image. Write the distinct images as \\(q_{kj}\\) and their rational empirical masses as \\(\\widehat p_{kj}\\). The gridded dual linear program is\n\\[\n\\begin{aligned}\n\\text{maximize}\\quad&\\sum_{k,j}\\widehat p_{kj}u_{kj},\\\\\n\\text{subject to}\\quad&\\sum_{k=1}^Ku_{k j_k}\n\\le K^{-2}\\left\\|\\sum_{k=1}^Kq_{k j_k}\\right\\|_2^2\n\\quad\\text{for every }(j_1,\\ldots,j_K).\n\\end{aligned}\n\\tag{17}\n\\]\nIts coefficients are rational. To separate a proposed rational vector \\(u\\), define \\(D_0(0)=0\\), set all other nonexistent states to \\(+\\infty\\), and recursively compute\n\\[\nD_k(s)=\\min_{j_1,\\ldots,j_k:\\,\\sum_{\\ell=1}^kq_{\\ell j_\\ell}=s}\n\\left(-\\sum_{\\ell=1}^ku_{\\ell j_\\ell}\\right).\n\\tag{18}\n\\]\nEquivalently, each transition updates\n\\[\nD_k(s+q_{kj})\n=\\min\\{D_k(s+q_{kj}),D_{k-1}(s)-u_{kj}\\}.\n\\]\nAt the final layer,\n\\[\n\\min_s\\left\\{D_K(s)+K^{-2}\\|s\\|_2^2\\right\\}\n=\\min_{j_1,\\ldots,j_K}\n\\left\\{K^{-2}\\left\\|\\sum_kq_{k j_k}\\right\\|_2^2-\\sum_ku_{k j_k}\\right\\}.\n\\tag{19}\n\\]\nA negative minimizer supplies a violated constraint of (17), while a nonnegative minimum certifies every constraint. Thus (18)--(19) are an exact strong separation oracle, not a relaxation.\n\nEvery coordinate of \\(q_{kj}\\) is a multiple of \\(h\\) and has absolute value at most \\(1+h\\). A partial sum therefore has each coordinate in an interval of length at most \\(2K(1+h)\\). From (14), the number of partial-sum states at a layer is at most\n\\[\nO_d((K/h)^d)=O_d((K/\\epsilon)^d).\n\\tag{20}\n\\]\nThere are at most \\(m\\) transitions out of a state at each of the \\(K\\) layers. The balanced identity \\(N=Km\\) therefore bounds the total number of dynamic-programming transitions by \\(O_d(N(K/\\epsilon)^d)\\). Exact additions and comparisons involve rational numbers of polynomial encoding length.\n\nWe next verify the boundedness premise needed for oracle-polynomial optimization. The quantized points satisfy \\(\\|q_{kj}\\|_2\\le1+dh<2\\), so every cost in (17) lies in \\([0,4]\\). The product of the gridded marginals is a feasible primal coupling, and its bounded cost gives a finite primal optimum. Lemma~\\texttt{lem:finite-lp-optimization} therefore supplies finite primal and dual optimizers with equal values. Starting from an optimal dual, replace one potential at a time by its finite \\(c_K\\)-transform\n\\[\nu_k(q_{kj})\n=\\min_{(j_\\ell)_{\\ell\\ne k}}\n\\left\\{c_K(q_{1j_1},\\ldots,q_{Kj_K})-\n\\sum_{\\ell\\ne k}u_\\ell(q_{\\ell j_\\ell})\\right\\}.\n\\tag{21}\n\\]\nFeasibility of the old tuple implies that (21) can only increase \\(u_k\\); the new tuple is feasible by its definition. Since the old tuple is optimal and all marginal masses are nonnegative and sum to one, the objective cannot increase strictly. Thus sequential application of (21) preserves optimality. For any two support points \\(q,q'\\) in margin \\(k\\), the elementary inequality \\(|\\inf A-\\inf B|\\le\\sup|A-B|\\) and the cost range give\n\\[\n|u_k(q)-u_k(q')|\n\\le\\sup_{q_{-k}}|c_K(q,q_{-k})-c_K(q',q_{-k})|\n\\le4.\n\\tag{22}\n\\]\n\nChoose one reference point in every nonempty marginal support. Gauge shifts \\(u_k\\mapsto u_k+b_k\\) with \\(\\sum_kb_k=0\\) preserve both feasibility and objective. Use them to make the first \\(K-1\\) reference values zero. Equation (22) then bounds all values in those margins by \\(4\\) in absolute value. The constraint at the all-reference tuple bounds the last reference value above by \\(4\\). Conversely, the zero dual is feasible, so the optimal value is nonnegative. The first \\(K-1\\) marginal integrals are at most \\(4(K-1)\\), and the last marginal integral is at most its reference value plus \\(4\\). Hence optimality implies\n\\[\n0\\le\\sum_{k,j}\\widehat p_{kj}u_{kj}\n\\le4(K-1)+u_K(q_{K0})+4,\n\\]\nso \\(u_K(q_{K0})\\ge-4K\\). Together with (22), this places an optimal dual in a rational box of radius \\(4K+4\\), whose encoding length is polynomial.\n\nLemma~\\texttt{lem:finite-lp-optimization}, applied to (17), this rational box, and the oracle (18)--(19), now computes an optimal gridded dual value \\(L_g\\) and recovers a primal optimizer with the same value and finite rational witnesses. Its running time is polynomial in the input bit length, \\(N\\), and the state bound (20).\n\nPush any coupling of the original empirical laws forward coordinatewise through \\(q\\). This gives a feasible gridded coupling, and (16) changes its objective by at most \\(\\eta\\). Conversely, lift the gridded primal optimizer by drawing, conditional on each quantized tuple, each original coordinate from the corresponding empirical quantization fiber with its empirical conditional probabilities. This preserves every original empirical marginal, and (16) again changes the objective by at most \\(\\eta\\). Taking the respective infima gives\n\\[\nL_g-\\eta\\le L(\\widehat{\\mathbf P})\\le L_g+\\eta.\n\\tag{23}\n\\]\nThe lifted primal is an explicit certificate for the upper inequality. If \\(u\\) is the gridded dual witness, compose every potential with \\(q\\) on the original atoms and subtract \\(\\eta\\) from the first potential. By (16) and (17), for every original tuple \\(x\\),\n\\[\n\\sum_{k=1}^Ku_k(q(x_k))-\\eta\n\\le c_K(q(x))-\\eta\n\\le c_K(x).\n\\]\nThus these shifted potentials are dual feasible for the original empirical problem and have objective \\(L_g-\\eta\\), certifying the lower inequality in (23).\n\nReturn\n\\[\n\\underline L_\\epsilon=L_g-\\eta,\n\\qquad\n\\overline L_\\epsilon=L_g+\\eta.\n\\]\nEquations (13)--(14) give the rational width bound\n\\[\n\\overline L_\\epsilon-\\underline L_\\epsilon\n=2\\eta=6dh\\le\\frac{3}{16}\\epsilon<\\epsilon.\n\\]\nThis proves the stated bracket, witnesses, rational auditability, and complexity bound.",
+    "proof_basis": {
+      "ass:balanced-array": "587cbed5c04bfe0ba2e8ca09d4bd421aaaad5f8e05233387b72e652be4d3d204",
+      "ass:unit-ball-support": "f72eeba335d7c5b9fbae78a2319238ac8a4b58a9b872cdc5d92741b4878138e8",
+      "def:certified-mot": "a29bb111a57652cf497ad5e16645bfbd695b2238b5360acb60ad77e8255cc143",
+      "lem:finite-lp-optimization": "21f3ee316e32fb4fc60b0f482859acbd37c52fbba7153d6b179db2e56b3a8ee4",
+      "sym:Bd": "a8042c6cd6fdd9da3816c8642a27162070a7a12205276c9f72fec68ba2584464",
+      "sym:CertMOT": "284bb34d4f882768993381f99c2a14576543ab5797feb832015a9d478cb12f57",
+      "sym:Gamma": "85984d8e90fcb591f9c7256bdb89cf3c5c242e91c9d740e7d78a2bf880e0233b",
+      "sym:IK": "3cedce81dd96d96955d3ec2da0f1cbc00ec3815f59040fec3ca0b853d3724809",
+      "sym:K": "4783182d4a885cb4ed90c06162e7ab567e4d5780d8392b97077b4c482a8497ab",
+      "sym:L": "d16558f3f50a2bb59584d24175809f76d6108d1e1528b2fe274dbc93d22545f5",
+      "sym:Llower": "a8cd4ab8f24f0ba56fc5565f279cadfabf6a4b18d062635a91b5524553b99652",
+      "sym:Lupper": "8d362d088b7388f28cc0d98e671ecead943473362bbc70ebca1bb7004677865c",
+      "sym:N": "dcb29d2d4777ba945e997131063afcef94889b3c3a5465560c2ee49c8309928a",
+      "sym:Phat": "bb7bb84d0163b420b3ff8342b9e7e74cdbde6244393b300bcaf510035992a909",
+      "sym:Phatk": "5529e87d0a5ae73ab3025f4e1f71991d53088bd0243d7f4a2a013fa173ca483e",
+      "sym:Pk": "3db7e473f204704915ff32985836a51a84500d5833f55e3d53075754d797da61",
+      "sym:Pvec": "6cd5aedd376266b072e886d7fb38c3c95afc2fd44f17957ff4091acc67a2ee64",
+      "sym:Xki": "a87434f7b3b2e41cb93785c9c83c5270b783786f3782b55c8252b38d8d66c41e",
+      "sym:cK": "8c9e203e5571f3eb7d6ae747355b22a188c4ffd7f51c479452285199923cdccf",
+      "sym:d": "933128e031fc38359c62cfa2fde35e52836f7ee35cc1de011d8c30d673339571",
+      "sym:epsilon": "5f55caf86b7caa7eeddb7ac0741ebe2200a1ee31f8958f2bfee864f74cef8584",
+      "sym:m": "c1e59a345367f79bf9bcf10a1853ee2ec14614e693f820cc0da0c8794b2d5006",
+      "sym:zk": "c76fe02da2ca2bb7cd50e9f259cf3f9036fc6736e9cd26202995db6dbeff94e1",
+      "thm:certified-computation": "efef0ca978aae3561fe40e3c27249ba4ca24458c02580dd60a2cfce81f2e9db8"
+    }
+  }
+}

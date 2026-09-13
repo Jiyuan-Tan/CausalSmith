@@ -1,0 +1,456 @@
+{
+  "units": [
+    {
+      "unit": "thm:certified-computation",
+      "targets": [
+        "lem:subset-rounding",
+        "thm:sharp-residual-envelope",
+        "thm:optimal-sum-diameter",
+        "lem:two-margin-sanity-reduction",
+        "thm:improved-plugin-upper",
+        "thm:known-risk-sandwich",
+        "thm:large-k-frontier",
+        "thm:large-k-honest-length",
+        "thm:certified-computation",
+        "oeq:joint-dual-complexity",
+        "oeq:exact-all-k-frontier"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:subset-rounding",
+            "proof_tex": "Let \\(B:\\mathbb R^K\\to\\mathbb R^d\\) be the linear map \\(Bt=\\sum_{k=1}^Kt_ka_k\\), and consider\n\\[\nQ=\\{t\\in[0,1]^K:Bt=A/2\\}.\n\\]\nThe set \\(Q\\) is a nonempty compact polytope because \\((1/2,\\ldots,1/2)\\in Q\\). Choose an extreme point \\(t^\\star\\) of \\(Q\\), and let \\(F=\\{k:0<t_k^\\star<1\\}\\). If \\(|F|>\\operatorname{rank}(B)\\), the columns \\((a_k)_{k\\in F}\\) are linearly dependent. Hence there is a nonzero vector \\(v\\), supported on \\(F\\), such that \\(Bv=0\\). Because every coordinate in \\(F\\) is strictly between zero and one, some \\(\\eta>0\\) satisfies \\(t^\\star\\pm\\eta v\\in[0,1]^K\\). Both perturbed points belong to \\(Q\\), contradicting extremality. Thus\n\\[\n|F|\\le \\operatorname{rank}(B)\\le d,\\qquad |F|\\le K.\n\\]\nFor \\(k\\in F\\), independently draw \\(\\xi_k\\sim\\operatorname{Bernoulli}(t_k^\\star)\\); for \\(k\\notin F\\), put \\(\\xi_k=t_k^\\star\\in\\{0,1\\}\\). Then \\(I=\\{k:\\xi_k=1\\}\\) is a random subset and, using independence and the vanishing of all cross terms,\n\\[\n\\begin{aligned}\n\\mathbb E\\left\\|\\sum_{k\\in I}a_k-\\frac A2\\right\\|_2^2\n&=\\mathbb E\\left\\|\\sum_{k\\in F}(\\xi_k-t_k^\\star)a_k\\right\\|_2^2\\\\\n&=\\sum_{k\\in F}t_k^\\star(1-t_k^\\star)\\|a_k\\|_2^2\\\\\n&\\le |F|\\cdot\\frac14\\cdot4\n\\le\\min\\{K,d\\}=r.\n\\end{aligned}\n\\]\nThe random variable inside the expectation is nonnegative, so at least one realization is no larger than its expectation. Its associated subset \\(I\\) proves the claim."
+          },
+          {
+            "id": "thm:sharp-residual-envelope",
+            "proof_tex": "Write \\(M=\\sum_{k=1}^K\\mu_k=K\\bar\\mu\\). For every coupling \\(\\gamma\\in\\Gamma(\\mathbf P)\\), the sum \\(S=\\sum_kZ_k\\) has mean \\(M\\), and the bias--variance identity gives\n\\[\n\\int\\|S\\|_2^2\\,d\\gamma=\\|M\\|_2^2+\\int\\|S-M\\|_2^2\\,d\\gamma.\n\\]\nConsequently, by the definitions of \\(L\\) and \\(V\\),\n\\[\nV(\\mathbf P)=\\inf_{\\gamma\\in\\Gamma(\\mathbf P)}\\int\\|S-M\\|_2^2\\,d\\gamma\\ge0. \\tag{1}\n\\]\nFirst suppose that each marginal has finite support, say \\(P_k=\\sum_jp_{kj}\\delta_{z_{kj}}\\), where all \\(p_{kj}>0\\) and \\(z_{kj}\\in\\mathbb B_d\\) by Assumption~\\texttt{ass:unit-ball-support}. Define\n\\[\nQ=\\left\\{(q_{kj}):q_{kj}\\ge0,\\ \\sum_jq_{kj}=1\\ (1\\le k\\le K),\\\n\\sum_{k,j}q_{kj}z_{kj}=M\\right\\}.\n\\]\nThe array \\(p=(p_{kj})\\) lies in \\(Q\\). The equality matrix defining \\(Q\\) has rank at most \\(K+d\\). If a point of \\(Q\\) has more than \\(K+d\\) positive coordinates, the corresponding columns of that matrix are linearly dependent, and a sufficiently small signed perturbation supported on those positive coordinates preserves both the equalities and nonnegativity. Such a point is therefore not extreme. Thus every vertex of \\(Q\\) has at most \\(K+d\\) positive coordinates. Since each of the \\(K\\) blocks has total mass one, at most \\(d\\) blocks of a vertex can have more than one positive coordinate.\n\nThe elementary finite-dimensional vertex decomposition of a bounded polytope writes \\(p=\\sum_s\\lambda_sq^s\\), where the \\(q^s\\) are vertices, \\(\\lambda_s\\ge0\\), and \\(\\sum_s\\lambda_s=1\\). Draw \\(S_0=s\\) with probability \\(\\lambda_s\\), and, conditional on \\(S_0=s\\), draw \\(Z_1,\\ldots,Z_K\\) independently with block laws \\(q^s_1,\\ldots,q^s_K\\). The unconditional marginal of \\(Z_k\\) is \\(P_k\\), because \\(\\sum_s\\lambda_sq^s_{kj}=p_{kj}\\). The defining moment equality for \\(Q\\) gives \\(\\sum_k\\mathbb E[Z_k\\mid S_0=s]=M\\). Conditional independence now yields\n\\[\n\\begin{aligned}\n\\mathbb E[\\|S-M\\|_2^2\\mid S_0=s]\n&=\\sum_{k=1}^K\\left(\\mathbb E[\\|Z_k\\|_2^2\\mid S_0=s]\n-\\|\\mathbb E[Z_k\\mid S_0=s]\\|_2^2\\right)\\\\\n&\\le \\#\\{k:q_k^s\\text{ is nondegenerate}\\}\\\\\n&\\le\\min\\{K,d\\}=r. \\tag{2}\n\\end{aligned}\n\\]\nHere every summand is at most one by unit-ball support, and a one-atom block contributes zero. Averaging (2) proves \\(V(\\mathbf P)\\le r\\) for finite supports.\n\nFor general Borel marginals, fix \\(\\delta>0\\) and choose Borel maps \\(q_\\delta:\\mathbb B_d\\to\\mathbb B_d\\) with finite range and \\(\\|q_\\delta(x)-x\\|_2\\le\\delta\\); such maps exist by compactness of the unit ball. Apply the finite-support construction to \\(P_{k,\\delta}=(q_\\delta)_{\\#}P_k\\), obtaining a coupling of \\(Q_k=q_\\delta(Z_k)\\) for which\n\\[\n\\mathbb E\\left\\|\\sum_kQ_k-\\sum_k\\mathbb EQ_k\\right\\|_2^2\\le r.\n\\]\nLift this coupling by drawing, conditionally on each grid value \\(Q_k\\), from the corresponding fiber law of \\(P_k\\). The lifted coordinates have exactly the marginals \\(P_k\\). Since \\(\\|Z_k-Q_k\\|_2\\le\\delta\\), Minkowski's inequality gives\n\\[\n\\left(\\mathbb E\\left\\|\\sum_k(Z_k-\\mu_k)\\right\\|_2^2\\right)^{1/2}\n\\le\\sqrt r+2K\\delta.\n\\]\nIndeed, both \\(\\|\\sum_k(Z_k-Q_k)\\|_2\\) and \\(\\|\\sum_k\\mathbb E(Z_k-Q_k)\\|_2\\) are at most \\(K\\delta\\). Taking the infimum over couplings in (1) and then letting \\(\\delta\\downarrow0\\) proves \\(V(\\mathbf P)\\le r\\).\n\nFor sharpness, let \\(P_k=\\tfrac12(\\delta_{e_k}+\\delta_{-e_k})\\) for \\(1\\le k\\le r\\), and let \\(P_k=\\delta_0\\) for \\(k>r\\). These laws satisfy the support assumption and have \\(M=0\\). Under every coupling, orthogonality gives\n\\[\n\\left\\|\\sum_{k=1}^KZ_k\\right\\|_2^2=\\sum_{k=1}^r\\|Z_k\\|_2^2=r\n\\quad\\text{almost surely}.\n\\]\nThus \\(K^2L(\\mathbf P)=r\\) and \\(V(\\mathbf P)=r\\). Combining this witness with the upper bound proves both asserted suprema. Throughout this proof \\(L\\) remains the second-moment endpoint; \\(V/K^2=L-\\|\\bar\\mu\\|_2^2\\) is used only as a centered residual."
+          },
+          {
+            "id": "thm:optimal-sum-diameter",
+            "proof_tex": "Let \\(S(x)=\\sum_{k=1}^Kx_k\\). We first establish the support exchange inequality. For \\(y,z\\in\\operatorname{supp}(\\gamma^\\star)\\) and \\(I\\subseteq\\mathcal I_K\\), let \\(y^I,z^I\\) be obtained by swapping the coordinates indexed by \\(I\\) between \\(y\\) and \\(z\\). Then\n\\[\nc_K(y)+c_K(z)\\le c_K(y^I)+c_K(z^I). \\tag{3}\n\\]\nIf (3) failed strictly and \\(y\\ne z\\), continuity of \\(c_K\\) would provide disjoint neighborhoods \\(U\\ni y\\) and \\(W\\ni z\\) on which the same strict improvement holds for every pair. Both neighborhoods have positive \\(\\gamma^\\star\\)-mass by the definition of support. Remove equal positive masses from the restrictions of \\(\\gamma^\\star\\) to \\(U\\) and \\(W\\), pair the two normalized restrictions, swap the \\(I\\)-coordinates in every paired pair, and add the two resulting pushforwards. For each coordinate, the aggregate marginal before and after the swap is identical, while the objective decreases strictly. This contradicts optimality. When \\(y=z\\), (3) is immediate. Hence (3) holds on the entire support, including boundary points.\n\nPut \\(a_k=y_k-z_k\\), \\(A=\\sum_ka_k=S(y)-S(z)\\), and \\(b_I=\\sum_{k\\in I}a_k\\). Unit-ball support gives \\(\\|a_k\\|_2\\le2\\), so Lemma~\\texttt{lem:subset-rounding} applies. Since \\(S(y^I)=S(y)-b_I\\) and \\(S(z^I)=S(z)+b_I\\), multiplying (3) by \\(K^2\\) and expanding squares gives\n\\[\n\\|S(y)\\|_2^2+\\|S(z)\\|_2^2\n\\le\\|S(y)-b_I\\|_2^2+\\|S(z)+b_I\\|_2^2\n\\quad\\Longleftrightarrow\\quad\nA\\mathbin\\cdot b_I\\le\\|b_I\\|_2^2. \\tag{4}\n\\]\nThe algebraic identity\n\\[\nA\\mathbin\\cdot b_I-\\|b_I\\|_2^2\n=\\frac{\\|A\\|_2^2}{4}-\\left\\|b_I-\\frac A2\\right\\|_2^2 \\tag{5}\n\\]\nand the subset supplied by Lemma~\\texttt{lem:subset-rounding} imply, through (4)--(5),\n\\[\n\\frac{\\|S(y)-S(z)\\|_2^2}{4}=\\frac{\\|A\\|_2^2}{4}\n\\le\\left\\|b_I-\\frac A2\\right\\|_2^2\\le r.\n\\]\nTaking the supremum over support pairs proves the diameter bound.\n\nFor attainment when \\(K\\ge d\\), take \\(P_k=\\tfrac12(\\delta_{e_k}+\\delta_{-e_k})\\) for \\(k\\le d\\) and \\(P_k=\\delta_0\\) otherwise. Every feasible tuple has squared sum norm \\(d\\); hence every coupling is optimal. The product coupling has both \\((e_1,\\ldots,e_d,0,\\ldots,0)\\) and its negative in its support, and their sums are \\(2\\sqrt d\\) apart. Since \\(r=d\\), the constant is attained."
+          },
+          {
+            "id": "lem:two-margin-sanity-reduction",
+            "proof_tex": "Under the stated substitution, coordinates \\(Z_3,\\ldots,Z_K\\) equal zero almost surely. If \\(Z_1=X\\sim\\mu\\) and \\(Z_2=-Y\\) with \\(Y\\sim\\nu\\), the joint law of \\((X,Y)\\) is a coupling \\(\\pi\\in\\Gamma(\\mu,\\nu)\\), and conversely every such \\(\\pi\\) induces exactly one admissible \\(K\\)-coupling after adjoining the deterministic zero coordinates. Therefore the definition of \\(L\\) gives\n\\[\nK^2L(\\mathbf P)\n=\\inf_{\\pi\\in\\Gamma(\\mu,\\nu)}\\int\\|x-y\\|_2^2\\,d\\pi(x,y)\n=W_2^2(\\mu,\\nu).\n\\]\nNo centering term is introduced: this is an identity for the second-moment endpoint \\(L\\)."
+          },
+          {
+            "id": "thm:improved-plugin-upper",
+            "proof_tex": "Put \\(M(\\mathbf Q)=\\sum_k\\int x\\,dQ_k(x)\\) and \\(H(\\mathbf Q)=L(\\mathbf Q)-\\|M(\\mathbf Q)\\|_2^2/K^2=V(\\mathbf Q)/K^2\\). We first prove a deterministic interpolation inequality for finitely supported tuples \\(\\mathbf P,\\mathbf Q\\). Let \\(P_{k,t}=(1-t)P_k+tQ_k\\), \\(0<t<1\\), and let \\(S_k=\\operatorname{supp}(P_k)\\cup\\operatorname{supp}(Q_k)\\). Every atom of \\(S_k\\) has positive \\(P_{k,t}\\)-mass.\n\nFinite linear-programming duality from Lemma~\\texttt{lem:finite-lp-optimization} supplies an optimal primal plan \\(\\gamma_t\\) and an optimal dual tuple \\(f_{1,t},\\ldots,f_{K,t}\\) satisfying \\(\\sum_kf_{k,t}(x_k)\\le c_K(x_1,\\ldots,x_K)\\) on \\(\\prod_kS_k\\). Complementary slackness implies equality on \\(\\operatorname{supp}(\\gamma_t)\\), and every atom \\(x\\in S_k\\) occurs in some support column because the \\(k\\)-th marginal is positive at \\(x\\).\n\nFor a support column \\(z\\in\\operatorname{supp}(\\gamma_t)\\), dual feasibility implies\n\\[\nf_{k,t}(x)\\le c_K(z_1,\\ldots,z_{k-1},x,z_{k+1},\\ldots,z_K)\n-\\sum_{\\ell\\ne k}f_{\\ell,t}(z_\\ell), \\qquad x\\in S_k. \\tag{10}\n\\]\nTaking the infimum of the right side over support columns gives equality in (10) at every \\(x\\in S_k\\), because a contact column through \\(x\\) exists. Subtract the own-quadratic and common mean-linear terms and normalize at zero:\n\\[\ng_{k,t}(x)=f_{k,t}(x)-\\frac{\\|x\\|_2^2}{K^2}\n-\\frac{2M(\\mathbf P_t)\\mathbin\\cdot x}{K^2}-\\text{constant}. \\tag{11}\n\\]\nThe infimum representation following (10) extends \\(g_{k,t}\\) from \\(S_k\\) to a globally concave function whose affine slopes are\n\\[\n\\frac{2}{K^2}\\{S(z)-z_k-M(\\mathbf P_t)\\},\\qquad z\\in\\operatorname{supp}(\\gamma_t). \\tag{12}\n\\]\nBy Theorem~\\texttt{thm:optimal-sum-diameter}, the image \\(S(\\operatorname{supp}\\gamma_t)\\) has diameter at most \\(2\\sqrt r\\). Its barycenter is \\(M(\\mathbf P_t)\\), so every support sum is within \\(2\\sqrt r\\) of that barycenter. Unit-ball support and \\(r\\le d\\) therefore bound the norms in (12) by\n\\[\n\\ell_{K,d}=\\frac{2(2\\sqrt d+1)}{K^2}. \\tag{13}\n\\]\n\nThe finite LP value \\(t\\mapsto L(\\mathbf P_t)\\) is convex and piecewise linear, because its dual is a supremum of affine functions of the marginal masses. At every differentiability point, the dual subgradient inequality in both directions gives\n\\[\n\\frac d{dt}L(\\mathbf P_t)=\\sum_{k=1}^K\\int f_{k,t}\\,d(Q_k-P_k).\n\\]\nDifferentiating the mean square and using (11), then integrating over \\(t\\in(0,1)\\), yields\n\\[\n\\begin{aligned}\n|H(\\mathbf Q)-H(\\mathbf P)|\n&\\le \\frac1{K^2}\\left|\\sum_{k=1}^K\\int\\|x\\|_2^2\\,d(Q_k-P_k)\\right|\\\\\n&\\quad+\\sum_{k=1}^K\\sup_{g\\in\\mathcal C_{\\ell_{K,d}}}\n\\left|\\int g\\,d(Q_k-P_k)\\right|. \\tag{14}\n\\end{aligned}\n\\]\nThe finitely many nondifferentiability points do not affect the integral, and continuity supplies the endpoints \\(t=0,1\\).\n\nApply (14) with \\(\\mathbf Q=\\widehat{\\mathbf P}\\). Assumptions~\\texttt{ass:balanced-array} and~\\texttt{ass:product-experiment} imply that all \\(N=Km\\) observations are independent. Since \\(\\|X_{ki}\\|_2\\le1\\),\n\\[\n\\mathbb E\\|\\bar X-\\bar\\mu\\|_2^2\\le N^{-1},\\qquad\n\\mathbb E|\\|\\bar X\\|_2^2-\\|\\bar\\mu\\|_2^2|\\le2N^{-1/2}. \\tag{15}\n\\]\nThe first term in (14) is the absolute value of a centered sum of \\(N\\) variables, divided by \\(K^2m\\), and hence has expectation at most \\(1/(K\\sqrt N)\\). Lemma~\\texttt{lem:concave-empirical-process} and (13) bound the sum of the remaining \\(K\\) terms by\n\\[\nC_dK\\ell_{K,d}m^{-2/d}\\le C_dK^{-1}m^{-2/d}. \\tag{16}\n\\]\nEquations (14)--(16) prove\n\\[\n\\sup_{\\mathbf P}\\mathbb E|\\widehat L-L(\\mathbf P)|\n\\le C_d\\{N^{-1/2}+K^{-1}m^{-2/d}\\}. \\tag{17}\n\\]\nIndependently, Theorem~\\texttt{thm:sharp-residual-envelope} gives \\(0\\le H(\\mathbf Q)\\le r/K^2\\) for every tuple. Combining this with (15) gives\n\\[\n\\sup_{\\mathbf P}\\mathbb E|\\widehat L-L(\\mathbf P)|\n\\le2N^{-1/2}+r/K^2. \\tag{18}\n\\]\nTaking the better of (17) and (18), and absorbing \\(1/(K\\sqrt N)\\) into the parametric term, gives the claimed bound.\n\nIt remains to remove the finite-support reduction without adding a density or boundary assumption. Quantize every law by a finite-range Borel map \\(q_\\delta\\) with \\(\\|q_\\delta(x)-x\\|_2\\le\\delta\\), and apply the preceding argument to the quantized observations and marginals. For every tuple, the average vector moves by at most \\(\\delta\\), so its squared norm changes by at most \\((2+\\delta)\\delta\\). Pushing a coupling forward and lifting it through the finite quantization fibers give both inequalities between the original and quantized transport values. Thus both population and empirical values converge as \\(\\delta\\downarrow0\\), uniformly by the displayed cost bound. Bounded convergence passes (17)--(18) to arbitrary Borel laws.\n\nFinally, Lemma~\\texttt{lem:gao-published-highdim-displays} records the published expressions. Since \\(r/K^2<K^{-1}\\) exactly when \\(K>d\\), the cap is then strictly smaller; and \\(K^{-1}m^{-2/d}<K^{-1/2}m^{-2/d}\\) for \\(K>1\\). This proves the comparison while retaining the separate mean contribution in (15)."
+          },
+          {
+            "id": "thm:known-risk-sandwich",
+            "proof_tex": "The upper bound follows by choosing \\(T=\\widehat L\\) in Definition~\\texttt{def:minimax-risk} and applying Theorem~\\texttt{thm:improved-plugin-upper}.\n\nFor the parametric lower bound, use the two laws from Lemma~\\texttt{lem:bernoulli-two-point}; denote their endpoint gap by \\(\\Delta\\ge aN^{-1/2}\\) and their observation-law total variation by \\(\\eta\\le1/4\\). For any estimator \\(T\\), thresholding at the midpoint of the two endpoints produces a test. Therefore\n\\[\n\\begin{aligned}\n&\\mathbb E_0|T-L(\\mathbf P^{(0)})|+\\mathbb E_1|T-L(\\mathbf P^{(1)})|\\\\\n&\\qquad\\ge\\frac\\Delta2\\left\\{\\Pr_0(T>\\text{midpoint})+\\Pr_1(T\\le\\text{midpoint})\\right\\}\\\\\n&\\qquad\\ge\\frac\\Delta2(1-\\eta).\n\\end{aligned}\n\\]\nTaking the larger of the two risks and then the infimum over \\(T\\) gives \\(R_d(N,K)\\ge3aN^{-1/2}/16\\).\n\nFor the nonparametric lower bound, restrict the model to \\(P_1=\\mu\\), \\(P_2=(-\\operatorname{Id})_{\\#}\\nu\\), and \\(P_3=\\cdots=P_K=\\delta_0\\). Lemma~\\texttt{lem:two-margin-sanity-reduction} gives \\(K^2L=W_2^2(\\mu,\\nu)\\), while the last \\(K-2\\) samples are deterministic. If \\(T\\) estimates \\(L\\), then \\(K^2T\\) is an estimator of \\(W_2^2\\) from \\(m\\) observations per nondegenerate margin. Lemma~\\texttt{lem:two-sample-wasserstein-lower} therefore gives\n\\[\nR_d(N,K)\\ge c_dK^{-2}(m\\log m)^{-2/d}. \\tag{19}\n\\]\nThe constants in the two lower bounds can be decreased to a common positive \\(c_d\\), which yields their maximum. Lemma~\\texttt{lem:gao-published-highdim-displays} shows that the printed high-dimensional expression in Gao--Ge--Qian Proposition 2 is a minimum. Here the two terms in the maximum come instead from the distinct Bernoulli and two-margin submodels just proved, so no inference from that printed minimum is being made."
+          },
+          {
+            "id": "thm:large-k-frontier",
+            "proof_tex": "For the upper bound, use the single data-driven estimator \\(T_{\\mathrm{mean}}=\\|\\bar X\\|_2^2\\). Theorem~\\texttt{thm:sharp-residual-envelope} gives\n\\[\n0\\le L(\\mathbf P)-\\|\\bar\\mu\\|_2^2\\le r/K^2. \\tag{20}\n\\]\nUnder the balanced product experiment, independence, \\(N=Km\\), and \\(\\|X_{ki}\\|_2\\le1\\) give \\(\\mathbb E\\|\\bar X-\\bar\\mu\\|_2^2\\le N^{-1}\\). Hence Cauchy--Schwarz and \\(\\|\\bar X\\|_2,\\|\\bar\\mu\\|_2\\le1\\) give\n\\[\n\\mathbb E|T_{\\mathrm{mean}}-\\|\\bar\\mu\\|_2^2|\\le2N^{-1/2}.\n\\]\nThus Definition~\\texttt{def:minimax-risk} and (20) imply\n\\[\nR_d(N,K)\\le2N^{-1/2}+r/K^2. \\tag{21}\n\\]\nThe midpoint-test argument applied to Lemma~\\texttt{lem:bernoulli-two-point} gives \\(R_d(N,K)\\ge cN^{-1/2}\\) for a universal \\(c>0\\), as in the proof of Theorem~\\texttt{thm:known-risk-sandwich}.\n\nIf \\(K\\ge c_0N^{1/4}\\), then \\(r\\le d\\) and\n\\[\n\\frac r{K^2}\\le\\frac d{c_0^2}N^{-1/2}.\n\\]\nCombining this with (21) and the lower bound proves \\(R_d(N,K)\\asymp N^{-1/2}\\), with constants depending only on \\(d\\) and \\(c_0\\). The legal-array condition \\(m=N/K\\to\\infty\\) specifies the allowed triangular sequences; no limit interchange is needed because all displayed inequalities are finite-sample and uniform."
+          },
+          {
+            "id": "thm:large-k-honest-length",
+            "proof_tex": "Let \\(\\varepsilon_N=(\\alpha N)^{-1/2}\\). Under Assumptions~\\texttt{ass:balanced-array} and~\\texttt{ass:product-experiment}, unit-ball support gives\n\\[\n\\mathbb E\\|\\bar X-\\bar\\mu\\|_2^2\\le N^{-1}.\n\\]\nThe pointwise inequality \\(\\mathbf 1\\{\\|\\bar X-\\bar\\mu\\|_2>\\varepsilon_N\\}\\le\\|\\bar X-\\bar\\mu\\|_2^2/\\varepsilon_N^2\\) therefore gives\n\\[\n\\Pr_{\\mathbf P}(\\|\\bar X-\\bar\\mu\\|_2\\le\\varepsilon_N)\\ge1-\\alpha. \\tag{22}\n\\]\nOn the event in (22), the reverse triangle inequality implies\n\\[\nB_N^{\\mathrm{mean}}\n=\\bigl(\\max\\{0,\\|\\bar X\\|_2-\\varepsilon_N\\}\\bigr)^2\n\\le\\|\\bar\\mu\\|_2^2\\le L(\\mathbf P),\n\\]\nwhere the last inequality is the nonnegativity conclusion of Theorem~\\texttt{thm:sharp-residual-envelope}. Hence \\(B_N^{\\mathrm{mean}}\\in\\mathcal H_\\alpha\\).\n\nFor expected excess length, Theorem~\\texttt{thm:sharp-residual-envelope} and the inequalities \\(|u^2-v^2|\\le2|u-v|\\) for \\(u,v\\in[0,1]\\) and \\(v^2-(v-\\varepsilon)_+^2\\le2\\varepsilon\\) give\n\\[\n\\begin{aligned}\n\\mathbb E[(L(\\mathbf P)-B_N^{\\mathrm{mean}})_+]\n&\\le r/K^2+2\\mathbb E\\|\\bar X-\\bar\\mu\\|_2+2\\varepsilon_N\\\\\n&\\le r/K^2+2N^{-1/2}+2(\\alpha N)^{-1/2}. \\tag{23}\n\\end{aligned}\n\\]\nThis proves the stated upper bound from Definition~\\texttt{def:minimax-excess-length}.\n\nFor the converse, take the ordered pair from Lemma~\\texttt{lem:bernoulli-two-point}, with \\(L_1-L_0=\\Delta\\ge aN^{-1/2}\\) and total variation \\(\\eta\\le1/4\\). If \\(B_N\\in\\mathcal H_\\alpha\\), honesty at the low law gives \\(\\Pr_0(B_N\\le L_0)\\ge1-\\alpha\\), and the total-variation inequality gives\n\\[\n\\Pr_1(B_N\\le L_0)\\ge1-\\alpha-\\eta\\ge\\frac12,\n\\]\nbecause \\(\\alpha<1/4\\). On this event, \\((L_1-B_N)_+\\ge\\Delta\\), so\n\\[\n\\sup_{\\mathbf P}\\mathbb E_{\\mathbf P}[(L(\\mathbf P)-B_N)_+]\n\\ge\\frac\\Delta2\\ge\\frac a2N^{-1/2}. \\tag{24}\n\\]\nTaking the infimum over honest bounds proves the lower bound. Finally, when \\(K\\ge c_0N^{1/4}\\), the same calculation \\(r/K^2\\le d c_0^{-2}N^{-1/2}\\) applied to (23) yields the asserted rate. As in the point-estimation result, the legal-array assumption only restricts the admissible limiting sequences."
+          },
+          {
+            "id": "thm:certified-computation",
+            "proof_tex": "The rationality restriction on \\(\\epsilon\\) makes the asserted bit-complexity well typed. Choose a rational coordinate mesh \\(h\\le\\epsilon/(32\\sqrt d)\\), and round every empirical atom \\(x\\) to a rational grid point \\(q(x)\\) with\n\\[\n\\|q(x)-x\\|_2\\le\\delta:=\\sqrt d\\,h\\le\\epsilon/32.\n\\]\nFor a tuple \\(x=(x_1,\\ldots,x_K)\\), put \\(a=K^{-1}\\sum_kx_k\\) and \\(a_q=K^{-1}\\sum_kq(x_k)\\). Then \\(\\|a-a_q\\|_2\\le\\delta\\), \\(\\|a\\|_2\\le1\\), and \\(\\|a_q\\|_2\\le1+\\delta\\), so\n\\[\n|c_K(x)-c_K(q(x))|\n=|\\|a\\|_2^2-\\|a_q\\|_2^2|\n\\le(2+\\delta)\\delta=:\\eta<\\epsilon/8. \\tag{25}\n\\]\nMerge equal grid points within each arm and write their rational masses as \\(\\widehat p_{kj}\\). The gridded dual is\n\\[\n\\begin{aligned}\n\\text{maximize }&\\sum_{k,j}\\widehat p_{kj}u_{kj}\\\\\n\\text{subject to }&\\sum_{k=1}^Ku_{k j_k}\\le\nK^{-2}\\left\\|\\sum_{k=1}^Kq_{k j_k}\\right\\|_2^2\n\\quad\\text{for every }(j_1,\\ldots,j_K). \\tag{26}\n\\end{aligned}\n\\]\nGiven \\(u\\), separation in (26) amounts to minimizing reduced cost. At layer \\(k\\), dynamic programming stores, for every attainable partial grid sum \\(s\\),\n\\[\nD_k(s)=\\min_{j_1,\\ldots,j_k:\\ \\sum_{\\ell\\le k}q_{\\ell j_\\ell}=s}\n\\left(-\\sum_{\\ell\\le k}u_{\\ell j_\\ell}\\right).\n\\]\nThe recursion \\(D_k(s+q_{kj})=\\min\\{D_k(s+q_{kj}),D_{k-1}(s)-u_{kj}\\}\\) is exact. At the final layer it minimizes \\(D_K(s)+K^{-2}\\|s\\|_2^2\\), thereby either returning a violated column or certifying feasibility.\n\nEach coordinate of a partial sum lies in an interval of length \\(O(K)\\) and is an integer multiple of \\(h\\). Hence the number of states is\n\\[\nO_d((K/h)^d)=O_d((K/\\epsilon)^d), \\tag{27}\n\\]\nand all \\(K\\) layers require \\(O(N)\\) transitions per state because \\(N=Km\\), by Assumption~\\texttt{ass:balanced-array}. The numbers in the recursion have polynomial encoding length.\n\nFor completeness, the dual feasible region admits a polynomial bounding normalization. Replacing each potential by its finite \\(c\\)-transform does not decrease a feasible dual objective, and bounds its oscillation by the oscillation of \\(c_K\\), which is \\(O(1)\\) on the slightly enlarged grid ball. Gauge shifts with total shift zero set one reference value to zero in the first \\(K-1\\) margins. The constraint at the reference tuple bounds the remaining reference value above, and comparison with the feasible zero dual and the \\(O(1)\\) oscillation bounds it below by \\(-O(K)\\). Thus an optimal dual lies in a rational box of radius \\(O(K)\\).\n\nLemma~\\texttt{lem:finite-lp-optimization}, applied with the separation oracle above and the bounding box, computes equal gridded primal and dual values \\(L_g\\), together with witnesses, in time polynomial in the input bit length, \\(N\\), and (27). Lift the gridded primal through each finite quantization fiber, splitting mass according to the empirical conditional proportions. This preserves every original empirical marginal. Conversely, pushing any original coupling through \\(q\\) gives a feasible gridded coupling. Equation (25) consequently implies\n\\[\nL_g-\\eta\\le L(\\widehat{\\mathbf P})\\le L_g+\\eta. \\tag{28}\n\\]\nThe lifted primal certifies the upper inequality. If \\(u\\) is the gridded dual witness, then composing \\(u_{kj}\\) with \\(q\\) and subtracting \\(\\eta\\) from one coordinate potential makes the dual constraint feasible for the original atoms by (25); its objective is \\(L_g-\\eta\\), certifying the lower inequality. Return\n\\[\n\\underline L_\\epsilon=L_g-\\eta,\\qquad\n\\overline L_\\epsilon=L_g+\\eta.\n\\]\nBy (25), their gap \\(2\\eta<\\epsilon\\). All transformations use rational arithmetic, so the two witnesses and the bracket are auditable finite certificates."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:convex-entropy-and-dudley",
+            "kind": "lemma",
+            "statement": "Let \\(Q_n\\) be the empirical law of \\(n\\) independent observations from a probability law \\(Q\\) on \\(\\mathbb R^d\\), and write \\(\\mathcal N(\\varepsilon,\\mathcal G,\\rho)\\) for a covering number. For every measurable function class \\(\\mathcal G\\), the expected empirical supremum is bounded, up to a universal constant, by\n\\[\n\\mathbb E\\inf_{\\tau>0}\\left\\{\\tau+n^{-1/2}\\int_\\tau^\\infty\n\\sqrt{\\log \\mathcal N(\\varepsilon,\\mathcal G,L^2(Q_n))}\\,d\\varepsilon\\right\\}.\n\\]\nMoreover, if \\(\\mathcal F_{L,U}([a,b]^d)\\) is the class of convex \\(L\\)-Lipschitz functions on \\([a,b]^d\\) with absolute value at most \\(U\\), then for universal \\(C,\\varepsilon_0>0\\),\n\\[\n\\log \\mathcal N\\!\\left(\\varepsilon,\\mathcal F_{L,U}([a,b]^d),L^\\infty\\right)\n\\le C\\left(\\frac{U+L(b-a)}{\\varepsilon}\\right)^{d/2}\n\\]\nwhenever \\(0<\\varepsilon\\le\\varepsilon_0\\{U+L(b-a)\\}\\).",
+            "free_symbols": [
+              "d"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "manole_nilesweed_2024",
+              "locator": "Lemmas 6 and 7, equations (22) and (26)",
+              "carrier": "logical-claim",
+              "verbatim_statement": "Writing \\(N(\\epsilon,A,\\eta)\\) for the source's covering number: \\(\\mathbb E[\\sup_{g\\in\\mathcal G}\\int g\\,d(\\mu_n-\\mu)]\\lesssim\\mathbb E[\\inf_{\\tau>0}\\{\\tau+n^{-1/2}\\int_\\tau^\\infty\\sqrt{\\log N(\\epsilon,\\mathcal G,L^2(\\mu_n))}\\,d\\epsilon\\}]\\); \\(\\log N(\\epsilon,\\mathcal F_{L,U}([a,b]^d),L^\\infty)\\le C((U+L(b-a))/\\epsilon)^{d/2}\\).",
+              "url": "https://arxiv.org/abs/2106.13181",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Transcribed from the displayed conclusions of Lemmas 6 and 7 in the published-paper preprint."
+              }
+            }
+          },
+          {
+            "id": "lem:concave-empirical-process",
+            "kind": "lemma",
+            "statement": "For fixed \\(d>4\\), let \\(Q\\) be any Borel probability law on \\(\\mathbb B_d\\), let \\(Q_m\\) be its empirical law from \\(m\\) independent observations, and let \\(\\mathcal C_\\ell\\) be the restrictions to \\(\\mathbb B_d\\) of globally concave \\(\\ell\\)-Lipschitz functions \\(g:\\mathbb R^d\\to\\mathbb R\\) satisfying \\(g(0)=0\\). There is \\(C_d<\\infty\\), independent of \\(Q\\), \\(m\\), and \\(\\ell\\), such that\n\\[\n\\mathbb E\\sup_{g\\in\\mathcal C_\\ell}\\left|\\int g\\,d(Q_m-Q)\\right|\n\\le C_d\\ell m^{-2/d}.\n\\]",
+            "free_symbols": [
+              "d",
+              "Bd",
+              "m",
+              "Cd"
+            ],
+            "depends_on": [
+              "lem:convex-entropy-and-dudley"
+            ],
+            "proof_tex": "For \\(g\\in\\mathcal C_\\ell\\), global Lipschitzness and \\(g(0)=0\\) imply \\(|g(x)|\\le\\ell\\sqrt d\\) on \\([-1,1]^d\\). The function \\(-g\\) is convex there. The entropy clause of Lemma~\\texttt{lem:convex-entropy-and-dudley}, applied with \\(L=\\ell\\), \\(U=\\ell\\sqrt d\\), \\(a=-1\\), and \\(b=1\\), therefore gives\n\\[\n\\log \\mathcal N(\\varepsilon,\\mathcal C_\\ell,L^\\infty(\\mathbb B_d))\n\\le C_d(\\ell/\\varepsilon)^{d/2}. \\tag{6}\n\\]\nThe same estimate applies to the negatives of the functions in \\(\\mathcal C_\\ell\\). Applying the Dudley clause of that lemma to the union of the two classes turns the supremum into an absolute supremum and, for every \\(0<\\tau\\le C_d\\ell\\), gives\n\\[\n\\mathbb E\\sup_{g\\in\\mathcal C_\\ell}\\left|\\int g\\,d(Q_m-Q)\\right|\n\\le C_d\\left\\{\\tau+m^{-1/2}\\ell^{d/4}\\int_\\tau^{C_d\\ell}\n\\varepsilon^{-d/4}\\,d\\varepsilon\\right\\}. \\tag{7}\n\\]\nBecause \\(d>4\\), the integral in (7) is at most \\(C_d\\tau^{1-d/4}\\). Choosing \\(\\tau=\\ell m^{-2/d}\\) yields\n\\[\nm^{-1/2}\\ell^{d/4}\\tau^{1-d/4}=\\ell m^{-2/d}.\n\\]\nSubstitution in (7) proves the asserted uniform bound. The cases \\(\\ell=0\\) and bounded \\(m\\) are immediate from normalization and are also covered by enlarging \\(C_d\\).",
+            "status": "proved"
+          },
+          {
+            "id": "lem:gao-published-highdim-displays",
+            "kind": "lemma",
+            "statement": "Writing \\(N=Km\\), Gao--Ge--Qian Theorem 1 displays, for \\(d>4\\), the upper-rate expression\n\\[\nN^{-1/2}+\\min\\{K^{-1},K^{-1/2}m^{-2/d}\\},\n\\]\nwhereas their Proposition 2 prints the high-dimensional lower-rate expression\n\\[\n\\min\\{K^{-2}(m\\log m)^{-2/d},N^{-1/2}\\}.\n\\]",
+            "free_symbols": [
+              "d",
+              "N",
+              "K",
+              "m"
+            ],
+            "depends_on": [
+              "ass:balanced-array"
+            ],
+            "status": "cited",
+            "source": {
+              "cite": "gao_ge_qian_2025",
+              "locator": "Theorem 1, display (6), and Proposition 2",
+              "carrier": "logical-claim",
+              "verbatim_statement": "\\(n^{-1/2}+(1/K)\\wedge K^{-1/2}(n/K)^{-2/d}\\) for \\(d>4\\); \\(K^{-2}(n/K\\log(n/K))^{-2/d}\\wedge n^{-1/2}\\) for \\(d>4\\).",
+              "url": "https://proceedings.mlr.press/v258/gao25b.html",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Transcribed from the PMLR published PDF; the node only renames total sample size from \\(n\\) to \\(N\\) and writes \\(m=N/K\\)."
+              }
+            }
+          },
+          {
+            "id": "lem:manole-nilesweed-general-lower",
+            "kind": "lemma",
+            "statement": "Let \\(\\mathcal X,\\mathcal Y\\subset\\mathbb R^d\\) be compact convex sets with nonempty interior. Suppose \\(h\\) is nonnegative, convex, and even, and there is a convex open neighborhood \\(\\mathcal Z_1\\) of \\(\\mathcal X-\\mathcal Y\\) on which \\(0\\le h\\le1\\) and \\(\\|h\\|_{\\mathcal C^2(\\mathcal Z_1)}<\\infty\\). Suppose also that there are \\(x_0\\in\\operatorname{int}(\\mathcal X)\\), \\(y_0\\in\\operatorname{int}(\\mathcal Y)\\), \\(z_0=x_0-y_0\\), and \\(\\lambda>0\\) such that\n\\[\nh(z)-h(z_0)\\ge \\nabla h(z_0)\\mathbin\\cdot(z-z_0)+\\lambda\\|z-z_0\\|_2^2\n\\quad\\text{for every }z\\in\\mathcal X-\\mathcal Y.\n\\]\nFor the transport cost \\(\\mathcal T_h(\\mu,\\nu)=\\inf_{\\pi\\in\\Gamma(\\mu,\\nu)}\\int h(x-y)\\,d\\pi\\), there is \\(C>0\\), depending only on the displayed fixed objects and \\(d\\), such that\n\\[\n\\inf_{\\widehat{\\mathcal T}}\\sup_{\\mu\\in\\mathcal P(\\mathcal X),\\,\\nu\\in\\mathcal P(\\mathcal Y)}\n\\mathbb E_{\\mu,\\nu}|\\widehat{\\mathcal T}-\\mathcal T_h(\\mu,\\nu)|\n\\ge C(m\\log m)^{-2/d}.\n\\]",
+            "free_symbols": [
+              "d",
+              "m",
+              "Gamma"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "manole_nilesweed_2024",
+              "locator": "Theorem 22 specialized to the smoothness exponent \\(\\alpha=2\\), with conditions (H0), (H1), and (H4)",
+              "carrier": "logical-claim",
+              "verbatim_statement": "\\(\\inf_{\\widehat{\\mathcal T}_n}\\sup_{\\mu\\in\\mathcal P(\\mathcal X),\\nu\\in\\mathcal P(\\mathcal Y)}\\mathbb E_{\\mu,\\nu}|\\widehat{\\mathcal T}_n-\\mathcal T_c(\\mu,\\nu)|\\ge C(n\\log n)^{-\\alpha/d}\\).",
+              "url": "https://doi.org/10.1214/23-AAP1986",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Transcribed from Theorem 22; the node spells out the source conditions in the only case used here, \\(\\alpha=2\\)."
+              }
+            }
+          },
+          {
+            "id": "lem:two-sample-wasserstein-lower",
+            "kind": "lemma",
+            "statement": "For fixed \\(d\\ge5\\), there is \\(c_d>0\\) such that, from \\(m\\) independent observations from each of arbitrary \\(\\mu,\\nu\\in\\mathcal P(\\mathbb B_d)\\),\n\\[\n\\inf_{\\widehat W}\\sup_{\\mu,\\nu\\in\\mathcal P(\\mathbb B_d)}\n\\mathbb E_{\\mu,\\nu}|\\widehat W-W_2^2(\\mu,\\nu)|\n\\ge c_d(m\\log m)^{-2/d},\n\\]\nwhere the infimum ranges over all Borel-measurable estimators.",
+            "free_symbols": [
+              "d",
+              "m",
+              "Bd",
+              "mu",
+              "nu",
+              "W2",
+              "cd"
+            ],
+            "depends_on": [
+              "lem:manole-nilesweed-general-lower"
+            ],
+            "proof_tex": "Apply Lemma~\\texttt{lem:manole-nilesweed-general-lower} with \\(\\mathcal X=\\mathcal Y=\\tfrac14\\mathbb B_d\\) and \\(h(z)=\\|z\\|_2^2\\). These sets are compact, convex, contained in \\(\\mathbb B_d\\), and have nonempty interior. On the open ball \\(\\mathcal Z_1=\\{z:\\|z\\|_2<3/4\\}\\), which contains \\(\\mathcal X-\\mathcal Y\\), \\(h\\) is nonnegative, at most \\(9/16\\), even, convex, and has finite \\(\\mathcal C^2\\)-norm. With \\(x_0=y_0=0\\), \\(z_0=0\\), and \\(\\lambda=1\\),\n\\[\nh(z)-h(0)=\\|z\\|_2^2=\\nabla h(0)\\mathbin\\cdot z+\\lambda\\|z\\|_2^2.\n\\]\nThus every premise of the cited theorem is satisfied, and it gives the asserted lower bound over laws supported on \\(\\tfrac14\\mathbb B_d\\). This class is a subclass of \\(\\mathcal P(\\mathbb B_d)\\), so enlarging the supremum preserves the lower bound. Finally \\(\\mathcal T_h=W_2^2\\) by the definition of \\(W_2\\).",
+            "status": "proved"
+          },
+          {
+            "id": "lem:finite-lp-optimization",
+            "kind": "lemma",
+            "statement": "Every feasible finite rational linear program with finite optimum has primal and dual optimal solutions with equal objective values. If a rational, well-described dual polyhedron has a polynomial-size bounding ball and a polynomial-time strong separation oracle, the ellipsoid optimization--separation method computes both an optimal dual solution and a primal certificate in time polynomial in the encoding length and the oracle complexity.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "doi:10.1007/978-3-642-97881-4",
+              "locator": "Groetschel--Lovasz--Schrijver, Geometric Algorithms and Combinatorial Optimization, Chapter 6, optimization--separation equivalence for well-described polyhedra",
+              "carrier": "logical-claim",
+              "url": "https://doi.org/10.1007/978-3-642-97881-4",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Stable DOI supplied for the standard rational linear-programming duality and strong optimization--strong separation result."
+              }
+            }
+          },
+          {
+            "id": "lem:bernoulli-two-point",
+            "kind": "lemma",
+            "statement": "There is a universal constant \\(a>0\\) such that, whenever \\(N=Km\\), \\(K\\ge3\\), and \\(m\\ge2\\), two tuples \\(\\mathbf P^{(0)},\\mathbf P^{(1)}\\in\\mathcal P(\\mathbb B_d)^K\\) can be chosen with\n\\[\nL(\\mathbf P^{(1)})-L(\\mathbf P^{(0)})\\ge aN^{-1/2}\n\\quad\\text{and}\\quad\n\\operatorname{TV}\\!\\left(\\bigotimes_{k=1}^K(P_k^{(0)})^{\\otimes m},\n\\bigotimes_{k=1}^K(P_k^{(1)})^{\\otimes m}\\right)\\le\\frac14.\n\\]\nMore precisely, one may take all \\(K\\) marginals equal to \\((1-p_j)\\delta_0+p_j\\delta_{e_1}\\), with \\(p_0=1/2\\) and \\(p_1=1/2+aN^{-1/2}\\).",
+            "free_symbols": [
+              "d",
+              "N",
+              "K",
+              "m",
+              "Pk",
+              "Pvec",
+              "Bd",
+              "L"
+            ],
+            "depends_on": [
+              "ass:balanced-array",
+              "ass:product-experiment"
+            ],
+            "proof_tex": "For \\(p\\in[0,1]\\), take every marginal to be \\((1-p)\\delta_0+p\\delta_{e_1}\\), and let \\(T=\\sum_{k=1}^K\\mathbf 1\\{Z_k=e_1\\}\\). Write \\(Kp=b+s\\), where \\(b=\\lfloor Kp\\rfloor\\) and \\(s\\in[0,1)\\). The affine line through \\((b,b^2)\\) and \\((b+1,(b+1)^2)\\) lies below \\(t\\mapsto t^2\\) at every integer \\(t\\). Since \\(\\mathbb ET=Kp\\), every coupling obeys\n\\[\n\\mathbb ET^2\\ge(1-s)b^2+s(b+1)^2. \\tag{8}\n\\]\nEquality is attainable: draw \\(T=b\\) or \\(b+1\\) with probabilities \\(1-s\\) and \\(s\\), and, conditional on \\(T\\), choose uniformly a subset of \\(T\\) arms to equal \\(e_1\\). Each arm then has success probability \\(\\mathbb ET/K=p\\). Hence\n\\[\nL_K(p):=L(\\mathbf P(p))=K^{-2}\\{(1-s)b^2+s(b+1)^2\\}. \\tag{9}\n\\]\nOn every linear segment with \\(p\\ge1/2\\), the slope of (9) is \\((2b+1)/K\\ge1\\); the same inequality survives crossings of its finitely many knots by continuity and summation over segments. Thus \\(L_K(p_1)-L_K(p_0)\\ge p_1-p_0\\).\n\nChoose \\(a=1/16\\), \\(p_0=1/2\\), and \\(p_1=1/2+aN^{-1/2}\\). Since \\(N=Km\\ge6\\), \\(p_1-p_0\\le1/4\\). Put \\(\\delta=aN^{-1/2}\\). The one-observation chi-square divergence, with the high law as reference, is\n\\[\n\\chi^2(\\operatorname{Ber}(1/2),\\operatorname{Ber}(1/2+\\delta))\n=\\frac{\\delta^2}{(1/2+\\delta)(1/2-\\delta)}\n\\le6\\delta^2.\n\\]\nFor products, direct expansion of the likelihood-ratio square gives \\(1+\\chi^2(P^{\\otimes N},Q^{\\otimes N})=\\{1+\\chi^2(P,Q)\\}^N\\). Hence the product-experiment assumption and \\(N=Km\\) imply\n\\[\n\\chi^2(\\mathbb P_0,\\mathbb P_1)\\le e^{6N\\delta^2}-1=e^{6a^2}-1.\n\\]\nCauchy--Schwarz applied to the likelihood ratio gives\n\\[\n\\operatorname{TV}(\\mathbb P_0,\\mathbb P_1)\n=\\frac12\\mathbb E_1\\left|\\frac{d\\mathbb P_0}{d\\mathbb P_1}-1\\right|\n\\le\\frac12\\sqrt{\\chi^2(\\mathbb P_0,\\mathbb P_1)}\n<\\frac14.\n\\]\nEquation (9) gives endpoint separation at least \\(aN^{-1/2}\\), completing the construction.",
+            "status": "proved"
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "thm:certified-computation",
+            "proposed": "For fixed \\(d\\), rational empirical input, rational \\(0<\\epsilon<1\\), and \\(N=Km\\), \\(\\mathsf{CertMOT}_\\epsilon\\) returns \\(\\underline L_\\epsilon\\le L(\\widehat{\\mathbf P})\\le\\overline L_\\epsilon\\) with \\(\\overline L_\\epsilon-\\underline L_\\epsilon\\le\\epsilon\\), together with primal and dual witnesses, in time polynomial in the input bit length, \\(N\\), and \\((K/\\epsilon)^d\\).",
+            "reason": "A bit-complexity claim is well typed only when the requested accuracy \\(\\epsilon\\) has a finite encoding; the balanced identity \\(N=Km\\) is also needed to express the dynamic-program transition count in terms of \\(N\\).",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:improved-plugin-upper",
+            "proposed": {
+              "id": "thm:improved-plugin-upper",
+              "kind": "theorem",
+              "statement": "There is \\(C_d<\\infty\\) such that \\(\\sup_{\\mathbf P}\\mathbb E_{\\mathbf P}|\\widehat L-L(\\mathbf P)|\\le C_d[N^{-1/2}+\\min\\{r/K^2,\\ K^{-1}m^{-2/d}\\}]\\). Relative to Gao--Ge--Qian Theorem 1, the cap improves from \\(K^{-1}\\) to \\(rK^{-2}\\), strictly when \\(K>d\\), and the active high-dimensional term improves from \\(K^{-1/2}m^{-2/d}\\) to \\(K^{-1}m^{-2/d}\\).",
+              "free_symbols": [
+                "d",
+                "Pvec",
+                "Lhat",
+                "L",
+                "N",
+                "K",
+                "m",
+                "r",
+                "Cd"
+              ],
+              "depends_on": [
+                "ass:balanced-array",
+                "ass:product-experiment",
+                "ass:unit-ball-support",
+                "def:empirical-endpoint",
+                "thm:sharp-residual-envelope",
+                "thm:optimal-sum-diameter",
+                "lem:finite-lp-optimization",
+                "lem:concave-empirical-process",
+                "lem:gao-published-highdim-displays"
+              ],
+              "status": "to-prove",
+              "justification": "The first theorem-level advance sharpens the published plug-in guarantee using shared squared-sum geometry rather than separate arm envelopes.",
+              "gap": "Gao--Ge--Qian Theorem 1 gives \\(N^{-1/2}+\\min\\{K^{-1},K^{-1/2}m^{-2/d}\\}\\) when \\(d>4\\); no located closer paper proves the displayed \\(r\\)-controlled bound for arbitrary marginals.",
+              "consumer": "The rate determines how much sampling uncertainty must be deducted from an empirical causal lower endpoint."
+            },
+            "reason": "The proof uses the declared convex-entropy theorem, finite linear-programming duality, and the verified published comparison display; these dependencies must be explicit.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:known-risk-sandwich",
+            "proposed": {
+              "id": "thm:known-risk-sandwich",
+              "kind": "theorem",
+              "statement": "For constants \\(0<c_d\\le C_d<\\infty\\), \\(c_d\\max\\{N^{-1/2},K^{-2}(m\\log m)^{-2/d}\\}\\le R_d(N,K)\\le C_d[N^{-1/2}+\\min\\{r/K^2,K^{-1}m^{-2/d}\\}]\\). The lower maximum is obtained from two distinct submodels and is not attributed to the printed minimum in Gao--Ge--Qian Proposition 2.",
+              "free_symbols": [
+                "d",
+                "N",
+                "K",
+                "m",
+                "Rdk",
+                "r",
+                "cd",
+                "Cd"
+              ],
+              "depends_on": [
+                "ass:balanced-array",
+                "ass:product-experiment",
+                "def:minimax-risk",
+                "lem:two-margin-sanity-reduction",
+                "thm:improved-plugin-upper",
+                "lem:bernoulli-two-point",
+                "lem:two-sample-wasserstein-lower",
+                "lem:gao-published-highdim-displays"
+              ],
+              "status": "to-prove",
+              "justification": "The honest sandwich exposes every currently verified polynomial and logarithmic gap instead of promoting the plug-in upper bound to a minimax answer.",
+              "gap": "Manole--Niles-Weed leave logarithmic slack even for the two-margin all-estimator lower bound, while Gao--Ge--Qian do not close the \\(d>4\\) all-\\(K\\) frontier.",
+              "consumer": "A solver can see exactly which arm-count and logarithmic factors need a new construction rather than re-proving settled root-\\(N\\) behavior."
+            },
+            "reason": "The two independent lower-bound submodels and the source of the printed comparator expression are now materialized as load-bearing nodes.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:large-k-frontier",
+            "proposed": {
+              "id": "thm:large-k-frontier",
+              "kind": "theorem",
+              "statement": "There are constants \\(c_d,C_d,c_0>0\\) such that \\(c_dN^{-1/2}\\le R_d(N,K)\\le C_d(N^{-1/2}+r/K^2)\\); hence \\(R_d(N,K)\\asymp N^{-1/2}\\) uniformly along every legal array satisfying \\(K\\ge c_0N^{1/4}\\).",
+              "free_symbols": [
+                "d",
+                "N",
+                "K",
+                "Rdk",
+                "r",
+                "cd",
+                "Cd",
+                "c0"
+              ],
+              "depends_on": [
+                "ass:balanced-array",
+                "ass:product-experiment",
+                "ass:legal-triangular-array",
+                "def:minimax-risk",
+                "thm:sharp-residual-envelope",
+                "lem:bernoulli-two-point"
+              ],
+              "status": "to-prove",
+              "justification": "The exact root-\\(N\\) region is already obtainable from deterministic geometry and a mean-driven Le Cam experiment.",
+              "gap": "Gao--Ge--Qian establish minimax optimality only for \\(d\\le4\\); the theorem supplies an unrestricted \\(d>4\\) growing-arm region without density assumptions.",
+              "consumer": "Studies with many outcome regimes can bypass a prohibitively large MOT problem and estimate the endpoint at the parametric rate."
+            },
+            "reason": "The uniform parametric converse uses the explicit Bernoulli testing pair and must declare it.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:large-k-honest-length",
+            "proposed": {
+              "id": "thm:large-k-honest-length",
+              "kind": "theorem",
+              "statement": "For constants \\(0<c_{d,\\alpha}\\le C_{d,\\alpha}<\\infty\\), \\(c_{d,\\alpha}N^{-1/2}\\le E_{d,\\alpha}(N,K)\\le C_{d,\\alpha}(N^{-1/2}+r/K^2)\\), and \\(B_N^{\\mathrm{mean}}\\in\\mathcal H_\\alpha\\). Consequently \\(E_{d,\\alpha}(N,K)\\asymp N^{-1/2}\\) when \\(K\\ge c_0N^{1/4}\\).",
+              "free_symbols": [
+                "d",
+                "alpha",
+                "N",
+                "K",
+                "Edak",
+                "r",
+                "Bmean",
+                "Halpha",
+                "cdalpha",
+                "Cdalpha",
+                "c0"
+              ],
+              "depends_on": [
+                "ass:balanced-array",
+                "ass:product-experiment",
+                "ass:legal-triangular-array",
+                "def:honest-bounds",
+                "def:minimax-excess-length",
+                "def:mean-lower-bound",
+                "thm:sharp-residual-envelope",
+                "lem:bernoulli-two-point"
+              ],
+              "status": "to-prove",
+              "justification": "Uniform coverage and expected shortfall are treated as a decision problem distinct from point estimation.",
+              "gap": "Ji--Lei--Spector prove broad dual-feasible uniform validity, and Manole--Balakrishnan--Wasserman prove near-minimax intervals for sliced Wasserstein distance; neither gives this all-arm one-sided endpoint-length converse.",
+              "consumer": "A reported MOT tightening can be accompanied by a lower confidence endpoint whose worst-case conservatism is quantitatively controlled."
+            },
+            "reason": "The one-sided expected-length converse uses the ordered Bernoulli testing pair and must declare it.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:certified-computation",
+            "proposed": {
+              "id": "thm:certified-computation",
+              "kind": "theorem",
+              "statement": "For fixed \\(d\\), rational empirical input, rational \\(0<\\epsilon<1\\), and \\(N=Km\\), \\(\\mathsf{CertMOT}_\\epsilon\\) returns \\(\\underline L_\\epsilon\\le L(\\widehat{\\mathbf P})\\le\\overline L_\\epsilon\\) with \\(\\overline L_\\epsilon-\\underline L_\\epsilon\\le\\epsilon\\), together with primal and dual witnesses, in time polynomial in the input bit length, \\(N\\), and \\((K/\\epsilon)^d\\).",
+              "free_symbols": [
+                "d",
+                "epsilon",
+                "CertMOT",
+                "L",
+                "Phat",
+                "N",
+                "K",
+                "Llower",
+                "Lupper",
+                "m"
+              ],
+              "depends_on": [
+                "ass:unit-ball-support",
+                "ass:balanced-array",
+                "def:certified-mot",
+                "lem:finite-lp-optimization"
+              ],
+              "status": "to-prove",
+              "justification": "A statistical rate is operational only if numerical error is separated from sampling error by an auditable certificate.",
+              "gap": "Generic discrete MOT has \\(m^K\\) columns and generic pairwise MOT is hard; existing entropic solvers certify regularized or approximate objectives without this fixed-\\(d\\) squared-sum bracket.",
+              "consumer": "The empirical lower endpoint and its confidence correction can report a numerical error budget rather than silently absorbing Sinkhorn bias."
+            },
+            "reason": "The corrected claim makes accuracy rational, declares balanced sample size, and wires the optimization--separation theorem used by the certificate construction.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [
+          {
+            "node_id": "oeq:joint-dual-complexity",
+            "what_is_open": "Construct, uniformly in \\(K\\), a simultaneous-marginal finite family with explicit endpoint separation, mixture total variation at most \\(1/4\\), and nonnegative reduced cost for every rematching column, or replace the sum of the \\(K\\) marginal concave-process bounds by a two-sided shared-geometric complexity theorem controlled by \\(r=\\min\\{K,d\\}\\).",
+            "obstruction": "The dimension-controlled support diameter restricts optimal sums but does not bound the total sensitivity of all \\(K\\) dual potentials. Tensoring two-margin hard instances requires orthogonal directions and saturates after at most \\(d\\) blocks; no supplied finite family has a reduced-cost certificate that survives all cross-arm rematchings.",
+            "attempted": "The subset exchange and common-support interpolation routes were completed. The parity, orthogonal, Bernoulli-knot, and two-margin constructions certify boundary cases, but none accumulates a growing-\\(K\\) separation. The supplied finite-LP checks for \\(K=3,\\ldots,8\\) do not specify a parameterized hard family and therefore cannot certify the required all-column lower construction.",
+            "partial_result": "The proved common-support interpolation inequality is\n\\[\n\\left|\\frac{V(\\mathbf Q)-V(\\mathbf P)}{K^2}\\right|\n\\le \\frac1{K^2}\\left|\\sum_k\\int\\|x\\|_2^2\\,d(Q_k-P_k)\\right|\n+\\sum_k\\sup_{g\\in\\mathcal C_{2(2\\sqrt d+1)/K^2}}\n\\left|\\int g\\,d(Q_k-P_k)\\right|,\n\\]\nand it yields the uniform upper bound \\(C_d\\{N^{-1/2}+\\min(r/K^2,K^{-1}m^{-2/d})\\}\\). The support exchange theorem also proves diameter \\(2\\sqrt r\\). These are computable upper-side certificates, but they neither construct a simultaneous indistinguishable family nor reduce the sum of the \\(K\\) marginal empirical complexities."
+          },
+          {
+            "node_id": "oeq:exact-all-k-frontier",
+            "what_is_open": "Determine matching all-estimator and ordered one-sided lower bounds in the region below the proved large-arm transition, including the exact fixed-\\(K\\) logarithm and the factor of \\(K\\) between the two-margin lower modulus and the empirical-MOT upper modulus.",
+            "obstruction": "The current nonparametric converse is a two-margin embedding of order \\(K^{-2}(m\\log m)^{-2/d}\\), whereas the proved plug-in term is \\(K^{-1}m^{-2/d}\\). Neither the simultaneous-rematching certificate nor a sharper aggregate upper bound is available, and the cited two-margin theorem itself leaves logarithmic slack. The Bernoulli ordered pair proves only the root-\\(N\\) honest-length component.",
+            "attempted": "The exact residual cap, optimal-support diameter, empirical interpolation bound, two-margin reduction, Bernoulli testing pair, large-\\(K\\) point and length converses, and certified grid algorithm were proved. Sparse-active-arm, fixed-dimensional orthogonal, parity, and Bernoulli constructions do not close the remaining arm-count and logarithmic gaps.",
+            "partial_result": "The closed part of the frontier is\n\\[\nc_d\\max\\{N^{-1/2},K^{-2}(m\\log m)^{-2/d}\\}\n\\le R_d(N,K)\n\\le C_d\\left[N^{-1/2}+\\min\\{r/K^2,K^{-1}m^{-2/d}\\}\\right].\n\\]\nMoreover, both \\(R_d(N,K)\\) and \\(E_{d,\\alpha}(N,K)\\) are of exact order \\(N^{-1/2}\\) whenever \\(K\\ge c_0N^{1/4}\\), and the explicit mean-floor lower confidence bound is uniformly honest there with excess length \\(O_{d,\\alpha}(N^{-1/2})\\). A rational-grid empirical MOT procedure returns a primal--dual bracket of any rational width \\(\\epsilon>0\\) in time polynomial in \\(N\\) and \\((K/\\epsilon)^d\\) for fixed \\(d\\)."
+          }
+        ]
+      }
+    },
+    {
+      "unit": "prop:hypercube-parity",
+      "targets": [
+        "prop:hypercube-parity"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "prop:hypercube-parity",
+            "proof_tex": "We use a pointwise lattice-parity lower bound and an explicit marginal-preserving coupling.\n\nFirst suppose that \\(K\\) is even.  Let \\(U_1,\\ldots,U_{K/2}\\) be random vectors with law \\(H_d\\), and define\n\\[\n Z_{2r-1}=U_r,\n \\qquad\n Z_{2r}=-U_r,\n \\qquad 1\\le r\\le K/2.\n\\]\n(The vectors \\(U_r\\) may, for example, be independent.)  The map \\(u\\mapsto-u\\) is a bijection of \\(\\{-1,1\\}^d/\\sqrt d\\), so central symmetry of the uniform law gives \\(-U_r\\sim H_d\\).  Hence every \\(Z_k\\) has marginal law \\(H_d\\), and the joint law \\(\\gamma_{\\mathrm{even}}\\) of \\((Z_1,\\ldots,Z_K)\\) belongs to \\(\\Gamma(\\mathbf P^{\\mathrm{hyp}})\\).  Moreover,\n\\[\n \\sum_{k=1}^K Z_k\n =\\sum_{r=1}^{K/2}(U_r-U_r)=0\n \\quad\\text{almost surely}.\n\\]\nSince the squared Euclidean norm is nonnegative and \\(K\\ge3\\), the definition of \\(L\\) and the admissibility of \\(\\gamma_{\\mathrm{even}}\\) imply\n\\[\n 0\\le L(\\mathbf P^{\\mathrm{hyp}})\n \\le \\int K^{-2}\\left\\|\\sum_{k=1}^Kz_k\\right\\|_2^2\n \\,d\\gamma_{\\mathrm{even}}=0.\n\\]\nThus \\(L(\\mathbf P^{\\mathrm{hyp}})=0\\) for even \\(K\\).\n\nNow suppose that \\(K\\) is odd.  Fix an arbitrary \\(\\gamma\\in\\Gamma(\\mathbf P^{\\mathrm{hyp}})\\), and let \\((Z_1,\\ldots,Z_K)\\) have law \\(\\gamma\\).  Because each of the finitely many marginals is supported on \\(\\{-1,1\\}^d/\\sqrt d\\), simultaneously for every \\(j\\in\\{1,\\ldots,d\\}\\) and \\(k\\in\\{1,\\ldots,K\\}\\) we may write\n\\[\n Z_{k,j}=\\frac{\\varepsilon_{jk}}{\\sqrt d},\n \\qquad \\varepsilon_{jk}\\in\\{-1,1\\},\n\\]\nalmost surely.  For each fixed coordinate \\(j\\), the integer\n\\[\n S_j:=\\sum_{k=1}^K\\varepsilon_{jk}\n\\]\nis a sum of an odd number of odd integers, hence is odd.  In particular \\(S_j\\ne0\\) and \\(S_j^2\\ge1\\).  Therefore the pointwise support argument gives\n\\[\n \\left\\|\\sum_{k=1}^K Z_k\\right\\|_2^2\n =\\sum_{j=1}^d\\left(\\frac{S_j}{\\sqrt d}\\right)^2\n =\\frac1d\\sum_{j=1}^d S_j^2\n \\ge1.\n\\]\nIntegrating, multiplying by the positive number \\(K^{-2}\\), and then taking the infimum over all admissible \\(\\gamma\\) yields\n\\[\n L(\\mathbf P^{\\mathrm{hyp}})\\ge K^{-2}.\n\\]\n\nIt remains to show attainability, rather than merely an outer lower bound.  Define the finite set\n\\[\n \\mathcal A_K\n :=\\left\\{e=(e_1,\\ldots,e_K)\\in\\{-1,1\\}^K:\n \\left|\\sum_{k=1}^K e_k\\right|=1\\right\\}.\n\\]\nThis set is nonempty because \\(K\\) is odd.  Independently for \\(j=1,\\ldots,d\\), draw \\(E_j=(E_{j1},\\ldots,E_{jK})\\) uniformly from \\(\\mathcal A_K\\), and put\n\\[\n Z_k:=\\frac{(E_{1k},\\ldots,E_{dk})}{\\sqrt d},\n \\qquad k=1,\\ldots,K.\n\\]\nFor any fixed \\(j,k\\), the fixed-point-free bijection \\(e\\mapsto-e\\) of \\(\\mathcal A_K\\) interchanges the events \\(e_k=1\\) and \\(e_k=-1\\).  Consequently\n\\[\n \\Pr(E_{jk}=1)=\\Pr(E_{jk}=-1)=\\frac12.\n\\]\nThe rows \\(E_1,\\ldots,E_d\\) are independent, so for every fixed arm \\(k\\) and every \\(a=(a_1,\\ldots,a_d)\\in\\{-1,1\\}^d\\),\n\\[\n \\Pr\\bigl((E_{1k},\\ldots,E_{dk})=a\\bigr)\n =\\prod_{j=1}^d\\Pr(E_{jk}=a_j)=2^{-d}.\n\\]\nThus each \\(Z_k\\) has law \\(H_d\\).  The resulting joint law \\(\\gamma_{\\mathrm{odd}}\\) therefore lies in \\(\\Gamma(\\mathbf P^{\\mathrm{hyp}})\\).  By the definition of \\(\\mathcal A_K\\), for every realization and every \\(j\\),\n\\[\n \\left|\\sum_{k=1}^K E_{jk}\\right|=1,\n\\]\nand hence\n\\[\n \\left\\|\\sum_{k=1}^K Z_k\\right\\|_2^2\n =\\frac1d\\sum_{j=1}^d\n \\left(\\sum_{k=1}^K E_{jk}\\right)^2\n =1.\n\\]\nUsing this admissible coupling in the definition of \\(L\\) gives\n\\[\n L(\\mathbf P^{\\mathrm{hyp}})\n \\le \\int K^{-2}\\left\\|\\sum_{k=1}^Kz_k\\right\\|_2^2\n \\,d\\gamma_{\\mathrm{odd}}\n =K^{-2}.\n\\]\nTogether with the preceding lower bound, this proves \\(L(\\mathbf P^{\\mathrm{hyp}})=K^{-2}\\) for odd \\(K\\).  Finally, \\(K=3\\) and \\(d=5\\) satisfy the declared ranges, so the odd case gives \\(L(\\mathbf P^{\\mathrm{hyp}})=3^{-2}=1/9\\).  No rank, overlap, conditioning, boundary-limit, or asymptotic argument is used; the only division is by the positive quantities \\(K^2\\) and \\(d\\)."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [],
+        "open_obligations": []
+      }
+    },
+    {
+      "unit": "prop:star-balanced-audit",
+      "targets": [
+        "prop:star-balanced-audit"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "prop:star-balanced-audit",
+            "proof_tex": "\\emph{Proof.}\nWrite \\(U_j=U_j^{\\mathrm{STAR}}\\), \\(W_j=W_j^{\\mathrm{STAR}}\\), and let\n\\(\\mathcal U=\\sigma(U_j:j\\in\\mathcal J^{\\mathrm{STAR}})\\).  Assumption\n\\(\\mathrm{ass:star-complete-randomization}\\) gives a conditional distribution of\n\\((W_j)_j\\) that is constant as a function of \\(\\mathcal U\\).  Thus, for every\nassignment event \\(C\\) and every \\(D\\in\\mathcal U\\),\n\\[\n \\mathbb P\\{(W_j)_j\\in C,\\ D\\}\n =\\mathbb E\\!\\left[\\mathbf 1_D\n   \\mathbb P\\{(W_j)_j\\in C\\mid\\mathcal U\\}\\right]\n =\\mathbb P\\{(W_j)_j\\in C\\}\\mathbb P(D).\n\\]\nHence the assignment is independent of the potential-outcome vectors.  The\nauxiliary randomization in Definition \\(\\mathrm{def:star-transformation}\\) is\nalso independent of those vectors.  Consequently the full selected-label\narray\n\\[\n \\mathbf J=(J_{ki}:1\\leq k\\leq3,\\ 1\\leq i\\leq36)\n\\]\nis independent of \\((U_j)_j\\).  Its entries are pairwise distinct: within an\narm this follows from sampling without replacement, and across arms it follows\nbecause the three assignment cells are disjoint.  The selection is feasible\nbecause \\(36=m^{\\mathrm{STAR}}\\leq n_k^{\\mathrm{STAR}}\\) for each\n\\(k\\in\\{1,2,3\\}\\).\n\nFor \\(k\\in\\{1,2,3\\}\\), define the measurable coordinate map\n\\[\n g_k(y)=\\left(\\frac{\\beta_k^{\\mathrm{STAR}}y}{b_Y},0,0,0,0\\right),\n \\qquad -B^{\\mathrm{STAR}}\\leq y\\leq B^{\\mathrm{STAR}}.\n\\]\nThe displayed contrast satisfies\n\\(\\max_k|\\beta_k^{\\mathrm{STAR}}|=1\\).  Since\n\\(B^{\\mathrm{STAR}}>0\\), one has \\(b_Y=B^{\\mathrm{STAR}}>0\\), and therefore\n\\[\n \\|g_k(y)\\|_2\n =\\frac{|\\beta_k^{\\mathrm{STAR}}y|}{b_Y}\n \\leq\\frac{|\\beta_k^{\\mathrm{STAR}}|B^{\\mathrm{STAR}}}\n {B^{\\mathrm{STAR}}\\max_\\ell|\\beta_\\ell^{\\mathrm{STAR}}|}\n \\leq1.\n\\]\nThis verifies the asserted closed-unit-ball support, including its boundary.\nLet \\(A_{ki}\\subseteq\\mathbb B_5\\) be Borel sets.  Conditional on any possible\nvalue \\(\\mathbf j=(j_{ki})\\) of \\(\\mathbf J\\), Assumption\n\\(\\mathrm{ass:star-iid-superpopulation}\\), independence of \\(\\mathbf J\\), and\ndistinctness of its entries give\n\\[\n\\begin{aligned}\n &\\mathbb P\\!\\left\\{X_{ki}^{\\mathrm{STAR}}\\in A_{ki}\n       \\text{ for all }k,i\\mid\\mathbf J=\\mathbf j\\right\\} \\\\\n &\\quad=\n \\mathbb P\\!\\left\\{g_k\\bigl(Y_{j_{ki}}(k)\\bigr)\\in A_{ki}\n       \\text{ for all }k,i\\right\\} \\\\\n &\\quad=\\prod_{k=1}^3\\prod_{i=1}^{36}\n Q^{\\mathrm{STAR}}\\!\\left\\{u:g_k(u_k)\\in A_{ki}\\right\\}\n =\\prod_{k=1}^3\\prod_{i=1}^{36}P_k^{\\mathrm{STAR}}(A_{ki}).\n\\end{aligned}\n\\]\nThe last expression does not depend on \\(\\mathbf j\\), so averaging over\n\\(\\mathbf J\\) proves\n\\[\n \\mathcal L\\bigl((X_{ki}^{\\mathrm{STAR}})_{k,i}\\bigr)\n =\\bigotimes_{k=1}^3(P_k^{\\mathrm{STAR}})^{\\otimes36}.\n\\]\nThis is a conditioning-on-random-labels argument; it does not require the\nthree auxiliary selections to be mutually independent.  The balanced\nexperiment contains \\(3\\cdot36=108\\) observations, so its parameters are\n\\(N=108\\), \\(K=3\\), \\(m=36\\), and, by construction of \\(g_k\\), \\(d=5\\).\n\nWe next give the population identification argument.  Let\n\\(Q_k^{\\mathrm{STAR}}\\) denote the marginal law of \\(Y(k)\\) under\n\\(Q^{\\mathrm{STAR}}\\), and let\n\\[\n \\mathcal C^{\\mathrm{STAR}}\n =\\left\\{\\eta\\in\n \\mathcal P([-B^{\\mathrm{STAR}},B^{\\mathrm{STAR}}]^3):\n \\eta_k=Q_k^{\\mathrm{STAR}}\\text{ for }k=1,2,3\\right\\}.\n\\]\nThus the observable distribution of the balanced data is\n\\(\\bigotimes_k(P_k^{\\mathrm{STAR}})^{\\otimes36}\\), whereas the unobserved\nobject is a coupling \\(\\eta\\in\\mathcal C^{\\mathrm{STAR}}\\).  For such a\ncoupling define the causal target\n\\[\n \\theta(\\eta)=\\int\n \\left(\\sum_{k=1}^3\\beta_k^{\\mathrm{STAR}}y_k\\right)^2\n \\,d\\eta(y_1,y_2,y_3).\n\\]\nNo cross-world restriction other than the displayed marginal and support\nconditions is maintained here, so the identified set is\n\\[\n \\Theta_I(\\mathbf P^{\\mathrm{STAR}})\n =\\{\\theta(\\eta):\\eta\\in\\mathcal C^{\\mathrm{STAR}}\\}.\n\\]\n\nThe pushforward construction now proves, rather than assumes, its relation to\nthe observed-law optimal-transport functional.  Put\n\\[\n \\mathcal R_k\n =\\{g_k(y):-B^{\\mathrm{STAR}}\\leq y\\leq B^{\\mathrm{STAR}}\\}\n \\quad\\text{and}\\quad\n h_k(z)=\\frac{b_Yz_1}{\\beta_k^{\\mathrm{STAR}}}\n \\quad(z\\in\\mathcal R_k).\n\\]\nAll three coefficients in\n\\(\\beta^{\\mathrm{STAR}}=(-1,1/2,1/2)\\) are nonzero, so each inverse \\(h_k\\) is\nwell defined.  If \\(G(y_1,y_2,y_3)=(g_1(y_1),g_2(y_2),g_3(y_3))\\), then\n\\(G_\\#\\eta\\in\\Gamma(\\mathbf P^{\\mathrm{STAR}})\\) for every\n\\(\\eta\\in\\mathcal C^{\\mathrm{STAR}}\\).  Conversely, each\n\\(\\gamma\\in\\Gamma(\\mathbf P^{\\mathrm{STAR}})\\) assigns probability one to\n\\(\\mathcal R_1\\times\\mathcal R_2\\times\\mathcal R_3\\), and\n\\((h_1,h_2,h_3)_\\#\\gamma\\in\\mathcal C^{\\mathrm{STAR}}\\).  These two\npushforwards are inverse to one another up to null sets.  Moreover, for a\ncorresponding pair \\((\\eta,\\gamma)\\),\n\\[\n\\begin{aligned}\n \\theta(\\eta)\n &=b_Y^2\\int\n \\left(\\sum_{k=1}^3(g_k(y_k))_1\\right)^2,d\\eta(y_1,y_2,y_3)\\\\\n &=b_Y^2\\int\n \\left\\|\\sum_{k=1}^3z_k\\right\\|_2^2,d\\gamma(z_1,z_2,z_3),\n\\end{aligned}\n\\]\nwhere the second equality uses the fact that every \\(z_k\\in\\mathcal R_k\\)\nhas four zero coordinates.  It follows that the identified set has the exact\nobservable-law representation\n\\[\n \\Theta_I(\\mathbf P^{\\mathrm{STAR}})\n =\\left\\{b_Y^2\\int\\left\\|\\sum_{k=1}^3z_k\\right\\|_2^2,d\\gamma:\n \\gamma\\in\\Gamma(\\mathbf P^{\\mathrm{STAR}})\\right\\}.\n\\]\n\nFor completeness, the extrema in the last display are attained.  Here is the\ndirect compactness argument.  On the compact metric space\n\\(\\mathcal X=(\\mathbb B_5)^3\\), take any sequence of couplings.  Choose nested\nfinite Borel partitions of \\(\\mathcal X\\) whose meshes tend to zero.  Repeated\nfinite-dimensional subsequence extraction makes the masses of every cell in\nevery partition converge.  The consistent limiting cell masses define a\nBorel probability measure on \\(\\mathcal X\\).  For every continuous function\n\\(f\\), upper and lower cell sums differ by at most the modulus of continuity\nof \\(f\\) at the partition mesh, which tends to zero.  Thus the extracted\nsubsequence converges against every continuous \\(f\\).  Applying this first to\nfunctions of one coordinate shows that fixed marginals are preserved, and\napplying it to the continuous bounded cost\n\\(\\|z_1+z_2+z_3\\|_2^2\\) shows convergence of the objective.  A minimizing and\na maximizing sequence therefore yield couplings \\(\\gamma_L\\) and\n\\(\\gamma_U\\) attaining the two extrema.  Convex mixtures of these couplings\nretain all three marginals and attain every intermediate objective value.\nConsequently\n\\[\n \\Theta_I(\\mathbf P^{\\mathrm{STAR}})=[\\theta_L,\\theta_U],\n \\qquad\n \\theta_L=b_Y^2\\min_{\\gamma\\in\\Gamma(\\mathbf P^{\\mathrm{STAR}})}\n \\int\\left\\|\\sum_{k=1}^3z_k\\right\\|_2^2,d\\gamma,\n\\]\nwith the analogous maximum defining \\(\\theta_U\\).  This proves sharpness, not\nmerely an outer bound.\n\nFinally, Definition \\(c_K(z_1,\\ldots,z_K)=K^{-2}\\|\\sum_kz_k\\|_2^2\\) and\n\\(K=3\\) imply, equation by equation,\n\\[\n\\begin{aligned}\n L(\\mathbf P^{\\mathrm{STAR}})\n &=\\inf_{\\gamma\\in\\Gamma(\\mathbf P^{\\mathrm{STAR}})}\n   \\int\\frac{1}{9}\\left\\|\\sum_{k=1}^3z_k\\right\\|_2^2,d\\gamma,\\\\\n 9L(\\mathbf P^{\\mathrm{STAR}})\n &=\\inf_{\\gamma\\in\\Gamma(\\mathbf P^{\\mathrm{STAR}})}\n   \\int\\left\\|\\sum_{k=1}^3z_k\\right\\|_2^2,d\\gamma,\\\\\n \\theta_L&=9b_Y^2L(\\mathbf P^{\\mathrm{STAR}}).\n\\end{aligned}\n\\]\nThe first two lines also prove the unscaled equality claimed in the\nproposition.  No overlap condition, matrix-rank condition, or asymptotic limit\nis used; positivity of \\(B^{\\mathrm{STAR}}\\), nonvanishing of the three\ncontrast coefficients, bounded support, and feasibility of the balanced\nsubsample are the division, inversion, support, and selection conditions used\nabove.  The argument establishes a guarantee for the randomized balanced\nsubsample of size \\(108\\).  The native array has cell sizes \\((161,37,36)\\),\nnot \\((36,36,36)\\), so no statement about a native-count plug-in rule follows\nfrom this calculation without a separate unequal-cell theorem.  This proves\nthe final scope qualification. \\(\\square\\)"
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [],
+        "open_obligations": []
+      }
+    }
+  ]
+}

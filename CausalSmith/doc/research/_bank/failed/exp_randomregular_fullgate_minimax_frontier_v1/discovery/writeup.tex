@@ -1,0 +1,1384 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}randomregular\_\allowbreak{}fullgate\_\allowbreak{}minimax\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For every admissible degree sequence and all sufficiently large \(n\), the graph-selected one-shot seed procedure gives the deterministic certified upper edge \(R(G)\le C d_n^2/n\) on every simple \(d_n\)-regular graph \(G\). Under the uniform simple random-regular draw, the balanced-exposure converse gives \(R(G_n)\ge c d_n^2/[n\log(d_n+1)]\) with probability tending to one, so the joint bracket is a corollary. Bounded degrees yield \(R(G_n)=\Theta_{\Pr}(n^{-1})\); diverging degrees leave a factor \(\log(d_n+1)\) between the proved edges. The selected procedure also gives finite conditional coverage and unconditional radius \(O(d_n/\sqrt{\alpha n})=o(1)\) for fixed \(\alpha\). A sharper logarithmic upper edge and radius remain conditional on the unresolved Boolean radius-two operator conjecture.
+
+\section{Project justification}
+
+\paragraph{Gap.} On the common uniform-simple-regular regime \(d_n=o(\sqrt n)\), KandirosHarshawSavje2026Minimax gives the same \(d_n^2/n\) upper scale and a \(d_n/n\) lower scale for exactly the same two-endpoint outcome class and minimax functional. The present all-procedure lower edge is \(d_n^2/[n\log(d_n+1)]\), reducing the polynomial factor-\(d_n\) gap to a factor \(\log(d_n+1)\); equality with the lower edge remains open.
+
+\paragraph{Niche.} Balanced simultaneous endpoint exposure supplies a two-arm Bayes converse, while certificate-based selection between fixed-exponent and log-tuned neighborhood-seed counts makes the exact Schur construction robust without discarding a possible sharper rate.
+
+\paragraph{Fill.} The note proves a deterministic certified upper edge on every sufficiently large simple regular graph by inserting the robust candidate into the exact selected seed/Schur certificate and then using that procedure as a feasible competitor in the minimax infimum. Separately, balanced simultaneous endpoint exposure and the Bayes converse give the random-regular lower edge over every design and estimator. Their conjunction yields the high-probability logarithmic bracket, while exact seed-tuple enumeration supplies a finite graph audit and the risk certificate yields the stated design-based confidence guarantee. The Boolean operator conjecture is retained only as a conditional refinement.
+
+\section{Related work}
+
+KandirosHarshawSavje2026Minimax, arXiv:2608.04909v1, Corollary 5.4 and Appendix E.4, is the closest comparator. On the common uniform-simple-regular regime \(d_n=o(\sqrt n)\), its \(q=2\) GATE outcome class and minimax functional coincide exactly with this note's \(\mathcal M_n(G)\) and \(R(G)\); this is equality of the compared problem, not a class-inclusion transfer. It places that risk between \(d_n/n\) and \(d_n^2/n\). The present balanced-exposure converse improves the lower edge to \(d_n^2/[n\log(d_n+1)]\), while the selected seed certificate provides a deterministic, graph-auditable upper edge at the same \(d_n^2/n\) order, leaving a logarithmic gap. Its Algorithm 4 and Proposition 4.3 motivate finite design computation but do not give this selected seed certificate. KandirosEtAl2024ConflictGraph, arXiv:2411.10908v3, Algorithm 1 and Theorem 4.1, supplies a generic conflict-graph variance scale; the current unconditional upper edge does not strictly improve that scale. UganderYin2023RGCR studies randomized graph cluster designs under bounded outcomes and a fixed Horvitz--Thompson procedure, rather than unrestricted minimax risk. AronowSamii2017GeneralInterference supplies the exposure-mapping foundation. BehagueIlkovicMontgomery2025Sandwich supports the proved random-regular packing transfer in its verified degree regime. Xu2025SwitchingGraphMatrices, CCC 2025 Theorems 14--15, treats graph-matrix shapes but does not uniformly resum the unbounded \(K_{2,r}\)-type terms in the Boolean inclusion--exclusion expansion. BauerschmidtEtAl2020EdgeRigidity and Sarid2023SpectralGap control adjacency spectra, not this Boolean correction. HarshawMiddletonSavje2026OptimizedVariance optimizes conservative bounds for fixed linear estimators and does not choose the minimax design. ShiEtAl2020FreedomChoice remains the prospective application: a larger one-round all-free versus all-fixed random-regular public-goods experiment can use the robust certificate without assuming its behavioral outcomes attain worst-case risk.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_n=n^{-1}\sum_{i\in V_n}\{y_i(\mathbf 1_n)-y_i(\mathbf 0_n)\}\).
+Primary functional / estimator / diagnostic: For every admissible degree sequence, a universal deterministic certified upper edge satisfies \(R(G)\le C d_n^2/n\) for all sufficiently large \(n\) and every simple \(d_n\)-regular \(G\), attained by the graph-auditable selected one-shot seed procedure. Under the uniform simple random-regular draw, \(\Pr\{R(G_n)\ge c d_n^2/[n\log(d_n+1)]\}\to1\), and the joint high-probability bracket follows. Bounded degree gives \(R(G_n)=\Theta_{\Pr}(n^{-1})\); when \(d_n\to\infty\), a factor \(\log(d_n+1)\) remains between the proved edges..
+\begin{itemize}
+  \item \texttt{n} --- \texttt{population\_\allowbreak{}size}; \(\mathbb N\); \texttt{asymptotic\_\allowbreak{}index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of experimental units.}
+  \item \texttt{d\_\allowbreak{}n} --- \texttt{regular\_\allowbreak{}degree}; \(\{0,\ldots,n-1\}\); \texttt{frontier\_\allowbreak{}index}
+  \par\smallskip\noindent\emph{Definition.} Degree of the stage-\(n\) interference graph.
+  \item \texttt{I\_\allowbreak{}n} --- \texttt{identity\_\allowbreak{}matrix}; \(\mathbb R^{n\times n}\); \texttt{matrix\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} The \(n\)-dimensional identity matrix.
+  \item \texttt{\textbackslash{}\allowbreak{}iota\_\allowbreak{}n} --- \texttt{all\_\allowbreak{}ones\_\allowbreak{}vector}; \(\mathbb R^n\); \texttt{matrix\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} The \(n\)-dimensional all-ones vector.
+  \item \texttt{V\_\allowbreak{}n} --- \texttt{finite\_\allowbreak{}population}; \(2^{\mathbb N}\); \texttt{population}
+  \par\smallskip\noindent\emph{Definition.} Fixed labeled population \(V_n=\{1,\ldots,n\}\).
+  \item \texttt{i} --- \texttt{unit\_\allowbreak{}index}; \(V_n\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic outcome-\allowbreak{}unit index.}
+  \item \texttt{j} --- \texttt{unit\_\allowbreak{}index}; \(V_n\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic second unit index.}
+  \item \texttt{\textbackslash{}\allowbreak{}ell} --- \texttt{seed\_\allowbreak{}index}; \(\mathbb N\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Generic positive seed-draw index, later restricted to \(\{1,\ldots,k_n\}\).
+  \item \texttt{G\_\allowbreak{}n} --- \texttt{random\_\allowbreak{}interference\_\allowbreak{}graph}; \(2^{\binom{V_n}{2}}\); \texttt{random\_\allowbreak{}environment}
+  \par\smallskip\noindent\emph{Definition.} Uniformly drawn labeled simple \(d_n\)-regular graph on \(V_n\).
+  \item \texttt{G} --- \texttt{revealed\_\allowbreak{}interference\_\allowbreak{}graph}; \(2^{\binom{V_n}{2}}\); \texttt{design\_\allowbreak{}input}
+  \par\smallskip\noindent\emph{Definition.} Realization of \(G_n\), revealed before the design is chosen.
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{dist\}\allowbreak{}\_\allowbreak{}G(i,\allowbreak{}j)} --- \texttt{graph\_\allowbreak{}distance}; \(\mathbb N\cup\{\infty\}\); \texttt{graph\_\allowbreak{}geometry}
+  \par\smallskip\noindent\emph{Definition.} Shortest-path distance between \(i\) and \(j\) in \(G\).
+  \item \texttt{N\_\allowbreak{}G[i]} --- \texttt{closed\_\allowbreak{}neighborhood}; \(2^{V_n}\); \texttt{interference\_\allowbreak{}support}
+  \par\smallskip\noindent\emph{Definition.} Closed neighborhood \(N_G[i]=\{j\in V_n:\operatorname{dist}_G(i,j)\le 1\}\).
+  \item \texttt{z} --- \texttt{assignment\_\allowbreak{}argument}; \(\{0,1\}^{V_n}\); \texttt{potential\_\allowbreak{}outcome\_\allowbreak{}argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic binary assignment vector.}
+  \item \texttt{z'} --- \texttt{assignment\_\allowbreak{}argument}; \(\{0,1\}^{V_n}\); \texttt{potential\_\allowbreak{}outcome\_\allowbreak{}argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second generic binary assignment vector.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf 1\_\allowbreak{}n} --- \texttt{all\_\allowbreak{}treated\_\allowbreak{}assignment}; \(\{0,1\}^{V_n}\); \texttt{endpoint\_\allowbreak{}assignment}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Assignment treating every unit.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf 0\_\allowbreak{}n} --- \texttt{all\_\allowbreak{}control\_\allowbreak{}assignment}; \(\{0,1\}^{V_n}\); \texttt{endpoint\_\allowbreak{}assignment}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Assignment treating no unit.}
+  \item \texttt{y} --- \texttt{potential\_\allowbreak{}outcome\_\allowbreak{}schedule}; \((\mathbb R^{V_n})^{\{0,1\}^{V_n}}\); \texttt{adversarial\_\allowbreak{}schedule}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed finite-\allowbreak{}population potential-\allowbreak{}outcome schedule.}
+  \item \texttt{y\_\allowbreak{}i(z)} --- \texttt{potential\_\allowbreak{}outcome}; \(\mathbb R\); \texttt{causal\_\allowbreak{}primitive}
+  \par\smallskip\noindent\emph{Definition.} Outcome of unit \(i\) under assignment \(z\).
+  \item \texttt{a\_\allowbreak{}i} --- \texttt{all\_\allowbreak{}treated\_\allowbreak{}endpoint\_\allowbreak{}outcome}; \(\mathbb R\); \texttt{estimand\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Endpoint outcome \(a_i=y_i(\mathbf 1_n)\).
+  \item \texttt{b\_\allowbreak{}i} --- \texttt{all\_\allowbreak{}control\_\allowbreak{}endpoint\_\allowbreak{}outcome}; \(\mathbb R\); \texttt{estimand\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Endpoint outcome \(b_i=y_i(\mathbf 0_n)\).
+  \item \texttt{a} --- \texttt{all\_\allowbreak{}treated\_\allowbreak{}endpoint\_\allowbreak{}vector}; \(\mathbb R^{V_n}\); \texttt{endpoint\_\allowbreak{}schedule}
+  \par\smallskip\noindent\emph{Definition.} Vector \(a=(a_i:i\in V_n)\).
+  \item \texttt{b} --- \texttt{all\_\allowbreak{}control\_\allowbreak{}endpoint\_\allowbreak{}vector}; \(\mathbb R^{V_n}\); \texttt{endpoint\_\allowbreak{}schedule}
+  \par\smallskip\noindent\emph{Definition.} Vector \(b=(b_i:i\in V_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}1} --- \texttt{all\_\allowbreak{}treated\_\allowbreak{}mean}; \(\mathbb R\); \texttt{estimand\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Finite-population mean \(\mu_1=n^{-1}\sum_{i\in V_n}a_i\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}0} --- \texttt{all\_\allowbreak{}control\_\allowbreak{}mean}; \(\mathbb R\); \texttt{estimand\_\allowbreak{}component}
+  \par\smallskip\noindent\emph{Definition.} Finite-population mean \(\mu_0=n^{-1}\sum_{i\in V_n}b_i\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}n} --- \texttt{global\_\allowbreak{}average\_\allowbreak{}treatment\_\allowbreak{}effect}; \(\mathbb R\); \texttt{target\_\allowbreak{}estimand}
+  \par\smallskip\noindent\emph{Definition.} Full-population contrast \(\tau_n=\mu_1-\mu_0=n^{-1}\sum_{i\in V_n}(a_i-b_i)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n(G)} --- \texttt{endpoint\_\allowbreak{}l2\_\allowbreak{}ani\_\allowbreak{}class}; \(2^{(\mathbb R^{V_n})^{\{0,1\}^{V_n}}}\); \texttt{adversarial\_\allowbreak{}class}
+  \par\smallskip\noindent\emph{Definition.} Class of schedules satisfying ANI on \(G\) and the two endpoint empirical second-moment bounds, as constructed in Definition 1.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}G} --- \texttt{assignment\_\allowbreak{}design}; \(\Delta(\{0,1\}^{V_n})\); \texttt{design\_\allowbreak{}decision}
+  \par\smallskip\noindent\emph{Definition.} Any graph-measurable probability law on assignments, chosen after observing \(G\).
+  \item \texttt{Z} --- \texttt{realized\_\allowbreak{}assignment}; \(\{0,1\}^{V_n}\); \texttt{design\_\allowbreak{}randomness}
+  \par\smallskip\noindent\emph{Definition.} Single realized assignment \(Z\sim\mathcal D_G\).
+  \item \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{observed\_\allowbreak{}outcome\_\allowbreak{}vector}; \(\mathbb R^{V_n}\); \texttt{observed\_\allowbreak{}data}
+  \par\smallskip\noindent\emph{Definition.} Observed vector \(Y^{\mathrm{obs}}=(y_i(Z):i\in V_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau} --- \texttt{measurable\_\allowbreak{}gate\_\allowbreak{}estimator}; \(\{0,1\}^{V_n}\times\mathbb R^{V_n}\to\mathbb R\); \texttt{estimator\_\allowbreak{}decision}
+  \par\smallskip\noindent\emph{Definition.} Measurable estimator based only on \((Z,Y^{\mathrm{obs}})\) and the revealed graph \(G\).
+  \item \texttt{R(G)} --- \texttt{graph\_\allowbreak{}conditioned\_\allowbreak{}minimax\_\allowbreak{}mse}; \([0,\infty)\); \texttt{optimality\_\allowbreak{}criterion}
+  \par\smallskip\noindent\emph{Definition.} Risk \(R(G)=\inf_{\mathcal D_G,\widehat\tau}\sup_{y\in\mathcal M_n(G)}\mathbb E_{\mathcal D_G,y}[(\widehat\tau-\tau_n)^2]\).
+  \item \texttt{r(n,\allowbreak{}d\_\allowbreak{}n)} --- \texttt{closed\_\allowbreak{}form\_\allowbreak{}lower\_\allowbreak{}frontier\_\allowbreak{}scale}; \((0,\infty)\); \texttt{lower\_\allowbreak{}rate\_\allowbreak{}object}
+  \par\smallskip\noindent\emph{Definition.} Deterministic lower scale \(r(n,d_n)=d_n^2/[n\log(d_n+1)]\).
+  \item \texttt{T\_\allowbreak{}G(z)} --- \texttt{all\_\allowbreak{}treated\_\allowbreak{}exposed\_\allowbreak{}set}; \(2^{V_n}\); \texttt{observable\_\allowbreak{}endpoint\_\allowbreak{}set}
+  \par\smallskip\noindent\emph{Definition.} Set \(T_G(z)=\{i\in V_n:z_j=1\text{ for every }j\in N_G[i]\}\).
+  \item \texttt{C\_\allowbreak{}G(z)} --- \texttt{all\_\allowbreak{}control\_\allowbreak{}exposed\_\allowbreak{}set}; \(2^{V_n}\); \texttt{observable\_\allowbreak{}endpoint\_\allowbreak{}set}
+  \par\smallskip\noindent\emph{Definition.} Set \(C_G(z)=\{i\in V_n:z_j=0\text{ for every }j\in N_G[i]\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}beta(G)} --- \texttt{balanced\_\allowbreak{}simultaneous\_\allowbreak{}exposure\_\allowbreak{}number}; \(\{0,\ldots,\lfloor n/2\rfloor\}\); \texttt{lower\_\allowbreak{}bound\_\allowbreak{}object}
+  \par\smallskip\noindent\emph{Definition.} Balanced reveal number \(\beta(G)=\max_{z\in\{0,1\}^{V_n}}\min\{|T_G(z)|,|C_G(z)|\}\).
+  \item \texttt{A\_\allowbreak{}G} --- \texttt{adjacency\_\allowbreak{}matrix}; \(\{0,1\}^{n\times n}\); \texttt{graph\_\allowbreak{}geometry}
+  \par\smallskip\noindent\emph{Definition.} Adjacency matrix of the revealed simple graph \(G\).
+  \item \texttt{B\_\allowbreak{}2(G)} --- \texttt{boolean\_\allowbreak{}radius\_\allowbreak{}two\_\allowbreak{}incidence\_\allowbreak{}matrix}; \(\{0,1\}^{n\times n}\); \texttt{upper\_\allowbreak{}bound\_\allowbreak{}geometry}
+  \par\smallskip\noindent\emph{Definition.} Matrix with entry \(B_2(G)_{ij}=\mathbf 1\{\operatorname{dist}_G(i,j)\le2\}\).
+  \item \texttt{P\_\allowbreak{}n} --- \texttt{constant\_\allowbreak{}orthogonal\_\allowbreak{}projection}; \(\mathbb R^{n\times n}\); \texttt{centering\_\allowbreak{}operator}
+  \par\smallskip\noindent\emph{Definition.} Projection \(P_n=I_n-\iota_n\iota_n^{\mathsf T}/n\).
+  \item \texttt{m\_\allowbreak{}i(G)} --- \texttt{radius\_\allowbreak{}two\_\allowbreak{}ball\_\allowbreak{}size}; \(\{1,\ldots,n\}\); \texttt{exposure\_\allowbreak{}probability\_\allowbreak{}input}
+  \par\smallskip\noindent\emph{Definition.} Row sum \(m_i(G)=\sum_{j\in V_n}B_2(G)_{ij}\).
+  \item \texttt{M\_\allowbreak{}n} --- \texttt{radius\_\allowbreak{}two\_\allowbreak{}size\_\allowbreak{}envelope}; \(\mathbb N\); \texttt{design\_\allowbreak{}tuning\_\allowbreak{}input}
+  \par\smallskip\noindent\emph{Definition.} Deterministic envelope \(M_n=d_n^2+1\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf H\_\allowbreak{}B} --- \texttt{boolean\_\allowbreak{}collision\_\allowbreak{}diagnostic\_\allowbreak{}handle}; \texttt{open\_\allowbreak{}question\_\allowbreak{}handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The exact centered inclusion-\allowbreak{}-\allowbreak{}exclusion expansion of the Boolean radius-\allowbreak{}two matrix,\allowbreak{} whose unbounded common-\allowbreak{}neighbor shapes define an unresolved operator-\allowbreak{}norm conjecture rather than a proved estimate.}
+  \item \texttt{q\_\allowbreak{}i(G)} --- \texttt{one\_\allowbreak{}seed\_\allowbreak{}control\_\allowbreak{}avoidance\_\allowbreak{}probability}; \([0,1]\); \texttt{exposure\_\allowbreak{}probability}
+  \par\smallskip\noindent\emph{Definition.} Quantity \(q_i(G)=1-m_i(G)/n\).
+  \item \texttt{c\_\allowbreak{}0} --- \texttt{robust\_\allowbreak{}seed\_\allowbreak{}tuning\_\allowbreak{}constant}; \((0,1)\); \texttt{design\_\allowbreak{}tuning\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed universal constant chosen once before the sequence of experiments.}
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde k\_\allowbreak{}n} --- \texttt{robust\_\allowbreak{}seed\_\allowbreak{}count\_\allowbreak{}candidate}; \(\mathbb N\); \texttt{design\_\allowbreak{}tuning\_\allowbreak{}candidate}
+  \par\smallskip\noindent\emph{Definition.} On \(M_n<n\), the robust candidate \(\widetilde k_n=\max\{1,\lfloor c_0/[-\log(1-M_n/n)]\rfloor\}\); it is not formed on the fallback branch.
+  \item \texttt{D\_\allowbreak{}q(G)} --- \texttt{avoidance\_\allowbreak{}probability\_\allowbreak{}diagonal}; \(\mathbb R^{n\times n}\); \texttt{covariance\_\allowbreak{}normalizer}
+  \par\smallskip\noindent\emph{Definition.} Diagonal matrix \(D_q(G)=\operatorname{diag}(q_i(G):i\in V_n)\).
+  \item \texttt{k\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}sharp} --- \texttt{log\_\allowbreak{}tuned\_\allowbreak{}seed\_\allowbreak{}count\_\allowbreak{}candidate}; \(\mathbb N\); \texttt{design\_\allowbreak{}tuning\_\allowbreak{}candidate}
+  \par\smallskip\noindent\emph{Definition.} On \(M_n<n\), the log-tuned candidate \(k_n^\sharp=\max\{1,\lfloor\log(d_n+1)/[4\{-\log(1-M_n/n)\}]\rfloor\}\); it is not formed on the fallback branch.
+  \item \texttt{K\_\allowbreak{}G} --- \texttt{one\_\allowbreak{}seed\_\allowbreak{}centered\_\allowbreak{}gram\_\allowbreak{}matrix}; \(\mathbb R^{n\times n}\); \texttt{covariance\_\allowbreak{}kernel}
+  \par\smallskip\noindent\emph{Definition.} Matrix \(K_G=n^{-1}D_q(G)^{-1}B_2(G)P_nB_2(G)^{\mathsf T}D_q(G)^{-1}\) when every \(q_i(G)>0\).
+  \item \texttt{k\_\allowbreak{}n} --- \texttt{graph\_\allowbreak{}selected\_\allowbreak{}seed\_\allowbreak{}count}; \(\mathbb N\); \texttt{design\_\allowbreak{}tuning\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} On \(M_n<n\), the smaller minimizer over \(s\in\{\widetilde k_n,k_n^\sharp\}\) of the graph certificate \(2/s+2\|B_2(G)P_n\|_{\mathrm{op}}^2\{(1-M_n/n)^{-s}-1\}/[nM_n(1-M_n/n)]\); it is not formed on the fallback branch.
+  \item \texttt{J\_\allowbreak{}\textbackslash{}\allowbreak{}ell} --- \texttt{seed\_\allowbreak{}vertex}; \(V_n\); \texttt{design\_\allowbreak{}randomness}
+  \par\smallskip\noindent\emph{Definition.} Independent uniform vertex draw for each \(\ell\in\{1,\ldots,k_n\}\).
+  \item \texttt{Z\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{seed\}\allowbreak{}\}\allowbreak{}} --- \texttt{seed\_\allowbreak{}union\_\allowbreak{}assignment}; \(\{0,1\}^{V_n}\); \texttt{attaining\_\allowbreak{}design}
+  \par\smallskip\noindent\emph{Definition.} Assignment \(Z^{\mathrm{seed}}_v=\mathbf 1\{v\in\bigcup_{\ell=1}^{k_n}N_G[J_\ell]\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}i(G)} --- \texttt{full\_\allowbreak{}control\_\allowbreak{}exposure\_\allowbreak{}probability}; \([0,1]\); \texttt{inverse\_\allowbreak{}probability\_\allowbreak{}weight}
+  \par\smallskip\noindent\emph{Definition.} On the branch \(M_n<n\), the positive probability \(\pi_i(G)=q_i(G)^{k_n}\) that unit \(i\) is fully control-exposed under the seed design.
+  \item \texttt{w\_\allowbreak{}i(z;\allowbreak{}G)} --- \texttt{rao\_\allowbreak{}blackwell\_\allowbreak{}seed\_\allowbreak{}weight}; \([0,1]\); \texttt{measurability\_\allowbreak{}correction}
+  \par\smallskip\noindent\emph{Definition.} On the branch \(M_n<n\), the conditional weight \(w_i(z;G)=\mathbb E[k_n^{-1}\sum_{\ell=1}^{k_n}\mathbf 1\{J_\ell=i\}\mid Z^{\mathrm{seed}}=z,G]\) for assignments of positive seed-design probability.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{seed\}\allowbreak{}\}\allowbreak{}} --- \texttt{rao\_\allowbreak{}blackwellized\_\allowbreak{}seed\_\allowbreak{}estimator}; \(\mathbb R\); \texttt{attaining\_\allowbreak{}estimator}
+  \par\smallskip\noindent\emph{Definition.} On the branch \(M_n<n\), the estimator \(\widehat\tau_{\mathrm{seed}}=\sum_{i\in V_n}w_i(Z^{\mathrm{seed}};G)y_i(Z^{\mathrm{seed}})-n^{-1}\sum_{i\in C_G(Z^{\mathrm{seed}})}y_i(Z^{\mathrm{seed}})/\pi_i(G)\).
+  \item \texttt{Q\_\allowbreak{}G} --- \texttt{normalized\_\allowbreak{}control\_\allowbreak{}exposure\_\allowbreak{}covariance}; \(\mathbb R^{n\times n}\); \texttt{risk\_\allowbreak{}matrix}
+  \par\smallskip\noindent\emph{Definition.} On the branch \(M_n<n\), the matrix with \(Q_{G,ij}=\Pr(i,j\in C_G(Z^{\mathrm{seed}})\mid G)/[\pi_i(G)\pi_j(G)]-1\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{confidence\_\allowbreak{}error\_\allowbreak{}probability}; \((0,1)\); \texttt{inference\_\allowbreak{}level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Chosen design-\allowbreak{}based error probability.}
+  \item \texttt{U(G,\allowbreak{}k\_\allowbreak{}n)} --- \texttt{selected\_\allowbreak{}graph\_\allowbreak{}computable\_\allowbreak{}risk\_\allowbreak{}certificate}; \([0,\infty]\); \texttt{optimality\_\allowbreak{}certificate}
+  \par\smallskip\noindent\emph{Definition.} On \(M_n<n\), the certificate \(U(G,k_n)=2/k_n+2\|B_2(G)P_n\|_{\mathrm{op}}^2[(1-M_n/n)^{-k_n}-1]/[nM_n(1-M_n/n)]\), using the graph-selected count; it is not formed on the fallback branch.
+  \item \texttt{\textbackslash{}\allowbreak{}overline U(G)} --- \texttt{selected\_\allowbreak{}risk\_\allowbreak{}certificate}; \([0,1]\); \texttt{inferential\_\allowbreak{}certificate}
+  \par\smallskip\noindent\emph{Definition.} Selected certificate \(\overline U(G)=\min\{1,U(G,k_n)\}\) when \(M_n<n\), and \(\overline U(G)=1\) when \(M_n\ge n\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{cert\}\allowbreak{}\}\allowbreak{}} --- \texttt{selected\_\allowbreak{}certified\_\allowbreak{}estimator}; \(\mathbb R\); \texttt{certified\_\allowbreak{}estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator returned by the finite compiler: when \(M_n<n\) and \(U(G,k_n)\le1\), use \(\widehat\tau_{\mathrm{seed}}\); when \(M_n<n\) and \(U(G,k_n)>1\), or when \(M_n\ge n\), assign all units treatment and report the observed treated mean.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\textbackslash{}\allowbreak{}alpha(G,\allowbreak{}Z,\allowbreak{}Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{})} --- \texttt{design\_\allowbreak{}based\_\allowbreak{}confidence\_\allowbreak{}set}; \(2^{[-2,2]}\); \texttt{inferential\_\allowbreak{}output}
+  \par\smallskip\noindent\emph{Definition.} Interval \([\widehat\tau_{\mathrm{cert}}-\sqrt{\overline U(G)/\alpha},\widehat\tau_{\mathrm{cert}}+\sqrt{\overline U(G)/\alpha}]\cap[-2,2]\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:degree-lower]\label{ass:degree-lower}
+The degree sequence satisfies \(d_n\ge3\) for every \(n\).
+\par\smallskip\noindent\emph{Standard} (random-regular GATE degree regime, \cite{KandirosHarshawSavje2026Minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:degree-growth]\label{ass:degree-growth}
+The degree sequence satisfies \(d_n/\sqrt n\to0\).
+\par\smallskip\noindent\emph{Standard} (sparse random-regular regime, \cite{KandirosHarshawSavje2026Minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:regular-parity]\label{ass:regular-parity}
+The integer \(nd_n\) is even.
+\par\smallskip\noindent\emph{Standard} (regular-graph parity condition, \cite{BehagueIlkovicMontgomery2025Sandwich}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-regular-draw]\label{ass:uniform-regular-draw}
+Conditional on \((n,d_n)\), \(G_n\) is uniform on the labeled simple \(d_n\)-regular graphs on \(V_n\).
+\par\smallskip\noindent\emph{Standard} (uniform simple random-regular graph model, \cite{KandirosHarshawSavje2026Minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:ani]\label{ass:ani}
+For every \(i\in V_n\) and \(z,z'\in\{0,1\}^{V_n}\), equality \(z_j=z'_j\) for every \(j\in N_G[i]\) implies \(y_i(z)=y_i(z')\).
+\par\smallskip\noindent\emph{Standard} (arbitrary neighborhood interference, \cite{KandirosHarshawSavje2026Minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:treated-endpoint-l2]\label{ass:treated-endpoint-l2}
+The treated endpoint vector satisfies \(n^{-1}\sum_{i\in V_n}a_i^2\le1\).
+\par\smallskip\noindent\emph{Standard} (empirical second-moment endpoint restriction, \cite{KandirosHarshawSavje2026Minimax}).
+\end{assumption}
+
+\begin{assumption}[ass:control-endpoint-l2]\label{ass:control-endpoint-l2}
+The control endpoint vector satisfies \(n^{-1}\sum_{i\in V_n}b_i^2\le1\).
+\par\smallskip\noindent\emph{Standard} (empirical second-moment endpoint restriction, \cite{KandirosHarshawSavje2026Minimax}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:outcome-class]\label{def:outcome-class}
+\par\smallskip\noindent\emph{Defined object.} Endpoint-\(L_2\) ANI class
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_n(G)=\{y:(\forall i,z,z')[(\forall j\in N_G[i],\ z_j=z'_j)\Rightarrow y_i(z)=y_i(z')],\ n^{-1}\sum_{i\in V_n}a_i^2\le1,\ n^{-1}\sum_{i\in V_n}b_i^2\le1\}\) at every stage \(n\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}ani}; \texttt{ass:\allowbreak{}treated-\allowbreak{}endpoint-\allowbreak{}l2}; \texttt{ass:\allowbreak{}control-\allowbreak{}endpoint-\allowbreak{}l2}.
+\end{definition}
+
+\begin{definition}[def:minimax-risk]\label{def:minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph-\allowbreak{}conditioned unrestricted minimax risk}
+\par\smallskip\noindent\emph{Construction.} \(R(G)=\inf_{\mathcal D_G\in\Delta(\{0,1\}^{V_n}),\,\widehat\tau}\sup_{y\in\mathcal M_n(G)}\mathbb E_{Z\sim\mathcal D_G,y}[(\widehat\tau(Z,Y^{\mathrm{obs}};G)-\tau_n)^2]\), where the estimator is measurable in only the displayed observed data and \(G\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n(G)}; \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:frontier-rate]\label{def:frontier-rate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Simultaneous-\allowbreak{}exposure lower scale}
+\par\smallskip\noindent\emph{Construction.} \(r(n,d_n)=d_n^2/[n\log(d_n+1)]\).  This is the proved random-regular lower scale; no equality between \(R(G_n)\) and \(r(n,d_n)\) is included in the definition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{d\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:balanced-exposure]\label{def:balanced-exposure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Balanced simultaneous endpoint exposure number}
+\par\smallskip\noindent\emph{Construction.} \(\beta(G)=\max_{z\in\{0,1\}^{V_n}}\min\{|T_G(z)|,|C_G(z)|\}=\max\{s:\exists T,C\subseteq V_n,\ |T|=|C|=s,\ \operatorname{dist}_G(T,C)>2\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:seed-design]\label{def:seed-design}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Retuned with-\allowbreak{}replacement neighborhood-\allowbreak{}seed design}
+\par\smallskip\noindent\emph{Construction.} Fix once and for all \(c_0\in(0,1)\).  On the branch \(M_n<n\), set
+\[
+\widetilde k_n=\max\!\left\{1,\left\lfloor\frac{c_0}{-\log(1-M_n/n)}\right\rfloor\right\},
+\qquad
+k_n^\sharp=\max\!\left\{1,\left\lfloor
+\frac{\log(d_n+1)}{4\{-\log(1-M_n/n)\}}
+\right\rfloor\right\}.
+\]
+For \(s\in\{\widetilde k_n,k_n^\sharp\}\), compute the graph-only score
+\[
+\Gamma_G(s)=\frac2s+
+\frac{2\|B_2(G)P_n\|_{\mathrm{op}}^2\{(1-M_n/n)^{-s}-1\}}
+{nM_n(1-M_n/n)},
+\]
+and let \(k_n\) be the smaller minimizer of \(\Gamma_G(s)\) over these two candidates.  Draw \(J_1,\ldots,J_{k_n}\) independently and uniformly from \(V_n\), and assign
+\[
+Z^{\mathrm{seed}}_v=\mathbf 1\!\left\{v\in\bigcup_{\ell=1}^{k_n}N_G[J_\ell]\right\}.
+\]
+On the branch \(M_n\ge n\), this seed design is not formed.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{c\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:rb-estimator]\label{def:rb-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}data Rao-\allowbreak{}-\allowbreak{}Blackwell seed estimator}
+\par\smallskip\noindent\emph{Construction.} On the branch \(M_n<n\), first set \(\pi_i(G)=q_i(G)^{k_n}>0\). For every assignment \(z\) of positive seed-design probability, compute \(w_i(z;G)=\mathbb E[k_n^{-1}\sum_{\ell=1}^{k_n}\mathbf 1\{J_\ell=i\}\mid Z^{\mathrm{seed}}=z,G]\), and set \(\widehat\tau_{\mathrm{seed}}=\sum_{i\in V_n}w_i(Z^{\mathrm{seed}};G)y_i(Z^{\mathrm{seed}})-n^{-1}\sum_{i\in C_G(Z^{\mathrm{seed}})}y_i(Z^{\mathrm{seed}})/\pi_i(G)\). No object in this definition is formed on the branch \(M_n\ge n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Z\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{seed\}\allowbreak{}\}\allowbreak{}}; \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:schur-certificate]\label{def:schur-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected-\allowbreak{}count exact Schur covariance and deterministic risk certificate}
+\par\smallskip\noindent\emph{Construction.} On the branch \(M_n<n\), use the graph-selected count \(k_n\) from Definition~\(\mathrm{def{:}seed\mbox{-}design}\) and form
+\[
+K_G=n^{-1}D_q(G)^{-1}B_2(G)P_nB_2(G)^{\mathsf T}D_q(G)^{-1},
+\qquad
+Q_G=\sum_{r=1}^{k_n}\binom{k_n}{r}K_G^{\circ r},
+\]
+and
+\[
+U(G,k_n)=\frac{2}{k_n}+
+\frac{2\|B_2(G)P_n\|_{\mathrm{op}}^2\{(1-M_n/n)^{-k_n}-1\}}
+{nM_n(1-M_n/n)}.
+\]
+These objects are not formed on the branch \(M_n\ge n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{k\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:boolean-handle]\label{def:boolean-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Centered Boolean collision diagnostic}
+\par\smallskip\noindent\emph{Construction.} For distinct \(i,j\in V_n\), put \(c_{ij}=(A_G^2)_{ij}\).  The handle \(\mathsf H_B\) records the exact Booleanization
+\[
+B_2(G)_{ij}=A_{G,ij}+(1-A_{G,ij})
+\sum_{r=1}^{d_n}(-1)^{r+1}\binom{c_{ij}}{r},
+\qquad B_2(G)_{ii}=1,
+\]
+followed by centering with \(P_n\).  It is a diagnostic decomposition, not an operator-norm bound: its terms contain \(K_{2,r}\)-type common-neighbor shapes with unbounded \(r\), whose uniform resummation over \(3\le d_n=o(\sqrt n)\) remains unresolved.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{B\_\allowbreak{}2(G)}; \texttt{P\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:certified-procedure]\label{def:certified-procedure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph-\allowbreak{}selected certified one-\allowbreak{}shot procedure}
+\par\smallskip\noindent\emph{Construction.} First compare \(M_n\) with \(n\).  If \(M_n\ge n\), form none of \(\pi_i(G)\), \(Q_G\), \(w_i(z;G)\), or \(\widehat\tau_{\mathrm{seed}}\); assign \(Z=\mathbf 1_n\), report \(\widehat\tau_{\mathrm{cert}}=n^{-1}\sum_{i\in V_n}y_i(\mathbf 1_n)\), and set \(\overline U(G)=1\).  If \(M_n<n\), compute the two candidates and graph-only scores from Definition~\(\mathrm{def{:}seed\mbox{-}design}\), and use their smaller certificate minimizer \(k_n\).  Compute \(U(G,k_n)\).  When \(U(G,k_n)\le1\), use \(Z^{\mathrm{seed}}\), report \(\widehat\tau_{\mathrm{cert}}=\widehat\tau_{\mathrm{seed}}\), and set \(\overline U(G)=U(G,k_n)\); otherwise return the same all-treated fallback and set \(\overline U(G)=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{c\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:confidence-set]\label{def:confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Risk-\allowbreak{}certificate confidence set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_\alpha(G,Z,Y^{\mathrm{obs}})=[\widehat\tau_{\mathrm{cert}}-\sqrt{\overline U(G)/\alpha},\widehat\tau_{\mathrm{cert}}+\sqrt{\overline U(G)/\alpha}]\cap[-2,2]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Z}; \texttt{Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}alpha}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:balanced-bayes-converse]\label{prop:balanced-bayes-converse}
+For every finite revealed graph \(G\), the unrestricted design-and-estimator risk satisfies \[R(G)\ge\frac{1}{12\{\beta(G)+2\}}.\] The inequality holds against every graph-dependent assignment law and every measurable estimator because a pair of independent uniform-Beta Bernoulli endpoint schedules leaves posterior variance at least the displayed amount in the less observed arm.
+\end{proposition}
+\begin{proof}
+Fix a revealed graph \(G\), a graph-measurable design \(\mathcal D_G\), and a measurable estimator.  We construct a prior supported on \(\mathcal M_n(G)\).  Independently for \(e\in\{0,1\}\), draw \(p_e\sim\operatorname{Unif}[0,1]\), and, conditional on \(p_e\), draw \(X_{ie}\sim\operatorname{Bernoulli}(p_e)\), independently over \(i\).  Define \(a_i=X_{i1}\), \(b_i=X_{i0}\), and define the local response table by
+\[
+y_i(z)=
+\begin{cases}
+a_i,&z_j=1\text{ for all }j\in N_G[i],\\
+b_i,&z_j=0\text{ for all }j\in N_G[i],\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+This definition obeys the ANI condition in Definition~\(\mathrm{def{:}outcome\mbox{-}class}\), because its value is a function only of \(z\) restricted to \(N_G[i]\).  Moreover, \(0\le a_i,b_i\le1\), so \(n^{-1}\sum_i a_i^2\le1\) and \(n^{-1}\sum_i b_i^2\le1\).  Thus every schedule in the support of the prior belongs to \(\mathcal M_n(G)\).
+
+Consider one arm and condition on a realized assignment that exposes exactly \(k\) endpoint values in that arm.  Let \(X\) be their sum and put \(N=n-k\).  Bayes' formula gives the posterior density
+\[
+f(p\mid X)=\frac{p^X(1-p)^{k-X}}{\int_0^1t^X(1-t)^{k-X}\,dt},
+\]
+namely the \(\operatorname{Beta}(X+1,k-X+1)\) density.  Given \(p\) and the exposed values, the \(N\) unexposed endpoint values remain independent \(\operatorname{Bernoulli}(p)\).  Hence the conditional-variance identity gives
+\[
+\operatorname{Var}\!\left(\frac1n\sum_{i=1}^nX_{ie}\,\middle|\,\text{exposed values}\right)
+=\frac{N}{n^2}\,\mathbb E[p(1-p)\mid X]
++\frac{N^2}{n^2}\operatorname{Var}(p\mid X).
+\]
+Under the uniform prior, \(\mathbb E[p(1-p)]=\int_0^1p(1-p)\,dp=1/6\).  Also the beta-binomial predictive law is uniform on \(\{0,\ldots,k\}\), since
+\[
+\Pr(X=x)=\binom{k}{x}\int_0^1p^x(1-p)^{k-x}\,dp=\frac1{k+1}.
+\]
+The posterior variance is
+\[
+\operatorname{Var}(p\mid X=x)
+=\frac{(x+1)(k-x+1)}{(k+2)^2(k+3)}.
+\]
+Using
+\[
+\frac1{k+1}\sum_{x=0}^k(x+1)(k-x+1)=\frac{(k+2)(k+3)}6,
+\]
+and averaging the preceding conditional-variance display over the exposed values therefore yields
+\[
+v_n(k):=\mathbb E\!\left[\operatorname{Var}\!\left(\frac1n\sum_iX_{ie}\,\middle|\,\text{exposed values}\right)\right]
+=\frac{N}{6n^2}+\frac{N^2}{6n^2(k+2)}
+=\frac{(n-k)(n+2)}{6n^2(k+2)}.
+\]
+
+Conditional on \(Z\) and the observed data, the two arm posteriors remain independent: the two priors are independent, the assignment law does not depend on the potential outcomes, and every nonendpoint observation in this submodel is the deterministic value zero.  Consequently the posterior variance of \(\tau_n\) is
+\[
+v_n\bigl(|T_G(Z)|\bigr)+v_n\bigl(|C_G(Z)|\bigr).
+\]
+By Definition~\(\mathrm{def{:}balanced\mbox{-}exposure}\), at least one of these two counts is no larger than \(\beta(G)\).  The sets \(T_G(Z)\) and \(C_G(Z)\) are disjoint, so \(\beta(G)\le n/2\).  Since \((n-k)/(k+2)\) decreases in \(k\), the contribution of the less observed arm is at least
+\[
+v_n(\beta(G))
+=\frac{(n-\beta(G))(n+2)}{6n^2\{\beta(G)+2\}}
+\ge\frac1{12\{\beta(G)+2\}}.
+\]
+For any estimator \(\delta\), conditional expansion around the posterior mean gives
+\[
+\mathbb E[(\delta-\tau_n)^2\mid Z,Y^{\mathrm{obs}},G]
+=\operatorname{Var}(\tau_n\mid Z,Y^{\mathrm{obs}},G)
++\{\delta-\mathbb E(\tau_n\mid Z,Y^{\mathrm{obs}},G)\}^2.
+\]
+Thus every estimator has Bayes risk at least the displayed posterior-variance lower bound.  The supremum risk is at least its average under any prior supported on \(\mathcal M_n(G)\); taking the infimum over \(\mathcal D_G\) and \(\widehat\tau\) in Definition~\(\mathrm{def{:}minimax\mbox{-}risk}\) proves
+\[
+R(G)\ge\frac1{12\{\beta(G)+2\}}.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This converts balanced two-arm observability, rather than a one-sided independent set, into an all-procedure finite-population minimax converse. \textit{Gap.} KandirosHarshawSavje2026Minimax, Theorem 3.2, lower-bounds risk through an induced independence number; it does not enforce comparable information about both signs of the GATE contrast. \textit{Consumer.} The random-regular packing theorem turns this finite-graph inequality into the rate lower bound required to certify any prospective full-policy experiment.
+
+\begin{theorem}[thm:balanced-packing]\label{thm:balanced-packing}
+There is a universal constant \(C_\beta<\infty\) such that every admissible sequence satisfies \[\Pr\!\left\{\beta(G_n)\le C_\beta\frac{n\log(d_n+1)}{d_n^2}\right\}\longrightarrow1.\] The proof must be uniform over sequences that cross the sparse and coupling regimes. Below a sufficiently large universal multiple of \(\log n\), a degree-preserving switching enumeration directly under the uniform simple regular law must give the required \(o(1)\) failure probability, without conditioning a configuration model on simplicity. At and above that threshold, a contained binomial graph from the Kim--Vu sandwich transfers the decreasing balanced-hole event.
+\end{theorem}
+\begin{proof}
+We first justify the geometric form of Definition~\(\mathrm{def{:}balanced\mbox{-}exposure}\).  If \(t\in T_G(z)\), \(c\in C_G(z)\), and \(\operatorname{dist}_G(t,c)\le2\), then \(N_G[t]\cap N_G[c]\ne\varnothing\); a vertex in this intersection would have to receive both assignments one and zero, a contradiction.  Conversely, if \(T,C\subseteq V_n\) have \(|T|=|C|=s\) and every \(T\)-to-\(C\) distance exceeds two, then \(\bigcup_{t\in T}N_G[t]\) and \(\bigcup_{c\in C}N_G[c]\) are disjoint.  Treating the first union and controlling every other vertex fully exposes all vertices in \(T\) and \(C\).  Therefore
+\[
+\{\beta(G)\ge s\}
+=\{\exists\,T,C\subseteq V_n:\ |T|=|C|=s,\ \operatorname{dist}_G(T,C)>2\}.
+\tag{1}
+\]
+
+Choose a universal \(K_0>192\), later enlarged if necessary, and set
+\[
+s=\left\lceil K_0\frac{n\log d_n}{d_n^2}\right\rceil.
+\tag{2}
+\]
+Because \(d_n^2/n\to0\), the unrounded quantity in (2) tends to infinity.  Choose a universal \(d_0\) so large that \(K_0\log d/d^2\le1/8\), \(16K_0\log d/d\le d^{-1/2}\), and \(\log d\ge16\log2\) for every \(d\ge d_0\).  For \(3\le d_n<d_0\), the deterministic inequality \(\beta(G_n)\le n/2\) proves the theorem after enlarging \(C_\beta\).  Hence assume \(d_n\ge d_0\).  For all sufficiently large \(n\), (2) then gives \(s\le n/4\), \(ds/n\le2K_0\log d/d\), and \(s\ge32\), where this proof temporarily writes \(d=d_n\).
+
+We shall use the following switching estimate, proved here.  Let \(H\) be a revealed simple partial graph, let \(F\) be uniform over the edge-disjoint simple completions for which \(H\cup F\) is \(d\)-regular, put \(r_v=d-\deg_H(v)\), and put \(R=\sum_vr_v\).  For \(r_u>0\), mark uniformly one of the \(r_u\) residual edges at \(u\).  If \(R\ge8d^2\), then for \(S\subseteq V_n\setminus\{u\}\),
+\[
+\Pr\{\text{marked endpoint lies in }S\mid H\}\le\frac{2\sum_{v\in S}r_v}{R}\le\frac{2d|S|}{R}.
+\tag{S1}
+\]
+Indeed, for a fixed \(v\), from a marked completion containing marked edge \(uv\), choose an oriented residual edge \(xy\), replace \(uv,xy\) by \(ux,vy\), and mark \(ux\).  Collisions exclude at most \(4d\) choices; the conditions that \(ux\) and \(vy\) be new exclude at most \(d^2\) choices each because \(H\cup F\) is \(d\)-regular.  Thus at least \(R/2\) switchings leave the marked-\(v\) class.  A reverse switching is specified by one of at most \(r_v\) residual neighbors of \(v\).  Double counting gives probability at most \(2r_v/R\), and summing over \(v\in S\) gives (S1).
+
+There is also the complementary lower estimate: if \(R_S=\sum_{v\in S}r_v\ge8d^2\), then
+\[
+\Pr\{\text{marked endpoint lies in }S\mid H\}\ge\frac{R_S}{3R}.
+\tag{S2}
+\]
+To prove it, start from a marked residual edge \(ux\) with \(x\notin S\), choose an oriented residual edge \(wy\) with \(w\in S\), replace \(ux,wy\) by \(uw,xy\), and mark \(uw\).  Of the \(R_S\) choices, at most \(2d^2+4d\le R_S/2\) are invalid by the same collision and pre-existing-edge count.  Every resulting marked-in-\(S\) state has at most \(R\) reverse switchings.  If \(A\) and \(B\) are respectively the numbers of marked-outside and marked-inside states, then \(AR_S/2\le BR\), whence \(B/(A+B)\ge R_S/(2R+R_S)\ge R_S/(3R)\).  This proves (S2) entirely in the simple-graph completion space.
+
+We next give the promised direct simple-regular estimate.  Fix disjoint \(T,C\) of size \(s\), draw \(G_n\) uniformly from the simple \(d\)-regular graphs, and expose every edge incident to \(T\).  To formalize the exposure, independently order the as-yet-unexposed incident edges at the current vertex and reveal the next edge.  Conditional on the revealed partial graph \(H\), every compatible residual simple completion is uniform: each compatible graph has the same original probability, and the probability of each revealed ordering step is \(1/r_u\), a number determined by \(H\).  Thus (S1)--(S2) apply at each step.
+
+Call a revealed edge bad when its other endpoint lies in \(T\) or is an outside vertex already discovered from \(T\).  At any time at most \(ds\) edges have been exposed, so the residual oriented-edge count obeys
+\[
+R\ge nd-2ds\ge nd/2\ge8d^2,
+\]
+where the last inequality follows eventually from \(d=o(\sqrt n)\).  The bad endpoint set has size at most \((d+1)s\le2ds\).  The switching lemma therefore bounds every conditional bad probability by
+\[
+q:=\frac{2d(2ds)}{nd/2}=\frac{8ds}{n}\le\frac12.
+\tag{3}
+\]
+Let \(I\) be the number of exposed edges internal to \(T\), let \(O\) be the number leaving \(T\), and let \(L\) be the number of distinct outside neighbors discovered.  Then
+\[
+2I+O=ds,
+\qquad
+\#\{\text{bad reveals}\}=I+O-L.
+\]
+If \(L<ds/2\) and \(O\le ds/2\), then \(I=(ds-O)/2\ge ds/4\).  If \(O>ds/2\), then \(I+O-L=ds/2+O/2-L>O/2>ds/4\).  An adaptive union bound over at most \(ds\) reveals, using (3) at every conditional step, now yields
+\[
+\Pr\{L<ds/2\}
+\le 2^{ds}q^{ds/4}.
+\tag{4}
+\]
+
+On \(L\ge ds/2\), put \(W=N_G(T)\setminus T\), so \(|W|=L\).  If \(C\cap W\ne\varnothing\), the desired distance-two hole already fails.  Otherwise the exposure of \(T\) has exposed no edge incident to \(C\), and the residual degree mass in \(W\) is at least
+\[
+R_W\ge d|W|-ds\ge\frac{d^2s}{2}-ds\ge\frac{d^2s}{4}\ge8d^2.
+\tag{5}
+\]
+Expose the edges incident to \(C\).  Conditional on having avoided \(W\) so far, the quantity \(R_W\) in (5) is unchanged, while the total residual mass is at most \(nd\).  The lower half of the switching lemma therefore gives, at every reveal,
+\[
+\Pr\{\text{next endpoint is in }W\mid\text{past avoidance}\}
+\ge\frac{R_W}{3nd}\ge\frac{ds}{12n}.
+\]
+At least \(ds/2\) reveals are required to exhaust the \(ds\) degrees at \(C\), because one internal \(C\)-edge consumes at most two of them.  Consequently
+\[
+\Pr\{\operatorname{dist}_{G_n}(T,C)>2,\ L\ge ds/2\}
+\le\left(1-\frac{ds}{12n}\right)^{ds/2}
+\le\exp\!\left(-\frac{d^2s^2}{24n}\right).
+\tag{6}
+\]
+Equations (4)--(6) are obtained under the uniform simple regular law itself; no conditioning on a configuration model occurs.
+
+There are at most \(\binom ns\binom{n-s}s\le(en/s)^{2s}\) ordered disjoint pairs.  Put \(L_d=\log d\).  From (2),
+\[
+\log(en/s)\le1+2L_d\le3L_d,
+\qquad
+q\le16K_0L_d/d\le d^{-1/2}.
+\]
+Thus the logarithm of the union-bound contribution from (4) is at most
+\[
+6sL_d+ds\log2-\frac{dsL_d}{8}
+\le-\frac{dsL_d}{32},
+\tag{7}
+\]
+after increasing \(d_0\).  Similarly the logarithm of the contribution from (6) is at most
+\[
+6sL_d-\frac{d^2s^2}{24n}
+\le-\left(\frac{K_0}{24}-6\right)sL_d.
+\tag{8}
+\]
+The right sides of (7) and (8) tend to \(-\infty\).  This proves the required \(o(1)\) failure probability directly whenever \(d<C_*\log n\), where \(C_*\) is the universal constant supplied below.
+
+For \(d\ge C_*\log n\), apply Lemma~\(\mathrm{lem{:}kim\mbox{-}vu\mbox{-}lower\mbox{-}sandwich}\) with \(\varepsilon=1/2\).  On its coupling event, a graph \(G_*\sim G(n,p)\), \(p=d/(2n)\), is contained in \(G_n\).  The existence of the pair in (1) is decreasing under edge addition, so its probability for \(G_n\) is at most the corresponding probability for \(G_*\), plus \(o(1)\).  For fixed disjoint \(T,C\), every vertex outside \(T\cup C\) is adjacent to at least one vertex of each set with probability
+\[
+\rho=\{1-(1-p)^s\}^2,
+\]
+and these events are independent over the \(n-2s\) outside vertices.  Since \(ps\le1\), \(1-(1-p)^s\ge ps/2\), and \(n-2s\ge n/2\),
+\[
+\Pr_{G(n,p)}\{\operatorname{dist}(T,C)>2\}
+\le(1-\rho)^{n-2s}
+\le\exp\!\left(-\frac{d^2s^2}{32n}\right).
+\tag{9}
+\]
+Direct \(T\)-to-\(C\) edges can only decrease this probability.  Combining (9) with the same pair count gives a logarithm at most \((6-K_0/32)sL_d\), which tends to \(-\infty\) after enlarging \(K_0\).
+
+The direct and coupled ranges cover every admissible sequence, including a sequence that crosses the threshold infinitely often.  We have proved \(\beta(G_n)<s\) with probability tending to one.  Finally, \(s\le (K_0+1)n\log(d_n+1)/d_n^2\) eventually, because \(n\log d_n/d_n^2\to\infty\); absorbing the bounded-degree cases into a universal constant proves the claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem identifies the logarithmic balanced-hole scale by a uniform-simple switching argument below the verified sandwich threshold and monotone coupling above it. \textit{Gap.} CooperEtAl2002RandomRegular characterizes ordinary one-color independence, whereas this signed closed-neighborhood packing excludes only opposite-arm centers at graph distance at most two. \textit{Consumer.} Combined with Proposition 1, it rules out every design-estimator pair below order \(d_n^2/[n\log(d_n+1)]\).
+
+\begin{lemma}[lem:schur-certificate]\label{lem:schur-certificate}
+For every revealed \(d_n\)-regular graph with \(M_n<n\), the seed design and observed-data Rao--Blackwell estimator are unbiased for \(\tau_n\), and \[Q_G=\sum_{r=1}^{k_n}\binom{k_n}{r}K_G^{\circ r}\succeq0,\qquad \sup_{y\in\mathcal M_n(G)}\mathbb E[(\widehat\tau_{\mathrm{seed}}-\tau_n)^2\mid G]\le U(G,k_n).\] Every entry of \(Q_G\), every weight \(w_i(z;G)\), and the certificate are finite graph computations from \(G\) and \(k_n\).
+\end{lemma}
+\begin{proof}
+Fix a revealed graph \(G\) on the branch \(M_n<n\), and abbreviate
+\[
+B=B_2(G),\qquad P=P_n,\qquad m_i=m_i(G),\qquad
+q_i=q_i(G),\qquad \pi_i=\pi_i(G),\qquad k=k_n.
+\]
+Let
+\[
+S_i=\{v\in V_n:\operatorname{dist}_G(i,v)\le 2\}.
+\]
+The row support of \(B\) is \(S_i\), so \(|S_i|=m_i\).  In a simple
+\(d_n\)-regular graph, the vertices at distances zero, one, and two from
+\(i\) number at most
+\[
+1+d_n+d_n(d_n-1)=d_n^2+1=M_n.
+\]
+Consequently,
+\[
+q_i=1-\frac{m_i}{n}\ge 1-\frac{M_n}{n}>0,
+\qquad
+\pi_i=q_i^k>0.
+\tag{1}
+\]
+This proves all positivity needed below.
+
+Introduce seed-augmented estimators
+\[
+U_1=\frac1k\sum_{\ell=1}^k a_{J_\ell},
+\qquad
+U_0=\frac1n\sum_{i\in V_n}
+\frac{\mathbf 1\{i\in C_G(Z^{\mathrm{seed}})\}b_i}{\pi_i}.
+\tag{2}
+\]
+Every seed \(J_\ell\) is fully treated because the seed-design definition
+includes \(N_G[J_\ell]\) in the treated union.  By ANI in
+Definition~\(\mathrm{def{:}outcome\mbox{-}class}\), its observed outcome is
+therefore \(a_{J_\ell}\).  A unit \(i\) is fully control-exposed exactly when
+no seed lies in \(S_i\): indeed, \(N_G[J_\ell]\) intersects \(N_G[i]\) if
+and only if \(\operatorname{dist}_G(i,J_\ell)\le2\).  Independence and
+uniformity of the \(k\) seed draws, together with (1), give
+\[
+\Pr\{i\in C_G(Z^{\mathrm{seed}})\mid G\}=q_i^k=\pi_i.
+\tag{3}
+\]
+ANI then gives \(y_i(Z^{\mathrm{seed}})=b_i\) on this event.  Hence
+\[
+\mathbb E(U_1\mid G)=\frac1n\sum_i a_i=\mu_1,
+\qquad
+\mathbb E(U_0\mid G)=\frac1n\sum_i b_i=\mu_0.
+\tag{4}
+\]
+The treated endpoint second-moment restriction further yields
+\[
+\operatorname{Var}(U_1\mid G)
+=\frac1k\operatorname{Var}(a_{J_1}\mid G)
+\le \frac1{kn}\sum_i a_i^2
+\le \frac1k.
+\tag{5}
+\]
+
+For \(i,j\in V_n\), put
+\[
+h_{ij}=|S_i\cap S_j|=(BB^{\mathsf T})_{ij}.
+\]
+A single uniform seed avoids \(S_i\cup S_j\) with probability
+\(1-(m_i+m_j-h_{ij})/n\).  Thus independence of the seed draws gives
+\[
+\begin{aligned}
+\frac{\Pr\{i,j\in C_G(Z^{\mathrm{seed}})\mid G\}}{\pi_i\pi_j}
+&=\left\{\frac{1-(m_i+m_j-h_{ij})/n}{q_iq_j}\right\}^{k}\\
+&=\left\{1+\frac{h_{ij}-m_im_j/n}{nq_iq_j}\right\}^{k}.
+\end{aligned}
+\tag{6}
+\]
+Because \(B\iota_n=(m_i:i\in V_n)^{\mathsf T}\), the definition
+\(P=I_n-\iota_n\iota_n^{\mathsf T}/n\) implies
+\[
+(BPB^{\mathsf T})_{ij}=h_{ij}-\frac{m_im_j}{n}.
+\]
+The term added to one in (6) is therefore \(K_{G,ij}\).  Subtracting one
+and applying the scalar binomial identity entrywise proves the exact formula
+\[
+Q_G=\sum_{r=1}^{k}\binom{k}{r}K_G^{\circ r}.
+\tag{7}
+\]
+
+The matrix \(K_G\) is positive semidefinite, since
+\[
+K_G=\frac1n(D_q^{-1}BP)(D_q^{-1}BP)^{\mathsf T}.
+\tag{8}
+\]
+If \(H\) and \(L\) are positive semidefinite Gram matrices, say
+\(H_{ij}=\langle u_i,u_j\rangle\) and
+\(L_{ij}=\langle v_i,v_j\rangle\), then
+\[
+(H\circ L)_{ij}
+=\langle u_i\otimes v_i,u_j\otimes v_j\rangle.
+\]
+Thus \(H\circ L\) is positive semidefinite.  Iterating this elementary
+Gram argument shows \(K_G^{\circ r}\succeq0\) for every \(r\ge1\), and
+(7) proves \(Q_G\succeq0\).
+
+We next obtain the stated deterministic certificate.  For any positive
+semidefinite matrix \(K\), any symmetric matrix \(X\), and any
+\(a\ge\max_iK_{ii}\), the inequalities
+\(-\|X\|_{\mathrm{op}}I\preceq X\preceq\|X\|_{\mathrm{op}}I\), the
+preceding Schur-product Gram argument, and
+\(K\circ I=\operatorname{diag}(K_{ii})\preceq aI\) imply
+\[
+\|K\circ X\|_{\mathrm{op}}
+\le a\|X\|_{\mathrm{op}}.
+\tag{9}
+\]
+Here direct calculation and (1) give
+\[
+K_{G,ii}
+=\frac{m_i-m_i^2/n}{nq_i^2}
+=\frac{m_i}{n-m_i}
+\le a_0:=\frac{M_n}{n-M_n},
+\tag{10}
+\]
+and
+\[
+\|K_G\|_{\mathrm{op}}
+\le\frac{\|BP\|_{\mathrm{op}}^2}
+{n(1-M_n/n)^2},
+\qquad
+\frac{\|K_G\|_{\mathrm{op}}}{a_0}
+\le\frac{\|BP\|_{\mathrm{op}}^2}
+{M_n(1-M_n/n)}.
+\tag{11}
+\]
+Applying (9) inductively to the powers in (7), and then using (10)--(11),
+yields
+\[
+\begin{aligned}
+\|Q_G\|_{\mathrm{op}}
+&\le \|K_G\|_{\mathrm{op}}
+\sum_{r=1}^{k}\binom{k}{r}a_0^{r-1}\\
+&=\frac{\|K_G\|_{\mathrm{op}}}{a_0}
+\{(1+a_0)^k-1\}\\
+&\le
+\frac{\|B_2(G)P_n\|_{\mathrm{op}}^2}
+{M_n(1-M_n/n)}
+\{(1-M_n/n)^{-k}-1\}.
+\end{aligned}
+\tag{12}
+\]
+
+By (6), \(Q_G\) is exactly the covariance matrix of the normalized control
+exposure indicators.  The control endpoint second-moment restriction and
+(12) therefore imply
+\[
+\begin{aligned}
+\operatorname{Var}(U_0\mid G)
+&=\frac1{n^2}b^{\mathsf T}Q_Gb\\
+&\le\frac{\|Q_G\|_{\mathrm{op}}}{n^2}\|b\|_2^2
+\le\frac{\|Q_G\|_{\mathrm{op}}}{n}.
+\end{aligned}
+\tag{13}
+\]
+By (4), \(U_1-U_0\) is unbiased for \(\tau_n\).  Combining (5), (12),
+(13), and \((x-y)^2\le2x^2+2y^2\) gives
+\[
+\begin{aligned}
+\mathbb E[(U_1-U_0-\tau_n)^2\mid G]
+&\le \frac2k+
+\frac{2\|B_2(G)P_n\|_{\mathrm{op}}^2
+\{(1-M_n/n)^{-k}-1\}}
+{nM_n(1-M_n/n)}\\
+&=U(G,k_n).
+\end{aligned}
+\tag{14}
+\]
+
+It remains to pass from the seed-augmented estimator to the prescribed
+observed-data estimator.  Let
+\(\mathcal F=\sigma(G,Z^{\mathrm{seed}},Y^{\mathrm{obs}})\).  The schedule
+is fixed, so \(Y^{\mathrm{obs}}\) is a deterministic function of
+\((G,Z^{\mathrm{seed}})\) once the schedule is fixed.  Moreover, whenever
+\(J_\ell=i\), ANI and the treated union imply
+\(y_i(Z^{\mathrm{seed}})=a_i\).  The control term in (2) is already
+\(\mathcal F\)-measurable.  The definition of \(w_i\) consequently gives
+\[
+\widehat\tau_{\mathrm{seed}}
+=\mathbb E[U_1-U_0\mid\mathcal F].
+\tag{15}
+\]
+The tower property applied to (15) proves unbiasedness for \(\tau_n\), and
+conditional Jensen applied to the square shows that its conditional MSE is
+at most (14).
+
+Finally, \(B\), \(m_i\), \(h_{ij}\), \(q_i\), \(\pi_i\), \(K_G\), and
+\(Q_G\) are obtained by finitely many matrix and rational operations from
+\(G\) and \(k\).  For every supported assignment \(z\), the denominator in
+the conditional definition of \(w_i(z;G)\) is positive, and enumerating the
+finite set of ordered seed tuples inducing \(z\) computes that weight.
+The operator norm in \(U(G,k_n)\) is the square root of the largest
+eigenvalue of the rational positive semidefinite matrix
+\(BPB^{\mathsf T}\), so it has a certified finite algebraic computation.
+This proves all assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact Schur-power identity is the two-arm covariance mechanism that prevents the control estimator from paying the generic conflict spectral radius. \textit{Gap.} KandirosEtAl2024ConflictGraph, Theorem 4.1, uses randomized priority resolution and a generic conflict-graph norm; UganderYin2023RGCR, Theorem 4.8, studies bounded outcomes within randomized cluster designs. Neither gives this endpoint-\(L_2\) certificate. \textit{Consumer.} A revealed network can be randomized once and audited before outcomes arrive by evaluating the displayed graph-only certificate.
+
+\begin{openendedquestion}[oeq:boolean-operator]\label{oeq:boolean-operator}
+Using the handle \(\mathsf H_B\), establish \(U(G_n,k_n)\le C_U r(n,d_n)\) with probability tending to one for every admissible degree sequence. One sufficient route is to prove that a universal \(L<\infty\) satisfies \[\Pr\!\left\{\|B_2(G_n)P_n\|_{\mathrm{op}}\le Ld_n^{7/4}\right\}\longrightarrow1;\] if that norm statement is false, derive the certificate bound directly from the centered collision expansion without assuming a favorable rate.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the sole exposed frontier step: Booleanization, not adjacency spectral control, must save a polynomial factor in the two-arm covariance. \textit{Gap.} Xu2025SwitchingGraphMatrices, CCC 2025 Section 2.2, Theorems 14--15, controls polynomial graph matrices, and BauerschmidtEtAl2020EdgeRigidity controls adjacency powers, but Boolean radius-two reachability includes nonlinear collision corrections and the required uniform constant-to-near-square-root degree splice is absent. \textit{Consumer.} A positive solution certifies the attaining design at the lower-bound rate; a negative solution kills the sampler spine before a false minimax theorem is claimed.
+
+\begin{proposition}[prop:finite-compiler]\label{prop:finite-compiler}
+For every finite revealed graph \(G\), an exact branch-safe compiler first evaluates whether \(M_n<n\). If \(M_n\ge n\), it forms none of \(\pi_i(G)\), \(Q_G\), \(w_i(z;G)\), or \(\widehat\tau_{\mathrm{seed}}\), and returns the all-treated estimator with worst-case MSE at most \(1=\overline U(G)\). If \(M_n<n\), it enumerates the \(n^{k_n}\) ordered seed tuples, groups them by \(Z^{\mathrm{seed}}\), computes every positive \(\pi_i(G)\), every \(w_i(z;G)\), \(Q_G\), and a certified enclosure of \(\lambda_{\max}(Q_G)\), and returns the seed estimator when \(U(G,k_n)\le1\) or the all-treated fallback otherwise, with worst-case MSE at most \(\overline U(G)\). On the high-probability certificate event in Open-ended Question 1, \(\overline U(G_n)\le C_Ur(n,d_n)\).
+\end{proposition}
+\begin{proof}
+Use the permitted fixed choice \(c_0=(\log 2)/4\in(0,1)\) in the
+seed-design construction.
+The initial test compares the integers \(M_n=d_n^2+1\) and \(n\), and hence
+uses only the revealed graph and declared design inputs.
+
+Suppose first that \(M_n\ge n\).  By
+Definition~\(\mathrm{def{:}certified\mbox{-}procedure}\), the compiler forms
+none of the inverse-probability objects and deterministically assigns
+\(Z=\mathbf 1_n\).  Its report is \(\mu_1\), so its error for
+\(\tau_n=\mu_1-\mu_0\) is \(\mu_0\).  Cauchy--Schwarz and the control
+endpoint restriction in Definition~\(\mathrm{def{:}outcome\mbox{-}class}\)
+give
+\[
+\mu_0^2
+=\left(\frac1n\sum_i b_i\right)^2
+\le\frac1n\sum_i b_i^2
+\le1=\overline U(G).
+\tag{16}
+\]
+In particular, this branch covers the smallest admissible regular example
+\((n,d_n)=(4,3)\), and no division by a zero exposure probability occurs.
+
+Now suppose \(M_n<n\).  The radius-two counting argument in the proof of
+Lemma~\(\mathrm{lem{:}schur\mbox{-}certificate}\) gives
+\[
+q_i(G)\ge1-M_n/n>0,
+\qquad
+\pi_i(G)=q_i(G)^{k_n}>0
+\tag{17}
+\]
+for every unit.  Put \(x=M_n/n\) and
+\(D=(1-x)^{-1}=n/(n-M_n)>1\).  With the chosen \(c_0\), the two quantities
+whose floors define the candidate counts have the common form
+\[
+\frac{\log A}{4\log D},
+\qquad A\in\{2,d_n+1\}.
+\]
+Since the logarithm is strictly increasing, for every nonnegative integer
+\(t\),
+\[
+t\le\frac{\log A}{4\log D}
+\quad\Longleftrightarrow\quad
+D^{4t}\le A.
+\tag{18}
+\]
+Both sides of the last comparison are rational.  Consequently, integer
+search using (18), followed by the displayed maximum with one, computes
+both candidate counts exactly, including every equality boundary.  There
+are exactly \(n^{k_n}\) ordered seed tuples.  Enumerating them, mapping each
+tuple to its treated-union assignment, and grouping equal assignments
+computes the mass of every supported assignment and the finite conditional
+ratios \(w_i(z;G)\).
+The same finite graph operations compute \(m_i\), \(h_{ij}\), \(q_i\),
+\(\pi_i\), \(K_G\), and \(Q_G\); all their entries are rational.
+
+For completeness, the score comparison and spectral certification can also
+be made exact.  Since \(B\) is symmetric and \(P^2=P=P^{\mathsf T}\),
+\[
+\|BP\|_{\mathrm{op}}^2
+=\lambda_{\max}(BPB^{\mathsf T}).
+\tag{19}
+\]
+The matrix on the right of (19) is rational and positive semidefinite.  For
+a rational symmetric matrix \(H\), exact symmetric Gaussian elimination
+with simultaneous row and column operations reduces \(H\) by rational
+congruences to rational one-by-one and two-by-two blocks.  The signs of
+those blocks decide \(H\succeq0\) using finitely many rational operations.
+It follows that, for rational \(t\), the relation
+\(\lambda_{\max}(BPB^{\mathsf T})\le t\) is decidable by applying this test
+to \(tI_n-BPB^{\mathsf T}\); equality is detected by its rational
+determinant.  Each candidate score is an affine expression in the common
+number \(\lambda_{\max}(BPB^{\mathsf T})\), with rational coefficients.
+The preceding comparisons therefore select the smaller score exactly,
+including the prescribed smaller-index tie rule, and also decide the branch
+test \(U(G,k_n)\le1\).
+
+The claimed eigenvalue enclosure for \(Q_G\) is equally finite.  If
+\(Q_Gv=\lambda v\) and \(|v_s|=\max_j|v_j|\), then
+\[
+|\lambda|\le |Q_{G,ss}|+\sum_{j\ne s}|Q_{G,sj}|
+\le L_Q:=\max_i\sum_j|Q_{G,ij}|.
+\]
+Thus \([0,L_Q]\) is already a certified rational enclosure because
+\(Q_G\succeq0\).  If a tighter enclosure is requested, rational bisection
+and the exact test \(tI_n-Q_G\succeq0\) refine it to any prescribed finite
+accuracy.  Thus all steps terminate after finitely many exact operations.
+
+If \(U(G,k_n)\le1\),
+Lemma~\(\mathrm{lem{:}schur\mbox{-}certificate}\) bounds the worst-case MSE
+of the returned seed estimator by
+\(U(G,k_n)=\overline U(G)\).  If \(U(G,k_n)>1\), the compiler returns the
+all-treated estimator, and (16) bounds its worst-case MSE by
+\(1=\overline U(G)\).  Together with the first branch, this proves the
+finite-graph risk certificate in every case.
+
+Finally, on the event named in
+Open-ended Question~\(\mathrm{oeq{:}boolean\mbox{-}operator}\), namely
+\[
+U(G_n,k_n)\le C_Ur(n,d_n),
+\]
+the selected-certificate definition gives directly
+\[
+\overline U(G_n)
+\le U(G_n,k_n)
+\le C_Ur(n,d_n).
+\tag{20}
+\]
+This last implication is conditional on the displayed event and does not
+assert the unresolved high-probability Boolean-operator estimate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The matched statistical frontier comes with an exact finite procedure that never evaluates an inverse exposure probability outside its positive-probability branch. \textit{Gap.} KandirosHarshawSavje2026Minimax, Algorithm 4 with Proposition 4.3, gives a polynomial approximation design for its conflict-graph criterion using the imported Partial Vertex Cover 2-approximation in Theorem C.11; it does not provide this branch-safe exact seed-law certificate or close the random-regular GATE minimax gap. \textit{Consumer.} An experimenter can audit the assignment law and worst-case error on the actual revealed network before running the one-shot study.
+
+\begin{theorem}[thm:matched-frontier]\label{thm:matched-frontier}
+\textbf{Uniform upper edge and logarithmic random-regular bracket.}
+There are universal constants \(0<c<C<\infty\) with the following properties for every admissible degree sequence.
+\begin{enumerate}
+\item For all sufficiently large \(n\) and every simple \(d_n\)-regular graph \(G\) on \(V_n\),
+\[
+R(G)\le C\frac{d_n^2}{n}.
+\]
+This deterministic upper edge is attained by the graph-measurable, one-shot selected seed procedure with its branch-safe all-treated fallback; its assignment law, estimator weights, and certificate are auditable by finite enumeration from \(G\).
+\item Under the uniform simple random-regular draw,
+\[
+\Pr\!\left\{R(G_n)\ge c\frac{d_n^2}{n\log(d_n+1)}\right\}\longrightarrow1.
+\]
+This lower edge ranges over every graph-dependent assignment distribution and every measurable estimator.
+\end{enumerate}
+Consequently,
+\[
+\Pr\!\left\{
+c\frac{d_n^2}{n\log(d_n+1)}
+\le R(G_n)\le
+C\frac{d_n^2}{n}
+\right\}\longrightarrow1.
+\]
+If \((d_n)\) is bounded, then \(R(G_n)=\Theta_{\Pr}(n^{-1})\).  If \(d_n\to\infty\), the proved lower and upper edges differ by the factor \(\log(d_n+1)\); no matched order or unconditional logarithmic upper edge is asserted.
+\end{theorem}
+\begin{proof}
+Put
+\[
+s_n:=\frac{n\log(d_n+1)}{d_n^2}=\frac{1}{r(n,d_n)}.
+\tag{1}
+\]
+By Assumption~\(\mathrm{ass{:}degree\mbox{-}growth}\), \(d_n^2/n\to0\), while Assumption~\(\mathrm{ass{:}degree\mbox{-}lower}\) gives \(\log(d_n+1)\ge\log4>0\).  Hence (1) implies
+\[
+s_n=\frac{\log(d_n+1)}{d_n^2/n}\longrightarrow\infty.
+\tag{2}
+\]
+
+We first prove the deterministic upper edge.  Lemma~\(\mathrm{lem{:}retuned\mbox{-}seed\mbox{-}certificate\mbox{-}rate}\), applied under Assumptions~\(\mathrm{ass{:}degree\mbox{-}lower}\) and \(\mathrm{ass{:}degree\mbox{-}growth}\), supplies a constant \(C_{\mathrm{rob}}<\infty\), depending only on the once-fixed universal constant \(c_0\), such that, for all sufficiently large \(n\), every simple \(d_n\)-regular graph \(G\) satisfies \(M_n<n\) and
+\[
+\sup_{y\in\mathcal M_n(G)}
+\mathbb E_{\mathcal D_G,y}\!\left[
+  (\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G
+\right]
+\le C_{\mathrm{rob}}\frac{d_n^2}{n}.
+\tag{3}
+\]
+Here \(\mathcal D_G\) is the selected seed assignment law in Definition~\(\mathrm{def{:}certified\mbox{-}procedure}\), and \(\widehat\tau_{\mathrm{cert}}\) is its observed-data estimator.  Conditional on the revealed \(G\), the schedule \(y\) is fixed and the seed assignment is the only randomness.  The same lemma proves that the assignment probabilities, Rao--Blackwell weights, and both candidate certificates are finite graph-measurable computations obtained by enumerating the ordered seed tuples.  Thus this pair is a feasible member of the infimum over \((\mathcal D_G,\widehat\tau)\) in Definition~\(\mathrm{def{:}minimax\mbox{-}risk}\).  Comparing that infimum with this feasible pair and using (3) gives
+\[
+R(G)
+\le
+\sup_{y\in\mathcal M_n(G)}
+\mathbb E_{\mathcal D_G,y}\!\left[
+  (\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G
+\right]
+\le C_{\mathrm{rob}}\frac{d_n^2}{n}
+\tag{4}
+\]
+for every such graph \(G\).  This establishes the first assertion with any universal \(C\ge C_{\mathrm{rob}}\); in particular, it uses no probability statement about \(G_n\).
+
+We next prove the random-regular lower edge.  The regular-parity and uniform-regular-draw assumptions, together with the degree assumptions already used above, are precisely the random-environment hypotheses of Theorem~\(\mathrm{thm{:}balanced\mbox{-}packing}\).  That theorem supplies a universal \(C_\beta<\infty\) for which
+\[
+E_n:=\{\beta(G_n)\le C_\beta s_n\}
+\qquad\text{satisfies}\qquad
+\Pr(E_n)\longrightarrow1.
+\tag{5}
+\]
+On \(E_n\), Proposition~\(\mathrm{prop{:}balanced\mbox{-}bayes\mbox{-}converse}\) and (5) yield
+\[
+R(G_n)
+\ge \frac{1}{12\{\beta(G_n)+2\}}
+\ge \frac{1}{12(C_\beta s_n+2)}.
+\tag{6}
+\]
+By (2), \(s_n\ge2\) for all sufficiently large \(n\), and therefore
+\[
+C_\beta s_n+2\le(C_\beta+1)s_n.
+\tag{7}
+\]
+Combining (1), (6), and (7), we obtain on \(E_n\)
+\[
+R(G_n)
+\ge \frac{1}{12(C_\beta+1)s_n}
+=\frac{1}{12(C_\beta+1)}
+  \frac{d_n^2}{n\log(d_n+1)}.
+\tag{8}
+\]
+The proposition is a lower bound on the minimax risk itself, so (8) holds after the infimum over every graph-dependent assignment law and measurable estimator; it does not merely lower-bound the risk of the seed procedure.  Taking
+\[
+c:=\{12(C_\beta+1)\}^{-1}>0,
+\qquad
+C:=\max\{C_{\mathrm{rob}},2c,1\}
+\tag{9}
+\]
+gives \(0<c<C<\infty\), preserves (4), and, using (5), proves the second assertion.
+
+For all sufficiently large \(n\), (4) holds for every graph in the support of the uniform simple regular law.  Hence the joint bracket event contains \(E_n\), and its probability tends to one by (5).  This proves the displayed corollary.
+
+Finally suppose \(D:=\sup_n d_n<\infty\).  Assumption~\(\mathrm{ass{:}degree\mbox{-}lower}\) gives
+\[
+\frac{d_n^2}{\log(d_n+1)}\ge\frac{9}{\log(D+1)},
+\qquad
+d_n^2\le D^2.
+\tag{10}
+\]
+Thus the joint bracket and (10) imply
+\[
+\Pr\!\left\{
+\frac{9c}{\log(D+1)}\frac1n
+\le R(G_n)\le
+CD^2\frac1n
+\right\}\longrightarrow1,
+\tag{11}
+\]
+which is \(R(G_n)=\Theta_{\Pr}(n^{-1})\).  If instead \(d_n\to\infty\), the quotient of the displayed upper scale \(d_n^2/n\) by the displayed lower scale \(d_n^2/[n\log(d_n+1)]\) is exactly \(\log(d_n+1)\).  This establishes the stated elbow and records, rather than conceals, the remaining logarithmic gap.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem separates a deterministic certified upper edge, attained by an explicit graph-auditable one-shot design, from a random-regular all-procedure lower edge; together they reduce the former polynomial gap to a logarithmic bracket. \textit{Gap.} For exactly the common \(q=2\) GATE outcome class and minimax functional, KandirosHarshawSavje2026Minimax has the same \(d_n^2/n\) upper scale but only a \(d_n/n\) lower scale. Matching the new \(d_n^2/[n\log(d_n+1)]\) lower edge, or proving the conditional logarithmic upper refinement, remains open. \textit{Consumer.} ShiEtAl2020FreedomChoice motivates using the deterministic error certificate and the honest logarithmic bracket, rather than a point rate, to size a larger one-round all-free versus all-fixed random-regular experiment and to expose the bounded-degree \(n^{-1}\) elbow.
+
+\begin{theorem}[thm:honest-confidence]\label{thm:honest-confidence}
+For every finite revealed graph \(G\), every \(0<\alpha<1\), and every \(y\in\mathcal M_n(G)\), the retuned selected procedure satisfies
+\[
+\Pr_{\mathcal D_G}\!\left\{
+\tau_n\in\mathcal C_\alpha(G,Z,Y^{\mathrm{obs}})\mid G
+\right\}\ge1-\alpha.
+\]
+For every admissible degree sequence and every fixed \(\alpha\in(0,1)\), the untruncated certificate half-width is, for all sufficiently large \(n\) and uniformly over every simple \(d_n\)-regular realization,
+\[
+\sqrt{\overline U(G)/\alpha}
+\le \sqrt{C_{\mathrm{rob}}}\,
+\frac{d_n}{\sqrt{\alpha n}}=o(1).
+\]
+If the unresolved Boolean conjecture holds, namely if some universal \(L<\infty\) satisfies
+\[
+\Pr\!\left\{\|B_2(G_n)P_n\|_{\mathrm{op}}
+\le Ld_n^{7/4}\right\}\longrightarrow1,
+\]
+then the same graph-selected procedure has, with probability tending to one over \(G_n\), half-width at most
+\[
+\sqrt{C_L}\,
+\frac{d_n}{\sqrt{\alpha n\log(d_n+1)}}.
+\]
+The sharper logarithmic radius is conditional only; the procedure's unconditional guarantee remains the robust radius above.
+\end{theorem}
+\begin{proof}
+First, the endpoint second-moment restrictions and Cauchy--Schwarz give
+\[
+|\mu_1|^2\le\frac1n\sum_i a_i^2\le1,
+\qquad
+|\mu_0|^2\le\frac1n\sum_i b_i^2\le1.
+\]
+Consequently \(|\tau_n|=|\mu_1-\mu_0|\le2\), so intersecting an interval with \([-2,2]\) cannot remove the true estimand.
+
+We next verify the finite risk certificate, including its boundary branch.  If \(M_n\ge n\), Definition~\(\mathrm{def{:}certified\mbox{-}procedure}\) returns \(\widehat\tau_{\mathrm{cert}}=\mu_1\).  Its error is \(\mu_0\), whence
+\[
+\mathbb E[(\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G]
+=\mu_0^2\le1=\overline U(G).
+\tag{19}
+\]
+No inverse probability is formed on this branch.  If \(M_n<n\) and \(U(G,k_n)\le1\), Lemma~\(\mathrm{lem{:}retuned\mbox{-}seed\mbox{-}certificate\mbox{-}rate}\), applied with \(s=k_n\), gives
+\[
+\mathbb E[(\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G]
+\le U(G,k_n)=\overline U(G).
+\tag{20}
+\]
+If \(M_n<n\) but \(U(G,k_n)>1\), the procedure again uses the all-treated report, and (19) gives the same conclusion with \(\overline U(G)=1\).  Thus in every finite case
+\[
+\mathbb E[(\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G]
+\le\overline U(G).
+\tag{21}
+\]
+Every formed seed count is at least one, so \(U(G,k_n)\ge2/k_n>0\); on either fallback branch \(\overline U(G)=1\).  Hence \(\overline U(G)>0\) in every case.
+For every \(t>0\), nonnegativity gives
+\[
+\mathbb E[(\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G]
+\ge t^2\Pr_{\mathcal D_G}\!\left\{
+|\widehat\tau_{\mathrm{cert}}-\tau_n|>t\mid G
+\right\}.
+\]
+Taking \(t=\sqrt{\overline U(G)/\alpha}\) and using (21) yields
+\[
+\Pr_{\mathcal D_G}\!\left\{
+|\widehat\tau_{\mathrm{cert}}-\tau_n|
+>\sqrt{\overline U(G)/\alpha}\mid G
+\right\}\le\alpha.
+\]
+Together with \(|\tau_n|\le2\) and Definition~\(\mathrm{def{:}confidence\mbox{-}set}\), this is exactly the asserted finite conditional coverage.
+
+Under the degree-growth assumption, Lemma~\(\mathrm{lem{:}retuned\mbox{-}seed\mbox{-}certificate\mbox{-}rate}\) gives, uniformly over every simple regular realization and for all sufficiently large \(n\),
+\[
+\overline U(G)\le U(G,k_n)
+\le C_{\mathrm{rob}}d_n^2/n.
+\]
+Taking square roots gives the displayed robust half-width.  It tends to zero for fixed \(\alpha\) because \(d_n/\sqrt n\to0\).
+
+Finally assume the Boolean conjecture stated in the theorem.  On its norm event, the conditional part of Lemma~\(\mathrm{lem{:}retuned\mbox{-}seed\mbox{-}certificate\mbox{-}rate}\) and the graph-based minimization over the two candidate counts give
+\(U(G_n,k_n)\le C_Lr(n,d_n)\).  The finite coverage argument already applies to this same selected procedure.  On the norm event its untruncated half-width is at most
+\[
+\sqrt{C_Lr(n,d_n)/\alpha}
+=\sqrt{C_L}\,
+\frac{d_n}{\sqrt{\alpha n\log(d_n+1)}}.
+\]
+The conjecture says that the norm event has probability tending to one over \(G_n\), proving precisely the conditional final clause and no unconditional logarithmic refinement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The risk certificate gives finite conditional coverage and a robust shrinking radius without Gaussian or fourth-moment assumptions. \textit{Gap.} The unconditional radius is \(O(d_n/\sqrt{\alpha n})\); the logarithmically sharper radius is conditional on the unresolved Boolean conjecture. \textit{Consumer.} A prospective one-round public-goods experiment receives a precomputable honest error bar for the full all-free versus all-fixed policy contrast.
+
+\begin{proposition}[prop:sanity-reductions]\label{prop:sanity-reductions}
+If \(d_n\) is a fixed integer sequence with \(d_n\ge3\), then \(r(n,d_n)=\Theta(n^{-1})\), so Theorem 1 reduces to the ordinary parametric MSE order. If \(G\) has girth at least five, then \(B_2(G)=A_G^2+A_G-(d_n-1)I_n\); hence \(\|A_GP_n\|_{\mathrm{op}}=O(\sqrt{d_n})\) implies \(\|B_2(G)P_n\|_{\mathrm{op}}=O(d_n)\), a strict special case of the open Boolean operator target.
+\end{proposition}
+\begin{proof}
+Assume first the fixed-degree regime: there is an integer \(d\ge 3\) such that \(d_n=d\) at every admissible stage.  By Definition~\(\mathrm{def{:}frontier\mbox{-}rate}\),
+\[
+r(n,d_n)=r(n,d)=\frac{d^2}{n\log(d+1)}
+=\frac{d^2}{\log(d+1)}n^{-1}.
+\]
+Because \(d\ge3\), the multiplier \(d^2/\log(d+1)\) is finite and strictly positive.  Hence \(r(n,d_n)=\Theta(n^{-1})\).  (The same conclusion holds for any bounded sequence with \(3\le d_n\le D<\infty\), since the multiplier \(d_n^2/\log(d_n+1)\) then ranges over a finite set of positive numbers.)
+
+The already established Theorem~\(\mathrm{thm{:}matched\mbox{-}frontier}\) supplies universal constants \(0<c<C<\infty\) such that, along the admissible stages,
+\[
+\Pr\!\left\{
+\frac{c d^2}{\log(d+1)}n^{-1}
+\le R(G_n)\le C d^2 n^{-1}
+\right\}\longrightarrow1.
+\]
+The two coefficients multiplying \(n^{-1}\) are fixed, finite, and strictly positive.  Thus the displayed conclusion is exactly \(R(G_n)=\Theta_{\Pr}(n^{-1})\), which is the asserted parametric mean-squared-error reduction.
+
+For the graph identity, fix a finite simple undirected \(d_n\)-regular graph \(G\) of girth at least five.  Write
+\[
+A=A_G,\qquad B=B_2(G),\qquad d=d_n,
+\qquad P=P_n=I_n-\frac{\iota_n\iota_n^{\mathsf T}}{n}.
+\]
+For distinct vertices \(i,j\in V_n\), matrix multiplication gives
+\[
+(A^2)_{ij}=\sum_{v\in V_n}A_{iv}A_{vj},
+\]
+so \((A^2)_{ij}\) is the number of common neighbors of \(i\) and \(j\).  If \(A_{ij}=1\), a common neighbor would form a triangle with \(i\) and \(j\); the girth condition therefore gives
+\[
+i\ne j,\quad A_{ij}=1
+\quad\Longrightarrow\quad (A^2)_{ij}=0.
+\]
+If \(A_{ij}=0\), two distinct common neighbors would form a cycle of length four.  Hence there is at most one common neighbor, while there is one precisely when \(\operatorname{dist}_G(i,j)=2\).  Consequently,
+\[
+i\ne j,\quad A_{ij}=0
+\quad\Longrightarrow\quad
+(A^2)_{ij}=\mathbf 1\{\operatorname{dist}_G(i,j)=2\}.
+\]
+These two implications and the definition
+\(B_{ij}=\mathbf 1\{\operatorname{dist}_G(i,j)\le2\}\) show that, for \(i\ne j\),
+\[
+B_{ij}=(A^2+A)_{ij}.
+\]
+On the diagonal, simplicity gives \(A_{ii}=0\), and symmetry and \(d\)-regularity give
+\[
+(A^2)_{ii}=\sum_{v\in V_n}A_{iv}A_{vi}
+=\sum_{v\in V_n}A_{iv}=d.
+\]
+Since \(B_{ii}=1\), comparison of the diagonal and off-diagonal entries proves
+\[
+B_2(G)=A_G^2+A_G-(d_n-1)I_n.
+\tag{1}
+\]
+
+It remains to establish the claimed centered norm implication.  Regularity gives
+\(A\iota_n=d\iota_n\); symmetry then also gives
+\(\iota_n^{\mathsf T}A=d\iota_n^{\mathsf T}\).  Therefore
+\[
+AP=A-d\frac{\iota_n\iota_n^{\mathsf T}}n=PA,
+\]
+so \(A\) and \(P\) commute.  Direct calculation using
+\(\iota_n^{\mathsf T}\iota_n=n\) gives \(P^{\mathsf T}=P\) and \(P^2=P\); thus \(P\) is an orthogonal projection and \(\|P\|_{\mathrm{op}}=1\).  Commutation and idempotence further yield
+\[
+(AP)^2=APAP=A^2P^2=A^2P.
+\tag{2}
+\]
+Multiplying (1) on the right by \(P\), and then applying the triangle inequality, submultiplicativity of the Euclidean operator norm, (2), and \(\|P\|_{\mathrm{op}}=1\), gives
+\[
+\begin{aligned}
+\|B_2(G)P_n\|_{\mathrm{op}}
+&\le \|A^2P\|_{\mathrm{op}}+\|AP\|_{\mathrm{op}}
+ +(d-1)\|P\|_{\mathrm{op}}\\
+&\le \|AP\|_{\mathrm{op}}^2+\|AP\|_{\mathrm{op}}+(d-1).
+\end{aligned}
+\tag{3}
+\]
+Suppose now, as in the proposition, that along the graph sequence there is a finite constant \(K\) for which
+\(\|A_GP_n\|_{\mathrm{op}}\le K\sqrt{d_n}\) at every sufficiently large stage.  Since \(d_n\ge3\), (3) implies
+\[
+\|B_2(G)P_n\|_{\mathrm{op}}
+\le K^2d_n+K\sqrt{d_n}+d_n-1
+\le (K^2+K+1)d_n.
+\]
+Hence \(\|B_2(G)P_n\|_{\mathrm{op}}=O(d_n)\).  Because \(d_n\ge3\) also implies \(d_n\le d_n^{7/4}\), this is stronger than the \(O(d_n^{7/4})\) sufficient scale posed in \(\mathrm{oeq{:}boolean\mbox{-}operator}\), albeit only on the stated high-girth subclass.  Thus it is a strict special-case reduction and does not assume or resolve the open Boolean-collision bound for general random regular graphs.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} These reductions prevent the proposed frontier from contradicting the no-growth parametric benchmark and isolate Boolean collisions as the only new graph-spectral issue. \textit{Gap.} BauerschmidtEtAl2020EdgeRigidity and Sarid2023SpectralGap supply adjacency spectral control, but not the Boolean collision identity outside the high-girth special case. \textit{Consumer.} The fixed degree-four design motivated by ShiEtAl2020FreedomChoice recovers order-\(n^{-1}\) MSE and order-\(n^{-1/2}\) confidence radius.
+
+\begin{lemma}[lem:kim-vu-lower-sandwich]\label{lem:kim-vu-lower-sandwich}
+For each \(\varepsilon>0\) there is a constant \(C>0\) such that, whenever \(d_n\ge C\log n\), there are graphs \(G_*\) and \(G^*\) coupled with \(G_n\) such that \(G_*\sim G(n,(1-\varepsilon)d_n/n)\), \(G^*\sim G(n,(1+\varepsilon)d_n/n)\), and
+\[
+\Pr\{G_*\subseteq G\subseteq G^*\}=1-o(1).
+\]
+\end{lemma}
+
+\begin{proposition}[prop:boolean-incidence-identity]\label{prop:boolean-incidence-identity}
+For every finite simple \(d_n\)-regular graph \(G\), let \(c_{ij}=(A_G^2)_{ij}\) for \(i\ne j\).  Then
+\[
+B_2(G)_{ii}=1,
+\qquad
+B_2(G)_{ij}=A_{G,ij}+(1-A_{G,ij})
+\sum_{r=1}^{d_n}(-1)^{r+1}\binom{c_{ij}}{r}
+\quad(i\ne j).
+\]
+Thus the centered Boolean collision expansion contains common-neighbor shapes of every order \(1\le r\le d_n\).
+\end{proposition}
+\begin{proof}
+Fix distinct \(i,j\).  By the definition of matrix multiplication, \(c_{ij}=(A_G^2)_{ij}\) is the number of common neighbors of \(i\) and \(j\); in particular, \(c_{ij}\) is an integer in \(\{0,\ldots,d_n\}\).  If \(A_{G,ij}=1\), then \(\operatorname{dist}_G(i,j)=1\), and both sides of the asserted off-diagonal identity equal one.  If \(A_{G,ij}=0\), then \(\operatorname{dist}_G(i,j)\le2\) holds exactly when \(c_{ij}\ge1\).  The binomial theorem gives, for every integer \(c\in\{0,\ldots,d_n\}\),
+\[
+\mathbf 1\{c\ge1\}=1-(1-1)^c
+=\sum_{r=1}^{c}(-1)^{r+1}\binom cr
+=\sum_{r=1}^{d_n}(-1)^{r+1}\binom cr,
+\]
+where \(\binom cr=0\) for \(r>c\).  Substitution of \(c=c_{ij}\) proves the off-diagonal formula.  Finally, \(\operatorname{dist}_G(i,i)=0\), so Definition~\(B_2(G)_{ii}=\mathbf 1\{\operatorname{dist}_G(i,i)\le2\}\) gives \(B_2(G)_{ii}=1\).  The summation index ranges up to \(d_n\), proving the last assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This exact identity exposes the unbounded common-neighbor orders that the unresolved Boolean operator conjecture must control. \textit{Gap.} Xu2025SwitchingGraphMatrices treats fixed graph-matrix shapes; the identity shows why a uniform resummation is additionally required here. \textit{Consumer.} The identity makes the remaining spectral limitation auditable without treating it as an established rate bound.
+
+\begin{lemma}[lem:retuned-seed-certificate-rate]\label{lem:retuned-seed-certificate-rate}
+For every finite simple \(d_n\)-regular graph \(G\) with \(M_n<n\), and for every integer \(s\ge1\), form the \(s\)-seed analogues of the seed design and observed-data Rao--Blackwell estimator by replacing \(k_n\) by \(s\).  Define
+\[
+\mathcal U_G(s)=\frac{2}{s}+
+\frac{2\|B_2(G)P_n\|_{\mathrm{op}}^2\{(1-M_n/n)^{-s}-1\}}
+{nM_n(1-M_n/n)}.
+\]
+The analogue is unbiased for \(\tau_n\), and
+\[
+\sup_{y\in\mathcal M_n(G)}
+\mathbb E\!\left[(\widehat\tau_s-\tau_n)^2\mid G\right]
+\le \mathcal U_G(s).
+\]
+Consequently, there is a finite constant \(C_{\mathrm{rob}}\), depending only on the fixed \(c_0\), such that every sequence satisfying \(d_n\ge3\) and \(d_n/\sqrt n\to0\) obeys, for all sufficiently large \(n\) and every simple \(d_n\)-regular \(G\),
+\[
+M_n<n,
+\qquad
+U(G,k_n)\le C_{\mathrm{rob}}\frac{d_n^2}{n},
+\qquad
+\sup_{y\in\mathcal M_n(G)}
+\mathbb E\!\left[(\widehat\tau_{\mathrm{cert}}-\tau_n)^2\mid G\right]
+\le C_{\mathrm{rob}}\frac{d_n^2}{n}.
+\]
+Moreover, for every fixed \(L<\infty\), if
+\(\|B_2(G)P_n\|_{\mathrm{op}}\le Ld_n^{7/4}\), then the log-tuned choice
+\[
+k_n^\sharp=\max\!\left\{1,\left\lfloor
+\frac{\log(d_n+1)}{4\{-\log(1-M_n/n)\}}
+\right\rfloor\right\}
+\]
+satisfies \(\mathcal U_G(k_n^\sharp)\le C_L r(n,d_n)\) for all sufficiently large \(n\), where \(C_L<\infty\) depends only on \(L\).  Because the actual count \(k_n\) minimizes the certificate over \(\{\widetilde k_n,k_n^\sharp\}\), the same event implies \(U(G,k_n)\le C_Lr(n,d_n)\).  The assignment probabilities, Rao--Blackwell weights, and both candidate certificates are finite computations obtained by enumerating the ordered seed tuples.
+\end{lemma}
+\begin{proof}
+Put \(S_i=\{v\in V_n:\operatorname{dist}_G(i,v)\le2\}\), \(m_i=|S_i|\), and \(q_i=1-m_i/n\).  A radius-two ball in a simple \(d_n\)-regular graph contains at most
+\[
+1+d_n+d_n(d_n-1)=d_n^2+1=M_n
+\tag{1}
+\]
+vertices.  Thus \(M_n<n\) implies \(q_i\ge1-M_n/n>0\) for every \(i\), which justifies every inverse probability below.
+
+Fix an integer \(s\ge1\), and let \(J_1,\ldots,J_s\) be independent uniform vertices.  If \(J_\ell=i\), then all vertices in \(N_G[i]\) are treated, so arbitrary neighborhood interference gives \(y_i(Z)=a_i\).  Hence the raw seed average
+\[
+\widetilde\mu_{1,s}=\frac1s\sum_{\ell=1}^s a_{J_\ell}
+\]
+is observable after retaining the seeds and satisfies
+\[
+\mathbb E(\widetilde\mu_{1,s}\mid G)=\mu_1,
+\qquad
+\operatorname{Var}(\widetilde\mu_{1,s}\mid G)
+=\frac1s\left\{\frac1n\sum_i a_i^2-\mu_1^2\right\}\le\frac1s
+\tag{2}
+\]
+by the treated endpoint second-moment bound.  Conditional on the union assignment, the Rao--Blackwell weights in Definition~\(\mathrm{def{:}rb\mbox{-}estimator}\) give
+\[
+\widehat\mu_{1,s}
+=\mathbb E(\widetilde\mu_{1,s}\mid Z,G)
+=\sum_i w_{i,s}(Z;G)y_i(Z).
+\]
+Indeed, whenever the conditional multiplicity of \(i\) is positive, \(i\) is fully treated-exposed under that union assignment, so the displayed observed outcome equals \(a_i\).  The tower property and the law of total variance applied to (2) therefore yield
+\[
+\mathbb E(\widehat\mu_{1,s}\mid G)=\mu_1,
+\qquad
+\operatorname{Var}(\widehat\mu_{1,s}\mid G)\le s^{-1}.
+\tag{3}
+\]
+
+Unit \(i\) is fully control-exposed exactly when every seed avoids \(S_i\).  Therefore its exposure probability is \(q_i^s>0\), and arbitrary neighborhood interference makes the control Horvitz--Thompson mean
+\[
+\widehat\mu_{0,s}=\frac1n\sum_i
+\frac{\mathbf 1\{i\in C_G(Z)\}b_i}{q_i^s}
+\]
+observable and unbiased for \(\mu_0\).  Write \(H=B_2(G)B_2(G)^{\mathsf T}\), so \(H_{ij}=|S_i\cap S_j|\).  One seed avoids \(S_i\cup S_j\) with probability
+\[
+q_{ij}=1-\frac{m_i+m_j-H_{ij}}n.
+\]
+Since \(q_iq_j=(1-m_i/n)(1-m_j/n)\), direct subtraction gives
+\[
+\frac{q_{ij}}{q_iq_j}-1
+=\frac{n^{-1}H_{ij}-n^{-2}m_im_j}{q_iq_j}
+=K_{G,ij},
+\tag{4}
+\]
+where the last equality follows from \(B_2(G)\iota_n=(m_i)_i\) and the definition of \(P_n\).  Independence of the \(s\) seeds now gives the normalized control-exposure covariance matrix
+\[
+Q^{(s)}_{G,ij}
+=\frac{q_{ij}^s}{q_i^sq_j^s}-1
+=(1+K_{G,ij})^s-1
+=\sum_{r=1}^s\binom sr K_{G,ij}^r.
+\tag{5}
+\]
+
+The matrix \(K_G\) is positive semidefinite because it is the Gram matrix
+\[
+K_G=\frac1n
+\{D_q(G)^{-1}B_2(G)P_n\}
+\{D_q(G)^{-1}B_2(G)P_n\}^{\mathsf T}.
+\tag{6}
+\]
+If \(K_{G,ij}=\langle u_i,u_j\rangle\), then
+\(K_{G,ij}^r=\langle u_i^{\otimes r},u_j^{\otimes r}\rangle\); hence every Schur power in (5), and therefore \(Q_G^{(s)}\), is positive semidefinite.  Moreover,
+\[
+K_{G,ii}=\frac{(m_i/n)(1-m_i/n)}{q_i^2}
+=\frac{m_i/n}{1-m_i/n}
+\le\delta:=\frac{M_n}{n(1-M_n/n)}.
+\tag{7}
+\]
+For completeness, if \(D\succeq0\), writing \(D_{ij}=\sum_t v_{ti}v_{tj}\) shows
+\(D\circ H=\sum_t\operatorname{diag}(v_t)H\operatorname{diag}(v_t)\).  Thus for symmetric \(H\),
+\[
+\|D\circ H\|_{\mathrm{op}}
+\le\max_iD_{ii}\,\|H\|_{\mathrm{op}}.
+\tag{8}
+\]
+Apply (8) with \(D=K_G^{\circ(r-1)}\) and \(H=K_G\), using (7), to obtain
+\(\|K_G^{\circ r}\|_{\mathrm{op}}\le\delta^{r-1}\|K_G\|_{\mathrm{op}}\).  Also (6), \(q_i\ge1-M_n/n\), and \(\|P_n\|_{\mathrm{op}}=1\) imply
+\[
+\|K_G\|_{\mathrm{op}}
+\le\frac{\|B_2(G)P_n\|_{\mathrm{op}}^2}
+{n(1-M_n/n)^2}.
+\tag{9}
+\]
+Summing (5), then using (7)--(9) and \(1+\delta=(1-M_n/n)^{-1}\), gives
+\[
+\lambda_{\max}(Q_G^{(s)})
+\le
+\frac{\|B_2(G)P_n\|_{\mathrm{op}}^2}
+{M_n(1-M_n/n)}
+\{(1-M_n/n)^{-s}-1\}.
+\tag{10}
+\]
+The control endpoint bound gives \(\|b\|_2^2\le n\), so
+\[
+\operatorname{Var}(\widehat\mu_{0,s}\mid G)
+=n^{-2}b^{\mathsf T}Q_G^{(s)}b
+\le
+\frac{\|B_2(G)P_n\|_{\mathrm{op}}^2
+\{(1-M_n/n)^{-s}-1\}}
+{nM_n(1-M_n/n)}.
+\tag{11}
+\]
+Both endpoint estimators are unbiased.  Combining (3) and (11) with
+\(\operatorname{Var}(X-Y)\le2\operatorname{Var}(X)+2\operatorname{Var}(Y)\) proves the finite bound by \(\mathcal U_G(s)\).
+
+We next specialize.  Put \(x=M_n/n\) and \(h=-\log(1-x)\).  The degree-growth assumption and \(d_n\ge3\) imply
+\[
+x=\frac{d_n^2+1}{n}\le\frac{10}{9}\frac{d_n^2}{n}\longrightarrow0.
+\tag{12}
+\]
+Consequently, eventually \(x\le1/2\), \(h\le2x\), and \(c_0/h\ge2\).  On this eventual range the maximum in the definition of \(\widetilde k_n\) is inactive and
+\[
+\widetilde k_n=\left\lfloor\frac{c_0}{h}\right\rfloor
+\ge\frac{c_0}{2h},
+\qquad
+\widetilde k_nh\le c_0.
+\tag{13}
+\]
+The matrix \(B_2(G)\) is symmetric and nonnegative, and (1) bounds all its row and column sums by \(M_n\).  Hence
+\[
+\|B_2(G)P_n\|_{\mathrm{op}}
+\le\|B_2(G)\|_{\mathrm{op}}
+\le\sqrt{\|B_2(G)\|_1\|B_2(G)\|_\infty}
+\le M_n.
+\tag{14}
+\]
+Equations (13)--(14) yield
+\[
+\frac{2}{\widetilde k_n}\le\frac{8M_n}{c_0n},
+\qquad
+(1-x)^{-\widetilde k_n}-1=e^{\widetilde k_nh}-1\le e^{c_0}-1,
+\]
+and therefore
+\[
+\mathcal U_G(\widetilde k_n)
+\le\left\{\frac8{c_0}+4(e^{c_0}-1)\right\}\frac{M_n}{n}
+\le C_{\mathrm{rob}}\frac{d_n^2}{n},
+\tag{15}
+\]
+where one may take
+\(C_{\mathrm{rob}}=\frac{10}{9}\{8/c_0+4(e^{c_0}-1)\}\).  The selection rule gives
+\[
+U(G,k_n)=\mathcal U_G(k_n)\le\mathcal U_G(\widetilde k_n).
+\]
+The right side of (15) tends to zero, so eventually \(U(G,k_n)\le1\).  The certified procedure then selects the seed estimator, and its asserted risk bound follows from the finite part of the proof.
+
+Finally suppose \(\|B_2(G)P_n\|_{\mathrm{op}}\le Ld_n^{7/4}\), and put
+\(s=k_n^\sharp\).  By (12), eventually the quantity inside the floor is at least two.  Hence
+\[
+\frac2s\le\frac{32x}{\log(d_n+1)},
+\qquad
+sh\le\frac14\log(d_n+1),
+\]
+so that
+\[
+\mathcal U_G(s)
+\le\frac{32M_n}{n\log(d_n+1)}
++\frac{4L^2d_n^{7/2}(d_n+1)^{1/4}}{nM_n}.
+\tag{16}
+\]
+Here we used \(x\le1/2\).  Since \(M_n\ge d_n^2\), \(M_n\le(10/9)d_n^2\), and, for \(d_n\ge3\), both \((d_n+1)^{1/4}\le(4/3)^{1/4}d_n^{1/4}\) and \(\log(d_n+1)\le2d_n^{1/4}\), the right side of (16) is at most \(C_Ld_n^2/[n\log(d_n+1)]\).  This proves the conditional log-tuned bound.
+The selection rule also gives
+\[
+U(G,k_n)\le\mathcal U_G(k_n^\sharp)\le C_Lr(n,d_n)
+\]
+on the stated norm event.
+
+For either candidate count, there are finitely many ordered seed tuples, namely \(n^s\).  Enumerating them computes their union assignments, assignment masses, conditional multiplicities, all exposure probabilities, and all Rao--Blackwell weights.  The squared operator norm is the largest eigenvalue of the rational symmetric matrix \(B_2(G)P_nB_2(G)^{\mathsf T}\), hence is a real algebraic number.  Exact root isolation and algebraic sign comparison decide which of the two displayed certificate scores is smaller, with the stipulated deterministic tie break; rational interval enclosures certify the resulting numerical value to any requested accuracy.  Thus every claimed object is a finite graph computation.
+
+The smallest admissible regular instance is \((n,d_n)=(4,3)\).  There \(M_n=10\ge n\), so the compiler forms no seed ratio and uses the point-mass all-treated design.  Its error is \(\mu_0\), and the endpoint bound gives \(\mu_0^2\le1\), with equality for \(b_i=1\) for all \(i\); thus the fallback certificate is exact on this enumerable instance even though the fallback estimator need not be unbiased for \(\tau_n\).  At the opposite boundary, every step in (12)--(15) uses only \(d_n^2/n\to0\).  No conclusion is asserted when \(d_n\) is proportional to \(\sqrt n\), where \(x\) need not vanish.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma derives the unconditional robust upper rate from the primitive row-sum geometry and isolates the sharper logarithmic certificate as a genuinely conditional refinement. \textit{Gap.} No random-regular spectral theorem is needed for the robust bound; the only unproved improvement is the Boolean radius-two norm conjecture. \textit{Consumer.} The finite compiler can choose between the robust and log-tuned counts before assignment and certify a one-round full-GATE error bound on the revealed network.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+For \(i\ne j\), let \(c_{ij}=(A_G^2)_{ij}\).  The exact identity is \(B_2(G)_{ij}=A_{G,ij}+(1-A_{G,ij})\sum_{r=1}^{d_n}(-1)^{r+1}\binom{c_{ij}}r\), with \(B_2(G)_{ii}=1\).  The unresolved conjecture is that some universal \(L<\infty\) satisfies \(\Pr\{\|B_2(G_n)P_n\|_{\mathrm{op}}\le Ld_n^{7/4}\}\to1\) uniformly over every admissible degree sequence.  Xu2025SwitchingGraphMatrices, CCC 2025 Theorems 14--15, does not by itself uniformly resum these unbounded \(K_{2,r}\)-type shapes.  Accordingly the conjecture is not a premise of the unconditional risk or confidence theorem; it yields only the separately labeled logarithmic refinement.
+
+\section{Honest scope}
+
+The established result consists of a deterministic certified upper edge and a random-regular lower edge, with their joint logarithmic bracket as a corollary; it is not a matched frontier. For every admissible sequence, the selected robust seed candidate gives \(R(G)\le C d_n^2/n\) on every sufficiently large simple \(d_n\)-regular graph. The balanced-packing argument gives \(R(G_n)\ge c d_n^2/[n\log(d_n+1)]\) with high probability over the uniform graph and uniformly over all procedures. Thus bounded degree has order \(n^{-1}\), while diverging degree retains a logarithmic gap. The Boolean operator estimate remains an explicit conjecture and yields only a conditional sharper edge. Seed probabilities and inverse weights are formed only on \(M_n<n\); the complementary branch uses an all-treated fallback. The result concerns one assignment, unrestricted intermediate ANI outcomes, and the full population GATE. It does not cover later strategic feedback, final wealth, two-hop individual payoff, repeated experiments, nonuniform graph draws, or a claim that the ShiEtAl2020FreedomChoice behavioral model is worst case.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KandirosHarshawSavje2026Minimax} Vardis Kandiros, Christopher Harshaw, and Fredrik Sävje. A Design-Based Minimax Theory for Network Experiments. arXiv:2608.04909v1, 2026.
+
+  \bibitem{KandirosEtAl2024ConflictGraph} Vardis Kandiros, Charilaos Pipis, Constantinos Daskalakis, and Christopher Harshaw. The Conflict Graph Design: Estimating Causal Effects under Arbitrary Neighborhood Interference. arXiv:2411.10908v3, 2024.
+
+  \bibitem{UganderYin2023RGCR} Johan Ugander and Hao Yin. Randomized Graph Cluster Randomization. Journal of Causal Inference 11, 2023. doi:10.1515/jci-2022-0014.
+
+  \bibitem{AronowSamii2017GeneralInterference} Peter M. Aronow and Cyrus Samii. Estimating Average Causal Effects Under General Interference, with Application to a Social Network Experiment. Annals of Applied Statistics 11, 2017, 1912--1947.
+
+  \bibitem{CooperEtAl2002RandomRegular} Colin Cooper, Alan Frieze, Bruce Reed, and Oliver Riordan. Random Regular Graphs of Non-Constant Degree: Independence and Chromatic Number. Combinatorics, Probability and Computing 11, 2002, 323--341.
+
+  \bibitem{BehagueIlkovicMontgomery2025Sandwich} Natalie Behague, Daniel Il'kovič, and Richard Montgomery. A proof of the Kim--Vu sandwich conjecture. arXiv:2510.20765v1, 2025.
+
+  \bibitem{Xu2025SwitchingGraphMatrices} Jeff Xu. Switching Graph Matrix Norm Bounds: From Independent Edges to Random Regular Graphs. Proceedings of the 40th Computational Complexity Conference, 2025. doi:10.4230/LIPIcs.CCC.2025.11.
+
+  \bibitem{BauerschmidtEtAl2020EdgeRigidity} Roland Bauerschmidt, Jiaoyang Huang, Antti Knowles, and Horng-Tzer Yau. Edge Rigidity and Universality of Random Regular Graphs of Intermediate Degree. Geometry and Functional Analysis 30, 2020, 693--769.
+
+  \bibitem{Sarid2023SpectralGap} Amir Sarid. The Spectral Gap of Random Regular Graphs. Random Structures and Algorithms 63, 2023, 557--587.
+
+  \bibitem{HarshawMiddletonSavje2026OptimizedVariance} Christopher Harshaw, Joel A. Middleton, and Fredrik Sävje. Optimized Variance Estimation under Interference and Complex Experimental Designs. Journal of the American Statistical Association, 2026. doi:10.1080/01621459.2026.2627027.
+
+  \bibitem{ShiEtAl2020FreedomChoice} Lei Shi, Ivan Romić, Yongjuan Ma, Zhen Wang, Boris Podobnik, H. Eugene Stanley, Petter Holme, and Marko Jusup. Freedom of Choice Adds Value to Public Goods. Proceedings of the National Academy of Sciences 117, 2020, 17516--17521.
+
+\end{thebibliography}
+
+\end{document}

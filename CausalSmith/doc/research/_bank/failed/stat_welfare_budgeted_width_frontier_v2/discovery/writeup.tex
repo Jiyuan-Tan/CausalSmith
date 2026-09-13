@@ -1,0 +1,1520 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}welfare\_\allowbreak{}budgeted\_\allowbreak{}width\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v2\par
+
+\paragraph{TL;DR.} An adaptive experiment that protects current participants suppresses observations from inferior treatments, while honest inference on the gain from individualized targeting needs those observations and is nonregular near treatment ties. The proved results establish class nonemptiness, the published feasibility rate after a predictable Gaussian-martingale transfer, an all-procedure coverage-to-information converse, and, for sufficiently large horizons in its displayed budget range, the fixed-gap \(\rho^{-1/2}\) frontier. The corrected general construction is a baseline-indexed occupation-measure relaxation: it includes every same-context-law, off-cell-agreeing target-separating alternative, uses exact pointwise Gaussian information, and enforces stochastic context capacity and participant welfare. Every narrow honest procedure must satisfy this relaxation, and its Lagrange lower value obeys weak duality. Saturation, strong duality, an explicit H\"older-local rate, and realization of the baseline-specific profiles by one law-independent adaptive design and connected interval remain open; the \(d=1\), \(\beta=1\), \(\alpha=1/5\), \(\rho\asymp T^{3/5}\) case remains the mandatory early kill test.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing regret--inference Pareto results treat point-estimation error in finite-arm, finite-feature, or finitely stratified models, while adaptive confidence-interval results generally take logging propensities as given and optimal-value inference does not price exploration by participant welfare. None combines a common observed-trajectory interval, nonregular positive-part geometry, continuous-context arrival capacity, and a hard uniform welfare budget. The remaining gap is not a missing scalar allocation formula: it is saturation and common sequential realization of baseline-indexed occupation profiles.
+
+\paragraph{Niche.} The targeting gain \(\mathbb E[\tau_+-\pi_0\tau]\) combines a regular benchmark term with a nonsmooth positive-part term. A welfare budget makes information endogenous because an arm's local information is integrated against a context-dependent occupation measure while its cost is the baseline gap. This produces a baseline-indexed sequential modulus with stochastic context-capacity constraints.
+
+\paragraph{Fill.} The procedure-free coverage theorem converts target separation and adaptive Gaussian information into a lower bound for every design and interval. The corrected local sets include all same-context-law alternatives agreeing off a cell whose target separation exceeds \(2w/(1-2\delta)\), without a sign-switch restriction. Arm-specific occupation measures yield the exact information integral; the global relaxation enforces context-arrival domination and welfare cost before taking the worst baseline. Its Lagrange lower value obeys proved weak duality, and every honest width-\(w\) procedure induces a feasible occupation profile, giving \(W_{T,\delta}\ge w_{T,\rho}\). The open kernel is to evaluate and saturate this implicit width and to realize its baseline-specific profiles by one predictable design and connected honest interval.
+
+\section{Related work}
+
+Perchet and Rigollet supply the cited H\"older--margin regret exponent used only for the feasibility boundary. Simchi-Levi and Wang establish a finite-arm regret--estimation frontier, and Li, Shi, and Simchi-Levi balance regret and CATE error over finitely many contexts; neither resolves continuous-context honest width under a hard welfare budget. Hu, Kallus, and Mao motivate selective local exploration, while Hadad and coauthors, Bibaut and coauthors, Waudby-Smith and coauthors, Cook, Mishler, and Ramdas, and Shen and coauthors provide adaptive-score or stability tools when the logging design or regular target is supplied. Luedtke and van der Laan and Ponomarev and Semenova address nonregular optimal-welfare inference without optimizing welfare-constrained data collection. Kaufmann, Capp\'e, and Garivier support the adaptive Gaussian change-of-measure step, and Cai and Low support the coverage-to-length logic. None of these sources proves saturation, strong duality, or law-independent sequential realization for the corrected baseline-indexed occupation relaxation; those claims remain open rather than being imported from prior work.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta(P)=\mathbb E_{P_X}[\max_{a\in\{0,1\}}\mu_a(X)-\{1-\pi_0(X)\}\mu_0(X)-\pi_0(X)\mu_1(X)]\).
+Primary functional / estimator / diagnostic: \(\theta(P)=\mathbb E_{P_X}[\tau_P(X)_+-\pi_0(X)\tau_P(X)]\), with frontier \(W_{T,\delta}(\rho;\mathcal Q)=\inf_{\mathsf D\in\mathfrak D_T(\rho;\mathcal Q)}\inf_{I_T\in\mathfrak C_{T,\delta}(\mathsf D;\mathcal Q)}\sup_{P\in\mathcal Q}\mathbb E_{P,\mathsf D}|I_T(O_{1:T})|\).
+\begin{itemize}
+  \item \(T\) --- \texttt{positive integer}; \(\mathbb N\); \texttt{experimental horizon}
+  \item \(t\) --- \texttt{round index}; \(\{1,\ldots,T\}\)
+  \item \(d\) --- \texttt{positive integer}; \(\mathbb N\); \texttt{context dimension}
+  \item \(\beta\) --- \texttt{smoothness exponent}; \((0,1]\); \texttt{Hölder regularity index}
+  \item \(\alpha\) --- \texttt{margin exponent}; \([0,\infty)\); \texttt{small-\allowbreak{}gap mass index}
+  \item \(\delta\) --- \texttt{coverage error}; \((0,1/4)\); \texttt{fixed honesty level}
+  \item \(\rho\) --- \texttt{welfare budget}; \((0,T]\); \texttt{maximum expected participant-\allowbreak{}welfare loss}
+  \item \(L\) --- \texttt{positive constant}; \((0,\infty)\); \texttt{Hölder radius}
+  \item \(C_0\) --- \texttt{positive constant}; \((0,\infty)\); \texttt{local margin constant}
+  \item \(\delta_0\) --- \texttt{positive constant}; \((0,\infty)\); \texttt{local margin radius}
+  \item \(\overline C\) --- \texttt{positive constant}; \texttt{derived global margin-\allowbreak{}envelope constant}
+  \par\smallskip\noindent\emph{Definition.} \(\overline C=\max\{C_0,\delta_0^{-\alpha}\}\)
+  \item \(\sigma\) --- \texttt{positive constant}; \((0,\infty)\); \texttt{known Gaussian noise scale}
+  \item \(c_X\) --- \texttt{positive constant}; \((0,1]\); \texttt{lower context-\allowbreak{}density bound}
+  \item \(C_X\) --- \texttt{positive constant}; \([1,\infty)\); \texttt{upper context-\allowbreak{}density bound}
+  \item \(M\) --- \texttt{positive constant}; \((0,\infty)\); \texttt{uniform conditional-\allowbreak{}mean bound}
+  \item \(\Delta_0\) --- \texttt{positive constant}; \((0,\infty)\); \texttt{fixed-\allowbreak{}gap radius}
+  \item \(b_0\) --- \texttt{positive constant}; \((0,1/2]\); \texttt{benchmark inferior-\allowbreak{}treatment mass}
+  \item \(\eta\) --- \texttt{positive constant}; \((0,\infty)\); \texttt{zero-\allowbreak{}exposure counterexample separation}
+  \item \(\Delta_\dagger\) --- \texttt{positive constant}; \texttt{constant gap of the nonemptiness witness}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_\dagger=\Delta_0\) when \(\alpha=0\), and \(\Delta_\dagger=\max\{\Delta_0,C_0^{-1/\alpha}\}\) when \(\alpha>0\)
+  \item \(\kappa_\delta\) --- \texttt{positive constant}; \texttt{coverage-\allowbreak{}compatible information radius}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_\delta=(1-2\delta)^2/2\)
+  \item \(\mathcal X\) --- \texttt{measurable context space}; \([0,1]^d\)
+  \item \(B\) --- \texttt{measurable context set}; measurable subsets of \(\mathcal X\)
+  \item \(\mathcal A\) --- \texttt{finite action space}; \(\{0,1\}\)
+  \item \(a\) --- \texttt{action index}; \(\mathcal A\)
+  \item \(X_t\) --- \texttt{random context}; \(\mathcal X\)
+  \item \(Y_t(a)\) --- \texttt{potential outcome}; \(\mathbb R\); \texttt{stationary arm-\allowbreak{}specific reward}
+  \item \(P\) --- \texttt{superpopulation law}; laws of \(X_t,Y_t(0),Y_t(1)\)
+  \item \(Q\) --- \texttt{superpopulation law}; alternative laws of \(X_t,Y_t(0),Y_t(1)\); \texttt{comparison law in the information modulus}
+  \item \(P_X\) --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} marginal law of \(X_t\) under \(P\)
+  \item \(Q_X\) --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} marginal law of \(X_t\) under \(Q\)
+  \item \(p_X\) --- \texttt{density function}
+  \par\smallskip\noindent\emph{Definition.} Lebesgue density of \(P_X\) on \(\mathcal X\)
+  \item \(X\) --- \texttt{generic random context}; \(\mathcal X\)
+  \par\smallskip\noindent\emph{Definition.} \(X\sim P_X\)
+  \item \(x_0\) --- \texttt{context point}; \(\mathcal X\); \texttt{center of a zero-\allowbreak{}exposure region}
+  \item \(r_0\) --- \texttt{positive radius}; \((0,1/2)\); \texttt{radius of a zero-\allowbreak{}exposure region}
+  \item \(\psi_{x_0,r_0}\) --- \texttt{localized Hölder bump}; \(\mathcal X\to[0,1]\); \texttt{explicit zero-\allowbreak{}exposure perturbation}
+  \par\smallskip\noindent\emph{Definition.} \(\psi_{x_0,r_0}(x)=(1-\|x-x_0\|_\infty/r_0)_+^\beta\)
+  \item \(\mu_a\) --- \texttt{measurable regression function}; \(\mathcal X\to[-M,M]\)
+  \item \(\mu_a^P\) --- \texttt{measurable regression function}; \texttt{first law in a likelihood comparison}
+  \par\smallskip\noindent\emph{Definition.} the function \(\mu_a\) under law \(P\)
+  \item \(\mu_a^Q\) --- \texttt{measurable regression function}; \texttt{second law in a likelihood comparison}
+  \par\smallskip\noindent\emph{Definition.} the function \(\mu_a\) under law \(Q\)
+  \item \(\tau_P\) --- \texttt{measurable contrast function}; \(\mathcal X\to[-2M,2M]\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau_P(x)=\mu_1(x)-\mu_0(x)\)
+  \item \(\pi_0\) --- \texttt{benchmark policy}; measurable maps \(\mathcal X\to[0,1]\); \texttt{external benchmark}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_0(x)\) is fixed independently of \(P\) and assigns treatment one with that probability
+  \item \(P^\dagger\) --- \texttt{superpopulation law}; \texttt{nonemptiness witness}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the explicit constant-\allowbreak{}gap Gaussian witness constructed below}
+  \item \(\pi_P^\star\) --- \texttt{optimal policy}; measurable maps \(\mathcal X\to\mathcal A\)
+  \par\smallskip\noindent\emph{Definition.} \(\pi_P^\star(x)=\mathbf 1\{\tau_P(x)>0\}\), with arbitrary tie-breaking
+  \item \(\theta(P)\) --- \texttt{real-\allowbreak{}valued causal functional}; \texttt{targeting gain over the benchmark}
+  \par\smallskip\noindent\emph{Definition.} \(\theta(P)=\mathbb E_{P_X}[\max_{a\in\mathcal A}\mu_a(X)-\{1-\pi_0(X)\}\mu_0(X)-\pi_0(X)\mu_1(X)]\)
+  \item \(\theta(Q)\) --- \texttt{real-\allowbreak{}valued causal functional}; \texttt{comparison target in the information modulus}
+  \par\smallskip\noindent\emph{Definition.} the targeting-gain functional evaluated under \(Q\)
+  \item \(H_{t-1}\) --- \texttt{sigma-\allowbreak{}field}; sigma-fields generated by observations revealed before round \(t\) and independent randomization already used by the design; observed history available before round \(t\)
+  \item \(\mathsf D\) --- \texttt{non-\allowbreak{}anticipating design}; fixed Borel probability kernels from observed histories and current contexts to \(\mathcal A\); \texttt{adaptive assignment rule}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf D\) is fixed independently of \(P\) and uses no unobserved potential outcome
+  \item \(e_t^{\mathsf D}\) --- \texttt{predictable propensity}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} the treatment-one probability output by \(\mathsf D\) at \((H_{t-1},X_t)\)
+  \item \(A_t\) --- \texttt{random treatment}; \(\mathcal A\)
+  \par\smallskip\noindent\emph{Definition.} \(A_t\mid(H_{t-1},X_t)\sim\operatorname{Bernoulli}(e_t^{\mathsf D})\)
+  \item \(Y_t\) --- \texttt{observed outcome}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(Y_t=Y_t(A_t)\)
+  \item \(\varepsilon_t\) --- \texttt{observed Gaussian innovation}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_t=\{Y_t-\mu_{A_t}(X_t)\}/\sigma\)
+  \item \(O_t\) --- \texttt{observed data tuple}
+  \par\smallskip\noindent\emph{Definition.} \(O_t=(X_t,A_t,Y_t)\)
+  \item \(\mathcal Z_T\) --- \texttt{observed trajectory space}; \((\mathcal X\times\mathcal A\times\mathbb R)^T\) with its product Borel sigma-field
+  \item \(O_{1:T}\) --- \texttt{observed trajectory}; \(\mathcal Z_T\)
+  \par\smallskip\noindent\emph{Definition.} \(O_{1:T}=(X_1,A_1,Y_1,\ldots,X_T,A_T,Y_T)\)
+  \item \(\mathbb P_{P,\mathsf D}^{T}\) --- \texttt{trajectory law}
+  \par\smallskip\noindent\emph{Definition.} law of \(O_{1:T}\) induced by \(P\) and \(\mathsf D\)
+  \item \(\mathbb P_{Q,\mathsf D}^{T}\) --- \texttt{trajectory law}
+  \par\smallskip\noindent\emph{Definition.} law of \(O_{1:T}\) induced by \(Q\) and \(\mathsf D\)
+  \item \(s_a^{P,\mathsf D}\) --- \texttt{measurable exposure function}; \(\mathcal X\to[0,T]\); \texttt{observable cumulative arm exposure}
+  \par\smallskip\noindent\emph{Definition.} \(s_a^{P,\mathsf D}(x)=\sum_{t=1}^T\mathbb E_{P,\mathsf D}[\mathbf 1\{A_t=a\}\mid X_t=x]\)
+  \item \(\mathcal Q\) --- \texttt{law class}; subsets of superpopulation laws \(P\); \texttt{generic class argument}
+  \item \(\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\) --- \texttt{law class}; \texttt{primary model class}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the Hölder-\allowbreak{}-\allowbreak{}margin Gaussian contextual class introduced below}
+  \item \(\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}\) --- \texttt{law class}; \texttt{regular edge of the frontier}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the fixed-\allowbreak{}gap benchmark-\allowbreak{}exposure subclass introduced below}
+  \item \(\mathcal R_T(P,\mathsf D)\) --- \texttt{nonnegative real functional}; \texttt{design cost}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the expected cumulative participant-\allowbreak{}welfare loss introduced below}
+  \item \(\mathfrak D_T(\rho;\mathcal Q)\) --- \texttt{design class}; \texttt{outer optimization domain}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the uniformly budget-\allowbreak{}feasible design class introduced below}
+  \item \(I_T\) --- \texttt{interval procedure}; Borel-measurable maps from \(\mathcal Z_T\) to \(\{[\ell,u]:(\ell,u)\in\mathbb R^2,\ \ell\le u\}\), equipped with the endpoint Borel structure; \texttt{common observed-\allowbreak{}data confidence-\allowbreak{}interval rule}
+  \par\smallskip\noindent\emph{Definition.} \(I_T:\mathcal Z_T\to\{[\ell,u]:(\ell,u)\in\mathbb R^2,\ \ell\le u\}\) is a single map fixed independently of \(P\) and evaluated only at \(O_{1:T}\)
+  \item \(|I_T(O_{1:T})|\) --- \texttt{nonnegative random variable}; \texttt{interval length}
+  \par\smallskip\noindent\emph{Definition.} the Lebesgue length of the reported interval \(I_T(O_{1:T})\)
+  \item \(\mathfrak C_{T,\delta}(\mathsf D;\mathcal Q)\) --- \texttt{interval-\allowbreak{}procedure class}; \texttt{inner optimization domain}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the uniformly honest interval class introduced below}
+  \item \(W_{T,\delta}(\rho;\mathcal Q)\) --- \texttt{extended nonnegative real}; \texttt{headline frontier}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the minimax expected-\allowbreak{}width envelope introduced below}
+  \item \(N_a^{\mathsf D}(B)\) --- \texttt{nonnegative integer}; \texttt{adaptive local arm count}
+  \par\smallskip\noindent\emph{Definition.} \(N_a^{\mathsf D}(B)=\sum_{t=1}^T\mathbf 1\{X_t\in B,A_t=a\}\)
+  \item \(\mathrm{KL}\) --- \texttt{divergence}; \(\mathrm{KL}(Q_1\Vert Q_2)\in[0,\infty]\); \texttt{trajectory information}
+  \item \(\Omega_{T,\delta}(\rho;\mathcal Q)\) --- \texttt{extended nonnegative real}; \texttt{procedure-\allowbreak{}free lower-\allowbreak{}bound object}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the budgeted sequential modulus introduced below}
+  \item \(r_{\beta,\alpha,d}\) --- \texttt{real exponent}; \texttt{Hölder-\allowbreak{}margin regret exponent}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\beta,\alpha,d}=(\beta+d-\alpha\beta)/(2\beta+d)\)
+  \item \(\rho_{\mathrm{feas}}(T;\mathcal Q)\) --- \texttt{nonnegative real}; \texttt{budget-\allowbreak{}feasibility boundary}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{\mathrm{feas}}(T;\mathcal Q)=\inf_{\mathsf D}\sup_{P\in\mathcal Q}\mathcal R_T(P,\mathsf D)\)
+  \item \(h\) --- \texttt{localization bandwidth}; \((0,1)\); \texttt{hard-\allowbreak{}submodel cell width}
+  \item \(m\) --- \texttt{positive integer}; \(\mathbb N\); \texttt{number of active cells}
+  \item \(B_j\) --- \texttt{measurable cell}; axis-aligned cubes in \(\mathcal X\) of side \(h\); \texttt{localized alternative support}
+  \item \(w\) --- \texttt{positive real}; \((0,\infty)\); \texttt{candidate targeting-\allowbreak{}gain half-\allowbreak{}width}
+  \item \(\mathscr Q\) --- \texttt{finite cell partition}; finite dyadic Borel partitions of \(\mathcal X\); \texttt{resolution cells for the information relaxation}
+  \item \(\mathsf H_{T,\rho}\) --- \texttt{construction handle}; \texttt{sequential realization problem}
+  \par\smallskip\noindent\emph{Definition.} \texttt{unresolved coupling of baseline-\allowbreak{}indexed feasible occupation profiles into one law-\allowbreak{}independent predictable design and one connected honest interval}
+  \item \(\mathsf Q\) --- \texttt{resolution cell}; elements of \(\mathscr Q\)
+  \item \(P'\) --- \texttt{superpopulation law}; alternative laws in \(\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\); local alternative to baseline \(P\)
+  \item \(P'_X\) --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} marginal law of \(X_t\) under \(P'\)
+  \item \(\mu_a^{P'}\) --- \texttt{measurable regression function}
+  \par\smallskip\noindent\emph{Definition.} the function \(\mu_a\) under law \(P'\)
+  \item \(\theta(P')\) --- \texttt{real-\allowbreak{}valued causal functional}
+  \par\smallskip\noindent\emph{Definition.} the targeting-gain functional evaluated under \(P'\)
+  \item \(\mathcal S_{P,\mathsf Q}(w)\) --- \texttt{local alternative-\allowbreak{}law set}
+  \par\smallskip\noindent\emph{Definition.} the complete same-context-law, off-cell-agreeing, coverage-separating alternatives to baseline \(P\)
+  \item \(\mathscr A(w)\) --- \texttt{active baseline-\allowbreak{}-\allowbreak{}cell index set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr A(w)=\{(P,\mathsf Q):\mathcal S_{P,\mathsf Q}(w)\ne\varnothing\}\)
+  \item \(k_a(P,P';x)\) --- \texttt{nonnegative measurable function}
+  \par\smallskip\noindent\emph{Definition.} \(k_a(P,P';x)=\{\mu_a^P(x)-\mu_a^{P'}(x)\}^2/(2\sigma^2)\)
+  \item \(\nu_{P,\mathsf Q,a}\) --- \texttt{finite nonnegative Borel measure}; finite nonnegative Borel measures supported on \(\mathsf Q\); \texttt{baseline-\allowbreak{}indexed arm-\allowbreak{}specific occupation measure}
+  \item \(\mathcal R_{P,\mathsf Q}(w)\) --- \texttt{convex information region}
+  \par\smallskip\noindent\emph{Definition.} the baseline--cell occupation profiles covering every law in \(\mathcal S_{P,\mathsf Q}(w)\)
+  \item \(\mathcal B_{T,\rho}(w)\) --- \texttt{extended nonnegative real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the worst-\allowbreak{}baseline welfare-\allowbreak{} and context-\allowbreak{}capacity-\allowbreak{}constrained occupation primal value}
+  \item \(\lambda_{P,\mathsf Q}\) --- \texttt{finite nonnegative finitely supported measure}; finitely supported measures on \(\mathcal S_{P,\mathsf Q}(w)\); \texttt{dual weight on baseline-\allowbreak{}specific alternatives}
+  \item \(\zeta_P\) --- \texttt{nonnegative measurable function}; nonnegative \(P_X\)-integrable Borel functions on \(\mathcal X\); \texttt{context-\allowbreak{}arrival capacity price}
+  \item \(\xi_P\) --- \texttt{nonnegative real}; \([0,\infty)\); \texttt{baseline welfare-\allowbreak{}budget price}
+  \item \(\mathcal D_{T,\rho}(w)\) --- \texttt{extended real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the worst-\allowbreak{}baseline Lagrange lower value with alternative,\allowbreak{} context-\allowbreak{}capacity,\allowbreak{} and welfare prices}
+  \item \(w_{T,\rho}\) --- \texttt{extended nonnegative real}
+  \par\smallskip\noindent\emph{Definition.} \(w_{T,\rho}=\inf\{w>0:\mathcal B_{T,\rho}(w)\le T\}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:context-density]\label{ass:context-density}
+The contexts are independent across rounds with common law \(P_X\), and \(P_X\) has a density \(p_X\) on \(\mathcal X\) satisfying \(c_X\le p_X(x)\le C_X\) almost everywhere.
+\par\smallskip\noindent\emph{Standard} (strong-density contextual-bandit condition, \cite{PerchetRigollet2013CovariateBandits}).
+\end{assumption}
+
+\begin{assumption}[ass:gaussian-reward]\label{ass:gaussian-reward}
+The observed reward obeys \(Y_t=\mu_{A_t}(X_t)+\sigma\varepsilon_t\), where \(\varepsilon_t\mid(H_{t-1},X_t,A_t)\sim\mathcal N(0,1)\) and the variables \(\varepsilon_1,\ldots,\varepsilon_T\) are conditionally independent innovations given the realized contexts, assignments, and past observed histories.
+\par\smallskip\noindent\emph{Standard} (conditionally independent Gaussian innovation model under adaptive sampling, \cite{KaufmannCappeGarivier2016Complexity}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-means]\label{ass:bounded-means}
+For each \(a\in\mathcal A\), \(\sup_{x\in\mathcal X}|\mu_a(x)|\le M\).
+\par\smallskip\noindent\emph{Standard} (uniformly bounded reward-mean condition, \cite{PerchetRigollet2013CovariateBandits}).
+\end{assumption}
+
+\begin{assumption}[ass:holder-means]\label{ass:holder-means}
+For each \(a\in\mathcal A\), the regression satisfies \(|\mu_a(x)-\mu_a(x')|\le L\|x-x'\|_2^\beta\) for all \(x,x'\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Hölder reward-regression condition, \cite{PerchetRigollet2013CovariateBandits}).
+\end{assumption}
+
+\begin{assumption}[ass:margin]\label{ass:margin}
+For every \(u\) satisfying \(0\le u\le\delta_0\), \(P_X\{0<|\tau_P(X)|\le u\}\le C_0u^\alpha\).
+\par\smallskip\noindent\emph{Standard} (local Tsybakov margin condition for covariate bandits, \cite{PerchetRigollet2013CovariateBandits}).
+\end{assumption}
+
+\begin{assumption}[ass:nontrivial-margin-regime]\label{ass:nontrivial-margin-regime}
+The indices satisfy \(\alpha\beta\le d\).
+\par\smallskip\noindent\emph{Standard} (nontrivial Hölder-margin regime, \cite{PerchetRigollet2013CovariateBandits}).
+\end{assumption}
+
+\begin{assumption}[ass:benchmark-fixed]\label{ass:benchmark-fixed}
+The benchmark \(\pi_0\) is fixed before the experiment and is identical for every \(P\) in the model class.
+\par\smallskip\noindent\emph{Standard} (fixed target-policy specification, \cite{WaudbySmithEtAl2024AnytimeOffPolicy}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-gap]\label{ass:fixed-gap}
+The contrast satisfies \(|\tau_P(x)|\ge\Delta_0\) for \(P_X\)-almost every \(x\).
+\par\smallskip\noindent\emph{Standard} (fixed treatment-gap separation, \cite{SimchiLeviWang2023BanditExperimentalDesign}).
+\end{assumption}
+
+\begin{assumption}[ass:gap-mean-compatible]\label{ass:gap-mean-compatible}
+The fixed-gap radius satisfies \(\Delta_0\le2M\).
+\par\smallskip\noindent\emph{Standard} (fixed-gap compatibility with the bounded contrast envelope, \cite{SimchiLeviWang2023BanditExperimentalDesign}).
+\end{assumption}
+
+\begin{assumption}[ass:gap-margin-compatible]\label{ass:gap-margin-compatible}
+The mean and local-margin constants satisfy \(C_0(2M)^\alpha\ge1\).
+\par\smallskip\noindent\emph{Standard} (fixed-gap compatibility with the Tsybakov margin envelope, \cite{PerchetRigollet2013CovariateBandits}).
+\end{assumption}
+
+\begin{assumption}[ass:benchmark-inferior-mass]\label{ass:benchmark-inferior-mass}
+The fixed benchmark assigns inferior treatment with population mass at least \(b_0\): \(\mathbb E_{P_X}[(1-\pi_0(X))\mathbf 1\{\tau_P(X)>0\}+\pi_0(X)\mathbf 1\{\tau_P(X)<0\}]\ge b_0\).
+\par\smallskip\noindent\emph{Novel.} The condition isolates benchmarks whose gain genuinely depends on the inferior-arm regression. It holds with \(b_0=1/2\) for balanced randomization and with a positive constant for any pre-specified policy bounded away from zero and one.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:holder-margin-class]\label{def:holder-margin-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Hölder-\allowbreak{}margin Gaussian law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\beta,\alpha}^{\mathrm{HM}}=\{P: X_t\stackrel{\mathrm{iid}}{\sim}P_X,\ c_X\le p_X\le C_X,\ Y_t=\mu_{A_t}(X_t)+\sigma\varepsilon_t,\ \varepsilon_t\mid(H_{t-1},X_t,A_t)\sim\mathcal N(0,1)\text{ are conditionally independent innovations},\ \|\mu_a\|_\infty\le M,\ |\mu_a(x)-\mu_a(x')|\le L\|x-x'\|_2^\beta\ \text{for each }a,\ P_X(0<|\tau_P(X)|\le u)\le C_0u^\alpha\ \text{for }0\le u\le\delta_0,\ \alpha\beta\le d\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}context-\allowbreak{}density}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}reward}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}means}; \texttt{ass:\allowbreak{}holder-\allowbreak{}means}; \texttt{ass:\allowbreak{}margin}; \texttt{ass:\allowbreak{}nontrivial-\allowbreak{}margin-\allowbreak{}regime}.
+\end{definition}
+
+\begin{definition}[def:fixed-gap-class]\label{def:fixed-gap-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{fixed-\allowbreak{}gap benchmark-\allowbreak{}exposure subclass}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}=\{P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}: |\tau_P(x)|\ge\Delta_0\ \text{for }P_X\text{-almost every }x,\ \mathbb E_{P_X}[(1-\pi_0(X))\mathbf 1\{\tau_P(X)>0\}+\pi_0(X)\mathbf 1\{\tau_P(X)<0\}]\ge b_0\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}fixed-\allowbreak{}gap}; \texttt{ass:\allowbreak{}benchmark-\allowbreak{}inferior-\allowbreak{}mass}.
+\end{definition}
+
+\begin{definition}[def:constant-gap-witness]\label{def:constant-gap-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{constant-\allowbreak{}gap Gaussian witness}
+\par\smallskip\noindent\emph{Construction.} Let \(P^\dagger\) have \(X_t\stackrel{\mathrm{iid}}{\sim}\operatorname{Unif}(\mathcal X)\) and conditionally independent Gaussian arm outcomes with variance \(\sigma^2\). If \(\int_{\mathcal X}\{1-\pi_0(x)\}\,dx\ge1/2\), set the arm-zero and arm-one means to \(-\Delta_\dagger/2\) and \(\Delta_\dagger/2\), respectively; otherwise interchange those two means.
+\par\smallskip\noindent\emph{Inputs.} \(\pi_0\); \(\Delta_\dagger\).
+\end{definition}
+
+\begin{definition}[def:targeting-gain]\label{def:targeting-gain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{targeting gain}
+\par\smallskip\noindent\emph{Construction.} \(\theta(P)=\mathbb E_{P_X}[\tau_P(X)_+-\pi_0(X)\tau_P(X)]\), where \(z_+=\max\{z,0\}\).
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(\pi_0\).
+\end{definition}
+
+\begin{definition}[def:welfare-loss]\label{def:welfare-loss}
+\par\smallskip\noindent\emph{Defined object.} \texttt{participant-\allowbreak{}welfare loss}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R_T(P,\mathsf D)=\mathbb E_{P,\mathsf D}[\sum_{t=1}^T\{\mu_{\pi_P^\star(X_t)}(X_t)-\mu_{A_t}(X_t)\}]=\mathbb E_{P,\mathsf D}[\sum_{t=1}^T|\tau_P(X_t)|\mathbf 1\{A_t\ne\pi_P^\star(X_t)\}]\).
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(\mathsf D\).
+\end{definition}
+
+\begin{definition}[def:budgeted-designs]\label{def:budgeted-designs}
+\par\smallskip\noindent\emph{Defined object.} \texttt{uniformly welfare-\allowbreak{}budgeted designs}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak D_T(\rho;\mathcal Q)=\{\mathsf D: \mathsf D\ \text{is non-anticipating and }\sup_{P\in\mathcal Q}\mathcal R_T(P,\mathsf D)\le\rho\}\).
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\rho\); \(\mathcal Q\).
+\end{definition}
+
+\begin{definition}[def:honest-intervals]\label{def:honest-intervals}
+\par\smallskip\noindent\emph{Defined object.} \texttt{uniformly honest connected intervals}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak C_{T,\delta}(\mathsf D;\mathcal Q)=\{I_T:I_T\text{ is one }P\text{-independent Borel map }\mathcal Z_T\to\{[\ell,u]:(\ell,u)\in\mathbb R^2,\ \ell\le u\},\ \inf_{P\in\mathcal Q}\mathbb P_{P,\mathsf D}^{T}\{\theta(P)\in I_T(O_{1:T})\}\ge1-\delta\}\).
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\delta\); \(\mathsf D\); \(\mathcal Q\).
+\end{definition}
+
+\begin{definition}[def:width-envelope]\label{def:width-envelope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{welfare-\allowbreak{}budgeted honest-\allowbreak{}width envelope}
+\par\smallskip\noindent\emph{Construction.} \(W_{T,\delta}(\rho;\mathcal Q)=\inf_{\mathsf D\in\mathfrak D_T(\rho;\mathcal Q)}\inf_{I_T\in\mathfrak C_{T,\delta}(\mathsf D;\mathcal Q)}\sup_{P\in\mathcal Q}\mathbb E_{P,\mathsf D}|I_T(O_{1:T})|\), where the same \(P\)-independent Borel map \(I_T\) is used in every law, with value \(+\infty\) when \(\mathfrak D_T(\rho;\mathcal Q)=\varnothing\).
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\delta\); \(\rho\); \(\mathcal Q\).
+\end{definition}
+
+\begin{definition}[def:sequential-modulus]\label{def:sequential-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{budgeted sequential targeting-\allowbreak{}gain modulus}
+\par\smallskip\noindent\emph{Construction.} \(\Omega_{T,\delta}(\rho;\mathcal Q)=\inf_{\mathsf D\in\mathfrak D_T(\rho;\mathcal Q)}\sup\{|\theta(P)-\theta(Q)|:P,Q\in\mathcal Q,\ \mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}\Vert\mathbb P_{Q,\mathsf D}^{T})\le\kappa_\delta\}\) as an extended nonnegative real, with value \(+\infty\) when \(\mathfrak D_T(\rho;\mathcal Q)=\varnothing\).
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\delta\); \(\rho\); \(\mathcal Q\).
+\end{definition}
+
+\begin{definition}[def:resolution-cells]\label{def:resolution-cells}
+\par\smallskip\noindent\emph{Defined object.} \texttt{finite resolution partition}
+\par\smallskip\noindent\emph{Construction.} Fix a finite dyadic Borel partition \(\mathscr Q\) of \(\mathcal X\); its elements \(\mathsf Q\) are the resolution cells used only by the information-allocation relaxation.
+\par\smallskip\noindent\emph{Inputs.} \(\mathcal X\).
+\end{definition}
+
+\begin{definition}[def:local-alternative-sets]\label{def:local-alternative-sets}
+\par\smallskip\noindent\emph{Defined object.} \texttt{baseline-\allowbreak{}indexed coverage-\allowbreak{}separating local alternatives}
+\par\smallskip\noindent\emph{Construction.} For a baseline law \(P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\), a cell \(\mathsf Q\in\mathscr Q\), and \(w>0\), define the complete coverage-separating local alternative set
+\[
+\mathcal S_{P,\mathsf Q}(w)
+=\left\{P'\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}:
+P'_X=P_X,\quad
+\mu_a^{P'}(x)=\mu_a^P(x)\ \text{for every }x\in\mathcal X\setminus\mathsf Q\text{ and }a\in\mathcal A,\quad
+|\theta(P')-\theta(P)|>\frac{2w}{1-2\delta}
+\right\}.
+\]
+The active baseline--cell index set is
+\[
+\mathscr A(w)=\left\{(P,\mathsf Q)\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\times\mathscr Q:
+\mathcal S_{P,\mathsf Q}(w)\ne\varnothing\right\}.
+\]
+Thus every law with the same context marginal, the prescribed off-cell agreement, and coverage-calibrated target separation is included; no optimal-arm sign switch is required.
+\par\smallskip\noindent\emph{Inputs.} \(\mathscr Q\); \(w\); \(\delta\).
+\end{definition}
+
+\begin{definition}[def:local-kl-coefficients]\label{def:local-kl-coefficients}
+\par\smallskip\noindent\emph{Defined object.} \texttt{arm-\allowbreak{}specific occupations and pointwise Gaussian information}
+\par\smallskip\noindent\emph{Construction.} For \((P,\mathsf Q)\in\mathscr A(w)\), \(P'\in\mathcal S_{P,\mathsf Q}(w)\), \(a\in\mathcal A\), and \(x\in\mathsf Q\), define the pointwise Gaussian information coefficient
+\[
+k_a(P,P';x)=\frac{\{\mu_a^P(x)-\mu_a^{P'}(x)\}^2}{2\sigma^2}.
+\]
+An arm-specific local occupation profile is a family \((\nu_{P,\mathsf Q,a})_{a\in\mathcal A}\) of finite nonnegative Borel measures supported on \(\mathsf Q\).  Its allocated information against \(P'\) is the exact integral
+\[
+\sum_{a\in\mathcal A}\int_{\mathsf Q}k_a(P,P';x)\,d\nu_{P,\mathsf Q,a}(x)
+=\sum_{a\in\mathcal A}\int_{\mathsf Q}
+\frac{\{\mu_a^P(x)-\mu_a^{P'}(x)\}^2}{2\sigma^2}
+\,d\nu_{P,\mathsf Q,a}(x).
+\]
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(\mathsf Q\); \(w\).
+\end{definition}
+
+\begin{definition}[def:cellwise-information-region]\label{def:cellwise-information-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{baseline-\allowbreak{}-\allowbreak{}cell occupation information region}
+\par\smallskip\noindent\emph{Construction.} For each \((P,\mathsf Q)\in\mathscr A(w)\), define
+\[
+\mathcal R_{P,\mathsf Q}(w)=\left\{
+(\nu_{P,\mathsf Q,a})_{a\in\mathcal A}:
+\begin{array}{l}
+\nu_{P,\mathsf Q,a}\text{ is a finite nonnegative Borel measure supported on }\mathsf Q\text{ for every }a,\\[2pt]
+\displaystyle
+\sum_{a\in\mathcal A}\int_{\mathsf Q}
+k_a(P,P';x)\,d\nu_{P,\mathsf Q,a}(x)\ge\kappa_\delta
+\quad\text{for every }P'\in\mathcal S_{P,\mathsf Q}(w)
+\end{array}
+\right\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(\mathsf Q\); \(w\).
+\end{definition}
+
+\begin{definition}[def:allocation-primal]\label{def:allocation-primal}
+\par\smallskip\noindent\emph{Defined object.} \texttt{welfare-\allowbreak{} and capacity-\allowbreak{}constrained occupation primal}
+\par\smallskip\noindent\emph{Construction.} For \(w>0\), define the worst-baseline occupation-measure primal value
+\[
+\mathcal B_{T,\rho}(w)
+=\sup_{P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}}
+\inf_{(\nu_{P,\mathsf Q,a})}
+\left\{
+\sum_{\mathsf Q:(P,\mathsf Q)\in\mathscr A(w)}
+\sum_{a\in\mathcal A}\nu_{P,\mathsf Q,a}(\mathsf Q)
+\right\},
+\]
+where the inner infimum is over profiles satisfying all three conditions
+\[
+(\nu_{P,\mathsf Q,a})_{a\in\mathcal A}\in\mathcal R_{P,\mathsf Q}(w)
+\quad\text{for every }\mathsf Q\text{ with }(P,\mathsf Q)\in\mathscr A(w),
+\]
+\[
+\sum_{\mathsf Q:(P,\mathsf Q)\in\mathscr A(w)}
+\sum_{a\in\mathcal A}\nu_{P,\mathsf Q,a}(E)
+\le T P_X(E)
+\quad\text{for every Borel }E\subseteq\mathcal X,
+\]
+and
+\[
+\sum_{\mathsf Q:(P,\mathsf Q)\in\mathscr A(w)}
+\sum_{a\in\mathcal A}
+\int_{\mathsf Q}|\tau_P(x)|\mathbf 1\{a\ne\pi_P^\star(x)\}
+\,d\nu_{P,\mathsf Q,a}(x)
+\le\rho.
+\]
+The infimum of an empty feasible set is \(+\infty\).  The measure domination is the total-horizon and stochastic context-arrival constraint; in particular it implies that every feasible objective is at most \(T\).
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\rho\); \(w\).
+\end{definition}
+
+\begin{definition}[def:allocation-dual]\label{def:allocation-dual}
+\par\smallskip\noindent\emph{Defined object.} \texttt{occupation-\allowbreak{}measure Lagrange lower value}
+\par\smallskip\noindent\emph{Construction.} For \(w>0\), define the baselinewise Lagrange lower value
+\[
+\begin{split}
+\mathcal D_{T,\rho}(w)
+=\sup_{P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}}
+\sup_{\lambda,\zeta_P,\xi_P}
+\Bigg\{&\kappa_\delta
+\sum_{\mathsf Q:(P,\mathsf Q)\in\mathscr A(w)}
+\lambda_{P,\mathsf Q}(\mathcal S_{P,\mathsf Q}(w))\\
+&-T\int_{\mathcal X}\zeta_P(x)\,dP_X(x)-\rho\xi_P\Bigg\}.
+\end{split}
+\]
+Here each \(\lambda_{P,\mathsf Q}\) is a finite nonnegative finitely supported measure on \(\mathcal S_{P,\mathsf Q}(w)\), \(\zeta_P:\mathcal X\to[0,\infty)\) is Borel measurable and \(P_X\)-integrable, and \(\xi_P\ge0\).  The supremum is subject to the single pointwise arm--context constraint
+\[
+\int_{\mathcal S_{P,\mathsf Q}(w)}
+k_a(P,P';x)\,d\lambda_{P,\mathsf Q}(P')
+\le
+1+\zeta_P(x)+\xi_P|\tau_P(x)|\mathbf 1\{a\ne\pi_P^\star(x)\}
+\]
+for every active \((P,\mathsf Q)\), every \(a\in\mathcal A\), and \(P_X\)-almost every \(x\in\mathsf Q\).  The zero weights and zero prices are feasible.  This definition asserts neither equality with the primal value nor attainment of either supremum.
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\rho\); \(w\).
+\end{definition}
+
+\begin{definition}[def:implicit-allocation-width]\label{def:implicit-allocation-width}
+\par\smallskip\noindent\emph{Defined object.} \texttt{budgeted implicit occupation width}
+\par\smallskip\noindent\emph{Construction.} Define the budget- and horizon-dependent implicit occupation width by
+\[
+w_{T,\rho}=\inf\left\{w>0:\mathcal B_{T,\rho}(w)\le T\right\},
+\]
+with the infimum taken in the extended nonnegative reals.  No power law, boundary closedness, or saturation identity is included in this definition.
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\rho\).
+\end{definition}
+
+\begin{definition}[def:budget-saturating-handle]\label{def:budget-saturating-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{baseline-\allowbreak{}profile sequential realization handle}
+\par\smallskip\noindent\emph{Construction.} The handle \(\mathsf H_{T,\rho}\) denotes the following unresolved realization program.  For levels \(w>w_{T,\rho}\) at which \(\mathcal B_{T,\rho}(w)\le T\), use approximately feasible baseline-indexed occupation profiles and, when useful, feasible dual prices from \(\mathcal D_{T,\rho}(w)\); then seek one law-independent predictable assignment rule whose expected occupations simultaneously realize the relevant profiles subject to random context arrivals and welfare cost, together with one \(P\)-independent Borel map from the observed trajectory to a connected honest interval.  The handle names this program only: it is not itself an assignment kernel, an estimator, or an interval procedure, and it assumes neither primal--dual equality nor attainment.
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\rho\); \(\delta\).
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:two-direction-exposure]\label{thm:two-direction-exposure}
+Let \(\mathsf D\) be one fixed non-anticipating design. First, if \(P,Q\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\) induce the same observed trajectory law under \(\mathsf D\), and \(s_a^{P,\mathsf D}(x)>0\) for \(P_X\)-almost every \(x\) and both \(a\in\mathcal A\), then \(\theta(P)=\theta(Q)\). Conversely, suppose there are \(a\in\mathcal A\), \(x_0\in\mathcal X\), \(r_0\in(0,1/2)\), and \(\eta>0\) such that the positive-uniform-mass set \(B=\{x:\|x-x_0\|_\infty<r_0\}\) is contained in \(\mathcal X\), \(\Delta_\dagger+\eta\le2M\), and \(\eta r_0^{-\beta}\le L\). Suppose \(\mathsf D\) assigns arm \(a\) with probability zero whenever the current context lies in \(B\), for every round and every observed history, and \(\mathbb E_{X\sim\operatorname{Unif}(\mathcal X)}[\psi_{x_0,r_0}(X)\{a\pi_0(X)+(1-a)(1-\pi_0(X))\}]>0\). Define \(P\) and \(Q\) to have uniform contexts and conditionally independent Gaussian innovations with the common scale \(\sigma\). Under both laws the mean of arm \(1-a\) is \(M\); the mean of arm \(a\) is \(M-\Delta_\dagger\) under \(P\) and \(M-\Delta_\dagger-\eta\psi_{x_0,r_0}(x)\) under \(Q\). Because the declared parameter domains give \(c_X\le1\le C_X\), the uniform density obeys the same envelope, so \(P,Q\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\), \(\mathbb P_{P,\mathsf D}^{T}=\mathbb P_{Q,\mathsf D}^{T}\), and \(|\theta(P)-\theta(Q)|=\eta\mathbb E_{X\sim\operatorname{Unif}(\mathcal X)}[\psi_{x_0,r_0}(X)\{a\pi_0(X)+(1-a)(1-\pi_0(X))\}]>0\).
+\end{theorem}
+\begin{proof}
+Write \(\mu_a^R\) for the regression of arm \(a\) under a law \(R\in\{P,Q\}\).  We prove the two assertions separately.
+
+For the first assertion, equality of the trajectory laws implies equality of the marginal laws of every observed context.  Hence
+\[
+P_X=Q_X=:\nu.
+\]
+For \(R\in\{P,Q\}\), let
+\[
+p_{t,a}^R(x)=\mathbb P_{R,\mathsf D}(A_t=a\mid X_t=x)
+\]
+be any measurable version of the marginal assignment probability.  The pair \((X_t,A_t)\) is an observed coordinate of \(O_{1:T}\).  Therefore equality of the trajectory laws gives, for every measurable \(C\subseteq\mathcal X\),
+\[
+\int_C p_{t,a}^P(x)\,\nu(dx)
+=\mathbb P_{P,\mathsf D}(X_t\in C,A_t=a)
+=\mathbb P_{Q,\mathsf D}(X_t\in C,A_t=a)
+=\int_C p_{t,a}^Q(x)\,\nu(dx).
+\]
+Applying this identity to the positive and negative sets of \(p_{t,a}^P-p_{t,a}^Q\) shows that
+\[
+p_{t,a}^P=p_{t,a}^Q\qquad \nu\text{-almost everywhere}.
+\]
+Denote the common version by \(p_{t,a}\), and put \(s_a(x)=\sum_{t=1}^T p_{t,a}(x)\).  By the definition of exposure,
+\[
+s_a=s_a^{P,\mathsf D}\qquad \nu\text{-almost everywhere}.
+\]
+
+The bounded-mean assumption and the Gaussian reward assumption imply \(\mathbb E_{R,\mathsf D}|Y_t|<\infty\).  Thus, for a measurable \(C\subseteq\mathcal X\), conditional expectation under the Gaussian reward model yields
+\[
+\begin{aligned}
+\sum_{t=1}^T
+\mathbb E_{R,\mathsf D}
+ \bigl[\mathbf 1\{X_t\in C,A_t=a\}Y_t\bigr]
+&=\sum_{t=1}^T
+\mathbb E_{R,\mathsf D}
+ \bigl[\mathbf 1\{X_t\in C,A_t=a\}\mu_a^R(X_t)\bigr]\\
+&=\int_C \mu_a^R(x)s_a(x)\,\nu(dx).
+\end{aligned}
+\]
+Indeed, the first equality uses
+\(\mathbb E_{R,\mathsf D}[Y_t\mid H_{t-1},X_t,A_t]
+=\mu_{A_t}^R(X_t)\), which follows from the conditional mean-zero Gaussian innovation in the reward assumption; the second equality uses the definition of \(p_{t,a}\).  The random variable inside each expectation is an observed measurable function of the trajectory.  Equality of the trajectory laws consequently gives
+\[
+\int_C s_a(x)\{\mu_a^P(x)-\mu_a^Q(x)\}\,\nu(dx)=0
+\qquad\text{for every measurable }C\subseteq\mathcal X.
+\]
+Taking \(C\) successively to be the positive and negative sets of the integrable function
+\(s_a(\mu_a^P-\mu_a^Q)\) proves
+\[
+s_a(x)\{\mu_a^P(x)-\mu_a^Q(x)\}=0
+\qquad \nu\text{-almost everywhere}.
+\]
+The assumed strict positivity of \(s_a^{P,\mathsf D}=s_a\), for each \(a\in\mathcal A\), permits division pointwise off a common \(\nu\)-null set and gives
+\[
+\mu_a^P(x)=\mu_a^Q(x)
+\quad\text{for both }a\in\mathcal A,
+\qquad \nu\text{-almost everywhere}.
+\]
+It follows that \(\tau_P=\tau_Q\) \(\nu\)-almost everywhere.  The benchmark is the same under the two laws by the fixed-benchmark assumption, so the targeting-gain definition gives
+\[
+\theta(P)
+=\int\{(\tau_P(x))_+-\pi_0(x)\tau_P(x)\}\,\nu(dx)
+=\int\{(\tau_Q(x))_+-\pi_0(x)\tau_Q(x)\}\,\nu(dx)
+=\theta(Q).
+\]
+This proves the positive-exposure direction without identifying either regression by definition.
+
+We next verify every property of the announced converse witnesses.  Let \(P\) and \(Q\) have the common uniform context distribution and the arm means specified in the statement.  Since the declared domains give \(0<c_X\le 1\le C_X\), the uniform density satisfies the context-density bounds.  Give both laws conditionally independent \(\mathcal N(0,1)\) innovations at scale \(\sigma\), as specified; they then satisfy the Gaussian reward assumption.
+
+The elementary inequalities
+\[
+|u_+^\beta-v_+^\beta|\le |u-v|^\beta
+\quad(0<\beta\le1),
+\qquad
+\bigl|\|x-x_0\|_\infty-\|x'-x_0\|_\infty\bigr|
+\le\|x-x'\|_\infty
+\]
+imply
+\[
+|\psi_{x_0,r_0}(x)-\psi_{x_0,r_0}(x')|
+\le r_0^{-\beta}\|x-x'\|_\infty^\beta
+\le r_0^{-\beta}\|x-x'\|_2^\beta.
+\]
+For completeness, the first displayed inequality follows by assuming \(u_+\ge v_+\), writing \(u_+=v_++(u_+-v_+)\), and using subadditivity
+\((r+s)^\beta\le r^\beta+s^\beta\) for nonnegative \(r,s\), which follows from concavity of \(z\mapsto z^\beta\) when \(0<\beta\le1\).  Hence the perturbed arm under \(Q\) has Hölder seminorm at most \(\eta r_0^{-\beta}\le L\); all other announced mean functions are constant and therefore also obey the Hölder condition.
+
+Because \(0\le\psi_{x_0,r_0}\le1\) and \(\Delta_\dagger+\eta\le2M\), every announced mean lies in \([-M,M]\).  Under either witness, the absolute treatment contrast is at least \(\Delta_\dagger\).  If \(\alpha>0\), then \(\Delta_\dagger\ge C_0^{-1/\alpha}\).  Consequently, for every \(u\ge0\), the event
+\(\{0<|\tau_R(X)|\le u\}\) is empty when \(u<\Delta_\dagger\), whereas when \(u\ge\Delta_\dagger\),
+\[
+\mathbb P_R\{0<|\tau_R(X)|\le u\}
+\le1\le C_0u^\alpha,
+\qquad R\in\{P,Q\}.
+\]
+If \(\alpha=0\), the gap--margin-compatibility assumption reduces to \(C_0\ge1\), so the same probability is at most \(1\le C_0u^0\) for \(u>0\), while at \(u=0\) the event is empty.  Thus the local margin condition holds throughout its required range \(0\le u\le\delta_0\).  The nontrivial-margin-regime assumption supplies \(\alpha\beta\le d\).  We have therefore proved, rather than assumed, that
+\[
+P,Q\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}.
+\]
+
+It remains to establish observational equivalence and target separation.  The two laws have the same context kernel at every round.  Conditional on any common observed history and current context, they also use the same assignment kernel because \(\mathsf D\) is one fixed law-independent design.  If the selected arm is \(1-a\), its mean is \(M\) under both laws.  If the selected arm is \(a\) and \(x\notin B\), then
+\(\psi_{x_0,r_0}(x)=0\), so again the two conditional reward distributions coincide.  Finally, when \(x\in B\), the design assigns arm \(a\) with probability zero by hypothesis.  Thus the conditional observed-data kernel at round \(t\) is the same under \(P\) and \(Q\).  Starting from the common law at the first round and iterating this equality for \(t=1,\ldots,T\) proves by finite induction that
+\[
+\mathbb P_{P,\mathsf D}^{T}=\mathbb P_{Q,\mathsf D}^{T}.
+\]
+
+Set
+\[
+g_{\pi}(z)=z_+-\pi z,
+\qquad
+w_a(x)=a\pi_0(x)+(1-a)\{1-\pi_0(x)\}.
+\]
+If \(a=1\), then
+\(\tau_P=-\Delta_\dagger\),
+\(\tau_Q=-\Delta_\dagger-\eta\psi_{x_0,r_0}\), and direct substitution gives
+\[
+g_{\pi_0(x)}(\tau_Q(x))-g_{\pi_0(x)}(\tau_P(x))
+=\eta\psi_{x_0,r_0}(x)\pi_0(x).
+\]
+If \(a=0\), then
+\(\tau_P=\Delta_\dagger\),
+\(\tau_Q=\Delta_\dagger+\eta\psi_{x_0,r_0}\), and
+\[
+g_{\pi_0(x)}(\tau_Q(x))-g_{\pi_0(x)}(\tau_P(x))
+=\eta\psi_{x_0,r_0}(x)\{1-\pi_0(x)\}.
+\]
+Combining the two cases with the targeting-gain definition yields
+\[
+\theta(Q)-\theta(P)
+=\eta\,\mathbb E_{X\sim\operatorname{Unif}(\mathcal X)}
+ \left[\psi_{x_0,r_0}(X)
+ \{a\pi_0(X)+(1-a)(1-\pi_0(X))\}\right].
+\]
+The integrand is nonnegative because \(0\le\psi_{x_0,r_0},\pi_0\le1\), and its expectation is strictly positive by the stated benchmark-relevance hypothesis.  Since \(\eta>0\), the last display is positive, and therefore its value equals \(|\theta(P)-\theta(Q)|\), proving the claimed strict separation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The two directions distinguish genuine observed-law identification from irreducible ambiguity created by an adaptive design that never reveals a benchmark-relevant arm on a positive-mass region. \textit{Gap.} LuedtkeVanDerLaan2016OptimalValue studies optimal value as an observed-data functional under a supplied observation law, while adaptive-policy inference papers impose positivity for fixed-policy scores; neither gives an observational-equivalence construction tied to history-dependent zero exposure and the benchmark-relative targeting gain. \textit{Consumer.} The result gives the frontier a sharp information boundary: attaining designs must create exposure wherever the benchmark makes the suppressed arm relevant, and no interval rule based only on the trajectory can repair a violated boundary.
+
+\begin{theorem}[thm:class-nonemptiness]\label{thm:class-nonemptiness}
+Because the declared parameter domains give \(c_X\le1\le C_X\), the uniform context density of \(P^\dagger\) obeys the stated density envelope directly. The explicit law \(P^\dagger\) belongs to \(\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}\), and \(\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}\subseteq\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\). Hence both the fixed-gap and Hölder--margin classes are nonempty under the stated parameter domains.
+\end{theorem}
+\begin{proof}
+We check each defining property.  By the declared domains, \(0<c_X\leq1\leq C_X\).  The uniform distribution on \(\mathcal X=[0,1]^d\) therefore has density \(p_X=1\) satisfying the density envelope in the definition of \(\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\).  The construction gives conditionally independent Gaussian arm outcomes with variance \(\sigma^2\), so the Gaussian innovation condition holds.
+
+We next verify that the constant means are admissible.  If \(\alpha=0\), then \(\Delta_\dagger=\Delta_0\leq2M\) by the gap--mean compatibility assumption.  If \(\alpha>0\), gap--margin compatibility gives
+\[
+C_0(2M)^\alpha\geq1,
+\qquad\text{hence}\qquad
+C_0^{-1/\alpha}\leq2M.
+\]
+Together with \(\Delta_0\leq2M\), this yields
+\[
+0<\Delta_\dagger=\max\{\Delta_0,C_0^{-1/\alpha}\}\leq2M.
+\]
+Thus both constants \(-\Delta_\dagger/2\) and \(\Delta_\dagger/2\) lie in \([-M,M]\).  Constant functions have H\"older seminorm zero, so they satisfy the H\"older bound for the declared \(L>0\).  In either ordering of the two arms,
+\[
+|\tau_{P^\dagger}(x)|=\Delta_\dagger
+\quad\text{for every }x\in\mathcal X,
+\]
+and therefore the fixed-gap condition follows from \(\Delta_\dagger\geq\Delta_0\).
+
+For the margin condition, first suppose \(\alpha>0\).  If \(0\leq u<\Delta_\dagger\), then
+\[
+P_X\{0<|\tau_{P^\dagger}(X)|\leq u\}=0.
+\]
+If \(u\geq\Delta_\dagger\), then \(u\geq C_0^{-1/\alpha}\), and hence
+\[
+P_X\{0<|\tau_{P^\dagger}(X)|\leq u\}
+\leq1\leq C_0u^\alpha.
+\]
+These two cases cover every \(u\in[0,\delta_0]\).  If \(\alpha=0\), gap--margin compatibility is \(C_0\geq1\); the same probability is zero at \(u=0\) and is at most \(1\leq C_0u^0\) for \(u>0\).  The assumed parameter regime supplies \(\alpha\beta\leq d\).  Hence \(P^\dagger\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\).
+
+It remains to check benchmark exposure.  Put
+\[
+G_+=\int_{\mathcal X}\{1-\pi_0(x)\}\,dx,
+\qquad
+G_-=\int_{\mathcal X}\pi_0(x)\,dx.
+\]
+Because \(\mathcal X\) has unit Lebesgue volume and \(0\leq\pi_0\leq1\), \(G_++G_-=1\).  If \(G_+\geq1/2\), the construction makes arm one superior, and the inferior-treatment mass of the benchmark is \(G_+\).  Otherwise it interchanges the means, makes arm zero superior, and the inferior-treatment mass is \(G_-=1-G_+>1/2\).  In both cases that mass is at least \(1/2\geq b_0\).  The benchmark is the same for all laws by the fixed-benchmark assumption.  Consequently
+\[
+P^\dagger\in\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}.
+\]
+Finally, \(\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}\subseteq\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\) is immediate from the defining set comprehension.  The displayed witness proves that both classes are nonempty.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An explicit common witness prevents the frontier from being driven by mutually inconsistent density, margin, gap, mean-bound, or benchmark-exposure constants. \textit{Gap.} Contextual-bandit rate theorems ordinarily suppress compatibility of fixed class constants; this result records the witness needed when the fixed-gap subclass is itself a theorem domain. \textit{Consumer.} The feasibility supporting lemma and fixed-gap frontier theorem optimize over genuine law classes rather than obtaining vacuous bounds over an empty parameter space.
+
+\begin{lemma}[lem:feasibility-boundary]\label{lem:feasibility-boundary}
+The local margin condition implies the global envelope \(P_X\{0<|\tau_P(X)|\le u\}\le\overline C u^\alpha\) for every \(u>0\): use the local bound for \(u\le\delta_0\), and for \(u>\delta_0\) use probability at most one and \(1\le\delta_0^{-\alpha}u^\alpha\). By PerchetRigollet2013CovariateBandits, Theorem 5.1 and Proposition 3.1, there exist constants \(0<c<C<\infty\), depending only on the displayed class constants, such that \(cT^{r_{\beta,\alpha,d}}\le\rho_{\mathrm{feas}}(T;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})\le CT^{r_{\beta,\alpha,d}}\). Passing from their bounded-reward experiment to the present fixed-scale Gaussian regression experiment is a routine tail-model translation. In particular, \(d=1\), \(\beta=1\), and \(\alpha=1/5\) give \(r_{1,1/5,1}=3/5\), so \(W_{T,\delta}(\rho;\mathcal P_{1,1/5}^{\mathrm{HM}})=+\infty\) whenever \(\rho<cT^{3/5}\).
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\).  If \(0<u\leq\delta_0\), the local margin assumption and \(C_0\leq\overline C\) give
+\[
+ P_X\{0<|\tau_P(X)|\leq u\}\leq C_0u^\alpha
+ \leq\overline C u^\alpha.
+\]
+If \(u>\delta_0\), the probability bound and the definition of \(\overline C\) give
+\[
+ P_X\{0<|\tau_P(X)|\leq u\}\leq1
+ \leq\delta_0^{-\alpha}u^\alpha
+ \leq\overline C u^\alpha.
+\]
+For \(u=0\) the event is empty.  Thus
+\[
+ P_X\{0<|\tau_P(X)|\leq u\}\leq\overline C u^\alpha
+ \quad\text{for every }u\geq0.
+\]
+
+By the definitions of participant-welfare loss and \(\pi_P^\star\),
+\[
+ \mathcal R_T(P,\mathsf D)
+ =\mathbb E_{P,\mathsf D}\sum_{t=1}^T
+ |\tau_P(X_t)|\mathbf 1\{A_t\ne\pi_P^\star(X_t)\}
+\]
+is exactly the expected contextual-bandit regret of \(\mathsf D\).  Consequently,
+\[
+ \rho_{\mathrm{feas}}(T;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})
+ =\inf_{\mathsf D}\sup_{P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}}
+ \mathcal R_T(P,\mathsf D)
+\]
+is the minimax regret over the declared Gaussian class.
+
+We next justify the Gaussian transfer without conditioning on adaptively selected pull times.  Fix a Borel bin \(B\subseteq\mathcal X\), an arm \(a\in\mathcal A\), and put
+\[
+ J_t=\mathbf 1\{X_t\in B,A_t=a\},
+ \qquad N_n=\sum_{t=1}^nJ_t.
+\]
+Let \(\mathcal G_t=\sigma(H_{t-1},X_t,A_t)\), and let \(\mathcal F_t\) be the observed sigma-field after \(Y_t\) is revealed.  Non-anticipation makes \(J_t\) measurable with respect to \(\mathcal G_t\), while the Gaussian-reward assumption gives, for every \(\lambda\in\mathbb R\),
+\[
+ \mathbb E_{P,\mathsf D}\!\left[
+  \exp\!\left\{\lambda\sigma J_t\varepsilon_t
+  -\frac{\lambda^2\sigma^2}{2}J_t\right\}
+  \middle|\mathcal G_t\right]=1.
+\]
+Indeed, this is immediate when \(J_t=0\), and when \(J_t=1\) it is the moment-generating identity for a standard Gaussian.  Hence, by iterated conditioning,
+\[
+ M_n(\lambda)=\exp\!\left\{
+ \lambda\sigma\sum_{t=1}^nJ_t\varepsilon_t
+ -\frac{\lambda^2\sigma^2}{2}N_n\right\},
+ \qquad M_0(\lambda)=1,
+\]
+is a nonnegative \((\mathcal F_n)\)-martingale.
+
+For an integer \(s\geq1\), let \(S_s=\inf\{n:N_n=s\}\), with \(S_s=+\infty\) if the set is empty.  The time \(S_s\wedge T\) is bounded, so iterating the preceding one-step identity gives
+\[
+ \mathbb E_{P,\mathsf D}M_{S_s\wedge T}(\lambda)=1.
+\]
+For \(\lambda>0\), Markov's inequality on the event \(\{S_s\leq T,\ \sigma\sum_{t=1}^{S_s}J_t\varepsilon_t\geq sv\}\) therefore yields
+\[
+ \mathbb P_{P,\mathsf D}\!\left(
+ S_s\leq T,\ \sigma\sum_{t=1}^{S_s}J_t\varepsilon_t\geq sv
+ \right)
+ \leq\exp\!\left\{-\lambda sv+\frac{\lambda^2\sigma^2s}{2}\right\}.
+\]
+Taking \(\lambda=v/\sigma^2\), and repeating the argument with \(-\lambda\), proves the predictable optional-skipping bound
+\[
+ \mathbb P_{P,\mathsf D}\!\left(
+ S_s\leq T,\ 
+ \left|\frac1s\sum_{j=1}^s\sigma\varepsilon_{S_j}\right|>v
+ \right)
+ \leq2\exp\!\left\{-\frac{sv^2}{2\sigma^2}\right\}.
+\]
+No conditional independence of \(\varepsilon_{S_1},\ldots,\varepsilon_{S_s}\) given the selected times is asserted or needed.
+
+Suppose first that \(\alpha>0\).  Apply the explicit two-arm policy in the cited Perchet--Rigollet result.  Its bin and arm indicators are predictable in exactly the sense used above.  Every bounded-noise deviation step in its successive-elimination proof is therefore replaced by the displayed Gaussian bound, with only the confidence-radius constant changed.  The H\"older approximation steps are unchanged because the conditional means are unchanged.  On the simultaneous concentration event, a bin of side \(h\) continues to be explored only when its treatment gap is at most a constant multiple of \(h^\beta\); the global margin envelope proved above then bounds the mass of all such contexts by a constant multiple of \(h^{\alpha\beta}\).  At the terminal resolution
+\[
+ h_T\asymp T^{-1/(2\beta+d)},
+\]
+the approximation term is
+\[
+ T h_T^{\beta(1+\alpha)}
+ =T^{(\beta+d-\alpha\beta)/(2\beta+d)}.
+\]
+The coarser-resolution terms in the cited proof form a geometric sum with this same terminal order, because
+\[
+ \beta+d-\alpha\beta\geq\beta>0
+\]
+by \(\alpha\beta\leq d\) and \(\beta>0\).  The optional-skipping tail may be union-bounded at the same calls and levels as in that proof, so its complement contributes only a constant after enlarging the numerical confidence constant.  Thus the cited upper-bound argument gives
+\[
+ \sup_{P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}}
+ \mathcal R_T(P,\mathsf D)
+ \leq C T^{(\beta+d-\alpha\beta)/(2\beta+d)}.
+\]
+
+For completeness, the endpoint \(\alpha=0\) has the same upper order without using any additional margin premise.  Partition \([0,1]^d\) into at most \(C_dh^{-d}\) cubes of side \(h\).  In each cube use a two-arm horizon-aware minimax index rule, restarted on local horizons \(1,2,4,\ldots\), and make the rule ignore the exact within-cube location.  Conditional on a visit to a cube, the arm reward is centered sub-Gaussian with a variance proxy \(v_0\) depending only on \(M\) and \(\sigma\): this follows by multiplying the Gaussian moment-generating function by Hoeffding's elementary bound for the bounded random conditional mean.  For a local epoch of length \(n\), the index
+\[
+ \widehat\mu_{a,s}
+ +\sqrt{\frac{4v_0}{s}
+ \max\!\left\{\log\!\left(\frac{n}{2s}\right),0\right\}}
+\]
+after \(s\) pulls of arm \(a\) has the following direct consequence of the preceding exponential bound: if the two cube-average arm means differ by \(\Delta>0\), then the expected number of inferior pulls is at most
+\[
+ C\frac{v_0}{\Delta^2}
+ \left\{1+\log_+\!\left(\frac{n\Delta^2}{v_0}\right)\right\}.
+\]
+To see this, split at
+\[
+ s_\Delta=\left\lceil
+ C\frac{v_0}{\Delta^2}
+ \left\{1+\log_+\!\left(\frac{n\Delta^2}{v_0}\right)\right\}
+ \right\rceil;
+\]
+after \(s_\Delta\) inferior pulls, selection of that arm forces either an upper deviation of its empirical mean or a lower deviation of the superior empirical mean by at least \(\Delta/2\).  Applying the two one-sided exponential bounds at each possible pull count and summing the resulting geometric tails gives the display.  Multiplication by \(\Delta\), together with the trivial bound \(n\Delta\), gives
+\[
+ \min\!\left\{n\Delta,
+ C\frac{v_0}{\Delta}
+ \left(1+\log_+\!\frac{n\Delta^2}{v_0}\right)\right\}
+ \leq C\sqrt{v_0n},
+\]
+because \((1+\log x)/\sqrt{x}\) is bounded on \([1,\infty)\).  Summing the geometric local epochs changes only the constant, so a cube visited \(N(B)\) times incurs expected regret at most \(C\mathbb E\sqrt{N(B)}\) relative to its best cube-average arm.
+
+H\"older continuity adds at most \(CTh^\beta\) when that cube-average comparator is replaced by the contextwise oracle.  Jensen's and Cauchy--Schwarz inequalities give
+\[
+ \sum_B\mathbb E\sqrt{N(B)}
+ \leq\sum_B\sqrt{\mathbb EN(B)}
+ \leq\sqrt{C_dh^{-d}T}.
+\]
+Thus
+\[
+ \sup_{P\in\mathcal P_{\beta,0}^{\mathrm{HM}}}
+ \mathcal R_T(P,\mathsf D)
+ \leq C\left(Th^\beta+\sqrt{Th^{-d}}\right).
+\]
+Choosing \(h\asymp T^{-1/(2\beta+d)}\) yields
+\[
+ \sup_{P\in\mathcal P_{\beta,0}^{\mathrm{HM}}}
+ \mathcal R_T(P,\mathsf D)
+ \leq CT^{(\beta+d)/(2\beta+d)}.
+\]
+
+We next transfer the lower bound.  For \(\alpha>0\), take the two-arm hard family underlying the minimax lower statement in the cited Perchet--Rigollet result, and apply a fixed affine contraction so that its mean functions lie in \([-M,M]\) and satisfy the declared H\"older radius.  Replace its bounded arm rewards by Gaussian rewards having those same contracted means and variance \(\sigma^2\).  For neighboring laws with mean differences \(v_a(x)\), the Gaussian likelihood ratio and iterated conditioning give the exact adaptive identity
+\[
+ \operatorname{KL}\!\left(
+ \mathbb P_{P,\mathsf D}^{T}\,\middle\|\,
+ \mathbb P_{Q,\mathsf D}^{T}\right)
+ =\frac{1}{2\sigma^2}
+ \mathbb E_{P,\mathsf D}\sum_{t=1}^T v_{A_t}(X_t)^2.
+\]
+The source hard family keeps its Bernoulli means in a fixed interior subinterval.  On that interval its one-observation Bernoulli divergence is bounded below by a positive constant times the squared mean difference.  Hence the Gaussian divergence after the fixed contraction is at most a constant multiple of the information in the cited testing construction.  All its neighboring testing errors therefore remain bounded away from zero, whereas participant loss depends only on the unchanged conditional means.  Its separation calculation consequently gives
+\[
+ \inf_{\mathsf D}\sup_{P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}}
+ \mathcal R_T(P,\mathsf D)
+ \geq cT^{(\beta+d-\alpha\beta)/(2\beta+d)}.
+\]
+
+When \(\alpha=0\), the same order follows directly without treating the margin restriction as void.  Under the uniform context law, place \(m\asymp h^{-d}\) disjoint H\"older bumps, each supported on a cube of side \(h\), with total support volume at most \(\min\{C_0/2,1/2\}\).  Let each bump have height \(ch^\beta\), choose its sign independently, and take the two arm means to be opposite halves of the resulting contrast.  The constant \(c>0\) may be chosen, using \(L>0\) and \(M>0\), so that both mean functions obey the H\"older and boundedness conditions.  Choose the packing constant and the scale constant below so that \(m\geq1\) and \(m\geq c_mh^{-d}\) for every \(T\geq1\), where \(c_m>0\) depends only on \(C_0\) and \(d\).  Since the nonzero-gap set is contained in the union of the bump supports,
+\[
+ P_X\{0<|\tau_P(X)|\leq u\}
+ \leq P_X\{\tau_P(X)\ne0\}\leq C_0
+ \quad\text{for every }u\geq0,
+\]
+so every member of this family satisfies the \(\alpha=0\) margin assumption.
+
+Neighboring sign vectors differ only on one cube, and the preceding Gaussian identity bounds their trajectory divergence by
+\[
+ CT h^{d+2\beta}.
+\]
+Choose \(h=c_hT^{-1/(2\beta+d)}\) with \(c_h>0\) small enough that this divergence is at most \(1/8\).  The elementary binary coarse-graining inequality
+\[
+ \operatorname{KL}(P\|Q)
+ \geq p\log\frac pq+(1-p)\log\frac{1-p}{1-q}
+ \geq2(p-q)^2,
+ \qquad p=P(E),\quad q=Q(E),
+\]
+shows that the total-variation distance of each neighboring pair is at most \(1/4\).  Thus the sum of the two errors of every sign decision is at least \(3/4\).  Each bump is bounded below by a constant multiple of \(h^\beta\) on an inner cube of volume a constant multiple of \(h^d\).  Averaging over sign vectors and summing over the \(m\asymp h^{-d}\) coordinates therefore gives, for every non-anticipating design,
+\[
+ \sup_{P\in\mathcal P_{\beta,0}^{\mathrm{HM}}}
+ \mathcal R_T(P,\mathsf D)
+ \geq cT\,m h^{d+\beta}
+ \geq cTh^\beta
+ =cT^{(\beta+d)/(2\beta+d)}.
+\]
+The choices of the packing and scale constants above make the construction valid for every \(T\geq1\).  Combining the two cases, and changing the constants for any finite exceptional range in the cited \(\alpha>0\) comparison, proves
+\[
+ cT^{r_{\beta,\alpha,d}}
+ \leq\rho_{\mathrm{feas}}(T;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})
+ \leq CT^{r_{\beta,\alpha,d}}.
+\]
+
+Finally, when \(d=1\), \(\beta=1\), and \(\alpha=1/5\),
+\[
+ r_{1,1/5,1}
+ =\frac{1+1-1/5}{2+1}=\frac35.
+\]
+If \(\rho<cT^{3/5}\), then the definition of \(\rho_{\mathrm{feas}}\) implies \(\mathfrak D_T(\rho;\mathcal P_{1,1/5}^{\mathrm{HM}})=\varnothing\).  The empty-design convention in the definition of \(W_{T,\delta}\) therefore gives
+\[
+ W_{T,\delta}(\rho;\mathcal P_{1,1/5}^{\mathrm{HM}})=+\infty.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This cited sanity reduction marks the empty-design regime before any honest-width branch is considered. \textit{Gap.} PerchetRigollet2013CovariateBandits, Theorem 5.1 gives the same H\"older--margin minimax regret exponent under its local margin formulation, and Proposition 3.1 gives the finite-margin restriction \(\alpha\beta\le d\). The local margin inequality is extended by the probability bound, and the bounded-reward concentration step is transferred to fixed-scale Gaussian rewards through a predictable exponential martingale and bounded optional stopping, without conditioning on adaptively selected pull times. \textit{Consumer.} The supporting lemma retains the \(\rho=T^{3/5}\) early-kill threshold and prevents a width formula from being asserted in an infeasible regime.
+
+\begin{theorem}[thm:coverage-information-converse]\label{thm:coverage-information-converse}
+For every law class \(\mathcal Q\subseteq\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\), every \(\mathsf D\in\mathfrak D_T(\rho;\mathcal Q)\), every single \(P\)-independent Borel map \(I_T\in\mathfrak C_{T,\delta}(\mathsf D;\mathcal Q)\), and every \(P,Q\in\mathcal Q\) satisfying \(\mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}\Vert\mathbb P_{Q,\mathsf D}^{T})\le\kappa_\delta\), \(\max\{\mathbb E_{P,\mathsf D}|I_T(O_{1:T})|,\mathbb E_{Q,\mathsf D}|I_T(O_{1:T})|\}\ge(1-2\delta)|\theta(P)-\theta(Q)|/2\). If \(P_X=Q_X\), then the adaptive Gaussian likelihood obeys the exact decomposition \(\mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}\Vert\mathbb P_{Q,\mathsf D}^{T})=(2\sigma^2)^{-1}\mathbb E_{P,\mathsf D}\sum_{t=1}^T\{\mu_{A_t}^P(X_t)-\mu_{A_t}^Q(X_t)\}^2\). Consequently, \(W_{T,\delta}(\rho;\mathcal Q)\ge(1-2\delta)\Omega_{T,\delta}(\rho;\mathcal Q)/2\) without restricting the design or the observed-trajectory interval map.
+\end{theorem}
+\begin{proof}
+Fix \(\mathsf D\), \(I_T\), and \(P,Q\) as in the statement, and abbreviate their trajectory laws by \(\mathbf P\) and \(\mathbf Q\).  Let
+\[
+A=\{\theta(P)\in I_T(O_{1:T})\},
+\qquad
+B=\{\theta(Q)\in I_T(O_{1:T})\}.
+\]
+Uniform honesty gives \(\mathbf P(A)\geq1-\delta\) and \(\mathbf Q(B)\geq1-\delta\).  Write \(V=\|\mathbf P-\mathbf Q\|_{\mathrm{TV}}\).  Then
+\[
+\mathbf P(B)\geq\mathbf Q(B)-V\geq1-\delta-V,
+\]
+and hence
+\[
+\mathbf P(A\cap B)\geq1-2\delta-V.
+\]
+
+For completeness, the needed information inequality is derived rather than imported.  Let \(p,q\) be densities of \(\mathbf P,\mathbf Q\) with respect to \(\mathbf P+\mathbf Q\), and take a measurable set \(E\) attaining total variation, so that \(V=\mathbf P(E)-\mathbf Q(E)\).  Jensen's inequality applied separately on \(E\) and \(E^c\) gives the binary log-sum bound
+\[
+\mathrm{KL}(\mathbf P\Vert\mathbf Q)
+\geq u\log\frac uv+(1-u)\log\frac{1-u}{1-v},
+\qquad
+u=\mathbf P(E),\quad v=\mathbf Q(E).
+\]
+For fixed \(v\in(0,1)\), subtract \(2(u-v)^2\) from the right-hand side.  The resulting function of \(u\) has value and first derivative zero at \(u=v\), and second derivative
+\[
+\frac{1}{u(1-u)}-4\geq0.
+\]
+Continuity treats the endpoints.  Therefore
+\[
+V\leq\sqrt{\mathrm{KL}(\mathbf P\Vert\mathbf Q)/2}.
+\]
+The assumed divergence bound and the definition of \(\kappa_\delta\) now imply
+\[
+V\leq\sqrt{\kappa_\delta/2}=\frac{1-2\delta}{2}.
+\]
+On \(A\cap B\), the reported set is a connected interval containing both \(\theta(P)\) and \(\theta(Q)\), so its length is at least their absolute difference.  Consequently
+\[
+\mathbb E_{P,\mathsf D}|I_T(O_{1:T})|
+\geq |\theta(P)-\theta(Q)|\,\mathbf P(A\cap B)
+\geq\frac{1-2\delta}{2}|\theta(P)-\theta(Q)|.
+\]
+This is stronger than the displayed maximum inequality because it already bounds the expectation under \(P\).
+
+Suppose next that \(P_X=Q_X\).  At round \(t\), conditional on a realized history and current context, the context kernel is common and the assignment kernel is the same fixed kernel \(\mathsf D\).  These two factors therefore cancel from the likelihood ratio.  Conditional on \((H_{t-1},X_t,A_t)\), the remaining factors are Gaussian with common variance \(\sigma^2\) and means \(\mu_{A_t}^P(X_t)\) and \(\mu_{A_t}^Q(X_t)\).  Their conditional divergence is
+\[
+\frac{\{\mu_{A_t}^P(X_t)-\mu_{A_t}^Q(X_t)\}^2}{2\sigma^2}.
+\]
+Multiplying the sequential conditional densities, taking the logarithm, and then taking iterated expectation under \(P\) gives exactly
+\[
+\mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}\Vert\mathbb P_{Q,\mathsf D}^{T})
+=\frac{1}{2\sigma^2}\mathbb E_{P,\mathsf D}
+\sum_{t=1}^T\{\mu_{A_t}^P(X_t)-\mu_{A_t}^Q(X_t)\}^2.
+\]
+
+For each feasible \(\mathsf D\) and each honest \(I_T\), take the supremum of the first bound over every admissible pair in the sequential modulus.  The left-hand side is bounded above by \(\sup_{R\in\mathcal Q}\mathbb E_{R,\mathsf D}|I_T|\).  Infimizing first over \(I_T\) and then over \(\mathsf D\) yields
+\[
+W_{T,\delta}(\rho;\mathcal Q)
+\geq\frac{1-2\delta}{2}\Omega_{T,\delta}(\rho;\mathcal Q).
+\]
+If the design class is empty, both sides have the stipulated extended-real value and the conclusion holds by the same convention.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Coverage, rather than the risk of a nominated estimator, is converted into target separation under the exact adaptive information geometry. \textit{Gap.} KaufmannCappeGarivier2016Complexity controls adaptive decision events and CaiLow2004 controls expected confidence-interval length in fixed experiments; neither result includes a welfare-constrained contextual trajectory or the targeting-gain modulus. \textit{Consumer.} Every proposed branch of the width frontier must pass through this theorem, so an attaining interval cannot evade the lower bound by changing its center or shape.
+
+\begin{theorem}[thm:fixed-gap-frontier]\label{thm:fixed-gap-frontier}
+Assume in addition that either \(\alpha=0\) and \(\Delta_0<2M\), or \(\alpha>0\) and
+\[
+\max\{\Delta_0,\min(\delta_0,C_0^{-1/\alpha})\}<2M.
+\]
+There exist constants \(c,C,c_1,C_1>0\) and an integer \(T_0\geq2\), depending only on the displayed class constants and \(\delta\), such that for every integer \(T\geq T_0\) and every \(\rho\) satisfying \(C_1\log T\leq\rho\leq c_1T\),
+\[
+ c\rho^{-1/2}\leq W_{T,\delta}(\rho;\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}})\leq C\rho^{-1/2}.
+\]
+The lower inequality holds for every non-anticipating design and every honest interval. The upper inequality is attained by the pilot-and-track design and the single connected inverse-propensity interval defined in the proof.
+\end{theorem}
+\begin{proof}
+We prove the statement with the displayed lower bound on the horizon.  First fix
+\(P\in\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}\).  By the H\"older-means
+assumption, \(\tau_P=\mu_1-\mu_0\) is continuous.  The fixed-gap assumption
+holds \(P_X\)-almost everywhere.  If \(|\tau_P(x)|<\Delta_0\) at some
+\(x\in[0,1]^d\), continuity gives a relatively open neighborhood \(G\) of
+\(x\) on which \(|\tau_P|<\Delta_0\).  Such a neighborhood has positive
+Lebesgue measure, and the context-density assumption gives
+\[
+ P_X(G)=\int_G p_X(u)\,du\geq c_X\operatorname{Leb}(G)>0,
+\]
+contradicting the almost-everywhere fixed-gap condition.  Hence
+\(|\tau_P(x)|\geq\Delta_0\) everywhere.  If \(\tau_P\) took both signs, its
+restriction to the line segment joining two points of opposite sign would be
+continuous and would vanish at an intermediate point.  This is impossible.
+Thus exactly one arm is superior for every context.
+
+We now specify constants that make the pilot construction valid.  Put
+\[
+ v_0=4(M^2+\sigma^2),\qquad
+ a_0=\frac{2v_0}{\Delta_0^2},\qquad
+ K=\max\left\{4,\frac{2}{\delta},16M\right\},
+\]
+and
+\[
+ B=a_0\left(1+\frac{\log K}{\log 2}\right)+\frac{1}{\log 2},
+ \qquad
+ C_1=\max\left\{8MB,\frac{1}{\log 2}\right\},
+ \qquad c_1=\frac12.
+\]
+Let \(D_0=\max\{1,B,C_1\}\) and
+\[
+ T_0=\left\lceil4D_0\log(4D_0)\right\rceil.
+\]
+For \(x_0=4D_0\log(4D_0)\), the inequalities
+\(\log(4D_0)\leq4D_0\) and
+\(x_0\leq(4D_0)^2\) give
+\(D_0\log x_0\leq x_0/2\).  Since \(x/\log x\) is increasing for
+\(x>e\), it follows that
+\[
+ D_0\log T\leq\frac{T}{2}
+ \quad\text{for every integer }T\geq T_0.
+\]
+This is the promised explicit large-horizon restriction.
+
+Fix henceforth \(T\geq T_0\) and
+\(C_1\log T\leq\rho\leq c_1T\).  Define
+\[
+ k=\left\lceil a_0\log(KT)\right\rceil.
+\]
+Because \(T\geq2\),
+\[
+ k\leq a_0\left(1+\frac{\log K}{\log2}\right)\log T+1
+ \leq B\log T\leq\frac{T}{2}.
+\]
+Moreover,
+\[
+ 2Mk\leq2MB\log T\leq\frac{C_1\log T}{4}\leq\frac\rho4,
+ \qquad
+ \rho\geq C_1\log T\geq1.
+\]
+
+During rounds \(1,\ldots,k\), independently assign either arm with
+probability \(1/2\), and set
+\[
+ Z_t=2(2A_t-1)Y_t,\qquad
+ \widehat s=\operatorname{sign}\left(k^{-1}\sum_{t=1}^k Z_t\right),
+\]
+using a fixed deterministic rule at zero.  Let
+\(\bar\tau_P=\mathbb E_{P_X}\tau_P(X)\).  Conditional on the pre-round
+history, balanced assignment, independent contexts, and the Gaussian reward
+model give
+\[
+ \mathbb E_{P,\mathsf D}[Z_t\mid H_{t-1}]=\bar\tau_P.
+\]
+The preceding global-sign argument gives
+\(|\bar\tau_P|\geq\Delta_0\), with the sign of \(\bar\tau_P\) equal to the
+superior-arm sign.
+
+For completeness, we derive the conditional exponential bound used for the
+pilot.  Write
+\[
+ S_t=2(2A_t-1)\mu_{A_t}(X_t),\qquad
+ G_t=2(2A_t-1)\sigma\varepsilon_t,\qquad Z_t=S_t+G_t.
+\]
+The bounded-means assumption gives \(-2M\leq S_t\leq2M\).  If a centered
+random variable \(V\) lies in an interval \([a,b]\), convexity gives
+\[
+ e^{\lambda V}
+ \leq\frac{b-V}{b-a}e^{\lambda a}
+     +\frac{V-a}{b-a}e^{\lambda b}.
+\]
+After expectation, put \(q=-a/(b-a)\).  The logarithm of the resulting upper
+bound is
+\[
+ f(s)=\log\left\{(1-q)e^{-qs}+q e^{(1-q)s}\right\},
+ \qquad s=\lambda(b-a).
+\]
+Here \(f(0)=f'(0)=0\), and direct differentiation shows that
+\(f''(s)=q_s(1-q_s)\leq1/4\), where \(q_s\in[0,1]\) is the exponentially
+tilted Bernoulli probability.  Integrating this second-derivative bound from
+zero yields \(f(s)\leq s^2/8\) for either sign of \(s\).  Applying this
+calculation conditionally to
+\(S_t-\mathbb E[S_t\mid H_{t-1}]\), whose supporting interval has length
+\(4M\), gives
+\[
+ \mathbb E\left[
+ e^{\lambda(S_t-\bar\tau_P)}\mid H_{t-1}
+ \right]\leq e^{2M^2\lambda^2}.
+\]
+By the Gaussian-innovation assumption,
+\[
+ \mathbb E[e^{\lambda G_t}\mid H_{t-1},X_t,A_t]
+ =e^{2\sigma^2\lambda^2}.
+\]
+Iterated conditioning therefore gives, for every \(\lambda\in\mathbb R\),
+\[
+ \mathbb E\left[
+ e^{\lambda(Z_t-\bar\tau_P)}\mid H_{t-1}
+ \right]
+ \leq e^{v_0\lambda^2/2}.
+\]
+Applying this inequality successively over the \(k\) pilot rounds yields
+\[
+ \mathbb E\exp\left\{
+ \lambda\sum_{t=1}^k(Z_t-\bar\tau_P)
+ \right\}
+ \leq e^{kv_0\lambda^2/2}.
+\]
+Chernoff's argument, optimized at
+\(|\bar\tau_P|/v_0\) and applied to the appropriate tail, now gives
+\[
+ \mathbb P_{P,\mathsf D}^{T}\{\widehat s\text{ is wrong}\}
+ \leq
+ \exp\left\{-\frac{k\bar\tau_P^2}{2v_0}\right\}
+ \leq
+ \exp\left\{-\frac{k\Delta_0^2}{2v_0}\right\}
+ \leq\frac{1}{KT}.
+\]
+
+Let \(N=T-k\), so \(N\geq T/2\), and set
+\[
+ p=\min\left\{\frac14,\frac{\rho}{16MN}\right\}.
+\]
+In every remaining round, use fresh randomization to assign the arm declared
+inferior with probability \(p\) and the arm declared superior with probability
+\(1-p\).  This is a single non-anticipating design fixed independently of
+\(P\).  The pilot loss is at most \(2Mk\leq\rho/4\).  On correct pilot
+classification, the expected tracking loss is bounded by
+\[
+ 2MpN\leq\frac\rho8.
+\]
+On incorrect classification, its conditional loss is at most \(2MN\), so its
+unconditional contribution is at most
+\[
+ \frac{2MN}{KT}\leq\frac{2M}{K}\leq\frac18\leq\frac\rho8.
+\]
+Consequently, by the definition of participant-welfare loss,
+\[
+ \sup_{P\in\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}}
+ \mathcal R_T(P,\mathsf D)
+ \leq\frac\rho4+\frac\rho8+\frac\rho8
+ =\frac\rho2\leq\rho.
+\]
+Thus \(\mathsf D\in\mathfrak D_T(\rho;
+\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}})\).  In addition, a split into the
+two cases defining \(p\) gives
+\[
+ Np\geq c_M\rho,
+ \qquad
+ c_M=\min\left\{\frac{1}{16M},\frac14\right\}>0.
+\]
+Indeed, equality with \(\rho/(16M)\) holds when the second branch is active;
+otherwise \(Np=N/4\geq T/8\geq\rho/4\), using
+\(\rho\leq T/2\).
+
+We next define one connected observed-data interval.  Use only the tracking
+observations.  If \(\widehat s=+1\), let \(g(x)=1-\pi_0(x)\) and
+\[
+ U_t=g(X_t)\left\{
+ \frac{A_tY_t}{1-p}-\frac{(1-A_t)Y_t}{p}
+ \right\}.
+\]
+If \(\widehat s=-1\), let \(g(x)=\pi_0(x)\) and
+\[
+ U_t=g(X_t)\left\{
+ \frac{(1-A_t)Y_t}{1-p}-\frac{A_tY_t}{p}
+ \right\}.
+\]
+Conditional on the pilot, inverse-propensity cancellation gives
+\[
+ \mathbb E[U_t\mid\text{pilot}]
+ =\begin{cases}
+ \mathbb E_{P_X}[(1-\pi_0(X))\tau_P(X)],&\widehat s=+1,\\
+ \mathbb E_{P_X}[\pi_0(X)(-\tau_P(X))],&\widehat s=-1.
+ \end{cases}
+\]
+On correct pilot classification, the applicable quantity is exactly
+\(\theta(P)=\mathbb E_{P_X}[\tau_P(X)_+-\pi_0(X)\tau_P(X)]\), by the
+targeting-gain definition and the global-sign property.  Since
+\(0\leq g\leq1\) and the Gaussian reward and bounded-means assumptions imply
+\(\mathbb E[Y_t^2\mid X_t,A_t]\leq M^2+\sigma^2\), either sign satisfies
+\[
+ \mathbb E[U_t^2\mid\text{pilot}]
+ \leq(M^2+\sigma^2)\left\{\frac1p+\frac1{1-p}\right\}
+ \leq\frac{4(M^2+\sigma^2)}{3p},
+\]
+where the last inequality uses \(p\leq1/4\).  The tracking observations are
+conditionally independent given the pilot, so the conditional variance of
+their average is at most \(4(M^2+\sigma^2)/(3Np)\).
+
+Define
+\[
+ \widehat\theta_T=\frac1N\sum_{t=k+1}^T U_t,
+ \qquad
+ r_T=\sqrt{\frac{8(M^2+\sigma^2)}{3\delta Np}},
+ \qquad
+ I_T=[\widehat\theta_T-r_T,\widehat\theta_T+r_T].
+\]
+The deterministic tie rule and measurability of \(\pi_0\) make both endpoints
+Borel functions of \(O_{1:T}\); thus \(I_T\) is one \(P\)-independent
+connected interval map.  Conditional Chebyshev gives
+\[
+ \mathbb P\left\{
+ |\widehat\theta_T-\mathbb E[\widehat\theta_T\mid\text{pilot}]|>r_T
+ \mathrel{\big|}\text{pilot}
+ \right\}\leq\frac\delta2.
+\]
+Since \(1/(KT)\leq\delta/2\), the union bound with the pilot error yields
+\[
+ \inf_{P\in\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}}
+ \mathbb P_{P,\mathsf D}^{T}\{\theta(P)\in I_T\}
+ \geq1-\delta.
+\]
+Therefore
+\(I_T\in\mathfrak C_{T,\delta}(\mathsf D;
+\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}})\).  Its length is deterministic and
+obeys
+\[
+ |I_T|=2r_T
+ \leq
+ 2\sqrt{\frac{8(M^2+\sigma^2)}{3\delta c_M}}\,\rho^{-1/2}.
+\]
+The definitions of the width envelope and budgeted designs prove the upper
+bound.
+
+It remains to prove the procedure-free converse.  The interiority condition
+permits a constant \(\gamma\in(\Delta_0,2M)\) with the following margin
+property.  If \(\alpha=0\), choose any such \(\gamma\); the
+gap--margin-compatibility assumption gives \(C_0\geq1\).  If \(\alpha>0\),
+choose
+\[
+ \max\{\Delta_0,\min(\delta_0,C_0^{-1/\alpha})\}<\gamma<2M.
+\]
+Then either \(\gamma>\delta_0\), or
+\(C_0\gamma^\alpha>1\).  Thus a constant contrast of magnitude at least
+\(\gamma\) satisfies the local margin assumption: for \(u\) below the
+constant gap the relevant event is empty, while for \(u\) at or above the gap
+its probability is one and the asserted inequality follows from
+\(C_0u^\alpha\geq1\).  In the case \(\alpha=0\), the event at \(u=0\) is
+empty and the same conclusion for positive \(u\) follows from \(C_0\geq1\).
+
+Because the cube has unit volume,
+\[
+ \int_{\mathcal X}(1-\pi_0(x))\,dx+
+ \int_{\mathcal X}\pi_0(x)\,dx=1.
+\]
+Choose arm one to be superior if the first integral is at least \(1/2\), and
+choose arm zero to be superior otherwise.  Let \(a_{\mathrm{inf}}\) denote
+the resulting inferior arm and let \(b\) denote the corresponding benchmark
+mass.  Then \(b\geq1/2\geq b_0\).
+
+Let \(P\) have uniform contexts, conditionally independent Gaussian outcomes
+of variance \(\sigma^2\), superior-arm mean \(\gamma/2\), and inferior-arm
+mean \(-\gamma/2\).  Choose a constant
+\[
+ 0<c_*\leq\min\left\{\frac{2M-\gamma}{4},
+ \sigma\sqrt{2\gamma\kappa_\delta}\right\},
+ \qquad
+ \varepsilon=\frac{c_*}{\sqrt\rho},
+\]
+and let \(Q\) keep the superior mean fixed while changing the inferior mean
+to \(-\gamma/2-\varepsilon\).  We have already proved \(\rho\geq1\), so
+\[
+ \frac\gamma2+\varepsilon
+ \leq\frac\gamma2+\frac{2M-\gamma}{4}<M.
+\]
+Hence all means under both laws lie in \([-M,M]\).  Their constant means are
+H\"older for the declared \(L\), the uniform context density satisfies
+\(c_X\leq1\leq C_X\), and the Gaussian model has the declared scale.  Their
+constant gaps are respectively \(\gamma\) and \(\gamma+\varepsilon\), so the
+fixed-gap and local-margin conditions hold by the preceding construction.
+Their benchmark inferior-treatment mass equals \(b\geq b_0\).  Consequently,
+\[
+ P,Q\in\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}.
+\]
+
+Fix any
+\(\mathsf D\in\mathfrak D_T(\rho;
+\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}})\), and define
+\[
+ N_{\mathrm{inf}}=\sum_{t=1}^T\mathbf1\{A_t=a_{\mathrm{inf}}\}.
+\]
+Under \(P\), each inferior-arm assignment has participant loss \(\gamma\).
+Budget feasibility and the welfare-loss definition therefore give
+\[
+ \gamma\,\mathbb E_{P,\mathsf D}N_{\mathrm{inf}}
+ =\mathcal R_T(P,\mathsf D)\leq\rho,
+ \qquad
+ \mathbb E_{P,\mathsf D}N_{\mathrm{inf}}\leq\frac\rho\gamma.
+\]
+The two laws have the same context distribution and differ only by
+\(\varepsilon\) in the inferior-arm mean.  The exact adaptive Gaussian
+likelihood identity in the coverage--information converse yields
+\[
+ \begin{aligned}
+ \mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}
+             \Vert\mathbb P_{Q,\mathsf D}^{T})
+ &=\frac{\varepsilon^2}{2\sigma^2}
+   \mathbb E_{P,\mathsf D}N_{\mathrm{inf}}\\
+ &\leq\frac{c_*^2}{2\sigma^2\gamma}
+ \leq\kappa_\delta.
+ \end{aligned}
+\]
+This includes the required inequality in the final comparison.
+
+If arm one is superior, the targeting-gain definition gives
+\(\theta(Q)-\theta(P)=\varepsilon
+\int(1-\pi_0(x))\,dx\); if arm zero is superior, it gives
+\(\theta(Q)-\theta(P)=\varepsilon\int\pi_0(x)\,dx\).  Hence in either case
+\[
+ |\theta(Q)-\theta(P)|=\varepsilon b\geq\frac\varepsilon2.
+\]
+For every
+\(I_T\in\mathfrak C_{T,\delta}(\mathsf D;
+\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}})\), the established
+coverage--information converse now implies
+\[
+ \sup_{R\in\mathcal P_{\Delta_0,b_0}^{\mathrm{fg}}}
+ \mathbb E_{R,\mathsf D}|I_T(O_{1:T})|
+ \geq
+ \frac{1-2\delta}{2}|\theta(Q)-\theta(P)|
+ \geq\frac{(1-2\delta)c_*}{4}\rho^{-1/2}.
+\]
+The design and honest interval were arbitrary.  Infimizing first over honest
+intervals and then over budget-feasible non-anticipating designs proves the
+lower bound with \(c=(1-2\delta)c_*/4\).  Together with the explicit upper
+construction, this establishes both inequalities for all \(T\geq T_0\) and
+\(C_1\log T\leq\rho\leq c_1T\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem isolates the compulsory \(\rho^{-1/2}\) obstruction and verifies that benchmark cancellation cannot remove it in every nondegenerate fixed-gap class. \textit{Gap.} The boundary \(\Delta_0=2M\) can make the target known exactly. The strict interior condition is necessary for the same-class inferior-arm perturbation used by the honest-length converse. \textit{Consumer.} Trialists using a conventional benchmark obtain the exact price of protecting participants away from treatment ties and a design that pays no additional order penalty.
+
+\begin{lemma}[lem:target-separating-bumps]\label{lem:target-separating-bumps}
+For every sufficiently small \(h\) and every integer \(m\le c h^{\alpha\beta-d}\), there are disjoint cells \(B_1,\ldots,B_m\) and a finite Gaussian subexperiment contained in \(\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\) whose alternatives change only one arm on \(\bigcup_{j=1}^mB_j\), have Hölder amplitude of order \(h^\beta\), satisfy the margin condition, and separate \(\theta(P)\) by order \(m h^{d+\beta}\) without sign cancellation. For every non-anticipating \(\mathsf D\), the trajectory divergence between neighboring alternatives is bounded above by \(C h^{2\beta}\mathbb E_{P,\mathsf D}N_a^{\mathsf D}(\bigcup_{j=1}^mB_j)\).
+\end{lemma}
+\begin{proof}
+We give a two-law finite subexperiment, which is enough for the statement.  Put
+\[
+g_+(x)=1-\pi_0(x),\qquad g_-(x)=\pi_0(x).
+\]
+Their Lebesgue integrals sum to one, so choose \(s\in\{+,-\}\) for which \(\int g_s\geq1/2\).  A standard finite family of shifted grids has the following elementary covering property: for every sufficiently small \(h\), one of the grids contains \(N\asymp h^{-d}\) disjoint axis-aligned outer cubes of side \(h\), with concentric core cubes of side \(h/2\), such that the union of the cores captures at least a fixed fraction of \(\int g_s\).  To see this, average the core indicators over shifts in one period; every point is in a core for the same fixed fraction of shifts, and then select a shift attaining at least the average.
+
+Order those \(N\) core cubes by their integrals of \(g_s\).  For every integer \(m\leq c h^{\alpha\beta-d}\), choose the first \(m\), taking the geometric constant \(c\) small enough that \(m\leq N\).  Because the average of the largest \(m\) numbers is at least the average of all \(N\), the selected cores \(C_1,\ldots,C_m\), with outer cubes \(B_1,\ldots,B_m\), satisfy
+\[
+\sum_{j=1}^m\int_{C_j}g_s(x)\,dx\geq c_0mh^d
+\]
+for a constant \(c_0>0\) depending only on dimension.
+
+For each \(j\), choose \(\phi_j:\mathcal X\to[0,1]\) equal to one on \(C_j\), equal to zero off \(B_j\), and satisfying
+\[
+|\phi_j(x)-\phi_j(x')|\leq C_dh^{-\beta}\|x-x'\|_2^\beta.
+\]
+For example, a clipped \(\beta\)-power of the distance to \(B_j^c\) has these properties; the inequality \(|u^\beta-v^\beta|\leq|u-v|^\beta\) for \(u,v\geq0\) proves the displayed bound.  The supports are disjoint, so \(\Phi=\sum_{j=1}^m\phi_j\) obeys the same bound up to a dimensional constant.
+
+Let the common context law be uniform.  Choose a constant \(a_0>0\) so small that \(a_0C_d\leq L\), and then take \(h\) small enough that \(a_0h^\beta\leq M\).  If \(s=+\), define \(P\) by \(\mu_1^P=M\), \(\mu_0^P=-M\), and define \(Q\) by
+\[
+\mu_1^Q=M,
+\qquad
+\mu_0^Q=-M+a_0h^\beta\Phi.
+\]
+If \(s=-\), interchange the arm labels.  Thus exactly one, and in fact the inferior, arm changes on \(\bigcup_jB_j\); the change has H\"older amplitude of order \(h^\beta\).  The density, Gaussian, mean-bound, and H\"older requirements hold by construction.
+
+Under \(P\), the absolute gap is \(2M\).  Under \(Q\), it lies in \([2M-a_0h^\beta,2M]\).  We verify the margin condition rather than infer it from the construction.  For \(u<2M-a_0h^\beta\), the small-positive-gap event is empty.  For \(2M-a_0h^\beta\leq u<2M\), it is contained in \(\bigcup_jB_j\), whose probability is at most
+\[
+m h^d\leq c h^{\alpha\beta}.
+\]
+If \(\alpha>0\), the last quantity is at most \(C_0M^\alpha\leq C_0u^\alpha\) for all sufficiently small \(h\); if \(\alpha=0\), it is at most \(1\leq C_0\) by gap--margin compatibility.  Finally, for \(u\geq2M\), probability is at most one and \(1\leq C_0u^\alpha\) by the same compatibility assumption.  These cases include the required interval \([0,\delta_0]\).  Thus \(P,Q\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\).
+
+The targeting-gain definition and the chosen ordering give, in either case,
+\[
+|\theta(P)-\theta(Q)|
+=a_0h^\beta\int_{\mathcal X}g_s(x)\Phi(x)\,dx
+\geq a_0h^\beta\sum_{j=1}^m\int_{C_j}g_s(x)\,dx
+\geq c_1mh^{d+\beta}.
+\]
+The reverse bound \(|\theta(P)-\theta(Q)|\leq a_0mh^{d+\beta}\) follows from \(0\leq g_s,\phi_j\leq1\) and the volumes of the outer cubes.  Thus the separation is of order \(mh^{d+\beta}\).  Every summand is nonnegative, so there is no sign cancellation.
+
+Only the selected inferior arm, call it \(a\), differs between the laws.  Applying the exact adaptive Gaussian likelihood calculation gives, for every non-anticipating \(\mathsf D\),
+\[
+\begin{aligned}
+\mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}\Vert\mathbb P_{Q,\mathsf D}^{T})
+&=\frac{a_0^2h^{2\beta}}{2\sigma^2}
+  \mathbb E_{P,\mathsf D}\sum_{t=1}^T
+  \Phi(X_t)^2\mathbf 1\{A_t=a\}\\
+&\leq \frac{a_0^2h^{2\beta}}{2\sigma^2}
+  \mathbb E_{P,\mathsf D}N_a^{\mathsf D}\!\left(\bigcup_{j=1}^mB_j\right).
+\end{aligned}
+\]
+This proves every asserted property with constants independent of \(h,m,T\), once \(h\) is sufficiently small.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The construction forces scalar targeting-gain separation, which ordinary label-flipping regret cubes can lose through cancellation. \textit{Gap.} PerchetRigollet2013CovariateBandits supplies localized regret alternatives and HanJiaoMukherjee2020LrNorms supplies scalar-functional mixtures; neither proves membership and adaptive information control for the same family. \textit{Consumer.} At \(d=1\), \(\beta=1\), \(\alpha=1/5\), and \(\rho\asymp T^{3/5}\), this lemma is the early kill test for every proposed local-width exponent.
+
+\begin{openendedquestion}[oeq:uniform-budget-saturation]\label{oeq:uniform-budget-saturation}
+For the baseline-indexed occupation-measure programs \(\mathcal B_{T,\rho}(w)\) and \(\mathcal D_{T,\rho}(w)\), determine whether there is a constant \(c>0\), independent of \(T\) and \(\rho\), for which the generalized inverse satisfies the boundary and no-overshoot relation
+\[
+\mathcal B_{T,\rho}(w_{T,\rho})\le T
+\quad\text{and}\quad
+\mathcal B_{T,\rho}(w_{T,\rho})\ge cT
+\]
+whenever \(w_{T,\rho}>0\), or characterize exactly the discontinuities and inactive baseline--cell pairs that prevent such saturation.  Determine separately whether strong duality holds at the relevant levels; neither strong duality nor primal or dual attainment may be assumed.  Finally, prove or disprove that the baseline-indexed occupation profiles can be jointly realized, up to universal constants, by one predictable law-independent design and one connected \(1-\delta\) honest interval with participant-welfare loss at most \(\rho\), expected width of order \(w_{T,\rho}\), and stochastic context-arrival capacities respected.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The corrected occupation program separates the proved necessary information geometry from the unresolved common-design and interval construction. \textit{Gap.} No cited result controls generalized-inverse jumps or jointly realizes baseline-indexed continuous-context occupation profiles under both stochastic arrival and welfare constraints. \textit{Consumer.} Resolving this question either supplies the upper construction or exposes a new incompatibility branch in the frontier.
+
+\begin{openendedquestion}[oeq:complete-width-frontier]\label{oeq:complete-width-frontier}
+Determine from the primitive H\"older--margin geometry an explicit piecewise function of \((T,\rho,\beta,\alpha,d,\delta)\) and prove that both \(W_{T,\delta}(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})\) and \(\Omega_{T,\delta}(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})\) are equivalent to it up to constants throughout the feasible regime.  The derivation must evaluate the corrected baseline-indexed occupation relaxation, locate every budget branch and flattening threshold, and prove that one law-independent predictable design and one connected honest interval attain the upper side.  It must recover the proved \(\rho^{-1/2}\) fixed-gap edge, recover the fixed-design offline honest-width order when \(\rho\asymp T\), and settle the Gaussian early-kill case \(d=1\), \(\beta=1\), \(\alpha=1/5\), and \(\rho\asymp T^{3/5}\).  No rate, saturation property, strong-duality identity, or realization claim is assumed.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The explicit rate and every transition remain outputs; the corrected implicit obstruction is now rigorous but unevaluated. \textit{Gap.} Prior work does not match an all-design nonregular honest-width converse with a welfare-budgeted continuous-context adaptive construction. \textit{Consumer.} The completed frontier would translate a participant-welfare budget into the shortest uniformly credible interval for targeting gain.
+
+\begin{lemma}[lem:perchet-rigollet-two-arm-regret-rate]\label{lem:perchet-rigollet-two-arm-regret-rate}
+In the two-armed bounded-reward contextual-bandit model of Perchet and Rigollet, with \(\beta\in(0,1]\), \(\alpha>0\), their H\"older condition, their local margin condition, and a context density bounded above and below on \([0,1]^d\), Theorem 5.1 gives an explicit policy with expected regret at most a constant times
+\[
+T^{(\beta+d-\alpha\beta)/(2\beta+d)}.
+\]
+The paragraph immediately following that theorem states that, for two arms, the same order is minimax optimal up to a multiplicative constant.
+\end{lemma}
+
+\begin{lemma}[lem:occupation-primal-dual-weak-duality]\label{lem:occupation-primal-dual-weak-duality}
+For every \(T\in\mathbb N\), \(0<\rho\le T\), and \(w>0\), the corrected occupation-measure Lagrange value obeys
+\[
+\mathcal D_{T,\rho}(w)\le\mathcal B_{T,\rho}(w).
+\]
+This weak-duality inequality requires neither strong duality nor attainment.
+\end{lemma}
+\begin{proof}
+Fix a baseline \(P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}\), a primal-feasible occupation family \(\nu=(\nu_{P,\mathsf Q,a})\), and dual-feasible \((\lambda,\zeta_P,\xi_P)\).  Write
+\[
+N_P=\sum_{\mathsf Q:(P,\mathsf Q)\in\mathscr A(w)}
+\sum_{a\in\mathcal A}\nu_{P,\mathsf Q,a}(\mathsf Q)
+\]
+and let \(C_P\) denote the welfare integral in the third constraint of \(\mathcal B_{T,\rho}(w)\).  The information constraint defining \(\mathcal R_{P,\mathsf Q}(w)\), integrated against the finite nonnegative measure \(\lambda_{P,\mathsf Q}\), gives
+\[
+\kappa_\delta\lambda_{P,\mathsf Q}(\mathcal S_{P,\mathsf Q}(w))
+\le
+\int_{\mathcal S_{P,\mathsf Q}(w)}
+\sum_{a\in\mathcal A}\int_{\mathsf Q}k_a(P,P';x)
+\,d\nu_{P,\mathsf Q,a}(x)\,d\lambda_{P,\mathsf Q}(P').
+\]
+Because \(\lambda_{P,\mathsf Q}\) has finite support and every integrand is nonnegative, interchange of the finite sum and the nonnegative integrals is valid.  Summing over active cells and applying the pointwise dual constraint yields
+\[
+\begin{split}
+\kappa_\delta\sum_{\mathsf Q}
+\lambda_{P,\mathsf Q}(\mathcal S_{P,\mathsf Q}(w))
+&\le N_P
++\sum_{\mathsf Q,a}\int_{\mathsf Q}\zeta_P(x)
+\,d\nu_{P,\mathsf Q,a}(x)+\xi_PC_P.
+\end{split}
+\]
+The context-arrival domination in the primal and nonnegativity of \(\zeta_P\) imply, first for nonnegative simple functions and then by monotone convergence,
+\[
+\sum_{\mathsf Q,a}\int_{\mathsf Q}\zeta_P(x)
+\,d\nu_{P,\mathsf Q,a}(x)
+\le T\int_{\mathcal X}\zeta_P(x)\,dP_X(x).
+\]
+The welfare constraint gives \(C_P\le\rho\), and \(\xi_P\ge0\).  Rearrangement therefore gives
+\[
+\kappa_\delta\sum_{\mathsf Q}
+\lambda_{P,\mathsf Q}(\mathcal S_{P,\mathsf Q}(w))
+-T\int\zeta_P\,dP_X-\rho\xi_P\le N_P.
+\]
+Taking the supremum over dual-feasible variables, then the infimum over primal-feasible occupations, proves the baselinewise inequality; it remains valid when the primal feasible set is empty because its value is \(+\infty\).  Taking the supremum over \(P\) on both sides gives \(\mathcal D_{T,\rho}(w)\le\mathcal B_{T,\rho}(w)\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Weak duality certifies that the displayed price program is a valid lower relaxation without assuming the unresolved strong-duality step. \textit{Gap.} The prior scalar-count dual did not include context-arrival or welfare constraints; this result handles both through their Lagrange prices. \textit{Consumer.} The saturation question can use dual feasible points as certified lower bounds on the corrected occupation demand.
+
+\begin{lemma}[lem:occupation-relaxation-converse]\label{lem:occupation-relaxation-converse}
+For every \(w>0\), if \(\mathsf D\in\mathfrak D_T(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})\) and \(I_T\in\mathfrak C_{T,\delta}(\mathsf D;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})\) satisfy
+\[
+\sup_{P\in\mathcal P_{\beta,\alpha}^{\mathrm{HM}}}
+\mathbb E_{P,\mathsf D}|I_T(O_{1:T})|\le w,
+\]
+then the design-induced baseline-indexed occupation measures are feasible in \(\mathcal B_{T,\rho}(w)\), and hence \(\mathcal B_{T,\rho}(w)\le T\).  Consequently,
+\[
+\Omega_{T,\delta}(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})
+\ge\frac{2w_{T,\rho}}{1-2\delta}
+\quad\text{and}\quad
+W_{T,\delta}(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})\ge w_{T,\rho},
+\]
+with the extended-real conventions in the definitions.  These are necessary relaxation bounds only; they assert no sequential realization of a baseline-specific feasible profile.
+\end{lemma}
+\begin{proof}
+Fix a baseline \(P\), a cell \(\mathsf Q\), an arm \(a\), and a non-anticipating design \(\mathsf D\).  For every Borel \(E\subseteq\mathcal X\), define the design-induced finite occupation measure
+\[
+\nu^{\mathsf D}_{P,\mathsf Q,a}(E)
+=\mathbb E_{P,\mathsf D}\sum_{t=1}^T
+\mathbf 1\{X_t\in E\cap\mathsf Q,A_t=a\}.
+\]
+It is nonnegative, finite, and supported on \(\mathsf Q\).  Because exactly one arm is selected each round and the contexts have common marginal \(P_X\), for every Borel \(E\),
+\[
+\sum_{\mathsf Q:(P,\mathsf Q)\in\mathscr A(w)}
+\sum_{a\in\mathcal A}\nu^{\mathsf D}_{P,\mathsf Q,a}(E)
+\le\mathbb E_{P,\mathsf D}\sum_{t=1}^T\mathbf 1\{X_t\in E\}
+=T P_X(E).
+\]
+By the welfare-loss identity and nonnegativity of its summands,
+\[
+\sum_{\mathsf Q:(P,\mathsf Q)\in\mathscr A(w)}
+\sum_{a\in\mathcal A}\int_{\mathsf Q}
+|\tau_P(x)|\mathbf 1\{a\ne\pi_P^\star(x)\}
+\,d\nu^{\mathsf D}_{P,\mathsf Q,a}(x)
+\le\mathcal R_T(P,\mathsf D)\le\rho,
+\]
+where the last inequality is the uniform budget condition defining \(\mathfrak D_T(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})\).
+
+Now take \(P'\in\mathcal S_{P,\mathsf Q}(w)\).  The laws have the same context marginal and their arm means agree off \(\mathsf Q\).  Therefore the exact adaptive Gaussian likelihood decomposition in the already-established coverage--information converse and the definition of the occupation measure give
+\[
+\mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}\Vert\mathbb P_{P',\mathsf D}^{T})
+=\sum_{a\in\mathcal A}\int_{\mathsf Q}
+k_a(P,P';x)\,d\nu^{\mathsf D}_{P,\mathsf Q,a}(x).
+\]
+Suppose the interval in the statement has worst-law expected length at most \(w\).  If the last display were at most \(\kappa_\delta\), the coverage--information converse would imply
+\[
+\max\left\{\mathbb E_{P,\mathsf D}|I_T|,
+\mathbb E_{P',\mathsf D}|I_T|\right\}
+\ge\frac{1-2\delta}{2}|\theta(P)-\theta(P')|>w,
+\]
+contradicting the assumed worst-law bound.  Hence the displayed information is strictly larger than \(\kappa_\delta\) for every local alternative.  The induced occupations belong to every required \(\mathcal R_{P,\mathsf Q}(w)\), obey the capacity and welfare constraints above, and have total mass at most \(T\).  Taking the inner infimum and then the supremum over baselines proves \(\mathcal B_{T,\rho}(w)\le T\).
+
+It remains to derive the two numerical lower bounds.  If \(0<w_1<w_2\), then \(\mathcal S_{P,\mathsf Q}(w_2)\subseteq\mathcal S_{P,\mathsf Q}(w_1)\); restricting a feasible profile to the cells active at \(w_2\) shows that \(\mathcal B_{T,\rho}(w)\) is nonincreasing.  Also, the benchmark arm mean is a convex combination of \(\mu_0(x)\) and \(\mu_1(x)\), so the bounded-mean condition gives
+\[
+0\le\theta(P)\le2M.
+\]
+Thus \(\mathcal S_{P,\mathsf Q}(w)=\varnothing\) whenever \(w\ge M(1-2\delta)\), and consequently \(0\le w_{T,\rho}\le M(1-2\delta)<\infty\).
+
+For any \(0<w<w_{T,\rho}\), monotonicity and the generalized-inverse definition give \(\mathcal B_{T,\rho}(w)>T\).  Every profile satisfying the context domination has total mass at most \(T\); hence for every uniformly budget-feasible design its induced profile must fail at least one information constraint.  There are therefore \(P\), an active \(\mathsf Q\), and \(P'\in\mathcal S_{P,\mathsf Q}(w)\) such that
+\[
+\mathrm{KL}(\mathbb P_{P,\mathsf D}^{T}\Vert\mathbb P_{P',\mathsf D}^{T})<\kappa_\delta,
+\qquad
+|\theta(P)-\theta(P')|>\frac{2w}{1-2\delta}.
+\]
+Taking the supremum over admissible pairs, the infimum over budget-feasible designs, and then the supremum over \(w<w_{T,\rho}\) gives
+\[
+\Omega_{T,\delta}(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})
+\ge\frac{2w_{T,\rho}}{1-2\delta}.
+\]
+If the design class is empty, the same inequality holds by the stipulated extended value \(+\infty\).  Finally, the already-established coverage--information converse yields
+\[
+W_{T,\delta}(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})
+\ge\frac{1-2\delta}{2}\Omega_{T,\delta}(\rho;\mathcal P_{\beta,\alpha}^{\mathrm{HM}})
+\ge w_{T,\rho}.
+\]
+No step selects a baseline-independent occupation profile or constructs an interval, so the conclusion is only the necessary side of the relaxation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma proves that the corrected occupation program is a genuine procedure-free obstruction rather than an oracle allocation proposed by definition. \textit{Gap.} It supplies only the necessary direction; compatibility of its baseline-specific profiles with one law-independent sequential design is deliberately left open. \textit{Consumer.} The complete-frontier question inherits the explicit lower map \(W_{T,\delta}\ge w_{T,\rho}\) while the attainment problem remains visible.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The occupation program is a necessary baselinewise relaxation, not an estimator. Its inner optimizer may depend on the unknown baseline law, and separate feasible profiles need not be compatible with one predictable law-independent design. Monotonicity alone does not control a jump at \(w_{T,\rho}\), and weak duality alone does not yield strong duality or attainment. The bump lemma and regret packing do not by themselves evaluate the scalar targeting-gain width because target contributions can cancel and adaptive allocation can concentrate on selected contexts.
+
+\section{Honest scope}
+
+The established scope consists of class nonemptiness, the cited feasibility exponent with its predictable Gaussian-martingale transfer, the all-design coverage--information converse, the fixed-gap \(\rho^{-1/2}\) theorem for sufficiently large horizons in its displayed budget range, the target-separating bump construction, weak duality for the corrected occupation relaxation, and the necessary bounds \(\Omega_{T,\delta}\ge2w_{T,\rho}/(1-2\delta)\) and \(W_{T,\delta}\ge w_{T,\rho}\). The width and modulus equal \(+\infty\) when the uniformly feasible design class is empty. The exact H\"older-local rate, saturation and right-regularity of \(\mathcal B_{T,\rho}\), strong duality or attainment, and realization by one predictable design and connected interval remain answer-open. At \(\rho\asymp T\), a completed result must recover fixed-design honest inference; on the fixed-gap subclass and for sufficiently large horizons it recovers \(\rho^{-1/2}\); below \(T^{r_{\beta,\alpha,d}}\), the design class is empty.
+
+\begin{thebibliography}{99}
+
+  \bibitem{SimchiLeviWang2023BanditExperimentalDesign} David Simchi-Levi and Chonghuan Wang. Multi-armed Bandit Experimental Design: Online Decision-making and Adaptive Inference. Proceedings of Machine Learning Research 206, AISTATS, 2023.
+
+  \bibitem{Armstrong2022ExperimentalDesignEfficiency} Timothy B. Armstrong. Asymptotic Efficiency Bounds for a Class of Experimental Designs. arXiv:2205.02726, 2022, revised 2026.
+
+  \bibitem{LuedtkeVanDerLaan2016OptimalValue} Alexander R. Luedtke and Mark J. van der Laan. Statistical Inference for the Mean Outcome under a Possibly Non-Unique Optimal Treatment Strategy. Annals of Statistics 44, 2016.
+
+  \bibitem{HanJiaoMukherjee2020LrNorms} Yanjun Han, Jiantao Jiao, and Rajarshi Mukherjee. On Estimation of \(L_r\)-Norms in Gaussian White Noise Models. Probability Theory and Related Fields, 2020.
+
+  \bibitem{PerchetRigollet2013CovariateBandits} Vianney Perchet and Philippe Rigollet. The Multi-Armed Bandit Problem with Covariates. Annals of Statistics 41, 2013. Theorem 5.1 and Proposition 3.1.
+
+  \bibitem{HuKallusMao2022SmoothContextualBandits} Yichun Hu, Nathan Kallus, and Xiaojie Mao. Smooth Contextual Bandits: Bridging the Parametric and Non-Differentiable Regret Regimes. Operations Research 70, 2022.
+
+  \bibitem{LiShiSimchiLevi2024PrivateAdaptiveDesign} Jiachun Li, Kaining Shi, and David Simchi-Levi. Privacy Preserving Adaptive Experiment Design. Proceedings of Machine Learning Research 235, ICML, 2024.
+
+  \bibitem{KaufmannCappeGarivier2016Complexity} Emilie Kaufmann, Olivier Cappé, and Aurélien Garivier. On the Complexity of Best-Arm Identification in Multi-Armed Bandit Models. Journal of Machine Learning Research 17, 2016.
+
+  \bibitem{CaiLow2004} T. Tony Cai and Mark G. Low. An Adaptation Theory for Nonparametric Confidence Intervals. Annals of Statistics 32, 2004.
+
+  \bibitem{HadadEtAl2021AdaptiveConfidenceIntervals} Vitor Hadad, David A. Hirshberg, Ruohan Zhan, Susan Athey, and Stefan Wager. Confidence Intervals for Policy Evaluation in Adaptive Experiments. Proceedings of the National Academy of Sciences 118, 2021.
+
+  \bibitem{BibautEtAl2021PostContextualBanditInference} Aurélien Bibaut, Maria Dimakopoulou, Nathan Kallus, Antoine Chambaz, and Mark J. van der Laan. Post-Contextual-Bandit Inference. Advances in Neural Information Processing Systems 34, 2021.
+
+  \bibitem{WaudbySmithEtAl2024AnytimeOffPolicy} Ian Waudby-Smith, Lili Wu, Aaditya Ramdas, Nikos Karampatziakis, and Paul Mineiro. Anytime-valid Off-policy Inference for Contextual Bandits. ACM/IMS Journal of Data Science, 2024.
+
+  \bibitem{PonomarevSemenova2024LowerConfidenceBand} Kirill Ponomarev and Vira Semenova. Lower Confidence Bands for the Optimal Welfare. arXiv:2410.07443, 2024, revised 2025.
+
+  \bibitem{CookMishlerRamdas2024EfficientAdaptiveInference} Thomas Cook, Alan Mishler, and Aaditya Ramdas. Semiparametric Efficient Inference in Adaptive Experiments. Proceedings of Machine Learning Research 236, CLeaR, 2024.
+
+  \bibitem{ShenEtAl2026DirectionalStability} Zikai Shen, Houssam Zenati, Nathan Kallus, Arthur Gretton, Koulik Khamaru, and Aurélien Bibaut. Efficient Inference after Directionally Stable Adaptive Experiments. arXiv:2602.21478, 2026.
+
+  \bibitem{PraharajKhamaru2025AvoidingPriceAdaptivity} Samya Praharaj and Koulik Khamaru. Avoiding the Price of Adaptivity: Inference in Linear Contextual Bandits via Stability. arXiv:2512.20368, 2025. Section 4.1, Theorem 1; Section 4.2, Theorem 2.
+
+\end{thebibliography}
+
+\end{document}

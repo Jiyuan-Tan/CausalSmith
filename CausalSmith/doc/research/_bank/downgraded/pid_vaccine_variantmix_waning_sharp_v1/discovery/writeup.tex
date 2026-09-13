@@ -1,0 +1,1343 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}vaccine\_\allowbreak{}variantmix\_\allowbreak{}waning\_\allowbreak{}sharp}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Changing pathogen variants make early-versus-late vaccine challenge risk depend on one latent coupling of exposures and responses across periods. The response type permits a noninfecting period-one exposure to alter later controlled susceptibility, and \(\delta\in[0,1]\) bounds the altered fraction. The compatible full-law classes, reduced fibers, and sharp ratio images are nested in \(\delta\); hence a nonempty closed sensitivity range \(\mathcal D\) is represented exactly by its largest value \(\bar\delta=\max\mathcal D\), without a continuum closure. Opposite-side linear-program feasibility defines attained sharp priming breakdown points, with dual strict-sign certificates below a finite threshold and a compatible counterlaw at it. Exact multinomial inversion, including \(\Gamma_0(0;\gamma)=\Delta\), gives unconditional whole-set coverage by projecting only through the maximal fiber. The single-variant and Perényi--Stensrud anchors are projection and calibration comparisons, not class inclusions or transfers.
+
+\section{Project justification}
+
+\paragraph{Gap.} Janvin and Stensrud (2025) give sharp single-pathogen challenge-effect bounds, and Perényi and Stensrud (2025, Section 5) identify a variant-specific time-to-event challenge subtype effect under their own exposure and proportionality restrictions. Those results provide projection and calibration anchors, not class inclusions. Neither supplies an exact maximal-fiber sensitivity theorem, a sharp attained priming breakdown frontier, or unconditional whole-set projection for a reference-mixture ratio built from trial first-infection risks and external exposure margins when a prior noninfecting exposure may alter later controlled susceptibility.
+
+\paragraph{Niche.} The target compares one policy-fixed reference mixture across periods and defines period-two challenge risk after no period-one exposure. A history-indexed response array separates that target from the response after a noninfecting exposure, while \(\delta\) restricts their disagreement without substituting selected case-strain frequencies for external exposure margins. Because the restriction weakens monotonically with \(\delta\), every scientifically justified closed range \(\mathcal D\) reduces exactly to \(\bar\delta=\max\mathcal D\); without a controlled validation substudy, \(\bar\delta=1\).
+
+\paragraph{Fill.} The substantive chain gives exact common-history compression, an always-defined extended sharp set, finite reciprocal endpoints under the separate denominator condition, and common-law sign duals. It now proves law-class, fiber, and ratio-image nesting, exact equality of the sensitivity-range union with the maximal fiber, attained sharp positive- and negative-side priming breakdown points, dual certificates before each finite threshold, and compatible counterlaws at the threshold. Exact primitive-cell multinomial inversion projects through the single maximal fiber for unconditional coverage of the whole sensitivity-range identified set. For \(K=2\), the Perényi--Stensrud comparison remains a positive-face projection and calibration test, not a class-inclusion result.
+
+\section{Related work}
+
+Janvin and Stensrud (2025, Theorem 1 and Appendix B) establish sharp finite single-pathogen two-period challenge-effect bounds and attaining laws. The one-variant result here is a projection and calibration check against their survivor-selection geometry; it does not assert inclusion in, or transfer to, their published class. Perényi and Stensrud (2025, Section 5 and the marginal \(CSE_k\) identification proposition) identify a time-to-event challenge subtype effect from observed cause-specific hazards under their stated time-to-event exchangeability, positivity, consistency, exposure necessity, no cross-infectivity, covariate-invariant exposure-ratio, and scaled-new-infection proportionality restrictions. Here their controlled-risk coordinates are projected onto \(\rho_{ta}(x,e^{(v)})\), and equality with their observed-hazard comparator is a calibration statement characterized by a computable quadratic cross-product on the linear-program-computed affine hull of the positive common-history face; it is not a class inclusion or transfer claim. Tomer and Biccler (2022) analyze temporal movement under specified competing-variant mechanisms. Follmann and Huang (2018), Gilbert et al. (2001), Edlefsen (2014), and van der Laan and Gilbert (2023) motivate why selected infecting strains require extra exposure and susceptibility restrictions, so case frequencies are not substituted for the external margins \(q\). Balke and Pearl (1997) inform the finite response-type lift. Romano and Shaikh (2010) and Kaido, Molinari, and Stoye (2019) inform whole-set projection; the present exact multinomial construction includes \(\Gamma_0(0;\gamma)=\Delta\), uses a union bound without block independence, and, by sensitivity nesting, projects only through \(\bar\delta=\max\mathcal D\) to cover the entire sensitivity-range identified set.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Psi_\omega(x)=\operatorname{Rat}(\rho_{11}(x,\omega),\rho_{21}(x,\omega))\),\quad \rho\_{21}(x,\omega)=\mathbb E\_x[\sum\_v\omega\_vR\textasciicircum{}{[0]}\_{21v}]\).
+Primary functional / estimator / diagnostic: \(\Theta_{I,\delta}(b,q,\omega)=\bigcup_{x\in\mathcal P_\delta(b,q,\omega)}\operatorname{Rat}(\rho_{11}(x,\omega),\rho_{21}(x,\omega))\),\quad \rho\_{21}(x,\omega)=\sum\_{s,v}\omega\_vr\textasciicircum{}{[0]}\_{21v}(s)x\_s\).
+\begin{itemize}
+  \item \texttt{K} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{number of pathogen variants}
+  \item \texttt{T} --- \texttt{finite index set}; \texttt{calendar periods}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T=\{1,2\}\)
+  \item \texttt{V} --- \texttt{finite index set}; \texttt{pathogen variants}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal V=\{1,\ldots,K\}\)
+  \item \texttt{V0} --- \texttt{finite index set}; \texttt{augmented variant set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal V_0=\{0\}\cup\mathcal V\), where \(0\) denotes no exposure or no infection
+  \item \texttt{Aset} --- \texttt{finite index set}; \texttt{placebo and vaccine arms}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{0,1\}\)
+  \item \texttt{A} --- \texttt{random variable}; \(\mathcal A\); \texttt{randomized vaccination assignment}
+  \item \texttt{pi} --- \texttt{probability vector}; \(\Delta(\mathcal A)\); \texttt{known trial randomization probabilities}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_a=\Pr(A=a)\)
+  \item \texttt{omega} --- \texttt{probability vector}; \(\Delta(\mathcal V)\); \texttt{policy-\allowbreak{}fixed reference challenge mixture}
+  \par\smallskip\noindent\emph{Definition.} \(\omega=(\omega_v:v\in\mathcal V)\)
+  \item \texttt{delta} --- \texttt{sensitivity parameter}; \([0,1]\); \texttt{upper bound on the fraction of noninfected period-\allowbreak{}one exposees whose later controlled response is altered by that exposure}
+  \item \texttt{DeltaRange} --- \texttt{prespecified sensitivity range}; \(2^{[0,1]}\); \texttt{scientifically justified range over which identified sets and sign conclusions are reported}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D\subseteq[0,1]\) is a nonempty closed range fixed from scientific validation evidence; absent a randomized or controlled validation substudy, the default report uses \(\mathcal D=[0,1]\)
+  \item \texttt{omegaPrime} --- \texttt{probability vector}; \(\Delta(\mathcal V)\); \texttt{perturbed policy/\allowbreak{}reference mixture used to reevaluate the challenge-\allowbreak{}risk ratio on the fixed observed-\allowbreak{}data fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\omega'=(\omega'_v:v\in\mathcal V)\)
+  \item \texttt{ev} --- \texttt{family of probability vectors}; \((e^{(v)}:v\in\mathcal V)\in\Delta(\mathcal V)^K\); \texttt{point-\allowbreak{}mass challenge mixtures}
+  \par\smallskip\noindent\emph{Definition.} \(e^{(v)}_w=\mathbf 1\{w=v\}\) for \(v,w\in\mathcal V\)
+  \item \texttt{Ha} --- \texttt{potential exposure-\allowbreak{}history map}; \(\mathcal A\to\mathcal V_0^{\mathcal T}\); \texttt{arm-\allowbreak{}indexed latent natural exposure histories}
+  \par\smallskip\noindent\emph{Definition.} \(H^a=(H_1^a,H_2^a)\)
+  \item \texttt{R} --- \texttt{history-\allowbreak{}indexed binary response array}; \(\{0,1\}^{\mathcal A\times\mathcal V}\times\{0,1\}^{\mathcal V_0\times\mathcal A\times\mathcal V}\); \texttt{controlled challenge response type allowing noninfecting-\allowbreak{}exposure priming}
+  \par\smallskip\noindent\emph{Definition.} \(R=(R_1,R_2^{[\cdot]})\), where \(R_{1av}\) is infection under assignment \(a\) and a period-one controlled challenge by variant \(v\); \(R^{[0]}_{2av}\) is the period-two controlled response after no period-one exposure, and \(R^{[u]}_{2av}\), \(u\in\mathcal V\), is the period-two controlled response after a period-one exposure to \(u\) that did not infect
+  \item \texttt{S} --- \texttt{finite latent type}; \((\mathcal V_0^{\mathcal T})^{\mathcal A}\times\{0,1\}^{\mathcal A\times\mathcal V}\times\{0,1\}^{\mathcal V_0\times\mathcal A\times\mathcal V}\); \texttt{joint exposure-\allowbreak{}history and history-\allowbreak{}indexed challenge-\allowbreak{}response type}
+  \par\smallskip\noindent\emph{Definition.} \(S=(H^0,H^1,R_1,R_2^{[\cdot]})\)
+  \item \texttt{Ja} --- \texttt{potential first-\allowbreak{}infection array}; \((\mathcal V_0^{\mathcal T})^{\mathcal A}\); \texttt{potential trial outcome}
+  \par\smallskip\noindent\emph{Definition.} \(J^a_t\) is the first-infection strain in period \(t\) under assignment \(a\) and natural exposure history \(H^a\)
+  \item \texttt{g} --- \texttt{deterministic map}; \(\widetilde g_{tav}:\mathcal S\to\{0,1\}\); \texttt{first-\allowbreak{}infection-\allowbreak{}by-\allowbreak{}variant observation map allowing a noninfecting period-\allowbreak{}one exposure to alter the period-\allowbreak{}two response}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde g_{1av}(s)=\mathbf 1\{h_1^a=v\}r_{1av}\) and \(\widetilde g_{2av}(s)=\mathbf 1\{h_2^a=v\}r^{[h_1^a]}_{2av}\bigl[1-\sum_{w\in\mathcal V}\widetilde g_{1aw}(s)\bigr]\)
+  \item \texttt{J} --- \texttt{observed random array}; \(\mathcal V_0^{\mathcal T}\); \texttt{trial outcome}
+  \par\smallskip\noindent\emph{Definition.} \(J_t=v\) records first infection by variant \(v\) in period \(t\), while \(J_t=0\) records no first infection
+  \item \texttt{b} --- \texttt{probability array}; \([0,1]^{\mathcal T\times\mathcal A\times\mathcal V}\); \texttt{identified trial first-\allowbreak{}infection risks}
+  \par\smallskip\noindent\emph{Definition.} \(b_{tav}=\Pr(J_t=v\mid A=a)\)
+  \item \texttt{q} --- \texttt{probability array}; \(\Delta(\mathcal V_0)^{\mathcal T}\); \texttt{external exposure margins}
+  \par\smallskip\noindent\emph{Definition.} \(q_{tv}=\Pr(H_t^0=v)\) in an external exposure sample from the trial environment
+  \item \texttt{x} --- \texttt{probability vector}; \(\Delta(\mathcal S)\); \texttt{reduced compatible-\allowbreak{}type mass}
+  \par\smallskip\noindent\emph{Definition.} \(x_s=\Pr(S=s)\)
+  \item \texttt{rho} --- \texttt{linear functional}; \(\rho_{ta}:\Delta(\mathcal S)\times\Delta(\mathcal V)\to[0,1]\); \texttt{reference-\allowbreak{}mixture controlled challenge risk,\allowbreak{} with the period-\allowbreak{}two target defined after no period-\allowbreak{}one exposure}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{1a}(x,\omega)=\sum_{s\in\mathcal S}\sum_{v\in\mathcal V}\omega_v r_{1av}(s)x_s\) and \(\rho_{2a}(x,\omega)=\sum_{s\in\mathcal S}\sum_{v\in\mathcal V}\omega_v r^{[0]}_{2av}(s)x_s\)
+  \item \texttt{CSEpub} --- \texttt{partial scalar functional}; \(\operatorname{CSE}^{\mathrm P}_t:\Delta(\mathcal S)\to[0,+\infty]\); \texttt{Perényi-\allowbreak{}-\allowbreak{}Stensrud marginal challenge subtype effect expressed through point-\allowbreak{}mass controlled challenge risks}
+  \par\smallskip\noindent\emph{Definition.} For \(K=2\), \(\operatorname{CSE}^{\mathrm P}_t(x)=\{\rho_{t1}(x,e^{(1)})/\rho_{t0}(x,e^{(1)})\}/\{\rho_{t1}(x,e^{(2)})/\rho_{t0}(x,e^{(2)})\}\) whenever its component denominators are positive.
+  \item \texttt{hobs} --- \texttt{partial probability array}; \(h_{tav}^{\mathrm{obs}}(b)\in[0,1]\); \texttt{observed arm-\allowbreak{}specific cause-\allowbreak{}specific first-\allowbreak{}infection hazard}
+  \par\smallskip\noindent\emph{Definition.} \(h_{tav}^{\mathrm{obs}}(b)=b_{tav}/\{1-\sum_{r<t}\sum_{w\in\mathcal V}b_{raw}\}\) whenever the at-risk denominator is positive.
+  \item \texttt{CSEobs} --- \texttt{partial scalar functional}; \(\operatorname{CSE}^{\mathrm{obs}}_t(b)\in[0,+\infty]\); \texttt{observed hazard-\allowbreak{}ratio functional identifying the marginal challenge subtype effect under the Perényi-\allowbreak{}-\allowbreak{}Stensrud conditions}
+  \par\smallskip\noindent\emph{Definition.} For \(K=2\), \(\operatorname{CSE}^{\mathrm{obs}}_t(b)=\{h_{t,1,1}^{\mathrm{obs}}(b)/h_{t,0,1}^{\mathrm{obs}}(b)\}/\{h_{t,1,2}^{\mathrm{obs}}(b)/h_{t,0,2}^{\mathrm{obs}}(b)\}\) whenever its component denominators are positive.
+  \item \texttt{Psi} --- \texttt{extended nonnegative set-\allowbreak{}valued functional}; \(2^{[0,+\infty]}\); \texttt{extended reference-\allowbreak{}mixture vaccine challenge-\allowbreak{}risk ratio correspondence}
+  \par\smallskip\noindent\emph{Definition.} \(\Psi_\omega(x)=\operatorname{Rat}(\rho_{11}(x,\omega),\rho_{21}(x,\omega))\), where \(\operatorname{Rat}(u,d)=\{u/d\}\) if \(d>0\), \(\operatorname{Rat}(u,0)=\{+\infty\}\) if \(u>0\), and \(\operatorname{Rat}(0,0)=[0,+\infty]\)
+  \item \texttt{epsilon} --- \texttt{positive constant}; \((0,1)\); \texttt{reference-\allowbreak{}risk positivity margin}
+  \item \texttt{Mfull} --- \texttt{class of probability laws}; \texttt{compatible full laws at the disclosed priming-\allowbreak{}sensitivity value}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_\delta(b,q,\omega)\), defined in \(\text{def:full-law-class}\)
+  \item \texttt{Ppoly} --- \texttt{polytope}; \texttt{reduced compatible-\allowbreak{}history fiber at the disclosed priming-\allowbreak{}sensitivity value}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P_\delta(b,q,\omega)\), defined in \(\text{def:reduced-history-polytope}\)
+  \item \texttt{CC} --- \texttt{polyhedron}; \texttt{homogenized endpoint program at the disclosed priming-\allowbreak{}sensitivity value}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_\delta(b,q,\omega)\), defined in \(\text{def:charnes-cooper-polyhedron}\)
+  \item \texttt{ThetaI} --- \texttt{subset of the extended nonnegative line}; sharp identified set for the vaccine challenge-risk ratio at sensitivity value \(\delta\)
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{I,\delta}(b,q,\omega)=\bigcup_{x\in\mathcal P_\delta(b,q,\omega)}\Psi_\omega(x)\)
+  \item \texttt{L} --- \texttt{extended nonnegative endpoint}; \texttt{lower sharp endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L_\delta(b,q,\omega)=\inf\Theta_{I,\delta}(b,q,\omega)\)
+  \item \texttt{U} --- \texttt{extended nonnegative endpoint}; \texttt{upper sharp endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(U_\delta(b,q,\omega)=\sup\Theta_{I,\delta}(b,q,\omega)\)
+  \item \texttt{ThetaIRange} --- \texttt{subset of the extended nonnegative line}; \texttt{sharp sensitivity-\allowbreak{}range identified set,\allowbreak{} equal to the identified set at the largest scientifically admissible priming fraction}
+  \par\smallskip\noindent\emph{Definition.} Let \(\bar\delta=\max\mathcal D\). Then \(\Theta_I^{\mathcal D}(b,q,\omega)=\Theta_{I,\bar\delta}(b,q,\omega)\).
+  \item \texttt{fcase} --- \texttt{probability array}; \(\Delta(\mathcal V)^{\mathcal T}\); \texttt{pooled case-\allowbreak{}strain frequencies}
+  \par\smallskip\noindent\emph{Definition.} \(f^{\mathrm{case}}_{tv}=\frac{\sum_{a\in\mathcal A}\pi_a b_{tav}}{\sum_{a\in\mathcal A}\sum_{w\in\mathcal V}\pi_a b_{taw}}\)
+  \item \texttt{qcase} --- \texttt{probability array}; \(\Delta(\mathcal V_0)^{\mathcal T}\); \texttt{case-\allowbreak{}substituted exposure margin that preserves the external exposure rate but replaces its variant composition}
+  \par\smallskip\noindent\emph{Definition.} \(q^{\mathrm{case}}_{t0}=q_{t0}\) and \(q^{\mathrm{case}}_{tv}=(1-q_{t0})f^{\mathrm{case}}_{tv}\) for \(v\in\mathcal V\)
+  \item \texttt{VE} --- \texttt{partial scalar functional}; \(\operatorname{VE}_t:\Delta(\mathcal S)\to\mathbb R\); \texttt{biological vaccine effect under the common reference mixture}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{VE}_t(x)=1-\rho_{t1}(x,\omega)/\rho_{t0}(x,\omega)\) whenever \(\rho_{t0}(x,\omega)>0\)
+  \item \texttt{Sbar} --- \texttt{finite type subset}; \texttt{common-\allowbreak{}history response types}
+  \par\smallskip\noindent\emph{Definition.} \(\overline{\mathcal S}=\{s\in\mathcal S:h^0=h^1\}\)
+  \item \texttt{Eomega} --- \texttt{real matrix}; \texttt{canonical common-\allowbreak{}history equality-\allowbreak{}constraint matrix}
+  \par\smallskip\noindent\emph{Definition.} \(E_\omega\) has columns indexed by \(s\in\overline{\mathcal S}\) and equality rows \(1\), \(\widetilde g_{tav}(s)\), \(\mathbf 1\{h_t^0=v\}\), and \(p_\omega(s)=\sum_{v\in\mathcal V}\omega_v\{r_{10v}(s)-r^{[0]}_{20v}(s)\}\)
+  \item \texttt{Fdelta} --- \texttt{real matrix}; \texttt{linear noninfecting-\allowbreak{}exposure priming sensitivity constraints}
+  \par\smallskip\noindent\emph{Definition.} \(F_\delta\) has columns indexed by \(s\in\overline{\mathcal S}\) and rows indexed by \((a,u,v)\in\mathcal A\times\mathcal V\times\mathcal V\), with entry \(f_{\delta,auv}(s)=\mathbf 1\{h_1^0=u,r_{1au}=0\}\bigl[\mathbf 1\{r^{[u]}_{2av}\neq r^{[0]}_{2av}\}-\delta\bigr]\)
+  \item \texttt{dvec} --- \texttt{real vector}; \texttt{right-\allowbreak{}hand side of the common-\allowbreak{}history constraints}
+  \par\smallskip\noindent\emph{Definition.} \(d(b,q)=(1,(b_{tav})_{t,a,v},(q_{tv})_{t,v},0)^{\top}\), ordered as the equality rows of \(E_\omega\)
+  \item \texttt{comega} --- \texttt{real vector}; \texttt{common-\allowbreak{}law vaccine ratio sign contrast}
+  \par\smallskip\noindent\emph{Definition.} \(c_\omega(s)=\sum_{v\in\mathcal V}\omega_v\{r_{11v}(s)-r^{[0]}_{21v}(s)\}\) for \(s\in\overline{\mathcal S}\)
+  \item \texttt{d21omega} --- \texttt{real vector}; \texttt{period-\allowbreak{}two vaccine reference-\allowbreak{}risk objective}
+  \par\smallskip\noindent\emph{Definition.} \(d_{21,\omega}(s)=\sum_{v\in\mathcal V}\omega_vr^{[0]}_{21v}(s)\) for \(s\in\overline{\mathcal S}\)
+  \item \texttt{eta} --- \texttt{finite real vector}; the row space of \(E_\omega\); \texttt{free dual multiplier for common-\allowbreak{}history equality constraints}
+  \item \texttt{kappa} --- \texttt{nonnegative finite real vector}; the row space of \(F_\delta\); \texttt{dual multiplier for priming-\allowbreak{}sensitivity inequalities in minimization programs}
+  \item \texttt{lambda} --- \texttt{finite real vector}; the row space of \(E_\omega\); \texttt{free dual multiplier for common-\allowbreak{}history equality constraints in sign separation}
+  \item \texttt{mu} --- \texttt{nonnegative finite real vector}; the row space of \(F_\delta\); \texttt{dual multiplier for priming-\allowbreak{}sensitivity inequalities in sign separation}
+  \item \texttt{SK2} --- \texttt{finite set of four latent types}; worked two-variant compatible support with no priming and hence validity for every \(\delta\in[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S_\star^{(2)}=\{s_{ij}:i,j\in\{1,2\}\}\), where \(h^0=h^1=(i,j)\), \(r_{1,0,1}=1\), \(r_{1,0,2}=0\), \(r_{1,1,1}=0\), \(r_{1,1,2}=1\), and, for every \(u\in\mathcal V_0\), \(r^{[u]}_{2,0,1}=1\), \(r^{[u]}_{2,0,2}=0\), \(r^{[u]}_{2,1,1}=0\), and \(r^{[u]}_{2,1,2}=1\)
+  \item \texttt{omegaK2} --- \texttt{probability vector}; \texttt{worked two-\allowbreak{}variant reference mixture}
+  \par\smallskip\noindent\emph{Definition.} \(\omega_\star^{(2)}=(1/2,1/2)\)
+  \item \texttt{qK2} --- \texttt{probability array}; \texttt{worked two-\allowbreak{}variant exposure margins}
+  \par\smallskip\noindent\emph{Definition.} \(q^{(2)}_{t0}=0\) and \(q^{(2)}_{t1}=q^{(2)}_{t2}=1/2\) for each \(t\in\mathcal T\)
+  \item \texttt{bK2} --- \texttt{probability array}; \texttt{worked two-\allowbreak{}variant trial risks}
+  \par\smallskip\noindent\emph{Definition.} The only nonzero entries of \(b^{(2)}\) are \(b^{(2)}_{1,0,1}=1/2\), \(b^{(2)}_{2,0,1}=1/4\), \(b^{(2)}_{1,1,2}=1/2\), and \(b^{(2)}_{2,1,2}=1/4\)
+  \item \texttt{xK2} --- \texttt{probability vector}; \texttt{worked two-\allowbreak{}variant common-\allowbreak{}history mass}
+  \par\smallskip\noindent\emph{Definition.} \(x_\star^{(2)}(s_{ij})=1/4\) for every \(s_{ij}\in\mathcal S_\star^{(2)}\), with zero mass elsewhere
+  \item \texttt{rStar} --- \texttt{extended nonnegative scalar}; \([0,\infty]\); \texttt{common-\allowbreak{}law mixture radius at which the strict baseline ratio sign first ceases to be uniform,\allowbreak{} pointwise in the priming sensitivity value}
+  \par\smallskip\noindent\emph{Definition.} When \(U_\delta(b,q,\omega)<1\), let \(r_\star(\delta)=\min\{\lVert\omega'-\omega\rVert_1:\omega'\in\Delta(\mathcal V),\ x\in\mathcal P_\delta(b,q,\omega),\ \rho_{11}(x,\omega')\geq\rho_{21}(x,\omega')\}\). When \(L_\delta(b,q,\omega)>1\), reverse the displayed inequality. The minimum of the empty set is \(+\infty\); if neither strict baseline frontier holds, set \(r_\star(\delta)=0\).
+  \item \texttt{n} --- \texttt{positive integer}; \texttt{trial sample size}
+  \item \texttt{m} --- \texttt{positive integer}; \texttt{external exposure sample size}
+  \item \texttt{alpha} --- \texttt{probability level}; \((0,1)\); \texttt{coverage error probability}
+  \item \texttt{Cn} --- \texttt{random closed subset of the extended nonnegative line}; \texttt{exact whole-\allowbreak{}set confidence projection at the disclosed priming-\allowbreak{}sensitivity value}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{n,m,\delta}^{\mathrm{exact}}\) is the exact multinomial projection in \(\text{def:exact-whole-set-projection}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:trial-randomization]\label{ass:trial-randomization}
+\(A\perp(S,J^0,J^1)\).
+\par\smallskip\noindent\emph{Standard} (Randomized treatment exchangeability, \cite{janvin_stensrud_2025_challenge}).
+\end{assumption}
+
+\begin{assumption}[ass:arm-positivity]\label{ass:arm-positivity}
+\(\pi_a>0\) for every \(a\in\mathcal A\).
+\par\smallskip\noindent\emph{Standard} (Treatment positivity, \cite{janvin_stensrud_2025_challenge}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-consistency]\label{ass:outcome-consistency}
+\(J_t=J_t^A\) almost surely for every \(t\in\mathcal T\).
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{janvin_stensrud_2025_challenge}).
+\end{assumption}
+
+\begin{assumption}[ass:no-vaccine-effect-on-exposure]\label{ass:no-vaccine-effect-on-exposure}
+\(H^0=H^1\) almost surely.
+\par\smallskip\noindent\emph{Standard} (No effect of vaccination on exposure, \cite{janvin_stensrud_2025_challenge}).
+\end{assumption}
+
+\begin{assumption}[ass:history-indexed-first-infection-map]\label{ass:history-indexed-first-infection-map}
+For every \(t\in\mathcal T\), \(a\in\mathcal A\), and \(v\in\mathcal V\), \(\mathbf 1\{J_t^a=v\}=\widetilde g_{tav}(S)\) almost surely.
+\par\smallskip\noindent\emph{Novel.} The response map records first infection while permitting the period-two controlled response to depend on the identity of a prior noninfecting exposure. It retains arbitrary dependence among exposure histories and controlled susceptibilities and does not impose no priming.
+\end{assumption}
+
+\begin{assumption}[ass:bounded-noninfecting-exposure-priming]\label{ass:bounded-noninfecting-exposure-priming}
+For every \(a\in\mathcal A\) and \(u,v\in\mathcal V\), \(\Pr\{H_1^0=u,R_{1au}=0,R^{[u]}_{2av}\neq R^{[0]}_{2av}\}\leq\delta\Pr\{H_1^0=u,R_{1au}=0\}\).
+\par\smallskip\noindent\emph{Novel.} The parameter \(\delta\) bounds the fraction of noninfected exposees whose later controlled response is altered by that exposure. The value \(\delta=0\) recovers no priming and \(\delta=1\) permits unrestricted priming. Routine negative tests or serial serology do not identify a small value; absent a randomized or controlled validation substudy, \(\delta\) is reported as a sensitivity parameter over \(\mathcal D=[0,1]\).
+\end{assumption}
+
+\begin{assumption}[ass:external-margin-transport]\label{ass:external-margin-transport}
+For every \(t\in\mathcal T\) and \(v\in\mathcal V_0\), the external exposure sample has margin \(q_{tv}=\Pr(H_t^0=v)\) in the trial target population.
+\par\smallskip\noindent\emph{Standard} (Transportability of external strain surveillance margins, \cite{follmann_fay_magaret_gilbert_2022_surveillance}).
+\end{assumption}
+
+\begin{assumption}[ass:placebo-reference-stability]\label{ass:placebo-reference-stability}
+\(\mathbb E[\sum_{v\in\mathcal V}\omega_vR_{10v}]=\mathbb E[\sum_{v\in\mathcal V}\omega_vR^{[0]}_{20v}]\).
+\par\smallskip\noindent\emph{Standard} (No waning of placebo under a common challenge distribution, \cite{janvin_stensrud_2025_challenge}).
+\end{assumption}
+
+\begin{assumption}[ass:reference-risk-positivity]\label{ass:reference-risk-positivity}
+For every \(x\in\mathcal P_\delta(b,q,\omega)\), \(\rho_{21}(x,\omega)\geq\epsilon\).
+\par\smallskip\noindent\emph{Novel.} This is a transparent restriction on the entire observable compatible-law fiber, not positivity of an observed trial cell. It is checkable by one linear program and is plausible when every response type allowed by the trial and exposure margins retains a policy-weighted period-two vaccine challenge risk bounded away from zero, as in challenge panels whose reference mixture assigns weight only to circulating variants with residual breakthrough susceptibility.
+\end{assumption}
+
+\begin{assumption}[ass:case-frequency-positivity]\label{ass:case-frequency-positivity}
+\(\sum_{a\in\mathcal A}\sum_{v\in\mathcal V}\pi_a b_{tav}>0\) for every \(t\in\mathcal T\).
+\par\smallskip\noindent\emph{Standard} (Positive case incidence for a conditional strain distribution, \cite{gilbert_self_rao_2001_sieve}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:full-law-class]\label{def:full-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compatible full-\allowbreak{}law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_\delta(b,q,\omega)=\{P\text{ on }(A,S,J^0,J^1,J):P\text{ satisfies }\text{ass:trial-randomization},\text{ ass:arm-positivity},\text{ ass:outcome-consistency},\text{ ass:no-vaccine-effect-on-exposure},\text{ ass:history-indexed-first-infection-map},\text{ ass:bounded-noninfecting-exposure-priming},\text{ ass:external-margin-transport},\text{ ass:placebo-reference-stability},\ P(J_t=v\mid A=a)=b_{tav}\text{ for every }(t,a,v)\in\mathcal T\times\mathcal A\times\mathcal V\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}trial-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}arm-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}no-\allowbreak{}vaccine-\allowbreak{}effect-\allowbreak{}on-\allowbreak{}exposure}; \texttt{ass:\allowbreak{}history-\allowbreak{}indexed-\allowbreak{}first-\allowbreak{}infection-\allowbreak{}map}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}noninfecting-\allowbreak{}exposure-\allowbreak{}priming}; \texttt{ass:\allowbreak{}external-\allowbreak{}margin-\allowbreak{}transport}; \texttt{ass:\allowbreak{}placebo-\allowbreak{}reference-\allowbreak{}stability}.
+\end{definition}
+
+\begin{definition}[def:reduced-history-polytope]\label{def:reduced-history-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Reduced common-\allowbreak{}history sensitivity polytope}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_\delta(b,q,\omega)=\{x\in\mathbb R_+^{|\mathcal S|}:\sum_sx_s=1;\ \sum_s\widetilde g_{tav}(s)x_s=b_{tav}\text{ for every }(t,a,v)\in\mathcal T\times\mathcal A\times\mathcal V;\ \sum_s\mathbf 1\{h_t^0=v\}x_s=q_{tv}\text{ for every }(t,v)\in\mathcal T\times\mathcal V_0;\ x_s=0\text{ if }h^0\neq h^1;\ \sum_{s,v}\omega_v\{r_{10v}(s)-r^{[0]}_{20v}(s)\}x_s=0;\ \sum_s\mathbf 1\{h_1^0=u,r_{1au}=0\}\mathbf 1\{r^{[u]}_{2av}\neq r^{[0]}_{2av}\}x_s\leq\delta\sum_s\mathbf 1\{h_1^0=u,r_{1au}=0\}x_s\text{ for every }(a,u,v)\in\mathcal A\times\mathcal V\times\mathcal V\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{omega}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:extended-ratio-image]\label{def:extended-ratio-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Extended reciprocal image}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_{I,\delta}(b,q,\omega)=\{\rho_{11}(x,\omega)/\rho_{21}(x,\omega):x\in\mathcal P_\delta(b,q,\omega),\ \rho_{21}(x,\omega)>0\}\cup\{+\infty:\exists x\in\mathcal P_\delta(b,q,\omega),\ \rho_{21}(x,\omega)=0<\rho_{11}(x,\omega)\}\cup\bigl([0,+\infty]\text{ if }\exists x\in\mathcal P_\delta(b,q,\omega),\ \rho_{11}(x,\omega)=\rho_{21}(x,\omega)=0\bigr)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{omega}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:charnes-cooper-polyhedron]\label{def:charnes-cooper-polyhedron}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Reciprocal endpoint normalization}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_\delta(b,q,\omega)=\{(y,z)\in\mathbb R_+^{|\mathcal S|}\times\mathbb R_+:\sum_sy_s=z;\ \sum_s\widetilde g_{tav}(s)y_s=b_{tav}z;\ \sum_s\mathbf 1\{h_t^0=v\}y_s=q_{tv}z;\ y_s=0\text{ if }h^0\neq h^1;\ \sum_{s,v}\omega_v\{r_{10v}(s)-r^{[0]}_{20v}(s)\}y_s=0;\ F_\delta y\leq0;\ \sum_{s,v}\omega_vr^{[0]}_{21v}(s)y_s=1\}\), where the two indexed equality families range over \(\mathcal T\times\mathcal A\times\mathcal V\) and \(\mathcal T\times\mathcal V_0\), respectively.
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{omega}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:canonical-common-history-system]\label{def:canonical-common-history-system}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Canonical common-\allowbreak{}history linear system}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_\delta(b,q,\omega)=\{x\in\mathbb R_+^{|\overline{\mathcal S}|}:E_\omega x=d(b,q),\ F_\delta x\leq0\}\), with the omitted coordinates exactly the unequal-history types.
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{omega}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:perenyi-collapse-handle]\label{def:perenyi-collapse-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Point-\allowbreak{}mass challenge-\allowbreak{}estimand collapse handle}
+\par\smallskip\noindent\emph{Construction.} For \(K=2\), place the four point-mass controlled challenge risks entering \(\operatorname{CSE}^{\mathrm P}_t(x)\), including the period-two no-prior-exposure responses \(R^{[0]}_{2av}\), on the positive comparison face of the fixed sensitivity fiber \(\mathcal P_\delta(b,q,\omega)\). Use paired linear-fractional primal programs and Farkas certificates for the exposure-ratio and scaled-new-infection restrictions to determine whether the face is empty, whether \(\operatorname{CSE}^{\mathrm P}_t\) is nonconstant on a nonempty face, and whether a constant value on a nonempty face equals \(\operatorname{CSE}^{\mathrm{obs}}_t(b)\). Certify these three branches, respectively, by a separating infeasibility ray, two endpoint laws obtained through the common-history lift, or one compatible-law observable-mismatch witness whose controlled-risk value differs from the observed-hazard functional.
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{omega}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:k2-worked-lift]\label{def:k2-worked-lift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Worked two-\allowbreak{}variant compatible-\allowbreak{}law lift}
+\par\smallskip\noindent\emph{Construction.} Set \(K=2\), \(\omega=\omega_\star^{(2)}\), \(b=b^{(2)}\), \(q=q^{(2)}\), and \(x=x_\star^{(2)}\). Draw \(S\) from \(x_\star^{(2)}\), draw \(A\) independently with probabilities \(\pi\), set \(H^0=H^1\) to the history carried by \(S\), define \(J_t^a\) by \(\mathbf 1\{J_t^a=v\}=\widetilde g_{tav}(S)\) with \(J_t^a=0\) when every such indicator is zero, and reveal \(J=J^A\). Because \(R^{[u]}_{2av}=R^{[0]}_{2av}\) for every \(u\), the lift satisfies the sensitivity restriction for every \(\delta\in[0,1]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{omegaK2}; \texttt{bK2}; \texttt{qK2}; \texttt{xK2}; \texttt{pi}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:case-margin-frontier-handle]\label{def:case-margin-frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{External-\allowbreak{}margin redundancy handle}
+\par\smallskip\noindent\emph{Construction.} Pointwise in \(\delta\), compare \(\mathcal P_\delta(b,q,\omega)\) with the substituted fiber \(\mathcal P_\delta(b,q^{\mathrm{case}},\omega)\) by paired primal endpoint programs and their linear-program duals. Upon failure of endpoint invariance, the certificate reports exactly one exhaustive branch: a Farkas ray if the substituted fiber is empty; if it is nonempty and the ratio is nonconstant, two substituted-fiber compatible-law lifts with distinct ratio values plus an attaining primal endpoint law and matching dual bound that prove a strict mismatch with an original endpoint; or, if it is nonempty but ratio-constant, a primal compatible-law witness and matching dual endpoint bound proving that its singleton ratio set differs from the original sharp set. The last branch includes a singleton substituted fiber.
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{qcase}; \texttt{delta}; \texttt{omega}.
+\end{definition}
+
+\begin{definition}[def:mixture-sign-radius-handle]\label{def:mixture-sign-radius-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common-\allowbreak{}law sign-\allowbreak{}radius handle}
+\par\smallskip\noindent\emph{Construction.} At a fixed disclosed \(\delta\), keep the observed-data compatible fiber fixed at \(\mathcal P_\delta(b,q,\omega)\). For each radius \(r\), optimize the sign contrast defining \(\Psi_{\omega'}(x)\) jointly over \(x\in\mathcal P_\delta(b,q,\omega)\) and \(\omega'\in\Delta(\mathcal V)\) subject to \(\lVert\omega'-\omega\rVert_1\leq r\). Derive a primal attaining pair at the boundary and a dual robust-optimization cut certifying preservation of the baseline strict sign for every smaller radius; if the boundary set is empty, derive an infeasibility ray certifying \(r_\star(\delta)=+\infty\). The perturbation changes only the policy/reference functional: the trial risks \(b\), exposure margins \(q\), sensitivity value \(\delta\), common-history law \(x\), and placebo-stability row indexed by \(\omega\) are not rebuilt at \(\omega'\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{omega}; \texttt{omegaPrime}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:exact-whole-set-projection]\label{def:exact-whole-set-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact simultaneous multinomial projection}
+\par\smallskip\noindent\emph{Construction.} For a multinomial count vector \(u\) of total \(N\geq 1\), let \(\ell_p(u)=\sum_j u_j\log p_j\), interpreted in the extended-real sense with \(0\log 0=0\) and \(u_j\log 0=-\infty\) when \(u_j>0\). Let \(\widehat p(u)=u/N\), set \(T_p(u)=2\{\ell_{\widehat p(u)}(u)-\ell_p(u)\}\), and define
+\[
+ \operatorname{pv}_N(p;u)
+ =\sum_{z:\,\sum_j z_j=N,\ T_p(z)\geq T_p(u)}
+   \operatorname{Mult}_N(z;p),
+ \qquad
+ \Gamma_N(u;\gamma)=\{p\in\Delta:\operatorname{pv}_N(p;u)\geq\gamma\}.
+\]
+For \(N=0\), the sole count vector is \(u=0\); define \(T_p(0)=0\), \(\operatorname{pv}_0(p;0)=1\), and \(\Gamma_0(0;\gamma)=\Delta\). For each arm, use the multinomial categories \(\{\varnothing\}\cup(\mathcal T\times\mathcal V)\), with probabilities \(p^a_{tv}=b_{tav}\) and \(p^a_{\varnothing}=1-\sum_{t,v}b_{tav}\). For each period of the external sample, use categories \(\mathcal V_0\) with probabilities \(q_t\). Let \(\mathcal G_{n,m}(\alpha)\) contain every \((b',q')\) accepted by all four confidence sets at threshold \(\alpha/4\), conditional on the realized arm sizes for the two armwise constructions. At fixed \(\delta\), define
+\[
+ \mathcal C_{n,m,\delta}^{\mathrm{exact}}
+ =\operatorname{cl}_{[0,+\infty]}
+   \bigcup_{\substack{(b',q')\in\mathcal G_{n,m}(\alpha):\\
+                       \mathcal P_\delta(b',q',\omega)\neq\varnothing}}
+   \Theta_{I,\delta}(b',q',\omega).
+\]
+The enumeration includes zero observed cells and zero candidate cells, and it uses neither studentization nor a selected endpoint optimizer.
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{q}; \texttt{n}; \texttt{m}; \texttt{alpha}; \texttt{omega}; \texttt{delta}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:exact-history-compression]\label{thm:exact-history-compression}
+For every prespecified \(\delta\in[0,1]\), the projection of \(\mathfrak M_\delta(b,q,\omega)\) onto the latent type-mass vector is exactly \(\mathcal P_\delta(b,q,\omega)\). Every compatible full law induces one \(x\in\mathcal P_\delta(b,q,\omega)\), and every \(x\in\mathcal P_\delta(b,q,\omega)\) lifts to a law in \(\mathfrak M_\delta(b,q,\omega)\) reproducing \(b\), \(q\), \(\pi\), the history-indexed controlled responses, and the priming-fraction restriction.
+\end{theorem}
+\begin{proof}
+Fix \(\delta\in[0,1]\).  We prove the two inclusions by the response-type compression technique.
+
+First let \(P\in\mathfrak M_\delta(b,q,\omega)\), and put \(x_s=P(S=s)\).  Since \(\mathcal S\) is finite, \(x_s\geq0\) and \(\sum_sx_s=1\).  By \(\text{ass:no-vaccine-effect-on-exposure}\), \(P(H^0=H^1)=1\), so \(x_s=0\) on every unequal-history type.  For \(t\in\mathcal T\), \(a\in\mathcal A\), and \(v\in\mathcal V\), randomization, arm positivity, consistency, and the history-indexed response equality give
+\[
+b_{tav}=P(J_t=v\mid A=a)=P(J_t^a=v)=E\{\widetilde g_{tav}(S)\}=\sum_s\widetilde g_{tav}(s)x_s.
+\]
+The external-margin transport assumption gives
+\[
+q_{tv}=P(H_t^0=v)=\sum_s\mathbf 1\{h_t^0=v\}x_s
+\]
+for every \((t,v)\in\mathcal T\times\mathcal V_0\).  Placebo-reference stability is exactly
+\[
+\sum_{s,v}\omega_v\{r_{10v}(s)-r^{[0]}_{20v}(s)\}x_s=0.
+\]
+Finally, for fixed \((a,u,v)\), moving the right side of \(\text{ass:bounded-noninfecting-exposure-priming}\) to the left gives
+\[
+\sum_s\mathbf 1\{h_1^0=u,r_{1au}=0\}
+ \bigl[\mathbf 1\{r^{[u]}_{2av}\ne r^{[0]}_{2av}\}-\delta\bigr]x_s\leq0.
+\]
+These are precisely all constraints in \(\mathcal P_\delta(b,q,\omega)\), including the cases in which the conditioning-event mass is zero.  Thus every full law projects into the stated polytope.
+
+Conversely, take \(x\in\mathcal P_\delta(b,q,\omega)\).  On a finite probability space draw \(S\) with mass function \(x\), draw \(A\) independently of \(S\) with \(P(A=a)=\pi_a\), and read \(H^0,H^1,R_1,R_2^{[\cdot]}\) from \(S\).  Define \(J^a\) by
+\[
+\mathbf 1\{J_t^a=v\}=\widetilde g_{tav}(S),\qquad v\in\mathcal V,
+\]
+and assign \(J_t^a=0\) if all displayed indicators vanish; then set \(J=J^A\).  The definition of \(\widetilde g\) makes at most one variant indicator equal to one in each period, and its period-two survival factor prevents a second first infection, so \(J^a\) is well defined.  This construction gives randomization and consistency by construction, arm positivity from \(\pi_a>0\), and common histories because the unequal-history coordinates of \(x\) vanish.  The observation equalities and the external margins follow from the corresponding equalities defining the polytope.  The placebo equality and every priming inequality follow from its last two constraint families.  Hence the constructed law lies in \(\mathfrak M_\delta(b,q,\omega)\) and reproduces \(b,q,\pi\) and the entire history-indexed response type.  The two constructions are inverse at the level of the type-mass projection, proving equality and the asserted compatible-law certificate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Projection equality prevents a reduced optimizer under a disclosed priming sensitivity value from being mistaken for an unattainable collection of armwise or periodwise marginals. \textit{Gap.} Balke and Pearl (1997) establish the response-type template, while Janvin and Stensrud (2025) construct single-pathogen endpoint laws; neither gives this two-period variant-history projection with external margins and bounded noninfecting-exposure priming. \textit{Consumer.} Investigators combining vaccine trials with variant-surveillance panels obtain a finite feasibility test and full-law certificate for every reported bound.
+
+\begin{theorem}[thm:extended-sharp-identified-set]\label{thm:extended-sharp-identified-set}
+For every prespecified \(\delta\in[0,1]\), if \(\mathcal P_\delta(b,q,\omega)\neq\varnothing\), the extended set in \(\text{def:extended-ratio-image}\) is exactly the set of vaccine challenge-risk ratios compatible with \(\mathfrak M_\delta(b,q,\omega)\). The finite positive-denominator values, the \(+\infty\) branch when \(\rho_{21}=0<\rho_{11}\), and the full \([0,+\infty]\) branch when \(\rho_{11}=\rho_{21}=0\) each have a compatible full-law certificate.
+\end{theorem}
+\begin{proof}
+Fix \(\delta\) and assume \(\mathcal P_\delta(b,q,\omega)\ne\varnothing\).  For a compatible full law let \(x_s=P(S=s)\).  Theorem \(\text{thm:exact-history-compression}\) gives \(x\in\mathcal P_\delta(b,q,\omega)\), and the controlled risks are, by their definitions,
+\[
+N(x):=\rho_{11}(x,\omega)=\sum_{s,v}\omega_vr_{11v}(s)x_s,
+\qquad
+D(x):=\rho_{21}(x,\omega)=\sum_{s,v}\omega_vr^{[0]}_{21v}(s)x_s.
+\]
+Both belong to \([0,1]\).  Therefore the law's target correspondence is \(\operatorname{Rat}(N(x),D(x))\), and taking the union over compatible laws gives a subset of the three-branch set in \(\text{def:extended-ratio-image}\).
+
+For the reverse inclusion, take any \(x\) appearing in one of those branches.  The converse half of Theorem \(\text{thm:exact-history-compression}\) supplies a full law with exactly this type mass.  If \(D(x)>0\), that law certifies the finite value \(N(x)/D(x)\).  If \(D(x)=0<N(x)\), it certifies \(+\infty\).  If \(N(x)=D(x)=0\), the definition of \(\operatorname{Rat}(0,0)\) makes the same compatible law a certificate for every value of \([0,+\infty]\).  Thus every branch is attainable and the displayed set is the sharp, rather than merely outer, identified set.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The causal identified set remains mathematically defined when no uniform lower bound on the vaccine reference risk is imposed. \textit{Gap.} Janvin and Stensrud (2025) analyze finite single-pathogen ratios; the extended zero-denominator fibers created by changing variants and external margins are not covered by their endpoint formula. \textit{Consumer.} Analysts can report a valid sharp set, including infinite or completely unidentified branches, rather than silently deleting compatible zero-risk laws.
+
+\begin{proposition}[prop:reference-positivity-dual]\label{prop:reference-positivity-dual}
+Fix \(\delta\in[0,1]\). If \(\mathcal P_\delta(b,q,\omega)=\varnothing\), the audit returns fiber infeasibility and does not certify \(\text{ass:reference-risk-positivity}\). If \(\mathcal P_\delta(b,q,\omega)\neq\varnothing\), that restriction holds if and only if the linear program \(\min\{d_{21,\omega}^{\top}x:E_\omega x=d(b,q),\ F_\delta x\leq0,\ x\geq0\}\) has value at least \(\epsilon\). Equivalently, there are \(\eta\) and \(\kappa\geq0\) satisfying \(E_\omega^{\top}\eta-F_\delta^{\top}\kappa\leq d_{21,\omega}\) and \(d(b,q)^{\top}\eta\geq\epsilon\).
+\end{proposition}
+\begin{proof}
+\emph{Technique.}  The proof uses an exact objective-identification calculation, compactness of a finite probability simplex, and finite-dimensional linear-programming duality as stated in \(\text{lem:finite-lp-strong-duality}\).
+
+Fix \(\delta\in[0,1]\), and abbreviate \(c=d_{21,\omega}\), \(E=E_\omega\), \(F=F_\delta\), and \(d=d(b,q)\).  By \(\text{def:canonical-common-history-system}\), the feasible region of the displayed primal program is exactly
+\[
+ \mathcal P_\delta(b,q,\omega)
+ =\{x\in\mathbb R_+^{|\overline{\mathcal S}|}:Ex=d,\ Fx\leq0\}.
+\]
+Consequently, if \(\mathcal P_\delta(b,q,\omega)=\varnothing\), the feasibility test for this program returns infeasibility.  The claimed audit is the lexicographic decision rule that performs this compatibility test first and halts with ``fiber infeasibility'' on this branch; it therefore issues no positivity certificate.  This convention deliberately does not treat the vacuous truth of a universal formula over an empty set as evidence that a compatible law has a positive reference risk.
+
+Now suppose \(\mathcal P_\delta(b,q,\omega)\neq\varnothing\).  The first equality row of \(E_\omega x=d(b,q)\) is the normalization row, so
+\[
+ \sum_{s\in\overline{\mathcal S}}x_s=1.
+\]
+Thus the feasible region is a closed subset of the finite-dimensional probability simplex and hence is compact.  Moreover, because \(\omega\in\Delta(\mathcal V)\) and each \(r^{[0]}_{21v}(s)\in\{0,1\}\), every coordinate of \(c\) lies in \([0,1]\).  The objective is therefore finite and continuous, and its minimum
+\[
+ p^\star=\min\{c^\top x:Ex=d,\ Fx\leq0,\ x\geq0\}
+\]
+is attained.
+
+For every feasible \(x\), the definitions of \(d_{21,\omega}\) and \(\rho_{21}\) give, equation by equation,
+\[
+ \begin{aligned}
+ c^\top x
+ &=\sum_{s\in\overline{\mathcal S}}d_{21,\omega}(s)x_s\\
+ &=\sum_{s\in\overline{\mathcal S}}\sum_{v\in\mathcal V}
+      \omega_v r^{[0]}_{21v}(s)x_s\\
+ &=\rho_{21}(x,\omega).
+ \end{aligned}
+\]
+Hence the condition in \(\text{ass:reference-risk-positivity}\), namely
+\(\rho_{21}(x,\omega)\geq\epsilon\) for every feasible \(x\), holds if and only if \(p^\star\geq\epsilon\).  Nonemptiness is used here to ensure that \(p^\star\) is an attained, real optimum rather than an extended-value convention for an infeasible program.
+
+It remains to derive the announced certificate.  Apply \(\text{lem:finite-lp-strong-duality}\) with inequality matrix and right-hand side
+\[
+ A=\begin{pmatrix}F\\-I\end{pmatrix},\qquad b_A=0,
+\]
+and equality matrix and right-hand side \(B=E\) and \(e=d\).  Write the nonnegative multiplier on \(Fx\leq0\) as \(\kappa\), the nonnegative multiplier on \(-x\leq0\) as \(\mu\), and write the free equality multiplier as \(\nu=-\eta\).  The cited duality result applies because primal feasibility was assumed and finiteness and attainment were proved above.  Its stationarity equation becomes
+\[
+ c+F^\top\kappa-\mu-E^\top\eta=0,
+ \qquad \kappa\geq0,\quad \mu\geq0,
+\]
+and its dual objective becomes \(d^\top\eta\).  Eliminating \(\mu\) is exact:
+\[
+ \exists\,\mu\geq0:\ c+F^\top\kappa-\mu-E^\top\eta=0
+ \quad\Longleftrightarrow\quad
+ E^\top\eta-F^\top\kappa\leq c.
+\]
+Therefore
+\[
+ p^\star
+ =\max_{\eta,\,\kappa\geq0}
+ \left\{d(b,q)^\top\eta:
+ E_\omega^\top\eta-F_\delta^\top\kappa\leq d_{21,\omega}\right\},
+\]
+and the maximum is attained.  It follows immediately that \(p^\star\geq\epsilon\) if and only if there is a feasible pair \((\eta,\kappa)\) with \(d(b,q)^\top\eta\geq\epsilon\).
+
+For completeness, the certificate's sufficiency can also be checked without duality.  If \(x\) is primal feasible and \((\eta,\kappa)\) satisfies the displayed dual inequalities, then nonnegativity of \(x\), equality \(Ex=d\), the inequality \(Fx\leq0\), and \(\kappa\geq0\) imply
+\[
+ d^\top\eta
+ \leq d^\top\eta-\kappa^\top Fx
+ =x^\top(E^\top\eta-F^\top\kappa)
+ \leq c^\top x.
+\]
+Thus \(d(b,q)^\top\eta\geq\epsilon\) indeed forces \(\rho_{21}(x,\omega)=c^\top x\geq\epsilon\) for every compatible \(x\), completing both directions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This implementation audit separates incompatible observed margins from a genuinely nonempty fiber whose late vaccine reference risk is uniformly positive. \textit{Gap.} This is an LP audit device for the optional denominator restriction, not a root identification contribution. \textit{Consumer.} Software can stop on an infeasible fiber and issue a primal value and dual certificate only after compatibility has been established.
+
+\begin{theorem}[thm:sharp-reciprocal-endpoints]\label{thm:sharp-reciprocal-endpoints}
+Fix \(\delta\in[0,1]\). Under \(\text{ass:reference-risk-positivity}\), if \(\mathcal P_\delta(b,q,\omega)\neq\varnothing\), then \(\Theta_{I,\delta}(b,q,\omega)=[L_\delta(b,q,\omega),U_\delta(b,q,\omega)]\subset[0,1/\epsilon]\). Its endpoints are attained by minimizing and maximizing \(\sum_{s,v}\omega_vr_{11v}(s)y_s\) over \(\mathcal C_\delta(b,q,\omega)\). Every optimizer has \(z>0\), maps to \(x=y/z\), and lifts through Theorem \(\text{thm:exact-history-compression}\) to an endpoint-attaining full law.
+\end{theorem}
+\begin{proof}
+Write \(P=\mathcal P_\delta(b,q,\omega)\), \(N(x)=\rho_{11}(x,\omega)\), and \(D(x)=\rho_{21}(x,\omega)\).  The set \(P\) is a nonempty compact convex polytope: it is the intersection of the probability simplex with finitely many closed affine half-spaces.  By \(\text{ass:reference-risk-positivity}\), \(D(x)\geq\epsilon>0\) throughout \(P\).  Thus the extended branches with zero denominator are absent, and Theorem \(\text{thm:extended-sharp-identified-set}\) yields
+\[
+\Theta_{I,\delta}(b,q,\omega)=\{N(x)/D(x):x\in P\}.
+\]
+The ratio is continuous on \(P\).  Since a convex set is connected, its continuous real image is connected and hence an interval; compactness makes that interval closed and makes both extrema attainable.  Also \(0\leq N(x)\leq1\) and \(D(x)\geq\epsilon\), whence the interval is contained in \([0,1/\epsilon]\).
+
+We now verify the reciprocal normalization equation by equation.  Given \(x\in P\), set
+\[
+z=D(x)^{-1},\qquad y=zx.
+\]
+Then \(y\geq0\), \(z>0\), \(\sum_sy_s=z\), every homogeneous equality or inequality defining \(P\) is satisfied after multiplication by \(z\), and
+\[
+\sum_{s,v}\omega_vr^{[0]}_{21v}(s)y_s=zD(x)=1.
+\]
+Hence \((y,z)\in\mathcal C_\delta(b,q,\omega)\), and its objective is
+\[
+\sum_{s,v}\omega_vr_{11v}(s)y_s=zN(x)=N(x)/D(x).
+\]
+Conversely, if \((y,z)\in\mathcal C_\delta(b,q,\omega)\), the normalization equals one, so \(y\ne0\); because \(y\geq0\) and \(\sum_sy_s=z\), necessarily \(z>0\).  Put \(x=y/z\).  Dividing every homogeneous constraint by \(z\) gives \(x\in P\), while
+\[
+D(x)=z^{-1}\sum_{s,v}\omega_vr^{[0]}_{21v}(s)y_s=z^{-1},
+\quad
+N(x)/D(x)=\sum_{s,v}\omega_vr_{11v}(s)y_s.
+\]
+Thus the feasible objective image of the two linear programs is exactly the sharp ratio image.  Its minimizing and maximizing solutions exist because they correspond bijectively to the compact feasible set \(P\) and \(z=1/D(x)\leq1/\epsilon\).  Finally, each optimizing \(x=y/z\) lifts to a compatible endpoint-attaining full law by Theorem \(\text{thm:exact-history-compression}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem turns a nonlinear waning ratio into two finite linear programs without sacrificing sharpness or common-law attainability. \textit{Gap.} Janvin and Stensrud (2025) give closed-form single-pathogen finite bounds, while Follmann and Huang (2018) use a parametric marked process; neither gives sharp policy-mixture reciprocal endpoints on an LP-certified positive common-history fiber. \textit{Consumer.} A trial analyst can report exact best- and worst-case reference-mixture waning using standard linear-program solvers and attach an auditable latent-law witness.
+
+\begin{proposition}[prop:endpoint-sign-calibration]\label{prop:endpoint-sign-calibration}
+Fix \(\delta\in[0,1]\). Under \(\text{ass:reference-risk-positivity}\), every compatible value of \(\Psi_\omega\) is below one if and only if \(U_\delta(b,q,\omega)<1\), and every compatible value is above one if and only if \(L_\delta(b,q,\omega)>1\). Unity is compatible if and only if \(L_\delta(b,q,\omega)\leq1\leq U_\delta(b,q,\omega)\), and both strict sides are compatible if and only if \(L_\delta(b,q,\omega)<1<U_\delta(b,q,\omega)\). All assertions optimize one common \(x\) across periods.
+\end{proposition}
+\begin{proof}
+By Theorem \(\text{thm:sharp-reciprocal-endpoints}\), the compatible values form the attained interval \([L_\delta,U_\delta]\).  An attained interval is contained in \([0,1)\) exactly when its largest element satisfies \(U_\delta<1\), and it is contained in \((1,+\infty]\) exactly when its smallest element satisfies \(L_\delta>1\).  It contains unity exactly when \(L_\delta\leq1\leq U_\delta\).  It contains a value strictly below and a value strictly above unity exactly when \(L_\delta<1<U_\delta\), because both endpoints are attained.  Every endpoint and intermediate value comes from one vector \(x\) carrying both periods, rather than from separately optimized period-specific laws, by the sharp-endpoint theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is endpoint algebra that calibrates the substantive common-law separation theorem to the named ratio. \textit{Gap.} The trichotomy is an implementation corollary of finite sharp endpoints and is not claimed as a root contribution. \textit{Consumer.} A reporting routine can translate computed endpoints into below-unity, above-unity, unity-compatible, or two-sided labels.
+
+\begin{theorem}[thm:common-history-sign-dual]\label{thm:common-history-sign-dual}
+Fix \(\delta\in[0,1]\) and suppose \(\mathcal P_\delta(b,q,\omega)\neq\varnothing\). Then \(\max_{x\in\mathcal P_\delta(b,q,\omega)}c_\omega^{\top}x<0\) if and only if there are finite vectors \(\lambda\) and \(\mu\geq0\) such that \(E_\omega^{\top}\lambda+F_\delta^{\top}\mu\geq c_\omega\) componentwise and \(d(b,q)^{\top}\lambda<0\). Such a pair explicitly certifies \(\rho_{11}(x,\omega)<\rho_{21}(x,\omega)\) for every common-history law and hence a below-unity value of \(\Psi_\omega(x)\). Symmetrically, every compatible value is above one if and only if there are finite \(\eta\) and \(\kappa\geq0\) such that \(E_\omega^{\top}\eta-F_\delta^{\top}\kappa\leq c_\omega\) and \(d(b,q)^{\top}\eta>0\). When either certificate fails, the corresponding primal optimizer lifts to a compatible full law on the noncertified side.
+\end{theorem}
+\begin{proof}
+Use the canonical system and abbreviate \(E=E_\omega\), \(F=F_\delta\), \(d=d(b,q)\), and \(c=c_\omega\).  The feasible set is the nonempty compact polytope
+\[
+P=\{x\geq0:Ex=d,\ Fx\leq0\}.
+\]
+Consider \(v^+=\max_{x\in P}c^\top x\).  If \(\mu\geq0\) and
+\[
+E^\top\lambda+F^\top\mu\geq c,
+\]
+then for every \(x\in P\),
+\[
+c^\top x\leq\lambda^\top Ex+\mu^\top Fx
+\leq d^\top\lambda.
+\]
+This is weak duality.  We derive the reverse inequality without adding a constraint qualification.  Introduce the finitely generated cone
+\[
+\mathcal K=\{(Ex,Fx+r,c^\top x-\beta):x\geq0,\ r\geq0,\ \beta\geq0\}.
+\]
+For a scalar \(t\), the point \((d,0,t)\) belongs to \(\mathcal K\) exactly when some \(x\in P\) has \(c^\top x\geq t\): take \(r=-Fx\) and \(\beta=c^\top x-t\), and conversely read these two equalities from membership.  Hence \((d,0,t)\notin\mathcal K\) for \(t>v^+\).  A finitely generated cone is closed: after normalizing a convergent sequence of conic combinations by the sum of its coefficients, compactness of the convex hull of the finite generators gives either bounded coefficients and a limit representation or an unbounded subsequence whose normalized limit is a zero combination, which can be removed before taking the limit.  The Euclidean projection of \((d,0,t)\) onto this closed convex cone yields a separating vector \((\ell,\nu,\gamma)\) such that
+\[
+\ell^\top d+\gamma t>0,\qquad
+E^\top\ell+F^\top\nu+\gamma c\leq0,\qquad
+\nu\leq0,\qquad\gamma\geq0.
+\]
+Feasibility of \(P\) forces \(\gamma>0\): if \(\gamma=0\), substitute any feasible \(x\) and \(r=-Fx\) into the cone inequality to get \(\ell^\top d\leq0\), contradicting the strict separation.  Therefore
+\[
+\lambda=-\ell/\gamma,\qquad \mu=-\nu/\gamma
+\]
+satisfy \(\mu\geq0\), \(E^\top\lambda+F^\top\mu\geq c\), and \(d^\top\lambda<t\).  Letting \(t\downarrow v^+\) proves that the dual infimum is at most \(v^+\), while weak duality gives the reverse inequality.  The dual feasible set is a polyhedron; a finite linear objective with a finite infimum on a nonempty polyhedron attains it, as follows by eliminating any recession direction and minimizing on the resulting bounded face.  Thus a dual optimizer exists with \(d^\top\lambda=v^+\).  Compactness of \(P\) supplies primal attainment and finiteness.
+
+It follows that \(v^+<0\) implies the displayed certificate with \(d^\top\lambda=v^+<0\), while the weak-duality calculation proves the converse.  Moreover,
+\[
+c^\top x=\sum_{s,v}\omega_v\{r_{11v}(s)-r^{[0]}_{21v}(s)\}x_s
+=\rho_{11}(x,\omega)-\rho_{21}(x,\omega).
+\]
+Thus \(v^+<0\) forces a positive denominator and a ratio below one for every compatible \(x\).
+
+For the other side let \(v^-=\min_{x\in P}c^\top x\).  The same separation argument applied to \(-c\), or direct weak duality, gives
+\[
+v^-=\max_{\eta,\kappa}\{d^\top\eta:
+E^\top\eta-F^\top\kappa\leq c,\ \kappa\geq0\}.
+\]
+Indeed, for every feasible \((\eta,\kappa)\) and \(x\in P\),
+\[
+c^\top x\geq\eta^\top Ex-\kappa^\top Fx
+\geq d^\top\eta.
+\]
+Consequently \(v^->0\) is equivalent to the stated certificate with \(d^\top\eta>0\), and it forces every extended ratio value above one (if the denominator is zero, the positive contrast makes the numerator positive and the value is \(+\infty\)).
+
+If the below-unity certificate fails, strong duality implies \(v^+\geq0\); an attaining maximizer \(x^+\) therefore has a ratio value on or above unity, with the \(0/0\) convention supplying such a value when necessary.  If the above-unity certificate fails, an attaining minimizer \(x^-\) has \(c^\top x^-\leq0\) and supplies a value on or below unity.  Theorem \(\text{thm:exact-history-compression}\) lifts either optimizer to a compatible full law, proving the counterlaw assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The certificate prices every period, arm, variant, exposure-margin, placebo-stability, and priming-sensitivity row with one coherent set of multipliers and supplies a compatible counterlaw when separation fails. \textit{Gap.} Tomer and Biccler (2022) exhibit mixture-driven temporal movement under specified mechanisms, but do not derive an observable separation theorem over one external-margin common-history sensitivity fiber. \textit{Consumer.} Regulators can audit a robust below-unity conclusion from reported multipliers and recover an attainable counterexample law whenever the certificate fails.
+
+\begin{proposition}[prop:biological-waning-translation]\label{prop:biological-waning-translation}
+For any \(x\in\mathcal P_\delta(b,q,\omega)\) satisfying \(\rho_{10}(x,\omega)=\rho_{20}(x,\omega)>0\), and under \(\text{ass:reference-risk-positivity}\), the singleton value of \(\Psi_\omega(x)\) is below one if and only if \(\operatorname{VE}_1(x)>\operatorname{VE}_2(x)\), so biological vaccine effect wanes; it is above one if and only if \(\operatorname{VE}_1(x)<\operatorname{VE}_2(x)\), so biological vaccine effect strengthens.
+\end{proposition}
+\begin{proof}
+Put \(p=\rho_{10}(x,\omega)=\rho_{20}(x,\omega)>0\).  The assumed fiber-wide reference-risk positivity gives \(\rho_{21}(x,\omega)\geq\epsilon>0\), so \(\Psi_\omega(x)\) is the singleton ratio.  Direct algebra gives
+\[
+\operatorname{VE}_1(x)-\operatorname{VE}_2(x)
+=\left(1-\frac{\rho_{11}(x,\omega)}p\right)
+-\left(1-\frac{\rho_{21}(x,\omega)}p\right)
+=\frac{\rho_{21}(x,\omega)-\rho_{11}(x,\omega)}p.
+\]
+Since \(p>0\), this difference is positive exactly when \(\rho_{11}/\rho_{21}<1\), and negative exactly when \(\rho_{11}/\rho_{21}>1\).  The common placebo denominator is the extra condition that permits the ratio sign to be read as a temporal change in biological vaccine effect; endpoint sign calibration supplies the corresponding identified-set language.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This calibration records the extra positive-placebo condition needed to interpret ratio direction biologically. \textit{Gap.} The identity is positive-denominator algebra and is not claimed as a root contribution. \textit{Consumer.} Booster-timing committees can separate a formally certified ratio statement from the extra condition required for a biological vaccine-effect interpretation.
+
+\begin{proposition}[prop:k2-worked-compatible-lift]\label{prop:k2-worked-compatible-lift}
+For every \(\delta\in[0,1]\), the construction in \(\text{def:k2-worked-lift}\) satisfies \(x_\star^{(2)}\in\mathcal P_\delta(b^{(2)},q^{(2)},\omega_\star^{(2)})\) and its displayed full law belongs to \(\mathfrak M_\delta(b^{(2)},q^{(2)},\omega_\star^{(2)})\). It yields the displayed nonzero trial risks, uniform exposure margins, \(\rho_{t0}(x_\star^{(2)},\omega_\star^{(2)})=\rho_{t1}(x_\star^{(2)},\omega_\star^{(2)})=1/2\) for \(t=1,2\), and \(\Psi_{\omega_\star^{(2)}}(x_\star^{(2)})=\{1\}\).
+\end{proposition}
+\begin{proof}
+The four atoms have equal mass and common history \((i,j)\), so each period's exposure margin is uniform on variants one and two and has zero mass on no exposure.  In arm zero, period-one infection occurs exactly on the two atoms with \(i=1\), giving \(b^{(2)}_{1,0,1}=1/2\).  Period-two infection occurs exactly when \(i=2\) (period-one survival) and \(j=1\), namely on \(s_{21}\), giving \(b^{(2)}_{2,0,1}=1/4\).  In arm one, the analogous events are \(i=2\) in period one and \((i,j)=(1,2)\) in period two, giving \(b^{(2)}_{1,1,2}=1/2\) and \(b^{(2)}_{2,1,2}=1/4\).  Every other trial cell is zero.
+
+For all \(u\in\mathcal V_0\), the stipulated period-two response equals its \(u=0\) counterpart.  Hence every priming-disagreement indicator is zero, so every sensitivity inequality holds for every \(\delta\in[0,1]\).  The common-history support, probability, trial-risk, and exposure equalities have just been checked.  Under the half--half reference mixture, arm zero responds only to variant one and arm one only to variant two, in both periods.  Therefore, for \(a=0,1\) and \(t=1,2\),
+\[
+\rho_{ta}(x_\star^{(2)},\omega_\star^{(2)})=\tfrac12,
+\qquad
+\Psi_{\omega_\star^{(2)}}(x_\star^{(2)})=\{(1/2)/(1/2)\}=\{1\}.
+\]
+In particular the placebo-stability equality holds.  Thus all defining constraints of the reduced polytope hold, and the explicit construction in \(\text{def:k2-worked-lift}\), equivalently the converse lift in Theorem \(\text{thm:exact-history-compression}\), is a member of the asserted full-law class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The numerical lift exposes every step from one common exposure history through observed strain risks to a compatible full law. \textit{Gap.} This is a worked certificate for the new multi-variant compression, not a standalone novelty claim. \textit{Consumer.} Readers and software implementers obtain a four-atom regression test for feasibility, lifting, and ratio evaluation.
+
+\begin{proposition}[prop:single-variant-reduction]\label{prop:single-variant-reduction}
+When \(K=1\), \(\delta=0\), \(q_{11}=q_{21}=1\), and \(\omega_1=1\), the period-two no-prior-exposure controlled challenge risk in each arm obeys \(b_{2a1}\leq\rho_{2a}(x,\omega)\leq b_{1a1}+b_{2a1}\), the risk inclusion used in the proof of Theorem 1 of Janvin and Stensrud (2025).
+\end{proposition}
+\begin{proof}
+Apply the displayed constructions to their one-variant boundary specialization.  The exposure restrictions \(q_{11}=q_{21}=1\) and common histories imply \(H_1^0=H_2^0=1\) almost surely.  Write \(R_1=R_{1a1}\), \(R_2^0=R^{[0]}_{2a1}\), and \(R_2^1=R^{[1]}_{2a1}\).  The \(\delta=0\) priming constraint is
+\[
+P(R_1=0,R_2^1\ne R_2^0)=0.
+\]
+Consequently the observation map and the trial equalities yield
+\[
+b_{1a1}=E(R_1),
+\qquad
+b_{2a1}=E\{R_2^1(1-R_1)\}=E\{R_2^0(1-R_1)\}.
+\]
+Since \(\omega_1=1\), \(\rho_{2a}(x,\omega)=E(R_2^0)\), and hence
+\[
+\rho_{2a}(x,\omega)
+=b_{2a1}+E(R_2^0R_1).
+\]
+The binary support gives \(0\leq R_2^0R_1\leq R_1\).  Taking expectations and using \(E(R_1)=b_{1a1}\) proves
+\[
+b_{2a1}\leq\rho_{2a}(x,\omega)\leq b_{1a1}+b_{2a1}.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The no-priming endpoint \(\delta=0\) checks that the expanded history construction preserves the standard one-pathogen survivor-selection geometry. \textit{Gap.} This is a required calibration to Janvin and Stensrud (2025), not a claimed novelty. \textit{Consumer.} Readers can verify the new program against the established one-pathogen proof boundary before using variant margins.
+
+\begin{theorem}[thm:perenyi-collapse-boundary]\label{thm:perenyi-collapse-boundary}
+Fix \(K=2\), \(t\in\mathcal T\), and a reported \(\delta\in\mathcal D\).  After deleting the coordinates outside \(\overline{\mathcal S}\), write the finite system in the reduced-polytope definition as
+\[
+ \mathcal P:=\mathcal P_\delta(b,q,\omega)
+   =\{x\in\mathbb R^p:E x=d,\ Gx\leq u\},
+ \qquad p=|\overline{\mathcal S}|,
+\]
+where the rows of \(Gx\leq u\) include nonnegativity and all priming inequalities.  For \(a\in\{0,1\}\) and \(v\in\{1,2\}\), let \(\ell_{av}\in\mathbb R^p\) be the coefficient vector satisfying
+\[
+ \ell_{av}^{\mathsf T}x=\rho_{ta}(x,e^{(v)}).
+\]
+Define the controlled-risk comparison face
+\[
+ \mathcal F_t=\{x\in\mathcal P:\ell_{av}^{\mathsf T}x>0
+                    \text{ for every }a\in\{0,1\},\ v\in\{1,2\}\}.
+\]
+The observed-positive condition is
+\[
+ \mathcal O_t:\quad
+ s_{ta}:=1-\sum_{r<t}\sum_{w\in\mathcal V}b_{raw}>0
+ \quad(a=0,1),
+ \qquad b_{t,0,1}>0,\quad b_{t,0,2}>0,\quad b_{t,1,2}>0.
+\]
+Under \(\mathcal O_t\), the observed comparator is defined and equals
+\[
+ k_{\rm obs}:=\operatorname{CSE}^{\rm obs}_t(b)
+ =\frac{b_{t,1,1}b_{t,0,2}}{b_{t,0,1}b_{t,1,2}}.
+\]
+
+The following finite procedure gives necessary and sufficient collapse restrictions.  First test feasibility of \(\mathcal P\).  When \(\mathcal P\neq\varnothing\), compute
+\[
+ \varepsilon_\star=\max_{x,\varepsilon}\left\{\varepsilon:
+ Ex=d,\ Gx\leq u,\ \ell_{av}^{\mathsf T}x\geq\varepsilon
+ \text{ for all }(a,v)\right\}.
+\]
+Then \(\mathcal F_t\neq\varnothing\) if and only if \(\varepsilon_\star>0\).  When this holds, let
+\[
+ I_0=\left\{j:\max_{x\in\mathcal P}
+       (u_j-G_j^{\mathsf T}x)=0\right\},
+\]
+let \(Hx=h\) stack \(Ex=d\) and \(G_j^{\mathsf T}x=u_j\) for \(j\in I_0\), and let the columns of \(N\) be any basis of \(\ker H\).  Obtain \(y\) from the finite linear program
+\[
+ \max_{x,\tau}\left\{\tau:x\in\mathcal P,\ 
+ u_j-G_j^{\mathsf T}x\geq\tau\ (j\notin I_0),\ 
+ \ell_{av}^{\mathsf T}x\geq\tau\ \text{for all }(a,v)\right\};
+\]
+its optimum is positive.  Put \(a_1=\ell_{11}\), \(p_1=\ell_{01}\), \(a_2=\ell_{12}\), \(p_2=\ell_{02}\), and define
+\[
+ k_0=\frac{(a_1^{\mathsf T}y)(p_2^{\mathsf T}y)}
+ {(p_1^{\mathsf T}y)(a_2^{\mathsf T}y)},
+ \qquad
+ Q(k)=\frac12\{a_1p_2^{\mathsf T}+p_2a_1^{\mathsf T}
+ -k(p_1a_2^{\mathsf T}+a_2p_1^{\mathsf T})\}.
+\]
+Then \(\operatorname{CSE}^{\rm P}_t(x)\) is constant on \(\mathcal F_t\) if and only if the quadratic affine-hull criterion
+\[
+ y^{\mathsf T}Q(k_0)y=0,\qquad
+ N^{\mathsf T}Q(k_0)y=0,\qquad
+ N^{\mathsf T}Q(k_0)N=0                                      \tag{C}
+\]
+holds.  The criterion is independent of the admissible choices of \(y\) and \(N\); when it holds, the constant is \(k_0\).  Consequently, on a nonempty comparison face and under \(\mathcal O_t\),
+\[
+ \operatorname{CSE}^{\rm P}_t(x)=\operatorname{CSE}^{\rm obs}_t(b)
+ \quad\hbox{for every }x\in\mathcal F_t
+\]
+if and only if \((\mathrm C)\) holds and \(k_0=k_{\rm obs}\).
+
+The failure certificates are exhaustive after observed positivity is checked.  If \(\mathcal O_t\) fails, the stipulated observed comparison is undefined; this does not imply that \(\mathcal F_t\) is empty.  Suppose \(\mathcal O_t\) holds.  If \(\mathcal F_t=\varnothing\), there is a finite certificate: either \(\mathcal P=\varnothing\) and there are \(\mu\geq0\), \(\nu\) such that
+\[
+ G^{\mathsf T}\mu+E^{\mathsf T}\nu=0,
+ \qquad u^{\mathsf T}\mu+d^{\mathsf T}\nu<0,
+\]
+or \(\mathcal P\neq\varnothing\), \(\varepsilon_\star=0\), and there are \(\mu\geq0\), \(\lambda_{av}\geq0\), and \(\nu\) such that
+\[
+ \sum_{a,v}\lambda_{av}=1,\qquad
+ G^{\mathsf T}\mu-\sum_{a,v}\lambda_{av}\ell_{av}
+       +E^{\mathsf T}\nu=0,\qquad
+ u^{\mathsf T}\mu+d^{\mathsf T}\nu=0.
+\]
+If \(\mathcal F_t\neq\varnothing\) but \((\mathrm C)\) fails, the coefficient test in the proof constructs \(x_1,x_2\in\mathcal F_t\) with different values of \(\operatorname{CSE}^{\rm P}_t\), and exact history compression lifts both vectors to compatible laws in \(\mathfrak M_\delta(b,q,\omega)\).  If \((\mathrm C)\) holds but \(k_0\neq k_{\rm obs}\), the lift of \(y\) is a one-law mismatch certificate, because its four controlled risks give \(\operatorname{CSE}^{\rm P}_t(y)=k_0\neq k_{\rm obs}\).
+\end{theorem}
+\begin{proof}
+All vectors below use only the common-history coordinates.  The reduced-polytope definition has finitely many equality and inequality constraints, so it has the displayed representation \(Ex=d\), \(Gx\leq u\).  Nonnegativity is included among the rows of \(G\).  For \(t=1\), the entries of \(\ell_{av}\) are \(r_{1av}(s)\); for \(t=2\), they are \(r^{[0]}_{2av}(s)\).  Thus the definition of \(\rho\) gives, equation by equation,
+\[
+ \ell_{av}^{\mathsf T}x
+ =\sum_{s\in\overline{\mathcal S}}r_{1av}(s)x_s
+ =\rho_{1a}(x,e^{(v)})
+\]
+in period one, and
+\[
+ \ell_{av}^{\mathsf T}x
+ =\sum_{s\in\overline{\mathcal S}}r^{[0]}_{2av}(s)x_s
+ =\rho_{2a}(x,e^{(v)})
+\]
+in period two.  Each entry of every \(\ell_{av}\) is zero or one.  Hence \(x\geq0\) implies \(\ell_{av}^{\mathsf T}x\geq0\).
+
+We first keep the observed functional separate from the controlled-risk target.  Under \(\mathcal O_t\), the observed hazard definition yields
+\[
+ h^{\rm obs}_{tav}(b)=\frac{b_{tav}}{s_{ta}}\geq0.
+\]
+Cancellation of the two arm-specific at-risk factors, which is legal because \(s_{t0},s_{t1}>0\), gives
+\[
+ \operatorname{CSE}^{\rm obs}_t(b)
+ =\frac{(b_{t,1,1}/s_{t1})/(b_{t,0,1}/s_{t0})}
+ {(b_{t,1,2}/s_{t1})/(b_{t,0,2}/s_{t0})}
+ =\frac{b_{t,1,1}b_{t,0,2}}{b_{t,0,1}b_{t,1,2}}
+ =k_{\rm obs}.
+\]
+The three cell probabilities appearing in denominators are positive under \(\mathcal O_t\), while \(b_{t,1,1}\geq0\), so every division is valid and \(k_{\rm obs}\in[0,+\infty)\).  If \(\mathcal O_t\) fails, at least one required at-risk or component-denominator positivity condition is absent; therefore the observed comparison used in the question is not defined.  This is a failure of the comparison premise, not a logical statement about feasibility of \(\mathcal F_t\).
+
+Assume next that \(\mathcal P\neq\varnothing\).  Because every controlled risk is nonnegative, any \(x\in\mathcal P\) together with \(\varepsilon=0\) is feasible in the program defining \(\varepsilon_\star\).  Also \(\ell_{av}^{\mathsf T}x\leq\sum_sx_s=1\), so its optimal value is finite and attained.  If \(\varepsilon_\star>0\), an optimizer belongs to \(\mathcal F_t\).  Conversely, if \(x\in\mathcal F_t\), finiteness of the four indices gives
+\[
+ \varepsilon:=\min_{a\in\{0,1\},\,v\in\{1,2\}}
+       \ell_{av}^{\mathsf T}x>0,
+\]
+so \(\varepsilon_\star\geq\varepsilon>0\).  This proves
+\[
+ \mathcal F_t\neq\varnothing\quad\Longleftrightarrow\quad
+ \varepsilon_\star>0.                                      \tag{1}
+\]
+
+The advertised empty-face certificates follow from finite linear-program duality.  First suppose \(\mathcal P=\varnothing\).  Consider the phase-one program
+\[
+ \min_{x,r}\ r
+ \quad\text{subject to}\quad
+ Gx-r\mathbf 1\leq u,
+ \ Ex-r\mathbf 1\leq d,
+ \ -Ex-r\mathbf 1\leq-d,
+ \ -r\leq0.
+\]
+It is feasible for sufficiently large \(r\), and its objective is bounded below by zero.  Its attained value \(r_\star\) is strictly positive, since a feasible point with \(r=0\) would belong to \(\mathcal P\).  Applying finite linear-program strong duality to this program gives nonnegative multipliers \(\mu,\alpha,\beta,\gamma\) satisfying
+\[
+ G^{\mathsf T}\mu+E^{\mathsf T}\alpha-E^{\mathsf T}\beta=0,
+ \qquad
+ \mathbf 1^{\mathsf T}\mu+\mathbf 1^{\mathsf T}\alpha
+ +\mathbf 1^{\mathsf T}\beta+\gamma=1,
+\]
+and
+\[
+ -u^{\mathsf T}\mu-d^{\mathsf T}\alpha+d^{\mathsf T}\beta=r_\star>0.
+\]
+With \(\nu=\alpha-\beta\), these equations imply
+\[
+ G^{\mathsf T}\mu+E^{\mathsf T}\nu=0,
+ \qquad u^{\mathsf T}\mu+d^{\mathsf T}\nu=-r_\star<0.       \tag{2}
+\]
+Conversely, multiplying the constraints of any putative feasible \(x\) by a pair satisfying (2) would give
+\[
+ 0=x^{\mathsf T}(G^{\mathsf T}\mu+E^{\mathsf T}\nu)
+   =\mu^{\mathsf T}Gx+\nu^{\mathsf T}Ex
+   \leq\mu^{\mathsf T}u+\nu^{\mathsf T}d<0,
+\]
+a contradiction.  Thus (2) is a separating infeasibility certificate.
+
+Now suppose \(\mathcal P\neq\varnothing\).  Rewrite the maximization defining \(\varepsilon_\star\) as minimization of \(-\varepsilon\).  Finite linear-program strong duality gives the dual
+\[
+ \min_{\mu,\lambda,\nu}\ u^{\mathsf T}\mu+d^{\mathsf T}\nu
+\]
+subject to
+\[
+ \mu\geq0,\quad\lambda_{av}\geq0,\quad
+ \sum_{a,v}\lambda_{av}=1,\quad
+ G^{\mathsf T}\mu-\sum_{a,v}\lambda_{av}\ell_{av}
+       +E^{\mathsf T}\nu=0.                                \tag{3}
+\]
+The primal value is \(\varepsilon_\star\), so the dual value in (3) is also \(\varepsilon_\star\).  In view of (1), a nonempty \(\mathcal P\) has an empty \(\mathcal F_t\) exactly when the primal value is zero, and then an attained dual solution with
+\(u^{\mathsf T}\mu+d^{\mathsf T}\nu=0\) is the asserted finite certificate.  Weak duality also directly verifies the certificate: for any \(x\in\mathcal P\), (3) gives
+\[
+ \sum_{a,v}\lambda_{av}\ell_{av}^{\mathsf T}x
+ =\mu^{\mathsf T}Gx+\nu^{\mathsf T}Ex
+ \leq\mu^{\mathsf T}u+\nu^{\mathsf T}d=0.
+\]
+Every summand on the left is nonnegative and the \(\lambda_{av}\)'s sum to one, so not all four risks can be strictly positive.
+
+It remains to prove the exact constancy criterion.  A row \(j\) belongs to \(I_0\) precisely when its inequality is an equality at every point of \(\mathcal P\).  Hence
+\[
+ \operatorname{aff}(\mathcal P)\subseteq\{x:Hx=h\}.          \tag{4}
+\]
+For every \(j\notin I_0\), the defining maximum for \(I_0\) is positive, so there is \(x^{(j)}\in\mathcal P\) with
+\(u_j-G_j^{\mathsf T}x^{(j)}>0\).  Averaging these finitely many witnesses gives a point strictly satisfying every inequality not in \(I_0\).  Averaging that point with any member of \(\mathcal F_t\) gives a point that additionally has all four controlled risks strictly positive.  Thus the linear program defining \(y\) has a positive optimum, and its optimizer satisfies
+\[
+ u_j-G_j^{\mathsf T}y>0\quad(j\notin I_0),
+ \qquad \ell_{av}^{\mathsf T}y>0\quad(a=0,1;\ v=1,2).       \tag{5}
+\]
+Because there are finitely many inequalities, (5) supplies a relative neighborhood of \(y\) in \(\{x:Hx=h\}\) contained in \(\mathcal P\).  Therefore the reverse inclusion in (4) holds after taking affine hulls, and
+\[
+ \operatorname{aff}(\mathcal P)=\{x:Hx=h\}=y+\ker H
+ =\{y+Nz:z\in\mathbb R^{\dim\ker H}\}.                     \tag{6}
+\]
+This also proves that the construction of the affine hull is computable using finitely many linear programs.
+
+On \(\mathcal F_t\), every denominator below is positive, and the controlled-risk definition gives
+\[
+ \operatorname{CSE}^{\rm P}_t(x)
+ =\frac{(a_1^{\mathsf T}x)(p_2^{\mathsf T}x)}
+ {(p_1^{\mathsf T}x)(a_2^{\mathsf T}x)}.                    \tag{7}
+\]
+For every real \(k\), direct multiplication shows
+\[
+ x^{\mathsf T}Q(k)x
+ =(a_1^{\mathsf T}x)(p_2^{\mathsf T}x)
+ -k(p_1^{\mathsf T}x)(a_2^{\mathsf T}x).                   \tag{8}
+\]
+In particular, the definition of \(k_0\) and positivity in (5) imply
+\[
+ y^{\mathsf T}Q(k_0)y=0.                                    \tag{9}
+\]
+For \(x=y+Nz\), symmetry of \(Q(k_0)\) yields the exact expansion
+\[
+ x^{\mathsf T}Q(k_0)x
+ =y^{\mathsf T}Q(k_0)y
+ +2z^{\mathsf T}N^{\mathsf T}Q(k_0)y
+ +z^{\mathsf T}N^{\mathsf T}Q(k_0)Nz.                      \tag{10}
+\]
+If criterion \((\mathrm C)\) holds, (10) is zero throughout the affine hull and hence throughout \(\mathcal F_t\).  Equations (7)--(8), with positive denominator, then give \(\operatorname{CSE}^{\rm P}_t(x)=k_0\) for every \(x\in\mathcal F_t\).
+
+Conversely, suppose the controlled-risk ratio is constant on \(\mathcal F_t\).  Its value must be its value at \(y\), namely \(k_0\).  By (5)--(6), \(\mathcal F_t\) contains a relative open neighborhood of \(y\) in \(y+\ker H\).  Hence the quadratic polynomial in (10) vanishes for all sufficiently small \(z\).  Setting \(z=se_i\) and subtracting the identities at \(s\) and \(-s\) gives
+\[
+ 4s\,e_i^{\mathsf T}N^{\mathsf T}Q(k_0)y=0,
+\]
+so \(N^{\mathsf T}Q(k_0)y=0\).  The remaining quadratic form vanishes near zero.  Taking \(z=se_i\) shows that every diagonal entry of \(N^{\mathsf T}Q(k_0)N\) is zero; taking \(z=s(e_i+e_j)\) then shows every off-diagonal entry is zero.  Together with (9), this is exactly \((\mathrm C)\).  This proves necessity, sufficiency, and invariance to the chosen anchor and null-space basis, because each version is equivalent to constancy on the same set \(\mathcal F_t\).
+
+Under \(\mathcal O_t\), equality with the observed comparator holds precisely when the just-proved constancy criterion holds and its constant \(k_0\) equals \(k_{\rm obs}\).  This proves the claimed collapse boundary without defining the causal target to equal the observed functional.
+
+For completeness, the nonconstant branch is constructive.  If \((\mathrm C)\) fails, (9) shows that either \(N^{\mathsf T}Q(k_0)y\neq0\), in which case choose a coordinate vector \(z\) with
+\(z^{\mathsf T}N^{\mathsf T}Q(k_0)y\neq0\), or that vector is zero and \(N^{\mathsf T}Q(k_0)N\neq0\), in which case choose \(z\) with
+\(z^{\mathsf T}N^{\mathsf T}Q(k_0)Nz\neq0\).  In the latter case such a \(z\) is found by testing the coordinate vectors and their pairwise sums.  Set \(n=Nz\).  By (5),
+\[
+ \bar e=\min\left(1,
+ \min_{\substack{j\notin I_0\\G_j^{\mathsf T}n\neq0}}
+ \frac{u_j-G_j^{\mathsf T}y}{2|G_j^{\mathsf T}n|},
+ \min_{\substack{a,v\\\ell_{av}^{\mathsf T}n\neq0}}
+ \frac{\ell_{av}^{\mathsf T}y}{2|\ell_{av}^{\mathsf T}n|}
+ \right)>0,                                                  \tag{11}
+\]
+where an empty inner minimum is omitted.  Universal equalities are preserved because \(Hn=0\), and (11) implies \(y+en\in\mathcal F_t\) for every \(0<e<\bar e\).  The polynomial
+\[
+ \phi(e)=(y+en)^{\mathsf T}Q(k_0)(y+en)
+ =2e\,n^{\mathsf T}Q(k_0)y+e^2n^{\mathsf T}Q(k_0)n
+\]
+is nonzero by the rule selecting \(z\).  It has at most one nonzero root.  Choose any \(e\in(0,\bar e)\) other than that root and set
+\(x_1=y\), \(x_2=y+en\).  Equations (7)--(9) imply
+\[
+ \operatorname{CSE}^{\rm P}_t(x_1)=k_0,
+ \qquad \operatorname{CSE}^{\rm P}_t(x_2)\neq k_0.
+\]
+Exact history compression lifts \(x_1\) and \(x_2\) to laws in \(\mathfrak M_\delta(b,q,\omega)\), so these are compatible-law certificates rather than merely algebraic points.  Finally, if \((\mathrm C)\) holds but \(k_0\neq k_{\rm obs}\), exact history compression lifts \(y\), and its four risks are the four positive numbers in (7); (7) calculates its value as \(k_0\neq k_{\rm obs}\).  This supplies the required one-law observable-mismatch certificate and completes all branches.
+\end{proof}
+
+\begin{theorem}[thm:case-margin-invariance-frontier]\label{thm:case-margin-invariance-frontier}
+Fix \(\delta\in\mathcal D\) and assume the case-frequency denominators are positive.  Put \(q^0=q\), \(q^1=q^{\mathrm{case}}\), \(P_j=\mathcal P_\delta(b,q^j,\omega)\), \(N(x)=\rho_{11}(x,\omega)\), and \(D(x)=\rho_{21}(x,\omega)\).  There is a finite necessary-and-sufficient observable primal--dual test for endpoint invariance.  For each \(j\), first test feasibility of \(P_j\), of \(P_j\cap\{N=D=0\}\), of \(P_j\cap\{D=0\}\), and of \(P_j\cap\{D>0\}\) by linear programs.  If \(P_j\cap\{N=D=0\}\ne\varnothing\), its endpoint code is \((0,+\infty)\).  If that set is empty but \(D=0\) on all of \(P_j\), its code is \((+\infty,+\infty)\).  Otherwise form the Charnes--Cooper program with \(q^j\): minimize and maximize \(N(y)\) subject to \(y,z\geq0\), \(E_\omega y=d(b,q^j)z\), \(F_\delta y\leq0\), and \(D(y)=1\).  Its minimum is \(L_j\); its maximum is \(U_j\) when \(P_j\cap\{D=0\}=\varnothing\), and \(U_j=+\infty\) otherwise.  Every finite endpoint is certified by an attaining primal pair and a matching dual pair.  The replacement \(q\mapsto q^{\mathrm{case}}\) leaves both sharp endpoints unchanged if and only if \(P_0,P_1\ne\varnothing\) and their two endpoint codes agree componentwise.  These conditions depend only on \((b,q,q^{\mathrm{case}},\omega,\delta)\).
+
+If invariance fails, the same finite programs give the exhaustive requested certificate.  If \(P_1=\varnothing\), there are \(\lambda\) and \(\mu\geq0\) with \(E_\omega^\top\lambda+F_\delta^\top\mu\geq0\) and \(d(b,q^{\mathrm{case}})^\top\lambda<0\).  If \(P_1\ne\varnothing\) and its extended ratio correspondence is nonconstant, two feasible type masses, with target selections when a \(0/0\) type is used, lift to compatible full laws with different ratios; a primal optimizer and matching dual value for an endpoint whose code differs from that for \(P_0\) certify strict mismatch.  If \(P_1\ne\varnothing\) and its ratio correspondence is constant, a feasible type mass lifts to a compatible law attaining that singleton, and matching lower and upper dual values show that this singleton differs from the original sharp set.  Thus case-strain frequencies are valid substitutes exactly on this computable invariance frontier.
+\end{theorem}
+\begin{proof}
+All programs are finite because \(\overline{\mathcal S}\) is finite.  Write \(E=E_\omega\), \(F=F_\delta\), \(d_j=d(b,q^j)\), and let \(n,d_2\) be the coefficient vectors of \(N,D\).  Feasibility of \(P_j=\{x\geq0:Ex=d_j,Fx\leq0\}\) is an ordinary linear program.  Its finite alternative is
+\[
+P_j=\varnothing
+\quad\Longleftrightarrow\quad
+\exists(\lambda,\mu):\ \mu\geq0,\quad E^\top\lambda+F^\top\mu\geq0,
+\quad d_j^\top\lambda<0.
+\]
+The forward implication is obtained by separating \(d_j\) from the finitely generated feasible cone; the reverse follows by multiplying the componentwise inequality by any putative \(x\), which would give \(0\leq d_j^\top\lambda+\mu^\top Fx\leq d_j^\top\lambda<0\).  Adding \(n^\top x=d_2^\top x=0\), or \(d_2^\top x=0\), gives the two zero-risk tests.  Existence of \(D>0\) is certified by \(\max_{x\in P_j}d_2^\top x>0\).  Hence all branch tests are closed finite linear programs.
+
+Suppose first that a \(0/0\) type mass is feasible.  By the definition of \(\operatorname{Rat}(0,0)\), every extended value is compatible, so the code is \((0,+\infty)\).  If no such mass exists and \(D=0\) everywhere, compactness gives \(\min_{P_j}N>0\); every value is therefore \(+\infty\).  In the remaining case there is a point with \(D>0\).  The transformation \(y=x/D(x),z=1/D(x)\) and its inverse \(x=y/z\) prove exactly as in Theorem \(\text{thm:sharp-reciprocal-endpoints}\) that the finite-ratio image equals the objective image of the stated normalization.  If some feasible \(x\) has \(D=0<N\), ratios along a segment from a positive-denominator point to that point diverge, and \(+\infty\) is itself compatible, so \(U_j=+\infty\).  If no such point exists, compactness makes \(D\) uniformly positive and both normalized extrema are finite and attained.  If a minimizing sequence in the normalized program escaped with \(z\to\infty\), its corresponding \(x\)'s would converge to a zero-denominator point; absence of \(0/0\) would make \(N/D\to+\infty\), contradicting minimization.  Thus the finite lower endpoint is attained as well.
+
+For completeness, the minimizing normalization has the observable dual
+\[
+\max_{\lambda,\kappa,\tau}\ \tau
+\quad\text{subject to}\quad
+E^\top\lambda-F^\top\kappa+\tau d_2\leq n,
+\quad d_j^\top\lambda\geq0,\quad\kappa\geq0,
+\]
+and the maximizing normalization has the dual
+\[
+\min_{\lambda,\mu,\sigma}\ \sigma
+\quad\text{subject to}\quad
+E^\top\lambda+F^\top\mu+\sigma d_2\geq n,
+\quad d_j^\top\lambda\leq0,\quad\mu\geq0.
+\]
+Multiplication by feasible \((y,z)\) proves weak duality in each display.  Separation of the finite polyhedral constraint cone, as in the proof of Theorem \(\text{thm:common-history-sign-dual}\), proves equality whenever the corresponding endpoint is finite.  Thus equality of the two branch codes is both necessary and sufficient and is witnessed entirely by finitely many primal and dual solutions.
+
+If invariance fails, at least one endpoint code differs.  The infeasible substituted-fiber branch has the displayed Farkas ray.  In the nonempty nonconstant branch, the definition of nonconstancy supplies two type masses (or two target selections on a \(0/0\) mass) with different extended values; exact history compression lifts them.  The mismatched code selects a substituted endpoint witness, while its matching dual gives an equality bound that excludes equality with the original endpoint.  In the constant branch both substituted endpoints equal its single value; one lifted feasible mass attains it and matching lower and upper certificates pin it down.  Because invariance failed, the original endpoint pair is different.  These three cases are disjoint and exhaustive.
+\end{proof}
+
+\begin{theorem}[thm:mixture-sign-radius-certificate]\label{thm:mixture-sign-radius-certificate}
+Fix a reported \(\delta\) with nonempty fixed fiber \(P=\mathcal P_\delta(b,q,\omega)\) and one strict baseline sign.  Put \(a_v(x)=\sum_s\{r_{11v}(s)-r^{[0]}_{21v}(s)\}x_s\), and set \(\sigma=1\) when \(U_\delta<1\) and \(\sigma=-1\) when \(L_\delta>1\).  Let \(x^1,\ldots,x^M\) be the vertices of \(P\).  For each \(i\), solve the finite linear program
+\[
+r_i=\min_{w,t}\sum_vt_v
+\quad\text{subject to}\quad w\in\Delta(\mathcal V),\quad
+t_v\geq w_v-\omega_v,\quad t_v\geq\omega_v-w_v,\quad
+\sigma\sum_vw_va_v(x^i)\geq0,
+\]
+with value \(+\infty\) if infeasible.  Then \(r_\star(\delta)=\min_i r_i\).  If finite, a minimizing vertex and mixture attain the radius and satisfy the boundary equality \(\sum_vw_va_v(x^i)=0\); the vertex lifts to a compatible full law in the fixed \((b,q,\delta,\omega)\)-fiber.
+
+For any \(r<r_\star(\delta)\), enumerate the vertices \(w^1,\ldots,w^J\) of \(W_r=\{w\in\Delta(\mathcal V):\lVert w-\omega\rVert_1\leq r\}\).  For every \(j\) there are \(\lambda_j\) and \(\mu_j\geq0\) satisfying
+\[
+E_\omega^\top\lambda_j+F_\delta^\top\mu_j\geq \sigma c_{w^j},
+\qquad d(b,q)^\top\lambda_j<0,
+\]
+where \(c_w(s)=\sum_vw_v\{r_{11v}(s)-r^{[0]}_{21v}(s)\}\).  This finite collection is a robust dual certificate that every \(x\in P\) and every \(w\in W_r\) retain the baseline strict side.  Finally, \(r_\star(\delta)=+\infty\) exactly when all the vertex programs are infeasible; equivalently, strict-sign dual certificates exist for every point-mass mixture \(e^{(v)}\).  These certificates prove infeasibility of reversal for every mixture.  Throughout, only the target mixture changes; the compatible-law fiber and its placebo row remain indexed by the original \(\omega\).
+\end{theorem}
+\begin{proof}
+Endpoint sign calibration gives \(\sigma c_\omega^\top x<0\) for every \(x\in P\), where \(c_w^\top x=\sum_vw_va_v(x)\).  For a fixed candidate mixture \(w\), the maximum of the linear functional \(\sigma c_w^\top x\) over the compact polytope \(P\) occurs at a vertex.  Consequently
+\[
+\exists x\in P:\sigma c_w^\top x\geq0
+\quad\Longleftrightarrow\quad
+\exists i:\sigma\sum_vw_va_v(x^i)\geq0.
+\]
+Minimizing \(\lVert w-\omega\rVert_1\) over this finite union gives \(\min_i r_i\), and the auxiliary variables \(t_v\) linearize the norm exactly.  This proves the formula for \(r_\star\).  Compactness of the simplex gives attainment whenever one program is feasible.  At a minimizing pair the contrast must equal zero: if it were strictly positive, the segment from \(w\) toward \(\omega\) would, by continuity and the strict negative baseline contrast at the same \(x^i\), meet zero at a strictly smaller distance.
+
+Now fix \(r<r_\star\).  For each vertex \(w^j\) of \(W_r\), the preceding equivalence gives
+\[
+\max_{x\in P}\sigma c_{w^j}^\top x<0.
+\]
+The finite polyhedral dual derivation in Theorem \(\text{thm:common-history-sign-dual}\) therefore produces the displayed \((\lambda_j,\mu_j)\).  Any \(w\in W_r\) is a convex combination \(w=\sum_j\gamma_jw^j\).  For every \(x\in P\), weak duality and linearity in \(w\) give
+\[
+\sigma c_w^\top x
+=\sum_j\gamma_j\sigma c_{w^j}^\top x
+\leq\sum_j\gamma_jd(b,q)^\top\lambda_j<0.
+\]
+Thus the finite family certifies the strict side simultaneously over the whole product set.
+
+If every vertex reversal program is infeasible, no pair \((x,w)\in P\times\Delta(\mathcal V)\) reverses the sign, so the defining minimum is over the empty set and equals \(+\infty\).  Conversely, a feasible program gives a finite radius.  Since the simplex is the convex hull of its point masses, dual strict-sign certificates for every \(e^{(v)}\) imply the sign for every mixture by the same convex-combination calculation, and necessity follows by applying fixed-mixture strong duality.  The compatible \(x\) is never moved to a fiber indexed by \(w\), which proves the fixed-fiber assertion.
+\end{proof}
+
+\begin{lemma}[lem:finite-lp-strong-duality]\label{lem:finite-lp-strong-duality}
+Let \(A\), \(B\), \(b\), \(c\), and \(e\) be finite real matrices or vectors of conformable dimensions.  If the linear program
+\[
+ \min_{z\in\mathbb R^N}\{c^\top z:Az\leq b,\ Bz=e\}
+\]
+is feasible and has a finite optimal value, then its Lagrange dual
+\[
+ \max_{\lambda\geq0,\,\nu}\{-b^\top\lambda-e^\top\nu:
+ c+A^\top\lambda+B^\top\nu=0\}
+\]
+attains the same optimal value.
+\end{lemma}
+
+\begin{theorem}[thm:exact-whole-set-projection-coverage]\label{thm:exact-whole-set-projection-coverage}
+Fix \(\alpha\in(0,1)\), a prespecified \(\delta\in[0,1]\), and the policy mixture \(\omega\). Use the convention \(\Gamma_0(0;\gamma)=\Delta\) in \(\text{def:exact-whole-set-projection}\). Under the stated sampling model, for every \(P\in\mathfrak M_\delta(b,q,\omega)\) and every joint law of the trial and external count vectors having the stipulated armwise conditional and periodwise marginal multinomial laws,
+\[
+ \Pr_{\mathrm{samp}}\!\left\{
+   \Theta_{I,\delta}(b,q,\omega)
+   \subseteq \mathcal C_{n,m,\delta}^{\mathrm{exact}}
+ \right\}\geq 1-\alpha .
+\]
+This probability statement is unconditional over the realized treatment-arm sizes and external counts and requires no independence among the four count vectors. It includes zero observed cells, an empty realized arm, and every finite, \(+\infty\), and \([0,+\infty]\) branch of the extended ratio correspondence. For every realization, \(\mathcal C_{n,m,\delta}^{\mathrm{exact}}\) is the closure of the projection onto the ratio coordinate of a finite union of explicitly enumerable feasibility systems: each system consists of finitely many likelihood-ratio ordering inequalities, the candidate simplex constraints, \(x\in\mathcal P_\delta(b',q',\omega)\), and the three-branch relation generated by \(\rho_{11}(x,\omega)\) and \(\rho_{21}(x,\omega)\). Consequently, an empty candidate fiber contributes no projected point, and no endpoint optimizer is selected.
+\end{theorem}
+\begin{proof}
+Put \(\gamma=\alpha/4\). We first prove the finite-sample property of one inverted multinomial test. For a dimension \(d\) and total \(N\), define the finite count space
+\[
+ \mathcal Z_{N,d}=\left\{z\in\mathbb N_0^d:\sum_{j=1}^d z_j=N\right\}.
+\]
+When \(N\geq1\), let \(Z\sim\operatorname{Mult}_N(p)\) and use the extended likelihood convention in \(\text{def:exact-whole-set-projection}\). The statistic \(T_p(Z)\) has finitely many distinct values, which we order as \(\tau_1>\cdots>\tau_L\). Write
+\[
+ c_\ell=\Pr_p\{T_p(Z)\geq\tau_\ell\},\qquad \ell=1,\ldots,L.
+\]
+Then \(c_1\leq\cdots\leq c_L=1\), and on \(\{T_p(Z)=\tau_\ell\}\) the definition gives \(\operatorname{pv}_N(p;Z)=c_\ell\). The set of indices for which \(c_\ell<\gamma\) is either empty or an initial segment \(\{1,\ldots,r\}\). Hence, in the nonempty case,
+\[
+ \Pr_p\{\operatorname{pv}_N(p;Z)<\gamma\}
+ =\sum_{\ell=1}^r\Pr_p\{T_p(Z)=\tau_\ell\}
+ =c_r<\gamma,
+\]
+and the probability is zero in the empty case. Thus
+\[
+ \Pr_p\{p\in\Gamma_N(Z;\gamma)\}
+ =\Pr_p\{\operatorname{pv}_N(p;Z)\geq\gamma\}
+ \geq1-\gamma. \tag{1}
+\]
+This argument allows coordinates of \(p\) or \(Z\) to be zero: a positive count paired with \(p_j=0\) gives extended statistic \(+\infty\), while \(0\log0=0\). If \(N=0\), the corrected definition gives \(\Gamma_0(0;\gamma)=\Delta\), so (1) holds with probability one.
+
+For arm \(a\in\mathcal A\), let \(N_a\) be its realized size and let \(U^a\) be its count vector on \(\{\varnothing\}\cup(\mathcal T\times\mathcal V)\). Define
+\[
+ p^a_{tv}=b_{tav},\qquad
+ p^a_{\varnothing}=1-\sum_{t\in\mathcal T}\sum_{v\in\mathcal V}b_{tav}.
+\]
+The stated sampling model says that, conditional on \(N_a=r\), \(U^a\sim\operatorname{Mult}_r(p^a)\). Applying (1), including its \(r=0\) case, and then the law of total probability yields
+\[
+ \Pr_{\mathrm{samp}}\{p^a\notin\Gamma_{N_a}(U^a;\gamma)\}
+ =\sum_{r=0}^n\Pr(N_a=r)
+   \Pr\{p^a\notin\Gamma_r(U^a;\gamma)\mid N_a=r\}
+ \leq\gamma. \tag{2}
+\]
+For external period \(t\in\mathcal T\), let \(W^t\) be the count vector on \(\mathcal V_0\). Its marginal law is \(\operatorname{Mult}_m(q_t)\), so (1) gives
+\[
+ \Pr_{\mathrm{samp}}\{q_t\notin\Gamma_m(W^t;\gamma)\}\leq\gamma. \tag{3}
+\]
+Let \(E\) be the event that both arm vectors and both external-period vectors are accepted. Equations (2)--(3) and the union bound give
+\[
+ \Pr_{\mathrm{samp}}(E^c)
+ \leq\sum_{a\in\mathcal A}\gamma+\sum_{t\in\mathcal T}\gamma
+ =4\gamma=\alpha. \tag{4}
+\]
+No factorization of the joint sampling law was used in (4). Notice also why (4) is asserted unconditionally: the sampling model supplies the armwise multinomial statement conditional on \(N_a\), but it supplies only the needed marginal statements for the external vectors and imposes no condition making their coverage remain valid after conditioning jointly on the realized arm sizes.
+
+We next verify that the true fiber is nonempty. Fix \(P\in\mathfrak M_\delta(b,q,\omega)\), and set \(x_s=P(S=s)\). Then \(x_s\geq0\) and \(\sum_sx_s=1\). By \(\text{ass:no-vaccine-effect-on-exposure}\), \(x_s=0\) whenever \(h^0\neq h^1\). For every \((t,a,v)\in\mathcal T\times\mathcal A\times\mathcal V\), \(\text{ass:history-indexed-first-infection-map}\), \(\text{ass:trial-randomization}\), \(\text{ass:arm-positivity}\), and \(\text{ass:outcome-consistency}\) imply
+\[
+ \begin{aligned}
+ \sum_s\widetilde g_{tav}(s)x_s
+ &=\Pr_P(J_t^a=v)\\
+ &=\Pr_P(J_t^a=v\mid A=a)\\
+ &=\Pr_P(J_t=v\mid A=a)
+ =b_{tav}. \tag{5}
+ \end{aligned}
+\]
+Here the second equality uses randomization and the conditioning event has positive probability by arm positivity. By \(\text{ass:external-margin-transport}\),
+\[
+ \sum_s\mathbf 1\{h_t^0=v\}x_s=q_{tv}
+ \quad\text{for every }(t,v)\in\mathcal T\times\mathcal V_0. \tag{6}
+\]
+The equality in \(\text{ass:placebo-reference-stability}\), expanded under \(x_s=P(S=s)\), is
+\[
+ \sum_{s,v}\omega_v\{r_{10v}(s)-r^{[0]}_{20v}(s)\}x_s=0. \tag{7}
+\]
+Finally, for each \((a,u,v)\in\mathcal A\times\mathcal V\times\mathcal V\), \(\text{ass:bounded-noninfecting-exposure-priming}\) is exactly
+\[
+ \begin{aligned}
+ &\sum_s\mathbf 1\{h_1^0=u,r_{1au}=0\}
+          \mathbf 1\{r^{[u]}_{2av}\neq r^{[0]}_{2av}\}x_s\\
+ &\hspace{35mm}\leq
+ \delta\sum_s\mathbf 1\{h_1^0=u,r_{1au}=0\}x_s. \tag{8}
+ \end{aligned}
+\]
+Equations (5)--(8), the support restriction, nonnegativity, and normalization are precisely all constraints in \(\text{def:reduced-history-polytope}\). Therefore
+\[
+ x\in\mathcal P_\delta(b,q,\omega),
+ \qquad
+ \mathcal P_\delta(b,q,\omega)\neq\varnothing. \tag{9}
+\]
+
+On \(E\), the true pair \((b,q)\) belongs to \(\mathcal G_{n,m}(\alpha)\). By (9), it is not removed by the nonempty-fiber condition. The definition of the projection therefore gives the deterministic inclusion
+\[
+ \Theta_{I,\delta}(b,q,\omega)
+ \subseteq
+ \bigcup_{\substack{(b',q')\in\mathcal G_{n,m}(\alpha):\\
+                     \mathcal P_\delta(b',q',\omega)\neq\varnothing}}
+ \Theta_{I,\delta}(b',q',\omega)
+ \subseteq\mathcal C_{n,m,\delta}^{\mathrm{exact}}. \tag{10}
+\]
+Combining \(E\subseteq\{\Theta_{I,\delta}(b,q,\omega)\subseteq\mathcal C_{n,m,\delta}^{\mathrm{exact}}\}\) from (10) with (4) proves the claimed coverage. By \(\text{thm:extended-sharp-identified-set}\), the set on the left side of (10) is the sharp compatible-law ratio set, rather than merely an outer functional. In particular, its positive-denominator, \(+\infty\), and \([0,+\infty]\) cases are all covered simultaneously; no division by a possibly zero denominator occurred in the coverage argument.
+
+It remains to give the promised finite representation. Index the four tests by
+\[
+ \mathcal I=\{(\mathrm{tr},0),(\mathrm{tr},1),(\mathrm{ex},1),(\mathrm{ex},2)\}.
+\]
+For test \(i\), let \(u_i\), \(N_i\), and \(d_i\) denote its observed count vector, total, and number of categories. Thus \(N_{(\mathrm{tr},a)}=N_a\), \(N_{(\mathrm{ex},t)}=m\), \(d_{(\mathrm{tr},a)}=1+2K\), and \(d_{(\mathrm{ex},t)}=K+1\). Let \(p_i(b',q')\) be the corresponding affine candidate vector: it is \((p^{a\prime}_{\varnothing},(b'_{tav})_{t,v})\) for a trial arm and \(q'_t\) for an external period.
+
+For \(N_i\geq1\) and every subset \(B_i\subseteq\mathcal Z_{N_i,d_i}\), define
+\[
+ \begin{aligned}
+ D_i(B_i)=\biggl\{p\in\Delta_{d_i}:{}&
+ \bigl[T_p(z)\geq T_p(u_i)\iff z\in B_i\bigr]
+       \text{ for every }z\in\mathcal Z_{N_i,d_i},\\
+ &\sum_{z\in B_i}\operatorname{Mult}_{N_i}(z;p)\geq\gamma
+ \biggr\}. \tag{11}
+ \end{aligned}
+\]
+For \(N_i=0\), take the single label \(B_i=\mathcal Z_{0,d_i}=\{0\}\) and put \(D_i(B_i)=\Delta_{d_i}\). Since the count spaces are finite, there are finitely many labels \(B_i\). Directly from the definition of the tail probability,
+\[
+ \Gamma_{N_i}(u_i;\gamma)=\bigcup_{B_i\subseteq\mathcal Z_{N_i,d_i}}D_i(B_i) \tag{12}
+\]
+when \(N_i\geq1\), with the just-stated singleton interpretation when \(N_i=0\). Indeed, a candidate \(p\) selects the unique tail set \(B_i(p)=\{z:T_p(z)\geq T_p(u_i)\}\), and its tail sum is the second expression in (11).
+
+Define the extended ratio relation \(\mathscr R\subseteq[0,+\infty]\times[0,1]^2\) by
+\[
+ \begin{aligned}
+ (r,r_1,r_2)\in\mathscr R\quad\Longleftrightarrow\quad
+ &\bigl[r_2>0\ \text{ and }\ r=r_1/r_2\bigr]\\
+ &{}\text{ or }\ \bigl[r_2=0<r_1\ \text{ and }\ r=+\infty\bigr]\\
+ &{}\text{ or }\ \bigl[r_1=r_2=0\ \text{ and }\ r\in[0,+\infty]\bigr]. \tag{13}
+ \end{aligned}
+\]
+For a tuple \(\mathbf B=(B_i:i\in\mathcal I)\), let \(\mathfrak F_{\mathbf B}\) be the set of all \((r,b',q',x)\) satisfying
+\[
+ \begin{gathered}
+ p_i(b',q')\in D_i(B_i)\quad(i\in\mathcal I),
+ \qquad x\in\mathcal P_\delta(b',q',\omega),\\
+ \bigl(r,\rho_{11}(x,\omega),\rho_{21}(x,\omega)\bigr)\in\mathscr R. \tag{14}
+ \end{gathered}
+\]
+The simplex restrictions on \((b',q')\) are included in the first line of (14). Substituting (12) and (13) into \(\text{def:exact-whole-set-projection}\) gives the exact equality
+\[
+ \mathcal C_{n,m,\delta}^{\mathrm{exact}}
+ =\operatorname{cl}_{[0,+\infty]}
+   \left(
+     \bigcup_{\mathbf B\in\prod_{i\in\mathcal I}\mathfrak B_i}
+     \operatorname{proj}_r\mathfrak F_{\mathbf B}
+   \right), \tag{15}
+\]
+where \(\mathfrak B_i=2^{\mathcal Z_{N_i,d_i}}\) for \(N_i\geq1\) and \(\mathfrak B_i=\{\mathcal Z_{0,d_i}\}\) for \(N_i=0\). Formula (15) is finite: every \(\mathfrak B_i\) and every count space is finite; (11) contains finitely many likelihood-order comparisons and one finite multinomial sum; membership in \(\mathcal P_\delta\) is the displayed finite linear system; and (13) has three branches. If \(\mathcal P_\delta(b',q',\omega)=\varnothing\), then no \(x\) satisfies (14), so that candidate contributes nothing exactly as required. Conversely, every accepted candidate and every \(x\) in its nonempty fiber selects one tuple \(\mathbf B\) and one branch of (13), so no point is lost. Thus (15) is an exact feasibility projection and never selects, or conditions on, an endpoint optimizer.
+\end{proof}
+
+\begin{theorem}[thm:sensitivity-range-maximal-fiber-and-breakdown]\label{thm:sensitivity-range-maximal-fiber-and-breakdown}
+Let \(\mathcal D\subseteq[0,1]\) be nonempty and closed, and put \(\bar\delta=\max\mathcal D\).  For every \(0\leq\delta_1\leq\delta_2\leq1\),
+\[
+ \mathfrak M_{\delta_1}(b,q,\omega)
+ \subseteq \mathfrak M_{\delta_2}(b,q,\omega),\qquad
+ \mathcal P_{\delta_1}(b,q,\omega)
+ \subseteq \mathcal P_{\delta_2}(b,q,\omega),
+ \qquad
+ \Theta_{I,\delta_1}(b,q,\omega)
+ \subseteq \Theta_{I,\delta_2}(b,q,\omega).
+\]
+Consequently,
+\[
+ \bigcup_{\delta\in\mathcal D}\mathfrak M_\delta(b,q,\omega)
+ =\mathfrak M_{\bar\delta}(b,q,\omega),
+ \qquad
+ \Theta_I^{\mathcal D}(b,q,\omega)
+ =\Theta_{I,\bar\delta}(b,q,\omega),
+\]
+and the latter set is closed in \([0,+\infty]\) and is the sharp identified set over the displayed union of full-law classes.  If \(\mathcal P_{\bar\delta}(b,q,\omega)\neq\varnothing\), then all values allowed over \(\mathcal D\) are strictly below one if and only if
+\[
+ \max_{x\in\mathcal P_{\bar\delta}(b,q,\omega)}c_\omega^{\top}x<0,
+\]
+and they are all strictly above one if and only if
+\[
+ \min_{x\in\mathcal P_{\bar\delta}(b,q,\omega)}c_\omega^{\top}x>0.
+\]
+
+More precisely, fix \(\delta_0\in[0,1]\) with \(\mathcal P_{\delta_0}(b,q,\omega)\neq\varnothing\).  If
+\[
+ \max_{x\in\mathcal P_{\delta_0}(b,q,\omega)}c_\omega^{\top}x<0,
+\]
+define
+\[
+ B_+(\delta_0)=
+ \left\{\delta\in[\delta_0,1]:
+ \{x\in\mathcal P_\delta(b,q,\omega):c_\omega^{\top}x\geq0\}
+ \neq\varnothing\right\}.
+\]
+When \(B_+(\delta_0)\neq\varnothing\), the sharp positive-side priming breakdown point
+\[
+ \delta_\star^+=\min B_+(\delta_0)
+\]
+is attained, \(B_+(\delta_0)=[\delta_\star^+,1]\), and, for every \(\delta\in[\delta_0,\delta_\star^+)\), there are finite \(\lambda\) and \(\mu\geq0\) satisfying
+\[
+ E_\omega^{\top}\lambda+F_\delta^{\top}\mu\geq c_\omega,
+ \qquad d(b,q)^{\top}\lambda<0.
+\]
+At \(\delta_\star^+\), an attaining vector lifts to a compatible full law for which \(\Psi_\omega(x)\cap[1,+\infty]\neq\varnothing\).  If \(B_+(\delta_0)=\varnothing\), the strict below-unity conclusion persists through \(\delta=1\).
+
+Symmetrically, if
+\[
+ \min_{x\in\mathcal P_{\delta_0}(b,q,\omega)}c_\omega^{\top}x>0,
+\]
+define
+\[
+ B_-(\delta_0)=
+ \left\{\delta\in[\delta_0,1]:
+ \{x\in\mathcal P_\delta(b,q,\omega):c_\omega^{\top}x\leq0\}
+ \neq\varnothing\right\}.
+\]
+When \(B_-(\delta_0)\neq\varnothing\), the sharp negative-side priming breakdown point
+\[
+ \delta_\star^-=\min B_-(\delta_0)
+\]
+is attained, \(B_-(\delta_0)=[\delta_\star^-,1]\), and, for every \(\delta\in[\delta_0,\delta_\star^-)\), there are finite \(\eta\) and \(\kappa\geq0\) satisfying
+\[
+ E_\omega^{\top}\eta-F_\delta^{\top}\kappa\leq c_\omega,
+ \qquad d(b,q)^{\top}\eta>0.
+\]
+At \(\delta_\star^-\), an attaining vector lifts to a compatible full law for which \(\Psi_\omega(x)\cap[0,1]\neq\varnothing\).  If \(B_-(\delta_0)=\varnothing\), the strict above-unity conclusion persists through \(\delta=1\).
+
+Under the sampling conditions of \(\text{thm:exact-whole-set-projection-coverage}\), for every \(\alpha\in(0,1)\) and every full law in \(\bigcup_{\delta\in\mathcal D}\mathfrak M_\delta(b,q,\omega)\),
+\[
+ \Pr_{\mathrm{samp}}\!\left\{
+ \Theta_I^{\mathcal D}(b,q,\omega)
+ \subseteq\mathcal C_{n,m,\bar\delta}^{\mathrm{exact}}
+ \right\}\geq1-\alpha.
+\]
+Absent controlled validation, \(\mathcal D=[0,1]\). Range identification, uniform-sign, and whole-set-coverage audits therefore reduce to the unrestricted endpoint \(\bar\delta=1\). Feasibility at \(\delta=1\) decides whether a sign breakdown occurs, while any finite breakdown value \(\delta_\star^+\) or \(\delta_\star^-\) from baseline \(\delta_0\) is located from the monotone family over \([\delta_0,1]\).
+\end{theorem}
+\begin{proof}
+For \((a,u,v)\in\mathcal A\times\mathcal V\times\mathcal V\), define, for a full law \(P\),
+\[
+ D_{au}(P)=\Pr_P\{H_1^0=u,R_{1au}=0\},
+ \qquad
+ L_{auv}(P)=\Pr_P\{H_1^0=u,R_{1au}=0,
+ R^{[u]}_{2av}\neq R^{[0]}_{2av}\}.
+\tag{1}
+\]
+Both quantities are probabilities, so \(D_{au}(P)\geq0\).  The condition in \(\text{ass:bounded-noninfecting-exposure-priming}\) at sensitivity value \(\delta_i\) is exactly
+\[
+ L_{auv}(P)\leq\delta_iD_{au}(P)
+ \quad\text{for every }(a,u,v).
+\tag{2}
+\]
+If \(0\leq\delta_1\leq\delta_2\leq1\), (2) at \(\delta_1\) and nonnegativity of \(D_{au}(P)\) give
+\[
+ L_{auv}(P)
+ \leq\delta_1D_{au}(P)
+ \leq\delta_2D_{au}(P).
+\tag{3}
+\]
+Every other membership condition in \(\text{def:full-law-class}\)—trial randomization, arm positivity, outcome consistency, the no-vaccine-effect-on-exposure equality, the history-indexed response map, external-margin transport, placebo reference stability, and reproduction of \(b\)—is independent of \(\delta\).  Thus (3) proves
+\[
+ \mathfrak M_{\delta_1}(b,q,\omega)
+ \subseteq\mathfrak M_{\delta_2}(b,q,\omega).
+\tag{4}
+\]
+
+The corresponding polyhedral argument is equally direct.  For \(x\geq0\), put
+\[
+ \begin{aligned}
+ D_{au}(x)
+ &=\sum_s\mathbf 1\{h_1^0=u,r_{1au}=0\}x_s,\\
+ L_{auv}(x)
+ &=\sum_s\mathbf 1\{h_1^0=u,r_{1au}=0\}
+       \mathbf 1\{r^{[u]}_{2av}\neq r^{[0]}_{2av}\}x_s.
+ \end{aligned}
+\tag{5}
+\]
+Every summand in \(D_{au}(x)\) is nonnegative.  Hence
+\[
+ L_{auv}(x)\leq\delta_1D_{au}(x)
+ \Longrightarrow
+ L_{auv}(x)\leq\delta_2D_{au}(x).
+\tag{6}
+\]
+All remaining constraints in \(\text{def:reduced-history-polytope}\) are independent of \(\delta\), so
+\[
+ \mathcal P_{\delta_1}(b,q,\omega)
+ \subseteq\mathcal P_{\delta_2}(b,q,\omega).
+\tag{7}
+\]
+Because \(\Psi_\omega\) itself does not depend on \(\delta\), the definition \(\Theta_{I,\delta}=\bigcup_{x\in\mathcal P_\delta}\Psi_\omega(x)\) and (7) imply
+\[
+ \Theta_{I,\delta_1}(b,q,\omega)
+ \subseteq\Theta_{I,\delta_2}(b,q,\omega).
+\tag{8}
+\]
+
+Since \(\mathcal D\) is a nonempty closed subset of \([0,1]\), its supremum belongs to \(\mathcal D\); denote it by \(\bar\delta=\max\mathcal D\).  For every \(\delta\in\mathcal D\), (4) and (8) give inclusion in the corresponding object at \(\bar\delta\), while the reverse inclusion in each union holds because \(\bar\delta\in\mathcal D\).  Therefore
+\[
+ \bigcup_{\delta\in\mathcal D}\mathfrak M_\delta
+ =\mathfrak M_{\bar\delta},
+ \qquad
+ \bigcup_{\delta\in\mathcal D}\Theta_{I,\delta}
+ =\Theta_{I,\bar\delta}.
+\tag{9}
+\]
+An empty fiber has an empty ratio image, so no feasibility qualification changes the second union in (9).
+
+We next verify that the closure in that frozen definition adds no point.  The fiber \(\mathcal P_{\bar\delta}\) is a closed subset of the finite-dimensional probability simplex by \(\text{def:reduced-history-polytope}\), because all of its equalities and inequalities are linear.  It is therefore compact: coordinatewise boundedness gives a convergent subsequence of every sequence, and closedness keeps the limit in the fiber.  Let \(r_j\in\Theta_{I,\bar\delta}\) converge to \(r\) in the extended nonnegative line and choose \(x_j\in\mathcal P_{\bar\delta}\) with
+\[
+ r_j\in\operatorname{Rat}(u_j,d_j),
+ \qquad
+ u_j=\rho_{11}(x_j,\omega),
+ \qquad
+ d_j=\rho_{21}(x_j,\omega).
+\tag{10}
+\]
+After passage to a subsequence, \(x_j\to x\in\mathcal P_{\bar\delta}\).  Linearity of \(\rho_{11}\) and \(\rho_{21}\) gives \(u_j\to u\) and \(d_j\to d\), where \(u=\rho_{11}(x,\omega)\) and \(d=\rho_{21}(x,\omega)\).  If \(d>0\), then eventually \(d_j>0\), so (10) yields \(r=u/d\).  If \(d=0<u\), then either a denominator is zero, giving \(r_j=+\infty\), or \(u_j/d_j\to+\infty\); hence \(r=+\infty\).  If \(u=d=0\), every \(r\in[0,+\infty]\) belongs to \(\operatorname{Rat}(0,0)\).  In all cases,
+\[
+ r\in\operatorname{Rat}\!\left(\rho_{11}(x,\omega),
+                                  \rho_{21}(x,\omega)\right)
+ \subseteq\Theta_{I,\bar\delta}.
+\tag{11}
+\]
+Thus \(\Theta_{I,\bar\delta}\) is closed.  Equation (9) shows that it is exactly the closed envelope of all pointwise images over \(\mathcal D\); the synchronized definition of the range functional therefore records the proved identity
+\[
+ \Theta_I^{\mathcal D}(b,q,\omega)
+ =\Theta_{I,\bar\delta}(b,q,\omega).
+\tag{12}
+\]
+If \(\mathcal P_{\bar\delta}\neq\varnothing\), \(\text{thm:extended-sharp-identified-set}\) says that the right side of (12) is exactly, rather than merely an outer bound on, the ratio values generated by \(\mathfrak M_{\bar\delta}\).  If \(\mathcal P_{\bar\delta}=\varnothing\), \(\text{thm:exact-history-compression}\) implies \(\mathfrak M_{\bar\delta}=\varnothing\), and both compatible-value sets are empty.  The first equality in (9) therefore proves sharpness over the sensitivity-range union in all cases, including the positive-denominator, \(+\infty\), and \([0,+\infty]\) branches when laws exist.
+
+For every \(x\) in a reduced fiber, the definitions of \(c_\omega\) and \(\rho\) give the identity
+\[
+ c_\omega^{\top}x
+ =\rho_{11}(x,\omega)-\rho_{21}(x,\omega).
+\tag{13}
+\]
+Assume \(\mathcal P_{\bar\delta}\neq\varnothing\).  This fiber is compact, so the maximum and minimum in the statement are attained.  If its maximum is negative, (13) implies \(\rho_{11}<\rho_{21}\) at every point; nonnegativity then forces \(\rho_{21}>0\), and every ratio is strictly below one.  Conversely, if the attained maximum were nonnegative, its optimizer would have a ratio-correspondence value in \([1,+\infty]\): for a positive denominator this follows from (13), for a zero denominator and positive numerator the value is \(+\infty\), and at \((0,0)\) the correspondence contains one.  Exact history compression and sharpness lift this optimizer to a compatible counterlaw.  This proves the below-unity equivalence.  Replacing maximum by minimum and reversing the inequalities proves the above-unity equivalence; when (13) is nonpositive, a positive denominator gives a value at most one, while a zero denominator forces both risks to be zero and the correspondence again contains one.  Equations (7) and (12) show that these maximal-fiber criteria are exactly the uniform criteria over \(\mathcal D\).
+
+It remains to prove the breakdown assertions.  Suppose first that
+\[
+ \max_{x\in\mathcal P_{\delta_0}}c_\omega^{\top}x<0.
+\tag{14}
+\]
+By (7), \(B_+(\delta_0)\) is upward closed: if an \(x\) witnesses membership at \(\delta\), the same \(x\) witnesses membership at every larger sensitivity value.  We also show that it is closed.  Let \(\delta_j\in B_+(\delta_0)\) converge to \(\delta\), and select \(x_j\in\mathcal P_{\delta_j}\) with \(c_\omega^{\top}x_j\geq0\).  The vectors lie in the finite probability simplex, so a subsequence converges to some \(x\).  Nonnegativity and all \(\delta\)-independent equalities and inequalities pass to the limit.  For every priming row, continuity of the two linear forms in (5) gives
+\[
+ L_{auv}(x)
+ =\lim_jL_{auv}(x_j)
+ \leq\lim_j\delta_jD_{au}(x_j)
+ =\delta D_{au}(x).
+\tag{15}
+\]
+Also \(c_\omega^{\top}x=\lim_jc_\omega^{\top}x_j\geq0\).  Thus \(x\in\mathcal P_\delta\) and \(\delta\in B_+(\delta_0)\).  If this closed upper set is nonempty, its infimum \(\delta_\star^+\) belongs to it, and upward closure gives
+\[
+ B_+(\delta_0)=[\delta_\star^+,1].
+\tag{16}
+\]
+For \(\delta_0\leq\delta<\delta_\star^+\), nesting makes \(\mathcal P_\delta\) nonempty, while the augmented constraint \(c_\omega^{\top}x\geq0\) is infeasible.  Compactness therefore yields
+\[
+ \max_{x\in\mathcal P_\delta}c_\omega^{\top}x<0.
+\tag{17}
+\]
+Applying \(\text{thm:common-history-sign-dual}\) to (17) gives finite \(\lambda\) and \(\mu\geq0\) with
+\[
+ E_\omega^{\top}\lambda+F_\delta^{\top}\mu\geq c_\omega,
+ \qquad d(b,q)^{\top}\lambda<0,
+\tag{18}
+\]
+which is the advertised pre-threshold certificate.  At \(\delta_\star^+\), closedness supplies \(x_\star\in\mathcal P_{\delta_\star^+}\) with \(c_\omega^{\top}x_\star\geq0\).  The theorem \(\text{thm:exact-history-compression}\) lifts \(x_\star\) to a law in \(\mathfrak M_{\delta_\star^+}\), and the case analysis following (13) shows that \(\Psi_\omega(x_\star)\) contains a value at least one.  Hence the strict baseline conclusion fails at the attained threshold, which proves sharpness of \(\delta_\star^+\).  If \(B_+(\delta_0)\) is empty, (17) holds for every \(\delta\in[\delta_0,1]\), so no breakdown occurs.
+
+Under the symmetric baseline condition
+\[
+ \min_{x\in\mathcal P_{\delta_0}}c_\omega^{\top}x>0,
+\tag{19}
+\]
+the same limit argument, with the closed augmented constraint \(c_\omega^{\top}x\leq0\), proves that a nonempty \(B_-(\delta_0)\) is the interval \([\delta_\star^-,1]\) and that its minimum is attained.  Before that minimum, compactness gives \(\min_{x\in\mathcal P_\delta}c_\omega^{\top}x>0\).  The symmetric half of \(\text{thm:common-history-sign-dual}\) supplies finite \(\eta\) and \(\kappa\geq0\) satisfying
+\[
+ E_\omega^{\top}\eta-F_\delta^{\top}\kappa\leq c_\omega,
+ \qquad d(b,q)^{\top}\eta>0.
+\tag{20}
+\]
+At \(\delta_\star^-\), exact history compression lifts an attaining \(x_\star\) with \(c_\omega^{\top}x_\star\leq0\), and the symmetric case analysis after (13) gives a compatible value at most one.  If \(B_-(\delta_0)\) is empty, strict above-unity persists through one.  Since each breakdown set is upward closed, it is nonempty if and only if its respective augmented feasibility problem is feasible at \(\delta=1\); equations (16) and its symmetric counterpart show why this endpoint decision does not by itself locate an interior threshold.
+
+Finally, take a full law in \(\bigcup_{\delta\in\mathcal D}\mathfrak M_\delta\).  Equation (9) places it in \(\mathfrak M_{\bar\delta}\).  Applying \(\text{thm:exact-whole-set-projection-coverage}\) at the single fixed sensitivity value \(\bar\delta\), then substituting (12), yields
+\[
+ \Pr_{\mathrm{samp}}\!\left\{
+ \Theta_I^{\mathcal D}(b,q,\omega)
+ \subseteq\mathcal C_{n,m,\bar\delta}^{\mathrm{exact}}
+ \right\}
+ =
+ \Pr_{\mathrm{samp}}\!\left\{
+ \Theta_{I,\bar\delta}(b,q,\omega)
+ \subseteq\mathcal C_{n,m,\bar\delta}^{\mathrm{exact}}
+ \right\}
+ \geq1-\alpha.
+\tag{21}
+\]
+Thus identification, strict-sign certification, and whole-set coverage over the sensitivity range all reduce to its largest admissible value.  The stipulated default \(\mathcal D=[0,1]\), and hence \(\bar\delta=1\), is exactly the default in the definition of the prespecified sensitivity range.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The scientifically admissible priming range has a largest element, and monotonicity shows that this single maximal fiber determines range identification, strict signs, whole-set coverage, and the existence of a sign breakdown. \textit{Gap.} Existing vaccine challenge-effect bounds do not give the exact maximal-fiber reduction or an attained sharp breakdown point for a bounded fraction of response-altering noninfecting exposures. \textit{Consumer.} Trial analysts solve the model once at \(\bar\delta=\max\mathcal D\) for range identification and coverage, and solve the nested opposite-side feasibility programs over \([\delta_0,1]\) only when they need the exact breakdown threshold.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The parameter \(\delta\) bounds whether a period-one exposure that did not infect changes the period-two controlled response relative to no prior exposure. Routine negative tests establish noninfection, not absence of immune priming, and serial serology need not detect response-relevant cellular or mucosal changes; neither identifies a small \(\delta\). Without a randomized or controlled validation substudy, the honest range is \(\mathcal D=[0,1]\), so identification, strict-sign, and coverage audits use the unrestricted fiber at \(\bar\delta=1\). Endpoint opposite-side feasibility decides whether a sign breakdown exists, but an interior \(\delta_\star^+\) or \(\delta_\star^-\) must be located from the nested linear-program family over \([\delta_0,1]\). The finite history map still abstracts from multiple distinct noninfecting exposures within one period.
+
+\section{Honest scope}
+
+Exact common-history projection, the unconditional extended sharp set, finite attained reciprocal endpoints under the separately disclosed fiber-wide denominator condition, and common-history sign separation hold pointwise in \(\delta\). Sensitivity nesting strengthens the range report: for every nonempty closed \(\mathcal D\), the union of compatible laws and the sharp ratio set equal their counterparts at \(\bar\delta=\max\mathcal D\). A finite breakdown point is the attained first \(\delta\) at which the appropriate opposite-side linear program is feasible; feasibility at one only decides whether such a breakdown exists and does not locate an interior threshold. The target period-two risk uses \(R^{[0]}_{21v}\), whereas observed period-two infections use \(R^{[H_1]}_{2av}\); their discrepancy among noninfected exposees is bounded, not suppressed. The \(K=2\) and single-variant anchors are projection and calibration results only, with no claim of class inclusion or transfer to the Janvin--Stensrud or Perényi--Stensrud classes. Whole-set confidence coverage is unconditional over realized counts, uses no independence among sampling blocks, and reduces to projection through the maximal sensitivity fiber. External exposure margins remain primitives; pooled case-strain frequencies do not replace them.
+
+\begin{thebibliography}{99}
+
+  \bibitem{janvin_stensrud_2025_challenge} Matias Janvin and Mats J. Stensrud. Quantification of vaccine waning as a challenge effect. Journal of the American Statistical Association, 120:98--106, 2025. doi:10.1080/01621459.2024.2408776. arXiv:2405.01336.
+
+  \bibitem{tomer_biccler_2022_temporal} Anirudh Tomer and Jorne Biccler. Temporal properties of vaccine effectiveness measures in presence of multiple pathogen variants and multiple vaccines. arXiv:2202.06762, 2022.
+
+  \bibitem{follmann_huang_2018_sieve_counts} Dean Follmann and Chiung-Yu Huang. Sieve analysis using the number of infecting pathogens. Biometrics, 74:1023--1033, 2018. doi:10.1111/biom.12833.
+
+  \bibitem{gilbert_self_rao_2001_sieve} Peter B. Gilbert, Steven G. Self, Malla Rao, Abdollah Naficy, and John Clemens. Sieve analysis: methods for assessing from vaccine trial data how vaccine efficacy varies with genotypic and phenotypic pathogen variation. Journal of Clinical Epidemiology, 54:68--85, 2001. doi:10.1016/S0895-4356(00)00258-4.
+
+  \bibitem{edlefsen_2014_leaky} Paul T. Edlefsen. Leaky vaccines protect highly exposed recipients at a lower rate: implications for vaccine efficacy estimation and sieve analysis. Computational and Mathematical Methods in Medicine, article 813789, 2014. doi:10.1155/2014/813789.
+
+  \bibitem{van_der_laan_gilbert_2023_caseonly} Lars van der Laan and Peter B. Gilbert. Semiparametric inference for relative heterogeneous vaccine efficacy between strains in observational case-only studies. arXiv:2303.11462, 2023.
+
+  \bibitem{stensrud_smith_2023_exposure} Mats J. Stensrud and Louisa H. Smith. Identification of vaccine effects when exposure status is unknown. Epidemiology, 34:216--224, 2023. doi:10.1097/EDE.0000000000001573. arXiv:2111.11548.
+
+  \bibitem{follmann_fay_magaret_gilbert_2022_surveillance} Dean Follmann, Michael Fay, Craig Magaret, and Peter B. Gilbert. Estimation of vaccine efficacy for variants that emerge after the placebo group is vaccinated. Statistics in Medicine, 41:3076--3089, 2022. doi:10.1002/sim.9405.
+
+  \bibitem{balke_pearl_1997_bounds} Alexander Balke and Judea Pearl. Bounds on treatment effects from studies with imperfect compliance. Journal of the American Statistical Association, 92:1171--1176, 1997. doi:10.1080/01621459.1997.10474074.
+
+  \bibitem{romano_shaikh_2010_idset} Joseph P. Romano and Azeem M. Shaikh. Inference for the identified set in partially identified econometric models. Econometrica, 78:169--211, 2010. doi:10.3982/ECTA6706.
+
+  \bibitem{kaido_molinari_stoye_2019_projection} Hiroaki Kaido, Francesca Molinari, and Jorg Stoye. Confidence intervals for projections of partially identified parameters. Econometrica, 87:1397--1432, 2019. doi:10.3982/ECTA14075. arXiv:1601.00934.
+
+  \bibitem{fang_santos_2019_directional} Zheng Fang and Andres Santos. Inference on directionally differentiable functions. Review of Economic Studies, 86:377--412, 2019. arXiv:1404.3763.
+
+  \bibitem{perenyi_janvin_stensrud_2026_waning_test} Gellert Perenyi, Matias Janvin, and Mats J. Stensrud. A simple and powerful test of vaccine waning. American Journal of Epidemiology, 2026. doi:10.1093/aje/kwag118. arXiv:2511.21836.
+
+  \bibitem{perenyi_stensrud_2025_variant} Gellért Perényi and Mats J. Stensrud. Variant specific treatment effects with applications in vaccine studies. Biometrics, 81(2):ujaf068, 2025. doi:10.1093/biomtc/ujaf068. arXiv:2408.07560.
+
+  \bibitem{doi:10.1017/CBO9780511804441} Stephen Boyd and Lieven Vandenberghe. Convex Optimization. Cambridge University Press, 2004. doi:10.1017/CBO9780511804441.
+
+\end{thebibliography}
+
+\end{document}

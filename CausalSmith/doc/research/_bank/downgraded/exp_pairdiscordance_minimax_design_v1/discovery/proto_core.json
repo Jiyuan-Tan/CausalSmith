@@ -1,0 +1,1999 @@
+{
+  "qid": "exp_pairdiscordance_minimax_design",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "J",
+      "type": "integer",
+      "space": "\\(\\mathbb Z_{\\ge 2}\\)",
+      "def": "The number of known pairs.",
+      "role": "sample-size index",
+      "refs": []
+    },
+    {
+      "name": "P",
+      "type": "finite index set",
+      "space": "\\(\\mathcal P_J=\\{(j,r):1\\le j\\le J,\\ r\\in\\{1,2\\}\\}\\)",
+      "def": "The \\(2J\\) labelled units with known pair label \\(j\\) and within-pair label \\(r\\).",
+      "role": "finite population",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "integer",
+      "space": "\\(\\{0,\\ldots,J\\}\\)",
+      "def": "An analyst-specified sensitivity bound indexing the latent armwise pair-discordance class; it is not observed from pretreatment data.",
+      "role": "sensitivity parameter",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "finite set",
+      "space": "\\(\\mathcal U=\\{0,1\\}^2\\)",
+      "def": "The four unit-level binary potential-outcome types \\((Y(0),Y(1))\\).",
+      "role": "local schedule alphabet",
+      "refs": []
+    },
+    {
+      "name": "Y",
+      "type": "potential-outcome schedule",
+      "space": "\\(\\mathbb R^{\\mathcal P_J\\times\\{0,1\\}}\\)",
+      "sig": "\\(Y_{jr}(a)\\in\\mathbb R\\)",
+      "def": "A schedule indexed by unit and arm and treated as fixed under the assignment randomization.",
+      "role": "state of nature",
+      "refs": [
+        "P",
+        "J"
+      ]
+    },
+    {
+      "name": "D",
+      "type": "arm-indexed integer functional",
+      "space": "\\(\\{0,\\ldots,J\\}^{\\{0,1\\}}\\)",
+      "sig": "\\(D_a(Y)=\\sum_{j=1}^J\\mathbf 1\\{Y_{j1}(a)\\ne Y_{j2}(a)\\}\\)",
+      "def": "The number of within-pair disagreements in arm \\(a\\).",
+      "role": "mismatch statistic",
+      "refs": [
+        "J",
+        "Y"
+      ]
+    },
+    {
+      "name": "Theta",
+      "type": "finite class of schedules",
+      "space": "\\(\\Theta_{J,s}\\subseteq\\{0,1\\}^{\\mathcal P_J\\times\\{0,1\\}}\\)",
+      "def": "The bounded pair-mismatch class constructed in \\(\\mathrm{def:bounded\\text{-}mismatch\\text{-}class}\\).",
+      "role": "adversary class",
+      "refs": [
+        "J",
+        "s",
+        "P",
+        "Y",
+        "D"
+      ]
+    },
+    {
+      "name": "tau",
+      "type": "real functional",
+      "space": "\\([-1,1]\\)",
+      "sig": "\\(\\tau(Y)=(2J)^{-1}\\sum_{j=1}^J\\sum_{r=1}^2\\{Y_{jr}(1)-Y_{jr}(0)\\}\\)",
+      "def": "The unit-weighted sample average treatment effect.",
+      "role": "causal estimand",
+      "refs": [
+        "J",
+        "Y"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "assignment vector",
+      "space": "\\(\\{0,1\\}^{2J}\\)",
+      "sig": "\\(A_{jr}\\in\\{0,1\\}\\)",
+      "def": "The realized treatment assignment.",
+      "role": "only random variable in the finite-population experiment",
+      "refs": [
+        "J",
+        "P"
+      ]
+    },
+    {
+      "name": "Yobs",
+      "type": "observed-outcome vector",
+      "space": "\\(\\{0,1\\}^{2J}\\)",
+      "sig": "\\(Y^{\\mathrm{obs}}_{jr}=A_{jr}Y_{jr}(1)+(1-A_{jr})Y_{jr}(0)\\)",
+      "def": "The observed binary outcomes under the realized assignment.",
+      "role": "observed data",
+      "refs": [
+        "A",
+        "Y",
+        "J"
+      ]
+    },
+    {
+      "name": "Qdesign",
+      "type": "probability law",
+      "space": "\\(\\Delta(\\{0,1\\}^{2J})\\)",
+      "def": "A generic assignment law chosen before observing outcomes.",
+      "role": "design decision",
+      "refs": [
+        "A",
+        "J"
+      ]
+    },
+    {
+      "name": "Qspace",
+      "type": "class of probability laws",
+      "space": "\\(\\mathfrak Q_{J,s}\\)",
+      "def": "The ex ante design class constructed in \\(\\mathrm{def:design\\text{-}class}\\).",
+      "role": "feasible design class",
+      "refs": [
+        "Qdesign",
+        "J",
+        "s",
+        "P",
+        "Y"
+      ]
+    },
+    {
+      "name": "Delta",
+      "type": "class of functions",
+      "space": "\\(\\mathfrak D_J\\)",
+      "def": "All measurable estimators from \\((A,Y^{\\mathrm{obs}},\\mathcal P_J)\\) to \\([-1,1]\\).",
+      "role": "feasible estimator class",
+      "refs": [
+        "A",
+        "Yobs",
+        "P",
+        "J"
+      ]
+    },
+    {
+      "name": "delta",
+      "type": "estimator",
+      "space": "\\(\\mathfrak D_J\\)",
+      "sig": "\\(\\delta:\\{0,1\\}^{2J}\\times\\{0,1\\}^{2J}\\to[-1,1]\\)",
+      "def": "A generic clipped measurable SATE estimator.",
+      "role": "estimation decision",
+      "refs": [
+        "Delta",
+        "A",
+        "Yobs",
+        "J"
+      ]
+    },
+    {
+      "name": "risk",
+      "type": "nonnegative real functional",
+      "space": "\\(\\mathbb R_{\\ge0}\\)",
+      "sig": "\\(\\mathcal R_{J,s}(Q,\\delta;Y)=\\mathbb E_{A\\sim Q}[\\{\\delta(A,Y^{\\mathrm{obs}})-\\tau(Y)\\}^2]\\)",
+      "def": "The randomization mean-squared error at a fixed schedule.",
+      "role": "loss criterion",
+      "refs": [
+        "J",
+        "s",
+        "Qdesign",
+        "delta",
+        "A",
+        "Yobs",
+        "tau",
+        "Y"
+      ]
+    },
+    {
+      "name": "Rstar",
+      "type": "nonnegative real number",
+      "space": "\\(\\mathbb R_{\\ge0}\\)",
+      "sig": "\\(R^*(J,s)=\\inf_{Q\\in\\mathfrak Q_{J,s},\\,\\delta\\in\\mathfrak D_J}\\sup_{Y\\in\\Theta_{J,s}}\\mathcal R_{J,s}(Q,\\delta;Y)\\)",
+      "def": "The joint design--estimator minimax risk.",
+      "role": "optimal value",
+      "refs": [
+        "J",
+        "s",
+        "Qspace",
+        "Delta",
+        "Theta",
+        "risk"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "finite group",
+      "space": "\\(\\mathfrak S_J\\ltimes(\\mathfrak S_2)^J\\)",
+      "def": "The group generated by permuting pairs and swapping the two labels independently within each pair.",
+      "role": "invariance group",
+      "refs": [
+        "J",
+        "P"
+      ]
+    },
+    {
+      "name": "N",
+      "type": "finite set",
+      "space": "\\(\\mathcal N_J=\\{(n_{00},n_{11},n_{\\mathrm m})\\in\\mathbb Z_{\\ge0}^3:n_{00}+n_{11}+n_{\\mathrm m}=J\\}\\)",
+      "def": "The assignment orbits under \\(G\\), recording all-control, all-treated, and mixed pairs.",
+      "role": "design-orbit index",
+      "refs": [
+        "J",
+        "A",
+        "G"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "probability vector",
+      "space": "\\(\\Delta(\\mathcal N_J)\\)",
+      "sig": "\\(q=(q_n:n\\in\\mathcal N_J)\\)",
+      "def": "The orbit masses of an invariant assignment law, uniform within every supported orbit.",
+      "role": "invariant design decision",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "C",
+      "type": "positive integer functional",
+      "space": "\\(\\mathbb Z_{\\ge1}^{\\mathcal N_J}\\)",
+      "sig": "\\(C_n=J!2^{n_{\\mathrm m}}/(n_{00}!n_{11}!n_{\\mathrm m}!)\\)",
+      "def": "The number of labelled assignments in orbit \\(n\\).",
+      "role": "orbit multiplicity",
+      "refs": [
+        "J",
+        "N"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "finite set",
+      "space": "\\(\\mathcal T=\\operatorname{Sym}^2(\\mathcal U)\\)",
+      "def": "The ten unordered within-pair potential-outcome types.",
+      "role": "schedule-orbit alphabet",
+      "refs": [
+        "U"
+      ]
+    },
+    {
+      "name": "Hset",
+      "type": "finite set",
+      "space": "\\(\\mathcal H_{J,s}\\subseteq\\mathbb Z_{\\ge0}^{\\mathcal T}\\)",
+      "def": "The feasible histograms of the ten pair types with total \\(J\\) and both armwise discordance counts at most \\(s\\).",
+      "role": "schedule-orbit index",
+      "refs": [
+        "J",
+        "s",
+        "T",
+        "D"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "finite set",
+      "space": "\\(\\mathcal A_{\\mathrm{loc}}=\\{00,11,01,10\\}\\)",
+      "def": "The four ordered assignments within one labelled pair.",
+      "role": "local assignment alphabet",
+      "refs": []
+    },
+    {
+      "name": "V",
+      "type": "finite set",
+      "space": "\\(\\mathcal V=\\operatorname{Sym}^2(\\{0,1\\}^2)\\)",
+      "def": "The ten unordered observed-pair types built from assignment-marked unit observations \\((A,Y^{\\mathrm{obs}})\\).",
+      "role": "local observation alphabet",
+      "refs": [
+        "A",
+        "Yobs"
+      ]
+    },
+    {
+      "name": "nu",
+      "type": "finite map",
+      "sig": "\\(\\nu:\\mathcal A_{\\mathrm{loc}}\\to\\{00,11,\\mathrm m\\},\\quad \\nu(00)=00,\\ \\nu(11)=11,\\ \\nu(01)=\\nu(10)=\\mathrm m\\)",
+      "def": "The assignment-orbit mark of a local assignment.",
+      "role": "assignment marking map",
+      "refs": [
+        "L"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "commuting indeterminates",
+      "sig": "\\(x=(x_{00},x_{11},x_{\\mathrm m})\\)",
+      "def": "Generating variables that record the three local assignment-orbit categories.",
+      "role": "assignment marks",
+      "refs": []
+    },
+    {
+      "name": "z",
+      "type": "commuting indeterminates",
+      "sig": "\\(z=(z_v:v\\in\\mathcal V)\\)",
+      "def": "Generating variables that record the ten assignment-marked observed-pair types.",
+      "role": "observation marks",
+      "refs": [
+        "V"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "finite set",
+      "space": "\\(\\mathcal O_J=\\{o\\in\\mathbb Z_{\\ge0}^{\\mathcal V}:\\sum_{v\\in\\mathcal V}o_v=J\\}\\)",
+      "def": "The histograms of unordered assignment-marked observed-pair types.",
+      "role": "observation-orbit index",
+      "refs": [
+        "J",
+        "V",
+        "A",
+        "Yobs",
+        "G"
+      ]
+    },
+    {
+      "name": "omega",
+      "type": "finite map",
+      "sig": "\\(\\omega:\\mathcal T\\times\\mathcal A_{\\mathrm{loc}}\\to\\mathcal V\\)",
+      "def": "For the lexicographically ordered representative \\(t=\\{u,v\\}\\) with \\(u\\le v\\), \\(\\omega(t,a)=\\operatorname{sort}\\{(a_1,u_{a_1}),(a_2,v_{a_2})\\}\\).",
+      "role": "local observation map",
+      "refs": [
+        "T",
+        "U",
+        "L",
+        "V"
+      ]
+    },
+    {
+      "name": "tauh",
+      "type": "real functional",
+      "space": "\\([-1,1]^{\\mathcal H_{J,s}}\\)",
+      "sig": "\\(\\tau_h=(2J)^{-1}\\sum_{t=\\{u,v\\}\\in\\mathcal T}h_t\\{(u_1-u_0)+(v_1-v_0)\\}\\)",
+      "def": "The SATE determined explicitly by the latent unordered pair-type histogram \\(h\\).",
+      "role": "schedule-orbit target",
+      "refs": [
+        "J",
+        "U",
+        "T",
+        "Hset"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "multivariate polynomial",
+      "sig": "\\(F_h(x,z)=\\prod_{t\\in\\mathcal T}\\left(\\sum_{a\\in\\mathcal A_{\\mathrm{loc}}}x_{\\nu(a)}z_{\\omega(t,a)}\\right)^{h_t}\\)",
+      "def": "The assignment-marked observation generating polynomial for latent histogram \\(h\\); the common mark \\(x_{\\mathrm m}\\) makes the sum invariant to exchanging the representative of an unordered pair type.",
+      "role": "joint orbit enumerator",
+      "refs": [
+        "Hset",
+        "T",
+        "L",
+        "nu",
+        "x",
+        "z",
+        "omega"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "rational stochastic kernel",
+      "space": "\\([0,1]^{\\mathcal H_{J,s}\\times\\mathcal N_J\\times\\mathcal O_J}\\)",
+      "sig": "\\(K_{hno}=C_n^{-1}[x_{00}^{n_{00}}x_{11}^{n_{11}}x_{\\mathrm m}^{n_{\\mathrm m}}z^o]F_h(x,z)\\)",
+      "def": "The conditional probability of observed orbit \\(o\\) given latent schedule orbit \\(h\\) and the uniform assignment law on orbit \\(n\\); the joint coefficient fixes both the assignment orbit and the observed orbit, and division by \\(C_n\\) normalizes each \\((h,n)\\) row.",
+      "role": "reduced experiment",
+      "refs": [
+        "Hset",
+        "N",
+        "O",
+        "C",
+        "x",
+        "z",
+        "F"
+      ]
+    },
+    {
+      "name": "eta",
+      "type": "real array",
+      "space": "\\([-1,1]^{\\{(n,o):n\\in\\mathcal N_J,\\ o\\in\\mathcal O_J\\}}\\)",
+      "sig": "\\(\\eta=(\\eta_{no})\\)",
+      "def": "An invariant estimator indexed by assignment and observation orbits.",
+      "role": "reduced estimator decision",
+      "refs": [
+        "N",
+        "O"
+      ]
+    },
+    {
+      "name": "orbitrisk",
+      "type": "nonnegative real functional",
+      "space": "\\(\\mathbb R_{\\ge0}\\)",
+      "sig": "\\(\\mathcal R_h(q,\\eta)=\\sum_{n,o}q_nK_{hno}(\\eta_{no}-\\tau_h)^2\\)",
+      "def": "The randomization risk in the reduced orbit experiment.",
+      "role": "reduced loss criterion",
+      "refs": [
+        "q",
+        "eta",
+        "K",
+        "tauh",
+        "Hset",
+        "N",
+        "O"
+      ]
+    },
+    {
+      "name": "Pi",
+      "type": "probability vector",
+      "space": "\\(\\Delta(\\mathcal H_{J,s})\\)",
+      "sig": "\\(\\pi=(\\pi_h:h\\in\\mathcal H_{J,s})\\)",
+      "def": "A prior on feasible schedule orbits.",
+      "role": "dual decision",
+      "refs": [
+        "Hset"
+      ]
+    },
+    {
+      "name": "qcert",
+      "type": "probability vector",
+      "space": "\\(\\Delta(\\mathcal N_2)\\)",
+      "sig": "\\(q^{\\mathrm U}=(36,30,1,30,2,1)/100\\)",
+      "def": "The exact noncanonical upper-certificate design, with coordinates ordered as \\((0,0),(0,1),(0,2),(1,0),(1,1),(2,0)\\).",
+      "role": "rational noncanonical certificate design",
+      "refs": [
+        "N",
+        "q"
+      ]
+    },
+    {
+      "name": "piU",
+      "type": "probability vector",
+      "space": "\\(\\Delta(\\mathcal H_{2,1})\\)",
+      "sig": "\\(\\pi^{\\mathrm U}=10^{-8}(1015984,0,0,11868045,5323822,0,0,5323822,0,2031967,0,0,0,0,0,0,0,0,0,16328393,16328392,11868045,9123951,0,0,0,0,5323822,0,0,0,0,0,9123951,0,5323822,0,1015984)\\)",
+      "def": "The exact upper-certificate prior in the lexicographic order on the 38 elements of \\(\\mathcal H_{2,1}\\) induced first by \\(\\mathcal U=((0,0),(0,1),(1,0),(1,1))\\), then by \\(\\mathcal T=\\operatorname{Sym}^2(\\mathcal U)\\), and finally by two-pair histograms.",
+      "role": "rational posterior-mean certificate prior",
+      "refs": [
+        "Pi",
+        "Hset",
+        "U",
+        "T"
+      ]
+    },
+    {
+      "name": "piH",
+      "type": "probability vector",
+      "space": "\\(\\Delta(\\mathcal H_{2,1})\\)",
+      "sig": "\\(\\pi^{\\mathrm H}=10^{-8}(1674027,0,0,10977951,4888329,0,0,4888329,0,3348054,0,1407928,0,0,0,0,1407928,0,0,15653588,15653588,10977951,7427893,0,1407928,0,0,4888329,0,0,0,0,0,7427893,1407928,4888329,0,1674027)\\)",
+      "def": "The exact lower-certificate prior in the same lexicographic order on \\(\\mathcal H_{2,1}\\) as \\(\\pi^{\\mathrm U}\\).",
+      "role": "rational canonical-segment dual certificate",
+      "refs": [
+        "Pi",
+        "Hset",
+        "piU"
+      ]
+    },
+    {
+      "name": "aBayes",
+      "type": "nonnegative real array",
+      "sig": "\\(a_{no}(\\pi)=\\sum_h\\pi_hK_{hno}\\)",
+      "def": "The prior-predictive mass of observation cell \\(n,o\\).",
+      "role": "dual auxiliary functional",
+      "refs": [
+        "Pi",
+        "K",
+        "N",
+        "O",
+        "Hset"
+      ]
+    },
+    {
+      "name": "cBayes",
+      "type": "real array",
+      "sig": "\\(c_{no}(\\pi)=\\sum_h\\pi_hK_{hno}\\tau_h\\)",
+      "def": "The prior-predictive first SATE moment in observation cell \\(n,o\\).",
+      "role": "dual auxiliary functional",
+      "refs": [
+        "Pi",
+        "K",
+        "tauh",
+        "N",
+        "O",
+        "Hset"
+      ]
+    },
+    {
+      "name": "etaU",
+      "type": "real array",
+      "space": "\\([-1,1]^{\\{(n,o):n\\in\\mathcal N_2,\\ o\\in\\mathcal O_2\\}}\\)",
+      "sig": "\\(\\eta^{\\mathrm U}_{no}=c_{no}(\\pi^{\\mathrm U})/a_{no}(\\pi^{\\mathrm U})\\) when \\(a_{no}(\\pi^{\\mathrm U})>0\\), and \\(\\eta^{\\mathrm U}_{no}=0\\) otherwise",
+      "def": "The exact rational posterior-mean estimator generated cell by cell from \\(\\pi^{\\mathrm U}\\) and the corrected kernel \\(K\\); this formula is a complete coordinate specification because every \\(a_{no}\\) and \\(c_{no}\\) is a finite rational sum.",
+      "role": "rational upper-certificate estimator",
+      "refs": [
+        "eta",
+        "piU",
+        "aBayes",
+        "cBayes",
+        "K",
+        "N",
+        "O"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "nonnegative real array",
+      "space": "\\(\\mathbb R_{\\ge0}^{\\mathcal N_J}\\)",
+      "sig": "\\(B_n(\\pi)=\\sum_h\\pi_h\\tau_h^2-\\sum_o c_{no}(\\pi)^2/a_{no}(\\pi)\\)",
+      "def": "The Bayes risk conditional on assignment orbit \\(n\\), where a zero denominator contributes zero.",
+      "role": "least-favourable-prior certificate",
+      "refs": [
+        "Pi",
+        "K",
+        "tauh",
+        "N",
+        "O",
+        "Hset",
+        "aBayes",
+        "cBayes"
+      ]
+    },
+    {
+      "name": "Qstar",
+      "type": "set of probability vectors",
+      "space": "\\(\\mathcal Q^*(J,s)\\subseteq\\Delta(\\mathcal N_J)\\)",
+      "def": "The orbit laws that attain \\(R^*(J,s)\\) with some invariant estimator.",
+      "role": "exact finite optimal-design correspondence",
+      "refs": [
+        "q",
+        "Rstar",
+        "eta",
+        "K",
+        "Hset",
+        "N",
+        "O",
+        "tau"
+      ]
+    },
+    {
+      "name": "qpair",
+      "type": "probability vector",
+      "space": "\\(\\Delta(\\mathcal N_J)\\)",
+      "sig": "\\(q^{\\mathrm{pair}}=\\delta_{(0,0,J)}\\)",
+      "def": "Complete within-pair randomization.",
+      "role": "canonical comparator design",
+      "refs": [
+        "N",
+        "J"
+      ]
+    },
+    {
+      "name": "qber",
+      "type": "probability vector",
+      "space": "\\(\\Delta(\\mathcal N_J)\\)",
+      "sig": "\\(q^{\\mathrm{Ber}}_n=C_n/4^J\\)",
+      "def": "Independent \\(\\operatorname{Bernoulli}(1/2)\\) assignment expressed on orbits.",
+      "role": "canonical comparator design",
+      "refs": [
+        "N",
+        "C",
+        "J"
+      ]
+    },
+    {
+      "name": "Ccan",
+      "type": "line segment",
+      "space": "\\(\\mathcal C_J\\subseteq\\Delta(\\mathcal N_J)\\)",
+      "sig": "\\(\\mathcal C_J=\\{\\lambda q^{\\mathrm{pair}}+(1-\\lambda)q^{\\mathrm{Ber}}:0\\le\\lambda\\le1\\}\\)",
+      "def": "The canonical paired--Bernoulli mixture segment.",
+      "role": "restricted design benchmark",
+      "refs": [
+        "qpair",
+        "qber",
+        "N",
+        "J"
+      ]
+    },
+    {
+      "name": "rU",
+      "type": "nonnegative real number",
+      "space": "\\(\\mathbb R_{\\ge0}\\)",
+      "sig": "\\(r^{\\mathrm U}_{2J}=\\inf_{Q,\\delta}\\sup_{Y\\in\\{0,1\\}^{\\mathcal P_J\\times\\{0,1\\}}}\\mathbb E_Q[(\\delta-\\tau(Y))^2]\\)",
+      "def": "The unrestricted binary finite-population minimax risk on \\(2J\\) units.",
+      "role": "endpoint comparator value",
+      "refs": [
+        "J",
+        "P",
+        "Y",
+        "tau"
+      ]
+    },
+    {
+      "name": "sseq",
+      "type": "integer sequence",
+      "space": "\\(\\prod_{J\\ge2}\\{0,\\ldots,J\\}\\)",
+      "sig": "\\((s_J)_{J\\ge2}\\)",
+      "def": "A specified sequence of analyst-selected mismatch sensitivity bounds.",
+      "role": "asymptotic sensitivity regime",
+      "refs": [
+        "J",
+        "s"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "real number",
+      "space": "\\([0,1]\\)",
+      "sig": "\\(\\rho=\\lim_{J\\to\\infty}s_J/J\\)",
+      "def": "The limiting analyst-selected sensitivity fraction.",
+      "role": "sensitivity phase parameter",
+      "refs": [
+        "sseq",
+        "J"
+      ]
+    },
+    {
+      "name": "Simp",
+      "type": "compact simplex",
+      "space": "\\(\\Delta_2=\\{x\\in[0,1]^3:x_{00}+x_{11}+x_{\\mathrm m}=1\\}\\)",
+      "def": "The simplex of normalized assignment-orbit fractions.",
+      "role": "limiting design space",
+      "refs": []
+    },
+    {
+      "name": "mu",
+      "type": "probability measure with weak topology",
+      "space": "\\(\\mathcal P(\\Delta_2)\\) equipped with the topology of weak convergence",
+      "sig": "\\(\\mu_q=q\\circ\\{n\\mapsto(n_{00}/J,n_{11}/J,n_{\\mathrm m}/J)\\}^{-1}\\)",
+      "def": "The pushed-forward design measure of an invariant orbit law on the assignment-fraction simplex \\(\\Delta_2\\); convergence and accumulation of these measures are always taken in the weak topology.",
+      "role": "limiting design object",
+      "refs": [
+        "q",
+        "N",
+        "J",
+        "Simp"
+      ]
+    },
+    {
+      "name": "Qinf",
+      "type": "set of probability measures",
+      "space": "\\(\\mathcal P(\\Delta_2)\\)",
+      "sig": "\\(\\mathcal Q^*_{\\infty}[(s_J)]=\\operatorname*{Limsup}_{J\\to\\infty}\\{\\mu_q:q\\in\\mathcal Q^*(J,s_J)\\}\\)",
+      "def": "The weak subsequential limits of exact finite optimal orbit laws along the specified budget sequence.",
+      "role": "headline optimizer-limit object",
+      "refs": [
+        "sseq",
+        "mu",
+        "Qstar",
+        "J"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "continuous coordinate map",
+      "space": "\\(\\Delta_2\\to[0,1]\\)",
+      "sig": "\\(m(x)=x_{\\mathrm m}\\)",
+      "def": "The mixed-pair fraction of an assignment-orbit limit point.",
+      "role": "limiting design summary",
+      "refs": [
+        "N",
+        "J",
+        "Simp"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "continuous coordinate map",
+      "space": "\\(\\Delta_2\\to[-1,1]\\)",
+      "sig": "\\(d(x)=x_{11}-x_{00}\\)",
+      "def": "The imbalance between all-treated and all-control pair fractions.",
+      "role": "limiting design summary",
+      "refs": [
+        "N",
+        "J",
+        "Simp"
+      ]
+    },
+    {
+      "name": "Frho",
+      "type": "set of probability measures",
+      "space": "\\(\\mathcal P(\\Delta_2)\\)",
+      "def": "The first-order optimal-measure envelope constructed in \\(\\mathrm{def:first\\text{-}order\\text{-}envelope}\\).",
+      "role": "outer and recovery benchmark for exact limits",
+      "refs": [
+        "rho",
+        "m",
+        "d"
+      ]
+    },
+    {
+      "name": "Lhandle",
+      "type": "research handle",
+      "def": "A second-order local orbit experiment built from the ten pair types, the kernel \\(K\\), local SATE fluctuations, and the tangent cone generated by the specified sequence \\((s_J-J/2)\\); its variational risk is used to characterize the exact-minimizer subset of \\(\\mathcal F_\\rho\\).",
+      "role": "handle for the open-ended construction",
+      "refs": [
+        "T",
+        "K",
+        "tau",
+        "Frho",
+        "sseq",
+        "J"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "real number",
+      "space": "\\((0,1)\\)",
+      "def": "The nominal test level.",
+      "role": "inference level",
+      "refs": []
+    },
+    {
+      "name": "nmap",
+      "type": "finite map",
+      "sig": "\\(n:\\{0,1\\}^{2J}\\to\\mathcal N_J\\)",
+      "def": "The assignment-orbit index of a labelled assignment.",
+      "role": "orbit projection",
+      "refs": [
+        "A",
+        "N",
+        "J"
+      ]
+    },
+    {
+      "name": "omap",
+      "type": "finite map",
+      "sig": "\\(o:\\{0,1\\}^{2J}\\times\\{0,1\\}^{2J}\\to\\mathcal O_J\\)",
+      "def": "The observation-orbit index of labelled assignment and observed outcomes.",
+      "role": "orbit projection",
+      "refs": [
+        "A",
+        "Yobs",
+        "O",
+        "J"
+      ]
+    },
+    {
+      "name": "Tstat",
+      "type": "nonnegative statistic",
+      "sig": "\\(T_t(n,o)=|\\eta_{no}-t|\\)",
+      "def": "The orbit-level randomization statistic for a candidate SATE value \\(t\\).",
+      "role": "test statistic",
+      "refs": [
+        "eta",
+        "N",
+        "O",
+        "tau"
+      ]
+    },
+    {
+      "name": "pval",
+      "type": "real function",
+      "space": "\\([0,1]\\)",
+      "sig": "\\(p_t(n,o)=\\max_{h:\\tau_h=t,\\,K_{hno}>0}\\sum_{n',o'}q_{n'}K_{hn'o'}\\mathbf 1\\{T_t(n',o')\\ge T_t(n,o)\\}\\)",
+      "def": "The largest randomization tail probability over feasible schedule orbits compatible with the candidate SATE and observed cell, with the maximum of an empty set equal to zero.",
+      "role": "composite-null exact \\(p\\)-value",
+      "refs": [
+        "tauh",
+        "Hset",
+        "K",
+        "N",
+        "O",
+        "q",
+        "Tstat"
+      ]
+    },
+    {
+      "name": "CI",
+      "type": "random finite set",
+      "space": "\\(2^{\\{-1,-1+1/(2J),\\ldots,1\\}}\\)",
+      "sig": "\\(\\mathcal C_{\\alpha,s}(A,Y^{\\mathrm{obs}})=\\{t:p_t(n(A),o(A,Y^{\\mathrm{obs}}))>\\alpha\\}\\)",
+      "def": "The inversion of the orbit-level composite randomization tests at sensitivity value \\(s\\).",
+      "role": "exact confidence set",
+      "refs": [
+        "alpha",
+        "s",
+        "pval",
+        "A",
+        "Yobs",
+        "J",
+        "nmap",
+        "omap"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:binary-outcome-support",
+      "kind": "outcome support restriction",
+      "condition": "The schedule satisfies \\(Y\\in\\{0,1\\}^{\\mathcal P_J\\times\\{0,1\\}}\\).",
+      "free_symbols": [
+        "J",
+        "P",
+        "Y"
+      ],
+      "standard": {
+        "name": "Binary potential-outcome support restriction for finite-population randomization inference",
+        "cite": "Wilson2026MatchedBinary"
+      },
+      "used_by": [
+        "def:bounded-mismatch-class",
+        "def:sate",
+        "def:observation-kernel",
+        "thm:orbit-game-face",
+        "prop:exact-inversion"
+      ]
+    },
+    {
+      "id": "ass:armwise-discordance-budget",
+      "kind": "shape restriction",
+      "condition": "The schedule satisfies \\(D_a(Y)\\le s\\) for each \\(a\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "D",
+        "Y",
+        "s"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The condition is a transparent sensitivity restriction on latent potential outcomes, analogous to varying an unobserved-confounding radius. Smaller values are substantively plausible for pairs formed from near-duplicate baseline profiles, but pretreatment records cannot verify both-arm discordance; conclusions are therefore reported across analyst-selected values of \\(s\\)."
+      },
+      "used_by": [
+        "def:bounded-mismatch-class",
+        "def:schedule-orbits",
+        "thm:orbit-game-face",
+        "thm:phase-transition",
+        "oeq:exact-selection"
+      ]
+    },
+    {
+      "id": "ass:design-exogeneity",
+      "kind": "randomization",
+      "condition": "The conditional assignment law satisfies \\(Q_{\\mathrm{design}}(A\\mid Y)=Q_{\\mathrm{design}}(A)\\).",
+      "free_symbols": [
+        "Qdesign",
+        "A",
+        "Y"
+      ],
+      "standard": {
+        "name": "Outcome-independent randomized assignment",
+        "cite": "ImbensRubin2015"
+      },
+      "used_by": [
+        "def:design-class",
+        "def:randomization-risk",
+        "prop:exact-inversion"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:bounded-mismatch-class",
+      "name": "Bounded pair-mismatch schedule class",
+      "construction": "\\(\\Theta_{J,s}=\\{Y\\in\\{0,1\\}^{\\mathcal P_J\\times\\{0,1\\}}: D_a(Y)\\le s\\text{ for every }a\\in\\{0,1\\}\\}\\).",
+      "free_symbols": [
+        "Theta",
+        "J",
+        "s",
+        "Y",
+        "P",
+        "D"
+      ],
+      "by_member_properties": [
+        "ass:binary-outcome-support",
+        "ass:armwise-discordance-budget"
+      ]
+    },
+    {
+      "id": "def:design-class",
+      "name": "Ex ante assignment-law class",
+      "construction": "\\(\\mathfrak Q_{J,s}=\\{Q_{\\mathrm{design}}\\in\\Delta(\\{0,1\\}^{2J}):Q_{\\mathrm{design}}(A\\mid Y)=Q_{\\mathrm{design}}(A)\\text{ and }Q_{\\mathrm{design}}\\text{ is chosen from }(J,s,\\mathcal P_J)\\text{ before outcomes are observed}\\}\\).",
+      "free_symbols": [
+        "Qspace",
+        "Qdesign",
+        "A",
+        "Y",
+        "J",
+        "s",
+        "P"
+      ],
+      "by_member_properties": [
+        "ass:design-exogeneity"
+      ]
+    },
+    {
+      "id": "def:estimator-class",
+      "name": "Clipped measurable estimator class",
+      "construction": "\\(\\mathfrak D_J=\\{\\delta:\\{0,1\\}^{2J}\\times\\{0,1\\}^{2J}\\times\\mathcal P_J\\to[-1,1]:\\delta\\text{ is measurable}\\}\\).",
+      "free_symbols": [
+        "Delta",
+        "delta",
+        "A",
+        "Yobs",
+        "P",
+        "J"
+      ],
+      "by_member_properties": []
+    },
+    {
+      "id": "def:sate",
+      "name": "Sample average treatment effect",
+      "construction": "\\(\\tau(Y)=(2J)^{-1}\\sum_{j=1}^J\\sum_{r=1}^2\\{Y_{jr}(1)-Y_{jr}(0)\\}\\).",
+      "free_symbols": [
+        "tau",
+        "Y",
+        "J",
+        "P"
+      ],
+      "inputs": [
+        "Y"
+      ]
+    },
+    {
+      "id": "def:randomization-risk",
+      "name": "Procedure risk",
+      "construction": "\\(\\mathcal R_{J,s}(Q_{\\mathrm{design}},\\delta;Y)=\\sum_{a\\in\\{0,1\\}^{2J}}Q_{\\mathrm{design}}(a)\\{\\delta(a,Y^{\\mathrm{obs}}(a))-\\tau(Y)\\}^2\\).",
+      "free_symbols": [
+        "risk",
+        "J",
+        "s",
+        "Qdesign",
+        "delta",
+        "Y",
+        "Yobs",
+        "tau",
+        "A"
+      ],
+      "inputs": [
+        "Qdesign",
+        "delta",
+        "Y"
+      ]
+    },
+    {
+      "id": "def:minimax-risk",
+      "name": "Joint minimax risk",
+      "construction": "\\(R^*(J,s)=\\inf_{Q_{\\mathrm{design}}\\in\\mathfrak Q_{J,s},\\,\\delta\\in\\mathfrak D_J}\\sup_{Y\\in\\Theta_{J,s}}\\mathcal R_{J,s}(Q_{\\mathrm{design}},\\delta;Y)\\).",
+      "free_symbols": [
+        "Rstar",
+        "J",
+        "s",
+        "Qdesign",
+        "Qspace",
+        "delta",
+        "Delta",
+        "Y",
+        "Theta",
+        "risk"
+      ],
+      "inputs": [
+        "J",
+        "s"
+      ]
+    },
+    {
+      "id": "def:pair-invariance-group",
+      "name": "Pair-preserving group",
+      "construction": "\\(G_J=\\mathfrak S_J\\ltimes(\\mathfrak S_2)^J\\), acting by pair permutations and independent within-pair label swaps on schedules, assignments, and observations.",
+      "free_symbols": [
+        "G",
+        "J",
+        "P",
+        "Y",
+        "A",
+        "Yobs"
+      ],
+      "inputs": [
+        "J",
+        "P"
+      ]
+    },
+    {
+      "id": "def:assignment-orbits",
+      "name": "Assignment-orbit class",
+      "construction": "\\(\\mathcal N_J=\\{n=(n_{00},n_{11},n_{\\mathrm m})\\in\\mathbb Z_{\\ge0}^3:n_{00}+n_{11}+n_{\\mathrm m}=J\\}\\).",
+      "free_symbols": [
+        "N",
+        "J",
+        "A",
+        "G"
+      ],
+      "by_member_properties": []
+    },
+    {
+      "id": "def:schedule-orbits",
+      "name": "Feasible schedule-orbit class",
+      "construction": "\\(\\mathcal H_{J,s}=\\{h=(h_t)_{t\\in\\mathcal T}\\in\\mathbb Z_{\\ge0}^{\\mathcal T}:\\sum_{t\\in\\mathcal T}h_t=J,\\ \\sum_t h_t\\mathbf 1\\{t\\text{ is discordant in arm }a\\}\\le s\\text{ for each }a\\in\\{0,1\\}\\}\\).",
+      "free_symbols": [
+        "Hset",
+        "J",
+        "s",
+        "T",
+        "D",
+        "Y"
+      ],
+      "by_member_properties": [
+        "ass:armwise-discordance-budget"
+      ]
+    },
+    {
+      "id": "def:observation-orbits",
+      "name": "Observation-orbit class",
+      "construction": "\\(\\mathcal O_J=\\{o=(o_v)_{v\\in\\mathcal V}\\in\\mathbb Z_{\\ge0}^{\\mathcal V}:\\sum_{v\\in\\mathcal V}o_v=J\\}\\), where each local observed unit is recorded as \\((A_{jr},Y^{\\mathrm{obs}}_{jr})\\).",
+      "free_symbols": [
+        "O",
+        "J",
+        "V",
+        "A",
+        "Yobs",
+        "G"
+      ],
+      "by_member_properties": []
+    },
+    {
+      "id": "def:orbit-sate",
+      "name": "SATE of a latent pair-type histogram",
+      "construction": "For \\(h\\in\\mathcal H_{J,s}\\), \\(\\tau_h=(2J)^{-1}\\sum_{t=\\{u,v\\}\\in\\mathcal T}h_t\\{(u_1-u_0)+(v_1-v_0)\\}\\).",
+      "free_symbols": [
+        "tauh",
+        "Hset",
+        "J",
+        "T",
+        "U"
+      ],
+      "inputs": [
+        "Hset"
+      ]
+    },
+    {
+      "id": "def:marked-generating-polynomial",
+      "name": "Assignment-marked observation polynomial",
+      "construction": "Fix the lexicographically ordered representative of each \\(t\\in\\mathcal T\\) and set \\(F_h(x,z)=\\prod_{t\\in\\mathcal T}(\\sum_{a\\in\\mathcal A_{\\mathrm{loc}}}x_{\\nu(a)}z_{\\omega(t,a)})^{h_t}\\).",
+      "free_symbols": [
+        "F",
+        "Hset",
+        "x",
+        "z",
+        "T",
+        "L",
+        "nu",
+        "omega"
+      ],
+      "inputs": [
+        "Hset",
+        "x",
+        "z"
+      ]
+    },
+    {
+      "id": "def:observation-kernel",
+      "name": "Pair-orbit observation kernel",
+      "construction": "For every \\(h\\in\\mathcal H_{J,s}\\), \\(n\\in\\mathcal N_J\\), and \\(o\\in\\mathcal O_J\\), set \\(K_{hno}=C_n^{-1}[x_{00}^{n_{00}}x_{11}^{n_{11}}x_{\\mathrm m}^{n_{\\mathrm m}}z^o]F_h(x,z)\\). Thus incompatible joint margins have coefficient zero and \\(\\sum_{o\\in\\mathcal O_J}K_{hno}=1\\).",
+      "free_symbols": [
+        "K",
+        "Hset",
+        "N",
+        "O",
+        "C",
+        "x",
+        "z",
+        "F"
+      ],
+      "inputs": [
+        "Hset",
+        "N",
+        "O",
+        "F"
+      ]
+    },
+    {
+      "id": "def:orbit-risk",
+      "name": "Reduced orbit risk",
+      "construction": "\\(\\mathcal R_h(q,\\eta)=\\sum_{n\\in\\mathcal N_J}\\sum_{o\\in\\mathcal O_J}q_nK_{hno}(\\eta_{no}-\\tau_h)^2\\).",
+      "free_symbols": [
+        "orbitrisk",
+        "q",
+        "eta",
+        "K",
+        "Hset",
+        "N",
+        "O",
+        "tauh"
+      ],
+      "inputs": [
+        "q",
+        "eta",
+        "Hset"
+      ]
+    },
+    {
+      "id": "def:conditional-bayes-risk",
+      "name": "Conditional Bayes-risk map",
+      "construction": "With \\(a_{no}(\\pi)=\\sum_h\\pi_hK_{hno}\\) and \\(c_{no}(\\pi)=\\sum_h\\pi_hK_{hno}\\tau_h\\), set \\(B_n(\\pi)=\\sum_h\\pi_h\\tau_h^2-\\sum_{o:a_{no}(\\pi)>0}c_{no}(\\pi)^2/a_{no}(\\pi)\\).",
+      "free_symbols": [
+        "B",
+        "Pi",
+        "K",
+        "tauh",
+        "Hset",
+        "N",
+        "O",
+        "aBayes",
+        "cBayes"
+      ],
+      "inputs": [
+        "Pi",
+        "N"
+      ]
+    },
+    {
+      "id": "def:j2-rational-certificate",
+      "name": "Exact \\(J=2,s=1\\) rational separation certificate",
+      "construction": "Order assignment orbits as \\((0,0),(0,1),(0,2),(1,0),(1,1),(2,0)\\) and set \\(q^{\\mathrm U}=(36,30,1,30,2,1)/100\\). Order \\(\\mathcal H_{2,1}\\) lexicographically as specified by \\(\\pi^{\\mathrm U}\\), use its displayed 38 rational coordinates, and set \\(\\eta^{\\mathrm U}_{no}=c_{no}(\\pi^{\\mathrm U})/a_{no}(\\pi^{\\mathrm U})\\) on positive-mass cells and zero otherwise. Use the displayed 38 rational coordinates of \\(\\pi^{\\mathrm H}\\) for the canonical-segment lower certificate.",
+      "free_symbols": [
+        "J",
+        "s",
+        "N",
+        "Hset",
+        "qcert",
+        "piU",
+        "etaU",
+        "aBayes",
+        "cBayes",
+        "piH",
+        "K",
+        "tauh"
+      ],
+      "inputs": [
+        "K",
+        "tauh"
+      ]
+    },
+    {
+      "id": "def:finite-optimal-design-set",
+      "name": "Exact finite optimal-design correspondence",
+      "construction": "\\(\\mathcal Q^*(J,s)=\\{q\\in\\Delta(\\mathcal N_J):\\text{there exists }\\eta\\text{ with }\\max_{h\\in\\mathcal H_{J,s}}\\mathcal R_h(q,\\eta)=R^*(J,s)\\}\\).",
+      "free_symbols": [
+        "Qstar",
+        "J",
+        "s",
+        "q",
+        "N",
+        "eta",
+        "Hset",
+        "orbitrisk",
+        "Rstar"
+      ],
+      "inputs": [
+        "J",
+        "s"
+      ]
+    },
+    {
+      "id": "def:canonical-segment",
+      "name": "Canonical design segment",
+      "construction": "\\(q^{\\mathrm{pair}}=\\delta_{(0,0,J)}\\), \\(q^{\\mathrm{Ber}}_n=C_n/4^J\\), and \\(\\mathcal C_J=\\{\\lambda q^{\\mathrm{pair}}+(1-\\lambda)q^{\\mathrm{Ber}}:0\\le\\lambda\\le1\\}\\).",
+      "free_symbols": [
+        "qpair",
+        "qber",
+        "Ccan",
+        "N",
+        "C",
+        "J"
+      ],
+      "inputs": [
+        "J"
+      ]
+    },
+    {
+      "id": "def:unrestricted-endpoint-risk",
+      "name": "Unrestricted binary endpoint risk",
+      "construction": "\\(r^{\\mathrm U}_{2J}=\\inf_{Q_{\\mathrm{design}},\\delta}\\sup_{Y\\in\\{0,1\\}^{\\mathcal P_J\\times\\{0,1\\}}}\\mathbb E_{A\\sim Q_{\\mathrm{design}}}[\\{\\delta(A,Y^{\\mathrm{obs}})-\\tau(Y)\\}^2]\\).",
+      "free_symbols": [
+        "rU",
+        "J",
+        "Qdesign",
+        "delta",
+        "Y",
+        "P",
+        "A",
+        "Yobs",
+        "tau"
+      ],
+      "inputs": [
+        "J"
+      ]
+    },
+    {
+      "id": "def:pushed-forward-orbit-law",
+      "name": "Normalized assignment-orbit law",
+      "construction": "\\(\\mu_q=q\\circ\\{n\\mapsto(n_{00}/J,n_{11}/J,n_{\\mathrm m}/J)\\}^{-1}\\in\\mathcal P(\\Delta_2)\\), where \\(\\mathcal P(\\Delta_2)\\) is equipped with the topology of weak convergence.",
+      "free_symbols": [
+        "mu",
+        "q",
+        "N",
+        "J",
+        "Simp"
+      ],
+      "inputs": [
+        "q"
+      ]
+    },
+    {
+      "id": "def:exact-limit-set",
+      "name": "Exact-minimizer accumulation set",
+      "construction": "\\(\\mathcal Q^*_{\\infty}[(s_J)]=\\{\\mu:\\text{there exist }J_k\\to\\infty\\text{ and }q_{J_k}\\in\\mathcal Q^*(J_k,s_{J_k})\\text{ with }\\mu_{q_{J_k}}\\Rightarrow\\mu\\}\\).",
+      "free_symbols": [
+        "Qinf",
+        "sseq",
+        "J",
+        "q",
+        "Qstar",
+        "mu"
+      ],
+      "inputs": [
+        "sseq"
+      ]
+    },
+    {
+      "id": "def:first-order-envelope",
+      "name": "First-order optimal-measure envelope",
+      "construction": "\\(\\mathcal F_\\rho=\\{\\delta_{(0,0,1)}\\}\\) if \\(0\\le\\rho<1/2\\); \\(\\mathcal F_{1/2}=\\{\\mu:\\mu\\{d=0\\}=1,\\ \\int m\\,d\\mu\\ge1/2\\}\\); and \\(\\mathcal F_\\rho=\\{\\mu:\\mu\\{d=0\\}=1,\\ \\int m\\,d\\mu=1/2\\}\\) if \\(1/2<\\rho\\le1\\).",
+      "free_symbols": [
+        "Frho",
+        "rho",
+        "mu",
+        "m",
+        "d"
+      ],
+      "inputs": [
+        "rho"
+      ]
+    },
+    {
+      "id": "def:limiting-experiment-handle",
+      "name": "Second-order pair-orbit selection handle",
+      "construction": "Derive a local asymptotic decision experiment from the ten-type schedule simplex and kernel \\(K\\), retaining the joint local fluctuations of \\(\\tau\\), pair-type counts, and observation counts on every boundary face; then take the smaller-order variational risk on the tangent cone determined by \\((s_J-J/2)\\) and recover exact finite minimizers from its contact set.",
+      "free_symbols": [
+        "Lhandle",
+        "T",
+        "K",
+        "tau",
+        "sseq",
+        "J",
+        "Frho",
+        "Qinf"
+      ],
+      "inputs": [
+        "T",
+        "K",
+        "sseq"
+      ]
+    },
+    {
+      "id": "def:composite-randomization-pvalue",
+      "name": "Orbitwise composite-null \\(p\\)-value",
+      "construction": "\\(p_t(n,o)=\\max_{h\\in\\mathcal H_{J,s}:\\tau_h=t,\\,K_{hno}>0}\\sum_{n'\\in\\mathcal N_J}\\sum_{o'\\in\\mathcal O_J}q_{n'}K_{hn'o'}\\mathbf 1\\{T_t(n',o')\\ge T_t(n,o)\\}\\), with an empty maximum equal to zero.",
+      "free_symbols": [
+        "pval",
+        "tauh",
+        "N",
+        "O",
+        "Hset",
+        "K",
+        "q",
+        "Tstat",
+        "J",
+        "s"
+      ],
+      "inputs": [
+        "q",
+        "Tstat"
+      ]
+    },
+    {
+      "id": "def:exact-confidence-set",
+      "name": "Inverted exact SATE confidence set",
+      "construction": "\\(\\mathcal C_{\\alpha,s}(A,Y^{\\mathrm{obs}})=\\{t\\in\\{-1,-1+1/(2J),\\ldots,1\\}:p_t(n(A),o(A,Y^{\\mathrm{obs}}))>\\alpha\\}\\).",
+      "free_symbols": [
+        "CI",
+        "alpha",
+        "s",
+        "A",
+        "Yobs",
+        "J",
+        "pval",
+        "N",
+        "O",
+        "nmap",
+        "omap"
+      ],
+      "inputs": [
+        "alpha",
+        "A",
+        "Yobs"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:orbit-game-face",
+      "kind": "theorem",
+      "statement": "Theorem 1. For every \\(J\\ge2\\) and \\(0\\le s\\le J\\), averaging over \\(G_J\\) is lossless for the minimax problem. The full rectangular kernel has \\(O(J^{20})\\) rational entries of \\(O(J)\\) bit length and is exactly computable by coefficient recursion from \\(F_h\\). Moreover, \\[R^*(J,s)=\\min_{q,\\eta}\\max_{h\\in\\mathcal H_{J,s}}\\sum_{n,o}q_nK_{hno}(\\eta_{no}-\\tau_h)^2=\\max_{\\pi\\in\\Delta(\\mathcal H_{J,s})}\\min_{n\\in\\mathcal N_J}B_n(\\pi).\\] An orbit law \\(q\\) belongs to \\(\\mathcal Q^*(J,s)\\) if and only if there exist \\(\\eta\\), \\(\\pi\\), and \\(v\\) such that \\(\\mathcal R_h(q,\\eta)\\le v\\) for every \\(h\\) and \\(B_n(\\pi)\\ge v\\) for every \\(n\\). This certificate decides membership of \\(q^{\\mathrm{pair}}\\), \\(q^{\\mathrm{Ber}}\\), and \\(\\mathcal C_J\\), essential noncanonicality, and singleton uniqueness by coordinate optimization over the projected optimal face.",
+      "free_symbols": [
+        "J",
+        "s",
+        "G",
+        "F",
+        "K",
+        "Hset",
+        "N",
+        "O",
+        "q",
+        "eta",
+        "tauh",
+        "Rstar",
+        "Pi",
+        "B",
+        "Qstar",
+        "qpair",
+        "qber",
+        "Ccan",
+        "orbitrisk"
+      ],
+      "depends_on": [
+        "ass:binary-outcome-support",
+        "ass:armwise-discordance-budget",
+        "ass:design-exogeneity",
+        "def:bounded-mismatch-class",
+        "def:design-class",
+        "def:estimator-class",
+        "def:sate",
+        "def:randomization-risk",
+        "def:minimax-risk",
+        "def:pair-invariance-group",
+        "def:assignment-orbits",
+        "def:schedule-orbits",
+        "def:observation-orbits",
+        "def:orbit-sate",
+        "def:marked-generating-polynomial",
+        "def:observation-kernel",
+        "def:orbit-risk",
+        "def:conditional-bayes-risk",
+        "def:finite-optimal-design-set",
+        "def:canonical-segment"
+      ],
+      "status": "to-prove",
+      "justification": "The full primal--dual contact system, rather than the value alone, is needed to distinguish canonical and correlated minimax designs.",
+      "gap": "Bai2023WhyRandomize gives the averaging move, SudijonoDobribanTchetgen2026 gives a scalar unrestricted game, and Kallus2021Optimality gives fixed-estimator mixed-strategy geometry; none gives this hard-budget all-estimator face.",
+      "consumer": "For each analyst-selected sensitivity value \\(s\\), a trial designer can enumerate the exact minimax assignment laws and select one satisfying operational support or balance constraints without losing minimaxity for \\(\\Theta_{J,s}\\)."
+    },
+    {
+      "id": "prop:endpoint-reductions",
+      "kind": "proposition",
+      "statement": "Proposition 2. If \\(0\\le s\\le s'\\le J\\), then \\(\\Theta_{J,s}\\subseteq\\Theta_{J,s'}\\) and \\(R^*(J,s)\\le R^*(J,s')\\). At \\(s=0\\), \\(R^*(J,0)=0\\) and \\(\\mathcal Q^*(J,0)=\\{q^{\\mathrm{pair}}\\}\\). At \\(s=J\\), \\(R^*(J,J)=r^{\\mathrm U}_{2J}\\), and \\(q^{\\mathrm{Ber}}\\in\\mathcal Q^*(J,J)\\) with the nonlinear posterior-mean rule from the unrestricted binary experiment.",
+      "free_symbols": [
+        "s",
+        "J",
+        "Theta",
+        "Rstar",
+        "Qstar",
+        "qpair",
+        "rU",
+        "qber"
+      ],
+      "depends_on": [
+        "def:minimax-risk",
+        "def:finite-optimal-design-set",
+        "def:canonical-segment",
+        "def:unrestricted-endpoint-risk",
+        "thm:orbit-game-face"
+      ],
+      "status": "to-prove",
+      "justification": "The endpoints are mandatory reductions: perfect pair agreement makes paired assignment exact, while a vacuous budget recovers the published unrestricted problem.",
+      "gap": "Bai2022MatchedPairs and Hull2026BoundedOutcomes motivate opposite endpoint prescriptions under different information classes; this proposition embeds both endpoints in one fixed-population model.",
+      "consumer": "Analysts obtain a monotone worst-case-risk sensitivity curve in \\(s\\), with familiar paired and Bernoulli procedures anchoring its two endpoints; the optimal face itself is recomputed at each sensitivity value."
+    },
+    {
+      "id": "thm:noncanonical-separation",
+      "kind": "theorem",
+      "statement": "Theorem 3. For \\(J=2\\) and \\(s=1\\), the rational certificate \\((q^{\\mathrm U},\\eta^{\\mathrm U},\\pi^{\\mathrm H})\\) satisfies \\(q^{\\mathrm U}\\notin\\mathcal C_2\\) and \\[\\max_{h\\in\\mathcal H_{2,1}}\\mathcal R_h(q^{\\mathrm U},\\eta^{\\mathrm U})<9065/100000.\\] Its displayed dual prior satisfies \\[\\min\\left\\{B_{(0,0,2)}(\\pi^{\\mathrm H}),\\sum_{n\\in\\mathcal N_2}q^{\\mathrm{Ber}}_nB_n(\\pi^{\\mathrm H})\\right\\}>9102/100000,\\] and therefore \\(\\inf_{q'\\in\\mathcal C_2,\\,\\eta'}\\max_h\\mathcal R_h(q',\\eta')>0.09102\\). Hence \\(\\mathcal Q^*(2,1)\\cap\\mathcal C_2=\\varnothing\\), with an all-estimator risk gap exceeding \\(37/100000\\).",
+      "free_symbols": [
+        "J",
+        "s",
+        "q",
+        "qcert",
+        "Ccan",
+        "eta",
+        "etaU",
+        "piH",
+        "B",
+        "qber",
+        "Hset",
+        "orbitrisk",
+        "Qstar"
+      ],
+      "depends_on": [
+        "def:orbit-risk",
+        "def:conditional-bayes-risk",
+        "def:j2-rational-certificate",
+        "def:finite-optimal-design-set",
+        "def:canonical-segment",
+        "thm:orbit-game-face"
+      ],
+      "status": "to-prove",
+      "justification": "A strict rational separation prevents the intermediate problem from collapsing to an endpoint switch or a paired--Bernoulli mixture.",
+      "gap": "Kallus2021Optimality shows mixed strategies can matter for fixed-estimator variance, but no published result gives a strict noncanonical separation after optimizing every measurable SATE estimator.",
+      "consumer": "For sensitivity analysis at \\(J=2,s=1\\), the result shows that restricting attention to mixtures of paired and independent assignment can be strictly suboptimal even after reoptimizing the estimator."
+    },
+    {
+      "id": "thm:phase-transition",
+      "kind": "theorem",
+      "statement": "Theorem 4. For every budget sequence with \\(s_J/J\\to\\rho\\in[0,1]\\), \\[\\lim_{J\\to\\infty}J R^*(J,s_J)=\\min\\{\\rho,1/2\\}.\\] If \\(0\\le\\rho<1/2\\), then every sequence \\(q_J\\in\\mathcal Q^*(J,s_J)\\) satisfies \\(\\mu_{q_J}\\Rightarrow\\delta_{(0,0,1)}\\), equivalently convergence holds in \\(W_1\\) on \\(\\Delta_2\\).",
+      "free_symbols": [
+        "sseq",
+        "J",
+        "rho",
+        "Rstar",
+        "q",
+        "Qstar",
+        "mu"
+      ],
+      "depends_on": [
+        "ass:armwise-discordance-budget",
+        "def:minimax-risk",
+        "def:finite-optimal-design-set",
+        "def:pushed-forward-orbit-law",
+        "prop:endpoint-reductions"
+      ],
+      "status": "to-prove",
+      "justification": "The formula quantifies the exact robustness value of pairing and identifies the phase boundary where first-order risk stops selecting the design.",
+      "gap": "SudijonoDobribanTchetgen2026 and Hull2026BoundedOutcomes give the unrestricted endpoint constant, while Bai2022MatchedPairs gives a paired prescription under another criterion; no source derives this interpolation or concentration theorem.",
+      "consumer": "The curve maps an analyst-selected discordance fraction to the sharp first-order sample-size cost and identifies when the minimax design must concentrate asymptotically on mixed pairs."
+    },
+    {
+      "id": "thm:first-order-face",
+      "kind": "theorem",
+      "statement": "Theorem 5. Suppose \\(s_J/J\\to\\rho\\ge1/2\\). Let \\((q_J,\\eta_J)_{J\\ge2}\\) be any sequence of invariant procedures satisfying \\(\\max_{h\\in\\mathcal H_{J,s_J}}\\mathcal R_h(q_J,\\eta_J)=R^*(J,s_J)+o(J^{-1})\\), and let \\(\\mu_{q_J}=q_J\\circ\\{n\\mapsto(n_{00}/J,n_{11}/J,n_{\\mathrm m}/J)\\}^{-1}\\). With \\(\\mathcal P(\\Delta_2)\\) endowed with the weak topology, every weak accumulation point \\(\\mu\\) of the sequence \\((\\mu_{q_J})_{J\\ge2}\\) lies in \\(\\mathcal F_\\rho\\). Conversely, for every measure \\(\\mu\\in\\mathcal F_\\rho\\), there exists a sequence of invariant procedures \\((q_J,\\eta_J)_{J\\ge2}\\) such that \\(\\mu_{q_J}\\Rightarrow\\mu\\) and \\(\\max_{h\\in\\mathcal H_{J,s_J}}\\mathcal R_h(q_J,\\eta_J)=R^*(J,s_J)+o(J^{-1})\\).",
+      "free_symbols": [
+        "sseq",
+        "J",
+        "rho",
+        "Rstar",
+        "Frho",
+        "mu",
+        "q",
+        "eta",
+        "Hset",
+        "orbitrisk",
+        "Simp",
+        "N"
+      ],
+      "depends_on": [
+        "def:minimax-risk",
+        "def:orbit-risk",
+        "def:pushed-forward-orbit-law",
+        "def:first-order-envelope",
+        "thm:phase-transition"
+      ],
+      "status": "to-prove",
+      "justification": "This theorem identifies exactly why the leading minimax value cannot by itself determine limits of exact finite optimizers.",
+      "gap": "HarshawSavjeSpielmanZhang2024 gives covariance guarantees for one estimator and SudijonoDobribanTchetgen2026 separates first- and second-order risk in another model; neither characterizes this measure-valued first-order face.",
+      "consumer": "For each high-mismatch sensitivity sequence, the envelope identifies the macroscopic assignment mixtures that need an exact or smaller-order selection criterion."
+    },
+    {
+      "id": "oeq:exact-selection",
+      "kind": "openendedquestion",
+      "statement": "Open-ended Question 6. Using the second-order pair-orbit selection handle, characterize \\(\\mathcal Q^*_{\\infty}[(s_J)]\\) exactly for every analyst-specified sensitivity sequence with \\(s_J/J\\to\\rho\\ge1/2\\): give necessary and sufficient contact conditions inside \\(\\mathcal F_\\rho\\), prove recovery by exact finite minimizers rather than merely first-order-optimal designs, and determine how the answer changes with the local approach of \\(s_J-J/2\\) at \\(\\rho=1/2\\).",
+      "free_symbols": [
+        "Lhandle",
+        "Qinf",
+        "sseq",
+        "J",
+        "rho",
+        "Frho"
+      ],
+      "depends_on": [
+        "def:exact-limit-set",
+        "def:first-order-envelope",
+        "def:limiting-experiment-handle",
+        "thm:orbit-game-face",
+        "thm:phase-transition",
+        "thm:first-order-face"
+      ],
+      "status": "to-prove",
+      "justification": "Exact finite optimizers may select a strict subset of the flat first-order face, and that selection is the proposal's genuinely unresolved theorem-level content.",
+      "gap": "The Airy expansion of SudijonoDobribanTchetgen2026 selects a scalar unrestricted rule, but no published result handles a measure-valued design face, pair-type boundary experiments, or critical hard-budget sequences.",
+      "consumer": "The answer determines which first-order-equivalent laws are exact finite minimax choices at each high-mismatch sensitivity path and supplies a principled tie-breaker for design sensitivity analysis."
+    },
+    {
+      "id": "prop:exact-inversion",
+      "kind": "proposition",
+      "statement": "Proposition 7. For every analyst-selected \\(s\\), invariant law \\(q\\), orbit estimator \\(\\eta\\), and \\(Y\\in\\Theta_{J,s}\\), the confidence set \\(\\mathcal C_{\\alpha,s}(A,Y^{\\mathrm{obs}})\\) satisfies \\[\\Pr_{A\\sim q}\\{\\tau(Y)\\in\\mathcal C_{\\alpha,s}(A,Y^{\\mathrm{obs}})\\}\\ge1-\\alpha.\\] The set and its interval hull are computable using the same \\(O(J^{20})\\)-entry rectangular rational orbit kernel as Theorem 1, including when \\(q\\) is correlated and essentially noncanonical. Varying \\(s\\) produces a coverage-guaranteed sensitivity family; neither its members nor their interval hulls are asserted to be nested when the design or statistic is reoptimized.",
+      "free_symbols": [
+        "q",
+        "eta",
+        "Y",
+        "Theta",
+        "J",
+        "s",
+        "CI",
+        "alpha",
+        "A",
+        "Yobs",
+        "tau",
+        "K"
+      ],
+      "depends_on": [
+        "ass:binary-outcome-support",
+        "ass:design-exogeneity",
+        "def:bounded-mismatch-class",
+        "def:observation-kernel",
+        "def:composite-randomization-pvalue",
+        "def:exact-confidence-set",
+        "thm:orbit-game-face"
+      ],
+      "status": "to-prove",
+      "justification": "Exact coverage makes a nonstandard minimax law usable in small binary experiments without an asymptotic approximation.",
+      "gap": "Wilson2026MatchedBinary and Zhang2026FastBinaryCI rely on within-pair coin flips or product Bernoulli structure, while LiSpertusStark2025 handles stratification but not arbitrary correlated orbit laws on an optimal face.",
+      "consumer": "Investigators can report a finite-sample SATE confidence-set sensitivity family indexed by \\(s\\), with each member uniformly valid over its corresponding latent mismatch class."
+    }
+  ],
+  "sampling_model": {
+    "design": "For each analyst-selected \\(s\\), the assignment law is chosen from all outcome-independent probability distributions on \\(\\{0,1\\}^{2J}\\); after pair-preserving symmetrization it is represented by \\(q\\in\\Delta(\\mathcal N_J)\\).",
+    "units": "The \\(2J\\) labelled units and all binary potential outcomes are fixed; only the partition into \\(J\\) pairs is observed before assignment, while armwise discordance is latent.",
+    "treatment": "A binary assignment \\(A\\) is the only source of randomness, and \\(Y^{\\mathrm{obs}}_{jr}=A_{jr}Y_{jr}(1)+(1-A_{jr})Y_{jr}(0)\\).",
+    "overlap": "No marginal positivity restriction is imposed; zero-mass assignment and observation cells are handled by closed quadratic perspectives and explicit primal completions.",
+    "nuisance_estimation": "There are no sampled nuisances. Nature chooses a fixed schedule in the sensitivity class \\(\\Theta_{J,s}\\); risks, optimal procedures, and confidence sets are reported separately as \\(s\\) varies."
+  },
+  "estimand_functional": "\\((Q^*,\\delta^*)\\in\\operatorname*{arg\\,min}_{Q,\\delta}\\sup_{Y\\in\\Theta_{J,s}}\\mathbb E_Q[\\{\\delta(A,Y^{\\mathrm{obs}})-\\tau(Y)\\}^2]\\)",
+  "target_estimand": "\\(\\tau(Y)=(2J)^{-1}\\sum_{j=1}^J\\sum_{r=1}^2\\{Y_{jr}(1)-Y_{jr}(0)\\}\\)",
+  "bibliography": [
+    {
+      "key": "ImbensRubin2015",
+      "citation": "Imbens, Guido W., and Donald B. Rubin. 2015. Causal Inference for Statistics, Social, and Biomedical Sciences. Cambridge University Press."
+    },
+    {
+      "key": "Bai2023WhyRandomize",
+      "citation": "Bai, Yuehao. 2023. Why Randomize? Minimax Optimality under Permutation Invariance. Journal of Econometrics 232(2): 565--575. doi:10.1016/j.jeconom.2021.10.009."
+    },
+    {
+      "key": "Kallus2021Optimality",
+      "citation": "Kallus, Nathan. 2021. On the Optimality of Randomization in Experimental Design: How to Randomize for Minimax Variance and Design-Based Inference. Journal of the Royal Statistical Society: Series B 83: 404--409. doi:10.1111/rssb.12412."
+    },
+    {
+      "key": "SudijonoDobribanTchetgen2026",
+      "citation": "Sudijono, Timothy, Edgar Dobriban, and Eric Tchetgen Tchetgen. 2026. Sharp Minimax Theory for Randomized Experiments. arXiv:2608.13822."
+    },
+    {
+      "key": "Hull2026BoundedOutcomes",
+      "citation": "Hull, Peter. 2026. Optimal Experimental Design and Estimation when Potential Outcomes are Bounded. arXiv:2608.09812."
+    },
+    {
+      "key": "Bai2022MatchedPairs",
+      "citation": "Bai, Yuehao. 2022. Optimality of Matched-Pair Designs in Randomized Controlled Trials. American Economic Review 112(12): 3911--3940. doi:10.1257/aer.20201856."
+    },
+    {
+      "key": "deChaisemartin2022Shrinkage",
+      "citation": "de Chaisemartin, Clément. 2022. Trading-off Bias and Variance in Stratified Experiments and in Staggered Adoption Designs, Under a Boundedness Condition on the Magnitude of the Treatment Effect. NBER Working Paper 29879. doi:10.3386/w29879."
+    },
+    {
+      "key": "HarshawSavjeSpielmanZhang2024",
+      "citation": "Harshaw, Christopher, Fredrik Sävje, Daniel A. Spielman, and Peng Zhang. 2024. Balancing Covariates in Randomized Experiments with the Gram--Schmidt Walk Design. Journal of the American Statistical Association 119(548): 2934--2946. doi:10.1080/01621459.2023.2285474."
+    },
+    {
+      "key": "AronowLopatto2026",
+      "citation": "Aronow, P. M., and Patrick Lopatto. 2026. Minimax Unbiased Estimation for Finite Populations with Bounded Outcomes. arXiv:2605.20572."
+    },
+    {
+      "key": "Wilson2026MatchedBinary",
+      "citation": "Wilson, Bob. 2026. Randomization Inference for Matched Pairs with Binary Outcomes. arXiv:2609.03227."
+    },
+    {
+      "key": "Zhang2026FastBinaryCI",
+      "citation": "Zhang, Peng. 2026. Fast Algorithms for Exact Confidence Intervals in Randomized Experiments with Binary Outcomes. arXiv:2602.20498."
+    },
+    {
+      "key": "LiSpertusStark2025",
+      "citation": "Li, Jiaxun, Jacob Spertus, and Philip B. Stark. 2025. Exact and Conservative Inference for the Average Treatment Effect in Stratified Experiments with Binary Outcomes. arXiv:2508.03834."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "Bai2023WhyRandomize",
+      "comparator_claim": "Given an assignment vector and an invariant estimator, uniform randomization over the permutation group is minimax under invariant states and a quasiconvex objective.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Kallus2021Optimality",
+      "comparator_claim": "The mixed-strategy optimal design minimizes worst-case variance of difference in means over a structured conditional-mean class and may require randomization over several partitions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SudijonoDobribanTchetgen2026",
+      "comparator_claim": "For unrestricted binary potential outcomes, Bernoulli assignment with a nonlinear posterior-mean rule attains the all-procedure minimax risk, whose second-order term is governed by the Airy function.",
+      "matched_by": "Proposition 2",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "Hull2026BoundedOutcomes",
+      "comparator_claim": "Independent assignment remains minimax over all measurable estimators for unrestricted bounded potential outcomes, with an endpoint-supported least-favourable problem.",
+      "matched_by": "Proposition 2",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "Bai2022MatchedPairs",
+      "comparator_claim": "Within stratified designs treating half of every stratum, matched pairs formed by the prognostic index minimize the mean-squared error of difference in means.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "deChaisemartin2022Shrinkage",
+      "comparator_claim": "For a fixed stratified experiment with unbiased and uncorrelated group-CATE estimators, homoscedastic outcomes, and group CATEs bounded by \\(B\\) outcome standard deviations, Theorem 2.1 derives the lowest worst-case-MSE estimator among linear combinations of those group estimators.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HarshawSavjeSpielmanZhang2024",
+      "comparator_claim": "The Gram--Schmidt Walk design controls a covariance-based balance--robustness trade-off and yields MSE and asymptotic inference guarantees for Horvitz--Thompson estimation.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AronowLopatto2026",
+      "comparator_claim": "Under design unbiasedness for bounded finite-population totals, the minimax bound is attained if and only if inclusion indicators are pairwise independent.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Wilson2026MatchedBinary",
+      "comparator_claim": "Under within-pair coin flips, the worst compatible binary attributable-effect allocation is a single boundary corner and exact inversion needs logarithmically many binomial tails.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Zhang2026FastBinaryCI",
+      "comparator_claim": "Exact binary ATE intervals under balanced Bernoulli or matched-pair assignment can be computed with \\(O(\\log n)\\) randomization tests.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiSpertusStark2025",
+      "comparator_claim": "Exact conservative stratified binary ATE inference can be obtained by maximizing randomization \\(p\\)-values over compatible potential-outcome tables.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Known pairs are useful when their two units would respond similarly under each arm, but that two-arm similarity is latent. The integer \\(s\\) is therefore an analyst-specified sensitivity bound, and for every value the project jointly optimizes over all outcome-independent assignment laws and all measurable clipped SATE estimators. A pair-preserving symmetry reduction with a joint assignment--observation coefficient yields an exact finite conic game, an \\(O(J^{20})\\)-entry rectangular rational kernel, and a dual certificate for the entire invariant optimal-design correspondence; a rational \\(J=2,s=1\\) instance rules out every paired--Bernoulli mixture. The sensitivity frontier satisfies \\(J R^*(J,s_J)\\to\\min\\{\\rho,1/2\\}\\), while at and above the threshold the leading term leaves a measure-valued face. The central open result is the exact smaller-order selection of limits of finite minimizers, including the critical approach to \\(\\rho=1/2\\). The same corrected kernel gives a finite-sample confidence-set sensitivity family for correlated optimal laws.",
+  "project_justification": {
+    "gap": "Published minimax results justify paired assignment under prognostic superpopulation structure, independent assignment under unrestricted bounded schedules, or linear shrinkage under a fixed stratified design with observed groups and bounded group CATEs. They do not solve the intermediate fixed-population sensitivity class indexed by a latent armwise pair-discordance cap while jointly choosing the design and an arbitrary measurable estimator, and they do not distinguish first-order-optimal laws from limits of exact finite minimizers.",
+    "niche": "The sensitivity restriction breaks full unit exchangeability without treating unobserved potential-outcome discordance as pretreatment information. It leaves a finite but nontransitive observation experiment in which correlated assignment laws and nonlinear posterior-mean estimators can be jointly optimal.",
+    "fill": "For every selected \\(s\\), the project supplies the correctly normalized assignment-marked orbit game, a matching least-favourable-prior dual, exact canonicality and uniqueness certificates, a strict noncanonical separation, a monotone risk sensitivity frontier, a first-order measure face, the exact-minimizer selection problem, and exact randomization-test inversion."
+  },
+  "related_work": "Bai2023WhyRandomize establishes the group-averaging principle and identifies approximate invariance and joint design--estimator choice as a boundary; its theorem is used as a symmetry template rather than a target to beat. Kallus2021Optimality shows that structured minimax design can require a mixed strategy, but its precision criterion fixes difference in means. SudijonoDobribanTchetgen2026 and Hull2026BoundedOutcomes solve the unrestricted bounded all-estimator problem by symmetries that do not preserve separate armwise pair-discordance sensitivity classes; Proposition 2 recovers their binary endpoint. Bai2022MatchedPairs obtains matched-pair optimality inside stratified half-treatment designs under a superpopulation precision criterion, which informs the low-sensitivity endpoint but does not make both-arm discordance observable. deChaisemartin2022Shrinkage, Theorem 2.1, derives minimax-linear shrinkage of observed group-CATE estimators under a bound on group CATE magnitudes. Its formal problem fixes the stratified design and observed groups and optimizes only over linear estimators, whereas this project imposes latent armwise within-pair outcome discordance and jointly optimizes the assignment law and every measurable estimator; it therefore informs the bias--variance motivation but is not a theorem-level target. HarshawSavjeSpielmanZhang2024 controls a covariance-based balance--robustness frontier for Horvitz--Thompson estimation and informs the assignment-measure geometry. AronowLopatto2026 gives an independence frontier under design unbiasedness, while the present comparison permits biased nonlinear estimators. Wilson2026MatchedBinary, Zhang2026FastBinaryCI, and LiSpertusStark2025 inform exact inversion; their product or fixed-stratum mechanisms do not cover correlated noncanonical laws or an analyst-indexed latent mismatch class.",
+  "technical_internal_limitation": "A corrected checker formed \\(K_{hno}\\) from the joint assignment-marked coefficient and verified \\(\\sum_oK_{hno}=1\\) for every \\((h,n)\\) at all \\(J=2,3,4\\) and \\(0\\le s\\le J\\). The resulting schedule-orbit counts are \\((10,38,55)\\), \\((20,96,184,220)\\), and \\((35,195,454,650,715)\\); the largest full rectangular array has \\(7{,}668{,}375\\) entries at \\(J=4,s=4\\), consistent with \\(O(J^{20})\\). The recomputed minimax risks by increasing \\(s\\) are \\((0,0.0904264890,0.1030826943)\\) for \\(J=2\\), \\((0,0.0584446250,0.0719156622,0.0756571245)\\) for \\(J=3\\), and \\((0,0.0414059556,0.0546757329,0.0591555795,0.0601329999)\\) for \\(J=4\\). Projected second-order-cone coordinate optimization reproduces the all-mixed singleton at \\(s=0\\), broad faces at the unrestricted endpoints, and the strict noncanonical \\(J=2,s=1\\) instance; the critical grids \\(J=2,s=1\\) and \\(J=4,s=2\\) have materially different finite coordinate-range patterns. Because these finite critical cases do not establish a stable sequence law, Open-ended Question 6 remains at its stated resolution. Only the \\(J=2,s=1\\) separation is backed by exact rational inequalities; the other displayed risks and face diagnostics are numerical early-kill checks, not theorem contributions.",
+  "honest_scope": "The parameter \\(s\\) is an analyst-selected sensitivity index for latent both-arm discordance, not a practitioner-known or administratively verifiable quantity. Every risk, optimal face, asymptotic regime, and confidence set is conditional on the selected value or sequence, so substantive reporting varies \\(s\\) rather than selecting it from observed outcomes. The corrected finite orbit representation, endpoint reductions, rational noncanonical separation, first-order value, low-sensitivity concentration, high-sensitivity first-order envelope, and exact inversion are theorem obligations. The complete limit set of exact finite minimizers for \\(\\rho\\ge1/2\\) is the principal open object. At \\(s=0\\) the problem reduces to exact paired recovery; at \\(s=J\\) it reduces to the unrestricted Bernoulli nonlinear minimax experiment of SudijonoDobribanTchetgen2026 and Hull2026BoundedOutcomes.",
+  "seeds": [
+    "seed:finite-orbit-optimal-face",
+    "seed:exact-minimizer-limit-face",
+    "seed:persistent-noncanonical-gap",
+    "seed:critical-second-order-selector",
+    "seed:correlated-law-exact-inversion",
+    "seed:inference-constrained-minimax-face",
+    "seed:soft-mismatch-critical-penalty",
+    "seed:continuous-pair-variation-budget",
+    "seed:unknown-budget-minimax-regret"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:finite-orbit-optimal-face",
+      "anchor": "Bai2023WhyRandomize",
+      "anchor_opened": "The Introduction, Theorem 2.1 and its orbit-averaging proof on pp. 565--571, and the Conclusion on p. 571 were read. The theorem fixes an assignment vector and invariant estimator, whereas the conclusion leaves joint design--estimator choice under approximate invariance open.",
+      "kernel": "Reduce the bounded pair-discordance problem without loss to a polynomial-size orbit experiment and characterize the projection of the entire optimal procedure face by matching primal and least-favourable-prior certificates.",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Bai's averaging still supplies invariance, but full permutation transitivity is lost; the first new step is to retain pair-type, assignment-orbit, and observation-orbit histograms while proving that no information is discarded.",
+      "target_method_search": "Exact-title and target--method searches for hard armwise pair-discordance budgets, all-estimator minimax design, and optimal-face projection found the unrestricted papers and block-design papers but no direct solution.",
+      "red_team": "A cynical referee could call this a routine finite-game symmetrization of Bai's theorem.",
+      "rebuttal": "Bai does not optimize arbitrary estimators, handle zero-mass observation cells, or characterize every optimal design under a coupled hard budget; those tasks require a new observation kernel and a primal--dual contact system.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4,
+        "total": 23
+      },
+      "disposition": "survive"
+    },
+    {
+      "id": "seed:exact-minimizer-limit-face",
+      "anchor": "SudijonoDobribanTchetgen2026",
+      "anchor_opened": "The Introduction and Main Results, Theorems 2.1--2.3 and 3.1, the finite minimax and least-favourable-prior construction, the Airy second-order argument, and the Discussion were read from the arXiv source. The paper solves the unrestricted binary problem and stresses that first-order equivalence hides procedure differences.",
+      "kernel": "For every budget sequence with \\(s_J/J\\to\\rho\\), derive the sharp risk phase transition and characterize exactly which probability measures on assignment-orbit fractions arise as limits of exact finite minimizers, including smaller-order selection at and above \\(\\rho=1/2\\).",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "The scalar binomial reduction in Sudijono, Dobriban, and Tchetgen Tchetgen fails because the pair budget preserves a ten-type local experiment; the first changed step is a local asymptotic experiment that retains both the SATE fluctuation and pair-type nuisance fluctuations on boundary faces.",
+      "target_method_search": "Searches combining exact finite minimizers, limiting optimal-design faces, pair randomization, Bernoulli assignment, and bounded mismatch found no theorem characterizing the accumulation set or critical-sequence selection.",
+      "red_team": "A cynical referee could say standard epi-convergence makes the limit face automatic once the first-order value is known.",
+      "rebuttal": "The leading risk is flat for \\(\\rho\\ge 1/2\\); first-order optimal measures strictly outnumber known limits of exact minimizers, so ordinary epi-convergence cannot provide the required inner limit or smaller-order selector.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 24
+      },
+      "disposition": "selected"
+    },
+    {
+      "id": "seed:persistent-noncanonical-gap",
+      "anchor": "Kallus2021Optimality",
+      "anchor_opened": "The Introduction, the mixed-strategy optimal-design section, the inference-constrained program, and the Concluding Remarks were read from the arXiv source. The paper shows why minimax precision can require randomization over multiple partitions but keeps the difference-in-means precision criterion.",
+      "kernel": "Construct, or rule out, a sequence of bounded-mismatch instances for which the best unrestricted assignment--estimator procedure beats the entire paired--Bernoulli segment by a certified positive smaller-order constant.",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Kallus's spectral mixed-strategy objective is linear in a fixed estimator's covariance; here the first new step is a hard-budget composition lemma for nonlinear Bayes rules and least-favourable priors.",
+      "target_method_search": "Searches for noncanonical assignment laws with unrestricted SATE estimators and persistent risk separation found mixed-strategy variance designs but no all-estimator hard-budget family.",
+      "red_team": "A cynical referee could dismiss the reported \\(J=2\\) gap as a numerical curiosity that vanishes with \\(J\\).",
+      "rebuttal": "The seed explicitly requires a parameterized primal--dual family or a vanishing theorem, so a lone witness cannot satisfy it.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 21
+      },
+      "disposition": "survive"
+    },
+    {
+      "id": "seed:critical-second-order-selector",
+      "anchor": "SudijonoDobribanTchetgen2026",
+      "anchor_opened": "The Airy expansion theorem, its variational heuristic, shrinking least-favourable-prior lower bound, and the Discussion were read. The published second-order term selects an estimator in the fully exchangeable problem but does not address a flat design face under pair constraints.",
+      "kernel": "Derive the second-order variational functional that selects among balanced first-order-optimal orbit measures when \\(s_J-J/2\\) is bounded or grows at a local rate.",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "The one-dimensional Airy boundary layer becomes a multidimensional pair-type experiment; the first changed step is identifying its local scaling and tangent cone before solving the variational problem.",
+      "target_method_search": "A search pairing Airy minimax expansions with matched-pair design faces and critical mismatch sequences found only the unrestricted scalar expansion.",
+      "red_team": "A cynical referee could say this is merely the next term of an already known minimax expansion.",
+      "rebuttal": "The object selected is a design measure rather than only an estimator, and the critical hard-budget tangent cone changes with the sequence \\(s_J-J/2\\).",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 20
+      },
+      "disposition": "merge-into-selected"
+    },
+    {
+      "id": "seed:correlated-law-exact-inversion",
+      "anchor": "SudijonoDobribanTchetgen2026",
+      "anchor_opened": "The Discussion's explicit inference question and its suggestion of weak-null randomization-test inversion were read, together with the paper's nonlinear optimal rule and reduced experiment.",
+      "kernel": "Invert finite randomization tests uniformly over bounded-mismatch schedules for every correlated law on the minimax face, using observation-orbit likelihoods instead of product-binomial monotonicity.",
+      "motif": "M17",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "The first step that fails from Wilson2026MatchedBinary and Zhang2026FastBinaryCI is reduction of the worst compatible null to a binomial boundary corner; it must be replaced by maximization over schedule orbits under the global budget.",
+      "target_method_search": "The destination search located fast exact inversion for within-pair coin flips and Bernoulli designs and composite maximization for stratified experiments, but no result uniform over correlated noncanonical laws.",
+      "red_team": "A cynical referee could call exact inversion a tautological enumeration of all schedules.",
+      "rebuttal": "The proposed orbit likelihood gives a polynomial-size exact representation shared by every optimal law, although an analytic one-corner reduction is not promised.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "disposition": "supporting-result"
+    },
+    {
+      "id": "seed:inference-constrained-minimax-face",
+      "anchor": "Kallus2021Optimality",
+      "anchor_opened": "Equation defining the inference-constrained mixed-strategy design and the sharp-null randomization discussion were read, as were the paper's caveats about precision-only optimization.",
+      "kernel": "Jointly minimize worst-case SATE MSE over bounded-mismatch schedules subject to an exact weak-null power or maximum-atom constraint, and characterize the resulting constrained optimal face.",
+      "motif": "M13+M17",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Adding a maximum-atom constraint is convex, but weak-null power is not; the first changed step is an orbit-level dual representation of worst-null rejection probability compatible with nonlinear estimators.",
+      "target_method_search": "Searches for inference-constrained minimax designs found Kallus's fixed-estimator sharp-null formulation but no bounded binary all-estimator weak-null counterpart.",
+      "red_team": "A cynical referee could say this only appends a linear constraint to an existing conic program.",
+      "rebuttal": "That objection holds for a maximum-atom constraint alone, so the seed survives only in its stronger weak-null power form and is not selected for the first paper.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "disposition": "drop-from-core"
+    },
+    {
+      "id": "seed:soft-mismatch-critical-penalty",
+      "anchor": "Bai2023WhyRandomize",
+      "anchor_opened": "Remark 2.4 and the Conclusion were read. They identify exact permutation invariance as an idealization and ask what changes under approximate invariance.",
+      "kernel": "Replace the hard discordance cap by an adversarial penalty and derive critical penalty values at which paired, mixed, and independent assignment enter or leave the minimax face.",
+      "motif": "M3+M13",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "The hard-budget schedule polytope becomes a Lagrangian family; the first changed step is proving that contact sets vary piecewise algebraically rather than assuming strong duality identifies the design thresholds automatically.",
+      "target_method_search": "Searches for approximate permutation invariance with a pair-discordance penalty and critical design-switch thresholds found qualitative robustness discussions but no exact threshold map.",
+      "red_team": "A cynical referee could say this is just the Lagrange dual of the hard-cap problem.",
+      "rebuttal": "The objection substantially lowers novelty because integrality can create a duality gap and the threshold map is secondary to the hard-cap face; this seed is dropped.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 3,
+        "total": 16
+      },
+      "disposition": "drop"
+    },
+    {
+      "id": "seed:continuous-pair-variation-budget",
+      "anchor": "Hull2026BoundedOutcomes",
+      "anchor_opened": "The Introduction, Theorem 1 and its three-step symmetrization, endpoint, and separate-convexity proof, and the Conclusion were read from the arXiv source. The conclusion explicitly points to within-stratum homogeneity restrictions.",
+      "kernel": "For bounded nonbinary outcomes, impose an aggregate within-pair variation budget and determine whether endpoint reduction survives and which assignment--estimator law is minimax.",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Hull's coordinatewise separate-convexity pushes an unrestricted box to binary endpoints; an aggregate pair-variation constraint couples coordinates, so the first changed step is an extreme-point theorem for the constrained polytope.",
+      "target_method_search": "Searches combining bounded outcomes, within-stratum homogeneity budgets, unrestricted estimators, and minimax design found Hull's stated future direction but no aggregate-variation theorem.",
+      "red_team": "A cynical referee could say the continuous problem reduces mechanically to binary vertices.",
+      "rebuttal": "The coupled variation budget has nonbinary extreme points and blocks coordinatewise endpoint maximization, so the reduction itself is a substantive open step.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "disposition": "reserve"
+    },
+    {
+      "id": "seed:unknown-budget-minimax-regret",
+      "anchor": "Bai2023WhyRandomize",
+      "anchor_opened": "The Introduction's interpretation of invariance as the designer's information set and the Conclusion's approximate-invariance question were read.",
+      "kernel": "When the mismatch budget is unknown within a stated range, choose a single assignment law minimizing regret relative to the oracle minimax procedure indexed by \\(s\\).",
+      "motif": "M13",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "The first changed step is deriving the oracle risk and optimizer correspondence uniformly in \\(s\\), after which nature chooses both a schedule and a compatible budget.",
+      "target_method_search": "Searches for minimax-regret design over unknown pair quality found balance--robustness tuning papers but no oracle-regret frontier for all-estimator fixed-population SATE.",
+      "red_team": "A cynical referee could say uncertainty about \\(s\\) simply selects the largest admissible budget by nesting.",
+      "rebuttal": "That objection holds for raw worst-case risk and disappears only after changing to oracle regret, but the resulting object is less direct than the exact-minimizer face and is reserved.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 3,
+        "total": 16
+      },
+      "disposition": "reserve"
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "seed:finite-orbit-optimal-face",
+      "adjacent_threads": [
+        "Bai2023WhyRandomize, Theorem 2.1 and its proof: group averaging makes uniform randomization minimax for a fixed orbit and invariant estimator, but the paper leaves joint choice under approximate invariance open.",
+        "SudijonoDobribanTchetgen2026, Theorems 2.1--2.3: full unit exchangeability and transformed-coordinate swaps reduce the unrestricted binary problem to a scalar binomial experiment with a posterior-mean minimax rule.",
+        "Hull2026BoundedOutcomes, Theorem 1 and Appendix proof: endpoint reduction plus separate convexity yields independent assignment and a nonlinear rule over all measurable estimators in the unrestricted bounded box.",
+        "Kallus2021Optimality, mixed-strategy section: convex design geometry can require support on several partitions, but the criterion is variance of a fixed difference-in-means estimator over a conditional-mean class.",
+        "deChaisemartin2022Shrinkage, Theorem 2.1: a fixed stratified design and observed groups support minimax-linear shrinkage under bounded group CATEs, but the theorem neither chooses the randomization nor optimizes over nonlinear measurable estimators."
+      ],
+      "occupancy_check": "None of these sources imposes two armwise hard cardinality bounds on within-pair potential-outcome discordance while optimizing both the assignment law and every measurable SATE estimator.",
+      "closest_paper_check": "The unrestricted endpoint papers cannot subsume the kernel because their unitwise swap symmetry can violate the pair budget; Bai's theorem supplies only the averaging move, and Kallus's matrix game omits nonlinear observation-cell decisions.",
+      "method_adapted": "Bai's group averaging is adapted to the pair-preserving wreath product; the finite Bayes-risk perspective and posterior-mean construction are adapted from Sudijono, Dobriban, and Tchetgen Tchetgen; Kallus's mixed-strategy geometry motivates full-face contact certificates.",
+      "status": "survive"
+    },
+    {
+      "candidate": "seed:exact-minimizer-limit-face",
+      "adjacent_threads": [
+        "SudijonoDobribanTchetgen2026, Theorem 3.1 and the Airy lower-bound construction: a shrinking least-favourable prior and van Trees inequality expose a nonstandard second-order term in the unrestricted scalar experiment.",
+        "Hull2026BoundedOutcomes, Conclusion: unrestricted bounded schedules favour independent assignment, while the paper explicitly identifies within-stratum homogeneity restrictions as future work.",
+        "Bai2022MatchedPairs, oracle theorem and conclusion: matched pairs are optimal within stratified half-treatment designs under a superpopulation precision criterion, not under an adversarial fixed binary schedule class.",
+        "HarshawSavjeSpielmanZhang2024, MSE and covariance theorems: a tunable assignment covariance trades balance against robustness for Horvitz--Thompson estimation, but does not characterize exact all-estimator minimizers."
+      ],
+      "occupancy_check": "The scan found endpoint prescriptions and first- or second-order values for different model classes, but no Kuratowski or Hausdorff limit of exact minimizer sets for a hard discordance fraction and no critical-sequence selector at \\(\\rho=1/2\\).",
+      "closest_paper_check": "Sudijono, Dobriban, and Tchetgen Tchetgen are closest in proof depth, but their transitive scalar reduction eliminates the design face whose boundary selection is the proposed object.",
+      "method_adapted": "Their shrinking-prior and van Trees architecture is adapted first to a two-parameter pair-type experiment; the selected seed then requires a uniform local decision experiment and a smaller-order variational limit rather than importing their Airy answer.",
+      "status": "selected"
+    },
+    {
+      "candidate": "seed:persistent-noncanonical-gap",
+      "adjacent_threads": [
+        "Kallus2021Optimality shows that structured conditional-mean classes can require a genuine mixed strategy, but its estimator and variance criterion are fixed.",
+        "SudijonoDobribanTchetgen2026 supplies all-estimator least-favourable-prior lower bounds, but full exchangeability makes Bernoulli assignment optimal.",
+        "Hull2026BoundedOutcomes proves the same unrestricted Bernoulli endpoint by transformed-coordinate symmetrization and identifies informative within-stratum similarity as the missing structure.",
+        "AronowLopatto2026 proves an iff pairwise-independence frontier for bounded finite-population sampling under design unbiasedness, a restriction absent here."
+      ],
+      "occupancy_check": "No located source gives a parameterized hard-pair-budget family with a dual-certified gap between unrestricted nonlinear procedures and every paired--Bernoulli mixture.",
+      "closest_paper_check": "The exact \\(J=2,s=1\\) rational certificate survives re-execution, but no adjacent paper or current derivation establishes persistence; the seed remains genuinely open rather than being claimed as a theorem.",
+      "method_adapted": "The intended route tensors or hard-budget-conditions least-favourable priors while tracking normalization, then matches them with noncanonical orbit laws.",
+      "status": "survive-as-subquestion"
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Yuehao Bai",
+      "year": 2023,
+      "venue": "Journal of Econometrics",
+      "bibkey": "Bai2023WhyRandomize",
+      "one_line": "Theorem 2.1 averages over a permutation group for a fixed assignment orbit and invariant estimator; the Conclusion leaves joint design--estimator choice under approximate invariance open.",
+      "relevant_to": "thm:orbit-game-face"
+    },
+    {
+      "author": "Nathan Kallus",
+      "year": 2021,
+      "venue": "Journal of the Royal Statistical Society: Series B",
+      "bibkey": "Kallus2021Optimality",
+      "one_line": "The mixed-strategy optimal design minimizes a spectral worst-case variance criterion for a fixed difference-in-means estimator and can require several partitions.",
+      "relevant_to": "thm:orbit-game-face"
+    },
+    {
+      "author": "Timothy Sudijono, Edgar Dobriban, and Eric Tchetgen Tchetgen",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "SudijonoDobribanTchetgen2026",
+      "one_line": "Theorems 2.1--2.3 reduce the unrestricted binary all-procedure problem to a scalar binomial experiment, and Theorem 3.1 derives its Airy second-order minimax expansion.",
+      "relevant_to": "oeq:exact-selection"
+    },
+    {
+      "author": "Peter Hull",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "Hull2026BoundedOutcomes",
+      "one_line": "Theorem 1 proves independent assignment remains minimax over all estimators for unrestricted bounded schedules; the Conclusion points to within-stratum homogeneity restrictions.",
+      "relevant_to": "prop:endpoint-reductions"
+    },
+    {
+      "author": "Yuehao Bai",
+      "year": 2022,
+      "venue": "American Economic Review",
+      "bibkey": "Bai2022MatchedPairs",
+      "one_line": "Matched pairs maximize precision within stratified half-treatment designs under a superpopulation criterion when pairs are formed by the prognostic index.",
+      "relevant_to": "thm:phase-transition"
+    },
+    {
+      "author": "Christopher Harshaw, Fredrik Sävje, Daniel Spielman, and Peng Zhang",
+      "year": 2024,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "HarshawSavjeSpielmanZhang2024",
+      "one_line": "The Gram--Schmidt Walk design provides covariance and MSE guarantees that interpolate between covariate balance and worst-case robustness for Horvitz--Thompson estimation.",
+      "relevant_to": "thm:first-order-face"
+    },
+    {
+      "author": "Clément de Chaisemartin",
+      "year": 2022,
+      "venue": "NBER Working Paper",
+      "bibkey": "deChaisemartin2022Shrinkage",
+      "one_line": "Theorem 2.1 derives minimax-linear shrinkage for a fixed stratified design with observed groups and bounded group CATEs, rather than jointly choosing a design and an arbitrary measurable estimator under latent within-pair discordance.",
+      "relevant_to": "thm:orbit-game-face"
+    },
+    {
+      "author": "Bob Wilson",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "Wilson2026MatchedBinary",
+      "one_line": "Exact binary matched-pair inference locates the worst compatible allocation at one binomial boundary corner under within-pair coin flips.",
+      "relevant_to": "prop:exact-inversion"
+    },
+    {
+      "author": "Peng Zhang",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "Zhang2026FastBinaryCI",
+      "one_line": "Exact binary ATE intervals require only \\(O(\\log n)\\) randomization tests for balanced Bernoulli and matched-pair designs.",
+      "relevant_to": "prop:exact-inversion"
+    },
+    {
+      "author": "Jiaxun Li, Jacob Spertus, and Philip Stark",
+      "year": 2025,
+      "venue": "arXiv",
+      "bibkey": "LiSpertusStark2025",
+      "one_line": "General stratified exact ATE inversion maximizes a permutation \\(p\\)-value over compatible stratum tables and can have product-form computational burden.",
+      "relevant_to": "prop:exact-inversion"
+    }
+  ],
+  "novelty_justification": "The closest all-estimator results are SudijonoDobribanTchetgen2026 and Hull2026BoundedOutcomes. They solve the unrestricted bounded schedule class because independent transformed-coordinate swaps make assignments transitive; those swaps do not preserve separate armwise pair-discordance budgets. Bai2023WhyRandomize supplies the group-averaging principle but fixes the estimator in its first theorem and explicitly leaves joint design--estimator choice under approximate invariance open. deChaisemartin2022Shrinkage studies a different formal decision problem: the stratified design and observed groups are fixed, group CATE magnitudes are bounded, and minimization is restricted to linear combinations of group estimators; here the discordance restriction concerns latent armwise within-pair outcomes and both the assignment law and every measurable estimator are optimized. The strict delta is therefore not another endpoint risk or shrinkage calculation: it is the exact optimizer correspondence for the intermediate hard-budget class, together with a nontrivial phase transition and the smaller-order selection of limits of exact finite minimizers. The full first-order face is deliberately separated from the open exact-minimizer face so the proposal does not pass off asymptotic near-optimality as exact selection."
+}

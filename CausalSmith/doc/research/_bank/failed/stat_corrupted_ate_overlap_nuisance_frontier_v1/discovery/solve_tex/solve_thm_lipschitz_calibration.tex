@@ -1,0 +1,450 @@
+%%% FIELD generalized-estimator-construction
+Set
+\[
+r_{n,\kappa}=
+\begin{cases}
+n^{-1/2},&0<\kappa<1,\\
+\{\log(en)/n\}^{1/2},&\kappa=1,\\
+n^{-2/(\kappa+3)},&\kappa>1,
+\end{cases}
+\qquad
+b_n=\max\{\epsilon^{1/(\kappa+2)},r_{n,\kappa}^{1/2}\}.
+\]
+Return \(0\) if \(b_n>1/4\). Otherwise let \(h_n\) be the least number of the form \(2^{-J}\), \(J\in\mathbb N_0\), that is at least \(b_n\). With \(r_j=2^jh_n\), \(M_j=\lceil\sqrt{r_j}/h_n\rceil\), and the endpoint convention in \(\mathcal D_n\), compute the bounded zero-safe arm means \(\widehat m_a(D)\), use \(B_n=[h_n,2h_n]\) to reconstruct the omitted boundary interval, and set
+\[
+T_{\mathrm{Lip}}=\operatorname{clip}_{[-1/2,1/2]}
+\left[
+\sum_{D\in\mathcal D_n}|D|\{\widehat m_1(D)-\widehat m_0(D)\}
++h_n\{\widehat m_1(B_n)-\widehat m_0(B_n)\}
+\right].
+\]
+A single pass assigns records to slabs and cells and accumulates the two arm counts and outcome sums.
+%%% FIELD generalized-lower-pair-construction
+For fixed \(\kappa>0\) and \(0<h\leq1/4\), define binary-outcome clean laws \(P_{0,h}\) and \(P_{1,h}\) by \(X\sim\operatorname{Unif}([0,1])\), \(u(x)=1/2\), \(e(x)=x^\kappa/2\), \(Y\mid(X=x,A=0)\sim\operatorname{Bernoulli}(1/2)\), and \(Y\mid(X=x,A=1)\sim\operatorname{Bernoulli}(\mu_{1,j}(x))\), where \(\mu_{1,0}(x)=1/2\) and \(\mu_{1,1}(x)=1/2+(h-x)_+/4\). Let \(t=\operatorname{TV}(P_{0,h},P_{1,h})\), and let \(S_+\) and \(S_-\) be the probability normalizations of the positive and negative parts of \(P_{1,h}-P_{0,h}\). Whenever \(\epsilon>0\) and \(t\leq\epsilon/(1-\epsilon)\), set \(c=(1-\epsilon)t/\epsilon\), \(H=P_{0,h}\),
+\[
+Q_{0,h}=cS_++(1-c)H,
+\qquad
+Q_{1,h}=cS_-+(1-c)H,
+\]
+and \(R_h=(1-\epsilon)P_{0,h}+\epsilon Q_{0,h}\). The equality of this law with the mixture built from \(P_{1,h}\) and \(Q_{1,h}\) is a property to be proved, not part of the construction.
+%%% FIELD all-kappa-lower-statement
+Fix \(d=1\), \(\beta=1\), \(\alpha\geq1\), \(\kappa>0\), and \(L\geq4\). For every \(0<h\leq1/4\), the laws in \(P_h^{\mathrm{pair}}=(P_{0,h},P_{1,h})\) belong to \(\mathcal P_{1,\alpha,1,\kappa,L}\), and
+\[
+|\theta(P_{1,h})-\theta(P_{0,h})|=\frac{h^2}{8},
+\qquad
+\operatorname{TV}(P_{0,h},P_{1,h})
+=\frac{h^{\kappa+2}}{8(\kappa+1)(\kappa+2)},
+\]
+\[
+\operatorname{KL}(P_{0,h},P_{1,h})
+\leq\frac{h^{\kappa+3}}
+{4(\kappa+1)(\kappa+2)(\kappa+3)}.
+\]
+There is a constant \(c_0>0\), depending only on \(\alpha,\kappa,L\), such that jointly for every \(n\geq2\) and \(0\leq\epsilon\leq1/10\),
+\[
+\mathfrak R_n(\epsilon;1,\alpha,1,\kappa,L)
+\geq c_0\left\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\right\}.
+\]
+For the contamination component the lower bound is realized by the explicit common-observed-law collision in \(\texttt{def:lipschitz-lower-pair}\). For the clean component it is realized by a constant regression perturbation when \(0<\kappa<1\), a multiscale Lipschitz perturbation when \(\kappa=1\), and the displayed boundary pair when \(\kappa>1\).
+%%% FIELD all-kappa-lower-proof
+Fix the parameters in the statement. We first verify the displayed boundary pair. Under either law, \(X\) is uniform, \(u=1/2\) belongs to \(\mathcal H^\alpha(L)\) for every \(\alpha\geq1\), satisfies the calibration envelope, and gives \(e(x)=x^\kappa/2\). The control regression and the baseline treated regression equal \(1/2\). The alternative treated regression
+\[
+\mu_{1,1}(x)=\frac12+\frac{(h-x)_+}{4}
+\]
+is \(1/4\)-Lipschitz and takes values in \([1/2,9/16]\). Thus \(\texttt{ass:uniform-design}\), \(\texttt{ass:polynomial-overlap}\), \(\texttt{ass:calibration-envelope}\), \(\texttt{ass:calibration-smoothness}\), \(\texttt{ass:outcome-regression-law}\), \(\texttt{ass:outcome-smoothness}\), and \(\texttt{ass:outcome-envelope}\) hold, so both laws belong to \(\mathcal P_{1,\alpha,1,\kappa,L}\) by \(\texttt{def:clean-law-class}\).
+
+Put \(v_h(x)=(h-x)_+/4\). Only the treated conditional response law changes. Total variation of two Bernoulli laws is the absolute difference of their success probabilities, so Tonelli's theorem and direct integration give
+\[
+\begin{aligned}
+|\theta(P_{1,h})-\theta(P_{0,h})|
+&=\int_0^h\frac{h-x}{4}\,\mathrm dx=\frac{h^2}{8},\\
+\operatorname{TV}(P_{0,h},P_{1,h})
+&=\int_0^h\frac{x^\kappa}{2}\frac{h-x}{4}\,\mathrm dx\\
+&=\frac18h^{\kappa+2}\int_0^1t^\kappa(1-t)\,\mathrm dt
+=\frac{h^{\kappa+2}}{8(\kappa+1)(\kappa+2)}.
+\end{aligned}
+\]
+Here the common \((X,A)\)-margin and the equality of the control laws justify reducing total variation to the displayed treated integral. Because \(h\leq1/4\), \(0\leq v_h\leq1/16\), and
+\[
+\operatorname{KL}\{\operatorname{Bernoulli}(1/2),
+\operatorname{Bernoulli}(1/2+v)\}
+=-\frac12\log(1-4v^2)\leq4v^2.
+\]
+The inequality follows from \(-\log(1-z)\leq z/(1-z)\) and \(4v^2\leq1/64\). Conditioning on \((X,A)\) and using the common treatment law therefore yields
+\[
+\begin{aligned}
+\operatorname{KL}(P_{0,h},P_{1,h})
+&\leq\int_0^h\frac{x^\kappa}{2}\,4
+\left(\frac{h-x}{4}\right)^2\,\mathrm dx\\
+&=\frac18h^{\kappa+3}\int_0^1t^\kappa(1-t)^2\,\mathrm dt\\
+&=\frac{h^{\kappa+3}}
+{4(\kappa+1)(\kappa+2)(\kappa+3)}.
+\end{aligned}
+\]
+
+We will repeatedly use the following elementary two-point inequality. If probability laws \(G_0,G_1\) have targets \(\vartheta_0,\vartheta_1\), integration of the pointwise triangle inequality against their common part gives, for every estimator \(T\),
+\[
+\max_{j=0,1}\mathbb E_{G_j}|T-\vartheta_j|
+\geq\frac{|\vartheta_1-\vartheta_0|}{2}
+\{1-\operatorname{TV}(G_0,G_1)\}.
+\tag{1}
+\]
+Moreover, Jensen's inequality applied under \(G_0\) to the square root of the likelihood ratio, followed by Cauchy--Schwarz, gives
+\[
+\operatorname{TV}(G_0,G_1)
+\leq\sqrt{1-\exp\{-\operatorname{KL}(G_0,G_1)\}}
+\leq\sqrt{\operatorname{KL}(G_0,G_1)}.
+\tag{2}
+\]
+For product laws, the log likelihood ratios add, hence the Kullback--Leibler divergence is multiplied by \(n\).
+
+We next prove the clean lower rate, treating the three overlap regimes separately. If \(\kappa>1\), take
+\[
+h=\frac14n^{-1/(\kappa+3)}.
+\]
+The preceding Kullback--Leibler bound makes \(\operatorname{KL}(P_{0,h}^n,P_{1,h}^n)\) smaller than a constant strictly below \(1/4\), whereas the target separation is a constant multiple of \(n^{-2/(\kappa+3)}=r_{n,\kappa}\). Equations (1)--(2) prove the desired clean lower bound in this regime.
+
+Suppose \(0<\kappa<1\). Keep the same uniform design, calibration, propensity, control regression, and binary conditional outcomes, but replace the treated regression pair by
+\[
+\mu_{1,0}(x)=\frac12,
+\qquad
+\mu_{1,1}(x)=\frac12+v_n,
+\qquad
+v_n=\eta n^{-1/2},
+\]
+where \(0<\eta\leq1/32\) is fixed. These regressions satisfy the stated Lipschitz and envelope restrictions. Their target separation is \(v_n\), and the Bernoulli calculation above gives
+\[
+\operatorname{KL}(P_{0,n},P_{1,n})
+\leq4v_n^2\int_0^1\frac{x^\kappa}{2}\,\mathrm dx
+=\frac{2v_n^2}{\kappa+1}.
+\]
+Thus the product divergence is at most \(2\eta^2/(\kappa+1)<1/4\). Equations (1)--(2) give a constant multiple of \(n^{-1/2}=r_{n,\kappa}\).
+
+It remains to obtain the equality-case logarithm. Let \(\kappa=1\), put \(\ell_n=\log(en)\), choose a fixed \(0<\eta\leq2^{-10}\), and define
+\[
+c_n=\frac{\eta}{\sqrt{n\ell_n}},
+\qquad s_n=\sqrt{c_n},
+\qquad
+f_n(x)=\frac{c_n}{x\vee s_n}.
+\]
+Use treated regressions \(1/2\) and \(1/2+f_n\), leaving all other ingredients unchanged. Since \(f_n(0)=s_n\leq1/16\) and the derivative on \((s_n,1]\) has magnitude at most \(c_n/s_n^2=1\), \(f_n\) is one-Lipschitz and the two laws remain in \(\mathcal P_{1,\alpha,1,1,L}\). Direct calculation gives
+\[
+\int_0^1f_n(x)\,\mathrm dx
+=c_n\{1+\log(1/s_n)\}
+\asymp \sqrt{\frac{\log(en)}{n}},
+\tag{3}
+\]
+because \(\log(1/s_n)=\tfrac14\log(n\ell_n)+\tfrac12\log(1/\eta)\asymp\ell_n\) uniformly for \(n\geq2\). On the other hand,
+\[
+\int_0^1x f_n(x)^2\,\mathrm dx
+=c_n^2\left\{\frac12+\log(1/s_n)\right\},
+\]
+and hence
+\[
+n\operatorname{KL}(P_{0,n},P_{1,n})
+\leq2n\int_0^1x f_n(x)^2\,\mathrm dx
+\leq C\eta^2.
+\tag{4}
+\]
+Reducing \(\eta\), if necessary, makes (4) smaller than \(1/4\). Equations (1)--(4) give the clean lower rate \(\{\log(en)/n\}^{1/2}=r_{n,1}\). The three cases prove
+\[
+\mathfrak R_n(0;1,\alpha,1,\kappa,L)\geq c_0r_{n,\kappa}.
+\tag{5}
+\]
+
+For any \(\epsilon\), taking \(Q=P\) makes \(R=P\), so the contaminated experiment contains the clean experiment and (5) remains a lower bound. For \(0<\epsilon\leq1/10\), set
+\[
+h=\frac14\left(\frac{\epsilon}{1-\epsilon}\right)^{1/(\kappa+2)}.
+\]
+Then \(h\leq1/4\), and the exact total-variation formula shows that
+\[
+t=\operatorname{TV}(P_{0,h},P_{1,h})
+\leq\frac{\epsilon}{1-\epsilon}.
+\]
+Consequently \(c=(1-\epsilon)t/\epsilon\in[0,1]\), so \(Q_{0,h}\) and \(Q_{1,h}\) in \(\texttt{def:lipschitz-lower-pair}\) are probability laws. The Jordan identity \(P_{1,h}-P_{0,h}=t(S_+-S_-)\) gives
+\[
+(1-\epsilon)(P_{0,h}-P_{1,h})
++\epsilon(Q_{0,h}-Q_{1,h})=0.
+\]
+Thus the two admissible contaminated triples have exactly the same observed law \(R_h\), while their targets differ by
+\[
+\frac{h^2}{8}=\frac1{128}
+\left(\frac{\epsilon}{1-\epsilon}\right)^{2/(\kappa+2)}.
+\]
+Applying the pointwise triangle inequality under this common law gives a risk of at least half this separation. Since \(1\leq(1-\epsilon)^{-1}\leq10/9\), this is bounded below by a constant multiple of \(\epsilon^{2/(\kappa+2)}\). At \(\epsilon=0\) this component is zero. Finally, the maximum of the clean and contamination lower bounds is at least half their sum, proving the lemma.
+%%% FIELD all-kappa-calibration-statement
+Fix \(d=1\), \(\beta=1\), \(\alpha\geq1\), \(\kappa>0\), and \(L\geq4\), and define
+\[
+r_{n,\kappa}=
+\begin{cases}
+n^{-1/2},&0<\kappa<1,\\
+\{\log(en)/n\}^{1/2},&\kappa=1,\\
+n^{-2/(\kappa+3)},&\kappa>1.
+\end{cases}
+\]
+There are constants \(c_0,C_0>0\), depending only on \(\alpha,\kappa,L\), such that jointly for every \(n\geq2\) and \(0\leq\epsilon\leq1/10\),
+\[
+c_0\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\}
+\leq\mathfrak R_n(\epsilon;1,\alpha,1,\kappa,L)
+\leq\sup_{(P,Q,R)\in\mathcal C_{1,\alpha,1,\kappa,L}(\epsilon)}
+\mathbb E_{R^n}|T_{\mathrm{Lip}}-\theta(P)|
+\leq C_0\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\}.
+\]
+When \(b_n\leq1/4\), the pre-optimization bound is
+\[
+\sup_{(P,Q,R)\in\mathcal C_{1,\alpha,1,\kappa,L}(\epsilon)}
+\mathbb E_{R^n}|T_{\mathrm{Lip}}-\theta(P)|
+\leq C_0\left[
+h_n^2+n^{-1/2}V_\kappa(h_n)^{1/2}
++\epsilon h_n^{-\kappa}
++\exp\{-c_0nh_n^{\kappa+3/2}\}
+\right],
+\]
+where
+\[
+V_\kappa(h)=
+\begin{cases}
+1,&0<\kappa<1,\\
+1+\log(1/h),&\kappa=1,\\
+h^{1-\kappa},&\kappa>1.
+\end{cases}
+\]
+For every body cell \(D\subseteq[r_j,2r_j]\), writing \(q_D=Q\{X\in D\}\), its weighted contamination shift is at most \(C_0\epsilon q_D/r_j^\kappa\), and \(\sum_Dq_D\leq1\); the reused cell \(B_n\) contributes at most \(C_0\epsilon q_{B_n}/h_n^\kappa\). Thus the bound covers both point and diffuse within-cell contamination. The estimator uses \(O(n\log(1/h_n)+h_n^{-1})\) arithmetic operations and \(O(h_n^{-1})\) memory. In particular, the clean functional rate and the ATE contamination modulus are simultaneously attained throughout this subfamily, including the logarithmic elbow at \(\kappa=1\).
+%%% FIELD all-kappa-calibration-proof
+Fix an admissible triple \((P,Q,R)\). Because \(\theta(P)\in[-1/2,1/2]\), projection onto this interval cannot increase absolute error. It therefore suffices to study the expression inside the clipping map. Assume first that \(b_n\leq1/4\). The dyadic ceiling satisfies
+\[
+b_n\leq h_n<2b_n,
+\qquad h_n\leq\frac12.
+\tag{6}
+\]
+
+For a cell \(D\) and arm \(a\), set
+\[
+p_a(x)=
+\begin{cases}e(x),&a=1,\\1-e(x),&a=0,\end{cases}
+\qquad
+s_a^P(D)=\int_Dp_a(x)\,\mathrm dx,
+\qquad
+m_a^P(D)=\frac{\int_Dp_a(x)\mu_a(x)\,\mathrm dx}{s_a^P(D)}.
+\]
+All denominators are positive: on a body or reconstruction cell, \(x\geq h_n>0\), so \(e(x)\geq x^\kappa/4>0\), while \(1-e(x)\geq1/2\) by \(u\leq1/2\). If \(\overline\mu_a(D)=|D|^{-1}\int_D\mu_a\), the exact covariance identity under the uniform distribution on \(D\) is
+\[
+m_a^P(D)-\overline\mu_a(D)
+=\frac{\operatorname{Cov}_{\operatorname{Unif}(D)}(p_a,\mu_a)}
+{\mathbb E_{\operatorname{Unif}(D)}p_a}.
+\tag{7}
+\]
+
+Let \(D\subseteq[r,2r]\) have length \(\ell\). The assumption \(\alpha\geq1\) and \(\texttt{ass:calibration-smoothness}\) imply that \(u\) is \(L\)-Lipschitz: for \(\alpha=1\) this is the defining Hölder condition, and for \(\alpha>1\) it follows from the bound on its first derivative. By the mean-value theorem, for \(x,y\in[r,2r]\),
+\[
+|x^\kappa-y^\kappa|\leq C_\kappa r^{\kappa-1}|x-y|.
+\]
+Together with \(1/4\leq u\leq1/2\), this gives
+\[
+\inf_De\geq\frac{r^\kappa}{4},
+\qquad
+\operatorname{osc}_D(e)\leq C_{\alpha,\kappa,L}r^{\kappa-1}\ell,
+\qquad
+\operatorname{osc}_D(\mu_a)\leq L\ell,
+\qquad
+\inf_D(1-e)\geq\frac12.
+\tag{8}
+\]
+The elementary inequality \(|\operatorname{Cov}(U,V)|\leq\operatorname{osc}(U)\operatorname{osc}(V)\), (7), and (8) imply, for both arms,
+\[
+|m_a^P(D)-\overline\mu_a(D)|
+\leq C_{\alpha,\kappa,L}\frac{\ell^2}{r}.
+\tag{9}
+\]
+For the control arm, the direct bound is \(C r^{\kappa-1}\ell^2\), which is no larger than the right side of (9) because \(0<r\leq1\).
+
+Within slab \([r_j,2r_j]\), all cells have length \(\ell_j=r_j/M_j\), apart from the harmless endpoint convention, and
+\[
+\frac{h_n\sqrt{r_j}}2\leq\ell_j\leq h_n\sqrt{r_j}.
+\tag{10}
+\]
+Indeed, the upper bound follows from the ceiling in \(M_j\), and the lower bound follows from \(M_j\leq2\sqrt{r_j}/h_n\), since \(r_j\geq h_n\). Because the cell lengths in one slab sum to \(r_j\), (9)--(10) give
+\[
+\sum_{D\in\mathcal D_n}|D|
+|m_a^P(D)-\overline\mu_a(D)|
+\leq C\sum_j\ell_j^2
+\leq Ch_n^2\sum_jr_j
+\leq Ch_n^2.
+\tag{11}
+\]
+For \(t\in[0,h_n]\) and \(x\in B_n=[h_n,2h_n]\), outcome Lipschitzness gives \(|\mu_a(t)-\mu_a(x)|\leq2Lh_n\). Since \(m_a^P(B_n)\) is a convex average of the values \(\mu_a(x)\),
+\[
+\left|\int_0^{h_n}\mu_a(t)\,\mathrm dt-h_nm_a^P(B_n)\right|
+\leq2Lh_n^2.
+\tag{12}
+\]
+Equations (11)--(12), summed over the two arms, prove a clean population approximation bias bounded by \(Ch_n^2\).
+
+We next compare clean and contaminated population cell means. Write
+\[
+q_{D,a}=Q\{X\in D,A=a\},
+\qquad q_D=Q\{X\in D\},
+\]
+and denote the corresponding conditional response mean under \(R\) by \(m_a^R(D)\). Expanding the mixture numerator and denominator and using \(0\leq Y\leq1\) gives
+\[
+|m_a^R(D)-m_a^P(D)|
+\leq\frac{\epsilon q_{D,a}}
+{(1-\epsilon)s_a^P(D)+\epsilon q_{D,a}}
+\leq\frac{\epsilon q_{D,a}}{(1-\epsilon)s_a^P(D)}.
+\tag{13}
+\]
+For a body cell in \([r_j,2r_j]\), (8) gives
+\[
+s_1^P(D)\geq\frac14r_j^\kappa|D|,
+\qquad
+s_0^P(D)\geq\frac12|D|.
+\]
+Hence its weighted shift is at most \(C\epsilon q_D/r_j^\kappa\) for either arm. The body cells are disjoint, so \(\sum_Dq_D\leq1\). Likewise,
+\[
+s_1^P(B_n)\geq c_\kappa h_n^{\kappa+1},
+\qquad
+s_0^P(B_n)\geq\frac12h_n,
+\]
+and the boundary weight \(h_n\) turns (13) into a bound \(C\epsilon q_{B_n}/h_n^\kappa\). Although \(B_n\) is reused, it is charged only one additional time and \(q_{B_n}\leq1\). Since \(r_j\geq h_n\), the total population contamination shift is therefore at most
+\[
+C\epsilon h_n^{-\kappa}.
+\tag{14}
+\]
+This uses only the global \(Q\)-mass budget, so neither an atom nor diffuse contamination within one cell creates an additional term.
+
+It remains to control sampling fluctuations and empty cells. If a measurable arm-cell has \(R\)-probability \(p>0\), its count \(N\) is binomial by \(\texttt{ass:iid-sampling}\). Integrating \((1-p+pt)^n\) over \([0,1]\) gives
+\[
+\mathbb E\frac1{N+1}=\frac{1-(1-p)^{n+1}}{(n+1)p},
+\qquad
+\mathbb E\left\{\frac{\mathbf1\{N>0\}}N\right\}
+\leq\frac2{(n+1)p}.
+\tag{15}
+\]
+Conditional on the disjoint body arm-cell counts, every nonempty cell mean is centered at \(m_a^R(D)\), and conditional cross-covariances between distinct categories vanish. Since a response in \([0,1]\) has variance at most \(1/4\), (15), Jensen's inequality, and \(p_a^R(D)\geq(1-\epsilon)s_a^P(D)\) show that the expected absolute centered treated-body fluctuation is at most
+\[
+\begin{aligned}
+C\left\{\frac1n\sum_{D\in\mathcal D_n}
+\frac{|D|^2}{r_j^\kappa|D|}\right\}^{1/2}
+&=C\left\{\frac1n\sum_jr_j^{1-\kappa}\right\}^{1/2}\\
+&\leq Cn^{-1/2}V_\kappa(h_n)^{1/2}.
+\end{aligned}
+\tag{16}
+\]
+The final inequality is the elementary geometric-sum calculation
+\[
+\sum_{j=0}^{J-1}(2^jh_n)^{1-\kappa}+h_n^{1-\kappa}
+\leq C_\kappa
+\begin{cases}
+1,&0<\kappa<1,\\
+1+\log(1/h_n),&\kappa=1,\\
+h_n^{1-\kappa},&\kappa>1.
+\end{cases}
+\tag{17}
+\]
+The extra term in (17) is the treated reconstruction-cell variance, because its weight squared divided by its clean mass is of order \(h_n^{1-\kappa}\). For the control arm, the analogous body sum and reconstruction term are bounded by a constant, hence are absorbed by \(V_\kappa(h_n)\geq1\). The body and reconstruction fluctuations were combined by the triangle inequality, so the reuse of \(B_n\) requires no independence assertion.
+
+For a treated body cell, (10) and the clean mixture weight \(1-\epsilon\geq9/10\) imply
+\[
+p_1^R(D)\geq c r_j^\kappa\ell_j
+\geq c h_nr_j^{\kappa+1/2}
+\geq c h_n^{\kappa+3/2}.
+\tag{18}
+\]
+Control cells have mass at least \(c h_n^{3/2}\), the treated reconstruction cell has mass at least \(c_\kappa h_n^{\kappa+1}\), and the control reconstruction cell has mass at least \(ch_n\); all are at least a constant multiple of \(h_n^{\kappa+3/2}\). Thus each relevant empty-cell probability is at most \(\exp\{-cnh_n^{\kappa+3/2}\}\). The nonnegative body weights sum to \(1-h_n\) for each arm and the reconstruction weight is \(h_n\). Summing weighted empty-cell errors, without a union bound over cells, gives
+\[
+C\exp\{-cnh_n^{\kappa+3/2}\}.
+\tag{19}
+\]
+Combining (11)--(19) proves the pre-optimization bound.
+
+Let \(q_{n,\kappa}=r_{n,\kappa}^{1/2}\). By definition, \(b_n=\max\{\epsilon^{1/(\kappa+2)},q_{n,\kappa}\}\). Equations (6) and \(\epsilon\leq h_n^{\kappa+2}\) imply
+\[
+h_n^2\leq4\{r_{n,\kappa}+\epsilon^{2/(\kappa+2)}\},
+\qquad
+\epsilon h_n^{-\kappa}\leq h_n^2.
+\tag{20}
+\]
+For the stochastic term, (17) and \(h_n\geq q_{n,\kappa}\) give, respectively,
+\[
+n^{-1/2}V_\kappa(h_n)^{1/2}
+\leq C_\kappa
+\begin{cases}
+n^{-1/2},&0<\kappa<1,\\
+\{\log(en)/n\}^{1/2},&\kappa=1,\\
+n^{-1/2}q_{n,\kappa}^{(1-\kappa)/2},&\kappa>1,
+\end{cases}
+\leq C_\kappa r_{n,\kappa}.
+\tag{21}
+\]
+In the last line for \(\kappa>1\), the identity
+\(n^{-1/2}q_{n,\kappa}^{(1-\kappa)/2}=n^{-2/(\kappa+3)}\) was used. At the minimal clean bandwidth,
+\[
+nq_{n,\kappa}^{\kappa+3/2}\geq
+\begin{cases}
+n^{(5/2-\kappa)/4},&0<\kappa<1,\\
+n^{3/8},&\kappa=1,\\
+n^{3/\{2(\kappa+3)\}},&\kappa>1.
+\end{cases}
+\]
+Each exponent is positive. Since increasing \(h_n\) only decreases the exponential and increases \(h_n^2\), the elementary bound \(\sup_{t\geq1}t^a e^{-ct^b}<\infty\), for \(a,b,c>0\), yields
+\[
+\exp\{-cnh_n^{\kappa+3/2}\}\leq C_\kappa h_n^2.
+\tag{22}
+\]
+Equations (20)--(22) prove the rate upper bound when \(b_n\leq1/4\).
+
+If \(b_n>1/4\), the estimator returns zero and its absolute error is at most \(1/2\). In this branch either \(r_{n,\kappa}>1/16\) or \(\epsilon^{2/(\kappa+2)}>1/16\), so the same upper rate follows after enlarging \(C_0\). The lower bound is exactly \(\texttt{lem:lipschitz-lower-pair-all-kappa}\). Since \(T_{\mathrm{Lip}}\) is one member of \(\mathfrak T_n\), \(\texttt{def:minimax-risk}\) supplies the middle inequality.
+
+Finally,
+\[
+\sum_{j=0}^{J-1}M_j
+\leq h_n^{-1}\sum_{j=0}^{J-1}\sqrt{r_j}+J
+=O(h_n^{-1}).
+\]
+Constructing cell endpoints therefore uses \(O(h_n^{-1})\) arithmetic and memory. Binary search assigns each record using \(O(\log(1/h_n))\) comparisons, and one pass accumulates all counts and sums. Zero counts use the declared value \(1/2\), and every remaining operation is a finite Borel comparison, sum, product, quotient with a checked positive denominator, or clipping. Hence the estimator is total, finite, data-only, and belongs to \(\mathfrak T_n\), with the stated computational bounds. Finally, \(\texttt{thm:ate-tv-modulus}\) with \(\beta=1\) gives \(\gamma_{\mathrm{TV}}=2/(\kappa+2)\). Therefore the attained contamination term is exactly the order of \(\omega_\theta(\epsilon/(1-\epsilon))\), because \(1\leq(1-\epsilon)^{-1}\leq10/9\). This proves the simultaneous-attainment assertion and completes the proof.
+%%% FIELD legacy-lower-proof
+Apply \(\texttt{lem:lipschitz-lower-pair-all-kappa}\) with \(\alpha=1\) and \(\kappa=2\). Its three exact formulas become
+\[
+\frac{h^2}{8},
+\qquad
+\frac{h^4}{8\cdot3\cdot4}=\frac{h^4}{96},
+\qquad
+\frac{h^5}{4\cdot3\cdot4\cdot5}=\frac{h^5}{240}.
+\]
+For \(n\geq4^5\), the admissible choice \(h=n^{-1/5}\) has product divergence at most \(n h^5/240=1/240\), while its target separation is \(n^{-2/5}/8\). For \(2\leq n<4^5\), the choice \(h=1/4\) has product divergence smaller than \(1/240\) and a fixed positive target separation; since this is a finite range and \(n^{-2/5}\leq1\), decreasing the lower-bound constant covers it. The elementary two-point inequality proved in \(\texttt{lem:lipschitz-lower-pair-all-kappa}\) therefore gives the stated clean lower rate. For contamination, the all-\(\kappa\) lemma chooses \(h=4^{-1}\{\epsilon/(1-\epsilon)\}^{1/4}\), exactly as here, proves equality of the two observed mixtures, and gives target separation \(128^{-1}\{\epsilon/(1-\epsilon)\}^{1/2}\). Thus every assertion of the stated \(\kappa=2\) lemma follows.
+%%% FIELD legacy-calibration-proof
+Specialize \(\texttt{thm:lipschitz-all-kappa}\) to \(\alpha=1\) and \(\kappa=2\). Then
+\[
+r_{n,2}=n^{-2/5},
+\qquad
+\epsilon^{2/(2+2)}=\epsilon^{1/2},
+\qquad
+V_2(h)=h^{-1}.
+\]
+Consequently its stochastic term is \(n^{-1/2}h_n^{-1/2}=(nh_n)^{-1/2}\), its contamination term is \(\epsilon h_n^{-2}\), and its empty-cell exponent is \(nh_n^{7/2}\). Its cellwise contamination and computational bounds specialize verbatim to those in the present statement. This proves the original quadratic-overlap theorem as a corollary and supplies the requested consistency check.
+%%% FIELD narrowed-frontier-statement
+Outside the now-solved subfamily \(d=1\), \(\beta=1\), and \(\alpha\geq1\), use \(\mathfrak H_{\mathrm{rob}}\) to determine \(\rho_{\mathrm{eval}}(n,\epsilon;d,\alpha,\beta,\kappa,L)\) and construct \(T_n^\star\) so that, jointly for all \(n\geq2\) and \(0\leq\epsilon\leq1/10\),
+\[
+c_0\rho_{\mathrm{eval}}
+\leq\mathfrak R_n(\epsilon;d,\alpha,\beta,\kappa,L)
+\leq\sup_{(P,Q,R)\in\mathcal C_{d,\alpha,\beta,\kappa,L}(\epsilon)}
+\mathbb E_{R^n}|T_n^\star-\theta(P)|
+\leq C_0\rho_{\mathrm{eval}}.
+\]
+The unresolved coordinates are \(d>1\), \(\beta\neq1\), or \(\alpha<1\), including their interactions and every logarithm on the remaining equality surfaces. The rate must be an explicit finite piecewise formula, the estimator must be total, finite, data-only, and computationally specified, and the converse must use the same contaminated experiment. The result must decide whether the clean functional rate and \(\omega_\theta(\epsilon/(1-\epsilon))\) are simultaneously attainable there or whether a quantified nuisance--contamination interaction is unavoidable.
+%%% FIELD narrowed-frontier-partial
+On the entire solved subfamily \(d=1\), \(\beta=1\), \(\alpha\geq1\), and \(\kappa>0\), \(\texttt{thm:lipschitz-all-kappa}\) proves simultaneous attainment:
+\[
+\mathfrak R_n(\epsilon;1,\alpha,1,\kappa,L)
+\asymp_{\alpha,\kappa,L}
+r_{n,\kappa}+\epsilon^{2/(\kappa+2)},
+\]
+with \(r_{n,\kappa}=n^{-1/2}\) for \(0<\kappa<1\), \(r_{n,1}=\{\log(en)/n\}^{1/2}\), and \(r_{n,\kappa}=n^{-2/(\kappa+3)}\) for \(\kappa>1\). For the remaining coordinates, the established same-experiment facts still imply
+\[
+\mathfrak R_n(\epsilon;d,\alpha,\beta,\kappa,L)
+\geq\mathfrak R_n(0;d,\alpha,\beta,\kappa,L)
+\quad\text{and}\quad
+\mathfrak R_n(\epsilon;d,\alpha,\beta,\kappa,L)
+\geq c\left(\frac{\epsilon}{1-\epsilon}\right)^{(\beta+1)/(\beta+\kappa+1)}.
+\]
+The first inequality follows by taking \(Q=P\). The second follows from the bump pair underlying \(\texttt{thm:ate-tv-modulus}\) and the explicit Jordan collision used in \(\texttt{lem:lipschitz-lower-pair-all-kappa}\). No general upper bound or matching interaction lower bound has been derived beyond the solved subfamily.

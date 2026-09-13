@@ -1,0 +1,1124 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}incremental\_\allowbreak{}history\_\allowbreak{}learning\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Longitudinal incremental interventions retain bounded oracle likelihood-ratio variance when the per-period log-odds shift is \(c/\sqrt T\), but this local stability need not control the global cost of learning an unrestricted exponentially branching propensity tree. The paper proves exact finite-tree identification, a dimension-free local efficiency bound, computable truncated-prefix upper envelopes and every-depth collision converses, and the matched long-history frontier \(R(n,T,c)\asymp\min\{1,n^{-1}+c^2\}\) and \(L(n,T,c)\asymp\min\{1,n^{-1/2}+c\}\) once \(T\geq2k_n\). The unresolved kernel is the factor-two logarithmic elbow: a compatible-prefix polynomial approximation, a nested-count variance theorem, and legal-subtree testing priors are still needed for matching all-sample functions and the complete consistency and oracle-penalty phase diagram.
+
+\section{Project justification}
+
+\paragraph{Gap.} Kim, Kennedy, and Naimi derive identification, efficient influence functions, and nuisance-controlled fixed-horizon inference, but their growing-horizon theorem is a constant-propensity variance comparison. Natural-policy efficiency theory remains local, while bandit and high-dimensional discrete minimax results flatten the data into unrelated one-stage cells and do not contain endogenous products of compatible prefix ratios.
+
+\paragraph{Niche.} The centered finite-tree functional has a dimension-free local gradient yet can separate under mixtures that are indistinguishable until contexts collide. This creates an unstudied intermediate regime in which approximation error, nested-count covariance, and legal-subtree testing affinity must be solved together.
+
+\paragraph{Fill.} The paper proves finite-tree identification, the dimension-free local gradient bound, computable finite-history upper envelopes and collision-based converses, and the matched long-history frontier. Constructing and analyzing the occupancy-adaptive polynomial or factorial estimator, calibrating its honest connected interval, producing a matching legal-subtree moment-mixing converse, and evaluating the full optimization across the factor-two logarithmic elbow remain future work.
+
+\section{Related work}
+
+Kim, Kennedy, and Naimi, \cite{KimKennedyNaimi2021}, Introduction, Theorems 3.1, 4.1, 5.1, and 6.1, and the concluding discussion, supply the writing model: long histories and positivity motivate incremental interventions, after which identification and fixed-horizon efficiency lead to a many-timepoint precision question. Their Theorem 6.1 assumes a common constant propensity for a variance ratio and does not optimize risk over unrestricted history trees. The paired lower-bound construction is outside the common-positive-\(p\) class of Theorem 6.1 and therefore does not establish a minimax converse for that special class; identification and upper/stability statements may still specialize to it. Kennedy, \cite{Kennedy2019JASA}, gives the underlying support-respecting binary incremental functional and fixed-horizon efficiency theory. Kallus and Uehara, \cite{KallusUehara2024NaturalPolicies}, Definitions 1--2, Theorems 2 and 8--11, Algorithm 1, and the proofs in Sections 7--8, show how behavior dependence adds a score term to the influence function; their global horizon conclusions rely on policy-model structure and do not imply finite-sample uniform estimation over all histories. Ma, Zhu, Jiao, and Wainwright, \cite{MaZhuJiaoWainwright2022}, Introduction, Theorems 1--3, the Chebyshev construction near equation (64), and its proof, provide the closest switching, low-count polynomial, and behavior-mixture machinery, but their target policy is fixed and arms are not nested. Jiao, Venkat, Han, and Weissman, \cite{JiaoVenkatHanWeissman2015}, Introduction, the smooth--nonsmooth estimator construction, Lemma 4, Theorems 2--4, and the approximation--moment lower-bound section, supply the factorial-moment lift that the prefix recursion must adapt. Zeng, Balakrishnan, Han, and Kennedy, \cite{ZengBalakrishnanHanKennedy2024Discrete}, Introduction, Theorems 2 and 4, their fuzzy-hypothesis proofs, and Discussion, show that unseen discrete contexts and within-cell collisions create causal minimax penalties; their one-time weighted means omit sequential parent-sum compatibility. Schindl, Shen, and Kennedy, \cite{SchindlShenKennedy2024}, Theorem 2 and its Le Cam proof, and Huang, Dong, Lin, and Antonelli, \cite{HuangDongLinAntonelli2026}, Theorem 4 and the efficiency appendix, establish tilt-sensitive static continuous-exposure theory; \(\mathrm{prop:static\text{-}nonreduction}\) shows why those single-normalizer results do not flatten the present target. Zhou, Hanna, Zhu, Yang, and Shi, \cite{ZhouHannaZhuYangShi2025}, Introduction, Theorem 2 and its projection proof, and the concluding discussion, characterize a parametric fixed-policy history-length bias-variance tradeoff rather than an unrestricted minimax frontier. Liu, Bacon, and Brunskill, \cite{LiuBaconBrunskill2020}, Theorem 1, conditional Monte Carlo derivation, and Discussion, motivate prefix conditioning but establish only sufficient variance comparisons. Cai and Low, \cite{CaiLow2004}, Theorem 1, Section 2 construction, and Discussion, provide the ordered-modulus logic for expected length; CoinDICE, \cite{DaiEtAl2020CoinDICE}, Theorems 1--3 and the interval optimization, instead depends on Markov occupancy equations absent here. Robins, Li, Tchetgen Tchetgen, and van der Vaart, \cite{RobinsLiTchetgenVanderVaart2016TR}, provide higher-order influence-function and degenerate-\(U\)-statistic machinery under complexity-reducing projections, whereas the unresolved step must build the projection from raw prefix occupancy.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\psi_T(P,c)=E_{Q_{P,c}}[Y]\).
+Primary functional / estimator / diagnostic: \(\psi_T(P,c)=F_{T,c}(P)=\sum_{z\in\mathcal Z_T}s_z(P)\delta^{\sum_{t=1}^T a_t}\prod_{t=1}^T\frac{m_{h_t(z)}(P)}{m_{h_t(z)}(P)+(\delta-1)m_{h_t(z)1}(P)}=E_P[YW_T^P]\)..
+\begin{itemize}
+  \item \(n\) --- \texttt{sample size}; \(\{1,2,\ldots\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independent observed trajectories.}
+  \item \(T\) --- \texttt{decision horizon}; \(\{1,2,\ldots\}\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of treatment decisions in each complete trajectory.}
+  \item \(c\) --- \texttt{global intervention strength}; \([0,1]\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known strength of the globally stable longitudinal odds shift.}
+  \item \([T]\) --- \texttt{time index set}; \texttt{finite sets}; \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \([T]=\{1,\ldots,T\}\).
+  \item \(t\) --- \texttt{time index}; \([T]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic decision time.}
+  \item \(\mathcal X\) --- \texttt{covariate alphabet}; \texttt{finite sets}; \texttt{state alphabet}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=\{0,1\}\).
+  \item \(\mathcal A\) --- \texttt{action alphabet}; \texttt{finite sets}; \texttt{action alphabet}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{0,1\}\).
+  \item \(X_t\) --- \texttt{time-\allowbreak{}varying covariate}; \(\mathcal X\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Observed binary covariate immediately before action \(A_t\).
+  \item \(A_t\) --- \texttt{time-\allowbreak{}varying action}; \(\mathcal A\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Observed binary action at time \(t\).
+  \item \(Y\) --- \texttt{terminal outcome}; \([0,1]\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed bounded terminal outcome.}
+  \item \(\bar a_T\) --- \texttt{static action regime}; \(\mathcal A^T\); \texttt{causal index}
+  \par\smallskip\noindent\emph{Definition.} Generic length-\(T\) deterministic action sequence.
+  \item \(Y^{\bar a_T}\) --- \texttt{potential terminal outcome}; \([0,1]\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Potential terminal outcome under action regime \(\bar a_T\).
+  \item \(H_t\) --- \texttt{pre-\allowbreak{}action history}; \texttt{finite binary strings}; \texttt{conditioning variable}
+  \par\smallskip\noindent\emph{Definition.} History constructed in \(\mathrm{def:history}\).
+  \item \(O\) --- \texttt{observed complete trajectory}; \(\mathcal X^T\times\mathcal A^T\times[0,1]\); \texttt{observed unit}
+  \par\smallskip\noindent\emph{Definition.} \(O=(X_1,A_1,\ldots,X_T,A_T,Y)\).
+  \item \(O_i\) --- \texttt{sampled trajectory}; copies of the space of \(O\); \texttt{sample}
+  \par\smallskip\noindent\emph{Definition.} The \(i\)-th observed complete trajectory, for \(i=1,\ldots,n\).
+  \item \(P\) --- \texttt{full-\allowbreak{}data law}; \texttt{probability laws for the observed trajectory and all potential terminal outcomes}; \texttt{model}
+  \par\smallskip\noindent\emph{Definition.} A law whose observed margin is the distribution of \(O\).
+  \item \(P^n\) --- \texttt{sampling law}; \texttt{product probability laws}; \texttt{experiment}
+  \par\smallskip\noindent\emph{Definition.} The \(n\)-fold product of the observed margin of \(P\).
+  \item \(\mathcal P_T\) --- \texttt{unrestricted longitudinal law class}; \texttt{sets of full-\allowbreak{}data laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def:model-class}\).
+  \item \(\pi_t^P\) --- \texttt{observational propensity kernel}; \(\pi_t^P(h)=P(A_t=1\mid H_t=h)\); \texttt{nuisance functional}
+  \par\smallskip\noindent\emph{Definition.} A version of the conditional probability of action one under \(P\).
+  \item \(\eta\) --- \texttt{per-\allowbreak{}period log-\allowbreak{}odds shift}; \([0,1]\); \texttt{derived regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\eta=c/\sqrt T\).
+  \item \(\delta\) --- \texttt{per-\allowbreak{}period odds multiplier}; \([1,e]\); \texttt{intervention parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\delta=\exp(\eta)\).
+  \item \(d_t^P\) --- \texttt{incremental normalizer}; \(d_t^P(h)=1+(\delta-1)\pi_t^P(h)\); \texttt{intervention functional}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Conditional normalizing factor for the odds-\allowbreak{}multiplier action law.}
+  \item \(q_t^P\) --- \texttt{incremental action kernel}; \(q_t^P:\mathop{\mathrm{supp}}(H_t)\to\Delta(\mathcal A)\); \texttt{intervention}
+  \par\smallskip\noindent\emph{Definition.} Kernel constructed in \(\mathrm{def:incremental-kernel}\).
+  \item \(Q_{P,c}\) --- \texttt{intervened observed-\allowbreak{}data law}; probability laws on the space of \(O\); \texttt{causal intervention law}
+  \par\smallskip\noindent\emph{Definition.} Law constructed in \(\mathrm{def:intervened-law}\).
+  \item \(W_t^P\) --- \texttt{prefix likelihood ratio}; \texttt{nonnegative random variables}; \texttt{analytic object}
+  \par\smallskip\noindent\emph{Definition.} Likelihood ratio constructed in \(\mathrm{def:likelihood-ratio}\).
+  \item \(\psi_T(P,c)\) --- \texttt{longitudinal incremental terminal mean}; \([0,1]\); \texttt{estimand}
+  \par\smallskip\noindent\emph{Definition.} Causal target constructed in \(\mathrm{def:estimand}\).
+  \item \(\mu(P)\) --- \texttt{natural terminal mean}; \([0,1]\); \texttt{benchmark target}
+  \par\smallskip\noindent\emph{Definition.} \(\mu(P)=E_P[Y]\).
+  \item \(G_{T,c}(P)\) --- \texttt{centered incremental functional}; \([-1,1]\); \texttt{focal analytic functional}
+  \par\smallskip\noindent\emph{Definition.} \(G_{T,c}(P)=\psi_T(P,c)-\mu(P)\).
+  \item \(\mathcal Z_T\) --- \texttt{trajectory-\allowbreak{}prefix leaf alphabet}; \texttt{finite sets}; \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Z_T=(\mathcal X\times\mathcal A)^T\).
+  \item \(z\) --- \texttt{trajectory leaf}; \(\mathcal Z_T\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Generic realization \(z=(x_1,a_1,\ldots,x_T,a_T)\).
+  \item \(h_t(z)\) --- \texttt{realized prefix}; \texttt{finite binary strings}; \texttt{prefix index}
+  \par\smallskip\noindent\emph{Definition.} The realization of \(H_t\) contained in leaf \(z\).
+  \item \(m_z(P)\) --- \texttt{leaf mass}; \([0,1]\); \texttt{observed-\allowbreak{}law coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(m_z(P)=P((X_1,A_1,\ldots,X_T,A_T)=z)\).
+  \item \(s_z(P)\) --- \texttt{outcome-\allowbreak{}weighted leaf mass}; \([0,1]\); \texttt{observed-\allowbreak{}law coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(s_z(P)=E_P[Y\mathbf 1\{(X_1,A_1,\ldots,X_T,A_T)=z\}]\).
+  \item \(m_h(P)\) --- \texttt{prefix mass}; \([0,1]\); \texttt{observed-\allowbreak{}law coordinate}
+  \par\smallskip\noindent\emph{Definition.} Probability under \(P\) of the binary prefix \(h\).
+  \item \(m_{h1}(P)\) --- \texttt{treated-\allowbreak{}child prefix mass}; \([0,1]\); \texttt{observed-\allowbreak{}law coordinate}
+  \par\smallskip\noindent\emph{Definition.} Probability under \(P\) of prefix \(h\) followed by action one.
+  \item \(F_{T,c}(P)\) --- \texttt{finite-\allowbreak{}tree observed-\allowbreak{}data functional}; \([0,1]\); \texttt{identifying functional}
+  \par\smallskip\noindent\emph{Definition.} Functional constructed in \(\mathrm{def:leaf-functional}\).
+  \item \(D_{P,c}\) --- \texttt{full-\allowbreak{}law efficient influence function}; \(L_2^0(P)\); \texttt{local efficiency object}
+  \par\smallskip\noindent\emph{Definition.} Canonical gradient characterized in \(\mathrm{prop:centered-local-bound}\).
+  \item \(D_{G,P,c}\) --- \texttt{centered-\allowbreak{}functional efficient influence function}; \(L_2^0(P)\); \texttt{local modulus object}
+  \par\smallskip\noindent\emph{Definition.} Canonical gradient of \(G_{T,c}(P)\) characterized in \(\mathrm{prop:centered-local-bound}\).
+  \item \(\widehat\psi\) --- \texttt{generic estimator}; measurable maps from the sample to \([0,1]\); \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} Generic possibly randomized point estimator based on \(O_1,\ldots,O_n\).
+  \item \(\mathcal E_{n,T}\) --- \texttt{estimator class}; \texttt{sets of measurable decision rules}; \texttt{decision class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def:estimator-class}\).
+  \item \(I\) --- \texttt{generic connected confidence interval}; random connected subintervals of \([0,1]\); \texttt{inference rule}
+  \par\smallskip\noindent\emph{Definition.} Generic possibly randomized interval based on \(O_1,\ldots,O_n\).
+  \item \(\mathcal C_{n,T,c}\) --- \texttt{honest interval class}; \texttt{sets of randomized connected intervals}; \texttt{inference class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def:interval-class}\).
+  \item \(R(n,T,c)\) --- \texttt{unknown-\allowbreak{}propensity minimax mean-\allowbreak{}squared risk}; \([0,1]\); \texttt{focal frontier}
+  \par\smallskip\noindent\emph{Definition.} Risk constructed in \(\mathrm{def:minimax-risk}\).
+  \item \(L(n,T,c)\) --- \texttt{unknown-\allowbreak{}propensity minimax honest expected length}; \([0,1]\); \texttt{focal frontier}
+  \par\smallskip\noindent\emph{Definition.} Length criterion constructed in \(\mathrm{def:minimax-length}\).
+  \item \(\Pi(P)\) --- \texttt{complete propensity tree}; \texttt{finite collections of conditional probabilities}; \texttt{oracle information}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi(P)=\{\pi_t^P(h):t\in[T],h\in\mathop{\mathrm{supp}}(H_t)\}\).
+  \item \(R^{\mathrm{or}}(n,T,c)\) --- \texttt{known-\allowbreak{}propensity minimax mean-\allowbreak{}squared risk}; \([0,1]\); \texttt{oracle benchmark}
+  \par\smallskip\noindent\emph{Definition.} Oracle risk constructed in \(\mathrm{def:oracle-criteria}\).
+  \item \(L^{\mathrm{or}}(n,T,c)\) --- \texttt{known-\allowbreak{}propensity minimax honest expected length}; \([0,1]\); \texttt{oracle benchmark}
+  \par\smallskip\noindent\emph{Definition.} Oracle expected-length criterion constructed in \(\mathrm{def:oracle-criteria}\).
+  \item \(B(c)\) --- \texttt{deterministic intervention-\allowbreak{}bias envelope}; \([0,1]\); \texttt{upper-\allowbreak{}bound scale}
+  \par\smallskip\noindent\emph{Definition.} \(B(c)=\frac12\sqrt{\exp(c^2/4)-1}\).
+  \item \(k_n\) --- \texttt{collision-\allowbreak{}free prefix depth}; \(\{1,2,\ldots\}\); \texttt{lower-\allowbreak{}bound tuning parameter}
+  \par\smallskip\noindent\emph{Definition.} \(k_n=\lceil\log_4(100n^2)\rceil\).
+  \item \(k\) --- \texttt{paired-\allowbreak{}context prefix depth}; \(\{1,\ldots,T-1\}\); \texttt{construction index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of early periods used to create paired contexts.}
+  \item \(r_0\) --- \texttt{late-\allowbreak{}block length}; \(\{1,\ldots,T-1\}\); \texttt{construction index}
+  \par\smallskip\noindent\emph{Definition.} \(r_0=T-k\).
+  \item \(P_B^{k,r_0}\) --- \texttt{fixed complementary-\allowbreak{}rule law}; \(\mathcal P_T\); \texttt{lower-\allowbreak{}bound witness}
+  \par\smallskip\noindent\emph{Definition.} Fixed law constructed in \(\mathrm{def:paired-witness}\).
+  \item \(P_0^{k,r_0}\) --- \texttt{random-\allowbreak{}late-\allowbreak{}action reference law}; \(\mathcal P_T\); \texttt{lower-\allowbreak{}bound witness}
+  \par\smallskip\noindent\emph{Definition.} Reference law constructed in \(\mathrm{def:paired-witness}\).
+  \item \(\overline P_1^{(n,k,r_0)}\) --- \texttt{mixture of fixed complementary-\allowbreak{}rule experiments}; probability laws on \(n\) trajectories; \texttt{lower-\allowbreak{}bound mixture}
+  \par\smallskip\noindent\emph{Definition.} Prior mixture of \((P_B^{k,r_0})^n\) constructed in \(\mathrm{def:paired-witness}\).
+  \item \(b_{r_0}(\eta)\) --- \texttt{late-\allowbreak{}block majority shift}; \([0,1/2]\); \texttt{testing separation}
+  \par\smallskip\noindent\emph{Definition.} Increment in the tie-randomized majority mean when \(r_0\) fair bits are shifted to success probability \(\operatorname{logit}^{-1}(\eta)\).
+  \item \(\rho_{n,k}\) --- \texttt{paired-\allowbreak{}context collision bound}; \([0,1]\); \texttt{testing affinity scale}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{n,k}=\min\{1,n(n-1)/4^k\}\).
+  \item \(r(n,T,c)\) --- \texttt{generic evaluable risk comparison function}; \(\{1,2,\ldots\}^2\times[0,1]\to(0,1]\); \texttt{unknown frontier object}
+  \par\smallskip\noindent\emph{Definition.} A generic candidate comparison scale for \(R(n,T,c)\).
+  \item \(\ell(n,T,c)\) --- \texttt{generic evaluable length comparison function}; \(\{1,2,\ldots\}^2\times[0,1]\to(0,1]\); \texttt{unknown frontier object}
+  \par\smallskip\noindent\emph{Definition.} A generic candidate comparison scale for \(L(n,T,c)\).
+  \item \(\widehat\psi^{\mathrm{tree}}_{n,T,c}\) --- \texttt{prefix-\allowbreak{}compatible estimator}; \(\mathcal E_{n,T}\); \texttt{attaining procedure}
+  \par\smallskip\noindent\emph{Definition.} Estimator output requested in \(\mathrm{oeq:sharp-frontier}\).
+  \item \(I^{\mathrm{tree}}_{n,T,c}\) --- \texttt{prefix-\allowbreak{}compatible honest interval}; \(\mathcal C_{n,T,c}\); \texttt{attaining inference procedure}
+  \par\smallskip\noindent\emph{Definition.} Connected interval output requested in \(\mathrm{oeq:sharp-frontier}\).
+  \item \(\mathscr H_{\mathrm{tree}}\) --- \texttt{prefix approximation and testing handle}; \texttt{finite multiscale procedures on compatible binary trees}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} Handle constructed in \(\mathrm{def:tree-handle}\).
+  \item \(a_0\) --- \texttt{universal lower comparison constant}; \((0,1)\); \texttt{comparison constant}
+  \par\smallskip\noindent\emph{Definition.} A universal numerical constant independent of \(n,T,c\).
+  \item \(A_0\) --- \texttt{universal upper comparison constant}; \((1,\infty)\); \texttt{comparison constant}
+  \par\smallskip\noindent\emph{Definition.} A universal numerical constant independent of \(n,T,c\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The observed trajectories \(O_1,\ldots,O_n\) have joint law \(P^n\).
+\par\smallskip\noindent\emph{Standard} (Independent trajectory sampling, \cite{KimKennedyNaimi2021}).
+\end{assumption}
+
+\begin{assumption}[ass:binary-covariates]\label{ass:binary-covariates}
+For every \(t\in[T]\), \(X_t\in\mathcal X\) almost surely.
+\par\smallskip\noindent\emph{Novel.} Binary covariates are this note's deliberate finite-alphabet specialization. Kim, Kennedy, and Naimi allow \(\mathbb R^d\)-valued covariates, so their paper is not a source for this binary-support condition.
+\end{assumption}
+
+\begin{assumption}[ass:binary-actions]\label{ass:binary-actions}
+For every \(t\in[T]\), \(A_t\in\mathcal A\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Binary longitudinal treatment support, \cite{KimKennedyNaimi2021}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-outcome]\label{ass:bounded-outcome}
+The terminal outcome satisfies \(Y\in[0,1]\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Bounded terminal outcome, \cite{KimKennedyNaimi2021}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+For every \(\bar a_T\in\mathcal A^T\), \(Y=Y^{\bar a_T}\) on the event \((A_1,\ldots,A_T)=\bar a_T\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Longitudinal consistency, \cite{KimKennedyNaimi2021}).
+\end{assumption}
+
+\begin{assumption}[ass:sequential-exchangeability]\label{ass:sequential-exchangeability}
+For every \(t\in[T]\) and \(\bar a_T\in\mathcal A^T\), \(A_t\perp Y^{\bar a_T}\mid H_t\) under \(P\).
+\par\smallskip\noindent\emph{Standard} (Sequential treatment exchangeability, \cite{KimKennedyNaimi2021}).
+\end{assumption}
+
+\begin{assumption}[ass:measurable-estimator]\label{ass:measurable-estimator}
+The rule \(\widehat\psi\) is a measurable, possibly independently randomized map of \((O_1,\ldots,O_n)\) into \([0,1]\).
+\par\smallskip\noindent\emph{Standard} (Measurable statistical decision rule, \cite{MaZhuJiaoWainwright2022}).
+\end{assumption}
+
+\begin{assumption}[ass:honest-connected-interval]\label{ass:honest-connected-interval}
+The rule \(I\) is a measurable, possibly independently randomized connected subinterval of \([0,1]\) satisfying \(\inf_{P\in\mathcal P_T}P^n\{\psi_T(P,c)\in I\}\geq0.95\).
+\par\smallskip\noindent\emph{Standard} (Uniformly honest connected confidence interval, \cite{CaiLow2004}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:history]\label{def:history}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complete pre-\allowbreak{}action history}
+\par\smallskip\noindent\emph{Construction.} For each \(t\in[T]\), set \(H_t=(X_1,A_1,\ldots,X_{t-1},A_{t-1},X_t)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}binary-\allowbreak{}covariates}; \texttt{ass:\allowbreak{}binary-\allowbreak{}actions}.
+\end{definition}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unrestricted complete-\allowbreak{}history class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_T=\{P: P\text{ is a full-data law at horizon }T\text{ satisfying }\mathrm{ass:binary\text{-}covariates},\ \mathrm{ass:binary\text{-}actions},\ \mathrm{ass:bounded\text{-}outcome},\ \mathrm{ass:consistency},\text{ and }\mathrm{ass:sequential\text{-}exchangeability}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}binary-\allowbreak{}covariates}; \texttt{ass:\allowbreak{}binary-\allowbreak{}actions}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcome}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}sequential-\allowbreak{}exchangeability}.
+\end{definition}
+
+\begin{definition}[def:incremental-kernel]\label{def:incremental-kernel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Globally stable incremental action kernel}
+\par\smallskip\noindent\emph{Construction.} For every \(t\in[T]\) and history \(h\), set \(q_t^P(1\mid h)=\delta\pi_t^P(h)/d_t^P(h)\) and \(q_t^P(0\mid h)=\{1-\pi_t^P(h)\}/d_t^P(h)\), where \(d_t^P(h)=1+(\delta-1)\pi_t^P(h)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}history}; \texttt{def:\allowbreak{}model-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:intervened-law]\label{def:intervened-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Incrementally intervened trajectory law}
+\par\smallskip\noindent\emph{Construction.} Construct \(Q_{P,c}\) by replacing, in the sequential factorization of the observed margin of \(P\), every action kernel \(P(A_t\in\cdot\mid H_t)\) by \(q_t^P(\cdot\mid H_t)\) and retaining every covariate and outcome kernel.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}incremental-\allowbreak{}kernel}.
+\end{definition}
+
+\begin{definition}[def:estimand]\label{def:estimand}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Incremental terminal mean}
+\par\smallskip\noindent\emph{Construction.} \(\psi_T(P,c)=E_{Q_{P,c}}[Y]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}intervened-\allowbreak{}law}.
+\end{definition}
+
+\begin{definition}[def:likelihood-ratio]\label{def:likelihood-ratio}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Incremental prefix likelihood ratio}
+\par\smallskip\noindent\emph{Construction.} Set \(W_0^P=1\) and \(W_t^P=\prod_{j=1}^t\delta^{A_j}/d_j^P(H_j)\) for \(t\in[T]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}history}; \texttt{def:\allowbreak{}incremental-\allowbreak{}kernel}.
+\end{definition}
+
+\begin{definition}[def:leaf-functional]\label{def:leaf-functional}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total finite-\allowbreak{}tree identifying functional}
+\par\smallskip\noindent\emph{Construction.} Define \(F_{T,c}(P)=\sum_{z\in\mathcal Z_T}s_z(P)\delta^{\sum_{t=1}^T a_t}\prod_{t=1}^T m_{h_t(z)}(P)/\{m_{h_t(z)}(P)+(\delta-1)m_{h_t(z)1}(P)\}\), with each ratio set to one when its prefix mass is zero.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}history}; \texttt{def:\allowbreak{}incremental-\allowbreak{}kernel}.
+\end{definition}
+
+\begin{definition}[def:estimator-class]\label{def:estimator-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{All measurable point estimators}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal E_{n,T}=\{\widehat\psi:\widehat\psi\text{ is a measurable, possibly independently randomized map of }(O_1,\ldots,O_n)\text{ into }[0,1]\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}measurable-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:interval-class]\label{def:interval-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniformly honest connected intervals}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_{n,T,c}=\{I:I\text{ is a measurable, possibly independently randomized connected subinterval of }[0,1]\text{ and }\inf_{P\in\mathcal P_T}P^n\{\psi_T(P,c)\in I\}\geq0.95\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}honest-\allowbreak{}connected-\allowbreak{}interval}.
+\end{definition}
+
+\begin{definition}[def:minimax-risk]\label{def:minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unknown-\allowbreak{}propensity minimax risk}
+\par\smallskip\noindent\emph{Construction.} \(R(n,T,c)=\inf_{\widehat\psi\in\mathcal E_{n,T}}\sup_{P\in\mathcal P_T}E_{P^n}[(\widehat\psi-\psi_T(P,c))^2]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}; \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}estimand}; \texttt{def:\allowbreak{}estimator-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:minimax-length]\label{def:minimax-length}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unknown-\allowbreak{}propensity minimax honest length}
+\par\smallskip\noindent\emph{Construction.} \(L(n,T,c)=\inf_{I\in\mathcal C_{n,T,c}}\sup_{P\in\mathcal P_T}E_{P^n}[\operatorname{length}(I)]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}; \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}interval-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:oracle-criteria]\label{def:oracle-criteria}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Known-\allowbreak{}propensity oracle experiment}
+\par\smallskip\noindent\emph{Construction.} Define \(R^{\mathrm{or}}(n,T,c)\) and \(L^{\mathrm{or}}(n,T,c)\) by the formulas in \(\mathrm{def:minimax\text{-}risk}\) and \(\mathrm{def:minimax\text{-}length}\), respectively, after adjoining \(\Pi(P)\) to every observation available to the decision rule.
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}; \texttt{def:\allowbreak{}minimax-\allowbreak{}risk}; \texttt{def:\allowbreak{}minimax-\allowbreak{}length}.
+\end{definition}
+
+\begin{definition}[def:paired-witness]\label{def:paired-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complement-\allowbreak{}paired context experiment}
+\par\smallskip\noindent\emph{Construction.} For \(1\leq k<T\) and \(r_0=T-k\), let the first \(k\) covariates and actions be independent fair bits, pair the resulting \(4^k\) contexts by flipping only \(X_1\), set all later covariates to zero, and let \(f_{r_0}(b)=\mathbf 1\{\sum_jb_j>r_0/2\}+\frac12\mathbf 1\{\sum_jb_j=r_0/2\}\). Under \(P_0^{k,r_0}\), the late actions are independent fair bits and \(Y=f_{r_0}(A_{k+1},\ldots,A_T)\). Under each \(P_B^{k,r_0}\), assign to the two contexts in every pair a fixed late string and its bitwise complement, and use the corresponding deterministic outcome. Define \(\overline P_1^{(n,k,r_0)}\) by averaging \((P_B^{k,r_0})^n\) over independent uniform pair strings.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}estimand}.
+\end{definition}
+
+\begin{definition}[def:tree-handle]\label{def:tree-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Proposed compatible-\allowbreak{}prefix approximation program}
+\par\smallskip\noindent\emph{Construction.} The handle \(\mathscr H_{\mathrm{tree}}\) denotes the following proposed, not yet certified approximation program for \(G_{T,c}(P)\): partition unconditional subtree-root masses into dyadic occupancy ranges; approximate rational descendant contributions jointly in unconditional child masses subject to every parent-sum identity; lift the resulting mixed monomials by multinomial factorial moments or degenerate \(U\)-statistics while retaining covariance between nested prefixes; and seek dual moment-matched priors whose draws are whole legal subtrees.  No polynomial degree, coefficient array, variance certificate, or legal prior pair is asserted by this definition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}leaf-\allowbreak{}functional}; \texttt{def:\allowbreak{}paired-\allowbreak{}witness}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:identification]\label{prop:identification}
+For every \(P\in\mathcal P_T\), \(Q_{P,c}\ll P\) on the observed trajectory space, conditional versions on \(P\)-null histories do not affect the target, and the causal incremental terminal mean is identified by \(\psi_T(P,c)=E_P[YW_T^P]=F_{T,c}(P)\).
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal P_T\).  Put \(u=\delta-1\).  On a history \(h\) having positive \(P\)-mass, the two action likelihood ratios are
+\[
+ \frac{q_t^P(1\mid h)}{\pi_t^P(h)}=\frac{\delta}{d_t^P(h)}
+ \quad\hbox{when }\pi_t^P(h)>0,
+ \quad
+ \frac{q_t^P(0\mid h)}{1-\pi_t^P(h)}=\frac{1}{d_t^P(h)}
+ \quad\hbox{when }\pi_t^P(h)<1.
+\]
+If \(\pi_t^P(h)=0\), then \(q_t^P(1\mid h)=0\); if \(\pi_t^P(h)=1\), then \(q_t^P(0\mid h)=0\).  Thus the intervention never assigns positive probability to an action having zero observational conditional probability.  The retained covariate and outcome kernels introduce no further support, so sequential multiplication gives
+\[
+ Q_{P,c}\ll P,
+ \quad
+ \frac{dQ_{P,c}}{dP}(O)
+ =\prod_{t=1}^T\frac{\delta^{A_t}}{d_t^P(H_t)}
+ =W_T^P
+ \quad P\text{-almost surely}.
+\]
+This also proves that changing a conditional version on a \(P\)-null history cannot change \(Q_{P,c}\), its Radon--Nikodym derivative, or an integral under \(Q_{P,c}\).  By \(\mathrm{def:estimand}\), followed by the displayed derivative,
+\[
+ \psi_T(P,c)=E_{Q_{P,c}}[Y]=E_P[YW_T^P].
+\]
+The causal interpretation does not define this observed-law equality: consistency and sequential exchangeability identify the stochastic intervention mean by iterated conditioning.  Indeed, at each supported history, sequential exchangeability permits replacement of the conditional law of the observed action by the externally drawn kernel \(q_t^P\) without changing the corresponding conditional potential-outcome regression, and consistency replaces the terminal potential outcome on the realized action path by \(Y\).  Iterating from \(t=T\) back to \(t=1\) yields exactly the sequential factorization defining \(Q_{P,c}\).  Domination, proved above, supplies the required overlap at every replacement; no positive lower bound is used.
+
+It remains to verify the finite-tree expression.  If \(m_{h_t(z)}(P)>0\), then
+\[
+ \pi_t^P(h_t(z))=\frac{m_{h_t(z)1}(P)}{m_{h_t(z)}(P)},
+ \quad
+ \frac{1}{d_t^P(h_t(z))}
+ =\frac{m_{h_t(z)}(P)}{m_{h_t(z)}(P)+u m_{h_t(z)1}(P)}.
+\]
+Splitting \(E_P[YW_T^P]\) over \(z\in\mathcal Z_T\) therefore gives
+\[
+ E_P[YW_T^P]
+ =\sum_{z\in\mathcal Z_T}s_z(P)\delta^{\sum_{t=1}^T a_t}
+   \prod_{t=1}^T
+   \frac{m_{h_t(z)}(P)}{m_{h_t(z)}(P)+u m_{h_t(z)1}(P)}
+ =F_{T,c}(P).
+\]
+If an ancestor prefix has zero mass, every descendant leaf has \(s_z(P)=0\); hence the convention that its displayed ratio equals one changes no summand.  This proves all three assertions, including deterministic-action and null-history boundary cases.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition fixes the exact support-respecting observed-data functional before any minimax analysis. \textit{Gap.} KimKennedyNaimi2021, Theorem 3.1, gives longitudinal identification with dropout; the present complete-data finite-tree formula makes null-prefix compatibility explicit for the unrestricted binary experiment. \textit{Consumer.} The estimator and converse can operate on unconditional leaf and prefix masses without imposing treatment positivity.
+
+\begin{lemma}[lem:stable-weights]\label{lem:stable-weights}
+Uniformly over \(P\in\mathcal P_T\), \(E_P[W_T^P]=1\), \(E_P[(W_T^P)^2]\leq\cosh(\eta/2)^{2T}\leq\exp(c^2/4)\), and \(|\psi_T(P,c)-\mu(P)|\leq B(c)\leq c/3\).
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal P_T\), write \(u=\delta-1\), and let \(R_t=\delta^{A_t}/d_t^P(H_t)\), so that \(W_t^P=W_{t-1}^P R_t\).  Conditional on \(H_t\), with \(p=\pi_t^P(H_t)\),
+\[
+ E_P[R_t\mid H_t]=\frac{(1-p)+\delta p}{1+up}=1
+\]
+and
+\[
+ E_P[R_t^2\mid H_t]
+ =f_\delta(p):=\frac{1+(\delta^2-1)p}{(1+up)^2}.
+\]
+For \(\delta>1\), direct differentiation gives
+\[
+ f_\delta'(p)=
+ \frac{u^2\{1-(\delta+1)p\}}{(1+up)^3}.
+\]
+Consequently the maximum on \([0,1]\) is attained at \(p=(\delta+1)^{-1}\), and
+\[
+ f_\delta(p)\leq \frac{(\delta+1)^2}{4\delta}
+ =\cosh(\eta/2)^2.
+\]
+For \(\delta=1\), the same inequality is equality.  Because \(W_{t-1}^P\) is \(H_t\)-measurable, iterated conditioning yields
+\[
+ E_P[W_t^P]=E_P[W_{t-1}^P]=1
+\]
+and
+\[
+ E_P[(W_t^P)^2]
+ \leq \cosh(\eta/2)^2 E_P[(W_{t-1}^P)^2].
+\]
+Starting at \(W_0^P=1\) proves
+\[
+ E_P[(W_T^P)^2]\leq\cosh(\eta/2)^{2T}.
+\]
+The elementary inequality \(\log\cosh x\leq x^2/2\) follows because its derivative is \(\tanh x\leq x\) for \(x\geq0\).  Since \(T\eta^2=c^2\),
+\[
+ \cosh(\eta/2)^{2T}
+ =\exp\{2T\log\cosh(\eta/2)\}
+ \leq\exp(c^2/4).
+\]
+
+The sequential factorization in \(\mathrm{def:intervened\text{-}law}\) and the action ratios in \(\mathrm{def:incremental\text{-}kernel}\) give \(dQ_{P,c}/dP=W_T^P\); the zero-probability action cases are support preserving exactly as in the first conditional calculation above.  Hence \(\mathrm{def:estimand}\) gives \(\psi_T(P,c)=E_P[YW_T^P]\), and the preceding calculation gives \(E_P[W_T^P-1]=0\).  Thus, with \(\mu(P)=E_PY\),
+\[
+ \psi_T(P,c)-\mu(P)
+ =E_P[(Y-\mu(P))(W_T^P-1)].
+\]
+The bounded-outcome assumption implies \(\operatorname{Var}_P(Y)\leq1/4\).  Cauchy--Schwarz and \(E_P[(W_T^P-1)^2]=E_P[(W_T^P)^2]-1\) now give
+\[
+ |\psi_T(P,c)-\mu(P)|
+ \leq\frac12\sqrt{\exp(c^2/4)-1}=B(c).
+\]
+Finally, \(e^x-1\leq xe^x\) for \(x\geq0\).  Since \(c^2/4\leq1/4\) and \(e^{1/8}\leq(1-1/8)^{-1}=8/7<4/3\),
+\[
+ B(c)\leq \frac{c e^{1/8}}4<\frac c3.
+\]
+All conditional calculations remain valid at \(p=0\) or \(p=1\), where the realized likelihood ratio equals one, so no overlap condition has been introduced.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The dimension-free second moment separates stable oracle weighting from the possible cost of learning an unrestricted history tree. \textit{Gap.} KimKennedyNaimi2021, Theorem 6.1, studies a constant-propensity variance ratio; this bound is uniform over every history-dependent propensity tree and every deterministic action node. \textit{Consumer.} The natural sample mean and its bias-aware interval give total fallback procedures for every \(n,T,c\).
+
+\begin{proposition}[prop:oracle-benchmark]\label{prop:oracle-benchmark}
+There exist universal constants \(a_0,A_0\) such that, for every \(n,T\geq1\) and \(c\in[0,1]\), \(a_0/n\leq R^{\mathrm{or}}(n,T,c)\leq A_0/n\) and \(a_0/\sqrt n\leq L^{\mathrm{or}}(n,T,c)\leq A_0/\sqrt n\). The upper procedures are clipped inverse-likelihood weighting and its Chebyshev interval, and the lower bounds use a Bernoulli terminal-outcome subexperiment.
+\end{proposition}
+\begin{proof}
+For the upper bound, the oracle supplies every \(\pi_t^P\), hence every \(W_T^P(O_i)\).  Define the total estimator
+\[
+ \widehat\psi_{\mathrm{or}}
+ =\operatorname{proj}_{[0,1]}\left\{\frac1n\sum_{i=1}^nY_iW_T^P(O_i)\right\}.
+\]
+By \(\mathrm{prop:identification}\) the unprojected average is unbiased, and by \(\mathrm{lem:stable\text{-}weights}\), independence, and \(0\leq Y\leq1\),
+\[
+ E_{P^n}\left[\left\{\frac1n\sum_{i=1}^nY_iW_T^P(O_i)-\psi_T(P,c)\right\}^2\right]
+ =\frac{\operatorname{Var}_P(YW_T^P)}n
+ \leq\frac{e^{1/4}}n.
+\]
+Projection onto \([0,1]\) cannot increase distance from \(\psi_T(P,c)\in[0,1]\), proving the oracle risk upper bound.  With
+\[
+ h_n=\sqrt{20e^{1/4}/n},\quad
+ I_{\mathrm{or}}=[\widehat\psi_{\mathrm{or}}-h_n,\widehat\psi_{\mathrm{or}}+h_n]\cap[0,1],
+\]
+Chebyshev's inequality, obtained by applying Markov's inequality to the squared centered average, gives coverage at least \(0.95\) uniformly in \(P\).  Moreover
+\[
+ \operatorname{length}(I_{\mathrm{or}})\leq\min\{1,2h_n\}\leq 2\sqrt{20e^{1/4}}\,n^{-1/2}.
+\]
+
+For both lower bounds, restrict to the following subexperiment, which lies in \(\mathcal P_T\): all covariates and actions are deterministically zero, and a common latent variable \(U\sim\operatorname{Bernoulli}(\theta)\) defines \(Y=Y^{\bar a_T}=U\) for every action path.  Consistency and sequential exchangeability hold, and the supplied propensity tree is identical for every \(\theta\).  Put
+\[
+ d=\frac1{8\sqrt n},\quad \theta_0=\frac12-d,\quad\theta_1=\frac12+d.
+\]
+The one-observation Hellinger affinity of the two Bernoulli laws is \(\sqrt{1-4d^2}\), so the product affinity is
+\[
+ \alpha_n=(1-4d^2)^{n/2}.
+\]
+For any two dominated laws with densities \(p,q\), Cauchy--Schwarz gives
+\[
+ \operatorname{TV}(p,q)
+ =\frac12\int|\sqrt p-\sqrt q|(\sqrt p+\sqrt q)
+ \leq\sqrt{1-\left(\int\sqrt{pq}\right)^2}.
+\]
+Since \((1-x)^n\geq1-nx\) for \(x\in[0,1]\),
+\[
+ \operatorname{TV}(P_{\theta_0}^n,P_{\theta_1}^n)
+ \leq\sqrt{1-(1-1/(16n))^n}\leq\frac14.
+\]
+The same total variation applies after adjoining the identical propensity tree and any common independent randomization.
+
+Given any estimator, test \(\theta_1\) when it is closer to the estimator than \(\theta_0\).  On either testing-error event the squared estimation error is at least \(d^2\).  The sum of the two testing errors is at least \(1-\operatorname{TV}\), because pointwise the two error densities sum to at least their minimum.  Hence
+\[
+ \sup_{j\in\{0,1\}}E_{P_{\theta_j}^n}[(\widehat\psi-\theta_j)^2]
+ \geq\frac{d^2}{2}\{1-\operatorname{TV}(P_{\theta_0}^n,P_{\theta_1}^n)\}
+ \geq\frac{3}{512n}.
+\]
+For an honest connected interval, transfer the event \(\{\theta_0\in I\}\) from \(P_{\theta_0}^n\) to \(P_{\theta_1}^n\).  Under \(P_{\theta_1}^n\), its probability is at least \(0.95-0.25=0.70\), while \(P_{\theta_1}^n\{\theta_1\in I\}\geq0.95\).  Thus both endpoints belong to \(I\) with probability at least \(0.65\); connectedness yields
+\[
+ \sup_{j\in\{0,1\}}E_{P_{\theta_j}^n}[\operatorname{length}(I)]
+ \geq0.65(\theta_1-\theta_0)=\frac{0.65}{4\sqrt n}.
+\]
+Taking, for example, \(a_0=10^{-5}\) and \(A_0=12\) proves all four comparisons uniformly in \(n,T,c\); the same pair is small and large enough, respectively, for the long-history theorem below.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A uniform parametric oracle benchmark makes any unknown-history penalty an information effect rather than exploding intervention weights. \textit{Gap.} KallusUehara2024NaturalPolicies compares local efficiency bounds under structured policy models; it does not give this all-sample unrestricted-history oracle decision bound. \textit{Consumer.} The oracle comparison tells longitudinal analysts whether supplying a fitted propensity tree could change the order of attainable precision.
+
+\begin{proposition}[prop:centered-local-bound]\label{prop:centered-local-bound}
+At every interior finite-tree law, the full-law canonical gradient is \(D_{P,c}=YW_T^P-\psi_T(P,c)-\sum_{t=1}^T\frac{\delta-1}{d_t^P(H_t)}E_P[YW_T^P\mid H_t](A_t-\pi_t^P(H_t))\). Its centered counterpart satisfies \(\lVert D_{G,P,c}\rVert_{L_2(P)}\leq2c\), while \(\lVert D_{P,c}\rVert_{L_2(P)}<3\), uniformly in \(T\); the bounds extend to boundary laws through finite-simplex continuity.
+\end{proposition}
+\begin{proof}
+Fix an interior law and a regular parametric submodel through it with mean-zero score \(S\).  Write \(p_t(H_t)=\pi_t^P(H_t)\) and \(u=\delta-1\).  Differentiating a conditional mean gives
+\[
+ \dot p_t(H_t)=E_P[(A_t-p_t(H_t))S\mid H_t].
+\]
+The numerator \(\delta^{A_t}\) of each likelihood-ratio factor is fixed along the submodel, whereas
+\[
+ \frac{d}{d\varepsilon}\log d_t^{P_\varepsilon}(H_t)\bigg|_{\varepsilon=0}
+ =\frac{u}{d_t^P(H_t)}\dot p_t(H_t).
+\]
+Differentiating the identifying equality \(\psi_T(P,c)=E_P[YW_T^P]\) therefore yields
+\[
+ \dot\psi
+ =E_P[YW_T^P S]
+ -\sum_{t=1}^T E_P\left[YW_T^P\frac{u}{d_t^P(H_t)}\dot p_t(H_t)\right].
+\]
+For every summand, two applications of conditional expectation give
+\[
+ E_P\left[YW_T^P\frac{u}{d_t^P(H_t)}\dot p_t(H_t)\right]
+ =E_P\left[\frac{u}{d_t^P(H_t)}E_P[YW_T^P\mid H_t]
+              (A_t-p_t(H_t))S\right].
+\]
+Consequently \(\dot\psi=E_P[D_{P,c}S]\) for the displayed \(D_{P,c}\) in the proposition.  Its mean is zero because \(E_P[YW_T^P]=\psi_T(P,c)\) and each correction has conditional mean zero given \(H_t\).  The tangent space of the unrestricted interior law is \(L_2^0(P)\), so this representer is the canonical gradient.
+
+For the norm bounds, define
+\[
+ V_t(H_t)=E_P\left[Y\prod_{j=t}^T\frac{\delta^{A_j}}{d_j^P(H_j)}\,\middle|\,H_t\right].
+\]
+The product inside the conditional expectation is a conditional likelihood ratio.  Hence the bounded-outcome assumption gives \(0\leq V_t\leq1\), and
+\[
+ E_P[YW_T^P\mid H_t]=W_{t-1}^P V_t(H_t).
+\]
+Let
+\[
+ U_t=\frac{u}{d_t^P(H_t)}W_{t-1}^PV_t(H_t)(A_t-p_t(H_t)),
+ \quad M=\sum_{t=1}^TU_t.
+\]
+For \(s<t\), \(U_s\) is \(H_t\)-measurable and \(E_P[U_t\mid H_t]=0\), so the increments are pairwise orthogonal.  Since \(d_t^P\geq1\), \(p_t(1-p_t)\leq1/4\), and \(\mathrm{lem:stable\text{-}weights}\) bounds every prefix second moment by \(e^{c^2/4}\),
+\[
+ \|M\|_2^2
+ =\sum_{t=1}^T\|U_t\|_2^2
+ \leq\frac{u^2}{4}\sum_{t=1}^TE_P[(W_{t-1}^P)^2]
+ \leq\frac{Tu^2}{4}e^{c^2/4}.
+\]
+Also \(\|YW_T^P-\psi_T(P,c)\|_2\leq\|YW_T^P\|_2\leq e^{c^2/8}\).  Convexity of the exponential on \([0,1]\) gives
+\[
+ \sqrt T\,u=\sqrt T(e^{c/\sqrt T}-1)\leq(e-1)c.
+\]
+It follows, using \(e<3\) and \(e^{1/8}<8/7\), that
+\[
+ \|D_{P,c}\|_2
+ \leq e^{c^2/8}\left(1+\frac{\sqrt T\,u}{2}\right)
+ \leq e^{1/8}\frac{e+1}{2}<3.
+\]
+
+The gradient of \(\mu(P)=E_PY\) is \(Y-\mu(P)\).  Therefore
+\[
+ D_{G,P,c}=Y(W_T^P-1)-E_P[Y(W_T^P-1)]-M.
+\]
+Centering cannot increase the second moment beyond the uncentered second moment, so
+\[
+ \|D_{G,P,c}\|_2
+ \leq\sqrt{E_P[(W_T^P-1)^2]}+\|M\|_2
+ \leq\sqrt{e^{c^2/4}-1}+\frac{\sqrt T\,u}{2}e^{c^2/8}.
+\]
+Using \(e^x-1\leq xe^x\), \(e^{1/8}<8/7\), and \(e-1<2\), the last display is at most
+\[
+ \frac{4}{7}c+\frac{8}{7}c=\frac{12}{7}c<2c.
+\]
+At a deterministic action node, \(A_t-p_t(H_t)=0\) almost surely and every dominated regular submodel has \(\dot p_t(H_t)=0\); at a null history every displayed conditional version is multiplied by a null event.  Thus the preceding score calculation applies on the relative interior of each support face, with exactly the same \(P\)-almost-sure formula.  The finite leaf functional is continuous across faces: a positive limiting leaf has positive limiting ancestor masses, while the absolute contribution of a leaf whose mass tends to zero is at most \(\delta^T\) times that mass.  Hence the facewise formulas give the boundary extension, and the two norm calculations, which already allow \(p_t\in\{0,1\}\), preserve the same uniform constants.  Thus neither positivity nor an interior restriction is needed for the asserted extension.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result exhibits a bounded local efficiency problem even where the global finite-sample experiment can be hard. \textit{Gap.} KallusUehara2024NaturalPolicies derives the extra score-projection term for natural policies under Markov structure; the present formula retains the entire unrestricted history and quantifies exact cancellation as \(c\to0\). \textit{Consumer.} Semiparametric users can distinguish a valid fixed-law efficiency calculation from a uniform guarantee over sparse histories.
+
+\begin{proposition}[prop:static-nonreduction]\label{prop:static-nonreduction}
+The sequential target is not a one-normalizer static exponential tilt on \(\mathcal P_T\): at \(T=2\), with constant covariates, fair \(A_1\), deterministic \(A_2=A_1\), \(Y=A_2\), and \(c=\sqrt2\log(3/2)\), the sequential functional equals \(3/5\), whereas tilting the observed law once by \(\delta^{A_1+A_2}\) and globally normalizing yields \(9/13\).
+\end{proposition}
+\begin{proof}
+Take \(T=2\), let both covariates be identically zero, let \(A_1\) be fair, set \(A_2=A_1\), and set \(Y=A_2\).  A compatible full-data construction is \(Y^{(a_1,a_2)}=a_2\); hence consistency holds, and sequential exchangeability holds because every potential outcome is constant.  Thus this law belongs to \(\mathcal P_2\).  With \(c=\sqrt2\log(3/2)\), one has \(\eta=\log(3/2)\) and \(\delta=3/2\).  The first action is fair, so its incremental probability of one is
+\[
+ q_1^P(1)=\frac{\delta/2}{1+(\delta-1)/2}=\frac{\delta}{1+\delta}=\frac35.
+\]
+The second action is deterministic conditional on \(H_2\), and the incremental transformation fixes probabilities zero and one.  Consequently \(A_2=A_1\) also under \(Q_{P,c}\), whence
+\[
+ \psi_2(P,c)=E_{Q_{P,c}}[A_2]=\frac35.
+\]
+By contrast, a single static tilt of the two observed trajectories \((A_1,A_2)=(0,0)\) and \((1,1)\) assigns relative masses \(1\) and \(\delta^2\).  Its terminal mean is therefore
+\[
+ \frac{\delta^2}{1+\delta^2}=\frac{9/4}{1+9/4}=\frac9{13}\neq\frac35.
+\]
+This explicit member of the stated class proves nonreduction; no alternative statistical target has been introduced.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The counterexample blocks a tempting flattening that would erase the nested-prefix learning problem. \textit{Gap.} SchindlShenKennedy2024 and HuangDongLinAntonelli2026 analyze static single-normalizer tilts; their target algebra cannot be substituted for the sequential functional. \textit{Consumer.} The lower-bound and estimator proofs must preserve the original longitudinal intervention rather than import a static rate verbatim.
+
+\begin{lemma}[lem:paired-witness-audit]\label{lem:paired-witness-audit}
+For the construction in \(\mathrm{def:paired\text{-}witness}\), every fixed \(P_B^{k,r_0}\) belongs to \(\mathcal P_T\) and satisfies \(\psi_T(P_B^{k,r_0},c)=1/2\), whereas \(\psi_T(P_0^{k,r_0},c)=1/2+b_{r_0}(\eta)\) with \(b_{r_0}(\eta)\geq c\sqrt{r_0/T}/16\). Moreover, \(\operatorname{TV}((P_0^{k,r_0})^n,\overline P_1^{(n,k,r_0)})\leq\rho_{n,k}\). At \(k=1,r_0=2,n=2\), the mixture total variation is exactly \(3/8\), shifted partner masses cancel, and the functional differs from a static tilt.
+\end{lemma}
+\begin{proof}
+Put \(r=r_0=T-k\), and denote an early context by \(J=(X_1,A_1,\ldots,X_k,A_k)\).  To verify class membership, for every action path define the potential outcome \(Y^{\bar a_T}=f_r(a_{k+1},\ldots,a_T)\).  It is deterministic, so it is conditionally independent of each \(A_t\) given \(H_t\).  Under both \(P_0^{k,r}\) and every fixed \(P_B^{k,r}\), the observed outcome equals this potential outcome on the realized path.  Binary support and boundedness are immediate.  Hence these laws are members of \(\mathcal P_T\).
+
+Under every fixed \(P_B^{k,r}\), the late propensities are zero or one and are therefore unchanged by the incremental map.  During the first \(k\) periods, all action propensities are \(1/2\).  Thus, under the intervention,
+\[
+ Q_{P_B^{k,r},c}(J=j)
+ =4^{-k}\prod_{t=1}^k\frac{2\delta^{a_t}}{1+\delta}.
+\]
+This mass depends on the early action vector but not on the early covariate vector.  Paired contexts differ only in \(X_1\), so the two members of every pair retain equal mass.  Since
+\[
+ f_r(\mathbf 1-b)=1-f_r(b),
+\]
+the two deterministic outcomes in each pair sum to one.  Summing pair by pair proves
+\[
+ \psi_T(P_B^{k,r},c)=\frac12.
+\]
+
+Under \(P_0^{k,r}\), each late action remains conditionally independent after intervention and has success probability
+\[
+ p_\eta=\frac{\delta}{1+\delta}=\operatorname{logit}^{-1}(\eta).
+\]
+The early variables do not enter the outcome, hence
+\[
+ \psi_T(P_0^{k,r},c)
+ =E[f_r(S_r)],\quad S_r\sim\operatorname{Binomial}(r,p_\eta),
+\]
+which is \(1/2+b_r(\eta)\) by definition.
+
+We next prove the stated uniform separation.  For odd \(r=2m+1\), differentiation of the binomial tail and the identity \(p_\eta(1-p_\eta)=\{4\cosh^2(\eta/2)\}^{-1}\) give
+\[
+ b_r'(\eta)
+ =r\binom{2m}{m}4^{-(m+1)}\operatorname{sech}(\eta/2)^{r+1}.
+\]
+For \(m\geq1\), induction using
+\[
+ \frac{\binom{2m+2}{m+1}/4^{m+1}}{\binom{2m}{m}/4^m}
+ =\frac{2m+1}{2m+2}\geq\sqrt{\frac m{m+1}}
+\]
+shows \(\binom{2m}{m}/4^m\geq(2\sqrt m)^{-1}\).  Including \(r=1\), this implies
+\[
+ b_r'(0)\geq\frac{\sqrt r}{4\sqrt2}.
+\]
+For \(0\leq s\leq\eta=c/\sqrt T\), the inequality \(\log\cosh x\leq x^2/2\) and \(r+1\leq2T\) imply
+\[
+ \operatorname{sech}(s/2)^{r+1}
+ \geq\exp\{-(r+1)s^2/8\}\geq e^{-1/4}.
+\]
+Integration from zero to \(\eta\) therefore gives, for odd \(r\),
+\[
+ b_r(\eta)\geq \frac{e^{-1/4}}{4\sqrt2}\eta\sqrt r\geq\frac18\eta\sqrt r.
+\]
+For even \(r=2m\), the tie-randomized majority expectation for \(2m\) trials equals the ordinary majority expectation for \(2m-1\) trials.  To see this, condition on the first \(2m-1\) successes; the only two boundary probabilities have equal binomial coefficients, and
+\[
+ (1-p)P\{S_{2m-1}=m\}=pP\{S_{2m-1}=m-1\},
+\]
+so their difference cancels.  Applying the odd bound to \(r-1\geq r/2\) proves, for every \(r\geq1\),
+\[
+ b_r(\eta)\geq\frac1{16}\eta\sqrt r
+ =\frac c{16}\sqrt{\frac rT}.
+\]
+
+For the mixture comparison, label the \(4^k/2\) context pairs.  Couple the reference experiment and the prior mixture by first drawing the same iid early contexts.  On the event \(E\) that the \(n\) sampled pair labels are distinct, draw one independent fair \(r\)-bit string for each sampled pair and use it, complemented if the sampled context has the opposite orientation, in both experiments.  Conditional on the contexts and \(E\), these strings are independent and uniform, exactly as under \(P_0^{k,r}\); the outcomes are the same deterministic functions of them.  Therefore the coupled data sets agree on \(E\), and the union bound gives
+\[
+ \operatorname{TV}((P_0^{k,r})^n,\overline P_1^{(n,k,r)})
+ \leq P(E^c)
+ \leq\min\left\{1,\binom n2\frac{1}{4^k/2}\right\}
+ =\min\left\{1,\frac{n(n-1)}{4^k}\right\}
+ =\rho_{n,k}.
+\]
+
+When \(k=1,r=2,n=2\), the two observations have the same pair label with probability \(1/2\).  Conditional on distinct labels, the laws coincide.  Conditional on the same label and on the two observed contexts, the reference puts mass \(1/16\) on each of the sixteen ordered pairs of late strings, whereas the mixture puts mass \(1/4\) on four ordered pairs, the equal-string pairs when orientations agree and complementary-string pairs when orientations differ.  The conditional total variation is
+\[
+ \frac12\left\{4\left(\frac14-\frac1{16}\right)+12\frac1{16}\right\}=\frac34,
+\]
+and hence the unconditional total variation is \((1/2)(3/4)=3/8\).  The displayed pair-mass formula above proves the shifted-partner cancellation even though different early action vectors receive different intervention weights.  Finally, choose in each of the two pairs the string \(00\) at one orientation and \(11\) at the other.  For \(c>0\), its sequential target is \(1/2\), while a single global tilt has mean
+\[
+ \frac{\delta^2+\delta^3}{1+\delta+\delta^2+\delta^3}
+ =\frac{\delta^2}{1+\delta^2}>\frac12.
+\]
+Thus the audited construction itself also exhibits the claimed nonidentity with a static tilt; at \(c=0\) both interventions reduce to the observed law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the required destructive audit of the sparse-history lower mechanism before it is used in a frontier theorem. \textit{Gap.} ZengBalakrishnanHanKennedy2024Discrete uses within-category collisions for a one-time treatment functional; complement-paired whole subtrees and exact sequential target cancellation are different proof objects. \textit{Consumer.} The witness supplies all-estimator and all-randomized-interval converses without assuming concentration of a random target.
+
+\begin{theorem}[thm:long-history-frontier]\label{thm:long-history-frontier}
+There exist universal constants \(0<a_0\leq A_0<\infty\) such that, whenever \(T\geq2k_n\), \(a_0\min\{1,n^{-1}+c^2\}\leq R(n,T,c)\leq A_0\min\{1,n^{-1}+c^2\}\) and \(a_0\min\{1,n^{-1/2}+c\}\leq L(n,T,c)\leq A_0\min\{1,n^{-1/2}+c\}\). The upper estimator is the clipped natural sample mean, the interval adds the deterministic radius \(B(c)\) to a Hoeffding radius, and the lower bounds range over every measurable estimator and every possibly randomized honest connected interval.
+\end{theorem}
+\begin{proof}
+Fix integers \(n,T\geq 1\) and \(c\in[0,1]\) such that \(T\geq 2k_n\).  First consider the upper bounds.  For observations drawn under any \(P\in\mathcal P_T\), define
+\[
+\overline Y_n=\frac1n\sum_{i=1}^nY_i,
+\qquad
+\widehat\psi_n=\operatorname{proj}_{[0,1]}(\overline Y_n).
+\tag{1}
+\]
+By \(\mathrm{ass:bounded\text{-}outcome}\), \(\overline Y_n\in[0,1]\), so the projection in (1) is in fact the identity; it makes the estimator a total element of \(\mathcal E_{n,T}\).  Put \(m=\mu(P)=E_PY\).  By \(\mathrm{ass:iid\text{-}sampling}\), \(E_{P^n}\overline Y_n=m\) and \(\operatorname{Var}_{P^n}(\overline Y_n)=\operatorname{Var}_P(Y)/n\).  Since \(0\leq Y\leq1\), one has \(Y^2\leq Y\), and hence
+\[
+\operatorname{Var}_P(Y)=E_P[Y^2]-m^2
+\leq m-m^2\leq\frac14.
+\tag{2}
+\]
+The cross term in the following bias--variance decomposition vanishes because \(E_{P^n}(\overline Y_n-m)=0\).  Thus (2) and \(\mathrm{lem:stable\text{-}weights}\) give
+\[
+\begin{aligned}
+E_{P^n}\!\left[(\widehat\psi_n-\psi_T(P,c))^2\right]
+&=\frac{\operatorname{Var}_P(Y)}n+\{m-\psi_T(P,c)\}^2\\
+&\leq\frac1{4n}+B(c)^2
+\leq\frac1{4n}+\frac{c^2}{9}
+\leq n^{-1}+c^2.
+\end{aligned}
+\tag{3}
+\]
+Both \(\widehat\psi_n\) and \(\psi_T(P,c)\) belong to \([0,1]\), so the left side of (3) is also at most one.  Taking the supremum over \(P\in\mathcal P_T\) and then using \(\mathrm{def:minimax\text{-}risk}\) yields
+\[
+R(n,T,c)\leq\min\{1,n^{-1}+c^2\}.
+\tag{4}
+\]
+
+We next construct the advertised interval without invoking an asymptotic approximation.  Let
+\[
+h_n=\sqrt{\frac{\log(40)}{2n}},
+\qquad
+I_n=\bigl[\overline Y_n-h_n-B(c),\,\overline Y_n+h_n+B(c)\bigr]\cap[0,1].
+\tag{5}
+\]
+This is a measurable connected interval and is defined for every possible sample.  To verify its coverage from first principles, convexity of \(y\mapsto e^{\lambda y}\) on \([0,1]\) gives
+\[
+e^{\lambda y}\leq1-y+ye^\lambda
+\qquad(0\leq y\leq1,\ \lambda\in\mathbb R).
+\tag{6}
+\]
+Taking expectations in (6), the centered log-moment-generating function is bounded by
+\[
+\log E_Pe^{\lambda(Y-m)}
+\leq g_m(\lambda)
+:=\log(1-m+me^\lambda)-m\lambda.
+\tag{7}
+\]
+Writing \(p_\lambda=me^\lambda/(1-m+me^\lambda)\), direct differentiation gives
+\[
+g_m(0)=g_m'(0)=0,
+\qquad
+g_m''(\lambda)=p_\lambda(1-p_\lambda)\leq\frac14.
+\tag{8}
+\]
+Twice integrating (8) from zero to \(\lambda\) shows that \(g_m(\lambda)\leq\lambda^2/8\) for every real \(\lambda\).  Independence in \(\mathrm{ass:iid\text{-}sampling}\), exponential Markov inequality, and optimization at \(\lambda=4h_n\) therefore give
+\[
+P^n\{\overline Y_n-m>h_n\}
+\leq\inf_{\lambda>0}\exp\{-n\lambda h_n+n\lambda^2/8\}
+=e^{-2nh_n^2}.
+\tag{9}
+\]
+Applying the same argument to \(m-\overline Y_n\), and then the union bound, gives
+\[
+P^n\{|\overline Y_n-m|>h_n\}
+\leq2e^{-2nh_n^2}=0.05.
+\tag{10}
+\]
+On the complement of the event in (10), \(\mathrm{lem:stable\text{-}weights}\) implies
+\[
+|\overline Y_n-\psi_T(P,c)|
+\leq|\overline Y_n-m|+|m-\psi_T(P,c)|
+\leq h_n+B(c).
+\tag{11}
+\]
+Because \(\psi_T(P,c)\in[0,1]\), (11) implies \(\psi_T(P,c)\in I_n\).  Thus (10) proves that \(I_n\in\mathcal C_{n,T,c}\).  Moreover,
+\[
+\begin{aligned}
+\operatorname{length}(I_n)
+&\leq\min\{1,2h_n+2B(c)\}\\
+&\leq\min\!\left\{1,C_L(n^{-1/2}+c)\right\}
+\leq C_L\min\{1,n^{-1/2}+c\},
+\end{aligned}
+\tag{12}
+\]
+where \(C_L=2\sqrt{\log(40)/2}\geq2/3\).  Taking the supremum over \(P\) and using \(\mathrm{def:minimax\text{-}length}\) proves the desired length upper bound.  Computing (1) and (5) requires \(O(n)\) arithmetic operations and \(O(1)\) additional memory.
+
+It remains to prove the two converses.  Since \(k_n\geq1\), the assumed inequality \(T\geq2k_n\) implies \(T>k_n\) and
+\[
+1-\frac{k_n}{T}\geq\frac12.
+\tag{13}
+\]
+The final two lower bounds of \(\mathrm{prop:finite\text{-}history\text{-}envelopes}\), which already take the infimum over all measurable estimators and over all possibly randomized honest connected intervals in the original iid experiment, therefore imply for its universal constant \(a_1>0\) that
+\[
+\begin{aligned}
+R(n,T,c)
+&\geq a_1\left\{n^{-1}+c^2\left(1-\frac{k_n}{T}\right)\right\}
+\geq\frac{a_1}{2}(n^{-1}+c^2),\\
+L(n,T,c)
+&\geq a_1\left\{n^{-1/2}+c\sqrt{1-\frac{k_n}{T}}\right\}
+\geq\frac{a_1}{\sqrt2}(n^{-1/2}+c).
+\end{aligned}
+\tag{14}
+\]
+Each last expression in (14) is at least the same constant times the corresponding quantity truncated at one.  Consequently, with
+\[
+a_0=\min\{a_1/2,1\},
+\qquad
+A_0=\max\{1,C_L\},
+\tag{15}
+\]
+equations (4), (12), and (14) prove all four asserted inequalities, with \(0<a_0\leq A_0<\infty\).  None of these constants depends on \(n,T,c\).  The argument is uniform over the whole class \(\mathcal P_T\), so it includes shrinking \(c\), deterministic treatment kernels, and null histories; no division by a propensity was introduced.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite-history proposition makes the theorem a direct matched-regime corollary once \(T\geq2k_n\). \textit{Gap.} The long-history phase is closed; only smaller intermediate depths remain unmatched. \textit{Consumer.} Long-history workflows obtain a rigorous non-oracle penalty despite stable oracle weights.
+
+\begin{proposition}[prop:endpoint-reduction]\label{prop:endpoint-reduction}
+At \(c=0\), \(q_t^P=\pi_t^P\), \(Q_{P,0}=P\) on observed trajectories, and \(\psi_T(P,0)=\mu(P)\); uniformly for every \(n,T\geq1\), \(R(n,T,0)\asymp n^{-1}\) and \(L(n,T,0)\asymp n^{-1/2}\). For each fixed \(T\), the finite-tree empirical plug-in estimator also has risk of order \(n^{-1}\), with a comparison constant allowed to depend on \(T\).
+\end{proposition}
+\begin{proof}
+When \(c=0\), one has \(\eta=0\), \(\delta=1\), and \(d_t^P(h)=1\) for every history.  Therefore
+\[
+ q_t^P(1\mid h)=\pi_t^P(h),\quad q_t^P(0\mid h)=1-\pi_t^P(h).
+\]
+Every sequential kernel retained or replaced in \(\mathrm{def:intervened\text{-}law}\) is then the original kernel, so \(Q_{P,0}=P\).  Hence
+\[
+ \psi_T(P,0)=E_PY=\mu(P).
+\]
+Equivalently, \(W_T^P=1\) almost surely and every nonnull factor in the leaf functional equals one, while null-prefix terms vanish, so \(F_{T,0}(P)=\mu(P)\).
+
+The sample mean has variance at most \(1/(4n)\), which proves \(R(n,T,0)\leq1/(4n)\).  To obtain an honest interval directly, convexity gives \(e^{\lambda y}\leq1-y+ye^\lambda\) for \(y\in[0,1]\).  If \(m=E_PY\), the logarithm of the resulting centered-mgf bound has value and first derivative zero at the origin and second derivative at most \(1/4\).  Double integration, exponential Markov inequality, and optimization at \(\lambda=4h\) yield \(P^n\{|\overline Y-m|>h\}\leq2e^{-2nh^2}\).  Taking \(h=h_n\) shows that
+\[
+ [\overline Y-h_n,\overline Y+h_n]\cap[0,1],
+ \quad h_n=\sqrt{\log(40)/(2n)},
+\]
+is uniformly \(0.95\)-honest and has length at most \(2h_n\), proving \(L(n,T,0)\leq Cn^{-1/2}\).
+
+For the lower bounds, take deterministic covariates and actions and Bernoulli outcomes with parameters \(\theta_0=1/2-1/(8\sqrt n)\) and \(\theta_1=1/2+1/(8\sqrt n)\).  Their one-observation Hellinger affinity is \(\sqrt{1-1/(16n)}\), so their product affinity is \((1-1/(16n))^{n/2}\).  Cauchy--Schwarz gives \(\operatorname{TV}\leq\sqrt{1-\alpha_n^2}\), and \((1-1/(16n))^n\geq15/16\), hence product total variation is at most \(1/4\).  The nearest-parameter test then gives risk at least \(3/(512n)\).  Transferring one of the two \(0.95\)-coverage events to the other law shows that both parameter values lie in any honest connected interval with probability at least \(0.65\), and therefore its worst-case expected length is at least \(0.65/(4\sqrt n)\).  This proves both uniform equivalences.
+
+Finally, form the empirical leaf and prefix masses and evaluate \(F_{T,0}\) with the prescribed null-prefix convention.  Every factor is one, and the leaf outcome masses sum to \(\overline Y\); hence the finite-tree empirical plug-in is exactly the sample mean.  Its worst-case risk is at most \(1/(4n)\), and equality is attained by a fair Bernoulli outcome.  In particular it has order \(n^{-1}\) for each fixed \(T\) (indeed, uniformly in \(T\)).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact zero-shift reduction is the non-negotiable sanity check for every proposed transition formula. \textit{Gap.} Kennedy2019JASA supplies the fixed-horizon incremental functional; the uniform \(c=0\) decision reduction records the boundary that a growing-tree approximation must preserve exactly. \textit{Consumer.} Any software implementation can test its correction algebra by verifying exact collapse to the ordinary sample mean at zero shift.
+
+\begin{openendedquestion}[oeq:compatible-prefix-approximation]\label{oeq:compatible-prefix-approximation}
+In the only regime not matched by \(\mathrm{prop:finite\text{-}history\text{-}envelopes}\), namely the factor-two logarithmic elbow between full-prefix plug-in control near \(4^T\leq n\) and collision-converse activation near \(4^k\geq100n^2\), use the proposed program \(\mathscr H_{\mathrm{tree}}\) to determine the optimal compatible-tree approximation and testing scale for \(G_{T,c}(P)\).  The approximation must give explicit polynomial degrees and coefficients, an explicit multinomial factorial or degenerate \(U\)-statistic retaining nested-count covariance, and dual priors supported on legal subtrees.  It must handle null prefixes and saturation and account for the first non-scalar two-prefix term
+\[
+(\delta-1)^2\frac{m_{h_1 1}(P)}{m_{h_1}(P)}
+\frac{m_{h_2 1}(P)}{m_{h_2}(P)},
+\]
+whose descendant denominator is constrained by the ancestor parent-sum identity.  Determine whether the approximation, variance, and fixed-sample testing scales coincide throughout this elbow.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The finite-history envelopes remove every endpoint issue and isolate the exact compatible-tree approximation and testing problem still required. \textit{Gap.} Explicit joint polynomial coefficients, their nested multinomial covariance bound, and fixed-sample legal-subtree priors are unavailable at a common sharp scale. \textit{Consumer.} A solution would close the factor-two logarithmic elbow and feed the full frontier theorem.
+
+\begin{openendedquestion}[oeq:sharp-frontier]\label{oeq:sharp-frontier}
+Close the remaining factor-two logarithmic elbow isolated in \(\mathrm{oeq:compatible\text{-}prefix\text{-}approximation}\).  Refine the computable truncated-prefix upper functions and every-depth paired lower functions in \(\mathrm{prop:finite\text{-}history\text{-}envelopes}\) into matching evaluable functions \(r(n,T,c)\) and \(\ell(n,T,c)\) on that elbow, with a total finite-data estimator and a calibrated honest connected interval.  Splice the result with \(\mathrm{prop:endpoint\text{-}reduction}\) and \(\mathrm{thm:long\text{-}history\text{-}frontier}\) to obtain the all-sample transition, including saturation and shrinking \(c\), and then give necessary and sufficient consistency and oracle-order-penalty conditions along arbitrary sequences \((T_n,c_n)\).  State finite computational cost, and keep both converses on the original fixed-\(n\) iid experiment over the same class \(\mathcal P_T\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The endpoints and a computable all-domain bracket are proved; the question now asks only for the matching interpolation and its sequence consequences. \textit{Gap.} Necessary and sufficient all-sequence consistency and oracle-penalty conditions remain unavailable because the intermediate upper and lower optimizations need not coincide. \textit{Consumer.} The completed result would determine precisely when increasing unrestricted history complexity changes attainable precision.
+
+\begin{proposition}[prop:finite-history-envelopes]\label{prop:finite-history-envelopes}
+For every \(n,T\geq1\) and \(c\in[0,1]\), define, for \(0\leq s\leq T\),
+\[
+B_s=\frac12\sqrt{\exp\!\left\{\frac{c^2(T-s)}{4T}\right\}-1},
+\qquad v_0=\frac1{4n},
+\qquad v_s=\frac1{2n}+\frac{100c^2s4^s}{Tn}\quad(1\leq s\leq T).
+\]
+There are total data-dependent rules \(\widehat\psi^{\mathrm{tree}}_{n,T,c}\in\mathcal E_{n,T}\) and \(I^{\mathrm{tree}}_{n,T,c}\in\mathcal C_{n,T,c}\), obtained by deterministic minimization over \(s\) and empirical prefix tries, such that
+\[
+R(n,T,c)\leq\min_{0\leq s\leq T}\min\{1,(\sqrt{v_s}+B_s)^2\},
+\]
+\[
+L(n,T,c)\leq\min_{0\leq s\leq T}\min\{1,2\sqrt{20v_s}+2B_s\}.
+\]
+The rules require \(O(nT+T)\) arithmetic operations and \(O(nT)\) memory. Conversely, with a supremum over the empty set interpreted as zero,
+\[
+R(n,T,c)\geq\max\left\{\frac{3}{512n},
+\sup_{1\leq k<T}\frac{b_{T-k}(\eta)^2}{8}(1-\rho_{n,k})_+\right\},
+\]
+\[
+L(n,T,c)\geq\max\left\{\frac{0.65}{4\sqrt n},
+\sup_{1\leq k<T}b_{T-k}(\eta)(0.90-\rho_{n,k})_+\right\}.
+\]
+Consequently, for a universal constant \(a_1>0\), whenever \(T>k_n\),
+\[
+R(n,T,c)\geq a_1\left\{n^{-1}+c^2\left(1-\frac{k_n}{T}\right)\right\},
+\qquad
+L(n,T,c)\geq a_1\left\{n^{-1/2}+c\sqrt{1-\frac{k_n}{T}}\right\}.
+\]
+At \(T=2\), on a leaf with positive prefix masses and with \(u=\delta-1\), the first term in the Taylor polynomial of the two denominator factors that cannot be written as a sum of separate scalar-prefix terms is
+\[
+u^2\frac{m_{h_1 1}(P)}{m_{h_1}(P)}
+\frac{m_{h_2 1}(P)}{m_{h_2}(P)}.
+\]
+\end{proposition}
+\begin{proof}
+Fix \(P\in\mathcal P_T\).  We first construct the upper procedures.  For \(s\in\{0,\ldots,T\}\), let \(Q_{P,c}^{(s)}\) be the law which uses \(q_t^P\) for \(t\leq s\), uses the observational action kernel for \(t>s\), and retains all covariate and outcome kernels.  Put
+\[
+\psi_s(P,c)=E_{Q_{P,c}^{(s)}}[Y].
+\tag{1}
+\]
+Thus \(\psi_0(P,c)=\mu(P)\) and \(\psi_T(P,c)\) is the target in \(\mathrm{def:estimand}\).  Under \(Q_{P,c}^{(s)}\), define the tail likelihood ratio
+\[
+U_s=\prod_{t=s+1}^T\frac{\delta^{A_t}}{d_t^P(H_t)},
+\qquad U_T=1.
+\tag{2}
+\]
+After time \(s\), the conditional action law under \(Q_{P,c}^{(s)}\) is the observational law under \(P\).  The conditional calculation in \(\mathrm{lem:stable\text{-}weights}\), applied successively to the \(T-s\) factors in (2), therefore gives
+\[
+E_{Q_{P,c}^{(s)}}[U_s]=1,
+\qquad
+E_{Q_{P,c}^{(s)}}[U_s^2]
+ \leq\cosh(\eta/2)^{2(T-s)}
+ \leq\exp\!\left\{\frac{c^2(T-s)}{4T}\right\}.
+\tag{3}
+\]
+The first equality uses no division by a zero treatment probability: when a treatment is deterministic, its likelihood-ratio factor equals one on its support.  By sequential factorization, \(dQ_{P,c}/dQ_{P,c}^{(s)}=U_s\) on the latter law's support.  Since \(0\leq Y\leq1\) by \(\mathrm{ass:bounded\text{-}outcome}\), \(\operatorname{Var}_{Q_{P,c}^{(s)}}(Y)\leq1/4\).  Equations (1)--(3) and Cauchy--Schwarz imply
+\[
+\begin{aligned}
+|\psi_T(P,c)-\psi_s(P,c)|
+ &=\left|E_{Q_{P,c}^{(s)}}[(Y-E_{Q_{P,c}^{(s)}}Y)(U_s-1)]\right|\\
+ &\leq\frac12\sqrt{E_{Q_{P,c}^{(s)}}[U_s^2]-1}
+ \leq B_s.
+\end{aligned}
+\tag{4}
+\]
+
+We next estimate \(\psi_s\).  The case \(s=0\) uses
+\[
+\widehat\psi_0=\overline Y=\frac1n\sum_{i=1}^nY_i,
+\qquad
+E_{P^n}[(\widehat\psi_0-\psi_0)^2]=\frac{\operatorname{Var}_P(Y)}n\leq v_0.
+\tag{5}
+\]
+Fix \(s\geq1\), write \(Z_{i,s}=(X_{i1},A_{i1},\ldots,X_{is},A_{is})\), and form the \(2\cdot4^s\)-coordinate fractional histogram
+\[
+\widehat p_{z,1}=\frac1n\sum_{i=1}^nY_i\mathbf1\{Z_{i,s}=z\},
+\qquad
+\widehat p_{z,0}=\frac1n\sum_{i=1}^n(1-Y_i)\mathbf1\{Z_{i,s}=z\}.
+\tag{6}
+\]
+Let \(p_{z,1}=E_P[Y\mathbf1\{Z_s=z\}]\) and \(p_{z,0}=E_P[(1-Y)\mathbf1\{Z_s=z\}]\).  Both \(p\) and \(\widehat p\) are probability vectors.  They define binary-outcome laws on \((Z_s,B)\), with \(E[B\mid Z_s=z]=E_P[Y\mid Z_s=z]\) for \(p\), and the analogous empirical conditional mean for \(\widehat p\).  Because the identifying functional is linear in the conditional terminal-outcome mean, \(F_{s,c_s}(p)=\psi_s(P,c)\), where
+\[
+c_s=c\sqrt{s/T},
+\qquad 0\leq c_s\leq1,
+\qquad \exp(c_s/\sqrt s)=\exp(c/\sqrt T)=\delta.
+\tag{7}
+\]
+Here \(F_{s,c_s}\) denotes the functional in \(\mathrm{def:leaf\text{-}functional}\) at horizon \(s\) and strength \(c_s\).  Define
+\[
+\widehat\psi_s=F_{s,c_s}(\widehat p),
+\qquad
+G_s(q)=F_{s,c_s}(q)-\sum_zq_{z,1}.
+\tag{8}
+\]
+Every vector in (8) is a legal finite observed law; it may be equipped with independent structural errors to satisfy consistency and sequential exchangeability.  Thus \(\widehat\psi_s\in[0,1]\), including at null prefixes under the convention in \(\mathrm{def:leaf\text{-}functional}\).
+
+We establish the modulus used for (8).  For positive probability vectors \(q,q'\), put
+\[
+h(q,q')^2=\sum_j(\sqrt{q_j}-\sqrt{q'_j})^2,
+\qquad
+\vartheta=\arccos\sum_j\sqrt{q_jq'_j}\in[0,\pi/2].
+\tag{9}
+\]
+If \(r=(\sqrt{q_j})_j\), \(r'=(\sqrt{q'_j})_j\), and \(\vartheta>0\), the arc
+\[
+r(t)=\frac{\sin((1-t)\vartheta)}{\sin\vartheta}r
+     +\frac{\sin(t\vartheta)}{\sin\vartheta}r',
+\qquad q_j(t)=r_j(t)^2,
+\tag{10}
+\]
+has positive coordinates, unit Euclidean norm, and constant Euclidean speed \(\vartheta\).  Its score is \(S_t(j)=\dot q_j(t)/q_j(t)=2\dot r_j(t)/r_j(t)\), whence
+\[
+\|S_t\|_{L_2(q(t))}^2
+=\sum_jq_j(t)S_t(j)^2
+=4\sum_j\dot r_j(t)^2
+=4\vartheta^2.
+\tag{11}
+\]
+By \(\mathrm{prop:centered\text{-}local\text{-}bound}\), applied at horizon \(s\) and strength \(c_s\), the canonical gradient of \(G_s\) has norm at most \(2c_s\).  The defining score identity for that gradient, (10)--(11), and Cauchy--Schwarz give
+\[
+\begin{aligned}
+|G_s(q')-G_s(q)|
+&\leq\int_0^1\|D_{G,q(t),c_s}\|_{L_2(q(t))}\|S_t\|_{L_2(q(t))}\,dt\\
+&\leq4c_s\vartheta
+\leq5c_s h(q,q').
+\end{aligned}
+\tag{12}
+\]
+The last inequality follows from \(h(q,q')=2\sin(\vartheta/2)\) and \(\vartheta/h(q,q')\leq\pi/(2\sqrt2)<5/4\) on \([0,\pi/2]\).  If either endpoint lies on the boundary, replace both endpoints by \((1-\epsilon)q+\epsilon\mathbf1/K_s\), where \(K_s=2\cdot4^s\), apply (12), and let \(\epsilon\downarrow0\).  This passage is valid directly from \(\mathrm{def:leaf\text{-}functional}\): if a limiting leaf has positive mass, all its ancestor masses are positive and every displayed ratio is continuous; if its mass is zero, its outcome-weighted contribution is bounded by \(\delta^s\) times that leaf mass and tends to zero.  Hence (12) holds on the closed simplex and never divides by a null prefix.
+
+For each coordinate with \(p_j>0\),
+\[
+(\sqrt{\widehat p_j}-\sqrt{p_j})^2
+=\frac{(\widehat p_j-p_j)^2}{(\sqrt{\widehat p_j}+\sqrt{p_j})^2}
+\leq\frac{(\widehat p_j-p_j)^2}{p_j}.
+\tag{13}
+\]
+The summand defining \(\widehat p_j\) lies in \([0,1]\), has mean \(p_j\), and the observations are independent by \(\mathrm{ass:iid\text{-}sampling}\), so \(\operatorname{Var}(\widehat p_j)\leq p_j/n\).  If \(p_j=0\), then \(\widehat p_j=0\) almost surely.  Summing (13) over the \(K_s=2\cdot4^s\) coordinates yields
+\[
+E_{P^n}[h(\widehat p,p)^2]\leq\frac{2\cdot4^s}{n}.
+\tag{14}
+\]
+Since \(\sum_z\widehat p_{z,1}=\overline Y\), equations (8), (12), and (14), followed by \((x+y)^2\leq2x^2+2y^2\), give
+\[
+\begin{aligned}
+E_{P^n}[(\widehat\psi_s-\psi_s)^2]
+&\leq2E_{P^n}[(\overline Y-E_PY)^2]
+  +2E_{P^n}[(G_s(\widehat p)-G_s(p))^2]\\
+&\leq\frac1{2n}+50c_s^2\frac{2\cdot4^s}{n}
+=\frac1{2n}+\frac{100c^2s4^s}{Tn}=v_s.
+\end{aligned}
+\tag{15}
+\]
+Combining (4) and (15) with the triangle inequality in \(L_2(P^n)\) gives
+\[
+E_{P^n}[(\widehat\psi_s-\psi_T(P,c))^2]
+\leq(\sqrt{v_s}+B_s)^2.
+\tag{16}
+\]
+Both \(\widehat\psi_s\) and the target lie in \([0,1]\), so the left side is also at most one.
+
+Let \(s_R\) be the least minimizer of \(\min\{1,(\sqrt{v_s}+B_s)^2\}\), and set \(\widehat\psi^{\mathrm{tree}}_{n,T,c}=\widehat\psi_{s_R}\).  This is one data-driven estimator, selected using only \((n,T,c)\), so (16) and \(\mathrm{def:minimax\text{-}risk}\) prove the displayed risk upper bound.  Let \(s_L\) be the least minimizer of \(\min\{1,2\sqrt{20v_s}+2B_s\}\) and define
+\[
+I^{\mathrm{tree}}_{n,T,c}
+=\left[\widehat\psi_{s_L}-\sqrt{20v_{s_L}}-B_{s_L},
+        \widehat\psi_{s_L}+\sqrt{20v_{s_L}}+B_{s_L}\right]\cap[0,1].
+\tag{17}
+\]
+By (15) and Markov's inequality,
+\[
+P^n\{|\widehat\psi_{s_L}-\psi_{s_L}|>\sqrt{20v_{s_L}}\}\leq\frac1{20}.
+\tag{18}
+\]
+Equations (4), (17), and (18) give coverage at least \(0.95\), uniformly in \(P\).  The intersection in (17) is connected, and its length is bounded by \(\min\{1,2\sqrt{20v_{s_L}}+2B_{s_L}\}\).  Hence \(I^{\mathrm{tree}}_{n,T,c}\in\mathcal C_{n,T,c}\), and \(\mathrm{def:minimax\text{-}length}\) proves the length upper bound.
+
+For explicit computation, first evaluate the \(T+1\) pairs \((B_s,v_s)\) and the two least minimizers, capping an objective at one as soon as it exceeds one.  For a selected positive depth, insert each observed prefix into a binary trie.  At every visited history store its count and treated-child count, giving
+\[
+\widehat\pi_t(h)=\frac{\sum_i\mathbf1\{H_{it}=h,A_{it}=1\}}
+{\sum_i\mathbf1\{H_{it}=h\}}.
+\tag{19}
+\]
+Only histories visited by an observation are evaluated, so every denominator in (19) is positive.  A second pass computes each observed product \(\prod_{t\leq s}\delta^{A_{it}}/\{1+(\delta-1)\widehat\pi_t(H_{it})\}\) and its \(Y_i\)-weighted average, which equals (8) by grouping observations by terminal prefix.  There are at most \(ns\) visited trie nodes.  Computing both selected depths, without attempting to share their tries, therefore uses \(O(nT+T)\) arithmetic and \(O(nT)\) memory.  The case \(s=0\) uses (5), so the algorithm is total for all \(n,T,c\), including deterministic actions and null histories.
+
+For the mixed-prefix audit, take \(T=2\), put \(u=\delta-1\), and, on a fixed leaf with positive prefix masses, set
+\[
+p_j=\frac{m_{h_j1}(P)}{m_{h_j}(P)},\qquad j=1,2.
+\tag{20}
+\]
+Multiplying the degree-two Taylor polynomials at \(u=0\) gives
+\[
+\frac1{(1+up_1)(1+up_2)}
+=1-u(p_1+p_2)+u^2(p_1^2+p_2^2+p_1p_2)+O(u^3).
+\tag{21}
+\]
+The terms through degree one and the two square terms are sums of functions of one prefix ratio; the cross term \(u^2p_1p_2\) is the first term involving both an ancestor prefix and its descendant.  It is not additively scalar: its rectangular cross-difference at \((p_1,p_2),(p'_1,p_2),(p_1,p'_2),(p'_1,p'_2)\) is \(u^2(p_1-p'_1)(p_2-p'_2)\), whereas the cross-difference of \(f(p_1)+g(p_2)\) is zero.  The numerator \(\delta^{a_1+a_2}\) is independent of the prefix masses and does not remove this distinction.  If an ancestor prefix is null, every descendant leaf has zero mass and hence zero outcome-weighted contribution in \(\mathrm{def:leaf\text{-}functional}\); thus the audit makes no division at a null prefix.
+
+We now prove the converses.  First take two laws \(P_-\) and \(P_+\) for which all covariates and actions are deterministically zero and every potential terminal outcome equals a common Bernoulli random variable of mean
+\[
+\theta_-=\frac12-d,
+\qquad \theta_+=\frac12+d,
+\qquad d=\frac1{8\sqrt n}.
+\tag{22}
+\]
+Consistency and sequential exchangeability hold because the common potential outcome is independent of the deterministic actions, so both laws belong to \(\mathcal P_T\) by \(\mathrm{def:model\text{-}class}\).  The intervention leaves the deterministic action law unchanged; hence \(\psi_T(P_\pm,c)=\theta_\pm\).  The one-observation Hellinger affinity of the outcome laws is \(\sqrt{1-4d^2}\), and product factorization gives affinity \((1-4d^2)^{n/2}\).  For any two probability mass functions \(f,g\), Cauchy--Schwarz gives
+\[
+\operatorname{TV}(f,g)
+=\frac12\sum_x|\sqrt{f(x)}-\sqrt{g(x)}|\{\sqrt{f(x)}+\sqrt{g(x)}\}
+\leq\sqrt{1-\left(\sum_x\sqrt{f(x)g(x)}\right)^2}.
+\tag{23}
+\]
+For completeness, \((1-x)^m\geq1-mx\) for \(x\in[0,1]\) follows by induction: multiplication of the induction hypothesis by \(1-x\geq0\) gives \((1-x)^{m+1}\geq1-(m+1)x+mx^2\geq1-(m+1)x\).  Taking \(m=n\) and \(x=1/(16n)\) gives \((1-1/(16n))^n\geq15/16\).  Thus (22)--(23) give
+\[
+\operatorname{TV}(P_-^n,P_+^n)\leq\frac14.
+\tag{24}
+\]
+Given any estimator, test \(P_+\) exactly when the estimate is at least \(1/2\).  On either testing-error event its squared error under the corresponding law is at least \(d^2\).  If its worst-case risk is \(\mathcal R\), the sum of the two testing-error probabilities is at most \(2\mathcal R/d^2\).  On the other hand, for every test with acceptance event \(A\),
+\[
+P_-^n(A)+P_+^n(A^c)
+=1-\{P_+^n(A)-P_-^n(A)\}
+\geq1-\operatorname{TV}(P_-^n,P_+^n)\geq\frac34.
+\tag{25}
+\]
+Consequently \(\mathcal R\geq3d^2/8=3/(512n)\), and taking the infimum proves the first risk floor.
+
+For an honest connected interval \(I\), honesty under \(P_-\) and (24) imply
+\[
+P_+^n\{\theta_-\in I\}\geq0.95-0.25=0.70.
+\tag{26}
+\]
+Honesty under \(P_+\) gives \(P_+^n\{\theta_+\in I\}\geq0.95\).  The union bound makes the probability of their intersection at least \(0.65\).  Connectedness then forces length at least \(\theta_+-\theta_-=2d=1/(4\sqrt n)\), so
+\[
+\sup_{P\in\mathcal P_T}E_{P^n}[\operatorname{length}(I)]\geq\frac{0.65}{4\sqrt n}.
+\tag{27}
+\]
+The argument includes independent randomization by taking product with the same randomization law, which leaves total variation unchanged.
+
+Finally fix \(1\leq k<T\), put \(r_0=T-k\), and abbreviate \(b=b_{r_0}(\eta)\) and \(\rho=\rho_{n,k}\).  By \(\mathrm{lem:paired\text{-}witness\text{-}audit}\), the simple experiment \((P_0^{k,r_0})^n\) has target \(\theta_1=1/2+b\), every fixed law in \(\overline P_1^{(n,k,r_0)}\) has target \(\theta_0=1/2\), and the total variation between the simple experiment and the mixture is at most \(\rho\).  If \(b=0\), both desired paired lower bounds have zero right side and are immediate.  Suppose \(b>0\).  Testing according to which target is nearer to an arbitrary estimator incurs squared error at least \(b^2/4\) on either error event.  If \(\mathcal R\) is the estimator's worst-case risk, its error sum is at most \(8\mathcal R/b^2\), whereas the identity in (25) bounds that sum below by \((1-\rho)_+\).  Therefore
+\[
+\mathcal R\geq\frac{b^2}{8}(1-\rho)_+.
+\tag{28}
+\]
+For an honest interval, averaging coverage of \(\theta_0\) over the fixed alternatives and transferring it to the simple experiment loses at most \(\rho\).  Intersecting that event with the \(0.95\)-coverage event for \(\theta_1\) gives probability at least \((0.90-\rho)_+\) that both endpoints lie in the interval.  Hence
+\[
+\sup_{P\in\mathcal P_T}E_{P^n}[\operatorname{length}(I)]
+\geq b(0.90-\rho)_+.
+\tag{29}
+\]
+Equations (25)--(29), followed by the two infima in \(\mathrm{def:minimax\text{-}risk}\) and \(\mathrm{def:minimax\text{-}length}\), prove both every-\(k\) displays.
+
+If \(T>k_n\), choose \(k=k_n\).  By the definition of \(k_n\),
+\[
+\rho_{n,k_n}\leq\frac{n(n-1)}{4^{k_n}}\leq0.01,
+\qquad
+b_{T-k_n}(\eta)\geq\frac c{16}\sqrt{1-\frac{k_n}{T}},
+\tag{30}
+\]
+where the second inequality is part of \(\mathrm{lem:paired\text{-}witness\text{-}audit}\).  Substitution in (28)--(29) and combination with (25) and (27), using \(\max\{x,y\}\geq(x+y)/2\), gives the two final corollaries for a sufficiently small universal \(a_1>0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition promotes the complete finite-depth bracket: a boundary-valid Hellinger modulus proves the prefix plug-in upper envelope, and explicit Bernoulli and complementary-context tests prove the parametric and every-depth converses. \textit{Gap.} The upper and lower optimized functions are not asserted to match inside the factor-two logarithmic elbow. \textit{Consumer.} The proposition supplies total finite-data procedures and the two computable sides used by the long-history corollary and the remaining frontier question.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The proved-regime targets recorded here do not identify the intermediate frontier. A dyadic approximation bound without a nested-count second-moment theorem is insufficient, and independent Poisson prefix counts are incompatible with parent-sum identities. The exact all-sample rate may differ from each currently available envelope, so neither \(4^T/n\), a sole birthday threshold, nor \(L\asymp\sqrt R\) is asserted. The \(k=1,r_0=2\) enumeration and finite-difference influence checks are diagnostics, not proofs.
+
+\section{Honest scope}
+
+Identification is given, and the binary completely observed experiment is deliberately narrower than the EAGeR dropout analysis. The finite-history envelope, long-history theorem, zero-shift reduction, oracle benchmark, and local-gradient bound are proved. The compatible-prefix approximation and the full matched phase diagram remain first-class open questions. No Markov, smoothness, sparsity, positive-propensity floor, or supplied nuisance kernel is introduced. At \(c=0\) the target and both optimal rates reduce exactly to ordinary bounded-mean estimation. The paired lower-bound construction is outside the common-positive-\(p\) class of Theorem 6.1 and therefore does not establish a minimax converse for that special class; identification and upper/stability statements may still specialize to it. The proposal does not turn its rates into a numerical sample-size prescription for richer covariates or dropout.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KimKennedyNaimi2021} Kim, Kwangho, Edward H. Kennedy, and Ashley I. Naimi (2021). ``Incremental Intervention Effects in Studies with Dropout and Many Timepoints.'' Journal of Causal Inference 9(1): 302--344. arXiv:1907.04004.
+
+  \bibitem{Kennedy2019JASA} Kennedy, Edward H. (2019). ``Nonparametric Causal Effects Based on Incremental Propensity Score Interventions.'' Journal of the American Statistical Association 114(526): 645--656. arXiv:1704.00211.
+
+  \bibitem{KallusUehara2024NaturalPolicies} Kallus, Nathan, and Masatoshi Uehara (2024). ``Efficient Evaluation of Natural Stochastic Policies in Offline Reinforcement Learning.'' Biometrika 111(1): 307--323. arXiv:2006.03886.
+
+  \bibitem{MaZhuJiaoWainwright2022} Ma, Cong, Banghua Zhu, Jiantao Jiao, and Martin J. Wainwright (2022). ``Minimax Off-Policy Evaluation for Multi-Armed Bandits.'' IEEE Transactions on Information Theory 68(5): 3151--3182. arXiv:2101.07781.
+
+  \bibitem{JiaoVenkatHanWeissman2015} Jiao, Jiantao, Kartik Venkat, Yanjun Han, and Tsachy Weissman (2015). ``Minimax Estimation of Functionals of Discrete Distributions.'' IEEE Transactions on Information Theory 61(5): 2835--2885. arXiv:1406.6956.
+
+  \bibitem{ZengBalakrishnanHanKennedy2024Discrete} Zeng, Zhenghao, Sivaraman Balakrishnan, Yanjun Han, and Edward H. Kennedy (2024, revised 2026). ``Causal Inference with High-Dimensional Discrete Covariates.'' arXiv:2405.00118v3.
+
+  \bibitem{SchindlShenKennedy2024} Schindl, Kyle, Shuying Shen, and Edward H. Kennedy (2024). ``Incremental Effects for Continuous Exposures.'' arXiv:2409.11967.
+
+  \bibitem{HuangDongLinAntonelli2026} Huang, Zhuochao, Kejin Dong, Tuo Lin, and Joseph Antonelli (2026). ``Multivariate Incremental Effects for Continuous Treatments: Studying the Health Effects of Environmental Mixtures.'' arXiv:2604.23534.
+
+  \bibitem{ZhouHannaZhuYangShi2025} Zhou, Hongyi, Josiah P. Hanna, Jin Zhu, Ying Yang, and Chengchun Shi (2025). ``Demystifying the Paradox of Importance Sampling with an Estimated History-Dependent Behavior Policy in Off-Policy Evaluation.'' Proceedings of the 42nd International Conference on Machine Learning, PMLR 267. arXiv:2505.22492.
+
+  \bibitem{LiuBaconBrunskill2020} Liu, Yao, Pierre-Luc Bacon, and Emma Brunskill (2020). ``Understanding the Curse of Horizon in Off-Policy Evaluation via Conditional Importance Sampling.'' Proceedings of the 37th International Conference on Machine Learning, PMLR 119. arXiv:1910.06508.
+
+  \bibitem{CaiLow2004} Cai, T. Tony, and Mark G. Low (2004). ``An Adaptation Theory for Nonparametric Confidence Intervals.'' Annals of Statistics 32(5): 1805--1840. arXiv:math/0503662.
+
+  \bibitem{DaiEtAl2020CoinDICE} Dai, Bo, Ofir Nachum, Yinlam Chow, Lihong Li, Csaba Szepesv\'{a}ri, and Dale Schuurmans (2020). ``CoinDICE: Off-Policy Confidence Interval Estimation.'' Advances in Neural Information Processing Systems 33. arXiv:2010.11652.
+
+  \bibitem{RobinsLiTchetgenVanderVaart2016TR} Robins, James, Lingling Li, Eric Tchetgen Tchetgen, and Aad van der Vaart (2016). ``Higher Order Influence Functions and Minimax Estimation of Nonlinear Functionals.'' arXiv:1601.05820.
+
+  \bibitem{HiranoImbensRidder2003} Hirano, Keisuke, Guido W. Imbens, and Geert Ridder (2003). ``Efficient Estimation of Average Treatment Effects Using the Estimated Propensity Score.'' Econometrica 71(4): 1161--1189.
+
+\end{thebibliography}
+
+\end{document}

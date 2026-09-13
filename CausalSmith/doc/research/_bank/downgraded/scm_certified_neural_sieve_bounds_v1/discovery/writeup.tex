@@ -1,0 +1,831 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}certified\_\allowbreak{}neural\_\allowbreak{}sieve\_\allowbreak{}bounds}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For a known acyclic ADMG with compact mixed variables and a fixed measurable finite observational code, an abstract district-coupled response sieve yields two-sided exact-coded-law lifting and exact finite-sample coverage of the full Lipschitz-class identified set induced by that code, not by the unbinned law. Computation is separated and totalized for rational support boxes, rational \(\alpha\), semialgebraic code cells, and the specified rational piecewise-polynomial or ReLU grammar: an exact real-algebraic layer first certifies infeasibility and returns the distinguished empty set, or certifies program nonemptiness and then a finite rational branch-and-bound tree checks both endpoints. Certified near-extremal neural witnesses form an inner interval only on the nonempty branch, while Autobounds and the UA-DCM Parents' Labor Supply analysis remain implementation and decision consumers rather than sources of additional headline claims.
+
+\section{Project justification}
+
+\paragraph{Gap.} Definition 2.3 and Theorem 2.4 of Zhang, Tian, and Bareinboim establish finite exact canonicalization. Tan, Blanchet, and Syrgkanis establish mixed-variable graphwise Wasserstein approximation and asymptotic bracketing. Neither comparator supplies two-sided preservation of a fixed finite coded observational law with uniform query error and exact whole-set finite-sample coverage. Classical real-algebraic algorithms decide rational semialgebraic feasibility, and Duarte et al. provide anytime numerical bounds, but no cited result compiles the exact multinomial, coded-law, integral, and causal-query constraints into a checker-verifiable infeasible-or-certified-endpoints output.
+
+\paragraph{Niche.} The mathematical validity problem and the computational certification problem have different scopes. The full Lipschitz class supports a noncomputational theorem for the identified set induced by a fixed measurable finite code. The rationally encoded subclass supports a total finite computation whose output type distinguishes a certified empty feasible program from a nonempty program with certified rational endpoint enclosures.
+
+\paragraph{Fill.} The project proves full-class two-sided lifting and exact whole-set coverage for the fixed coded law. For the rationally certifiable subclass, it first replays an exact semialgebraic feasibility decision; infeasibility returns \(I_{\mathrm{out}}=\varnothing\), while nonemptiness triggers fair longest-edge branch-and-bound with integral and optimization errors charged to \(\epsilon_{\mathrm{opt}}\). Neural witnesses force the nonempty branch and retain the representation, sieve, optimization, and near-extremality decomposition. Autobounds receives the same total certificate interface, and the UA-DCM sign rule is evaluated only from nonempty finite endpoint output.
+
+\section{Related work}
+
+Zhang, Tian, and Bareinboim's Definition 2.3 introduces canonical SCMs, and their Theorem 2.4 establishes sufficiency for finite-domain counterfactual distributions. Tan, Blanchet, and Syrgkanis establish mixed-variable graphwise approximation and asymptotic bracketing, but neither source supplies two-sided preservation of a prespecified finite coded observational law together with uniform query error and exact finite-sample whole-set coverage. Basu, Pollack, and Roy supply the classical exact real-algebraic decision and sample-point substrate used to totalize the finite rational semialgebraic program. Duarte et al. provide anytime numerical outer bounds and solver-reported epsilon sharpness for discrete causal polynomial programs; the present computational theorem combines exact feasibility transcripts with rational endpoint trees for the explicit multinomial, coded-law, and integral encoding. Chafai and Concordet provide likelihood-level exact multinomial inversion. Xia et al., Balazadeh et al., and Tan et al. motivate graph-compatible neural witnesses but do not certify exact coded-law feasibility with explicit near-extremality. Rahman et al. supply the UA-DCM formulation and Parents' Labor Supply application; here that application is only a consumer of the nonempty certified outer endpoint output.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Theta(p_0)=\{Q(M):M\in M_G,\ p_M=p_0\}\).
+Primary functional / estimator / diagnostic: On \(p_0\in C_n\), \(\Theta_{\mathrm{cert}}(p_0)\subseteq I_{\mathrm{out}}\); the checked output is \(I_{\mathrm{out}}=\varnothing\) after certified program infeasibility and otherwise is the finite rational interval \([L_{\mathrm{cert}}-C_{\mathrm{sieve}}h,U_{\mathrm{cert}}+C_{\mathrm{sieve}}h]\)..
+\begin{itemize}
+  \item \texttt{G} --- \texttt{known finite acyclic directed mixed graph}; \texttt{ADMGs}; \texttt{graphical restriction}
+  \item \texttt{V} --- \texttt{finite ordered vertex set}; \texttt{endogenous variables}
+  \par\smallskip\noindent\emph{Definition.} \(V=\{v_1,\ldots,v_d\}\) is a topological ordering of the directed part of \(G\)
+  \item \texttt{D} --- \texttt{district index}; \(\mathcal D(G)\)
+  \par\smallskip\noindent\emph{Definition.} \(D\) ranges over bidirected districts of \(G\)
+  \item \texttt{Pa} --- \texttt{parent map}; \(V\to 2^V\)
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Pa}(v)\) is the set of directed parents of \(v\) in \(G\)
+  \item \texttt{X\_\allowbreak{}v} --- endogenous variable at vertex \(v\); a compact subset of \(\mathbb R^{d_v}\) or a finite set \(\{1,\ldots,m_v\}\)
+  \item \texttt{m\_\allowbreak{}v} --- number of categories at a categorical vertex \(v\); \(\mathbb N\)
+  \item \texttt{U\_\allowbreak{}D} --- \texttt{district-\allowbreak{}shared exogenous noise}; compact box \(\mathcal U_D\subset\mathbb R^{s_D}\)
+  \item \texttt{rho\_\allowbreak{}D} --- \texttt{district-\allowbreak{}noise density}; \(\mathcal U_D\to\mathbb R_+\)
+  \item \texttt{B\_\allowbreak{}D} --- \texttt{known density ceiling}; \((0,\infty)\)
+  \item \texttt{R\_\allowbreak{}v} --- \texttt{idiosyncratic rank variable for a categorical vertex}; \([0,1]\)
+  \item \texttt{f\_\allowbreak{}v} --- \texttt{continuous structural mechanism}; \(\prod_{w\in\operatorname{Pa}(v)}\mathcal X_w\times\mathcal U_{D(v)}\to\mathcal X_v\)
+  \item \texttt{pi\_\allowbreak{}v} --- \texttt{categorical propensity mechanism}; \(\prod_{w\in\operatorname{Pa}(v)}\mathcal X_w\times\mathcal U_{D(v)}\to\Delta^{m_v-1}\)
+  \item \texttt{L\_\allowbreak{}v} --- \texttt{known mechanism Lipschitz constant}; \((0,\infty)\)
+  \item \texttt{M} --- structural causal model compatible with \(G\)
+  \item \texttt{M\_\allowbreak{}G} --- \texttt{restricted mixed-\allowbreak{}variable ADMG-\allowbreak{}SCM class}; \texttt{sets of SCMs}
+  \item \texttt{Gamma\_\allowbreak{}rat} --- \texttt{specified rational expression grammar}; \texttt{finite computational input language}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_{\mathrm{rat}}\) is a prespecified finite collection of expression templates built from rational data, polynomial, \(\min\), \(\max\), and ReLU atoms; every real coefficient parameter ranges over a prespecified compact interval with rational endpoints.
+  \item \texttt{M\_\allowbreak{}s} --- \texttt{SCM lifted from a response-\allowbreak{}sieve point}; \(M_G\)
+  \item \texttt{M\_\allowbreak{}0} --- \texttt{data-\allowbreak{}generating structural causal model}; \(M_G\)
+  \item \texttt{kappa} --- \texttt{prespecified measurable finite observational coding map}; \(\prod_{v\in V}\mathcal X_v\to\{1,\ldots,K\}\)
+  \par\smallskip\noindent\emph{Definition.} \(\kappa\) is measurable, records the finite table used for inference, and is fixed before observing the sample
+  \item \texttt{M\_\allowbreak{}cert} --- \texttt{rationally certifiable mixed-\allowbreak{}variable SCM subclass}; subsets of \(M_G\)
+  \item \texttt{M\_\allowbreak{}N} --- \texttt{rational ReLU neural SCM subclass}; subsets of \(M_{\mathrm{cert}}\)
+  \item \texttt{K} --- \texttt{number of observational code cells}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(K=|\operatorname{range}(\kappa)|\)
+  \item \texttt{Z} --- \texttt{coded observable}; \(\{1,\ldots,K\}\)
+  \par\smallskip\noindent\emph{Definition.} \(Z=\kappa((X_v)_{v\in V})\)
+  \item \texttt{p\_\allowbreak{}M} --- coded observational law induced by \(M\); \(\Delta^{K-1}\)
+  \par\smallskip\noindent\emph{Definition.} \((p_M)_k=\Pr_M(Z=k)\)
+  \item \texttt{p\_\allowbreak{}0} --- \texttt{true coded observational law}; \(\Delta^{K-1}\)
+  \par\smallskip\noindent\emph{Definition.} \(p_0=p_{M_0}\) for the data-generating \(M_0\in M_G\)
+  \item \texttt{Q} --- \texttt{bounded graph-\allowbreak{}native causal query}; \(M_G\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(Q(M)\) is a fixed interventional or counterfactual mean computed from \(M\)
+  \item \texttt{L\_\allowbreak{}Q} --- \texttt{known Lipschitz constant of the query integrand}; \((0,\infty)\)
+  \item \texttt{Theta} --- \texttt{restricted causal identified set map}; \(\Delta^{K-1}\to 2^{\mathbb R}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Theta(p)=\{Q(M):M\in M_G,\ p_M=p\}\)
+  \item \texttt{Theta\_\allowbreak{}cert} --- \texttt{certifiable-\allowbreak{}subclass identified set map}; \(\Delta^{K-1}\to 2^{\mathbb R}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{\mathrm{cert}}(p)=\{Q(M):M\in M_{\mathrm{cert}},\ p_M=p\}\)
+  \item \texttt{q\_\allowbreak{}minus} --- \texttt{lower endpoint map}; \(\Delta^{K-1}\to\overline{\mathbb R}\)
+  \par\smallskip\noindent\emph{Definition.} \(q^-(p)=\inf\Theta(p)\)
+  \item \texttt{q\_\allowbreak{}plus} --- \texttt{upper endpoint map}; \(\Delta^{K-1}\to\overline{\mathbb R}\)
+  \par\smallskip\noindent\emph{Definition.} \(q^+(p)=\sup\Theta(p)\)
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N\)
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{observational draw}; \(\prod_{v\in V}\mathcal X_v\)
+  \item \texttt{N} --- \texttt{multinomial count vector}; \(\mathcal E_{n,K}=\{x\in\mathbb N^K:\sum_{k=1}^Kx_k=n\}\)
+  \par\smallskip\noindent\emph{Definition.} \(N_k=\sum_{i=1}^n\mathbf 1\{\kappa(O_i)=k\}\)
+  \item \texttt{alpha} --- \texttt{miscoverage level}; \((0,1)\)
+  \item \texttt{mu\_\allowbreak{}p} --- \texttt{multinomial probability-\allowbreak{}mass polynomial}; \(\Delta^{K-1}\times\mathcal E_{n,K}\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_p(x)=n!\prod_{k=1}^K p_k^{x_k}/x_k!\), with \(0^0=1\)
+  \item \texttt{C\_\allowbreak{}n} --- \texttt{exact multinomial confidence region}; subsets of \(\Delta^{K-1}\)
+  \item \texttt{F\_\allowbreak{}n} --- \texttt{full confidence-\allowbreak{}feasible SCM set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_n=\{M\in M_G:p_M\in C_n\}\)
+  \item \texttt{ell\_\allowbreak{}n} --- \texttt{full confidence-\allowbreak{}feasible lower extremum}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_n=\inf_{M\in\mathcal F_n}Q(M)\)
+  \item \texttt{u\_\allowbreak{}n} --- \texttt{full confidence-\allowbreak{}feasible upper extremum}
+  \par\smallskip\noindent\emph{Definition.} \(u_n=\sup_{M\in\mathcal F_n}Q(M)\)
+  \item \texttt{F\_\allowbreak{}n\_\allowbreak{}cert} --- \texttt{certifiable confidence-\allowbreak{}feasible SCM set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_{n,\mathrm{cert}}=\{M\in M_{\mathrm{cert}}:p_M\in C_n\}\)
+  \item \texttt{ell\_\allowbreak{}n\_\allowbreak{}cert} --- \texttt{certifiable confidence-\allowbreak{}feasible lower extremum}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{n,\mathrm{cert}}=\inf_{M\in\mathcal F_{n,\mathrm{cert}}}Q(M)\)
+  \item \texttt{u\_\allowbreak{}n\_\allowbreak{}cert} --- \texttt{certifiable confidence-\allowbreak{}feasible upper extremum}
+  \par\smallskip\noindent\emph{Definition.} \(u_{n,\mathrm{cert}}=\sup_{M\in\mathcal F_{n,\mathrm{cert}}}Q(M)\)
+  \item \texttt{F\_\allowbreak{}n\_\allowbreak{}N} --- \texttt{neural confidence-\allowbreak{}feasible SCM set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_{n,\mathrm N}=\{M\in M_{\mathrm N}:p_M\in C_n\}\)
+  \item \texttt{ell\_\allowbreak{}n\_\allowbreak{}N} --- \texttt{neural confidence-\allowbreak{}feasible lower extremum}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{n,\mathrm N}=\inf_{M\in\mathcal F_{n,\mathrm N}}Q(M)\)
+  \item \texttt{u\_\allowbreak{}n\_\allowbreak{}N} --- \texttt{neural confidence-\allowbreak{}feasible upper extremum}
+  \par\smallskip\noindent\emph{Definition.} \(u_{n,\mathrm N}=\sup_{M\in\mathcal F_{n,\mathrm N}}Q(M)\)
+  \item \texttt{Gamma\_\allowbreak{}n} --- \texttt{neural representation residual}; \([0,\infty]\)
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_n=(\ell_{n,\mathrm N}-\ell_{n,\mathrm{cert}})+(u_{n,\mathrm{cert}}-u_{n,\mathrm N})\)
+  \item \texttt{r\_\allowbreak{}n} --- \texttt{sampling radius}; \([0,2]\)
+  \par\smallskip\noindent\emph{Definition.} \(r_n=\operatorname{diam}_{\ell_1}(C_n)\)
+  \item \texttt{h} --- \texttt{response-\allowbreak{}sieve mesh}; \(\mathbb Q\cap(0,1]\)
+  \item \texttt{a\_\allowbreak{}v} --- \texttt{graphwise propagation coefficient}; \(\mathbb R_+\)
+  \par\smallskip\noindent\emph{Definition.} In topological order, \(a_v=L_v(1+\sum_{w\in\operatorname{Pa}(v)}a_w)\) for continuous \(v\), and \(a_v=m_vL_v(1+\sum_{w\in\operatorname{Pa}(v)}a_w)\) for categorical \(v\)
+  \item \texttt{C\_\allowbreak{}sieve} --- \texttt{explicit graph-\allowbreak{}query sieve constant}; \(\mathbb R_+\)
+  \par\smallskip\noindent\emph{Definition.} \(C_{\mathrm{sieve}}=L_Q\sum_{v\in V}a_v\)
+  \item \texttt{S\_\allowbreak{}h} --- \texttt{finite response-\allowbreak{}label outer-\allowbreak{}sieve correspondence}
+  \item \texttt{p\_\allowbreak{}h} --- \texttt{coded observable map of a sieve point}; \(\mathbb R^{J_h}\to\Delta^{K-1}\)
+  \item \texttt{Q\_\allowbreak{}h} --- \texttt{sieve query map}
+  \item \texttt{S\_\allowbreak{}h\_\allowbreak{}cert} --- \texttt{finite rational semialgebraic response-\allowbreak{}sieve correspondence}
+  \item \texttt{p\_\allowbreak{}h\_\allowbreak{}cert} --- \texttt{coded observable map of a certifiable sieve point}; \(S_h^{\mathrm{cert}}\to\Delta^{K-1}\)
+  \item \texttt{Q\_\allowbreak{}h\_\allowbreak{}cert} --- \texttt{certifiable sieve query map}
+  \item \texttt{q\_\allowbreak{}h\_\allowbreak{}minus} --- \texttt{lower response-\allowbreak{}sieve endpoint map}
+  \par\smallskip\noindent\emph{Definition.} \(q_h^-(p)=\inf_{s\in S_h(p)}Q_h(s)\)
+  \item \texttt{q\_\allowbreak{}h\_\allowbreak{}plus} --- \texttt{upper response-\allowbreak{}sieve endpoint map}
+  \par\smallskip\noindent\emph{Definition.} \(q_h^+(p)=\sup_{s\in S_h(p)}Q_h(s)\)
+  \item \texttt{omega\_\allowbreak{}Q} --- \texttt{endpoint modulus}; \([0,2]\to\mathbb R_+\)
+  \item \texttt{epsilon\_\allowbreak{}opt} --- \texttt{requested global-\allowbreak{}optimization tolerance}; \(\mathbb Q_{>0}\)
+  \item \texttt{eta\_\allowbreak{}in} --- \texttt{requested neural near-\allowbreak{}extremality tolerance}; \(\mathbb Q_{>0}\)
+  \item \texttt{cert\_\allowbreak{}in} --- \texttt{independently checkable neural extremum certificate}
+  \item \texttt{cert} --- \texttt{independently checkable rational feasibility-\allowbreak{}or-\allowbreak{}endpoint certificate}
+  \item \texttt{L\_\allowbreak{}cert} --- \texttt{certified lower objective bound on a nonempty output}; \(\mathbb Q\)
+  \par\smallskip\noindent\emph{Definition.} On the checker-verified nonempty branch, \(L_{\mathrm{cert}}\) is the checked rational lower enclosure of the certifiable response-sieve infimum.
+  \item \texttt{U\_\allowbreak{}cert} --- \texttt{certified upper objective bound on a nonempty output}; \(\mathbb Q\)
+  \par\smallskip\noindent\emph{Definition.} On the checker-verified nonempty branch, \(U_{\mathrm{cert}}\) is the checked rational upper enclosure of the certifiable response-sieve supremum.
+  \item \texttt{I\_\allowbreak{}abs} --- \texttt{noncomputational full-\allowbreak{}class outer confidence interval}; closed intervals in \(\mathbb R\)
+  \item \texttt{I\_\allowbreak{}out} --- \texttt{certified outer confidence output}; the empty set or a closed interval in \(\mathbb R\)
+  \item \texttt{M\_\allowbreak{}minus} --- \texttt{certified rational ReLU-\allowbreak{}SCM lower witness}
+  \item \texttt{M\_\allowbreak{}plus} --- \texttt{certified rational ReLU-\allowbreak{}SCM upper witness}
+  \item \texttt{I\_\allowbreak{}in} --- \texttt{neural feasible inner interval}; closed intervals in \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(I_{\mathrm{in}}=[Q(M_-),Q(M_+)]\) after ordering the two certified values
+  \item \texttt{G\_\allowbreak{}bow} --- \texttt{binary bow ADMG}
+  \par\smallskip\noindent\emph{Definition.} \(G_{\mathrm{bow}}\) has vertices \(X,Y\), a directed edge \(X\to Y\), and a bidirected edge \(X\leftrightarrow Y\)
+  \item \texttt{p\_\allowbreak{}bow} --- \texttt{uniform binary bow observational law}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\mathrm{bow}}(x,y)=1/4\) for \((x,y)\in\{0,1\}^2\)
+  \item \texttt{M\_\allowbreak{}bow\_\allowbreak{}atom} --- \texttt{canonical atomic-\allowbreak{}response SCM class for the binary bow}; \texttt{finite-\allowbreak{}support SCMs}
+  \item \texttt{Theta\_\allowbreak{}bow\_\allowbreak{}atom} --- \texttt{atomic-\allowbreak{}response binary-\allowbreak{}bow identified set}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{\mathrm{bow}}^{\mathrm{atom}}=\{\mathbb E_M[Y(1)-Y(0)]:M\in M_{\mathrm{bow}}^{\mathrm{atom}},\ p_M=p_{\mathrm{bow}}\}\)
+  \item \texttt{A} --- \texttt{finite action set}; \texttt{finite subsets of treatment assignments}
+  \item \texttt{Q\_\allowbreak{}a} --- \texttt{action-\allowbreak{}value causal query}; \(M_G\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(Q_a(M)\) is the welfare under action \(a\in A\)
+  \item \texttt{Delta\_\allowbreak{}ab} --- \texttt{pairwise action-\allowbreak{}value contrast}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{ab}(M)=Q_a(M)-Q_b(M)\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:acyclic-admg]\label{ass:acyclic-admg}
+The directed part of \(G\) is acyclic.
+\par\smallskip\noindent\emph{Standard} (Acyclic ADMG SCM condition, \cite{ZhangTianBareinboim2022}).
+\end{assumption}
+
+\begin{assumption}[ass:compact-support]\label{ass:compact-support}
+\texttt{Every continuous endogenous support and every district-\allowbreak{}noise support is compact.}
+\par\smallskip\noindent\emph{Standard} (Compact-support regularity, \cite{TanBlanchetSyrgkanis2024}).
+\end{assumption}
+
+\begin{assumption}[ass:district-independence]\label{ass:district-independence}
+The collection \((U_D)_{D\in\mathcal D(G)}\) is mutually independent.
+\par\smallskip\noindent\emph{Novel.} This is the explicit latent factorization maintained by the proposed mixed-domain model. Independent district-level shocks are natural when bidirected districts represent distinct unobserved sources shared only within their recorded blocks; no equivalence with a comparator's canonical class is asserted.
+\end{assumption}
+
+\begin{assumption}[ass:bounded-density]\label{ass:bounded-density}
+For every district \(D\), \(0\le\rho_D(u)\le B_D\) for Lebesgue-almost every \(u\in\mathcal U_D\).
+\par\smallskip\noindent\emph{Standard} (Uniformly bounded density class, \cite{Tsybakov2009}).
+\end{assumption}
+
+\begin{assumption}[ass:continuous-lipschitz]\label{ass:continuous-lipschitz}
+For every continuous vertex \(v\), \(f_v\) is \(L_v\)-Lipschitz in its endogenous-parent and district-noise arguments under the product metric.
+\par\smallskip\noindent\emph{Standard} (Lipschitz structural-mechanism regularity, \cite{TanBlanchetSyrgkanis2024}).
+\end{assumption}
+
+\begin{assumption}[ass:categorical-lipschitz]\label{ass:categorical-lipschitz}
+For every categorical vertex \(v\), \(\pi_v\) is \(L_v\)-Lipschitz in \(\ell_1\) distance.
+\par\smallskip\noindent\emph{Standard} (Lipschitz categorical-propensity regularity, \cite{TanBlanchetSyrgkanis2024}).
+\end{assumption}
+
+\begin{assumption}[ass:inverse-cdf-semantics]\label{ass:inverse-cdf-semantics}
+For every categorical vertex \(v\), \(X_v=\min\{j:\sum_{\ell=1}^j(\pi_v)_\ell\ge R_v\}\) with \(R_v\sim\operatorname{Unif}[0,1]\).
+\par\smallskip\noindent\emph{Novel.} This is an explicit structural restriction of the proposed mixed-domain model: ordered categorical measurements generated from conditional probability vectors and independent uniform randomization satisfy it exactly. No attribution to the neural-SCM literature is asserted.
+\end{assumption}
+
+\begin{assumption}[ass:rank-independence]\label{ass:rank-independence}
+The rank variables \((R_v)\) are mutually independent and independent of \((U_D)\).
+\par\smallskip\noindent\emph{Novel.} Independent unit-level randomization devices for distinct categorical equations, separated from district-shared heterogeneity, give this factorization. It is stated transparently as a maintained restriction of the proposed model rather than attributed to a comparator.
+\end{assumption}
+
+\begin{assumption}[ass:query-lipschitz]\label{ass:query-lipschitz}
+The integrand defining \(Q\) is \(L_Q\)-Lipschitz under the sum of Euclidean distance on continuous coordinates and discrete mismatch distance on categorical coordinates.
+\par\smallskip\noindent\emph{Standard} (Bounded-Lipschitz causal functional, \cite{TanBlanchetSyrgkanis2024}).
+\end{assumption}
+
+\begin{assumption}[ass:measurable-fixed-code]\label{ass:measurable-fixed-code}
+The prespecified finite coding map \(\kappa\) is measurable and is fixed independently of \(O_1,\ldots,O_n\).
+\par\smallskip\noindent\emph{Standard} (Measurable fixed coarsening before multinomial sampling, \cite{ChafaiConcordet2009}).
+\end{assumption}
+
+\begin{assumption}[ass:rational-box-inputs]\label{ass:rational-box-inputs}
+\texttt{Every continuous endogenous support and district-\allowbreak{}noise support supplied to the certificate program is a compact box with rational endpoints.}
+\par\smallskip\noindent\emph{Novel.} Recorded measurement ranges and normalized latent reference domains admit exact rational endpoints, making this a transparent restriction on certifiable inputs rather than a regularity condition on the unrestricted Lipschitz class.
+\end{assumption}
+
+\begin{assumption}[ass:semialgebraic-code]\label{ass:semialgebraic-code}
+For each \(k\), the coding cell \(\kappa^{-1}(k)\) is specified by a finite Boolean combination of polynomial weak inequalities with rational coefficients.
+\par\smallskip\noindent\emph{Novel.} Thresholds, interval bins, and finite cross-classifications used in administrative and survey tables have semialgebraic cells with rational cutoffs.
+\end{assumption}
+
+\begin{assumption}[ass:rational-expression-grammar]\label{ass:rational-expression-grammar}
+Every continuous mechanism, categorical propensity coordinate, district-density piece, and query integrand supplied to the certificate program is represented by a finite \(\Gamma_{\mathrm{rat}}\) expression and obeys its declared range and Lipschitz bound.
+\par\smallskip\noindent\emph{Novel.} Rational ReLU networks, piecewise-polynomial density models, and polynomial welfare functionals cover standard auditable structural specifications while retaining exact finite descriptions.
+\end{assumption}
+
+\begin{assumption}[ass:rational-alpha]\label{ass:rational-alpha}
+The confidence level supplied to the certificate program satisfies \(\alpha\in\mathbb Q\cap(0,1)\).
+\par\smallskip\noindent\emph{Standard} (Rational numerical input encoding, \cite{CookKochSteffyWolter2013}).
+\end{assumption}
+
+\begin{assumption}[ass:certified-integral-enclosures]\label{ass:certified-integral-enclosures}
+\texttt{Every coding-\allowbreak{}cell probability and query contribution required by the certificate program has either an exact rational semialgebraic integral representation or an inclusion-\allowbreak{}monotone rational lower-\allowbreak{}-\allowbreak{}upper enclosure whose width converges uniformly to zero under rational box subdivision.}
+\par\smallskip\noindent\emph{Novel.} Rational piecewise-polynomial densities on rational partitions and rational ReLU mechanisms admit auditable symbolic integration on resolved cells and verified interval quadrature on unresolved boundary cells.
+\end{assumption}
+
+\begin{assumption}[ass:rational-neural-grammar]\label{ass:rational-neural-grammar}
+\texttt{Every neural witness mechanism is a finite rational ReLU network and every neural witness district density is a rational histogram on a rational box partition.}
+\par\smallskip\noindent\emph{Novel.} Finite-precision ReLU weights and histogram latent densities are directly exportable by neural partial-identification software and exactly checkable.
+\end{assumption}
+
+\begin{assumption}[ass:iid-observations]\label{ass:iid-observations}
+The observations \(O_1,\ldots,O_n\) are independent draws from the observational law of \(M_0\).
+\par\smallskip\noindent\emph{Standard} (Independent multinomial sampling after finite coding, \cite{ChafaiConcordet2009}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:restricted-scm-class]\label{def:restricted-scm-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full restricted mixed-\allowbreak{}variable SCM class}
+\par\smallskip\noindent\emph{Construction.} \(M_G=\{M:M\text{ is indexed by the fixed }G\text{ and satisfies }\text{ass:acyclic-admg},\text{ ass:compact-support},\text{ ass:district-independence},\text{ ass:bounded-density},\text{ ass:continuous-lipschitz},\text{ ass:categorical-lipschitz},\text{ ass:inverse-cdf-semantics},\text{ ass:rank-independence}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}acyclic-\allowbreak{}admg}; \texttt{ass:\allowbreak{}compact-\allowbreak{}support}; \texttt{ass:\allowbreak{}district-\allowbreak{}independence}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}density}; \texttt{ass:\allowbreak{}continuous-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}categorical-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}inverse-\allowbreak{}cdf-\allowbreak{}semantics}; \texttt{ass:\allowbreak{}rank-\allowbreak{}independence}.
+\end{definition}
+
+\begin{definition}[def:certifiable-scm-class]\label{def:certifiable-scm-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rationally certifiable SCM subclass}
+\par\smallskip\noindent\emph{Construction.} \(M_{\mathrm{cert}}=\{M\in M_G:M\text{ satisfies }\text{ass:rational-box-inputs},\text{ ass:semialgebraic-code},\text{ ass:rational-expression-grammar},\text{ and ass:certified-integral-enclosures}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}acyclic-\allowbreak{}admg}; \texttt{ass:\allowbreak{}compact-\allowbreak{}support}; \texttt{ass:\allowbreak{}district-\allowbreak{}independence}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}density}; \texttt{ass:\allowbreak{}continuous-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}categorical-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}inverse-\allowbreak{}cdf-\allowbreak{}semantics}; \texttt{ass:\allowbreak{}rank-\allowbreak{}independence}; \texttt{ass:\allowbreak{}rational-\allowbreak{}box-\allowbreak{}inputs}; \texttt{ass:\allowbreak{}semialgebraic-\allowbreak{}code}; \texttt{ass:\allowbreak{}rational-\allowbreak{}expression-\allowbreak{}grammar}; \texttt{ass:\allowbreak{}certified-\allowbreak{}integral-\allowbreak{}enclosures}.
+\end{definition}
+
+\begin{definition}[def:neural-scm-class]\label{def:neural-scm-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rational neural witness subclass}
+\par\smallskip\noindent\emph{Construction.} \(M_{\mathrm N}=\{M\in M_{\mathrm{cert}}:M\text{ satisfies ass:rational-neural-grammar}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}acyclic-\allowbreak{}admg}; \texttt{ass:\allowbreak{}compact-\allowbreak{}support}; \texttt{ass:\allowbreak{}district-\allowbreak{}independence}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}density}; \texttt{ass:\allowbreak{}continuous-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}categorical-\allowbreak{}lipschitz}; \texttt{ass:\allowbreak{}inverse-\allowbreak{}cdf-\allowbreak{}semantics}; \texttt{ass:\allowbreak{}rank-\allowbreak{}independence}; \texttt{ass:\allowbreak{}rational-\allowbreak{}box-\allowbreak{}inputs}; \texttt{ass:\allowbreak{}semialgebraic-\allowbreak{}code}; \texttt{ass:\allowbreak{}rational-\allowbreak{}expression-\allowbreak{}grammar}; \texttt{ass:\allowbreak{}certified-\allowbreak{}integral-\allowbreak{}enclosures}; \texttt{ass:\allowbreak{}rational-\allowbreak{}neural-\allowbreak{}grammar}.
+\end{definition}
+
+\begin{definition}[def:identified-set]\label{def:identified-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Coded-\allowbreak{}law identified set}
+\par\smallskip\noindent\emph{Construction.} For the fixed measurable code \(\kappa\), \(\Theta(p)=\{Q(M):M\in M_G,\ p_M=p\}\), with endpoints \(q^-(p)=\inf\Theta(p)\) and \(q^+(p)=\sup\Theta(p)\). This set conditions only on the coded law and is not the identified set induced by the unbinned continuous observational law.
+\end{definition}
+
+\begin{definition}[def:exact-multinomial-region]\label{def:exact-multinomial-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tie-\allowbreak{}conservative likelihood-\allowbreak{}level multinomial inversion}
+\par\smallskip\noindent\emph{Construction.} For \(x\in\mathcal E_{n,K}\), let \(\mu_p(x)=n!\prod_{k=1}^Kp_k^{x_k}/x_k!\), with \(0^0=1\), and set \(C_n=\{p\in\Delta^{K-1}:\sum_{x\in\mathcal E_{n,K}:\mu_p(x)\le\mu_p(N)}\mu_p(x)\ge\alpha\}\). Equivalently, \(C_n\) is the finite union over \(A\subseteq\mathcal E_{n,K}\) of the basic closed semialgebraic sets defined by \(p_k\ge0\), \(\sum_{k=1}^Kp_k=1\), \(\mu_p(x)\le\mu_p(N)\) for every \(x\in A\), and \(\sum_{x\in A}\mu_p(x)\ge\alpha\).
+\end{definition}
+
+\begin{definition}[def:confidence-feasible-extrema]\label{def:confidence-feasible-extrema}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full and certifiable confidence-\allowbreak{}feasible extrema}
+\par\smallskip\noindent\emph{Construction.} Set \(\mathcal F_n=\{M\in M_G:p_M\in C_n\}\), \(\ell_n=\inf_{M\in\mathcal F_n}Q(M)\), and \(u_n=\sup_{M\in\mathcal F_n}Q(M)\). Set \(\mathcal F_{n,\mathrm{cert}}=\{M\in M_{\mathrm{cert}}:p_M\in C_n\}\), \(\ell_{n,\mathrm{cert}}=\inf_{M\in\mathcal F_{n,\mathrm{cert}}}Q(M)\), and \(u_{n,\mathrm{cert}}=\sup_{M\in\mathcal F_{n,\mathrm{cert}}}Q(M)\).
+\end{definition}
+
+\begin{definition}[def:endpoint-modulus]\label{def:endpoint-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph-\allowbreak{}query endpoint modulus}
+\par\smallskip\noindent\emph{Construction.} \(\omega_Q(t)=\sup\{|q^-(p)-q^-(p')|:p=p_M,\ p'=p_{M'},\ M,M'\in M_G,\ \|p-p'\|_1\le t\}+\sup\{|q^+(p)-q^+(p')|:p=p_M,\ p'=p_{M'},\ M,M'\in M_G,\ \|p-p'\|_1\le t\}\).
+\end{definition}
+
+\begin{definition}[def:sieve-constant]\label{def:sieve-constant}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Explicit graphwise discretization constant}
+\par\smallskip\noindent\emph{Construction.} Compute \(a_v\) recursively along \(V\) by \(a_v=L_v(1+\sum_{w\in\operatorname{Pa}(v)}a_w)\) for continuous vertices and \(a_v=m_vL_v(1+\sum_{w\in\operatorname{Pa}(v)}a_w)\) for categorical vertices, then set \(C_{\mathrm{sieve}}=L_Q\sum_{v\in V}a_v\).
+\end{definition}
+
+\begin{definition}[def:response-outer-sieve]\label{def:response-outer-sieve}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Abstract district-\allowbreak{}coupled response-\allowbreak{}label outer sieve}
+\par\smallskip\noindent\emph{Construction.} Partition every \(\mathcal U_D\) and continuous parent support into finitely many measurable cells of diameter at most \(h\). The correspondence \(S_h(p)\) contains every finite array of district-shared response labels, interval-valued continuous responses, cumulative inverse-CDF threshold intervals, and cell masses satisfying the primitive Lipschitz, simplex, density, district-sharing, acyclic-recursion, set-valued boundary-routing, and exact coded-law condition \(p_h(s)=p\). Define \(Q_h(s)\) by interval-consistent response-label evaluation of \(Q\). This is a mathematical correspondence and no finite decision grammar is asserted.
+\end{definition}
+
+\begin{definition}[def:abstract-outer-interval]\label{def:abstract-outer-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Noncomputational full-\allowbreak{}class outer interval}
+\par\smallskip\noindent\emph{Construction.} \(I_{\mathrm{abs}}=[\inf\{Q_h(s):p\in C_n,\ s\in S_h(p)\}-C_{\mathrm{sieve}}h,\ \sup\{Q_h(s):p\in C_n,\ s\in S_h(p)\}+C_{\mathrm{sieve}}h]\).
+\end{definition}
+
+\begin{definition}[def:certifiable-response-program]\label{def:certifiable-response-program}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite rational response-\allowbreak{}sieve program}
+\par\smallskip\noindent\emph{Construction.} On the rational boxes from \(\text{ass:rational-box-inputs}\), refine the semialgebraic coding cells from \(\text{ass:semialgebraic-code}\) to diameter at most \(h\) and compile every \(\Gamma_{\mathrm{rat}}\) mechanism, density, and query atom into finitely many rational polynomial and ReLU constraints. Introduce \(p_1,\ldots,p_K\), impose \(p_k\ge0\), \(\sum_{k=1}^Kp_k=1\), every finite-disjunct likelihood inequality in \(\text{def:exact-multinomial-region}\), and, for every \(k\), the coded-law equality \(p_{h,k}^{\mathrm{cert}}=p_k\). Each coding-cell or query integral is either replaced by its exact rational semialgebraic graph or evaluated through a certified inclusion-monotone rational enclosure; in the latter case both directed enclosure inequalities are retained so that every exact feasible point remains feasible and every objective interval contains its exact value. Together with the finite Lipschitz, density-mass, district-sharing, acyclic-recursion, and boundary-routing constraints, these clauses define \(S_h^{\mathrm{cert}}(p)\), \(p_h^{\mathrm{cert}}\), and \(Q_h^{\mathrm{cert}}\).
+\end{definition}
+
+\begin{definition}[def:rational-certificate-calculus]\label{def:rational-certificate-calculus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rational interval branch-\allowbreak{}and-\allowbreak{}bound certificate}
+\par\smallskip\noindent\emph{Construction.} A certificate \(\mathsf{cert}\) is a disjoint feasibility-or-endpoint certificate for the explicitly encoded set \(\{(p,s):p\in C_n,\ s\in S_h^{\mathrm{cert}}(p)\}\).  The checker first expands every polynomial, \(\min\), \(\max\), and ReLU atom into a finite rational semialgebraic disjunction and replays an exact real-algebraic sign-decision transcript.  An infeasible certificate records a transcript proving every disjunct empty and has the distinguished output \(\mathsf{cert}_{\varnothing}\).  A nonempty certificate records a verified real-algebraic feasible sample and a fair longest-edge rational partition tree.  Every leaf records its likelihood disjunct, the simplex constraints, every coded-law equality or pair of directed certified enclosure inequalities, and every required coding-cell and query-integral enclosure.  The checker uses exact rational interval extensions, verifies the integral-enclosure records, replays rational polynomial sign decisions and any rational Farkas deductions, and confirms
+\[
+L_{\mathrm{cert}}\leq\inf Q_h^{\mathrm{cert}}\leq L_{\mathrm{cert}}+\epsilon_{\mathrm{opt}},
+\qquad
+U_{\mathrm{cert}}-\epsilon_{\mathrm{opt}}\leq\sup Q_h^{\mathrm{cert}}\leq U_{\mathrm{cert}},
+\]
+where the verified integral-enclosure contribution is included in \(\epsilon_{\mathrm{opt}}\).
+\end{definition}
+
+\begin{definition}[def:outer-interval]\label{def:outer-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Totalized computable certified-\allowbreak{}subclass outer output}
+\par\smallskip\noindent\emph{Construction.} If \(\mathsf{cert}=\mathsf{cert}_{\varnothing}\), set \(I_{\mathrm{out}}=\varnothing\).  On a checker-verified nonempty output with rational endpoint enclosures \(L_{\mathrm{cert}}\) and \(U_{\mathrm{cert}}\), set
+\[
+I_{\mathrm{out}}=[L_{\mathrm{cert}}-C_{\mathrm{sieve}}h,\ U_{\mathrm{cert}}+C_{\mathrm{sieve}}h].
+\]
+\end{definition}
+
+\begin{definition}[def:neural-target-extrema]\label{def:neural-target-extrema}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Neural target extrema and representation residual}
+\par\smallskip\noindent\emph{Construction.} Set \(\mathcal F_{n,\mathrm N}=\{M\in M_{\mathrm N}:p_M\in C_n\}\), \(\ell_{n,\mathrm N}=\inf_{M\in\mathcal F_{n,\mathrm N}}Q(M)\), and \(u_{n,\mathrm N}=\sup_{M\in\mathcal F_{n,\mathrm N}}Q(M)\). The residual gap is \(\Gamma_n=(\ell_{n,\mathrm N}-\ell_{n,\mathrm{cert}})+(u_{n,\mathrm{cert}}-u_{n,\mathrm N})\).
+\end{definition}
+
+\begin{definition}[def:neural-inner-handle]\label{def:neural-inner-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Certified near-\allowbreak{}extremal district-\allowbreak{}shared neural witness handle}
+\par\smallskip\noindent\emph{Construction.} Optimize rational ReLU mechanisms shared within districts and rational histogram district densities over \(\mathcal F_{n,\mathrm N}\); use rational branch-and-bound to certify a lower witness within \(\eta_{\mathrm{in}}\) of \(\ell_{n,\mathrm N}\) and an upper witness within \(\eta_{\mathrm{in}}\) of \(u_{n,\mathrm N}\), while an independent checker verifies class membership and the coded-law constraint.
+\end{definition}
+
+\begin{definition}[def:neural-inner-interval]\label{def:neural-inner-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Near-\allowbreak{}extremal neural feasible inner interval}
+\par\smallskip\noindent\emph{Construction.} For independently certified \(M_-,M_+\in\mathcal F_{n,\mathrm N}\) satisfying \(Q(M_-)\le\ell_{n,\mathrm N}+\eta_{\mathrm{in}}\) and \(Q(M_+)\ge u_{n,\mathrm N}-\eta_{\mathrm{in}}\), set \(I_{\mathrm{in}}=[Q(M_-),Q(M_+)]\) after ordering the certified values.
+\end{definition}
+
+\begin{definition}[def:bow-specialization]\label{def:bow-specialization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Discrete canonical atomic-\allowbreak{}response bow model}
+\par\smallskip\noindent\emph{Construction.} Let \(M_{\mathrm{bow}}^{\mathrm{atom}}\) be the finite canonical response-function SCMs on the binary bow \(G_{\mathrm{bow}}\), with arbitrary finite atomic mass on joint response types and observational law \(p_{\mathrm{bow}}(x,y)=1/4\). Define \(\Theta_{\mathrm{bow}}^{\mathrm{atom}}=\{\mathbb E_M[Y(1)-Y(0)]:M\in M_{\mathrm{bow}}^{\mathrm{atom}},\ p_M=p_{\mathrm{bow}}\}\). This discrete diagnostic is not asserted to be a subclass or a mesh-zero specialization of \(M_G\).
+\end{definition}
+
+\begin{definition}[def:ua-decision-specialization]\label{def:ua-decision-specialization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{UA-\allowbreak{}DCM certified action-\allowbreak{}comparison consumer}
+\par\smallskip\noindent\emph{Construction.} For each \(a,b\in A\), run the certified outer program with query \(\Delta_{ab}\).  Record a checker-verified infeasibility output as an empty contrast set and do not assign a dominance label from that output.  On a checker-verified nonempty output, label an action \(a\) certified dominant only when the checked outer lower endpoint for every \(\Delta_{ab}\), \(b\ne a\), is strictly positive.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:two-sided-response-lifting]\label{lem:two-sided-response-lifting}
+For every \(p\) with \(\Theta(p)\ne\varnothing\) and every \(h\), the abstract response sieve is two-sided: each \(M\in M_G\) with \(p_M=p\) has an \(s\in S_h(p)\) satisfying \(|Q_h(s)-Q(M)|\le C_{\mathrm{sieve}}h\), and each \(s\in S_h(p)\) has an \(M_s\in M_G\) satisfying \(p_{M_s}=p\) and \(|Q(M_s)-Q_h(s)|\le C_{\mathrm{sieve}}h\). No computability of \(S_h\) is asserted for arbitrary Lipschitz mechanisms.
+\end{lemma}
+\begin{proof}
+Fix \(p\), \(h\), and first fix \(M\in M_G\) with \(p_M=p\).  For a continuous vertex put
+\[
+d_v(x,x')=\lVert x-x'\rVert,
+\]
+and for a categorical vertex put \(d_v(x,x')=\mathbf 1\{x\ne x'\}\).  Tabulate, on every district-noise and continuous-parent cell used in \(S_h\), the cell mass, the range of each continuous response, the cumulative thresholds of each categorical propensity, and the routing of every coding-cell boundary.  These are admissible response labels: the density-mass inequalities follow from \(0\leq\rho_D\leq B_D\) in \(\text{ass:bounded-density}\); district sharing and independence follow from \(\text{ass:district-independence}\); the continuous and categorical label inequalities follow from \(\text{ass:continuous-lipschitz}\) and \(\text{ass:categorical-lipschitz}\); and the threshold labels have the inverse-CDF interpretation by \(\text{ass:inverse-cdf-semantics}\) and \(\text{ass:rank-independence}\).  Measurability of the boundary routing follows from \(\text{ass:measurable-fixed-code}\).  Because the routing records the actual code of each response, rather than assigning a nearby code, summing the recorded masses gives
+\[
+p_h(s)_k=\Pr_M\{\kappa(X)=k\}=(p_M)_k=p_k,
+\qquad k=1,\ldots,K.                                            \tag{1}
+\]
+Thus the tabulation is an element \(s\in S_h(p)\).
+
+We next establish its error.  Couple the structural recursion and its label evaluation by using the same district noises and, at categorical vertices, the same ranks.  Write \(X_v^M\) and \(X_v^s\) for the two coupled values and
+\[
+e_v=\mathbb E\bigl[d_v(X_v^M,X_v^s)\bigr].
+\]
+Every cell has diameter at most \(h\).  Hence at a continuous vertex, the cell oscillation bound and \(\text{ass:continuous-lipschitz}\) give
+\[
+e_v\leq L_v\left(h+\sum_{w\in\operatorname{Pa}(v)}e_w\right).    \tag{2}
+\]
+At a categorical vertex let \(c_j=\sum_{\ell\leq j}(\pi_v)_\ell\) and \(c'_j=\sum_{\ell\leq j}(\pi'_v)_\ell\) be the coupled cumulative thresholds.  Under the common uniform rank, disagreement can occur only in the union of the intervals with endpoints \(c_j,c'_j\).  Therefore
+\[
+\begin{aligned}
+\Pr\{X_v^M\ne X_v^s\mid\text{coupled inputs}\}
+&\leq \sum_{j=1}^{m_v-1}|c_j-c'_j|\\
+&\leq m_v\lVert\pi_v-\pi'_v\rVert_1\\
+&\leq m_vL_v\left(h+\sum_{w\in\operatorname{Pa}(v)}d_w(X_w^M,X_w^s)\right),
+\end{aligned}                                                       \tag{3}
+\]
+where the last inequality is \(\text{ass:categorical-lipschitz}\).  Taking expectations in (3) gives
+\[
+e_v\leq m_vL_v\left(h+\sum_{w\in\operatorname{Pa}(v)}e_w\right). \tag{4}
+\]
+Equations (2)--(4), induction in the topological order supplied by \(\text{ass:acyclic-admg}\), and the recursion in \(\text{def:sieve-constant}\) imply
+\[
+e_v\leq a_vh\qquad(v\in V).                                      \tag{5}
+\]
+The same argument applies to every intervention or counterfactual world entering \(Q\), because interventions delete structural equations but do not alter the remaining topological recursion or the shared exogenous coupling.  Thus \(\text{ass:query-lipschitz}\) and (5) yield
+\[
+|Q_h(s)-Q(M)|
+ \leq L_Q\sum_{v\in V}e_v
+ \leq L_Q\sum_{v\in V}a_vh
+ =C_{\mathrm{sieve}}h.                                           \tag{6}
+\]
+
+Conversely, fix \(s\in S_h(p)\).  We spell out the reconstruction encoded by the primitive constraints in \(\text{def:response-outer-sieve}\).  On a district cell \(A\) with assigned mass \(m_A\), the density-mass constraint is \(0\leq m_A\leq B_D\operatorname{Leb}(A)\); put \(\rho_D^s=m_A/\operatorname{Leb}(A)\) on positive-volume cells and assign zero mass to null cells.  Then \(\rho_D^s\) integrates to one and is bounded by \(B_D\).  Taking the resulting district variables independently verifies \(\text{ass:district-independence}\).  The continuous response intervals and cumulative-threshold intervals, together with their primitive Lipschitz consistency constraints, give cellwise selections whose Lipschitz extensions have constants \(L_v\); the simplex constraints keep the categorical selections in \(\Delta^{m_v-1}\).  Applying the inverse-CDF rule with mutually independent uniform ranks gives the categorical equations required by \(\text{ass:inverse-cdf-semantics}\) and \(\text{ass:rank-independence}\).  Acyclic recursion then defines a unique SCM \(M_s\) compatible with \(G\).  The density, support, and mechanism checks just made show \(M_s\in M_G\).
+
+The set-valued boundary-routing constraints assign every reconstructed response to exactly the same coded cell whose mass is used by the equality \(p_h(s)=p\).  Consequently
+\[
+(p_{M_s})_k=(p_h(s))_k=p_k,
+\qquad k=1,\ldots,K.                                               \tag{7}
+\]
+Couple this reconstruction to the interval-consistent label evaluation using the reconstructed district variables and ranks.  The cellwise continuous error again obeys (2), and the inverse-CDF disagreement error again obeys (4).  The induction (5) and query calculation (6) therefore give
+\[
+|Q(M_s)-Q_h(s)|\leq C_{\mathrm{sieve}}h.                          \tag{8}
+\]
+Equations (1), (6), (7), and (8) prove both directions.  Compactness in \(\text{ass:compact-support}\) is used to obtain finite diameter-\(h\) partitions and to make all cellwise ranges bounded; no algorithmic representation of those ranges was used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the proof boundary at which finite canonical response types become district-coupled interval labels while the observed code is preserved exactly. \textit{Gap.} Zhang, Tian, and Bareinboim's Definition 2.3 and Theorem 2.4 give finite canonical SCMs for finite observed domains, while Tan, Blanchet, and Syrgkanis give one-sided neural approximation in Wasserstein distance rather than exact-law two-sided lifting. \textit{Consumer.} It converts mixed-variable ADMG bounds into finite-dimensional mathematical outer problems with an explicit discretization error, independently of whether those problems are computable.
+
+\begin{lemma}[lem:certifiable-program-lifting]\label{lem:certifiable-program-lifting}
+For every \(p\) compatible with \(M_{\mathrm{cert}}\) and every rational \(h>0\), compiling \(\Gamma_{\mathrm{rat}}\) on the rational support and coding-cell partition yields a finite rationally encoded correspondence \(S_h^{\mathrm{cert}}(p)\). Every \(M\in M_{\mathrm{cert}}\) with \(p_M=p\) is retained with query error at most \(C_{\mathrm{sieve}}h\). On branches whose integrals have exact semialgebraic graphs, every sieve point lifts to an element of \(M_{\mathrm{cert}}\) with the same error; on enclosure branches, the two directed rational inequalities are outer-valid and their contribution is refined and included in the certified endpoint tolerance.
+\end{lemma}
+\begin{proof}
+Fix rational \(h>0\) and a law \(p=p_M\) generated by some \(M\in M_{\mathrm{cert}}\).  By \(\text{ass:rational-box-inputs}\), every support has a finite rational box partition of diameter at most \(h\).  By \(\text{ass:semialgebraic-code}\), its intersection with each of the finitely many coding cells is a finite Boolean combination of rational polynomial weak inequalities.  Finally, every template in \(\Gamma_{\mathrm{rat}}\) has finitely many atoms.  Replacing each \(\min\), \(\max\), and ReLU atom by its finitely many graph branches therefore produces finitely many systems of rational polynomial equalities and weak inequalities.  Adding the \(K\) simplex variables, the finite union representation of \(C_n\), the response-label variables, and the finitely many district-cell masses preserves finiteness.  This proves that the correspondence in \(\text{def:certifiable-response-program}\) has a finite rational encoding.
+
+Insert the coefficients, cell masses, response ranges, threshold ranges, and boundary routes of \(M\) into that encoding.  Every range, Lipschitz, simplex, density, sharing, and recursion constraint holds by \(\text{def:certifiable-scm-class}\).  Exact integral graphs return the true probabilities.  On an enclosure branch, inclusion monotonicity in \(\text{ass:certified-integral-enclosures}\) places the true integral between the two retained rational bounds.  Hence the exact model is never discarded and its coded law is still the value represented by the program's directed enclosure pair.  Applying the forward half of \(\text{lem:two-sided-response-lifting}\) gives a retained point \(s_M\) such that
+\[
+|Q_h^{\mathrm{cert}}(s_M)-Q(M)|\leq C_{\mathrm{sieve}}h.          \tag{9}
+\]
+
+On a branch on which all integrals have exact semialgebraic graphs, the program is precisely the corresponding specialization of the abstract response constraints.  The reverse half of \(\text{lem:two-sided-response-lifting}\) therefore constructs \(M_s\in M_G\) with the same coded law and query error at most \(C_{\mathrm{sieve}}h\).  Its mechanisms, densities, supports, and code use the very \(\Gamma_{\mathrm{rat}}\), rational-box, and semialgebraic descriptions carried by the branch; hence \(M_s\in M_{\mathrm{cert}}\).
+
+It remains to justify the assertion about enclosure branches.  Let \(\delta_j\) be the largest width of any retained integral enclosure after \(j\) uniform rational refinements.  The last clause of \(\text{ass:certified-integral-enclosures}\) gives
+\[
+\delta_j\downarrow0.                                             \tag{10}
+\]
+For a fixed finite branch let \(E_j\) be its compact outer-feasible set at refinement \(j\), and let \(E_\infty\) be the set obtained with exact integrals.  Inclusion monotonicity gives \(E_{j+1}\subseteq E_j\) and, by (10) and closedness of all weak polynomial constraints,
+\[
+\bigcap_{j\geq1}E_j=E_\infty.                                   \tag{11}
+\]
+For completeness, suppose the lower endpoint over \(E_j\) failed to converge to that over \(E_\infty\).  Choose minimizers along a violating subsequence.  Compactness supplies a convergent further subsequence; (11) puts its limit in \(E_\infty\), and continuity of the finite polynomial/ReLU query expression contradicts the alleged endpoint gap.  The same argument applied to the negative query proves convergence of the upper endpoints.  Since there are finitely many branches, one common refinement makes the total endpoint contribution of all integral enclosures smaller than any prescribed positive rational tolerance.  Recording that refinement contribution inside \(\epsilon_{\mathrm{opt}}\) proves the final assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma records the nonautomatic step from the abstract Lipschitz correspondence to the finite rational program used by the certificate theorem. \textit{Gap.} Generic universal approximation and generic semialgebraic optimization do not specify how exact coded-law equalities and non-symbolic cell integrals enter an outer-valid district-coupled response compilation. \textit{Consumer.} It licenses certified Autobounds-style endpoint computation without claiming computability for the unrestricted Lipschitz class.
+
+\begin{theorem}[thm:sieve-endpoint-approximation]\label{thm:sieve-endpoint-approximation}
+For every compatible \(p\), \(\max\{|q_h^-(p)-q^-(p)|,|q_h^+(p)-q^+(p)|\}\le C_{\mathrm{sieve}}h\). The sieve preserves the fixed finite coded observational law in both directions and controls the query uniformly over each coded-law fiber. Zhang, Tian, and Bareinboim's finite exact canonicalization and Tan, Blanchet, and Syrgkanis's mixed-variable graphwise Wasserstein approximation each inform one side of this construction, but neither comparator supplies this joint two-sided exact-coded-law and uniform query-error conclusion. No containment relation between their model classes and \(M_G\) is asserted. The result is noncomputational unless additional input grammar is imposed.
+\end{theorem}
+\begin{proof}
+Fix a compatible \(p\) and abbreviate \(c=C_{\mathrm{sieve}}h\).  For every \(M\in M_G\) with \(p_M=p\), the forward lifting gives \(s\in S_h(p)\) with \(Q_h(s)\leq Q(M)+c\).  Taking first the infimum over \(s\) and then the infimum over \(M\) yields
+\[
+q_h^-(p)\leq q^-(p)+c.                                           \tag{12}
+\]
+For every \(s\in S_h(p)\), reverse lifting gives \(M_s\in M_G\) in the same coded-law fiber and
+\[
+Q_h(s)\geq Q(M_s)-c\geq q^-(p)-c.
+\]
+Taking the infimum over \(s\) gives \(q_h^-(p)\geq q^-(p)-c\).  Thus
+\[
+|q_h^-(p)-q^-(p)|\leq c.                                         \tag{13}
+\]
+Applying the same two arguments with suprema gives
+\[
+q^+(p)-c\leq q_h^+(p)\leq q^+(p)+c.                             \tag{14}
+\]
+Equations (13)--(14) prove the displayed maximum bound.  Equation (1) and equation (7) in \(\text{lem:two-sided-response-lifting}\) establish exact preservation of the fixed code in the two respective directions.  The proof uses only the mathematical correspondence \(S_h\), so it makes no computability claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The endpoint theorem makes the mixed-variable response discretization quantitatively auditable without conflating approximation with algorithmic tractability. \textit{Gap.} Definition 2.3 and Theorem 2.4 of Zhang, Tian, and Bareinboim establish exact finite-domain canonicalization, whereas Tan, Blanchet, and Syrgkanis establish mixed-variable graphwise approximation in Wasserstein distance. Neither result gives two-sided preservation of a prespecified finite coded law together with a uniform query-error bound over the entire coded-law fiber; the comparison asserts no model-class inclusion. \textit{Consumer.} A researcher can choose \(h\) from a desired causal-bound tolerance before selecting any computational representation.
+
+\begin{theorem}[thm:exact-whole-set-coverage]\label{thm:exact-whole-set-coverage}
+For every \(n\ge1\), \(\inf_{M_0\in M_G}\Pr_{M_0}\{\Theta(p_0)\subseteq I_{\mathrm{abs}}\}\ge1-\alpha\). Here \(p_0\) is the law of the fixed measurable finite code \(Z=\kappa(O)\), so \(\Theta(p_0)\) is the entire full-Lipschitz-class identified set induced by that code, not by the unbinned continuous observational law. Together with the two-sided lifting, this is the whole-set finite-sample component absent from both Zhang, Tian, and Bareinboim's finite exact canonicalization and Tan, Blanchet, and Syrgkanis's mixed-variable graphwise Wasserstein approximation; no model-class containment is asserted. The interval \(I_{\mathrm{abs}}\) is mathematical and need not be computable.
+\end{theorem}
+\begin{proof}
+Fix \(M_0\in M_G\).  By \(\text{ass:measurable-fixed-code}\) and \(\text{ass:iid-observations}\), the coded counts satisfy
+\[
+N\sim\operatorname{Multinomial}(n,p_0).                           \tag{15}
+\]
+For fixed \(p\in\Delta^{K-1}\), define on the finite sample space \(\mathcal E_{n,K}\)
+\[
+T_p(x)=\sum_{y:\,\mu_p(y)\leq\mu_p(x)}\mu_p(y).
+\]
+For any \(t\in[0,1]\), the set \(B_t=\{x:T_p(x)<t\}\) is a lower set in the value \(\mu_p(x)\).  If it is nonempty, let \(r\) be its largest attained mass level.  Tie inclusion in the definition of \(T_p\) then gives
+\[
+\Pr_p\{T_p(N)<t\}=\sum_{x:\,\mu_p(x)\leq r}\mu_p(x)=T_p(x_r)<t, \tag{16}
+\]
+where \(x_r\) is any outcome with mass \(r\); if \(B_t\) is empty, the probability is zero.  Therefore
+\[
+\Pr_p\{T_p(N)\geq\alpha\}\geq1-\alpha.                         \tag{17}
+\]
+By \(\text{def:exact-multinomial-region}\), the event in (17) is exactly \(\{p\in C_n\}\).  Substituting \(p=p_0\) in (15)--(17) gives
+\[
+\Pr_{M_0}\{p_0\in C_n\}\geq1-\alpha.                         \tag{18}
+\]
+
+It remains to prove deterministic whole-set inclusion on the event in (18).  Write
+\[
+A_h=\inf\{Q_h(s):p\in C_n,\ s\in S_h(p)\},\qquad
+B_h=\sup\{Q_h(s):p\in C_n,\ s\in S_h(p)\}.
+\]
+If \(q\in\Theta(p_0)\), then \(q^-(p_0)\leq q\leq q^+(p_0)\).  When \(p_0\in C_n\), the definitions of \(A_h,B_h\) and \(\text{thm:sieve-endpoint-approximation}\) give
+\[
+A_h\leq q_h^-(p_0)\leq q^-(p_0)+C_{\mathrm{sieve}}h,
+\qquad
+B_h\geq q_h^+(p_0)\geq q^+(p_0)-C_{\mathrm{sieve}}h.
+\]
+Consequently
+\[
+A_h-C_{\mathrm{sieve}}h\leq q\leq B_h+C_{\mathrm{sieve}}h.      \tag{19}
+\]
+The interval in (19) is \(I_{\mathrm{abs}}\) by \(\text{def:abstract-outer-interval}\), so \(\Theta(p_0)\subseteq I_{\mathrm{abs}}\) on \(\{p_0\in C_n\}\).  Combining this fact with (18) and then taking the infimum over \(M_0\in M_G\) proves
+\[
+\inf_{M_0\in M_G}\Pr_{M_0}\{\Theta(p_0)\subseteq I_{\mathrm{abs}}\}\geq1-\alpha.
+\]
+Only the law of the fixed finite code appears in (15)--(19), which proves the stated qualification concerning the unbinned law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact observable-law inversion and deterministic set inclusion deliver whole-set validity without endpoint differentiability or a computational encoding assumption. \textit{Gap.} Romano and Shaikh provide uniform asymptotic identified-set coverage. Zhang, Tian, and Bareinboim's Definition 2.3 and Theorem 2.4 concern finite exact canonicalization. Tan, Blanchet, and Syrgkanis define their estimator at finite sample and prove almost-sure asymptotic consistency and bracketing, but do not provide an exact finite-sample confidence region uniformly covering the whole fixed-coded-law identified set. \textit{Consumer.} The theorem supplies the validity benchmark against which any implementable certified subclass can be assessed.
+
+\begin{theorem}[thm:excess-width-decomposition]\label{thm:excess-width-decomposition}
+On the event \(p_0\in C_n\), \(\operatorname{len}(I_{\mathrm{abs}})-\{q^+(p_0)-q^-(p_0)\}\le\omega_Q(r_n)+4C_{\mathrm{sieve}}h\). The two factors of \(2C_{\mathrm{sieve}}h\) respectively account for sieve endpoint displacement and the enlargement needed for outer validity.
+\end{theorem}
+\begin{proof}
+Work on \(p_0\in C_n\), and let \(\mathcal P_n=\{p\in C_n:\Theta(p)\ne\varnothing\}\).  By the exact-law preservation in both directions asserted by \(\text{thm:sieve-endpoint-approximation}\), incompatible laws contribute no sieve points, while \(p_0\in\mathcal P_n\).  With \(c=C_{\mathrm{sieve}}h\), the endpoint bound in that theorem gives
+\[
+\inf_{p\in\mathcal P_n}q_h^-(p)\geq\inf_{p\in\mathcal P_n}q^-(p)-c,
+\qquad
+\sup_{p\in\mathcal P_n}q_h^+(p)\leq\sup_{p\in\mathcal P_n}q^+(p)+c. \tag{20}
+\]
+The definition of \(I_{\mathrm{abs}}\) and (20) imply
+\[
+\operatorname{len}(I_{\mathrm{abs}})
+\leq \sup_{p\in\mathcal P_n}q^+(p)-\inf_{p\in\mathcal P_n}q^-(p)+4c. \tag{21}
+\]
+For every \(p\in\mathcal P_n\), both \(p\) and \(p_0\) lie in \(C_n\), whence
+\[
+\lVert p-p_0\rVert_1\leq\operatorname{diam}_{\ell_1}(C_n)=r_n. \tag{22}
+\]
+Moreover, both are induced by members of \(M_G\).  The two suprema in \(\text{def:endpoint-modulus}\), applied with (22), therefore give
+\[
+\begin{aligned}
+\sup_{p\in\mathcal P_n}\{q^+(p)-q^+(p_0)\}
+&\leq \sup_{\substack{p=p_M,\ p'=p_{M'}\\M,M'\in M_G,\ \lVert p-p'\rVert_1\leq r_n}}
+ |q^+(p)-q^+(p')|,\\
+\sup_{p\in\mathcal P_n}\{q^-(p_0)-q^-(p)\}
+&\leq \sup_{\substack{p=p_M,\ p'=p_{M'}\\M,M'\in M_G,\ \lVert p-p'\rVert_1\leq r_n}}
+ |q^-(p)-q^-(p')|.
+\end{aligned}                                                       \tag{23}
+\]
+Subtracting \(q^+(p_0)-q^-(p_0)\) from (21) and adding the two bounds in (23) yields exactly
+\[
+\operatorname{len}(I_{\mathrm{abs}})-\{q^+(p_0)-q^-(p_0)\}
+\leq\omega_Q(r_n)+4C_{\mathrm{sieve}}h.
+\]
+In (21), two copies of \(c\) come from the two sieve endpoint displacements in (20), and two further copies are the explicit outer enlargement in \(I_{\mathrm{abs}}\), proving the stated accounting.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The decomposition separates sampling-induced endpoint instability from deterministic mixed-response approximation. \textit{Gap.} Neural partial-identification papers report convergence or empirical widths, while calibrated projection methods do not isolate a graph-specific response-sieve term under exact finite-sample coverage. \textit{Consumer.} Applied analysts can determine whether additional observations or a finer response mesh can narrow the mathematically valid full-class interval.
+
+\begin{theorem}[thm:rational-certificate-termination]\label{thm:rational-certificate-termination}
+Under \(\text{ass:rational-box-inputs}\), \(\text{ass:semialgebraic-code}\), \(\text{ass:rational-expression-grammar}\), \(\text{ass:rational-alpha}\), and \(\text{ass:certified-integral-enclosures}\), for every fixed rational \(h>0\) and \(\epsilon_{\mathrm{opt}}>0\), the two-stage exact-decision and fair longest-edge procedure for \(\text{def:certifiable-response-program}\) terminates.  A standalone exact rational-arithmetic checker verifies exactly one of the following outputs: (i) every finite rational semialgebraic disjunct is infeasible, \(\mathsf{cert}=\mathsf{cert}_{\varnothing}\), and \(I_{\mathrm{out}}=\varnothing\); or (ii) the encoded program is nonempty, a real-algebraic feasible sample is verified, and a finite rational branch-and-bound certificate supplies \(L_{\mathrm{cert}},U_{\mathrm{cert}}\) with total endpoint error at most \(\epsilon_{\mathrm{opt}}\), including the certified integral-enclosure contribution, and hence supplies a finite rational \(I_{\mathrm{out}}\).  On \(p_0\in C_n\), \(\Theta_{\mathrm{cert}}(p_0)\subseteq I_{\mathrm{out}}\) in either case; in case (i), \(\Theta_{\mathrm{cert}}(p_0)=\varnothing\).  In case (ii), whenever \(\mathcal F_{n,\mathrm{cert}}\ne\varnothing\),
+\[
+0\leq\operatorname{len}(I_{\mathrm{out}})-(u_{n,\mathrm{cert}}-\ell_{n,\mathrm{cert}})
+\leq4C_{\mathrm{sieve}}h+2\epsilon_{\mathrm{opt}}.
+\]
+For every Autobounds discrete polynomial program expressible in this grammar, the same infeasible-or-certified-endpoints dichotomy replaces a solver-reported epsilon gap by an independently checkable exact rational certificate.
+\end{theorem}
+\begin{proof}
+Fix rational \(h>0\) and \(\epsilon_{\mathrm{opt}}>0\), and impose the five effective assumptions in the statement.  By \(\text{def:certifiable-response-program}\), there are finitely many likelihood disjuncts because \(\mathcal E_{n,K}\) is finite.  The simplex constraints and every likelihood inequality are polynomial weak inequalities with rational coefficients by \(\text{def:exact-multinomial-region}\) and \(\text{ass:rational-alpha}\).  The support is a bounded rational box by \(\text{ass:rational-box-inputs}\).  Expanding each \(\min\), \(\max\), and ReLU graph into its finitely many activation cases turns every branch into a quantifier-free rational polynomial sign formula by \(\text{ass:rational-expression-grammar}\) and \(\text{ass:semialgebraic-code}\).  Thus the whole encoded feasible set is a finite union of rational semialgebraic sets.
+
+Apply \(\text{lem:exact-rational-semialgebraic-decision}\) to every disjunct.  This exact computation terminates.  If every disjunct is empty, its replayable sign-decision transcripts form \(\mathsf{cert}_{\varnothing}\).  The checker repeats only exact polynomial arithmetic over \(\mathbb Q\), so this infeasibility conclusion is independent of the generating solver.  Moreover, forward retention in \(\text{lem:certifiable-program-lifting}\) says that each \(M\in\mathcal F_{n,\mathrm{cert}}\) produces a feasible response-program point.  Hence emptiness of the encoded set implies
+\[
+\mathcal F_{n,\mathrm{cert}}=\varnothing. \tag{1}
+\]
+If \(p_0\in C_n\) and \(q\in\Theta_{\mathrm{cert}}(p_0)\), then by \(\text{def:identified-set}\) there is an \(M\in M_{\mathrm{cert}}\) with \(p_M=p_0\) and \(q=Q(M)\).  The condition \(p_0\in C_n\) would put this \(M\) in \(\mathcal F_{n,\mathrm{cert}}\), contradicting (1).  Therefore \(\Theta_{\mathrm{cert}}(p_0)=\varnothing=I_{\mathrm{out}}\) in the infeasible case, proving the asserted containment there.
+
+Suppose instead that some disjunct is nonempty.  The same exact decision algorithm returns a real-algebraic sample point and verifies its polynomial signs.  All constraints are weak and their graph atoms are closed; the encoded set is therefore closed.  Since it lies in the bounded support and parameter boxes, \(\text{ass:compact-support}\) makes it compact.  Its bounded query objective consequently has finite lower and upper extrema; denote them by \(a_h\) and \(b_h\).
+
+Run fair longest-edge subdivision, using the exact sign decision above to discard an empty box and to obtain a verified algebraic feasible sample in every retained box.  Along any infinite nested chain of longest-edge subdivisions, every coordinate of positive initial width is bisected infinitely often, so the box diameter tends to zero.  Rational natural interval extensions of the finitely many polynomial, \(\min\), \(\max\), and ReLU expressions then have widths tending to zero.  The integral-enclosure widths also tend uniformly to zero by \(\text{ass:certified-integral-enclosures}\).
+
+We now prove finite termination rather than infer it from pointwise convergence.  If the lower-endpoint gap failed to fall below its allocated positive tolerance at every finite depth, choose an offending retained box at each depth.  Finite branching and compactness yield a nested offending subsequence with singleton limit.  Exact feasibility decisions rule out an infeasible limit: a box whose intersection with the closed semialgebraic feasible set is empty is discarded.  At a feasible limit, both the objective interval width and the verified integral-enclosure width tend to zero, while the algebraic feasible sample in the same box supplies an incumbent with the same limiting objective value.  Thus the lower-bound--incumbent gap tends to zero, contradicting that the boxes remain offending.  The identical argument applied to \(-Q_h^{\mathrm{cert}}\) proves finite termination for the upper endpoint.  Splitting the requested error into nonnegative rational parts \(\epsilon_{\mathrm{alg}}\) and \(\epsilon_{\mathrm{int}}\), with \(\epsilon_{\mathrm{alg}}+\epsilon_{\mathrm{int}}\leq\epsilon_{\mathrm{opt}}\), allocates branch-and-bound error and integral-enclosure error inside the requested total tolerance.
+
+Every initial endpoint, subdivision point, interval evaluation, and recorded enclosure is rational.  The algebraic sample is checked through its rational univariate representation and exact rational polynomial sign determinations supplied by \(\text{lem:exact-rational-semialgebraic-decision}\).  Hence the finite tree and the exact decision transcript constitute the nonempty certificate in \(\text{def:rational-certificate-calculus}\), and the standalone checker verifies
+\[
+L_{\mathrm{cert}}\leq a_h\leq L_{\mathrm{cert}}+\epsilon_{\mathrm{alg}},
+\qquad
+U_{\mathrm{cert}}-\epsilon_{\mathrm{alg}}\leq b_h\leq U_{\mathrm{cert}}. \tag{2}
+\]
+
+It remains to relate these computational extrema to the causal target.  Put \(c=C_{\mathrm{sieve}}h\).  Forward lifting in \(\text{lem:certifiable-program-lifting}\) shows that every \(M\in\mathcal F_{n,\mathrm{cert}}\) has a retained response point whose query differs from \(Q(M)\) by at most \(c\).  Reverse lifting on exact branches, and limiting reverse lifting on enclosure branches, gives the converse comparison; the latter incurs at most the certified \(\epsilon_{\mathrm{int}}\) contribution.  Taking infima and suprema gives
+\[
+\ell_{n,\mathrm{cert}}-c-\epsilon_{\mathrm{int}}
+\leq a_h\leq\ell_{n,\mathrm{cert}}+c,
+\qquad
+u_{n,\mathrm{cert}}-c
+\leq b_h\leq u_{n,\mathrm{cert}}+c+\epsilon_{\mathrm{int}}. \tag{3}
+\]
+For direct containment, only forward lifting is needed.  Combining it with the outer sides of (2), every \(M\in\mathcal F_{n,\mathrm{cert}}\) satisfies
+\[
+L_{\mathrm{cert}}-c\leq Q(M)\leq U_{\mathrm{cert}}+c. \tag{4}
+\]
+If \(p_0\in C_n\), every \(q\in\Theta_{\mathrm{cert}}(p_0)\) equals \(Q(M)\) for some \(M\in\mathcal F_{n,\mathrm{cert}}\).  Equation (4) and \(\text{def:outer-interval}\) therefore prove \(\Theta_{\mathrm{cert}}(p_0)\subseteq I_{\mathrm{out}}\) in the nonempty-program case.
+
+Now assume only for the width assertion that \(\mathcal F_{n,\mathrm{cert}}\ne\varnothing\).  Equation (4) contains its entire bounded query range, so
+\[
+\operatorname{len}(I_{\mathrm{out}})\geq
+u_{n,\mathrm{cert}}-\ell_{n,\mathrm{cert}}. \tag{5}
+\]
+Equations (2)--(3) and \(\epsilon_{\mathrm{alg}}+\epsilon_{\mathrm{int}}\leq\epsilon_{\mathrm{opt}}\) imply
+\[
+L_{\mathrm{cert}}\geq\ell_{n,\mathrm{cert}}-c-\epsilon_{\mathrm{opt}},
+\qquad
+U_{\mathrm{cert}}\leq u_{n,\mathrm{cert}}+c+\epsilon_{\mathrm{opt}}. \tag{6}
+\]
+Using \(\text{def:outer-interval}\),
+\[
+\begin{aligned}
+\operatorname{len}(I_{\mathrm{out}})
+&=U_{\mathrm{cert}}-L_{\mathrm{cert}}+2c\\
+&\leq u_{n,\mathrm{cert}}-\ell_{n,\mathrm{cert}}+4c+2\epsilon_{\mathrm{opt}}.
+\end{aligned} \tag{7}
+\]
+Equations (5)--(7) prove the two-sided width claim.
+
+Finally, an Autobounds discrete polynomial program expressible in the stipulated grammar has finitely many response labels and exact polynomial integral terms.  It is therefore a special case of the same finite rational semialgebraic decision problem, with \(\epsilon_{\mathrm{int}}=0\).  The infeasibility transcript or, respectively, equations (2), (4), and (7), supplies the claimed independently replayable rational certificate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact feasibility layer makes the certificate total: every input ends in a checked empty output or in checked finite endpoints. \textit{Gap.} Real-algebraic decision theory supplies feasibility machinery and causal polynomial solvers supply numerical bounds, but the total checker-verifiable multinomial, coded-law, integral, and causal-query compilation is not supplied by either literature. \textit{Consumer.} Autobounds-style analyses can archive a checked infeasibility transcript or a checked endpoint tree without treating the generating solver as trusted.
+
+\begin{proposition}[prop:certified-neural-inner]\label{prop:certified-neural-inner}
+Suppose an independent checker verifies \(M_-,M_+\in\mathcal F_{n,\mathrm N}\), \(Q(M_-)\le\ell_{n,\mathrm N}+\eta_{\mathrm{in}}\), and \(Q(M_+)\ge u_{n,\mathrm N}-\eta_{\mathrm{in}}\) from \(\mathsf{cert}_{\mathrm{in}}\). Then \(I_{\mathrm{in}}\subseteq[\ell_{n,\mathrm{cert}},u_{n,\mathrm{cert}}]\subseteq I_{\mathrm{out}}\), and \(0\le\operatorname{len}(I_{\mathrm{out}})-\operatorname{len}(I_{\mathrm{in}})\le\Gamma_n+4C_{\mathrm{sieve}}h+2\epsilon_{\mathrm{opt}}+2\eta_{\mathrm{in}}\).
+\end{proposition}
+\begin{proof}
+Put \(x=Q(M_-)\) and \(y=Q(M_+)\).  The checked memberships give \(M_-,M_+\in\mathcal F_{n,\mathrm N}\).  Since \(M_{\mathrm N}\subseteq M_{\mathrm{cert}}\) by \(\text{def:neural-scm-class}\), both witnesses lie in \(\mathcal F_{n,\mathrm{cert}}\), and therefore
+\[
+\ell_{n,\mathrm{cert}}\leq x,y\leq u_{n,\mathrm{cert}}. \tag{8}
+\]
+In particular, \(\mathcal F_{n,\mathrm{cert}}\ne\varnothing\).  The infeasible alternative in \(\text{thm:rational-certificate-termination}\) entails \(\mathcal F_{n,\mathrm{cert}}=\varnothing\), so that alternative is impossible here.  The theorem's nonempty branch and (8) therefore give
+\[
+I_{\mathrm{in}}\subseteq[\ell_{n,\mathrm{cert}},u_{n,\mathrm{cert}}]
+\subseteq I_{\mathrm{out}}. \tag{9}
+\]
+The first inclusion uses the ordering convention in \(\text{def:neural-inner-interval}\).  Thus the claimed length difference is nonnegative.
+
+The two checked near-extremality inequalities imply
+\[
+y-x\geq (u_{n,\mathrm N}-\eta_{\mathrm{in}})
+-(\ell_{n,\mathrm N}+\eta_{\mathrm{in}})
+=u_{n,\mathrm N}-\ell_{n,\mathrm N}-2\eta_{\mathrm{in}}. \tag{10}
+\]
+Because \(\operatorname{len}(I_{\mathrm{in}})=|y-x|\geq y-x\), (10) also holds when the two certified values arrive in reverse order.  The width bound in \(\text{thm:rational-certificate-termination}\) and (10) yield
+\[
+\begin{aligned}
+\operatorname{len}(I_{\mathrm{out}})-\operatorname{len}(I_{\mathrm{in}})
+&\leq (u_{n,\mathrm{cert}}-\ell_{n,\mathrm{cert}})
+-(u_{n,\mathrm N}-\ell_{n,\mathrm N})\\
+&\quad+4C_{\mathrm{sieve}}h+2\epsilon_{\mathrm{opt}}+2\eta_{\mathrm{in}}\\
+&=\Gamma_n+4C_{\mathrm{sieve}}h+2\epsilon_{\mathrm{opt}}+2\eta_{\mathrm{in}},
+\end{aligned}
+\]
+where the final equality is \(\text{def:neural-target-extrema}\).  This proves the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Verified neural witnesses themselves certify that the model-feasible set is nonempty, so the inner interval necessarily invokes the finite-endpoint branch. \textit{Gap.} Existing neural SCM optimizers do not independently certify exact coded-law membership and near-extremality relative to explicit neural extrema. \textit{Consumer.} Neural partial-identification software can report representation, sieve, integral, global-optimization, and witness-search contributions after the nonempty branch is checked.
+
+\begin{proposition}[prop:uniform-binary-bow]\label{prop:uniform-binary-bow}
+For the separate discrete canonical atomic-response model \(M_{\mathrm{bow}}^{\mathrm{atom}}\) with uniform observational law \(p_{\mathrm{bow}}\), the finite response-function linear program has sharp average-treatment-effect identified set \(\Theta_{\mathrm{bow}}^{\mathrm{atom}}=[-1/2,1/2]\). This proposition is a discrete regression test and asserts neither inclusion in \(M_G\) nor a mesh-zero or density limit of the continuous-noise class.
+\end{proposition}
+\begin{proof}
+By \texttt{def:bow-specialization}, a canonical response atom is indexed by a triple \((c,a,b)\in\{0,1\}^3\), where \(c\) is the response of \(X\), while \(a=Y(0)\) and \(b=Y(1)\) are the two responses of \(Y\).  For an arbitrary \(M\in M_{\mathrm{bow}}^{\mathrm{atom}}\), aggregate all exogenous atoms having the same response triple and write
+\[
+  \lambda_{cab}:=\Pr_M\{X=c,\ Y(0)=a,\ Y(1)=b\},
+  \qquad (c,a,b)\in\{0,1\}^3.
+\]
+Thus \(\lambda_{cab}\ge 0\) and \(\sum_{c,a,b}\lambda_{cab}=1\).  The structural equations associated with the response labels are \(X=c\) and \(Y=Y(X)\).  Consequently, on atoms with \(c=0\) the observed outcome is \(a\), whereas on atoms with \(c=1\) it is \(b\).  Hence the requirement \(p_M=p_{\mathrm{bow}}\), together with \(p_{\mathrm{bow}}(x,y)=1/4\), is exactly
+\[
+  \sum_{b=0}^1\lambda_{0ab}=\frac14
+  \quad(a=0,1),
+  \qquad
+  \sum_{a=0}^1\lambda_{1ab}=\frac14
+  \quad(b=0,1).
+  \tag{1}
+\]
+Conversely, every nonnegative array satisfying (1) has total mass one and defines an admissible finite atomic-response SCM: take one shared exogenous response label \((C,A,B)\) with probabilities \(\lambda_{cab}\), and set \(X=C\) and \(Y=(1-X)A+XB\).  This SCM is compatible with the bow because \(X\) is a function of the shared exogenous label and \(Y\) is a function of \(X\) and that same label.  Its observed law is uniform by (1).  Thus (1), nonnegativity, and no further constraints give the finite response-function linear program in this specialization.
+
+For such an SCM, the average treatment effect is the linear functional
+\[
+  \tau(M):=\mathbb E_M[Y(1)-Y(0)]
+  =\sum_{c=0}^1\sum_{a=0}^1\sum_{b=0}^1
+    \lambda_{cab}(b-a)
+  =T_0+T_1,
+  \tag{2}
+\]
+where \(T_c:=\sum_{a,b}\lambda_{cab}(b-a)\).  Since \(0\le b\le 1\), the first pair of constraints in (1) gives
+\[
+  -\frac14
+  =-\sum_{b=0}^1\lambda_{01b}
+  \le T_0
+  \le \sum_{b=0}^1\lambda_{00b}
+  =\frac14.
+  \tag{3}
+\]
+Indeed, the lower inequality follows termwise from \(b-a\ge -a\), and the upper inequality follows termwise from \(b-a\le 1-a\).  Likewise, since \(0\le a\le 1\), the second pair of constraints in (1) yields
+\[
+  -\frac14
+  =-\sum_{a=0}^1\lambda_{1a0}
+  \le T_1
+  \le \sum_{a=0}^1\lambda_{1a1}
+  =\frac14,
+  \tag{4}
+\]
+because \(b-a\ge b-1\) and \(b-a\le b\) termwise.  Equations (2)--(4) prove that every compatible atomic-response SCM satisfies
+\[
+  -\frac12\le \tau(M)\le\frac12.
+  \tag{5}
+\]
+
+It remains to prove attainability.  Define two nonnegative response-mass arrays, with every unlisted entry equal to zero, by
+\[
+  \lambda^+_{001}=\lambda^+_{011}
+  =\lambda^+_{100}=\lambda^+_{101}=\frac14
+\]
+and
+\[
+  \lambda^-_{000}=\lambda^-_{010}
+  =\lambda^-_{110}=\lambda^-_{111}=\frac14.
+\]
+Both arrays satisfy (1), so the converse construction above produces two members of \(M_{\mathrm{bow}}^{\mathrm{atom}}\) having observational law \(p_{\mathrm{bow}}\).  Direct substitution into (2) gives
+\[
+  \tau(\lambda^+)=\frac12,
+  \qquad
+  \tau(\lambda^-)=-\frac12.
+  \tag{6}
+\]
+For each \(t\in[0,1]\), the array
+\[
+  \lambda^{(t)}:=t\lambda^+ +(1-t)\lambda^-
+\]
+is nonnegative, satisfies (1), has finite support, and therefore defines another admissible atomic-response SCM.  By the linearity in (2),
+\[
+  \tau(\lambda^{(t)})
+  =t\frac12+(1-t)\left(-\frac12\right)
+  =t-\frac12.
+\]
+As \(t\) ranges over \([0,1]\), this value ranges over the entire interval \([-1/2,1/2]\).  Combining this attainment with (5) proves the sharp equality
+\[
+  \Theta_{\mathrm{bow}}^{\mathrm{atom}}=[-1/2,1/2].
+\]
+The argument uses only the separate finite atomic class in \texttt{def:bow-specialization}; it asserts no inclusion in, or limiting relationship with, \(M_G\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The atomic bow calculation is a nondegenerate confounded sanity check whose sharp linear-program values can be established directly. \textit{Gap.} This is not offered as new identification theory; it tests the discrete canonical implementation without making an invalid zero-mesh claim about bounded continuous densities. \textit{Consumer.} Autobounds and neural-SCM implementations obtain a common regression target with analytically checkable sharp endpoints.
+
+\begin{proposition}[prop:ua-dcm-consumer-consequence]\label{prop:ua-dcm-consumer-consequence}
+Downstream consumer consequence: in the Parents' Labor Supply finite table, restrict the structural inputs to \(M_{\mathrm{cert}}\) and instantiate \(Q_a\) with the UA-DCM action values. If some \(a\in A\) has a strictly positive independently checked outer lower endpoint for every \(\Delta_{ab}\), \(b\ne a\), then on \(p_0\in C_n\), \(\inf_{M\in M_{\mathrm{cert}}:p_M=p_0}\Delta_{ab}(M)>0\) for every \(b\ne a\). This sign implication is a direct use of outer-set containment, not a separate identification or sampling theorem.
+\end{proposition}
+\begin{proof}
+Fix \(a\in A\), and for each \(b\ne a\) denote the independently checked outer lower endpoint for \(\Delta_{ab}\) by \(B_{ab}>0\).  By the corrected \(\text{def:ua-decision-specialization}\), such an endpoint is reported only on the checker-verified nonempty branch of \(\text{thm:rational-certificate-termination}\).  On \(p_0\in C_n\), apply that theorem with query \(\Delta_{ab}\) to obtain
+\[
+\{\Delta_{ab}(M):M\in M_{\mathrm{cert}},\ p_M=p_0\}
+\subseteq I_{\mathrm{out},ab}\subseteq[B_{ab},\infty). \tag{11}
+\]
+If the set on the left is nonempty, (11) gives
+\[
+\inf_{M\in M_{\mathrm{cert}}:\,p_M=p_0}\Delta_{ab}(M)
+\geq B_{ab}>0. \tag{12}
+\]
+If it is empty, the standard extended-real convention \(\inf\varnothing=+\infty\) gives the same strict inequality.  Since \(b\ne a\) was arbitrary, (12) holds for every competitor.  The proof uses only checker-verified outer containment and the action-contrast specialization, so it is a downstream sign implication and not a separate identification or sampling theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The consumer now distinguishes a certified empty contrast program from a nonempty program with a strictly positive checked lower endpoint. \textit{Gap.} Rahman et al. supply the UA-DCM formulation and Parents' Labor Supply application; the sign implication remains only an application of the proposed totalized outer certificate. \textit{Consumer.} The Parents' Labor Supply workflow can report either checked infeasibility or a checker-verified subclass-robust action comparison, without turning the definitional sign implication into a headline theorem.
+
+\begin{openendedquestion}[oeq:neural-endpoint-density]\label{oeq:neural-endpoint-density}
+For every \(\eta>0\), can rational district-shared ReLU mechanisms and rational histogram district densities be constructed so that their exact coded-law feasible extrema satisfy \(\Gamma_n\le\eta\), with independently checkable membership and near-extremality certificates at any prescribed \(\eta_{\mathrm{in}}>0\)?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The open issue is whether graph-compatible universal approximation can preserve finite coded-law feasibility exactly while approaching both confidence-feasible causal extrema. \textit{Gap.} Xia et al. establish graph-compatible neural expressiveness and Tan, Blanchet, and Syrgkanis establish Wasserstein approximation, but neither proves vanishing exact-feasibility residual \(\Gamma_n\) with rational certificates. \textit{Consumer.} A positive answer would make the reported neural residual converge to zero while every finite-stage inner endpoint remains independently checkable.
+
+\begin{lemma}[lem:exact-rational-semialgebraic-decision]\label{lem:exact-rational-semialgebraic-decision}
+Let \(\Phi\) be a quantifier-free Boolean formula whose atoms are sign conditions on finitely many polynomials in \(\mathbb Q[x_1,\ldots,x_m]\).  There is a terminating exact real-algebraic algorithm that decides whether the realization of \(\Phi\) in \(\mathbb R^m\) is empty and, when it is nonempty, computes a real-univariate representation of a sample point.  Its sign determinations and sample-point representation use exact polynomial arithmetic over \(\mathbb Q\).
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Exact finite-sample coverage concerns the identified set induced by the prespecified measurable finite code \(\kappa\), not the identified set under the entire unbinned continuous observational law. The executable output covers only the explicitly declared rationally certifiable subclass. The distinguished empty output certifies emptiness of the finite encoded response program and, by forward lifting, emptiness of every certifiable confidence-feasible causal fiber it could contain. A nonempty finite outer program need not by itself assert that a particular coded-law fiber is nonempty; accordingly, the excess-width comparison to \(u_{n,\mathrm{cert}}-\ell_{n,\mathrm{cert}}\) is stated only when \(\mathcal F_{n,\mathrm{cert}}\ne\varnothing\). Certified outer integral errors are included in the total optimization tolerance. Fixed-tolerance termination does not imply polynomial runtime.
+
+\section{Honest scope}
+
+The exact multinomial inversion is settled once deterministic outer lifting is available. The full-class theorem remains relative to the fixed measurable code. Rational computation is claimed only for compact rational boxes, rational \(\alpha\), semialgebraic coding cells, the specified rational grammar, and exact or uniformly convergent checker-certified integral enclosures. The computation first returns either an exact infeasibility transcript and empty output or a verified nonempty finite program followed by rational endpoint certification. Width relative to the certifiable SCM extrema is asserted only when that SCM feasible set is nonempty. The binary bow result remains a separate discrete atomic-response diagnostic. Vanishing neural representation residual \(\Gamma_n\) remains open; every reported neural witness nevertheless carries independently checked feasibility and near-extremality tolerance.
+
+\begin{thebibliography}{99}
+
+  \bibitem{TanBlanchetSyrgkanis2024} Jiyuan Tan, Jose Blanchet, and Vasilis Syrgkanis. Consistency of Neural Causal Partial Identification. Advances in Neural Information Processing Systems, 2024. arXiv:2405.15673.
+
+  \bibitem{ZhangTianBareinboim2022} Junzhe Zhang, Jin Tian, and Elias Bareinboim. Partial Counterfactual Identification from Observational and Experimental Data. Proceedings of the 39th International Conference on Machine Learning, 2022. arXiv:2110.05690.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association, 119(547):1778--1793, 2024.
+
+  \bibitem{ChafaiConcordet2009} Djalil Chafai and Didier Concordet. Confidence Regions for the Multinomial Parameter with Small Sample Size. Journal of the American Statistical Association, 104:1071--1079, 2009.
+
+  \bibitem{RomanoShaikh2010} Joseph P. Romano and Azeem M. Shaikh. Inference for the Identified Set in Partially Identified Econometric Models. Econometrica, 78(1):169--211, 2010.
+
+  \bibitem{BalazadehSyrgkanisKrishnan2022} Vahid Balazadeh Meresht, Vasilis Syrgkanis, and Rahul G. Krishnan. Partial Identification of Treatment Effects with Implicit Generative Models. Advances in Neural Information Processing Systems, 2022. arXiv:2210.08139.
+
+  \bibitem{XiaLeeBengioBareinboim2021} Kevin Xia, Kai-Zhan Lee, Yoshua Bengio, and Elias Bareinboim. The Causal-Neural Connection: Expressiveness, Learnability, and Inference. Advances in Neural Information Processing Systems, 2021. arXiv:2107.00793.
+
+  \bibitem{MelnychukFrauenFeuerriegel2023} Valentyn Melnychuk, Dennis Frauen, and Stefan Feuerriegel. Partial Counterfactual Identification for Continuous Outcomes. Advances in Neural Information Processing Systems, 2023. arXiv:2306.01424.
+
+  \bibitem{CheungGleixnerSteffy2017} Kevin K. H. Cheung, Ambros Gleixner, and Daniel E. Steffy. Verifying Integer Programming Results. Integer Programming and Combinatorial Optimization, pages 148--160, 2017.
+
+  \bibitem{CookKochSteffyWolter2013} William Cook, Thorsten Koch, Daniel E. Steffy, and Kati Wolter. A Hybrid Branch-and-Bound Approach for Exact Rational Mixed-Integer Programming. Mathematical Programming Computation, 5:305--344, 2013.
+
+  \bibitem{SteffyWolter2013} Daniel E. Steffy and Kati Wolter. Valid Linear Programming Bounds for Exact Mixed-Integer Programming. INFORMS Journal on Computing, 25(2):271--284, 2013.
+
+  \bibitem{BunelLuTurkaslanTorrKohliKumar2020} Rudy Bunel, Jingyue Lu, Ilker Turkaslan, Philip H. S. Torr, Pushmeet Kohli, and M. Pawan Kumar. Branch and Bound for Piecewise Linear Neural Network Verification. Journal of Machine Learning Research, 21, 2020. arXiv:1909.06588.
+
+  \bibitem{ShiJinKolterJanaHsiehZhang2024} Zhouxing Shi, Qirui Jin, Zico Kolter, Suman Jana, Cho-Jui Hsieh, and Huan Zhang. Neural Network Verification with Branch-and-Bound for General Nonlinearities. 2024. arXiv:2405.21063.
+
+  \bibitem{ChoeKwonParkLee2026} Yesong Choe, Yeahoon Kwon, Min Woo Park, and Sanghack Lee. Canonical Domain Reduction for Partial Counterfactual Identification. Proceedings of the 42nd Conference on Uncertainty in Artificial Intelligence, 2026.
+
+  \bibitem{RahmanJiangHassonKocaoglu2026} Md Musfiqur Rahman, Ziwei Jiang, Hilaf Hasson, and Murat Kocaoglu. Decomposing Epistemic Uncertainty for Causal Decision Making. 2026. arXiv:2601.22736.
+
+  \bibitem{BalkePearl1997} Alexander Balke and Judea Pearl. Bounds on Treatment Effects from Studies with Imperfect Compliance. Journal of the American Statistical Association, 92(439):1171--1176, 1997.
+
+  \bibitem{KaidoMolinariStoye2019} Hiroaki Kaido, Francesca Molinari, and Jorg Stoye. Confidence Intervals for Projections of Partially Identified Parameters. Econometrica, 87(4):1397--1432, 2019.
+
+  \bibitem{Tsybakov2009} Alexandre B. Tsybakov. Introduction to Nonparametric Estimation. Springer, 2009.
+
+  \bibitem{BasuPollackRoy2006} Saugata Basu, Richard Pollack, and Marie-Fran\c{c}oise Roy. Algorithms in Real Algebraic Geometry, second edition, Algorithms and Computation in Mathematics 10. Springer, 2006. doi:10.1007/3-540-33099-2.
+
+\end{thebibliography}
+
+\end{document}

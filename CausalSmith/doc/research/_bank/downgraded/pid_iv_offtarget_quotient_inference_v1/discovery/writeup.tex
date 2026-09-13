@@ -1,0 +1,1243 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}iv\_\allowbreak{}offtarget\_\allowbreak{}quotient\_\allowbreak{}inference}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Only selected levels of a finely recorded exposure may define meaningful interventions.  Under positive-probability random assignment and exclusion restricted to those levels, the full categorical instrumental-variable model has an exact quotient: the sharp law of the target potential-outcome vector is the image of a reduced response simplex that keeps target outcome cells and one off-target mass per arm.  A boundary-safe right inverse removes the number and labels of off-target categories.  At the matching one-off-target cardinalities, explicit forward and reverse constructions also identify the published ill-definition and contamination NPSEM response-law fibers with the present fiber while preserving the observed and target laws.  By contrast, the fully excluded categorical model maps exactly to the common-response submodel, whose strictness is certified by the enumerated witness.  Conditional on fixed finite arm counts, a rule-specific convexity inequality yields exact equality of the full and skeleton nuisance-minimax values without asserting pointwise risk domination, and a reduced method-of-types confidence region has calibration independent of \( |\mathcal C| \).  The exact kink frontier remains the construct-and-determine residual.
+
+\section{Project justification}
+
+\paragraph{Gap.} Gabriel, Sachs, and Sj"olander's specified low-cardinality results are stated in ill-definition and contamination NPSEMs, so a valid extension requires a model-level transfer rather than similarity of displayed bounds.  Song, Guo, Chan, and Richardson provide an adjacent arbitrary-cardinality theory under excluded potential outcomes for every exposure category; that class corresponds to common off-target responses and is strictly smaller than the saturated class studied here.
+
+\paragraph{Niche.} The field-tier niche is the model with common potential outcomes only on \(\mathcal T\), saturated \(R_{c,z}\) on \(\mathcal C\), and the complete law of \(Y_{\mathcal T}\) as the target.  The explicit NPSEM transfer validates the Gabriel comparison at matching one-off-target cardinalities, while the Song response-type bijection marks the stronger fully excluded boundary without identifying it with the quotient.
+
+\paragraph{Fill.} The quotient and its boundary-safe right inverse give sharp identification for arbitrary finite cardinalities.  A two-way latent-function construction proves response-law equivalence with the published one-off-target NPSEMs, and an affine response-type bijection proves that the fully excluded benchmark is exactly the common-response submodel.  In the conditional product experiment, a rule-specific convexity reduction and nuisance-invariant lift give equality of nuisance-minimax values without pointwise risk domination; reduced KL projection gives kink-robust finite-sample coverage; and polyhedral stability converts its radius to a target-set excess bound.
+
+\section{Related work}
+
+The field-tier comparison has two distinct axes.  Gabriel, Sachs, and Sj"olander \cite{GabrielSachsSjolander2025} formulate specified low-cardinality, one-off-target ill-definition and contamination problems.  Theorem 1 now includes an explicit two-way transfer: deterministic coarsening sends each published NPSEM law to the saturated response-law class while preserving randomization, the observed arm law, and \(\operatorname{law}(Y_{\mathcal T})\); conversely, taking the full response type as the latent variable and using degenerate independent errors realizes every saturated one-off-target type in each functional form.  Because the transfer preserves \(p\), it also preserves any relevance restriction expressed in the observed law.  The quotient theorem then strictly extends scope to arbitrary finite \(m,\mathcal T,\mathcal C\), the complete target law, and zero-off-target-mass boundaries; this is not a claim of a strictly tighter numerical bound in their original configurations.  Song, Guo, Chan, and Richardson \cite{SongGuoChanRichardson2024} are the adjacent arbitrary-cardinality fully excluded benchmark.  The response-type map \(Y_c\mapsto(R_{c,z}=Y_c)_z\), with inverse \(R_c\mapsto Y_c=R_c\), shows that their fully excluded class corresponds exactly to \(\mathcal M_{\mathrm{common}}\) after off-target coordinates are omitted from the reported target.  Proposition 1 proves \(\mathcal M_{\mathrm{common}}\subsetneq\mathcal M_{\mathrm{sat}}\) and gives an observed law whose target-contrast intervals differ.  No equality between Song et al.'s projected identified set and \(\Theta(s)\) is claimed.  Their KL construction informs the reduced confidence region.  Sachs, Jonzon, Sj"olander, and Gabriel \cite{SachsJonzonSjolanderGabriel2023} provide response-function incidence machinery; Guo and Richardson \cite{GuoRichardson2021} provide an alphabet-generic relative-entropy concentration tool.  Blackwell \cite{Blackwell1953} supplies the experiment-comparison template, while the unknown allocation kernel necessitates nuisance-minimax rather than pointwise comparison.  Hoffman \cite{Hoffman1952} and Li \cite{Li1993} supply generic polyhedral error-bound tools.  Levis et al. \cite{LevisBonviniZengKeeleKennedy2025} and Gafarov \cite{Gafarov2025} locate the active-facet inference problem but do not settle the target-specific kink frontier.  Boushehrian et al. \cite{BoushehrianBadriAkbariKiyavash2026} show why exponential dependence on substantive support can remain after irrelevant off-target cardinality is removed.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mu=\operatorname{law}((Y_t)_{t\in\mathcal T})\).
+Primary functional / estimator / diagnostic: \(\Theta(s)=\{Bq:q\ge0,\ \mathbf 1^\top q=1,\ Aq=s\}\).
+\begin{itemize}
+  \item \texttt{m} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{number of randomized instrument arms}
+  \item \texttt{Zset} --- \texttt{finite set}; \texttt{instrument support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Z=\{1,\ldots,m\}\)
+  \item \texttt{Tset} --- \texttt{finite set}; \(|\mathcal T|\ge 2\); \texttt{scientifically meaningful target exposure levels}
+  \item \texttt{Cset} --- \texttt{finite set}; \(\mathcal C\) may be empty; \texttt{off-\allowbreak{}target exposure levels}
+  \item \texttt{Xset} --- \texttt{finite set}; \texttt{realized exposure support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=\mathcal T\mathbin{\dot\cup}\mathcal C\)
+  \item \texttt{star} --- \texttt{symbol}; \texttt{collapsed off-\allowbreak{}target label}
+  \par\smallskip\noindent\emph{Definition.} \(\star\notin\mathcal X\)
+  \item \texttt{Yspace} --- \texttt{finite set}; \texttt{outcome support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y=\{0,1\}\)
+  \item \texttt{Zrv} --- \texttt{random variable}; \(\mathcal Z\); \texttt{randomized instrument assignment}
+  \item \texttt{Xz} --- \texttt{random vector}; \(\mathcal X^{\mathcal Z}\); \texttt{potential realized exposures}
+  \par\smallskip\noindent\emph{Definition.} \(X_{\mathcal Z}=(X_z:z\in\mathcal Z)\)
+  \item \texttt{Ytz} --- \texttt{random array}; \(\mathcal Y^{\mathcal T\times\mathcal Z}\); \texttt{target exposure potential outcomes before exclusion}
+  \par\smallskip\noindent\emph{Definition.} \((Y_{t,z}:t\in\mathcal T,z\in\mathcal Z)\)
+  \item \texttt{YT} --- \texttt{random vector}; \(\mathcal Y^{\mathcal T}\); \texttt{excluded target potential outcomes}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{\mathcal T}=(Y_t:t\in\mathcal T)\)
+  \item \texttt{mu} --- \texttt{probability law}; \(\Delta^{2^{|\mathcal T|}-1}\); \texttt{target potential-\allowbreak{}outcome law}
+  \par\smallskip\noindent\emph{Definition.} \(\mu=\operatorname{law}(Y_{\mathcal T})\)
+  \item \texttt{Roff} --- \texttt{random array}; \(\mathcal Y^{\mathcal C\times\mathcal Z}\); \texttt{fully saturated arm-\allowbreak{}specific off-\allowbreak{}target responses}
+  \par\smallskip\noindent\emph{Definition.} \(R_{\mathcal C,\mathcal Z}=(R_{c,z}:c\in\mathcal C,z\in\mathcal Z)\)
+  \item \texttt{Xobs} --- \texttt{random variable}; \(\mathcal X\); \texttt{observed exposure}
+  \item \texttt{Yobs} --- \texttt{random variable}; \(\mathcal Y\); \texttt{observed outcome}
+  \item \texttt{Pfull} --- \texttt{probability law}; \texttt{full causal law}
+  \par\smallskip\noindent\emph{Definition.} \(P\) is a law of \((Z,X_{\mathcal Z},Y_{\mathcal T},R_{\mathcal C,\mathcal Z},X,Y)\)
+  \item \texttt{lambda} --- \texttt{probability vector}; \(\Delta^{m-1}\); \texttt{positive randomized-\allowbreak{}arm probabilities defining the population conditional arm laws}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_z=P(Z=z)\) for every \(z\in\mathcal Z\)
+  \item \texttt{Mclass} --- \texttt{class of probability laws}; \texttt{maintained causal model}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathcal T,\mathcal C}\) is the target-excluded saturated off-target instrumental-variable class
+  \item \texttt{p} --- \texttt{array of probability vectors}; \texttt{full observed arm laws}
+  \par\smallskip\noindent\emph{Definition.} For every \(z\in\mathcal Z\) with \(\lambda_z>0\), \(p_z(x,y)=P(X=x,Y=y\mid Z=z)=P(X=x,Y=y,Z=z)/\lambda_z\)
+  \item \texttt{Dset} --- \texttt{finite set}; \texttt{skeleton alphabet}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D=(\mathcal T\times\mathcal Y)\cup\{\star\}\)
+  \item \texttt{d} --- \texttt{integer}; \texttt{skeleton alphabet size}
+  \par\smallskip\noindent\emph{Definition.} \(d=2|\mathcal T|+1=|\mathcal D|\)
+  \item \texttt{s} --- \texttt{array of probability vectors}; \((\Delta^{d-1})^{m}\); \texttt{observed skeleton law}
+  \par\smallskip\noindent\emph{Definition.} For every \(z\in\mathcal Z\) with \(\lambda_z>0\), \(s_z(t,y)=p_z(t,y)\) and \(s_z(\star)=\sum_{c\in\mathcal C,y\in\mathcal Y}p_z(c,y)\)
+  \item \texttt{sprime} --- \texttt{array of probability vectors}; \((\Delta^{d-1})^{m}\); \texttt{a second feasible skeleton law}
+  \item \texttt{Eeta} --- \texttt{parameter space}; \texttt{off-\allowbreak{}target allocation space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_{\mathcal C}=\Delta^{2|\mathcal C|-1}\) if \(\mathcal C\ne\varnothing\), and \(\mathcal E_{\mathcal C}\) is a singleton if \(\mathcal C=\varnothing\)
+  \item \texttt{eta} --- \texttt{array of probability vectors}; \(\mathcal E_{\mathcal C}^{m}\); \texttt{variation-\allowbreak{}independent off-\allowbreak{}target allocation nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_z(c,y)=p_z(c,y)/s_z(\star)\) when \(s_z(\star)>0\), with the singleton convention when \(\mathcal C=\varnothing\) and an arbitrary fixed probability vector when \(s_z(\star)=0\)
+  \item \texttt{Rred} --- \texttt{finite set}; \texttt{reduced response-\allowbreak{}type space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R=(\mathcal T\cup\{\star\})^{\mathcal Z}\times\mathcal Y^{\mathcal T}\)
+  \item \texttt{Rfull} --- \texttt{finite set}; \texttt{saturated full response-\allowbreak{}type space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_{\mathrm F}=\mathcal X^{\mathcal Z}\times\mathcal Y^{\mathcal T}\times\mathcal Y^{\mathcal C\times\mathcal Z}\)
+  \item \texttt{q} --- \texttt{probability vector}; \(\Delta^{|\mathcal R|-1}\); \texttt{reduced response-\allowbreak{}type law}
+  \item \texttt{pi} --- \texttt{probability vector}; \(\Delta^{|\mathcal R_{\mathrm F}|-1}\); \texttt{full response-\allowbreak{}type law}
+  \item \texttt{kappa} --- \texttt{map}; \(\kappa:\mathcal R_{\mathrm F}\to\mathcal R\); \texttt{type quotient}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa((x_z)_z,y_{\mathcal T},r_{\mathcal C,\mathcal Z})=((\bar x_z)_z,y_{\mathcal T})\), where \(\bar x_z=x_z\) for \(x_z\in\mathcal T\) and \(\bar x_z=\star\) for \(x_z\in\mathcal C\)
+  \item \texttt{A} --- \texttt{binary matrix}; \(A:\mathbb R^{|\mathcal R|}\to\mathbb R^{md}\); \texttt{reduced observable incidence map}
+  \par\smallskip\noindent\emph{Definition.} \((Aq)_{z,(t,y)}=\sum_r q_r\mathbf 1\{x_z(r)=t,y_t(r)=y\}\) and \((Aq)_{z,\star}=\sum_r q_r\mathbf 1\{x_z(r)=\star\}\)
+  \item \texttt{B} --- \texttt{binary matrix}; \(B:\mathbb R^{|\mathcal R|}\to\mathbb R^{2^{|\mathcal T|}}\); \texttt{target-\allowbreak{}law map}
+  \par\smallskip\noindent\emph{Definition.} \((Bq)_y=\sum_r q_r\mathbf 1\{y_{\mathcal T}(r)=y\}\) for \(y\in\mathcal Y^{\mathcal T}\)
+  \item \texttt{AF} --- \texttt{binary matrix}; \(A_{\mathrm F}:\mathbb R^{|\mathcal R_{\mathrm F}|}\to\mathbb R^{2m|\mathcal X|}\); \texttt{full observed incidence map}
+  \par\smallskip\noindent\emph{Definition.} \((A_{\mathrm F}\pi)_{z,(x,y)}=\sum_f\pi_f\mathbf 1\{x_z(f)=x,\ y_t(f)=y\text{ if }x=t\in\mathcal T,\ r_{x,z}(f)=y\text{ if }x\in\mathcal C\}\)
+  \item \texttt{BF} --- \texttt{binary matrix}; \(B_{\mathrm F}:\mathbb R^{|\mathcal R_{\mathrm F}|}\to\mathbb R^{2^{|\mathcal T|}}\); \texttt{full-\allowbreak{}type target-\allowbreak{}law map}
+  \par\smallskip\noindent\emph{Definition.} \((B_{\mathrm F}\pi)_y=\sum_f\pi_f\mathbf 1\{y_{\mathcal T}(f)=y\}\)
+  \item \texttt{Sset} --- \texttt{polytope}; \texttt{compatible skeleton laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S=A\Delta^{|\mathcal R|-1}\)
+  \item \texttt{F} --- \texttt{set-\allowbreak{}valued map}; \texttt{reduced response-\allowbreak{}law fiber}
+  \par\smallskip\noindent\emph{Definition.} \(F(s)=\{q\in\Delta^{|\mathcal R|-1}:Aq=s\}\)
+  \item \texttt{Theta} --- \texttt{set-\allowbreak{}valued map}; \texttt{reduced target-\allowbreak{}law identified set}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta(s)=BF(s)=\{Bq:q\in F(s)\}\)
+  \item \texttt{Ifull} --- \texttt{set-\allowbreak{}valued map}; \texttt{saturated full-\allowbreak{}model target-\allowbreak{}law identified set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_{\mathrm F}(p)=\{B_{\mathrm F}\pi:\pi\in\Delta^{|\mathcal R_{\mathrm F}|-1},\ A_{\mathrm F}\pi=p\}\)
+  \item \texttt{Rright} --- \texttt{map}; \(\mathfrak R_{p}:F(s)\to\Delta^{|\mathcal R_{\mathrm F}|-1}\); \texttt{explicit right inverse from reduced laws to saturated full laws}
+  \item \texttt{n} --- \texttt{integer}; \(\{1,2,\ldots\}\); \texttt{total sample size}
+  \item \texttt{nz} --- \texttt{integer array}; \texttt{conditioned randomized-\allowbreak{}arm counts}
+  \par\smallskip\noindent\emph{Definition.} \((n_z:z\in\mathcal Z)\) with \(\sum_z n_z=n\)
+  \item \texttt{N} --- \texttt{count array}; \texttt{full cell counts}
+  \par\smallskip\noindent\emph{Definition.} \(N=(N_{z,x,y}:z\in\mathcal Z,x\in\mathcal X,y\in\mathcal Y)\)
+  \item \texttt{S} --- \texttt{count array}; \texttt{skeleton counts}
+  \par\smallskip\noindent\emph{Definition.} \(S_{z,t,y}=N_{z,t,y}\) and \(S_{z,\star}=\sum_{c\in\mathcal C,y\in\mathcal Y}N_{z,c,y}\)
+  \item \texttt{Llike} --- \texttt{likelihood function}; \texttt{armwise factored likelihood}
+  \par\smallskip\noindent\emph{Definition.} \(L_z(N_z;s_z,\eta_z)\) is the product of the skeleton multinomial likelihood and the conditional off-target allocation likelihood
+  \item \texttt{hatS} --- \texttt{array of probability vectors}; \texttt{empirical skeleton laws}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat s_z=S_z/n_z\)
+  \item \texttt{alpha} --- \texttt{real number}; \((0,1)\); \texttt{error probability}
+  \item \texttt{rho} --- \texttt{real array}; \texttt{armwise method-\allowbreak{}of-\allowbreak{}types radius}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_z(\alpha)=[\log(m/\alpha)+(d-1)\log(n_z+1)]/n_z\)
+  \item \texttt{Kalpha} --- \texttt{random set}; \texttt{compatible reduced KL region}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal K_\alpha(\widehat s)=\{s'\in\mathcal S:D_{\mathrm{KL}}(\widehat s_z\|s'_z)\le\rho_z(\alpha)\text{ for every }z\in\mathcal Z\}\)
+  \item \texttt{ThetaHat} --- \texttt{random set}; \texttt{outer confidence region for the entire identified set}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Theta_\alpha=\bigcup_{s'\in\mathcal K_\alpha(\widehat s)}\Theta(s')\)
+  \item \texttt{Aspace} --- \texttt{convex set}; \texttt{decision space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A\) is a convex action space in a finite-dimensional vector space
+  \item \texttt{loss} --- \texttt{function}; \(\ell:\mathcal A\times\Delta^{2^{|\mathcal T|}-1}\to[0,\infty)\); \texttt{decision loss for a target law}
+  \item \texttt{delta} --- \texttt{decision rule}; \(\delta:N\mapsto\mathcal A\); \texttt{full-\allowbreak{}data rule}
+  \item \texttt{nu} --- \texttt{count-\allowbreak{}array realization}; \texttt{realized full count table in the conditional finite experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\nu=(\nu_{z,x,y}:z\in\mathcal Z,x\in\mathcal X,y\in\mathcal Y)\) with \(\sum_{x,y}\nu_{z,x,y}=n_z\) for every \(z\in\mathcal Z\)
+  \item \texttt{sigma} --- \texttt{count-\allowbreak{}array realization}; \texttt{realized skeleton count table}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma=(\sigma_{z,t,y},\sigma_{z,\star}:z\in\mathcal Z,t\in\mathcal T,y\in\mathcal Y)\) with \(\sum_{t,y}\sigma_{z,t,y}+\sigma_{z,\star}=n_z\) for every \(z\in\mathcal Z\)
+  \item \texttt{Omega} --- \texttt{finite set-\allowbreak{}valued map}; \texttt{finite full-\allowbreak{}count fiber above a skeleton count table}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega(\sigma)=\{\nu:S(\nu)=\sigma\}\), where \(\nu\) ranges over nonnegative integer count arrays with the fixed arm totals \(n_z\)
+  \item \texttt{eta0} --- \texttt{array of probability vectors}; \(\mathcal E_{\mathcal C}^{m}\); \texttt{averaging kernel for rule reduction}
+  \par\smallskip\noindent\emph{Definition.} \(\eta^0\) is any fixed off-target allocation law
+  \item \texttt{Keta0} --- \texttt{stochastic kernel}; \(K_{\eta^0}:\{(\nu,\sigma):\sigma\in\operatorname{range}(S),\ 
+u\in\Omega(\sigma)\}\to[0,1]\); \texttt{fixed-\allowbreak{}nuisance kernel on each finite count fiber}
+  \par\smallskip\noindent\emph{Definition.} \(K_{\eta^0}(\nu\mid\sigma)=\mathbf 1\{\nu\in\Omega(\sigma)\}\prod_{z\in\mathcal Z}\left[\frac{\sigma_{z,\star}!}{\prod_{c\in\mathcal C,y\in\mathcal Y}\nu_{z,c,y}!}\prod_{c\in\mathcal C,y\in\mathcal Y}\eta^0_z(c,y)^{\nu_{z,c,y}}\right]\), with empty products equal to one
+  \item \texttt{delta0} --- \texttt{decision rule}; \(\delta_0:\sigma\mapsto\mathcal A\); \texttt{skeleton rule induced from a full-\allowbreak{}data rule}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_0(\sigma)=\sum_{\nu\in\Omega(\sigma)}K_{\eta^0}(\nu\mid\sigma)\delta(\nu)\)
+  \item \texttt{phi} --- \texttt{decision rule}; \(\phi:\sigma\mapsto\mathcal A\); \texttt{arbitrary skeleton rule used in the reverse minimax comparison}
+  \item \texttt{Risk} --- \texttt{function}; \texttt{full and skeleton risks}
+  \par\smallskip\noindent\emph{Definition.} \(R_{q,\eta}(\delta)=E_{q,\eta}[\ell(\delta(N),Bq)]\) and \(R_q(\phi)=E_q[\ell(\phi(S),Bq)]\) for any skeleton rule \(\phi\)
+  \item \texttt{excess} --- \texttt{function}; \texttt{directed set excess}
+  \par\smallskip\noindent\emph{Definition.} \(e_1(K,L)=\sup_{x\in K}\inf_{y\in L}\|x-y\|_1\)
+  \item \texttt{HA} --- \texttt{extended real number}; \texttt{global compatible-\allowbreak{}fiber Hoffman modulus}
+  \par\smallskip\noindent\emph{Definition.} \(H_A=\sup_{s,s'\in\mathcal S,\ s\ne s'} e_1(F(s'),F(s))/\|s'-s\|_1\)
+  \item \texttt{u} --- \texttt{real vector}; \(\mathbb R^{2^{|\mathcal T|}}\); \texttt{target-\allowbreak{}law support direction}
+  \item \texttt{h} --- \texttt{function}; \texttt{support value of the target-\allowbreak{}law identified set}
+  \par\smallskip\noindent\emph{Definition.} \(h_s(u)=\max_{q\in F(s)}u^\top Bq\)
+  \item \texttt{s0} --- \texttt{array of probability vectors}; \(\mathcal S\); \texttt{baseline compatible skeleton law}
+  \item \texttt{v} --- \texttt{real vector}; \(\mathbb R^{md}\); \texttt{feasible local skeleton direction}
+  \item \texttt{u0} --- \texttt{real vector}; \(\mathbb R^{2^{|\mathcal T|}}\); \texttt{regular-\allowbreak{}face direction}
+  \item \texttt{gamma} --- \texttt{real number}; \texttt{regular-\allowbreak{}face directional derivative}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma=\left.\frac{d}{d\varepsilon}h_{s_0+\varepsilon v}(u_0)\right|_{\varepsilon=0}\)
+  \item \texttt{KinkHandle} --- \texttt{method handle}; \texttt{starting move for kink-\allowbreak{}adaptive inference}
+  \par\smallskip\noindent\emph{Definition.} Quadratically regularize \(q\mapsto u^\top Bq\) over \(F(s)\), enumerate the active dual cone as the penalty vanishes, and invert the resulting local Gaussian max functional
+  \item \texttt{tau} --- \texttt{linear functional}; \texttt{binary-\allowbreak{}target contrast used in reductions and the witness}
+  \par\smallskip\noindent\emph{Definition.} \(\tau=E[Y_b-Y_a]\) for distinct \(a,b\in\mathcal T\)
+  \item \texttt{pw} --- \texttt{observed law}; \texttt{enumeration witness}
+  \par\smallskip\noindent\emph{Definition.} For \(\mathcal Z=\{1,2\}\), \(\mathcal T=\{a,b\}\), and \(\mathcal C=\{c\}\), \(p^{\mathrm w}_1(a,0)=p^{\mathrm w}_1(c,1)=1/2\), \(p^{\mathrm w}_2(a,0)=p^{\mathrm w}_2(c,0)=1/2\), and every other cell is zero
+  \item \texttt{Msat} --- \texttt{model}; \texttt{saturated arm-\allowbreak{}specific off-\allowbreak{}target response model}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm{sat}}\) permits unrestricted separate responses \(R_{c,z}\) for every \(c\in\mathcal C\) and \(z\in\mathcal Z\)
+  \item \texttt{Mcommon} --- \texttt{model}; \texttt{common excluded off-\allowbreak{}target response submodel}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm{common}}=\{P\in\mathcal M_{\mathrm{sat}}:R_{c,z}=R_{c,z'}=:R_c\text{ almost surely for every }c\in\mathcal C\text{ and }z,z'\in\mathcal Z\}\)
+  \item \texttt{Wcert} --- \texttt{finite rational linear-\allowbreak{}program certificate}; \texttt{exact witness enumeration and endpoint certificate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak C^{\mathrm w}\) consists of the enumerated response-type columns, endpoint-attaining primal mixtures, and valid endpoint inequalities for \(p^{\mathrm w}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:randomization]\label{ass:randomization}
+\(Z\perp\!\!\!\perp (X_{\mathcal Z},Y_{\mathcal T},R_{\mathcal C,\mathcal Z})\).
+\par\smallskip\noindent\emph{Standard} (Random assignment in a finite instrumental-variable model, \cite{SongGuoChanRichardson2024}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-arm-probability]\label{ass:positive-arm-probability}
+\(\lambda_z=P(Z=z)>0\) for every \(z\in\mathcal Z\).
+\par\smallskip\noindent\emph{Standard} (Positive support probabilities for a finite randomized instrument, \cite{SongGuoChanRichardson2024}).
+\end{assumption}
+
+\begin{assumption}[ass:target-exclusion]\label{ass:target-exclusion}
+\(Y_{t,z}=Y_{t,z'}=:Y_t\) almost surely for every \(t\in\mathcal T\) and \(z,z'\in\mathcal Z\).
+\par\smallskip\noindent\emph{Standard} (Well-defined target-level exclusion with unrestricted off-target levels, \cite{GabrielSachsSjolander2025}).
+\end{assumption}
+
+\begin{assumption}[ass:exposure-consistency]\label{ass:exposure-consistency}
+\(X=X_Z\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Exposure consistency, \cite{SongGuoChanRichardson2024}).
+\end{assumption}
+
+\begin{assumption}[ass:target-outcome-consistency]\label{ass:target-outcome-consistency}
+For every \(t\in\mathcal T\), \(Y=Y_t\) almost surely on \(\{X=t\}\).
+\par\smallskip\noindent\emph{Standard} (Consistency at well-defined target exposure levels, \cite{GabrielSachsSjolander2025}).
+\end{assumption}
+
+\begin{assumption}[ass:offtarget-outcome-consistency]\label{ass:offtarget-outcome-consistency}
+For every \(c\in\mathcal C\) and \(z\in\mathcal Z\), \(Y=R_{c,z}\) almost surely on \(\{X=c,Z=z\}\).
+\par\smallskip\noindent\emph{Standard} (Consistency for saturated arm-specific off-target responses, \cite{GabrielSachsSjolander2025}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-arm-counts]\label{ass:fixed-arm-counts}
+\((n_z:z\in\mathcal Z)\) is conditioned upon in the sampling experiment.
+\par\smallskip\noindent\emph{Standard} (Conditional multinomial sampling by randomized arm, \cite{SongGuoChanRichardson2024}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-arm-counts]\label{ass:positive-arm-counts}
+\(n_z\ge 1\) for every \(z\in\mathcal Z\).
+\par\smallskip\noindent\emph{Standard} (Positive observed arm counts for conditional multinomial inference, \cite{SongGuoChanRichardson2024}).
+\end{assumption}
+
+\begin{assumption}[ass:convex-loss]\label{ass:convex-loss}
+For every target law \(\mu\), the map \(a\mapsto\ell(a,\mu)\) is convex on \(\mathcal A\).
+\par\smallskip\noindent\emph{Standard} (Convex-loss randomized decision comparison, \cite{Blackwell1953}).
+\end{assumption}
+
+\begin{assumption}[ass:interior-skeleton]\label{ass:interior-skeleton}
+\(\min_{z\in\mathcal Z,j\in\mathcal D}(s_0)_{z,j}>0\).
+\par\smallskip\noindent\emph{Standard} (Interior multinomial law, \cite{GuoRichardson2021}).
+\end{assumption}
+
+\begin{assumption}[ass:feasible-local-direction]\label{ass:feasible-local-direction}
+There exists \(\varepsilon_0>0\) such that \(s_0+\varepsilon v\in\mathcal S\) for every \(|\varepsilon|\le\varepsilon_0\).
+\par\smallskip\noindent\emph{Standard} (Two-sided feasible tangent direction, \cite{Gafarov2025}).
+\end{assumption}
+
+\begin{assumption}[ass:regular-face]\label{ass:regular-face}
+The primal and dual programs defining \(h_{s_0}(u_0)\) have a locally stable unique nondegenerate optimal basis.
+\par\smallskip\noindent\emph{Standard} (Stable active-face condition for an affine support value, \cite{Gafarov2025}).
+\end{assumption}
+
+\begin{assumption}[ass:nonzero-derivative]\label{ass:nonzero-derivative}
+\(\gamma\ne 0\).
+\par\smallskip\noindent\emph{Standard} (Nonzero local support derivative, \cite{LevisBonviniZengKeeleKennedy2025}).
+\end{assumption}
+
+\begin{assumption}[ass:arm-proportions]\label{ass:arm-proportions}
+\(\lim_{n\to\infty}n_z/n\) exists and belongs to \((0,1)\) for every \(z\in\mathcal Z\).
+\par\smallskip\noindent\emph{Standard} (Stable positive randomized-arm proportions, \cite{SongGuoChanRichardson2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:full-model]\label{def:full-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Target-\allowbreak{}excluded saturated off-\allowbreak{}target instrumental-\allowbreak{}variable class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathcal T,\mathcal C}=\{P: P\text{ is a law on the declared finite variables satisfying assumptions }\mathrm{ass:randomization},\mathrm{ass:positive\mbox{-}arm\mbox{-}probability},\mathrm{ass:target\mbox{-}exclusion},\mathrm{ass:exposure\mbox{-}consistency},\mathrm{ass:target\mbox{-}outcome\mbox{-}consistency},\mathrm{ass:offtarget\mbox{-}outcome\mbox{-}consistency}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}randomization}; \texttt{ass:\allowbreak{}positive-\allowbreak{}arm-\allowbreak{}probability}; \texttt{ass:\allowbreak{}target-\allowbreak{}exclusion}; \texttt{ass:\allowbreak{}exposure-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}target-\allowbreak{}outcome-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}offtarget-\allowbreak{}outcome-\allowbreak{}consistency}.
+\end{definition}
+
+\begin{definition}[def:reduced-fiber]\label{def:reduced-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Reduced feasible fiber}
+\par\smallskip\noindent\emph{Construction.} \(F(s)=\{q\in\Delta^{|\mathcal R|-1}:Aq=s\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{s}.
+\end{definition}
+
+\begin{definition}[def:target-set]\label{def:target-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Reduced target-\allowbreak{}law image}
+\par\smallskip\noindent\emph{Construction.} \(\Theta(s)=\{Bq:q\in F(s)\}\subseteq\Delta^{2^{|\mathcal T|}-1}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{s}.
+\end{definition}
+
+\begin{definition}[def:right-inverse]\label{def:right-inverse}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Armwise off-\allowbreak{}target refinement}
+\par\smallskip\noindent\emph{Construction.} For each reduced atom \(r=((x_z(r))_z,y_{\mathcal T}(r))\) drawn with mass \(q_r\), refine independently over \(z\). If \(x_z(r)=t\in\mathcal T\), set \(X_z=t\), retain \(Y_t=y_t(r)\), and set the unused coordinates \(R_{c,z}\) to zero. If \(x_z(r)=\star\), draw \((C_z,V_z)\sim\eta_z\), set \(X_z=C_z\), set \(R_{C_z,z}=V_z\), and set the other unused \(R_{c,z}\) to zero. Mixing these full atoms defines \(\mathfrak R_p(q)\); when \(s_z(\star)=0\), use any fixed boundary allocation because the corresponding branch has zero mass. Observed outcomes are assigned only by the target rule \(Y=Y_t\) on \(\{X=t\}\) and the arm-specific rule \(Y=R_{c,z}\) on \(\{X=c,Z=z\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{q}; \texttt{eta}.
+\end{definition}
+
+\begin{definition}[def:skeleton-factorization]\label{def:skeleton-factorization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Skeleton-\allowbreak{}allocation likelihood}
+\par\smallskip\noindent\emph{Construction.} \(L_z(N_z;s_z,\eta_z)=\left[\frac{n_z!}{\prod_{t,y}S_{z,t,y}!\,S_{z,\star}!}\prod_{t,y}s_z(t,y)^{S_{z,t,y}}s_z(\star)^{S_{z,\star}}\right]\left[\frac{S_{z,\star}!}{\prod_{c,y}N_{z,c,y}!}\prod_{c,y}\eta_z(c,y)^{N_{z,c,y}}\right]\), with \(0^0=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{N}; \texttt{s}; \texttt{eta}; \texttt{nz}.
+\end{definition}
+
+\begin{definition}[def:finite-count-fiber]\label{def:finite-count-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite full-\allowbreak{}count fiber}
+\par\smallskip\noindent\emph{Construction.} For each realized skeleton table \(\sigma\), \(\Omega(\sigma)=\{\nu:S(\nu)=\sigma\}\), where \(\nu\) ranges over nonnegative integer count arrays with the fixed arm totals \(n_z\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{sigma}; \texttt{nz}.
+\end{definition}
+
+\begin{definition}[def:nuisance-kernel]\label{def:nuisance-kernel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}allocation kernel on a finite fiber}
+\par\smallskip\noindent\emph{Construction.} For \(\nu\in\Omega(\sigma)\), define \(K_{\eta^0}(\nu\mid\sigma)=\prod_{z\in\mathcal Z}\left[\frac{\sigma_{z,\star}!}{\prod_{c\in\mathcal C,y\in\mathcal Y}\nu_{z,c,y}!}\prod_{c\in\mathcal C,y\in\mathcal Y}\eta^0_z(c,y)^{\nu_{z,c,y}}\right]\), with empty products equal to one.
+\par\smallskip\noindent\emph{Inputs.} \texttt{eta0}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:reduced-rule]\label{def:reduced-rule}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}fiber fixed-\allowbreak{}nuisance convexification of a full-\allowbreak{}data rule}
+\par\smallskip\noindent\emph{Construction.} For every realized skeleton table \(\sigma\), let \(\Omega(\sigma)=\{\nu:S(\nu)=\sigma\}\) and define \(\delta_0(\sigma)=\sum_{\nu\in\Omega(\sigma)}K_{\eta^0}(\nu\mid\sigma)\delta(\nu)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{delta}; \texttt{eta0}.
+\end{definition}
+
+\begin{definition}[def:kl-projection]\label{def:kl-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Reduced whole-\allowbreak{}set confidence region}
+\par\smallskip\noindent\emph{Construction.} With \(\rho_z(\alpha)=[\log(m/\alpha)+(d-1)\log(n_z+1)]/n_z\), set \(\mathcal K_\alpha(\widehat s)=\{s'\in\mathcal S:D_{\mathrm{KL}}(\widehat s_z\|s'_z)\le\rho_z(\alpha)\ \forall z\}\) and \(\widehat\Theta_\alpha=\bigcup_{s'\in\mathcal K_\alpha(\widehat s)}\Theta(s')\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{hatS}; \texttt{nz}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:hoffman-modulus]\label{def:hoffman-modulus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compatible-\allowbreak{}fiber Hoffman modulus}
+\par\smallskip\noindent\emph{Construction.} \(H_A=\sup\{e_1(F(s'),F(s))/\|s'-s\|_1:s,s'\in\mathcal S,\ s\ne s'\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}.
+\end{definition}
+
+\begin{definition}[def:support-value]\label{def:support-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Scalar target-\allowbreak{}law support value}
+\par\smallskip\noindent\emph{Construction.} \(h_s(u)=\max\{u^\top Bq:q\in F(s)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{s}; \texttt{u}.
+\end{definition}
+
+\begin{definition}[def:kink-handle]\label{def:kink-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Vanishing-\allowbreak{}penalty active-\allowbreak{}cone handle}
+\par\smallskip\noindent\emph{Construction.} Quadratically regularize \(q\mapsto u^\top Bq\) over \(F(s)\), enumerate the active dual cone as the penalty vanishes, and invert the resulting local Gaussian max functional.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{B}; \texttt{hatS}.
+\end{definition}
+
+\begin{definition}[def:witness-law]\label{def:witness-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}arm enumeration witness}
+\par\smallskip\noindent\emph{Construction.} For \(\mathcal Z=\{1,2\}\), \(\mathcal T=\{a,b\}\), and \(\mathcal C=\{c\}\), define \(p^{\mathrm w}_1(a,0)=p^{\mathrm w}_1(c,1)=1/2\), \(p^{\mathrm w}_2(a,0)=p^{\mathrm w}_2(c,0)=1/2\), and set every other cell to zero.
+\end{definition}
+
+\begin{definition}[def:witness-enumeration-certificate]\label{def:witness-enumeration-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact response-\allowbreak{}type and linear-\allowbreak{}program certificate}
+\par\smallskip\noindent\emph{Construction.} Enumerate the \(36\) reduced columns \( (x_1,x_2,y_a,y_b)\in\{a,b,\star\}^2\times\{0,1\}^2\), the \(144\) saturated columns \( (x_1,x_2,y_a,y_b,r_{c,1},r_{c,2})\in\{a,b,c\}^2\times\{0,1\}^4\), and the \(72\) common-response columns \( (x_1,x_2,y_a,y_b,r_c)\in\{a,b,c\}^2\times\{0,1\}^3\). For each list form its zero-one observed-cell incidence matrix \(G\), impose \(G\omega=p^{\mathrm w}\), \(\omega\ge0\), and \(\mathbf 1^\top\omega=1\), and minimize and maximize \(\sum_f\omega_f(y_b(f)-y_a(f))\). In the saturated program the lower endpoint is attained by mass \(1/2\) on each of \((a,a,0,0,0,0)\) and \((c,c,1,0,1,0)\), while the upper endpoint is attained by mass \(1/2\) on each of \((a,a,0,1,0,0)\) and \((c,c,0,1,1,0)\). The valid inequalities \(\tau\le1\) and \(\tau\ge-E[Y_a]\ge-1/2\), where \(P(Y_a=0)\ge P(X_1=a\text{ or }X_2=a)\ge1/2\), certify those saturated optima. Under the common-response restriction the lower endpoint is attained by mass \(1/2\) on each of \((c,a,0,0,1)\) and \((a,c,0,0,0)\), and the upper endpoint by the same two exposure-response columns with \(y_b=1\). The observed constraints make \(\{X_1=c,r_c=1\}\) and \(\{X_2=c,r_c=0\}\) disjoint events of total probability one and force \(Y_a=0\), certifying \(0\le\tau\le1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pw}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:quotient-sharpness]\label{thm:quotient-sharpness}
+For every \(P\in\mathcal M_{\mathcal T,\mathcal C}\) with \(\lambda_z=P(Z=z)>0\) for every \(z\in\mathcal Z\), observed conditional arm law \(p\), and skeleton \(s\), \(\mathcal I_{\mathrm F}(p)=\Theta(s)\). More precisely, \(A\kappa_{\#}\pi=s\) and \(B\kappa_{\#}\pi=B_{\mathrm F}\pi\) for every feasible full law \(\pi\); conversely, for every \(q\in F(s)\), the explicit refinement satisfies \(A_{\mathrm F}\mathfrak R_p(q)=p\), \(\kappa_{\#}\mathfrak R_p(q)=q\), and \(B_{\mathrm F}\mathfrak R_p(q)=Bq\), including every zero-\(\star\)-mass boundary. Hence the sharp set and the dimensions \(|\mathcal R|=(|\mathcal T|+1)^m2^{|\mathcal T|}\) and \(md\) are independent of \(|\mathcal C|\). This strictly extends Results 1 and 3 of Gabriel, Sachs, and Sjölander from their specified low-cardinality target contrasts to the complete law of \(Y_{\mathcal T}\) for arbitrary finite \(m,\mathcal T,\mathcal C\).
+\end{theorem}
+\begin{proof}
+Write a full response type as
+\[
+f=(x_{\mathcal Z},y_{\mathcal T},r_{\mathcal C,\mathcal Z})
+\in\mathcal R_{\mathrm F}.
+\]
+Because all potential variables have finite support, the given causal law \(P\) induces the probability vector
+\[
+\pi^P=\operatorname{law}_P(X_{\mathcal Z},Y_{\mathcal T},R_{\mathcal C,\mathcal Z})
+\in\Delta^{|\mathcal R_{\mathrm F}|-1}.
+\]
+For a target cell, randomization, exposure consistency, target exclusion, and target-outcome consistency give
+\[
+(A_{\mathrm F}\pi^P)_{z,(t,y)}
+=P(X_z=t,Y_t=y)
+=P(X=t,Y=y\mid Z=z)
+=p_z(t,y).
+\]
+For an off-target cell, randomization, exposure consistency, and off-target-outcome consistency analogously give
+\[
+(A_{\mathrm F}\pi^P)_{z,(c,y)}
+=P(X_z=c,R_{c,z}=y)
+=P(X=c,Y=y\mid Z=z)
+=p_z(c,y).
+\]
+Every conditioning operation is valid because \(\lambda_z>0\).  Thus \(A_{\mathrm F}\pi^P=p\), so the full feasible fiber is nonempty.
+
+We first prove the outer inclusion by a pushforward argument.  Let \(\pi\in\Delta^{|\mathcal R_{\mathrm F}|-1}\) satisfy \(A_{\mathrm F}\pi=p\), and put \(q=\kappa_{\#}\pi\).  Since a pushforward of a probability measure is a probability measure, \(q\in\Delta^{|\mathcal R|-1}\).  For \(z\in\mathcal Z\), \(t\in\mathcal T\), and \(y\in\mathcal Y\), the definitions of \(A\) and \(\kappa\) give
+\[
+\begin{aligned}
+(Aq)_{z,(t,y)}
+&=\sum_{r\in\mathcal R}q_r
+  \mathbf 1\{x_z(r)=t,\ y_t(r)=y\}\\
+&=\sum_{f\in\mathcal R_{\mathrm F}}\pi_f
+  \mathbf 1\{x_z(f)=t,\ y_t(f)=y\}\\
+&=(A_{\mathrm F}\pi)_{z,(t,y)}\\
+&=p_z(t,y)=s_z(t,y).
+\end{aligned}
+\]
+The incidence equality is algebraic.  Its causal interpretation follows from randomization, exposure consistency, target exclusion, and target-outcome consistency: positivity of \(\lambda_z\) permits conditioning and
+\[
+p_z(t,y)=P(X_z=t,Y_t=y).
+\]
+For the collapsed row, disjointness of \(\mathcal T\) and \(\mathcal C\), binary outcome support, and the definition of \(A_{\mathrm F}\) yield
+\[
+\begin{aligned}
+(Aq)_{z,\star}
+&=\sum_f\pi_f\mathbf 1\{x_z(f)\in\mathcal C\}\\
+&=\sum_{c\in\mathcal C}\sum_{y\in\mathcal Y}
+  (A_{\mathrm F}\pi)_{z,(c,y)}\\
+&=\sum_{c\in\mathcal C}\sum_{y\in\mathcal Y}p_z(c,y)
+=s_z(\star).
+\end{aligned}
+\]
+Thus \(Aq=s\), so \(q\in F(s)\).  Moreover, \(\kappa\) retains the complete vector \(y_{\mathcal T}\).  Consequently, for every \(y_{\mathcal T}\in\mathcal Y^{\mathcal T}\),
+\[
+\begin{aligned}
+(Bq)_{y_{\mathcal T}}
+&=\sum_f\pi_f\mathbf 1\{y_{\mathcal T}(f)=y_{\mathcal T}\}\\
+&=(B_{\mathrm F}\pi)_{y_{\mathcal T}}.
+\end{aligned}
+\]
+It follows that \(\mathcal I_{\mathrm F}(p)\subseteq\Theta(s)\).
+
+We next prove attainability by the explicit right inverse.  Fix \(q\in F(s)\).  Conditional on a reduced atom
+\[
+r=((x_z(r))_{z\in\mathcal Z},y_{\mathcal T}(r)),
+\]
+perform the refinement in \(\mathfrak R_p\): whenever \(x_z(r)=\star\), sample \((C_z,V_z)\) according to \(\eta_z\), set \(X_z=C_z\) and \(R_{C_z,z}=V_z\), and fill every unused off-target response coordinate with zero; when \(x_z(r)=t\in\mathcal T\), set \(X_z=t\) and again fill unused off-target coordinates with zero.  The draws may be taken independently across the finitely many arms conditional on \(r\).  Let
+\[
+\pi=\mathfrak R_p(q).
+\]
+Every full atom generated from \(r\) collapses back to \(r\).  Hence, by conditioning on \(r\),
+\[
+\kappa_{\#}\mathfrak R_p(q)=q,
+\qquad
+B_{\mathrm F}\mathfrak R_p(q)=Bq.
+\]
+For a target cell, the refinement adds no randomness relevant to the incidence indicator, and therefore
+\[
+\begin{aligned}
+(A_{\mathrm F}\pi)_{z,(t,y)}
+&=\sum_rq_r\mathbf 1\{x_z(r)=t,\ y_t(r)=y\}\\
+&=(Aq)_{z,(t,y)}=s_z(t,y)=p_z(t,y).
+\end{aligned}
+\]
+For an off-target cell, conditional independence is more than is needed; the marginal refinement at arm \(z\) gives
+\[
+\begin{aligned}
+(A_{\mathrm F}\pi)_{z,(c,y)}
+&=\sum_rq_r\mathbf 1\{x_z(r)=\star\}\eta_z(c,y)\\
+&=(Aq)_{z,\star}\eta_z(c,y)\\
+&=s_z(\star)\eta_z(c,y).
+\end{aligned}
+\]
+If \(s_z(\star)>0\), the definition of \(\eta_z\) makes the last quantity \(p_z(c,y)\).  If \(s_z(\star)=0\), then nonnegativity of \(q\) and
+\[
+0=(Aq)_{z,\star}
+=\sum_rq_r\mathbf 1\{x_z(r)=\star\}
+\]
+imply that every reduced atom having \(x_z(r)=\star\) has zero \(q\)-mass.  Nonnegativity of the observed cells and
+\[
+0=s_z(\star)=\sum_{c\in\mathcal C,y\in\mathcal Y}p_z(c,y)
+\]
+also imply \(p_z(c,y)=0\) for each \((c,y)\).  Thus the displayed incidence equality holds for every fixed boundary choice of \(\eta_z\).  If \(\mathcal C=\varnothing\), the sum defining \(s_z(\star)\) is zero and no positive-mass \(\star\)-branch occurs, so the singleton convention is sufficient.
+
+It remains to verify that the constructed table is attainable in the maintained causal model.  Draw the full response type with law \(\pi\), draw \(Z\) independently with probabilities \((\lambda_z)_z\), set \(Y_{t,z}=Y_t\), put \(X=X_Z\), and define
+\[
+Y=\begin{cases}
+Y_t,&X=t\in\mathcal T,\\
+R_{c,Z},&X=c\in\mathcal C.
+\end{cases}
+\]
+This finite construction satisfies randomization, target exclusion, exposure consistency, target-outcome consistency, and off-target-outcome consistency.  The preceding cell equations give \(A_{\mathrm F}\pi=p\).  Thus every \(Bq\in\Theta(s)\) is attained by a law in \(\mathcal M_{\mathcal T,\mathcal C}\), proving
+\[
+\mathcal I_{\mathrm F}(p)=\Theta(s).
+\]
+This is equality of the causal identified set and the observed-law functional, not a definition of the former; because every point on the right has just been attained, the equality is sharp rather than merely an outer bound.
+
+A reduced atom has \((|\mathcal T|+1)^m\) possible exposure-response vectors and \(2^{|\mathcal T|}\) possible target-outcome vectors.  Therefore
+\[
+|\mathcal R|=(|\mathcal T|+1)^m2^{|\mathcal T|}.
+\]
+The map \(A\) records \(d=2|\mathcal T|+1\) cells in each of \(m\) arms, so its declared codomain has dimension \(md\).  Neither number involves \(|\mathcal C|\).
+
+Finally, the claimed comparison with Gabriel, Sachs, and Sj\"olander is a model-transfer claim, not an inference from cardinalities alone.  The Gabriel NPSEM transfer lemma proves that, in each of their one-off-target configurations, the published NPSEM response-law fiber and the present saturated response-law fiber are equivalent, preserving \(p\), randomization, and the full target law.  If \(\psi\) is any of their reported target contrasts, it is a functional of \(\mu=\operatorname{law}(Y_{\mathcal T})\); hence the equality already proved gives the sharp contrast set as the computable image
+\[
+\{\psi(\mu):\mu\in\mathcal I_{\mathrm F}(p)\}
+=\{\psi(Bq):q\in F(s)\}.
+\]
+The transfer remains valid after imposing any of their observed-law relevance restrictions.  The cited Gabriel scope lemma records that Results 1 and 3 cover specified low-cardinality contrasts.  The present equality instead covers every coordinate of the complete joint law for arbitrary finite \(m,\mathcal T,\mathcal C\), including configurations outside those cardinalities.  The extension is therefore strict in scope; no claim of strict numerical improvement over a published bound in a matching configuration is being made.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The quotient equality is paired with a two-way NPSEM transfer at the published one-off-target cardinalities, so it identifies exactly which observed information survives while proving that the comparison is model-valid rather than a notation-level analogy. \textit{Gap.} Gabriel et al. prove specified low-cardinality target-contrast cases.  The explicit forward and reverse constructions show equality of their NPSEM response-law fibers with the present one-off-target fibers, subject to any relevance condition stated solely in terms of the preserved observed law; the quotient then extends the scope to arbitrary finite \(m,\mathcal T,\mathcal C\), the complete law of \(Y_{\mathcal T}\), and zero-off-target-mass boundaries.  Song et al. remain an adjacent fully excluded benchmark. \textit{Consumer.} Dose, adherence, and Mendelian-randomization studies may retain many irregular realized exposure levels without enlarging the identification computation for a selected target contrast.
+
+\begin{theorem}[thm:binary-reduction]\label{thm:binary-reduction}
+If \(\mathcal C=\varnothing\), \(m=2\), and \(\mathcal T=\{a,b\}\), then \(\Theta(s)\) is the classical binary response-type polytope and the extrema of \(\tau=E[Y_b-Y_a]\) are the Balke--Pearl sharp bounds.
+\end{theorem}
+\begin{proof}
+Relabel the two elements of \(\mathcal Z\) as \(0\) and \(1\); this is only a bijective change of indices. Put \(x_0=a\) and \(x_1=b\). The positive-arm-probability assumption makes both conditional arm laws well defined. We first verify feasibility from the maintained causal model rather than assuming it. Because \(\mathcal C=\varnothing\), each \(X_z\) takes values in \(\mathcal T\). Let \(q^P\) be the joint law of \((X_0,X_1,Y_a,Y_b)\), embedded in \(\Delta^{|\mathcal R|-1}\) by assigning zero mass to every reduced type with a \(\star\) coordinate. Target exclusion makes \((Y_a,Y_b)\) a single response vector not indexed by the assigned arm. For every \(t\in\mathcal T\), \(y\in\{0,1\}\), and \(z\in\{0,1\}\), randomization, exposure consistency, and target-outcome consistency give
+\[
+\begin{aligned}
+(Aq^P)_{z,(t,y)}
+&=P(X_z=t,Y_t=y)\\
+&=P(X_z=t,Y_t=y\mid Z=z)\\
+&=P(X=t,Y=y\mid Z=z)\\
+&=s_z(t,y).
+\end{aligned}
+\]
+The second equality uses \(Z\perp\!\!\!\perp(X_{\mathcal Z},Y_{\mathcal T})\); the third holds almost surely on \(\{Z=z,X_z=t\}\). Also, by the definition of the skeleton law, for each arm \(z\),
+\[
+s_z(\star)=\sum_{c\in\varnothing}\sum_{y\in\{0,1\}}p_z(c,y)=0=(Aq^P)_{z,\star}.
+\]
+Thus \(Aq^P=s\), so \(q^P\in F(s)\) and the fiber is nonempty.
+
+We next identify the support of every feasible reduced law. 
+If \(q\in F(s)\), then the definition of \(F(s)\), followed by the \(\star\)-row in the definition of \(A\), yields
+\[
+0=s_z(\star)=(Aq)_{z,\star}
+ =\sum_{r\in\mathcal R}q_r\mathbf 1\{x_z(r)=\star\}.
+\]
+Every summand is nonnegative because \(q\) belongs to a probability simplex. Hence \(q_r=0\) whenever \(x_z(r)=\star\). Applying this argument for both arms proves that every \(q\in F(s)\) is supported on
+\[
+\mathcal R_0=\mathcal T^{\{0,1\}}\times\{0,1\}^{\mathcal T},
+\qquad |\mathcal R_0|=2^2\,2^2=16.
+\]
+
+Define a bijection \(\iota:\mathcal R_0\to\{0,1\}^4\) by
+\[
+\iota(r)=(d_0,d_1,u_0,u_1),\qquad
+d_z=\mathbf 1\{x_z(r)=b\},\quad u_0=y_a(r),\quad u_1=y_b(r).
+\]
+Thus \((d_0,d_1)\) is the binary response function from assignment to received exposure and \((u_0,u_1)\) is the binary response function from exposure to outcome. Push \(q\) forward through \(\iota\), writing the resulting mass as \(\widetilde q_{d_0d_1u_0u_1}\). For \(y,d,z\in\{0,1\}\), define the observed-law coordinate
+\[
+\pi_{yd.z}=s_z(x_d,y).
+\]
+The target-cell row of \(Aq=s\) then becomes, term by term,
+\[
+\begin{aligned}
+\pi_{yd.z}
+&=s_z(x_d,y)\\
+&=\sum_{r\in\mathcal R_0}q_r
+  \mathbf 1\{x_z(r)=x_d,\ y_{x_d}(r)=y\}\\
+&=\sum_{d_0,d_1,u_0,u_1}
+  \widetilde q_{d_0d_1u_0u_1}
+  \mathbf 1\{d_z=d,\ u_d=y\}.
+\end{aligned}
+\]
+These are exactly the classical binary instrumental-variable response-type equations. Conversely, any \(\widetilde q\in\Delta^{15}\) satisfying these equations defines, through \(\iota^{-1}\), a distribution on \(\mathcal R_0\); extending it by zero to \(\mathcal R\) satisfies every target-cell equation and also every \(\star\)-equation of \(Aq=s\). Therefore pushforward by \(\iota\) is an affine bijection
+\[
+F(s)\longleftrightarrow\mathcal Q_{\mathrm{IV}}(\pi).
+\]
+This establishes equality of the feasible response-type polytopes, rather than merely an outer relaxation.
+
+It remains to check that the target maps agree. For \((u_0,u_1)\in\{0,1\}^2\), the definition of \(B\) and the bijection above give
+\[
+(Bq)_{(u_0,u_1)}
+=\sum_{d_0,d_1}\widetilde q_{d_0d_1u_0u_1}.
+\]
+Consequently \(\Theta(s)=BF(s)\) is exactly the outcome-response-law image of the classical fiber. The causal contrast associated with a feasible response law is
+\[
+\tau(q)=E_q[Y_b-Y_a]
+=\sum_{d_0,d_1,u_0,u_1}
+ \widetilde q_{d_0d_1u_0u_1}(u_1-u_0).
+\]
+This causal quantity is distinct from the observed-law functionals \(L_{\mathrm{BP}}(\pi)\) and \(U_{\mathrm{BP}}(\pi)\), which depend only on the eight coordinates \(\pi_{yd.z}=s_z(x_d,y)\).
+
+By the cited Balke--Pearl binary instrumental-variable linear-programming result, the minimum and maximum of the last display over \(\mathcal Q_{\mathrm{IV}}(\pi)\) are, respectively,
+\[
+L_{\mathrm{BP}}(\pi)=\max\left\{
+\begin{aligned}
+&\pi_{00.0}+\pi_{11.1}-1,\\
+&\pi_{00.1}+\pi_{11.1}-1,\\
+&\pi_{11.0}+\pi_{00.1}-1,\\
+&\pi_{00.0}+\pi_{11.0}-1,\\
+&2\pi_{00.0}+\pi_{11.0}+\pi_{10.1}+\pi_{11.1}-2,\\
+&\pi_{00.0}+2\pi_{11.0}+\pi_{00.1}+\pi_{01.1}-2,\\
+&\pi_{10.0}+\pi_{11.0}+2\pi_{00.1}+\pi_{11.1}-2,\\
+&\pi_{00.0}+\pi_{01.0}+\pi_{00.1}+2\pi_{11.1}-2
+\end{aligned}\right\},
+\]
+and
+\[
+U_{\mathrm{BP}}(\pi)=\min\left\{
+\begin{aligned}
+&1-\pi_{10.0}-\pi_{01.1},\\
+&1-\pi_{01.0}-\pi_{10.1},\\
+&1-\pi_{01.0}-\pi_{10.0},\\
+&1-\pi_{01.1}-\pi_{10.1},\\
+&2-2\pi_{01.0}-\pi_{10.0}-\pi_{10.1}-\pi_{11.1},\\
+&2-\pi_{01.0}-2\pi_{10.0}-\pi_{00.1}-\pi_{01.1},\\
+&2-\pi_{10.0}-\pi_{11.0}-2\pi_{01.1}-\pi_{10.1},\\
+&2-\pi_{00.0}-\pi_{01.0}-\pi_{01.1}-2\pi_{10.1}
+\end{aligned}\right\}.
+\]
+The construction of \(q^P\) above proves that \(F(s)\), and hence \(\mathcal Q_{\mathrm{IV}}(\pi)\), is nonempty. Since the latter is the intersection of a finite-dimensional probability simplex with finitely many closed affine equalities, it is compact. Thus both extrema are attained. Convexity of the fiber and linearity of \(\tau\) further show that every value between the two endpoints is attained by a convex combination of an endpoint minimizer and an endpoint maximizer. Hence the sharp identified interval is
+\[
+\{\tau(q):q\in F(s)\}
+=[L_{\mathrm{BP}}(\pi),U_{\mathrm{BP}}(\pi)],
+\]
+To verify causal sharpness rather than only linear-program sharpness, take any \(q\in F(s)\), draw its response type independently of \(Z\), give \(Z\) its observed probabilities \((\lambda_0,\lambda_1)\), set \(Y_{t,z}=Y_t\), \(X=X_Z\), and \(Y=Y_X\). This full law satisfies randomization, target exclusion, exposure consistency, and target-outcome consistency, and the displayed incidence equations show that its observed skeleton law is \(s\). It realizes target law \(Bq\). Conversely, the construction of \(q^P\) shows that every compatible full law induces a point of \(F(s)\). Therefore the interval in the last display is sharp for the causal contrast, not merely an outer bound, which proves the theorem. The only positivity used is \(\lambda_z>0\) to define each conditional arm law; there is no division by a response-cell probability and no limiting or boundary argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction is the required sanity check against the canonical binary instrumental-variable model. \textit{Gap.} This is a known special case and is included as a validation result rather than a novelty claim. \textit{Consumer.} Implementers can unit-test the reduced incidence matrix against published Balke--Pearl formulas.
+
+\begin{proposition}[prop:enumeration-witness]\label{prop:enumeration-witness}
+For \(m\ge2\) and nonempty \(\mathcal C\), the common-response restriction \(R_{c,z}=R_c\) defines a strict submodel \(\mathcal M_{\mathrm{common}}\subsetneq\mathcal M_{\mathrm{sat}}\). For \(p^{\mathrm w}\) on arms \(\{1,2\}\), the response-type certificate \(\mathfrak C^{\mathrm w}\) exhaustively enumerates \(|\mathcal R|=36\), \(|\mathcal R_{\mathrm F}|=144\) under \(\mathcal M_{\mathrm{sat}}\), and \(72\) types under \(\mathcal M_{\mathrm{common}}\). Its feasible primal mixtures and valid endpoint inequalities certify \(\tau\in[-1/2,1]\) under \(\mathcal M_{\mathrm{sat}}\) and \(\tau\in[0,1]\) under \(\mathcal M_{\mathrm{common}}\).
+\end{proposition}
+\begin{proof}
+The Song common-response equivalence lemma first fixes the comparator class: the affine map \(Y_c\mapsto(R_{c,z}=Y_c)_z\), with inverse \(R_c\mapsto Y_c=R_c\), identifies the fully excluded response-law class with \(\mathcal M_{\mathrm{common}}\) after the off-target coordinates are omitted from the reported target parameter.  This is only a class equivalence; it does not equate that class's projected identified set with \(\Theta(s)\).
+
+By definition, every common-response law is saturated, so
+\[
+\mathcal M_{\mathrm{common}}\subseteq\mathcal M_{\mathrm{sat}}.
+\]
+The inclusion is strict when \(m\ge2\) and \(\mathcal C\ne\varnothing\).  Choose \(c\in\mathcal C\) and distinct arms \(z,z'\), and take a degenerate response type with
+\[
+X_u=c\quad\text{for every }u\in\mathcal Z,
+\qquad R_{c,z}=0,
+\qquad R_{c,z'}=1.
+\]
+Assign arbitrary fixed values to every other response coordinate.  Draw \(Z\) independently with positive arm probabilities, set \(Y_{t,u}=Y_t\), put \(X=X_Z\), and set \(Y=R_{c,Z}\).  Randomization, target exclusion, exposure consistency, and off-target-outcome consistency follow directly; target-outcome consistency is vacuous because \(X=c\) almost surely.  The resulting full causal law belongs to \(\mathcal M_{\mathrm{sat}}\) but violates the almost-sure equality required by \(\mathcal M_{\mathrm{common}}\), proving strict inclusion.
+
+Now specialize to the witness.  Ordering coordinates as in the certificate, direct Cartesian-product enumeration gives
+\[
+|\{a,b,\star\}^{\{1,2\}}\times\{0,1\}^{\{a,b\}}|
+=3^2 2^2=36,
+\]
+\[
+|\{a,b,c\}^{\{1,2\}}\times\{0,1\}^{\{a,b\}}
+\times\{0,1\}^{\{c\}\times\{1,2\}}|
+=3^2 2^2 2^2=144,
+\]
+and
+\[
+|\{a,b,c\}^{\{1,2\}}\times\{0,1\}^{\{a,b\}}
+\times\{0,1\}^{\{c\}}|
+=3^2 2^2 2=72.
+\]
+Each factor ranges over its entire finite support, so these lists are exhaustive.  In particular, the certificate's linear programs expose every deterministic column and their probability-simplex mixtures expose every response-type law.
+
+The quotient theorem also supplies a stronger cardinality check.  For any finite off-target alphabet, any full observed law with skeleton \(s\), and any direction \(h\in\mathbb R^{2^{|\mathcal T|}}\), compactness of the finite simplices and \(\mathcal I_{\mathrm F}(p)=\Theta(s)\) imply
+\[
+\max_{\substack{\pi\ge0,\ \mathbf 1^\top\pi=1\\A_{\mathrm F}\pi=p}}
+h^\top B_{\mathrm F}\pi
+=
+\max_{\substack{q\ge0,\ \mathbf 1^\top q=1\\Aq=s}}
+h^\top Bq,
+\]
+and similarly for minima.  Thus checking arbitrary support directions across different finite refinements of the same skeleton must give exact equality; in the witness the reduced side uses the enumerated \(36\) columns.
+
+For the saturated lower endpoint, place mass \(1/2\) on each of the full types
+\[
+(a,a,0,0,0,0),
+\qquad
+(c,c,1,0,1,0),
+\]
+where the coordinates are \((x_1,x_2,y_a,y_b,r_{c,1},r_{c,2})\).  The first atom produces \((a,0)\) in both arms; the second produces \((c,1)\) in arm \(1\) and \((c,0)\) in arm \(2\).  Their mixture therefore has observed law \(p^{\mathrm w}\), and its contrast is
+\[
+\tau=\tfrac12(0-0)+\tfrac12(0-1)=-\tfrac12.
+\]
+For the upper endpoint, place mass \(1/2\) on each of
+\[
+(a,a,0,1,0,0),
+\qquad
+(c,c,0,1,1,0).
+\]
+This has the same observed law and \(\tau=1\).
+
+We certify that no saturated mixture exceeds these endpoints.  Binary support gives
+\[
+0\le E(Y_a),E(Y_b)\le1,
+\qquad
+\tau=E(Y_b)-E(Y_a)\le1.
+\]
+The two observed target cells and randomization plus target consistency give
+\[
+P(X_1=a,Y_a=0)=P(X_2=a,Y_a=0)=\tfrac12.
+\]
+Thus
+\[
+P(Y_a=0)
+\ge P(X_1=a\ \text{or}\ X_2=a)
+\ge\tfrac12,
+\]
+so \(E(Y_a)\le1/2\).  Since \(E(Y_b)\ge0\),
+\[
+\tau\ge-E(Y_a)\ge-\tfrac12.
+\]
+The two feasible mixtures attain the two valid inequalities.  The feasible response-law set is convex and \(\tau\) is linear, so mixing the two endpoint laws attains every intermediate value.  The saturated sharp interval is therefore exactly \([-1/2,1]\).
+
+Under the common-response restriction write a type as \((x_1,x_2,y_a,y_b,r_c)\).  The mixture with mass \(1/2\) on each of
+\[
+(c,a,0,0,1),
+\qquad
+(a,c,0,0,0)
+\]
+generates \(p^{\mathrm w}\) and has \(\tau=0\).  Replacing both displayed \(y_b\)-coordinates by one leaves the observed law unchanged and gives \(\tau=1\).
+
+For optimality, define
+\[
+E_1=\{X_1=c,R_c=1\},
+\qquad
+E_2=\{X_2=c,R_c=0\}.
+\]
+The observed off-target cells imply \(P(E_1)=P(E_2)=1/2\).  Because \(R_c\) is binary and common across arms, \(E_1\cap E_2=\varnothing\); hence \(E_1\cup E_2\) has probability one.  On \(E_1\), the zero arm-2 probability of exposure \(b\) and the zero cell \(p^{\mathrm w}_2(c,1)\) imply \(X_2=a\) almost surely.  The zero cell \(p^{\mathrm w}_2(a,1)\), together with target consistency, then implies \(Y_a=0\) on \(E_1\).  Symmetrically, on \(E_2\), the zero arm-1 probability of exposure \(b\) and the zero cell \(p^{\mathrm w}_1(c,0)\) imply \(X_1=a\), and \(p^{\mathrm w}_1(a,1)=0\) implies \(Y_a=0\).  Therefore \(Y_a=0\) almost surely.  Binary support now gives
+\[
+0\le\tau=E(Y_b)\le1.
+\]
+The two common-response mixtures attain both endpoints while leaving the observed law fixed.  Convex mixtures attain every intermediate value, so the common-response sharp interval is \([0,1]\).  Its strict difference from \([-1/2,1]\) proves that saturated arm-specific off-target responses are a genuine relaxation of the fully excluded common-response benchmark.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The affine response-type bijection fixes the fully excluded comparator as the common-response submodel, and the exact witness then proves that allowing arm-specific off-target responses is a genuine relaxation with different target-contrast bounds. \textit{Gap.} Song et al. identify an all-exposure potential-outcome law under common excluded responses.  This proposition uses only the exact response-class equivalence with \(\mathcal M_{\mathrm{common}}\) and the enumerated strict witness; it does not claim that Song et al.'s projected identified set equals \(\Theta(s)\). \textit{Consumer.} The witness is an exact regression test for response-type software and for the right-inverse implementation.
+
+\begin{theorem}[thm:experiment-factorization]\label{thm:experiment-factorization}
+Conditional on \((n_z:z\in\mathcal Z)\), the likelihood of \(N\) under every \((q,\eta)\) factors as \(\prod_{z\in\mathcal Z}L_z(N_z;(Aq)_z,\eta_z)\) in Definition \(\mathrm{def:skeleton\mbox{-}factorization}\). The parameter space is the Cartesian product \(\{q:q\in\Delta^{|\mathcal R|-1}\}\times\mathcal E_{\mathcal C}^m\); conditional on \(S\), the off-target allocation counts depend on \(\eta\) but not on \(q\).
+\end{theorem}
+\begin{proof}
+Fix the arm totals as required by the fixed-arm-count assumption.  Given \((q,\eta)\), let \(s=Aq\).  The quotient refinement and the two consistency assumptions imply that one observation in arm \(z\) has full-cell probabilities
+\[
+g_z(t,y)=s_z(t,y),\quad t\in\mathcal T,
+\qquad
+g_z(c,y)=s_z(\star)\eta_z(c,y),\quad c\in\mathcal C.
+\]
+Their sum is one because \(s_z\in\Delta^{d-1}\) and \(\sum_{c,y}\eta_z(c,y)=1\) when \(\mathcal C\ne\varnothing\).  When \(\mathcal C=\varnothing\), compatibility forces \(s_z(\star)=0\), and the same assertion uses the singleton allocation convention.
+
+Conditional on \(n_z\), arm \(z\) is multinomial.  Its likelihood is therefore
+\[
+\frac{n_z!}{\prod_{t,y}N_{z,t,y}!\prod_{c,y}N_{z,c,y}!}
+\prod_{t,y}s_z(t,y)^{N_{z,t,y}}
+\prod_{c,y}\{s_z(\star)\eta_z(c,y)\}^{N_{z,c,y}}.
+\]
+Using \(S_{z,t,y}=N_{z,t,y}\) and \(S_{z,\star}=\sum_{c,y}N_{z,c,y}\), multiply and divide by \(S_{z,\star}!\).  With \(0^0=1\), the result is exactly
+\[
+\left[
+\frac{n_z!}{\prod_{t,y}S_{z,t,y}!S_{z,\star}!}
+\prod_{t,y}s_z(t,y)^{S_{z,t,y}}s_z(\star)^{S_{z,\star}}
+\right]
+\left[
+\frac{S_{z,\star}!}{\prod_{c,y}N_{z,c,y}!}
+\prod_{c,y}\eta_z(c,y)^{N_{z,c,y}}
+\right]
+=L_z(N_z;s_z,\eta_z).
+\]
+Randomization and conditional sampling make the arm likelihoods multiply, which proves the asserted product factorization.
+
+Variation independence is constructive.  For every \(q\in\Delta^{|\mathcal R|-1}\) and every \(\eta\in\mathcal E_{\mathcal C}^m\), apply the armwise refinement with target probabilities \((Aq)_{z,(t,y)}\) and off-target probabilities \((Aq)_{z,\star}\eta_z(c,y)\).  This produces a full experiment with those parameters, including zero-star boundaries.  Hence the parameter space is the stated Cartesian product.
+
+Finally, conditional on a skeleton table \(S=\sigma\), all target counts are fixed and the off-target counts in arm \(z\) have probability
+\[
+\frac{\sigma_{z,\star}!}{\prod_{c,y}N_{z,c,y}!}
+\prod_{c,y}\eta_z(c,y)^{N_{z,c,y}},
+\qquad \sum_{c,y}N_{z,c,y}=\sigma_{z,\star}.
+\]
+The multinomial theorem shows that these probabilities sum to one.  This conditional law involves \(\eta\) but not \(q\).  At \(\sigma_{z,\star}=0\) it is the point mass at the all-zero allocation, so the conclusion also holds on the boundary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Factorization turns identification irrelevance into a precise statistical separation without falsely labeling the detailed counts ancillary. \textit{Gap.} Categorical instrumental-variable inference is written for the full multinomial law, and no located result isolates this variation-independent off-target allocation nuisance. \textit{Consumer.} Decision rules and confidence procedures can be designed on the skeleton experiment even when the data retain thousands of off-target labels.
+
+\begin{theorem}[thm:nuisance-minimax]\label{thm:nuisance-minimax}
+Conditional on fixed finite arm counts \((n_z:z\in\mathcal Z)\), for every full-data rule \(\delta\), fixed nuisance point \(\eta^0\), and reduced law \(q\), the fiber \(\Omega(\sigma)=\{\nu:S(\nu)=\sigma\}\) is finite for every \(\sigma\), and \(\delta_0(\sigma)=\sum_{\nu\in\Omega(\sigma)}K_{\eta^0}(\nu\mid\sigma)\delta(\nu)\in\mathcal A\). This rule satisfies \(R_q(\delta_0)\le R_{q,\eta^0}(\delta)\le\sup_\eta R_{q,\eta}(\delta)\). Conversely, every skeleton rule \(\phi\) lifts to the full-data rule \(\delta^{\phi}(\nu)=\phi(S(\nu))\), for which \(R_{q,\eta}(\delta^{\phi})=R_q(\phi)\) for all \(q,\eta\). Therefore \(\inf_\delta\sup_{q,\eta}R_{q,\eta}(\delta)=\inf_\phi\sup_qR_q(\phi)\). No pointwise inequality \(R_{q,\eta}(\delta_0)\le R_{q,\eta}(\delta)\) is asserted for arbitrary \(\eta\).
+\end{theorem}
+\begin{proof}
+For fixed finite arm totals and any skeleton table \(\sigma\), each coordinate of a member of \(\Omega(\sigma)\) is an integer between zero and the corresponding \(n_z\).  Hence \(\Omega(\sigma)\) is finite.  By the multinomial theorem applied separately in every arm,
+\[
+\sum_{\nu\in\Omega(\sigma)}K_{\eta^0}(\nu\mid\sigma)=1,
+\qquad K_{\eta^0}(\nu\mid\sigma)\ge0.
+\]
+Thus \(\delta_0(\sigma)\) is a finite convex combination of points \(\delta(\nu)\in\mathcal A\).  Convexity of \(\mathcal A\) implies \(\delta_0(\sigma)\in\mathcal A\); no closure or limiting argument is needed.
+
+The experiment factorization shows that under \((q,\eta^0)\), the conditional distribution of \(N\) given \(S=\sigma\) is precisely \(K_{\eta^0}(\cdot\mid\sigma)\), independently of \(q\).  Convexity of \(a\mapsto\ell(a,Bq)\) and finite Jensen therefore give, for every \(\sigma\),
+\[
+\ell(\delta_0(\sigma),Bq)
+\le
+\sum_{\nu\in\Omega(\sigma)}K_{\eta^0}(\nu\mid\sigma)
+\ell(\delta(\nu),Bq).
+\]
+The marginal distribution of \(S\) depends on \(q\) through \(Aq\) and does not depend on \(\eta\).  Multiplying by this marginal probability and summing over \(\sigma\) gives
+\[
+R_q(\delta_0)
+\le R_{q,\eta^0}(\delta)
+\le\sup_{\eta\in\mathcal E_{\mathcal C}^m}R_{q,\eta}(\delta).
+\]
+The first inequality uses only the conditional law at the fixed point \(\eta^0\); it does not compare the two risks pointwise at an arbitrary \(\eta\).
+
+Conversely, for a skeleton rule \(\phi\), define \(\delta^\phi(\nu)=\phi(S(\nu))\).  Since both its action and its target \(Bq\) are functions of the skeleton parameter and skeleton data alone,
+\[
+\begin{aligned}
+R_{q,\eta}(\delta^\phi)
+ &=\sum_{\sigma}P_q(S=\sigma)\ell(\phi(\sigma),Bq)
+   \sum_{\nu\in\Omega(\sigma)}K_\eta(\nu\mid\sigma)\\
+ &=\sum_{\sigma}P_q(S=\sigma)\ell(\phi(\sigma),Bq)
+ =R_q(\phi)
+\end{aligned}
+\]
+for every \(q,\eta\).  Hence
+\[
+\inf_\phi\sup_qR_q(\phi)
+\le\inf_\delta\sup_{q,\eta}R_{q,\eta}(\delta)
+\]
+by the first construction, while
+\[
+\inf_\delta\sup_{q,\eta}R_{q,\eta}(\delta)
+\le\inf_\phi\sup_qR_q(\phi)
+\]
+by the lift.  The two minimax values are equal, with the inequalities valid as extended nonnegative real inequalities if a supremum is infinite.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Because fixed arm counts and finite alphabets make every \(\Omega(\sigma)\) finite, the barycenter exists for every rule and lies in the convex action space without closedness or integrability conditions; likelihood factorization makes \(K_{\eta^0}\) independent of \(q\), and Jensen's inequality gives the first risk bound. \textit{Gap.} Blackwell comparison does not directly apply because the conditional allocation kernel contains an unknown nuisance; the supremum over the variation-independent nuisance is the new step. \textit{Consumer.} A minimax analyst loses nothing by storing and processing only target cells and total off-target counts.
+
+\begin{theorem}[thm:finite-set-coverage]\label{thm:finite-set-coverage}
+For every \(\alpha\in(0,1)\), every \(P\in\mathcal M_{\mathcal T,\mathcal C}\), and every off-target allocation \(\eta\), \(P\{\Theta(s)\subseteq\widehat\Theta_\alpha\mid(n_z)_z\}\ge1-\alpha\). The event follows from \(P\{D_{\mathrm{KL}}(\widehat s_z\|s_z)>\rho_z(\alpha)\}\le\alpha/m\) and therefore remains valid at endpoint kinks and simultaneously for every linear functional of \(\operatorname{law}(Y_{\mathcal T})\). Calibration and every optimization dimension are independent of \(|\mathcal C|\); direct response-type computation uses \((|\mathcal T|+1)^m2^{|\mathcal T|}\) columns and is exponential only in \(m\) and \(|\mathcal T|\).
+\end{theorem}
+\begin{proof}
+Use the conventions \(0\log(0/a)=0\) and \(b\log(b/0)=+\infty\) for \(b>0\).  Fix an arm \(z\), abbreviate \(n_z\) by \(n_0\), and let \(r\) be an empirical type on the \(d\)-point skeleton alphabet.  Its exact multinomial probability under \(s_z\) is
+\[
+P_{s_z}(\widehat s_z=r)
+=\frac{n_0!}{\prod_j(n_0r_j)!}\prod_js_{z,j}^{n_0r_j}.
+\]
+The multinomial expansion of \((\sum_jr_j)^{n_0}=1\) implies
+\[
+\frac{n_0!}{\prod_j(n_0r_j)!}\prod_jr_j^{n_0r_j}\le1,
+\]
+so
+\[
+P_{s_z}(\widehat s_z=r)
+\le \exp\{-n_0D_{\mathrm{KL}}(r\|s_z)\}.
+\]
+There are at most \((n_0+1)^{d-1}\) types, because their first \(d-1\) integer counts determine the last count.  This method-of-types count yields
+\[
+\begin{aligned}
+P_{s_z}\{D_{\mathrm{KL}}(\widehat s_z\|s_z)>\rho_z(\alpha)\}
+&\le(n_z+1)^{d-1}e^{-n_z\rho_z(\alpha)}\\
+&=(n_z+1)^{d-1}
+\exp\{-\log(m/\alpha)-(d-1)\log(n_z+1)\}\\
+&=\alpha/m.
+\end{aligned}
+\]
+Positive arm counts justify every division by \(n_z\).  Zero coordinates of \(s_z\) cause no problem: an empirical type charging such a coordinate has probability zero.
+
+Define the simultaneous event
+\[
+\mathcal E_\alpha=
+\bigcap_{z\in\mathcal Z}
+\{D_{\mathrm{KL}}(\widehat s_z\|s_z)\le\rho_z(\alpha)\}.
+\]
+The union bound gives \(P(\mathcal E_\alpha\mid(n_z)_z)\ge1-\alpha\).  Quotient sharpness implies that the true skeleton belongs to \(\mathcal S\).  Therefore, on \(\mathcal E_\alpha\), \(s\in\mathcal K_\alpha(\widehat s)\), and the union defining the reported region contains its corresponding complete sharp set:
+\[
+\Theta(s)\subseteq
+\bigcup_{s'\in\mathcal K_\alpha(\widehat s)}\Theta(s')
+=\widehat\Theta_\alpha.
+\]
+The skeleton multinomial law does not involve \(\eta\), so the probability bound is uniform over the off-target allocation nuisance.  The argument uses set inclusion only, not differentiability of an endpoint; it therefore remains valid at facet switches and simultaneously covers every linear functional of every \(\mu\in\Theta(s)\).
+
+For computation, eliminate \(s'\) to obtain the explicit projection
+\[
+\widehat\Theta_\alpha
+=\left\{Bq:q\in\Delta^{|\mathcal R|-1},\ 
+D_{\mathrm{KL}}(\widehat s_z\|(Aq)_z)\le\rho_z(\alpha)
+\text{ for all }z\in\mathcal Z\right\}.
+\]
+It has \((|\mathcal T|+1)^m2^{|\mathcal T|}\) response-type columns and \(md\) skeleton coordinates.  The radius contains only \(m,d,n_z,\alpha\).  Thus calibration and optimization are independent of \(|\mathcal C|\), while direct column enumeration is exponential in \(m\) and \(|\mathcal T|\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The guarantee protects the complete sharp set in finite samples without selecting an active endpoint formula. \textit{Gap.} Song et al. project a full-alphabet KL region under full exclusion; this theorem first quotients the weaker target-only model and removes \(|\mathcal C|\) from calibration and computation. \textit{Consumer.} Analysts with finely coded nonadherence or dosage deviations obtain honest whole-set uncertainty without merging scientific target levels.
+
+\begin{theorem}[thm:hoffman-support]\label{thm:hoffman-support}
+The compatible-fiber modulus \(H_A\) is finite and admits a computable upper certificate obtained by enumerating the full-row-rank active submatrices of the equality-plus-nonnegativity system for \(F(s)\). For all \(s,s'\in\mathcal S\), \(e_1(\Theta(s'),\Theta(s))\le H_A\|s'-s\|_1\) and \(|h_{s'}(u)-h_s(u)|\le H_A\|u\|_\infty\|s'-s\|_1\). On the coverage event in Theorem 5, \(e_1(\widehat\Theta_\alpha,\Theta(s))\le2H_A\sum_{z\in\mathcal Z}\sqrt{2\rho_z(\alpha)}\). Every constant depends only on \(A\) and \(B\), hence on \(m\) and \(|\mathcal T|\), not on \(|\mathcal C|\).
+\end{theorem}
+\begin{proof}
+Let \(C\) be a full-row-rank submatrix whose rows are a linearly independent subcollection spanning the row space of the augmented equality matrix, choosing \(\mathbf 1^\top\) as its first row,
+\[
+\begin{bmatrix}\mathbf 1^\top\\ A\end{bmatrix}.
+\]
+For \(s\in\mathcal S\), let \(b(s)\) be the corresponding subvector of \((1,s)\).  Since \((1,s)\) is compatible with all row relations of the augmented matrix,
+\[
+F(s)=\{q\ge0:Cq=b(s)\}.
+\]
+The cited fixed-matrix polyhedral feasible-fiber bound applies because every such fiber is a nonempty closed subset of the simplex and hence is bounded.  It supplies a finite, computable \(\overline H_A\), obtained from the finitely many full-row-rank active submatrices, such that
+\[
+e_1(F(s'),F(s))
+\le\overline H_A\|b(s')-b(s)\|_1
+\le\overline H_A\|s'-s\|_1.
+\]
+Taking the supremum in the definition of \(H_A\) proves \(H_A\le\overline H_A<\infty\) and gives the asserted computable upper certificate.
+
+Every column of \(B\) contains exactly one entry equal to one.  Therefore, for every signed vector \(w\),
+\[
+\|Bw\|_1
+\le\sum_y\sum_{r:y_{\mathcal T}(r)=y}|w_r|
+=\|w\|_1.
+\]
+Fix \(\mu'=Bq'\in\Theta(s')\).  From the definition of directed excess, for every \(\epsilon>0\) there is \(q\in F(s)\) satisfying
+\[
+\|q'-q\|_1
+\le e_1(F(s'),F(s))+\epsilon.
+\]
+It follows that
+\[
+\inf_{\mu\in\Theta(s)}\|\mu'-\mu\|_1
+\le\|Bq'-Bq\|_1
+\le H_A\|s'-s\|_1+\epsilon.
+\]
+Take the supremum over \(\mu'\) and then let \(\epsilon\downarrow0\) to obtain
+\[
+e_1(\Theta(s'),\Theta(s))\le H_A\|s'-s\|_1.
+\]
+
+Compactness of \(F(s)\) ensures that the support maximum is attained.  If \(q'\) maximizes \(u^\top Bq'\) over \(F(s')\), choose the preceding approximating \(q\in F(s)\).  Then
+\[
+h_{s'}(u)-h_s(u)
+\le u^\top B(q'-q)
+\le\|u\|_\infty\|B(q'-q)\|_1
+\le H_A\|u\|_\infty\|s'-s\|_1+\|u\|_\infty\epsilon.
+\]
+Letting \(\epsilon\downarrow0\) and interchanging \(s,s'\) proves the absolute-value inequality.
+
+It remains to establish the confidence-width statement.  By the finite-alphabet Pinsker lemma, on the simultaneous event \(\mathcal E_\alpha\) used in the finite-set coverage proof, every \(s'\in\mathcal K_\alpha(\widehat s)\) obeys, arm by arm,
+\[
+\begin{aligned}
+\|s'_z-s_z\|_1
+&\le\|s'_z-\widehat s_z\|_1+\|\widehat s_z-s_z\|_1\\
+&\le\sqrt{2D_{\mathrm{KL}}(\widehat s_z\|s'_z)}
+ +\sqrt{2D_{\mathrm{KL}}(\widehat s_z\|s_z)}\\
+&\le2\sqrt{2\rho_z(\alpha)}.
+\end{aligned}
+\]
+Thus \(\|s'-s\|_1\le2\sum_z\sqrt{2\rho_z(\alpha)}\).  Apply the target-set excess inequality uniformly to every set in the union defining \(\widehat\Theta_\alpha\) to conclude
+\[
+e_1(\widehat\Theta_\alpha,\Theta(s))
+\le2H_A\sum_{z\in\mathcal Z}\sqrt{2\rho_z(\alpha)}.
+\]
+The matrices \(A,B\), the active-submatrix list, and all displayed dimensions depend only on \(m\) and \(|\mathcal T|\).  No constant depends on the labels, allocation probabilities, or cardinality of \(\mathcal C\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This converts sampling error in the reduced multinomial law into deterministic excess width for every target-law direction. \textit{Gap.} Hoffman and Li provide generic polyhedral sensitivity, but no published instrumental-variable result gives this compatible-simplex support modulus or its quotient-invariant confidence-width consequence. \textit{Consumer.} The bound supplies stopping rules, sample-size calculations, and numerical tolerances for projected target-law regions.
+
+\begin{theorem}[thm:regular-face-lower-bound]\label{thm:regular-face-lower-bound}
+Under the interior, feasible-direction, regular-face, nonzero-derivative, and arm-proportion conditions, there exist constants \(c>0\) and \(c_0>0\) such that \(\liminf_{n\to\infty}\sqrt n\inf_{\widehat h}\sup_{e\in\{-c,c\}}E_{s_0+ev/\sqrt n,\eta}|\widehat h-h_{s_0+ev/\sqrt n}(u_0)|\ge c_0\), even when \(\widehat h\) uses the full counts \(N\). The constants and the lower bound are uniform over the labels and cardinality of \(\mathcal C\).
+\end{theorem}
+\begin{proof}
+Put
+\[
+a=\min_{z\in\mathcal Z,j\in\mathcal D}(s_0)_{z,j}>0,
+\qquad
+V=\max_{z\in\mathcal Z}\sum_{j\in\mathcal D}v_{z,j}^2.
+\]
+The two-sided feasible-direction assumption implies \(\sum_jv_{z,j}=0\) for every arm.  Moreover \(V>0\), because \(V=0\) would imply \(v=0\) and hence \(\gamma=0\), contrary to the nonzero-derivative assumption.
+
+The stable unique nondegenerate optimal basis in the regular-face assumption remains primal and dual optimal in a neighborhood of \(s_0\).  The corresponding basic solution is affine in the equality right-hand side, so its objective value is affine.  Consequently there is \(\epsilon_1>0\) such that
+\[
+h_{s_0+\epsilon v}(u_0)=h_{s_0}(u_0)+\gamma\epsilon
+\quad\text{whenever }|\epsilon|\le\epsilon_1.
+\]
+Choose a fixed \(c>0\) small enough that
+\[
+\frac{8c^2V}{a}\le\frac12.
+\]
+For all sufficiently large \(n\), feasibility of the two-sided direction gives \(s_{\pm,n}=s_0\pm cv/\sqrt n\in\mathcal S\), every coordinate of both laws is at least \(a/2\), and the local affine formula gives
+\[
+\Delta_n:=|h_{s_{+,n}}(u_0)-h_{s_{-,n}}(u_0)|
+=\frac{2|\gamma|c}{\sqrt n}.
+\]
+
+Let \(P_{+,n}^{N,\eta}\) and \(P_{-,n}^{N,\eta}\) denote the conditional laws of the full counts at these two skeleton laws and the same arbitrary allocation \(\eta\).  Experiment factorization gives the same conditional kernel \(K_\eta(N\mid S)\) under both hypotheses.  The chain rule for the finite sum defining relative entropy therefore cancels that kernel and yields
+\[
+D_{\mathrm{KL}}(P_{+,n}^{N,\eta}\|P_{-,n}^{N,\eta})
+=\sum_{z\in\mathcal Z}n_zD_{\mathrm{KL}}((s_{+,n})_z\|(s_{-,n})_z).
+\]
+For positive probability vectors \(p,q\), \(\log x\le x-1\) implies
+\[
+D_{\mathrm{KL}}(p\|q)
+\le\sum_j\frac{(p_j-q_j)^2}{q_j}.
+\]
+Using \((s_{+,n})_z-(s_{-,n})_z=2cv_z/\sqrt n\), the lower bound \((s_{-,n})_{z,j}\ge a/2\), and \(\sum_zn_z/n=1\), we obtain
+\[
+D_{\mathrm{KL}}(P_{+,n}^{N,\eta}\|P_{-,n}^{N,\eta})
+\le\frac{8c^2}{a}\sum_z\frac{n_z}{n}\sum_jv_{z,j}^2
+\le\frac{8c^2V}{a}\le\frac12.
+\]
+This bound is uniform in \(\eta\) and \(\mathcal C\).  The arm-proportion assumption ensures the stipulated conditional asymptotic sequence has all arms diverging with positive limiting fractions; the displayed information bound itself only needs their fixed totals to sum to \(n\).
+
+The finite-alphabet Pinsker lemma gives
+\[
+\|P_{+,n}^{N,\eta}-P_{-,n}^{N,\eta}\|_{\mathrm{TV}}
+\le\sqrt{\tfrac12D_{\mathrm{KL}}(P_{+,n}^{N,\eta}\|P_{-,n}^{N,\eta})}
+\le\frac12.
+\]
+For completeness, the two-point risk inequality follows directly.  With densities \(p_+,p_-\) relative to their sum and any full-count estimator \(\widehat h\), the triangle inequality gives
+\[
+\begin{aligned}
+&E_+|\widehat h-h_{s_{+,n}}(u_0)|+E_-|\widehat h-h_{s_{-,n}}(u_0)|\\
+&\quad\ge
+\int\min(p_+,p_-)
+\left(|\widehat h-h_{s_{+,n}}(u_0)|+|\widehat h-h_{s_{-,n}}(u_0)|\right)\\
+&\quad\ge \Delta_n\int\min(p_+,p_-)
+=\Delta_n\{1-\|P_{+,n}^{N,\eta}-P_{-,n}^{N,\eta}\|_{\mathrm{TV}}\}.
+\end{aligned}
+\]
+At least one of the two risks is therefore at least \(\Delta_n/4\).  Taking the infimum over all estimators, multiplying by \(\sqrt n\), and taking the lower limit yields
+\[
+\liminf_{n\to\infty}\sqrt n\inf_{\widehat h}
+\sup_{e\in\{-c,c\}}E_{s_0+ev/\sqrt n,\eta}
+|\widehat h-h_{s_0+ev/\sqrt n}(u_0)|
+\ge\frac{|\gamma|c}{2}=:c_0>0.
+\]
+Both \(c\) and \(c_0\) use only \(s_0,v,\gamma,A,B\) and the reduced alphabet.  The cancellation of \(K_\eta\) proves uniformity over every off-target allocation, label set, and finite cardinality \(|\mathcal C|\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The local two-point bound certifies that root-\(n\) width on a regular face cannot be improved by retaining off-target labels. \textit{Gap.} Existing endpoint work gives upper inference results or generic regularization, not a target-quotient lower bound uniform in off-target refinement. \textit{Consumer.} The result benchmarks the order of projected-region width and prevents claims that a larger off-target alphabet can improve regular-face rates.
+
+\begin{openendedquestion}[oeq:kink-phase-diagram]\label{oeq:kink-phase-diagram}
+Using the vanishing-penalty active-cone handle, characterize the local asymptotic minimax risk and limit experiment for \(h_s(u)\) at every skeleton law where the reduced dual program has multiple optimal vertices, and construct one data-driven estimator and confidence procedure that attains the resulting face-by-face frontier without knowing the active cone.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The exact behavior at facet switches is the first-class open content left after finite-sample coverage and regular-face optimality. \textit{Gap.} Levis et al. use margins or smoothing and Gafarov uses generic quadratic regularization; neither supplies the exact target-IV local minimax phase diagram. \textit{Consumer.} An attaining procedure would replace conservative whole-set projection by shorter calibrated intervals whenever the observed skeleton is near, but not exactly on, a dual tie.
+
+\begin{lemma}[lem:polyhedral-feasible-fiber-lipschitz]\label{lem:polyhedral-feasible-fiber-lipschitz}
+Let \(C\) be a fixed full-row-rank real matrix whose first row is \(\mathbf 1^\top\), and let \(G(b)=\{x\in\mathbb R^k:Cx=b,\ x\ge0\}\).  Over all right-hand sides whose first coordinate is one and whose fiber is nonempty, there is a finite constant \(H(C)\) such that \(e_1(G(b'),G(b))\le H(C)\|b'-b\|_1\).  A valid upper constant is computable from the finitely many full-row-rank active submatrices of the equality-plus-nonnegativity system (equivalently, after replacing each equality by two inequalities).
+\end{lemma}
+
+\begin{lemma}[lem:finite-alphabet-pinsker]\label{lem:finite-alphabet-pinsker}
+For probability vectors \(a,b\) on the same finite alphabet, with relative entropy defined by \(0\log(0/b_j)=0\) and \(a_j\log(a_j/0)=+\infty\) when \(a_j>0\),
+\[
+\|a-b\|_1\le\sqrt{2D_{\mathrm{KL}}(a\|b)}.
+\]
+\end{lemma}
+\begin{proof}
+Let \(E=\{j:a_j\ge b_j\}\) and \(t=a(E)-b(E)=\|a-b\|_1/2\).  Convexity of \(x\mapsto x\log x\), applied separately on \(E\) and its complement, gives the log-sum reduction
+\[
+D_{\mathrm{KL}}(a\|b)\ge d_{\mathrm{bin}}(a(E)\|b(E)).
+\]
+For fixed \(r\in(0,1)\), the second derivative in \(x\) of \(d_{\mathrm{bin}}(x\|r)\) is \(1/[x(1-x)]\ge4\), while its value and first derivative vanish at \(x=r\).  Taylor's integral formula gives
+\[
+d_{\mathrm{bin}}(x\|r)\ge2(x-r)^2.
+\]
+Boundary cases follow by taking limits; if the relative entropy is infinite the desired inequality is immediate.  Consequently
+\[
+D_{\mathrm{KL}}(a\|b)\ge2t^2=\tfrac12\|a-b\|_1^2,
+\]
+which is equivalent to the claim.
+\end{proof}
+
+\begin{lemma}[lem:balke-pearl-binary-ace-bounds]\label{lem:balke-pearl-binary-ace-bounds}
+Let \(\pi_{yd.z}\ge 0\), indexed by \(y,d,z\in\{0,1\}\), satisfy \(\sum_{y,d}\pi_{yd.z}=1\) for each \(z\). Suppose that the binary instrumental-variable response-type fiber
+\[
+ \mathcal Q_{\mathrm{IV}}(\pi)
+ =\left\{\widetilde q\in\Delta^{15}:
+ \pi_{yd.z}=\sum_{d_0,d_1,u_0,u_1}\widetilde q_{d_0d_1u_0u_1}
+ \mathbf 1\{d_z=d,\ u_d=y\}\ \text{for all }y,d,z\right\}
+\]
+is nonempty. For
+\[
+ \operatorname{ACE}(\widetilde q)
+ =\sum_{d_0,d_1,u_0,u_1}\widetilde q_{d_0d_1u_0u_1}(u_1-u_0),
+\]
+the minimum over \(\mathcal Q_{\mathrm{IV}}(\pi)\) equals
+\[
+L_{\mathrm{BP}}(\pi)=\max\left\{
+\begin{aligned}
+&\pi_{00.0}+\pi_{11.1}-1,\\
+&\pi_{00.1}+\pi_{11.1}-1,\\
+&\pi_{11.0}+\pi_{00.1}-1,\\
+&\pi_{00.0}+\pi_{11.0}-1,\\
+&2\pi_{00.0}+\pi_{11.0}+\pi_{10.1}+\pi_{11.1}-2,\\
+&\pi_{00.0}+2\pi_{11.0}+\pi_{00.1}+\pi_{01.1}-2,\\
+&\pi_{10.0}+\pi_{11.0}+2\pi_{00.1}+\pi_{11.1}-2,\\
+&\pi_{00.0}+\pi_{01.0}+\pi_{00.1}+2\pi_{11.1}-2
+\end{aligned}\right\},
+\]
+and the maximum equals
+\[
+U_{\mathrm{BP}}(\pi)=\min\left\{
+\begin{aligned}
+&1-\pi_{10.0}-\pi_{01.1},\\
+&1-\pi_{01.0}-\pi_{10.1},\\
+&1-\pi_{01.0}-\pi_{10.0},\\
+&1-\pi_{01.1}-\pi_{10.1},\\
+&2-2\pi_{01.0}-\pi_{10.0}-\pi_{10.1}-\pi_{11.1},\\
+&2-\pi_{01.0}-2\pi_{10.0}-\pi_{00.1}-\pi_{01.1},\\
+&2-\pi_{10.0}-\pi_{11.0}-2\pi_{01.1}-\pi_{10.1},\\
+&2-\pi_{00.0}-\pi_{01.0}-\pi_{01.1}-2\pi_{10.1}
+\end{aligned}\right\}.
+\]
+Both extrema are attainable by response-type distributions in \(\mathcal Q_{\mathrm{IV}}(\pi)\).
+\end{lemma}
+
+\begin{lemma}[lem:gabriel-one-offtarget-scope]\label{lem:gabriel-one-offtarget-scope}
+Results 1 and 3 of Gabriel, Sachs, and Sj\"olander study their specified low-cardinality coarsening configurations with one off-target level.  Their structural formulations take \(X=g_X(X^*)\), retain a common target response \(Y_t=f_Y(U,t,\epsilon_y)\) for each well-defined \(t\in\mathcal T\), and represent the off-target outcome either by the realized fine version \(g_Y(U,X_z^*,\epsilon_y)\) in the ill-definition formulation or by the arm-specific function \(f_{Y^2}(U,z,\epsilon_y)\) in the contamination formulation.  The two results report bounds for specified target contrasts under the relevance conditions stated there.
+\end{lemma}
+
+\begin{lemma}[lem:gabriel-npsem-transfer]\label{lem:gabriel-npsem-transfer}
+In each one-off-target NPSEM described by the cited Gabriel scope lemma, the map
+\[
+ X_z=g_X(X_z^*),\qquad
+ Y_t=f_Y(U,t,\epsilon_y),
+\]
+together with
+\[
+ R_{c,z}=g_Y(U,X_z^*,\epsilon_y)
+ \quad\text{or}\quad
+ R_{c,z}=f_{Y^2}(U,z,\epsilon_y)
+\]
+for, respectively, the ill-definition or contamination formulation, sends every randomized source law satisfying \(P(Z=z)=\lambda_z>0\) for all \(z\in\mathcal Z\) to a law in \(\mathcal M_{\mathcal T,\{c\}}\) with exactly the same observed arm law \(p\) and target law \(\operatorname{law}(Y_{\mathcal T})\).  Conversely, every full response-type law on \(\mathcal R_{\mathrm F}\) with \(\mathcal C=\{c\}\) has a representation of each of these two forms using the full response type as \(U\) and degenerate independent errors.  The representations preserve randomization, \(p\), and \(\operatorname{law}(Y_{\mathcal T})\).  Consequently the source and present response-law fibers, and hence their target-law images, agree at the matching cardinalities.  This equality remains true after restricting both sides to any relevance condition that is a restriction on the observed law \(p\).
+\end{lemma}
+\begin{proof}
+We prove both directions constructively.  First consider a source NPSEM satisfying \(P(Z=z)=\lambda_z>0\) for every \(z\in\mathcal Z\), and collect all of its pre-assignment latent variables and errors into a random element \(L\).  Random assignment means \(Z\perp\!\!\!\perp L\).  For every \(z\in\mathcal Z\), let \(X_z^*\) be the fine potential exposure generated by the source exposure equation and put
+\[
+X_z=g_X(X_z^*).
+\]
+For every target level \(t\in\mathcal T\), define
+\[
+Y_t=f_Y(U,t,\epsilon_y).
+\]
+The right-hand side has no \(z\)-argument, so the target-exclusion condition holds.  In the ill-definition formulation set
+\[
+R_{c,z}=g_Y(U,X_z^*,\epsilon_y),
+\]
+and in the contamination formulation set
+\[
+R_{c,z}=f_{Y^2}(U,z,\epsilon_y).
+\]
+All coordinates of \((X_{\mathcal Z},Y_{\mathcal T},R_{c,\mathcal Z})\) are measurable functions of \(L\).  Since independence is preserved by measurable maps, randomization gives
+\[
+Z\perp\!\!\!\perp(X_{\mathcal Z},Y_{\mathcal T},R_{c,\mathcal Z}).
+\]
+Set \(X=X_Z\).  On \(\{X=t\}\) use the source target equation, and on \(\{X=c,Z=z\}\) use the displayed off-target equation.  This verifies exposure consistency, target-outcome consistency, and off-target-outcome consistency one at a time.  Hence the induced law belongs to \(\mathcal M_{\mathcal T,\{c\}}\).
+
+Because \(P(Z=z)=\lambda_z>0\), conditioning on arm \(z\) is well defined.  Randomization and the consistency equations imply, for \(y\in\mathcal Y\),
+\[
+\begin{aligned}
+P(X=t,Y=y\mid Z=z)
+ &=P(X_z=t,Y_t=y), &&t\in\mathcal T,\\
+P(X=c,Y=y\mid Z=z)
+ &=P(X_z=c,R_{c,z}=y).
+\end{aligned}
+\]
+These are the same events and the same probabilities as in the source NPSEM by construction.  Thus every coordinate of \(p\) is preserved.  The random vector \(Y_{\mathcal T}\) was retained coordinatewise, so its entire joint law is also preserved.
+
+For the converse, let \(F=(x_{\mathcal Z},y_{\mathcal T},r_{c,\mathcal Z})\) have an arbitrary probability law \(\pi\) on the full response-type space with \(\mathcal C=\{c\}\).  Take \(U=F\), let every auxiliary exposure and outcome error be a constant, and draw \(Z\) independently of \(U\) with the given positive probabilities \((\lambda_z)_z\).  Constant errors are mutually independent and independent of \((U,Z)\).  Define
+\[
+f_X(U,z)=x_z(U),
+\qquad
+f_Y(U,t,0)=y_t(U).
+\]
+For the contamination representation, take the fine and recorded exposure labels to coincide, let \(g_X\) be the identity, and define
+\[
+f_{Y^2}(U,z,0)=r_{c,z}(U).
+\]
+Then the resulting vector of response coordinates is exactly \(F\), not merely equal to it in distribution.
+
+For the ill-definition representation, introduce the finite fine support
+\[
+\mathcal X^*=\mathcal T\mathbin{\dot\cup}
+\{(c,z):z\in\mathcal Z\},
+\]
+and the deterministic coarsening
+\[
+g_X(t)=t\quad(t\in\mathcal T),
+\qquad g_X(c,z)=c.
+\]
+For each arm define
+\[
+X_z^*(U)=
+\begin{cases}
+x_z(U),&x_z(U)\in\mathcal T,\\
+(c,z),&x_z(U)=c,
+\end{cases}
+\]
+and define the outcome function on all fine versions by
+\[
+g_Y(U,t,0)=y_t(U),
+\qquad
+g_Y(U,(c,z),0)=r_{c,z}(U).
+\]
+It follows coordinatewise that \(g_X(X_z^*)=x_z(U)\), that the common response at target \(t\) is \(y_t(U)\), and that the response on the off-target branch in arm \(z\) is \(r_{c,z}(U)\).  Thus this representation also reproduces exactly the original full response type.  Drawing \(Z\) independently and applying consistency therefore reproduces the same observed law \(p\), the same target law, and the same randomization relation.
+
+The two constructions are inverse at the level relevant to response-law fibers: the forward construction records \((X_{\mathcal Z},Y_{\mathcal T},R_{c,\mathcal Z})\), and the reverse construction realizes any law of precisely that vector.  Finally, let \(\mathcal P_{\mathrm{rel}}\) be any subset of the observed-law simplex.  Both maps leave \(p\) unchanged, so a law has \(p\in\mathcal P_{\mathrm{rel}}\) before the map if and only if it does afterward.  Restricting to \(\mathcal P_{\mathrm{rel}}\), including any published relevance condition that is stated solely in terms of \(p\), therefore preserves the fiber equality and its target-law image.
+\end{proof}
+
+\begin{lemma}[lem:song-fully-excluded-model-scope]\label{lem:song-fully-excluded-model-scope}
+The fully excluded finite categorical instrumental-variable model used by Song, Guo, Chan, and Richardson represents a unit by an exposure response vector \((X_z:z\in\mathcal Z)\) and one arm-invariant potential outcome \(Y_x\in\mathcal Y\) for every \(x\in\mathcal X\), together with random assignment and consistency.
+\end{lemma}
+
+\begin{lemma}[lem:song-common-response-equivalence]\label{lem:song-common-response-equivalence}
+Let
+\[
+\mathcal R_{\mathrm{FE}}=\mathcal X^{\mathcal Z}\times\mathcal Y^{\mathcal X}
+\]
+be the fully excluded response-type space, with atoms \(g=(x_{\mathcal Z},(y_x)_{x\in\mathcal X})\).  The map
+\[
+J(g)=\bigl(x_{\mathcal Z},(y_t)_{t\in\mathcal T},
+(r_{c,z}=y_c)_{c\in\mathcal C,z\in\mathcal Z}\bigr)
+\]
+is a bijection from \(\mathcal R_{\mathrm{FE}}\) onto the subset of \(\mathcal R_{\mathrm F}\) satisfying \(r_{c,z}=r_{c,z'}\) for every \(c\in\mathcal C\) and \(z,z'\in\mathcal Z\).  Its affine extension to probability laws preserves every observed cell probability and the target-law map.  Thus, after off-target potential outcomes are omitted from the reported target parameter, the fully excluded response-law class is exactly \(\mathcal M_{\mathrm{common}}\).  When \(\mathcal C\ne\varnothing\), this correspondence by itself does not identify that class with \(\mathcal M_{\mathrm{sat}}\).
+\end{lemma}
+\begin{proof}
+Define the inverse on a common-response full type
+\[
+f=(x_{\mathcal Z},y_{\mathcal T},r_{\mathcal C,\mathcal Z})
+\quad\text{with}\quad
+r_{c,z}=r_{c,z'}
+\]
+by retaining \(x_{\mathcal Z}\), setting \(y_t^{\mathrm{FE}}=y_t\) for \(t\in\mathcal T\), and setting
+\[
+y_c^{\mathrm{FE}}=r_{c,z_0}
+\]
+for any fixed \(z_0\in\mathcal Z\).  The common-response equalities make this definition independent of the choice of \(z_0\).  It is immediate coordinate by coordinate that this inverse composed with \(J\), and \(J\) composed with this inverse, are identity maps.  Hence \(J\) is a bijection.
+
+For a law \(\omega\) on \(\mathcal R_{\mathrm{FE}}\), define its fully excluded observed incidence by
+\[
+(A_{\mathrm{FE}}\omega)_{z,(x,y)}
+=\sum_{g\in\mathcal R_{\mathrm{FE}}}
+\omega_g\mathbf 1\{x_z(g)=x,\ y_x(g)=y\}.
+\]
+Let \(\pi=J_{\#}\omega\).  If \(x=t\in\mathcal T\), then the definition of \(J\) gives \(y_t(Jg)=y_t(g)\); if \(x=c\in\mathcal C\), it gives \(r_{c,z}(Jg)=y_c(g)\).  Therefore, for every \(z,x,y\),
+\[
+(A_{\mathrm F}\pi)_{z,(x,y)}
+=\sum_g\omega_g\mathbf 1\{x_z(g)=x,\ y_x(g)=y\}
+=(A_{\mathrm{FE}}\omega)_{z,(x,y)}.
+\]
+Likewise, for every \(y_{\mathcal T}\in\mathcal Y^{\mathcal T}\),
+\[
+(B_{\mathrm F}\pi)_{y_{\mathcal T}}
+=\sum_g\omega_g
+\mathbf 1\{(y_t(g))_{t\in\mathcal T}=y_{\mathcal T}\},
+\]
+which is exactly the fully excluded target marginal after the coordinates \((Y_c:c\in\mathcal C)\) are omitted from the reported parameter.
+
+At the causal-law level, draw either response type independently of \(Z\), set \(X=X_Z\), and use the appropriate response coordinate for \(Y\).  Randomization and the two consistency conditions then identify the displayed incidence probabilities with the observed conditional arm probabilities.  The support condition defining the image of \(J\) is precisely \(R_{c,z}=R_{c,z'}=:R_c\) for every \(c,z,z'\), which is the defining restriction of \(\mathcal M_{\mathrm{common}}\).  Surjectivity of \(J\) proves equality with that class at response-law level.  It furnishes no equality with the saturated class when \(\mathcal C\ne\varnothing\); the strictness claim requires the separate witness proved below.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The explicit Gabriel transfer is confined to the published one-off-target functional forms and to relevance restrictions determined by the observed law; it does not assert equivalence with an unspecified latent restriction.  The exact Song correspondence is at response-law level with common off-target responses, and no equality of its target projection with the saturated quotient is used.  The method-of-types radius is deliberately elementary and may be larger than the polynomial Chernoff calibration of Guo and Richardson; the novelty is the target-specific quotient that removes \( |\mathcal C| \), not a new multinomial tail inequality.  The nuisance-minimax comparison is confined to the finite count experiment conditional on fixed arm counts and is not a pointwise domination statement.  The exact smallest Hoffman constant and the nonregular kink law are not presupposed, and no additional rate theorem is introduced here.
+
+\section{Honest scope}
+
+The equality of full and reduced identified images is sharp and includes an explicit boundary-safe right inverse.  Its comparison with Gabriel, Sachs, and Sj"olander is supported by a two-way construction for their one-off-target functional forms; the extension is strict in cardinality and target-law scope, not a claim of strict numerical improvement in a matching published configuration.  Preservation of a published relevance restriction is asserted only when that restriction is a condition on the preserved observed law \(p\).  The Song comparison is an exact response-class equivalence with \(\mathcal M_{\mathrm{common}}\), not an equality between Song et al.'s projected identified set and \(\Theta(s)\).  The finite-count nuisance-minimax theorem, finite-sample whole-set coverage, finite Hoffman certificate, and regular-face lower bound remain separate theorem obligations.  The condition \(\lambda_z>0\) only makes population conditional arm laws well defined, whereas \(n_z\ge1\) concerns the realized conditional experiment.  The exact face-by-face minimax law and an adaptive attaining procedure at dual ties remain the open kink question.  When \(\mathcal C=\varnothing\), \(m=2\), and \(|\mathcal T|=2\), the construction reduces to the classical Balke--Pearl response-type program.
+
+\begin{thebibliography}{99}
+
+  \bibitem{GabrielSachsSjolander2025} Erin E. Gabriel, Michael C. Sachs, and Arvid Sjölander (2025), The impact of coarsening an exposure on partial identifiability in instrumental variable settings, Biostatistics, doi:10.1093/biostatistics/kxae042; arXiv:2401.17735.
+
+  \bibitem{SongGuoChanRichardson2024} Yilin Song, F. Richard Guo, K. C. Gary Chan, and Thomas S. Richardson (2024), The Categorical Instrumental Variable Model: Characterization, Partial Identification, and Statistical Inference, arXiv:2405.09510, version 6 dated August 5, 2026.
+
+  \bibitem{SachsJonzonSjolanderGabriel2023} Michael C. Sachs, Gustav Jonzon, Arvid Sjölander, and Erin E. Gabriel (2023), A General Method for Deriving Tight Symbolic Bounds on Causal Effects, Journal of Computational and Graphical Statistics 32, 567--576, doi:10.1080/10618600.2022.2071905.
+
+  \bibitem{GuoRichardson2021} F. Richard Guo and Thomas S. Richardson (2021), Chernoff-type Concentration of Empirical Probabilities in Relative Entropy, IEEE Transactions on Information Theory 67, 549--558, doi:10.1109/TIT.2020.3034539.
+
+  \bibitem{Blackwell1953} David Blackwell (1953), Equivalent Comparisons of Experiments, The Annals of Mathematical Statistics 24, 265--272, doi:10.1214/aoms/1177729032.
+
+  \bibitem{Hoffman1952} Alan J. Hoffman (1952), On Approximate Solutions of Systems of Linear Inequalities, Journal of Research of the National Bureau of Standards 49, 263--265.
+
+  \bibitem{Li1993} Wu Li (1993), The Sharp Lipschitz Constants for Feasible and Optimal Solutions of a Perturbed Linear Program, Linear Algebra and its Applications 187, 15--40, doi:10.1016/0024-3795(93)90125-8.
+
+  \bibitem{LevisBonviniZengKeeleKennedy2025} Alexander W. Levis, Matteo Bonvini, Zhenghao Zeng, Luke Keele, and Edward H. Kennedy (2025), Covariate-assisted bounds on causal effects with instrumental variables, Journal of the Royal Statistical Society Series B, doi:10.1093/jrsssb/qkaf028; arXiv:2301.12106.
+
+  \bibitem{Gafarov2025} Bulat Gafarov (2025), Simple Subvector Inference on the Sharp Identified Set in Affine Models, Journal of Econometrics 249, 105952, doi:10.1016/j.jeconom.2025.105952; arXiv:1904.00111.
+
+  \bibitem{BoushehrianBadriAkbariKiyavash2026} Arefe Boushehrian, Mohammad Reza Badri, Sina Akbari, and Negar Kiyavash (2026), Fundamental Limits and Optimal Methods for Sharp Analytical Causal Bounds in Instrumental Variable Models, arXiv:2604.12802.
+
+  \bibitem{BalkePearl1997} Alexander Balke and Judea Pearl (1997), Bounds on Treatment Effects from Studies with Imperfect Compliance, Journal of the American Statistical Association 92, 1171--1176, doi:10.1080/01621459.1997.10474074.
+
+\end{thebibliography}
+
+\end{document}

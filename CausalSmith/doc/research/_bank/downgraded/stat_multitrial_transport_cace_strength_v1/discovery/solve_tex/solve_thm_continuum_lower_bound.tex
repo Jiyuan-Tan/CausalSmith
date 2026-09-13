@@ -1,0 +1,407 @@
+%%% FIELD def-vector-information-construction
+For \(x\in\mathcal H_s\), let
+\[
+\Omega_{sx}=
+\frac{\operatorname{Cov}_{P_s}((Y,D)^{\mathsf T}\mid X=x,Z=1)}{e_s(x)}
++\frac{\operatorname{Cov}_{P_s}((Y,D)^{\mathsf T}\mid X=x,Z=0)}{1-e_s(x)},
+\qquad c_\theta=(1,-\theta)^{\mathsf T}.
+\]
+Define the componentwise-transport vector program
+\[
+V_{\mathrm{vec}}(P,\theta)=
+\min_b\sum_{s=1}^K\sum_{x\in\mathcal H_s}
+\frac{b_{sx}^{\mathsf T}\Omega_{sx}b_{sx}}{n_sp_s(x)},
+\]
+where \(b_{sx}\in\mathbb R^2\), \(b_{sx}=0\) for \(x\notin\mathcal H_s\), and
+\(\sum_{s=1}^K b_{sx}=p_T(x)c_\theta\) for every \(x\in\mathcal X\). Set
+\(T_{\mathrm{vec}}(P)=\mu_D^2/V_{\mathrm{vec}}(P,\theta_T)\), with value \(+\infty\) when the numerator is positive and the denominator is zero.
+
+%%% FIELD lem-vector-allocation-statement
+For every \(P\in\mathcal M_N\) and \(\theta\in[-1,1]\), \(V_{\mathrm{vec}}(P,\theta)\) is the minimum variance among regular arm-contrast influence representations that use the separate cross-source equalities of the outcome and receipt contrasts. It obeys
+\[
+0\le V_{\mathrm{vec}}(P,\theta)\le V_{\mathrm{coll}}(P,\theta).
+\]
+If every \(\Omega_{sx}\) on a target-supported cell is positive definite, then
+\[
+V_{\mathrm{vec}}(P,\theta)
+=\sum_{x:p_T(x)>0}p_T(x)^2c_\theta^{\mathsf T}
+\left\{\sum_{s:x\in\mathcal H_s}n_sp_s(x)\Omega_{sx}^{-1}\right\}^{-1}
+c_\theta.
+\]
+For \(K=1\), \(V_{\mathrm{vec}}(P,\theta)=V_{\mathrm{coll}}(P,\theta)\). For \(K\ge2\), strict inequality is possible under the original base class. Hence \(V_{\mathrm{coll}}\) is the exact scalar-residual-score benchmark, whereas \(V_{\mathrm{vec}}\) is the unrestricted componentwise-transport vector-GMM benchmark.
+
+%%% FIELD lem-vector-allocation-proof
+Fix \(s\) and \(x\in\mathcal H_s\), and put
+\[
+g_{sxz}=E_{P_s}[(Y,D)^{\mathsf T}\mid X=x,Z=z].
+\]
+The source-support definition gives \(p_s(x)>0\), and propensity overlap gives \(e_s(x)>0\) and \(1-e_s(x)>0\). Thus
+\[
+\psi_{sx}(O_s)=\frac{\mathbf 1\{X=x\}}{p_s(x)}
+\left[
+\frac{Z}{e_s(x)}\{(Y,D)^{\mathsf T}-g_{sx1}\}
+-\frac{1-Z}{1-e_s(x)}\{(Y,D)^{\mathsf T}-g_{sx0}\}
+\right]
+\]
+is well defined. Conditional centering, known randomization, and disjoint cell indicators give
+\[
+E_{P_s}\psi_{sx}=0,\qquad
+E_{P_s}(\psi_{sx}\psi_{sx}^{\mathsf T})=\frac{\Omega_{sx}}{p_s(x)},\qquad
+E_{P_s}(\psi_{sx}\psi_{sx'}^{\mathsf T})=0\quad(x\ne x').
+\]
+The two transport assumptions separately equate the coordinates of \(g_{sx1}-g_{sx0}\) across covering sources. The target-ITT definition therefore gives the identified null functional
+\[
+m_P(\theta)=\mu_Y-\theta\mu_D
+=\sum_{x\in\mathcal X}p_T(x)c_\theta^{\mathsf T}
+\begin{pmatrix}\delta_Y(x)\\ \delta_D(x)\end{pmatrix}.
+\]
+This equality follows from identification and transport; it does not define the causal effect.
+
+For coefficient vectors \(b_{sx}\), consider
+\[
+\Phi_b=\sum_{s=1}^K\frac1{n_s}\sum_{i=1}^{n_s}
+\sum_{x\in\mathcal H_s}b_{sx}^{\mathsf T}\psi_{sx}(O_{si}).
+\]
+Varying the common two-coordinate contrast in one cell at a time shows that \(\Phi_b\) represents the derivative of \(m_P(\theta)\) if and only if
+\[
+\sum_{s=1}^K b_{sx}=p_T(x)c_\theta
+\]
+for every \(x\), with coefficients off source support equal to zero. Independence of source blocks and the covariance identities yield
+\[
+\operatorname{Var}_P(\Phi_b)
+=\sum_{s=1}^K\sum_{x\in\mathcal H_s}
+\frac{b_{sx}^{\mathsf T}\Omega_{sx}b_{sx}}{n_sp_s(x)}.
+\]
+Minimizing over exactly these unbiasedness constraints proves the variance characterization.
+
+For any \(a\in\mathcal A_{\mathrm{coll}}(p_T,\mathcal H)\), set \(b_{sx}=a_{sx}c_\theta\). Then \(b\) is vector-feasible, and the residual-price definition gives
+\[
+c_\theta^{\mathsf T}\Omega_{sx}c_\theta=q_{sx}(\theta).
+\]
+The vector objective at \(b\) is therefore \(W_{\mathrm{coll}}(P,\theta,a)\). Taking both minima proves
+\[
+V_{\mathrm{vec}}(P,\theta)\le V_{\mathrm{coll}}(P,\theta).
+\]
+
+If the covariance matrices are positive definite, the problem separates over cells. Lagrange differentiation on one cell gives
+\[
+b_s=n_sp_s\Omega_s^{-1}
+\left(\sum_t n_tp_t\Omega_t^{-1}\right)^{-1}p_Tc_\theta.
+\]
+Strict convexity gives uniqueness; substitution and summation over cells give the asserted closed form.
+
+If \(K=1\), feasibility forces \(b_{1x}=p_T(x)c_\theta\), and hence
+\[
+V_{\mathrm{vec}}(P,\theta)
+=\sum_{x:p_T(x)>0}\frac{p_T(x)^2c_\theta^{\mathsf T}\Omega_{1x}c_\theta}{n_1p_1(x)}
+=\sum_{x:p_T(x)>0}\frac{p_T(x)^2q_{1x}(\theta)}{n_1p_1(x)}
+=V_{\mathrm{coll}}(P,\theta).
+\]
+Finally, the strict two-source covariance witness in the established pooled-information theorem has scalar value \(1/(4n)\) and vector value \(1/(8n)\) at \(\theta=0\), while remaining in the original base class for the constants stated there. This proves that strict inequality is possible without strengthening the model.
+
+%%% FIELD prop-vector-boundary-statement
+The original base class does not impose a uniform lower eigenvalue bound on \(\Omega_{sx}\). More precisely, whenever \(\mathcal M_N\) is nonempty, there is a sequence \(P_N\in\mathcal M_N\) with \(\mu_D(P_N)>0\), \(\inf_{\theta\in[-1,1]}q_{sx}(\theta)\ge v_0\), and \(\lambda_{\min}(\Omega_{sx})\to0\), for which the usual empirical covariance inverse in an unregularized vector-GMM profile is undefined with probability bounded away from zero. Thus such an unregularized profiled vector Anderson--Rubin statistic is not a data-total uniformly studentized procedure on \(\mathcal M_N\); a ridge, generalized-inverse rule, and an additional error term would be needed, and the frozen scalar-profiled inversion is the uniform procedure certified under the stated class.
+
+%%% FIELD prop-vector-boundary-proof
+Nonemptiness and residual-variance regularity imply
+\[
+v_0\le \bar v:=\{4e_0(1-e_0)\}^{-1};
+\]
+this inequality is also derived in the continuum proof below. Use one supported cell in every source, set every propensity to \(e_0\), let \(C\sim\operatorname{Bernoulli}(\varepsilon_N)\) with \(\varepsilon_N=N^{-1}\), and set \(D(0)=0\), \(D(1)=C\). Let both treatment potential outcomes be independent \(\operatorname{Bernoulli}(1/2)\) variables, independent of \(C\), and use the same law in the target. All base member properties follow directly. Moreover,
+\[
+\Omega_{sx}=
+\begin{pmatrix}
+\bar v&0\\[2pt]
+0&\varepsilon_N(1-\varepsilon_N)/e_0
+\end{pmatrix},
+\qquad
+q_{sx}(\theta)=\bar v+\frac{\theta^2\varepsilon_N(1-\varepsilon_N)}{e_0}\ge v_0.
+\]
+Thus \(P_N\in\mathcal M_N\), \(\mu_D(P_N)=\varepsilon_N>0\), and the smallest eigenvalue tends to zero.
+
+Receipt equals one exactly when \(Z=1\) and \(C=1\). Across all \(N\) independent observations, the probability of seeing no receipt-one observation is
+\[
+(1-e_0\varepsilon_N)^N\longrightarrow e^{-e_0}>0.
+\]
+On that event the empirical receipt coordinate is identically zero, so every empirical two-coordinate covariance matrix has a zero receipt row and column and is singular. Hence a profile requiring an ordinary inverse is undefined on an event whose probability does not vanish. A boundary rule can totalize the computation, but its regularization error is not represented by \(V_{\mathrm{vec}}\) under the present assumptions; no claim is made against a separately analyzed regularized procedure.
+
+%%% FIELD change-continuum-statement
+Let
+\[
+\bar v=\{4e_0(1-e_0)\}^{-1},
+\qquad
+\beta_0=\sqrt{1-v_0/\bar v}.
+\]
+Nonemptiness of the base class implies \(0<v_0\le\bar v\), so \(\beta_0\in[0,1)\). There is a constant \(c_\alpha>0\), depending only on \(\alpha\) and the fixed class constants, such that every admissible sequence \(u=u_N>0\) with nonempty \(\mathcal M_N(u)\) satisfies
+\[
+\liminf_{N\to\infty}
+\inf_{C_N\in\mathfrak C_{N,\alpha}}
+\sup_{P\in\mathcal M_N(u)}
+\frac{E_P[\ell(C_N)]}{\min\{1,u^{-1/2}\}}
+\ge c_\alpha\beta_0.
+\]
+For \(\beta_0>0\), the lower family can be chosen with some \(q_N\in[v_0,(v_0+\bar v)/2]\) so that
+\[
+V_{\mathrm{vec}}(P_0,0)=V_{\mathrm{coll}}(P_0,0)=q_N/N,
+\qquad T_{\mathrm{coll}}(P_0)=u,
+\]
+and its product-law Kullback--Leibler divergence at CACE displacement \(h\asymp\beta_0\min\{1,u^{-1/2}\}\) is bounded. If \(K\ge2\) and \(|\mathcal X|\ge2\), this family can have collection-only split support. At the boundary \(\beta_0=0\), every identified target in the base class equals zero and \(R_{N,\alpha}(u)=0\). Thus the scalar collection program is necessary for the worst-case rate through a subfamily on which it equals the vector program; it is not asserted to be the unrestricted pointwise information bound at every law or on every allocation face.
+
+%%% FIELD replace-continuum-statement
+Let
+\[
+\bar v=\{4e_0(1-e_0)\}^{-1},
+\qquad
+\beta_0=\sqrt{1-v_0/\bar v}.
+\]
+Nonemptiness of the base class implies \(0<v_0\le\bar v\), so \(\beta_0\in[0,1)\). There is a constant \(c_\alpha>0\), depending only on \(\alpha\) and the fixed class constants, such that every admissible sequence \(u=u_N>0\) with nonempty \(\mathcal M_N(u)\) satisfies
+\[
+\liminf_{N\to\infty}
+\inf_{C_N\in\mathfrak C_{N,\alpha}}
+\sup_{P\in\mathcal M_N(u)}
+\frac{E_P[\ell(C_N)]}{\min\{1,u^{-1/2}\}}
+\ge c_\alpha\beta_0.
+\]
+For \(\beta_0>0\), the lower family can be chosen with some \(q_N\in[v_0,(v_0+\bar v)/2]\) so that
+\[
+V_{\mathrm{vec}}(P_0,0)=V_{\mathrm{coll}}(P_0,0)=q_N/N,
+\qquad T_{\mathrm{coll}}(P_0)=u,
+\]
+and its product-law Kullback--Leibler divergence at CACE displacement \(h\asymp\beta_0\min\{1,u^{-1/2}\}\) is bounded. If \(K\ge2\) and \(|\mathcal X|\ge2\), this family can have collection-only split support. At the boundary \(\beta_0=0\), every identified target in the base class equals zero and \(R_{N,\alpha}(u)=0\). Thus the scalar collection program is necessary for the worst-case rate through a subfamily on which it equals the vector program; it is not asserted to be the unrestricted pointwise information bound at every law or on every allocation face.
+
+%%% FIELD proof-continuum
+Write \(\bar v=\{4e_0(1-e_0)\}^{-1}\). Boundedness \(0\le Y\le1\) gives \(\operatorname{Var}(Y\mid X=x,Z=z)\le1/4\), and propensity overlap gives \(e_s(x)\{1-e_s(x)\}\ge e_0(1-e_0)\). At \(\theta=0\), residual regularity therefore implies
+\[
+v_0\le q_{sx}(0)
+\le\frac1{4e_s(x)}+\frac1{4\{1-e_s(x)\}}
+=\frac1{4e_s(x)\{1-e_s(x)\}}
+\le\bar v.
+\]
+Thus nonemptiness implies \(v_0\le\bar v\).
+
+For every feasible allocation, residual regularity and Cauchy--Schwarz give
+\[
+\begin{aligned}
+W_{\mathrm{coll}}(P,\theta_T,a)
+&\ge v_0\sum_{s,x}\frac{a_{sx}^2}{n_sp_s(x)}\\
+&\ge\frac{v_0(\sum_{s,x}a_{sx})^2}{\sum_{s,x}n_sp_s(x)}
+=\frac{v_0}{N}.
+\end{aligned}
+\]
+Feasibility gives \(\sum_{s,x}a_{sx}=\sum_xp_T(x)=1\), while the source mass functions give \(\sum_{s,x}n_sp_s(x)=N\). Monotonicity and binary receipt imply \(0\le\mu_D\le1\). Hence
+\[
+T_{\mathrm{coll}}(P)\le N/v_0,
+\]
+so nonemptiness of \(\mathcal M_N(u)\) implies \(u\le N/v_0\).
+
+Suppose \(v_0<\bar v\), and define
+\[
+q_\circ=\frac{v_0+\bar v}{2},\qquad
+q_N=\begin{cases}
+q_\circ,&u\le N/q_\circ,\\[2pt]
+N/u,&u>N/q_\circ,
+\end{cases}
+\qquad
+\mu_N=\sqrt{\frac{uq_N}{N}}.
+\]
+Then
+\[
+v_0\le q_N\le q_\circ<\bar v,\qquad
+0<\mu_N\le1,\qquad
+\frac{N\mu_N^2}{q_N}=u.
+\]
+Let \(r_N\in(0,1/2)\) be the smaller solution of
+\[
+r_N(1-r_N)=e_0(1-e_0)q_N,
+\]
+and let \(d_N=1-2r_N\). Since \(q_N\le q_\circ\),
+\[
+d_N=\sqrt{1-4e_0(1-e_0)q_N}\ge\frac{\beta_0}{\sqrt2},
+\qquad
+\beta_0=\sqrt{1-4e_0(1-e_0)v_0}.
+\]
+The inequality \(q_N\ge v_0>0\) also bounds \(r_N\) away from zero by a fixed constant.
+
+If \(K=1\), use one target cell with source and target masses one. If \(K\ge2\) and \(|\mathcal X|\ge2\), partition the sources into nonempty \(I_1,I_2\), give sources in \(I_j\) singleton support \(\{x_j\}\), and set
+\[
+p_T(x_j)=N_j/N,\qquad N_j=\sum_{s\in I_j}n_s.
+\]
+If only one cell is available, use it in every source. In every supported cell set \(p_s(x)=1\) and \(e_s(x)=e_0\). These choices verify collection support, supported-cell mass, propensity overlap, and sample balance; with two cells no source covers the target support.
+
+In each block draw \(C\sim\operatorname{Bernoulli}(\mu_N)\), independently of \(Z\sim\operatorname{Bernoulli}(e_0)\), and set
+\[
+D(0)=0,\qquad D(1)=C.
+\]
+At \(P_0\), draw \(B_0,B_1\sim\operatorname{Bernoulli}(r_N)\) independently of \(C\), set \(Y(z,d)=B_d\), and use the same conditional potential law in the target. Sampling, randomization, consistency, exclusion, monotonicity, and both transport restrictions hold by construction. The target ITTs are
+\[
+\mu_Y(P_0)=0,\qquad \mu_D(P_0)=\mu_N,\qquad\theta_T(P_0)=0.
+\]
+Direct calculation gives, for every \(\theta\in[-1,1]\),
+\[
+q_{sx}(\theta)=q_N+\frac{\theta^2\mu_N(1-\mu_N)}{e_0}\ge q_N\ge v_0.
+\]
+Thus \(P_0\in\mathcal M_N\).
+
+At \(\theta=0\), every source price is \(q_N\). In the two-cell construction the scalar allocation \(a_{sx}=n_s/N\) has the required cell sums and is optimal by Cauchy--Schwarz. Therefore
+\[
+V_{\mathrm{coll}}(P_0,0)
+=\sum_j\frac{q_Np_T(x_j)^2}{N_j}
+=\frac{q_N}{N}.
+\]
+The one-cell calculation is identical. The vector covariance matrices are diagonal and source-compatible, while \(c_0=(1,0)^{\mathsf T}\); the vector program is minimized by zero receipt coefficients and the same outcome weights. Hence
+\[
+V_{\mathrm{vec}}(P_0,0)=V_{\mathrm{coll}}(P_0,0)=q_N/N,
+\qquad
+T_{\mathrm{coll}}(P_0)=N\mu_N^2/q_N=u.
+\]
+Thus \(P_0\in\mathcal M_N(u)\).
+
+Construct \(P_h\) as follows. If \(\mu_N\le1/2\), keep the complier treatment-one outcome Bernoulli with parameter \(r_N\), change the complier treatment-zero parameter to \(r_N-h\), and change the never-taker treatment-zero parameter to
+\[
+r_N+\frac{\mu_Nh}{1-\mu_N}.
+\]
+The control-arm mixture remains Bernoulli with parameter \(r_N\). If \(\mu_N>1/2\), keep every treatment-zero outcome Bernoulli with parameter \(r_N\) and change only the complier treatment-one parameter to \(r_N+h\). Use the same alternative in all source and target cells. In both cases the receipt contrast remains \(\mu_N\), the outcome ITT is \(\mu_Nh\), and ratio identification gives
+\[
+\theta_T(P_h)=h.
+\]
+
+Choose \(h\le d_N\) and, in the first case, \(h\le r_N/2\). The Bernoulli probabilities are then legal. Put \(\sigma_N^2=r_N(1-r_N)\). If \(\mu_N\le1/2\), completing the square gives
+\[
+\operatorname{Var}(Y-\theta D\mid Z=1)
+=\sigma_N^2+\mu_Nhd_N-\frac{\mu_N^2h^2}{1-\mu_N}
++\mu_N(1-\mu_N)
+\left(\theta+\frac{\mu_Nh}{1-\mu_N}\right)^2
+\ge\sigma_N^2.
+\]
+The inequality uses \(h\le d_N\) and \(\mu_N/(1-\mu_N)\le1\). If \(\mu_N>1/2\), then
+\[
+\operatorname{Var}(Y-\theta D\mid Z=1)
+=\sigma_N^2+\mu_Nh(d_N-h)
++\mu_N(1-\mu_N)(\theta-h)^2
+\ge\sigma_N^2.
+\]
+In both cases the control residual variance is \(\sigma_N^2\). Consequently
+\[
+q_{sx}(\theta)\ge
+\frac{\sigma_N^2}{e_0}+\frac{\sigma_N^2}{1-e_0}
+=q_N\ge v_0
+\]
+uniformly over \(\theta\in[-1,1]\), so \(P_h\in\mathcal M_N\).
+
+Because \(r_N\) is uniformly separated from zero and the perturbations stay inside a fixed interior interval, Taylor's theorem for Bernoulli relative entropy gives \(L<\infty\) such that
+\[
+\operatorname{kl}(r_N+t,r_N)\le Lt^2
+\]
+for every perturbation used. If \(\mu_N\le1/2\), only the encouraged never-taker outcome law changes, and
+\[
+\operatorname{KL}(P_h,P_0)
+=Ne_0(1-\mu_N)
+\operatorname{kl}\left(r_N+\frac{\mu_Nh}{1-\mu_N},r_N\right)
+\le2Le_0N\mu_N^2h^2.
+\]
+If \(\mu_N>1/2\), only the encouraged complier outcome law changes, and
+\[
+\operatorname{KL}(P_h,P_0)
+=Ne_0\mu_N\operatorname{kl}(r_N+h,r_N)
+\le2Le_0N\mu_N^2h^2.
+\]
+Thus
+\[
+\operatorname{KL}(P_h,P_0)\le L_0N\mu_N^2h^2=L_0uq_Nh^2.
+\]
+
+Choose \(c_*>0\), depending only on \(\alpha\) and the fixed class constants, so that all preceding probability restrictions hold for
+\[
+h=c_*\beta_0\min\{1,u^{-1/2}\},
+\]
+and so that \(L_0\bar vc_*^2\le\eta_\alpha^2\) for some \(0<\eta_\alpha<1-2\alpha\). This is possible because \(d_N\ge\beta_0/\sqrt2\), \(r_N\) has a fixed positive lower bound, and \(uh^2\le c_*^2\beta_0^2\). The elementary inequality
+\[
+t\log t-t+1\ge\frac{(t-1)^2}{2(t+1)},\qquad t>0,
+\]
+applied to the likelihood ratio and followed by Cauchy--Schwarz gives
+\[
+\lVert P_h-P_0\rVert_{\mathrm{TV}}
+\le\sqrt{\operatorname{KL}(P_h,P_0)}\le\eta_\alpha.
+\]
+
+For \(C_N\in\mathfrak C_{N,\alpha}\), honesty applies to both laws because both first stages are positive. Change of measure and the union bound yield
+\[
+\begin{aligned}
+P_0\{0\in C_N,\ h\in C_N\}
+&\ge P_0\{0\in C_N\}+P_0\{h\in C_N\}-1\\
+&\ge1-2\alpha-2N^{-1/8}-\lVert P_h-P_0\rVert_{\mathrm{TV}}.
+\end{aligned}
+\]
+On this event the interval length is at least \(h\). For all large \(N\), the last probability is bounded below by a positive constant. Since \(P_0\in\mathcal M_N(u)\), taking expectation, the supremum, the infimum, and the lower limit proves
+\[
+\liminf_{N\to\infty}
+\inf_{C_N\in\mathfrak C_{N,\alpha}}
+\sup_{P\in\mathcal M_N(u)}
+\frac{E_P\ell(C_N)}{\min\{1,u^{-1/2}\}}
+\ge c_\alpha\beta_0.
+\]
+
+Finally suppose \(v_0=\bar v\). Every inequality in the initial variance display is then equality on each supported cell. Hence both conditional arm variances of \(Y\) equal \(1/4\). For \(Y\in[0,1]\), equality in
+\(\operatorname{Var}(Y)\le E(Y)\{1-E(Y)\}\le1/4\) forces \(E(Y)=1/2\). Every supported source cell therefore has outcome ITT zero. Outcome transport and collection support give \(\delta_Y(x)=0\) on target support, so \(\mu_Y=0\). Whenever \(\mu_D>0\), ratio identification gives \(\theta_T=0\). The deterministic interval \(\{0\}\) is uniformly honest and has zero length, proving \(R_{N,\alpha}(u)=0\) for every nonempty boundary strength class.
+
+%%% FIELD change-frontier-statement
+Let
+\[
+\beta_0=\sqrt{1-4e_0(1-e_0)v_0}.
+\]
+For fixed \(0<\alpha<1/2\), there are finite constants \(0<c_\alpha\le C_\alpha<\infty\), depending only on \(\alpha\) and the fixed class constants, such that every admissible sequence \(u=u_N>0\) with nonempty \(\mathcal M_N(u)\) obeys
+\[
+c_\alpha\beta_0
+\le\liminf_{N\to\infty}
+\frac{R_{N,\alpha}(u)}{\min\{1,u^{-1/2}\}}
+\le\limsup_{N\to\infty}
+\frac{R_{N,\alpha}(u)}{\min\{1,u^{-1/2}\}}
+\le C_\alpha.
+\]
+Thus, whenever \(\beta_0>0\), \(R_{N,\alpha}(u)\asymp\min\{1,u^{-1/2}\}\) uniformly over the same original strength class. When \(\beta_0=0\), \(R_{N,\alpha}(u)=0\). The upper bound is attained by the fully empirical scalar profiled Anderson--Rubin inversion. The lower bound is all-procedure and uses laws for which \(V_{\mathrm{vec}}=V_{\mathrm{coll}}\); it does not identify \(V_{\mathrm{coll}}\) with unrestricted pointwise information. For \(K=1\), the vector and scalar programs coincide and the result reduces to the single-source frontier. For \(K\ge2\), the base class permits \(V_{\mathrm{vec}}<V_{\mathrm{coll}}\), while its covariance boundary prevents the ordinary empirical vector inverse from furnishing a uniform vector-GMM Anderson--Rubin theorem without additional regularization analysis.
+
+%%% FIELD replace-frontier-statement
+Let
+\[
+\beta_0=\sqrt{1-4e_0(1-e_0)v_0}.
+\]
+For fixed \(0<\alpha<1/2\), there are finite constants \(0<c_\alpha\le C_\alpha<\infty\), depending only on \(\alpha\) and the fixed class constants, such that every admissible sequence \(u=u_N>0\) with nonempty \(\mathcal M_N(u)\) obeys
+\[
+c_\alpha\beta_0
+\le\liminf_{N\to\infty}
+\frac{R_{N,\alpha}(u)}{\min\{1,u^{-1/2}\}}
+\le\limsup_{N\to\infty}
+\frac{R_{N,\alpha}(u)}{\min\{1,u^{-1/2}\}}
+\le C_\alpha.
+\]
+Thus, whenever \(\beta_0>0\), \(R_{N,\alpha}(u)\asymp\min\{1,u^{-1/2}\}\) uniformly over the same original strength class. When \(\beta_0=0\), \(R_{N,\alpha}(u)=0\). The upper bound is attained by the fully empirical scalar profiled Anderson--Rubin inversion. The lower bound is all-procedure and uses laws for which \(V_{\mathrm{vec}}=V_{\mathrm{coll}}\); it does not identify \(V_{\mathrm{coll}}\) with unrestricted pointwise information. For \(K=1\), the vector and scalar programs coincide and the result reduces to the single-source frontier. For \(K\ge2\), the base class permits \(V_{\mathrm{vec}}<V_{\mathrm{coll}}\), while its covariance boundary prevents the ordinary empirical vector inverse from furnishing a uniform vector-GMM Anderson--Rubin theorem without additional regularization analysis.
+
+%%% FIELD proof-frontier
+Put \(r_N(u)=\min\{1,u^{-1/2}\}\). The quantitative uniform-coverage conclusion underlying the established profiled-honesty theorem, together with the \(N^{-1/8}\) slack in the honest-procedure definition, gives
+\[
+C_N^{\mathrm{AR}}\in\mathfrak C_{N,\alpha}
+\]
+for all sufficiently large \(N\). It is therefore an admissible competitor in the minimax definition. The established profiled-length theorem yields
+\[
+\limsup_{N\to\infty}\frac{R_{N,\alpha}(u)}{r_N(u)}
+\le
+\limsup_{N\to\infty}\sup_{P\in\mathcal M_N(u)}
+\frac{E_P\ell(C_N^{\mathrm{AR}})}{r_N(u)}
+\le C_\alpha.
+\]
+The continuum theorem gives
+\[
+\liminf_{N\to\infty}\frac{R_{N,\alpha}(u)}{r_N(u)}
+\ge c_\alpha\beta_0.
+\]
+Combining the displays proves the unconditional bracket. If \(\beta_0>0\), it is a fixed positive class constant, so the exponents match without changing the base class. If \(\beta_0=0\), the continuum theorem gives the stronger exact statement \(R_{N,\alpha}(u)=0\).
+
+The unrestricted-vector lemma explains the interpretation. Separate transport permits vector coefficients and gives \(V_{\mathrm{vec}}\le V_{\mathrm{coll}}\), with strict inequality possible for \(K\ge2\). The least-favorable family above has diagonal source-compatible covariance and equality of the programs, so its change-of-measure bound is valid against every confidence procedure and suffices for the minimax supremum. The vector plug-in boundary proposition shows that the original conditions do not uniformly control empirical covariance inverses; no vector-profiled chi-square attainment claim follows. The certified upper procedure remains the data-total scalar-profiled inversion.
+
+When \(K=1\), the vector constraint forces the sole coefficient to be \(p_T(x)c_\theta\). The unrestricted-vector lemma and the established single-source sanity check give
+\[
+V_{\mathrm{vec}}(P,\theta)=V_{\mathrm{coll}}(P,\theta)
+=\sum_{x:p_T(x)>0}
+\frac{p_T(x)^2q_{1x}(\theta)}{n_1p_1(x)}.
+\]
+Substitution into the same upper and lower arguments recovers the single-source frontier, including the exact zero-length result at the maximal-variance boundary.

@@ -1,0 +1,1394 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}ctf\_\allowbreak{}protocol\_\allowbreak{}cost\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Generic operational nonfailure of the complete, correctly typed unconditional procedure is equivalent to a branch-indexed switching certificate with one singleton-index record for every concrete branch \(\alpha\in\Omega\): source selection remains inside the branch quantifier, so the result never exchanges \(\forall\alpha\,\exists\) for \(\exists\,\forall\alpha\).  The main acquisition optimum is exactly weighted set cover on the protocol incidence sets \(K_{\mathrm{sw}}(S)\).  The complete incidence relation uses at most \(2^{|\mathcal A|}\) source-oracle queries and \(2^{O(|\mathcal A|+|\mathrm{LIT}|)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) work; exact optimization uses \(2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\), and weighted greedy gives an \(H_M\)-approximation after that explicit incidence construction.  The canonical certificate bound includes its exact framing term and \(Mq_M\), not \(M^2\), ownership bits and may be exponential.  Positivity is required only for conditioning events actually used by the operational predicate; no semantic completeness extension for CTFIDU\({}^{+}\) and no semantic nonidentifiability certificate are claimed.  The Akbari--Etesami--Kiyavash comparison is a separate finite full-kernel batch with protocol charges shared across cells, not a scalar-query reduction, and its hardness and logarithmic threshold transfer only under the stated source-oracle convention.  The one-source-per-factor optimizer remains a restricted uniform corollary.
+
+\section{Project justification}
+
+\paragraph{Gap.} Complete counterfactual identification fixes its source collection in advance, physical realizability treats one source law at a time, and ordinary intervention design optimizes fixed \(Q[S]\) source families. None supplies an operational cost problem that charges source-law and support access while preserving assignment-dependent source switching.
+
+\paragraph{Niche.} The missing object is a certificate-independent physical interface with explicit support and a branch-indexed acceptance witness whose quantifier order matches complete CTFIDU\({}^{+}\).
+
+\paragraph{Fill.} The project supplies a certificate-independent charged source interface and proves an exact switching normal form: generic operational nonfailure holds if and only if every concrete branch \(\alpha\in\Omega\) has a successful singleton-index protocol--slice--source record, with the witness for a branch chosen after that branch is fixed.  This gives the exact weighted-set-cover identity \(\operatorname{Opt}_{\mathrm{sw}}=\min_{\mathcal P:\,\cup_{S\in\mathcal P}K_{\mathrm{sw}}(S)=\Omega}\sum_{S\in\mathcal P}w(S)\), explicit incidence construction with at most \(2^{|\mathcal A|}\) oracle queries and \(2^{O(|\mathcal A|+|\mathrm{LIT}|)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) work, exact optimization in \(2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) time, and an \(H_M\) weighted-greedy guarantee after incidence construction.  A canonical witness has exactly \(M\) nonempty records and a bound with explicit record-count framing and \(Mq_M\) ownership bits, though it may be exponential.  The contribution also includes the fixed-factor obstruction, the positive physical separation, and a separately typed finite full-kernel batch comparison with ordinary intervention design.
+
+\section{Related work}
+
+Raghavan and Bareinboim (2025) define SELECT, RAND, CTF-RAND, and READ and give CTF-REALIZE for physical sampling, but not minimum-cost acquisition with a charged source-support interface.  Raghavan and Bareinboim (2026) give complete CTFIDU\({}^{+}\) processing for a fixed source collection.  The switching normal form here preserves its operational quantifier order by allowing the successful source record to depend on the concrete assignment and equality-type branch.  Correa, Lee, and Bareinboim (2021) provide the unnesting and ctf-factorization substrate.  Event-local support checks here require positivity only for conditioning events actually used by a certificate and do not extend semantic CTFIDU\({}^{+}\) completeness.  Akbari, Etesami, and Kiyavash (2025) prove their weighted-hitting-set reduction in Theorem~3 and NP-completeness and logarithmic inapproximability in Corollaries~1--2 (printed page~7; the proof of Theorem~3 is on printed pages~31--33).  Our comparison is a separate finite full-kernel batch with shared protocol charges; it is not a reduction to one scalar counterfactual query, and the hardness transfer is relative to the specified oracle representation.  For the general physical problem, exact optimization is the explicit weighted set cover on \(K_{\mathrm{sw}}(S)\); weighted greedy gives \(H_M\) only after its potentially exponential incidence relation has been constructed.  The separate \(H_k\) action-cover statement remains confined to the explicit one-action, protocolwise-legality, factorwise-no-synergy subclass.  Park and Lee (2026) provide the downstream counterfactual structural bandit setting rather than an acquisition-cost theorem.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(Q=P(\mathbf Y_{\ast}=\mathbf y)\).
+Primary functional / estimator / diagnostic: \(\operatorname{Opt}_{\mathrm{sw}}=\min_{E_{\mathrm{sw}}:\,\operatorname{Acc}_{\mathrm{sw}}(Q,E_{\mathrm{sw}};G)=1}\operatorname{Cost}(E_{\mathrm{sw}}),\quad\min\varnothing=+\infty\), where \(\operatorname{Acc}_{\mathrm{sw}}\) is the operational predicate; the separate ordinary full-kernel result uses \(\operatorname{Opt}_{\mathrm{batch}}\)..
+\begin{itemize}
+  \item \texttt{V} --- \texttt{finite set}; \texttt{endogenous and explicit mechanism vertices}; \texttt{vertex universe}
+  \item \texttt{d} --- \texttt{positive integer}; \(\mathbb N_{\ge 1}\); \texttt{maximum observed-\allowbreak{}variable domain size}
+  \item \texttt{G} --- \texttt{finite acyclic directed mixed graph}; graphs on \(V\); \texttt{causal diagram}
+  \par\smallskip\noindent\emph{Definition.} \(G=(V,E^{\to},E^{\leftrightarrow})\)
+  \item \texttt{Gplus} --- \texttt{finite directed mixed graph}; physical action expansions of \(G\); \texttt{physical action diagram}
+  \par\smallskip\noindent\emph{Definition.} \(G^{+}\) expands every physically addressable edge mechanism and mediator of \(G\)
+  \item \texttt{A} --- \texttt{finite priced action catalogue}; \texttt{explicit SELECT,\allowbreak{} RAND,\allowbreak{} CTF-\allowbreak{}RAND,\allowbreak{} and READ records}; \texttt{acquisition menu}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A\) stores each action's type, endpoints, affected child set, allowed values, prerequisites, conflicts, ownership, and canonical topological position in \(G^{+}\)
+  \item \texttt{c} --- \texttt{function}; \(\mathcal A\to\mathbb Q_{\ge 0}\); \texttt{binary-\allowbreak{}rational action cost}
+  \item \texttt{Sord} --- \texttt{nonempty vertex subset}; \(2^V\setminus\{\varnothing\}\); \texttt{ordinary causal-\allowbreak{}effect target set}
+  \item \texttt{xord} --- \texttt{finite assignment}; \(\mathfrak X_{V\setminus S_0}\); \texttt{ordinary intervention assignment}
+  \item \texttt{Qord} --- \texttt{ordinary causal-\allowbreak{}effect full kernel}; \texttt{Akbari-\allowbreak{}-\allowbreak{}Etesami-\allowbreak{}-\allowbreak{}Kiyavash full-\allowbreak{}kernel target}
+  \par\smallskip\noindent\emph{Definition.} \(Q[S_0]=\{P_{\operatorname{do}(V\setminus S_0=x)}(S_0=s):x\in\mathfrak X_{V\setminus S_0},\ s\in\mathfrak X_{S_0}\}\)
+  \item \texttt{Q} --- \texttt{counterfactual joint query}; \texttt{unconditional unnested finite-\allowbreak{}discrete Layer-\allowbreak{}2.5 joints}; \texttt{target}
+  \par\smallskip\noindent\emph{Definition.} \(Q=P(\mathbf Y_{\ast}=\mathbf y)\)
+  \item \texttt{kappa} --- \texttt{function}; \(\kappa:V\to\mathbb Q_{\ge0}\); \texttt{ordinary per-\allowbreak{}intervention cost}
+  \item \texttt{Dord} --- \texttt{finite ordinary full-\allowbreak{}kernel query-\allowbreak{}design instance}; \texttt{ordinary full-\allowbreak{}kernel hardness-\allowbreak{}source instance}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D_{\mathrm{ord}}=(G,S_0,(\kappa_v)_{v\in V})\) has target the complete kernel \(Q[S_0]\)
+  \item \texttt{DordClass} --- \texttt{class of finite ordinary full-\allowbreak{}kernel design instances}; \texttt{domain of the ordinary batch embedding}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak D_{\mathrm{AEK}}\) is the ordinary full-kernel class in Definition \(\mathrm{Ordinary\ full\mbox{-}kernel\ query\ subclass}\)
+  \item \texttt{t} --- \texttt{positive integer}; \(\mathbb N_{\ge 1}\); \texttt{number of ordinary intervention sets}
+  \item \texttt{Bord} --- \texttt{finite ordered ordinary intervention collection}; \((2^V)^t\); \texttt{ordinary source-\allowbreak{}design collection}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf B=(B_1,\ldots,B_t)\) is an ordinary identifying collection for \(\mathcal D_{\mathrm{ord}}\)
+  \item \texttt{Wstar} --- \texttt{finite labelled counterfactual-\allowbreak{}variable set}; \texttt{normalized target ancestry}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf W_{\ast}\) is obtained from \(Q\) by counterfactual ancestor expansion and the ancestral-set transformation
+  \item \texttt{k} --- \texttt{positive integer}; \texttt{target-\allowbreak{}factor parameter}
+  \par\smallskip\noindent\emph{Definition.} \(k\) is the number of bidirected districts in \(G[V(\mathbf W_{\ast})]\)
+  \item \texttt{C} --- \texttt{ordered tuple of labelled ctf-\allowbreak{}factors}; \((C_1,\ldots,C_k)\); \texttt{structural target factors}
+  \par\smallskip\noindent\emph{Definition.} \((C_1,\ldots,C_k)\) is the district factorization of \(\mathbf W_{\ast}\)
+  \item \texttt{j} --- \texttt{index}; \([k]=\{1,\ldots,k\}\); \texttt{target-\allowbreak{}factor index}
+  \item \texttt{Cj} --- \texttt{labelled ctf-\allowbreak{}factor}; \texttt{generic target factor}
+  \par\smallskip\noindent\emph{Definition.} \(C_j\) is the \(j\)-th component of \(C\)
+  \item \texttt{S} --- \texttt{action subset bit-\allowbreak{}vector}; \(2^{\mathcal A}\); \texttt{generic physical protocol}
+  \item \texttt{Pi} --- \texttt{finite class of protocols}; \(2^{\mathcal A}\); \texttt{legal protocol class}
+  \item \texttt{Osrc} --- \texttt{total source-\allowbreak{}interface oracle}; \(\mathcal O_{\mathrm{src}}:S\mapsto(h_S,\operatorname{supp}_S)\text{ or }\bot\); \texttt{explicit source-\allowbreak{}law and support interface}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_{\mathrm{src}}\) returns an immutable symbolic handle for the complete acquired law of a queried protocol and its exact finite support table over recorded action labels and READ outputs.
+  \item \texttt{Reg} --- \texttt{map}; \(S\mapsto\operatorname{Reg}(S)\); \texttt{protocol-\allowbreak{}to-\allowbreak{}acquired-\allowbreak{}law map}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Reg}(S)=h_S\) and its support is \(\operatorname{supp}_S\) when \(\mathcal O_{\mathrm{src}}(S)=(h_S,\operatorname{supp}_S)\); it is undefined when the oracle returns \(\bot\).
+  \item \texttt{LIT} --- \texttt{finite set}; \texttt{canonically indexed action-\allowbreak{}assignment and factor-\allowbreak{}request literals}; \texttt{literal universe}
+  \par\smallskip\noindent\emph{Definition.} \(\mathrm{LIT}=\{(a,x):a\in\mathcal A,\ x\text{ is an allowed value recorded for }a\}\sqcup\{(j,v,x):j\in[k],\ v\text{ occurs in the transformed ancestry requested by }C_j,\ x\in\mathfrak X_v\}\).
+  \item \texttt{Omega} --- \texttt{finite switching-\allowbreak{}branch universe}; \texttt{assignment-\allowbreak{}and-\allowbreak{}equality-\allowbreak{}type branches}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega=\bigsqcup_{j=1}^{k}\{j\}\times\Omega_j\), where \(\Omega_j\) contains every complete assignment of the free transformed-ancestry request positions of \(C_j\), paired with its induced equality type.
+  \item \texttt{omega} --- \texttt{switching branch}; \(\Omega\); \texttt{generic factor-\allowbreak{}assignment and equality-\allowbreak{}type branch}
+  \item \texttt{ell} --- \texttt{finite assignment label}; \(\{0,1\}^{|\mathrm{LIT}|}\); \texttt{source-\allowbreak{}slice label}
+  \par\smallskip\noindent\emph{Definition.} \(\ell\) is the canonical \( |\mathrm{LIT}|\)-bit incidence vector of a consistent set of action assignments, conditioned READ values, and factor requests; it selects at most one value for each indexed action or READ endpoint.
+  \item \texttt{Hslice} --- \texttt{partial event-\allowbreak{}valued map}; \(H_{\mathrm{slice}}:(S,\ell)\mapsto H_{\mathrm{slice}}(S,\ell)\); \texttt{physical source-\allowbreak{}slice conditioning event}
+  \par\smallskip\noindent\emph{Definition.} \(H_{\mathrm{slice}}(S,\ell)\) is the admissible conditioning event defined by the asserted RAND, CTF-RAND, and READ-value literals in \(\ell\).
+  \item \texttt{Qfam} --- \texttt{finite ordinary source family}; \texttt{ordinary experimental inputs}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q_{\mathbf B}=\{Q[V\setminus B_i](\cdot;b):i\in[t],\ b\in\mathfrak X_{B_i}\}=\{P_b(V\setminus B_i):i\in[t],\ b\in\mathfrak X_{B_i}\}\).
+  \item \texttt{LambdaB} --- \texttt{finite canonical label family}; \texttt{ordinary embedding label and slice data}
+  \par\smallskip\noindent\emph{Definition.} \(\Lambda_{\mathbf B}=\{\ell_{i,b}:i\in[t],\ b\in\mathfrak X_{B_i}\}\), where \(\ell_{i,b}\) records RAND assignment \(b\) and the complete READ mask on \(V\)
+  \item \texttt{Slice} --- \texttt{partial map}; \((S,\ell)\mapsto\operatorname{Slice}(S,\ell)\); \texttt{measured positive source slice}
+  \item \texttt{Tsource} --- \texttt{finite labelled ctf-\allowbreak{}factor}; \texttt{generic source factor}
+  \par\smallskip\noindent\emph{Definition.} \(T\) is a single-district source factor extracted from \(\operatorname{Slice}(S,\ell)\)
+  \item \texttt{Dmatch} --- \texttt{directed graph}; digraphs on the vertices of \(T\); \texttt{value-\allowbreak{}matching dependency graph}
+  \item \texttt{F} --- \texttt{vertex subset}; \(2^{T}\); \texttt{candidate fixed-\allowbreak{}factor obstruction}
+  \item \texttt{IDplus} --- \texttt{algorithm}; \(\operatorname{IDENTIFY}^{+}(G,C_j,T)\); \texttt{published factor-\allowbreak{}identification subroutine}
+  \item \texttt{Transcript} --- \texttt{finite sequence}; \texttt{ancestor sets,\allowbreak{} retained districts,\allowbreak{} and literal-\allowbreak{}match checks}; \texttt{factor restriction certificate}
+  \item \texttt{Ebase} --- \texttt{finite acquired protocol-\allowbreak{}slice collection}; generic fixed source acquisition supplied to complete CTFIDU\({}^{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(E_0\) is a finite lexicographically ordered list of protocol, slice-label, and labelled-source masks, without branch-ownership or restriction-transcript fields.
+  \item \texttt{Ecert} --- \texttt{finite restricted uniform-\allowbreak{}record collection}; \texttt{protocol bits,\allowbreak{} literal bits,\allowbreak{} factor-\allowbreak{}ownership bits,\allowbreak{} source masks,\allowbreak{} and one cross-\allowbreak{}branch restriction schema per factor}; \texttt{restricted one-\allowbreak{}source-\allowbreak{}per-\allowbreak{}factor acquisition certificate}
+  \item \texttt{Rec} --- \texttt{finite restricted uniform protocol-\allowbreak{}slice record}; \texttt{one restricted one-\allowbreak{}source-\allowbreak{}per-\allowbreak{}factor record}
+  \par\smallskip\noindent\emph{Definition.} \(R=(b_S,b_{\ell},b_J,b_T,(\tau_j)_{j\in J})\), with fixed-width masks over \(\mathcal A\), \(\mathrm{LIT}\), \([k]\), and \(V\sqcup(V\times\mathrm{LIT})\).
+  \item \texttt{Nenc} --- \texttt{nonnegative integer}; \texttt{exact restricted uniform-\allowbreak{}certificate encoding length}
+  \par\smallskip\noindent\emph{Definition.} \(N_E=\sum_{R\in E}\bigl(|\mathcal A|+|\mathrm{LIT}|+k+|V|(1+|\mathrm{LIT}|)+\sum_{j\in J(R)}|\operatorname{enc}(\tau_j)|\bigr)\).
+  \item \texttt{Bcert} --- \texttt{nonnegative integer}; \texttt{restricted uniform-\allowbreak{}certificate length bound}
+  \par\smallskip\noindent\emph{Definition.} \(B_{\mathrm{cert}}=k\bigl(|\mathcal A|+|\mathrm{LIT}|+k+|V|(1+|\mathrm{LIT}|)\bigr)+8k(|V|+1)^2\lceil\log_2(|V|+|\mathrm{LIT}|+k+2)\rceil\).
+  \item \texttt{Phys} --- \texttt{finite structural string with oracle access}; \texttt{certificate-\allowbreak{}independent problem input}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf X_{\mathrm{phys}}=(x_{\mathrm{str}},\mathcal O_{\mathrm{src}})\) is the certificate-independent structural encoding and the explicitly charged source-law/support interface in Definition \(\mathrm{Physical\ input\ interface}\).
+  \item \texttt{Nin} --- \texttt{nonnegative integer}; \texttt{physical input bit length}
+  \par\smallskip\noindent\emph{Definition.} \(N_{\mathrm{in}}=|x_{\mathrm{str}}|=|\operatorname{enc}(G^{+})|+|\operatorname{enc}(\{\mathfrak X_v\}_{v\in V})|+|\operatorname{enc}(\mathcal A)|+\operatorname{bitlen}(c)+|\operatorname{enc}(Q,C,\mathrm{LIT})|+|\operatorname{enc}(\mathcal O_{\mathrm{src}}\text{ signature})|\).
+  \item \texttt{Noracle} --- \texttt{nonnegative integer}; \texttt{actual source-\allowbreak{}interface charge}
+  \par\smallskip\noindent\emph{Definition.} \(N_{\mathcal O}\) is the sum of the bit lengths of all protocol queries and all returned law handles, support-index headers, and support bit tables in one verifier or optimization execution.
+  \item \texttt{FAC} --- \texttt{finite set}; \(\{1,\ldots,k\}\); \texttt{factor identifiers}
+  \item \texttt{Hk} --- \texttt{positive rational}; \texttt{harmonic approximation factor}
+  \par\smallskip\noindent\emph{Definition.} \(H_k=\sum_{r=1}^{k}r^{-1}\)
+  \item \texttt{Hsearch} --- \texttt{proof handle}; \texttt{oracle-\allowbreak{}search complexity starting move}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf H_{\mathrm{search}}\) combines memoized enumeration of distinct protocol support replies with an adversarial oracle decision tree indexed by unresolved factor-source incidences.
+  \item \texttt{X} --- \texttt{binary observed variable}; \(\{0,1\}\); \texttt{separation treatment}
+  \item \texttt{Y} --- \texttt{binary observed variable}; \(\{0,1\}\); \texttt{separation outcome}
+  \item \texttt{Z} --- \texttt{binary observed variable}; \(\{0,1\}\); \texttt{separation outcome}
+  \item \texttt{eps} --- \texttt{real number}; \((0,1/2)\); \texttt{independent response-\allowbreak{}noise probability}
+  \item \texttt{UX} --- \texttt{binary exogenous variable}; \(\operatorname{Bernoulli}(1/2)\); \texttt{natural treatment bit}
+  \item \texttt{UA} --- \texttt{binary exogenous variable}; \(\operatorname{Bernoulli}(1/2)\); \texttt{first response bit}
+  \item \texttt{M} --- \texttt{positive integer}; \(\mathbb N_{\ge 1}\); \texttt{number of concrete assignment-\allowbreak{}and-\allowbreak{}equality-\allowbreak{}type branches}
+  \par\smallskip\noindent\emph{Definition.} \(M=|\Omega|=\sum_{j=1}^{k}|\Omega_j|\)
+  \item \texttt{UB} --- \texttt{binary exogenous variable}; \(\operatorname{Bernoulli}(1/2)\); \texttt{shared response bit}
+  \item \texttt{UC} --- \texttt{binary exogenous variable}; \(\operatorname{Bernoulli}(1/2)\); \texttt{third response bit}
+  \item \texttt{EY} --- \texttt{binary exogenous variable}; \(\operatorname{Bernoulli}(\varepsilon)\); \texttt{outcome response noise}
+  \item \texttt{EZ} --- \texttt{binary exogenous variable}; \(\operatorname{Bernoulli}(\varepsilon)\); \texttt{outcome response noise}
+  \item \texttt{Mone} --- \texttt{binary recursive structural causal model}; \texttt{first positive-\allowbreak{}law separation model}
+  \item \texttt{qM} --- \texttt{positive integer}; \(\mathbb N_{\ge1}\); \texttt{sparse branch-\allowbreak{}index width}
+  \par\smallskip\noindent\emph{Definition.} \(q_M=\lceil\log_2(M+1)\rceil\)
+  \item \texttt{Mtwo} --- \texttt{binary recursive structural causal model}; \texttt{second positive-\allowbreak{}law separation model}
+  \item \texttt{Rsw} --- \texttt{finite sparse switching protocol-\allowbreak{}slice record}; \texttt{one singleton-\allowbreak{}branch switching record}
+  \par\smallskip\noindent\emph{Definition.} \(R_{\mathrm{sw}}=(b_S,b_{\ell},b_{\alpha},b_T,\tau)\)
+  \item \texttt{Esw} --- \texttt{finite branch-\allowbreak{}indexed switching certificate}; \texttt{protocol bits,\allowbreak{} literal bits,\allowbreak{} branch-\allowbreak{}ownership bits,\allowbreak{} source masks,\allowbreak{} and concrete restriction transcripts}; \texttt{primary acquisition certificate}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\mathrm{sw}}\) is a finite switching acquisition certificate
+  \item \texttt{Rsrc} --- \texttt{finite ordered source collection}; complete CTFIDU\({}^{+}\) source input
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R(E_0)\), \(\mathcal R(E)\), or \(\mathcal R(E_{\mathrm{sw}})\) is the deduplicated lexicographic list of protocol--slice--source triples decoded from nonempty source records.
+  \item \texttt{CTFIDUplus} --- \texttt{algorithm}; \(\operatorname{CTFIDU}^{+}(G,Q,\mathcal R(E))\); \texttt{complete unconditional fixed-\allowbreak{}source identification procedure}
+  \item \texttt{Asep} --- \texttt{finite priced action catalogue}; \texttt{separation witness catalogue}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_{\mathrm{sep}}=\{s,\chi_{Y,0},\chi_{Z,1},\rho_X,\rho_Y,\rho_Z\}\)
+  \item \texttt{Nsrc} --- \texttt{nonnegative integer}; \texttt{exact source-\allowbreak{}collection encoding length}
+  \par\smallskip\noindent\emph{Definition.} \(N_{\mathrm{src}}\) is the exact bit length of \(\mathcal R(E_0)\), \(\mathcal R(E)\), or \(\mathcal R(E_{\mathrm{sw}})\) under the source-collection encoding.
+  \item \texttt{Acc} --- \texttt{total predicate on finite encodings}; \(\operatorname{Acc}(Q,E;G)\in\{0,1\}\); \texttt{restricted uniform-\allowbreak{}certificate acceptance}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Acc}(Q,E;G)\) is the restricted one-source-per-factor parse, legality, source-typing, complete-run, and cross-branch transcript-verification predicate.
+  \item \texttt{csep} --- \texttt{function}; \(c_{\mathrm{sep}}:\mathcal A_{\mathrm{sep}}\to\mathbb Q_{\ge0}\); \texttt{separation witness costs}
+  \item \texttt{Cost} --- \texttt{function}; \(\operatorname{Cost}:\{E_0,E,E_{\mathrm{sw}}\}\to\mathbb Q_{\ge0}\); \texttt{distinct-\allowbreak{}protocol acquisition cost}
+  \item \texttt{Sind} --- \texttt{action subset bit-\allowbreak{}vector}; \texttt{indirect cost-\allowbreak{}one protocol}
+  \par\smallskip\noindent\emph{Definition.} \(S_{\mathrm{ind}}=\{s,\chi_{Y,0},\rho_X,\rho_Y,\rho_Z\}\)
+  \item \texttt{Opt} --- \texttt{extended nonnegative rational}; \texttt{restricted uniform-\allowbreak{}subclass optimum}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Opt}=\inf\{\operatorname{Cost}(E):\operatorname{Acc}(Q,E;G)=1\}\), with \(\inf\varnothing=+\infty\)
+  \item \texttt{Sdir} --- \texttt{action subset bit-\allowbreak{}vector}; \texttt{direct cost-\allowbreak{}two protocol}
+  \par\smallskip\noindent\emph{Definition.} \(S_{\mathrm{dir}}=\{s,\chi_{Y,0},\chi_{Z,1},\rho_Y,\rho_Z\}\)
+  \item \texttt{Estar} --- \texttt{finite restricted uniform acquisition certificate}; \texttt{restricted uniform optimizer output}
+  \par\smallskip\noindent\emph{Definition.} \(E^{\star}\) is the lexicographically first minimum-cost accepting restricted uniform certificate when one exists.
+  \item \texttt{NEstar} --- \texttt{nonnegative integer}; \texttt{actual restricted uniform output length}
+  \par\smallskip\noindent\emph{Definition.} \(N_{E^{\star}}\) is the restricted uniform length \(N_E\) evaluated at \(E=E^{\star}\).
+  \item \texttt{Nsw} --- \texttt{nonnegative integer}; \texttt{exact sparse switching-\allowbreak{}certificate length}
+  \par\smallskip\noindent\emph{Definition.} \(N_{\mathrm{sw}}\) is the exact Elias-gamma-framed length of the sparse switching-certificate encoding
+  \item \texttt{Bsw} --- \texttt{positive integer}; \texttt{sparse canonical switching search radius}
+  \par\smallskip\noindent\emph{Definition.} \(B_{\mathrm{sw}}\) is the sparse canonical bound in Definition \(\mathrm{Sparse\ canonical\ switching\mbox{-}certificate\ bound}\)
+  \item \texttt{Accsw} --- \texttt{total predicate on finite encodings}; \(\operatorname{Acc}_{\mathrm{sw}}(Q,E_{\mathrm{sw}};G)\in\{0,1\}\); \texttt{primary branch-\allowbreak{}indexed operational acceptance predicate}
+  \item \texttt{Optsw} --- \texttt{extended nonnegative rational}; \texttt{main minimum acquisition cost}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Opt}_{\mathrm{sw}}=\inf\{\operatorname{Cost}(E_{\mathrm{sw}}):\operatorname{Acc}_{\mathrm{sw}}(Q,E_{\mathrm{sw}};G)=1\}\), with \(\inf\varnothing=+\infty\)
+  \item \texttt{Eswstar} --- \texttt{finite switching acquisition certificate}; \texttt{primary exact optimizer output}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\mathrm{sw}}^{\star}\) is the lexicographically first minimum-cost accepting canonical switching certificate when one exists.
+  \item \texttt{NEswstar} --- \texttt{nonnegative integer}; \texttt{actual primary output length}
+  \par\smallskip\noindent\emph{Definition.} \(N_{E_{\mathrm{sw}}^{\star}}\) is \(N_{\mathrm{sw}}\) evaluated at \(E_{\mathrm{sw}}=E_{\mathrm{sw}}^{\star}\).
+  \item \texttt{NP} --- \texttt{complexity class}; \texttt{complexity assumption in the ordinary hardness calibration}
+  \par\smallskip\noindent\emph{Definition.} \(\mathrm{NP}\) is nondeterministic polynomial time
+  \item \texttt{Succsw} --- \texttt{predicate}; \(\mathsf{Succ}_{\alpha}(S,\ell,T,\tau)\in\{0,1\}\); \texttt{local operational branch-\allowbreak{}success predicate}
+  \item \texttt{Ksw} --- \texttt{set-\allowbreak{}valued map}; \(K_{\mathrm{sw}}:\Pi\to 2^{\Omega}\); \texttt{protocol-\allowbreak{}to-\allowbreak{}branch incidence map}
+  \item \texttt{w} --- \texttt{function}; \(w:2^{\mathcal A}\to\mathbb Q_{\ge0}\); \texttt{protocol weight}
+  \par\smallskip\noindent\emph{Definition.} \(w(S)=\sum_{a\in S}c(a)\)
+  \item \texttt{Qbatch} --- \texttt{finite query family}; \texttt{all-\allowbreak{}cells single-\allowbreak{}world target batch}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q_{\mathrm{batch}}(S_0)=\{P((S_0)_x=s):x\in\mathfrak X_{V\setminus S_0},\ s\in\mathfrak X_{S_0}\}\)
+  \item \texttt{Emb} --- \texttt{polynomial-\allowbreak{}time structural map with oracle interface}; \(\iota:\mathcal D_{\mathrm{ord}}\mapsto(G^{+},\mathcal A,c,\mathcal Q_{\mathrm{batch}},\mathcal O_{\mathrm{src}})\); \texttt{ordinary full-\allowbreak{}kernel batch embedding}
+  \item \texttt{Ebatch} --- \texttt{finite physical batch certificate}; \texttt{shared-\allowbreak{}protocol all-\allowbreak{}cells acquisition certificate}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\mathrm{batch}}=(\mathcal P,(E_{\mathrm{sw}}^{x,s})_{x,s})\)
+  \item \texttt{EB} --- \texttt{finite physical batch certificate}; \texttt{embedded ordinary full-\allowbreak{}kernel batch certificate}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\mathbf B}=(\mathcal P_{\mathbf B},(E_{\mathrm{sw}}^{x,s})_{x,s})\)
+  \item \texttt{Accbatch} --- \texttt{predicate}; \(\operatorname{Acc}_{\mathrm{batch}}(E_{\mathrm{batch}})\in\{0,1\}\); \texttt{physical all-\allowbreak{}cells batch acceptance}
+  \item \texttt{Optbatch} --- \texttt{extended nonnegative rational}; \texttt{physical batch acquisition optimum}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Opt}_{\mathrm{batch}}\) is the minimum shared protocol cost over accepted physical batch certificates
+  \item \texttt{Optord} --- \texttt{extended nonnegative rational}; \texttt{ordinary full-\allowbreak{}kernel design optimum}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Opt}_{\mathrm{ord}}\) is the minimum shared intervention cost over ordinary full-kernel identifying collections
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:finite-recursive-admg]\label{ass:finite-recursive-admg}
+\(G\) is a finite ADMG induced by a recursive finite-discrete SCM.
+\par\smallskip\noindent\emph{Standard} (finite recursive SCM, \cite{RaghavanBareinboim2025Realizability}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-domains]\label{ass:bounded-domains}
+\(|\mathfrak X_v|\le d\) for every observed variable \(v\in V\).
+\par\smallskip\noindent\emph{Standard} (bounded finite discrete domains, \cite{RaghavanBareinboim2026CTFIDUPlus}).
+\end{assumption}
+
+\begin{assumption}[ass:unconditional-query]\label{ass:unconditional-query}
+\(Q\) is an unconditional counterfactual joint.
+\par\smallskip\noindent\emph{Standard} (unconditional CTFIDU\({}^{+}\) input scope, \cite{RaghavanBareinboim2026CTFIDUPlus}).
+\end{assumption}
+
+\begin{assumption}[ass:unnested-query]\label{ass:unnested-query}
+\(Q\) is unnested.
+\par\smallskip\noindent\emph{Standard} (unnested counterfactual-query input scope, \cite{CorreaLeeBareinboim2021NestedCTFID}).
+\end{assumption}
+
+\begin{assumption}[ass:l25-query]\label{ass:l25-query}
+\(Q\) belongs to the physically realizable Layer-2.5 query language over \(G\).
+\par\smallskip\noindent\emph{Standard} (Layer-2.5 counterfactual-query language, \cite{RaghavanBareinboim2026CTFIDUPlus}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-source-law]\label{ass:positive-source-law}
+For every conditioning operation actually used by a source factor or restriction transcript in a correctly typed run on \(E_0\), \(E\), or \(E_{\mathrm{sw}}\), the exact support table returned by \(\mathcal O_{\mathrm{src}}(S)\) must give \(P_S\{H_{\mathrm{slice}}(S,\ell)\}>0\) whenever that operation conditions the acquired law of a legal protocol \(S\in\Pi\) on \(H_{\mathrm{slice}}(S,\ell)\), with no requirement on source cells unused by the run.
+\par\smallskip\noindent\emph{Novel.} This event-local condition makes exactly the denominators used by operational certificates nonzero while permitting unused cells to have zero mass and supplying no semantic soundness or completeness theorem for CTFIDU+.
+\end{assumption}
+
+\begin{assumption}[ass:explicit-action-record]\label{ass:explicit-action-record}
+Each \(a\in\mathcal A\) has exactly one type in \(\{\mathrm{SELECT},\mathrm{RAND},\mathrm{CTF\text{-}RAND},\mathrm{READ}\}\) and explicit endpoints, affected children, allowed values, prerequisites, conflicts, and ownership data.
+\par\smallskip\noindent\emph{Novel.} Laboratory protocols and platform experiments are routinely specified by executable actions, admissible settings, device conflicts, and measurement endpoints; the catalogue records these operational constraints without positing an unobservable causal functional.
+\end{assumption}
+
+\begin{assumption}[ass:binary-rational-cost]\label{ass:binary-rational-cost}
+\(c(a)\in\mathbb Q_{\ge0}\) is encoded in binary for every \(a\in\mathcal A\).
+\par\smallskip\noindent\emph{Novel.} Fixed monetary or resource charges for laboratory actions are naturally nonnegative and finitely recorded; binary rational encoding permits heterogeneous costs without a unary-magnitude convention.
+\end{assumption}
+
+\begin{assumption}[ass:one-select]\label{ass:one-select}
+\(|S\cap\mathrm{SELECT}|=1\).
+\par\smallskip\noindent\emph{Standard} (single-unit SELECT protocol, \cite{RaghavanBareinboim2025Realizability}).
+\end{assumption}
+
+\begin{assumption}[ass:fresh-iid-select]\label{ass:fresh-iid-select}
+The SELECT action in \(S\) draws a fresh unit independently from the target population.
+\par\smallskip\noindent\emph{Novel.} Exact independent superpopulation sampling is an idealized platform assumption, realized when each protocol execution enrolls one unit by independent sampling with replacement from a target-population frame or draws a newly generated unit from a stable production process. Raghavan and Bareinboim (2025) instead define SELECT as sampling units without replacement, so their ICLR result does not justify the exact independence condition imposed here.
+\end{assumption}
+
+\begin{assumption}[ass:mechanism-once]\label{ass:mechanism-once}
+Along \(S\), each physical mechanism represented in \(G^{+}\) is executed at most once on the selected unit.
+\par\smallskip\noindent\emph{Standard} (fundamental constraint of experimentation, \cite{RaghavanBareinboim2025Realizability}).
+\end{assumption}
+
+\begin{assumption}[ass:precedence-closed]\label{ass:precedence-closed}
+If \(a\in S\) and \(b\) precedes \(a\) in the catalogue, then \(b\in S\) and \(b\) occurs before \(a\) in canonical order.
+\par\smallskip\noindent\emph{Novel.} Physical data acquisition commonly requires setup actions before randomization and measurement, such as enrollment before treatment and treatment before outcome READ.
+\end{assumption}
+
+\begin{assumption}[ass:conflict-free]\label{ass:conflict-free}
+No pair of catalogue actions linked by the conflict relation is jointly contained in \(S\).
+\par\smallskip\noindent\emph{Novel.} Mutually exclusive devices, incompatible assay choices, and alternative randomization modes are ordinary features of executable experimental protocols.
+\end{assumption}
+
+\begin{assumption}[ass:allowed-values]\label{ass:allowed-values}
+Whenever \(\ell\) asserts an action assignment \((a,x)\) for \(a\in S\), the value \(x\) belongs to the catalogued allowed-value set of \(a\).
+\par\smallskip\noindent\emph{Novel.} Intervention devices and experimental policies often permit only a specified finite menu of doses, messages, or attribute values.
+\end{assumption}
+
+\begin{assumption}[ass:physical-compatibility]\label{ass:physical-compatibility}
+The ordered actions in \(S\) satisfy the simultaneous potential-response compatibility criterion of CTF-REALIZE on \(G^{+}\).
+\par\smallskip\noindent\emph{Standard} (CTF-REALIZE physical compatibility, \cite{RaghavanBareinboim2025Realizability}).
+\end{assumption}
+
+\begin{assumption}[ass:single-paid-action]\label{ass:single-paid-action}
+Every optional purchasable protocol \(S\in\Pi\) contains exactly one action \(a\) with \(c(a)>0\).
+\par\smallskip\noindent\emph{Novel.} This restricted physical subclass is realized when every menu option shares zero-cost enrollment and readout infrastructure but activates exactly one billable assay, actuator, or treatment-delivery module. The restriction concerns the platform cost architecture and is not imposed on the general acquisition problem.
+\end{assumption}
+
+\begin{assumption}[ass:protocolwise-legality]\label{ass:protocolwise-legality}
+Legality of each optional protocol \(S\in\Pi\) is invariant to which other protocols are acquired on distinct fresh units.
+\par\smallskip\noindent\emph{Novel.} This restricted physical subclass is realized by isolated fresh-unit runs with separately reserved devices and no cross-run capacity, contamination, or interference constraints. It is a substantive platform restriction and is not inferred from ordinary intervention semantics.
+\end{assumption}
+
+\begin{assumption}[ass:factorwise-no-synergy]\label{ass:factorwise-no-synergy}
+Each target factor \(C_j\) is certified by one acquired protocol independently of the presence of other acquired protocols.
+\par\smallskip\noindent\emph{Novel.} This restricted physical subclass is realized by a registry in which each reported target factor must be certified from one independently audited assay channel and combining distinct protocol reports cannot create a new certificate. It deliberately excludes multi-source identification synergy and is not imposed on the general acquisition problem.
+\end{assumption}
+
+\begin{assumption}[ass:measured-ancestry]\label{ass:measured-ancestry}
+For every source factor extracted from \(\operatorname{Slice}(S,\ell)\), each counterfactual ancestor required by the ancestral-set transformation is either an endpoint of a READ action in \(S\) or has its value fixed by an action recorded in \(S\).
+\par\smallskip\noindent\emph{Novel.} A realizable platform regime is a digital experiment in which SELECT enrolls a fresh account, RAND or CTF-RAND records the delivered treatment on each affected edge, and READ logs every natural covariate, mediator, and outcome in the requested factor's transformed ancestry; action-fixed vertices need no duplicate natural-value measurement. The restriction excludes a READ of \(Y\) alone in \(X\to Y\) when natural \(X\) is required, and excludes any factor whose natural parent or mediator is privacy-redacted and not fixed. It permits omission only of variables outside the required transformed ancestry or variables whose relevant value is explicitly fixed by the recorded protocol.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:physical-instance-encoding]\label{def:physical-instance-encoding}
+\par\smallskip\noindent\emph{Defined object.} Certificate-independent physical input and source interface \(\mathsf X_{\mathrm{phys}}\)
+\par\smallskip\noindent\emph{Construction.} The structural string \(x_{\mathrm{str}}\) self-delimits the vertex and domain tables; the directed and bidirected edges of \(G^{+}\); every action type, endpoint, affected-child list, allowed-value list, precedence edge, conflict edge, ownership endpoint, and binary-rational cost in \((\mathcal A,c)\); and the unnested query \(Q\), transformed ancestry, ordered factors \(C\), and canonical literal table \(\mathrm{LIT}\). Independently of every certificate, the instance supplies oracle access to \(\mathcal O_{\mathrm{src}}\). A query is exactly an \(|\mathcal A|\)-bit protocol mask \(S\). The answer is either \(\bot\), or an immutable symbolic handle \(h_S\) for the complete acquired law followed by a self-delimiting support bit table indexed lexicographically by the Cartesian product of the catalogued allowed-value lists of the RAND and CTF-RAND actions in \(S\) and the encoded domains of the READ endpoints in \(S\); its exact payload is one bit per element of that product plus the handle and index headers. The table therefore decides the support of every admissible event and every READ cell exactly; CTFIDU\({}^{+}\) manipulates \(h_S\) symbolically and never evaluates a hidden law. One execution is charged \(N_{\mathcal O}\), the total bits in its oracle queries and replies, and may cache one reply per distinct protocol. The finite structural length is \(N_{\mathrm{in}}=|x_{\mathrm{str}}|\). No protocol choice, slice label, source mask, factor-ownership choice, transcript, oracle reply, or source-law value occurs in \(x_{\mathrm{str}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gplus}; \texttt{A}; \texttt{c}; \texttt{Q}; \texttt{Osrc}.
+\end{definition}
+
+\begin{definition}[def:target-factorization]\label{def:target-factorization}
+\par\smallskip\noindent\emph{Defined object.} Structural target-factor tuple \(C\)
+\par\smallskip\noindent\emph{Construction.} Apply counterfactual ancestor expansion and the ancestral-set transformation to \(Q\), then partition \(\mathbf W_{\ast}\) into the ordered bidirected districts \(C=(C_1,\ldots,C_k)\) of \(G[V(\mathbf W_{\ast})]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q}; \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:legal-protocols]\label{def:legal-protocols}
+\par\smallskip\noindent\emph{Defined object.} Legal protocol class \(\Pi(G^{+},\mathcal A)\)
+\par\smallskip\noindent\emph{Construction.} \(\Pi(G^{+},\mathcal A)=\{S\subseteq\mathcal A: |S\cap\mathrm{SELECT}|=1,\ S\text{ selects a fresh independent unit},\ S\text{ uses each mechanism at most once},\ S\text{ is precedence closed and conflict free, and }S\text{ satisfies CTF\text{-}REALIZE on }G^{+}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}explicit-\allowbreak{}action-\allowbreak{}record}; \texttt{ass:\allowbreak{}one-\allowbreak{}select}; \texttt{ass:\allowbreak{}fresh-\allowbreak{}iid-\allowbreak{}select}; \texttt{ass:\allowbreak{}mechanism-\allowbreak{}once}; \texttt{ass:\allowbreak{}precedence-\allowbreak{}closed}; \texttt{ass:\allowbreak{}conflict-\allowbreak{}free}; \texttt{ass:\allowbreak{}physical-\allowbreak{}compatibility}.
+\end{definition}
+
+\begin{definition}[def:acquired-regime]\label{def:acquired-regime}
+\par\smallskip\noindent\emph{Defined object.} Acquired regime \(\operatorname{Reg}(S)\)
+\par\smallskip\noindent\emph{Construction.} For \(S\in\Pi\), query \(\mathcal O_{\mathrm{src}}(S)\) once. If the reply is \((h_S,\operatorname{supp}_S)\), define \(\operatorname{Reg}(S)=h_S\) with the returned exact support over its recorded assignment labels and READ outputs; if the reply is \(\bot\), \(\operatorname{Reg}(S)\) is unavailable. Repeated slices of one protocol reuse the cached handle and support table.
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:literal-encoding]\label{def:literal-encoding}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Canonical literal and label encoding}
+\par\smallskip\noindent\emph{Construction.} Order \(\mathrm{LIT}\) lexicographically after forming the disjoint union of action-value literals \(\{(a,x):a\in\mathcal A,\ x\text{ is catalogued for }a\}\) and request literals \(\{(j,v,x):j\in[k],\ v\text{ occurs in the transformed ancestry requested by }C_j,\ x\in\mathfrak X_v\}\). Thus \( |\mathrm{LIT}|\le d\bigl(|\mathcal A|+\sum_{j=1}^{k}|\{v:v\text{ occurs in that transformed ancestry of }C_j\}|\bigr)\), and every \(\ell\) is represented by exactly \( |\mathrm{LIT}|\) bits. Reject a label if it asserts two values for one indexed endpoint, mentions a literal absent from \(\mathrm{LIT}\), or assigns a value not allowed by the catalogue.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{C}; \texttt{d}.
+\end{definition}
+
+\begin{definition}[def:admissible-source-event]\label{def:admissible-source-event}
+\par\smallskip\noindent\emph{Defined object.} Admissible physical source event \(H_{\mathrm{slice}}(S,\ell)\)
+\par\smallskip\noindent\emph{Construction.} For \(S\in\Pi\) and a consistent \(|\mathrm{LIT}|\)-bit label \(\ell\), \(H_{\mathrm{slice}}(S,\ell)\) is defined exactly when every asserted action-value literal \((a,x)\) names a RAND or CTF-RAND action \(a\in S\) at a catalogued value, every asserted request literal \((j,v,x)\) names an endpoint \(v\) READ by \(S\) that occurs in the transformed ancestry requested by \(C_j\), no indexed action or READ endpoint receives two values, and no other or unrecorded equality is imposed. When defined, it is the event that every asserted action records its asserted value and every asserted READ endpoint equals its asserted value.
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{ell}.
+\end{definition}
+
+\begin{definition}[def:source-slice]\label{def:source-slice}
+\par\smallskip\noindent\emph{Defined object.} Measured source slice \(\operatorname{Slice}(S,\ell)\)
+\par\smallskip\noindent\emph{Construction.} For a legal \(S\) with oracle reply \((h_S,\operatorname{supp}_S)\) and a consistent \(|\mathrm{LIT}|\)-bit label \(\ell\), \(\operatorname{Slice}(S,\ell)\) is the symbolic READ projection of \(h_S\) conditioned on \(H_{\mathrm{slice}}(S,\ell)\). It is defined exactly when the returned support table gives that event positive mass. Extraction returns no source factor unless every counterfactual ancestor required by its ancestral-set transformation is READ by \(S\) or fixed by a recorded action in \(S\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{ell}.
+\end{definition}
+
+\begin{definition}[def:value-match-dependency]\label{def:value-match-dependency}
+\par\smallskip\noindent\emph{Defined object.} Value-matching dependency graph \(D_{T}\)
+\par\smallskip\noindent\emph{Construction.} For a labelled source factor \(T\), let \(D_T\) have vertex set \(T\) and arc \(u\to v\) exactly when \(u\to v\) is directed in \(G\) and the value carried by the source literal for \(u\) equals the value requested for \(u\) in the parent subscript of \(v\); on \(U\subseteq T\), use the induced digraph \(D_T[U]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Tsource}; \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:fixed-factor-obstruction]\label{def:fixed-factor-obstruction}
+\par\smallskip\noindent\emph{Defined object.} Connected-ancestor obstruction family \(\mathfrak O(T,C_j)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak O(T,C_j)=\{F: C_j\subsetneq F\subseteq T,\ G^{\leftrightarrow}[F]\text{ is connected, and every }v\in F\text{ reaches some }c\in C_j\text{ in }D_T[F]\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Tsource}; \texttt{Cj}.
+\end{definition}
+
+\begin{definition}[def:restriction-transcript]\label{def:restriction-transcript}
+\par\smallskip\noindent\emph{Defined object.} Restriction transcript \(\tau_j\)
+\par\smallskip\noindent\emph{Construction.} \(\tau_j=((U_0,H_0,B_0),\ldots,(U_m,H_m,B_m))\) records the chosen source \(U_0=T\), each value-matching ancestor set \(H_r=\operatorname{An}_{C_j}(D_T[U_r])\), and the retained bidirected district \(B_r\) containing \(C_j\), terminating with \(H_m=C_j\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Cj}; \texttt{Tsource}.
+\end{definition}
+
+\begin{definition}[def:protocol-slice-record]\label{def:protocol-slice-record}
+\par\smallskip\noindent\emph{Defined object.} Finite uniform protocol-slice record \(R\)
+\par\smallskip\noindent\emph{Construction.} A record is \(R=(b_S,b_{\ell},b_J,b_T,(\tau_j)_{j\in J})\), where \(b_S\in\{0,1\}^{|\mathcal A|}\) is a protocol mask, \(b_{\ell}\in\{0,1\}^{|\mathrm{LIT}|}\) is its slice label, \(b_J\in\{0,1\}^{k}\) owns target factors, and \(b_T\in\{0,1\}^{V\sqcup(V\times\mathrm{LIT})}\) records the labelled single-district source factor extracted from that slice. Its fixed-width part has \(|\mathcal A|+|\mathrm{LIT}|+k+|V|(1+|\mathrm{LIT}|)\) bits, followed by self-delimiting encodings of one transcript schema per owned factor.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{LIT}; \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:acquisition-certificate]\label{def:acquisition-certificate}
+\par\smallskip\noindent\emph{Defined object.} Uniform acquisition certificate \(E\)
+\par\smallskip\noindent\emph{Construction.} \(E\) is a lexicographically ordered finite list of uniform records. After empty ownership masks are discarded, the nonempty factor masks \(J\) partition \([k]\). Each decoded \(S\) lies in \(\Pi\); \(\mathcal O_{\mathrm{src}}(S)\) returns a law handle and support table; each decoded \(\ell\) names a positive well-typed slice; and \(b_T\) names one extracted source factor. For every owned \(C_j\), the same selected protocol, slice, source, and transcript schema succeeds for every branch in \(\Omega_j\), so source choice is outside the assignment-and-equality-type quantifier. Records sharing a protocol pay its cost once. The exact certificate length is \(N_E=\sum_{R\in E}\bigl(|\mathcal A|+|\mathrm{LIT}|+k+|V|(1+|\mathrm{LIT}|)+\sum_{j\in J(R)}|\operatorname{enc}(\tau_j)|\bigr)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pi}; \texttt{C}; \texttt{LIT}; \texttt{Omega}; \texttt{Osrc}.
+\end{definition}
+
+\begin{definition}[def:source-collection-encoding]\label{def:source-collection-encoding}
+\par\smallskip\noindent\emph{Defined object.} Complete-run source collection \(\mathcal R(\cdot)\)
+\par\smallskip\noindent\emph{Construction.} From a generic acquired collection \(E_0\), retain one copy of each distinct protocol-mask, label-mask, and labelled-source-mask triple and sort the triples lexicographically.  From a restricted uniform certificate \(E\), do the same for its nonempty factor-ownership records.  From a switching certificate \(E_{\mathrm{sw}}\), do the same for its nonempty branch-ownership records; empty paid-protocol markers contribute no source triple.  In every case the three masks have lengths \(|\mathcal A|\), \(|\mathrm{LIT}|\), and \(|V|(1+|\mathrm{LIT}|)\).  Thus
+\[
+ N_{\mathrm{src}}=|\mathcal R(\cdot)|
+ \bigl(|\mathcal A|+|\mathrm{LIT}|+|V|(1+|\mathrm{LIT}|)\bigr)
+\]
+for the relevant input collection.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ebase}; \texttt{Ecert}; \texttt{Esw}.
+\end{definition}
+
+\begin{definition}[def:certificate-cost]\label{def:certificate-cost}
+\par\smallskip\noindent\emph{Defined object.} Distinct-protocol cost \(\operatorname{Cost}\)
+\par\smallskip\noindent\emph{Construction.} For \(F\in\{E_0,E,E_{\mathrm{sw}}\}\), let \(\operatorname{Prot}(F)\) contain each distinct acquired protocol mask occurring in \(F\), including an empty-ownership paid-protocol marker, exactly once.  Define
+\[
+ \operatorname{Cost}(F)=\sum_{S\in\operatorname{Prot}(F)}\sum_{a\in S}c(a).
+\]
+Slices, labelled sources, factors, and branches sharing one protocol incur no additional acquisition cost.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ebase}; \texttt{Ecert}; \texttt{Esw}.
+\end{definition}
+
+\begin{definition}[def:operational-acceptance]\label{def:operational-acceptance}
+\par\smallskip\noindent\emph{Defined object.} Operational acceptance \(\operatorname{Acc}(Q,E;G)\)
+\par\smallskip\noindent\emph{Construction.} Parse the finite structural string \(x_{\mathrm{str}}\) before reading the supplied finite certificate string \(E\). Parse \(E\) into the fixed-width masks and self-delimiting transcripts of the uniform-record definition. Return \(0\) for malformed input, malformed certificate length or identifier, repeated record, nonpartition of \([k]\), illegal protocol, inconsistent or out-of-catalogue label, oracle reply \(\bot\), malformed oracle support index, undefined event \(H_{\mathrm{slice}}(S,\ell)\), zero support for that event, source mask not extracted from the returned law handle, failed measured-ancestry typing, or invalid restriction step. Otherwise cache the oracle reply for each distinct protocol, construct the entire deduplicated source collection \(\mathcal R(E)\), normalize \(Q\), and execute complete unconditional CTFIDU\({}^{+}\) from the first ancestral-set transformation through factorization and exhaustive search over every decoded source. Return \(1\) exactly when the complete run does not return \(\operatorname{FAIL}\), every \(C_j\) is owned exactly once, and each claimed protocol, slice, source, and transcript schema reproduces a successful IDENTIFY\({}^{+}\) branch for every assignment and induced equality type in \(\Omega_j\). Return \(0\) otherwise. Every source-law or support access is an explicit \(\mathcal O_{\mathrm{src}}\) query charged to \(N_{\mathcal O}\); \(\operatorname{Reg}\) contains no hidden law or positivity test.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Phys}; \texttt{Osrc}; \texttt{Ecert}.
+\end{definition}
+
+\begin{definition}[def:optimal-cost]\label{def:optimal-cost}
+\par\smallskip\noindent\emph{Defined object.} Optimal acquisition cost \(\operatorname{Opt}\)
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Opt}=\inf\{\operatorname{Cost}(E): E\text{ is a uniform acquisition certificate and }\operatorname{Acc}(Q,E;G)=1\}\), with \(\inf\varnothing=+\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q}; \texttt{G}; \texttt{A}; \texttt{c}; \texttt{Osrc}.
+\end{definition}
+
+\begin{definition}[def:oracle-search-handle]\label{def:oracle-search-handle}
+\par\smallskip\noindent\emph{Defined object.} Oracle-search handle \(\mathsf H_{\mathrm{search}}\)
+\par\smallskip\noindent\emph{Construction.} \texttt{Memoize the reply to each queried protocol,\allowbreak{} branch first on the unresolved factor-\allowbreak{}source incidence with the fewest legal protocols,\allowbreak{} and pair the resulting upper-\allowbreak{}bound algorithm with an adversarial pair of source oracles that agree on every queried protocol until a decisive support cell is exposed.}
+\par\smallskip\noindent\emph{Inputs.} \texttt{Osrc}; \texttt{C}; \texttt{A}; \texttt{LIT}.
+\end{definition}
+
+\begin{definition}[def:ordinary-query-subclass]\label{def:ordinary-query-subclass}
+\par\smallskip\noindent\emph{Defined object.} Ordinary full-kernel \(Q[S]\) query class \(\mathfrak D_{\mathrm{AEK}}\)
+\par\smallskip\noindent\emph{Construction.} The class \(\mathfrak D_{\mathrm{AEK}}\) consists of the finite-rational, finite-discrete ordinary full-kernel instances
+\[
+ \mathcal D_{\mathrm{ord}}=(G,S_0,(\kappa_v)_{v\in V}),
+ \qquad \varnothing\ne S_0\subseteq V,
+\]
+where \(G\) is a finite semi-Markovian ADMG, \(\kappa_v\in\mathbb Q_{\ge0}\), and the target is the complete table
+\[
+ Q[S_0]
+ =\left\{P_{\operatorname{do}(V\setminus S_0=x)}(S_0=s):
+ x\in\mathfrak X_{V\setminus S_0},\ s\in\mathfrak X_{S_0}\right\}.
+\]
+Every intervention-assignment and outcome cell is part of the target.  This is not a fixed-cell instance and is not a scalar member of the main Layer-2.5 target class.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}recursive-\allowbreak{}admg}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}domains}; \texttt{ass:\allowbreak{}binary-\allowbreak{}rational-\allowbreak{}cost}.
+\end{definition}
+
+\begin{definition}[def:ordinary-layer25-translation]\label{def:ordinary-layer25-translation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cellwise Layer-\allowbreak{}2.5 translation of an ordinary full kernel}
+\par\smallskip\noindent\emph{Construction.} Translate the complete ordinary kernel \(Q[S_0]\) cell by cell into the finite batch \(\mathcal Q_{\mathrm{batch}}(S_0)\): the cell indexed by \((x,s)\) is the unnested one-world event \(Q_{x,s}=P((S_0)_x=s)\).  Translate every ordinary input kernel \(Q[V\setminus B](\cdot;b)\) into the labelled slice law \(P_b(V\setminus B)\).  The translation introduces no cross-world variable and never treats the batch as one scalar query.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dord}; \texttt{Qbatch}.
+\end{definition}
+
+\begin{definition}[def:ordinary-source-family]\label{def:ordinary-source-family}
+\par\smallskip\noindent\emph{Defined object.} Ordinary full-kernel source family \(\mathcal Q_{\mathbf B}\)
+\par\smallskip\noindent\emph{Construction.} For \(\mathbf B=(B_1,\ldots,B_t)\), set
+\[
+ \mathcal Q_{\mathbf B}
+ =\{Q[V\setminus B_i](\cdot;b):i\in[t],\ b\in\mathfrak X_{B_i}\}
+ =\{P_b(V\setminus B_i):i\in[t],\ b\in\mathfrak X_{B_i}\}.
+\]
+The collection \(\mathbf B\) is ordinary full-kernel identifying exactly when the complete ordinary single-world procedure accepts every cell of \(Q[S_0]\) from this full finite source family.  Its permitted deterministic preprocessing consists of marginals and conditionals whose displayed denominators are positive; cells not used as denominators need not be positive.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Bord}; \texttt{Dord}.
+\end{definition}
+
+\begin{definition}[def:ordinary-design-embedding]\label{def:ordinary-design-embedding}
+\par\smallskip\noindent\emph{Defined object.} Ordinary full-kernel batch embedding \(\iota\) on \(\mathfrak D_{\mathrm{AEK}}\)
+\par\smallskip\noindent\emph{Construction.} For \(\mathcal D_{\mathrm{ord}}=(G,S_0,(\kappa_v)_{v\in V})\in\mathfrak D_{\mathrm{AEK}}\), let \(\iota(\mathcal D_{\mathrm{ord}})\) have target batch \(\mathcal Q_{\mathrm{batch}}(S_0)\) and let \(G^{+}\) retain the ordinary node mechanisms.  The catalogue contains a mandatory fresh-unit SELECT \(s\) of cost zero; for each \(v\in V\), a RAND action \(r_v\), of cost \(\kappa_v\), that draws uniformly and independently from \(\mathfrak X_v\) and affects the ordinary children of \(v\); and a zero-cost READ \(\rho_v\) with endpoint \(v\).  SELECT precedes every action, the remaining actions follow canonical causal order, and there are no conflicts or CTF-RAND actions.  For \(B\subseteq V\), put
+\[
+ S_B=\{s\}\cup\{r_v:v\in B\}\cup\{\rho_v:v\in V\}.
+\]
+Conditioning its RAND labels on \(b\in\mathfrak X_B\) yields \(P_b(V\setminus B)\), with label probability \(\prod_{v\in B}|\mathfrak X_v|^{-1}>0\), measured ancestry because every vertex is READ, and protocol cost \(\sum_{v\in B}\kappa_v\).  The oracle supplies an immutable handle and exact support table for each such law.  Oracle replies outside this SELECT--RAND--READ image are irrelevant.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dord}; \texttt{Qbatch}.
+\end{definition}
+
+\begin{definition}[def:ordinary-label-slices]\label{def:ordinary-label-slices}
+\par\smallskip\noindent\emph{Defined object.} Finite ordinary label and slice data \(\Lambda_{\mathbf B}\)
+\par\smallskip\noindent\emph{Construction.} For every \(\mathbf B=(B_1,\ldots,B_t)\), set \(\Lambda_{\mathbf B}=\{\ell_{i,b}:i\in[t],\ b\in\mathfrak X_{B_i}\}\). The label \(\ell_{i,b}\) is the exact \(|\mathrm{LIT}|\)-bit vector assigning each RAND action \(r_v\in S_{B_i}\) the coordinate \(b_v\) and all unconditioned literal bits zero. The protocol contains the adequate READ set \(\{\rho_v:v\in V\}\), and \(\operatorname{Slice}(S_{B_i},\ell_{i,b})=Q[V\setminus B_i](\cdot;b)=P_b(V\setminus B_i)\). The family has exactly \(\sum_{i=1}^{t}\prod_{v\in B_i}|\mathfrak X_v|\) labelled slices before duplicate intervention sets are coalesced.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Bord}; \texttt{A}; \texttt{LIT}.
+\end{definition}
+
+\begin{definition}[def:ordinary-catalogue-certificate]\label{def:ordinary-catalogue-certificate}
+\par\smallskip\noindent\emph{Defined object.} Canonical embedded ordinary full-kernel batch certificate \(E_{\mathbf B}\)
+\par\smallskip\noindent\emph{Construction.} Let \(\mathbf B\) be ordinary full-kernel identifying.  Acquire \(\mathcal P_{\mathbf B}=\{S_B:B\in\{B_1,\ldots,B_t\}_{\mathrm{distinct}}\}\), all labels in \(\Lambda_{\mathbf B}\), and the canonical single-district factors of their laws.  For each target cell \((x,s)\), run the complete single-world procedure and apply the sparse switching normal form, choosing the lexicographically first successful witness for each concrete branch.  The resulting family \((E_{\mathrm{sw}}^{x,s})_{x,s}\), together with the shared paid protocol set \(\mathcal P_{\mathbf B}\), is \(E_{\mathbf B}\).  Protocols in \(\mathcal P_{\mathbf B}\) are charged once even when used by several cells or slices.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dord}; \texttt{Bord}; \texttt{LambdaB}; \texttt{Qbatch}; \texttt{Osrc}.
+\end{definition}
+
+\begin{definition}[def:binary-separation-instance]\label{def:binary-separation-instance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Positive binary separation models and catalogue}
+\par\smallskip\noindent\emph{Construction.} In each model let \(U_X,U_A,U_B,U_C\) be mutually independent \(\operatorname{Bernoulli}(1/2)\) bits and let \(E_Y,E_Z\) be mutually independent \(\operatorname{Bernoulli}(\varepsilon)\) bits independent of them. Model \(M_1\) has \(X=U_X\), \(Y=((1-X)U_A+XU_B)\oplus E_Y\), and \(Z=((1-X)U_B+XU_C)\oplus E_Z\). Model \(M_2\) has \(X=U_X\), \(Y=((1-X)U_A+XU_C)\oplus E_Y\), and \(Z=((1-X)U_B+XU_A)\oplus E_Z\). The catalogue is \(\mathcal A_{\mathrm{sep}}=\{s,\chi_{Y,0},\chi_{Z,1},\rho_X,\rho_Y,\rho_Z\}\): \(s\) is a fresh SELECT; \(\chi_{Y,0}\) is CTF-RAND transmitting value zero from \(X\) only to child \(Y\); \(\chi_{Z,1}\) transmits value one only to child \(Z\); and \(\rho_v\) READs \(v\). SELECT precedes both CTF-RAND actions, which precede the READs; there are no conflicts. Set \(c_{\mathrm{sep}}(\chi_{Y,0})=c_{\mathrm{sep}}(\chi_{Z,1})=1\) and all other costs to zero. For each displayed legal protocol, \(\mathcal O_{\mathrm{src}}\) returns the law generated by the displayed SCM equations and the exact binary support table; independent response noise makes every READ cell compatible with a fixed RAND or CTF-RAND label positive.
+\par\smallskip\noindent\emph{Inputs.} \texttt{eps}.
+\end{definition}
+
+\begin{definition}[def:one-action-cover-class]\label{def:one-action-cover-class}
+\par\smallskip\noindent\emph{Defined object.} One-action no-synergy subclass \(\mathfrak C_{1}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak C_{1}=\{(G^{+},\mathcal A,Q):\text{every optional }S\in\Pi\text{ has exactly one positive-cost action, protocol legality is invariant across distinct fresh-unit acquisitions, and each }C_j\text{ is certified by one protocol without cross-protocol synergy}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}binary-\allowbreak{}rational-\allowbreak{}cost}; \texttt{ass:\allowbreak{}one-\allowbreak{}select}; \texttt{ass:\allowbreak{}physical-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}single-\allowbreak{}paid-\allowbreak{}action}; \texttt{ass:\allowbreak{}protocolwise-\allowbreak{}legality}; \texttt{ass:\allowbreak{}factorwise-\allowbreak{}no-\allowbreak{}synergy}.
+\end{definition}
+
+\begin{definition}[def:switching-protocol-slice-record]\label{def:switching-protocol-slice-record}
+\par\smallskip\noindent\emph{Defined object.} Sparse singleton-branch switching protocol--slice record \(R_{\mathrm{sw}}\)
+\par\smallskip\noindent\emph{Construction.} Put \(q_M=\lceil\log_2(M+1)\rceil\), and index \(\Omega\) canonically by \(1,\ldots,M\).  A sparse switching record is
+\[
+ R_{\mathrm{sw}}=(b_S,b_{\ell},b_{\alpha},b_T,\tau).
+\]
+Here \(b_S\in\{0,1\}^{|\mathcal A|}\), \(b_{\ell}\in\{0,1\}^{|\mathrm{LIT}|}\), \(b_{\alpha}\in\{0,1\}^{q_M}\), and \(b_T\in\{0,1\}^{V\sqcup(V\times\mathrm{LIT})}\).  A decoded value \(b_{\alpha}\in\{1,\ldots,M\}\) names exactly one concrete branch \(\alpha\in\Omega\), and \(\tau\) is one self-delimiting ancestor--district transcript for that branch.  The value \(b_{\alpha}=0\) is reserved for an empty paid-protocol or padding record; for such a record \(b_{\ell}\) and \(b_T\) are the designated all-zero sentinels and \(\tau\) is empty.  Every other bit pattern for \(b_{\alpha}\) is invalid.  The fixed-width part has exactly
+\[
+ |\mathcal A|+|\mathrm{LIT}|+q_M+|V|(1+|\mathrm{LIT}|)
+\]
+bits.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{LIT}; \texttt{Omega}; \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:switching-acquisition-certificate]\label{def:switching-acquisition-certificate}
+\par\smallskip\noindent\emph{Defined object.} Sparse switching acquisition certificate \(E_{\mathrm{sw}}\)
+\par\smallskip\noindent\emph{Construction.} A sparse switching certificate \(E_{\mathrm{sw}}\) is a lexicographically ordered finite list of sparse switching records.  Every canonical branch index \(1,\ldots,M\) occurs in exactly one nonempty record.  For such a record, the decoded \(S\) lies in \(\Pi\), \(\mathcal O_{\mathrm{src}}(S)\) returns a law handle and exact support table, \(\ell\) names a well-typed slice whose used conditioning event has positive mass, \(T\) is a measured-ancestry single-district source factor extracted from that slice, and \(\tau\) succeeds for the one named branch.  Index-zero records are only paid-protocol markers and contribute no source triple to \(\mathcal R(E_{\mathrm{sw}})\).  Records sharing one protocol pay for it once.  If \(r=|E_{\mathrm{sw}}|\), the record count is prefixed by the Elias-gamma code for \(r+1\), of length \(2\lfloor\log_2(r+1)\rfloor+1\), and every nonempty transcript is self-delimiting.  Consequently the exact length is
+\[
+ N_{\mathrm{sw}}
+ =2\lfloor\log_2(r+1)\rfloor+1
+  +\sum_{R\in E_{\mathrm{sw}}}
+   \left(|\mathcal A|+|\mathrm{LIT}|+q_M+|V|(1+|\mathrm{LIT}|)
+   +\mathbf 1\{b_{\alpha}(R)>0\}|\operatorname{enc}(\tau_R)|\right).
+\]
+ A certificate is canonical relative to a specified witness universe when it has no index-zero record and uses the canonical successful transcript and the lexicographically first successful protocol--slice--source witness in that universe subject to its represented protocol set.  The optimizer uses the full enumerated witness universe.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pi}; \texttt{C}; \texttt{LIT}; \texttt{Omega}; \texttt{Osrc}.
+\end{definition}
+
+\begin{definition}[def:switching-operational-acceptance]\label{def:switching-operational-acceptance}
+\par\smallskip\noindent\emph{Defined object.} Sparse switching operational acceptance \(\operatorname{Acc}_{\mathrm{sw}}\)
+\par\smallskip\noindent\emph{Construction.} Derive \(\Omega\), its canonical indices, \(M\), and \(q_M\) from \(x_{\mathrm{str}}\), and parse the supplied string using the sparse-record and exact framing conventions.  Return \(0\) for malformed input; an invalid or repeated branch index; failure of the positive indices to be exactly \(1,\ldots,M\); an invalid index-zero marker; an illegal protocol; an inconsistent or uncatalogued label; an oracle reply \(\bot\); a malformed support index; a used event \(H_{\mathrm{slice}}(S,\ell)\) of zero mass; an invalid source mask; failed measured ancestry; or an invalid concrete transcript.  Otherwise cache one reply to \(\mathcal O_{\mathrm{src}}\) for each distinct protocol, construct \(\mathcal R(E_{\mathrm{sw}})\) from the nonempty records, normalize \(Q\), and execute the complete unconditional \(\operatorname{CTFIDU}^{+}\) procedure on that decoded collection.  Return \(1\) exactly when the complete run does not return \(\operatorname{FAIL}\) and each positive-index record reproduces a successful \(\operatorname{IDENTIFY}^{+}\) branch for its named \(\alpha=(j,\omega)\).  Every source-law or support access is an explicit query charged to \(N_{\mathcal O}\).  This is an operational predicate; it does not assert semantic soundness or completeness of \(\operatorname{CTFIDU}^{+}\) under event-local positivity.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Phys}; \texttt{Osrc}; \texttt{Esw}.
+\end{definition}
+
+\begin{definition}[def:switching-optimal-cost]\label{def:switching-optimal-cost}
+\par\smallskip\noindent\emph{Defined object.} Main switching optimal acquisition cost \(\operatorname{Opt}_{\mathrm{sw}}\)
+\par\smallskip\noindent\emph{Construction.} Define the main switching acquisition optimum by
+\[
+ \operatorname{Opt}_{\mathrm{sw}}
+ =\inf\{\operatorname{Cost}(E_{\mathrm{sw}}):
+          E_{\mathrm{sw}}\text{ is a switching acquisition certificate and }
+          \operatorname{Acc}_{\mathrm{sw}}(Q,E_{\mathrm{sw}};G)=1\},
+ \qquad \inf\varnothing=+\infty.
+\]
+This is an acquisition-cost optimization over source certificates; it is not a scalar identifying functional for \(Q\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q}; \texttt{G}; \texttt{A}; \texttt{c}; \texttt{Osrc}.
+\end{definition}
+
+\begin{definition}[def:switching-certificate-bound]\label{def:switching-certificate-bound}
+\par\smallskip\noindent\emph{Defined object.} Sparse canonical switching-certificate bound \(B_{\mathrm{sw}}\)
+\par\smallskip\noindent\emph{Construction.} Let \(m=|\mathcal A|\), \(L=|\mathrm{LIT}|\), \(n=|V|\), \(M=|\Omega|\), and \(q_M=\lceil\log_2(M+1)\rceil\).  Put
+\[
+ b_{\tau}=8(n+1)^2\left\lceil\log_2(n+L+M+2)\right\rceil
+\]
+and define
+\[
+ B_{\mathrm{sw}}
+ =2\lfloor\log_2(M+1)\rfloor+1
+  +M\bigl(m+L+q_M+n(1+L)+b_{\tau}\bigr).
+\]
+The first summand is the exact Elias-gamma framing length for the record count \(M\); the term \(Mq_M\) is the complete sparse branch-ownership contribution.  The bound is finite and may be exponential in the structural input.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{LIT}; \texttt{V}; \texttt{Omega}.
+\end{definition}
+
+\begin{definition}[def:switching-cover-incidence]\label{def:switching-cover-incidence}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Switching protocol-\allowbreak{}to-\allowbreak{}branch cover incidence}
+\par\smallskip\noindent\emph{Construction.} For \(\alpha=(j,\omega)\in\Omega\), define \(\mathsf{Succ}_{\alpha}(S,\ell,T,\tau)=1\) exactly when \(S\in\Pi\); the oracle reply for \(S\) is not \(\bot\); the event \(H_{\mathrm{slice}}(S,\ell)\) actually used to form the slice has positive mass in the returned support table; \(T\) is a measured-ancestry single-district source factor extracted from \(\operatorname{Slice}(S,\ell)\); and \(\tau\) is a valid successful \(\operatorname{IDENTIFY}^{+}\) transcript for the concrete assignment and equality type \(\omega\) of \(C_j\).  For every protocol mask set
+\[
+ K_{\mathrm{sw}}(S)
+ =\{\alpha\in\Omega:\exists(\ell,T,\tau)\ 
+       \mathsf{Succ}_{\alpha}(S,\ell,T,\tau)=1\},
+ \qquad
+ w(S)=\sum_{a\in S}c(a).
+\]
+Only legal protocols with non-\(\bot\) oracle replies can have a nonempty incidence set.
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{Omega}; \texttt{Osrc}; \texttt{Q}.
+\end{definition}
+
+\begin{definition}[def:ordinary-full-kernel-batch]\label{def:ordinary-full-kernel-batch}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Ordinary full-\allowbreak{}kernel target batch and shared-\allowbreak{}charge optima}
+\par\smallskip\noindent\emph{Construction.} For \(\mathcal D_{\mathrm{ord}}\in\mathfrak D_{\mathrm{AEK}}\), let
+\[
+ \mathcal Q_{\mathrm{batch}}(S_0)
+ =\{Q_{x,s}=P((S_0)_x=s):
+ x\in\mathfrak X_{V\setminus S_0},\ s\in\mathfrak X_{S_0}\}
+\]
+be the finite family of scalar single-world translations.  A physical batch certificate is
+\[
+ E_{\mathrm{batch}}=(\mathcal P,(E_{\mathrm{sw}}^{x,s})_{x,s}),
+\]
+where \(\mathcal P\subseteq\Pi\), every protocol represented in \(E_{\mathrm{sw}}^{x,s}\) belongs to \(\mathcal P\), and
+\(\operatorname{Acc}_{\mathrm{sw}}(Q_{x,s},E_{\mathrm{sw}}^{x,s};G)=1\) for every \((x,s)\).  These clauses define \(\operatorname{Acc}_{\mathrm{batch}}(E_{\mathrm{batch}})=1\).  Protocols are charged once across the entire batch, and
+\[
+ \operatorname{Opt}_{\mathrm{batch}}
+ =\inf_{E_{\mathrm{batch}}:\operatorname{Acc}_{\mathrm{batch}}(E_{\mathrm{batch}})=1}
+   \sum_{S\in\mathcal P(E_{\mathrm{batch}})}\sum_{a\in S}c(a).
+\]
+For an ordinary collection \(\mathbf B\), duplicate intervention sets are coalesced and
+\[
+ \operatorname{Opt}_{\mathrm{ord}}
+ =\inf_{\mathbf B\text{ ordinary full-kernel identifying}}
+   \sum_{B\in\{B_i\}_{\mathrm{distinct}}}\sum_{v\in B}\kappa_v.
+\]
+Both infima over empty families are \(+\infty\).  Batch acceptance is operational and separate from the scalar optimum \(\operatorname{Opt}_{\mathrm{sw}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dord}; \texttt{Bord}; \texttt{Esw}; \texttt{A}; \texttt{c}; \texttt{Osrc}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:fixed-factor-obstruction]\label{prop:fixed-factor-obstruction}
+Fix a labelled source factor \(T\) and nonempty target factor \(C_j\subseteq T\), with each observable variable appearing at most once and both \(G^{\leftrightarrow}[T]\) and \(G^{\leftrightarrow}[C_j]\) connected. Then \(\operatorname{IDENTIFY}^{+}(G,C_j,T)=\operatorname{FAIL}\) if and only if \(\mathfrak O(T,C_j)\neq\varnothing\).
+\end{proposition}
+\begin{proof}
+Write \(D=D_T\), and let \(U\) denote the vertex set of the current source factor in the published recursion, initially \(U=T\).  By the published-recursion lemma, its least closed set \(H\) contains exactly the vertices having a directed path in \(D[U]\) to \(C_j\): indeed, the closure condition says that whenever \(u\to v\) is an arc of \(D[U]\) and \(v\in H\), then \(u\in H\).  Iterating this condition backwards from \(C_j\) gives
+\[
+ H=\operatorname{An}_{C_j}(D[U])
+   :=\{u\in U:u\leadsto c\text{ in }D[U]\text{ for some }c\in C_j\},
+\]
+where a path of length zero is allowed.  The algorithm succeeds if \(H=C_j\), fails if \(H=U\ne C_j\), and otherwise replaces \(U\) by the bidirected component \(B\) of \(G^{\leftrightarrow}[H]\) containing \(C_j\).  The component is unique because \(G^{\leftrightarrow}[C_j]\) is connected.  In the recursive case \(C_j\subseteq B\subseteq H\subsetneq U\), and \(G^{\leftrightarrow}[B]\) is connected.  Thus these properties are invariants of the recursion, and every nonterminal step strictly reduces \(|U|\).
+
+Suppose first that \(F\in\mathfrak O(T,C_j)\).  We prove inductively that \(F\subseteq U\) at every recursive call.  This holds initially because \(F\subseteq T\).  If it holds for the current \(U\), then every \(v\in F\) has, by the definition of \(\mathfrak O(T,C_j)\), a path to \(C_j\) in \(D[F]\).  Since \(D[F]\) is an induced subgraph of \(D[U]\), \(F\subseteq H\).  Moreover, \(G^{\leftrightarrow}[F]\) is connected and \(F\) contains \(C_j\), so every vertex of \(F\) lies in the bidirected component \(B\) of \(H\) that contains \(C_j\).  Hence \(F\subseteq B\), establishing the induction.  Because \(C_j\subsetneq F\), the equality \(H=C_j\) can never occur.  Strict decrease makes the recursion finite, so its only possible terminal outcome is \(H=U\ne C_j\), namely \(\operatorname{FAIL}\).
+
+Conversely, suppose that \(\operatorname{IDENTIFY}^{+}\) returns \(\operatorname{FAIL}\).  At the terminal call the current set \(U\) satisfies \(H=U\ne C_j\).  The recursion invariants give \(C_j\subsetneq U\subseteq T\) and connectedness of \(G^{\leftrightarrow}[U]\).  The equality
+\[
+ U=H=\operatorname{An}_{C_j}(D[U])
+\]
+says that every vertex of \(U\) reaches some vertex of \(C_j\) in \(D[U]\).  Taking \(F=U\) therefore gives \(F\in\mathfrak O(T,C_j)\).  This proves both implications.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This static iff obstruction is the local mathematical object needed to replace an opaque recursive failure trace. \textit{Gap.} Raghavan and Bareinboim (2026), Lemmas 3.3--3.4, characterize failure through a ctf-hedge detected by recursion; they do not state the restriction-invariant connected-ancestor iff form. \textit{Consumer.} The relational compiler uses the obstruction formula without materializing transitive closure or enumerating protocols.
+
+\begin{lemma}[lem:fixed-transcript-size]\label{lem:fixed-transcript-size}
+When \(\mathfrak O(T,C_j)=\varnothing\), the successful restriction transcript \(\tau_j\) has at most \(|T|\) strict restriction steps and admits an \(O(|T|^2)\)-bit representation apart from literal identifiers; each step is verifiable by graph traversal and value comparison.
+\end{lemma}
+\begin{proof}
+Put \(n_T=|T|\).  When \(\mathfrak O(T,C_j)=\varnothing\), Proposition \(\mathrm{Fixed\ factor\ obstruction}\) rules out a failure terminal state, so the recursion terminates with \(H=C_j\).  At every nonterminal call its new source set \(B\) is a strict subset of the old source set \(U\).  Therefore the number \(q\) of strict restrictions satisfies
+\[
+ q\le |T|-|C_j|\le |T|-1<|T|.
+\]
+In particular it is at most \(|T|\), as claimed.
+
+Index the vertices of \(T\) once.  Each of \(U_r\), \(H_r\), and \(B_r\) is then represented by an \(n_T\)-bit mask.  The at most \(q+1\le n_T+1\) recorded triples use at most \(3n_T(n_T+1)\) mask bits, plus \(O(n_T\log(n_T+1))\) self-delimiting framing bits.  Thus the representation has \(O(n_T^2)\) bits apart from the already indexed source and request literals.
+
+Verification is direct.  From \(G\) and the recorded literal values, compare the two values attached to every directed edge to construct \(D_T[U_r]\).  A reverse graph traversal from \(C_j\) computes \(\operatorname{An}_{C_j}(D_T[U_r])\), which must equal the recorded \(H_r\).  An undirected traversal along bidirected edges computes the component of \(G^{\leftrightarrow}[H_r]\) containing \(C_j\), which must equal \(B_r\).  The verifier also checks \(B_r\subsetneq U_r\), \(U_{r+1}=B_r\), and the terminal equality \(H_q=C_j\).  These operations are graph traversals and literal comparisons and hence are polynomial in the displayed finite encoding.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Polynomial local transcripts are required for an explicit certificate output rather than a black-box acceptance bit. \textit{Gap.} The published algorithm terminates, but no acquisition-oriented transcript-size statement is given for value-labelled source restrictions. \textit{Consumer.} A verifier can audit each selected source use and reconstruct the symbolic factor identification path.
+
+\begin{theorem}[thm:uniform-source-normal-form]\label{thm:uniform-source-normal-form}
+Suppose a finite acquired collection \(E_0\) makes the correctly typed full unconditional procedure \(\operatorname{CTFIDU}^{+}(G,Q,\mathcal R(E_0))\) operationally return a nonfailure result.  Then there is a canonical sparse switching certificate \(E_{\mathrm{sw}}\), using only protocol--slice--source triples represented in \(E_0\), with exactly one nonempty record for each \(\alpha\in\Omega\), at most \(M\) distinct protocols,
+\[
+ \operatorname{Acc}_{\mathrm{sw}}(Q,E_{\mathrm{sw}};G)=1,
+ \qquad
+ \operatorname{Cost}(E_{\mathrm{sw}})\leq\operatorname{Cost}(E_0).
+\]
+Each record names its singleton branch by a \(q_M\)-bit index and supplies one positive, measured-ancestry source triple and a finite successful transcript.  Conversely, acceptance by \(\operatorname{Acc}_{\mathrm{sw}}\) implies that the complete run on \(\mathcal R(E_{\mathrm{sw}})\) returns nonfailure.  This is only an equivalence of the two operational acceptance events; it neither exchanges \(\forall\alpha\exists\) with \(\exists\forall\) nor supplies a semantic completeness extension under event-local positivity.
+
+\end{theorem}
+\begin{proof}
+For \(\alpha=(j,\omega)\in\Omega\), use the predicate
+\(\mathsf{Succ}_{\alpha}\) of Definition~\(\mathrm{Switching\ protocol\mbox{-}to\mbox{-}branch\ cover\ incidence}\).
+Its support clause concerns only the event \(H_{\mathrm{slice}}(S,\ell)\) actually used to form the displayed source slice.  Thus Assumption~\(\mathrm{Event\mbox{-}local\ positive\ source\ law}\) licenses precisely the divisions made below and says nothing about unused zero-mass cells.
+
+Suppose that the correctly typed complete run on \(\mathcal R(E_0)\) returns a nonfailure result.  By Definition~\(\mathrm{Structural\ target\mbox{-}factor\ tuple}\), the outer decomposition has the ordered factors \(C_1,\ldots,C_k\).  By the definition of \(\Omega\), the complete operational search has one concrete branch \(\alpha=(j,\omega)\) for every assignment and induced equality type of every factor.  The source-search loop of the complete procedure ranges over every decoded protocol--slice--source triple in \(\mathcal R(E_0)\).  Consequently nonfailure gives the pointwise statement
+\[
+ \forall\alpha=(j,\omega)\in\Omega\quad
+ \exists(S_{\alpha},\ell_{\alpha},T_{\alpha},\tau_{\alpha})
+ \text{ represented in }E_0:
+ \mathsf{Succ}_{\alpha}(S_{\alpha},\ell_{\alpha},T_{\alpha},\tau_{\alpha})=1.
+ \tag{1}
+\]
+Equation~(1) is a statement about the return value and the exhaustive loops of the stipulated operational procedure.  It invokes neither semantic soundness nor semantic completeness of CTFIDU\({}^{+}\).
+
+Every universe in (1) is finite: protocols and labels are bit masks, source factors arise from finite district decompositions, and the recursion strictly decreases its current vertex set by Lemma~\(\mathrm{Published\ IDENTIFY}^{+}\mathrm{\ recursion}\).  Choose, for each \(\alpha\), the lexicographically first successful tuple in (1).  If \(\alpha=(j,\omega)\), success of its factor call and Proposition~\(\mathrm{Connected\mbox{-}ancestor\ obstruction}\) imply
+\[
+ \mathfrak O(T_{\alpha},C_j)=\varnothing,
+ \tag{2}
+\]
+because the proposition makes a nonempty obstruction equivalent to failure on the connected, once-occurring factor inputs admitted by the source typing.  Lemma~\(\mathrm{Fixed\ transcript\ size}\) therefore supplies a canonical finite successful transcript with at most \(|T_{\alpha}|\) strict restriction steps.
+
+Create one nonempty switching record for each \(\alpha\).  Put in it the canonical \(q_M\)-bit index of \(\alpha\), the selected masks for \(S_{\alpha}\), \(\ell_{\alpha}\), and \(T_{\alpha}\), and the canonical transcript just obtained.  Sorting the records gives a switching certificate with exactly \(M=|\Omega|\) nonempty records and at most \(M\) distinct protocols.  Every record passes the legality, oracle, support, measured-ancestry, and transcript checks by (1).  In particular,
+\[
+ P_{S_{\alpha}}\{H_{\mathrm{slice}}(S_{\alpha},\ell_{\alpha})\}>0
+ \tag{3}
+\]
+is required only for the selected event whenever that record conditions its acquired law; no unused source cell occurs as a denominator.
+
+All selected protocols were represented in \(E_0\), whence
+\[
+ \operatorname{Prot}(E_{\mathrm{sw}})
+ \subseteq \operatorname{Prot}(E_0).
+ \tag{4}
+\]
+Assumption~\(\mathrm{Binary\ rational\ cost}\) gives \(c(a)\geq0\) for every action.  Definition~\(\mathrm{Distinct\mbox{-}protocol\ cost}\) and (4) then give, equation by equation,
+\[
+\begin{aligned}
+ \operatorname{Cost}(E_{\mathrm{sw}})
+ &=\sum_{S\in\operatorname{Prot}(E_{\mathrm{sw}})}\sum_{a\in S}c(a)\\
+ &\leq \sum_{S\in\operatorname{Prot}(E_0)}\sum_{a\in S}c(a)
+ =\operatorname{Cost}(E_0).
+\end{aligned}
+\tag{5}
+\]
+
+For every concrete branch, its selected record contributes a successful source to the deduplicated collection \(\mathcal R(E_{\mathrm{sw}})\).  Repeating the same finite outer factor and branch loops therefore finds a successful witness for every branch and returns nonfailure.  Together with the parser and local checks already verified, Definition~\(\mathrm{Sparse\ switching\ operational\ acceptance}\) yields
+\[
+ \operatorname{Acc}_{\mathrm{sw}}(Q,E_{\mathrm{sw}};G)=1.
+ \tag{6}
+\]
+
+Conversely, suppose (6) holds.  That acceptance definition constructs \(\mathcal R(E_{\mathrm{sw}})\), executes the complete unconditional procedure on it, and requires the complete run to return nonfailure.  It also requires the positive indices to be exactly \(1,\ldots,M\) and each associated local branch reproduction to succeed.  Hence its records assert exactly
+\(\forall\alpha\in\Omega\,\exists(S,\ell,T,\tau)\), not a common witness with the quantifiers reversed.  This proves both operational implications and every cost and cardinality assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This switching normal form is the load-bearing bridge from complete fixed-source identification to finite priced acquisition without changing the order of the branch and source quantifiers. \textit{Gap.} Published completeness gives \(\forall(j,\omega)\exists\) a successful source; it does not give one source satisfying \(\exists\forall\) for an entire factor. \textit{Consumer.} The optimizer may search one auditable source record per concrete target branch and charge repeated protocols only once.
+
+\begin{lemma}[lem:canonical-certificate-bound]\label{lem:canonical-certificate-bound}
+Let \(m=|\mathcal A|\), \(L=|\mathrm{LIT}|\), \(n=|V|\), \(M=|\Omega|\), \(q_M=\lceil\log_2(M+1)\rceil\), and
+\[
+ b_{\tau}=8(n+1)^2\left\lceil\log_2(n+L+M+2)\right\rceil.
+\]
+Every operationally accepted witness presentation can be normalized without increasing cost by deleting index-zero markers, representing each concrete branch by one singleton-index record, and replacing its transcript by the canonical successful transcript.  The result has exactly \(M\) records, at most \(M\) protocols, and exact length at most
+\[
+ B_{\mathrm{sw}}
+ =2\lfloor\log_2(M+1)\rfloor+1
+ +M\bigl(m+L+q_M+n(1+L)+b_{\tau}\bigr).
+\]
+If the operational instance is feasible, the lexicographically first minimum-cost canonical certificate \(E_{\mathrm{sw}}^{\star}\) exists, dominates every operationally accepting generic acquisition, and satisfies \(N_{E_{\mathrm{sw}}^{\star}}\leq B_{\mathrm{sw}}\).  Oracle reply lengths remain separately charged by \(N_{\mathcal O}\).
+
+\end{lemma}
+\begin{proof}
+Start from an operationally accepted witness presentation.  Whenever one displayed protocol--slice--source tuple carries witnesses for several concrete branches, copy its fixed fields once for each corresponding branch index and attach the branch's concrete transcript.  Definition~\(\mathrm{Distinct\mbox{-}protocol\ cost}\) charges the union of distinct protocol masks, so copying records does not change that union and is cost neutral.  Delete every index-zero marker.  Such a marker owns no branch and contributes no source triple; its deletion therefore preserves acceptance.  It can only decrease cost because all action costs are nonnegative by Assumption~\(\mathrm{Binary\ rational\ cost}\).  The positive indices now form exactly \(\{1,\ldots,M\}\), one per record, so the normalized presentation has exactly \(M\) nonempty records and at most \(M\) distinct protocols.
+
+For a successful record belonging to \(\alpha=(j,\omega)\), Proposition~\(\mathrm{Connected\mbox{-}ancestor\ obstruction}\) gives
+\[
+ \mathfrak O(T,C_j)=\varnothing.
+ \tag{7}
+\]
+Lemma~\(\mathrm{Fixed\ transcript\ size}\) then gives at most \(|T|\leq n\) strict restrictions.  We make the numerical transcript bound explicit.  Encode the row count, followed by at most \(n+1\) rows, each containing a presence bit and the three \(n\)-bit masks \((U_r,H_r,B_r)\).  The branch index, source label, and graph determine every value-matching arc, so the verifier recomputes literal comparisons rather than storing them again.  Put
+\[
+ q=\left\lceil\log_2(n+L+M+2)\right\rceil.
+ \tag{8}
+\]
+Since \(q\geq1\), the row count, the presence and end markers, and all masks use no more than
+\[
+ 8(n+1)^2q
+ =8(n+1)^2\left\lceil\log_2(n+L+M+2)\right\rceil
+ =b_{\tau}
+ \tag{9}
+\]
+bits.  Indeed, the masks use at most \(3n(n+1)\) bits and the remaining count and framing data use at most \((n+1)q+2(n+1)\) bits, whose sum is bounded by the left side of (9).  All ancestor, district, and literal-match assertions are recovered by graph traversal and equality comparison, as required by the transcript definition.  Replacing every successful transcript by the lexicographically first encoding of this form preserves its verified restrictions and does not change the cost.
+
+The normalized record count is \(r=M\).  By Definition~\(\mathrm{Sparse\ switching\ acquisition\ certificate}\), the Elias--gamma encoding of \(r+1=M+1\) has exactly
+\[
+ 2\lfloor\log_2(M+1)\rfloor+1
+ \tag{10}
+\]
+bits.  Each record contributes exactly
+\(m+L+q_M+n(1+L)\) fixed bits and at most \(b_{\tau}\) transcript bits.  Thus (9)--(10) give
+\[
+\begin{aligned}
+ N_{\mathrm{sw}}
+ &\leq 2\lfloor\log_2(M+1)\rfloor+1\\
+ &\quad+M\bigl(m+L+q_M+n(1+L)+b_{\tau}\bigr)
+ =B_{\mathrm{sw}}.
+\end{aligned}
+\tag{11}
+\]
+In particular, singleton ownership contributes exactly \(Mq_M\) fixed-width bits, rather than an \(M^2\)-bit family of masks.
+
+If a finite generic acquisition \(E_0\) makes the complete correctly typed run return nonfailure, Theorem~\(\mathrm{Sparse\ switching\ source\ normal\ form}\) supplies a switching witness of cost at most \(\operatorname{Cost}(E_0)\).  The normalization above does not increase that cost.  The possible protocol masks, literal masks, branch indices, and labelled source masks are finite.  For each successful call, strict decrease of the current vertex set and the canonical choice in (9) leave finitely many canonical transcripts.  Hence the accepted canonical strings satisfying (11) form a finite set.  Under operational feasibility this set is nonempty.  Its costs are finite sums of the binary rational inputs \(c(a)\), so the finite set of costs has a minimum; lexicographic order chooses a unique first minimizer \(E_{\mathrm{sw}}^{\star}\).  The preceding domination applies to every accepted generic acquisition and gives
+\[
+ N_{E_{\mathrm{sw}}^{\star}}\leq B_{\mathrm{sw}}.
+ \tag{12}
+\]
+No oracle reply is stored in the certificate encoding.  By Definition~\(\mathrm{Certificate\mbox{-}independent\ physical\ input}\), query and reply bits remain charged separately to \(N_{\mathcal O}\), completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The bound exposes every branch-ownership bit and concrete transcript while keeping oracle support payload separate. \textit{Gap.} No published fixed-source result bounds a priced physical switching certificate. \textit{Consumer.} The exact search has a finite radius \(B_{\mathrm{sw}}\), which may be exponential.
+
+\begin{theorem}[thm:cost-optimal-certificate-feasible]\label{thm:cost-optimal-certificate-feasible}
+If the independently specified oracle-instance is operationally feasible, then \(\operatorname{Opt}_{\mathrm{sw}}\) is attained by the lexicographically first canonical sparse certificate \(E_{\mathrm{sw}}^{\star}\).  An exact algorithm makes at most \(2^{|\mathcal A|}\) distinct oracle queries and runs in
+\[
+ 2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}
+ \operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})
+\]
+time.  It outputs \(E_{\mathrm{sw}}^{\star}\), including its protocol masks, exact literal masks, source masks, \(q_M\)-bit singleton branch indices, and finite transcripts, with \(N_{E_{\mathrm{sw}}^{\star}}\leq B_{\mathrm{sw}}\).  The same incidence table yields an \(H_M\)-approximate accepted certificate, where \(H_M=\sum_{r=1}^{M}r^{-1}\), in \(2^{O(|\mathcal A|+|\mathrm{LIT}|)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) time.  All queried support payloads are charged by \(N_{\mathcal O}\); the result optimizes the operational acceptance predicate and makes no semantic completeness or scalar-evaluation claim.
+
+\end{theorem}
+\begin{proof}
+Operational feasibility and Lemma~\(\mathrm{Sparse\ canonical\ certificate\ bound}\) give a nonempty finite set of accepted canonical certificates of length at most \(B_{\mathrm{sw}}\).  Their costs are finite sums of input binary rationals.  Therefore that cost set has a minimum, and lexicographic order selects the unique first minimizer \(E_{\mathrm{sw}}^{\star}\).  The same lemma gives
+\[
+ \operatorname{Cost}(E_{\mathrm{sw}}^{\star})=\operatorname{Opt}_{\mathrm{sw}},
+ \qquad
+ N_{E_{\mathrm{sw}}^{\star}}\leq B_{\mathrm{sw}}.
+ \tag{24}
+\]
+
+Theorem~\(\mathrm{Switching\ weighted\mbox{-}cover\ frontier}\) constructs the complete relation \(K_{\mathrm{sw}}(S)\) using at most \(2^{|\mathcal A|}\) source-oracle queries and proves that its minimum-weight cover value equals \(\operatorname{Opt}_{\mathrm{sw}}\).  Its branch-mask recurrence or protocol-subset enumeration therefore computes that value in
+\[
+ 2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}
+ \operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})
+ \tag{25}
+\]
+time.  Exact addition and comparison are polynomial-time operations in the total bit length of the binary-rational costs.
+
+We explain why the same bound returns the stipulated lexicographically first certificate rather than only its cost.  During incidence construction retain, in encoding order, every canonical successful record witnessing each pair \((S,\alpha)\).  There are at most \(2^{|\mathcal A|+|\mathrm{LIT}|}\operatorname{poly}(N_{\mathrm{in}})\) such records: for fixed \((S,\ell)\), the district decomposition yields at most \(|V|\) source factors, and the branch universe has \(M\leq k2^{|\mathrm{LIT}|}\).  A normalized certificate chooses exactly one such record for each \(\alpha\), and its cost is the weight of the union of the protocols appearing in those choices.
+
+Augment recurrence (19) in the weighted-cover proof with predecessor pointers and lexicographic tie-breaking among equal-cost states.  Equivalently, for any proposed prefix of the sorted sparse-certificate encoding, discard records incompatible with that prefix, force the records already completed by it, and rerun the same cover recurrence on the remaining branch indices and admissible protocol incidences.  This test returns the minimum possible total protocol-union cost of a completion: the induction used for (19) remains valid after replacing each incidence by the branches having at least one prefix-compatible record, and forced protocol weights are charged once before the recurrence.  Trying the next bit, including the self-delimiting end decision, in increasing order while retaining the first prefix whose completion cost is \(\operatorname{Opt}_{\mathrm{sw}}\) preserves the invariant that an optimal completion exists.  At termination the resulting string is optimal.  If a lexicographically smaller optimum existed, its first differing bit would have passed the same test, a contradiction.
+
+The number of prefix tests is polynomial in the explicit record universe and the output bound.  By Definition~\(\mathrm{Sparse\ canonical\ switching\mbox{-}certificate\ bound}\), \(B_{\mathrm{sw}}\) is polynomial in \(M\), \(|\mathcal A|\), \(|\mathrm{LIT}|\), \(|V|\), and their logarithms; since \(M\leq k2^{|\mathrm{LIT}|}\), that extra factor is absorbed in (25).  Decoding the selected records outputs the protocol masks, exact literal masks, labelled source masks, \(q_M\)-bit singleton branch indices, and canonical finite transcripts asserted in the theorem.
+
+The incidence construction caches the immutable reply to each protocol mask.  Thus each mask is queried at most once, every handle and every support-table bit actually returned is included in \(N_{\mathcal O}\), and none is hidden in \(N_{\mathrm{in}}\) or in the certificate length.  The greedy part of Theorem~\(\mathrm{Switching\ weighted\mbox{-}cover\ frontier}\) supplies, from the same table, an accepted certificate satisfying
+\[
+ \operatorname{Cost}(E_{\mathrm{greedy}})
+ \leq H_M\operatorname{Opt}_{\mathrm{sw}}
+ \tag{26}
+\]
+within \(2^{O(|\mathcal A|+|\mathrm{LIT}|)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) time.  Every support test in these constructions concerns an event actually used in a record.  Finally, (24)--(26) optimize only \(\operatorname{Acc}_{\mathrm{sw}}\); no semantic completeness theorem, scalar evaluation of \(Q\), or positivity of an unused cell is used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem retains exact cost optimization over the sound switching class and charges every source-law and support access. \textit{Gap.} Ordinary intervention design and fixed-source identification do not optimize branch-indexed SELECT--RAND--CTF-RAND--READ acquisitions. \textit{Consumer.} Counterfactual structural causal bandits can compare exact attainable reward-law acquisition costs.
+
+\begin{proposition}[prop:certificate-infeasibility]\label{prop:certificate-infeasibility}
+Exactly one operational alternative holds: either the exact algorithm returns \(E_{\mathrm{sw}}^{\star}\), or \(\operatorname{Opt}_{\mathrm{sw}}=+\infty\).  The latter is equivalent to
+\[
+ \bigcup_{S\in\Pi}K_{\mathrm{sw}}(S)\ne\Omega,
+\]
+equivalent to rejection of every sparse switching certificate of length at most \(B_{\mathrm{sw}}\), and equivalent to absence of a finite correctly typed generic acquisition on which the full unconditional procedure returns nonfailure.  The alternative is decided with at most \(2^{|\mathcal A|}\) distinct oracle queries and
+\[
+ 2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}
+ \operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})
+\]
+work.  Infeasibility is relative to the operational predicate and is not a semantic nonidentification certificate.
+
+\end{proposition}
+\begin{proof}
+Let
+\[
+ \mathcal F_{\mathrm{sw}}
+ =\{E_{\mathrm{sw}}:\operatorname{Acc}_{\mathrm{sw}}(Q,E_{\mathrm{sw}};G)=1\}.
+ \tag{27}
+\]
+If \(\mathcal F_{\mathrm{sw}}\ne\varnothing\), Theorem~\(\mathrm{Cost\mbox{-}optimal\ sparse\ certificate}\) returns \(E_{\mathrm{sw}}^{\star}\), and
+\[
+ \operatorname{Opt}_{\mathrm{sw}}
+ =\operatorname{Cost}(E_{\mathrm{sw}}^{\star})<+\infty.
+ \tag{28}
+\]
+If \(\mathcal F_{\mathrm{sw}}=\varnothing\), Definition~\(\mathrm{Main\ switching\ optimal\ acquisition\ cost}\) and its empty-infimum convention give \(\operatorname{Opt}_{\mathrm{sw}}=+\infty\).  The two cases are disjoint and exhaustive.
+
+The weighted-cover identity yields
+\[
+ \mathcal F_{\mathrm{sw}}\ne\varnothing
+ \quad\Longleftrightarrow\quad
+ \bigcup_{S\in\Pi}K_{\mathrm{sw}}(S)=\Omega.
+ \tag{29}
+\]
+Indeed, a finite subcover exists whenever the displayed union is all of \(\Omega\), because both \(\Pi\) and \(\Omega\) are finite.  Lemma~\(\mathrm{Sparse\ canonical\ certificate\ bound}\) gives
+\[
+ \mathcal F_{\mathrm{sw}}\ne\varnothing
+ \quad\Longleftrightarrow\quad
+ \exists E_{\mathrm{sw}}\in\mathcal F_{\mathrm{sw}}
+ \text{ with }N_{\mathrm{sw}}\leq B_{\mathrm{sw}}.
+ \tag{30}
+\]
+The forward direction is its normalization, and the reverse direction is immediate.  Theorem~\(\mathrm{Sparse\ switching\ source\ normal\ form}\) similarly gives
+\[
+ \mathcal F_{\mathrm{sw}}\ne\varnothing
+ \quad\Longleftrightarrow\quad
+ \exists E_0\text{ finite and correctly typed such that }
+ \operatorname{CTFIDU}^{+}(G,Q,\mathcal R(E_0))
+ \text{ returns nonfailure}.
+ \tag{31}
+\]
+For the forward implication in (31), take \(E_0=E_{\mathrm{sw}}\) through its decoded source collection and use the converse clause of the normal form; the reverse implication is its constructive clause.
+
+Negating (29), (30), and (31) proves respectively the uncovered-branch condition, rejection of every sparse certificate of length at most \(B_{\mathrm{sw}}\), and absence of a finite correctly typed generic acquisition.  Together with (28), these negations prove all stated equivalences and the exact alternative.
+
+The incidence construction makes at most \(2^{|\mathcal A|}\) distinct oracle queries.  Running the faster of the branch-mask and protocol-subset exact cover algorithms decides whether the union in (29) is all of \(\Omega\) within
+\[
+ 2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}
+ \operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})
+ \tag{32}
+\]
+work, by Theorem~\(\mathrm{Switching\ weighted\mbox{-}cover\ frontier}\).  It therefore decides which alternative holds.  All support replies are charged to \(N_{\mathcal O}\), and the support checks use only events occurring in candidate records.  Since (29)--(31) compare operational return values, their failure asserts operational infeasibility only and not semantic nonidentifiability.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite alternative distinguishes unattainability from high cost without a false polynomial-witness premise. \textit{Gap.} A fixed-source decision does not decide existence over the priced physical catalogue. \textit{Consumer.} A planner can certify that no legal acquired collection supports the target.
+
+\begin{theorem}[thm:ordinary-subclass-equivalence]\label{thm:ordinary-subclass-equivalence}
+For every finite-rational, finite-discrete ordinary full-kernel instance \(\mathcal D_{\mathrm{ord}}\in\mathfrak D_{\mathrm{AEK}}\), every ordinary full-kernel identifying collection \(\mathbf B\) yields an accepted physical batch certificate \(E_{\mathbf B}\) with shared-protocol cost
+\[
+ \sum_{S\in\mathcal P(E_{\mathbf B})}\sum_{a\in S}c(a)
+ =\sum_{B\in\{B_i\}_{\mathrm{distinct}}}\sum_{v\in B}\kappa_v.
+\]
+Conversely, every accepted batch certificate in \(\iota(\mathcal D_{\mathrm{ord}})\) yields, after adding zero-cost READ actions and coalescing equal RAND-endpoint sets, an ordinary full-kernel identifying collection of no greater cost.  Hence batch feasibility agrees in both representations and
+\[
+ \operatorname{Opt}_{\mathrm{batch}}=\operatorname{Opt}_{\mathrm{ord}}.
+\]
+With source laws and support tables provided by the stated oracle and all returned bits charged to \(N_{\mathcal O}\), the published NP-hardness and \((1-o(1))\ln|V|\) inapproximability threshold, unless \(\mathrm{NP}\) has quasi-polynomial-time algorithms, transfer oracle-relatively to this SELECT--RAND--READ batch image.  No batch-to-scalar reduction, standard explicit-input hardness claim, or approximation for the general physical catalogue is asserted.
+
+\end{theorem}
+\begin{proof}
+Fix \(\mathcal D_{\mathrm{ord}}\in\mathfrak D_{\mathrm{AEK}}\).  For \(B\subseteq V\), Definition~\(\mathrm{Ordinary\ full\mbox{-}kernel\ batch\ embedding}\) gives
+\[
+ S_B=\{s\}\cup\{r_v:v\in B\}\cup\{\rho_v:v\in V\}.
+ \tag{35}
+\]
+It has exactly one fresh-unit SELECT, uses each mechanism at most once, respects the catalogue order, contains no conflict, and is physically compatible in the stipulated ordinary realization.  Definition~\(\mathrm{Legal\ protocol\ class}\) therefore gives \(S_B\in\Pi\).  The RAND coordinates are mutually independent and uniform, so for every \(b\in\mathfrak X_B\),
+\[
+ \Pr\{R_B=b\}=\prod_{v\in B}|\mathfrak X_v|^{-1}>0.
+ \tag{36}
+\]
+The label and slice definitions give
+\[
+ \operatorname{Slice}(S_B,\ell_{B,b})
+ =P_b(V\setminus B)=Q[V\setminus B](\cdot;b).
+ \tag{37}
+\]
+Every vertex is READ in (35), so the measured-ancestry condition holds for every extracted factor.
+
+Let \(\mathbf B=(B_1,\ldots,B_t)\) be ordinary full-kernel identifying.  Its target contains every cell \((x,s)\), and its source family contains every law (37) for every corresponding assignment \(b\).  Lemma~\(\mathrm{Single\mbox{-}world\ operational\ specialization}\) makes the complete translated run return nonfailure for every target cell.  Apply Theorem~\(\mathrm{Sparse\ switching\ source\ normal\ form}\) separately to each cell and obtain \(E_{\mathrm{sw}}^{x,s}\).  With the shared protocol set
+\[
+ \mathcal P_{\mathbf B}
+ =\{S_B:B\in\{B_1,\ldots,B_t\}_{\mathrm{distinct}}\},
+ \tag{38}
+\]
+these component certificates form the batch certificate \(E_{\mathbf B}\).  Equation~(36) verifies positivity of every RAND-label event actually used, while (35) verifies measured ancestry.  SELECT and READ actions have zero cost, so
+\[
+\begin{aligned}
+ \sum_{S\in\mathcal P_{\mathbf B}}\sum_{a\in S}c(a)
+ &=\sum_{B\in\{B_i\}_{\mathrm{distinct}}}\sum_{v\in B}c(r_v)\\
+ &=\sum_{B\in\{B_i\}_{\mathrm{distinct}}}\sum_{v\in B}\kappa_v.
+\end{aligned}
+\tag{39}
+\]
+This proves forward acceptance and exact shared cost.
+
+Conversely, let
+\(E_{\mathrm{batch}}=(\mathcal P,(E_{\mathrm{sw}}^{x,s})_{x,s})\)
+be accepted in the embedded catalogue.  For \(S\in\mathcal P\), define
+\[
+ B(S)=\{v\in V:r_v\in S\}.
+ \tag{40}
+\]
+Add every missing zero-cost READ action to \(S\).  In this catalogue, that operation preserves the unique SELECT, the at-most-once rule, precedence, absence of conflicts, physical compatibility, and cost.  Coalesce protocols with equal sets (40), and denote the resulting ordinary intervention collection by \(\mathbf B(E_{\mathrm{batch}})\).
+
+We verify that every source used by an accepted component certificate is obtainable from the full ordinary source family of this collection.  Suppose a used label fixes RAND coordinates \(D\subseteq B(S)\) to \(b_D\), leaves coordinates in \(B(S)\setminus D\) unconditioned, and conditions the READ variables on an event \(R=r\).  Independence and uniformity of the RAND labels give, for every recorded event \(A\),
+\[
+\begin{aligned}
+ &\Pr_S(A\mid R_D=b_D,R=r)\\
+ &\quad=
+ \frac{\displaystyle
+  \sum_{b_{B(S)\setminus D}}
+  \left(\prod_{v\in B(S)\setminus D}|\mathfrak X_v|^{-1}\right)
+  P_{(b_D,b_{B(S)\setminus D})}(A,R=r)}
+ {\displaystyle
+  \sum_{b_{B(S)\setminus D}}
+  \left(\prod_{v\in B(S)\setminus D}|\mathfrak X_v|^{-1}\right)
+  P_{(b_D,b_{B(S)\setminus D})}(R=r)}.
+\end{aligned}
+\tag{41}
+\]
+If there is no READ conditioning, take the denominator in (41) to be one.  Otherwise it is strictly positive because the accepted record actually uses that conditioning event and the support check is a clause of \(\operatorname{Acc}_{\mathrm{sw}}\).  Thus (41) is a finite composition of marginals, mixtures, and a conditional formed from members of
+\(\mathcal Q_{\mathbf B(E_{\mathrm{batch}})}\), exactly within the deterministic preprocessing allowed by Definition~\(\mathrm{Ordinary\ full\mbox{-}kernel\ source\ family}\).  It requires no positivity at any unasserted READ cell.
+
+Every used source factor is consequently available to the ordinary recursion.  Applying Lemma~\(\mathrm{Single\mbox{-}world\ operational\ specialization}\) to each accepted component proves ordinary acceptance at every \((x,s)\).  Hence \(\mathbf B(E_{\mathrm{batch}})\) identifies the complete ordinary kernel.  Coalescing duplicate sets (40) and adding only zero-cost READs give
+\[
+ \sum_{B\in\mathbf B(E_{\mathrm{batch}})}\sum_{v\in B}\kappa_v
+ \leq \sum_{S\in\mathcal P}\sum_{a\in S}c(a).
+ \tag{42}
+\]
+Taking infima in (39) gives
+\(\operatorname{Opt}_{\mathrm{batch}}\leq\operatorname{Opt}_{\mathrm{ord}}\),
+and taking infima in (42) gives the reverse inequality.  The two constructions also preserve existence.  Therefore
+\[
+ \operatorname{Opt}_{\mathrm{batch}}=\operatorname{Opt}_{\mathrm{ord}},
+ \tag{43}
+\]
+and batch feasibility agrees in both representations.
+
+It remains to transfer the stated lower bounds with the promised qualifications.  Lemma~\(\mathrm{Published\ minimum\mbox{-}weight\ hitting\mbox{-}set\ reduction}\) supplies a polynomial, cost-preserving reduction to the ordinary full-kernel intervention problem.  Lemma~\(\mathrm{Published\ ordinary\ NP\mbox{-}completeness}\) gives NP-hardness, and Lemma~\(\mathrm{Published\ ordinary\ logarithmic\ inapproximability}\) gives the \((1-o(1))\ln|V|\) threshold unless \(\mathrm{NP}\) has quasi-polynomial-time algorithms.  To replace any prohibitive auxiliary weight in the cited reduction by a finite rational one, let \(W\) be the sum of the original nonnegative rational weights and let \(N\) be the number of vertices in the constructed graph.  Set
+\[
+ C_{\mathrm{aux}}=(N+1)(W+1).
+ \tag{44}
+\]
+Its binary encoding length is polynomial in the weighted input length.  On every feasible hard instance, an all-original hitting set has cost at most \(W<C_{\mathrm{aux}}\), so no exact optimum chooses an auxiliary vertex.  Moreover, any solution within a factor smaller than \(\ln N\) has cost below \(NW<C_{\mathrm{aux}}\) when \(W>0\); when \(W=0\), any finite approximation to the zero optimum also cannot pay the positive cost (44).  Thus the exact and logarithmic gaps of the cited construction persist with finite binary-rational costs.  The obstruction used by the reduction is graphical, so finite binary observed domains suffice for its finite-discrete image.
+
+Equations~(39)--(43) are cost-preserving maps between this ordinary class and the SELECT--RAND--READ batch image.  The structural catalogue is polynomially encoded, but a complete source-law handle and support reply may be exponentially long and is supplied through \(\mathcal O_{\mathrm{src}}\).  Hence the transferred hardness and threshold are relative to that oracle convention, with every returned bit charged to \(N_{\mathcal O}\).  Nothing above is a batch-to-scalar reduction or an approximation theorem for the unrestricted physical catalogue.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The two-way map preserves the ordinary target and proves equality of optimum costs while honestly allowing READ coalescing in reverse. \textit{Gap.} Ordinary design theory does not supply the physical slice labels, support checks, or branch-indexed acceptance construction. \textit{Consumer.} Ordinary hardness transfers exactly on the embedding image and nowhere beyond it.
+
+\begin{proposition}[prop:positive-physical-separation]\label{prop:positive-physical-separation}
+Set \(\varepsilon=1/10\). In each model let \(U_X,U_A,U_B,U_C\) be independent fair bits and let \(E_Y,E_Z\) be independent \(\operatorname{Bernoulli}(\varepsilon)\) bits independent of them. The structural equations are \(M_1:X=U_X,\ Y=((1-X)U_A+XU_B)\oplus E_Y,\ Z=((1-X)U_B+XU_C)\oplus E_Z\), and \(M_2:X=U_X,\ Y=((1-X)U_A+XU_C)\oplus E_Y,\ Z=((1-X)U_B+XU_A)\oplus E_Z\). Both are positive binary SCMs compatible with \(X\to Y\), \(X\to Z\), and \(Y\leftrightarrow Z\). For every one of the \(27\) regimes \(r\in\{\mathrm{natural},0,1\}^{\{X,Y,Z\}}\), conditional on any natural or fixed value of \(X\), the unfixed \(Y\) and \(Z\) are independent fair bits in both models. Thus, for \(a=(a_X,a_Y,a_Z)\), both regime laws equal \(p_r(a)=\prod_{W:r_W\ne\mathrm{natural}}\mathbf1\{a_W=r_W\}\prod_{W:r_W=\mathrm{natural}}(1/2)\), which covers all simultaneous interventions on any subset of \(\{X,Y,Z\}\). Nevertheless \(P_{M_1}(Y_0=1,Z_1=1)=1/4\), while \(P_{M_2}(Y_0=1,Z_1=1)=\tfrac12((9/10)^2+(1/10)^2)=41/100\). In \(\mathcal A_{\mathrm{sep}}=\{s,\chi_{Y,0},\chi_{Z,1},\rho_X,\rho_Y,\rho_Z\}\), SELECT \(s\) and all READs cost zero, each edge-specific CTF-RAND action costs one, and precedence is SELECT, then CTF-RAND, then READ, with no conflicts. The legal protocol \(S_{\mathrm{ind}}=\{s,\chi_{Y,0},\rho_X,\rho_Y,\rho_Z\}\) costs one, and its positive natural-\(X=1\) slice obeys \(P(Y=1,Z=1\mid X=1,S_{\mathrm{ind}})=P(Y_0=1,Z_1=1)\). The direct legal protocol \(S_{\mathrm{dir}}=\{s,\chi_{Y,0},\chi_{Z,1},\rho_Y,\rho_Z\}\) exposes the same joint without conditioning and costs two.
+\end{proposition}
+\begin{proof}
+For \(m\in\{1,2\}\), write \(Y_x^{(m)}\) and \(Z_x^{(m)}\) for the potential responses obtained by replacing the occurrence of \(X\) in the structural equations of \(M_m\) by \(x\).  By Definition \(\mathrm{Positive\ binary\ separation\ models\ and\ catalogue}\),
+\[
+\begin{array}{c|cc|cc}
+ &Y_0^{(m)}&Z_0^{(m)}&Y_1^{(m)}&Z_1^{(m)}\\ \hline
+m=1&U_A\mathbin\oplus E_Y&U_B\mathbin\oplus E_Z&U_B\mathbin\oplus E_Y&U_C\mathbin\oplus E_Z\\
+m=2&U_A\mathbin\oplus E_Y&U_B\mathbin\oplus E_Z&U_C\mathbin\oplus E_Y&U_A\mathbin\oplus E_Z.
+\end{array}
+\tag{1}
+\]
+That definition also states that \(U_X,U_A,U_B,U_C\) are mutually independent fair bits, that \(E_Y,E_Z\) are mutually independent \(\operatorname{Bernoulli}(\varepsilon)\) bits, and that the response bits and noise bits are independent.  If \(B\) is a fair bit independent of a bit \(E\), then, for each \(b\in\{0,1\}\),
+\[
+ \Pr(B\mathbin\oplus E=b)
+ =\sum_{e=0}^{1}\Pr(E=e)\Pr(B=b\mathbin\oplus e)
+ =\frac12\sum_{e=0}^{1}\Pr(E=e)=\frac12.
+\tag{2}
+\]
+For every \(m\in\{1,2\}\) and \(x\in\{0,1\}\), the two pre-noise response bits appearing in \((Y_x^{(m)},Z_x^{(m)})\) in (1) are distinct independent fair bits.  The associated noise bits are independent as well.  Hence (2) and independence give
+\[
+ \Pr_{M_m}\!\left(Y_x^{(m)}=y,Z_x^{(m)}=z\right)=\frac14
+ \quad
+ (m\in\{1,2\},\ x,y,z\in\{0,1\}).
+\tag{3}
+\]
+
+We next compute every ordinary regime.  Fix
+\(r=(r_X,r_Y,r_Z)\in\{\mathrm{natural},0,1\}^{\{X,Y,Z\}}\), and let \(P_{m,r}\) be the law in \(M_m\) after replacing the equation for each coordinate \(W\) with \(r_W\in\{0,1\}\) by the constant \(r_W\).  Since \(Y\) and \(Z\) are sinks, fixing either sink changes no other structural equation.  If \(X\) is fixed to \(x\), (3) says that the unfixed members of \(\{Y,Z\}\) are independent fair bits.  If \(X\) is natural, then \(X=U_X\).  Conditional on \(X=x\), equation (3) gives the same uniform law for the unfixed response coordinates, independent of \(x\); moreover \(U_X\) is fair and independent of all response and noise bits.  Marginalizing any sink fixed by the regime therefore shows that all natural coordinates are mutually independent fair bits and all fixed coordinates equal their assigned values.  Thus, for every \(a=(a_X,a_Y,a_Z)\in\{0,1\}^3\),
+\[
+ P_{m,r}(a)
+ =\prod_{W:\,r_W\ne\mathrm{natural}}\mathbf 1\{a_W=r_W\}
+  \prod_{W:\,r_W=\mathrm{natural}}\frac12,
+ \qquad m\in\{1,2\}.
+\tag{4}
+\]
+There are \(3^3=27\) choices of \(r\), so (4) proves equality of the two models under all ordinary observational and simultaneous node-interventional regimes in the claim.
+
+Both systems are recursive in the order \(X\) before \(Y,Z\).  In each system the response functions for \(Y\) and \(Z\) take \(X\) as a directed input.  In \(M_1\), \(U_B\) is shared by those two response functions, while in \(M_2\), \(U_A\) is shared by them.  This shared exogenous input is represented by \(Y\leftrightarrow Z\).  No exogenous input to \(X\) is shared with either response.  Consequently both recursive SCMs are compatible with the ADMG having \(X\to Y\), \(X\to Z\), and \(Y\leftrightarrow Z\).
+
+At \(\varepsilon=1/10\), every atom of the six exogenous bits has strictly positive probability.  Equation (4) also shows positivity of every assignment of the natural coordinates in each ordinary regime.  For the edge-specific acquisitions used below, a pair of response coordinates based on distinct fair bits has four cells of probability \(1/4\).  If the coordinates share a fair bit \(B\), either diagonal cell has probability
+\[
+ \frac12\bigl((1-\varepsilon)^2+\varepsilon^2\bigr)>0,
+\]
+and either off-diagonal cell has probability \(\varepsilon(1-\varepsilon)>0\), because \(0<\varepsilon<1/2\).  In particular, every conditioning event and READ cell used below belongs to the exact support returned by \(\mathcal O_{\mathrm{src}}\).
+
+The counterfactual joints nevertheless differ.  By (1), \(Y_0^{(1)}\) depends only on \((U_A,E_Y)\), whereas \(Z_1^{(1)}\) depends only on \((U_C,E_Z)\).  These pairs are independent, and (2) makes each response fair.  Therefore
+\[
+ \Pr_{M_1}(Y_0=1,Z_1=1)=\frac12\cdot\frac12=\frac14.
+\tag{5}
+\]
+In \(M_2\), the two responses share \(U_A\).  Conditioning on this fair bit and using independence of \(E_Y,E_Z\) gives
+\[
+\begin{aligned}
+ \Pr_{M_2}(Y_0=1,Z_1=1)
+ &=\Pr(U_A=1,E_Y=0,E_Z=0)
+   +\Pr(U_A=0,E_Y=1,E_Z=1)\\
+ &=\frac12(1-\varepsilon)^2+\frac12\varepsilon^2.
+\end{aligned}
+\tag{6}
+\]
+Substitution of \(\varepsilon=1/10\) yields
+\[
+ \frac12\left(\frac9{10}\right)^2+
+ \frac12\left(\frac1{10}\right)^2
+ =\frac{41}{100}.
+\tag{7}
+\]
+
+It remains to verify the physical acquisitions.  Under \(S_{\mathrm{ind}}\), the edge-specific action \(\chi_{Y,0}\) replaces the value transmitted from \(X\) to the mechanism for \(Y\) by zero and leaves the transmission to \(Z\) natural.  The structural equations of the acquired regime are therefore
+\[
+ X^{\mathrm{ind}}=U_X,
+ \qquad Y^{\mathrm{ind}}=Y_0,
+ \qquad Z^{\mathrm{ind}}=Z_{U_X}.
+\tag{8}
+\]
+The event \(X^{\mathrm{ind}}=1\) has probability \(1/2>0\).  Since \(U_X\) is independent of all variables entering \((Y_0,Z_1)\), (8) implies in either model that
+\[
+\begin{aligned}
+ &\Pr\!\left(Y^{\mathrm{ind}}=1,Z^{\mathrm{ind}}=1
+       \mid X^{\mathrm{ind}}=1,S_{\mathrm{ind}}\right)\\
+ &\qquad=\Pr(Y_0=1,Z_1=1\mid U_X=1)
+ =\Pr(Y_0=1,Z_1=1).
+\end{aligned}
+\tag{9}
+\]
+By Definition \(\mathrm{Acquired\ regime}\), the oracle returns and caches the complete law and its exact support table.  The positive denominator just established and Definition \(\mathrm{Measured\ source\ slice}\) make the READ projection conditioned on \(X=1\) a defined slice.  Its \((Y,Z)=(1,1)\) cell is the left side of (9), so this cell equals the claimed counterfactual joint in each displayed SCM.
+
+Under \(S_{\mathrm{dir}}\), the two edge-specific actions transmit zero to the \(Y\)-mechanism and one to the \(Z\)-mechanism.  Hence
+\[
+ Y^{\mathrm{dir}}=Y_0,
+ \qquad Z^{\mathrm{dir}}=Z_1,
+\tag{10}
+\]
+and the unconditioned READ law directly exposes the same joint.
+
+Finally, each displayed protocol contains exactly the fresh-iid SELECT action \(s\); each edge or READ mechanism is used at most once; the prescribed order places \(s\) before every included CTF-RAND action and those actions before the included READs; and the catalogue has no conflicts.  Equations (8) and (10) are simultaneous evaluations of the indicated child-specific transmissions on a single selected unit, so they also witness the required CTF-REALIZE compatibility on \(G^{+}\).  Definition \(\mathrm{Legal\ protocol\ class}\) therefore gives
+\[
+ S_{\mathrm{ind}},S_{\mathrm{dir}}\in\Pi(G^{+},\mathcal A_{\mathrm{sep}}).
+\tag{11}
+\]
+Let \(F_{\mathrm{ind}}\) be the acquired collection containing the positive slice in (9), and let \(F_{\mathrm{dir}}\) be the acquired collection containing the unconditioned source in (10).  Their distinct-protocol sets are \(\{S_{\mathrm{ind}}\}\) and \(\{S_{\mathrm{dir}}\}\), respectively.  On this separation instance the cost function in Definition \(\mathrm{Distinct\text{-}protocol\ cost}\) is \(c_{\mathrm{sep}}\).  The catalogue costs and that definition yield
+\[
+\begin{aligned}
+ \operatorname{Cost}(F_{\mathrm{ind}})
+ &=c_{\mathrm{sep}}(\chi_{Y,0})=1,\\
+ \operatorname{Cost}(F_{\mathrm{dir}})
+ &=c_{\mathrm{sep}}(\chi_{Y,0})+c_{\mathrm{sep}}(\chi_{Z,1})=2,
+\end{aligned}
+\tag{12}
+\]
+because \(s,\rho_X,\rho_Y,\rho_Z\) cost zero.  Further slices of either acquired protocol add no cost by the same definition.  Equations (4)--(12) prove all assertions of the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit response-bit coupling proves ordinary observational equivalence, the cross-world gap, and the one-versus-two physical acquisition cost in one auditable witness. \textit{Gap.} Counterfactual realizability supplies the action semantics but not a positive binary pair with all 27 ordinary regime laws computed and a strict protocol-cost comparison. \textit{Consumer.} The witness is a complete regression fixture for the optimizer and certifies that the richer protocol class has genuine economic value.
+
+\begin{theorem}[thm:explicit-oracle-enumeration-frontier]\label{thm:explicit-oracle-enumeration-frontier}
+Let \(m=|\mathcal A|\) and \(L=|\mathrm{LIT}|\).  Exact minimum-cost optimization over uniform certificates accepted by \(\operatorname{Acc}\) has a deterministic algorithm using at most \(2^m\) distinct queries to \(\mathcal O_{\mathrm{src}}\), time \(2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\), and oracle-answer space \(2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\).  It returns the lexicographically first optimum certificate when \(\operatorname{Opt}<+\infty\), and otherwise certifies \(\operatorname{Opt}=+\infty\).  Thus the first alternative in the oracle-search question holds; the bound does not assert a subexponential oracle lower bound or a compact scalar identifying functional.
+\end{theorem}
+\begin{proof}
+Put \(m=|\mathcal A|\), \(L=|\mathrm{LIT}|\), and \(n=|V|\).  We construct a finite candidate universe, prove that it contains exactly the records relevant to operational acceptance, and optimize over that universe.
+
+First enumerate the \(2^m\) protocol masks \(S\) in canonical order.  Membership in \(\Pi\) is decidable from Definition~\(\mathrm{Legal\ protocol\ class}\): the unique-SELECT, mechanism-use, precedence, and conflict conditions are finite checks against the explicit catalogue, the fresh-iid SELECT condition is the source-typing condition imposed on the SELECT action, and physical compatibility is decided by CTF-REALIZE.  By Lemma~\(\mathrm{Published\ CTF\text{-}REALIZE\ runtime}\), the last check takes polynomial time in the encoded graph and protocol.  Query \(\mathcal O_{\mathrm{src}}\) once for each legal mask and cache the immutable answer.  Hence the number of distinct oracle queries is at most
+\[
+  2^m. \tag{1}
+\]
+An answer equal to \(\bot\), or one whose self-delimiting support index fails the format in Definition~\(\mathrm{Certificate\text{-}independent\ physical\ input\ and\ source\ interface}\), yields no candidate source.
+
+For every remaining protocol enumerate the \(2^L\) masks \(\ell\).  Definition~\(\mathrm{Canonical\ literal\ and\ label\ encoding}\) decides by a finite scan whether \(\ell\) is consistent and uses only catalogued values.  The returned exact support table decides whether
+\[
+  P_S\{H_{\mathrm{slice}}(S,\ell)\}>0. \tag{2}
+\]
+By Definition~\(\mathrm{Measured\ source\ slice}\), (2) is precisely the division condition that makes the corresponding symbolic conditional projection defined.  The event-local positive-source-law assumption guarantees (2) for every conditioning event actually used by an accepted certificate; it imposes nothing on an unused zero-probability cell.  Consequently, discarding masks that fail (2) loses no accepted certificate and makes no semantic completeness claim about CTFIDU\({}^{+}\).
+
+For each surviving slice, perform the ancestral-set transformation and bidirected-district decomposition used by the operational complete run.  There are at most \(n\) retained districts and hence at most \(n\) canonical single-district source factors \(T\).  The measured-ancestry assumption and Definition~\(\mathrm{Measured\ source\ slice}\) remove exactly those candidates for which a required transformed ancestor is neither READ nor fixed by a recorded action.  Thus the enumeration is exhaustive over every protocol--slice--source triple that can occur in an accepted certificate.
+
+Fix such a triple \((S,\ell,T)\) and a target factor \(C_j\).  If the free request positions for \(C_j\) have domain sizes \(q_1,\ldots,q_r\), the equality type is induced by the assignment and is not an additional choice.  Since the literal table contains one distinct request literal for each possible value at each free position,
+\[
+  |\Omega_j|=\prod_{h=1}^{r}q_h
+  \leq \prod_{h=1}^{r}2^{q_h}
+  =2^{\sum_{h=1}^{r}q_h}
+  \leq 2^L. \tag{3}
+\]
+Here \(q_h\leq 2^{q_h}\) for every positive integer \(q_h\).  In particular,
+\[
+  |\Omega|=\sum_{j=1}^{k}|\Omega_j|\leq k2^L. \tag{4}
+\]
+
+Enumerate every branch in \(\Omega_j\).  For that concrete branch, form \(D_T\) by Definition~\(\mathrm{Value\text{-}matching\ dependency\ graph}\) and execute the ancestor--district recursion of Lemma~\(\mathrm{Published\ IDENTIFY^{+}\ recursion}\).  Each nonterminal recursive call strictly decreases the current vertex set, so there are at most \(|T|\leq n\) strict restrictions.  On the connected, once-occurring factor inputs in the fixed-factor proposition, Proposition~\(\mathrm{Connected\text{-}ancestor\ obstruction}\) gives the equivalent finite failure test \(\mathfrak O(T,C_j)\neq\varnothing\); when this obstruction is absent, Lemma~\(\mathrm{Fixed\ transcript\ size}\) supplies a successful transcript with at most \(|T|\) strict steps and \(O(|T|^2)\) bits apart from literal identifiers.  Every recorded ancestor set, retained district, and literal equality is checked by graph traversal and value comparison.  Thus success and a canonical transcript are computable in time polynomial in the structural input and the transcript representation for each fixed branch.
+
+Replace each concrete request value in a successful transcript by its canonical request-position identifier and compare the resulting strings over all branches of \(\Omega_j\).  Call \(U(S,\ell,T)\subseteq[k]\) the set of indices \(j\) for which all branches succeed with one such common schema and for which substitution of each enumerated branch back into that schema verifies.  This is an exact test of the uniformity clause in Definition~\(\mathrm{Uniform\ acquisition\ certificate}\): necessity follows because acceptance verifies the same source and schema on every branch, while sufficiency follows because the exhaustive substitution check covers all of \(\Omega_j\).
+
+For a fixed \(S\), form \(\mathcal D(S)\) as follows.  For every surviving \((\ell,T)\), and every subset \(J\subseteq U(S,\ell,T)\), include the canonical record owning \(J\) with the verified schema for each \(j\in J\); also include every syntactically allowed empty-ownership paid-protocol marker.  Every \(C_j\) is nonempty, so its first-coordinate request literals contribute at least one literal not contributed by any other factor.  Hence
+\[
+  k\leq L. \tag{5}
+\]
+There are at most \(n2^L\) nonempty candidate bases, and therefore
+\[
+  |\mathcal D(S)|\leq (1+n2^L)2^k
+  =2^{O(L)}\operatorname{poly}(N_{\mathrm{in}}). \tag{6}
+\]
+The deterministic recursion makes the stored canonical schema unique for a fixed base and owned factor.  By construction, every record that can pass \(\operatorname{Acc}\) belongs to the appropriate \(\mathcal D(S)\), and every member of \(\mathcal D(S)\) passes all record-local syntax, legality, support, source-extraction, measured-ancestry, and uniform-transcript checks.
+
+Define
+\[
+  w(S)=\sum_{a\in S}c(a),
+  \qquad
+  K(S)=\bigcup_{\ell,T}U(S,\ell,T). \tag{7}
+\]
+We claim
+\[
+  \exists E\;\operatorname{Acc}(Q,E;G)=1
+  \quad\Longleftrightarrow\quad
+  \exists\mathcal P\subseteq\Pi\quad
+  \bigcup_{S\in\mathcal P}K(S)=[k]. \tag{8}
+\]
+For the forward implication, let \(E\) be accepted.  Each nonempty record passes every local check in Definition~\(\mathrm{Operational\ acceptance}\); if it uses protocol \(S\) and owns \(j\), the preceding exhaustive test therefore places \(j\) in \(K(S)\).  Since the nonempty ownership masks partition \([k]\), the distinct protocols represented in \(E\) satisfy the right side of (8).
+
+Conversely, suppose \(\mathcal P\) satisfies the right side of (8).  Assign each \(j\) to the first \(S\in\mathcal P\) in canonical order for which \(j\in K(S)\), choose the first enumerated witness \((\ell,T)\) for that membership, merge assignments having the same record base when possible, and sort the resulting records lexicographically.  The ownership masks partition \([k]\).  Every chosen record has already passed the legal-protocol, exact positive-support, source-extraction, measured-ancestry, and all-branch transcript tests.  The complete CTFIDU\({}^{+}\) search over the resulting full decoded source list consequently finds the displayed successful source for every target factor and does not return \(\operatorname{FAIL}\).  Hence every clause of operational acceptance holds, proving the reverse implication.
+
+The action costs are nonnegative binary rationals by the binary-rational-cost assumption.  Since the candidate family is finite, a feasible minimum is attained.  Definition~\(\mathrm{Distinct\text{-}protocol\ cost}\) charges a represented protocol once, regardless of how many of its slices or records are used.  Equation (8) therefore gives the derived identity
+\[
+  \operatorname{Opt}
+  =\min_{\mathcal P\subseteq\Pi:\,\bigcup_{S\in\mathcal P}K(S)=[k]}
+       \sum_{S\in\mathcal P}w(S), \tag{9}
+\]
+with value \(+\infty\) when the feasible family is empty.  This is an identity for the operational certificate optimum, not a definition or evaluation of the causal query \(Q\).
+
+List the enumerated legal protocols as \(S_1,\ldots,S_p\), where \(p\leq2^m\).  For \(U\subseteq[k]\), set \(D_0(\varnothing)=0\), set \(D_0(U)=+\infty\) when \(U\neq\varnothing\), and recursively set
+\[
+  D_i(U)=\min\bigl\{D_{i-1}(U),\,
+  D_{i-1}(U\setminus K(S_i))+w(S_i)\bigr\}. \tag{10}
+\]
+Induction on \(i\) proves that \(D_i(U)\) is the minimum cost of a subset of \(\{S_1,\ldots,S_i\}\) whose \(K\)-sets cover \(U\): an optimum either omits \(S_i\), giving the first term, or contains it, leaving \(U\setminus K(S_i)\) for earlier protocols and giving the second.  Thus \(D_p([k])\) equals (9).  If it is infinite, (8) certifies \(\operatorname{Opt}=+\infty\).
+
+If \(D_p([k])<+\infty\), recover the lexicographically first optimum certificate by self-reduction over the finite sorted universe \(\mathcal D=\bigcup_i\mathcal D(S_i)\).  For completeness, feasibility of an encoding prefix is decided as follows.  The prefix forces or excludes a finite set of records and restricts the possible next record.  Reject intersecting forced nonempty ownership masks or a failed local check.  For each protocol scan its remaining allowed records and maintain the attainable disjoint ownership masks via
+\[
+  A_{r+1}=A_r\cup
+  \{U\cup J:U\in A_r,\ U\cap J=\varnothing\},
+  \qquad A_0=\{\varnothing\}. \tag{11}
+\]
+Simultaneously record whether at least one record of that protocol is selected, because that Boolean is exactly whether \(w(S)\) is charged.  Induction on the scanned records proves that (11) gives exactly the locally attainable ownership masks.  A second dynamic program over protocols combines disjoint local masks and adds \(w(S)\) precisely for represented protocols.  It therefore returns exactly the least cost of an accepted completion of the prefix, including completions containing zero-cost empty-ownership markers.
+
+Starting from the empty prefix, test the next bit values and the self-delimiting end marker in lexicographic order, retaining the first choice whose constrained optimum equals \(D_p([k])\).  The invariant that the retained prefix has an optimum completion holds initially and after every choice.  The universe is finite and records cannot repeat, so the process terminates at an accepted optimum.  Were there a lexicographically earlier optimum, its bit at the first differing position would have passed the corresponding completion test and would have been selected, a contradiction.  The returned certificate is therefore the lexicographically first optimum.
+
+It remains to bound resources.  By (3), candidate generation performs at most
+\[
+  2^m\,2^L\,n\sum_{j=1}^{k}|\Omega_j|
+  \leq 2^m\,2^L\,nk2^L
+  =2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}) \tag{12}
+\]
+branch checks.  The recurrence (10) has at most \(2^m2^k\) updates.  A constrained completion test uses at most \(|\mathcal D|2^k\) local updates and \(2^m3^k\) disjoint-mask transitions; the number of tested prefix positions is polynomial in \(|\mathcal D|\) and in the maximum record length.  Equations (5) and (6) place all of these quantities within
+\[
+  2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O}). \tag{13}
+\]
+Exact addition and comparison of binary-rational costs have polynomial bit complexity.  Every inspected oracle bit is included in \(N_{\mathcal O}\); caching one immutable reply per queried protocol uses \(O(N_{\mathcal O})\) bits.  Candidate masks, transcripts, predecessor pointers, and two dynamic-programming layers use at most the space in (13).  Together, (1) and (12)--(13) prove the asserted query, time, and oracle-answer-space bounds and the output dichotomy.  The construction only optimizes the explicitly restricted uniform operational certificates; it produces neither a scalar identifying functional nor an oracle lower bound.
+\end{proof}
+
+\begin{lemma}[lem:published-identify-plus-recursion]\label{lem:published-identify-plus-recursion}
+Let \(C\subseteq U\) be the vertex sets of the target and current labelled source factors in a call to \(\operatorname{IDENTIFY}^{+}\), with \(G^{\leftrightarrow}[U]\) connected.  The algorithm forms the least \(H\), \(C\subseteq H\subseteq U\), for which no term outside \(H\) carries a value occurring in the parent subscript of a term inside \(H\).  It returns the marginal when \(H=C\), returns \(\operatorname{FAIL}\) when \(H=U\ne C\), and otherwise recurses on the unique bidirected district of \(G[H]\) containing \(C\).  Every such recursive call strictly decreases \(|U|\).
+\end{lemma}
+
+\begin{lemma}[lem:published-ctf-realize-runtime]\label{lem:published-ctf-realize-runtime}
+For a finite counterfactual query with \(q\) terms and a causal graph with \(n\) vertices, CTF-REALIZE decides whether the query is realizable from the given explicit action set in \(O(qn^2)\) time and the same order of space.
+\end{lemma}
+
+\begin{lemma}[lem:published-weighted-greedy-approximation]\label{lem:published-weighted-greedy-approximation}
+\texttt{The standard weighted greedy minimum-\allowbreak{}hitting-\allowbreak{}set algorithm is a published logarithmic-\allowbreak{}factor approximation in the worst case.}
+\end{lemma}
+
+\begin{theorem}[thm:switching-weighted-cover-frontier]\label{thm:switching-weighted-cover-frontier}
+For the switching incidence sets and protocol weights,
+\[
+ \operatorname{Opt}_{\mathrm{sw}}
+ =\min_{\mathcal P\subseteq\Pi:\,\bigcup_{S\in\mathcal P}K_{\mathrm{sw}}(S)=\Omega}
+   \sum_{S\in\mathcal P}w(S),
+\]
+with value \(+\infty\) when no cover exists.  Writing \(m=|\mathcal A|\), \(L=|\mathrm{LIT}|\), and \(M=|\Omega|\), the complete incidence relation is constructible with at most \(2^m\) distinct source-oracle queries and \(2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) work, because \(M\leq k2^L\).  Branch-mask dynamic programming or protocol-subset enumeration then computes the exact optimum in
+\[
+ 2^{O(m+L+\min\{M,2^m\})}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})
+\]
+time.  Weighted greedy on this explicit protocol-to-branch incidence returns an accepted certificate of cost at most \(H_M\operatorname{Opt}_{\mathrm{sw}}\), where \(H_M=\sum_{r=1}^{M}r^{-1}\), in \(2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) time whenever the instance is feasible.  This is a protocol-cover guarantee after incidence enumeration, not a polynomial-time action-cover guarantee.
+\end{theorem}
+\begin{proof}
+Write \(m=|\mathcal A|\), \(L=|\mathrm{LIT}|\), and let \(E\) be accepted by \(\operatorname{Acc}_{\mathrm{sw}}\).  Let \(\mathcal P(E)\) be the distinct protocols occurring in its nonempty records.  Each \(\alpha\in\Omega\) occurs in exactly one such record, and the record passes \(\mathsf{Succ}_{\alpha}\).  Definition~\(\mathrm{Switching\ protocol\mbox{-}to\mbox{-}branch\ cover\ incidence}\) therefore gives
+\[
+ \Omega\subseteq\bigcup_{S\in\mathcal P(E)}K_{\mathrm{sw}}(S).
+ \tag{13}
+\]
+Every incidence set is contained in \(\Omega\), so equality holds in (13).  After deleting any index-zero marker, Definition~\(\mathrm{Distinct\mbox{-}protocol\ cost}\) gives
+\[
+ \operatorname{Cost}(E)
+ =\sum_{S\in\mathcal P(E)}\sum_{a\in S}c(a)
+ =\sum_{S\in\mathcal P(E)}w(S).
+ \tag{14}
+\]
+Without deletion the right side of (14) is no larger, because marker-only protocols have nonnegative weight.
+
+Conversely, let \(\mathcal P\subseteq\Pi\) cover \(\Omega\).  For each \(\alpha\), choose the first \(S\in\mathcal P\) with \(\alpha\in K_{\mathrm{sw}}(S)\), and then the first tuple \((\ell,T,\tau)\) witnessing the existential definition of this incidence.  Make one singleton-index record for \(\alpha\).  Every local legality, oracle, event-local support, measured-ancestry, and transcript check holds because \(\mathsf{Succ}_{\alpha}=1\).  Since every branch occurs exactly once, the exhaustive factor-and-branch search on the decoded source collection finds a successful witness in every branch and returns nonfailure.  Definition~\(\mathrm{Sparse\ switching\ operational\ acceptance}\) therefore accepts the resulting certificate.  Protocols in \(\mathcal P\) unused by the chosen records may be omitted; by nonnegativity this does not increase cost.  Taking minima in the two constructions, and using finiteness of \(\Pi\), proves the derived identity
+\[
+ \operatorname{Opt}_{\mathrm{sw}}
+ =\min_{\mathcal P\subseteq\Pi:\,\bigcup_{S\in\mathcal P}K_{\mathrm{sw}}(S)=\Omega}
+   \sum_{S\in\mathcal P}w(S),
+ \tag{15}
+\]
+with value \(+\infty\) when the cover family is empty.  This is a consequence of operational acceptance and distinct-protocol charging, not a definition of the causal query.
+
+We next construct the incidence relation.  Enumerate the \(2^m\) protocol masks.  The explicit catalogue decides SELECT cardinality, fresh-unit typing, at-most-once mechanism use, precedence, and conflicts by scans of the input; Lemma~\(\mathrm{Published\ CTF\mbox{-}REALIZE\ runtime}\) decides physical compatibility in polynomial time.  Query each legal protocol at most once and cache its immutable reply.  A \(\bot\) reply gives empty incidence.  For every other reply, enumerate the \(2^L\) literal masks, reject inconsistent or uncatalogued labels, and consult the exact support table only for the event actually used by that label.  A zero-mass used event is rejected; zero mass at an unused cell has no effect.  The ancestral and district decomposition of each surviving slice yields at most \(|V|\) canonical single-district source factors, and measured ancestry is decided from the READ endpoints and action-fixed vertices.
+
+Suppose the free request positions of factor \(C_j\) have domain sizes \(h_1,\ldots,h_r\).  The equality type is induced by the assignment, not chosen independently.  The literal table has one request literal for each value at each such position.  Hence
+\[
+ |\Omega_j|=\prod_{u=1}^{r}h_u
+ \leq 2^{\sum_{u=1}^{r}h_u}
+ \leq 2^L,
+ \qquad
+ M=\sum_{j=1}^{k}|\Omega_j|\leq k2^L.
+ \tag{16}
+\]
+For each enumerated \((\alpha,S,\ell,T)\), instantiate the value matches and apply the ancestor--district recursion.  Proposition~\(\mathrm{Connected\mbox{-}ancestor\ obstruction}\) decides failure on each fixed connected factor call; on success Lemma~\(\mathrm{Fixed\ transcript\ size}\) produces its canonical finite transcript.  Thus the enumeration records exactly the true incidence bits.  Since \(k\leq |V|\leq N_{\mathrm{in}}\), the number of branch checks is bounded by
+\[
+ 2^m2^L|V|M
+ \leq 2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}).
+ \tag{17}
+\]
+Reading all queried handles and support tables contributes their actual total length \(N_{\mathcal O}\).  Consequently complete incidence construction uses at most \(2^m\) distinct oracle queries and
+\[
+ 2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})
+ \tag{18}
+\]
+work.
+
+List the protocols with nonempty incidence as \(S_1,\ldots,S_p\), where \(p\leq2^m\).  For \(U\subseteq\Omega\), initialize \(D_0(\varnothing)=0\), \(D_0(U)=+\infty\) for \(U\ne\varnothing\), and define
+\[
+ D_i(U)=\min\{D_{i-1}(U),\ D_{i-1}(U\setminus K_{\mathrm{sw}}(S_i))+w(S_i)\}.
+ \tag{19}
+\]
+Induction on \(i\) shows that \(D_i(U)\) is the least weight of a subcollection of the first \(i\) protocols covering \(U\): an optimum either omits \(S_i\), giving the first term, or contains it, leaving \(U\setminus K_{\mathrm{sw}}(S_i)\) for earlier protocols and giving the second.  Thus (19) evaluates (15) in \(O(p2^M)\) exact rational operations.  Alternatively enumerate the \(2^p\) protocol subsets and test their unions.  Choosing the faster method and adding (18) gives
+\[
+ 2^{O(m+L+\min\{M,2^m\})}
+ \operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O}).
+ \tag{20}
+\]
+
+Finally, run weighted greedy on the explicit incidence.  First include every zero-cost protocol that covers a new branch.  If \(r>0\) branches remain, fix an optimum cover \(\mathcal P^{\star}\).  If \(t_S\) is the number of remaining branches covered by \(S\in\mathcal P^{\star}\), then
+\[
+ \sum_{S\in\mathcal P^{\star}}t_S\geq r,
+ \qquad
+ \sum_{S\in\mathcal P^{\star}}w(S)=\operatorname{Opt}_{\mathrm{sw}}.
+ \tag{21}
+\]
+Therefore some \(S\in\mathcal P^{\star}\) with \(t_S>0\) has
+\[
+ \frac{w(S)}{t_S}\leq\frac{\operatorname{Opt}_{\mathrm{sw}}}{r}.
+ \tag{22}
+\]
+Greedy chooses a ratio no larger than (22).  Charge its ratio to each newly covered branch.  Ordering branches by the time they are covered makes the successive denominators at least \(M,M-1,\ldots,1\), and the charges sum to the greedy cost.  Hence
+\[
+ \operatorname{Cost}(E_{\mathrm{greedy}})
+ \leq \operatorname{Opt}_{\mathrm{sw}}\sum_{r=1}^{M}\frac1r
+ =H_M\operatorname{Opt}_{\mathrm{sw}}.
+ \tag{23}
+\]
+If the optimum is zero, the initial zero-cost phase covers all branches and the same inequality holds.  The cover-to-certificate construction preceding (15) turns the greedy cover into an accepted certificate.  Greedy is polynomial in the explicit incidence size, so its total construction time is (18).  This proves all asserted equalities, resource bounds, and qualifications.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The protocol-to-branch incidence exposes the exact finite weighted-cover object induced by operational switching acceptance. \textit{Gap.} The earlier certificate-string search hid the shared-protocol combinatorics and incurred an avoidable exponential dependence on the certificate encoding length. \textit{Consumer.} The exact optimizer uses the faster of branch-mask dynamic programming and protocol-subset enumeration, while weighted greedy supplies an explicit protocol-cover benchmark.
+
+\begin{lemma}[lem:single-world-operational-specialization]\label{lem:single-world-operational-specialization}
+On the ordinary SELECT--RAND--READ image, for every cell \(Q_{x,s}\) and complete ordinary source family \(\mathcal Q_{\mathbf B}\), the complete ordinary single-world procedure accepts \(Q[S_0]\) at \((x,s)\) if and only if the complete translated unconditional \(\operatorname{CTFIDU}^{+}\) run returns nonfailure for \(Q_{x,s}\).  The equivalence remains valid after deterministic formation of a marginal or a conditional from a supplied full kernel when, and only when, the denominator of that actually used conditional is positive.  It imposes no positivity on unused cells and makes no claim for cross-world or nonordinary inputs.
+\end{lemma}
+\begin{proof}
+Fix a target cell \((x,s)\).  Definition~\(\mathrm{Cellwise\ Layer\mbox{-}2.5\ translation\ of\ an\ ordinary\ full\ kernel}\) makes it the event
+\(Q_{x,s}=P((S_0)_x=s)\), containing variables from the single intervention world \(x\) only.  Counterfactual ancestor expansion deletes the coordinates fixed by \(x\) and retains the ordinary ancestors of \(S_0\); on these same vertex sets, the transformed bidirected districts are exactly the ordinary c-components.  The translated source indexed by \((B,b)\) is, by Definition~\(\mathrm{Ordinary\ full\mbox{-}kernel\ source\ family}\), the complete kernel
+\[
+ P_b(V\setminus B)=Q[V\setminus B](\cdot;b).
+ \tag{33}
+\]
+
+We compare the translated IDENTIFY\({}^{+}\) recursion with the ordinary single-world fixing recursion by induction on the current source-factor vertex set \(U\).  If the current target set is \(U\), both procedures return the same marginal of (33).  Otherwise, the value-matching closure in the translated call removes exactly the vertices fixed by the ordinary intervention labels.  Lemma~\(\mathrm{Published\ IDENTIFY}^{+}\mathrm{\ recursion}\) therefore forms the same ancestor closure and retains the same bidirected district containing the target as the ordinary recursion.  If that closure is all of \(U\) and properly contains the target, both procedures return failure.  If it is a proper subset, both recurse on the same strictly smaller retained district.  Strict decrease of \(|U|\) proves termination and validates the induction.  Thus the two procedures have the same return status for the fixed cell.
+
+The only extra preprocessing allowed in the statement consists of finite marginals and displayed conditionals of a supplied full kernel.  A marginal is a finite sum and needs no division.  If a source used by the recursion is conditioned on \(R=r\), then
+\[
+ P_b(A\mid R=r)
+ =\frac{P_b(A,R=r)}{P_b(R=r)}
+ \tag{34}
+\]
+is well defined if and only if \(P_b(R=r)>0\).  Assumption~\(\mathrm{Event\mbox{-}local\ positive\ source\ law}\) supplies this strict inequality exactly when the conditional is actually used.  Replacing the used conditional by the right side of (34) before either recursion preserves every later symbolic marginalization, value match, ancestor set, and district choice.  No denominator is introduced for any unused cell.  The same induction therefore applies after the permitted deterministic preprocessing, proving the stated operational equivalence and its positivity qualification.  Since the argument fixed one \((x,s)\) throughout, it makes no cross-world or nonordinary claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The batch boundary needs a typed cellwise correspondence between ordinary single-world recursion and the translated operational procedure. \textit{Gap.} A finite all-cells kernel cannot be treated as one scalar counterfactual query. \textit{Consumer.} The ordinary embedding applies the sparse normal form separately to every cell while sharing protocol charges across the batch.
+
+\begin{lemma}[lem:published-mwhs-to-intervention-reduction]\label{lem:published-mwhs-to-intervention-reduction}
+\texttt{The minimum-\allowbreak{}weight hitting-\allowbreak{}set problem reduces in polynomial time to the ordinary minimum-\allowbreak{}cost intervention problem.  In the cited construction,\allowbreak{} original vertices retain their hitting-\allowbreak{}set weights,\allowbreak{} auxiliary vertices have prohibitive infinite cost,\allowbreak{} and finite-\allowbreak{}cost identifying interventions are exactly the hitting sets with the same cost.}
+\end{lemma}
+
+\begin{lemma}[lem:published-ordinary-np-completeness]\label{lem:published-ordinary-np-completeness}
+\texttt{The ordinary minimum-\allowbreak{}cost intervention problem is NP-\allowbreak{}complete.}
+\end{lemma}
+
+\begin{lemma}[lem:published-ordinary-log-inapproximability]\label{lem:published-ordinary-log-inapproximability}
+There is no \((1-o(1))\ln|V|\) approximation scheme for the ordinary minimum-cost intervention problem unless \(\mathrm{NP}\) has quasi-polynomial-time algorithms.
+\end{lemma}
+
+\begin{theorem}[thm:restricted-uniform-oracle-search-answer]\label{thm:restricted-uniform-oracle-search-answer}
+Let \(m=|\mathcal A|\) and \(L=|\mathrm{LIT}|\).  Exact minimum-cost optimization over the restricted uniform acquisition certificates \(E\) accepted by \(\operatorname{Acc}\) has a deterministic algorithm that makes at most \(2^m\) distinct queries to \(\mathcal O_{\mathrm{src}}\), runs in
+\[
+ 2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O}),
+\]
+and uses
+\[
+ 2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})
+\]
+oracle-answer space.  It returns the lexicographically first optimum restricted uniform certificate when \(\operatorname{Opt}<+\infty\), and otherwise certifies \(\operatorname{Opt}=+\infty\).  Thus the positive algorithmic alternative in the oracle-search question holds for the explicitly restricted uniform-certificate problem; no oracle lower bound is asserted.
+\end{theorem}
+\begin{proof}
+Let \(m=|\mathcal A|\) and \(L=|\mathrm{LIT}|\).  Theorem~\(\mathrm{Explicit\ oracle\ enumeration\ frontier}\), the sole dependency of this corollary, applies to exactly the restricted uniform certificates \(E\) accepted by \(\operatorname{Acc}\).  It supplies a deterministic algorithm with at most
+\[
+ 2^m
+\]
+distinct queries to \(\mathcal O_{\mathrm{src}}\), and with both running time and oracle-answer space bounded by
+\[
+ 2^{O(m+L)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O}).
+\]
+The same theorem states the exhaustive output dichotomy: if \(\operatorname{Opt}<+\infty\), the algorithm returns the lexicographically first optimum certificate, while if no accepted restricted uniform certificate exists, it certifies \(\operatorname{Opt}=+\infty\).  These are precisely all clauses of the present statement.  Therefore the positive alternative posed by the oracle-search question holds, without any appeal to or assertion of an adversarial oracle lower bound.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The concrete branch count \(M=|\Omega|\) may be exponential in the structural input.  Accordingly, the canonical bound
+\[
+ B_{\mathrm{sw}}=2\lfloor\log_2(M+1)\rfloor+1+M\bigl(|\mathcal A|+|\mathrm{LIT}|+q_M+|V|(1+|\mathrm{LIT}|)+b_{\tau}\bigr)
+\]
+has an explicit framing term and exactly \(Mq_M\) branch-ownership bits, but is not a polynomial certificate bound.  Building all protocol incidences can require \(2^{|\mathcal A|}\) oracle queries and \(2^{O(|\mathcal A|+|\mathrm{LIT}|)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) work; exact optimization uses \(2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) time.  Source-support replies and operational infeasibility certificates may likewise be exponential, with every accessed bit charged to \(N_{\mathcal O}\).  The weighted-greedy \(H_M\) ratio is therefore a guarantee after explicit incidence construction, not a polynomial-time global action-cover approximation.  Event-local positivity only licenses denominators for used slice events, and measured ancestry excludes sources that fail to record or action-fix a required transformed ancestor.  Neither condition yields semantic soundness or completeness of CTFIDU\({}^{+}\), and failure of the operational cover is not claimed to certify semantic nonidentifiability.
+
+\section{Honest scope}
+
+The primary result is operational: correctly typed generic nonfailure is equivalent to one singleton-index switching witness per \(\alpha\in\Omega\), preserving the order \(\forall\alpha\,\exists\) rather than imposing a uniform \(\exists\,\forall\alpha\) source.  It yields exact weighted set cover on \(K_{\mathrm{sw}}(S)\), explicit incidence construction in \(2^{O(|\mathcal A|+|\mathrm{LIT}|)}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) work with at most \(2^{|\mathcal A|}\) oracle queries, exact optimization in \(2^{O(|\mathcal A|+|\mathrm{LIT}|+\min\{M,2^{|\mathcal A|}\})}\operatorname{poly}(N_{\mathrm{in}}+N_{\mathcal O})\) time, and an \(H_M\) weighted-greedy guarantee only after the full incidence relation is available.  The finite canonical certificate exposes both record-count framing and \(Mq_M\) ownership bits and may be exponential; no polynomial general lower certificate is promised.  Positivity is local to conditioning events used by acceptance, measured ancestry remains mandatory, and no semantic identification-completeness extension or semantic nonidentifiability certificate follows.  The restricted uniform theorem is only an OEQ-facing corollary and is not equivalent to generic acceptance.  The ordinary Akbari--Etesami--Kiyavash comparison concerns a separately defined finite full-kernel batch with charges shared across target cells, not the main scalar query; its NP-hardness and logarithmic threshold transfer only relative to the stated oracle convention.  The \(H_k\) action-cover approximation is confined to the explicit one-action/no-synergy factor-cover subclass.  No scalar identifying-functional output, numerical evaluation theorem, compactness theorem, conditional or arbitrary partial-read completeness, mediator-depth fixed-parameter tractability, bounded-treewidth compiler, or global action-cover approximation is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{RaghavanBareinboim2026CTFIDUPlus} Arvind Raghavan and Elias Bareinboim. Causal Identification from Counterfactual Data: Completeness and Bounding Results. arXiv:2602.23541, 2026.
+
+  \bibitem{RaghavanBareinboim2025Realizability} Arvind Raghavan and Elias Bareinboim. Counterfactual Realizability. International Conference on Learning Representations, 2025.
+
+  \bibitem{AkbariEtesamiKiyavash2022MinCost} Sina Akbari, Jalal Etesami, and Negar Kiyavash. Minimum Cost Intervention Design for Causal Effect Identification. Proceedings of Machine Learning Research 162, pages 258--289, 2022.
+
+  \bibitem{AkbariEtesamiKiyavash2025Optimal} Sina Akbari, Jalal Etesami, and Negar Kiyavash. Optimal Experiment Design for Causal Effect Identification. Journal of Machine Learning Research 26, 2025.
+
+  \bibitem{ElahiEtAl2024FastProxy} Sepehr Elahi, Sina Akbari, Jalal Etesami, Negar Kiyavash, and Patrick Thiran. Fast Proxy Experiment Design for Causal Effect Identification. Advances in Neural Information Processing Systems 37, 2024.
+
+  \bibitem{CorreaLeeBareinboim2021NestedCTFID} Juan D. Correa, Sanghack Lee, and Elias Bareinboim. Nested Counterfactual Identification from Arbitrary Surrogate Experiments. Advances in Neural Information Processing Systems 34, 2021.
+
+  \bibitem{KivvaMokhtarianEtesamiKiyavash2022gID} Yaroslav Kivva, Ehsan Mokhtarian, Jalal Etesami, and Negar Kiyavash. Revisiting the General Identifiability Problem. Conference on Uncertainty in Artificial Intelligence, 2022.
+
+  \bibitem{CourcelleMosbah1993MSOEvaluations} Bruno Courcelle and Mohamed Mosbah. Monadic Second-Order Evaluations on Tree-Decomposable Graphs. Theoretical Computer Science 109, pages 49--82, 1993.
+
+  \bibitem{ArnborgLagergrenSeese1991TreeDecomposable} Stefan Arnborg, Jens Lagergren, and Detlef Seese. Easy Problems for Tree-Decomposable Graphs. Journal of Algorithms 12, pages 308--340, 1991.
+
+  \bibitem{ParkLee2026CTFSCB} Min Woo Park and Sanghack Lee. Counterfactual Structural Causal Bandits. International Conference on Learning Representations, 2026.
+
+  \bibitem{CorreaBareinboim2025CounterfactualGraphs} Juan D. Correa and Elias Bareinboim. Counterfactual Graphical Models: Constraints and Inference. Proceedings of Machine Learning Research 267, pages 11245--11254, 2025.
+
+  \bibitem{ZhangTianBareinboim2022PartialCTFID} Junzhe Zhang, Jin Tian, and Elias Bareinboim. Partial Counterfactual Identification from Observational and Experimental Data. International Conference on Machine Learning, 2022.
+
+  \bibitem{LiLuedtke2023EfficientFusion} Sijia Li and Alex Luedtke. Efficient Estimation under Data Fusion. Biometrika 110, 2023.
+
+\end{thebibliography}
+
+\end{document}

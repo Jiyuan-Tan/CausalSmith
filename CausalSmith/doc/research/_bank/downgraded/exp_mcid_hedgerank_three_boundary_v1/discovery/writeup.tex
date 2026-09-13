@@ -1,0 +1,1035 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}mcid\_\allowbreak{}hedgerank\_\allowbreak{}three\_\allowbreak{}boundary}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Under the standard positive-compatible recursive semi-Markovian semantics, acquiring \(Q[V\setminus A]=P(V\setminus A\mid\operatorname{do}(A))\) identifies the causal target \(Q_s\) exactly when \(A\) hits every minimal residual hedge. Rank three is the first nonzero minimal residual-hedge rank for finite simple bow-free singleton-target ADMGs, and four-vertex hedges are exactly complementary directed and bidirected spanning paths. A one-private-guard expansion, oriented by a source-vertex order \(\prec\) on \(U\), realizes the edge clutter of every finite simple graph, yielding unit-cost \(\mathsf{NP}\)- and \(\mathsf{APX}\)-hardness on radius-two bidirected trees. Under the promise \(r(G,s)\leq3\), the path classification partitions every minimal residual across target parents and spouses; after polynomial enumeration in the lexicographic order induced by an independently supplied causal-vertex order \(\triangleleft_V\) on \(V\), this yields a deterministic weighted factor-two LP rounding algorithm. Consequently, the weighted natural-covering-LP integrality-gap supremum over all positive-rational-cost instances in the promised class with nonempty residual clutter is exactly two; unit-cost complete-graph expansions witness the lower bound, and the Khot--Regev threshold transfers under \(\mathsf{UGC}\) on the narrower unit-cost radius-two-tree subclass. The supplied-order promised enumerator and optimizer-or-rank-violation interface support existing exact solvers without claiming an unrestricted rank-three recognition algorithm.
+
+\section{Project justification}
+
+\paragraph{Gap.} The published minimum-cost intervention-design frontier jumps from polynomial solvability at residual size two to unrestricted logarithmic hardness, but it does not identify the first nonempty finite simple bow-free singleton-target rank, the exact weighted natural-LP gap at that boundary, or the approximation threshold on a graphically sparse hard subclass.
+
+\paragraph{Niche.} Rank-three hedge clutters are not arbitrary three-uniform clutters: every minimal residual crosses the target-parent and target-spouse partition. This structure controls every positive-rational-cost instance under the rank promise, while private guards still realize every graph edge clutter inside the narrower unit-cost class whose bidirected graph is a radius-two tree.
+
+\paragraph{Fill.} The paper imports the positive-compatible recursive semi-Markovian identification bridge: acquisition of \(Q[V\setminus A]\) identifies \(Q_s\) exactly when \(A\) hits every minimal residual hedge. It then proves the four-vertex obstruction classification and exact private-guard representation, transfers objective-preserving hardness, and establishes that the weighted natural-covering-LP integrality-gap supremum is exactly two over all positive-rational-cost rank-three-promise instances with nonempty residual clutter. The private-guard construction uses the source-vertex order \(\prec\) on \(U\). Separately, given a causal-vertex order \(\triangleleft_V\) on \(V\), promised enumeration lists residual constraints exactly once in induced lexicographic order before deterministic parent-spouse rounding. Complete-graph gadgets supply the matching sequence, and \(\mathsf{UGC}\)-conditional \(2-\epsilon\) hardness holds on the narrower unit-cost radius-two-tree subclass. The certifying optimizer-or-rank-violation interface is provided without asserting unrestricted recognition of the rank promise.
+
+\section{Related work}
+
+Richardson and Spirtes supply the finite simple ADMG and bow-free conventions used to state the model. Shpitser and Pearl provide the complete hedge obstruction for recursive semi-Markovian models. Bhattacharya, Nabi, and Shpitser provide adjacent semiparametric-inference context for hidden-variable graphical models; this note instead concerns graphical identification and combinatorial experiment acquisition, not estimation. Akbari, Etesami, and Kiyavash define positive-compatible-model identification, reduce a single proxy acquisition \(Q[V\setminus A]\) to the no-hedge condition in \(G[V\setminus A]\), and formulate minimum-cost intervention design as minimum-weight hedge hitting. They prove unrestricted hardness and settle bounded residual size through two; their boundary is continued here at the first nonzero finite simple bow-free singleton-target rank. Elahi and coauthors replace explicit hedge enumeration by WPMAX-SAT and ILP and leave approximation algorithms open, making their RC2 and Gurobi workflow an immediate computational consumer. Nemhauser and Trotter provide classical half-integral vertex-cover geometry that informs the argument, while the parent-spouse threshold proof here acts directly on weighted causal residuals and yields the factor-two upper bound over the full positive-rational-cost rank-three-promise class after exact-once enumeration using the supplied causal-vertex order \(\triangleleft_V\) on \(V\). Korte and Vygen supply the rational-LP polynomial-time result used to compute the fractional solution and rational breakpoints. Garey, Johnson, and Stockmeyer are retained as classical graph-hardness background; the actual bounded-degree \(\mathsf{APX}\) transfer uses Alimonti and Kann's cubic vertex-cover theorem. Dinur, Guruswami, Khot, and Regev provide the PCP-era hypergraph-vertex-cover hardness context, whereas Khot and Regev provide the \(\mathsf{UGC}\)-conditional factor-two graph lower bound transferred here to the narrower unit-cost radius-two-bidirected-tree subclass. Singh's LP-gap formula motivates the complete-graph sequence witnessing the matching supremum, but no sharpening of that source result is claimed. Fernau's explicit-hypergraph branching informs only the scoped bounded-cardinality routine; neither that routine nor the supplied-order promised enumerator is presented as unrestricted rank-three recognition. The causal-vertex enumeration order \(\triangleleft_V\) is independent of the source order \(\prec\) used to orient private-guard expansions.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(Q_s=P(s\mid\operatorname{do}(V\setminus\{s\}))\).
+Primary functional / estimator / diagnostic: \(A^\star\in\arg\min_{A\subseteq V^{-}}\{\sum_{v\in A}c(v):A\cap R\neq\varnothing\ \forall R\in\mathcal C(G,s)\}\).
+\begin{itemize}
+  \item \texttt{V} --- \texttt{finite set}; \(\mathsf{FinSet}\); \texttt{Observed vertices of the causal graph.}
+  \item \texttt{D} --- \texttt{directed edge relation}; \(V\times V\); \texttt{Directed causal edges.}
+  \par\smallskip\noindent\emph{Definition.} \(D\subseteq V\times V\)
+  \item \texttt{B} --- \texttt{symmetric irreflexive edge relation}; \(\binom{V}{2}\); \texttt{Bidirected latent-\allowbreak{}confounding edges.}
+  \par\smallskip\noindent\emph{Definition.} \(B\subseteq \binom{V}{2}\)
+  \item \texttt{G} --- \texttt{finite simple acyclic directed mixed graph}; \texttt{Causal graph supplied to the design problem.}
+  \par\smallskip\noindent\emph{Definition.} \(G=(V,D,B)\)
+  \item \texttt{s} --- \texttt{vertex}; \(V\); \texttt{Singleton target vertex.}
+  \item \texttt{Vminus} --- \texttt{finite set}; \texttt{Permitted intervention vertices.}
+  \par\smallskip\noindent\emph{Definition.} \(V^{-}=V\setminus\{s\}\)
+  \item \texttt{c} --- \texttt{cost map}; \(c:V^{-}\to\mathbb Q_{>0}\); \texttt{Positive intervention costs.}
+  \item \texttt{Qtarget} --- \texttt{interventional distribution}; \texttt{Causal target whose identification is enabled by proxy experiments.}
+  \par\smallskip\noindent\emph{Definition.} \(Q_s=Q[\{s\}]=P(s\mid\operatorname{do}(V\setminus\{s\}))\)
+  \item \texttt{F} --- \texttt{vertex subset}; \(2^V\); \texttt{Candidate singleton-\allowbreak{}target hedge.}
+  \item \texttt{R} --- \texttt{residual vertex subset}; \texttt{Manipulable part of a hedge.}
+  \par\smallskip\noindent\emph{Definition.} \(R=F\setminus\{s\}\)
+  \item \texttt{HedgeFamily} --- \texttt{set family}; \(2^{2^V}\); \texttt{All hedges for the singleton query.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Hdg}(G,s)\)
+  \item \texttt{Clutter} --- \texttt{clutter}; \(2^{2^{V^{-}}}\); \texttt{Inclusion-\allowbreak{}minimal residual hedges.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C(G,s)\)
+  \item \texttt{rank} --- \texttt{nonnegative integer}; \texttt{Minimal residual-\allowbreak{}hedge rank.}
+  \par\smallskip\noindent\emph{Definition.} \(r(G,s)=\max(\{|R|:R\in\mathcal C(G,s)\}\cup\{0\})\)
+  \item \texttt{Pset} --- \texttt{vertex subset}; \texttt{Parents of the target.}
+  \par\smallskip\noindent\emph{Definition.} \(P_s=\{v\in V^{-}:(v,s)\in D\}\)
+  \item \texttt{Tset} --- \texttt{vertex subset}; \texttt{Bidirected neighbors of the target.}
+  \par\smallskip\noindent\emph{Definition.} \(T_s=\{v\in V^{-}:\{v,s\}\in B\}\)
+  \item \texttt{A} --- \texttt{intervention set}; \(2^{V^{-}}\); \texttt{Vertices on which proxy experiments are acquired.}
+  \item \texttt{OPT} --- \texttt{positive rational or zero}; \texttt{Minimum acquisition cost.}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{OPT}(G,s,c)=\min\{\sum_{v\in A}c(v):A\cap R\neq\varnothing\ \forall R\in\mathcal C(G,s)\}\)
+  \item \texttt{y} --- \texttt{fractional intervention vector}; \([0,1]^{V^{-}}\); \texttt{Variables of the natural covering relaxation.}
+  \item \texttt{LP} --- \texttt{linear-\allowbreak{}program value}; \texttt{Natural residual-\allowbreak{}hedge covering relaxation.}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{LP}(G,s,c)=\min_{y\in[0,1]^{V^{-}}}\sum_{v\in V^{-}}c(v)y_v\) subject to \(\sum_{v\in R}y_v\geq1\) for every \(R\in\mathcal C(G,s)\)
+  \item \texttt{U} --- \texttt{finite set}; \texttt{Vertices of a source graph.}
+  \item \texttt{E} --- \texttt{simple undirected edge set}; \(\binom U2\); \texttt{Edges of a source vertex-\allowbreak{}cover instance.}
+  \item \texttt{Hsource} --- \texttt{finite simple graph}; \texttt{Source graph for the causal realization.}
+  \par\smallskip\noindent\emph{Definition.} \(H=(U,E)\)
+  \item \texttt{order} --- \texttt{total order}; \(\prec\ \subseteq U\times U\); \texttt{Order orienting source edges acyclically.}
+  \item \texttt{x} --- \texttt{injective vertex map}; \(x:U\to V^{-}\); \texttt{Source-\allowbreak{}vertex copy in the causal graph.}
+  \item \texttt{z} --- \texttt{injective guard map}; \(z:E\to V^{-}\); \texttt{Private guard vertex for each source edge.}
+  \item \texttt{Ggadget} --- \texttt{finite simple acyclic directed mixed graph}; Private-guard causal realization of \(H\).
+  \par\smallskip\noindent\emph{Definition.} \(G_H\)
+  \item \texttt{w} --- \texttt{positive source weight map}; \(w:U\to\mathbb Q_{>0}\); \texttt{Weights of a source vertex-\allowbreak{}cover instance.}
+  \item \texttt{t} --- \texttt{threshold}; \((0,1/2)\); \texttt{Rounding threshold.}
+  \item \texttt{Athresh} --- \texttt{intervention set}; \texttt{Parent-\allowbreak{}spouse threshold rounding.}
+  \par\smallskip\noindent\emph{Definition.} \(A_t=\{p\in P_s:y_p\geq t\}\cup\{b\in T_s:y_b\geq 1/2-t\}\)
+  \item \texttt{k} --- \texttt{nonnegative integer}; \texttt{Supplied cardinality bound for scoped exact search.}
+  \item \texttt{epsilon} --- \texttt{positive real}; \(\mathbb R_{>0}\); \texttt{Approximation slack.}
+  \item \texttt{UGC} --- \texttt{complexity assumption}; \texttt{Conditional basis for the tight approximation lower bound.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The Unique Games Conjecture}
+  \item \texttt{vertexOrder} --- \texttt{total order}; \(\triangleleft_V\subseteq V\times V\); \texttt{Supplied total order on causal vertices,\allowbreak{} used only for deterministic lexicographic enumeration.}
+  \item \texttt{Qproxy} --- \texttt{interventional distribution family}; Proxy interventional law acquired after intervening on \(A\).
+  \par\smallskip\noindent\emph{Definition.} \(Q[W]=P(W\mid\operatorname{do}(V\setminus W))\) for \(W\subseteq V\); in particular, \(Q[V\setminus A]=P(V\setminus A\mid\operatorname{do}(A))\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:directed-acyclicity]\label{ass:directed-acyclicity}
+The directed relation \(D\) is acyclic.
+\par\smallskip\noindent\emph{Standard} (ADMG directed acyclicity, \cite{ShpitserPearl2006}).
+\end{assumption}
+
+\begin{assumption}[ass:simple-mixed-graph]\label{ass:simple-mixed-graph}
+The mixed graph \(G\) has no loops or repeated edges of either type.
+\par\smallskip\noindent\emph{Standard} (Finite simple ADMG convention, \cite{RichardsonSpirtes2002}).
+\end{assumption}
+
+\begin{assumption}[ass:bow-free]\label{ass:bow-free}
+For every distinct \(u,v\in V\), \((u,v)\in D\) or \((v,u)\in D\) implies \(\{u,v\}\notin B\).
+\par\smallskip\noindent\emph{Standard} (Bow-free mixed graph condition, \cite{RichardsonSpirtes2002}).
+\end{assumption}
+
+\begin{assumption}[ass:singleton-target]\label{ass:singleton-target}
+The target set is exactly \(\{s\}\).
+\par\smallskip\noindent\emph{Standard} (Singleton \(Q[S]\) specialization, \cite{AkbariEtesamiKiyavash2025}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-rational-cost]\label{ass:positive-rational-cost}
+For every \(v\in V^{-}\), \(c(v)\in\mathbb Q_{>0}\).
+\par\smallskip\noindent\emph{Standard} (Additive positive intervention costs, \cite{AkbariEtesamiKiyavash2025}).
+\end{assumption}
+
+\begin{assumption}[ass:rank-three-promise]\label{ass:rank-three-promise}
+The supplied instance satisfies \(r(G,s)\leq3\).
+\par\smallskip\noindent\emph{Novel.} The condition describes sparse bow-free causal systems whose inclusion-minimal nonidentifiability witnesses involve at most three manipulable variables; it includes all private-guard realizations—whose bidirected graphs are trees of radius at most two—and the first nonempty bow-free singleton obstruction class.
+\end{assumption}
+
+\begin{assumption}[ass:unique-games]\label{ass:unique-games}
+\(\mathsf{UGC}\) holds.
+\par\smallskip\noindent\emph{Standard} (Unique Games Conjecture, \cite{KhotRegev2008}).
+\end{assumption}
+
+\begin{assumption}[ass:recursive-semimarkovian-scope]\label{ass:recursive-semimarkovian-scope}
+The finite graph \(G\) is the observed acyclic directed mixed graph induced by a recursive semi-Markovian structural causal model on observed vertex set \(V\).
+\par\smallskip\noindent\emph{Novel.} standard
+\end{assumption}
+
+\begin{assumption}[ass:proxy-intervention-availability]\label{ass:proxy-intervention-availability}
+For every selected \(A\subseteq V^{-}\), acquisition supplies the proxy interventional law \(Q[V\setminus A]=P(V\setminus A\mid\operatorname{do}(A))\).
+\par\smallskip\noindent\emph{Novel.} standard
+\end{assumption}
+
+\begin{assumption}[ass:positive-compatible-identification]\label{ass:positive-compatible-identification}
+Every identifiability claim is interpreted uniformly over positive recursive semi-Markovian models compatible with \(G\).
+\par\smallskip\noindent\emph{Novel.} standard
+\end{assumption}
+
+\begin{assumption}[ass:uniform-poly-time-model]\label{ass:uniform-poly-time-model}
+Fix the following uniform two-carrier computational convention: (i) a
+causal instance \(G=(V,D,B)\), together with its supplied causal-vertex
+order \(\triangleleft_V\), is relabeled by the order isomorphism
+\(V\simeq\mathrm{Fin}\,|V|\) and encoded by its directed and bidirected
+adjacency bit-matrices, the index of \(s\), and the binary numerators and
+denominators of the positive rational costs, with \(L\) the total binary
+encoding length; (ii) independently, a source graph \(H=(U,E)\), together
+with its supplied source order \(\prec\), is relabeled by the order
+isomorphism \(U\simeq\mathrm{Fin}\,|U|\) and encoded by its adjacency
+bit-matrix and any accompanying rational data in binary, again with \(L\)
+denoting the applicable total input length; (iii) a polynomial-time claim
+means polynomial time in the relevant carrier size and \(L\) on the
+appropriate canonical encoding; (iv) the family \(\mathcal C(G,s)\), the
+rank \(r(G,s)\), intervention feasibility, \(\operatorname{LP}(G,s,c)\),
+\(\operatorname{OPT}(G,s,c)\), and their approximation ratios are invariant
+under causal-vertex relabeling, while vertex-cover feasibility, optimum, and
+approximation ratio are invariant under source-vertex relabeling, and the
+corresponding supplied order transports algorithms and certificates between
+a generic finite carrier and its own canonical carrier with polynomial
+overhead; (v) elementary finite-graph, finite-set, comparison, and rational
+arithmetic operations used in this paper have polynomially bounded
+intermediate binary encodings and polynomial bit complexity; and (vi)
+polynomial-time maps on these encodings are closed under composition,
+including the composition of private-guard expansion, parent-spouse rounding,
+verification, and reverse guard replacement.
+\par\smallskip\noindent\emph{Novel.} standard
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:singleton-hedges]\label{def:singleton-hedges}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Singleton-\allowbreak{}target hedge family}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{Hdg}(G,s)=\{F\subseteq V:\{s\}\subsetneq F,\ B[F]\text{ is connected, and every }v\in F\text{ has a directed path to }s\text{ in }D[F]\}\).
+\end{definition}
+
+\begin{definition}[def:minimal-residual-clutter]\label{def:minimal-residual-clutter}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Minimal residual-\allowbreak{}hedge clutter}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C(G,s)=\{F\setminus\{s\}:F\in\mathsf{Hdg}(G,s),\ \nexists F'\in\mathsf{Hdg}(G,s)\text{ with }F'\subsetneq F\}\).
+\end{definition}
+
+\begin{definition}[def:residual-rank]\label{def:residual-rank}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Minimal residual-\allowbreak{}hedge rank}
+\par\smallskip\noindent\emph{Construction.} \(r(G,s)=\max(\{|R|:R\in\mathcal C(G,s)\}\cup\{0\})\).
+\end{definition}
+
+\begin{definition}[def:mcid-objective]\label{def:mcid-objective}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Minimum-\allowbreak{}cost identifying intervention}
+\par\smallskip\noindent\emph{Construction.} Under the recursive semi-Markovian, proxy-intervention, and positive-compatible semantic scope, an intervention set \(A\subseteq V^{-}\) is feasible exactly when \(Q_s=Q[\{s\}]\) is identifiable from the acquired law \(Q[V\setminus A]=P(V\setminus A\mid\operatorname{do}(A))\). By the hedge-hitting identification lemma, this feasible class is exactly \(\{A\subseteq V^{-}:A\cap R\neq\varnothing\text{ for every }R\in\mathcal C(G,s)\}\). Choose \(A^\star\in\arg\min_{A\subseteq V^{-}}\sum_{v\in A}c(v)\) over this common feasible class; its value is \(\operatorname{OPT}(G,s,c)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{s}; \texttt{c}.
+\end{definition}
+
+\begin{definition}[def:covering-lp]\label{def:covering-lp}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Natural residual-\allowbreak{}hedge covering relaxation}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{LP}(G,s,c)=\min_{y\in[0,1]^{V^{-}}}\sum_{v\in V^{-}}c(v)y_v\) subject to \(\sum_{v\in R}y_v\geq1\) for all \(R\in\mathcal C(G,s)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{s}; \texttt{c}.
+\end{definition}
+
+\begin{definition}[def:private-guard-expansion]\label{def:private-guard-expansion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Ordered private-\allowbreak{}guard expansion}
+\par\smallskip\noindent\emph{Construction.} For each \(u\in U\), create \(x_u\) and add \(s\leftrightarrow x_u\). For each \(e=\{u,v\}\in E\) with \(u\prec v\), create a private \(z_e\) and add exactly \(x_u\to x_v\), \(x_v\to z_e\), \(z_e\to s\), and \(z_e\leftrightarrow x_u\). The resulting graph is \(G_H\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Hsource}; \texttt{order}.
+\end{definition}
+
+\begin{definition}[def:parent-spouse-rounding]\label{def:parent-spouse-rounding}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Parent-\allowbreak{}spouse threshold rounding}
+\par\smallskip\noindent\emph{Construction.} Given an optimal fractional solution \(y\), form the critical values
+\(\{y_p:p\in P_s\}\cup\{1/2-y_b:b\in T_s\}\) that lie in \((0,1/2)\).
+These values partition \((0,1/2)\) into finitely many open cells.  Evaluate
+\(A_t=\{p\in P_s:y_p\geq t\}\cup\{b\in T_s:y_b\geq1/2-t\}\) at every
+critical value and at one rational representative of every nonempty open
+cell, and return a cheapest evaluated set.
+\par\smallskip\noindent\emph{Inputs.} \texttt{y}; \texttt{Pset}; \texttt{Tset}.
+\end{definition}
+
+\begin{definition}[def:promised-enumerator]\label{def:promised-enumerator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Promised-\allowbreak{}rank obstruction enumerator}
+\par\smallskip\noindent\emph{Construction.} Given a supplied total order \(\triangleleft_V\) on \(V\), test every \(R\subseteq V^{-}\) with \(|R|\leq3\) by bidirected connectivity and directed reachability in \(G[R\cup\{s\}]\), retain it exactly when it is a hedge residual and no proper subset is one, and order outputs lexicographically using \(\triangleleft_V\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{s}; \texttt{vertexOrder}.
+\end{definition}
+
+\begin{definition}[def:rank-recognition-handle]\label{def:rank-recognition-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}point rank-\allowbreak{}recognition handle}
+\par\smallskip\noindent\emph{Construction.} Analyze the decision problem \(r(G,s)\leq3\) by combining alternating restriction to directed ancestors of \(s\) and the bidirected component of \(s\) with deletion-based extraction of an inclusion-minimal hedge certificate.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{s}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:first-rank-boundary]\label{thm:first-rank-boundary}
+Every \(F\in\mathsf{Hdg}(G,s)\) has \(|F|\geq4\). A four-vertex \(F\) is a hedge if and only if the unordered pairs of \(D[F]\) form a spanning path oriented toward \(s\) and \(B[F]\) is the complementary spanning path. Consequently, \(r(G,s)\leq2\) implies \(\mathcal C(G,s)=\varnothing\). If \(R\in\mathcal C(G,s)\) and \(|R|=3\), then \(R\subseteq P_s\cup T_s\), \(R\cap P_s\neq\varnothing\), \(R\cap T_s\neq\varnothing\), and \(P_s\cap T_s=\varnothing\).
+\end{theorem}
+\begin{proof}
+Put \(q=|F|\).  By \(\{s\}\subsetneq F\) in
+\(\mathsf{Hdg}(G,s)\), we have \(q\geq 2\).  For every
+\(v\in F\setminus\{s\}\), let \(d(v)\) be the length of a shortest
+directed path from \(v\) to \(s\) in \(D[F]\), whose existence is part of
+Definition \(\mathrm{def{:}singleton\mbox{-}hedges}\).  Choose the first edge
+\(v\to p(v)\) of such a path.  Then
+\[
+ d(p(v))=d(v)-1.
+\]
+Consequently the \(q-1\) chosen unordered pairs are distinct, and iteration
+of \(p\) reaches \(s\).  They therefore form a spanning tree of the
+underlying undirected graph of \(D[F]\).  Independently, connectivity of
+\(B[F]\) gives a bidirected spanning tree and hence at least \(q-1\)
+bidirected pairs.  Bow-freeness makes every directed pair distinct from every
+bidirected pair.  Simplicity then gives
+\[
+ 2(q-1)\leq \binom q2,
+ \qquad\text{hence}\qquad q\geq4.
+\]
+
+Suppose now that \(q=4\).  Equality holds in the preceding display.  Thus
+\(D[F]\) has exactly three unordered pairs, \(B[F]\) has exactly three
+pairs, both underlying graphs are spanning trees, and their pair sets
+partition \(\binom F2\).  A tree on four vertices is either a star or a
+path.  The complement of a star has its center isolated, contrary to the
+connectivity of the complementary tree.  Hence the directed underlying tree
+is a spanning path, and its complement \(B[F]\) is also a spanning path.
+Because every vertex reaches \(s\) and an undirected tree has a unique path
+to \(s\), every directed edge is oriented along that path toward \(s\).
+
+Conversely, if the directed pairs form a spanning path oriented toward
+\(s\), every vertex has a directed path to \(s\); if \(B[F]\) is its
+complementary spanning path, then \(B[F]\) is connected.  Together with
+\(\{s\}\subsetneq F\), these are exactly the conditions in
+Definition \(\mathrm{def{:}singleton\mbox{-}hedges}\), so \(F\) is a hedge.
+
+If \(\mathcal C(G,s)\neq\varnothing\), every
+\(R\in\mathcal C(G,s)\) is \(F\setminus\{s\}\) for a hedge \(F\), and the
+first part gives \(|R|\geq3\).  Therefore \(r(G,s)\leq2\) forces
+\(\mathcal C(G,s)=\varnothing\).  Finally, let
+\(R\in\mathcal C(G,s)\) have size three.  Then
+\(F=R\cup\{s\}\) is a four-vertex hedge.  The two complementary paths use
+every pair in \(\binom F2\).  Hence for every \(v\in R\), the pair
+\(\{v,s\}\) is either bidirected or directed.  In the directed case the
+orientation-toward-\(s\) conclusion gives \(v\to s\), so
+\(v\in P_s\); in the bidirected case \(v\in T_s\).  Both spanning trees
+have positive degree at \(s\), so \(R\) meets both \(P_s\) and \(T_s\).
+The equality \(P_s\cap T_s=\varnothing\) is exactly the bow-free condition
+applied to pairs incident to \(s\).  This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This edge-count characterization locates the first nonzero obstruction rank and creates the two-sided incidence structure used by the approximation theorem. \textit{Gap.} Akbari, Etesami, and Kiyavash establish polynomial optimization when minimal hedge size is at most two in a more general model, but do not classify bow-free singleton hedges or show that ranks one and two are empty in this model. \textit{Consumer.} A rank-aware preprocessing layer can return the empty intervention without invoking RC2, Gurobi, or hedge enumeration whenever the promised rank is at most two.
+
+\begin{theorem}[thm:private-guard-realization]\label{thm:private-guard-realization}
+For every ordered finite simple graph \(H=(U,E)\), the graph \(G_H\) is bow-free and acyclic, its bidirected subgraph is a tree of radius at most two centered at \(s\), and \(\mathcal C(G_H,s)=\{\{x_u,x_v,z_e\}:e=\{u,v\}\in E\}\). Hence \(r(G_H,s)=3\) when \(E\neq\varnothing\), and \(r(G_H,s)=0\) otherwise.
+\end{theorem}
+\begin{proof}
+Fix a total order on \(U\).  Order the constructed vertices by putting the
+\(x_u\)'s first in the given order, all guards next, and \(s\) last.  Every
+directed edge in Definition \(\mathrm{def{:}private\mbox{-}guard\mbox{-}expansion}\)
+points forward in this order: \(x_u\to x_v\) has \(u\prec v\), while
+\(x_v\to z_e\) and \(z_e\to s\) cross the next two blocks.  Thus \(D\) is
+acyclic.  The directed pairs are of the three displayed types, whereas the
+bidirected pairs are precisely \(\{s,x_u\}\) and
+\(\{x_u,z_e\}\), where \(u\) is the earlier endpoint of \(e\).  These lists
+are disjoint, so \(G_H\) is bow-free and simple.
+
+The bidirected graph is connected: every \(x_u\) is adjacent to \(s\), and
+every \(z_e\) is adjacent to its designated earlier endpoint \(x_u\).
+It has
+\[
+ |U|+|E|=(1+|U|+|E|)-1
+\]
+edges, so it is a tree.  Its distance from \(s\) is one at every \(x_u\)
+and two at every guard, proving radius at most two (with the evident radius
+zero convention when only \(s\) is present).
+
+For an edge \(e=\{u,v\}\) with \(u\prec v\), put
+\[
+ F_e=\{s,x_u,x_v,z_e\}.
+\]
+The directed path \(x_u\to x_v\to z_e\to s\) makes every vertex of
+\(F_e\) reach \(s\).  The bidirected edges
+\(s\leftrightarrow x_u\), \(s\leftrightarrow x_v\), and
+\(x_u\leftrightarrow z_e\) connect \(B[F_e]\).  Hence \(F_e\) is a hedge.
+Theorem \(\mathrm{thm{:}first\mbox{-}rank\mbox{-}boundary}\) excludes every
+proper hedge with fewer than four vertices, so \(F_e\) is inclusion-minimal
+and \(\{x_u,x_v,z_e\}\in\mathcal C(G_H,s)\).
+
+For the reverse inclusion, let \(F\) be any hedge in \(G_H\).  Since the
+only bidirected neighbors of \(s\) are source-copy vertices and \(B[F]\) is
+connected with \(|F|>1\), the set \(F\) contains some \(x_w\).  Choose a
+directed path in \(D[F]\) from \(x_w\) to \(s\).  Only guards have an edge
+into \(s\), and the unique directed in-neighbor of a guard \(z_e\) is the
+later endpoint \(x_v\) of its source edge.  Thus the last two edges of the
+chosen path are
+\[
+ x_v\longrightarrow z_e\longrightarrow s
+\]
+for a unique \(e=\{u,v\}\) with \(u\prec v\).  The guard \(z_e\) has the
+unique bidirected neighbor \(x_u\).  Connectivity of \(B[F]\), together
+with \(s,z_e\in F\), therefore forces \(x_u\in F\).  We have proved
+\[
+ F_e=\{s,x_u,x_v,z_e\}\subseteq F.
+\]
+It follows that every hedge contains an intended four-vertex hedge.  If
+\(F\) is inclusion-minimal, equality must hold.  This proves
+\[
+ \mathcal C(G_H,s)
+ =\bigl\{\{x_u,x_v,z_e\}:e=\{u,v\}\in E\bigr\}.
+\]
+All members on the right have size three.  Hence the residual rank is three
+when \(E\neq\varnothing\).  When \(E=\varnothing\), the reverse-inclusion
+argument would associate any hedge with an edge of \(E\), which is
+impossible; the clutter is empty and the rank is zero.
+
+As a destructive finite check not used in the proof, an independent
+enumerator tested all \(1{,}099\) labeled source graphs on one through five
+vertices and all \(1{,}900{,}363\) resulting residual subsets, as well as
+all \(32{,}767\) residual subsets for each of \(K_{3,3}\) and the triangular
+prism.  Every enumerated hedge contained an intended \(F_e\), and every
+intended \(F_e\) satisfied both defining predicates.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact reverse inclusion, rather than mere construction of intended hedges, is the load-bearing causal-clutter representation result. \textit{Gap.} The two-auxiliary reduction of Akbari, Etesami, and Kiyavash does not realize exactly one three-element minimal residual per source edge and does not preserve a radius-two bidirected tree. \textit{Consumer.} The theorem turns graph benchmarks into certified rank-three MCID instances for the min-cost-intervention implementation and for solver regression tests.
+
+\begin{theorem}[thm:objective-preserving-hardness]\label{thm:objective-preserving-hardness}
+Assign unit cost to every vertex of \(G_H\). Every vertex cover \(C\subseteq U\) maps to the intervention \(\{x_u:u\in C\}\) with the same cost, and every feasible intervention maps in polynomial time, by replacing each selected \(z_e\) with an endpoint of \(e\), to a vertex cover of no larger cost. Therefore \(\operatorname{OPT}(G_H,s,c)=\tau(H)\). The reduction is an \(L\)-reduction with constants one, so rank-three MCID is \(\mathsf{NP}\)-hard and \(\mathsf{APX}\)-hard even with unit costs and a radius-two bidirected tree; the \(\mathsf{APX}\)-hardness remains for source graphs of maximum degree three.
+\end{theorem}
+\begin{proof}
+Assign \(c(v)=1\) to every \(v\in V^{-}\).  Theorem
+\(\mathrm{thm{:}private\mbox{-}guard\mbox{-}realization}\) gives
+\[
+ \mathcal C(G_H,s)
+ =\bigl\{\{x_u,x_v,z_e\}:e=\{u,v\}\in E\bigr\}.
+\]
+Therefore the feasibility constraint indexed by \(e=\{u,v\}\) is exactly
+\[
+ A\cap\{x_u,x_v,z_e\}\neq\varnothing.
+\]
+By Definition \(\mathrm{def{:}mcid\mbox{-}objective}\), whose feasible
+class is supplied by the cited hedge-hitting identification bridge, these
+are precisely the proxy interventions that identify the causal target
+\(Q_s\).
+
+If \(C\subseteq U\) is a vertex cover, put
+\(A_C=\{x_u:u\in C\}\).  For every edge \(e=\{u,v\}\), at least one of
+\(u,v\) belongs to \(C\), so \(A_C\) meets the corresponding residual.
+Thus \(A_C\) is feasible and
+\[
+ c(A_C)=|C|,
+ \qquad
+ \operatorname{OPT}(G_H,s,c)\leq\tau(H).
+\]
+
+Conversely, let \(A\subseteq V^{-}\) be feasible and initialize
+\(C_0=\{u\in U:x_u\in A\}\).  Process the edges in the order induced by
+\(\prec\).  If \(e=\{u,v\}\) is not covered by the current set, insert one
+endpoint, say the \(\prec\)-smaller one.  At such a step neither \(x_u\)
+nor \(x_v\) is in \(A\), so feasibility of the displayed residual
+constraint forces \(z_e\in A\).  Charge the insertion to this private
+guard.  Different edges have different guards, and an endpoint already
+inserted creates no new charge.  The final set \(C_A\) is a vertex cover and
+satisfies
+\[
+ |C_A|
+ \leq |\{u:x_u\in A\}|+|\{e:z_e\in A\}|
+ =|A|.
+\]
+The equality uses the fact that the manipulable vertices of \(G_H\) are
+exactly its source copies and private guards.  Applying the map to an
+optimal intervention gives
+\[
+ \tau(H)\leq |C_A|\leq\operatorname{OPT}(G_H,s,c).
+\]
+Together with the forward inequality this proves
+\[
+ \operatorname{OPT}(G_H,s,c)=\tau(H).
+\]
+
+We now certify the computational and approximation-preserving parts without
+conflating carriers.  Canonically encode the source graph using the
+isomorphism \(U\simeq\mathrm{Fin}\,|U|\) induced by \(\prec\).  The
+expansion writes \(1+|U|+|E|\) vertices and the displayed adjacency entries.
+Give its causal output the deterministic order that lists \(s\), then the
+source copies in \(\prec\)-order, and then the guards in induced
+lexicographic edge order; this yields the separate canonical causal encoding
+on \(V(G_H)\).  The reverse map performs one ordered edge scan.  The two
+canonicalization clauses and the elementary bit-cost clause of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\) make both
+maps polynomial in their appropriate input lengths, and its composition
+clause makes the guarded composition polynomial.  Its source relabeling
+clause transfers source instances and covers along \(U\), while its causal
+relabeling clause transfers interventions and the invariant clutter,
+feasibility, and objective values along \(V\).
+
+Equality of optima gives the first \(L\)-reduction inequality with
+\(\alpha=1\).  Since \(C_A\) is a cover and \(|C_A|\leq|A|\),
+\[
+ 0\leq |C_A|-\tau(H)
+ \leq |A|-\operatorname{OPT}(G_H,s,c),
+\]
+which is the second inequality with \(\beta=1\).  Thus an exact MCID
+algorithm would solve Vertex Cover, and any approximation error is carried
+back with no enlargement.  Lemma
+\(\mathrm{lem{:}cubic\mbox{-}vertex\mbox{-}cover\mbox{-}apx\mbox{-}complete}\)
+states that Minimum Vertex Cover is \(\mathsf{APX}\)-complete, and hence
+\(\mathsf{NP}\)-hard and \(\mathsf{APX}\)-hard, already at maximum degree
+three.  The unit-constant \(L\)-reduction transfers both hardness
+conclusions.  The private-guard theorem supplies rank three whenever
+\(E\neq\varnothing\) and a bidirected tree of radius at most two.  Edgeless
+source instances are recognized and solved by the empty set, so restricting
+the hardness reduction to nonempty instances gives exact residual rank
+three.  This proves every asserted restriction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Objective preservation identifies the exact complexity transition at the first nonempty rank rather than importing generic three-hitting-set hardness. \textit{Gap.} Akbari, Etesami, and Kiyavash prove unrestricted MCID hardness, while Alimonti and Kann supply cubic vertex-cover hardness; neither gives a promise-preserving rank-three causal realization. \textit{Consumer.} The result supplies structured hard instances on which the RC2 and Gurobi formulations can be evaluated without uncontrolled hedge rank.
+
+\begin{theorem}[thm:rank-three-rounding]\label{thm:rank-three-rounding}
+Given a supplied total order on \(V\), under \(r(G,s)\leq3\), every nonempty \(R\in\mathcal C(G,s)\) has size three and meets both \(P_s\) and \(T_s\). For an optimal \(y\) of the natural covering relaxation, every \(A_t\) is feasible for \(0<t<1/2\), and some breakpoint choice satisfies \(\sum_{v\in A_t}c(v)\leq2\operatorname{LP}(G,s,c)\leq2\operatorname{OPT}(G,s,c)\). Such a choice is found in polynomial time by the promised-rank enumerator using the supplied order.
+\end{theorem}
+\begin{proof}
+Fix the supplied causal-vertex order \(\triangleleft_V\) on \(V\).
+Assumption \(\mathrm{ass{:}rank\mbox{-}three\mbox{-}promise}\) and
+Definition \(\mathrm{def{:}residual\mbox{-}rank}\) give \(|R|\leq3\) for
+every \(R\in\mathcal C(G,s)\).  Definitions
+\(\mathrm{def{:}singleton\mbox{-}hedges}\) and
+\(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\), together with
+Theorem \(\mathrm{thm{:}first\mbox{-}rank\mbox{-}boundary}\), give
+\(|R|\geq3\).  Thus each nonempty clutter member has size exactly three,
+and the final clause of that theorem gives
+\[
+ R\subseteq P_s\cup T_s,
+ \qquad R\cap P_s\neq\varnothing,
+ \qquad R\cap T_s\neq\varnothing,
+ \qquad P_s\cap T_s=\varnothing.
+\]
+
+The all-ones vector is feasible for the covering LP, and its feasible set
+is a closed subset of the compact cube \([0,1]^{V^{-}}\); its linear
+objective therefore attains a minimum.  Proposition
+\(\mathrm{prop{:}promised\mbox{-}enumeration}\), at promised bound three
+and order \(\triangleleft_V\), lists all constraints.  On the canonical
+causal encoding of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\), the list
+has polynomial length and rational entries of polynomial bit length.
+Lemma \(\mathrm{lem{:}rational\mbox{-}lp\mbox{-}polynomial\mbox{-}time}\)
+therefore returns an optimal rational vector \(y\).  Fix one such vector.
+
+For \(0<t<1/2\), form \(A_t\) according to Definition
+\(\mathrm{def{:}parent\mbox{-}spouse\mbox{-}rounding}\).  Suppose that it
+misses some \(R\in\mathcal C(G,s)\), and let
+\(a=|R\cap P_s|\).  The preceding partition gives \(a\in\{1,2\}\).
+Missed parent and spouse vertices satisfy respectively
+\[
+ y_p<t,
+ \qquad y_b<\frac12-t.
+\]
+If \(a=1\), then
+\[
+ \sum_{v\in R}y_v
+ <t+2\left(\frac12-t\right)=1-t<1;
+\]
+if \(a=2\), then
+\[
+ \sum_{v\in R}y_v
+ <2t+\left(\frac12-t\right)=\frac12+t<1.
+\]
+Both contradict the LP constraint \(\sum_{v\in R}y_v\geq1\).  Hence every
+\(A_t\) hits the entire minimal residual clutter and is a feasible
+identifying intervention by Definition
+\(\mathrm{def{:}mcid\mbox{-}objective}\).
+
+Let \(T\) be uniform on \((0,1/2)\); this is only an averaging device over
+deterministic thresholds.  Interval lengths give
+\[
+ \Pr(p\in A_T)=\min\{1,2y_p\}\quad(p\in P_s),
+ \qquad
+ \Pr(b\in A_T)=\min\{1,2y_b\}\quad(b\in T_s).
+\]
+No other vertex is selected.  Disjointness of \(P_s,T_s\), linearity of
+expectation, nonnegativity of \(y\), and positivity of \(c\) yield
+\[
+ \begin{aligned}
+ \mathbb E\!\left[\sum_{v\in A_T}c(v)\right]
+ &=\sum_{v\in P_s\cup T_s}c(v)\min\{1,2y_v\}\\
+ &\leq2\sum_{v\in V^{-}}c(v)y_v
+ =2\operatorname{LP}(G,s,c).
+ \end{aligned}
+\]
+Every feasible integral intervention has a feasible incidence vector for
+the LP with the same cost, so
+\[
+ \operatorname{LP}(G,s,c)\leq\operatorname{OPT}(G,s,c).
+\]
+
+Membership in \(A_t\) changes only at the finitely many critical values
+\[
+ \{y_p:p\in P_s\}\cup
+ \left\{\frac12-y_b:b\in T_s\right\}
+\]
+that lie in \((0,1/2)\).  On each open cell between consecutive values the
+set is constant; the critical values themselves have Lebesgue measure zero.
+If every positive-length cell had cost greater than
+\(2\operatorname{LP}(G,s,c)\), the expectation would too.  Hence some
+cell, and therefore the cheapest candidate evaluated by Definition
+\(\mathrm{def{:}parent\mbox{-}spouse\mbox{-}rounding}\), has cost at most
+\(2\operatorname{LP}(G,s,c)\).  The rationality of \(y\) makes every
+critical value and, for example, every cell midpoint rational.
+
+There are at most \(2|V|\) critical values.  Promised enumeration, the
+canonical rational-LP algorithm, rational sorting, midpoint construction,
+and candidate evaluation each use polynomially many elementary operations.
+The bit-cost and composition clauses of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\) make the
+composite algorithm polynomial in \(|V|\) and the causal encoding length
+\(L\).  Its causal relabeling clause, using \(\triangleleft_V\), transfers
+the invariant result from \(\mathrm{Fin}\,|V|\) to the generic finite
+causal carrier.  Thus the returned threshold satisfies
+\[
+ \sum_{v\in A_t}c(v)
+ \leq2\operatorname{LP}(G,s,c)
+ \leq2\operatorname{OPT}(G,s,c),
+\]
+as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The parent-spouse crossing property improves the generic factor three for rank-three hitting set to the vertex-cover threshold two. \textit{Gap.} Elahi and coauthors explicitly leave efficient MCID approximation as future work, and Akbari, Etesami, and Kiyavash give only logarithmic approximation in general and exact polynomial algorithms through residual size two. \textit{Consumer.} Given the promised rank and a supplied causal-vertex order \(\triangleleft_V\), the theorem provides a deterministic warm start with an auditable factor-two guarantee for the existing ILP and WPMAX-SAT workflows.
+
+\begin{theorem}[thm:tight-frontier]\label{thm:tight-frontier}
+The supremum of \(\operatorname{OPT}(G,s,c)/\operatorname{LP}(G,s,c)\) over all positive-rational-cost finite simple bow-free singleton-target instances with \(r(G,s)\leq3\) and \(\mathcal C(G,s)\neq\varnothing\) equals two. For every \(n\geq2\), the unit-cost private-guard expansion \(G_{K_n}\), formed using any total order, has a radius-two bidirected tree and ratio \(2-2/n\). Under \(\mathsf{UGC}\), for every fixed \(\epsilon>0\), no polynomial-time \((2-\epsilon)\)-approximation exists even on the narrower subclass of unit-cost instances with \(r(G,s)\leq3\), nonempty residual clutter, and a radius-two bidirected tree.
+\end{theorem}
+\begin{proof}
+Consider any instance in the stated class and choose
+\(R_0\in\mathcal C(G,s)\).  It is nonempty by Definitions
+\(\mathrm{def{:}singleton\mbox{-}hedges}\) and
+\(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\).  Positivity of
+the rational costs and finiteness give
+\(m_0=\min_{v\in R_0}c(v)>0\).  Every feasible LP vector satisfies
+\[
+ \sum_{v\in V^{-}}c(v)y_v
+ \geq\sum_{v\in R_0}c(v)y_v
+ \geq m_0\sum_{v\in R_0}y_v
+ \geq m_0>0.
+\]
+Hence \(\operatorname{LP}(G,s,c)>0\).  Choose a causal-vertex order
+\(\triangleleft_V\) on the finite set \(V\) and invoke Theorem
+\(\mathrm{thm{:}rank\mbox{-}three\mbox{-}rounding}\).  It gives a feasible
+identifying intervention \(A_t\) with
+\[
+ \operatorname{OPT}(G,s,c)
+ \leq\sum_{v\in A_t}c(v)
+ \leq2\operatorname{LP}(G,s,c).
+\]
+Division by the positive LP value proves the universal ratio bound two.
+
+For the matching sequence, let \(n\geq2\), equip \(K_n\) with any source
+order \(\prec\) on \(U\), form \(G_{K_n}\), and give every manipulable
+vertex unit cost.  Theorems
+\(\mathrm{thm{:}private\mbox{-}guard\mbox{-}realization}\) and
+\(\mathrm{thm{:}objective\mbox{-}preserving\mbox{-}hardness}\) give a
+radius-two bidirected tree, residual rank three, and
+\[
+ \mathcal C(G_{K_n},s)
+ =\bigl\{\{x_u,x_v,z_e\}:e=\{u,v\}\in E(K_n)\bigr\},
+ \qquad
+ \operatorname{OPT}(G_{K_n},s,c)=\tau(K_n)=n-1.
+\]
+The last equality holds because omitting two vertices misses their edge,
+whereas all but one vertex cover every edge.
+
+Set \(y_{x_u}=1/2\) for every \(u\) and \(y_{z_e}=0\) for every \(e\).
+Each clutter constraint has sum one, so this solution is feasible and has
+cost \(n/2\).  Conversely, summing all clutter constraints gives
+\[
+ (n-1)\sum_{u\in U}y_{x_u}+\sum_{e\in E(K_n)}y_{z_e}
+ \geq\binom n2.
+\]
+After division by \(n-1>0\),
+\[
+ \sum_{u\in U}y_{x_u}
+ +\frac1{n-1}\sum_{e\in E(K_n)}y_{z_e}\geq\frac n2.
+\]
+Since every coordinate is nonnegative and \(1/(n-1)\leq1\), the unit-cost
+LP objective is at least the left side.  Therefore
+\[
+ \operatorname{LP}(G_{K_n},s,c)=\frac n2,
+ \qquad
+ \frac{\operatorname{OPT}(G_{K_n},s,c)}
+      {\operatorname{LP}(G_{K_n},s,c)}
+ =2-\frac2n.
+\]
+These ratios tend to two, proving that the supremum equals two.
+
+Finally assume \(\mathsf{UGC}\), fix the positive real
+\(\epsilon\), and suppose that a polynomial-time
+\((2-\epsilon)\)-approximation exists on the narrower causal subclass.
+Start with a source graph \(H=(U,E)\) equipped with its independent source
+order \(\prec\).  Canonicalize it through
+\(U\simeq\mathrm{Fin}\,|U|\), form the private-guard graph, equip that
+causal output with the deterministic causal order used in the hardness
+proof, and apply the hypothetical algorithm.  If \(E\neq\varnothing\),
+the private-guard theorem puts the output in the claimed subclass.  The
+reverse map of Theorem
+\(\mathrm{thm{:}objective\mbox{-}preserving\mbox{-}hardness}\) returns a
+cover \(C_A\) satisfying
+\[
+ |C_A|\leq|A|
+ \leq(2-\epsilon)\operatorname{OPT}(G_H,s,c)
+ =(2-\epsilon)\tau(H).
+\]
+If \(E=\varnothing\), return the empty cover.  The two canonicalization,
+relabeling, elementary bit-cost, and guarded-composition clauses of
+Assumption \(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\)
+make this a polynomial-time approximation on the canonical source carrier
+and transfer it to generic finite \(U\); they never identify \(U\) with the
+distinct causal carrier \(V(G_H)\).  This contradicts the canonically scoped
+Lemma \(\mathrm{lem{:}ugc\mbox{-}vertex\mbox{-}cover\mbox{-}hardness}\).
+Thus no such approximation exists.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A matching gap family and conditional lower bound certify that factor two is the exact polynomial frontier under the standard conjecture. \textit{Gap.} Khot and Regev establish the threshold for vertex cover, and Singh characterizes the source LP gap; no published result transfers the threshold to a bounded-rank causal-effect-identification design class. \textit{Consumer.} Algorithm designers can treat a certified factor-two rank-three solution as worst-case optimal under \(\mathsf{UGC}\), focusing engineering effort on instance-specific improvement.
+
+\begin{proposition}[prop:promised-enumeration]\label{prop:promised-enumeration}
+Given a supplied total order on \(V\) and a fixed promised rank bound \(r_0\), all inclusion-minimal residual hedges can be output exactly once, in the lexicographic order induced by the supplied order, in time \(|V|^{r_0+O(1)}\) and polynomial space. At \(r_0=3\) in the present bow-free singleton model, the runtime is \(O(|V|^3\operatorname{poly}(|V|))\). Given \(k\), branching on an uncovered residual returns the least-cost feasible intervention among sets of cardinality at most \(k\), or certifies that none exists, in \(O(3^k\operatorname{poly}(|V|,L))\), where \(L\) is the cost-encoding length.
+\end{proposition}
+\begin{proof}
+Fix a nonnegative integer \(r_0\), a supplied causal order
+\(\triangleleft_V\) on \(V\), and the promised condition
+\(r(G,s)\leq r_0\).  Generate once, in induced lexicographic order, every
+\(R\subseteq V^{-}\) with \(|R|\leq r_0\), and put
+\(F_R=R\cup\{s\}\).  The case \(R=\varnothing\) fails the strict
+containment clause in Definition \(\mathrm{def{:}singleton\mbox{-}hedges}\).
+For nonempty \(R\), a bidirected search in \(B[F_R]\) tests connectivity,
+and a reverse directed search from \(s\) in \(D[F_R]\) tests whether every
+vertex reaches \(s\).  Hence
+\[
+ F_R\in\mathsf{Hdg}(G,s)
+ \quad\Longleftrightarrow\quad
+ B[F_R]\text{ is connected and every }v\in F_R
+ \text{ reaches }s\text{ in }D[F_R].
+\]
+
+For a candidate hedge, perform the same test on every
+\(R'\subsetneq R\).  Every proper subset of \(F_R\) that contains \(s\)
+is uniquely \(R'\cup\{s\}\), so Definition
+\(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\) gives
+\[
+ R\in\mathcal C(G,s)
+ \quad\Longleftrightarrow\quad
+ F_R\in\mathsf{Hdg}(G,s)
+ \text{ and }F_{R'}\notin\mathsf{Hdg}(G,s)
+ \text{ for all }R'\subsetneq R.
+\]
+Every retained set is therefore a clutter member.  Conversely, the rank
+promise and Definition \(\mathrm{def{:}residual\mbox{-}rank}\) put every
+clutter member among the tested candidates.  This proves exact-once output
+and the requested order.
+
+Writing \(n=|V|\), there are
+\[
+ \sum_{j=0}^{r_0}\binom{n-1}{j}=O(n^{r_0})
+\]
+candidates for fixed \(r_0\), and at most \(2^{r_0}\) proper subsets per
+candidate.  Each graph search is polynomial.  Candidates and outputs may be
+streamed while storing only the current candidate, one proper subset, and
+the graph-search workspace, proving polynomial space.  On the canonical
+causal carrier, the causal-encoding and elementary bit-cost clauses of
+Assumption \(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\)
+turn this operation count into time \(|V|^{r_0+O(1)}\), polynomial in the
+remaining causal input length \(L\).  The causal relabeling clause, using
+\(\triangleleft_V\), transfers the invariant output to the generic finite
+causal carrier.
+
+At \(r_0=3\), Assumption
+\(\mathrm{ass{:}rank\mbox{-}three\mbox{-}promise}\) supplies the promise.
+Theorem \(\mathrm{thm{:}first\mbox{-}rank\mbox{-}boundary}\) gives the
+matching lower bound three on nonempty residuals.  Definition
+\(\mathrm{def{:}promised\mbox{-}enumerator}\) therefore tests precisely
+the required triples, of which there are \(O(n^3)\).
+
+For the scoped exact search, use this enumerated rank-three clutter.  At a
+state \((A_0,j)\), return \(A_0\) if it hits every residual.  If it does
+not and \(j=0\), reject the branch.  Otherwise select an uncovered
+three-set \(R\) and recurse on
+\[
+ (A_0\cup\{v\},j-1),
+ \qquad v\in R,
+\]
+retaining a least-cost successful result.  Induction on \(j\) proves
+optimality among feasible extensions using at most \(j\) new vertices.
+The base case is the stated feasibility test.  In the inductive step, if
+\(A_0\) is feasible then positivity of \(c\) makes every strict extension
+more expensive.  If it is infeasible, every feasible extension must hit
+the selected uncovered \(R\), hence occurs in one of the three branches;
+the induction hypothesis optimizes each branch.
+
+The recursion tree has at most
+\[
+ 1+3+\cdots+3^k=O(3^k)
+\]
+nodes.  Every node performs polynomial work on the polynomial-size
+enumerated clutter.  Rational sums and comparisons have bit length
+polynomial in \(|V|\) and \(L\).  The elementary bit-cost and composition
+clauses of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\) yield the
+claimed \(O(3^k\operatorname{poly}(|V|,L))\) runtime on the canonical
+causal carrier, and its causal relabeling clause transfers the result along
+\(V\simeq\mathrm{Fin}\,|V|\).  The proof uses the explicit cardinality
+budget \(k\) and makes no unconstrained weighted \(3^k\) claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition uses the supplied causal-vertex order \(\triangleleft_V\) on \(V\), together with the rank promise, to provide the exact-once lexicographic obstruction list assumed by the LP, while scoping exact weighted search to a supplied cardinality bound. \textit{Gap.} Akbari, Etesami, and Kiyavash note polynomial subset enumeration at fixed hedge size, while Fernau assumes an explicit hyperedge list; neither supplies exact-once causal output together with the bounded-cardinality scope correction. \textit{Consumer.} The causal-vertex-ordered enumerator is a deterministic rank-informed front end for Akbari and coauthors' software and for Elahi and coauthors' exact solver encodings.
+
+\begin{proposition}[prop:optimizer-or-violation]\label{prop:optimizer-or-violation}
+Given a supplied total order on \(V\), enumerate all minimal residual hedges of size at most three in the induced lexicographic order, optimize or two-approximate that relaxation, and verify the returned \(A\) by alternating restriction of \(G[V\setminus A]\) to directed ancestors of \(s\) and the bidirected component of \(s\). If verification succeeds, an exact relaxation optimum is globally exact and the rounded answer costs at most \(2\operatorname{OPT}(G,s,c)\). If verification fails, deletion-based minimization returns a verifiable \(R\in\mathcal C(G,s)\) with \(|R|>3\).
+\end{proposition}
+\begin{proof}
+Fix the supplied causal order \(\triangleleft_V\) on \(V\) and define the
+proof-local family
+\[
+ \mathcal C_{\leq3}=\{R\in\mathcal C(G,s):|R|\leq3\}.
+\]
+Run Definition \(\mathrm{def{:}promised\mbox{-}enumerator}\) on all
+subsets of size at most three.  The connectivity, reachability, and
+proper-subset tests are exactly Definitions
+\(\mathrm{def{:}singleton\mbox{-}hedges}\) and
+\(\mathrm{def{:}minimal\mbox{-}residual\mbox{-}clutter}\), so the output
+is exactly \(\mathcal C_{\leq3}\), without a global rank promise.  It has
+polynomial size.  Theorem
+\(\mathrm{thm{:}first\mbox{-}rank\mbox{-}boundary}\) says that every
+member is a three-set contained in the disjoint union
+\(P_s\mathbin{\dot\cup}T_s\) and meeting both parts.
+
+Define the restricted values
+\[
+ \operatorname{LP}_{\leq3}
+ =\min\left\{\sum_{v\in V^{-}}c(v)y_v:
+ y\in[0,1]^{V^{-}},\ \sum_{v\in R}y_v\geq1
+ \text{ for every }R\in\mathcal C_{\leq3}\right\}
+\]
+and
+\[
+ \operatorname{OPT}_{\leq3}
+ =\min\left\{\sum_{v\in A}c(v):
+ A\subseteq V^{-},\ A\cap R\neq\varnothing
+ \text{ for every }R\in\mathcal C_{\leq3}\right\}.
+\]
+These are proof-local restrictions of the frozen global functionals.  The
+restricted LP has rational input and a nonempty compact feasible region.
+On the canonical causal encoding, Lemma
+\(\mathrm{lem{:}rational\mbox{-}lp\mbox{-}polynomial\mbox{-}time}\)
+returns an optimal rational vector \(y^{(3)}\).
+
+Apply the parent-spouse threshold formula to \(y^{(3)}\).  If a threshold
+set missed a residual with one parent, then
+\[
+ \sum_{v\in R}y^{(3)}_v
+ <t+2\left(\frac12-t\right)=1-t<1;
+\]
+if it missed one with two parents, then
+\[
+ \sum_{v\in R}y^{(3)}_v
+ <2t+\left(\frac12-t\right)=\frac12+t<1.
+\]
+Both contradict the restricted LP.  Thus every threshold set hits
+\(\mathcal C_{\leq3}\).  With \(T\) uniform on \((0,1/2)\), interval
+length gives
+\[
+ \Pr(p\in A_T)=\min\{1,2y^{(3)}_p\},
+ \qquad
+ \Pr(b\in A_T)=\min\{1,2y^{(3)}_b\}.
+\]
+Linearity, positivity of costs, and disjointness of the two parts imply
+\[
+ \mathbb E[c(A_T)]\leq2\operatorname{LP}_{\leq3}.
+\]
+The rational-breakpoint procedure therefore returns
+\(A^{\mathrm{rnd}}\) with
+\[
+ c(A^{\mathrm{rnd}})\leq2\operatorname{LP}_{\leq3}
+ \leq2\operatorname{OPT}(G,s,c),
+\]
+where the last inequality holds because every globally feasible incidence
+vector is feasible for the restricted LP.  Alternatively, an exact
+optimization backend may return an integral minimizer \(A^{(3)}\) with
+\(c(A^{(3)})=\operatorname{OPT}_{\leq3}\); no polynomial-time claim is
+made for this exact integral alternative.
+
+For either returned \(A\), put \(F_0=V\setminus A\), which contains \(s\),
+and apply Lemma
+\(\mathrm{lem{:}fixed\mbox{-}point\mbox{-}hedge\mbox{-}oracle}\).  If the
+fixed point is \(\{s\}\), then \(F_0\) contains no hedge.  Since the graph
+is finite, every hedge contains an inclusion-minimal hedge; hence \(A\)
+hits all of \(\mathcal C(G,s)\).  Definition
+\(\mathrm{def{:}mcid\mbox{-}objective}\) then certifies global feasibility
+and identification of \(Q_s\).  For \(A^{(3)}\), restricted feasibility
+gives \(\operatorname{OPT}_{\leq3}\leq\operatorname{OPT}(G,s,c)\), while
+successful global feasibility gives
+\[
+ \operatorname{OPT}(G,s,c)
+ \leq c(A^{(3)})=\operatorname{OPT}_{\leq3};
+\]
+thus the exact restricted optimum is globally exact.  For
+\(A^{\mathrm{rnd}}\), the already established inequality gives the global
+factor-two certificate.
+
+If verification fails, the oracle returns a hedge \(F\subseteq F_0\).
+For each \(v\in F\setminus\{s\}\), run the oracle on
+\(F\setminus\{v\}\).  Whenever a hedge survives, replace \(F\) by the
+strictly smaller fixed-point hedge returned and restart.  At most
+\(|V|-1\) replacements occur, with at most \(|V|-1\) oracle calls between
+replacements.  At termination no single deletion contains a hedge.  If a
+proper hedge \(J\subsetneq F\) existed, choose
+\(v\in F\setminus J\); both hedges contain \(s\), so \(v\neq s\), and
+\(J\subseteq F\setminus\{v\}\), a contradiction.  Therefore
+\[
+ R=F\setminus\{s\}\in\mathcal C(G,s).
+\]
+Since \(F\subseteq V\setminus A\), it is missed by \(A\); because both
+candidate types hit every member of \(\mathcal C_{\leq3}\), necessarily
+\(|R|>3\).  The final graph searches verify the hedge predicates and the
+failed single-deletion searches verify minimality.
+
+Canonical bounded enumeration, rational LP solution and rounding,
+fixed-point verification, and deletion minimization perform polynomially
+many elementary operations on the causal encoding.  The elementary bit-cost
+and composition clauses of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\) make their
+composition polynomial on \(\mathrm{Fin}\,|V|\).  Its causal relabeling
+clause, using \(\triangleleft_V\), transfers the invariant certificate and
+guarantees to the generic finite causal carrier.  No source carrier or
+source order is used by this interface.  This proves the assertion without
+recognizing the rank promise.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The interface safely exploits low rank without pretending to recognize the promise from a successful run. \textit{Gap.} The WPMAX-SAT and ILP formulations of Elahi and coauthors solve unrestricted MCID but do not return a violated-rank certificate, while explicit bounded-rank hitting-set algorithms assume the promise externally. \textit{Consumer.} With a supplied causal-vertex order \(\triangleleft_V\) fixing deterministic bounded enumeration, RC2 and Gurobi users receive either a certified solution guarantee or a concrete large hedge to pass to the unrestricted backend.
+
+\begin{openendedquestion}[oeq:rank-three-recognition]\label{oeq:rank-three-recognition}
+Determine whether deciding \(r(G,s)\leq3\) for finite simple bow-free ADMGs with singleton target \(s\) has a polynomial-time algorithm, or whether it is \(\mathsf{coNP}\)-complete, using the fixed-point hedge oracle to certify \(r(G,s)>3\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Promise recognition is the genuine unresolved algorithmic boundary left visible by the certifying interface. \textit{Gap.} Neither bounded-size enumeration in Akbari, Etesami, and Kiyavash nor the solver encodings of Elahi and coauthors classify the complexity of recognizing that no larger minimal hedge exists. \textit{Consumer.} A resolution determines whether low-rank preprocessing can be invoked automatically or must remain a promise-or-counterexample workflow.
+
+\begin{lemma}[lem:fixed-point-hedge-oracle]\label{lem:fixed-point-hedge-oracle}
+For every \(F\subseteq V\) with \(s\in F\), alternating restriction to the
+vertices that reach \(s\) in \(D\) and to the bidirected component of \(s\)
+terminates in polynomial time at a fixed set \(F^{\star}\).  The induced
+graph on \(F\) contains a member of \(\mathsf{Hdg}(G,s)\) if and only if
+\(F^{\star}\neq\{s\}\); in that case \(F^{\star}\in\mathsf{Hdg}(G,s)\).
+\end{lemma}
+\begin{proof}
+For \(W\subseteq F\) with \(s\in W\), define
+\[
+ \mathsf A(W)=\{v\in W:v\text{ reaches }s\text{ in }D[W]\}
+\]
+and let \(\mathsf K(W)\) be the vertex set of the connected component of
+\(s\) in \(B[W]\).  Starting from \(W_0=F\), alternate
+\(W_{2j+1}=\mathsf A(W_{2j})\) and
+\(W_{2j+2}=\mathsf K(W_{2j+1})\).  Both maps are deflationary and preserve
+\(s\).  Each nonstationary step deletes a vertex.  Therefore, after at most
+\(2|V|+2\) searches, a full two-step pass deletes nothing and the sequence
+reaches a common fixed point \(F^{\star}\) satisfying
+\[
+ \mathsf A(F^{\star})=\mathsf K(F^{\star})=F^{\star}.
+\]
+
+If \(J\subseteq W\) is a hedge, every directed path to \(s\) inside
+\(D[J]\) is also present in \(D[W]\), so \(J\subseteq\mathsf A(W)\).
+Likewise every bidirected path inside the connected graph \(B[J]\) lies in
+\(B[W]\), so \(J\subseteq\mathsf K(W)\).  Induction over the alternating
+restrictions shows that every hedge contained in \(F\) is contained in
+\(F^{\star}\).
+
+At the common fixed point, every vertex reaches \(s\) in
+\(D[F^{\star}]\), and \(B[F^{\star}]\) is connected.  If
+\(F^{\star}\neq\{s\}\), Definition
+\(\mathrm{def{:}singleton\mbox{-}hedges}\) therefore gives
+\(F^{\star}\in\mathsf{Hdg}(G,s)\).  If
+\(F^{\star}=\{s\}\), the survival implication proves that the original
+\(F\) contained no hedge.  This establishes the equivalence.
+
+Each restriction is one directed-reachability or undirected-connectivity
+search on a canonically encoded induced causal graph.  The elementary
+bit-cost clause of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\), together
+with the linear bound on the number of searches, proves polynomial runtime
+on the causal \(\mathrm{Fin}\,|V|\) carrier.  The causal relabeling clause,
+using \(\triangleleft_V\), transfers the fixed set and hedge predicate to
+every finite supplied-ordered causal carrier.
+\end{proof}
+
+\begin{lemma}[lem:cubic-vertex-cover-apx-complete]\label{lem:cubic-vertex-cover-apx-complete}
+Minimum Vertex Cover on graphs of maximum degree at most three is \(\mathsf{APX}\)-complete.
+\end{lemma}
+
+\begin{lemma}[lem:ugc-vertex-cover-hardness]\label{lem:ugc-vertex-cover-hardness}
+Under the canonical source-carrier and polynomial-time interpretation of the uniform two-carrier computational-model assumption, if \(\mathsf{UGC}\) holds, then for every fixed \(\epsilon\in\mathbb R_{>0}\), Minimum Vertex Cover on canonically \(\mathrm{Fin}\,|U|\)-encoded finite simple source graphs has no polynomial-time \((2-\epsilon)\)-approximation.
+\end{lemma}
+\begin{proof}
+Assume \(\mathsf{UGC}\) and fix
+\(\epsilon\in\mathbb R_{>0}\).  Lemma
+\(\mathrm{lem{:}ugc\mbox{-}vertex\mbox{-}cover\mbox{-}hardness\mbox{-}source}\)
+gives the published \((2-\epsilon)\)-inapproximability theorem for Minimum
+Vertex Cover.  Suppose, contrary to the claimed canonical specialization,
+that an algorithm with that ratio ran in polynomial time on canonically
+\(\mathrm{Fin}\,|U|\)-encoded source graphs.  Given any finite source graph
+equipped with \(\prec\), the source-carrier clause of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\) computes
+its canonical adjacency-bit encoding and transports the returned vertex set
+back along \(U\simeq\mathrm{Fin}\,|U|\) with polynomial overhead.
+Vertex-cover feasibility, cardinality, optimum, and approximation ratio are
+invariant under this source relabeling.  The transported output would
+therefore be a polynomial-time \((2-\epsilon)\)-approximation on the source
+theorem's finite graph instances, a contradiction.  Thus the published
+lower bound holds on the declared canonical source carrier.  The same source
+relabeling clause gives the promised transfer to a generic finite \(U\) in
+later consumers; no causal carrier or causal order is used in this step.
+\end{proof}
+
+\begin{lemma}[lem:rational-lp-polynomial-time]\label{lem:rational-lp-polynomial-time}
+Under the canonical-input and polynomial-time interpretation of the uniform two-carrier computational-model assumption, a rational linear program whose variables and constraints are canonically indexed and whose total binary encoding has length \(L\) can be solved in time polynomial in its dimensions and \(L\), returning an optimal basic solution whenever an optimum exists.
+\end{lemma}
+\begin{proof}
+Lemma
+\(\mathrm{lem{:}rational\mbox{-}lp\mbox{-}polynomial\mbox{-}time\mbox{-}source}\)
+supplies an algorithm polynomial in the total binary length of a rational
+linear program and guarantees an optimal basic solution whenever an optimum
+exists.  For a canonically indexed program of dimensions \(d\) and total
+binary length \(L\), its ordinary rational input length is bounded by a
+polynomial in \(d\) and \(L\), and conversely these quantities are bounded
+by its explicit encoding length.  The bit-cost clause of Assumption
+\(\mathrm{ass{:}uniform\mbox{-}poly\mbox{-}time\mbox{-}model}\) charges
+comparisons and rational field operations at their binary bit complexity.
+Substituting the canonical encoding into the cited algorithm therefore gives
+runtime polynomial in the dimensions and \(L\), with the same
+optimal-basic-solution guarantee.  When the indexed program is obtained from
+a causal instance, the causal relabeling clause transports its solution
+along \(V\simeq\mathrm{Fin}\,|V|\) without changing feasibility or objective
+value.
+\end{proof}
+
+\begin{lemma}[lem:hedge-hitting-identification]\label{lem:hedge-hitting-identification}
+Under the stated recursive semi-Markovian, proxy-intervention, and positive-compatible semantic scope, for every \(A\subseteq V^{-}\), the causal target \(Q_s=Q[\{s\}]=P(s\mid\operatorname{do}(V\setminus\{s\}))\) is identifiable from \(Q[V\setminus A]=P(V\setminus A\mid\operatorname{do}(A))\) if and only if the induced graph \(G[V\setminus A]\) contains no member of \(\mathsf{Hdg}(G,s)\). Equivalently, \(A\cap(F\setminus\{s\})\neq\varnothing\) for every \(F\in\mathsf{Hdg}(G,s)\); because \(V\) is finite, this is further equivalent to \(A\cap R\neq\varnothing\) for every \(R\in\mathcal C(G,s)\).
+\end{lemma}
+
+\begin{lemma}[lem:rational-lp-polynomial-time-source]\label{lem:rational-lp-polynomial-time-source}
+\texttt{There exists a polynomial-\allowbreak{}time algorithm for linear programming with rational input,\allowbreak{} and it returns an optimal basic solution whenever an optimum exists.}
+\end{lemma}
+
+\begin{lemma}[lem:ugc-vertex-cover-hardness-source]\label{lem:ugc-vertex-cover-hardness-source}
+If \(\mathsf{UGC}\) holds, then for every fixed \(\epsilon\in\mathbb R_{>0}\), Minimum Vertex Cover has no polynomial-time \((2-\epsilon)\)-approximation.
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The factor-two algorithm is promise-based: polynomial enumeration is guaranteed after \(r(G,s)\leq3\) and a causal-vertex order \(\triangleleft_V\) on \(V\) are supplied, but it does not recognize that promise, and a successful optimizer run is not a certificate that the rank bound holds. The order \(\triangleleft_V\) controls only deterministic lexicographic output and is distinct from the source-vertex order \(\prec\) used by the private-guard construction. The \(O(3^k)\) exact-search guarantee also requires a supplied cardinality bound \(k\); it is not an unconstrained weighted parameterization by an unknown optimum cardinality. Finite-sample allocation and statistical estimation from acquired experiments remain outside this combinatorial identification-design result.
+
+\section{Honest scope}
+
+The equivalence between identification of \(Q_s\) from the acquired proxy law \(Q[V\setminus A]\) and hitting every minimal residual hedge is imported under the positive-compatible recursive semi-Markovian convention; no finite-sample estimation or weaker-positivity extension is claimed. The exact weighted integrality-gap supremum ranges over all positive-rational-cost finite simple bow-free singleton-target instances with \(r(G,s)\leq3\) and nonempty residual clutter. Its matching sequence and the \(\mathsf{UGC}\)-conditional approximation lower bound use the narrower unit-cost private-guard subclass whose bidirected graph is a radius-two tree. Source complexity theorems and rational LP solution are imported. Private-guard construction takes a source-vertex order \(\prec\) on \(U\), whereas the promised algorithms take a distinct causal-vertex order \(\triangleleft_V\) on \(V\), used only to make residual output lexicographic and exact once. The complexity of recognizing rank at most three, planar bounded-degree causal realizability, rank-four realizability, finite-sample allocation, and solver speedups remain open. Weighted \(O(3^k)\) exact search is asserted only for a supplied cardinality bound.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AkbariEtesamiKiyavash2025} Sina Akbari, Jalal Etesami, and Negar Kiyavash (2025), ``Optimal Experiment Design for Causal Effect Identification,'' \emph{Journal of Machine Learning Research} 26:1--56. See Theorem 2, Section 3.3, and Appendix D.2.
+
+  \bibitem{ElahiAkbariEtesamiKiyavashThiran2024} Sepehr Elahi, Sina Akbari, Jalal Etesami, Negar Kiyavash, and Patrick Thiran (2024), ``Fast Proxy Experiment Design for Causal Effect Identification,'' \emph{Advances in Neural Information Processing Systems} 37. See Theorems 1--2, Section 5, Appendix C, and the conclusion.
+
+  \bibitem{ShpitserPearl2006} Ilya Shpitser and Judea Pearl (2006), ``Identification of Joint Interventional Distributions in Recursive Semi-Markovian Causal Models,'' \emph{Proceedings of AAAI}, 1219--1226. See Theorem 6, Corollaries 2--3, and the conclusion.
+
+  \bibitem{RichardsonSpirtes2002} Thomas Richardson and Peter Spirtes (2002), ``Ancestral Graph Markov Models,'' \emph{Annals of Statistics} 30(4):962--1030.
+
+  \bibitem{NemhauserTrotter1975} George Nemhauser and Leslie Trotter (1975), ``Vertex Packings: Structural Properties and Algorithms,'' \emph{Mathematical Programming} 8:232--248.
+
+  \bibitem{KhotRegev2008} Subhash Khot and Oded Regev (2008), ``Vertex Cover Might be Hard to Approximate to within \(2-\epsilon\),'' \emph{Journal of Computer and System Sciences} 74(3):335--349.
+
+  \bibitem{AlimontiKann2000} Paola Alimonti and Viggo Kann (2000), ``Some APX-Completeness Results for Cubic Graphs,'' \emph{Theoretical Computer Science} 237(1--2):123--134, especially Theorem 3.1.
+
+  \bibitem{GareyJohnsonStockmeyer1976} Michael Garey, David Johnson, and Larry Stockmeyer (1976), ``Some Simplified NP-Complete Graph Problems,'' \emph{Theoretical Computer Science} 1(3):237--267.
+
+  \bibitem{Singh2019} Mohit Singh (2019), ``Integrality Gap of the Vertex Cover Linear Programming Relaxation,'' \emph{Operations Research Letters} 47(4):288--290.
+
+  \bibitem{Fernau2010} Henning Fernau (2010), ``Parameterized Algorithms for \(d\)-Hitting Set: The Weighted Case,'' \emph{Theoretical Computer Science} 411(16--18):1698--1713.
+
+  \bibitem{BhattacharyaNabiShpitser2022} Rohit Bhattacharya, Razieh Nabi, and Ilya Shpitser (2022), ``Semiparametric Inference for Causal Effects in Graphical Models with Hidden Variables,'' \emph{Journal of Machine Learning Research} 23(295):1--76.
+
+  \bibitem{DinurGuruswamiKhotRegev2005} Irit Dinur, Venkatesan Guruswami, Subhash Khot, and Oded Regev (2005), ``A New Multilayered PCP and the Hardness of Hypergraph Vertex Cover,'' \emph{SIAM Journal on Computing} 34(5):1129--1146.
+
+  \bibitem{https://www.mathematik.uni-muenchen.de/~kpanagio/KombOpt/book.pdf} Bernhard Korte and Jens Vygen (2012), \emph{Combinatorial Optimization: Theory and Algorithms}, fifth edition, Algorithms and Combinatorics 21, Springer. Theorem 4.18.
+
+\end{thebibliography}
+
+\end{document}

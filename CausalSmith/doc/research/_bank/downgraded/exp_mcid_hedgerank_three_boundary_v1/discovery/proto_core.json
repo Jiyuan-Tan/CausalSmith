@@ -1,0 +1,1271 @@
+{
+  "qid": "exp_mcid_hedgerank_three_boundary",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "V",
+      "type": "finite set",
+      "space": "\\(\\mathsf{FinSet}\\)",
+      "role": "Observed vertices of the causal graph."
+    },
+    {
+      "name": "D",
+      "type": "directed edge relation",
+      "space": "\\(V\\times V\\)",
+      "def": "\\(D\\subseteq V\\times V\\)",
+      "role": "Directed causal edges.",
+      "refs": [
+        "V"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "symmetric irreflexive edge relation",
+      "space": "\\(\\binom{V}{2}\\)",
+      "def": "\\(B\\subseteq \\binom{V}{2}\\)",
+      "role": "Bidirected latent-confounding edges.",
+      "refs": [
+        "V"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "finite simple acyclic directed mixed graph",
+      "def": "\\(G=(V,D,B)\\)",
+      "role": "Causal graph supplied to the design problem.",
+      "refs": [
+        "V",
+        "D",
+        "B"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "vertex",
+      "space": "\\(V\\)",
+      "role": "Singleton target vertex.",
+      "refs": [
+        "V"
+      ]
+    },
+    {
+      "name": "Vminus",
+      "type": "finite set",
+      "def": "\\(V^{-}=V\\setminus\\{s\\}\\)",
+      "role": "Permitted intervention vertices.",
+      "refs": [
+        "V",
+        "s"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "cost map",
+      "sig": "\\(c:V^{-}\\to\\mathbb Q_{>0}\\)",
+      "role": "Positive intervention costs.",
+      "refs": [
+        "Vminus"
+      ]
+    },
+    {
+      "name": "Qtarget",
+      "type": "interventional distribution",
+      "def": "\\(Q_s=Q[\\{s\\}]=P(s\\mid\\operatorname{do}(V\\setminus\\{s\\}))\\)",
+      "role": "Causal target whose identification is enabled by proxy experiments.",
+      "refs": [
+        "V",
+        "s"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "vertex subset",
+      "space": "\\(2^V\\)",
+      "role": "Candidate singleton-target hedge.",
+      "refs": [
+        "V"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "residual vertex subset",
+      "def": "\\(R=F\\setminus\\{s\\}\\)",
+      "role": "Manipulable part of a hedge.",
+      "refs": [
+        "F",
+        "s"
+      ]
+    },
+    {
+      "name": "HedgeFamily",
+      "type": "set family",
+      "space": "\\(2^{2^V}\\)",
+      "def": "\\(\\mathsf{Hdg}(G,s)\\)",
+      "role": "All hedges for the singleton query.",
+      "refs": [
+        "G",
+        "s",
+        "V"
+      ]
+    },
+    {
+      "name": "Clutter",
+      "type": "clutter",
+      "space": "\\(2^{2^{V^{-}}}\\)",
+      "def": "\\(\\mathcal C(G,s)\\)",
+      "role": "Inclusion-minimal residual hedges.",
+      "refs": [
+        "G",
+        "s",
+        "Vminus",
+        "HedgeFamily"
+      ]
+    },
+    {
+      "name": "rank",
+      "type": "nonnegative integer",
+      "def": "\\(r(G,s)=\\max(\\{|R|:R\\in\\mathcal C(G,s)\\}\\cup\\{0\\})\\)",
+      "role": "Minimal residual-hedge rank.",
+      "refs": [
+        "G",
+        "s",
+        "R",
+        "Clutter"
+      ]
+    },
+    {
+      "name": "Pset",
+      "type": "vertex subset",
+      "def": "\\(P_s=\\{v\\in V^{-}:(v,s)\\in D\\}\\)",
+      "role": "Parents of the target.",
+      "refs": [
+        "Vminus",
+        "s",
+        "D"
+      ]
+    },
+    {
+      "name": "Tset",
+      "type": "vertex subset",
+      "def": "\\(T_s=\\{v\\in V^{-}:\\{v,s\\}\\in B\\}\\)",
+      "role": "Bidirected neighbors of the target.",
+      "refs": [
+        "Vminus",
+        "s",
+        "B"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "intervention set",
+      "space": "\\(2^{V^{-}}\\)",
+      "role": "Vertices on which proxy experiments are acquired.",
+      "refs": [
+        "Vminus"
+      ]
+    },
+    {
+      "name": "OPT",
+      "type": "positive rational or zero",
+      "def": "\\(\\operatorname{OPT}(G,s,c)=\\min\\{\\sum_{v\\in A}c(v):A\\cap R\\neq\\varnothing\\ \\forall R\\in\\mathcal C(G,s)\\}\\)",
+      "role": "Minimum acquisition cost.",
+      "refs": [
+        "G",
+        "s",
+        "c",
+        "A",
+        "R",
+        "Clutter"
+      ]
+    },
+    {
+      "name": "y",
+      "type": "fractional intervention vector",
+      "space": "\\([0,1]^{V^{-}}\\)",
+      "role": "Variables of the natural covering relaxation.",
+      "refs": [
+        "Vminus"
+      ]
+    },
+    {
+      "name": "LP",
+      "type": "linear-program value",
+      "def": "\\(\\operatorname{LP}(G,s,c)=\\min_{y\\in[0,1]^{V^{-}}}\\sum_{v\\in V^{-}}c(v)y_v\\) subject to \\(\\sum_{v\\in R}y_v\\geq1\\) for every \\(R\\in\\mathcal C(G,s)\\)",
+      "role": "Natural residual-hedge covering relaxation.",
+      "refs": [
+        "G",
+        "s",
+        "c",
+        "y",
+        "Vminus",
+        "R",
+        "Clutter"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "finite set",
+      "role": "Vertices of a source graph."
+    },
+    {
+      "name": "E",
+      "type": "simple undirected edge set",
+      "space": "\\(\\binom U2\\)",
+      "role": "Edges of a source vertex-cover instance.",
+      "refs": [
+        "U"
+      ]
+    },
+    {
+      "name": "Hsource",
+      "type": "finite simple graph",
+      "def": "\\(H=(U,E)\\)",
+      "role": "Source graph for the causal realization.",
+      "refs": [
+        "U",
+        "E"
+      ]
+    },
+    {
+      "name": "order",
+      "type": "total order",
+      "sig": "\\(\\prec\\ \\subseteq U\\times U\\)",
+      "role": "Order orienting source edges acyclically.",
+      "refs": [
+        "U"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "injective vertex map",
+      "sig": "\\(x:U\\to V^{-}\\)",
+      "role": "Source-vertex copy in the causal graph.",
+      "refs": [
+        "U",
+        "Vminus"
+      ]
+    },
+    {
+      "name": "z",
+      "type": "injective guard map",
+      "sig": "\\(z:E\\to V^{-}\\)",
+      "role": "Private guard vertex for each source edge.",
+      "refs": [
+        "E",
+        "Vminus"
+      ]
+    },
+    {
+      "name": "Ggadget",
+      "type": "finite simple acyclic directed mixed graph",
+      "def": "\\(G_H\\)",
+      "role": "Private-guard causal realization of \\(H\\).",
+      "refs": [
+        "Hsource",
+        "order",
+        "x",
+        "z",
+        "s"
+      ]
+    },
+    {
+      "name": "w",
+      "type": "positive source weight map",
+      "sig": "\\(w:U\\to\\mathbb Q_{>0}\\)",
+      "role": "Weights of a source vertex-cover instance.",
+      "refs": [
+        "U"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "threshold",
+      "space": "\\((0,1/2)\\)",
+      "role": "Rounding threshold."
+    },
+    {
+      "name": "Athresh",
+      "type": "intervention set",
+      "def": "\\(A_t=\\{p\\in P_s:y_p\\geq t\\}\\cup\\{b\\in T_s:y_b\\geq 1/2-t\\}\\)",
+      "role": "Parent-spouse threshold rounding.",
+      "refs": [
+        "t",
+        "Pset",
+        "Tset",
+        "y"
+      ]
+    },
+    {
+      "name": "k",
+      "type": "nonnegative integer",
+      "role": "Supplied cardinality bound for scoped exact search."
+    },
+    {
+      "name": "epsilon",
+      "type": "positive real",
+      "space": "\\(\\mathbb R_{>0}\\)",
+      "role": "Approximation slack."
+    },
+    {
+      "name": "UGC",
+      "type": "complexity assumption",
+      "def": "The Unique Games Conjecture",
+      "role": "Conditional basis for the tight approximation lower bound."
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:directed-acyclicity",
+      "kind": "graphical",
+      "condition": "The directed relation \\(D\\) is acyclic.",
+      "free_symbols": [
+        "D"
+      ],
+      "standard": {
+        "name": "ADMG directed acyclicity",
+        "cite": "ShpitserPearl2006"
+      },
+      "used_by": [
+        "thm:first-rank-boundary",
+        "thm:private-guard-realization"
+      ]
+    },
+    {
+      "id": "ass:simple-mixed-graph",
+      "kind": "graphical",
+      "condition": "The mixed graph \\(G\\) has no loops or repeated edges of either type.",
+      "free_symbols": [
+        "G"
+      ],
+      "standard": {
+        "name": "Finite simple ADMG convention",
+        "cite": "RichardsonSpirtes2002"
+      },
+      "used_by": [
+        "thm:first-rank-boundary",
+        "thm:private-guard-realization"
+      ]
+    },
+    {
+      "id": "ass:bow-free",
+      "kind": "graphical",
+      "condition": "For every distinct \\(u,v\\in V\\), \\((u,v)\\in D\\) or \\((v,u)\\in D\\) implies \\(\\{u,v\\}\\notin B\\).",
+      "free_symbols": [
+        "V",
+        "D",
+        "B"
+      ],
+      "standard": {
+        "name": "Bow-free mixed graph condition",
+        "cite": "RichardsonSpirtes2002"
+      },
+      "used_by": [
+        "thm:first-rank-boundary",
+        "thm:rank-three-rounding"
+      ]
+    },
+    {
+      "id": "ass:singleton-target",
+      "kind": "query",
+      "condition": "The target set is exactly \\(\\{s\\}\\).",
+      "free_symbols": [
+        "s"
+      ],
+      "standard": {
+        "name": "Singleton \\(Q[S]\\) specialization",
+        "cite": "AkbariEtesamiKiyavash2025"
+      },
+      "used_by": [
+        "thm:first-rank-boundary",
+        "thm:private-guard-realization"
+      ]
+    },
+    {
+      "id": "ass:positive-rational-cost",
+      "kind": "optimization",
+      "condition": "For every \\(v\\in V^{-}\\), \\(c(v)\\in\\mathbb Q_{>0}\\).",
+      "free_symbols": [
+        "Vminus",
+        "c"
+      ],
+      "standard": {
+        "name": "Additive positive intervention costs",
+        "cite": "AkbariEtesamiKiyavash2025"
+      },
+      "used_by": [
+        "thm:objective-preserving-hardness",
+        "thm:rank-three-rounding",
+        "prop:optimizer-or-violation"
+      ]
+    },
+    {
+      "id": "ass:rank-three-promise",
+      "kind": "structural",
+      "condition": "The supplied instance satisfies \\(r(G,s)\\leq3\\).",
+      "free_symbols": [
+        "rank",
+        "G",
+        "s"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The condition describes sparse bow-free causal systems whose inclusion-minimal nonidentifiability witnesses involve at most three manipulable variables; it includes all private-guard realizations, bidirected trees of radius two, and the first nonempty bow-free singleton obstruction class."
+      },
+      "used_by": [
+        "thm:rank-three-rounding",
+        "prop:promised-enumeration"
+      ]
+    },
+    {
+      "id": "ass:unique-games",
+      "kind": "complexity",
+      "condition": "\\(\\mathsf{UGC}\\) holds.",
+      "free_symbols": [
+        "UGC"
+      ],
+      "standard": {
+        "name": "Unique Games Conjecture",
+        "cite": "KhotRegev2008"
+      },
+      "used_by": [
+        "thm:tight-frontier"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:singleton-hedges",
+      "name": "Singleton-target hedge family",
+      "construction": "\\(\\mathsf{Hdg}(G,s)=\\{F\\subseteq V:\\{s\\}\\subsetneq F,\\ B[F]\\text{ is connected, and every }v\\in F\\text{ has a directed path to }s\\text{ in }D[F]\\}\\).",
+      "free_symbols": [
+        "HedgeFamily",
+        "G",
+        "s",
+        "F",
+        "V",
+        "B",
+        "D"
+      ]
+    },
+    {
+      "id": "def:minimal-residual-clutter",
+      "name": "Minimal residual-hedge clutter",
+      "construction": "\\(\\mathcal C(G,s)=\\{F\\setminus\\{s\\}:F\\in\\mathsf{Hdg}(G,s),\\ \\nexists F'\\in\\mathsf{Hdg}(G,s)\\text{ with }F'\\subsetneq F\\}\\).",
+      "free_symbols": [
+        "Clutter",
+        "G",
+        "s",
+        "F",
+        "HedgeFamily"
+      ]
+    },
+    {
+      "id": "def:residual-rank",
+      "name": "Minimal residual-hedge rank",
+      "construction": "\\(r(G,s)=\\max(\\{|R|:R\\in\\mathcal C(G,s)\\}\\cup\\{0\\})\\).",
+      "free_symbols": [
+        "rank",
+        "G",
+        "s",
+        "R",
+        "Clutter"
+      ]
+    },
+    {
+      "id": "def:mcid-objective",
+      "name": "Minimum-cost identifying intervention",
+      "construction": "Choose \\(A^\\star\\in\\arg\\min_{A\\subseteq V^{-}}\\sum_{v\\in A}c(v)\\) subject to \\(A\\cap R\\neq\\varnothing\\) for every \\(R\\in\\mathcal C(G,s)\\); its value is \\(\\operatorname{OPT}(G,s,c)\\).",
+      "free_symbols": [
+        "A",
+        "Vminus",
+        "c",
+        "R",
+        "Clutter",
+        "G",
+        "s",
+        "OPT"
+      ],
+      "inputs": [
+        "G",
+        "s",
+        "c"
+      ]
+    },
+    {
+      "id": "def:covering-lp",
+      "name": "Natural residual-hedge covering relaxation",
+      "construction": "\\(\\operatorname{LP}(G,s,c)=\\min_{y\\in[0,1]^{V^{-}}}\\sum_{v\\in V^{-}}c(v)y_v\\) subject to \\(\\sum_{v\\in R}y_v\\geq1\\) for all \\(R\\in\\mathcal C(G,s)\\).",
+      "free_symbols": [
+        "LP",
+        "G",
+        "s",
+        "c",
+        "y",
+        "Vminus",
+        "R",
+        "Clutter"
+      ],
+      "inputs": [
+        "G",
+        "s",
+        "c"
+      ]
+    },
+    {
+      "id": "def:private-guard-expansion",
+      "name": "Ordered private-guard expansion",
+      "construction": "For each \\(u\\in U\\), create \\(x_u\\) and add \\(s\\leftrightarrow x_u\\). For each \\(e=\\{u,v\\}\\in E\\) with \\(u\\prec v\\), create a private \\(z_e\\) and add exactly \\(x_u\\to x_v\\), \\(x_v\\to z_e\\), \\(z_e\\to s\\), and \\(z_e\\leftrightarrow x_u\\). The resulting graph is \\(G_H\\).",
+      "free_symbols": [
+        "U",
+        "x",
+        "s",
+        "E",
+        "order",
+        "z",
+        "Ggadget"
+      ],
+      "inputs": [
+        "Hsource",
+        "order"
+      ]
+    },
+    {
+      "id": "def:parent-spouse-rounding",
+      "name": "Parent-spouse threshold rounding",
+      "construction": "Given an optimal fractional solution \\(y\\), scan the finitely many breakpoints of \\(A_t=\\{p\\in P_s:y_p\\geq t\\}\\cup\\{b\\in T_s:y_b\\geq1/2-t\\}\\) over \\(0<t<1/2\\), and return the cheapest \\(A_t\\).",
+      "free_symbols": [
+        "y",
+        "Athresh",
+        "t",
+        "Pset",
+        "Tset"
+      ],
+      "inputs": [
+        "y",
+        "Pset",
+        "Tset"
+      ]
+    },
+    {
+      "id": "def:promised-enumerator",
+      "name": "Promised-rank obstruction enumerator",
+      "construction": "Test every \\(R\\subseteq V^{-}\\) with \\(|R|\\leq3\\) by bidirected connectivity and directed reachability in \\(G[R\\cup\\{s\\}]\\), retain it exactly when it is a hedge residual and no proper subset is one, and order outputs lexicographically.",
+      "free_symbols": [
+        "R",
+        "Vminus",
+        "G",
+        "s"
+      ],
+      "inputs": [
+        "G",
+        "s"
+      ]
+    },
+    {
+      "id": "def:rank-recognition-handle",
+      "name": "Fixed-point rank-recognition handle",
+      "construction": "Analyze the decision problem \\(r(G,s)\\leq3\\) by combining alternating restriction to directed ancestors of \\(s\\) and the bidirected component of \\(s\\) with deletion-based extraction of an inclusion-minimal hedge certificate.",
+      "free_symbols": [
+        "rank",
+        "G",
+        "s"
+      ],
+      "inputs": [
+        "G",
+        "s"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:first-rank-boundary",
+      "kind": "theorem",
+      "statement": "Every \\(F\\in\\mathsf{Hdg}(G,s)\\) has \\(|F|\\geq4\\). A four-vertex \\(F\\) is a hedge if and only if the unordered pairs of \\(D[F]\\) form a spanning path oriented toward \\(s\\) and \\(B[F]\\) is the complementary spanning path. Consequently, \\(r(G,s)\\leq2\\) implies \\(\\mathcal C(G,s)=\\varnothing\\). If \\(R\\in\\mathcal C(G,s)\\) and \\(|R|=3\\), then \\(R\\subseteq P_s\\cup T_s\\), \\(R\\cap P_s\\neq\\varnothing\\), \\(R\\cap T_s\\neq\\varnothing\\), and \\(P_s\\cap T_s=\\varnothing\\).",
+      "free_symbols": [
+        "F",
+        "HedgeFamily",
+        "G",
+        "s",
+        "D",
+        "B",
+        "rank",
+        "Clutter",
+        "R",
+        "Pset",
+        "Tset"
+      ],
+      "depends_on": [
+        "ass:directed-acyclicity",
+        "ass:simple-mixed-graph",
+        "ass:bow-free",
+        "ass:singleton-target",
+        "def:singleton-hedges",
+        "def:minimal-residual-clutter",
+        "def:residual-rank"
+      ],
+      "status": "to-prove",
+      "justification": "This edge-count characterization locates the first nonzero obstruction rank and creates the two-sided incidence structure used by the approximation theorem.",
+      "gap": "Akbari, Etesami, and Kiyavash establish polynomial optimization when minimal hedge size is at most two in a more general model, but do not classify bow-free singleton hedges or show that ranks one and two are empty in this model.",
+      "consumer": "A rank-aware preprocessing layer can return the empty intervention without invoking RC2, Gurobi, or hedge enumeration whenever the promised rank is at most two."
+    },
+    {
+      "id": "thm:private-guard-realization",
+      "kind": "theorem",
+      "statement": "For every ordered finite simple graph \\(H=(U,E)\\), the graph \\(G_H\\) is bow-free and acyclic, its bidirected subgraph is a tree of radius at most two centered at \\(s\\), and \\(\\mathcal C(G_H,s)=\\{\\{x_u,x_v,z_e\\}:e=\\{u,v\\}\\in E\\}\\). Hence \\(r(G_H,s)=3\\) when \\(E\\neq\\varnothing\\), and \\(r(G_H,s)=0\\) otherwise.",
+      "free_symbols": [
+        "Hsource",
+        "U",
+        "E",
+        "Ggadget",
+        "s",
+        "Clutter",
+        "x",
+        "z",
+        "rank"
+      ],
+      "depends_on": [
+        "ass:directed-acyclicity",
+        "ass:simple-mixed-graph",
+        "ass:bow-free",
+        "ass:singleton-target",
+        "def:singleton-hedges",
+        "def:minimal-residual-clutter",
+        "def:residual-rank",
+        "def:private-guard-expansion",
+        "thm:first-rank-boundary"
+      ],
+      "status": "to-prove",
+      "justification": "Exact reverse inclusion, rather than mere construction of intended hedges, is the load-bearing causal-clutter representation result.",
+      "gap": "The two-auxiliary reduction of Akbari, Etesami, and Kiyavash does not realize exactly one three-element minimal residual per source edge and does not preserve a radius-two bidirected tree.",
+      "consumer": "The theorem turns graph benchmarks into certified rank-three MCID instances for the min-cost-intervention implementation and for solver regression tests."
+    },
+    {
+      "id": "thm:objective-preserving-hardness",
+      "kind": "theorem",
+      "statement": "Assign unit cost to every vertex of \\(G_H\\). Every vertex cover \\(C\\subseteq U\\) maps to the intervention \\(\\{x_u:u\\in C\\}\\) with the same cost, and every feasible intervention maps in polynomial time, by replacing each selected \\(z_e\\) with an endpoint of \\(e\\), to a vertex cover of no larger cost. Therefore \\(\\operatorname{OPT}(G_H,s,c)=\\tau(H)\\). The reduction is an \\(L\\)-reduction with constants one, so rank-three MCID is \\(\\mathsf{NP}\\)-hard and \\(\\mathsf{APX}\\)-hard even with unit costs and a radius-two bidirected tree; the \\(\\mathsf{APX}\\)-hardness remains for source graphs of maximum degree three.",
+      "free_symbols": [
+        "Ggadget",
+        "c",
+        "Hsource",
+        "U",
+        "x",
+        "z",
+        "E",
+        "OPT",
+        "s"
+      ],
+      "depends_on": [
+        "ass:positive-rational-cost",
+        "def:mcid-objective",
+        "def:private-guard-expansion",
+        "thm:private-guard-realization"
+      ],
+      "status": "to-prove",
+      "justification": "Objective preservation identifies the exact complexity transition at the first nonempty rank rather than importing generic three-hitting-set hardness.",
+      "gap": "Akbari, Etesami, and Kiyavash prove unrestricted MCID hardness, while Alimonti and Kann supply cubic vertex-cover hardness; neither gives a promise-preserving rank-three causal realization.",
+      "consumer": "The result supplies structured hard instances on which the RC2 and Gurobi formulations can be evaluated without uncontrolled hedge rank."
+    },
+    {
+      "id": "thm:rank-three-rounding",
+      "kind": "theorem",
+      "statement": "Under \\(r(G,s)\\leq3\\), every nonempty \\(R\\in\\mathcal C(G,s)\\) has size three and meets both \\(P_s\\) and \\(T_s\\). For an optimal \\(y\\) of the natural covering relaxation, every \\(A_t\\) is feasible for \\(0<t<1/2\\), and some breakpoint choice satisfies \\(\\sum_{v\\in A_t}c(v)\\leq2\\operatorname{LP}(G,s,c)\\leq2\\operatorname{OPT}(G,s,c)\\). Such a choice is found in polynomial time after promised-rank enumeration.",
+      "free_symbols": [
+        "rank",
+        "G",
+        "s",
+        "R",
+        "Clutter",
+        "Pset",
+        "Tset",
+        "y",
+        "LP",
+        "Athresh",
+        "t",
+        "c",
+        "OPT"
+      ],
+      "depends_on": [
+        "ass:bow-free",
+        "ass:positive-rational-cost",
+        "ass:rank-three-promise",
+        "def:minimal-residual-clutter",
+        "def:residual-rank",
+        "def:mcid-objective",
+        "def:covering-lp",
+        "def:parent-spouse-rounding",
+        "thm:first-rank-boundary",
+        "prop:promised-enumeration"
+      ],
+      "status": "to-prove",
+      "justification": "The parent-spouse crossing property improves the generic factor three for rank-three hitting set to the vertex-cover threshold two.",
+      "gap": "Elahi and coauthors explicitly leave efficient MCID approximation as future work, and Akbari, Etesami, and Kiyavash give only logarithmic approximation in general and exact polynomial algorithms through residual size two.",
+      "consumer": "The theorem provides a deterministic warm start with an auditable factor-two guarantee for the existing ILP and WPMAX-SAT workflows."
+    },
+    {
+      "id": "thm:tight-frontier",
+      "kind": "theorem",
+      "statement": "The supremum of \\(\\operatorname{OPT}(G,s,c)/\\operatorname{LP}(G,s,c)\\) over unit-cost bow-free singleton instances with \\(r(G,s)\\leq3\\) and radius-two bidirected trees equals two. For \\(G_{K_n}\\), the ratio is \\(2-2/n\\). Under \\(\\mathsf{UGC}\\), for every fixed \\(\\epsilon>0\\), no polynomial-time \\((2-\\epsilon)\\)-approximation exists on this same promised-rank class.",
+      "free_symbols": [
+        "OPT",
+        "G",
+        "s",
+        "c",
+        "LP",
+        "rank",
+        "epsilon",
+        "UGC"
+      ],
+      "depends_on": [
+        "ass:rank-three-promise",
+        "ass:unique-games",
+        "def:mcid-objective",
+        "def:covering-lp",
+        "def:private-guard-expansion",
+        "thm:private-guard-realization",
+        "thm:objective-preserving-hardness",
+        "thm:rank-three-rounding"
+      ],
+      "status": "to-prove",
+      "justification": "A matching gap family and conditional lower bound certify that factor two is the exact polynomial frontier under the standard conjecture.",
+      "gap": "Khot and Regev establish the threshold for vertex cover, and Singh characterizes the source LP gap; no published result transfers the threshold to a bounded-rank causal-effect-identification design class.",
+      "consumer": "Algorithm designers can treat a certified factor-two rank-three solution as worst-case optimal under \\(\\mathsf{UGC}\\), focusing engineering effort on instance-specific improvement."
+    },
+    {
+      "id": "prop:promised-enumeration",
+      "kind": "proposition",
+      "statement": "For every fixed promised rank bound \\(r_0\\), all inclusion-minimal residual hedges can be output exactly once in time \\(|V|^{r_0+O(1)}\\) and polynomial space by subset testing and canonical ordering. At \\(r_0=3\\) in the present bow-free singleton model, the runtime is \\(O(|V|^3\\operatorname{poly}(|V|))\\). Given \\(k\\), branching on an uncovered residual returns the least-cost feasible intervention among sets of cardinality at most \\(k\\), or certifies none exists, in \\(O(3^k\\operatorname{poly}(|V|,L))\\), where \\(L\\) is the cost-encoding length.",
+      "free_symbols": [
+        "rank",
+        "V",
+        "k",
+        "c"
+      ],
+      "depends_on": [
+        "ass:rank-three-promise",
+        "def:singleton-hedges",
+        "def:minimal-residual-clutter",
+        "def:promised-enumerator",
+        "thm:first-rank-boundary"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition supplies the explicit obstruction list assumed by the LP and scopes exact weighted search to a supplied cardinality bound.",
+      "gap": "Akbari, Etesami, and Kiyavash note polynomial subset enumeration at fixed hedge size, while Fernau assumes an explicit hyperedge list; neither supplies exact-once causal output together with the bounded-cardinality scope correction.",
+      "consumer": "The enumerator is a rank-informed front end for Akbari and coauthors' software and for Elahi and coauthors' exact solver encodings."
+    },
+    {
+      "id": "prop:optimizer-or-violation",
+      "kind": "proposition",
+      "statement": "Enumerate all minimal residual hedges of size at most three, optimize or two-approximate that relaxation, and verify the returned \\(A\\) by alternating restriction of \\(G[V\\setminus A]\\) to directed ancestors of \\(s\\) and the bidirected component of \\(s\\). If verification succeeds, an exact relaxation optimum is globally exact and the rounded answer costs at most \\(2\\operatorname{OPT}(G,s,c)\\). If verification fails, deletion-based minimization returns a verifiable \\(R\\in\\mathcal C(G,s)\\) with \\(|R|>3\\).",
+      "free_symbols": [
+        "R",
+        "A",
+        "G",
+        "V",
+        "s",
+        "OPT",
+        "c",
+        "Clutter"
+      ],
+      "depends_on": [
+        "ass:positive-rational-cost",
+        "def:minimal-residual-clutter",
+        "def:mcid-objective",
+        "def:promised-enumerator",
+        "thm:rank-three-rounding"
+      ],
+      "status": "to-prove",
+      "justification": "The interface safely exploits low rank without pretending to recognize the promise from a successful run.",
+      "gap": "The WPMAX-SAT and ILP formulations of Elahi and coauthors solve unrestricted MCID but do not return a violated-rank certificate, while explicit bounded-rank hitting-set algorithms assume the promise externally.",
+      "consumer": "RC2 and Gurobi users receive either a certified solution guarantee or a concrete large hedge to pass to the unrestricted backend."
+    },
+    {
+      "id": "oeq:rank-three-recognition",
+      "kind": "openendedquestion",
+      "statement": "Determine whether deciding \\(r(G,s)\\leq3\\) for finite simple bow-free ADMGs with singleton target \\(s\\) has a polynomial-time algorithm, or whether it is \\(\\mathsf{coNP}\\)-complete, using the fixed-point hedge oracle to certify \\(r(G,s)>3\\).",
+      "free_symbols": [
+        "rank",
+        "G",
+        "s"
+      ],
+      "depends_on": [
+        "ass:directed-acyclicity",
+        "ass:simple-mixed-graph",
+        "ass:bow-free",
+        "ass:singleton-target",
+        "def:residual-rank",
+        "def:rank-recognition-handle",
+        "prop:optimizer-or-violation"
+      ],
+      "status": "to-prove",
+      "justification": "Promise recognition is the genuine unresolved algorithmic boundary left visible by the certifying interface.",
+      "gap": "Neither bounded-size enumeration in Akbari, Etesami, and Kiyavash nor the solver encodings of Elahi and coauthors classify the complexity of recognizing that no larger minimal hedge exists.",
+      "consumer": "A resolution determines whether low-rank preprocessing can be invoked automatically or must remain a promise-or-counterexample workflow."
+    }
+  ],
+  "sampling_model": {
+    "design": "Deterministic selection of proxy-intervention distributions indexed by \\(A\\); the design randomness and finite-sample allocation are outside this combinatorial identification scope.",
+    "units": "Vertices of a fixed finite semi-Markovian causal graph \\(G\\).",
+    "treatment": "Acquisition of the interventional laws associated with the selected proxy variables in \\(A\\).",
+    "overlap": "Positivity required by the imported generalized-identification semantics is held fixed and is not strengthened by the optimization results.",
+    "nuisance_estimation": "None; the target is experiment acquisition sufficient for graphical identification, not estimation from finite samples."
+  },
+  "estimand_functional": "\\(A^\\star\\in\\arg\\min_{A\\subseteq V^{-}}\\{\\sum_{v\\in A}c(v):A\\cap R\\neq\\varnothing\\ \\forall R\\in\\mathcal C(G,s)\\}\\)",
+  "target_estimand": "\\(Q_s=P(s\\mid\\operatorname{do}(V\\setminus\\{s\\}))\\)",
+  "bibliography": [
+    {
+      "key": "AkbariEtesamiKiyavash2025",
+      "citation": "Sina Akbari, Jalal Etesami, and Negar Kiyavash (2025), ``Optimal Experiment Design for Causal Effect Identification,'' \\emph{Journal of Machine Learning Research} 26:1--56. See Theorem 2, Section 3.3, and Appendix D.2."
+    },
+    {
+      "key": "ElahiAkbariEtesamiKiyavashThiran2024",
+      "citation": "Sepehr Elahi, Sina Akbari, Jalal Etesami, Negar Kiyavash, and Patrick Thiran (2024), ``Fast Proxy Experiment Design for Causal Effect Identification,'' \\emph{Advances in Neural Information Processing Systems} 37. See Theorems 1--2, Section 5, Appendix C, and the conclusion."
+    },
+    {
+      "key": "ShpitserPearl2006",
+      "citation": "Ilya Shpitser and Judea Pearl (2006), ``Identification of Joint Interventional Distributions in Recursive Semi-Markovian Causal Models,'' \\emph{Proceedings of AAAI}, 1219--1226. See Theorem 6, Corollaries 2--3, and the conclusion."
+    },
+    {
+      "key": "RichardsonSpirtes2002",
+      "citation": "Thomas Richardson and Peter Spirtes (2002), ``Ancestral Graph Markov Models,'' \\emph{Annals of Statistics} 30(4):962--1030."
+    },
+    {
+      "key": "NemhauserTrotter1975",
+      "citation": "George Nemhauser and Leslie Trotter (1975), ``Vertex Packings: Structural Properties and Algorithms,'' \\emph{Mathematical Programming} 8:232--248."
+    },
+    {
+      "key": "KhotRegev2008",
+      "citation": "Subhash Khot and Oded Regev (2008), ``Vertex Cover Might be Hard to Approximate to within \\(2-\\epsilon\\),'' \\emph{Journal of Computer and System Sciences} 74(3):335--349."
+    },
+    {
+      "key": "AlimontiKann2000",
+      "citation": "Paola Alimonti and Viggo Kann (2000), ``Some APX-Completeness Results for Cubic Graphs,'' \\emph{Theoretical Computer Science} 237(1--2):123--134, especially Theorem 3.1."
+    },
+    {
+      "key": "GareyJohnsonStockmeyer1976",
+      "citation": "Michael Garey, David Johnson, and Larry Stockmeyer (1976), ``Some Simplified NP-Complete Graph Problems,'' \\emph{Theoretical Computer Science} 1(3):237--267."
+    },
+    {
+      "key": "Singh2019",
+      "citation": "Mohit Singh (2019), ``Integrality Gap of the Vertex Cover Linear Programming Relaxation,'' \\emph{Operations Research Letters} 47(4):288--290."
+    },
+    {
+      "key": "Fernau2010",
+      "citation": "Henning Fernau (2010), ``Parameterized Algorithms for \\(d\\)-Hitting Set: The Weighted Case,'' \\emph{Theoretical Computer Science} 411(16--18):1698--1713."
+    },
+    {
+      "key": "BhattacharyaNabiShpitser2022",
+      "citation": "Rohit Bhattacharya, Razieh Nabi, and Ilya Shpitser (2022), ``Semiparametric Inference for Causal Effects in Graphical Models with Hidden Variables,'' \\emph{Journal of Machine Learning Research} 23(295):1--76."
+    },
+    {
+      "key": "DinurGuruswamiKhotRegev2005",
+      "citation": "Irit Dinur, Venkatesan Guruswami, Subhash Khot, and Oded Regev (2005), ``A New Multilayered PCP and the Hardness of Hypergraph Vertex Cover,'' \\emph{SIAM Journal on Computing} 34(5):1129--1146."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "AkbariEtesamiKiyavash2025",
+      "comparator_claim": "Appendix D.2 gives polynomial optimization when every minimal hedge residual has size at most two, while fixed larger size only makes enumeration polynomial and leaves hitting set exponential.",
+      "matched_by": "Theorem 1",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "ElahiAkbariEtesamiKiyavashThiran2024",
+      "comparator_claim": "Theorems 1--2 encode MCID feasibility as SAT and then WPMAX-SAT or ILP, and the conclusion leaves efficient approximation as future work.",
+      "matched_by": "Theorem 4",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "ShpitserPearl2006",
+      "comparator_claim": "Theorem 6 and Corollaries 2--3 make hedges complete graphical witnesses for failure of interventional identification.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "NemhauserTrotter1975",
+      "comparator_claim": "Optimal fractional vertex-packing solutions have half-integral basic optima and their integral coordinates persist in an integral optimum.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AlimontiKann2000",
+      "comparator_claim": "Theorem 3.1 establishes APX-completeness of minimum vertex cover on cubic graphs.",
+      "matched_by": "Theorem 3",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "KhotRegev2008",
+      "comparator_claim": "Assuming the Unique Games Conjecture, minimum vertex cover has no polynomial approximation factor below two.",
+      "matched_by": "Theorem 5",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "Singh2019",
+      "comparator_claim": "The vertex-cover LP integrality gap on a graph is \\(2-2/\\chi^f(G)\\).",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Fernau2010",
+      "comparator_claim": "Weighted \\(d\\)-Hitting Set with an explicit hyperedge list admits parameterized search-tree algorithms.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Rank three is the first nonzero minimal residual-hedge rank for bow-free singleton-target ADMGs. Four-vertex hedges are exactly complementary directed and bidirected spanning paths. A one-private-guard expansion realizes the edge clutter of every ordered simple graph exactly, yielding unit-cost NP and APX hardness on radius-two bidirected trees. The same path classification partitions every rank-three residual across target parents and spouses, which gives a deterministic weighted factor-two LP rounding algorithm; complete-graph expansions attain gap \\(2-2/n\\), and the Khot--Regev threshold transfers under \\(\\mathsf{UGC}\\). Promised enumeration and an optimizer-or-rank-violation interface connect the theorem to existing exact solvers, while unrestricted rank-three recognition remains an explicit open question.",
+  "project_justification": {
+    "gap": "The published MCID frontier jumps from polynomial solvability at residual size two to unrestricted logarithmic hardness. It does not identify the first nonempty bow-free singleton rank or its causal-specific approximation ratio.",
+    "niche": "Rank-three hedge clutters are not arbitrary three-uniform clutters: every residual crosses the target-parent and target-spouse partition, yet the class is expressive enough to realize every graph edge clutter through private guards.",
+    "fill": "The paper proves the exact four-vertex obstruction classification and representation theorem, transfers objective-preserving hardness, derives a tight factor-two LP frontier, and gives a certifying interface that is useful without asserting an unrestricted rank recognizer."
+  },
+  "related_work": "Shpitser and Pearl supply the complete hedge obstruction used to interpret residual hitting as causal identification. Akbari, Etesami, and Kiyavash formulate MCID as minimum-weight hedge hitting, prove unrestricted hardness, and settle bounded residual size through two; their Appendix D.2 is the direct boundary this paper continues. Elahi and coauthors replace explicit hedge enumeration by WPMAX-SAT and ILP and leave approximation algorithms open, making their RC2 and Gurobi workflow the immediate computational consumer. Nemhauser and Trotter provide the classical half-integral vertex-cover geometry that informs the rounding argument, although the proposed parent-spouse threshold proof is stated directly on causal residuals. Alimonti and Kann provide cubic vertex-cover APX hardness, and Khot and Regev provide the conditional factor-two lower bound transferred by the exact private-guard realization. Singh's LP-gap formula motivates the complete-graph family but is not claimed to be sharpened. Fernau's explicit-hypergraph branching informs only the scoped bounded-cardinality routine.",
+  "technical_internal_limitation": "The private-guard reverse inclusion and the parent-spouse rounding are universal informal arguments that require independent proof checking. The solver interface does not recognize \\(r(G,s)\\leq3\\) from a successful run. Weighted \\(O(3^k)\\) exact search is claimed only with a supplied cardinality bound, not as an unconstrained optimizer parameterized by an unknown optimum cardinality.",
+  "honest_scope": "The central classification, exact realization, hardness transfer, rounding bound, and gap family are theorem targets. General positivity-based equivalence between hedge hitting and interventional identification, source complexity theorems, and rational LP solution are imported. The complexity of recognizing rank at most three, planar bounded-degree causal realizability, rank-four realizability, finite-sample allocation, and solver speedups remain open. The reduction to a one-edge source graph recovers the unique four-vertex hedge, while \\(r(G,s)\\leq2\\) reduces to the empty-intervention result, providing the required standard sanity checks.",
+  "seeds": [
+    "seed:rank-three-tight-frontier",
+    "seed:optimizer-or-violation",
+    "seed:planar-bounded-degree-frontier",
+    "seed:joint-selection-allocation",
+    "seed:rank-four-realizability",
+    "seed:rank-recognition-complexity",
+    "seed:nonadditive-rank-three-costs",
+    "seed:exact-once-promised-enumeration",
+    "seed:fractional-chromatic-transfer"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:rank-three-tight-frontier",
+      "anchor": "AkbariEtesamiKiyavash2025",
+      "anchor_read": "Introduction on pages 1--3; Theorem 2 and its gadget discussion on pages 7--8 with the proof in Appendix C; Appendix D.2 on pages 45--46; nonlinear-cost discussion on page 20.",
+      "opportunity": "Classify the first nonempty bow-free singleton residual rank, realize graph edge clutters exactly, and derive the tight approximation frontier.",
+      "first_changed_proof_step": "Replace the two-auxiliary general hardness hedge by a one-private-guard construction and prove reverse inclusion for all overlapping source edges.",
+      "destination_pair_search": "Searches for rank-three hedge approximation, bounded hedge size three, and factor-two MCID returned the Akbari and Elahi papers but no occupied theorem.",
+      "motif": "none",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "red_team": "Immediate from bounded-rank hitting set because rank three gives a factor-three algorithm.",
+      "rebuttal": "The causal parent-spouse crossing yields factor two, and exact graph-edge realization gives a matching lower bound; neither follows from generic three-hitting set.",
+      "status": "survives-step-1",
+      "rank": 1
+    },
+    {
+      "id": "seed:optimizer-or-violation",
+      "anchor": "ElahiAkbariEtesamiKiyavashThiran2024",
+      "anchor_read": "Introduction and drug-interaction motivation on pages 1--2; Theorems 1--2 on pages 4--5; alternating ancestry and district SAT proof in Appendix C; conclusion on page 9.",
+      "opportunity": "Build a promised-rank front end that returns an exact or approximate optimizer, or a minimal hedge witnessing violation of the rank promise.",
+      "first_changed_proof_step": "Turn the alternating ancestry and district recursion encoded in SAT into a direct fixed-point separation and minimal-witness oracle.",
+      "destination_pair_search": "Searches for MCID rank certificates and optimizer-or-hedge interfaces found solver encodings but no rank-violation guarantee.",
+      "motif": "none",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "red_team": "A solver can already report infeasibility, so the certificate is routine.",
+      "rebuttal": "The relaxation is always feasible; the new output is a causally valid minimal residual larger than the promised rank, not an optimization infeasibility certificate.",
+      "status": "survives-step-1",
+      "rank": 2
+    },
+    {
+      "id": "seed:planar-bounded-degree-frontier",
+      "anchor": "AlimontiKann2000",
+      "anchor_read": "Introduction and APX program; Theorem 3.1 and its cubic-graph \\(L\\)-reduction; concluding list of cubic APX-complete problems. The primary full-text host was intermittently inaccessible, so the load-bearing theorem was cross-checked against the journal metadata and the cited theorem statement.",
+      "opportunity": "Determine whether rank-three MCID stays hard when the mixed skeleton is planar and every vertex, including the target, has bounded mixed degree.",
+      "first_changed_proof_step": "Replace global target spokes by planar local confounding connectors while preserving exact hedge realization.",
+      "destination_pair_search": "Searches combining planar ADMG, bounded degree, hedge, and MCID found planar node-cover hardness but no causal gadget satisfying both restrictions.",
+      "motif": "none",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "red_team": "Planar cubic vertex-cover hardness transfers by simply applying the private-guard gadget.",
+      "rebuttal": "The target spokes create a nonplanar high-degree hub, so the existing realization destroys both destination restrictions at the first causal construction step.",
+      "status": "survives-step-1",
+      "rank": 3
+    },
+    {
+      "id": "seed:joint-selection-allocation",
+      "anchor": "BhattacharyaNabiShpitser2022",
+      "anchor_read": "Introduction on pages 1--3; Theorem 14 and nested-IPW construction on pages 28--29 with its proof in Appendix H; discussion of unresolved tangent spaces on page 12.",
+      "opportunity": "Jointly select identifying proxy laws and allocate samples to minimize fixed acquisition cost plus an efficiency-bound criterion.",
+      "first_changed_proof_step": "Derive one product-model influence function valid across a combinatorially selected collection of interventional laws before optimizing allocation.",
+      "destination_pair_search": "Searches for semiparametric efficiency with proxy experiment selection found influence-function inference for fixed identified graphs and allocation work for direct ATE experiments, but no coupled problem.",
+      "motif": "M13+M11",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "red_team": "Optimize MCID first and apply Neyman allocation afterward.",
+      "rebuttal": "Different feasible proxy collections induce different influence functions and information, so fixed cost and allocation are generally nonseparable.",
+      "status": "not-deepened",
+      "rank": 4
+    },
+    {
+      "id": "seed:rank-four-realizability",
+      "anchor": "DinurGuruswamiKhotRegev2005",
+      "anchor_read": "Abstract and introduction describing the multilayered PCP; the \\(k-1-\\epsilon\\) hypergraph-cover theorem and biased-long-code proof architecture; conclusion and comparison to the easy factor \\(k\\).",
+      "opportunity": "Characterize rank-four causal-clutter realizability and decide whether the causal approximation ratio inherits or beats four-uniform hypergraph cover.",
+      "first_changed_proof_step": "Realize every source hyperedge as exactly one minimal residual hedge without creating smaller obstruction sets.",
+      "destination_pair_search": "Searches for rank-four causal hedge realizability returned generic hypergraph-cover bounds but no ADMG representation theorem.",
+      "motif": "none",
+      "target_tier": "flagship",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "red_team": "Akbari's general hitting-set reduction already realizes arbitrary rank-four clutters.",
+      "rebuttal": "Its auxiliaries and minimality interactions do not preserve exact residual rank four in the bow-free singleton class, so the approximation gap does not transfer automatically.",
+      "status": "not-deepened",
+      "rank": 5
+    },
+    {
+      "id": "seed:rank-recognition-complexity",
+      "anchor": "AkbariEtesamiKiyavash2025",
+      "anchor_read": "Section 3.3 on hedge enumeration, the alternating hedge-hull algorithms, Appendix D.2 on bounded size, and the discussion of general enumeration limits.",
+      "opportunity": "Classify recognition of \\(r(G,s)\\leq3\\), with minimal large hedges as coNP certificates.",
+      "first_changed_proof_step": "Move from enumerating all small candidate hedges to excluding every larger inclusion-minimal hedge through a structural certificate or hardness reduction.",
+      "destination_pair_search": "Searches for residual hedge rank recognition and minimal hedge size complexity found no published classification.",
+      "motif": "none",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "red_team": "Enumerate triples and check whether they cover all hedges.",
+      "rebuttal": "A feasible triple-hitting solution does not exclude a larger minimal hedge, so small-set enumeration is not a rank recognizer.",
+      "status": "not-deepened",
+      "rank": 6
+    },
+    {
+      "id": "seed:nonadditive-rank-three-costs",
+      "anchor": "AkbariEtesamiKiyavash2025",
+      "anchor_read": "Section 5 on nonlinear costs, Proposition 5, the loss of logarithmic approximation, and the transition to evaluations.",
+      "opportunity": "Determine the approximation frontier at rank three for monotone submodular or bundle-dependent acquisition costs.",
+      "first_changed_proof_step": "Replace linear threshold charging by a Lovasz-extension or value-oracle argument compatible with the parent-spouse crossing structure.",
+      "destination_pair_search": "Searches for nonlinear-cost MCID approximation found only the general cost discussion and no rank-three result.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "red_team": "Submodular cover approximation applies immediately.",
+      "rebuttal": "The objective is a set cost rather than a submodular coverage constraint, and the tight rank-three ratio depends on how bundle costs interact with the two-part residual structure.",
+      "status": "not-deepened",
+      "rank": 7
+    },
+    {
+      "id": "seed:exact-once-promised-enumeration",
+      "anchor": "ElahiAkbariEtesamiKiyavashThiran2024",
+      "anchor_read": "Theorem 1 and Appendix C's alternating reachability construction; Section 5 experiments; conclusion identifying approximation as future work.",
+      "opportunity": "Enumerate promised-rank minimal hedges exactly once with polynomial delay and a canonical state quotient, then expose them incrementally to exact solvers.",
+      "first_changed_proof_step": "Prove a right-congruence for ancestry and district search states so distinct traces with identical future minimal completions can be merged.",
+      "destination_pair_search": "Searches for canonical hedge enumeration and polynomial-delay MCID found SAT encodings and fixed-size subset enumeration, not an exact-once delay theorem.",
+      "motif": "none",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "red_team": "Lexicographically testing all bounded-size subsets already gives exact-once output.",
+      "rebuttal": "That baseline has polynomial total time only for fixed rank; the stronger seed concerns delay, quotientable search states, and incremental solver access, which require a causal right-congruence.",
+      "status": "not-deepened",
+      "rank": 8
+    },
+    {
+      "id": "seed:fractional-chromatic-transfer",
+      "anchor": "AkbariEtesamiKiyavash2025",
+      "anchor_read": "Theorem 2 and Appendix C's vertex-cover reduction; Appendix D.2's bounded-rank discussion.",
+      "opportunity": "Characterize the causal LP gap of private-guard expansions by the fractional chromatic number of the source graph.",
+      "first_changed_proof_step": "Project the causal covering LP onto the source vertex-cover LP.",
+      "destination_pair_search": "The source target-method pair is already occupied by Singh's exact formula.",
+      "motif": "M2",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 2,
+        "novelty": 1,
+        "feasibility": 5,
+        "consumer_value": 3
+      },
+      "red_team": "Immediate from Singh's formula once the causal LP projection is written down.",
+      "rebuttal": "The objection holds: exact projection makes this a corollary rather than a standalone kernel.",
+      "status": "dropped-step-0",
+      "rank": 9,
+      "anti_pattern_check": "Rejected as a single-comparator equivalence with no derived divergence frontier."
+    }
+  ],
+  "literature_map": [
+    {
+      "seed": "seed:rank-three-tight-frontier",
+      "threads": [
+        {
+          "bibkey": "ShpitserPearl2006",
+          "settled": "Hedges are complete witnesses for failure of joint interventional identification; the proof extracts rooted confounded forests from ID failure.",
+          "adapted_technique": "Use ancestor closure and bidirected connectivity as the two exact predicates in both inclusion and reverse-inclusion arguments."
+        },
+        {
+          "bibkey": "AkbariEtesamiKiyavash2025",
+          "settled": "MCID is minimum-weight hitting of minimal hedges; unrestricted instances are hard, and residual size at most two is polynomial.",
+          "adapted_technique": "Imitate the progression from graphical obstruction to hitting set to a structural tractable case, changing the boundary theorem at residual rank three."
+        },
+        {
+          "bibkey": "NemhauserTrotter1975",
+          "settled": "The graph vertex-cover relaxation has half-integral structure and supports threshold-two approximation machinery.",
+          "adapted_technique": "Use threshold charging, but derive feasibility from the causal parent-spouse partition instead of assuming a graph-edge LP."
+        },
+        {
+          "bibkey": "KhotRegev2008",
+          "settled": "Under \\(\\mathsf{UGC}\\), graph vertex cover cannot be approximated within \\(2-\\epsilon\\).",
+          "adapted_technique": "Compose the gap with an objective-preserving causal realization and explicitly remove guard selections without cost increase."
+        }
+      ],
+      "exact_target_occupied": false,
+      "closest_subsuming_paper": "None found. Akbari, Etesami, and Kiyavash stop at residual size two for polynomiality and do not state a rank-three ratio; Elahi and coauthors leave approximation open.",
+      "search_scope": "Primary-paper and citing-title searches through September 2026 for causal hedge rank, bounded hedge size, bow-free MCID, and factor-two approximation."
+    },
+    {
+      "seed": "seed:optimizer-or-violation",
+      "threads": [
+        {
+          "bibkey": "ElahiAkbariEtesamiKiyavashThiran2024",
+          "settled": "SAT and ILP encode unrestricted feasibility by alternating directed-ancestor and bidirected-component propagation.",
+          "adapted_technique": "Expose the same alternation as a polynomial fixed-point verification oracle rather than hiding it in satisfiability variables."
+        },
+        {
+          "bibkey": "AkbariEtesamiKiyavash2025",
+          "settled": "Fixed residual size permits polynomial candidate enumeration but does not decide whether larger minimal hedges exist.",
+          "adapted_technique": "Use bounded enumeration only as the relaxation, followed by unrestricted hedge verification."
+        },
+        {
+          "bibkey": "Fernau2010",
+          "settled": "Weighted bounded-rank hitting set admits search-tree algorithms when hyperedges are explicitly supplied.",
+          "adapted_technique": "Branch only after the causal enumerator returns an uncovered residual, and state the cardinality-bound scope explicitly."
+        }
+      ],
+      "exact_target_occupied": false,
+      "closest_subsuming_paper": "None found. The solver papers certify MCID feasibility or optimality but not violation of a structural rank promise.",
+      "search_scope": "Searches for MCID rank certificates, hedge separation oracles, implicit bounded-rank hitting set, and optimizer-or-counterexample interfaces."
+    },
+    {
+      "seed": "seed:planar-bounded-degree-frontier",
+      "threads": [
+        {
+          "bibkey": "GareyJohnsonStockmeyer1976",
+          "settled": "Node cover stays NP-complete under planar and low-degree restrictions.",
+          "adapted_technique": "Use restricted planar source instances, while recognizing that source restrictions alone do not survive the causal target hub."
+        },
+        {
+          "bibkey": "AlimontiKann2000",
+          "settled": "Minimum vertex cover is APX-complete on cubic graphs via an \\(L\\)-reduction.",
+          "adapted_technique": "Preserve bounded incidence locally in any replacement gadget."
+        },
+        {
+          "bibkey": "AkbariEtesamiKiyavash2025",
+          "settled": "The published causal reduction uses auxiliary hedge gadgets and does not control planarity plus total mixed degree.",
+          "adapted_technique": "Retain its objective-preserving replacement logic after eliminating global spokes."
+        }
+      ],
+      "exact_target_occupied": false,
+      "closest_subsuming_paper": "None found, but feasibility is substantially weaker because the present private-guard realization has a high-degree target and generally nonplanar skeleton.",
+      "search_scope": "Searches for planar ADMG intervention design, bounded-degree MCID, planar hedge gadgets, and planar causal identification hardness."
+    }
+  ],
+  "novelty_justification": "The two closest results are Akbari, Etesami, and Kiyavash's bounded-hedge theorem and Elahi and coauthors' solver formulation. The strict delta from the former is an exact bow-free singleton classification showing that residual ranks one and two are empty, followed by exact realization of every graph edge clutter at rank three with one private guard and a radius-two bidirected tree. The strict delta from the latter is a proved polynomial weighted factor-two approximation, a matching causal LP-gap family, and a conditional lower bound, rather than a faster exact encoding or heuristic. The theorem does not advertise generic hitting-set enumeration or LP solving as novel. Bounded searches through September 2026 found no closer paper that states the same rank-three representability or approximation frontier.",
+  "message": "Authored and validated the cold-start typed proposal core with nine ranked seeds, three deepened candidates, an exact rank-three kernel, and the required literature handoff fields.",
+  "literature_checklist": [
+    {
+      "author": "Sina Akbari, Jalal Etesami, and Negar Kiyavash",
+      "year": 2025,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "AkbariEtesamiKiyavash2025",
+      "one_line": "Theorem 2 gives unrestricted vertex-cover hardness, Section 3.3 gives hedge hitting, and Appendix D.2 settles minimal residual size at most two.",
+      "relevant_to": "thm:first-rank-boundary"
+    },
+    {
+      "author": "Sepehr Elahi, Sina Akbari, Jalal Etesami, Negar Kiyavash, and Patrick Thiran",
+      "year": 2024,
+      "venue": "NeurIPS",
+      "bibkey": "ElahiAkbariEtesamiKiyavashThiran2024",
+      "one_line": "Theorems 1--2 encode MCID using SAT, WPMAX-SAT, and ILP; the conclusion leaves efficient approximation open.",
+      "relevant_to": "thm:rank-three-rounding"
+    },
+    {
+      "author": "Ilya Shpitser and Judea Pearl",
+      "year": 2006,
+      "venue": "AAAI",
+      "bibkey": "ShpitserPearl2006",
+      "one_line": "Theorem 6 and Corollaries 2--3 establish hedge completeness and the graphical obstruction predicates used by the realization proof.",
+      "relevant_to": "thm:private-guard-realization"
+    },
+    {
+      "author": "George Nemhauser and Leslie Trotter",
+      "year": 1975,
+      "venue": "Mathematical Programming",
+      "bibkey": "NemhauserTrotter1975",
+      "one_line": "The half-integral vertex-packing structure is the closest polyhedral ancestor for factor-two threshold rounding.",
+      "relevant_to": "thm:rank-three-rounding"
+    },
+    {
+      "author": "Paola Alimonti and Viggo Kann",
+      "year": 2000,
+      "venue": "Theoretical Computer Science",
+      "bibkey": "AlimontiKann2000",
+      "one_line": "Theorem 3.1 supplies cubic minimum-vertex-cover APX hardness for the promise-preserving causal reduction.",
+      "relevant_to": "thm:objective-preserving-hardness"
+    },
+    {
+      "author": "Subhash Khot and Oded Regev",
+      "year": 2008,
+      "venue": "Journal of Computer and System Sciences",
+      "bibkey": "KhotRegev2008",
+      "one_line": "The main theorem gives the UGC-conditional two-minus-epsilon vertex-cover barrier transferred by exact causal realization.",
+      "relevant_to": "thm:tight-frontier"
+    },
+    {
+      "author": "Mohit Singh",
+      "year": 2019,
+      "venue": "Operations Research Letters",
+      "bibkey": "Singh2019",
+      "one_line": "Theorem 2.1 identifies the source vertex-cover LP gap through fractional chromatic number.",
+      "relevant_to": "thm:tight-frontier"
+    },
+    {
+      "author": "Henning Fernau",
+      "year": 2010,
+      "venue": "Theoretical Computer Science",
+      "bibkey": "Fernau2010",
+      "one_line": "Weighted bounded-rank hitting-set search trees supply the explicit-hypergraph branching ancestor.",
+      "relevant_to": "prop:promised-enumeration"
+    }
+  ]
+}

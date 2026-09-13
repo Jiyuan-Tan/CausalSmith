@@ -1,0 +1,996 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}conflictgraph\_\allowbreak{}uniform\_\allowbreak{}clt\_\allowbreak{}degree\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For the fixed \(r=2\) component-Perron Conflict Graph Design estimator, the sharp worst-case uniform normal-inference frontier is \(d_n=o(n^{2/3})\), with no additional slowly varying boundary factor. The proved quantitative bound is \(C_{\mathrm N}(B,c)\{D_n^2/(n\lambda_n)+D_n/n\}^{1/5}\); repeated Perron-ordered stars give the legal non-Gaussian Gaussian--Poisson obstruction at the critical scale. The observable spectral variance-bound estimator is uniformly ratio-consistent in the normal regime and yields conservative feasible Wald coverage. In addition, the graph-adaptive condition \(D_n^2/(n\lambda_n)\to0\) is a sufficient pointwise rule for all three conclusions. Only the exact interior Kolmogorov rate, matched legal lower arrays for its vanishing terms, and optimized constants remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} The published CGD theorem proves normality only under \(d_{\max}=o(n^{1/9})\), while its nonconvergence example does not identify the intervening worst-case degree frontier; generic dependency-graph bounds also discard the ordered prefix structure used by the fixed design.
+
+\paragraph{Niche.} The independent desired-exposure coordinates admit an exact forward Doob decomposition, and componentwise Perron priority controls both fourth moments of the increments and fluctuations of their predictable quadratic variation without imposing a maximum-outcome bound.
+
+\paragraph{Fill.} The proved martingale bound yields the quantitative error \(C_{\mathrm N}(B,c)\{D_n^2/(n\lambda_n)+D_n/n\}^{1/5}\), repeated stars certify failure at every fixed \(n^{2/3}\) scale, and together they establish the iff frontier \(d_n=o(n^{2/3})\). The same analysis proves spectral-bound ratio consistency and conservative feasible Wald coverage, while the graph-adaptive rule \(D_n^2/(n\lambda_n)\to0\) supplies a sufficient refinement for individual graph sequences.
+
+\section{Related work}
+
+\cite{KandirosPipisDaskalakisHarshaw2024CGD} supplies the fixed \(r=2\) design, estimator, spectral variance bound, the \(o(n^{1/9})\) sufficient CLT in Theorem 5.6, the direct-effect nonconvergence construction in Proposition 5.8, additive and ratio consistency in Propositions 5.3--5.4, and the Wald result in Corollary 5.7. Its formal direct-effect conflict graph has operator \(\mathcal H_n=I_n+A_{G_n}\); Appendix D.9 writes the star value as \(\sqrt{n-1}\) by suppressing the formal loop contribution, whereas the exact loop-inclusive value is \(1+\sqrt{n-1}\). The present fixed-\(B,c\), direct-effect, component-Perron specialization strictly strengthens the published sufficient distributional and coverage regimes. \cite{HeydeBrown1970DepartureNormality} supplies the fourth-moment martingale normal-approximation theorem used in the proof; \cite{Haeusler1988MartingaleRate}, \cite{Bolthausen1982ExactMartingaleRates}, and \cite{Mourrat2013MartingaleRate} explain the role of predictable-quadratic-variation fluctuations and the unresolved exact-rate question. Theorem 2.3 of \cite{JanischLehericy2024SparseDependencyGraph}, specialized to \(\delta=4\), is the direct generic dependency-graph comparison, but it does not exploit CGD prefix products. \cite{Ross2011FundamentalsStein}, \cite{Chin2019SteinInterference}, and \cite{CaiShaoZhang2026RefinedLocalDependence} are supporting local-dependence comparisons rather than probability theorems claimed to be sharpened here. \cite{KandirosHarshawSavje2026MinimaxNetwork} optimizes designs and estimators for minimax mean-squared point-estimation risk, a different target from the fixed-CGD Kolmogorov frontier. \cite{AronowSamii2017GeneralInterference} supplies the exposure-weighted design-based baseline, and \cite{HarshawMiddletonSavje2026OptimizedVariance} motivates estimating a conservative quadratic bound rather than the generally unidentified exact randomization variance. Declaration 18.13 of \cite{BlairCoppockHumphreys2023ResearchDesign}, modeled after \cite{GreenKrasnoCoppockFarrerLenoirZingher2016LawnSigns}, supplies the concrete \(238\)-precinct queen-adjacency direct-effect inquiry \(\operatorname{mean}(Y_{1,0}-Y_{0,0})\). The declaration itself uses Bernoulli assignment and Aronow--Samii estimation; the present theorem is an asymptotic design rule for future replications that instead adopt fixed CGD, not a retrospective validation of that analysis.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_n=n^{-1}\sum_{i\in\mathcal I_n}[Y_{n,i}(\mathbf e_{n,i})-Y_{n,i}(\mathbf 0_n)]\).
+Primary functional / estimator / diagnostic: \(T_n=n^{-1}\sum_{i\in\mathcal I_n}Y_{n,i}^{\mathrm{obs}}[\mathbf 1(E_{n,i,1})-\mathbf 1(E_{n,i,0})]/q_{n,i},\quad K_n(d;B,c)=\sup_{(G_n,Y_n)\in\mathcal M_n(d;B,c)}d_{\mathrm K}((T_n-\tau_n)/\sigma_n,Z_0)\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{population\_\allowbreak{}size}; \(\mathbb N\); \texttt{asymptotic\_\allowbreak{}index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of labeled units.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}n} --- \texttt{unit\_\allowbreak{}set}; \(2^{\mathbb N}\); \texttt{population}
+  \par\smallskip\noindent\emph{Definition.} Finite population \(\mathcal I_n=\{1,\ldots,n\}\).
+  \item \texttt{i} --- \texttt{unit\_\allowbreak{}index}; \(\mathcal I_n\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic unit index.}
+  \item \texttt{j} --- \texttt{unit\_\allowbreak{}index}; \(\mathcal I_n\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic reveal-\allowbreak{}coordinate index.}
+  \item \texttt{\textbackslash{}\allowbreak{}ell} --- \texttt{unit\_\allowbreak{}index}; \(\mathcal I_n\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic prefix-\allowbreak{}coordinate index.}
+  \item \texttt{s} --- \texttt{reveal\_\allowbreak{}rank}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic rank in the Perron-\allowbreak{}priority reveal order.}
+  \item \texttt{k} --- \texttt{exposure\_\allowbreak{}label}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic endpoint-\allowbreak{}exposure label.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf z} --- \texttt{assignment\_\allowbreak{}argument}; \(\{0,1\}^{\mathcal I_n}\); \texttt{function\_\allowbreak{}argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treatment assignment.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf z'} --- \texttt{assignment\_\allowbreak{}argument}; \(\{0,1\}^{\mathcal I_n}\); \texttt{function\_\allowbreak{}argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second generic treatment assignment.}
+  \item \texttt{G\_\allowbreak{}n} --- \texttt{labeled\_\allowbreak{}interference\_\allowbreak{}relation}; \(2^{\mathcal I_n\times\mathcal I_n}\); \texttt{interference\_\allowbreak{}graph\_\allowbreak{}input}
+  \par\smallskip\noindent\emph{Definition.} Known labeled interference relation on \(\mathcal I_n\); simplicity and undirectedness are imposed separately.
+  \item \texttt{A\_\allowbreak{}\{G\_\allowbreak{}n\}\allowbreak{}} --- \texttt{adjacency\_\allowbreak{}matrix}; \(\{0,1\}^{n\times n}\); \texttt{graph\_\allowbreak{}operator}
+  \par\smallskip\noindent\emph{Definition.} Adjacency matrix of \(G_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}n} --- \texttt{direct\_\allowbreak{}effect\_\allowbreak{}conflict\_\allowbreak{}graph\_\allowbreak{}operator}; \(\mathbb R^{n\times n}\); \texttt{formal\_\allowbreak{}conflict\_\allowbreak{}graph}
+  \par\smallskip\noindent\emph{Definition.} Formal direct-effect conflict graph operator \(\mathcal H_n=I_n+A_{G_n}\), including one loop at each unit.
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n} --- \texttt{spectral\_\allowbreak{}radius}; \([1,\infty)\); \texttt{spectral\_\allowbreak{}complexity}
+  \par\smallskip\noindent\emph{Definition.} Loop-inclusive spectral radius \(\lambda_n=\lambda_{\max}(\mathcal H_n)=1+\lambda_{\max}(A_{G_n})\).
+  \item \texttt{D\_\allowbreak{}n} --- \texttt{closed\_\allowbreak{}maximum\_\allowbreak{}degree}; \(\{1,\ldots,n\}\); \texttt{frontier\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Closed maximum degree \(D_n=\max_{i\in\mathcal I_n}(1+\deg_{G_n}(i))\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}n} --- \texttt{unit\_\allowbreak{}to\_\allowbreak{}rank\_\allowbreak{}permutation}; \(\mathcal I_n\to\{1,\ldots,n\}\); \texttt{design\_\allowbreak{}rank}
+  \par\smallskip\noindent\emph{Definition.} Unit-to-rank permutation: \(\pi_n(i)=1\) is the first reveal, and within each connected component of \(G_n\), smaller ranks correspond to larger positive unit-norm Perron coordinates of \(\mathcal H_n\), with label ties and components broken by the smallest label.
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n} --- \texttt{rank\_\allowbreak{}to\_\allowbreak{}unit\_\allowbreak{}permutation}; \(\{1,\ldots,n\}\to\mathcal I_n\); \texttt{reveal\_\allowbreak{}map}
+  \par\smallskip\noindent\emph{Definition.} Inverse rank-to-unit map \(\rho_n=\pi_n^{-1}\).
+  \item \texttt{B\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{earlier\_\allowbreak{}neighbor\_\allowbreak{}set}; \(2^{\mathcal I_n}\); \texttt{prefix\_\allowbreak{}set}
+  \par\smallskip\noindent\emph{Definition.} Strict earlier-neighbor set \(B_{n,i}=\{j:\{i,j\}\in G_n,\ \pi_n(j)<\pi_n(i)\}\).
+  \item \texttt{p\_\allowbreak{}n} --- \texttt{nonnull\_\allowbreak{}probability}; \((0,1/2]\); \texttt{design\_\allowbreak{}probability}
+  \par\smallskip\noindent\emph{Definition.} Probability \(p_n=(2\lambda_n)^{-1}\) that a desired-exposure coordinate is nonnull.
+  \item \texttt{t\_\allowbreak{}n} --- \texttt{null\_\allowbreak{}probability}; \([1/2,1)\); \texttt{design\_\allowbreak{}probability}
+  \par\smallskip\noindent\emph{Definition.} Null probability \(t_n=1-p_n\).
+  \item \texttt{U\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{desired\_\allowbreak{}exposure\_\allowbreak{}coordinate}; \(\{0,1,*\}\); \texttt{randomization}
+  \par\smallskip\noindent\emph{Definition.} Independent coordinate with probabilities \(p_n/2,p_n/2,t_n\) on \(1,0,*\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\_\allowbreak{}U} --- \texttt{assignment\_\allowbreak{}probability}; \([0,1]\); \texttt{design\_\allowbreak{}law}
+  \par\smallskip\noindent\emph{Definition.} Probability under the product law of \(U_{n,i}\), conditional on the fixed graph and potential outcomes.
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb E\_\allowbreak{}U} --- \texttt{assignment\_\allowbreak{}expectation}; \(\mathbb R\); \texttt{design\_\allowbreak{}expectation}
+  \par\smallskip\noindent\emph{Definition.} Expectation under \(\mathbb P_U\).
+  \item \texttt{E\_\allowbreak{}\{n,\allowbreak{}i,\allowbreak{}k\}\allowbreak{}} --- \texttt{desired\_\allowbreak{}exposure\_\allowbreak{}event}; \(2^{\{0,1,*\}^{\mathcal I_n}}\); \texttt{exposure\_\allowbreak{}event}
+  \par\smallskip\noindent\emph{Definition.} Event \(E_{n,i,k}=\{U_{n,i}=k,\ U_{n,\ell}=*\text{ for every }\ell\in B_{n,i}\}\).
+  \item \texttt{q\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{exposure\_\allowbreak{}probability}; \((0,1]\); \texttt{known\_\allowbreak{}weight}
+  \par\smallskip\noindent\emph{Definition.} Probability \(q_{n,i}=\mathbb P_U(E_{n,i,k})=(4\lambda_n)^{-1}t_n^{|B_{n,i}|}\), common across \(k\).
+  \item \texttt{Z\_\allowbreak{}n} --- \texttt{realized\_\allowbreak{}treatment\_\allowbreak{}assignment}; \(\{0,1\}^{\mathcal I_n}\); \texttt{known\_\allowbreak{}design\_\allowbreak{}output}
+  \par\smallskip\noindent\emph{Definition.} Assignment returned by Algorithm 1 of \cite{KandirosPipisDaskalakisHarshaw2024CGD} with \(r=2\), formal direct-effect conflict graph \(\mathcal H_n\), rank map \(\pi_n\), and desired coordinates \(U_{n,i}\).
+  \item \texttt{Y\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}(\textbackslash{}\allowbreak{}mathbf z)} --- \texttt{fixed\_\allowbreak{}potential\_\allowbreak{}outcome}; \(\mathbb R\); \texttt{causal\_\allowbreak{}primitive}
+  \par\smallskip\noindent\emph{Definition.} Fixed potential outcome of unit \(i\) under assignment \(\mathbf z\).
+  \item \texttt{Y\_\allowbreak{}n} --- \texttt{fixed\_\allowbreak{}potential\_\allowbreak{}outcome\_\allowbreak{}schedule}; \(\mathbb R^{\mathcal I_n\times\{0,1\}^{\mathcal I_n}}\); \texttt{causal\_\allowbreak{}schedule}
+  \par\smallskip\noindent\emph{Definition.} Collection \(Y_n=(Y_{n,i}(\mathbf z))_{i\in\mathcal I_n,\mathbf z\in\{0,1\}^{\mathcal I_n}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf e\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{isolated\_\allowbreak{}treatment\_\allowbreak{}assignment}; \(\{0,1\}^{\mathcal I_n}\); \texttt{endpoint\_\allowbreak{}assignment}
+  \par\smallskip\noindent\emph{Definition.} Assignment treating \(i\) and no other unit.
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf 0\_\allowbreak{}n} --- \texttt{all\_\allowbreak{}control\_\allowbreak{}assignment}; \(\{0,1\}^{\mathcal I_n}\); \texttt{endpoint\_\allowbreak{}assignment}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Assignment treating no unit.}
+  \item \texttt{a\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{treated\_\allowbreak{}endpoint}; \(\mathbb R\); \texttt{causal\_\allowbreak{}endpoint}
+  \par\smallskip\noindent\emph{Definition.} Endpoint \(a_{n,i}=Y_{n,i}(\mathbf e_{n,i})\).
+  \item \texttt{b\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{control\_\allowbreak{}endpoint}; \(\mathbb R\); \texttt{causal\_\allowbreak{}endpoint}
+  \par\smallskip\noindent\emph{Definition.} Endpoint \(b_{n,i}=Y_{n,i}(\mathbf 0_n)\).
+  \item \texttt{Y\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{observed\_\allowbreak{}outcome}; \(\mathbb R\); \texttt{observed\_\allowbreak{}data}
+  \par\smallskip\noindent\emph{Definition.} Observed outcome \(Y_{n,i}^{\mathrm{obs}}=Y_{n,i}(Z_n)\).
+  \item \texttt{s\_\allowbreak{}k} --- \texttt{contrast\_\allowbreak{}sign}; \(\{-1,1\}\); \texttt{contrast\_\allowbreak{}weight}
+  \par\smallskip\noindent\emph{Definition.} Sign \(s_1=1\) and \(s_0=-1\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}n} --- \texttt{finite\_\allowbreak{}population\_\allowbreak{}direct\_\allowbreak{}effect}; \(\mathbb R\); \texttt{target\_\allowbreak{}estimand}
+  \par\smallskip\noindent\emph{Definition.} Direct effect \(\tau_n=n^{-1}\sum_{i\in\mathcal I_n}(a_{n,i}-b_{n,i})\).
+  \item \texttt{T\_\allowbreak{}n} --- \texttt{cgd\_\allowbreak{}horvitz\_\allowbreak{}thompson\_\allowbreak{}estimator}; \(\mathbb R\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator \(T_n=n^{-1}\sum_{i\in\mathcal I_n}Y_{n,i}^{\mathrm{obs}}\{\mathbf 1(E_{n,i,1})-\mathbf 1(E_{n,i,0})\}/q_{n,i}\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}n\textasciicircum{}2} --- \texttt{exact\_\allowbreak{}randomization\_\allowbreak{}variance}; \([0,\infty)\); \texttt{oracle\_\allowbreak{}scale}
+  \par\smallskip\noindent\emph{Definition.} Variance \(\sigma_n^2=\operatorname{Var}_U(T_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}n} --- \texttt{exact\_\allowbreak{}randomization\_\allowbreak{}standard\_\allowbreak{}deviation}; \([0,\infty)\); \texttt{oracle\_\allowbreak{}scale}
+  \par\smallskip\noindent\emph{Definition.} Standard deviation \(\sigma_n=\sqrt{\sigma_n^2}\).
+  \item \texttt{B} --- \texttt{fourth\_\allowbreak{}moment\_\allowbreak{}budget}; \([1,\infty)\); \texttt{class\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed endpoint fourth-\allowbreak{}moment budget.}
+  \item \texttt{c} --- \texttt{variance\_\allowbreak{}floor\_\allowbreak{}constant}; \((0,1]\); \texttt{class\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed nondegeneracy constant.}
+  \item \texttt{C\_\allowbreak{}0} --- \texttt{universal\_\allowbreak{}positive\_\allowbreak{}constant}; \((0,\infty)\); \texttt{bound\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A universal finite positive constant large enough for the stated moment and ratio bounds.}
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm N\}\allowbreak{}(B,\allowbreak{}c)} --- \texttt{normal\_\allowbreak{}approximation\_\allowbreak{}constant}; \((0,\infty)\); \texttt{bound\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} Finite constant depending only on \(B\) and \(c\).
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon} --- \texttt{ratio\_\allowbreak{}tolerance}; \((0,\infty)\); \texttt{probability\_\allowbreak{}tolerance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed tolerance for variance-\allowbreak{}bound ratio concentration.}
+  \item \texttt{d} --- \texttt{degree\_\allowbreak{}envelope}; \(\{1,\ldots,n\}\); \texttt{class\_\allowbreak{}index}
+  \par\smallskip\noindent\emph{Definition.} Integer upper envelope for \(D_n\).
+  \item \texttt{d\_\allowbreak{}n} --- \texttt{integer\_\allowbreak{}degree\_\allowbreak{}sequence}; \(\{1,\ldots,n\}^{\mathbb N}\); \texttt{frontier\_\allowbreak{}sequence}
+  \par\smallskip\noindent\emph{Definition.} Integer sequence satisfying \(1\le d_n\le n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n(d;\allowbreak{}B,\allowbreak{}c)} --- \texttt{fixed\_\allowbreak{}design\_\allowbreak{}class}; \texttt{uniformity\_\allowbreak{}class}
+  \par\smallskip\noindent\emph{Definition.} Graph-and-potential-outcome class constructed in \(\mathrm{def:model\text{-}class}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi} --- \texttt{standard\_\allowbreak{}normal\_\allowbreak{}cdf}; \(\mathbb R\to[0,1]\); \texttt{reference\_\allowbreak{}distribution}
+  \par\smallskip\noindent\emph{Definition.} Distribution function of \(\mathcal N(0,1)\).
+  \item \texttt{d\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm K\}\allowbreak{}} --- \texttt{kolmogorov\_\allowbreak{}distance}; \(\mathcal P(\mathbb R)^2\to[0,1]\); \texttt{loss\_\allowbreak{}function}
+  \par\smallskip\noindent\emph{Definition.} Kolmogorov distance \(d_{\mathrm K}(X,Z)=\sup_{x\in\mathbb R}|\mathbb P(X\le x)-\mathbb P(Z\le x)|\).
+  \item \texttt{K\_\allowbreak{}n(d;\allowbreak{}B,\allowbreak{}c)} --- \texttt{uniform\_\allowbreak{}normal\_\allowbreak{}approximation\_\allowbreak{}error}; \([0,1]\); \texttt{frontier\_\allowbreak{}object}
+  \par\smallskip\noindent\emph{Definition.} Worst-case Kolmogorov error constructed in \(\mathrm{def:uniform\text{-}error}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf P\_\allowbreak{}n} --- \texttt{oriented\_\allowbreak{}adjacency\_\allowbreak{}matrix}; \(\{0,1\}^{n\times n}\); \texttt{proof\_\allowbreak{}operator}
+  \par\smallskip\noindent\emph{Definition.} Matrix with \((\mathsf P_n)_{ji}=1\) exactly when \(j\in B_{n,i}\), so rows index earlier parents and columns index later children.
+  \item \texttt{R\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{nonnull\_\allowbreak{}indicator}; \(\{0,1\}\); \texttt{proof\_\allowbreak{}coordinate}
+  \par\smallskip\noindent\emph{Definition.} Indicator \(R_{n,i}=\mathbf 1\{U_{n,i}\ne *\}\).
+  \item \texttt{S\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{rademacher\_\allowbreak{}label}; \(\{-1,1\}\); \texttt{proof\_\allowbreak{}coordinate}
+  \par\smallskip\noindent\emph{Definition.} Independent Rademacher sign encoding labels \(1\) and \(0\) on the event \(R_{n,i}=1\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{endpoint\_\allowbreak{}difference}; \(\mathbb R\); \texttt{proof\_\allowbreak{}coefficient}
+  \par\smallskip\noindent\emph{Definition.} Difference \(\delta_{n,i}=a_{n,i}-b_{n,i}\).
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{endpoint\_\allowbreak{}sum}; \(\mathbb R\); \texttt{proof\_\allowbreak{}coefficient}
+  \par\smallskip\noindent\emph{Definition.} Sum \(\gamma_{n,i}=a_{n,i}+b_{n,i}\).
+  \item \texttt{w\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{endpoint\_\allowbreak{}magnitude}; \([0,\infty)\); \texttt{proof\_\allowbreak{}coefficient}
+  \par\smallskip\noindent\emph{Definition.} Magnitude \(w_{n,i}=|a_{n,i}|+|b_{n,i}|\).
+  \item \texttt{w\_\allowbreak{}n} --- \texttt{endpoint\_\allowbreak{}magnitude\_\allowbreak{}vector}; \([0,\infty)^n\); \texttt{proof\_\allowbreak{}vector}
+  \par\smallskip\noindent\emph{Definition.} Vector \(w_n=(w_{n,i})_{i\in\mathcal I_n}\).
+  \item \texttt{v\_\allowbreak{}n} --- \texttt{oriented\_\allowbreak{}endpoint\_\allowbreak{}envelope}; \([0,\infty)^n\); \texttt{proof\_\allowbreak{}vector}
+  \par\smallskip\noindent\emph{Definition.} Vector \(v_n=\lambda_nw_n+\mathsf P_nw_n\).
+  \item \texttt{h\_\allowbreak{}\{n,\allowbreak{}i\}\allowbreak{}} --- \texttt{prefix\_\allowbreak{}product}; \([0,2]\); \texttt{proof\_\allowbreak{}weight}
+  \par\smallskip\noindent\emph{Definition.} Product \(h_{n,i}=\prod_{\ell\in B_{n,i}}(1-R_{n,\ell})/t_n\).
+  \item \texttt{h\_\allowbreak{}\{n,\allowbreak{}i,\allowbreak{}<s\}\allowbreak{}} --- \texttt{partial\_\allowbreak{}prefix\_\allowbreak{}product}; \([0,2]\); \texttt{proof\_\allowbreak{}weight}
+  \par\smallskip\noindent\emph{Definition.} Partial product \(h_{n,i,<s}=\prod_{\ell\in B_{n,i}:\pi_n(\ell)<s}(1-R_{n,\ell})/t_n\).
+  \item \texttt{F\_\allowbreak{}n} --- \texttt{raw\_\allowbreak{}estimator\_\allowbreak{}sum}; \(\mathbb R\); \texttt{proof\_\allowbreak{}target}
+  \par\smallskip\noindent\emph{Definition.} Raw sum \(F_n=nT_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal F\_\allowbreak{}\{n,\allowbreak{}s\}\allowbreak{}} --- \texttt{reveal\_\allowbreak{}filtration}; \texttt{A filtration on the product assignment space.}; \texttt{proof\_\allowbreak{}filtration}
+  \par\smallskip\noindent\emph{Definition.} Rank-indexed filtration \(\mathcal F_{n,0}=\{\varnothing,\Omega\}\) and \(\mathcal F_{n,s}=\sigma(U_{n,\rho_n(1)},\ldots,U_{n,\rho_n(s)})\) for \(1\le s\le n\).
+  \item \texttt{J\_\allowbreak{}\{n,\allowbreak{}s\}\allowbreak{}} --- \texttt{future\_\allowbreak{}child\_\allowbreak{}projection}; \(\mathbb R\); \texttt{proof\_\allowbreak{}coefficient}
+  \par\smallskip\noindent\emph{Definition.} Future-child sum \(J_{n,s}=\sum_{i:(\mathsf P_n)_{\rho_n(s),i}=1}\delta_{n,i}h_{n,i,<s}\).
+  \item \texttt{C\_\allowbreak{}\{n,\allowbreak{}s\}\allowbreak{}} --- \texttt{centered\_\allowbreak{}reveal\_\allowbreak{}coefficient}; \(\mathbb R\); \texttt{proof\_\allowbreak{}coefficient}
+  \par\smallskip\noindent\emph{Definition.} Predictable coefficient \(C_{n,s}=\delta_{n,\rho_n(s)}h_{n,\rho_n(s)}/p_n-J_{n,s}/t_n\).
+  \item \texttt{G\_\allowbreak{}\{n,\allowbreak{}s\}\allowbreak{}} --- \texttt{signed\_\allowbreak{}reveal\_\allowbreak{}coefficient}; \(\mathbb R\); \texttt{proof\_\allowbreak{}coefficient}
+  \par\smallskip\noindent\emph{Definition.} Predictable coefficient \(G_{n,s}=\gamma_{n,\rho_n(s)}h_{n,\rho_n(s)}/p_n\).
+  \item \texttt{M\_\allowbreak{}\{n,\allowbreak{}s\}\allowbreak{}} --- \texttt{doob\_\allowbreak{}increment}; \(L^2(\mathbb P_U)\); \texttt{proof\_\allowbreak{}increment}
+  \par\smallskip\noindent\emph{Definition.} Rank-\(s\) increment \(M_{n,s}=\mathbb E_U[F_n\mid\mathcal F_{n,s}]-\mathbb E_U[F_n\mid\mathcal F_{n,s-1}]\).
+  \item \texttt{Q\_\allowbreak{}n} --- \texttt{predictable\_\allowbreak{}quadratic\_\allowbreak{}variation}; \([0,\infty)\); \texttt{proof\_\allowbreak{}scale}
+  \par\smallskip\noindent\emph{Definition.} Predictable sum \(Q_n=\sum_{s=1}^n\mathbb E_U[M_{n,s}^2\mid\mathcal F_{n,s-1}]\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}\{n,\allowbreak{}s\}\allowbreak{}Q\_\allowbreak{}n} --- \texttt{rank\_\allowbreak{}coordinate\_\allowbreak{}flip}; \(\mathbb R\); \texttt{proof\_\allowbreak{}difference}
+  \par\smallskip\noindent\emph{Definition.} Signed coordinate difference of \(Q_n\) between setting \(R_{n,\rho_n(s)}=1\) and setting \(R_{n,\rho_n(s)}=0\), holding all other reveal coordinates fixed.
+  \item \texttt{W\_\allowbreak{}\{n,\allowbreak{}i,\allowbreak{}k\}\allowbreak{}} --- \texttt{signed\_\allowbreak{}exposure\_\allowbreak{}weight}; \(L^2(\mathbb P_U)\); \texttt{variance\_\allowbreak{}weight}
+  \par\smallskip\noindent\emph{Definition.} Weight \(W_{n,i,k}=s_k\mathbf 1(E_{n,i,k})/q_{n,i}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf V\_\allowbreak{}n} --- \texttt{weight\_\allowbreak{}covariance\_\allowbreak{}matrix}; \(\mathbb S_+^{2n}\); \texttt{known\_\allowbreak{}variance\_\allowbreak{}operator}
+  \par\smallskip\noindent\emph{Definition.} Known matrix \(\mathbf V_n=\operatorname{Cov}_U((W_{n,i,k})_{i\in\mathcal I_n,k\in\{0,1\}})\).
+  \item \texttt{L\_\allowbreak{}n} --- \texttt{weight\_\allowbreak{}covariance\_\allowbreak{}radius}; \([0,\infty)\); \texttt{known\_\allowbreak{}variance\_\allowbreak{}factor}
+  \par\smallskip\noindent\emph{Definition.} Largest eigenvalue \(L_n=\lambda_{\max}(\mathbf V_n)\).
+  \item \texttt{H\_\allowbreak{}\{2,\allowbreak{}n\}\allowbreak{}} --- \texttt{endpoint\_\allowbreak{}second\_\allowbreak{}moment\_\allowbreak{}mass}; \([0,\infty)\); \texttt{variance\_\allowbreak{}scale}
+  \par\smallskip\noindent\emph{Definition.} Mass \(H_{2,n}=\sum_{i\in\mathcal I_n}(a_{n,i}^2+b_{n,i}^2)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}\{2,\allowbreak{}n\}\allowbreak{}} --- \texttt{observed\_\allowbreak{}second\_\allowbreak{}moment\_\allowbreak{}mass}; \([0,\infty)\); \texttt{observable\_\allowbreak{}variance\_\allowbreak{}scale}
+  \par\smallskip\noindent\emph{Definition.} Estimator \(\widehat H_{2,n}=\sum_{i\in\mathcal I_n}\sum_{k\in\{0,1\}}(Y_{n,i}^{\mathrm{obs}})^2\mathbf 1(E_{n,i,k})/q_{n,i}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathrm\{VB\}\allowbreak{}\_\allowbreak{}n} --- \texttt{spectral\_\allowbreak{}variance\_\allowbreak{}bound}; \([0,\infty)\); \texttt{conservative\_\allowbreak{}variance}
+  \par\smallskip\noindent\emph{Definition.} Bound \(\mathrm{VB}_n=L_nH_{2,n}/n^2\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathrm\{VB\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}n} --- \texttt{spectral\_\allowbreak{}variance\_\allowbreak{}bound\_\allowbreak{}estimator}; \([0,\infty)\); \texttt{feasible\_\allowbreak{}variance}
+  \par\smallskip\noindent\emph{Definition.} Estimator \(\widehat{\mathrm{VB}}_n=L_n\widehat H_{2,n}/n^2\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{miscoverage\_\allowbreak{}level}; \((0,1)\); \texttt{inference\_\allowbreak{}level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed confidence-\allowbreak{}interval miscoverage level.}
+  \item \texttt{z\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha/\allowbreak{}2\}\allowbreak{}} --- \texttt{normal\_\allowbreak{}quantile}; \((0,\infty)\); \texttt{critical\_\allowbreak{}value}
+  \par\smallskip\noindent\emph{Definition.} Quantile \(z_{1-\alpha/2}=\Phi^{-1}(1-\alpha/2)\).
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm W\}\allowbreak{}(B,\allowbreak{}c,\allowbreak{}\textbackslash{}\allowbreak{}alpha)} --- \texttt{wald\_\allowbreak{}coverage\_\allowbreak{}constant}; \((0,\infty)\); \texttt{bound\_\allowbreak{}constant}
+  \par\smallskip\noindent\emph{Definition.} Finite constant depending only on \(B\), \(c\), and \(\alpha\).
+  \item \texttt{C\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{wald\_\allowbreak{}confidence\_\allowbreak{}set}; \(2^{\mathbb R}\); \texttt{inference\_\allowbreak{}output}
+  \par\smallskip\noindent\emph{Definition.} Feasible confidence set constructed in \(\mathrm{def:wald\text{-}interval}\).
+  \item \texttt{\textbackslash{}\allowbreak{}beta} --- \texttt{critical\_\allowbreak{}star\_\allowbreak{}scale}; \((0,\infty)\); \texttt{counterexample\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed repeated-\allowbreak{}star boundary constant.}
+  \item \texttt{k\_\allowbreak{}n} --- \texttt{star\_\allowbreak{}leaf\_\allowbreak{}count}; \(\mathbb N\); \texttt{counterexample\_\allowbreak{}size}
+  \par\smallskip\noindent\emph{Definition.} Critical star size \(k_n=\lfloor\beta n^{2/3}\rfloor\).
+  \item \texttt{m\_\allowbreak{}n} --- \texttt{star\_\allowbreak{}component\_\allowbreak{}count}; \(\mathbb N\); \texttt{counterexample\_\allowbreak{}size}
+  \par\smallskip\noindent\emph{Definition.} Number of full stars \(m_n=\lfloor n/(k_n+1)\rfloor\).
+  \item \texttt{r\_\allowbreak{}\{\textbackslash{}\allowbreak{}beta\}\allowbreak{}} --- \texttt{poisson\_\allowbreak{}intensity}; \((0,\infty)\); \texttt{boundary\_\allowbreak{}limit\_\allowbreak{}parameter}
+  \par\smallskip\noindent\emph{Definition.} Intensity \(r_{\beta}=(2\beta^{3/2})^{-1}\).
+  \item \texttt{Z\_\allowbreak{}0} --- \texttt{standard\_\allowbreak{}normal\_\allowbreak{}variable}; \(\mathcal N(0,1)\); \texttt{boundary\_\allowbreak{}limit}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Standard normal random variable.}
+  \item \texttt{N\_\allowbreak{}\{r\_\allowbreak{}\{\textbackslash{}\allowbreak{}beta\}\allowbreak{}\}\allowbreak{}} --- \texttt{poisson\_\allowbreak{}variable}; \(\operatorname{Poisson}(r_{\beta})\); \texttt{boundary\_\allowbreak{}limit}
+  \par\smallskip\noindent\emph{Definition.} Poisson variable independent of \(Z_0\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal L\_\allowbreak{}\{\textbackslash{}\allowbreak{}beta\}\allowbreak{}} --- \texttt{critical\_\allowbreak{}boundary\_\allowbreak{}law}; \(\mathcal P(\mathbb R)\); \texttt{nonnormal\_\allowbreak{}limit}
+  \par\smallskip\noindent\emph{Definition.} Law of \(\sqrt{8/9}Z_0-(N_{r_{\beta}}-r_{\beta})/(3\sqrt{r_{\beta}})\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}n(d;\allowbreak{}B,\allowbreak{}c)} --- \texttt{uniform\_\allowbreak{}kolmogorov\_\allowbreak{}rate}; \([0,1]\); \texttt{open\_\allowbreak{}rate\_\allowbreak{}object}
+  \par\smallskip\noindent\emph{Definition.} Exact order, up to constants, of \(K_n(d;B,c)\), to be derived by \(\mathrm{oeq:optimal\text{-}kolmogorov\text{-}rate}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:simple-graph]\label{ass:simple-graph}
+\(G_n\) is a simple undirected graph on \(\mathcal I_n\).
+\par\smallskip\noindent\emph{Standard} (Simple undirected interference graph, \cite{KandirosPipisDaskalakisHarshaw2024CGD}).
+\end{assumption}
+
+\begin{assumption}[ass:arbitrary-neighborhood-interference]\label{ass:arbitrary-neighborhood-interference}
+\(Y_{n,i}(\mathbf z)=Y_{n,i}(\mathbf z')\) whenever \(z_j=z'_j\) for every \(j\in\{i\}\cup\mathcal N_{G_n}(i)\).
+\par\smallskip\noindent\emph{Standard} (Arbitrary neighborhood interference, \cite{KandirosPipisDaskalakisHarshaw2024CGD}).
+\end{assumption}
+
+\begin{assumption}[ass:treated-fourth-moment]\label{ass:treated-fourth-moment}
+\(n^{-1}\sum_{i\in\mathcal I_n}|a_{n,i}|^4\le B\).
+\par\smallskip\noindent\emph{Standard} (Empirical fourth-moment bound, \cite{KandirosPipisDaskalakisHarshaw2024CGD}).
+\end{assumption}
+
+\begin{assumption}[ass:control-fourth-moment]\label{ass:control-fourth-moment}
+\(n^{-1}\sum_{i\in\mathcal I_n}|b_{n,i}|^4\le B\).
+\par\smallskip\noindent\emph{Standard} (Empirical fourth-moment bound, \cite{KandirosPipisDaskalakisHarshaw2024CGD}).
+\end{assumption}
+
+\begin{assumption}[ass:variance-floor]\label{ass:variance-floor}
+\(\sigma_n^2\ge c\lambda_n/n\).
+\par\smallskip\noindent\emph{Standard} (Design-based non-superefficiency variance floor, \cite{KandirosPipisDaskalakisHarshaw2024CGD}).
+\end{assumption}
+
+\begin{assumption}[ass:degree-envelope]\label{ass:degree-envelope}
+\(D_n\le d\).
+\par\smallskip\noindent\emph{Standard} (Maximum closed interference-degree envelope, \cite{KandirosPipisDaskalakisHarshaw2024CGD}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:perron-order]\label{def:perron-order}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Perron priority order}
+\par\smallskip\noindent\emph{Construction.} For each connected component of \(G_n\), take a positive unit-norm Perron eigenvector of the component block of \(\mathcal H_n\), assign ranks by decreasing coordinate with label ties, and concatenate components by their smallest label. This defines the unit-to-rank map \(\pi_n\), its inverse \(\rho_n=\pi_n^{-1}\), and \(B_{n,i}=\{j:\{i,j\}\in G_n,\ \pi_n(j)<\pi_n(i)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}simple-\allowbreak{}graph}.
+\end{definition}
+
+\begin{definition}[def:desired-coordinate-design]\label{def:desired-coordinate-design}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Independent desired-\allowbreak{}exposure law}
+\par\smallskip\noindent\emph{Construction.} Independently for \(i\in\mathcal I_n\), draw \(U_{n,i}=1\) and \(U_{n,i}=0\) with probability \((4\lambda_n)^{-1}\) each and draw \(U_{n,i}=*\) with probability \(t_n=1-(2\lambda_n)^{-1}\); set \(E_{n,i,k}=\{U_{n,i}=k,\ U_{n,j}=*\text{ for all }j\in B_{n,i}\}\) and \(q_{n,i}=(4\lambda_n)^{-1}t_n^{|B_{n,i}|}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}perron-\allowbreak{}order}.
+\end{definition}
+
+\begin{definition}[def:cgd-assignment]\label{def:cgd-assignment}
+\par\smallskip\noindent\emph{Defined object.} Fixed \(r=2\) Conflict Graph Design
+\par\smallskip\noindent\emph{Construction.} Apply Algorithm 1 of \cite{KandirosPipisDaskalakisHarshaw2024CGD} with \(r=2\), formal direct-effect conflict graph \(\mathcal H_n\), rank map \(\pi_n\), and coordinates \(U_{n,i}\) to obtain \(Z_n\); the strict earlier-neighbor sets are \(B_{n,i}\) from \(G_n\). On \(E_{n,i,1}\) the algorithm realizes \(\mathbf e_{n,i}\) in unit \(i\)'s closed \(G_n\)-neighborhood, and on \(E_{n,i,0}\) it realizes \(\mathbf 0_n\) there.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}desired-\allowbreak{}coordinate-\allowbreak{}design}; \texttt{ass:\allowbreak{}arbitrary-\allowbreak{}neighborhood-\allowbreak{}interference}.
+\end{definition}
+
+\begin{definition}[def:cgd-estimator]\label{def:cgd-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{CGD direct-\allowbreak{}effect estimator}
+\par\smallskip\noindent\emph{Construction.} \[T_n=\frac1n\sum_{i\in\mathcal I_n}Y_{n,i}^{\mathrm{obs}}\frac{\mathbf 1(E_{n,i,1})-\mathbf 1(E_{n,i,0})}{q_{n,i}},\qquad \tau_n=\frac1n\sum_{i\in\mathcal I_n}(a_{n,i}-b_{n,i}).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cgd-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}arbitrary-\allowbreak{}neighborhood-\allowbreak{}interference}.
+\end{definition}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal M_n(d;B,c)\)
+\par\smallskip\noindent\emph{Construction.} \[\mathcal M_n(d;B,c)=\left\{(G_n,Y_n):\ G_n\text{ is simple and undirected},\ Y_n\text{ satisfies arbitrary neighborhood interference on }G_n,\ D_n\le d,\ \frac1n\sum_i|a_{n,i}|^4\le B,\ \frac1n\sum_i|b_{n,i}|^4\le B,\ \sigma_n^2\ge\frac{c\lambda_n}{n}\right\}.\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}simple-\allowbreak{}graph}; \texttt{ass:\allowbreak{}arbitrary-\allowbreak{}neighborhood-\allowbreak{}interference}; \texttt{ass:\allowbreak{}treated-\allowbreak{}fourth-\allowbreak{}moment}; \texttt{ass:\allowbreak{}control-\allowbreak{}fourth-\allowbreak{}moment}; \texttt{ass:\allowbreak{}variance-\allowbreak{}floor}; \texttt{ass:\allowbreak{}degree-\allowbreak{}envelope}.
+\end{definition}
+
+\begin{definition}[def:uniform-error]\label{def:uniform-error}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniform Gaussian approximation error}
+\par\smallskip\noindent\emph{Construction.} \[K_n(d;B,c)=\sup_{(G_n,Y_n)\in\mathcal M_n(d;B,c)}\sup_{z\in\mathbb R}\left|\mathbb P_U\!\left(\frac{T_n-\tau_n}{\sigma_n}\le z\right)-\Phi(z)\right|.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}cgd-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:doob-decomposition]\label{def:doob-decomposition}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Forward CGD Doob decomposition}
+\par\smallskip\noindent\emph{Construction.} At reveal rank \(s\), let \(J_{n,s}=\sum_{i:(\mathsf P_n)_{\rho_n(s),i}=1}\delta_{n,i}h_{n,i,<s}\), \(C_{n,s}=\delta_{n,\rho_n(s)}h_{n,\rho_n(s)}/p_n-J_{n,s}/t_n\), and \(G_{n,s}=\gamma_{n,\rho_n(s)}h_{n,\rho_n(s)}/p_n\). The coordinate identity to audit is \[M_{n,s}=C_{n,s}(R_{n,\rho_n(s)}-p_n)+G_{n,s}R_{n,\rho_n(s)}S_{n,\rho_n(s)},\qquad Q_n=p_n\sum_{s=1}^n\{t_nC_{n,s}^2+G_{n,s}^2\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}desired-\allowbreak{}coordinate-\allowbreak{}design}; \texttt{def:\allowbreak{}cgd-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:repeated-star-witness]\label{def:repeated-star-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Critical repeated-\allowbreak{}star construction}
+\par\smallskip\noindent\emph{Construction.} For fixed \(\beta>0\), take \(k_n=\lfloor\beta n^{2/3}\rfloor\), \(m_n=\lfloor n/(k_n+1)\rfloor\) disjoint stars with \(k_n\) leaves, and isolated padding vertices; put \(a_{n,i}=1,b_{n,i}=0\) on leaves and \(a_{n,i}=b_{n,i}=0\) elsewhere.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}perron-\allowbreak{}order}.
+\end{definition}
+
+\begin{definition}[def:spectral-bound]\label{def:spectral-bound}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable CGD spectral variance bound}
+\par\smallskip\noindent\emph{Construction.} \[\mathbf V_n=\operatorname{Cov}_U(W_n),\quad L_n=\lambda_{\max}(\mathbf V_n),\quad \mathrm{VB}_n=\frac{L_nH_{2,n}}{n^2},\quad \widehat{\mathrm{VB}}_n=\frac{L_n\widehat H_{2,n}}{n^2}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cgd-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:wald-interval]\label{def:wald-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Feasible conservative Wald interval}
+\par\smallskip\noindent\emph{Construction.} \[C_{n,\alpha}=\begin{cases}[T_n-z_{1-\alpha/2}\sqrt{\widehat{\mathrm{VB}}_n},\ T_n+z_{1-\alpha/2}\sqrt{\widehat{\mathrm{VB}}_n}],&\widehat{\mathrm{VB}}_n>0,\\ \mathbb R,&\widehat{\mathrm{VB}}_n=0.\end{cases}\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}spectral-\allowbreak{}bound}.
+\end{definition}
+
+\begin{definition}[def:rate-handle]\label{def:rate-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{CGD Kolmogorov-\allowbreak{}rate handle}
+\par\smallskip\noindent\emph{Construction.} Determine \(\mathcal R_n(d;B,c)\) by pairing the forward martingale moment terms from \(\mathrm{def:doob\text{-}decomposition}\) with lower bounds obtained from optimized legal block-star arrays and perturbations of their hub-trigger counts.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}doob-\allowbreak{}decomposition}; \texttt{def:\allowbreak{}repeated-\allowbreak{}star-\allowbreak{}witness}; \texttt{def:\allowbreak{}uniform-\allowbreak{}error}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:perron-prefix-operator]\label{lem:perron-prefix-operator}
+For every \((G_n,Y_n)\in\mathcal M_n(d;B,c)\), \(1\le\lambda_n\le D_n\), \(\lambda_n\ge\sqrt{D_n}\), \(|B_{n,i}|\le\lambda_n-1\), and the oriented matrix satisfies \(\|\mathsf P_n\|_{2\to2}\le\lambda_n\), \(\|\mathsf P_n\|_{4\to4}\le\sqrt{\lambda_nD_n}\), and \(\|\mathsf P_n^{\top}\|_{4\to4}\le\lambda_n\).
+\end{lemma}
+\begin{proof}
+Fix a member of \(\mathcal M_n(d;B,c)\), and write \(A=A_{G_n}\), \(\lambda=\lambda_n\), \(D=D_n\), and \(\mathsf P=\mathsf P_n\).  Since \(A\) is the adjacency matrix of a simple undirected graph by \(\mathrm{ass:simple\text{-}graph}\), for every \(x\in\mathbb R^n\),
+\[
+ x^{\mathsf T}Ax=2\sum_{\{i,j\}\in G_n}x_ix_j
+ \le \sum_{i=1}^n\deg_{G_n}(i)x_i^2\le(D-1)\|x\|_2^2.
+\]
+The same calculation applied to \(|x|\), together with \(|x^{\mathsf T}Ax|\le |x|^{\mathsf T}A|x|\), shows that \(\|A\|_{2\to2}=\lambda_{\max}(A)=\lambda-1\).  Hence \(1\le\lambda\le D\).
+
+If \(D>1\), choose a vertex \(v\) of degree \(D-1\), put \(x_v=2^{-1/2}\), put \(x_j=\{2(D-1)\}^{-1/2}\) for its neighbors, and put all other coordinates equal to zero.  Then \(\|x\|_2=1\), and the edges incident to \(v\), with all other edge contributions nonnegative, give
+\[
+ \lambda-1=\lambda_{\max}(A)\ge x^{\mathsf T}Ax\ge\sqrt{D-1}.
+\]
+For \(D=1\) the same conclusion is immediate.  Thus
+\[
+ \lambda\ge1+\sqrt{D-1}\ge\sqrt D.
+\]
+
+Consider a connected component \(C\), let \(x^C\) be the positive Perron vector used by \(\mathrm{def:perron\text{-}order}\), and let \(\lambda_C\) be the largest eigenvalue of \(I+A_C\).  If \(j\in B_{n,i}\), the ordering gives \(x^C_j\ge x^C_i>0\).  The Perron equation therefore gives
+\[
+ (\lambda_C-1)x^C_i=\sum_{j:\{i,j\}\in G_n}x^C_j
+ \ge |B_{n,i}|x^C_i.
+\]
+Division is legal because \(x^C_i>0\), and \(\lambda_C\le\lambda\); hence \(|B_{n,i}|\le\lambda-1\).
+
+Entrywise, \(|\mathsf Px|\le A|x|\), so \(\|\mathsf P\|_{2\to2}\le\lambda-1\le\lambda\).  A row of \(\mathsf P\) lists later neighbors of one unit and has at most \(D-1\) ones, while a row of \(\mathsf P^{\mathsf T}\) lists \(B_{n,i}\) and has at most \(\lambda-1\) ones.  To obtain the fourth-norm bounds without an interpolation hypothesis, let \(r_j\) be the row sum of a nonnegative zero-one matrix \(M\).  Cauchy--Schwarz gives
+\[
+ |(Mx)_j|^2\le r_j\{M(|x|^2)\}_j,
+\]
+and consequently, if \(r_j\le r\),
+\[
+ \|Mx\|_4^4\le r^2\|M(|x|^2)\|_2^2
+ \le r^2\|M\|_{2\to2}^2\|x\|_4^4.
+\]
+Apply this first with \(M=\mathsf P\), \(r=D\), and then with \(M=\mathsf P^{\mathsf T}\), \(r=\lambda\).  Since \(\|\mathsf P^{\mathsf T}\|_{2\to2}=\|\mathsf P\|_{2\to2}\le\lambda\), this yields
+\[
+ \|\mathsf P\|_{4\to4}\le\sqrt{\lambda D},\qquad
+ \|\mathsf P^{\mathsf T}\|_{4\to4}\le\lambda,
+\]
+which proves every asserted inequality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} These inequalities translate Perron priority into the operator norms needed to avoid a squared dependency neighborhood. \textit{Gap.} \cite{KandirosPipisDaskalakisHarshaw2024CGD} uses Perron order for design and variance control but not this \(\ell_4\) martingale chain. \textit{Consumer.} The prefix and operator bounds are the deterministic input to the uniform normal-approximation theorem.
+
+\begin{lemma}[lem:exact-forward-doob]\label{lem:exact-forward-doob}
+For the rank-indexed filtration in \(\mathrm{def:doob\text{-}decomposition}\), the displayed coordinate formula satisfies \(F_n-\mathbb E_UF_n=\sum_{s=1}^nM_{n,s}\), \(\mathbb E_U[M_{n,s}\mid\mathcal F_{n,s-1}]=0\), and \(Q_n=\sum_{s=1}^n\mathbb E_U[M_{n,s}^2\mid\mathcal F_{n,s-1}]\), with \(\mathbb E_UQ_n=n^2\sigma_n^2\).
+\end{lemma}
+\begin{proof}
+Write \(p=p_n\), \(t=t_n\), \(R_i=R_{n,i}\), \(S_i=S_{n,i}\), \(h_i=h_{n,i}\), and suppress \(n\) on the endpoint coefficients.  On \(E_{n,i,1}\) and \(E_{n,i,0}\), \(\mathrm{def:cgd\text{-}assignment}\) and \(\mathrm{ass:arbitrary\text{-}neighborhood\text{-}interference}\) imply that the observed outcome is respectively \(a_i\) and \(b_i\).  Since \(q_{n,i}=(p/2)t^{|B_{n,i}|}\), the elementary label identity
+\[
+ a_i\mathbf 1\{U_{n,i}=1\}-b_i\mathbf 1\{U_{n,i}=0\}
+ =\frac{R_i}{2}(\delta_i+\gamma_iS_i)
+\]
+turns \(\mathrm{def:cgd\text{-}estimator}\) into the exact raw-sum identity
+\[
+ F_n=\sum_{i=1}^nh_i\frac{R_i}{p}(\delta_i+\gamma_iS_i).
+\]
+The factors in \(h_i\) involve only coordinates preceding \(i\), hence are independent of \((R_i,R_iS_i)\).  Moreover \(\mathbb E_Uh_i=1\), \(\mathbb E_UR_i=p\), and \(\mathbb E_U(R_iS_i)=0\).  It follows that
+\[
+ \mathbb E_UF_n=\sum_{i=1}^n\delta_i=n\tau_n.
+\]
+
+Put \(u=\rho_n(s)\).  The summand indexed by \(u\) has conditional expectation \(\delta_u h_u\) before rank \(s\), and its change after revealing \(U_{n,u}\) is
+\[
+ \frac{\delta_uh_u}{p}(R_u-p)+\frac{\gamma_uh_u}{p}R_uS_u.
+\]
+For a later unit \(i\) with \((\mathsf P_n)_{u i}=1\), all unrevealed factors have conditional mean one.  Its conditional expectation changes by
+\[
+ \delta_i h_{n,i,<s}\left\{\frac{1-R_u}{t}-1\right\}
+ =-\frac{\delta_i h_{n,i,<s}}{t}(R_u-p).
+\]
+No other summand changes.  Summing these displayed changes gives exactly
+\[
+ M_{n,s}=C_{n,s}(R_{n,u}-p_n)+G_{n,s}R_{n,u}S_{n,u}.
+\]
+Every factor in \(C_{n,s}\) and \(G_{n,s}\) is measurable with respect to \(\mathcal F_{n,s-1}\).  Conditional on that sigma-field, \(R_{n,u}\) is Bernoulli with success probability \(p_n\), the signed variable \(R_{n,u}S_{n,u}\) is centered, and their cross moment is zero.  Therefore
+\[
+ \mathbb E_U[M_{n,s}\mid\mathcal F_{n,s-1}]=0,\qquad
+ \mathbb E_U[M_{n,s}^2\mid\mathcal F_{n,s-1}]
+ =p_n\{t_nC_{n,s}^2+G_{n,s}^2\}.
+\]
+The defining conditional expectations telescope, so \(F_n-\mathbb E_UF_n=\sum_sM_{n,s}\); summing the last display proves the stated formula for \(Q_n\).  Orthogonality of martingale differences then gives
+\[
+ \mathbb E_UQ_n=\sum_s\mathbb E_UM_{n,s}^2
+ =\operatorname{Var}_U(F_n)=n^2\operatorname{Var}_U(T_n)=n^2\sigma_n^2.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposed identity exposes the independent-coordinate filtration that the published unit-level dependency graph discards. \textit{Gap.} Algorithm 1 in \cite{KandirosPipisDaskalakisHarshaw2024CGD} is sequential, but its published CLT does not derive these increments. \textit{Consumer.} An independently verified identity would permit direct use of quantitative martingale normal approximation.
+
+\begin{lemma}[lem:prefix-flip-moments]\label{lem:prefix-flip-moments}
+The candidate universal constant \(C_0<\infty\) can be chosen so that uniformly over \(\mathcal M_n(d;B,c)\), \[\sum_{s=1}^n\mathbb E_U|M_{n,s}|^4\le C_0Bn\lambda_nD_n^2,\qquad \operatorname{Var}_U(Q_n)\le C_0Bn\lambda_n^2D_n.\] At every reveal rank \(s\), the Bernoulli coordinate flip is conjectured to obey \[|\Delta_{n,s}Q_n|\le64p_n[\mathsf P_n\operatorname{diag}(w_n)(\lambda_nv_n+\mathsf P_n^{\top}v_n)]_{\rho_n(s)}.\]
+\end{lemma}
+\begin{proof}
+Use the abbreviations of the preceding proof and write \(w=w_n\), \(v=v_n\), and \(\mathsf P=\mathsf P_n\).  By \(\mathrm{lem:perron\text{-}prefix\text{-}operator}\), \(|B_{n,i}|\le\lambda_n-1\).  Since \(-\log(1-x)\le x/(1-x)\) for \(0\le x<1\),
+\[
+ -(|B_{n,i}|)\log t_n
+ \le\frac{\lambda_n-1}{2\lambda_n-1}<\frac12,
+\]
+so every full or partial prefix product is between zero and \(e^{1/2}<2\).  Also \(p_n^{-1}=2\lambda_n\) and \(t_n^{-1}\le2\).  Consequently, at \(u=\rho_n(s)\),
+\[
+ |J_{n,s}|\le2(\mathsf Pw)_u,\qquad
+ |C_{n,s}|\le4\{\lambda_nw_u+(\mathsf Pw)_u\}=4v_u,\qquad
+ |G_{n,s}|\le4\lambda_nw_u\le4v_u.
+\]
+For a Bernoulli variable \(R\) of mean \(p_n\),
+\[
+ \mathbb E|R-p_n|^4=p_nt_n^4+t_np_n^4\le2p_n,\qquad
+ \mathbb E|RS|^4=p_n.
+\]
+Using \(|x+y|^4\le8(|x|^4+|y|^4)\) conditionally in the exact increment formula therefore yields \(\mathbb E_U|M_{n,s}|^4\le C p_nv_u^4\) for a universal \(C\).  Moreover,
+\[
+ \sum_iw_i^4\le8\sum_i(|a_{n,i}|^4+|b_{n,i}|^4)\le16Bn.
+\]
+The fourth-norm bounds in \(\mathrm{lem:perron\text{-}prefix\text{-}operator}\), \(p_n=(2\lambda_n)^{-1}\), and \(\lambda_n\le D_n\) now give
+\[
+ \begin{aligned}
+ \sum_{s=1}^n\mathbb E_U|M_{n,s}|^4
+ &\le Cp_n\|\lambda_nw+\mathsf Pw\|_4^4\\
+ &\le Cp_n\{\lambda_n^4+\lambda_n^2D_n^2\}\|w\|_4^4
+ \le C Bn\lambda_nD_n^2.
+ \end{aligned}
+\]
+
+It remains to audit the coordinate flip.  Relabel units temporarily in reveal order, so that \(\mathsf P_{ki}=1\) means that \(k\) is an earlier parent of \(i\).  If a prefix product contains coordinate \(k\), its difference between \(R_k=1\) and \(R_k=0\), with all other coordinates fixed, is at most two; otherwise its difference is zero.  Therefore, for every increment index \(j\),
+\[
+ \begin{aligned}
+ |\Delta_k C_j|
+ &\le4\left\{\lambda_nw_j\mathsf P_{kj}
+       +\sum_i\mathsf P_{ki}w_i\mathsf P_{ji}\right\},\\
+ |\Delta_k G_j|&\le4\lambda_nw_j\mathsf P_{kj}.
+ \end{aligned}
+\]
+The second sum is precisely the shared-child contribution: both \(k\) and \(j\) are parents of \(i\).  This derivation allows arbitrary signs because absolute values were taken before summation.
+
+At both values of \(R_k\), the preceding bounds give \(|C_j|\le4v_j\) and \(|G_j|\le4v_j\).  Hence \(|x^2-y^2|\le(|x|+|y|)|x-y|\), the formula for \(Q_n\), and \(t_n\le1\) imply
+\[
+ \begin{aligned}
+ |\Delta_kQ_n|
+ &\le64p_n\left[\sum_j\mathsf P_{kj}w_j\lambda_nv_j
+  +\sum_i\mathsf P_{ki}w_i\sum_j\mathsf P_{ji}v_j\right]\\
+ &=64p_n[\mathsf P\operatorname{diag}(w)
+       (\lambda_nv+\mathsf P^{\mathsf T}v)]_k.
+ \end{aligned}
+\]
+Thus the displayed conjectured envelope is valid, including for overlapping parent prefixes.
+
+For completeness, variance tensorization here follows directly from the coordinate-reveal martingale of the function \(Q_n(R_1,\ldots,R_n)\): conditional Jensen's inequality bounds the squared rank-\(k\) increment by \(p_nt_n\mathbb E[(\Delta_kQ_n)^2\mid R_1,\ldots,R_{k-1}]\).  Orthogonality and summation yield
+\[
+ \operatorname{Var}_U(Q_n)\le p_nt_n\sum_k\mathbb E_U(\Delta_kQ_n)^2
+ \le4096p_n^3\|\mathsf P\operatorname{diag}(w)
+ (\lambda_nv+\mathsf P^{\mathsf T}v)\|_2^2.
+\]
+For any vector \(x\), Holder's inequality and the already proved operator bounds give
+\[
+ \|\mathsf P\operatorname{diag}(w)x\|_2
+ \le\lambda_n\|w\|_4\|x\|_4.
+\]
+Furthermore,
+\[
+ \begin{aligned}
+ \|\lambda_nv+\mathsf P^{\mathsf T}v\|_4&\le2\lambda_n\|v\|_4,\\
+ \|v\|_4&\le(\lambda_n+\sqrt{\lambda_nD_n})\|w\|_4
+ \le2\sqrt{\lambda_nD_n}\|w\|_4.
+ \end{aligned}
+\]
+Combining the last three displays, substituting \(p_n=(2\lambda_n)^{-1}\), and using \(\|w\|_4^4\le16Bn\), gives
+\[
+ \operatorname{Var}_U(Q_n)\le C Bn\lambda_n^2D_n.
+\]
+Enlarging one universal constant proves all three claims with the stated \(C_0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the answer-open early-kill lemma: D0 must prove or refute it for overlapping prefixes and arbitrary signed endpoints. \textit{Gap.} Neither \cite{Haeusler1988MartingaleRate} nor \cite{KandirosPipisDaskalakisHarshaw2024CGD} supplies a CGD-specific graph-uniform predictable-variation bound. \textit{Consumer.} If established, it would supply the candidate \(n^{2/3}\) normal regime without imposing a maximum-outcome bound.
+
+\begin{theorem}[thm:uniform-normal-bound]\label{thm:uniform-normal-bound}
+For each fixed \(B\ge1\) and \(0<c\le1\), the constant \(C_{\mathrm N}(B,c)<\infty\) may be chosen so that every member of \(\mathcal M_n(d;B,c)\) satisfies \[d_{\mathrm K}((T_n-\tau_n)/\sigma_n,Z_0)\le\min\left\{1,C_{\mathrm N}(B,c)\left(\frac{D_n^2}{n\lambda_n}+\frac{D_n}{n}\right)^{1/5}\right\}\le\min\left\{1,C_{\mathrm N}(B,c)\left(\frac{D_n^{3/2}}n\right)^{1/5}\right\}.\] Consequently \(K_n(d;B,c)\le\min\{1,C_{\mathrm N}(B,c)(d^{3/2}/n)^{1/5}\}\).
+\end{theorem}
+\begin{proof}
+Fix \((G_n,Y_n)\in\mathcal M_n(d;B,c)\), and put
+\[
+ s_n^2=n^2\sigma_n^2.
+\]
+Membership in \(\mathcal M_n(d;B,c)\), specifically \(\mathrm{ass:variance\text{-}floor}\), gives
+\[
+ s_n^2\ge c n\lambda_n>0,
+\]
+because \(c>0\), \(n\ge1\), and \(\lambda_n\ge1\).  Thus division by \(s_n\) is legal.  The exposure realization in \(\mathrm{def:cgd\text{-}assignment}\), arbitrary neighborhood interference, and \(q_{n,i}=\mathbb P_U(E_{n,i,k})>0\) give
+\[
+ \begin{aligned}
+ \mathbb E_UF_n
+ &=\sum_{i\in\mathcal I_n}\mathbb E_U\left[
+ a_{n,i}\frac{\mathbf 1(E_{n,i,1})}{q_{n,i}}
+ -b_{n,i}\frac{\mathbf 1(E_{n,i,0})}{q_{n,i}}
+ \right]\\
+ &=\sum_{i\in\mathcal I_n}(a_{n,i}-b_{n,i})
+ =n\tau_n.
+ \end{aligned}
+\]
+This proves, rather than defines, the equality between the expectation of the observed-data estimator and the fixed causal contrast.
+
+By \(\mathrm{lem:exact\text{-}forward\text{-}doob}\), the variables
+\[
+ X_{n,s}=M_{n,s}/s_n,\qquad 1\le s\le n,
+\]
+form a martingale-difference sequence relative to \((\mathcal F_{n,s})_{s=0}^n\), and
+\[
+ \sum_{s=1}^n\mathbb E_UX_{n,s}^2
+ =\frac{\mathbb E_UQ_n}{s_n^2}=1,
+ \qquad
+ \sum_{s=1}^n\mathbb E_U[X_{n,s}^2\mid\mathcal F_{n,s-1}]
+ =\frac{Q_n}{s_n^2}.
+\]
+The fourth moments are finite by \(\mathrm{lem:prefix\text{-}flip\text{-}moments}\).  Hence the cited Heyde--Brown inequality \(\mathrm{lem:heyde\text{-}brown\text{-}martingale\text{-}fourth\text{-}moment}\) applies and yields
+\[
+ \begin{aligned}
+ d_{\mathrm K}\left(\frac{F_n-\mathbb E_UF_n}{s_n},Z_0\right)
+ &\le C\left\{
+ \frac{\sum_{s=1}^n\mathbb E_U|M_{n,s}|^4}{s_n^4}
+ +\mathbb E_U\left|\frac{Q_n}{s_n^2}-1\right|^2
+ \right\}^{1/5}\\
+ &=C\left\{
+ \frac{\sum_{s=1}^n\mathbb E_U|M_{n,s}|^4}{s_n^4}
+ +\frac{\operatorname{Var}_U(Q_n)}{s_n^4}
+ \right\}^{1/5}.
+ \end{aligned}
+\]
+The equality uses \(\mathbb E_UQ_n=s_n^2\), again from \(\mathrm{lem:exact\text{-}forward\text{-}doob}\).  Applying the two inequalities in \(\mathrm{lem:prefix\text{-}flip\text{-}moments}\) and the lower bound \(s_n^4\ge c^2n^2\lambda_n^2\) gives, term by term,
+\[
+ \frac{\sum_{s=1}^n\mathbb E_U|M_{n,s}|^4}{s_n^4}
+ \le \frac{C_0B D_n^2}{c^2n\lambda_n},
+ \qquad
+ \frac{\operatorname{Var}_U(Q_n)}{s_n^4}
+ \le \frac{C_0B D_n}{c^2n}.
+\]
+Since \(F_n=nT_n\), \(\mathbb E_UF_n=n\tau_n\), and \(s_n=n\sigma_n\), the standardized variable on the left is exactly \((T_n-\tau_n)/\sigma_n\).  Absorbing \(C\), \(C_0\), \(B\), and \(c^{-2}\) into \(C_{\mathrm N}(B,c)\), and using that Kolmogorov distance is at most one, proves
+\[
+ d_{\mathrm K}\left(\frac{T_n-\tau_n}{\sigma_n},Z_0\right)
+ \le \min\left\{1,C_{\mathrm N}(B,c)
+ \left(\frac{D_n^2}{n\lambda_n}+\frac{D_n}{n}\right)^{1/5}\right\}.
+\]
+
+By \(\mathrm{lem:perron\text{-}prefix\text{-}operator}\), \(\lambda_n\ge\sqrt{D_n}\); and \(D_n\ge1\).  Therefore
+\[
+ \frac{D_n^2}{n\lambda_n}\le\frac{D_n^{3/2}}n,
+ \qquad
+ \frac{D_n}{n}\le\frac{D_n^{3/2}}n.
+\]
+Enlarging \(C_{\mathrm N}(B,c)\) by the factor \(2^{1/5}\) proves the second pointwise bound.  Finally, \(D_n\le d\) for every member of \(\mathcal M_n(d;B,c)\).  Taking the two suprema in \(\mathrm{def:uniform\text{-}error}\) therefore gives
+\[
+ K_n(d;B,c)\le\min\left\{1,C_{\mathrm N}(B,c)
+ \left(\frac{d^{3/2}}n\right)^{1/5}\right\},
+\]
+as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the proved graph-sensitive Kolmogorov bound from primitive fourth-moment, variance-floor, and Perron-prefix conditions. \textit{Gap.} Theorem 5.6 of \cite{KandirosPipisDaskalakisHarshaw2024CGD} requires \(d=o(n^{1/9})\); direct substitution of Theorem 2.3 of \cite{JanischLehericy2024SparseDependencyGraph} at \(\delta=4\) does not attain the CGD-specific bound. \textit{Consumer.} Future fixed-CGD replications can check either the worst-case degree rule or the graph-adaptive sufficient rule before using a normal critical value.
+
+\begin{theorem}[thm:repeated-star-boundary]\label{thm:repeated-star-boundary}
+For every fixed \(\beta>0\), the construction in \(\mathrm{def:repeated\text{-}star\text{-}witness}\) belongs to \(\mathcal M_n(k_n+1;B,c)\) eventually for every fixed \(B\ge1\) and \(0<c\le1\), has \(D_n/n^{2/3}\to\beta\), and satisfies \[(T_n-\tau_n)/\sigma_n\Rightarrow\mathcal L_{\beta}=\mathcal L\left(\sqrt{8/9}Z_0-\frac{N_{r_{\beta}}-r_{\beta}}{3\sqrt{r_{\beta}}}\right).\] The law \(\mathcal L_{\beta}\) has variance one and nonzero third cumulant \(-1/(27\sqrt{r_{\beta}})\), so it is not \(\mathcal N(0,1)\).
+\end{theorem}
+\begin{proof}
+Fix \(\beta>0\), and abbreviate \(k=k_n\), \(m=m_n\).  Eventually \(k\ge2\) and \(m\ge1\).  On every star, the positive Perron coordinate of the hub is \(\sqrt{k}\) times a leaf coordinate, so \(\mathrm{def:perron\text{-}order}\) places the hub before all leaves.  The graph has
+\[
+ D_n=k+1,\qquad \lambda_n=1+\sqrt{k}.
+\]
+Choose the full potential-outcome schedule \(Y_{n,i}(\mathbf z)=z_i\) on leaves and zero on hubs and padding vertices.  It depends only on a unit's own treatment and therefore satisfies \(\mathrm{ass:arbitrary\text{-}neighborhood\text{-}interference}\).  Its endpoints are exactly those in \(\mathrm{def:repeated\text{-}star\text{-}witness}\), and
+\[
+ \frac1n\sum_i|a_{n,i}|^4=\frac{mk}{n}\le1\le B,\qquad
+ \frac1n\sum_i|b_{n,i}|^4=0.
+\]
+
+Put \(p=(2\lambda_n)^{-1}\), \(t=1-p\), and \(\eta=p/2=(4\lambda_n)^{-1}\).  For star \(\ell\), let \(Q_\ell^\star\) indicate that its hub is null and let \(N_\ell\) count leaves whose desired label is one.  Independence of the desired coordinates gives
+\[
+ Q_\ell^\star\sim\operatorname{Bernoulli}(t),\qquad
+ N_\ell\sim\operatorname{Binomial}(k,\eta),
+\]
+with mutual independence within and across stars.  Only leaves contribute to \(F_n=nT_n\), and the exact contribution of star \(\ell\) is
+\[
+ F_\ell=\frac{Q_\ell^\star N_\ell}{t\eta}.
+\]
+Thus \(\mathbb E_UF_\ell=k\), and direct evaluation of its second moment gives
+\[
+ \operatorname{Var}_U(F_\ell)
+ =\frac{k(1-\eta)}{\eta t}+\frac{k^2p}{t}.
+\]
+Writing \(s_n^2=n^2\sigma_n^2=m\operatorname{Var}_U(F_\ell)\), the relations
+\[
+ k\sim\beta n^{2/3},\quad m\sim n/k,\quad
+ p\sim(2\sqrt{k})^{-1},\quad\eta\sim(4\sqrt{k})^{-1},\quad t\to1
+\]
+imply
+\[
+ s_n^2\sim\frac92n\sqrt{k},\qquad
+ \frac{s_n^2}{n\lambda_n}\longrightarrow\frac92.
+\]
+Consequently \(\sigma_n^2\ge c\lambda_n/n\) eventually for every \(0<c\le1\).  This proves eventual membership in \(\mathcal M_n(k_n+1;B,c)\), and \(D_n/n^{2/3}\to\beta\).
+
+Define
+\[
+ \begin{aligned}
+ A_n&=\sum_{\ell=1}^m\frac{N_\ell-k\eta}{\eta},\\
+ B_n&=k\sum_{\ell=1}^m\left(\frac{Q_\ell^\star}{t}-1\right),\\
+ C_n&=\sum_{\ell=1}^m\left(\frac{Q_\ell^\star}{t}-1\right)
+              \frac{N_\ell-k\eta}{\eta}.
+ \end{aligned}
+\]
+Expanding the product proves the exact decomposition
+\[
+ F_n-\mathbb E_UF_n=A_n+B_n+C_n.
+\]
+The first two terms are independent.  The factors in each summand of \(C_n\) are independent and centered, so
+\[
+ \operatorname{Var}_U(C_n)
+ =m\frac pt\frac{k(1-\eta)}\eta=O(n),\qquad
+ \mathbb E_U(C_n/s_n)^2=O(k^{-1/2})\longrightarrow0.
+\]
+
+The variable \(A_n\) is a sum of \(mk\) independent centered Bernoulli terms divided by \(\eta\), with variance \(mk(1-\eta)/\eta\).  The sum of their fourth moments divided by the squared variance is \(O((mk\eta)^{-1})\), and
+\[
+ mk\eta\sim\frac{n}{4\sqrt{k}}\longrightarrow\infty.
+\]
+Its predictable quadratic variation is deterministic.  The cited fourth-moment martingale bound \(\mathrm{lem:heyde\text{-}brown\text{-}martingale\text{-}fourth\text{-}moment}\) therefore proves a normal limit after standardization.  Since
+\[
+ \frac{\operatorname{Var}_U(A_n)}{s_n^2}\longrightarrow\frac89,
+\]
+we have \(A_n/s_n\Rightarrow\sqrt{8/9}\,Z_0\).
+
+Let \(H_n=\sum_{\ell=1}^m(1-Q_\ell^\star)\).  Then \(H_n\sim\operatorname{Binomial}(m,p)\),
+\[
+ mp\longrightarrow r_\beta=\frac1{2\beta^{3/2}},\qquad
+ B_n=-\frac{k}{t}(H_n-mp),\qquad
+ \frac{k}{ts_n}\longrightarrow\frac1{3\sqrt{r_\beta}}.
+\]
+For every fixed nonnegative integer \(q\), the binomial mass formula gives
+\[
+ \mathbb P_U(H_n=q)=\binom mq p^q(1-p)^{m-q}\longrightarrow
+ e^{-r_\beta}\frac{r_\beta^q}{q!}.
+\]
+The laws are uniformly tight because \(\sup_n\mathbb E_UH_n<\infty\).  Independence of \(A_n\) and \(H_n\), truncation to finitely many values of \(H_n\), and the preceding pointwise mass limits now give
+\[
+ \frac{A_n+B_n}{s_n}\Rightarrow
+ \sqrt{8/9}\,Z_0-\frac{N_{r_\beta}-r_\beta}{3\sqrt{r_\beta}},
+\]
+with the two limiting variables independent.  Since \(C_n/s_n\to0\) in probability, the same weak limit holds for \((F_n-\mathbb E_UF_n)/s_n=(T_n-\tau_n)/\sigma_n\).
+
+The Gaussian summand has variance \(8/9\), while the centered scaled Poisson summand has variance \(1/9\); hence the limit has variance one.  Cumulants add for independent variables, and the third cumulant of a Poisson variable of intensity \(r_\beta\) is \(r_\beta\).  Therefore the third cumulant of the displayed limit is
+\[
+ -\frac{r_\beta}{27r_\beta^{3/2}}=-\frac1{27\sqrt{r_\beta}}\ne0.
+\]
+A standard normal variable has third cumulant zero, so the limit is not standard normal.  Its convolution with the nondegenerate Gaussian component has a continuous density, completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This conjectural critical compound limit is the proposed legal obstruction under the original fourth moments and variance floor. \textit{Gap.} Proposition 5.8 of \cite{KandirosPipisDaskalakisHarshaw2024CGD} alternates a single star with another graph and does not locate the worst-case degree boundary. \textit{Consumer.} If independently proved, the construction would supply necessity for degree envelopes that are not \(o(n^{2/3})\).
+
+\begin{theorem}[thm:sharp-degree-frontier]\label{thm:sharp-degree-frontier}
+For every fixed \(B\ge1\), every fixed \(0<c\le1\), and every integer sequence \(1\le d_n\le n\), \[K_n(d_n;B,c)\longrightarrow0\quad\Longleftrightarrow\quad d_n=o(n^{2/3}).\] No additional slowly varying boundary factor is present.
+\end{theorem}
+\begin{proof}
+Suppose first that \(d_n=o(n^{2/3})\).  By \(\mathrm{thm:uniform\text{-}normal\text{-}bound}\),
+\[
+ K_n(d_n;B,c)\le C_{\mathrm N}(B,c)
+ \left(\frac{d_n^{3/2}}n\right)^{1/5}\longrightarrow0.
+\]
+
+Conversely, suppose \(d_n\) is not \(o(n^{2/3})\).  There are \(\epsilon>0\) and a subsequence, still denoted by \(n\), on which \(d_n\ge\epsilon n^{2/3}\).  Fix \(0<\beta<\epsilon\), and use \(\mathrm{def:repeated\text{-}star\text{-}witness}\) with \(k_n=\lfloor\beta n^{2/3}\rfloor\).  Then \(k_n+1\le d_n\) eventually on this subsequence, and \(\mathrm{thm:repeated\text{-}star\text{-}boundary}\) supplies a member of \(\mathcal M_n(d_n;B,c)\) whose standardized estimator converges weakly to \(\mathcal L_\beta\).
+
+Let \(F_\beta\) be the distribution function of \(\mathcal L_\beta\).  It is continuous because the law has a Gaussian component.  Pointwise convergence of distribution functions to a continuous distribution function is uniform: choose finite tail cutoffs and a finite grid on which the increments of \(F_\beta\) are small, and use monotonicity between adjacent grid points.  Therefore, along the chosen subsequence,
+\[
+ d_{\mathrm K}\left(\frac{T_n-\tau_n}{\sigma_n},Z_0\right)
+ \longrightarrow \sup_z|F_\beta(z)-\Phi(z)|=:\delta_\beta.
+\]
+The last quantity is strictly positive because \(\mathrm{thm:repeated\text{-}star\text{-}boundary}\) proves \(\mathcal L_\beta\ne\mathcal N(0,1)\).  Since \(K_n(d_n;B,c)\) is a supremum over a class containing this witness, it cannot converge to zero.  This proves the equivalence.  The same critical power appears on both sides with arbitrary fixed \(\beta>0\), so no extra slowly varying boundary factor is present.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This candidate iff statement is the field-tier target, contingent on D0 verification of both the martingale upper bound and the repeated-star limit. \textit{Gap.} No cited paper gives a necessary-and-sufficient degree condition for the fixed \(r=2\) CGD estimator; \cite{KandirosPipisDaskalakisHarshaw2024CGD} gives only \(1/9\) sufficiency and a nonsharp obstruction. \textit{Consumer.} A verified frontier would supply a single asymptotic design rule for deciding when CGD normal inference is uniformly justified.
+
+\begin{lemma}[lem:spectral-bound-moments]\label{lem:spectral-bound-moments}
+The universal constant \(C_0<\infty\) may be chosen so that every \((G_n,Y_n)\in\mathcal M_n(d;B,c)\) satisfies \[L_n\le C_0\lambda_n,\qquad n^2\sigma_n^2\le L_nH_{2,n},\qquad \mathbb E_U\widehat H_{2,n}=H_{2,n},\qquad \operatorname{Var}_U(\widehat H_{2,n})\le2C_0Bn\lambda_n.\]
+\end{lemma}
+\begin{proof}
+For arbitrary deterministic real arrays \(x=(x_i)\) and \(y=(y_i)\), define
+\[
+ F_n(x,y)=\sum_i\left\{x_i\frac{\mathbf1(E_{n,i,1})}{q_{n,i}}
+ -y_i\frac{\mathbf1(E_{n,i,0})}{q_{n,i}}\right\}.
+\]
+The exact decomposition proved in \(\mathrm{lem:exact\text{-}forward\text{-}doob}\) applies algebraically with endpoints \(x_i,y_i\).  Put \(w_i=|x_i|+|y_i|\) and \(v=\lambda_nw+\mathsf P_nw\).  The pointwise coefficient bounds in the proof of \(\mathrm{lem:prefix\text{-}flip\text{-}moments}\) give
+\[
+ \operatorname{Var}_U\{F_n(x,y)\}=\mathbb E_UQ_n(x,y)
+ \le32p_n\|v\|_2^2.
+\]
+By \(\mathrm{lem:perron\text{-}prefix\text{-}operator}\),
+\[
+ \|v\|_2\le2\lambda_n\|w\|_2,\qquad
+ \|w\|_2^2\le2\sum_i(x_i^2+y_i^2).
+\]
+Since \(p_n=(2\lambda_n)^{-1}\), enlargement of the universal constant gives
+\[
+ \operatorname{Var}_U\{F_n(x,y)\}
+ \le C_0\lambda_n\sum_i(x_i^2+y_i^2).
+\]
+
+If \(\theta=(x_i,y_i)_{i=1}^n\), then the sign convention \(s_1=1,s_0=-1\) gives \(F_n(x,y)=\theta^{\mathsf T}W_n\), and hence
+\[
+ \theta^{\mathsf T}\mathbf V_n\theta\le C_0\lambda_n\|\theta\|_2^2
+\]
+for every \(\theta\in\mathbb R^{2n}\).  The Rayleigh-quotient characterization of the largest eigenvalue of the symmetric positive semidefinite matrix \(\mathbf V_n\) yields \(L_n\le C_0\lambda_n\).
+
+For the actual endpoints, \(F_n=nT_n\) and its coefficient vector has squared norm \(H_{2,n}\).  Therefore
+\[
+ n^2\sigma_n^2=\operatorname{Var}_U(F_n)
+ \le L_nH_{2,n}.
+\]
+Endpoint realization on \(E_{n,i,k}\) gives
+\[
+ \widehat H_{2,n}=F_n((a_{n,i}^2)_i,(-b_{n,i}^2)_i).
+\]
+The expectation identity from the same Horvitz--Thompson algebra is thus
+\[
+ \mathbb E_U\widehat H_{2,n}=\sum_i\{a_{n,i}^2-(-b_{n,i}^2)\}=H_{2,n}.
+\]
+Applying the just-proved variance inequality to these transformed endpoints and then using the two fourth-moment assumptions gives
+\[
+ \operatorname{Var}_U(\widehat H_{2,n})
+ \le C_0\lambda_n\sum_i(a_{n,i}^4+b_{n,i}^4)
+ \le2C_0Bn\lambda_n.
+\]
+One common enlargement of \(C_0\) proves the lemma.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposed squared-endpoint reduction would turn the published CGD operator inequality into uniform moment control for the observable scale. \textit{Gap.} Propositions 5.3--5.4 of \cite{KandirosPipisDaskalakisHarshaw2024CGD} establish additive and ratio consistency for the spectral variance-bound estimator, respectively, but not this fixed-class quantitative package. \textit{Consumer.} The inequalities supply the denominator and numerator controls for uniform ratio consistency.
+
+\begin{theorem}[thm:spectral-ratio]\label{thm:spectral-ratio}
+The universal constant \(C_0<\infty\) may be chosen so that every \((G_n,Y_n)\in\mathcal M_n(d;B,c)\) obeys \(\mathrm{VB}_n\ge\sigma_n^2>0\) and, for every \(\varepsilon>0\), \[\mathbb P_U\left(\left|\frac{\widehat{\mathrm{VB}}_n}{\mathrm{VB}_n}-1\right|>\varepsilon\right)\le\frac{C_0B\lambda_n}{c^2n\varepsilon^2}.\] Consequently the class supremum is at most \(C_0Bd/(c^2n\varepsilon^2)\), so the ratio converges to one uniformly whenever \(d_n=o(n)\), including the sharp normal regime.
+\end{theorem}
+\begin{proof}
+The variance floor implies \(\sigma_n^2>0\).  By \(\mathrm{lem:spectral\text{-}bound\text{-}moments}\),
+\[
+ \mathrm{VB}_n=\frac{L_nH_{2,n}}{n^2}\ge\sigma_n^2>0.
+\]
+In particular both \(L_n\) and \(H_{2,n}\) are positive, and the same lemma plus \(\mathrm{ass:variance\text{-}floor}\) gives
+\[
+ H_{2,n}\ge\frac{n^2\sigma_n^2}{C_0\lambda_n}\ge\frac{cn}{C_0}.
+\]
+Division by \(\mathrm{VB}_n\) is therefore legal, and \(\mathrm{def:spectral\text{-}bound}\) gives
+\[
+ \frac{\widehat{\mathrm{VB}}_n}{\mathrm{VB}_n}
+ =\frac{\widehat H_{2,n}}{H_{2,n}}.
+\]
+Chebyshev's inequality and the variance bound in \(\mathrm{lem:spectral\text{-}bound\text{-}moments}\) now imply, after enlarging \(C_0\),
+\[
+ \mathbb P_U\left(\left|\frac{\widehat{\mathrm{VB}}_n}{\mathrm{VB}_n}-1\right|>\varepsilon\right)
+ \le\frac{2C_0Bn\lambda_n}{\varepsilon^2(cn/C_0)^2}
+ \le\frac{C_0B\lambda_n}{c^2n\varepsilon^2}.
+\]
+Since \(\lambda_n\le D_n\le d\), taking the class supremum replaces \(\lambda_n\) by \(d\).  For \(d=d_n=o(n)\) the resulting bound tends to zero for every fixed \(\varepsilon>0\), uniformly over the class.  The regime \(d_n=o(n^{2/3})\) is a subset of this ratio-consistency regime.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This expanded-regime ratio statement is a candidate downstream consequence and is not treated as established before D0 verification. \textit{Gap.} Propositions 5.3--5.4 of \cite{KandirosPipisDaskalakisHarshaw2024CGD} establish additive and ratio consistency, respectively, while \cite{HarshawMiddletonSavje2026OptimizedVariance} explains why exact variance cannot replace this bound. \textit{Consumer.} If proved, it would make the candidate normal frontier usable with observed outcomes rather than the inaccessible exact variance.
+
+\begin{theorem}[thm:uniform-wald-coverage]\label{thm:uniform-wald-coverage}
+For each fixed \(\alpha\in(0,1)\), the constant \(C_{\mathrm W}(B,c,\alpha)<\infty\) may be chosen so that \[\inf_{(G_n,Y_n)\in\mathcal M_n(d;B,c)}\mathbb P_U(\tau_n\in C_{n,\alpha})\ge1-\alpha-2K_n(d;B,c)-C_{\mathrm W}(B,c,\alpha)(d/n)^{1/3}.\] Hence, if \(d_n=o(n^{2/3})\), then \(\liminf_n\inf_{\mathcal M_n(d_n;B,c)}\mathbb P_U(\tau_n\in C_{n,\alpha})\ge1-\alpha\).
+\end{theorem}
+\begin{proof}
+Fix \(0<\alpha<1\), put \(z=z_{1-\alpha/2}\), and let \(0<\varepsilon\le1\).  Define
+\[
+ \mathcal A_{n,\varepsilon}=
+ \left\{\left|\widehat{\mathrm{VB}}_n/\mathrm{VB}_n-1\right|\le\varepsilon\right\}.
+\]
+By \(\mathrm{thm:spectral\text{-}ratio}\), \(\mathrm{VB}_n\ge\sigma_n^2>0\).  On \(\mathcal A_{n,\varepsilon}\), whenever \(\widehat{\mathrm{VB}}_n>0\),
+\[
+ \frac{z\sqrt{\widehat{\mathrm{VB}}_n}}{\sigma_n}
+ \ge z\sqrt{1-\varepsilon}.
+\]
+When \(\widehat{\mathrm{VB}}_n=0\), \(\mathrm{def:wald\text{-}interval}\) returns \(\mathbb R\) and coverage is automatic.  Hence, writing \(X_n=(T_n-\tau_n)/\sigma_n\),
+\[
+ \mathbb P_U(\tau_n\notin C_{n,\alpha})
+ \le\mathbb P_U\{|X_n|>z\sqrt{1-\varepsilon}\}
+ +\mathbb P_U(\mathcal A_{n,\varepsilon}^{\mathsf c}).
+\]
+The definition of \(K_n(d;B,c)\), applied separately to the two tails, gives
+\[
+ \mathbb P_U\{|X_n|>x\}\le2\{1-\Phi(x)\}+2K_n(d;B,c).
+\]
+Also, \(1-\sqrt{1-\varepsilon}\le\varepsilon\) and the standard-normal density is at most \((2\pi)^{-1/2}\), so
+\[
+ 2\{\Phi(z)-\Phi(z\sqrt{1-\varepsilon})\}
+ \le\frac{2z}{\sqrt{2\pi}}\varepsilon.
+\]
+Since \(2\{1-\Phi(z)\}=\alpha\), \(\mathrm{thm:spectral\text{-}ratio}\) and \(\lambda_n\le d\) yield uniformly over \(\mathcal M_n(d;B,c)\),
+\[
+ \mathbb P_U(\tau_n\notin C_{n,\alpha})
+ \le\alpha+2K_n(d;B,c)+C_\alpha\varepsilon
+ +\frac{C_0Bd}{c^2n\varepsilon^2}.
+\]
+Choose \(\varepsilon=(d/n)^{1/3}\), which lies in \((0,1]\) because \(1\le d\le n\).  Absorbing the displayed constants into \(C_{\mathrm W}(B,c,\alpha)\) and taking the infimum of coverage probabilities proves the finite-error inequality.  If \(d_n=o(n^{2/3})\), then \(\mathrm{thm:sharp\text{-}degree\text{-}frontier}\) gives \(K_n(d_n;B,c)\to0\), while \((d_n/n)^{1/3}\to0\); the asserted uniform lower limit follows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This expanded-regime coverage statement is a candidate downstream consequence of the unverified normal and ratio bounds. \textit{Gap.} Corollary 5.7 of \cite{KandirosPipisDaskalakisHarshaw2024CGD} covers only its \(o(n^{1/9})\) pointwise regime. \textit{Consumer.} If proved, it would provide the CGD calibration rule for the concrete direct-effect inquiry in Declaration 18.13.
+
+\begin{proposition}[prop:edgeless-reduction]\label{prop:edgeless-reduction}
+If \(G_n\) is edgeless, then \(D_n=\lambda_n=1\), every \(B_{n,i}=\varnothing\), and \(q_{n,i}=1/4\). The fixed \(r=2\) CGD estimator is therefore a sum of independent modified Horvitz--Thompson endpoint contrasts, and \(K_n(1;B,c)\to0\), recovering the classical independent triangular-array central limit theorem under the stated fourth moments and variance floor.
+\end{proposition}
+\begin{proof}
+If \(G_n\) is edgeless, every degree is zero, so \(D_n=1\), \(A_{G_n}=0\), and \(\lambda_n=1\).  The definition of earlier neighbors gives \(B_{n,i}=\varnothing\), and \(\mathrm{def:desired\text{-}coordinate\text{-}design}\) gives \(q_{n,i}=1/4\).  Thus the centered raw estimator is the sum of the independent centered variables
+\[
+ X_{n,i}=4\{a_{n,i}\mathbf1(U_{n,i}=1)-b_{n,i}\mathbf1(U_{n,i}=0)\}-(a_{n,i}-b_{n,i}).
+\]
+Their aggregate fourth moment is bounded by \(CBn\), whereas the variance floor gives \(\operatorname{Var}_U(\sum_iX_{n,i})=n^2\sigma_n^2\ge cn\); this is the usual uniform Lyapunov condition.  Equivalently, substituting \(D_n=\lambda_n=1\) into \(\mathrm{thm:uniform\text{-}normal\text{-}bound}\) gives
+\[
+ K_n(1;B,c)\le C_{\mathrm N}(B,c)(2/n)^{1/5}\longrightarrow0.
+\]
+This proves the stated independent-design reduction and its central limit conclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction is the required sanity check at the no-interference boundary. \textit{Gap.} This is a consistency check against classical Berry--Esseen theory rather than a novelty claim. \textit{Consumer.} It verifies that the frontier does not distort ordinary independent randomization inference.
+
+\begin{openendedquestion}[oeq:optimal-kolmogorov-rate]\label{oeq:optimal-kolmogorov-rate}
+Conditional on D0 validating the candidate frontier, what is the exact order \(\mathcal R_n(d;B,c)\), up to constants depending only on \(B\) and \(c\), of \(K_n(d;B,c)\) throughout the resulting Gaussian regime; in particular, can legal CGD graph-and-endpoint arrays match each dominant verified martingale error term?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This secondary question is conditional: the degree frontier and its internal rate bound must first survive the answer-open D0 audit. \textit{Gap.} Exactness in \cite{Haeusler1988MartingaleRate} ranges over general martingales, and optimality in \cite{JanischLehericy2024SparseDependencyGraph} ranges over general dependency graphs; neither proves attainability by CGD arrays. \textit{Consumer.} A matched rate would quantify how conservative the asymptotic degree rule is at the finite graph sizes used in experiment planning.
+
+\begin{lemma}[lem:heyde-brown-martingale-fourth-moment]\label{lem:heyde-brown-martingale-fourth-moment}
+Let \((X_s,\mathcal G_s)_{s=1}^N\) be a finite real martingale-difference sequence such that \(\sum_{s=1}^N\mathbb E X_s^2=1\) and \(\mathbb E|X_s|^4<\infty\).  There is a universal finite constant \(C\) such that, with \(S_N=\sum_{s=1}^N X_s\) and \(\langle S\rangle_N=\sum_{s=1}^N\mathbb E[X_s^2\mid\mathcal G_{s-1}]\),
+\[
+ \sup_{x\in\mathbb R}\left|\mathbb P(S_N\le x)-\Phi(x)\right|
+ \le C\left\{\sum_{s=1}^N\mathbb E|X_s|^4+
+ \mathbb E|\langle S\rangle_N-1|^2\right\}^{1/5}.
+\]
+\end{lemma}
+
+\begin{theorem}[thm:graph-adaptive-sufficient-inference]\label{thm:graph-adaptive-sufficient-inference}
+For fixed \(B\ge1\), \(0<c\le1\), and \(\alpha\in(0,1)\), let \(((G_n,Y_n))_{n\ge1}\) be any sequence such that \((G_n,Y_n)\in\mathcal M_n(D_n;B,c)\) for every \(n\).  The graph-adaptive condition
+\[
+ \frac{D_n^2}{n\lambda_n}\longrightarrow0
+\]
+is sufficient for
+\[
+ d_{\mathrm K}\left(\frac{T_n-\tau_n}{\sigma_n},Z_0\right)\longrightarrow0,
+ \qquad
+ \frac{\widehat{\mathrm{VB}}_n}{\mathrm{VB}_n}
+ \xrightarrow{\mathbb P_U}1,
+ \qquad
+ \liminf_{n\to\infty}\mathbb P_U(\tau_n\in C_{n,\alpha})\ge1-\alpha.
+\]
+For the repeated-star construction at any fixed \(\beta>0\), the same diagnostic converges instead to \(\beta^{3/2}>0\), while the standardized estimator converges to \(\mathcal L_{\beta}\ne\mathcal N(0,1)\).  Thus the repeated-star family is a nonvanishing-diagnostic elbow illustration; the sufficient condition is not asserted to be necessary for each individual graph sequence.
+\end{theorem}
+\begin{proof}
+Set
+\[
+ r_n=\frac{D_n^2}{n\lambda_n},
+ \qquad
+ \kappa_n=d_{\mathrm K}\left(\frac{T_n-\tau_n}{\sigma_n},Z_0\right).
+\]
+By \(\mathrm{lem:perron\text{-}prefix\text{-}operator}\), \(1\le\lambda_n\le D_n\).  Consequently
+\[
+ \frac{D_n}{n}=r_n\frac{\lambda_n}{D_n}\le r_n,
+ \qquad
+ \frac{\lambda_n}{n}=r_n\left(\frac{\lambda_n}{D_n}\right)^2\le r_n.
+\]
+If \(r_n\to0\), \(\mathrm{thm:uniform\text{-}normal\text{-}bound}\), applied pointwise to the member of \(\mathcal M_n(D_n;B,c)\), gives
+\[
+ \kappa_n\le C_{\mathrm N}(B,c)(2r_n)^{1/5}\longrightarrow0.
+\]
+This proves the normal limit directly from the primitive design bounds rather than assuming it.
+
+For every fixed \(\eta>0\), \(\mathrm{thm:spectral\text{-}ratio}\) and the second displayed inequality give
+\[
+ \mathbb P_U\left(
+ \left|\frac{\widehat{\mathrm{VB}}_n}{\mathrm{VB}_n}-1\right|>\eta
+ \right)
+ \le\frac{C_0B\lambda_n}{c^2n\eta^2}
+ \le\frac{C_0B r_n}{c^2\eta^2}\longrightarrow0.
+\]
+Hence \(\widehat{\mathrm{VB}}_n/\mathrm{VB}_n\xrightarrow{\mathbb P_U}1\).  Notice also that \(\mathrm{thm:spectral\text{-}ratio}\) gives \(\mathrm{VB}_n\ge\sigma_n^2>0\), so all ratios used here are well defined.
+
+It remains to prove feasible coverage using the actual error \(\kappa_n\), rather than a worst-case envelope indexed only by \(D_n\).  Put \(z=z_{1-\alpha/2}>0\),
+\[
+ u_n=\frac{\lambda_n}{n},
+ \qquad
+ \varepsilon_n=u_n^{1/3},
+ \qquad
+ \mathcal A_n=\left\{
+ \left|\frac{\widehat{\mathrm{VB}}_n}{\mathrm{VB}_n}-1\right|
+ \le\varepsilon_n\right\}.
+\]
+We have \(0<u_n\le1\), because \(1\le\lambda_n\le D_n\le n\), and \(u_n\le r_n\to0\).  Thus eventually \(0<\varepsilon_n<1\).  On \(\mathcal A_n\),
+\[
+ \widehat{\mathrm{VB}}_n
+ \ge(1-\varepsilon_n)\mathrm{VB}_n
+ \ge(1-\varepsilon_n)\sigma_n^2.
+\]
+If \(\widehat{\mathrm{VB}}_n=0\), \(\mathrm{def:wald\text{-}interval}\) returns \(\mathbb R\), so noncoverage is impossible.  Otherwise, with \(X_n=(T_n-\tau_n)/\sigma_n\), the preceding inequality implies
+\[
+ \mathbb P_U(\tau_n\notin C_{n,\alpha})
+ \le \mathbb P_U\{|X_n|>z\sqrt{1-\varepsilon_n}\}
+ +\mathbb P_U(\mathcal A_n^{\mathsf c}).
+\]
+The definition of \(\kappa_n\), applied to the two tails, yields
+\[
+ \mathbb P_U\{|X_n|>x\}\le2\{1-\Phi(x)\}+2\kappa_n
+ \quad(x\ge0).
+\]
+Because \(2\{1-\Phi(z)\}=\alpha\), the standard normal density is bounded by \((2\pi)^{-1/2}\), and \(1-\sqrt{1-\varepsilon_n}\le\varepsilon_n\), it follows that
+\[
+ 2\{1-\Phi(z\sqrt{1-\varepsilon_n})\}
+ \le\alpha+\frac{2z}{\sqrt{2\pi}}\varepsilon_n.
+\]
+Finally, \(\mathrm{thm:spectral\text{-}ratio}\) with \(\eta=\varepsilon_n\) gives
+\[
+ \mathbb P_U(\mathcal A_n^{\mathsf c})
+ \le\frac{C_0B u_n}{c^2\varepsilon_n^2}
+ =\frac{C_0B}{c^2}u_n^{1/3}.
+\]
+Combining the last four displays,
+\[
+ \mathbb P_U(\tau_n\notin C_{n,\alpha})
+ \le\alpha+2\kappa_n+
+ \left(\frac{2z}{\sqrt{2\pi}}+\frac{C_0B}{c^2}\right)u_n^{1/3}.
+\]
+Both remainder terms tend to zero, proving the claimed conservative lower coverage limit.
+
+For the repeated-star construction of \(\mathrm{def:repeated\text{-}star\text{-}witness}\), direct diagonalization of a star with \(k_n\) leaves gives
+\[
+ D_n=k_n+1,
+ \qquad
+ \lambda_n=1+\sqrt{k_n}.
+\]
+Since \(k_n\sim\beta n^{2/3}\),
+\[
+ \frac{D_n^2}{n\lambda_n}\longrightarrow\beta^{3/2}.
+\]
+The nonnormal convergence to \(\mathcal L_\beta\) is exactly \(\mathrm{thm:repeated\text{-}star\text{-}boundary}\).  This verifies the stated elbow illustration, while making no converse claim for arbitrary individual graph sequences.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This corollary converts the proved pointwise graph-sensitive error terms into a directly checkable sufficient rule for normality, feasible studentization, and conservative coverage. \textit{Gap.} The condition is graph-adaptive and sufficient only; the worst-case maximum-degree theorem, rather than this corollary, carries the necessity claim. \textit{Consumer.} A future fixed-CGD replication can use the observed graph quantities \(D_n\) and \(\lambda_n\) to verify a less coarse sufficient rule than \(D_n=o(n^{2/3})\).
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The proved \(1/5\)-power Kolmogorov bound is inherited from a general fourth-moment martingale inequality. The present argument establishes the exact convergence frontier but does not establish that this quantitative rate is constant-order sharp inside \(d=o(n^{2/3})\), nor does it optimize constants. The graph-adaptive condition \(D_n^2/(n\lambda_n)\to0\) is sufficient for an individual legal sequence and is not claimed necessary graph by graph. The variance result estimates the conservative spectral bound \(\mathrm{VB}_n\), which can strictly exceed \(\sigma_n^2\); it does not identify the exact variance.
+
+\section{Honest scope}
+
+The note fixes uniform constants \(B\) and \(c\), the finite-population direct effect, the fixed \(r=2\) CGD estimator, and componentwise Perron ordering. This is a legal fixed-design specialization using one of the anchor's permitted importance orderings, while \(\mathcal M_n(d;B,c)\) is a fixed-constant finite-\(n\) uniformization rather than literally the anchor's full asymptotic Assumptions 1--5. The fourth-moment restrictions imply the corresponding second-moment restrictions by \(n^{-1}\sum_i a_{n,i}^2\le(n^{-1}\sum_i a_{n,i}^4)^{1/2}\le\sqrt B\), and similarly for \(b_{n,i}\). Under the uniform frontier, \(\lambda_n\le D_n\le d_n=o(n^{2/3})\) implies \(\lambda_n=o(n)\); under the graph-adaptive sufficient rule, \(\lambda_n/n\le D_n^2/(n\lambda_n)\to0\). The repeated-star witnesses also satisfy \(\lambda_n=1+\sqrt{k_n}=O(n^{1/3})=o(n)\). Conversely, whenever an anchor sequence has finite uniform endpoint fourth-moment bounds and \(\liminf_n n\sigma_n^2/\lambda_n>0\), fixed constants \(B\ge1\) and \(c\in(0,1]\) can be chosen so that the sequence is eventually in \(\mathcal M_n(D_n;B,c)\). The iff claim concerns the worst-case maximum-degree envelope \(K_n(d_n;B,c)\), not necessity for each individual graph sequence. Wald coverage is conservative because \(\mathrm{VB}_n\ge\sigma_n^2\), and no exact-coverage or exact-variance-estimation claim is made. The result is an asymptotic benchmark for future fixed-CGD replications; it does not provide a finite-\(n\) certificate for the \(238\)-precinct declaration or retroactively validate its Bernoulli assignment and Aronow--Samii intervals. The only remaining mathematical gap is the exact interior Kolmogorov rate, including legal lower arrays matching its vanishing terms and optimized constants.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KandirosPipisDaskalakisHarshaw2024CGD} V. Kandiros, C. Pipis, C. Daskalakis, and C. Harshaw (2024), The Conflict Graph Design: Estimating Causal Effects under Arbitrary Neighborhood Interference, arXiv:2411.10908v2.
+
+  \bibitem{KandirosHarshawSavje2026MinimaxNetwork} V. Kandiros, C. Harshaw, and F. S\"{a}vje (2026), A Design-Based Minimax Theory for Network Experiments, arXiv:2608.04909.
+
+  \bibitem{HeydeBrown1970DepartureNormality} C. C. Heyde and B. M. Brown (1970), On the Departure from Normality of a Certain Class of Martingales, \emph{Annals of Mathematical Statistics} 41, 2161--2165.
+
+  \bibitem{Haeusler1988MartingaleRate} E. Haeusler (1988), On the Rate of Convergence in the Central Limit Theorem for Martingales with Discrete and Continuous Time, \emph{Annals of Probability} 16, 275--299.
+
+  \bibitem{Bolthausen1982ExactMartingaleRates} E. Bolthausen (1982), Exact Convergence Rates in Some Martingale Central Limit Theorems, \emph{Annals of Probability} 10, 672--688.
+
+  \bibitem{Mourrat2013MartingaleRate} J.-C. Mourrat (2013), On the Rate of Convergence in the Martingale Central Limit Theorem, \emph{Bernoulli} 19, 633--645.
+
+  \bibitem{JanischLehericy2024SparseDependencyGraph} M. Janisch and T. Leh\'{e}ricy (2024), Berry--Esseen-Type Estimates for Random Variables with a Sparse Dependency Graph, \emph{Journal of Theoretical Probability} 37, 3627--3653.
+
+  \bibitem{CaiShaoZhang2026RefinedLocalDependence} Z.-J. Cai, Q.-M. Shao, and Z.-S. Zhang (2026), Refined Berry--Esseen Bounds under Local Dependence, arXiv:2602.02217.
+
+  \bibitem{Ross2011FundamentalsStein} N. Ross (2011), Fundamentals of Stein's Method, \emph{Probability Surveys} 8, 210--293.
+
+  \bibitem{Chin2019SteinInterference} A. Chin (2019), Central Limit Theorems via Stein's Method for Randomized Experiments under Interference, arXiv:1804.03105.
+
+  \bibitem{AronowSamii2017GeneralInterference} P. M. Aronow and C. Samii (2017), Estimating Average Causal Effects under General Interference, \emph{Annals of Applied Statistics} 11, 1912--1947.
+
+  \bibitem{HarshawMiddletonSavje2026OptimizedVariance} C. Harshaw, J. A. Middleton, and F. Savje (2026), Optimized Variance Estimation under Interference and Complex Experimental Designs, \emph{Journal of the American Statistical Association}, doi:10.1080/01621459.2026.2627027.
+
+  \bibitem{SandovalBalakrishnanFellerJordanWaudbySmith2026} R. J. Sandoval, S. Balakrishnan, A. Feller, M. I. Jordan, and I. Waudby-Smith (2026), On Nonasymptotic Confidence Intervals for Treatment Effects in Randomized Experiments, arXiv:2601.11744.
+
+  \bibitem{BlairCoppockHumphreys2023ResearchDesign} G. Blair, A. Coppock, and M. Humphreys (2023), \emph{Research Design in the Social Sciences: Declaration, Diagnosis, and Redesign}, Princeton University Press, Section 18.10 and Declaration 18.13.
+
+  \bibitem{GreenKrasnoCoppockFarrerLenoirZingher2016LawnSigns} D. P. Green, J. S. Krasno, A. Coppock, B. Farrer, B. Lenoir, and J. N. Zingher (2016), The Effects of Lawn Signs on Vote Outcomes: Results from Four Randomized Field Experiments, \emph{Electoral Studies} 41, 143--150.
+
+\end{thebibliography}
+
+\end{document}

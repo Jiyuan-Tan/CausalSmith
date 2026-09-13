@@ -1,0 +1,445 @@
+%%% FIELD proof-observable-mobius
+Because \(Z\) is the support of the randomization law, \(p_z>0\) for every \(z\in Z\), and \(\sum_{z\in Z}p_z=1\).  The schedule is fixed, and the assignment is the only random object.  In particular, \(\text{def:score-variance}\) keeps the causal target separate from the variance-bound functional:
+\[
+ \mathbb E_pX_z(\theta)=\sum_zp_zv_z^\top\theta
+ =c^\top\theta=\tau(\theta),\qquad
+ \operatorname{Var}_p\{X_z(\theta)\}=f(\theta).
+\]
+First consider an arbitrary function \(u:\Theta\to\mathbb R\).  For \(S\subseteq I\), define
+\[
+ \gamma_S:=\sum_{T\subseteq S}(-1)^{|S|-|T|}u(\mathbf 1_T).
+\]
+If \(R\subseteq I\), then finite rearrangement gives
+\[
+ \sum_{S\subseteq R}\gamma_S
+ =\sum_{T\subseteq R}u(\mathbf 1_T)
+   \sum_{S:T\subseteq S\subseteq R}(-1)^{|S|-|T|}
+ =u(\mathbf 1_R),
+\]
+because the inner sum equals \((1-1)^{|R\setminus T|}\), interpreted as one when \(T=R\).  Every \(\theta\in\Theta\) equals \(\mathbf 1_R\) for \(R=\{i:\theta_i=1\}\), so
+\[
+ u(\theta)=\sum_{S\subseteq I}\gamma_Sm_S(\theta).
+\]
+This expansion is unique: evaluating a zero expansion successively at \(\mathbf 1_R\), beginning with \(R=\varnothing\), forces every coefficient to be zero.  Thus \(\gamma_S\) is the claimed \(\beta_S\).
+
+For necessity, expand each finite table uniquely on its own cube:
+\[
+ g_z(y)=\sum_{S\subseteq O_z}\gamma_{z,S}m_S(y).
+\]
+Using \(\operatorname{supp}(v_z)\subseteq O_z\) is unnecessary for this algebra; it is used by \(\text{def:score-variance}\) to ensure that the score itself is observed.  By \(\text{def:expected-rule}\),
+\[
+ b_g(\theta)=\sum_{z\in Z}p_z\sum_{S\subseteq O_z}
+       \gamma_{z,S}m_S(\theta).
+\]
+Every support occurring on the right belongs to \(\mathcal J\) by \(\text{def:observable-complex}\).  Uniqueness of the Boolean expansion therefore implies \(\beta_S=0\) for \(S\notin\mathcal J\), hence \(b_g\in\mathcal E_{\mathcal J}\) by \(\text{def:boolean-mobius-spaces}\).
+
+Conversely, let \(b=\sum_{S\in\mathcal J}\beta_Sm_S\).  For \(S\in\mathcal J\), define
+\[
+ \pi_S:=\sum_{z:S\subseteq O_z}p_z.
+\]
+The defining witness in \(\mathcal J\) and positivity on the support give \(\pi_S>0\); in particular \(\pi_\varnothing=1\).  Hence the displayed assignment rule is well defined.  Its expectation is
+\[
+ \begin{aligned}
+ b_g(\theta)
+ &=\sum_zp_z\sum_{S\subseteq O_z}\frac{\beta_S}{\pi_S}m_S(\theta)\\
+ &=\sum_{S\in\mathcal J}\frac{\beta_S}{\pi_S}m_S(\theta)
+     \sum_{z:S\subseteq O_z}p_z
+ =\sum_{S\in\mathcal J}\beta_Sm_S(\theta)=b(\theta).
+ \end{aligned}
+\]
+All sums are finite, so the rearrangement is exact.  Finally, for each fixed schedule, \(\text{def:score-variance}\) gives
+\[
+ \operatorname{Var}_p\{X_z(\theta)\}=f(\theta),
+ \quad\quad \mathbb E_p\{g_z(\theta|_{O_z})\}=b_g(\theta).
+\]
+Thus expectation conservativeness simultaneously for every fixed binary schedule is equivalent, in both directions, to the finite family of pointwise inequalities \(b_g(\theta)\ge f(\theta)\) for all \(\theta\in\Theta\).
+
+%%% FIELD proof-dual-complete-class
+Let \(D=|\mathcal J|\), index the columns by \(S\in\mathcal J\), and define the \(|\Theta|\times D\) matrix and objective vector
+\[
+ M_{\theta S}:=m_S(\theta),\quad\quad a:=M^\top q.
+\]
+By the unique expansion proved in \(\text{thm:observable-mobius}\), a coefficient vector \(\beta\in\mathbb R^D\) represents \(b=M\beta\), and \(\text{def:bound-program}\) becomes
+\[
+ \min_{\beta\in\mathbb R^D}a^\top\beta
+ \quad\text{subject to}\quad M\beta\ge f. \tag{1}
+\]
+The program is feasible because the observable constant \(C:=\max_{\theta\in\Theta}f(\theta)\) dominates \(f\).  Moreover \(f(\theta)\ge0\), since \(f\) is the design variance in \(\text{def:score-variance}\).  If a feasible \(b\) has \(\sum_\theta q_\theta b(\theta)\le L\), full support of \(q\) gives
+\[
+ 0\le b(\theta)\le \frac{L}{q_\theta}\quad\quad(\theta\in\Theta). \tag{2}
+\]
+The corresponding sublevel set is therefore closed and bounded in the finite-dimensional subspace \(\mathcal E_{\mathcal J}\), hence compact.  Taking \(L=C\) proves primal attainment.
+
+We next derive, rather than assume, the dual certificate.  Let \(\beta^\star\) solve (1), let
+\[
+ I_0:=\{\theta:M_{\theta\cdot}\beta^\star=f(\theta)\},
+ \quad\quad
+ \mathcal K:=\operatorname{cone}\{M_{\theta\cdot}^{\top}:\theta\in I_0\}.
+\]
+We claim that \(a\in\mathcal K\).  Otherwise, choose a closest point \(u\in\mathcal K\) to \(a\); this minimizer exists because a finitely generated cone is closed and the squared distance is coercive after restriction to a sufficiently large ball.  Put \(d=a-u\).  Comparing \(u\) with \(0\), \(2u\), and an arbitrary \(v\in\mathcal K\) in the closest-point inequality gives
+\[
+ d^\top u=0,\quad\quad d^\top v\le0\quad(v\in\mathcal K).
+\]
+Consequently \(M_{\theta\cdot}(-d)\ge0\) for every \(\theta\in I_0\), while
+\[
+ a^\top(-d)=-(u+d)^\top d=-\|d\|_2^2<0. \tag{3}
+\]
+Every inactive constraint has strictly positive slack.  Finiteness therefore permits an \(\varepsilon>0\) small enough that \(\beta^\star-\varepsilon d\) remains feasible.  Equation (3) would strictly lower the objective, a contradiction.  Thus there are coefficients \(\mu_\theta\ge0\), supported on \(I_0\), such that
+\[
+ M^\top\mu=a=M^\top q. \tag{4}
+\]
+The column \(S=\varnothing\) in (4) gives \(\sum_\theta\mu_\theta=\sum_\theta q_\theta=1\), so \(\mu\in\mathcal D_{\mathcal J}(q)\).  Because \(\mu\) is supported on active constraints,
+\[
+ \sum_\theta\mu_\theta f(\theta)
+ =\mu^\top M\beta^\star
+ =a^\top\beta^\star=F_{\mathcal J}. \tag{5}
+\]
+Conversely, for every primal-feasible \(\beta\) and every \(\mu\in\mathcal D_{\mathcal J}(q)\),
+\[
+ a^\top\beta=\mu^\top M\beta\ge\mu^\top f. \tag{6}
+\]
+Equations (5)--(6) prove strong duality and dual attainment directly from the finite constraints.  They also show that the primal--dual gap is
+\[
+ \sum_{\theta\in\Theta}\mu_\theta\{b(\theta)-f(\theta)\}. \tag{7}
+\]
+All summands in (7) are nonnegative.  Therefore a feasible pair is jointly optimal if and only if \(\mu_\theta>0\) implies \(b(\theta)=f(\theta)\).
+
+The moment equations have the claimed margin interpretation.  For a cell \(y\in\{0,1\}^{O_z}\), its indicator is
+\[
+ \prod_{i\in O_z:y_i=1}\theta_i
+ \prod_{i\in O_z:y_i=0}(1-\theta_i),
+\]
+which expands into monomials \(m_S\) with \(S\subseteq O_z\), all in \(\mathcal J\).  Hence (4) implies equality of every \(O_z\)-cell probability.  Conversely, equality of each such margin implies equality of the expectation of every \(m_S\) with \(S\subseteq O_z\); the definition of \(\mathcal J\) then gives all equations in (4).
+
+It remains to prove the complete-class assertion.  If \(b\) minimizes an objective with \(q_\theta>0\) and \(b'\le b\) with strict inequality at some schedule, then \(\sum_\theta q_\theta b'(\theta)<\sum_\theta q_\theta b(\theta)\).  Thus every minimizer is Pareto-admissible.
+
+Conversely, fix a Pareto-admissible \(b\) and put
+\[
+ I_0:=\{\theta:b(\theta)=f(\theta)\},\quad\quad
+ \mathcal T:=\{d\in\mathcal E_{\mathcal J}:d(\theta)\ge0\text{ for }\theta\in I_0\},
+\]
+and
+\[
+ \mathcal N:=\left\{d\in\mathbb R^\Theta:d\le0,
+              \ \sum_\theta d(\theta)=-1\right\}.
+\]
+Every \(d\in\mathcal T\) is a feasible one-sided direction: on active coordinates it does not reduce the bound, and the finitely many inactive positive slacks allow \(b+\varepsilon d\ge f\) for all sufficiently small \(\varepsilon>0\).  Hence Pareto-admissibility implies \(\mathcal T\cap\mathcal N=\varnothing\).  The set \(\mathcal T\) is a closed polyhedral cone and \(\mathcal N\) is compact.  Choose a closest pair \((t_0,n_0)\) and set \(w=t_0-n_0\ne0\).  The closest-point inequalities, together with the conic comparisons \(0,2t_0\in\mathcal T\), yield
+\[
+ w^\top t\ge0\quad(t\in\mathcal T),\quad\quad
+ w^\top n\le w^\top n_0=-\|w\|_2^2<0\quad(n\in\mathcal N). \tag{8}
+\]
+Since \(-e_\theta\in\mathcal N\), (8) gives \(w_\theta\ge\|w\|_2^2>0\) for every \(\theta\).  Normalize \(q_\theta=w_\theta/\sum_\eta w_\eta\).  This \(q\) has full support.  For any feasible \(b'\), the difference \(b'-b\) belongs to \(\mathcal T\), so (8) gives
+\[
+ \sum_\theta q_\theta b'(\theta)\ge
+ \sum_\theta q_\theta b(\theta).
+\]
+Thus every Pareto-admissible bound is supported by a full-support objective.  No rationality was used anywhere in the argument; only finiteness, positivity on the assignment support, and full support of \(q\) were used.
+
+%%% FIELD proof-rational-certificates
+Assume the rationality conditions in the proposition.  By \(\text{def:score-variance}\), each entry of
+\[
+ c=\sum_zp_zv_z,\quad\quad
+ A=\sum_zp_zv_zv_z^\top-cc^\top
+\]
+is rational, and hence every value \(f(\theta)=\theta^\top A\theta\) is rational.  In the notation of the proof of \(\text{thm:dual-complete-class}\), the matrix \(M\) is a zero--one matrix and \(a=M^\top q\) is rational.  Thus both finite programs are rational polyhedra with rational objectives.
+
+For completeness, rational optimizers follow by elementary active-constraint algebra.  A linear functional on a nonempty compact polytope attains its optimum at an extreme point: if an optimizer is not extreme, pass to an endpoint of a nontrivial segment in the optimal face and iterate within the strictly decreasing face dimension.  At an extreme point, a maximal linearly independent collection of active equalities uniquely determines the point.  Those equalities have rational coefficients and right-hand sides, so Gaussian elimination gives rational coordinates.  The dual feasible set is compact because its empty-monomial equation is \(\sum_\theta\mu_\theta=1\).  It therefore has a rational extreme-point optimizer \(\mu^\star\), and \((\mu^\star)^\top f\) is rational.  By duality this is the primal value.  The primal optimal face is compact by inequality (2) in the proof of \(\text{thm:dual-complete-class}\); applying the same active-equality argument gives a rational coefficient optimizer \(\beta^\star\).
+
+Finite primal feasibility is the list
+\[
+ (M\beta^\star)_\theta-f(\theta)\ge0
+ \quad(\theta\in\Theta),
+\]
+and finite dual feasibility is
+\[
+ \mu^\star\ge0,\quad\quad M^\top\mu^\star=M^\top q.
+\]
+When their rational objectives agree, weak duality proves optimality; equivalently, the rational nonnegative terms in
+\[
+ \sum_\theta\mu^\star_\theta
+       \{(M\beta^\star)_\theta-f(\theta)\}=0
+\]
+give complementary slackness.  These are exact arithmetic checks with no limiting tolerance.  Finally, Boolean inversion expresses every \(\beta_S^\star\) rationally, and each
+\[
+ \pi_S=\sum_{z:S\subseteq O_z}p_z
+\]
+is positive rational for \(S\in\mathcal J\).  The implementation in \(\text{thm:observable-mobius}\) therefore gives rational assignment tables \(g_z\).
+
+%%% FIELD proof-variance-estimability
+The first equivalence is exactly \(\text{thm:observable-mobius}\) applied to the function \(f\): an unbiased observed-data variance rule exists if and only if \(f\in\mathcal E_{\mathcal J}\).  On the binary cube, \(\theta_i^2=\theta_i\), and symmetry of \(A\) gives the unique multilinear expansion
+\[
+ f(\theta)=\sum_{i\in I}A_{ii}\theta_i
+       +2\sum_{i<k}A_{ik}\theta_i\theta_k. \tag{9}
+\]
+If a coordinate \(i\) is never observed, \(\text{ass:observable-score}\) forces \(v_{z,i}=0\) for every \(z\), whence \(c_i=0\), \(A_{ii}=0\), and \(A_{ik}=0\) for every \(k\).  Thus no unobservable singleton occurs in (9).
+
+For distinct \(i,k\) that are never jointly contained in an \(O_z\), observability of the score gives \(v_{z,i}v_{z,k}=0\) for every \(z\).  The definition of \(A\) then yields
+\[
+ A_{ik}=\sum_zp_zv_{z,i}v_{z,k}-c_ic_k=-c_ic_k. \tag{10}
+\]
+Every pair that is jointly observed belongs to \(\mathcal J\), while a never-jointly-observed pair does not.  By uniqueness of (9), \(f\in\mathcal E_{\mathcal J}\) holds if and only if \(A_{ik}=0\) for every such distinct pair.  Equation (10) makes this equivalent to \(c_ic_k=0\) for every never-jointly-observed distinct pair, as claimed.  The argument also covers \(K=0\) and \(K=1\), when the pair condition is vacuous.
+
+%%% FIELD proof-hms-class-inclusion
+We prove the minimally corrected claim, including the necessary diagonal observability condition.  On \(\Theta\), binary idempotence and symmetry of \(H\) give
+\[
+ h_H(\theta)=\theta^\top H\theta
+ =\sum_iH_{ii}\theta_i+2\sum_{i<k}H_{ik}\theta_i\theta_k. \tag{11}
+\]
+If \(H_{ii}\ne0\), the corrected hypothesis ensures that some \(O_z\) contains \(i\), so \(\{i\}\in\mathcal J\).  If \(H_{ik}\ne0\) for \(i\ne k\), pairwise design compatibility ensures that some \(O_z\) contains \(\{i,k\}\), so \(\{i,k\}\in\mathcal J\).  Every monomial in (11) is therefore observable and has degree at most two.  By \(\text{def:boolean-mobius-spaces}\),
+\[
+ h_H\in\mathcal E_{\mathcal J,2}\subseteq\mathcal E_{\mathcal J,3}. \tag{12}
+\]
+If also \(H-A\succeq0\), then for every binary schedule
+\[
+ h_H(\theta)-f(\theta)=\theta^\top(H-A)\theta\ge0.
+\]
+Equations (12) and \(\text{def:bound-program}\) give
+\(h_H\in\mathcal C_{\mathcal J}(f)\cap\mathcal E_{\mathcal J,2}\).
+
+To prove strictness, put
+\[
+ C:=1+\max_{\theta\in\Theta}f(\theta).
+\]
+Finiteness of \(\Theta\) makes \(C\) finite, and \(f\ge0\) gives \(C\ge1\).  The constant function \(b_C(\theta)=C\) is generated by \(m_\varnothing\), so it lies in \(\mathcal E_{\mathcal J,2}\), and \(b_C\ge f\), so it is conservative.  Yet \(h_H(0)=0\) for every homogeneous quadratic form, whereas \(b_C(0)=C>0\).  Hence no \(h_H\) equals \(b_C\).  The conservative compatible quadratic class is therefore a strict subset of the Boolean quadratic cone, and consequently also a strict subset of the Boolean degree-at-most-three comparison cone.
+
+%%% FIELD proof-complement-degree-collapse
+The matrix \(A\) in \(\text{def:score-variance}\) is symmetric.  Under \(A\mathbf 1_K=0\), for every \(\theta\in\Theta\),
+\[
+ \begin{aligned}
+ f(\mathbf 1_K-\theta)
+ &=(\mathbf 1_K-\theta)^\top A(\mathbf 1_K-\theta)\\
+ &=\mathbf 1_K^\top A\mathbf 1_K
+   -2\theta^\top A\mathbf 1_K+\theta^\top A\theta
+ =f(\theta).
+ \end{aligned}\tag{13}
+\]
+If \(b\) is feasible, define its complement symmetrization by
+\[
+ \bar b(\theta):=\frac{b(\theta)+b(\mathbf 1_K-\theta)}2.
+\]
+Equation (13) shows \(\bar b\ge f\).  Moreover, complementation preserves \(\mathcal E_{\mathcal J}\): for every \(S\in\mathcal J\),
+\[
+ m_S(\mathbf 1_K-\theta)=\prod_{i\in S}(1-\theta_i)
+ =\sum_{T\subseteq S}(-1)^{|T|}m_T(\theta),
+\]
+and \(T\in\mathcal J\) by downward closure.  Complement invariance of \(q\) gives, after the bijective change of variable \(\eta=\mathbf 1_K-\theta\),
+\[
+ \sum_\theta q_\theta\bar b(\theta)
+ =\frac12\sum_\theta q_\theta b(\theta)
+  +\frac12\sum_\eta q_{\mathbf 1_K-\eta}b(\eta)
+ =\sum_\theta q_\theta b(\theta). \tag{14}
+\]
+
+Now use \(x_i=2\theta_i-1\).  For each \(S\), the products
+\(\prod_{i\in S}x_i\) and \(m_S\) are related by an invertible triangular change of basis involving only subsets of \(S\); hence this basis preserves both membership in \(\mathcal J\) and degree.  Complementation sends \(x\) to \(-x\).  Therefore symmetrization deletes every term of odd cardinality and leaves every even term unchanged.  In particular, a feasible \(b\in\mathcal E_{\mathcal J,2d+1}\) produces, by (13)--(14), a feasible \(\bar b\in\mathcal E_{\mathcal J,2d}\) with the same objective.  Thus
+\[
+ F_{\mathcal J,2d}\le F_{\mathcal J,2d+1}.
+\]
+The reverse inequality follows from \(\mathcal E_{\mathcal J,2d}\subseteq\mathcal E_{\mathcal J,2d+1}\), proving equality.  If every \(|O_z|\le3\), every \(S\in\mathcal J\) has \(|S|\le3\), so \(\mathcal E_{\mathcal J}=\mathcal E_{\mathcal J,3}\).  Taking \(d=1\) then gives
+\[
+ F_{\mathcal J}=F_{\mathcal J,3}=F_{\mathcal J,2}.
+\]
+When \(q\) is not complement invariant, equation (14) need not hold; accordingly the proof supplies no exclusion of a cubic improvement in that regime.
+
+%%% FIELD proof-quartic-separation
+All calculations below are over \(\mathbb Q\).  The three score vectors in \(\mathfrak E_\star\) are supported on their displayed observation sets, and their coordinate sums are zero.  Direct substitution in \(\text{def:score-variance}\) gives
+\[
+ c=(-2/3,-1,2/3,0,-1/3,4/3)
+\]
+and
+\[
+ 9A=\begin{pmatrix}
+ 8&0&-8&0&-2&2\\
+ 0&6&0&6&-3&-9\\
+ -8&0&8&0&2&-2\\
+ 0&6&0&6&-3&-9\\
+ -2&-3&2&-3&2&4\\
+ 2&-9&-2&-9&4&14
+ \end{pmatrix}. \tag{15}
+\]
+The observable complex consists of the empty set, six singletons, the nine pairs
+\[
+ 01,02,05,12,13,15,25,34,35,
+\]
+the five triples \(012,015,025,125,135\), and the quartet \(0125\).  Here a digit string denotes its set of coordinate indices.
+
+Expanding the displayed formula for \(b^\star\), or equivalently applying Boolean inversion to the three displayed tables, gives precisely the following nonzero coefficients:
+\[
+\begin{array}{c|rrrrrrrrr}
+S&0&1&2&3&4&5&02&12&13\\ \hline
+\beta_S&8/9&2/3&11/9&2/3&1/3&7/3&-19/9&-1/3&4/3
+\end{array}
+\]
+\[
+\begin{array}{c|rrrrrrrrr}
+S&15&25&34&35&012&015&025&125&0125\\ \hline
+\beta_S&-8/3&-1/3&-2/3&-2&1/3&1/3&1/3&1/3&-2/3.
+\end{array} \tag{16}
+\]
+Thus \(b^\star\in\mathcal E_{\mathcal J}\), and the nonzero coefficient \(\beta_{0125}=-2/3\), together with uniqueness of Boolean inversion, proves \(b^\star\notin\mathcal E_{\mathcal J,3}\).  The polynomial \(r^\star\) contains only the constant and the nine displayed observable pairs in centered coordinates, hence \(r^\star\in\mathcal E_{\mathcal J,2}\).
+
+We next certify feasibility on every schedule.  Order \(\Theta\) lexicographically as \(000000,000001,\ldots,111111\).  Substitution of (15) and the formula for \(b^\star\) gives the complete exact slack vector, arranged in rows of eight,
+\[
+72\{b^\star-f\}=\begin{array}{rrrrrrrr}
+0&56&8&0&0&56&8&0\\
+24&88&0&0&24&88&0&0\\
+0&8&56&0&0&8&56&0\\
+0&40&24&0&0&40&24&0\\
+0&24&40&0&0&24&40&0\\
+0&56&8&0&0&56&8&0\\
+0&0&88&24&0&0&88&24\\
+0&8&56&0&0&8&56&0
+\end{array}. \tag{17}
+\]
+Every entry is nonnegative, so \(b^\star\ge f\).  If \(w=x_0x_1x_2x_5\in\{-1,1\}\), direct subtraction gives
+\[
+ r^\star(\theta)-b^\star(\theta)
+ =\frac{110-107+3w}{72}=\frac{1+w}{24}\in\{0,1/12\}. \tag{18}
+\]
+Thus \(r^\star\ge b^\star\ge f\).  Uniform \(q\) has zero expectation for every nonconstant centered monomial, so
+\[
+ \mathbb E_qb^\star=\frac{107}{72},\quad\quad
+ \mathbb E_qr^\star=\frac{110}{72}=\frac{55}{36}. \tag{19}
+\]
+
+The assignment-level equality is also exact.  With the coordinates in each \(O_z\) ordered as in \(\text{def:witness-experiment}\), let \(\iota_z(\theta)\) be the binary integer represented by \(\theta|_{O_z}\).  Substitution of the three rational tables gives
+\[
+ 72\left\{\frac13\sum_{z=1}^3h_z^\star(\theta|_{O_z})
+              -b^\star(\theta)\right\}=0
+ \quad\text{for each of the sixty-four lexicographically ordered schedules}. \tag{20}
+\]
+Equivalently, Boolean inversion of the left side of (20) gives exactly the common coefficient list (16), which proves (20) without numerical tolerance.  Inspection of the displayed table entries gives
+\[
+ 0\le h_z^\star(y)\le5\quad\quad(z=1,2,3; y\in\{0,1\}^{O_z}). \tag{21}
+\]
+
+For the all-degree lower certificate, each of the eight \(O_1\)-patterns occurs twice under the sixteen-point support of \(\mu^\star\), each of the four \(O_2\)-patterns occurs four times, and each of the sixteen \(O_3\)-patterns occurs once.  Hence \(\mu^\star\) has the uniform \(q\)-margin on every observed set and belongs to \(\mathcal D_{\mathcal J}(q)\).  The values of \(f\) on its support, in the order of \(\text{def:witness-experiment}\), are
+\[
+0,\frac23,\frac{32}{9},\frac{14}{9},\frac23,\frac83,
+\frac{32}{9},\frac89,\frac89,\frac{14}{9},\frac83,\frac23,
+\frac{14}{9},\frac{14}{9},\frac23,\frac23.
+\]
+Their mean is \(107/72\).  Direct lookup in (17) gives zero slack at all sixteen support points, so complementary slackness also holds.  The dual theorem and (19) now yield
+\[
+ F_{\mathcal J}=107/72. \tag{22}
+\]
+
+For the degree-three program, the eight-point support of \(\nu^\star\) contains each \(O_1\)-pattern once and each \(O_2\)-pattern twice.  Its \(O_3\)-projections are exactly the eight odd-parity four-bit strings, once each.  Therefore every proper-subset marginal of \(O_3\) is uniform: after fixing at most three bits, exactly \(2^{3-|S|}\) odd-parity completions remain.  These facts match the uniform \(q\)-moment of every observable monomial of degree at most three.  The corresponding variance values are
+\[
+\frac83,\frac{14}{9},\frac23,\frac89,
+\frac{14}{9},\frac23,\frac{14}{9},\frac83,
+\]
+whose mean is \(55/36\); direct substitution gives \(r^\star=f\) at all eight support points.  Weak duality for the degree-three restriction and feasibility of \(r^\star\) give
+\[
+ \frac{55}{36}\le F_{\mathcal J,3}\le F_{\mathcal J,2}\le\frac{55}{36}. \tag{23}
+\]
+Thus both restricted values equal \(55/36\).  The dual fails only at the observable quartet: \(\mathbb E_{\nu^\star}m_{0125}=0\), whereas \(\mathbb E_qm_{0125}=1/16\); equivalently, \(\mathbb E_{\nu^\star}x_0x_1x_2x_5=-1\) and the uniform expectation is zero.  Equations (22)--(23) give
+\[
+ \frac{55}{36}-\frac{107}{72}=\frac{3}{72}=\frac1{24}. \tag{24}
+\]
+Finally, every coordinate in this witness is observed with positive probability, so the corrected \(\text{prop:hms-class-inclusion}\) applies to every compatible conservative Harshaw--Middleton--Savje quadratic candidate.  Such a candidate lies in the degree-two Boolean feasible class and therefore has uniform objective at least \(55/36\) by (23).  This lower bound is for the enlarged Boolean class and does not assert attainment within the smaller positive-semidefinite class.
+
+%%% FIELD proof-aronow-samii-specialization
+Write \(R_i(z)=\mathbb 1\{i\in O_z\}\), \(\pi_i=\mathbb E_pR_i\), and \(\pi_{ik}=\mathbb E_p(R_iR_k)\).  The specialization assumes \(\pi_i>0\) and has
+\[
+ X_z(\theta)=\sum_i\frac{R_i(z)\theta_i}{\pi_i},
+ \quad\quad \mathbb E_pX_z(\theta)=\sum_i\theta_i.
+\]
+Expanding the variance and using that the schedule is fixed gives
+\[
+ f(\theta)=\sum_{i,k}
+ \frac{\pi_{ik}-\pi_i\pi_k}{\pi_i\pi_k}\theta_i\theta_k. \tag{25}
+\]
+For \(\pi_{ik}>0\), the expectation of the corresponding first term in \(g_z^{\mathrm{AS}}\) is exactly the summand in (25), because \(\mathbb E_pR_iR_k=\pi_{ik}\).  If \(i\ne k\) and \(\pi_{ik}=0\), the summand in (25) is \(-\theta_i\theta_k\), whereas the expected replacement in \(g_z^{\mathrm{AS}}\) is
+\[
+ \mathbb E_p\left\{
+ \frac{R_i\theta_i}{2\pi_i}+\frac{R_k\theta_k}{2\pi_k}
+ \right\}=\frac{\theta_i+\theta_k}{2}. \tag{26}
+\]
+There are no zero-probability diagonal pairs because \(\pi_{ii}=\pi_i>0\).  Subtracting (25) from the expectation of the displayed Aronow--Samii rule yields
+\[
+ b_{\mathrm{AS}}(\theta)-f(\theta)
+ =\sum_{\substack{i\ne k\\\pi_{ik}=0}}
+ \left\{\frac{\theta_i+\theta_k}{2}+\theta_i\theta_k\right\}
+ =\frac12\sum_{\substack{i\ne k\\\pi_{ik}=0}}
+       (\theta_i+\theta_k)^2\ge0, \tag{27}
+\]
+where the second equality uses \(\theta_i^2=\theta_i\).  Thus weak conservativeness holds for every fixed binary schedule, including when pairwise observation probabilities vanish.
+
+The expectation of the positive-\(\pi_{ik}\) portion is a linear combination of \(m_{\{i,k\}}\) on jointly observed pairs, with diagonal terms reduced to singletons; (26) contributes only observable singletons.  Since \(p_z>0\) on \(Z\), \(\pi_{ik}>0\) is equivalent to the existence of an assignment observing \(\{i,k\}\).  Therefore
+\[
+ b_{\mathrm{AS}}\in\mathcal E_{\mathcal J,2},
+ \quad\quad b_{\mathrm{AS}}\ge f,
+\]
+and \(\text{def:bound-program}\) gives
+\(b_{\mathrm{AS}}\in\mathcal C_{\mathcal J}(f)\cap\mathcal E_{\mathcal J,2}\).
+
+For strictness across the full finite-binary model class, \(\text{thm:quartic-separation}\) proves in \(\mathfrak E_\star\) that \(b^\star\in\mathcal C_{\mathcal J}(f)\), that its unique quartet coefficient is \(-2/3\), and hence that \(b^\star\notin\mathcal E_{\mathcal J,3}\).  The same theorem gives the exact objective improvement
+\[
+ F_{\mathcal J,3}-F_{\mathcal J}=\frac{55}{36}-\frac{107}{72}=\frac1{24}.
+\]
+Thus the published correction remains a feasible quadratic baseline, while the all-observable Boolean cone is strictly larger.
+
+%%% FIELD proof-tensorization
+Write the schedule as \(\theta=(\theta_1,\ldots,\theta_B)\) on disjoint coordinate blocks and the assignment as \(z=(z_1,\ldots,z_B)\).  By \(\text{ass:block-independence}\), for the aggregate score in \(\text{def:product-experiment}\),
+\[
+ \begin{aligned}
+ f_{\mathrm{prod}}(\theta)
+ &=\operatorname{Var}\!\left(\sum_{j=1}^Ba_jX_j(\theta_j)\right)\\
+ &=\sum_{j=1}^Ba_j^2\operatorname{Var}\{X_j(\theta_j)\}
+ =\sum_{j=1}^Ba_j^2f_j(\theta_j).
+ \end{aligned}\tag{28}
+\]
+Fix local primal minimizers \(b_j\).  Each lifted \(b_j(\theta_j)\) is observable in the product experiment, and
+\[
+ b_{\mathrm{prod}}(\theta):=\sum_{j=1}^Ba_j^2b_j(\theta_j)
+ \ge\sum_{j=1}^Ba_j^2f_j(\theta_j)=f_{\mathrm{prod}}(\theta). \tag{29}
+\]
+More explicitly, if \(g_{j,z_j}\) is an assignment-level table implementing \(b_j\), then the joint observed-data table
+\[
+ g_z^{\mathrm{prod}}:=\sum_{j=1}^Ba_j^2g_{j,z_j}
+\]
+implements \(b_{\mathrm{prod}}\); hence the primal construction uses no cross-block oracle information.
+Under the product objective law, finite factorization gives
+\[
+ \mathbb E_qb_{\mathrm{prod}}=
+ \sum_{j=1}^Ba_j^2F_j,
+\]
+so (29) proves \(F_{\mathrm{prod}}\le\sum_ja_j^2F_j\).  If the local bounds have degree at most \(r\), the same sum has degree at most \(r\), giving
+\(F_{\mathrm{prod},r}\le\sum_ja_j^2F_{j,r}\).
+
+For the reverse inequalities, choose local dual optimizers \(\mu_j\) supplied by \(\text{thm:dual-complete-class}\), and put \(\mu=\bigotimes_{j=1}^B\mu_j\).  A product-observable monomial has a unique factorization
+\[
+ m_S(\theta)=\prod_{j=1}^Bm_{S_j}(\theta_j),
+ \quad\quad S_j\subseteq O_{z_j}.
+\]
+Local margin equality and independence therefore imply
+\[
+ \mathbb E_\mu m_S
+ =\prod_j\mathbb E_{\mu_j}m_{S_j}
+ =\prod_j\mathbb E_{q_j}m_{S_j}
+ =\mathbb E_qm_S. \tag{30}
+\]
+Thus \(\mu\) is feasible even against product observation sets that generate cross-block interactions.  Using (28),
+\[
+ \mathbb E_\mu f_{\mathrm{prod}}
+ =\sum_{j=1}^Ba_j^2\mathbb E_{\mu_j}f_j
+ =\sum_{j=1}^Ba_j^2F_j. \tag{31}
+\]
+Dual weak equality from \(\text{thm:dual-complete-class}\), together with the primal upper bound, proves the first formula.
+
+For the restricted problem, choose each \(\mu_j\) dual-optimal for its local degree-\(r\) program.  If a global observable monomial has total degree at most \(r\), then every \(|S_j|\le r\), so every factor in (30) is among the local restricted moment constraints.  Hence the same product is restricted-dual feasible, and (31) with \(F_{j,r}\) proves
+\[
+ F_{\mathrm{prod},r}=\sum_{j=1}^Ba_j^2F_{j,r}.
+\]
+This also covers \(a_j=0\).  Finally, for identical copies of \(\mathfrak E_\star\) and \(a_j=1/B\), \(\text{thm:quartic-separation}\) gives
+\[
+ F_{\mathrm{prod}}=B\frac1{B^2}\frac{107}{72}=\frac{107}{72B},
+ \quad\quad
+ F_{\mathrm{prod},2}=F_{\mathrm{prod},3}
+ =B\frac1{B^2}\frac{55}{36}=\frac{55}{36B},
+\]
+and subtraction gives the exact gap \(1/(24B)\).
+
+%%% FIELD open-school-partial
+The frozen finite theory reduces any fully specified block to a rational primal--dual program, and \(\text{thm:tensorization}\) is lossless for genuinely independent blocks.  The supplied core, however, contains no enumerated Paluck--Shepherd--Aronow assignment atoms, exposure-coordinate map, direct-effect score, automorphism orbits, or separator decomposition from which the requested school block and its lifting certificates could be constructed.  No claim about a higher-order school-network improvement follows from the abstract handle alone.

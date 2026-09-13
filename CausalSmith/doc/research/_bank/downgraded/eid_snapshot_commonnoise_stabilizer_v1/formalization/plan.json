@@ -1,0 +1,1094 @@
+{
+  "qid": "eid_snapshot_commonnoise_stabilizer",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "lean_target_subdirectory": "CausalSmith/ExactID/EID_SnapshotCommonnoiseStabilizer_Research",
+  "namespace": "CausalSmith.ExactID.EID_SnapshotCommonnoiseStabilizer",
+  "feasibility": "needs-new-infrastructure",
+  "feasibility_reason": "The only `defer_tier:true` node is the frozen cited substrate-gate `lem:aalto-model-scope` (a bibliographic logical-claim about the model scope of Aalto-Lamoline-Goncalves 2022, Section 2 / Theorem 2.1(i)). Every paper-owned statement is `defer_tier:false, gate:false` and stays in F2-F4 scope.",
+  "design_decisions": {
+    "D-plan-1": "State dimension is carried as `p : Nat` with `2 <= p` (`ass:dimension`) and matrices live in `Matrix (Fin p) (Fin p) Real`; vectors in `Fin p -> Real` with the Euclidean (`EuclideanSpace Real (Fin p)`) inner-product structure supplied where norms are needed.",
+    "D-plan-2": "Matrix square roots `H^{1/2}`, `H^{-1/2}` are NOT taken as a primitive: each is obtained from `Matrix.IsHermitian.cfc Real.sqrt` (Mathlib `Analysis/Matrix/HermitianFunctionalCalculus.lean`) applied to a `Matrix.PosDef` witness, wrapped once in `Helpers/Whitening.lean` as `psdSqrt`/`psdInvSqrt` with the three facts F2 actually needs (symmetry, positive-definiteness, `psdSqrt H * psdSqrt H = H`). This is the single reuse hinge for the whole whitening argument.",
+    "D-plan-3": "The principal matrix logarithm is encoded as a PREDICATE, not a constructed function: `IsPrincipalGenerator h W G := Matrix.exp (h • G) = W /\\ (forall g in spectrum Complex (G.map Complex.ofReal), -pi/h < g.im /\\ g.im < pi/h)`. `Helpers/PrincipalGenerator.lean` proves existence (under `spec(W) cap (-inf,0] = empty` and `rho(W) < 1`) and uniqueness, and `G_W` is the `Classical.choose` of the existence. RATIONALE: Mathlib's `CFC.log` covers only self-adjoint / strictly-positive elements; there is no holomorphic functional calculus for a general non-normal real matrix with spectrum off the cut, and the paper's own proofs only ever use existence + uniqueness + the resolvent-integral Lipschitz bound, never a closed form.",
+    "D-plan-4": "The spectral-cut condition is encoded as `forall z in spectrum Complex (W.map Complex.ofReal), not (z.im = 0 /\\ z.re <= 0)`; stability as `spectralRadius Complex (W.map Complex.ofReal) < 1` (Mathlib `Analysis/Normed/Algebra/Spectrum.lean`).",
+    "D-plan-5": "The Stein solve `T_W` is carried as the Neumann sum `tsum (fun j => W^j * H0 * (W^T)^j)` and its defining equation / uniqueness is proved via the Kronecker vectorization `(1 - W (x) W)` (Mathlib `LinearAlgebra/Matrix/Kronecker.lean`), matching the paper's proof verbatim.",
+    "D-plan-6": "Spectral blocks `Lambda, P_lambda, Q_lambda, m_lambda` are NOT carried as a quotient over eigenvalues; they are carried as a `SpectralBlockData` bundle (an index type `Iota`, an injective eigenvalue map `Iota -> Real`, and for each block a pair of column-isometries into `Fin p` with the eigenspace-spanning identities as fields). This keeps `thm:block-certificate` a statement about a supplied, observable decomposition instead of forcing an eigenspace-quotient construction. Multiplicities/ranks/residual dimensions are then plain `Nat` fields.",
+    "D-plan-7": "The four-snapshot moment stack `z` is a plain product `(Fin 4 -> (Fin p -> Real)) x (Fin 4 -> Matrix (Fin p) (Fin p) Real)` rather than a `vech`-flattened vector; `vech` appears only inside `def:residual-map`, where it is realised as restriction to the lower-triangular index subtype so that the residual map lands in a finite-dimensional real inner-product space (needed to apply `Causalean.Stat.deltaMethod`).",
+    "D-plan-8": "The open-ended question `oeq:certified-noncyclic-labeling` is encoded under CASE (B) of the OEQ rule (descriptive non-Prop `String` payload). Justification read from the frozen node: its `obligation.obstruction` states in terms that the required procedure, the completeness/root-isolation rule, and the quantitative separation lower bound are NOT supplied, and that the requested model-count stability cannot hold uniformly 'without an additional separation regime or a boundary-aware set-valued rule' -- i.e. the truth-condition itself is undefined. No selector / procedure / rate / confidence / lower-bound witness field is emitted."
+  },
+  "env": [
+    {
+      "id": "S1",
+      "world": "A \\(p\\)-dimensional discrete-time linear Gaussian snapshot system observed through one unknown common measurement noise. The latent state evolves by \\(X_k=V^k(X_0-x^\\star)+x^\\star\\) with one-step transition \\(V=\\exp(hG)\\) for a continuous-time generator \\(G\\in\\mathbb R^{p\\times p}\\) and spacing \\(h>0\\); the initial law is \\(X_0\\sim\\mathcal N(\\mu_0,\\Sigma)\\) with \\(\\Sigma\\succ0\\); at each of the four times \\(kh\\), \\(k\\in K=\\{0,1,2,3\\}\\), one observes \\(Y_k=X_k+\\varepsilon_k\\), where the measurement errors \\(\\varepsilon_k\\sim\\mathcal N(0,E)\\) share a single unknown \\(E\\succ0\\), are mutually independent, and are independent of \\(X_0\\). The observable object is the four-tuple of Gaussian marginal laws of \\(Y_0,Y_1,Y_2,Y_3\\), equivalently the moments \\(m_k=\\mathbb E[Y_k]\\) and \\(C_k=\\operatorname{Cov}(Y_k)\\); when the noise covariance is supplied, the noise-subtracted levels are \\(\\widetilde C_k=C_k-E\\). The identity \\(I_p\\) is the order-\\(p\\) identity matrix.",
+      "binds_symbols": [
+        "p",
+        "h",
+        "I_p",
+        "K",
+        "G",
+        "V",
+        "xstar",
+        "mu0",
+        "Sigma",
+        "E",
+        "X_k",
+        "epsilon_k",
+        "Y_k",
+        "m_k",
+        "C_k",
+        "C_tilde_k"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.Matrix.PosDef",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.Analysis.Normed.Algebra.MatrixExponential",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.Probability.Distributions.Gaussian.Multivariate"
+      ],
+      "notes": "SUBSTRATE SURVEY (bypass-justified). Searched `../doc/API.md` section index (`grep '^## '`, 40+ sections) plus the cluster roots `Causalean/PO/`, `Causalean/PO/ID/Exact/`, `Causalean/SCM/ID/`, `Causalean/SCM/ID/GraphicalThms/`, `Causalean/SCM/Do/`, `Causalean/Graph/SWIG.lean` for the concept words `linear dynamical system`, `snapshot`, `transition matrix`, `measurement noise`, `state-space`, `matrix exponential`, `Stein`, `Lyapunov`, `congruence`, `Krylov`, `principal logarithm`, `spectral radius`. Result: Causalean's `PO/` world is a potential-outcome bundle over a probability space with treatment/outcome/covariate maps (`POManskiIVSystem`, `POCFBundle`, `Overlap`, `Backdoor`, `Adjustment`, `ATE/DID/DTR/LATE`) and `SCM/` is a DAG/SWIG do-calculus world; NEITHER carries a latent linear flow, a transition matrix, a measurement-error layer, or a destructive unpaired snapshot design. This artifact has no treatment, no intervention, and no graph -- its structural target is the generator \\(G\\) -- so `POManskiIVSystem`/`SWIGGraph`/`Identifiable` are at the wrong abstraction and are BYPASS-JUSTIFIED. Mathlib-side check (`lean_leansearch`, `Glob` on `.lake/packages/mathlib/Mathlib/**`): `Matrix.PosDef`, `Matrix.PosSemidef`, `Matrix.IsHermitian.eigenvalues`, `Matrix.IsHermitian.spectral_theorem`, `Matrix.IsHermitian.eigenvectorUnitary`, `NormedSpace.exp`/`Matrix.exp_*`, `spectralRadius` all CONFIRMED present; these are the reuse floor. Note `Matrix.PosSemidef.sqrt` is ABSENT in this Mathlib snapshot (grepped `.lake/packages/mathlib/Mathlib/{Analysis,LinearAlgebra}/Matrix/PosDef.lean` for `sqrt` -- only norm-induced hits) -- hence D-plan-2 routes square roots through `Matrix.IsHermitian.cfc`."
+    },
+    {
+      "id": "S2",
+      "world": "The observable moment chart of the four snapshot laws and its whitened congruence geometry. The common noise cancels from the adjacent covariance decreases \\(H_j=C_j-C_{j+1}\\), \\(j\\in\\{0,1,2\\}\\), and from the mean probes \\(d_j=m_{j+1}-m_j\\). Whitening produces the source and target invariants \\(R=H_0^{-1/2}H_1H_0^{-1/2}\\) and \\(S=H_1^{-1/2}H_2H_1^{-1/2}\\) with common spectrum \\(\\Lambda\\), orthonormal eigenframes \\(P_\\lambda\\) (for \\(R\\)) and \\(Q_\\lambda\\) (for \\(S\\)), block probes \\(A_\\lambda=P_\\lambda^{\\mathsf T}H_0^{-1/2}[d_0,d_1]\\) and \\(B_\\lambda=Q_\\lambda^{\\mathsf T}H_1^{-1/2}[d_1,d_2]\\), multiplicities \\(m_\\lambda\\), probe ranks \\(r_\\lambda=\\operatorname{rank}A_\\lambda\\), residual dimensions \\(k_\\lambda=m_\\lambda-r_\\lambda\\), block isometries \\(O_\\lambda\\in O(m_\\lambda)\\) with \\(O_\\lambda A_\\lambda=B_\\lambda\\), and the binary-block count \\(q=\\#\\{\\lambda:k_\\lambda=1\\}\\). A candidate transition \\(W\\in\\mathbb R^{p\\times p}\\) ranges over the raw fiber \\(\\mathcal F_{\\mathrm{raw}}\\), the admissible fiber \\(\\mathcal F_{\\mathrm{adm}}\\), the three-snapshot fiber \\(\\mathcal F_3\\), and the supplied-noise fiber \\(\\mathcal F_{\\mathrm{known}}(E)\\). Each candidate carries the Stein operator \\(\\mathcal L_W(A)=A-WAW^{\\mathsf T}\\) with reconstruction \\(T_W\\) solving \\(T_W-WT_WW^{\\mathsf T}=H_0\\), the recovered noise \\(E_W=C_0-T_W\\), the principal-logarithm generator \\(G_W=h^{-1}\\operatorname{Log}W\\), the equilibrium \\(x_W^\\star=(I_p-W)^{-1}(m_1-Wm_0)\\), and the full reconstruction \\(\\theta(W,z)\\) of the moment stack \\(z=(m_0,\\ldots,m_3,\\operatorname{vech}C_0,\\ldots,\\operatorname{vech}C_3)\\). The rational chart is generated by \\(M_0=H_1H_0^{-1}\\), \\(M_1=H_2H_1^{-1}\\), the Krylov matrices \\(K_i=[d_i,M_id_i,\\ldots,M_i^{p-1}d_i]\\), and the recovery map \\(\\mathcal K=K_1K_0^{-1}\\). The off-model criterion is the residual map \\(F_{\\mathrm{res}}(W;z)\\), with derivative \\(D_WF\\) and regularity margin \\(\\gamma_W=\\sigma_{\\min}(D_WF)\\).",
+      "binds_symbols": [
+        "H_j",
+        "d_j",
+        "R",
+        "S",
+        "Lambda",
+        "P_lambda",
+        "Q_lambda",
+        "A_lambda",
+        "B_lambda",
+        "m_lambda",
+        "r_lambda",
+        "k_lambda",
+        "O_lambda",
+        "q",
+        "W",
+        "F_raw",
+        "F_adm",
+        "F_three",
+        "F_knownE",
+        "T_W",
+        "E_W",
+        "G_W",
+        "xstar_W",
+        "L_V",
+        "z",
+        "F_res",
+        "D_WF",
+        "gamma_W",
+        "theta",
+        "M_0",
+        "M_1",
+        "K_0",
+        "K_1",
+        "KrylovMap"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.HermitianFunctionalCalculus",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.Analysis.Matrix.Normed",
+        "Mathlib.LinearAlgebra.UnitaryGroup",
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.LinearAlgebra.Matrix.Kronecker",
+        "Mathlib.LinearAlgebra.Vandermonde",
+        "Causalean.Stat.Concentration.Matrix.Resolvent"
+      ],
+      "notes": "SUBSTRATE SURVEY (bypass-justified for Causalean causal modules; genuine Mathlib reuse). Grepped `../doc/API.md` and `Glob`ed `Causalean/**` for `whitening`, `congruence`, `orthogonal torsor`, `stabilizer`, `eigenspace block`, `Krylov`, `Stein equation`, `matrix logarithm`. Nothing in `Causalean/PO/`, `Causalean/SCM/`, or `Causalean/Graph/` speaks about matrix congruence orbits; `Causalean/Stat/Concentration/Matrix/{Resolvent,InversePerturbation,DesignInverse,IidSums}.lean` is the only matrix-analysis corner and it is an l-infinity-operator-norm inverse-perturbation toolbox (see S3), not congruence geometry -- BYPASS-JUSTIFIED for the geometry, REUSED for the perturbation. Mathlib-side check CONFIRMED: `Matrix.orthogonalGroup` (`Mathlib/LinearAlgebra/UnitaryGroup.lean`), `Matrix.IsHermitian.cfc` + `Matrix.IsHermitian.eigenvectorUnitary` + `Matrix.IsHermitian.spectral_theorem` (`Mathlib/Analysis/Matrix/{HermitianFunctionalCalculus,Spectrum}.lean`), `Matrix.kroneckerMap` (`Mathlib/LinearAlgebra/Matrix/Kronecker.lean`), `Matrix.det_vandermonde` (`Mathlib/LinearAlgebra/Vandermonde.lean`, needed for the `det K_0 != 0` genericity witness in `thm:snapshot-frontier`). ABSENT in Mathlib and build-inline here: any discrete Lyapunov/Stein solution operator, and any principal matrix logarithm for a non-normal matrix (`CFC.log` is restricted to self-adjoint / strictly-positive elements -- verified via `lean_leansearch` 'principal matrix logarithm ... spectrum avoids the nonpositive reals')."
+    },
+    {
+      "id": "S3",
+      "world": "The deterministic moment-perturbation regime on the cyclic chart. Each observed mean and covariance coordinate is perturbed by at most \\(\\epsilon\\) (Euclidean norm for means, operator norm for covariances). The population instance supplies the covariance margin \\(a_0=\\min\\{\\lambda_{\\min}(H_0),\\lambda_{\\min}(H_1)\\}\\), the scales \\(B_{\\mathrm{norm}}=\\max\\{1,\\lVert H_0\\rVert,\\lVert H_1\\rVert,\\lVert H_2\\rVert\\}\\) and \\(D_{\\mathrm{norm}}=\\max\\{1,\\lVert d_0\\rVert,\\lVert d_1\\rVert\\}\\), the quotient constant \\(c_M=4/a_0+4B_{\\mathrm{norm}}/a_0^2\\), the power scale \\(L_M=1+\\max\\{1,\\lVert M_0\\rVert,\\lVert M_1\\rVert\\}\\), the Krylov constant \\(c_K=\\sqrt p\\max_{0\\le j<p}\\{2L_M^j+jL_M^{j-1}c_MD_{\\mathrm{norm}}\\}\\), the cyclicity margin \\(\\kappa=\\sigma_{\\min}(K_0)\\), the transition constant \\(c_V=2c_K(1+\\lVert V\\rVert)/\\kappa\\), the stability and logarithm-cut radii \\(\\delta_{\\mathrm{stab}},\\delta_{\\log}\\), the Stein margin \\(\\sigma_{\\mathrm{Stein}}=\\sigma_{\\min}(\\mathcal L_V)\\), the reconstruction margins \\(t_{\\min}=\\lambda_{\\min}(T_V)\\) and \\(e_{\\min}=\\lambda_{\\min}(E_V)\\), the propagation constants \\(c_T=2\\sigma_{\\mathrm{Stein}}^{-1}[2\\sqrt p+c_V(2\\lVert V\\rVert+1)\\lVert T_V\\rVert_F]\\) and \\(c_E=1+c_T\\), and the two admissibility radii \\(\\epsilon_{\\mathrm{rec}}\\) and \\(\\epsilon_{\\mathrm{adm}}\\).",
+      "binds_symbols": [
+        "epsilon",
+        "a_0",
+        "B_norm",
+        "D_norm",
+        "c_M",
+        "L_M",
+        "c_K",
+        "kappa",
+        "c_V",
+        "delta_stab",
+        "delta_log",
+        "sigma_Stein",
+        "t_min",
+        "e_min",
+        "c_T",
+        "c_E",
+        "epsilon_rec",
+        "epsilon_adm"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.Normed",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Causalean.Stat.Concentration.Matrix.InversePerturbation",
+        "Causalean.Stat.Concentration.Matrix.Resolvent"
+      ],
+      "notes": "REUSE (analogous-module, technique-level). Searched `Causalean/Stat/Concentration/Matrix/` (`Glob Causalean/Stat/**/*.lean`, then `lean_file_outline`): `Causalean.Stat.Concentration.designInv_perturb` proves `IsUnit S.det -> row-sum bound on S-inverse -> entrywise closeness -> IsUnit M.det /\\ |M-inv - S-inv| <= 2 c^2 (p+1) eta`, i.e. exactly the Neumann-series inverse-perturbation pattern the paper uses for `H_i^{-1}` and `K_0^{-1}`. It is stated in l-infinity operator norm with entrywise inputs, while `thm:cyclic-perturbation` needs spectral/operator norm with `sigma_min` inputs -- GAP TO BRIDGE: re-run the same Neumann factorization at operator norm using `Causalean.Stat.Concentration.Matrix.Resolvent` + `Mathlib.Analysis.Matrix.Normed`. F3 should adapt `Causalean/Stat/Concentration/Matrix/InversePerturbation.lean:112 designInv_perturb` rather than rebuild. Mathlib-side check: `lean_leansearch` 'discrete Lyapunov Stein equation unique solution spectral radius less than one' returns only `spectralRadius` API (`Mathlib/Analysis/Normed/Algebra/{Spectrum,GelfandFormula}.lean`) -- no Stein-operator invertibility lemma exists, so the `sigma_Stein` leg is build-inline."
+    },
+    {
+      "id": "S4",
+      "world": "The destructive-snapshot sampling experiment and its branchwise inference. At each time \\(kh\\), \\(n_k\\) independent units are drawn from the marginal law of \\(Y_k\\), independently across \\(k\\); no unit is followed across time. Writing \\(N=\\sum_{k=0}^3 n_k\\), the limiting shares satisfy \\(n_k/N\\to\\pi_k\\in(0,1)\\). Sample means and sample covariances form the empirical moment stack \\(\\widehat z\\), whose rescaled deviation \\(\\sqrt N(\\widehat z-z)\\) has Gaussian limit covariance \\(\\Omega\\). On the cyclic chart, \\(\\widehat K_i=[\\widehat d_i,\\widehat M_i\\widehat d_i,\\ldots,\\widehat M_i^{p-1}\\widehat d_i]\\) give the plug-in transition \\(\\widehat W_{\\mathrm{cyc}}=\\widehat K_1\\widehat K_0^{-1}\\), with reconstructions \\(\\widehat T_{\\mathrm{cyc}}\\), \\(\\widehat E_{\\mathrm{cyc}}\\) and full parameter \\(\\widehat\\theta_{\\mathrm{cyc}}=\\theta(\\widehat W_{\\mathrm{cyc}},\\widehat z)\\). On a specified regular finite branch, \\(\\widehat W_{\\mathrm{loc}}\\) is the global residual minimizer over a fixed population-centered ball, with plug-in \\(\\widehat\\theta_{\\mathrm{loc}}=\\theta(\\widehat W_{\\mathrm{loc}},\\widehat z)\\) and delta-method Jacobian \\(J_\\theta\\). Simultaneous statements are indexed by a nominal error probability \\(\\alpha\\in(0,1)\\). The certified branch handle \\(\\text{CertHandle}\\) is the starting move for the open construction problem of locating and labelling every empirical branch.",
+      "binds_symbols": [
+        "n_k",
+        "N",
+        "pi_k",
+        "zhat",
+        "Khat_i",
+        "W_hat_cyc",
+        "W_hat_loc",
+        "theta_hat_cyc",
+        "T_hat_cyc",
+        "E_hat_cyc",
+        "theta_hat_loc",
+        "Omega",
+        "J_theta",
+        "CertHandle",
+        "alpha"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.CLT.MultivariateCLT",
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Stat.CLT.AsymptoticLinearityVec",
+        "Causalean.Stat.Inference.DeltaMethod",
+        "Causalean.Stat.Limit.ConvergenceVec",
+        "Causalean.Stat.MEstimation.ArgmaxStability",
+        "Causalean.Stat.MEstimation.ZEstimator",
+        "Mathlib.Probability.Distributions.Gaussian.Multivariate"
+      ],
+      "notes": "REUSE (strong). Searched `Causalean/Stat/{CLT,Limit,Inference,MEstimation}/` for `multivariate CLT`, `delta method`, `asymptotic linearity`, `argmin stability`, `Z-estimator`. CONFIRMED reusable at proof-step level: `Causalean.Stat.deltaMethod` (`Stat/Inference/DeltaMethod.lean:279`, multivariate Frechet-derivative delta method at the ProbabilityMeasure level, `HasFDerivAt g Dg t0` + weak convergence -> pushforward `Q.map Dg`) is the exact engine for `sqrt N (theta-hat_loc - theta(W,z)) ==> N(0, J Omega J^T)`; `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (`Stat/CLT/MultivariateCLT.lean:120`) + `Causalean.Stat.gaussianLimit` (`Stat/CLT/GaussianLimit.lean:63`, with `gaussianLimit_charFun`, `gaussianLimit_covarianceBilin`) supply the vector i.i.d. CLT and its concrete centered Gaussian limit; `Tendsto_dist_vec` lives in `Stat/Limit/ConvergenceVec.lean`. GAP TO BRIDGE: the paper's design is FOUR independent samples of sizes `n_k` with `n_k/N -> pi_k`, not one `IIDSample`, so F3 must combine four applications of `clt_normalizedSum_vec` through independence + the share limits (characteristic-function product, as in the frozen proof) rather than instantiate a single `IIDSample`. `Causalean.Stat.MEstimation.{ArgmaxStability,ZEstimator}` carry the contraction/argmin-uniqueness pattern for the fixed-ball global-minimizer step. BYPASS-JUSTIFIED: `Causalean/Experimentation/DesignBased/` (Stein / dependency-graph CLT, `wald_coverage`) is design-based with treatment assignment as the only randomness -- wrong randomness model here, where sampling is i.i.d. from four fixed Gaussian marginals."
+    }
+  ],
+  "substrate_survey": [
+    {
+      "module": "Causalean/PO/",
+      "verdict": "bypass-justified",
+      "reason": "Potential-outcome bundles over a probability space with treatment/outcome/covariate maps; this artifact has no treatment and no intervention -- its target is a continuous-time generator recovered from unpaired marginal moments."
+    },
+    {
+      "module": "Causalean/PO/ID/Exact/",
+      "verdict": "bypass-justified",
+      "reason": "LATE / Heckman-Roy / DynamicLATE identification theorems are estimand functionals of a PO system; no analogue of a matrix-congruence identified set."
+    },
+    {
+      "module": "Causalean/SCM/ID/",
+      "verdict": "bypass-justified",
+      "reason": "`Identifiable`, `Overlap`, `Adjustment`, `Backdoor` are do-calculus predicates over a DAG; the present identification question is algebraic (an orthogonal-stabilizer fiber), not graphical."
+    },
+    {
+      "module": "Causalean/SCM/ID/GraphicalThms/",
+      "verdict": "bypass-justified",
+      "reason": "Graphical identification theorems require a DAG/ADMG; there is no graph in the snapshot model."
+    },
+    {
+      "module": "Causalean/SCM/Do/",
+      "verdict": "bypass-justified",
+      "reason": "do-calculus rule machinery and Markov properties; no intervention operator in this model."
+    },
+    {
+      "module": "Causalean/Graph/SWIG.lean",
+      "verdict": "bypass-justified",
+      "reason": "SWIG split graphs; no graph object appears anywhere in the core."
+    },
+    {
+      "module": "Causalean/Stat/CLT/MultivariateCLT.lean",
+      "verdict": "reused",
+      "reason": "`IIDSample.clt_normalizedSum_vec` / `clt_normalizedSum_vec_of_charFun` supply the vector i.i.d. CLT for the empirical moment stack."
+    },
+    {
+      "module": "Causalean/Stat/CLT/GaussianLimit.lean",
+      "verdict": "reused",
+      "reason": "`gaussianLimit` + `gaussianLimit_charFun` + `gaussianLimit_covarianceBilin` give the concrete centered Gaussian limit law."
+    },
+    {
+      "module": "Causalean/Stat/Inference/DeltaMethod.lean",
+      "verdict": "reused",
+      "reason": "`deltaMethod` (multivariate, Frechet derivative) is the delta-method step of `thm:branchwise-inference`."
+    },
+    {
+      "module": "Causalean/Stat/Limit/ConvergenceVec.lean",
+      "verdict": "reused",
+      "reason": "`Tendsto_dist_vec` is the weak-convergence vocabulary the CLT and delta method share."
+    },
+    {
+      "module": "Causalean/Stat/Concentration/Matrix/InversePerturbation.lean",
+      "verdict": "reused",
+      "reason": "`designInv_perturb` is the Neumann inverse-perturbation pattern to adapt from entrywise/l-infinity to operator norm for `thm:cyclic-perturbation`."
+    },
+    {
+      "module": "Causalean/Stat/Concentration/Matrix/Resolvent.lean",
+      "verdict": "reused",
+      "reason": "Resolvent/unit-ball lemmas underpinning the geometric-series inverse bounds."
+    },
+    {
+      "module": "Causalean/Stat/MEstimation/{ArgmaxStability,ZEstimator}.lean",
+      "verdict": "reused",
+      "reason": "Contraction / argmin-uniqueness pattern for the fixed-isolating-ball global residual minimizer."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/",
+      "verdict": "bypass-justified",
+      "reason": "Design-based randomization inference (treatment assignment is the only randomness); the snapshot experiment samples i.i.d. from four fixed Gaussian marginals."
+    },
+    {
+      "module": "Mathlib/Analysis/Matrix/{Spectrum,HermitianFunctionalCalculus,PosDef,Normed}.lean",
+      "verdict": "reused",
+      "reason": "Spectral theorem, `IsHermitian.cfc` (square roots), `PosDef`, and the matrix operator norm are the arithmetic floor of the whole run."
+    },
+    {
+      "module": "Mathlib/LinearAlgebra/{UnitaryGroup,Vandermonde,Matrix/Kronecker,Matrix/NonsingularInverse}.lean",
+      "verdict": "reused",
+      "reason": "`Matrix.orthogonalGroup` for the completion torsors, `det_vandermonde` for the cyclicity genericity witness, Kronecker for Stein uniqueness, and nonsingular-inverse API for the rational chart."
+    },
+    {
+      "module": "Mathlib/Analysis/Normed/Algebra/{Spectrum,MatrixExponential}.lean",
+      "verdict": "reused",
+      "reason": "`spectralRadius` for stability and `NormedSpace.exp`/`Matrix.exp_*` for `V = exp(hG)`."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:aalto-lamoline-goncalves-2022-sec2",
+      "bibkey": "AaltoLamolineGoncalves2022",
+      "title": "Linear system identifiability from single-cell data",
+      "authors": "Atte Aalto and Francois Lamoline and Jorge Goncalves",
+      "year": 2022,
+      "citation": "Aalto, A., Lamoline, F., and Goncalves, J. (2022). Linear system identifiability from single-cell data. Systems & Control Letters 165, 105287.",
+      "locator": "Section 2, equations (1)--(2), Theorem 2.1(i), and the paragraph immediately following its proof on page 3",
+      "carrier": "logical-claim",
+      "node": "lem:aalto-model-scope",
+      "verbatim_statement": "This is not required, but it suffices that the initial state and noise distributions have finite second moments.",
+      "doi": "10.1016/j.sysconle.2022.105287",
+      "url": "https://api.repository.cam.ac.uk/server/api/core/bitstreams/ccaa357d-8ddd-43b6-b3ee-fdb556b25368/content",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Checked against the open-access published PDF: Section 2 states the full-state recursion, known process covariance, and moment equations; Theorem 2.1(i) requires invertibility; the paragraph after the proof supplies the quoted finite-second-moment extension."
+      },
+      "used_by": [
+        "lem:aalto-model-scope"
+      ]
+    }
+  ],
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": "Dimension/index setup (`p`, `Fin p`, `Fin 4`), the `SnapshotSystem` and `ObservedMoments` bundles, the observable derived symbols `H_j`, `d_j`, `C_tilde_k`, all eleven assumption Props, and the frozen cited gate `AaltoModelScope`.",
+      "projected_lines": 380
+    },
+    {
+      "file": "Helpers/Whitening.lean",
+      "contents": "`psdSqrt`/`psdInvSqrt` over `Matrix.IsHermitian.cfc`, the whitened invariants `R`, `S`, the `SpectralBlockData` bundle (`Lambda`, `P_lambda`, `Q_lambda`, `m_lambda`), the block probes `A_lambda`, `B_lambda`, the derived `r_lambda`, `k_lambda`, `q`, and the orthogonal-completion torsor lemmas over `Matrix.orthogonalGroup`.",
+      "projected_lines": 520
+    },
+    {
+      "file": "Helpers/SteinRecovery.lean",
+      "contents": "The Stein operator `L_V`, the Neumann reconstruction `T_W`, uniqueness via Kronecker vectorization, `E_W = C_0 - T_W`, and the margins `sigma_Stein`, `t_min`, `e_min`.",
+      "projected_lines": 420
+    },
+    {
+      "file": "Helpers/PrincipalGenerator.lean",
+      "contents": "Stability and spectral-cut predicates, `IsPrincipalGenerator`, existence and uniqueness of the principal generator, `G_W`, the resolvent-integral Lipschitz bound, and the radii `delta_stab`, `delta_log`.",
+      "projected_lines": 560
+    },
+    {
+      "file": "Helpers/Fibers.lean",
+      "contents": "`rawFiber`, `threeFiber`, `admissibleFiber`, `knownNoiseFiber`, and `xstar_W`.",
+      "projected_lines": 260
+    },
+    {
+      "file": "Helpers/ParameterMap.lean",
+      "contents": "`parameterMap` (the six-coordinate reconstruction `theta`) and its coordinate-projection lemmas.",
+      "projected_lines": 240
+    },
+    {
+      "file": "Helpers/Krylov.lean",
+      "contents": "`M_0`, `M_1`, `K_0`, `K_1`, `krylovMap`, the cyclicity margin `kappa`, and the deterministic perturbation constants `a_0`, `B_norm`, `D_norm`, `c_M`, `L_M`, `c_K`, `c_V`, `c_T`, `c_E`, `epsilon_rec`, `epsilon_adm`.",
+      "projected_lines": 460
+    },
+    {
+      "file": "Helpers/Residual.lean",
+      "contents": "`residualMap` (with the `vech` restriction), its derivative `D_WF`, the margin `gamma_W`, and `localBranchEstimator` with its measurable total completion.",
+      "projected_lines": 400
+    },
+    {
+      "file": "Helpers/Sampling.lean",
+      "contents": "Snapshot sample sizes `n_k`, `N`, shares `pi_k`, the empirical stack `zhat`, `Khat_i`, `empiricalCyclicEstimator`, the cyclic plug-in coordinates `T_hat_cyc`, `E_hat_cyc`, `theta_hat_cyc`, `theta_hat_loc`, the limit covariance `Omega`, and `J_theta`.",
+      "projected_lines": 480
+    },
+    {
+      "file": "Helpers/Certification.lean",
+      "contents": "`certificationHandle` -- the elimination-to-zero-dimensional-system + alpha-quantity + interval-enclosure handle record.",
+      "projected_lines": 180
+    },
+    {
+      "file": "OpenQuestions.lean",
+      "contents": "`certifiedNoncyclicLabelingOpenQuestion` -- the descriptive non-Prop `String` payload of the open construction problem.",
+      "projected_lines": 70
+    },
+    {
+      "file": "TBlockCertificate.lean",
+      "contents": "thm:block-certificate.",
+      "projected_lines": 620
+    },
+    {
+      "file": "TThreeSnapshotClassification.lean",
+      "contents": "thm:three-snapshot-exact-classification.",
+      "projected_lines": 640
+    },
+    {
+      "file": "TAdmissibleFiber.lean",
+      "contents": "thm:admissible-fiber.",
+      "projected_lines": 660
+    },
+    {
+      "file": "TSnapshotFrontier.lean",
+      "contents": "thm:snapshot-frontier.",
+      "projected_lines": 600
+    },
+    {
+      "file": "TSharpExceptionalFibers.lean",
+      "contents": "prop:sharp-exceptional-fibers.",
+      "projected_lines": 580
+    },
+    {
+      "file": "TInformationNullity.lean",
+      "contents": "thm:information-nullity.",
+      "projected_lines": 520
+    },
+    {
+      "file": "TCyclicPerturbation.lean",
+      "contents": "thm:cyclic-perturbation.",
+      "projected_lines": 700
+    },
+    {
+      "file": "TBranchwiseInference.lean",
+      "contents": "thm:branchwise-inference.",
+      "projected_lines": 700
+    },
+    {
+      "file": "TKnownNoiseReduction.lean",
+      "contents": "prop:known-noise-reduction.",
+      "projected_lines": 620
+    },
+    {
+      "file": "EID_SnapshotCommonnoiseStabilizer_Research.lean",
+      "contents": "Run barrel importing every module above.",
+      "projected_lines": 25
+    }
+  ],
+  "nodes": {
+    "ass:dimension": {
+      "lean_kind": "assumption",
+      "lean_name": "DimensionAtLeastTwo",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def DimensionAtLeastTwo (p : Nat) : Prop := 2 <= p",
+      "classification": "modeling assumption (support restriction on the state dimension)",
+      "notes": "Search trace: grepped `../doc/API.md` and `Causalean/**` for `dimension at least two`, `state dimension`, `ambient dimension`; nothing analogous (Causalean's finite-dimensional hypotheses are `Fintype`/`FiniteDimensional` instances, not a numeric floor). Mathlib-side check: `2 <= p` is a bare `Nat` inequality, no lemma needed. Kept a named Prop def because five statements list it in `depends_on` and it must surface uniformly in their `hyps`."
+    },
+    "ass:spacing": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveSpacing",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def PositiveSpacing (h : Real) : Prop := 0 < h",
+      "classification": "modeling assumption (design: positive sampling interval)",
+      "notes": "Search trace: grepped `../doc/API.md` for `sampling interval`, `spacing`, `panel period`; the Panel cluster's `ValidPanelHorizon` is a horizon-count condition over discrete periods, not a positive real spacing -- bypass-justified. Mathlib-side: bare `0 < h`."
+    },
+    "ass:linear-flow": {
+      "lean_kind": "assumption",
+      "lean_name": "LinearFlow",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Normed.Algebra.MatrixExponential"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def LinearFlow (sys) : Prop := sys.V = Matrix.exp (sys.h • sys.G) /\\ forall k : Fin 4, sys.X k = (sys.V ^ (k : Nat)) *v (sys.X 0 - sys.xstar) + sys.xstar",
+      "classification": "modeling assumption (causal-structural: time-homogeneous linear latent flow)",
+      "notes": "Search trace: grepped `../doc/API.md` + `Glob Causalean/**/*.lean` for `linear flow`, `time-homogeneous`, `state recursion`, `matrix exponential`; nothing in Causalean. Mathlib-side check CONFIRMED `NormedSpace.exp` + `Matrix.exp_*` in `Mathlib/Analysis/Normed/Algebra/MatrixExponential.lean` -- reused inside the Prop, but the Prop itself is paper-specific and define-local. The random-vector coordinate `X_k` is carried as a measurable map on the ambient probability space of `S1`."
+    },
+    "ass:hurwitz": {
+      "lean_kind": "assumption",
+      "lean_name": "HurwitzGenerator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Normed.Algebra.Spectrum"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def HurwitzGenerator (G : Matrix (Fin p) (Fin p) Real) : Prop := forall g in spectrum Complex (G.map Complex.ofReal), g.re < 0",
+      "classification": "modeling assumption (stability restriction on the generator)",
+      "notes": "Search trace: grepped `../doc/API.md` and `Causalean/**` for `Hurwitz`, `stable`, `spectral radius`, `stability margin` -- zero hits in Causalean. Mathlib-side check CONFIRMED `spectrum`, `spectralRadius`, `spectrum.spectralRadius_lt_of_forall_lt` (`Mathlib/Analysis/Normed/Algebra/{Spectrum,GelfandFormula}.lean`) via `lean_leansearch`; Mathlib has NO `IsHurwitz` predicate, so the Prop is define-local over the Mathlib spectrum."
+    },
+    "ass:alias-strip": {
+      "lean_kind": "assumption",
+      "lean_name": "AliasStrip",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Normed.Algebra.Spectrum"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def AliasStrip (h : Real) (G : Matrix (Fin p) (Fin p) Real) : Prop := forall g in spectrum Complex (G.map Complex.ofReal), -(Real.pi / h) < g.im /\\ g.im < Real.pi / h",
+      "classification": "modeling assumption (identification restriction removing the logarithm alias)",
+      "notes": "Search trace: grepped `../doc/API.md` + `Causalean/**` for `alias`, `principal branch`, `aliasing`, `discrete-time embedding` -- nothing. Mathlib-side check: `Complex.log_exp` (`-pi < x.im -> x.im <= pi -> log (exp x) = x`) CONFIRMED via `lean_leansearch`; it is the scalar kernel of the uniqueness argument, reused inside `Helpers/PrincipalGenerator.lean`, but the strip predicate itself is define-local."
+    },
+    "ass:initial-gaussian": {
+      "lean_kind": "assumption",
+      "lean_name": "InitialGaussian",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Multivariate",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def InitialGaussian (sys) : Prop := (law of sys.X 0) = multivariateGaussian sys.mu0 sys.Sigma /\\ sys.Sigma.PosDef",
+      "classification": "modeling assumption (distributional restriction on the initial law)",
+      "notes": "Search trace: grepped `../doc/API.md` for `Gaussian initial`, `nonsingular Gaussian`, `linear-Gaussian`; `SCM/Examples/ContinuousBackdoor.lean` has a linear-Gaussian backdoor example but it is an SCM instance, not a reusable Gaussian-law predicate -- bypass-justified. Mathlib-side check CONFIRMED `Mathlib/Probability/Distributions/Gaussian/Multivariate.lean` and `Matrix.PosDef` exist; the predicate composes them and is define-local."
+    },
+    "ass:common-measurement-noise": {
+      "lean_kind": "assumption",
+      "lean_name": "CommonMeasurementNoise",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Multivariate",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def CommonMeasurementNoise (sys) : Prop := sys.E.PosDef /\\ forall k : Fin 4, (law of sys.eps k) = multivariateGaussian 0 sys.E",
+      "classification": "modeling assumption (measurement model: one shared unknown noise covariance)",
+      "notes": "Search trace: grepped `../doc/API.md` + `Causalean/**` for `measurement error`, `classical measurement error`, `noise covariance`, `misclassification`; Causalean has no measurement-error layer at all (its PO/SCM worlds observe variables exactly) -- bypass-justified, and this shared-noise atom is the paper's central novelty. Mathlib-side: composed from `multivariateGaussian` + `Matrix.PosDef`."
+    },
+    "ass:measurement-independence": {
+      "lean_kind": "assumption",
+      "lean_name": "MeasurementIndependence",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def MeasurementIndependence (sys) : Prop := iIndepFun (Fin 5) (Fin.cases (sys.X 0) sys.eps) sys.mu",
+      "classification": "modeling assumption (measurement model: mutual independence of errors and initial state)",
+      "notes": "Search trace: grepped `../doc/API.md` for `independent errors`, `iIndepFun`, `mutual independence`; Causalean uses `Mathlib`'s `ProbabilityTheory.iIndepFun` directly wherever independence is needed (e.g. `Stat/CLT/MultivariateCLT.lean` via `IIDSample`) -- so the reuse is Mathlib's `iIndepFun`, with the five-family bundling define-local. Mathlib-side check CONFIRMED `ProbabilityTheory.iIndepFun` in `Mathlib/Probability/Independence/Basic.lean`."
+    },
+    "ass:strict-decrease": {
+      "lean_kind": "assumption",
+      "lean_name": "StrictCovarianceDecrease",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def StrictCovarianceDecrease (mom : ObservedMoments p) : Prop := forall j : Fin 3, (H mom j).PosDef",
+      "classification": "modeling assumption (support restriction; flagged `novel` in the core -- an open-neighborhood condition on the transient regime, NOT a substrate fact)",
+      "notes": "Search trace: grepped `../doc/API.md` + `Causalean/**` for `strict decrease`, `positive definite difference`, `Loewner order`, `covariance monotone`; Mathlib has `Matrix.PosDef` and the Loewner order (`Mathlib/Analysis/Matrix/Order.lean`, `Matrix.PosSemidef.posDef_iff_isUnit`) but there is no such design condition anywhere -- define-local. This is the load-bearing atom for the whole whitening chart (seven statements use it) and is deliberately kept as a threaded hypothesis per the author's atomization; it is NOT discharged."
+    },
+    "ass:unpaired-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "UnpairedSnapshotSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.CLT.MultivariateCLT",
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def UnpairedSnapshotSampling (samp) : Prop := (forall k : Fin 4, IsIID (samp.draws k) (law of Y k) (samp.n k)) /\\ iIndepFun (fun k => samp.draws k) samp.mu",
+      "classification": "modeling assumption (design: destructive, unpaired population snapshots)",
+      "notes": "Search trace: grepped `Causalean/Stat/CLT/MultivariateCLT.lean` and `Causalean/Stat/CLT/AsymptoticLinearityVec.lean` for `IIDSample`: `Causalean.Stat.IIDSample Omega X mu P` CONFIRMED and REUSED as the per-snapshot i.i.d. structure; the FOUR-sample cross-independence with distinct sizes `n_k` is not an `IIDSample` and is the define-local part. Mathlib-side: `ProbabilityTheory.iIndepFun` CONFIRMED."
+    },
+    "ass:sample-shares": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveLimitingShares",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Order.Filter.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "statement_sketch": "def PositiveLimitingShares (samp) : Prop := forall k : Fin 4, (0 < samp.pi k /\\ samp.pi k < 1) /\\ Filter.Tendsto (fun m => (samp.n m k : Real) / (samp.N m : Real)) Filter.atTop (nhds (samp.pi k))",
+      "classification": "modeling assumption (regularity: positive limiting sample shares)",
+      "notes": "Search trace: grepped `../doc/API.md` for `sample share`, `limiting share`, `group proportion`; `Causalean/Experimentation/TwoStageInterference/` has group-share regularity but tied to a design measure, not to i.i.d. snapshot sizes -- bypass-justified. Mathlib-side: plain `Filter.Tendsto` on `Real`."
+    },
+    "def:raw-fiber": {
+      "lean_kind": "def",
+      "lean_name": "rawFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Fibers.lean",
+      "inputs": [
+        "m_k",
+        "C_k"
+      ],
+      "statement_sketch": "def rawFiber (mom : ObservedMoments p) : Set (Matrix (Fin p) (Fin p) Real) := {W | W * H mom 0 * W^T = H mom 1 /\\ W * H mom 1 * W^T = H mom 2 /\\ W *v d mom 0 = d mom 1 /\\ W *v d mom 1 = d mom 2}",
+      "notes": "Search trace: grepped `../doc/API.md` + `Causalean/**` for `congruence orbit`, `matrix fiber`, `identified set of matrices`, `solution set of congruence equations`; Causalean's identified sets (`Causalean.PO.ID.*`, `Manski` bounds) are intervals/sets of real-valued estimands, never matrix varieties -- bypass-justified. Mathlib-side (`lean_loogle`/`lean_leansearch` for `congruence`, `X A X^T = B`): nothing. Trivial `Set` comprehension; the content is entirely downstream."
+    },
+    "def:admissible-fiber": {
+      "lean_kind": "def",
+      "lean_name": "admissibleFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Fibers.lean",
+      "inputs": [
+        "F_raw",
+        "E_W"
+      ],
+      "statement_sketch": "def admissibleFiber (mom) : Set (Matrix (Fin p) (Fin p) Real) := {W in rawFiber mom | IsStable W /\\ AvoidsLogCut W /\\ (recoveredNoise mom W).PosDef}",
+      "notes": "Search trace: as `def:raw-fiber`, plus `stability filter`, `admissibility filter`, `spectral cut` -- nothing in Causalean; Mathlib supplies `spectralRadius` and `Matrix.PosDef` (both CONFIRMED), and `IsStable`/`AvoidsLogCut` are the D-plan-4 wrappers built in `Helpers/PrincipalGenerator.lean`."
+    },
+    "def:known-noise-fiber": {
+      "lean_kind": "def",
+      "lean_name": "knownNoiseFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Fibers.lean",
+      "inputs": [
+        "E",
+        "m_k",
+        "C_k"
+      ],
+      "statement_sketch": "def knownNoiseFiber (mom) (E : Matrix (Fin p) (Fin p) Real) : Set (Matrix (Fin p) (Fin p) Real) := {W | (forall k, (mom.C k - E).PosDef) /\\ (forall k : Fin 3, W * (mom.C k - E) * W^T = mom.C (k+1) - E) /\\ W *v d mom 0 = d mom 1 /\\ W *v d mom 1 = d mom 2 /\\ IsStable W /\\ AvoidsLogCut W /\\ recoveredNoise mom W = E}",
+      "notes": "Search trace: grepped `../doc/API.md` + `Causalean/**` for `known noise`, `supplied covariance`, `calibrated nuisance`; nothing -- bypass-justified. Mathlib-side: same PosDef/spectrum floor as `def:admissible-fiber`. Note the residual restriction is the EQUALITY `E_W = E`, strictly stronger than the unknown-noise inequality; F2 must encode it as equality, not as `PosDef`."
+    },
+    "def:three-fiber": {
+      "lean_kind": "def",
+      "lean_name": "threeFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Fibers.lean",
+      "inputs": [
+        "m_k",
+        "C_k"
+      ],
+      "statement_sketch": "def threeFiber (mom : ObservedMoments p) : Set (Matrix (Fin p) (Fin p) Real) := {W | W * H mom 0 * W^T = H mom 1 /\\ W *v d mom 0 = d mom 1}",
+      "notes": "Search trace: identical scan to `def:raw-fiber` (`congruence orbit`, `one-vector orthogonal matching`); nothing in Causalean or Mathlib. Two-equation restriction of `rawFiber`; F2 should state the trivial `rawFiber mom subset threeFiber mom` inclusion here so the frontier theorem can reuse it."
+    },
+    "def:krylov-map": {
+      "lean_kind": "def",
+      "lean_name": "krylovMap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.LinearAlgebra.Vandermonde"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Krylov.lean",
+      "inputs": [
+        "m_k",
+        "C_k"
+      ],
+      "statement_sketch": "def krylovBlock (mom) (i : Fin 2) : Matrix (Fin p) (Fin p) Real := Matrix.of (fun r j => ((Mq mom i ^ (j:Nat)) *v d mom i) r);  def krylovMap (mom) : Matrix (Fin p) (Fin p) Real := krylovBlock mom 1 * (krylovBlock mom 0)-inv",
+      "notes": "Search trace: grepped `../doc/API.md` + `Glob Causalean/**/*.lean` for `Krylov`, `controllability matrix`, `cyclic vector`, `companion` -- zero hits. Mathlib-side check (`lean_loogle`, `Glob Mathlib/**`): no `Krylov` file; `Mathlib.LinearAlgebra.Vandermonde` (`det_vandermonde`) CONFIRMED and is the engine of the `det K_0 != 0` genericity witness in `thm:snapshot-frontier`; `Matrix.inv` API in `Mathlib/LinearAlgebra/Matrix/NonsingularInverse.lean` CONFIRMED. Define-local, small."
+    },
+    "def:empirical-cyclic-estimator": {
+      "lean_kind": "def",
+      "lean_name": "empiricalCyclicEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Sampling.lean",
+      "inputs": [
+        "zhat"
+      ],
+      "statement_sketch": "def empiricalCyclicEstimator (zhat : MomentStack p) : Matrix (Fin p) (Fin p) Real := krylovBlock (toMoments zhat) 1 * (krylovBlock (toMoments zhat) 0)-inv",
+      "notes": "Search trace: grepped `Causalean/Stat/{MEstimation,GMM,EmpiricalProcess}/` for `plug-in estimator`, `rational estimator`, `moment estimator`; `Causalean.Stat.MEstimation.ZEstimator` is a criterion-based Z-estimator, not a closed-form rational plug-in -- bypass-justified. Mathlib-side: `Matrix.inv` is total (junk-valued at singular matrices), so the estimator is definitionally total and `thm:cyclic-perturbation` supplies the `IsUnit det` side condition on the good event; F2 must NOT wrap it in `Option`. Deliberately the SAME `krylovBlock` applied to `zhat`, so the population/empirical parallel is definitional."
+    },
+    "def:residual-map": {
+      "lean_kind": "def",
+      "lean_name": "residualMap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.InnerProductSpace.PiL2"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Residual.lean",
+      "inputs": [
+        "W",
+        "z"
+      ],
+      "statement_sketch": "def residualMap (W : Matrix (Fin p) (Fin p) Real) (z : MomentStack p) : ResidualSpace p := (vech (W * H z 0 * W^T - H z 1), vech (W * H z 1 * W^T - H z 2), W *v d z 0 - d z 1, W *v d z 1 - d z 2)",
+      "notes": "Search trace: grepped `Causalean/Stat/{GMM,MEstimation}/` for `moment residual`, `criterion function`, `GMM residual`; `Causalean/Stat/GMM/AsymptoticNormality.lean` has the GMM asymptotic-normality pattern but over an abstract moment function -- recorded as the ANALOGOUS module F3 should mirror for the Jacobian/regularity bookkeeping, not a node-level fit. Mathlib-side: `vech` (lower-triangular restriction) is absent; F2 realises it as restriction to the subtype `{ij : Fin p x Fin p // ij.2 <= ij.1}` so `ResidualSpace p` is a finite-dimensional real inner-product space via `EuclideanSpace`/`PiLp` -- this typing is REQUIRED to apply `Causalean.Stat.deltaMethod` downstream."
+    },
+    "def:local-branch-estimator": {
+      "lean_kind": "def",
+      "lean_name": "localBranchEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.MEstimation.ArgmaxStability",
+        "Mathlib.Topology.Order.Compact"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Residual.lean",
+      "inputs": [
+        "W",
+        "zhat"
+      ],
+      "statement_sketch": "def localBranchEstimator (W : Matrix (Fin p) (Fin p) Real) (r : Real) (zeta : MomentStack p) : Matrix (Fin p) (Fin p) Real := if h : exists! U, IsMinOn (fun U => ‖residualMap U zeta‖^2) (closedBall W r) U then h.choose else W",
+      "notes": "Search trace: grepped `Causalean/Stat/MEstimation/` (`ArgmaxStability.lean`, `ExtremumConsistency.lean`, `ZEstimator.lean`, `EmpiricalExpansion.lean`) for `argmin`, `unique minimizer`, `isolating ball`, `measurable selection`. `Causalean.Stat.MEstimation.ArgmaxStability` is the closest ANALOGUE (stability of an argmax under criterion perturbation) and F3 should adapt its pattern for the compact-separation step; it does not supply a fixed-ball unique-argmin selector with a population fallback, so this is build-inline. Mathlib-side: `IsMinOn`, `IsCompact.exists_isMinOn` CONFIRMED (`Mathlib/Topology/Algebra/Order/Compact.lean`). The `if h : exists! ...` form is exactly the frozen definition's 'total measurable completion with fixed population-indexed fallback `W`'; F2 must keep the fallback so the estimator is total, and `thm:branchwise-inference` shows the fallback event has vanishing probability."
+    },
+    "def:parameter-map": {
+      "lean_kind": "def",
+      "lean_name": "parameterMap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Normed.Algebra.MatrixExponential",
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ParameterMap.lean",
+      "inputs": [
+        "W",
+        "z"
+      ],
+      "statement_sketch": "def parameterMap (h : Real) (U : Matrix (Fin p) (Fin p) Real) (zeta : MomentStack p) : StructuralParam p := (U, principalGenerator h U, steinSolve U (zeta.C 0 - zeta.C 1), zeta.C 0 - steinSolve U (zeta.C 0 - zeta.C 1), (1 - U)-inv *v (zeta.m 1 - U *v zeta.m 0), zeta.m 0)",
+      "notes": "Search trace: grepped `../doc/API.md` + `Causalean/**` + Mathlib for `parameter reconstruction map`, `structural parameter`, `matrix logarithm`, `Stein solve`. Causalean: nothing. Mathlib: `NormedSpace.exp` CONFIRMED but NO principal matrix logarithm for non-normal matrices -- `lean_leansearch` 'principal matrix logarithm of a matrix whose spectrum avoids the nonpositive reals' returns only `CFC.log` (restricted to self-adjoint / `IsStrictlyPositive` elements, `Mathlib/Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog/Basic.lean`) and scalar `Complex.log`. HARDEST BUILD-INLINE PIECE of the run: per D-plan-3 the generator coordinate is `Classical.choose` of the `IsPrincipalGenerator` existence proved in `Helpers/PrincipalGenerator.lean`, so no holomorphic functional calculus is needed -- only the frozen proofs' own Jordan-block construction (in `prop:known-noise-reduction`) plus `Complex.log_exp` for uniqueness. This is supporting build work for a delivered theorem, so it stays `defer_tier:false` regardless of size."
+    },
+    "def:certification-handle": {
+      "lean_kind": "def",
+      "lean_name": "certificationHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Certification.lean",
+      "inputs": [
+        "A_lambda",
+        "B_lambda",
+        "k_lambda",
+        "F_res"
+      ],
+      "statement_sketch": "structure CertificationHandle (p : Nat) where eliminatedSystem : SpectralBlockData p -> ZeroDimensionalSystem p; alphaTarget : ZeroDimensionalSystem p -> Set (Matrix (Fin p) (Fin p) Real); intervalFilters : Matrix (Fin p) (Fin p) Real -> Prop  -- stability, log cut, Stein solve, strict E_W positivity;  def certificationHandle : CertificationHandle p := ...",
+      "notes": "Search trace: grepped `../doc/API.md` + `Causalean/**` for `certification`, `alpha-certified`, `Smale alpha`, `interval arithmetic`, `real root isolation`; nothing (the closest is `CausalSmith/PartialID/PID_ImperfectrefCutoffRegret_Research/Helpers/IntervalArithmetic.lean`, a sibling run's interval helper -- recorded as the file F3 should look at for the interval-enclosure idiom, but it is scoped to that run's regret intervals and is not importable substrate). Mathlib-side: no Smale alpha-theory, no CAD, no real-root isolation (`lean_leansearch` for `certified root of a polynomial system`, `alpha theory`). This node is a DEFINITION (a record of the four handle components), not a claim, so nothing is asserted about completeness -- the completeness gap is exactly what `oeq:certified-noncyclic-labeling` records. Build-inline and small precisely because it is only a handle record."
+    },
+    "thm:block-certificate": {
+      "lean_kind": "theorem",
+      "lean_name": "block_gram_certificate",
+      "local_id": "t1",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.HermitianFunctionalCalculus",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.LinearAlgebra.UnitaryGroup"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TBlockCertificate.lean",
+      "hyps": [
+        "ass:dimension",
+        "ass:common-measurement-noise",
+        "ass:strict-decrease"
+      ],
+      "uses": [
+        "def:raw-fiber"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`). Search trace: grepped `../doc/API.md` + `Causalean/**` for `orthogonal intertwiner`, `spectral block`, `torsor`, `stabilizer dimension`, `Gram identity` -- nothing. Mathlib-side CONFIRMED and REUSED: `Matrix.IsHermitian.cfc` (whitening square roots, D-plan-2), `Matrix.IsHermitian.spectral_theorem` + `eigenvectorUnitary` (eigenframes), `Matrix.orthogonalGroup` (the `O(m_lambda)` completions), `Matrix.PosDef` (the `H_j` hypotheses). The `O(k)` tangent-space dimension `k(k-1)/2` is the skew-symmetric-matrix dimension count -- F3 should get it from `Matrix.skewAdjoint`/the `Fin k` lower-triangle cardinality rather than from a Lie-group tangent computation (the statement only needs the CARDINAL dimension of the parameterizing skew space, per D-plan-6)."
+    },
+    "thm:three-snapshot-exact-classification": {
+      "lean_kind": "theorem",
+      "lean_name": "three_snapshot_exact_classification",
+      "local_id": "t2",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.HermitianFunctionalCalculus",
+        "Mathlib.LinearAlgebra.UnitaryGroup",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.LinearAlgebra.Matrix.Determinant.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TThreeSnapshotClassification.lean",
+      "hyps": [
+        "ass:dimension",
+        "ass:spacing",
+        "ass:linear-flow",
+        "ass:hurwitz",
+        "ass:alias-strip",
+        "ass:initial-gaussian",
+        "ass:common-measurement-noise",
+        "ass:measurement-independence",
+        "ass:strict-decrease"
+      ],
+      "uses": [
+        "def:three-fiber",
+        "thm:admissible-fiber"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`). Search trace: grepped `../doc/API.md` + `Causalean/**` for `orthogonal stabilizer of a vector`, `Householder`, `norm certificate`, `O(p-1)`; nothing. Mathlib-side CONFIRMED: `Matrix.orthogonalGroup`, `Matrix.det_mul`, `Matrix.IsHermitian.cfc`. ENCODING DIRECTIVE for the final transfer clause ('the continuous nonidentification conclusions transfer to every unknown-common-measurement-covariance model whose model class contains the present class as a subclass and has the same transition target'): quantify over an abstract superclass predicate `Superclass : StructuralExplanation p -> Prop` with the hypothesis `forall e, PresentClass e -> Superclass e`, and conclude that the constructed positive-dimensional family of observationally-equivalent explanations still lies in `Superclass`. This is NOT a tautological conjunct -- its content is that the paper's own witnesses survive the enlargement -- but F2 must state it with the witness family explicit, not as a bare implication between two inequalities."
+    },
+    "thm:admissible-fiber": {
+      "lean_kind": "theorem",
+      "lean_name": "admissible_fiber_bijection",
+      "local_id": "t3",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.Kronecker",
+        "Mathlib.Analysis.Normed.Algebra.MatrixExponential",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.Probability.Distributions.Gaussian.Multivariate"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TAdmissibleFiber.lean",
+      "hyps": [
+        "ass:dimension",
+        "ass:spacing",
+        "ass:linear-flow",
+        "ass:hurwitz",
+        "ass:alias-strip",
+        "ass:initial-gaussian",
+        "ass:common-measurement-noise",
+        "ass:measurement-independence",
+        "ass:strict-decrease"
+      ],
+      "uses": [
+        "def:raw-fiber",
+        "def:admissible-fiber",
+        "def:parameter-map",
+        "thm:block-certificate"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`); the headline bijection. Search trace: grepped `../doc/API.md` + `Causalean/**` for `bijection to identified set`, `structural explanation`, `observational equivalence`; Causalean's `Causalean.SCM.ID.Identifiable` is a do-calculus uniqueness predicate over SCMs, at the wrong abstraction (no matrix parameter, no measurement layer) -- bypass-justified. Mathlib-side CONFIRMED: `Matrix.kroneckerMap` (the `I - W (x) W` uniqueness argument, D-plan-5), `NormedSpace.exp`, `spectralRadius`, `multivariateGaussian` (the 'Gaussian laws are determined by their moments' step, `Mathlib/Probability/Distributions/Gaussian/Multivariate.lean`). Depends on the `IsPrincipalGenerator` existence/uniqueness pair from `Helpers/PrincipalGenerator.lean`."
+    },
+    "thm:snapshot-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "snapshot_identification_frontier",
+      "local_id": "t4",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Vandermonde",
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.RingTheory.Polynomial.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TSnapshotFrontier.lean",
+      "hyps": [
+        "ass:dimension",
+        "ass:spacing",
+        "ass:linear-flow",
+        "ass:hurwitz",
+        "ass:alias-strip",
+        "ass:initial-gaussian",
+        "ass:common-measurement-noise",
+        "ass:measurement-independence",
+        "ass:strict-decrease"
+      ],
+      "uses": [
+        "def:raw-fiber",
+        "def:three-fiber",
+        "def:krylov-map",
+        "def:admissible-fiber",
+        "thm:three-snapshot-exact-classification",
+        "thm:admissible-fiber"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`). Search trace: grepped `../doc/API.md` + `Causalean/**` for `generic`, `Zariski`, `proper algebraic subset`, `nonzero polynomial has empty-interior zero set`. Causalean: nothing. SIBLING ANALOGUE FOUND (adapt, do not rebuild): `CausalSmith/ExactID/EID_LingamDirectionMinOrderV1_Research` carries `IsZariskiOpenParamIn` / `IsZariskiDenseParamIn` and a generic-locus argument over a polynomial parameter space (see `doc/API.md` section 3.1) -- F3 should mirror its 'nonzero polynomial => zero set has empty interior, by induction on the number of variables' idiom, and its `genericParameterLocus` shape, for the `det K_0 != 0` genericity clause; it is another run's namespace, so it is a pattern reference, not an import. Mathlib-side CONFIRMED: `Matrix.det_vandermonde` (`Mathlib/LinearAlgebra/Vandermonde.lean`) for the diagonal witness `det K_0 = (prod d_0i) * prod_{i<j}(v_j^2 - v_i^2) != 0`, and `MvPolynomial` machinery in `Mathlib/RingTheory/Polynomial/`."
+    },
+    "prop:sharp-exceptional-fibers": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_exceptional_fiber_count",
+      "local_id": "t5",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.UnitaryGroup",
+        "Mathlib.LinearAlgebra.Matrix.Determinant.Basic",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.LinearAlgebra.Matrix.Kronecker"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TSharpExceptionalFibers.lean",
+      "hyps": [
+        "ass:dimension",
+        "ass:strict-decrease"
+      ],
+      "uses": [
+        "def:raw-fiber",
+        "def:admissible-fiber",
+        "thm:block-certificate",
+        "thm:admissible-fiber"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`); includes the SHARPNESS construction (a cyclic-permutation witness `W_D = A Q_circ D` attaining exactly `2^{p-1}` admissible branches), which must be formalized -- it is paper-owned and may not be deferred. Search trace: grepped `../doc/API.md` + `Causalean/**` for `sharp cardinality`, `fiber count`, `sign enumeration`, `cyclic permutation matrix`; nothing. Mathlib-side CONFIRMED: `Equiv.Perm`/`Matrix.permMatrix`-style cyclic shift via `Matrix.of` + `Fin.cycle`, `Matrix.det_mul`, `Matrix.orthogonalGroup`, `spectralRadius`. The 'negative determinant implies a negative real eigenvalue' step needs the real-charpoly conjugate-pairing argument -- F3 should build it once in `Helpers/PrincipalGenerator.lean` (it is reused verbatim by `thm:three-snapshot-exact-classification`) rather than twice."
+    },
+    "thm:information-nullity": {
+      "lean_kind": "theorem",
+      "lean_name": "information_nullity_eq_stabilizer_dimension",
+      "local_id": "t6",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.Kronecker",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.LinearAlgebra.Dimension.Finrank",
+        "Mathlib.Probability.Distributions.Gaussian.Multivariate"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TInformationNullity.lean",
+      "hyps": [
+        "ass:common-measurement-noise",
+        "ass:initial-gaussian",
+        "ass:strict-decrease",
+        "ass:unpaired-sampling"
+      ],
+      "uses": [
+        "def:residual-map",
+        "thm:admissible-fiber",
+        "thm:block-certificate"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`). Search trace: grepped `../doc/API.md` + `Causalean/**` for `Fisher information`, `information nullity`, `singular information matrix`, `Gaussian Fisher information`. Causalean has `Causalean/Stat/Limit/VanTreesInequality.lean` and `Causalean/Stat/Limit/ObservationDependentVanTrees/GuardedInformation.lean` (Fisher-information quadratic forms in a van-Trees setting) -- recorded as the ANALOGOUS module for the Gaussian Fisher-form computation `u^T C-inv u + tr(C-inv A C-inv A)/2`; GAP TO BRIDGE: those files work with a scalar guarded information functional over a prior, not the four-marginal Gaussian mean-and-covariance form, so F3 adapts the quadratic-form derivation rather than importing. Mathlib-side CONFIRMED: `Module.finrank` / `LinearMap.ker` for the nullity statement, `Matrix.kroneckerMap` for the Stein-perturbation solve, `multivariateGaussian` for the log-density differentiation."
+    },
+    "thm:cyclic-perturbation": {
+      "lean_kind": "theorem",
+      "lean_name": "cyclic_chart_perturbation",
+      "local_id": "t7",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Concentration.Matrix.InversePerturbation",
+        "Causalean.Stat.Concentration.Matrix.Resolvent",
+        "Mathlib.Analysis.Matrix.Normed",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TCyclicPerturbation.lean",
+      "hyps": [
+        "ass:strict-decrease"
+      ],
+      "uses": [
+        "def:krylov-map",
+        "def:empirical-cyclic-estimator",
+        "def:parameter-map",
+        "thm:snapshot-frontier",
+        "thm:admissible-fiber"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`), with the strongest single reuse in the run. Search trace: grepped `Causalean/Stat/Concentration/Matrix/` (`InversePerturbation.lean`, `Resolvent.lean`, `DesignInverse.lean`, `IidSums.lean`) for `inverse perturbation`, `Neumann series`, `resolvent`, `Weyl inequality`, `smallest singular value`. CONFIRMED ANALOGUE: `Causalean.Stat.Concentration.designInv_perturb` (`InversePerturbation.lean:112`) is the same Neumann factorization `M-inv - S-inv = -M-inv (M-S) S-inv` with the `c * eta <= 1/2` smallness gate; GAP TO BRIDGE: it is entrywise / l-infinity-operator-norm with a row-sum constant `c`, while this theorem needs spectral-norm bounds keyed to `sigma_min(K_0) = kappa` and `lambda_min(H_i) >= a_0`. F3 adapts, keeping the same proof skeleton. Mathlib-side CONFIRMED: `Matrix.linftyOpNormedRing` / `Mathlib/Analysis/Matrix/Normed.lean`, `spectralRadius`, and interval integration for the resolvent-integral logarithm Lipschitz bound `Log U = integral_0^1 (U-I)(I+t(U-I))-inv dt`. NOTE the frozen disclaimer clause -- the conclusions are about the reconstruction DOMAIN, not about `W-hat_cyc` satisfying the exact population raw equalities; F2 must not strengthen it."
+    },
+    "thm:branchwise-inference": {
+      "lean_kind": "theorem",
+      "lean_name": "branchwise_gaussian_inference",
+      "local_id": "t8",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Inference.DeltaMethod",
+        "Causalean.Stat.CLT.MultivariateCLT",
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Stat.CLT.AsymptoticLinearityVec",
+        "Causalean.Stat.Limit.ConvergenceVec",
+        "Causalean.Stat.MEstimation.ArgmaxStability",
+        "Mathlib.Analysis.Calculus.InverseFunctionTheorem.FDeriv"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TBranchwiseInference.lean",
+      "hyps": [
+        "ass:initial-gaussian",
+        "ass:measurement-independence",
+        "ass:unpaired-sampling",
+        "ass:sample-shares"
+      ],
+      "uses": [
+        "def:residual-map",
+        "def:local-branch-estimator",
+        "def:parameter-map",
+        "thm:admissible-fiber",
+        "thm:information-nullity"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`), assembled almost entirely from confirmed Causalean substrate. Search trace: `Glob Causalean/Stat/**/*.lean` then read `Stat/Inference/DeltaMethod.lean`, `Stat/CLT/MultivariateCLT.lean`, `Stat/CLT/GaussianLimit.lean`, `Stat/Limit/ConvergenceVec.lean`, `Stat/MEstimation/ArgmaxStability.lean`. CONFIRMED REUSABLE: `Causalean.Stat.deltaMethod` (`DeltaMethod.lean:279`) for the final delta step; `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (`MultivariateCLT.lean:120`) + `Causalean.Stat.gaussianLimit` / `gaussianLimit_charFun` / `gaussianLimit_covarianceBilin` (`GaussianLimit.lean:63,84,107`) for `sqrt N (z-hat - z) ==> N(0, Omega)`; `Tendsto_dist_vec` (`ConvergenceVec.lean`). GAP TO BRIDGE: four independent samples of sizes `n_k` with `n_k/N -> pi_k` is not one `IIDSample`, so F3 combines four per-snapshot applications via the characteristic-function product exactly as the frozen proof does. The contraction / fixed-isolating-ball uniqueness step adapts `Causalean.Stat.MEstimation.ArgmaxStability`; smoothness of the branch selector uses Mathlib's implicit/inverse-function derivative API (`Mathlib/Analysis/Calculus/InverseFunctionTheorem/FDeriv.lean`, CONFIRMED). Requires `ResidualSpace p` to be a `NormedAddCommGroup` + `InnerProductSpace Real` (D-plan-7)."
+    },
+    "prop:known-noise-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "known_noise_reduction",
+      "local_id": "t9",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.Kronecker",
+        "Mathlib.Analysis.Normed.Algebra.MatrixExponential",
+        "Mathlib.Analysis.Normed.Algebra.Spectrum",
+        "Mathlib.Analysis.Matrix.HermitianFunctionalCalculus",
+        "Mathlib.Probability.Distributions.Gaussian.Multivariate"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TKnownNoiseReduction.lean",
+      "hyps": [
+        "ass:spacing",
+        "ass:linear-flow",
+        "ass:hurwitz",
+        "ass:alias-strip",
+        "ass:initial-gaussian",
+        "ass:common-measurement-noise",
+        "ass:measurement-independence",
+        "lem:aalto-model-scope"
+      ],
+      "uses": [
+        "def:known-noise-fiber"
+      ],
+      "notes": "Build-inline (paper-owned, `status:proved`) and CONDITIONAL ON THE CITED GATE. The clauses comparing this model to Aalto-Lamoline-Goncalves 2022 ('an equation-level subclass of Theorem 2.1 and Corollary 2.1', 'the inclusion is strict at model scope: their full-state system permits a known nonzero process covariance, an invertible discrete-time transition without stability or embeddability restrictions, and finite-second-moment non-Gaussian laws, whereas it has no measurement-error layer') are NOT model-independent tautologies and are NOT dropped: they are routed through the cited-dependency interface `AaltoModelScope` threaded into `hyps`, which supplies the published recursion `P_{j+1} = A P_j A^T + Q`, `m-bar_{j+1} = A m-bar_j + b`, the invertibility-only hypothesis of Theorem 2.1(i), and the finite-second-moment remark. The strictness half is proved OUTRIGHT from that interface by the paper's own explicit witness `A = 2 I_p, Q = 0` (permitted there, excluded here since `rho(2 I_p) = 2`), so the plan asserts a genuine separation rather than a logical shell. Search trace: grepped `../doc/API.md` + `Causalean/**` for `model class inclusion`, `subclass reduction`, `sanity reduction`; nothing. Mathlib-side CONFIRMED: `Matrix.kroneckerMap` (Stein uniqueness), `NormedSpace.exp`, `spectralRadius`, `Matrix.IsHermitian.cfc` (the `2^p` sign-reduction whitening), `multivariateGaussian`. This proposition also contains the explicit Jordan-block principal-logarithm construction that `Helpers/PrincipalGenerator.lean` factors out."
+    },
+    "lem:aalto-model-scope": {
+      "lean_kind": "assumption",
+      "lean_name": "AaltoModelScope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation_discharged": false,
+      "source": "cite:aalto-lamoline-goncalves-2022-sec2",
+      "target_file": "Basic.lean",
+      "hyps": [],
+      "statement_sketch": "def AaltoModelScope (n : Nat) : Sort 0 := (published full-state recursion Z_j = A Z_{j-1} + b + eta_{j-1} with known process covariance Q has moment equations m-bar_j = A m-bar_{j-1} + b and P_j = A P_{j-1} A^T + Q) /\\ (Theorem 2.1 assumes only that A is invertible, imposing neither stability nor continuous-time embeddability) /\\ (finite second moments of the initial state and noise laws suffice for those moment equations and the stated identification argument)",
+      "notes": "FROZEN CITED SUBSTRATE-GATE. `source` is the citation ID STRING `cite:aalto-lamoline-goncalves-2022-sec2`, resolving to the `citations[]` entry that carries the frozen locator (Section 2, eqs (1)--(2), Theorem 2.1(i), and the paragraph after its proof on page 3), the frozen `carrier:\"logical-claim\"`, the `verbatim_statement`, the DOI `10.1016/j.sysconle.2022.105287`, the open-access URL, and the d0-agent attestation; none of that provenance is restated as a nested object here. The frozen core carrier is `logical-claim` (mapped exactly), so it MUST be `lean_kind:\"assumption\"` encoded as a named proposition and threaded into every logical consumer -- here exactly one, `prop:known-noise-reduction`. Excluded from the `theorems` manifest; not a proof obligation for F2-F4. Per the emission rule, F2 writes the proposition universe with unshadowable `Sort 0` syntax, never a shadowable `Prop` identifier, and never a `String`/metadata payload (this is a mathematical claim about another paper's model equations, so the bibliographic-metadata exception does NOT apply). Search trace: grepped `../doc/API.md` + `Causalean/**` for `Aalto`, `single-cell`, `full-state recursion`, `known process covariance`, `system identifiability`; zero hits -- there is no Lean formalization of this paper's Section 2 to reuse. Discharge path (NOT taken here): `bin/gate.ts --discharge` may later replace it with an exact proved lemma, at which point `source` is retained, the gate keys and the consumer `hyps` entry are removed, and `prop:known-noise-reduction` is re-reviewed."
+    },
+    "oeq:certified-noncyclic-labeling": {
+      "lean_kind": "def",
+      "lean_name": "certifiedNoncyclicLabelingOpenQuestion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "oeq_case": "B",
+      "payload_type": "_root_.String",
+      "target_file": "OpenQuestions.lean",
+      "hyps": [],
+      "statement_sketch": "def certifiedNoncyclicLabelingOpenQuestion : _root_.String := \"OPEN (unresolved; this definition asserts nothing). Question: can the certification handle -- eliminate the block-orthogonal completion variables from the covariance and mean residual equations into a zero-dimensional polynomial system on each finite stratum, target certified real roots with Smale alpha-quantities, and enclose stability, the principal-logarithm cut, the Stein solve, and strict E_W-positivity by intervals -- be completed into an output-sensitive, data-based initializer and canonical labeling rule which, on every regular noncyclic finite stratum, (i) returns disjoint certified neighborhoods containing all and only admissible branches exactly once, (ii) remains unchanged under perturbations smaller than an explicit separation margin from every excluded branch, and (iii) supports simultaneous branchwise confidence regions with asymptotic coverage at least 1 - alpha? Obstruction: the handle certifies roots only after approximate roots and an eliminated zero-dimensional system have been supplied; it contains neither a globally complete root-isolation procedure nor a quantitative lower bound separating all raw roots and all excluded roots from the stability, logarithm-cut, Stein, and covariance-positivity boundaries. The regularity margin gamma_W > 0 is local and supplies no such global margin, and an excluded branch may lie on an admissibility boundary, so the requested model-count stability cannot hold uniformly on every stated regular finite stratum without an additional separation regime or a boundary-aware set-valued rule. Attempted: block sign enumeration as a population initializer plus linearization of the residual score at each enumerated branch; this yields a smooth local estimator once an isolating neighborhood is known, but exact eigenspace and probe-Gram tests fail almost surely on empirical moments, and local contraction and Smale-style certification certify only roots already targeted. Partial result already frozen elsewhere in this paper: the block certificate produces the 2^q raw sign completions, the admissible-fiber bijection filters them exactly, and branchwise inference gives a unique smooth residual estimator near each regular branch; for any fixed population instance with mutually separated raw branches and excluded branches strictly separated from every boundary, compactness of the finite list gives a positive but presently implicit minimum separation. Not supplied, and therefore not asserted here: a data-based output-sensitive procedure that finds and certifies every empirical neighborhood, and a valid lower bound for that minimum uniform over all regular noncyclic finite strata. No procedure, selector, rate functional, coverage criterion, or lower-bound witness is defined by this payload.\"",
+      "notes": "OEQ CASE (B) per the two-case rule, read from the frozen node text. Justification: `obligation.obstruction` states in terms that the required globally complete root-isolation procedure and the quantitative separation lower bound are NOT supplied, and that the requested stability 'cannot hold uniformly on every stated regular finite stratum without an additional separation regime or a boundary-aware set-valued rule' -- i.e. the truth-condition itself is undefined, so a never-proved `Prop` (Case A) would misrepresent the node as fully specified. Consequences enforced here: `lean_kind:\"def\"` (never `theorem`), a descriptive NON-Prop `_root_.String` payload recording every stated regime, alternative, desideratum and nonassertion disclaimer, never `PUnit`/`Unit`/`True`/an empty tag, and NO selector / procedure / rate / confidence / lower-bound witness field. `defer_tier:false`; excluded from the `theorems` manifest; no delivered theorem `depends_on` it. Search trace: grepped `../doc/API.md` + `Causalean/**` + Mathlib (`lean_leansearch` 'certified root isolation of a polynomial system', 'alpha theory Smale') for `certified root`, `root isolation`, `output-sensitive enumeration`, `branch labeling`; zero hits anywhere -- consistent with the node being open."
+    }
+  },
+  "infrastructure_needed": [
+    {
+      "id": "lem:aalto-model-scope",
+      "kind": "causalsmith-helper",
+      "description": "Frozen cited substrate-gate: the Section-2 model scope of Aalto-Lamoline-Goncalves (2022) (full-state recursion with known process covariance, its two moment equations, invertibility-only hypothesis of Theorem 2.1(i), and the finite-second-moment remark), threaded as a named proposition into prop:known-noise-reduction; discharged only by citation, never by proof in this run.",
+      "effort": "small"
+    }
+  ],
+  "theorems": [
+    {
+      "theorem_local_id": "t1",
+      "node": "thm:block-certificate"
+    },
+    {
+      "theorem_local_id": "t2",
+      "node": "thm:three-snapshot-exact-classification"
+    },
+    {
+      "theorem_local_id": "t3",
+      "node": "thm:admissible-fiber"
+    },
+    {
+      "theorem_local_id": "t4",
+      "node": "thm:snapshot-frontier"
+    },
+    {
+      "theorem_local_id": "t5",
+      "node": "prop:sharp-exceptional-fibers"
+    },
+    {
+      "theorem_local_id": "t6",
+      "node": "thm:information-nullity"
+    },
+    {
+      "theorem_local_id": "t7",
+      "node": "thm:cyclic-perturbation"
+    },
+    {
+      "theorem_local_id": "t8",
+      "node": "thm:branchwise-inference"
+    },
+    {
+      "theorem_local_id": "t9",
+      "node": "prop:known-noise-reduction"
+    }
+  ]
+}

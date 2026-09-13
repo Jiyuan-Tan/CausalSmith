@@ -1,0 +1,146 @@
+%%% FIELD canonical-enumeration-proposed
+Put \(n=|V|+|E^{\mathrm{det}}|+|E^{?}|\), and order \(\mathfrak C\) by the deterministic encoding induced by the supplied order.  There is a deterministic polynomial-space algorithm which, for every \(c\in\mathfrak C\), constructs a polynomial-size, injectively uncertain-edge-labelled deterministic-reachability projection and examines the minimal directed-Steiner subgraphs of that projection.  Call the uncertain-edge label set of each examined subgraph a raw per-core candidate, and let \(W\) be the total number of examined subgraphs, counted with their cores and witnesses.  The algorithm outputs every member of \(\mathcal O_{XY}\) exactly once and no other support, certifies global inclusion-minimality, and records the canonical original-query \(\operatorname{ID}\) failure label of every output.  Core generation and per-core initialization require in total \(2^{O(b\log(b+1))}\operatorname{poly}(n)\) work, and the complete run requires
+\[
+ 2^{O(b\log(b+1))}\operatorname{poly}(n)(1+W)
+\]
+exact time and polynomial working space.  Thus the work charged to each raw candidate is fixed-parameter polynomial.  The bound is candidate-sensitive and does not assert a worst-case delay between accepted outputs for general \(b\).
+%%% FIELD canonical-enumeration-replacement-statement
+Put \(n=|V|+|E^{\mathrm{det}}|+|E^{?}|\), and order \(\mathfrak C\) by the deterministic encoding induced by the supplied order.  There is a deterministic polynomial-space algorithm which, for every \(c\in\mathfrak C\), constructs a polynomial-size, injectively uncertain-edge-labelled deterministic-reachability projection and examines the minimal directed-Steiner subgraphs of that projection.  Call the uncertain-edge label set of each examined subgraph a raw per-core candidate, and let \(W\) be the total number of examined subgraphs, counted with their cores and witnesses.  The algorithm outputs every member of \(\mathcal O_{XY}\) exactly once and no other support, certifies global inclusion-minimality, and records the canonical original-query \(\operatorname{ID}\) failure label of every output.  Core generation and per-core initialization require in total \(2^{O(b\log(b+1))}\operatorname{poly}(n)\) work, and the complete run requires
+\[
+ 2^{O(b\log(b+1))}\operatorname{poly}(n)(1+W)
+\]
+exact time and polynomial working space.  Thus the work charged to each raw candidate is fixed-parameter polynomial.  The bound is candidate-sensitive and does not assert a worst-case delay between accepted outputs for general \(b\).
+%%% FIELD directed-steiner-enumeration-statement
+For a finite directed graph with \(n_D\) vertices and \(m_D\) edges, a root \(r\), and terminals \(W_D\) not containing \(r\), all inclusion-minimal subgraphs containing a directed \(r\)-to-\(w\) path for every \(w\in W_D\) can be enumerated with \(O(n_D+m_D)\) worst-case delay after \(O(n_Dm_D)\) preprocessing and with \(O(n_D^2)\) working space.
+%%% FIELD canonical-enumeration-proof
+Put
+\[
+ n=|V|+|E^{\mathrm{det}}|+|E^{?}|,
+ \qquad m=|E^{?}|,
+ \qquad M=|\mathfrak C|.
+\]
+For \(c=(F_0,F_1,A_c,K_c)\in\mathfrak C\) and \(H\subseteq E^{?}\), define the core-feasibility predicate
+\[
+ \Phi_c(H)=1
+ \quad\Longleftrightarrow\quad
+ \left\{
+ \begin{array}{l}
+ K_c\subseteq H,\quad\text{and}\\[2mm]
+ \text{every }a\in A_c\text{ reaches a vertex of }Y\text{ in the directed part of}
+ (V,E^{\mathrm{det}}\cup H)[V\setminus X].
+ \end{array}
+ \right.
+ \tag{1}
+\]
+This is well typed because \(A_c\subseteq F_0\) and \(F_0\cap X=\varnothing\) by Definition~\ref{def:sparse-core-family}.  Reachability is monotone under edge addition, so
+\[
+ H\subseteq H'\ \text{ and }\ \Phi_c(H)=1
+ \quad\Longrightarrow\quad
+ \Phi_c(H')=1.
+ \tag{2}
+\]
+Theorem~\ref{thm:sparse-core-reduction} identifies \(\mathcal O_{XY}\) with the globally inclusion-minimal members of
+\[
+ \mathscr U=\{H\subseteq E^{?}:\Phi_c(H)=1\text{ for some }c\in\mathfrak C\}.
+\]
+By monotonicity (2), one-edge deletions characterize global minimality:
+\[
+ H\in\mathcal O_{XY}
+ \quad\Longleftrightarrow\quad
+ \left[
+ \begin{array}{l}
+ \Phi_c(H)=1\text{ for some }c\in\mathfrak C,\quad\text{and}\\
+ \Phi_d(H\setminus\{e\})=0
+ \text{ for every }e\in H\text{ and every }d\in\mathfrak C.
+ \end{array}
+ \right]
+ \tag{3}
+\]
+Indeed, the right side says precisely that \(H\in\mathscr U\) and no one-edge deletion is in \(\mathscr U\).  If a proper subset \(H'\subsetneq H\) were in \(\mathscr U\), then for any \(e\in H\setminus H'\), (2) would put \(H\setminus\{e\}\) in \(\mathscr U\), a contradiction.  The converse is immediate.
+
+We next construct the promised projection for one fixed core \(c\).  Add a new sink \(t\).  Let \(D_c^0\) contain the directed edges of \(E^{\mathrm{det}}\) with endpoints in \(V\setminus X\), the directed edges of \(K_c\) with endpoints in \(V\setminus X\), and a new deterministic edge \(y\to t\) for every \(y\in Y\).  Let
+\[
+ U_c=\{e\in E^{?}\setminus K_c:e\text{ is directed and both endpoints of }e
+ \text{ lie in }V\setminus X\}.
+\]
+Assumption~\ref{ass:edge-partition} makes the deterministic edges and the optional edges in \(U_c\) disjoint.  For each \(e\in U_c\), introduce two private vertices \(u_e^-\) and \(u_e^+\) and the private gadget edge
+\[
+ g_e:u_e^-\longrightarrow u_e^+.
+\]
+For each \(a\in A_c\), introduce a terminal copy \(\bar a\).  Form a forward transition graph by adding
+\[
+ \begin{array}{ll}
+ \bar a\to t &\text{if }a\leadsto t\text{ in }D_c^0,\\
+ \bar a\to u_e^- &\text{if }a\leadsto \operatorname{tail}(e)\text{ in }D_c^0,\\
+ u_e^+\to t &\text{if }\operatorname{head}(e)\leadsto t\text{ in }D_c^0,\\
+ u_e^+\to u_f^- &\text{if }\operatorname{head}(e)\leadsto \operatorname{tail}(f)
+                    \text{ in }D_c^0,
+ \end{array}
+ \tag{4}
+\]
+for all well-typed \(a,e,f\), together with every gadget edge \(g_e\).  Zero-length deterministic paths are allowed in the reachability tests.  Reverse all the edges in this transition graph and call the result \(\Gamma_c\).  Its root is \(t\), its terminal set is \(\bar A_c=\{\bar a:a\in A_c\}\), and the reversed copy of \(g_e\), still denoted \(g_e\), has the unique label \(e\).  The private split vertices make the label map injective: distinct elements of \(U_c\) label distinct gadget edges, and no transition edge has a label.
+
+For \(H\supseteq K_c\), let \(\Gamma_c[H]\) retain every unlabelled edge of \(\Gamma_c\) and retain \(g_e\) exactly when \(e\in H\cap U_c\).  Segmenting a directed path at its optional uncertain edges proves
+\[
+ \Phi_c(H)=1
+ \quad\Longleftrightarrow\quad
+ \Gamma_c[H]\text{ contains a directed }t\text{-to-}\bar a\text{ path for every }
+ \bar a\in\bar A_c.
+ \tag{5}
+\]
+For the forward implication, take an \(a\)-to-\(Y\) path from (1), append the corresponding \(y\to t\), and list its edges in \(U_c\) as \(e_1,\ldots,e_q\) in path order.  Each segment before \(e_1\), between \(e_i\) and \(e_{i+1}\), and after \(e_q\) lies in \(D_c^0\), so (4) gives a forward \(\bar a\)-to-\(t\) path using exactly the listed gadget edges.  Reversal gives the required path in \(\Gamma_c[H]\).  If \(q=0\), the edge \(\bar a\to t\) in (4) gives the path.  Conversely, reverse a \(t\)-to-\(\bar a\) path in \(\Gamma_c[H]\), replace every transition edge by a witnessing path in \(D_c^0\), and replace every gadget edge \(g_e\) by the original edge \(e\).  Concatenation gives an \(a\)-to-\(Y\) directed walk using only \(E^{\mathrm{det}}\cup H\) outside \(X\); deleting closed subwalks yields a directed path.  This proves (5).
+
+The graph \(\Gamma_c\) has \(O(m+b)\) vertices and \(O(m^2+bm)\) edges.  All conditions in (4) are computable by polynomially many graph-reachability searches.  Apply Lemma~\ref{lem:directed-steiner-enumeration} to \(\Gamma_c\), root \(t\), and terminals \(\bar A_c\).  It enumerates without repetition every inclusion-minimal edge subgraph \(T\) containing a \(t\)-to-\(\bar a\) path for all \(\bar a\in\bar A_c\), with polynomial per-core preprocessing, delay, and space.  Associate to a raw subgraph \(T\) the uncertain support
+\[
+ L_c(T)=K_c\cup\{e\in U_c:g_e\in T\}.
+ \tag{6}
+\]
+Equation (5) gives \(\Phi_c(L_c(T))=1\).
+
+Different minimal Steiner subgraphs can have the same label set, so we suppress that within-core multiplicity canonically rather than storing previous supports.  Given a feasible \(H\supseteq K_c\), choose, in the fixed encoding order, one \(t\)-to-\(\bar a\) path in \(\Gamma_c[H]\) for every \(\bar a\in\bar A_c\), take their edge union, and scan that union's edges in reverse encoding order.  Delete a scanned edge exactly when all terminals remain reachable from \(t\).  Denote the final subgraph by \(C_c(H)\).  Every operation is a reachability test, so \(C_c(H)\) is computable in polynomial time.  It is inclusion-minimal: when an edge is retained, its deletion destroys a required reachability at that stage; subsequent deletions cannot restore reachability.  Therefore \(C_c(H)\) is one of the subgraphs enumerated by Lemma~\ref{lem:directed-steiner-enumeration}.  For a raw \(T\), retain it only if
+\[
+ T=C_c(L_c(T)).
+ \tag{7}
+\]
+For a fixed pair \((c,H)\), at most one raw subgraph passes (7), and if \(C_c(H)\) uses every gadget labelled by \(H\setminus K_c\), exactly one passes.
+
+We can now state the complete filter.  For each retained raw \(T\), set \(H=L_c(T)\).  Test (3) by scanning every \(e\in H\) and every \(d\in\mathfrak C\).  A test of \(\Phi_d(H\setminus\{e\})\) first checks \(K_d\subseteq H\setminus\{e\}\) and then performs at most \(|A_d|\le b\) directed-reachability searches in the graph in (1).  Reject \(H\) if any such test is positive.  Otherwise let
+\[
+ \operatorname{own}(H)=\min\{d\in\mathfrak C:\Phi_d(H)=1\}
+ \tag{8}
+\]
+in the fixed core order, and output \(H\) only from the run for \(c=\operatorname{own}(H)\).  The set in (8) is nonempty because the raw subgraph itself establishes \(\Phi_c(H)=1\).
+
+Soundness is immediate from (3): every output lies in \(\mathcal O_{XY}\), hence is globally minimal across all cores.  For coverage, fix \(H\in\mathcal O_{XY}\) and put \(c_* =\operatorname{own}(H)\).  First observe that
+\[
+ H\setminus K_{c_*}\subseteq U_{c_*}.
+ \tag{9}
+\]
+Indeed, an edge in \(H\setminus(K_{c_*}\cup U_{c_*})\) is either bidirected or is a directed edge unavailable in the induced directed graph on \(V\setminus X\).  Deleting it leaves \(K_{c_*}\) present and leaves every path certifying \(\Phi_{c_*}(H)=1\) unchanged, contrary to (3).  Equation (5) makes \(\Gamma_{c_*}[H]\) feasible, so \(C_{c_*}(H)\) exists.  It must use every gadget \(g_e\) with \(e\in H\setminus K_{c_*}\).  Otherwise its paths, expanded as in the converse proof of (5), would prove
+\[
+ \Phi_{c_*}(H\setminus\{e\})=1,
+\]
+contradicting (3).  Hence (6) gives \(L_{c_*}(C_{c_*}(H))=H\).  The directed-Steiner enumerator eventually visits this canonical subgraph; it passes (7), (3), and (8), and therefore outputs \(H\).  Equation (7) prevents a second output from the same core, while (8) prevents an output from any other core.  Thus every obstruction is output exactly once.  Finiteness of \(\mathfrak C\) and exhaustion of each directed-Steiner enumerator prove termination and certified exhaustion.
+
+For every accepted \(H\), Definition~\ref{def:obstruction-hypergraph} gives \(\operatorname{Fail}(H)=1\).  Run the fixed deterministic \(\operatorname{ID}\) procedure on that realization and record its ordered recursion trace.  Lemma~\ref{lem:ordinary-id-polynomial-decision} bounds the decision time polynomially; recording the already computed, deterministically tie-broken trace adds at most linear overhead in that computation.  This supplies the canonical original-query failure label.
+
+It remains to account for time and space.  The proof of Theorem~\ref{thm:sparse-core-reduction} gives
+\[
+ M\le |V|2^{O(b\log(b+1))}.
+ \tag{10}
+\]
+The tuple encodings in Definition~\ref{def:sparse-core-family} can be generated in their fixed order and checked in polynomial time, so (10), construction (4), and the cited per-core preprocessing bound cost \(2^{O(b\log(b+1))}\operatorname{poly}(n)\) in total over all cores.  Let \(W\) be the number of raw Steiner subgraphs examined over all core runs, with witnesses and cores counted separately.  The raw enumerators use \(\operatorname{poly}(n)\) work per raw subgraph and polynomial work before their first and after their last subgraphs.  Tests (7)--(8) and (3) use at most \((m+1)M\) core-feasibility tests per raw subgraph.  Consequently the complete exact run takes
+\[
+ 2^{O(b\log(b+1))}\operatorname{poly}(n)(1+W)
+\tag{11}
+\]
+time.  Process one core at a time and regenerate the core iterator on demand during (3) and (8).  One directed-Steiner state, one support bit vector, and one core-feasibility workspace then use \(\operatorname{poly}(n)\) memory; neither prior raw candidates nor prior outputs are stored.
+
+Finally, (11) is deliberately not an accepted-output delay bound.  The filter can reject raw candidates strictly containing an obstruction feasible for a competing core, and the sparse-core reduction supplies no bound on how many such candidates can occur between two accepted outputs.  More structurally, if already certified obstructions are \(B_1,\ldots,B_q\), then a prospective support \(H\) avoids their domination exactly when
+\[
+ B_i\nsubseteq H\text{ for every }i
+ \quad\Longleftrightarrow\quad
+ (E^{?}\setminus H)\cap B_i\ne\varnothing\text{ for every }i.
+\tag{12}
+\]
+Thus partial pruning must enforce a hypergraph-transversal constraint on the excluded edges while simultaneously satisfying the existential core choice and all root-reachability groups in (1).  Proposition~\ref{prop:width-parameter-separation} shows that bounded \(b\), even \(b=2\), does not bound the incidence treewidth of \(\mathcal O_{XY}\).  Hence neither a bounded-incidence-width extension oracle nor a general-\(b\) delay bound follows from the frozen assumptions, and an explicit-hypergraph dualization bound cannot be substituted for the missing implicit coupled-extension oracle.  This proves exactly the candidate-sensitive claim.

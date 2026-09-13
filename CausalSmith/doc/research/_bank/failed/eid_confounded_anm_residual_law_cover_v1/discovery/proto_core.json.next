@@ -1,0 +1,930 @@
+{
+  "qid": "eid_confounded_anm_residual_law_cover",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "symbols": [
+    {
+      "name": "d",
+      "type": "positive integer",
+      "space": "\\(d\\in\\mathbb N_{+}\\)",
+      "role": "number of endogenous nodes"
+    },
+    {
+      "name": "N",
+      "type": "finite node set",
+      "space": "\\(N=\\{1,\\ldots,d\\}\\)",
+      "role": "node labels",
+      "refs": ["d"]
+    },
+    {
+      "name": "G",
+      "type": "known directed acyclic graph",
+      "space": "\\(G=(N,E)\\)",
+      "role": "causal ordering",
+      "refs": ["N"]
+    },
+    {
+      "name": "Pa",
+      "type": "parent-set map",
+      "sig": "\\(i\\mapsto\\operatorname{Pa}_{G}(i)\\subseteq N\\)",
+      "role": "observed parents in the known graph",
+      "refs": ["G", "N"]
+    },
+    {
+      "name": "p",
+      "type": "parent dimension",
+      "def": "\\(p_i=|\\operatorname{Pa}_{G}(i)|\\)",
+      "role": "dimension of the parent vector at node \\(i\\)",
+      "refs": ["Pa"]
+    },
+    {
+      "name": "K",
+      "type": "family of nonempty closed parent domains",
+      "space": "\\(K_i\\subseteq\\mathbb R^{p_i}\\) is closed, with \\(K_i=\\{0\\}\\) when \\(p_i=0\\)",
+      "role": "possibly unbounded domain on which each structural mechanism is evaluated",
+      "refs": ["p"]
+    },
+    {
+      "name": "X",
+      "type": "endogenous random vector",
+      "space": "\\(X=(X_1,\\ldots,X_d)\\in\\mathbb R^d\\)",
+      "role": "observed variables",
+      "refs": ["d"]
+    },
+    {
+      "name": "U",
+      "type": "joint exogenous disturbance vector",
+      "space": "\\(U=(U_1,\\ldots,U_d)\\in\\mathbb R^d\\)",
+      "role": "arbitrarily dependent Borel disturbances",
+      "refs": ["d"]
+    },
+    {
+      "name": "muU",
+      "type": "joint disturbance law",
+      "space": "\\(\\mu_U\\in\\mathcal P_2(\\mathbb R^d)\\)",
+      "role": "complete exogenous dependence distribution",
+      "refs": ["d"]
+    },
+    {
+      "name": "f",
+      "type": "structural-mechanism family",
+      "sig": "\\(f_i:K_i\\to\\mathbb R\\)",
+      "role": "unknown additive structural functions",
+      "refs": ["K", "N"]
+    },
+    {
+      "name": "M",
+      "type": "structural causal model",
+      "def": "\\(M=(G,f,\\mu_U)\\)",
+      "role": "candidate data-generating SCM",
+      "refs": ["G", "f", "muU"]
+    },
+    {
+      "name": "P0",
+      "type": "observational law",
+      "def": "\\(P_0=\\mathcal L_M(X)\\)",
+      "role": "baseline full-population law",
+      "refs": ["M", "X"]
+    },
+    {
+      "name": "S",
+      "type": "family of observational parent supports",
+      "def": "\\(S_i=\\operatorname{supp}_{P_0}(X_{\\operatorname{Pa}(i)})\\)",
+      "role": "natural parent-value support",
+      "refs": ["P0", "X", "Pa"]
+    },
+    {
+      "name": "h",
+      "type": "continuous conditional disturbance-mean version",
+      "def": "\\(h_i:S_i\\to\\mathbb R\\) is a continuous version satisfying \\(h_i(X_{\\operatorname{Pa}(i)})=\\mathbb E_M[U_i\\mid\\sigma(X_{\\operatorname{Pa}(i)})]\\) almost surely",
+      "role": "unrestricted confounding regression",
+      "refs": ["M", "U", "X", "Pa", "S"]
+    },
+    {
+      "name": "Rset",
+      "type": "finite regime index set",
+      "space": "\\(\\mathcal R\\) is finite and \\(0\\in\\mathcal R\\)",
+      "role": "observational regime and supplied natural-value shift regimes"
+    },
+    {
+      "name": "J",
+      "type": "family of directly shifted node sets",
+      "sig": "\\(r\\mapsto J_r\\subseteq N\\) with \\(J_0=\\varnothing\\)",
+      "role": "nodes assigned shifted natural values in regime \\(r\\)",
+      "refs": ["Rset", "N"]
+    },
+    {
+      "name": "eta",
+      "type": "family of known node-level shifts",
+      "space": "\\(\\eta_r=(\\eta_{rj})_{j\\in J_r}\\in\\mathbb R^{|J_r|}\\)",
+      "role": "magnitudes of the coordinated natural-value shifts",
+      "refs": ["Rset", "J"]
+    },
+    {
+      "name": "Delta",
+      "type": "finite family of known complete-parent shift vectors",
+      "def": "\\(\\Delta_i=\\{\\eta_{r,\\operatorname{Pa}(i)}:r\\in\\mathcal R\\setminus\\{0\\},\\ i\\notin J_r,\\ \\operatorname{Pa}(i)\\subseteq J_r\\}\\subseteq\\mathbb R^{p_i}\\)",
+      "role": "available natural-value shifts for the complete parent vector of node \\(i\\)",
+      "refs": ["eta", "Rset", "J", "Pa", "p"]
+    },
+    {
+      "name": "rho",
+      "type": "fixed regime selector",
+      "sig": "\\(\\rho_i:\\Delta_i\\to\\mathcal R\\setminus\\{0\\}\\)",
+      "def": "\\(i\\notin J_{\\rho_i(\\delta)}\\), \\(\\operatorname{Pa}(i)\\subseteq J_{\\rho_i(\\delta)}\\), and \\(\\eta_{\\rho_i(\\delta),\\operatorname{Pa}(i)}=\\delta\\)",
+      "role": "one observed regime used to index each available shift contrast",
+      "refs": ["Delta", "Rset", "J", "Pa", "eta"]
+    },
+    {
+      "name": "sigma",
+      "type": "natural-value shift intervention family",
+      "sig": "\\(\\sigma_r:(X_j)_{j\\in J_r}\\mapsto(X_j+\\eta_{rj})_{j\\in J_r}\\)",
+      "role": "known coordinated interventions preserving unit-level natural variation",
+      "refs": ["Rset", "J", "eta", "X"]
+    },
+    {
+      "name": "Pshift",
+      "type": "shift-regime law family",
+      "def": "\\(P_r=\\mathcal L_M(X^{\\sigma_r})\\), \\(r\\in\\mathcal R\\)",
+      "role": "full law observed under each available shift",
+      "refs": ["M", "X", "sigma", "Rset"]
+    },
+    {
+      "name": "D",
+      "type": "observed law tuple",
+      "def": "\\(\\mathcal D_{\\Delta}(M)=(P_r)_{r\\in\\mathcal R}\\)",
+      "role": "complete observational-plus-shift input",
+      "refs": ["Delta", "M", "Pshift", "Rset"]
+    },
+    {
+      "name": "Mclass",
+      "type": "shift-confounded additive-noise model class",
+      "space": "\\(\\mathfrak M_{\\mathrm{shift}}(G,K;\\mathcal R,J,\\eta)\\)",
+      "role": "model class defined by the primitive structural, regularity, and support conditions",
+      "refs": ["G", "K", "Rset", "J", "eta", "M"]
+    },
+    {
+      "name": "m",
+      "type": "observable continuous conditional-mean versions",
+      "def": "\\(m_{i,0}\\in C(S_i)\\) is the continuous version of \\(\\mathbb E_{P_0}[X_i\\mid\\sigma(X_{\\operatorname{Pa}(i)})]\\), and \\(m_{i,\\delta}\\in C(S_i+\\delta)\\) is the continuous version of \\(\\mathbb E_{P_{\\rho_i(\\delta)}}[X_i^{\\sigma_{\\rho_i(\\delta)}}\\mid\\sigma(X_{\\operatorname{Pa}(i)}^{\\sigma_{\\rho_i(\\delta)}})]\\)",
+      "role": "regime regressions uniquely determined on their supports",
+      "refs": ["P0", "Pshift", "rho", "X", "Pa", "sigma", "S", "Delta"]
+    },
+    {
+      "name": "L",
+      "type": "shift-difference operator family",
+      "sig": "\\(\\mathcal L_i:C_b(K_i)\\to\\prod_{\\delta\\in\\Delta_i}C_b(S_i)\\)",
+      "def": "\\((\\mathcal L_i c)_\\delta(q)=c(q+\\delta)-c(q)\\)",
+      "role": "functional rank operator induced only by the known regime design",
+      "refs": ["K", "Delta", "S"]
+    },
+    {
+      "name": "Ccover",
+      "type": "soft shift-rank cover indicator",
+      "def": "\\(C_{\\Delta}=1\\Longleftrightarrow\\ker(\\mathcal L_i)=\\operatorname{span}\\{\\mathbf 1_{K_i}\\}\\) for every \\(i\\in N\\) with \\(p_i>0\\)",
+      "role": "exact operator-injectivity cover condition",
+      "refs": ["Delta", "L", "K", "N", "p"]
+    },
+    {
+      "name": "g",
+      "type": "observable increment field",
+      "def": "\\(g_{i,\\delta}(q)=m_{i,\\delta}(q+\\delta)-m_{i,0}(q)\\)",
+      "role": "identified structural increments along available shifts",
+      "refs": ["m", "Delta", "S"]
+    },
+    {
+      "name": "Fset",
+      "type": "set-valued normalized inverse",
+      "def": "\\(\\mathcal F_i(\\mathcal D)=\\{c\\in C_b(K_i):\\mathcal L_i c=g_i,\\ \\int[x_i-c(x_{\\operatorname{Pa}(i)})]\\,P_0(dx)=0\\}\\)",
+      "role": "all mechanisms compatible with the contrast equations and location normalization",
+      "refs": ["D", "K", "L", "g", "Pa", "P0"]
+    },
+    {
+      "name": "fD",
+      "type": "population mechanism-recovery map conditional on exact cover",
+      "def": "When \\(C_{\\Delta}=1\\), \\(f_i^{\\mathcal D}\\) is the sole element of \\(\\mathcal F_i(\\mathcal D)\\) for every \\(i\\in N\\)",
+      "role": "single-valued mechanism inverse on the exact-cover domain only",
+      "refs": ["Ccover", "D", "Fset", "N"]
+    },
+    {
+      "name": "muD",
+      "type": "recovered joint residual law conditional on exact cover",
+      "def": "\\(\\mu_U^{\\mathcal D}=\\mathcal L_{P_0}((X_i-f_i^{\\mathcal D}(X_{\\operatorname{Pa}(i)}))_{i\\in N})\\)",
+      "role": "complete dependent exogenous law recovered when \\(C_{\\Delta}=1\\)",
+      "refs": ["D", "P0", "X", "fD", "Pa", "N", "Ccover"]
+    },
+    {
+      "name": "A",
+      "type": "hard-intervention target set",
+      "space": "\\(A\\subseteq N\\)",
+      "role": "nodes fixed by the target intervention",
+      "refs": ["N"]
+    },
+    {
+      "name": "a",
+      "type": "hard-intervention value vector",
+      "space": "\\(a\\in\\prod_{i\\in A}\\mathbb R\\)",
+      "role": "target hard-intervention values",
+      "refs": ["A"]
+    },
+    {
+      "name": "T",
+      "type": "partial topological intervention map",
+      "def": "\\(T_{A,a}^{f}(u)_i=a_i\\) for \\(i\\in A\\), while \\(T_{A,a}^{f}(u)_i=f_i((T_{A,a}^{f}(u))_{\\operatorname{Pa}(i)})+u_i\\) for \\(i\\notin A\\), on the maximal set of \\(u\\) for which every recursively generated parent vector belongs to its \\(K_i\\)",
+      "role": "recursive SCM evaluation on its explicit natural domain",
+      "refs": ["A", "a", "f", "U", "Pa", "G", "K"]
+    },
+    {
+      "name": "Udom",
+      "type": "recursive intervention evaluation domain",
+      "def": "\\(\\mathcal U_{A,a}^{f}=\\operatorname{dom}(T_{A,a}^{f})=\\{u\\in\\mathbb R^d:(T_{A,a}^{f}(u))_{\\operatorname{Pa}(i)}\\in K_i\\text{ for every }i\\in N\\setminus A\\}\\)",
+      "role": "disturbance values for which all structural evaluations are defined",
+      "refs": ["A", "a", "f", "T", "d", "Pa", "K", "N"]
+    },
+    {
+      "name": "Adm",
+      "type": "admissible hard-intervention set",
+      "def": "\\(\\mathcal A_K(M)=\\{(A,a):\\mu_U(\\mathcal U_{A,a}^{f})=1,\\ \\operatorname{supp}_{(T_{A,a}^{f})_{\\#}\\mu_U}((T_{A,a}^{f}(U))_{\\operatorname{Pa}(i)})\\subseteq K_i\\text{ for every }i\\in N\\setminus A\\}\\)",
+      "role": "targets satisfying almost-sure recursive domain and reached-support closure",
+      "refs": ["K", "M", "A", "a", "muU", "Udom", "f", "T", "U", "Pa", "N"]
+    },
+    {
+      "name": "Pdo",
+      "type": "target postintervention law",
+      "def": "\\(P_M^{\\operatorname{do}(X_A=a)}=(T_{A,a}^{f})_{\\#}\\mu_U\\) for \\((A,a)\\in\\mathcal A_K(M)\\)",
+      "role": "causal full-law estimand on the support-closed target domain",
+      "refs": ["M", "X", "A", "a", "T", "muU", "Adm", "f"]
+    },
+    {
+      "name": "varphi",
+      "type": "bounded measurable analysis function",
+      "sig": "\\(\\varphi:\\mathbb R^d\\to\\mathbb R\\)",
+      "role": "analysis-of-interest index",
+      "refs": ["d"]
+    },
+    {
+      "name": "Psi",
+      "type": "bounded causal analysis of interest",
+      "def": "\\(\\Psi_{A,a,\\varphi}=\\int\\varphi(x)\\,P_M^{\\operatorname{do}(X_A=a)}(dx)\\)",
+      "role": "scalar consumer of the identified intervention law",
+      "refs": ["A", "a", "varphi", "Pdo", "M"]
+    },
+    {
+      "name": "R",
+      "type": "independent Rademacher pair",
+      "space": "\\(R=(R_1,R_2)\\in\\{-1,1\\}^2\\) with independent equiprobable coordinates",
+      "role": "finite-support witness randomness"
+    },
+    {
+      "name": "W",
+      "type": "four-point Rademacher residual",
+      "def": "\\(W=R_1+2R_2\\in\\{-3,-1,1,3\\}\\)",
+      "role": "bounded non-Gaussian necessity witness",
+      "refs": ["R"]
+    },
+    {
+      "name": "MEGK",
+      "type": "published Gaussian hard-cover model class",
+      "def": "\\(\\mathfrak M_{\\mathrm{EGK}}(G)\\) is the confounded additive-noise class with jointly Gaussian \\(U\\) used by Elahi, Ghasemi, and Kocaoglu",
+      "role": "published comparison class",
+      "refs": ["G", "U"]
+    },
+    {
+      "name": "nreg",
+      "type": "regime sample-size vector",
+      "space": "\\(n_{\\mathcal R}=(n_r)_{r\\in\\mathcal R}\\in\\mathbb N_{+}^{|\\mathcal R|}\\)",
+      "role": "finite sample sizes in the stability experiment",
+      "refs": ["Rset"]
+    },
+    {
+      "name": "Qimp",
+      "type": "implemented regime-law tuple",
+      "space": "\\(\\mathbf Q=(Q_r)_{r\\in\\mathcal R}\\in\\mathcal P_2(\\mathbb R^d)^{|\\mathcal R|}\\)",
+      "role": "actual laws under imperfect implementation",
+      "refs": ["Rset", "d"]
+    },
+    {
+      "name": "dR",
+      "type": "metric on regime-law tuples",
+      "def": "\\(d_{\\mathcal R}(\\mathbf P,\\mathbf Q)=\\max_{r\\in\\mathcal R}W_2(P_r,Q_r)\\)",
+      "role": "maximum Wasserstein implementation and localization metric",
+      "refs": ["Rset", "Pshift", "Qimp"]
+    },
+    {
+      "name": "Hspace",
+      "type": "centered mechanism tangent spaces",
+      "def": "\\(\\mathbb H_i(P_0)=\\{c\\in C_b(K_i)\\cap L^2(P_{0,\\operatorname{Pa}(i)}):\\int c\\,dP_{0,\\operatorname{Pa}(i)}=0\\}\\)",
+      "role": "location-normalized spaces for measuring inverse stability",
+      "refs": ["K", "P0", "Pa"]
+    },
+    {
+      "name": "opnorm",
+      "type": "operator norm",
+      "def": "\\(\\|\\mathcal L_i\\|_{\\mathrm{op}}=\\sup_{c\\in\\mathbb H_i(P_0),\\,\\|c\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}=1}(\\sum_{\\delta\\in\\Delta_i}\\|(\\mathcal L_i c)_\\delta\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}^2)^{1/2}\\)",
+      "role": "specified norm of the shift-difference forward operator",
+      "refs": ["L", "Hspace", "P0", "Pa", "Delta"]
+    },
+    {
+      "name": "kappa",
+      "type": "inverse stability modulus",
+      "def": "\\(\\kappa_i(\\Delta;P_0)=\\inf_{c\\in\\mathbb H_i(P_0),\\,\\|c\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}=1}(\\sum_{\\delta\\in\\Delta_i}\\|(\\mathcal L_i c)_\\delta\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}^2)^{1/2}\\)",
+      "role": "smallest singular modulus under the stated Hilbert metrics",
+      "refs": ["Delta", "P0", "Hspace", "Pa", "L"]
+    },
+    {
+      "name": "eps",
+      "type": "shrinking implementation-error sequence",
+      "space": "\\(\\epsilon_n\\downarrow0\\)",
+      "role": "radius of deviation between actual and nominal regime laws"
+    },
+    {
+      "name": "rseq",
+      "type": "shrinking nominal localization sequence",
+      "space": "\\(r_n\\downarrow0\\)",
+      "role": "radius around a baseline nominal experiment"
+    },
+    {
+      "name": "D0",
+      "type": "baseline nominal regime tuple",
+      "space": "\\(\\mathcal D_0\\in\\mathcal P_2(\\mathbb R^d)^{|\\mathcal R|}\\)",
+      "role": "center of the local minimax experiment",
+      "refs": ["d", "Rset"]
+    },
+    {
+      "name": "B",
+      "type": "finite regularity radius",
+      "space": "\\(B\\in(0,\\infty)\\)",
+      "role": "radius of the fixed Sobolev regularity envelope"
+    },
+    {
+      "name": "Floc",
+      "type": "fixed smooth mechanism envelope",
+      "def": "\\(\\mathfrak F_B=\\{f:\\sum_{i\\in N}\\|f_i\\|_{H^{s_i}(K_i)}^2\\le B^2,\\ s_i>p_i/2\\}\\)",
+      "role": "nonshrinking regularity component of the local experiment",
+      "refs": ["f", "N", "K", "B", "p"]
+    },
+    {
+      "name": "Tfin",
+      "type": "finite target-intervention collection",
+      "space": "\\(\\mathcal T_0\\subseteq\\mathcal A_K(M)\\) is finite",
+      "role": "postintervention laws entering finite-sample loss",
+      "refs": ["Adm", "M"]
+    },
+    {
+      "name": "Clocal",
+      "type": "shrinking local implementation class",
+      "def": "\\(\\mathfrak C_n(\\mathcal D_0)=\\{(M,\\mathbf Q):M\\in\\mathfrak M_{\\mathrm{shift}}(G,K;\\mathcal R,J,\\eta),\\ C_{\\Delta}=1,\\ f\\in\\mathfrak F_B,\\ d_{\\mathcal R}(\\mathcal D_{\\Delta}(M),\\mathcal D_0)\\le r_n,\\ d_{\\mathcal R}(\\mathbf Q,\\mathcal D_{\\Delta}(M))\\le\\epsilon_n\\}\\)",
+      "role": "explicit shrinking class for the local minimax converse",
+      "refs": ["M", "Qimp", "D0", "Mclass", "Ccover", "Delta", "f", "Floc", "dR", "D", "rseq", "eps"]
+    },
+    {
+      "name": "En",
+      "type": "finite-sample statistical experiment",
+      "def": "\\(\\mathcal E_n=\\{\\bigotimes_{r\\in\\mathcal R}Q_r^{\\otimes n_r}:(M,\\mathbf Q)\\in\\mathfrak C_n(\\mathcal D_0)\\}\\)",
+      "role": "independent within-regime sampling experiment under implementation error",
+      "refs": ["Rset", "Qimp", "nreg", "Clocal", "D0"]
+    },
+    {
+      "name": "loss",
+      "type": "finite-sample mechanism and intervention-law loss",
+      "def": "\\(\\ell(\\widehat f,\\widehat P;M)=\\sum_{i\\in N}\\|\\widehat f_i-f_i\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}^2+\\max_{(A,a)\\in\\mathcal T_0}W_1^2(\\widehat P^{\\operatorname{do}(X_A=a)},P_M^{\\operatorname{do}(X_A=a)})\\)",
+      "role": "specified loss for finite-sample upper and lower bounds",
+      "refs": ["f", "Pdo", "M", "N", "P0", "Pa", "Tfin", "A", "a", "X"]
+    },
+    {
+      "name": "b",
+      "type": "per-node shift budget",
+      "space": "\\(b\\in\\mathbb N_{+}\\)",
+      "role": "maximum number of shifts allowed at each node"
+    },
+    {
+      "name": "Hstar",
+      "type": "stability-design handle",
+      "def": "\\(\\mathsf H_{\\star}\\) Galerkin-discretizes \\(\\mathbb H_i(P_0)\\), maximizes \\(\\min_i\\kappa_i(\\Delta;P_0)\\) subject to \\(|\\Delta_i|\\le b\\), regularizes the resulting inverse, and builds Le Cam pairs along its least singular directions inside \\(\\mathfrak C_n(\\mathcal D_0)\\)",
+      "role": "spectral construction route for the finite-sample design question",
+      "refs": ["Hspace", "P0", "kappa", "Delta", "b", "Clocal", "D0"]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:additive-scm",
+      "kind": "structural",
+      "condition": "\\(X_i=f_i(X_{\\operatorname{Pa}(i)})+U_i,\\quad i\\in N.\\)",
+      "free_symbols": ["X", "f", "Pa", "U", "N"],
+      "standard": {
+        "name": "confounded additive-noise structural model",
+        "cite": "ElahiGhasemiKocaoglu2025"
+      },
+      "used_by": ["def:model-class", "lem:shift-contrast", "thm:soft-rank-iff"]
+    },
+    {
+      "id": "ass:centered-location",
+      "kind": "normalization",
+      "condition": "\\(\\mathbb E_M[U_i]=0,\\quad i\\in N.\\)",
+      "free_symbols": ["M", "U", "N"],
+      "standard": {
+        "name": "centered-noise location normalization",
+        "cite": "PetersMooijJanzingScholkopf2014"
+      },
+      "used_by": ["def:model-class", "def:mechanism-compatible-set", "thm:soft-rank-iff"]
+    },
+    {
+      "id": "ass:finite-second-moment",
+      "kind": "moment",
+      "condition": "\\(\\mathbb E_M[\\|X\\|_2^2+\\|U\\|_2^2]<\\infty.\\)",
+      "free_symbols": ["M", "X", "U"],
+      "standard": {
+        "name": "finite second moments",
+        "cite": "ElahiGhasemiKocaoglu2025"
+      },
+      "used_by": ["def:model-class", "lem:shift-contrast"]
+    },
+    {
+      "id": "ass:continuous-bounded-mechanisms",
+      "kind": "regularity",
+      "condition": "\\(f_i\\in C_b(K_i),\\quad i\\in N.\\)",
+      "free_symbols": ["f", "K", "N"],
+      "standard": {
+        "name": "continuous bounded additive-noise mechanisms",
+        "cite": "PetersMooijJanzingScholkopf2014"
+      },
+      "used_by": ["def:model-class", "thm:soft-rank-iff"]
+    },
+    {
+      "id": "ass:continuous-confounding-version",
+      "kind": "regularity",
+      "condition": "\\(h_i\\in C(S_i),\\quad i\\in N.\\)",
+      "free_symbols": ["h", "S", "N"],
+      "standard": {
+        "name": "continuous conditional-mean version",
+        "cite": "Newey1997"
+      },
+      "used_by": ["def:model-class", "lem:shift-contrast"]
+    },
+    {
+      "id": "ass:observational-domain-closure",
+      "kind": "support",
+      "condition": "\\(S_i\\subseteq K_i,\\quad i\\in N.\\)",
+      "free_symbols": ["S", "K", "N"],
+      "standard": {
+        "name": "structural-equation support compatibility",
+        "cite": "PetersMooijJanzingScholkopf2014"
+      },
+      "used_by": ["def:model-class", "thm:soft-rank-iff"]
+    },
+    {
+      "id": "ass:parent-complete-regimes",
+      "kind": "design",
+      "condition": "\\(i\\in J_r\\ \\lor\\ \\operatorname{Pa}(i)\\subseteq J_r,\\quad r\\in\\mathcal R\\setminus\\{0\\},\\ i\\in N.\\)",
+      "free_symbols": ["J", "Pa", "Rset", "N"],
+      "novel": {
+        "flag": true,
+        "justification": "Coordinated perturbation screens and multi-component policy pilots can shift every direct input of an exposed response while assigning all manipulated coordinates their shifted natural values."
+      },
+      "used_by": ["def:natural-shift-regime", "lem:shift-contrast", "thm:soft-rank-iff"]
+    },
+    {
+      "id": "ass:regime-domain-closure",
+      "kind": "support",
+      "condition": "\\(\\operatorname{supp}_{P_r}(X_{\\operatorname{Pa}(i)}^{\\sigma_r})\\subseteq K_i,\\quad r\\in\\mathcal R\\setminus\\{0\\},\\ i\\in N\\setminus J_r.\\)",
+      "free_symbols": ["Pshift", "X", "Pa", "sigma", "K", "Rset", "N", "J"],
+      "standard": {
+        "name": "interventional support compatibility",
+        "cite": "SaniLeeShpitser2020"
+      },
+      "used_by": ["def:model-class", "def:natural-shift-regime", "lem:shift-contrast", "thm:soft-rank-iff"]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "shift-confounded additive-noise class",
+      "construction": "\\(\\mathfrak M_{\\mathrm{shift}}(G,K;\\mathcal R,J,\\eta)=\\{M=(G,f,\\mu_U):M\\text{ satisfies }\\text{ass:additive-scm},\\text{ass:centered-location},\\text{ass:finite-second-moment},\\text{ass:continuous-bounded-mechanisms},\\text{ass:continuous-confounding-version},\\text{ass:observational-domain-closure},\\text{ass:regime-domain-closure}\\}\\).",
+      "free_symbols": ["Mclass", "G", "K", "Rset", "J", "eta", "M", "f", "muU"],
+      "by_member_properties": ["ass:additive-scm", "ass:centered-location", "ass:finite-second-moment", "ass:continuous-bounded-mechanisms", "ass:continuous-confounding-version", "ass:observational-domain-closure", "ass:regime-domain-closure"]
+    },
+    {
+      "id": "def:natural-shift-regime",
+      "name": "parent natural-value shift regime",
+      "construction": "For \\(r\\in\\mathcal R\\setminus\\{0\\}\\), draw \\((X,U)\\) from \\(M\\), assign \\(X_j^{\\sigma_r}=X_j+\\eta_{rj}\\) for \\(j\\in J_r\\), retain the same \\(U\\), and evaluate each \\(i\\in N\\setminus J_r\\) in a topological order of \\(G\\); \\(P_r\\) is the resulting law on the almost-sure domain in \\(\\text{ass:regime-domain-closure}\\).",
+      "free_symbols": ["Rset", "X", "U", "M", "J", "eta", "N", "G", "Pshift"],
+      "inputs": ["M", "Rset", "J", "eta"]
+    },
+    {
+      "id": "def:observed-law-tuple",
+      "name": "observed shift experiment",
+      "construction": "\\(\\mathcal D_{\\Delta}(M)=(P_r)_{r\\in\\mathcal R}\\), where \\(P_0\\) is observational and each \\(P_r\\), \\(r\\ne0\\), is generated by \\(\\sigma_r\\).",
+      "free_symbols": ["D", "Delta", "M", "P0", "Pshift", "Rset", "sigma", "J", "eta"],
+      "inputs": ["M", "Rset", "J", "eta"]
+    },
+    {
+      "id": "def:shift-difference-operator",
+      "name": "translation-difference operator",
+      "construction": "\\(\\mathcal L_i:C_b(K_i)\\to\\prod_{\\delta\\in\\Delta_i}C_b(S_i),\\qquad(\\mathcal L_i c)_\\delta(q)=c(q+\\delta)-c(q),\\quad q\\in S_i.\\)",
+      "free_symbols": ["L", "K", "Delta", "S"],
+      "inputs": ["K", "S", "Delta"]
+    },
+    {
+      "id": "def:soft-rank-cover",
+      "name": "exact soft shift-rank cover",
+      "construction": "\\(C_{\\Delta}=1\\Longleftrightarrow\\ker(\\mathcal L_i)=\\operatorname{span}\\{\\mathbf 1_{K_i}\\}\\quad\\text{for every }i\\in N\\text{ with }p_i>0.\\)",
+      "free_symbols": ["Ccover", "Delta", "L", "K", "N", "p"]
+    },
+    {
+      "id": "def:contrast-field",
+      "name": "regime contrast field",
+      "construction": "\\(g_{i,\\delta}(q)=m_{i,\\delta}(q+\\delta)-m_{i,0}(q),\\quad q\\in S_i,\\quad\\delta\\in\\Delta_i.\\)",
+      "free_symbols": ["g", "m", "S", "Delta"],
+      "inputs": ["D"]
+    },
+    {
+      "id": "def:mechanism-compatible-set",
+      "name": "set-valued normalized mechanism inverse",
+      "construction": "\\(\\mathcal F_i(\\mathcal D)=\\{c\\in C_b(K_i):\\mathcal L_i c=g_i,\\ \\int[x_i-c(x_{\\operatorname{Pa}(i)})]\\,P_0(dx)=0\\}\\).\\)",
+      "free_symbols": ["Fset", "D", "K", "L", "g", "Pa", "P0"],
+      "inputs": ["D", "L", "g"]
+    },
+    {
+      "id": "def:mechanism-recovery",
+      "name": "single-valued normalized inverse under exact cover",
+      "construction": "On the domain \\(C_{\\Delta}=1\\), set \\(f_i^{\\mathcal D}=c\\) for the unique \\(c\\in\\mathcal F_i(\\mathcal D)\\), including the root case \\(p_i=0\\); outside this domain retain only \\(\\mathcal F_i(\\mathcal D)\\).",
+      "free_symbols": ["Ccover", "Delta", "fD", "Fset", "D", "p"],
+      "inputs": ["D", "Ccover", "Fset"]
+    },
+    {
+      "id": "def:residual-law",
+      "name": "joint observational residual law under exact cover",
+      "construction": "For \\(C_{\\Delta}=1\\), \\(\\mu_U^{\\mathcal D}=\\mathcal L_{P_0}((X_i-f_i^{\\mathcal D}(X_{\\operatorname{Pa}(i)}))_{i\\in N})\\).",
+      "free_symbols": ["Ccover", "Delta", "muD", "P0", "X", "fD", "Pa", "N"],
+      "inputs": ["D", "fD"]
+    },
+    {
+      "id": "def:admissible-hard-targets",
+      "name": "recursively support-closed hard targets",
+      "construction": "\\(\\mathcal A_K(M)=\\{(A,a):\\mu_U(\\mathcal U_{A,a}^{f})=1,\\ \\operatorname{supp}_{(T_{A,a}^{f})_{\\#}\\mu_U}((T_{A,a}^{f}(U))_{\\operatorname{Pa}(i)})\\subseteq K_i\\text{ for every }i\\in N\\setminus A\\}\\).\\)",
+      "free_symbols": ["Adm", "K", "M", "A", "a", "muU", "Udom", "f", "T", "U", "Pa", "N"],
+      "inputs": ["M", "A", "a"]
+    },
+    {
+      "id": "def:hard-pushforward",
+      "name": "hard-intervention residual pushforward",
+      "construction": "For \\(C_{\\Delta}=1\\) and \\((A,a)\\in\\mathcal A_K(M)\\), \\(P_{\\mathcal D}^{\\operatorname{do}(X_A=a)}=(T_{A,a}^{f^{\\mathcal D}})_{\\#}\\mu_U^{\\mathcal D}.\\)",
+      "free_symbols": ["Ccover", "Delta", "Pdo", "D", "X", "A", "a", "Adm", "M", "T", "fD", "muD"],
+      "inputs": ["D", "A", "a"]
+    },
+    {
+      "id": "def:bounded-aoi",
+      "name": "bounded analysis-of-interest functional",
+      "construction": "\\(\\Psi_{A,a,\\varphi}(\\mathcal D)=\\int\\varphi(x)\\,P_{\\mathcal D}^{\\operatorname{do}(X_A=a)}(dx).\\)",
+      "free_symbols": ["Psi", "A", "a", "varphi", "D", "Pdo"],
+      "inputs": ["D", "A", "a", "varphi"]
+    },
+    {
+      "id": "def:regime-law-metric",
+      "name": "maximum Wasserstein regime metric",
+      "construction": "\\(d_{\\mathcal R}(\\mathbf P,\\mathbf Q)=\\max_{r\\in\\mathcal R}W_2(P_r,Q_r).\\)",
+      "free_symbols": ["dR", "Pshift", "Qimp", "Rset"],
+      "inputs": ["Pshift", "Qimp"]
+    },
+    {
+      "id": "def:inverse-stability-modulus",
+      "name": "centered smallest singular modulus",
+      "construction": "\\(\\kappa_i(\\Delta;P_0)=\\inf_{c\\in\\mathbb H_i(P_0),\\,\\|c\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}=1}(\\sum_{\\delta\\in\\Delta_i}\\|(\\mathcal L_i c)_\\delta\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}^2)^{1/2}.\\)",
+      "free_symbols": ["kappa", "Delta", "P0", "Hspace", "Pa", "L"],
+      "inputs": ["Delta", "P0", "L"]
+    },
+    {
+      "id": "def:local-stability-experiment",
+      "name": "shrinking imperfect-shift experiment",
+      "construction": "\\(\\mathcal E_n=\\{\\bigotimes_{r\\in\\mathcal R}Q_r^{\\otimes n_r}:(M,\\mathbf Q)\\in\\mathfrak C_n(\\mathcal D_0)\\}\\), where \\(\\mathfrak C_n(\\mathcal D_0)\\) imposes \\(d_{\\mathcal R}(\\mathcal D_{\\Delta}(M),\\mathcal D_0)\\le r_n\\), \\(d_{\\mathcal R}(\\mathbf Q,\\mathcal D_{\\Delta}(M))\\le\\epsilon_n\\), \\(C_{\\Delta}(M)=1\\), and \\(f\\in\\mathfrak F_B\\).",
+      "free_symbols": ["En", "Rset", "Qimp", "nreg", "M", "Clocal", "D0", "dR", "D", "Delta", "rseq", "eps", "Ccover", "f", "Floc"],
+      "inputs": ["D0", "nreg", "eps", "rseq", "B"]
+    },
+    {
+      "id": "def:stability-loss",
+      "name": "mechanism and target-law finite-sample loss",
+      "construction": "\\(\\ell(\\widehat f,\\widehat P;M)=\\sum_{i\\in N}\\|\\widehat f_i-f_i\\|_{L^2(P_{0,\\operatorname{Pa}(i)})}^2+\\max_{(A,a)\\in\\mathcal T_0}W_1^2(\\widehat P^{\\operatorname{do}(X_A=a)},P_M^{\\operatorname{do}(X_A=a)}).\\)",
+      "free_symbols": ["loss", "f", "Pdo", "M", "N", "P0", "Pa", "Tfin", "A", "a", "X"],
+      "inputs": ["Tfin", "M"]
+    },
+    {
+      "id": "def:stability-design-handle",
+      "name": "spectral local-minimax shift-design handle",
+      "construction": "Galerkin-discretize \\(\\mathbb H_i(P_0)\\), optimize \\(\\min_i\\kappa_i(\\Delta;P_0)\\) under \\(|\\Delta_i|\\le b\\), apply regularized inversion in \\(\\mathcal E_n\\), and form Le Cam two-point perturbations along the least singular directions inside \\(\\mathfrak C_n(\\mathcal D_0)\\).",
+      "free_symbols": ["Hspace", "P0", "kappa", "Delta", "b", "En", "Clocal", "D0"],
+      "inputs": ["D0", "S", "K", "b", "eps", "rseq"]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:shift-contrast",
+      "kind": "lemma",
+      "statement": "For every \\(M\\in\\mathfrak M_{\\mathrm{shift}}(G,K;\\mathcal R,J,\\eta)\\), every \\(i\\in N\\) with \\(p_i>0\\), every \\(\\delta\\in\\Delta_i\\), and every \\(q\\in S_i\\), the continuous conditional-mean versions satisfy \\(m_{i,0}(q)=f_i(q)+h_i(q)\\) and \\(m_{i,\\delta}(q+\\delta)=f_i(q+\\delta)+h_i(q)\\). Hence \\(g_i=\\mathcal L_i f_i\\).",
+      "free_symbols": ["M", "Mclass", "G", "K", "Rset", "J", "eta", "N", "p", "Delta", "S", "m", "f", "h", "g", "L"],
+      "depends_on": ["ass:additive-scm", "ass:finite-second-moment", "ass:continuous-confounding-version", "ass:parent-complete-regimes", "ass:regime-domain-closure", "def:model-class", "def:natural-shift-regime", "def:contrast-field", "def:shift-difference-operator"],
+      "status": "to-prove",
+      "justification": "The continuous-version identity removes the confounding regression without Gaussian conditional-expectation algebra.",
+      "gap": "Sani, Lee, and Shpitser identify natural-value shift effects graphically, but do not use cross-regime contrasts to cancel an arbitrary dependent additive disturbance regression.",
+      "consumer": "The identity converts complete regime laws into a deterministic inverse problem for each nonlinear mechanism."
+    },
+    {
+      "id": "thm:soft-rank-iff",
+      "kind": "theorem",
+      "statement": "On \\(\\mathfrak M_{\\mathrm{shift}}(G,K;\\mathcal R,J,\\eta)\\), the data map \\(M\\mapsto\\mathcal D_{\\Delta}(M)\\) identifies \\(f\\), \\(\\mu_U\\), \\(P_M^{\\operatorname{do}(X_A=a)}\\), and every \\(\\Psi_{A,a,\\varphi}\\) for bounded \\(\\varphi\\) and \\((A,a)\\in\\mathcal A_K(M)\\) if and only if \\(C_{\\Delta}=1\\). Under \\(C_{\\Delta}=1\\), \\(\\mathcal F_i(\\mathcal D)\\) is a singleton for each \\(i\\), and the identifying functional is \\(f=f^{\\mathcal D}\\), \\(\\mu_U=\\mu_U^{\\mathcal D}\\), and \\(P_M^{\\operatorname{do}(X_A=a)}=(T_{A,a}^{f^{\\mathcal D}})_{\\#}\\mu_U^{\\mathcal D}\\). If \\(C_{\\Delta}=0\\) at node \\(i\\), let \\(c_0\\in\\ker(\\mathcal L_i)\\cap C_b(K_i)\\) be nonconstant and set \\(c=c_0-\\mathbb E[c_0(X_{\\operatorname{Pa}(i)})]\\). There are two bounded non-Gaussian SCMs in the class that agree on the complete tuple \\(\\mathcal D_{\\Delta}\\) and disagree at an admissible hard intervention: they use \\(f_i^{(0)}=0\\), \\(U_i^{(0)}=W\\) and \\(f_i^{(1)}=\\varepsilon c\\), \\(U_i^{(1)}=W-\\varepsilon c(X_{\\operatorname{Pa}(i)})\\) for sufficiently small \\(\\varepsilon>0\\), with identical remaining coordinates.",
+      "free_symbols": ["M", "Mclass", "G", "K", "Rset", "J", "eta", "D", "Delta", "f", "muU", "U", "Pdo", "Psi", "varphi", "X", "A", "a", "Adm", "Ccover", "Fset", "fD", "muD", "T", "N", "L", "W", "Pa"],
+      "depends_on": ["ass:additive-scm", "ass:centered-location", "ass:continuous-bounded-mechanisms", "ass:observational-domain-closure", "ass:parent-complete-regimes", "ass:regime-domain-closure", "def:model-class", "def:observed-law-tuple", "def:soft-rank-cover", "def:mechanism-compatible-set", "def:mechanism-recovery", "def:residual-law", "def:admissible-hard-targets", "def:hard-pushforward", "lem:shift-contrast"],
+      "status": "to-prove",
+      "justification": "This is an exact operator-injectivity frontier for recovering every support-closed intervention law under unrestricted dependent non-Gaussian disturbances.",
+      "gap": "Elahi, Ghasemi, and Kocaoglu give an exact hard parent-intervention cover for Gaussian average outcomes; Correa and Bareinboim give graphical soft-intervention calculi without an additive-mechanism rank frontier or joint residual-law recovery.",
+      "consumer": "Designers of policy experiments using natural dose or price shifts can audit universal full-law identifiability before collecting data."
+    },
+    {
+      "id": "prop:published-class-relation",
+      "kind": "proposition",
+      "statement": "For a nontrivial \\(G\\) and a prescribed proper closed domain family \\(K\\), the classes are generally incomparable: \\(\\mathfrak M_{\\mathrm{shift}}(G,K;\\mathcal R,J,\\eta)\\) contains bounded dependent non-Gaussian disturbance laws outside \\(\\mathfrak M_{\\mathrm{EGK}}(G)\\), whereas \\(\\mathfrak M_{\\mathrm{EGK}}(G)\\) contains nondegenerate Gaussian models whose parent support is not contained in \\(K\\).",
+      "free_symbols": ["Mclass", "G", "K", "Rset", "J", "eta", "MEGK"],
+      "depends_on": ["def:model-class"],
+      "status": "to-prove",
+      "justification": "The class relation prevents the soft-shift theorem from being reported as a formal extension on the same model class.",
+      "gap": "The closest hard-cover theorem and the shift-rank theorem impose distinct disturbance and support conditions.",
+      "consumer": "Referees and applied users obtain an explicit boundary for transferring conclusions between the two designs."
+    },
+    {
+      "id": "prop:independent-noise-reduction",
+      "kind": "proposition",
+      "statement": "If \\(U_1,\\ldots,U_d\\) are mutually independent, then \\(h_i(q)=0\\) and \\(m_{i,0}(q)=f_i(q)\\) for every \\(q\\in S_i\\) after centered normalization, so \\(P_0\\) alone identifies the mechanisms on the observational supports, the joint residual law, and every hard-intervention law whose recursive parent support remains inside those observational supports.",
+      "free_symbols": ["U", "d", "h", "m", "f", "S", "P0"],
+      "depends_on": ["ass:additive-scm", "ass:centered-location", "def:residual-law", "def:admissible-hard-targets", "def:hard-pushforward"],
+      "status": "to-prove",
+      "justification": "The reduction is the required sanity check against the standard causally sufficient additive-noise model.",
+      "gap": "Peters, Mooij, Janzing, and Schölkopf use independent disturbances; the shift-rank condition is needed to cancel parent-dependent disturbance regressions under confounding.",
+      "consumer": "Existing additive-noise analyses become a transparent observational-support special case of the residual pushforward."
+    },
+    {
+      "id": "oeq:stable-minimal-shift-design",
+      "kind": "openendedquestion",
+      "statement": "In the experiment \\(\\mathcal E_n\\), characterize a budget-feasible design \\(\\Delta\\) with \\(|\\Delta_i|\\le b\\) that is injective and maximizes \\(\\min_i\\kappa_i(\\Delta;P_0)\\). Using \\(\\mathsf H_{\\star}\\), determine the minimax risk \\(\\inf_{\\widehat f,\\widehat P}\\sup_{(M,\\mathbf Q)\\in\\mathfrak C_n(\\mathcal D_0)}\\mathbb E_{\\mathbf Q}[\\ell(\\widehat f,\\widehat P;M)]\\) as a function of \\(n_{\\mathcal R}\\), \\(\\epsilon_n\\), \\(r_n\\), and \\(\\kappa_i\\), and establish a matching local minimax converse over the same \\(\\mathfrak C_n(\\mathcal D_0)\\).",
+      "free_symbols": ["En", "Delta", "b", "kappa", "P0", "Hstar", "f", "Pdo", "M", "Qimp", "Clocal", "D0", "loss", "nreg", "eps", "rseq"],
+      "depends_on": ["def:shift-difference-operator", "def:soft-rank-cover", "def:regime-law-metric", "def:inverse-stability-modulus", "def:local-stability-experiment", "def:stability-loss", "def:stability-design-handle", "thm:soft-rank-iff"],
+      "status": "to-prove",
+      "justification": "The Wasserstein implementation metric, singular modulus, product experiment, joint loss, and shrinking local class make robustness quantitatively testable.",
+      "gap": "BackShift and Causal Dantzig exploit covariance changes caused by exogenous noise-distribution shifts in linear structural models; they do not optimize natural-value shifts for stable nonlinear mechanism and full-law recovery.",
+      "consumer": "Experimenters choosing a small number of dose or price shifts obtain a finite-sample design objective and an implementation-tolerance certificate."
+    }
+  ],
+  "sampling_model": {
+    "design": "A finite known collection of parent-complete natural-value shifts \\(\\sigma_r\\), together with the observational regime; the population theorem uses exact laws and the stability question uses actual laws \\(\\mathbf Q\\) within \\(d_{\\mathcal R}\\)-distance \\(\\epsilon_n\\) of their nominal tuple.",
+    "units": "Within regime \\(r\\), \\(n_r\\) independent units are sampled from \\(Q_r\\); samples are independent across regimes.",
+    "treatment": "Regime \\(\\sigma_r\\) assigns \\(X_j+\\eta_{rj}\\) to each \\(j\\in J_r\\), preserves the same exogenous vector, and leaves an unshifted node exposed only when all of its parents belong to \\(J_r\\).",
+    "overlap": "Every observational and shifted parent support lies in its declared \\(K_i\\); every target belongs to \\(\\mathcal A_K(M)\\), which imposes almost-sure recursive domain and reached-support closure even for unbounded disturbance support.",
+    "nuisance_estimation": "The exact theorem takes continuous conditional-mean versions as population functionals. The open experiment evaluates regularized regime regression and residual pushforward under the loss \\(\\ell\\) over \\(\\mathfrak C_n(\\mathcal D_0)\\)."
+  },
+  "estimand_functional": "\\(P_M^{\\operatorname{do}(X_A=a)}=(T_{A,a}^{f^{\\mathcal D}})_{\\#}\\mu_U^{\\mathcal D},\\quad (A,a)\\in\\mathcal A_K(M)\\)",
+  "target_estimand": "\\(P_M^{\\operatorname{do}(X_A=a)}\\)",
+  "bibliography": [
+    {
+      "key": "ElahiGhasemiKocaoglu2025",
+      "citation": "Muhammad Qasim Elahi, Mahsa Ghasemi, and Murat Kocaoglu. Identification of Average Outcome under Interventions in Confounded Additive Noise Models. Transactions on Machine Learning Research, 2025."
+    },
+    {
+      "key": "JeunenGilliganLeeMehrotraLalmas2022",
+      "citation": "Olivier Jeunen, Ciarán M. Gilligan-Lee, Rishabh Mehrotra, and Mounia Lalmas. Disentangling Causal Effects from Sets of Interventions in the Presence of Unobserved Confounders. Advances in Neural Information Processing Systems, 2022."
+    },
+    {
+      "key": "CorreaBareinboim2020AAAI",
+      "citation": "Juan D. Correa and Elias Bareinboim. A Calculus for Stochastic Interventions: Causal Effect Identification and Surrogate Experiments. Proceedings of the AAAI Conference on Artificial Intelligence, 2020."
+    },
+    {
+      "key": "CorreaBareinboim2020NeurIPS",
+      "citation": "Juan D. Correa and Elias Bareinboim. General Transportability of Soft Interventions: Completeness Results. Advances in Neural Information Processing Systems, 2020."
+    },
+    {
+      "key": "KocaogluJaberShanmugamBareinboim2019",
+      "citation": "Murat Kocaoglu, Amin Jaber, Karthikeyan Shanmugam, and Elias Bareinboim. Characterization and Learning of Causal Graphs with Latent Variables from Soft Interventions. Advances in Neural Information Processing Systems, 2019."
+    },
+    {
+      "key": "SaniLeeShpitser2020",
+      "citation": "Numair Sani, Jaron J. R. Lee, and Ilya Shpitser. Identification and Estimation of Causal Effects Defined by Shift Interventions. Proceedings of Machine Learning Research, volume 124, pages 949--958, 2020."
+    },
+    {
+      "key": "PetersMooijJanzingScholkopf2014",
+      "citation": "Jonas Peters, Joris M. Mooij, Dominik Janzing, and Bernhard Schölkopf. Causal Discovery with Continuous Additive Noise Models. Journal of Machine Learning Research, 15:2009--2053, 2014."
+    },
+    {
+      "key": "Newey1997",
+      "citation": "Whitney K. Newey. Convergence Rates and Asymptotic Normality for Series Estimators. Journal of Econometrics, 79:147--168, 1997."
+    },
+    {
+      "key": "BackShift2015",
+      "citation": "Dominik Rothenhäusler, Christina Heinze, Jonas Peters, and Nicolai Meinshausen. BackShift: Learning Causal Cyclic Graphs from Unknown Shift Interventions. Advances in Neural Information Processing Systems 28, pages 1513--1521, 2015."
+    },
+    {
+      "key": "CausalDantzig2019",
+      "citation": "Dominik Rothenhäusler, Peter Bühlmann, and Nicolai Meinshausen. Causal Dantzig: Fast Inference in Linear Structural Equation Models with Hidden Variables under Additive Interventions. The Annals of Statistics, 47(3):1688--1722, 2019."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ElahiGhasemiKocaoglu2025",
+      "comparator_claim": "All Gaussian average outcomes are identifiable exactly when supplied hard regimes expose every node while intervening on all of its parents.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CorreaBareinboim2020AAAI",
+      "comparator_claim": "The \\(\\sigma\\)-calculus and its algorithm are sound for identifying stochastic interventions and surrogate-experiment queries.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CorreaBareinboim2020NeurIPS",
+      "comparator_claim": "The \\(\\sigma\\)-calculus is complete for soft transportability across domains.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SaniLeeShpitser2020",
+      "comparator_claim": "Natural-value shift interventions and recursive shift policies admit graphical identification algorithms, with estimation for a special mean target.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "KocaogluJaberShanmugamBareinboim2019",
+      "comparator_claim": "Soft-intervention invariances characterize latent-variable interventional graph equivalence and yield additional orientation rules.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "PetersMooijJanzingScholkopf2014",
+      "comparator_claim": "Continuous additive-noise models identify the causal graph under independent-error regularity conditions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BackShift2015",
+      "comparator_claim": "Differences of covariance matrices across unknown exogenous shift-intervention environments identify a linear cyclic connectivity matrix under a joint-diagonalization condition.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CausalDantzig2019",
+      "comparator_claim": "Linear causal coefficients with hidden variables are estimable from covariance invariance across additive intervention environments, with high-dimensional inference guarantees.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Known natural-value interventions that translate a node's complete parent vector reveal continuous-version differences of its structural mechanism while cancelling an arbitrary parent-dependent disturbance regression. The exact theorem identifies every mechanism, the complete joint residual law, and every recursively support-closed hard-intervention law if and only if the translation-difference operator has only constants in its kernel. The recovery map is single-valued only under that cover; otherwise a set-valued inverse remains, and a four-point Rademacher construction supplies bounded non-Gaussian observational-and-regime equivalence with target disagreement. A fully specified Wasserstein local experiment isolates stable budgeted design as the open question.",
+  "project_justification": {
+    "gap": "Published confounded additive-noise cover results use surgical parent interventions and Gaussian disturbances, while graphical soft-intervention and linear environment-shift results do not recover nonlinear mechanisms or a dependent residual law from natural-value translations.",
+    "niche": "Natural-value shift experiments preserve baseline heterogeneity and create observable within-mechanism increments even when latent confounding biases every observational regression.",
+    "fill": "The translation-difference null space supplies an exact necessary-and-sufficient design criterion, a support-closed residual-pushforward functional, a matching bounded non-Gaussian witness, and a metric local experiment for the unresolved stability problem."
+  },
+  "related_work": "Elahi, Ghasemi, and Kocaoglu establish a necessary-and-sufficient hard-intervention cover for average outcomes under multivariate Gaussian disturbances; their theorem informs the cover question, whereas the present target is a nonlinear natural-value-shift operator and complete postintervention laws. Correa and Bareinboim develop the \\(\\sigma\\)-calculus and completeness theory for stochastic interventions and soft transportability in unrestricted graphical models; those results inform the intervention semantics but do not recover an additive mechanism or joint residual distribution. Sani, Lee, and Shpitser distinguish shifts of natural treatment values from recursively defined shift policies and give graphical identification and estimation results; their natural-value semantics is the one used here. Kocaoglu, Jaber, Shanmugam, and Bareinboim characterize latent-variable graph equivalence under soft environments, targeting structure recovery rather than full-law effects. BackShift uses changes in exogenous noise distributions across environments and second-moment joint diagonalization to recover linear, possibly cyclic structure under unknown shift interventions. Causal Dantzig likewise uses additive environment interventions and covariance invariance for inference on linear structural coefficients with hidden variables. In contrast, the present interventions shift observed natural parent values by known amounts, the mechanisms may be nonlinear on a known acyclic graph, and the target is mechanism plus full intervention-law recovery rather than graph or coefficient recovery. Peters, Mooij, Janzing, and Schölkopf identify additive-noise graphs under independent disturbances; the independent-noise proposition records the corresponding no-confounding reduction. Jeunen, Gilligan-Lee, Mehrotra, and Lalmas provide the International Stroke Trial semi-synthetic intervention-disentanglement benchmark, which is an empirical stress test for residual-law recovery and not evidence for a new clinical aspirin effect.",
+  "technical_internal_limitation": "The natural-value shift law is a cross-world intervention preserving each unit's baseline shifted coordinate. An environment that only changes a parent marginal or its exogenous noise distribution need not satisfy the contrast identity. This design-semantic distinction separates the kernel from BackShift and Causal Dantzig and is not a conclusion about arbitrary soft interventions.",
+  "honest_scope": "Population exact identification is claimed for a known DAG, continuous bounded mechanisms on possibly unbounded closed domains, continuous conditional-mean versions, exactly implemented parent-complete natural-value shifts, and hard targets in \\(\\mathcal A_K(M)\\). Membership in \\(\\mathcal A_K(M)\\) requires every recursively generated parent vector to stay in its \\(K_i\\) almost surely and its reached support to be contained in \\(K_i\\), so unbounded residual support never licenses an undefined structural evaluation. The theorem does not claim graph recovery, a clinical aspirin conclusion, or finite-sample inference. The Wasserstein local minimax rate and optimal stable design remain open. Under mutually independent disturbances and targets confined to observational parent supports, the functional reduces to ordinary observational additive-noise residual recovery.",
+  "seeds": [
+    "seed:full-law-iff-cover",
+    "seed:residual-pushforward-inference",
+    "seed:nested-counterfactual-cover",
+    "seed:recursive-support-bounds",
+    "seed:soft-regime-rank-cover",
+    "seed:joint-graph-mechanism-recovery",
+    "seed:minimal-value-cover-design",
+    "seed:approximate-cover-critical-mass"
+  ],
+  "seed_details": [
+    {
+      "seed": "seed:full-law-iff-cover",
+      "status": "exhausted",
+      "rationale": "The hard parent-fixing full-law route exhausted its review cursor."
+    },
+    {
+      "seed": "seed:residual-pushforward-inference",
+      "status": "deferred",
+      "rationale": "Its theorem-level contribution is statistical and does not match the exact-identification kernel."
+    },
+    {
+      "seed": "seed:nested-counterfactual-cover",
+      "status": "deferred",
+      "rationale": "It reuses the mechanism-and-residual recovery step and is not a structural alternative to the selected kernel."
+    },
+    {
+      "seed": "seed:recursive-support-bounds",
+      "status": "deferred",
+      "rationale": "Its natural contribution is partial identification rather than exact identification."
+    },
+    {
+      "seed": "seed:soft-regime-rank-cover",
+      "status": "selected",
+      "rationale": "Known natural-value shifts yield observable structural increments, and operator injectivity can be both sufficient and universally necessary under arbitrary dependent disturbances."
+    },
+    {
+      "seed": "seed:joint-graph-mechanism-recovery",
+      "status": "reserve",
+      "rationale": "Joint graph recovery requires an additional orientation condition not needed for the known-graph shift kernel."
+    },
+    {
+      "seed": "seed:minimal-value-cover-design",
+      "status": "reserve",
+      "rationale": "The budgeted design problem is retained as a consumer of the exact shift-rank theorem."
+    },
+    {
+      "seed": "seed:approximate-cover-critical-mass",
+      "status": "reserve",
+      "rationale": "Approximate cover is retained in the explicitly specified local stability experiment."
+    }
+  ],
+  "literature_map": [
+    {
+      "thread": "Gaussian confounded additive-noise covers",
+      "settled": "Hard regimes leaving a node free while intervening on all parents are necessary and sufficient for Gaussian average outcomes in the published model.",
+      "open_boundary": "The theorem does not cover known natural-value translations, arbitrary dependent Borel disturbances, or complete intervention laws.",
+      "closest_bibkeys": ["ElahiGhasemiKocaoglu2025", "JeunenGilliganLeeMehrotraLalmas2022"]
+    },
+    {
+      "thread": "Graphical natural-value and stochastic interventions",
+      "settled": "The \\(\\sigma\\)-calculus supplies sound identification rules for stochastic interventions, and natural-value shifts have formal counterfactual semantics and graphical algorithms.",
+      "open_boundary": "No located result converts a finite tuple of natural-value shift laws into an exact nonlinear operator-rank frontier with joint residual-law recovery.",
+      "closest_bibkeys": ["CorreaBareinboim2020AAAI", "CorreaBareinboim2020NeurIPS", "SaniLeeShpitser2020"]
+    },
+    {
+      "thread": "Environment shifts with latent confounding",
+      "settled": "BackShift and Causal Dantzig exploit exogenous noise-distribution changes and covariance invariance for linear structure or coefficient recovery under hidden variables.",
+      "open_boundary": "Those methods neither use known translations of observed natural parent values nor target nonlinear mechanisms and full postintervention distributions.",
+      "closest_bibkeys": ["BackShift2015", "CausalDantzig2019"]
+    },
+    {
+      "thread": "Soft environments for causal discovery",
+      "settled": "Soft-environment invariances characterize interventional graph equivalence with latent variables and support orientation rules.",
+      "open_boundary": "Graph equivalence does not provide an identifying functional for nonlinear mechanisms or hard-intervention laws under dependent noise.",
+      "closest_bibkeys": ["KocaogluJaberShanmugamBareinboim2019"]
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Muhammad Qasim Elahi, Mahsa Ghasemi, and Murat Kocaoglu",
+      "year": 2025,
+      "venue": "Transactions on Machine Learning Research",
+      "bibkey": "ElahiGhasemiKocaoglu2025",
+      "one_line": "Their exact hard parent cover identifies Gaussian average outcomes, not mechanisms and full laws from natural-value shifts.",
+      "relevant_to": "thm:soft-rank-iff"
+    },
+    {
+      "author": "Juan D. Correa and Elias Bareinboim",
+      "year": 2020,
+      "venue": "AAAI Conference on Artificial Intelligence",
+      "bibkey": "CorreaBareinboim2020AAAI",
+      "one_line": "Their \\(\\sigma\\)-calculus identifies stochastic policies from surrogate experiments without an additive shift-rank theorem.",
+      "relevant_to": "thm:soft-rank-iff"
+    },
+    {
+      "author": "Juan D. Correa and Elias Bareinboim",
+      "year": 2020,
+      "venue": "Advances in Neural Information Processing Systems",
+      "bibkey": "CorreaBareinboim2020NeurIPS",
+      "one_line": "Their completeness result settles graphical soft transportability but does not recover a dependent residual law.",
+      "relevant_to": "thm:soft-rank-iff"
+    },
+    {
+      "author": "Numair Sani, Jaron J. R. Lee, and Ilya Shpitser",
+      "year": 2020,
+      "venue": "Proceedings of Machine Learning Research",
+      "bibkey": "SaniLeeShpitser2020",
+      "one_line": "They formalize shifts of natural treatment values and distinguish them from recursively shifted policies.",
+      "relevant_to": "lem:shift-contrast"
+    },
+    {
+      "author": "Murat Kocaoglu, Amin Jaber, Karthikeyan Shanmugam, and Elias Bareinboim",
+      "year": 2019,
+      "venue": "Advances in Neural Information Processing Systems",
+      "bibkey": "KocaogluJaberShanmugamBareinboim2019",
+      "one_line": "They target latent-variable graph equivalence from soft environments rather than nonlinear full-law effect recovery.",
+      "relevant_to": "thm:soft-rank-iff"
+    },
+    {
+      "author": "Dominik Rothenhäusler, Christina Heinze, Jonas Peters, and Nicolai Meinshausen",
+      "year": 2015,
+      "venue": "Advances in Neural Information Processing Systems",
+      "bibkey": "BackShift2015",
+      "one_line": "BackShift uses noise-distribution changes and covariance joint diagonalization to recover linear cyclic structure, not natural-value shifts or full laws.",
+      "relevant_to": "oeq:stable-minimal-shift-design"
+    },
+    {
+      "author": "Dominik Rothenhäusler, Peter Bühlmann, and Nicolai Meinshausen",
+      "year": 2019,
+      "venue": "The Annals of Statistics",
+      "bibkey": "CausalDantzig2019",
+      "one_line": "Causal Dantzig uses additive environment interventions for inference on linear coefficients with hidden variables rather than nonlinear mechanism inversion.",
+      "relevant_to": "oeq:stable-minimal-shift-design"
+    },
+    {
+      "author": "Olivier Jeunen, Ciarán M. Gilligan-Lee, Rishabh Mehrotra, and Mounia Lalmas",
+      "year": 2022,
+      "venue": "Advances in Neural Information Processing Systems",
+      "bibkey": "JeunenGilliganLeeMehrotraLalmas2022",
+      "one_line": "Their International Stroke Trial semi-synthetic benchmark supplies an empirical intervention-disentanglement stress test without supporting a new clinical aspirin claim.",
+      "relevant_to": "thm:soft-rank-iff"
+    }
+  ],
+  "novelty_justification": "The theorem-level advance is an if-and-only-if operator-injectivity frontier for recovering nonlinear mechanisms, an arbitrary dependent joint residual law, and all recursively support-closed hard-intervention distributions from a finite collection of known natural-value translations. Existing exact covers target Gaussian means under hard interventions, graphical calculi target query identification without additive inversion, and linear environment-shift methods target structure or coefficients through noise-distribution changes."
+}

@@ -1,0 +1,55 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "prop:promised-enumeration",
+    "kind": "proposition",
+    "statement": "Given a supplied total order on \\(V\\) and a fixed promised rank bound \\(r_0\\), all inclusion-minimal residual hedges can be output exactly once, in the lexicographic order induced by the supplied order, in time \\(|V|^{r_0+O(1)}\\) and polynomial space. At \\(r_0=3\\) in the present bow-free singleton model, the runtime is \\(O(|V|^3\\operatorname{poly}(|V|))\\). Given \\(k\\), branching on an uncovered residual returns the least-cost feasible intervention among sets of cardinality at most \\(k\\), or certifies that none exists, in \\(O(3^k\\operatorname{poly}(|V|,L))\\), where \\(L\\) is the cost-encoding length.",
+    "free_symbols": [
+      "rank",
+      "V",
+      "vertexOrder",
+      "k",
+      "c"
+    ],
+    "depends_on": [
+      "ass:rank-three-promise",
+      "def:singleton-hedges",
+      "def:minimal-residual-clutter",
+      "def:promised-enumerator",
+      "thm:first-rank-boundary"
+    ],
+    "justification": "The proposition uses the supplied causal-vertex order \\(\\triangleleft_V\\) on \\(V\\), together with the rank promise, to provide the exact-once lexicographic obstruction list assumed by the LP, while scoping exact weighted search to a supplied cardinality bound.",
+    "gap": "Akbari, Etesami, and Kiyavash note polynomial subset enumeration at fixed hedge size, while Fernau assumes an explicit hyperedge list; neither supplies exact-once causal output together with the bounded-cardinality scope correction.",
+    "consumer": "The causal-vertex-ordered enumerator is a deterministic rank-informed front end for Akbari and coauthors' software and for Elahi and coauthors' exact solver encodings.",
+    "proof_tex": "Fix a nonnegative integer \\(r_0\\), fix the supplied total order \\(\\triangleleft_V\\) on \\(V\\), and take as the promised input condition\n\\[\n r(G,s)\\leq r_0.\n\\]\nFor every \\(R\\subseteq V^{-}\\) with \\(|R|\\leq r_0\\), generated once in the lexicographic order induced by \\(\\triangleleft_V\\), put \\(F_R=R\\cup\\{s\\}\\).  If \\(R=\\varnothing\\), then \\(F_R=\\{s\\}\\), which fails the strict-containment clause of Definition \\(\\mathrm{def{:}singleton\\mbox{-}hedges}\\).  If \\(R\\neq\\varnothing\\), a graph search decides whether \\(B[F_R]\\) is connected, and a reverse directed search from \\(s\\) decides whether every vertex of \\(F_R\\) reaches \\(s\\) in \\(D[F_R]\\).  Thus Definition \\(\\mathrm{def{:}singleton\\mbox{-}hedges}\\) gives\n\\[\n F_R\\in\\mathsf{Hdg}(G,s)\n \\quad\\Longleftrightarrow\\quad\n B[F_R]\\text{ is connected and }\n \\bigl(\\forall v\\in F_R,\\ v\\leadsto s\\text{ in }D[F_R]\\bigr).\n\\]\nBoth searches take polynomial time in \\(|V|\\).\n\nFor every candidate passing this hedge test, apply the same test to each \\(R'\\subsetneq R\\).  Every proper subset of \\(F_R\\) that contains \\(s\\) has the unique form \\(R'\\cup\\{s\\}\\) for some \\(R'\\subsetneq R\\).  Definition \\(\\mathrm{def{:}minimal\\mbox{-}residual\\mbox{-}clutter}\\) therefore yields the equivalence\n\\[\n R\\in\\mathcal C(G,s)\n \\quad\\Longleftrightarrow\\quad\n F_R\\in\\mathsf{Hdg}(G,s)\n \\text{ and }\n F_{R'}\\notin\\mathsf{Hdg}(G,s)\n \\text{ for every }R'\\subsetneq R.\n\\]\nConsequently every retained candidate is a clutter member.  Conversely, the promised input inequality implies \\(|R|\\leq r_0\\) for every \\(R\\in\\mathcal C(G,s)\\), so every clutter member is tested and retained.  Candidate generation without repetition proves exact-once output, while generation according to \\(\\triangleleft_V\\) proves the stated lexicographic order.  The order \\(\\triangleleft_V\\) changes only output order; it does not enter either graph test.\n\nWriting \\(n=|V|\\), the number of candidates is\n\\[\n \\sum_{j=0}^{r_0}\\binom{n-1}{j}=O(n^{r_0})\n\\]\nfor fixed \\(r_0\\).  There are at most \\(2^{r_0}\\) proper subsets of each candidate, so the total running time is \\(|V|^{r_0+O(1)}\\).  Candidates and outputs can be streamed, and at any moment the procedure stores only a candidate, one proper subset, and polynomial-size graph-search workspaces.  This proves the polynomial-space assertion.\n\nAt \\(r_0=3\\), Assumption \\(\\mathrm{ass{:}rank\\mbox{-}three\\mbox{-}promise}\\) supplies the promised inequality and hence the upper bound of three on every minimal residual.  Theorem \\(\\mathrm{thm{:}first\\mbox{-}rank\\mbox{-}boundary}\\) says that every hedge has at least four vertices; hence every residual in \\(\\mathcal C(G,s)\\) has size at least three.  Thus every clutter member has size exactly three.  In this case Definition \\(\\mathrm{def{:}promised\\mbox{-}enumerator}\\), now driven by \\(\\triangleleft_V\\), tests precisely the needed triples.  There are \\(O(n^3)\\) of them, proving the displayed rank-three runtime.\n\nFor the scoped exact search, use the enumerated rank-three clutter.  At a recursive state \\((A_0,j)\\), where \\(A_0\\subseteq V^{-}\\) is the set already chosen and \\(j\\) is the remaining cardinality budget, return \\(A_0\\) if it meets every enumerated residual.  If an uncovered residual exists and \\(j=0\\), declare the branch infeasible.  Otherwise choose an uncovered \\(R\\in\\mathcal C(G,s)\\).  The preceding paragraph gives \\(|R|=3\\), and uncoveredness gives \\(A_0\\cap R=\\varnothing\\).  Recurse on\n\\[\n (A_0\\cup\\{v\\},j-1),\\qquad v\\in R,\n\\]\nand retain a least-cost successful return.\n\nInduction on \\(j\\) proves that this recursion returns a least-cost feasible extension of \\(A_0\\) using at most \\(j\\) new vertices, or correctly reports that none exists.  When \\(j=0\\), this is immediate from the feasibility test.  Suppose \\(j>0\\).  If \\(A_0\\) is feasible, the declared codomain \\(c:V^{-}\\to\\mathbb Q_{>0}\\) implies that every strict extension has strictly larger cost, so returning \\(A_0\\) is optimal.  If \\(A_0\\) is infeasible, every feasible extension must hit the selected uncovered set \\(R\\), hence contains at least one \\(v\\in R\\) and appears in the corresponding branch.  The induction hypothesis optimizes each branch; comparison of the three branch values therefore optimizes their union.  Starting from \\((\\varnothing,k)\\) proves the claimed least-cost guarantee among feasible interventions of cardinality at most \\(k\\).\n\nThe recursion tree has at most\n\\[\n 1+3+\\cdots+3^k=O(3^k)\n\\]\nnodes.  Each node does polynomial work on a polynomial-size rank-three clutter.  Sums and comparisons of positive rational costs have bit complexity polynomial in \\(|V|\\) and their encoding length \\(L\\).  Hence the runtime is \\(O(3^k\\operatorname{poly}(|V|,L))\\).  This argument uses the supplied bound \\(k\\) and makes no unconstrained weighted \\(3^k\\) claim.",
+    "proof_basis": {
+      "ass:bow-free": "b819ed52b595532195cacad9914c7d1483339f0783b3e013c687fd9011901c97",
+      "ass:directed-acyclicity": "5f5587523869653b310bcbaf53381672aedd92ba2b84a9652b2e00d5f0bf9a26",
+      "ass:rank-three-promise": "198996e44291b6d5dde3fe0a8b4f0454bf52cb633b0e8e172a3b59c7c01c4dc8",
+      "ass:simple-mixed-graph": "13e62cf66a9257ff4147038024825dfaa96cb8a04e14702eb920afc4a9f59b5e",
+      "ass:singleton-target": "69dc6e59471b75407db9fa0150550e35db78dd379bc1250b8abcddaa519c8305",
+      "def:minimal-residual-clutter": "3c8e2ee6bce8da45acba216c9e823ec8188aa393f52777d364d3018e0f4c43e5",
+      "def:promised-enumerator": "1f1b2092aabe82da3f8f2525f985cb2f5b5dd62ac2404f97f2108a5d3e212a99",
+      "def:residual-rank": "39eeece0bd33912c760ffe203e3fd80c55d366aed178b841cabb1c342243f83c",
+      "def:singleton-hedges": "1a46f7ff761af8294b74b2bfe07b91769632ecb8502a17052d37729adb5aff2d",
+      "prop:promised-enumeration": "7b2eb607b9f05cf7d641d4c5de945887da0de213564ca16477c5d7a50f49207c",
+      "sym:B": "ccb0e3bc766d03f540147ed8b230c84f6821991af49653f44470aaf75c5ee8c6",
+      "sym:Clutter": "fa3036060426fbb84b85ba82c4a07c93cab255cd72de33268374d3946902e430",
+      "sym:D": "a1243da673e8a79475ed97bf2307ceedcecb694095c0b605bd03c4dcf69f7d52",
+      "sym:F": "bf43ae2810769c1d6bb7c7dcebffa82b4a3331e888bb6db5a18c8e61f7e7df0b",
+      "sym:G": "42ff46508dc878e10af3f483cd560c2576a5707f65e772a52787a7a55c0c013f",
+      "sym:HedgeFamily": "337c3a693de822e36d2b7d22357c53990bc1c4d855fea6df81eb0b011cbe1645",
+      "sym:Pset": "58e1748778b4baea969afdeaddde082d518b9c6e1f2a25f9bd271a68f6e3ab12",
+      "sym:R": "fbfb6bdeb04d5cb44c60f9dc21e1808e775852fae45b46d46775f0ec7b471154",
+      "sym:Tset": "29c328a8d602c8543292cb27ea3ab591f5f9482e0b48b49d3cb082c40a4cbe05",
+      "sym:V": "3ad7d6f23970e891c3f51e973c199b272159fce7ae76a6ed628e901846c24fb2",
+      "sym:Vminus": "688a3e5ef903b56121b822223d5d1973e8ea146084445edb0ea29b729588a811",
+      "sym:c": "6216388dd57fdfa822711d0d815dc47fc92b625bf51f93047e2c964e017130b0",
+      "sym:k": "0fd146ea6f504b18796e1637972088fcdda5f947f33c0f279455b77315d98e78",
+      "sym:rank": "a25ec57d43472e2f1345b6f9f19085cae5c23759be627cb9f2c4df47d50e3efd",
+      "sym:s": "324efbc23505a2b94667c204ec28580a786c2b29930f2228a8d01930538695e2",
+      "sym:vertexOrder": "775f9d49109fb0cddb5a6278f031efab60f50e7e52a8c1d426507b9534eb69ba",
+      "thm:first-rank-boundary": "5bf605072d9e352e6ea1f6cd3d6c0c86b0b64a054620eaa62945443d7427763c"
+    }
+  }
+}

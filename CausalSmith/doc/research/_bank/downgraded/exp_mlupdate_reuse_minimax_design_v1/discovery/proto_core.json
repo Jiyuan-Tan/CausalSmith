@@ -1,0 +1,1695 @@
+{
+  "qid": "exp_mlupdate_reuse_minimax_design",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "N",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N_{>0}\\)",
+      "sig": "\\(N\\)",
+      "role": "number of fixed experimental units"
+    },
+    {
+      "name": "I",
+      "type": "finite index set",
+      "space": "\\(\\{1,\\ldots,N\\}\\)",
+      "sig": "\\(\\mathcal I\\)",
+      "def": "\\(\\mathcal I=\\{1,\\ldots,N\\}\\)",
+      "role": "unit population",
+      "refs": [
+        "N"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "finite nonempty set",
+      "sig": "\\(\\mathcal X\\)",
+      "role": "covariate cells"
+    },
+    {
+      "name": "A",
+      "type": "finite nonempty set",
+      "sig": "\\(\\mathcal A\\)",
+      "role": "actions"
+    },
+    {
+      "name": "a0",
+      "type": "element",
+      "space": "\\(\\mathcal A\\)",
+      "sig": "\\(a_{0}\\)",
+      "role": "neutral action",
+      "refs": [
+        "A"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "fixed map",
+      "space": "\\(\\mathcal I\\to\\mathcal X\\)",
+      "sig": "\\(x_i\\)",
+      "role": "unit cell labels",
+      "refs": [
+        "I",
+        "X"
+      ]
+    },
+    {
+      "name": "Nx",
+      "type": "positive integer-valued map",
+      "space": "\\(\\mathcal X\\to\\mathbb N_{>0}\\)",
+      "sig": "\\(N_x\\)",
+      "def": "\\(N_x=\\sum_{i\\in\\mathcal I}\\mathbf 1\\{x_i=x\\}\\)",
+      "role": "cell census",
+      "refs": [
+        "I",
+        "X",
+        "x"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "positive rational weight map",
+      "space": "\\(\\mathcal X\\to\\mathbb Q_{>0}\\)",
+      "sig": "\\(q_x\\)",
+      "def": "\\(q_x=N_x/N\\)",
+      "role": "finite-population cell weights",
+      "refs": [
+        "N",
+        "X",
+        "Nx"
+      ]
+    },
+    {
+      "name": "C",
+      "type": "finite set of deterministic maps",
+      "space": "\\(\\mathcal A^{\\mathcal X}\\)",
+      "sig": "\\(\\mathcal C\\)",
+      "role": "candidate trial policies",
+      "refs": [
+        "X",
+        "A"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "finite nonempty set of deterministic maps",
+      "space": "\\(\\mathcal A^{\\mathcal X}\\)",
+      "sig": "\\(\\mathcal F\\)",
+      "role": "future evaluation policies",
+      "refs": [
+        "X",
+        "A"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "known rational score map",
+      "space": "\\((\\mathcal C\\cup\\mathcal F)\\to([0,1]\\cap\\mathbb Q)\\)",
+      "sig": "\\(m_{\\pi}\\)",
+      "role": "policy performance score",
+      "refs": [
+        "C",
+        "F"
+      ]
+    },
+    {
+      "name": "Gamma",
+      "type": "nonnegative rational constant",
+      "space": "\\(\\mathbb Q_{\\geq 0}\\)",
+      "sig": "\\(\\Gamma\\)",
+      "role": "Lipschitz sensitivity constant"
+    },
+    {
+      "name": "k",
+      "type": "nonnegative integer",
+      "space": "\\(\\{0,\\ldots,|\\mathcal C|\\}\\)",
+      "sig": "\\(k\\)",
+      "role": "panel-size budget",
+      "refs": [
+        "C"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "fixed potential-outcome array",
+      "space": "\\([0,1]^{\\mathcal I\\times\\mathcal A\\times[0,1]}\\)",
+      "sig": "\\(Y_i(a,t)\\)",
+      "role": "bounded outcomes under action and model score",
+      "refs": [
+        "I",
+        "A"
+      ]
+    },
+    {
+      "name": "mu",
+      "type": "finite-population conditional mean map",
+      "space": "\\(\\mathcal X\\times\\mathcal A\\times[0,1]\\to[0,1]\\)",
+      "sig": "\\(\\mu_{xa}(t)\\)",
+      "def": "\\(\\mu_{xa}(t)=N_x^{-1}\\sum_{i:x_i=x}Y_i(a,t)\\)",
+      "role": "primitive response surface",
+      "refs": [
+        "I",
+        "X",
+        "A",
+        "x",
+        "Nx",
+        "Y"
+      ]
+    },
+    {
+      "name": "Mclass",
+      "type": "set of fixed potential-outcome arrays",
+      "sig": "\\(\\mathcal M_N\\)",
+      "role": "admissible finite-population response class",
+      "refs": [
+        "N",
+        "I",
+        "A",
+        "a0",
+        "Y",
+        "mu",
+        "Gamma"
+      ]
+    },
+    {
+      "name": "V",
+      "type": "policy-value functional",
+      "space": "\\((\\mathcal C\\cup\\mathcal F)\\to[0,1]\\)",
+      "sig": "\\(V_{\\mu}(\\pi)\\)",
+      "def": "\\(V_{\\mu}(\\pi)=\\sum_{x\\in\\mathcal X}q_x\\mu_{x,\\pi(x)}(m_{\\pi})\\)",
+      "role": "finite-population causal policy value",
+      "refs": [
+        "X",
+        "C",
+        "F",
+        "m",
+        "q",
+        "mu"
+      ]
+    },
+    {
+      "name": "S",
+      "type": "subset",
+      "space": "\\(2^{\\mathcal C}\\)",
+      "sig": "\\(S\\)",
+      "role": "selected trial panel",
+      "refs": [
+        "C"
+      ]
+    },
+    {
+      "name": "Pclass",
+      "type": "finite set of subsets",
+      "sig": "\\(\\mathcal P_k\\)",
+      "role": "budget-feasible panel family",
+      "refs": [
+        "C",
+        "k",
+        "S"
+      ]
+    },
+    {
+      "name": "y",
+      "type": "selected arm-cell mean table",
+      "space": "\\([0,1]^{S\\times\\mathcal X}\\)",
+      "sig": "\\(y_{cx}\\)",
+      "def": "\\(y_{cx}=\\mu_{x,c(x)}(m_c)\\)",
+      "role": "population trial information",
+      "refs": [
+        "X",
+        "m",
+        "mu",
+        "S"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "score-anchor set map",
+      "sig": "\\(T_{xa}(S)\\)",
+      "def": "\\(T_{xa}(S)=\\{c\\in S:c(x)=a\\}\\)",
+      "role": "matching-action anchors",
+      "refs": [
+        "X",
+        "A",
+        "S"
+      ]
+    },
+    {
+      "name": "ell",
+      "type": "lower response envelope",
+      "sig": "\\(\\ell_{xa}(t;y)\\)",
+      "role": "pointwise lower endpoint",
+      "refs": [
+        "X",
+        "A",
+        "a0",
+        "Gamma",
+        "m",
+        "y",
+        "T"
+      ]
+    },
+    {
+      "name": "u",
+      "type": "upper response envelope",
+      "sig": "\\(u_{xa}(t;y)\\)",
+      "role": "pointwise upper endpoint",
+      "refs": [
+        "X",
+        "A",
+        "a0",
+        "Gamma",
+        "m",
+        "y",
+        "T"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "lower policy-value functional",
+      "sig": "\\(L_S(\\pi;y)\\)",
+      "def": "\\(L_S(\\pi;y)=\\sum_{x\\in\\mathcal X}q_x\\ell_{x,\\pi(x)}(m_{\\pi};y)\\)",
+      "role": "sharp lower value endpoint",
+      "refs": [
+        "X",
+        "F",
+        "m",
+        "q",
+        "S",
+        "ell"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "upper policy-value functional",
+      "sig": "\\(U_S(\\pi;y)\\)",
+      "def": "\\(U_S(\\pi;y)=\\sum_{x\\in\\mathcal X}q_xu_{x,\\pi(x)}(m_{\\pi};y)\\)",
+      "role": "sharp upper value endpoint",
+      "refs": [
+        "X",
+        "F",
+        "m",
+        "q",
+        "S",
+        "u"
+      ]
+    },
+    {
+      "name": "Interval",
+      "type": "closed interval-valued map",
+      "sig": "\\(\\mathcal I_S(\\pi;y)\\)",
+      "role": "sharp identified interval",
+      "refs": [
+        "F",
+        "S",
+        "y",
+        "L",
+        "U"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "rational cost tensor",
+      "sig": "\\(d_{\\pi xc}\\)",
+      "role": "action-constrained clipped score distance",
+      "refs": [
+        "X",
+        "A",
+        "a0",
+        "C",
+        "F",
+        "m",
+        "Gamma"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "nearest-score residual map",
+      "sig": "\\(r_{\\pi x}(S)\\)",
+      "def": "\\(r_{\\pi x}(S)=\\min(\\{1\\}\\cup\\{d_{\\pi xc}:c\\in S\\})\\)",
+      "role": "cellwise prospective diameter",
+      "refs": [
+        "X",
+        "F",
+        "S",
+        "d"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "weighted residual map",
+      "sig": "\\(R_{\\pi}(S)\\)",
+      "def": "\\(R_{\\pi}(S)=\\sum_{x\\in\\mathcal X}q_xr_{\\pi x}(S)\\)",
+      "role": "policywise prospective diameter",
+      "refs": [
+        "X",
+        "F",
+        "q",
+        "S",
+        "r"
+      ]
+    },
+    {
+      "name": "Wbar",
+      "type": "robust panel loss",
+      "sig": "\\(\\overline W(S)\\)",
+      "role": "worst sharp diameter before outcomes",
+      "refs": [
+        "F",
+        "Mclass",
+        "S",
+        "y",
+        "L",
+        "U"
+      ]
+    },
+    {
+      "name": "Dstar",
+      "type": "rational scalar",
+      "space": "\\([0,1]\\cap\\mathbb Q\\)",
+      "sig": "\\(D^{\\star}\\)",
+      "role": "optimal prospective width",
+      "refs": [
+        "Pclass",
+        "Wbar"
+      ]
+    },
+    {
+      "name": "MILP",
+      "type": "rational mixed-integer linear program",
+      "sig": "\\(\\mathsf{P}_{\\mathrm{MILP}}\\)",
+      "role": "finite optimization representation",
+      "refs": [
+        "X",
+        "C",
+        "F",
+        "q",
+        "k",
+        "d"
+      ]
+    },
+    {
+      "name": "vstar",
+      "type": "claimed rational incumbent value",
+      "space": "\\([0,1]\\cap\\mathbb Q\\)",
+      "sig": "\\(v^{\\star}\\)",
+      "role": "certificate claim recomputed by the checker",
+      "refs": [
+        "S",
+        "Wbar"
+      ]
+    },
+    {
+      "name": "Cert",
+      "type": "certificate tuple with a finite rooted binary tree",
+      "sig": "\\(\\mathsf{Cert}\\)",
+      "role": "panel optimality proof object",
+      "refs": [
+        "C",
+        "k",
+        "Wbar",
+        "vstar"
+      ]
+    },
+    {
+      "name": "Check",
+      "type": "deterministic Boolean map",
+      "sig": "\\(\\mathsf{Check}\\)",
+      "role": "independent exact-rational certificate checker",
+      "refs": [
+        "C",
+        "k",
+        "Wbar",
+        "vstar",
+        "Cert"
+      ]
+    },
+    {
+      "name": "nalloc",
+      "type": "positive integer arm-size map",
+      "space": "\\(\\{(n_c)_{c\\in S}\\in\\mathbb N_{>0}^{S}:S\\neq\\varnothing,\\ \\sum_{c\\in S}n_c=N\\}\\)",
+      "sig": "\\(n_c\\)",
+      "role": "complete-randomization allocation",
+      "refs": [
+        "N",
+        "S"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "random assignment vector",
+      "space": "\\(S^{\\mathcal I}\\)",
+      "sig": "\\(Z\\)",
+      "role": "sole source of randomness",
+      "refs": [
+        "I",
+        "S",
+        "nalloc"
+      ]
+    },
+    {
+      "name": "Yobs",
+      "type": "observed-outcome vector",
+      "space": "\\([0,1]^{\\mathcal I}\\)",
+      "sig": "\\(Y_i^{\\mathrm{obs}}\\)",
+      "def": "\\(Y_i^{\\mathrm{obs}}=Y_i(Z_i(x_i),m_{Z_i})\\)",
+      "role": "realized trial outcomes",
+      "refs": [
+        "I",
+        "x",
+        "m",
+        "Y",
+        "Z"
+      ]
+    },
+    {
+      "name": "yhat",
+      "type": "Horvitz--Thompson arm-cell mean estimator",
+      "sig": "\\(\\widehat y_{cx}^{\\mathrm{HT}}\\)",
+      "role": "design-unbiased primitive estimator",
+      "refs": [
+        "N",
+        "X",
+        "Nx",
+        "S",
+        "nalloc",
+        "Z",
+        "Yobs"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "confidence error level",
+      "space": "\\((0,1)\\)",
+      "sig": "\\(\\alpha\\)",
+      "role": "familywise noncoverage probability"
+    },
+    {
+      "name": "epsilon",
+      "type": "nonnegative radius map",
+      "sig": "\\(\\varepsilon_{cx}\\)",
+      "role": "without-replacement concentration radius",
+      "refs": [
+        "X",
+        "Nx",
+        "S",
+        "nalloc",
+        "alpha"
+      ]
+    },
+    {
+      "name": "lo",
+      "type": "lower arm-cell confidence table",
+      "sig": "\\(l_{cx}\\)",
+      "role": "clipped lower primitive bound",
+      "refs": [
+        "S",
+        "X",
+        "yhat",
+        "epsilon"
+      ]
+    },
+    {
+      "name": "hi",
+      "type": "upper arm-cell confidence table",
+      "sig": "\\(h_{cx}\\)",
+      "role": "clipped upper primitive bound",
+      "refs": [
+        "S",
+        "X",
+        "yhat",
+        "epsilon"
+      ]
+    },
+    {
+      "name": "Outer",
+      "type": "outer policy interval map",
+      "sig": "\\(\\mathcal O_S(\\pi)\\)",
+      "role": "simultaneous randomization-only report",
+      "refs": [
+        "F",
+        "S",
+        "lo",
+        "hi",
+        "L",
+        "U"
+      ]
+    },
+    {
+      "name": "Handle",
+      "type": "certificate-construction program",
+      "sig": "\\(\\mathsf{Handle}\\)",
+      "role": "route for the open compression problem",
+      "refs": [
+        "Cert",
+        "Check",
+        "C",
+        "F",
+        "d"
+      ]
+    },
+    {
+      "name": "E35",
+      "type": "fixed rational three-cell, five-arm design instance",
+      "sig": "\\(\\mathsf E_{3,5}\\)",
+      "role": "independent exact worked instance",
+      "refs": [
+        "N",
+        "Nx",
+        "X",
+        "A",
+        "a0",
+        "q",
+        "C",
+        "F",
+        "m",
+        "Gamma",
+        "k"
+      ]
+    },
+    {
+      "name": "Tree35",
+      "type": "finite rooted binary certificate",
+      "sig": "\\(\\mathcal T_{3,5}\\)",
+      "role": "checker-valid exhaustive tree for the worked instance",
+      "refs": [
+        "E35",
+        "Cert",
+        "Check"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:mean-monotonicity",
+      "kind": "shape",
+      "condition": "For every \\(x\\in\\mathcal X\\), \\(a\\in\\mathcal A\\setminus\\{a_0\\}\\), and \\(0\\leq s\\leq t\\leq1\\), \\(\\mu_{xa}(s)\\leq\\mu_{xa}(t)\\).",
+      "free_symbols": [
+        "X",
+        "A",
+        "a0",
+        "mu"
+      ],
+      "standard": {
+        "name": "performance monotonicity at the conditional-mean level",
+        "cite": "ChenOberst2025"
+      },
+      "used_by": [
+        "def:response-class",
+        "lem:envelope-feasibility",
+        "thm:sharp-common-endpoints"
+      ]
+    },
+    {
+      "id": "ass:mean-lipschitz",
+      "kind": "smoothness",
+      "condition": "For every \\(x\\in\\mathcal X\\), \\(a\\in\\mathcal A\\setminus\\{a_0\\}\\), and \\(s,t\\in[0,1]\\), \\( |\\mu_{xa}(t)-\\mu_{xa}(s)|\\leq\\Gamma|t-s|\\).",
+      "free_symbols": [
+        "X",
+        "A",
+        "a0",
+        "Gamma",
+        "mu"
+      ],
+      "standard": {
+        "name": "known Lipschitz conditional-mean class adapted to model score",
+        "cite": "ArmstrongKolesar2021"
+      },
+      "used_by": [
+        "def:response-class",
+        "lem:envelope-feasibility",
+        "thm:width-identity"
+      ]
+    },
+    {
+      "id": "ass:neutral-invariance",
+      "kind": "exclusion",
+      "condition": "For every \\(x\\in\\mathcal X\\) and \\(s,t\\in[0,1]\\), \\(\\mu_{x a_0}(s)=\\mu_{x a_0}(t)\\).",
+      "free_symbols": [
+        "X",
+        "a0",
+        "mu"
+      ],
+      "standard": {
+        "name": "neutral-action invariance",
+        "cite": "ChenOberst2025"
+      },
+      "used_by": [
+        "def:response-class",
+        "def:envelopes",
+        "def:score-cost"
+      ]
+    },
+    {
+      "id": "ass:complete-randomization",
+      "kind": "design",
+      "condition": "For a sampled design \\(S\\neq\\varnothing\\) and an allocation \\((n_c)_{c\\in S}\\in\\mathbb N_{>0}^{S}\\) satisfying \\(\\sum_{c\\in S}n_c=N\\), conditional on \\(S\\) and \\((n_c)_{c\\in S}\\), \\(Z\\) is uniform over assignments satisfying \\(\\sum_{i\\in\\mathcal I}\\mathbf1\\{Z_i=c\\}=n_c\\) for every \\(c\\in S\\).",
+      "free_symbols": [
+        "N",
+        "I",
+        "S",
+        "nalloc",
+        "Z"
+      ],
+      "standard": {
+        "name": "multi-arm complete randomization",
+        "cite": "CaugheyDafoeLiMiratrix2023"
+      },
+      "used_by": [
+        "thm:design-based-coverage"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:response-class",
+      "name": "Finite-population response class",
+      "construction": "\\(\\mathcal M_N=\\{(Y_i(a,t))_{i\\in\\mathcal I,a\\in\\mathcal A,t\\in[0,1]}\\in[0,1]^{\\mathcal I\\times\\mathcal A\\times[0,1]}: \\mu_{xa}(s)\\leq\\mu_{xa}(t)\\text{ and }|\\mu_{xa}(t)-\\mu_{xa}(s)|\\leq\\Gamma|t-s|\\text{ for every }x\\in\\mathcal X,a\\neq a_0,0\\leq s\\leq t\\leq1,\\text{ and }\\mu_{x a_0}(s)=\\mu_{x a_0}(t)\\text{ for every }x,s,t\\}\\).",
+      "free_symbols": [
+        "N",
+        "I",
+        "X",
+        "A",
+        "Y",
+        "mu",
+        "Gamma",
+        "a0",
+        "Mclass"
+      ],
+      "by_member_properties": [
+        "ass:mean-monotonicity",
+        "ass:mean-lipschitz",
+        "ass:neutral-invariance"
+      ]
+    },
+    {
+      "id": "def:feasible-panels",
+      "name": "Budget-feasible panels",
+      "construction": "\\(\\mathcal P_k=\\{S\\subseteq\\mathcal C:|S|\\leq k\\}\\).",
+      "free_symbols": [
+        "C",
+        "k",
+        "S",
+        "Pclass"
+      ]
+    },
+    {
+      "id": "def:anchors",
+      "name": "Matching-action anchor sets",
+      "construction": "For every \\(x\\in\\mathcal X\\), \\(a\\in\\mathcal A\\), and \\(S\\in\\mathcal P_k\\), set \\(T_{xa}(S)=\\{c\\in S:c(x)=a\\}\\).",
+      "free_symbols": [
+        "X",
+        "A",
+        "S",
+        "Pclass",
+        "T"
+      ]
+    },
+    {
+      "id": "def:envelopes",
+      "name": "Monotone Lipschitz envelopes",
+      "construction": "For \\(a\\neq a_0\\), define \\(\\ell_{xa}(t;y)=\\max(\\{0\\}\\cup\\{y_{cx}-\\Gamma(m_c-t)_+:c\\in T_{xa}(S)\\})\\) and \\(u_{xa}(t;y)=\\min(\\{1\\}\\cup\\{y_{cx}+\\Gamma(t-m_c)_+:c\\in T_{xa}(S)\\})\\) with \\(z_+=\\max\\{z,0\\}\\); for \\(a=a_0\\), use the same formulas with \\(\\Gamma=0\\).",
+      "free_symbols": [
+        "X",
+        "A",
+        "a0",
+        "Gamma",
+        "m",
+        "S",
+        "y",
+        "T",
+        "ell",
+        "u"
+      ]
+    },
+    {
+      "id": "def:sharp-interval",
+      "name": "Reusable policy interval",
+      "construction": "For \\(\\pi\\in\\mathcal F\\), define \\(\\mathcal I_S(\\pi;y)=[L_S(\\pi;y),U_S(\\pi;y)]\\), where \\(L_S(\\pi;y)=\\sum_{x\\in\\mathcal X}q_x\\ell_{x,\\pi(x)}(m_{\\pi};y)\\) and \\(U_S(\\pi;y)=\\sum_{x\\in\\mathcal X}q_xu_{x,\\pi(x)}(m_{\\pi};y)\\).",
+      "free_symbols": [
+        "X",
+        "F",
+        "m",
+        "q",
+        "S",
+        "y",
+        "ell",
+        "u",
+        "L",
+        "U",
+        "Interval"
+      ]
+    },
+    {
+      "id": "def:score-cost",
+      "name": "Action-constrained clipped score cost",
+      "construction": "For \\(\\pi\\in\\mathcal F\\), \\(x\\in\\mathcal X\\), and \\(c\\in\\mathcal C\\), define \\(d_{\\pi xc}=1\\) if \\(c(x)\\neq\\pi(x)\\), \\(d_{\\pi xc}=0\\) if \\(c(x)=\\pi(x)=a_0\\), and \\(d_{\\pi xc}=\\min\\{1,\\Gamma|m_{\\pi}-m_c|\\}\\) otherwise; then set \\(r_{\\pi x}(S)=\\min(\\{1\\}\\cup\\{d_{\\pi xc}:c\\in S\\})\\) and \\(R_{\\pi}(S)=\\sum_{x\\in\\mathcal X}q_xr_{\\pi x}(S)\\).",
+      "free_symbols": [
+        "X",
+        "A",
+        "a0",
+        "C",
+        "F",
+        "m",
+        "Gamma",
+        "q",
+        "S",
+        "d",
+        "r",
+        "R"
+      ]
+    },
+    {
+      "id": "def:prospective-loss",
+      "name": "Prospective sharp-diameter loss",
+      "construction": "\\(\\overline W(S)=\\sup_{Y\\in\\mathcal M_N}\\max_{\\pi\\in\\mathcal F}\\{U_S(\\pi;y(Y))-L_S(\\pi;y(Y))\\}\\) and \\(D^{\\star}=\\min_{S\\in\\mathcal P_k}\\overline W(S)\\).",
+      "free_symbols": [
+        "N",
+        "F",
+        "Y",
+        "Mclass",
+        "S",
+        "Pclass",
+        "y",
+        "L",
+        "U",
+        "Wbar",
+        "Dstar"
+      ]
+    },
+    {
+      "id": "def:panel-milp",
+      "name": "Panel mixed-integer program",
+      "construction": "\\(\\mathsf P_{\\mathrm{MILP}}\\) minimizes \\(v\\) over \\(z_c\\in\\{0,1\\}\\) and \\(b_{\\pi xc}\\geq0\\), including a dummy \\(\\varnothing\\) with \\(d_{\\pi x\\varnothing}=1\\), subject to \\(\\sum_{c\\in\\mathcal C}z_c\\leq k\\), \\(\\sum_{c\\in\\mathcal C\\cup\\{\\varnothing\\}}b_{\\pi xc}=1\\), \\(b_{\\pi xc}\\leq z_c\\) for \\(c\\in\\mathcal C\\), and \\(\\sum_{x\\in\\mathcal X}q_x\\sum_{c\\in\\mathcal C\\cup\\{\\varnothing\\}}d_{\\pi xc}b_{\\pi xc}\\leq v\\) for every \\(\\pi\\in\\mathcal F\\).",
+      "free_symbols": [
+        "X",
+        "C",
+        "F",
+        "q",
+        "k",
+        "d",
+        "MILP"
+      ]
+    },
+    {
+      "id": "def:certificate-grammar",
+      "name": "Specialized rational branch-tree certificate",
+      "construction": "\\(\\mathsf{Cert}=(S^{\\star},v^{\\star},\\mathcal T)\\) contains an incumbent \\(S^{\\star}\\in\\mathcal P_k\\), only a claimed rational incumbent value \\(v^{\\star}\\), and a rooted binary tree \\(\\mathcal T\\). The root is \\((\\varnothing,\\mathcal C,\\varnothing)\\); every node label \\((I,E,O)\\) partitions \\(\\mathcal C\\); and every internal node chooses \\(c\\in E\\) and has exactly the two children \\((I\\cup\\{c\\},E\\setminus\\{c\\},O)\\) and \\((I,E\\setminus\\{c\\},O\\cup\\{c\\})\\). A leaf is justified either by \\(|I|>k\\) or by the exact optimistic-descendant bound \\(\\overline W(I\\cup E)\\geq v^{\\star}\\). The map \\(\\mathsf{Check}\\) independently recomputes \\(\\overline W(S^{\\star})\\) and requires equality to \\(v^{\\star}\\); it verifies incumbent feasibility, the root, every partition, both branch children of every internal node, every leaf justification, and exhaustive branch coverage in exact rational arithmetic. Neither \\(D^{\\star}\\) nor a global-optimality assertion occurs in \\(\\mathsf{Cert}\\).",
+      "free_symbols": [
+        "C",
+        "k",
+        "S",
+        "Pclass",
+        "Wbar",
+        "vstar",
+        "Cert",
+        "Check"
+      ]
+    },
+    {
+      "id": "def:design-bands",
+      "name": "Assignment-only primitive and policy bands",
+      "construction": "For a sampled design \\(S\\neq\\varnothing\\) with \\(n_c\\in\\mathbb N_{>0}\\) for every \\(c\\in S\\) and \\(\\sum_{c\\in S}n_c=N\\), let \\(J=|S||\\mathcal X|\\). Define \\(\\widehat y_{cx}^{\\mathrm{HT}}=N_x^{-1}(N/n_c)\\sum_{i\\in\\mathcal I}\\mathbf1\\{Z_i=c,x_i=x\\}Y_i^{\\mathrm{obs}}\\), \\(\\varepsilon_{cx}=q_x^{-1}\\sqrt{\\log(2J/\\alpha)/(2n_c)}\\), \\(l_{cx}=\\max\\{0,\\widehat y_{cx}^{\\mathrm{HT}}-\\varepsilon_{cx}\\}\\), \\(h_{cx}=\\min\\{1,\\widehat y_{cx}^{\\mathrm{HT}}+\\varepsilon_{cx}\\}\\), and \\(\\mathcal O_S(\\pi)=[L_S(\\pi;l),U_S(\\pi;h)]\\). This randomization-band construction has domain \\(S\\neq\\varnothing\\); the empty panel has a separate deterministic population-width statement.",
+      "free_symbols": [
+        "N",
+        "I",
+        "X",
+        "x",
+        "Nx",
+        "q",
+        "F",
+        "S",
+        "nalloc",
+        "Z",
+        "Yobs",
+        "yhat",
+        "alpha",
+        "epsilon",
+        "lo",
+        "hi",
+        "L",
+        "U",
+        "Outer"
+      ]
+    },
+    {
+      "id": "def:three-cell-five-arm-instance",
+      "name": "Independent rational three-cell, five-arm instance",
+      "construction": "Let \\(\\mathsf E_{3,5}\\) have \\(N=6\\), \\(\\mathcal X=\\{1,2,3\\}\\), \\((N_1,N_2,N_3)=(1,2,3)\\), \\((q_1,q_2,q_3)=(1/6,1/3,1/2)\\), \\(\\mathcal A=\\{0,1\\}\\), \\(a_0=0\\), \\(\\Gamma=1\\), and \\(k=2\\). Its future policies are \\(\\pi_1=(1,1,1)\\) with \\(m_{\\pi_1}=1/2\\) and \\(\\pi_2=(1,0,1)\\) with \\(m_{\\pi_2}=3/4\\). Its candidates are \\(c_1=(1,1,0)\\), \\(m_{c_1}=1/2\\); \\(c_2=(0,1,1)\\), \\(m_{c_2}=1/2\\); \\(c_3=(1,0,0)\\), \\(m_{c_3}=3/4\\); \\(c_4=(0,0,1)\\), \\(m_{c_4}=3/4\\); and \\(c_5=(0,1,0)\\), \\(m_{c_5}=1/4\\). For \\(S^{\\star}=\\{c_1,c_4\\}\\), fix \\(y_{c_1\\cdot}=(0,0,0)\\) and \\(y_{c_4\\cdot}=(0,0,1/4)\\). Define \\(\\mu^-_{x0}(t)=\\mu^+_{x0}(t)=0\\); for \\(x\\in\\{1,2\\}\\), define \\(\\mu^-_{x1}(t)=0\\) and \\(\\mu^+_{x1}(t)=(t-1/2)_+\\); and define \\(\\mu^-_{31}(t)=\\min\\{1/4,(t-1/2)_+\\}\\) and \\(\\mu^+_{31}(t)=1/4+(t-3/4)_+\\). For each unit in cell \\(x\\), set \\(Y_i(a,t)=\\mu^{\\pm}_{xa}(t)\\) to realize the corresponding fixed schedule.",
+      "free_symbols": [
+        "N",
+        "Nx",
+        "X",
+        "A",
+        "a0",
+        "q",
+        "C",
+        "F",
+        "m",
+        "Gamma",
+        "k",
+        "S",
+        "y",
+        "mu",
+        "E35"
+      ],
+      "inputs": [
+        "Exact rational arithmetic"
+      ]
+    },
+    {
+      "id": "def:three-cell-five-arm-tree",
+      "name": "Eight-leaf exact certificate for the worked instance",
+      "construction": "Let \\(\\mathcal T_{3,5}\\) start at \\((\\varnothing,\\{c_1,c_2,c_3,c_4,c_5\\},\\varnothing)\\), branch on the least-index element of \\(E\\), and encode inclusion by \\(1\\) and exclusion by \\(0\\). Its leaves are \\(111\\), \\(1101\\), and \\(0111\\), justified by \\(|I|>2\\), together with \\(1100\\), \\(10\\), \\(0110\\), \\(010\\), and \\(00\\), whose exact optimistic-descendant bounds are respectively \\(1/2\\), \\(1/8\\), \\(1/8\\), \\(1/6\\), and \\(1/4\\). The incumbent is \\(S^{\\star}=\\{c_1,c_4\\}\\) with claimed value \\(v^{\\star}=1/8\\).",
+      "free_symbols": [
+        "C",
+        "k",
+        "S",
+        "Wbar",
+        "vstar",
+        "Cert",
+        "Check",
+        "E35",
+        "Tree35"
+      ],
+      "inputs": [
+        "The instance \\(\\mathsf E_{3,5}\\)"
+      ]
+    },
+    {
+      "id": "def:compression-handle",
+      "name": "Dominance-and-symmetry certificate handle",
+      "construction": "Start from the exhaustive \\(\\mathsf{Cert}\\) grammar and design \\(\\mathsf{Handle}\\) by quotienting candidates with identical action-score cost columns, adding dominance rules between residual vectors, and reusing exact optimistic-descendant evaluations across isomorphic subtrees; the generated object must remain consumable by \\(\\mathsf{Check}\\).",
+      "free_symbols": [
+        "C",
+        "F",
+        "d",
+        "Cert",
+        "Check",
+        "Handle"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:envelope-feasibility",
+      "kind": "lemma",
+      "statement": "For every compatible selected mean table \\(y\\), each map \\(t\\mapsto\\ell_{xa}(t;y)\\) and \\(t\\mapsto u_{xa}(t;y)\\) belongs to the bounded monotone \\(\\Gamma\\)-Lipschitz mean class, agrees with every matching anchor, and satisfies \\(\\ell_{xa}(t;y)\\leq u_{xa}(t;y)\\) for all \\(x,a,t\\).",
+      "free_symbols": [
+        "X",
+        "A",
+        "Gamma",
+        "y",
+        "ell",
+        "u"
+      ],
+      "depends_on": [
+        "ass:mean-monotonicity",
+        "ass:mean-lipschitz",
+        "ass:neutral-invariance",
+        "def:anchors",
+        "def:envelopes"
+      ],
+      "status": "to-prove",
+      "justification": "The common-envelope construction is the compatibility step that prevents separately optimized marginal bounds from using different latent responses.",
+      "gap": "ChenOberst2025 proves tight monotonicity bounds; the Lipschitz envelope and its simultaneous common-response closure are not stated there.",
+      "consumer": "It gives trial analysts one coherent response surface for all future model queries rather than unrelated endpoint witnesses."
+    },
+    {
+      "id": "thm:sharp-common-endpoints",
+      "kind": "theorem",
+      "statement": "For every \\(S\\in\\mathcal P_k\\), every compatible \\(y\\), and every \\(\\pi\\in\\mathcal F\\), the identified set for \\(V_{\\mu}(\\pi)\\) over \\(\\mathcal M_N\\) conditional on \\(y\\) is exactly \\([L_S(\\pi;y),U_S(\\pi;y)]\\). One response schedule \\(\\mu^{-}\\) attains all lower endpoints and one response schedule \\(\\mu^{+}\\) attains all upper endpoints simultaneously over \\(\\mathcal F\\).",
+      "free_symbols": [
+        "N",
+        "F",
+        "mu",
+        "Mclass",
+        "V",
+        "S",
+        "Pclass",
+        "y",
+        "L",
+        "U",
+        "Interval"
+      ],
+      "depends_on": [
+        "def:response-class",
+        "def:feasible-panels",
+        "def:sharp-interval",
+        "lem:envelope-feasibility"
+      ],
+      "status": "to-prove",
+      "justification": "The common lower and upper schedules are the causal sharpness result: a single observational equivalence class supports every endpoint reported for the reusable future-policy library.",
+      "gap": "ChenOberst2025 proves tight monotonicity bounds for reusable validation; the bounded Lipschitz score geometry and two common finite-population endpoint schedules for an entire prespecified library are not stated there.",
+      "consumer": "A hospital can report auditable sharp value intervals for every prespecified deterministic model update from one trial panel."
+    },
+    {
+      "id": "thm:width-identity",
+      "kind": "theorem",
+      "statement": "For every \\(S\\in\\mathcal P_k\\), \\(\\overline W(S)=\\max_{\\pi\\in\\mathcal F}R_{\\pi}(S)=\\max_{\\pi\\in\\mathcal F}\\sum_{x\\in\\mathcal X}q_x\\min(\\{1\\}\\cup\\{d_{\\pi xc}:c\\in S\\})\\), and the supremum defining \\(\\overline W(S)\\) is attained by two observationally indistinguishable fixed finite-population response schedules. Consequently \\(D^{\\star}\\) is rational and attained.",
+      "free_symbols": [
+        "X",
+        "F",
+        "q",
+        "S",
+        "Pclass",
+        "d",
+        "R",
+        "Wbar",
+        "Dstar"
+      ],
+      "depends_on": [
+        "def:score-cost",
+        "def:prospective-loss",
+        "thm:sharp-common-endpoints"
+      ],
+      "status": "to-prove",
+      "justification": "This is the field-level kernel: two observationally indistinguishable finite-population response schedules eliminate the causal response adversary and yield an exact prospective width before any outcomes are observed.",
+      "gap": "AnthonyGoyalGuptaNagarajan2010 already supplies the robust scenario nearest-facility skeleton, and MontielOleaPrallonQiuStoyeSun2025 supplies a causal k-median reduction for external-validity regret. The new claim is instead the derivation of the action- and score-specific costs as the exact sharp diameter of reusable causal policy values.",
+      "consumer": "Trial designers can evaluate every candidate panel without simulating outcomes or solving an inner shape-constrained program."
+    },
+    {
+      "id": "prop:milp-equivalence",
+      "kind": "theorem",
+      "statement": "The optimal value of \\(\\mathsf P_{\\mathrm{MILP}}\\) equals \\(D^{\\star}\\). For every integral selection vector \\(z\\), minimizing over \\(b\\) assigns each pair \\((\\pi,x)\\) to a cheapest selected matching column or the dummy column and yields \\(v=\\max_{\\pi\\in\\mathcal F}R_{\\pi}(S_z)\\), where \\(S_z=\\{c\\in\\mathcal C:z_c=1\\}\\).",
+      "free_symbols": [
+        "X",
+        "C",
+        "F",
+        "S",
+        "R",
+        "Dstar",
+        "MILP"
+      ],
+      "depends_on": [
+        "def:panel-milp",
+        "thm:width-identity"
+      ],
+      "status": "to-prove",
+      "justification": "The mixed-integer formulation is proof-carrying implementation infrastructure for the causal width identity, not a new facility-location algorithm.",
+      "gap": "AnthonyGoyalGuptaNagarajan2010 already studies min-max nearest-facility optimization. This corollary records an exact rational formulation for the causal cost tensor after the causal theorem has derived that tensor.",
+      "consumer": "A trial team can optimize over thousands of candidate model versions using standard mixed-integer solvers while retaining an exact target objective."
+    },
+    {
+      "id": "prop:certificate-sound-complete",
+      "kind": "theorem",
+      "statement": "If \\(\\mathsf{Check}(\\mathsf{Cert})=\\mathrm{true}\\) for \\(\\mathsf{Cert}=(S^{\\star},v^{\\star},\\mathcal T)\\), then \\(S^{\\star}\\in\\mathcal P_k\\), the checker has independently recomputed \\(\\overline W(S^{\\star})=v^{\\star}\\), every feasible panel is covered by a verified root-to-leaf branch, and every leaf with a feasible descendant has verified \\(\\overline W(I\\cup E)\\geq v^{\\star}\\). Monotonicity under adding candidates gives \\(\\overline W(S)\\geq\\overline W(I\\cup E)\\geq v^{\\star}\\) for every feasible descendant \\(S\\), so \\(\\overline W(S^{\\star})=v^{\\star}=D^{\\star}\\). Conversely, every rational instance admits such an accepted finite certificate by branching until every path is closed. The certificate supplies neither \\(D^{\\star}\\) nor global optimality; both are derived by the checker.",
+      "free_symbols": [
+        "S",
+        "Pclass",
+        "Wbar",
+        "Dstar",
+        "vstar",
+        "Cert",
+        "Check"
+      ],
+      "depends_on": [
+        "def:certificate-grammar",
+        "thm:width-identity",
+        "prop:milp-equivalence"
+      ],
+      "status": "to-prove",
+      "justification": "The checker makes a reported causal panel auditable without treating generic exact branch certification as the scientific contribution.",
+      "gap": "CheungGleixnerSteffy2017 and Szeider2026 establish general exact proof-log methodology. This corollary only specializes exhaustive checking to the derived causal width and claims no new generic certification framework.",
+      "consumer": "Regulators or independent statisticians can verify the claimed trial panel with a small exact checker without rerunning the original solver."
+    },
+    {
+      "id": "prop:robust-kmedian-lift",
+      "kind": "proposition",
+      "statement": "For every nonempty panel \\(S\\), introduce one client \\(j_{\\pi x}\\) of weight \\(q_x\\) for each \\((\\pi,x)\\in\\mathcal F\\times\\mathcal X\\), one eligible facility \\(f_c\\) for each \\(c\\in\\mathcal C\\), cross-distance \\(\\delta(j_{\\pi x},f_c)=1+d_{\\pi xc}\\), and distance \\(2\\) between distinct clients or distinct facilities. Then \\(\\delta\\) is a metric and the weighted cost of scenario \\(\\pi\\) is \\(1+R_{\\pi}(S)\\). Thus the action-match exclusions, neutral-action convention, and clipping embed exactly into a weighted candidate-restricted scenario nearest-facility objective after an additive constant. Candidate-only facility eligibility, rational client weights, the dummy option, and the at-most-\\(k\\) convention depart from the literal unweighted \\(F\\subseteq V\\), \\(|F|=k\\) statement in AnthonyGoyalGuptaNagarajan2010.",
+      "free_symbols": [
+        "X",
+        "C",
+        "F",
+        "q",
+        "S",
+        "d",
+        "R"
+      ],
+      "depends_on": [
+        "def:score-cost",
+        "thm:width-identity"
+      ],
+      "status": "to-prove",
+      "justification": "The lift makes the prior-art boundary explicit: the optimization skeleton is robust nearest-facility selection, while the causal contribution is the sharp derivation of its costs.",
+      "gap": "AnthonyGoyalGuptaNagarajan2010 proves approximation guarantees for the general metric min-max location problem; this proposition is an exact representation check, not a stronger optimization theorem.",
+      "consumer": "Optimization researchers can apply robust facility-location tools without confusing those tools with the causal identification result."
+    },
+    {
+      "id": "prop:np-hardness",
+      "kind": "proposition",
+      "statement": "Computing \\(D^{\\star}\\) is NP-hard even when \\(\\Gamma=0\\), there is one future policy, all \\(q_x\\) are equal, and there are two actions, by a polynomial reduction from maximum coverage in which candidate policies encode subsets of \\(\\mathcal X\\).",
+      "free_symbols": [
+        "X",
+        "A",
+        "q",
+        "Gamma",
+        "F",
+        "C",
+        "Dstar"
+      ],
+      "depends_on": [
+        "def:score-cost",
+        "def:prospective-loss",
+        "thm:width-identity"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition imports the standard maximum-coverage complexity boundary and explains why exact search may require exponential certificates.",
+      "gap": "HochbaumPathria1998 already studies maximum \\(k\\)-coverage and its greedy approximation. The proposition is a transparent reduction showing that the causal design contains that established problem at \\(\\Gamma=0\\), not an independent hardness novelty claim.",
+      "consumer": "Software users receive a principled boundary between exact certified search and scalable approximation."
+    },
+    {
+      "id": "prop:empty-panel-width",
+      "kind": "proposition",
+      "statement": "For the separate case \\(S=\\varnothing\\), the selected mean table is empty, \\(\\mathcal I_{\\varnothing}(\\pi;\\varnothing)=[0,1]\\) for every \\(\\pi\\in\\mathcal F\\), and \\(\\overline W(\\varnothing)=1\\). This is a deterministic population-width statement with no assignment or randomization distribution.",
+      "free_symbols": [
+        "F",
+        "S",
+        "y",
+        "Interval",
+        "Wbar"
+      ],
+      "depends_on": [
+        "def:sharp-interval",
+        "def:score-cost",
+        "def:prospective-loss",
+        "thm:width-identity"
+      ],
+      "status": "to-prove",
+      "justification": "Separating the empty panel prevents a degenerate zero-arm object from being treated as a randomized experiment.",
+      "gap": "The empty-panel boundary is a design-domain clarification rather than a novelty claim; it records the population width implied by the sharp-width identity.",
+      "consumer": "Implementations can return the deterministic no-trial benchmark without constructing an invalid allocation or assignment law."
+    },
+    {
+      "id": "thm:design-based-coverage",
+      "kind": "theorem",
+      "statement": "For every sampled design with \\(\\varnothing\\neq S\\in\\mathcal P_k\\), allocation \\((n_c)_{c\\in S}\\in\\mathbb N_{>0}^{S}\\), and \\(\\sum_{c\\in S}n_c=N\\), under complete randomization and fixed \\(Y\\), with probability at least \\(1-\\alpha\\) over \\(Z\\), simultaneously for every \\(c\\in S\\) and \\(x\\in\\mathcal X\\), \\(l_{cx}\\leq y_{cx}\\leq h_{cx}\\), and simultaneously for every \\(\\pi\\in\\mathcal F\\), \\([L_S(\\pi;y),U_S(\\pi;y)]\\subseteq\\mathcal O_S(\\pi)\\). The probability statement is uniform over \\(\\mathcal M_N\\), carries no additional multiplicity factor depending on \\(|\\mathcal F|\\), and has no domain at \\(S=\\varnothing\\); that case is the separate deterministic population-width proposition.",
+      "free_symbols": [
+        "N",
+        "I",
+        "X",
+        "F",
+        "Y",
+        "Mclass",
+        "S",
+        "Pclass",
+        "y",
+        "L",
+        "U",
+        "nalloc",
+        "Z",
+        "alpha",
+        "lo",
+        "hi",
+        "Outer"
+      ],
+      "depends_on": [
+        "ass:complete-randomization",
+        "def:design-bands",
+        "thm:sharp-common-endpoints"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem supplies assignment-only finite-sample validity for reusing one experiment across every prespecified update.",
+      "gap": "CaugheyDafoeLiMiratrix2023 gives exact simultaneous randomization inference for effect quantiles, not for optimized monotone-Lipschitz policy-value endpoints; ChenOberst2025 uses asymptotic sampling inference.",
+      "consumer": "A fixed randomized trial can validate many later model updates without treating patient outcomes or covariate cells as independent superpopulation draws."
+    },
+    {
+      "id": "prop:zero-gamma-reduction",
+      "kind": "proposition",
+      "statement": "When \\(\\Gamma=0\\), \\(d_{\\pi xc}=0\\) exactly when \\(c(x)=\\pi(x)\\) and equals one otherwise, so \\(\\overline W(S)=\\max_{\\pi\\in\\mathcal F}\\sum_{x\\in\\mathcal X}q_x\\mathbf1\\{c(x)\\neq\\pi(x)\\text{ for every }c\\in S\\}\\). In particular, exact matching coverage of every future cell gives zero width.",
+      "free_symbols": [
+        "X",
+        "q",
+        "Gamma",
+        "F",
+        "S",
+        "d",
+        "Wbar"
+      ],
+      "depends_on": [
+        "def:score-cost",
+        "thm:width-identity"
+      ],
+      "status": "to-prove",
+      "justification": "This boundary case verifies that the causal width collapses to the established weighted maximum-coverage objective when score sensitivity vanishes.",
+      "gap": "HochbaumPathria1998 supplies the maximum-coverage algorithmic benchmark; this proposition identifies it as the exact \\(\\Gamma=0\\) specialization of the causal width rather than claiming a new coverage theorem.",
+      "consumer": "Practitioners can check the implementation against a transparent coverage instance before using nonzero score sensitivity."
+    },
+    {
+      "id": "prop:three-cell-five-arm-audit",
+      "kind": "proposition",
+      "statement": "In \\(\\mathsf E_{3,5}\\), the policywise widths \\((R_{\\pi_1}(S),R_{\\pi_2}(S))\\) and worst widths \\(\\overline W(S)\\) for all \\(|S|\\leq2\\) are: \\(\\varnothing:(1,1;1)\\); \\(\\{c_1\\}:(1/2,7/8;7/8)\\); \\(\\{c_2\\}:(1/6,5/8;5/8)\\); \\(\\{c_3\\}:(7/8,1/2;7/8)\\); \\(\\{c_4\\}:(5/8,1/6;5/8)\\); \\(\\{c_5\\}:(3/4,1;1)\\); \\(\\{c_1,c_2\\}:(0,1/2;1/2)\\); \\(\\{c_1,c_3\\}:(1/2,1/2;1/2)\\); \\(\\{c_1,c_4\\}:(1/8,1/24;1/8)\\); \\(\\{c_1,c_5\\}:(1/2,7/8;7/8)\\); \\(\\{c_2,c_3\\}:(1/24,1/8;1/8)\\); \\(\\{c_2,c_4\\}:(1/6,1/6;1/6)\\); \\(\\{c_2,c_5\\}:(1/6,5/8;5/8)\\); \\(\\{c_3,c_4\\}:(1/2,0;1/2)\\); \\(\\{c_3,c_5\\}:(5/8,1/2;5/8)\\); and \\(\\{c_4,c_5\\}:(3/8,1/6;3/8)\\). Hence \\(D^{\\star}=1/8\\), attained by \\(\\{c_1,c_4\\}\\) and \\(\\{c_2,c_3\\}\\), and the mixed-integer optimum is \\(1/8\\). For the displayed table under \\(S^{\\star}=\\{c_1,c_4\\}\\), the two displayed schedules are compatible members of \\(\\mathcal M_N\\), are observationally indistinguishable, and attain simultaneously \\([L(\\pi_1),U(\\pi_1)]=[0,1/8]\\) and \\([L(\\pi_2),U(\\pi_2)]=[1/8,1/6]\\). Finally \\(\\mathsf{Check}(S^{\\star},1/8,\\mathcal T_{3,5})=\\mathrm{true}\\).",
+      "free_symbols": [
+        "N",
+        "mu",
+        "Mclass",
+        "F",
+        "S",
+        "Pclass",
+        "y",
+        "L",
+        "U",
+        "R",
+        "Wbar",
+        "Dstar",
+        "MILP",
+        "vstar",
+        "Check",
+        "E35",
+        "Tree35"
+      ],
+      "depends_on": [
+        "def:three-cell-five-arm-instance",
+        "def:three-cell-five-arm-tree",
+        "thm:sharp-common-endpoints",
+        "thm:width-identity",
+        "prop:milp-equivalence",
+        "prop:certificate-sound-complete"
+      ],
+      "status": "to-prove",
+      "justification": "The bounded exact instance independently exposes every arithmetic layer of the causal theorem, optimizer, and checker.",
+      "gap": "The instance is a falsification audit, not a novelty claim; unlike generic robust-location examples, it displays the compatible causal endpoint schedules that generate the exact width.",
+      "consumer": "An independent implementation can use these rational values and leaf bounds as a mandatory regression test before optimizing larger trial libraries."
+    },
+    {
+      "id": "oeq:certificate-compression",
+      "kind": "openendedquestion",
+      "statement": "Can \\(\\mathsf{Handle}\\) be turned into a deterministic rational certificate generator and independently implemented checker such that acceptance proves global optimality, every three-cell instance with at most five candidate arms agrees exactly with exhaustive enumeration, and nontrivial structural conditions on the action-score cost tensor guarantee a certificate of size polynomial in \\(|\\mathcal C|+|\\mathcal F|+|\\mathcal X|\\)?",
+      "free_symbols": [
+        "X",
+        "C",
+        "F",
+        "d",
+        "Handle"
+      ],
+      "depends_on": [
+        "def:compression-handle",
+        "prop:certificate-sound-complete",
+        "prop:np-hardness"
+      ],
+      "status": "to-prove",
+      "justification": "The exhaustive checker is settled infrastructure but may be exponential; the open content is whether the causal action-score structure yields compact proof objects on meaningful subclasses.",
+      "gap": "AnthonyGoyalGuptaNagarajan2010 gives logarithmic approximation for robust \\(k\\)-median, and generic VIPR work gives exact proof logs; neither supplies compact exact certificates for this causal tensor.",
+      "consumer": "The result would let clinical trial planners archive compact, durable evidence that a chosen multi-model panel is exactly optimal."
+    }
+  ],
+  "sampling_model": {
+    "design": "A sampled panel \\(\\varnothing\\neq S\\in\\mathcal P_k\\) is chosen ex ante, with \\(n_c\\in\\mathbb N_{>0}\\) for every \\(c\\in S\\) and \\(\\sum_{c\\in S}n_c=N\\); the \\(N\\) fixed units are assigned uniformly over the corresponding multi-arm partitions. The panel \\(S=\\varnothing\\) is a separate deterministic population-width case with no assignment law.",
+    "units": "The covariates \\(x_i\\) and the full potential-outcome schedule \\(Y_i(a,t)\\) are fixed; only the assignment \\(Z\\) is random.",
+    "treatment": "Assignment to arm \\(c\\) deploys the deterministic action \\(c(x_i)\\) at known score \\(m_c\\).",
+    "overlap": "For sampled designs, \\(S\\neq\\varnothing\\), every selected arm has \\(n_c\\geq1\\), and the in-scope arm counts sum to \\(N\\); no positive realized arm-by-cell count is required by the Horvitz--Thompson construction.",
+    "nuisance_estimation": "There is no estimated propensity. Simultaneous without-replacement bounds are constructed for the selected arm-cell means and propagated deterministically through the sharp endpoint maps."
+  },
+  "estimand_functional": "\\(\\overline W(S)=\\max_{\\pi\\in\\mathcal F}\\sum_{x\\in\\mathcal X}q_x\\min(\\{1\\}\\cup\\{d_{\\pi xc}:c\\in S\\})\\)",
+  "target_estimand": "\\(V_{\\mu}(\\pi)=\\sum_{x\\in\\mathcal X}q_x\\mu_{x,\\pi(x)}(m_{\\pi})\\)",
+  "bibliography": [
+    {
+      "key": "ChenOberst2025",
+      "citation": "Jacob M. Chen and Michael Oberst. Just Trial Once: Ongoing Causal Validation of Machine Learning Models. Uncertainty in Artificial Intelligence, 2025. \\(\\texttt{arXiv:2502.09467}\\)."
+    },
+    {
+      "key": "MontielOleaPrallonQiuStoyeSun2025",
+      "citation": "Jose Luis Montiel Olea, Brenda Prallon, Chen Qiu, Jorg Stoye, and Yiwei Sun. Externally Valid Selection of Experimental Sites via the k-Median Problem. ACM Conference on Economics and Computation, 2025. \\(\\texttt{arXiv:2408.09187}\\)."
+    },
+    {
+      "key": "CheungGleixnerSteffy2017",
+      "citation": "Kevin K. H. Cheung, Ambros Gleixner, and Daniel E. Steffy. Verifying Integer Programming Results. Integer Programming and Combinatorial Optimization, 2017, pp. 148--160. DOI: \\(10.1007/978-3-319-59250-3\\_13\\)."
+    },
+    {
+      "key": "Szeider2026",
+      "citation": "Stefan Szeider. VIPR Certificate Construction from Black-Box ILP Solvers. International Conference on Principles and Practice of Constraint Programming, 2026, article 52. DOI: \\(10.4230/LIPIcs.CP.2026.52\\)."
+    },
+    {
+      "key": "Higbee2025NewTreatments",
+      "citation": "Samuel D. Higbee. Policy Learning with New Treatments. Quantitative Economics, 2025. DOI: \\(10.3982/QE2477\\)."
+    },
+    {
+      "key": "CaugheyDafoeLiMiratrix2023",
+      "citation": "Devin Caughey, Allan Dafoe, Xinran Li, and Luke Miratrix. Randomization Inference beyond the Sharp Null: Bounded Null Hypotheses and Quantiles of Individual Treatment Effects. Journal of the Royal Statistical Society Series B, 2023. DOI: \\(10.1093/jrsssb/qkad080\\)."
+    },
+    {
+      "key": "HadadHirshbergZhanWagerAthey2021",
+      "citation": "Vitor Hadad, David A. Hirshberg, Ruohan Zhan, Stefan Wager, and Susan Athey. Confidence Intervals for Policy Evaluation in Adaptive Experiments. Proceedings of the National Academy of Sciences, 2021. DOI: \\(10.1073/pnas.2014602118\\)."
+    },
+    {
+      "key": "ArmstrongKolesar2021",
+      "citation": "Timothy B. Armstrong and Michal Kolesar. Finite-Sample Optimal Estimation and Inference on Average Treatment Effects Under Unconfoundedness. Econometrica, 2021. DOI: \\(10.3982/ECTA16907\\)."
+    },
+    {
+      "key": "Hoeffding1963",
+      "citation": "Wassily Hoeffding. Probability Inequalities for Sums of Bounded Random Variables. Journal of the American Statistical Association, 1963, 58(301):13--30."
+    },
+    {
+      "key": "AnthonyGoyalGuptaNagarajan2010",
+      "citation": "Barbara M. Anthony, Vineet Goyal, Anupam Gupta, and Viswanath Nagarajan. A Plant Location Guide for the Unsure: Approximation Algorithms for Min-Max Location Problems. Mathematics of Operations Research, 2010, 35(1):79--101. DOI: \\(10.1287/moor.1090.0428\\)."
+    },
+    {
+      "key": "HochbaumPathria1998",
+      "citation": "Dorit S. Hochbaum and Anu Pathria. Analysis of the Greedy Approach in Problems of Maximum \\(k\\)-Coverage. Naval Research Logistics, 1998, 45(6):615--627. DOI: \\(10.1002/(\\mathrm{SICI})1520\\text{-}6750(199809)45{:}6<615{::}\\mathrm{AID}\\text{-}\\mathrm{NAV}5>3.0.\\mathrm{CO};2\\text{-}5\\)."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ChenOberst2025",
+      "comparator_claim": "Our bounds are tight, and cannot be improved without further assumptions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "MontielOleaPrallonQiuStoyeSun2025",
+      "comparator_claim": "The worst-case regret is approximately equal---and sometimes exactly equal---to the objective function of a k-median problem.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CheungGleixnerSteffy2017",
+      "comparator_claim": "The certificate format is designed with simplicity in mind.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Szeider2026",
+      "comparator_claim": "Our approach treats the ILP solver as a black-box oracle.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CaugheyDafoeLiMiratrix2023",
+      "comparator_claim": "The proposed confidence intervals for all effect quantiles are simultaneously valid.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Higbee2025NewTreatments",
+      "comparator_claim": "The empirical minimax regret estimator is computationally tractable and possesses favorable regret convergence properties.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HadadHirshbergZhanWagerAthey2021",
+      "comparator_claim": "Our approach relies on constructing averaging estimators where the weights are carefully adapted.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Hoeffding1963",
+      "comparator_claim": "Probability inequalities are obtained for sums of bounded random variables.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AnthonyGoyalGuptaNagarajan2010",
+      "comparator_claim": "There is a combinatorial \\(O(\\log m+\\log k)\\)-approximation algorithm for the robust \\(k\\)-median problem.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HochbaumPathria1998",
+      "comparator_claim": "Greedily constructed maximum \\(k\\)-coverage solutions are guaranteed to be within a factor \\(1-1/e\\) of optimal.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "One randomized panel of deterministic machine-learning policies must support sharp causal validation of an entire prespecified update library. With fixed \\([0,1]\\)-valued potential outcomes, a neutral action, and monotone \\(\\Gamma\\)-Lipschitz finite-population mean responses, two common compatible response schedules attain all lower and upper library endpoints, and two observationally indistinguishable schedules yield an exact prospective width equal to a maximum of weighted nearest matching-score costs. The resulting robust nearest-facility optimization is established combinatorial infrastructure, not the field novelty: a rational mixed-integer representation and an independently checked exhaustive tree implement the causally derived objective. Complete randomization over a nonempty panel with positive arm counts summing to \\(N\\) gives simultaneous finite-sample assignment-only coverage; the empty panel remains a separate deterministic width-one case.",
+  "project_justification": {
+    "gap": "ChenOberst2025 supplies reusable causal validation bounds but not a prospective sharp-width identity for choosing a finite policy panel. AnthonyGoyalGuptaNagarajan2010 already supplies the scenario min-max nearest-facility skeleton, MontielOleaPrallonQiuStoyeSun2025 supplies the closest causal k-median analogy, and HochbaumPathria1998 supplies the zero-sensitivity maximum-coverage boundary.",
+    "niche": "The open field niche is causal rather than combinatorial: derive the exact design loss from observational equivalence of fixed finite-population response schedules while retaining one common pair of endpoint schedules for every future policy.",
+    "fill": "The project proves common sharp endpoint schedules, the attained prospective causal-width identity, and simultaneous randomization-only outer coverage. The mixed-integer program, independently checked exhaustive tree, maximum-coverage reduction, and explicit rational instance are implementation corollaries and falsification infrastructure for those causal results."
+  },
+  "related_work": "Chen and Oberst (2025, Introduction, Section 4, Remark 3.1, and Appendix D.1) establish the reusable-validation model, tight monotonicity bounds, and qualitative multi-model trial guidance; the present field delta is the bounded Lipschitz common-schedule theorem and the exact prospective causal width. Anthony, Goyal, Gupta, and Nagarajan (2010, Section 2 and Theorem 2.2) define robust min-max \\(k\\)-median and prove a logarithmic approximation. The present action-match exclusions, neutral-action convention, and clipped score costs embed after the metric lift \\(\\delta=1+d\\) into their weighted candidate-restricted scenario nearest-facility skeleton; candidate eligibility, weights, a dummy, and an at-most-\\(k\\) budget are routine departures, so neither the optimization skeleton nor its approximation theory is claimed as novel. Montiel Olea, Prallon, Qiu, Stoye, and Sun (2025, Theorem 1 and Appendix A.2) connect causal site selection to \\(k\\)-median for external-validity regret and inform the least-favorable construction, but study a different estimand. Hochbaum and Pathria (1998, abstract and main development) prove the standard greedy guarantee for maximum \\(k\\)-coverage; at \\(\\Gamma=0\\) the one-future-policy panel problem is exactly weighted maximum coverage. Cheung, Gleixner, and Steffy (2017) and Szeider (2026) provide the general exact rational proof-log foundation, making the branch tree an implementation device rather than a generic certification contribution. Higbee (2025) studies common shape-constrained response curves for new treatments. Caughey, Dafoe, Li, and Miratrix (2023) establish finite-sample randomization-only simultaneous inference for a different causal family, while Hadad, Hirshberg, Zhan, Wager, and Athey (2021) study asymptotic adaptive policy evaluation. Hoeffding (1963) supplies the sampling-without-replacement concentration comparison.",
+  "technical_internal_limitation": "The common endpoint schedules establish simultaneous marginal lower and upper corners, not rectangularity of the full joint value set. The facility-location metric lift uses a weighted candidate-restricted variant of the Anthony--Goyal--Gupta--Nagarajan class; it does not transfer their approximation ratio verbatim to every implementation convention. The elementary certificate is complete because exhaustive branching is always available, but its worst-case size is exponential. Its checker must recompute \\(\\overline W(S^{\\star})=v^{\\star}\\), verify the root and both children of every internal node, and verify every leaf bound; neither \\(D^{\\star}\\) nor global optimality is certificate data. The outer confidence intervals use conservative \\(q_x^{-1}\\) inflation and are not claimed shortest. Scores, libraries, \\(\\Gamma\\), and the budget are fixed before assignment.",
+  "honest_scope": "The field obligations are the common causal endpoint schedules, the exact prospective width derived from observationally indistinguishable finite-population schedules, and simultaneous assignment-only coverage. The mixed-integer representation, exhaustive certificate, robust \\(k\\)-median lift, maximum-coverage boundary, and worked instance are supporting propositions. The unresolved first-class question is whether dominance and symmetry yield practical exact certificate generators and polynomial certificate sizes on a meaningful structural class. The proposal does not optimize allocation, estimate future scores, or claim a rectangular joint value set. At \\(\\Gamma=0\\), the width reduces to established weighted unmatched-action coverage.",
+  "seeds": [
+    "seed:certified-panel",
+    "seed:joint-support-allocation",
+    "seed:joint-value-polytope",
+    "seed:randomization-only-bands",
+    "seed:gamma-frontier",
+    "seed:randomized-panel",
+    "seed:approximation-certificate",
+    "seed:adaptive-library"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:certified-panel",
+      "rank": 1,
+      "anchor": "ChenOberst2025",
+      "anchor_location": "Introduction, Section 4, Remark 3.1, and Appendix D.1 of arXiv:2502.09467v2",
+      "opportunity": "Derive common sharp endpoint schedules and the exact worst-case reusable-validation width from observationally indistinguishable finite-population responses, then implement the resulting rational design with an auditable optimizer.",
+      "motif": "M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace qualitative trial-diversity guidance by one common pair of envelope schedules and a least-favorable two-response construction that turns the prospective causal diameter into a weighted nearest-matching-score objective.",
+      "destination_search": "Searches found reusable causal bounds, robust min-max \\(k\\)-median, causal site-selection \\(k\\)-median, maximum coverage, and generic exact certificates separately, but no theorem deriving this scenario cost as the sharp reusable-policy width of indistinguishable finite-population response schedules.",
+      "red_team": "The result is only a restatement of robust \\(k\\)-median or maximum coverage.",
+      "rebuttal": "The optimization class is established and is credited as such. The field claim is the causal equality between that cost and the sharp prospective diameter, including common endpoint schedules and explicit observationally indistinguishable witnesses.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "disposition": "selected"
+    },
+    {
+      "id": "seed:joint-support-allocation",
+      "rank": 2,
+      "anchor": "HadadHirshbergZhanWagerAthey2021",
+      "anchor_location": "Introduction, Sections 2.2--2.3, Appendix C.5, and Section 6 of arXiv:1911.02768v4",
+      "opportunity": "Jointly choose a panel and complete-randomization arm sizes to minimize the worst simultaneous finite-sample outer-interval diameter over the future library.",
+      "motif": "M13",
+      "target_tier": "flagship",
+      "first_changed_proof_step": "Replace asymptotic variance stabilization for a fixed adaptive support by a finite-population modulus that couples Lipschitz extrapolation width with without-replacement sampling error.",
+      "destination_search": "The adjacent literature optimizes inference weights or site support, but the exact mixed discrete-continuous minimax diameter for reusable partially identified policy values was not located.",
+      "red_team": "Immediate by adding a Hoeffding radius to the population nearest-score objective and applying Neyman allocation.",
+      "rebuttal": "The maximum over policies and action-matching cells couples discrete support with all arm sizes, so separable Neyman allocation does not apply; a matching lower modulus is also missing.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "disposition": "survived-not-selected"
+    },
+    {
+      "id": "seed:joint-value-polytope",
+      "rank": 3,
+      "anchor": "Higbee2025NewTreatments",
+      "anchor_location": "Sections 2.2--4.4, Section 6, and Appendix D of arXiv:2210.04703v4",
+      "opportunity": "Characterize the support function of the complete joint identified set of a finite future-policy value vector under one common monotone Lipschitz response table.",
+      "motif": "M10+M8",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace separate endpoint optimization by a shared-response support-function program for an arbitrary contrast vector and characterize which marginal endpoint faces are jointly attainable.",
+      "destination_search": "Shape-constrained policy learning treats common response curves and optimized regret, but no complete reusable-library value polytope or all-contrast support formula was found.",
+      "red_team": "Immediate as the linear image of Higbee's response polytope.",
+      "rebuttal": "Linear-image existence is immediate, but an explicit support representation, endpoint-face compatibility criterion, and simultaneous inference are not supplied by that observation.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 4
+      },
+      "disposition": "survived-not-selected"
+    },
+    {
+      "id": "seed:randomization-only-bands",
+      "rank": 4,
+      "anchor": "CaugheyDafoeLiMiratrix2023",
+      "anchor_location": "Sections 1.3, 2, 4--5, Theorem 2, and Section 9 of arXiv:2101.09195v2",
+      "opportunity": "Construct simultaneous finite-sample assignment-only bands for every optimized reusable-validation endpoint with fixed potential outcomes.",
+      "motif": "M12",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace bounded-null inversion for unit-level treatment effects by one confidence event for all selected arm-cell finite-population means and prove deterministic propagation through every max-min endpoint map.",
+      "destination_search": "Exact randomization inversion and reusable validation were found separately; their composition for shape-optimized policy endpoints was not found.",
+      "red_team": "Immediate from a union bound over arm-cell means.",
+      "rebuttal": "A valid finite-population construction must avoid superpopulation independence and zero realized cell counts, and the theorem must show one primitive event covers all optimized endpoints without a policy-library penalty.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 5
+      },
+      "disposition": "supporting-result"
+    },
+    {
+      "id": "seed:gamma-frontier",
+      "rank": 5,
+      "anchor": "ChenOberst2025",
+      "anchor_location": "Assumption 3.1, Remark 3.1, Section 4, and Section 6 of arXiv:2502.09467v2",
+      "opportunity": "Compute the exact rational critical values of the Lipschitz sensitivity parameter at which the optimal panel or a policy-dominance conclusion changes.",
+      "motif": "M3+M13",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace fixed-assumption endpoint evaluation by the lower arrangement of clipped piecewise-linear panel objectives and track optimizer switches jointly with conclusion switches.",
+      "destination_search": "Breakdown frontiers and smoothness-indexed honest inference exist, but a certified assumption-indexed panel correspondence was not found.",
+      "red_team": "Immediate parametric sensitivity analysis once every panel objective is piecewise linear.",
+      "rebuttal": "The lower envelope over exponentially many panels can switch at intersections not inherited from any individual panel's knots; exact enumeration and uniform inference require new analysis.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "disposition": "deferred"
+    },
+    {
+      "id": "seed:randomized-panel",
+      "rank": 6,
+      "anchor": "MontielOleaPrallonQiuStoyeSun2025",
+      "anchor_location": "Theorem 1, Section 6.2, Lemma 3, Section 7, and Appendix A.2 of arXiv:2408.09187",
+      "opportunity": "Characterize when randomization over feasible trial panels strictly improves minimax reusable-validation recovery relative to purposive panel choice.",
+      "motif": "M13+M6",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace the pointwise maximum of deterministic panel diameters by a zero-sum game between a panel distribution and a future-policy response adversary, then derive an exact strict-gain condition.",
+      "destination_search": "The site-selection paper exhibits value from randomized site choice in a special problem, while no matching characterization for action-constrained reusable-validation panels was located.",
+      "red_team": "Randomization cannot help because the adversary observes the realized panel.",
+      "rebuttal": "The information structure is decisive: ex ante randomization can help when the response adversary is fixed before the panel draw, so the seed asks for the exact timing-dependent frontier rather than assuming a gain.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 3
+      },
+      "disposition": "deferred"
+    },
+    {
+      "id": "seed:approximation-certificate",
+      "rank": 7,
+      "anchor": "MontielOleaPrallonQiuStoyeSun2025",
+      "anchor_location": "Sections 1 and 3, Theorem 1, Section 7, and Appendix A.2 of arXiv:2408.09187",
+      "opportunity": "Give a polynomial-time panel rule with an observable approximation-gap certificate for the robust maximum of weighted nearest-matching-score costs.",
+      "motif": "M13",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "The usual single-client k-median approximation must be replaced because taking a maximum over future-policy scenarios destroys the standard summed metric objective.",
+      "destination_search": "Robust facility-location algorithms were found, but no result was found that preserves action-match exclusions and provides a data-computed gap for this causal width.",
+      "red_team": "Immediate robust k-median after treating each future policy as a scenario.",
+      "rebuttal": "Standard robust k-median guarantees do not automatically respect the dummy cost and action-specific admissible facilities; a useful seed needs a certified ratio for this exact geometry.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "disposition": "deferred"
+    },
+    {
+      "id": "seed:adaptive-library",
+      "rank": 8,
+      "anchor": "HadadHirshbergZhanWagerAthey2021",
+      "anchor_location": "Introduction, Sections 2.1--2.3, Section 6, and Appendix C of arXiv:1911.02768v4",
+      "opportunity": "Design an adaptive arm-expansion rule that admits new candidate model versions during the trial while retaining simultaneous reusable-validation coverage.",
+      "motif": "M14+M13",
+      "target_tier": "flagship",
+      "first_changed_proof_step": "Replace fixed-library martingale scores by predictable arm-entry and score-query maps, then control optional selection of both support and future targets.",
+      "destination_search": "Adaptive policy-value inference exists for a fixed arm set, but no adaptive support-expansion theorem for deterministic model-update validation was located.",
+      "red_team": "Immediate from adaptively weighted inverse-propensity scores.",
+      "rebuttal": "Those scores address outcome-adaptive allocation among fixed arms; they do not resolve data-dependent entry of deterministic policies or simultaneous partial-identification endpoints for later targets.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 5
+      },
+      "disposition": "dropped-for-feasibility"
+    }
+  ],
+  "literature_map": [
+    {
+      "thread": "Reusable causal validation",
+      "candidate_ids": [
+        "seed:certified-panel",
+        "seed:joint-support-allocation",
+        "seed:joint-value-polytope"
+      ],
+      "sources": [
+        "ChenOberst2025"
+      ],
+      "settled": "Chen and Oberst derive tight monotonicity-based bounds for an untried deterministic model and recommend trialing multiple diverse models.",
+      "open_boundary": "Their Section 4 does not define a budgeted minimax panel objective, an exact optimizer, or an auditable global-optimality certificate.",
+      "used_as": "Writing exemplar and causal setup."
+    },
+    {
+      "thread": "Causal support selection",
+      "candidate_ids": [
+        "seed:certified-panel",
+        "seed:joint-support-allocation",
+        "seed:joint-value-polytope"
+      ],
+      "sources": [
+        "MontielOleaPrallonQiuStoyeSun2025"
+      ],
+      "settled": "Under stated heterogeneity conditions, purposive site selection is approximately and sometimes exactly a k-median problem; Appendix A.2 constructs a least-favorable Lipschitz response.",
+      "open_boundary": "The target is welfare regret across sites, not the sharp reusable-policy diameter generated by common endpoint schedules and observationally indistinguishable action-score response schedules.",
+      "used_as": "Causal nearest-facility and least-favorable-construction comparator."
+    },
+    {
+      "thread": "Exact integer-program verification",
+      "candidate_ids": [
+        "seed:certified-panel",
+        "seed:joint-support-allocation"
+      ],
+      "sources": [
+        "CheungGleixnerSteffy2017",
+        "Szeider2026"
+      ],
+      "settled": "Solver-independent proof logs can certify integer-program claims by exact rational inference, and black-box solver output can be rationalized into VIPR certificates.",
+      "open_boundary": "These sources make exact certification established infrastructure; the remaining open implementation question is whether the causal action-score tensor admits compact exact trees.",
+      "used_as": "Proof-carrying implementation foundation, not a field novelty target."
+    },
+    {
+      "thread": "Shape-constrained policy choice",
+      "candidate_ids": [
+        "seed:certified-panel",
+        "seed:joint-value-polytope"
+      ],
+      "sources": [
+        "Higbee2025NewTreatments"
+      ],
+      "settled": "Higbee treats common shape-constrained response curves through nested optimization and proves regret convergence for an empirical minimax policy.",
+      "open_boundary": "That work does not select the original trial panel or collapse its prospective identification diameter to a closed-form nearest-score cost.",
+      "used_as": "Adjacent check against a hidden common-response or minimax-regret subsumption."
+    },
+    {
+      "thread": "Finite-population randomization inference",
+      "candidate_ids": [
+        "seed:joint-support-allocation",
+        "seed:joint-value-polytope"
+      ],
+      "sources": [
+        "CaugheyDafoeLiMiratrix2023",
+        "Hoeffding1963"
+      ],
+      "settled": "Randomization inversion gives exact simultaneous statements for effect quantiles, and sampling-without-replacement concentration controls bounded finite-population means.",
+      "open_boundary": "Neither source propagates one arm-cell confidence event through sharp monotone-Lipschitz reusable-policy endpoint programs.",
+      "used_as": "Inference foundation for the assignment-only simultaneous outer bands."
+    },
+    {
+      "thread": "Inference after adaptive experiments",
+      "candidate_ids": [
+        "seed:joint-support-allocation",
+        "seed:joint-value-polytope"
+      ],
+      "sources": [
+        "HadadHirshbergZhanWagerAthey2021"
+      ],
+      "settled": "Adaptively weighted unbiased scores yield asymptotically normal policy-value statistics under a fixed adaptive experiment.",
+      "open_boundary": "The result is asymptotic and does not jointly choose a deterministic model panel for minimax partial-identification width.",
+      "used_as": "Adjacent scan confirming that the selected kernel is a design problem rather than a reweighting result."
+    },
+    {
+      "thread": "Robust scenario facility location",
+      "candidate_ids": [
+        "seed:certified-panel",
+        "seed:approximation-certificate"
+      ],
+      "sources": [
+        "AnthonyGoyalGuptaNagarajan2010"
+      ],
+      "settled": "Anthony, Goyal, Gupta, and Nagarajan define robust \\(k\\)-median as one facility set minimizing the largest summed nearest-facility distance across client scenarios and prove a logarithmic approximation in Section 2, Theorem 2.2.",
+      "open_boundary": "The action exclusions, neutral convention, and clipped score distances embed into a weighted candidate-restricted scenario metric after a constant-shift lift. That makes the optimization skeleton prior art; the causal derivation of those costs from indistinguishable response schedules is outside their model.",
+      "used_as": "Closest optimization class and approximation benchmark."
+    },
+    {
+      "thread": "Maximum coverage boundary",
+      "candidate_ids": [
+        "seed:certified-panel"
+      ],
+      "sources": [
+        "HochbaumPathria1998"
+      ],
+      "settled": "Hochbaum and Pathria analyze maximum \\(k\\)-coverage and establish the \\(1-1/e\\) greedy guarantee in the abstract and main development.",
+      "open_boundary": "At \\(\\Gamma=0\\) and one future policy, the causal panel objective is exactly weighted uncovered mass, so its hardness and greedy skeleton are established coverage facts rather than field novelty.",
+      "used_as": "Boundary-case complexity and approximation benchmark."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Chen and Oberst",
+      "year": 2025,
+      "venue": "Uncertainty in Artificial Intelligence",
+      "bibkey": "ChenOberst2025",
+      "one_line": "Tight reusable bounds and qualitative multi-model trial guidance, without exact budgeted panel selection.",
+      "relevant_to": "thm:sharp-common-endpoints"
+    },
+    {
+      "author": "Montiel Olea, Prallon, Qiu, Stoye, and Sun",
+      "year": 2025,
+      "venue": "ACM Conference on Economics and Computation",
+      "bibkey": "MontielOleaPrallonQiuStoyeSun2025",
+      "one_line": "Causal site selection reduces approximately, and sometimes exactly, to k-median under specified heterogeneity conditions.",
+      "relevant_to": "thm:width-identity"
+    },
+    {
+      "author": "Cheung, Gleixner, and Steffy",
+      "year": 2017,
+      "venue": "Integer Programming and Combinatorial Optimization",
+      "bibkey": "CheungGleixnerSteffy2017",
+      "one_line": "A solver-independent certificate format verifies mixed-integer results with exact rational arithmetic.",
+      "relevant_to": "prop:certificate-sound-complete"
+    },
+    {
+      "author": "Szeider",
+      "year": 2026,
+      "venue": "International Conference on Principles and Practice of Constraint Programming",
+      "bibkey": "Szeider2026",
+      "one_line": "Black-box integer solvers can be converted into independently checkable VIPR certificates by rationalization.",
+      "relevant_to": "oeq:certificate-compression"
+    },
+    {
+      "author": "Higbee",
+      "year": 2025,
+      "venue": "Quantitative Economics",
+      "bibkey": "Higbee2025NewTreatments",
+      "one_line": "Common shape-constrained response curves yield nonrectangular minimax policy problems for untried treatments.",
+      "relevant_to": "thm:sharp-common-endpoints"
+    },
+    {
+      "author": "Caughey, Dafoe, Li, and Miratrix",
+      "year": 2023,
+      "venue": "Journal of the Royal Statistical Society Series B",
+      "bibkey": "CaugheyDafoeLiMiratrix2023",
+      "one_line": "Randomization-test inversion yields finite-sample simultaneous confidence statements under fixed potential outcomes.",
+      "relevant_to": "thm:design-based-coverage"
+    },
+    {
+      "author": "Hadad, Hirshberg, Zhan, Wager, and Athey",
+      "year": 2021,
+      "venue": "Proceedings of the National Academy of Sciences",
+      "bibkey": "HadadHirshbergZhanWagerAthey2021",
+      "one_line": "Adaptive weighting restores asymptotically normal policy-value inference under adaptive assignment.",
+      "relevant_to": "thm:design-based-coverage"
+    },
+    {
+      "author": "Hoeffding",
+      "year": 1963,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "Hoeffding1963",
+      "one_line": "Sampling without replacement is no less concentrated than sampling with replacement for bounded finite populations.",
+      "relevant_to": "thm:design-based-coverage"
+    },
+    {
+      "author": "Anthony, Goyal, Gupta, and Nagarajan",
+      "year": 2010,
+      "venue": "Mathematics of Operations Research",
+      "bibkey": "AnthonyGoyalGuptaNagarajan2010",
+      "one_line": "Section 2 and Theorem 2.2 define scenario min-max nearest-facility cost and give a logarithmic approximation; the present cost tensor fits its weighted candidate-restricted skeleton after a metric lift.",
+      "relevant_to": "prop:robust-kmedian-lift"
+    },
+    {
+      "author": "Hochbaum and Pathria",
+      "year": 1998,
+      "venue": "Naval Research Logistics",
+      "bibkey": "HochbaumPathria1998",
+      "one_line": "Maximum \\(k\\)-coverage has the standard greedy \\(1-1/e\\) guarantee and is exactly the one-future-policy, zero-sensitivity boundary of the panel objective.",
+      "relevant_to": "prop:np-hardness"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":\"ChenOberst2025 supplies tight reusable-validation bounds but no prospective sharp-width design identity. AnthonyGoyalGuptaNagarajan2010 supplies the closest optimization class, robust scenario k-median, and MontielOleaPrallonQiuStoyeSun2025 supplies the closest causal nearest-facility reduction. HochbaumPathria1998 settles the zero-sensitivity maximum-coverage skeleton.\",\"kernel\":\"The field theorem constructs one compatible lower schedule and one compatible upper schedule for an entire future-policy library, then derives the exact prospective causal width from two observationally indistinguishable fixed finite-population response schedules. This causal equality produces the action-constrained clipped nearest-score tensor before any facility-location method is invoked.\",\"occupancy_check\":\"The named optimization comparators show that the resulting max-over-scenarios nearest-facility problem is not a new combinatorial class. The checked reusable-validation and causal site-selection sources do not state the common bounded-Lipschitz endpoint schedules or the indistinguishable-schedule width identity for deterministic policy bundles.\",\"strict_delta\":\"Relative to reusable-validation bounds, the strict delta is an ex-ante exact minimax identity and common library-wide endpoint attainability under bounded monotone Lipschitz score response. The MILP, exhaustive rational checker, and maximum-coverage reduction are expressly supporting corollaries, not generic optimization or certification advances.\",\"target_tier\":\"field\"}"
+}
